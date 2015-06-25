@@ -1,0 +1,11 @@
+Regions    : 40870
+Bases      : 8487645
+Chromosomes: 6 (8, 9, 10, 11, X, Y)
+
+Is sorted  : yes
+Is merged  : yes
+
+Fragment size (min)  : 119
+Fragment size (max)  : 17351
+Fragment size (mean) : 207.67
+Fragment size (stdev): 288.96

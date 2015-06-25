@@ -1,0 +1,86 @@
+#include "ToolBase.h"
+#include "Helper.h"
+#include "FastqFileStream.h"
+#include <QSet>
+#include <QFile>
+
+class ConcreteTool
+		: public ToolBase
+{
+	Q_OBJECT
+
+public:
+	ConcreteTool(int& argc, char *argv[])
+		: ToolBase(argc, argv)
+	{
+	}
+
+	virtual void setup()
+	{
+		setDescription("Extracts reads from a FASTQ file according to an ID list. Trims the reads if lengths are given.");
+		addInfile("in", "Input FASTQ file (gzipped or plain).", false);
+		addInfile("ids", "Input TSV file containing IDs (without the '@') in the first column and optional length in the second column.", false);
+		addOutfile("out", "Output FASTQ file.", false);
+	}
+
+	virtual void main()
+	{
+		//load ids and lengths
+		QHash<QByteArray, int> ids;
+		QScopedPointer<QFile> file(Helper::openFileForReading(getInfile("ids")));
+		while (!file->atEnd())
+		{
+			QByteArray line = file->readLine().trimmed();
+			if (line.isEmpty() || line[0]=='#') continue;
+			QList<QByteArray> parts = line.split('\t');
+			int length = -1;
+			if (parts.count()>1)
+			{
+				bool ok = false;
+				length = parts[1].toInt(&ok);
+				if (!ok) THROW(FileParseException, "Could not convert length value '" + parts[1] + "' to integer!");
+			}
+			ids.insert(parts[0], length);
+		}
+		file->close();
+
+		//open output stream
+		FastqOutfileStream outfile(getOutfile("out"), false);
+
+		//parse input and write output
+		FastqFileStream stream(getInfile("in"));
+		FastqEntry entry;
+		while (!stream.atEnd())
+		{
+			stream.readEntry(entry);
+
+			QByteArray id = entry.header.trimmed();
+			id = id.mid(1);
+			int comment_start = id.indexOf(' ');
+			if (comment_start!=-1) id = id.left(comment_start);
+			int length = ids.value(id, -2);
+			if (length==-2) //id not in list
+			{
+				continue;
+			}
+			else if (length==-1) //id is in list, but no length given
+			{
+				outfile.write(entry);
+			}
+			else if (length>=1) //id is in list and length given
+			{
+				entry.bases.resize(length);
+				entry.qualities.resize(length);
+				outfile.write(entry);
+			}
+		}
+	}
+};
+
+#include "main.moc"
+
+int main(int argc, char *argv[])
+{
+	ConcreteTool tool(argc, argv);
+	return tool.execute();
+}

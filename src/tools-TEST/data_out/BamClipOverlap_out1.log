@@ -1,0 +1,770 @@
+left:  5291 - 5367  l:   -   d:  124 ; m:  5341 ; o:  26  CIGAR  "76M"
+right:  5341 - 5415  l:   -   d:  -124 ; m:  5291 ; o:  26  CIGAR  "74M"
+ clip left from  5355  to  5367
+ clip right from  5342  to  5354
+-> left:  5291 - 5354  l:   -   d:  124 ; m:  5354 ; o:  26  CIGAR  "63M13S"
+-> right:  5354 - 5415  l:   -   d:  -124 ; m:  5291 ; o:  26  CIGAR  "13S61M"
+left:  5791 - 5851  l:   -   d:  -60 ; m:  5791 ; o:  60  CIGAR  "60M"
+right:  5791 - 5851  l:   -   d:  60 ; m:  5791 ; o:  60  CIGAR  "60M"
+ clip left from  5822  to  5851
+ clip right from  5792  to  5821
+-> left:  5791 - 5821  l:   -   d:  60 ; m:  5821 ; o:  60  CIGAR  "30M30S"
+-> right:  5821 - 5851  l:   -   d:  -60 ; m:  5791 ; o:  60  CIGAR  "30S30M"
+left:  5810 - 5885  l:   -   d:  84 ; m:  5819 ; o:  66  CIGAR  "75M"
+right:  5819 - 5894  l:   -   d:  -84 ; m:  5810 ; o:  66  CIGAR  "75M"
+ clip left from  5853  to  5885
+ clip right from  5820  to  5852
+-> left:  5810 - 5852  l:   -   d:  84 ; m:  5852 ; o:  66  CIGAR  "42M33S"
+-> right:  5852 - 5894  l:   -   d:  -84 ; m:  5810 ; o:  66  CIGAR  "33S42M"
+left:  5855 - 5931  l:   -   d:  141 ; m:  5920 ; o:  11  CIGAR  "76M"
+right:  5920 - 5996  l:   -   d:  -141 ; m:  5855 ; o:  11  CIGAR  "76M"
+ clip left from  5926  to  5931
+ clip right from  5921  to  5925
+-> left:  5855 - 5925  l:   -   d:  141 ; m:  5925 ; o:  11  CIGAR  "70M6S"
+-> right:  5925 - 5996  l:   -   d:  -141 ; m:  5855 ; o:  11  CIGAR  "5S71M"
+left:  5913 - 5989  l:   -   d:  86 ; m:  5924 ; o:  65  CIGAR  "76M"
+right:  5924 - 5999  l:   -   d:  -86 ; m:  5913 ; o:  65  CIGAR  "75M"
+ clip left from  5958  to  5989
+ clip right from  5925  to  5957
+-> left:  5913 - 5957  l:   -   d:  86 ; m:  5957 ; o:  65  CIGAR  "44M32S"
+-> right:  5957 - 5999  l:   -   d:  -86 ; m:  5913 ; o:  65  CIGAR  "33S42M"
+left:  5905 - 5981  l:   -   d:  97 ; m:  5926 ; o:  55  CIGAR  "76M"
+right:  5926 - 6002  l:   -   d:  -97 ; m:  5905 ; o:  55  CIGAR  "76M"
+ clip left from  5955  to  5981
+ clip right from  5927  to  5954
+-> left:  5905 - 5954  l:   -   d:  97 ; m:  5954 ; o:  55  CIGAR  "49M27S"
+-> right:  5954 - 6002  l:   -   d:  -97 ; m:  5905 ; o:  55  CIGAR  "28S48M"
+left:  5887 - 5963  l:   -   d:  126 ; m:  5937 ; o:  26  CIGAR  "76M"
+right:  5937 - 6013  l:   -   d:  -126 ; m:  5887 ; o:  26  CIGAR  "76M"
+ clip left from  5951  to  5963
+ clip right from  5938  to  5950
+-> left:  5887 - 5950  l:   -   d:  126 ; m:  5950 ; o:  26  CIGAR  "63M13S"
+-> right:  5950 - 6013  l:   -   d:  -126 ; m:  5887 ; o:  26  CIGAR  "13S63M"
+left:  5930 - 6006  l:   -   d:  84 ; m:  5938 ; o:  68  CIGAR  "76M"
+right:  5938 - 6014  l:   -   d:  -84 ; m:  5930 ; o:  68  CIGAR  "76M"
+ clip left from  5973  to  6006
+ clip right from  5939  to  5972
+-> left:  5930 - 5972  l:   -   d:  84 ; m:  5972 ; o:  68  CIGAR  "42M34S"
+-> right:  5972 - 6014  l:   -   d:  -84 ; m:  5930 ; o:  68  CIGAR  "34S42M"
+left:  5962 - 6036  l:   -   d:  -74 ; m:  5962 ; o:  74  CIGAR  "74M"
+right:  5962 - 6036  l:   -   d:  74 ; m:  5962 ; o:  74  CIGAR  "74M"
+ clip left from  6000  to  6036
+ clip right from  5963  to  5999
+-> left:  5962 - 5999  l:   -   d:  74 ; m:  5999 ; o:  74  CIGAR  "37M37S"
+-> right:  5999 - 6036  l:   -   d:  -74 ; m:  5962 ; o:  74  CIGAR  "37S37M"
+left:  5892 - 5968  l:   -   d:  147 ; m:  5963 ; o:  5  CIGAR  "76M"
+right:  5963 - 6039  l:   -   d:  -147 ; m:  5892 ; o:  5  CIGAR  "76M"
+ clip left from  5966  to  5968
+ clip right from  5964  to  5965
+-> left:  5892 - 5965  l:   -   d:  147 ; m:  5965 ; o:  5  CIGAR  "73M3S"
+-> right:  5965 - 6039  l:   -   d:  -147 ; m:  5892 ; o:  5  CIGAR  "2S74M"
+left:  5966 - 6035  l:   -   d:  -69 ; m:  5966 ; o:  69  CIGAR  "69M"
+right:  5966 - 6035  l:   -   d:  69 ; m:  5966 ; o:  69  CIGAR  "69M"
+ clip left from  6002  to  6035
+ clip right from  5967  to  6001
+-> left:  5966 - 6001  l:   -   d:  69 ; m:  6001 ; o:  69  CIGAR  "35M34S"
+-> right:  6001 - 6035  l:   -   d:  -69 ; m:  5966 ; o:  69  CIGAR  "35S34M"
+left:  5968 - 6013  l:   -   d:  -45 ; m:  5968 ; o:  45  CIGAR  "45M"
+right:  5968 - 6013  l:   -   d:  45 ; m:  5968 ; o:  45  CIGAR  "45M"
+ clip left from  5991  to  6013
+ clip right from  5969  to  5990
+-> left:  5968 - 5990  l:   -   d:  45 ; m:  5990 ; o:  45  CIGAR  "22M23S"
+-> right:  5990 - 6013  l:   -   d:  -45 ; m:  5968 ; o:  45  CIGAR  "22S23M"
+left:  5952 - 6028  l:   -   d:  106 ; m:  5982 ; o:  46  CIGAR  "76M"
+right:  5982 - 6058  l:   -   d:  -106 ; m:  5952 ; o:  46  CIGAR  "76M"
+ clip left from  6006  to  6028
+ clip right from  5983  to  6005
+-> left:  5952 - 6005  l:   -   d:  106 ; m:  6005 ; o:  46  CIGAR  "53M23S"
+-> right:  6005 - 6058  l:   -   d:  -106 ; m:  5952 ; o:  46  CIGAR  "23S53M"
+left:  5938 - 6014  l:   -   d:  122 ; m:  5984 ; o:  30  CIGAR  "76M"
+right:  5984 - 6060  l:   -   d:  -122 ; m:  5938 ; o:  30  CIGAR  "76M"
+ clip left from  6000  to  6014
+ clip right from  5985  to  5999
+-> left:  5938 - 5999  l:   -   d:  122 ; m:  5999 ; o:  30  CIGAR  "61M15S"
+-> right:  5999 - 6060  l:   -   d:  -122 ; m:  5938 ; o:  30  CIGAR  "15S61M"
+left:  5984 - 6052  l:   -   d:  -68 ; m:  5984 ; o:  68  CIGAR  "68M"
+right:  5984 - 6052  l:   -   d:  68 ; m:  5984 ; o:  68  CIGAR  "68M"
+ clip left from  6019  to  6052
+ clip right from  5985  to  6018
+-> left:  5984 - 6018  l:   -   d:  68 ; m:  6018 ; o:  68  CIGAR  "34M34S"
+-> right:  6018 - 6052  l:   -   d:  -68 ; m:  5984 ; o:  68  CIGAR  "34S34M"
+left:  5990 - 6051  l:   -   d:  -61 ; m:  5990 ; o:  61  CIGAR  "61M"
+right:  5990 - 6051  l:   -   d:  61 ; m:  5990 ; o:  61  CIGAR  "61M"
+ clip left from  6022  to  6051
+ clip right from  5991  to  6021
+-> left:  5990 - 6021  l:   -   d:  61 ; m:  6021 ; o:  61  CIGAR  "31M30S"
+-> right:  6021 - 6051  l:   -   d:  -61 ; m:  5990 ; o:  61  CIGAR  "31S30M"
+left:  5992 - 6042  l:   -   d:  -50 ; m:  5992 ; o:  50  CIGAR  "50M"
+right:  5992 - 6042  l:   -   d:  50 ; m:  5992 ; o:  50  CIGAR  "50M"
+ clip left from  6018  to  6042
+ clip right from  5993  to  6017
+-> left:  5992 - 6017  l:   -   d:  50 ; m:  6017 ; o:  50  CIGAR  "25M25S"
+-> right:  6017 - 6042  l:   -   d:  -50 ; m:  5992 ; o:  50  CIGAR  "25S25M"
+left:  5951 - 6027  l:   -   d:  120 ; m:  5995 ; o:  32  CIGAR  "76M"
+right:  5995 - 6071  l:   -   d:  -120 ; m:  5951 ; o:  32  CIGAR  "76M"
+ clip left from  6012  to  6027
+ clip right from  5996  to  6011
+-> left:  5951 - 6011  l:   -   d:  120 ; m:  6011 ; o:  32  CIGAR  "60M16S"
+-> right:  6011 - 6071  l:   -   d:  -120 ; m:  5951 ; o:  32  CIGAR  "16S60M"
+left:  5992 - 6068  l:   -   d:  79 ; m:  5995 ; o:  73  CIGAR  "76M"
+right:  5995 - 6071  l:   -   d:  -79 ; m:  5992 ; o:  73  CIGAR  "76M"
+ clip left from  6032  to  6068
+ clip right from  5996  to  6031
+-> left:  5992 - 6031  l:   -   d:  79 ; m:  6031 ; o:  73  CIGAR  "39M37S"
+-> right:  6031 - 6071  l:   -   d:  -79 ; m:  5992 ; o:  73  CIGAR  "36S40M"
+left:  5928 - 6004  l:   -   d:  144 ; m:  5996 ; o:  8  CIGAR  "76M"
+right:  5996 - 6072  l:   -   d:  -144 ; m:  5928 ; o:  8  CIGAR  "76M"
+ clip left from  6001  to  6004
+ clip right from  5997  to  6000
+-> left:  5928 - 6000  l:   -   d:  144 ; m:  6000 ; o:  8  CIGAR  "72M4S"
+-> right:  6000 - 6072  l:   -   d:  -144 ; m:  5928 ; o:  8  CIGAR  "4S72M"
+left:  5984 - 6060  l:   -   d:  88 ; m:  5996 ; o:  64  CIGAR  "76M"
+right:  5996 - 6072  l:   -   d:  -88 ; m:  5984 ; o:  64  CIGAR  "76M"
+ clip left from  6029  to  6060
+ clip right from  5997  to  6028
+-> left:  5984 - 6028  l:   -   d:  88 ; m:  6028 ; o:  64  CIGAR  "44M32S"
+-> right:  6028 - 6072  l:   -   d:  -88 ; m:  5984 ; o:  64  CIGAR  "32S44M"
+left:  6000 - 6072  l:   -   d:  -72 ; m:  6000 ; o:  72  CIGAR  "72M"
+right:  6000 - 6072  l:   -   d:  72 ; m:  6000 ; o:  72  CIGAR  "72M"
+ clip left from  6037  to  6072
+ clip right from  6001  to  6036
+-> left:  6000 - 6036  l:   -   d:  72 ; m:  6036 ; o:  72  CIGAR  "36M36S"
+-> right:  6036 - 6072  l:   -   d:  -72 ; m:  6000 ; o:  72  CIGAR  "36S36M"
+left:  5958 - 6032  l:   -   d:  126 ; m:  6008 ; o:  24  CIGAR  "74M"
+right:  6008 - 6084  l:   -   d:  -126 ; m:  5958 ; o:  24  CIGAR  "76M"
+ clip left from  6021  to  6032
+ clip right from  6009  to  6020
+-> left:  5958 - 6020  l:   -   d:  126 ; m:  6020 ; o:  24  CIGAR  "62M12S"
+-> right:  6020 - 6084  l:   -   d:  -126 ; m:  5958 ; o:  24  CIGAR  "12S64M"
+left:  5942 - 6018  l:   -   d:  142 ; m:  6008 ; o:  10  CIGAR  "76M"
+right:  6008 - 6084  l:   -   d:  -142 ; m:  5942 ; o:  10  CIGAR  "76M"
+ clip left from  6014  to  6018
+ clip right from  6009  to  6013
+-> left:  5942 - 6013  l:   -   d:  142 ; m:  6013 ; o:  10  CIGAR  "71M5S"
+-> right:  6013 - 6084  l:   -   d:  -142 ; m:  5942 ; o:  10  CIGAR  "5S71M"
+left:  5995 - 6070  l:   -   d:  91 ; m:  6010 ; o:  60  CIGAR  "75M"
+right:  6010 - 6086  l:   -   d:  -91 ; m:  5995 ; o:  60  CIGAR  "76M"
+ clip left from  6041  to  6070
+ clip right from  6011  to  6040
+-> left:  5995 - 6040  l:   -   d:  91 ; m:  6040 ; o:  60  CIGAR  "45M30S"
+-> right:  6040 - 6086  l:   -   d:  -91 ; m:  5995 ; o:  60  CIGAR  "30S46M"
+left:  6011 - 6085  l:   -   d:  78 ; m:  6014 ; o:  71  CIGAR  "74M"
+right:  6014 - 6089  l:   -   d:  -78 ; m:  6011 ; o:  71  CIGAR  "75M"
+ clip left from  6051  to  6085
+ clip right from  6015  to  6050
+-> left:  6011 - 6050  l:   -   d:  78 ; m:  6050 ; o:  71  CIGAR  "39M35S"
+-> right:  6050 - 6089  l:   -   d:  -78 ; m:  6011 ; o:  71  CIGAR  "36S39M"
+left:  5978 - 6054  l:   -   d:  113 ; m:  6015 ; o:  39  CIGAR  "76M"
+right:  6015 - 6091  l:   -   d:  -113 ; m:  5978 ; o:  39  CIGAR  "76M"
+ clip left from  6035  to  6054
+ clip right from  6016  to  6034
+-> left:  5978 - 6034  l:   -   d:  113 ; m:  6034 ; o:  39  CIGAR  "56M20S"
+-> right:  6034 - 6091  l:   -   d:  -113 ; m:  5978 ; o:  39  CIGAR  "19S57M"
+left:  6018 - 6092  l:   -   d:  -74 ; m:  6018 ; o:  74  CIGAR  "74M"
+right:  6018 - 6092  l:   -   d:  74 ; m:  6018 ; o:  74  CIGAR  "74M"
+ clip left from  6056  to  6092
+ clip right from  6019  to  6055
+-> left:  6018 - 6055  l:   -   d:  74 ; m:  6055 ; o:  74  CIGAR  "37M37S"
+-> right:  6055 - 6092  l:   -   d:  -74 ; m:  6018 ; o:  74  CIGAR  "37S37M"
+left:  6019 - 6086  l:   -   d:  -67 ; m:  6019 ; o:  67  CIGAR  "67M"
+right:  6019 - 6086  l:   -   d:  67 ; m:  6019 ; o:  67  CIGAR  "67M"
+ clip left from  6053  to  6086
+ clip right from  6020  to  6052
+-> left:  6019 - 6052  l:   -   d:  67 ; m:  6052 ; o:  67  CIGAR  "33M34S"
+-> right:  6052 - 6086  l:   -   d:  -67 ; m:  6019 ; o:  67  CIGAR  "33S34M"
+left:  5981 - 6055  l:   -   d:  118 ; m:  6023 ; o:  32  CIGAR  "74M"
+right:  6023 - 6099  l:   -   d:  -118 ; m:  5981 ; o:  32  CIGAR  "76M"
+ clip left from  6040  to  6055
+ clip right from  6024  to  6039
+-> left:  5981 - 6039  l:   -   d:  118 ; m:  6039 ; o:  32  CIGAR  "58M16S"
+-> right:  6039 - 6099  l:   -   d:  -118 ; m:  5981 ; o:  32  CIGAR  "16S60M"
+left:  5967 - 6043  l:   -   d:  135 ; m:  6026 ; o:  17  CIGAR  "76M"
+right:  6026 - 6102  l:   -   d:  -135 ; m:  5967 ; o:  17  CIGAR  "76M"
+ clip left from  6035  to  6043
+ clip right from  6027  to  6034
+-> left:  5967 - 6034  l:   -   d:  135 ; m:  6034 ; o:  17  CIGAR  "67M9S"
+-> right:  6034 - 6102  l:   -   d:  -135 ; m:  5967 ; o:  17  CIGAR  "8S68M"
+left:  5952 - 6028  l:   -   d:  150 ; m:  6026 ; o:  2  CIGAR  "76M"
+right:  6026 - 6102  l:   -   d:  -150 ; m:  5952 ; o:  2  CIGAR  "76M"
+ clip left from  6028  to  6028
+ clip right from  6027  to  6027
+-> left:  5952 - 6027  l:   -   d:  150 ; m:  6027 ; o:  2  CIGAR  "75M1S"
+-> right:  6027 - 6102  l:   -   d:  -150 ; m:  5952 ; o:  2  CIGAR  "1S75M"
+left:  5963 - 6039  l:   -   d:  142 ; m:  6029 ; o:  10  CIGAR  "76M"
+right:  6029 - 6105  l:   -   d:  -142 ; m:  5963 ; o:  10  CIGAR  "76M"
+ clip left from  6035  to  6039
+ clip right from  6030  to  6034
+-> left:  5963 - 6034  l:   -   d:  142 ; m:  6034 ; o:  10  CIGAR  "71M5S"
+-> right:  6034 - 6105  l:   -   d:  -142 ; m:  5963 ; o:  10  CIGAR  "5S71M"
+left:  5968 - 6044  l:   -   d:  137 ; m:  6029 ; o:  15  CIGAR  "76M"
+right:  6029 - 6105  l:   -   d:  -137 ; m:  5968 ; o:  15  CIGAR  "76M"
+ clip left from  6037  to  6044
+ clip right from  6030  to  6036
+-> left:  5968 - 6036  l:   -   d:  137 ; m:  6036 ; o:  15  CIGAR  "68M8S"
+-> right:  6036 - 6105  l:   -   d:  -137 ; m:  5968 ; o:  15  CIGAR  "7S69M"
+left:  5965 - 6041  l:   -   d:  141 ; m:  6030 ; o:  11  CIGAR  "76M"
+right:  6030 - 6106  l:   -   d:  -141 ; m:  5965 ; o:  11  CIGAR  "76M"
+ clip left from  6036  to  6041
+ clip right from  6031  to  6035
+-> left:  5965 - 6035  l:   -   d:  141 ; m:  6035 ; o:  11  CIGAR  "70M6S"
+-> right:  6035 - 6106  l:   -   d:  -141 ; m:  5965 ; o:  11  CIGAR  "5S71M"
+left:  6031 - 6096  l:   -   d:  -65 ; m:  6031 ; o:  65  CIGAR  "65M"
+right:  6031 - 6096  l:   -   d:  65 ; m:  6031 ; o:  65  CIGAR  "65M"
+ clip left from  6065  to  6096
+ clip right from  6032  to  6064
+-> left:  6031 - 6064  l:   -   d:  65 ; m:  6064 ; o:  65  CIGAR  "33M32S"
+-> right:  6064 - 6096  l:   -   d:  -65 ; m:  6031 ; o:  65  CIGAR  "33S32M"
+left:  5983 - 6059  l:   -   d:  125 ; m:  6032 ; o:  27  CIGAR  "76M"
+right:  6032 - 6108  l:   -   d:  -125 ; m:  5983 ; o:  27  CIGAR  "76M"
+ clip left from  6047  to  6059
+ clip right from  6033  to  6046
+-> left:  5983 - 6046  l:   -   d:  125 ; m:  6046 ; o:  27  CIGAR  "63M13S"
+-> right:  6046 - 6108  l:   -   d:  -125 ; m:  5983 ; o:  27  CIGAR  "14S62M"
+left:  6014 - 6090  l:   -   d:  97 ; m:  6035 ; o:  55  CIGAR  "76M"
+right:  6035 - 6111  l:   -   d:  -97 ; m:  6014 ; o:  55  CIGAR  "76M"
+ clip left from  6064  to  6090
+ clip right from  6036  to  6063
+-> left:  6014 - 6063  l:   -   d:  97 ; m:  6063 ; o:  55  CIGAR  "49M27S"
+-> right:  6063 - 6111  l:   -   d:  -97 ; m:  6014 ; o:  55  CIGAR  "28S48M"
+left:  6009 - 6085  l:   -   d:  102 ; m:  6035 ; o:  50  CIGAR  "76M"
+right:  6035 - 6111  l:   -   d:  -102 ; m:  6009 ; o:  50  CIGAR  "76M"
+ clip left from  6061  to  6085
+ clip right from  6036  to  6060
+-> left:  6009 - 6060  l:   -   d:  102 ; m:  6060 ; o:  50  CIGAR  "51M25S"
+-> right:  6060 - 6111  l:   -   d:  -102 ; m:  6009 ; o:  50  CIGAR  "25S51M"
+left:  6035 - 6104  l:   -   d:  -69 ; m:  6035 ; o:  69  CIGAR  "69M"
+right:  6035 - 6104  l:   -   d:  69 ; m:  6035 ; o:  69  CIGAR  "69M"
+ clip left from  6071  to  6104
+ clip right from  6036  to  6070
+-> left:  6035 - 6070  l:   -   d:  69 ; m:  6070 ; o:  69  CIGAR  "35M34S"
+-> right:  6070 - 6104  l:   -   d:  -69 ; m:  6035 ; o:  69  CIGAR  "35S34M"
+left:  6035 - 6097  l:   -   d:  -62 ; m:  6035 ; o:  62  CIGAR  "62M"
+right:  6035 - 6097  l:   -   d:  62 ; m:  6035 ; o:  62  CIGAR  "62M"
+ clip left from  6067  to  6097
+ clip right from  6036  to  6066
+-> left:  6035 - 6066  l:   -   d:  62 ; m:  6066 ; o:  62  CIGAR  "31M31S"
+-> right:  6066 - 6097  l:   -   d:  -62 ; m:  6035 ; o:  62  CIGAR  "31S31M"
+left:  6015 - 6091  l:   -   d:  97 ; m:  6036 ; o:  55  CIGAR  "76M"
+right:  6036 - 6112  l:   -   d:  -97 ; m:  6015 ; o:  55  CIGAR  "76M"
+ clip left from  6064  to  6091
+ clip right from  6037  to  6063
+-> left:  6015 - 6063  l:   -   d:  97 ; m:  6063 ; o:  55  CIGAR  "48M28S"
+-> right:  6063 - 6112  l:   -   d:  -97 ; m:  6015 ; o:  55  CIGAR  "27S49M"
+left:  6031 - 6107  l:   -   d:  84 ; m:  6039 ; o:  68  CIGAR  "76M"
+right:  6039 - 6115  l:   -   d:  -84 ; m:  6031 ; o:  68  CIGAR  "76M"
+ clip left from  6074  to  6107
+ clip right from  6040  to  6073
+-> left:  6031 - 6073  l:   -   d:  84 ; m:  6073 ; o:  68  CIGAR  "42M34S"
+-> right:  6073 - 6115  l:   -   d:  -84 ; m:  6031 ; o:  68  CIGAR  "34S42M"
+left:  5983 - 6059  l:   -   d:  132 ; m:  6039 ; o:  20  CIGAR  "76M"
+right:  6039 - 6115  l:   -   d:  -132 ; m:  5983 ; o:  20  CIGAR  "76M"
+ clip left from  6050  to  6059
+ clip right from  6040  to  6049
+-> left:  5983 - 6049  l:   -   d:  132 ; m:  6049 ; o:  20  CIGAR  "66M10S"
+-> right:  6049 - 6115  l:   -   d:  -132 ; m:  5983 ; o:  20  CIGAR  "10S66M"
+left:  6017 - 6093  l:   -   d:  99 ; m:  6040 ; o:  53  CIGAR  "76M"
+right:  6040 - 6116  l:   -   d:  -99 ; m:  6017 ; o:  53  CIGAR  "76M"
+ clip left from  6067  to  6093
+ clip right from  6041  to  6066
+-> left:  6017 - 6066  l:   -   d:  99 ; m:  6066 ; o:  53  CIGAR  "49M27S"
+-> right:  6066 - 6116  l:   -   d:  -99 ; m:  6017 ; o:  53  CIGAR  "26S50M"
+left:  5991 - 6067  l:   -   d:  126 ; m:  6043 ; o:  24  CIGAR  "76M"
+right:  6043 - 6117  l:   -   d:  -126 ; m:  5991 ; o:  24  CIGAR  "74M"
+ clip left from  6056  to  6067
+ clip right from  6044  to  6055
+-> left:  5991 - 6055  l:   -   d:  126 ; m:  6055 ; o:  24  CIGAR  "64M12S"
+-> right:  6055 - 6117  l:   -   d:  -126 ; m:  5991 ; o:  24  CIGAR  "12S62M"
+left:  6006 - 6082  l:   -   d:  120 ; m:  6050 ; o:  32  CIGAR  "76M"
+right:  6050 - 6126  l:   -   d:  -120 ; m:  6006 ; o:  32  CIGAR  "76M"
+ clip left from  6067  to  6082
+ clip right from  6051  to  6066
+-> left:  6006 - 6066  l:   -   d:  120 ; m:  6066 ; o:  32  CIGAR  "60M16S"
+-> right:  6066 - 6126  l:   -   d:  -120 ; m:  6006 ; o:  32  CIGAR  "16S60M"
+left:  5990 - 6065  l:   -   d:  136 ; m:  6050 ; o:  15  CIGAR  "75M"
+right:  6050 - 6126  l:   -   d:  -136 ; m:  5990 ; o:  15  CIGAR  "76M"
+ clip left from  6058  to  6065
+ clip right from  6051  to  6057
+-> left:  5990 - 6057  l:   -   d:  136 ; m:  6057 ; o:  15  CIGAR  "67M8S"
+-> right:  6057 - 6126  l:   -   d:  -136 ; m:  5990 ; o:  15  CIGAR  "7S69M"
+left:  6044 - 6116  l:   -   d:  82 ; m:  6050 ; o:  66  CIGAR  "72M"
+right:  6050 - 6126  l:   -   d:  -82 ; m:  6044 ; o:  66  CIGAR  "76M"
+ clip left from  6084  to  6116
+ clip right from  6051  to  6083
+-> left:  6044 - 6083  l:   -   d:  82 ; m:  6083 ; o:  66  CIGAR  "39M33S"
+-> right:  6083 - 6126  l:   -   d:  -82 ; m:  6044 ; o:  66  CIGAR  "33S43M"
+left:  5983 - 6059  l:   -   d:  145 ; m:  6052 ; o:  7  CIGAR  "76M"
+right:  6052 - 6128  l:   -   d:  -145 ; m:  5983 ; o:  7  CIGAR  "76M"
+ clip left from  6056  to  6059
+ clip right from  6053  to  6055
+-> left:  5983 - 6055  l:   -   d:  145 ; m:  6055 ; o:  7  CIGAR  "72M4S"
+-> right:  6055 - 6128  l:   -   d:  -145 ; m:  5983 ; o:  7  CIGAR  "3S73M"
+left:  5990 - 6065  l:   -   d:  138 ; m:  6052 ; o:  13  CIGAR  "75M"
+right:  6052 - 6128  l:   -   d:  -138 ; m:  5990 ; o:  13  CIGAR  "76M"
+ clip left from  6060  to  6065
+ clip right from  6053  to  6059
+-> left:  5990 - 6059  l:   -   d:  138 ; m:  6059 ; o:  13  CIGAR  "69M6S"
+-> right:  6059 - 6128  l:   -   d:  -138 ; m:  5990 ; o:  13  CIGAR  "7S69M"
+left:  6008 - 6082  l:   -   d:  121 ; m:  6053 ; o:  29  CIGAR  "74M"
+right:  6053 - 6129  l:   -   d:  -121 ; m:  6008 ; o:  29  CIGAR  "76M"
+ clip left from  6068  to  6082
+ clip right from  6054  to  6067
+-> left:  6008 - 6067  l:   -   d:  121 ; m:  6067 ; o:  29  CIGAR  "59M15S"
+-> right:  6067 - 6129  l:   -   d:  -121 ; m:  6008 ; o:  29  CIGAR  "14S62M"
+left:  6054 - 6106  l:   -   d:  -52 ; m:  6054 ; o:  52  CIGAR  "52M"
+right:  6054 - 6106  l:   -   d:  52 ; m:  6054 ; o:  52  CIGAR  "52M"
+ clip left from  6081  to  6106
+ clip right from  6055  to  6080
+-> left:  6054 - 6080  l:   -   d:  52 ; m:  6080 ; o:  52  CIGAR  "26M26S"
+-> right:  6080 - 6106  l:   -   d:  -52 ; m:  6054 ; o:  52  CIGAR  "26S26M"
+left:  5989 - 6065  l:   -   d:  143 ; m:  6056 ; o:  9  CIGAR  "76M"
+right:  6056 - 6132  l:   -   d:  -143 ; m:  5989 ; o:  9  CIGAR  "76M"
+ clip left from  6061  to  6065
+ clip right from  6057  to  6060
+-> left:  5989 - 6060  l:   -   d:  143 ; m:  6060 ; o:  9  CIGAR  "71M5S"
+-> right:  6060 - 6132  l:   -   d:  -143 ; m:  5989 ; o:  9  CIGAR  "4S72M"
+left:  6027 - 6103  l:   -   d:  107 ; m:  6059 ; o:  44  CIGAR  "76M"
+right:  6059 - 6134  l:   -   d:  -107 ; m:  6027 ; o:  44  CIGAR  "75M"
+ clip left from  6082  to  6103
+ clip right from  6060  to  6081
+-> left:  6027 - 6081  l:   -   d:  107 ; m:  6081 ; o:  44  CIGAR  "54M22S"
+-> right:  6081 - 6134  l:   -   d:  -107 ; m:  6027 ; o:  44  CIGAR  "22S53M"
+left:  6031 - 6107  l:   -   d:  103 ; m:  6059 ; o:  48  CIGAR  "76M"
+right:  6059 - 6134  l:   -   d:  -103 ; m:  6031 ; o:  48  CIGAR  "75M"
+ clip left from  6084  to  6107
+ clip right from  6060  to  6083
+-> left:  6031 - 6083  l:   -   d:  103 ; m:  6083 ; o:  48  CIGAR  "52M24S"
+-> right:  6083 - 6134  l:   -   d:  -103 ; m:  6031 ; o:  48  CIGAR  "24S51M"
+left:  5998 - 6073  l:   -   d:  136 ; m:  6059 ; o:  14  CIGAR  "75M"
+right:  6059 - 6134  l:   -   d:  -136 ; m:  5998 ; o:  14  CIGAR  "75M"
+ clip left from  6067  to  6073
+ clip right from  6060  to  6066
+-> left:  5998 - 6066  l:   -   d:  136 ; m:  6066 ; o:  14  CIGAR  "68M7S"
+-> right:  6066 - 6134  l:   -   d:  -136 ; m:  5998 ; o:  14  CIGAR  "7S68M"
+left:  6018 - 6094  l:   -   d:  118 ; m:  6060 ; o:  34  CIGAR  "76M"
+right:  6060 - 6136  l:   -   d:  -118 ; m:  6018 ; o:  34  CIGAR  "76M"
+ clip left from  6078  to  6094
+ clip right from  6061  to  6077
+-> left:  6018 - 6077  l:   -   d:  118 ; m:  6077 ; o:  34  CIGAR  "59M17S"
+-> right:  6077 - 6136  l:   -   d:  -118 ; m:  6018 ; o:  34  CIGAR  "17S59M"
+left:  5998 - 6073  l:   -   d:  139 ; m:  6061 ; o:  12  CIGAR  "75M"
+right:  6061 - 6137  l:   -   d:  -139 ; m:  5998 ; o:  12  CIGAR  "76M"
+ clip left from  6068  to  6073
+ clip right from  6062  to  6067
+-> left:  5998 - 6067  l:   -   d:  139 ; m:  6067 ; o:  12  CIGAR  "69M6S"
+-> right:  6067 - 6137  l:   -   d:  -139 ; m:  5998 ; o:  12  CIGAR  "6S70M"
+left:  5987 - 6063  l:   -   d:  150 ; m:  6061 ; o:  2  CIGAR  "76M"
+right:  6061 - 6137  l:   -   d:  -150 ; m:  5987 ; o:  2  CIGAR  "76M"
+ clip left from  6063  to  6063
+ clip right from  6062  to  6062
+-> left:  5987 - 6062  l:   -   d:  150 ; m:  6062 ; o:  2  CIGAR  "75M1S"
+-> right:  6062 - 6137  l:   -   d:  -150 ; m:  5987 ; o:  2  CIGAR  "1S75M"
+left:  6040 - 6116  l:   -   d:  99 ; m:  6063 ; o:  53  CIGAR  "76M"
+right:  6063 - 6139  l:   -   d:  -99 ; m:  6040 ; o:  53  CIGAR  "76M"
+ clip left from  6090  to  6116
+ clip right from  6064  to  6089
+-> left:  6040 - 6089  l:   -   d:  99 ; m:  6089 ; o:  53  CIGAR  "49M27S"
+-> right:  6089 - 6139  l:   -   d:  -99 ; m:  6040 ; o:  53  CIGAR  "26S50M"
+left:  6063 - 6120  l:   -   d:  -57 ; m:  6063 ; o:  57  CIGAR  "57M"
+right:  6063 - 6120  l:   -   d:  57 ; m:  6063 ; o:  57  CIGAR  "57M"
+ clip left from  6092  to  6120
+ clip right from  6064  to  6091
+-> left:  6063 - 6091  l:   -   d:  57 ; m:  6091 ; o:  57  CIGAR  "28M29S"
+-> right:  6091 - 6120  l:   -   d:  -57 ; m:  6063 ; o:  57  CIGAR  "28S29M"
+left:  6063 - 6130  l:   -   d:  -67 ; m:  6063 ; o:  67  CIGAR  "67M"
+right:  6063 - 6130  l:   -   d:  67 ; m:  6063 ; o:  67  CIGAR  "67M"
+ clip left from  6098  to  6130
+ clip right from  6064  to  6097
+-> left:  6063 - 6097  l:   -   d:  67 ; m:  6097 ; o:  67  CIGAR  "34M33S"
+-> right:  6097 - 6130  l:   -   d:  -67 ; m:  6063 ; o:  67  CIGAR  "34S33M"
+left:  6039 - 6115  l:   -   d:  102 ; m:  6065 ; o:  50  CIGAR  "76M"
+right:  6065 - 6141  l:   -   d:  -102 ; m:  6039 ; o:  50  CIGAR  "76M"
+ clip left from  6091  to  6115
+ clip right from  6066  to  6090
+-> left:  6039 - 6090  l:   -   d:  102 ; m:  6090 ; o:  50  CIGAR  "51M25S"
+-> right:  6090 - 6141  l:   -   d:  -102 ; m:  6039 ; o:  50  CIGAR  "25S51M"
+left:  6066 - 6136  l:   -   d:  -70 ; m:  6066 ; o:  70  CIGAR  "70M"
+right:  6066 - 6136  l:   -   d:  70 ; m:  6066 ; o:  70  CIGAR  "70M"
+ clip left from  6102  to  6136
+ clip right from  6067  to  6101
+-> left:  6066 - 6101  l:   -   d:  70 ; m:  6101 ; o:  70  CIGAR  "35M35S"
+-> right:  6101 - 6136  l:   -   d:  -70 ; m:  6066 ; o:  70  CIGAR  "35S35M"
+left:  6065 - 6141  l:   -   d:  78 ; m:  6067 ; o:  74  CIGAR  "76M"
+right:  6067 - 6143  l:   -   d:  -78 ; m:  6065 ; o:  74  CIGAR  "76M"
+ clip left from  6105  to  6141
+ clip right from  6068  to  6104
+-> left:  6065 - 6104  l:   -   d:  78 ; m:  6104 ; o:  74  CIGAR  "39M37S"
+-> right:  6104 - 6143  l:   -   d:  -78 ; m:  6065 ; o:  74  CIGAR  "37S39M"
+left:  6006 - 6082  l:   -   d:  138 ; m:  6068 ; o:  14  CIGAR  "76M"
+right:  6068 - 6144  l:   -   d:  -138 ; m:  6006 ; o:  14  CIGAR  "76M"
+ clip left from  6076  to  6082
+ clip right from  6069  to  6075
+-> left:  6006 - 6075  l:   -   d:  138 ; m:  6075 ; o:  14  CIGAR  "69M7S"
+-> right:  6075 - 6144  l:   -   d:  -138 ; m:  6006 ; o:  14  CIGAR  "7S69M"
+left:  6015 - 6091  l:   -   d:  129 ; m:  6068 ; o:  23  CIGAR  "76M"
+right:  6068 - 6144  l:   -   d:  -129 ; m:  6015 ; o:  23  CIGAR  "76M"
+ clip left from  6081  to  6091
+ clip right from  6069  to  6080
+-> left:  6015 - 6080  l:   -   d:  129 ; m:  6080 ; o:  23  CIGAR  "65M11S"
+-> right:  6080 - 6144  l:   -   d:  -129 ; m:  6015 ; o:  23  CIGAR  "12S64M"
+left:  6016 - 6092  l:   -   d:  129 ; m:  6069 ; o:  23  CIGAR  "76M"
+right:  6069 - 6145  l:   -   d:  -129 ; m:  6016 ; o:  23  CIGAR  "76M"
+ clip left from  6082  to  6092
+ clip right from  6070  to  6081
+-> left:  6016 - 6081  l:   -   d:  129 ; m:  6081 ; o:  23  CIGAR  "65M11S"
+-> right:  6081 - 6145  l:   -   d:  -129 ; m:  6016 ; o:  23  CIGAR  "12S64M"
+left:  6010 - 6085  l:   -   d:  135 ; m:  6069 ; o:  16  CIGAR  "75M"
+right:  6069 - 6145  l:   -   d:  -135 ; m:  6010 ; o:  16  CIGAR  "76M"
+ clip left from  6078  to  6085
+ clip right from  6070  to  6077
+-> left:  6010 - 6077  l:   -   d:  135 ; m:  6077 ; o:  16  CIGAR  "67M8S"
+-> right:  6077 - 6145  l:   -   d:  -135 ; m:  6010 ; o:  16  CIGAR  "8S68M"
+left:  6064 - 6140  l:   -   d:  81 ; m:  6069 ; o:  71  CIGAR  "76M"
+right:  6069 - 6145  l:   -   d:  -81 ; m:  6064 ; o:  71  CIGAR  "76M"
+ clip left from  6105  to  6140
+ clip right from  6070  to  6104
+-> left:  6064 - 6104  l:   -   d:  81 ; m:  6104 ; o:  71  CIGAR  "40M36S"
+-> right:  6104 - 6145  l:   -   d:  -81 ; m:  6064 ; o:  71  CIGAR  "35S41M"
+left:  6037 - 6112  l:   -   d:  109 ; m:  6070 ; o:  42  CIGAR  "75M"
+right:  6070 - 6146  l:   -   d:  -109 ; m:  6037 ; o:  42  CIGAR  "76M"
+ clip left from  6092  to  6112
+ clip right from  6071  to  6091
+-> left:  6037 - 6091  l:   -   d:  109 ; m:  6091 ; o:  42  CIGAR  "54M21S"
+-> right:  6091 - 6146  l:   -   d:  -109 ; m:  6037 ; o:  42  CIGAR  "21S55M"
+left:  6070 - 6145  l:   -   d:  -75 ; m:  6070 ; o:  75  CIGAR  "75M"
+right:  6070 - 6145  l:   -   d:  75 ; m:  6070 ; o:  75  CIGAR  "75M"
+ clip left from  6109  to  6145
+ clip right from  6071  to  6108
+-> left:  6070 - 6108  l:   -   d:  75 ; m:  6108 ; o:  75  CIGAR  "38M37S"
+-> right:  6108 - 6145  l:   -   d:  -75 ; m:  6070 ; o:  75  CIGAR  "38S37M"
+left:  6071 - 6134  l:   -   d:  -63 ; m:  6071 ; o:  63  CIGAR  "63M"
+right:  6071 - 6134  l:   -   d:  63 ; m:  6071 ; o:  63  CIGAR  "63M"
+ clip left from  6104  to  6134
+ clip right from  6072  to  6103
+-> left:  6071 - 6103  l:   -   d:  63 ; m:  6103 ; o:  63  CIGAR  "32M31S"
+-> right:  6103 - 6134  l:   -   d:  -63 ; m:  6071 ; o:  63  CIGAR  "32S31M"
+left:  6010 - 6085  l:   -   d:  137 ; m:  6071 ; o:  14  CIGAR  "75M"
+right:  6071 - 6147  l:   -   d:  -137 ; m:  6010 ; o:  14  CIGAR  "76M"
+ clip left from  6079  to  6085
+ clip right from  6072  to  6078
+-> left:  6010 - 6078  l:   -   d:  137 ; m:  6078 ; o:  14  CIGAR  "68M7S"
+-> right:  6078 - 6147  l:   -   d:  -137 ; m:  6010 ; o:  14  CIGAR  "7S69M"
+left:  6054 - 6130  l:   -   d:  94 ; m:  6072 ; o:  58  CIGAR  "76M"
+right:  6072 - 6148  l:   -   d:  -94 ; m:  6054 ; o:  58  CIGAR  "76M"
+ clip left from  6102  to  6130
+ clip right from  6073  to  6101
+-> left:  6054 - 6101  l:   -   d:  94 ; m:  6101 ; o:  58  CIGAR  "47M29S"
+-> right:  6101 - 6148  l:   -   d:  -94 ; m:  6054 ; o:  58  CIGAR  "29S47M"
+left:  6035 - 6111  l:   -   d:  115 ; m:  6075 ; o:  36  CIGAR  "76M"
+right:  6075 - 6150  l:   -   d:  -115 ; m:  6035 ; o:  36  CIGAR  "75M"
+ clip left from  6094  to  6111
+ clip right from  6076  to  6093
+-> left:  6035 - 6093  l:   -   d:  115 ; m:  6093 ; o:  36  CIGAR  "58M18S"
+-> right:  6093 - 6150  l:   -   d:  -115 ; m:  6035 ; o:  36  CIGAR  "18S57M"
+left:  6075 - 6122  l:   -   d:  -47 ; m:  6075 ; o:  47  CIGAR  "47M"
+right:  6075 - 6122  l:   -   d:  47 ; m:  6075 ; o:  47  CIGAR  "47M"
+ clip left from  6100  to  6122
+ clip right from  6076  to  6099
+-> left:  6075 - 6099  l:   -   d:  47 ; m:  6099 ; o:  47  CIGAR  "24M23S"
+-> right:  6099 - 6122  l:   -   d:  -47 ; m:  6075 ; o:  47  CIGAR  "24S23M"
+left:  6063 - 6139  l:   -   d:  88 ; m:  6075 ; o:  64  CIGAR  "76M"
+right:  6075 - 6151  l:   -   d:  -88 ; m:  6063 ; o:  64  CIGAR  "76M"
+ clip left from  6108  to  6139
+ clip right from  6076  to  6107
+-> left:  6063 - 6107  l:   -   d:  88 ; m:  6107 ; o:  64  CIGAR  "44M32S"
+-> right:  6107 - 6151  l:   -   d:  -88 ; m:  6063 ; o:  64  CIGAR  "32S44M"
+left:  6070 - 6146  l:   -   d:  80 ; m:  6075 ; o:  71  CIGAR  "76M"
+right:  6075 - 6150  l:   -   d:  -80 ; m:  6070 ; o:  71  CIGAR  "75M"
+ clip left from  6112  to  6146
+ clip right from  6076  to  6111
+-> left:  6070 - 6111  l:   -   d:  80 ; m:  6111 ; o:  71  CIGAR  "41M35S"
+-> right:  6111 - 6150  l:   -   d:  -80 ; m:  6070 ; o:  71  CIGAR  "36S39M"
+left:  6055 - 6131  l:   -   d:  99 ; m:  6079 ; o:  52  CIGAR  "76M"
+right:  6079 - 6154  l:   -   d:  -99 ; m:  6055 ; o:  52  CIGAR  "75M"
+ clip left from  6106  to  6131
+ clip right from  6080  to  6105
+-> left:  6055 - 6105  l:   -   d:  99 ; m:  6105 ; o:  52  CIGAR  "50M26S"
+-> right:  6105 - 6154  l:   -   d:  -99 ; m:  6055 ; o:  52  CIGAR  "26S49M"
+left:  6035 - 6111  l:   -   d:  120 ; m:  6079 ; o:  32  CIGAR  "76M"
+right:  6079 - 6155  l:   -   d:  -120 ; m:  6035 ; o:  32  CIGAR  "76M"
+ clip left from  6096  to  6111
+ clip right from  6080  to  6095
+-> left:  6035 - 6095  l:   -   d:  120 ; m:  6095 ; o:  32  CIGAR  "60M16S"
+-> right:  6095 - 6155  l:   -   d:  -120 ; m:  6035 ; o:  32  CIGAR  "16S60M"
+left:  6080 - 6156  l:   -   d:  -76 ; m:  6080 ; o:  76  CIGAR  "76M"
+right:  6080 - 6156  l:   -   d:  76 ; m:  6080 ; o:  76  CIGAR  "76M"
+ clip left from  6119  to  6156
+ clip right from  6081  to  6118
+-> left:  6080 - 6118  l:   -   d:  76 ; m:  6118 ; o:  76  CIGAR  "38M38S"
+-> right:  6118 - 6156  l:   -   d:  -76 ; m:  6080 ; o:  76  CIGAR  "38S38M"
+left:  6062 - 6138  l:   -   d:  94 ; m:  6080 ; o:  58  CIGAR  "76M"
+right:  6080 - 6156  l:   -   d:  -94 ; m:  6062 ; o:  58  CIGAR  "76M"
+ clip left from  6110  to  6138
+ clip right from  6081  to  6109
+-> left:  6062 - 6109  l:   -   d:  94 ; m:  6109 ; o:  58  CIGAR  "47M29S"
+-> right:  6109 - 6156  l:   -   d:  -94 ; m:  6062 ; o:  58  CIGAR  "29S47M"
+left:  6037 - 6112  l:   -   d:  120 ; m:  6081 ; o:  31  CIGAR  "75M"
+right:  6081 - 6157  l:   -   d:  -120 ; m:  6037 ; o:  31  CIGAR  "76M"
+ clip left from  6098  to  6112
+ clip right from  6082  to  6097
+-> left:  6037 - 6097  l:   -   d:  120 ; m:  6097 ; o:  31  CIGAR  "60M15S"
+-> right:  6097 - 6157  l:   -   d:  -120 ; m:  6037 ; o:  31  CIGAR  "16S60M"
+left:  6013 - 6089  l:   -   d:  144 ; m:  6081 ; o:  8  CIGAR  "76M"
+right:  6081 - 6157  l:   -   d:  -144 ; m:  6013 ; o:  8  CIGAR  "76M"
+ clip left from  6086  to  6089
+ clip right from  6082  to  6085
+-> left:  6013 - 6085  l:   -   d:  144 ; m:  6085 ; o:  8  CIGAR  "72M4S"
+-> right:  6085 - 6157  l:   -   d:  -144 ; m:  6013 ; o:  8  CIGAR  "4S72M"
+left:  6083 - 6123  l:   -   d:  -40 ; m:  6083 ; o:  40  CIGAR  "40M"
+right:  6083 - 6123  l:   -   d:  40 ; m:  6083 ; o:  40  CIGAR  "40M"
+ clip left from  6104  to  6123
+ clip right from  6084  to  6103
+-> left:  6083 - 6103  l:   -   d:  40 ; m:  6103 ; o:  40  CIGAR  "20M20S"
+-> right:  6103 - 6123  l:   -   d:  -40 ; m:  6083 ; o:  40  CIGAR  "20S20M"
+left:  6084 - 6126  l:   -   d:  -42 ; m:  6084 ; o:  42  CIGAR  "42M"
+right:  6084 - 6126  l:   -   d:  42 ; m:  6084 ; o:  42  CIGAR  "42M"
+ clip left from  6106  to  6126
+ clip right from  6085  to  6105
+-> left:  6084 - 6105  l:   -   d:  42 ; m:  6105 ; o:  42  CIGAR  "21M21S"
+-> right:  6105 - 6126  l:   -   d:  -42 ; m:  6084 ; o:  42  CIGAR  "21S21M"
+left:  6085 - 6147  l:   -   d:  -62 ; m:  6085 ; o:  62  CIGAR  "62M"
+right:  6085 - 6147  l:   -   d:  62 ; m:  6085 ; o:  62  CIGAR  "62M"
+ clip left from  6117  to  6147
+ clip right from  6086  to  6116
+-> left:  6085 - 6116  l:   -   d:  62 ; m:  6116 ; o:  62  CIGAR  "31M31S"
+-> right:  6116 - 6147  l:   -   d:  -62 ; m:  6085 ; o:  62  CIGAR  "31S31M"
+left:  6055 - 6131  l:   -   d:  106 ; m:  6085 ; o:  46  CIGAR  "76M"
+right:  6085 - 6161  l:   -   d:  -106 ; m:  6055 ; o:  46  CIGAR  "76M"
+ clip left from  6109  to  6131
+ clip right from  6086  to  6108
+-> left:  6055 - 6108  l:   -   d:  106 ; m:  6108 ; o:  46  CIGAR  "53M23S"
+-> right:  6108 - 6161  l:   -   d:  -106 ; m:  6055 ; o:  46  CIGAR  "23S53M"
+left:  6065 - 6141  l:   -   d:  99 ; m:  6088 ; o:  53  CIGAR  "76M"
+right:  6088 - 6164  l:   -   d:  -99 ; m:  6065 ; o:  53  CIGAR  "76M"
+ clip left from  6116  to  6141
+ clip right from  6089  to  6115
+-> left:  6065 - 6115  l:   -   d:  99 ; m:  6115 ; o:  53  CIGAR  "50M26S"
+-> right:  6115 - 6164  l:   -   d:  -99 ; m:  6065 ; o:  53  CIGAR  "27S49M"
+left:  6064 - 6140  l:   -   d:  102 ; m:  6091 ; o:  49  CIGAR  "76M"
+right:  6091 - 6166  l:   -   d:  -102 ; m:  6064 ; o:  49  CIGAR  "75M"
+ clip left from  6117  to  6140
+ clip right from  6092  to  6116
+-> left:  6064 - 6116  l:   -   d:  102 ; m:  6116 ; o:  49  CIGAR  "52M24S"
+-> right:  6116 - 6166  l:   -   d:  -102 ; m:  6064 ; o:  49  CIGAR  "25S50M"
+left:  6072 - 6148  l:   -   d:  94 ; m:  6091 ; o:  57  CIGAR  "76M"
+right:  6091 - 6166  l:   -   d:  -94 ; m:  6072 ; o:  57  CIGAR  "75M"
+ clip left from  6121  to  6148
+ clip right from  6092  to  6120
+-> left:  6072 - 6120  l:   -   d:  94 ; m:  6120 ; o:  57  CIGAR  "48M28S"
+-> right:  6120 - 6166  l:   -   d:  -94 ; m:  6072 ; o:  57  CIGAR  "29S46M"
+left:  6091 - 6136  l:   -   d:  -45 ; m:  6091 ; o:  45  CIGAR  "45M"
+right:  6091 - 6136  l:   -   d:  45 ; m:  6091 ; o:  45  CIGAR  "45M"
+ clip left from  6114  to  6136
+ clip right from  6092  to  6113
+-> left:  6091 - 6113  l:   -   d:  45 ; m:  6113 ; o:  45  CIGAR  "22M23S"
+-> right:  6113 - 6136  l:   -   d:  -45 ; m:  6091 ; o:  45  CIGAR  "22S23M"
+left:  6091 - 6165  l:   -   d:  -74 ; m:  6091 ; o:  74  CIGAR  "74M"
+right:  6091 - 6165  l:   -   d:  74 ; m:  6091 ; o:  74  CIGAR  "74M"
+ clip left from  6129  to  6165
+ clip right from  6092  to  6128
+-> left:  6091 - 6128  l:   -   d:  74 ; m:  6128 ; o:  74  CIGAR  "37M37S"
+-> right:  6128 - 6165  l:   -   d:  -74 ; m:  6091 ; o:  74  CIGAR  "37S37M"
+left:  6093 - 6150  l:   -   d:  -57 ; m:  6093 ; o:  57  CIGAR  "57M"
+right:  6093 - 6150  l:   -   d:  57 ; m:  6093 ; o:  57  CIGAR  "57M"
+ clip left from  6122  to  6150
+ clip right from  6094  to  6121
+-> left:  6093 - 6121  l:   -   d:  57 ; m:  6121 ; o:  57  CIGAR  "28M29S"
+-> right:  6121 - 6150  l:   -   d:  -57 ; m:  6093 ; o:  57  CIGAR  "28S29M"
+left:  6091 - 6166  l:   -   d:  79 ; m:  6095 ; o:  71  CIGAR  "75M"
+right:  6095 - 6170  l:   -   d:  -79 ; m:  6091 ; o:  71  CIGAR  "75M"
+ clip left from  6132  to  6166
+ clip right from  6096  to  6131
+-> left:  6091 - 6131  l:   -   d:  79 ; m:  6131 ; o:  71  CIGAR  "40M35S"
+-> right:  6131 - 6170  l:   -   d:  -79 ; m:  6091 ; o:  71  CIGAR  "36S39M"
+left:  6084 - 6160  l:   -   d:  91 ; m:  6100 ; o:  60  CIGAR  "76M"
+right:  6100 - 6175  l:   -   d:  -91 ; m:  6084 ; o:  60  CIGAR  "75M"
+ clip left from  6131  to  6160
+ clip right from  6101  to  6130
+-> left:  6084 - 6130  l:   -   d:  91 ; m:  6130 ; o:  60  CIGAR  "46M30S"
+-> right:  6130 - 6175  l:   -   d:  -91 ; m:  6084 ; o:  60  CIGAR  "30S45M"
+left:  6064 - 6140  l:   -   d:  111 ; m:  6100 ; o:  40  CIGAR  "76M"
+right:  6100 - 6175  l:   -   d:  -111 ; m:  6064 ; o:  40  CIGAR  "75M"
+ clip left from  6121  to  6140
+ clip right from  6101  to  6120
+-> left:  6064 - 6120  l:   -   d:  111 ; m:  6120 ; o:  40  CIGAR  "56M20S"
+-> right:  6120 - 6175  l:   -   d:  -111 ; m:  6064 ; o:  40  CIGAR  "20S55M"
+left:  6094 - 6170  l:   -   d:  83 ; m:  6101 ; o:  69  CIGAR  "76M"
+right:  6101 - 6177  l:   -   d:  -83 ; m:  6094 ; o:  69  CIGAR  "76M"
+ clip left from  6137  to  6170
+ clip right from  6102  to  6136
+-> left:  6094 - 6136  l:   -   d:  83 ; m:  6136 ; o:  69  CIGAR  "42M34S"
+-> right:  6136 - 6177  l:   -   d:  -83 ; m:  6094 ; o:  69  CIGAR  "35S41M"
+left:  6029 - 6105  l:   -   d:  149 ; m:  6102 ; o:  3  CIGAR  "76M"
+right:  6102 - 6178  l:   -   d:  -149 ; m:  6029 ; o:  3  CIGAR  "76M"
+ clip left from  6104  to  6105
+ clip right from  6103  to  6103
+-> left:  6029 - 6103  l:   -   d:  149 ; m:  6103 ; o:  3  CIGAR  "74M2S"
+-> right:  6103 - 6178  l:   -   d:  -149 ; m:  6029 ; o:  3  CIGAR  "1S75M"
+left:  6068 - 6142  l:   -   d:  111 ; m:  6105 ; o:  37  CIGAR  "74M"
+right:  6105 - 6179  l:   -   d:  -111 ; m:  6068 ; o:  37  CIGAR  "74M"
+ clip left from  6125  to  6142
+ clip right from  6106  to  6124
+-> left:  6068 - 6124  l:   -   d:  111 ; m:  6124 ; o:  37  CIGAR  "56M18S"
+-> right:  6124 - 6179  l:   -   d:  -111 ; m:  6068 ; o:  37  CIGAR  "19S55M"
+left:  6073 - 6149  l:   -   d:  109 ; m:  6107 ; o:  42  CIGAR  "76M"
+right:  6107 - 6182  l:   -   d:  -109 ; m:  6073 ; o:  42  CIGAR  "75M"
+ clip left from  6129  to  6149
+ clip right from  6108  to  6128
+-> left:  6073 - 6128  l:   -   d:  109 ; m:  6128 ; o:  42  CIGAR  "55M21S"
+-> right:  6128 - 6182  l:   -   d:  -109 ; m:  6073 ; o:  42  CIGAR  "21S54M"
+left:  6042 - 6116  l:   -   d:  141 ; m:  6107 ; o:  9  CIGAR  "74M"
+right:  6107 - 6183  l:   -   d:  -141 ; m:  6042 ; o:  9  CIGAR  "76M"
+ clip left from  6112  to  6116
+ clip right from  6108  to  6111
+-> left:  6042 - 6111  l:   -   d:  141 ; m:  6111 ; o:  9  CIGAR  "69M5S"
+-> right:  6111 - 6183  l:   -   d:  -141 ; m:  6042 ; o:  9  CIGAR  "4S72M"
+left:  6043 - 6116  l:   -   d:  142 ; m:  6110 ; o:  6  CIGAR  "73M"
+right:  6110 - 6185  l:   -   d:  -142 ; m:  6043 ; o:  6  CIGAR  "75M"
+ clip left from  6114  to  6116
+ clip right from  6111  to  6113
+-> left:  6043 - 6113  l:   -   d:  142 ; m:  6113 ; o:  6  CIGAR  "70M3S"
+-> right:  6113 - 6185  l:   -   d:  -142 ; m:  6043 ; o:  6  CIGAR  "3S72M"
+left:  6091 - 6166  l:   -   d:  95 ; m:  6111 ; o:  55  CIGAR  "75M"
+right:  6111 - 6186  l:   -   d:  -95 ; m:  6091 ; o:  55  CIGAR  "75M"
+ clip left from  6140  to  6166
+ clip right from  6112  to  6139
+-> left:  6091 - 6139  l:   -   d:  95 ; m:  6139 ; o:  55  CIGAR  "48M27S"
+-> right:  6139 - 6186  l:   -   d:  -95 ; m:  6091 ; o:  55  CIGAR  "28S47M"
+left:  6063 - 6139  l:   -   d:  124 ; m:  6111 ; o:  28  CIGAR  "76M"
+right:  6111 - 6187  l:   -   d:  -124 ; m:  6063 ; o:  28  CIGAR  "76M"
+ clip left from  6126  to  6139
+ clip right from  6112  to  6125
+-> left:  6063 - 6125  l:   -   d:  124 ; m:  6125 ; o:  28  CIGAR  "62M14S"
+-> right:  6125 - 6187  l:   -   d:  -124 ; m:  6063 ; o:  28  CIGAR  "14S62M"
+left:  6052 - 6128  l:   -   d:  141 ; m:  6116 ; o:  12  CIGAR  "76M"
+right:  6116 - 6193  l:   -   d:  -141 ; m:  6052 ; o:  12  CIGAR  "61M1D15M"
+ clip left from  6123  to  6128
+ clip right from  6117  to  6122
+-> left:  6052 - 6122  l:   -   d:  141 ; m:  6122 ; o:  12  CIGAR  "70M6S"
+-> right:  6122 - 6193  l:   -   d:  -141 ; m:  6052 ; o:  12  CIGAR  "6S55M1D15M"
+left:  6077 - 6153  l:   -   d:  121 ; m:  6122 ; o:  31  CIGAR  "76M"
+right:  6122 - 6198  l:   -   d:  -121 ; m:  6077 ; o:  31  CIGAR  "76M"
+ clip left from  6139  to  6153
+ clip right from  6123  to  6138
+-> left:  6077 - 6138  l:   -   d:  121 ; m:  6138 ; o:  31  CIGAR  "61M15S"
+-> right:  6138 - 6198  l:   -   d:  -121 ; m:  6077 ; o:  31  CIGAR  "16S60M"
+left:  6115 - 6190  l:   -   d:  83 ; m:  6122 ; o:  68  CIGAR  "75M"
+right:  6122 - 6198  l:   -   d:  -83 ; m:  6115 ; o:  68  CIGAR  "76M"
+ clip left from  6157  to  6190
+ clip right from  6123  to  6156
+-> left:  6115 - 6156  l:   -   d:  83 ; m:  6156 ; o:  68  CIGAR  "41M34S"
+-> right:  6156 - 6198  l:   -   d:  -83 ; m:  6115 ; o:  68  CIGAR  "34S42M"
+left:  6076 - 6152  l:   -   d:  127 ; m:  6127 ; o:  25  CIGAR  "76M"
+right:  6127 - 6203  l:   -   d:  -127 ; m:  6076 ; o:  25  CIGAR  "76M"
+ clip left from  6140  to  6152
+ clip right from  6128  to  6139
+-> left:  6076 - 6139  l:   -   d:  127 ; m:  6139 ; o:  25  CIGAR  "63M13S"
+-> right:  6139 - 6203  l:   -   d:  -127 ; m:  6076 ; o:  25  CIGAR  "12S64M"
+left:  6096 - 6172  l:   -   d:  108 ; m:  6128 ; o:  44  CIGAR  "76M"
+right:  6128 - 6204  l:   -   d:  -108 ; m:  6096 ; o:  44  CIGAR  "76M"
+ clip left from  6151  to  6172
+ clip right from  6129  to  6150
+-> left:  6096 - 6150  l:   -   d:  108 ; m:  6150 ; o:  44  CIGAR  "54M22S"
+-> right:  6150 - 6204  l:   -   d:  -108 ; m:  6096 ; o:  44  CIGAR  "22S54M"
+left:  6054 - 6130  l:   -   d:  150 ; m:  6128 ; o:  2  CIGAR  "76M"
+right:  6128 - 6204  l:   -   d:  -150 ; m:  6054 ; o:  2  CIGAR  "76M"
+ clip left from  6130  to  6130
+ clip right from  6129  to  6129
+-> left:  6054 - 6129  l:   -   d:  150 ; m:  6129 ; o:  2  CIGAR  "75M1S"
+-> right:  6129 - 6204  l:   -   d:  -150 ; m:  6054 ; o:  2  CIGAR  "1S75M"
+left:  6133 - 6209  l:   -   d:  83 ; m:  6140 ; o:  69  CIGAR  "76M"
+right:  6140 - 6216  l:   -   d:  -83 ; m:  6133 ; o:  69  CIGAR  "76M"
+ clip left from  6175  to  6209
+ clip right from  6141  to  6174
+-> left:  6133 - 6174  l:   -   d:  83 ; m:  6174 ; o:  69  CIGAR  "41M35S"
+-> right:  6174 - 6216  l:   -   d:  -83 ; m:  6133 ; o:  69  CIGAR  "34S42M"
+left:  6138 - 6214  l:   -   d:  80 ; m:  6142 ; o:  72  CIGAR  "76M"
+right:  6142 - 6218  l:   -   d:  -80 ; m:  6138 ; o:  72  CIGAR  "76M"
+ clip left from  6179  to  6214
+ clip right from  6143  to  6178
+-> left:  6138 - 6178  l:   -   d:  80 ; m:  6178 ; o:  72  CIGAR  "40M36S"
+-> right:  6178 - 6218  l:   -   d:  -80 ; m:  6138 ; o:  72  CIGAR  "36S40M"
+left:  6110 - 6186  l:   -   d:  110 ; m:  6144 ; o:  42  CIGAR  "76M"
+right:  6144 - 6220  l:   -   d:  -110 ; m:  6110 ; o:  42  CIGAR  "76M"
+ clip left from  6166  to  6186
+ clip right from  6145  to  6165
+-> left:  6110 - 6165  l:   -   d:  110 ; m:  6165 ; o:  42  CIGAR  "55M21S"
+-> right:  6165 - 6220  l:   -   d:  -110 ; m:  6110 ; o:  42  CIGAR  "21S55M"
+left:  6125 - 6201  l:   -   d:  99 ; m:  6149 ; o:  52  CIGAR  "76M"
+right:  6149 - 6224  l:   -   d:  -99 ; m:  6125 ; o:  52  CIGAR  "75M"
+ clip left from  6176  to  6201
+ clip right from  6150  to  6175
+-> left:  6125 - 6175  l:   -   d:  99 ; m:  6175 ; o:  52  CIGAR  "50M26S"
+-> right:  6175 - 6224  l:   -   d:  -99 ; m:  6125 ; o:  52  CIGAR  "26S49M"
+left:  6085 - 6161  l:   -   d:  136 ; m:  6149 ; o:  12  CIGAR  "76M"
+right:  6149 - 6221  l:   -   d:  -136 ; m:  6085 ; o:  12  CIGAR  "72M"
+ clip left from  6156  to  6161
+ clip right from  6150  to  6155
+-> left:  6085 - 6155  l:   -   d:  136 ; m:  6155 ; o:  12  CIGAR  "70M6S"
+-> right:  6155 - 6221  l:   -   d:  -136 ; m:  6085 ; o:  12  CIGAR  "6S66M"
+left:  6132 - 6207  l:   -   d:  97 ; m:  6154 ; o:  53  CIGAR  "75M"
+right:  6154 - 6229  l:   -   d:  -97 ; m:  6132 ; o:  53  CIGAR  "75M"
+ clip left from  6181  to  6207
+ clip right from  6155  to  6180
+-> left:  6132 - 6180  l:   -   d:  97 ; m:  6180 ; o:  53  CIGAR  "48M27S"
+-> right:  6180 - 6229  l:   -   d:  -97 ; m:  6132 ; o:  53  CIGAR  "26S49M"
+left:  6156 - 6211  l:   -   d:  -55 ; m:  6156 ; o:  55  CIGAR  "55M"
+right:  6156 - 6211  l:   -   d:  55 ; m:  6156 ; o:  55  CIGAR  "55M"
+ clip left from  6185  to  6211
+ clip right from  6157  to  6184
+-> left:  6156 - 6184  l:   -   d:  55 ; m:  6184 ; o:  55  CIGAR  "28M27S"
+-> right:  6184 - 6211  l:   -   d:  -55 ; m:  6156 ; o:  55  CIGAR  "28S27M"
+left:  6086 - 6162  l:   -   d:  142 ; m:  6161 ; o:  1  CIGAR  "76M"
+right:  6161 - 6228  l:   -   d:  -142 ; m:  6086 ; o:  1  CIGAR  "67M"
+ clip left from  6162  to  6162
+ clip right from  6162  to  6161
+-> left:  6086 - 6161  l:   -   d:  142 ; m:  6161 ; o:  1  CIGAR  "75M1S"
+-> right:  6161 - 6228  l:   -   d:  -142 ; m:  6086 ; o:  1  CIGAR  "67M"
+left:  6100 - 6175  l:   -   d:  145 ; m:  6170 ; o:  5  CIGAR  "75M"
+right:  6170 - 6245  l:   -   d:  -145 ; m:  6100 ; o:  5  CIGAR  "75M"
+ clip left from  6174  to  6175
+ clip right from  6171  to  6173
+-> left:  6100 - 6173  l:   -   d:  145 ; m:  6173 ; o:  5  CIGAR  "73M2S"
+-> right:  6173 - 6245  l:   -   d:  -145 ; m:  6100 ; o:  5  CIGAR  "3S72M"
+left:  6160 - 6236  l:   -   d:  93 ; m:  6177 ; o:  59  CIGAR  "76M"
+right:  6177 - 6253  l:   -   d:  -93 ; m:  6160 ; o:  59  CIGAR  "76M"
+ clip left from  6207  to  6236
+ clip right from  6178  to  6206
+-> left:  6160 - 6206  l:   -   d:  93 ; m:  6206 ; o:  59  CIGAR  "46M30S"
+-> right:  6206 - 6253  l:   -   d:  -93 ; m:  6160 ; o:  59  CIGAR  "29S47M"
+left:  6141 - 6217  l:   -   d:  117 ; m:  6182 ; o:  35  CIGAR  "76M"
+right:  6182 - 6258  l:   -   d:  -117 ; m:  6141 ; o:  35  CIGAR  "76M"
+ clip left from  6200  to  6217
+ clip right from  6183  to  6199
+-> left:  6141 - 6199  l:   -   d:  117 ; m:  6199 ; o:  35  CIGAR  "58M18S"
+-> right:  6199 - 6258  l:   -   d:  -117 ; m:  6141 ; o:  35  CIGAR  "17S59M"
+left:  6191 - 6248  l:   -   d:  -57 ; m:  6191 ; o:  57  CIGAR  "57M"
+right:  6191 - 6248  l:   -   d:  57 ; m:  6191 ; o:  57  CIGAR  "57M"
+ clip left from  6221  to  6248
+ clip right from  6192  to  6220
+-> left:  6191 - 6220  l:   -   d:  57 ; m:  6220 ; o:  57  CIGAR  "29M28S"
+-> right:  6220 - 6248  l:   -   d:  -57 ; m:  6191 ; o:  57  CIGAR  "29S28M"
+left:  6162 - 6238  l:   -   d:  114 ; m:  6201 ; o:  37  CIGAR  "76M"
+right:  6201 - 6276  l:   -   d:  -114 ; m:  6162 ; o:  37  CIGAR  "75M"
+ clip left from  6221  to  6238
+ clip right from  6202  to  6220
+-> left:  6162 - 6220  l:   -   d:  114 ; m:  6220 ; o:  37  CIGAR  "58M18S"
+-> right:  6220 - 6276  l:   -   d:  -114 ; m:  6162 ; o:  37  CIGAR  "19S56M"
+left:  6329 - 6405  l:   -   d:  148 ; m:  6401 ; o:  4  CIGAR  "76M"
+right:  6401 - 6477  l:   -   d:  -148 ; m:  6329 ; o:  4  CIGAR  "76M"
+ clip left from  6404  to  6405
+ clip right from  6402  to  6403
+-> left:  6329 - 6403  l:   -   d:  148 ; m:  6403 ; o:  4  CIGAR  "74M2S"
+-> right:  6403 - 6477  l:   -   d:  -148 ; m:  6329 ; o:  4  CIGAR  "2S74M"
+left:  6403 - 6465  l:   -   d:  -62 ; m:  6403 ; o:  62  CIGAR  "62M"
+right:  6403 - 6465  l:   -   d:  62 ; m:  6403 ; o:  62  CIGAR  "62M"
+ clip left from  6435  to  6465
+ clip right from  6404  to  6434
+-> left:  6403 - 6434  l:   -   d:  62 ; m:  6434 ; o:  62  CIGAR  "31M31S"
+-> right:  6434 - 6465  l:   -   d:  -62 ; m:  6403 ; o:  62  CIGAR  "31S31M"
+Softclipped 256 of 322 reads.
+Softclipped 5418 bases.

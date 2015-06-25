@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2014 (x64) (http://www.altova.com) by Dr. Peter Bauer (Universitätsklinikum Tübingen) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" elementFormDefault="qualified" attributeFormDefault="unqualified" vc:minVersion="1.1">
+	<xs:element name="DiagnosticNgsReport">
+		<xs:annotation>
+			<xs:documentation>Diagnostic NGS report </xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="ReportGeneration">
+					<xs:annotation>
+						<xs:documentation>Meta data about the report generation</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:attribute name="date" type="xs:date" use="required">
+							<xs:annotation>
+								<xs:documentation>date of report creation</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="user_name" use="required">
+							<xs:annotation>
+								<xs:documentation>user that created the report</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:minLength value="1"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="software" use="required">
+							<xs:annotation>
+								<xs:documentation>software that created the report (including version if possible)</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:minLength value="1"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="outcome" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>Report outcome.</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="Sample">
+					<xs:annotation>
+						<xs:documentation>Information about the sample</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:attribute name="name" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>sample name</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="name_external">
+							<xs:annotation>
+								<xs:documentation>external sample name</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:minLength value="1"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="TargetRegion" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Information about the traget region used for the analysis</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:attribute name="name" use="required">
+							<xs:annotation>
+								<xs:documentation>target region name</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:minLength value="1"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="regions" type="xs:int" use="required">
+							<xs:annotation>
+								<xs:documentation>number of disjunct chromosomal regions</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="bases" type="xs:int" use="required">
+							<xs:annotation>
+								<xs:documentation>number of bases</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="VariantList">
+					<xs:annotation>
+						<xs:documentation>Variants of interest</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="AppliedFilter" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Information about applied filter steps</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="name" use="required">
+										<xs:annotation>
+											<xs:documentation>filter name</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:minLength value="1"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="Variant" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Representation of a single variant</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="Annotation" minOccurs="0" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>Generic annotation of variant</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="name" use="required">
+													<xs:annotation>
+														<xs:documentation>annotation name</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="value" type="xs:string" use="required">
+													<xs:annotation>
+														<xs:documentation>annotation value</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="chr" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>chromosome</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="start" type="xs:int" use="required">
+										<xs:annotation>
+											<xs:documentation>start position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="end" type="xs:int" use="required">
+										<xs:annotation>
+											<xs:documentation>end position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="ref" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>reference sequence</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="obs" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>observed sequence</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="genotype" use="required">
+										<xs:annotation>
+											<xs:documentation>variant genotype</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="hom"/>
+												<xs:enumeration value="het"/>
+												<xs:enumeration value="lofreq"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="comment" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>text comment</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="overall_number" use="required">
+							<xs:annotation>
+								<xs:documentation>Overall number of variants before filtering (in the target region if applicable)</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:int"/>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="genome_build" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>genome build that the variant positions refer to e.g. hg19</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="version" type="xs:int" use="required">
+				<xs:annotation>
+					<xs:documentation>version of the format</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

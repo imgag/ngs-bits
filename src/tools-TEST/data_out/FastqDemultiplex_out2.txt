@@ -1,0 +1,33 @@
+Overall statistics:
+Number of reads: 43
+Assigned reads: 43 (100.00%)
+Unassigned reads: 0 (0.00%)
+Ambigous reads: 0 (0.00%)
+
+Sample statistics:
+#project	sample	read_count	percentage_of_reads	percentage_of_assigned_reads
+CaMyo	GS150167_01	43	100.00	100.00
+CaMyo	GS150168_01	0	0.00	0.00
+CaMyo	GS150169_01	0	0.00	0.00
+CaMyo	GS150170_01	0	0.00	0.00
+Leuk	GS140807_02	0	0.00	0.00
+Leuk	GS140808_02	0	0.00	0.00
+Leuk	GS140809_02	0	0.00	0.00
+Leuk	GS140810_02	0	0.00	0.00
+TS-One	GS150045_01	0	0.00	0.00
+TS-One	GS150046_01	0	0.00	0.00
+TS-One	GS150047_01	0	0.00	0.00
+TS-One	GS150157_01	0	0.00	0.00
+TS-One	GS150159_01	0	0.00	0.00
+TS-One	GS150160_01	0	0.00	0.00
+TS-One	GS150161_01	0	0.00	0.00
+TS-One	GS150162_01	0	0.00	0.00
+TS-One	GS150163_01	0	0.00	0.00
+TS-One	GS150164_01	0	0.00	0.00
+TS-One	GS150165_01	0	0.00	0.00
+TS-One	GS150166_01	0	0.00	0.00
+cfDNA	GS140476_01	0	0.00	0.00
+cfDNA	GS150038_04	0	0.00	0.00
+cfDNA	GS150175_01	0	0.00	0.00
+cfDNA	GS150176_01	0	0.00	0.00
+

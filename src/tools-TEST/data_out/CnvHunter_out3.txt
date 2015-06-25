@@ -1,0 +1,1351 @@
+##bad region: chrX:2707675-2707757 ncov<0.01 cov<20
+##bad region: chrX:2746853-2747026 ncov<0.01 cov<20
+##bad region: chrX:2761029-2761141 cov<20 cv>0.3
+##bad region: chrX:2847263-2847402 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:2959502-2959714 ncov<0.01 cov<20
+##bad region: chrX:3264546-3264691 cov<20 cv>0.3
+##bad region: chrX:3631119-3631659 cov<20 cv>0.3
+##bad region: chrX:3736473-3736551 cov<20 cv>0.3
+##bad region: chrX:3761372-3761905 cov<20 cv>0.3
+##bad region: chrX:3771055-3772978 cv>0.3
+##bad region: chrX:3778821-3779047 cv>0.3
+##bad region: chrX:3781533-3781625 cv>0.3
+##bad region: chrX:3782429-3783193 ncov<0.01 cov<20
+##bad region: chrX:3784981-3785857 cv>0.3
+##bad region: chrX:3799796-3800329 cov<20 cv>0.3
+##bad region: chrX:3809479-3811402 cv>0.3
+##bad region: chrX:3817247-3817473 cv>0.3
+##bad region: chrX:3819959-3820051 cv>0.3
+##bad region: chrX:3823379-3824283 cv>0.3
+##bad region: chrX:3838225-3838758 cov<20 cv>0.3
+##bad region: chrX:7066038-7066199 cov<20 cv>0.3
+##bad region: chrX:7811529-7812194 cv>0.3
+##bad region: chrX:7895317-7895453 cv>0.3
+##bad region: chrX:8433336-8433603 cv>0.3
+##bad region: chrX:8667729-8667796 ncov<0.01 cov<20
+##bad region: chrX:8699861-8700237 cov<20 cv>0.3
+##bad region: chrX:9001883-9002178 cov<20
+##bad region: chrX:9132324-9132657 ncov<0.01 cov<20
+##bad region: chrX:9377208-9377263 cv>0.3
+##bad region: chrX:9433029-9433497 ncov<0.01 cov<20
+##bad region: chrX:9502930-9503084 ncov<0.01 cov<20
+##bad region: chrX:9665399-9665479 ncov<0.01 cov<20
+##bad region: chrX:9733598-9733927 cov<20 cv>0.3
+##bad region: chrX:9754486-9754760 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:9983602-9983908 ncov<0.01 cov<20
+##bad region: chrX:10557617-10557993 ncov<0.01 cov<20
+##bad region: chrX:11129411-11129648 cov<20
+##bad region: chrX:11445658-11445903 cov<20 cv>0.3
+##bad region: chrX:11776268-11776494 cov<20 cv>0.3
+##bad region: chrX:12156575-12157141 cov<20
+##bad region: chrX:12809483-12809748 cov<20
+##bad region: chrX:13587731-13588064 cov<20 cv>0.3
+##bad region: chrX:13679010-13679251 ncov<0.01 cov<20
+##bad region: chrX:13684426-13684599 ncov<0.01 cov<20
+##bad region: chrX:13698598-13698727 ncov<0.01 cov<20
+##bad region: chrX:13707331-13707417 cov<20 cv>0.3
+##bad region: chrX:13721923-13722031 ncov<0.01 cov<20
+##bad region: chrX:13752153-13752314 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:13956616-13956841 cov<20 cv>0.3
+##bad region: chrX:14875974-14876086 ncov<0.01 cov<20
+##bad region: chrX:14891553-14891669 cv>0.3
+##bad region: chrX:14903403-14903589 ncov<0.01 cov<20
+##bad region: chrX:14918687-14918767 cv>0.3
+##bad region: chrX:15353613-15353670 cov<20 cv>0.3
+##bad region: chrX:15588408-15588486 ncov<0.01 cov<20
+##bad region: chrX:15822224-15822330 cov<20 cv>0.3
+##bad region: chrX:15872801-15873110 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:16804550-16804722 cov<20
+##bad region: chrX:16964804-16965267 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:17088053-17088126 ncov<0.01 cov<20
+##bad region: chrX:17393533-17394455 cov<20
+##bad region: chrX:17879208-17879366 ncov<0.01 cov<20
+##bad region: chrX:18231884-18232041 ncov<0.01 cov<20
+##bad region: chrX:18582587-18582652 ncov<0.01 cov<20
+##bad region: chrX:18664117-18664220 ncov<0.01 cov<20
+##bad region: chrX:18715954-18716060 ncov<0.01 cov<20
+##bad region: chrX:19041524-19041581 cv>0.3
+##bad region: chrX:19058297-19058352 ncov<0.01 cov<20
+##bad region: chrX:19140550-19140687 ncov<0.01 cov<20
+##bad region: chrX:19362041-19362222 cov<20 cv>0.3
+##bad region: chrX:19364618-19364751 ncov<0.01 cov<20
+##bad region: chrX:19389067-19389192 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:19426636-19426753 ncov<0.01 cov<20
+##bad region: chrX:19484774-19484826 ncov<0.01 cov<20
+##bad region: chrX:19500002-19500404 ncov<0.01 cov<20
+##bad region: chrX:19905415-19905729 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:19931198-19931607 ncov<0.01 cov<20
+##bad region: chrX:19933047-19933177 ncov<0.01 cov<20
+##bad region: chrX:20034202-20034453 ncov<0.01 cov<20
+##bad region: chrX:20134858-20135026 cov<20 cv>0.3
+##bad region: chrX:20152065-20152135 cv>0.3
+##bad region: chrX:20159733-20159976 cov<20 cv>0.3
+##bad region: chrX:20179752-20179889 ncov<0.01 cov<20
+##bad region: chrX:20284672-20284760 ncov<0.01 cov<20
+##bad region: chrX:21519628-21519716 cv>0.3
+##bad region: chrX:21619390-21619477 cv>0.3
+##bad region: chrX:21857744-21857937 cov<20
+##bad region: chrX:21863279-21863512 ncov<0.01 cov<20
+##bad region: chrX:21958832-21959001 ncov<0.01 cov<20
+##bad region: chrX:23685635-23685938 cov<20 cv>0.3
+##bad region: chrX:23761232-23761417 cov<20 cv>0.3
+##bad region: chrX:23874409-23874509 ncov<0.01 cov<20
+##bad region: chrX:23901466-23902060 ncov<0.01 cov<20
+##bad region: chrX:24167752-24167921 cov<20 cv>0.3
+##bad region: chrX:24169798-24169927 ncov<0.01 cov<20
+##bad region: chrX:24179822-24179969 ncov<0.01 cov<20
+##bad region: chrX:24712046-24712131 cv>0.3
+##bad region: chrX:24755732-24755868 ncov<0.01 cov<20
+##bad region: chrX:25025218-25025566 cov<20 cv>0.3
+##bad region: chrX:25031029-25031925 cov<20
+##bad region: chrX:27204647-27204784 ncov<0.01 cov<20
+##bad region: chrX:27354517-27354620 ncov<0.01 cov<20
+##bad region: chrX:27416858-27416964 ncov<0.01 cov<20
+##bad region: chrX:27417044-27417124 ncov<0.01 cov<20
+##bad region: chrX:27835661-27835829 ncov<0.01 cov<20
+##bad region: chrX:30249624-30249745 ncov<0.01 cov<20
+##bad region: chrX:30250934-30251043 ncov<0.01 cov<20
+##bad region: chrX:30251369-30251490 ncov<0.01 cov<20
+##bad region: chrX:30671530-30671742 cov<20
+##bad region: chrX:30714724-30714810 ncov<0.01 cov<20
+##bad region: chrX:30725663-30725725 ncov<0.01 cov<20
+##bad region: chrX:30742208-30742308 cv>0.3
+##bad region: chrX:30885222-30885345 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:30907221-30907521 cov<20 cv>0.3
+##bad region: chrX:30917178-30917290 ncov<0.01 cov<20
+##bad region: chrX:31284917-31285034 ncov<0.01 cov<20
+##bad region: chrX:35971699-35971846 cv>0.3
+##bad region: chrX:36162668-36163197 ncov<0.01 cov<20
+##bad region: chrX:37208615-37208658 cv>0.3
+##bad region: chrX:37245842-37245952 ncov<0.01 cov<20
+##bad region: chrX:37706724-37706841 cov<20 cv>0.3
+##bad region: chrX:37890243-37890353 ncov<0.01 cov<20
+##bad region: chrX:38079939-38080141 cov<20 cv>0.3
+##bad region: chrX:38134332-38134409 ncov<0.01 cov<20
+##bad region: chrX:38150202-38150287 ncov<0.01 cov<20
+##bad region: chrX:39181013-39181194 ncov<0.01 cov<20
+##bad region: chrX:39956458-39956666 cov<20 cv>0.3
+##bad region: chrX:40217970-40218031 ncov<0.01 cov<20
+##bad region: chrX:40440206-40440364 cov<20 cv>0.3
+##bad region: chrX:40541094-40541205 cv>0.3
+##bad region: chrX:40594440-40595052 cov<20 cv>0.3
+##bad region: chrX:40671193-40673537 ncov<0.01 cov<20
+##bad region: chrX:40674284-40674374 ncov<0.01 cov<20
+##bad region: chrX:40944878-40945372 cov<20
+##bad region: chrX:40990700-40990799 cv>0.3
+##bad region: chrX:41414843-41414898 cv>0.3
+##bad region: chrX:41551851-41551999 ncov<0.01 cov<20
+##bad region: chrX:43036233-43036464 ncov<0.01 cov<20
+##bad region: chrX:43055436-43055628 ncov<0.01 cov<20
+##bad region: chrX:43056555-43056634 ncov<0.01 cov<20
+##bad region: chrX:43082555-43082656 ncov<0.01 cov<20
+##bad region: chrX:43741490-43741691 cov<20
+##bad region: chrX:44023158-44023283 ncov<0.01 cov<20
+##bad region: chrX:44202783-44202928 cov<20 cv>0.3
+##bad region: chrX:44732771-44732968 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:44833901-44833970 cv>0.3
+##bad region: chrX:44937635-44937760 cv>0.3
+##bad region: chrX:45369732-45369850 ncov<0.01 cov<20
+##bad region: chrX:45380843-45381103 ncov<0.01 cov<20
+##bad region: chrX:46330567-46330630 ncov<0.01 cov<20
+##bad region: chrX:46771726-46771785 ncov<0.01 cov<20
+##bad region: chrX:46771858-46772164 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:46937765-46938118 cov<20
+##bad region: chrX:47030417-47030667 cov<20 cv>0.3
+##bad region: chrX:47038492-47038572 cov<20 cv>0.3
+##bad region: chrX:47039601-47039718 cov<20
+##bad region: chrX:47053285-47053433 cov<20 cv>0.3
+##bad region: chrX:47060283-47060409 cov<20 cv>0.3
+##bad region: chrX:47078105-47078514 cov<20 cv>0.3
+##bad region: chrX:47092304-47092628 cov<20
+##bad region: chrX:47420568-47420660 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:47433391-47433999 cov<20 cv>0.3
+##bad region: chrX:47434077-47434184 cov<20 cv>0.3
+##bad region: chrX:47441680-47441883 cov<20
+##bad region: chrX:47478741-47479266 cov<20
+##bad region: chrX:47489518-47489714 cov<20 cv>0.3
+##bad region: chrX:47509310-47509435 cv>0.3
+##bad region: chrX:47509812-47510030 cov<20 cv>0.3
+##bad region: chrX:47566580-47566794 ncov<0.01 cov<20
+##bad region: chrX:47583947-47584063 cov<20 cv>0.3
+##bad region: chrX:47595223-47596037 ncov<0.01 cov<20
+##bad region: chrX:47696291-47696396 cv>0.3
+##bad region: chrX:47702039-47702177 ncov<0.01 cov<20
+##bad region: chrX:47778572-47781616 cov<20
+##bad region: chrX:47847914-47848027 ncov<0.01 cov<20
+##bad region: chrX:48207684-48207893 ncov<0.01 cov<20
+##bad region: chrX:48208965-48209032 cov<20 cv>0.3
+##bad region: chrX:48319362-48319482 cov<20
+##bad region: chrX:48334941-48335066 cv>0.3
+##bad region: chrX:48367361-48367501 cov<20 cv>0.3
+##bad region: chrX:48375561-48375691 cov<20 cv>0.3
+##bad region: chrX:48380247-48380305 cov<20 cv>0.3
+##bad region: chrX:48398065-48398318 cov<20 cv>0.3
+##bad region: chrX:48547039-48547465 cov<20
+##bad region: chrX:48644952-48645063 cov<20
+##bad region: chrX:48676438-48676526 cov<20
+##bad region: chrX:48689496-48689875 cov<20
+##bad region: chrX:48690269-48690761 cov<20 cv>0.3
+##bad region: chrX:48693811-48693970 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:48752625-48752794 cov<20 cv>0.3
+##bad region: chrX:48758786-48758892 cov<20 cv>0.3
+##bad region: chrX:48776041-48776294 cov<20 cv>0.3
+##bad region: chrX:48900627-48901000 cov<20 cv>0.3
+##bad region: chrX:48923268-48923386 cov<20
+##bad region: chrX:48930082-48930333 cov<20
+##bad region: chrX:49041068-49041173 cov<20 cv>0.3
+##bad region: chrX:49042699-49042786 cov<20 cv>0.3
+##bad region: chrX:49056600-49056671 ncov<0.01 cov<20
+##bad region: chrX:49065712-49065863 cov<20 cv>0.3
+##bad region: chrX:49070269-49070372 cov<20 cv>0.3
+##bad region: chrX:49075331-49075410 cov<20 cv>0.3
+##bad region: chrX:49076083-49076259 cov<20
+##bad region: chrX:49087654-49087779 cov<20
+##bad region: chrX:49106102-49106196 cov<20 cv>0.3
+##bad region: chrX:49113874-49114032 cov<20 cv>0.3
+##bad region: chrX:49114111-49114235 cov<20 cv>0.3
+##bad region: chrX:49126307-49127346 cov<20
+##bad region: chrX:49189755-49189895 cv>0.3
+##bad region: chrX:49211728-49211873 cv>0.3
+##bad region: chrX:49214294-49214440 cv>0.3
+##bad region: chrX:49221251-49221396 cv>0.3
+##bad region: chrX:49223817-49223963 cv>0.3
+##bad region: chrX:49233355-49233501 cv>0.3
+##bad region: chrX:49236813-49236921 cv>0.3
+##bad region: chrX:49240324-49240469 cv>0.3
+##bad region: chrX:49242890-49242982 cv>0.3
+##bad region: chrX:49294462-49294608 cv>0.3
+##bad region: chrX:49298474-49298614 cv>0.3
+##bad region: chrX:49301417-49301562 cv>0.3
+##bad region: chrX:49304018-49304154 cv>0.3
+##bad region: chrX:49308030-49308170 cv>0.3
+##bad region: chrX:49310973-49311118 cv>0.3
+##bad region: chrX:49313574-49313710 cv>0.3
+##bad region: chrX:49317586-49317726 cv>0.3
+##bad region: chrX:49320529-49320674 cv>0.3
+##bad region: chrX:49323126-49323262 cv>0.3
+##bad region: chrX:49330088-49330233 cv>0.3
+##bad region: chrX:49332685-49332821 cv>0.3
+##bad region: chrX:49339641-49339786 cv>0.3
+##bad region: chrX:49342234-49342370 cv>0.3
+##bad region: chrX:49346246-49346386 cv>0.3
+##bad region: chrX:49349189-49349334 cv>0.3
+##bad region: chrX:49351781-49351853 cv>0.3
+##bad region: chrX:49355790-49355930 cv>0.3
+##bad region: chrX:49358711-49358856 cv>0.3
+##bad region: chrX:49365317-49365457 cv>0.3
+##bad region: chrX:49368261-49368406 cv>0.3
+##bad region: chrX:49370586-49370968 cov<20
+##bad region: chrX:49643684-49643729 ncov<0.01 cov<20
+##bad region: chrX:49687215-49687412 cov<20
+##bad region: chrX:49962185-49962255 cv>0.3
+##bad region: chrX:50144025-50144147 ncov<0.01 cov<20
+##bad region: chrX:50213023-50213747 cov<20 cv>0.3
+##bad region: chrX:52118702-52118832 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:52243834-52243963 cov<20 cv>0.3
+##bad region: chrX:52255210-52255339 cov<20 cv>0.3
+##bad region: chrX:52380342-52380472 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:52516785-52516914 cov<20 cv>0.3
+##bad region: chrX:52528150-52528279 cov<20 cv>0.3
+##bad region: chrX:52541044-52541173 cov<20 cv>0.3
+##bad region: chrX:52727826-52727991 ncov<0.01 cov<20
+##bad region: chrX:52788568-52788733 ncov<0.01 cov<20
+##bad region: chrX:52841218-52841294 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:52987592-52987708 cov<20 cv>0.3
+##bad region: chrX:53123329-53123476 cov<20 cv>0.3
+##bad region: chrX:53264955-53265024 cov<20 cv>0.3
+##bad region: chrX:53308736-53308851 ncov<0.01 cov<20
+##bad region: chrX:53310668-53310806 cov<20
+##bad region: chrX:53461256-53461333 cov<20 cv>0.3
+##bad region: chrX:53661178-53661260 ncov<0.01 cov<20
+##bad region: chrX:53713205-53713323 cov<20 cv>0.3
+##bad region: chrX:53713523-53713683 cov<20 cv>0.3
+##bad region: chrX:54200212-54200589 ncov<0.01 cov<20
+##bad region: chrX:54208923-54209701 cov<20
+##bad region: chrX:54255137-54255186 ncov<0.01 cov<20
+##bad region: chrX:54466843-54466945 cov<20 cv>0.3
+##bad region: chrX:54496439-54496900 cov<20
+##bad region: chrX:54521549-54522609 cov<20
+##bad region: chrX:54982576-54982717 ncov<0.01 cov<20
+##bad region: chrX:55187560-55187619 cov<20 cv>0.3
+##bad region: chrX:55250410-55250551 cov<20 cv>0.3
+##bad region: chrX:62652234-62652381 ncov<0.01 cov<20
+##bad region: chrX:62863850-62863938 cv>0.3
+##bad region: chrX:62921360-62921532 ncov<0.01 cov<20
+##bad region: chrX:63425440-63425634 cov<20 cv>0.3
+##bad region: chrX:64254499-64254603 cov<20 cv>0.3
+##bad region: chrX:64744434-64744504 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:64844513-64845770 ncov<0.01 cov<20
+##bad region: chrX:64956647-64956797 cov<20
+##bad region: chrX:65858827-65858893 ncov<0.01 cov<20
+##bad region: chrX:68066000-68066039 ncov<0.01 cov<20
+##bad region: chrX:68399390-68399498 ncov<0.01 cov<20
+##bad region: chrX:68421310-68421485 ncov<0.01 cov<20
+##bad region: chrX:68424724-68424880 ncov<0.01 cov<20
+##bad region: chrX:68890044-68890147 ncov<0.01 cov<20
+##bad region: chrX:68948977-68949032 ncov<0.01 cov<20
+##bad region: chrX:69080678-69081034 ncov<0.01 cov<20
+##bad region: chrX:69502373-69502451 cv>0.3
+##bad region: chrX:69509700-69509808 cv>0.3
+##bad region: chrX:69626733-69626935 ncov<0.01 cov<20
+##bad region: chrX:69644816-69644949 cov<20 cv>0.3
+##bad region: chrX:69664714-69665418 cov<20
+##bad region: chrX:69672151-69672615 cov<20 cv>0.3
+##bad region: chrX:69715248-69715313 cov<20
+##bad region: chrX:69964005-69964079 ncov<0.01 cov<20
+##bad region: chrX:70026545-70026650 cov<20
+##bad region: chrX:70117305-70117446 ncov<0.01 cov<20
+##bad region: chrX:70256088-70256227 ncov<0.01 cov<20
+##bad region: chrX:70360475-70360717 ncov<0.01 cov<20
+##bad region: chrX:70361070-70361230 ncov<0.01 cov<20
+##bad region: chrX:70364701-70364824 cov<20
+##bad region: chrX:70368686-70368765 ncov<0.01 cov<20
+##bad region: chrX:70443066-70443195 cov<20 cv>0.3
+##bad region: chrX:70504237-70504313 ncov<0.01 cov<20
+##bad region: chrX:70587339-70587473 cv>0.3
+##bad region: chrX:70674010-70674097 ncov<0.01 cov<20
+##bad region: chrX:70798251-70798382 cv>0.3
+##bad region: chrX:70812377-70812430 cov<20 cv>0.3
+##bad region: chrX:70814586-70814639 cov<20 cv>0.3
+##bad region: chrX:71347471-71347570 ncov<0.01 cov<20
+##bad region: chrX:71457671-71457808 ncov<0.01 cov<20
+##bad region: chrX:71458684-71458868 cov<20
+##bad region: chrX:71870230-71870328 cov<20 cv>0.3
+##bad region: chrX:72797233-72797307 cv>0.3
+##bad region: chrX:73214665-73214806 ncov<0.01 cov<20
+##bad region: chrX:73218593-73218689 ncov<0.01 cov<20
+##bad region: chrX:73218779-73220336 ncov<0.01 cov<20
+##bad region: chrX:73281861-73281993 ncov<0.01 cov<20
+##bad region: chrX:73641075-73641912 cov<20
+##bad region: chrX:74144708-74144994 cov<20 cv>0.3
+##bad region: chrX:74514388-74514465 cv>0.3
+##bad region: chrX:74725646-74725692 ncov<0.01 cov<20
+##bad region: chrX:76709637-76709761 cv>0.3
+##bad region: chrX:76874264-76874459 cv>0.3
+##bad region: chrX:76912040-76912153 ncov<0.01 cov<20
+##bad region: chrX:76940421-76940508 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:76946286-76946428 ncov<0.01 cov<20
+##bad region: chrX:77123595-77124156 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:79483980-79490099 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:79675955-79676072 cv>0.3
+##bad region: chrX:79986577-79986720 ncov<0.01 cov<20
+##bad region: chrX:83116144-83116217 ncov<0.01 cov<20
+##bad region: chrX:83124863-83124923 cv>0.3
+##bad region: chrX:83352770-83352866 cv>0.3
+##bad region: chrX:83360785-83360894 cv>0.3
+##bad region: chrX:83371227-83371305 ncov<0.01 cov<20
+##bad region: chrX:83389780-83389837 cov<20 cv>0.3
+##bad region: chrX:83390102-83390228 cv>0.3
+##bad region: chrX:83588757-83588860 cv>0.3
+##bad region: chrX:83591799-83591898 cv>0.3
+##bad region: chrX:83743022-83743150 ncov<0.01 cov<20
+##bad region: chrX:84301442-84301566 cv>0.3
+##bad region: chrX:84349912-84350012 cov<20
+##bad region: chrX:84498987-84499207 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:84500899-84501038 cv>0.3
+##bad region: chrX:84558402-84558504 cv>0.3
+##bad region: chrX:86071027-86071112 cv>0.3
+##bad region: chrX:91066226-91066304 cv>0.3
+##bad region: chrX:91355177-91355260 ncov<0.01 cov<20
+##bad region: chrX:91355532-91355709 ncov<0.01 cov<20
+##bad region: chrX:91358436-91360188 ncov<0.01 cov<20
+##bad region: chrX:92953386-92953494 ncov<0.01 cov<20
+##bad region: chrX:96220082-96220216 cv>0.3
+##bad region: chrX:99958079-99958191 ncov<0.01 cov<20
+##bad region: chrX:100268606-100268738 ncov<0.01 cov<20
+##bad region: chrX:100296296-100296370 ncov<0.01 cov<20
+##bad region: chrX:100354788-100355064 ncov<0.01 cov<20
+##bad region: chrX:100375717-100375783 cov<20 cv>0.3
+##bad region: chrX:100479583-100479705 ncov<0.01 cov<20
+##bad region: chrX:100546202-100546334 cov<20 cv>0.3
+##bad region: chrX:100673265-100673368 cov<20
+##bad region: chrX:100753122-100754363 ncov<0.01 cov<20
+##bad region: chrX:100759914-100760352 ncov<0.01 cov<20
+##bad region: chrX:100764336-100764424 ncov<0.01 cov<20
+##bad region: chrX:100764567-100764675 ncov<0.01 cov<20
+##bad region: chrX:100766002-100766052 ncov<0.01 cov<20
+##bad region: chrX:100771457-100771951 ncov<0.01 cov<20
+##bad region: chrX:100779181-100779429 ncov<0.01 cov<20
+##bad region: chrX:101380650-101380788 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:101397315-101397398 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:101484282-101484441 ncov<0.01 cov<20
+##bad region: chrX:101485180-101485307 ncov<0.01 cov<20
+##bad region: chrX:101503420-101503561 ncov<0.01 cov<20
+##bad region: chrX:101693464-101693605 ncov<0.01 cov<20
+##bad region: chrX:101711718-101711845 ncov<0.01 cov<20
+##bad region: chrX:101712584-101712743 ncov<0.01 cov<20
+##bad region: chrX:102025270-102025358 ncov<0.01 cov<20
+##bad region: chrX:102071910-102072020 ncov<0.01 cov<20
+##bad region: chrX:102470042-102470176 cov<20 cv>0.3
+##bad region: chrX:102772292-102772463 cov<20 cv>0.3
+##bad region: chrX:102862824-102863008 cov<20 cv>0.3
+##bad region: chrX:102939599-102939667 ncov<0.01 cov<20
+##bad region: chrX:103047600-103047677 cov<20 cv>0.3
+##bad region: chrX:103050834-103050925 ncov<0.01 cov<20
+##bad region: chrX:103081925-103082018 ncov<0.01 cov<20
+##bad region: chrX:103086980-103087168 cov<20 cv>0.3
+##bad region: chrX:103173998-103174141 cov<20 cv>0.3
+##bad region: chrX:103231291-103231369 cov<20 cv>0.3
+##bad region: chrX:103267252-103267330 cov<20 cv>0.3
+##bad region: chrX:103295385-103295463 cov<20 cv>0.3
+##bad region: chrX:103316633-103316711 cv>0.3
+##bad region: chrX:105124182-105124258 cv>0.3
+##bad region: chrX:105156630-105156757 cv>0.3
+##bad region: chrX:105159712-105159799 cv>0.3
+##bad region: chrX:105165946-105166063 cv>0.3
+##bad region: chrX:106031138-106031240 cv>0.3
+##bad region: chrX:106057091-106059026 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:106064097-106064235 cv>0.3
+##bad region: chrX:106242897-106242989 cov<20 cv>0.3
+##bad region: chrX:106243088-106243468 cov<20
+##bad region: chrX:106307640-106308998 ncov<0.01 cov<20
+##bad region: chrX:107069450-107069670 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:107439731-107439819 ncov<0.01 cov<20
+##bad region: chrX:107782966-107783045 cv>0.3
+##bad region: chrX:107819130-107819212 cv>0.3
+##bad region: chrX:107840218-107840308 cov<20 cv>0.3
+##bad region: chrX:108976358-108976629 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:109245853-109246010 ncov<0.01 cov<20
+##bad region: chrX:109246352-109246416 cv>0.3
+##bad region: chrX:109662275-109662373 ncov<0.01 cov<20
+##bad region: chrX:109688371-109688506 ncov<0.01 cov<20
+##bad region: chrX:110339590-110339653 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:110406133-110406284 ncov<0.01 cov<20
+##bad region: chrX:110987886-110988142 ncov<0.01 cov<20
+##bad region: chrX:111374201-111374339 ncov<0.01 cov<20
+##bad region: chrX:112022215-112022918 cov<20
+##bad region: chrX:112075512-112075608 ncov<0.01 cov<20
+##bad region: chrX:114358498-114358575 ncov<0.01 cov<20
+##bad region: chrX:114384380-114384516 cv>0.3
+##bad region: chrX:114384575-114384643 cv>0.3
+##bad region: chrX:114399958-114400036 cv>0.3
+##bad region: chrX:114468246-114468645 cov<20
+##bad region: chrX:114795499-114795597 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:115033594-115035492 ncov<0.01 cov<20
+##bad region: chrX:115586133-115586252 cv>0.3
+##bad region: chrX:117250461-117250635 cov<20
+##bad region: chrX:117529202-117529317 cv>0.3
+##bad region: chrX:117629861-117630046 cov<20 cv>0.3
+##bad region: chrX:117861549-117861699 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:117938885-117939469 ncov<0.01 cov<20
+##bad region: chrX:117975768-117975838 ncov<0.01 cov<20
+##bad region: chrX:117981007-117981102 ncov<0.01 cov<20
+##bad region: chrX:117989417-117989528 ncov<0.01 cov<20
+##bad region: chrX:118560135-118560327 ncov<0.01 cov<20
+##bad region: chrX:118739684-118739823 ncov<0.01 cov<20
+##bad region: chrX:118975029-118975231 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:118985720-118985846 cv>0.3
+##bad region: chrX:119170191-119170507 ncov<0.01 cov<20
+##bad region: chrX:119272895-119273036 ncov<0.01 cov<20
+##bad region: chrX:119277619-119277816 ncov<0.01 cov<20
+##bad region: chrX:119384597-119384842 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:119590496-119590634 cv>0.3
+##bad region: chrX:119602951-119603171 cov<20
+##bad region: chrX:119739924-119740041 ncov<0.01 cov<20
+##bad region: chrX:120067685-120067844 cv>0.3
+##bad region: chrX:120072546-120072705 cv>0.3
+##bad region: chrX:120077405-120077565 cv>0.3
+##bad region: chrX:120082267-120082426 cv>0.3
+##bad region: chrX:120087127-120087286 cv>0.3
+##bad region: chrX:120093288-120093463 cv>0.3
+##bad region: chrX:120104052-120105068 cv>0.3
+##bad region: chrX:120117589-120117764 cv>0.3
+##bad region: chrX:120118632-120119648 cv>0.3
+##bad region: chrX:122837294-122837365 ncov<0.01 cov<20
+##bad region: chrX:122994038-122994153 cov<20 cv>0.3
+##bad region: chrX:123025078-123025176 ncov<0.01 cov<20
+##bad region: chrX:123094052-123094148 cov<20
+##bad region: chrX:123199716-123199806 cv>0.3
+##bad region: chrX:128627007-128627062 ncov<0.01 cov<20
+##bad region: chrX:128674242-128674465 ncov<0.01 cov<20
+##bad region: chrX:128682530-128682588 ncov<0.01 cov<20
+##bad region: chrX:128788531-128788924 cov<20 cv>0.3
+##bad region: chrX:128945372-128945495 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:128977225-128977478 cov<20 cv>0.3
+##bad region: chrX:129041333-129041428 ncov<0.01 cov<20
+##bad region: chrX:129116659-129116748 cov<20 cv>0.3
+##bad region: chrX:129244290-129244476 cov<20 cv>0.3
+##bad region: chrX:129244585-129244663 ncov<0.01 cov<20
+##bad region: chrX:129373546-129373677 cv>0.3
+##bad region: chrX:129402726-129402883 cov<20 cv>0.3
+##bad region: chrX:129473900-129473960 cov<20 cv>0.3
+##bad region: chrX:129484610-129484715 ncov<0.01 cov<20
+##bad region: chrX:129493011-129493123 cov<20 cv>0.3
+##bad region: chrX:129611034-129611233 ncov<0.01 cov<20
+##bad region: chrX:129646330-129646463 ncov<0.01 cov<20
+##bad region: chrX:129647690-129647786 ncov<0.01 cov<20
+##bad region: chrX:130217129-130217214 cv>0.3
+##bad region: chrX:130433615-130433754 ncov<0.01 cov<20
+##bad region: chrX:130712632-130712883 ncov<0.01 cov<20
+##bad region: chrX:130843516-130843594 ncov<0.01 cov<20
+##bad region: chrX:130890629-130890747 ncov<0.01 cov<20
+##bad region: chrX:130919175-130919296 ncov<0.01 cov<20
+##bad region: chrX:130928012-130928153 ncov<0.01 cov<20
+##bad region: chrX:130928315-130928504 ncov<0.01 cov<20
+##bad region: chrX:131157235-131157445 cov<20 cv>0.3
+##bad region: chrX:131157526-131157697 cov<20 cv>0.3
+##bad region: chrX:131203496-131203701 cv>0.3
+##bad region: chrX:131351934-131352199 cov<20 cv>0.3
+##bad region: chrX:131352250-131352379 cov<20 cv>0.3
+##bad region: chrX:131518681-131518736 cv>0.3
+##bad region: chrX:131563831-131566849 cov<20
+##bad region: chrX:133119292-133119676 cov<20
+##bad region: chrX:133594247-133594378 cov<20 cv>0.3
+##bad region: chrX:133919906-133919990 cov<20
+##bad region: chrX:133930619-133930720 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:133931141-133931245 cov<20
+##bad region: chrX:134049202-134049307 cov<20 cv>0.3
+##bad region: chrX:134680295-134680404 cov<20 cv>0.3
+##bad region: chrX:134847175-134847433 cov<20 cv>0.3
+##bad region: chrX:134866204-134866462 cov<20 cv>0.3
+##bad region: chrX:134883478-134883736 cov<20 cv>0.3
+##bad region: chrX:134936487-134936745 cov<20 cv>0.3
+##bad region: chrX:134953746-134954004 cov<20 cv>0.3
+##bad region: chrX:134970996-134971254 cov<20 cv>0.3
+##bad region: chrX:134975775-134975961 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:135080631-135080727 cv>0.3
+##bad region: chrX:135229670-135229797 ncov<0.01 cov<20
+##bad region: chrX:135333438-135333612 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:135383112-135383169 ncov<0.01 cov<20
+##bad region: chrX:135386282-135386376 ncov<0.01 cov<20
+##bad region: chrX:135579228-135579608 cov<20 cv>0.3
+##bad region: chrX:135721889-135721973 ncov<0.01 cov<20
+##bad region: chrX:136003393-136004945 ncov<0.01 cov<20
+##bad region: chrX:136007396-136007548 ncov<0.01 cov<20
+##bad region: chrX:138285568-138285697 ncov<0.01 cov<20
+##bad region: chrX:138686830-138686919 cov<20 cv>0.3
+##bad region: chrX:138695365-138695432 cv>0.3
+##bad region: chrX:139793776-139793831 ncov<0.01 cov<20
+##bad region: chrX:140084746-140084958 cv>0.3
+##bad region: chrX:140085586-140085881 cv>0.3
+##bad region: chrX:140096751-140096963 cv>0.3
+##bad region: chrX:140097591-140097886 cv>0.3
+##bad region: chrX:140590833-140591258 ncov<0.01 cov<20
+##bad region: chrX:140602757-140602894 ncov<0.01 cov<20
+##bad region: chrX:144899340-144899554 cov<20 cv>0.3
+##bad region: chrX:146993499-146993758 cov<20 cv>0.3
+##bad region: chrX:147018013-147018142 cv>0.3
+##bad region: chrX:147582129-147582674 cov<20
+##bad region: chrX:148610894-148610975 ncov<0.01 cov<20
+##bad region: chrX:148611040-148611140 ncov<0.01 cov<20
+##bad region: chrX:148614407-148615916 cov<20
+##bad region: chrX:148617696-148617797 cov<20 cv>0.3
+##bad region: chrX:148713216-148713578 cov<20
+##bad region: chrX:148769892-148769963 ncov<0.01 cov<20
+##bad region: chrX:149106836-149107014 cov<20
+##bad region: chrX:149111859-149111990 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:149116514-149116622 cov<20 cv>0.3
+##bad region: chrX:149120558-149121282 ncov<0.01 cov<20
+##bad region: chrX:149392217-149392358 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:149392566-149392825 ncov<0.01 cov<20
+##bad region: chrX:149737059-149737122 ncov<0.01 cov<20
+##bad region: chrX:149861859-149862159 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:149895677-149895791 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:149903926-149904181 ncov<0.01 cov<20
+##bad region: chrX:149996769-149998087 ncov<0.01 cov<20
+##bad region: chrX:149999694-149999776 ncov<0.01 cov<20
+##bad region: chrX:150066985-150067189 ncov<0.01 cov<20
+##bad region: chrX:150151753-150151859 cov<20 cv>0.3
+##bad region: chrX:150151883-150152074 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:150345839-150346318 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:150565695-150565843 cov<20
+##bad region: chrX:150817077-150817184 ncov<0.01 cov<20
+##bad region: chrX:150903208-150903425 ncov<0.01 cov<20
+##bad region: chrX:151086750-151086838 cv>0.3
+##bad region: chrX:151877934-151878068 ncov<0.01 cov<20
+##bad region: chrX:151881735-151881814 cov<20 cv>0.3
+##bad region: chrX:151883109-151883427 cv>0.3
+##bad region: chrX:151883558-151883656 cov<20 cv>0.3
+##bad region: chrX:151884436-151884575 cv>0.3
+##bad region: chrX:151897072-151897288 ncov<0.01 cov<20
+##bad region: chrX:151904449-151904528 cov<20 cv>0.3
+##bad region: chrX:151920908-151921047 cv>0.3
+##bad region: chrX:151921827-151921925 cov<20 cv>0.3
+##bad region: chrX:151922056-151922374 cv>0.3
+##bad region: chrX:151923669-151923748 cov<20 cv>0.3
+##bad region: chrX:151927413-151927547 ncov<0.01 cov<20
+##bad region: chrX:151999242-151999311 cov<20 cv>0.3
+##bad region: chrX:152087517-152087635 ncov<0.01 cov<20
+##bad region: chrX:152088862-152088965 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:152223263-152223400 ncov<0.01 cov<20
+##bad region: chrX:152224785-152225158 cov<20 cv>0.3
+##bad region: chrX:152338317-152338461 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:152599603-152599753 ncov<0.01 cov<20
+##bad region: chrX:152719842-152719976 cv>0.3
+##bad region: chrX:152727450-152727535 cov<20 cv>0.3
+##bad region: chrX:152760401-152760581 cov<20
+##bad region: chrX:152857954-152858201 cov<20 cv>0.3
+##bad region: chrX:152864410-152864591 cov<20 cv>0.3
+##bad region: chrX:152907978-152908075 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:152912647-152912889 cov<20 cv>0.3
+##bad region: chrX:152913363-152913790 cov<20
+##bad region: chrX:152938454-152938543 cov<20 cv>0.3
+##bad region: chrX:152939374-152939411 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:152939719-152939790 ncov<0.01 cov<20
+##bad region: chrX:152953382-152954301 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:152959350-152959482 cov<20 cv>0.3
+##bad region: chrX:152959978-152960098 cov<20 cv>0.3
+##bad region: chrX:152960164-152960354 cov<20 cv>0.3
+##bad region: chrX:152989779-152989897 cov<20 cv>0.3
+##bad region: chrX:153029701-153029769 cov<20 cv>0.3
+##bad region: chrX:153034607-153034727 cov<20 cv>0.3
+##bad region: chrX:153035252-153035404 cov<20 cv>0.3
+##bad region: chrX:153036410-153036546 cv>0.3
+##bad region: chrX:153038963-153039178 cv>0.3
+##bad region: chrX:153039631-153039809 cov<20 cv>0.3
+##bad region: chrX:153040151-153040271 cov<20 cv>0.3
+##bad region: chrX:153041801-153041924 cv>0.3
+##bad region: chrX:153042332-153042445 cov<20 cv>0.3
+##bad region: chrX:153046500-153046610 cov<20 cv>0.3
+##bad region: chrX:153048671-153048716 cov<20 cv>0.3
+##bad region: chrX:153059691-153060050 cov<20 cv>0.3
+##bad region: chrX:153063516-153063601 cov<20 cv>0.3
+##bad region: chrX:153072724-153072834 cov<20
+##bad region: chrX:153095178-153095361 cov<20 cv>0.3
+##bad region: chrX:153095684-153096013 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:153141206-153141409 cov<20
+##bad region: chrX:153149393-153149737 cov<20 cv>0.3
+##bad region: chrX:153150807-153150900 cov<20 cv>0.3
+##bad region: chrX:153151252-153151441 cov<20 cv>0.3
+##bad region: chrX:153151509-153151594 ncov<0.01 cov<20
+##bad region: chrX:153174887-153174999 cov<20
+##bad region: chrX:153175185-153175388 cov<20 cv>0.3
+##bad region: chrX:153176573-153176653 cv>0.3
+##bad region: chrX:153178468-153178515 cov<20 cv>0.3
+##bad region: chrX:153186540-153186622 cov<20 cv>0.3
+##bad region: chrX:153187048-153187272 cv>0.3
+##bad region: chrX:153191580-153191708 cov<20 cv>0.3
+##bad region: chrX:153200327-153200478 cov<20 cv>0.3
+##bad region: chrX:153200713-153200867 cov<20 cv>0.3
+##bad region: chrX:153206921-153207116 cv>0.3
+##bad region: chrX:153209337-153209432 cv>0.3
+##bad region: chrX:153224010-153224227 cov<20 cv>0.3
+##bad region: chrX:153283732-153283816 cv>0.3
+##bad region: chrX:153284638-153284789 cv>0.3
+##bad region: chrX:153284872-153285352 cov<20 cv>0.3
+##bad region: chrX:153363051-153363139 ncov<0.01 cov<20
+##bad region: chrX:153370239-153370516 ncov<0.01 cov<20
+##bad region: chrX:153402522-153402588 cov<20 cv>0.3
+##bad region: chrX:153418403-153418591 cv>0.3
+##bad region: chrX:153445525-153445557 ncov<0.01 cov<20
+##bad region: chrX:153448139-153448288 cv>0.3
+##bad region: chrX:153453249-153453565 cv>0.3
+##bad region: chrX:153455533-153455721 cv>0.3
+##bad region: chrX:153457169-153457354 cv>0.3
+##bad region: chrX:153458889-153459148 cv>0.3
+##bad region: chrX:153482646-153482767 ncov<0.01 cov<20
+##bad region: chrX:153492651-153492839 cv>0.3
+##bad region: chrX:153496007-153496266 cv>0.3
+##bad region: chrX:153520449-153520568 ncov<0.01 cov<20
+##bad region: chrX:153577720-153577943 cov<20
+##bad region: chrX:153582974-153583089 cv>0.3
+##bad region: chrX:153587842-153588024 cv>0.3
+##bad region: chrX:153590600-153590710 cv>0.3
+##bad region: chrX:153602864-153602939 ncov<0.01 cov<20
+##bad region: chrX:153642428-153642537 ncov<0.01 cov<20
+##bad region: chrX:153652718-153652978 ncov<0.01 cov<20
+##bad region: chrX:153665511-153665655 cov<20 cv>0.3
+##bad region: chrX:153672498-153672703 cov<20
+##bad region: chrX:153686613-153686778 ncov<0.01 cov<20
+##bad region: chrX:153691923-153692043 cov<20 cv>0.3
+##bad region: chrX:153693087-153693221 cov<20
+##bad region: chrX:153707057-153707606 cov<20
+##bad region: chrX:153714557-153714682 cov<20 cv>0.3
+##bad region: chrX:153714866-153714942 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:153718636-153719012 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:153736132-153736202 cov<20
+##bad region: chrX:153736610-153736688 cov<20 cv>0.3
+##bad region: chrX:153740628-153740745 ncov<0.01 cov<20
+##bad region: chrX:153744074-153744545 cov<20
+##bad region: chrX:153774994-153775243 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:153788612-153788784 cov<20 cv>0.3
+##bad region: chrX:153872143-153872183 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:153881511-153881852 cv>0.3
+##bad region: chrX:153979219-153979358 cov<20 cv>0.3
+##bad region: chrX:153991140-153991266 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:154004452-154004609 cov<20
+##bad region: chrX:154033537-154033773 cov<20
+##bad region: chrX:154114399-154114587 cov<20 cv>0.3
+##bad region: chrX:154189340-154189453 cv>0.3
+##bad region: chrX:154255054-154255356 cov<20
+##bad region: chrX:154299700-154299935 cov<20
+##bad region: chrX:154317528-154317636 ncov<0.01 cov<20
+##bad region: chrX:154327580-154327674 ncov<0.01 cov<20
+##bad region: chrX:154349488-154351359 ncov<0.01 cov<20 cv>0.3
+##bad region: chrX:154448450-154448594 cv>0.3
+##bad region: chrX:154603504-154603833 ncov<0.01 cov<20
+##bad region: chrX:154696191-154696520 ncov<0.01 cov<20
+##bad region: chrX:154716234-154716717 ncov<0.01 cov<20
+##bad regions: 678 of 7614
+##bad sample: GS120156_01 corr=0.923
+##bad sample: GS120157_01 corr=0.927
+##bad sample: GS120239_01 corr=0.922
+##bad sample: GS120332_01 corr=0.931
+##bad sample: GS120357_01 corr=0.950
+##bad sample: GS120358_01 corr=0.914
+##bad sample: GS120362_01 corr=0.845
+##bad sample: GS120363_01 corr=0.940
+##bad sample: GS120363_02 corr=0.839
+##bad sample: GS120395_01 corr=0.942
+##bad sample: GS120396_01 corr=0.907
+##bad sample: GS120398_01 corr=0.927
+##bad sample: GS120407_01 corr=0.943
+##bad sample: GS120511_01 corr=0.749
+##bad sample: GS120522_01 corr=0.841
+##bad sample: GS120577_01 corr=0.939
+##bad sample: GS120580_01 corr=0.914
+##bad sample: GS120636_01 corr=0.942
+##bad sample: GS120677_01 corr=0.884
+##bad sample: GS120691_01 corr=0.947
+##bad sample: GS120692_01 corr=0.888
+##bad sample: GS120695_01 corr=0.914
+##bad sample: GS130101_01 avg_depth=2.18426 avg_depth_chrx=2.18426 corr=0.640
+##bad sample: GS130131_01 corr=0.949
+##bad sample: GS130225_01 avg_depth=1.87334 avg_depth_chrx=1.87334 corr=0.575
+##bad sample: GS130227_01 corr=0.948
+##bad sample: GS130228_01 corr=0.944
+##bad sample: GS130229_01 corr=0.468
+##bad sample: GS130350_01 avg_depth=3.86967 avg_depth_chrx=3.86967 corr=0.655
+##bad sample: GS130351_01 avg_depth=3.63189 avg_depth_chrx=3.63189 corr=0.549
+##bad sample: GS130352_01 avg_depth=3.50932 avg_depth_chrx=3.50932 corr=0.684
+##bad sample: GS130363_01 corr=0.948
+##bad sample: GS130371_01 corr=0.940
+##bad samples: 33 of 107
+##ref samples of GS120156_01:  GS120622_01=0.8912 GS120158_01=0.8881 GS120623_01=0.8863 GS120334_01=0.8732 GS120335_01=0.8703 GS120333_01=0.8697 GS120573_01=0.8640 GS120331_01=0.8593 GS120397_01=0.8459 GS120576_01=0.8430 GS120521_01=0.8420 GS120520_01=0.8338 GS120513_01=0.8302 GS120528_01=0.8264 GS120523_01=0.8238 GS120524_01=0.8221 GS120509_01=0.8204 GS130370_01=0.8113 GS120510_01=0.8106 GS130100_01=0.8106
+##ref samples of GS120157_01:  GS120520_01=0.9310 GS120623_01=0.9206 GS120524_01=0.9198 GS120513_01=0.9167 GS120523_01=0.9146 GS120622_01=0.9119 GS120512_01=0.9097 GS120574_01=0.9096 GS120397_01=0.9087 GS120335_01=0.9085 GS120578_01=0.9078 GS120158_01=0.9057 GS120621_01=0.8994 GS120525_01=0.8974 GS120333_01=0.8972 GS120509_01=0.8966 GS120331_01=0.8948 GS120510_01=0.8930 GS120573_01=0.8922 GS120334_01=0.8884
+##ref samples of GS120158_01:  GS120334_01=0.9621 GS120333_01=0.9616 GS120335_01=0.9545 GS120521_01=0.9516 GS120528_01=0.9438 GS120576_01=0.9393 GS120523_01=0.9390 GS120575_01=0.9387 GS120526_01=0.9382 GS120622_01=0.9373 GS120623_01=0.9352 GS120520_01=0.9346 GS120509_01=0.9340 GS120573_01=0.9340 GS120572_01=0.9339 GS120525_01=0.9307 GS120621_01=0.9281 GS120574_01=0.9275 GS120331_01=0.9246 GS120512_01=0.9233
+##ref samples of GS120239_01:  GS120513_01=0.9278 GS120525_01=0.9218 GS120520_01=0.9185 GS120523_01=0.9130 GS120574_01=0.9111 GS120572_01=0.9067 GS120512_01=0.9067 GS130366_01=0.9022 GS120510_01=0.9003 GS120397_01=0.8991 GS120509_01=0.8987 GS120528_01=0.8985 GS120638_01=0.8957 GS120524_01=0.8950 GS120635_01=0.8945 GS120508_01=0.8944 GS120680_01=0.8940 GS130107_01=0.8939 GS120693_01=0.8935 GS130369_01=0.8923
+##ref samples of GS120331_01:  GS120333_01=0.9519 GS120335_01=0.9499 GS120509_01=0.9493 GS120334_01=0.9399 GS120576_01=0.9315 GS120158_01=0.9246 GS120623_01=0.9219 GS120528_01=0.9214 GS130098_01=0.9209 GS120520_01=0.9192 GS130102_01=0.9185 GS120525_01=0.9181 GS120521_01=0.9172 GS120572_01=0.9154 GS120510_01=0.9148 GS130100_01=0.9134 GS130127_01=0.9133 GS130368_01=0.9131 GS130364_01=0.9126 GS120574_01=0.9119
+##ref samples of GS120332_01:  GS120622_01=0.9293 GS120573_01=0.9214 GS120397_01=0.9193 GS120331_01=0.9123 GS120528_01=0.9034 GS120335_01=0.9026 GS120509_01=0.8945 GS120334_01=0.8945 GS120333_01=0.8942 GS130370_01=0.8932 GS120158_01=0.8921 GS120525_01=0.8894 GS120510_01=0.8885 GS130127_01=0.8829 GS120576_01=0.8797 GS120524_01=0.8784 GS120523_01=0.8772 GS120513_01=0.8766 GS120520_01=0.8761 GS120572_01=0.8749
+##ref samples of GS120333_01:  GS120334_01=0.9740 GS120335_01=0.9677 GS120158_01=0.9616 GS120521_01=0.9601 GS120576_01=0.9563 GS120509_01=0.9544 GS120528_01=0.9542 GS120331_01=0.9519 GS120572_01=0.9505 GS120523_01=0.9503 GS120525_01=0.9481 GS120623_01=0.9461 GS120574_01=0.9458 GS120575_01=0.9456 GS120520_01=0.9455 GS120526_01=0.9419 GS120573_01=0.9396 GS130362_01=0.9388 GS120579_01=0.9381 GS120622_01=0.9377
+##ref samples of GS120334_01:  GS120333_01=0.9740 GS120335_01=0.9693 GS120158_01=0.9621 GS120521_01=0.9514 GS120576_01=0.9497 GS120528_01=0.9486 GS120509_01=0.9465 GS120525_01=0.9443 GS120523_01=0.9427 GS120572_01=0.9412 GS120623_01=0.9399 GS120331_01=0.9399 GS120520_01=0.9390 GS120574_01=0.9383 GS120573_01=0.9370 GS120622_01=0.9369 GS120575_01=0.9366 GS120526_01=0.9347 GS120579_01=0.9340 GS130102_01=0.9310
+##ref samples of GS120335_01:  GS120334_01=0.9693 GS120333_01=0.9677 GS120509_01=0.9584 GS120576_01=0.9557 GS120158_01=0.9545 GS120575_01=0.9500 GS120331_01=0.9499 GS120528_01=0.9499 GS120523_01=0.9496 GS120521_01=0.9476 GS120623_01=0.9469 GS120525_01=0.9462 GS120520_01=0.9432 GS120574_01=0.9427 GS120572_01=0.9427 GS120510_01=0.9398 GS130102_01=0.9393 GS120696_01=0.9346 GS120573_01=0.9344 GS130098_01=0.9342
+##ref samples of GS120357_01:  GS120526_01=0.9388 GS120523_01=0.9371 GS120333_01=0.9365 GS120509_01=0.9353 GS120579_01=0.9349 GS120512_01=0.9338 GS120574_01=0.9326 GS120576_01=0.9305 GS120508_01=0.9304 GS120520_01=0.9300 GS120334_01=0.9294 GS120572_01=0.9290 GS120621_01=0.9289 GS120521_01=0.9282 GS120528_01=0.9271 GS120623_01=0.9270 GS120525_01=0.9267 GS120335_01=0.9257 GS120575_01=0.9255 GS130362_01=0.9230
+##ref samples of GS120358_01:  GS120509_01=0.9195 GS120331_01=0.9157 GS130132_01=0.9129 GS120513_01=0.9064 GS120678_01=0.9055 GS120525_01=0.9051 GS120520_01=0.9031 GS120510_01=0.9021 GS120634_01=0.8984 GS120397_01=0.8953 GS120528_01=0.8940 GS120524_01=0.8921 GS120523_01=0.8917 GS120572_01=0.8916 GS130127_01=0.8908 GS120574_01=0.8896 GS120512_01=0.8885 GS120333_01=0.8854 GS120335_01=0.8851 GS120576_01=0.8844
+##ref samples of GS120362_01:  GS120397_01=0.8051 GS120622_01=0.8033 GS120623_01=0.7792 GS120573_01=0.7790 GS120158_01=0.7752 GS120331_01=0.7752 GS120335_01=0.7742 GS120333_01=0.7629 GS120334_01=0.7588 GS130370_01=0.7565 GS120520_01=0.7552 GS120513_01=0.7551 GS120524_01=0.7476 GS120528_01=0.7425 GS120521_01=0.7399 GS120576_01=0.7367 GS120523_01=0.7355 GS120510_01=0.7311 GS120525_01=0.7291 GS120509_01=0.7291
+##ref samples of GS120363_01:  GS120573_01=0.9517 GS120622_01=0.9492 GS120528_01=0.9354 GS120397_01=0.9330 GS120524_01=0.9242 GS120520_01=0.9207 GS120525_01=0.9204 GS120333_01=0.9197 GS120335_01=0.9186 GS120509_01=0.9151 GS120572_01=0.9148 GS120523_01=0.9145 GS120513_01=0.9137 GS120334_01=0.9130 GS120510_01=0.9128 GS120574_01=0.9123 GS120158_01=0.9097 GS120576_01=0.9069 GS120331_01=0.9066 GS120575_01=0.9063
+##ref samples of GS120363_02:  GS120397_01=0.8200 GS120622_01=0.8133 GS120573_01=0.7950 GS120623_01=0.7906 GS120335_01=0.7866 GS120331_01=0.7858 GS120158_01=0.7848 GS120333_01=0.7753 GS120513_01=0.7703 GS120520_01=0.7703 GS120334_01=0.7698 GS130370_01=0.7698 GS120524_01=0.7653 GS120528_01=0.7633 GS120576_01=0.7562 GS120521_01=0.7540 GS120523_01=0.7524 GS120525_01=0.7478 GS120510_01=0.7474 GS120509_01=0.7473
+##ref samples of GS120395_01:  GS120525_01=0.9308 GS120573_01=0.9245 GS120622_01=0.9221 GS120528_01=0.9161 GS120523_01=0.9156 GS120520_01=0.9148 GS120397_01=0.9148 GS130370_01=0.9141 GS120575_01=0.9136 GS120335_01=0.9118 GS120574_01=0.9114 GS130369_01=0.9098 GS120333_01=0.9088 GS120334_01=0.9086 GS120513_01=0.9080 GS120510_01=0.9075 GS120524_01=0.9063 GS120693_01=0.9061 GS120572_01=0.9061 GS120696_01=0.9026
+##ref samples of GS120396_01:  GS130370_01=0.8942 GS120622_01=0.8887 GS120520_01=0.8853 GS130369_01=0.8853 GS120573_01=0.8838 GS120524_01=0.8831 GS120523_01=0.8827 GS120525_01=0.8802 GS120335_01=0.8802 GS120397_01=0.8768 GS120513_01=0.8760 GS120575_01=0.8756 GS120574_01=0.8738 GS120333_01=0.8734 GS120528_01=0.8698 GS120334_01=0.8697 GS120510_01=0.8695 GS120696_01=0.8642 GS120623_01=0.8627 GS120509_01=0.8615
+##ref samples of GS120397_01:  GS120525_01=0.9521 GS120528_01=0.9521 GS120510_01=0.9498 GS120513_01=0.9448 GS120520_01=0.9433 GS120573_01=0.9422 GS120572_01=0.9390 GS120509_01=0.9385 GS120523_01=0.9382 GS120622_01=0.9365 GS120574_01=0.9363 GS120335_01=0.9305 GS120333_01=0.9287 GS120524_01=0.9279 GS120575_01=0.9256 GS120334_01=0.9250 GS130369_01=0.9238 GS120576_01=0.9233 GS120578_01=0.9232 GS130370_01=0.9230
+##ref samples of GS120398_01:  GS120623_01=0.9205 GS120576_01=0.9179 GS120335_01=0.9090 GS130100_01=0.9045 GS120509_01=0.9027 GS120334_01=0.8992 GS120579_01=0.8991 GS120333_01=0.8966 GS120679_01=0.8952 GS130105_01=0.8941 GS120331_01=0.8941 GS120510_01=0.8929 GS130095_01=0.8909 GS130102_01=0.8891 GS120513_01=0.8889 GS120524_01=0.8885 GS130129_01=0.8863 GS120525_01=0.8855 GS130127_01=0.8852 GS120520_01=0.8849
+##ref samples of GS120407_01:  GS120576_01=0.9372 GS120333_01=0.9356 GS120335_01=0.9315 GS120509_01=0.9312 GS120334_01=0.9267 GS120623_01=0.9244 GS120572_01=0.9223 GS120331_01=0.9200 GS120574_01=0.9186 GS120520_01=0.9173 GS120525_01=0.9164 GS120579_01=0.9164 GS120510_01=0.9159 GS120523_01=0.9157 GS120528_01=0.9154 GS120158_01=0.9140 GS120521_01=0.9139 GS120512_01=0.9115 GS130102_01=0.9113 GS130098_01=0.9098
+##ref samples of GS120508_01:  GS120512_01=0.9742 GS120574_01=0.9709 GS120621_01=0.9674 GS120520_01=0.9660 GS120523_01=0.9656 GS120578_01=0.9605 GS120572_01=0.9576 GS120524_01=0.9548 GS120527_01=0.9543 GS120525_01=0.9507 GS120513_01=0.9466 GS120637_01=0.9455 GS120575_01=0.9442 GS120509_01=0.9441 GS120510_01=0.9433 GS130366_01=0.9417 GS130130_01=0.9381 GS130107_01=0.9376 GS120528_01=0.9349 GS130367_01=0.9337
+##ref samples of GS120509_01:  GS120572_01=0.9679 GS120525_01=0.9677 GS120510_01=0.9666 GS120574_01=0.9633 GS120523_01=0.9626 GS120576_01=0.9615 GS120575_01=0.9605 GS120335_01=0.9584 GS120528_01=0.9580 GS120579_01=0.9578 GS120512_01=0.9576 GS120520_01=0.9556 GS120333_01=0.9544 GS120524_01=0.9541 GS120578_01=0.9529 GS120331_01=0.9493 GS120696_01=0.9468 GS120334_01=0.9465 GS120527_01=0.9451 GS120508_01=0.9441
+##ref samples of GS120510_01:  GS120525_01=0.9709 GS120509_01=0.9666 GS120572_01=0.9643 GS120523_01=0.9579 GS120574_01=0.9552 GS120528_01=0.9505 GS120397_01=0.9498 GS120520_01=0.9495 GS120575_01=0.9489 GS120524_01=0.9477 GS120513_01=0.9472 GS120512_01=0.9446 GS120508_01=0.9433 GS120576_01=0.9430 GS120335_01=0.9398 GS120635_01=0.9389 GS120578_01=0.9378 GS120333_01=0.9357 GS120579_01=0.9338 GS120527_01=0.9338
+##ref samples of GS120511_01:  GS120623_01=0.7555 GS120331_01=0.7475 GS120334_01=0.7297 GS120335_01=0.7231 GS120333_01=0.7224 GS120158_01=0.7183 GS120513_01=0.7104 GS120622_01=0.7081 GS120576_01=0.7029 GS120520_01=0.6962 GS120397_01=0.6944 GS130100_01=0.6925 GS120521_01=0.6916 GS120509_01=0.6901 GS120510_01=0.6898 GS120524_01=0.6843 GS130370_01=0.6796 GS130369_01=0.6757 GS130364_01=0.6734 GS120523_01=0.6722
+##ref samples of GS120512_01:  GS120508_01=0.9742 GS120574_01=0.9731 GS120520_01=0.9720 GS120523_01=0.9720 GS120621_01=0.9676 GS120524_01=0.9657 GS120578_01=0.9630 GS120572_01=0.9621 GS120525_01=0.9617 GS120527_01=0.9591 GS120509_01=0.9576 GS120513_01=0.9545 GS120575_01=0.9507 GS120510_01=0.9446 GS120528_01=0.9434 GS130366_01=0.9404 GS130130_01=0.9390 GS120579_01=0.9370 GS120333_01=0.9370 GS120526_01=0.9363
+##ref samples of GS120513_01:  GS120520_01=0.9691 GS120525_01=0.9570 GS120512_01=0.9545 GS120574_01=0.9536 GS120523_01=0.9524 GS120510_01=0.9472 GS120508_01=0.9466 GS120397_01=0.9448 GS120638_01=0.9434 GS120524_01=0.9431 GS120578_01=0.9427 GS120509_01=0.9426 GS120572_01=0.9417 GS120528_01=0.9367 GS130366_01=0.9326 GS130369_01=0.9324 GS120576_01=0.9299 GS120676_01=0.9295 GS120527_01=0.9292 GS130107_01=0.9276
+##ref samples of GS120520_01:  GS120574_01=0.9803 GS120523_01=0.9758 GS120512_01=0.9720 GS120513_01=0.9691 GS120525_01=0.9665 GS120578_01=0.9662 GS120508_01=0.9660 GS120621_01=0.9654 GS120524_01=0.9618 GS120527_01=0.9598 GS120572_01=0.9593 GS120509_01=0.9556 GS120575_01=0.9556 GS120510_01=0.9495 GS120528_01=0.9487 GS130366_01=0.9477 GS120333_01=0.9455 GS130369_01=0.9443 GS120397_01=0.9433 GS120335_01=0.9432
+##ref samples of GS120521_01:  GS120333_01=0.9601 GS120575_01=0.9584 GS120526_01=0.9579 GS120523_01=0.9565 GS120158_01=0.9516 GS120334_01=0.9514 GS120335_01=0.9476 GS120572_01=0.9475 GS120621_01=0.9460 GS120576_01=0.9444 GS120528_01=0.9440 GS120574_01=0.9421 GS120509_01=0.9410 GS120520_01=0.9397 GS120525_01=0.9387 GS120623_01=0.9372 GS120524_01=0.9330 GS120512_01=0.9326 GS120579_01=0.9318 GS120573_01=0.9317
+##ref samples of GS120522_01:  GS120622_01=0.8597 GS120397_01=0.8531 GS120331_01=0.8385 GS120573_01=0.8358 GS130370_01=0.8304 GS120513_01=0.8278 GS120520_01=0.8183 GS120524_01=0.8163 GS120335_01=0.8146 GS120510_01=0.8102 GS120509_01=0.8077 GS120623_01=0.8077 GS120333_01=0.8019 GS120158_01=0.8002 GS130369_01=0.7980 GS120525_01=0.7969 GS120334_01=0.7950 GS120523_01=0.7944 GS120528_01=0.7917 GS120574_01=0.7903
+##ref samples of GS120523_01:  GS120574_01=0.9778 GS120520_01=0.9758 GS120621_01=0.9756 GS120525_01=0.9726 GS120512_01=0.9720 GS120575_01=0.9716 GS120572_01=0.9699 GS120524_01=0.9697 GS120508_01=0.9656 GS120509_01=0.9626 GS120578_01=0.9617 GS120527_01=0.9614 GS120510_01=0.9579 GS120528_01=0.9571 GS120521_01=0.9565 GS120526_01=0.9561 GS120513_01=0.9524 GS120333_01=0.9503 GS120335_01=0.9496 GS130366_01=0.9490
+##ref samples of GS120524_01:  GS120523_01=0.9697 GS120512_01=0.9657 GS120574_01=0.9634 GS120520_01=0.9618 GS120525_01=0.9569 GS120578_01=0.9558 GS120508_01=0.9548 GS120572_01=0.9547 GS120575_01=0.9543 GS120509_01=0.9541 GS120621_01=0.9538 GS130369_01=0.9536 GS120527_01=0.9486 GS120638_01=0.9481 GS120510_01=0.9477 GS130367_01=0.9470 GS120528_01=0.9454 GS120513_01=0.9431 GS130366_01=0.9392 GS120693_01=0.9382
+##ref samples of GS120525_01:  GS120572_01=0.9747 GS120523_01=0.9726 GS120574_01=0.9718 GS120510_01=0.9709 GS120509_01=0.9677 GS120520_01=0.9665 GS120528_01=0.9664 GS120575_01=0.9624 GS120512_01=0.9617 GS120527_01=0.9575 GS120513_01=0.9570 GS120524_01=0.9569 GS130366_01=0.9549 GS120578_01=0.9529 GS120397_01=0.9521 GS120621_01=0.9509 GS120508_01=0.9507 GS120333_01=0.9481 GS120576_01=0.9469 GS120693_01=0.9465
+##ref samples of GS120526_01:  GS120575_01=0.9587 GS120521_01=0.9579 GS120523_01=0.9561 GS120621_01=0.9526 GS120579_01=0.9507 GS120576_01=0.9487 GS120528_01=0.9486 GS120572_01=0.9485 GS130362_01=0.9469 GS130095_01=0.9430 GS130128_01=0.9428 GS120333_01=0.9419 GS130102_01=0.9414 GS130168_01=0.9413 GS120509_01=0.9408 GS120574_01=0.9405 GS120525_01=0.9403 GS130106_01=0.9402 GS120680_01=0.9396 GS120158_01=0.9382
+##ref samples of GS120527_01:  GS120578_01=0.9708 GS120574_01=0.9663 GS120523_01=0.9614 GS120520_01=0.9598 GS120512_01=0.9591 GS120621_01=0.9586 GS120572_01=0.9584 GS120525_01=0.9575 GS120508_01=0.9543 GS120528_01=0.9527 GS120575_01=0.9511 GS120524_01=0.9486 GS120509_01=0.9451 GS130366_01=0.9436 GS120693_01=0.9381 GS120526_01=0.9368 GS130170_01=0.9357 GS130169_01=0.9345 GS130222_01=0.9339 GS120510_01=0.9338
+##ref samples of GS120528_01:  GS120525_01=0.9664 GS120572_01=0.9630 GS120573_01=0.9600 GS120509_01=0.9580 GS120523_01=0.9571 GS120333_01=0.9542 GS120576_01=0.9540 GS120527_01=0.9527 GS120574_01=0.9524 GS120575_01=0.9523 GS120397_01=0.9521 GS120510_01=0.9505 GS120335_01=0.9499 GS120520_01=0.9487 GS120526_01=0.9486 GS120334_01=0.9486 GS120524_01=0.9454 GS120622_01=0.9450 GS130102_01=0.9445 GS120693_01=0.9440
+##ref samples of GS120572_01:  GS120525_01=0.9747 GS120574_01=0.9716 GS120523_01=0.9699 GS120509_01=0.9679 GS120575_01=0.9661 GS120510_01=0.9643 GS120528_01=0.9630 GS120512_01=0.9621 GS120520_01=0.9593 GS120527_01=0.9584 GS120508_01=0.9576 GS120524_01=0.9547 GS120578_01=0.9547 GS120621_01=0.9544 GS120576_01=0.9538 GS120579_01=0.9533 GS120333_01=0.9505 GS130366_01=0.9493 GS120693_01=0.9486 GS120526_01=0.9485
+##ref samples of GS120573_01:  GS120622_01=0.9801 GS120528_01=0.9600 GS120525_01=0.9458 GS120574_01=0.9455 GS120523_01=0.9455 GS120575_01=0.9453 GS120397_01=0.9422 GS120520_01=0.9414 GS120333_01=0.9396 GS120572_01=0.9389 GS120334_01=0.9370 GS120335_01=0.9344 GS120158_01=0.9340 GS120521_01=0.9317 GS120524_01=0.9316 GS120509_01=0.9307 GS120621_01=0.9289 GS120512_01=0.9269 GS120510_01=0.9257 GS120578_01=0.9242
+##ref samples of GS120574_01:  GS120520_01=0.9803 GS120523_01=0.9778 GS120512_01=0.9731 GS120578_01=0.9729 GS120525_01=0.9718 GS120572_01=0.9716 GS120508_01=0.9709 GS120621_01=0.9707 GS120575_01=0.9683 GS120527_01=0.9663 GS120524_01=0.9634 GS120509_01=0.9633 GS130366_01=0.9579 GS120510_01=0.9552 GS120513_01=0.9536 GS120528_01=0.9524 GS130369_01=0.9484 GS120638_01=0.9479 GS130107_01=0.9479 GS120693_01=0.9474
+##ref samples of GS120575_01:  GS120523_01=0.9716 GS120574_01=0.9683 GS120572_01=0.9661 GS120621_01=0.9638 GS120525_01=0.9624 GS120509_01=0.9605 GS120526_01=0.9587 GS120521_01=0.9584 GS120520_01=0.9556 GS120524_01=0.9543 GS120528_01=0.9523 GS120527_01=0.9511 GS120512_01=0.9507 GS120335_01=0.9500 GS120578_01=0.9491 GS120510_01=0.9489 GS120576_01=0.9478 GS120579_01=0.9467 GS120333_01=0.9456 GS120573_01=0.9453
+##ref samples of GS120576_01:  GS120509_01=0.9615 GS120579_01=0.9571 GS120333_01=0.9563 GS120335_01=0.9557 GS120528_01=0.9540 GS120572_01=0.9538 GS120334_01=0.9497 GS120526_01=0.9487 GS130102_01=0.9483 GS120575_01=0.9478 GS120525_01=0.9469 GS130100_01=0.9445 GS120521_01=0.9444 GS120510_01=0.9430 GS130095_01=0.9429 GS130362_01=0.9421 GS120523_01=0.9419 GS130368_01=0.9418 GS120680_01=0.9397 GS120158_01=0.9393
+##ref samples of GS120577_01:  GS120573_01=0.9242 GS120623_01=0.9225 GS120622_01=0.9208 GS120335_01=0.9170 GS120333_01=0.9165 GS120334_01=0.9135 GS120158_01=0.9129 GS120576_01=0.9127 GS120528_01=0.9033 GS120520_01=0.9001 GS120521_01=0.8989 GS120331_01=0.8978 GS120509_01=0.8946 GS120397_01=0.8942 GS120524_01=0.8941 GS120523_01=0.8929 GS120574_01=0.8924 GS130102_01=0.8924 GS120679_01=0.8917 GS120575_01=0.8907
+##ref samples of GS120578_01:  GS120574_01=0.9729 GS120527_01=0.9708 GS120520_01=0.9662 GS120512_01=0.9630 GS120523_01=0.9617 GS120508_01=0.9605 GS120621_01=0.9572 GS120524_01=0.9558 GS120572_01=0.9547 GS120509_01=0.9529 GS120525_01=0.9529 GS120575_01=0.9491 GS120528_01=0.9428 GS120513_01=0.9427 GS120638_01=0.9413 GS120510_01=0.9378 GS120693_01=0.9355 GS130366_01=0.9354 GS120637_01=0.9321 GS120335_01=0.9305
+##ref samples of GS120579_01:  GS120509_01=0.9578 GS120576_01=0.9571 GS120572_01=0.9533 GS130168_01=0.9525 GS120526_01=0.9507 GS130368_01=0.9498 GS130102_01=0.9478 GS130362_01=0.9468 GS120575_01=0.9467 GS130128_01=0.9453 GS130129_01=0.9448 GS120528_01=0.9434 GS120680_01=0.9417 GS120696_01=0.9414 GS120574_01=0.9412 GS120525_01=0.9406 GS130226_01=0.9404 GS120679_01=0.9403 GS130106_01=0.9385 GS120333_01=0.9381
+##ref samples of GS120580_01:  GS120623_01=0.9105 GS120622_01=0.8983 GS120573_01=0.8913 GS120333_01=0.8875 GS120334_01=0.8866 GS120158_01=0.8861 GS120335_01=0.8825 GS120397_01=0.8792 GS120520_01=0.8720 GS120521_01=0.8689 GS120576_01=0.8681 GS120528_01=0.8677 GS120331_01=0.8636 GS120523_01=0.8601 GS120513_01=0.8599 GS120679_01=0.8588 GS120574_01=0.8585 GS130102_01=0.8544 GS120526_01=0.8527 GS120524_01=0.8519
+##ref samples of GS120621_01:  GS120523_01=0.9756 GS120574_01=0.9707 GS120512_01=0.9676 GS120508_01=0.9674 GS120520_01=0.9654 GS120575_01=0.9638 GS120527_01=0.9586 GS120578_01=0.9572 GS120572_01=0.9544 GS120524_01=0.9538 GS120526_01=0.9526 GS120525_01=0.9509 GS120521_01=0.9460 GS120509_01=0.9417 GS130366_01=0.9350 GS120623_01=0.9347 GS120528_01=0.9337 GS120333_01=0.9328 GS120637_01=0.9310 GS130369_01=0.9293
+##ref samples of GS120622_01:  GS120573_01=0.9801 GS120528_01=0.9450 GS120333_01=0.9377 GS120523_01=0.9377 GS120158_01=0.9373 GS120334_01=0.9369 GS120520_01=0.9368 GS120397_01=0.9365 GS120525_01=0.9327 GS120574_01=0.9326 GS120335_01=0.9306 GS120575_01=0.9296 GS120521_01=0.9262 GS120621_01=0.9237 GS120524_01=0.9236 GS120572_01=0.9226 GS120509_01=0.9180 GS120512_01=0.9172 GS120510_01=0.9145 GS120513_01=0.9125
+##ref samples of GS120623_01:  GS120335_01=0.9469 GS120333_01=0.9461 GS120523_01=0.9440 GS120520_01=0.9430 GS120334_01=0.9399 GS120521_01=0.9372 GS120158_01=0.9352 GS120621_01=0.9347 GS120574_01=0.9339 GS130365_01=0.9324 GS120526_01=0.9323 GS120576_01=0.9310 GS120512_01=0.9308 GS120524_01=0.9306 GS120509_01=0.9291 GS120575_01=0.9261 GS120508_01=0.9226 GS120513_01=0.9223 GS120331_01=0.9219 GS130095_01=0.9219
+##ref samples of GS120634_01:  GS120678_01=0.9761 GS130132_01=0.9708 GS120676_01=0.9632 GS120635_01=0.9628 GS120638_01=0.9529 GS130097_01=0.9415 GS130127_01=0.9404 GS130364_01=0.9362 GS120696_01=0.9339 GS130103_01=0.9337 GS130107_01=0.9336 GS120680_01=0.9273 GS130104_01=0.9263 GS130370_01=0.9245 GS120509_01=0.9222 GS130100_01=0.9219 GS130367_01=0.9200 GS130366_01=0.9176 GS120525_01=0.9144 GS130369_01=0.9137
+##ref samples of GS120635_01:  GS120676_01=0.9733 GS120638_01=0.9654 GS120634_01=0.9628 GS130104_01=0.9605 GS130132_01=0.9593 GS130097_01=0.9581 GS120680_01=0.9571 GS120696_01=0.9560 GS130107_01=0.9537 GS130103_01=0.9509 GS120678_01=0.9491 GS130366_01=0.9467 GS120525_01=0.9458 GS130369_01=0.9455 GS130367_01=0.9454 GS130370_01=0.9448 GS120693_01=0.9444 GS120572_01=0.9434 GS120510_01=0.9389 GS130222_01=0.9385
+##ref samples of GS120636_01:  GS120639_01=0.9447 GS130105_01=0.9389 GS130100_01=0.9384 GS120679_01=0.9360 GS130095_01=0.9311 GS120638_01=0.9295 GS120676_01=0.9284 GS130099_01=0.9258 GS130102_01=0.9231 GS130365_01=0.9218 GS120696_01=0.9215 GS130364_01=0.9210 GS130170_01=0.9197 GS130223_01=0.9183 GS130168_01=0.9180 GS130129_01=0.9178 GS120680_01=0.9175 GS130368_01=0.9166 GS120694_01=0.9142 GS120634_01=0.9142
+##ref samples of GS120637_01:  GS130130_01=0.9695 GS130222_01=0.9593 GS130366_01=0.9532 GS130107_01=0.9529 GS120638_01=0.9471 GS130786_01=0.9460 GS130367_01=0.9458 GS120508_01=0.9455 GS130104_01=0.9448 GS120693_01=0.9407 GS130169_01=0.9396 GS130369_01=0.9394 GS120574_01=0.9368 GS130103_01=0.9362 GS120512_01=0.9350 GS120680_01=0.9336 GS120527_01=0.9330 GS130168_01=0.9325 GS120639_01=0.9325 GS120578_01=0.9321
+##ref samples of GS120638_01:  GS120676_01=0.9756 GS130107_01=0.9743 GS120635_01=0.9654 GS130103_01=0.9624 GS120696_01=0.9614 GS130222_01=0.9600 GS130367_01=0.9597 GS130104_01=0.9591 GS120693_01=0.9588 GS130366_01=0.9581 GS130130_01=0.9581 GS130369_01=0.9578 GS120680_01=0.9549 GS120634_01=0.9529 GS130097_01=0.9527 GS120679_01=0.9486 GS120678_01=0.9485 GS120524_01=0.9481 GS120639_01=0.9480 GS120574_01=0.9479
+##ref samples of GS120639_01:  GS130168_01=0.9716 GS120679_01=0.9685 GS130105_01=0.9683 GS130170_01=0.9681 GS130169_01=0.9663 GS130095_01=0.9658 GS130099_01=0.9654 GS130223_01=0.9644 GS130362_01=0.9635 GS120680_01=0.9622 GS130226_01=0.9610 GS130102_01=0.9605 GS120693_01=0.9575 GS130128_01=0.9572 GS130365_01=0.9571 GS120694_01=0.9550 GS130368_01=0.9539 GS130129_01=0.9537 GS130106_01=0.9526 GS120696_01=0.9526
+##ref samples of GS120676_01:  GS120638_01=0.9756 GS120635_01=0.9733 GS120634_01=0.9632 GS130097_01=0.9577 GS120678_01=0.9574 GS120696_01=0.9568 GS130107_01=0.9559 GS130103_01=0.9555 GS130132_01=0.9524 GS130370_01=0.9499 GS130104_01=0.9467 GS130366_01=0.9459 GS130367_01=0.9457 GS130369_01=0.9451 GS120680_01=0.9442 GS120525_01=0.9415 GS120693_01=0.9396 GS130222_01=0.9393 GS120509_01=0.9349 GS120524_01=0.9348
+##ref samples of GS120677_01:  GS120623_01=0.8962 GS120679_01=0.8676 GS130365_01=0.8633 GS130105_01=0.8595 GS120639_01=0.8588 GS130100_01=0.8562 GS130099_01=0.8548 GS130095_01=0.8540 GS120680_01=0.8501 GS120335_01=0.8494 GS130102_01=0.8492 GS120694_01=0.8478 GS130222_01=0.8457 GS120576_01=0.8453 GS120696_01=0.8450 GS130786_01=0.8446 GS120693_01=0.8444 GS130362_01=0.8426 GS120513_01=0.8424 GS120520_01=0.8415
+##ref samples of GS120678_01:  GS120634_01=0.9761 GS130132_01=0.9613 GS120676_01=0.9574 GS120635_01=0.9491 GS120638_01=0.9485 GS130107_01=0.9377 GS130103_01=0.9340 GS130097_01=0.9336 GS130127_01=0.9299 GS130370_01=0.9282 GS120696_01=0.9278 GS130364_01=0.9264 GS130366_01=0.9192 GS130100_01=0.9171 GS120509_01=0.9155 GS120680_01=0.9153 GS130104_01=0.9132 GS130367_01=0.9130 GS130369_01=0.9118 GS130222_01=0.9116
+##ref samples of GS120679_01:  GS130095_01=0.9732 GS130105_01=0.9714 GS130168_01=0.9708 GS130170_01=0.9698 GS120680_01=0.9698 GS120639_01=0.9685 GS130362_01=0.9683 GS120694_01=0.9677 GS130226_01=0.9675 GS130099_01=0.9656 GS130102_01=0.9640 GS130107_01=0.9616 GS130169_01=0.9609 GS130100_01=0.9603 GS130129_01=0.9600 GS130224_01=0.9599 GS120696_01=0.9596 GS130128_01=0.9573 GS130223_01=0.9560 GS130222_01=0.9560
+##ref samples of GS120680_01:  GS120693_01=0.9739 GS120696_01=0.9720 GS130095_01=0.9704 GS120679_01=0.9698 GS130104_01=0.9687 GS130168_01=0.9685 GS130099_01=0.9674 GS130362_01=0.9664 GS120694_01=0.9659 GS130223_01=0.9652 GS130226_01=0.9651 GS130102_01=0.9647 GS130170_01=0.9636 GS130128_01=0.9624 GS120639_01=0.9622 GS130106_01=0.9617 GS130222_01=0.9592 GS130169_01=0.9587 GS130107_01=0.9584 GS130368_01=0.9582
+##ref samples of GS120691_01:  GS130100_01=0.9426 GS130102_01=0.9360 GS120696_01=0.9344 GS130098_01=0.9338 GS130095_01=0.9287 GS130127_01=0.9276 GS130368_01=0.9226 GS130099_01=0.9223 GS120693_01=0.9217 GS120694_01=0.9213 GS130370_01=0.9204 GS120576_01=0.9157 GS120679_01=0.9153 GS120680_01=0.9143 GS120335_01=0.9132 GS130170_01=0.9117 GS130362_01=0.9101 GS130097_01=0.9099 GS120528_01=0.9093 GS130129_01=0.9087
+##ref samples of GS120692_01:  GS120623_01=0.8731 GS130095_01=0.8670 GS120622_01=0.8664 GS120693_01=0.8650 GS130099_01=0.8649 GS120680_01=0.8637 GS130102_01=0.8623 GS130365_01=0.8620 GS120679_01=0.8617 GS120694_01=0.8615 GS120696_01=0.8604 GS120573_01=0.8603 GS130786_01=0.8579 GS130098_01=0.8571 GS130222_01=0.8542 GS120335_01=0.8537 GS130369_01=0.8534 GS130100_01=0.8533 GS130368_01=0.8512 GS120524_01=0.8506
+##ref samples of GS120693_01:  GS120696_01=0.9773 GS120680_01=0.9739 GS120694_01=0.9712 GS130099_01=0.9710 GS130095_01=0.9706 GS130362_01=0.9688 GS130102_01=0.9682 GS130223_01=0.9660 GS130104_01=0.9625 GS130170_01=0.9620 GS130366_01=0.9618 GS130369_01=0.9607 GS130368_01=0.9605 GS130169_01=0.9605 GS130098_01=0.9601 GS130106_01=0.9597 GS120638_01=0.9588 GS130168_01=0.9576 GS120639_01=0.9575 GS130107_01=0.9569
+##ref samples of GS120694_01:  GS130095_01=0.9754 GS130362_01=0.9745 GS130099_01=0.9718 GS120693_01=0.9712 GS130102_01=0.9686 GS120679_01=0.9677 GS120696_01=0.9674 GS120680_01=0.9659 GS130170_01=0.9653 GS130226_01=0.9636 GS130100_01=0.9632 GS130223_01=0.9631 GS130169_01=0.9626 GS130168_01=0.9616 GS130106_01=0.9613 GS130368_01=0.9611 GS130098_01=0.9609 GS130224_01=0.9597 GS130105_01=0.9576 GS120639_01=0.9550
+##ref samples of GS120695_01:  GS130100_01=0.8982 GS120622_01=0.8969 GS120573_01=0.8964 GS120679_01=0.8957 GS130102_01=0.8957 GS120680_01=0.8938 GS120694_01=0.8927 GS120696_01=0.8927 GS130099_01=0.8902 GS130095_01=0.8893 GS120693_01=0.8885 GS130098_01=0.8859 GS130368_01=0.8831 GS120333_01=0.8798 GS120623_01=0.8796 GS130370_01=0.8796 GS120334_01=0.8782 GS130170_01=0.8765 GS120335_01=0.8761 GS130222_01=0.8750
+##ref samples of GS120696_01:  GS120693_01=0.9773 GS130102_01=0.9730 GS120680_01=0.9720 GS130095_01=0.9695 GS130099_01=0.9695 GS130100_01=0.9683 GS130098_01=0.9679 GS120694_01=0.9674 GS130368_01=0.9665 GS130104_01=0.9652 GS130097_01=0.9650 GS130362_01=0.9629 GS130107_01=0.9627 GS130170_01=0.9625 GS130370_01=0.9624 GS120638_01=0.9614 GS130103_01=0.9604 GS130106_01=0.9604 GS120679_01=0.9596 GS130105_01=0.9595
+##ref samples of GS130095_01:  GS130099_01=0.9782 GS120694_01=0.9754 GS130362_01=0.9745 GS120679_01=0.9732 GS130102_01=0.9726 GS130100_01=0.9721 GS120693_01=0.9706 GS120680_01=0.9704 GS120696_01=0.9695 GS130105_01=0.9695 GS130168_01=0.9687 GS130368_01=0.9683 GS130170_01=0.9676 GS120639_01=0.9658 GS130169_01=0.9646 GS130223_01=0.9643 GS130098_01=0.9626 GS130365_01=0.9616 GS130128_01=0.9616 GS130129_01=0.9613
+##ref samples of GS130096_01:  GS130095_01=0.9560 GS120693_01=0.9538 GS130223_01=0.9526 GS130099_01=0.9515 GS120694_01=0.9512 GS130102_01=0.9506 GS130365_01=0.9478 GS130362_01=0.9475 GS120696_01=0.9440 GS130100_01=0.9439 GS130368_01=0.9426 GS130168_01=0.9399 GS130169_01=0.9384 GS120680_01=0.9376 GS130170_01=0.9371 GS130226_01=0.9366 GS120639_01=0.9366 GS130098_01=0.9362 GS130105_01=0.9355 GS120679_01=0.9326
+##ref samples of GS130097_01:  GS120696_01=0.9650 GS120635_01=0.9581 GS120676_01=0.9577 GS130370_01=0.9566 GS120638_01=0.9527 GS130103_01=0.9523 GS120693_01=0.9521 GS130104_01=0.9517 GS120680_01=0.9472 GS130100_01=0.9462 GS130107_01=0.9456 GS130102_01=0.9437 GS130095_01=0.9436 GS130099_01=0.9424 GS130098_01=0.9421 GS120634_01=0.9415 GS130369_01=0.9408 GS130367_01=0.9407 GS130366_01=0.9404 GS130222_01=0.9400
+##ref samples of GS130098_01:  GS130129_01=0.9729 GS130102_01=0.9718 GS130368_01=0.9713 GS130099_01=0.9705 GS120696_01=0.9679 GS130170_01=0.9676 GS130100_01=0.9631 GS130095_01=0.9626 GS120694_01=0.9609 GS130362_01=0.9602 GS120693_01=0.9601 GS130105_01=0.9559 GS130168_01=0.9546 GS120680_01=0.9526 GS130169_01=0.9510 GS120679_01=0.9505 GS130223_01=0.9491 GS120639_01=0.9483 GS130226_01=0.9475 GS130106_01=0.9447
+##ref samples of GS130099_01:  GS130095_01=0.9782 GS130102_01=0.9735 GS120694_01=0.9718 GS130170_01=0.9715 GS120693_01=0.9710 GS130168_01=0.9707 GS130223_01=0.9705 GS130098_01=0.9705 GS130362_01=0.9697 GS120696_01=0.9695 GS130169_01=0.9685 GS130105_01=0.9676 GS120680_01=0.9674 GS130368_01=0.9671 GS130100_01=0.9669 GS120679_01=0.9656 GS120639_01=0.9654 GS130129_01=0.9644 GS130226_01=0.9628 GS130128_01=0.9579
+##ref samples of GS130100_01:  GS130095_01=0.9721 GS130102_01=0.9684 GS120696_01=0.9683 GS130099_01=0.9669 GS120694_01=0.9632 GS130098_01=0.9631 GS130368_01=0.9613 GS120679_01=0.9603 GS130362_01=0.9577 GS120680_01=0.9568 GS130129_01=0.9556 GS120693_01=0.9542 GS130170_01=0.9541 GS130127_01=0.9538 GS120639_01=0.9512 GS130105_01=0.9490 GS130168_01=0.9473 GS130097_01=0.9462 GS130226_01=0.9454 GS130364_01=0.9448
+##ref samples of GS130101_01:  GS130100_01=0.6400 GS130095_01=0.6286 GS120623_01=0.6282 GS120694_01=0.6275 GS130370_01=0.6269 GS130102_01=0.6265 GS130096_01=0.6262 GS130099_01=0.6242 GS130098_01=0.6239 GS120696_01=0.6236 GS120679_01=0.6205 GS120334_01=0.6201 GS120331_01=0.6180 GS130368_01=0.6178 GS120333_01=0.6162 GS120335_01=0.6161 GS130369_01=0.6156 GS120693_01=0.6147 GS130365_01=0.6133 GS130097_01=0.6115
+##ref samples of GS130102_01:  GS130362_01=0.9752 GS130170_01=0.9738 GS130099_01=0.9735 GS120696_01=0.9730 GS130095_01=0.9726 GS130098_01=0.9718 GS130368_01=0.9691 GS120694_01=0.9686 GS130100_01=0.9684 GS120693_01=0.9682 GS130168_01=0.9680 GS130223_01=0.9679 GS130129_01=0.9648 GS120680_01=0.9647 GS130226_01=0.9643 GS130169_01=0.9642 GS130105_01=0.9641 GS120679_01=0.9640 GS120639_01=0.9605 GS130106_01=0.9586
+##ref samples of GS130103_01:  GS130107_01=0.9666 GS130222_01=0.9633 GS130366_01=0.9632 GS120638_01=0.9624 GS120696_01=0.9604 GS130104_01=0.9587 GS130367_01=0.9582 GS120676_01=0.9555 GS120693_01=0.9546 GS120680_01=0.9539 GS120679_01=0.9536 GS130097_01=0.9523 GS120635_01=0.9509 GS130130_01=0.9508 GS130369_01=0.9499 GS130170_01=0.9490 GS130102_01=0.9462 GS120639_01=0.9459 GS130362_01=0.9459 GS120694_01=0.9450
+##ref samples of GS130104_01:  GS130222_01=0.9690 GS120680_01=0.9687 GS130366_01=0.9665 GS130367_01=0.9662 GS130107_01=0.9655 GS120696_01=0.9652 GS120693_01=0.9625 GS120635_01=0.9605 GS120638_01=0.9591 GS130103_01=0.9587 GS130095_01=0.9572 GS130106_01=0.9565 GS130226_01=0.9559 GS130105_01=0.9559 GS130362_01=0.9558 GS130128_01=0.9557 GS130168_01=0.9556 GS130169_01=0.9554 GS120679_01=0.9543 GS130223_01=0.9537
+##ref samples of GS130105_01:  GS120679_01=0.9714 GS130170_01=0.9713 GS130169_01=0.9706 GS130168_01=0.9702 GS130095_01=0.9695 GS120639_01=0.9683 GS130106_01=0.9677 GS130099_01=0.9676 GS130362_01=0.9644 GS130102_01=0.9641 GS130223_01=0.9638 GS130226_01=0.9633 GS130129_01=0.9631 GS130128_01=0.9623 GS120696_01=0.9595 GS120694_01=0.9576 GS120680_01=0.9560 GS130104_01=0.9559 GS130098_01=0.9559 GS130224_01=0.9547
+##ref samples of GS130106_01:  GS130128_01=0.9727 GS130105_01=0.9677 GS130224_01=0.9660 GS130362_01=0.9652 GS130169_01=0.9650 GS130226_01=0.9636 GS120680_01=0.9617 GS130170_01=0.9614 GS130223_01=0.9614 GS120694_01=0.9613 GS130095_01=0.9607 GS120696_01=0.9604 GS130168_01=0.9602 GS120693_01=0.9597 GS130102_01=0.9586 GS130099_01=0.9571 GS130104_01=0.9565 GS120679_01=0.9541 GS120639_01=0.9526 GS130368_01=0.9470
+##ref samples of GS130107_01:  GS120638_01=0.9743 GS130222_01=0.9715 GS130366_01=0.9687 GS130103_01=0.9666 GS130104_01=0.9655 GS130367_01=0.9652 GS120696_01=0.9627 GS130369_01=0.9620 GS120679_01=0.9616 GS130130_01=0.9616 GS120680_01=0.9584 GS120693_01=0.9569 GS120676_01=0.9559 GS120635_01=0.9537 GS120637_01=0.9529 GS120694_01=0.9519 GS130170_01=0.9504 GS130095_01=0.9499 GS130105_01=0.9487 GS130362_01=0.9484
+##ref samples of GS130127_01:  GS130100_01=0.9538 GS130364_01=0.9527 GS130132_01=0.9483 GS130102_01=0.9480 GS120696_01=0.9477 GS130098_01=0.9419 GS130129_01=0.9418 GS130095_01=0.9411 GS120634_01=0.9404 GS120680_01=0.9399 GS130368_01=0.9388 GS120576_01=0.9348 GS130099_01=0.9336 GS120635_01=0.9321 GS130170_01=0.9308 GS120678_01=0.9299 GS120694_01=0.9295 GS130362_01=0.9294 GS120509_01=0.9293 GS130097_01=0.9290
+##ref samples of GS130128_01:  GS130106_01=0.9727 GS130168_01=0.9680 GS130226_01=0.9672 GS130169_01=0.9656 GS120680_01=0.9624 GS130105_01=0.9623 GS130095_01=0.9616 GS130223_01=0.9596 GS130224_01=0.9595 GS130099_01=0.9579 GS120679_01=0.9573 GS130362_01=0.9573 GS120639_01=0.9572 GS130102_01=0.9569 GS130104_01=0.9557 GS130170_01=0.9553 GS130367_01=0.9542 GS120694_01=0.9541 GS130368_01=0.9532 GS120696_01=0.9526
+##ref samples of GS130129_01:  GS130098_01=0.9729 GS130170_01=0.9681 GS130168_01=0.9662 GS130102_01=0.9648 GS130099_01=0.9644 GS130368_01=0.9640 GS130105_01=0.9631 GS130095_01=0.9613 GS120679_01=0.9600 GS120696_01=0.9583 GS130362_01=0.9562 GS130169_01=0.9559 GS130100_01=0.9556 GS130226_01=0.9549 GS120639_01=0.9537 GS120680_01=0.9535 GS130128_01=0.9512 GS130223_01=0.9480 GS130364_01=0.9459 GS120694_01=0.9456
+##ref samples of GS130130_01:  GS120637_01=0.9695 GS130366_01=0.9632 GS130107_01=0.9616 GS130222_01=0.9581 GS120638_01=0.9581 GS130367_01=0.9522 GS130103_01=0.9508 GS130786_01=0.9495 GS130365_01=0.9490 GS120693_01=0.9488 GS130104_01=0.9483 GS130369_01=0.9456 GS120639_01=0.9444 GS120574_01=0.9441 GS120680_01=0.9435 GS120679_01=0.9422 GS130168_01=0.9421 GS120512_01=0.9390 GS130169_01=0.9388 GS120508_01=0.9381
+##ref samples of GS130131_01:  GS120679_01=0.9478 GS130170_01=0.9430 GS120694_01=0.9420 GS120680_01=0.9407 GS130095_01=0.9400 GS130099_01=0.9382 GS130362_01=0.9372 GS120693_01=0.9365 GS130102_01=0.9362 GS130224_01=0.9317 GS130106_01=0.9309 GS130222_01=0.9308 GS120696_01=0.9298 GS130226_01=0.9290 GS130105_01=0.9280 GS120639_01=0.9277 GS130169_01=0.9268 GS130168_01=0.9259 GS130223_01=0.9244 GS130100_01=0.9229
+##ref samples of GS130132_01:  GS120634_01=0.9708 GS120678_01=0.9613 GS120635_01=0.9593 GS120676_01=0.9524 GS130127_01=0.9483 GS120638_01=0.9427 GS120696_01=0.9417 GS120509_01=0.9407 GS130097_01=0.9373 GS120525_01=0.9341 GS130364_01=0.9331 GS120680_01=0.9315 GS120510_01=0.9311 GS130103_01=0.9301 GS130104_01=0.9287 GS130107_01=0.9275 GS130370_01=0.9257 GS120693_01=0.9248 GS130366_01=0.9242 GS120572_01=0.9239
+##ref samples of GS130168_01:  GS130169_01=0.9825 GS130223_01=0.9765 GS130170_01=0.9759 GS130226_01=0.9747 GS120639_01=0.9716 GS130362_01=0.9711 GS120679_01=0.9708 GS130099_01=0.9707 GS130105_01=0.9702 GS130095_01=0.9687 GS120680_01=0.9685 GS130128_01=0.9680 GS130102_01=0.9680 GS130129_01=0.9662 GS130224_01=0.9633 GS120694_01=0.9616 GS130106_01=0.9602 GS130368_01=0.9602 GS120693_01=0.9576 GS130365_01=0.9568
+##ref samples of GS130169_01:  GS130168_01=0.9825 GS130223_01=0.9781 GS130170_01=0.9731 GS130362_01=0.9720 GS130226_01=0.9714 GS130105_01=0.9706 GS130099_01=0.9685 GS120639_01=0.9663 GS130128_01=0.9656 GS130224_01=0.9653 GS130106_01=0.9650 GS130095_01=0.9646 GS130102_01=0.9642 GS120694_01=0.9626 GS120679_01=0.9609 GS120693_01=0.9605 GS130365_01=0.9599 GS120680_01=0.9587 GS130129_01=0.9559 GS130104_01=0.9554
+##ref samples of GS130170_01:  GS130168_01=0.9759 GS130102_01=0.9738 GS130169_01=0.9731 GS130362_01=0.9722 GS130099_01=0.9715 GS130105_01=0.9713 GS130223_01=0.9700 GS120679_01=0.9698 GS130226_01=0.9685 GS130129_01=0.9681 GS120639_01=0.9681 GS130095_01=0.9676 GS130098_01=0.9676 GS120694_01=0.9653 GS120680_01=0.9636 GS130368_01=0.9632 GS120696_01=0.9625 GS130224_01=0.9622 GS120693_01=0.9620 GS130106_01=0.9614
+##ref samples of GS130222_01:  GS130107_01=0.9715 GS130104_01=0.9690 GS130366_01=0.9652 GS130103_01=0.9633 GS130367_01=0.9603 GS120638_01=0.9600 GS120637_01=0.9593 GS120680_01=0.9592 GS130130_01=0.9581 GS120693_01=0.9566 GS120679_01=0.9560 GS120696_01=0.9550 GS130369_01=0.9536 GS130169_01=0.9532 GS130170_01=0.9530 GS130786_01=0.9518 GS120694_01=0.9514 GS130105_01=0.9504 GS130168_01=0.9502 GS130226_01=0.9497
+##ref samples of GS130223_01:  GS130169_01=0.9781 GS130168_01=0.9765 GS130226_01=0.9729 GS130099_01=0.9705 GS130170_01=0.9700 GS130362_01=0.9684 GS130102_01=0.9679 GS120693_01=0.9660 GS120680_01=0.9652 GS120639_01=0.9644 GS130095_01=0.9643 GS130105_01=0.9638 GS120694_01=0.9631 GS130224_01=0.9618 GS130365_01=0.9617 GS130106_01=0.9614 GS130128_01=0.9596 GS120696_01=0.9574 GS120679_01=0.9560 GS130104_01=0.9537
+##ref samples of GS130224_01:  GS130226_01=0.9725 GS130106_01=0.9660 GS130169_01=0.9653 GS130168_01=0.9633 GS130170_01=0.9622 GS130223_01=0.9618 GS130362_01=0.9618 GS120679_01=0.9599 GS120694_01=0.9597 GS130128_01=0.9595 GS120680_01=0.9563 GS130105_01=0.9547 GS130102_01=0.9543 GS130104_01=0.9537 GS130099_01=0.9531 GS130095_01=0.9501 GS120696_01=0.9489 GS120693_01=0.9473 GS130222_01=0.9473 GS120639_01=0.9438
+##ref samples of GS130225_01:  GS120513_01=0.5967 GS130369_01=0.5863 GS130370_01=0.5858 GS120678_01=0.5799 GS120676_01=0.5726 GS120638_01=0.5710 GS120524_01=0.5679 GS120634_01=0.5656 GS120520_01=0.5629 GS120623_01=0.5608 GS130786_01=0.5585 GS130097_01=0.5559 GS120397_01=0.5475 GS130366_01=0.5470 GS130222_01=0.5467 GS130100_01=0.5462 GS130103_01=0.5445 GS130107_01=0.5445 GS120331_01=0.5414 GS120635_01=0.5372
+##ref samples of GS130226_01:  GS130168_01=0.9747 GS130223_01=0.9729 GS130224_01=0.9725 GS130169_01=0.9714 GS130170_01=0.9685 GS120679_01=0.9675 GS130128_01=0.9672 GS130362_01=0.9672 GS120680_01=0.9651 GS130102_01=0.9643 GS120694_01=0.9636 GS130106_01=0.9636 GS130105_01=0.9633 GS130099_01=0.9628 GS120639_01=0.9610 GS130095_01=0.9604 GS130104_01=0.9559 GS120693_01=0.9552 GS130129_01=0.9549 GS120696_01=0.9536
+##ref samples of GS130227_01:  GS130127_01=0.9600 GS130364_01=0.9386 GS130132_01=0.9373 GS130102_01=0.9366 GS120696_01=0.9360 GS130129_01=0.9345 GS130098_01=0.9330 GS130100_01=0.9278 GS120634_01=0.9249 GS130368_01=0.9246 GS130226_01=0.9238 GS120680_01=0.9230 GS130170_01=0.9227 GS130223_01=0.9216 GS130224_01=0.9208 GS130105_01=0.9198 GS130097_01=0.9194 GS130095_01=0.9189 GS130128_01=0.9188 GS130099_01=0.9187
+##ref samples of GS130228_01:  GS120639_01=0.9440 GS130105_01=0.9409 GS120679_01=0.9394 GS130168_01=0.9360 GS130099_01=0.9330 GS130170_01=0.9319 GS120680_01=0.9309 GS130169_01=0.9298 GS130129_01=0.9279 GS130365_01=0.9276 GS130102_01=0.9274 GS130223_01=0.9273 GS130226_01=0.9267 GS130095_01=0.9253 GS130362_01=0.9251 GS120696_01=0.9208 GS130222_01=0.9191 GS120694_01=0.9181 GS130098_01=0.9170 GS120693_01=0.9169
+##ref samples of GS130229_01:  GS130370_01=0.5236 GS120622_01=0.4919 GS130369_01=0.4810 GS120623_01=0.4787 GS120331_01=0.4590 GS120158_01=0.4535 GS120397_01=0.4515 GS120513_01=0.4504 GS120520_01=0.4434 GS120524_01=0.4368 GS130097_01=0.4334 GS120334_01=0.4323 GS120573_01=0.4291 GS130100_01=0.4289 GS120335_01=0.4280 GS130366_01=0.4275 GS120333_01=0.4232 GS120696_01=0.4202 GS120678_01=0.4145 GS130786_01=0.4145
+##ref samples of GS130350_01:  GS120513_01=0.7028 GS120638_01=0.6770 GS130786_01=0.6716 GS120678_01=0.6701 GS120676_01=0.6655 GS130369_01=0.6528 GS130130_01=0.6508 GS120520_01=0.6453 GS120634_01=0.6426 GS130107_01=0.6406 GS120524_01=0.6395 GS130222_01=0.6325 GS120637_01=0.6317 GS120623_01=0.6291 GS130366_01=0.6271 GS130103_01=0.6211 GS130370_01=0.6199 GS120635_01=0.6193 GS120512_01=0.6158 GS120508_01=0.6106
+##ref samples of GS130351_01:  GS120623_01=0.6068 GS120678_01=0.5915 GS120513_01=0.5851 GS130786_01=0.5794 GS130364_01=0.5694 GS120638_01=0.5691 GS120676_01=0.5642 GS120679_01=0.5625 GS120634_01=0.5613 GS130100_01=0.5529 GS120639_01=0.5486 GS130105_01=0.5484 GS130365_01=0.5467 GS120520_01=0.5341 GS130107_01=0.5330 GS130130_01=0.5325 GS120524_01=0.5317 GS130095_01=0.5313 GS120331_01=0.5306 GS130369_01=0.5296
+##ref samples of GS130352_01:  GS120513_01=0.7094 GS130786_01=0.7051 GS120638_01=0.6948 GS120676_01=0.6787 GS120678_01=0.6737 GS130130_01=0.6703 GS120520_01=0.6675 GS120524_01=0.6666 GS120623_01=0.6618 GS130100_01=0.6608 GS120634_01=0.6602 GS130107_01=0.6588 GS130365_01=0.6579 GS120679_01=0.6568 GS130222_01=0.6544 GS130369_01=0.6531 GS120512_01=0.6470 GS130095_01=0.6454 GS130103_01=0.6431 GS130367_01=0.6414
+##ref samples of GS130362_01:  GS130102_01=0.9752 GS130095_01=0.9745 GS120694_01=0.9745 GS130170_01=0.9722 GS130169_01=0.9720 GS130168_01=0.9711 GS130099_01=0.9697 GS120693_01=0.9688 GS130223_01=0.9684 GS120679_01=0.9683 GS130226_01=0.9672 GS120680_01=0.9664 GS130106_01=0.9652 GS130105_01=0.9644 GS120639_01=0.9635 GS120696_01=0.9629 GS130368_01=0.9623 GS130224_01=0.9618 GS130098_01=0.9602 GS130100_01=0.9577
+##ref samples of GS130363_01:  GS130364_01=0.9531 GS130127_01=0.9475 GS130100_01=0.9457 GS120634_01=0.9325 GS120678_01=0.9291 GS120696_01=0.9274 GS130102_01=0.9263 GS130132_01=0.9254 GS130105_01=0.9240 GS120676_01=0.9238 GS120679_01=0.9237 GS130095_01=0.9224 GS130368_01=0.9218 GS130129_01=0.9216 GS120639_01=0.9214 GS130098_01=0.9187 GS120576_01=0.9181 GS130099_01=0.9179 GS130097_01=0.9145 GS120638_01=0.9138
+##ref samples of GS130364_01:  GS130127_01=0.9527 GS130368_01=0.9505 GS130129_01=0.9459 GS130100_01=0.9448 GS130098_01=0.9364 GS120634_01=0.9362 GS130095_01=0.9358 GS130102_01=0.9335 GS130132_01=0.9331 GS120696_01=0.9311 GS130099_01=0.9287 GS120678_01=0.9264 GS120639_01=0.9261 GS130105_01=0.9247 GS120679_01=0.9240 GS130362_01=0.9229 GS120509_01=0.9224 GS130170_01=0.9208 GS130128_01=0.9206 GS130168_01=0.9199
+##ref samples of GS130365_01:  GS130223_01=0.9617 GS130095_01=0.9616 GS130169_01=0.9599 GS130099_01=0.9573 GS120639_01=0.9571 GS130168_01=0.9568 GS120693_01=0.9562 GS130362_01=0.9540 GS120694_01=0.9519 GS130786_01=0.9505 GS130130_01=0.9490 GS130096_01=0.9478 GS120680_01=0.9477 GS120679_01=0.9475 GS130105_01=0.9474 GS130102_01=0.9430 GS130368_01=0.9407 GS130170_01=0.9403 GS120526_01=0.9373 GS130366_01=0.9358
+##ref samples of GS130366_01:  GS130107_01=0.9687 GS130369_01=0.9684 GS130104_01=0.9665 GS130222_01=0.9652 GS130367_01=0.9638 GS130130_01=0.9632 GS130103_01=0.9632 GS120693_01=0.9618 GS120696_01=0.9592 GS120638_01=0.9581 GS120574_01=0.9579 GS120680_01=0.9561 GS120525_01=0.9549 GS120637_01=0.9532 GS120572_01=0.9493 GS120523_01=0.9490 GS120520_01=0.9477 GS120679_01=0.9474 GS120694_01=0.9468 GS120635_01=0.9467
+##ref samples of GS130367_01:  GS130104_01=0.9662 GS130107_01=0.9652 GS130369_01=0.9648 GS130366_01=0.9638 GS130222_01=0.9603 GS120638_01=0.9597 GS130103_01=0.9582 GS120696_01=0.9579 GS120693_01=0.9546 GS130128_01=0.9542 GS120680_01=0.9539 GS130130_01=0.9522 GS120679_01=0.9521 GS130368_01=0.9514 GS130095_01=0.9514 GS130362_01=0.9494 GS120694_01=0.9486 GS130168_01=0.9477 GS120524_01=0.9470 GS130105_01=0.9464
+##ref samples of GS130368_01:  GS130098_01=0.9713 GS130102_01=0.9691 GS130095_01=0.9683 GS130099_01=0.9671 GS120696_01=0.9665 GS130129_01=0.9640 GS130170_01=0.9632 GS130362_01=0.9623 GS130100_01=0.9613 GS120694_01=0.9611 GS120693_01=0.9605 GS130168_01=0.9602 GS120680_01=0.9582 GS120679_01=0.9559 GS120639_01=0.9539 GS130105_01=0.9537 GS130128_01=0.9532 GS130169_01=0.9515 GS130223_01=0.9515 GS130367_01=0.9514
+##ref samples of GS130369_01:  GS130366_01=0.9684 GS130367_01=0.9648 GS130107_01=0.9620 GS120693_01=0.9607 GS120638_01=0.9578 GS120696_01=0.9555 GS130222_01=0.9536 GS120524_01=0.9536 GS130104_01=0.9536 GS130370_01=0.9520 GS130103_01=0.9499 GS120574_01=0.9484 GS120523_01=0.9472 GS120525_01=0.9463 GS120680_01=0.9457 GS130130_01=0.9456 GS120635_01=0.9455 GS120676_01=0.9451 GS120520_01=0.9443 GS120694_01=0.9414
+##ref samples of GS130370_01:  GS120696_01=0.9624 GS130097_01=0.9566 GS130369_01=0.9520 GS120676_01=0.9499 GS120635_01=0.9448 GS120638_01=0.9438 GS130366_01=0.9428 GS120693_01=0.9407 GS130103_01=0.9406 GS130107_01=0.9373 GS130367_01=0.9353 GS120525_01=0.9332 GS130098_01=0.9329 GS130104_01=0.9317 GS120524_01=0.9307 GS130100_01=0.9305 GS130102_01=0.9289 GS120678_01=0.9282 GS120510_01=0.9274 GS130368_01=0.9269
+##ref samples of GS130371_01:  GS120679_01=0.9394 GS120639_01=0.9392 GS130105_01=0.9381 GS120623_01=0.9356 GS130100_01=0.9341 GS130095_01=0.9336 GS130099_01=0.9325 GS130365_01=0.9304 GS120694_01=0.9237 GS120696_01=0.9227 GS130102_01=0.9201 GS130368_01=0.9191 GS120638_01=0.9183 GS130786_01=0.9174 GS130107_01=0.9144 GS130096_01=0.9144 GS130098_01=0.9143 GS120693_01=0.9139 GS130362_01=0.9135 GS130170_01=0.9129
+##ref samples of GS130786_01:  GS120679_01=0.9547 GS130222_01=0.9518 GS120680_01=0.9510 GS130365_01=0.9505 GS130130_01=0.9495 GS130095_01=0.9481 GS120637_01=0.9460 GS120639_01=0.9447 GS130107_01=0.9446 GS130168_01=0.9434 GS120693_01=0.9422 GS130369_01=0.9409 GS120694_01=0.9408 GS130367_01=0.9405 GS130366_01=0.9400 GS130099_01=0.9388 GS130104_01=0.9368 GS120638_01=0.9367 GS130169_01=0.9360 GS130223_01=0.9332
+#sample	coordinates	num_regions	copy_numbers	region_coordinates
+GS120158_01	chrX:6452427-6452694	1	4	chrX:6452427-6452694
+GS120158_01	chrX:7811089-8138400	8	3,4,4,3,4,4,4,3	chrX:7811089-7811356,chrX:7866794-7868868,chrX:7870020-7870192,chrX:7880059-7880144,chrX:7889744-7889899,chrX:7890035-7890149,chrX:7893971-7894183,chrX:8137975-8138400
+GS120158_01	chrX:8139138-8139318	1	3	chrX:8139138-8139318
+GS120158_01	chrX:11112236-11112310	1	1	chrX:11112236-11112310
+GS120158_01	chrX:15567953-15568130	1	3	chrX:15567953-15568130
+GS120158_01	chrX:16730448-16730785	1	3	chrX:16730448-16730785
+GS120158_01	chrX:19428032-19428101	1	1	chrX:19428032-19428101
+GS120158_01	chrX:20212297-20212396	1	1	chrX:20212297-20212396
+GS120158_01	chrX:36156455-36156591	1	1	chrX:36156455-36156591
+GS120158_01	chrX:47103887-47104495	3	3,3,3	chrX:47103887-47103959,chrX:47104071-47104333,chrX:47104405-47104495
+GS120158_01	chrX:49075078-49075204	1	3	chrX:49075078-49075204
+GS120158_01	chrX:49179655-49179766	1	1	chrX:49179655-49179766
+GS120158_01	chrX:49837134-49837253	1	1	chrX:49837134-49837253
+GS120158_01	chrX:77392402-77392497	1	1	chrX:77392402-77392497
+GS120158_01	chrX:84537114-84537333	1	1	chrX:84537114-84537333
+GS120158_01	chrX:101581167-101615576	3	3,4,1	chrX:101581167-101581247,chrX:101581374-101581641,chrX:101615309-101615576
+GS120158_01	chrX:101629539-101629629	1	1	chrX:101629539-101629629
+GS120158_01	chrX:106418309-106436312	2	3,3	chrX:106418309-106418433,chrX:106436249-106436312
+GS120158_01	chrX:117739191-117739329	1	1	chrX:117739191-117739329
+GS120158_01	chrX:123026571-123026633	1	1	chrX:123026571-123026633
+GS120158_01	chrX:128894478-128894567	1	3	chrX:128894478-128894567
+GS120158_01	chrX:128926294-128927125	3	3,3,3	chrX:128926294-128926462,chrX:128926593-128926822,chrX:128926955-128927125
+GS120158_01	chrX:129205301-129205404	1	3	chrX:129205301-129205404
+GS120158_01	chrX:135760085-135760125	1	1	chrX:135760085-135760125
+GS120158_01	chrX:140336509-140336656	1	1	chrX:140336509-140336656
+GS120158_01	chrX:151123830-151124049	1	3	chrX:151123830-151124049
+GS120331_01	chrX:10096587-10096758	1	3	chrX:10096587-10096758
+GS120331_01	chrX:49083062-49083599	2	3,3	chrX:49083062-49083174,chrX:49083389-49083599
+GS120331_01	chrX:69668753-69668823	1	4	chrX:69668753-69668823
+GS120331_01	chrX:73749038-73749286	1	3	chrX:73749038-73749286
+GS120331_01	chrX:90689587-90689903	1	3	chrX:90689587-90689903
+GS120331_01	chrX:101624497-101625083	1	3	chrX:101624497-101625083
+GS120331_01	chrX:103316237-103316452	1	1	chrX:103316237-103316452
+GS120331_01	chrX:134257159-134257539	1	3	chrX:134257159-134257539
+GS120331_01	chrX:134872046-134874258	3	5,10,6	chrX:134872046-134872314,chrX:134872674-134872787,chrX:134873988-134874258
+GS120331_01	chrX:134930162-134930902	2	5,5	chrX:134930162-134930275,chrX:134930634-134930902
+GS120331_01	chrX:134945954-134947538	2	6,3	chrX:134945954-134946224,chrX:134947425-134947538
+GS120331_01	chrX:134963205-134967512	4	3,10,5,3	chrX:134963205-134963475,chrX:134964676-134964789,chrX:134965149-134965417,chrX:134967318-134967512
+GS120331_01	chrX:134988560-134988720	1	4	chrX:134988560-134988720
+GS120331_01	chrX:153008431-153008810	2	4,3	chrX:153008431-153008535,chrX:153008649-153008810
+GS120331_01	chrX:153178662-153179064	2	3,3	chrX:153178662-153178766,chrX:153178853-153179064
+GS120331_01	chrX:153281473-153282105	2	3,3	chrX:153281473-153281558,chrX:153281878-153282105
+GS120331_01	chrX:153420039-153422018	2	4,4	chrX:153420039-153420224,chrX:153421759-153422018
+GS120331_01	chrX:153694483-153695146	3	3,3,3	chrX:153694483-153694623,chrX:153694709-153694865,chrX:153694956-153695146
+GS120331_01	chrX:153847191-153868403	2	4,3	chrX:153847191-153847532,chrX:153867687-153868403
+GS120331_01	chrX:154718943-154721337	2	4,3	chrX:154718943-154719060,chrX:154719763-154721337
+GS120331_01	chrX:154722186-154723781	2	3,3	chrX:154722186-154722371,chrX:154722531-154723781
+GS120333_01	chrX:6452427-6452694	1	3	chrX:6452427-6452694
+GS120333_01	chrX:7065534-7065653	1	3	chrX:7065534-7065653
+GS120333_01	chrX:8137975-8138840	2	4,4	chrX:8137975-8138400,chrX:8138573-8138840
+GS120333_01	chrX:8769342-8769434	1	4	chrX:8769342-8769434
+GS120333_01	chrX:19560033-19560321	1	3	chrX:19560033-19560321
+GS120333_01	chrX:48676617-48676829	1	3	chrX:48676617-48676829
+GS120333_01	chrX:53349605-53350532	1	3	chrX:53349605-53350532
+GS120333_01	chrX:54467113-54467223	1	3	chrX:54467113-54467223
+GS120333_01	chrX:71497033-71497151	1	3	chrX:71497033-71497151
+GS120333_01	chrX:71526865-71527011	1	3	chrX:71526865-71527011
+GS120333_01	chrX:131231284-131231382	1	3	chrX:131231284-131231382
+GS120333_01	chrX:140335586-140335881	1	3	chrX:140335586-140335881
+GS120333_01	chrX:148863583-148863668	1	3	chrX:148863583-148863668
+GS120333_01	chrX:153033694-153034541	2	3,3	chrX:153033694-153033893,chrX:153034393-153034541
+GS120333_01	chrX:153046661-153046811	1	3	chrX:153046661-153046811
+GS120333_01	chrX:153195367-153195686	1	3	chrX:153195367-153195686
+GS120333_01	chrX:153846385-153846539	1	3	chrX:153846385-153846539
+GS120333_01	chrX:154576440-154581281	2	1,1	chrX:154576440-154577690,chrX:154581164-154581281
+GS120333_01	chrX:154718943-154721337	2	4,3	chrX:154718943-154719060,chrX:154719763-154721337
+GS120333_01	chrX:154722186-154723781	2	3,3	chrX:154722186-154722371,chrX:154722531-154723781
+GS120334_01	chrX:6452989-6453169	1	4	chrX:6452989-6453169
+GS120334_01	chrX:13062649-13062810	1	3	chrX:13062649-13062810
+GS120334_01	chrX:19100810-19100874	1	0	chrX:19100810-19100874
+GS120334_01	chrX:47004621-47004925	1	3	chrX:47004621-47004925
+GS120334_01	chrX:49198701-49198809	1	1	chrX:49198701-49198809
+GS120334_01	chrX:53349605-53350532	1	3	chrX:53349605-53350532
+GS120334_01	chrX:70435079-70435150	1	4	chrX:70435079-70435150
+GS120334_01	chrX:100879138-100879218	1	3	chrX:100879138-100879218
+GS120334_01	chrX:101726683-101726742	1	4	chrX:101726683-101726742
+GS120334_01	chrX:118370253-118370664	1	3	chrX:118370253-118370664
+GS120334_01	chrX:134252897-134253246	1	1	chrX:134252897-134253246
+GS120334_01	chrX:138286211-138287162	2	3,3	chrX:138286211-138286443,chrX:138287073-138287162
+GS120334_01	chrX:150732084-150732321	1	3	chrX:150732084-150732321
+GS120334_01	chrX:153033694-153034541	2	3,3	chrX:153033694-153033893,chrX:153034393-153034541
+GS120334_01	chrX:154113307-154113843	1	4	chrX:154113307-154113843
+GS120335_01	chrX:51812216-51928071	2	3,3	chrX:51812216-51812313,chrX:51927909-51928071
+GS120335_01	chrX:90689587-90689903	1	3	chrX:90689587-90689903
+GS120335_01	chrX:103316237-103316452	1	1	chrX:103316237-103316452
+GS120335_01	chrX:128977662-128977883	1	3	chrX:128977662-128977883
+GS120335_01	chrX:153033694-153034541	2	3,3	chrX:153033694-153033893,chrX:153034393-153034541
+GS120335_01	chrX:153847191-153868403	2	4,3	chrX:153847191-153847532,chrX:153867687-153868403
+GS120335_01	chrX:154576440-154581281	2	1,1	chrX:154576440-154577690,chrX:154581164-154581281
+GS120335_01	chrX:154718943-154721337	2	5,3	chrX:154718943-154719060,chrX:154719763-154721337
+GS120335_01	chrX:154722186-154723781	2	3,3	chrX:154722186-154722371,chrX:154722531-154723781
+GS120508_01	chrX:70373296-70373396	1	1	chrX:70373296-70373396
+GS120508_01	chrX:103316237-103316452	1	1	chrX:103316237-103316452
+GS120508_01	chrX:153425798-153478967	6	1,1,1,1,1,1	chrX:153425798-153425953,chrX:153441100-153441847,chrX:153461411-153461650,chrX:153461955-153462328,chrX:153462928-153463083,chrX:153478220-153478967
+GS120508_01	chrX:153585609-153585652	1	1	chrX:153585609-153585652
+GS120509_01	chrX:20206605-20206662	1	4	chrX:20206605-20206662
+GS120509_01	chrX:134872046-134874258	3	3,5,4	chrX:134872046-134872314,chrX:134872674-134872787,chrX:134873988-134874258
+GS120509_01	chrX:134930162-134930902	2	4,3	chrX:134930162-134930275,chrX:134930634-134930902
+GS120509_01	chrX:134945954-134946224	1	4	chrX:134945954-134946224
+GS120509_01	chrX:134947897-134948165	1	1	chrX:134947897-134948165
+GS120509_01	chrX:134964676-134965417	2	6,3	chrX:134964676-134964789,chrX:134965149-134965417
+GS120509_01	chrX:134988560-134988720	1	3	chrX:134988560-134988720
+GS120509_01	chrX:154718943-154721337	2	3,3	chrX:154718943-154719060,chrX:154719763-154721337
+GS120510_01	chrX:6452427-6452694	1	3	chrX:6452427-6452694
+GS120510_01	chrX:18675750-18675795	1	3	chrX:18675750-18675795
+GS120510_01	chrX:140336509-140336656	1	1	chrX:140336509-140336656
+GS120512_01	chrX:52238808-52260365	6	3,4,3,3,4,3	chrX:52238808-52239381,chrX:52240448-52240625,chrX:52241117-52241263,chrX:52257910-52258056,chrX:52258548-52258725,chrX:52259792-52260365
+GS120512_01	chrX:52531488-52546199	5	3,3,3,4,4	chrX:52531488-52531665,chrX:52532732-52533305,chrX:52543744-52543890,chrX:52544382-52544559,chrX:52545626-52546199
+GS120512_01	chrX:101581167-101615576	3	3,4,1	chrX:101581167-101581247,chrX:101581374-101581641,chrX:101615309-101615576
+GS120512_01	chrX:139099411-139099626	1	1	chrX:139099411-139099626
+GS120512_01	chrX:153420039-153422018	2	4,4	chrX:153420039-153420224,chrX:153421759-153422018
+GS120513_01	chrX:3746537-3747443	1	4	chrX:3746537-3747443
+GS120513_01	chrX:18348697-18348785	1	1	chrX:18348697-18348785
+GS120513_01	chrX:19017969-19018088	1	1	chrX:19017969-19018088
+GS120513_01	chrX:46508111-46508242	1	1	chrX:46508111-46508242
+GS120513_01	chrX:49208254-49208362	1	3	chrX:49208254-49208362
+GS120513_01	chrX:49297917-49325562	6	3,3,3,3,3,3	chrX:49297917-49298028,chrX:49306361-49306453,chrX:49307473-49307584,chrX:49315917-49316009,chrX:49317029-49317140,chrX:49325470-49325562
+GS120513_01	chrX:49344577-49355344	4	3,3,3,3	chrX:49344577-49344669,chrX:49345689-49345800,chrX:49354133-49354216,chrX:49355236-49355344
+GS120513_01	chrX:153424281-153516772	15	4,3,3,3,3,3,3,3,3,4,4,4,3,3,3	chrX:153424281-153424517,chrX:153424825-153425198,chrX:153425798-153425953,chrX:153441100-153441847,chrX:153461411-153461650,chrX:153461955-153462328,chrX:153462928-153463083,chrX:153478220-153478967,chrX:153485257-153485406,chrX:153490367-153490683,chrX:153494287-153494472,chrX:153498529-153498768,chrX:153498922-153499446,chrX:153500046-153500201,chrX:153516025-153516772
+GS120520_01	chrX:101624497-101625083	1	3	chrX:101624497-101625083
+GS120520_01	chrX:114952649-114953674	1	4	chrX:114952649-114953674
+GS120521_01	chrX:48271297-48271354	1	3	chrX:48271297-48271354
+GS120521_01	chrX:120068963-120106750	18	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1	chrX:120068963-120069138,chrX:120070006-120071022,chrX:120073824-120073999,chrX:120074867-120075883,chrX:120078684-120078859,chrX:120079727-120080743,chrX:120083545-120083720,chrX:120084588-120085604,chrX:120088405-120088580,chrX:120089448-120090464,chrX:120092010-120092169,chrX:120094331-120095347,chrX:120096871-120097030,chrX:120098149-120098324,chrX:120099192-120100208,chrX:120101731-120101890,chrX:120103009-120103184,chrX:120106591-120106750
+GS120521_01	chrX:120108912-120116470	5	1,1,1,1,1	chrX:120108912-120109928,chrX:120111450-120111610,chrX:120112729-120112904,chrX:120113772-120114788,chrX:120116311-120116470
+GS120521_01	chrX:148582470-148682153	28	4,4,4,4,4,4,4,4,4,4,3,4,4,5,4,4,4,3,3,3,3,3,4,3,3,3,3,3	chrX:148582470-148582578,chrX:148583595-148583717,chrX:148584186-148585029,chrX:148585677-148585833,chrX:148586555-148586804,chrX:148593074-148593160,chrX:148607251-148607813,chrX:148609124-148609907,chrX:148619155-148619320,chrX:148619637-148619714,chrX:148620247-148620449,chrX:148621251-148621322,chrX:148622273-148622354,chrX:148622523-148622898,chrX:148623554-148623640,chrX:148626904-148627439,chrX:148628275-148628865,chrX:148630951-148632065,chrX:148632808-148636892,chrX:148663299-148664910,chrX:148664966-148665054,chrX:148665193-148665299,chrX:148669041-148669126,chrX:148674169-148674969,chrX:148675787-148676992,chrX:148678206-148679925,chrX:148681208-148681351,chrX:148681957-148682153
+GS120521_01	chrX:148770487-148770653	1	4	chrX:148770487-148770653
+GS120521_01	chrX:148848805-148869409	10	3,3,3,3,3,3,3,3,3,3	chrX:148848805-148850744,chrX:148851350-148851493,chrX:148852775-148853784,chrX:148853843-148854494,chrX:148855708-148856913,chrX:148857731-148858531,chrX:148863583-148863668,chrX:148867409-148867515,chrX:148867654-148867742,chrX:148867798-148869409
+GS120521_01	chrX:149092367-149100995	2	3,3	chrX:149092367-149096452,chrX:149100405-149100995
+GS120521_01	chrX:149109265-149109467	1	3	chrX:149109265-149109467
+GS120521_01	chrX:149113841-149115575	1	3	chrX:149113841-149115575
+GS120524_01	chrX:41043241-41043391	1	1	chrX:41043241-41043391
+GS120524_01	chrX:76909578-76909700	1	1	chrX:76909578-76909700
+GS120524_01	chrX:101581374-101581641	1	4	chrX:101581374-101581641
+GS120524_01	chrX:114400111-114400915	3	1,1,1	chrX:114400111-114400228,chrX:114400394-114400525,chrX:114400808-114400915
+GS120524_01	chrX:140335586-140335881	1	3	chrX:140335586-140335881
+GS120524_01	chrX:140671786-140678909	4	3,3,3,3	chrX:140671786-140672091,chrX:140672719-140672870,chrX:140677825-140677976,chrX:140678604-140678909
+GS120524_01	chrX:140785558-140786665	2	1,1	chrX:140785558-140785853,chrX:140786481-140786665
+GS120524_01	chrX:153416118-153420224	2	3,3	chrX:153416118-153416434,chrX:153420039-153420224
+GS120524_01	chrX:153425798-153516772	13	1,1,1,1,1,1,1,1,1,1,1,1,1	chrX:153425798-153425953,chrX:153441100-153441847,chrX:153461411-153461650,chrX:153461955-153462328,chrX:153462928-153463083,chrX:153478220-153478967,chrX:153485257-153485406,chrX:153490367-153490683,chrX:153494287-153494472,chrX:153498529-153498768,chrX:153498922-153499446,chrX:153500046-153500201,chrX:153516025-153516772
+GS120525_01	chrX:8139138-8139318	1	3	chrX:8139138-8139318
+GS120525_01	chrX:101581374-101581641	1	3	chrX:101581374-101581641
+GS120525_01	chrX:148669041-148669126	1	3	chrX:148669041-148669126
+GS120525_01	chrX:153416118-153422018	3	3,3,3	chrX:153416118-153416434,chrX:153420039-153420224,chrX:153421759-153422018
+GS120526_01	chrX:8766181-8766232	1	3	chrX:8766181-8766232
+GS120526_01	chrX:70373296-70373396	1	1	chrX:70373296-70373396
+GS120526_01	chrX:103316237-103316452	1	1	chrX:103316237-103316452
+GS120526_01	chrX:134257159-134257539	1	3	chrX:134257159-134257539
+GS120527_01	chrX:67339080-67339184	1	3	chrX:67339080-67339184
+GS120527_01	chrX:79945257-79945355	1	3	chrX:79945257-79945355
+GS120527_01	chrX:85128047-85128227	1	3	chrX:85128047-85128227
+GS120527_01	chrX:91723288-91723331	1	3	chrX:91723288-91723331
+GS120527_01	chrX:101581374-101581641	1	4	chrX:101581374-101581641
+GS120527_01	chrX:138869322-138869413	1	3	chrX:138869322-138869413
+GS120528_01	chrX:2835835-2836278	1	1	chrX:2835835-2836278
+GS120528_01	chrX:37955377-37955497	1	1	chrX:37955377-37955497
+GS120528_01	chrX:40518469-40518596	1	3	chrX:40518469-40518596
+GS120528_01	chrX:54277822-54278130	2	3,3	chrX:54277822-54277893,chrX:54277955-54278130
+GS120528_01	chrX:70073088-70073188	1	3	chrX:70073088-70073188
+GS120528_01	chrX:77086292-77086402	1	3	chrX:77086292-77086402
+GS120528_01	chrX:101581374-101581641	1	3	chrX:101581374-101581641
+GS120528_01	chrX:106061883-106065442	2	1,1	chrX:106061883-106062013,chrX:106065197-106065442
+GS120528_01	chrX:106396674-106396743	1	3	chrX:106396674-106396743
+GS120528_01	chrX:107815031-107815077	1	1	chrX:107815031-107815077
+GS120528_01	chrX:114400111-114400915	3	1,1,1	chrX:114400111-114400228,chrX:114400394-114400525,chrX:114400808-114400915
+GS120528_01	chrX:115574801-115578057	3	1,1,1	chrX:115574801-115574968,chrX:115576076-115576228,chrX:115577897-115578057
+GS120528_01	chrX:115584172-115586642	3	1,1,1	chrX:115584172-115584317,chrX:115585480-115585618,chrX:115586513-115586642
+GS120528_01	chrX:117814435-117814665	1	3	chrX:117814435-117814665
+GS120528_01	chrX:122747240-122753297	4	1,1,1,1	chrX:122747240-122747417,chrX:122747480-122747569,chrX:122747893-122748050,chrX:122753242-122753297
+GS120528_01	chrX:130845669-130845758	1	4	chrX:130845669-130845758
+GS120528_01	chrX:135498603-135499057	1	3	chrX:135498603-135499057
+GS120572_01	chrX:101581167-101581641	2	3,4	chrX:101581167-101581247,chrX:101581374-101581641
+GS120572_01	chrX:103316237-103316452	1	1	chrX:103316237-103316452
+GS120572_01	chrX:140335586-140336656	2	1,1	chrX:140335586-140335881,chrX:140336509-140336656
+GS120572_01	chrX:140786481-140786665	1	3	chrX:140786481-140786665
+GS120574_01	chrX:101472924-101473069	1	3	chrX:101472924-101473069
+GS120574_01	chrX:114952649-114953674	1	4	chrX:114952649-114953674
+GS120575_01	chrX:9373375-9373448	1	3	chrX:9373375-9373448
+GS120575_01	chrX:48271297-48271354	1	3	chrX:48271297-48271354
+GS120575_01	chrX:103316237-103316452	1	1	chrX:103316237-103316452
+GS120575_01	chrX:140608520-140608587	1	3	chrX:140608520-140608587
+GS120575_01	chrX:148621251-148621322	1	3	chrX:148621251-148621322
+GS120575_01	chrX:152338770-152340873	1	3	chrX:152338770-152340873
+GS120575_01	chrX:153425798-153490683	8	1,1,1,1,1,1,1,1	chrX:153425798-153425953,chrX:153441100-153441847,chrX:153461411-153461650,chrX:153461955-153462328,chrX:153462928-153463083,chrX:153478220-153478967,chrX:153485257-153485406,chrX:153490367-153490683
+GS120576_01	chrX:2831645-2836278	3	1,1,1	chrX:2831645-2832824,chrX:2833587-2833743,chrX:2835835-2836278
+GS120576_01	chrX:17047639-17047756	1	1	chrX:17047639-17047756
+GS120576_01	chrX:101581374-101581641	1	3	chrX:101581374-101581641
+GS120576_01	chrX:140336509-140336656	1	1	chrX:140336509-140336656
+GS120578_01	chrX:6452989-6453169	1	4	chrX:6452989-6453169
+GS120578_01	chrX:140335586-140335881	1	3	chrX:140335586-140335881
+GS120578_01	chrX:153042653-153042845	1	1	chrX:153042653-153042845
+GS120578_01	chrX:154576440-154581281	2	1,1	chrX:154576440-154577690,chrX:154581164-154581281
+GS120578_01	chrX:154718943-154721337	2	5,3	chrX:154718943-154719060,chrX:154719763-154721337
+GS120578_01	chrX:154722186-154723781	2	3,3	chrX:154722186-154722371,chrX:154722531-154723781
+GS120579_01	chrX:41010164-41010320	1	3	chrX:41010164-41010320
+GS120579_01	chrX:76889044-76889210	1	3	chrX:76889044-76889210
+GS120579_01	chrX:79945257-79945355	1	3	chrX:79945257-79945355
+GS120579_01	chrX:123200015-123200122	1	3	chrX:123200015-123200122
+GS120579_01	chrX:129377764-129377849	1	4	chrX:129377764-129377849
+GS120621_01	chrX:103316237-103316452	1	1	chrX:103316237-103316452
+GS120621_01	chrX:134930634-134930902	1	3	chrX:134930634-134930902
+GS120623_01	chrX:12885590-12885710	1	3	chrX:12885590-12885710
+GS120623_01	chrX:48666430-48666554	1	3	chrX:48666430-48666554
+GS120623_01	chrX:49103947-49104029	1	3	chrX:49103947-49104029
+GS120623_01	chrX:49218310-49218450	1	3	chrX:49218310-49218450
+GS120623_01	chrX:49230789-49230934	1	3	chrX:49230789-49230934
+GS120623_01	chrX:49315917-49316009	1	3	chrX:49315917-49316009
+GS120623_01	chrX:49327139-49335120	2	3,3	chrX:49327139-49327279,chrX:49335028-49335120
+GS120623_01	chrX:49363613-49363740	1	3	chrX:49363613-49363740
+GS120623_01	chrX:51934517-51934979	1	3	chrX:51934517-51934979
+GS120623_01	chrX:71522650-71522794	1	3	chrX:71522650-71522794
+GS120623_01	chrX:101968700-101968787	1	3	chrX:101968700-101968787
+GS120623_01	chrX:103316237-103316452	1	1	chrX:103316237-103316452
+GS120623_01	chrX:106959535-106959721	1	3	chrX:106959535-106959721
+GS120623_01	chrX:133948791-133948889	1	3	chrX:133948791-133948889
+GS120623_01	chrX:140336509-140336656	1	1	chrX:140336509-140336656
+GS120623_01	chrX:153008431-153008810	2	3,3	chrX:153008431-153008535,chrX:153008649-153008810
+GS120623_01	chrX:153032318-153034541	3	3,4,3	chrX:153032318-153033378,chrX:153033694-153033893,chrX:153034393-153034541
+GS120623_01	chrX:153037627-153038871	3	3,3,3	chrX:153037627-153037752,chrX:153038331-153038481,chrX:153038675-153038871
+GS120623_01	chrX:153176366-153176463	1	4	chrX:153176366-153176463
+GS120623_01	chrX:153186070-153186272	1	3	chrX:153186070-153186272
+GS120623_01	chrX:153195367-153195686	1	3	chrX:153195367-153195686
+GS120623_01	chrX:153789893-153790013	1	3	chrX:153789893-153790013
+GS120623_01	chrX:153869749-153869912	1	3	chrX:153869749-153869912
+GS120623_01	chrX:154581164-154581281	1	1	chrX:154581164-154581281
+GS120623_01	chrX:154718943-154721337	2	4,3	chrX:154718943-154719060,chrX:154719763-154721337
+GS120623_01	chrX:154722186-154723781	2	3,3	chrX:154722186-154722371,chrX:154722531-154723781
+GS120634_01	chrX:8139138-8139318	1	3	chrX:8139138-8139318
+GS120634_01	chrX:15792415-15792530	1	3	chrX:15792415-15792530
+GS120634_01	chrX:134872046-134874258	3	4,11,5	chrX:134872046-134872314,chrX:134872674-134872787,chrX:134873988-134874258
+GS120634_01	chrX:134930162-134930902	2	7,4	chrX:134930162-134930275,chrX:134930634-134930902
+GS120634_01	chrX:134945954-134947538	2	5,5	chrX:134945954-134946224,chrX:134947425-134947538
+GS120634_01	chrX:134964676-134964789	1	10	chrX:134964676-134964789
+GS120634_01	chrX:134988560-134988720	1	4	chrX:134988560-134988720
+GS120634_01	chrX:154718943-154721337	2	5,3	chrX:154718943-154719060,chrX:154719763-154721337
+GS120635_01	chrX:2831645-2836278	3	3,3,3	chrX:2831645-2832824,chrX:2833587-2833743,chrX:2835835-2836278
+GS120635_01	chrX:9373375-9378231	3	3,4,3	chrX:9373375-9373448,chrX:9375390-9375438,chrX:9378183-9378231
+GS120635_01	chrX:101567365-101567455	1	3	chrX:101567365-101567455
+GS120635_01	chrX:101581374-101615576	2	4,1	chrX:101581374-101581641,chrX:101615309-101615576
+GS120635_01	chrX:101629539-101629629	1	1	chrX:101629539-101629629
+GS120635_01	chrX:103316237-103316452	1	1	chrX:103316237-103316452
+GS120635_01	chrX:154581164-154581281	1	1	chrX:154581164-154581281
+GS120635_01	chrX:154718943-154721337	2	4,3	chrX:154718943-154719060,chrX:154719763-154721337
+GS120635_01	chrX:154722186-154723781	2	3,3	chrX:154722186-154722371,chrX:154722531-154723781
+GS120637_01	chrX:48372505-48372539	1	1	chrX:48372505-48372539
+GS120637_01	chrX:101581374-101581641	1	4	chrX:101581374-101581641
+GS120637_01	chrX:103265709-103297030	4	4,3,3,4	chrX:103265709-103266045,chrX:103267732-103268266,chrX:103294506-103294981,chrX:103295645-103297030
+GS120637_01	chrX:134852686-134928957	13	3,3,3,3,3,3,3,3,3,3,3,3,3	chrX:134852686-134852880,chrX:134854780-134855048,chrX:134855410-134855523,chrX:134856728-134856998,chrX:134869948-134870142,chrX:134872046-134872314,chrX:134872674-134872787,chrX:134873988-134874258,chrX:134887217-134887411,chrX:134889311-134889579,chrX:134889941-134890054,chrX:134891259-134891529,chrX:134928687-134928957
+GS120637_01	chrX:134930634-134946224	3	3,3,3	chrX:134930634-134930902,chrX:134932805-134932999,chrX:134945954-134946224
+GS120637_01	chrX:134950068-134967512	5	3,3,3,3,3	chrX:134950068-134950262,chrX:134963205-134963475,chrX:134964676-134964789,chrX:134965149-134965417,chrX:134967318-134967512
+GS120637_01	chrX:154718943-154721337	2	5,3	chrX:154718943-154719060,chrX:154719763-154721337
+GS120637_01	chrX:154722186-154723781	2	3,3	chrX:154722186-154722371,chrX:154722531-154723781
+GS120638_01	chrX:2831645-2836278	3	1,1,1	chrX:2831645-2832824,chrX:2833587-2833743,chrX:2835835-2836278
+GS120639_01	chrX:23725984-23726071	1	1	chrX:23725984-23726071
+GS120639_01	chrX:48271297-48271354	1	3	chrX:48271297-48271354
+GS120639_01	chrX:49227830-49227970	1	3	chrX:49227830-49227970
+GS120639_01	chrX:49297917-49298028	1	3	chrX:49297917-49298028
+GS120639_01	chrX:49307473-49307584	1	3	chrX:49307473-49307584
+GS120639_01	chrX:49317029-49317140	1	3	chrX:49317029-49317140
+GS120639_01	chrX:49326582-49326693	1	3	chrX:49326582-49326693
+GS120639_01	chrX:134257159-134257539	1	3	chrX:134257159-134257539
+GS120639_01	chrX:134382878-134383258	1	1	chrX:134382878-134383258
+GS120639_01	chrX:134852686-134852880	1	3	chrX:134852686-134852880
+GS120639_01	chrX:134930634-134932999	2	3,3	chrX:134930634-134930902,chrX:134932805-134932999
+GS120639_01	chrX:134967318-134967512	1	3	chrX:134967318-134967512
+GS120639_01	chrX:154581164-154581281	1	1	chrX:154581164-154581281
+GS120639_01	chrX:154718943-154721337	2	5,3	chrX:154718943-154719060,chrX:154719763-154721337
+GS120639_01	chrX:154722186-154723781	2	3,3	chrX:154722186-154722371,chrX:154722531-154723781
+GS120676_01	chrX:3746537-3747443	1	1	chrX:3746537-3747443
+GS120676_01	chrX:15792415-15792530	1	3	chrX:15792415-15792530
+GS120676_01	chrX:101571910-101572496	1	1	chrX:101571910-101572496
+GS120676_01	chrX:101624497-101625083	1	3	chrX:101624497-101625083
+GS120676_01	chrX:101726683-101726742	1	1	chrX:101726683-101726742
+GS120678_01	chrX:134257159-134257539	1	3	chrX:134257159-134257539
+GS120678_01	chrX:134382878-134383258	1	1	chrX:134382878-134383258
+GS120678_01	chrX:134872046-134874258	3	4,11,5	chrX:134872046-134872314,chrX:134872674-134872787,chrX:134873988-134874258
+GS120678_01	chrX:134930162-134930902	2	7,4	chrX:134930162-134930275,chrX:134930634-134930902
+GS120678_01	chrX:134945954-134947538	2	5,5	chrX:134945954-134946224,chrX:134947425-134947538
+GS120678_01	chrX:134964676-134965417	2	11,3	chrX:134964676-134964789,chrX:134965149-134965417
+GS120678_01	chrX:134988560-134988720	1	4	chrX:134988560-134988720
+GS120678_01	chrX:140336509-140336656	1	1	chrX:140336509-140336656
+GS120678_01	chrX:153420039-153422018	2	3,4	chrX:153420039-153420224,chrX:153421759-153422018
+GS120678_01	chrX:154718943-154721337	2	5,3	chrX:154718943-154719060,chrX:154719763-154721337
+GS120679_01	chrX:8432861-8433041	1	1	chrX:8432861-8433041
+GS120679_01	chrX:101472924-101473069	1	3	chrX:101472924-101473069
+GS120679_01	chrX:101624497-101625083	1	3	chrX:101624497-101625083
+GS120679_01	chrX:103316237-103316452	1	1	chrX:103316237-103316452
+GS120679_01	chrX:154576440-154581281	2	1,1	chrX:154576440-154577690,chrX:154581164-154581281
+GS120679_01	chrX:154718943-154721337	2	5,3	chrX:154718943-154719060,chrX:154719763-154721337
+GS120679_01	chrX:154722186-154722371	1	3	chrX:154722186-154722371
+GS120680_01	chrX:2831645-2836278	3	1,1,1	chrX:2831645-2832824,chrX:2833587-2833743,chrX:2835835-2836278
+GS120680_01	chrX:3559883-3560022	1	1	chrX:3559883-3560022
+GS120680_01	chrX:32459287-32472959	3	1,1,1	chrX:32459287-32459441,chrX:32466563-32466765,chrX:32472769-32472959
+GS120680_01	chrX:44386473-44386621	1	3	chrX:44386473-44386621
+GS120680_01	chrX:49454011-49454156	1	3	chrX:49454011-49454156
+GS120680_01	chrX:83357035-83357216	1	1	chrX:83357035-83357216
+GS120680_01	chrX:101581374-101581641	1	3	chrX:101581374-101581641
+GS120680_01	chrX:120111450-120111610	1	3	chrX:120111450-120111610
+GS120680_01	chrX:154718943-154721337	2	3,3	chrX:154718943-154719060,chrX:154719763-154721337
+GS120693_01	chrX:101581374-101581641	1	3	chrX:101581374-101581641
+GS120693_01	chrX:103316237-103316452	1	1	chrX:103316237-103316452
+GS120693_01	chrX:153041039-153041162	1	3	chrX:153041039-153041162
+GS120693_01	chrX:153421759-153422018	1	1	chrX:153421759-153422018
+GS120693_01	chrX:153490367-153494472	2	3,3	chrX:153490367-153490683,chrX:153494287-153494472
+GS120694_01	chrX:15792415-15792530	1	3	chrX:15792415-15792530
+GS120694_01	chrX:47486530-47486741	1	3	chrX:47486530-47486741
+GS120694_01	chrX:48822975-48823261	2	3,3	chrX:48822975-48823093,chrX:48823158-48823261
+GS120694_01	chrX:49179655-49179766	1	1	chrX:49179655-49179766
+GS120694_01	chrX:51637355-51637455	1	3	chrX:51637355-51637455
+GS120694_01	chrX:52258548-52260365	2	3,3	chrX:52258548-52258725,chrX:52259792-52260365
+GS120694_01	chrX:67867501-67867779	1	3	chrX:67867501-67867779
+GS120694_01	chrX:101581374-101581641	1	4	chrX:101581374-101581641
+GS120694_01	chrX:101629539-101629629	1	1	chrX:101629539-101629629
+GS120694_01	chrX:120106591-120106750	1	1	chrX:120106591-120106750
+GS120694_01	chrX:153032318-153033378	1	3	chrX:153032318-153033378
+GS120694_01	chrX:153047188-153047295	1	3	chrX:153047188-153047295
+GS120694_01	chrX:153178662-153178766	1	3	chrX:153178662-153178766
+GS120694_01	chrX:153197759-153197894	1	3	chrX:153197759-153197894
+GS120694_01	chrX:153223466-153223710	1	3	chrX:153223466-153223710
+GS120694_01	chrX:153595755-153596468	3	3,3,3	chrX:153595755-153595922,chrX:153595999-153596116,chrX:153596200-153596468
+GS120694_01	chrX:153693351-153693571	1	3	chrX:153693351-153693571
+GS120696_01	chrX:2831645-2836278	3	1,1,1	chrX:2831645-2832824,chrX:2833587-2833743,chrX:2835835-2836278
+GS130095_01	chrX:8137975-8138400	1	3	chrX:8137975-8138400
+GS130095_01	chrX:101581374-101581641	1	4	chrX:101581374-101581641
+GS130095_01	chrX:103316237-103316452	1	1	chrX:103316237-103316452
+GS130095_01	chrX:154581164-154581281	1	1	chrX:154581164-154581281
+GS130095_01	chrX:154718943-154721337	2	4,3	chrX:154718943-154719060,chrX:154719763-154721337
+GS130095_01	chrX:154722186-154723781	2	3,3	chrX:154722186-154722371,chrX:154722531-154723781
+GS130097_01	chrX:2748092-2748246	1	3	chrX:2748092-2748246
+GS130097_01	chrX:47867105-47992007	22	1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1	chrX:47867105-47867355,chrX:47867764-47867942,chrX:47868753-47868851,chrX:47868936-47869138,chrX:47917593-47919602,chrX:47919819-47919934,chrX:47920188-47920334,chrX:47926250-47926459,chrX:47930624-47930805,chrX:47967078-47967199,chrX:47969334-47969442,chrX:47969857-47969991,chrX:47970634-47970749,chrX:47972566-47972635,chrX:47976384-47976539,chrX:47978906-47979030,chrX:47979472-47980079,chrX:47986593-47986694,chrX:47989974-47990224,chrX:47990633-47990811,chrX:47991622-47991720,chrX:47991805-47992007
+GS130097_01	chrX:49077484-49077549	1	4	chrX:49077484-49077549
+GS130097_01	chrX:101581374-101615576	2	3,1	chrX:101581374-101581641,chrX:101615309-101615576
+GS130097_01	chrX:135300392-135301840	3	0,0,0	chrX:135300392-135300662,chrX:135301547-135301664,chrX:135301742-135301840
+GS130097_01	chrX:153008649-153008810	1	3	chrX:153008649-153008810
+GS130097_01	chrX:153046950-153047078	1	3	chrX:153046950-153047078
+GS130097_01	chrX:153199820-153199938	1	3	chrX:153199820-153199938
+GS130097_01	chrX:153420039-153420224	1	1	chrX:153420039-153420224
+GS130097_01	chrX:153813408-153813749	1	3	chrX:153813408-153813749
+GS130097_01	chrX:154581164-154581281	1	1	chrX:154581164-154581281
+GS130097_01	chrX:154718943-154721337	2	4,3	chrX:154718943-154719060,chrX:154719763-154721337
+GS130097_01	chrX:154722186-154722371	1	3	chrX:154722186-154722371
+GS130098_01	chrX:49055417-49055502	1	3	chrX:49055417-49055502
+GS130098_01	chrX:49179655-49179766	1	1	chrX:49179655-49179766
+GS130098_01	chrX:101581374-101581641	1	4	chrX:101581374-101581641
+GS130098_01	chrX:153055640-153055757	1	3	chrX:153055640-153055757
+GS130099_01	chrX:8137975-8138400	1	3	chrX:8137975-8138400
+GS130099_01	chrX:65815472-65835882	7	0,0,0,0,0,0,0	chrX:65815472-65817945,chrX:65819306-65819718,chrX:65819871-65819947,chrX:65822465-65822649,chrX:65824253-65824358,chrX:65824880-65825078,chrX:65835766-65835882
+GS130099_01	chrX:101581374-101581641	1	4	chrX:101581374-101581641
+GS130099_01	chrX:134257159-134257539	1	1	chrX:134257159-134257539
+GS130099_01	chrX:134382878-134383258	1	3	chrX:134382878-134383258
+GS130100_01	chrX:8433776-8434556	1	1	chrX:8433776-8434556
+GS130100_01	chrX:48324392-48325269	3	3,3,3	chrX:48324392-48324490,chrX:48324607-48324719,chrX:48325176-48325269
+GS130100_01	chrX:54482932-54483010	1	3	chrX:54482932-54483010
+GS130100_01	chrX:103316237-103316452	1	1	chrX:103316237-103316452
+GS130100_01	chrX:152956749-152958640	3	3,3,3	chrX:152956749-152957018,chrX:152957420-152957572,chrX:152958486-152958640
+GS130100_01	chrX:153420039-153422018	2	3,4	chrX:153420039-153420224,chrX:153421759-153422018
+GS130102_01	chrX:101624497-101625083	1	3	chrX:101624497-101625083
+GS130102_01	chrX:109246719-109310634	2	4,4	chrX:109246719-109247402,chrX:109310565-109310634
+GS130102_01	chrX:140671786-140678909	4	1,1,1,1	chrX:140671786-140672091,chrX:140672719-140672870,chrX:140677825-140677976,chrX:140678604-140678909
+GS130102_01	chrX:140785558-140785853	1	4	chrX:140785558-140785853
+GS130102_01	chrX:152338770-152340873	1	4	chrX:152338770-152340873
+GS130102_01	chrX:153035783-153035911	1	3	chrX:153035783-153035911
+GS130102_01	chrX:153210026-153210242	1	3	chrX:153210026-153210242
+GS130102_01	chrX:153641534-153641705	1	3	chrX:153641534-153641705
+GS130103_01	chrX:101624497-101625083	1	3	chrX:101624497-101625083
+GS130103_01	chrX:123019471-123236515	41	4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4	chrX:123019471-123020399,chrX:123022459-123022578,chrX:123026571-123026633,chrX:123034333-123034553,chrX:123040828-123047832,chrX:123094465-123094726,chrX:123095154-123095295,chrX:123095546-123095716,chrX:123155207-123155291,chrX:123156371-123156531,chrX:123159680-123159778,chrX:123164801-123164985,chrX:123171367-123171483,chrX:123176409-123176505,chrX:123179004-123179228,chrX:123181194-123181365,chrX:123182845-123182938,chrX:123184026-123184169,chrX:123184961-123185079,chrX:123185155-123185254,chrX:123189968-123190095,chrX:123191706-123191837,chrX:123195064-123195201,chrX:123195611-123195734,chrX:123196742-123196854,chrX:123196956-123197065,chrX:123197688-123197911,chrX:123200015-123200122,chrX:123200196-123200296,chrX:123202404-123202516,chrX:123204989-123205183,chrX:123210172-123210331,chrX:123211797-123211918,chrX:123215220-123215388,chrX:123217261-123217409,chrX:123220387-123220630,chrX:123224415-123224624,chrX:123224694-123224824,chrX:123227858-123228004,chrX:123229212-123229309,chrX:123234414-123236515
+GS130103_01	chrX:154581164-154581281	1	1	chrX:154581164-154581281
+GS130103_01	chrX:154718943-154721337	2	5,3	chrX:154718943-154719060,chrX:154719763-154721337
+GS130103_01	chrX:154722186-154722371	1	3	chrX:154722186-154722371
+GS130104_01	chrX:120096871-120097030	1	4	chrX:120096871-120097030
+GS130104_01	chrX:120106591-120106750	1	4	chrX:120106591-120106750
+GS130104_01	chrX:120111450-120111610	1	4	chrX:120111450-120111610
+GS130104_01	chrX:120116311-120116470	1	3	chrX:120116311-120116470
+GS130104_01	chrX:140671786-140678909	4	1,1,1,1	chrX:140671786-140672091,chrX:140672719-140672870,chrX:140677825-140677976,chrX:140678604-140678909
+GS130104_01	chrX:140785558-140785853	1	3	chrX:140785558-140785853
+GS130104_01	chrX:153420039-153422018	2	1,1	chrX:153420039-153420224,chrX:153421759-153422018
+GS130105_01	chrX:49297917-49298028	1	3	chrX:49297917-49298028
+GS130105_01	chrX:101581374-101615576	2	4,1	chrX:101581374-101581641,chrX:101615309-101615576
+GS130105_01	chrX:103316237-103316452	1	1	chrX:103316237-103316452
+GS130105_01	chrX:154581164-154581281	1	1	chrX:154581164-154581281
+GS130105_01	chrX:154718943-154721337	2	5,3	chrX:154718943-154719060,chrX:154719763-154721337
+GS130105_01	chrX:154722186-154722371	1	3	chrX:154722186-154722371
+GS130106_01	chrX:49198701-49202354	3	1,1,1	chrX:49198701-49198809,chrX:49199255-49199395,chrX:49202209-49202354
+GS130106_01	chrX:49208254-49216732	3	1,1,1	chrX:49208254-49208362,chrX:49208807-49208947,chrX:49216638-49216732
+GS130106_01	chrX:49354133-49361396	3	1,1,1	chrX:49354133-49354216,chrX:49355236-49355344,chrX:49361304-49361396
+GS130106_01	chrX:101095461-101095590	1	1	chrX:101095461-101095590
+GS130106_01	chrX:103316237-103316452	1	1	chrX:103316237-103316452
+GS130106_01	chrX:154718943-154721337	2	5,3	chrX:154718943-154719060,chrX:154719763-154721337
+GS130106_01	chrX:154722186-154722371	1	3	chrX:154722186-154722371
+GS130107_01	chrX:15792415-15792530	1	3	chrX:15792415-15792530
+GS130107_01	chrX:101095461-101095590	1	1	chrX:101095461-101095590
+GS130107_01	chrX:134947425-134948165	2	1,1	chrX:134947425-134947538,chrX:134947897-134948165
+GS130107_01	chrX:140785558-140785853	1	4	chrX:140785558-140785853
+GS130107_01	chrX:153421759-153422018	1	4	chrX:153421759-153422018
+GS130127_01	chrX:36156065-36156591	2	1,1	chrX:36156065-36156182,chrX:36156455-36156591
+GS130127_01	chrX:83400476-83400575	1	1	chrX:83400476-83400575
+GS130127_01	chrX:101581374-101581641	1	4	chrX:101581374-101581641
+GS130127_01	chrX:114398229-114405005	5	1,1,1,1,1	chrX:114398229-114398356,chrX:114400111-114400228,chrX:114400394-114400525,chrX:114400808-114400915,chrX:114404852-114405005
+GS130127_01	chrX:134872046-134874258	3	4,10,5	chrX:134872046-134872314,chrX:134872674-134872787,chrX:134873988-134874258
+GS130127_01	chrX:134930162-134930902	2	7,4	chrX:134930162-134930275,chrX:134930634-134930902
+GS130127_01	chrX:134945954-134947538	2	5,4	chrX:134945954-134946224,chrX:134947425-134947538
+GS130127_01	chrX:134964676-134965417	2	10,4	chrX:134964676-134964789,chrX:134965149-134965417
+GS130127_01	chrX:134988560-134988720	1	4	chrX:134988560-134988720
+GS130128_01	chrX:15792415-15792530	1	3	chrX:15792415-15792530
+GS130128_01	chrX:48854556-48855721	2	1,1	chrX:48854556-48854602,chrX:48855640-48855721
+GS130128_01	chrX:49198701-49198809	1	1	chrX:49198701-49198809
+GS130128_01	chrX:49208254-49208362	1	1	chrX:49208254-49208362
+GS130128_01	chrX:49355236-49355344	1	1	chrX:49355236-49355344
+GS130128_01	chrX:101624497-101625083	1	3	chrX:101624497-101625083
+GS130128_01	chrX:153421759-153422018	1	3	chrX:153421759-153422018
+GS130128_01	chrX:153633159-153633265	1	1	chrX:153633159-153633265
+GS130129_01	chrX:8137975-8138400	1	4	chrX:8137975-8138400
+GS130129_01	chrX:15792415-15792530	1	3	chrX:15792415-15792530
+GS130129_01	chrX:101581374-101581641	1	4	chrX:101581374-101581641
+GS130129_01	chrX:153424281-153516772	15	1,1,1,1,1,1,1,1,1,0,1,1,1,1,1	chrX:153424281-153424517,chrX:153424825-153425198,chrX:153425798-153425953,chrX:153441100-153441847,chrX:153461411-153461650,chrX:153461955-153462328,chrX:153462928-153463083,chrX:153478220-153478967,chrX:153485257-153485406,chrX:153490367-153490683,chrX:153494287-153494472,chrX:153498529-153498768,chrX:153498922-153499446,chrX:153500046-153500201,chrX:153516025-153516772
+GS130130_01	chrX:8137975-8138400	1	3	chrX:8137975-8138400
+GS130130_01	chrX:52727024-52727148	1	1	chrX:52727024-52727148
+GS130130_01	chrX:52789411-52789535	1	1	chrX:52789411-52789535
+GS130130_01	chrX:101581374-101581641	1	3	chrX:101581374-101581641
+GS130130_01	chrX:103316237-103316452	1	1	chrX:103316237-103316452
+GS130130_01	chrX:134855410-134856998	2	3,3	chrX:134855410-134855523,chrX:134856728-134856998
+GS130130_01	chrX:134872674-134874258	2	3,3	chrX:134872674-134872787,chrX:134873988-134874258
+GS130130_01	chrX:134889941-134946224	7	3,3,3,3,3,3,3	chrX:134889941-134890054,chrX:134891259-134891529,chrX:134928687-134928957,chrX:134930162-134930275,chrX:134930634-134930902,chrX:134932805-134932999,chrX:134945954-134946224
+GS130130_01	chrX:153490367-153500201	5	4,4,3,3,3	chrX:153490367-153490683,chrX:153494287-153494472,chrX:153498529-153498768,chrX:153498922-153499446,chrX:153500046-153500201
+GS130132_01	chrX:48957133-48957502	1	3	chrX:48957133-48957502
+GS130132_01	chrX:134872046-134874258	3	5,11,6	chrX:134872046-134872314,chrX:134872674-134872787,chrX:134873988-134874258
+GS130132_01	chrX:134930162-134930902	2	6,4	chrX:134930162-134930275,chrX:134930634-134930902
+GS130132_01	chrX:134945954-134947538	2	6,4	chrX:134945954-134946224,chrX:134947425-134947538
+GS130132_01	chrX:134964676-134964789	1	10	chrX:134964676-134964789
+GS130132_01	chrX:134988560-134988720	1	4	chrX:134988560-134988720
+GS130132_01	chrX:140335586-140335881	1	4	chrX:140335586-140335881
+GS130132_01	chrX:140785558-140785853	1	0	chrX:140785558-140785853
+GS130168_01	chrX:101571910-101572496	1	1	chrX:101571910-101572496
+GS130168_01	chrX:101624497-101625083	1	3	chrX:101624497-101625083
+GS130168_01	chrX:119068447-119068530	1	3	chrX:119068447-119068530
+GS130168_01	chrX:148619637-148619714	1	3	chrX:148619637-148619714
+GS130168_01	chrX:149109998-149110075	1	1	chrX:149109998-149110075
+GS130169_01	chrX:101095461-101095590	1	1	chrX:101095461-101095590
+GS130169_01	chrX:101147668-101147737	1	3	chrX:101147668-101147737
+GS130170_01	chrX:49179655-49179766	1	1	chrX:49179655-49179766
+GS130170_01	chrX:101581374-101581641	1	4	chrX:101581374-101581641
+GS130170_01	chrX:103316237-103316452	1	1	chrX:103316237-103316452
+GS130170_01	chrX:119072683-119072783	1	3	chrX:119072683-119072783
+GS130222_01	chrX:41548241-41548347	1	3	chrX:41548241-41548347
+GS130222_01	chrX:101581374-101581641	1	4	chrX:101581374-101581641
+GS130222_01	chrX:140671786-140672091	1	1	chrX:140671786-140672091
+GS130222_01	chrX:140785558-140785853	1	4	chrX:140785558-140785853
+GS130223_01	chrX:55117755-55117900	1	1	chrX:55117755-55117900
+GS130223_01	chrX:101571910-101572496	1	1	chrX:101571910-101572496
+GS130223_01	chrX:101624497-101625083	1	3	chrX:101624497-101625083
+GS130223_01	chrX:134257159-134257539	1	1	chrX:134257159-134257539
+GS130223_01	chrX:134382878-134383258	1	3	chrX:134382878-134383258
+GS130223_01	chrX:153424281-153461650	5	3,3,3,3,3	chrX:153424281-153424517,chrX:153424825-153425198,chrX:153425798-153425953,chrX:153441100-153441847,chrX:153461411-153461650
+GS130224_01	chrX:13757111-13757161	1	3	chrX:13757111-13757161
+GS130224_01	chrX:13780453-13780573	1	3	chrX:13780453-13780573
+GS130224_01	chrX:19039212-19039326	1	3	chrX:19039212-19039326
+GS130224_01	chrX:23725984-23726071	1	3	chrX:23725984-23726071
+GS130224_01	chrX:49179655-49179766	1	1	chrX:49179655-49179766
+GS130224_01	chrX:55119138-55119270	1	3	chrX:55119138-55119270
+GS130224_01	chrX:70814171-70814237	1	4	chrX:70814171-70814237
+GS130224_01	chrX:101571910-101572496	1	1	chrX:101571910-101572496
+GS130224_01	chrX:101624497-101625083	1	3	chrX:101624497-101625083
+GS130224_01	chrX:105152222-105152305	1	3	chrX:105152222-105152305
+GS130224_01	chrX:106108779-106108867	1	3	chrX:106108779-106108867
+GS130224_01	chrX:128887125-128887234	1	3	chrX:128887125-128887234
+GS130224_01	chrX:134292114-134292246	1	4	chrX:134292114-134292246
+GS130224_01	chrX:135433596-135433710	1	3	chrX:135433596-135433710
+GS130224_01	chrX:140785558-140785853	1	1	chrX:140785558-140785853
+GS130224_01	chrX:153138673-153138707	1	3	chrX:153138673-153138707
+GS130224_01	chrX:154581164-154581281	1	1	chrX:154581164-154581281
+GS130224_01	chrX:154718943-154721337	2	5,3	chrX:154718943-154719060,chrX:154719763-154721337
+GS130224_01	chrX:154722186-154722371	1	3	chrX:154722186-154722371
+GS130226_01	chrX:23725984-23726071	1	3	chrX:23725984-23726071
+GS130226_01	chrX:49179655-49179766	1	3	chrX:49179655-49179766
+GS130226_01	chrX:64808756-64808958	1	3	chrX:64808756-64808958
+GS130226_01	chrX:101624497-101625083	1	3	chrX:101624497-101625083
+GS130226_01	chrX:153421759-153422018	1	1	chrX:153421759-153422018
+GS130362_01	chrX:101095461-101095590	1	1	chrX:101095461-101095590
+GS130362_01	chrX:120106591-120106750	1	1	chrX:120106591-120106750
+GS130362_01	chrX:153786737-153793271	6	4,3,3,3,3,3	chrX:153786737-153786875,chrX:153789893-153790013,chrX:153791015-153791178,chrX:153791764-153791926,chrX:153792164-153792245,chrX:153792524-153793271
+GS130362_01	chrX:153867687-153871034	5	3,3,3,3,3	chrX:153867687-153868403,chrX:153868682-153868763,chrX:153869001-153869163,chrX:153869749-153869912,chrX:153870918-153871034
+GS130362_01	chrX:154718943-154721337	2	5,3	chrX:154718943-154719060,chrX:154719763-154721337
+GS130364_01	chrX:49227830-49227970	1	3	chrX:49227830-49227970
+GS130364_01	chrX:67718876-67718975	1	3	chrX:67718876-67718975
+GS130364_01	chrX:103316237-103316452	1	1	chrX:103316237-103316452
+GS130364_01	chrX:134872046-134874258	3	4,9,5	chrX:134872046-134872314,chrX:134872674-134872787,chrX:134873988-134874258
+GS130364_01	chrX:134930162-134930902	2	7,4	chrX:134930162-134930275,chrX:134930634-134930902
+GS130364_01	chrX:134945954-134947538	2	5,4	chrX:134945954-134946224,chrX:134947425-134947538
+GS130364_01	chrX:134964676-134965417	2	8,3	chrX:134964676-134964789,chrX:134965149-134965417
+GS130364_01	chrX:134988560-134988720	1	4	chrX:134988560-134988720
+GS130364_01	chrX:153540921-153577414	9	1,1,1,1,1,1,1,1,1	chrX:153540921-153541134,chrX:153543513-153543697,chrX:153549094-153549270,chrX:153551543-153551693,chrX:153553675-153553778,chrX:153555927-153556043,chrX:153556175-153556314,chrX:153557856-153558710,chrX:153576887-153577414
+GS130364_01	chrX:153593707-153593864	1	1	chrX:153593707-153593864
+GS130364_01	chrX:154718943-154721337	2	5,3	chrX:154718943-154719060,chrX:154719763-154721337
+GS130365_01	chrX:101095461-101095590	1	1	chrX:101095461-101095590
+GS130365_01	chrX:120073824-120073999	1	4	chrX:120073824-120073999
+GS130365_01	chrX:120078684-120083720	3	4,4,4	chrX:120078684-120078859,chrX:120079727-120080743,chrX:120083545-120083720
+GS130365_01	chrX:120092010-120098324	4	4,3,4,3	chrX:120092010-120092169,chrX:120094331-120095347,chrX:120096871-120097030,chrX:120098149-120098324
+GS130365_01	chrX:120101731-120108044	4	4,3,4,3	chrX:120101731-120101890,chrX:120103009-120103184,chrX:120106591-120106750,chrX:120107869-120108044
+GS130365_01	chrX:120111450-120112904	2	4,3	chrX:120111450-120111610,chrX:120112729-120112904
+GS130365_01	chrX:134852686-134872314	6	3,3,3,3,3,3	chrX:134852686-134852880,chrX:134854780-134855048,chrX:134855410-134855523,chrX:134856728-134856998,chrX:134869948-134870142,chrX:134872046-134872314
+GS130365_01	chrX:134887217-134890054	3	3,3,3	chrX:134887217-134887411,chrX:134889311-134889579,chrX:134889941-134890054
+GS130365_01	chrX:134928687-134946224	5	3,3,3,3,3	chrX:134928687-134928957,chrX:134930162-134930275,chrX:134930634-134930902,chrX:134932805-134932999,chrX:134945954-134946224
+GS130365_01	chrX:153424281-153516772	15	4,3,4,4,4,4,4,4,4,4,4,3,4,3,4	chrX:153424281-153424517,chrX:153424825-153425198,chrX:153425798-153425953,chrX:153441100-153441847,chrX:153461411-153461650,chrX:153461955-153462328,chrX:153462928-153463083,chrX:153478220-153478967,chrX:153485257-153485406,chrX:153490367-153490683,chrX:153494287-153494472,chrX:153498529-153498768,chrX:153498922-153499446,chrX:153500046-153500201,chrX:153516025-153516772
+GS130366_01	chrX:6452989-6453169	1	1	chrX:6452989-6453169
+GS130366_01	chrX:38660697-38660750	1	3	chrX:38660697-38660750
+GS130367_01	chrX:2700097-2832824	22	4,4,5,4,3,4,4,5,4,4,5,4,4,4,4,4,4,4,4,4,4,3	chrX:2700097-2700179,chrX:2712566-2712654,chrX:2715341-2715411,chrX:2724732-2724796,chrX:2726216-2726271,chrX:2729367-2729503,chrX:2732395-2733978,chrX:2748092-2748246,chrX:2761244-2761405,chrX:2772011-2772205,chrX:2773024-2773206,chrX:2774529-2774675,chrX:2777874-2778116,chrX:2779553-2779773,chrX:2793841-2793965,chrX:2795231-2795358,chrX:2799083-2800871,chrX:2822001-2826035,chrX:2826752-2826893,chrX:2827848-2828030,chrX:2828690-2828844,chrX:2831645-2832824
+GS130367_01	chrX:154581164-154581281	1	1	chrX:154581164-154581281
+GS130367_01	chrX:154718943-154721337	2	4,3	chrX:154718943-154719060,chrX:154719763-154721337
+GS130367_01	chrX:154722186-154723781	2	3,3	chrX:154722186-154722371,chrX:154722531-154723781
+GS130368_01	chrX:49179655-49179766	1	1	chrX:49179655-49179766
+GS130368_01	chrX:49227830-49227970	1	3	chrX:49227830-49227970
+GS130368_01	chrX:101581374-101581641	1	4	chrX:101581374-101581641
+GS130368_01	chrX:103316237-103316452	1	1	chrX:103316237-103316452
+GS130368_01	chrX:120106591-120108044	2	3,3	chrX:120106591-120106750,chrX:120107869-120108044
+GS130368_01	chrX:152338770-152340873	1	4	chrX:152338770-152340873
+GS130368_01	chrX:154581164-154581281	1	1	chrX:154581164-154581281
+GS130368_01	chrX:154718943-154721337	2	5,3	chrX:154718943-154719060,chrX:154719763-154721337
+GS130369_01	chrX:15518942-15519073	1	3	chrX:15518942-15519073
+GS130369_01	chrX:19391644-19391823	1	3	chrX:19391644-19391823
+GS130369_01	chrX:44402041-44402226	1	3	chrX:44402041-44402226
+GS130369_01	chrX:47004621-47004925	1	3	chrX:47004621-47004925
+GS130369_01	chrX:95939699-95940199	1	3	chrX:95939699-95940199
+GS130369_01	chrX:100740410-100740527	1	4	chrX:100740410-100740527
+GS130369_01	chrX:101396676-101396768	1	3	chrX:101396676-101396768
+GS130369_01	chrX:101619956-101620262	2	3,3	chrX:101619956-101620034,chrX:101620135-101620262
+GS130369_01	chrX:101771584-101771709	1	3	chrX:101771584-101771709
+GS130369_01	chrX:103185580-103315424	10	3,4,4,4,4,4,5,5,4,3	chrX:103185580-103187495,chrX:103216584-103218877,chrX:103219069-103219205,chrX:103220102-103220559,chrX:103231550-103232937,chrX:103265709-103266045,chrX:103267732-103268266,chrX:103294506-103294981,chrX:103295645-103297030,chrX:103315209-103315424
+GS130369_01	chrX:103317115-103317512	1	4	chrX:103317115-103317512
+GS130369_01	chrX:134947425-134948165	2	1,1	chrX:134947425-134947538,chrX:134947897-134948165
+GS130369_01	chrX:134964676-134964789	1	1	chrX:134964676-134964789
+GS130369_01	chrX:140336509-140336656	1	1	chrX:140336509-140336656

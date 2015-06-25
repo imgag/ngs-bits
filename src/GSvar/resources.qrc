@@ -1,0 +1,22 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Icons/Icon.png</file>
+        <file>Icons/Link.png</file>
+        <file>Icons/Add.png</file>
+        <file>Icons/Remove.png</file>
+        <file>Icons/IGV.png</file>
+        <file>Icons/Database.png</file>
+        <file>Icons/Report.png</file>
+        <file>Icons/NGSD.png</file>
+        <file>Icons/Ok.png</file>
+        <file>Icons/Filter.png</file>
+        <file>Icons/Info.png</file>
+        <file>Icons/AddTemporary.png</file>
+        <file>Resources/ChangeLog.html</file>
+        <file>Resources/DiagnosticReport_v1.xsd</file>
+        <file>Icons/Search.png</file>
+        <file>Icons/PrimerDesign.png</file>
+        <file>Icons/Trio.png</file>
+        <file>Icons/Gaps.png</file>
+    </qresource>
+</RCC>

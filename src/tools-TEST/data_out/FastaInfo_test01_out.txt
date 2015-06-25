@@ -1,0 +1,8 @@
+== general info ==
+sequences : 3
+characters: 17
+
+== characters per sequence ==
+chr1: 1
+chr10: 10
+chr6: 6

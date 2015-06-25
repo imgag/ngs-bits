@@ -1,0 +1,93 @@
+#include "BedFile.h"
+#include "ToolBase.h"
+#include "Statistics.h"
+#include "Exceptions.h"
+#include "Helper.h"
+#include <QTextStream>
+#include <QFile>
+
+class ConcreteTool
+		: public ToolBase
+{
+	Q_OBJECT
+
+public:
+	ConcreteTool(int& argc, char *argv[])
+		: ToolBase(argc, argv)
+	{
+	}
+
+	virtual void setup()
+	{
+		setDescription("Prints information about a (merged) BED file.");
+		//optional
+		addInfile("in", "Input BED file. If unset, reads from STDIN.", true, true);
+		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
+		addFlag("nomerge", "Does not merge the input file if unmerged.");
+		addInfile("fai", "If set, checks the the maximum position for each chromosome is not exceeded.", true, true);
+	}
+
+	virtual void main()
+	{
+		BedFile file;
+		file.load(getInfile("in"));
+
+		QCCollection stats = Statistics::region(file, !getFlag("nomerge"));
+
+		//output
+		QScopedPointer<QFile> outfile(Helper::openFileForWriting(getOutfile("out"), true));
+		QTextStream out(outfile.data());
+		out << "Regions    : " << stats.value("roi_fragments").toString() << endl;
+		out << "Bases      : " << stats.value("roi_bases").toString(0) << endl;
+		out << "Chromosomes: " << stats.value("roi_chromosomes").toString() << endl;
+		out << endl;
+		out << "Is sorted  : " << stats.value("roi_is_sorted").toString() << endl;
+		out << "Is merged  : " << stats.value("roi_is_merged").toString() << endl;
+		out << endl;
+		out << "Fragment size (min)  : " << stats.value("roi_fragment_min").toString() << endl;
+		out << "Fragment size (max)  : " << stats.value("roi_fragment_max").toString() << endl;
+		out << "Fragment size (mean) : " << stats.value("roi_fragment_mean").toString() << endl;
+		out << "Fragment size (stdev): " << stats.value("roi_fragment_stdev").toString() << endl;
+
+		//optional: check position bounds
+		if (getInfile("fai")!="")
+		{
+			out << endl;
+
+			//load maxima
+			QMap<int, int> max;
+			QStringList fai = Helper::loadTextFile(getInfile("fai"), true, '~', true);
+			foreach(QString line, fai)
+			{
+				QStringList parts = line.split("\t");
+				if (parts.count()<2) continue;
+				bool ok = false;
+				int value = parts[1].toInt(&ok);
+				if (!ok) continue;
+				max[Chromosome(parts[0]).num()] = value;
+			}
+
+			//check maxima
+			for (int i=0; i<file.count(); ++i)
+			{
+				BedLine& line = file[i];
+				if (!max.contains(line.chr().num()))
+				{
+					THROW(ArgumentException, "Chromsome '" + line.chr().str() + "' not contained in FASTA index file '" + getInfile("fai") + "'!");
+				}
+				if (line.end()>max[line.chr().num()])
+				{
+					out << "Warning: maximum position " << max[line.chr().num()] << " exceeded for region " << line.chr().str() << ":" << line.start() << "-" << line.end() << endl;
+				}
+			}
+		}
+	}
+};
+
+#include "main.moc"
+
+int main(int argc, char *argv[])
+{
+	ConcreteTool tool(argc, argv);
+	return tool.execute();
+}

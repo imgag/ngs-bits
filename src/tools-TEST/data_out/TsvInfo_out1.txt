@@ -1,0 +1,27 @@
+File   : TsvInfo_in1.tsv
+Columns: 22
+Rows   : 99
+
+Column details:
+ 1: chr
+ 2: start (N)
+ 3: end (N)
+ 4: ref
+ 5: obs
+ 6: genotype
+ 7: snp_q (N)
+ 8: depth (N)
+ 9: map_q (N)
+10: variant
+11: variant_frequency (N)
+12: region
+13: gene
+14: variant_details
+15: coding
+16: snp_1000g2012feb_all
+17: snp_snp135
+18: ljb_phylop
+19: ljb_mt
+20: esp6500_ea
+21: repeatmasker
+22: quality_filter

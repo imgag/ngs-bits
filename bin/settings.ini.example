@@ -1,0 +1,36 @@
+############################# public settings #############################
+#          Common settings that need to be set for many tools             #
+###########################################################################
+
+reference_genome = ""
+
+############################ internal settings ############################
+#   If you do not know what these settings mean, leave them unchanged!    #
+###########################################################################
+
+#NGSD MySQL credentials
+ngsd_host = ""
+ngsd_name = ""
+ngsd_user = ""
+ngsd_pass = ""
+
+#GPD MySQL credentials
+gpd_host = ""
+gpd_name = ""
+gpd_user = ""
+gpd_pass = ""
+
+#webservice URLs
+NGSD = ""
+GPD = ""
+SampleStatus = ""
+PrimerDesign = ""
+
+#database flatfiles
+ccds = ""
+ccds_merged = ""
+ccds_joined = ""
+kgxref = ""
+kgxref_merged = ""
+kgxref_joined = ""
+hgnc = ""

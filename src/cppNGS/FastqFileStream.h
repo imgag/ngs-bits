@@ -1,0 +1,117 @@
+#ifndef FASTQFILESTREAM_H
+#define FASTQFILESTREAM_H
+
+#include "cppNGS_global.h"
+#include "Exceptions.h"
+#include <zlib.h>
+#include <QString>
+#include <QVector>
+#include <QMutex>
+
+///Representation of a FASTQ entry.
+struct CPPNGSSHARED_EXPORT FastqEntry
+{
+	///Main header line.
+	QByteArray header;
+	///Bases string.
+	QByteArray bases;
+	///Second header line.
+	QByteArray header2;
+	///Qualities string.
+	QByteArray qualities;
+
+    ///Returns the quality of the base with the index @p i.
+    int quality(int i, int offset=33) const
+    {
+		return (int)(qualities[i]) - offset;
+    }
+    ///Checks if the entry is valid. If not, a FileParseException is thrown.
+    void validate() const;
+    ///Resets the entry
+    void clear();
+    ///Trims the read by quality from the end using a sliding window approach. Returns the number of trimmed bases.
+    int trimQuality(int cutoff, int window=5, int offset=33);
+    ///Trims the read by non-determined bases using a sliding window approach. Returns the number of trimmed bases.
+    int trimN(int num_n);
+};
+
+/**
+  @brief FASTQ file input stream (gzipped or plain).
+
+  @note The base/quality lines must not be wrapped.
+  @note Fastq lines longer that 1024 characters are not supported!
+*/
+class CPPNGSSHARED_EXPORT FastqFileStream
+{
+public:
+    ///Constructor.
+    FastqFileStream(QString filename, bool auto_validate=true);
+    ///Destructor.
+    ~FastqFileStream();
+
+    ///Checks if the end of the file is reached.
+    bool atEnd() const
+    {
+        return gzeof(gzfile_);
+    }
+    ///Reads a line (or until the buffer is full).
+	void readEntry(FastqEntry& entry);
+    ///Returns the 0-based index of the current entry, or -1 if no entry has been loaded.
+    int index() const
+    {
+        return entry_index_;
+    }
+
+protected:
+	gzFile gzfile_;
+	char* buffer_;
+    bool is_first_entry_;
+    char* last_output_;
+    int entry_index_;
+    bool auto_validate_;
+	void extractLine(QByteArray& line);
+
+    //declared away methods
+    FastqFileStream(const FastqFileStream& );
+    FastqFileStream& operator=(const FastqFileStream&);
+	FastqFileStream();
+};
+
+
+
+/**
+  @brief FASTQ file output stream (gzipped).
+*/
+class CPPNGSSHARED_EXPORT FastqOutfileStream
+{
+public:
+    ///Constructor.
+	FastqOutfileStream(QString filename, bool thread_safe_mode, int level = Z_BEST_SPEED, int strategy = Z_DEFAULT_STRATEGY);
+    ///Destructor - closes the stream if not already done.
+    ~FastqOutfileStream();
+
+    ///Writes an entry to the stream.
+    void write(const FastqEntry& entry);
+    ///Closes the stream.
+    void close();
+
+	///Returns the filename the stream writes to.
+	QString filename() const
+	{
+		return filename_;
+	}
+
+protected:
+	QMutex mutex_;
+	bool thread_safe_;
+    QString filename_;
+    gzFile gzfile_;
+	bool is_closed_;
+
+    //declared away methods
+    FastqOutfileStream(const FastqOutfileStream& );
+    FastqOutfileStream& operator=(const FastqOutfileStream&);
+    FastqOutfileStream();
+};
+
+#endif

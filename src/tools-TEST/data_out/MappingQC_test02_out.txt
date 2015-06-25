@@ -1,0 +1,19 @@
+trimmed base percentage: 19.85
+mapped read percentage: 74.41
+on-target read percentage: 74.41
+properly-paired read percentage: 74.20
+insert size: 162.13
+duplicate read percentage: n/a (probably removed from BAM during data analysis)
+target region read depth: 239.32
+target region 10x percentage: 98.52
+target region 20x percentage: 97.28
+target region 30x percentage: 94.79
+target region 50x percentage: 90.76
+target region 100x percentage: 81.55
+target region 200x percentage: 58.54
+target region 500x percentage: 3.46
+
+error estimation read depth: 238.84
+error estimation N percentage: 0.0693
+error estimation SNV percentage: 0.4310
+error estimation indel percentage: 0.0038

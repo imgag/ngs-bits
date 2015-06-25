@@ -1,0 +1,120 @@
+<h3>r609 (16.06.2015)</h3>
+<ul>
+    <li> Allgemein: Crash in VCF-Export korrigiert.
+    <li> Technisch: Update auf Qt 5.4.
+    <li> Technisch: Pfade, URLs und DB-Credentialss in 'settings.ini' ausgelagert.
+</ul>
+
+<h3>r552 (30.04.2015)</h3>
+<ul>
+    <li> Allgemein: VCF-Export für die gefilterte Liste hinzugefügt.
+    <li> Filter: Genotype-Filter hinzugefügt.
+    <li> IGV: HGMD/ClinVar/mappability wird jetzt automatisch geladen.
+    <li> IGV: Variantenliste und "low coverage" BED-Datei der Probe können optional in IGV geladen werden.
+</ul>
+
+<h3>r533 (08.04.2015)</h3>
+<ul>
+    <li> Allgemein: Änderungen für neue Annotationspipeline.
+    <li> Allgemein: Implementierung flexiblerer Variantenfilter.
+    <li> Allgemein: Option zum Splitten der Qualitätsspalte beim Kopieren von Varianten hinzugefügt.
+    <li> Report-Dialog: Befund kann in der NGSD aktualisiert werden ohne einen Report zu erzeugen.
+    <li> Report: Enthält die Liste der komplett abgedeckten Gene (falls eine Genliste hinterlegt ist).
+</ul>
+
+<h3>r513 (05.03.2015)</h3>
+<ul>
+    <li> Trio-Analyse: BAM-Files aus dem Sample-Ordnern werden jetzt in IGV geöffnet (die neue Trio-Pipeline erstellt keine eigenen BAm-Files).
+</ul>
+
+<h3>r508 (02.03.2015)</h3>
+<ul>
+    <li> Allgemein: Zeilenumbrüche in Kommentaren beim Kopieren von Varianten in die Zwischenablage entfernt.
+    <li> Validation-Dialog: Qualitätsinformationen hinzugefügt (rot wenn schlecht).
+    <li> Report-Dialog: Reportergebnis hinzugefügt.
+</ul>
+
+<h3>r496 (20.02.2015)</h3>
+<ul>
+    <li> Allgemein: Beim Kopieren von Varianten in die Zwischenablage werden Zeilenumbrüche durch ein
+         Leerzeichen ersetzt.
+    <li> Report: Änderung wegen neuer 'quality' Annotation in der Variantenliste.
+</ul>
+
+<h3>r493 (17.02.2015)</h3>
+<ul>
+    <li> Allgemein: Menüeintrag in GSvar hinzugefügt um HGMD-Varianten in IGV anzuzeigen.
+    <li> Allgemein: Validierungsdialog hinzugefügt (mit Status und Kommentar).
+    <li> SampleInformation-Dialog: KASP-Ergebnisse werden angezeigt.
+    <li> Report: Duplikate in der Genliste werden entfernt.
+</ul>
+
+<h3>r478 (18.12.2014)</h3>
+<ul>
+	<li> Allgemein: Genfilter hinzugefügt.
+	<li> Allgemein: Lückendialog hinzugefügt.
+	<li> Allgemein: VUS Klasse "M" hinzugefügt.
+	<li> Report: Abschnitt mit Parametern und Versionen der Analyse-Tools hinzugefügt.
+</ul>
+
+<h3>r458 (17.11.2014)</h3>
+<ul>
+	<li> Trio: Im IGV werden jetzt alle drei BAM-Files geöffnet.
+	<li> Trio: Start der Trio-Analyse ist jetzt aus GSVar möglich.
+</ul>
+
+<h3>r434 (28.10.2014)</h3>
+<ul>
+	<li> Allgemein: Die Verbindung zur NGSD wird jetzt öfter neu aufgebaut, um Fehler zu vermeiden wenn der DB-Server neu gestartet wird etc.
+	<li> Allgemein: Varianten mit VUS-Klassifizierung "3" werden jetzt orange gefärbt statt rot.
+	<li> Allgemein: GPD-Informationen werden jetzt annotiert and sind verlinkt mit dem Webinterface.
+	<li> SampleInformation-Dialog: Es werden jetzt QC-Werte aus der NGSD angezeigt.
+	<li> SampleInformation-Dialog: Es wird jetzt das Datum von BAM-, VCF- und GSvar-Datei angezeigt.
+	<li> Report: MAF aus 1000 Genomes und ESP6500 bei den wichtigen Varianten hinzugefügt.
+</ul>
+
+<h3>r390 (21.07.2014)</h3>
+<ul>
+	<li> Varianten mit VUS-Klassifizierung "3" bleiben beim Filtern jetzt auch erhalten.
+	<li> URLs von SRV017 angepasst auf https.
+</ul>
+
+<h3>r376 (09.07.2014)</h3>
+<ul>
+	<li> NGSD-Anbindung: Validierungs-Details werden in den Kommentar geschrieben, wenn eine Varianten-Validierung angefordert wird.
+	<li> NGSD-Anbindung: Verbessertes Handling von Datenbankfehlern, z.B. bei Windows-Benutzernamen die nicht inder NGSD sind oder bei fehlende Varianten.
+</ul>
+
+<h3>r362 (17.06.2014)</h3>
+<ul>
+	<li> NGSD-Annotation: Fehler entfernt durch den bei InDels die Anzahl der Beobachtungen einer Variante in der NGSD übersch&auml;tzt werden konnte, wenn das selbe InDel in einem Fenster von +-100 Basen nochmal vorhanden war.
+	<li> NGSD-Annotation: Beim Setzen einer VUS-Klassifizierung werden jetzt User und Datum mit gespeichert. Diese Informationen werden dann in der NGSD angezeigt.
+	<li> SampleInformation-Dialog: Wenn der Diagnostikstatus auf 'repeat...' gesetzt wird, wird automatisch ein neues 'processed sample' in die NGSD eingetragen.
+	<li> Allgemein: Die Koordinaten und der Basenaustausch einer Variante wird jetzt immer als ToolTip angezeigt.
+	<li> Allgemein: Die VUS kann jetzt für mehrere Varianten gleichzeitig gesetzt werden (wenn mehrere Zeilen ausgewählt sind).
+	<li> Report: Textreport entfernt, daf&uuml;r optionale Variantendetails am Ende des HTML-Reports hinzugefügt.
+</ul>
+
+<h3>r336 (21.05.2014)</h3>
+<ul>
+	<li> NGSD-Annotation: Varianten aus Tumorproben werden nicht mehr gezählt.
+	<li> NGSD-Annotation: Varianten aus verschiedenen Läufen der selben Probe werden nur noch ein Mal gezählt.
+	<li> SampleInformation-Dialog: Diagnostik-Status zum Wiederholen des Laufs hinzugefügt.
+	<li> SampleInformation-Dialog: Der Dialog wird erst nach dem Hauptfenster geöffnet.
+	<li> SampleInformation-Dialog: Der Reanalysestatus wird automatisch alle 5 Sekunden aktualisiert.
+	<li> Report: Der HTML-Report wird automatisch in den Ordner M:/Diagnostik/GSvarReportsArchive/ kopiert.
+	<li> Filter: Der Filter "chrM: MAF&lt;98%" wurde zu den Standardfiltern hinzugefügt.
+	<li> Allgemein: Wenn die geladene Datei sich auf der Festplatte ändert, wird sie automatisch neu geladen nachdem der User informiert wurde.
+</ul>
+
+<h3>r287 (09.04.2014)</h3>
+<ul>
+	<li> Die Annotationsspalte "ihdb_allsys" wird jetzt als zwei Annotationen "ihdb_allsys_hom" und "ihdb_allsys_het" annotiert
+	und die Filter wurden entsprechend angepasst.
+	<li> Besonders wichtige Varianten werden jetzt im Report separat aufgelistet. Man legt sie im Report-Dialog durch
+	klicken auf das gefüllte Viereck am Anfang der Zeilen fest. Der Haken legt die wichtigsten Varianten fest, das
+	gefüllte Viereck andere relevante Varianten und Varianten ohne Haken/Viereck kommen nicht in den Report.
+	<li>Zum Erstellen eines Reports wird jetzt die HGMD-Annotation der Varianten benötigt. Wenn eine Probe diese nicht hat,
+	einfach über den "Sample Information Dialog" neu rechnen (ab "annotation").
+</ul>
+

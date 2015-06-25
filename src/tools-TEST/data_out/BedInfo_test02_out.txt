@@ -1,0 +1,25 @@
+Regions    : 19930
+Bases      : 5941881
+Chromosomes: 24 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, X, M)
+
+Is sorted  : no
+Is merged  : yes
+
+Fragment size (min)  : 23
+Fragment size (max)  : 61713
+Fragment size (mean) : 298.14
+Fragment size (stdev): 810.71
+
+Warning: maximum position 141213431 exceeded for region chr9:197476131-197476578
+Warning: maximum position 135534747 exceeded for region chr10:190884239-190884369
+Warning: maximum position 133851895 exceeded for region chr12:140729216-140730588
+Warning: maximum position 107349540 exceeded for region chr14:132428075-132428416
+Warning: maximum position 90354753 exceeded for region chr16:111164272-111165383
+Warning: maximum position 81195210 exceeded for region chr17:241538059-241538536
+Warning: maximum position 78077248 exceeded for region chr18:247611698-247612416
+Warning: maximum position 59128983 exceeded for region chr19:127511589-127511847
+Warning: maximum position 63025520 exceeded for region chr20:101142317-101142455
+Warning: maximum position 48129895 exceeded for region chr21:128737059-128737278
+Warning: maximum position 51304566 exceeded for region chr22:80606141-80606421
+Warning: maximum position 16571 exceeded for region chrM:1-16581
+Warning: maximum position 155270560 exceeded for region chrX:170881265-170881968

@@ -1,0 +1,32 @@
+#include "winver.h"
+
+1 TYPELIB "icon.rc"
+1 ICON DISCARDABLE "Icons/Icon.ico"
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,0
+ PRODUCTVERSION 1,0,0,0
+ FILEFLAGSMASK 0x3fL
+ FILEOS 0x00040000L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904e4"
+        BEGIN
+            VALUE "CompanyName", "None"
+            VALUE "FileDescription", "GSvar"
+            VALUE "FileVersion", "none"
+            VALUE "LegalCopyright", "Marc Sturm"
+            VALUE "InternalName", "GSvar.exe"
+            VALUE "OriginalFilename", "GSvar.exe"
+            VALUE "ProductName", "GSvar"
+            VALUE "ProductVersion", "none"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1252
+    END
+END

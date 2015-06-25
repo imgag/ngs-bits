@@ -1,0 +1,3 @@
+Minimum ASCII character: B (66)
+Maximum ASCII character: h (104)
+Format: Illumina1.5

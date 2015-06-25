@@ -1,0 +1,6 @@
+#chr	start	end	ref	obs	genotype	SNP_Q	depth	Map_Q	type	a	c	t	g	depth	region	gene	type	coding	SNP(1000g2011may_all)	SNP(SNP132)	filter
+chrX	103042854	103042854	C	A	hom	43.8	2	44	SNV	2	0	0	0	2	exonic	PLP1	nonsynonymous SNV	PLP1:uc004elj.2:exon4:c.C476A:p.S159Y,PLP1:uc011msf.1:exon4:c.C416A:p.S139Y,PLP1:uc010nox.2:exon3:c.C443A:p.S148Y,PLP1:uc004elk.2:exon4:c.C581A:p.S194Y,PLP1:uc010nov.2:exon5:c.C581A:p.S194Y,	.	.	passed
+chrX	53576100	53576100	C	T	hom	44.8	2	43	SNV	0	0	2	0	2	exonic	HUWE1	stopgain SNV	HUWE1:uc004dsn.2:exon36:c.G6279A:p.W2093X,HUWE1:uc004dsp.2:exon67:c.G9855A:p.W3285X,	.	.	passed
+chrX	41419080	41419080	A	G	hom	16.9	2	48	SNV	0	0	0	2	2	exonic	CASK	synonymous SNV	CASK:uc004dfm.3:exon18:c.T1689C:p.I563I,CASK:uc004dfj.3:exon6:c.T378C:p.I126I,CASK:uc004dfn.3:exon17:c.T1671C:p.I557I,CASK:uc004dfl.3:exon18:c.T1689C:p.I563I,CASK:uc004dfk.3:exon13:c.T1134C:p.I378I,	.	.	failed
+chrX	43603391	43603391	T	C	hom	48.8	2	44	SNV	0	2	0	0	2	exonic	MAOA	synonymous SNV	MAOA:uc004dfy.2:exon14:c.T1410C:p.D470D,MAOA:uc011mkw.1:exon15:c.T1011C:p.D337D,	0.68702	rs1137070	passed
+chrX	153994596	153994596	G	T	hom	36.8	2	44	SNV	0	0	2	0	2	exonic	DKC1	synonymous SNV	DKC1:uc004fmm.2:exon5:c.G369T:p.T123T,DKC1:uc010nvf.2:exon5:c.G369T:p.T123T,	1.0000	rs2728532	passed

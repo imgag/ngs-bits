@@ -1,0 +1,500 @@
+#include "BedFile.h"
+#include "Exceptions.h"
+#include "ChromosomalIndex.h"
+#include "Helper.h"
+#include <QFile>
+#include <QStringList>
+#include <QTextStream>
+#include "BasicStatistics.h"
+#include "algorithm"
+#include "cmath"
+
+BedLine::BedLine()
+{
+}
+
+BedLine::BedLine(const Chromosome& chr, int start, int end, const QStringList& annotations)
+	: chr_(chr)
+	, start_(start)
+	, end_(end)
+	, annotations_(annotations)
+{
+}
+
+bool BedLine::operator<(const BedLine& rhs) const
+{
+	if (chr_<rhs.chr_) return true;
+	else if (chr_>rhs.chr_) return false;
+	else if (start_==rhs.start_) return end_<rhs.end_;
+	else return start_<rhs.start_;
+}
+
+BedFile::BedFile()
+{
+}
+
+void BedFile::append(const BedLine& line)
+{
+	//check input data
+	if (!line.chr().isValid())
+	{
+		THROW(ArgumentException, "Invalid BED line chromosome - empty string!");
+	}
+	if (line.start()<1 || line.end()<1 || line.start()>line.end())
+	{
+		THROW(ArgumentException, "Invalid BED line range '" + QString::number(line.start()) + " to " + QString::number(line.end()) + "'!");
+	}
+
+	lines_.append(line);
+}
+
+long BedFile::baseCount() const
+{
+	long output = 0;
+	for (int i=0; i<lines_.count(); ++i)
+	{
+		output += lines_[i].length();
+	}
+	return output;
+}
+
+void BedFile::load(QString filename)
+{
+	clear();
+
+	//parse from stream
+	QScopedPointer<QFile> file(Helper::openFileForReading(filename, true));
+	while(!file->atEnd())
+	{
+		QByteArray line = file->readLine();
+		while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
+
+		//skip empty lines and header lines
+		if(line.length()==0 || line.startsWith("track ") || line.startsWith("browser ")) continue;
+
+		//error when less than 3 fields
+		QList<QByteArray> fields = line.split('\t');
+		if (fields.count()<3)
+		{
+			THROW(FileParseException, "BED file line with less than three fields found: '" + line.trimmed() + "'");
+		}
+
+		//error when chromosome is empty
+		if (fields[0]=="")
+		{
+			THROW(FileParseException, "Empty BED file chromosome field '" + fields[0] + "'!");
+		}
+
+		//error on position converion
+		bool conversion_ok = false;
+		int start_pos = fields[1].toInt(&conversion_ok);
+		if (!conversion_ok)
+		{
+			THROW(FileParseException, "Could not convert BED file start position '" + fields[1] + "' to integer!");
+		}
+		conversion_ok = false;
+		int end_pos = fields[2].toInt(&conversion_ok);
+		if (!conversion_ok)
+		{
+			THROW(FileParseException, "Could not convert BED file end position '" + fields[2] + "' to integer!");
+		}
+
+		//create line
+		QStringList annos;
+		for (int i=3; i<fields.count(); ++i)
+		{
+			annos.append(fields[i]);
+		}
+		append(BedLine(fields[0], start_pos+1, end_pos, annos));
+	}
+}
+
+void BedFile::store(QString filename, QString header)
+{
+	//write to stream
+	QScopedPointer<QFile> file(Helper::openFileForWriting(filename, true));
+	QTextStream stream(file.data());
+	if (header!="")	stream << header.trimmed()  << "\n";
+	foreach(const BedLine& line, lines_)
+	{
+		QString line_text = line.chr().str() + "\t" + QString::number(line.start()-1) + "\t" + QString::number(line.end());
+		stream << line_text.toLatin1();
+		if (line.annotations().size()>0)
+		{
+			QString add_text = "\t" + line.annotations().join("\t");
+			stream << add_text.toLatin1();
+		}
+		stream << "\n";
+	}
+}
+
+void BedFile::clearAnnotations()
+{
+	for(int i=0; i<lines_.count(); ++i)
+	{
+		lines_[i].annotations().clear();
+	}
+}
+
+void BedFile::sort(bool uniq)
+{
+	std::sort(lines_.begin(), lines_.end());
+
+	//remove duplicates
+	if (uniq)
+	{
+		lines_.erase(std::unique(lines_.begin(), lines_.end()), lines_.end());
+	}
+}
+
+void BedFile::merge(bool merge_back_to_back, bool merge_names)
+{
+	//in the following code, we assume that at least one line is present...
+	if (lines_.count()==0) return;
+
+	//remove annotations data
+	for(int i=0; i<lines_.count(); ++i)
+	{
+		if (merge_names)
+		{
+			QString name = lines_[i].annotations().count() ? lines_[i].annotations()[0] : "";
+			lines_[i].annotations().clear();
+			lines_[i].annotations().append(name);
+		}
+		else
+		{
+			lines_[i].annotations().clear();
+		}
+	}
+
+	//sort if necessary
+	if (!isSorted()) sort();
+
+	//merge lines
+	BedLine next_output_line = lines_.first();
+	int next_output_index = 0;
+	for (int i=1; i<lines_.count(); ++i)
+	{
+		const BedLine& line = lines_[i];
+
+		if ( next_output_line.overlapsWith(line.chr(), line.start(), line.end())
+			 ||
+			 (merge_back_to_back && next_output_line.adjacentTo(line.chr(), line.start(), line.end()))
+			)
+		{
+			if (line.end()>next_output_line.end())
+			{
+				next_output_line.setEnd(line.end());
+				if (merge_names)
+				{
+					next_output_line.annotations()[0] += "," + line.annotations()[0];
+				}
+			}
+		}
+		else
+		{
+			lines_[next_output_index] = next_output_line;
+			++next_output_index;
+			next_output_line = line;
+		}
+	}
+
+	//add last line
+	lines_[next_output_index] = next_output_line;
+
+	//remove excess lines
+	lines_.resize(next_output_index+1);
+}
+
+void BedFile::extend(int n)
+{
+	if (n<1)
+	{
+		THROW(ArgumentException, "Cannot extend BED file by '" + QString::number(n) + "' bases!");
+	}
+
+	for (int i=0; i<lines_.count(); ++i)
+	{
+		BedLine& line = lines_[i];
+		line.setStart(std::max(1, line.start() - n));
+		line.setEnd(line.end() + n);
+	}
+}
+
+void BedFile::shrink(int n)
+{
+	if (n<1)
+	{
+		THROW(ArgumentException, "Cannot shrink BED file by '" + QString::number(n) + "' bases!");
+	}
+
+	for (int i=0; i<lines_.count(); ++i)
+	{
+		BedLine& line = lines_[i];
+		line.setStart(line.start() + n);
+		line.setEnd(line.end() - n);
+	}
+
+	removeInvalidLines();
+}
+
+void BedFile::subtract(const BedFile& file2)
+{
+	//check target region is merged/sorted and create index
+	if (!file2.isMergedAndSorted())
+	{
+		THROW(ArgumentException, "Merged and sorted BED file required for subtraction of BED files!");
+	}
+	ChromosomalIndex<BedFile> file2_idx(file2);
+
+	//remove annotations
+	clearAnnotations();
+
+	//subtract
+	int removed_lines = 0;
+	for (int i=0; i<lines_.count(); ++i)
+	{
+		QVector<int> matches = file2_idx.matchingIndices(lines_[i].chr(), lines_[i].start(), lines_[i].end());
+		foreach(int index, matches)
+		{
+			const BedLine& line2 = file2[index];
+
+			//check overlap (needed because we append lines)
+			if (!lines_[i].overlapsWith(line2.chr(), line2.start(), line2.end())) continue;
+
+			// subtract all (make region invalid)
+			if (line2.start()<=lines_[i].start() && line2.end()>=lines_[i].end())
+			{
+				lines_[i].setStart(0);
+				lines_[i].setEnd(0);
+				++removed_lines;
+			}
+			// subract from middle (2 regions are created)
+			else if (line2.start()>lines_[i].start() && line2.end()<lines_[i].end())
+			{
+				//create new region (right part)
+				append(BedLine(lines_[i].chr(), line2.end()+1, lines_[i].end()));
+				//trim old region (left part)
+				lines_[i].setEnd(line2.start()-1);
+			}
+			// subtract from left
+			else if (line2.start()>lines_[i].start())
+			{
+				lines_[i].setEnd(line2.start()-1);
+			}
+			// subtract from right
+			else
+			{
+				lines_[i].setStart(line2.end()+1);
+			}
+		}
+	}
+
+	//remove invalid lines, if necessary
+	if (removed_lines!=0) removeInvalidLines();
+}
+
+void BedFile::intersect(const BedFile& file2)
+{
+	//check target region is merged/sorted and create index
+	if (!file2.isMergedAndSorted())
+	{
+		THROW(ArgumentException, "Merged and sorted BED file required for subtraction of BED files!");
+	}
+	ChromosomalIndex<BedFile> file2_idx(file2);
+
+	//remove annotations
+	clearAnnotations();
+
+	//intersect
+	int lines_original = lines_.count();
+	for (int i=0; i<lines_original; ++i)
+	{
+		const BedLine& line = lines_[i];
+		QVector<int> matches = file2_idx.matchingIndices(line.chr(), line.start(), line.end());
+		//not match => not intersect => remove
+		if (matches.count()==0)
+		{
+			lines_[i].setStart(0);
+			lines_[i].setEnd(0);
+			continue;
+		}
+
+		//intersect with first region
+		const BedLine& line2 = file2[matches[0]];
+		int start_original = line.start();
+		int end_original = line.end();
+		lines_[i].setStart(std::max(line.start(), line2.start()));
+		lines_[i].setEnd(std::min(line.end(), line2.end()));
+
+		//intersect with more regions
+		for (int j=1; j<matches.count(); ++j)
+		{
+			lines_.append(BedLine(line.chr(), std::max(start_original, file2[matches[j]].start()), std::min(end_original, file2[matches[j]].end()) ));
+		}
+	}
+
+	removeInvalidLines();
+}
+
+void BedFile::overlapping(const BedFile& file2)
+{
+	//check target region is merged/sorted and create index
+	if (!file2.isMergedAndSorted())
+	{
+		THROW(ArgumentException, "Merged and sorted BED file required for subtraction of BED files!");
+	}
+	ChromosomalIndex<BedFile> file2_idx(file2);
+
+	//overlapping
+	for (int i=0; i<lines_.count(); ++i)
+	{
+		if (file2_idx.matchingIndex(lines_[i].chr(), lines_[i].start(), lines_[i].end())==-1)
+		{
+			lines_[i].setStart(0);
+			lines_[i].setEnd(0);
+		}
+	}
+
+	removeInvalidLines();
+}
+
+void BedFile::chunk(int chunk_size)
+{
+	QVector<BedLine> new_lines;
+	new_lines.reserve(lines_.count());
+
+	for (int i=0; i<lines_.count(); ++i)
+	{
+		const BedLine& line = lines_[i];
+		if (line.length()>chunk_size)
+		{
+			//determine how many chunks are optimal
+			double length = line.length();
+			int n = floor(length/chunk_size);
+			if (fabs(chunk_size-(length/n)) > fabs(chunk_size-(length/(n+1))))
+			{
+				n += 1;
+			}
+			//calculate actual chunk sizes
+			QVector<int> chunk_sizes(n, chunk_size);
+			int rest = line.length()-n*chunk_size;
+			int current_chunk = 0;
+			while (rest!=0)
+			{
+				int sign = BasicStatistics::sign(rest);
+				chunk_sizes[current_chunk] += sign;
+				rest -= sign;
+				++current_chunk;
+				if (current_chunk==n) current_chunk = 0;
+			}
+			//create new lines
+			int start = line.start();
+			BedLine new_line = line;
+			for (int i=0; i<n; ++i)
+			{
+				int end = start+chunk_sizes[i]-1;
+				new_line.setStart(start);
+				new_line.setEnd(end);
+				new_lines.append(new_line);
+				start = end+1;
+			}
+		}
+		else
+		{
+			new_lines.append(line);
+		}
+	}
+
+	lines_.swap(new_lines);
+}
+
+void BedFile::removeInvalidLines()
+{
+	//shift valid lines to the front
+	int o=0;
+	for (int i=0; i<lines_.count(); ++i)
+	{
+		const BedLine& line = lines_[i];
+		if (line.start()>0 && line.start()<=line.end())
+		{
+			if (i!=o) lines_[o] = line;
+			++o;
+		}
+	}
+
+	//remove excess lines
+	lines_.resize(o);
+}
+
+bool BedFile::isSorted() const
+{
+	for (int i=1; i<lines_.count(); ++i)
+	{
+		if (lines_[i]<lines_[i-1]) return false;
+	}
+
+	return true;
+}
+
+bool BedFile::isMerged() const
+{
+	if (isSorted())
+	{
+		for (int i=1; i<lines_.count(); ++i)
+		{
+			const BedLine& line = lines_[i];
+			if (lines_[i-1].overlapsWith(line.chr(), line.start(), line.end()))
+			{
+				return false;
+			}
+		}
+	}
+	else
+	{
+		BedFile tmp = *this;
+		tmp.sort();
+		for (int i=1; i<tmp.count(); ++i)
+		{
+			const BedLine& line = tmp[i];
+			if (tmp[i-1].overlapsWith(line.chr(), line.start(), line.end()))
+			{
+				return false;
+			}
+		}
+
+	}
+
+	return true;
+}
+
+bool BedFile::isMergedAndSorted() const
+{
+	for (int i=1; i<lines_.count(); ++i)
+	{
+		const BedLine& line = lines_[i];
+		if (line<lines_[i-1])
+		{
+			return false;
+		}
+		if (lines_[i-1].overlapsWith(line.chr(), line.start(), line.end()))
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool BedFile::overlapsWith(const Chromosome& chr, int start, int end) const
+{
+	for (int i=0; i<lines_.count(); ++i)
+	{
+		if (lines_[i].overlapsWith(chr, start, end))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
