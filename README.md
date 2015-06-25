@@ -1,4 +1,4 @@
-# *ngs-bits* - Short-read seqencing toos
+# *ngs-bits* - Short-read seqencing tools
 
 
 ## Obtaining ngs-bits
