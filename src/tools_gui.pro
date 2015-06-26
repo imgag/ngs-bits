@@ -2,10 +2,10 @@ TEMPLATE = subdirs
 
 #Library targets and depdendencies
 SUBDIRS = cppCORE\
-			cppXML \
-			cppNGS \
-			cppGUI \
-			cppNGSD \
+        cppXML \
+        cppNGS \
+        cppGUI \
+        cppNGSD
 
 cppXML.depends = cppCORE
 cppNGS.depends = cppCORE cppXML

@@ -1,10 +1,11 @@
 TEMPLATE = subdirs
 CONFIG += console
+
 #Library targets and depdendencies
 SUBDIRS = cppCORE\
-			cppXML \
-			cppNGS \
-			cppNGSD \
+        cppXML \
+        cppNGS \
+        cppNGSD
 
 cppXML.depends = cppCORE
 cppNGS.depends = cppCORE cppXML
