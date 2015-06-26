@@ -120,7 +120,7 @@ private:
 	{
 		const QList<char> base_list = QList<char>() << 'A' << 'C'<< 'T'<< 'G' <<'N';//allowed bases
 
-		QSet<QByteArray> barcodes_with_mismatches;//set of barcodes with at most [mismatch] matches
+		QSet<QByteArray> barcodes_with_mismatches;//set of barcodes with at most [mismatch] mismatches
 		barcodes_with_mismatches.insert(barcode);//add original barcode for first cycle
 
 		for(int mis=0; mis<max_mismatches; ++mis)//[mismatch] cylces, introducing one mismatch in each cycle
@@ -128,10 +128,10 @@ private:
 			QSet<QByteArray> barcodes = barcodes_with_mismatches;//results from previous cycles are original barcodes for this cycle
 			foreach(QByteArray bar, barcodes)//add mismatch to each barcode
 			{
-				for (int base = 0; base != bar.size(); ++base)//mismatch each position of working copy
+				for (int base = 0; base != bar.size(); ++base)//for each position of working copy
 				{
 					QByteArray barcode_with_mismatch = bar;//make working copy of original barcode
-					foreach(char mis, base_list)//add each base once as mismatch
+					foreach(char mis, base_list)//use each allowed base once as mismatch
 					{
 						barcode_with_mismatch[base] = mis;//change base at act position
 						barcodes_with_mismatches.insert(barcode_with_mismatch);//insert modified barcode into set
@@ -268,7 +268,7 @@ private:
 					QByteArray barcode = bar1+"\t"+bar2;
 					if (group->barcode2sample.contains(barcode))
                     {
-						group->barcode2sample[barcode] = ambigous_sample;
+						group->barcode2sample[barcode] = ambigous_sample; //flag ambigous barcode with same length
                     }
                     else
                     {
@@ -277,7 +277,86 @@ private:
                 }
 			}
         }
-        inFile.close();
+
+		//flag ambigious barcodes of different lengths
+		QList < BarcodeGroup > temp_barcode_groups=barcodes_;
+
+		for(int iii = 0; iii<barcodes_.length(); ++iii) //compare every barcode group
+		{
+			BarcodeGroup groupi=barcodes_[iii];
+			for(int jjj=iii+1 ; jjj<barcodes_.length(); ++jjj)//compare with every remaining barcode group
+			{
+				BarcodeGroup groupj=barcodes_[jjj];
+
+				//if one barcode group is double indexed and the other is single indexed, they can't be ambigous
+				if ((groupi.i2_len!=0)!=(groupj.i2_len!=0)) continue;
+
+				//if barcode i length is shorter than barcode j
+				if ((groupi.i1_len<=groupj.i1_len)&&(groupi.i2_len<=groupj.i2_len))
+				{
+					//iterate through barcodes of groupj's hash
+					foreach(const QByteArray barcode, groupj.barcode2sample.keys())
+					{
+						const QList <QByteArray> parts = barcode.split('\t');
+						//truncate groupj's barcode
+						QByteArray truncated_barcode = parts[0].left(groupj.i1_len)+"\t"+parts[1].left(groupj.i2_len);
+						//look it up in groupi's hash
+						if (groupi.barcode2sample.contains(truncated_barcode))
+						{
+							//set them to ambigous
+							barcodes_[iii].barcode2sample[truncated_barcode]=ambigous_sample;
+							barcodes_[jjj].barcode2sample[barcode]=ambigous_sample;
+						}
+					}
+				}
+
+				//if barcode j length is shorter than barcode i
+				else if ((groupj.i1_len<=groupi.i1_len)&&(groupj.i2_len<=groupi.i2_len))
+				{
+					//iterate through barcodes of groupi's hash
+					foreach(const QByteArray barcode, groupi.barcode2sample.keys())
+					{
+						QList <QByteArray> parts = barcode.split('\t');
+						//truncate groupi's barcode
+						QByteArray truncated_barcode = parts[0].left(groupj.i1_len)+"\t"+parts[1].left(groupj.i2_len);
+						//look it up in groupj's hash
+						if (groupj.barcode2sample.contains(truncated_barcode))
+						{
+							//set them to ambigous
+							barcodes_[jjj].barcode2sample[truncated_barcode]=ambigous_sample;
+							barcodes_[iii].barcode2sample[barcode]=ambigous_sample;
+						}
+					}
+				}
+
+				//if one barcode has a longer i5 and the other one a longer i7
+				else
+				{
+					//iterate through barcodes of groupi's hash
+					foreach(const QByteArray barcodei, groupi.barcode2sample.keys())
+					{
+						QList <QByteArray> partsi = barcodei.split('\t');
+						//iterate through barcodes of groupj's hash
+						foreach(const QByteArray barcodej, groupi.barcode2sample.keys())
+						{
+							int min_i1_size=qMin(groupi.i1_len,groupj.i1_len);
+							int min_i2_size=qMin(groupi.i2_len,groupj.i2_len);
+
+							QList <QByteArray> partsj = barcodej.split('\t');
+
+							//if truncated barcodes match
+							if((partsi[0].left(min_i1_size)==partsj[0].left(min_i1_size))&&(partsi[1].left(min_i2_size)==partsj[1].left(min_i2_size)))
+							{
+								//set them to ambigous
+								barcodes_[jjj].barcode2sample[barcodej]=ambigous_sample;
+								barcodes_[iii].barcode2sample[barcodei]=ambigous_sample;
+							}
+						}
+					}
+				}
+			}
+		}
+		inFile.close();
     }
 
 	void demultiplex(QStringList in1, QStringList in2, QString out_folder)
@@ -344,10 +423,6 @@ private:
 								found_sample = *group.barcode2sample.value(barcode);
 								found_double = true;
 							}
-							else //TODO: flag ambigous barcodes after creating the barcode list
-							{
-								found_sample = Sample();
-							}
 						}
 						else
 						{
@@ -355,10 +430,6 @@ private:
 							{
 								found_sample = *group.barcode2sample.value(barcode);
 								found_single = true;
-							}
-							else //TODO: flag ambigous barcodes after creating the barcode list
-							{
-								found_sample = Sample();
 							}
 						}
                     }
