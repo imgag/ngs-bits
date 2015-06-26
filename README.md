@@ -19,7 +19,7 @@ If you are behind a proxy that block the standard git port, you see something li
 Then you have to adapt your ~/.gitconfig file like that:
 
     [http]
-    proxy = http://[password]@[host]:[port]
+    proxy = http://[user]:[password]@[host]:[port]
 
 
 ## Building ngs-bits
