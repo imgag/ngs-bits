@@ -2,6 +2,7 @@
 #include "Exceptions.h"
 #include "Helper.h"
 #include "Log.h"
+#include "BasicStatistics.h"
 #include <QStringList>
 #include <limits>
 #include <QProcess>
@@ -83,7 +84,10 @@ void LinePlot::store(QString filename)
 		ymin_ = min-0.01*(max-min);
 		ymax_ = max+0.01*(max-min);;
 	}
-	script.append("plt.ylim(" + QString::number(ymin_) + "," + QString::number(ymax_) + ")");
+	if(BasicStatistics::isValidFloat(ymin_) && BasicStatistics::isValidFloat(ymax_))
+	{
+		script.append("plt.ylim(" + QString::number(ymin_) + "," + QString::number(ymax_) + ")");
+	}
 	QString xvaluestring = "";
 	if (xvalues_.count()>0)
 	{
