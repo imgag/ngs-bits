@@ -4,14 +4,14 @@ on-target read percentage: 87.02
 properly-paired read percentage: 97.86
 insert size: 180.02
 duplicate read percentage: n/a (probably removed from BAM during data analysis)
-target region read depth: 125.76
-target region 10x percentage: 97.13
-target region 20x percentage: 94.10
-target region 30x percentage: 90.28
-target region 50x percentage: 80.85
-target region 100x percentage: 55.60
-target region 200x percentage: 18.26
-target region 500x percentage: 0.06
+target region read depth: 125.43
+target region 10x percentage: 97.08
+target region 20x percentage: 94.07
+target region 30x percentage: 90.22
+target region 50x percentage: 80.79
+target region 100x percentage: 55.43
+target region 200x percentage: 18.14
+target region 500x percentage: 0.05
 
 error estimation read depth: 0.00
 error estimation N percentage: n/a (average depth too low)

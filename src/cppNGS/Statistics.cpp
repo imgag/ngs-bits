@@ -209,7 +209,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
             {
                 ++al_ontarget;
 
-				if (!al.IsDuplicate() && al.MapQuality>=min_mapq)
+				if (al.IsProperPair() && al.IsPrimaryAlignment() && !al.IsDuplicate() && al.MapQuality>=min_mapq)
                 {
                     foreach(int index, indices)
                     {
@@ -395,8 +395,8 @@ QCCollection Statistics::mapping(const QString& genome, const QString &bam_file,
             {
                 ++al_ontarget;
 
-                if (al.MapQuality>=min_mapq)
-                {
+				if (al.IsProperPair() && al.IsPrimaryAlignment() && !al.IsDuplicate() && al.MapQuality>=min_mapq)
+				{
                     bases_overlap_roi += al.Length;
                 }
             }
