@@ -71,7 +71,7 @@ struct BarcodeGroup
 	QHash<QByteArray, Sample*> barcode2sample;
 };
 
-//TODO: implement lane handling in FASTQ header, lane statistics and test with same/different sample/barcode on different lanes
+//TODO: test with same/different sample/barcode on different lanes
 class ConcreteTool
         : public ToolBase
 {
@@ -81,7 +81,7 @@ private:
 
 	ResultStatistics statistics_;
 	QList<FastqOutfileStream*> outstreams_;
-	QList<BarcodeGroup> barcodes_;
+	QMap <int, QList<BarcodeGroup> > barcodes_;//lane specific barcode groups
 
 	///Helper function to write output with worker pool
 	void writeWithThread(FastqOutfileStream* outstream, FastqEntry& outentry)
@@ -167,7 +167,9 @@ private:
 		}
 
         QTextStream in(&inFile);
-		QSet<QByteArray> used_barcodes; //TODO make lane-specific
+		QMap <int, QSet<QByteArray> > used_barcodes; //lane specific
+		QSet<QByteArray> empty_set;
+		QList<BarcodeGroup> empty_list;
         while (!in.atEnd())
         {
             QString line = in.readLine(); //read one line at a time
@@ -179,6 +181,11 @@ private:
 			bool ok = true;
 			concrete_sample->lane = line_parts[0].toInt(&ok);
 			if (!ok) THROW(FileParseException, "Could not convert lane to integer in sample sheet line: " + line);
+			if (!barcodes_.contains(concrete_sample->lane))//if first entry for this lane
+			{
+				used_barcodes[concrete_sample->lane]=empty_set;//init lane specific used_barcodes
+				barcodes_[concrete_sample->lane]=empty_list;//initialize lane specific barcode groups
+			}
 			if (line_parts[1]=="") THROW(FileParseException, "Empty project in sample sheet line: " + line);
 			concrete_sample->project = line_parts[1];
 			if (line_parts[2]=="") THROW(FileParseException, "Empty sample in sample sheet line: " + line);
@@ -220,11 +227,11 @@ private:
 				barcode2=barcode2.left(r2_length);
             }
 
-            if (used_barcodes.contains(barcode1 + "_" + barcode2))
+			if (used_barcodes[concrete_sample->lane].contains(barcode1 + "_" + barcode2))
             {
 				THROW(ArgumentException, "Barcode combination " + barcode1 + "/" + barcode2+ " used more than once!");
             }
-			used_barcodes.insert(barcode1 + "_" + barcode2);
+			used_barcodes[concrete_sample->lane].insert(barcode1 + "_" + barcode2);
 
             //introduce mismatches to barcodes
 			QSet<QByteArray> barcodes_with_mismatches1;
@@ -243,21 +250,21 @@ private:
 
 			//find barcode group
 			BarcodeGroup* group = 0;
-			for (int i=0; i<barcodes_.size(); ++i)
+			for (int i=0; i<barcodes_[concrete_sample->lane].size(); ++i)
 			{
-				if (barcodes_[i].i1_len==barcode1.size() && barcodes_[i].i2_len==barcode2.size())
+				if (barcodes_[concrete_sample->lane][i].i1_len==barcode1.size() && barcodes_[concrete_sample->lane][i].i2_len==barcode2.size())
 				{
-					group = &barcodes_[i];
+					group = &barcodes_[concrete_sample->lane][i];
 				}
 			}
-			//create new barcode group if it does not exist yet
+			//create new lane specific barcode group if it does not exist yet
 			if (group==0)
 			{
 				BarcodeGroup tmp;
 				tmp.i1_len = barcode1.size();
 				tmp.i2_len = barcode2.size();
-				barcodes_.append(tmp);
-				group = &(barcodes_.last());
+				barcodes_[concrete_sample->lane].append(tmp);
+				group = &(barcodes_[concrete_sample->lane].last());
 			}
 
 			//insert new barcodes
@@ -279,77 +286,79 @@ private:
         }
 
 		//flag ambigious barcodes of different lengths
-		QList < BarcodeGroup > temp_barcode_groups=barcodes_;
 
-		for(int iii = 0; iii<barcodes_.length(); ++iii) //compare every barcode group
+		foreach(const int lane_index, barcodes_.keys())//for each lane
 		{
-			BarcodeGroup groupi=barcodes_[iii];
-			for(int jjj=iii+1 ; jjj<barcodes_.length(); ++jjj)//compare with every remaining barcode group
+			for(int iii = 0; iii<barcodes_[lane_index].length(); ++iii) //compare every barcode group
 			{
-				BarcodeGroup groupj=barcodes_[jjj];
-
-				//if one barcode group is double indexed and the other is single indexed, they can't be ambigous
-				if ((groupi.i2_len!=0)!=(groupj.i2_len!=0)) continue;
-
-				//if barcode i length is shorter than barcode j
-				if ((groupi.i1_len<=groupj.i1_len)&&(groupi.i2_len<=groupj.i2_len))
+				BarcodeGroup groupi=barcodes_[lane_index][iii];
+				for(int jjj=iii+1 ; jjj<barcodes_[lane_index].length(); ++jjj)//compare with every remaining barcode group
 				{
-					//iterate through barcodes of groupj's hash
-					foreach(const QByteArray barcode, groupj.barcode2sample.keys())
-					{
-						const QList <QByteArray> parts = barcode.split('\t');
-						//truncate groupj's barcode
-						QByteArray truncated_barcode = parts[0].left(groupj.i1_len)+"\t"+parts[1].left(groupj.i2_len);
-						//look it up in groupi's hash
-						if (groupi.barcode2sample.contains(truncated_barcode))
-						{
-							//set them to ambigous
-							barcodes_[iii].barcode2sample[truncated_barcode]=ambigous_sample;
-							barcodes_[jjj].barcode2sample[barcode]=ambigous_sample;
-						}
-					}
-				}
+					BarcodeGroup groupj=barcodes_[lane_index][jjj];
 
-				//if barcode j length is shorter than barcode i
-				else if ((groupj.i1_len<=groupi.i1_len)&&(groupj.i2_len<=groupi.i2_len))
-				{
-					//iterate through barcodes of groupi's hash
-					foreach(const QByteArray barcode, groupi.barcode2sample.keys())
-					{
-						QList <QByteArray> parts = barcode.split('\t');
-						//truncate groupi's barcode
-						QByteArray truncated_barcode = parts[0].left(groupj.i1_len)+"\t"+parts[1].left(groupj.i2_len);
-						//look it up in groupj's hash
-						if (groupj.barcode2sample.contains(truncated_barcode))
-						{
-							//set them to ambigous
-							barcodes_[jjj].barcode2sample[truncated_barcode]=ambigous_sample;
-							barcodes_[iii].barcode2sample[barcode]=ambigous_sample;
-						}
-					}
-				}
+					//if one barcode group is double indexed and the other is single indexed, they can't be ambigous
+					if ((groupi.i2_len!=0)!=(groupj.i2_len!=0)) continue;
 
-				//if one barcode has a longer i5 and the other one a longer i7
-				else
-				{
-					//iterate through barcodes of groupi's hash
-					foreach(const QByteArray barcodei, groupi.barcode2sample.keys())
+					//if barcode i length is shorter than barcode j
+					if ((groupi.i1_len<=groupj.i1_len)&&(groupi.i2_len<=groupj.i2_len))
 					{
-						QList <QByteArray> partsi = barcodei.split('\t');
 						//iterate through barcodes of groupj's hash
-						foreach(const QByteArray barcodej, groupi.barcode2sample.keys())
+						foreach(const QByteArray barcode, groupj.barcode2sample.keys())
 						{
-							int min_i1_size=qMin(groupi.i1_len,groupj.i1_len);
-							int min_i2_size=qMin(groupi.i2_len,groupj.i2_len);
-
-							QList <QByteArray> partsj = barcodej.split('\t');
-
-							//if truncated barcodes match
-							if((partsi[0].left(min_i1_size)==partsj[0].left(min_i1_size))&&(partsi[1].left(min_i2_size)==partsj[1].left(min_i2_size)))
+							const QList <QByteArray> parts = barcode.split('\t');
+							//truncate groupj's barcode
+							QByteArray truncated_barcode = parts[0].left(groupj.i1_len)+"\t"+parts[1].left(groupj.i2_len);
+							//look it up in groupi's hash
+							if (groupi.barcode2sample.contains(truncated_barcode))
 							{
 								//set them to ambigous
-								barcodes_[jjj].barcode2sample[barcodej]=ambigous_sample;
-								barcodes_[iii].barcode2sample[barcodei]=ambigous_sample;
+								barcodes_[lane_index][iii].barcode2sample[truncated_barcode]=ambigous_sample;
+								barcodes_[lane_index][jjj].barcode2sample[barcode]=ambigous_sample;
+							}
+						}
+					}
+
+					//if barcode j length is shorter than barcode i
+					else if ((groupj.i1_len<=groupi.i1_len)&&(groupj.i2_len<=groupi.i2_len))
+					{
+						//iterate through barcodes of groupi's hash
+						foreach(const QByteArray barcode, groupi.barcode2sample.keys())
+						{
+							QList <QByteArray> parts = barcode.split('\t');
+							//truncate groupi's barcode
+							QByteArray truncated_barcode = parts[0].left(groupj.i1_len)+"\t"+parts[1].left(groupj.i2_len);
+							//look it up in groupj's hash
+							if (groupj.barcode2sample.contains(truncated_barcode))
+							{
+								//set them to ambigous
+								barcodes_[lane_index][jjj].barcode2sample[truncated_barcode]=ambigous_sample;
+								barcodes_[lane_index][iii].barcode2sample[barcode]=ambigous_sample;
+							}
+						}
+					}
+
+					//if one barcode has a longer i5 and the other one a longer i7
+					else
+					{
+						//iterate through barcodes of groupi's hash
+						foreach(const QByteArray barcodei, groupi.barcode2sample.keys())
+						{
+							QList <QByteArray> partsi = barcodei.split('\t');
+							//iterate through barcodes of groupj's hash
+							foreach(const QByteArray barcodej, groupi.barcode2sample.keys())
+							{
+								int min_i1_size=qMin(groupi.i1_len,groupj.i1_len);
+								int min_i2_size=qMin(groupi.i2_len,groupj.i2_len);
+
+								QList <QByteArray> partsj = barcodej.split('\t');
+
+								//if truncated barcodes match
+								if((partsi[0].left(min_i1_size)==partsj[0].left(min_i1_size))&&(partsi[1].left(min_i2_size)==partsj[1].left(min_i2_size)))
+								{
+									//set them to ambigous
+									barcodes_[lane_index][jjj].barcode2sample[barcodej]=ambigous_sample;
+									barcodes_[lane_index][iii].barcode2sample[barcodei]=ambigous_sample;
+								}
 							}
 						}
 					}
@@ -408,7 +417,7 @@ private:
 				bool found_single = false;
 				bool found_double = false;
 				Sample found_sample;
-				foreach(const BarcodeGroup& group, barcodes_)
+				foreach(const BarcodeGroup& group, barcodes_[lane])
 				{
 					bool is_double = group.i2_len!=0;
 					if (!is_double && found_double) continue; //a read matching a double index must not be assigned to a single index
@@ -497,15 +506,29 @@ private:
 		}
 
 		//write general statistics
-		output << "Overall statistics:";
+		output << "==Overall statistics==";
 		output << "Number of reads: " + QString::number(all_reads);
 		output << "Assigned reads: " + QString::number(all_assigned) + " (" + QString::number(100.0*all_assigned/all_reads, 'f', 2) + "%)";
 		output << "Unassigned reads: " + QString::number(all_unassigned) + " (" + QString::number(100.0*all_unassigned/all_reads, 'f', 2) + "%)";
 		output << "Ambigous reads: " + QString::number(all_ambigous) + " (" + QString::number(100.0*all_ambigous/all_reads, 'f', 2) + "%)";
 		output << "";
 
+		//write lane statistics
+		foreach(int lane_number, statistics_.lanes.keys())
+		{
+			LaneStatistics lane_stat=statistics_.lanes[lane_number];
+			output << "\n==Statistics lane "+QString::number(lane_number)+"==";
+			output << "total reads\t"+QString::number(lane_stat.read);
+			output << "assigned double index reads\t"+QString::number(lane_stat.assigned_single)+ " (" + QString::number(100.0*lane_stat.assigned_single/lane_stat.read, 'f', 2) + "%)";
+			output << "assigned single index reads\t"+QString::number(lane_stat.assigned_double)+ " (" + QString::number(100.0*lane_stat.assigned_double/lane_stat.read, 'f', 2) + "%)";
+			output << "unassigned reads\t"+QString::number(lane_stat.unassigned)+ " (" + QString::number(100.0*lane_stat.unassigned/lane_stat.read, 'f', 2) + "%)";
+			output << "ambigous single index reads\t"+QString::number(lane_stat.ambigous_double)+ " (" + QString::number(100.0*lane_stat.ambigous_double/lane_stat.read, 'f', 2) + "%)";
+			output << "ambigous double index reads\t"+QString::number(lane_stat.ambigous_single)+ " (" + QString::number(100.0*lane_stat.ambigous_single/lane_stat.read, 'f', 2) + "%)";
+			output << "";
+		}
+
 		//write sample statistics
-		output << "Sample statistics:";
+		output << "==Sample statistics==";
 		output << "#project\tsample\tread_count\tpercentage_of_reads\tpercentage_of_assigned_reads";
 		QMap<QString, int>::const_iterator it = statistics_.samples.begin();
 		while (it!=statistics_.samples.end())
@@ -518,9 +541,6 @@ private:
 
 			++it;
 		}
-		output << "";
-
-		//TODO write lane statistics
 
 		Helper::storeTextFile(filename, output, true);
     }

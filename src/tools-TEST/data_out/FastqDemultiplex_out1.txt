@@ -1,10 +1,19 @@
-Overall statistics:
+==Overall statistics==
 Number of reads: 20000
 Assigned reads: 18789 (93.94%)
 Unassigned reads: 1196 (5.98%)
 Ambigous reads: 15 (0.07%)
 
-Sample statistics:
+
+==Statistics lane 1==
+total reads	20000
+assigned double index reads	11514 (57.57%)
+assigned single index reads	7275 (36.38%)
+unassigned reads	1196 (5.98%)
+ambigous single index reads	0 (0.00%)
+ambigous double index reads	15 (0.07%)
+
+==Sample statistics==
 #project	sample	read_count	percentage_of_reads	percentage_of_assigned_reads
 CaMyo	GS150167_01	43	0.22	0.23
 CaMyo	GS150168_01	44	0.22	0.23
@@ -30,4 +39,3 @@ cfDNA	GS140476_01	1063	5.32	5.66
 cfDNA	GS150038_04	922	4.61	4.91
 cfDNA	GS150175_01	641	3.20	3.41
 cfDNA	GS150176_01	1051	5.26	5.59
-
