@@ -522,8 +522,8 @@ private:
 			output << "assigned double index reads\t"+QString::number(lane_stat.assigned_single)+ " (" + QString::number(100.0*lane_stat.assigned_single/lane_stat.read, 'f', 2) + "%)";
 			output << "assigned single index reads\t"+QString::number(lane_stat.assigned_double)+ " (" + QString::number(100.0*lane_stat.assigned_double/lane_stat.read, 'f', 2) + "%)";
 			output << "unassigned reads\t"+QString::number(lane_stat.unassigned)+ " (" + QString::number(100.0*lane_stat.unassigned/lane_stat.read, 'f', 2) + "%)";
-			output << "ambigous single index reads\t"+QString::number(lane_stat.ambigous_double)+ " (" + QString::number(100.0*lane_stat.ambigous_double/lane_stat.read, 'f', 2) + "%)";
-			output << "ambigous double index reads\t"+QString::number(lane_stat.ambigous_single)+ " (" + QString::number(100.0*lane_stat.ambigous_single/lane_stat.read, 'f', 2) + "%)";
+			output << "ambigous single index reads\t"+QString::number(lane_stat.ambigous_single)+ " (" + QString::number(100.0*lane_stat.ambigous_single/lane_stat.read, 'f', 2) + "%)";
+			output << "ambigous double index reads\t"+QString::number(lane_stat.ambigous_double)+ " (" + QString::number(100.0*lane_stat.ambigous_double/lane_stat.read, 'f', 2) + "%)";
 			output << "";
 		}
 

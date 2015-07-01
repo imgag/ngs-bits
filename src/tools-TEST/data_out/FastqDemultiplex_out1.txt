@@ -10,8 +10,8 @@ total reads	20000
 assigned double index reads	11514 (57.57%)
 assigned single index reads	7275 (36.38%)
 unassigned reads	1196 (5.98%)
-ambigous single index reads	0 (0.00%)
-ambigous double index reads	15 (0.07%)
+ambigous single index reads	15 (0.07%)
+ambigous double index reads	0 (0.00%)
 
 ==Sample statistics==
 #project	sample	read_count	percentage_of_reads	percentage_of_assigned_reads
