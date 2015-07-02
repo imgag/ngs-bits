@@ -436,19 +436,21 @@ void AnalysisWorker::run()
 	}
 
 	//write output
-	if (e1_->bases.count()>=params_.min_len && e2_->bases.count()>=params_.min_len)
+	if (e1_->bases.count()>=params_.min_len_s &&
+		e2_->bases.count()>=params_.min_len_s &&
+		e1_->bases.count() + e2_->bases.count()>=params_.min_len_p)
 	{
 		data_.out1_out2_mutex.lock();
 		data_.out1->write(*e1_);
 		data_.out2->write(*e2_);
 		data_.out1_out2_mutex.unlock();
 	}
-	else if (data_.out3 && e1_->bases.count()>=params_.min_len)
+	else if (data_.out3 && e1_->bases.count()>=params_.min_len_s)
 	{
 		reads_removed += 1;
 		data_.out3->write(*e1_);
 	}
-	else if (data_.out4 && e2_->bases.count()>=params_.min_len)
+	else if (data_.out4 && e2_->bases.count()>=params_.min_len_s)
 	{
 		reads_removed += 1;
 		data_.out4->write(*e2_);
