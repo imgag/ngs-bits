@@ -40,19 +40,19 @@ private slots:
 		TFW::comareFiles("out/FastqDemultiplex5/FastqDemultiplex_out5.txt", QFINDTESTDATA("data_out/FastqDemultiplex_out5.txt"));
 	}
 
-	/* TODO: test multiple lanes, one file per lane
+	//test multiple lanes, one file pair per lane
 	void test_multiple_lanes()
 	{
-		TFW_EXEC("FastqDemultiplex", "-in1 " +QFINDTESTDATA("data_in/FastqDemultiplex_in1_1.fastq") + " " + QFINDTESTDATA("data_in/FastqDemultiplex_in1_3.fastq") + " -in2 "+QFINDTESTDATA("data_in/FastqDemultiplex_in1_2.fastq") + " " + QFINDTESTDATA("data_in/FastqDemultiplex_in1_4.fastq")+ " -sheet " + QFINDTESTDATA("data_in/FastqDemultiplex_in1.tsv") + " -out out/FastqDemultiplex1 -rev2 -summary FastqDemultiplex_out1.txt -mms 4");
-		TFW::comareFiles("out/FastqDemultiplex1/FastqDemultiplex_out1.txt", QFINDTESTDATA("data_out/FastqDemultiplex_out1.txt"));
+		TFW_EXEC("FastqDemultiplex", "-in1 " +QFINDTESTDATA("data_in/FastqDemultiplex_in1_1.fastq") + " " + QFINDTESTDATA("data_in/FastqDemultiplex_in2_1.fastq") + " -in2 "+QFINDTESTDATA("data_in/FastqDemultiplex_in1_2.fastq") + " " + QFINDTESTDATA("data_in/FastqDemultiplex_in2_2.fastq")+ " -sheet " + QFINDTESTDATA("data_in/FastqDemultiplex_in2.tsv") + " -out out/FastqDemultiplex6 -rev2 -summary FastqDemultiplex_out6.txt");
+		TFW::comareFiles("out/FastqDemultiplex6/FastqDemultiplex_out6.txt", QFINDTESTDATA("data_out/FastqDemultiplex_out6.txt"));
 	}
 
-	TODO: test multiple lanes in one file
-	void test_multiple_lanes()
+	//test multiple lanes, same data as above, but in only one file pair
+	void test_multiple_lanes2()
 	{
-		TFW_EXEC("FastqDemultiplex", "-in1 " +QFINDTESTDATA("data_in/FastqDemultiplex_in1_1.fastq") + " " + QFINDTESTDATA("data_in/FastqDemultiplex_in1_3.fastq") + " -in2 "+QFINDTESTDATA("data_in/FastqDemultiplex_in1_2.fastq") + " " + QFINDTESTDATA("data_in/FastqDemultiplex_in1_4.fastq")+ " -sheet " + QFINDTESTDATA("data_in/FastqDemultiplex_in1.tsv") + " -out out/FastqDemultiplex1 -rev2 -summary FastqDemultiplex_out1.txt -mms 4");
-		TFW::comareFiles("out/FastqDemultiplex1/FastqDemultiplex_out1.txt", QFINDTESTDATA("data_out/FastqDemultiplex_out1.txt"));
-	}*/
+		TFW_EXEC("FastqDemultiplex", "-in1 " +QFINDTESTDATA("data_in/FastqDemultiplex_in3.fastq")+ " -in2 "+QFINDTESTDATA("data_in/FastqDemultiplex_in4.fastq")+ " -sheet " + QFINDTESTDATA("data_in/FastqDemultiplex_in2.tsv") + " -out out/FastqDemultiplex7 -rev2 -summary FastqDemultiplex_out7.txt");
+		TFW::comareFiles("out/FastqDemultiplex7/FastqDemultiplex_out7.txt", QFINDTESTDATA("data_out/FastqDemultiplex_out6.txt"));
+	}
 };
 
 TFW_DECLARE(FastqDemultiplex_Test)
