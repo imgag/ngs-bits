@@ -7,8 +7,8 @@ Ambigous reads: 0 (0.00%)
 
 ==Statistics lane 1==
 total reads	20000
-assigned double index reads	10865 (54.33%)
-assigned single index reads	6360 (31.80%)
+assigned double index reads	6360 (31.80%)
+assigned single index reads	10865 (54.33%)
 unassigned reads	2775 (13.88%)
 ambigous single index reads	0 (0.00%)
 ambigous double index reads	0 (0.00%)

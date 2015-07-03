@@ -82,6 +82,7 @@ private:
 	ResultStatistics statistics_;
 	QList<FastqOutfileStream*> outstreams_;
 	QMap <int, QList<BarcodeGroup> > barcodes_;//lane specific barcode groups
+	bool all_single;//are all barcodes single indexed?
 
 	///Helper function to write output with worker pool
 	void writeWithThread(FastqOutfileStream* outstream, FastqEntry& outentry)
@@ -145,7 +146,7 @@ private:
 	void parseBarcodes(QString sheet, int r1_length, int r2_length, int mms, int mmd, QString out_folder, bool rev2)
 	{
 		Sample* ambigous_sample = new Sample;
-
+		all_single=true;
 		QFile inFile(sheet);
         if (!inFile.open(QIODevice::ReadOnly | QIODevice::Text))
         {
@@ -239,6 +240,7 @@ private:
 
             if (barcode2.size()>0)//if this is a double-indexed read
             {
+				all_single=false;
 				barcodes_with_mismatches1 = makeBarcodesWithMismatch(barcode1, mmd);
 				barcodes_with_mismatches2 = makeBarcodesWithMismatch(barcode2, mmd);
             }
@@ -427,11 +429,9 @@ private:
                     {
 						if (is_double)
 						{
-							if (!found_double)//if the index reads haven't matched another barcode combination already
-							{
-								found_sample = *group.barcode2sample.value(barcode);
-								found_double = true;
-							}
+							found_sample = *group.barcode2sample.value(barcode);
+							found_double = true;
+							break;//if a double index was matched, no further searching is needed
 						}
 						else
 						{
@@ -439,6 +439,7 @@ private:
 							{
 								found_sample = *group.barcode2sample.value(barcode);
 								found_single = true;
+								if (all_single) break;//if a single index was matched, and there are no double indexes, no further searching is needed
 							}
 						}
                     }
@@ -519,8 +520,8 @@ private:
 			LaneStatistics lane_stat=statistics_.lanes[lane_number];
 			output << "\n==Statistics lane "+QString::number(lane_number)+"==";
 			output << "total reads\t"+QString::number(lane_stat.read);
-			output << "assigned double index reads\t"+QString::number(lane_stat.assigned_single)+ " (" + QString::number(100.0*lane_stat.assigned_single/lane_stat.read, 'f', 2) + "%)";
-			output << "assigned single index reads\t"+QString::number(lane_stat.assigned_double)+ " (" + QString::number(100.0*lane_stat.assigned_double/lane_stat.read, 'f', 2) + "%)";
+			output << "assigned double index reads\t"+QString::number(lane_stat.assigned_double)+ " (" + QString::number(100.0*lane_stat.assigned_double/lane_stat.read, 'f', 2) + "%)";
+			output << "assigned single index reads\t"+QString::number(lane_stat.assigned_single)+ " (" + QString::number(100.0*lane_stat.assigned_single/lane_stat.read, 'f', 2) + "%)";
 			output << "unassigned reads\t"+QString::number(lane_stat.unassigned)+ " (" + QString::number(100.0*lane_stat.unassigned/lane_stat.read, 'f', 2) + "%)";
 			output << "ambigous single index reads\t"+QString::number(lane_stat.ambigous_single)+ " (" + QString::number(100.0*lane_stat.ambigous_single/lane_stat.read, 'f', 2) + "%)";
 			output << "ambigous double index reads\t"+QString::number(lane_stat.ambigous_double)+ " (" + QString::number(100.0*lane_stat.ambigous_double/lane_stat.read, 'f', 2) + "%)";

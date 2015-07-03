@@ -32,6 +32,27 @@ private slots:
 		TFW_EXEC("FastqDemultiplex", "-in1 " +QFINDTESTDATA("out/FastqDemultiplex3/unassigned_L001_R1.fastq.gz") + " -in2 "+QFINDTESTDATA("out/FastqDemultiplex3/unassigned_L001_R2.fastq.gz") + " -sheet " + QFINDTESTDATA("data_in/FastqDemultiplex_in1.tsv") + " -out out/FastqDemultiplex4 -mms 0 -mmd 0 -rev2 -summary FastqDemultiplex_out4.txt");
 		TFW::comareFiles("out/FastqDemultiplex4/FastqDemultiplex_out4.txt", QFINDTESTDATA("data_out/FastqDemultiplex_out4.txt"));
     }
+
+	//demultiplexing allowing 4 mismatches in single index
+	void test_many_mismatch()
+	{
+		TFW_EXEC("FastqDemultiplex", "-in1 " +QFINDTESTDATA("data_in/FastqDemultiplex_in1_1.fastq") + " " + QFINDTESTDATA("data_in/FastqDemultiplex_in1_3.fastq") + " -in2 "+QFINDTESTDATA("data_in/FastqDemultiplex_in1_2.fastq") + " " + QFINDTESTDATA("data_in/FastqDemultiplex_in1_4.fastq")+ " -sheet " + QFINDTESTDATA("data_in/FastqDemultiplex_in1.tsv") + " -out out/FastqDemultiplex5 -rev2 -summary FastqDemultiplex_out5.txt -mms 4");
+		TFW::comareFiles("out/FastqDemultiplex5/FastqDemultiplex_out5.txt", QFINDTESTDATA("data_out/FastqDemultiplex_out5.txt"));
+	}
+
+	/* TODO: test multiple lanes, one file per lane
+	void test_multiple_lanes()
+	{
+		TFW_EXEC("FastqDemultiplex", "-in1 " +QFINDTESTDATA("data_in/FastqDemultiplex_in1_1.fastq") + " " + QFINDTESTDATA("data_in/FastqDemultiplex_in1_3.fastq") + " -in2 "+QFINDTESTDATA("data_in/FastqDemultiplex_in1_2.fastq") + " " + QFINDTESTDATA("data_in/FastqDemultiplex_in1_4.fastq")+ " -sheet " + QFINDTESTDATA("data_in/FastqDemultiplex_in1.tsv") + " -out out/FastqDemultiplex1 -rev2 -summary FastqDemultiplex_out1.txt -mms 4");
+		TFW::comareFiles("out/FastqDemultiplex1/FastqDemultiplex_out1.txt", QFINDTESTDATA("data_out/FastqDemultiplex_out1.txt"));
+	}
+
+	TODO: test multiple lanes in one file
+	void test_multiple_lanes()
+	{
+		TFW_EXEC("FastqDemultiplex", "-in1 " +QFINDTESTDATA("data_in/FastqDemultiplex_in1_1.fastq") + " " + QFINDTESTDATA("data_in/FastqDemultiplex_in1_3.fastq") + " -in2 "+QFINDTESTDATA("data_in/FastqDemultiplex_in1_2.fastq") + " " + QFINDTESTDATA("data_in/FastqDemultiplex_in1_4.fastq")+ " -sheet " + QFINDTESTDATA("data_in/FastqDemultiplex_in1.tsv") + " -out out/FastqDemultiplex1 -rev2 -summary FastqDemultiplex_out1.txt -mms 4");
+		TFW::comareFiles("out/FastqDemultiplex1/FastqDemultiplex_out1.txt", QFINDTESTDATA("data_out/FastqDemultiplex_out1.txt"));
+	}*/
 };
 
 TFW_DECLARE(FastqDemultiplex_Test)
