@@ -829,7 +829,7 @@ void VariantList::removeDuplicates(bool sort_by_quality)
 	variants_.swap(output);
 }
 
-void VariantList::filterByRegions(const BedFile& regions)
+void VariantList::filterByRegions(const BedFile& regions, bool invert)
 {
 	//check
 	if(!regions.isMergedAndSorted())
@@ -844,7 +844,8 @@ void VariantList::filterByRegions(const BedFile& regions)
 	{
 		Variant v = variants_[i];
 		v.normalize("-");
-		if (regions_idx.matchingIndex(v.chr(), v.start(), v.end())!=-1)
+		int index = regions_idx.matchingIndex(v.chr(), v.start(), v.end());
+		if (invert ? index==-1 : index!=-1)
 		{
 			if (to_index!=i) variants_[to_index] = variants_[i];
 			++to_index;

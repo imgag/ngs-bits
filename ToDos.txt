@@ -3,12 +3,15 @@ Tools:
  - GSvar:
   - store/highlight preferred transcripts
    - add option to export all/preferred transcripts to GeneLab
+  - new technical report
  - SampleOverview: add option for BAM files (check depth where variant is not found)
  - ReadQC:
   - add single-end mode
   - create plots without python
+ - BedInfo: flag - prepend file name to each output line - for piping into grep
 
-CnvHunter:
+CnvHunter
+ # set min STDEV to 15% of mean (was 10%, make it a parameter)
  # do not use bad regions for sample correlation calculation - remove bad regions after writing regions file...
  # do not exclude extreme outliers from reference sample calculation - we use median/mad
  # why "data[s].ref.append(exon_median);" - always use median/mad!?
@@ -25,6 +28,12 @@ cppNGS:
   - allows fast comparison of characters, reverse-complement, estimation of match upper bound on bit-level, etc.
   - uses 4 bit to store the sequence (acgt,ACGT,N) instead a 16 bit per base QString
 
+TFW:
+ - IS_TRUE, IS_FALSE, EQUAL, F_EQUAL
+ - deactivate single tests (notice to user)
+ - cli: regexp test filter (pos and neg)
+ - cli: file test list (pos and neg)
+ - cli: parameter to abort, continue with same test or continue with other test when an assertion fails
 
 Transcripts:
 AP4M1	NM_004722.3

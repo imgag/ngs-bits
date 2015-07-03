@@ -366,14 +366,14 @@ private slots:
 
 	void filterByRegions()
 	{
-		BedFile regions;
-		regions.append(BedLine("chr2", 202575822, 241700675));
-		regions.append(BedLine("chrX", 73641252, 153009197));
 
 		VariantList vl;
 		vl.load(QFINDTESTDATA("data_in/panel.tsv"));
-
 		QCOMPARE(vl.count(), 75);
+
+		BedFile regions;
+		regions.append(BedLine("chr2", 202575822, 241700675));
+		regions.append(BedLine("chrX", 73641252, 153009197));
 		vl.filterByRegions(regions);
 
 		QCOMPARE(vl.count(), 6);
@@ -389,6 +389,31 @@ private slots:
 		QCOMPARE(vl[4].start(), 153005605);
 		QCOMPARE(vl[5].chr(), Chromosome("chrX"));
 		QCOMPARE(vl[5].start(), 153009197);
+	}
+
+	void filterByRegionsInverted()
+	{
+		VariantList vl;
+		vl.load(QFINDTESTDATA("data_in/panel.tsv"));
+		QCOMPARE(vl.count(), 75);
+
+		BedFile regions;
+		regions.append(BedLine("chr2", 202575822, 241700675));
+		regions.append(BedLine("chrX", 73641252, 153009197));
+		vl.filterByRegions(regions);
+		QCOMPARE(vl.count(), 6);
+
+		regions.clear();
+		regions.append(BedLine("chrX", 73641252, 153009197));
+		vl.filterByRegions(regions, true);
+
+		QCOMPARE(vl.count(), 3);
+		QCOMPARE(vl[0].chr(), Chromosome("chr2"));
+		QCOMPARE(vl[0].start(), 202598113);
+		QCOMPARE(vl[1].chr(), Chromosome("chr2"));
+		QCOMPARE(vl[1].start(), 202625615);
+		QCOMPARE(vl[2].chr(), Chromosome("chr2"));
+		QCOMPARE(vl[2].start(), 241680802);
 	}
 
 	void filterByRules()

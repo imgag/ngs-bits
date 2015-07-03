@@ -224,7 +224,7 @@ public:
     void sortByFile(QString file_name);
 
     ///Removes all variants that are not contained in the given chromosomal regions (must be merged and sorted).
-    void filterByRegions(const BedFile& regions);
+	void filterByRegions(const BedFile& regions, bool invert=false);
     ///Removed all variants that do not pass all filters.
     void filterByRules(const QVector<VariantFilter>& filters);
 

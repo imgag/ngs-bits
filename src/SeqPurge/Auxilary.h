@@ -48,7 +48,7 @@ struct TrimmingParameters
 {
 	TrimmingParameters()
 	: adapter_overlap(10)
-	, max_reads_queued(500)
+	, max_reads_queued(1000)
 	{
 	}
 
@@ -59,7 +59,8 @@ struct TrimmingParameters
 	int a_size;
 	double match_perc;
 	double mep;
-	int min_len;
+	int min_len_s;
+	int min_len_p;
 	int qcut;
 	int qwin;
 	int qoff;

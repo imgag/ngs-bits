@@ -22,6 +22,7 @@ public:
 		setDescription("Filters variant lists accordning to a target region.");
 		addInfile("in", "Input variant list.", false);
 		addInfile("reg", "Input target region in BED format.", false);
+		addFlag("invert", "If used, the variants inside the target region are removed.");
 		//optional
 		addOutfile("out", "Output variant list. If unset, writes to STDOUT.", true);
 	}
@@ -36,7 +37,7 @@ public:
 		BedFile regions;
 		regions.load(getInfile("reg"));
 		regions.merge();
-		variants.filterByRegions(regions);
+		variants.filterByRegions(regions, getFlag("invert"));
 
 		//store variants
 		variants.store(getOutfile("out"));
