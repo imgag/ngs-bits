@@ -578,101 +578,75 @@ void VariantList::loadFromVCF(QString filename)
 		else
 		{
 			//extract and convert mandatory information
-			QList<QByteArray> tab_splitted_line = line.split('\t');
-			if (tab_splitted_line.count()<7)
+			QList<QByteArray> line_parts = line.split('\t');
+			if (line_parts.count()<7)
 			{
-				THROW(FileParseException, "VCF data line needs at least 7 tab-separated columns! Found " + QString::number(tab_splitted_line.count()) + " column(s) in line number " + QString::number(line_number) + ": " + line);
+				THROW(FileParseException, "VCF data line needs at least 7 tab-separated columns! Found " + QString::number(line_parts.count()) + " column(s) in line number " + QString::number(line_number) + ": " + line);
 			}
-			QString chrom=tab_splitted_line[0];
-			int start_pos=tab_splitted_line[1].toInt();
-			QString ref_bases=tab_splitted_line[3].toUpper();
-			QString var_bases=tab_splitted_line[4].toUpper();
-			int end_pos=start_pos+ref_bases.size()-1;
-			QString id_annotation_value=tab_splitted_line[2];
-			QString qual_annotation_value=tab_splitted_line[5];
-			QString filter_annotation_value=tab_splitted_line[6];
+			QString chrom = line_parts[0];
+			int start_pos = line_parts[1].toInt();
+			QString ref_bases = line_parts[3].toUpper();
+			QString var_bases = line_parts[4].toUpper();
+			int end_pos = start_pos + ref_bases.size()-1;
+			QString id_annotation_value = line_parts[2];
+			QString qual_annotation_value = line_parts[5];
+			QString filter_annotation_value = line_parts[6];
 
-			//store mandatory "annotations", ID, quality and filter
-			QStringList annos (QStringList() << id_annotation_value << qual_annotation_value << filter_annotation_value);
-
-			//store (possibly interchanged or unset) annotation information in two (because sample dependent and independent annotations may have the same name) hashes
-			QHash <QString,QString> dep_annotation_hash;
-			QHash <QString,QString> indep_annotation_hash;
-			//extract sample independent annotations
-			QList<QByteArray> sample_independent_field=tab_splitted_line[7].split(';');
-			for (int i=0; i<sample_independent_field.count(); ++i)
+			//extract sample-independent annotations (if present)
+			QHash <QByteArray, QByteArray> indep_annos;
+			if (line_parts.count()>=8)
 			{
-				QList<QByteArray> anno=sample_independent_field[i].split('=');
-				if (anno.count()==1)//a set flag
+				QList<QByteArray> anno_parts = line_parts[7].split(';');
+				for (int i=0; i<anno_parts.count(); ++i)
 				{
-					indep_annotation_hash[anno[0]]="TRUE";
-				}
-				else//a annotation with value(s)
-				{
-					indep_annotation_hash[anno[0]]=anno[1];
-				}
-			}
-
-			if (tab_splitted_line.count()>7)//if present: extract annotations
-			{
-				if (tab_splitted_line.count()>9)//if present: extract sample dependent annotations
-				{
-					QList<QByteArray> sample_dependent_name_field=tab_splitted_line[8].split(':');
-					QList<QByteArray> sample_dependent_value_field=tab_splitted_line[9].split(':');
-					for (int i=0; i<sample_dependent_name_field.count(); ++i)
+					QList<QByteArray> key_value = anno_parts[i].split('=');
+					if (key_value.count()==1) //no value (flag)
 					{
-						dep_annotation_hash[sample_dependent_name_field[i]]=sample_dependent_value_field[i];
-					}
-				}
-
-				//match defined and set annotations
-				for (int i=3; i<annotations().count(); ++i)//skip ID,QUAL,FILTER
-				{
-					if(annotations()[i].sampleSpecific())
-					{
-						if(dep_annotation_hash.contains(annotations()[i].name()))
-						{
-							if (dep_annotation_hash[annotations()[i].name()]==".")//if missing value
-							{
-								annos.append("");
-							}
-							else
-							{
-								annos.append(dep_annotation_hash[annotations()[i].name()]);
-							}
-						}
-						else
-						{
-							annos.append("");
-						}
+						indep_annos[key_value[0]] = "TRUE";
 					}
 					else
 					{
-						if(indep_annotation_hash.contains(annotations()[i].name()))
-						{
-							if (indep_annotation_hash[annotations()[i].name()]==".")//if missing value
-							{
-								annos.append("");
-							}
-							else
-							{
-								annos.append(indep_annotation_hash[annotations()[i].name()]);
-							};
-						}
-						else
-						{
-							annos.append("");
-						}
+						QByteArray value = key_value[1];
+						indep_annos[key_value[0]] = (value=="." ? "" : value);
 					}
 				}
 			}
+
+			// extract sample-dependent annotations (if present)
+			QHash <QByteArray, QByteArray> dep_annos;
+			if (line_parts.count()>=10)//if present: extract sample dependent annotations
+			{
+				QList<QByteArray> names = line_parts[8].split(':');
+				QList<QByteArray> values = line_parts[9].split(':');
+				for (int i=0; i<names.count(); ++i)
+				{
+					QByteArray value = "";
+					if (values[i]!=".") value = values[i];
+					dep_annos[names[i]] = value;
+				}
+			}
+
+			//create annotations array
+			QStringList annos;
+			annos << id_annotation_value << qual_annotation_value << filter_annotation_value;
+			for (int i=3; i<annotations().count(); ++i)
+			{
+				if(annotations()[i].sampleSpecific())
+				{
+					annos << dep_annos.value(annotations()[i].name().toLatin1(), "");
+				}
+				else
+				{
+					annos << indep_annos.value(annotations()[i].name().toLatin1(), "");
+				}
+			}
+
 			append(Variant(chrom, start_pos, end_pos, ref_bases, var_bases, annos));
 		}
-
 	}
+
 	//validate
 	checkValid("loading file '" + filename + "'!");
-
 }
 
 void VariantList::storeToVCF(QString filename)

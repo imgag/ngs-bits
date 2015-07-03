@@ -163,8 +163,7 @@ private slots:
 		QCOMPARE(vl.sampleName(), QString("./Sample_GS120297A3/GS120297A3.bam"));
 	}
 
-	//test with rare cases when there is not SAMPLE/FORMAT column (e.g. dbSNP file)
-	void loadFromVCF2()
+	void loadFromVCF_noSampleOrFormatColumn()
 	{
 		VariantList vl;
 
@@ -180,6 +179,28 @@ private slots:
 		QCOMPARE(vl.annotations().count(), 27);
 		QCOMPARE(vl.comments().count(), 2);
 		QCOMPARE(vl.sampleName(), QString("Sample"));
+	}
+
+	void loadFromVCF_undeclaredAnnotations()
+	{
+		VariantList vl;
+
+		//check annotation list
+		vl.load(QFINDTESTDATA("data_in/VariantList_loadFromVCF_undeclaredAnnotations.vcf"));
+		QCOMPARE(vl.count(), 2);
+		QCOMPARE(vl.annotations().count(), 18);
+		QStringList names;
+		foreach(VariantAnnotationDescription d, vl.annotations())
+		{
+			names << d.name();
+		}
+		QCOMPARE(names.join(","), QString("ID,QUAL,FILTER,DP,AF,RO,AO,GT,GQ,GL,DP,RO,QR,AO,QA,TRIO,CIGAR,TRIO2"));
+
+		//check variants
+		QCOMPARE(vl[0].annotations()[16], QString("1X"));
+		QCOMPARE(vl[1].annotations()[16], QString(""));
+		QCOMPARE(vl[0].annotations()[17], QString(""));
+		QCOMPARE(vl[1].annotations()[17], QString("HET,9,0.56,WT,17,0.00,HOM,19,1.00"));
 	}
 
 	void storeToVCF()
