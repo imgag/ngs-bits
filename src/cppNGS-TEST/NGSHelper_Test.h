@@ -158,10 +158,6 @@ private slots:
 
 	void getSNPs()
 	{
-#ifdef Q_OS_WIN
-		if (!QDir("W:\\share\\").exists()) QSKIP("Test needs data from W: drive!");
-#endif
-
 		VariantList list = NGSHelper::getSNPs();
 		QCOMPARE(list.count(), 19255);
 	}
