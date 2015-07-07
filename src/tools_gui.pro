@@ -17,6 +17,5 @@ SUBDIRS += GSvar
 GSvar.depends = cppGUI cppNGSD
 
 #other stuff
-OTHER_FILES += \
-	../ToDos.txt
+OTHER_FILES += ToDos.txt
 

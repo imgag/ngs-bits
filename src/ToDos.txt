@@ -8,7 +8,11 @@ Tools:
  - ReadQC:
   - add single-end mode
   - create plots without python
- - BedInfo: flag - prepend file name to each output line - for piping into grep
+ * BedInfo: flag - prepend file name to each output line - for piping into grep, make input optional (STDIN as default)
+ * BedSubract: make output parameter optional (stdout)
+ - TSVview: add positional noise option (in %) to scatter plot
+ * Fastq2Fasta: add
+ - VariantAnnotateNGSD: remove sample count from ihdb_hom/het/wt and move it to description
 
 CnvHunter
  # set min STDEV to 15% of mean (was 10%, make it a parameter)
@@ -24,15 +28,16 @@ CnvHunter
  - instead of fixed 'n', majority vote for CNVs for n>=10 and n<=30?
 
 cppNGS:
- - implement Sequence class for DNA/RNA sequences
- - Variant/VariantAnnotationDescription: use QByteArray instead of QString/Sequence for members
+ * implement Sequence class for DNA/RNA sequences
+ * Variant/VariantAnnotationDescription: use QByteArray instead of QString/Sequence for members
+ * use al.IsProperPair() only for insert size calulcation, not for mapping/exon statistics
 
 TFW:
- - ASSERT_TRUE, ASSERT_FALSE, ASSERT_EQ, ASSERT_EQ_F, ASSERT_THROW
- - deactivate single tests (notice to user)
- - cli: regexp test filter (pos and neg)
- - cli: file test list (pos and neg)
- - cli: parameter to abort, continue with same test or continue with other test when an assertion fails
+ * ASSERT_TRUE, ASSERT_FALSE, ASSERT_EQ, ASSERT_EQ_F, ASSERT_THROW
+ * deactivate single tests (notice to user)
+ * cli: regexp test filter (pos and neg)
+ * cli: file test list (pos and neg)
+ * cli: parameter to abort, continue with same test or continue with other test when an assertion fails
 
 Transcripts:
 AP4M1	NM_004722.3

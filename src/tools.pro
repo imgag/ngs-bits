@@ -216,6 +216,5 @@ tools-TEST.depends += BedAnnotateGC
 BedAnnotateGC.depends = cppNGS
 
 #other stuff
-OTHER_FILES += \
-        ../ToDos.txt
+OTHER_FILES += ToDos.txt
 
