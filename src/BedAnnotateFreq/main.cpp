@@ -27,7 +27,6 @@ public:
 		addInfile("in", "Input BED file containing regions (SNVs only).", false, true);
 		addInfileList("bam", "Input BAM file(s).", false, true);
 		addOutfile("out", "Output overview file.", false, true);
-		addFlag("anom", "Also consider anomalous reads.");
 	}
 
 	virtual void main()
