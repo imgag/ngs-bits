@@ -1,19 +1,39 @@
-#-------------------------------------------------
-#
-# Project created by QtCreator 2013-08-03T23:23:16
-#
-#-------------------------------------------------
-
+#base settings
 QT       += testlib
 QT       -= gui
-
 CONFIG   += console
 CONFIG   -= app_bundle
-
 TEMPLATE = app
+DESTDIR = ../../bin/
+
+#enable O3 optimization
+QMAKE_CXXFLAGS_RELEASE -= -O
+QMAKE_CXXFLAGS_RELEASE -= -O1
+QMAKE_CXXFLAGS_RELEASE -= -O2
+QMAKE_CXXFLAGS_RELEASE *= -O3
+
+#include cppCORE library
+INCLUDEPATH += $$PWD/../cppCORE
+LIBS += -L$$PWD/../../bin -lcppCORE
+
+#include cppXML library
+INCLUDEPATH += $$PWD/cppXML
+LIBS += -L$$PWD/../bin -lcppXML
+
+#include cppNGS library
+INCLUDEPATH += $$PWD/../cppNGS
+LIBS += -L$$PWD/../../bin -lcppNGS
+
+#include bamtools library
+INCLUDEPATH += $$PWD/../../bamtools/include/
+LIBS += -L$$PWD/../../bamtools/lib/ -l bamtools
+QMAKE_CXXFLAGS += -Wno-attributes #suppress bamtools warnings
 
 #include zlib library
 LIBS += -lz
+
+#make the executable search for .so-files in the same folder under linux
+QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
 HEADERS += \
         Chromosome_Test.h \
@@ -32,7 +52,4 @@ HEADERS += \
         StatisticsReads_Test.h
 
 SOURCES += \
-	main.cpp
-
-include("../app_cli.pri")
-
+        main.cpp
