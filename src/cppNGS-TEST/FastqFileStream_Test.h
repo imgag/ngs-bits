@@ -1,4 +1,4 @@
-#include "../TestFramework.h"
+#include "TestFramework.h"
 #include "FastqFileStream.h"
 #include "Helper.h"
 

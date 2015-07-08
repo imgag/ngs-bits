@@ -1,4 +1,4 @@
-#include "../TestFramework.h"
+#include "TestFramework.h"
 #include "FastaFileIndex.h"
 #include "Settings.h"
 

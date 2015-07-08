@@ -1,4 +1,4 @@
-#include "../TestFramework.h"
+#include "TestFramework.h"
 #include "Settings.h"
 
 class BedAnnotateGenes_Test

@@ -1,4 +1,4 @@
-#include "../TestFramework.h"
+#include "TestFramework.h"
 #include "TSVFileStream.h"
 
 class TSVFileStream_Test

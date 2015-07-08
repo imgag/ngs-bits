@@ -1,4 +1,4 @@
-#include "../TestFramework.h"
+#include "TestFramework.h"
 
 class FastqDemultiplex_Test
         : public QObject

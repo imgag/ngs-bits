@@ -1,4 +1,4 @@
-#include "../TestFramework.h"
+#include "TestFramework.h"
 #include "ChromosomalFileIndex.h"
 #include "VariantList.h"
 

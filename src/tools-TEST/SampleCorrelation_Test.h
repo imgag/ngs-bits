@@ -1,4 +1,4 @@
-#include "../TestFramework.h"
+#include "TestFramework.h"
 
 class SampleCorrelation_Test
 		: public QObject

@@ -16,6 +16,9 @@ QMAKE_CXXFLAGS_RELEASE *= -O3
 INCLUDEPATH += $$PWD/../cppCORE
 LIBS += -L$$PWD/../../bin -lcppCORE
 
+#include cppTFW library
+INCLUDEPATH += $$PWD/../cppTFW
+
 #make the executable search for .so-files in the same folder under linux
 QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 

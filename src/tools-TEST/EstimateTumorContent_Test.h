@@ -1,4 +1,4 @@
-#include "../TestFramework.h"
+#include "TestFramework.h"
 
 class EstimateTumorContent_Test
 		: public QObject

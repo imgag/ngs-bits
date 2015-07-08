@@ -29,6 +29,9 @@ INCLUDEPATH += $$PWD/../../bamtools/include/
 LIBS += -L$$PWD/../../bamtools/lib/ -l bamtools
 QMAKE_CXXFLAGS += -Wno-attributes #suppress bamtools warnings
 
+#include cppTFW library
+INCLUDEPATH += $$PWD/../cppTFW
+
 #include zlib library
 LIBS += -lz
 

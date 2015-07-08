@@ -1,4 +1,4 @@
-#include "../TestFramework.h"
+#include "TestFramework.h"
 #include "BasicStatistics.h"
 
 class BasicStatistics_Test

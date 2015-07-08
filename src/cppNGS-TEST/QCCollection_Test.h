@@ -1,4 +1,4 @@
-#include "../TestFramework.h"
+#include "TestFramework.h"
 #include "QCCollection.h"
 
 class QCCollection_Test

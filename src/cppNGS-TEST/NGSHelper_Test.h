@@ -1,4 +1,4 @@
-#include "../TestFramework.h"
+#include "TestFramework.h"
 #include "NGSHelper.h"
 #include "BasicStatistics.h"
 #include "Settings.h"

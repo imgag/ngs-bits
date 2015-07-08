@@ -1,4 +1,4 @@
-#include "../TestFramework.h"
+#include "TestFramework.h"
 #include "Chromosome.h"
 
 class Chromosome_Test
