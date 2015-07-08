@@ -1,8 +1,3 @@
-#-------------------------------------------------
-#
-# Project created by QtCreator 2013-08-13T08:31:34
-#
-#-------------------------------------------------
 
 QT       += gui widgets network sql xml xmlpatterns
 QTPLUGIN += QSQLMYSQL
@@ -14,27 +9,26 @@ RC_FILE	 = icon.rc
 SOURCES += main.cpp\
         MainWindow.cpp \
     FilterDockWidget.cpp \
-    StatisticsWorker.cpp \
     ExternalToolDialog.cpp \
     ReportDialog.cpp \
 	ReportWorker.cpp \
 	SampleInformationDialog.cpp \
     TrioDialog.cpp \
     HttpHandler.cpp \
-    ValidationDialog.cpp
-
-    
+    ValidationDialog.cpp \
+    DBAnnotationWorker.cpp \
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
-    StatisticsWorker.h \
     ExternalToolDialog.h \
     ReportDialog.h \
     ReportWorker.h \
 	SampleInformationDialog.h \
     TrioDialog.h \
     HttpHandler.h \
-    ValidationDialog.h
+    ValidationDialog.h \
+    DBAnnotationWorker.h \
+
 
 FORMS    += MainWindow.ui \
     FilterDockWidget.ui \

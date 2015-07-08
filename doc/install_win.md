@@ -5,10 +5,10 @@
 
 First, we need to install some software:
 
-* Download and install [Qt 5.4.1 (32bit, MinGW)](http://www.qt.io/download-open-source/#section-2) to the default location.
+* Download and install [Qt 5.5.0 (32bit, MinGW)](http://www.qt.io/download-open-source/#section-2) to the default location.
 * Download and install [MySQL Community Server 5.5 (32-bit)](http://dev.mysql.com/downloads/mysql/5.5.html)  to the default location.  
   It is needed to make the Qt MYSQL plugin work.  
-  After the installation, copy `libmysql.dll` from `C:\PROGRA~2\MySQL\MYSQLS~1.5\lib` to `C:\Qt\Qt5.4.1\5.4\mingw491_32\lib`
+  After the installation, copy `libmysql.dll` from `C:\PROGRA~2\MySQL\MYSQLS~1.5\lib` to `C:\Qt\Qt5.5.0\5.5\mingw491_32\lib`
 * Download and install [Git](https://git-scm.com/download/win)  
   It is needed to extract the repository version during the build process.  
 * Download and install [CMake](http://www.cmake.org/cmake/resources/software.html).

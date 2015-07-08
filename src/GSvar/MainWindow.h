@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QTimer>
 #include "ui_MainWindow.h"
 #include "VariantList.h"
 #include "FilterDockWidget.h"
@@ -9,7 +10,7 @@
 #include "BedFile.h"
 #include "NGSD.h"
 #include "FileWatcher.h"
-#include <QTimer>
+#include "BusyDialog.h"
 
 ///Main window class
 class MainWindow
@@ -91,6 +92,8 @@ public slots:
 
 	///Finished the report generation
 	void reportGenerationFinished(bool success);
+	///Finished NGSD/GPD annotation
+	void databaseAnnotationFinished(bool success);
 	///Shows the variant list contect menu
 	void varsContextMenu(QPoint pos);
 	///Updates the visible rows after filters have changed
@@ -106,7 +109,7 @@ private:
 	//GUI
 	Ui::MainWindow ui_;
 	FilterDockWidget* filter_widget_;
-	QDialog* report_busy_dialog_;
+	BusyDialog busy_dialog_;
 
 	//DATA
 	QString filename_;

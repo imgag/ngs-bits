@@ -379,7 +379,7 @@ void ReportWorker::writeHTML()
 	stream << "<table>" << endl;
 	stream << "<tr><th>tool</th><th>version</th><th>parameters</th></tr>";
 	QStringList whitelist;
-	whitelist << "SeqPurge" << "samblaster" << "/bwa" << "samtools" << "VcfLeftAlign" <<  "freebayes" << "vcflib" << "SnpEff"; //current
+	whitelist << "SeqPurge" << "samblaster" << "/bwa" << "samtools" << "VcfLeftAlign" <<  "freebayes" << "abra" << "vcflib" << "SnpEff"; //current
 	whitelist << "varFilter" << "stampy.py" << "BamLeftAlign" << "GenomeAnalysisTK" << "VcfSplitMultiallelic" << "picard-tools"; //legacy
 	log_files_.sort();
 	foreach(QString file, log_files_)

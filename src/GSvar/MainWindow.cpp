@@ -7,8 +7,6 @@
 #include "Log.h"
 #include "Helper.h"
 #include "GUIHelper.h"
-#include "Statistics.h"
-#include "StatisticsWorker.h"
 #include <QDir>
 #include <QBitArray>
 #include <QDesktopServices>
@@ -21,10 +19,11 @@
 #include <QFont>
 #include <QInputDialog>
 #include <QClipboard>
+#include <QProgressBar>
 #include "ReportWorker.h"
+#include "DBAnnotationWorker.h"
 #include "SampleInformationDialog.h"
 #include "ScrollableTextDialog.h"
-#include "BusyIndicator.h"
 #include "GPD.h"
 #include "TrioDialog.h"
 #include "HttpHandler.h"
@@ -35,7 +34,7 @@ MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
 	, filter_widget_(new FilterDockWidget(this))
-	, report_busy_dialog_(0)
+	, busy_dialog_(this)
 	, filename_()
 	, db_annos_updated_(false)
 	, last_report_path_(QDir::homePath())
@@ -263,15 +262,8 @@ void MainWindow::on_actionReport_triggered()
 	}
 
 	//show busy dialog
-	report_busy_dialog_ = new QDialog(this);
-	report_busy_dialog_->setWindowFlags(Qt::Window | Qt::CustomizeWindowHint | Qt::WindowTitleHint| Qt::WindowSystemMenuHint);
-	report_busy_dialog_->setModal(true);
-	report_busy_dialog_->setWindowTitle("Report");
-	report_busy_dialog_->setLayout(new QBoxLayout(QBoxLayout::LeftToRight));
-	report_busy_dialog_->layout()->setMargin(3);
-	report_busy_dialog_->layout()->addWidget(new BusyIndicator());
-	report_busy_dialog_->layout()->addWidget(new QLabel("Generating report, please wait!"));
-	report_busy_dialog_->show();
+	busy_dialog_.setText("Report", "Generating report.");
+	busy_dialog_.show();
 
 	//start worker in new thread
 	ReportWorker* worker = new ReportWorker(base_name, NGSD().getExternalSampleName(filename_), filter_widget_->appliedFilters(), variants_, dialog.selectedIndices(), dialog.outcome(), filter_widget_->targetRegion(), bam_file, dialog.detailsVariants(), getLogFiles(), file_rep);
@@ -281,9 +273,7 @@ void MainWindow::on_actionReport_triggered()
 
 void MainWindow::reportGenerationFinished(bool success)
 {
-	//clean up busy dialog
-	report_busy_dialog_->hide();
-	report_busy_dialog_->deleteLater();
+	busy_dialog_.hide();
 
 	//show result info box
 	ReportWorker* worker = qobject_cast<ReportWorker*>(sender());
@@ -293,7 +283,7 @@ void MainWindow::reportGenerationFinished(bool success)
 	}
 	else
 	{
-		QMessageBox::warning(this, "Report", "Report generation failed:\n" + worker->errorMessage());
+		QMessageBox::warning(this, "Error", "Report generation failed:\n" + worker->errorMessage());
 	}
 
 	//clean
@@ -304,19 +294,35 @@ void MainWindow::on_actionDatabase_triggered()
 {
 	if (variants_.count()==0) return;
 
-	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-	try
+	//show busy dialog
+	busy_dialog_.setText("Database annotation", "Updating annotations from NGSD/GPD.");
+	busy_dialog_.show();
+
+	//start worker
+	QString genome = Settings::string("reference_genome");
+	DBAnnotationWorker* worker = new DBAnnotationWorker(filename_, genome, variants_);
+	connect(worker, SIGNAL(finished(bool)), this, SLOT(databaseAnnotationFinished(bool)));
+	worker->start();
+}
+
+void MainWindow::databaseAnnotationFinished(bool success)
+{
+	busy_dialog_.hide();
+
+	//show result info box
+	DBAnnotationWorker* worker = qobject_cast<DBAnnotationWorker*>(sender());
+	if (success)
 	{
-		GPD().annotate(variants_);
-		NGSD().annotate(variants_, filename_, Settings::string("reference_genome"), true);
-		variantListChanged();
 		db_annos_updated_ = true;
+		variantListChanged();
 	}
-	catch (Exception& e)
+	else
 	{
-		QMessageBox::warning(this, "NGSD annotation error", e.message());
+		QMessageBox::warning(this, "Error", "Database annotation failed:\n" + worker->errorMessage());
 	}
-	QApplication::restoreOverrideCursor();
+
+	//clean
+	worker->deleteLater();
 }
 
 void MainWindow::on_actionFilters_triggered()
