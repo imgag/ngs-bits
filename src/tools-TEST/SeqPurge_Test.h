@@ -1,4 +1,4 @@
-#include "../TestFramework_NGS.h"
+#include "TestFramework_NGS.h"
 
 class SeqPurge_Test
 		: public QObject
