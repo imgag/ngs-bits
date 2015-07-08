@@ -594,12 +594,21 @@ void VariantList::loadFromVCF(QString filename)
 
 			//extract sample-independent annotations (if present)
 			QHash <QByteArray, QByteArray> indep_annos;
-			if (line_parts.count()>=8)
+			if ((line_parts.count()>=8)&&(line_parts[7]!="."))
 			{
 				QList<QByteArray> anno_parts = line_parts[7].split(';');
 				for (int i=0; i<anno_parts.count(); ++i)
 				{
 					QList<QByteArray> key_value = anno_parts[i].split('=');
+					if (!annotations().contains(VariantAnnotationDescription(key_value[0], "")))//if annotation wasn't defined or found before
+					{
+						annotations().append(VariantAnnotationDescription(key_value[0], ""));//add it
+						//add empty annotation value to all previously found variants to keep integrity
+						for(int iii=0;iii<count();++iii)
+						{
+							variants_[iii].annotations().append("");
+						}
+					}
 					if (key_value.count()==1) //no value (flag)
 					{
 						indep_annos[key_value[0]] = "TRUE";
@@ -620,6 +629,15 @@ void VariantList::loadFromVCF(QString filename)
 				QList<QByteArray> values = line_parts[9].split(':');
 				for (int i=0; i<names.count(); ++i)
 				{
+					if (!annotations().contains(VariantAnnotationDescription(names[i], "", VariantAnnotationDescription::STRING, true)))//if annotation wasn't defined or found before
+					{
+						annotations().append(VariantAnnotationDescription(names[i], "", VariantAnnotationDescription::STRING, true));//add it
+						//add empty annotation value to all previously found variants to keep integrity
+						for(int iii=0;iii<count();++iii)
+						{
+							variants_[iii].annotations().append("");
+						}
+					}
 					QByteArray value = "";
 					if (values[i]!=".") value = values[i];
 					dep_annos[names[i]] = value;
