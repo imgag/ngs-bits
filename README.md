@@ -29,7 +29,7 @@ Then you have to adapt your ~/.gitconfig file like that:
 ngs-bits depends on the following software to be installed
 
 - g++
-- qmake (Qt 5.4 or higher)
+- qmake (Qt 5.5 or higher)
 - git (to extract the version hash)
 - cmake (to build bamtools library)
 

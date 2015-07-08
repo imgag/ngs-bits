@@ -3,6 +3,7 @@
 #include "Exceptions.h"
 #include <QSqlError>
 #include <QSqlQuery>
+#include <QVariant>
 #include "Settings.h"
 
 GPD::GPD()

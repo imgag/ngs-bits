@@ -3,6 +3,7 @@
 
 #include "cppNGSD_global.h"
 #include <QSqlDatabase>
+#include <QVariant>
 #include "VariantList.h"
 
 /// GPD accessor.
