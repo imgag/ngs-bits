@@ -2,3 +2,12 @@
 	path = bamtools
 	url = https://github.com/pezmaster31/bamtools.git
 	ignore = dirty
+[submodule "src/cppCORE"]
+	path = src/cppCORE
+	url = https://github.com/marc-sturm/cppCORE.git
+[submodule "src/cppGUI"]
+	path = src/cppGUI
+	url = https://github.com/marc-sturm/cppGUI.git
+[submodule "src/cppXML"]
+	path = src/cppXML
+	url = https://github.com/marc-sturm/cppXML.git

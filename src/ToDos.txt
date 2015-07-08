@@ -31,7 +31,7 @@ cppNGS:
  * implement Sequence class for DNA/RNA sequences
  * Variant/VariantAnnotationDescription: use QByteArray instead of QString/Sequence for members
  * use al.IsProperPair() only for insert size calulcation, not for mapping/exon statistics
- * Qt 5.5 update
+ * Qt 5.5 update => use Qt Quick busy widget
 
 TFW:
  * namespace TFW
