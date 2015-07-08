@@ -16,6 +16,11 @@ public:
     ///Constructor.
     VariantAnnotationDescription(const QString& name, const QString& description, AnnotationType type=STRING, bool sample_specific=false, QString number="1");
 
+	///==Operator (two different INFO or FORMAT annotation can't have same ID in vcf)
+	bool operator==(VariantAnnotationDescription b)
+	{
+		return ((this->name_==b.name_)&&(this->sample_specific_==b.sample_specific_));
+	}
     ///Returns the name of the annotation.
     const QString& name() const
     {
