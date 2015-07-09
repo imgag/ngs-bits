@@ -203,6 +203,16 @@ private slots:
 		QCOMPARE(vl[1].annotations()[17], QString("HET,9,0.56,WT,17,0.00,HOM,19,1.00"));
 	}
 
+	void loadFromVCF_emptyFormatAndInfo()
+	{
+		VariantList vl;
+
+		//check annotation list
+		vl.load(QFINDTESTDATA("data_in/VariantList_loadFromVCF_emptyInfoAndFormat.vcf"));
+		vl.store("out/VariantList_loadFromVCF_emptyInfoAndFormat.vcf");
+		TFW::comareFiles("out/VariantList_loadFromVCF_emptyInfoAndFormat.vcf",QFINDTESTDATA("data_in/VariantList_loadFromVCF_emptyInfoAndFormat.vcf"));
+	}
+
 	void storeToVCF()
 	{
 		//store loaded file

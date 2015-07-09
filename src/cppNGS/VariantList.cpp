@@ -623,7 +623,7 @@ void VariantList::loadFromVCF(QString filename)
 
 			// extract sample-dependent annotations (if present)
 			QHash <QByteArray, QByteArray> dep_annos;
-			if (line_parts.count()>=10)//if present: extract sample dependent annotations
+			if ((line_parts.count()>=10)&&(line_parts[8]!=".")&&(line_parts[9]!="."))//if present: extract sample dependent annotations
 			{
 				QList<QByteArray> names = line_parts[8].split(':');
 				QList<QByteArray> values = line_parts[9].split(':');
