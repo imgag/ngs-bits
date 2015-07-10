@@ -45,9 +45,9 @@ private slots:
 		QCOMPARE(output.count(), 11);
 		for (int i=0; i<output.count(); ++i)
 		{
-			QCOMPARE(output[i].annotations()[hom_i], QString("n/a"));
-			QCOMPARE(output[i].annotations()[het_i], QString("n/a"));
-			QCOMPARE(output[i].annotations()[wt_i],  QString("n/a"));
+			QCOMPARE(output[i].annotations()[hom_i], QByteArray("n/a"));
+			QCOMPARE(output[i].annotations()[het_i], QByteArray("n/a"));
+			QCOMPARE(output[i].annotations()[wt_i],  QByteArray("n/a"));
 	
 			convertion_ok = false;
 			int value_int = output[i].annotations()[all_hom_i].toInt(&convertion_ok);
@@ -59,8 +59,8 @@ private slots:
 			QVERIFY(convertion_ok);
 			QVERIFY(value_int >= 0);
 	
-			QCOMPARE(output[i].annotations()[cla_i], QString("n/a"));
-			QCOMPARE(output[i].annotations()[val_i], QString("n/a"));
+			QCOMPARE(output[i].annotations()[cla_i], QByteArray("n/a"));
+			QCOMPARE(output[i].annotations()[val_i], QByteArray("n/a"));
 		}
 	}
 
@@ -126,8 +126,8 @@ private slots:
 			QVERIFY(convertion_ok);
 			QVERIFY(value_int >= 0);
 	
-			QCOMPARE(output[i].annotations()[cla_i], QString("n/a"));
-			QCOMPARE(output[i].annotations()[val_i], QString("n/a"));
+			QCOMPARE(output[i].annotations()[cla_i], QByteArray("n/a"));
+			QCOMPARE(output[i].annotations()[val_i], QByteArray("n/a"));
 		}
 	}
 
@@ -161,8 +161,8 @@ private slots:
 			}
 			else //unknown somatic variants
 			{
-				QCOMPARE(output[i].annotations()[val_i1], QString("0"));
-				QCOMPARE(output[i].annotations()[val_i2], QString(""));
+				QCOMPARE(output[i].annotations()[val_i1], QByteArray("0"));
+				QCOMPARE(output[i].annotations()[val_i2], QByteArray(""));
 			}
 		}
 	}

@@ -18,7 +18,7 @@ public:
     ///Default constructor.
     Variant();
     ///Convenience constructor.
-	Variant(const Chromosome& chr, int start, int end, const Sequence& ref, const Sequence& obs, const QStringList& annotations = QStringList());
+	Variant(const Chromosome& chr, int start, int end, const Sequence& ref, const Sequence& obs, const QList<QByteArray>& annotations = QList<QByteArray>());
 
     ///Returns the chromosome.
     const Chromosome& chr() const
@@ -72,12 +72,12 @@ public:
     }
 
     ///Read-only access to the annotations.
-    const QStringList& annotations() const
+	const QList<QByteArray>& annotations() const
     {
         return annotations_;
     }
     ///Read-write access to the annotations.
-    QStringList& annotations()
+	QList<QByteArray>& annotations()
     {
         return annotations_;
     }
@@ -122,7 +122,7 @@ protected:
     int end_;
 	Sequence ref_;
 	Sequence obs_;
-    QStringList annotations_;
+	QList<QByteArray> annotations_;
 
 };
 

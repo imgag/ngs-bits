@@ -99,7 +99,7 @@ public:
 		return me;
 	}
 
-	Genotype str2geno(const QString& genotype)
+	Genotype str2geno(const QByteArray& genotype)
 	{
 		if(genotype=="WT") return WT;
 		else if(genotype=="HET") return HET;
@@ -107,7 +107,7 @@ public:
 		else THROW(ArgumentException, "Cannot convert genotype '" + genotype + "' to enum value!")
 	}
 
-	int str2int(const QString& value)
+	int str2int(const QByteArray& value)
 	{
 		bool ok = true;
 		int output = value.toInt(&ok);
@@ -118,7 +118,7 @@ public:
 		return output;
 	}
 
-	double str2double(const QString& value)
+	double str2double(const QByteArray& value)
 	{
 		bool ok = true;
 		double output = value.toDouble(&ok);
@@ -153,7 +153,7 @@ public:
 		int i_het = vl.annotationIndexByName("ihdb_allsys_het", true, true);
 
 		//open BAM reads
-		QMap<int, QStringList> trio_col;
+		QMap<int, QList<QByteArray> > trio_col;
 		QMap<int, Genos> trio_genos;
 
 		//find VUS>2 or rare variants
@@ -188,12 +188,12 @@ public:
 		foreach(int i, rare)
 		{
 			const Variant& v = vl[i];
-			QStringList quality_entries = v.annotations()[i_quality].split(';');
-			foreach(QString entry, quality_entries)
+			QList<QByteArray> quality_entries = v.annotations()[i_quality].split(';');
+			foreach(const QByteArray& entry, quality_entries)
 			{
 				if (entry.startsWith("TRIO="))
 				{
-					QStringList trio_entries = entry.mid(5).split(',');
+					QList<QByteArray> trio_entries = entry.mid(5).split(',');
 					if (trio_entries.count()!=9) THROW(ProgrammingException, "Trio column has more/less than 9 entries!");
 					int c_depth = str2int(trio_entries[1]);
 					int m_depth = str2int(trio_entries[4]);

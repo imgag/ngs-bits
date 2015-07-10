@@ -36,7 +36,7 @@ public:
 		addFlag("sm", "Also show matches. If unset, matching variants are not printed.");
 	}
 
-	int appendStrippedVariants(VariantList& vl, QString filename, QString source)
+	int appendStrippedVariants(VariantList& vl, QString filename, QByteArray source)
 	{
 		VariantList tmp;
 		tmp.load(filename);
@@ -114,7 +114,7 @@ public:
 				if (v2.annotations()[0]==v1.annotations()[0]) continue;
 
 				//check if genotypes match
-				QString geno_match = "=";
+				QByteArray geno_match = "=";
 				if (v2.annotations()[3]!=v1.annotations()[3] && v2.annotations()[3]!="" && v1.annotations()[3]!="") geno_match = "g";
 
 				//exact match (SNP and indel)

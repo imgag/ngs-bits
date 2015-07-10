@@ -61,15 +61,15 @@ public:
 			}
 			else
 			{
-				variant.annotations().append(QString::number(tmp.frequency, 'f', 4));
+				variant.annotations().append(QByteArray::number(tmp.frequency, 'f', 4));
 			}
 			if (depth)
 			{
-				variant.annotations().append(QString::number(tmp.depth));
+				variant.annotations().append(QByteArray::number(tmp.depth));
 			}
 			if (mapq0)
 			{
-				variant.annotations().append(QString::number(tmp.mapq0_frac, 'f', 2));
+				variant.annotations().append(QByteArray::number(tmp.mapq0_frac, 'f', 2));
 			}
 		}
 

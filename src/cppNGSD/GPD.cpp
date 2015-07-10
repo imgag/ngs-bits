@@ -89,10 +89,10 @@ void GPD::annotate(VariantList& variants)
 		Variant& v = variants[i];
 
 		QVariant id = getValue("SELECT id FROM gene WHERE hgnc_apprsymbol='" + v.annotations()[gene_idx] + "'");
-		v.annotations()[g_gen_idx] = id.toString();
+		v.annotations()[g_gen_idx] = id.toByteArray();
 
 		id = getValue("SELECT id FROM variant WHERE chr='" + v.chr().strNormalized(true) + "' AND start='"+ QString::number(v.start()) +"' AND end='"+ QString::number(v.end()) +"' AND ref='"+ v.ref() +"' AND obs='"+ v.obs() +"' AND build_id='1'");
-		v.annotations()[g_var_idx] = id.toString();
+		v.annotations()[g_var_idx] = id.toByteArray();
 	}
 }
 

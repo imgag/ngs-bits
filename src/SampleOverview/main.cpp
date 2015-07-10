@@ -70,7 +70,7 @@ public:
 			for(int j=0; j<vls[i].count(); ++j)
 			{
 				Variant v = vls[i][j];
-				QStringList annos = v.annotations();
+				QList<QByteArray> annos = v.annotations();
 				v.annotations().clear();
 				foreach(int index, vls_anno_indices[i])
 				{
@@ -101,7 +101,7 @@ public:
 			for (int j=0; j<vl_merged.count(); ++j)
 			{
 				Variant& v = vl_merged[j];
-				QString entry = "no";
+				QByteArray entry = "no";
 				if (v.isSNV()) //SNP
 				{
 					QVector<int> matches = cidx.matchingIndices(v.chr(), v.start(), v.end());

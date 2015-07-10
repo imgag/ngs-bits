@@ -27,11 +27,11 @@ CnvHunter
  - instead of fixed 'n', majority vote for CNVs for n>=10 and n<=30?
 
 cppNGS:
- * Variant.annotations(): use QByteArray instead of QString for members
  * use al.IsProperPair() only for insert size calulcation, not for mapping/exon statistics
 
-Florian:
- - VcfLeftAlign::test02() ##FORMAT=<ID=.,Number=1,Type=String,Description=\"\">
+Tests:
+ * speed up tests
+ * reduce large test data dependency => check in all test data
 
 TFW:
  * namespace TFW

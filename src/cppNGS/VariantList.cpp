@@ -19,7 +19,7 @@ Variant::Variant()
 {
 }
 
-Variant::Variant(const Chromosome& chr, int start, int end, const Sequence& ref, const Sequence& obs, const QStringList& annotations)
+Variant::Variant(const Chromosome& chr, int start, int end, const Sequence& ref, const Sequence& obs, const QList<QByteArray>& annotations)
 	: chr_(chr)
 	, start_(start)
 	, end_(end)
@@ -332,7 +332,7 @@ void VariantList::loadFromTSV(QString filename)
 		}
 
 		//variant line
-		QStringList annos;
+		QList<QByteArray> annos;
 		for (int i=5; i<fields.count(); ++i)
 		{
 			annos.append(fields[i]);
@@ -588,9 +588,9 @@ void VariantList::loadFromVCF(QString filename)
 			Sequence ref_bases = line_parts[3].toUpper();
 			Sequence var_bases = line_parts[4].toUpper();
 			int end_pos = start_pos + ref_bases.length()-1;
-			QString id_annotation_value = line_parts[2];
-			QString qual_annotation_value = line_parts[5];
-			QString filter_annotation_value = line_parts[6];
+			QByteArray id_annotation_value = line_parts[2];
+			QByteArray qual_annotation_value = line_parts[5];
+			QByteArray filter_annotation_value = line_parts[6];
 
 			//extract sample-independent annotations (if present)
 			QHash <QByteArray, QByteArray> indep_annos;
@@ -645,7 +645,7 @@ void VariantList::loadFromVCF(QString filename)
 			}
 
 			//create annotations array
-			QStringList annos;
+			QList<QByteArray> annos;
 			annos << id_annotation_value << qual_annotation_value << filter_annotation_value;
 			for (int i=3; i<annotations().count(); ++i)
 			{
@@ -718,21 +718,13 @@ void VariantList::storeToVCF(QString filename)
 		QString quality=v.annotations()[1];//will only work correctly if source was a vcf-file
 		QString filter=v.annotations()[2];//will only work correctly if source was a vcf-file
 		stream << v.chr().str() << "\t" << v.start() << "\t" <<ID << "\t" << v.ref() << "\t"  << v.obs() << "\t" << quality << "\t" << filter;
-		QListIterator <VariantAnnotationDescription> anno_desc_iter(annotations());
-		anno_desc_iter.next();//Skip ID;
-		anno_desc_iter.next();//Skip Quality;
-		anno_desc_iter.next();//Skip Filter;
-		QStringListIterator anno_val_iter(v.annotations());
-		anno_val_iter.next();//Skip ID;
-		anno_val_iter.next();//Skip Quality;
-		anno_val_iter.next();//Skip Filter;
 		QString info_field="\t";
 		QString format_field="\t";
 		QString sample_field="\t";
-		while (anno_val_iter.hasNext())
+		for (int i=3; i<v.annotations().count(); ++i) //why 3: skip ID Quality Filter
 		{
-			VariantAnnotationDescription anno_desc=anno_desc_iter.next();
-			QString anno_val=anno_val_iter.next();
+			VariantAnnotationDescription anno_desc = annotations()[i];
+			QString anno_val = v.annotations()[i];
 			if (anno_val!="")//don't write annotations without values and not set flags
 			{
 				if (anno_desc.sampleSpecific())

@@ -290,18 +290,18 @@ void NGSD::annotate(VariantList& variants, QString filename, QString ref_file, b
 		int sys_het_count = 0;
 		int tp_count = 0;
 		int fp_count = 0;
-		QString validated = "n/a";
-		QString comment = "";
+		QByteArray validated = "n/a";
+		QByteArray comment = "";
 		QStringList comment_others;
 		QSet<QString> processed_ps_ids;
 		QSet<QString> processed_s_ids;
 		while(query.next())
 		{
-			QString current_ps_id = query.value(0).toString();
-			QString current_geno = query.value(1).toString();
-			QString current_validation = query.value(2).toString().replace("true positive", "TP").replace("false positive", "FP");
-			QString current_sample = query.value(3).toString();
-			QString current_comment = query.value(4).toString();
+			QByteArray current_ps_id = query.value(0).toByteArray();
+			QByteArray current_geno = query.value(1).toByteArray();
+			QByteArray current_validation = query.value(2).toByteArray().replace("true positive", "TP").replace("false positive", "FP");
+			QByteArray current_sample = query.value(3).toByteArray();
+			QByteArray current_comment = query.value(4).toByteArray();
 
 			//skip already seen processed samples (there could be several variants because of indel window, but we want to process only one)
 			if (processed_ps_ids.contains(current_ps_id)) continue;
@@ -363,16 +363,16 @@ void NGSD::annotate(VariantList& variants, QString filename, QString ref_file, b
 		}
 
 		//update variant data
-		v.annotations()[ihdb_all_hom_idx] = QString::number(allsys_hom_count);
-		v.annotations()[ihdb_all_het_idx] = QString::number(allsys_het_count);
-		QString classification = getValue("SELECT vus FROM variant WHERE chr='"+v.chr().str()+"' AND start='"+QString::number(v.start())+"' AND end='"+QString::number(v.end())+"' AND ref='"+v.ref()+"' AND obs='"+v.obs()+"'").toString();
+		v.annotations()[ihdb_all_hom_idx] = QByteArray::number(allsys_hom_count);
+		v.annotations()[ihdb_all_het_idx] = QByteArray::number(allsys_het_count);
+		QByteArray classification = getValue("SELECT vus FROM variant WHERE chr='"+v.chr().str()+"' AND start='"+QString::number(v.start())+"' AND end='"+QString::number(v.end())+"' AND ref='"+v.ref()+"' AND obs='"+v.obs()+"'").toByteArray();
 		if (classification=="") classification="n/a";
 		v.annotations()[class_idx] = classification;
 		if (found_in_db)
 		{
-			v.annotations()[ihdb_hom_idx] = QString::number((double)sys_hom_count / sys_sample_ids.count(), 'f', 4);
-			v.annotations()[ihdb_het_idx] =  QString::number((double)sys_het_count / sys_sample_ids.count(), 'f', 4);
-			v.annotations()[ihdb_wt_idx] =  QString::number((double)(sys_sample_ids.count() - sys_hom_count - sys_het_count) / sys_sample_ids.count(), 'f', 4);
+			v.annotations()[ihdb_hom_idx] = QByteArray::number((double)sys_hom_count / sys_sample_ids.count(), 'f', 4);
+			v.annotations()[ihdb_het_idx] =  QByteArray::number((double)sys_het_count / sys_sample_ids.count(), 'f', 4);
+			v.annotations()[ihdb_wt_idx] =  QByteArray::number((double)(sys_sample_ids.count() - sys_hom_count - sys_het_count) / sys_sample_ids.count(), 'f', 4);
 
 			if (comment_others.count()>0)
 			{
@@ -452,14 +452,14 @@ void NGSD::annotateSomatic(VariantList& variants, QString filename, QString ref_
 		}
 
 		//process variants
-		QMap<QString, int> project_map;
-		QSet<QString> processed_ps_ids;
-		QSet<QString> processed_s_ids;
+		QMap<QByteArray, int> project_map;
+		QSet<QByteArray> processed_ps_ids;
+		QSet<QByteArray> processed_s_ids;
 		while(query.next())
 		{
-			QString current_sample = query.value(0).toString();
-			QString current_ps_id = query.value(1).toString();
-			QString current_project = query.value(2).toString();
+			QByteArray current_sample = query.value(0).toByteArray();
+			QByteArray current_ps_id = query.value(1).toByteArray();
+			QByteArray current_project = query.value(2).toByteArray();
 
 			//skip already seen processed samples (there could be several variants because of indel window, but we want to process only one)
 			if (processed_ps_ids.contains(current_ps_id)) continue;
@@ -477,16 +477,16 @@ void NGSD::annotateSomatic(VariantList& variants, QString filename, QString ref_
 			++project_map[current_project];
 		}
 
-		QString somatic_projects;
+		QByteArray somatic_projects;
 		int somatic_count = 0;
-		QMap<QString, int>::const_iterator j = project_map.constBegin();
+		QMap<QByteArray, int>::const_iterator j = project_map.constBegin();
 		while(j!=project_map.constEnd())
 		{
 			somatic_count += j.value();
 			somatic_projects += j.key() + ",";
 			++j;
 		}
-		v.annotations()[som_ihdb_c_idx] = QString::number(somatic_count);
+		v.annotations()[som_ihdb_c_idx] = QByteArray::number(somatic_count);
 		v.annotations()[som_ihdb_p_idx] = somatic_projects;
 	}
 }

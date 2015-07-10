@@ -142,18 +142,18 @@ private slots:
 		QCOMPARE(vl[0].end(), 72196817);
 		QCOMPARE(vl[0].ref(), Sequence("G"));
 		QCOMPARE(vl[0].obs(), Sequence("GA"));
-		QCOMPARE(vl[0].annotations().at(3), QString("TRUE"));
-		QCOMPARE(vl[0].annotations().at(8), QString("4,3,11,11"));
-		QCOMPARE(vl[0].annotations().at(26), QString("255,0,123"));
+		QCOMPARE(vl[0].annotations().at(3), QByteArray("TRUE"));
+		QCOMPARE(vl[0].annotations().at(8), QByteArray("4,3,11,11"));
+		QCOMPARE(vl[0].annotations().at(26), QByteArray("255,0,123"));
 
 		QCOMPARE(vl[12].chr(), Chromosome("chr9"));
 		QCOMPARE(vl[12].start(), 130931421);
 		QCOMPARE(vl[12].end(), 130931421);
 		QCOMPARE(vl[12].ref(), Sequence("G"));
 		QCOMPARE(vl[12].obs(), Sequence("A"));
-		QCOMPARE(vl[12].annotations().at(3), QString(""));
-		QCOMPARE(vl[12].annotations().at(8), QString("457,473,752,757"));
-		QCOMPARE(vl[12].annotations().at(26), QString("255,0,255"));
+		QCOMPARE(vl[12].annotations().at(3), QByteArray(""));
+		QCOMPARE(vl[12].annotations().at(8), QByteArray("457,473,752,757"));
+		QCOMPARE(vl[12].annotations().at(26), QByteArray("255,0,255"));
 
 		//load a second time to check initialization
 		vl.load(QFINDTESTDATA("data_in/panel.vcf"));
@@ -197,20 +197,22 @@ private slots:
 		QCOMPARE(names.join(","), QString("ID,QUAL,FILTER,DP,AF,RO,AO,GT,GQ,GL,DP,RO,QR,AO,QA,TRIO,CIGAR,TRIO2"));
 
 		//check variants
-		QCOMPARE(vl[0].annotations()[16], QString("1X"));
-		QCOMPARE(vl[1].annotations()[16], QString(""));
-		QCOMPARE(vl[0].annotations()[17], QString(""));
-		QCOMPARE(vl[1].annotations()[17], QString("HET,9,0.56,WT,17,0.00,HOM,19,1.00"));
+		QCOMPARE(vl[0].annotations()[16], QByteArray("1X"));
+		QCOMPARE(vl[1].annotations()[16], QByteArray(""));
+		QCOMPARE(vl[0].annotations()[17], QByteArray(""));
+		QCOMPARE(vl[1].annotations()[17], QByteArray("HET,9,0.56,WT,17,0.00,HOM,19,1.00"));
 	}
 
 	void loadFromVCF_emptyFormatAndInfo()
 	{
-		VariantList vl;
+		QString in = QFINDTESTDATA("data_in/VariantList_loadFromVCF_emptyInfoAndFormat.vcf");
+		QString out = "out/VariantList_loadFromVCF_emptyInfoAndFormat.vcf";
 
-		//check annotation list
-		vl.load(QFINDTESTDATA("data_in/VariantList_loadFromVCF_emptyInfoAndFormat.vcf"));
-		vl.store("out/VariantList_loadFromVCF_emptyInfoAndFormat.vcf");
-		TFW::comareFiles("out/VariantList_loadFromVCF_emptyInfoAndFormat.vcf",QFINDTESTDATA("data_in/VariantList_loadFromVCF_emptyInfoAndFormat.vcf"));
+		VariantList vl;
+		vl.load(in);
+		vl.store(out);
+
+		TFW::comareFiles(in,out);
 	}
 
 	void storeToVCF()
@@ -255,18 +257,18 @@ private slots:
 		QCOMPARE(vl[0].end(), 72196817);
 		QCOMPARE(vl[0].ref(), Sequence("G"));
 		QCOMPARE(vl[0].obs(), Sequence("GA"));
-		QCOMPARE(vl[0].annotations().at(3), QString("TRUE"));
-		QCOMPARE(vl[0].annotations().at(8), QString("4,3,11,11"));
-		QCOMPARE(vl[0].annotations().at(26), QString("255,0,123"));
+		QCOMPARE(vl[0].annotations().at(3), QByteArray("TRUE"));
+		QCOMPARE(vl[0].annotations().at(8), QByteArray("4,3,11,11"));
+		QCOMPARE(vl[0].annotations().at(26), QByteArray("255,0,123"));
 
 		QCOMPARE(vl[12].chr(), Chromosome("chr9"));
 		QCOMPARE(vl[12].start(), 130931421);
 		QCOMPARE(vl[12].end(), 130931421);
 		QCOMPARE(vl[12].ref(), Sequence("G"));
 		QCOMPARE(vl[12].obs(), Sequence("A"));
-		QCOMPARE(vl[12].annotations().at(3), QString(""));
-		QCOMPARE(vl[12].annotations().at(8), QString("457,473,752,757"));
-		QCOMPARE(vl[12].annotations().at(26), QString("255,0,255"));
+		QCOMPARE(vl[12].annotations().at(3), QByteArray(""));
+		QCOMPARE(vl[12].annotations().at(8), QByteArray("457,473,752,757"));
+		QCOMPARE(vl[12].annotations().at(26), QByteArray("255,0,255"));
 	}
 
 	void loadFromTSV()
@@ -283,18 +285,18 @@ private slots:
 		QCOMPARE(vl[0].end(), 155205047);
 		QCOMPARE(vl[0].ref(), Sequence("C"));
 		QCOMPARE(vl[0].obs(), Sequence("T"));
-		QCOMPARE(vl[0].annotations().at(0), QString("het"));
-		QCOMPARE(vl[0].annotations().at(5), QString("0.5084"));
-		QCOMPARE(vl[0].annotations().at(26), QString(""));
+		QCOMPARE(vl[0].annotations().at(0), QByteArray("het"));
+		QCOMPARE(vl[0].annotations().at(5), QByteArray("0.5084"));
+		QCOMPARE(vl[0].annotations().at(26), QByteArray(""));
 
 		QCOMPARE(vl[74].chr(), Chromosome("chrX"));
 		QCOMPARE(vl[74].start(), 153009197);
 		QCOMPARE(vl[74].end(), 153009197);
 		QCOMPARE(vl[74].ref(), Sequence("G"));
 		QCOMPARE(vl[74].obs(), Sequence("C"));
-		QCOMPARE(vl[74].annotations().at(0), QString("het"));
-		QCOMPARE(vl[74].annotations().at(5), QString("0.5368"));
-		QCOMPARE(vl[74].annotations().at(25), QString(""));
+		QCOMPARE(vl[74].annotations().at(0), QByteArray("het"));
+		QCOMPARE(vl[74].annotations().at(5), QByteArray("0.5368"));
+		QCOMPARE(vl[74].annotations().at(25), QByteArray(""));
 
 		//load a second time to check initialization
 		vl.load(QFINDTESTDATA("data_in/panel.tsv"));
@@ -322,18 +324,18 @@ private slots:
 		QCOMPARE(vl[0].end(), 155205047);
 		QCOMPARE(vl[0].ref(), Sequence("C"));
 		QCOMPARE(vl[0].obs(), Sequence("T"));
-		QCOMPARE(vl[0].annotations().at(0), QString("het"));
-		QCOMPARE(vl[0].annotations().at(5), QString("0.5084"));
-		QCOMPARE(vl[0].annotations().at(26), QString(""));
+		QCOMPARE(vl[0].annotations().at(0), QByteArray("het"));
+		QCOMPARE(vl[0].annotations().at(5), QByteArray("0.5084"));
+		QCOMPARE(vl[0].annotations().at(26), QByteArray(""));
 
 		QCOMPARE(vl[74].chr(), Chromosome("chrX"));
 		QCOMPARE(vl[74].start(), 153009197);
 		QCOMPARE(vl[74].end(), 153009197);
 		QCOMPARE(vl[74].ref(), Sequence("G"));
 		QCOMPARE(vl[74].obs(), Sequence("C"));
-		QCOMPARE(vl[74].annotations().at(0), QString("het"));
-		QCOMPARE(vl[74].annotations().at(5), QString("0.5368"));
-		QCOMPARE(vl[74].annotations().at(25), QString(""));
+		QCOMPARE(vl[74].annotations().at(0), QByteArray("het"));
+		QCOMPARE(vl[74].annotations().at(5), QByteArray("0.5368"));
+		QCOMPARE(vl[74].annotations().at(25), QByteArray(""));
 
 		//load a second time to check initialization
 		vl.load(QFINDTESTDATA("data_in/panel.tsv"));
@@ -369,18 +371,18 @@ private slots:
 		QCOMPARE(vl[0].end(), 72196817);
 		QCOMPARE(vl[0].ref(), Sequence("G"));
 		QCOMPARE(vl[0].obs(), Sequence("GA"));
-		QCOMPARE(vl[0].annotations().at(3), QString("TRUE"));
-		QCOMPARE(vl[0].annotations().at(8), QString("4,3,11,11"));
-		QCOMPARE(vl[0].annotations().at(26), QString("255,0,123"));
+		QCOMPARE(vl[0].annotations().at(3), QByteArray("TRUE"));
+		QCOMPARE(vl[0].annotations().at(8), QByteArray("4,3,11,11"));
+		QCOMPARE(vl[0].annotations().at(26), QByteArray("255,0,123"));
 
 		QCOMPARE(vl[12].chr(), Chromosome("chr9"));
 		QCOMPARE(vl[12].start(), 130931421);
 		QCOMPARE(vl[12].end(), 130931421);
 		QCOMPARE(vl[12].ref(), Sequence("G"));
 		QCOMPARE(vl[12].obs(), Sequence("A"));
-		QCOMPARE(vl[12].annotations().at(3), QString(""));
-		QCOMPARE(vl[12].annotations().at(8), QString("457,473,752,757"));
-		QCOMPARE(vl[12].annotations().at(26), QString("255,0,255"));
+		QCOMPARE(vl[12].annotations().at(3), QByteArray(""));
+		QCOMPARE(vl[12].annotations().at(8), QByteArray("457,473,752,757"));
+		QCOMPARE(vl[12].annotations().at(26), QByteArray("255,0,255"));
 	}
 
 	void annotationIndexByName()
@@ -578,18 +580,18 @@ private slots:
 		QCOMPARE(vl.annotations().count(), 27);
 		QCOMPARE(vl.count(), 75);
 		QCOMPARE(vl[0].annotations().count(), 27);
-		QCOMPARE(vl[0].annotations()[index-1], QString("225"));
-		QCOMPARE(vl[0].annotations()[index], QString("728"));
-		QCOMPARE(vl[0].annotations()[index+1], QString("37"));
+		QCOMPARE(vl[0].annotations()[index-1], QByteArray("225"));
+		QCOMPARE(vl[0].annotations()[index], QByteArray("728"));
+		QCOMPARE(vl[0].annotations()[index+1], QByteArray("37"));
 
 		vl.removeAnnotation(index);
 
 		QCOMPARE(vl.annotations().count(), 26);
 		QCOMPARE(vl.count(), 75);
 		QCOMPARE(vl[0].annotations().count(), 26);
-		QCOMPARE(vl[0].annotations()[index-1], QString("225"));
-		QCOMPARE(vl[0].annotations()[index], QString("37"));
-		QCOMPARE(vl[0].annotations()[index+1], QString("SNV"));
+		QCOMPARE(vl[0].annotations()[index-1], QByteArray("225"));
+		QCOMPARE(vl[0].annotations()[index], QByteArray("37"));
+		QCOMPARE(vl[0].annotations()[index+1], QByteArray("SNV"));
 	}
 };
 
