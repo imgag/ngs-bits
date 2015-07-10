@@ -6,6 +6,16 @@
 #include "api/BamReader.h"
 using namespace BamTools;
 
+int countSequencesContaining(QVector<Sequence> sequences, char c)
+{
+	int output = 0;
+	foreach(const Sequence& sequence, sequences)
+	{
+		output += sequence.contains(c);
+	}
+	return output;
+}
+
 class NGSHelper_Test
 		: public QObject
 {
@@ -43,27 +53,27 @@ private slots:
 		QCOMPARE(pileup.depth(false), 40);
 		QCOMPARE(pileup.t(), 40);
 		QCOMPARE(pileup.indels().count(), 29);
-		QCOMPARE(pileup.indels().filter("+").count(), 27);
-		QCOMPARE(pileup.indels().filter("-").count(), 2);
+		QCOMPARE(countSequencesContaining(pileup.indels(), '+'), 27);
+		QCOMPARE(countSequencesContaining(pileup.indels(), '-'), 2);
 		//DELATION
 		pileup = NGSHelper::getPileup(reader, "chr14", 53513479, 1);
 		QCOMPARE(pileup.depth(false), 50);
 		QCOMPARE(pileup.a(), 50);
 		QCOMPARE(pileup.indels().count(), 14);
-		QCOMPARE(pileup.indels().filter("-").count(), 14);
+		QCOMPARE(countSequencesContaining(pileup.indels(), '-'), 14);
 		//INSERTATION -  with window
 		pileup = NGSHelper::getPileup(reader, "chr6", 110053825, 20);
 		QCOMPARE(pileup.depth(false), 40);
 		QCOMPARE(pileup.t(), 40);
 		QCOMPARE(pileup.indels().count(), 30);
-		QCOMPARE(pileup.indels().filter("+").count(), 28);
-		QCOMPARE(pileup.indels().filter("-").count(), 2);
+		QCOMPARE(countSequencesContaining(pileup.indels(), '+'), 28);
+		QCOMPARE(countSequencesContaining(pileup.indels(), '-'), 2);
 		//DELETION -  with window
 		pileup = NGSHelper::getPileup(reader, "chr14", 53513479, 10);
 		QCOMPARE(pileup.depth(false), 50);
 		QCOMPARE(pileup.a(), 50);
 		QCOMPARE(pileup.indels().count(), 14);
-		QCOMPARE(pileup.indels().filter("-").count(), 14);
+		QCOMPARE(countSequencesContaining(pileup.indels(), '-'), 14);
 	}
 
 	//special test with RNA because it contains the CIGAR operations S and N
@@ -81,8 +91,8 @@ private slots:
 		pileup = NGSHelper::getPileup(reader, "chr10", 92675287, 10);
 		QCOMPARE(pileup.depth(true), 23);
 		QCOMPARE(pileup.indels().count(), 23);
-		QCOMPARE(pileup.indels().filter("+").count(), 0);
-		QCOMPARE(pileup.indels().filter("-").count(), 23);
+		QCOMPARE(countSequencesContaining(pileup.indels(), '+'), 0);
+		QCOMPARE(countSequencesContaining(pileup.indels(), '-'), 23);
 		//NO COVERAGE
 		pileup = NGSHelper::getPileup(reader, "chr11", 92675295, 10);
 		QCOMPARE(pileup.depth(true), 0);
@@ -100,8 +110,8 @@ private slots:
 		QCOMPARE(pileups[0].depth(true, true), 42);
 		QCOMPARE(pileups[0].t(), 40);
 		QCOMPARE(pileups[0].indels().count(), 29);
-		QCOMPARE(pileups[0].indels().filter("-1").count(), 2);
-		QCOMPARE(pileups[0].indels().filter(QRegExp("^\\+T$")).count(), 18);
+		QCOMPARE(pileups[0].indels().count("-1"), 2);
+		QCOMPARE(pileups[0].indels().count("+T"), 18);
 		QCOMPARE(pileups[0].indels().count("+TT"), 9);
 		QCOMPARE(pileups.count(), 1);
 	}
@@ -120,7 +130,7 @@ private slots:
 		QCOMPARE(pileups[1].depth(true, true), 42);
 		QCOMPARE(pileups[1].t(), 42);
 		QCOMPARE(pileups[1].indels().count(), 1);
-		QCOMPARE(pileups[1].indels()[0], QString("+TT"));
+		QCOMPARE(pileups[1].indels()[0], Sequence("+TT"));
 		QCOMPARE(pileups[2].depth(true, true), 42);
 		QCOMPARE(pileups[2].t(), 42);
 		QCOMPARE(pileups[2].indels().count(), 0);
@@ -134,8 +144,8 @@ private slots:
 		QCOMPARE(pileups[5].depth(true, true), 42);
 		QCOMPARE(pileups[5].t(), 40);
 		QCOMPARE(pileups[5].indels().count(), 29);
-		QCOMPARE(pileups[5].indels().filter("-1").count(), 2);
-		QCOMPARE(pileups[5].indels().filter(QRegExp("^\\+T$")).count(), 18);
+		QCOMPARE(pileups[5].indels().count("-1"), 2);
+		QCOMPARE(pileups[5].indels().count("+T"), 18);
 		QCOMPARE(pileups[5].indels().count("+TT"), 9);
 		QCOMPARE(pileups[6].depth(true, true), 42);
 		QCOMPARE(pileups[6].t(), 42);
@@ -170,7 +180,7 @@ private slots:
 
 		BamReader reader;
 		NGSHelper::openBAM(reader, QFINDTESTDATA("data_in/panel.bam"));
-		QStringList indels;
+		QVector<Sequence> indels;
 		int depth;
 		double mapq0_frac;
 

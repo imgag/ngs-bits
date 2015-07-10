@@ -1,6 +1,8 @@
 #ifndef PILEUP_H
 #define PILEUP_H
 
+#include "Sequence.h"
+#include <QVector>
 #include <QStringList>
 #include "cppNGS_global.h"
 
@@ -62,17 +64,17 @@ public:
       @note Insersions are inserted just before the position, deletions start at the position.
       @note Insersions start with '+', deletions start with  '-'.
     */
-    const QStringList& indels() const
+	const QVector<Sequence>& indels() const
     {
         return indels_;
     }
 	///Adds indel to the list.
-    void addIndel(const QString& indel)
+	void addIndel(const Sequence& indel)
     {
         indels_.append(indel);
     }
 	///Adds indels to the list.
-    void addIndels(const QStringList& indels)
+	void addIndels(const QVector<Sequence>& indels)
     {
         indels_ << indels;
     }
@@ -95,7 +97,7 @@ protected:
     int t_;
     int n_;
     int del_;
-    QStringList indels_;
+	QVector<Sequence> indels_;
 	double mapq0_frac_;
 };
 

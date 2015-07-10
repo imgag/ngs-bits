@@ -67,7 +67,7 @@ FastaFileIndex::~FastaFileIndex()
 	fclose(file_);
 }
 
-QByteArray FastaFileIndex::seq(const Chromosome& chr, bool to_upper) const
+Sequence FastaFileIndex::seq(const Chromosome& chr, bool to_upper) const
 {
 	const FastaIndexEntry& entry = index(chr);
 	int newlines_in_sequence = entry.length / entry.line_blen;
@@ -81,14 +81,14 @@ QByteArray FastaFileIndex::seq(const Chromosome& chr, bool to_upper) const
 	pend = remove(pbegin, pend, '\n');
 	pend = remove(pbegin, pend, '\0');
 
-	QByteArray output(seq);
+	Sequence output(seq);
 	free(seq);
 	output.resize((pend - pbegin)/sizeof(char));
 	if (to_upper) output = output.toUpper();
 	return output;
 }
 
-QByteArray FastaFileIndex::seq(const Chromosome& chr, int start, int length, bool to_upper) const
+Sequence FastaFileIndex::seq(const Chromosome& chr, int start, int length, bool to_upper) const
 {
 	//subtract 1 to make the coordinates 0-based
 	start -= 1;
@@ -115,7 +115,7 @@ QByteArray FastaFileIndex::seq(const Chromosome& chr, int start, int length, boo
 	pend = remove(pbegin, pend, '\n');
 	pend = remove(pbegin, pend, '\0');
 
-	QByteArray output(seq);
+	Sequence output(seq);
 	free(seq);
 	output.resize((pend - pbegin)/sizeof(char));
 	if (to_upper) output = output.toUpper();

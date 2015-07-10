@@ -64,7 +64,8 @@ HEADERS += BedFile.h \
     FastaFileIndex.h \
     VariantAnnotationDescription.h \
     QCCollection.h \
-    StatisticsReads.h
+    StatisticsReads.h \
+    Sequence.h
 
 
 RESOURCES += \

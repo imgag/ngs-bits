@@ -88,7 +88,7 @@ QCCollection Statistics::variantList(const VariantList& variants)
     for(int i=0; i<variants.count(); ++i)
     {
         const Variant& var = variants[i];
-		if (var.ref().count()>1 || var.obs().count()>1)
+		if (var.ref().length()>1 || var.obs().length()>1)
         {
             ++indel_count;
         }

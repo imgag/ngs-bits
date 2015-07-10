@@ -1,4 +1,4 @@
-=== TODO  ===
+=== TODO ===
 Tools:
  - GSvar:
   - store/highlight preferred transcripts
@@ -10,7 +10,6 @@ Tools:
   - create plots without python
  * BedInfo: flag - prepend file name to each output line - for piping into grep, make input optional (STDIN as default)
  * BedSubract: make output parameter optional (stdout)
- - TSVview: add positional noise option (in %) to scatter plot
  * Fastq2Fasta: add
  - VariantAnnotateNGSD: remove sample count from ihdb_hom/het/wt and move it to description
 
@@ -28,15 +27,15 @@ CnvHunter
  - instead of fixed 'n', majority vote for CNVs for n>=10 and n<=30?
 
 cppNGS:
- * implement Sequence class for DNA/RNA sequences
- * Variant/VariantAnnotationDescription: use QByteArray instead of QString/Sequence for members
+ * Variant.annotations(): use QByteArray instead of QString for members
  * use al.IsProperPair() only for insert size calulcation, not for mapping/exon statistics
- * Qt 5.5: remove QScript dependency (deprecated)
+
+Florian:
+ - VcfLeftAlign::test02() ##FORMAT=<ID=.,Number=1,Type=String,Description=\"\">
 
 TFW:
  * namespace TFW
  * basic/NGS tests
- * own repository
  * ASSERT_TRUE, ASSERT_FALSE, ASSERT_EQ, ASSERT_EQ_F, ASSERT_THROW
  * deactivate single/slow tests (notice to user)
  * cli: regexp test filter (pos and neg)

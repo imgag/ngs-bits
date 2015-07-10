@@ -82,7 +82,7 @@ Pileup NGSHelper::getPileup(BamTools::BamReader& reader, const Chromosome& chr, 
 		//indels
 		if (indel_window>=0)
 		{
-			QStringList indels;
+			QVector<Sequence> indels;
 			NGSHelper::extractIndelsByCIGAR(indels, al, pos, indel_window);
 			output.addIndels(indels);
 		}
@@ -144,7 +144,7 @@ void NGSHelper::getPileups(QList<Pileup>& pileups, BamReader& reader, const Chro
 			{
 				if (genome_pos>=start)
 				{
-					pileups[genome_pos-start].addIndel(QString::fromStdString("+" + al.QueryBases.substr(read_pos, op.Length)));
+					pileups[genome_pos-start].addIndel(QByteArray("+") + al.QueryBases.substr(read_pos, op.Length).c_str());
 				}
 
 				read_pos += op.Length;
@@ -153,7 +153,7 @@ void NGSHelper::getPileups(QList<Pileup>& pileups, BamReader& reader, const Chro
 			{
 				if (genome_pos>=start)
 				{
-					pileups[genome_pos-start].addIndel(QString::fromStdString("-") + QString::number(op.Length));
+					pileups[genome_pos-start].addIndel("-" + QByteArray::number(op.Length));
 				}
 				for (unsigned int j=0; j<op.Length; ++j)
 				{
@@ -211,14 +211,22 @@ VariantDetails NGSHelper::getVariantDetails(BamReader& reader, const FastaFileIn
 		//qDebug() << "REG:" << reg.first << reg.second;
 
 		//get indels from region
-		QStringList indels;
+		QVector<Sequence> indels;
 		NGSHelper::getIndels(reference, reader, variant.chr(), reg.first-1, reg.second+1, indels, output.depth, output.mapq0_frac);
 		//qDebug() << "INDELS:" << indels.join(" ");
 
-		//count indels according to type
+		//count indels
 		if (variant.ref()!="-" && variant.obs()!="-")
 		{
-			output.frequency = std::min(indels.filter("+").count(), indels.filter("-").count());
+			int c_ins = 0;
+			int c_del = 0;
+			foreach(const Sequence& indel, indels)
+			{
+				if (indel[0]=='+') ++c_ins;
+				else if (indel[0]=='-') ++c_del;
+
+			}
+			output.frequency = std::min(c_ins, c_del);
 		}
 		else if (variant.ref()=="-")
 		{
@@ -236,7 +244,7 @@ VariantDetails NGSHelper::getVariantDetails(BamReader& reader, const FastaFileIn
 	return output;
 }
 
-void NGSHelper::getIndels(const FastaFileIndex& reference, BamReader& reader, const Chromosome& chr, int start, int end, QStringList& indels, int& depth, double& mapq0_frac)
+void NGSHelper::getIndels(const FastaFileIndex& reference, BamReader& reader, const Chromosome& chr, int start, int end, QVector<Sequence>& indels, int& depth, double& mapq0_frac)
 {
 	//init
 	indels.clear();
@@ -308,7 +316,7 @@ void NGSHelper::getIndels(const FastaFileIndex& reference, BamReader& reader, co
 			{
 				if (genome_pos>=start && genome_pos<=end)
 				{
-					indels.append(QString::fromStdString("+" + al.QueryBases.substr(read_pos, op.Length)));
+					indels.append(QByteArray("+") + al.QueryBases.substr(read_pos, op.Length).c_str());
 				}
 				read_pos += op.Length;
 			}
@@ -316,7 +324,7 @@ void NGSHelper::getIndels(const FastaFileIndex& reference, BamReader& reader, co
 			{
 				if (genome_pos>=start && genome_pos<=end)
 				{
-					indels.append(QString("-") + reference.seq(chr.str(), genome_pos, op.Length));
+					indels.append("-" + reference.seq(chr.str(), genome_pos, op.Length));
 				}
 				genome_pos += op.Length;
 			}
@@ -409,7 +417,7 @@ QPair<char, int> NGSHelper::extractBaseByCIGAR(const BamAlignment& al, int pos)
 	THROW(Exception, "Could not find position  " + QString::number(pos) + " in read " + QString::fromStdString(al.QueryBases) + " with start position " + QString::number(al.Position + 1) + "!");
 }
 
-void NGSHelper::extractIndelsByCIGAR(QStringList& indels, BamAlignment& al, int pos, int indel_window)
+void NGSHelper::extractIndelsByCIGAR(QVector<Sequence>& indels, BamAlignment& al, int pos, int indel_window)
 {
 	//init
 	bool use_window = (indel_window!=0);
@@ -434,7 +442,7 @@ void NGSHelper::extractIndelsByCIGAR(QStringList& indels, BamAlignment& al, int 
 			if ((!use_window && genome_pos==pos) || (use_window && genome_pos>=window_start && genome_pos<=window_end))
 			{
 				al.BuildCharData();
-				indels.append(QString::fromStdString("+" + al.QueryBases.substr(read_pos, op.Length)));
+				indels.append(QByteArray("+") + al.QueryBases.substr(read_pos, op.Length).c_str());
 			}
 
 			read_pos += op.Length;
@@ -443,7 +451,7 @@ void NGSHelper::extractIndelsByCIGAR(QStringList& indels, BamAlignment& al, int 
 		{
 			if ((!use_window && genome_pos==pos) || (use_window && genome_pos>=window_start && genome_pos<=window_end))
 			{
-				indels.append(QString::fromStdString("-") + QString::number(op.Length));
+				indels.append("-" + QByteArray::number(op.Length));
 			}
 			genome_pos += op.Length;
 		}

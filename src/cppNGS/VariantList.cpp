@@ -13,13 +13,13 @@ Variant::Variant()
 	: chr_()
 	, start_(-1)
 	, end_(-1)
-	, ref_("")
-	, obs_("")
+	, ref_()
+	, obs_()
 	, annotations_()
 {
 }
 
-Variant::Variant(const Chromosome& chr, int start, int end, const QString& ref, const QString& obs, const QStringList& annotations)
+Variant::Variant(const Chromosome& chr, int start, int end, const Sequence& ref, const Sequence& obs, const QStringList& annotations)
 	: chr_(chr)
 	, start_(start)
 	, end_(end)
@@ -44,7 +44,7 @@ bool Variant::operator<(const Variant& rhs) const
 	return false;
 }
 
-void Variant::normalize(const QString& empty_seq)
+void Variant::normalize(const Sequence& empty_seq)
 {
 	Variant::normalize(start_, ref_, obs_);
 	end_ = start_ + ref_.length() - 1;
@@ -585,9 +585,9 @@ void VariantList::loadFromVCF(QString filename)
 			}
 			QString chrom = line_parts[0];
 			int start_pos = line_parts[1].toInt();
-			QString ref_bases = line_parts[3].toUpper();
-			QString var_bases = line_parts[4].toUpper();
-			int end_pos = start_pos + ref_bases.size()-1;
+			Sequence ref_bases = line_parts[3].toUpper();
+			Sequence var_bases = line_parts[4].toUpper();
+			int end_pos = start_pos + ref_bases.length()-1;
 			QString id_annotation_value = line_parts[2];
 			QString qual_annotation_value = line_parts[5];
 			QString filter_annotation_value = line_parts[6];
@@ -623,7 +623,7 @@ void VariantList::loadFromVCF(QString filename)
 
 			// extract sample-dependent annotations (if present)
 			QHash <QByteArray, QByteArray> dep_annos;
-			if ((line_parts.count()>=10)&&(line_parts[8]!=".")&&(line_parts[9]!="."))//if present: extract sample dependent annotations
+			if (line_parts.count()>=10 && line_parts[8]!="." && line_parts[9]!=".")//if present: extract sample dependent annotations
 			{
 				QList<QByteArray> names = line_parts[8].split(':');
 				QList<QByteArray> values = line_parts[9].split(':');
@@ -899,14 +899,14 @@ void VariantList::leftAlign(QString ref_file)
 	{
 		Chromosome chr = variant->chr();
 		int pos = variant->start();
-		QString ref = variant->ref().toUpper();
-		QString alt = variant->obs().toUpper();
+		Sequence ref = variant->ref().toUpper();
+		Sequence alt = variant->obs().toUpper();
 
 		//skip SNVs
 		if (variant->isSNV()) continue;
 
 		//skip SNVs disguised as indels (ACGT => AXGT)
-		if (!alt.contains(","))
+		if (!alt.contains(','))
 		{
 			Variant v2 = *variant;
 			v2.normalize("");
@@ -921,9 +921,9 @@ void VariantList::leftAlign(QString ref_file)
 		}
 
 		//normalize (remove surrounding bases)
-		QStringList alt_ma = alt.split(',');//list of alternative alleles
+		QList<Sequence> alt_ma = alt.split(',');//list of alternative alleles
 		QVector<int> pos_ma(alt_ma.count(), pos);//vector with size equal to number of alleles and values of pos
-		QVector<QString> ref_ma(alt_ma.count(), ref);//vector with size equal to number of alleles and values of ref
+		QVector<Sequence> ref_ma(alt_ma.count(), ref);//vector with size equal to number of alleles and values of ref
 		bool complex = false;
 		bool tsv_style= false;//(e.g. deletion in VCF: "AG"->"A", deletion in tsv: "G"->"-")
 		for (int i=0; i<alt_ma.count(); ++i)
@@ -960,7 +960,7 @@ void VariantList::leftAlign(QString ref_file)
 			if (ref_ma[i].length()==0)
 			{
 				//block shift insertion
-				QString block = Variant::minBlock(alt_ma[i]);//the normalized alt bases[i](or the smallest non-alternating part of it)
+				Sequence block = Variant::minBlock(alt_ma[i]);//the normalized alt bases[i](or the smallest non-alternating part of it)
 				pos_ma[i] -= block.length();//position is moved to left by size of sequence
 				//as long as the ref matches the normalized alt, position is moved to left by size of sequence
 				while(reference.seq(chr, pos_ma[i], block.length())==block)
@@ -998,7 +998,7 @@ void VariantList::leftAlign(QString ref_file)
 			else if (alt_ma[i].length()==0)
 			{
 				//block shift deletion
-				QString block = Variant::minBlock(ref_ma[i]);
+				Sequence block = Variant::minBlock(ref_ma[i]);
 				while(reference.seq(chr, pos_ma[i], block.length())==block)
 				{
 					pos_ma[i] -= block.length();
@@ -1038,7 +1038,7 @@ void VariantList::leftAlign(QString ref_file)
 		//save left-aligned and normalized ref,alt and pos
 		variant->setRef(ref_ma[0]);
 		variant->setStart(pos_ma[0]);
-		variant->setEnd(pos_ma[0]+ref_ma[0].size()-1);
+		variant->setEnd(pos_ma[0]+ref_ma[0].length()-1);
 		alt = alt_ma[0];
 		for (int i=1; i<alt_ma.count(); ++i)//for each of multiples alt alleles
 		{
@@ -1081,7 +1081,7 @@ void VariantList::checkValid(QString action) const
 	}
 }
 
-void Variant::normalize(int& start, QString& ref, QString& obs)
+void Variant::normalize(int& start, Sequence& ref, Sequence& obs)
 {
 	//remove common first base
 	if((ref.length()!=1 || obs.length()!=1) && ref.length()!=0 && obs.length()!=0 && ref[0]==obs[0])
@@ -1094,8 +1094,8 @@ void Variant::normalize(int& start, QString& ref, QString& obs)
 	//remove common suffix
 	while((ref.length()!=1 || obs.length()!=1) && ref.length()!=0 && obs.length()!=0 && ref.right(1)==obs.right(1))
 	{
-		ref.chop(1);
-		obs.chop(1);
+		ref.resize(ref.length()-1);
+		obs.resize(obs.length()-1);
 	}
 
 	//remove common prefix
@@ -1107,13 +1107,13 @@ void Variant::normalize(int& start, QString& ref, QString& obs)
 	}
 }
 
-QString Variant::minBlock(const QString& seq)
+Sequence Variant::minBlock(const Sequence& seq)
 {
 	int len = seq.length();
 	for (int size=1; size<=len/2; ++size)
 	{
 		if (len%size!=0) continue;
-		QString block = seq.left(size);
+		Sequence block = seq.left(size);
 		//qDebug() << "minBlock - size: " << size << " block: " << block << " rep: " << block.repeated(len/size);
 		if (seq==block.repeated(len/size))
 		{
@@ -1124,11 +1124,11 @@ QString Variant::minBlock(const QString& seq)
 	return seq;
 }
 
-QPair<int, int> Variant::indelRegion(const Chromosome& chr, int start, int end, QString ref, QString obs, const FastaFileIndex& reference)
+QPair<int, int> Variant::indelRegion(const Chromosome& chr, int start, int end, Sequence ref, Sequence obs, const FastaFileIndex& reference)
 {
 	//needed for TSV format
-	ref.replace("-", "");
-	obs.replace("-", "");
+	if (ref=="-") ref = "";
+	if (obs=="-") obs = "";
 
 	//SNV or complex indel => return original position
 	normalize(start, ref, obs);
@@ -1142,7 +1142,7 @@ QPair<int, int> Variant::indelRegion(const Chromosome& chr, int start, int end, 
 	int end_orig = end;
 
 	//determine start/end
-	QString block = minBlock(ref + obs);
+	Sequence block = minBlock(ref + obs);
 	int block_length = block.length();
 	//qDebug() << "BLOCK: " << block;
 

@@ -12,72 +12,72 @@ private slots:
 
 	void static_normalize()
 	{
-		QString ref = "A";
-		QString obs = "AGG";
+		Sequence ref = "A";
+		Sequence obs = "AGG";
 		int pos = 17;
 		Variant::normalize(pos, ref, obs);
-		QCOMPARE(ref, QString(""));
-		QCOMPARE(obs, QString("GG"));
+		QCOMPARE(ref, Sequence(""));
+		QCOMPARE(obs, Sequence("GG"));
 		QCOMPARE(pos, 18);
 
 		ref = "ATG";
 		obs = "AGGTG";
 		pos = 17;
 		Variant::normalize(pos, ref, obs);
-		QCOMPARE(ref, QString(""));
-		QCOMPARE(obs, QString("GG"));
+		QCOMPARE(ref, Sequence(""));
+		QCOMPARE(obs, Sequence("GG"));
 		QCOMPARE(pos, 18);
 
 		ref = "TT";
 		obs = "";
 		pos = 17;
 		Variant::normalize(pos, ref, obs);
-		QCOMPARE(ref, QString("TT"));
-		QCOMPARE(obs, QString(""));
+		QCOMPARE(ref, Sequence("TT"));
+		QCOMPARE(obs, Sequence(""));
 		QCOMPARE(pos, 17);
 
 		ref = "TAT";
 		obs = "TT";
 		pos = 17;
 		Variant::normalize(pos, ref, obs);
-		QCOMPARE(ref, QString("A"));
-		QCOMPARE(obs, QString(""));
+		QCOMPARE(ref, Sequence("A"));
+		QCOMPARE(obs, Sequence(""));
 		QCOMPARE(pos, 18);
 
 		ref = "TCCAT";
 		obs = "TCCT";
 		pos = 17;
 		Variant::normalize(pos, ref, obs);
-		QCOMPARE(ref, QString("A"));
-		QCOMPARE(obs, QString(""));
+		QCOMPARE(ref, Sequence("A"));
+		QCOMPARE(obs, Sequence(""));
 		QCOMPARE(pos, 20);
 
 		ref = "TCCT";
 		obs = "TCCT";
 		pos = 17;
 		Variant::normalize(pos, ref, obs);
-		QCOMPARE(ref, QString("C"));
-		QCOMPARE(obs, QString("C"));
+		QCOMPARE(ref, Sequence("C"));
+		QCOMPARE(obs, Sequence("C"));
 		QCOMPARE(pos, 18);
 
 		ref = "T";
 		obs = "T";
 		pos = 17;
 		Variant::normalize(pos, ref, obs);
-		QCOMPARE(ref, QString("T"));
-		QCOMPARE(obs, QString("T"));
+		QCOMPARE(ref, Sequence("T"));
+		QCOMPARE(obs, Sequence("T"));
 		QCOMPARE(pos, 17);
 	}
 
 	void static_minBlock()
 	{
-		QCOMPARE(Variant::minBlock("ACACAC"), QString("AC"));
-		QCOMPARE(Variant::minBlock("ACAC"), QString("AC"));
-		QCOMPARE(Variant::minBlock("AC"), QString("AC"));
-		QCOMPARE(Variant::minBlock("AAA"), QString("A"));
-		QCOMPARE(Variant::minBlock("CC"), QString("C"));
-		QCOMPARE(Variant::minBlock("ACGTACGT"), QString("ACGT"));
-		QCOMPARE(Variant::minBlock("ACGT"), QString("ACGT"));
+		QCOMPARE(Variant::minBlock("ACACAC"), Sequence("AC"));
+		QCOMPARE(Variant::minBlock("ACAC"), Sequence("AC"));
+		QCOMPARE(Variant::minBlock("AC"), Sequence("AC"));
+		QCOMPARE(Variant::minBlock("AAA"), Sequence("A"));
+		QCOMPARE(Variant::minBlock("CC"), Sequence("C"));
+		QCOMPARE(Variant::minBlock("ACGTACGT"), Sequence("ACGT"));
+		QCOMPARE(Variant::minBlock("ACGT"), Sequence("ACGT"));
 	}
 
 	void static_indelRegion()
@@ -196,72 +196,72 @@ private slots:
 		//tests with empty empty sequence
 		Variant v = Variant("chr1", 17, 17, "A", "AGG");
 		v.normalize();
-		QCOMPARE(v.ref(), QString(""));
-		QCOMPARE(v.obs(), QString("GG"));
+		QCOMPARE(v.ref(), Sequence(""));
+		QCOMPARE(v.obs(), Sequence("GG"));
 		QCOMPARE(v.start(), 18);
 		QCOMPARE(v.end(), 18);
 
 		v = Variant("chr1", 17, 17, "ATG", "AGGTG");
 		v.normalize("");
-		QCOMPARE(v.ref(), QString(""));
-		QCOMPARE(v.obs(), QString("GG"));
+		QCOMPARE(v.ref(), Sequence(""));
+		QCOMPARE(v.obs(), Sequence("GG"));
 		QCOMPARE(v.start(), 18);
 		QCOMPARE(v.end(), 18);
 
 		v = Variant("chr1", 17, 18, "TT", "");
 		v.normalize("");
-		QCOMPARE(v.ref(), QString("TT"));
-		QCOMPARE(v.obs(), QString(""));
+		QCOMPARE(v.ref(), Sequence("TT"));
+		QCOMPARE(v.obs(), Sequence(""));
 		QCOMPARE(v.start(), 17);
 		QCOMPARE(v.end(), 18);
 
 		v = Variant("chr1", 17, 19, "TAT", "TT");
 		v.normalize("");
-		QCOMPARE(v.ref(), QString("A"));
-		QCOMPARE(v.obs(), QString(""));
+		QCOMPARE(v.ref(), Sequence("A"));
+		QCOMPARE(v.obs(), Sequence(""));
 		QCOMPARE(v.start(), 18);
 		QCOMPARE(v.end(), 18);
 
 		//tests with non-empty empty sequence
 		v = Variant("chr1", 17, 17, "A", "AGG");
 		v.normalize("-");
-		QCOMPARE(v.ref(), QString("-"));
-		QCOMPARE(v.obs(), QString("GG"));
+		QCOMPARE(v.ref(), Sequence("-"));
+		QCOMPARE(v.obs(), Sequence("GG"));
 		QCOMPARE(v.start(), 18);
 		QCOMPARE(v.end(), 18);
 
 		v = Variant("chr1", 17, 17, "ATG", "AGGTG");
 		v.normalize("-");
-		QCOMPARE(v.ref(), QString("-"));
-		QCOMPARE(v.obs(), QString("GG"));
+		QCOMPARE(v.ref(), Sequence("-"));
+		QCOMPARE(v.obs(), Sequence("GG"));
 		QCOMPARE(v.start(), 18);
 		QCOMPARE(v.end(), 18);
 
 		v = Variant("chr1", 17, 18, "TT", "");
 		v.normalize("-");
-		QCOMPARE(v.ref(), QString("TT"));
-		QCOMPARE(v.obs(), QString("-"));
+		QCOMPARE(v.ref(), Sequence("TT"));
+		QCOMPARE(v.obs(), Sequence("-"));
 		QCOMPARE(v.start(), 17);
 		QCOMPARE(v.end(), 18);
 
 		v = Variant("chr1", 17, 19, "TAT", "TT");
 		v.normalize("-");
-		QCOMPARE(v.ref(), QString("A"));
-		QCOMPARE(v.obs(), QString("-"));
+		QCOMPARE(v.ref(), Sequence("A"));
+		QCOMPARE(v.obs(), Sequence("-"));
 		QCOMPARE(v.start(), 18);
 		QCOMPARE(v.end(), 18);
 
 		v = Variant("chr18", 65, 65, "A", "AA");
 		v.normalize("-");
-		QCOMPARE(v.ref(), QString("-"));
-		QCOMPARE(v.obs(), QString("A"));
+		QCOMPARE(v.ref(), Sequence("-"));
+		QCOMPARE(v.obs(), Sequence("A"));
 		QCOMPARE(v.start(), 66);
 		QCOMPARE(v.end(), 66);
 
 		v = Variant("chr18", 65, 65, "A", "ATA");
 		v.normalize("-");
-		QCOMPARE(v.ref(), QString("-"));
-		QCOMPARE(v.obs(), QString("TA"));
+		QCOMPARE(v.ref(), Sequence("-"));
+		QCOMPARE(v.obs(), Sequence("TA"));
 		QCOMPARE(v.start(), 66);
 		QCOMPARE(v.end(), 66);
 	}

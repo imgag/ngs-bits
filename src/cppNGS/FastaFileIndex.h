@@ -3,6 +3,7 @@
 
 #include "cppNGS_global.h"
 #include "Chromosome.h"
+#include "Sequence.h"
 #include <QMap>
 
 ///Fasta file index for fast access to seqences in a FASTA file.
@@ -15,9 +16,9 @@ public:
 	~FastaFileIndex();
 
 	///Returns the sequence corresponding to the given chromosome.
-	QByteArray seq(const Chromosome& chr, bool to_upper = true) const;
+	Sequence seq(const Chromosome& chr, bool to_upper = true) const;
 	///Returns the sequence corresponding to the given chromosome and range (start is 1-based). If the coordinates are invalid, an empty string is returned.
-	QByteArray seq(const Chromosome& chr, int start, int length, bool to_upper = true) const;
+	Sequence seq(const Chromosome& chr, int start, int length, bool to_upper = true) const;
 
 	///Returns the length of the given chromosome.
     int lengthOf(const Chromosome& chr) const

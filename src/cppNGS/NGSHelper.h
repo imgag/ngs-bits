@@ -52,7 +52,7 @@ public:
 	  @brief Returns indels for a chromosomal range (1-based) and the depth of the region.
 	  @note Insertions are prefixed with '+', deletions with '-'.
 	*/
-	static void getIndels(const FastaFileIndex& reference, BamTools::BamReader& reader, const Chromosome& chr, int start, int end, QStringList& indels, int& depth, double& mapq0_frac);
+	static void getIndels(const FastaFileIndex& reference, BamTools::BamReader& reader, const Chromosome& chr, int start, int end, QVector<Sequence>& indels, int& depth, double& mapq0_frac);
 
 	///Returns selected SNPs of the hg19 genome (only single base exchange, MAF 20%-80%).
 	static VariantList getSNPs();
@@ -68,7 +68,7 @@ public:
 	  @note Insertions: The string starts with '+' and then contains the bases (e.g. '+TT'). The position is the base @em before which insersion is located.
 	  @note Deletions: the string starts with '-' and then contains the number of bases (e.g. '-2'). The position is the first deleted base.
 	*/
-	static void extractIndelsByCIGAR(QStringList& indels, BamTools::BamAlignment& al, int pos, int indel_window=0);
+	static void extractIndelsByCIGAR(QVector<Sequence>& indels, BamTools::BamAlignment& al, int pos, int indel_window=0);
 
 	///Changes a DNA sequence to reverse/complementary order.
 	static QByteArray changeSeq(const QByteArray& seq, bool rev, bool comp);

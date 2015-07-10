@@ -40,13 +40,13 @@ public:
 		for (int i=0; i<vl.count(); ++i)
 		{
 			Variant& v = vl[i];
-			if (!v.obs().contains(",")) continue;
+			if (!v.obs().contains(',')) continue;
 
 			if (!split) THROW(FileParseException, "Input file contains multi-allelic variants. Split variants using VcfSplitMultiallelic or the -split option of this tool.\nError variant: " + vl[i].toString());
 
-			QStringList obss = vl[i].obs().split(",");
+			QList<Sequence> obss = vl[i].obs().split(',');
 			v.setObs(obss.takeFirst());
-			foreach(QString obs, obss)
+			foreach(const Sequence& obs, obss)
 			{
 				Variant v2 = vl[i]; //here we cannot use 'v' because the list might have been re-allocated due to the append statement below
 				v2.setObs(obs);

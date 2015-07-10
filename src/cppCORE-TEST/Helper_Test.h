@@ -8,6 +8,16 @@ class Helper_Test
 
 private slots:
 
+	void randomNumber()
+	{
+		for (int i=0; i<1000; ++i)
+		{
+			double random = Helper::randomNumber(-1, 1);
+			QVERIFY(random>=-1);
+			QVERIFY(random<=1);
+		}
+	}
+
 	void randomString()
 	{
 		QCOMPARE(Helper::randomString(8).count(), 8);

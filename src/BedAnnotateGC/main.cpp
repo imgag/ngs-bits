@@ -41,10 +41,10 @@ public:
 		for (int i=0; i<file.count(); ++i)
 		{
 			BedLine& r = file[i];
-			QByteArray seq = reference.seq(r.chr(), r.start(), r.length(), true);
+			Sequence seq = reference.seq(r.chr(), r.start(), r.length(), true);
 			int gc = 0;
 			int at = 0;
-			for(int j=0; j<seq.count(); ++j)
+			for(int j=0; j<seq.length(); ++j)
 			{
 				if (seq[j]=='G' || seq[j]=='C') ++gc;
 				else if (seq[j]=='A' || seq[j]=='T') ++at;

@@ -75,7 +75,7 @@ public:
 				}
 
 				//get reference sequence
-				std::string ref_seq = QString(reference.seq(chr, alignment.Position+1, length)).toStdString();
+				std::string ref_seq = reference.seq(chr, alignment.Position+1, length).constData();
 				if (ref_seq=="")
 				{
                     THROW(ArgumentException, "Empty reference sequence returned for chromosomal position '" + chr.str() + ":" + QString::number(alignment.Position) + "' with length '" + QString::number(length) + "!");

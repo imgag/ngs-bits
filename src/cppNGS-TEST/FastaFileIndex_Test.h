@@ -11,43 +11,43 @@ private slots:
 	void seq_complete()
 	{
 		FastaFileIndex index(QFINDTESTDATA("data_in/example.fa"));
-		QByteArray seq = index.seq("chr14", false);
+		Sequence seq = index.seq("chr14", false);
 		QCOMPARE(seq.length(), 1509);
-		QCOMPARE(seq.left(10), QByteArray("ataaaccaac"));
-		QCOMPARE(seq.right(10), QByteArray("tgaaaaataa"));
+		QCOMPARE(seq.left(10), Sequence("ataaaccaac"));
+		QCOMPARE(seq.right(10), Sequence("tgaaaaataa"));
 
 		seq = index.seq("chr15", false);
-		QCOMPARE(seq, QByteArray("cgat"));
+		QCOMPARE(seq, Sequence("cgat"));
 
 		seq = index.seq("chr16", false);
-		QCOMPARE(seq, QByteArray("gattaca"));
+		QCOMPARE(seq, Sequence("gattaca"));
 
 		seq = index.seq("chr17", false);
-		QCOMPARE(seq, QByteArray("acgt"));
+		QCOMPARE(seq, Sequence("acgt"));
 
 		seq = index.seq("chr17");
-		QCOMPARE(seq, QByteArray("ACGT"));
+		QCOMPARE(seq, Sequence("ACGT"));
 	}
 
 	void seq_substr()
 	{
 		FastaFileIndex index(QFINDTESTDATA("data_in/example.fa"));
-		QByteArray seq = index.seq("chr14", 1, 10, false);
-		QCOMPARE(seq, QByteArray("ataaaccaac"));
+		Sequence seq = index.seq("chr14", 1, 10, false);
+		QCOMPARE(seq, Sequence("ataaaccaac"));
 		seq = index.seq("chr14", 1500, 10, false);
-		QCOMPARE(seq, QByteArray("tgaaaaataa"));
+		QCOMPARE(seq, Sequence("tgaaaaataa"));
 
 		seq = index.seq("chr15", 1, 4, false);
-		QCOMPARE(seq, QByteArray("cgat"));
+		QCOMPARE(seq, Sequence("cgat"));
 
 		seq = index.seq("chr16", 1, 4, false);
-		QCOMPARE(seq, QByteArray("gatt"));
+		QCOMPARE(seq, Sequence("gatt"));
 
 		seq = index.seq("chr17", 1, 4, false);
-		QCOMPARE(seq, QByteArray("acgt"));
+		QCOMPARE(seq, Sequence("acgt"));
 
 		seq = index.seq("chr17", 1, 4);
-		QCOMPARE(seq, QByteArray("ACGT"));
+		QCOMPARE(seq, Sequence("ACGT"));
 	}
 
 	void seq_substr_large()
@@ -56,17 +56,17 @@ private slots:
 		if (ref_file=="") QSKIP("Test needs the reference genome!");
 
 		FastaFileIndex index(ref_file);
-		QByteArray seq = index.seq("chr16", 87637935, 1);
-		QCOMPARE(seq, QByteArray("G"));
+		Sequence seq = index.seq("chr16", 87637935, 1);
+		QCOMPARE(seq, Sequence("G"));
 
 		seq = index.seq("chr16", 87637934, 3);
-		QCOMPARE(seq, QByteArray("TGT"));
+		QCOMPARE(seq, Sequence("TGT"));
 
 		seq = index.seq("chr16", 87637933, 5);
-		QCOMPARE(seq, QByteArray("CTGTA"));
+		QCOMPARE(seq, Sequence("CTGTA"));
 
 		seq = index.seq("chrUn_gl000249", 1, 5);
-		QCOMPARE(seq, QByteArray("GATCA"));
+		QCOMPARE(seq, Sequence("GATCA"));
 	}
 
 	void lengthOf()

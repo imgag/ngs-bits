@@ -18,7 +18,7 @@ public:
     ///Default constructor.
     Variant();
     ///Convenience constructor.
-    Variant(const Chromosome& chr, int start, int end, const QString& ref, const QString& obs, const QStringList& annotations = QStringList());
+	Variant(const Chromosome& chr, int start, int end, const Sequence& ref, const Sequence& obs, const QStringList& annotations = QStringList());
 
     ///Returns the chromosome.
     const Chromosome& chr() const
@@ -51,22 +51,22 @@ public:
         end_ = end;
     }
     ///Returns the reference base.
-    const QString& ref() const
+	const Sequence& ref() const
     {
         return ref_;
     }
     ///Sets the reference base.
-    void setRef(const QString& ref)
+	void setRef(const Sequence& ref)
     {
         ref_ = ref;
     }
     ///Returns the observed base.
-    const QString& obs() const
+	const Sequence& obs() const
     {
         return obs_;
     }
     ///Sets the observed base.
-    void setObs(const QString& obs)
+	void setObs(const Sequence& obs)
     {
         obs_ = obs;
     }
@@ -94,34 +94,34 @@ public:
     {
         return (start_>=start && start_<=end) || (start>=start_ && start<=end_);
     }
-    ///Returns if the variant is a SNV
+	///Returns if the variant is a SNV
     bool isSNV() const
     {
-        return obs_.count()==1 && ref_.count()==1 && obs_!="-" && ref_!="-";
+		return obs_.length()==1 && ref_.length()==1 && obs_!="-" && ref_!="-";
     }
     ///Returns the coordinates and base exchange as a string e.g. "chr1:3435345-3435345 A>G"
     QString toString() const
     {
-        return chr_.str() + ":" + QString::number(start_) + "-" + QString::number(end_) + " " + ref_ + ">" + obs_;
+		return chr_.str() + ":" + QString::number(start_) + "-" + QString::number(end_) + " " + ref_ + ">" + obs_;
     }
     /// Removes the common prefix/suffix from indels, adapts the start/end position and replaces empty sequences with a custom string.
-    void normalize(const QString& empty_seq="");
+	void normalize(const Sequence& empty_seq="");
 
     ///Auxilary function: Removes common prefix and suffix bases from indels and adapts the start position accordingly.
-    static void normalize(int& start, QString& ref, QString& obs);
+	static void normalize(int& start, Sequence& ref, Sequence& obs);
     ///Auxilary function: Returns the smallest repeated subsequence of an indel or the complete input sequence if it has no repeat.
-    static QString minBlock(const QString& seq);
+	static Sequence minBlock(const Sequence& seq);
 	///Auxilary function: Returns the repeat region of an indel (1-based, closed interval).
 	///@note Returns the original start/end position if the variant is a SNV, a complex index or not in a repeat region.
 	///@note Expects 1-based closed intervals are positions (insertions are after given position).
-    static QPair<int, int> indelRegion(const Chromosome& chr, int start, int end, QString ref, QString obs, const FastaFileIndex& reference);
+	static QPair<int, int> indelRegion(const Chromosome& chr, int start, int end, Sequence ref, Sequence obs, const FastaFileIndex& reference);
 
 protected:
     Chromosome chr_;
     int start_;
     int end_;
-    QString ref_;
-    QString obs_;
+	Sequence ref_;
+	Sequence obs_;
     QStringList annotations_;
 
 };
