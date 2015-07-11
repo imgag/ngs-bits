@@ -17,11 +17,11 @@ public:
 	virtual void setup()
 	{
 		setDescription("Extends the regions in a BED file.");
-		addInfile("in", "Input BED file.", false, true);
-		addOutfile("out", "Output BED file.", false, true);
 		addInt("n", "The number of bases to extend (on both sides of each region).", false);
 		//optional
-		addInfile("fai", "Optional FASTA index file that determines the maximum position for each chromosome.", true, true);
+		addInfile("in", "Input BED file. If unset, reads from STDIN.", true);
+		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
+		addInfile("fai", "Optional FASTA index file that determines the maximum position for each chromosome.", true);
 	}
 
 	virtual void main()

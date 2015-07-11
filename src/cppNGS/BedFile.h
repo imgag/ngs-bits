@@ -94,6 +94,12 @@ public:
         return (start_==end+1 || end_==start-1);
     }
 
+	///Converts the position part of the line to a string
+	QString toString(char delimiter = ' ')
+	{
+		return chr().str() + delimiter + QString::number(start()) + delimiter + QString::number(end());
+	}
+
 protected:
     Chromosome chr_;
     int start_;

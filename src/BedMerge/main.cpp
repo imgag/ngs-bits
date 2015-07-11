@@ -15,9 +15,9 @@ public:
 	virtual void setup()
 	{
 		setDescription("Merges overlapping regions in a BED file.");
-		addInfile("in", "Input BED file.", false, true);
-		addOutfile("out", "Output BED file.", false, true);
 		//optional
+		addInfile("in", "Input BED file. If unset, reads from STDIN.", true);
+		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
 		addFlag("keep_b2b", "Do not merge non-overlapping but adjacent (back-to-back) regions.");
 		addFlag("merge_names", "Merge name columns instead of removing all annotations.");
 	}

@@ -17,11 +17,11 @@ public:
 	virtual void setup()
 	{
 		setDescription("Annotates the regions in a BED file with the name from a database BED file.");
-		addInfile("in", "Input BED file.", false, true);
-		addOutfile("out", "Output BED file.", false, true);
 		//optional
-		addInfile("db", "Database BED file containing names in the 4th column. If unset 'ccds' from the 'settings.ini' file is used.", true, true);
-		addInt("extend", "The number of bases to extend the database regions at start/end.", true, 0);
+		addInfile("in", "Input BED file. If unset, reads from STDIN.", true);
+		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
+		addInfile("db", "Database BED file containing names in the 4th column. If unset, 'ccds' from the 'settings.ini' file is used.", true, true);
+		addInt("extend", "The number of bases to extend the database regions at start/end before annotation.", true, 0);
 	}
 
 	virtual void main()

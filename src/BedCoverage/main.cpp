@@ -17,12 +17,13 @@ public:
 	virtual void setup()
 	{
 		setDescription("Extracts the average coverage for input regions from one or several BAM file(s).");
-		addInfile("in", "Input BED file containing the regions of interest. Note that overlapping regions will be merged before determining the coverage.", false, true);
-		addInfileList("bam", "Input BAM file(s).", false, true);
+		addInfileList("bam", "Input BAM file(s).", false);
 		addFlag("anom", "Also consider anomalous reads.");
 		addInt("min_mapq", "Minimum mapping quality.", true, 1);
 		//optional
-		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
+		addInfile("in", "Input BED file (note that overlapping regions will be merged before processing). If unset, reads from STDIN.", true);
+		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
+
 	}
 
 	virtual void main()

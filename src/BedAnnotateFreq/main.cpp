@@ -23,49 +23,43 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Annotate variant frequencies on a per nucleotide level from bam files.");
-		addInfile("in", "Input BED file containing regions (SNVs only).", false, true);
-		addInfileList("bam", "Input BAM file(s).", false, true);
-		addOutfile("out", "Output overview file.", false, true);
+		setDescription("Extracts base frequencies for given regions from BAMs files.");
+		addInfileList("bam", "Input BAM file(s).", false);
+		//optional
+		addInfile("in", "Input BED file. If unset, reads from STDIN.", true);
+		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
+
 	}
 
 	virtual void main()
 	{
-		//load regions
+		//init
+		QStringList bams = getInfileList("bam");
+
+		//open output stream
+		QString out = getOutfile("out");
+		QScopedPointer<QFile> outfile(Helper::openFileForWriting(out, true));
+		QTextStream outstream(outfile.data());
+		outstream << "#chr\tstart\tend\tsample\tA\tC\tG\tT\ttotal\n";
+
+		//extract base counts form BAMs
 		BedFile file;
 		file.load(getInfile("in"));
-
-		//extract nucleotide information from pileup
-		QStringList bams = getInfileList("bam");
-		QStringList outlines;
-		outlines.append("#chr\tstart\tend\tsample\tA\tC\tG\tT\ttotal");	//set header
-		for(int i=0;i<file.count();++i)
+		for(int i=0; i<file.count(); ++i)
 		{
-			int start = file[i].start();
-			int end = file[i].end();
-			if(file[i].length() != 1) // throw error if not SNV
+			if(file[i].length()!=1)
 			{
-				THROW(ToolFailedException, "BED file contains indels (end - start > 1)!");
+				THROW(ToolFailedException, "BED file contains region with length > 1, which is not supported: " + file[i].toString());
 			}
 
 			foreach(QString bam, bams)
 			{
 				BamReader reader;
-				NGSHelper::openBAM(reader,bam);	//open bam file
-				Pileup pileup = NGSHelper::getPileup(reader, file[i].chr(), end);
+				NGSHelper::openBAM(reader, bam);
+				Pileup pileup = NGSHelper::getPileup(reader, file[i].chr(), file[i].end());
 
-				QString tmp = file[i].chr().str()+"\t"+QString::number(start)+"\t"+QString::number(end)+"\t"+QFileInfo(bam).baseName()+"\t"+QString::number(pileup.a())+"\t"+QString::number(pileup.c())+"\t"+QString::number(pileup.g())+"\t"+QString::number(pileup.t())+"\t"+QString::number(pileup.depth(false));
-				outlines.append(tmp);
+				outstream << file[i].toString('\t')+"\t"+QFileInfo(bam).baseName()+"\t"+QString::number(pileup.a())+"\t"+QString::number(pileup.c())+"\t"+QString::number(pileup.g())+"\t"+QString::number(pileup.t())+"\t"+QString::number(pileup.depth(false)) + "\n";
 			}
-		}
-
-		//save
-		QString out = getOutfile("out");
-		QScopedPointer<QFile> outfile(Helper::openFileForWriting(out));
-		QTextStream stream(outfile.data());
-		foreach(const QString& line, outlines)
-		{
-			stream << line.toLatin1()+"\n";
 		}
 	}
 };

@@ -17,11 +17,11 @@ public:
 	virtual void setup()
 	{
 		setDescription("Detects low-coverage regions from a BAM file.");
-		addInfile("in", "Input BED file containing the regions of interest.", false, true);
-		addInfile("bam", "Input BAM file.", false, true);
+		addInfile("bam", "Input BAM file.", false);
 		addInt("cutoff", "Minimum depth to consider a base 'high coverage'.", false);
-		addOutfile("out", "Output BED file.", false, true);
 		//optional
+		addInfile("in", "Input BED file containing the regions of interest. If unset, reads from STDIN.", true);
+		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
 		addFlag("single", "Also consider singletons (not prooperly paired, or single-end mapping).");
 		addInt("min_mapq", "Minimum mapping quality to consider a read.", true, 1);
 	}

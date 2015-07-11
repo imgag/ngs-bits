@@ -19,10 +19,10 @@ public:
 	virtual void setup()
 	{
 		setDescription("Calculates how much of each overlapping gene is covered.");
-		addInfile("in", "Input BED file.", false, true);
 		//optional
+		addInfile("in", "Input BED file. If unset, reads from STDIN.", true);
 		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
-		addInfile("db", "The database file to use. A BED file containing all exons with gene names. If unset 'ccds_merged' from the 'settings.ini' file is used.", true, true);
+		addInfile("db", "The database file to use. A BED file containing all exons with gene names. If unset 'ccds_merged' from the 'settings.ini' file is used.", true);
 	}
 
 	virtual void main()

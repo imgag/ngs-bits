@@ -6,32 +6,31 @@ Tools:
   - new technical report
  - SampleOverview: add option for BAM files (check depth where variant is not found)
  - ReadQC:
-  - add single-end mode
+  * add single-end mode
   - create plots without python
- * BedSubract: make output parameter optional (stdout)
  * Fastq2Fasta: add
- - VariantAnnotateNGSD: remove sample count from ihdb_hom/het/wt and move it to description
- * BamLeftAlign: remove (other tools as well?)
+ # VariantAnnotateNGSD: remove sample count from ihdb_hom/het/wt and move it to description
+ # BamLeftAlign: remove (other tools as well?, move script to find unused tools to php respository)
 
 CnvHunter
- # set min STDEV to 15% of mean (was 10%, make it a parameter)
- # do not use bad regions for sample correlation calculation - remove bad regions after writing regions file...
- # do not exclude extreme outliers from reference sample calculation - we use median/mad
- # why "data[s].ref.append(exon_median);" - always use median/mad!?
- * annotate number of CNVs for each region in result file
- * determine z-score cutoff for each sample individually?
- * merge larger regions to one region - otherwise they may be filter out
+ - set min STDEV to 15% of mean (was 10%, make it a parameter)
+ - do not use bad regions for sample correlation calculation - remove bad regions after writing regions file...
+ - do not exclude extreme outliers from reference sample calculation - we use median/mad
+ - why "data[s].ref.append(exon_median);" - always use median/mad!?
+ - annotate number of CNVs for each region in result file
+ - determine z-score cutoff for each sample individually?
+ - merge larger regions to one region - otherwise they may be filter out
  - integrate CNV databases:
    - http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/
    - https://decipher.sanger.ac.uk/disorders#syndromes/overview
  - instead of fixed 'n', majority vote for CNVs for n>=10 and n<=30?
 
 cppNGS:
- * use al.IsProperPair() only for insert size calulcation, not for mapping/exon statistics
+ # use al.IsProperPair() only for insert size calulcation, not for mapping/exon statistics
 
 Tests:
- * speed up tests
- * reduce large test data dependency => check in all test data
+ # speed up tests
+ # reduce large test data dependency => check in all test data
 
 TFW:
  * namespace TFW

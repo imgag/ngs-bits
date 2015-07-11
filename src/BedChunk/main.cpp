@@ -17,21 +17,17 @@ public:
 	virtual void setup()
 	{
 		setDescription("Splits all regions to chunks of an approximate desired size.");
-		addInfile("in", "Input BED file.", false, true);
-		addOutfile("out", "Output BED file.", false, true);
 		addInt("n", "The desired chunk size. Note: Not all chunks will have this size. Regions are split to chunks that are closest to the the desired size.", false);
+		//optional
+		addInfile("in", "Input BED file. If unset, reads from STDIN.", true);
+		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
 	}
 
 	virtual void main()
 	{
-		//load and extend file
 		BedFile file;
 		file.load(getInfile("in"));
-
-		//process
 		file.chunk(getInt("n"));
-
-		//store file
 		file.store(getOutfile("out"));
 	}
 };

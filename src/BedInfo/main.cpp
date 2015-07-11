@@ -26,7 +26,7 @@ public:
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
 		addFlag("nomerge", "If set, the input is not merged before printing statistics.");
 		addFlag("filename", "If set, prints the input file name before each line.");
-		addInfile("fai", "If set, checks that the maximum position for each chromosome is not exceeded.", true, true);
+		addInfile("fai", "If set, checks that the maximum position for each chromosome is not exceeded.", true);
 	}
 
 	virtual void main()

@@ -20,9 +20,9 @@ public:
 	{
 		setDescription("Annotates GC content fraction to regions in a BED file.");
 		//optional
-		addInfile("in", "Input BED file. If unset, reads from STDIN.", true, true);
+		addInfile("in", "Input BED file. If unset, reads from STDIN.", true);
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
-		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
+		addInfile("ref", "Reference genome FASTA file. If unset, 'reference_genome' from the 'settings.ini' file is used.", true, false);
 	}
 
 	virtual void main()
