@@ -1,11 +1,9 @@
 #include "TestFramework.h"
 #include "BedFile.h"
 
-class BedLine_Test
-		: public QObject
+TEST_CLASS(BedLine_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 
 	void overlapsWithComplete()
@@ -62,5 +60,3 @@ private slots:
 	}
 
 };
-
-TFW_DECLARE(BedLine_Test)

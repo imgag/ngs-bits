@@ -1,11 +1,9 @@
 #include "TestFramework.h"
 #include "Settings.h"
 
-class VcfLeftAlign_Test
-		: public QObject
+TEST_CLASS(VcfLeftAlign_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 	
 	void test_01()
@@ -28,6 +26,4 @@ private slots:
 	}
 
 };
-
-TFW_DECLARE(VcfLeftAlign_Test)
 

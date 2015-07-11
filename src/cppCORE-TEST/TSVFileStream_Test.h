@@ -1,11 +1,9 @@
 #include "TestFramework.h"
 #include "TSVFileStream.h"
 
-class TSVFileStream_Test
-		: public QObject
+TEST_CLASS(TSVFileStream_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 
 	void empty()
@@ -95,5 +93,3 @@ private slots:
 		QCOMPARE(stream.atEnd(), true);
 	}
 };
-
-TFW_DECLARE(TSVFileStream_Test)

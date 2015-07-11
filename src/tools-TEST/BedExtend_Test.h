@@ -1,10 +1,8 @@
 #include "TestFramework.h"
 
-class BedExtend_Test
-		: public QObject
+TEST_CLASS(BedExtend_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 	
 	void test_01()
@@ -20,7 +18,3 @@ private slots:
 	}
 
 };
-
-TFW_DECLARE(BedExtend_Test)
-
-

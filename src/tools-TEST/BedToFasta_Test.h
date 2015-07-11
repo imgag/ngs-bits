@@ -1,11 +1,9 @@
 #include "TestFramework.h"
 #include "Settings.h"
 
-class BedToFasta_Test
-		: public QObject
+TEST_CLASS(BedToFasta_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 	
 	void test_01()
@@ -18,6 +16,3 @@ private slots:
 	}
 
 };
-
-TFW_DECLARE(BedToFasta_Test)
-

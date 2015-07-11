@@ -1,11 +1,9 @@
 #include "TestFramework.h"
 #include "Settings.h"
 
-class GenesToBed_Test
-		: public QObject
+TEST_CLASS(GenesToBed_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 	
 	void kgxref()
@@ -57,7 +55,4 @@ private slots:
 	}
 
 };
-
-TFW_DECLARE(GenesToBed_Test)
-
 

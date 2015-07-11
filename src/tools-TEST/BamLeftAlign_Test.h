@@ -1,11 +1,9 @@
 #include "TestFramework.h"
 #include "Settings.h"
 
-class BamLeftAlign_Test
-		: public QObject
+TEST_CLASS(BamLeftAlign_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 	
 	void test_01()
@@ -19,5 +17,3 @@ private slots:
 	}
 	
 };
-
-TFW_DECLARE(BamLeftAlign_Test)

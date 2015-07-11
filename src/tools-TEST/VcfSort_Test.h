@@ -1,10 +1,8 @@
 #include "TestFramework.h"
 
-class VcfSort_Test
-		: public QObject
+TEST_CLASS(VcfSort_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 	
 	void test_01()
@@ -21,5 +19,4 @@ private slots:
 
 };
 
-TFW_DECLARE(VcfSort_Test)
 

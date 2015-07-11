@@ -1,11 +1,9 @@
 #include "TestFramework.h"
 #include "Settings.h"
 
-class GenesToApproved_Test
-		: public QObject
+TEST_CLASS(GenesToApproved_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 	
 	void test_01()
@@ -18,7 +16,4 @@ private slots:
 	}
 
 };
-
-TFW_DECLARE(GenesToApproved_Test)
-
 

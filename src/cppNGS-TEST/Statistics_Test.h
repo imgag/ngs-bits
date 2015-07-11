@@ -3,13 +3,10 @@
 #include "QCCollection.h"
 #include "Statistics.h"
 
-class Statistics_Test
-		: public QObject
+TEST_CLASS(Statistics_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
-
 
 	void variantList1()
 	{
@@ -381,6 +378,4 @@ private slots:
 	}
 
 };
-
-TFW_DECLARE(Statistics_Test)
 

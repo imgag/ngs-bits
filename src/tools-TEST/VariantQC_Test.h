@@ -1,10 +1,8 @@
 #include "TestFramework.h"
 
-class VariantQC_Test
-		: public QObject
+TEST_CLASS(VariantQC_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 	
 	void test_01()
@@ -22,5 +20,4 @@ private slots:
 
 };
 
-TFW_DECLARE(VariantQC_Test)
 

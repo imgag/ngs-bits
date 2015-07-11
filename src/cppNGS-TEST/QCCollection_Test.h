@@ -1,12 +1,11 @@
 #include "TestFramework.h"
 #include "QCCollection.h"
 
-class QCCollection_Test
-		: public QObject
+TEST_CLASS(QCCollection_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
+
 	void storeToQCML()
 	{
 		QCCollection col;
@@ -20,6 +19,3 @@ private slots:
 		TFW::comareFiles("out/QCCollection_qcML_out01.qcML", QFINDTESTDATA("data_out/QCCollection_qcML_out01.qcML"));
 	}
 };
-
-TFW_DECLARE(QCCollection_Test)
-

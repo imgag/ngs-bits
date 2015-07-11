@@ -1,11 +1,9 @@
 #include "TestFramework.h"
 #include "Settings.h"
 
-class VariantAnnotateFrequency_Test
-		: public QObject
+TEST_CLASS(VariantAnnotateFrequency_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 
 	//Test with name and depth arguments
@@ -40,7 +38,5 @@ private slots:
 	}
 
 };
-
-TFW_DECLARE(VariantAnnotateFrequency_Test)
 
 

@@ -1,10 +1,8 @@
 #include "TestFramework.h"
 
-class TsvSlice_Test
-		: public QObject
+TEST_CLASS(TsvSlice_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 	
 	//test with column names
@@ -22,5 +20,4 @@ private slots:
 	}
 };
 
-TFW_DECLARE(TsvSlice_Test)
 

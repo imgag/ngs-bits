@@ -1,10 +1,8 @@
 #include "TestFramework.h"
 
-class BedChunk_Test
-		: public QObject
+TEST_CLASS(BedChunk_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 	
 	void test_01()
@@ -13,7 +11,3 @@ private slots:
 		TFW::comareFiles("out/BedChunk_out1.bed", QFINDTESTDATA("data_out/BedChunk_out1.bed"));
 	}
 };
-
-TFW_DECLARE(BedChunk_Test)
-
-

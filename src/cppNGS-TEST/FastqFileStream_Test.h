@@ -2,11 +2,9 @@
 #include "FastqFileStream.h"
 #include "Helper.h"
 
-class FastqFileStream_Test
-		: public QObject
+TEST_CLASS(FastqFileStream_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 
 	void entry_trimQuality()
@@ -402,6 +400,3 @@ private slots:
 	}
 
 };
-
-TFW_DECLARE(FastqFileStream_Test)
-

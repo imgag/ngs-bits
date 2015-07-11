@@ -1,10 +1,8 @@
 #include "TestFramework.h"
 
-class BedIntersect_Test
-		: public QObject
+TEST_CLASS(BedIntersect_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 	
 	void mode_intersect()
@@ -26,7 +24,3 @@ private slots:
 	}
 
 };
-
-TFW_DECLARE(BedIntersect_Test)
-
-

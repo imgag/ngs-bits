@@ -1,10 +1,8 @@
 #include "TestFramework.h"
 
-class MappingQC_Test
-		: public QObject
+TEST_CLASS(MappingQC_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 	
 	void test_01()
@@ -34,6 +32,3 @@ private slots:
 	}
 
 };
-
-TFW_DECLARE(MappingQC_Test)
-

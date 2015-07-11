@@ -1,10 +1,8 @@
 #include "TestFramework.h"
 
-class FastqConvert_Test
-		: public QObject
+TEST_CLASS(FastqConvert_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 	
 	void test_01()
@@ -14,6 +12,3 @@ private slots:
 	}
 
 };
-
-TFW_DECLARE(FastqConvert_Test)
-

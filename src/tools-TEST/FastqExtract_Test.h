@@ -1,10 +1,8 @@
 #include "TestFramework.h"
 
-class FastqExtract_Test
-		: public QObject
+TEST_CLASS(FastqExtract_Test)
 {
 Q_OBJECT
-
 private slots:
 	
 	void test_01()
@@ -19,7 +17,3 @@ private slots:
 		TFW::comareFilesGZ("out/FastqExtract_out2.fastq.gz", QFINDTESTDATA("data_out/FastqExtract_out2.fastq.gz"));
 	}
 };
-
-TFW_DECLARE(FastqExtract_Test)
-
-

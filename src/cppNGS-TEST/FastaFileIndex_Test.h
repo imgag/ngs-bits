@@ -2,12 +2,11 @@
 #include "FastaFileIndex.h"
 #include "Settings.h"
 
-class FastaFileIndex_Test
-		: public QObject
+TEST_CLASS(FastaFileIndex_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
+
 	void seq_complete()
 	{
 		FastaFileIndex index(QFINDTESTDATA("data_in/example.fa"));
@@ -87,5 +86,3 @@ private slots:
 	}
 
 };
-
-TFW_DECLARE(FastaFileIndex_Test)

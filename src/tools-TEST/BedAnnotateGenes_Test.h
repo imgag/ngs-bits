@@ -1,11 +1,9 @@
 #include "TestFramework.h"
 #include "Settings.h"
 
-class BedAnnotateGenes_Test
-		: public QObject
+TEST_CLASS(BedAnnotateGenes_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 
 	//with default parameters, with 3 columns input
@@ -28,7 +26,3 @@ private slots:
 		TFW::comareFiles("out/BedAnnotateGenes_out2.bed", QFINDTESTDATA("data_out/BedAnnotateGenes_out2.bed"));
 	}
 };
-
-TFW_DECLARE(BedAnnotateGenes_Test)
-
-

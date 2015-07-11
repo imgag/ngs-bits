@@ -4,11 +4,9 @@
 #include "VariantList.h"
 #include "Log.h"
 
-class ChromosomalIndex_Test
-		: public QObject
+TEST_CLASS(ChromosomalIndex_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 
 	void matchingIndices_BedFile()
@@ -230,5 +228,3 @@ private slots:
 	}
 
 };
-
-TFW_DECLARE(ChromosomalIndex_Test)

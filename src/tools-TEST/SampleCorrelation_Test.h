@@ -1,10 +1,8 @@
 #include "TestFramework.h"
 
-class SampleCorrelation_Test
-		: public QObject
+TEST_CLASS(SampleCorrelation_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 	
 	void test_tsv1()
@@ -34,6 +32,3 @@ private slots:
 	}
 	
 };
-
-TFW_DECLARE(SampleCorrelation_Test)
-

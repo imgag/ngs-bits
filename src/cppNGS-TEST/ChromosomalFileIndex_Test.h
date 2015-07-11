@@ -2,12 +2,11 @@
 #include "ChromosomalFileIndex.h"
 #include "VariantList.h"
 
-class ChromosomalFileIndex_Test
-		: public QObject
+TEST_CLASS(ChromosomalFileIndex_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
+
 	void filePosition()
 	{
 		ChromosomalFileIndex index;
@@ -159,5 +158,3 @@ private slots:
 	}
 
 };
-
-TFW_DECLARE(ChromosomalFileIndex_Test)

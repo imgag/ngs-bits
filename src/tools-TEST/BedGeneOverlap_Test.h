@@ -1,11 +1,9 @@
 #include "TestFramework.h"
 #include "Settings.h"
 
-class BedGeneOverlap_Test
-		: public QObject
+TEST_CLASS(BedGeneOverlap_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 	
 	void test_01()
@@ -18,7 +16,3 @@ private slots:
 	}
 
 };
-
-TFW_DECLARE(BedGeneOverlap_Test)
-
-

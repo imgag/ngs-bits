@@ -1,11 +1,9 @@
 #include "TestFramework.h"
 #include "Helper.h"
 
-class Helper_Test
-		: public QObject
+TEST_CLASS(Helper_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 
 	void randomNumber()
@@ -84,5 +82,3 @@ private slots:
 	}
 
 };
-
-TFW_DECLARE(Helper_Test)

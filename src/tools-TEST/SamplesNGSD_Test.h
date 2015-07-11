@@ -2,11 +2,9 @@
 #include "Helper.h"
 #include "Settings.h"
 
-class SamplesNGSD_Test
-		: public QObject
+TEST_CLASS(SamplesNGSD_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 	
 	void test_01()
@@ -38,6 +36,4 @@ private slots:
 	}
 	
 };
-
-TFW_DECLARE(SamplesNGSD_Test)
 

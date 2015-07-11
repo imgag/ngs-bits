@@ -1,10 +1,8 @@
 #include "TestFramework.h"
 
-class FastqTrim_Test
-		: public QObject
+TEST_CLASS(FastqTrim_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 	
 	void test_01()
@@ -20,6 +18,3 @@ private slots:
 	}
 
 };
-
-TFW_DECLARE(FastqTrim_Test)
-

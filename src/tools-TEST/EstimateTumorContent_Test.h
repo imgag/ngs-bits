@@ -1,10 +1,8 @@
 #include "TestFramework.h"
 
-class EstimateTumorContent_Test
-		: public QObject
+TEST_CLASS(EstimateTumorContent_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 	
 	void test_01()
@@ -26,7 +24,3 @@ private slots:
 	}
 
 };
-
-TFW_DECLARE(EstimateTumorContent_Test)
-
-

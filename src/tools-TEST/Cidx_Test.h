@@ -1,10 +1,8 @@
 #include "TestFramework.h"
 
-class Cidx_Test
-		: public QObject
+TEST_CLASS(Cidx_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 	
 	void test_01()
@@ -22,18 +20,5 @@ private slots:
 		TFW_EXEC("Cidx", "-in out/ChromosomalFileIndex2.gff -out out/Cidx_test02_out.tsv -pos 1:0-1000000 -b 1000 -c 0 -s 3 -e 4 -h #");
 		TFW::comareFiles("out/Cidx_test02_out.tsv", QFINDTESTDATA("data_out/Cidx_test02_out.tsv"));
 	}
-	
-	/* test for debugging a linux problem
-	void Cidx_Test::test_99()
-	{
-		QFile::copy(QFINDTESTDATA("W:/share/data/dbs/HGMD/GFF/hgmd_hg19.gff"), "out/hgmd_hg19.gff");
-		QFile::remove("out/hgmd_hg19.gff.cidx");
-		TFW_EXEC("Cidx", "-in out/hgmd_hg19.gff -out out/Cidx_test03_out.tsv -s 3 -e 4 -pos X:30686236-30686236");
-		TFW::comareFiles("out/Cidx_test03_out.tsv", QFINDTESTDATA("data_out/Cidx_test03_out.tsv"));
-	}
-	*/
 
 };
-
-TFW_DECLARE(Cidx_Test)
-

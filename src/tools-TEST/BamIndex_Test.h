@@ -1,10 +1,8 @@
 #include "TestFramework.h"
 
-class BamIndex_Test
-		: public QObject
+TEST_CLASS(BamIndex_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 	
 	void test_01()
@@ -18,7 +16,3 @@ private slots:
 	    QVERIFY(QFile::exists("out/BamIndex.bam.bai"));
 	}
 };
-
-TFW_DECLARE(BamIndex_Test)
-
-

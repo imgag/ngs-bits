@@ -1,10 +1,8 @@
 #include "TestFramework.h"
 
-class TsvInfo_Test
-		: public QObject
+TEST_CLASS(TsvInfo_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 	
 	void test_01()
@@ -19,6 +17,4 @@ private slots:
 		TFW::comareFiles("out/TsvInfo_out2.txt", QFINDTESTDATA("data_out/TsvInfo_out2.txt"));
 	}
 };
-
-TFW_DECLARE(TsvInfo_Test)
 

@@ -1,10 +1,8 @@
 #include "TestFramework.h"
 
-class TsvFilter_Test
-		: public QObject
+TEST_CLASS(TsvFilter_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 	
 	//test >=
@@ -65,5 +63,4 @@ private slots:
 
 };
 
-TFW_DECLARE(TsvFilter_Test)
 

@@ -1,13 +1,11 @@
 #include "TestFramework.h"
 #include "Settings.h"
 
-class BedAnnotateGC_Test
-		: public QObject
+TEST_CLASS(BedAnnotateGC_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
-	
+
 	void test_01()
 	{
 		QString ref_file = Settings::string("reference_genome");
@@ -18,6 +16,3 @@ private slots:
 	}
 
 };
-
-TFW_DECLARE(BedAnnotateGC_Test)
-

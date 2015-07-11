@@ -1,11 +1,10 @@
 #include "TestFramework.h"
 #include "BedFile.h"
 
-class BedFile_Test
-		: public QObject
-{
-	Q_OBJECT
 
+TEST_CLASS(BedFile_Test)
+{
+Q_OBJECT
 private slots:
 
 	void isSorted()
@@ -515,5 +514,3 @@ private slots:
 		}
 	}
 };
-
-TFW_DECLARE(BedFile_Test)

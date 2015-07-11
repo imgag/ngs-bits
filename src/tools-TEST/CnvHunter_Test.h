@@ -1,11 +1,9 @@
 #include "TestFramework.h"
 #include "Settings.h"
 
-class CnvHunter_Test
-		: public QObject
+TEST_CLASS(CnvHunter_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 
 	//test1: HaloPlex PD v3 panel with gene annotation
@@ -77,6 +75,3 @@ private slots:
 	}
 
 };
-
-TFW_DECLARE(CnvHunter_Test)
-

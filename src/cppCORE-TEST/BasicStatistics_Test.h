@@ -1,11 +1,9 @@
 #include "TestFramework.h"
 #include "BasicStatistics.h"
 
-class BasicStatistics_Test
-		: public QObject
+TEST_CLASS(BasicStatistics_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 
 	void median()
@@ -90,6 +88,5 @@ private slots:
 		QCOMPARE(BasicStatistics::isValidFloat("1.1"), true);
 		QCOMPARE(BasicStatistics::isValidFloat("1e-4"), true);
 	}
-};
 
-TFW_DECLARE(BasicStatistics_Test)
+};

@@ -1,11 +1,9 @@
 #include "TestFramework.h"
 #include "Chromosome.h"
 
-class Chromosome_Test
-		: public QObject
+TEST_CLASS(Chromosome_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 
 	void str()
@@ -120,5 +118,3 @@ private slots:
 	}
 
 };
-
-TFW_DECLARE(Chromosome_Test)

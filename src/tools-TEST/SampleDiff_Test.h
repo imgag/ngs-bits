@@ -1,10 +1,8 @@
 #include "TestFramework.h"
 
-class SampleDiff_Test
-		: public QObject
+TEST_CLASS(SampleDiff_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 	
 	void test_01()
@@ -26,6 +24,4 @@ private slots:
 	}
 
 };
-
-TFW_DECLARE(SampleDiff_Test)
 

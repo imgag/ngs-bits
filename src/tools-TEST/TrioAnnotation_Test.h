@@ -1,10 +1,8 @@
 #include "TestFramework.h"
 
-class TrioAnnotation_Test
-		: public QObject
+TEST_CLASS(TrioAnnotation_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 
 	//Test with name and depth arguments
@@ -16,6 +14,5 @@ private slots:
 
 };
 
-TFW_DECLARE(TrioAnnotation_Test)
 
 

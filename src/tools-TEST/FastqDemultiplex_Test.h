@@ -1,10 +1,8 @@
 #include "TestFramework.h"
 
-class FastqDemultiplex_Test
-        : public QObject
+TEST_CLASS(FastqDemultiplex_Test)
 {
-    Q_OBJECT
-
+Q_OBJECT
 private slots:
 
 	void test_default()
@@ -54,6 +52,3 @@ private slots:
 		TFW::comareFiles("out/FastqDemultiplex7/FastqDemultiplex_out7.txt", QFINDTESTDATA("data_out/FastqDemultiplex_out6.txt"));
 	}
 };
-
-TFW_DECLARE(FastqDemultiplex_Test)
-

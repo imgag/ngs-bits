@@ -1,10 +1,8 @@
 #include "TestFramework_NGS.h"
 
-class SeqPurge_Test
-		: public QObject
+TEST_CLASS(SeqPurge_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 
 	//MiSeq 151 cycles - hpHSPv2 panel - with qc
@@ -127,15 +125,6 @@ private slots:
 			TFW::comareFiles("out/SeqPurge_"+suffix+".qcML", "out/SeqPurge_1threads.qcML");
 		}
 	}
-
-	/*
-	void test_debug()
-	{
-		TFW_EXEC("SeqPurge", "-in1 " + QFINDTESTDATA("data_in/r1.fastq.gz") + " -in2 " + QFINDTESTDATA("data_in/r2.fastq.gz") + " -out1 out/r1.fastq.gz -out2 out/r2.fastq.gz -debug -match_perc 79");
-	}
-	*/
 };
-
-TFW_DECLARE(SeqPurge_Test)
 
 

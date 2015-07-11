@@ -2,11 +2,9 @@
 #include "VariantFilter.h"
 #include "VariantList.h"
 
-class VariantFilter_Test
-		: public QObject
+TEST_CLASS(VariantFilter_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 
 	void pass()
@@ -151,6 +149,3 @@ private slots:
 	}
 
 };
-
-TFW_DECLARE(VariantFilter_Test)
-

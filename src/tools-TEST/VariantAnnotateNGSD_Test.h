@@ -2,11 +2,9 @@
 #include "VariantList.h"
 #include "Settings.h"
 
-class VariantAnnotateNGSD_Test
-		: public QObject
+TEST_CLASS(VariantAnnotateNGSD_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 	
 	void test_01()
@@ -169,5 +167,4 @@ private slots:
 	
 };
 
-TFW_DECLARE(VariantAnnotateNGSD_Test)
 

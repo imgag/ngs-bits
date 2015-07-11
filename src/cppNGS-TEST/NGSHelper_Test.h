@@ -16,11 +16,9 @@ int countSequencesContaining(QVector<Sequence> sequences, char c)
 	return output;
 }
 
-class NGSHelper_Test
-		: public QObject
+TEST_CLASS(NGSHelper_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 
 	void getPileup()
@@ -302,6 +300,3 @@ private slots:
 	}
 
 };
-
-TFW_DECLARE(NGSHelper_Test)
-

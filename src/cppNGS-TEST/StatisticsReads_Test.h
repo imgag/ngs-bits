@@ -1,11 +1,9 @@
 #include "TestFramework.h"
 #include "StatisticsReads.h"
 
-class StatisticsReads_Test
-		: public QObject
+TEST_CLASS(StatisticsReads_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 
 	void reads()
@@ -52,6 +50,3 @@ private slots:
 		}
 	}
 };
-
-TFW_DECLARE(StatisticsReads_Test)
-

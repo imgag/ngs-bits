@@ -3,11 +3,9 @@
 #include "VariantList.h"
 #include "Settings.h"
 
-class Variant_Test
-		: public QObject
+TEST_CLASS(Variant_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 
 	void static_normalize()
@@ -267,5 +265,3 @@ private slots:
 	}
 
 };
-
-TFW_DECLARE(Variant_Test)

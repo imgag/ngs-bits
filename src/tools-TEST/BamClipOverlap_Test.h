@@ -1,10 +1,9 @@
 #include "TestFramework.h"
 
-class BamClipOverlap_Test
-		: public QObject
-{
-	Q_OBJECT
 
+TEST_CLASS(BamClipOverlap_Test)
+{
+Q_OBJECT
 private slots:
 	
 	void test_01()
@@ -16,4 +15,3 @@ private slots:
 	
 };
 
-TFW_DECLARE(BamClipOverlap_Test)

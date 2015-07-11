@@ -1,10 +1,8 @@
 #include "TestFramework.h"
 
-class ReadQC_Test
-		: public QObject
+TEST_CLASS(ReadQC_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 
 	void base_test()
@@ -21,7 +19,6 @@ private slots:
 		TFW::comareFiles("out/ReadQC_out2.txt", QFINDTESTDATA("data_out/ReadQC_out2.txt"));
 	}
 
-
 	void single_end()
 	{
 		TFW_EXEC("ReadQC", "-in1 " + QFINDTESTDATA("data_in/ReadQC_in1.fastq.gz") + " -out out/ReadQC_out3.qcML");
@@ -29,9 +26,5 @@ private slots:
 		TFW::removeLinesContaining("out/ReadQC_out3.qcML", "<binary>");
 		TFW::comareFiles("out/ReadQC_out3.qcML", QFINDTESTDATA("data_out/ReadQC_out3.qcML"));
 	}
-
 };
-
-TFW_DECLARE(ReadQC_Test)
-
 

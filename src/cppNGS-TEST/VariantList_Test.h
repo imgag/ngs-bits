@@ -2,11 +2,9 @@
 #include "VariantList.h"
 #include "Settings.h"
 
-class VariantList_Test
-		: public QObject
+TEST_CLASS(VariantList_Test)
 {
-	Q_OBJECT
-
+Q_OBJECT
 private slots:
 
 	void leftAlign()
@@ -594,6 +592,3 @@ private slots:
 		QCOMPARE(vl[0].annotations()[index+1], QByteArray("SNV"));
 	}
 };
-
-TFW_DECLARE(VariantList_Test)
-
