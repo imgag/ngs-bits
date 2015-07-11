@@ -1,0 +1,11 @@
+BedInfo_in2.bed: Regions    : 19930
+BedInfo_in2.bed: Bases      : 5941881
+BedInfo_in2.bed: Chromosomes: 24 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, X, M)
+BedInfo_in2.bed: 
+BedInfo_in2.bed: Is sorted  : no
+BedInfo_in2.bed: Is merged  : yes
+BedInfo_in2.bed: 
+BedInfo_in2.bed: Fragment size (min)  : 23
+BedInfo_in2.bed: Fragment size (max)  : 61713
+BedInfo_in2.bed: Fragment size (mean) : 298.14
+BedInfo_in2.bed: Fragment size (stdev): 810.71

@@ -5,6 +5,7 @@
 #include "Helper.h"
 #include <QTextStream>
 #include <QFile>
+#include <QFileInfo>
 
 class ConcreteTool
 		: public ToolBase
@@ -21,38 +22,46 @@ public:
 	{
 		setDescription("Prints information about a (merged) BED file.");
 		//optional
-		addInfile("in", "Input BED file. If unset, reads from STDIN.", true, true);
+		addInfile("in", "Input BED file. If unset, reads from STDIN.", true);
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
-		addFlag("nomerge", "Does not merge the input file if unmerged.");
-		addInfile("fai", "If set, checks the the maximum position for each chromosome is not exceeded.", true, true);
+		addFlag("nomerge", "If set, the input is not merged before printing statistics.");
+		addFlag("filename", "If set, prints the input file name before each line.");
+		addInfile("fai", "If set, checks that the maximum position for each chromosome is not exceeded.", true, true);
 	}
 
 	virtual void main()
 	{
+		QString in = getInfile("in");
 		BedFile file;
-		file.load(getInfile("in"));
+		file.load(in);
 
 		QCCollection stats = Statistics::region(file, !getFlag("nomerge"));
+
+		QString filename = "";
+		if (getFlag("filename"))
+		{
+			filename = QFileInfo(in).fileName() + ": ";
+		}
 
 		//output
 		QScopedPointer<QFile> outfile(Helper::openFileForWriting(getOutfile("out"), true));
 		QTextStream out(outfile.data());
-		out << "Regions    : " << stats.value("roi_fragments").toString() << endl;
-		out << "Bases      : " << stats.value("roi_bases").toString(0) << endl;
-		out << "Chromosomes: " << stats.value("roi_chromosomes").toString() << endl;
-		out << endl;
-		out << "Is sorted  : " << stats.value("roi_is_sorted").toString() << endl;
-		out << "Is merged  : " << stats.value("roi_is_merged").toString() << endl;
-		out << endl;
-		out << "Fragment size (min)  : " << stats.value("roi_fragment_min").toString() << endl;
-		out << "Fragment size (max)  : " << stats.value("roi_fragment_max").toString() << endl;
-		out << "Fragment size (mean) : " << stats.value("roi_fragment_mean").toString() << endl;
-		out << "Fragment size (stdev): " << stats.value("roi_fragment_stdev").toString() << endl;
+		out << filename << "Regions    : " << stats.value("roi_fragments").toString() << endl;
+		out << filename << "Bases      : " << stats.value("roi_bases").toString(0) << endl;
+		out << filename << "Chromosomes: " << stats.value("roi_chromosomes").toString() << endl;
+		out << filename << endl;
+		out << filename << "Is sorted  : " << stats.value("roi_is_sorted").toString() << endl;
+		out << filename << "Is merged  : " << stats.value("roi_is_merged").toString() << endl;
+		out << filename << endl;
+		out << filename << "Fragment size (min)  : " << stats.value("roi_fragment_min").toString() << endl;
+		out << filename << "Fragment size (max)  : " << stats.value("roi_fragment_max").toString() << endl;
+		out << filename << "Fragment size (mean) : " << stats.value("roi_fragment_mean").toString() << endl;
+		out << filename << "Fragment size (stdev): " << stats.value("roi_fragment_stdev").toString() << endl;
 
 		//optional: check position bounds
 		if (getInfile("fai")!="")
 		{
-			out << endl;
+			out << filename << endl;
 
 			//load maxima
 			QMap<int, int> max;
@@ -77,7 +86,7 @@ public:
 				}
 				if (line.end()>max[line.chr().num()])
 				{
-					out << "Warning: maximum position " << max[line.chr().num()] << " exceeded for region " << line.chr().str() << ":" << line.start() << "-" << line.end() << endl;
+					out << filename << "Warning: maximum position " << max[line.chr().num()] << " exceeded for region " << line.chr().str() << ":" << line.start() << "-" << line.end() << endl;
 				}
 			}
 		}

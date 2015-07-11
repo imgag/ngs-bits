@@ -8,10 +8,10 @@ Tools:
  - ReadQC:
   - add single-end mode
   - create plots without python
- * BedInfo: flag - prepend file name to each output line - for piping into grep, make input optional (STDIN as default)
  * BedSubract: make output parameter optional (stdout)
  * Fastq2Fasta: add
  - VariantAnnotateNGSD: remove sample count from ihdb_hom/het/wt and move it to description
+ * BamLeftAlign: remove (other tools as well?)
 
 CnvHunter
  # set min STDEV to 15% of mean (was 10%, make it a parameter)
