@@ -215,6 +215,10 @@ SUBDIRS += BedAnnotateGC
 tools-TEST.depends += BedAnnotateGC
 BedAnnotateGC.depends = cppNGS
 
+SUBDIRS += FastqToFasta
+tools-TEST.depends += FastqToFasta
+FastqToFasta.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt
 

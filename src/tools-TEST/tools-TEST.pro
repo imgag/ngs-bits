@@ -69,6 +69,7 @@ HEADERS += \
     TsvFilter_Test.h \
     FastqDemultiplex_Test.h \
     BamLeftAlign_Test.h \
+    FastqToFasta_Test.h \
 
 SOURCES += \
     main.cpp \

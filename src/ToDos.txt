@@ -8,7 +8,6 @@ Tools:
  - ReadQC:
   * add single-end mode
   - create plots without python
- * Fastq2Fasta: add
  # VariantAnnotateNGSD: remove sample count from ihdb_hom/het/wt and move it to description
  # BamLeftAlign: remove (other tools as well?, move script to find unused tools to php respository)
 
