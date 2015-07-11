@@ -5,9 +5,7 @@ Tools:
    - add option to export all/preferred transcripts to GeneLab
   - new technical report
  - SampleOverview: add option for BAM files (check depth where variant is not found)
- - ReadQC:
-  * add single-end mode
-  - create plots without python
+ - ReadQC: create plots without python
  # VariantAnnotateNGSD: remove sample count from ihdb_hom/het/wt and move it to description
  # BamLeftAlign: remove (other tools as well?, move script to find unused tools to php respository)
 

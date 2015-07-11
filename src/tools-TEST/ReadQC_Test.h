@@ -6,19 +6,28 @@ class ReadQC_Test
 	Q_OBJECT
 
 private slots:
-	
-	void test_01()
+
+	void base_test()
 	{
-		TFW_EXEC("ReadQC", "-in1 " + QFINDTESTDATA("data_in/ReadQC_in1.fastq.gz") + " -in2 " + QFINDTESTDATA("data_in/ReadQC_in2.fastq.gz") + " -out out/ReadQC_out1.txt -txt");
-		TFW::comareFiles("out/ReadQC_out1.txt", QFINDTESTDATA("data_out/ReadQC_out1.txt"));
+		TFW_EXEC("ReadQC", "-in1 " + QFINDTESTDATA("data_in/ReadQC_in1.fastq.gz") + " -in2 " + QFINDTESTDATA("data_in/ReadQC_in2.fastq.gz") + " -out out/ReadQC_out1.qcML");
+		TFW::removeLinesContaining("out/ReadQC_out1.qcML", "creation ");
+		TFW::removeLinesContaining("out/ReadQC_out1.qcML", "<binary>");
+		TFW::comareFiles("out/ReadQC_out1.qcML", QFINDTESTDATA("data_out/ReadQC_out1.qcML"));
 	}
-	
-	void test_02()
+
+	void with_txt_parameter()
 	{
-		TFW_EXEC("ReadQC", "-in1 " + QFINDTESTDATA("data_in/ReadQC_in1.fastq.gz") + " -in2 " + QFINDTESTDATA("data_in/ReadQC_in2.fastq.gz") + " -out out/ReadQC_out2.qcML");
-		TFW::removeLinesContaining("out/ReadQC_out2.qcML", "creation ");
-		TFW::removeLinesContaining("out/ReadQC_out2.qcML", "<binary>");
-		TFW::comareFiles("out/ReadQC_out2.qcML", QFINDTESTDATA("data_out/ReadQC_out2.qcML"));
+		TFW_EXEC("ReadQC", "-in1 " + QFINDTESTDATA("data_in/ReadQC_in1.fastq.gz") + " -in2 " + QFINDTESTDATA("data_in/ReadQC_in2.fastq.gz") + " -out out/ReadQC_out2.txt -txt");
+		TFW::comareFiles("out/ReadQC_out2.txt", QFINDTESTDATA("data_out/ReadQC_out2.txt"));
+	}
+
+
+	void single_end()
+	{
+		TFW_EXEC("ReadQC", "-in1 " + QFINDTESTDATA("data_in/ReadQC_in1.fastq.gz") + " -out out/ReadQC_out3.qcML");
+		TFW::removeLinesContaining("out/ReadQC_out3.qcML", "creation ");
+		TFW::removeLinesContaining("out/ReadQC_out3.qcML", "<binary>");
+		TFW::comareFiles("out/ReadQC_out3.qcML", QFINDTESTDATA("data_out/ReadQC_out3.qcML"));
 	}
 
 };

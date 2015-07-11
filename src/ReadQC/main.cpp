@@ -17,7 +17,7 @@ public:
 	{
 		setDescription("Calculates QC metrics on unprocessed paired-end reads (same number of cycles/reads).");
 		addInfile("in1", "Forward reads FASTQ file (gzipped or plain).", false, true);
-		addInfile("in2", "Reverse reads FASTQ file (gzipped or plain).", false, true);
+		addInfile("in2", "Reverse reads FASTQ file (gzipped or plain).", true, true);
 		//optional
 		addOutfile("out", "Output qcML file. If unset, writes to STDOUT.", true);
 		addFlag("txt", "Writes TXT format instead of qcML.");
@@ -37,21 +37,24 @@ public:
 			stream.readEntry(entry);
 			stats.update(entry, StatisticsReads::FORWARD);
 		}
-		int read_count_in1 = stream.index();
 
 		//process reverse read file
-		QString reverse_file = getInfile("in2");
-		FastqFileStream stream2(reverse_file);
-		while(!stream2.atEnd())
+		QString in2 = getInfile("in2");
+		if (in2!="")
 		{
-			 stream2.readEntry(entry);
-			 stats.update(entry, StatisticsReads::REVERSE);
-		}
+			QString reverse_file = getInfile("in2");
+			FastqFileStream stream2(reverse_file);
+			while(!stream2.atEnd())
+			{
+				 stream2.readEntry(entry);
+				 stats.update(entry, StatisticsReads::REVERSE);
+			}
 
-		//check read count matches
-		if (read_count_in1!=stream.index())
-		{
-			THROW(ArgumentException, "Differing number of reads in file '" + forward_file + "' and '" + reverse_file + "'!");
+			//check read counts matches
+			if (stream.index()!=stream2.index())
+			{
+				THROW(ArgumentException, "Differing number of reads in file '" + forward_file + "' and '" + reverse_file + "'!");
+			}
 		}
 
 		//store output

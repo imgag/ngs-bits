@@ -133,7 +133,10 @@ QCCollection StatisticsReads::getResult()
 	plot2.setYRange(0.0, 41.5);
 	plot2.setXValues(line_x);
 	plot2.addLine(qualities1_, "forward reads");
-	plot2.addLine(qualities2_, "reverse reads");
+	if (c_reverse_>0)
+	{
+		plot2.addLine(qualities2_, "reverse reads");
+	}
 	QString plotname2 = Helper::tempFileName(".png");
 	plot2.store(plotname2);
 	output.insert(QCValue::Image("Q score plot", plotname2, "Mean Q score per cycle for forward/reverse reads.", "QC:2000012"));

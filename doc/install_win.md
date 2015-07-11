@@ -13,9 +13,7 @@ First, we need to install some software:
   It is needed to extract the repository version during the build process.  
 * Download and install [CMake](http://www.cmake.org/cmake/resources/software.html).
   It is needed to build BamTools. Make sure to add the CMake folder to the path during the installation.
-* __Optional:__ Install [Python](https://www.python.org/download/windows/) and the [matplotlib](http://matplotlib.org/) extension.  
-   It is needed to create plots only.  
-   Make sure to add the python folder to the path during the installation. 
+* __Optional:__ To create plots in qcML files, install [WinPython](http://winpython.github.io/) and add the python directory to the PATH (it is inside the WinPython directory).
 	
 ##Build process
 Now, we can build the third-party libraries, and then ngs-bits:
