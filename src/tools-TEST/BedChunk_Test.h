@@ -7,7 +7,7 @@ private slots:
 	
 	void test_01()
 	{
-		TFW_EXEC("BedChunk", "-in " + QFINDTESTDATA("data_in/BedChunk_in1.bed") + " -out out/BedChunk_out1.bed -n 100");
-		TFW::comareFiles("out/BedChunk_out1.bed", QFINDTESTDATA("data_out/BedChunk_out1.bed"));
+		EXECUTE("BedChunk", "-in " + TESTDATA("data_in/BedChunk_in1.bed") + " -out out/BedChunk_out1.bed -n 100");
+		COMPARE_FILES("out/BedChunk_out1.bed", TESTDATA("data_out/BedChunk_out1.bed"));
 	}
 };

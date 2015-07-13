@@ -7,8 +7,8 @@ private slots:
 	
 	void test_01()
 	{
-		TFW_EXEC("VariantFilterRegions", "-in " + QFINDTESTDATA("data_in/VariantFilterRegions_in.tsv") + " -reg " + QFINDTESTDATA("data_in/VariantFilterRegions_in.bed") + " -out out/VariantFilterRegions_out1.tsv");
-		TFW::comareFiles("out/VariantFilterRegions_out1.tsv", QFINDTESTDATA("data_out/VariantFilterRegions_out1.tsv"));
+		EXECUTE("VariantFilterRegions", "-in " + TESTDATA("data_in/VariantFilterRegions_in.tsv") + " -reg " + TESTDATA("data_in/VariantFilterRegions_in.bed") + " -out out/VariantFilterRegions_out1.tsv");
+		COMPARE_FILES("out/VariantFilterRegions_out1.tsv", TESTDATA("data_out/VariantFilterRegions_out1.tsv"));
 	}
 	
 };

@@ -73,7 +73,7 @@ public:
     {
         return chr_==rhs.chr_ && start_==rhs.start_ && end_==rhs.end_;
     }
-    ///Overlap check for chromosome and position range.
+	///Overlap check for chromosome and position range.
     bool overlapsWith(const Chromosome& chr, int start, int end) const
     {
         return chr_==chr && overlapsWith(start, end);

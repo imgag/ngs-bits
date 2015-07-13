@@ -8,88 +8,88 @@ private slots:
 
 	void empty()
 	{
-		TSVFileStream stream(QFINDTESTDATA("data_in/tsv_empty.txt"));
+		TSVFileStream stream(TESTDATA("data_in/tsv_empty.txt"));
 
-		QCOMPARE(stream.header().count(), 1);
-		QCOMPARE(stream.header()[0], QByteArray(""));
-		QCOMPARE(stream.comments().count(), 0);
-		QCOMPARE(stream.columns(), 1);
-		QCOMPARE(stream.atEnd(), true);
+		I_EQUAL(stream.header().count(), 1);
+		S_EQUAL(stream.header()[0], QByteArray(""));
+		I_EQUAL(stream.comments().count(), 0);
+		I_EQUAL(stream.columns(), 1);
+		IS_TRUE(stream.atEnd());
 	}
 
 	void only_header()
 	{
-		TSVFileStream stream(QFINDTESTDATA("data_in/tsv_only_header.txt"));
+		TSVFileStream stream(TESTDATA("data_in/tsv_only_header.txt"));
 
-		QCOMPARE(stream.header().count(), 3);
-		QCOMPARE(stream.header()[0], QByteArray("one"));
-		QCOMPARE(stream.header()[1], QByteArray("two"));
-		QCOMPARE(stream.header()[2], QByteArray("three"));
-		QCOMPARE(stream.comments().count(), 3);
-		QCOMPARE(stream.comments()[0], QByteArray("##bli"));
-		QCOMPARE(stream.comments()[1], QByteArray("##bla"));
-		QCOMPARE(stream.comments()[2], QByteArray("##bluff"));
-		QCOMPARE(stream.columns(), 3);
-		QCOMPARE(stream.atEnd(), true);
+		I_EQUAL(stream.header().count(), 3);
+		S_EQUAL(stream.header()[0], QByteArray("one"));
+		S_EQUAL(stream.header()[1], QByteArray("two"));
+		S_EQUAL(stream.header()[2], QByteArray("three"));
+		I_EQUAL(stream.comments().count(), 3);
+		S_EQUAL(stream.comments()[0], QByteArray("##bli"));
+		S_EQUAL(stream.comments()[1], QByteArray("##bla"));
+		S_EQUAL(stream.comments()[2], QByteArray("##bluff"));
+		I_EQUAL(stream.columns(), 3);
+		IS_TRUE(stream.atEnd());
 	}
 
 	void one_line()
 	{
-		TSVFileStream stream(QFINDTESTDATA("data_in/tsv_one_line.txt"));
+		TSVFileStream stream(TESTDATA("data_in/tsv_one_line.txt"));
 
-		QCOMPARE(stream.header().count(), 3);
-		QCOMPARE(stream.header()[0], QByteArray("one"));
-		QCOMPARE(stream.header()[1], QByteArray("two"));
-		QCOMPARE(stream.header()[2], QByteArray("three"));
-		QCOMPARE(stream.comments().count(), 3);
-		QCOMPARE(stream.comments()[0], QByteArray("##bli"));
-		QCOMPARE(stream.comments()[1], QByteArray("##bla"));
-		QCOMPARE(stream.comments()[2], QByteArray("##bluff"));
-		QCOMPARE(stream.columns(), 3);
-		QCOMPARE(stream.atEnd(), false);
+		I_EQUAL(stream.header().count(), 3);
+		S_EQUAL(stream.header()[0], QByteArray("one"));
+		S_EQUAL(stream.header()[1], QByteArray("two"));
+		S_EQUAL(stream.header()[2], QByteArray("three"));
+		I_EQUAL(stream.comments().count(), 3);
+		S_EQUAL(stream.comments()[0], QByteArray("##bli"));
+		S_EQUAL(stream.comments()[1], QByteArray("##bla"));
+		S_EQUAL(stream.comments()[2], QByteArray("##bluff"));
+		I_EQUAL(stream.columns(), 3);
+		IS_FALSE(stream.atEnd());
 
 		QList<QByteArray> line = stream.readLine();
-		QCOMPARE(line.count(), 3);
-		QCOMPARE(line[0], QByteArray("1"));
-		QCOMPARE(line[1], QByteArray("2"));
-		QCOMPARE(line[2], QByteArray("3"));
-		QCOMPARE(stream.atEnd(), true);
+		I_EQUAL(line.count(), 3);
+		S_EQUAL(line[0], QByteArray("1"));
+		S_EQUAL(line[1], QByteArray("2"));
+		S_EQUAL(line[2], QByteArray("3"));
+		IS_TRUE(stream.atEnd());
 	}
 
 	void many_lines()
 	{
-		TSVFileStream stream(QFINDTESTDATA("data_in/tsv_many_lines.txt"));
+		TSVFileStream stream(TESTDATA("data_in/tsv_many_lines.txt"));
 
-		QCOMPARE(stream.header().count(), 3);
-		QCOMPARE(stream.header()[0], QByteArray("one"));
-		QCOMPARE(stream.header()[1], QByteArray("two"));
-		QCOMPARE(stream.header()[2], QByteArray("three"));
-		QCOMPARE(stream.comments().count(), 3);
-		QCOMPARE(stream.comments()[0], QByteArray("##bli"));
-		QCOMPARE(stream.comments()[1], QByteArray("##bla"));
-		QCOMPARE(stream.comments()[2], QByteArray("##bluff"));
-		QCOMPARE(stream.columns(), 3);
-		QCOMPARE(stream.atEnd(), false);
+		I_EQUAL(stream.header().count(), 3);
+		S_EQUAL(stream.header()[0], QByteArray("one"));
+		S_EQUAL(stream.header()[1], QByteArray("two"));
+		S_EQUAL(stream.header()[2], QByteArray("three"));
+		I_EQUAL(stream.comments().count(), 3);
+		S_EQUAL(stream.comments()[0], QByteArray("##bli"));
+		S_EQUAL(stream.comments()[1], QByteArray("##bla"));
+		S_EQUAL(stream.comments()[2], QByteArray("##bluff"));
+		I_EQUAL(stream.columns(), 3);
+		IS_FALSE(stream.atEnd());
 
 		QList<QByteArray> line = stream.readLine();
-		QCOMPARE(line.count(), 3);
-		QCOMPARE(line[0], QByteArray("1"));
-		QCOMPARE(line[1], QByteArray("2"));
-		QCOMPARE(line[2], QByteArray("3"));
-		QCOMPARE(stream.atEnd(), false);
+		I_EQUAL(line.count(), 3);
+		S_EQUAL(line[0], QByteArray("1"));
+		S_EQUAL(line[1], QByteArray("2"));
+		S_EQUAL(line[2], QByteArray("3"));
+		IS_FALSE(stream.atEnd());
 
 		line = stream.readLine();
-		QCOMPARE(line.count(), 3);
-		QCOMPARE(line[0], QByteArray("4"));
-		QCOMPARE(line[1], QByteArray("5"));
-		QCOMPARE(line[2], QByteArray("6"));
-		QCOMPARE(stream.atEnd(), false);
+		I_EQUAL(line.count(), 3);
+		S_EQUAL(line[0], QByteArray("4"));
+		S_EQUAL(line[1], QByteArray("5"));
+		S_EQUAL(line[2], QByteArray("6"));
+		IS_FALSE(stream.atEnd());
 
 		line = stream.readLine();
-		QCOMPARE(line.count(), 3);
-		QCOMPARE(line[0], QByteArray("7"));
-		QCOMPARE(line[1], QByteArray("8"));
-		QCOMPARE(line[2], QByteArray("9"));
-		QCOMPARE(stream.atEnd(), true);
+		I_EQUAL(line.count(), 3);
+		S_EQUAL(line[0], QByteArray("7"));
+		S_EQUAL(line[1], QByteArray("8"));
+		S_EQUAL(line[2], QByteArray("9"));
+		IS_TRUE(stream.atEnd());
 	}
 };

@@ -7,8 +7,8 @@ private slots:
 	
 	void test_01()
 	{
-		TFW_EXEC("FastqConvert", "-in " + QFINDTESTDATA("data_in/FastqConvert_in1.fastq.gz") + " -out out/FastqConvert_out1.fastq.gz");
-		TFW::comareFilesGZ("out/FastqConvert_out1.fastq.gz", QFINDTESTDATA("data_out/FastqConvert_out1.fastq.gz"));
+		EXECUTE("FastqConvert", "-in " + TESTDATA("data_in/FastqConvert_in1.fastq.gz") + " -out out/FastqConvert_out1.fastq.gz");
+		COMPARE_GZ_FILES("out/FastqConvert_out1.fastq.gz", TESTDATA("data_out/FastqConvert_out1.fastq.gz"));
 	}
 
 };

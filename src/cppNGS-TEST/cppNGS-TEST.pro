@@ -1,5 +1,4 @@
 #base settings
-QT       += testlib
 QT       -= gui
 CONFIG   += console
 CONFIG   -= app_bundle

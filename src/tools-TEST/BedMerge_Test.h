@@ -7,14 +7,14 @@ private slots:
 	
 	void test_01()
 	{
-		TFW_EXEC("BedMerge", "-in " + QFINDTESTDATA("data_in/exome.bed") + " -out out/BedMerge_test01_out.bed");
-		TFW::comareFiles("out/BedMerge_test01_out.bed", QFINDTESTDATA("data_out/BedMerge_test01_out.bed"));
+		EXECUTE("BedMerge", "-in " + TESTDATA("data_in/exome.bed") + " -out out/BedMerge_test01_out.bed");
+		COMPARE_FILES("out/BedMerge_test01_out.bed", TESTDATA("data_out/BedMerge_test01_out.bed"));
 	}
 	
 	void test_02()
 	{
-		TFW_EXEC("BedMerge", "-in " + QFINDTESTDATA("data_in/BedMerge_in1.bed") + " -out out/BedMerge_test02_out.bed");
-		TFW::comareFiles("out/BedMerge_test02_out.bed", QFINDTESTDATA("data_out/BedMerge_test02_out.bed"));
+		EXECUTE("BedMerge", "-in " + TESTDATA("data_in/BedMerge_in1.bed") + " -out out/BedMerge_test02_out.bed");
+		COMPARE_FILES("out/BedMerge_test02_out.bed", TESTDATA("data_out/BedMerge_test02_out.bed"));
 	}
 
 };

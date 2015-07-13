@@ -10,7 +10,7 @@ private slots:
 	void pass()
 	{
 		VariantList vl;
-		vl.load(QFINDTESTDATA("data_in/panel.tsv"));
+		vl.load(TESTDATA("data_in/panel.tsv"));
 
 		/*
 	#chr	start	end	ref	obs	genotype	snp_q	depth	map_q	variant	variant_frequency	region	gene	variant_details	coding	snp_1000g2012feb_all	snp_snp137	ljb_phylop	ljb_mt	esp6500si_ea	cosmic61	repeatmasker	omim_ids	omim_titles	omim_disorders	quality_filter	ihdb_hom_13	ihdb_het_13	ihdb_wt_13	ihdb_allsys	vus	validated
@@ -34,102 +34,102 @@ private slots:
 	*/
 
 		VariantFilter filter("bla", "chr IS chr1");
-		QCOMPARE(filter.pass(vl, 0), true);
-		QCOMPARE(filter.pass(vl, 1), false);
+		IS_TRUE(filter.pass(vl, 0));
+		IS_FALSE(filter.pass(vl, 1));
 
 		filter = VariantFilter("bla", "chr IS_NOT chr1 && start >= 202575822");
-		QCOMPARE(filter.pass(vl, 0), false);
-		QCOMPARE(filter.pass(vl, 1), false);
-		QCOMPARE(filter.pass(vl, 2), false);
-		QCOMPARE(filter.pass(vl, 3), true);
-		QCOMPARE(filter.pass(vl, 4), true);
+		IS_FALSE(filter.pass(vl, 0));
+		IS_FALSE(filter.pass(vl, 1));
+		IS_FALSE(filter.pass(vl, 2));
+		IS_TRUE(filter.pass(vl, 3));
+		IS_TRUE(filter.pass(vl, 4));
 
 
 		filter = VariantFilter("bla", "chr CONTAINS X && start <= 153005605");
-		QCOMPARE(filter.pass(vl, 0), false);
-		QCOMPARE(filter.pass(vl, 1), false);
-		QCOMPARE(filter.pass(vl, 2), false);
-		QCOMPARE(filter.pass(vl, 72), true);
-		QCOMPARE(filter.pass(vl, 73), true);
-		QCOMPARE(filter.pass(vl, 74), false);
+		IS_FALSE(filter.pass(vl, 0));
+		IS_FALSE(filter.pass(vl, 1));
+		IS_FALSE(filter.pass(vl, 2));
+		IS_TRUE(filter.pass(vl, 72));
+		IS_TRUE(filter.pass(vl, 73));
+		IS_FALSE(filter.pass(vl, 74));
 
 		filter = VariantFilter("bla", "chr CONTAINS X || start < 198362018");
-		QCOMPARE(filter.pass(vl, 0), true);
-		QCOMPARE(filter.pass(vl, 1), false);
-		QCOMPARE(filter.pass(vl, 2), false);
-		QCOMPARE(filter.pass(vl, 72), true);
-		QCOMPARE(filter.pass(vl, 73), true);
-		QCOMPARE(filter.pass(vl, 74), true);
+		IS_TRUE(filter.pass(vl, 0));
+		IS_FALSE(filter.pass(vl, 1));
+		IS_FALSE(filter.pass(vl, 2));
+		IS_TRUE(filter.pass(vl, 72));
+		IS_TRUE(filter.pass(vl, 73));
+		IS_TRUE(filter.pass(vl, 74));
 
 		filter = VariantFilter("bla", "chr CONTAINS 1 || start > 198362018");
-		QCOMPARE(filter.pass(vl, 0), true);
-		QCOMPARE(filter.pass(vl, 1), false);
-		QCOMPARE(filter.pass(vl, 2), true);
-		QCOMPARE(filter.pass(vl, 72), false);
-		QCOMPARE(filter.pass(vl, 73), false);
-		QCOMPARE(filter.pass(vl, 74), false);
+		IS_TRUE(filter.pass(vl, 0));
+		IS_FALSE(filter.pass(vl, 1));
+		IS_TRUE(filter.pass(vl, 2));
+		IS_FALSE(filter.pass(vl, 72));
+		IS_FALSE(filter.pass(vl, 73));
+		IS_FALSE(filter.pass(vl, 74));
 
 		filter = VariantFilter("bla", "chr CONTAINS_NOT 2 || start == 198362018");
-		QCOMPARE(filter.pass(vl, 0), true);
-		QCOMPARE(filter.pass(vl, 1), true);
-		QCOMPARE(filter.pass(vl, 2), false);
-		QCOMPARE(filter.pass(vl, 72), true);
-		QCOMPARE(filter.pass(vl, 73), true);
-		QCOMPARE(filter.pass(vl, 74), true);
+		IS_TRUE(filter.pass(vl, 0));
+		IS_TRUE(filter.pass(vl, 1));
+		IS_FALSE(filter.pass(vl, 2));
+		IS_TRUE(filter.pass(vl, 72));
+		IS_TRUE(filter.pass(vl, 73));
+		IS_TRUE(filter.pass(vl, 74));
 
 		filter = VariantFilter("bla", "chr IS chr2 || start == 198362018");
-		QCOMPARE(filter.pass(vl, 0), false);
-		QCOMPARE(filter.pass(vl, 1), true);
-		QCOMPARE(filter.pass(vl, 2), true);
-		QCOMPARE(filter.pass(vl, 72), false);
-		QCOMPARE(filter.pass(vl, 73), false);
-		QCOMPARE(filter.pass(vl, 74), false);
+		IS_FALSE(filter.pass(vl, 0));
+		IS_TRUE(filter.pass(vl, 1));
+		IS_TRUE(filter.pass(vl, 2));
+		IS_FALSE(filter.pass(vl, 72));
+		IS_FALSE(filter.pass(vl, 73));
+		IS_FALSE(filter.pass(vl, 74));
 
 		filter = VariantFilter("bla", "chr IS_NOT chr2 || start == 198362018");
-		QCOMPARE(filter.pass(vl, 0), true);
-		QCOMPARE(filter.pass(vl, 1), true);
-		QCOMPARE(filter.pass(vl, 2), false);
-		QCOMPARE(filter.pass(vl, 72), true);
-		QCOMPARE(filter.pass(vl, 73), true);
-		QCOMPARE(filter.pass(vl, 74), true);
+		IS_TRUE(filter.pass(vl, 0));
+		IS_TRUE(filter.pass(vl, 1));
+		IS_FALSE(filter.pass(vl, 2));
+		IS_TRUE(filter.pass(vl, 72));
+		IS_TRUE(filter.pass(vl, 73));
+		IS_TRUE(filter.pass(vl, 74));
 
 		filter = VariantFilter("bla", "chr IS_NOT chr2 && start >= 155205047 && depth >= 500");
-		QCOMPARE(filter.pass(vl, 0), true);
-		QCOMPARE(filter.pass(vl, 1), false);
-		QCOMPARE(filter.pass(vl, 2), false);
-		QCOMPARE(filter.pass(vl, 72), false);
-		QCOMPARE(filter.pass(vl, 73), false);
-		QCOMPARE(filter.pass(vl, 74), false);
+		IS_TRUE(filter.pass(vl, 0));
+		IS_FALSE(filter.pass(vl, 1));
+		IS_FALSE(filter.pass(vl, 2));
+		IS_FALSE(filter.pass(vl, 72));
+		IS_FALSE(filter.pass(vl, 73));
+		IS_FALSE(filter.pass(vl, 74));
 
 		filter = VariantFilter("bla", "chr IS chr2 && start > 198362018 || chr CONTAINS chrX && end < 153005605");
-		QCOMPARE(filter.pass(vl, 0), false);
-		QCOMPARE(filter.pass(vl, 1), false);
-		QCOMPARE(filter.pass(vl, 2), true);
-		QCOMPARE(filter.pass(vl, 72), true);
-		QCOMPARE(filter.pass(vl, 73), false);
-		QCOMPARE(filter.pass(vl, 74), false);
+		IS_FALSE(filter.pass(vl, 0));
+		IS_FALSE(filter.pass(vl, 1));
+		IS_TRUE(filter.pass(vl, 2));
+		IS_TRUE(filter.pass(vl, 72));
+		IS_FALSE(filter.pass(vl, 73));
+		IS_FALSE(filter.pass(vl, 74));
 
 		filter = VariantFilter("bla", "chr IS chr2 && start > 198362018 || chr CONTAINS chrX && end < 153005605");
-		QCOMPARE(filter.pass(vl, 0), false);
-		QCOMPARE(filter.pass(vl, 1), false);
-		QCOMPARE(filter.pass(vl, 2), true);
-		QCOMPARE(filter.pass(vl, 72), true);
-		QCOMPARE(filter.pass(vl, 73), false);
-		QCOMPARE(filter.pass(vl, 74), false);
+		IS_FALSE(filter.pass(vl, 0));
+		IS_FALSE(filter.pass(vl, 1));
+		IS_TRUE(filter.pass(vl, 2));
+		IS_TRUE(filter.pass(vl, 72));
+		IS_FALSE(filter.pass(vl, 73));
+		IS_FALSE(filter.pass(vl, 74));
 
 		filter = VariantFilter("bla", "ref IS G && obs IS A && genotype IS het");
-		QCOMPARE(filter.pass(vl, 0), false);
-		QCOMPARE(filter.pass(vl, 1), false);
-		QCOMPARE(filter.pass(vl, 2), false);
-		QCOMPARE(filter.pass(vl, 72), false);
-		QCOMPARE(filter.pass(vl, 73), true);
-		QCOMPARE(filter.pass(vl, 74), false);
+		IS_FALSE(filter.pass(vl, 0));
+		IS_FALSE(filter.pass(vl, 1));
+		IS_FALSE(filter.pass(vl, 2));
+		IS_FALSE(filter.pass(vl, 72));
+		IS_TRUE(filter.pass(vl, 73));
+		IS_FALSE(filter.pass(vl, 74));
 	}
 
 	void multiPass()
 	{
 		VariantList vl;
-		vl.load(QFINDTESTDATA("data_in/panel.tsv"));
+		vl.load(TESTDATA("data_in/panel.tsv"));
 
 		QVector<VariantFilter> filters;
 		filters.append(VariantFilter("bla", "*1000g* IS || *1000g* IS invalid || *1000g* < 0.01 || chr IS chrM"));
@@ -145,7 +145,7 @@ private slots:
 		filters.append(VariantFilter("bla", "chr IS_NOT chrM || variant_frequency < 0.98"));
 
 		QBitArray pass = VariantFilter::multiPass(vl, filters);
-		QCOMPARE(pass.count(true), 2);
+		I_EQUAL(pass.count(true), 2);
 	}
 
 };

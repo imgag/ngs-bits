@@ -5,12 +5,16 @@
 [submodule "src/cppCORE"]
 	path = src/cppCORE
 	url = https://github.com/marc-sturm/cppCORE.git
+	branch = master
 [submodule "src/cppGUI"]
 	path = src/cppGUI
 	url = https://github.com/marc-sturm/cppGUI.git
+	branch = master
 [submodule "src/cppXML"]
 	path = src/cppXML
 	url = https://github.com/marc-sturm/cppXML.git
+	branch = master
 [submodule "src/cppTFW"]
 	path = src/cppTFW
 	url = https://github.com/marc-sturm/cppTFW.git
+	branch = master

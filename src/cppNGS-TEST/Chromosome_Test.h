@@ -8,113 +8,113 @@ private slots:
 
 	void str()
 	{
-		QCOMPARE(Chromosome("1").str(), QByteArray("1"));
-		QCOMPARE(Chromosome("chr1").str(), QByteArray("chr1"));
-		QCOMPARE(Chromosome("CHRX").str(), QByteArray("CHRX"));
-		QCOMPARE(Chromosome("chrY").str(), QByteArray("chrY"));
-		QCOMPARE(Chromosome("M").str(), QByteArray("M"));
-		QCOMPARE(Chromosome("MT").str(), QByteArray("MT"));
+		S_EQUAL(Chromosome("1").str(), QByteArray("1"));
+		S_EQUAL(Chromosome("chr1").str(), QByteArray("chr1"));
+		S_EQUAL(Chromosome("CHRX").str(), QByteArray("CHRX"));
+		S_EQUAL(Chromosome("chrY").str(), QByteArray("chrY"));
+		S_EQUAL(Chromosome("M").str(), QByteArray("M"));
+		S_EQUAL(Chromosome("MT").str(), QByteArray("MT"));
 
-		QCOMPARE(Chromosome(QString("1")).str(), QByteArray("1"));
-		QCOMPARE(Chromosome(QByteArray("1")).str(), QByteArray("1"));
+		S_EQUAL(Chromosome(QString("1")).str(), QByteArray("1"));
+		S_EQUAL(Chromosome(QByteArray("1")).str(), QByteArray("1"));
 	}
 
 	void strNormalized()
 	{
-		QCOMPARE(Chromosome("1").strNormalized(false), QByteArray("1"));
-		QCOMPARE(Chromosome("chr1").strNormalized(false), QByteArray("1"));
-		QCOMPARE(Chromosome("CHRX").strNormalized(false), QByteArray("X"));
-		QCOMPARE(Chromosome("chrY").strNormalized(false), QByteArray("Y"));
-		QCOMPARE(Chromosome("M").strNormalized(false), QByteArray("M"));
-		QCOMPARE(Chromosome("MT").strNormalized(false), QByteArray("M"));
+		S_EQUAL(Chromosome("1").strNormalized(false), QByteArray("1"));
+		S_EQUAL(Chromosome("chr1").strNormalized(false), QByteArray("1"));
+		S_EQUAL(Chromosome("CHRX").strNormalized(false), QByteArray("X"));
+		S_EQUAL(Chromosome("chrY").strNormalized(false), QByteArray("Y"));
+		S_EQUAL(Chromosome("M").strNormalized(false), QByteArray("M"));
+		S_EQUAL(Chromosome("MT").strNormalized(false), QByteArray("M"));
 
-		QCOMPARE(Chromosome("1").strNormalized(true),  QByteArray("chr1"));
-		QCOMPARE(Chromosome("chr1").strNormalized(true), QByteArray("chr1"));
-		QCOMPARE(Chromosome("CHRX").strNormalized(true), QByteArray("chrX"));
-		QCOMPARE(Chromosome("chrY").strNormalized(true), QByteArray("chrY"));
-		QCOMPARE(Chromosome("M").strNormalized(true), QByteArray("chrM"));
-		QCOMPARE(Chromosome("MT").strNormalized(true), QByteArray("chrM"));
+		S_EQUAL(Chromosome("1").strNormalized(true),  QByteArray("chr1"));
+		S_EQUAL(Chromosome("chr1").strNormalized(true), QByteArray("chr1"));
+		S_EQUAL(Chromosome("CHRX").strNormalized(true), QByteArray("chrX"));
+		S_EQUAL(Chromosome("chrY").strNormalized(true), QByteArray("chrY"));
+		S_EQUAL(Chromosome("M").strNormalized(true), QByteArray("chrM"));
+		S_EQUAL(Chromosome("MT").strNormalized(true), QByteArray("chrM"));
 	}
 
 	void num()
 	{
-		QCOMPARE(Chromosome("1").num(), 1);
-		QCOMPARE(Chromosome("chr1").num(),1);
-		QCOMPARE(Chromosome("X").num(),1001);
-		QCOMPARE(Chromosome("CHRX").num(),1001);
-		QCOMPARE(Chromosome("Y").num(),1002);
-		QCOMPARE(Chromosome("chrY").num(),1002);
-		QCOMPARE(Chromosome("M").num(),1003);
-		QCOMPARE(Chromosome("MT").num(),1003);
+		I_EQUAL(Chromosome("1").num(), 1);
+		I_EQUAL(Chromosome("chr1").num(),1);
+		I_EQUAL(Chromosome("X").num(),1001);
+		I_EQUAL(Chromosome("CHRX").num(),1001);
+		I_EQUAL(Chromosome("Y").num(),1002);
+		I_EQUAL(Chromosome("chrY").num(),1002);
+		I_EQUAL(Chromosome("M").num(),1003);
+		I_EQUAL(Chromosome("MT").num(),1003);
 
 		//chromosomes without fixed numbers
 		int base = Chromosome("chrBLA").num();
-		QVERIFY(base >= 1004);
-		QCOMPARE(Chromosome("chrBLA2").num(),base+1);
-		QCOMPARE(Chromosome("BLA").num(),base);
-		QCOMPARE(Chromosome("BLA2").num(),base+1);
+		IS_TRUE(base >= 1004);
+		I_EQUAL(Chromosome("chrBLA2").num(),base+1);
+		I_EQUAL(Chromosome("BLA").num(),base);
+		I_EQUAL(Chromosome("BLA2").num(),base+1);
 	}
 
 	void isAutosome()
 	{
-		QVERIFY(!Chromosome("").isAutosome());
-		QVERIFY(!Chromosome("X").isAutosome());
-		QVERIFY(!Chromosome("Y").isAutosome());
-		QVERIFY(!Chromosome("M").isAutosome());
-		QVERIFY(!Chromosome("BLA").isAutosome());
+		IS_TRUE(!Chromosome("").isAutosome());
+		IS_TRUE(!Chromosome("X").isAutosome());
+		IS_TRUE(!Chromosome("Y").isAutosome());
+		IS_TRUE(!Chromosome("M").isAutosome());
+		IS_TRUE(!Chromosome("BLA").isAutosome());
 
-		QVERIFY(Chromosome("1").isAutosome());
-		QVERIFY(Chromosome("2").isAutosome());
-		QVERIFY(Chromosome("10").isAutosome());
-		QVERIFY(Chromosome("20").isAutosome());
-		QVERIFY(Chromosome("22").isAutosome());
-		QVERIFY(Chromosome("100").isAutosome());
+		IS_TRUE(Chromosome("1").isAutosome());
+		IS_TRUE(Chromosome("2").isAutosome());
+		IS_TRUE(Chromosome("10").isAutosome());
+		IS_TRUE(Chromosome("20").isAutosome());
+		IS_TRUE(Chromosome("22").isAutosome());
+		IS_TRUE(Chromosome("100").isAutosome());
 	}
 
 	void isGonosome()
 	{
-		QVERIFY(Chromosome("X").isGonosome());
-		QVERIFY(Chromosome("Y").isGonosome());
+		IS_TRUE(Chromosome("X").isGonosome());
+		IS_TRUE(Chromosome("Y").isGonosome());
 
-		QVERIFY(!Chromosome("").isGonosome());
-		QVERIFY(!Chromosome("M").isGonosome());
-		QVERIFY(!Chromosome("BLA").isGonosome());
-		QVERIFY(!Chromosome("1").isGonosome());
+		IS_TRUE(!Chromosome("").isGonosome());
+		IS_TRUE(!Chromosome("M").isGonosome());
+		IS_TRUE(!Chromosome("BLA").isGonosome());
+		IS_TRUE(!Chromosome("1").isGonosome());
 	}
 
 	void isX()
 	{
-		QVERIFY(Chromosome("X").isX());
+		IS_TRUE(Chromosome("X").isX());
 
-		QVERIFY(!Chromosome("Y").isX());
-		QVERIFY(!Chromosome("").isX());
-		QVERIFY(!Chromosome("M").isX());
-		QVERIFY(!Chromosome("BLA").isX());
-		QVERIFY(!Chromosome("1").isX());
+		IS_TRUE(!Chromosome("Y").isX());
+		IS_TRUE(!Chromosome("").isX());
+		IS_TRUE(!Chromosome("M").isX());
+		IS_TRUE(!Chromosome("BLA").isX());
+		IS_TRUE(!Chromosome("1").isX());
 	}
 
 
 	void isY()
 	{
-		QVERIFY(Chromosome("y").isY());
+		IS_TRUE(Chromosome("y").isY());
 
-		QVERIFY(!Chromosome("X").isY());
-		QVERIFY(!Chromosome("").isY());
-		QVERIFY(!Chromosome("M").isY());
-		QVERIFY(!Chromosome("BLA").isY());
-		QVERIFY(!Chromosome("1").isY());
+		IS_TRUE(!Chromosome("X").isY());
+		IS_TRUE(!Chromosome("").isY());
+		IS_TRUE(!Chromosome("M").isY());
+		IS_TRUE(!Chromosome("BLA").isY());
+		IS_TRUE(!Chromosome("1").isY());
 	}
 
 
 	void isM()
 	{
-		QVERIFY(Chromosome("M").isM());
+		IS_TRUE(Chromosome("M").isM());
 
-		QVERIFY(!Chromosome("X").isM());
-		QVERIFY(!Chromosome("Y").isM());
-		QVERIFY(!Chromosome("").isM());
-		QVERIFY(!Chromosome("BLA").isM());
-		QVERIFY(!Chromosome("1").isM());
+		IS_TRUE(!Chromosome("X").isM());
+		IS_TRUE(!Chromosome("Y").isM());
+		IS_TRUE(!Chromosome("").isM());
+		IS_TRUE(!Chromosome("BLA").isM());
+		IS_TRUE(!Chromosome("1").isM());
 	}
 
 };

@@ -9,11 +9,11 @@ private slots:
 	void test_01()
 	{
 		QString ref_file = Settings::string("reference_genome");
-		if (ref_file=="") QSKIP("Test needs the reference genome!");
+		if (ref_file=="") SKIP("Test needs the reference genome!");
 
-		TFW_EXEC("BamLeftAlign", "-in " + QFINDTESTDATA("data_in/BamLeftAlign_in1.bam") + " -out out/BamLeftAlign_out1.bam -ref " + ref_file + " -v");
-		QVERIFY(QFile::exists("out/BamLeftAlign_out1.bam"));
-		TFW::comareFiles("out/BamLeftAlign_Test_line16.log", QFINDTESTDATA("data_out/BamLeftAlign_out1.log"));
+		EXECUTE("BamLeftAlign", "-in " + TESTDATA("data_in/BamLeftAlign_in1.bam") + " -out out/BamLeftAlign_out1.bam -ref " + ref_file + " -v");
+		IS_TRUE(QFile::exists("out/BamLeftAlign_out1.bam"));
+		COMPARE_FILES("out/BamLeftAlign_Test_line16.log", TESTDATA("data_out/BamLeftAlign_out1.log"));
 	}
 	
 };

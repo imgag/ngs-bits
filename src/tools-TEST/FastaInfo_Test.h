@@ -7,8 +7,8 @@ private slots:
 	
 	void test_01()
 	{
-		TFW_EXEC("FastaInfo", "-in " + QFINDTESTDATA("data_in/dummy.fa") + " -out out/FastaInfo_test01_out.txt");
-		TFW::comareFiles("out/FastaInfo_test01_out.txt", QFINDTESTDATA("data_out/FastaInfo_test01_out.txt"));
+		EXECUTE("FastaInfo", "-in " + TESTDATA("data_in/dummy.fa") + " -out out/FastaInfo_test01_out.txt");
+		COMPARE_FILES("out/FastaInfo_test01_out.txt", TESTDATA("data_out/FastaInfo_test01_out.txt"));
 	}
 
 };

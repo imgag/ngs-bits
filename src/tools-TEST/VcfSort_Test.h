@@ -7,14 +7,14 @@ private slots:
 	
 	void test_01()
 	{
-		TFW_EXEC("VcfSort", "-in " + QFINDTESTDATA("data_in/VcfSort_in1.vcf") + " -out out/VcfSort_out1.vcf");
-		TFW::comareFiles("out/VcfSort_out1.vcf", QFINDTESTDATA("data_out/VcfSort_out1.vcf"));
+		EXECUTE("VcfSort", "-in " + TESTDATA("data_in/VcfSort_in1.vcf") + " -out out/VcfSort_out1.vcf");
+		COMPARE_FILES("out/VcfSort_out1.vcf", TESTDATA("data_out/VcfSort_out1.vcf"));
 	}
 
 	void test_02()
 	{
-		TFW_EXEC("VcfSort", "-in " + QFINDTESTDATA("data_in/VcfSort_in2.vcf") + " -out out/VcfSort_out2.vcf -fai " + QFINDTESTDATA("data_in/hg19.fa.fai"));
-		TFW::comareFiles("out/VcfSort_out2.vcf", QFINDTESTDATA("data_out/VcfSort_out2.vcf"));
+		EXECUTE("VcfSort", "-in " + TESTDATA("data_in/VcfSort_in2.vcf") + " -out out/VcfSort_out2.vcf -fai " + TESTDATA("data_in/hg19.fa.fai"));
+		COMPARE_FILES("out/VcfSort_out2.vcf", TESTDATA("data_out/VcfSort_out2.vcf"));
 	}
 
 };

@@ -7,8 +7,8 @@ private slots:
 	
 	void test_01()
 	{
-		TFW_EXEC("BedLowCoverage", "-in " + QFINDTESTDATA("../cppNGS-TEST/data_in/panel.bed") + " -bam " + QFINDTESTDATA("../cppNGS-TEST/data_in/panel.bam") + " -out out/BedLowCoverage_test01_out.bed -cutoff 20");
-		TFW::comareFiles("out/BedLowCoverage_test01_out.bed", QFINDTESTDATA("data_out/BedLowCoverage_test01_out.bed"));
+		EXECUTE("BedLowCoverage", "-in " + TESTDATA("../cppNGS-TEST/data_in/panel.bed") + " -bam " + TESTDATA("../cppNGS-TEST/data_in/panel.bam") + " -out out/BedLowCoverage_test01_out.bed -cutoff 20");
+		COMPARE_FILES("out/BedLowCoverage_test01_out.bed", TESTDATA("data_out/BedLowCoverage_test01_out.bed"));
 	}
 
 };

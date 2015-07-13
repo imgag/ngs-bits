@@ -8,9 +8,9 @@ private slots:
 	
 	void test_01()
 	{
-		TFW_EXEC("BamClipOverlap", "-in " + QFINDTESTDATA("data_in/BamClipOverlap_in1.bam") + " -out out/BamClipOverlap_out1.bam -v");
-		QVERIFY(QFile::exists("out/BamClipOverlap_out1.bam"));
-        TFW::comareFiles("out/BamClipOverlap_Test_line12.log", QFINDTESTDATA("data_out/BamClipOverlap_out1.log"));
+		EXECUTE("BamClipOverlap", "-in " + TESTDATA("data_in/BamClipOverlap_in1.bam") + " -out out/BamClipOverlap_out1.bam -v");
+		IS_TRUE(QFile::exists("out/BamClipOverlap_out1.bam"));
+        COMPARE_FILES("out/BamClipOverlap_Test_line12.log", TESTDATA("data_out/BamClipOverlap_out1.log"));
 	}
 	
 };

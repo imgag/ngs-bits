@@ -7,28 +7,28 @@ private slots:
 	
 	void test_01()
 	{
-		TFW_EXEC("MappingQC", "-in " + QFINDTESTDATA("../cppNGS-TEST/data_in/panel.bam") + " -roi " + QFINDTESTDATA("../cppNGS-TEST/data_in/panel.bed") + " -out out/MappingQC_test01_out.txt -txt -3exons");
-		TFW::comareFiles("out/MappingQC_test01_out.txt", QFINDTESTDATA("data_out/MappingQC_test01_out.txt"));
+		EXECUTE("MappingQC", "-in " + TESTDATA("../cppNGS-TEST/data_in/panel.bam") + " -roi " + TESTDATA("../cppNGS-TEST/data_in/panel.bed") + " -out out/MappingQC_test01_out.txt -txt -3exons");
+		COMPARE_FILES("out/MappingQC_test01_out.txt", TESTDATA("data_out/MappingQC_test01_out.txt"));
 	}
 	
 	void test_02()
 	{
-		TFW_EXEC("MappingQC", "-in " + QFINDTESTDATA("data_in/MappingQC_in2.bam") + " -roi " + QFINDTESTDATA("data_in/MappingQC_in2.bed") + " -out out/MappingQC_test02_out.txt -txt -3exons");
-		TFW::comareFiles("out/MappingQC_test02_out.txt", QFINDTESTDATA("data_out/MappingQC_test02_out.txt"));
+		EXECUTE("MappingQC", "-in " + TESTDATA("data_in/MappingQC_in2.bam") + " -roi " + TESTDATA("data_in/MappingQC_in2.bed") + " -out out/MappingQC_test02_out.txt -txt -3exons");
+		COMPARE_FILES("out/MappingQC_test02_out.txt", TESTDATA("data_out/MappingQC_test02_out.txt"));
 	}
 	
 	void test_03()
 	{
-		TFW_EXEC("MappingQC", "-in " + QFINDTESTDATA("data_in/MappingQC_in2.bam") + " -roi " + QFINDTESTDATA("data_in/MappingQC_in2.bed") + " -out out/MappingQC_test03_out.qcML -3exons");
-		TFW::removeLinesContaining("out/MappingQC_test03_out.qcML", "creation ");
-		TFW::removeLinesContaining("out/MappingQC_test03_out.qcML", "<binary>");
-		TFW::comareFiles("out/MappingQC_test03_out.qcML", QFINDTESTDATA("data_out/MappingQC_test03_out.qcML"));
+		EXECUTE("MappingQC", "-in " + TESTDATA("data_in/MappingQC_in2.bam") + " -roi " + TESTDATA("data_in/MappingQC_in2.bed") + " -out out/MappingQC_test03_out.qcML -3exons");
+		REMOVE_LINES("out/MappingQC_test03_out.qcML", QRegExp("creation "));
+		REMOVE_LINES("out/MappingQC_test03_out.qcML", QRegExp("<binary>"));
+		COMPARE_FILES("out/MappingQC_test03_out.qcML", TESTDATA("data_out/MappingQC_test03_out.qcML"));
 	}
 	
 	void test_04()
 	{
-		TFW_EXEC("MappingQC", "-in " + QFINDTESTDATA("data_in/MappingQC_in2.bam") + " -wgs hg19 -out out/MappingQC_test04_out.txt -txt");
-	    TFW::comareFiles("out/MappingQC_test04_out.txt", QFINDTESTDATA("data_out/MappingQC_test04_out.txt"));
+		EXECUTE("MappingQC", "-in " + TESTDATA("data_in/MappingQC_in2.bam") + " -wgs hg19 -out out/MappingQC_test04_out.txt -txt");
+	    COMPARE_FILES("out/MappingQC_test04_out.txt", TESTDATA("data_out/MappingQC_test04_out.txt"));
 	}
 
 };

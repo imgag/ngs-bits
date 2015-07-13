@@ -7,20 +7,20 @@ private slots:
 	
 	void test_01()
 	{
-		TFW_EXEC_FAIL("SampleDiff", "-in1 " + QFINDTESTDATA("data_in/SampleDiff_in1.tsv") + " -in2 " + QFINDTESTDATA("data_in/SampleDiff_in2.tsv") + " -out out/SampleDiff_out1.txt");
-		TFW::comareFiles("out/SampleDiff_out1.txt", QFINDTESTDATA("data_out/SampleDiff_out1.txt"));
+		EXECUTE_FAIL("SampleDiff", "-in1 " + TESTDATA("data_in/SampleDiff_in1.tsv") + " -in2 " + TESTDATA("data_in/SampleDiff_in2.tsv") + " -out out/SampleDiff_out1.txt");
+		COMPARE_FILES("out/SampleDiff_out1.txt", TESTDATA("data_out/SampleDiff_out1.txt"));
 	}
 	
 	void test_02()
 	{
-		TFW_EXEC_FAIL("SampleDiff", "-in1 " + QFINDTESTDATA("data_in/SampleDiff_in1.tsv") + " -in2 " + QFINDTESTDATA("data_in/SampleDiff_in2.tsv") + " -out out/SampleDiff_out2.txt -sm");
-		TFW::comareFiles("out/SampleDiff_out2.txt", QFINDTESTDATA("data_out/SampleDiff_out2.txt"));
+		EXECUTE_FAIL("SampleDiff", "-in1 " + TESTDATA("data_in/SampleDiff_in1.tsv") + " -in2 " + TESTDATA("data_in/SampleDiff_in2.tsv") + " -out out/SampleDiff_out2.txt -sm");
+		COMPARE_FILES("out/SampleDiff_out2.txt", TESTDATA("data_out/SampleDiff_out2.txt"));
 	}
 	
 	void test_03()
 	{
-		TFW_EXEC_FAIL("SampleDiff", "-in1 " + QFINDTESTDATA("data_in/SampleDiff_in1.tsv") + " -in2 " + QFINDTESTDATA("data_in/SampleDiff_in2.tsv") + " -out out/SampleDiff_out3.txt -ei");
-		TFW::comareFiles("out/SampleDiff_out3.txt", QFINDTESTDATA("data_out/SampleDiff_out3.txt"));
+		EXECUTE_FAIL("SampleDiff", "-in1 " + TESTDATA("data_in/SampleDiff_in1.tsv") + " -in2 " + TESTDATA("data_in/SampleDiff_in2.tsv") + " -out out/SampleDiff_out3.txt -ei");
+		COMPARE_FILES("out/SampleDiff_out3.txt", TESTDATA("data_out/SampleDiff_out3.txt"));
 	}
 
 };

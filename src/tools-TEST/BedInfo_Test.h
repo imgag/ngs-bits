@@ -7,20 +7,20 @@ private slots:
 	
 	void base_test()
 	{
-		TFW_EXEC("BedInfo", "-in " + QFINDTESTDATA("data_in/exome.bed") + " -out out/BedInfo_test01_out.txt");
-		TFW::comareFiles("out/BedInfo_test01_out.txt", QFINDTESTDATA("data_out/BedInfo_test01_out.txt"));
+		EXECUTE("BedInfo", "-in " + TESTDATA("data_in/exome.bed") + " -out out/BedInfo_test01_out.txt");
+		COMPARE_FILES("out/BedInfo_test01_out.txt", TESTDATA("data_out/BedInfo_test01_out.txt"));
 	}
 	
 	void with_parameter_fai()
 	{
-		TFW_EXEC("BedInfo", "-in " + QFINDTESTDATA("data_in/BedInfo_in2.bed") + " -out out/BedInfo_test02_out.txt -nomerge -fai " + QFINDTESTDATA("data_in/hg19.fa.fai"));
-		TFW::comareFiles("out/BedInfo_test02_out.txt", QFINDTESTDATA("data_out/BedInfo_test02_out.txt"));
+		EXECUTE("BedInfo", "-in " + TESTDATA("data_in/BedInfo_in2.bed") + " -out out/BedInfo_test02_out.txt -nomerge -fai " + TESTDATA("data_in/hg19.fa.fai"));
+		COMPARE_FILES("out/BedInfo_test02_out.txt", TESTDATA("data_out/BedInfo_test02_out.txt"));
 	}
 
 	void with_parameter_filename()
 	{
-		TFW_EXEC("BedInfo", "-in " + QFINDTESTDATA("data_in/BedInfo_in2.bed") + " -out out/BedInfo_test03_out.txt -filename");
-		TFW::comareFiles("out/BedInfo_test03_out.txt", QFINDTESTDATA("data_out/BedInfo_test03_out.txt"));
+		EXECUTE("BedInfo", "-in " + TESTDATA("data_in/BedInfo_in2.bed") + " -out out/BedInfo_test03_out.txt -filename");
+		COMPARE_FILES("out/BedInfo_test03_out.txt", TESTDATA("data_out/BedInfo_test03_out.txt"));
 	}
 
 };

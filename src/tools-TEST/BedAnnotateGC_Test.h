@@ -9,10 +9,10 @@ private slots:
 	void test_01()
 	{
 		QString ref_file = Settings::string("reference_genome");
-		if (ref_file=="") QSKIP("Test needs the reference genome!");
+		if (ref_file=="") SKIP("Test needs the reference genome!");
 	
-		TFW_EXEC("BedAnnotateGC", "-in " + QFINDTESTDATA("data_in/BedAnnotateGC_in1.bed") + " -out out/BedAnnotateGC_out1.bed -ref " + ref_file);
-		TFW::comareFiles("out/BedAnnotateGC_out1.bed", QFINDTESTDATA("data_out/BedAnnotateGC_out1.bed"));
+		EXECUTE("BedAnnotateGC", "-in " + TESTDATA("data_in/BedAnnotateGC_in1.bed") + " -out out/BedAnnotateGC_out1.bed -ref " + ref_file);
+		COMPARE_FILES("out/BedAnnotateGC_out1.bed", TESTDATA("data_out/BedAnnotateGC_out1.bed"));
 	}
 
 };

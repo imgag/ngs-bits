@@ -10,27 +10,27 @@ private slots:
 	{
 		QVector<double> data;
 		data << 0.5 << 1.0 << 1.5;
-		QCOMPARE(BasicStatistics::median(data), 1.0);
+		F_EQUAL(BasicStatistics::median(data), 1.0);
 
 		data.clear();
 		data << 0.5 << 0.8 << 1.0 << 1.5;
-		QCOMPARE(BasicStatistics::median(data), 0.9);
+		F_EQUAL(BasicStatistics::median(data), 0.9);
 	}
 
 	void isSorted()
 	{
 		QVector<double> data;
 		data << 0.5 << 1.0;
-		QVERIFY(BasicStatistics::isSorted(data));
+		IS_TRUE(BasicStatistics::isSorted(data));
 
 		data << 1.5;
-		QVERIFY(BasicStatistics::isSorted(data));
+		IS_TRUE(BasicStatistics::isSorted(data));
 
 		data << 1.5;
-		QVERIFY(BasicStatistics::isSorted(data));
+		IS_TRUE(BasicStatistics::isSorted(data));
 
 		data << 1.4;
-		QVERIFY(!BasicStatistics::isSorted(data));
+		IS_TRUE(!BasicStatistics::isSorted(data));
 	}
 
 	void getMinMax()
@@ -39,54 +39,54 @@ private slots:
 		data << 0.5 << 1.0 << 1.5;
 
 		QPair<double, double> output = BasicStatistics::getMinMax(data);
-		QCOMPARE(output.first, 0.5);
-		QCOMPARE(output.second, 1.5);
+		F_EQUAL(output.first, 0.5);
+		F_EQUAL(output.second, 1.5);
 
 		data << 0.1;
 		output = BasicStatistics::getMinMax(data);
-		QCOMPARE(output.first, 0.1);
-		QCOMPARE(output.second, 1.5);
+		F_EQUAL(output.first, 0.1);
+		F_EQUAL(output.second, 1.5);
 
 		data << 1.6;
 		output = BasicStatistics::getMinMax(data);
-		QCOMPARE(output.first, 0.1);
-		QCOMPARE(output.second, 1.6);
+		F_EQUAL(output.first, 0.1);
+		F_EQUAL(output.second, 1.6);
 	}
 
 
 	void range()
 	{
 		QVector<double> range = BasicStatistics::range(-1, 5.0, 1.0);
-		QCOMPARE(range.count(), 0);
+		I_EQUAL(range.count(), 0);
 
 		range = BasicStatistics::range(0, 5.0, 1.0);
-		QCOMPARE(range.count(), 0);
+		I_EQUAL(range.count(), 0);
 
 		range = BasicStatistics::range(1, 5.0, 1.0);
-		QCOMPARE(range.count(), 1);
-		QCOMPARE(range[0], 5.0);
+		I_EQUAL(range.count(), 1);
+		F_EQUAL(range[0], 5.0);
 
 		range = BasicStatistics::range(3, 5.0, 1.0);
-		QCOMPARE(range.count(), 3);
-		QCOMPARE(range[0], 5.0);
-		QCOMPARE(range[1], 6.0);
-		QCOMPARE(range[2], 7.0);
+		I_EQUAL(range.count(), 3);
+		F_EQUAL(range[0], 5.0);
+		F_EQUAL(range[1], 6.0);
+		F_EQUAL(range[2], 7.0);
 
 		range = BasicStatistics::range(3, 5.0, -1.0);
-		QCOMPARE(range.count(), 3);
-		QCOMPARE(range[0], 5.0);
-		QCOMPARE(range[1], 4.0);
-		QCOMPARE(range[2], 3.0);
+		I_EQUAL(range.count(), 3);
+		F_EQUAL(range[0], 5.0);
+		F_EQUAL(range[1], 4.0);
+		F_EQUAL(range[2], 3.0);
 	}
 
 	void isValidFloat()
 	{
-		QCOMPARE(BasicStatistics::isValidFloat("bla"), false);
-		QCOMPARE(BasicStatistics::isValidFloat("nan"), false);
-		QCOMPARE(BasicStatistics::isValidFloat("inf"), false);
-		QCOMPARE(BasicStatistics::isValidFloat("1"), true);
-		QCOMPARE(BasicStatistics::isValidFloat("1.1"), true);
-		QCOMPARE(BasicStatistics::isValidFloat("1e-4"), true);
+		IS_FALSE(BasicStatistics::isValidFloat("bla"))
+		IS_FALSE(BasicStatistics::isValidFloat("nan"))
+		IS_FALSE(BasicStatistics::isValidFloat("inf"))
+		IS_TRUE(BasicStatistics::isValidFloat("1"))
+		IS_TRUE(BasicStatistics::isValidFloat("1.1"))
+		IS_TRUE(BasicStatistics::isValidFloat("1e-4"))
 	}
 
 };
