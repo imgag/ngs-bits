@@ -28,10 +28,11 @@ Then you have to adapt your ~/.gitconfig file like that:
 
 ngs-bits depends on the following software to be installed
 
-- g++
-- qmake (Qt 5.5 or higher)
-- git (to extract the version hash)
-- cmake (to build bamtools library)
+* _g++_
+* _qmake_ (Qt 5.5 or higher)
+* _git_ (to extract the version hash)
+* _cmake_ (to build the [bamtools](https://github.com/pezmaster31/bamtools) library)
+* __optinal:__ python and matplotlib (for plot generation in QC tools)
 
 ### Building
 
@@ -41,14 +42,6 @@ Just execute the following make commands:
 	make build_tools_release
 
 Now the executables and all required libraries can be found in the bin/ folder!
-
-## Contributors
-
-ngs-bits is developed and maintained by:
-
-- Marc Sturm
-- Christopher Schroeder
-- Florian Lenz
 
 ## Support
 
@@ -61,47 +54,47 @@ _ngs-bits_ contains a lot of tools that we use for NGS short-read data analysis 
 
 ### Main tools
 
- * _SeqPurge_ - A highly-sensitive adapter trimmer for paired-end short-read data ([ISMB 2015 Poster abstract](http://www.iscb.org/cms_addon/conferences/ismbeccb2015/posterlist.php?cat=G)).
- * _ReadQC_ - Quality control tool for FASTQ files (output is [qcML](https://code.google.com/p/qcml/)).
- * _MappingQC_ - Quality control tool for a BAM file (output is [qcML](https://code.google.com/p/qcml/)).
- * _VariantQC_ - Quality control tool for a VCF file (output is [qcML](https://code.google.com/p/qcml/)).
- * _SampleCorrelation_ - Calculates the variant overlap and correlation of two VCF/BAM files.
- * _SampleGender_ - Determines sample gender based on a BAM file.
+* [SeqPurge](doc/tools/SeqPurge.md) - A highly-sensitive adapter trimmer for paired-end short-read data ([ISMB 2015 Poster abstract](http://www.iscb.org/cms_addon/conferences/ismbeccb2015/posterlist.php?cat=G)).
+* [ReadQC](doc/tools/ReadQC.md) - Quality control tool for FASTQ files (output is [qcML](https://code.google.com/p/qcml/)).
+* [MappingQC](doc/tools/MappingQC.md) - Quality control tool for a BAM file (output is [qcML](https://code.google.com/p/qcml/)).
+* [VariantQC](doc/tools/VariantQC.md) - Quality control tool for a VCF file (output is [qcML](https://code.google.com/p/qcml/)).
+* [SampleCorrelation](doc/tools/SampleCorrelation.md) - Calculates the variant overlap and correlation of two VCF/BAM files.
+* [SampleGender](doc/tools/SampleGender.md) - Determines sample gender based on a BAM file.
 
 ### BAM tools
 
- * _BamClipOverlap_ - Clips paired-end reads that overlap.
- * _BamIndex_ - Creates a BAI index for a BAM file.
- * _BamLeftAlign_ - Left-aligns indels in repeat regions.
+* [BamClipOverlap](doc/tools/BamClipOverlap.md) - Clips paired-end reads that overlap.
+* [BamIndex](doc/tools/BamIndex.md) - Creates a BAI index for a BAM file.
+* [BamLeftAlign](doc/tools/BamLeftAlign.md) - Left-aligns indels in repeat regions.
 
 ### BED tools
 
- * _BedAnnotateGC_ - Annnotates the regions in a BED file with GC content.
- * _BedChunk_ - Splits regions in a BED file to chunks of a desired size.
- * _BedCoverage_ - Annoates the regions in a BED file with the average coverage in one or several BAM files.
- * _BedExtend_ - Extends the regions in a BED file by _n_ bases.
- * _BedInfo_ - Prints summary information about a BED file.
- * _BedIntersect_ - Intersects two BED files.
- * _BedLowCoverage_ - Calcualtes regions of low coverage based on a input BED and BAM file.
- * _BedMerge_ - Merges overlapping regions in a BED file.
- * _BedShrink_ - Shrinks the regions in a BED file by _n_ bases.
- * _BedSort_ - Sorts the regions in a BED file
- * _BedSubtract_ - Subracts one BED file from another BED file.
- * _BedToFasta_ - Converts BED file to a FASTA file (based on the reference genome).
+* [BedAnnotateGC](doc/tools/BedAnnotateGC.md) - Annnotates the regions in a BED file with GC content.
+* [BedChunk](doc/tools/BedChunk.md) - Splits regions in a BED file to chunks of a desired size.
+* [BedCoverage](doc/tools/BedCoverage.md) - Annoates the regions in a BED file with the average coverage in one or several BAM files.
+* [BedExtend](doc/tools/BedExtend.md) - Extends the regions in a BED file by _n_ bases.
+* [BedInfo](doc/tools/BedInfo.md) - Prints summary information about a BED file.
+* [BedIntersect](doc/tools/BedIntersect.md) - Intersects two BED files.
+* [BedLowCoverage](doc/tools/BedLowCoverage.md) - Calcualtes regions of low coverage based on a input BED and BAM file.
+* [BedMerge](doc/tools/BedMerge.md) - Merges overlapping regions in a BED file.
+* [BedShrink](doc/tools/BedShrink.md) - Shrinks the regions in a BED file by _n_ bases.
+* [BedSort](doc/tools/BedSort.md) - Sorts the regions in a BED file
+* [BedSubtract](doc/tools/BedSubtract.md) - Subracts one BED file from another BED file.
+* [BedToFasta](doc/tools/BedToFasta.md) - Converts BED file to a FASTA file (based on the reference genome).
 
 ### FASTQ tools
 
- * _FastqConvert_ - Converts the quality scores from Illumina 1.5 offset to Sanger/Illumina 1.8 offset. 
- * _FastqExtract_ - Extracts reads from a FASTQ file according to an ID list.
- * _FastqFormat_ - Determines the quality score offset of a FASTQ file.
- * _FastqList_ - Lists read IDs and base counts.
- * _FastqMidParser_ - Counts the number of occurances of each MID/index/barcode in a FASTQ file.
- * _FastqToFasta_ - Converts FASTQ to FASTA format.
- * _FastqTrim_ - Trims start/end bases from the reads in a FASTQ file.
+* [FastqConvert](doc/tools/FastqConvert.md) - Converts the quality scores from Illumina 1.5 offset to Sanger/Illumina 1.8 offset. 
+* [FastqExtract](doc/tools/FastqExtract.md) - Extracts reads from a FASTQ file according to an ID list.
+* [FastqFormat](doc/tools/FastqFormat.md) - Determines the quality score offset of a FASTQ file.
+* [FastqList](doc/tools/FastqList.md) - Lists read IDs and base counts.
+* [FastqMidParser](doc/tools/FastqMidParser.md) - Counts the number of occurances of each MID/index/barcode in a FASTQ file.
+* [FastqToFasta](doc/tools/FastqToFasta.md) - Converts FASTQ to FASTA format.
+* [FastqTrim](doc/tools/FastqTrim.md) - Trims start/end bases from the reads in a FASTQ file.
 
 ### VCF tools
 
- * _VariantFilterRegions_ - Filter a variant list based on a BED file.
- * _VcfLeftAlign_ - Left-aligns indel variants in repeat regions.
- * _VcfSort_ - Sorts variant lists according to chromosomal position.
+* [VariantFilterRegions](doc/tools/VariantFilterRegions.md) - Filter a variant list based on a BED file.
+* [VcfLeftAlign](doc/tools/VcfLeftAlign.md) - Left-aligns indel variants in repeat regions.
+* [VcfSort](doc/tools/VcfSort.md) - Sorts variant lists according to chromosomal position.
   
