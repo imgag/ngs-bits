@@ -32,7 +32,7 @@ ngs-bits depends on the following software to be installed
 * _qmake_ (Qt 5.5 or higher)
 * _git_ (to extract the version hash)
 * _cmake_ (to build the [bamtools](https://github.com/pezmaster31/bamtools) library)
-* __optinal:__ python and matplotlib (for plot generation in QC tools)
+* __optional:__ python and matplotlib (for plot generation in QC tools)
 
 ### Building
 
@@ -50,7 +50,7 @@ tracker](https://github.com/marc-sturm/ngs-bits/issues).
 
 ## Tools list
 
-_ngs-bits_ contains a lot of tools that we use for NGS short-read data analysis in our institute. Not all of these tools are mature enough for public use. Thus, here we will list tools that can be safely used:
+_ngs-bits_ contains a lot of tools that we use for NGS short-read data analysis in our [institute](http://www.uni-tuebingen.de/Klinische_Genetik/start.html). Not all of these tools are mature enough for public use. Thus, here we will list tools that can be safely used:
 
 ### Main tools
 
