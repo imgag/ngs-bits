@@ -363,11 +363,11 @@ void ReportWorker::writeHTML()
 			stream << "<tr><td>" << variant.chr().str() << "</td><td>" << variant.start() << "</td><td>" << variant.end() << "</td><td>" << variant.ref() << "</td><td>" << variant.obs() << "</td>";
 			for (int j=0; j<variants_.annotations().count(); ++j)
 			{
-				QString anno = variant.annotations().at(j).toHtmlEscaped();
+				QString anno = variant.annotations().at(j);
 				bool ok = false;
 				anno.toDouble(&ok);
 				if (ok) anno.replace(".", ",");
-				stream << "<td><nobr>" << anno << "</nobr></td>";
+				stream << "<td><nobr>" << anno.toHtmlEscaped() << "</nobr></td>";
 			}
 			stream << "</tr>" << endl;
 		}

@@ -32,11 +32,11 @@ ValidationDialog::ValidationDialog(QWidget* parent, QString filename, const Vari
 	}
 	else
 	{
-		QStringList qual_parts = variant.annotations()[quality_annotation_index].split(';');
+		QList<QByteArray> qual_parts = variant.annotations()[quality_annotation_index].split(';');
 		for (int i=0; i<qual_parts.count(); ++i)
 		{
-			QStringList key_value = qual_parts[i].split('=');
-			if (key_value.count()!=2 || !BasicStatistics::isValidFloat(key_value[1].toLatin1()))
+			QList<QByteArray> key_value = qual_parts[i].split('=');
+			if (key_value.count()!=2 || !BasicStatistics::isValidFloat(key_value[1]))
 			{
 				qual_parts[i] = "<font color='gray'>" + qual_parts[i] + "</font>";
 			}

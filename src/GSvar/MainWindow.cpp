@@ -693,8 +693,8 @@ void MainWindow::variantListChanged()
 		ui_.vars->setItem(i, 0, new QTableWidgetItem(QString(row.chr().str())));
 		ui_.vars->setItem(i, 1, new QTableWidgetItem(QString::number(row.start())));
 		ui_.vars->setItem(i, 2, new QTableWidgetItem(QString::number(row.end())));
-		ui_.vars->setItem(i, 3, new QTableWidgetItem(row.ref()));
-		ui_.vars->setItem(i, 4, new QTableWidgetItem(row.obs()));
+		ui_.vars->setItem(i, 3, new QTableWidgetItem(row.ref(), 0));
+		ui_.vars->setItem(i, 4, new QTableWidgetItem(row.obs(), 0));
 		bool is_warning_line = false;
 		bool is_notice_line = false;
 		bool is_ok_line = false;
@@ -866,7 +866,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 	QAction* action = menu.exec(ui_.vars->viewport()->mapToGlobal(pos));
 	if (!action) return;
 
-	QString text = action->text();
+	QByteArray text = action->text().toLatin1();
 	QString text_menu = qobject_cast<QMenu*>(action->parent())->title();
 
 	if (text=="Open annotation website")
@@ -1067,7 +1067,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 			}
 
 			//update GUI
-			QString status = dlg.status();
+			QByteArray status = dlg.status().toLatin1();
 			if (status=="true positive") status = "TP";
 			if (status=="false positive") status = "FP";
 			variants_[item->row()].annotations()[variants_.annotationIndexByName("validated", true, true)] = status;
@@ -1117,7 +1117,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 		try
 		{
 			bool ok = true;
-			QString text = QInputDialog::getText(this, "Variant comment", "Text: ", QLineEdit::Normal, NGSD().comment(filename_, variants_[item->row()]), &ok);
+			QByteArray text = QInputDialog::getText(this, "Variant comment", "Text: ", QLineEdit::Normal, NGSD().comment(filename_, variants_[item->row()]), &ok).toLatin1();
 
 			if (ok)
 			{
@@ -1287,7 +1287,7 @@ void MainWindow::filtersChanged()
 				bool pass_impact = false;
 				foreach(const QString& impact, impacts)
 				{
-					if (variants_[i].annotations()[i_co_sp].contains(impact))
+					if (variants_[i].annotations()[i_co_sp].contains(impact.toLatin1()))
 					{
 						pass_impact = true;
 						break;
@@ -1391,11 +1391,11 @@ void MainWindow::filtersChanged()
 			{
 				if (!pass[i]) continue;
 
-				QStringList qual_parts = variants_[i].annotations()[i_qual].split(';');
-				foreach(const QString& part, qual_parts)
+				QList<QByteArray> qual_parts = variants_[i].annotations()[i_qual].split(';');
+				foreach(const QByteArray& part, qual_parts)
 				{
-					QStringList key_value = part.split('=');
-					if (key_value.count()!=2 || !BasicStatistics::isValidFloat(key_value[1].toLatin1()))
+					QList<QByteArray> key_value = part.split('=');
+					if (key_value.count()!=2 || !BasicStatistics::isValidFloat(key_value[1]))
 					{
 						THROW(ArgumentException, "Cannot parse quality column part '" + part + "'");
 					}
@@ -1449,7 +1449,7 @@ void MainWindow::filtersChanged()
 		}
 
 		//gene filter
-		QString gene = filter_widget_->gene();
+		QByteArray gene = filter_widget_->gene().toUpper().toLatin1();
 		if (gene!="")
 		{
 			int i_gene = variants_.annotationIndexByName("gene", true, true);
@@ -1457,7 +1457,7 @@ void MainWindow::filtersChanged()
 			{
 				if (pass[i])
 				{
-					pass[i] = variants_[i].annotations()[i_gene].contains(gene, Qt::CaseInsensitive);
+					pass[i] = variants_[i].annotations()[i_gene].toUpper().contains(gene);
 				}
 			}
 			Log::perf("Applying gene filter took ", timer);

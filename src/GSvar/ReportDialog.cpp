@@ -48,8 +48,8 @@ void ReportDialog::addVariants(const VariantList& variants, const QBitArray& vis
 		ui_.vars->setItem(row, 1, new QTableWidgetItem(QString(variant.chr().str())));
 		ui_.vars->setItem(row, 2, new QTableWidgetItem(QString::number(variant.start())));
 		ui_.vars->setItem(row, 3, new QTableWidgetItem(QString::number(variant.end())));
-		ui_.vars->setItem(row, 4, new QTableWidgetItem(variant.ref()));
-		ui_.vars->setItem(row, 5, new QTableWidgetItem(variant.obs()));
+		ui_.vars->setItem(row, 4, new QTableWidgetItem(variant.ref(), 0));
+		ui_.vars->setItem(row, 5, new QTableWidgetItem(variant.obs(), 0));
 		for (int j=6; j<labels_.count(); ++j)
 		{
 			int index = variants.annotationIndexByName(labels_[j], true, false);
@@ -63,7 +63,7 @@ void ReportDialog::addVariants(const VariantList& variants, const QBitArray& vis
 			}
 			else
 			{
-				ui_.vars->setItem(row, j, new QTableWidgetItem(variant.annotations().at(index)));
+				ui_.vars->setItem(row, j, new QTableWidgetItem(variant.annotations().at(index), 0));
 			}
 		}
 
