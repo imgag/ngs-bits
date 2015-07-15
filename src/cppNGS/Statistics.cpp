@@ -209,7 +209,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
             {
                 ++al_ontarget;
 
-				if (al.IsProperPair() && al.IsPrimaryAlignment() && !al.IsDuplicate() && al.MapQuality>=min_mapq)
+				if (al.IsPrimaryAlignment() && !al.IsDuplicate() && al.MapQuality>=min_mapq)
                 {
                     foreach(int index, indices)
                     {
@@ -395,7 +395,7 @@ QCCollection Statistics::mapping(const QString& genome, const QString &bam_file,
             {
                 ++al_ontarget;
 
-				if (al.IsProperPair() && al.IsPrimaryAlignment() && !al.IsDuplicate() && al.MapQuality>=min_mapq)
+				if (al.IsPrimaryAlignment() && !al.IsDuplicate() && al.MapQuality>=min_mapq)
 				{
                     bases_overlap_roi += al.Length;
                 }
@@ -587,7 +587,7 @@ QCCollection Statistics::mapping3Exons(const QString& bam_file)
     return output;
 }
 
-BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, bool consider_singletons)
+BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq)
 {
     //check target region is merged/sorted and create index
     if (!bed_file.isMergedAndSorted())
@@ -633,8 +633,7 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
     BamAlignment al;
     while (reader.GetNextAlignmentCore(al))
     {
-        if (al.IsDuplicate()) continue;
-		if (!al.IsProperPair() && !consider_singletons) continue;
+		if (al.IsDuplicate()) continue;
 		if (!al.IsPrimaryAlignment()) continue;
         if (!al.IsMapped() || al.MapQuality<min_mapq) continue;
 
@@ -675,7 +674,7 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
     return low_coverage;
 }
 
-void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, bool anom, int min_mapq)
+void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq)
 {
     //check target region is merged/sorted and create index
     if (!bed_file.isMergedAndSorted())
@@ -705,8 +704,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, bool an
     BamAlignment al;
     while (reader.GetNextAlignmentCore(al))
     {
-        if (al.IsDuplicate()) continue;
-        if (!al.IsProperPair() && !anom) continue;
+		if (al.IsDuplicate()) continue;
 		if (!al.IsPrimaryAlignment()) continue;
         if (!al.IsMapped() || al.MapQuality<min_mapq) continue;
 

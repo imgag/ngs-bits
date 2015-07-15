@@ -257,9 +257,10 @@ void NGSD::annotate(VariantList& variants, QString filename, QString ref_file, b
 	removeColumnIfPresent(variants, "comment", true);
 
 	//get required column indices
-	int ihdb_hom_idx = addColumn(variants, "ihdb_hom_" + QString::number(sys_sample_ids.count()), "Homozygous variant counts in NGSD for the same processing system.");
-	int ihdb_het_idx = addColumn(variants, "ihdb_het_" + QString::number(sys_sample_ids.count()), "Heterozyous variant counts in NGSD for the same processing system.");
-	int ihdb_wt_idx  = addColumn(variants, "ihdb_wt_"  + QString::number(sys_sample_ids.count()), "Wildtype variant counts in NGSD for the same processing system.");
+	QString num_samples = QString::number(sys_sample_ids.count());
+	int ihdb_hom_idx = addColumn(variants, "ihdb_hom", "Homozygous variant counts in NGSD for the same processing system (" + num_samples + " samples).");
+	int ihdb_het_idx = addColumn(variants, "ihdb_het", "Heterozyous variant counts in NGSD for the same processing system (" + num_samples + " samples).");
+	int ihdb_wt_idx  = addColumn(variants, "ihdb_wt", "Wildtype variant counts in NGSD for the same processing system (" + num_samples + " samples).");
 	int ihdb_all_hom_idx = addColumn(variants, "ihdb_allsys_hom", "Homozygous variant counts in NGSD independent of the processing system.");
 	int ihdb_all_het_idx =  addColumn(variants, "ihdb_allsys_het", "Heterozygous variant counts in NGSD independent of the processing system.");
 	int class_idx = addColumn(variants, "classification", "VUS classification from the NGSD.");

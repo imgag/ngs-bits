@@ -6,8 +6,7 @@ Tools:
   - new technical report
  - SampleOverview: add option for BAM files (check depth where variant is not found)
  - ReadQC: create plots without python
- # VariantAnnotateNGSD: remove sample count from ihdb_hom/het/wt and move it to description
- # BamLeftAlign: remove (other tools as well?, move script to find unused tools to php respository)
+ # BamLeftAlign: remove (other tools as well?)
 
 CnvHunter
  - set min STDEV to 15% of mean (was 10%, make it a parameter)
@@ -22,12 +21,9 @@ CnvHunter
    - https://decipher.sanger.ac.uk/disorders#syndromes/overview
  - instead of fixed 'n', majority vote for CNVs for n>=10 and n<=30?
 
-cppNGS:
- # use al.IsProperPair() only for insert size calulcation, not for mapping/exon statistics
-
 Tests:
- # speed up tests
- # reduce large test data dependency => check in all test data
+ # reduce W: dependency => check in all test data
+ # use depencency injection to remove NGSD test dependency?!
 
 Transcripts:
 AP4M1	NM_004722.3

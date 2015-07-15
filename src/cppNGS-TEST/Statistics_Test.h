@@ -66,7 +66,7 @@ private slots:
 		}
 	}
 
-	void mapping1()
+	void mapping_panel()
 	{
 		BedFile bed_file;
 		bed_file.load(TESTDATA("data_in/panel.bed"));
@@ -86,21 +86,21 @@ private slots:
 		S_EQUAL(stats[5].name(), QString("duplicate read percentage"));
 		S_EQUAL(stats[5].toString(), QString("n/a (probably removed from BAM during data analysis)"));
 		S_EQUAL(stats[6].name(), QString("target region read depth"));
-		S_EQUAL(stats[6].toString(), QString("125.36"));
+		S_EQUAL(stats[6].toString(), QString("125.63"));
 		S_EQUAL(stats[7].name(), QString("target region 10x percentage"));
 		S_EQUAL(stats[7].toString(), QString("97.08"));
 		S_EQUAL(stats[8].name(), QString("target region 20x percentage"));
-		S_EQUAL(stats[8].toString(), QString("94.05"));
+		S_EQUAL(stats[8].toString(), QString("94.06"));
 		S_EQUAL(stats[9].name(), QString("target region 30x percentage"));
-		S_EQUAL(stats[9].toString(), QString("90.22"));
+		S_EQUAL(stats[9].toString(), QString("90.25"));
 		S_EQUAL(stats[10].name(), QString("target region 50x percentage"));
-		S_EQUAL(stats[10].toString(), QString("80.77"));
+		S_EQUAL(stats[10].toString(), QString("80.81"));
 		S_EQUAL(stats[11].name(), QString("target region 100x percentage"));
-		S_EQUAL(stats[11].toString(), QString("55.38"));
+		S_EQUAL(stats[11].toString(), QString("55.51"));
 		S_EQUAL(stats[12].name(), QString("target region 200x percentage"));
-		S_EQUAL(stats[12].toString(), QString("18.09"));
+		S_EQUAL(stats[12].toString(), QString("18.22"));
 		S_EQUAL(stats[13].name(), QString("target region 500x percentage"));
-		S_EQUAL(stats[13].toString(), QString("0.05"));
+		S_EQUAL(stats[13].toString(), QString("0.06"));
 		S_EQUAL(stats[14].name(), QString("depth distribution plot"));
 		IS_TRUE(stats[14].type()==QVariant::ByteArray);
 		S_EQUAL(stats[15].name(), QString("insert size distribution plot"));
@@ -115,7 +115,7 @@ private slots:
 		}
 	}
 
-	void mapping2()
+	void mapping_close_exons()
 	{
 		BedFile bed_file;
 		bed_file.load(TESTDATA("data_in/close_exons.bed"));
@@ -157,7 +157,7 @@ private slots:
 		I_EQUAL(stats.count(), 16);
 	}
 
-	void mapping3()
+	void mapping_wgs()
 	{
 		QCCollection stats = Statistics::mapping("hg19", TESTDATA("data_in/close_exons.bam"));
 		S_EQUAL(stats[0].name(), QString("trimmed base percentage"));
@@ -299,23 +299,12 @@ private slots:
 	void lowCoverage_mapq20()
 	{
 		BedFile bed_file;
-		bed_file.load(TESTDATA("data_in/panel.bed"));
+		bed_file.load(TESTDATA("data_in/panel_chr1.bed"));
 		bed_file.merge();
-		I_EQUAL(bed_file.baseCount(), 271536);
+		I_EQUAL(bed_file.baseCount(), 14298);
 
 		BedFile low_cov =  Statistics::lowCoverage(bed_file, TESTDATA("data_in/panel.bam"), 20, 20);
-		I_EQUAL(low_cov.baseCount(), 16165);
-	}
-
-	void lowCoverage_mapq20_singletons()
-	{
-		BedFile bed_file;
-		bed_file.load(TESTDATA("data_in/panel.bed"));
-		bed_file.merge();
-		I_EQUAL(bed_file.baseCount(), 271536);
-
-		BedFile low_cov =  Statistics::lowCoverage(bed_file, TESTDATA("data_in/panel.bam"), 20, 20, true);
-		I_EQUAL(low_cov.baseCount(), 16116);
+		I_EQUAL(low_cov.baseCount(), 1353);
 	}
 
 	void lowCoverage_mapq1()
@@ -335,7 +324,7 @@ private slots:
 		bed_file.load(TESTDATA("data_in/panel.bed"));
 		bed_file.merge();
 
-		Statistics::avgCoverage(bed_file, TESTDATA("data_in/panel.bam"), true, 20);
+		Statistics::avgCoverage(bed_file, TESTDATA("data_in/panel.bam"), 20);
 
 		I_EQUAL(bed_file.count(), 1532);
 		X_EQUAL(bed_file[0].chr(), Chromosome("chr1"));
@@ -350,7 +339,7 @@ private slots:
 		bed_file.load(TESTDATA("data_in/close_exons.bed"));
 		bed_file.merge();
 
-		Statistics::avgCoverage(bed_file, TESTDATA("data_in/close_exons.bam"), true, 20);
+		Statistics::avgCoverage(bed_file, TESTDATA("data_in/close_exons.bam"), 20);
 
 		I_EQUAL(bed_file.count(), 2);
 		X_EQUAL(bed_file[0].chr(), Chromosome("chr1"));

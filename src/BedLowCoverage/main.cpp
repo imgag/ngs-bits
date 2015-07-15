@@ -22,7 +22,6 @@ public:
 		//optional
 		addInfile("in", "Input BED file containing the regions of interest. If unset, reads from STDIN.", true);
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
-		addFlag("single", "Also consider singletons (not prooperly paired, or single-end mapping).");
 		addInt("min_mapq", "Minimum mapping quality to consider a read.", true, 1);
 	}
 
@@ -34,7 +33,7 @@ public:
 		file.merge();
 
 		//get low-cov regions and store them
-		BedFile ouput = Statistics::lowCoverage(file, getInfile("bam"), getInt("cutoff"), getInt("min_mapq"), getFlag("single"));
+		BedFile ouput = Statistics::lowCoverage(file, getInfile("bam"), getInt("cutoff"), getInt("min_mapq"));
 		ouput.store(getOutfile("out"));
 	}
 };

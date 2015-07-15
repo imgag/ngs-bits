@@ -18,7 +18,6 @@ public:
 	{
 		setDescription("Extracts the average coverage for input regions from one or several BAM file(s).");
 		addInfileList("bam", "Input BAM file(s).", false);
-		addFlag("anom", "Also consider anomalous reads.");
 		addInt("min_mapq", "Minimum mapping quality.", true, 1);
 		//optional
 		addInfile("in", "Input BED file (note that overlapping regions will be merged before processing). If unset, reads from STDIN.", true);
@@ -28,9 +27,6 @@ public:
 
 	virtual void main()
 	{
-		//init
-		bool anom = getFlag("anom");
-
 		//load and merge regions
 		BedFile file;
 		file.load(getInfile("in"));
@@ -41,7 +37,7 @@ public:
 		QStringList bams = getInfileList("bam");
 		foreach(QString bam, bams)
 		{
-			Statistics::avgCoverage(file, bam, anom, getInt("min_mapq"));
+			Statistics::avgCoverage(file, bam, getInt("min_mapq"));
 			header += "\t" + QFileInfo(bam).baseName();
 		}
 

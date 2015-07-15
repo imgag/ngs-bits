@@ -20,11 +20,11 @@ private slots:
 		output.load("out/VariantAnnotateNGSD_out1.tsv");
 	
 		//check that the new columns are present
-		int hom_i = output.annotationIndexByName("ihdb_hom_", false, true);
+		int hom_i = output.annotationIndexByName("ihdb_hom", true, true);
 		I_EQUAL(hom_i, 22);
-		int het_i = output.annotationIndexByName("ihdb_het_", false, true);
+		int het_i = output.annotationIndexByName("ihdb_het", true, true);
 		I_EQUAL(het_i, 23);
-		int wt_i = output.annotationIndexByName("ihdb_wt_", false, true);
+		int wt_i = output.annotationIndexByName("ihdb_wt", true, true);
 		I_EQUAL(wt_i, 24);
 		int all_hom_i = output.annotationIndexByName("ihdb_allsys_hom", true, true);
 		I_EQUAL(all_hom_i, 25);
@@ -75,11 +75,11 @@ private slots:
 		output.load("out/VariantAnnotateNGSD_out2.tsv");
 	
 		//check that the new columns are present
-		int hom_i = output.annotationIndexByName("ihdb_hom_", false, true);
+		int hom_i = output.annotationIndexByName("ihdb_hom", true, true);
 		I_EQUAL(hom_i, 22);
-		int het_i = output.annotationIndexByName("ihdb_het_", false, true);
+		int het_i = output.annotationIndexByName("ihdb_het", true, true);
 		I_EQUAL(het_i, 23);
-		int wt_i = output.annotationIndexByName("ihdb_wt_", false, true);
+		int wt_i = output.annotationIndexByName("ihdb_wt", true, true);
 		I_EQUAL(wt_i, 24);
 		int all_hom_i = output.annotationIndexByName("ihdb_allsys_hom", true, true);
 		I_EQUAL(all_hom_i, 25);

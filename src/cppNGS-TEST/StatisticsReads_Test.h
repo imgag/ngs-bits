@@ -11,13 +11,13 @@ private slots:
 		StatisticsReads stats;
 
 		FastqEntry e;
-		FastqFileStream stream(TESTDATA("../tools-TEST/data_in/ReadQC_in1.fastq.gz"), false);
+		FastqFileStream stream(TESTDATA("data_in/example6.fastq.gz"), false);
 		while(!stream.atEnd())
 		{
 			stream.readEntry(e);
 			stats.update(e, StatisticsReads::FORWARD);
 		}
-		FastqFileStream stream2(TESTDATA("../tools-TEST/data_in/ReadQC_in2.fastq.gz"), false);
+		FastqFileStream stream2(TESTDATA("data_in/example7.fastq.gz"), false);
 		while(!stream2.atEnd())
 		{
 			stream2.readEntry(e);
@@ -26,17 +26,17 @@ private slots:
 
 		QCCollection result = stats.getResult();
 		S_EQUAL(result[0].name(), QString("read count"));
-		S_EQUAL(result[0].toString(), QString("25000"));
+		S_EQUAL(result[0].toString(), QString("5000"));
 		S_EQUAL(result[1].name(), QString("read length"));
 		S_EQUAL(result[1].toString(), QString("151"));
 		S_EQUAL(result[2].name(), QString("Q20 read percentage"));
-		S_EQUAL(result[2].toString(), QString("99.32"));
+		S_EQUAL(result[2].toString(), QString("99.40"));
 		S_EQUAL(result[3].name(), QString("Q30 base percentage"));
-		S_EQUAL(result[3].toString(), QString("96.52"));
+		S_EQUAL(result[3].toString(), QString("96.30"));
 		S_EQUAL(result[4].name(), QString("no base call percentage"));
 		S_EQUAL(result[4].toString(), QString("0.00"));
 		S_EQUAL(result[5].name(), QString("gc content percentage"));
-		S_EQUAL(result[5].toString(), QString("46.22"));
+		S_EQUAL(result[5].toString(), QString("46.26"));
 		S_EQUAL(result[6].name(), QString("base distribution plot"));
 		IS_TRUE(result[6].type()==QVariant::ByteArray);
 		S_EQUAL(result[7].name(), QString("Q score plot"));

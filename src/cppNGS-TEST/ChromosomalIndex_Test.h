@@ -203,28 +203,4 @@ private slots:
 		index = var_index.matchingIndex("chr2", 500, 505);
 		I_EQUAL(index, -1);
 	}
-
-	///bin size benchmark
-	void benchmarkBinSizes()
-	{
-		return; //activate in release mode only!
-
-		BedFile file;
-		file.load(TESTDATA("../tools-TEST/data_in/exome.bed"));
-
-		QList<int> sizes;
-		sizes << 5 << 10 << 20 << 30 << 40 << 50 << 100 << 200 << 400 << 800;
-		foreach(int bin_size, sizes)
-		{
-			QTime timer;
-			timer.start();
-			ChromosomalIndex<BedFile> idx(file, bin_size);
-			for (int i=0; i<file.count(); ++i)
-			{
-				idx.matchingIndices(file[i].chr(), file[i].start(), file[i].end());
-			}
-			Log::perf(QString::number(bin_size) + ":", timer);
-		}
-	}
-
 };
