@@ -11,7 +11,7 @@ private slots:
 	{
 		FastaFileIndex index(TESTDATA("data_in/example.fa"));
 		Sequence seq = index.seq("chr14", false);
-		S_EQUAL(seq.length(), 1509);
+		I_EQUAL(seq.length(), 1509);
 		S_EQUAL(seq.left(10), Sequence("ataaaccaac"));
 		S_EQUAL(seq.right(10), Sequence("tgaaaaataa"));
 

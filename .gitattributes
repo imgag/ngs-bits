@@ -1,5 +1,13 @@
 * text=auto
 
+*.fa text eol=lf
+*.fasta text eol=lf
+*.fastq text eol=lf
+*.bed text eol=lf
+*.gff text eol=lf
+*.vcf text eol=lf
+*.tsv text eol=lf
+
 *.gz binary
 *.bam binary
 *.bai binary
