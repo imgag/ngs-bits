@@ -1,0 +1,5 @@
+* text=auto
+
+*.gz binary
+*.bam binary
+*.bai binary
