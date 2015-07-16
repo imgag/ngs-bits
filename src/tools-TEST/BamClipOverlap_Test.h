@@ -10,7 +10,7 @@ private slots:
 	{
 		EXECUTE("BamClipOverlap", "-in " + TESTDATA("data_in/BamClipOverlap_in1.bam") + " -out out/BamClipOverlap_out1.bam -v");
 		IS_TRUE(QFile::exists("out/BamClipOverlap_out1.bam"));
-        COMPARE_FILES("out/BamClipOverlap_Test_line12.log", TESTDATA("data_out/BamClipOverlap_out1.log"));
+		COMPARE_FILES("out/BamClipOverlap_Test_line11.log", TESTDATA("data_out/BamClipOverlap_out1.log"));
 	}
 	
 };

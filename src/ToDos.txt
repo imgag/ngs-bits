@@ -5,7 +5,9 @@ Tools:
    - add option to export all/preferred transcripts to GeneLab
   - new technical report
  - SampleOverview: add option for BAM files (check depth where variant is not found)
- - ReadQC: create plots without python
+ - ReadQC:
+   - Detect contamination and bad libraries by k-mer counting? Check FastQC output of DX141880_01
+   - create plots without python
  # BamLeftAlign: remove (other tools as well?)
 
 CnvHunter

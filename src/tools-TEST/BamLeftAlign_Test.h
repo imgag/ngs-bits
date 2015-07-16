@@ -13,7 +13,7 @@ private slots:
 
 		EXECUTE("BamLeftAlign", "-in " + TESTDATA("data_in/BamLeftAlign_in1.bam") + " -out out/BamLeftAlign_out1.bam -ref " + ref_file + " -v");
 		IS_TRUE(QFile::exists("out/BamLeftAlign_out1.bam"));
-		COMPARE_FILES("out/BamLeftAlign_Test_line16.log", TESTDATA("data_out/BamLeftAlign_out1.log"));
+		COMPARE_FILES("out/BamLeftAlign_Test_line14.log", TESTDATA("data_out/BamLeftAlign_out1.log"));
 	}
 	
 };

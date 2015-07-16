@@ -33,6 +33,7 @@ public:
 		setDescription("Softclipping of overlapping reads.");
 		addInfile("in", "Input bam file. Needs to be sorted by name.", false);
 		addOutfile("out", "Output bam file.", false);
+		//optional
 		addFlag("amplicon", "Amplicon mode: one read of a pair will be clipped randomly.");
 		addFlag("v", "Verbose mode.");
 	}
@@ -175,10 +176,10 @@ public:
 						}
 					}
 
-					if(verbose)	qDebug()<< "left: " << left_read.Position << "-" << left_read.GetEndPosition() << " l: " << " - " << " d: "  << left_read.InsertSize << "; m: " << left_read.MatePosition << "; o: " << overlap << " CIGAR " << NGSHelper::Cigar2QString(left_read.CigarData);
-					if(verbose)	qDebug()<< "right: " << right_read.Position << "-" << right_read.GetEndPosition() << " l: " << " - " << " d: "  << right_read.InsertSize << "; m: " << right_read.MatePosition << "; o: " << overlap << " CIGAR " << NGSHelper::Cigar2QString(right_read.CigarData);
-					if(verbose)	qDebug() << " clip left from " << (left_read.GetEndPosition()-clip_left_read+1) << " to " << left_read.GetEndPosition();
-					if(verbose)	qDebug() << " clip right from " << (right_read.Position+1) << " to " << (right_read.Position+clip_right_read);
+					if(verbose)	out << "left: " << left_read.Position << "-" << left_read.GetEndPosition() << " l: " << " - " << " d: "  << left_read.InsertSize << "; m: " << left_read.MatePosition << "; o: " << overlap << " CIGAR " << NGSHelper::Cigar2QString(left_read.CigarData) << endl;
+					if(verbose)	out << "right: " << right_read.Position << "-" << right_read.GetEndPosition() << " l: " << " - " << " d: "  << right_read.InsertSize << "; m: " << right_read.MatePosition << "; o: " << overlap << " CIGAR " << NGSHelper::Cigar2QString(right_read.CigarData) << endl;
+					if(verbose)	out << " clip left from " << (left_read.GetEndPosition()-clip_left_read+1) << " to " << left_read.GetEndPosition() << endl;
+					if(verbose)	out << " clip right from " << (right_read.Position+1) << " to " << (right_read.Position+clip_right_read) << endl;
 
 					if(clip_left_read>0)	NGSHelper::softClipAlignment(left_read,(left_read.GetEndPosition()-clip_left_read+1),left_read.GetEndPosition());
 					if(clip_right_read>0)	NGSHelper::softClipAlignment(right_read,(right_read.Position+1),(right_read.Position+clip_right_read));
@@ -189,9 +190,9 @@ public:
 					right_read.InsertSize = left_read.Position-right_read.GetEndPosition();	//negative value
 					right_read.MatePosition = left_read.Position;
 
-					if(verbose)	qDebug()<< "-> left: " << left_read.Position << "-" << left_read.GetEndPosition() << " l: " << " - " << " d: "  << left_read.InsertSize << "; m: " << left_read.MatePosition << "; o: " << overlap << " CIGAR " << NGSHelper::Cigar2QString(left_read.CigarData);
-					if(verbose)	qDebug()<< "-> right: " << right_read.Position << "-" << right_read.GetEndPosition() << " l: " << " - " << " d: "  << right_read.InsertSize << "; m: " << right_read.MatePosition << "; o: " << overlap << " CIGAR " << NGSHelper::Cigar2QString(right_read.CigarData);
-					if(verbose)	qDebug();
+					if(verbose)	out << "-> left: " << left_read.Position << "-" << left_read.GetEndPosition() << " l: " << " - " << " d: "  << left_read.InsertSize << "; m: " << left_read.MatePosition << "; o: " << overlap << " CIGAR " << NGSHelper::Cigar2QString(left_read.CigarData) << endl;
+					if(verbose)	out << "-> right: " << right_read.Position << "-" << right_read.GetEndPosition() << " l: " << " - " << " d: "  << right_read.InsertSize << "; m: " << right_read.MatePosition << "; o: " << overlap << " CIGAR " << NGSHelper::Cigar2QString(right_read.CigarData) << endl;
+					if(verbose)	out << endl;
 
 					//return reads
 					al = left_read;
