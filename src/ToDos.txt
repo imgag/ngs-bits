@@ -1,7 +1,6 @@
 === TODO ===
 Tools:
  - GSvar:
-  - report outcome in report configuration dialog => get from NGSD
   - store/highlight preferred transcripts
    - add option to export all/preferred transcripts to GeneLab
   - new technical report
