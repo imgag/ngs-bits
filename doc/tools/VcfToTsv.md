@@ -1,5 +1,5 @@
 ### VcfToTsv tool help
-	VcfToTsv (0.1-33-gfdb89ad)
+	VcfToTsv (0.1-46-gb124721)
 	
 	Shifts indels in a variant list as far to the left as possible. Complex indels and multi-allelic deletions are not shifted!
 	
@@ -16,4 +16,4 @@
 	  --version   Prints version and exits.
 	  --tdx       Writes a Tool Defition Xml file. The file name is the application name appended with '.tdx'.
 	
-[back to ngs-bits]("https://github.com/marc-sturm/ngs-bits")
+[back to ngs-bits](https://github.com/marc-sturm/ngs-bits)

@@ -56,7 +56,7 @@ public:
 	QStringList getDiagnosticStatus(const QString& filename);
 	///Sets the diagnostic status.
 	void setDiagnosticStatus(const QString& filename, QString status);
-	///Sets the report outcome.
+	///Sets the report outcome (use @p getDiagnosticStatus to get it).
 	void setReportOutcome(const QString& filename, QString outcome);
 
 	///Returns the NGSD URL corresponding to a variant. Or an empty string if the variant/sample is not in the DB.

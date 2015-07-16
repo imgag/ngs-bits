@@ -1,5 +1,5 @@
 ### BamClipOverlap tool help
-	BamClipOverlap (0.1-33-gfdb89ad)
+	BamClipOverlap (0.1-46-gb124721)
 	
 	Softclipping of overlapping reads.
 	

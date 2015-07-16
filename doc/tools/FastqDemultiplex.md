@@ -1,5 +1,5 @@
 ### FastqDemultiplex tool help
-	FastqDemultiplex (0.1-33-gfdb89ad)
+	FastqDemultiplex (0.1-46-gb124721)
 	
 	Demultiplexes FASTQ files from different samples according to barcode sequences given in a samplesheet.
 	
@@ -25,4 +25,4 @@
 	  --version         Prints version and exits.
 	  --tdx             Writes a Tool Defition Xml file. The file name is the application name appended with '.tdx'.
 	
-[back to ngs-bits]("https://github.com/marc-sturm/ngs-bits")
+[back to ngs-bits](https://github.com/marc-sturm/ngs-bits)

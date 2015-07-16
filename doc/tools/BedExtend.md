@@ -1,5 +1,5 @@
 ### BedExtend tool help
-	BedExtend (0.1-33-gfdb89ad)
+	BedExtend (0.1-46-gb124721)
 	
 	Extends the regions in a BED file.
 	
@@ -19,4 +19,4 @@
 	  --version   Prints version and exits.
 	  --tdx       Writes a Tool Defition Xml file. The file name is the application name appended with '.tdx'.
 	
-[back to ngs-bits]("https://github.com/marc-sturm/ngs-bits")
+[back to ngs-bits](https://github.com/marc-sturm/ngs-bits)

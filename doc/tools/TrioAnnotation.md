@@ -1,5 +1,5 @@
 ### TrioAnnotation tool help
-	TrioAnnotation (0.1-33-gfdb89ad)
+	TrioAnnotation (0.1-46-gb124721)
 	
 	Annotates a child sample with trio information. Assumes that the child is the index patient and that the parents are unaffected.
 	
@@ -20,4 +20,4 @@
 	  --version        Prints version and exits.
 	  --tdx            Writes a Tool Defition Xml file. The file name is the application name appended with '.tdx'.
 	
-[back to ngs-bits]("https://github.com/marc-sturm/ngs-bits")
+[back to ngs-bits](https://github.com/marc-sturm/ngs-bits)

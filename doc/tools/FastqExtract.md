@@ -1,5 +1,5 @@
 ### FastqExtract tool help
-	FastqExtract (0.1-33-gfdb89ad)
+	FastqExtract (0.1-46-gb124721)
 	
 	Extracts reads from a FASTQ file according to an ID list. Trims the reads if lengths are given.
 	
@@ -13,4 +13,4 @@
 	  --version   Prints version and exits.
 	  --tdx       Writes a Tool Defition Xml file. The file name is the application name appended with '.tdx'.
 	
-[back to ngs-bits]("https://github.com/marc-sturm/ngs-bits")
+[back to ngs-bits](https://github.com/marc-sturm/ngs-bits)

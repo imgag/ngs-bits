@@ -1,5 +1,5 @@
 ### BedChunk tool help
-	BedChunk (0.1-33-gfdb89ad)
+	BedChunk (0.1-46-gb124721)
 	
 	Splits all regions to chunks of an approximate desired size.
 	
@@ -17,4 +17,4 @@
 	  --version   Prints version and exits.
 	  --tdx       Writes a Tool Defition Xml file. The file name is the application name appended with '.tdx'.
 	
-[back to ngs-bits]("https://github.com/marc-sturm/ngs-bits")
+[back to ngs-bits](https://github.com/marc-sturm/ngs-bits)

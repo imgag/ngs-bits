@@ -24,6 +24,9 @@ foreach($files as $exe)
 {
 	//skip tests
 	if (strpos($exe, "TEST")!==false) continue;
+
+	//skip GUI tools
+	if (strpos($exe, "GSvar")!==false) continue;
 		
 	//print tool name
 	$tool = basename($exe, ".exe");
@@ -41,7 +44,7 @@ foreach($files as $exe)
 	{
 		$output[] = "\t".$line;
 	}
-	$output[] = "[back to ngs-bits](\"https://github.com/marc-sturm/ngs-bits\")";
+	$output[] = "[back to ngs-bits](https://github.com/marc-sturm/ngs-bits)";
 	file_put_contents($tool.".md", implode("\n", $output));
 }
 

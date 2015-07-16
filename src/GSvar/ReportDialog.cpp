@@ -1,6 +1,7 @@
 #include "Exceptions.h"
 #include "ReportDialog.h"
 #include "NGSD.h"
+#include "Log.h"
 #include <QTableWidgetItem>
 #include <QBitArray>
 #include <QPushButton>
@@ -12,17 +13,36 @@ ReportDialog::ReportDialog(QString filename, QWidget* parent)
 	, filename_(filename)
 	, labels_()
 {
-	//variant header labels
-	labels_ << "" << "chr" << "start" << "end" << "ref" << "obs" << "ihdb_allsys_hom" << "ihdb_allsys_het" << "genotype" << "gene" << "variant_type" << "coding_and_splicing";
-
-	//GUI
 	ui_.setupUi(this);
+
+	//variant header
+	labels_ << "" << "chr" << "start" << "end" << "ref" << "obs" << "ihdb_allsys_hom" << "ihdb_allsys_het" << "genotype" << "gene" << "variant_type" << "coding_and_splicing";
 	ui_.vars->setColumnCount(labels_.count());
 	ui_.vars->setHorizontalHeaderLabels(labels_);
 
+	//init outcome
 	ui_.outcome->addItems(NGSD().getEnum("diag_status", "outcome"));
 	ui_.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 	connect(ui_.outcome, SIGNAL(currentTextChanged(QString)), this, SLOT(outcomeChanged(QString)));
+
+	//set outcome from NGSD
+	QStringList diag_status = NGSD().getDiagnosticStatus(filename_);
+	if (diag_status.count()<4)
+	{
+		Log::warn("Could not determine diagnostic status in NGSD for file '" + filename + "'!");
+	}
+	else
+	{
+		int index = ui_.outcome->findText(diag_status.at(3));
+		if (index==-1)
+		{
+			Log::warn("Could not determine outcome index of outcome '" + diag_status.at(3) + "'!");
+		}
+		else
+		{
+			ui_.outcome->setCurrentIndex(index);
+		}
+	}
 }
 
 void ReportDialog::addVariants(const VariantList& variants, const QBitArray& visible)

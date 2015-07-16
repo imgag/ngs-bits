@@ -1,5 +1,5 @@
 ### BedAnnotateGenes tool help
-	BedAnnotateGenes (0.1-33-gfdb89ad)
+	BedAnnotateGenes (0.1-46-gb124721)
 	
 	Annotates the regions in a BED file with the name from a database BED file.
 	
@@ -18,4 +18,4 @@
 	  --version     Prints version and exits.
 	  --tdx         Writes a Tool Defition Xml file. The file name is the application name appended with '.tdx'.
 	
-[back to ngs-bits]("https://github.com/marc-sturm/ngs-bits")
+[back to ngs-bits](https://github.com/marc-sturm/ngs-bits)
