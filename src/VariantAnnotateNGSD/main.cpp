@@ -45,8 +45,9 @@ public:
 
 		//annotate
 		QString mode = getEnum("mode");
-		if(mode=="germline")	NGSD().annotate(variants, ps, ref_file, false);
-		if(mode=="somatic")	NGSD().annotateSomatic(variants, ps, ref_file);
+		if(mode=="germline") NGSD().annotate(variants, ps, ref_file, false);
+		else if(mode=="somatic") NGSD().annotateSomatic(variants, ps, ref_file);
+		else THROW(ProgrammingException, "Unknown mode '" + mode + "'!");
 
 		//store
 		variants.store(getOutfile("out"));

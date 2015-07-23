@@ -8,7 +8,10 @@
 
 /// GPD accessor.
 class CPPNGSDSHARED_EXPORT GPD
+	: public QObject
 {
+Q_OBJECT
+
 public:
 	///Default constructor that connects to the DB.
 	GPD();
@@ -27,6 +30,10 @@ public:
 	QVariant getValue(const QString& query, bool no_value_is_ok=true);
 	///Executes an SQL query and returns it.
 	QSqlQuery execute(const QString& query);
+
+signals:
+	initProgress(QString text, bool percentage);
+	updateProgress(int percentage);
 
 protected:
 	///Copy constructor "declared away".

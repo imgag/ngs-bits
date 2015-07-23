@@ -121,10 +121,10 @@ public:
 		fields << "r.fcid";
 		fields << "r.recipe";
 		fields << "r.quality";
-		QSqlQuery result = db.execute("SELECT "+fields.join(", ")+" FROM "+tables.join(", ")+" WHERE "+conditions.join(" AND "));
+		SqlQuery result = db.getQuery();
+		db.execute("SELECT "+fields.join(", ")+" FROM "+tables.join(", ")+" WHERE "+conditions.join(" AND "));
 
 		//format output
-
 		QStringList output;
 		fields[0] = "ps.name";
 		output << ("#" + fields.join("\t"));

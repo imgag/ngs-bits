@@ -74,6 +74,8 @@ int GPD::addColumn(VariantList& variants, QString name, QString description)
 
 void GPD::annotate(VariantList& variants)
 {	
+	emit initProgress("GPD annotation", true);
+
 	//remove all GPD-specific columns
 	removeColumnIfPresent(variants, "GPD_gene", true);
 	removeColumnIfPresent(variants, "GPD_var", true);
@@ -93,6 +95,8 @@ void GPD::annotate(VariantList& variants)
 
 		id = getValue("SELECT id FROM variant WHERE chr='" + v.chr().strNormalized(true) + "' AND start='"+ QString::number(v.start()) +"' AND end='"+ QString::number(v.end()) +"' AND ref='"+ v.ref() +"' AND obs='"+ v.obs() +"' AND build_id='1'");
 		v.annotations()[g_var_idx] = id.toByteArray();
+
+		emit updateProgress(100*i/variants.count());
 	}
 }
 

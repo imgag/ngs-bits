@@ -1,8 +1,5 @@
-#-------------------------------------------------
-#
-# Project created by QtCreator 2013-07-31T22:18:26
-#
-#-------------------------------------------------
+#c++11 and c++14 support
+CONFIG += c++14
 
 #base settings
 QT       -= gui
@@ -29,8 +26,12 @@ LIBS += -L$$PWD/../../bin -lcppCORE
 INCLUDEPATH += $$PWD/../cppNGS
 LIBS += -L$$PWD/../../bin -lcppNGS
 
-SOURCES += NGSD.cpp \
+SOURCES += \
+    SqlQuery.cpp\
+    NGSD.cpp \
     GPD.cpp
 
-HEADERS += NGSD.h \
+HEADERS += \
+    SqlQuery.cpp \
+    NGSD.h \
     GPD.h

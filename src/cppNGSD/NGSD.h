@@ -2,15 +2,18 @@
 #define NGSD_H
 
 #include "cppNGSD_global.h"
-#include <QSqlDatabase>
 #include <QVariant>
 #include <QVariantList>
 #include "VariantList.h"
 #include "QCCollection.h"
+#include "SqlQuery.h"
 
 /// NGSD accessor.
 class CPPNGSDSHARED_EXPORT NGSD
+		: public QObject
 {
+Q_OBJECT
+
 public:
 	///Default constructor that connects to the DB.
 	NGSD();
@@ -72,8 +75,15 @@ public:
 	QVariant getValue(const QString& query, bool no_value_is_ok=true);
 	///Executes an SQL query and returns the return value list.
 	QVariantList getValues(const QString& query);
-	///Executes an SQL query and returns it.
-	QSqlQuery execute(const QString& query);
+	///Returns a SqlQuery object on the NGSD for custom queries.
+	inline SqlQuery getQuery() const
+	{
+		return SqlQuery(db_);
+	}
+
+signals:
+	initProgress(QString text, bool percentage);
+	updateProgress(int percentage);
 
 protected:
 	///Copy constructor "declared away".

@@ -54,7 +54,7 @@ _ngs-bits_ contains a lot of tools that we use for NGS short-read data analysis 
 
 ### Main tools
 
-* [SeqPurge](doc/tools/SeqPurge.md) - A highly-sensitive adapter trimmer for paired-end short-read data ([ISMB 2015 Poster abstract](http://www.iscb.org/cms_addon/conferences/ismbeccb2015/posterlist.php?cat=G)).
+* [SeqPurge](doc/tools/SeqPurge.md) - A highly-sensitive adapter trimmer for paired-end short-read data ([ISMB 2015 Poster](http://f1000research.com/posters/4-303)).
 * [ReadQC](doc/tools/ReadQC.md) - Quality control tool for FASTQ files (output is [qcML](https://code.google.com/p/qcml/)).
 * [MappingQC](doc/tools/MappingQC.md) - Quality control tool for a BAM file (output is [qcML](https://code.google.com/p/qcml/)).
 * [VariantQC](doc/tools/VariantQC.md) - Quality control tool for a VCF file (output is [qcML](https://code.google.com/p/qcml/)).

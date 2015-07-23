@@ -4,6 +4,9 @@
 #include <QString>
 #include "VariantList.h"
 #include "WorkerBase.h"
+#include "BusyDialog.h"
+#include "NGSD.h"
+#include "GPD.h"
 
 ///Database annotation worker (NGSD/GPD).
 class DBAnnotationWorker
@@ -12,7 +15,7 @@ class DBAnnotationWorker
 	Q_OBJECT
 
 public:
-	DBAnnotationWorker(QString filename, QString genome, VariantList& variants);
+	DBAnnotationWorker(QString filename, QString genome, VariantList& variants, BusyDialog* busy);
 	virtual void process();
 
 private:
@@ -20,6 +23,8 @@ private:
 	QString filename_;
 	QString genome_;
 	VariantList& variants_;
+	GPD gpd_;
+	NGSD ngsd_;
 };
 
 #endif

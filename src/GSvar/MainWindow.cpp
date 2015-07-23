@@ -34,7 +34,7 @@ MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
 	, filter_widget_(new FilterDockWidget(this))
-	, busy_dialog_(this)
+	, busy_dialog_(nullptr)
 	, filename_()
 	, db_annos_updated_(false)
 	, last_report_path_(QDir::homePath())
@@ -262,8 +262,7 @@ void MainWindow::on_actionReport_triggered()
 	}
 
 	//show busy dialog
-	busy_dialog_.setText("Report", "Generating report.");
-	busy_dialog_.show();
+	busy_dialog_ = new BusyDialog("Report");
 
 	//start worker in new thread
 	ReportWorker* worker = new ReportWorker(base_name, NGSD().getExternalSampleName(filename_), filter_widget_->appliedFilters(), variants_, dialog.selectedIndices(), dialog.outcome(), filter_widget_->targetRegion(), bam_file, dialog.detailsVariants(), getLogFiles(), file_rep);
@@ -273,7 +272,7 @@ void MainWindow::on_actionReport_triggered()
 
 void MainWindow::reportGenerationFinished(bool success)
 {
-	busy_dialog_.hide();
+	delete busy_dialog_;
 
 	//show result info box
 	ReportWorker* worker = qobject_cast<ReportWorker*>(sender());
@@ -295,19 +294,18 @@ void MainWindow::on_actionDatabase_triggered()
 	if (variants_.count()==0) return;
 
 	//show busy dialog
-	busy_dialog_.setText("Database annotation", "Updating annotations from NGSD/GPD.");
-	busy_dialog_.show();
+	busy_dialog_ = new BusyDialog("Database annotation", this);
 
 	//start worker
 	QString genome = Settings::string("reference_genome");
-	DBAnnotationWorker* worker = new DBAnnotationWorker(filename_, genome, variants_);
+	DBAnnotationWorker* worker = new DBAnnotationWorker(filename_, genome, variants_, busy_dialog_);
 	connect(worker, SIGNAL(finished(bool)), this, SLOT(databaseAnnotationFinished(bool)));
 	worker->start();
 }
 
 void MainWindow::databaseAnnotationFinished(bool success)
 {
-	busy_dialog_.hide();
+	delete busy_dialog_;
 
 	//show result info box
 	DBAnnotationWorker* worker = qobject_cast<DBAnnotationWorker*>(sender());

@@ -1,3 +1,6 @@
+#c++11 and c++14 support
+CONFIG += c++14
+
 #enable O3 optimization
 QMAKE_CXXFLAGS_RELEASE -= -O
 QMAKE_CXXFLAGS_RELEASE -= -O1

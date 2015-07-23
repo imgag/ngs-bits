@@ -1,14 +1,14 @@
 === TODO ===
 Tools:
  - GSvar:
+  * new technical report
   - store/highlight preferred transcripts
-   - add option to export all/preferred transcripts to GeneLab
-  - new technical report
+   - add option to export all/preferred transcripts to GeneLab (srv039: C:\Program Files\Alamut\AlamutVisual-2.7.1-64bit)
  - SampleOverview: add option for BAM files (check depth where variant is not found)
  - ReadQC:
-   - Detect contamination and bad libraries by k-mer counting? Check FastQC output of DX141880_01
+   * Detect contamination and bad libraries by k-mer counting? Check FastQC output of DX141880_01
    - create plots without python
- # BamLeftAlign: remove (other tools as well?)
+ - FastqDemultiplex: check for "carry-over" contamination from last run
 
 CnvHunter
  - set min STDEV to 15% of mean (was 10%, make it a parameter)
@@ -24,8 +24,8 @@ CnvHunter
  - instead of fixed 'n', majority vote for CNVs for n>=10 and n<=30?
 
 Tests:
- # reduce W: dependency => check in all test data
- # use depencency injection to remove NGSD test dependency?!
+ * reduce W: dependency => check in all test data
+ - use depencency injection to remove NGSD test dependency?!
 
 Transcripts:
 AP4M1	NM_004722.3

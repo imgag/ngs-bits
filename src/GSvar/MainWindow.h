@@ -109,7 +109,7 @@ private:
 	//GUI
 	Ui::MainWindow ui_;
 	FilterDockWidget* filter_widget_;
-	BusyDialog busy_dialog_;
+	BusyDialog* busy_dialog_;
 
 	//DATA
 	QString filename_;
