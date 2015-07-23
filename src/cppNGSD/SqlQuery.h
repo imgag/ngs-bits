@@ -1,10 +1,11 @@
 #ifndef SQLQUERY_H
 #define SQLQUERY_H
 
+#include "cppNGSD_global.h"
 #include <QSqlDatabase>
 #include <QSqlQuery>
 
-class SqlQuery
+class CPPNGSDSHARED_EXPORT SqlQuery
 	: public QSqlQuery
 {
 public:

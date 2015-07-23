@@ -5,6 +5,7 @@
 #include "BedFile.h"
 #include "GPD.h"
 #include "Log.h"
+#include "Settings.h"
 
 class ConcreteTool
 		: public ToolBase
@@ -24,21 +25,14 @@ public:
 		addOutfile("out", "Output variant list.", false, true);
 		//optional
 		addString("psname", "Processed sample name. If set this name is used instead of the file name to find the sample in the DB.", true, "");
-		addInfile("ref", "Reference genome FASTA file. If unset '/mnt/share/data/dbs/genomes/hg19.fa' is used.", true, false);
+		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 	}
 
 	virtual void main()
 	{
 		//determine refererence genome file
 		QString ref_file = getInfile("ref");
-		if (ref_file=="")
-		{
-#ifdef WIN32
-			ref_file = "W:\\share\\data\\dbs\\genomes\\hg19_win.fa";
-#else
-			ref_file = "/mnt/share/data/dbs/genomes/hg19.fa";
-#endif
-		}
+		if (ref_file=="") ref_file = Settings::string("reference_genome");
 
 		//load
 		VariantList variants;

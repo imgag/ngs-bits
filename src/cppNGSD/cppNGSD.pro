@@ -32,6 +32,6 @@ SOURCES += \
     GPD.cpp
 
 HEADERS += \
-    SqlQuery.cpp \
+    SqlQuery.h \
     NGSD.h \
     GPD.h

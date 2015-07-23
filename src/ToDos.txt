@@ -6,7 +6,7 @@ Tools:
    - add option to export all/preferred transcripts to GeneLab (srv039: C:\Program Files\Alamut\AlamutVisual-2.7.1-64bit)
  - SampleOverview: add option for BAM files (check depth where variant is not found)
  - ReadQC:
-   * Detect contamination and bad libraries by k-mer counting? Check FastQC output of DX141880_01
+   - Detect contamination and bad libraries by k-mer counting? Check FastQC output of DX141880_01
    - create plots without python
  - FastqDemultiplex: check for "carry-over" contamination from last run
 

@@ -155,16 +155,13 @@ private:
 
 		//delete/create output folder
 		QDir out_dir(out_folder);
-		if (out_dir.exists())
+		if (out_dir.exists() && !QDir(out_folder).removeRecursively())
 		{
-			if (!QDir(out_folder).removeRecursively())
-			{
-				THROW(ArgumentException, "Output folder could not be deleted!");
-			}
+			THROW(ArgumentException, "Output folder '" + out_folder + "' could not be deleted!");
         }
 		if (!out_dir.mkpath("."))
 		{
-			THROW(ArgumentException, "Output folder could not be created!");
+			THROW(ArgumentException, "Output folder '" + out_folder + "' could not be created!");
 		}
 
         QTextStream in(&inFile);

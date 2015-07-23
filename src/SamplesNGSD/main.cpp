@@ -122,7 +122,7 @@ public:
 		fields << "r.recipe";
 		fields << "r.quality";
 		SqlQuery result = db.getQuery();
-		db.execute("SELECT "+fields.join(", ")+" FROM "+tables.join(", ")+" WHERE "+conditions.join(" AND "));
+		result.exec("SELECT "+fields.join(", ")+" FROM "+tables.join(", ")+" WHERE "+conditions.join(" AND "));
 
 		//format output
 		QStringList output;
