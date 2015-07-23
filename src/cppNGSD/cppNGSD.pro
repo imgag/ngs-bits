@@ -1,5 +1,5 @@
 #c++11 and c++14 support
-CONFIG += c++14
+CONFIG += c++11 
 
 #base settings
 QT       -= gui

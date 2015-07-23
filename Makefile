@@ -62,7 +62,9 @@ deploy_nobuild:
 
 test_debug: clean build_libs_debug build_tools_debug test_lib test_tools
 
-test_release: clean build_libs_release build_tools_release test_lib test_tools
+test_release:
+	make clean build_libs_release build_tools_release test_lib test_tools > t.log 2>&1
+	egrep "FAILED|SKIPPED" t.log
 
 dummy:
 

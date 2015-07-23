@@ -32,8 +32,8 @@ public:
 	QSqlQuery execute(const QString& query);
 
 signals:
-	initProgress(QString text, bool percentage);
-	updateProgress(int percentage);
+	void initProgress(QString text, bool percentage);
+	void updateProgress(int percentage);
 
 protected:
 	///Copy constructor "declared away".
