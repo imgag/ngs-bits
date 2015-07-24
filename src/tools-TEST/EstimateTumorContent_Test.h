@@ -11,7 +11,7 @@ private slots:
 		QString tu_bam = "/mnt/share/data/test_data/GS120240.bam";
 		QString no_bam = "/mnt/share/data/test_data/GS120180.bam";
 	
-#ifdef WIN32
+#ifdef __MINGW32__
 		if (!QDir("W:\\share\\").exists()) SKIP("Test needs data from W: drive!");
 	
 		tu = "W:\\share\\data\\test_data\\GS120240-GS120180_im_filtered.tsv";

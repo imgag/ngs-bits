@@ -7,7 +7,7 @@ private slots:
 	
 	void test_01()
 	{
-#ifdef WIN32
+#ifdef __MINGW32__
 		SKIP("Creating indices does not work (only Windows, mingw 4.91)");
 #endif
 

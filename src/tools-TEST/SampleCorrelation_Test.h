@@ -21,7 +21,7 @@ private slots:
 	{
 		QString in1 = "/mnt/share/data/test_data/GS120240.bam";
 		QString in2 = "/mnt/share/data/test_data/GS120180.bam";
-#ifdef WIN32
+#ifdef __MINGW32__
 		in1 = "W:\\share\\data\\test_data\\GS120240.bam";
 		in2 = "W:\\share\\data\\test_data\\GS120180.bam";
 		if (!QDir("W:\\share\\").exists()) SKIP("Test needs data from W: drive!");
