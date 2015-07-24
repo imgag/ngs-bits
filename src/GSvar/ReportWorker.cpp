@@ -66,7 +66,8 @@ void ReportWorker::process()
 	}
 
 	writeHTML();
-	writeXML();
+	//disabled until it is needed
+	//writeXML();
 }
 
 void ReportWorker::writeHTML()
@@ -448,15 +449,21 @@ void ReportWorker::writeHTML()
 	outfile->close();
 
 	//copy temp file to output folder
-	QFile(file_rep_).remove();
+	if (!QFile(file_rep_).remove())
+	{
+		THROW(FileAccessException, "Could not remove previous HTML report: " + file_rep_);
+	}
 	if (!QFile::rename(temp_filename, file_rep_))
 	{
-		THROW(FileAccessException, "Could not write/replace output file " + file_rep_);
+		THROW(FileAccessException, "Could not copy HTML report from temporary file " + temp_filename + " to " + file_rep_ + " !");
 	}
 
 	//copy report to archive folder
 	QString file_rep_copy = "M:/Diagnostik/GSvarReportsArchive/" + QFileInfo(file_rep_).fileName();
-	QFile::remove(file_rep_copy);
+	if (!QFile::remove(file_rep_copy))
+	{
+		THROW(FileAccessException, "Could not remove previous HTML report in archive folder: " + file_rep_copy);
+	}
 	if (!QFile::copy(file_rep_, file_rep_copy))
 	{
 		THROW(FileAccessException, "Could not copy HTML report to archive folder: " + file_rep_copy);
