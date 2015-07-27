@@ -193,10 +193,20 @@ void MainWindow::on_actionReport_triggered()
 {
 	if (variants_.count()==0) return;
 
-	//check if DB annotations are up-to-date
-	if (!db_annos_updated_)
+	//check if NGSD annotations are present
+	if (variants_.annotationIndexByName("classification", true, false)==-1
+	 || variants_.annotationIndexByName("ihdb_allsys_hom", true, false)==-1
+	 || variants_.annotationIndexByName("ihdb_allsys_het", true, false)==-1
+	 || variants_.annotationIndexByName("comment", true, false)==-1)
 	{
-		GUIHelper::showMessage("Error", "Cannot generate report with outdated DB annotations!\nPlease re-annotate NGSD columns first!");
+		GUIHelper::showMessage("Error", "Cannot generate report without complete NGSD annotation!\nPlease re-annotate NGSD information first!");
+		return;
+	}
+
+	//check if NGSD annotations are up-to-date
+	QString mod_date = QFileInfo(filename_).lastModified().toString("yyyy-MM-dd");
+	if (!db_annos_updated_ && QMessageBox::question(this, "Report", "NGSD re-annotation not performed!\nDo you want to continue with annotations from " + mod_date + "?")==QMessageBox::No)
+	{
 		return;
 	}
 
@@ -262,10 +272,11 @@ void MainWindow::on_actionReport_triggered()
 	}
 
 	//show busy dialog
-	busy_dialog_ = new BusyDialog("Report");
+	busy_dialog_ = new BusyDialog("Report", this);
+	busy_dialog_->init("Generating report", false);
 
 	//start worker in new thread
-	ReportWorker* worker = new ReportWorker(base_name, NGSD().getExternalSampleName(filename_), filter_widget_->appliedFilters(), variants_, dialog.selectedIndices(), dialog.outcome(), filter_widget_->targetRegion(), bam_file, dialog.detailsVariants(), getLogFiles(), file_rep);
+	ReportWorker* worker = new ReportWorker(base_name, filter_widget_->appliedFilters(), variants_, dialog.selectedIndices(), dialog.outcome(), filter_widget_->targetRegion(), bam_file, dialog.detailsVariants(), getLogFiles(), file_rep);
 	connect(worker, SIGNAL(finished(bool)), this, SLOT(reportGenerationFinished(bool)));
 	worker->start();
 }
@@ -278,7 +289,10 @@ void MainWindow::reportGenerationFinished(bool success)
 	ReportWorker* worker = qobject_cast<ReportWorker*>(sender());
 	if (success)
 	{
-		QMessageBox::information(this, "Report", "Report generated successfully!");
+		if (QMessageBox::question(this, "Report", "Report generated successfully!\nDo you want to open the report in your browser?")==QMessageBox::Yes)
+		{
+			QDesktopServices::openUrl(worker->getReportFile());
+		}
 	}
 	else
 	{

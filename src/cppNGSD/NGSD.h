@@ -31,7 +31,9 @@ public:
 	///Returns the processing system name and short name of the sample, or an empty string if it could not be detected.
 	enum SystemType {SHORT, LONG, BOTH};
 	QString getProcessingSystem(const QString& filename, SystemType type);
-	///Returs validation status information
+	///Returns the genome build
+	QString getGenomeBuild(const QString& filename);
+	///Returns validation status information
 	QPair<QString, QString> getValidationStatus(const QString& filename, const Variant& variant);
 	///Returns all QC terms of the sample
 	QCCollection getQCData(const QString& filename);

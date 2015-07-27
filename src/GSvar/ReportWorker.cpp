@@ -13,11 +13,11 @@
 #include <QCoreApplication>
 #include <QXmlStreamWriter>
 #include "XmlHelper.h"
+#include "NGSD.h"
 
-ReportWorker::ReportWorker(QString sample_name, QString sample_name_external, QStringList filters, const VariantList& variants, const QVector< QPair<int, bool> >& variants_selected, QString outcome, QString file_roi, QString file_bam, bool var_details, QStringList log_files, QString file_rep)
+ReportWorker::ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QVector< QPair<int, bool> >& variants_selected, QString outcome, QString file_roi, QString file_bam, bool var_details, QStringList log_files, QString file_rep)
 	: WorkerBase("Report generation")
 	, sample_name_(sample_name)
-	, sample_name_external_(sample_name_external)
 	, filters_(filters)
 	, variants_(variants)
 	, variants_selected_(variants_selected)
@@ -70,6 +70,63 @@ void ReportWorker::process()
 	//writeXML();
 }
 
+QString ReportWorker::filterToGermanText(QString name, QString value)
+{
+	QString output;
+
+	if (name=="classification")
+	{
+		output = "Keine Varianten der Klasse " + value + " oder kleiner (siehe unten)";
+	}
+	else if (name=="maf")
+	{
+		output = "Keine Varianten mit einer Allelfrequenz <" + value + " in &ouml;ffentlichen Datenbanken";
+	}
+	else if (name=="ihdb")
+	{
+		output = "Keine Varianten die intern h&auml;ufiger als " + value + "x mit dem selben Genotyp beobachtet wurden";
+	}
+	else if (name=="keep_important")
+	{
+		output = "Varianten die in &ouml;ffentlichen Datenbanken als pathogen klassifiziert wurden";
+	}
+	else if (name=="impact")
+	{
+		output = "Frameshift-, Nonsense-, Missense- und Slicingvarianten (Impact: " + value + ")";
+	}
+	else if (name=="genotype")
+	{
+		output = "Varianten mit Genotyp: " + value;
+	}
+	else if (name=="quality")
+	{
+		output = "Varianten mit hoher Qualit&auml;t";
+	}
+	else if (name=="trio")
+	{
+		output = "Spezieller Filter basierend auf Trio-Sequenzierung";
+	}
+	else
+	{
+		output = "Filter: " + name + " Wert: " + value;
+		Log::warn("Unknown filter name '" + name + "'. Using fallback format!");
+	}
+
+	return output.trimmed();
+}
+
+QString ReportWorker::formatCodingSplicing(QByteArray text)
+{
+	QList<QByteArray> transcripts = text.split(',');
+	for (int i=0; i<transcripts.count(); ++i)
+	{
+		QList<QByteArray> parts = transcripts[i].split(':');
+		if (parts.count()<7) THROW(ProgrammingException, "");
+		transcripts[i] = parts[0].trimmed() + ":" + parts[1].trimmed() + ":" + parts[5].trimmed() + ":" + parts[6].trimmed();
+	}
+	return transcripts.join(", ");
+}
+
 void ReportWorker::writeHTML()
 {
 	QString temp_filename = Helper::tempFileName(".html");
@@ -77,6 +134,7 @@ void ReportWorker::writeHTML()
 	QTextStream stream(outfile.data());
 	stream << "<html>" << endl;
 	stream << "	<head>" << endl;
+	stream << "	   <meta charset=\"utf-8\">" << endl;
 	stream << "	   <style>" << endl;
 	stream << "		<!--" << endl;
 	stream << "body" << endl;
@@ -99,9 +157,12 @@ void ReportWorker::writeHTML()
 	stream << "		-->" << endl;
 	stream << "	   </style>" << endl;
 	stream << "	</head>" << endl;
+
 	stream << "	<body>" << endl;
 	stream << "<h4>Technischer Report zur bioinformatischen Analyse</h4>" << endl;
-	stream << "<p><b>Probe: " << sample_name_ << "</b> (" << sample_name_external_ << ")" << endl;
+	stream << "<p><b>Probe: " << sample_name_ << "</b> (" << NGSD().getExternalSampleName(sample_name_) << ")" << endl;
+	stream << "<br>Prozessierungssystem: " << NGSD().getProcessingSystem(sample_name_, NGSD::LONG) << endl;
+	stream << "<br>Genom-Build: " << NGSD().getGenomeBuild(sample_name_) << endl;
 	stream << "<br>Datum: " << QDate::currentDate().toString("dd.MM.yyyy") << endl;
 	stream << "<br>User: " << Helper::userName() << endl;
 	stream << "<br>Analysesoftware: "  << QCoreApplication::applicationName() << " " << QCoreApplication::applicationVersion() << endl;
@@ -113,11 +174,12 @@ void ReportWorker::writeHTML()
 		stream << "<br>Basen: " << roi_.baseCount() << endl;
 		if (!genes_.isEmpty())
 		{
-			stream << "<br>Gene (" << QString::number(genes_.count()) << "): " << genes_.join(", ") << endl;
+			stream << "<br>Angereicherte Gene (" << QString::number(genes_.count()) << "): " << genes_.join(", ") << endl;
 		}
 	}
 
-	//output: very important variants
+	//get column indices
+	int i_genotype = variants_.annotationIndexByName("genotype", true, true);
 	int i_gene = variants_.annotationIndexByName("gene", true, true);
 	int i_type = variants_.annotationIndexByName("variant_type", true, true);
 	int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, true);
@@ -130,109 +192,100 @@ void ReportWorker::writeHTML()
 	int i_hgmd = variants_.annotationIndexByName("HGMD", true, true);
 	int i_class = variants_.annotationIndexByName("classification", true, true);
 	int i_comment = variants_.annotationIndexByName("comment", true, true);
-	stream << "<p><b>Liste wichtiger Varianten</b>" << endl;
-	for (int i=0; i<variants_selected_.count(); ++i)
+
+	//output: applied filters
+	stream << "<p><b>Filterkriterien</b>" << endl;
+	stream << "<br>Gefundene Varianten in Zielregion gesamt: " << var_count_ << endl;
+	stream << "<br>Anzahl relevanter Varianten nach Filterung: " << variants_selected_.count() << endl;
+	for(auto it = filters_.cbegin(); it!=filters_.cend(); ++it)
 	{
-		if (!variants_selected_[i].second) continue;
-		const Variant& v = variants_[variants_selected_[i].first];
-		stream << "<table>" << endl;
-		stream << "<tr><td><b>Variante:</b> " << v.chr().str() << ":" << v.start() << "-" << v.end() << " " << v.ref() << ">" << v.obs() << " <b>Gen:</b> " << v.annotations()[i_gene] << " <b>Typ:</b> " << v.annotations()[i_type] << " <b>VUS: </b>" << v.annotations()[i_class] << " <b>Vererbung:</b> ausfuellen </td></tr>" << endl;
-		QString co_sp = v.annotations()[i_co_sp];
-		stream << "<tr><td><b>Details:</b> " << co_sp.replace(",", ", ") << "</td></tr>" << endl;
-		QString dbsnp = v.annotations()[i_dbsnp]; //because string is const
-		stream << "<tr><td><b>Frequenz:</b> <b>1000g:</b> " << v.annotations()[i_1000g] << " <b>ExAC:</b> " << v.annotations()[i_exac] << " <b>ESP6500:</b> " << v.annotations()[i_esp] << " <b>dbSNP:</b> " << dbsnp.replace("[];", "") << "</td></tr>" << endl;
-		stream << "<tr><td><b>OMIM:</b> " << v.annotations()[i_omim] << "</td></tr>" << endl;
-		stream << "<tr><td><b>ClinVar:</b> " << v.annotations()[i_clinvar] << "</td></tr>" << endl;
-		stream << "<tr><td><b>HGMD:</b> " << v.annotations()[i_hgmd] << "</td></tr>" << endl;
-		stream << "<tr><td><b>Kommentar:</b> " << v.annotations()[i_comment] << "</td></tr>" << endl;
-		stream << "</table>" << endl;
-		stream << "<br>" << endl;
+		stream << "<br>&nbsp;&nbsp;&nbsp;&nbsp;- " << filterToGermanText(it.key(), it.value()) << endl;
 	}
 
-	//output: all variants
-	QStringList anno_cols;
-	anno_cols << "genotype" << "gene" << "quality" << "variant_type" << "coding_and_splicing";
+	//output: very important variants
+	int important_variants = 0;
+	for (int i=0; i<variants_selected_.count(); ++i)
+	{
+		important_variants += variants_selected_[i].second;
+	}
+	if (important_variants>0)
+	{
+		stream << "<p><b>Liste wichtiger Varianten</b>" << endl;
+		for (int i=0; i<variants_selected_.count(); ++i)
+		{
+			if (!variants_selected_[i].second) continue;
+			const Variant& v = variants_[variants_selected_[i].first];
+			stream << "<table>" << endl;
+			stream << "<tr><td><b>Variante:</b> " << v.chr().str() << ":" << v.start() << "-" << v.end() << " " << v.ref() << ">" << v.obs() << " <b>Gen:</b> " << v.annotations()[i_gene] << " <b>Typ:</b> " << v.annotations()[i_type] << " <b>VUS: </b>" << v.annotations()[i_class] << " <b>Vererbung:</b> ausfuellen </td></tr>" << endl;
+			stream << "<tr><td><b>Details:</b> " << formatCodingSplicing(v.annotations()[i_co_sp]) << "</td></tr>" << endl;
+			QString dbsnp = v.annotations()[i_dbsnp]; //because string is const
+			stream << "<tr><td><b>Frequenz:</b> <b>1000g:</b> " << v.annotations()[i_1000g] << " <b>ExAC:</b> " << v.annotations()[i_exac] << " <b>ESP6500:</b> " << v.annotations()[i_esp] << " <b>dbSNP:</b> " << dbsnp.replace("[];", "") << "</td></tr>" << endl;
+			stream << "<tr><td><b>OMIM:</b> " << v.annotations()[i_omim] << "</td></tr>" << endl;
+			stream << "<tr><td><b>ClinVar:</b> " << v.annotations()[i_clinvar] << "</td></tr>" << endl;
+			stream << "<tr><td><b>HGMD:</b> " << v.annotations()[i_hgmd] << "</td></tr>" << endl;
+			stream << "<tr><td><b>Kommentar:</b> " << v.annotations()[i_comment] << "</td></tr>" << endl;
+			stream << "</table>" << endl;
+			stream << "<br>" << endl;
+		}
+	}
+
+	//output: all rare variants
 	stream << "<p><b>Liste aller seltenen Varianten</b>" << endl;
-	stream << "<br>Gefundene Varianten in Zielregion gesamt: " << var_count_ << endl;
-	stream << "<br>Verwendete Filter: " << filters_.join(";").toHtmlEscaped() << endl;
-	stream << "<br>Anzahl relevante Varianten: " << variants_selected_.count() << endl;
 	stream << "<table>" << endl;
-	stream << "<tr><th>chr</th><th>start</th><th>end</th><th>ref</th><th>obs</th><th>" << anno_cols.join("</th><th>") << "</th></tr>" << endl;
+	stream << "<tr><th>chr</th><th>start</th><th>end</th><th>ref</th><th>obs</th><th>genotype</th><th>gene</th><th>details</th></tr>" << endl;
 	for (int i=0; i<variants_selected_.count(); ++i)
 	{
 		stream << "<tr>" << endl;
 		stream << "<td>" << endl;
 		const Variant& variant = variants_[variants_selected_[i].first];
-		stream  << variant.chr().str() << "</td><td>" << variant.start() << "</td><td>" << variant.end() << "</td><td>" << variant.ref() << "</td><td>" << variant.obs();
-		for (int j=0; j<anno_cols.count(); ++j)
-		{
-			QString col = anno_cols[j];
-			int index = variants_.annotationIndexByName(col, true, true);
-			QString value = variant.annotations().at(index);
-			if (col=="quality") value.replace(";", " ");
-			if (col=="coding_and_splicing") value.replace(",", ", ");
-			stream << "</td><td>" << value.toHtmlEscaped();
-		}
-		stream << "</td>" << endl;
+		stream  << variant.chr().str() << "</td><td>" << variant.start() << "</td><td>" << variant.end() << "</td><td>" << variant.ref() << "</td><td>" << variant.obs() << "</td>";
+		stream << "<td>" << variant.annotations().at(i_genotype) << "</td>" << endl;
+		stream << "<td>" << variant.annotations().at(i_gene) << "</td>" << endl;
+		stream << "<td>" << formatCodingSplicing(variant.annotations().at(i_co_sp)).replace(", ", "<BR>") << "</td>" << endl;
 		stream << "</tr>" << endl;
-	}
-	stream << "</table>" << endl;
 
-	//output: comments
-	stream << "<p><b>Kommentare zu Varianten</b>" << endl;
-	stream << "<table>" << endl;
-	stream << "<tr><th>Chr.</th><th>Start</th><th>Gen</th><th>Kommentar</th></tr>" << endl;
-	for (int i=0; i<variants_selected_.count(); ++i)
-	{
-		const Variant& variant = variants_[variants_selected_[i].first];
-		if (variant.annotations()[i_comment]!="")
+		//OMIM and comment line
+		QString omim = variant.annotations()[i_omim];
+		QString comment = variant.annotations()[i_comment];
+		if (comment!="" || omim!="")
 		{
-			stream << "<tr>" << endl;
-			stream << "<td>" << endl;
-			stream << variant.chr().str() << "</td><td>" << variant.start() << "</td><td>" << variant.annotations()[i_gene] << "</td><td>" << variant.annotations()[i_comment] << endl;
-			stream << "</td>" << endl;
-			stream << "</tr>" << endl;
-		}
-	}
-	stream << "</table>" << endl;
-
-	//output: OMIM
-	stream << "<p><b>OMIM-Informationen zu Varianten</b>" << endl;
-	stream << "<table>" << endl;
-	stream << "<tr><th>Chr.</th><th>Start</th><th>OMIM-ID</th><th>OMIM-Details</th></tr>" << endl;
-	for (int i=0; i<variants_selected_.count(); ++i)
-	{
-		const Variant& variant = variants_[variants_selected_[i].first];
-		QString omim_value = variant.annotations()[i_omim];
-		if (omim_value!="")
-		{
-			QStringList parts = omim_value.append(" ").split("]; ");
-			foreach(QString part, parts)
+			QStringList parts;
+			if (comment!="") parts << "<font style=\"background-color: #FF0000\">NGSD: " + comment + "</font>";
+			if (omim!="")
 			{
-				if (part.count()<10) continue;
+				QStringList omim_parts = omim.append(" ").split("]; ");
+				foreach(QString omim_part, omim_parts)
+				{
+					if (omim_part.count()<10) continue;
+					omim = "OMIM ID: " + omim_part.left(6) + " Details: " + omim_part.mid(8);
+				}
 
-				stream << "<tr>" << endl;
-				stream << "<td>" << endl;
-				stream << variant.chr().str() << "</td><td>" << variant.start() << "</td><td>" << part.left(6) << "</td><td>" << part.mid(8) << endl;
-				stream << "</td>" << endl;
-				stream << "</tr>" << endl;
+				parts << omim;
 			}
+			stream << "<tr><td colspan=8><font style=\"font-size: 80%;\">" << parts.join("<br>") << "</font></td></tr>" << endl;
 		}
 	}
 	stream << "</table>" << endl;
 
+	///classification explaination
+	stream << "<p><b>Klassifikation von Varianten:</b>" << endl;
+	stream << "<br>Die Klassifikation der Varianten erfolgt in Anlehnung an die Publikation von Plon et al. (Hum Mutat 2008)" << endl;
+	stream << "<br><b>Klasse 5:</b> Eindeutig pathogene Veränderung / Mutation: Veränderung, die bereits in der Fachliteratur mit ausreichender Evidenz als krankheitsverursachend bezogen auf das vorliegende Krankheitsbild beschrieben wurde sowie als pathogen zu wertende Mutationstypen (i.d.R. Frameshift- bzw. Stoppmutationen)." << endl;
+	stream << "<br><b>Klasse 4:</b> Wahrscheinlich pathogene Veränderung: DNA-Veränderung, die aufgrund ihrer Eigenschaften als sehr wahrscheinlich krankheitsverursachend zu werten ist." << endl;
+	stream << "<br><b>Klasse 3:</b> Variante unklarer Signifikanz (VUS) - Unklare Pathogenität - Variante, bei der es unklar ist, ob eine krankheitsverursachende Wirkung besteht. Diese Varianten werden tabellarisch im technischen Report mitgeteilt." << endl;
+	stream << "<br><b>Klasse 2:</b> Aufgrund der Häufigkeit in der Allgemeinbevölkerung oder der Lokalisation bzw. aufgrund von Angaben in der Literatur sehr wahrscheinlich benigne) Veränderungen werden nicht mitgeteilt, können aber erfragt werden." << endl;
+	stream << "<br><b>Klasse 1:</b> Benigne Veränderungen. Werden nicht mitgeteilt, können aber erfragt werden." << endl;
+
+	///CNvs
 	stream << "<p><b>Gefunden Copy-Number-Varianten</b>" << endl;
 	stream << "<table>" << endl;
 	stream << "<tr><th>Koordianten</th><th>Exons</th><th>CopyNumbers</th><th>Details</th></tr>" << endl;
 	stream << "<tr>" << endl;
-	stream << "<td colspan=4>Abschnitt mit Daten aus dem Report fuellen oder loeschen!</td>";
-	stream << "</tr>" << endl;
-	stream << "<tr>" << endl;
-	stream << "<td colspan=4>Im Moment nur f&uuml;r X-Diagnostik relevant!</td>" << endl;
+	stream << "<td colspan=4><font style=\"background-color: #FF0000\">Abschnitt mit Daten aus dem Report fuellen oder loeschen!<br>Im Moment nur f&uuml;r X-Diagnostik relevant!</font></td>" << endl;
 	stream << "</tr>" << endl;
 	stream << "</table>" << endl;
 
-	//output: coverage
+	///output: coverage
 	if (file_bam_!="")
 	{
 		//get statistics values
@@ -247,7 +300,6 @@ void ReportWorker::writeHTML()
 
 		stream << "<p><b>Abdeckungsstatistik</b>" << endl;
 		stream << "<br>Durchschnittliche Sequenziertiefe: " << avg_cov << endl;
-
 
 		//calculate low coverage regions
 		BedFile low_cov = Statistics::lowCoverage(roi_, file_bam_, 20);
@@ -311,14 +363,31 @@ void ReportWorker::writeHTML()
 					complete_genes << gene;
 				}
 			}
-			stream << "<br>Komplett abgedeckte Gene (" << QString::number(complete_genes.count()) << "/" << QString::number(genes_.count()) << "): " << complete_genes.join(", ") << endl;
+			stream << "<br>Komplett abgedeckte Gene: " << complete_genes.join(", ") << endl;
 		}
 		stream << "<br>Anteil Regionen mit Tiefe kleiner 20: " << QString::number(100.0-perc_cov20.toFloat(), 'f', 2) << "%" << endl;
-		stream << "<br>Details Regionen mit Tiefe kleiner 20:" << endl;
+		if (!genes_.isEmpty())
+		{
+			QStringList incomplete_genes;
+			foreach(const QString& gene, genes_)
+			{
+				if (grouped.contains(gene))
+				{
+					const QVector<BedLine>& lines = grouped[gene];
+					int missing_bases = 0;
+					for (int i=0; i<lines.count(); ++i)
+					{
+						missing_bases += lines[i].length();
+					}
+					incomplete_genes << gene + " <font style=\"font-size: 80%;\">" + QString::number(missing_bases) + "</font> ";
+				}
+			}
+			stream << "<br>Fehlende Basen in nicht komplett abgedeckten Genen: " << incomplete_genes.join(", ") << endl;
+		}
+		stream << "<br><font style=\"background-color: #FF0000\">Details Regionen mit Tiefe kleiner 20:</font>" << endl;
 		stream << "<table>" << endl;
 		stream << "<tr><th>Gen</th><th>Basen</th><th>Chromosom</th><th>Koordinaten_hg19</th></tr>" << endl;
-		QMap<QString, QVector<BedLine> >::Iterator it = grouped.begin();
-		while(it!=grouped.end())
+		for (auto it=grouped.cbegin(); it!=grouped.cend(); ++it)
 		{
 			stream << "<tr>" << endl;
 			stream << "<td>" << endl;
@@ -335,7 +404,6 @@ void ReportWorker::writeHTML()
 			}
 			stream << it.key() << "</td><td>" << bases << "</td><td>" << chr << "</td><td>" << coords << endl;
 
-			++it;
 			stream << "</td>" << endl;
 			stream << "</tr>" << endl;
 		}
@@ -350,7 +418,7 @@ void ReportWorker::writeHTML()
 	//output variant details
 	if(var_details_)
 	{
-		stream << "<p><b>Details zu Varianten (f&uuml;r interne Zwecke)" << endl;
+		stream << "<p><b><font style=\"background-color: #FF0000\">Details zu Varianten (f&uuml;r interne Zwecke)</font>" << endl;
 		stream << "<table>" << endl;
 		stream << "<tr><th>chr</th><th>start</th><th>end</th><th>ref</th><th>obs</th>";
 		for (int i=0; i<variants_.annotations().count(); ++i)
@@ -376,11 +444,11 @@ void ReportWorker::writeHTML()
 	}
 
 	//collect and display important tool versions
-	stream << "<p><b>Details zu Analysetools (f&uuml;r interne Zwecke)" << endl;
+	stream << "<p><b><font style=\"background-color: #FF0000\">Details zu Analysetools (f&uuml;r interne Zwecke)</font>" << endl;
 	stream << "<table>" << endl;
 	stream << "<tr><th>tool</th><th>version</th><th>parameters</th></tr>";
 	QStringList whitelist;
-	whitelist << "SeqPurge" << "samblaster" << "/bwa" << "samtools" << "VcfLeftAlign" <<  "freebayes" << "abra" << "vcflib" << "SnpEff"; //current
+	whitelist << "SeqPurge" << "samblaster" << "/bwa" << "samtools" << "VcfLeftAlign" <<  "freebayes" << "abra.jar" << "vcflib" << "SnpEff"; //current
 	whitelist << "varFilter" << "stampy.py" << "BamLeftAlign" << "GenomeAnalysisTK" << "VcfSplitMultiallelic" << "picard-tools"; //legacy
 	log_files_.sort();
 	foreach(QString file, log_files_)
@@ -494,7 +562,7 @@ void ReportWorker::writeXML()
 	//element Sample
 	w.writeStartElement("Sample");
 	w.writeAttribute("name", sample_name_);
-	w.writeAttribute("name_external", sample_name_external_);
+	w.writeAttribute("name_external", NGSD().getExternalSampleName(sample_name_));
 	w.writeEndElement();
 
 	//element TargetRegion (optional)
@@ -517,10 +585,10 @@ void ReportWorker::writeXML()
 	w.writeAttribute("genome_build", "hg19");
 
 	//element AppliedFilter
-	foreach(QString part, filters_)
+	for(auto it = filters_.cbegin(); it!=filters_.cend(); ++it)
 	{
 		w.writeStartElement("AppliedFilter");
-		w.writeAttribute("name", part);
+		w.writeAttribute("name", it.key() + ":" + it.value());
 		w.writeEndElement();
 	}
 

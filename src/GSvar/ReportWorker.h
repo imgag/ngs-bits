@@ -16,14 +16,20 @@ public:
 	/*
 	  @brief Constructor.
 	*/
-	ReportWorker(QString sample_name, QString sample_name_external, QStringList filters, const VariantList& variants, const QVector< QPair<int, bool> >& variants_selected, QString outcome, QString file_roi, QString file_bam, bool var_details, QStringList log_files, QString file_rep);
+	ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QVector< QPair<int, bool> >& variants_selected, QString outcome, QString file_roi, QString file_bam, bool var_details, QStringList log_files, QString file_rep);
 	virtual void process();
+
+	///Returns the file to which the HTML report was written.
+	QString getReportFile()
+	{
+		return file_rep_;
+	}
 
 private:
 	//input variables
 	QString sample_name_;
 	QString sample_name_external_;
-	QStringList filters_;
+	QMap<QString, QString> filters_;
 	const VariantList& variants_;
 	QVector< QPair<int, bool> > variants_selected_;
 	QString outcome_;
@@ -40,6 +46,8 @@ private:
 	BedFile roi_;
 	int var_count_;
 
+	QString filterToGermanText(QString name, QString value);
+	QString formatCodingSplicing(QByteArray text);
 	int annotationIndexOrException(const QString& name, bool exact_match) const;
 	void writeHTML();
 	void writeXML();

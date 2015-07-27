@@ -62,7 +62,7 @@ public:
 	QString referenceSample() const;
 
 	/// Returns a string representations of the applied filters
-	QStringList appliedFilters() const;
+	QMap<QString, QString> appliedFilters() const;
 
 signals:
 	/// Signal that is emitted when an annotation filter changes its checkbox state, or if the ROI changes, or if the gene changes

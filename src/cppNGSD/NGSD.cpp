@@ -97,7 +97,7 @@ QString NGSD::getExternalSampleName(const QString& filename)
 	{
 		return "n/a";
 	}
-	return value.toString();
+	return value.toString().trimmed();
 }
 
 QString NGSD::getProcessingSystem(const QString& filename, SystemType type)
@@ -125,7 +125,19 @@ QString NGSD::getProcessingSystem(const QString& filename, SystemType type)
 	{
 		THROW(ProgrammingException, "Unknown SystemType '" + QString::number(type) + "'!");
 	}
-	return getValue("SELECT " + what + " FROM processing_system WHERE id='" + sys_id + "'").toString();
+	return getValue("SELECT " + what + " FROM processing_system WHERE id='" + sys_id + "'").toString().trimmed();
+}
+
+
+QString NGSD::getGenomeBuild(const QString& filename)
+{
+	//get sample ID
+	QString s_id = getValue("SELECT id FROM sample WHERE name='" + sampleName(filename) + "'").toString();
+
+	//get processed sample ID
+	QString ps_id = getValue("SELECT id FROM processed_sample WHERE sample_id='" + s_id + "' AND process_id='" + processedSampleNumber(filename) + "'").toString();
+
+	return getValue("SELECT g.build FROM processed_sample ps, processing_system sys, genome g WHERE ps.id='" + ps_id + "' AND ps.processing_system_id=sys.id AND sys.genome_id=g.id").toString();
 }
 
 QPair<QString, QString> NGSD::getValidationStatus(const QString& filename, const Variant& variant)

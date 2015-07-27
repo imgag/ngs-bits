@@ -236,17 +236,17 @@ QString FilterDockWidget::referenceSample() const
 	return ui_.refs->toolTip();
 }
 
-QStringList FilterDockWidget::appliedFilters() const
+QMap<QString, QString> FilterDockWidget::appliedFilters() const
 {
-	QStringList output;
-	if (applyMaf()) output.append("maf<=" + QString::number(mafPerc(), 'f', 2) + "%");
-	if (applyImpact()) output.append("impact=" + impact().join(","));
-	if (applyIhdb()) output.append("ihdb<" + QString::number(ihdb()));
-	if (applyVus()) output.append("classification>=" + QString::number(vus()));
-	if (applyGenotype()) output.append("genotype=" + genotype());
-	if (keepImportant()) output.append("keep_important");
-	if (applyQuality()) output.append("quality");
-	if (applyTrio()) output.append("trio");
+	QMap<QString, QString> output;
+	if (applyMaf()) output.insert("maf", QString::number(mafPerc(), 'f', 2) + "%");
+	if (applyImpact()) output.insert("impact", impact().join(","));
+	if (applyIhdb()) output.insert("ihdb", QString::number(ihdb()));
+	if (applyVus()) output.insert("classification", QString::number(vus()));
+	if (applyGenotype()) output.insert("genotype" , genotype());
+	if (keepImportant()) output.insert("keep_important", "");
+	if (applyQuality()) output.insert("quality", "");
+	if (applyTrio()) output.insert("trio", "");
 
 	return output;
 }

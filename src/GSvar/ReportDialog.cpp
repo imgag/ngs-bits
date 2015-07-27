@@ -57,7 +57,7 @@ void ReportDialog::addVariants(const VariantList& variants, const QBitArray& vis
 
 		const Variant& variant = variants[i];
 		ui_.vars->setItem(row, 0, new QTableWidgetItem(""));
-		ui_.vars->item(row, 0)->setFlags(Qt::ItemIsUserCheckable|Qt::ItemIsEnabled|Qt::ItemIsTristate);
+		ui_.vars->item(row, 0)->setFlags(Qt::ItemIsUserCheckable|Qt::ItemIsEnabled|Qt::ItemIsTristate|Qt::ItemIsUserTristate);
 		ui_.vars->item(row, 0)->setCheckState(Qt::PartiallyChecked);
 		if (class_idx!=-1 && variant.annotations()[class_idx]=="1")
 		{
