@@ -5,8 +5,7 @@ CONFIG += console
 SUBDIRS = cppCORE\
         cppXML \
         cppNGS \
-        cppNGSD \
-    VariantAnnotateGPD
+        cppNGSD
 
 cppXML.depends = cppCORE
 cppNGS.depends = cppCORE cppXML

@@ -4,6 +4,7 @@
 #include "VariantList.h"
 #include "BedFile.h"
 #include "NGSD.h"
+#include "GPD.h"
 #include "Log.h"
 #include "Settings.h"
 
@@ -26,9 +27,7 @@ public:
 		//optional
 		addString("psname", "Processed sample name. If set, this name is used instead of the file name to find the sample in the DB.", true, "");
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
-		QStringList modes;
-		modes << "germline" << "somatic";
-		addEnum("mode", "Determines annotation mode.", true, modes, "germline");
+		addEnum("mode", "Determines annotation mode.", true, QStringList() << "germline" << "somatic", "germline");
 	}
 
 	virtual void main()
@@ -45,8 +44,16 @@ public:
 
 		//annotate
 		QString mode = getEnum("mode");
-		if(mode=="germline") NGSD().annotate(variants, ps, ref_file, false);
-		else if(mode=="somatic") NGSD().annotateSomatic(variants, ps, ref_file);
+		if(mode=="germline")
+		{
+			GPD().annotate(variants);
+			NGSD().annotate(variants, ps, ref_file, true);
+		}
+		else if(mode=="somatic")
+		{
+			GPD().annotate(variants);
+			NGSD().annotateSomatic(variants, ps, ref_file);
+		}
 		else THROW(ProgrammingException, "Unknown mode '" + mode + "'!");
 
 		//store

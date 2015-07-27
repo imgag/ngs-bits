@@ -20,24 +20,27 @@ private slots:
 		output.load("out/VariantAnnotateNGSD_out1.tsv");
 	
 		//check that the new columns are present
+		int gpd_g_i = output.annotationIndexByName("GPD_gene", true, true);
+		I_EQUAL(gpd_g_i, 22);
+		int gpd_v_i = output.annotationIndexByName("GPD_var", true, true);
+		I_EQUAL(gpd_v_i, 23);
 		int hom_i = output.annotationIndexByName("ihdb_hom", true, true);
-		I_EQUAL(hom_i, 22);
+		I_EQUAL(hom_i, 24);
 		int het_i = output.annotationIndexByName("ihdb_het", true, true);
-		I_EQUAL(het_i, 23);
+		I_EQUAL(het_i, 25);
 		int wt_i = output.annotationIndexByName("ihdb_wt", true, true);
-		I_EQUAL(wt_i, 24);
+		I_EQUAL(wt_i, 26);
 		int all_hom_i = output.annotationIndexByName("ihdb_allsys_hom", true, true);
-		I_EQUAL(all_hom_i, 25);
+		I_EQUAL(all_hom_i, 27);
 		int all_het_i = output.annotationIndexByName("ihdb_allsys_het", true, true);
-		I_EQUAL(all_het_i, 26);
+		I_EQUAL(all_het_i, 28);
 		int cla_i = output.annotationIndexByName("classification", true, true);
-		I_EQUAL(cla_i, 27);
+		I_EQUAL(cla_i, 29);
 		int val_i = output.annotationIndexByName("validated", true, true);
-		I_EQUAL(val_i, 28);
-		I_EQUAL(output.annotations().count(), 29);
-	
-		//check that 'comment' column is missing
-		I_EQUAL(output.annotationIndexByName("comment", true, false), -1);
+		I_EQUAL(val_i, 30);
+		int com_i = output.annotationIndexByName("comment", true, true);
+		I_EQUAL(com_i, 31);
+		I_EQUAL(output.annotations().count(), 32);
 	
 		//check annotation content
 		I_EQUAL(output.count(), 11);
@@ -75,25 +78,28 @@ private slots:
 		output.load("out/VariantAnnotateNGSD_out2.tsv");
 	
 		//check that the new columns are present
+		int gpd_g_i = output.annotationIndexByName("GPD_gene", true, true);
+		I_EQUAL(gpd_g_i, 22);
+		int gpd_v_i = output.annotationIndexByName("GPD_var", true, true);
+		I_EQUAL(gpd_v_i, 23);
 		int hom_i = output.annotationIndexByName("ihdb_hom", true, true);
-		I_EQUAL(hom_i, 22);
+		I_EQUAL(hom_i, 24);
 		int het_i = output.annotationIndexByName("ihdb_het", true, true);
-		I_EQUAL(het_i, 23);
+		I_EQUAL(het_i, 25);
 		int wt_i = output.annotationIndexByName("ihdb_wt", true, true);
-		I_EQUAL(wt_i, 24);
+		I_EQUAL(wt_i, 26);
 		int all_hom_i = output.annotationIndexByName("ihdb_allsys_hom", true, true);
-		I_EQUAL(all_hom_i, 25);
+		I_EQUAL(all_hom_i, 27);
 		int all_het_i = output.annotationIndexByName("ihdb_allsys_het", true, true);
-		I_EQUAL(all_het_i, 26);
+		I_EQUAL(all_het_i, 28);
 		int cla_i = output.annotationIndexByName("classification", true, true);
-		I_EQUAL(cla_i, 27);
+		I_EQUAL(cla_i, 29);
 		int val_i = output.annotationIndexByName("validated", true, true);
-		I_EQUAL(val_i, 28);
-		I_EQUAL(output.annotations().count(), 29);
-	
-		//check that 'comment' column is missing
-		I_EQUAL(output.annotationIndexByName("comment", true, false), -1);
-	
+		I_EQUAL(val_i, 30);
+		int com_i = output.annotationIndexByName("comment", true, true);
+		I_EQUAL(com_i, 31);
+		I_EQUAL(output.annotations().count(), 32);
+
 		//check annotation content
 		I_EQUAL(output.count(), 11);
 		for (int i=0; i<output.count(); ++i)
@@ -140,11 +146,15 @@ private slots:
 		output.load("out/VariantAnnotateNGSD_out3.tsv");
 
 		//check that the new columns are present
+		int gpd_g_i = output.annotationIndexByName("GPD_gene", true, true);
+		I_EQUAL(gpd_g_i, 22);
+		int gpd_v_i = output.annotationIndexByName("GPD_var", true, true);
+		I_EQUAL(gpd_v_i, 23);
 		int val_i1 = output.annotationIndexByName("som_ihdb_c", true, false);
-		I_EQUAL(val_i1, 22);
+		I_EQUAL(val_i1, 24);
 		int val_i2 = output.annotationIndexByName("som_ihdb_p", true, false);
-		I_EQUAL(val_i2, 23);
-		I_EQUAL(output.annotations().count(), 24);
+		I_EQUAL(val_i2, 25);
+		I_EQUAL(output.annotations().count(), 26);
 
 		//check annotation content
 		I_EQUAL(output.count(), 5);
