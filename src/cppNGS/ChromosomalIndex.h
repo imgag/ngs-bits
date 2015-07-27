@@ -15,7 +15,7 @@ public:
 	///Constructor.
 	ChromosomalIndex(const T& container, int bin_size = 30);
 
-	///Returs the underlying container
+	///Returns the underlying container
 	const T& container() const { return container_; }
 
 	///Returns a vector of element indices overlapping the given chromosomal range.

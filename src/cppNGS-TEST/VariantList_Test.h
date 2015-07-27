@@ -590,4 +590,15 @@ private slots:
 		S_EQUAL(vl[0].annotations()[index], QByteArray("37"));
 		S_EQUAL(vl[0].annotations()[index+1], QByteArray("SNV"));
 	}
+
+	//bug (number of variants was used to checked if index is out of range)
+	void removeAnnotation_bug()
+	{
+		VariantList vl;
+		vl.annotations().append(VariantAnnotationDescription("bla", "some desciption"));
+
+		vl.removeAnnotation(0);
+
+		I_EQUAL(vl.annotations().count(), 0)
+	}
 };

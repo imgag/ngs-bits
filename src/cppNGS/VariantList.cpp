@@ -174,9 +174,9 @@ int VariantList::annotationIndexByName(const QString& name, bool exact_match, bo
 
 void VariantList::removeAnnotation(int index)
 {
-	if (index < 0 || index>=variants_.count())
+	if (index < 0 || index>=annotations_.count())
 	{
-		THROW(ProgrammingException, "Variant annotation column index " + QString::number(index) + " out of range [0," + QString::number(variants_.count()) + "[ in removeAnnotation(index) method!");
+		THROW(ProgrammingException, "Variant annotation column index " + QString::number(index) + " out of range [0," + QString::number(annotations_.count()-1) + "] in removeAnnotation(index) method!");
 	}
 
 	annotations_.removeAt(index);
