@@ -1,2 +1,2 @@
-Number of high-coverage SNPs: 500 of 19255 (max_snps: 500)
-Correlation: 0.9851
+Number of high-coverage SNPs: 200 of 19255 (max_snps: 200)
+Correlation: 0.9831

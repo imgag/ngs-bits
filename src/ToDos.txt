@@ -25,7 +25,6 @@ CnvHunter
  - instead of fixed 'n', majority vote for CNVs for n>=10 and n<=30?
 
 Tests:
- * reduce W: dependency => check in all test data
  - use depencency injection to remove NGSD test dependency?!
 
 Transcripts:

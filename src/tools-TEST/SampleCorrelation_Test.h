@@ -17,17 +17,9 @@ private slots:
 		COMPARE_FILES("out/SampleCorrelation_out2.txt", TESTDATA("data_out/SampleCorrelation_out2.txt"));
 	}
 	
-	void test_bam1()
+	void test_bam()
 	{
-		QString in1 = "/mnt/share/data/test_data/GS120240.bam";
-		QString in2 = "/mnt/share/data/test_data/GS120180.bam";
-#ifdef __MINGW32__
-		in1 = "W:\\share\\data\\test_data\\GS120240.bam";
-		in2 = "W:\\share\\data\\test_data\\GS120180.bam";
-		if (!QDir("W:\\share\\").exists()) SKIP("Test needs data from W: drive!");
-#endif
-	
-		EXECUTE("SampleCorrelation", "-in1 " + in1 + " -in2 " + in2 + " -out out/SampleCorrelation_out3.txt -bam");
+		EXECUTE("SampleCorrelation", "-in1 " + TESTDATA("data_in/SampleCorrelation_in4.bam") + " -in2 " + TESTDATA("data_in/SampleCorrelation_in5.bam") + " -out out/SampleCorrelation_out3.txt -bam -max_snps 200");
 		COMPARE_FILES("out/SampleCorrelation_out3.txt", TESTDATA("data_out/SampleCorrelation_out3.txt"));
 	}
 	

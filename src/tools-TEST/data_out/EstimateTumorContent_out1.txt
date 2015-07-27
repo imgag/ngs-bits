@@ -1,6 +1,6 @@
-somatic variant list  : GS120240-GS120180_im_filtered.tsv
-normal tissue BAM file: GS120180.bam
-tumor tissue BAM file : GS120240.bam
+somatic variant list  : EstimateTumorContent_variants.tsv
+normal tissue BAM file: EstimateTumorContent_in2.bam
+tumor tissue BAM file : EstimateTumorContent_in1.bam
 
 estimated tumor content: 93%
 
@@ -9,7 +9,7 @@ INDELs
 SNPs
   total: 42
   autosomal: 42
-  with depth > 30: 30
+  with depth > 30: 28
   with normal sample variant frequency < 0.01: 28
   with tumor sample variant frequency <= 0.6: 28
   considered top-10 variant frequencies of:  0.12 0.18 0.21 0.25 0.26 0.27 0.28 0.33 0.34 0.35 0.35 0.38 0.38 0.38 0.39 0.39 0.39 0.40 0.40 0.41 0.42 0.43 0.46 0.47 0.48 0.50 0.53 0.55
