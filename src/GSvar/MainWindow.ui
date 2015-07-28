@@ -81,8 +81,16 @@
     <property name="title">
      <string>Help</string>
     </property>
-    <addaction name="actionChangeLog"/>
+    <widget class="QMenu" name="menuPreferred_transcripts">
+     <property name="title">
+      <string>Preferred transcripts</string>
+     </property>
+     <addaction name="actionShowTranscripts"/>
+     <addaction name="actionImportTranscripts"/>
+    </widget>
+    <addaction name="menuPreferred_transcripts"/>
     <addaction name="separator"/>
+    <addaction name="actionChangeLog"/>
     <addaction name="actionAbout"/>
    </widget>
    <widget class="QMenu" name="menuTools">
@@ -381,6 +389,16 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+S</string>
+   </property>
+  </action>
+  <action name="actionImportTranscripts">
+   <property name="text">
+    <string>Import from Alamut</string>
+   </property>
+  </action>
+  <action name="actionShowTranscripts">
+   <property name="text">
+    <string>Show</string>
    </property>
   </action>
  </widget>

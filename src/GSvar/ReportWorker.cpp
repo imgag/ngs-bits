@@ -15,12 +15,13 @@
 #include "XmlHelper.h"
 #include "NGSD.h"
 
-ReportWorker::ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QVector< QPair<int, bool> >& variants_selected, QString outcome, QString file_roi, QString file_bam, bool var_details, QStringList log_files, QString file_rep)
+ReportWorker::ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QVector< QPair<int, bool> >& variants_selected, QMap<QString, QString> preferred_transcripts, QString outcome, QString file_roi, QString file_bam, bool var_details, QStringList log_files, QString file_rep)
 	: WorkerBase("Report generation")
 	, sample_name_(sample_name)
 	, filters_(filters)
 	, variants_(variants)
 	, variants_selected_(variants_selected)
+	, preferred_transcripts_(preferred_transcripts)
 	, outcome_(outcome)
 	, file_roi_(file_roi)
 	, file_bam_(file_bam)
@@ -121,8 +122,16 @@ QString ReportWorker::formatCodingSplicing(QByteArray text)
 	for (int i=0; i<transcripts.count(); ++i)
 	{
 		QList<QByteArray> parts = transcripts[i].split(':');
-		if (parts.count()<7) THROW(ProgrammingException, "");
-		transcripts[i] = parts[0].trimmed() + ":" + parts[1].trimmed() + ":" + parts[5].trimmed() + ":" + parts[6].trimmed();
+		if (parts.count()<7) THROW(ProgrammingException, "Could not split 'coding_and_splicing' transcript information to 7 parts: " + transcripts[i]);
+
+		QByteArray gene = parts[0].trimmed();
+		QByteArray trans = parts[1].trimmed();
+		QByteArray output = gene + ":" + trans + ":" + parts[5].trimmed() + ":" + parts[6].trimmed();
+
+		//return only preferred transcript if we know it
+		if (preferred_transcripts_.value(gene, "")==trans) return output;
+
+		transcripts[i] = output;
 	}
 	return transcripts.join(", ");
 }

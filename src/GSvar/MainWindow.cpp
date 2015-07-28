@@ -91,6 +91,7 @@ void MainWindow::delayedInizialization()
 	}
 	updateRecentFilesMenu();
 	updateIGVMenu();
+	updatePreferredTranscripts();
 
 	//load command line argument
 	if (QApplication::arguments().count()>=2)
@@ -276,7 +277,7 @@ void MainWindow::on_actionReport_triggered()
 	busy_dialog_->init("Generating report", false);
 
 	//start worker in new thread
-	ReportWorker* worker = new ReportWorker(base_name, filter_widget_->appliedFilters(), variants_, dialog.selectedIndices(), dialog.outcome(), filter_widget_->targetRegion(), bam_file, dialog.detailsVariants(), getLogFiles(), file_rep);
+	ReportWorker* worker = new ReportWorker(base_name, filter_widget_->appliedFilters(), variants_, dialog.selectedIndices(), preferred_transcripts_, dialog.outcome(), filter_widget_->targetRegion(), bam_file, dialog.detailsVariants(), getLogFiles(), file_rep);
 	connect(worker, SIGNAL(finished(bool)), this, SLOT(reportGenerationFinished(bool)));
 	worker->start();
 }
@@ -562,6 +563,41 @@ void MainWindow::on_actionExportVCF_triggered()
 	}
 }
 
+void MainWindow::on_actionShowTranscripts_triggered()
+{
+	QString text = "<pre>";
+	for (auto it=preferred_transcripts_.cbegin(); it!=preferred_transcripts_.cend(); ++it)
+	{
+		text += it.key() + "\t" + it.value() + "\n";
+	}
+	GUIHelper::showWidgetAsDialog(new QTextEdit(text + "</pre>"), "Preferred transcripts list", false);
+}
+
+void MainWindow::on_actionImportTranscripts_triggered()
+{
+	//check if gene list file is set
+	QString gene_list = Settings::string("alamut_gene_list");
+	if (gene_list=="")
+	{
+		GUIHelper::showMessage("Preferred transcripts import", "Alamut gene list file not defined in 'settings.ini' file (key 'alamut_gene_list')!");
+		return;
+	}
+
+	//parse file
+	QMap<QString, QVariant> preferred_transcripts;
+	QStringList file = Helper::loadTextFile(gene_list);
+	foreach(QString line, file)
+	{
+		QStringList parts = line.trimmed().split('\t');
+		if (parts.count()<3) continue;
+		preferred_transcripts.insert(parts[0], parts[2]);
+	}
+	Settings::setMap("preferred_transcripts", preferred_transcripts);
+
+	//update in-memory copy of preferred transcripts
+	updatePreferredTranscripts();
+}
+
 void MainWindow::on_actionCopy_triggered()
 {
 	copyToClipboard(false);
@@ -651,6 +687,29 @@ void MainWindow::copyToClipboard(bool split_quality)
 	}
 
 	QApplication::clipboard()->setText(selected_text);
+}
+
+QString MainWindow::formatTranscripts(QString line)
+{
+	QString output;
+	QStringList transcripts = line.split(",");
+	foreach(QString t, transcripts)
+	{
+		QString t_formatted = "  " + t;
+		QStringList parts = t.split(":");
+		if (parts.count()>2)
+		{
+			QString& gene = parts[0];
+			QString& pt = parts[1];
+			if(preferred_transcripts_.value(gene, "") == pt)
+			{
+				t_formatted = "* " + t;
+			}
+		}
+		output += "\n" + t_formatted;
+	}
+
+	return output;
 }
 
 void MainWindow::variantListChanged()
@@ -743,7 +802,7 @@ void MainWindow::variantListChanged()
 			//tooltip for fields with large content
 			if (j==i_co_sp)
 			{
-				tooltip += "\n" + item->text().replace(",", "\n");
+				tooltip += formatTranscripts(item->text());
 			}
 			if (j==i_comment)
 			{
@@ -1554,6 +1613,17 @@ void MainWindow::updateIGVMenu()
 			action->setChecked(parts[1]=="1");
 			action->setToolTip(parts[2]);
 		}
+	}
+}
+
+void MainWindow::updatePreferredTranscripts()
+{
+	preferred_transcripts_.clear();
+
+	QMap<QString, QVariant> tmp = Settings::map("preferred_transcripts");
+	for(auto it=tmp.cbegin(); it!=tmp.cend(); ++it)
+	{
+		preferred_transcripts_.insert(it.key(), it.value().toString());
 	}
 }
 

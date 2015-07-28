@@ -34,3 +34,6 @@ kgxref = ""
 kgxref_merged = ""
 kgxref_joined = ""
 hgnc = ""
+
+#alamut gene list file
+alamut_gene_list = 

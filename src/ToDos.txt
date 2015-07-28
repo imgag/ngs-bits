@@ -1,10 +1,10 @@
 === TODO ===
 Tools:
  - GSvar:
-  - store/highlight preferred transcripts
-   - add option to export preferred transcripts to GeneLab
-   - add option to import preferred transcripts from Alamut (srv039: C:\Program Files\Alamut\AlamutVisual-2.7.1-64bit)
-   - use only preferred transcript in report
+  - Edit comment
+    - multiline => handle multiline in view/export
+    - edit overwrites comments from other samples (fix this)
+  - add option to export preferred transcripts to GeneLab
  - SampleOverview: add option for BAM files (check depth where variant is not found)
  - ReadQC:
    - Detect contamination and bad libraries by k-mer counting? Check FastQC output of DX141880_01
@@ -26,44 +26,3 @@ CnvHunter
 
 Tests:
  - use depencency injection to remove NGSD test dependency?!
-
-Transcripts:
-AP4M1	NM_004722.3
-ARSA	NM_000487.4
-ATL1	NM_015915.4
-BCOR	NM_001123383.1
-BSCL2	NM_001122955.2
-CACNA1A	NM_001127222.1
-CYP7B1	NM_004820.3
-FLNA	NM_001110556.1
-GARS	NM_002047.2
-GBA	NM_000157.3
-GBA2	NM_020944.2
-GCH1	NM_000161.2
-ITPR1	NM_001168272.1
-KCNA1	NM_000217.2
-KCNC3	NM_004977.2
-KIAA0196	NM_014846.3
-KIF5A	NM_004984.2
-L1CAM	NM_000425.3
-LRRK2	NM_198578.3
-NPC1	NM_000271.4
-PARK2	NM_004562.2
-PNKD	NM_015488.4
-POLG	NM_002693.2
-PRKCG	NM_002739.3
-PRNP	NM_000311.3
-REEP1	NM_022912.2
-SACS	NM_014363.4
-SETX	NM_015046.5
-SGCE	NM_001099401.1
-SLC25A15	NM_014252.3
-SLC2A1	NM_006516.2
-SMPD1	NM_000543.3
-SPAST	NM_014946.3
-SPG11	NM_025137.3
-SPG7	NM_003119.2
-TH	NM_199292.2
-THAP1	NM_018105.2
-ZFYVE26	NM_015346.3
-ZMYM3	NM_201599.2

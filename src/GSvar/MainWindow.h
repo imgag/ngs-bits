@@ -41,8 +41,12 @@ public:
 	void updateRecentFilesMenu();
 	///Updates IGV menu
 	void updateIGVMenu();
+	///Updates preferred transcripts from settings.ini
+	void updatePreferredTranscripts();
 	///Copy selected variants to clipboard
 	void copyToClipboard(bool split_quality);
+	///Formats transcripts, taking preferred transcripts into consideration
+	QString formatTranscripts(QString line);
 
 public slots:
 	///Open dialog
@@ -89,6 +93,10 @@ public slots:
 	void on_actionGaps_triggered();
 	///VCF export
 	void on_actionExportVCF_triggered();
+	///Preferred transcript list
+	void on_actionShowTranscripts_triggered();
+	///Preferred transcript import from Alamut
+	void on_actionImportTranscripts_triggered();
 
 	///Finished the report generation
 	void reportGenerationFinished(bool success);
@@ -121,6 +129,7 @@ private:
 	QString last_roi_filename_;
 	BedFile last_roi_;
 	QString last_report_path_;
+	QMap<QString, QString> preferred_transcripts_;
 
 	//SPECIAL
 	///Timer to delay some initialization, e.g. load CLI argument after the main window is visible (otherwise the sample info dialog is shown before the main window)
