@@ -6,7 +6,7 @@
 #include <QStringList>
 
 //large file support definitions
-#ifdef __MINGW32__
+#ifdef _WIN32
 #define ftell64(a)     _ftelli64(a)
 #define fseek64(a,b,c) _fseeki64(a,b,c)
 typedef __int64 off_type;

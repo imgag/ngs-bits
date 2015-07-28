@@ -148,7 +148,7 @@ public:
 				else if (type=="extern") type = "gs_ext";
 				else THROW(ProgrammingException, "Unknown NGSD project type '" + type + "'!");
 				QString project_name = tokens[fields.indexOf("p.name")];
-#ifdef __MINGW32__
+#ifdef _WIN32
 			QString project_path = "W:/projects/" + type + "/" + project_name + "/";
 #else
 			QString project_path = "/mnt/projects/" + type + "/" + project_name + "/";

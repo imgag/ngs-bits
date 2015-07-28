@@ -22,7 +22,6 @@ LIBS += -L$$PWD/../bin -lcppNGS
 #include bamtools library
 INCLUDEPATH += $$PWD/../bamtools/include/
 LIBS += -L$$PWD/../bamtools/lib/ -l bamtools
-QMAKE_CXXFLAGS += -Wno-attributes #suppress bamtools warnings
 
 #include zlib library
 LIBS += -lz
