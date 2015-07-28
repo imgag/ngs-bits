@@ -7,7 +7,7 @@ TEST_CLASS(VariantAnnotateNGSD_Test)
 Q_OBJECT
 private slots:
 	
-	void test_01()
+	void default_parameters()
 	{
 		QString host = Settings::string("ngsd_host");
 		if (host=="") SKIP("Test needs access to the NGSD!");
@@ -43,7 +43,7 @@ private slots:
 		I_EQUAL(output.annotations().count(), 32);
 	
 		//check annotation content
-		I_EQUAL(output.count(), 11);
+		I_EQUAL(output.count(), 12);
 		for (int i=0; i<output.count(); ++i)
 		{
 			S_EQUAL(output[i].annotations()[hom_i], QByteArray("n/a"));
@@ -60,12 +60,20 @@ private slots:
 			IS_TRUE(convertion_ok);
 			IS_TRUE(value_int >= 0);
 	
-			S_EQUAL(output[i].annotations()[cla_i], QByteArray("n/a"));
+			if (i!=11)
+			{
+				S_EQUAL(output[i].annotations()[cla_i], QByteArray("n/a"));
+			}
+			else
+			{
+				S_EQUAL(output[i].annotations()[cla_i], QByteArray("1"));
+			}
 			S_EQUAL(output[i].annotations()[val_i], QByteArray("n/a"));
+			S_EQUAL(output[i].annotations()[com_i], QByteArray("n/a"));
 		}
 	}
 
-	void test_02()
+	void psname_given()
 	{	
 		QString host = Settings::string("ngsd_host");
 		if (host=="") SKIP("Test needs access to the NGSD!");
@@ -101,7 +109,7 @@ private slots:
 		I_EQUAL(output.annotations().count(), 32);
 
 		//check annotation content
-		I_EQUAL(output.count(), 11);
+		I_EQUAL(output.count(), 12);
 		for (int i=0; i<output.count(); ++i)
 		{
 			double value_double = output[i].annotations()[hom_i].toDouble(&convertion_ok);
@@ -129,13 +137,24 @@ private slots:
 			value_int = output[i].annotations()[all_het_i].toInt(&convertion_ok);
 			IS_TRUE(convertion_ok);
 			IS_TRUE(value_int >= 0);
-	
-			S_EQUAL(output[i].annotations()[cla_i], QByteArray("n/a"));
-			S_EQUAL(output[i].annotations()[val_i], QByteArray("n/a"));
+
+			if (i!=11)
+			{
+				S_EQUAL(output[i].annotations()[cla_i], QByteArray("n/a"));
+				S_EQUAL(output[i].annotations()[val_i], QByteArray("n/a"));
+				S_EQUAL(output[i].annotations()[com_i], QByteArray(""));
+			}
+			else
+			{
+				S_EQUAL(output[i].annotations()[cla_i], QByteArray("1"));
+				S_EQUAL(output[i].annotations()[val_i], QByteArray("n/a (2xTP)"));
+				IS_TRUE(output[i].annotations()[com_i].startsWith("n/a ("));
+			}
+
 		}
 	}
 
-	void test_03()
+	void somatic_mode()
 	{
 		QString host = Settings::string("ngsd_host");
 		if (host=="") SKIP("Test needs access to the NGSD!");

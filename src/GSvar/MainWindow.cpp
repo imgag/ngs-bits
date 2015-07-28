@@ -808,7 +808,7 @@ void MainWindow::variantListChanged()
 			{
 				tooltip += "\n" + item->text();
 			}
-			item->setToolTip(tooltip);
+			item->setToolTip("<font>" + tooltip + "</font>");
 
 			//warning
 			if (j==i_co_sp && anno.contains(":HIGH:"))

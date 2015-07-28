@@ -47,7 +47,7 @@ public:
 		if(mode=="germline")
 		{
 			GPD().annotate(variants);
-			NGSD().annotate(variants, ps, ref_file, true);
+			NGSD().annotate(variants, ps, ref_file);
 		}
 		else if(mode=="somatic")
 		{

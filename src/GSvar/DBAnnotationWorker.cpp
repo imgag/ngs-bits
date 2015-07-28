@@ -20,7 +20,7 @@ void DBAnnotationWorker::process()
 	try
 	{
 		gpd_.annotate(variants_);
-		ngsd_.annotate(variants_, filename_, genome_, true);
+		ngsd_.annotate(variants_, filename_, genome);
 	}
 	catch (Exception& e)
 	{

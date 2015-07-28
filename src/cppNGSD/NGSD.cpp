@@ -223,7 +223,7 @@ QVector<double> NGSD::getQCValues(const QString& accession, const QString& filen
 	return output;
 }
 
-void NGSD::annotate(VariantList& variants, QString filename, QString ref_file, bool add_comment)
+void NGSD::annotate(VariantList& variants, QString filename, QString ref_file)
 {
 	initProgress("NGSD annotation", true);
 
@@ -274,7 +274,7 @@ void NGSD::annotate(VariantList& variants, QString filename, QString ref_file, b
 	int ihdb_all_het_idx =  addColumn(variants, "ihdb_allsys_het", "Heterozygous variant counts in NGSD independent of the processing system.");
 	int class_idx = addColumn(variants, "classification", "VUS classification from the NGSD.");
 	int valid_idx = addColumn(variants, "validated", "Validation information from the NGSD.");
-	if (add_comment) addColumn(variants, "comment", "Comments from the NGSD.");
+	if (variants.annotationIndexByName("comment", true, false)==-1) addColumn(variants, "comment", "Comments from the NGSD.");
 	int comment_idx = variants.annotationIndexByName("comment", true, false);
 
 	//(re-)annotate the variants
@@ -398,10 +398,7 @@ void NGSD::annotate(VariantList& variants, QString filename, QString ref_file, b
 				validated.replace(" )", ")");
 			}
 			v.annotations()[valid_idx] = validated;
-			if (add_comment)
-			{
-				v.annotations()[comment_idx] = comment;
-			}
+			v.annotations()[comment_idx] = comment.replace("\n", " ");
 		}
 		else
 		{
@@ -409,10 +406,7 @@ void NGSD::annotate(VariantList& variants, QString filename, QString ref_file, b
 			v.annotations()[ihdb_het_idx] = "n/a";
 			v.annotations()[ihdb_wt_idx] = "n/a";
 			v.annotations()[valid_idx] = "n/a";
-			if (add_comment)
-			{
-				v.annotations()[comment_idx] = "n/a";
-			}
+			v.annotations()[comment_idx] = "n/a";
 		}
 
 		emit updateProgress(100*i/variants.count());
