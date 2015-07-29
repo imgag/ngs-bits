@@ -2,9 +2,8 @@
 Tools:
  - GSvar:
   - Edit comment
-    - multiline => handle multiline in view/export
+    - multiline edit
     - edit overwrites comments from other samples (fix this)
-  - add option to export preferred transcripts to GeneLab
  - SampleOverview: add option for BAM files (check depth where variant is not found)
  - ReadQC:
    - Detect contamination and bad libraries by k-mer counting? Check FastQC output of DX141880_01

@@ -138,7 +138,8 @@ QString ReportWorker::formatCodingSplicing(QByteArray text)
 
 void ReportWorker::writeHTML()
 {
-	QString temp_filename = Helper::tempFileName(".html");
+	QString temp_filename = Helper::tempFileName(sample_name+".html");
+	Log::info("Temporary report file name:" + temp_filename);
 	QScopedPointer<QFile> outfile(Helper::openFileForWriting(temp_filename));
 	QTextStream stream(outfile.data());
 	stream << "<html>" << endl;
