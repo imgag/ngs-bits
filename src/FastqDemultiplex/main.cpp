@@ -10,6 +10,7 @@
 #include <QHash>
 #include <QDebug>
 #include <QDir>
+#include <QList>
 #include <algorithm>
 #include <QThreadPool>
 
@@ -45,6 +46,32 @@ struct Sample
 	}
 };
 
+///Index statistics
+struct IndexStatistics
+{
+	int poly_a1;
+	int poly_c1;
+	int poly_g1;
+	int poly_t1;
+	int poly_n1;
+	QList<int> a_at_pos1;
+	QList<int> c_at_pos1;
+	QList<int> g_at_pos1;
+	QList<int> t_at_pos1;
+	QList<int> n_at_pos1;
+
+	int poly_a2;
+	int poly_c2;
+	int poly_g2;
+	int poly_t2;
+	int poly_n2;
+	QList<int> a_at_pos2;
+	QList<int> c_at_pos2;
+	QList<int> g_at_pos2;
+	QList<int> t_at_pos2;
+	QList<int> n_at_pos2;
+};
+
 ///Lane statistics
 struct LaneStatistics
 {
@@ -54,6 +81,7 @@ struct LaneStatistics
 	int	unassigned;
 	int ambigous_single;
 	int ambigous_double;
+	IndexStatistics index_stats;
 };
 
 ///Global result statistics
@@ -143,6 +171,89 @@ private:
 		return barcodes_with_mismatches;
 	}
 
+	void addIndexStatistics(const QByteArray &barcode_seq1, const QByteArray &barcode_seq2, int lane)
+	{
+		bool is_poly1=true;//assume index is poly-base until contradiction is found
+		//read each position of index read 1
+		for(int iii=0; iii<barcode_seq1.size(); ++iii)
+		{
+			if (barcode_seq1[0]!=barcode_seq1[iii]) is_poly1=false;
+			if (barcode_seq1[iii]=='A') statistics_.lanes[lane].index_stats.a_at_pos1[iii]++;
+			if (barcode_seq1[iii]=='C') statistics_.lanes[lane].index_stats.c_at_pos1[iii]++;
+			if (barcode_seq1[iii]=='G') statistics_.lanes[lane].index_stats.g_at_pos1[iii]++;
+			if (barcode_seq1[iii]=='T') statistics_.lanes[lane].index_stats.t_at_pos1[iii]++;
+			if (barcode_seq1[iii]=='N') statistics_.lanes[lane].index_stats.n_at_pos1[iii]++;
+		}
+		if ((is_poly1)&&(barcode_seq1.size()>0))
+		{
+			switch(barcode_seq1[0])
+			{
+				case 'A':
+					statistics_.lanes[lane].index_stats.poly_a1++;
+					break;
+
+				case 'C':
+					statistics_.lanes[lane].index_stats.poly_c1++;
+					break;
+
+				case 'G':
+					statistics_.lanes[lane].index_stats.poly_g1++;
+					break;
+
+				case 'T':
+					statistics_.lanes[lane].index_stats.poly_t1++;
+					break;
+
+				case 'N':
+					statistics_.lanes[lane].index_stats.poly_n1++;
+					break;
+
+				default://very unlikely
+					THROW(FileParseException, "Found homopolymer of unsupported base '" + barcode_seq1[0]);
+			}
+		}
+
+		bool is_poly2=true;//assume index is poly-base until contradiction is found
+		//read each position of index read 2
+		for(int iii=0; iii<barcode_seq2.size(); ++iii)
+		{
+			if (barcode_seq2[0]!=barcode_seq2[iii]) is_poly2=false;
+			if (barcode_seq2[iii]=='A') statistics_.lanes[lane].index_stats.a_at_pos2[iii]++;
+			if (barcode_seq2[iii]=='C') statistics_.lanes[lane].index_stats.c_at_pos2[iii]++;
+			if (barcode_seq2[iii]=='G') statistics_.lanes[lane].index_stats.g_at_pos2[iii]++;
+			if (barcode_seq2[iii]=='T') statistics_.lanes[lane].index_stats.t_at_pos2[iii]++;
+			if (barcode_seq2[iii]=='N') statistics_.lanes[lane].index_stats.n_at_pos2[iii]++;
+		}
+		if ((is_poly2)&&(barcode_seq2.size()>0))
+		{
+			switch(barcode_seq2[0])
+			{
+				case 'A':
+					statistics_.lanes[lane].index_stats.poly_a2++;
+					break;
+
+				case 'C':
+					statistics_.lanes[lane].index_stats.poly_c2++;
+					break;
+
+				case 'G':
+					statistics_.lanes[lane].index_stats.poly_g2++;
+					break;
+
+				case 'T':
+					statistics_.lanes[lane].index_stats.poly_t2++;
+					break;
+
+				case 'N':
+					statistics_.lanes[lane].index_stats.poly_n2++;
+					break;
+
+				default://very unlikely
+					THROW(FileParseException, "Found homopolymer of unsupported base '" + barcode_seq1[0]);
+			}
+		}
+	}
+
 	void parseBarcodes(QString sheet, int r1_length, int r2_length, int mms, int mmd, QString out_folder, bool rev2)
 	{
 		Sample* ambigous_sample = new Sample;
@@ -168,8 +279,8 @@ private:
 		QMap <int, QSet<QByteArray> > used_barcodes; //lane specific
 		QSet<QByteArray> empty_set;
 		QList<BarcodeGroup> empty_list;
-        while (!in.atEnd())
-        {
+		while (!in.atEnd())
+		{
             QString line = in.readLine(); //read one line at a time
 			if (line.startsWith("lane\t") || line.startsWith("#lane")) continue;
 
@@ -395,6 +506,12 @@ private:
 				int lane = header_parts[3].toInt(&ok);
 				if (!ok) THROW(ArgumentException, "Could not convert lane to integer: " + header_parts[3]);
 
+				//extract barcode(s)
+				QList<QByteArray> barcode_seqs = header_parts[9].split('+');
+				QByteArray barcode_seq1=barcode_seqs[0];
+				QByteArray barcode_seq2="";
+				if(barcode_seqs.length()>1) barcode_seq2=barcode_seqs[1];//could be that only one index read was used
+
 				//init unassigned streams and lane statistics (if not present yet)
 				if (!unassigned_outstreams.contains(lane))
 				{
@@ -405,13 +522,27 @@ private:
 
 					//statistics
 					statistics_.lanes[lane] = LaneStatistics();
-				}
 
-				//extract barcode(s)
-				QList<QByteArray> barcode_seqs = header_parts[9].split('+');
-				QByteArray barcode_seq1=barcode_seqs[0];
-				QByteArray barcode_seq2="";
-				if(barcode_seqs.length()>1) barcode_seq2=barcode_seqs[1];//could be that only one index read was used
+					//index at_position statistics
+					for(int z=0; z<barcode_seq1.size(); ++z)
+					{
+						statistics_.lanes[lane].index_stats.a_at_pos1.append(0);
+						statistics_.lanes[lane].index_stats.c_at_pos1.append(0);
+						statistics_.lanes[lane].index_stats.g_at_pos1.append(0);
+						statistics_.lanes[lane].index_stats.t_at_pos1.append(0);
+						statistics_.lanes[lane].index_stats.n_at_pos1.append(0);
+					}
+
+					for(int z=0; z<barcode_seq2.size(); ++z)
+					{
+						statistics_.lanes[lane].index_stats.a_at_pos2.append(0);
+						statistics_.lanes[lane].index_stats.c_at_pos2.append(0);
+						statistics_.lanes[lane].index_stats.g_at_pos2.append(0);
+						statistics_.lanes[lane].index_stats.t_at_pos2.append(0);
+						statistics_.lanes[lane].index_stats.n_at_pos2.append(0);
+					}
+				}
+				addIndexStatistics(barcode_seq1,barcode_seq2,lane);
 
 				bool found_single = false;
 				bool found_double = false;
@@ -486,6 +617,18 @@ private:
 		}
     }
 
+	QString writeSummaryPerPositionStat(int a, int c, int g, int t, int n)
+	{
+		QString output_row="";
+		int sum=a+c+g+t+n;
+		output_row=output_row+QString::number(100.0*a/sum, 'f', 2) + "%";
+		output_row=output_row+QString::number(100.0*c/sum, 'f', 2) + "%";
+		output_row=output_row+QString::number(100.0*g/sum, 'f', 2) + "%";
+		output_row=output_row+QString::number(100.0*t/sum, 'f', 2) + "%";
+		output_row=output_row+QString::number(100.0*n/sum, 'f', 2) + "%";
+		return output_row;
+	}
+
 	void writeSummary(QString filename)
     {
 		QStringList output;
@@ -515,16 +658,36 @@ private:
 		foreach(int lane_number, statistics_.lanes.keys())
 		{
 			LaneStatistics lane_stat=statistics_.lanes[lane_number];
-			output << "\n==Statistics lane "+QString::number(lane_number)+"==";
-			output << "total reads\t"+QString::number(lane_stat.read);
-			output << "assigned double index reads\t"+QString::number(lane_stat.assigned_double)+ " (" + QString::number(100.0*lane_stat.assigned_double/lane_stat.read, 'f', 2) + "%)";
-			output << "assigned single index reads\t"+QString::number(lane_stat.assigned_single)+ " (" + QString::number(100.0*lane_stat.assigned_single/lane_stat.read, 'f', 2) + "%)";
-			output << "unassigned reads\t"+QString::number(lane_stat.unassigned)+ " (" + QString::number(100.0*lane_stat.unassigned/lane_stat.read, 'f', 2) + "%)";
-			output << "ambigous single index reads\t"+QString::number(lane_stat.ambigous_single)+ " (" + QString::number(100.0*lane_stat.ambigous_single/lane_stat.read, 'f', 2) + "%)";
-			output << "ambigous double index reads\t"+QString::number(lane_stat.ambigous_double)+ " (" + QString::number(100.0*lane_stat.ambigous_double/lane_stat.read, 'f', 2) + "%)";
+			output << "==Statistics lane "+QString::number(lane_number)+"==";
+			output << "total reads:\t"+QString::number(lane_stat.read);
+			output << "assigned double index reads:\t"+QString::number(lane_stat.assigned_double)+ " (" + QString::number(100.0*lane_stat.assigned_double/lane_stat.read, 'f', 2) + "%)";
+			output << "assigned single index reads:\t"+QString::number(lane_stat.assigned_single)+ " (" + QString::number(100.0*lane_stat.assigned_single/lane_stat.read, 'f', 2) + "%)";
+			output << "unassigned reads:\t"+QString::number(lane_stat.unassigned)+ " (" + QString::number(100.0*lane_stat.unassigned/lane_stat.read, 'f', 2) + "%)";
+			output << "ambigous single index reads:\t"+QString::number(lane_stat.ambigous_single)+ " (" + QString::number(100.0*lane_stat.ambigous_single/lane_stat.read, 'f', 2) + "%)";
+			output << "ambigous double index reads:\t"+QString::number(lane_stat.ambigous_double)+ " (" + QString::number(100.0*lane_stat.ambigous_double/lane_stat.read, 'f', 2) + "%)";
+			output << "";
+			output << "Homopolymer A (Index1): " + QString::number(lane_stat.index_stats.poly_a1)+ " (" + QString::number(100.0*lane_stat.index_stats.poly_a1/lane_stat.read, 'f', 2) + "%)";
+			output << "Homopolymer C (Index1): " + QString::number(lane_stat.index_stats.poly_c1)+ " (" + QString::number(100.0*lane_stat.index_stats.poly_c1/lane_stat.read, 'f', 2) + "%)";
+			output << "Homopolymer G (Index1): " + QString::number(lane_stat.index_stats.poly_g1)+ " (" + QString::number(100.0*lane_stat.index_stats.poly_g1/lane_stat.read, 'f', 2) + "%)";
+			output << "Homopolymer T (Index1): " + QString::number(lane_stat.index_stats.poly_t1)+ " (" + QString::number(100.0*lane_stat.index_stats.poly_t1/lane_stat.read, 'f', 2) + "%)";
+			output << "Homopolymer N (Index1): " + QString::number(lane_stat.index_stats.poly_n1)+ " (" + QString::number(100.0*lane_stat.index_stats.poly_n1/lane_stat.read, 'f', 2) + "%)";
+			output << "Homopolymer A (Index2): " + QString::number(lane_stat.index_stats.poly_a2)+ " (" + QString::number(100.0*lane_stat.index_stats.poly_a2/lane_stat.read, 'f', 2) + "%)";
+			output << "Homopolymer C (Index2): " + QString::number(lane_stat.index_stats.poly_c2)+ " (" + QString::number(100.0*lane_stat.index_stats.poly_c2/lane_stat.read, 'f', 2) + "%)";
+			output << "Homopolymer G (Index2): " + QString::number(lane_stat.index_stats.poly_g2)+ " (" + QString::number(100.0*lane_stat.index_stats.poly_g2/lane_stat.read, 'f', 2) + "%)";
+			output << "Homopolymer T (Index2): " + QString::number(lane_stat.index_stats.poly_t2)+ " (" + QString::number(100.0*lane_stat.index_stats.poly_t2/lane_stat.read, 'f', 2) + "%)";
+			output << "Homopolymer N (Index2): " + QString::number(lane_stat.index_stats.poly_n2)+ " (" + QString::number(100.0*lane_stat.index_stats.poly_n2/lane_stat.read, 'f', 2) + "%)";
+			output << "";
+			output << "Percent Base \tA\tC\tG\tT\tN";
+			for(int iii=0;iii<lane_stat.index_stats.a_at_pos1.size();++iii)
+			{
+				output << "Index 1, Base "+QString::number(iii+1)+":\t"+writeSummaryPerPositionStat(lane_stat.index_stats.a_at_pos1[iii],lane_stat.index_stats.c_at_pos1[iii],lane_stat.index_stats.g_at_pos1[iii],lane_stat.index_stats.t_at_pos1[iii],lane_stat.index_stats.n_at_pos1[iii]);
+			}
+			for(int iii=0;iii<lane_stat.index_stats.a_at_pos2.size();++iii)
+			{
+				output << "Index 2, Base "+QString::number(iii+1)+":\t"+writeSummaryPerPositionStat(lane_stat.index_stats.a_at_pos2[iii],lane_stat.index_stats.c_at_pos2[iii],lane_stat.index_stats.g_at_pos2[iii],lane_stat.index_stats.t_at_pos2[iii],lane_stat.index_stats.n_at_pos2[iii]);
+			}
 			output << "";
 		}
-
 		//write sample statistics
 		output << "==Sample statistics==";
 		output << "#project\tsample\tread_count\tpercentage_of_reads\tpercentage_of_assigned_reads";

@@ -4,14 +4,42 @@ Assigned reads: 0 (0.00%)
 Unassigned reads: 2775 (100.00%)
 Ambigous reads: 0 (0.00%)
 
-
 ==Statistics lane 1==
-total reads	2775
-assigned double index reads	0 (0.00%)
-assigned single index reads	0 (0.00%)
-unassigned reads	2775 (100.00%)
-ambigous single index reads	0 (0.00%)
-ambigous double index reads	0 (0.00%)
+total reads:	2775
+assigned double index reads:	0 (0.00%)
+assigned single index reads:	0 (0.00%)
+unassigned reads:	2775 (100.00%)
+ambigous single index reads:	0 (0.00%)
+ambigous double index reads:	0 (0.00%)
+
+Homopolymer A (Index1): 12 (0.43%)
+Homopolymer C (Index1): 0 (0.00%)
+Homopolymer G (Index1): 243 (8.76%)
+Homopolymer T (Index1): 0 (0.00%)
+Homopolymer N (Index1): 0 (0.00%)
+Homopolymer A (Index2): 14 (0.50%)
+Homopolymer C (Index2): 0 (0.00%)
+Homopolymer G (Index2): 42 (1.51%)
+Homopolymer T (Index2): 0 (0.00%)
+Homopolymer N (Index2): 0 (0.00%)
+
+Percent Base 	A	C	G	T	N
+Index 1, Base 1:	21.95%17.69%23.78%22.77%13.80%
+Index 1, Base 2:	27.06%4.40%41.62%18.41%8.50%
+Index 1, Base 3:	39.10%19.35%26.49%9.08%5.98%
+Index 1, Base 4:	25.80%17.41%39.93%14.38%2.49%
+Index 1, Base 5:	15.82%27.64%49.55%6.99%0.00%
+Index 1, Base 6:	31.71%23.14%33.33%11.82%0.00%
+Index 1, Base 7:	42.81%9.37%30.41%17.41%0.00%
+Index 1, Base 8:	35.03%13.69%23.53%27.75%0.00%
+Index 2, Base 1:	70.02%10.13%3.17%9.73%6.95%
+Index 2, Base 2:	4.76%8.18%61.51%25.55%0.00%
+Index 2, Base 3:	66.81%9.91%3.32%16.40%3.57%
+Index 2, Base 4:	14.49%10.52%27.60%47.39%0.00%
+Index 2, Base 5:	18.95%56.97%13.87%10.20%0.00%
+Index 2, Base 6:	12.83%1.77%15.53%69.87%0.00%
+Index 2, Base 7:	29.51%56.22%2.92%11.35%0.00%
+Index 2, Base 8:	15.32%10.99%63.78%9.91%0.00%
 
 ==Sample statistics==
 #project	sample	read_count	percentage_of_reads	percentage_of_assigned_reads
