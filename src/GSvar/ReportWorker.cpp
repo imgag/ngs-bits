@@ -129,7 +129,8 @@ QString ReportWorker::formatCodingSplicing(QByteArray text)
 		QByteArray output = gene + ":" + trans + ":" + parts[5].trimmed() + ":" + parts[6].trimmed();
 
 		//return only preferred transcript if we know it
-		if (preferred_transcripts_.value(gene, "")==trans) return output;
+		QString pt = preferred_transcripts_.value(gene, "");
+		if (pt!="" && QString(trans).startsWith(pt)) return output;
 
 		transcripts[i] = output;
 	}
@@ -138,7 +139,7 @@ QString ReportWorker::formatCodingSplicing(QByteArray text)
 
 void ReportWorker::writeHTML()
 {
-	QString temp_filename = Helper::tempFileName(sample_name+".html");
+	QString temp_filename = Helper::tempFileName(sample_name_+".html");
 	Log::info("Temporary report file name:" + temp_filename);
 	QScopedPointer<QFile> outfile(Helper::openFileForWriting(temp_filename));
 	QTextStream stream(outfile.data());

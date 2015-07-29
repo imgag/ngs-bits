@@ -47,6 +47,9 @@ public:
 	void copyToClipboard(bool split_quality);
 	///Formats transcripts, taking preferred transcripts into consideration
 	QString formatTranscripts(QString line);
+	///Returns 'nobr' paragraph start for Qt tooltips
+	static QString nobr();
+
 
 public slots:
 	///Open dialog

@@ -579,7 +579,7 @@ void MainWindow::on_actionImportTranscripts_triggered()
 	QString gene_list = Settings::string("alamut_gene_list");
 	if (gene_list=="")
 	{
-		GUIHelper::showMessage("Preferred transcripts import", "Alamut gene list file not defined in 'settings.ini' file (key 'alamut_gene_list')!");
+		GUIHelper::showMessage("Preferred transcripts import", "Alamut gene list file not defined in 'GSvar.ini' file (key 'alamut_gene_list')!");
 		return;
 	}
 
@@ -590,7 +590,11 @@ void MainWindow::on_actionImportTranscripts_triggered()
 	{
 		QStringList parts = line.trimmed().split('\t');
 		if (parts.count()<3) continue;
-		preferred_transcripts.insert(parts[0], parts[2]);
+
+		//remove version number NM_000543.3 => NM_000543.
+		QString transcript = parts[2].left(parts[2].lastIndexOf('.')) + ".";
+
+		preferred_transcripts.insert(parts[0], transcript);
 	}
 	Settings::setMap("preferred_transcripts", preferred_transcripts);
 
@@ -695,21 +699,25 @@ QString MainWindow::formatTranscripts(QString line)
 	QStringList transcripts = line.split(",");
 	foreach(QString t, transcripts)
 	{
-		QString t_formatted = "  " + t;
 		QStringList parts = t.split(":");
 		if (parts.count()>2)
 		{
-			QString& gene = parts[0];
-			QString& pt = parts[1];
-			if(preferred_transcripts_.value(gene, "") == pt)
+			QString pt = preferred_transcripts_.value(parts[0], "");
+			if(pt!="" && parts[1].startsWith(pt))
 			{
-				t_formatted = "* " + t;
+				t = "<b>" + t + "</b>";
+				qDebug() << parts[0] << pt << parts[1];
 			}
 		}
-		output += "\n" + t_formatted;
+		output += nobr() + t;
 	}
 
 	return output;
+}
+
+QString MainWindow::nobr()
+{
+	return "<p style='white-space:pre; margin:0; padding:0;'>";
 }
 
 void MainWindow::variantListChanged()
@@ -776,7 +784,7 @@ void MainWindow::variantListChanged()
 
 			//tooltip
 			QString tooltip;
-			tooltip = row.chr().str() + ":" + QString::number(row.start()) + "-" + QString::number(row.end()) + " " + row.ref() + ">" + row.obs();
+			tooltip = nobr() + row.chr().str() + ":" + QString::number(row.start()) + "-" + QString::number(row.end()) + " " + row.ref() + ">" + row.obs();
 			//tooltip for link columns
 			if (link_indices_.contains(j+5))
 			{
@@ -796,7 +804,7 @@ void MainWindow::variantListChanged()
 					if (entry.contains("[")) add_info += "]";
 				}
 				item->setText(ids);
-				tooltip += "\n" + add_info;
+				tooltip += nobr() + add_info;
 			}
 
 			//tooltip for fields with large content
@@ -806,7 +814,7 @@ void MainWindow::variantListChanged()
 			}
 			if (j==i_comment)
 			{
-				tooltip += "\n" + item->text();
+				tooltip += nobr() + item->text();
 			}
 			item->setToolTip("<font>" + tooltip + "</font>");
 
