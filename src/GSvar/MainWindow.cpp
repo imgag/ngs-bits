@@ -706,7 +706,6 @@ QString MainWindow::formatTranscripts(QString line)
 			if(pt!="" && parts[1].startsWith(pt))
 			{
 				t = "<b>" + t + "</b>";
-				qDebug() << parts[0] << pt << parts[1];
 			}
 		}
 		output += nobr() + t;
@@ -1196,18 +1195,25 @@ void MainWindow::varsContextMenu(QPoint pos)
 		try
 		{
 			bool ok = true;
-			QByteArray text = QInputDialog::getText(this, "Variant comment", "Text: ", QLineEdit::Normal, NGSD().comment(filename_, variants_[item->row()]), &ok).toLatin1();
+			QByteArray text = QInputDialog::getMultiLineText(this, "Variant comment", "Text: ", NGSD().comment(filename_, variants_[item->row()]), &ok).toLatin1();
 
 			if (ok)
 			{
 				//update DB
 				NGSD().setComment(filename_, variants_[item->row()], text);
 
-				//update GUI
+				//update GUI (if comment column is present)
 				int col_index = variants_.annotationIndexByName("comment", true, false);
 				if (col_index!=-1)
 				{
-					variants_[item->row()].annotations()[col_index] = text;
+					//annotate from NGSD to get comments of other samples as well
+					VariantList tmp;
+					tmp.append(variants_[item->row()]);
+					NGSD().annotate(tmp, filename_, Settings::string("reference_genome"));
+					int tmp_index = tmp.annotationIndexByName("comment", true, true);
+
+					variants_[item->row()].annotations()[col_index] = tmp[0].annotations()[tmp_index];
+
 					variantListChanged();
 				}
 			}
