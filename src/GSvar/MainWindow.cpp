@@ -260,12 +260,13 @@ void MainWindow::on_actionReport_triggered()
 	//flag report variants in NGSD
 	try
 	{
-		NGSD ngsd;
-		for(int i=0; i<dialog.selectedIndices().count(); ++i)
+		QSet<int> indices;
+		for (auto it=dialog.selectedIndices().cbegin(); it!=dialog.selectedIndices().cend(); ++it)
 		{
-			ngsd.setReport(filename_, variants_[dialog.selectedIndices()[i].first], true);
+			indices.insert(it->first);
 		}
-		ngsd.setReportOutcome(filename_, dialog.outcome());
+		NGSD().setReportVariants(filename_, variants_, indices);
+		NGSD().setReportOutcome(filename_, dialog.outcome());
 	}
 	catch (DatabaseException& e)
 	{

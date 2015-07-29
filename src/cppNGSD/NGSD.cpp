@@ -589,7 +589,7 @@ void NGSD::setComment(const QString& filename, const Variant& variant, const QSt
 	getQuery().exec("UPDATE detected_variant SET comment='" + text + "' WHERE processed_sample_id='" + ps_id + "' AND variant_id='" + v_id + "'");
 }
 
-void NGSD::setReport(const QString& filename, const Variant& variant, bool in_report)
+void NGSD::setReportVariants(const QString& filename, const VariantList& variants, QSet<int> selected_indices)
 {
 	//get sample ID
 	QString s_id = getValue("SELECT id FROM sample WHERE name='" + sampleName(filename) + "'").toString();
@@ -598,10 +598,12 @@ void NGSD::setReport(const QString& filename, const Variant& variant, bool in_re
 	QString ps_id = getValue("SELECT id FROM processed_sample WHERE sample_id='" + s_id + "' AND process_id='" + processedSampleNumber(filename) + "'").toString();
 
 	//get variant ID
-	QString v_id = getValue("SELECT id FROM variant WHERE chr='"+variant.chr().str()+"' AND start='"+QString::number(variant.start())+"' AND end='"+QString::number(variant.end())+"' AND ref='"+variant.ref()+"' AND obs='"+variant.obs()+"'", false).toString();
-
-	//set
-	getQuery().exec("UPDATE detected_variant SET report=" + QString(in_report ? "1" : "0" ) + " WHERE processed_sample_id='" + ps_id + "' AND variant_id='" + v_id + "'");
+	for(int i=0; i<variants.count(); ++i)
+	{
+		const Variant& variant = variants[i];
+		QString v_id = getValue("SELECT id FROM variant WHERE chr='"+variant.chr().str()+"' AND start='"+QString::number(variant.start())+"' AND end='"+QString::number(variant.end())+"' AND ref='"+variant.ref()+"' AND obs='"+variant.obs()+"'", false).toString();
+		getQuery().exec("UPDATE detected_variant SET report=" + QString(selected_indices.contains(i) ? "1" : "0" ) + " WHERE processed_sample_id='" + ps_id + "' AND variant_id='" + v_id + "'");
+	}
 }
 
 QStringList NGSD::getEnum(QString table, QString column)

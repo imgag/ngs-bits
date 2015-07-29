@@ -52,8 +52,8 @@ public:
 	QString comment(const QString& filename, const Variant& variant);
 	///Sets the comment of a variant in the NGSD.
 	void setComment(const QString& filename, const Variant& variant, const QString& text);
-	///Sets the comment of a variant in the NGSD.
-	void setReport(const QString& filename, const Variant& variant, bool in_report);
+	///Sets the report status of all variants in the NGSD.
+	void setReportVariants(const QString& filename, const VariantList& variants, QSet<int> selected_indices);
 
 	///Returns all possible values for a enum column in the NGSD.
 	QStringList getEnum(QString table, QString column);
