@@ -15,13 +15,12 @@ class DBAnnotationWorker
 	Q_OBJECT
 
 public:
-	DBAnnotationWorker(QString filename, QString genome, VariantList& variants, BusyDialog* busy);
+	DBAnnotationWorker(QString filename, VariantList& variants, BusyDialog* busy);
 	virtual void process();
 
 private:
 	//input variables
 	QString filename_;
-	QString genome_;
 	VariantList& variants_;
 	GPD gpd_;
 	NGSD ngsd_;

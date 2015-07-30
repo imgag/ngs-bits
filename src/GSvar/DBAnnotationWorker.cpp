@@ -1,10 +1,9 @@
 #include "DBAnnotationWorker.h"
 #include "Exceptions.h"
 
-DBAnnotationWorker::DBAnnotationWorker(QString filename, QString genome, VariantList& variants, BusyDialog* busy)
+DBAnnotationWorker::DBAnnotationWorker(QString filename, VariantList& variants, BusyDialog* busy)
 	: WorkerBase("Database annotation")
 	, filename_(filename)
-	, genome_(genome)
 	, variants_(variants)
 	, gpd_()
 	, ngsd_()
@@ -20,7 +19,7 @@ void DBAnnotationWorker::process()
 	try
 	{
 		gpd_.annotate(variants_);
-		ngsd_.annotate(variants_, filename_, genome_);
+		ngsd_.annotate(variants_, filename_);
 	}
 	catch (Exception& e)
 	{

@@ -41,7 +41,7 @@ public:
 	QVector<double> getQCValues(const QString& accession, const QString& filename);
 
 	///Annotates (or re-annotates) the variant list with current NGSD information.
-	void annotate(VariantList& variants, QString filename, QString ref_file);
+	void annotate(VariantList& variants, QString filename);
 	///Annotates (or re-annotates) the variant list with current (somatic) NGSD information.
 	void annotateSomatic(VariantList& variants, QString filename, QString ref_file);
 	///Sets that validation status of a variant in the NGSD.

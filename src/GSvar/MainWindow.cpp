@@ -313,8 +313,7 @@ void MainWindow::on_actionDatabase_triggered()
 	busy_dialog_ = new BusyDialog("Database annotation", this);
 
 	//start worker
-	QString genome = Settings::string("reference_genome");
-	DBAnnotationWorker* worker = new DBAnnotationWorker(filename_, genome, variants_, busy_dialog_);
+	DBAnnotationWorker* worker = new DBAnnotationWorker(filename_, variants_, busy_dialog_);
 	connect(worker, SIGNAL(finished(bool)), this, SLOT(databaseAnnotationFinished(bool)));
 	worker->start();
 }
@@ -1210,7 +1209,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 					//annotate from NGSD to get comments of other samples as well
 					VariantList tmp;
 					tmp.append(variants_[item->row()]);
-					NGSD().annotate(tmp, filename_, Settings::string("reference_genome"));
+					NGSD().annotate(tmp, filename_);
 					int tmp_index = tmp.annotationIndexByName("comment", true, true);
 
 					variants_[item->row()].annotations()[col_index] = tmp[0].annotations()[tmp_index];

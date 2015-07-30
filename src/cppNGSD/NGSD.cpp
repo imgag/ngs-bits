@@ -223,12 +223,9 @@ QVector<double> NGSD::getQCValues(const QString& accession, const QString& filen
 	return output;
 }
 
-void NGSD::annotate(VariantList& variants, QString filename, QString ref_file)
+void NGSD::annotate(VariantList& variants, QString filename)
 {
 	initProgress("NGSD annotation", true);
-
-	//open refererence genome file
-	FastaFileIndex reference(ref_file);
 
 	//get sample ids
 	QString s_id = getValue("SELECT id FROM sample WHERE name='" + sampleName(filename) + "'").toString();
@@ -283,120 +280,103 @@ void NGSD::annotate(VariantList& variants, QString filename, QString ref_file)
 	{
 		Variant& v = variants[i];
 
-		if (v.isSNV())
+		//variant infos
+		query.exec("SELECT id, vus FROM variant WHERE chr='"+v.chr().str()+"' AND start='"+QString::number(v.start())+"' AND end='"+QString::number(v.end())+"' AND ref='"+v.ref()+"' AND obs='"+v.obs()+"'");
+		query.next();
+		QByteArray v_id = query.value(0).toByteArray();
+		v.annotations()[class_idx] = query.value(1).toByteArray().replace("n/a", "");
+
+		//detected variant infos
+		QByteArray comment = "";
+		QByteArray validated = "";
+		int dv_id = -1;
+		if (found_in_db)
 		{
-			query.exec("SELECT dv.processed_sample_id, dv.genotype, dv.validated, s.id, dv.comment FROM detected_variant as dv, variant as v, processed_sample ps, sample s WHERE dv.processed_sample_id=ps.id and ps.sample_id=s.id and dv.variant_id=v.id AND s.tumor='0' AND v.chr='"+v.chr().str()+"' AND v.start='"+QString::number(v.start())+"' AND v.end='"+QString::number(v.end())+"' AND v.ref='"+v.ref()+"' AND v.obs='"+v.obs()+"'");
-		}
-		else
-		{
-			QPair<int, int> indel_region = Variant::indelRegion(v.chr(), v.start(), v.end(), v.ref(), v.obs(), reference);
-			query.exec("SELECT dv.processed_sample_id, dv.genotype, dv.validated, s.id, dv.comment FROM detected_variant as dv, variant as v, processed_sample ps, sample s WHERE dv.processed_sample_id=ps.id and ps.sample_id=s.id and dv.variant_id=v.id AND s.tumor='0' AND v.chr='"+v.chr().str()+"' AND v.start>='"+QString::number(indel_region.first-1)+"' AND v.end<='"+ QString::number(indel_region.second+1)+"' AND v.ref='"+v.ref()+"' AND v.obs='"+v.obs()+"'");
+			query.exec("SELECT id, validated, comment FROM detected_variant WHERE processed_sample_id='" + ps_id + "' AND variant_id='"+v_id+"'");
+			if (query.size()==1)
+			{
+				query.next();
+				dv_id = query.value(0).toInt();
+				validated = query.value(1).toByteArray().replace("n/a", "");
+				comment = query.value(2).toByteArray();
+			}
 		}
 
-		//process variants
+		//validation info other samples
+		int tps = 0;
+		int fps = 0;
+		query.exec("SELECT id, validated FROM detected_variant WHERE variant_id='"+v_id+"' AND validated!='n/a'");
+		while(query.next())
+		{
+			if (query.value(0).toInt()==dv_id) continue;
+			if (query.value(1).toByteArray()=="true positive") ++tps;
+			else if (query.value(1).toByteArray()=="false positive") ++fps;
+		}
+		if (tps>0 || fps>0)
+		{
+			if (validated=="") validated = "n/a";
+			validated += " (" + QByteArray::number(tps) + "xTP, " + QByteArray::number(fps) + "xFP)";
+		}
+
+		//comments other samples
+		QList<QByteArray> comments;
+		query.exec("SELECT id, comment FROM detected_variant WHERE variant_id='"+v_id+"' AND comment IS NOT NULL");
+		while(query.next())
+		{
+			if (query.value(0).toInt()==dv_id) continue;
+			QByteArray tmp = query.value(1).toByteArray().trimmed();
+			if (tmp!="") comments.append(tmp);
+		}
+		if (comments.size()>0)
+		{
+			if (comment=="") comment = "n/a";
+			comment += " (" + comments.join(", ") + ")";
+		}
+
+		//genotype counts
 		int allsys_hom_count = 0;
 		int allsys_het_count = 0;
 		int sys_hom_count = 0;
 		int sys_het_count = 0;
-		int tp_count = 0;
-		int fp_count = 0;
-		QByteArray validated = "n/a";
-		QByteArray comment = "";
-		QStringList comment_others;
-		QSet<QString> processed_ps_ids;
-		QSet<QString> processed_s_ids;
+		QSet<int> s_ids_done;
+		int s_id_int = s_id.toInt();
+		query.exec("SELECT dv.genotype, ps.sample_id FROM detected_variant as dv, processed_sample ps WHERE dv.processed_sample_id=ps.id AND dv.variant_id='" + v_id + "'");
 		while(query.next())
 		{
-			QByteArray current_ps_id = query.value(0).toByteArray();
-			QByteArray current_geno = query.value(1).toByteArray();
-			QByteArray current_validation = query.value(2).toByteArray().replace("true positive", "TP").replace("false positive", "FP");
-			QByteArray current_sample = query.value(3).toByteArray();
-			QByteArray current_comment = query.value(4).toByteArray();
-
-			//skip already seen processed samples (there could be several variants because of indel window, but we want to process only one)
-			if (processed_ps_ids.contains(current_ps_id)) continue;
-			processed_ps_ids.insert(current_ps_id);
-
-			//set infos of the current processed sample
-			if(current_ps_id==ps_id)
-			{
-				validated = current_validation;
-				comment = current_comment;
-			}
-			else
-			{
-				if (current_comment!="")
-				{
-					comment_others.append(current_comment);
-				}
-			}
-
-			//skip the current sample for general statistics
-			if (current_sample==s_id) continue;
+			//skip this sample id
+			int current_sample = query.value(1).toInt();
+			if (current_sample==s_id_int) continue;
 
 			//skip already seen samples for general statistics (there could be several processings of the same sample because of different processing systems or because of experment repeats due to quality issues)
-			if (processed_s_ids.contains(current_sample)) continue;
-			processed_s_ids.insert(current_sample);
+			if (s_ids_done.contains(current_sample)) continue;
+			s_ids_done.insert(current_sample);
 
-			//genotype all processing systems
+			QByteArray current_geno = query.value(0).toByteArray();
 			if (current_geno=="hom")
 			{
 				++allsys_hom_count;
+				if (sys_sample_ids.contains(current_sample))
+				{
+					++sys_hom_count;
+				}
 			}
 			else if (current_geno=="het")
 			{
 				++allsys_het_count;
-			}
-
-			//validation
-			if (current_validation=="TP")
-			{
-				++tp_count;
-			}
-			else if (current_validation=="FP")
-			{
-				++fp_count;
-			}
-
-			//genotype specific processing system
-			if (sys_sample_ids.contains(current_sample.toInt()))
-			{
-				if (current_geno=="hom")
-				{
-					++sys_hom_count;
-				}
-				else if (current_geno=="het")
+				if (sys_sample_ids.contains(current_sample))
 				{
 					++sys_het_count;
 				}
 			}
 		}
 
-		//update variant data
 		v.annotations()[ihdb_all_hom_idx] = QByteArray::number(allsys_hom_count);
 		v.annotations()[ihdb_all_het_idx] = QByteArray::number(allsys_het_count);
-		QByteArray classification = getValue("SELECT vus FROM variant WHERE chr='"+v.chr().str()+"' AND start='"+QString::number(v.start())+"' AND end='"+QString::number(v.end())+"' AND ref='"+v.ref()+"' AND obs='"+v.obs()+"'").toByteArray();
-		if (classification=="") classification="n/a";
-		v.annotations()[class_idx] = classification;
 		if (found_in_db)
 		{
 			v.annotations()[ihdb_hom_idx] = QByteArray::number((double)sys_hom_count / sys_sample_ids.count(), 'f', 4);
 			v.annotations()[ihdb_het_idx] =  QByteArray::number((double)sys_het_count / sys_sample_ids.count(), 'f', 4);
 			v.annotations()[ihdb_wt_idx] =  QByteArray::number((double)(sys_sample_ids.count() - sys_hom_count - sys_het_count) / sys_sample_ids.count(), 'f', 4);
-
-			if (comment_others.count()>0)
-			{
-				if (comment=="") comment = "n/a";
-				comment += " (" + comment_others.join(";") + ")";
-			}
-			if (tp_count>0 || fp_count>0)
-			{
-				validated += " (";
-				if(tp_count>0) validated += QString::number(tp_count) + "xTP ";
-				if(fp_count>0) validated += QString::number(fp_count) + "xFP ";
-				validated += ")";
-				validated.replace(" )", ")");
-			}
 			v.annotations()[valid_idx] = validated;
 			v.annotations()[comment_idx] = comment.replace("\n", " ");
 		}
