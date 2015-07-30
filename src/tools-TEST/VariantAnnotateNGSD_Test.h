@@ -62,7 +62,7 @@ private slots:
 	
 			if (i!=11)
 			{
-				S_EQUAL(output[i].annotations()[cla_i], QByteArray("n/a"));
+				S_EQUAL(output[i].annotations()[cla_i], QByteArray(""));
 			}
 			else
 			{
@@ -140,14 +140,14 @@ private slots:
 
 			if (i!=11)
 			{
-				S_EQUAL(output[i].annotations()[cla_i], QByteArray("n/a"));
-				S_EQUAL(output[i].annotations()[val_i], QByteArray("n/a"));
+				S_EQUAL(output[i].annotations()[cla_i], QByteArray(""));
+				S_EQUAL(output[i].annotations()[val_i], QByteArray(""));
 				S_EQUAL(output[i].annotations()[com_i], QByteArray(""));
 			}
 			else
 			{
 				S_EQUAL(output[i].annotations()[cla_i], QByteArray("1"));
-				S_EQUAL(output[i].annotations()[val_i], QByteArray("n/a (2xTP)"));
+				S_EQUAL(output[i].annotations()[val_i], QByteArray("n/a (2xTP, 0xFP)"));
 				IS_TRUE(output[i].annotations()[com_i].startsWith("n/a ("));
 			}
 
