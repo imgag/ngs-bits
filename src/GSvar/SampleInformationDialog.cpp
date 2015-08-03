@@ -10,6 +10,7 @@
 #include <QDateTime>
 #include "HttpHandler.h"
 #include "Settings.h"
+#include "Helper.h"
 
 SampleInformationDialog::SampleInformationDialog(QWidget* parent, QString filename)
 	: QDialog(parent)
@@ -76,7 +77,7 @@ void SampleInformationDialog::reanalyze()
 
 	//call web service
 	HttpHandler handler;
-	QString reply = handler.getHttpReply(Settings::string("SampleStatus")+"/restart.php?ps_ID=" + psName(filename_) + start_step + "&high_priority");
+	QString reply = handler.getHttpReply(Settings::string("SampleStatus")+"/restart.php?ps_ID=" + psName(filename_) + start_step + "&high_priority&user=" + Helper::userName());
 	reanalyze_status_ = "";
 	if (!reply.startsWith("Restart successful"))
 	{

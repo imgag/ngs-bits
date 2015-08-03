@@ -278,13 +278,17 @@ void NGSD::annotate(VariantList& variants, QString filename)
 	QSqlQuery query = getQuery();
 	for (int i=0; i<variants.count(); ++i)
 	{
-		Variant& v = variants[i];
+		//QTime timer;
+		//timer.start();
 
 		//variant infos
+		Variant& v = variants[i];
 		query.exec("SELECT id, vus FROM variant WHERE chr='"+v.chr().str()+"' AND start='"+QString::number(v.start())+"' AND end='"+QString::number(v.end())+"' AND ref='"+v.ref()+"' AND obs='"+v.obs()+"'");
 		query.next();
 		QByteArray v_id = query.value(0).toByteArray();
 		v.annotations()[class_idx] = query.value(1).toByteArray().replace("n/a", "");
+		//int t_v = timer.elapsed();
+		//timer.restart();
 
 		//detected variant infos
 		QByteArray comment = "";
@@ -301,6 +305,8 @@ void NGSD::annotate(VariantList& variants, QString filename)
 				comment = query.value(2).toByteArray();
 			}
 		}
+		//int t_dv = timer.elapsed();
+		//timer.restart();
 
 		//validation info other samples
 		int tps = 0;
@@ -317,6 +323,8 @@ void NGSD::annotate(VariantList& variants, QString filename)
 			if (validated=="") validated = "n/a";
 			validated += " (" + QByteArray::number(tps) + "xTP, " + QByteArray::number(fps) + "xFP)";
 		}
+		//int t_val = timer.elapsed();
+		//timer.restart();
 
 		//comments other samples
 		QList<QByteArray> comments;
@@ -332,6 +340,8 @@ void NGSD::annotate(VariantList& variants, QString filename)
 			if (comment=="") comment = "n/a";
 			comment += " (" + comments.join(", ") + ")";
 		}
+		//int t_com = timer.elapsed();
+		//timer.restart();
 
 		//genotype counts
 		int allsys_hom_count = 0;
@@ -347,7 +357,7 @@ void NGSD::annotate(VariantList& variants, QString filename)
 			int current_sample = query.value(1).toInt();
 			if (current_sample==s_id_int) continue;
 
-			//skip already seen samples for general statistics (there could be several processings of the same sample because of different processing systems or because of experment repeats due to quality issues)
+			//skip already seen samples (there could be several processings of the same sample because of different processing systems or because of experment repeats due to quality issues)
 			if (s_ids_done.contains(current_sample)) continue;
 			s_ids_done.insert(current_sample);
 
@@ -369,6 +379,7 @@ void NGSD::annotate(VariantList& variants, QString filename)
 				}
 			}
 		}
+		//qDebug() << (v.isSNV() ? "S" : "I") << query.size() << t_v << t_dv << t_val << t_com << timer.elapsed();
 
 		v.annotations()[ihdb_all_hom_idx] = QByteArray::number(allsys_hom_count);
 		v.annotations()[ihdb_all_het_idx] = QByteArray::number(allsys_het_count);
