@@ -953,7 +953,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 
 		//extract IDs
 		QStringList ids = item->text().split(", ", QString::SkipEmptyParts);
-		QStringList details = item->toolTip().split("\n", QString::SkipEmptyParts);
+		QStringList details = item->toolTip().replace("<font>", "").replace("</font>", "").split(nobr(), QString::SkipEmptyParts);
 		details = details.mid(1);
 		for(int i=0; i<ids.count(); ++i)
 		{
@@ -975,8 +975,10 @@ void MainWindow::varsContextMenu(QPoint pos)
 			}
 			else if(header=="HGMD")
 			{
-				QString gene = details[i].split("GENE=").value(1);
-				gene = gene.left(gene.length()-1);
+				if (i>=details.count()) THROW(ProgrammingException, "Invalid index " + QString::number(i) + " in details!");
+				QStringList gene_parts = details[i].split("GENE=");
+				if (gene_parts.count()<2) THROW(ProgrammingException, "Invalid gene index 1 in gene_parts!");
+				QString gene = gene_parts[1].left(gene_parts[1].length()-1);
 				url = "http://www.hgmd.cf.ac.uk/ac/gene.php?gene="+gene+"&accession=";
 			}
 			else if(header=="COSMIC")
