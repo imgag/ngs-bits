@@ -77,11 +77,11 @@ QString ReportWorker::filterToGermanText(QString name, QString value)
 
 	if (name=="classification")
 	{
-		output = "Keine Varianten der Klasse " + value + " oder kleiner (siehe unten)";
+		output = "Keine Varianten mit Klasse <" + value + " (siehe unten)";
 	}
 	else if (name=="maf")
 	{
-		output = "Keine Varianten mit einer Allelfrequenz <" + value + " in &ouml;ffentlichen Datenbanken";
+		output = "Keine Varianten mit einer Allelfrequenz >" + value + " in &ouml;ffentlichen Datenbanken";
 	}
 	else if (name=="ihdb")
 	{
@@ -89,11 +89,11 @@ QString ReportWorker::filterToGermanText(QString name, QString value)
 	}
 	else if (name=="keep_important")
 	{
-		output = "Varianten die in &ouml;ffentlichen Datenbanken als pathogen klassifiziert wurden";
+		output = "Varianten, die in &ouml;ffentlichen Datenbanken als pathogen klassifiziert wurden";
 	}
 	else if (name=="impact")
 	{
-		output = "Frameshift-, Nonsense-, Missense- und Slicingvarianten (Impact: " + value + ")";
+		output = "Frameshift-, Nonsense-, Missense- und Splicingvarianten und synonyme Varianten (Impact: " + value + ")";
 	}
 	else if (name=="genotype")
 	{
@@ -150,7 +150,7 @@ void ReportWorker::writeHTML()
 	stream << "body" << endl;
 	stream << "{" << endl;
 	stream << "	font-family: sans-serif;" << endl;
-	stream << "	font-size: 65%;" << endl;
+	stream << "	font-size: 70%;" << endl;
 	stream << "}" << endl;
 	stream << "table" << endl;
 	stream << "{" << endl;
@@ -161,7 +161,7 @@ void ReportWorker::writeHTML()
 	stream << "th, td" << endl;
 	stream << "{" << endl;
 	stream << "	border: 1px solid black;" << endl;
-	stream << "	font-size: 60%;" << endl;
+	stream << "	font-size: 70%;" << endl;
 	stream << "	text-align: left;" << endl;
 	stream << "}" << endl;
 	stream << "		-->" << endl;
@@ -240,18 +240,20 @@ void ReportWorker::writeHTML()
 	}
 
 	//output: all rare variants
-	stream << "<p><b>Liste aller seltenen Varianten</b>" << endl;
+	stream << "<p><b>Liste relevanter Varianten nach Filterung</b>" << endl;
 	stream << "<table>" << endl;
-	stream << "<tr><th>chr</th><th>start</th><th>end</th><th>ref</th><th>obs</th><th>genotype</th><th>gene</th><th>details</th></tr>" << endl;
+	stream << "<tr><th>Gen</th><th>chr</th><th>start</th><th>end</th><th>ref</th><th>obs</th><th>Genotyp</th><th>Details</th><th>Klasse</th><th>Vererbung</th></tr>" << endl;
 	for (int i=0; i<variants_selected_.count(); ++i)
 	{
-		stream << "<tr>" << endl;
-		stream << "<td>" << endl;
 		const Variant& variant = variants_[variants_selected_[i].first];
+		stream << "<tr>" << endl;
+		stream << "<td>" << variant.annotations().at(i_gene) << "</td>" << endl;
+		stream << "<td>" << endl;
 		stream  << variant.chr().str() << "</td><td>" << variant.start() << "</td><td>" << variant.end() << "</td><td>" << variant.ref() << "</td><td>" << variant.obs() << "</td>";
 		stream << "<td>" << variant.annotations().at(i_genotype) << "</td>" << endl;
-		stream << "<td>" << variant.annotations().at(i_gene) << "</td>" << endl;
 		stream << "<td>" << formatCodingSplicing(variant.annotations().at(i_co_sp)).replace(", ", "<BR>") << "</td>" << endl;
+		stream << "<td>" << variant.annotations().at(i_class) << "</td>" << endl;
+		stream << "<td><font style=\"background-color: #FF0000\">&nbsp;&nbsp;&nbsp;</font></td>" << endl;
 		stream << "</tr>" << endl;
 
 		//OMIM and comment line
@@ -272,7 +274,7 @@ void ReportWorker::writeHTML()
 
 				parts << omim;
 			}
-			stream << "<tr><td colspan=8><font style=\"font-size: 80%;\">" << parts.join("<br>") << "</font></td></tr>" << endl;
+			stream << "<tr><td colspan=10>" << parts.join("<br>") << "</td></tr>" << endl;
 		}
 	}
 	stream << "</table>" << endl;
@@ -280,11 +282,11 @@ void ReportWorker::writeHTML()
 	///classification explaination
 	stream << "<p><b>Klassifikation von Varianten:</b>" << endl;
 	stream << "<br>Die Klassifikation der Varianten erfolgt in Anlehnung an die Publikation von Plon et al. (Hum Mutat 2008)" << endl;
-	stream << "<br><b>Klasse 5:</b> Eindeutig pathogene Veränderung / Mutation: Veränderung, die bereits in der Fachliteratur mit ausreichender Evidenz als krankheitsverursachend bezogen auf das vorliegende Krankheitsbild beschrieben wurde sowie als pathogen zu wertende Mutationstypen (i.d.R. Frameshift- bzw. Stoppmutationen)." << endl;
-	stream << "<br><b>Klasse 4:</b> Wahrscheinlich pathogene Veränderung: DNA-Veränderung, die aufgrund ihrer Eigenschaften als sehr wahrscheinlich krankheitsverursachend zu werten ist." << endl;
-	stream << "<br><b>Klasse 3:</b> Variante unklarer Signifikanz (VUS) - Unklare Pathogenität - Variante, bei der es unklar ist, ob eine krankheitsverursachende Wirkung besteht. Diese Varianten werden tabellarisch im technischen Report mitgeteilt." << endl;
-	stream << "<br><b>Klasse 2:</b> Aufgrund der Häufigkeit in der Allgemeinbevölkerung oder der Lokalisation bzw. aufgrund von Angaben in der Literatur sehr wahrscheinlich benigne) Veränderungen werden nicht mitgeteilt, können aber erfragt werden." << endl;
-	stream << "<br><b>Klasse 1:</b> Benigne Veränderungen. Werden nicht mitgeteilt, können aber erfragt werden." << endl;
+	stream << "<br><b>Klasse 5: Eindeutig pathogene Veränderung / Mutation:</b> Veränderung, die bereits in der Fachliteratur mit ausreichender Evidenz als krankheitsverursachend bezogen auf das vorliegende Krankheitsbild beschrieben wurde sowie als pathogen zu wertende Mutationstypen (i.d.R. Frameshift- bzw. Stoppmutationen)." << endl;
+	stream << "<br><b>Klasse 4: Wahrscheinlich pathogene Veränderung:</b> DNA-Veränderung, die aufgrund ihrer Eigenschaften als sehr wahrscheinlich krankheitsverursachend zu werten ist." << endl;
+	stream << "<br><b>Klasse 3: Variante unklarer Signifikanz (VUS) - Unklare Pathogenität:</b> Variante, bei der es unklar ist, ob eine krankheitsverursachende Wirkung besteht. Diese Varianten werden tabellarisch im technischen Report mitgeteilt." << endl;
+	stream << "<br><b>Klasse 2: Sehr wahrscheinlich benigne Veränderungen:</b> Aufgrund der Häufigkeit in der Allgemeinbevölkerung oder der Lokalisation bzw. aufgrund von Angaben in der Literatur werden nicht mitgeteilt, können aber erfragt werden." << endl;
+	stream << "<br><b>Klasse 1: Benigne Veränderungen:</b> Werden nicht mitgeteilt, können aber erfragt werden." << endl;
 
 	///CNvs
 	stream << "<p><b>Gefunden Copy-Number-Varianten</b>" << endl;
@@ -375,7 +377,7 @@ void ReportWorker::writeHTML()
 			}
 			stream << "<br>Komplett abgedeckte Gene: " << complete_genes.join(", ") << endl;
 		}
-		stream << "<br>Anteil Regionen mit Tiefe kleiner 20: " << QString::number(100.0-perc_cov20.toFloat(), 'f', 2) << "%" << endl;
+		stream << "<br>Anteil Regionen mit Tiefe <20: " << QString::number(100.0-perc_cov20.toFloat(), 'f', 2) << "%" << endl;
 		if (!genes_.isEmpty())
 		{
 			QStringList incomplete_genes;
@@ -394,7 +396,7 @@ void ReportWorker::writeHTML()
 			}
 			stream << "<br>Fehlende Basen in nicht komplett abgedeckten Genen: " << incomplete_genes.join(", ") << endl;
 		}
-		stream << "<br><font style=\"background-color: #FF0000\">Details Regionen mit Tiefe kleiner 20:</font>" << endl;
+		stream << "<br><font style=\"background-color: #FF0000\">Details Regionen mit Tiefe <20:</font>" << endl;
 		stream << "<table>" << endl;
 		stream << "<tr><th>Gen</th><th>Basen</th><th>Chromosom</th><th>Koordinaten_hg19</th></tr>" << endl;
 		for (auto it=grouped.cbegin(); it!=grouped.cend(); ++it)
