@@ -233,7 +233,7 @@ void ReportWorker::writeHTML()
 			stream << "<tr><td><b>OMIM:</b> " << v.annotations()[i_omim] << "</td></tr>" << endl;
 			stream << "<tr><td><b>ClinVar:</b> " << v.annotations()[i_clinvar] << "</td></tr>" << endl;
 			stream << "<tr><td><b>HGMD:</b> " << v.annotations()[i_hgmd] << "</td></tr>" << endl;
-			stream << "<tr><td><b>Kommentar:</b> " << v.annotations()[i_comment] << "</td></tr>" << endl;
+			stream << "<tr><td><b>Kommentar:</b> <font style=\"background-color: #FF0000\">" << v.annotations()[i_comment] << "</font></td></tr>" << endl;
 			stream << "</table>" << endl;
 			stream << "<br>" << endl;
 		}
@@ -279,16 +279,18 @@ void ReportWorker::writeHTML()
 	}
 	stream << "</table>" << endl;
 
+	stream << "<p>Teilweise k&ouml;nnen bei Varianten unklarer Signifikanz (Klasse 3) -  in Abh&auml;ngigkeit von der Art der genetischen Ver&auml;nderung, der Familienanamnese und der Klinik des/der Patienten - weiterf&uuml;hrende Untersuchungen eine &Auml;nderung der Klassifizierung bewirken. Bei konkreten differentialdiagnostischen Hinweisen auf eine entsprechende Erkrankung ist eine humangenetische Mitbeurteilung erforderlich, zur Beurteilung ob erweiterte genetische Untersuchungen zielf&uuml;hrend w&auml;ren." << endl;
+
 	///classification explaination
 	stream << "<p><b>Klassifikation von Varianten:</b>" << endl;
 	stream << "<br>Die Klassifikation der Varianten erfolgt in Anlehnung an die Publikation von Plon et al. (Hum Mutat 2008)" << endl;
-	stream << "<br><b>Klasse 5: Eindeutig pathogene Veränderung / Mutation:</b> Veränderung, die bereits in der Fachliteratur mit ausreichender Evidenz als krankheitsverursachend bezogen auf das vorliegende Krankheitsbild beschrieben wurde sowie als pathogen zu wertende Mutationstypen (i.d.R. Frameshift- bzw. Stoppmutationen)." << endl;
-	stream << "<br><b>Klasse 4: Wahrscheinlich pathogene Veränderung:</b> DNA-Veränderung, die aufgrund ihrer Eigenschaften als sehr wahrscheinlich krankheitsverursachend zu werten ist." << endl;
-	stream << "<br><b>Klasse 3: Variante unklarer Signifikanz (VUS) - Unklare Pathogenität:</b> Variante, bei der es unklar ist, ob eine krankheitsverursachende Wirkung besteht. Diese Varianten werden tabellarisch im technischen Report mitgeteilt." << endl;
-	stream << "<br><b>Klasse 2: Sehr wahrscheinlich benigne Veränderungen:</b> Aufgrund der Häufigkeit in der Allgemeinbevölkerung oder der Lokalisation bzw. aufgrund von Angaben in der Literatur werden nicht mitgeteilt, können aber erfragt werden." << endl;
-	stream << "<br><b>Klasse 1: Benigne Veränderungen:</b> Werden nicht mitgeteilt, können aber erfragt werden." << endl;
+	stream << "<br><b>Klasse 5: Eindeutig pathogene Ver&auml;nderung / Mutation:</b> Ver&auml;nderung, die bereits in der Fachliteratur mit ausreichender Evidenz als krankheitsverursachend bezogen auf das vorliegende Krankheitsbild beschrieben wurde sowie als pathogen zu wertende Mutationstypen (i.d.R. Frameshift- bzw. Stoppmutationen)." << endl;
+	stream << "<br><b>Klasse 4: Wahrscheinlich pathogene Ver&auml;nderung:</b> DNA-Ver&auml;nderung, die aufgrund ihrer Eigenschaften als sehr wahrscheinlich krankheitsverursachend zu werten ist." << endl;
+	stream << "<br><b>Klasse 3: Variante unklarer Signifikanz (VUS) - Unklare Pathogenit&auml;t:</b> Variante, bei der es unklar ist, ob eine krankheitsverursachende Wirkung besteht. Diese Varianten werden tabellarisch im technischen Report mitgeteilt." << endl;
+	stream << "<br><b>Klasse 2: Sehr wahrscheinlich benigne Ver&auml;nderungen:</b> Aufgrund der H&auml;ufigkeit in der Allgemeinbev&ouml;lkerung oder der Lokalisation bzw. aufgrund von Angaben in der Literatur werden nicht mitgeteilt, k&ouml;nnen aber erfragt werden." << endl;
+	stream << "<br><b>Klasse 1: Benigne Ver&auml;nderungen:</b> Werden nicht mitgeteilt, k&ouml;nnen aber erfragt werden." << endl;
 
-	///CNvs
+	///CNVs
 	stream << "<p><b>Gefunden Copy-Number-Varianten</b>" << endl;
 	stream << "<table>" << endl;
 	stream << "<tr><th>Koordianten</th><th>Exons</th><th>CopyNumbers</th><th>Details</th></tr>" << endl;

@@ -11,7 +11,7 @@
 NGSD::NGSD()
 {
 	//connect to DB
-	db_ = QSqlDatabase::addDatabase("QMYSQL", Helper::randomString(20));
+	db_ = QSqlDatabase::addDatabase("QMYSQL", "NGSD_" + Helper::randomString(20));
 	db_.setHostName(Settings::string("ngsd_host"));
 	db_.setDatabaseName(Settings::string("ngsd_name"));
 	db_.setUserName(Settings::string("ngsd_user"));
@@ -21,6 +21,8 @@ NGSD::NGSD()
 	{
 		THROW(DatabaseException, "Could not connect to the NGSD database!");
 	}
+
+	Log::info("MYSQL openend  - name: " + db_.connectionName() + " valid: " + (db_.isValid() ? "yes" : "no"));
 }
 
 QVariant NGSD::getValue(const QString& query, bool no_value_is_ok)
@@ -84,6 +86,7 @@ bool NGSD::removeColumnIfPresent(VariantList& variants, QString name, bool exact
 
 NGSD::~NGSD()
 {
+	Log::info("MYSQL closing  - name: " + db_.connectionName());
 	db_.close();
 }
 

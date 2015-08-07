@@ -5,11 +5,12 @@
 #include <QSqlQuery>
 #include <QVariant>
 #include "Settings.h"
+#include "Log.h"
 
 GPD::GPD()
 {
 	//connect to DB
-	db_ = QSqlDatabase::addDatabase("QMYSQL", Helper::randomString(20));
+	db_ = QSqlDatabase::addDatabase("QMYSQL", "GPD_" + Helper::randomString(20));
 	db_.setHostName(Settings::string("gpd_host"));
 	db_.setDatabaseName(Settings::string("gpd_name"));
 	db_.setUserName(Settings::string("gpd_user"));
@@ -19,6 +20,8 @@ GPD::GPD()
 	{
 		THROW(DatabaseException, "Could not connect to the GPD database!");
 	}
+
+	Log::info("MYSQL openend  - name: " + db_.connectionName() + " valid: " + (db_.isValid() ? "yes" : "no"));
 }
 
 QVariant GPD::getValue(const QString& query, bool no_value_is_ok)
@@ -50,7 +53,9 @@ QSqlQuery GPD::execute(const QString& query)
 	QSqlQuery q(db_);
 	if (!q.exec(query))
 	{
-		THROW(DatabaseException, "GPD query error: " + q.lastError().text());
+		Log::info("MYSQL error  - name: " + db_.connectionName() + " error: " + q.lastError().text() + " query: " + query);
+
+		THROW(DatabaseException, "GPD query error: " + q.lastError().text() + "\nname: " + db_.connectionName());
 	}
 
 	return q;
@@ -58,6 +63,7 @@ QSqlQuery GPD::execute(const QString& query)
 
 GPD::~GPD()
 {
+	Log::info("MYSQL closing  - name: " + db_.connectionName());
 	db_.close();
 }
 
