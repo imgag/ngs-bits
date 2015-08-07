@@ -179,17 +179,30 @@ private slots:
 		I_EQUAL(output.count(), 5);
 		for (int i=0; i<output.count(); ++i)
 		{
-			if (output[i].chr().str()=="chr1")//known somatic variants
+			if (output[i].chr().str()=="chr1")//somatic variants found previously
 			{
 				bool ok = false;
 				IS_TRUE(output[i].annotations()[val_i1].toInt(&ok)>=1);
 				IS_TRUE(ok);
 				IS_TRUE(output[i].annotations()[val_i2]!="");
 			}
-			else //unknown somatic variants
+			else //somatic variants unknown so far
 			{
 				S_EQUAL(output[i].annotations()[val_i1], QByteArray("0"));
 				S_EQUAL(output[i].annotations()[val_i2], QByteArray(""));
+			}
+
+			if(output[i].chr().str()=="chr3" || output[i].chr().str()=="chr15")//somatic variants with gene annotations but no variant annotations in GPD
+			{
+				bool ok = false;
+				IS_TRUE(output[i].annotations()[gpd_g_i].length()>0);
+				IS_TRUE(ok);
+				IS_TRUE(output[i].annotations()[gpd_v_i]=="");
+			}
+			else//somatic variants without annotations
+			{
+				S_EQUAL(output[i].annotations()[gpd_g_i], QByteArray(""));
+				S_EQUAL(output[i].annotations()[gpd_v_i], QByteArray(""));
 			}
 		}
 	}
