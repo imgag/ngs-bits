@@ -21,8 +21,7 @@ NGSD::NGSD()
 	{
 		THROW(DatabaseException, "Could not connect to the NGSD database!");
 	}
-
-	Log::info("MYSQL openend  - name: " + db_.connectionName() + " valid: " + (db_.isValid() ? "yes" : "no"));
+	//Log::info("MYSQL openend  - name: " + db_.connectionName() + " valid: " + (db_.isValid() ? "yes" : "no"));
 }
 
 QVariant NGSD::getValue(const QString& query, bool no_value_is_ok)
@@ -86,7 +85,7 @@ bool NGSD::removeColumnIfPresent(VariantList& variants, QString name, bool exact
 
 NGSD::~NGSD()
 {
-	Log::info("MYSQL closing  - name: " + db_.connectionName());
+	//Log::info("MYSQL closing  - name: " + db_.connectionName());
 	db_.close();
 }
 

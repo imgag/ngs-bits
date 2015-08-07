@@ -20,8 +20,7 @@ GPD::GPD()
 	{
 		THROW(DatabaseException, "Could not connect to the GPD database!");
 	}
-
-	Log::info("MYSQL openend  - name: " + db_.connectionName() + " valid: " + (db_.isValid() ? "yes" : "no"));
+	//Log::info("MYSQL openend  - name: " + db_.connectionName() + " valid: " + (db_.isValid() ? "yes" : "no"));
 }
 
 QVariant GPD::getValue(const QString& query, bool no_value_is_ok)
@@ -67,8 +66,7 @@ QSqlQuery GPD::execute(const QString& query)
 	QSqlQuery q(db_);
 	if (!q.exec(query))
 	{
-		Log::info("MYSQL error  - name: " + db_.connectionName() + " error: " + q.lastError().text() + " query: " + query);
-
+		//Log::info("MYSQL error  - name: " + db_.connectionName() + " error: " + q.lastError().text() + " query: " + query);
 		THROW(DatabaseException, "GPD query error: " + q.lastError().text() + "\nname: " + db_.connectionName());
 	}
 
@@ -77,7 +75,7 @@ QSqlQuery GPD::execute(const QString& query)
 
 GPD::~GPD()
 {
-	Log::info("MYSQL closing  - name: " + db_.connectionName());
+	//Log::info("MYSQL closing  - name: " + db_.connectionName());
 	db_.close();
 }
 
