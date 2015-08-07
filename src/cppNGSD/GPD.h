@@ -21,13 +21,17 @@ public:
 	///Connects to the database and throws a DatabaseError if the connection fails.
 	bool connect();
 
-	///Annotates (or re-annotates) the variant list with current NGDS information.
+	///Annotates (or re-annotates) the variant list with current GPD information.
 	void annotate(VariantList& variants);
+	///Annotates (or re-annotates) the variant list with current (somatic) GPD information.
+	void annotateSomatic(VariantList& variants);
 
 	///Executes an SQL query and returns the single return value.
 	///If no values are returned an error thrown or a default-constructed QVariant is returned (depending on @p empty_is_ok).
 	///If more than one value is returned a DatabaseError is thrown.
 	QVariant getValue(const QString& query, bool no_value_is_ok=true);
+	///Executes an SQL query and returns multiple return values.
+	QVariantList getValues(const QString& query);
 	///Executes an SQL query and returns it.
 	QSqlQuery execute(const QString& query);
 

@@ -51,7 +51,7 @@ public:
 		}
 		else if(mode=="somatic")
 		{
-			GPD().annotate(variants);
+			GPD().annotateSomatic(variants);
 			NGSD().annotateSomatic(variants, ps, ref_file);
 		}
 		else THROW(ProgrammingException, "Unknown mode '" + mode + "'!");
