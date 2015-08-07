@@ -194,9 +194,7 @@ private slots:
 
 			if(output[i].chr().str()=="chr3" || output[i].chr().str()=="chr15")//somatic variants with gene annotations but no variant annotations in GPD
 			{
-				bool ok = false;
 				IS_TRUE(output[i].annotations()[gpd_g_i].length()>0);
-				IS_TRUE(ok);
 				IS_TRUE(output[i].annotations()[gpd_v_i]=="");
 			}
 			else//somatic variants without annotations
