@@ -77,11 +77,11 @@ QString ReportWorker::filterToGermanText(QString name, QString value)
 
 	if (name=="classification")
 	{
-		output = "Keine Varianten mit Klasse <" + value + " (siehe unten)";
+		output = "Keine Varianten mit Klasse &lt;" + value + " (siehe unten)";
 	}
 	else if (name=="maf")
 	{
-		output = "Keine Varianten mit einer Allelfrequenz >" + value + " in &ouml;ffentlichen Datenbanken";
+		output = "Keine Varianten mit einer Allelfrequenz &gt;" + value + " in &ouml;ffentlichen Datenbanken";
 	}
 	else if (name=="ihdb")
 	{
@@ -379,7 +379,7 @@ void ReportWorker::writeHTML()
 			}
 			stream << "<br>Komplett abgedeckte Gene: " << complete_genes.join(", ") << endl;
 		}
-		stream << "<br>Anteil Regionen mit Tiefe <20: " << QString::number(100.0-perc_cov20.toFloat(), 'f', 2) << "%" << endl;
+		stream << "<br>Anteil Regionen mit Tiefe &lt;20: " << QString::number(100.0-perc_cov20.toFloat(), 'f', 2) << "%" << endl;
 		if (!genes_.isEmpty())
 		{
 			QStringList incomplete_genes;
@@ -398,7 +398,7 @@ void ReportWorker::writeHTML()
 			}
 			stream << "<br>Fehlende Basen in nicht komplett abgedeckten Genen: " << incomplete_genes.join(", ") << endl;
 		}
-		stream << "<br><font style=\"background-color: #FF0000\">Details Regionen mit Tiefe <20:</font>" << endl;
+		stream << "<br><font style=\"background-color: #FF0000\">Details Regionen mit Tiefe &lt;20:</font>" << endl;
 		stream << "<table>" << endl;
 		stream << "<tr><th>Gen</th><th>Basen</th><th>Chromosom</th><th>Koordinaten_hg19</th></tr>" << endl;
 		for (auto it=grouped.cbegin(); it!=grouped.cend(); ++it)
