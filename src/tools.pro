@@ -219,6 +219,10 @@ SUBDIRS += FastqToFasta
 tools-TEST.depends += FastqToFasta
 FastqToFasta.depends = cppNGS
 
+SUBDIRS += BamCleanHaloplex
+tools-TEST.depends += BamCleanHaloplex
+BamCleanHaloplex.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt
 
