@@ -23,7 +23,7 @@ public:
 		addInfile("in", "Input bam file.", false);
 		addOutfile("out", "Output bam file.", false);
 		//optinal
-		addInt("min_match", "Minimum number of CIGAR matches (M).", true, 40);
+		addInt("min_match", "Minimum number of CIGAR matches (M).", true, 30);
 	}
 
 	virtual void main()
