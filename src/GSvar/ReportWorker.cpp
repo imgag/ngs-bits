@@ -253,7 +253,7 @@ void ReportWorker::writeHTML()
 		stream << "<td>" << variant.annotations().at(i_genotype) << "</td>" << endl;
 		stream << "<td>" << formatCodingSplicing(variant.annotations().at(i_co_sp)).replace(", ", "<BR>") << "</td>" << endl;
 		stream << "<td>" << variant.annotations().at(i_class) << "</td>" << endl;
-		stream << "<td><font style=\"background-color: #FF0000\">&nbsp;&nbsp;&nbsp;</font></td>" << endl;
+		stream << "<td></td>" << endl;
 		stream << "</tr>" << endl;
 
 		//OMIM and comment line
