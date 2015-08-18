@@ -5,6 +5,7 @@
 #include "Chromosome.h"
 #include "Sequence.h"
 #include <QMap>
+#include <QFile>
 
 ///Fasta file index for fast access to seqences in a FASTA file.
 class CPPNGSSHARED_EXPORT FastaFileIndex
@@ -44,7 +45,7 @@ protected:
 		int line_len;  ///< line length including newline
 	};
 	QMap<QString, FastaIndexEntry> index_;
-	FILE* file_;
+	mutable QFile file_;
 	const FastaIndexEntry& index(const Chromosome& chr) const;
 };
 
