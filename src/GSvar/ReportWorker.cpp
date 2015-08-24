@@ -142,10 +142,12 @@ void ReportWorker::writeHTML()
 	QString temp_filename = Helper::tempFileName(".html");
 	QScopedPointer<QFile> outfile(Helper::openFileForWriting(temp_filename));
 	QTextStream stream(outfile.data());
-	stream << "<html>" << endl;
+	stream << "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">" << endl;
+	stream << "<html xmlns=\"http://www.w3.org/1999/xhtml\">" << endl;
 	stream << "	<head>" << endl;
-	stream << "	   <meta charset=\"utf-8\">" << endl;
-	stream << "	   <style>" << endl;
+	stream << "	   <title>Report " << sample_name_ << "</title>" << endl;
+	stream << "	   <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />" << endl;
+	stream << "	   <style type=\"text/css\">" << endl;
 	stream << "		<!--" << endl;
 	stream << "body" << endl;
 	stream << "{" << endl;
@@ -161,8 +163,12 @@ void ReportWorker::writeHTML()
 	stream << "th, td" << endl;
 	stream << "{" << endl;
 	stream << "	border: 1px solid black;" << endl;
-	stream << "	font-size: 70%;" << endl;
+	stream << "	font-size: 100%;" << endl;
 	stream << "	text-align: left;" << endl;
+	stream << "}" << endl;
+	stream << "p" << endl;
+	stream << "{" << endl;
+	stream << " margin-bottom: 0cm;" << endl;
 	stream << "}" << endl;
 	stream << "		-->" << endl;
 	stream << "	   </style>" << endl;
@@ -171,21 +177,23 @@ void ReportWorker::writeHTML()
 	stream << "	<body>" << endl;
 	stream << "<h4>Technischer Report zur bioinformatischen Analyse</h4>" << endl;
 	stream << "<p><b>Probe: " << sample_name_ << "</b> (" << NGSD().getExternalSampleName(sample_name_) << ")" << endl;
-	stream << "<br>Prozessierungssystem: " << NGSD().getProcessingSystem(sample_name_, NGSD::LONG) << endl;
-	stream << "<br>Genom-Build: " << NGSD().getGenomeBuild(sample_name_) << endl;
-	stream << "<br>Datum: " << QDate::currentDate().toString("dd.MM.yyyy") << endl;
-	stream << "<br>User: " << Helper::userName() << endl;
-	stream << "<br>Analysesoftware: "  << QCoreApplication::applicationName() << " " << QCoreApplication::applicationVersion() << endl;
+	stream << "<br />Prozessierungssystem: " << NGSD().getProcessingSystem(sample_name_, NGSD::LONG) << endl;
+	stream << "<br />Genom-Build: " << NGSD().getGenomeBuild(sample_name_) << endl;
+	stream << "<br />Datum: " << QDate::currentDate().toString("dd.MM.yyyy") << endl;
+	stream << "<br />User: " << Helper::userName() << endl;
+	stream << "<br />Analysesoftware: "  << QCoreApplication::applicationName() << " " << QCoreApplication::applicationVersion() << endl;
+	stream << "</p>" << endl;
 	if (file_roi_!="")
 	{
 		stream << "<p><b>Zielregion</b>" << endl;
-		stream << "<br>Name: " << QFileInfo(file_roi_).baseName() << endl;
-		stream << "<br>Regionen: " << roi_.count() << endl;
-		stream << "<br>Basen: " << roi_.baseCount() << endl;
+		stream << "<br />Name: " << QFileInfo(file_roi_).baseName() << endl;
+		stream << "<br />Regionen: " << roi_.count() << endl;
+		stream << "<br />Basen: " << roi_.baseCount() << endl;
 		if (!genes_.isEmpty())
 		{
-			stream << "<br>Angereicherte Gene (" << QString::number(genes_.count()) << "): " << genes_.join(", ") << endl;
+			stream << "<br />Angereicherte Gene (" << QString::number(genes_.count()) << "): " << genes_.join(", ") << endl;
 		}
+		stream << "</p>" << endl;
 	}
 
 	//get column indices
@@ -205,12 +213,13 @@ void ReportWorker::writeHTML()
 
 	//output: applied filters
 	stream << "<p><b>Filterkriterien</b>" << endl;
-	stream << "<br>Gefundene Varianten in Zielregion gesamt: " << var_count_ << endl;
-	stream << "<br>Anzahl relevanter Varianten nach Filterung: " << variants_selected_.count() << endl;
+	stream << "<br />Gefundene Varianten in Zielregion gesamt: " << var_count_ << endl;
+	stream << "<br />Anzahl relevanter Varianten nach Filterung: " << variants_selected_.count() << endl;
 	for(auto it = filters_.cbegin(); it!=filters_.cend(); ++it)
 	{
-		stream << "<br>&nbsp;&nbsp;&nbsp;&nbsp;- " << filterToGermanText(it.key(), it.value()) << endl;
+		stream << "<br />&nbsp;&nbsp;&nbsp;&nbsp;- " << filterToGermanText(it.key(), it.value()) << endl;
 	}
+	stream << "</p>" << endl;
 
 	//output: very important variants
 	int important_variants = 0;
@@ -221,6 +230,7 @@ void ReportWorker::writeHTML()
 	if (important_variants>0)
 	{
 		stream << "<p><b>Liste wichtiger Varianten</b>" << endl;
+		stream << "</p>" << endl;
 		for (int i=0; i<variants_selected_.count(); ++i)
 		{
 			if (!variants_selected_[i].second) continue;
@@ -233,14 +243,14 @@ void ReportWorker::writeHTML()
 			stream << "<tr><td><b>OMIM:</b> " << v.annotations()[i_omim] << "</td></tr>" << endl;
 			stream << "<tr><td><b>ClinVar:</b> " << v.annotations()[i_clinvar] << "</td></tr>" << endl;
 			stream << "<tr><td><b>HGMD:</b> " << v.annotations()[i_hgmd] << "</td></tr>" << endl;
-			stream << "<tr><td><b>Kommentar:</b> <font style=\"background-color: #FF0000\">" << v.annotations()[i_comment] << "</font></td></tr>" << endl;
+			stream << "<tr><td><b>Kommentar:</b> <span style=\"background-color: #FF0000\">" << v.annotations()[i_comment] << "</span></td></tr>" << endl;
 			stream << "</table>" << endl;
-			stream << "<br>" << endl;
 		}
 	}
 
 	//output: all rare variants
 	stream << "<p><b>Liste relevanter Varianten nach Filterung</b>" << endl;
+	stream << "</p>" << endl;
 	stream << "<table>" << endl;
 	stream << "<tr><th>Gen</th><th>chr</th><th>start</th><th>end</th><th>ref</th><th>obs</th><th>Genotyp</th><th>Details</th><th>Klasse</th><th>Vererbung</th></tr>" << endl;
 	for (int i=0; i<variants_selected_.count(); ++i)
@@ -251,7 +261,7 @@ void ReportWorker::writeHTML()
 		stream << "<td>" << endl;
 		stream  << variant.chr().str() << "</td><td>" << variant.start() << "</td><td>" << variant.end() << "</td><td>" << variant.ref() << "</td><td>" << variant.obs() << "</td>";
 		stream << "<td>" << variant.annotations().at(i_genotype) << "</td>" << endl;
-		stream << "<td>" << formatCodingSplicing(variant.annotations().at(i_co_sp)).replace(", ", "<BR>") << "</td>" << endl;
+		stream << "<td>" << formatCodingSplicing(variant.annotations().at(i_co_sp)).replace(", ", "<br />") << "</td>" << endl;
 		stream << "<td>" << variant.annotations().at(i_class) << "</td>" << endl;
 		stream << "<td></td>" << endl;
 		stream << "</tr>" << endl;
@@ -262,7 +272,7 @@ void ReportWorker::writeHTML()
 		if (comment!="" || omim!="")
 		{
 			QStringList parts;
-			if (comment!="") parts << "<font style=\"background-color: #FF0000\">NGSD: " + comment + "</font>";
+			if (comment!="") parts << "<span style=\"background-color: #FF0000\">NGSD: " + comment + "</span>";
 			if (omim!="")
 			{
 				QStringList omim_parts = omim.append(" ").split("]; ");
@@ -274,28 +284,31 @@ void ReportWorker::writeHTML()
 
 				parts << omim;
 			}
-			stream << "<tr><td colspan=10>" << parts.join("<br>") << "</td></tr>" << endl;
+			stream << "<tr><td colspan=\"10\">" << parts.join("<br />") << "</td></tr>" << endl;
 		}
 	}
 	stream << "</table>" << endl;
 
 	stream << "<p>Teilweise k&ouml;nnen bei Varianten unklarer Signifikanz (Klasse 3) -  in Abh&auml;ngigkeit von der Art der genetischen Ver&auml;nderung, der Familienanamnese und der Klinik des/der Patienten - weiterf&uuml;hrende Untersuchungen eine &Auml;nderung der Klassifizierung bewirken. Bei konkreten differentialdiagnostischen Hinweisen auf eine entsprechende Erkrankung ist eine humangenetische Mitbeurteilung erforderlich, zur Beurteilung ob erweiterte genetische Untersuchungen zielf&uuml;hrend w&auml;ren." << endl;
+	stream << "</p>" << endl;
 
 	///classification explaination
 	stream << "<p><b>Klassifikation von Varianten:</b>" << endl;
-	stream << "<br>Die Klassifikation der Varianten erfolgt in Anlehnung an die Publikation von Plon et al. (Hum Mutat 2008)" << endl;
-	stream << "<br><b>Klasse 5: Eindeutig pathogene Ver&auml;nderung / Mutation:</b> Ver&auml;nderung, die bereits in der Fachliteratur mit ausreichender Evidenz als krankheitsverursachend bezogen auf das vorliegende Krankheitsbild beschrieben wurde sowie als pathogen zu wertende Mutationstypen (i.d.R. Frameshift- bzw. Stoppmutationen)." << endl;
-	stream << "<br><b>Klasse 4: Wahrscheinlich pathogene Ver&auml;nderung:</b> DNA-Ver&auml;nderung, die aufgrund ihrer Eigenschaften als sehr wahrscheinlich krankheitsverursachend zu werten ist." << endl;
-	stream << "<br><b>Klasse 3: Variante unklarer Signifikanz (VUS) - Unklare Pathogenit&auml;t:</b> Variante, bei der es unklar ist, ob eine krankheitsverursachende Wirkung besteht. Diese Varianten werden tabellarisch im technischen Report mitgeteilt." << endl;
-	stream << "<br><b>Klasse 2: Sehr wahrscheinlich benigne Ver&auml;nderungen:</b> Aufgrund der H&auml;ufigkeit in der Allgemeinbev&ouml;lkerung oder der Lokalisation bzw. aufgrund von Angaben in der Literatur werden nicht mitgeteilt, k&ouml;nnen aber erfragt werden." << endl;
-	stream << "<br><b>Klasse 1: Benigne Ver&auml;nderungen:</b> Werden nicht mitgeteilt, k&ouml;nnen aber erfragt werden." << endl;
+	stream << "<br />Die Klassifikation der Varianten erfolgt in Anlehnung an die Publikation von Plon et al. (Hum Mutat 2008)" << endl;
+	stream << "<br /><b>Klasse 5: Eindeutig pathogene Ver&auml;nderung / Mutation:</b> Ver&auml;nderung, die bereits in der Fachliteratur mit ausreichender Evidenz als krankheitsverursachend bezogen auf das vorliegende Krankheitsbild beschrieben wurde sowie als pathogen zu wertende Mutationstypen (i.d.R. Frameshift- bzw. Stoppmutationen)." << endl;
+	stream << "<br /><b>Klasse 4: Wahrscheinlich pathogene Ver&auml;nderung:</b> DNA-Ver&auml;nderung, die aufgrund ihrer Eigenschaften als sehr wahrscheinlich krankheitsverursachend zu werten ist." << endl;
+	stream << "<br /><b>Klasse 3: Variante unklarer Signifikanz (VUS) - Unklare Pathogenit&auml;t:</b> Variante, bei der es unklar ist, ob eine krankheitsverursachende Wirkung besteht. Diese Varianten werden tabellarisch im technischen Report mitgeteilt." << endl;
+	stream << "<br /><b>Klasse 2: Sehr wahrscheinlich benigne Ver&auml;nderungen:</b> Aufgrund der H&auml;ufigkeit in der Allgemeinbev&ouml;lkerung oder der Lokalisation bzw. aufgrund von Angaben in der Literatur werden nicht mitgeteilt, k&ouml;nnen aber erfragt werden." << endl;
+	stream << "<br /><b>Klasse 1: Benigne Ver&auml;nderungen:</b> Werden nicht mitgeteilt, k&ouml;nnen aber erfragt werden." << endl;
+	stream << "</p>" << endl;
 
 	///CNVs
 	stream << "<p><b>Gefunden Copy-Number-Varianten</b>" << endl;
+	stream << "</p>" << endl;
 	stream << "<table>" << endl;
 	stream << "<tr><th>Koordianten</th><th>Exons</th><th>CopyNumbers</th><th>Details</th></tr>" << endl;
 	stream << "<tr>" << endl;
-	stream << "<td colspan=4><font style=\"background-color: #FF0000\">Abschnitt mit Daten aus dem Report fuellen oder loeschen!<br>Im Moment nur f&uuml;r X-Diagnostik relevant!</font></td>" << endl;
+	stream << "<td colspan=\"4\"><span style=\"background-color: #FF0000\">Abschnitt mit Daten aus dem Report fuellen oder loeschen!<br />Im Moment nur f&uuml;r X-Diagnostik relevant!</span></td>" << endl;
 	stream << "</tr>" << endl;
 	stream << "</table>" << endl;
 
@@ -313,7 +326,7 @@ void ReportWorker::writeHTML()
 		}
 
 		stream << "<p><b>Abdeckungsstatistik</b>" << endl;
-		stream << "<br>Durchschnittliche Sequenziertiefe: " << avg_cov << endl;
+		stream << "<br />Durchschnittliche Sequenziertiefe: " << avg_cov << endl;
 
 		//calculate low coverage regions
 		BedFile low_cov = Statistics::lowCoverage(roi_, file_bam_, 20);
@@ -377,9 +390,9 @@ void ReportWorker::writeHTML()
 					complete_genes << gene;
 				}
 			}
-			stream << "<br>Komplett abgedeckte Gene: " << complete_genes.join(", ") << endl;
+			stream << "<br />Komplett abgedeckte Gene: " << complete_genes.join(", ") << endl;
 		}
-		stream << "<br>Anteil Regionen mit Tiefe &lt;20: " << QString::number(100.0-perc_cov20.toFloat(), 'f', 2) << "%" << endl;
+		stream << "<br />Anteil Regionen mit Tiefe &lt;20: " << QString::number(100.0-perc_cov20.toFloat(), 'f', 2) << "%" << endl;
 		if (!genes_.isEmpty())
 		{
 			QStringList incomplete_genes;
@@ -393,12 +406,14 @@ void ReportWorker::writeHTML()
 					{
 						missing_bases += lines[i].length();
 					}
-					incomplete_genes << gene + " <font style=\"font-size: 80%;\">" + QString::number(missing_bases) + "</font> ";
+					incomplete_genes << gene + " <span style=\"font-size: 80%;\">" + QString::number(missing_bases) + "</span> ";
 				}
 			}
-			stream << "<br>Fehlende Basen in nicht komplett abgedeckten Genen: " << incomplete_genes.join(", ") << endl;
+			stream << "<br />Fehlende Basen in nicht komplett abgedeckten Genen: " << incomplete_genes.join(", ") << endl;
 		}
-		stream << "<br><font style=\"background-color: #FF0000\">Details Regionen mit Tiefe &lt;20:</font>" << endl;
+		stream << "</p>" << endl;
+		stream << "<p><span style=\"background-color: #FF0000\">Details Regionen mit Tiefe &lt;20:</span>" << endl;
+		stream << "</p>" << endl;
 		stream << "<table>" << endl;
 		stream << "<tr><th>Gen</th><th>Basen</th><th>Chromosom</th><th>Koordinaten_hg19</th></tr>" << endl;
 		for (auto it=grouped.cbegin(); it!=grouped.cend(); ++it)
@@ -422,8 +437,6 @@ void ReportWorker::writeHTML()
 			stream << "</tr>" << endl;
 		}
 		stream << "</table>" << endl;
-		stream << "	</body>" << endl;
-		stream << "</html>" << endl;
 
 		//additionally store low-coverage BED file
 		low_cov.store(QString(file_rep_).replace(".html", "_lowcov.bed"));
@@ -432,7 +445,7 @@ void ReportWorker::writeHTML()
 	//output variant details
 	if(var_details_)
 	{
-		stream << "<p><b><font style=\"background-color: #FF0000\">Details zu Varianten (f&uuml;r interne Zwecke)</font>" << endl;
+		stream << "<p><b><span style=\"background-color: #FF0000\">Details zu Varianten (f&uuml;r interne Zwecke)</span>" << endl;
 		stream << "<table>" << endl;
 		stream << "<tr><th>chr</th><th>start</th><th>end</th><th>ref</th><th>obs</th>";
 		for (int i=0; i<variants_.annotations().count(); ++i)
@@ -455,10 +468,12 @@ void ReportWorker::writeHTML()
 			stream << "</tr>" << endl;
 		}
 		stream << "</table>" << endl;
+		stream << "</p>" << endl;
 	}
 
 	//collect and display important tool versions
-	stream << "<p><b><font style=\"background-color: #FF0000\">Details zu Analysetools (f&uuml;r interne Zwecke)</font>" << endl;
+	stream << "<p><b><span style=\"background-color: #FF0000\">Details zu Analysetools (f&uuml;r interne Zwecke)</span></b>" << endl;
+	stream << "</p>" << endl;
 	stream << "<table>" << endl;
 	stream << "<tr><th>tool</th><th>version</th><th>parameters</th></tr>";
 	QStringList whitelist;
@@ -521,14 +536,23 @@ void ReportWorker::writeHTML()
 				params.replace("//", "/");
 
 				//output
-				stream << "<tr><td>" << tool << "</td><td>" << version << "</td><td>" << params << "</td></tr>" << endl;
+				stream << "<tr><td>" << tool.toHtmlEscaped() << "</td><td>" << version.toHtmlEscaped() << "</td><td>" << params.toHtmlEscaped() << "</td></tr>" << endl;
 			}
 		}
 	}
 	stream << "</table>" << endl;
 
 	//close stream
+	stream << "	</body>" << endl;
+	stream << "</html>" << endl;
 	outfile->close();
+
+	//validate written HTML file
+	QString validation_error = XmlHelper::isValidXml(temp_filename);
+	if (validation_error!="")
+	{
+		THROW(ProgrammingException, "Generated report is not well-formed: " + validation_error);
+	}
 
 	//copy temp file to output folder
 	if (QFile(file_rep_).exists() && !QFile(file_rep_).remove())
