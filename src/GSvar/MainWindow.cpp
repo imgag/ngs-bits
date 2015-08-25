@@ -493,14 +493,14 @@ void MainWindow::on_actionExportVCF_triggered()
 {
 	//load original VCF
 	QString orig_name = filename_;
-	orig_name.replace(".GSvar", "_var_annotated.vcf");
+	orig_name.replace(".GSvar", "_var_annotated.vcf.gz");
 	if (!QFile::exists(orig_name))
 	{
 		GUIHelper::showMessage("VCF export error", "Could not find original VCF file '" + orig_name + "'!");
 		return;
 	}
 	VariantList orig_vcf;
-	orig_vcf.load(orig_name, VariantList::VCF);
+	orig_vcf.load(orig_name);
 	ChromosomalIndex<VariantList> orig_idx(orig_vcf);
 
 	//create new VCF
@@ -1032,7 +1032,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 			//load IGV tracks as requested
 			if (ui_.actionIgvSample->isChecked())
 			{
-				executeIGVCommand("load " + QString(filename_).replace(".GSvar", "_var_annotated.vcf"));
+				executeIGVCommand("load " + QString(filename_).replace(".GSvar", "_var_annotated.vcf.gz"));
 			}
 			if (ui_.actionIgvLowcov->isChecked())
 			{

@@ -137,9 +137,10 @@ public:
     ///Supported file formats.
     enum Format
     {
-        VCF, ///< VCF file. Note: only single-sample files are currently supported.
-        TSV, ///< Tab-separated file that contains at least the following columns: chr, start (1-based), end (1-based), ref, obs.
-        AUTO ///< Format is automatically determined from the file name extension.
+		VCF,    ///< VCF file. Note: only single-sample files are currently supported.
+		VCF_GZ, ///< gzipped VCF file. Note: only single-sample files are currently supported.
+		TSV,    ///< Tab-separated file that contains at least the following columns: chr, start (1-based), end (1-based), ref, obs.
+		AUTO    ///< Format is automatically determined from the file name extension.
     };
 
     ///Default constructor

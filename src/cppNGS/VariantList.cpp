@@ -4,10 +4,13 @@
 #include "Helper.h"
 #include "Log.h"
 #include "ChromosomalIndex.h"
+
 #include <QFile>
 #include <QTextStream>
 #include <QRegExp>
 #include <QBitArray>
+
+#include <zlib.h>
 
 Variant::Variant()
 	: chr_()
@@ -202,6 +205,10 @@ VariantList::Format VariantList::load(QString filename, VariantList::Format form
 		{
 			format = VCF;
 		}
+		else if (fn_lower.endsWith(".vcf.gz"))
+		{
+			format = VCF_GZ;
+		}
 		else if (fn_lower.endsWith(".tsv") || fn_lower.contains(".gsvar"))
 		{
 			format = TSV;
@@ -216,6 +223,33 @@ VariantList::Format VariantList::load(QString filename, VariantList::Format form
 	{
 		loadFromVCF(filename);
 		return VariantList::VCF;
+	}
+	else if (format==VCF_GZ)
+	{
+		//unzip
+		QString tmp_file = Helper::tempFileName(".vcf");
+		QScopedPointer<QFile> outstream(Helper::openFileForWriting(tmp_file));
+
+		gzFile instream = gzopen(filename.toLatin1().data(), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
+		if (instream == NULL)
+		{
+			THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
+		}
+		char buffer[65536];
+		while (int unzipped_bytes = gzread(instream, buffer, 65535))
+		{
+			outstream->write(buffer, unzipped_bytes);
+		}
+		gzclose(instream);
+		outstream->close();
+
+		//load unzipped file
+		loadFromVCF(tmp_file);
+
+		//remove unzipped file
+		QFile(tmp_file).remove();
+
+		return VariantList::VCF_GZ;
 	}
 	else
 	{

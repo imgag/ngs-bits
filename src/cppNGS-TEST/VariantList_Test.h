@@ -382,6 +382,42 @@ private slots:
 		S_EQUAL(vl[12].annotations().at(26), QByteArray("255,0,255"));
 	}
 
+	void loadFromVCF_GZ()
+	{
+		VariantList vl;
+		VariantList::Format format = vl.load(TESTDATA("data_in/VariantList_load_zipped.vcf.gz"));
+		I_EQUAL(format, VariantList::VCF_GZ);
+		I_EQUAL(vl.count(), 157);
+		I_EQUAL(vl.annotations().count(), 75);
+		S_EQUAL(vl.annotations()[0].name(), "ID");
+		S_EQUAL(vl.annotations()[1].name(), "QUAL");
+		S_EQUAL(vl.annotations()[2].name(), "FILTER");
+		S_EQUAL(vl.annotations()[3].name(), "NS");
+		S_EQUAL(vl.annotations()[74].name(), "EXAC_AF");
+
+		X_EQUAL(vl[0].chr().str(), "chr1");
+		I_EQUAL(vl[0].start(), 27687466);
+		I_EQUAL(vl[0].end(), 27687466);
+		S_EQUAL(vl[0].ref(), Sequence("G"));
+		S_EQUAL(vl[0].obs(), Sequence("T"));
+		S_EQUAL(vl[0].annotations().at(0), "rs35659744");
+		S_EQUAL(vl[0].annotations().at(1), "11836.9");
+		S_EQUAL(vl[0].annotations().at(2), ".");
+		S_EQUAL(vl[0].annotations().at(3), "1");
+		S_EQUAL(vl[0].annotations().at(74), "0.223");
+
+		X_EQUAL(vl[156].chr().str(), "chr20");
+		I_EQUAL(vl[156].start(), 48301146);
+		I_EQUAL(vl[156].end(), 48301146);
+		S_EQUAL(vl[156].ref(), Sequence("G"));
+		S_EQUAL(vl[156].obs(), Sequence("A"));
+		S_EQUAL(vl[156].annotations().at(0), "rs6512586");
+		S_EQUAL(vl[156].annotations().at(1), "39504.2");
+		S_EQUAL(vl[156].annotations().at(2), ".");
+		S_EQUAL(vl[156].annotations().at(3), "1");
+		S_EQUAL(vl[156].annotations().at(74), "0.516");
+	}
+
 	void annotationIndexByName()
 	{
 		VariantList vl;

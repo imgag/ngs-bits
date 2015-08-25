@@ -117,7 +117,7 @@ void SampleInformationDialog::refresh()
 	ui_.date_bam->setText(date_text);
 
 	//date - VCF
-	last_modified = QFileInfo(QString(filename_).replace(".GSvar", "_var.vcf")).lastModified();
+	last_modified = QFileInfo(QString(filename_).replace(".GSvar", "_var.vcf.gz")).lastModified();
 	date_text = last_modified.toString("yyyy-MM-dd");
 	if (last_modified < QDateTime::currentDateTime().addMonths(-6))
 	{
