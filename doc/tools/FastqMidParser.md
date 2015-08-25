@@ -1,5 +1,5 @@
 ### FastqMidParser tool help
-	FastqMidParser (0.1-46-gb124721)
+	FastqMidParser (0.1-52-g9f9161f)
 	
 	Counts the number of occurances of each MID in a FASTQ file.
 	

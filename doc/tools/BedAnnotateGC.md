@@ -1,5 +1,5 @@
 ### BedAnnotateGC tool help
-	BedAnnotateGC (0.1-46-gb124721)
+	BedAnnotateGC (0.1-52-g9f9161f)
 	
 	Annotates GC content fraction to regions in a BED file.
 	

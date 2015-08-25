@@ -1,5 +1,5 @@
 ### BedExtend tool help
-	BedExtend (0.1-46-gb124721)
+	BedExtend (0.1-52-g9f9161f)
 	
 	Extends the regions in a BED file.
 	

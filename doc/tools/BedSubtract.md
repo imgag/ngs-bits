@@ -1,5 +1,5 @@
 ### BedSubtract tool help
-	BedSubtract (0.1-46-gb124721)
+	BedSubtract (0.1-52-g9f9161f)
 	
 	Subtracts the regions in one BED file from another.
 	

@@ -1,5 +1,5 @@
 ### BedToFasta tool help
-	BedToFasta (0.1-46-gb124721)
+	BedToFasta (0.1-52-g9f9161f)
 	
 	Converts a BED file to a FASTA file.
 	

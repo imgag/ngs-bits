@@ -1,5 +1,5 @@
 ### Cidx tool help
-	Cidx (0.1-46-gb124721)
+	Cidx (0.1-52-g9f9161f)
 	
 	Indexes and searches tab-separated chromosomal database files (1-based positions).
 	

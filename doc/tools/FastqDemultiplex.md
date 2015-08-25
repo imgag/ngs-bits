@@ -1,5 +1,5 @@
 ### FastqDemultiplex tool help
-	FastqDemultiplex (0.1-46-gb124721)
+	FastqDemultiplex (0.1-52-g9f9161f)
 	
 	Demultiplexes FASTQ files from different samples according to barcode sequences given in a samplesheet.
 	

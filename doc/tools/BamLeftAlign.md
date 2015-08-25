@@ -1,5 +1,5 @@
 ### BamLeftAlign tool help
-	BamLeftAlign (0.1-46-gb124721)
+	BamLeftAlign (0.1-52-g9f9161f)
 	
 	Iteratively left-aligns and merges the insertions and deletions in all alignments.
 	

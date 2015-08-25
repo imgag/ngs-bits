@@ -1,5 +1,5 @@
 ### TsvSlice tool help
-	TsvSlice (0.1-46-gb124721)
+	TsvSlice (0.1-52-g9f9161f)
 	
 	Extracts/reorders columns of a TSV file.
 	

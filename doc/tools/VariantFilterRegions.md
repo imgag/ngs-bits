@@ -1,5 +1,5 @@
 ### VariantFilterRegions tool help
-	VariantFilterRegions (0.1-46-gb124721)
+	VariantFilterRegions (0.1-52-g9f9161f)
 	
 	Filters variant lists accordning to a target region.
 	

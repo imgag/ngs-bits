@@ -1,5 +1,5 @@
 ### BedAnnotateGenes tool help
-	BedAnnotateGenes (0.1-46-gb124721)
+	BedAnnotateGenes (0.1-52-g9f9161f)
 	
 	Annotates the regions in a BED file with the name from a database BED file.
 	

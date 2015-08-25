@@ -1,5 +1,5 @@
 ### CnvHunter tool help
-	CnvHunter (0.1-46-gb124721)
+	CnvHunter (0.1-52-g9f9161f)
 	
 	Detects copy number variations from targeted resequencing data using non-matched control samples.
 	

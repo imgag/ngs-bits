@@ -1,5 +1,5 @@
 ### FastqFormat tool help
-	FastqFormat (0.1-46-gb124721)
+	FastqFormat (0.1-52-g9f9161f)
 	
 	Determines the FastQ quality encoding format.
 	

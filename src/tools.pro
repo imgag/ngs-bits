@@ -223,6 +223,10 @@ SUBDIRS += BamCleanHaloplex
 tools-TEST.depends += BamCleanHaloplex
 BamCleanHaloplex.depends = cppNGS
 
+SUBDIRS += BedAdd
+tools-TEST.depends += BedAdd
+BedAdd.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt
 

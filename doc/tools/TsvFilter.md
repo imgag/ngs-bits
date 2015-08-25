@@ -1,5 +1,5 @@
 ### TsvFilter tool help
-	TsvFilter (0.1-46-gb124721)
+	TsvFilter (0.1-52-g9f9161f)
 	
 	Filters the rows of a TSV file according to the value of a specific column.
 	

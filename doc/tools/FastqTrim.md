@@ -1,5 +1,5 @@
 ### FastqTrim tool help
-	FastqTrim (0.1-46-gb124721)
+	FastqTrim (0.1-52-g9f9161f)
 	
 	Trims start/end bases from all reads in a FASTQ file.
 	

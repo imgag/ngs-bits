@@ -1,5 +1,5 @@
 ### SeqPurge tool help
-	SeqPurge (0.1-46-gb124721)
+	SeqPurge (0.1-52-g9f9161f)
 	
 	Removes adapter sequences from paired-end sequencing data.
 	

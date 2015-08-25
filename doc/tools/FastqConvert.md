@@ -1,5 +1,5 @@
 ### FastqConvert tool help
-	FastqConvert (0.1-46-gb124721)
+	FastqConvert (0.1-52-g9f9161f)
 	
 	Converts the quality scores from Illumina 1.5 offset to Sanger/Illumina 1.8 offset.
 	

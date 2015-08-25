@@ -69,6 +69,7 @@ _ngs-bits_ contains a lot of tools that we use for NGS short-read data analysis 
 
 ### BED tools
 
+* [BedAdd](doc/tools/BedAdd.md) - Adds the regions in two BED files.
 * [BedAnnotateGC](doc/tools/BedAnnotateGC.md) - Annnotates the regions in a BED file with GC content.
 * [BedChunk](doc/tools/BedChunk.md) - Splits regions in a BED file to chunks of a desired size.
 * [BedCoverage](doc/tools/BedCoverage.md) - Annoates the regions in a BED file with the average coverage in one or several BAM files.

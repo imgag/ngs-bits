@@ -23,11 +23,11 @@ public:
 	{
 		setDescription("Converts a text file with gene names to a BED file.");
 		addInfile("in", "Input TXT file with one gene symbol per line.", false, true);
-		addOutfile("out", "Output BED file.", false, true);
 		QStringList modes;
         modes << "gene" << "splice" << "exon" << "ccds";
         addEnum("mode", "Mode: gene = the gene in UCSC, splice = all splice variants in UCSC, exon = all coding exons of all splice variants in UCSC, ccds = all coding exons of all splice variants in CCDS.", false, modes);
 		//optional
+		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true, true);
 		addInfile("db_ccds", "The CCDS flat file. If unset 'ccds_joined' from the 'settings.ini' file is used.", true, true);
 		addInfile("db_ucsc", "The UCSC flat file. If unset 'kgxref_joined' from the 'settings.ini' file is used.", true, true);
 	}

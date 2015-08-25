@@ -1,5 +1,5 @@
 ### VariantAnnotateNGSD tool help
-	VariantAnnotateNGSD (0.1-46-gb124721)
+	VariantAnnotateNGSD (0.1-52-g9f9161f)
 	
 	Annotates a variant list with information from the NGSD.
 	

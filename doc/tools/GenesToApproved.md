@@ -1,5 +1,5 @@
 ### GenesToApproved tool help
-	GenesToApproved (0.1-46-gb124721)
+	GenesToApproved (0.1-52-g9f9161f)
 	
 	Replaces gene symbols by approved symbols using the HGNC database.
 	

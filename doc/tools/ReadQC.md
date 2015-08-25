@@ -1,5 +1,5 @@
 ### ReadQC tool help
-	ReadQC (0.1-46-gb124721)
+	ReadQC (0.1-52-g9f9161f)
 	
 	Calculates QC metrics on unprocessed paired-end reads (same number of cycles/reads).
 	

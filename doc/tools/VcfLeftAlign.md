@@ -1,5 +1,5 @@
 ### VcfLeftAlign tool help
-	VcfLeftAlign (0.1-46-gb124721)
+	VcfLeftAlign (0.1-52-g9f9161f)
 	
 	Shifts indels in a variant list as far to the left as possible. Complex indels and multi-allelic deletions are not shifted!
 	

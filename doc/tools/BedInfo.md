@@ -1,5 +1,5 @@
 ### BedInfo tool help
-	BedInfo (0.1-46-gb124721)
+	BedInfo (0.1-52-g9f9161f)
 	
 	Prints information about a (merged) BED file.
 	

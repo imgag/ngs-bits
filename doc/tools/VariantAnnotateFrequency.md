@@ -1,5 +1,5 @@
 ### VariantAnnotateFrequency tool help
-	VariantAnnotateFrequency (0.1-46-gb124721)
+	VariantAnnotateFrequency (0.1-52-g9f9161f)
 	
 	Annotates a variant list with variant frequencies from a BAM file.
 	

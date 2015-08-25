@@ -9,7 +9,7 @@ foreach($files as $file)
 
 
 //copy DLLs to bin path
-$dlls = array("Qt5Core.dll", "libgcc_s_dw2-1.dll", "libwinpthread-1.dll", "libstdc++-6.dll", "Qt5XmlPatterns.dll", "Qt5Network.dll", "Qt5Sql.dll");
+$dlls = array("Qt5Core.dll", "libgcc_s_dw2-1.dll", "libwinpthread-1.dll", "libstdc++-6.dll", "Qt5XmlPatterns.dll", "Qt5Network.dll", "Qt5Sql.dll", "Qt5Xml.dll");
 $qt_path = "C:\\Qt\\Qt5.5.0\\5.5\\mingw492_32\\bin\\";
 $bin_path = "..\\..\\bin\\";
 copy("..\\..\\bamtools\\lib\\libbamtools.dll", $bin_path."libbamtools.dll");

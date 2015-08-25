@@ -1,5 +1,5 @@
 ### BamIndex tool help
-	BamIndex (0.1-46-gb124721)
+	BamIndex (0.1-52-g9f9161f)
 	
 	Indexes a sorted BAM file.
 	

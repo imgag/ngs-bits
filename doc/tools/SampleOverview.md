@@ -1,5 +1,5 @@
 ### SampleOverview tool help
-	SampleOverview (0.1-46-gb124721)
+	SampleOverview (0.1-52-g9f9161f)
 	
 	Creates a variant overview table from several samples.
 	

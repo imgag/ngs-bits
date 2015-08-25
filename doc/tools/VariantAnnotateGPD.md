@@ -1,5 +1,5 @@
 ### VariantAnnotateGPD tool help
-	VariantAnnotateGPD (0.1-46-gb124721)
+	VariantAnnotateGPD (0.1-52-g9f9161f)
 	
 	Annotates a variant list with information from the GPD.
 	
@@ -10,7 +10,7 @@
 	Optional parameters:
 	  -psname <string> Processed sample name. If set this name is used instead of the file name to find the sample in the DB.
 	                   Default value: ''
-	  -ref <file>      Reference genome FASTA file. If unset '/mnt/share/data/dbs/genomes/hg19.fa' is used.
+	  -ref <file>      Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.
 	                   Default value: ''
 	
 	Special parameters:

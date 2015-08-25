@@ -1,5 +1,5 @@
 ### MappingQC tool help
-	MappingQC (0.1-46-gb124721)
+	MappingQC (0.1-52-g9f9161f)
 	
 	Calculates QC metrics based on mapped NGS reads.
 	

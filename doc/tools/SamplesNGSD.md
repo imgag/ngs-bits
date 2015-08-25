@@ -1,5 +1,5 @@
 ### SamplesNGSD tool help
-	SamplesNGSD (0.1-46-gb124721)
+	SamplesNGSD (0.1-52-g9f9161f)
 	
 	Lists processed samples from NGSD.
 	

@@ -1,16 +1,16 @@
-### VariantQC tool help
-	VariantQC (0.1-52-g9f9161f)
+### BedAdd tool help
+	BedAdd (0.1-52-g9f9161f)
 	
-	Calculates QC metrics on variant lists.
+	Adds the regions in two BED files.
 	
 	Mandatory parameters:
-	  -in <file>  Input VCF variant list. If a specific column
+	  -in2 <file> Second input BED file.
 	
 	Optional parameters:
-	  -out <file> Output qcML file. If unset, writes to STDOUT.
+	  -in <file>  Input BED file. If unset, reads from STDIN.
 	              Default value: ''
-	  -txt        Writes TXT format instead of qcML.
-	              Default value: 'false'
+	  -out <file> Output BED file. If unset, writes to STDOUT.
+	              Default value: ''
 	
 	Special parameters:
 	  --help      Shows this help and exits.

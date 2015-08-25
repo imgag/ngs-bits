@@ -1,5 +1,5 @@
 ### BedGeneOverlap tool help
-	BedGeneOverlap (0.1-46-gb124721)
+	BedGeneOverlap (0.1-52-g9f9161f)
 	
 	Calculates how much of each overlapping gene is covered.
 	

@@ -1,5 +1,5 @@
 ### BedLowCoverage tool help
-	BedLowCoverage (0.1-46-gb124721)
+	BedLowCoverage (0.1-52-g9f9161f)
 	
 	Detects low-coverage regions from a BAM file.
 	

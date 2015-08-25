@@ -1,5 +1,5 @@
 ### BedSort tool help
-	BedSort (0.1-46-gb124721)
+	BedSort (0.1-52-g9f9161f)
 	
 	Sort the regions in a BED file.
 	

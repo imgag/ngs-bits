@@ -1,5 +1,5 @@
 ### FastqExtract tool help
-	FastqExtract (0.1-46-gb124721)
+	FastqExtract (0.1-52-g9f9161f)
 	
 	Extracts reads from a FASTQ file according to an ID list. Trims the reads if lengths are given.
 	

@@ -1,5 +1,5 @@
 ### BedCoverage tool help
-	BedCoverage (0.1-46-gb124721)
+	BedCoverage (0.1-52-g9f9161f)
 	
 	Extracts the average coverage for input regions from one or several BAM file(s).
 	
