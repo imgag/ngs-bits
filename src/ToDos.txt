@@ -1,9 +1,8 @@
 === TODO ===
 Tools:
+- ReadQC:
+  - create plots without python
  - SampleOverview: add option for BAM files (check depth where variant is not found)
- - ReadQC:
-   - Detect contamination and bad libraries by k-mer counting? Check FastQC output of DX141880_01
-   - create plots without python
  - FastqDemultiplex: check for "carry-over" contamination from last run
 
 CnvHunter
