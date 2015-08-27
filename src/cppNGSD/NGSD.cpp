@@ -285,10 +285,14 @@ void NGSD::annotate(VariantList& variants, QString filename)
 
 		//variant infos
 		Variant& v = variants[i];
+		QByteArray v_id = "-1";
 		query.exec("SELECT id, vus FROM variant WHERE chr='"+v.chr().str()+"' AND start='"+QString::number(v.start())+"' AND end='"+QString::number(v.end())+"' AND ref='"+v.ref()+"' AND obs='"+v.obs()+"'");
-		query.next();
-		QByteArray v_id = query.value(0).toByteArray();
-		v.annotations()[class_idx] = query.value(1).toByteArray().replace("n/a", "");
+		if (query.size()==1)
+		{
+			query.next();
+			v_id = query.value(0).toByteArray();
+			v.annotations()[class_idx] = query.value(1).toByteArray().replace("n/a", "");
+		}
 		//int t_v = timer.elapsed();
 		//timer.restart();
 

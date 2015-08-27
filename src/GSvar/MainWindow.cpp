@@ -1032,19 +1032,19 @@ void MainWindow::varsContextMenu(QPoint pos)
 			//load IGV tracks as requested
 			if (ui_.actionIgvSample->isChecked())
 			{
-				executeIGVCommand("load " + QString(filename_).replace(".GSvar", "_var_annotated.vcf.gz"));
+				executeIGVCommand("load \"" + QString(filename_).replace(".GSvar", "_var_annotated.vcf.gz") + "\"");
 			}
 			if (ui_.actionIgvLowcov->isChecked())
 			{
 				QString system = NGSD().getProcessingSystem(filename_, NGSD::SHORT);
-				executeIGVCommand("load " + QString(filename_).replace(".GSvar", "_" + system + "_lowcov.bed"));
+				executeIGVCommand("load \"" + QString(filename_).replace(".GSvar", "_" + system + "_lowcov.bed") + "\"");
 			}
 			QList<QAction*> igv_actions = ui_.menuIGV->findChildren<QAction*>();
 			foreach(QAction* action, igv_actions)
 			{
 				if (action->isChecked())
 				{
-					executeIGVCommand("load " + action->toolTip());
+					executeIGVCommand("load \"" + action->toolTip() + "\"");
 				}
 			}
 			executeIGVCommand("collapse");
@@ -1052,7 +1052,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 			//load BAM files
 			foreach(QString bam_file, bam_files)
 			{
-				executeIGVCommand("load " + bam_file);
+				executeIGVCommand("load \"" + bam_file + "\"");
 			}
 			//load reference file
 			QString ref = filter_widget_->referenceSample();
@@ -1064,7 +1064,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 				}
 				else
 				{
-					executeIGVCommand("load " + ref);
+					executeIGVCommand("load \"" + ref + "\"");
 				}
 			}
 			//load target region file(s)
@@ -1077,12 +1077,12 @@ void MainWindow::varsContextMenu(QPoint pos)
 				}
 				else
 				{
-					executeIGVCommand("load " + roi);
+					executeIGVCommand("load \"" + roi + "\"");
 				}
 				QString amplicons = roi.left(roi.length()-4) + "_amplicons.bed";
 				if (QFile::exists(amplicons))
 				{
-					executeIGVCommand("load " + amplicons);
+					executeIGVCommand("load \"" + amplicons + "\"");
 				}
 			}
 			//goto location
