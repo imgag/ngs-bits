@@ -228,7 +228,7 @@ QString FilterDockWidget::targetRegion() const
 
 QString FilterDockWidget::gene() const
 {
-return ui_.gene->text();
+return ui_.gene->text().trimmed();
 }
 
 QString FilterDockWidget::referenceSample() const
