@@ -36,7 +36,7 @@ public:
 	{
 		//load input data
 		QMap<QString, QSet<QString> >  genes_uc; //gene names and chromosomes on which they were found.
-		QSharedPointer<QFile> infile = Helper::openFileForReading(getInfile("in"));
+		QSharedPointer<QFile> infile = Helper::openFileForReading(getInfile("in"), true);
 		QStringList genes = Helper::loadTextFile(infile, true, '#', true);
 		foreach(const QString& gene, genes)
 		{
