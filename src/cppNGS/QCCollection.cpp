@@ -187,7 +187,7 @@ void QCCollection::clear()
 
 void QCCollection::storeToQCML(QString filename, const QStringList& source_files, QString parameters, QMap<QString, int> precision_overwrite)
 {
-	QScopedPointer<QFile> file(Helper::openFileForWriting(filename, true));
+	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, true);
 	QTextStream stream(file.data());
 
 	//write header

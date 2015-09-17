@@ -20,7 +20,7 @@ FastaFileIndex::FastaFileIndex(QString fasta_file)
 
 	//load index file
 	int linenum = 0;
-	QScopedPointer<QFile> file(Helper::openFileForReading(index_name_));
+	QSharedPointer<QFile> file = Helper::openFileForReading(index_name_);
 	while(!file->atEnd())
 	{
 		++linenum;

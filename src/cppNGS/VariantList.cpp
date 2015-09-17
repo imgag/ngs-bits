@@ -228,7 +228,7 @@ VariantList::Format VariantList::load(QString filename, VariantList::Format form
 	{
 		//unzip
 		QString tmp_file = Helper::tempFileName(".vcf");
-		QScopedPointer<QFile> outstream(Helper::openFileForWriting(tmp_file));
+		QSharedPointer<QFile> outstream = Helper::openFileForWriting(tmp_file);
 
 		gzFile instream = gzopen(filename.toLatin1().data(), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
 		if (instream == NULL)
@@ -294,7 +294,7 @@ void VariantList::loadFromTSV(QString filename)
 	clear();
 
 	//parse from stream
-	QScopedPointer<QFile> file(Helper::openFileForReading(filename, true));
+	QSharedPointer<QFile> file = Helper::openFileForReading(filename, true);
 	QHash <QString, QString> column_descriptions;
 	while(!file->atEnd())
 	{
@@ -384,7 +384,7 @@ void VariantList::storeToTSV(QString filename)
 	checkValid("storing file '" + filename + "'!");
 
 	//open stream
-	QScopedPointer<QFile> file(Helper::openFileForWriting(filename));
+	QSharedPointer<QFile> file = Helper::openFileForWriting(filename);
 	QTextStream stream(file.data());
 
 	//comments
@@ -469,7 +469,7 @@ void VariantList::loadFromVCF(QString filename)
 
 	//parse from stream
 	int line_number = 0;
-	QScopedPointer<QFile> file(Helper::openFileForReading(filename, true));
+	QSharedPointer<QFile> file = Helper::openFileForReading(filename, true);
 	while(!file->atEnd())
 	{
 		++line_number;
@@ -707,7 +707,7 @@ void VariantList::storeToVCF(QString filename)
 	checkValid("storing file '" + filename + "'!");
 
 	//open stream
-	QScopedPointer<QFile> file(Helper::openFileForWriting(filename));
+	QSharedPointer<QFile> file = Helper::openFileForWriting(filename);
 	QTextStream stream(file.data());
 
 	//write ##fileformat and other metainformation

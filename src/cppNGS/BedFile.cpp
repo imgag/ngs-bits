@@ -63,7 +63,7 @@ void BedFile::load(QString filename)
 	clear();
 
 	//parse from stream
-	QScopedPointer<QFile> file(Helper::openFileForReading(filename, true));
+	QSharedPointer<QFile> file = Helper::openFileForReading(filename, true);
 	while(!file->atEnd())
 	{
 		QByteArray line = file->readLine();
@@ -112,7 +112,7 @@ void BedFile::load(QString filename)
 void BedFile::store(QString filename, QString header)
 {
 	//write to stream
-	QScopedPointer<QFile> file(Helper::openFileForWriting(filename, true));
+	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, true);
 	QTextStream stream(file.data());
 	if (header!="")	stream << header.trimmed()  << "\n";
 	foreach(const BedLine& line, lines_)

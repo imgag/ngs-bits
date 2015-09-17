@@ -25,7 +25,7 @@ void ChromosomalFileIndex::create(const QString& db_file_name, int chr_col, int 
 
 	//parse from file
 	long stream_pos = 0;
-	QScopedPointer<QFile> file(Helper::openFileForReading(db_file_name_));
+	QSharedPointer<QFile> file = Helper::openFileForReading(db_file_name_);
 	while(!file->atEnd())
 	{
 		QByteArray line = file->readLine();
@@ -116,7 +116,7 @@ void ChromosomalFileIndex::create(const QString& db_file_name, int chr_col, int 
 	meta_.insert("version", version());
 
 	//store
-	QScopedPointer<QFile> out_file(Helper::openFileForWriting(db_file_name_ + ".cidx"));
+	QSharedPointer<QFile> out_file = Helper::openFileForWriting(db_file_name_ + ".cidx");
 	QTextStream out_stream(out_file.data());
 	QMap<QString, QString>::Iterator it = meta_.begin();
 	while (it != meta_.end())
@@ -148,7 +148,7 @@ void ChromosomalFileIndex::load(const QString& db_file_name)
 	max_length_ = 0;
 
 	//parse from stream
-	QScopedPointer<QFile> file(Helper::openFileForReading(db_file_name_ + ".cidx"));
+	QSharedPointer<QFile> file = Helper::openFileForReading(db_file_name_ + ".cidx");
 	while(!file->atEnd())
 	{
 		QByteArray line = file->readLine();
@@ -258,7 +258,7 @@ QStringList ChromosomalFileIndex::lines(const Chromosome& chr, int start, int en
 	//find matching lines
 	QPair<long, long> file_range = filePosition(chr, start, end);
 	//qDebug() << "RANGE: " << file_range.first << " " << file_range.second;
-	QScopedPointer<QFile> file(Helper::openFileForReading(db_file_name_));
+	QSharedPointer<QFile> file = Helper::openFileForReading(db_file_name_);
 	file->seek(file_range.first);
 	long stream_pos = file_range.first;
 	while(!file->atEnd())
@@ -291,7 +291,7 @@ bool ChromosomalFileIndex::isUpToDate(QString db_file_name)
 
 	//parse index file
 	bool version_found = false;
-	QScopedPointer<QFile> file(Helper::openFileForReading(db_file_name + ".cidx"));
+	QSharedPointer<QFile> file = Helper::openFileForReading(db_file_name + ".cidx");
 	while(!file->atEnd())
 	{
 		QByteArray line = file->readLine().trimmed();
