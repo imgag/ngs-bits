@@ -44,7 +44,7 @@ public:
 		}
 
 		//output
-		QScopedPointer<QFile> outfile(Helper::openFileForWriting(getOutfile("out"), true));
+		QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream out(outfile.data());
 		out << filename << "Regions    : " << stats.value("roi_fragments").toString() << endl;
 		out << filename << "Bases      : " << stats.value("roi_bases").toString(0) << endl;

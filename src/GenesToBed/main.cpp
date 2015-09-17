@@ -22,11 +22,11 @@ public:
 	virtual void setup()
 	{
 		setDescription("Converts a text file with gene names to a BED file.");
-		addInfile("in", "Input TXT file with one gene symbol per line.", false, true);
 		QStringList modes;
         modes << "gene" << "splice" << "exon" << "ccds";
         addEnum("mode", "Mode: gene = the gene in UCSC, splice = all splice variants in UCSC, exon = all coding exons of all splice variants in UCSC, ccds = all coding exons of all splice variants in CCDS.", false, modes);
 		//optional
+		addInfile("in", "Input TXT file with one gene symbol per line. If unset, reads from STDIN.", true, true);
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true, true);
 		addInfile("db_ccds", "The CCDS flat file. If unset 'ccds_joined' from the 'settings.ini' file is used.", true, true);
 		addInfile("db_ucsc", "The UCSC flat file. If unset 'kgxref_joined' from the 'settings.ini' file is used.", true, true);
@@ -36,7 +36,8 @@ public:
 	{
 		//load input data
 		QMap<QString, QSet<QString> >  genes_uc; //gene names and chromosomes on which they were found.
-		QStringList genes = Helper::loadTextFile(getInfile("in"), true, '#', true);
+		QSharedPointer<QFile> infile = Helper::openFileForReading(getInfile("in"));
+		QStringList genes = Helper::loadTextFile(infile, true, '#', true);
 		foreach(const QString& gene, genes)
 		{
 			genes_uc.insert(gene.toUpper(), QSet<QString>());
@@ -65,7 +66,7 @@ public:
 		CCDS55494.1	chrX	131513693	131547537	131513693,131516205,131518690,131520688,131524874,131526170,131540255,131547510,	131513705,131516300,131518726,131520839,131525111,131526362,131540420,131547537,	MBNL3
 		*/
 		//load DB data and create output
-		QScopedPointer<QFile> file(Helper::openFileForReading(db_file));
+		QSharedPointer<QFile> file = Helper::openFileForReading(db_file);
 		QTextStream stream(file.data());
 		BedFile output;
         //if gene level is wanted, we have to collect all lines of a gene and find min first/ max last base at the end

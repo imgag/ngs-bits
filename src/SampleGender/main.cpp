@@ -48,7 +48,7 @@ public:
 		}
 
 		//output
-		QScopedPointer<QFile> outfile(Helper::openFileForWriting(getOutfile("out"), true));
+		QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream stream(outfile.data());
 		foreach(const QString& line, debug_output)
 		{

@@ -3,7 +3,6 @@
 #include "NGSD.h"
 #include "Helper.h"
 #include "Exceptions.h"
-#include <QScopedPointer>
 #include <QSqlQuery>
 #include <QSqlRecord>
 #include <QDir>
@@ -22,8 +21,8 @@ public:
 	virtual void setup()
 	{
 		setDescription("Lists processed samples from NGSD.");
-		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
 		//optional
+		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
 		addString("project", "Filter for project name.", true, "");
 		addString("sys", "Filter for processing system short name.", true, "");
 		addEnum("quality", "Minimum sample/run quality.", true, QStringList() << "bad" << "medium" << "good", "good");
@@ -124,14 +123,14 @@ public:
 		SqlQuery result = db.getQuery();
 		result.exec("SELECT "+fields.join(", ")+" FROM "+tables.join(", ")+" WHERE "+conditions.join(" AND "));
 
-		//format output
-		QStringList output;
+		//write header line
+		QSharedPointer<QFile> output = Helper::openFileForWriting(getOutfile("out"), true);
 		fields[0] = "ps.name";
-		output << ("#" + fields.join("\t"));
-		if (check_path)
-		{
-			output.last().append("\tcheck_path");
-		}
+		QString line = "#" + fields.join("\t");
+		if (check_path) line += "\tcheck_path";
+		output->write(line.toLatin1() + "\n");
+
+		//write content lines
 		while(result.next())
 		{
 			QStringList tokens;
@@ -186,11 +185,8 @@ public:
 					}
 				}
 			}
-			output << tokens.join("\t");
+			output->write(tokens.join("\t").toLatin1() + "\n");
 		}
-
-		//write output
-		Helper::storeTextFile(getOutfile("out"), output, true);
 	}
 
 	QString escape(QString sql_arg)

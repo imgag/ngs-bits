@@ -45,7 +45,7 @@ public:
 		BamReader no_bam;
 		NGSHelper::openBAM(no_bam, getInfile("no_bam"));
 
-		QScopedPointer<QFile> outfile(Helper::openFileForWriting(getOutfile("out"), true));
+		QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream out(outfile.data());
 
 		int min_depth = getInt("min_depth");

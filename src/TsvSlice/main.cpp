@@ -29,7 +29,7 @@ public:
 	virtual void main()
 	{
 		TSVFileStream in(getInfile("in"));
-		QScopedPointer<QFile> out(Helper::openFileForWriting(getOutfile("out"), true));
+		QSharedPointer<QFile> out = Helper::openFileForWriting(getOutfile("out"), true);
 
 		//check columns
 		QVector<int> cols = in.checkColumns(getString("cols"), getFlag("numeric"));

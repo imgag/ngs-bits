@@ -67,7 +67,7 @@ public:
 		{
 			output.append("Format: Unknown");
 		}
-		Helper::storeTextFile(getOutfile("out"), output, true);
+		Helper::storeTextFile(Helper::openFileForWriting(getOutfile("out"), true), output);
 	}
 };
 

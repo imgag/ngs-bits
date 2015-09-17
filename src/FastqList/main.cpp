@@ -25,7 +25,7 @@ public:
 
 	virtual void main()
 	{
-		QScopedPointer<QFile> file(Helper::openFileForWriting(getOutfile("out"), true));
+		QSharedPointer<QFile> file = Helper::openFileForWriting(getOutfile("out"), true);
 		file->write("#id\tbases\n");
 
 		//parse input and write output

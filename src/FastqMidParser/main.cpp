@@ -96,7 +96,7 @@ public:
 		std::sort(values.begin(), values.end(), std::greater<int>());
 
 		//print list ordered by counts
-		QScopedPointer<QFile> outfile(Helper::openFileForWriting(getOutfile("out"), true));
+		QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream out(outfile.data());
 		int j =0;
 		foreach(int value, values)

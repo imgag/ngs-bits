@@ -63,7 +63,7 @@ public:
 		{
 			QStringList output;
 			metrics.appendToStringList(output);
-			Helper::storeTextFile(getOutfile("out"), output, true);
+			Helper::storeTextFile(Helper::openFileForWriting(getOutfile("out"), true), output);
 		}
 		else
 		{

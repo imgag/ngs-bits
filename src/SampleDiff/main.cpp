@@ -133,7 +133,7 @@ public:
 		}
 
 		//output
-		QScopedPointer<QFile> outfile(Helper::openFileForWriting(getOutfile("out"), true));
+		QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream out(outfile.data());
 		out << "#change\tchr\tstart\tend\tref\tobs\tgenotype\tquality" << endl;
 		int u1 = 0;

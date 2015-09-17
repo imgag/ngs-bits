@@ -80,7 +80,7 @@ public:
 			metrics.appendToStringList(output);
 			output << "";
 			metrics_3exons.appendToStringList(output, precision_overwrite);
-			Helper::storeTextFile(getOutfile("out"), output, true);
+			Helper::storeTextFile(Helper::openFileForWriting(getOutfile("out"), true), output);
 		}
 		else
 		{

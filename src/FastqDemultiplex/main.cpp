@@ -703,7 +703,7 @@ private:
 			++it;
 		}
 
-		Helper::storeTextFile(filename, output, true);
+		Helper::storeTextFile(Helper::openFileForWriting(filename, true), output);
     }
 
 public:

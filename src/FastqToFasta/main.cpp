@@ -25,7 +25,7 @@ public:
 	virtual void main()
 	{
 		//open output stream
-		QScopedPointer<QFile> outfile(Helper::openFileForWriting(getOutfile("out"), true));
+		QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream outstream(outfile.data());
 
 		//process

@@ -43,7 +43,7 @@ public:
 		QString in2 = getInfile("in2");
 
 		QStringList messages;
-		QScopedPointer<QFile> outfile(Helper::openFileForWriting(getOutfile("out"), true));
+		QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream out(outfile.data());
 
 		//TSV mode

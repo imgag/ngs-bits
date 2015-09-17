@@ -38,7 +38,7 @@ public:
 
 		//open output stream
 		QString out = getOutfile("out");
-		QScopedPointer<QFile> outfile(Helper::openFileForWriting(out, true));
+		QSharedPointer<QFile> outfile = Helper::openFileForWriting(out, true);
 		QTextStream outstream(outfile.data());
 		outstream << "#chr\tstart\tend\tsample\tA\tC\tG\tT\ttotal\n";
 

@@ -27,7 +27,7 @@ public:
 	{
 		//load ids and lengths
 		QHash<QByteArray, int> ids;
-		QScopedPointer<QFile> file(Helper::openFileForReading(getInfile("ids")));
+		QSharedPointer<QFile> file = Helper::openFileForReading(getInfile("ids"));
 		while (!file->atEnd())
 		{
 			QByteArray line = file->readLine().trimmed();
@@ -42,7 +42,6 @@ public:
 			}
 			ids.insert(parts[0], length);
 		}
-		file->close();
 
 		//open output stream
 		FastqOutfileStream outfile(getOutfile("out"), false);

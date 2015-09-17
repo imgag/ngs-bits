@@ -121,7 +121,7 @@ public:
 			output.append(gene + "\t" + QString::number(size) + "\t" + QString::number(count) + "\t" + QString::number(100.0*count/size, 'f', 2));
 		}
 		output.sort();
-		Helper::storeTextFile(getOutfile("out"), output, true);
+		Helper::storeTextFile(Helper::openFileForWriting(getOutfile("out"), true), output);
 	}
 };
 

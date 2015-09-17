@@ -37,7 +37,7 @@ public:
 		file.load(getInfile("in"));
 
 		//store output
-		QScopedPointer<QFile> outfile(Helper::openFileForWriting(getOutfile("out"), true));
+		QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream out(outfile.data());
 		for (int i=0;i<file.count();++i)
 		{

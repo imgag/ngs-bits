@@ -45,7 +45,7 @@ public:
 		}
 
 		//header
-		QScopedPointer<QFile> out(Helper::openFileForWriting(getOutfile("out"), true));
+		QSharedPointer<QFile> out = Helper::openFileForWriting(getOutfile("out"), true);
 		out->write("File   : " + QFileInfo(in).fileName().toLatin1() + "\n");
 		out->write("Columns: " + QByteArray::number(instream.columns()) + "\n");
 		out->write("Rows   : " + QByteArray::number(rows) + "\n");

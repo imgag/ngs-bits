@@ -175,7 +175,7 @@ public:
 
     void storeSampleInfo(const QVector<SampleData>& data)
     {
-        QScopedPointer<QFile> out(Helper::openFileForWriting("samples.tsv"));
+		QSharedPointer<QFile> out = Helper::openFileForWriting("samples.tsv");
         QTextStream outstream(out.data());
         outstream << "#sample\tdoc_mean\tref_correl\tcnvs\tcnvs_merged" << endl;
         foreach(const SampleData& sample, data)
@@ -187,7 +187,7 @@ public:
 
     void storeSampleCorrel(const QVector<SampleData>& data)
     {
-        QScopedPointer<QFile> out(Helper::openFileForWriting("samples_correl_all.tsv"));
+		QSharedPointer<QFile> out = Helper::openFileForWriting("samples_correl_all.tsv");
         QTextStream outstream(out.data());
         outstream << "#sample\tdoc_mean\tref_correl\tqc" << endl;
         foreach(const SampleData& sample, data)
@@ -198,7 +198,7 @@ public:
 
     void storeRegionInfo(const QVector<ExonData>& exons)
     {
-        QScopedPointer<QFile> out(Helper::openFileForWriting("regions.tsv"));
+		QSharedPointer<QFile> out = Helper::openFileForWriting("regions.tsv");
         QTextStream outstream(out.data());
         outstream << "#region\tsize\tmedian_ncov\tmad_ncov\tcv_ncov\tcnvs" << endl;
         foreach(const ExonData& exon, exons)
@@ -210,7 +210,7 @@ public:
     void storeRegionInfoBED(QString out_reg, const QVector<ExonData>& exons)
     {
         //BED format: chr, start, end, name, score, strand, thickstart, thickend
-        QScopedPointer<QFile> out(Helper::openFileForWriting(out_reg));
+		QSharedPointer<QFile> out = Helper::openFileForWriting(out_reg);
         QTextStream outstream(out.data());
         outstream << "track name=\"CnvHunter region QC\" itemRgb=On visibility=4" << endl;
         foreach(const ExonData& exon, exons)
@@ -233,7 +233,7 @@ public:
 
     void storeResultInfo(const QVector<ResultData>& results, const QVector<SampleData>& data, const QVector<ExonData>& exons)
     {
-        QScopedPointer<QFile> out(Helper::openFileForWriting("results.tsv"));
+		QSharedPointer<QFile> out = Helper::openFileForWriting("results.tsv");
         QTextStream outstream(out.data());
         outstream << "#sample\tregion\tcopy_number\tz_score\tdepth\tref_depth\tref_stdev" << endl;
         foreach(const ResultData& r, results)
@@ -244,7 +244,7 @@ public:
 
 	QPair<int, int> storeResultAsTSV(const QVector<ResultData>& results, const QVector<SampleData>& data, const QVector<ExonData>& exons, int ext_max_dist, QString filename, QStringList comments, const ChromosomalIndex<BedFile>& gene_idx)
     {
-        QScopedPointer<QFile> out(Helper::openFileForWriting(filename));
+		QSharedPointer<QFile> out = Helper::openFileForWriting(filename);
         QTextStream outstream(out.data());
 
 		//comments
@@ -299,7 +299,7 @@ public:
 
     void storeNormalizedData(const QVector<SampleData>& data, const QVector<ExonData>& exons)
     {
-        QScopedPointer<QFile> out(Helper::openFileForWriting("normalized.tsv"));
+		QSharedPointer<QFile> out = Helper::openFileForWriting("normalized.tsv");
         QTextStream outstream(out.data());
         outstream << "#region";
         foreach(const SampleData& sample, data)
@@ -374,7 +374,7 @@ public:
         bool verbose = getFlag("verbose");
         QStringList in = getInfileList("in");
         QString exclude = getInfile("exclude");
-        QScopedPointer<QFile> out(Helper::openFileForWriting("", true));
+		QSharedPointer<QFile> out = Helper::openFileForWriting("", true);
         QTextStream outstream(out.data());
         int n = getInt("n");
         if (in.count()<n+1) THROW(ArgumentException, "At least n+1 input files are required! Got " + QString::number(in.count()) + "!");

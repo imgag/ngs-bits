@@ -140,7 +140,7 @@ QString ReportWorker::formatCodingSplicing(QByteArray text)
 void ReportWorker::writeHTML()
 {
 	QString temp_filename = Helper::tempFileName(".html");
-	QScopedPointer<QFile> outfile(Helper::openFileForWriting(temp_filename));
+	QSharedPointer<QFile> outfile = Helper::openFileForWriting(temp_filename);
 	QTextStream stream(outfile.data());
 	stream << "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">" << endl;
 	stream << "<html xmlns=\"http://www.w3.org/1999/xhtml\">" << endl;
@@ -579,7 +579,7 @@ void ReportWorker::writeHTML()
 void ReportWorker::writeXML()
 {
 	QString outfile_name = QString(file_rep_).replace(".html", ".xml");
-	QScopedPointer<QFile> outfile(Helper::openFileForWriting(outfile_name));
+	QSharedPointer<QFile> outfile = Helper::openFileForWriting(outfile_name);
 
 	QXmlStreamWriter w(outfile.data());
 	w.setAutoFormatting(true);

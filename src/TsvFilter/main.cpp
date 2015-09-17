@@ -32,7 +32,7 @@ public:
 	{
 		//init
 		TSVFileStream in(getInfile("in"));
-		QScopedPointer<QFile> out(Helper::openFileForWriting(getOutfile("out"), true));
+		QSharedPointer<QFile> out = Helper::openFileForWriting(getOutfile("out"), true);
 		bool v = getFlag("v");
 
 		//split filter

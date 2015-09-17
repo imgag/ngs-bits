@@ -21,8 +21,8 @@ public:
 	virtual void setup()
 	{
 		setDescription("Replaces gene symbols by approved symbols using the HGNC database.");
-		addInfile("in", "Input TXT file with one gene symbol per line.", false, true);
 		//optional
+		addInfile("in", "Input TXT file with one gene symbol per line. If unset, reads from STDIN.", true, true);
 		addOutfile("out", "Output TXT file with approved gene symbols. If unset, writes to STDOUT.", true);
 		addInfile("db", "The HGNC flat file. If unset 'hgnc' from the 'settings.ini' file is used.", true, true);
 	}
@@ -44,7 +44,7 @@ public:
 		QString db_file = getInfile("db");
 		if (db_file=="") db_file = Settings::string("hgnc");
 
-		QScopedPointer<QFile> file(Helper::openFileForReading(db_file));
+		QSharedPointer<QFile> file = Helper::openFileForReading(db_file);
 		QTextStream stream(file.data());
 		while(!stream.atEnd())
 		{
@@ -103,10 +103,10 @@ public:
 				}
 			}
 		}
-		file->close();
 
 		//process input
-		QStringList input = Helper::loadTextFile(getInfile("in"), true, '#', true);
+		QSharedPointer<QFile> infile = Helper::openFileForReading(getInfile("in"), true);
+		QStringList input = Helper::loadTextFile(infile, true, '#', true);
 		QStringList output;
 		QStringList message_prev;
 		QStringList message_syn;
@@ -158,7 +158,7 @@ public:
 		}
 
 		//store output file
-		Helper::storeTextFile(getOutfile("out"), output, true);
+		Helper::storeTextFile(Helper::openFileForWriting(getOutfile("out"), true), output);
 
 		//console output
 		if (message_prev.count()>0)

@@ -90,7 +90,8 @@ public:
 		data_.analysis_pool.setMaxThreadCount(getInt("threads"));
 		params_.debug = getFlag("debug");
 
-		QTextStream out(Helper::openFileForWriting(getOutfile("summary"), true));
+		QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("summary"), true);
+		QTextStream out(outfile.data());
 		bool progress = getFlag("progress");
 		QTime timer;
 		if (progress) timer.start();

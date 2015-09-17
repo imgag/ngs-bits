@@ -30,7 +30,7 @@ public:
 
 		//parse from stream
 		QString last_head = "";
-		QScopedPointer<QFile> file(Helper::openFileForReading(getInfile("in"), true));
+		QSharedPointer<QFile> file = Helper::openFileForReading(getInfile("in"), true);
 		QTextStream stream(file.data());
 		while(!stream.atEnd())
 		{
@@ -51,7 +51,7 @@ public:
 		}
 
 		//output summary
-		QScopedPointer<QFile> outfile(Helper::openFileForWriting(getOutfile("out"), true));
+		QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream stream2(outfile.data());
 		stream2 << "== general info ==" << endl;
 		stream2 << "sequences : " << counts.count() << endl;
