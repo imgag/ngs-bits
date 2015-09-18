@@ -441,9 +441,9 @@ void VariantList::storeToTSV(QString filename)
 	foreach(const Variant& v, variants_)
 	{
 		stream << v.chr().str() << "\t" << v.start() << "\t" << v.end() << "\t" << v.ref() << "\t" << v.obs();
-		if (v.annotations().count()>0)
+		foreach(const QByteArray& entry, v.annotations())
 		{
-			stream << "\t" << v.annotations().join("\t");
+			stream << "\t" << entry;
 		}
 		stream << endl;
 	}

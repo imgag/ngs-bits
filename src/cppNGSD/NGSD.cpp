@@ -344,7 +344,16 @@ void NGSD::annotate(VariantList& variants, QString filename)
 		if (comments.size()>0)
 		{
 			if (comment=="") comment = "n/a";
-			comment += " (" + comments.join(", ") + ")";
+			comment += " (";
+			for (int i=0; i<comments.count(); ++i)
+			{
+				if (i>0)
+				{
+					comment += ", ";
+				}
+				comment += comments[i];
+			}
+			comment += ")";
 		}
 		//int t_com = timer.elapsed();
 		//timer.restart();

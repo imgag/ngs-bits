@@ -350,7 +350,16 @@ public:
 		{
 			if (trio_col.contains(i))
 			{
-				vl[i].annotations().append(trio_col[i].join(","));
+				QByteArray tmp;
+				for (int t=0; t<trio_col[i].count(); ++t)
+				{
+					if (t!=0)
+					{
+						tmp += ',';
+					}
+					tmp += trio_col[i][t];
+				}
+				vl[i].annotations().append(tmp);
 			}
 			else
 			{
