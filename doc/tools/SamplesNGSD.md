@@ -1,17 +1,17 @@
 ### SamplesNGSD tool help
-	SamplesNGSD (0.1-52-g9f9161f)
+	SamplesNGSD (0.1-86-gc061241)
 	
 	Lists processed samples from NGSD.
 	
 	Optional parameters:
 	  -out <file>       Output TSV file. If unset, writes to STDOUT.
 	                    Default value: ''
-	  -project <string> Filter for project name.
+	  -project <string> Project name filter.
 	                    Default value: ''
-	  -sys <string>     Filter for processing system short name.
+	  -sys <string>     Processing system short name filter.
 	                    Default value: ''
-	  -quality <enum>   Minimum sample/run quality.
-	                    Default value: 'good'
+	  -quality <enum>   Minimum sample/run quality filter.
+	                    Default value: 'bad'
 	                    Valid: 'bad,medium,good'
 	  -normal           If set, tumor samples are excluded.
 	                    Default value: 'false'

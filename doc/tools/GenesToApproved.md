@@ -1,12 +1,11 @@
 ### GenesToApproved tool help
-	GenesToApproved (0.1-52-g9f9161f)
+	GenesToApproved (0.1-86-gc061241)
 	
 	Replaces gene symbols by approved symbols using the HGNC database.
 	
-	Mandatory parameters:
-	  -in <file>  Input TXT file with one gene symbol per line.
-	
 	Optional parameters:
+	  -in <file>  Input TXT file with one gene symbol per line. If unset, reads from STDIN.
+	              Default value: ''
 	  -out <file> Output TXT file with approved gene symbols. If unset, writes to STDOUT.
 	              Default value: ''
 	  -db <file>  The HGNC flat file. If unset 'hgnc' from the 'settings.ini' file is used.
