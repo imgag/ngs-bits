@@ -23,9 +23,9 @@ public:
 		setDescription("Lists processed samples from NGSD.");
 		//optional
 		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
-		addString("project", "Filter for project name.", true, "");
-		addString("sys", "Filter for processing system short name.", true, "");
-		addEnum("quality", "Minimum sample/run quality.", true, QStringList() << "bad" << "medium" << "good", "good");
+		addString("project", "Project name filter.", true, "");
+		addString("sys", "Processing system short name filter.", true, "");
+		addEnum("quality", "Minimum sample/run quality filter.", true, QStringList() << "bad" << "medium" << "good", "bad");
 		addFlag("normal", "If set, tumor samples are excluded.");
 		addFlag("check_path", "Checks the sample folder location.");
 	}
