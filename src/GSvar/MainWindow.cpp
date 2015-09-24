@@ -1536,15 +1536,15 @@ void MainWindow::filtersChanged()
 		}
 
 		//gene filter
-		QByteArray gene = filter_widget_->gene().toUpper().toLatin1();
-		if (gene!="")
+		QStringList genes = filter_widget_->genes();
+		if (!genes.empty())
 		{
 			int i_gene = variants_.annotationIndexByName("gene", true, true);
 			for(int i=0; i<variants_.count(); ++i)
 			{
 				if (pass[i])
 				{
-					pass[i] = variants_[i].annotations()[i_gene].toUpper().contains(gene);
+					pass[i] = genes.contains(variants_[i].annotations()[i_gene].toUpper());
 				}
 			}
 			Log::perf("Applying gene filter took ", timer);

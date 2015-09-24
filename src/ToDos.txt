@@ -1,7 +1,6 @@
 === TODO ===
 Tools:
 - GSvar:
- - gen filter: comma-separated
  - do not filter VUS4/5 ever (or implement new filtering concept with FILTER column and filter/keep option)
 
 - ReadQC:

@@ -123,7 +123,7 @@ void FilterDockWidget::reset()
 	ui_.refs->setToolTip("");
 
 	//gene
-	last_gene_ = "";
+	last_genes_.clear();
 	ui_.gene->clear();
 
 	blockSignals(false);
@@ -226,9 +226,14 @@ QString FilterDockWidget::targetRegion() const
 	return ui_.rois->toolTip();
 }
 
-QString FilterDockWidget::gene() const
+QStringList FilterDockWidget::genes() const
 {
-return ui_.gene->text().trimmed();
+	QStringList genes = ui_.gene->text().split(',', QString::SkipEmptyParts);
+	for(int i=0; i<genes.count(); ++i)
+	{
+		genes[i] = genes[i].trimmed().toUpper();
+	}
+	return genes;
 }
 
 QString FilterDockWidget::referenceSample() const
@@ -313,9 +318,9 @@ void FilterDockWidget::referenceSampleChanged(int index)
 
 void FilterDockWidget::geneChanged()
 {
-	if (gene()!=last_gene_)
+	if (genes()!=last_genes_)
 	{
-		last_gene_ = gene();
+		last_genes_ = genes();
 		emit filtersChanged();
 	}
 }

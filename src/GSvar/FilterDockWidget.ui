@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>222</width>
+    <width>223</width>
     <height>518</height>
    </rect>
   </property>
@@ -422,7 +422,11 @@
         <number>3</number>
        </property>
        <item>
-        <widget class="QLineEdit" name="gene"/>
+        <widget class="QLineEdit" name="gene">
+         <property name="toolTip">
+          <string>Comma-separated list of gene names</string>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>

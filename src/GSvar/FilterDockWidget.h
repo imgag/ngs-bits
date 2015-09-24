@@ -56,8 +56,8 @@ public:
 
 	/// Returns the target region file name or an empty string if unset.
 	QString targetRegion() const;
-	/// Returns the gene name.
-	QString gene() const;
+	/// Returns the gene names filter.
+	QStringList genes() const;
 	/// Returns the reference sample name or an empty string if unset.
 	QString referenceSample() const;
 
@@ -85,7 +85,7 @@ private:
 	void loadReferenceFiles();
 
 	Ui::FilterDockWidget ui_;
-	QString last_gene_;
+	QStringList last_genes_;
 };
 
 #endif // FILTERDOCKWIDGET_H
