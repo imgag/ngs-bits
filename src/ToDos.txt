@@ -1,8 +1,5 @@
 === TODO ===
 Tools:
-- GSvar:
- - do not filter VUS4/5 ever (or implement new filtering concept with FILTER column and filter/keep option)
-
 - ReadQC:
   - create plots without python
  - SampleOverview: add option for BAM files (check depth where variant is not found)

@@ -1410,10 +1410,9 @@ void MainWindow::filtersChanged()
 		}
 
 		//VUS filter
+		int i_class = variants_.annotationIndexByName("classification", true, true);
 		if (filter_widget_->applyVus())
 		{
-			int i_class = variants_.annotationIndexByName("classification", true, true);
-
 			int min_vus = filter_widget_->vus();
 			for(int i=0; i<variants_.count(); ++i)
 			{
@@ -1498,6 +1497,17 @@ void MainWindow::filtersChanged()
 						pass[i] = false;
 					}
 				}
+			}
+		}
+
+		//prevent class 4/5 variants from being filtered out by any filter
+		for(int i=0; i<variants_.count(); ++i)
+		{
+			const QString& classification = variants_[i].annotations()[i_class];
+
+			if (classification=="4" || classification=="5")
+			{
+				pass[i] = true;
 			}
 		}
 
