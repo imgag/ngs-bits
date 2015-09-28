@@ -1,4 +1,7 @@
 === TODO ===
+GSvar:
+ - Make low-coverage cutoff for report configurable (for X-analyses, default: 20)
+
 Tools:
 - ReadQC:
   - create plots without python

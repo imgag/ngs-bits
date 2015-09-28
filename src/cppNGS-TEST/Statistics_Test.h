@@ -366,5 +366,15 @@ private slots:
 		S_EQUAL(gender, QString("unknown (too few SNPs)"));
 	}
 
+	void genderSRY()
+	{
+		QStringList debug;
+		QString gender = Statistics::genderSRY(TESTDATA("data_in/panel.bam"), debug);
+		S_EQUAL(gender, QString("female"));
+
+		gender = Statistics::genderSRY(TESTDATA("data_in/sry.bam"), debug);
+		S_EQUAL(gender, QString("male"));
+	}
+
 };
 

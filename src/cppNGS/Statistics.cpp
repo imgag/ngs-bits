@@ -848,5 +848,34 @@ QString Statistics::genderHetX(const QString& bam_file, QStringList& debug_outpu
     if (hom_count + het_count < 20) return "unknown (too few SNPs)";
     if (het_frac<=max_male) return "male";
     if (het_frac>=min_female) return "female";
-    return "unknown (fraction in gray area)";
+	return "unknown (fraction in gray area)";
+}
+
+QString Statistics::genderSRY(const QString& bam_file, QStringList& debug_output, double min_cov)
+{
+	//open BAM file
+	BamReader reader;
+	NGSHelper::openBAM(reader, bam_file);
+
+	//restrict to SRY gene
+	int chry = NGSHelper::getRefID(reader, "chrY");
+	int start = 2655031;
+	int end = 2655641;
+	bool jump_ok = reader.SetRegion(chry, start, chry, end);
+	if (!jump_ok) THROW(FileAccessException, QString::fromStdString(reader.GetErrorString()));
+
+	//calcualte average coverage
+	double cov = 0.0;
+	BamAlignment al;
+	while (reader.GetNextAlignmentCore(al))
+	{
+		cov += al.GetEndPosition() - al.Position;
+	}
+	reader.Close();
+	cov /= (end-start);
+
+	//output
+	debug_output << "coverge SRY: " + QString::number(cov, 'f', 2);
+	if (cov>=min_cov) return "male";
+	return "female";
 }

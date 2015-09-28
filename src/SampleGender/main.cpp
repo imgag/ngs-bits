@@ -23,12 +23,13 @@ public:
 		//optional
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
 		QStringList methods;
-		methods << "xy" << "hetx";
-		addEnum("method", "Method selection: Read distribution on X and Y chromosome (xy), or fraction of heterocygous variants on X chromosome (hetx).", false, methods);
+		methods << "xy" << "hetx" << "sry";
+		addEnum("method", "Method selection: Read distribution on X and Y chromosome (xy), fraction of heterocygous variants on X chromosome (hetx), or coverage of SRY gene (sry).", false, methods);
 		addFloat("max_female","Maximum Y/X ratio for female (method xy).", true, 0.06);
 		addFloat("min_male","Minimum Y/X ratio for male (method xy).", true, 0.09);
 		addFloat("min_female","Minimum heterocygous SNP fraction for female (method hetx).", true, 0.24);
 		addFloat("max_male","Maximum heterocygous SNP fraction for male (method hetx).", true, 0.15);
+		addFloat("sry_cov","Maximum average coverage of SRY gene for males (method sry).", true, 20.0);
 	}
 
 	virtual void main()
@@ -45,6 +46,10 @@ public:
 		else if (method=="hetx")
 		{
 			gender = Statistics::genderHetX(getInfile("in"), debug_output, getFloat("max_male"), getFloat("min_female") );
+		}
+		else if (method=="sry")
+		{
+			gender = Statistics::genderSRY(getInfile("in"), debug_output, getFloat("sry_cov"));
 		}
 
 		//output

@@ -32,6 +32,8 @@ public:
 	static QString genderXY(const QString& bam_file, QStringList& debug_output, double max_female=0.06, double min_male=0.09);
 	///Determines the gender based on the fraction of heterocygous SNPs on chromosome X.
 	static QString genderHetX(const QString& bam_file, QStringList& debug_output, double max_male=0.15, double min_female=0.24);
+	///Determines the gender based on the coverge of the SRY gene on chrY.
+	static QString genderSRY(const QString& bam_file, QStringList& debug_output, double min_cov=20.0);
 
 protected:
 	///No default constructor
