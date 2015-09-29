@@ -58,7 +58,7 @@ void FilterDockWidget::loadROIFilters()
 	ui_.rois->clear();
 	ui_.rois->addItem("none", "");
 	QStringList rois = Settings::stringList("target_regions");
-	rois.sort(); //note: path is included in order!
+	std::sort(rois.begin(), rois.end(), [](const QString& a, const QString& b){return QFileInfo(a).fileName().toUpper() < QFileInfo(b).fileName().toUpper();});
 	foreach(const QString& roi_file, rois)
 	{
 		QFileInfo info(roi_file);
