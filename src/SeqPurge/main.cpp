@@ -35,8 +35,7 @@ public:
 		addInt("qwin", "Quality trimming window size.", true, 5);
 		addInt("qoff", "Quality trimming FASTQ score offset.", true, 33);
 		addInt("ncut", "Number of subsequent Ns to trimmed using a sliding mindow approach from the front of reads. Set to 0 to disable.", true, 7);
-		addInt("min_len_s", "Minimum read length of a single read after adapter trimming. Shorter reads are discarded.", true, 15);
-		addInt("min_len_p", "Minimum read length sum of a read pair after adapter trimming. Shorter reads pairs are discarded.", true, 60);
+		addInt("min_len", "Minimum read length after adapter trimming. Shorter reads are discarded.", true, 15);
 		addInt("threads", "The number of threads used for trimming (an additional thread is used for reading data).", true, 1);
 		addOutfile("out3", "Name prefix of singleton read output files (if only one read of a pair is discarded).", true, false);
 		addOutfile("summary", "Write summary/progress to this file instead of STDOUT.", true, true);
@@ -71,8 +70,7 @@ public:
 
 		params_.match_perc = getFloat("match_perc");
 		params_.mep = getFloat("mep");
-		params_.min_len_s = getInt("min_len_s");
-		params_.min_len_p = getInt("min_len_p");
+		params_.min_len = getInt("min_len");
 
 		params_.qcut = getInt("qcut");
 		params_.qwin = getInt("qwin");

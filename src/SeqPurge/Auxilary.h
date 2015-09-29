@@ -59,8 +59,7 @@ struct TrimmingParameters
 	int a_size;
 	double match_perc;
 	double mep;
-	int min_len_s;
-	int min_len_p;
+	int min_len;
 	int qcut;
 	int qwin;
 	int qoff;

@@ -166,7 +166,7 @@ private slots:
 	//MiSeq 151 cycles - test data where the adapter sequences are not obvious for sequence hits - with quality trimming and N trimming - with singleton output
 	void test_07()
 	{
-		EXECUTE("SeqPurge", "-in1 " + TESTDATA("data_in/SeqPurge_in5.fastq.gz") + " -in2 " + TESTDATA("data_in/SeqPurge_in6.fastq.gz") + " -out1 out/SeqPurge_out13.fastq.gz -out2 out/SeqPurge_out14.fastq.gz -out3 out/SeqPurge_out15 -qcut 25 -min_len_s 30 -min_len_p 80");
+		EXECUTE("SeqPurge", "-in1 " + TESTDATA("data_in/SeqPurge_in5.fastq.gz") + " -in2 " + TESTDATA("data_in/SeqPurge_in6.fastq.gz") + " -out1 out/SeqPurge_out13.fastq.gz -out2 out/SeqPurge_out14.fastq.gz -out3 out/SeqPurge_out15 -qcut 25 -min_len 30");
 		IS_TRUE(QFile::exists("out/SeqPurge_out13.fastq.gz"));
 		IS_TRUE(QFile::exists("out/SeqPurge_out14.fastq.gz"));
 		COMPARE_GZ_FILES("out/SeqPurge_out13.fastq.gz", TESTDATA("data_out/SeqPurge_out13.fastq.gz"));
