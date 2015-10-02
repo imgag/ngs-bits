@@ -249,7 +249,7 @@ void ReportWorker::writeHTML()
 	}
 
 	//output: all rare variants
-	stream << "<p><b>Liste relevanter Varianten nach Filterung</b>" << endl;
+	stream << "<p><b>Liste gefilterter Varianten</b>" << endl;
 	stream << "</p>" << endl;
 	stream << "<table>" << endl;
 	stream << "<tr><th>Gen</th><th>chr</th><th>start</th><th>end</th><th>ref</th><th>obs</th><th>Genotyp</th><th>Details</th><th>Klasse</th><th>Vererbung</th></tr>" << endl;

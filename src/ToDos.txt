@@ -1,6 +1,8 @@
 === TODO ===
 GSvar:
  - Make low-coverage cutoff for report configurable (for X-analyses, default: 20)
+ - comp-het filter after all other filters
+ - get lock before updating INI file
 
 Tools:
 - ReadQC:
