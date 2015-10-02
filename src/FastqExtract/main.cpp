@@ -21,10 +21,15 @@ public:
 		addInfile("in", "Input FASTQ file (gzipped or plain).", false);
 		addInfile("ids", "Input TSV file containing IDs (without the '@') in the first column and optional length in the second column.", false);
 		addOutfile("out", "Output FASTQ file.", false);
+		//optional
+		addFlag("v", "Invert match: keep non-matching reads.");
 	}
 
 	virtual void main()
 	{
+		//init
+		bool v = getFlag("v");
+
 		//load ids and lengths
 		QHash<QByteArray, int> ids;
 		QSharedPointer<QFile> file = Helper::openFileForReading(getInfile("ids"));
@@ -60,14 +65,20 @@ public:
 			int length = ids.value(id, -2);
 			if (length==-2) //id not in list
 			{
-				continue;
+				if (!v) continue;
+
+				outfile.write(entry);
 			}
 			else if (length==-1) //id is in list, but no length given
 			{
+				if (v) continue;
+
 				outfile.write(entry);
 			}
 			else if (length>=1) //id is in list and length given
 			{
+				if (v) continue;
+
 				entry.bases.resize(length);
 				entry.qualities.resize(length);
 				outfile.write(entry);
