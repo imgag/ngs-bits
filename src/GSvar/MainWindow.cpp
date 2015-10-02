@@ -85,10 +85,19 @@ void MainWindow::delayedInizialization()
 	//load from INI file
 	if (Settings::allKeys().count()<5)
 	{
-		QMessageBox::warning(this, "GSvar ini file empty", "The ini file '" + Settings::fileName() + "' is empty.\nPlease inform your administrator!");
-		close();
-		return;
+		Settings::restoreBackup();
+		if (Settings::allKeys().count()<5)
+		{
+			QMessageBox::warning(this, "GSvar ini file empty", "The ini file '" + Settings::fileName() + "' is empty.\nPlease inform your administrator!");
+			close();
+			return;
+		}
 	}
+	else
+	{
+		Settings::createBackup();
+	}
+
 	updateRecentFilesMenu();
 	updateIGVMenu();
 	updatePreferredTranscripts();
