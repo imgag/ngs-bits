@@ -16,7 +16,7 @@ public:
 	/*
 	  @brief Constructor.
 	*/
-	ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QVector< QPair<int, bool> >& variants_selected, QMap<QString, QString> preferred_transcripts, QString outcome, QString file_roi, QString file_bam, bool var_details, QStringList log_files, QString file_rep);
+	ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QVector< QPair<int, bool> >& variants_selected, QMap<QString, QString> preferred_transcripts, QString outcome, QString file_roi, QString file_bam, int min_cov, bool var_details, QStringList log_files, QString file_rep);
 	virtual void process();
 
 	///Returns the file to which the HTML report was written.
@@ -36,6 +36,7 @@ private:
 	QString outcome_;
 	QString file_roi_;
 	QString file_bam_;
+	int min_cov_;
 	bool var_details_;
 	QStringList genes_;
 	QStringList log_files_;

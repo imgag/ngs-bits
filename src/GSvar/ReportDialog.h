@@ -24,6 +24,8 @@ public:
 	QVector< QPair<int, bool> > selectedIndices() const;
 	///Returns if low-coverage details should be added to the report
 	bool detailsCoverage() const;
+	///Returns the cutoff for low-coverage statistics
+	int minCoverage() const;
 	///Returns if variant details should be added to the report
 	bool detailsVariants() const;
 	///Returns the report outcome.

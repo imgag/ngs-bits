@@ -99,6 +99,7 @@ void ReportDialog::setTargetRegionSelected(bool is_selected)
 	{
 		ui_.details_cov->setChecked(false);
 		ui_.details_cov->setEnabled(false);
+		ui_.min_cov->setEnabled(false);
 	}
 }
 
@@ -122,6 +123,11 @@ QVector< QPair<int, bool> > ReportDialog::selectedIndices() const
 bool ReportDialog::detailsCoverage() const
 {
 	return ui_.details_cov->isChecked();
+}
+
+int ReportDialog::minCoverage() const
+{
+	return ui_.min_cov->value();
 }
 
 bool ReportDialog::detailsVariants() const

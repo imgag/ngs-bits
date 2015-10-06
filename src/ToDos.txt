@@ -1,6 +1,6 @@
 === TODO ===
 GSvar:
- - Make low-coverage cutoff for report configurable (for X-analyses, default: 20)
+ - Add button for stand-alone low-coverage report
  - comp-het filter after all other filters
 
 Tools:

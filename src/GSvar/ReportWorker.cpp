@@ -15,7 +15,7 @@
 #include "XmlHelper.h"
 #include "NGSD.h"
 
-ReportWorker::ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QVector< QPair<int, bool> >& variants_selected, QMap<QString, QString> preferred_transcripts, QString outcome, QString file_roi, QString file_bam, bool var_details, QStringList log_files, QString file_rep)
+ReportWorker::ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QVector< QPair<int, bool> >& variants_selected, QMap<QString, QString> preferred_transcripts, QString outcome, QString file_roi, QString file_bam, int min_cov, bool var_details, QStringList log_files, QString file_rep)
 	: WorkerBase("Report generation")
 	, sample_name_(sample_name)
 	, filters_(filters)
@@ -25,6 +25,7 @@ ReportWorker::ReportWorker(QString sample_name, QMap<QString, QString> filters, 
 	, outcome_(outcome)
 	, file_roi_(file_roi)
 	, file_bam_(file_bam)
+	, min_cov_(min_cov)
 	, var_details_(var_details)
 	, genes_()
 	, log_files_(log_files)
@@ -329,7 +330,7 @@ void ReportWorker::writeHTML()
 		stream << "<br />Durchschnittliche Sequenziertiefe: " << avg_cov << endl;
 
 		//calculate low coverage regions
-		BedFile low_cov = Statistics::lowCoverage(roi_, file_bam_, 20);
+		BedFile low_cov = Statistics::lowCoverage(roi_, file_bam_, min_cov_);
 
 		//annotate gene names
 		QSet<QString> skipped_genes;
@@ -392,7 +393,7 @@ void ReportWorker::writeHTML()
 			}
 			stream << "<br />Komplett abgedeckte Gene: " << complete_genes.join(", ") << endl;
 		}
-		stream << "<br />Anteil Regionen mit Tiefe &lt;20: " << QString::number(100.0-perc_cov20.toFloat(), 'f', 2) << "%" << endl;
+		stream << "<br />Anteil Regionen mit Tiefe &lt;" << min_cov_ << ": " << QString::number(100.0*low_cov.baseCount()/roi_.baseCount(), 'f', 2) << "%" << endl;
 		if (!genes_.isEmpty())
 		{
 			QStringList incomplete_genes;
@@ -412,7 +413,7 @@ void ReportWorker::writeHTML()
 			stream << "<br />Fehlende Basen in nicht komplett abgedeckten Genen: " << incomplete_genes.join(", ") << endl;
 		}
 		stream << "</p>" << endl;
-		stream << "<p><span style=\"background-color: #FF0000\">Details Regionen mit Tiefe &lt;20:</span>" << endl;
+		stream << "<p><span style=\"background-color: #FF0000\">Details Regionen mit Tiefe &lt;" << min_cov_ << ":</span>" << endl;
 		stream << "</p>" << endl;
 		stream << "<table>" << endl;
 		stream << "<tr><th>Gen</th><th>Basen</th><th>Chromosom</th><th>Koordinaten_hg19</th></tr>" << endl;
