@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QString>
+#include <QTextStream>
 #include "VariantList.h"
 #include "WorkerBase.h"
 
@@ -13,9 +14,7 @@ class ReportWorker
 	Q_OBJECT
 
 public:
-	/*
-	  @brief Constructor.
-	*/
+	///Constructor.
 	ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QVector< QPair<int, bool> >& variants_selected, QMap<QString, QString> preferred_transcripts, QString outcome, QString file_roi, QString file_bam, int min_cov, bool var_details, QStringList log_files, QString file_rep);
 	virtual void process();
 
@@ -24,6 +23,9 @@ public:
 	{
 		return file_rep_;
 	}
+
+	///writes a low-coverage report
+	static BedFile writeCoverageReport(QTextStream& stream, QString bam_file, const BedFile& roi, QStringList genes, int min_cov);
 
 private:
 	//input variables
@@ -51,6 +53,8 @@ private:
 	QString filterToGermanText(QString name, QString value);
 	QString formatCodingSplicing(QByteArray text);
 	int annotationIndexOrException(const QString& name, bool exact_match) const;
+	static void writeHtmlHeader(QTextStream& stream, QString sample_name);
+	static void writeHtmlFooter(QTextStream& stream);
 	void writeHTML();
 	void writeXML();
 };

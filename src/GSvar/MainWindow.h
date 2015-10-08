@@ -92,8 +92,10 @@ public slots:
 	void on_actionSampleDiff_triggered();
 	///Trio analysis
 	void on_actionTrio_triggered();
-	///Gaps
-	void on_actionGaps_triggered();
+	///Lookup gaps in low-coverage BED file
+	void on_actionGapsLookup_triggered();
+	///Calculate gaps based on current target region
+	void on_actionGapsRecalculate_triggered();
 	///VCF export
 	void on_actionExportVCF_triggered();
 	///Preferred transcript list

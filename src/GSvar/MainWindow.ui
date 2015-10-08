@@ -165,7 +165,8 @@
    <addaction name="actionSampleInformation"/>
    <addaction name="separator"/>
    <addaction name="actionTrio"/>
-   <addaction name="actionGaps"/>
+   <addaction name="actionGapsLookup"/>
+   <addaction name="actionGapsRecalculate"/>
   </widget>
   <action name="actionOpen">
    <property name="text">
@@ -328,16 +329,16 @@
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Triggers a trio analysis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
-  <action name="actionGaps">
+  <action name="actionGapsLookup">
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/Icons/Gaps.png</normaloff>:/Icons/Gaps.png</iconset>
+     <normaloff>:/Icons/Gaps_lookup.png</normaloff>:/Icons/Gaps_lookup.png</iconset>
    </property>
    <property name="text">
     <string>Show gaps</string>
    </property>
    <property name="toolTip">
-    <string>Show gaps from report TXT file.</string>
+    <string>Show low-coverage regions from the pre-calcualated low-coverage BED file in the sample folder.</string>
    </property>
   </action>
   <action name="actionShowHGMD">
@@ -399,6 +400,18 @@
   <action name="actionShowTranscripts">
    <property name="text">
     <string>Show</string>
+   </property>
+  </action>
+  <action name="actionGapsRecalculate">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/Icons/Gaps_calculate.png</normaloff>:/Icons/Gaps_calculate.png</iconset>
+   </property>
+   <property name="text">
+    <string>Recalcualte gaps</string>
+   </property>
+   <property name="toolTip">
+    <string>Create a new low-coverage report for the current target region.</string>
    </property>
   </action>
  </widget>

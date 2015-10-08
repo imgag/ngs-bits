@@ -138,15 +138,144 @@ QString ReportWorker::formatCodingSplicing(QByteArray text)
 	return transcripts.join(", ");
 }
 
-void ReportWorker::writeHTML()
+BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, const BedFile& roi, QStringList genes, int min_cov)
 {
-	QString temp_filename = Helper::tempFileName(".html");
-	QSharedPointer<QFile> outfile = Helper::openFileForWriting(temp_filename);
-	QTextStream stream(outfile.data());
+	QString sample_name = QFileInfo(bam_file).fileName().replace(".bam", "");
+	writeHtmlHeader(stream, sample_name);
+
+	//get statistics values
+	QString avg_cov = "";
+	QString perc_cov20 = "";
+	QCCollection stats = Statistics::mapping(roi, bam_file);
+	for (int i=0; i<stats.count(); ++i)
+	{
+		if (stats[i].name()=="target region read depth") avg_cov = stats[i].toString();
+		if (stats[i].name()=="target region 20x percentage") perc_cov20 = stats[i].toString();
+	}
+
+	stream << "<p><b>Abdeckungsstatistik</b>" << endl;
+	stream << "<br />Durchschnittliche Sequenziertiefe: " << avg_cov << endl;
+
+	//calculate low coverage regions
+	BedFile low_cov = Statistics::lowCoverage(roi, bam_file, min_cov);
+
+	//annotate gene names
+	QSet<QString> skipped_genes;
+	BedFile gene_anno;
+	gene_anno.load(Settings::string("kgxref"));
+	gene_anno.extend(25); //extend to annotate splicing regions as well
+	ChromosomalIndex<BedFile> gene_idx(gene_anno);
+	for (int i=0; i<low_cov.count(); ++i)
+	{
+		QStringList genes;
+		QVector<int> gene_indices = gene_idx.matchingIndices(low_cov[i].chr(), low_cov[i].start(), low_cov[i].end());
+		foreach(int index, gene_indices)
+		{
+			QString current = gene_anno[index].annotations().at(0).toUpper();
+
+			if (genes.isEmpty() || genes.contains(current))
+			{
+				if (!genes.contains(current)) genes.append(current);
+			}
+			else if (!genes.isEmpty() && !genes.contains(current))
+			{
+				skipped_genes.insert(current);
+			}
+		}
+		low_cov[i].annotations().clear();
+		low_cov[i].annotations().append(genes.join(", "));
+	}
+
+	//Log genes the were not in the gene list - if any
+	if (!skipped_genes.isEmpty())
+	{
+		Log::info("Genes not in gene list: " + QStringList(skipped_genes.toList()).join(", "));
+	}
+
+	//group by gene name
+	QMap<QString, QVector<BedLine> > grouped;
+	for (int i=0; i<low_cov.count(); ++i)
+	{
+		QString genes = low_cov[i].annotations()[0];
+
+		//skip non-gene regions
+		// - remains of VEGA database in old HaloPlex designs
+		// - SNPs for sample identification
+		if (genes=="") continue;
+
+		if (!grouped.contains(genes)) grouped.insert(genes, QVector<BedLine>());
+		grouped[genes].append(low_cov[i]);
+	}
+
+	//output
+	if (!genes.isEmpty())
+	{
+		QStringList complete_genes;
+		foreach(const QString& gene, genes)
+		{
+			if (!grouped.contains(gene))
+			{
+				complete_genes << gene;
+			}
+		}
+		stream << "<br />Komplett abgedeckte Gene: " << complete_genes.join(", ") << endl;
+	}
+	stream << "<br />Anteil Regionen mit Tiefe &lt;" << min_cov << ": " << QString::number(100.0*low_cov.baseCount()/roi.baseCount(), 'f', 2) << "%" << endl;
+	if (!genes.isEmpty())
+	{
+		QStringList incomplete_genes;
+		foreach(const QString& gene, genes)
+		{
+			if (grouped.contains(gene))
+			{
+				const QVector<BedLine>& lines = grouped[gene];
+				int missing_bases = 0;
+				for (int i=0; i<lines.count(); ++i)
+				{
+					missing_bases += lines[i].length();
+				}
+				incomplete_genes << gene + " <span style=\"font-size: 80%;\">" + QString::number(missing_bases) + "</span> ";
+			}
+		}
+		stream << "<br />Fehlende Basen in nicht komplett abgedeckten Genen: " << incomplete_genes.join(", ") << endl;
+	}
+	stream << "</p>" << endl;
+	stream << "<p><span style=\"background-color: #FF0000\">Details Regionen mit Tiefe &lt;" << min_cov << ":</span>" << endl;
+	stream << "</p>" << endl;
+	stream << "<table>" << endl;
+	stream << "<tr><th>Gen</th><th>Basen</th><th>Chromosom</th><th>Koordinaten_hg19</th></tr>" << endl;
+	for (auto it=grouped.cbegin(); it!=grouped.cend(); ++it)
+	{
+		stream << "<tr>" << endl;
+		stream << "<td>" << endl;
+		QString chr;
+		QString coords;
+		int bases = 0;
+		const QVector<BedLine>& lines = it.value();
+		for (int i=0; i<lines.count(); ++i)
+		{
+			chr = lines[i].chr().str();
+			bases += lines[i].length();
+			if (coords!="") coords += ", ";
+			coords += QString::number(lines[i].start()) + "-" + QString::number(lines[i].end());
+		}
+		stream << it.key() << "</td><td>" << bases << "</td><td>" << chr << "</td><td>" << coords << endl;
+
+		stream << "</td>" << endl;
+		stream << "</tr>" << endl;
+	}
+	stream << "</table>" << endl;
+	writeHtmlFooter(stream);
+
+	return low_cov;
+}
+
+void ReportWorker::writeHtmlHeader(QTextStream& stream, QString sample_name)
+{
 	stream << "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">" << endl;
 	stream << "<html xmlns=\"http://www.w3.org/1999/xhtml\">" << endl;
 	stream << "	<head>" << endl;
-	stream << "	   <title>Report " << sample_name_ << "</title>" << endl;
+	stream << "	   <title>Report " << sample_name << "</title>" << endl;
 	stream << "	   <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />" << endl;
 	stream << "	   <style type=\"text/css\">" << endl;
 	stream << "		<!--" << endl;
@@ -174,8 +303,22 @@ void ReportWorker::writeHTML()
 	stream << "		-->" << endl;
 	stream << "	   </style>" << endl;
 	stream << "	</head>" << endl;
-
 	stream << "	<body>" << endl;
+}
+
+void ReportWorker::writeHtmlFooter(QTextStream& stream)
+{
+	stream << "	</body>" << endl;
+	stream << "</html>" << endl;
+}
+
+void ReportWorker::writeHTML()
+{
+	QString temp_filename = Helper::tempFileName(".html");
+	QSharedPointer<QFile> outfile = Helper::openFileForWriting(temp_filename);
+	QTextStream stream(outfile.data());
+	writeHtmlHeader(stream, sample_name_);
+
 	stream << "<h4>Technischer Report zur bioinformatischen Analyse</h4>" << endl;
 	stream << "<p><b>Probe: " << sample_name_ << "</b> (" << NGSD().getExternalSampleName(sample_name_) << ")" << endl;
 	stream << "<br />Prozessierungssystem: " << NGSD().getProcessingSystem(sample_name_, NGSD::LONG) << endl;
@@ -313,131 +456,10 @@ void ReportWorker::writeHTML()
 	stream << "</tr>" << endl;
 	stream << "</table>" << endl;
 
-	///output: coverage
+	///low-coverage analysis
 	if (file_bam_!="")
 	{
-		//get statistics values
-		QString avg_cov = "";
-		QString perc_cov20 = "";
-		QCCollection stats = Statistics::mapping(roi_, file_bam_);
-		for (int i=0; i<stats.count(); ++i)
-		{
-			if (stats[i].name()=="target region read depth") avg_cov = stats[i].toString();
-			if (stats[i].name()=="target region 20x percentage") perc_cov20 = stats[i].toString();
-		}
-
-		stream << "<p><b>Abdeckungsstatistik</b>" << endl;
-		stream << "<br />Durchschnittliche Sequenziertiefe: " << avg_cov << endl;
-
-		//calculate low coverage regions
-		BedFile low_cov = Statistics::lowCoverage(roi_, file_bam_, min_cov_);
-
-		//annotate gene names
-		QSet<QString> skipped_genes;
-		BedFile gene_anno;
-		gene_anno.load(Settings::string("kgxref"));
-		gene_anno.extend(25); //extend to annotate splicing regions as well
-		ChromosomalIndex<BedFile> gene_idx(gene_anno);
-		for (int i=0; i<low_cov.count(); ++i)
-		{
-			QStringList genes;
-			QVector<int> gene_indices = gene_idx.matchingIndices(low_cov[i].chr(), low_cov[i].start(), low_cov[i].end());
-			foreach(int index, gene_indices)
-			{
-				QString current = gene_anno[index].annotations().at(0).toUpper();
-
-				if (genes_.isEmpty() || genes_.contains(current))
-				{
-					if (!genes.contains(current)) genes.append(current);
-				}
-				else if (!genes_.isEmpty() && !genes_.contains(current))
-				{
-					skipped_genes.insert(current);
-				}
-			}
-			low_cov[i].annotations().clear();
-			low_cov[i].annotations().append(genes.join(", "));
-		}
-
-		//Log genes the were not in the gene list - if any
-		if (!skipped_genes.isEmpty())
-		{
-			Log::info("Genes not in gene list: " + QStringList(skipped_genes.toList()).join(", "));
-		}
-
-		//group by gene name
-		QMap<QString, QVector<BedLine> > grouped;
-		for (int i=0; i<low_cov.count(); ++i)
-		{
-			QString genes = low_cov[i].annotations()[0];
-
-			//skip non-gene regions
-			// - remains of VEGA database in old HaloPlex designs
-			// - SNPs for sample identification
-			if (genes=="") continue;
-
-			if (!grouped.contains(genes)) grouped.insert(genes, QVector<BedLine>());
-			grouped[genes].append(low_cov[i]);
-		}
-
-		//output
-		if (!genes_.isEmpty())
-		{
-			QStringList complete_genes;
-			foreach(const QString& gene, genes_)
-			{
-				if (!grouped.contains(gene))
-				{
-					complete_genes << gene;
-				}
-			}
-			stream << "<br />Komplett abgedeckte Gene: " << complete_genes.join(", ") << endl;
-		}
-		stream << "<br />Anteil Regionen mit Tiefe &lt;" << min_cov_ << ": " << QString::number(100.0*low_cov.baseCount()/roi_.baseCount(), 'f', 2) << "%" << endl;
-		if (!genes_.isEmpty())
-		{
-			QStringList incomplete_genes;
-			foreach(const QString& gene, genes_)
-			{
-				if (grouped.contains(gene))
-				{
-					const QVector<BedLine>& lines = grouped[gene];
-					int missing_bases = 0;
-					for (int i=0; i<lines.count(); ++i)
-					{
-						missing_bases += lines[i].length();
-					}
-					incomplete_genes << gene + " <span style=\"font-size: 80%;\">" + QString::number(missing_bases) + "</span> ";
-				}
-			}
-			stream << "<br />Fehlende Basen in nicht komplett abgedeckten Genen: " << incomplete_genes.join(", ") << endl;
-		}
-		stream << "</p>" << endl;
-		stream << "<p><span style=\"background-color: #FF0000\">Details Regionen mit Tiefe &lt;" << min_cov_ << ":</span>" << endl;
-		stream << "</p>" << endl;
-		stream << "<table>" << endl;
-		stream << "<tr><th>Gen</th><th>Basen</th><th>Chromosom</th><th>Koordinaten_hg19</th></tr>" << endl;
-		for (auto it=grouped.cbegin(); it!=grouped.cend(); ++it)
-		{
-			stream << "<tr>" << endl;
-			stream << "<td>" << endl;
-			QString chr;
-			QString coords;
-			int bases = 0;
-			const QVector<BedLine>& lines = it.value();
-			for (int i=0; i<lines.count(); ++i)
-			{
-				chr = lines[i].chr().str();
-				bases += lines[i].length();
-				if (coords!="") coords += ", ";
-				coords += QString::number(lines[i].start()) + "-" + QString::number(lines[i].end());
-			}
-			stream << it.key() << "</td><td>" << bases << "</td><td>" << chr << "</td><td>" << coords << endl;
-
-			stream << "</td>" << endl;
-			stream << "</tr>" << endl;
-		}
-		stream << "</table>" << endl;
+		BedFile low_cov = writeCoverageReport(stream, file_bam_, roi_, genes_, min_cov_);
 
 		//additionally store low-coverage BED file
 		low_cov.store(QString(file_rep_).replace(".html", "_lowcov.bed"));
@@ -544,8 +566,7 @@ void ReportWorker::writeHTML()
 	stream << "</table>" << endl;
 
 	//close stream
-	stream << "	</body>" << endl;
-	stream << "</html>" << endl;
+	writeHtmlFooter(stream);
 	outfile->close();
 
 	//validate written HTML file

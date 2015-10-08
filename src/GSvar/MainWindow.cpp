@@ -443,7 +443,7 @@ void MainWindow::on_actionTrio_triggered()
 	}
 }
 
-void MainWindow::on_actionGaps_triggered()
+void MainWindow::on_actionGapsLookup_triggered()
 {
 	if (filename_=="") return;
 
@@ -495,6 +495,56 @@ void MainWindow::on_actionGaps_triggered()
 	edit->setWordWrapMode(QTextOption::NoWrap);
 	edit->setReadOnly(true);
 	GUIHelper::showWidgetAsDialog(edit, "Gaps of gene '" + gene + "'' from low-coverage BED file '" + report + "':", false);
+	edit->deleteLater();
+}
+
+void MainWindow::on_actionGapsRecalculate_triggered()
+{
+	if (filename_=="") return;
+
+	//check for ROI file
+	QString roi_file = filter_widget_->targetRegion();
+	if (roi_file=="") return;
+	BedFile roi;
+	roi.load(roi_file);
+
+	//check for BAM file
+	QString bam_file = getBamFile();
+	if (bam_file=="") return;
+
+	//check for genes list file
+	QString genes_file = roi_file.mid(0, roi_file.length()-4) + "_genes.txt";
+	if (!QFile::exists(genes_file))
+	{
+		QMessageBox::warning(this, "Could not locate gene list for target region.", "File '" + genes_file + "' does not exist!");
+		return;
+	}
+	QStringList genes = Helper::loadTextFile(genes_file, true, '#', true);
+	for(int i=0; i<genes.count(); ++i)
+	{
+		genes[i] = genes[i].toUpper();
+	}
+	genes.sort();
+
+	//get minimum coverage
+	bool ok = true;
+	int min_cov = QInputDialog::getInt(this, "Low-coverage analysis", "minimum coverage:", 20, 1, 999999, 5, &ok);
+	if (!ok) return;
+
+	//create report
+	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+	QString output;
+	QTextStream stream(&output);
+	ReportWorker::writeCoverageReport(stream, bam_file, roi, genes, min_cov);
+	QApplication::restoreOverrideCursor();
+
+	//show output
+	QTextEdit* edit = new QTextEdit();
+	edit->setText(output);
+	edit->setMinimumWidth(500);
+	edit->setWordWrapMode(QTextOption::NoWrap);
+	edit->setReadOnly(true);
+	GUIHelper::showWidgetAsDialog(edit, "Gaps in target region'" + roi_file + "':", false);
 	edit->deleteLater();
 }
 

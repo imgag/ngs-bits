@@ -17,6 +17,7 @@
         <file>Icons/Search.png</file>
         <file>Icons/PrimerDesign.png</file>
         <file>Icons/Trio.png</file>
-        <file>Icons/Gaps.png</file>
+        <file>Icons/Gaps_lookup.png</file>
+        <file>Icons/Gaps_calculate.png</file>
     </qresource>
 </RCC>

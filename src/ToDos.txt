@@ -1,6 +1,5 @@
 === TODO ===
 GSvar:
- - Add button for stand-alone low-coverage report
  - comp-het filter after all other filters
 
 Tools:
