@@ -340,16 +340,16 @@ private slots:
 		I_EQUAL(vl.annotations().count(), 27);
 	}
 
-	void convertVCFToTSV()
+	void convertVCFtoTSV()
 	{
 		//store loaded vcf file
 		VariantList vl;
 		vl.load(TESTDATA("data_in/panel.vcf"));
-		vl.store("out/VariantList_store_02.tsv");
+		vl.store("out/VariantList_convertVCFtoTSV.tsv");
 		vl.clear();
 
 		//reload and check that no information became incorrect (vcf-specific things like annotation dimensions and types are still lost)
-		vl.load("out/VariantList_store_02.tsv");
+		vl.load("out/VariantList_convertVCFtoTSV.tsv");
 		I_EQUAL(vl.count(), 14);
 		I_EQUAL(vl.annotations().count(), 27);
 		I_EQUAL(vl.comments().count(), 1);
@@ -380,6 +380,31 @@ private slots:
 		S_EQUAL(vl[12].annotations().at(3), QByteArray(""));
 		S_EQUAL(vl[12].annotations().at(8), QByteArray("457,473,752,757"));
 		S_EQUAL(vl[12].annotations().at(26), QByteArray("255,0,255"));
+	}
+
+	void checkThatEmptyVariantAnnotationsAreFilled()
+	{
+		//store loaded vcf file
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantList_emptyDescriptions.vcf"));
+		vl.store("out/VariantList_emptyDescriptions_fixed.vcf");
+		vl.clear();
+
+		VariantList vl2;
+		vl2.load("out/VariantList_emptyDescriptions_fixed.vcf");
+		I_EQUAL(vl2.count(), 14);
+		I_EQUAL(vl2.annotations().count(), 27);
+		foreach(VariantAnnotationDescription ad, vl2.annotations())
+		{
+			if (ad.name()=="GQ" || ad.name()=="MQ")
+			{
+				S_EQUAL(ad.description(), "no description available");
+			}
+			else
+			{
+				IS_FALSE(ad.description()=="no description available");
+			}
+		}
 	}
 
 	void loadFromVCF_GZ()

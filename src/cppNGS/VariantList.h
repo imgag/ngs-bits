@@ -252,26 +252,26 @@ protected:
     ///Comparator helper class used by sortByFile.
     class LessComparatorByFile
     {
-    public:
-        ///Constructor with FAI file, which determines the chromosome order.
-        LessComparatorByFile(QString filename);
-        bool operator()(const Variant &a, const Variant &b ) const;
+		public:
+			///Constructor with FAI file, which determines the chromosome order.
+			LessComparatorByFile(QString filename);
+			bool operator()(const Variant &a, const Variant &b ) const;
 
-    private:
-        QString filename_;
-        QHash<int, int> chrom_rank_;
+		private:
+			QString filename_;
+			QHash<int, int> chrom_rank_;
     };
     ///Comparator helper class that used by sort().
     class LessComparator
     {
 
-    public:
-        ///Constructor. If @p quality_index not given, the quality is not considered
-        LessComparator(int quality_index=-1);
-        bool operator()(const Variant& a, const Variant& b) const;
+		public:
+			///Constructor. If @p quality_index not given, the quality is not considered
+			LessComparator(int quality_index=-1);
+			bool operator()(const Variant& a, const Variant& b) const;
 
-    private:
-        int quality_index_;
+		private:
+			int quality_index_;
     };
 
     ///Loads the variant list from a TSV file.
@@ -282,7 +282,8 @@ protected:
     void loadFromVCF(QString filename);
     ///Stores the variant list as a VCF file.
     void storeToVCF(QString filename);
-
+	///Converts an annotation type to a string (for VCF only)
+	static QString annotationTypeToString(VariantAnnotationDescription::AnnotationType type);
 };
 
 #endif // VARIANTLIST_H

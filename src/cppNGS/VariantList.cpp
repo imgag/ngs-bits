@@ -717,32 +717,20 @@ void VariantList::storeToVCF(QString filename)
 		stream << i.next() <<"\n";
 	}
 
-	//write annotations information (##INFO and ##FORMAT lines) and build hash
-	QListIterator <VariantAnnotationDescription> j(annotations());
-	j.next();//Skip ID;
-	j.next();//Skip Quality;
-	j.next();//Skip Filter;
-	while (j.hasNext())
+	//write annotations information (##INFO and ##FORMAT lines)
+	for (int j=3; j<annotations().count(); ++j) //why 3: skip ID Quality Filter
 	{
-		//write information
-		VariantAnnotationDescription anno=j.next();
-		QHash <VariantAnnotationDescription::AnnotationType,QString >convertor;
-		convertor[VariantAnnotationDescription::INTEGER]="Integer";
-		convertor[VariantAnnotationDescription::FLOAT]="Float";
-		convertor[VariantAnnotationDescription::FLAG]="Flag";
-		convertor[VariantAnnotationDescription::CHARACTER]="Character";
-		convertor[VariantAnnotationDescription::STRING]="String";
-		QString out_string = anno.name()+",Number="+anno.number()+",Type="+convertor[anno.type()]+",Description=\""+anno.description()+"\">\n";
-		bool sampleSpecific = anno.sampleSpecific();
-		if (sampleSpecific)
-		{
-			stream << "##FORMAT=<ID="<<out_string;
-		}
-		else
-		{
-			stream << "##INFO=<ID="<<out_string;
-		}
+		const VariantAnnotationDescription& anno = annotations()[j];
+
+		stream << "##" << (anno.sampleSpecific() ? "FORMAT" : "INFO") << "=";
+		stream << "<ID=" << anno.name();
+		stream << ",Number=" << anno.number();
+		stream << ",Type=" << annotationTypeToString(anno.type());
+		QString desc = anno.description();
+		stream << ",Description=\"" << (desc!="" ? desc : "no description available") << "\"";
+		stream << ">\n";
 	}
+
 	//write header line
 	stream << "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t"<<sampleName()<<"\n";
 	//write variants
@@ -758,7 +746,7 @@ void VariantList::storeToVCF(QString filename)
 		for (int i=3; i<v.annotations().count(); ++i) //why 3: skip ID Quality Filter
 		{
 			VariantAnnotationDescription anno_desc = annotations()[i];
-			QString anno_val = v.annotations()[i];
+			QByteArray anno_val = v.annotations()[i];
 			if (anno_val!="")//don't write annotations without values and not set flags
 			{
 				if (anno_desc.sampleSpecific())
@@ -798,6 +786,30 @@ void VariantList::storeToVCF(QString filename)
 		stream << info_field << format_field << sample_field;
 		stream << endl;
 	}
+}
+
+QString VariantList::annotationTypeToString(VariantAnnotationDescription::AnnotationType type)
+{
+	static QHash<VariantAnnotationDescription::AnnotationType,QString> hash;
+
+	//initialize hash
+	if (hash.isEmpty())
+	{
+		hash[VariantAnnotationDescription::INTEGER] = "Integer";
+		hash[VariantAnnotationDescription::FLOAT] = "Float";
+		hash[VariantAnnotationDescription::FLAG] = "Flag";
+		hash[VariantAnnotationDescription::CHARACTER] = "Character";
+		hash[VariantAnnotationDescription::STRING] = "String";
+	}
+
+	//get output
+	QString output = hash.value(type, "");
+	if(output=="")
+	{
+		THROW(ProgrammingException, "Unknown AnnotationType '" + QString::number(type) + "'!");
+	}
+
+	return output;
 }
 
 void VariantList::sort(bool use_quality)
