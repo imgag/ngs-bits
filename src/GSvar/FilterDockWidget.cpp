@@ -27,8 +27,10 @@ FilterDockWidget::FilterDockWidget(QWidget *parent)
 	connect(ui_.geno_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
 
 	connect(ui_.quality_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
-	connect(ui_.trio_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
 	connect(ui_.important_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
+
+	connect(ui_.trio_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
+	connect(ui_.compound_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
 
 	connect(ui_.roi_add, SIGNAL(clicked()), this, SLOT(addRoi()));
 	connect(ui_.roi_add_temp, SIGNAL(clicked()), this, SLOT(addRoiTemp()));
@@ -113,6 +115,7 @@ void FilterDockWidget::reset()
 	ui_.important_enabled->setChecked(false);
 	ui_.quality_enabled->setChecked(false);
 	ui_.trio_enabled->setChecked(false);
+	ui_.compound_enabled->setChecked(false);
 
 	//rois
 	ui_.rois->setCurrentIndex(0);
@@ -148,6 +151,7 @@ void FilterDockWidget::applyDefaultFilters()
 	ui_.important_enabled->setChecked(true);
 	ui_.quality_enabled->setChecked(false);
 	ui_.trio_enabled->setChecked(false);
+	ui_.compound_enabled->setChecked(false);
 
 	//re-enable signals
 	blockSignals(false);
@@ -214,6 +218,11 @@ bool FilterDockWidget::applyQuality() const
 bool FilterDockWidget::applyTrio() const
 {
 	return ui_.trio_enabled->isChecked();
+}
+
+bool FilterDockWidget::applyCompoundHet() const
+{
+	return ui_.compound_enabled->isChecked();
 }
 
 bool FilterDockWidget::keepImportant() const

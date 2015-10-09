@@ -1602,6 +1602,7 @@ void MainWindow::filtersChanged()
 				}
 			}
 			Log::perf("Applying target region filter took ", timer);
+			timer.start();
 		}
 
 		//gene filter
@@ -1611,12 +1612,50 @@ void MainWindow::filtersChanged()
 			int i_gene = variants_.annotationIndexByName("gene", true, true);
 			for(int i=0; i<variants_.count(); ++i)
 			{
-				if (pass[i])
-				{
-					pass[i] = genes.contains(variants_[i].annotations()[i_gene].toUpper());
-				}
+				if (!pass[i]) continue;
+				pass[i] = genes.contains(variants_[i].annotations()[i_gene].toUpper());
 			}
 			Log::perf("Applying gene filter took ", timer);
+			timer.start();
+		}
+
+		//apply compound-heterozygous filter
+		if (filter_widget_->applyCompoundHet())
+		{
+			//count heterozygous passing variants per gene
+			int i_gene = variants_.annotationIndexByName("gene", true, true);
+			int i_geno = variants_.annotationIndexByName("genotype", true, true);
+			QHash<QByteArray, int> gene_to_het;
+			for(int i=0; i<variants_.count(); ++i)
+			{
+				if (!pass[i]) continue;
+				if (variants_[i].annotations()[i_geno]!="het") continue;
+				QList<QByteArray> genes = variants_[i].annotations()[i_gene].toUpper().split(',');
+				foreach(const QByteArray& gene, genes)
+				{
+					gene_to_het[gene.trimmed()] += 1;
+				}
+			}
+
+			//filter out variants of genes with less than two heterozygous variants
+			for(int i=0; i<variants_.count(); ++i)
+			{
+				if (!pass[i]) continue;
+				pass[i] = false;
+				if (variants_[i].annotations()[i_geno]!="het") continue;
+				QList<QByteArray> genes = variants_[i].annotations()[i_gene].toUpper().split(',');
+				foreach(const QByteArray& gene, genes)
+				{
+					if (gene_to_het[gene.trimmed()]>=2)
+					{
+						pass[i] = true;
+						break;
+					}
+				}
+			}
+
+			Log::perf("Applying compound-heterozygous filter took ", timer);
+			timer.start();
 		}
 
 		//update GUI

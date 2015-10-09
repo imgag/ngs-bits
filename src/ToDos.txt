@@ -1,10 +1,9 @@
 === TODO ===
 GSvar:
- - comp-het filter after all other filters
 
 Tools:
 - ReadQC:
-  - create plots without python
+  - create plots without python?
  - SampleOverview: add option for BAM files (check depth where variant is not found)
  - FastqDemultiplex: check for "carry-over" contamination from last run
 

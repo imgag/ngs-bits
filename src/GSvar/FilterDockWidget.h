@@ -50,6 +50,8 @@ public:
 
 	/// Returns if the trio filter is enabled.
 	bool applyTrio() const;
+	/// Returns if the compound-heterzygous filter is enabled.
+	bool applyCompoundHet() const;
 
 	/// Returns if important variants should be kept.
 	bool keepImportant() const;
