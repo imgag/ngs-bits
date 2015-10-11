@@ -2,7 +2,6 @@
 #define MIDLIST_H
 
 #include <QWidget>
-#include "NGSD.h"
 #include "ui_MidList.h"
 
 class MidList
@@ -20,7 +19,6 @@ private slots:
 
 private:
 	Ui::MidList ui;
-	NGSD db_;
 };
 
 #endif // MIDLIST_H

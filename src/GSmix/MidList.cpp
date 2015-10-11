@@ -1,11 +1,13 @@
 #include "MidList.h"
+#include "NGSD.h"
 #include <QDebug>
+#include <QMessageBox>
 
 MidList::MidList(QWidget *parent)
 	: QWidget(parent)
 	, ui()
-	, db_()
 {
+
 	ui.setupUi(this);
 	connect(ui.search, SIGNAL(textEdited(QString)), this, SLOT(filter(QString)));
 
@@ -18,12 +20,24 @@ MidList::~MidList()
 
 void MidList::loadMidsFromNGSD()
 {
-	QSqlQuery q = db_.getQuery();
-
-	q.exec("SELECT name, number, sequence FROM mid");
-	while(q.next())
+	try
 	{
-		ui.mids->addItem(q.value(0).toString() + " " + q.value(1).toString() + " (" + q.value(2).toString() + ")");
+		QSqlQuery q = NGSD().getQuery();
+
+		q.exec("SELECT name, number, sequence FROM mid");
+		while(q.next())
+		{
+			ui.mids->addItem(q.value(0).toString() + " " + q.value(1).toString() + " (" + q.value(2).toString() + ")");
+		}
+	}
+	catch(...)
+	{
+
+		QMessageBox::StandardButton button = QMessageBox::question(this, "Database error", "Could not connect to NGSD!\nLoad MIDs from file?");
+		if (button==QMessageBox::Yes)
+		{
+			//TODO
+		}
 	}
 }
 
