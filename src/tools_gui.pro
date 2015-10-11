@@ -16,6 +16,9 @@ cppNGSD.depends = cppNGS
 SUBDIRS += GSvar
 GSvar.depends = cppGUI cppNGSD
 
+SUBDIRS += GSmix
+GSmix.depends = cppGUI cppNGSD
+
 #other stuff
 OTHER_FILES += ToDos.txt
 

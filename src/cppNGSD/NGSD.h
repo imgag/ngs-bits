@@ -19,8 +19,6 @@ public:
 	NGSD();
 	///Destructor.
 	~NGSD();
-	///Connects to the database and throws a DatabaseError if the connection fails.
-	bool connect();
 
 	///Extracts the sample name from a file name, e.g. 'GS120159' from '/some/path/GS120159_01.bam'.
 	static QString sampleName(const QString& filename);
