@@ -9,15 +9,20 @@ RC_FILE	 = icon.rc
 SOURCES += main.cpp \
         MainWindow.cpp \
         SearchBox.cpp \
-    MidList.cpp
+    MidList.cpp \
+    MidCache.cpp \
+    RunPlanner.cpp
 
 HEADERS  += MainWindow.h \
         SearchBox.h \
-    MidList.h
+    MidList.h \
+    MidCache.h \
+    RunPlanner.h
 
 FORMS    += MainWindow.ui \
         SearchBox.ui \
-    MidList.ui
+    MidList.ui \
+    RunPlanner.ui
 
 include("../app_gui.pri")
 

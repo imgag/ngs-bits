@@ -1,43 +1,41 @@
 #include "MidList.h"
-#include "NGSD.h"
-#include <QDebug>
-#include <QMessageBox>
+#include "MidCache.h"
+#include <QTimer>
+#include "ui_MidList.h"
 
 MidList::MidList(QWidget *parent)
 	: QWidget(parent)
-	, ui()
+	, ui(new Ui::MidList)
 {
+	ui->setupUi(this);
+	connect(ui->search, SIGNAL(textEdited(QString)), this, SLOT(filter(QString)));
 
-	ui.setupUi(this);
-	connect(ui.search, SIGNAL(textEdited(QString)), this, SLOT(filter(QString)));
-
-	loadMidsFromNGSD();
+	//init delayed initialization
+	QTimer* timer = new QTimer(this);
+	timer->setSingleShot(true);
+	timer->start(50);
+	connect(timer, SIGNAL(timeout()), this, SLOT(delayedInizialization()));
 }
 
 MidList::~MidList()
 {
+	delete ui;
 }
 
-void MidList::loadMidsFromNGSD()
+void MidList::delayedInizialization()
 {
-	try
-	{
-		QSqlQuery q = NGSD().getQuery();
+	loadMidsFromCache();
 
-		q.exec("SELECT name, number, sequence FROM mid");
-		while(q.next())
-		{
-			ui.mids->addItem(q.value(0).toString() + " " + q.value(1).toString() + " (" + q.value(2).toString() + ")");
-		}
-	}
-	catch(...)
-	{
+	//delete timer object
+	qobject_cast<QTimer*>(sender())->deleteLater();
+}
 
-		QMessageBox::StandardButton button = QMessageBox::question(this, "Database error", "Could not connect to NGSD!\nLoad MIDs from file?");
-		if (button==QMessageBox::Yes)
-		{
-			//TODO
-		}
+void MidList::loadMidsFromCache()
+{
+	const MidCache& mid_cache = MidCache::inst();
+	for (int i=0; i<mid_cache.count(); ++i)
+	{
+		ui->mids->addItem(mid_cache[i].toString());
 	}
 }
 
@@ -45,16 +43,16 @@ void MidList::filter(QString text)
 {
 	if (text=="")
 	{
-		for(int i=0; i<ui.mids->count(); ++i)
+		for(int i=0; i<ui->mids->count(); ++i)
 		{
-			ui.mids->item(i)->setHidden(false);
+			ui->mids->item(i)->setHidden(false);
 		}
 		return;
 	}
 
-	for(int i=0; i<ui.mids->count(); ++i)
+	for(int i=0; i<ui->mids->count(); ++i)
 	{
-		bool hidden = !ui.mids->item(i)->text().contains(text);
-		ui.mids->item(i)->setHidden(hidden);
+		bool hidden = !ui->mids->item(i)->text().contains(text, Qt::CaseInsensitive);
+		ui->mids->item(i)->setHidden(hidden);
 	}
 }

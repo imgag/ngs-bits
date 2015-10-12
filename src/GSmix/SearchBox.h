@@ -24,7 +24,7 @@ private slots:
 	void onTextChanged();
 
 private:
-	Ui::SearchBox *ui;
+	Ui::SearchBox* ui;
 };
 
 #endif // SEARCHBOX_H

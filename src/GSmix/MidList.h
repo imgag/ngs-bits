@@ -2,7 +2,10 @@
 #define MIDLIST_H
 
 #include <QWidget>
-#include "ui_MidList.h"
+
+namespace Ui {
+class MidList;
+}
 
 class MidList
 	: public QWidget
@@ -12,13 +15,14 @@ class MidList
 public:
 	MidList(QWidget *parent = 0);
 	~MidList();
-	void loadMidsFromNGSD();
+	void loadMidsFromCache();
 
 private slots:
 	void filter(QString text);
+	void delayedInizialization();
 
 private:
-	Ui::MidList ui;
+	Ui::MidList* ui;
 };
 
 #endif // MIDLIST_H

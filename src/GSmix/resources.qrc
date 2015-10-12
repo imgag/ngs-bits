@@ -2,5 +2,7 @@
     <qresource prefix="/">
         <file>Icons/Icon.png</file>
         <file>Icons/remove.png</file>
+        <file>Icons/add.png</file>
+        <file>Icons/verify.png</file>
     </qresource>
 </RCC>
