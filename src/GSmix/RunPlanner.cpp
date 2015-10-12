@@ -150,6 +150,16 @@ void RunPlanner::checkForMidCollisions()
 		QString mid1 = itemMid(r,1);
 		QString mid2 = itemMid(r,2);
 		samples.append(SampleMIDs{name, mid1, mid2});
+		if (name=="")
+		{
+			QMessageBox::critical(this, "Invalid sample row!", "No name given for sample in row " + QString::number(r) + "!");
+			return;
+		}
+		if (mid1=="")
+		{
+			QMessageBox::critical(this, "Invalid sample row!", "No i7 MID given for sample " + name + "!");
+			return;
+		}
 	}
 
 	//determine MID lengths to create sample sheets for (smallest for each i7/i5)
