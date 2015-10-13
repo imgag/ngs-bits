@@ -5,7 +5,7 @@
 
 QVector<double> AnalysisWorker::fak_cache = QVector<double>();
 
-AnalysisWorker::AnalysisWorker(FastqEntry* e1, FastqEntry* e2, TrimmingParameters& params, TrimmingStatistics& stats, TrimmingData& data)
+AnalysisWorker::AnalysisWorker(QSharedPointer<FastqEntry> e1, QSharedPointer<FastqEntry> e2, TrimmingParameters& params, TrimmingStatistics& stats, TrimmingData& data)
     : QRunnable()
 	, e1_(e1)
 	, e2_(e2)
@@ -475,8 +475,4 @@ void AnalysisWorker::run()
 	stats_.bases_perc_trim_sum += (double)(length_s1_orig - e1_->bases.count()) / length_s1_orig;
 	stats_.bases_perc_trim_sum += (double)(length_s2_orig - e2_->bases.count()) / length_s2_orig;
 	stats_.mutex.unlock();
-
-	//delete data
-	delete e1_;
-	delete e2_;
 }

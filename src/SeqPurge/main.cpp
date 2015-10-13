@@ -40,6 +40,7 @@ public:
 		addOutfile("out3", "Name prefix of singleton read output files (if only one read of a pair is discarded).", true, false);
 		addOutfile("summary", "Write summary/progress to this file instead of STDOUT.", true, true);
 		addOutfile("qc", "If set, a read QC file in qcML format is created (just like ReadQC).", true, true);
+		addInt("prefetch", "Maximum number of reads that may be pre-fetched to speed up trimming", true, 1000);
 		addFlag("debug", "Enables debug output (use only with one thread).");
 		addFlag("progress", "Enables progress output.");
 	}
@@ -71,6 +72,7 @@ public:
 		params_.match_perc = getFloat("match_perc");
 		params_.mep = getFloat("mep");
 		params_.min_len = getInt("min_len");
+		params_.max_reads_queued = getInt("prefetch");
 
 		params_.qcut = getInt("qcut");
 		params_.qwin = getInt("qwin");
@@ -125,9 +127,9 @@ public:
 				}
 				data_.reads_queued += 2;
 
-				FastqEntry* e1 = new FastqEntry();
+				QSharedPointer<FastqEntry> e1(new FastqEntry());
 				in1.readEntry(*e1);
-				FastqEntry* e2 = new FastqEntry();
+				QSharedPointer<FastqEntry> e2(new FastqEntry());
 				in2.readEntry(*e2);
 
 				data_.analysis_pool.start(new AnalysisWorker(e1, e2, params_, stats_, data_));

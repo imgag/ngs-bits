@@ -48,7 +48,6 @@ struct TrimmingParameters
 {
 	TrimmingParameters()
 	: adapter_overlap(10)
-	, max_reads_queued(1000)
 	{
 	}
 
