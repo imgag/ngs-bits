@@ -12,7 +12,7 @@ class AnalysisWorker
 public:
 	AnalysisWorker(QSharedPointer<FastqEntry> e1, QSharedPointer<FastqEntry> e2, TrimmingParameters& params, TrimmingStatistics& stats, TrimmingData& data);
 	~AnalysisWorker();
-	void run() override;
+	void run();
 
 	//initializes faktorial cache
 	static void precalculateFactorials();
