@@ -181,7 +181,7 @@ void RunPlanner::checkForMidCollisions()
 	{
 		mid2_len2 = mid2_sorted[1];
 		output << "Notice: Runs contains samples with different MID lengths!";
-		output << "Additional MIDs lengths for demultiplexing: " + QString::number(mid1_len) + "+" + QString::number(mid2_len1);
+		output << "Additional MIDs lengths for demultiplexing: " + QString::number(mid1_len) + "+" + QString::number(mid2_len2);
 	}
 	output << "";
 
