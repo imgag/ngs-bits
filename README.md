@@ -43,6 +43,8 @@ Just execute the following make commands:
 
 Now the executables and all required libraries can be found in the bin/ folder!
 
+**Note:** Instructions how to build *ngs-bits* unter Windows can be found [here](doc/tools/SeqPurge.md).
+
 ## Support
 
 Please report any issues or questions to the [ngs-bits issue 
@@ -99,3 +101,4 @@ _ngs-bits_ contains a lot of tools that we use for NGS short-read data analysis 
 * [VcfLeftAlign](doc/tools/VcfLeftAlign.md) - Left-aligns indel variants in repeat regions.
 * [VcfSort](doc/tools/VcfSort.md) - Sorts variant lists according to chromosomal position.
   
+

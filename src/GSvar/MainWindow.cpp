@@ -1613,7 +1613,7 @@ void MainWindow::filtersChanged()
 			for(int i=0; i<variants_.count(); ++i)
 			{
 				if (!pass[i]) continue;
-				pass[i] = genes.contains(variants_[i].annotations()[i_gene].toUpper());
+				pass[i] = genes.contains(variants_[i].annotations()[i_gene], Qt::CaseInsensitive);
 			}
 			Log::perf("Applying gene filter took ", timer);
 			timer.start();
