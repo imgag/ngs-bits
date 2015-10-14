@@ -43,7 +43,7 @@ Just execute the following make commands:
 
 Now the executables and all required libraries can be found in the bin/ folder!
 
-**Note:** Instructions how to build *ngs-bits* unter Windows can be found [here](doc/tools/SeqPurge.md).
+**Note:** Instructions how to build *ngs-bits* unter Windows can be found [here](doc/install_win.md).
 
 ## Support
 

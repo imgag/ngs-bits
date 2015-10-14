@@ -1,6 +1,9 @@
 === TODO ===
 GSvar:
 
+GSmix:
+- Add direct import of samples into NGSD
+
 Tools:
 - ReadQC:
   - create plots without python?
