@@ -29,10 +29,14 @@ Then you have to adapt your ~/.gitconfig file like that:
 ngs-bits depends on the following software to be installed
 
 * _g++_
-* _qmake_ (Qt 5.3 or higher)
+* _qmake_ (Qt 5.3 or higher, including xmlpatterns and mysql package)
 * _git_ (to extract the version hash)
 * _cmake_ (to build the [bamtools](https://github.com/pezmaster31/bamtools) library)
 * __optional:__ python and matplotlib (for plot generation in QC tools)
+
+For example, the installation of the dependencies using Ubuntu 14.04 looks like that:
+
+	> sudo apt-get install g++ qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql git cmake python python-matplotlib
 
 ### Building
 
@@ -101,4 +105,6 @@ _ngs-bits_ contains a lot of tools that we use for NGS short-read data analysis 
 * [VcfLeftAlign](doc/tools/VcfLeftAlign.md) - Left-aligns indel variants in repeat regions.
 * [VcfSort](doc/tools/VcfSort.md) - Sorts variant lists according to chromosomal position.
   
+
+
 
