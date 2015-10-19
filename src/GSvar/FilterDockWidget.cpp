@@ -235,14 +235,17 @@ QString FilterDockWidget::targetRegion() const
 	return ui_.rois->toolTip();
 }
 
-QStringList FilterDockWidget::genes() const
+QList<QByteArray> FilterDockWidget::genes() const
 {
-	QStringList genes = ui_.gene->text().split(',', QString::SkipEmptyParts);
+	QStringList genes = ui_.gene->text().split(',');
+
+	QList<QByteArray> output;
 	for(int i=0; i<genes.count(); ++i)
 	{
-		genes[i] = genes[i].trimmed().toUpper();
+		QByteArray gene = genes[i].trimmed().toUpper().toLatin1();
+		if (gene!="") output.append(gene);
 	}
-	return genes;
+	return output;
 }
 
 QString FilterDockWidget::referenceSample() const

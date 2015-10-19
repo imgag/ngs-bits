@@ -1606,14 +1606,26 @@ void MainWindow::filtersChanged()
 		}
 
 		//gene filter
-		QStringList genes = filter_widget_->genes();
-		if (!genes.empty())
+		QList<QByteArray> genes_filter = filter_widget_->genes();
+		if (!genes_filter.empty())
 		{
 			int i_gene = variants_.annotationIndexByName("gene", true, true);
 			for(int i=0; i<variants_.count(); ++i)
 			{
 				if (!pass[i]) continue;
-				pass[i] = genes.contains(variants_[i].annotations()[i_gene], Qt::CaseInsensitive);
+				QList<QByteArray> genes_variant = variants_[i].annotations()[i_gene].split(',');
+				bool contained = false;
+				for(int i=0; i<genes_variant.count(); ++i)
+				{
+					QByteArray gene = genes_variant[i].trimmed().toUpper();
+					if (gene=="") continue;
+					if (genes_filter.contains(gene))
+					{
+						contained = true;
+						break;
+					}
+				}
+				pass[i] = contained;
 			}
 			Log::perf("Applying gene filter took ", timer);
 			timer.start();
