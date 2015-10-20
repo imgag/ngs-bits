@@ -1293,9 +1293,9 @@ void MainWindow::varsContextMenu(QPoint pos)
 			QString url = Settings::string("PrimerDesign")+"/index.php?user="+Helper::userName()+"&sample="+NGSD::sampleName(filename_)+"&chr="+v.chr().str()+"&start="+QString::number(v.start())+"&end="+QString::number(v.end())+"";
 			QDesktopServices::openUrl(QUrl(url));
 		}
-		catch (DatabaseException e)
+		catch (Exception& e)
 		{
-			GUIHelper::showMessage("NGSD error", "The variant database ID could not be determined!\nDoes the file name '"  + filename_ + "' start with the prcessed sample ID?\nError message: " + e.message());
+			GUIHelper::showMessage("NGSD error", "Error while processing'"  + filename_ + "'!\nError message: " + e.message());
 			return;
 		}
 	}

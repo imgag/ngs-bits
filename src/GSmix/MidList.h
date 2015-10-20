@@ -15,14 +15,13 @@ class MidList
 public:
 	MidList(QWidget *parent = 0);
 	~MidList();
-	void loadMidsFromCache();
 
 private slots:
 	void filter(QString text);
-	void delayedInizialization();
 
 private:
 	Ui::MidList* ui;
+	void loadMidsFromDB();
 };
 
 #endif // MIDLIST_H

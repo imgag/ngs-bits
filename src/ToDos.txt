@@ -2,7 +2,7 @@
 GSvar:
 
 GSmix:
-- Add direct import of samples into NGSD
+- Support copy-and-paste of text in fields
 
 Tools:
 - ReadQC:

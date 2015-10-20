@@ -2,11 +2,8 @@
 #include "Exceptions.h"
 #include "Helper.h"
 #include "Log.h"
-#include <QSqlError>
-#include <QSqlQuery>
 #include <QFileInfo>
 #include "Settings.h"
-
 
 NGSD::NGSD()
 {
@@ -22,6 +19,126 @@ NGSD::NGSD()
 		THROW(DatabaseException, "Could not connect to the NGSD database!");
 	}
 	//Log::info("MYSQL openend  - name: " + db_.connectionName() + " valid: " + (db_.isValid() ? "yes" : "no"));
+}
+
+QString NGSD::userId()
+{
+	QString user_name = Helper::userName();
+	QString user_id = getValue("SELECT id FROM user WHERE user_id='" + user_name + "'", true).toString();
+	if (user_id=="")
+	{
+		THROW(DatabaseException, "Could not determine NGSD user ID for user name '" + user_name + "! Do you have an NGSD user account?");
+	}
+
+	return user_id;
+}
+
+
+QString NGSD::sampleName(const QString& filename, bool throw_if_fails)
+{
+	QString basename = QFileInfo(filename).baseName();
+	QStringList parts = basename.append('_').split('_');
+
+	if (parts[0]=="")
+	{
+		if (throw_if_fails)
+		{
+			THROW(ArgumentException, "File name '" + basename + "' does not start with a valid NGSD sample name!");
+		}
+		else
+		{
+			return "";
+		}
+	}
+
+	return parts[0];
+}
+
+QString NGSD::processedSampleName(const QString& filename, bool throw_if_fails)
+{
+	QString basename = QFileInfo(filename).baseName();
+	QStringList parts = basename.append('_').split('_');
+
+	bool ok = false;
+	parts[1].toInt(&ok);
+	if (parts[0]=="" || !ok)
+	{
+		if (throw_if_fails)
+		{
+			THROW(ArgumentException, "File name '" + basename + "' does not start with a valid NGSD processed sample name!");
+		}
+		else
+		{
+			return "";
+		}
+	}
+
+	return parts[0] + "_" + parts[1];
+}
+
+QString NGSD::sampleId(const QString& filename, bool throw_if_fails)
+{
+	QStringList parts = QFileInfo(filename).baseName().append('_').split('_');
+
+	//get sample ID
+	SqlQuery query = getQuery(); //use binding user input (safety)
+	query.prepare("SELECT id FROM sample WHERE name=:sample");
+	query.bindValue(":sample", parts[0]);
+	query.exec();
+	if (query.size()==0)
+	{
+		if(throw_if_fails)
+		{
+			THROW(DatabaseException, "Sample name '" + parts[0] + "' not found in NGSD!");
+		}
+		else
+		{
+			return "";
+		}
+	}
+	query.next();
+	return query.value(0).toString();
+}
+
+QString NGSD::processedSampleId(const QString& filename, bool throw_if_fails)
+{
+	QStringList parts = QFileInfo(filename).baseName().append('_').split('_');
+
+	//get sample ID
+	SqlQuery query = getQuery(); //use binding user input (safety)
+	query.prepare("SELECT ps.id FROM processed_sample ps, sample s WHERE s.name=:sample AND ps.sample_id=s.id AND ps.process_id=:psnum");
+	query.bindValue(":sample", parts[0]);
+	query.bindValue(":psnum", QString::number(parts[1].toInt()));
+	query.exec();
+	if (query.size()==0)
+	{
+		if(throw_if_fails)
+		{
+			THROW(DatabaseException, "Processed sample name '" + parts[0] + "_" + parts[1] + "' not found in NGSD!");
+		}
+		else
+		{
+			return "";
+		}
+	}
+	query.next();
+	return query.value(0).toString();
+}
+
+QString NGSD::variantId(const Variant& variant)
+{
+	SqlQuery query = getQuery(); //use binding user input (safety)
+	query.prepare("SELECT id FROM variant WHERE chr=:chr AND start='"+QString::number(variant.start())+"' AND end='"+QString::number(variant.end())+"' AND ref=:ref AND obs=:obs");
+	query.bindValue(":chr", variant.chr().str());
+	query.bindValue(":ref", variant.ref());
+	query.bindValue(":obs", variant.obs());
+	query.exec();
+	if (query.size()==0)
+	{
+		THROW(DatabaseException, "Variant " + variant.toString() + " not found in NGSD!");
+	}
+	query.next();
+	return query.value(0).toString();
 }
 
 QVariant NGSD::getValue(const QString& query, bool no_value_is_ok)
@@ -91,24 +208,15 @@ NGSD::~NGSD()
 
 QString NGSD::getExternalSampleName(const QString& filename)
 {
-	//query
-	QVariant value = getValue("SELECT name_external FROM sample WHERE name='" + sampleName(filename) + "'");
+	QString value = getValue("SELECT name_external FROM sample WHERE id='" + sampleId(filename) + "'").toString().trimmed();
 
-	//output
-	if (value.isNull() || !value.isValid() || value.toString().trimmed().isEmpty())
-	{
-		return "n/a";
-	}
-	return value.toString().trimmed();
+	return value=="" ? "n/a" : value;
 }
 
 QString NGSD::getProcessingSystem(const QString& filename, SystemType type)
 {
-	//get sample ID
-	QString s_id = getValue("SELECT id FROM sample WHERE name='" + sampleName(filename) + "'").toString();
-
 	//get processing system ID
-	QString sys_id = getValue("SELECT processing_system_id FROM processed_sample WHERE sample_id='" + s_id + "' AND process_id='" + processedSampleNumber(filename) + "'").toString();
+	QString sys_id = getValue("SELECT processing_system_id FROM processed_sample WHERE id='" + processedSampleId(filename) + "'").toString();
 
 	QString what;
 	if (type==SHORT)
@@ -133,39 +241,20 @@ QString NGSD::getProcessingSystem(const QString& filename, SystemType type)
 
 QString NGSD::getGenomeBuild(const QString& filename)
 {
-	//get sample ID
-	QString s_id = getValue("SELECT id FROM sample WHERE name='" + sampleName(filename) + "'").toString();
-
-	//get processed sample ID
-	QString ps_id = getValue("SELECT id FROM processed_sample WHERE sample_id='" + s_id + "' AND process_id='" + processedSampleNumber(filename) + "'").toString();
-
-	return getValue("SELECT g.build FROM processed_sample ps, processing_system sys, genome g WHERE ps.id='" + ps_id + "' AND ps.processing_system_id=sys.id AND sys.genome_id=g.id").toString();
+	return getValue("SELECT g.build FROM processed_sample ps, processing_system sys, genome g WHERE ps.id='" + processedSampleId(filename) + "' AND ps.processing_system_id=sys.id AND sys.genome_id=g.id").toString();
 }
 
 QPair<QString, QString> NGSD::getValidationStatus(const QString& filename, const Variant& variant)
 {
-	//get sample ID
-	QString s_id = getValue("SELECT id FROM sample WHERE name='" + sampleName(filename) + "'").toString();
-
-	//get processed sample ID
-	QString ps_id = getValue("SELECT id FROM processed_sample WHERE sample_id='" + s_id + "' AND process_id='" + processedSampleNumber(filename) + "'").toString();
-
-	//get variant ID
-	QString v_id = getValue("SELECT id FROM variant WHERE chr='"+variant.chr().str()+"' AND start='"+QString::number(variant.start())+"' AND end='"+QString::number(variant.end())+"' AND ref='"+variant.ref()+"' AND obs='"+variant.obs()+"'", false).toString();
-
-	//get validation info
 	SqlQuery result = getQuery();
-	result.exec("SELECT validated, validation_comment FROM detected_variant WHERE processed_sample_id='" + ps_id + "' AND variant_id='" + v_id + "'");
+	result.exec("SELECT validated, validation_comment FROM detected_variant WHERE processed_sample_id='" + processedSampleId(filename) + "' AND variant_id='" + variantId(variant) + "'");
 	result.next();
 	return qMakePair(result.value(0).toString().trimmed(), result.value(1).toString().trimmed());
 }
 
 QCCollection NGSD::getQCData(const QString& filename)
 {
-	//get sample ids
-	QString s_id = getValue("SELECT id FROM sample WHERE name='" + sampleName(filename) + "'").toString();
-	QString ps_number = processedSampleNumber(filename);
-	QString ps_id = getValue("SELECT id FROM processed_sample WHERE sample_id='" + s_id + "' AND process_id='" + ps_number + "'").toString();
+	QString ps_id = processedSampleId(filename, false);
 
 	//get NGSO data
 	SqlQuery q = getQuery();
@@ -200,11 +289,8 @@ QCCollection NGSD::getQCData(const QString& filename)
 
 QVector<double> NGSD::getQCValues(const QString& accession, const QString& filename)
 {
-	//get sample ID
-	QString s_id = getValue("SELECT id FROM sample WHERE name='" + sampleName(filename) + "'").toString();
-
 	//get processing system ID
-	QString sys_id = getValue("SELECT processing_system_id FROM processed_sample WHERE sample_id='" + s_id + "' AND process_id='" + processedSampleNumber(filename) + "'").toString();
+	QString sys_id = getValue("SELECT processing_system_id FROM processed_sample WHERE id='" + processedSampleId(filename) + "'").toString();
 
 	//get NGSO id
 	QString ngso_id = getValue("SELECT id FROM ngso WHERE ngso_id='" + accession + "'").toString();
@@ -230,14 +316,13 @@ void NGSD::annotate(VariantList& variants, QString filename)
 	initProgress("NGSD annotation", true);
 
 	//get sample ids
-	QString s_id = getValue("SELECT id FROM sample WHERE name='" + sampleName(filename) + "'").toString();
-	QString ps_number = processedSampleNumber(filename);
-	QString ps_id = getValue("SELECT id FROM processed_sample WHERE sample_id='" + s_id + "' AND process_id='" + ps_number + "'").toString();
-	QString sys_id = getValue("SELECT processing_system_id FROM processed_sample WHERE sample_id='" + s_id + "' AND process_id='" + ps_number + "'").toString();
+	QString s_id = sampleId(filename, false);
+	QString ps_id = processedSampleId(filename, false);
+	QString sys_id = getValue("SELECT processing_system_id FROM processed_sample WHERE id='" + processedSampleId(filename, false) + "'").toString();
 
 	//check if we could determine the sample
 	bool found_in_db = true;
-	if (s_id=="" || ps_number=="" || ps_id=="" || sys_id=="")
+	if (s_id=="" || ps_id=="" || sys_id=="")
 	{
 		Log::warn("Could not find processed sample in NGSD by name '" + filename + "'. Annotation will be incomplete because processing system could not be determined!");
 		found_in_db = false;
@@ -277,7 +362,7 @@ void NGSD::annotate(VariantList& variants, QString filename)
 	int comment_idx = variants.annotationIndexByName("comment", true, false);
 
 	//(re-)annotate the variants
-	QSqlQuery query = getQuery();
+	SqlQuery query = getQuery();
 	for (int i=0; i<variants.count(); ++i)
 	{
 		//QTime timer;
@@ -426,12 +511,12 @@ void NGSD::annotateSomatic(VariantList& variants, QString filename, QString ref_
 
 	//get sample ids
 	QStringList samples = filename.split('-');
-	QString ts_id = getValue("SELECT id FROM sample WHERE name='" + sampleName(samples[0]) + "'").toString();
+	QString ts_id = sampleId(samples[0], false);
 
 	//check if we could determine the sample
 	if (ts_id=="")
 	{
-		Log::warn("Could not find processed sample in NGSD by name '" + sampleName(samples[0]) + "'. Annotation will be incomplete because processing system could not be determined!");
+		Log::warn("Could not find processed sample in NGSD from name '" + QFileInfo(filename).baseName() + "'. Annotation will be incomplete because processing system could not be determined!");
 	}
 
 	//remove all NGSD-specific columns
@@ -506,110 +591,55 @@ void NGSD::annotateSomatic(VariantList& variants, QString filename, QString ref_
 
 void NGSD::setValidationStatus(const QString& filename, const Variant& variant, const QString& status, const QString& comment)
 {
-	//get sample ID
-	QString s_id = getValue("SELECT id FROM sample WHERE name='" + sampleName(filename) + "'").toString();
-
-	//get processed sample ID
-	QString ps_id = getValue("SELECT id FROM processed_sample WHERE sample_id='" + s_id + "' AND process_id='" + processedSampleNumber(filename) + "'").toString();
-
-	//get variant ID
-	QString v_id = getValue("SELECT id FROM variant WHERE chr='"+variant.chr().str()+"' AND start='"+QString::number(variant.start())+"' AND end='"+QString::number(variant.end())+"' AND ref='"+variant.ref()+"' AND obs='"+variant.obs()+"'", false).toString();
-
-	//set
-	getQuery().exec("UPDATE detected_variant SET validated='" + status + "',validation_comment='" + comment + "' WHERE processed_sample_id='" + ps_id + "' AND variant_id='" + v_id + "'");
+	getQuery().exec("UPDATE detected_variant SET validated='" + status + "',validation_comment='" + comment + "' WHERE processed_sample_id='" + processedSampleId(filename) + "' AND variant_id='" + variantId(variant) + "'");
 }
 
 void NGSD::setClassification(const Variant& variant, const QString& classification)
 {
-	//get user ID
-	QString user_id = getValue("SELECT id FROM user WHERE user_id='" + Helper::userName() + "'", false).toString();
-
-	//get variant ID
-	QString v_id = getValue("SELECT id FROM variant WHERE chr='"+variant.chr().str()+"' AND start='"+QString::number(variant.start())+"' AND end='"+QString::number(variant.end())+"' AND ref='"+variant.ref()+"' AND obs='"+variant.obs()+"'", false).toString();
-
-	//get variant ID
-	getQuery().exec("UPDATE variant SET vus='" + classification + "', vus_user='" + user_id + "', vus_date=CURRENT_TIMESTAMP WHERE id='"+v_id+"'");
+	getQuery().exec("UPDATE variant SET vus='" + classification + "', vus_user='" + userId() + "', vus_date=CURRENT_TIMESTAMP WHERE id='" + variantId(variant) + "'");
 }
 
 QString NGSD::comment(const QString& filename, const Variant& variant)
 {
-	//get sample ID
-	QString s_id = getValue("SELECT id FROM sample WHERE name='" + sampleName(filename) + "'").toString();
-
-	//get processed sample ID
-	QString ps_id = getValue("SELECT id FROM processed_sample WHERE sample_id='" + s_id + "' AND process_id='" + processedSampleNumber(filename) + "'").toString();
-
-	//get variant ID
-	QString v_id = getValue("SELECT id FROM variant WHERE chr='"+variant.chr().str()+"' AND start='"+QString::number(variant.start())+"' AND end='"+QString::number(variant.end())+"' AND ref='"+variant.ref()+"' AND obs='"+variant.obs()+"'", false).toString();
-
-	//get comment
-	return getValue("SELECT comment FROM detected_variant WHERE processed_sample_id='" + ps_id + "' AND variant_id='" + v_id + "'").toString();
+	return getValue("SELECT comment FROM detected_variant WHERE processed_sample_id='" + processedSampleId(filename) + "' AND variant_id='" + variantId(variant) + "'").toString();
 }
 
 QString NGSD::url(const QString& filename, const Variant& variant)
 {
-	//get sample ID
-	QString s_id = getValue("SELECT id FROM sample WHERE name='" + sampleName(filename) + "'").toString();
-
-	//get processed sample ID
-	QString ps_id = getValue("SELECT id FROM processed_sample WHERE sample_id='" + s_id + "' AND process_id='" + processedSampleNumber(filename) + "'").toString();
-
-	//get variant ID
-	QString v_id = getValue("SELECT id FROM variant WHERE chr='"+variant.chr().str()+"' AND start='"+QString::number(variant.start())+"' AND end='"+QString::number(variant.end())+"' AND ref='"+variant.ref()+"' AND obs='"+variant.obs()+"'").toString();
-
-	//get detected variant ID
-	QString dv_id = getValue("SELECT id FROM detected_variant WHERE processed_sample_id='" + ps_id + "' AND variant_id='" + v_id + "'", false).toString();
+	QString dv_id = getValue("SELECT id FROM detected_variant WHERE processed_sample_id='" + processedSampleId(filename) + "' AND variant_id='" + variantId(variant) + "'", false).toString();
 
 	return Settings::string("NGSD")+"/variants/view/" + dv_id;
 }
 
 QString NGSD::url(const QString& filename)
 {
-	//get sample ID
-	QString s_id = getValue("SELECT id FROM sample WHERE name='" + sampleName(filename) + "'").toString();
-
-	//get processed sample ID
-	QString ps_id = getValue("SELECT id FROM processed_sample WHERE sample_id='" + s_id + "' AND process_id='" + processedSampleNumber(filename) + "'", false).toString();
-
-	//get url
-	return Settings::string("NGSD")+"/processedsamples/view/" + ps_id;
+	return Settings::string("NGSD")+"/processedsamples/view/" + processedSampleId(filename);
 }
 
 QString NGSD::urlSearch(const QString& search_term)
 {
-	return Settings::string("NGSD")+"/search/processSearch/search_term="+search_term;
+	return Settings::string("NGSD")+"/search/processSearch/search_term=" + search_term;
 }
 
 void NGSD::setComment(const QString& filename, const Variant& variant, const QString& text)
 {
-	//get sample ID
-	QString s_id = getValue("SELECT id FROM sample WHERE name='" + sampleName(filename) + "'").toString();
-
-	//get processed sample ID
-	QString ps_id = getValue("SELECT id FROM processed_sample WHERE sample_id='" + s_id + "' AND process_id='" + processedSampleNumber(filename) + "'").toString();
-
-	//get variant ID
-	QString v_id = getValue("SELECT id FROM variant WHERE chr='"+variant.chr().str()+"' AND start='"+QString::number(variant.start())+"' AND end='"+QString::number(variant.end())+"' AND ref='"+variant.ref()+"' AND obs='"+variant.obs()+"'", false).toString();
-
-	//set
-	getQuery().exec("UPDATE detected_variant SET comment='" + text + "' WHERE processed_sample_id='" + ps_id + "' AND variant_id='" + v_id + "'");
+	getQuery().exec("UPDATE detected_variant SET comment='" + text + "' WHERE processed_sample_id='" + processedSampleId(filename) + "' AND variant_id='" + variantId(variant) + "'");
 }
 
 void NGSD::setReportVariants(const QString& filename, const VariantList& variants, QSet<int> selected_indices)
 {
-	//get sample ID
-	QString s_id = getValue("SELECT id FROM sample WHERE name='" + sampleName(filename) + "'").toString();
-
-	//get processed sample ID
-	QString ps_id = getValue("SELECT id FROM processed_sample WHERE sample_id='" + s_id + "' AND process_id='" + processedSampleNumber(filename) + "'").toString();
+	QString ps_id = processedSampleId(filename);
 
 	//get variant ID
 	for(int i=0; i<variants.count(); ++i)
 	{
-		const Variant& variant = variants[i];
-		QString v_id = getValue("SELECT id FROM variant WHERE chr='"+variant.chr().str()+"' AND start='"+QString::number(variant.start())+"' AND end='"+QString::number(variant.end())+"' AND ref='"+variant.ref()+"' AND obs='"+variant.obs()+"'", false).toString();
-		getQuery().exec("UPDATE detected_variant SET report=" + QString(selected_indices.contains(i) ? "1" : "0" ) + " WHERE processed_sample_id='" + ps_id + "' AND variant_id='" + v_id + "'");
+		getQuery().exec("UPDATE detected_variant SET report=" + QString(selected_indices.contains(i) ? "1" : "0" ) + " WHERE processed_sample_id='" + ps_id + "' AND variant_id='" + variantId(variants[i]) + "'");
 	}
+}
+
+QString NGSD::nextProcessingId(const QString& sample_id)
+{
+	getValue("SELECT MAX(process_id)+1 FROM processed_sample WHERE sample_id=" + s_id).toString();
 }
 
 QStringList NGSD::getEnum(QString table, QString column)
@@ -640,17 +670,19 @@ QStringList NGSD::getEnum(QString table, QString column)
 
 QStringList NGSD::getDiagnosticStatus(const QString& filename)
 {
-	//get sample ID
-	QString s_id = getValue("SELECT id FROM sample WHERE name='" + sampleName(filename) + "'").toString();
-
-	//get processed sample ID
-	QString ps_id = getValue("SELECT id FROM processed_sample WHERE sample_id='" + s_id + "' AND process_id='" + processedSampleNumber(filename) + "'").toString();
-	if (ps_id=="") return QStringList();
+	QString ps_id = processedSampleId(filename, false);
+	if (ps_id=="")
+	{
+		return QStringList();
+	}
 
 	//get status
 	SqlQuery q = getQuery();
 	q.exec("SELECT s.status, u.name, s.date, s.outcome FROM diag_status as s, user as u WHERE s.processed_sample_id='" + ps_id +  "' AND s.user_id=u.id");
-	if (q.size()==0) return (QStringList() << "n/a" << "n/a" << "n/a" << "n/a");
+	if (q.size()==0)
+	{
+		return (QStringList() << "n/a" << "n/a" << "n/a" << "n/a");
+	}
 	q.next();
 	return (QStringList() << q.value(0).toString() << q.value(1).toString() << q.value(2).toString().replace('T', ' ') << q.value(3).toString());
 }
@@ -658,15 +690,13 @@ QStringList NGSD::getDiagnosticStatus(const QString& filename)
 void NGSD::setDiagnosticStatus(const QString& filename, QString status)
 {
 	//get sample ID
-	QString sample_name = sampleName(filename);
-	QString s_id = getValue("SELECT id FROM sample WHERE name='" + sample_name + "'").toString();
+	QString s_id = sampleId(filename);
 
 	//get processed sample ID
-	QString ps_num = processedSampleNumber(filename);
-	QString ps_id = getValue("SELECT id FROM processed_sample WHERE sample_id='" + s_id + "' AND process_id='" + ps_num + "'").toString();
+	QString ps_id = processedSampleId(filename);
 
 	//get user ID
-	QString user_id = getValue("SELECT id FROM user WHERE user_id='" + Helper::userName() + "'", false).toString();
+	QString user_id = userId();
 
 	//update status
 	getQuery().exec("INSERT INTO diag_status (processed_sample_id, status, user_id) VALUES ("+ps_id+",'"+status+"', "+user_id+") ON DUPLICATE KEY UPDATE status='"+status+"',user_id="+user_id+"");
@@ -674,7 +704,7 @@ void NGSD::setDiagnosticStatus(const QString& filename, QString status)
 	//add new processed sample if scheduled for repetition
 	if (status.startsWith("repeat"))
 	{
-		QString next_ps_num = getValue("SELECT MAX(process_id)+1 FROM processed_sample WHERE sample_id=" + s_id).toString();
+		QString next_ps_num = nextProcessingId(s_id);
 		SqlQuery query = getQuery();
 		query.exec("SELECT mid1_i7, mid2_i5, operator_id, processing_system_id, project_id, molarity FROM processed_sample WHERE id=" + ps_id);
 		query.next();
@@ -689,7 +719,7 @@ void NGSD::setDiagnosticStatus(const QString& filename, QString status)
 		QString molarity = query.value(5).toString();
 		if (molarity=="0") molarity="NULL";
 		QString user_name = getValue("SELECT name FROM user WHERE id='" + user_id + "'").toString();
-		QString comment = user_name + " requested re-sequencing (" + status + ") of sample " + sample_name + "_" + ps_num.rightJustified(2, '0') + " on " + Helper::dateTime("dd.MM.yyyy hh:mm:ss");
+		QString comment = user_name + " requested re-sequencing (" + status + ") of sample " + processedSampleName(filename) + " on " + Helper::dateTime("dd.MM.yyyy hh:mm:ss");
 		if (status=="repeat sequencing only")
 		{
 			getQuery().exec("INSERT INTO processed_sample (sample_id, process_id, mid1_i7, mid2_i5, operator_id, processing_system_id, comment, project_id, molarity, status) VALUES ("+ s_id +","+ next_ps_num +","+ mid1 +","+ mid2 +","+ op_id +","+ sys_id +",'"+ comment +"',"+ proj_id +","+ molarity +",'todo')");
@@ -707,36 +737,6 @@ void NGSD::setDiagnosticStatus(const QString& filename, QString status)
 
 void NGSD::setReportOutcome(const QString& filename, QString outcome)
 {
-	//get sample ID
-	QString sample_name = sampleName(filename);
-	QString s_id = getValue("SELECT id FROM sample WHERE name='" + sample_name + "'").toString();
-
-	//get processed sample ID
-	QString ps_num = processedSampleNumber(filename);
-	QString ps_id = getValue("SELECT id FROM processed_sample WHERE sample_id='" + s_id + "' AND process_id='" + ps_num + "'").toString();
-
-	//get user ID
-	QString user_id = getValue("SELECT id FROM user WHERE user_id='" + Helper::userName() + "'", false).toString();
-
-	//update status
-	getQuery().exec("INSERT INTO diag_status (processed_sample_id, status, user_id, outcome) VALUES ("+ps_id+",'pending',"+user_id+",'"+outcome+"') ON DUPLICATE KEY UPDATE user_id="+user_id+",outcome='"+outcome+"'");
+	QString user_id = userId();
+	getQuery().exec("INSERT INTO diag_status (processed_sample_id, status, user_id, outcome) VALUES (" + processedSampleId(filename) + ",'pending'," + user_id + ",'" + outcome + "') ON DUPLICATE KEY UPDATE user_id="+user_id+",outcome='"+outcome+"'");
 }
-
-QString NGSD::sampleName(const QString& filename)
-{
-	QStringList parts = QFileInfo(filename).baseName().append('_').split('_');
-
-	return parts[0];
-}
-
-QString NGSD::processedSampleNumber(const QString& filename)
-{
-	QStringList parts = QFileInfo(filename).baseName().append('_').split('_');
-
-	bool ok = false;
-	int ps_num = parts[1].toInt(&ok);
-	if (!ok) return "";
-
-	return QString::number(ps_num);
-}
-

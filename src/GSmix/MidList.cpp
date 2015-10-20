@@ -1,5 +1,5 @@
 #include "MidList.h"
-#include "MidCache.h"
+#include "GDBO.h"
 #include <QTimer>
 #include "ui_MidList.h"
 
@@ -10,11 +10,7 @@ MidList::MidList(QWidget *parent)
 	ui->setupUi(this);
 	connect(ui->search, SIGNAL(textEdited(QString)), this, SLOT(filter(QString)));
 
-	//init delayed initialization
-	QTimer* timer = new QTimer(this);
-	timer->setSingleShot(true);
-	timer->start(50);
-	connect(timer, SIGNAL(timeout()), this, SLOT(delayedInizialization()));
+	loadMidsFromDB();
 }
 
 MidList::~MidList()
@@ -22,21 +18,16 @@ MidList::~MidList()
 	delete ui;
 }
 
-void MidList::delayedInizialization()
+void MidList::loadMidsFromDB()
 {
-	loadMidsFromCache();
+	QList<GDBO> mids = GDBO::all("mid");
+	foreach(const GDBO& mid, mids)
+	{
+		ui->mids->addItem(mid.get("name") + " (" + mid.get("sequence") + ")");
+	}
 
 	//delete timer object
 	qobject_cast<QTimer*>(sender())->deleteLater();
-}
-
-void MidList::loadMidsFromCache()
-{
-	const MidCache& mid_cache = MidCache::inst();
-	for (int i=0; i<mid_cache.count(); ++i)
-	{
-		ui->mids->addItem(mid_cache[i].toString());
-	}
 }
 
 void MidList::filter(QString text)

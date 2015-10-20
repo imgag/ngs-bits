@@ -3,8 +3,8 @@
 
 #include <QWidget>
 #include <QScopedPointer>
+#include "GDBO.h"
 
-class NGSD;
 class QTableWidgetItem;
 
 namespace Ui {
@@ -21,24 +21,27 @@ public:
 	~RunPlanner();
 
 private slots:
-	void delayedInizialization();
+	void debug();
 	void runChanged(int index);
 	void laneChanged(int index);
 	void addItem();
 	void removeSelectedItems();
 	void clearVisualOutput();
 	void checkForMidCollisions();
+	void importNewSamplesToNGSD();
 
 private:
-	QString itemMid(int row, int col);
+	QString midSequenceFromItem(int row, int col);
+	QString midNameFromItem(int row, int col);
 	void highlightItem(int row, int col, QString tooltip);
 	void updateRunData();
+	QString midToString(const GDBO& mid);
 	static QList<int> setToSortedList(const QSet<int>& set);
 	static QTableWidgetItem* readOnlyItem(QString text);
 	static QTableWidgetItem* readWriteItem(QString text);
+	void loadRunsFromNGSD();
 
 	Ui::RunPlanner* ui;
-	QScopedPointer<NGSD> db;
 };
 
 #endif // RUNPLANNER_H

@@ -1,14 +1,24 @@
 #include "RunPlanner.h"
 #include "ui_RunPlanner.h"
 #include "NGSD.h"
-#include "MidCache.h"
+#include "GDBO.h"
 #include "Exceptions.h"
 #include "Helper.h"
+#include "GDBODialog.h"
 #include <QTimer>
 #include <QDebug>
 #include <QSqlError>
 #include <QPair>
 #include <QMessageBox>
+
+
+//get sample list with MIDs
+struct SampleMIDs
+{
+	QString name;
+	QString mid1;
+	QString mid2;
+};
 
 RunPlanner::RunPlanner(QWidget *parent) :
 	QWidget(parent),
@@ -19,17 +29,15 @@ RunPlanner::RunPlanner(QWidget *parent) :
 	ui->samples->setColumnWidth(1, 250);
 	ui->samples->setColumnWidth(2, 250);
 
+	connect(ui->debugButton, SIGNAL(clicked(bool)), this, SLOT(debug()));
 	connect(ui->run, SIGNAL(currentIndexChanged(int)), this, SLOT(runChanged(int)));
 	connect(ui->lane, SIGNAL(valueChanged(int)), this, SLOT(laneChanged(int)));
 	connect(ui->addButton, SIGNAL(clicked(bool)), this, SLOT(addItem()));
 	connect(ui->removeButton, SIGNAL(clicked(bool)), this, SLOT(removeSelectedItems()));
 	connect(ui->checkButton, SIGNAL(clicked(bool)), this, SLOT(checkForMidCollisions()));
+	connect(ui->importButton, SIGNAL(clicked(bool)), this, SLOT(importNewSamplesToNGSD()));
 
-	//init delayed initialization
-	QTimer* timer = new QTimer(this);
-	timer->setSingleShot(true);
-	timer->start(50);
-	connect(timer, SIGNAL(timeout()), this, SLOT(delayedInizialization()));
+	loadRunsFromNGSD();
 }
 
 RunPlanner::~RunPlanner()
@@ -37,25 +45,34 @@ RunPlanner::~RunPlanner()
 	delete ui;
 }
 
-void RunPlanner::delayedInizialization()
+void RunPlanner::debug()
 {
-	//init NGSD instance
-	db.reset(new NGSD());
+	ui->run->setCurrentIndex(5);
 
-	//load run list
-	QSqlQuery q = db->getQuery();
-	if (q.exec("SELECT id, name, fcid FROM sequencing_run ORDER BY name DESC"))
+	int idx = ui->samples->rowCount();
+	ui->samples->setRowCount(idx+2);
+
+	ui->samples->setItem(idx, 0, readWriteItem("NA12878"));
+	ui->samples->setItem(idx, 1, readWriteItem("Illumina 10 (TAGCTT)"));
+	ui->samples->setItem(idx, 2, readWriteItem(""));
+	++idx;
+
+	ui->samples->setItem(idx, 0, readWriteItem("NA12878"));
+	ui->samples->setItem(idx, 1, readWriteItem("Illumina 11 (GGCTAC)"));
+	ui->samples->setItem(idx, 2, readWriteItem(""));
+
+	importNewSamplesToNGSD();
+}
+
+void RunPlanner::loadRunsFromNGSD()
+{
+	SqlQuery q = DatabaseCache::inst().ngsd().getQuery();
+	q.exec("SELECT id, name, fcid FROM sequencing_run ORDER BY name DESC");
+	while(q.next())
 	{
-		while(q.next())
-		{
-			QString name = q.value(1).toString();
-			QString fcid = q.value(2).toString();
-			ui->run->addItem(name + " (" + fcid + ")", q.value(0));
-		}
-	}
-	else
-	{
-		THROW(DatabaseException, q.lastError().text());
+		QString name = q.value(1).toString();
+		QString fcid = q.value(2).toString();
+		ui->run->addItem(name + " (" + fcid + ")", q.value(0));
 	}
 }
 
@@ -136,19 +153,12 @@ void RunPlanner::checkForMidCollisions()
 
 	QStringList output;
 
-	//get sample list with MIDs
-	struct SampleMIDs
-	{
-		QString name;
-		QString mid1;
-		QString mid2;
-	};
 	QList<SampleMIDs> samples;
 	for(int r=0; r<ui->samples->rowCount(); ++r)
 	{
 		QString name = ui->samples->item(r, 0)->text();
-		QString mid1 = itemMid(r,1);
-		QString mid2 = itemMid(r,2);
+		QString mid1 = midSequenceFromItem(r,1);
+		QString mid2 = midSequenceFromItem(r,2);
 		samples.append(SampleMIDs{name, mid1, mid2});
 		if (name=="")
 		{
@@ -235,18 +245,97 @@ void RunPlanner::checkForMidCollisions()
 	}
 }
 
-QString RunPlanner::itemMid(int row, int col)
+void RunPlanner::importNewSamplesToNGSD()
+{
+	if (ui->samples->rowCount()==0) return;
+
+	//check that run [none] is not selected
+	if (ui->run->currentIndex()==0)
+	{
+		QMessageBox::critical(this, "NGSD import", "No run selected for import!");
+		return;
+	}
+	int run_id = ui->run->currentData(Qt::UserRole).toInt();
+	int lane = ui->lane->value();
+
+	//add samples to the run
+	for(int r=0; r<ui->samples->rowCount(); ++r)
+	{
+		QTableWidgetItem* item = ui->samples->item(r, 0);
+		if (item->flags() & Qt::ItemIsEditable)
+		{
+			try
+			{
+				GDBO ps("processed_sample");
+				ps.setFK("sample_id", item->text());
+				ps.set("sequencing_run_id", QString::number(run_id));
+				ps.set("lane", QString::number(lane));
+				ps.setFK("mid1_i7", midNameFromItem(r, 1));
+				QString mid2 = midNameFromItem(r, 2);
+				if (mid2!="")
+				{
+					ps.setFK("mid2_i5", mid2);
+				}
+				ps.set("operator_id", DatabaseCache::inst().ngsd().userId());
+				ps.set("status", "ready to sequence");
+
+				GDBODialog dlg(this, ps, QStringList() << "process_id");
+				dlg.setWindowTitle("Add processed sample to NGSD");
+				if (dlg.exec())
+				{
+					//calculate and set process_id
+					QString max_num = DatabaseCache::inst().ngsd().getValue("SELECT MAX(process_id) FROM processed_sample WHERE sample_id='" +  + "'").toString();
+					if (max_num=="")
+					{
+						max_num = "1";
+					}
+					else
+					{
+						max_num = QString::number(max_num.toInt()+1);
+					}
+					ps.set("process_id", DatabaseCache::inst().ngsd().nextProcessingId(ps.get("sample_id")));
+
+					ps.store();
+					ui->samples->item(r, 0)->setFlags(Qt::ItemIsSelectable|Qt::ItemIsDragEnabled);
+					ui->samples->item(r, 1)->setFlags(Qt::ItemIsSelectable|Qt::ItemIsDragEnabled);
+					ui->samples->item(r, 2)->setFlags(Qt::ItemIsSelectable|Qt::ItemIsDragEnabled);
+				}
+				else
+				{
+					return;
+				}
+			}
+			catch(Exception& e)
+			{
+				QMessageBox::critical(this, "NGSD import error", e.message());
+				return;
+			}
+		}
+	}
+}
+
+QString RunPlanner::midSequenceFromItem(int row, int col)
 {
 	QString text = ui->samples->item(row, col)->text();
 	QString mid = text.mid(text.lastIndexOf(' '));
 	return mid.replace('(', ' ').replace(')',' ').trimmed();
 }
 
+QString RunPlanner::midNameFromItem(int row, int col)
+{
+	QString text = ui->samples->item(row, col)->text();
+	QString mid = text.left(text.lastIndexOf(' '));
+	return mid.trimmed();
+}
+
 void RunPlanner::highlightItem(int row, int col, QString tooltip)
 {
 	QTableWidgetItem* item = ui->samples->item(row, col);
 	item->setBackgroundColor(Qt::yellow);
-	item->setToolTip(item->toolTip() + tooltip + "\n");
+
+	QString old = item->toolTip().trimmed();
+	if (!old.isEmpty()) old += "\n";
+	item->setToolTip(old + tooltip);
 }
 
 void RunPlanner::updateRunData()
@@ -259,34 +348,26 @@ void RunPlanner::updateRunData()
 	//load samples for run
 	QString run_id = ui->run->currentData(Qt::UserRole).toString();
 	QString lane = QString::number(ui->lane->value());
-	QSqlQuery q = db->getQuery();
+
+	QList<GDBO> psamples = GDBO::all("processed_sample", QStringList() << "sequencing_run_id='" + run_id + "'" << "lane='" + lane + "'");
+	ui->samples->setRowCount(psamples.count());
 
 	int row = 0;
-	const MidCache& mid_cache = MidCache::inst();
-	if (q.exec("SELECT ps.id, s.name, ps.process_id, ps.mid1_i7, ps.mid2_i5 FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.sequencing_run_id='" + run_id + "' AND lane='" + lane + "'"))
+	foreach(const GDBO& psample, psamples)
 	{
-		ui->samples->setRowCount(q.numRowsAffected());
+		QString name = psample.getFkObject("sample_id").get("name") + "_" + psample.get("process_id").rightJustified(2, '0');
+		ui->samples->setItem(row, 0, readOnlyItem(name));
+		ui->samples->setItem(row, 1, readOnlyItem(midToString(psample.getFkObject("mid1_i7"))));
+		QString mid2 = psample.get("mid2_i5")=="" ? "" : midToString(psample.getFkObject("mid2_i5"));
+		ui->samples->setItem(row, 2, readOnlyItem(mid2));
 
-		while(q.next())
-		{
-			QString sample_name = q.value(1).toString() + "_" + q.value(2).toString().rightJustified(2, '0');
-			ui->samples->setItem(row, 0, readOnlyItem(sample_name));
-
-			QVariant value = q.value(3);
-			QString mid1 = value.isNull() ? "" : mid_cache.midById(value.toInt()).toString();
-			ui->samples->setItem(row, 1, readOnlyItem(mid1));
-
-			value = q.value(4);
-			QString mid2 = value.isNull() ? "" : mid_cache.midById(value.toInt()).toString();
-			ui->samples->setItem(row, 2, readOnlyItem(mid2));
-
-			++row;
-		}
+		++row;
 	}
-	else
-	{
-		THROW(DatabaseException, q.lastError().text());
-	}
+}
+
+QString RunPlanner::midToString(const GDBO& mid)
+{
+	return mid.get("name") + " (" + mid.get("sequence") + ")";
 }
 
 QList<int> RunPlanner::setToSortedList(const QSet<int>& set)
@@ -303,7 +384,7 @@ QTableWidgetItem* RunPlanner::readOnlyItem(QString text)
 	return item;
 }
 
-QTableWidgetItem*RunPlanner::readWriteItem(QString text)
+QTableWidgetItem* RunPlanner::readWriteItem(QString text)
 {
 	QTableWidgetItem* item = new QTableWidgetItem(text);
 	item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEditable|Qt::ItemIsDragEnabled|Qt::ItemIsDropEnabled|Qt::ItemIsEnabled);

@@ -77,7 +77,7 @@ void SampleInformationDialog::reanalyze()
 
 	//call web service
 	HttpHandler handler;
-	QString reply = handler.getHttpReply(Settings::string("SampleStatus")+"/restart.php?ps_ID=" + psName(filename_) + start_step + "&high_priority&user=" + Helper::userName());
+	QString reply = handler.getHttpReply(Settings::string("SampleStatus")+"/restart.php?ps_ID=" + NGSD::processedSampleName(filename_) + start_step + "&high_priority&user=" + Helper::userName());
 	reanalyze_status_ = "";
 	if (!reply.startsWith("Restart successful"))
 	{
@@ -222,7 +222,7 @@ void SampleInformationDialog::statisticsLabel(QLabel* label, QString accession, 
 
 void SampleInformationDialog::refreshReanalysisStatus()
 {
-	QString ps_name = psName(filename_);
+	QString ps_name = NGSD::processedSampleName(filename_, false);
 	if (ps_name!="")
 	{
 		QString status = reanalyze_status_;
@@ -256,21 +256,5 @@ void SampleInformationDialog::refreshReanalysisStatus()
 	{
 		ui_.status->setText("<font color='red'>n/a (invalid sample file name)</font>");
 		ui_.reanalyze_button->setEnabled(false);
-	}
-}
-
-QString SampleInformationDialog::psName(QString filename)
-{
-	try
-	{
-		QString sample_name = db_.sampleName(filename);
-		QString ps_id = db_.processedSampleNumber(filename);
-		if (sample_name=="" || ps_id=="") return "";
-
-		return sample_name + "_" + ps_id.rightJustified(2, '0');
-	}
-	catch (DatabaseException&)
-	{
-		return "";
 	}
 }

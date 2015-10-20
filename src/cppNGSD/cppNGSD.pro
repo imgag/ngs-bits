@@ -2,8 +2,7 @@
 CONFIG += c++11 
 
 #base settings
-QT       -= gui
-QT       += sql
+QT       += sql gui widgets
 QTPLUGIN += QSQLMYSQL
 TEMPLATE = lib
 TARGET = cppNGSD
@@ -29,9 +28,22 @@ LIBS += -L$$PWD/../../bin -lcppNGS
 SOURCES += \
     SqlQuery.cpp\
     NGSD.cpp \
-    GPD.cpp
+    GPD.cpp \
+    GDBO.cpp \
+    DatabaseCache.cpp \
+    GDBODialog.cpp \
+    GBDOFKEdit.cpp \
+    ProcessedSampleFKEdit.cpp
 
 HEADERS += \
     SqlQuery.h \
     NGSD.h \
-    GPD.h
+    GPD.h \
+    GDBO.h \
+    DatabaseCache.h \
+    GDBODialog.h \
+    GBDOFKEdit.h \
+    ProcessedSampleFKEdit.h
+
+FORMS += \
+    GDBODialog.ui

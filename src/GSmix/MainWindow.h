@@ -12,7 +12,7 @@ class MainWindow
 	
 public:
 	MainWindow(QWidget* parent = 0);
-        void resizeEvent(QResizeEvent* event);
+	void resizeEvent(QResizeEvent* event);
 
 public slots:
 	void on_actionClose_triggered();

@@ -4,5 +4,6 @@
         <file>Icons/remove.png</file>
         <file>Icons/add.png</file>
         <file>Icons/verify.png</file>
+        <file>Icons/NGSD.png</file>
     </qresource>
 </RCC>

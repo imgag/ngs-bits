@@ -20,10 +20,19 @@ public:
 	///Destructor.
 	~NGSD();
 
-	///Extracts the sample name from a file name, e.g. 'GS120159' from '/some/path/GS120159_01.bam'.
-	static QString sampleName(const QString& filename);
-	///Extracts the processed sample number from a file name, e.g. '1' from '/some/path/GS120159_01.bam'.
-	static QString processedSampleNumber(const QString& filename);
+	///Returns the sample name for a file name, e.g. 'GS120159' for '/some/path/GS120159_01.bam'. Throws an exception if the file name does not start with a valid name.
+	static QString sampleName(const QString& filename, bool throw_if_fails = true);
+	///Returns the processed sample name for a file name, e.g. 'GS120159_01' for '/some/path/GS120159_01.bam'. Throws an exception if the file name does not start with a valid name.
+	static QString processedSampleName(const QString& filename, bool throw_if_fails = true);
+	///Returns the NGSD sample ID file name. Throws an exception if it could not be determined.
+	QString sampleId(const QString& filename, bool throw_if_fails = true);
+	///Returns the NGSD processed sample ID for a file name. Throws an exception if it could not be determined.
+	QString processedSampleId(const QString& filename, bool throw_if_fails = true);
+	///Returns the NGSD ID for a variant. Throws an exception if it could not be determined.
+	QString variantId(const Variant& variant);
+	///Returns the ID of the current user as a string. Throws an exception if the user is not in the NGSD user table.
+	QString userId();
+
 	///Returns the external sample name given the file name.
 	QString getExternalSampleName(const QString& filename);
 	///Returns the processing system name and short name of the sample, or an empty string if it could not be detected.
@@ -52,6 +61,8 @@ public:
 	void setComment(const QString& filename, const Variant& variant, const QString& text);
 	///Sets the report status of all variants in the NGSD.
 	void setReportVariants(const QString& filename, const VariantList& variants, QSet<int> selected_indices);
+	///Returns the next processing ID for the given sample.
+	QString nextProcessingId(const QString& sample_id);
 
 	///Returns all possible values for a enum column in the NGSD.
 	QStringList getEnum(QString table, QString column);

@@ -28,8 +28,6 @@ private:
 	///Refreshes information based on filename.
 	void refresh();
 
-	///Returns the processed sample name given the filename, or an empty string if it could not be determined.
-	QString psName(QString filename);
 	///Formats a statistics label (outliers are colored red).
 	void statisticsLabel(QLabel* label, QString accession, const QCCollection& qc);
 
