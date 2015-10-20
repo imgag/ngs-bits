@@ -30,6 +30,7 @@ RunPlanner::RunPlanner(QWidget *parent) :
 	ui->samples->setColumnWidth(2, 250);
 
 	connect(ui->debugButton, SIGNAL(clicked(bool)), this, SLOT(debug()));
+	ui->debugButton->setVisible(false);
 	connect(ui->run, SIGNAL(currentIndexChanged(int)), this, SLOT(runChanged(int)));
 	connect(ui->lane, SIGNAL(valueChanged(int)), this, SLOT(laneChanged(int)));
 	connect(ui->addButton, SIGNAL(clicked(bool)), this, SLOT(addItem()));
@@ -283,19 +284,9 @@ void RunPlanner::importNewSamplesToNGSD()
 				dlg.setWindowTitle("Add processed sample to NGSD");
 				if (dlg.exec())
 				{
-					//calculate and set process_id
-					QString max_num = DatabaseCache::inst().ngsd().getValue("SELECT MAX(process_id) FROM processed_sample WHERE sample_id='" +  + "'").toString();
-					if (max_num=="")
-					{
-						max_num = "1";
-					}
-					else
-					{
-						max_num = QString::number(max_num.toInt()+1);
-					}
 					ps.set("process_id", DatabaseCache::inst().ngsd().nextProcessingId(ps.get("sample_id")));
-
 					ps.store();
+
 					ui->samples->item(r, 0)->setFlags(Qt::ItemIsSelectable|Qt::ItemIsDragEnabled);
 					ui->samples->item(r, 1)->setFlags(Qt::ItemIsSelectable|Qt::ItemIsDragEnabled);
 					ui->samples->item(r, 2)->setFlags(Qt::ItemIsSelectable|Qt::ItemIsDragEnabled);
@@ -312,6 +303,9 @@ void RunPlanner::importNewSamplesToNGSD()
 			}
 		}
 	}
+
+	//to update sample names (missing processing id)
+	updateRunData();
 }
 
 QString RunPlanner::midSequenceFromItem(int row, int col)

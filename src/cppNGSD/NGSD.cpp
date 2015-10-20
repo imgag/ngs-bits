@@ -639,7 +639,9 @@ void NGSD::setReportVariants(const QString& filename, const VariantList& variant
 
 QString NGSD::nextProcessingId(const QString& sample_id)
 {
-	getValue("SELECT MAX(process_id)+1 FROM processed_sample WHERE sample_id=" + s_id).toString();
+	QString max_num = getValue("SELECT MAX(process_id) FROM processed_sample WHERE sample_id=" + sample_id).toString();
+
+	return max_num.isEmpty() ? "1" : QString::number(max_num.toInt()+1);
 }
 
 QStringList NGSD::getEnum(QString table, QString column)
