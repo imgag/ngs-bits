@@ -22,9 +22,9 @@ public:
 		setDescription("Filters variant lists accordning to a target region.");
 		addInfile("in", "Input variant list.", false);
 		addInfile("reg", "Input target region in BED format.", false);
-		addFlag("invert", "If used, the variants inside the target region are removed.");
+		addOutfile("out", "Output variant list. If unset, writes to STDOUT.", false);
 		//optional
-		addOutfile("out", "Output variant list. If unset, writes to STDOUT.", true);
+		addFlag("invert", "If used, the variants inside the target region are removed.");
 	}
 
 	virtual void main()
