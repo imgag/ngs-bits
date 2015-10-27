@@ -115,10 +115,16 @@ public:
 		for(QMap<QString, int>::iterator it=counts.begin(); it!=counts.end(); ++it)
 		{
 			QString gene = it.key();
-			if (gene=="") gene = "n/a";
-			int count = it.value();
-			int size = sizes[it.key()];
-			output.append(gene + "\t" + QString::number(size) + "\t" + QString::number(count) + "\t" + QString::number(100.0*count/size, 'f', 2));
+			if (gene=="")
+			{
+				output.append("none\tn/a\t" + QString::number(it.value()) + "\tn/a");
+			}
+			else
+			{
+				int count = it.value();
+				int size = sizes[it.key()];
+				output.append(gene + "\t" + QString::number(size) + "\t" + QString::number(count) + "\t" + QString::number(100.0*count/size, 'f', 2));
+			}
 		}
 		output.sort();
 		Helper::storeTextFile(Helper::openFileForWriting(getOutfile("out"), true), output);
