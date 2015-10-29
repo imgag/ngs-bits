@@ -20,6 +20,9 @@ public:
 	///Destructor.
 	~NGSD();
 
+	///Initializes the database (password is required for production database if it is not empty)
+	void init(QString password="");
+
 	///Returns the sample name for a file name, e.g. 'GS120159' for '/some/path/GS120159_01.bam'. Throws an exception if the file name does not start with a valid name.
 	static QString sampleName(const QString& filename, bool throw_if_fails = true);
 	///Returns the processed sample name for a file name, e.g. 'GS120159_01' for '/some/path/GS120159_01.bam'. Throws an exception if the file name does not start with a valid name.
@@ -107,6 +110,7 @@ protected:
 
 	///The database adapter
 	QSqlDatabase db_;
+	bool test_db_;
 };
 
 #endif // NGSD_H

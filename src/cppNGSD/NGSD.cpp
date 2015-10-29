@@ -6,24 +6,16 @@
 #include "Settings.h"
 
 NGSD::NGSD(bool test_db)
+	: db_(QSqlDatabase::addDatabase("QMYSQL", "NGSD_" + Helper::randomString(20)))
+	, test_db_(test_db)
 {
 	//connect to DB
-	db_ = QSqlDatabase::addDatabase("QMYSQL", "NGSD_" + Helper::randomString(20));
-	if (test_db)
-	{
-		db_.setHostName(Settings::string("ngsd_test_host"));
-		db_.setDatabaseName(Settings::string("ngsd_test_name"));
-		db_.setUserName(Settings::string("ngsd_test_user"));
-		db_.setPassword(Settings::string("ngsd_test_pass"));
-	}
-	else
-	{
-		db_.setHostName(Settings::string("ngsd_host"));
-		db_.setDatabaseName(Settings::string("ngsd_name"));
-		db_.setUserName(Settings::string("ngsd_user"));
-		db_.setPassword(Settings::string("ngsd_pass"));
-	}
-
+	QString prefix = "ngsd";
+	if (test_db_) prefix += "_test";
+	db_.setHostName(Settings::string(prefix + "_host"));
+	db_.setDatabaseName(Settings::string(prefix + "_name"));
+	db_.setUserName(Settings::string(prefix + "_user"));
+	db_.setPassword(Settings::string(prefix + "_pass"));
 	if (!db_.open())
 	{
 		THROW(DatabaseException, "Could not connect to the NGSD database!");
@@ -214,6 +206,33 @@ NGSD::~NGSD()
 {
 	//Log::info("MYSQL closing  - name: " + db_.connectionName());
 	db_.close();
+}
+
+void NGSD::init(QString password)
+{
+	//remove existing tables
+	SqlQuery query = getQuery();
+	query.exec("SHOW TABLES");
+	if (query.size()>0)
+	{
+		//check password for re-init of production DB
+		if (!test_db_ && password!=Settings::string("ngsd_pass"))
+		{
+			THROW(DatabaseException, "Password provided for re-initialization of procution database is incorrect!");
+		}
+
+		//remove old tables
+		SqlQuery query2 = getQuery();
+		query2.exec("SET FOREIGN_KEY_CHECKS = 0;");
+		while(query.next())
+		{
+			query2.exec("DROP table " + query.value(0).toString());
+		}
+		query2.exec("SET FOREIGN_KEY_CHECKS = 1;");
+	}
+
+	//initilize
+	query.exec(Helper::fileText(":/resources/NGSD_schema.sql"));
 }
 
 QString NGSD::getExternalSampleName(const QString& filename)
