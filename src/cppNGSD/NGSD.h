@@ -15,8 +15,8 @@ class CPPNGSDSHARED_EXPORT NGSD
 Q_OBJECT
 
 public:
-	///Default constructor that connects to the DB.
-	NGSD();
+	///Default constructor that connects to the DB
+	NGSD(bool test_db = false);
 	///Destructor.
 	~NGSD();
 

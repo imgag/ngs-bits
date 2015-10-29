@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>resources/NGSD_schema.sql</file>
+    </qresource>
+</RCC>

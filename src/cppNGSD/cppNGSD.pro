@@ -47,3 +47,6 @@ HEADERS += \
 
 FORMS += \
     GDBODialog.ui
+
+RESOURCES += \
+    resources.qrc

@@ -5,14 +5,24 @@
 #include <QFileInfo>
 #include "Settings.h"
 
-NGSD::NGSD()
+NGSD::NGSD(bool test_db)
 {
 	//connect to DB
 	db_ = QSqlDatabase::addDatabase("QMYSQL", "NGSD_" + Helper::randomString(20));
-	db_.setHostName(Settings::string("ngsd_host"));
-	db_.setDatabaseName(Settings::string("ngsd_name"));
-	db_.setUserName(Settings::string("ngsd_user"));
-	db_.setPassword(Settings::string("ngsd_pass"));
+	if (test_db)
+	{
+		db_.setHostName(Settings::string("ngsd_test_host"));
+		db_.setDatabaseName(Settings::string("ngsd_test_name"));
+		db_.setUserName(Settings::string("ngsd_test_user"));
+		db_.setPassword(Settings::string("ngsd_test_pass"));
+	}
+	else
+	{
+		db_.setHostName(Settings::string("ngsd_host"));
+		db_.setDatabaseName(Settings::string("ngsd_name"));
+		db_.setUserName(Settings::string("ngsd_user"));
+		db_.setPassword(Settings::string("ngsd_pass"));
+	}
 
 	if (!db_.open())
 	{

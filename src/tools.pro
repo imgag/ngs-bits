@@ -21,7 +21,7 @@ FastqDemultiplex.depends = cppNGS
 
 SUBDIRS += SamplesNGSD
 tools-TEST.depends += SamplesNGSD
-SamplesNGSD.depends = cppNGS
+SamplesNGSD.depends = cppNGSD
 
 SUBDIRS += BedChunk
 tools-TEST.depends += BedChunk
@@ -173,19 +173,19 @@ VariantAnnotateNGSD.depends = cppNGSD
 
 SUBDIRS += EstimateTumorContent
 tools-TEST.depends += EstimateTumorContent
-EstimateTumorContent.depends = cppNGSD
+EstimateTumorContent.depends = cppNGS
 
 SUBDIRS += SampleOverview
 tools-TEST.depends += SampleOverview
-SampleOverview.depends = cppNGSD
+SampleOverview.depends = cppNGS
 
 SUBDIRS += CnvHunter
 tools-TEST.depends += CnvHunter
-CnvHunter.depends = cppNGSD
+CnvHunter.depends = cppNGS
 
 SUBDIRS += BedGeneOverlap
 tools-TEST.depends += BedGeneOverlap
-BedGeneOverlap.depends = cppNGSD
+BedGeneOverlap.depends = cppNGS
 
 SUBDIRS += SeqPurge
 tools-TEST.depends += SeqPurge
@@ -226,6 +226,10 @@ BamCleanHaloplex.depends = cppNGS
 SUBDIRS += BedAdd
 tools-TEST.depends += BedAdd
 BedAdd.depends = cppNGS
+
+SUBDIRS += NGSDInit
+tools-TEST.depends += NGSDInit
+NGSDInit.depends = cppNGSD
 
 #other stuff
 OTHER_FILES += ToDos.txt
