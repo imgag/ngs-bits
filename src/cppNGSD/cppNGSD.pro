@@ -21,7 +21,7 @@ DESTDIR = ../../bin/
 INCLUDEPATH += $$PWD/../cppCORE
 LIBS += -L$$PWD/../../bin -lcppCORE
 
-#include cppCORE library
+#include cppNGS library
 INCLUDEPATH += $$PWD/../cppNGS
 LIBS += -L$$PWD/../../bin -lcppNGS
 

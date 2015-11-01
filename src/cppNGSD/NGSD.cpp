@@ -182,6 +182,32 @@ QVariantList NGSD::getValues(const QString& query)
 	return output;
 }
 
+void NGSD::executeQueriesFromFile(QString filename)
+{
+	QStringList lines = Helper::loadTextFile(filename, true);
+	QString query = "";
+	for(const QString& line : lines)
+	{
+		if (line.isEmpty()) continue;
+		if (line.startsWith("--")) continue;
+
+		query.append(' ');
+		query.append(line);
+		if (query.endsWith(';'))
+		{
+			//qDebug() << query;
+			getQuery().exec(query);
+			query.clear();
+		}
+	}
+	if (query.endsWith(';'))
+	{
+		//qDebug() << query;
+		getQuery().exec(query);
+		query.clear();
+	}
+}
+
 int NGSD::addColumn(VariantList& variants, QString name, QString description)
 {
 	variants.annotations().append(VariantAnnotationDescription(name, description));
@@ -232,7 +258,7 @@ void NGSD::init(QString password)
 	}
 
 	//initilize
-	query.exec(Helper::fileText(":/resources/NGSD_schema.sql"));
+	executeQueriesFromFile(":/resources/NGSD_schema.sql");
 }
 
 QString NGSD::getExternalSampleName(const QString& filename)
@@ -697,6 +723,25 @@ QStringList NGSD::getEnum(QString table, QString column)
 	}
 
 	THROW(ProgrammingException, "Could not determine enum values of column '"+column+"' in table '"+table+"'!");
+}
+
+
+void NGSD::tableExists(QString table)
+{
+	SqlQuery query = getQuery();
+	query.exec("SHOW TABLES LIKE '" + table + "'");
+	if (query.size()==0)
+	{
+		THROW(DatabaseException, "Table '" + table + "' does not exist!")
+	}
+}
+
+bool NGSD::tableEmpty( QString table)
+{
+	SqlQuery query = getQuery();
+	query.exec("SELECT COUNT(*) FROM " + table);
+	query.next();
+	return query.value(0).toInt()==0;
 }
 
 QStringList NGSD::getDiagnosticStatus(const QString& filename)

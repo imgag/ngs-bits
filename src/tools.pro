@@ -8,12 +8,11 @@ SUBDIRS = cppCORE\
         cppNGSD
 
 cppXML.depends = cppCORE
-cppNGS.depends = cppCORE cppXML
-cppNGSD.depends = cppCORE
+cppNGS.depends = cppXML
 cppNGSD.depends = cppNGS
 
 SUBDIRS += tools-TEST
-tools-TEST.depends = cppXML cppNGS
+tools-TEST.depends = cppNGSD
 
 SUBDIRS += FastqDemultiplex
 tools-TEST.depends += FastqDemultiplex
@@ -97,7 +96,7 @@ BedAnnotateFreq.depends = cppNGS
 
 SUBDIRS += GenesToApproved
 tools-TEST.depends += GenesToApproved
-GenesToApproved.depends = cppNGS
+GenesToApproved.depends = cppNGSD
 
 SUBDIRS += GenesToBed
 tools-TEST.depends += GenesToBed
@@ -230,6 +229,10 @@ BedAdd.depends = cppNGS
 SUBDIRS += NGSDInit
 tools-TEST.depends += NGSDInit
 NGSDInit.depends = cppNGSD
+
+SUBDIRS += NGSDImportHGNC
+tools-TEST.depends += NGSDImportHGNC
+NGSDImportHGNC.depends = cppNGSD
 
 #other stuff
 OTHER_FILES += ToDos.txt

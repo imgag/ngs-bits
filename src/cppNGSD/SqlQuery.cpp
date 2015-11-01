@@ -12,7 +12,7 @@ void SqlQuery::exec(const QString& query)
 	bool success = QSqlQuery::exec(query);
 	if (!success)
 	{
-		THROW(DatabaseException, "SqlQuery error!\nQuery: " + lastQuery() + "\nError: " + lastError().text());
+		THROW(DatabaseException, lastError().text() + "\nQuery: " + lastQuery());
 	}
 }
 
@@ -21,6 +21,6 @@ void SqlQuery::exec()
 	bool success = QSqlQuery::exec();
 	if (!success)
 	{
-		THROW(DatabaseException, "SqlQuery error!\nQuery: " + lastQuery() + "\nError: " + lastError().text());
+		THROW(DatabaseException, lastError().text() + "\nQuery: " + lastQuery());
 	}
 }

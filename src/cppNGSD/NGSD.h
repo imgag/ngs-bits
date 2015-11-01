@@ -23,6 +23,29 @@ public:
 	///Initializes the database (password is required for production database if it is not empty)
 	void init(QString password="");
 
+	/*** General database functionality ***/
+	///Executes an SQL query and returns the single return value.
+	///If no values are returned an error thrown or a default-constructed QVariant is returned (depending on @p empty_is_ok).
+	///If more than one value is returned a DatabaseError is thrown.
+	QVariant getValue(const QString& query, bool no_value_is_ok=true);
+	///Executes an SQL query and returns the return value list.
+	QVariantList getValues(const QString& query);
+	///Returns a SqlQuery object on the NGSD for custom queries.
+	inline SqlQuery getQuery() const
+	{
+		return SqlQuery(db_);
+	}
+	///Executes all queries from a text file.
+	void executeQueriesFromFile(QString filename);
+
+	///Returns all possible values for a enum column.
+	QStringList getEnum(QString table, QString column);
+	///Checks if a table exists
+	void tableExists(QString table);
+	///Checks if a table is empty
+	bool tableEmpty(QString table);
+
+	/*** Base functionality for file/variant processing ***/
 	///Returns the sample name for a file name, e.g. 'GS120159' for '/some/path/GS120159_01.bam'. Throws an exception if the file name does not start with a valid name.
 	static QString sampleName(const QString& filename, bool throw_if_fails = true);
 	///Returns the processed sample name for a file name, e.g. 'GS120159_01' for '/some/path/GS120159_01.bam'. Throws an exception if the file name does not start with a valid name.
@@ -36,6 +59,7 @@ public:
 	///Returns the ID of the current user as a string. Throws an exception if the user is not in the NGSD user table.
 	QString userId();
 
+	/*** Main NGSD functions ***/
 	///Returns the external sample name given the file name.
 	QString getExternalSampleName(const QString& filename);
 	///Returns the processing system name and short name of the sample, or an empty string if it could not be detected.
@@ -67,8 +91,6 @@ public:
 	///Returns the next processing ID for the given sample.
 	QString nextProcessingId(const QString& sample_id);
 
-	///Returns all possible values for a enum column in the NGSD.
-	QStringList getEnum(QString table, QString column);
 	///Returns the diagnostic status of a sample (status, user, datetime, outcome), or an empty result if an error occurred.
 	QStringList getDiagnosticStatus(const QString& filename);
 	///Sets the diagnostic status.
@@ -82,18 +104,6 @@ public:
 	QString url(const QString& filename);
 	///Returns the NGSD seach URL including the search term.
 	QString urlSearch(const QString& search_term);
-
-	///Executes an SQL query and returns the single return value.
-	///If no values are returned an error thrown or a default-constructed QVariant is returned (depending on @p empty_is_ok).
-	///If more than one value is returned a DatabaseError is thrown.
-	QVariant getValue(const QString& query, bool no_value_is_ok=true);
-	///Executes an SQL query and returns the return value list.
-	QVariantList getValues(const QString& query);
-	///Returns a SqlQuery object on the NGSD for custom queries.
-	inline SqlQuery getQuery() const
-	{
-		return SqlQuery(db_);
-	}
 
 signals:
 	void initProgress(QString text, bool percentage);

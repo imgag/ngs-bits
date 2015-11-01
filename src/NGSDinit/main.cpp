@@ -18,7 +18,7 @@ public:
 		setDescription("Sets up the NDSD database.");
 		//optional
 		addString("force", "Database password needed to re-initialize the production database.", true, "");
-		addFlag("test", "Uses the test database instead of on the procution database.");
+		addFlag("test", "Uses the test database instead of on the production database.");
 	}
 
 	virtual void main()

@@ -5,6 +5,7 @@
 #-------------------------------------------------
 
 QT       -= gui
+QT       += sql
 
 CONFIG   += console
 CONFIG   -= app_bundle
@@ -16,6 +17,10 @@ LIBS += -lz
 
 #include cppTFW library
 INCLUDEPATH += $$PWD/../cppTFW
+
+#include cppNGSD library
+INCLUDEPATH += $$PWD/../cppNGSD
+LIBS += -L$$PWD/../../bin -lcppNGSD
 
 HEADERS += \
     BedAnnotateGenes_Test.h \
@@ -70,7 +75,8 @@ HEADERS += \
     BamLeftAlign_Test.h \
     FastqToFasta_Test.h \
     BamCleanHaloplex_Test.h \
-    BedAdd_Test.h
+    BedAdd_Test.h \
+    NGSDImportHGNC_Test.h \
 
 SOURCES += \
     main.cpp \

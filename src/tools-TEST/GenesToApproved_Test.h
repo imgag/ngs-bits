@@ -1,17 +1,24 @@
 #include "TestFramework.h"
 #include "Settings.h"
+#include "NGSD.h"
 
 TEST_CLASS(GenesToApproved_Test)
 {
 Q_OBJECT
 private slots:
 	
-	void test_01()
+	void default_parameters()
 	{
-		QString db_file = Settings::string("hgnc");
-		if (db_file=="") SKIP("Test needs a database file!");
+		QString host = Settings::string("ngsd_test_host");
+		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
-		EXECUTE("GenesToApproved", "-in " + TESTDATA("data_in/GenesToApproved_in1.txt") + " -out out/GenesToApproved_out1.txt -db " + db_file);
+		//init
+		NGSD db(true);
+		db.init();
+		EXECUTE("NGSDImportHGNC", "-test -in " + TESTDATA("data_in/NGSDImportHGNC_in1.txt"));
+
+		//test
+		EXECUTE("GenesToApproved", "-test -in " + TESTDATA("data_in/GenesToApproved_in1.txt") + " -out out/GenesToApproved_out1.txt");
 		COMPARE_FILES("out/GenesToApproved_out1.txt", TESTDATA("data_out/GenesToApproved_out1.txt"));
 	}
 

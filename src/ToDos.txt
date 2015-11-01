@@ -1,4 +1,12 @@
 === TODO ===
+
+NGSD changes:
+- test VariantAnnotateNGSD (NGSD)
+- test BedGeneOverlap (db-file)
+- test CnvHunter (db-file)
+- test GenesToBed (db-file)
+- test BedAnnotateGenes (db-file)
+
 GSvar:
 
 GSmix:

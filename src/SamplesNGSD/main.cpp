@@ -28,13 +28,14 @@ public:
 		addEnum("quality", "Minimum sample/run quality filter.", true, QStringList() << "bad" << "medium" << "good", "bad");
 		addFlag("normal", "If set, tumor samples are excluded.");
 		addFlag("check_path", "Checks the sample folder location.");
+		addFlag("test", "Uses the test database instead of on the production database.");
 	}
 
 	virtual void main()
 	{
 		//init
 		bool check_path = getFlag("check_path");
-		NGSD db;
+		NGSD db(getFlag("test"));
 		QStringList tables;
 		tables << "processed_sample as ps";
 		tables << "sample as s";
@@ -121,6 +122,7 @@ public:
 		fields << "r.recipe";
 		fields << "r.quality";
 		SqlQuery result = db.getQuery();
+		qDebug() << conditions;
 		result.exec("SELECT "+fields.join(", ")+" FROM "+tables.join(", ")+" WHERE "+conditions.join(" AND "));
 
 		//write header line
