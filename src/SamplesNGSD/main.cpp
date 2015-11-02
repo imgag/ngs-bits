@@ -114,6 +114,7 @@ public:
 		fields << "s.gender";
 		fields << "s.quality";
 		fields << "s.tumor";
+		fields << "ps.last_analysis";
 		fields << "sys.name_short";
 		fields << "p.name";
 		fields << "p.type";

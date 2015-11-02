@@ -24,5 +24,5 @@ INSERT INTO processing_system (id, name, shotgun, name_short, genome_id) VALUES 
 INSERT INTO sample (id, name, sample_type, species_id, gender, tumor, ffpe, sender_id, quality) VALUES (1, 'NA12878', 'DNA', 1, 'female', '0', '0', 1, 'good');
 
 -- processed_sample
-INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane, operator_id, processing_system_id, project_id) VALUES (1, 1, 1, 1, 1, 2, 1, 1);
+INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane, operator_id, processing_system_id, project_id, last_analysis) VALUES (1, 1, 1, 1, 1, 2, 1, 1, '2015-10-30');
 INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane, operator_id, processing_system_id, project_id) VALUES (2, 1, 2, 2, 1, 2, 2, 2);
