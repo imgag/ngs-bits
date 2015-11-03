@@ -544,7 +544,7 @@ void NGSD::annotate(VariantList& variants, QString filename)
 			v.annotations()[ihdb_het_idx] =  QByteArray::number((double)sys_het_count / sys_sample_ids.count(), 'f', 4);
 			v.annotations()[ihdb_wt_idx] =  QByteArray::number((double)(sys_sample_ids.count() - sys_hom_count - sys_het_count) / sys_sample_ids.count(), 'f', 4);
 			v.annotations()[valid_idx] = validated;
-			v.annotations()[comment_idx] = comment.replace("\n", " ");
+			v.annotations()[comment_idx] = comment.replace("\n", " ").replace("\t", " ");
 		}
 		else
 		{
