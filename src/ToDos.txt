@@ -8,6 +8,7 @@ NGSD changes:
 - test BedAnnotateGenes (db-file)
 
 GSvar:
+- somatic: Filter (MAF + custom), report (no genotype, ...)
 
 GSmix:
 - Support copy-and-paste of text in fields

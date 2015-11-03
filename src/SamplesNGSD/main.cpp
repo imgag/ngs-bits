@@ -123,7 +123,6 @@ public:
 		fields << "r.recipe";
 		fields << "r.quality";
 		SqlQuery result = db.getQuery();
-		qDebug() << conditions;
 		result.exec("SELECT "+fields.join(", ")+" FROM "+tables.join(", ")+" WHERE "+conditions.join(" AND "));
 
 		//write header line

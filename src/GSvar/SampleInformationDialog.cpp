@@ -107,7 +107,7 @@ void SampleInformationDialog::refresh()
 	//name
 	ui_.name->setText(QFileInfo(filename_).fileName());
 
-	//date - BAM
+	//date (BAM)
 	QDateTime last_modified = QFileInfo(QString(filename_).replace(".GSvar", ".bam")).lastModified();
 	QString date_text = last_modified.toString("yyyy-MM-dd");
 	if (last_modified < QDateTime::currentDateTime().addMonths(-6))
@@ -115,24 +115,6 @@ void SampleInformationDialog::refresh()
 		date_text = " <font color='red'>" + date_text + "</font>";
 	}
 	ui_.date_bam->setText(date_text);
-
-	//date - VCF
-	last_modified = QFileInfo(QString(filename_).replace(".GSvar", "_var.vcf.gz")).lastModified();
-	date_text = last_modified.toString("yyyy-MM-dd");
-	if (last_modified < QDateTime::currentDateTime().addMonths(-6))
-	{
-		date_text = " <font color='red'>" + date_text + "</font>";
-	}
-	ui_.date_vcf->setText(date_text);
-
-	//date - GSvar
-	last_modified = QFileInfo(filename_).lastModified();
-	date_text = last_modified.toString("yyyy-MM-dd");
-	if (last_modified < QDateTime::currentDateTime().addMonths(-2))
-	{
-		date_text = " <font color='red'>" + date_text + "</font>";
-	}
-	ui_.date_gsvar->setText(date_text);
 
 	//QC data
 	QCCollection qc = db_.getQCData(filename_);

@@ -341,7 +341,7 @@ void ReportWorker::writeHTML()
 	}
 
 	//get column indices
-	int i_genotype = variants_.annotationIndexByName("genotype", true, true);
+	int i_genotype = variants_.annotationIndexByName("genotype", true, false); //optinal because of tumor samples
 	int i_gene = variants_.annotationIndexByName("gene", true, true);
 	int i_type = variants_.annotationIndexByName("variant_type", true, true);
 	int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, true);
@@ -354,6 +354,10 @@ void ReportWorker::writeHTML()
 	int i_hgmd = variants_.annotationIndexByName("HGMD", true, true);
 	int i_class = variants_.annotationIndexByName("classification", true, true);
 	int i_comment = variants_.annotationIndexByName("comment", true, true);
+
+	//get tumor specific column indices
+	bool tumor = (i_genotype==-1);
+	int i_tumor_af = std::max(variants_.annotationIndexByName("tumor_maf", true, false), variants_.annotationIndexByName("tumor_af", true, false));
 
 	//output: applied filters
 	stream << "<p><b>Filterkriterien</b>" << endl;
@@ -396,7 +400,7 @@ void ReportWorker::writeHTML()
 	stream << "<p><b>Liste gefilterter Varianten</b>" << endl;
 	stream << "</p>" << endl;
 	stream << "<table>" << endl;
-	stream << "<tr><th>Gen</th><th>chr</th><th>start</th><th>end</th><th>ref</th><th>obs</th><th>Genotyp</th><th>Details</th><th>Klasse</th><th>Vererbung</th></tr>" << endl;
+	stream << "<tr><th>Gen</th><th>chr</th><th>start</th><th>end</th><th>ref</th><th>obs</th><th>" << (tumor ? "Allelfrequenz" : "Genotyp") << "</th><th>Details</th><th>Klasse</th><th>Vererbung</th></tr>" << endl;
 	for (int i=0; i<variants_selected_.count(); ++i)
 	{
 		const Variant& variant = variants_[variants_selected_[i].first];
@@ -404,7 +408,7 @@ void ReportWorker::writeHTML()
 		stream << "<td>" << variant.annotations().at(i_gene) << "</td>" << endl;
 		stream << "<td>" << endl;
 		stream  << variant.chr().str() << "</td><td>" << variant.start() << "</td><td>" << variant.end() << "</td><td>" << variant.ref() << "</td><td>" << variant.obs() << "</td>";
-		stream << "<td>" << variant.annotations().at(i_genotype) << "</td>" << endl;
+		stream << "<td>" << (tumor ? variant.annotations().at(i_tumor_af) : variant.annotations().at(i_genotype)) << "</td>" << endl;
 		stream << "<td>" << formatCodingSplicing(variant.annotations().at(i_co_sp)).replace(", ", "<br />") << "</td>" << endl;
 		stream << "<td>" << variant.annotations().at(i_class) << "</td>" << endl;
 		stream << "<td></td>" << endl;
@@ -653,7 +657,7 @@ void ReportWorker::writeXML()
 	}
 
 	//element Variant
-	int geno_idx = variants_.annotationIndexByName("genotype", true, true);
+	int geno_idx = variants_.annotationIndexByName("genotype", true, false);
 	int comment_idx = variants_.annotationIndexByName("comment", true, true);
 	for (int i=0; i<variants_selected_.count(); ++i)
 	{
@@ -664,7 +668,7 @@ void ReportWorker::writeXML()
 		w.writeAttribute("end", QString::number(v.end()));
 		w.writeAttribute("ref", v.ref());
 		w.writeAttribute("obs", v.obs());
-		w.writeAttribute("genotype", v.annotations()[geno_idx]);
+		w.writeAttribute("genotype", (geno_idx==-1 ? "n/a" : v.annotations()[geno_idx]));
 		w.writeAttribute("comment", v.annotations()[comment_idx]);
 
 		//element Annotation

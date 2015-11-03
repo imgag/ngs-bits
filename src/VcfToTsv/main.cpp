@@ -42,7 +42,7 @@ public:
 			Variant& v = vl[i];
 			if (!v.obs().contains(',')) continue;
 
-			if (!split) THROW(FileParseException, "Input file contains multi-allelic variants. Split variants using VcfSplitMultiallelic or the -split option of this tool.\nError variant: " + vl[i].toString());
+			if (!split) THROW(FileParseException, "Input file contains multi-allelic variants. You can split variants using the -split option.\nVariant: " + vl[i].toString());
 
 			QList<Sequence> obss = vl[i].obs().split(',');
 			v.setObs(obss.takeFirst());
