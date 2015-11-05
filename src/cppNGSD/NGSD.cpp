@@ -255,9 +255,12 @@ void NGSD::init(QString password)
 		}
 
 		//remove old tables
-		query.exec("SET FOREIGN_KEY_CHECKS = 0;");
-		query.exec("DROP TABLE " + tables.join(","));
-		query.exec("SET FOREIGN_KEY_CHECKS = 1;");
+		if (!tables.isEmpty())
+		{
+			query.exec("SET FOREIGN_KEY_CHECKS = 0;");
+			query.exec("DROP TABLE " + tables.join(","));
+			query.exec("SET FOREIGN_KEY_CHECKS = 1;");
+		}
 	}
 
 	//initilize

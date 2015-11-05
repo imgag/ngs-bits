@@ -15,8 +15,9 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Sets up the NDSD database.");
+		setDescription("Sets up the NDSD database (creates tables and adds minimal data).");
 		//optional
+		addInfile("add", "Additional SQL script to execute after database initialization.", true);
 		addString("force", "Database password needed to re-initialize the production database.", true, "");
 		addFlag("test", "Uses the test database instead of on the production database.");
 	}
@@ -27,6 +28,14 @@ public:
 		NGSD db(getFlag("test"));
 		db.init(getString("force"));
 
+		//add data
+		QString add = getInfile("add");
+		if (add!="")
+		{
+			db.executeQueriesFromFile(add);
+		}
+
+		//output
 		QTextStream out(stdout);
 		out << "Database initialization succesfully." << endl;
 		out << "You are now able to login as user 'admin' and password 'admin' via the web fronted." << endl;
