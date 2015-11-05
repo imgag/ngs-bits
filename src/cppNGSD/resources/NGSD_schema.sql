@@ -482,6 +482,7 @@ CREATE  TABLE IF NOT EXISTS `detected_variant` (
   INDEX `fk_detected_variant_variant1` (`variant_id` ASC),
   INDEX `fk_detected_variant_processed_sample1` (`processed_sample_id` ASC),
   INDEX `comment` (`comment`(50) ASC),
+  INDEX `report` (`report`),
   INDEX `special_variantid_comment` (`variant_id` ASC, `comment`(50) ASC),
   CONSTRAINT `fk_processed_sample_has_variant_processed_sample1`
     FOREIGN KEY (`processed_sample_id`)
