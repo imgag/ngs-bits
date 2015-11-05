@@ -247,14 +247,17 @@ void NGSD::init(QString password)
 			THROW(DatabaseException, "Password provided for re-initialization of procution database is incorrect!");
 		}
 
-		//remove old tables
-		SqlQuery query2 = getQuery();
-		query2.exec("SET FOREIGN_KEY_CHECKS = 0;");
+		//get table list
+		QStringList tables;
 		while(query.next())
 		{
-			query2.exec("DROP table " + query.value(0).toString());
+			tables << query.value(0).toString();
 		}
-		query2.exec("SET FOREIGN_KEY_CHECKS = 1;");
+
+		//remove old tables
+		query.exec("SET FOREIGN_KEY_CHECKS = 0;");
+		query.exec("DROP TABLE " + tables.join(","));
+		query.exec("SET FOREIGN_KEY_CHECKS = 1;");
 	}
 
 	//initilize
