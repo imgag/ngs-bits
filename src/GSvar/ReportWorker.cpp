@@ -591,14 +591,18 @@ void ReportWorker::writeHTML()
 	}
 
 	//copy report to archive folder
-	QString file_rep_copy = "\\\\SRV009\\Arbeitsgruppen\\Molekulargenetik\\Diagnostik\\GSvarReportsArchive\\" + QFileInfo(file_rep_).fileName();
-	if (QFile(file_rep_copy).exists() && !QFile::remove(file_rep_copy))
+	QString archive_folder = Settings::string("gsvar_report_archive");
+	if (archive_folder!="")
 	{
-		THROW(FileAccessException, "Could not remove previous HTML report in archive folder: " + file_rep_copy);
-	}
-	if (!QFile::copy(file_rep_, file_rep_copy))
-	{
-		THROW(FileAccessException, "Could not copy HTML report to archive folder: " + file_rep_copy);
+		QString file_rep_copy = archive_folder + "\\" + QFileInfo(file_rep_).fileName();
+		if (QFile(file_rep_copy).exists() && !QFile::remove(file_rep_copy))
+		{
+			THROW(FileAccessException, "Could not remove previous HTML report in archive folder: " + file_rep_copy);
+		}
+		if (!QFile::copy(file_rep_, file_rep_copy))
+		{
+			THROW(FileAccessException, "Could not copy HTML report to archive folder: " + file_rep_copy);
+		}
 	}
 }
 

@@ -1,14 +1,13 @@
 === TODO ===
 
 NGSD changes:
-- test VariantAnnotateNGSD (NGSD)
 - test BedGeneOverlap (db-file)
 - test CnvHunter (db-file)
 - test GenesToBed (db-file)
 - test BedAnnotateGenes (db-file)
 
 GSvar:
-- somatic: Filter (MAF + custom), report (no genotype, ...)
+- somatic sample: Filter (MAF + custom)
 
 GSmix:
 - Support copy-and-paste of text in fields
@@ -20,6 +19,7 @@ Tools:
 - SampleOverview: add option for BAM files (check depth where variant is not found)
 
 CnvHunter
+ - consider normalizing for read length somehow (or use read counts? But that does not help much either)
  - set min STDEV to 15% of mean (was 10%, make it a parameter)
  - do not use bad regions for sample correlation calculation - remove bad regions after writing regions file...
  - do not exclude extreme outliers from reference sample calculation - we use median/mad

@@ -1,165 +1,55 @@
 #include "TestFramework.h"
 #include "VariantList.h"
 #include "Settings.h"
+#include "NGSD.h"
 
 TEST_CLASS(VariantAnnotateNGSD_Test)
 {
 Q_OBJECT
 private slots:
 	
-	void default_parameters()
+	void germline()
 	{
-		QString host = Settings::string("ngsd_host");
-		if (host=="") SKIP("Test needs access to the NGSD!");
+		QString host = Settings::string("ngsd_test_host");
+		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
-		bool convertion_ok;
-	
-		EXECUTE("VariantAnnotateNGSD", "-in " + TESTDATA("data_in/VariantAnnotateNGSD_in1.tsv") + " -out out/VariantAnnotateNGSD_out1.tsv");
-	
-		VariantList output;
-		output.load("out/VariantAnnotateNGSD_out1.tsv");
-	
-		//check that the new columns are present
-		int gpd_g_i = output.annotationIndexByName("GPD_gene", true, true);
-		I_EQUAL(gpd_g_i, 22);
-		int gpd_v_i = output.annotationIndexByName("GPD_var", true, true);
-		I_EQUAL(gpd_v_i, 23);
-		int hom_i = output.annotationIndexByName("ihdb_hom", true, true);
-		I_EQUAL(hom_i, 24);
-		int het_i = output.annotationIndexByName("ihdb_het", true, true);
-		I_EQUAL(het_i, 25);
-		int wt_i = output.annotationIndexByName("ihdb_wt", true, true);
-		I_EQUAL(wt_i, 26);
-		int all_hom_i = output.annotationIndexByName("ihdb_allsys_hom", true, true);
-		I_EQUAL(all_hom_i, 27);
-		int all_het_i = output.annotationIndexByName("ihdb_allsys_het", true, true);
-		I_EQUAL(all_het_i, 28);
-		int cla_i = output.annotationIndexByName("classification", true, true);
-		I_EQUAL(cla_i, 29);
-		int val_i = output.annotationIndexByName("validated", true, true);
-		I_EQUAL(val_i, 30);
-		int com_i = output.annotationIndexByName("comment", true, true);
-		I_EQUAL(com_i, 31);
-		I_EQUAL(output.annotations().count(), 32);
-	
-		//check annotation content
-		I_EQUAL(output.count(), 12);
-		for (int i=0; i<output.count(); ++i)
-		{
-			S_EQUAL(output[i].annotations()[hom_i], QByteArray("n/a"));
-			S_EQUAL(output[i].annotations()[het_i], QByteArray("n/a"));
-			S_EQUAL(output[i].annotations()[wt_i],  QByteArray("n/a"));
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/VariantAnnotateNGSD_init1.sql"));
 
-			convertion_ok = false;
-			int value_int = output[i].annotations()[all_hom_i].toInt(&convertion_ok);
-			IS_TRUE(convertion_ok);
-			IS_TRUE(value_int >= 0);
-	
-			convertion_ok = false;
-			value_int = output[i].annotations()[all_het_i].toInt(&convertion_ok);
-			IS_TRUE(convertion_ok);
-			IS_TRUE(value_int >= 0);
-	
-			if (i!=11)
-			{
-				S_EQUAL(output[i].annotations()[cla_i], QByteArray(""));
-			}
-			else
-			{
-				S_EQUAL(output[i].annotations()[cla_i], QByteArray("1"));
-			}
-			S_EQUAL(output[i].annotations()[val_i], QByteArray("n/a"));
-			S_EQUAL(output[i].annotations()[com_i], QByteArray("n/a"));
-		}
+		//test
+		EXECUTE("VariantAnnotateNGSD", "-test -in " + TESTDATA("data_in/VariantAnnotateNGSD_in1.tsv") + " -out out/VariantAnnotateNGSD_out1.tsv");
+		COMPARE_FILES("out/VariantAnnotateNGSD_out1.tsv", TESTDATA("data_out/VariantAnnotateNGSD_out1.tsv"));
 	}
 
-	void psname_given()
-	{	
-		QString host = Settings::string("ngsd_host");
-		if (host=="") SKIP("Test needs access to the NGSD!");
+	void germline_with_psname()
+	{
+		QString host = Settings::string("ngsd_test_host");
+		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
-	    bool convertion_ok;
-	
-		EXECUTE("VariantAnnotateNGSD", "-in " + TESTDATA("data_in/VariantAnnotateNGSD_in1.tsv") + " -out out/VariantAnnotateNGSD_out2.tsv -psname DX131731_01");
-	
-		VariantList output;
-		output.load("out/VariantAnnotateNGSD_out2.tsv");
-	
-		//check that the new columns are present
-		int gpd_g_i = output.annotationIndexByName("GPD_gene", true, true);
-		I_EQUAL(gpd_g_i, 22);
-		int gpd_v_i = output.annotationIndexByName("GPD_var", true, true);
-		I_EQUAL(gpd_v_i, 23);
-		int hom_i = output.annotationIndexByName("ihdb_hom", true, true);
-		I_EQUAL(hom_i, 24);
-		int het_i = output.annotationIndexByName("ihdb_het", true, true);
-		I_EQUAL(het_i, 25);
-		int wt_i = output.annotationIndexByName("ihdb_wt", true, true);
-		I_EQUAL(wt_i, 26);
-		int all_hom_i = output.annotationIndexByName("ihdb_allsys_hom", true, true);
-		I_EQUAL(all_hom_i, 27);
-		int all_het_i = output.annotationIndexByName("ihdb_allsys_het", true, true);
-		I_EQUAL(all_het_i, 28);
-		int cla_i = output.annotationIndexByName("classification", true, true);
-		I_EQUAL(cla_i, 29);
-		int val_i = output.annotationIndexByName("validated", true, true);
-		I_EQUAL(val_i, 30);
-		int com_i = output.annotationIndexByName("comment", true, true);
-		I_EQUAL(com_i, 31);
-		I_EQUAL(output.annotations().count(), 32);
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/VariantAnnotateNGSD_init1.sql"));
 
-		//check annotation content
-		I_EQUAL(output.count(), 12);
-		for (int i=0; i<output.count(); ++i)
-		{
-			double value_double = output[i].annotations()[hom_i].toDouble(&convertion_ok);
-			IS_TRUE(convertion_ok);
-			IS_TRUE(value_double >= 0.0 && value_double <= 1.0);
-	
-			value_double = output[i].annotations()[hom_i].toDouble(&convertion_ok);
-			IS_TRUE(convertion_ok);
-			IS_TRUE(value_double >= 0.0 && value_double <= 1.0);
-	
-			value_double = output[i].annotations()[het_i].toDouble(&convertion_ok);
-			IS_TRUE(convertion_ok);
-			IS_TRUE(value_double >= 0.0 && value_double <= 1.0);
-	
-			value_double = output[i].annotations()[wt_i].toDouble(&convertion_ok);
-			IS_TRUE(convertion_ok);
-			IS_TRUE(value_double >= 0.0 && value_double <= 1.0);
-	
-			convertion_ok = false;
-			int value_int = output[i].annotations()[all_hom_i].toInt(&convertion_ok);
-			IS_TRUE(convertion_ok);
-			IS_TRUE(value_int >= 0);
-	
-			convertion_ok = false;
-			value_int = output[i].annotations()[all_het_i].toInt(&convertion_ok);
-			IS_TRUE(convertion_ok);
-			IS_TRUE(value_int >= 0);
-
-			if (i!=11)
-			{
-				S_EQUAL(output[i].annotations()[cla_i], QByteArray(""));
-				S_EQUAL(output[i].annotations()[val_i], QByteArray(""));
-				S_EQUAL(output[i].annotations()[com_i], QByteArray(""));
-			}
-			else
-			{
-				S_EQUAL(output[i].annotations()[cla_i], QByteArray("1"));
-				S_EQUAL(output[i].annotations()[val_i], QByteArray("n/a (2xTP, 0xFP)"));
-				IS_TRUE(output[i].annotations()[com_i].startsWith("n/a ("));
-			}
-
-		}
+		//test
+		EXECUTE("VariantAnnotateNGSD", "-test -psname DUMMY_01 -in " + TESTDATA("data_in/VariantAnnotateNGSD_in1.tsv") + " -out out/VariantAnnotateNGSD_out2.tsv");
+		COMPARE_FILES("out/VariantAnnotateNGSD_out2.tsv", TESTDATA("data_out/VariantAnnotateNGSD_out2.tsv"));
 	}
 
-	void somatic_mode()
+	void somatic()
 	{
-		QString host = Settings::string("ngsd_host");
-		if (host=="") SKIP("Test needs access to the NGSD!");
+		QString host = Settings::string("ngsd_test_host");
+		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
-		EXECUTE("VariantAnnotateNGSD", "-in " + TESTDATA("data_in/VariantAnnotateNGSD_in3.tsv") + " -out out/VariantAnnotateNGSD_out3.tsv -mode somatic");
+		QString ref_file = Settings::string("reference_genome");
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
+		SKIP("not implemented"); //TODO implement somatic test
+
+		/*
+		EXECUTE("VariantAnnotateNGSD", "-test -in " + TESTDATA("data_in/VariantAnnotateNGSD_in3.tsv") + " -out out/VariantAnnotateNGSD_out3.tsv -mode somatic");
 
 		VariantList output;
 		output.load("out/VariantAnnotateNGSD_out3.tsv");
@@ -203,6 +93,7 @@ private slots:
 				S_EQUAL(output[i].annotations()[gpd_v_i], QByteArray(""));
 			}
 		}
+		*/
 	}
 	
 };

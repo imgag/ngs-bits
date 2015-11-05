@@ -11,7 +11,7 @@ ValidationDialog::ValidationDialog(QWidget* parent, QString filename, const Vari
 	ui_.setupUi(this);
 	connect(ui_.status, SIGNAL(currentTextChanged(QString)), this, SLOT(statusChanged()));
 
-	QStringList status = NGSD().getEnum("detected_variant", "validated");
+	QStringList status = NGSD().getEnum("variant_validation", "status");
 	foreach(QString s, status)
 	{
 		ui_.status->addItem(s);

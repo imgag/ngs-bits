@@ -83,7 +83,7 @@ QString NGSD::sampleId(const QString& filename, bool throw_if_fails)
 	QStringList parts = QFileInfo(filename).baseName().append('_').split('_');
 
 	//get sample ID
-	SqlQuery query = getQuery(); //use binding user input (safety)
+	SqlQuery query = getQuery(); //use binding (user input)
 	query.prepare("SELECT id FROM sample WHERE name=:sample");
 	query.bindValue(":sample", parts[0]);
 	query.exec();
@@ -107,7 +107,7 @@ QString NGSD::processedSampleId(const QString& filename, bool throw_if_fails)
 	QStringList parts = QFileInfo(filename).baseName().append('_').split('_');
 
 	//get sample ID
-	SqlQuery query = getQuery(); //use binding user input (safety)
+	SqlQuery query = getQuery(); //use binding (user input)
 	query.prepare("SELECT ps.id FROM processed_sample ps, sample s WHERE s.name=:sample AND ps.sample_id=s.id AND ps.process_id=:psnum");
 	query.bindValue(":sample", parts[0]);
 	query.bindValue(":psnum", QString::number(parts[1].toInt()));
@@ -301,10 +301,17 @@ QString NGSD::getGenomeBuild(const QString& filename)
 
 QPair<QString, QString> NGSD::getValidationStatus(const QString& filename, const Variant& variant)
 {
-	SqlQuery result = getQuery();
-	result.exec("SELECT validated, validation_comment FROM detected_variant WHERE processed_sample_id='" + processedSampleId(filename) + "' AND variant_id='" + variantId(variant) + "'");
-	result.next();
-	return qMakePair(result.value(0).toString().trimmed(), result.value(1).toString().trimmed());
+	SqlQuery query = getQuery();
+	query.exec("SELECT status, comment FROM variant_validation WHERE sample_id='" + sampleId(filename) + "' AND variant_id='" + variantId(variant) + "'");
+	if (query.size()==0)
+	{
+		return QPair<QString, QString>("n/a", "");
+	}
+	else
+	{
+		query.next();
+		return QPair<QString, QString>(query.value(0).toString().trimmed(), query.value(1).toString().trimmed());
+	}
 }
 
 QCCollection NGSD::getQCData(const QString& filename)
@@ -413,7 +420,7 @@ void NGSD::annotate(VariantList& variants, QString filename)
 	int ihdb_all_het_idx =  addColumn(variants, "ihdb_allsys_het", "Heterozygous variant counts in NGSD independent of the processing system.");
 	int class_idx = addColumn(variants, "classification", "VUS classification from the NGSD.");
 	int valid_idx = addColumn(variants, "validated", "Validation information from the NGSD.");
-	if (variants.annotationIndexByName("comment", true, false)==-1) addColumn(variants, "comment", "Comments from the NGSD.");
+	if (variants.annotationIndexByName("comment", true, false)==-1) addColumn(variants, "comment", "Comments from the NGSD. Comments of other samples are listed in brackets!");
 	int comment_idx = variants.annotationIndexByName("comment", true, false);
 
 	//(re-)annotate the variants
@@ -437,37 +444,50 @@ void NGSD::annotate(VariantList& variants, QString filename)
 		//timer.restart();
 
 		//detected variant infos
-		QByteArray comment = "";
-		QByteArray validated = "";
 		int dv_id = -1;
+		QByteArray comment = "";
 		if (found_in_db)
 		{
-			query.exec("SELECT id, validated, comment FROM detected_variant WHERE processed_sample_id='" + ps_id + "' AND variant_id='"+v_id+"'");
+			query.exec("SELECT id, comment FROM detected_variant WHERE processed_sample_id='" + ps_id + "' AND variant_id='" + v_id + "'");
 			if (query.size()==1)
 			{
 				query.next();
 				dv_id = query.value(0).toInt();
-				validated = query.value(1).toByteArray().replace("n/a", "");
-				comment = query.value(2).toByteArray();
+				comment = query.value(1).toByteArray();
 			}
 		}
+
+		//validation info
+		int vv_id = -1;
+		QByteArray val_status = "";
+		if (found_in_db)
+		{
+			query.exec("SELECT id, status FROM variant_validation WHERE sample_id='" + s_id + "' AND variant_id='" + v_id + "'");
+			if (query.size()==1)
+			{
+				query.next();
+				vv_id = query.value(0).toInt();
+				val_status = query.value(1).toByteArray().replace("n/a", "");
+			}
+		}
+
 		//int t_dv = timer.elapsed();
 		//timer.restart();
 
 		//validation info other samples
 		int tps = 0;
 		int fps = 0;
-		query.exec("SELECT id, validated FROM detected_variant WHERE variant_id='"+v_id+"' AND validated!='n/a'");
+		query.exec("SELECT id, status FROM variant_validation WHERE variant_id='"+v_id+"' AND status!='n/a'");
 		while(query.next())
 		{
-			if (query.value(0).toInt()==dv_id) continue;
+			if (query.value(0).toInt()==vv_id) continue;
 			if (query.value(1).toByteArray()=="true positive") ++tps;
 			else if (query.value(1).toByteArray()=="false positive") ++fps;
 		}
 		if (tps>0 || fps>0)
 		{
-			if (validated=="") validated = "n/a";
-			validated += " (" + QByteArray::number(tps) + "xTP, " + QByteArray::number(fps) + "xFP)";
+			if (val_status=="") val_status = "n/a";
+			val_status += " (" + QByteArray::number(tps) + "xTP, " + QByteArray::number(fps) + "xFP)";
 		}
 		//int t_val = timer.elapsed();
 		//timer.restart();
@@ -543,7 +563,7 @@ void NGSD::annotate(VariantList& variants, QString filename)
 			v.annotations()[ihdb_hom_idx] = QByteArray::number((double)sys_hom_count / sys_sample_ids.count(), 'f', 4);
 			v.annotations()[ihdb_het_idx] =  QByteArray::number((double)sys_het_count / sys_sample_ids.count(), 'f', 4);
 			v.annotations()[ihdb_wt_idx] =  QByteArray::number((double)(sys_sample_ids.count() - sys_hom_count - sys_het_count) / sys_sample_ids.count(), 'f', 4);
-			v.annotations()[valid_idx] = validated;
+			v.annotations()[valid_idx] = val_status;
 			v.annotations()[comment_idx] = comment.replace("\n", " ").replace("\t", " ");
 		}
 		else
@@ -646,7 +666,24 @@ void NGSD::annotateSomatic(VariantList& variants, QString filename, QString ref_
 
 void NGSD::setValidationStatus(const QString& filename, const Variant& variant, const QString& status, const QString& comment)
 {
-	getQuery().exec("UPDATE detected_variant SET validated='" + status + "',validation_comment='" + comment + "' WHERE processed_sample_id='" + processedSampleId(filename) + "' AND variant_id='" + variantId(variant) + "'");
+	QString s_id = sampleId(filename);
+	QString v_id = variantId(variant);
+	QVariant vv_id = getValue("SELECT id FROM variant_validation WHERE sample_id='" + s_id + "' AND variant_id='" + v_id + "'");
+
+
+	SqlQuery query = getQuery(); //use binding (user input)
+	if (vv_id.isNull()) //insert
+	{
+		QString geno = getValue("SELECT genotype FROM detected_variant WHERE variant_id='" + v_id + "' AND processed_sample_id='" + processedSampleId(filename) + "'", false).toString();
+		query.prepare("INSERT INTO variant_validation (sample_id, variant_id, genotype, status, comment) VALUES ('" + s_id + "','" + v_id + "','" + geno + "',:status,:comment)");
+	}
+	else //update
+	{
+		query.prepare("UPDATE variant_validation SET status=:status, comment=:comment WHERE id='" + vv_id.toString() + "'");
+	}
+	query.bindValue(":status", status);
+	query.bindValue(":comment", comment);
+	query.exec();
 }
 
 void NGSD::setClassification(const Variant& variant, const QString& classification)

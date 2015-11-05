@@ -26,35 +26,37 @@ public:
 		addOutfile("out", "Output variant list.", false, true);
 		//optional
 		addString("psname", "Processed sample name. If set, this name is used instead of the file name to find the sample in the DB.", true, "");
-		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
+		addInfile("ref", "Reference genome FASTA file for somatic mode. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addEnum("mode", "Determines annotation mode.", true, QStringList() << "germline" << "somatic", "germline");
+		addFlag("test", "Uses the test database instead of on the production database.");
 	}
 
 	virtual void main()
 	{
-		//determine refererence genome file
+		//init
 		QString ref_file = getInfile("ref");
 		if (ref_file=="") ref_file = Settings::string("reference_genome");
+
+		QString psname = getString("psname");
+		if (psname=="") psname = getInfile("in");
 
 		//load
 		VariantList variants;
 		variants.load(getInfile("in"));
-		QString ps = getString("psname");
-		if (ps=="") ps = getInfile("in");
 
 		//annotate
+		bool test = getFlag("test");
 		QString mode = getEnum("mode");
 		if(mode=="germline")
 		{
-			GPD().annotate(variants);
-			NGSD().annotate(variants, ps);
+			if (!test) GPD().annotate(variants); //TODO make GPD testable
+			NGSD(test).annotate(variants, psname);
 		}
 		else if(mode=="somatic")
 		{
-			GPD().annotateSomatic(variants);
-			NGSD().annotateSomatic(variants, ps, ref_file);
+			if (!test) GPD().annotateSomatic(variants); //TODO make GPD testable
+			NGSD(test).annotateSomatic(variants, psname, ref_file);
 		}
-		else THROW(ProgrammingException, "Unknown mode '" + mode + "'!");
 
 		//store
 		variants.store(getOutfile("out"));

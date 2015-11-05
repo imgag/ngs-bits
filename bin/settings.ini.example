@@ -14,6 +14,11 @@ ngsd_name = ""
 ngsd_user = ""
 ngsd_pass = ""
 
+ngsd_test_host = ""
+ngsd_test_name = ""
+ngsd_test_user = ""
+ngsd_test_pass = ""
+
 #GPD MySQL credentials
 gpd_host = ""
 gpd_name = ""
@@ -36,4 +41,7 @@ kgxref_joined = ""
 hgnc = ""
 
 #alamut gene list file
-alamut_gene_list = 
+alamut_gene_list = ""
+
+#GSvar report archive folder
+gsvar_report_archive = ""
