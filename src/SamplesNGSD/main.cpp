@@ -26,7 +26,8 @@ public:
 		addString("project", "Project name filter.", true, "");
 		addString("sys", "Processing system short name filter.", true, "");
 		addEnum("quality", "Minimum sample/run quality filter.", true, QStringList() << "bad" << "medium" << "good", "bad");
-		addFlag("normal", "If set, tumor samples are excluded.");
+		addFlag("no_tumor", "If set, tumor samples are excluded.");
+		addFlag("no_ffpe", "If set, FFPE samples are excluded.");
 		addFlag("check_path", "Checks the sample folder location.");
 		addFlag("test", "Uses the test database instead of on the production database.");
 	}
@@ -101,11 +102,9 @@ public:
 			conditions << "r.quality!='medium'";
 		}
 
-		//filter tumor/normal
-		if (getFlag("normal"))
-		{
-			conditions << "s.tumor='0'";
-		}
+		//exclude tumor/ffpe
+		if (getFlag("no_tumor")) conditions << "s.tumor='0'";
+		if (getFlag("no_ffpe")) conditions << "s.ffpe='0'";
 
 		//query NGSD
 		QStringList fields;
@@ -114,6 +113,7 @@ public:
 		fields << "s.gender";
 		fields << "s.quality";
 		fields << "s.tumor";
+		fields << "s.ffpe";
 		fields << "ps.last_analysis";
 		fields << "sys.name_short";
 		fields << "p.name";
