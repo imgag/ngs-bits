@@ -787,6 +787,55 @@ bool NGSD::tableEmpty( QString table)
 	return query.value(0).toInt()==0;
 }
 
+int NGSD::geneToApprovedID(const QByteArray& gene)
+{
+	//init
+	static SqlQuery q_gene = getQuery();
+	static SqlQuery q_prev = getQuery();
+	static SqlQuery q_syn = getQuery();
+	static bool init = false;
+	if (!init)
+	{
+		q_gene.prepare("SELECT id FROM gene WHERE symbol=:1");
+		q_prev.prepare("SELECT g.id FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:1 AND ga.type='previous'");
+		q_syn.prepare("SELECT g.id FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:1 AND ga.type='synonym'");
+		init = true;
+	}
+
+	//approved
+	q_gene.bindValue(0, gene);
+	q_gene.exec();
+	if (q_gene.size()==1)
+	{
+		q_gene.next();
+		return q_gene.value(0).toInt();
+	}
+
+	//previous
+	q_prev.bindValue(0, gene);
+	q_prev.exec();
+	if (q_prev.size()==1)
+	{
+		q_prev.next();
+		return q_prev.value(0).toInt();
+	}
+	else if(q_prev.size()>1)
+	{
+		return -1;
+	}
+
+	//synonymous
+	q_syn.bindValue(0, gene);
+	q_syn.exec();
+	if (q_syn.size()==1)
+	{
+		q_syn.next();
+		return q_syn.value(0).toInt();
+	}
+
+	return -1;
+}
+
 QStringList NGSD::getDiagnosticStatus(const QString& filename)
 {
 	QString ps_id = processedSampleId(filename, false);
@@ -841,11 +890,11 @@ void NGSD::setDiagnosticStatus(const QString& filename, QString status)
 		QString comment = user_name + " requested re-sequencing (" + status + ") of sample " + processedSampleName(filename) + " on " + Helper::dateTime("dd.MM.yyyy hh:mm:ss");
 		if (status=="repeat sequencing only")
 		{
-			getQuery().exec("INSERT INTO processed_sample (sample_id, process_id, mid1_i7, mid2_i5, operator_id, processing_system_id, comment, project_id, molarity, status) VALUES ("+ s_id +","+ next_ps_num +","+ mid1 +","+ mid2 +","+ op_id +","+ sys_id +",'"+ comment +"',"+ proj_id +","+ molarity +",'todo')");
+			getQuery().exec("INSERT INTO processed_sample (sample_id, process_id, mid1_i7, mid2_i5, operator_id, processing_system_id, comment, project_id, molarity) VALUES ("+ s_id +","+ next_ps_num +","+ mid1 +","+ mid2 +","+ op_id +","+ sys_id +",'"+ comment +"',"+ proj_id +","+ molarity +")");
 		}
 		else if (status=="repeat library and sequencing")
 		{
-			getQuery().exec("INSERT INTO processed_sample (sample_id, process_id, operator_id, processing_system_id, comment, project_id, status) VALUES ("+ s_id +","+ next_ps_num +","+ op_id +","+ sys_id +",'"+ comment +"',"+ proj_id +",'todo')");
+			getQuery().exec("INSERT INTO processed_sample (sample_id, process_id, operator_id, processing_system_id, comment, project_id) VALUES ("+ s_id +","+ next_ps_num +","+ op_id +","+ sys_id +",'"+ comment +"',"+ proj_id +")");
 		}
 		else
 		{

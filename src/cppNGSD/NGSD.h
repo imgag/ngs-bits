@@ -45,6 +45,10 @@ public:
 	///Checks if a table is empty
 	bool tableEmpty(QString table);
 
+	/*** gene/transcript handling ***/
+	///Returns the gene ID, or -1 if none approved gene name could be found. Checks approved symbols, previous symbols and synonyms.
+	int geneToApprovedID(const QByteArray& gene);
+
 	/*** Base functionality for file/variant processing ***/
 	///Returns the sample name for a file name, e.g. 'GS120159' for '/some/path/GS120159_01.bam'. Throws an exception if the file name does not start with a valid name.
 	static QString sampleName(const QString& filename, bool throw_if_fails = true);

@@ -333,7 +333,6 @@ CREATE  TABLE IF NOT EXISTS `processed_sample` (
   `comment` TEXT NULL DEFAULT NULL,
   `project_id` INT(11) NOT NULL,
   `molarity` FLOAT NULL DEFAULT NULL,
-  `status` ENUM('todo','ready to sequence') NOT NULL DEFAULT 'ready to sequence',
   `normal_id` INT(11) NULL DEFAULT NULL,
   `last_analysis` DATE NULL DEFAULT NULL,
   PRIMARY KEY (`id`),

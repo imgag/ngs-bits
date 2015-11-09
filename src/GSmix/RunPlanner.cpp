@@ -278,7 +278,6 @@ void RunPlanner::importNewSamplesToNGSD()
 					ps.setFK("mid2_i5", mid2);
 				}
 				ps.set("operator_id", DatabaseCache::inst().ngsd().userId());
-				ps.set("status", "ready to sequence");
 
 				GDBODialog dlg(this, ps, QStringList() << "process_id" << "last_analysis");
 				dlg.setWindowTitle("Add processed sample to NGSD");
@@ -351,7 +350,8 @@ void RunPlanner::updateRunData()
 	{
 		QString name = psample.getFkObject("sample_id").get("name") + "_" + psample.get("process_id").rightJustified(2, '0');
 		ui->samples->setItem(row, 0, readOnlyItem(name));
-		ui->samples->setItem(row, 1, readOnlyItem(midToString(psample.getFkObject("mid1_i7"))));
+		QString mid1 = psample.get("mid1_i7")=="" ? "" : midToString(psample.getFkObject("mid1_i7"));
+		ui->samples->setItem(row, 1, readOnlyItem(mid1));
 		QString mid2 = psample.get("mid2_i5")=="" ? "" : midToString(psample.getFkObject("mid2_i5"));
 		ui->samples->setItem(row, 2, readOnlyItem(mid2));
 
