@@ -403,11 +403,8 @@ public:
             if (parts.count()<4) THROW(FileParseException, "Coverage file " + in[0] + " contains line with less then four elements: " + line);
             ExonData ex;
             ex.chr = parts[0].trimmed();
-            bool ok = false;
-            ex.start = parts[1].trimmed().toInt(&ok);
-            if (!ok) THROW(FileParseException, "Coverage file contains invalid start position: " + line);
-            ex.end = parts[2].trimmed().toInt(&ok);
-            if (!ok) THROW(FileParseException, "Coverage file contains invalid end position: " + line);
+			ex.start = Helper::toInt(parts[1], "start position" , line);
+			ex.end = Helper::toInt(parts[2], "end position" , line);
             ex.name = ex.chr.str() + ":" + QString::number(ex.start) + "-" + QString::number(ex.end);
 
             //check that exons are sorted according to chromosome and start position
@@ -444,10 +441,8 @@ public:
                 QString ex = parts[0].trimmed() + ":" + parts[1].trimmed() + "-" + parts[2].trimmed();
                 if (ex!=exons[j].name) THROW(FileParseException, "Coverage file " + data[i].name + " contains different regions than reference file " + in[0] + ". Expected " + exons[j].name + ", got " + ex + ".");
 
-                bool ok = false;
-                double value = parts[3].toDouble(&ok);
-                if (!ok) THROW(FileParseException, "Coverage file " + data[i].name + " contains invalid coverage value in line '" + file[j] + "'.");
-                data[i].doc.append(value);
+				double value = Helper::toDouble(parts[3], "coverge value", file[j]);
+				data[i].doc.append(value);
             }
         }
 

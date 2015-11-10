@@ -58,15 +58,12 @@ void ChromosomalFileIndex::create(const QString& db_file_name, int chr_col, int 
 		}
 
 		//check positions
-		bool ok = true;
-		int start = parts[start_col].toInt(&ok);
-		if (!ok) THROW(FileParseException, "Could not convert database file start position to integer: '" + parts[start_col] + "'!");
+		int start = Helper::toInt(parts[start_col], "start position");
 		if (last_start_pos>start)
 		{
 			THROW(FileParseException, "Database '" + db_file_name_ + "' not sorted according to start position. Position '" + QString::number(start) + "' after position '" + QString::number(last_start_pos) + "' on chromosome '" + chr.str() + "'!");
 		}
-		int end = parts[end_col].toInt(&ok);
-		if (!ok) THROW(FileParseException, "Could not convert database file start position to integer: '" + parts[end_col] + "'!");
+		int end = Helper::toInt(parts[end_col], "end position");
 		if (start>end)
 		{
 			THROW(FileParseException, "Database '" + db_file_name_ + "' contains invalid chromosomal range. Start position '" + QString::number(start) + "' greater than end position'" + QString::number(end) + "' on chromosome '" + chr.str() + "'!");

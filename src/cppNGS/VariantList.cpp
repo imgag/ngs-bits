@@ -352,18 +352,8 @@ void VariantList::loadFromTSV(QString filename)
 		}
 
 		//error on position conversion
-		bool conversion_ok = false;
-		int start_pos = fields[1].toInt(&conversion_ok);
-		if (!conversion_ok)
-		{
-			THROW(FileParseException,"Could not convert variant TSV file start position '" + fields[1] + "' in line "+line+" to integer!");
-		}
-		conversion_ok = false;
-		int end_pos = fields[2].toInt(&conversion_ok);
-		if (!conversion_ok)
-		{
-			THROW(FileParseException, "Could not convert variant TSV file end position '" + fields[2] + "' to integer!");
-		}
+		int start_pos = Helper::toInt(fields[1], "start position", line);
+		int end_pos = Helper::toInt(fields[2], "start position", line);
 
 		//variant line
 		QList<QByteArray> annos;

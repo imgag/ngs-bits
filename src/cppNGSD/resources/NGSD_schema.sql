@@ -70,7 +70,7 @@ CONSTRAINT `fk_gene_id3`
   REFERENCES `gene` (`id` )
   ON DELETE NO ACTION
   ON UPDATE NO ACTION,
-UNIQUE KEY `name` (`name`),
+UNIQUE KEY `gene_name_unique` (`gene_id`, `name`),
 KEY `source` (`source`),
 KEY `start_coding` (`start_coding`), 
 KEY `end_coding` (`end_coding`)

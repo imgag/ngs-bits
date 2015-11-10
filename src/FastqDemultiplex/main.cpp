@@ -287,9 +287,7 @@ private:
 			Sample* concrete_sample = new Sample;//init pointer to a sample
 			QStringList line_parts = line.split("\t");
 			if (line_parts.count()<5) THROW(FileParseException, "Sample sheet line has less than 5 parts: " + line);
-			bool ok = true;
-			concrete_sample->lane = line_parts[0].toInt(&ok);
-			if (!ok) THROW(FileParseException, "Could not convert lane to integer in sample sheet line: " + line);
+			concrete_sample->lane = Helper::toInt(line_parts[0], "lane", line);
 			if (!barcodes_.contains(concrete_sample->lane))//if first entry for this lane
 			{
 				used_barcodes[concrete_sample->lane]=empty_set;//init lane specific used_barcodes
@@ -502,9 +500,7 @@ private:
 				//extract lane
 				QList<QByteArray> header_parts = input_read1.header.split(':');
 				if (header_parts.count()<10) THROW(ArgumentException, "FASTQ header has less tham 10 ':'-separated parts: " + input_read1.header);
-				bool ok = true;
-				int lane = header_parts[3].toInt(&ok);
-				if (!ok) THROW(ArgumentException, "Could not convert lane to integer: " + header_parts[3]);
+				int lane = Helper::toInt(header_parts[3], "lane", input_read1.header);
 
 				//extract barcode(s)
 				QList<QByteArray> barcode_seqs = header_parts[9].split('+');

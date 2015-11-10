@@ -77,6 +77,7 @@ HEADERS += \
     BamCleanHaloplex_Test.h \
     BedAdd_Test.h \
     NGSDImportHGNC_Test.h \
+    NGSDImportUCSC_Test.h \
 
 SOURCES += \
     main.cpp \

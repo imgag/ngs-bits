@@ -234,6 +234,10 @@ SUBDIRS += NGSDImportHGNC
 tools-TEST.depends += NGSDImportHGNC
 NGSDImportHGNC.depends = cppNGSD
 
+SUBDIRS += NGSDImportUCSC
+tools-TEST.depends += NGSDImportUCSC
+NGSDImportUCSC.depends = cppNGSD
+
 #other stuff
 OTHER_FILES += ToDos.txt
 

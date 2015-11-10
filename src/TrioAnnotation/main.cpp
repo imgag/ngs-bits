@@ -4,7 +4,7 @@
 #include "BasicStatistics.h"
 #include "api/BamReader.h"
 #include "FastaFileIndex.h"
-#include "Exceptions.h"
+#include "Helper.h"
 #include <math.h>
 #include <QTextStream>
 #include <QSet>
@@ -107,28 +107,6 @@ public:
 		else THROW(ArgumentException, "Cannot convert genotype '" + genotype + "' to enum value!")
 	}
 
-	int str2int(const QByteArray& value)
-	{
-		bool ok = true;
-		int output = value.toInt(&ok);
-		if (!ok)
-		{
-			THROW(FileParseException, "Could not convert string '" + value + "' to integer.");
-		}
-		return output;
-	}
-
-	double str2double(const QByteArray& value)
-	{
-		bool ok = true;
-		double output = value.toDouble(&ok);
-		if (!ok)
-		{
-			THROW(FileParseException, "Could not convert string '" + value + "' to double.");
-		}
-		return output;
-	}
-
 	virtual void main()
 	{
 		int min_depth = getInt("min_depth");
@@ -195,18 +173,18 @@ public:
 				{
 					QList<QByteArray> trio_entries = entry.mid(5).split(',');
 					if (trio_entries.count()!=9) THROW(ProgrammingException, "Trio column has more/less than 9 entries!");
-					int c_depth = str2int(trio_entries[1]);
-					int m_depth = str2int(trio_entries[4]);
-					int f_depth = str2int(trio_entries[7]);
+					int c_depth = Helper::toInt(trio_entries[1], "child depth");
+					int m_depth = Helper::toInt(trio_entries[4], "mother depth");
+					int f_depth = Helper::toInt(trio_entries[7], "father depth");
 					if (c_depth>=min_depth && m_depth>=min_depth && f_depth>=min_depth)
 					{
 						Genos tmp;
 						tmp.c = str2geno(trio_entries[0]);
 						tmp.m = str2geno(trio_entries[3]);
 						tmp.f = str2geno(trio_entries[6]);
-						tmp.c_af = str2double(trio_entries[2]);
-						tmp.m_af = str2double(trio_entries[5]);
-						tmp.f_af = str2double(trio_entries[8]);
+						tmp.c_af = Helper::toDouble(trio_entries[2], "child AF");
+						tmp.m_af = Helper::toDouble(trio_entries[5], "mother AF");
+						tmp.f_af = Helper::toDouble(trio_entries[8], "father AF");
 						trio_genos.insert(i, tmp);
 					}
 				}

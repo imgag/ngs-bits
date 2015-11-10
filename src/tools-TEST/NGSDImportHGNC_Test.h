@@ -18,6 +18,12 @@ private slots:
 
 		//test
 		EXECUTE("NGSDImportHGNC", "-test -in " + TESTDATA("data_in/NGSDImportHGNC_in1.txt"));
+
+		//check
+		int gene_count = db.getValue("SELECT count(*) FROM gene").toInt();
+		I_EQUAL(gene_count, 8)
+		int alias_count = db.getValue("SELECT count(*) FROM gene_alias").toInt();
+		I_EQUAL(alias_count, 34)
 	}
 
 };

@@ -41,9 +41,7 @@ public:
 			int length = -1;
 			if (parts.count()>1)
 			{
-				bool ok = false;
-				length = parts[1].toInt(&ok);
-				if (!ok) THROW(FileParseException, "Could not convert length value '" + parts[1] + "' to integer!");
+				length = Helper::toInt(parts[1], "length value");
 			}
 			ids.insert(parts[0], length);
 		}
