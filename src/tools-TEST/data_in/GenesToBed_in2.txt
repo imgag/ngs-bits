@@ -1,5 +1,0 @@
-#gene
-MECP2
-ZNF711
-GK
-NLGN4X

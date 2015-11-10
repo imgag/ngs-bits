@@ -100,7 +100,7 @@ GenesToApproved.depends = cppNGSD
 
 SUBDIRS += GenesToBed
 tools-TEST.depends += GenesToBed
-GenesToBed.depends = cppNGS
+GenesToBed.depends = cppNGSD
 
 SUBDIRS += VariantFilterRegions
 tools-TEST.depends += VariantFilterRegions

@@ -1,4 +1,3 @@
 #gene
-MECP2
-ZNF711
-GK
+BRCA2
+NOGENE

@@ -3,8 +3,8 @@
 NGSD changes:
 - test BedGeneOverlap (db-file)
 - test CnvHunter (db-file)
-- test GenesToBed (db-file)
 - test BedAnnotateGenes (db-file)
+  => remove db-files from settings.ini
 
 GSvar:
 - somatic sample: Filter (MAF + custom)
@@ -13,6 +13,7 @@ GSmix:
 - Support copy-and-paste of text in fields
 
 Tools:
+- GenesToBed: add flag '-utr' that includes UTRs
 - SeqPurge: add error correction
 - FastqDemultiplex: check for "carry-over" contamination from last run
 - ReadQC: create plots without python?
