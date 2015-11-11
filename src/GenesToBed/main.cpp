@@ -80,8 +80,12 @@ public:
 				q_transcript.exec();
 				while(q_transcript.next())
 				{
-					start_coding = std::min(start_coding, q_transcript.value(1).toInt());
-					end_coding = std::max(end_coding, q_transcript.value(2).toInt());
+					int s = q_transcript.value(1).toInt();
+					int e = q_transcript.value(2).toInt();
+					if (s>e) continue;
+
+					start_coding = std::min(start_coding, s);
+					end_coding = std::max(end_coding, e);
 				}
 
 				if (start_coding>end_coding)
