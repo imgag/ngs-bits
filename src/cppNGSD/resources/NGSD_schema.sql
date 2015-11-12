@@ -59,8 +59,8 @@ CREATE TABLE IF NOT EXISTS `gene_transcript` (
 `gene_id` int(10) unsigned NOT NULL,
 `name` varchar(40) NOT NULL,
 `source` enum('ccds', 'ucsc','refseq') NOT NULL,
-`start_coding` int(10) unsigned NOT NULL,
-`end_coding` int(10) unsigned NOT NULL,
+`start_coding` int(10) unsigned NULL,
+`end_coding` int(10) unsigned NULL,
 `strand` enum('+', '-') NOT NULL,
 
 PRIMARY KEY (`id`), 

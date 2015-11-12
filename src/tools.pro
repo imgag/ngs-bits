@@ -32,7 +32,7 @@ BamClipOverlap.depends = cppNGS
 
 SUBDIRS += BedAnnotateGenes
 tools-TEST.depends += BedAnnotateGenes
-BedAnnotateGenes.depends = cppNGS
+BedAnnotateGenes.depends = cppNGSD
 
 SUBDIRS += BedCoverage
 tools-TEST.depends += BedCoverage

@@ -1,28 +1,39 @@
 #include "TestFramework.h"
 #include "Settings.h"
+#include "NGSD.h"
 
 TEST_CLASS(BedAnnotateGenes_Test)
 {
 Q_OBJECT
 private slots:
 
-	//with default parameters, with 3 columns input
-	void test_01()
+	void without_existing_annotations()
 	{
-		QString db_file = Settings::string("ccds");
-		if (db_file=="") SKIP("Test needs a database file!");
+		QString host = Settings::string("ngsd_test_host");
+		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
-		EXECUTE("BedAnnotateGenes", "-in " + TESTDATA("data_in/BedAnnotateGenes_in1.bed") + " -out out/BedAnnotateGenes_out1.bed -db " + db_file);
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/BedAnnotateGenes_init.sql"));
+
+		//test
+		EXECUTE("BedAnnotateGenes", "-test -in " + TESTDATA("data_in/BedAnnotateGenes_in1.bed") + " -out out/BedAnnotateGenes_out1.bed");
 		COMPARE_FILES("out/BedAnnotateGenes_out1.bed", TESTDATA("data_out/BedAnnotateGenes_out1.bed"));
 	}
 
-	//extended by 25 bases, with 5 columns input
-	void test_02()
+	void with_existing_annotations_and_extend25()
 	{
-		QString db_file = Settings::string("ccds");
-		if (db_file=="") SKIP("Test needs a database file!");
+		QString host = Settings::string("ngsd_test_host");
+		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
-		EXECUTE("BedAnnotateGenes", "-in " + TESTDATA("data_in/BedAnnotateGenes_in2.bed") + " -out out/BedAnnotateGenes_out2.bed -extend 25 -db " + db_file);
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/BedAnnotateGenes_init.sql"));
+
+		//test
+		EXECUTE("BedAnnotateGenes", "-test -extend 25 -in " + TESTDATA("data_in/BedAnnotateGenes_in2.bed") + " -out out/BedAnnotateGenes_out2.bed");
 		COMPARE_FILES("out/BedAnnotateGenes_out2.bed", TESTDATA("data_out/BedAnnotateGenes_out2.bed"));
 	}
 };

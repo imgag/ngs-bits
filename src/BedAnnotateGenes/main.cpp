@@ -2,6 +2,8 @@
 #include "ToolBase.h"
 #include "NGSHelper.h"
 #include "Settings.h"
+#include "NGSD.h"
+#include <QTextStream>
 
 class ConcreteTool
 		: public ToolBase
@@ -16,40 +18,44 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Annotates the regions in a BED file with the name from a database BED file.");
-		//optional
+		setDescription("Annotates BED file regions with gene names.");
 		addInfile("in", "Input BED file. If unset, reads from STDIN.", true);
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
-		addInfile("db", "Database BED file containing names in the 4th column. If unset, 'ccds' from the 'settings.ini' file is used.", true, true);
-		addInt("extend", "The number of bases to extend the database regions at start/end before annotation.", true, 0);
+		addInt("extend", "The number of bases to extend the gene regions before annotation.", true, 0);
+		addFlag("test", "Uses the test database instead of on the production database.");
 	}
 
 	virtual void main()
 	{
-		//load DB file
-		QString db_file = getInfile("db");
-		if (db_file=="") db_file = Settings::string("ccds");
-
-		BedFile db;
-		db.load(db_file);
-
-		//extend
+		//init
 		int extend = getInt("extend");
-		if (extend>0)
-		{
-			db.extend(extend);
-		}
+		NGSD db(getFlag("test"));
+		SqlQuery query = db.getQuery();
+		query.prepare("SELECT DISTINCT g.symbol FROM gene g, gene_transcript gt WHERE g.id=gt.gene_id AND g.chromosome=:1 AND gt.start_coding IS NOT NULL AND ((gt.start_coding>=:2 AND gt.start_coding<=:3) OR (:4>=gt.start_coding AND :5<=gt.end_coding)) ORDER BY g.symbol");
 
-		//create DB index
-		ChromosomalIndex<BedFile> db_idx(db);
-
+		//load input
 		BedFile file;
 		file.load(getInfile("in"));
 
+		//annotate
 		for(int i=0; i<file.count(); ++i)
 		{
 			BedLine& line = file[i];
-			QStringList genes = NGSHelper::genesForRegion(db_idx, line.chr(), line.start(), line.end());
+
+			QByteArray chr = line.chr().str();
+			query.bindValue(0, chr.replace("chr", ""));
+			query.bindValue(1, line.start() - extend);
+			query.bindValue(2, line.end() + extend);
+			query.bindValue(3, line.start() - extend);
+			query.bindValue(4, line.start() - extend);
+			query.exec();
+
+			QStringList genes;
+			while(query.next())
+			{
+				genes.append(query.value(0).toString());
+			}
+
 			if (line.annotations().empty()) line.annotations().append("");
 			line.annotations()[0] = genes.join(", ");
 		}

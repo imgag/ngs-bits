@@ -17,3 +17,6 @@ uc004fna.3	NM_024332	P46736	BRCC3_HUMAN	BRCC3	NM_024332	NP_077308	Homo sapiens B
 uc004fnb.3	NM_001018055	P46736-2	P46736-2	BRCC3	NM_001018055	NP_001018065	Homo sapiens BRCA1/BRCA2-containing complex, subunit 3 (BRCC3), transcript variant 2, mRNA.		
 uc011mzy.2	NM_001242640	P46736-3	P46736-3	BRCC3	NM_001242640	NP_001229569	Homo sapiens BRCA1/BRCA2-containing complex, subunit 3 (BRCC3), transcript variant 3, mRNA.		
 uc011mzz.3	AK298886			BRCC3			Homo sapiens BRCA1/BRCA2-containing complex, subunit 3 (BRCC3), transcript variant 2, mRNA.		
+uc001aaa.3	NR_046018			DDX11L1	NR_046018		Homo sapiens DEAD/H (Asp-Glu-Ala-Asp/His) box helicase 11 like 1 (DDX11L1), non-coding RNA.		
+uc010nxr.1	AM992878			DDX11L1			Homo sapiens DEAD/H (Asp-Glu-Ala-Asp/His) box helicase 11 like 1 (DDX11L1), non-coding RNA.		
+uc010nxq.1	AM992880	B7ZGX9	B7ZGX9_HUMAN	DDX11L1			Homo sapiens DEAD/H (Asp-Glu-Ala-Asp/His) box helicase 11 like 1 (DDX11L1), non-coding RNA.		

@@ -152,8 +152,16 @@ public:
 			qi_trans.bindValue(0, gene_id);
 			qi_trans.bindValue(1, ucsc_id);
 			qi_trans.bindValue(2, "ucsc");
-			qi_trans.bindValue(3, start_coding);
-			qi_trans.bindValue(4, end_coding);
+			if (start_coding<=end_coding)
+			{
+				qi_trans.bindValue(3, start_coding);
+				qi_trans.bindValue(4, end_coding);
+			}
+			else
+			{
+				qi_trans.bindValue(3, QVariant());
+				qi_trans.bindValue(4, QVariant());
+			}
 			qi_trans.bindValue(5, strand);
 			qi_trans.exec();
 			QVariant trans_id = qi_trans.lastInsertId().toInt();
@@ -239,8 +247,16 @@ public:
 				qi_trans.bindValue(0, gene_id);
 				qi_trans.bindValue(1, ccds_id);
 				qi_trans.bindValue(2, "ccds");
-				qi_trans.bindValue(3, start_coding);
-				qi_trans.bindValue(4, end_coding);
+				if (start_coding<=end_coding)
+				{
+					qi_trans.bindValue(3, start_coding);
+					qi_trans.bindValue(4, end_coding);
+				}
+				else
+				{
+					qi_trans.bindValue(3, QVariant());
+					qi_trans.bindValue(4, QVariant());
+				}
 				qi_trans.bindValue(5, strand);
 				qi_trans.exec();
 				QVariant trans_id = qi_trans.lastInsertId().toInt();

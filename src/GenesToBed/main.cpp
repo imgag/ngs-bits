@@ -46,7 +46,7 @@ public:
 
 		//prepare queries
 		SqlQuery q_transcript = db.getQuery();
-		q_transcript.prepare("SELECT id, start_coding, end_coding FROM gene_transcript WHERE source='" + source + "' AND gene_id=:1");
+		q_transcript.prepare("SELECT id, start_coding, end_coding FROM gene_transcript WHERE source='" + source + "' AND gene_id=:1 AND start_coding IS NOT NULL");
 		SqlQuery q_exon = db.getQuery();
 		q_exon.prepare("SELECT start, end FROM gene_exon WHERE transcript_id=:1");
 
@@ -80,12 +80,8 @@ public:
 				q_transcript.exec();
 				while(q_transcript.next())
 				{
-					int s = q_transcript.value(1).toInt();
-					int e = q_transcript.value(2).toInt();
-					if (s>e) continue;
-
-					start_coding = std::min(start_coding, s);
-					end_coding = std::max(end_coding, e);
+					start_coding = std::min(start_coding, q_transcript.value(1).toInt());
+					end_coding = std::max(end_coding, q_transcript.value(2).toInt());
 				}
 
 				if (start_coding>end_coding)
@@ -107,15 +103,13 @@ public:
 					int trans_id = q_transcript.value(0).toInt();
 					int start_coding = q_transcript.value(1).toInt();
 					int end_coding = q_transcript.value(2).toInt();
-					if (start_coding>end_coding) continue;
-
 					q_exon.bindValue(0, trans_id);
 					q_exon.exec();
 					while(q_exon.next())
 					{
 						int start = std::max(start_coding, q_exon.value(0).toInt());
 						int end = std::min(end_coding, q_exon.value(1).toInt());
-						if (start>end) continue;
+						if (end<start_coding || start>end_coding) continue;
 
 						output.append(BedLine(chr, start, end, annos));
 						++line_count;
