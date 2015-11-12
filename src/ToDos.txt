@@ -2,7 +2,6 @@
 
 NGSD changes:
 - test BedGeneOverlap (db-file)
-- test CnvHunter (db-file)
   => remove db-files from settings.ini
 
 GSvar:

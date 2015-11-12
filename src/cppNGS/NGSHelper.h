@@ -79,9 +79,6 @@ public:
 	///Convert Cigar data to QString
 	static QString Cigar2QString(std::vector<CigarOp> Cigar);
 
-	///Returns the (sorted, duplicate-free) gene list for a region.
-	static QStringList genesForRegion(const ChromosomalIndex<BedFile>& gene_idx, const Chromosome& chr, int start, int end);
-
 private:
 	///Constructor declared away
 	NGSHelper();

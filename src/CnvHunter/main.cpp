@@ -107,8 +107,7 @@ public:
         setDescription("Detects copy number variations from targeted resequencing data using non-matched control samples.");
         addInfileList("in", "Input TSV files (one per sample) containing coverage data (chr, start, end, avg_depth).", false, true);
         addOutfile("out", "Output TSV file containing the detected CNVs.", false, true);
-        //optional
-		addInfile("genes", "BED file used to annotate gene names (from 4th column).", true, true);
+		//optional
 		addOutfile("out_reg", "If set, writes a BED file with region information (baq QC, excluded, good).", true, true);
         addInt("n", "The number of most similar samples to consider.", true, 20);
         addInfile("exclude", "BED file with regions to exclude from the analysis.", true, true);
@@ -242,7 +241,7 @@ public:
         }
     }
 
-	QPair<int, int> storeResultAsTSV(const QVector<ResultData>& results, const QVector<SampleData>& data, const QVector<ExonData>& exons, int ext_max_dist, QString filename, QStringList comments, const ChromosomalIndex<BedFile>& gene_idx)
+	QPair<int, int> storeResultAsTSV(const QVector<ResultData>& results, const QVector<SampleData>& data, const QVector<ExonData>& exons, int ext_max_dist, QString filename, QStringList comments)
     {
 		QSharedPointer<QFile> out = Helper::openFileForWriting(filename);
         QTextStream outstream(out.data());
@@ -253,9 +252,7 @@ public:
 			outstream << "##" << comment.trimmed() << endl;
 		}
 		//header
-		outstream << "#sample\tcoordinates\tnum_regions\tcopy_numbers";
-		if (gene_idx.container().count()!=0) outstream << "\tgenes";
-		outstream << "\tregion_coordinates" << endl;
+		outstream << "#sample\tcoordinates\tnum_regions\tcopy_numbers\tregion_coordinates" << endl;
 
         QPair<int, int> output = qMakePair(0, 0);
         for (int i=0; i<results.count(); ++i)
@@ -282,9 +279,7 @@ public:
 			const Chromosome& chr = exons[results[i].e].chr;
 			int start = exons[results[i].e].start;
 			int end = exons[results[j-1].e].end;
-			outstream << data[results[i].s].name << "\t" << chr.str() << ":" << start << "-" << end << "\t" << copies.count() << "\t" << copies.join(",");
-			if (gene_idx.container().count()!=0) outstream << "\t" << NGSHelper::genesForRegion(gene_idx, chr, start, end).join(", ");
-			outstream << "\t" << coords.join(",") << endl;
+			outstream << data[results[i].s].name << "\t" << chr.str() << ":" << start << "-" << end << "\t" << copies.count() << "\t" << copies.join(",") << "\t" << coords.join(",") << endl;
 
             //set index after CNV range (++i is performed in the loop => j-1)
             i=j-1;
@@ -388,10 +383,6 @@ public:
         double sam_min_depth = getFloat("sam_min_depth");
         int sam_max_cnvs = getInt("sam_max_cnvs");
 		QStringList comments;
-		QString genes = getInfile("genes");
-		BedFile gene_db;
-		if (genes!="") gene_db.load(genes);
-		ChromosomalIndex<BedFile> gene_idx(gene_db);
 
         //load exon list
         QVector<ExonData> exons;
@@ -857,7 +848,7 @@ public:
 		calculateLargeCNVs(results);
 
         //store results
-		QPair<int, int> tmp2 = storeResultAsTSV(results, data, exons, ext_max_dist, getOutfile("out"), comments, gene_idx);
+		QPair<int, int> tmp2 = storeResultAsTSV(results, data, exons, ext_max_dist, getOutfile("out"), comments);
         int detected_merged = tmp2.first;
         detected = tmp2.second;
         outstream << "storing results TSV file..." << endl ;

@@ -660,28 +660,3 @@ QByteArray NGSHelper::changeSeq(const QByteArray& seq, bool rev, bool comp)
 
 	return output;
 }
-
-QStringList NGSHelper::genesForRegion(const ChromosomalIndex<BedFile>& gene_idx, const Chromosome& chr, int start, int end)
-{
-	QStringList output;
-	QVector<int> matches = gene_idx.matchingIndices(chr, start, end);
-	foreach(int index, matches)
-	{
-		const QStringList& annos = gene_idx.container()[index].annotations();
-		if (!annos.empty())
-		{
-			QStringList genes_tmp = annos.at(0).split(",");
-			foreach(QString gene, genes_tmp)
-			{
-				gene = gene.trimmed();
-				if (gene!="") output.append(gene);
-			}
-		}
-	}
-
-	//sort and remove duplicates
-	output.sort();
-	output.removeDuplicates();
-
-	return output;
-}
