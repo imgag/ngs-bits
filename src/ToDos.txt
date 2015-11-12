@@ -1,9 +1,5 @@
 === TODO ===
 
-NGSD changes:
-- test BedGeneOverlap (db-file)
-  => remove db-files from settings.ini
-
 GSvar:
 - somatic sample: Filter (MAF + custom)
 

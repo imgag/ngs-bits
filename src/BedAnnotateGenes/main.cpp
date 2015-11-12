@@ -30,36 +30,22 @@ public:
 		//init
 		int extend = getInt("extend");
 		NGSD db(getFlag("test"));
-		SqlQuery query = db.getQuery();
-		query.prepare("SELECT DISTINCT g.symbol FROM gene g, gene_transcript gt WHERE g.id=gt.gene_id AND g.chromosome=:1 AND gt.start_coding IS NOT NULL AND ((gt.start_coding>=:2 AND gt.start_coding<=:3) OR (:4>=gt.start_coding AND :5<=gt.end_coding)) ORDER BY g.symbol");
 
-		//load input
+		//process
 		BedFile file;
 		file.load(getInfile("in"));
-
-		//annotate
 		for(int i=0; i<file.count(); ++i)
 		{
 			BedLine& line = file[i];
 
-			QByteArray chr = line.chr().str();
-			query.bindValue(0, chr.replace("chr", ""));
-			query.bindValue(1, line.start() - extend);
-			query.bindValue(2, line.end() + extend);
-			query.bindValue(3, line.start() - extend);
-			query.bindValue(4, line.start() - extend);
-			query.exec();
-
-			QStringList genes;
-			while(query.next())
-			{
-				genes.append(query.value(0).toString());
-			}
-
+			//make sure we have an annotation to store the genes
 			if (line.annotations().empty()) line.annotations().append("");
+
+			QStringList genes = db.genesOverlapping(line.chr().str(), line.start(), line.end(), extend);
 			line.annotations()[0] = genes.join(", ");
 		}
 
+		//store
 		file.store(getOutfile("out"));
 	}
 };

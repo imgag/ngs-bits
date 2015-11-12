@@ -30,10 +30,7 @@ public:
 		//merge
 		BedFile in2;
 		in2.load(getInfile("in2"));
-		for (int i=0; i<in2.count(); ++i)
-		{
-			in.append(in2[i]);
-		}
+		in.add(in2);
 
 		//store
 		in.store(getOutfile("out"));

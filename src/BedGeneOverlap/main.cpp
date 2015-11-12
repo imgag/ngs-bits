@@ -4,6 +4,7 @@
 #include "Exceptions.h"
 #include "Helper.h"
 #include "Settings.h"
+#include "NGSD.h"
 
 class ConcreteTool
 		: public ToolBase
@@ -19,113 +20,71 @@ public:
 	virtual void setup()
 	{
 		setDescription("Calculates how much of each overlapping gene is covered.");
-		//optional
 		addInfile("in", "Input BED file. If unset, reads from STDIN.", true);
+		QStringList sources;
+		sources << "ccds" << "ucsc";
+		addEnum("source", "Transcript source database.", false, sources);
 		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
-		addInfile("db", "The database file to use. A BED file containing all exons with gene names. If unset 'ccds_merged' from the 'settings.ini' file is used.", true);
+		addFlag("test", "Uses the test database instead of on the production database.");
 	}
 
 	virtual void main()
 	{
-		//load DB file
-		QString db_file = getInfile("db");
-		if (db_file=="") db_file = Settings::string("ccds_merged");
-
-		BedFile db;
-		db.load(db_file);
-		if (!db.isMergedAndSorted()) THROW(ArgumentException, "DB file must be merged and sorted!");
-
-		//create DB index
-		ChromosomalIndex<BedFile> db_idx(db);
+		//init
+		NGSD db(getFlag("test"));
 
 		//load input file
-		BedFile file;
-		file.load(getInfile("in"));
-		file.intersect(db);
-		file.merge();
+		BedFile in;
+		in.load(getInfile("in"));
+		in.merge();
 
-		//count bases for each gene
-		QMap<QString, int> counts;
-		for(int i=0; i<file.count(); ++i)
+		//look up genes overlapping the input region (unique)
+		QStringList genes;
+		for(int i=0; i<in.count(); ++i)
 		{
-			BedLine& line = file[i];
-
-			//get gene names
-			QStringList genes;
-			QVector<int> matches = db_idx.matchingIndices(line.chr(), line.start(), line.end());
-			foreach(int index, matches)
-			{
-				genes.append(db[index].annotations().at(0).split(","));
-			}
-
-			//trim, sort, make uniq
-			for(int j=0; j<genes.count(); ++j)
-			{
-				genes[j] = genes[j].trimmed();
-			}
-			genes.sort();
-			genes.removeDuplicates();
-
-			//count
-			foreach(QString gene, genes)
-			{
-				if (counts.contains(gene))
-				{
-					counts[gene] += line.length();
-				}
-				else
-				{
-					counts[gene] = line.length();
-				}
-			}
+			BedLine& line = in[i];
+			genes << db.genesOverlapping(line.chr().str(), line.start(), line.end(), 0);
 		}
+		genes.erase(std::unique(genes.begin(), genes.end()), genes.end());
 
-		//determine size of each gene
-		QMap<QString, int> sizes;
-		for(int i=0; i<db.count(); ++i)
-		{
-			BedLine& line = db[i];
-			QStringList genes = line.annotations().at(0).split(",");
+		//generate BED file for all genes
+		BedFile reg_all_genes = db.genesToRegions(genes, getEnum("source"), "exon", true);
 
-			//trim, sort, make uniq
-			for(int j=0; j<genes.count(); ++j)
-			{
-				genes[j] = genes[j].trimmed();
-			}
-			genes.sort();
-			genes.removeDuplicates();
-
-			foreach(QString gene, genes)
-			{
-				if (sizes.contains(gene))
-				{
-					sizes[gene] += line.length();
-				}
-				else
-				{
-					sizes[gene] = line.length();
-				}
-			}
-		}
-
-
-		//create output
+		//output header
 		QStringList output;
 		output.append("#gene\tsize\toverlap\tpercentage");
-		for(QMap<QString, int>::iterator it=counts.begin(); it!=counts.end(); ++it)
+
+		//process
+		BedFile reg_unassigned = in;
+		foreach(QString gene, genes)
 		{
-			QString gene = it.key();
-			if (gene=="")
+			//create gene-specific regions
+			BedFile reg_gene;
+			for(int i=0; i<reg_all_genes.count(); ++i)
 			{
-				output.append("none\tn/a\t" + QString::number(it.value()) + "\tn/a");
+				BedLine& line = reg_all_genes[i];
+				if (line.annotations().at(0).contains(gene))
+				{
+					reg_gene.append(line);
+				}
 			}
-			else
-			{
-				int count = it.value();
-				int size = sizes[it.key()];
-				output.append(gene + "\t" + QString::number(size) + "\t" + QString::number(count) + "\t" + QString::number(100.0*count/size, 'f', 2));
-			}
+			reg_gene.merge();
+
+			//append output line
+			int bases_gene = reg_gene.baseCount();
+			reg_gene.intersect(in);
+			int bases_covered = reg_gene.baseCount();
+
+			output.append(gene + "\t" + QString::number(bases_gene) + "\t" + QString::number(bases_covered) + "\t" + QString::number(100.0*bases_covered/bases_gene, 'f', 2));
+
+			//update unassigned regions
+			reg_unassigned.subtract(reg_gene);
 		}
+
+		//append region size that is not assigned to a gene
+		output.append("none\tn/a\t" + QString::number(reg_unassigned.baseCount()) + "\tn/a");
+
+		//store output
 		output.sort();
 		Helper::storeTextFile(Helper::openFileForWriting(getOutfile("out"), true), output);
 	}

@@ -184,7 +184,7 @@ CnvHunter.depends = cppNGS
 
 SUBDIRS += BedGeneOverlap
 tools-TEST.depends += BedGeneOverlap
-BedGeneOverlap.depends = cppNGS
+BedGeneOverlap.depends = cppNGSD
 
 SUBDIRS += SeqPurge
 tools-TEST.depends += SeqPurge

@@ -228,6 +228,14 @@ void BedFile::shrink(int n)
 	removeInvalidLines();
 }
 
+void BedFile::add(const BedFile& file2)
+{
+	for (int i=0; i<file2.count(); ++i)
+	{
+		append(file2[i]);
+	}
+}
+
 void BedFile::subtract(const BedFile& file2)
 {
 	//check target region is merged/sorted and create index

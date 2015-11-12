@@ -154,6 +154,8 @@ public:
     void extend(int n);
     ///Shrinks the regions by @p n bases in both direactions.
     void shrink(int n);
+	///Adds the regions from the given file.
+	void add(const BedFile& file2);
     ///Subtracts the regions in the given file.
     void subtract(const BedFile& file2);
     ///Removed all parts of regions that do not overlap with the given file.

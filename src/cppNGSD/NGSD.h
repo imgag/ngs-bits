@@ -5,6 +5,7 @@
 #include <QVariant>
 #include <QVariantList>
 #include "VariantList.h"
+#include "BedFile.h"
 #include "QCCollection.h"
 #include "SqlQuery.h"
 
@@ -48,6 +49,11 @@ public:
 	/*** gene/transcript handling ***/
 	///Returns the gene ID, or -1 if none approved gene name could be found. Checks approved symbols, previous symbols and synonyms.
 	int geneToApprovedID(const QByteArray& gene);
+	///Returns the genes overlapping a regions (extended by some bases)
+	QStringList genesOverlapping(QByteArray chr, int start, int end, int extend=0);
+	///Returns the chromosomal regions corrsponding to the given genes.
+	BedFile genesToRegions(QStringList genes, QString source, QString mode, bool messages=false);
+
 
 	/*** Base functionality for file/variant processing ***/
 	///Returns the sample name for a file name, e.g. 'GS120159' for '/some/path/GS120159_01.bam'. Throws an exception if the file name does not start with a valid name.
