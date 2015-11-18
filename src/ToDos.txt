@@ -1,19 +1,19 @@
 === TODO ===
 
 GSvar:
+- sample info dialog: add processed sample quality (sample/run too?)
 - somatic sample: Filter (MAF + custom)
 
 GSmix:
 - Support copy-and-paste of text in fields
 
 Tools:
-- GenesToBed: add flag '-utr' that includes UTRs
 - SeqPurge: add error correction
 - FastqDemultiplex: check for "carry-over" contamination from last run
 - ReadQC: create plots without python?
 - SampleOverview: add option for BAM files (check depth where variant is not found)
 
-CnvHunter
+CnvHunter:
  - consider normalizing for read length somehow (or use read counts? But that does not help much either)
  - set min STDEV to 15% of mean (was 10%, make it a parameter)
  - do not use bad regions for sample correlation calculation - remove bad regions after writing regions file...

@@ -21,11 +21,10 @@ public:
 	virtual void setup()
 	{
 		setDescription("Lists processed samples from NGSD.");
-		//optional
 		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
 		addString("project", "Project name filter.", true, "");
 		addString("sys", "Processing system short name filter.", true, "");
-		addEnum("quality", "Minimum sample/run quality filter.", true, QStringList() << "bad" << "medium" << "good", "bad");
+		addEnum("quality", "Minimum processed sample/sample/run quality filter.", true, QStringList() << "bad" << "medium" << "good", "bad");
 		addFlag("no_tumor", "If set, tumor samples are excluded.");
 		addFlag("no_ffpe", "If set, FFPE samples are excluded.");
 		addFlag("check_path", "Checks the sample folder location.");
@@ -91,13 +90,17 @@ public:
 		QString quality = getEnum("quality");
 		if (quality=="medium")
 		{
+			conditions << "ps.quality!='bad'";
 			conditions << "s.quality!='bad'";
 			conditions << "r.quality!='bad'";
 		}
 		else if (quality=="good")
 		{
+			conditions << "ps.quality!='bad'";
 			conditions << "s.quality!='bad'";
 			conditions << "r.quality!='bad'";
+
+			conditions << "ps.quality!='medium'";
 			conditions << "s.quality!='medium'";
 			conditions << "r.quality!='medium'";
 		}
@@ -114,6 +117,7 @@ public:
 		fields << "s.quality";
 		fields << "s.tumor";
 		fields << "s.ffpe";
+		fields << "ps.quality";
 		fields << "ps.last_analysis";
 		fields << "sys.name_short";
 		fields << "p.name";

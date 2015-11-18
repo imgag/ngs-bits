@@ -274,6 +274,7 @@ CREATE  TABLE IF NOT EXISTS `sample` (
   INDEX `receiver_id` (`receiver_id` ASC),
   INDEX `name_external` (`name_external` ASC),
   INDEX `tumor` (`tumor` ASC),
+  INDEX `quality` (`quality` ASC),
   CONSTRAINT `fk_samples_species1`
     FOREIGN KEY (`species_id`)
     REFERENCES `species` (`id`)
@@ -334,6 +335,7 @@ CREATE  TABLE IF NOT EXISTS `processed_sample` (
   `project_id` INT(11) NOT NULL,
   `molarity` FLOAT NULL DEFAULT NULL,
   `normal_id` INT(11) NULL DEFAULT NULL,
+  `quality` ENUM('n/a','good','medium','bad') NOT NULL DEFAULT 'n/a',
   `last_analysis` DATE NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `sample_psid_unique` (`sample_id` ASC, `process_id` ASC),
@@ -345,6 +347,7 @@ CREATE  TABLE IF NOT EXISTS `processed_sample` (
   INDEX `project_id` (`project_id` ASC),
   INDEX `operator_id` (`operator_id` ASC),
   INDEX `normal_id_INDEX` (`normal_id` ASC),
+  INDEX `quality` (`quality` ASC),
   CONSTRAINT `fk_processed_sample_mid1`
     FOREIGN KEY (`mid1_i7`)
     REFERENCES `mid` (`id`)
@@ -623,7 +626,7 @@ DEFAULT CHARACTER SET = latin1;
 -- -----------------------------------------------------
 CREATE  TABLE IF NOT EXISTS `diag_status` (
   `processed_sample_id` INT(11) NOT NULL,
-  `status` ENUM('pending','in progress','sanger validation','done','repeat library and sequencing','repeat sequencing only') NOT NULL,
+  `status` ENUM('pending','in progress','sanger validation','done','repeat library and sequencing','repeat sequencing only','cancelled') NOT NULL,
   `user_id` INT(11) NOT NULL,
   `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `outcome` ENUM('n/a','no significant findings','uncertain','significant findings') NOT NULL DEFAULT 'n/a',
