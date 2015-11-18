@@ -137,12 +137,17 @@ void RunPlanner::clearVisualOutput()
 	QBrush brush;
 	for(int r=0; r<ui->samples->rowCount(); ++r)
 	{
-		ui->samples->item(r, 0)->setBackground(brush);
-		ui->samples->item(r, 0)->setToolTip("");
-		ui->samples->item(r, 1)->setBackground(brush);
-		ui->samples->item(r, 1)->setToolTip("");
-		ui->samples->item(r, 2)->setBackground(brush);
-		ui->samples->item(r, 2)->setToolTip("");
+		for (int c=0; c<3; ++c)
+		{
+			QTableWidgetItem* item = ui->samples->item(r, c);
+			if(item==nullptr)
+			{
+				item = new QTableWidgetItem();
+				ui->samples->setItem(r, c, item);
+			}
+			item->setBackground(brush);
+			item->setToolTip("");
+		}
 	}
 }
 
