@@ -58,6 +58,16 @@ long BedFile::baseCount() const
 	return output;
 }
 
+QSet<Chromosome> BedFile::chromosomes() const
+{
+	QSet<Chromosome> output;
+	for (int i=0; i<lines_.count(); ++i)
+	{
+		output.insert(lines_[i].chr());
+	}
+	return output;
+}
+
 void BedFile::load(QString filename)
 {
 	clear();

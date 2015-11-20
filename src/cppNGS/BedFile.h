@@ -6,6 +6,7 @@
 
 #include <QStringList>
 #include <QVector>
+#include <QSet>
 
 ///Representation of a BED file line (1-based)
 class CPPNGSSHARED_EXPORT BedLine
@@ -132,6 +133,8 @@ public:
     }
     ///Returns the number of bases summed up over all elements. This method does not consider if elements overlap - they are counted several times then.
     long baseCount() const;
+	///Returns the contained chromosomes
+	QSet<Chromosome> chromosomes() const;
 
     ///Loads a 0-based BED file and converts it to 1-based positions. Throws ParseException.
     void load(QString filename);

@@ -513,4 +513,28 @@ private slots:
 			X_EQUAL(f2[i], f[i]);
 		}
 	}
+
+	void chromosomes()
+	{
+		BedFile f;
+		QSet<Chromosome> expected;
+
+		f.append(BedLine("chr1", 100, 110));
+		expected.insert(Chromosome("chr1"));
+		X_EQUAL(f.chromosomes(), expected);
+
+		f.append(BedLine("chr2", 100, 110));
+		expected.insert(Chromosome("chr2"));
+		X_EQUAL(f.chromosomes(), expected);
+
+		f.append(BedLine("chr2", 200, 210));
+		X_EQUAL(f.chromosomes(), expected);
+
+		f.append(BedLine("chr1", 200, 210));
+		X_EQUAL(f.chromosomes(), expected);
+
+		f.append(BedLine("chr3", 100, 110));
+		expected.insert(Chromosome("chr3"));
+		X_EQUAL(f.chromosomes(), expected);
+	}
 };
