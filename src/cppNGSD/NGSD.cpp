@@ -182,6 +182,20 @@ QVariantList NGSD::getValues(const QString& query)
 	return output;
 }
 
+QStringList NGSD::getValuesAsString(const QString& query)
+{
+	SqlQuery q = getQuery();
+	q.exec(query);
+
+	QStringList output;
+	output.reserve(q.size());
+	while(q.next())
+	{
+		output.append(q.value(0).toString());
+	}
+	return output;
+}
+
 void NGSD::executeQueriesFromFile(QString filename)
 {
 	QStringList lines = Helper::loadTextFile(filename, true);

@@ -7,7 +7,6 @@ GSmix:
 - Support copy-and-paste of text in fields
 
 Tools:
-- SamplesNGSD: add qc flag to export all QC values as additional columns
 - SeqPurge: add error correction
 - FastqDemultiplex: check for "carry-over" contamination from last run
 - ReadQC: create plots without python?

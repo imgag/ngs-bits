@@ -31,6 +31,8 @@ public:
 	QVariant getValue(const QString& query, bool no_value_is_ok=true);
 	///Executes an SQL query and returns the return value list.
 	QVariantList getValues(const QString& query);
+	///Executes an SQL query and returns the return value list.
+	QStringList getValuesAsString(const QString& query);
 	///Returns a SqlQuery object on the NGSD for custom queries.
 	inline SqlQuery getQuery() const
 	{
