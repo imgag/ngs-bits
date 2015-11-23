@@ -26,13 +26,14 @@ SampleInformationDialog::SampleInformationDialog(QWidget* parent, QString filena
 	ui_.setupUi(this);
 	ui_.status->setOpenExternalLinks(true);
 
-	//set up reanalyze button
+	//setup reanalyze button
 	QMenu* menu = new QMenu();
 	menu->addAction("start at mapping (recommended)", this, SLOT(reanalyze()));
 	menu->addAction("start at variant calling", this, SLOT(reanalyze()));
 	menu->addAction("start at annotation", this, SLOT(reanalyze()));
 	ui_.reanalyze_button->setMenu(menu);
 
+	//setup report button
 	menu = new QMenu();
 	QStringList status = db_.getEnum("diag_status", "status");
 	foreach(QString s, status)
@@ -40,6 +41,15 @@ SampleInformationDialog::SampleInformationDialog(QWidget* parent, QString filena
 		menu->addAction(s, this, SLOT(setReportStatus()));
 	}
 	ui_.report_button->setMenu(menu);
+
+	//setup quality button
+	menu = new QMenu();
+	QStringList quality = db_.getEnum("processed_sample", "quality");
+	foreach(QString q, quality)
+	{
+		menu->addAction(q, this, SLOT(setQuality()));
+	}
+	ui_.quality_button->setMenu(menu);
 
 	//refresh
 	refresh();
@@ -102,6 +112,13 @@ void SampleInformationDialog::setReportStatus()
 	refresh();
 }
 
+void SampleInformationDialog::setQuality()
+{
+	QString quality = qobject_cast<QAction*>(sender())->text();
+	db_.setProcessedSampleQuality(filename_, quality);
+	refresh();
+}
+
 void SampleInformationDialog::refresh()
 {
 	//name
@@ -131,6 +148,15 @@ void SampleInformationDialog::refresh()
 	statisticsLabel(ui_.qc_perc_20x, "QC:2000027", qc);
 	statisticsLabel(ui_.qc_insert_size,"QC:2000023", qc );
 	ui_.qc_kasp->setText(qc.value("kasp").asString());
+	try
+	{
+		ui_.qc_quality->setText(db_.getProcessedSampleQuality(filename_, true));
+	}
+	catch (DatabaseException&)
+	{
+		ui_.qc_quality->setText("DB error");
+	}
+
 	//processing system
 	try
 	{

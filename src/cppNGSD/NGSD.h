@@ -108,6 +108,11 @@ public:
 	///Sets the report outcome (use @p getDiagnosticStatus to get it).
 	void setReportOutcome(const QString& filename, QString outcome);
 
+	///Returns processed sample quality
+	QString getProcessedSampleQuality(const QString& filename, bool colored);
+	///Sets processed sample quality
+	void setProcessedSampleQuality(const QString& filename, QString quality);
+
 	///Returns the NGSD URL corresponding to a variant. Or an empty string if the variant/sample is not in the DB.
 	QString url(const QString& filename, const Variant& variant);
 	///Returns the NGSD URL corresponding to a processed sample. Or an empty string if the sample is not in the DB.

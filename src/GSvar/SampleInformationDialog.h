@@ -23,6 +23,8 @@ private slots:
 	void refreshReanalysisStatus();
 	///Sets the report status according to the sender action text.
 	void setReportStatus();
+	///Sets the processed sample quality according to the sender action text.
+	void setQuality();
 
 private:
 	///Refreshes information based on filename.

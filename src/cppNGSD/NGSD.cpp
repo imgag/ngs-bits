@@ -1032,3 +1032,20 @@ void NGSD::setReportOutcome(const QString& filename, QString outcome)
 	QString user_id = userId();
 	getQuery().exec("INSERT INTO diag_status (processed_sample_id, status, user_id, outcome) VALUES (" + processedSampleId(filename) + ",'pending'," + user_id + ",'" + outcome + "') ON DUPLICATE KEY UPDATE user_id="+user_id+",outcome='"+outcome+"'");
 }
+
+QString NGSD::getProcessedSampleQuality(const QString& filename, bool colored)
+{
+	QString quality = getValue("SELECT quality FROM processed_sample WHERE id='" + processedSampleId(filename) + "'", false).toString();
+	if (colored)
+	{
+		if (quality=="good") quality = "<font color=green>"+quality+"</font>";
+		if (quality=="medium") quality = "<font color=orange>"+quality+"</font>";
+		if (quality=="bad") quality = "<font color=red>"+quality+"</font>";
+	}
+	return quality;
+}
+
+void NGSD::setProcessedSampleQuality(const QString& filename, QString quality)
+{
+	getQuery().exec("UPDATE processed_sample SET quality='" + quality + "' WHERE id='" + processedSampleId(filename) + "'");
+}
