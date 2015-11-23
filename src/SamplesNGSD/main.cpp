@@ -3,6 +3,7 @@
 #include "NGSD.h"
 #include "Helper.h"
 #include "Exceptions.h"
+#include "Settings.h"
 #include <QSqlQuery>
 #include <QSqlRecord>
 #include <QDir>
@@ -28,7 +29,7 @@ public:
 		addFlag("no_tumor", "If set, tumor samples are excluded.");
 		addFlag("no_ffpe", "If set, FFPE samples are excluded.");
 		addFlag("qc", "If set, QC values are appended.");
-		addFlag("check_path", "Checks the sample folder location.");
+		addFlag("check_path", "Checks if the sample folder is present at the defaults location in the 'projects_folder' (as defined in the 'settings.ini' file).");
 		addFlag("test", "Uses the test database instead of on the production database.");
 	}
 
@@ -125,7 +126,7 @@ public:
 		QSharedPointer<QFile> output = Helper::openFileForWriting(getOutfile("out"), true);
 		QString line = "#";
 		fields[1] = "ps.name";
-		for (int i=1; i<result.record().count(); ++i) //2: skip ID
+		for (int i=1; i<result.record().count(); ++i) //start at 1 to skip ID
 		{
 			line += (i==1 ? "" : "\t") + fields[i];
 		}
@@ -143,7 +144,7 @@ public:
 		while(result.next())
 		{
 			QStringList tokens;
-			for (int i=1; i<result.record().count(); ++i)
+			for (int i=0; i<result.record().count(); ++i)
 			{
 				tokens << result.value(i).toString();
 			}
@@ -156,11 +157,7 @@ public:
 				else if (type=="extern") type = "gs_ext";
 				else THROW(ProgrammingException, "Unknown NGSD project type '" + type + "'!");
 				QString project_name = tokens[fields.indexOf("p.name")];
-#ifdef _WIN32
-			QString project_path = "W:/projects/" + type + "/" + project_name + "/";
-#else
-			QString project_path = "/mnt/projects/" + type + "/" + project_name + "/";
-#endif
+				QString project_path = Settings::string("projects_folder") + "/" + type + "/" + project_name + "/";
 				QString ps_name = tokens[fields.indexOf("ps.name")];
 
 				if (!QFile::exists(project_path))
@@ -208,7 +205,11 @@ public:
 					tokens << qc_map.value(qc_col, "n/a");
 				}
 			}
-			output->write(tokens.join("\t").toLatin1() + "\n");
+			for (int i=1; i<tokens.count(); ++i)
+			{
+				output->write((i==1 ? "" : "\t") + tokens[i].toLatin1());
+			}
+			output->write("\n");
 		}
 	}
 

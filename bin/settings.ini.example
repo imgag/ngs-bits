@@ -25,6 +25,9 @@ gpd_name = ""
 gpd_user = ""
 gpd_pass = ""
 
+#projects folder
+projects_folder = ""
+
 #webservice URLs
 NGSD = ""
 GPD = ""
