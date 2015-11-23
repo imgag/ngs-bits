@@ -192,7 +192,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
             {
                 ++al_proper_paired;
 				insert_size_sum += abs(al.InsertSize);
-				int bin = std::min(abs(al.InsertSize)/5, 399); //upper bound of plot at 2000
+				int bin = std::min(abs(al.InsertSize)/5, 239); //upper bound of plot at 1200
 				if (insert_dist.count()<=bin) insert_dist.resize(bin+1);
 				insert_dist[bin] += 1;
             }
@@ -381,7 +381,7 @@ QCCollection Statistics::mapping(const QString& genome, const QString &bam_file,
             {
 				++al_proper_paired;
 				insert_size_sum += abs(al.InsertSize);
-				int bin = std::min(abs(al.InsertSize)/5, 399); //upper bound of plot at 2000
+				int bin = std::min(abs(al.InsertSize)/5, 239); //upper bound of plot at 1200
 				if (insert_dist.count()<=bin) insert_dist.resize(bin+1);
 				insert_dist[bin] += 1;
             }
