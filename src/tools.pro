@@ -226,6 +226,11 @@ SUBDIRS += BedAdd
 tools-TEST.depends += BedAdd
 BedAdd.depends = cppNGS
 
+
+SUBDIRS += BamDownsample
+tools-TEST.depends += BamDownsample
+BamDownsample.depends = cppNGS
+
 SUBDIRS += NGSDInit
 tools-TEST.depends += NGSDInit
 NGSDInit.depends = cppNGSD

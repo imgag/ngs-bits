@@ -1,0 +1,4 @@
+read count:	
+322
+downsampled reads:	
+272
