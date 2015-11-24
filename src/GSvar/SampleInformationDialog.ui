@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>284</width>
-    <height>368</height>
+    <height>400</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -131,6 +131,13 @@
      <property name="spacing">
       <number>3</number>
      </property>
+     <item row="6" column="0">
+      <widget class="QLabel" name="label_18">
+       <property name="text">
+        <string>Quality:</string>
+       </property>
+      </widget>
+     </item>
      <item row="1" column="1">
       <widget class="QLabel" name="qc_reads">
        <property name="text">
@@ -187,7 +194,7 @@
        </property>
       </widget>
      </item>
-     <item row="6" column="1">
+     <item row="9" column="1">
       <spacer name="horizontalSpacer_2">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -217,6 +224,40 @@
        </property>
       </widget>
      </item>
+     <item row="6" column="1">
+      <widget class="QLabel" name="qc_quality">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="0" colspan="2">
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <property name="spacing">
+        <number>3</number>
+       </property>
+       <item>
+        <widget class="QPushButton" name="quality_button">
+         <property name="text">
+          <string>Set quality</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_6">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
     </layout>
    </item>
    <item>
@@ -231,33 +272,6 @@
      <property name="spacing">
       <number>3</number>
      </property>
-     <item row="4" column="1">
-      <layout class="QHBoxLayout" name="horizontalLayout_6">
-       <property name="spacing">
-        <number>0</number>
-       </property>
-       <item>
-        <widget class="QPushButton" name="report_button">
-         <property name="text">
-          <string>Set status</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="horizontalSpacer">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </item>
      <item row="1" column="1">
       <widget class="QLabel" name="report_user">
        <property name="text">
@@ -327,6 +341,33 @@
        </property>
       </widget>
      </item>
+     <item row="4" column="0" colspan="2">
+      <layout class="QHBoxLayout" name="horizontalLayout_6">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QPushButton" name="report_button">
+         <property name="text">
+          <string>Set status</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
     </layout>
    </item>
    <item>
@@ -355,7 +396,20 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
+     <item row="2" column="1">
+      <spacer name="horizontalSpacer_3">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>5</width>
+         <height>5</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="1" column="0" colspan="2">
       <layout class="QHBoxLayout" name="horizontalLayout_5">
        <property name="spacing">
         <number>0</number>
@@ -381,19 +435,6 @@
         </spacer>
        </item>
       </layout>
-     </item>
-     <item row="2" column="1">
-      <spacer name="horizontalSpacer_3">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>5</width>
-         <height>5</height>
-        </size>
-       </property>
-      </spacer>
      </item>
     </layout>
    </item>

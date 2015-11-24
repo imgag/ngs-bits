@@ -3,6 +3,7 @@
 #include "NGSD.h"
 #include "Helper.h"
 #include "Exceptions.h"
+#include "Settings.h"
 #include <QSqlQuery>
 #include <QSqlRecord>
 #include <QDir>
@@ -27,7 +28,8 @@ public:
 		addEnum("quality", "Minimum processed sample/sample/run quality filter.", true, QStringList() << "bad" << "medium" << "good", "bad");
 		addFlag("no_tumor", "If set, tumor samples are excluded.");
 		addFlag("no_ffpe", "If set, FFPE samples are excluded.");
-		addFlag("check_path", "Checks the sample folder location.");
+		addFlag("qc", "If set, QC values are appended.");
+		addFlag("check_path", "Checks if the sample folder is present at the defaults location in the 'projects_folder' (as defined in the 'settings.ini' file).");
 		addFlag("test", "Uses the test database instead of on the production database.");
 	}
 
@@ -47,22 +49,18 @@ public:
 		conditions << "r.id=ps.sequencing_run_id";
 		conditions << "p.id=ps.project_id";
 		conditions << "sys.id=ps.processing_system_id";
+		bool qc = getFlag("qc");
+		QStringList qc_cols = db.getValuesAsString("SELECT name FROM ngso ORDER BY ngso_id");
 
 		//filter project
 		QString project = escape(getString("project"));
 		if (project!="")
 		{
 			//check that name is valid
-			QString tmp = db.getValue("SELECT id FROM project WHERE name='"+project+"'", true).toString();
-			if (tmp=="")
+			QVariant tmp = db.getValue("SELECT id FROM project WHERE name='"+project+"'", true).toString();
+			if (tmp.isNull())
 			{
-				QVariantList tmp2 = db.getValues("SELECT name FROM project");
-				QStringList tmp3;
-				foreach(QVariant v, tmp2)
-				{
-					tmp3 << v.toString();
-				}
-				THROW(DatabaseException, "Invalid project name '" + project + ".\nValid names are: "+tmp3.join(", "));
+				THROW(DatabaseException, "Invalid project name '" + project + ".\nValid names are: " + db.getValuesAsString("SELECT name FROM project").join(", "));
 			}
 			conditions << "p.name='"+project+"'";
 		}
@@ -72,16 +70,10 @@ public:
 		if (sys!="")
 		{
 			//check that name is valid
-			QString tmp = db.getValue("SELECT id FROM processing_system WHERE name_short='"+sys+ "'", true).toString();
-			if (tmp=="")
+			QVariant tmp = db.getValue("SELECT id FROM processing_system WHERE name_short='"+sys+ "'", true).toString();
+			if (tmp.isNull())
 			{
-				QVariantList tmp2 = db.getValues("SELECT name_short FROM procesing_system");
-				QStringList tmp3;
-				foreach(QVariant v, tmp2)
-				{
-					tmp3 << v.toString();
-				}
-				THROW(DatabaseException, "Invalid processing system short name '"+project+".\nValid names are: "+tmp3.join(", "));
+				THROW(DatabaseException, "Invalid processing system short name '"+project+".\nValid names are: " + db.getValuesAsString("SELECT name_short FROM procesing_system").join(", "));
 			}
 			conditions << "sys.name_short='"+sys+"'";
 		}
@@ -111,6 +103,7 @@ public:
 
 		//query NGSD
 		QStringList fields;
+		fields << "ps.id";
 		fields << "CONCAT(s.name,'_',LPAD(ps.process_id,2,'0'))";
 		fields << "s.name_external";
 		fields << "s.gender";
@@ -131,9 +124,20 @@ public:
 
 		//write header line
 		QSharedPointer<QFile> output = Helper::openFileForWriting(getOutfile("out"), true);
-		fields[0] = "ps.name";
-		QString line = "#" + fields.join("\t");
+		QString line = "#";
+		fields[1] = "ps.name";
+		for (int i=1; i<result.record().count(); ++i) //start at 1 to skip ID
+		{
+			line += (i==1 ? "" : "\t") + fields[i];
+		}
 		if (check_path) line += "\tcheck_path";
+		if (qc)
+		{
+			foreach(QString qc_col, qc_cols)
+			{
+				line += "\tqc." + qc_col.replace(' ', '_');
+			}
+		}
 		output->write(line.toLatin1() + "\n");
 
 		//write content lines
@@ -153,11 +157,7 @@ public:
 				else if (type=="extern") type = "gs_ext";
 				else THROW(ProgrammingException, "Unknown NGSD project type '" + type + "'!");
 				QString project_name = tokens[fields.indexOf("p.name")];
-#ifdef _WIN32
-			QString project_path = "W:/projects/" + type + "/" + project_name + "/";
-#else
-			QString project_path = "/mnt/projects/" + type + "/" + project_name + "/";
-#endif
+				QString project_path = Settings::string("projects_folder") + "/" + type + "/" + project_name + "/";
 				QString ps_name = tokens[fields.indexOf("ps.name")];
 
 				if (!QFile::exists(project_path))
@@ -191,7 +191,25 @@ public:
 					}
 				}
 			}
-			output->write(tokens.join("\t").toLatin1() + "\n");
+			if (qc)
+			{
+				SqlQuery qc_res = db.getQuery();
+				qc_res.exec("SELECT n.name, nm.value FROM ngso n, nm_processed_sample_ngso nm WHERE nm.ngso_id=n.id AND nm.processed_sample_id='" + result.value(0).toString() + "' ORDER BY n.ngso_id");
+				QMap<QString, QString> qc_map;
+				while(qc_res.next())
+				{
+					qc_map.insert(qc_res.value(0).toString(), qc_res.value(1).toString());
+				}
+				foreach(QString qc_col, qc_cols)
+				{
+					tokens << qc_map.value(qc_col, "n/a");
+				}
+			}
+			for (int i=1; i<tokens.count(); ++i)
+			{
+				output->write((i==1 ? "" : "\t") + tokens[i].toLatin1());
+			}
+			output->write("\n");
 		}
 	}
 

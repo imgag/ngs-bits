@@ -31,6 +31,8 @@ public:
 	QVariant getValue(const QString& query, bool no_value_is_ok=true);
 	///Executes an SQL query and returns the return value list.
 	QVariantList getValues(const QString& query);
+	///Executes an SQL query and returns the return value list.
+	QStringList getValuesAsString(const QString& query);
 	///Returns a SqlQuery object on the NGSD for custom queries.
 	inline SqlQuery getQuery() const
 	{
@@ -107,6 +109,11 @@ public:
 	void setDiagnosticStatus(const QString& filename, QString status);
 	///Sets the report outcome (use @p getDiagnosticStatus to get it).
 	void setReportOutcome(const QString& filename, QString outcome);
+
+	///Returns processed sample quality
+	QString getProcessedSampleQuality(const QString& filename, bool colored);
+	///Sets processed sample quality
+	void setProcessedSampleQuality(const QString& filename, QString quality);
 
 	///Returns the NGSD URL corresponding to a variant. Or an empty string if the variant/sample is not in the DB.
 	QString url(const QString& filename, const Variant& variant);

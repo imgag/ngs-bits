@@ -1,7 +1,6 @@
 === TODO ===
 
 GSvar:
-- sample info dialog: add processed sample quality (sample/run too?)
 - somatic sample: Filter (MAF + custom)
 
 GSmix:
