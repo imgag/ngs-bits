@@ -619,15 +619,7 @@ void NGSD::annotateSomatic(VariantList& variants, QString filename, QString ref_
 		Variant& v = variants[i];
 
 		SqlQuery query = getQuery();
-		if (v.isSNV())
-		{
-			query.exec("SELECT s.id, dsv.processed_sample_id_tumor, p.name FROM detected_somatic_variant as dsv, variant as v, processed_sample ps, sample as s, project as p WHERE ps.project_id=p.id AND dsv.processed_sample_id_tumor=ps.id and dsv.variant_id=v.id AND  ps.sample_id=s.id  AND s.tumor='1' AND v.chr='"+v.chr().str()+"' AND v.start='"+QString::number(v.start())+"' AND v.end='"+QString::number(v.end())+"' AND v.ref='"+v.ref()+"' AND v.obs='"+v.obs()+"'");
-		}
-		else
-		{
-			QPair<int, int> indel_region = Variant::indelRegion(v.chr(), v.start(), v.end(), v.ref(), v.obs(), reference);
-			query.exec("SELECT s.id, dsv.processed_sample_id_tumor, p.name FROM project as p, detected_somatic_variant as dsv, variant as v, processed_sample ps, sample as s WHERE ps.project_id=p.id AND dsv.processed_sample_id_tumor=ps.id and dsv.variant_id=v.id AND  ps.sample_id=s.id  AND s.tumor='1' AND v.chr='"+v.chr().str()+"' AND v.start>='"+QString::number(indel_region.first)+"' AND v.end<='"+ QString::number(indel_region.second)+"' AND v.ref='"+v.ref()+"' AND v.obs='"+v.obs()+"'");
-		}
+		query.exec("SELECT s.id, dsv.processed_sample_id_tumor, p.name FROM detected_somatic_variant as dsv, variant as v, processed_sample ps, sample as s, project as p WHERE ps.project_id=p.id AND dsv.processed_sample_id_tumor=ps.id and dsv.variant_id=v.id AND  ps.sample_id=s.id  AND s.tumor='1' AND v.chr='"+v.chr().str()+"' AND v.start='"+QString::number(v.start())+"' AND v.end='"+QString::number(v.end())+"' AND v.ref='"+v.ref()+"' AND v.obs='"+v.obs()+"'");
 
 		//process variants
 		QMap<QByteArray, int> project_map;
