@@ -33,15 +33,18 @@ INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane
 INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane, operator_id, processing_system_id, project_id) VALUES (4, 4, 1, 2, 1, 2, 2, 2);
 
 --variant
-INSERT INTO variant (id, chr, start, end, ref, obs, genome_id, vus) VALUES (1, 'chr1', 62713224, 62713224, 'C', 'G', 1, 'n/a');
-INSERT INTO variant (id, chr, start, end, ref, obs, genome_id, vus) VALUES (2, 'chr1', 62713246, 62713246, 'G', 'A', 1, '5');
-INSERT INTO variant (id, chr, start, end, ref, obs, genome_id, vus) VALUES (3, 'chr1', 62728784, 62728784, 'A', 'G', 1, 'n/a');
-INSERT INTO variant (id, chr, start, end, ref, obs, genome_id, vus) VALUES (4, 'chr1', 62728838, 62728838, 'T', 'C', 1, 'n/a');
-INSERT INTO variant (id, chr, start, end, ref, obs, genome_id, vus) VALUES (5, 'chr1', 120539331, 120539331, 'C', 'T', 1, 'n/a');
-INSERT INTO variant (id, chr, start, end, ref, obs, genome_id, vus) VALUES (6, 'chr1', 120611964, 120611964, 'G', 'A', 1, 'n/a');
-INSERT INTO variant (id, chr, start, end, ref, obs, genome_id, vus) VALUES (7, 'chr1', 120612034, 120612034, 'T', 'G', 1, 'n/a');
-INSERT INTO variant (id, chr, start, end, ref, obs, genome_id, vus) VALUES (8, 'chr1', 120612040, 120612040, '-', 'CCTCCTCCG', 1, '1');
+INSERT INTO variant (id, chr, start, end, ref, obs, genome_id) VALUES (1, 'chr1', 62713224, 62713224, 'C', 'G', 1);
+INSERT INTO variant (id, chr, start, end, ref, obs, genome_id) VALUES (2, 'chr1', 62713246, 62713246, 'G', 'A', 1);
+INSERT INTO variant (id, chr, start, end, ref, obs, genome_id) VALUES (3, 'chr1', 62728784, 62728784, 'A', 'G', 1);
+INSERT INTO variant (id, chr, start, end, ref, obs, genome_id) VALUES (4, 'chr1', 62728838, 62728838, 'T', 'C', 1);
+INSERT INTO variant (id, chr, start, end, ref, obs, genome_id) VALUES (5, 'chr1', 120539331, 120539331, 'C', 'T', 1);
+INSERT INTO variant (id, chr, start, end, ref, obs, genome_id) VALUES (6, 'chr1', 120611964, 120611964, 'G', 'A', 1);
+INSERT INTO variant (id, chr, start, end, ref, obs, genome_id) VALUES (7, 'chr1', 120612034, 120612034, 'T', 'G', 1);
+INSERT INTO variant (id, chr, start, end, ref, obs, genome_id) VALUES (8, 'chr1', 120612040, 120612040, '-', 'CCTCCTCCG', 1);
 
+--variant_classification
+INSERT INTO variant_classification (id, variant_id, class) VALUES (1, 2, '5');
+INSERT INTO variant_classification (id, variant_id, class) VALUES (2, 8, '1');
 
 --detected variant NA12878
 INSERT INTO detected_variant (id, processed_sample_id, variant_id, genotype, quality) VALUES (1, 1, 1, 'het', '');

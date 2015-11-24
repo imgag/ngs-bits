@@ -30,10 +30,10 @@ public:
 	/// Returns valid impact.
 	QStringList impact() const;
 
-	/// Returns if the VUS classification filter is enabled.
-	bool applyVus() const;
-	/// Returns the minimum VUS classification.
-	int vus() const;
+	/// Returns if the classification filter is enabled.
+	bool applyClassification() const;
+	/// Returns the minimum classification.
+	int classification() const;
 
 	/// Returns if the genotype filter is enabled.
 	bool applyGenotype() const;

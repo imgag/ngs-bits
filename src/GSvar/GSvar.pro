@@ -16,6 +16,7 @@ SOURCES += main.cpp\
     TrioDialog.cpp \
     HttpHandler.cpp \
     ValidationDialog.cpp \
+    ClassificationDialog.cpp \
     DBAnnotationWorker.cpp \
 
 HEADERS  += MainWindow.h \
@@ -27,6 +28,7 @@ HEADERS  += MainWindow.h \
     TrioDialog.h \
     HttpHandler.h \
     ValidationDialog.h \
+    ClassificationDialog.h \
     DBAnnotationWorker.h \
 
 
@@ -36,7 +38,8 @@ FORMS    += MainWindow.ui \
     ReportDialog.ui \
 	SampleInformationDialog.ui \
     TrioDialog.ui \
-    ValidationDialog.ui
+    ClassificationDialog.ui \
+    ValidationDialog.ui \
     
 
 include("../app_gui.pri")

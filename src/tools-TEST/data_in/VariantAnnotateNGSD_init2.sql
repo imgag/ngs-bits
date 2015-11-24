@@ -33,9 +33,9 @@ INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane
 INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane, operator_id, processing_system_id, project_id) VALUES (4, 4, 1, 2, 1, 2, 2, 2);
 
 --variant
-INSERT INTO variant (id, chr, start, end, ref, obs, genome_id, vus) VALUES (1, 'chr1', 62728784, 62728784, 'A', 'G', 1, 'n/a');
-INSERT INTO variant (id, chr, start, end, ref, obs, genome_id, vus) VALUES (2, 'chr3', 142277575, 142277575, 'A', 'T', 1, 'n/a');
-INSERT INTO variant (id, chr, start, end, ref, obs, genome_id, vus) VALUES (3, 'chr2', 48032740, 48032740, '-', 'T', 1, 'n/a');
+INSERT INTO variant (id, chr, start, end, ref, obs, genome_id) VALUES (1, 'chr1', 62728784, 62728784, 'A', 'G', 1);
+INSERT INTO variant (id, chr, start, end, ref, obs, genome_id) VALUES (2, 'chr3', 142277575, 142277575, 'A', 'T', 1);
+INSERT INTO variant (id, chr, start, end, ref, obs, genome_id) VALUES (3, 'chr2', 48032740, 48032740, '-', 'T', 1);
 
 --detected somatic variant
 INSERT INTO detected_somatic_variant (id, processed_sample_id_tumor, processed_sample_id_normal, variant_id) VALUES (1, 1, 3, 1);

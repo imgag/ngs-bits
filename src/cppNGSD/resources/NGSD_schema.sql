@@ -411,13 +411,9 @@ CREATE  TABLE IF NOT EXISTS `variant` (
   `variant_type` TEXT NULL DEFAULT NULL,
   `coding` TEXT NULL DEFAULT NULL,
   `genome_id` INT(11) NOT NULL,
-  `vus` ENUM('n/a','0','1','2','3','4','5','M') NULL DEFAULT 'n/a',
-  `vus_user` INT(11) NOT NULL DEFAULT '1',
-  `vus_date` TIMESTAMP NOT NULL DEFAULT '1971-01-01 00:00:01',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `variant_UNIQUE` (`chr` ASC, `start` ASC, `end` ASC, `ref`(255) ASC, `obs`(255) ASC),
   INDEX `fk_variant_genome1` (`genome_id` ASC),
-  INDEX `vus_user` (`vus_user` ASC),
   INDEX `chr` (`chr` ASC),
   INDEX `start` (`start` ASC),
   INDEX `end` (`end` ASC),
@@ -426,14 +422,11 @@ CREATE  TABLE IF NOT EXISTS `variant` (
   INDEX `gene` (`gene`(50) ASC),
   INDEX `1000g` (`1000g` ASC),
   INDEX `exac` (`exac` ASC),
-  INDEX `vus` (`vus` ASC),
   CONSTRAINT `fk_variant_genome1`
     FOREIGN KEY (`genome_id`)
     REFERENCES `genome` (`id`)
-    ON UPDATE NO ACTION,
-  CONSTRAINT `variant_ibfk_1`
-    FOREIGN KEY (`vus_user`)
-    REFERENCES `user` (`id`))
+    ON UPDATE NO ACTION
+)
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = latin1;
@@ -462,6 +455,26 @@ CONSTRAINT `fk_variant_validation_has_variant`
   ON UPDATE NO ACTION,
 UNIQUE INDEX `variant_validation_unique` (`sample_id`, `variant_id`),
 INDEX `status` (`status` ASC)
+)
+ENGINE = InnoDB
+AUTO_INCREMENT = 1
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `variant_classification`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `variant_classification` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `variant_id` INT(11) NOT NULL,
+  `class` ENUM('n/a','1','2','3','4','5','M','A') NOT NULL,
+  `comment` TEXT NULL DEFAULT NULL,
+PRIMARY KEY (`id`),
+CONSTRAINT `fk_variant_classification_has_variant`
+  FOREIGN KEY (`variant_id`)
+  REFERENCES `variant` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION,
+INDEX `class` (`class` ASC)
 )
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
