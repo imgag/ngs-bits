@@ -708,7 +708,7 @@ void NGSD::setValidationStatus(const QString& filename, const Variant& variant, 
 QPair<QString, QString> NGSD::getClassification(const Variant& variant)
 {
 	SqlQuery query = getQuery();
-	query.exec("SELECT classification, comment FROM variant_classification WHERE variant_id='" + variantId(variant) + "'");
+	query.exec("SELECT class, comment FROM variant_classification WHERE variant_id='" + variantId(variant) + "'");
 	if (query.size()==0)
 	{
 		return QPair<QString, QString>("n/a", "");

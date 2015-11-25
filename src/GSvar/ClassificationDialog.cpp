@@ -7,7 +7,7 @@ ClassificationDialog::ClassificationDialog(QWidget* parent, const Variant& varia
 	, ui_()
 {
 	ui_.setupUi(this);
-	connect(ui_.classification, SIGNAL(currentTextChanged(QString)), this, SLOT(statusChanged()));
+	connect(ui_.classification, SIGNAL(currentTextChanged(QString)), this, SLOT(classificationChanged()));
 
 	QStringList status = NGSD().getEnum("variant_classification", "class");
 	foreach(QString s, status)

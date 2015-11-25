@@ -1238,7 +1238,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 			}
 
 			//update GUI
-			variants_[item->row()].annotations()[variants_.annotationIndexByName("classification", true, true)] = text;
+			variants_[item->row()].annotations()[variants_.annotationIndexByName("classification", true, true)] = dlg.classification().toLatin1();
 			variantListChanged();
 		}
 	}
