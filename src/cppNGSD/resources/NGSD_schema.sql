@@ -469,6 +469,7 @@ CREATE  TABLE IF NOT EXISTS `variant_classification` (
   `class` ENUM('n/a','1','2','3','4','5','M','A') NOT NULL,
   `comment` TEXT NULL DEFAULT NULL,
 PRIMARY KEY (`id`),
+UNIQUE KEY `fk_variant_classification_has_variant` (`variant_id`),
 CONSTRAINT `fk_variant_classification_has_variant`
   FOREIGN KEY (`variant_id`)
   REFERENCES `variant` (`id`)
