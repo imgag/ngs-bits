@@ -345,9 +345,9 @@ QCCollection NGSD::getQCData(const QString& filename)
 {
 	QString ps_id = processedSampleId(filename, false);
 
-	//get NGSO data
+	//get QC data
 	SqlQuery q = getQuery();
-	q.exec("SELECT n.name, nm.value, n.description, n.ngso_id FROM nm_processed_sample_ngso as nm, ngso as n WHERE nm.processed_sample_id='" + ps_id + "' AND nm.ngso_id=n.id");
+	q.exec("SELECT n.name, nm.value, n.description, n.qcml_id FROM processed_sample_qc as nm, qc_terms as n WHERE nm.processed_sample_id='" + ps_id + "' AND nm.qc_terms_id=n.id");
 	QCCollection output;
 	while(q.next())
 	{
@@ -381,12 +381,12 @@ QVector<double> NGSD::getQCValues(const QString& accession, const QString& filen
 	//get processing system ID
 	QString sys_id = getValue("SELECT processing_system_id FROM processed_sample WHERE id='" + processedSampleId(filename) + "'").toString();
 
-	//get NGSO id
-	QString ngso_id = getValue("SELECT id FROM ngso WHERE ngso_id='" + accession + "'").toString();
+	//get QC id
+	QString qc_id = getValue("SELECT id FROM qc_terms WHERE qcml_id='" + accession + "'").toString();
 
 	//get QC data
 	SqlQuery q = getQuery();
-	q.exec("SELECT nm.value FROM nm_processed_sample_ngso as nm, processed_sample as ps WHERE ps.processing_system_id='" + sys_id + "' AND nm.ngso_id='" + ngso_id + "' AND nm.processed_sample_id=ps.id ");
+	q.exec("SELECT nm.value FROM processed_sample_qc as nm, processed_sample as ps WHERE ps.processing_system_id='" + sys_id + "' AND nm.qc_terms_id='" + qc_id + "' AND nm.processed_sample_id=ps.id ");
 
 	//fill output datastructure
 	QVector<double> output;

@@ -515,36 +515,36 @@ AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = latin1;
 
 -- -----------------------------------------------------
--- Table `ngso`
+-- Table `qc_terms`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `ngso` (
+CREATE  TABLE IF NOT EXISTS `qc_terms` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `ngso_id` VARCHAR(10) NULL DEFAULT NULL,
+  `qcml_id` VARCHAR(10) NULL DEFAULT NULL,
   `name` VARCHAR(45) NOT NULL,
   `description` TEXT NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`name` ASC),
-  UNIQUE INDEX `NGSO_id_UNIQUE` (`ngso_id` ASC))
+  UNIQUE INDEX `qcml_id_UNIQUE` (`qcml_id` ASC))
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = latin1;
 
 
 -- -----------------------------------------------------
--- Table `nm_processed_sample_ngso`
+-- Table `processed_sample_qc`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `nm_processed_sample_ngso` (
+CREATE  TABLE IF NOT EXISTS `processed_sample_qc` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `processed_sample_id` INT(11) NOT NULL,
-  `ngso_id` INT(11) NOT NULL,
+  `qc_terms_id` INT(11) NOT NULL,
   `value` VARCHAR(20) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `c_processing_id_ngso_id` (`processed_sample_id` ASC, `ngso_id` ASC),
+  UNIQUE INDEX `c_processing_id_qc_terms_id` (`processed_sample_id` ASC, `qc_terms_id` ASC),
   INDEX `fk_qcvalues_processing1` (`processed_sample_id` ASC),
-  INDEX `fk_processed_sample_annotaiton_NGSO1` (`ngso_id` ASC),
-  CONSTRAINT `fk_processed_sample_annotaiton_NGSO1`
-    FOREIGN KEY (`ngso_id`)
-    REFERENCES `ngso` (`id`)
+  INDEX `fk_processed_sample_annotaiton_qcml1` (`qc_terms_id` ASC),
+  CONSTRAINT `fk_processed_sample_annotaiton_qcml1`
+    FOREIGN KEY (`qc_terms_id`)
+    REFERENCES `qc_terms` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_qcvalues_processing1`

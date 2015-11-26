@@ -1,5 +1,7 @@
 === TODO ===
 
+* test cppNGSD (include in libs)
+
 GSvar:
 - somatic sample: Filter (MAF + custom)
 
