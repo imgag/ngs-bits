@@ -29,11 +29,16 @@ public:
 		addFlag("test", "fixed seed for random and text output");
 	}
 
-	void write_statistics(QString filename, int reads_count, int downsampled_reads_count)
+	void write_statistics(QString filename, int reads_count, QStringList downsampled_read_names)
 	{
 		QStringList output;
 		output << "read count:\t"<<QString::number(reads_count);
-		output << "downsampled reads:\t"<<QString::number(downsampled_reads_count);
+		output << "downsampled reads:\t"<<QString::number(downsampled_read_names.size());
+		foreach(QString read_name,downsampled_read_names)
+		{
+			output << read_name;
+		}
+
 		Helper::storeTextFile(Helper::openFileForWriting(filename, true,false), output);
 	}
 
@@ -55,7 +60,7 @@ public:
 		BamWriter writer;
 		writer.Open(getOutfile("out").toStdString(), reader.GetConstSamHeader(), reader.GetReferenceData());
 		int reads_count=0;
-		int downsampled_reads_count=0;
+		QStringList downsampled_read_names;
 
 		//step 2: iterate through reads, write specified percentage of reads (+mate) to output bam
 		BamAlignment al;
@@ -67,7 +72,7 @@ public:
 			if((!al.IsPaired())&&(qrand()%100)<getInt("percentage"))//if single end and should be saved
 			{
 				writer.SaveAlignment(al);
-				downsampled_reads_count++;
+				downsampled_read_names.append(QString::fromStdString(al.Name));
 				continue;
 			}
 
@@ -79,8 +84,8 @@ public:
 					mate = al_map.take(QString::fromStdString(al.Name));
 					writer.SaveAlignment(al);
 					writer.SaveAlignment(mate);
-					downsampled_reads_count++;
-					downsampled_reads_count++;
+					downsampled_read_names.append(QString::fromStdString(al.Name));
+					downsampled_read_names.append(QString::fromStdString(mate.Name));
 					continue;
 				}
 				else//if the pair should not be saved
@@ -99,7 +104,7 @@ public:
 		//write output text if test case
 		if (test)
 		{
-			write_statistics("out/BamDownsample_out1.txt",reads_count,downsampled_reads_count);
+			write_statistics("out/BamDownsample_out1.txt",reads_count,downsampled_read_names);
 		}
 
 		//done
