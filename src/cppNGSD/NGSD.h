@@ -66,8 +66,8 @@ public:
 	QString sampleId(const QString& filename, bool throw_if_fails = true);
 	///Returns the NGSD processed sample ID for a file name. Throws an exception if it could not be determined.
 	QString processedSampleId(const QString& filename, bool throw_if_fails = true);
-	///Returns the NGSD ID for a variant. Throws an exception if it could not be determined.
-	QString variantId(const Variant& variant);
+	///Returns the NGSD ID for a variant. Returns '-1' or throws an exception if the ID cannot be determined.
+	QString variantId(const Variant& variant, bool throw_if_not_found = true);
 	///Returns the ID of the current user as a string. Throws an exception if the user is not in the NGSD user table.
 	QString userId();
 
@@ -79,29 +79,35 @@ public:
 	QString getProcessingSystem(const QString& filename, SystemType type);
 	///Returns the genome build
 	QString getGenomeBuild(const QString& filename);
-	///Returns validation status information
-	QPair<QString, QString> getValidationStatus(const QString& filename, const Variant& variant);
 	///Returns all QC terms of the sample
 	QCCollection getQCData(const QString& filename);
 	///Returns all values for a QC term (from sample of the same processing system)
 	QVector<double> getQCValues(const QString& accession, const QString& filename);
+	///Returns the next processing ID for the given sample.
+	QString nextProcessingId(const QString& sample_id);
 
 	///Annotates (or re-annotates) the variant list with current NGSD information.
 	void annotate(VariantList& variants, QString filename);
 	///Annotates (or re-annotates) the variant list with current (somatic) NGSD information.
 	void annotateSomatic(VariantList& variants, QString filename, QString ref_file);
+
+	///Returns validation status information (status, comment)
+	QPair<QString, QString> getValidationStatus(const QString& filename, const Variant& variant);
 	///Sets that validation status of a variant in the NGSD.
 	void setValidationStatus(const QString& filename, const Variant& variant, const QString& status, const QString& comment);
+
+	///Returns classification information (classification, comment)
+	QPair<QString, QString> getClassification(const Variant& variant);
 	///Sets the classification of a variant in the NGSD.
-	void setClassification(const Variant& variant, const QString& classification);
+	void setClassification(const Variant& variant, const QString& classification, const QString& comment);
+
 	///Returns the comment of a variant in the NGSD.
 	QString comment(const QString& filename, const Variant& variant);
 	///Sets the comment of a variant in the NGSD.
 	void setComment(const QString& filename, const Variant& variant, const QString& text);
+
 	///Sets the report status of all variants in the NGSD.
 	void setReportVariants(const QString& filename, const VariantList& variants, QSet<int> selected_indices);
-	///Returns the next processing ID for the given sample.
-	QString nextProcessingId(const QString& sample_id);
 
 	///Returns the diagnostic status of a sample (status, user, datetime, outcome), or an empty result if an error occurred.
 	QStringList getDiagnosticStatus(const QString& filename);

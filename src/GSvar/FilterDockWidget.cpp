@@ -20,8 +20,8 @@ FilterDockWidget::FilterDockWidget(QWidget *parent)
 	connect(ui_.ihdb, SIGNAL(valueChanged(int)), this, SIGNAL(filtersChanged()));
 	connect(ui_.ihdb_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
 
-	connect(ui_.vus, SIGNAL(currentIndexChanged(int)), this, SIGNAL(filtersChanged()));
-	connect(ui_.vus_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
+	connect(ui_.classification, SIGNAL(currentIndexChanged(int)), this, SIGNAL(filtersChanged()));
+	connect(ui_.classification_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
 
 	connect(ui_.geno, SIGNAL(currentIndexChanged(int)), this, SIGNAL(filtersChanged()));
 	connect(ui_.geno_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
@@ -108,8 +108,8 @@ void FilterDockWidget::reset()
 	ui_.impact->setCurrentText("HIGH,MODERATE,LOW");
 	ui_.ihdb_enabled->setChecked(false);
 	ui_.ihdb->setValue(5);
-	ui_.vus_enabled->setChecked(false);
-	ui_.vus->setCurrentText("3");
+	ui_.classification_enabled->setChecked(false);
+	ui_.classification->setCurrentText("3");
 	ui_.geno_enabled->setChecked(false);
 	ui_.geno->setCurrentText("hom");
 	ui_.important_enabled->setChecked(false);
@@ -144,8 +144,8 @@ void FilterDockWidget::applyDefaultFilters()
 	ui_.impact->setCurrentText("HIGH,MODERATE,LOW");
 	ui_.ihdb_enabled->setChecked(true);
 	ui_.ihdb->setValue(5);
-	ui_.vus_enabled->setChecked(true);
-	ui_.vus->setCurrentText("3");
+	ui_.classification_enabled->setChecked(true);
+	ui_.classification->setCurrentText("3");
 	ui_.geno_enabled->setChecked(false);
 	ui_.geno->setCurrentText("hom");
 	ui_.important_enabled->setChecked(true);
@@ -180,14 +180,14 @@ QStringList FilterDockWidget::impact() const
 	return ui_.impact->currentText().split(",");
 }
 
-bool FilterDockWidget::applyVus() const
+bool FilterDockWidget::applyClassification() const
 {
-	return ui_.vus_enabled->isChecked();
+	return ui_.classification_enabled->isChecked();
 }
 
-int FilterDockWidget::vus() const
+int FilterDockWidget::classification() const
 {
-	return ui_.vus->currentText().toInt();
+	return ui_.classification->currentText().toInt();
 }
 
 bool FilterDockWidget::applyGenotype() const
@@ -259,7 +259,7 @@ QMap<QString, QString> FilterDockWidget::appliedFilters() const
 	if (applyMaf()) output.insert("maf", QString::number(mafPerc(), 'f', 2) + "%");
 	if (applyImpact()) output.insert("impact", impact().join(","));
 	if (applyIhdb()) output.insert("ihdb", QString::number(ihdb()));
-	if (applyVus()) output.insert("classification", QString::number(vus()));
+	if (applyClassification()) output.insert("classification", QString::number(classification()));
 	if (applyGenotype()) output.insert("genotype" , genotype());
 	if (keepImportant()) output.insert("keep_important", "");
 	if (applyQuality()) output.insert("quality", "");

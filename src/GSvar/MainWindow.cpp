@@ -28,6 +28,7 @@
 #include "TrioDialog.h"
 #include "HttpHandler.h"
 #include "ValidationDialog.h"
+#include "ClassificationDialog.h"
 #include "BasicStatistics.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -990,12 +991,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 	sub_menu->addAction("Search for position in NGSD");
 	sub_menu->addSeparator();
 	sub_menu->addAction("Set validation status");
-	QMenu* sub_sub_menu = sub_menu->addMenu("Set classification");
-	QStringList vus_enum = NGSD().getEnum("variant", "vus");
-	foreach(QString entry, vus_enum)
-	{
-		sub_sub_menu->addAction(entry);
-	}
+	sub_menu->addAction("Set classification");
 	sub_menu->addAction("Edit comment");
 	menu.addAction(QIcon("://Icons/PrimerDesign.png"), "PrimerDesign");
 
@@ -1004,8 +1000,6 @@ void MainWindow::varsContextMenu(QPoint pos)
 	if (!action) return;
 
 	QByteArray text = action->text().toLatin1();
-	QString text_menu = qobject_cast<QMenu*>(action->parent())->title();
-
 	if (text=="Open annotation website")
 	{
 		QString header = ui_.vars->horizontalHeaderItem(item->column())->text();
@@ -1213,43 +1207,40 @@ void MainWindow::varsContextMenu(QPoint pos)
 			variantListChanged();
 		}
 	}
-	else if (text_menu=="Set classification")
+	else if (text=="Set classification")
 	{
-		//check if multiselect
+		//TODO re-implement multiselect?
+		/*
 		QModelIndexList selection = ui_.vars->selectionModel()->selectedRows();
 		bool multi_set = false;
 		if (selection.count()>1)
 		{
-			if (QMessageBox::question(this, "Set VUS for multiple variants?", QString::number(selection.count()) + " variant rows are selected. Set VUS for them all?")==QMessageBox::Yes)
+			if (QMessageBox::question(this, "Set classification for multiple variants?", QString::number(selection.count()) + " variant rows are selected. Set classification for them all?")==QMessageBox::Yes)
 			{
 				multi_set = true;
 			}
 		}
+		*/
 
 		//update DB
-		try
-		{
-			if (multi_set)
-			{
-				for (int i=0; i<selection.count(); ++i)
-				{
-					NGSD().setClassification(variants_[selection.at(i).row()], text);
-				}
-			}
-			else
-			{
-				NGSD().setClassification(variants_[item->row()], text);
-			}
-		}
-		catch (DatabaseException e)
-		{
-			GUIHelper::showMessage("NGSD error", e.message());
-			return;
-		}
+		ClassificationDialog dlg(this, variants_[item->row()]);
 
-		//update GUI
-		variants_[item->row()].annotations()[variants_.annotationIndexByName("classification", true, true)] = text;
-		variantListChanged();
+		if (dlg.exec())
+		{
+			try
+			{
+				NGSD().setClassification(variants_[item->row()], dlg.classification(), dlg.comment());
+			}
+			catch (DatabaseException e)
+			{
+				GUIHelper::showMessage("NGSD error", e.message());
+				return;
+			}
+
+			//update GUI
+			variants_[item->row()].annotations()[variants_.annotationIndexByName("classification", true, true)] = dlg.classification().toLatin1();
+			variantListChanged();
+		}
 	}
 	else if (text=="Edit comment")
 	{
@@ -1468,22 +1459,22 @@ void MainWindow::filtersChanged()
 			}
 		}
 
-		//VUS filter
+		//classification filter
 		int i_class = variants_.annotationIndexByName("classification", true, true);
-		if (filter_widget_->applyVus())
+		if (filter_widget_->applyClassification())
 		{
-			int min_vus = filter_widget_->vus();
+			int min_class = filter_widget_->classification();
 			for(int i=0; i<variants_.count(); ++i)
 			{
 				if (!pass[i]) continue;
 
 				const QString& classification = variants_[i].annotations()[i_class];
-				if (classification=="M") continue; //M always passes
+				if (classification=="M") continue; //modifier always passes
 
 				bool ok = false;
 				int classification_value = classification.toInt(&ok);
 
-				pass[i] = !ok || classification_value>=min_vus;
+				pass[i] = !ok || classification_value>=min_class;
 			}
 		}
 

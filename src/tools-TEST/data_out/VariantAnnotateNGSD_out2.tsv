@@ -3,7 +3,7 @@
 ##DESCRIPTION=ihdb_wt=Wildtype variant counts in NGSD for the same processing system (2 samples).
 ##DESCRIPTION=ihdb_allsys_hom=Homozygous variant counts in NGSD independent of the processing system.
 ##DESCRIPTION=ihdb_allsys_het=Heterozygous variant counts in NGSD independent of the processing system.
-##DESCRIPTION=classification=VUS classification from the NGSD.
+##DESCRIPTION=classification=Classification from the NGSD.
 ##DESCRIPTION=validated=Validation information from the NGSD.
 ##DESCRIPTION=comment=Comments from the NGSD. Comments of other samples are listed in brackets!
 #chr	start	end	ref	obs	genotype	snp_q	depth	map_q	variant	variant_frequency	region	gene	variant_details	coding_and_splicing_details	1000g_2012feb	dbSNP_137	ljb2_phylop	ljb2_mt	ljb2_sift	ljb2_pp2hvar	ljb2_pp2hdiv	esp6500si_ea	cosmic64	RepeatMasker	OMIM	ClinVar	ihdb_hom	ihdb_het	ihdb_wt	ihdb_allsys_hom	ihdb_allsys_het	classification	validated	comment

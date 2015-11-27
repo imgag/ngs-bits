@@ -384,7 +384,7 @@ void ReportWorker::writeHTML()
 			if (!variants_selected_[i].second) continue;
 			const Variant& v = variants_[variants_selected_[i].first];
 			stream << "<table>" << endl;
-			stream << "<tr><td><b>Variante:</b> " << v.chr().str() << ":" << v.start() << "-" << v.end() << " " << v.ref() << ">" << v.obs() << " <b>Gen:</b> " << v.annotations()[i_gene] << " <b>Typ:</b> " << v.annotations()[i_type] << " <b>VUS: </b>" << v.annotations()[i_class] << " <b>Vererbung:</b> </td></tr>" << endl;
+			stream << "<tr><td><b>Variante:</b> " << v.chr().str() << ":" << v.start() << "-" << v.end() << " " << v.ref() << ">" << v.obs() << " <b>Gen:</b> " << v.annotations()[i_gene] << " <b>Typ:</b> " << v.annotations()[i_type] << " <b>Klassifikation: </b>" << v.annotations()[i_class] << " <b>Vererbung:</b> </td></tr>" << endl;
 			stream << "<tr><td><b>Details:</b> " << formatCodingSplicing(v.annotations()[i_co_sp]) << "</td></tr>" << endl;
 			QString dbsnp = v.annotations()[i_dbsnp]; //because string is const
 			stream << "<tr><td><b>Frequenz:</b> <b>1000g:</b> " << v.annotations()[i_1000g] << " <b>ExAC:</b> " << v.annotations()[i_exac] << " <b>ESP6500:</b> " << v.annotations()[i_esp] << " <b>dbSNP:</b> " << dbsnp.replace("[];", "") << "</td></tr>" << endl;

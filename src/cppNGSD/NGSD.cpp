@@ -127,7 +127,7 @@ QString NGSD::processedSampleId(const QString& filename, bool throw_if_fails)
 	return query.value(0).toString();
 }
 
-QString NGSD::variantId(const Variant& variant)
+QString NGSD::variantId(const Variant& variant, bool throw_if_not_found)
 {
 	SqlQuery query = getQuery(); //use binding user input (safety)
 	query.prepare("SELECT id FROM variant WHERE chr=:chr AND start='"+QString::number(variant.start())+"' AND end='"+QString::number(variant.end())+"' AND ref=:ref AND obs=:obs");
@@ -137,7 +137,14 @@ QString NGSD::variantId(const Variant& variant)
 	query.exec();
 	if (query.size()==0)
 	{
-		THROW(DatabaseException, "Variant " + variant.toString() + " not found in NGSD!");
+		if (throw_if_not_found)
+		{
+			THROW(DatabaseException, "Variant " + variant.toString() + " not found in NGSD!");
+		}
+		else
+		{
+			return "-1";
+		}
 	}
 	query.next();
 	return query.value(0).toString();
@@ -338,9 +345,9 @@ QCCollection NGSD::getQCData(const QString& filename)
 {
 	QString ps_id = processedSampleId(filename, false);
 
-	//get NGSO data
+	//get QC data
 	SqlQuery q = getQuery();
-	q.exec("SELECT n.name, nm.value, n.description, n.ngso_id FROM nm_processed_sample_ngso as nm, ngso as n WHERE nm.processed_sample_id='" + ps_id + "' AND nm.ngso_id=n.id");
+	q.exec("SELECT n.name, nm.value, n.description, n.qcml_id FROM processed_sample_qc as nm, qc_terms as n WHERE nm.processed_sample_id='" + ps_id + "' AND nm.qc_terms_id=n.id");
 	QCCollection output;
 	while(q.next())
 	{
@@ -374,12 +381,12 @@ QVector<double> NGSD::getQCValues(const QString& accession, const QString& filen
 	//get processing system ID
 	QString sys_id = getValue("SELECT processing_system_id FROM processed_sample WHERE id='" + processedSampleId(filename) + "'").toString();
 
-	//get NGSO id
-	QString ngso_id = getValue("SELECT id FROM ngso WHERE ngso_id='" + accession + "'").toString();
+	//get QC id
+	QString qc_id = getValue("SELECT id FROM qc_terms WHERE qcml_id='" + accession + "'").toString();
 
 	//get QC data
 	SqlQuery q = getQuery();
-	q.exec("SELECT nm.value FROM nm_processed_sample_ngso as nm, processed_sample as ps WHERE ps.processing_system_id='" + sys_id + "' AND nm.ngso_id='" + ngso_id + "' AND nm.processed_sample_id=ps.id ");
+	q.exec("SELECT nm.value FROM processed_sample_qc as nm, processed_sample as ps WHERE ps.processing_system_id='" + sys_id + "' AND nm.qc_terms_id='" + qc_id + "' AND nm.processed_sample_id=ps.id ");
 
 	//fill output datastructure
 	QVector<double> output;
@@ -438,7 +445,7 @@ void NGSD::annotate(VariantList& variants, QString filename)
 	int ihdb_wt_idx  = addColumn(variants, "ihdb_wt", "Wildtype variant counts in NGSD for the same processing system (" + num_samples + " samples).");
 	int ihdb_all_hom_idx = addColumn(variants, "ihdb_allsys_hom", "Homozygous variant counts in NGSD independent of the processing system.");
 	int ihdb_all_het_idx =  addColumn(variants, "ihdb_allsys_het", "Heterozygous variant counts in NGSD independent of the processing system.");
-	int class_idx = addColumn(variants, "classification", "VUS classification from the NGSD.");
+	int class_idx = addColumn(variants, "classification", "Classification from the NGSD.");
 	int valid_idx = addColumn(variants, "validated", "Validation information from the NGSD.");
 	if (variants.annotationIndexByName("comment", true, false)==-1) addColumn(variants, "comment", "Comments from the NGSD. Comments of other samples are listed in brackets!");
 	int comment_idx = variants.annotationIndexByName("comment", true, false);
@@ -450,15 +457,15 @@ void NGSD::annotate(VariantList& variants, QString filename)
 		//QTime timer;
 		//timer.start();
 
-		//variant infos
+		//variant id
 		Variant& v = variants[i];
-		QByteArray v_id = "-1";
-		query.exec("SELECT id, vus FROM variant WHERE chr='"+v.chr().str()+"' AND start='"+QString::number(v.start())+"' AND end='"+QString::number(v.end())+"' AND ref='"+v.ref()+"' AND obs='"+v.obs()+"'");
-		if (query.size()==1)
+		QByteArray v_id = variantId(v, false).toLatin1();
+
+		//variant classification
+		QVariant classification = getValue("SELECT class FROM variant_classification WHERE variant_id='" + v_id + "'", true);
+		if (!classification.isNull())
 		{
-			query.next();
-			v_id = query.value(0).toByteArray();
-			v.annotations()[class_idx] = query.value(1).toByteArray().replace("n/a", "");
+			v.annotations()[class_idx] = classification.toByteArray().replace("n/a", "");
 		}
 		//int t_v = timer.elapsed();
 		//timer.restart();
@@ -698,9 +705,38 @@ void NGSD::setValidationStatus(const QString& filename, const Variant& variant, 
 	query.exec();
 }
 
-void NGSD::setClassification(const Variant& variant, const QString& classification)
+QPair<QString, QString> NGSD::getClassification(const Variant& variant)
 {
-	getQuery().exec("UPDATE variant SET vus='" + classification + "', vus_user='" + userId() + "', vus_date=CURRENT_TIMESTAMP WHERE id='" + variantId(variant) + "'");
+	SqlQuery query = getQuery();
+	query.exec("SELECT class, comment FROM variant_classification WHERE variant_id='" + variantId(variant) + "'");
+	if (query.size()==0)
+	{
+		return QPair<QString, QString>("n/a", "");
+	}
+	else
+	{
+		query.next();
+		return QPair<QString, QString>(query.value(0).toString().trimmed(), query.value(1).toString().trimmed());
+	}
+}
+
+void NGSD::setClassification(const Variant& variant, const QString& classification, const QString& comment)
+{
+	QString v_id = variantId(variant);
+	QVariant vc_id = getValue("SELECT id FROM variant_classification WHERE variant_id='" + v_id + "'");
+
+	SqlQuery query = getQuery(); //use binding (user input)
+	if (vc_id.isNull()) //insert
+	{
+		query.prepare("INSERT INTO variant_classification (variant_id, class, comment) VALUES ('" + v_id + "',:class,:comment)");
+	}
+	else //update
+	{
+		query.prepare("UPDATE variant_classification SET class=:class, comment=:comment WHERE id='" + vc_id.toString() + "'");
+	}
+	query.bindValue(":class", classification);
+	query.bindValue(":comment", comment);
+	query.exec();
 }
 
 QString NGSD::comment(const QString& filename, const Variant& variant)

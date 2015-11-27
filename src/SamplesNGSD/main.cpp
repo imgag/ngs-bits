@@ -50,7 +50,7 @@ public:
 		conditions << "p.id=ps.project_id";
 		conditions << "sys.id=ps.processing_system_id";
 		bool qc = getFlag("qc");
-		QStringList qc_cols = db.getValuesAsString("SELECT name FROM ngso ORDER BY ngso_id");
+		QStringList qc_cols = db.getValuesAsString("SELECT name FROM qc_terms ORDER BY qcml_id");
 
 		//filter project
 		QString project = escape(getString("project"));
@@ -194,7 +194,7 @@ public:
 			if (qc)
 			{
 				SqlQuery qc_res = db.getQuery();
-				qc_res.exec("SELECT n.name, nm.value FROM ngso n, nm_processed_sample_ngso nm WHERE nm.ngso_id=n.id AND nm.processed_sample_id='" + result.value(0).toString() + "' ORDER BY n.ngso_id");
+				qc_res.exec("SELECT n.name, nm.value FROM qc_terms n, processed_sample_qc nm WHERE nm.qc_terms_id=n.id AND nm.processed_sample_id='" + result.value(0).toString() + "' ORDER BY n.qcml_id");
 				QMap<QString, QString> qc_map;
 				while(qc_res.next())
 				{

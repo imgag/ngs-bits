@@ -98,19 +98,19 @@
         </widget>
        </item>
        <item row="3" column="0">
-        <widget class="QCheckBox" name="vus_enabled">
+        <widget class="QCheckBox" name="classification_enabled">
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Minimum numeric VUS classification value.&lt;br/&gt;&lt;br/&gt;Special non-numeric cases:&lt;br/&gt;- class 'M' passes filter.&lt;br/&gt;- class 'A' is removed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Minimum numeric  classification value.&lt;br/&gt;&lt;br/&gt;Special non-numeric cases:&lt;br/&gt;- class 'M' passes filter.&lt;br/&gt;- class 'A' is removed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
-          <string>vus</string>
+          <string>classification</string>
          </property>
         </widget>
        </item>
        <item row="6" column="0" colspan="2">
         <widget class="QCheckBox" name="important_enabled">
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Prevents filtering of important variants:&lt;br/&gt;- VUS: M, 3, 4 or 5&lt;br/&gt;- Clinvar: pathogenic or probably-pathogenic&lt;br/&gt;- HGMD: DM or DM?&lt;br/&gt;- impact: HIGH&lt;br/&gt;&lt;br/&gt;Overwrites the filters:&lt;br/&gt;- MAF&lt;br/&gt;- impact&lt;br/&gt;- ihdb&lt;br/&gt;- vus&lt;br/&gt;- genotype&lt;br/&gt;&lt;br/&gt;Is overwritten by the filters:&lt;br/&gt;- quality&lt;br/&gt;- target region&lt;br/&gt;- gene name&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Prevents filtering of important variants:&lt;br/&gt;- classification: M, 3, 4 or 5&lt;br/&gt;- Clinvar: pathogenic or probably-pathogenic&lt;br/&gt;- HGMD: DM or DM?&lt;br/&gt;- impact: HIGH&lt;br/&gt;&lt;br/&gt;Overwrites the filters:&lt;br/&gt;- MAF&lt;br/&gt;- impact&lt;br/&gt;- ihdb&lt;br/&gt;- classification&lt;br/&gt;- genotype&lt;br/&gt;&lt;br/&gt;Is overwritten by the filters:&lt;br/&gt;- quality&lt;br/&gt;- target region&lt;br/&gt;- gene name&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
           <string>keep important variants</string>
@@ -148,7 +148,7 @@
         </widget>
        </item>
        <item row="3" column="1">
-        <widget class="QComboBox" name="vus">
+        <widget class="QComboBox" name="classification">
          <property name="currentText">
           <string>5</string>
          </property>
