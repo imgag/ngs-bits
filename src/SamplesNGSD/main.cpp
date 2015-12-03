@@ -25,6 +25,7 @@ public:
 		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
 		addString("project", "Project name filter.", true, "");
 		addString("sys", "Processing system short name filter.", true, "");
+		addString("run", "Sequencing run name filter.", true, "");
 		addEnum("quality", "Minimum processed sample/sample/run quality filter.", true, QStringList() << "bad" << "medium" << "good", "bad");
 		addFlag("no_tumor", "If set, tumor samples are excluded.");
 		addFlag("no_ffpe", "If set, FFPE samples are excluded.");
@@ -73,9 +74,22 @@ public:
 			QVariant tmp = db.getValue("SELECT id FROM processing_system WHERE name_short='"+sys+ "'", true).toString();
 			if (tmp.isNull())
 			{
-				THROW(DatabaseException, "Invalid processing system short name '"+project+".\nValid names are: " + db.getValuesAsString("SELECT name_short FROM procesing_system").join(", "));
+				THROW(DatabaseException, "Invalid processing system short name '"+sys+".\nValid names are: " + db.getValuesAsString("SELECT name_short FROM processing_system").join(", "));
 			}
 			conditions << "sys.name_short='"+sys+"'";
+		}
+
+		//filter sequencing run
+		QString run = escape(getString("run"));
+		if (run!="")
+		{
+			//check that name is valid
+			QVariant tmp = db.getValue("SELECT id FROM sequencing_run WHERE name='"+run+ "'", true).toString();
+			if (tmp.isNull())
+			{
+				THROW(DatabaseException, "Invalid sequencing run name '"+run+".\nValid names are: " + db.getValuesAsString("SELECT name FROM sequencing_run").join(", "));
+			}
+			conditions << "r.name='"+run+"'";
 		}
 
 		//filter quality

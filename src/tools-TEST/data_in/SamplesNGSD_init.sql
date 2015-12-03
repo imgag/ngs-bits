@@ -3,8 +3,8 @@
 INSERT INTO device (id, type, name) VALUES (1, 'HiSeq', 'Morpheus');
 
 -- sequencing_run
-INSERT INTO sequencing_run (id, name, fcid, device_id, recipe, quality) VALUES (1, 'First run', 'ABC', 1, '100+8+8+100', 'good');
-INSERT INTO sequencing_run (id, name, fcid, device_id, recipe, quality) VALUES (2, 'Second run', 'XYZ', 1, '100+8+100', 'good');
+INSERT INTO sequencing_run (id, name, fcid, device_id, recipe, quality) VALUES (1, 'run1', 'ABC', 1, '100+8+8+100', 'good');
+INSERT INTO sequencing_run (id, name, fcid, device_id, recipe, quality) VALUES (2, 'run2', 'XYZ', 1, '100+8+100', 'good');
 
 -- user
 INSERT INTO user (id, user_id, password, user_role, name, email, created, active) VALUES (2, 'ahuser', 's2d12kjg234hla0830t6hp9h3tt3t3tsdfg', 'user', 'The user', 'u@s.er', CURDATE(), '1');
