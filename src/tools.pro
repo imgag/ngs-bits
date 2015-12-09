@@ -6,7 +6,6 @@ SUBDIRS = cppCORE\
         cppXML \
         cppNGS \
         cppNGSD
-
 cppXML.depends = cppCORE
 cppNGS.depends = cppXML
 cppNGSD.depends = cppNGS
@@ -226,7 +225,6 @@ SUBDIRS += BedAdd
 tools-TEST.depends += BedAdd
 BedAdd.depends = cppNGS
 
-
 SUBDIRS += BamDownsample
 tools-TEST.depends += BamDownsample
 BamDownsample.depends = cppNGS
@@ -242,6 +240,11 @@ NGSDImportHGNC.depends = cppNGSD
 SUBDIRS += NGSDImportUCSC
 tools-TEST.depends += NGSDImportUCSC
 NGSDImportUCSC.depends = cppNGSD
+
+SUBDIRS += BedReadCount
+tools-TEST.depends += BedReadCount
+BedReadCount.depends = cppNGS
+
 
 #other stuff
 OTHER_FILES += ToDos.txt
