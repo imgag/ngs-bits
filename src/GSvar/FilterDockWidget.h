@@ -4,6 +4,7 @@
 #include <QDockWidget>
 #include "ui_FilterDockWidget.h"
 #include "VariantFilter.h"
+#include "BedFile.h"
 
 ///Filter manager dock widget
 class FilterDockWidget
@@ -60,6 +61,9 @@ public:
 	QString targetRegion() const;
 	/// Returns the gene names filter.
 	QList<QByteArray> genes() const;
+	/// Returns the single target region filter.
+	BedLine region() const;
+
 	/// Returns the reference sample name or an empty string if unset.
 	QString referenceSample() const;
 
@@ -79,6 +83,7 @@ protected slots:
 	void removeRef();
 	void referenceSampleChanged(int index);
 	void geneChanged();
+	void regionChanged();
 
 private:
 	/// Loads the ROI filters from the INI file

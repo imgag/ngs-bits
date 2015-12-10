@@ -1104,7 +1104,7 @@ void VariantList::checkValid(QString action) const
 
 		if (variant.annotations().count()!=annotations_.count())
 		{
-			THROW(ArgumentException, "Invalid variant annotation data: Expected '" + QString::number(annotations_.count()) + " values, but " + QString::number(variant.annotations().count()) + " values found, while " + action);
+			THROW(ArgumentException, "Invalid variant annotation data: Expected " + QString::number(annotations_.count()) + " values, but " + QString::number(variant.annotations().count()) + " values found, while " + action);
 		}
 	}
 }

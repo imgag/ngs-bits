@@ -6,6 +6,15 @@ TEST_CLASS(BedLine_Test)
 Q_OBJECT
 private slots:
 
+	void isValid()
+	{
+		BedLine line1;
+		IS_FALSE(line1.isValid());
+
+		BedLine line2("chr1", 5, 10);
+		IS_TRUE(line2.isValid());
+	}
+
 	void overlapsWithComplete()
 	{
 		BedLine line1("chr1", 5, 10);

@@ -1622,6 +1622,19 @@ void MainWindow::filtersChanged()
 			timer.start();
 		}
 
+		//target region filter
+		BedLine region = filter_widget_->region();
+		if (region.isValid())
+		{
+			for(int i=0; i<variants_.count(); ++i)
+			{
+				if (!pass[i]) continue;
+				pass[i] = variants_[i].overlapsWith(region);
+			}
+			Log::perf("Applying region filter took ", timer);
+			timer.start();
+		}
+
 		//apply compound-heterozygous filter
 		if (filter_widget_->applyCompoundHet())
 		{

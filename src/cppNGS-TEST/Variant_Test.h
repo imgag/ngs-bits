@@ -157,28 +157,42 @@ private slots:
 
 	void overlapsWithComplete()
 	{
-		Variant line1("chr1", 5, 10, "r", "o");
-		IS_TRUE(!line1.overlapsWith("chr2", 5, 10));
-		IS_TRUE(!line1.overlapsWith("chr1", 1, 4));
-		IS_TRUE(!line1.overlapsWith("chr1", 11, 20));
-		IS_TRUE(line1.overlapsWith("chr1", 1, 5));
-		IS_TRUE(line1.overlapsWith("chr1", 5, 10));
-		IS_TRUE(line1.overlapsWith("chr1", 6, 8));
-		IS_TRUE(line1.overlapsWith("chr1", 10, 20));
-		IS_TRUE(line1.overlapsWith("chr1", 1, 20));
+		Variant variant("chr1", 5, 10, "r", "o");
+		IS_TRUE(!variant.overlapsWith("chr2", 5, 10));
+		IS_TRUE(!variant.overlapsWith("chr1", 1, 4));
+		IS_TRUE(!variant.overlapsWith("chr1", 11, 20));
+		IS_TRUE(variant.overlapsWith("chr1", 1, 5));
+		IS_TRUE(variant.overlapsWith("chr1", 5, 10));
+		IS_TRUE(variant.overlapsWith("chr1", 6, 8));
+		IS_TRUE(variant.overlapsWith("chr1", 10, 20));
+		IS_TRUE(variant.overlapsWith("chr1", 1, 20));
 	}
 
 	void overlapsWithPosition()
 	{
-		Variant line1("chr1", 5, 10, "r", "o");
-		IS_TRUE(line1.overlapsWith(5, 10));
-		IS_TRUE(!line1.overlapsWith(1, 4));
-		IS_TRUE(!line1.overlapsWith(11, 20));
-		IS_TRUE(line1.overlapsWith(1, 5));
-		IS_TRUE(line1.overlapsWith(5, 10));
-		IS_TRUE(line1.overlapsWith(6, 8));
-		IS_TRUE(line1.overlapsWith(10, 20));
-		IS_TRUE(line1.overlapsWith(1, 20));
+		Variant variant("chr1", 5, 10, "r", "o");
+		IS_TRUE(variant.overlapsWith(5, 10));
+		IS_TRUE(!variant.overlapsWith(1, 4));
+		IS_TRUE(!variant.overlapsWith(11, 20));
+		IS_TRUE(variant.overlapsWith(1, 5));
+		IS_TRUE(variant.overlapsWith(5, 10));
+		IS_TRUE(variant.overlapsWith(6, 8));
+		IS_TRUE(variant.overlapsWith(10, 20));
+		IS_TRUE(variant.overlapsWith(1, 20));
+	}
+
+
+	void overlapsWithBedLine()
+	{
+		Variant variant("chr1", 5, 10, "r", "o");
+		IS_TRUE(!variant.overlapsWith(BedLine("chr2", 5, 10)));
+		IS_TRUE(!variant.overlapsWith(BedLine("chr1", 1, 4)));
+		IS_TRUE(!variant.overlapsWith(BedLine("chr1", 11, 20)));
+		IS_TRUE(variant.overlapsWith(BedLine("chr1", 1, 5)));
+		IS_TRUE(variant.overlapsWith(BedLine("chr1", 5, 10)));
+		IS_TRUE(variant.overlapsWith(BedLine("chr1", 6, 8)));
+		IS_TRUE(variant.overlapsWith(BedLine("chr1", 10, 20)));
+		IS_TRUE(variant.overlapsWith(BedLine("chr1", 1, 20)));
 	}
 
 	void operator_lessthan()

@@ -1,5 +1,6 @@
 #include "FilterDockWidget.h"
 #include "Settings.h"
+#include "Helper.h"
 #include <QCheckBox>
 #include <QFileInfo>
 #include <QFileDialog>
@@ -42,6 +43,12 @@ FilterDockWidget::FilterDockWidget(QWidget *parent)
 	connect(ui_.refs, SIGNAL(currentIndexChanged(int)), this, SLOT(referenceSampleChanged(int)));
 
 	connect(ui_.gene, SIGNAL(editingFinished()), this, SLOT(geneChanged()));
+	connect(ui_.gene, SIGNAL(textEdited()), this, SLOT(geneChanged()));
+
+	connect(ui_.region, SIGNAL(editingFinished()), this, SLOT(regionChanged()));
+	connect(ui_.region, SIGNAL(textEdited()), this, SLOT(regionChanged()));
+
+
 
 	loadROIFilters();
 	loadReferenceFiles();
@@ -248,6 +255,23 @@ QList<QByteArray> FilterDockWidget::genes() const
 	return output;
 }
 
+BedLine FilterDockWidget::region() const
+{
+	//accept three elements (format: tab-separated or "[c]:[s]-[e]")
+	QStringList region = ui_.region->text().trimmed().replace(':', '\t').replace('-', '\t').replace(',', "").split('\t');
+
+	if (region.count()<3) return BedLine();
+
+	try
+	{
+		return BedLine(region[0], Helper::toInt(region[1]), Helper::toInt(region[2]));
+	}
+	catch(...)
+	{
+		return BedLine();
+	}
+}
+
 QString FilterDockWidget::referenceSample() const
 {
 	return ui_.refs->toolTip();
@@ -335,6 +359,11 @@ void FilterDockWidget::geneChanged()
 		last_genes_ = genes();
 		emit filtersChanged();
 	}
+}
+
+void FilterDockWidget::regionChanged()
+{
+	emit filtersChanged();
 }
 
 void FilterDockWidget::addRef()

@@ -10,6 +10,9 @@
 #include "cmath"
 
 BedLine::BedLine()
+	: chr_()
+	, start_(0)
+	, end_(-1)
 {
 }
 

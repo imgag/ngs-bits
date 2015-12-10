@@ -94,6 +94,11 @@ public:
     {
         return (start_>=start && start_<=end) || (start>=start_ && start<=end_);
     }
+	///Overlap check BED file line.
+	bool overlapsWith(const BedLine& line) const
+	{
+		return overlapsWith(line.chr(), line.start(), line.end());
+	}
 	///Returns if the variant is a SNV
     bool isSNV() const
     {
