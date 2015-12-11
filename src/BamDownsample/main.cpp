@@ -72,10 +72,12 @@ public:
 			if((!al.IsPaired())&&(qrand()%100)<getInt("percentage"))//if single end and should be saved
 			{
 				writer.SaveAlignment(al);
-				downsampled_read_names.append(QString::fromStdString(al.Name));
+				if (test)
+				{
+					downsampled_read_names.append(QString::fromStdString(al.Name));
+				}
 				continue;
 			}
-
 			if((al_map.contains(QString::fromStdString(al.Name))))//if paired end and mate has been seen already
 			{
 				if((qrand()%100)<getInt("percentage"))//if the pair should be saved
@@ -84,8 +86,11 @@ public:
 					mate = al_map.take(QString::fromStdString(al.Name));
 					writer.SaveAlignment(al);
 					writer.SaveAlignment(mate);
-					downsampled_read_names.append(QString::fromStdString(al.Name));
-					downsampled_read_names.append(QString::fromStdString(mate.Name));
+					if (test)
+					{
+						downsampled_read_names.append(QString::fromStdString(al.Name));
+						downsampled_read_names.append(QString::fromStdString(mate.Name));
+					}
 					continue;
 				}
 				else//if the pair should not be saved
