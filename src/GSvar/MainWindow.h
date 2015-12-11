@@ -22,7 +22,7 @@ public:
 	///Constructor
 	MainWindow(QWidget* parent = 0);
 	///Loads a variant list
-	void loadFile(QString filename, bool show_sample_info_dialog=true);
+	void loadFile(QString filename);
 	///Updates the GUI after the variant list changed
 	void variantListChanged();
 	///Sends a command to IGV through the default socket

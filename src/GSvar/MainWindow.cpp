@@ -113,7 +113,7 @@ void MainWindow::delayedInizialization()
 void MainWindow::handleInputFileChange()
 {
 	QMessageBox::information(this, "GSvar file changed", "The input file changed.\nIt is reloaded now!");
-	loadFile(filename_, false);
+	loadFile(filename_);
 }
 
 void MainWindow::on_actionOpen_triggered()
@@ -135,7 +135,7 @@ void MainWindow::on_actionChangeLog_triggered()
 	dlg.exec();
 }
 
-void MainWindow::loadFile(QString filename, bool show_sample_info_dialog)
+void MainWindow::loadFile(QString filename)
 {
 	//reset GUI and data structures
 	setWindowTitle(QCoreApplication::applicationName());
@@ -166,13 +166,6 @@ void MainWindow::loadFile(QString filename, bool show_sample_info_dialog)
 
 		variantListChanged();
 		QApplication::restoreOverrideCursor();
-
-		//show sample info dialog
-		if (show_sample_info_dialog)
-		{
-			SampleInformationDialog dialog(this, filename_);
-			dialog.exec();
-		}
 	}
 	catch(Exception& e)
 	{
