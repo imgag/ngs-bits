@@ -88,10 +88,6 @@ QString ReportWorker::filterToGermanText(QString name, QString value)
 	{
 		output = "Keine Varianten die intern h&auml;ufiger als " + value + "x mit dem selben Genotyp beobachtet wurden";
 	}
-	else if (name=="keep_important")
-	{
-		output = "Varianten, die in &ouml;ffentlichen Datenbanken als pathogen klassifiziert wurden";
-	}
 	else if (name=="impact")
 	{
 		output = "Frameshift-, Nonsense-, Missense- und Splicingvarianten und synonyme Varianten (Impact: " + value + ")";
@@ -99,10 +95,6 @@ QString ReportWorker::filterToGermanText(QString name, QString value)
 	else if (name=="genotype")
 	{
 		output = "Varianten mit Genotyp: " + value;
-	}
-	else if (name=="quality")
-	{
-		output = "Varianten mit hoher Qualit&auml;t";
 	}
 	else if (name=="trio")
 	{

@@ -215,9 +215,21 @@ public:
     }
 	///Looks up annotation header index by name. If no or several annotations match, -1 is returned (or an error is thrown if @p error_on_mismatch is set).
 	int annotationIndexByName(const QString& name, bool exact_match, bool error_on_mismatch) const;
-
 	///Removes an annotation column by index.
 	void removeAnnotation(int index);
+
+
+	///Const access to filter descriptions.
+	const QMap<QString, QString>& filters() const
+	{
+		return filters_;
+	}
+	///Non-const access to filter descriptions.
+	QMap<QString, QString>& filters()
+	{
+		return filters_;
+	}
+
 
     ///Loads a single-sample variant list from a file. Returns the format of the file.
     Format load(QString filename, Format format=AUTO);
@@ -251,7 +263,8 @@ public:
 
 protected:
     QStringList comments_;
-    QList <VariantAnnotationDescription> annotations_;
+	QList<VariantAnnotationDescription> annotations_;
+	QMap<QString, QString> filters_;
     QVector<Variant> variants_;
     QString sample_name_;
     ///Comparator helper class used by sortByFile.

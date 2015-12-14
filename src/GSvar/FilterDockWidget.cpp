@@ -1,10 +1,12 @@
 #include "FilterDockWidget.h"
 #include "Settings.h"
 #include "Helper.h"
+#include "FilterColumnWidget.h"
 #include <QCheckBox>
 #include <QFileInfo>
 #include <QFileDialog>
 #include <QInputDialog>
+#include <QLabel>
 
 FilterDockWidget::FilterDockWidget(QWidget *parent)
 	: QDockWidget(parent)
@@ -27,8 +29,9 @@ FilterDockWidget::FilterDockWidget(QWidget *parent)
 	connect(ui_.geno, SIGNAL(currentIndexChanged(int)), this, SIGNAL(filtersChanged()));
 	connect(ui_.geno_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
 
-	connect(ui_.quality_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
-	connect(ui_.important_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
+	connect(ui_.keep_class_ge_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
+	connect(ui_.keep_class_ge, SIGNAL(currentTextChanged(QString)), this, SIGNAL(filtersChanged()));
+	connect(ui_.keep_class_m, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
 
 	connect(ui_.trio_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
 	connect(ui_.compound_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
@@ -48,12 +51,33 @@ FilterDockWidget::FilterDockWidget(QWidget *parent)
 	connect(ui_.region, SIGNAL(editingFinished()), this, SLOT(regionChanged()));
 	connect(ui_.region, SIGNAL(textEdited()), this, SLOT(regionChanged()));
 
-
-
 	loadROIFilters();
 	loadReferenceFiles();
 
 	reset();
+}
+
+void FilterDockWidget::setFilterColumns(const QMap<QString, QString>& filter_cols)
+{
+	//remove old widgets
+	QLayoutItem* item;
+	while ((item = ui_.filter_col->layout()->takeAt(0)) != nullptr)
+	{
+		delete item->widget();
+		delete item;
+	}
+
+	//add new widgets
+	auto it = filter_cols.cbegin();
+	while(it!=filter_cols.cend())
+	{
+		auto w = new FilterColumnWidget(it.key(), it.value());
+		connect(w, SIGNAL(stateChanged()), this, SLOT(filterColumnStateChanged()));
+		ui_.filter_col->layout()->addWidget(w);
+
+		++it;
+	}
+	ui_.filter_col->layout()->addItem(new QSpacerItem(1,1, QSizePolicy::Minimum, QSizePolicy::MinimumExpanding));
 }
 
 void FilterDockWidget::loadROIFilters()
@@ -119,22 +143,31 @@ void FilterDockWidget::reset()
 	ui_.classification->setCurrentText("3");
 	ui_.geno_enabled->setChecked(false);
 	ui_.geno->setCurrentText("hom");
-	ui_.important_enabled->setChecked(false);
-	ui_.quality_enabled->setChecked(false);
+	ui_.keep_class_ge_enabled->setChecked(false);
+	ui_.keep_class_ge->setCurrentText("3");
+	ui_.keep_class_m->setChecked(false);
 	ui_.trio_enabled->setChecked(false);
 	ui_.compound_enabled->setChecked(false);
+
+	//filter cols
+	QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
+	foreach(FilterColumnWidget* w, fcws)
+	{
+		w->setState(FilterColumnWidget::NONE);
+	}
 
 	//rois
 	ui_.rois->setCurrentIndex(0);
 	ui_.rois->setToolTip("");
 
-	//refs
-	ui_.refs->setCurrentIndex(0);
-	ui_.refs->setToolTip("");
-
 	//gene
 	last_genes_.clear();
 	ui_.gene->clear();
+	ui_.region->clear();
+
+	//refs
+	ui_.refs->setCurrentIndex(0);
+	ui_.refs->setToolTip("");
 
 	blockSignals(false);
 }
@@ -155,10 +188,25 @@ void FilterDockWidget::applyDefaultFilters()
 	ui_.classification->setCurrentText("3");
 	ui_.geno_enabled->setChecked(false);
 	ui_.geno->setCurrentText("hom");
-	ui_.important_enabled->setChecked(true);
-	ui_.quality_enabled->setChecked(false);
+	ui_.keep_class_ge_enabled->setChecked(true);
+	ui_.keep_class_ge->setCurrentText("3");
+	ui_.keep_class_m->setChecked(true);
 	ui_.trio_enabled->setChecked(false);
 	ui_.compound_enabled->setChecked(false);
+
+	//filter cols
+	QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
+	foreach(FilterColumnWidget* w, fcws)
+	{
+		if (w->objectName()=="anno_high_impact" || w->objectName()=="anno_pathogenic_clinvar" || w->objectName()=="anno_pathogenic_hgmd")
+		{
+			w->setState(FilterColumnWidget::KEEP);
+		}
+		else
+		{
+			w->setState(FilterColumnWidget::NONE);
+		}
+	}
 
 	//re-enable signals
 	blockSignals(false);
@@ -217,11 +265,6 @@ int FilterDockWidget::ihdb() const
 	return ui_.ihdb->value();
 }
 
-bool FilterDockWidget::applyQuality() const
-{
-	return ui_.quality_enabled->isChecked();
-}
-
 bool FilterDockWidget::applyTrio() const
 {
 	return ui_.trio_enabled->isChecked();
@@ -232,9 +275,43 @@ bool FilterDockWidget::applyCompoundHet() const
 	return ui_.compound_enabled->isChecked();
 }
 
-bool FilterDockWidget::keepImportant() const
+int FilterDockWidget::keepClassGreaterEqual() const
 {
-	return ui_.important_enabled->isChecked();
+	if (!ui_.keep_class_ge_enabled->isChecked()) return -1;
+	return ui_.keep_class_ge->currentText().toInt();
+}
+
+bool FilterDockWidget::keepClassM() const
+{
+	return ui_.keep_class_m->isChecked();
+}
+
+QList<QByteArray> FilterDockWidget::filterColumnsKeep() const
+{
+	QList<QByteArray> output;
+	QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
+	foreach(FilterColumnWidget* w, fcws)
+	{
+		if (w->state()==FilterColumnWidget::KEEP)
+		{
+			output.append(w->objectName().toUtf8());
+		}
+	}
+	return output;
+}
+
+QList<QByteArray> FilterDockWidget::filterColumnsRemove() const
+{
+	QList<QByteArray> output;
+	QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
+	foreach(FilterColumnWidget* w, fcws)
+	{
+		if (w->state()==FilterColumnWidget::REMOVE)
+		{
+			output.append(w->objectName().toUtf8());
+		}
+	}
+	return output;
 }
 
 QString FilterDockWidget::targetRegion() const
@@ -285,8 +362,8 @@ QMap<QString, QString> FilterDockWidget::appliedFilters() const
 	if (applyIhdb()) output.insert("ihdb", QString::number(ihdb()));
 	if (applyClassification()) output.insert("classification", QString::number(classification()));
 	if (applyGenotype()) output.insert("genotype" , genotype());
-	if (keepImportant()) output.insert("keep_important", "");
-	if (applyQuality()) output.insert("quality", "");
+	if (keepClassM()) output.insert("keep_class_m", "");
+	if (keepClassGreaterEqual()!=-1) output.insert("keep_class_ge", QString::number(keepClassGreaterEqual()));
 	if (applyTrio()) output.insert("trio", "");
 
 	return output;
@@ -362,6 +439,11 @@ void FilterDockWidget::geneChanged()
 }
 
 void FilterDockWidget::regionChanged()
+{
+	emit filtersChanged();
+}
+
+void FilterDockWidget::filterColumnStateChanged()
 {
 	emit filtersChanged();
 }

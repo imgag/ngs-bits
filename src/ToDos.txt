@@ -2,14 +2,19 @@
 
 * test cppNGSD (include in libs)
 
+
 GSvar:
+* implement variant details dock widget (like sophia-genetics)
+* integrate HPO (phenotype(s) => temporary target region)
+* implement filter column 'filter' icon that excludes all other variants
 - somatic sample: Filter (MAF + custom)
 
 GSmix:
 - Support copy-and-paste of text in fields
 
 Tools:
-- SeqPurge: add error correction
+- MappingQC: add %soft/hard-clipped quality parameter (see ssPWBRCA_v2)
+- SeqPurge: add error correction?
 - FastqDemultiplex: check for "carry-over" contamination from last run
 - ReadQC: create plots without python?
 - SampleOverview: add option for BAM files (check depth where variant is not found)

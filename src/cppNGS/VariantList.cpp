@@ -134,6 +134,7 @@ bool VariantList::LessComparator::operator()(const Variant& a, const Variant& b)
 VariantList::VariantList()
 	: comments_()
 	, annotations_()
+	, filters_()
 	, variants_()
 	, sample_name_()
 {
@@ -142,6 +143,7 @@ VariantList::VariantList()
 void VariantList::copyMetaData(const VariantList& rhs)
 {
 	comments_ = rhs.comments();
+	filters_ = rhs.filters();
 	annotations_ = rhs.annotations();
 	sample_name_ = rhs.sampleName();
 }
@@ -304,23 +306,16 @@ void VariantList::loadFromTSV(QString filename)
 		//skip empty lines
 		if(line.length()==0) continue;
 
-		if (line.startsWith("##"))//column description or comment line
+		if (line.startsWith("##"))//comment/description line
 		{
-			QList <QByteArray> fields = line.split('=');
-
-			if ((fields.count()>2)&&line.startsWith("##DESCRIPTION"))//column description line
+			QList <QByteArray> parts = line.split('=');
+			if (line.startsWith("##DESCRIPTION=") && parts.count()>2)
 			{
-				//in case the description contains "=", too...
-				QList <QByteArray> fields_copy=fields;
-				fields_copy.pop_front();//remove ##DESCRIPTION
-				fields_copy.pop_front();//remove annotation
-				QString description=fields_copy[0];
-				for(int i=1; i<fields_copy.size(); ++i)//join the rest (if needed)
-				{
-					description+="=";
-					description+=fields_copy[i];
-				}
-				column_descriptions[fields[1]]=description;
+				column_descriptions[parts[1]]=parts.mid(2).join('=');
+			}
+			if (line.startsWith("##FILTER=") && parts.count()>2)
+			{
+				filters_[parts[1]]=parts.mid(2).join('=');
 			}
 			else
 			{
@@ -409,6 +404,15 @@ void VariantList::storeToTSV(QString filename)
 		}
 	}
 
+	//filter headers
+	auto it = filters().cbegin();
+	while(it != filters().cend())
+	{
+
+		stream << "##FILTER=" << it.key() << "=" << it.value() << endl;
+		++it;
+	}
+
 	//header
 	stream << "#chr\tstart\tend\tref\tobs";
 	if (annotations_.count()>0)
@@ -472,7 +476,7 @@ void VariantList::loadFromVCF(QString filename)
 		if(line.length()==0) continue;
 
 		//annotation description line
-		if (line.startsWith("##INFO")||line.startsWith("##FORMAT"))
+		if (line.startsWith("##INFO") || line.startsWith("##FORMAT"))
 		{
 			bool sample_dependent_data;
 			QString info_or_format;
@@ -558,6 +562,13 @@ void VariantList::loadFromVCF(QString filename)
 			new_annotation.setDescription(description_value);
 
 			annotations().append(new_annotation);
+		}
+		//other meta-information lines
+		else if (line.startsWith("##FILTER=<ID="))
+		{
+			QStringList parts = QString(line.mid(13, line.length()-15)).split(",Description=\"");
+			if(parts.count()!=2) THROW(FileParseException, "Malformed FILTER line: conains more/less than two parts: " + line);
+			filters_[parts[0]] = parts[1];
 		}
 		//other meta-information lines
 		else if (line.startsWith("##"))
@@ -719,6 +730,15 @@ void VariantList::storeToVCF(QString filename)
 		QString desc = anno.description();
 		stream << ",Description=\"" << (desc!="" ? desc : "no description available") << "\"";
 		stream << ">\n";
+	}
+
+	//write filter headers
+	auto it = filters().cbegin();
+	while(it != filters().cend())
+	{
+
+		stream << "##FILTER=<ID=" << it.key() << ",Description=\"" << it.value() << "\">\n";
+		++it;
 	}
 
 	//write header line
@@ -901,6 +921,7 @@ void VariantList::clear()
 	clearVariants();
 	comments_.clear();
 	clearAnnotations();
+	filters_.clear();
 }
 
 void VariantList::clearAnnotations()

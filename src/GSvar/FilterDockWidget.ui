@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>295</width>
-    <height>518</height>
+    <height>680</height>
    </rect>
   </property>
   <property name="features">
@@ -36,278 +36,6 @@
     <property name="bottomMargin">
      <number>3</number>
     </property>
-    <item>
-     <widget class="QGroupBox" name="groupBox">
-      <property name="toolTip">
-       <string/>
-      </property>
-      <property name="title">
-       <string>Annotation filters</string>
-      </property>
-      <layout class="QGridLayout" name="gridLayout" columnstretch="0,1">
-       <property name="leftMargin">
-        <number>3</number>
-       </property>
-       <property name="topMargin">
-        <number>3</number>
-       </property>
-       <property name="rightMargin">
-        <number>3</number>
-       </property>
-       <property name="bottomMargin">
-        <number>3</number>
-       </property>
-       <property name="spacing">
-        <number>3</number>
-       </property>
-       <item row="1" column="1">
-        <widget class="QComboBox" name="impact">
-         <property name="currentText">
-          <string>HIGH,MODERATE,LOW</string>
-         </property>
-         <item>
-          <property name="text">
-           <string>HIGH,MODERATE,LOW</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>HIGH,MODERATE</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>HIGH</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>MODERATE</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>LOW</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>MODIFIER</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QCheckBox" name="classification_enabled">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Minimum numeric  classification value.&lt;br/&gt;&lt;br/&gt;Special non-numeric cases:&lt;br/&gt;- class 'M' passes filter.&lt;br/&gt;- class 'A' is removed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>classification</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="0" colspan="2">
-        <widget class="QCheckBox" name="important_enabled">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Prevents filtering of important variants:&lt;br/&gt;- classification: M, 3, 4 or 5&lt;br/&gt;- Clinvar: pathogenic or probably-pathogenic&lt;br/&gt;- HGMD: DM or DM?&lt;br/&gt;- impact: HIGH&lt;br/&gt;&lt;br/&gt;Overwrites the filters:&lt;br/&gt;- MAF&lt;br/&gt;- impact&lt;br/&gt;- ihdb&lt;br/&gt;- classification&lt;br/&gt;- genotype&lt;br/&gt;&lt;br/&gt;Is overwritten by the filters:&lt;br/&gt;- quality&lt;br/&gt;- target region&lt;br/&gt;- gene name&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>keep important variants</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QCheckBox" name="ihdb_enabled">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum occurences in ihdb_all_* column.&lt;/p&gt;&lt;p&gt;For heterozygous variants both the ihdb_all_het and ihdb_all_hom columns are filtered.&lt;/p&gt;&lt;p&gt;For homozygous variants only the ihdb_all_hom column is filtered.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>ihdb</string>
-         </property>
-        </widget>
-       </item>
-       <item row="9" column="0">
-        <widget class="QCheckBox" name="trio_enabled">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Filter for trio column (only for trio analysis).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>trio</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QCheckBox" name="impact_enabled">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Impact filter of variant in coding_and_splicing column.&lt;br/&gt;&lt;br/&gt;Details about impact can be found here:&lt;br/&gt;http://snpeff.sourceforge.net/SnpEff_manual.html#eff&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>impact</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QComboBox" name="classification">
-         <property name="currentText">
-          <string>5</string>
-         </property>
-         <item>
-          <property name="text">
-           <string>5</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>4</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>3</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>2</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>1</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QSpinBox" name="ihdb">
-         <property name="maximum">
-          <number>100000</number>
-         </property>
-         <property name="singleStep">
-          <number>5</number>
-         </property>
-         <property name="value">
-          <number>5</number>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QCheckBox" name="maf_enabled">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum MAF in any of the columns 1000g, ExAC and ESP6500EA.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>MAF</string>
-         </property>
-        </widget>
-       </item>
-       <item row="8" column="0">
-        <spacer name="verticalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Fixed</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>5</width>
-           <height>5</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="0" column="1">
-        <widget class="QDoubleSpinBox" name="maf">
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="suffix">
-          <string>%</string>
-         </property>
-         <property name="maximum">
-          <double>100.000000000000000</double>
-         </property>
-         <property name="singleStep">
-          <double>0.100000000000000</double>
-         </property>
-         <property name="value">
-          <double>0.000000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="0">
-        <widget class="QCheckBox" name="quality_enabled">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enables filtering based on the quality column:&lt;br/&gt;- variant quality &amp;gt;= 100&lt;br/&gt;- depth &amp;gt;= 20&lt;br/&gt;- allele frequency &amp;gt;= 0.25&lt;br/&gt;- mapping quality &amp;gt;= 50&lt;br/&gt;&lt;br/&gt;Overwrites the 'keep important variants' filter!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>quality</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QCheckBox" name="geno_enabled">
-         <property name="toolTip">
-          <string>Genotype filter.</string>
-         </property>
-         <property name="text">
-          <string>genotype</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="0">
-        <spacer name="verticalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Fixed</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>5</width>
-           <height>5</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="4" column="1">
-        <widget class="QComboBox" name="geno">
-         <item>
-          <property name="text">
-           <string>hom</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>het</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>lofreq</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="10" column="0">
-        <widget class="QCheckBox" name="compound_enabled">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Filter for compound-heterozygous variants, i.e. heterozygous variants of all genes that have at least two heterozygous variants.&lt;/p&gt;&lt;p&gt;This filter is applied after all other filters.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>compound heterozygous</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </item>
     <item>
      <widget class="QGroupBox" name="groupBox_2">
       <property name="title">
@@ -410,34 +138,10 @@
          </item>
         </layout>
        </item>
-      </layout>
-     </widget>
-    </item>
-    <item>
-     <widget class="QGroupBox" name="groupBox_4">
-      <property name="title">
-       <string>Additional target region filters</string>
-      </property>
-      <layout class="QVBoxLayout" name="verticalLayout">
-       <property name="spacing">
-        <number>3</number>
-       </property>
-       <property name="leftMargin">
-        <number>3</number>
-       </property>
-       <property name="topMargin">
-        <number>3</number>
-       </property>
-       <property name="rightMargin">
-        <number>3</number>
-       </property>
-       <property name="bottomMargin">
-        <number>3</number>
-       </property>
        <item>
         <widget class="QLineEdit" name="gene">
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma-separated list of gene names.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Press return to finish entering text!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma-separated list of gene names.&lt;br/&gt;This filter has no effect on report generation!&lt;/p&gt;&lt;p&gt;Press return to finish entering text!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="placeholderText">
           <string>Gene</string>
@@ -450,7 +154,7 @@
        <item>
         <widget class="QLineEdit" name="region">
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Single target region e.g. chr1:120611985-120612025&lt;/p&gt;&lt;p&gt;Press return to finish entering text!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Single target region e.g. chr1:120611985-120612025&lt;br/&gt;This filter has no effect on report generation!&lt;/p&gt;&lt;p&gt;Press return to finish entering text!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="placeholderText">
           <string>Region</string>
@@ -464,14 +168,417 @@
      </widget>
     </item>
     <item>
+     <spacer name="verticalSpacer_3">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Fixed</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>5</width>
+        <height>5</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="groupBox">
+      <property name="toolTip">
+       <string/>
+      </property>
+      <property name="title">
+       <string>Main filters</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout" columnstretch="0,1">
+       <property name="leftMargin">
+        <number>3</number>
+       </property>
+       <property name="topMargin">
+        <number>3</number>
+       </property>
+       <property name="rightMargin">
+        <number>3</number>
+       </property>
+       <property name="bottomMargin">
+        <number>3</number>
+       </property>
+       <property name="spacing">
+        <number>3</number>
+       </property>
+       <item row="1" column="1">
+        <widget class="QComboBox" name="impact">
+         <property name="currentText">
+          <string>HIGH,MODERATE,LOW</string>
+         </property>
+         <item>
+          <property name="text">
+           <string>HIGH,MODERATE,LOW</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>HIGH,MODERATE</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>HIGH</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>MODERATE</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>LOW</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>MODIFIER</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QCheckBox" name="ihdb_enabled">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum occurences in ihdb_all_* column.&lt;/p&gt;&lt;p&gt;For heterozygous variants both the ihdb_all_het and ihdb_all_hom columns are filtered.&lt;/p&gt;&lt;p&gt;For homozygous variants only the ihdb_all_hom column is filtered.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>ihdb</string>
+         </property>
+        </widget>
+       </item>
+       <item row="10" column="0">
+        <widget class="QCheckBox" name="trio_enabled">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Filter for trio column (only for trio analysis).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>trio</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QCheckBox" name="impact_enabled">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Impact filter of variant in coding_and_splicing column.&lt;br/&gt;&lt;br/&gt;Details about impact can be found here:&lt;br/&gt;http://snpeff.sourceforge.net/SnpEff_manual.html#eff&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>impact</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QSpinBox" name="ihdb">
+         <property name="maximum">
+          <number>100000</number>
+         </property>
+         <property name="singleStep">
+          <number>5</number>
+         </property>
+         <property name="value">
+          <number>5</number>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QCheckBox" name="maf_enabled">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum MAF in any of the columns 1000g, ExAC and ESP6500EA.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>MAF</string>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="0">
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>5</width>
+           <height>5</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="0" column="1">
+        <widget class="QDoubleSpinBox" name="maf">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="suffix">
+          <string>%</string>
+         </property>
+         <property name="maximum">
+          <double>100.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.100000000000000</double>
+         </property>
+         <property name="value">
+          <double>0.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QCheckBox" name="geno_enabled">
+         <property name="toolTip">
+          <string>Genotype filter.</string>
+         </property>
+         <property name="text">
+          <string>genotype</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>5</width>
+           <height>5</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="4" column="1">
+        <widget class="QComboBox" name="geno">
+         <item>
+          <property name="text">
+           <string>hom</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>het</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>lofreq</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="11" column="0">
+        <widget class="QCheckBox" name="compound_enabled">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Filter for compound-heterozygous variants, i.e. heterozygous variants of all genes that have at least two heterozygous variants.&lt;/p&gt;&lt;p&gt;This filter is applied after all other filters.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>compound heterozygous</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="0" colspan="2">
+        <widget class="QCheckBox" name="keep_class_m">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Overwrites the filters:&lt;br/&gt;- MAF&lt;br/&gt;- impact&lt;br/&gt;- ihdb&lt;br/&gt;- genotype&lt;br/&gt;- filter columns&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>keep classification M (modifier)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0">
+        <widget class="QCheckBox" name="keep_class_ge_enabled">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Overwrites the filters:&lt;br/&gt;- MAF&lt;br/&gt;- impact&lt;br/&gt;- ihdb&lt;br/&gt;- genotype&lt;br/&gt;- filter columns&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>keep classification ≥</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="1">
+        <widget class="QComboBox" name="keep_class_ge">
+         <item>
+          <property name="text">
+           <string>1</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>2</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>3</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>4</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>5</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="6" column="0">
+        <widget class="QCheckBox" name="classification_enabled">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Overwrites the filters:&lt;br/&gt;- MAF&lt;br/&gt;- impact&lt;br/&gt;- ihdb&lt;br/&gt;- genotype&lt;br/&gt;- filter columns&lt;/p&gt;&lt;p&gt;Special case 'A' (artefact) is removed independent of the cutoff!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>remove classification &lt;</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="QComboBox" name="classification">
+         <property name="currentText">
+          <string>5</string>
+         </property>
+         <item>
+          <property name="text">
+           <string>5</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>4</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>3</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>2</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>1</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <spacer name="verticalSpacer_4">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Fixed</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>5</width>
+        <height>5</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="groupBox_5">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;'Keep' overwrites the filters:&lt;br/&gt;- MAF&lt;br/&gt;- impact&lt;br/&gt;- ihdb&lt;br/&gt;- genotype&lt;/p&gt;&lt;p&gt;&lt;br/&gt;'Remove' overwrites 'Keep'&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="title">
+       <string>Filter columns</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="leftMargin">
+        <number>3</number>
+       </property>
+       <property name="topMargin">
+        <number>3</number>
+       </property>
+       <property name="rightMargin">
+        <number>3</number>
+       </property>
+       <property name="bottomMargin">
+        <number>3</number>
+       </property>
+       <item>
+        <widget class="QScrollArea" name="qscrollarea">
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
+         </property>
+         <property name="widgetResizable">
+          <bool>true</bool>
+         </property>
+         <widget class="QWidget" name="filter_col">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>281</width>
+            <height>165</height>
+           </rect>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_5">
+           <property name="spacing">
+            <number>2</number>
+           </property>
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
      <spacer name="verticalSpacer_1">
       <property name="orientation">
        <enum>Qt::Vertical</enum>
       </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Fixed</enum>
+      </property>
       <property name="sizeHint" stdset="0">
        <size>
         <width>20</width>
-        <height>40</height>
+        <height>20</height>
        </size>
       </property>
      </spacer>

@@ -154,6 +154,7 @@ void MainWindow::loadFile(QString filename)
 	try
 	{
 		variants_.load(filename);
+		filter_widget_->setFilterColumns(variants_.filters());
 
 		//update data structures
 		Settings::setPath("path_variantlists", filename);
@@ -794,7 +795,17 @@ void MainWindow::variantListChanged()
 	{
 		QString anno = variants_.annotations()[i].name();
 		QTableWidgetItem* header = new QTableWidgetItem(anno);
-		header->setToolTip(variants_.annotations()[i].description());
+		QString add_desc = "";
+		if (anno=="filter")
+		{
+			auto it = variants_.filters().cbegin();
+			while (it!=variants_.filters().cend())
+			{
+				add_desc += "\n - "+it.key() + ": " + it.value();
+				++it;
+			}
+		}
+		header->setToolTip(variants_.annotations()[i].description() + add_desc);
 		ui_.vars->setHorizontalHeaderItem(i+5, header);
 		//link columns
 		QStringList link_cols;
@@ -886,7 +897,7 @@ void MainWindow::variantListChanged()
 				item->setBackgroundColor(Qt::red);
 				is_warning_line = true;
 			}
-			else if (j==i_clinvar && (anno.contains("[pathogenic]") || anno.contains("[probable-pathogenic]")))
+			else if (j==i_clinvar && anno.contains("pathogenic")) //matches "pathogenic" and "likely pathogenic"
 			{
 				item->setBackgroundColor(Qt::red);
 				is_warning_line = true;
@@ -1452,25 +1463,6 @@ void MainWindow::filtersChanged()
 			}
 		}
 
-		//classification filter
-		int i_class = variants_.annotationIndexByName("classification", true, true);
-		if (filter_widget_->applyClassification())
-		{
-			int min_class = filter_widget_->classification();
-			for(int i=0; i<variants_.count(); ++i)
-			{
-				if (!pass[i]) continue;
-
-				const QString& classification = variants_[i].annotations()[i_class];
-				if (classification=="M") continue; //modifier always passes
-
-				bool ok = false;
-				int classification_value = classification.toInt(&ok);
-
-				pass[i] = !ok || classification_value>=min_class;
-			}
-		}
-
 		//genotype filter
 		if (filter_widget_->applyGenotype())
 		{
@@ -1489,68 +1481,92 @@ void MainWindow::filtersChanged()
 			int i_trio = variants_.annotationIndexByName("trio", true, true);
 			for(int i=0; i<variants_.count(); ++i)
 			{
-				pass[i] = pass[i] && !variants_[i].annotations()[i_trio].isEmpty();
+				if (!pass[i]) continue;
+				pass[i] = !variants_[i].annotations()[i_trio].isEmpty();
 			}
 		}
 
-		//prevent important variants from beeing filtered out
-		if (filter_widget_->keepImportant())
+		//filter columns
+		QList<QByteArray> remove = filter_widget_->filterColumnsRemove();
+		QList<QByteArray> keep = filter_widget_->filterColumnsKeep();
+		if (remove.count()>0 || keep.count()>0)
 		{
+			int i_filter = variants_.annotationIndexByName("filter", true, true);
 			for(int i=0; i<variants_.count(); ++i)
 			{
-				//warning (red)
-				if (!pass[i] && ui_.vars->verticalHeaderItem(i)!=0 && ui_.vars->verticalHeaderItem(i)->foreground().color()==Qt::red)
+				const QByteArray& anno = variants_[i].annotations()[i_filter];
+				if(anno.isEmpty()) continue;
+
+				QList<QByteArray> filters = anno.split(';');
+
+				if (!pass[i])
 				{
-					pass[i] = true;
+					foreach(const QByteArray& f, filters)
+					{
+						if (keep.contains(f)) pass[i] = true;
+					}
 				}
-				//notice (orange)
-				if (!pass[i] && ui_.vars->verticalHeaderItem(i)!=0 && ui_.vars->verticalHeaderItem(i)->foreground().color()==QColor(255, 135, 60))
+
+				if (pass[i])
 				{
-					pass[i] = true;
+					foreach(const QByteArray& f, filters)
+					{
+						if (remove.contains(f)) pass[i] = false;
+					}
 				}
 			}
 		}
 
-		//quality filter
-		if (filter_widget_->applyQuality())
+		//remove variants with low classification
+		if (filter_widget_->applyClassification())
 		{
-			int i_qual = variants_.annotationIndexByName("quality", true, true);
-
+			int i_class = variants_.annotationIndexByName("classification", true, true);
+			int min_class = filter_widget_->classification();
 			for(int i=0; i<variants_.count(); ++i)
 			{
 				if (!pass[i]) continue;
 
-				QList<QByteArray> qual_parts = variants_[i].annotations()[i_qual].split(';');
-				foreach(const QByteArray& part, qual_parts)
+				const QByteArray& classification = variants_[i].annotations()[i_class];
+				if (classification=="A")
 				{
-					QList<QByteArray> key_value = part.split('=');
-					if (key_value.count()!=2 || !BasicStatistics::isValidFloat(key_value[1]))
-					{
-						THROW(ArgumentException, "Cannot parse quality column part '" + part + "'");
-					}
-					if ((key_value[0]=="QUAL" && key_value[1].toDouble()<100)
-						||
-						(key_value[0]=="MQM" && key_value[1].toDouble()<50)
-						||
-						(key_value[0]=="AF" && key_value[1].toDouble()<0.25)
-						||
-						(key_value[0]=="DP" && key_value[1].toDouble()<20)
-						)
-					{
-						pass[i] = false;
-					}
+					pass[i] = false;
+					continue;
 				}
+
+				bool ok = false;
+				int classification_value = variants_[i].annotations()[i_class].toInt(&ok);
+				if (!ok) continue;
+
+				pass[i] = (classification_value>=min_class);
 			}
 		}
 
-		//prevent class 4/5 variants from being filtered out by any filter
-		for(int i=0; i<variants_.count(); ++i)
+		//prevent class>=X variants from beeing filtered out by any filter (except region/gene filters)
+		if (filter_widget_->keepClassGreaterEqual()!=-1)
 		{
-			const QString& classification = variants_[i].annotations()[i_class];
-
-			if (classification=="4" || classification=="5")
+			int i_class = variants_.annotationIndexByName("classification", true, true);
+			int min_class = filter_widget_->keepClassGreaterEqual();
+			for(int i=0; i<variants_.count(); ++i)
 			{
-				pass[i] = true;
+				if (pass[i]) continue;
+
+				bool ok = false;
+				int classification_value = variants_[i].annotations()[i_class].toInt(&ok);
+				if (!ok) continue;
+
+				pass[i] = (classification_value>=min_class);
+			}
+		}
+
+		//prevent class M variants from beeing filtered out by any filter (except region/gene filters)
+		if (filter_widget_->keepClassM())
+		{
+			int i_class = variants_.annotationIndexByName("classification", true, true);
+			for(int i=0; i<variants_.count(); ++i)
+			{
+				if (pass[i]) continue;
+
+				pass[i] = (variants_[i].annotations()[i_class]=="M");
 			}
 		}
 

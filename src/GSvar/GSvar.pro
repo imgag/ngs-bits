@@ -18,6 +18,7 @@ SOURCES += main.cpp\
     ValidationDialog.cpp \
     ClassificationDialog.cpp \
     DBAnnotationWorker.cpp \
+    FilterColumnWidget.cpp
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
@@ -30,6 +31,7 @@ HEADERS  += MainWindow.h \
     ValidationDialog.h \
     ClassificationDialog.h \
     DBAnnotationWorker.h \
+    FilterColumnWidget.h
 
 
 FORMS    += MainWindow.ui \
@@ -40,6 +42,7 @@ FORMS    += MainWindow.ui \
     TrioDialog.ui \
     ClassificationDialog.ui \
     ValidationDialog.ui \
+    FilterColumnWidget.ui
     
 
 include("../app_gui.pri")
@@ -51,3 +54,7 @@ LIBS += -L$$PWD/../bin -lcppNGSD
 
 RESOURCES += \
     resources.qrc
+
+DISTFILES += \
+    Icons/Keep_gray.png \
+    Icons/Remove_gray.png

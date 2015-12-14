@@ -109,10 +109,10 @@ private slots:
 		VariantList vl;
 		vl.load(TESTDATA("data_in/panel.vcf"));
 		I_EQUAL(vl.count(), 14);
-		I_EQUAL(vl.annotations().count(), 27);
 		I_EQUAL(vl.comments().count(), 2);
 		S_EQUAL(vl.sampleName(), QString("./Sample_GS120297A3/GS120297A3.bam"));
 
+		I_EQUAL(vl.annotations().count(), 27);
 		S_EQUAL(vl.annotations()[0].name(), QString("ID"));
 		X_EQUAL(vl.annotations()[0].type(), VariantAnnotationDescription::STRING);
 		S_EQUAL(vl.annotations()[0].number(), QString("1"));
@@ -133,6 +133,10 @@ private slots:
 		S_EQUAL(vl.annotations()[26].description(), QString("List of Phred-scaled genotype likelihoods"));
 		IS_TRUE(vl.annotations()[26].sampleSpecific());
 		I_EQUAL(vl.annotations()[26].type(), VariantAnnotationDescription::INTEGER);
+
+		I_EQUAL(vl.filters().count(), 2);
+		S_EQUAL(vl.filters()["q10"], QString("Quality below 10"));
+		S_EQUAL(vl.filters()["s50"], QString("Less than 50% of samples have data"));
 
 		X_EQUAL(vl[0].chr(), Chromosome("chr17"));
 		I_EQUAL(vl[0].start(), 72196817);
@@ -223,10 +227,10 @@ private slots:
 		//reload and check that everything stayed the same
 		vl.load("out/VariantList_store_01.vcf");
 		I_EQUAL(vl.count(), 14);
-		I_EQUAL(vl.annotations().count(), 27);
 		I_EQUAL(vl.comments().count(), 2);
 		S_EQUAL(vl.sampleName(), QString("./Sample_GS120297A3/GS120297A3.bam"));
 
+		I_EQUAL(vl.annotations().count(), 27);
 		S_EQUAL(vl.annotations()[0].name(), QString("ID"));
 		I_EQUAL(vl.annotations()[0].type(), VariantAnnotationDescription::STRING);
 		S_EQUAL(vl.annotations()[0].number(), QString("1"));
@@ -248,6 +252,9 @@ private slots:
 		IS_TRUE(vl.annotations()[26].sampleSpecific());
 		I_EQUAL(vl.annotations()[26].type(), VariantAnnotationDescription::INTEGER);
 
+		I_EQUAL(vl.filters().count(), 2);
+		S_EQUAL(vl.filters()["q10"], QString("Quality below 10"));
+		S_EQUAL(vl.filters()["s50"], QString("Less than 50% of samples have data"));
 
 		X_EQUAL(vl[0].chr(), Chromosome("chr17"));
 		I_EQUAL(vl[0].start(), 72196817);
@@ -276,6 +283,10 @@ private slots:
 		I_EQUAL(vl.annotations().count(), 27);
 		S_EQUAL(vl.annotations()[0].name(), QString("genotype"));
 		S_EQUAL(vl.annotations()[26].name(), QString("validated"));
+		I_EQUAL(vl.filters().count(), 3);
+		S_EQUAL(vl.filters()["low_DP"], QString("Depth less than 20 at variant location."));
+		S_EQUAL(vl.filters()["low_MQM"], QString("Mean mapping quality of alternate allele less than Q50."));
+		S_EQUAL(vl.filters()["low_QUAL"], QString("Variant quality less than Q30."));
 
 		X_EQUAL(vl[0].chr(), Chromosome("chr1"));
 		I_EQUAL(vl[0].start(), 155205047);
@@ -312,9 +323,15 @@ private slots:
 		//reload and check that everything stayed the same
 		vl.load("out/VariantList_store_01.tsv");
 		I_EQUAL(vl.count(), 75);
+
 		I_EQUAL(vl.annotations().count(), 27);
 		S_EQUAL(vl.annotations()[0].name(), QString("genotype"));
 		S_EQUAL(vl.annotations()[26].name(), QString("validated"));
+
+		I_EQUAL(vl.filters().count(), 3);
+		S_EQUAL(vl.filters()["low_DP"], QString("Depth less than 20 at variant location."));
+		S_EQUAL(vl.filters()["low_MQM"], QString("Mean mapping quality of alternate allele less than Q50."));
+		S_EQUAL(vl.filters()["low_QUAL"], QString("Variant quality less than Q30."));
 
 		X_EQUAL(vl[0].chr(), Chromosome("chr1"));
 		I_EQUAL(vl[0].start(), 155205047);

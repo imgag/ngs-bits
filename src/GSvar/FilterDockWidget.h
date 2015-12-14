@@ -18,6 +18,9 @@ public:
 
 	/// Resets to initial state (uncheck boxes, no ROI)
 	void reset();
+	/// Sets filter columns present in the open file
+	void setFilterColumns(const QMap<QString, QString>& filter_cols);
+
 	/// Applies predefined default filters.
 	void applyDefaultFilters();
 
@@ -46,16 +49,20 @@ public:
 	/// Returns the maximum IHDB filter value.
 	int ihdb() const;
 
-	/// Returns if the quality filter is enabled.
-	bool applyQuality() const;
-
 	/// Returns if the trio filter is enabled.
 	bool applyTrio() const;
 	/// Returns if the compound-heterzygous filter is enabled.
 	bool applyCompoundHet() const;
 
-	/// Returns if important variants should be kept.
-	bool keepImportant() const;
+	/// Returns variants with a classification >= X should be kept (returns -1 if unset).
+	int keepClassGreaterEqual() const;
+	/// Returns variants with a classification 'M' (modifier) should be kept.
+	bool keepClassM() const;
+
+	///Returns the filter column terms to keep.
+	QList<QByteArray> filterColumnsKeep() const;
+	///Returns the filter column terms to remove.
+	QList<QByteArray> filterColumnsRemove() const;
 
 	/// Returns the target region file name or an empty string if unset.
 	QString targetRegion() const;
@@ -84,6 +91,7 @@ protected slots:
 	void referenceSampleChanged(int index);
 	void geneChanged();
 	void regionChanged();
+	void filterColumnStateChanged();
 
 private:
 	/// Loads the ROI filters from the INI file
