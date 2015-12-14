@@ -362,7 +362,11 @@ QCCollection NGSD::getQCData(const QString& filename)
 	{
 		q2.next();
 		float numeric_value = 100.0 * q2.value(0).toFloat();
-		if (numeric_value>1.0)
+		if (numeric_value>100.0) //special case: random_error_prob>100%
+		{
+			value = "<font color=orange>KASP not performed (see NGSD)</font>";
+		}
+		else if (numeric_value>1.0) //random_error_prob>1% => warn
 		{
 			value = "<font color=red>"+QString::number(numeric_value)+"%</font>";
 		}
