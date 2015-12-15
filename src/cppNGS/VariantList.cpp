@@ -313,7 +313,7 @@ void VariantList::loadFromTSV(QString filename)
 			{
 				column_descriptions[parts[1]]=parts.mid(2).join('=');
 			}
-			if (line.startsWith("##FILTER=") && parts.count()>2)
+			else if (line.startsWith("##FILTER=") && parts.count()>2)
 			{
 				filters_[parts[1]]=parts.mid(2).join('=');
 			}
