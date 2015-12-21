@@ -311,11 +311,23 @@ void VariantList::loadFromTSV(QString filename)
 			QList <QByteArray> parts = line.split('=');
 			if (line.startsWith("##DESCRIPTION=") && parts.count()>2)
 			{
-				column_descriptions[parts[1]]=parts.mid(2).join('=');
+				//QList<QByteArray>.join is not available in Qt 5.2
+				QByteArray tmp = parts[2];
+				for(int i=3; i<parts.count(); ++i)
+				{
+					tmp += "=" + parts[i];
+				}
+				column_descriptions[parts[1]] = tmp;
 			}
 			else if (line.startsWith("##FILTER=") && parts.count()>2)
 			{
-				filters_[parts[1]]=parts.mid(2).join('=');
+				//QList<QByteArray>.join is not available in Qt 5.2
+				QByteArray tmp = parts[2];
+				for(int i=3; i<parts.count(); ++i)
+				{
+					tmp += "=" + parts[i];
+				}
+				filters_[parts[1]] = tmp;
 			}
 			else
 			{
