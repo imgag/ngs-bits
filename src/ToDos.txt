@@ -1,7 +1,7 @@
 === TODO ===
 
+libs:
 * test cppNGSD (include in libs)
-
 
 GSvar:
 * implement variant details dock widget (like sophia-genetics)
@@ -10,6 +10,8 @@ GSvar:
 - somatic sample: Filter (MAF + custom)
 
 GSmix:
+- import TSV (probe, seq1 [, seq2])
+- allow multi-select of mids and support drag-and-drop
 - Support copy-and-paste of text in fields
 
 Tools:
@@ -17,18 +19,14 @@ Tools:
 - SeqPurge: add error correction?
 - FastqDemultiplex: check for "carry-over" contamination from last run
 - ReadQC: create plots without python?
-- SampleOverview: add option for BAM files (check depth where variant is not found)
 
 CnvHunter:
- * instead of fixed 'n', use n>=10 and n<=30 with lowest number of CNVs?
+ * instead of fixed 'n', use n>=10 and n<=30 with lowest number of CNVs or lowest z-score stdev?
  * calculate Z-score for each sample instead of fixed Z-score
- - consider normalizing for read length somehow (or use read counts? But that does not help much either)
- - set min STDEV to 15% of mean (was 10%, make it a parameter)
  - do not use bad regions for sample correlation calculation - remove bad regions after writing regions file...
  - do not exclude extreme outliers from reference sample calculation - we use median/mad
  - why "data[s].ref.append(exon_median);" - always use median/mad!?
  - annotate number of CNVs for each region in result file
- - determine z-score cutoff for each sample individually?
  - merge larger regions to one region - otherwise they may be filter out
  - integrate CNV databases:
    - http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/
