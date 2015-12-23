@@ -20,6 +20,7 @@
 #include <QInputDialog>
 #include <QClipboard>
 #include <QProgressBar>
+#include <QToolButton>
 #include "ReportWorker.h"
 #include "DBAnnotationWorker.h"
 #include "SampleInformationDialog.h"
@@ -45,6 +46,19 @@ MainWindow::MainWindow(QWidget *parent)
 	setWindowTitle(QCoreApplication::applicationName());
 	addDockWidget(Qt::RightDockWidgetArea, filter_widget_);
 	filter_widget_->raise();
+
+    //filter menu button
+    auto filter_btn = new QToolButton();
+    filter_btn->setIcon(QIcon(":/Icons/Filter.png"));
+    filter_btn->setMenu(new QMenu());
+    filter_btn->menu()->addAction(ui_.actionFiltersGermline);
+    connect(ui_.actionFiltersGermline, SIGNAL(triggered(bool)), this, SLOT(applyDefaultFiltersGermline()));
+    filter_btn->menu()->addAction(ui_.actionFiltersSomatic);
+    connect(ui_.actionFiltersSomatic, SIGNAL(triggered(bool)), this, SLOT(applyDefaultFiltersSomatic()));
+    filter_btn->menu()->addAction(ui_.actionFiltersClear);
+    connect(ui_.actionFiltersClear, SIGNAL(triggered(bool)), this, SLOT(clearFilters()));
+    filter_btn->setPopupMode(QToolButton::InstantPopup);
+    ui_.tools->insertWidget(ui_.actionReport, filter_btn);
 
 	//signals and slots
 	connect(ui_.actionClose, SIGNAL(triggered()), this, SLOT(close()));
@@ -342,10 +356,21 @@ void MainWindow::databaseAnnotationFinished(bool success)
 	worker->deleteLater();
 }
 
-void MainWindow::on_actionFilters_triggered()
+void MainWindow::applyDefaultFiltersGermline()
 {
 	filter_widget_->applyDefaultFilters();
-	on_actionResize_triggered();
+    on_actionResize_triggered();
+}
+
+void MainWindow::applyDefaultFiltersSomatic()
+{
+    filter_widget_->applyDefaultFiltersSomatic();
+    on_actionResize_triggered();
+}
+
+void MainWindow::clearFilters()
+{
+    filter_widget_->reset();
 }
 
 void MainWindow::on_actionNGSD_triggered()

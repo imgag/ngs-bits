@@ -64,9 +64,7 @@ public slots:
 	void on_actionReport_triggered();
 	///Database annotation
 	void on_actionDatabase_triggered();
-	///Default filters
-	void on_actionFilters_triggered();
-	///NGSD link
+    ///NGSD link
 	void on_actionNGSD_triggered();
 	///Sample information
 	void on_actionSampleInformation_triggered();
@@ -117,6 +115,11 @@ public slots:
 	void delayedInizialization();
 	///Handles the re-loading the variant list when the file changes.
 	void handleInputFileChange();
+
+    ///Default filters
+    void applyDefaultFiltersGermline();
+    void applyDefaultFiltersSomatic();
+    void clearFilters();
 
 private:
 	//GUI

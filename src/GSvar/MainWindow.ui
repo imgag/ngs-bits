@@ -64,7 +64,7 @@
      <x>0</x>
      <y>0</y>
      <width>909</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -158,7 +158,6 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionDatabase"/>
-   <addaction name="actionFilters"/>
    <addaction name="actionReport"/>
    <addaction name="separator"/>
    <addaction name="actionNGSD"/>
@@ -283,13 +282,9 @@
     <string>Open processed sample in NGSD.</string>
    </property>
   </action>
-  <action name="actionFilters">
-   <property name="icon">
-    <iconset resource="resources.qrc">
-     <normaloff>:/Icons/Filter.png</normaloff>:/Icons/Filter.png</iconset>
-   </property>
+  <action name="actionFiltersGermline">
    <property name="text">
-    <string>Default filters</string>
+    <string>Default filters (germline).</string>
    </property>
    <property name="toolTip">
     <string>Apply default diagnostic filters.</string>
@@ -357,17 +352,6 @@
     <string>Ctrl+Shift+C</string>
    </property>
   </action>
-  <action name="actionSdfsdfsdf">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>sdfsdfsdf</string>
-   </property>
-  </action>
   <action name="actionIgvSample">
    <property name="checkable">
     <bool>true</bool>
@@ -412,6 +396,19 @@
    </property>
    <property name="toolTip">
     <string>Create a new low-coverage report for the current target region.</string>
+   </property>
+  </action>
+  <action name="actionFiltersSomatic">
+   <property name="text">
+    <string>Default filters (somatic).</string>
+   </property>
+   <property name="toolTip">
+    <string>Apply default diagnostic filters.</string>
+   </property>
+  </action>
+  <action name="actionFiltersClear">
+   <property name="text">
+    <string>Clear filters.</string>
    </property>
   </action>
  </widget>
