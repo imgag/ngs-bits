@@ -18,7 +18,7 @@ public:
     ///Default constructor.
     Variant();
     ///Convenience constructor.
-	Variant(const Chromosome& chr, int start, int end, const Sequence& ref, const Sequence& obs, const QList<QByteArray>& annotations = QList<QByteArray>());
+    Variant(const Chromosome& chr, int start, int end, const Sequence& ref, const Sequence& obs, const QList<QByteArray>& annotations = QList<QByteArray>(), int filter_index = -1);
 
     ///Returns the chromosome.
     const Chromosome& chr() const
@@ -82,6 +82,12 @@ public:
         return annotations_;
     }
 
+    ///Convenience access to the filter annotation column (split by ';', trimmed).
+    const QList<QByteArray>& filters() const
+    {
+        return filters_;
+    }
+
     ///Less-than operator.
     bool operator<(const Variant& rhs) const;
     ///Overlap check for chromosome and position range.
@@ -127,6 +133,7 @@ protected:
     int end_;
 	Sequence ref_;
 	Sequence obs_;
+    QList<QByteArray> filters_;
 	QList<QByteArray> annotations_;
 
 };

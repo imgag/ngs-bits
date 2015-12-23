@@ -1486,18 +1486,15 @@ void MainWindow::filtersChanged()
 			}
 		}
 
-		//filter columns
+        //filter columns(remove, keep)
 		QList<QByteArray> remove = filter_widget_->filterColumnsRemove();
 		QList<QByteArray> keep = filter_widget_->filterColumnsKeep();
 		if (remove.count()>0 || keep.count()>0)
-		{
-			int i_filter = variants_.annotationIndexByName("filter", true, true);
+        {
 			for(int i=0; i<variants_.count(); ++i)
 			{
-				const QByteArray& anno = variants_[i].annotations()[i_filter];
-				if(anno.isEmpty()) continue;
-
-				QList<QByteArray> filters = anno.split(';');
+                const QList<QByteArray>& filters = variants_[i].filters();
+                if(filters.isEmpty()) continue;
 
 				if (!pass[i])
 				{
@@ -1564,14 +1561,38 @@ void MainWindow::filtersChanged()
 			int i_class = variants_.annotationIndexByName("classification", true, true);
 			for(int i=0; i<variants_.count(); ++i)
 			{
-				if (pass[i]) continue;
+                if (pass[i]) continue;
 
 				pass[i] = (variants_[i].annotations()[i_class]=="M");
 			}
-		}
+        }
 
-		Log::perf("Applying annotation filter took ", timer);
-		timer.start();
+        //filter columns (filter)
+        QList<QByteArray> filter = filter_widget_->filterColumnsFilter();
+        if (filter.count()>0)
+        {
+            for(int i=0; i<variants_.count(); ++i)
+            {
+                if (!pass[i]) continue;
+
+                const QList<QByteArray>& filters = variants_[i].filters();
+                if(filters.isEmpty())
+                {
+                    pass[i] = false;
+                    continue;
+                }
+
+                bool keep = false;
+                foreach(const QByteArray& f, filters)
+                {
+                    if (filter.contains(f)) keep = true;
+                }
+                pass[i] = keep;
+            }
+        }
+
+        Log::perf("Applying annotation filter took ", timer);
+        timer.start();
 
 		//roi changed
 		QString roi = filter_widget_->targetRegion();

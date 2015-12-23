@@ -63,6 +63,8 @@ public:
 	QList<QByteArray> filterColumnsKeep() const;
 	///Returns the filter column terms to remove.
 	QList<QByteArray> filterColumnsRemove() const;
+    ///Returns the filter column terms to filter.
+    QList<QByteArray> filterColumnsFilter() const;
 
 	/// Returns the target region file name or an empty string if unset.
 	QString targetRegion() const;

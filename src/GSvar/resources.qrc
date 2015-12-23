@@ -21,5 +21,6 @@
         <file>Icons/Keep.png</file>
         <file>Icons/Keep_gray.png</file>
         <file>Icons/Remove_gray.png</file>
+        <file>Icons/Filter_gray.png</file>
     </qresource>
 </RCC>

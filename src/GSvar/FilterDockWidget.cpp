@@ -154,6 +154,7 @@ void FilterDockWidget::reset()
 	foreach(FilterColumnWidget* w, fcws)
 	{
 		w->setState(FilterColumnWidget::NONE);
+        w->setFilter(false);
 	}
 
 	//rois
@@ -206,6 +207,7 @@ void FilterDockWidget::applyDefaultFilters()
 		{
 			w->setState(FilterColumnWidget::NONE);
 		}
+        w->setFilter(false);
 	}
 
 	//re-enable signals
@@ -311,7 +313,21 @@ QList<QByteArray> FilterDockWidget::filterColumnsRemove() const
 			output.append(w->objectName().toUtf8());
 		}
 	}
-	return output;
+    return output;
+}
+
+QList<QByteArray> FilterDockWidget::filterColumnsFilter() const
+{
+    QList<QByteArray> output;
+    QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
+    foreach(FilterColumnWidget* w, fcws)
+    {
+        if (w->filter())
+        {
+            output.append(w->objectName().toUtf8());
+        }
+    }
+    return output;
 }
 
 QString FilterDockWidget::targetRegion() const

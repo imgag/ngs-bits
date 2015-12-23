@@ -18,18 +18,32 @@ Variant::Variant()
 	, end_(-1)
 	, ref_()
 	, obs_()
+    , filters_()
 	, annotations_()
 {
 }
 
-Variant::Variant(const Chromosome& chr, int start, int end, const Sequence& ref, const Sequence& obs, const QList<QByteArray>& annotations)
+Variant::Variant(const Chromosome& chr, int start, int end, const Sequence& ref, const Sequence& obs, const QList<QByteArray>& annotations, int filter_index)
 	: chr_(chr)
 	, start_(start)
 	, end_(end)
 	, ref_(ref)
 	, obs_(obs)
+    , filters_()
 	, annotations_(annotations)
 {
+    if (filter_index>0)
+    {
+        QByteArray anno = annotations[filter_index].trimmed();
+        if (!anno.isEmpty() && anno!="." && anno!="PASS")
+        {
+            auto tmp = anno.split(';');
+            foreach(const QByteArray& t, tmp)
+            {
+                filters_.append(t.trimmed());
+            }
+        }
+    }
 }
 
 bool Variant::operator<(const Variant& rhs) const
@@ -292,12 +306,15 @@ void VariantList::store(QString filename, VariantList::Format format)
 
 void VariantList::loadFromTSV(QString filename)
 {
+    constexpr int special_cols = 5;
+
 	//remove old data
 	clear();
 
 	//parse from stream
 	QSharedPointer<QFile> file = Helper::openFileForReading(filename, true);
 	QHash <QString, QString> column_descriptions;
+    int filter_index = -1;
 	while(!file->atEnd())
 	{
 		QByteArray line = file->readLine();
@@ -338,7 +355,7 @@ void VariantList::loadFromTSV(QString filename)
 		if (line.startsWith("#"))//header
 		{
 			QList <QByteArray> fields = line.split('\t');
-			for (int i=5; i<fields.count(); ++i)
+            for (int i=special_cols; i<fields.count(); ++i)
 			{
 				if(column_descriptions.contains(fields[i]))
 				{
@@ -348,12 +365,17 @@ void VariantList::loadFromTSV(QString filename)
 				{
 					annotations().append(VariantAnnotationDescription(fields[i], "", VariantAnnotationDescription::STRING, false, "."));
 				}
+
+                if (fields[i]=="filter")
+                {
+                    filter_index = i - special_cols;
+                }
 			}
 			continue;
 		}
-		//error when less than 5 fields
-		QList<QByteArray> fields = line.split('\t');
-		if (fields.count()<5)
+        //error when special colums are not present
+        QList<QByteArray> fields = line.split('\t');
+        if (fields.count()<special_cols)
 		{
 			THROW(FileParseException, "Variant TSV file line with less than five fields found: '" + line.trimmed() + "'");
 		}
@@ -363,12 +385,12 @@ void VariantList::loadFromTSV(QString filename)
 		int end_pos = Helper::toInt(fields[2], "start position", line);
 
 		//variant line
-		QList<QByteArray> annos;
-		for (int i=5; i<fields.count(); ++i)
+        QList<QByteArray> annos;
+        for (int i=special_cols; i<fields.count(); ++i)
 		{
 			annos.append(fields[i]);
 		}
-		append(Variant(fields[0], start_pos, end_pos, fields[3], fields[4], annos));
+        append(Variant(fields[0], start_pos, end_pos, fields[3], fields[4], annos, filter_index));
 	}
 
 	//validate
@@ -706,7 +728,7 @@ void VariantList::loadFromVCF(QString filename)
 				}
 			}
 
-			append(Variant(chrom, start_pos, end_pos, ref_bases, var_bases, annos));
+            append(Variant(chrom, start_pos, end_pos, ref_bases, var_bases, annos, 2));
 		}
 	}
 
