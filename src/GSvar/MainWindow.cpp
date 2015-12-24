@@ -20,6 +20,7 @@
 #include <QInputDialog>
 #include <QClipboard>
 #include <QProgressBar>
+#include <QToolButton>
 #include "ReportWorker.h"
 #include "DBAnnotationWorker.h"
 #include "SampleInformationDialog.h"
@@ -45,6 +46,19 @@ MainWindow::MainWindow(QWidget *parent)
 	setWindowTitle(QCoreApplication::applicationName());
 	addDockWidget(Qt::RightDockWidgetArea, filter_widget_);
 	filter_widget_->raise();
+
+    //filter menu button
+    auto filter_btn = new QToolButton();
+    filter_btn->setIcon(QIcon(":/Icons/Filter.png"));
+    filter_btn->setMenu(new QMenu());
+    filter_btn->menu()->addAction(ui_.actionFiltersGermline);
+    connect(ui_.actionFiltersGermline, SIGNAL(triggered(bool)), this, SLOT(applyDefaultFiltersGermline()));
+    filter_btn->menu()->addAction(ui_.actionFiltersSomatic);
+    connect(ui_.actionFiltersSomatic, SIGNAL(triggered(bool)), this, SLOT(applyDefaultFiltersSomatic()));
+    filter_btn->menu()->addAction(ui_.actionFiltersClear);
+    connect(ui_.actionFiltersClear, SIGNAL(triggered(bool)), this, SLOT(clearFilters()));
+    filter_btn->setPopupMode(QToolButton::InstantPopup);
+    ui_.tools->insertWidget(ui_.actionReport, filter_btn);
 
 	//signals and slots
 	connect(ui_.actionClose, SIGNAL(triggered()), this, SLOT(close()));
@@ -342,10 +356,21 @@ void MainWindow::databaseAnnotationFinished(bool success)
 	worker->deleteLater();
 }
 
-void MainWindow::on_actionFilters_triggered()
+void MainWindow::applyDefaultFiltersGermline()
 {
 	filter_widget_->applyDefaultFilters();
-	on_actionResize_triggered();
+    on_actionResize_triggered();
+}
+
+void MainWindow::applyDefaultFiltersSomatic()
+{
+    filter_widget_->applyDefaultFiltersSomatic();
+    on_actionResize_triggered();
+}
+
+void MainWindow::clearFilters()
+{
+    filter_widget_->reset();
 }
 
 void MainWindow::on_actionNGSD_triggered()
@@ -1486,18 +1511,15 @@ void MainWindow::filtersChanged()
 			}
 		}
 
-		//filter columns
+        //filter columns(remove, keep)
 		QList<QByteArray> remove = filter_widget_->filterColumnsRemove();
 		QList<QByteArray> keep = filter_widget_->filterColumnsKeep();
 		if (remove.count()>0 || keep.count()>0)
-		{
-			int i_filter = variants_.annotationIndexByName("filter", true, true);
+        {
 			for(int i=0; i<variants_.count(); ++i)
 			{
-				const QByteArray& anno = variants_[i].annotations()[i_filter];
-				if(anno.isEmpty()) continue;
-
-				QList<QByteArray> filters = anno.split(';');
+                const QList<QByteArray>& filters = variants_[i].filters();
+                if(filters.isEmpty()) continue;
 
 				if (!pass[i])
 				{
@@ -1564,14 +1586,38 @@ void MainWindow::filtersChanged()
 			int i_class = variants_.annotationIndexByName("classification", true, true);
 			for(int i=0; i<variants_.count(); ++i)
 			{
-				if (pass[i]) continue;
+                if (pass[i]) continue;
 
 				pass[i] = (variants_[i].annotations()[i_class]=="M");
 			}
-		}
+        }
 
-		Log::perf("Applying annotation filter took ", timer);
-		timer.start();
+        //filter columns (filter)
+        QList<QByteArray> filter = filter_widget_->filterColumnsFilter();
+        if (filter.count()>0)
+        {
+            for(int i=0; i<variants_.count(); ++i)
+            {
+                if (!pass[i]) continue;
+
+                const QList<QByteArray>& filters = variants_[i].filters();
+                if(filters.isEmpty())
+                {
+                    pass[i] = false;
+                    continue;
+                }
+
+                bool keep = false;
+                foreach(const QByteArray& f, filters)
+                {
+                    if (filter.contains(f)) keep = true;
+                }
+                pass[i] = keep;
+            }
+        }
+
+        Log::perf("Applying annotation filter took ", timer);
+        timer.start();
 
 		//roi changed
 		QString roi = filter_widget_->targetRegion();

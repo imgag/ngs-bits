@@ -4,15 +4,13 @@ libs:
 * test cppNGSD (include in libs)
 
 GSvar:
-* implement variant details dock widget (like sophia-genetics)
+- implement variant details dock widget (like sophia-genetics)
 * integrate HPO (phenotype(s) => temporary target region)
-* implement filter column 'filter' icon that excludes all other variants
-- somatic sample: Filter (MAF + custom)
 
 GSmix:
-- import TSV (probe, seq1 [, seq2])
-- allow multi-select of mids and support drag-and-drop
-- Support copy-and-paste of text in fields
+* import TSV (probe, seq1 [, seq2])
+* allow multi-select of mids and support drag-and-drop
+* Support copy-and-paste of text in fields
 
 Tools:
 - MappingQC: add %soft/hard-clipped quality parameter (see ssPWBRCA_v2)

@@ -21,8 +21,10 @@ public:
 	/// Sets filter columns present in the open file
 	void setFilterColumns(const QMap<QString, QString>& filter_cols);
 
-	/// Applies predefined default filters.
+    /// Applies predefined default filters (germline).
 	void applyDefaultFilters();
+    /// Applies predefined default filters (somatic).
+    void applyDefaultFiltersSomatic();
 
 	/// Returns if the MAF filter is enabled.
 	bool applyMaf() const;
@@ -63,6 +65,8 @@ public:
 	QList<QByteArray> filterColumnsKeep() const;
 	///Returns the filter column terms to remove.
 	QList<QByteArray> filterColumnsRemove() const;
+    ///Returns the filter column terms to filter.
+    QList<QByteArray> filterColumnsFilter() const;
 
 	/// Returns the target region file name or an empty string if unset.
 	QString targetRegion() const;
@@ -98,6 +102,9 @@ private:
 	void loadROIFilters();
 	/// Loads the reference file list of IGV
 	void loadReferenceFiles();
+
+    /// Resets the filters without blocking signals.
+    void resetSignalsUnblocked();
 
 	Ui::FilterDockWidget ui_;
 	QList<QByteArray> last_genes_;

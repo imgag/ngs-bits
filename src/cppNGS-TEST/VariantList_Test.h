@@ -146,6 +146,10 @@ private slots:
 		S_EQUAL(vl[0].annotations().at(3), QByteArray("TRUE"));
 		S_EQUAL(vl[0].annotations().at(8), QByteArray("4,3,11,11"));
 		S_EQUAL(vl[0].annotations().at(26), QByteArray("255,0,123"));
+        I_EQUAL(vl[0].filters().count(), 0);
+
+        I_EQUAL(vl[11].filters().count(), 1);
+        S_EQUAL(vl[11].filters().at(0), QByteArray("low_DP"));
 
 		X_EQUAL(vl[12].chr(), Chromosome("chr9"));
 		I_EQUAL(vl[12].start(), 130931421);
@@ -155,6 +159,7 @@ private slots:
 		S_EQUAL(vl[12].annotations().at(3), QByteArray(""));
 		S_EQUAL(vl[12].annotations().at(8), QByteArray("457,473,752,757"));
 		S_EQUAL(vl[12].annotations().at(26), QByteArray("255,0,255"));
+        I_EQUAL(vl[12].filters().count(), 0);
 
 		//load a second time to check initialization
 		vl.load(TESTDATA("data_in/panel.vcf"));
@@ -296,6 +301,14 @@ private slots:
 		S_EQUAL(vl[0].annotations().at(0), QByteArray("het"));
 		S_EQUAL(vl[0].annotations().at(5), QByteArray("0.5084"));
 		S_EQUAL(vl[0].annotations().at(26), QByteArray(""));
+        I_EQUAL(vl[0].filters().count(), 0);
+
+        I_EQUAL(vl[13].filters().count(), 1);
+        S_EQUAL(vl[13].filters().at(0), QByteArray("low_QUAL"));
+
+        I_EQUAL(vl[72].filters().count(), 2);
+        S_EQUAL(vl[72].filters().at(0), QByteArray("low_QUAL"));
+        S_EQUAL(vl[72].filters().at(1), QByteArray("low_MQM"));
 
 		X_EQUAL(vl[74].chr(), Chromosome("chrX"));
 		I_EQUAL(vl[74].start(), 153009197);
@@ -304,7 +317,9 @@ private slots:
 		S_EQUAL(vl[74].obs(), Sequence("C"));
 		S_EQUAL(vl[74].annotations().at(0), QByteArray("het"));
 		S_EQUAL(vl[74].annotations().at(5), QByteArray("0.5368"));
-		S_EQUAL(vl[74].annotations().at(25), QByteArray(""));
+        S_EQUAL(vl[74].annotations().at(25), QByteArray(""));
+        I_EQUAL(vl[74].filters().count(), 0);
+
 
 		//load a second time to check initialization
 		vl.load(TESTDATA("data_in/panel.tsv"));

@@ -125,57 +125,65 @@ void FilterDockWidget::loadReferenceFiles()
 	//restore old selection
 	int current_index = ui_.refs->findText(current);
 	if (current_index==-1) current_index = 0;
-	ui_.refs->setCurrentIndex(current_index);
+    ui_.refs->setCurrentIndex(current_index);
+}
+
+void FilterDockWidget::resetSignalsUnblocked()
+{
+    //annotations
+    ui_.maf_enabled->setChecked(false);
+    ui_.maf->setValue(1.0);
+    ui_.impact_enabled->setChecked(false);
+    ui_.impact->setCurrentText("HIGH,MODERATE,LOW");
+    ui_.ihdb_enabled->setChecked(false);
+    ui_.ihdb->setValue(5);
+    ui_.classification_enabled->setChecked(false);
+    ui_.classification->setCurrentText("3");
+    ui_.geno_enabled->setChecked(false);
+    ui_.geno->setCurrentText("hom");
+    ui_.keep_class_ge_enabled->setChecked(false);
+    ui_.keep_class_ge->setCurrentText("3");
+    ui_.keep_class_m->setChecked(false);
+    ui_.trio_enabled->setChecked(false);
+    ui_.compound_enabled->setChecked(false);
+
+    //filter cols
+    QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
+    foreach(FilterColumnWidget* w, fcws)
+    {
+        w->setState(FilterColumnWidget::NONE);
+        w->setFilter(false);
+    }
+
+    //rois
+    ui_.rois->setCurrentIndex(0);
+    ui_.rois->setToolTip("");
+
+    //gene
+    last_genes_.clear();
+    ui_.gene->clear();
+    ui_.region->clear();
+
+    //refs
+    ui_.refs->setCurrentIndex(0);
+    ui_.refs->setToolTip("");
 }
 
 void FilterDockWidget::reset()
 {
 	blockSignals(true);
-
-	//annotations
-	ui_.maf_enabled->setChecked(false);
-	ui_.maf->setValue(1.0);
-	ui_.impact_enabled->setChecked(false);
-	ui_.impact->setCurrentText("HIGH,MODERATE,LOW");
-	ui_.ihdb_enabled->setChecked(false);
-	ui_.ihdb->setValue(5);
-	ui_.classification_enabled->setChecked(false);
-	ui_.classification->setCurrentText("3");
-	ui_.geno_enabled->setChecked(false);
-	ui_.geno->setCurrentText("hom");
-	ui_.keep_class_ge_enabled->setChecked(false);
-	ui_.keep_class_ge->setCurrentText("3");
-	ui_.keep_class_m->setChecked(false);
-	ui_.trio_enabled->setChecked(false);
-	ui_.compound_enabled->setChecked(false);
-
-	//filter cols
-	QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
-	foreach(FilterColumnWidget* w, fcws)
-	{
-		w->setState(FilterColumnWidget::NONE);
-	}
-
-	//rois
-	ui_.rois->setCurrentIndex(0);
-	ui_.rois->setToolTip("");
-
-	//gene
-	last_genes_.clear();
-	ui_.gene->clear();
-	ui_.region->clear();
-
-	//refs
-	ui_.refs->setCurrentIndex(0);
-	ui_.refs->setToolTip("");
-
+    resetSignalsUnblocked();
 	blockSignals(false);
+
+    emit filtersChanged();
 }
 
 void FilterDockWidget::applyDefaultFilters()
 {
 	//block signals to avoid 10 updates of GUI
 	blockSignals(true);
+
+    resetSignalsUnblocked();
 
 	//enable default filters
 	ui_.maf_enabled->setChecked(true);
@@ -186,13 +194,9 @@ void FilterDockWidget::applyDefaultFilters()
 	ui_.ihdb->setValue(5);
 	ui_.classification_enabled->setChecked(true);
 	ui_.classification->setCurrentText("3");
-	ui_.geno_enabled->setChecked(false);
-	ui_.geno->setCurrentText("hom");
-	ui_.keep_class_ge_enabled->setChecked(true);
+    ui_.keep_class_ge_enabled->setChecked(true);
 	ui_.keep_class_ge->setCurrentText("3");
 	ui_.keep_class_m->setChecked(true);
-	ui_.trio_enabled->setChecked(false);
-	ui_.compound_enabled->setChecked(false);
 
 	//filter cols
 	QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
@@ -202,17 +206,44 @@ void FilterDockWidget::applyDefaultFilters()
 		{
 			w->setState(FilterColumnWidget::KEEP);
 		}
-		else
-		{
-			w->setState(FilterColumnWidget::NONE);
-		}
 	}
 
 	//re-enable signals
 	blockSignals(false);
 
 	//emit signal to update GUI
-	emit filtersChanged();
+    emit filtersChanged();
+}
+
+void FilterDockWidget::applyDefaultFiltersSomatic()
+{
+    //block signals to avoid 10 updates of GUI
+    blockSignals(true);
+
+    resetSignalsUnblocked();
+
+    //enable default filters
+    ui_.maf_enabled->setChecked(true);
+    ui_.maf->setValue(1.0);
+
+    //filter cols
+
+    /* TODO filters somatic
+    QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
+    foreach(FilterColumnWidget* w, fcws)
+    {
+        if (w->objectName()=="anno_high_impact" || w->objectName()=="anno_pathogenic_clinvar" || w->objectName()=="anno_pathogenic_hgmd")
+        {
+            w->setState(FilterColumnWidget::KEEP);
+        }
+    }
+    */
+
+    //re-enable signals
+    blockSignals(false);
+
+    //emit signal to update GUI
+    emit filtersChanged();
 }
 
 bool FilterDockWidget::applyMaf() const
@@ -311,7 +342,21 @@ QList<QByteArray> FilterDockWidget::filterColumnsRemove() const
 			output.append(w->objectName().toUtf8());
 		}
 	}
-	return output;
+    return output;
+}
+
+QList<QByteArray> FilterDockWidget::filterColumnsFilter() const
+{
+    QList<QByteArray> output;
+    QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
+    foreach(FilterColumnWidget* w, fcws)
+    {
+        if (w->filter())
+        {
+            output.append(w->objectName().toUtf8());
+        }
+    }
+    return output;
 }
 
 QString FilterDockWidget::targetRegion() const

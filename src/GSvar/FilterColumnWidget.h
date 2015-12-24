@@ -26,12 +26,16 @@ public:
 	State state() const;
 	void setState(State state);
 
+    bool filter() const;
+    void setFilter(bool checked);
+
 signals:
+    //any of the three checkboxes changed
 	void stateChanged();
 
 private slots:
-	void keepClicked(bool checked);
-	void removeClicked(bool checked);
+    void keepClicked(bool checked);
+    void removeClicked(bool checked);
 
 private:
 	Ui::FilterColumnWidget *ui;
