@@ -91,19 +91,19 @@ int GPD::addColumn(VariantList& variants, QString name, QString description)
 }
 
 void GPD::annotate(VariantList& variants)
-{	
-	emit initProgress("GPD annotation", true);
-
+{
 	//remove all GPD-specific columns
 	removeColumnIfPresent(variants, "GPD_gene", true);
 	removeColumnIfPresent(variants, "GPD_var", true);
 
 	//get required column indices
-	int gene_idx = variants.annotationIndexByName("gene", true, true);
 	int g_gen_idx = addColumn(variants, "GPD_gene", "GPD annotation of genes.");
 	int g_var_idx = addColumn(variants, "GPD_var", "GPD annotation of variants.");
+	if (variants.count()==0) return;
 
 	//(re-)annotate the variants
+	emit initProgress("GPD annotation", true);
+	int gene_idx = variants.annotationIndexByName("gene", true, true);
 	for (int i=0; i<variants.count(); ++i)
 	{
 		Variant& v = variants[i];
