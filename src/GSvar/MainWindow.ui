@@ -14,7 +14,7 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="resources.qrc">
+   <iconset resource="../GSmix/resources.qrc">
     <normaloff>:/Icons/Icon.png</normaloff>:/Icons/Icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -272,7 +272,7 @@
   </action>
   <action name="actionNGSD">
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset resource="../GSmix/resources.qrc">
      <normaloff>:/Icons/NGSD.png</normaloff>:/Icons/NGSD.png</iconset>
    </property>
    <property name="text">
@@ -284,7 +284,7 @@
   </action>
   <action name="actionFiltersGermline">
    <property name="text">
-    <string>Default filters (germline).</string>
+    <string>Default filters (germline)</string>
    </property>
    <property name="toolTip">
     <string>Apply default diagnostic filters.</string>
@@ -400,7 +400,7 @@
   </action>
   <action name="actionFiltersSomatic">
    <property name="text">
-    <string>Default filters (somatic).</string>
+    <string>Default filters (somatic)</string>
    </property>
    <property name="toolTip">
     <string>Apply default diagnostic filters.</string>
@@ -408,12 +408,13 @@
   </action>
   <action name="actionFiltersClear">
    <property name="text">
-    <string>Clear filters.</string>
+    <string>Clear filters</string>
    </property>
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
+  <include location="../GSmix/resources.qrc"/>
   <include location="resources.qrc"/>
  </resources>
  <connections/>

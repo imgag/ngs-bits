@@ -327,7 +327,7 @@ CREATE  TABLE IF NOT EXISTS `processed_sample` (
   `sample_id` INT(11) NOT NULL,
   `process_id` INT(2) NOT NULL,
   `sequencing_run_id` INT(11) NULL DEFAULT NULL,
-  `lane` INT(2) NOT NULL,
+  `lane` varchar(15) NOT NULL COMMENT 'Comma-separated lane list (1-8)',
   `mid1_i7` INT(11) NULL DEFAULT NULL,
   `mid2_i5` INT(11) NULL DEFAULT NULL,
   `operator_id` INT(11) NULL DEFAULT NULL,

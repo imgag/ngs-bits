@@ -347,7 +347,7 @@ void RunPlanner::updateRunData()
 	QString run_id = ui->run->currentData(Qt::UserRole).toString();
 	QString lane = QString::number(ui->lane->value());
 
-	QList<GDBO> psamples = GDBO::all("processed_sample", QStringList() << "sequencing_run_id='" + run_id + "'" << "lane='" + lane + "'");
+	QList<GDBO> psamples = GDBO::all("processed_sample", QStringList() << "sequencing_run_id='" + run_id + "'" << "lane LIKE '%" + lane + "%'");
 	ui->samples->setRowCount(psamples.count());
 
 	int row = 0;
