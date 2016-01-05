@@ -490,7 +490,7 @@ CREATE  TABLE IF NOT EXISTS `detected_variant` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `processed_sample_id` INT(11) NOT NULL,
   `variant_id` INT(11) NOT NULL,
-  `genotype` ENUM('hom','het','lofreq') NOT NULL,
+  `genotype` ENUM('hom','het') NOT NULL,
   `quality` TEXT NOT NULL,
   `comment` TEXT NULL DEFAULT NULL,
   `report` TINYINT(1) NOT NULL DEFAULT '0',

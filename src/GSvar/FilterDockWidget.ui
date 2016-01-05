@@ -373,11 +373,6 @@
            <string>het</string>
           </property>
          </item>
-         <item>
-          <property name="text">
-           <string>lofreq</string>
-          </property>
-         </item>
         </widget>
        </item>
        <item row="11" column="0">
