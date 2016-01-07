@@ -10,7 +10,7 @@
 #include <QSqlError>
 #include <QPair>
 #include <QMessageBox>
-
+#include <QClipboard>
 
 //get sample list with MIDs
 struct SampleMIDs
@@ -25,15 +25,11 @@ RunPlanner::RunPlanner(QWidget *parent) :
 	ui(new Ui::RunPlanner)
 {
 	ui->setupUi(this);
-	ui->samples->setColumnWidth(0, 150);
-	ui->samples->setColumnWidth(1, 250);
-	ui->samples->setColumnWidth(2, 250);
 
-	connect(ui->debugButton, SIGNAL(clicked(bool)), this, SLOT(debug()));
-	ui->debugButton->setVisible(false);
 	connect(ui->run, SIGNAL(currentIndexChanged(int)), this, SLOT(runChanged(int)));
 	connect(ui->lane, SIGNAL(valueChanged(int)), this, SLOT(laneChanged(int)));
 	connect(ui->addButton, SIGNAL(clicked(bool)), this, SLOT(addItem()));
+	connect(ui->pasteButton, SIGNAL(clicked(bool)), this, SLOT(pasteItems()));
 	connect(ui->removeButton, SIGNAL(clicked(bool)), this, SLOT(removeSelectedItems()));
 	connect(ui->checkButton, SIGNAL(clicked(bool)), this, SLOT(checkForMidCollisions()));
 	connect(ui->importButton, SIGNAL(clicked(bool)), this, SLOT(importNewSamplesToNGSD()));
@@ -44,25 +40,6 @@ RunPlanner::RunPlanner(QWidget *parent) :
 RunPlanner::~RunPlanner()
 {
 	delete ui;
-}
-
-void RunPlanner::debug()
-{
-	ui->run->setCurrentIndex(5);
-
-	int idx = ui->samples->rowCount();
-	ui->samples->setRowCount(idx+2);
-
-	ui->samples->setItem(idx, 0, readWriteItem("NA12878"));
-	ui->samples->setItem(idx, 1, readWriteItem("Illumina 10 (TAGCTT)"));
-	ui->samples->setItem(idx, 2, readWriteItem(""));
-	++idx;
-
-	ui->samples->setItem(idx, 0, readWriteItem("NA12878"));
-	ui->samples->setItem(idx, 1, readWriteItem("Illumina 11 (GGCTAC)"));
-	ui->samples->setItem(idx, 2, readWriteItem(""));
-
-	importNewSamplesToNGSD();
 }
 
 void RunPlanner::loadRunsFromNGSD()
@@ -99,15 +76,16 @@ void RunPlanner::laneChanged(int)
 
 void RunPlanner::addItem()
 {
-	//
-	int idx = ui->samples->rowCount();
-	ui->samples->setRowCount(idx+1);
-
 	static int sample_num = 0;
 	++sample_num;
-	ui->samples->setItem(idx, 0, readWriteItem("sample" + QString::number(sample_num).rightJustified(3, '0')));
-	ui->samples->setItem(idx, 1, readWriteItem(""));
-	ui->samples->setItem(idx, 2, readWriteItem(""));
+	QString name = "sample" + QString::number(sample_num).rightJustified(3, '0');
+
+	ui->samples->appendSampleRW(name);
+}
+
+void RunPlanner::pasteItems()
+{
+	ui->samples->appendSamplesFromText(QApplication::clipboard()->text());
 }
 
 void RunPlanner::removeSelectedItems()
@@ -348,19 +326,12 @@ void RunPlanner::updateRunData()
 	QString lane = QString::number(ui->lane->value());
 
 	QList<GDBO> psamples = GDBO::all("processed_sample", QStringList() << "sequencing_run_id='" + run_id + "'" << "lane LIKE '%" + lane + "%'");
-	ui->samples->setRowCount(psamples.count());
-
-	int row = 0;
 	foreach(const GDBO& psample, psamples)
 	{
 		QString name = psample.getFkObject("sample_id").get("name") + "_" + psample.get("process_id").rightJustified(2, '0');
-		ui->samples->setItem(row, 0, readOnlyItem(name));
 		QString mid1 = psample.get("mid1_i7")=="" ? "" : midToString(psample.getFkObject("mid1_i7"));
-		ui->samples->setItem(row, 1, readOnlyItem(mid1));
 		QString mid2 = psample.get("mid2_i5")=="" ? "" : midToString(psample.getFkObject("mid2_i5"));
-		ui->samples->setItem(row, 2, readOnlyItem(mid2));
-
-		++row;
+		ui->samples->appendSampleRO(name, mid1, mid2);
 	}
 }
 
@@ -374,18 +345,4 @@ QList<int> RunPlanner::setToSortedList(const QSet<int>& set)
 	QList<int> list = set.toList();
 	std::sort(list.begin(), list.end());
 	return list;
-}
-
-QTableWidgetItem* RunPlanner::readOnlyItem(QString text)
-{
-	QTableWidgetItem* item = new QTableWidgetItem(text);
-	item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsDragEnabled);
-	return item;
-}
-
-QTableWidgetItem* RunPlanner::readWriteItem(QString text)
-{
-	QTableWidgetItem* item = new QTableWidgetItem(text);
-	item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEditable|Qt::ItemIsDragEnabled|Qt::ItemIsDropEnabled|Qt::ItemIsEnabled);
-	return item;
 }

@@ -7,11 +7,6 @@ GSvar:
 - implement variant details dock widget (like sophia-genetics)
 * integrate HPO (phenotype(s) => temporary target region)
 
-GSmix:
-* import TSV (probe, seq1 [, seq2])
-* allow multi-select of mids and support drag-and-drop
-* Support copy-and-paste of text in fields
-
 Tools:
 - MappingQC: add %soft/hard-clipped quality parameter (see ssPWBRCA_v2)
 - SeqPurge: add error correction?
