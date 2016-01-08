@@ -221,11 +221,11 @@ void RunPlanner::checkForMidCollisions()
 
 	if (collisions_found)
 	{
-		QMessageBox::critical(this, "MID clashes detected!", output.join("\n"));
+		QMessageBox::critical(this, "MID collision check", "MID clashes detected!\n\n" +output.join("\n"));
 	}
 	else
 	{
-		QMessageBox::information(this, "No MID clashes detected!", output.join("\n"));
+		QMessageBox::information(this, "MID collision check", "No MID clashes detected!\n\n" + output.join("\n"));
 	}
 }
 

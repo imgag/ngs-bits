@@ -245,6 +245,9 @@ SUBDIRS += BedReadCount
 tools-TEST.depends += BedReadCount
 BedReadCount.depends = cppNGS
 
+SUBDIRS += NGSDImportHPO
+tools-TEST.depends += NGSDImportHPO
+NGSDImportHPO.depends = cppNGSD
 
 #other stuff
 OTHER_FILES += ToDos.txt

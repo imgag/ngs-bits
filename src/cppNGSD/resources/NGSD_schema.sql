@@ -112,7 +112,7 @@ CREATE  TABLE IF NOT EXISTS `mid` (
   UNIQUE INDEX `UNIQUE_MAN_INDEX` (`name` ASC))
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
-DEFAULT CHARACTER SET = latin1;
+DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
@@ -125,7 +125,7 @@ CREATE  TABLE IF NOT EXISTS `genome` (
   UNIQUE INDEX `build_UNIQUE` (`build` ASC))
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
-DEFAULT CHARACTER SET = latin1;
+DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
@@ -150,8 +150,7 @@ CREATE  TABLE IF NOT EXISTS `processing_system` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
-DEFAULT CHARACTER SET = latin1
-COMMENT = '		';
+DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
@@ -165,7 +164,7 @@ CREATE  TABLE IF NOT EXISTS `device` (
   UNIQUE INDEX `name_UNIQUE` (`name` ASC))
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
-DEFAULT CHARACTER SET = latin1;
+DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
@@ -193,7 +192,7 @@ CREATE  TABLE IF NOT EXISTS `sequencing_run` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
-DEFAULT CHARACTER SET = latin1;
+DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
@@ -206,7 +205,7 @@ CREATE  TABLE IF NOT EXISTS `species` (
   UNIQUE INDEX `name_UNIQUE` (`name` ASC))
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
-DEFAULT CHARACTER SET = latin1;
+DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
@@ -222,7 +221,7 @@ CREATE  TABLE IF NOT EXISTS `sender` (
   UNIQUE INDEX `name_UNIQUE` (`name` ASC))
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
-DEFAULT CHARACTER SET = latin1;
+DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
@@ -243,7 +242,7 @@ CREATE  TABLE IF NOT EXISTS `user` (
   UNIQUE INDEX `email_UNIQUE` (`email` ASC))
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
-DEFAULT CHARACTER SET = latin1;
+DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
@@ -292,7 +291,7 @@ CREATE  TABLE IF NOT EXISTS `sample` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
-DEFAULT CHARACTER SET = latin1;
+DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
@@ -316,7 +315,7 @@ CREATE  TABLE IF NOT EXISTS `project` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
-DEFAULT CHARACTER SET = latin1;
+DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
@@ -391,7 +390,7 @@ CREATE  TABLE IF NOT EXISTS `processed_sample` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
-DEFAULT CHARACTER SET = latin1;
+DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
@@ -430,7 +429,7 @@ CREATE  TABLE IF NOT EXISTS `variant` (
 )
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
-DEFAULT CHARACTER SET = latin1;
+DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
@@ -513,7 +512,7 @@ CREATE  TABLE IF NOT EXISTS `detected_variant` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
-DEFAULT CHARACTER SET = latin1;
+DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
 -- Table `qc_terms`
@@ -528,7 +527,7 @@ CREATE  TABLE IF NOT EXISTS `qc_terms` (
   UNIQUE INDEX `qcml_id_UNIQUE` (`qcml_id` ASC))
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
-DEFAULT CHARACTER SET = latin1;
+DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
@@ -555,7 +554,7 @@ CREATE  TABLE IF NOT EXISTS `processed_sample_qc` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
-DEFAULT CHARACTER SET = latin1;
+DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
@@ -569,7 +568,7 @@ CREATE  TABLE IF NOT EXISTS `sample_group` (
   UNIQUE INDEX `name_UNIQUE` (`name` ASC))
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
-DEFAULT CHARACTER SET = latin1;
+DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
@@ -594,7 +593,7 @@ CREATE  TABLE IF NOT EXISTS `nm_sample_sample_group` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
-DEFAULT CHARACTER SET = latin1;
+DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
@@ -633,7 +632,7 @@ CREATE  TABLE IF NOT EXISTS `detected_somatic_variant` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
-DEFAULT CHARACTER SET = latin1;
+DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
@@ -658,7 +657,7 @@ CREATE  TABLE IF NOT EXISTS `diag_status` (
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
-DEFAULT CHARACTER SET = latin1;
+DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
@@ -676,8 +675,53 @@ CREATE  TABLE IF NOT EXISTS `kasp_status` (
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
-DEFAULT CHARACTER SET = latin1;
+DEFAULT CHARACTER SET = utf8;
 
+-- -----------------------------------------------------
+-- Table `hpo_term`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `hpo_term` (
+  `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `hpo_id` VARCHAR(10) NOT NULL,
+  `name` TEXT NOT NULL,
+  `definition` TEXT NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `hpo_id` (`hpo_id` ASC),
+  INDEX `name` (`name`(100) ASC))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `hpo_genes`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `hpo_genes` (
+  `hpo_term_id` INT(10) UNSIGNED NOT NULL,
+  `gene` VARCHAR(40) CHARACTER SET 'utf8' NOT NULL,
+  PRIMARY KEY (`hpo_term_id`, `gene`),
+  CONSTRAINT `hpo_genes_ibfk_1`
+    FOREIGN KEY (`hpo_term_id`)
+    REFERENCES `hpo_term` (`id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `hpo_parent`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `hpo_parent` (
+  `parent` INT(10) UNSIGNED NOT NULL,
+  `child` INT(10) UNSIGNED NOT NULL,
+  PRIMARY KEY (`parent`, `child`),
+  INDEX `child` (`child` ASC),
+  CONSTRAINT `hpo_parent_ibfk_2`
+    FOREIGN KEY (`child`)
+    REFERENCES `hpo_term` (`id`),
+  CONSTRAINT `hpo_parent_ibfk_1`
+    FOREIGN KEY (`parent`)
+    REFERENCES `hpo_term` (`id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
 
 -- ----------------------------------------------------------------------------------------------------------
 --                                                 INITIAL DATA

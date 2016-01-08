@@ -79,7 +79,8 @@ HEADERS += \
     NGSDImportHGNC_Test.h \
     NGSDImportUCSC_Test.h \
     BamDownsample_Test.h \
-    BedReadCount_Test.h
+    BedReadCount_Test.h \
+    NGSDImportHPO_Test.h \
 
 SOURCES += \
     main.cpp \
