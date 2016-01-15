@@ -121,6 +121,7 @@ DEFAULT CHARACTER SET = utf8;
 CREATE  TABLE IF NOT EXISTS `genome` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `build` VARCHAR(45) NOT NULL,
+  `comment` TEXT NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `build_UNIQUE` (`build` ASC))
 ENGINE = InnoDB
@@ -743,8 +744,8 @@ INSERT INTO species VALUES (NULL, 'human');
 -- -----------------------------------------------------
 -- Table `genome`
 -- -----------------------------------------------------
-INSERT INTO genome VALUES (NULL, 'hg19');
-INSERT INTO genome VALUES (NULL, 'hg38');
+INSERT INTO genome VALUES (NULL, 'hg19', 'Human genome hg19');
+INSERT INTO genome VALUES (NULL, 'hg38', 'Human genome hg38');
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
