@@ -49,12 +49,12 @@ public:
 		QString mode = getEnum("mode");
 		if(mode=="germline")
 		{
-			if (!test) GPD().annotate(variants); //TODO make GPD testable
+			if (!test) GPD().annotate(variants); //TODO update when GPD is integrated into NGSD
 			NGSD(test).annotate(variants, psname);
 		}
 		else if(mode=="somatic")
 		{
-			if (!test) GPD().annotateSomatic(variants); //TODO make GPD testable
+			if (!test) GPD().annotateSomatic(variants); //TODO update when GPD is integrated into NGSD
 			NGSD(test).annotateSomatic(variants, psname, ref_file);
 		}
 

@@ -227,17 +227,11 @@ void FilterDockWidget::applyDefaultFiltersSomatic()
     ui_.maf->setValue(1.0);
 
     //filter cols
-
-    /* TODO filters somatic
     QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
     foreach(FilterColumnWidget* w, fcws)
-    {
-        if (w->objectName()=="anno_high_impact" || w->objectName()=="anno_pathogenic_clinvar" || w->objectName()=="anno_pathogenic_hgmd")
-        {
-            w->setState(FilterColumnWidget::KEEP);
-        }
-    }
-    */
+	{
+		w->setState(FilterColumnWidget::REMOVE);
+	}
 
     //re-enable signals
     blockSignals(false);
