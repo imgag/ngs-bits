@@ -22,25 +22,29 @@ public:
 		addInfile("in", "Input BAM file.", false, true);
 		//optional
 		addOutfile("out", "Output qcML file. If unset, writes to STDOUT.", true);
-		addInfile("roi", "Input target region BED file.", true, true);
-        addEnum("wgs", "Calculates statistics for WGS instead of a specific target region.", true, QStringList() << "" << "hg19", "");
+		addInfile("roi", "Input target region BED file (for panel, WES, etc.).", true, true);
+		addFloat("wgs", "Overall genome size (for WGS).", true, -1.0);
 		addFlag("txt", "Writes TXT format instead of qcML.");
 		addFlag("3exons", "Adds special QC terms estimating the sequencing error on reads from three exons.");
 	}
 
 	virtual void main()
 	{
+		//init
+		QString roi_file = getInfile("roi");
+		double genome_size = getFloat("wgs");
+
         //check that either ROI or WGS is given
-        if (getInfile("roi")=="" && getEnum("wgs")=="")
+		if (roi_file=="" && genome_size<=0.0)
         {
             THROW(CommandLineParsingException, "You have to provide the parameter 'roi' or 'wgs'!");
         }
 
 		QStringList parameters;
 		QCCollection metrics;
-        if (getEnum("wgs")!="")
+		if (genome_size>0.0)
         {
-			metrics = Statistics::mapping(getEnum("wgs"), getInfile("in"));
+			metrics = Statistics::mapping(genome_size, getInfile("in"));
 
 			//parameters
 			parameters << "-wgs";
@@ -49,14 +53,14 @@ public:
         {
 			//load ROI
             BedFile roi;
-			roi.load(getInfile("roi"));
+			roi.load(roi_file);
 			roi.merge();
 
 			//calculate metrics
 			metrics = Statistics::mapping(roi, getInfile("in"));
 
 			//parameters
-			parameters << "-roi" << QFileInfo(getInfile("roi")).fileName();
+			parameters << "-roi" << QFileInfo(roi_file).fileName();
         }
 
 		//special QC for 3 exons

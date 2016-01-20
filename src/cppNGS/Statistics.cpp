@@ -326,18 +326,8 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
     return output;
 }
 
-QCCollection Statistics::mapping(const QString& genome, const QString &bam_file, int min_mapq)
+QCCollection Statistics::mapping(double genome_size, const QString &bam_file, int min_mapq)
 {
-    double roi_bases = -1;
-    if (genome=="hg19")
-    {
-        roi_bases = 3137177833.0;
-    }
-    else
-    {
-        THROW(ArgumentException, "Unknown genome build '" + genome + "'!");
-    }
-
     //open BAM file
     BamReader reader;
     NGSHelper::openBAM(reader, bam_file);
@@ -438,7 +428,7 @@ QCCollection Statistics::mapping(const QString& genome, const QString &bam_file,
     {
 		output.insert(QCValue("duplicate read percentage", 100.0 * al_dup / al_total, "Percentage of reads removed because they were duplicates (PCR, optical, etc).", "QC:2000024"));
     }
-	output.insert(QCValue("target region read depth", bases_overlap_roi / roi_bases, "Average sequencing depth in target region.", "QC:2000025"));
+	output.insert(QCValue("target region read depth", bases_overlap_roi / genome_size, "Average sequencing depth in target region.", "QC:2000025"));
 
 	//add insert size distribution plot
 	LinePlot plot2;

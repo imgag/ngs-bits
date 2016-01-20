@@ -159,7 +159,7 @@ private slots:
 
 	void mapping_wgs()
 	{
-		QCCollection stats = Statistics::mapping("hg19", TESTDATA("data_in/close_exons.bam"));
+		QCCollection stats = Statistics::mapping(3095693983.0, TESTDATA("data_in/close_exons.bam"));
 		S_EQUAL(stats[0].name(), QString("trimmed base percentage"));
 		S_EQUAL(stats[0].toString(), QString("19.10"));
 		S_EQUAL(stats[1].name(), QString("mapped read percentage"));
@@ -173,7 +173,7 @@ private slots:
 		S_EQUAL(stats[5].name(), QString("duplicate read percentage"));
 		S_EQUAL(stats[5].toString(), QString("n/a (duplicates not marked or removed during data analysis)"));
 		S_EQUAL(stats[6].name(), QString("target region read depth"));
-		S_EQUAL(stats[6].toString(8), QString("0.00006538"));
+		S_EQUAL(stats[6].toString(8), QString("0.00006626"));
 		S_EQUAL(stats[7].name(), QString("insert size distribution plot"));
 		IS_TRUE(stats[7].type()==QVariant::ByteArray);
 		I_EQUAL(stats.count(), 8);

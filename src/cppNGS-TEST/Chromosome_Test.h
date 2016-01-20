@@ -10,6 +10,7 @@ private slots:
 	{
 		S_EQUAL(Chromosome("1").str(), QByteArray("1"));
 		S_EQUAL(Chromosome("chr1").str(), QByteArray("chr1"));
+		S_EQUAL(Chromosome("chr1").str(), QByteArray("chr1"));
 		S_EQUAL(Chromosome("CHRX").str(), QByteArray("CHRX"));
 		S_EQUAL(Chromosome("chrY").str(), QByteArray("chrY"));
 		S_EQUAL(Chromosome("M").str(), QByteArray("M"));
@@ -23,6 +24,7 @@ private slots:
 	{
 		S_EQUAL(Chromosome("1").strNormalized(false), QByteArray("1"));
 		S_EQUAL(Chromosome("chr1").strNormalized(false), QByteArray("1"));
+		S_EQUAL(Chromosome("chr01").strNormalized(false), QByteArray("01"));
 		S_EQUAL(Chromosome("CHRX").strNormalized(false), QByteArray("X"));
 		S_EQUAL(Chromosome("chrY").strNormalized(false), QByteArray("Y"));
 		S_EQUAL(Chromosome("M").strNormalized(false), QByteArray("M"));
@@ -40,6 +42,7 @@ private slots:
 	{
 		I_EQUAL(Chromosome("1").num(), 1);
 		I_EQUAL(Chromosome("chr1").num(),1);
+		I_EQUAL(Chromosome("chr01").num(),1);
 		I_EQUAL(Chromosome("X").num(),1001);
 		I_EQUAL(Chromosome("CHRX").num(),1001);
 		I_EQUAL(Chromosome("Y").num(),1002);
@@ -53,6 +56,23 @@ private slots:
 		I_EQUAL(Chromosome("chrBLA2").num(),base+1);
 		I_EQUAL(Chromosome("BLA").num(),base);
 		I_EQUAL(Chromosome("BLA2").num(),base+1);
+	}
+
+	void isNonSpecial()
+	{
+		IS_TRUE(Chromosome("1").isNonSpecial());
+		IS_TRUE(Chromosome("chr1").isNonSpecial());
+		IS_TRUE(Chromosome("chr01").isNonSpecial());
+		IS_TRUE(Chromosome("X").isNonSpecial());
+		IS_TRUE(Chromosome("CHRX").isNonSpecial());
+		IS_TRUE(Chromosome("Y").isNonSpecial());
+		IS_TRUE(Chromosome("chrY").isNonSpecial());
+		IS_TRUE(Chromosome("M").isNonSpecial());
+		IS_TRUE(Chromosome("MT").isNonSpecial());
+
+		IS_FALSE(Chromosome("chrBLA2").isNonSpecial());
+		IS_FALSE(Chromosome("BLA").isNonSpecial());
+		IS_FALSE(Chromosome("BLA2").isNonSpecial());
 	}
 
 	void isAutosome()

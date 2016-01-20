@@ -8,7 +8,9 @@ GSvar:
 * integrate HPO (phenotype(s) => temporary target region)
 
 Tools:
-- MappingQC: add %soft/hard-clipped quality parameter (see ssPWBRCA_v2)
+- MappingQC:
+  * add %soft/hard-clipped quality parameter (see ssPWBRCA_v2)
+  * support RNA insert size, etc... + spike-in controls
 - SeqPurge: add error correction?
 - FastqDemultiplex: check for "carry-over" contamination from last run
 - ReadQC: create plots without python?

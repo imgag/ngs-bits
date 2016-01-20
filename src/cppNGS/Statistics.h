@@ -14,10 +14,10 @@ class CPPNGSSHARED_EXPORT Statistics
 public:
 	///Calculates QC metrics on a variant list (only for VCF).
 	static QCCollection variantList(const VariantList& variants);
-    ///Calculates mapping QC metrics for a target regionfrom a BAM file. The input BED file must be merged!
+	///Calculates mapping QC metrics for a target region from a BAM file. The input BED file must be merged!
 	static QCCollection mapping(const BedFile& bed_file, const QString& bam_file, int min_mapq=1);
     ///Calculates mapping QC metrics for WGS from a BAM file. The input BED file must be merged!
-    static QCCollection mapping(const QString& genome, const QString& bam_file, int min_mapq=1);
+	static QCCollection mapping(double genome_size, const QString& bam_file, int min_mapq=1);
     ///Calculates special mapping QC metrics on three defined exons.
 	static QCCollection mapping3Exons(const QString& bam_file);
 	///Calculates target region statistics (term-value pairs). @p merge determines if overlapping regions are merged before calculating the statistics.
