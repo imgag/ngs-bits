@@ -1,5 +1,5 @@
 ### SeqPurge tool help
-	SeqPurge (0.1-52-g9f9161f)
+	SeqPurge (0.1-184-gc4d2f1b)
 	
 	Removes adapter sequences from paired-end sequencing data.
 	
@@ -26,10 +26,8 @@
 	                      Default value: '33'
 	  -ncut <int>         Number of subsequent Ns to trimmed using a sliding mindow approach from the front of reads. Set to 0 to disable.
 	                      Default value: '7'
-	  -min_len_s <int>    Minimum read length of a single read after adapter trimming. Shorter reads are discarded.
+	  -min_len <int>      Minimum read length after adapter trimming. Shorter reads are discarded.
 	                      Default value: '15'
-	  -min_len_p <int>    Minimum read length sum of a read pair after adapter trimming. Shorter reads pairs are discarded.
-	                      Default value: '60'
 	  -threads <int>      The number of threads used for trimming (an additional thread is used for reading data).
 	                      Default value: '1'
 	  -out3 <file>        Name prefix of singleton read output files (if only one read of a pair is discarded).
@@ -38,6 +36,8 @@
 	                      Default value: ''
 	  -qc <file>          If set, a read QC file in qcML format is created (just like ReadQC).
 	                      Default value: ''
+	  -prefetch <int>     Maximum number of reads that may be pre-fetched to speed up trimming
+	                      Default value: '1000'
 	  -debug              Enables debug output (use only with one thread).
 	                      Default value: 'false'
 	  -progress           Enables progress output.

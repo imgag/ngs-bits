@@ -1,5 +1,5 @@
 ### VariantQC tool help
-	VariantQC (0.1-52-g9f9161f)
+	VariantQC (0.1-184-gc4d2f1b)
 	
 	Calculates QC metrics on variant lists.
 	

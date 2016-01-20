@@ -1,5 +1,5 @@
 ### BedIntersect tool help
-	BedIntersect (0.1-52-g9f9161f)
+	BedIntersect (0.1-184-gc4d2f1b)
 	
 	Intersects the regions in two BED files.
 	

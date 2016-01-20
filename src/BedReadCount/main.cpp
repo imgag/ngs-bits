@@ -22,13 +22,12 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Extracts the average read count for input regions from a BAM file(s).");
-		addInfile("bam", "Input BAM file(s).", false);
+		setDescription("Annoates the regions in a BED file with the read count from a BAM file.");
+		addInfile("bam", "Input BAM file.", false);
 		addInt("min_mapq", "Minimum mapping quality.", true, 1);
 		//optional
 		addInfile("in", "Input BED file (note that overlapping regions will be merged before processing). If unset, reads from STDIN.", true);
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
-
 	}
 
 	void readCount(BedFile& bed_file, const QString& bam_file, int min_mapq)

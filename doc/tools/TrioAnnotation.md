@@ -1,5 +1,5 @@
 ### TrioAnnotation tool help
-	TrioAnnotation (0.1-52-g9f9161f)
+	TrioAnnotation (0.1-184-gc4d2f1b)
 	
 	Annotates a child sample with trio information. Assumes that the child is the index patient and that the parents are unaffected.
 	

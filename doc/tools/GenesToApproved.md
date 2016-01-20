@@ -1,5 +1,5 @@
 ### GenesToApproved tool help
-	GenesToApproved (0.1-86-gc061241)
+	GenesToApproved (0.1-184-gc4d2f1b)
 	
 	Replaces gene symbols by approved symbols using the HGNC database.
 	
@@ -8,8 +8,8 @@
 	              Default value: ''
 	  -out <file> Output TXT file with approved gene symbols. If unset, writes to STDOUT.
 	              Default value: ''
-	  -db <file>  The HGNC flat file. If unset 'hgnc' from the 'settings.ini' file is used.
-	              Default value: ''
+	  -test       Uses the test database instead of on the production database.
+	              Default value: 'false'
 	
 	Special parameters:
 	  --help      Shows this help and exits.

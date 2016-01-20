@@ -1,5 +1,5 @@
 ### FastqList tool help
-	FastqList (0.1-52-g9f9161f)
+	FastqList (0.1-184-gc4d2f1b)
 	
 	List read IDs and base count.
 	

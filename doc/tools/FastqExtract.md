@@ -1,5 +1,5 @@
 ### FastqExtract tool help
-	FastqExtract (0.1-52-g9f9161f)
+	FastqExtract (0.1-184-gc4d2f1b)
 	
 	Extracts reads from a FASTQ file according to an ID list. Trims the reads if lengths are given.
 	
@@ -7,6 +7,10 @@
 	  -in <file>  Input FASTQ file (gzipped or plain).
 	  -ids <file> Input TSV file containing IDs (without the '@') in the first column and optional length in the second column.
 	  -out <file> Output FASTQ file.
+	
+	Optional parameters:
+	  -v          Invert match: keep non-matching reads.
+	              Default value: 'false'
 	
 	Special parameters:
 	  --help      Shows this help and exits.

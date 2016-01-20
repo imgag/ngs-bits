@@ -1,5 +1,5 @@
 ### VcfSort tool help
-	VcfSort (0.1-52-g9f9161f)
+	VcfSort (0.1-184-gc4d2f1b)
 	
 	Sorts variant lists according to chromosomal position.
 	

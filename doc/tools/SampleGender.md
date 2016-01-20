@@ -1,5 +1,5 @@
 ### SampleGender tool help
-	SampleGender (0.1-98-gf30422f)
+	SampleGender (0.1-184-gc4d2f1b)
 	
 	Determines the gender of a sample from the BAM file.
 	

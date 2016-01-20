@@ -1,5 +1,5 @@
 ### FastqToFasta tool help
-	FastqToFasta (0.1-52-g9f9161f)
+	FastqToFasta (0.1-184-gc4d2f1b)
 	
 	Converts a FASTQ file to FASTA format.
 	

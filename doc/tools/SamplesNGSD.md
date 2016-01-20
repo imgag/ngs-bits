@@ -1,5 +1,5 @@
 ### SamplesNGSD tool help
-	SamplesNGSD (0.1-86-gc061241)
+	SamplesNGSD (0.1-184-gc4d2f1b)
 	
 	Lists processed samples from NGSD.
 	
@@ -10,12 +10,20 @@
 	                    Default value: ''
 	  -sys <string>     Processing system short name filter.
 	                    Default value: ''
-	  -quality <enum>   Minimum sample/run quality filter.
+	  -run <string>     Sequencing run name filter.
+	                    Default value: ''
+	  -quality <enum>   Minimum processed sample/sample/run quality filter.
 	                    Default value: 'bad'
 	                    Valid: 'bad,medium,good'
-	  -normal           If set, tumor samples are excluded.
+	  -no_tumor         If set, tumor samples are excluded.
 	                    Default value: 'false'
-	  -check_path       Checks the sample folder location.
+	  -no_ffpe          If set, FFPE samples are excluded.
+	                    Default value: 'false'
+	  -qc               If set, QC values are appended.
+	                    Default value: 'false'
+	  -check_path       Checks if the sample folder is present at the defaults location in the 'projects_folder' (as defined in the 'settings.ini' file).
+	                    Default value: 'false'
+	  -test             Uses the test database instead of on the production database.
 	                    Default value: 'false'
 	
 	Special parameters:

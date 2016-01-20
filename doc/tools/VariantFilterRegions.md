@@ -1,17 +1,16 @@
 ### VariantFilterRegions tool help
-	VariantFilterRegions (0.1-52-g9f9161f)
+	VariantFilterRegions (0.1-184-gc4d2f1b)
 	
 	Filters variant lists accordning to a target region.
 	
 	Mandatory parameters:
 	  -in <file>  Input variant list.
 	  -reg <file> Input target region in BED format.
+	  -out <file> Output variant list. If unset, writes to STDOUT.
 	
 	Optional parameters:
 	  -invert     If used, the variants inside the target region are removed.
 	              Default value: 'false'
-	  -out <file> Output variant list. If unset, writes to STDOUT.
-	              Default value: ''
 	
 	Special parameters:
 	  --help      Shows this help and exits.

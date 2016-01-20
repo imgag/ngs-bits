@@ -1,5 +1,5 @@
 ### VariantAnnotateNGSD tool help
-	VariantAnnotateNGSD (0.1-52-g9f9161f)
+	VariantAnnotateNGSD (0.1-184-gc4d2f1b)
 	
 	Annotates a variant list with information from the NGSD.
 	
@@ -10,11 +10,13 @@
 	Optional parameters:
 	  -psname <string> Processed sample name. If set, this name is used instead of the file name to find the sample in the DB.
 	                   Default value: ''
-	  -ref <file>      Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.
+	  -ref <file>      Reference genome FASTA file for somatic mode. If unset 'reference_genome' from the 'settings.ini' file is used.
 	                   Default value: ''
 	  -mode <enum>     Determines annotation mode.
 	                   Default value: 'germline'
 	                   Valid: 'germline,somatic'
+	  -test            Uses the test database instead of on the production database.
+	                   Default value: 'false'
 	
 	Special parameters:
 	  --help           Shows this help and exits.

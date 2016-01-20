@@ -1,0 +1,20 @@
+### NGSDImportHGNC tool help
+	NGSDImportHGNC (0.1-184-gc4d2f1b)
+	
+	Imports genes from the HGNC flat file.
+	
+	Mandatory parameters:
+	  -in <file> HGNC flat file (download and unzip ftp://ftp.ebi.ac.uk/pub/databases/genenames/hgnc_complete_set.txt.gz)
+	
+	Optional parameters:
+	  -test      Uses the test database instead of on the production database.
+	             Default value: 'false'
+	  -force     If set, overwrites old data.
+	             Default value: 'false'
+	
+	Special parameters:
+	  --help     Shows this help and exits.
+	  --version  Prints version and exits.
+	  --tdx      Writes a Tool Defition Xml file. The file name is the application name appended with '.tdx'.
+	
+[back to ngs-bits](https://github.com/marc-sturm/ngs-bits)

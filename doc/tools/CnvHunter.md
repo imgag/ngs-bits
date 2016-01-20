@@ -1,5 +1,5 @@
 ### CnvHunter tool help
-	CnvHunter (0.1-52-g9f9161f)
+	CnvHunter (0.1-184-gc4d2f1b)
 	
 	Detects copy number variations from targeted resequencing data using non-matched control samples.
 	
@@ -8,8 +8,6 @@
 	  -out <file>            Output TSV file containing the detected CNVs.
 	
 	Optional parameters:
-	  -genes <file>          BED file used to annotate gene names (from 4th column).
-	                         Default value: ''
 	  -out_reg <file>        If set, writes a BED file with region information (baq QC, excluded, good).
 	                         Default value: ''
 	  -n <int>               The number of most similar samples to consider.

@@ -1,5 +1,5 @@
 ### BedChunk tool help
-	BedChunk (0.1-52-g9f9161f)
+	BedChunk (0.1-184-gc4d2f1b)
 	
 	Splits all regions to chunks of an approximate desired size.
 	

@@ -1,19 +1,18 @@
-### BedLowCoverage tool help
-	BedLowCoverage (0.1-184-gc4d2f1b)
+### BedReadCount tool help
+	BedReadCount (0.1-184-gc4d2f1b)
 	
-	Detects low-coverage regions from a BAM file.
+	Annoates the regions in a BED file with the read count from a BAM file.
 	
 	Mandatory parameters:
 	  -bam <file>     Input BAM file.
-	  -cutoff <int>   Minimum depth to consider a base 'high coverage'.
 	
 	Optional parameters:
-	  -in <file>      Input BED file containing the regions of interest. If unset, reads from STDIN.
+	  -min_mapq <int> Minimum mapping quality.
+	                  Default value: '1'
+	  -in <file>      Input BED file (note that overlapping regions will be merged before processing). If unset, reads from STDIN.
 	                  Default value: ''
 	  -out <file>     Output BED file. If unset, writes to STDOUT.
 	                  Default value: ''
-	  -min_mapq <int> Minimum mapping quality to consider a read.
-	                  Default value: '1'
 	
 	Special parameters:
 	  --help          Shows this help and exits.

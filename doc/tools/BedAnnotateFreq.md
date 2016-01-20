@@ -1,5 +1,5 @@
 ### BedAnnotateFreq tool help
-	BedAnnotateFreq (0.1-52-g9f9161f)
+	BedAnnotateFreq (0.1-184-gc4d2f1b)
 	
 	Extracts base frequencies for given regions from BAMs files.
 	
