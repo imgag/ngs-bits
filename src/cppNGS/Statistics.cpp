@@ -191,8 +191,9 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
             if (al.IsProperPair())
             {
                 ++al_proper_paired;
-				insert_size_sum += abs(al.InsertSize);
-				int bin = std::min(abs(al.InsertSize)/5, 239); //upper bound of plot at 1200
+				int insert_size = std::min(abs(al.InsertSize), 1200); //cap insert size at 1200
+				insert_size_sum += insert_size;
+				int bin = insert_size/5;
 				if (insert_dist.count()<=bin) insert_dist.resize(bin+1);
 				insert_dist[bin] += 1;
             }
@@ -350,7 +351,7 @@ QCCollection Statistics::mapping(double genome_size, const QString &bam_file, in
     int al_dup = 0;
     int al_proper_paired = 0;
     double bases_trimmed = 0;
-    double insert_size_sum = 0;
+	double insert_size_sum = 0;
 	QVector<double> insert_dist;
     double bases_overlap_roi = 0;
     int max_length = 0;
@@ -370,8 +371,9 @@ QCCollection Statistics::mapping(double genome_size, const QString &bam_file, in
             if (al.IsProperPair())
             {
 				++al_proper_paired;
-				insert_size_sum += abs(al.InsertSize);
-				int bin = std::min(abs(al.InsertSize)/5, 239); //upper bound of plot at 1200
+				int insert_size = std::min(abs(al.InsertSize), 1200); //cap insert size at 1200
+				insert_size_sum += insert_size;
+				int bin = insert_size/5;
 				if (insert_dist.count()<=bin) insert_dist.resize(bin+1);
 				insert_dist[bin] += 1;
             }
