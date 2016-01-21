@@ -22,7 +22,7 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Downsamples a given BAM file to the given percentage of reads.");
+		setDescription("Downsamples a BAM file to the given percentage of reads.");
 		addInfile("in", "Input BAM file.", false, true);
 		addInt("percentage", "Percentage of reads from the input to the output file.", false, true);
 		addOutfile("out", "Output BAM file.", false, true);

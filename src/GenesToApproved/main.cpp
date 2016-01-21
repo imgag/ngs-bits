@@ -87,7 +87,7 @@ public:
 				continue;
 			}
 
-			messages << "Notice: Gene name '" << gene << "' not found in HGNC database!\n";
+			messages << "Warning: Gene name '" << gene << "' not found in HGNC database. Skipping it!\n";
 		}
 	}
 };

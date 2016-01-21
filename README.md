@@ -70,9 +70,9 @@ _ngs-bits_ contains a lot of tools that we use for NGS short-read data analysis 
 ### BAM tools
 
 * [BamClipOverlap](doc/tools/BamClipOverlap.md) - Clips paired-end reads that overlap.
+* [BamDownsample](doc/tools/BamDownsample.md) - Downsamples a BAM file to the given percentage of reads.
 * [BamIndex](doc/tools/BamIndex.md) - Creates a BAI index for a BAM file.
 * [BamLeftAlign](doc/tools/BamLeftAlign.md) - Left-aligns indels in repeat regions.
-* [BamDownsample](doc/tools/BamDownsample.md) - Merges overlapping regions in a BED file.
 
 ### BED tools
 

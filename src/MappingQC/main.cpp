@@ -33,6 +33,7 @@ public:
 		//init
 		QString roi_file = getInfile("roi");
 		double genome_size = getFloat("wgs");
+		QString in = getInfile("in");
 
         //check that either ROI or WGS is given
 		if (roi_file=="" && genome_size<=0.0)
@@ -44,7 +45,7 @@ public:
 		QCCollection metrics;
 		if (genome_size>0.0)
         {
-			metrics = Statistics::mapping(genome_size, getInfile("in"));
+			metrics = Statistics::mapping(genome_size, in);
 
 			//parameters
 			parameters << "-wgs";
@@ -57,7 +58,7 @@ public:
 			roi.merge();
 
 			//calculate metrics
-			metrics = Statistics::mapping(roi, getInfile("in"));
+			metrics = Statistics::mapping(roi, in);
 
 			//parameters
 			parameters << "-roi" << QFileInfo(roi_file).fileName();
@@ -71,25 +72,26 @@ public:
 		QCCollection metrics_3exons;
 		if (getFlag("3exons"))
 		{
-			metrics_3exons = Statistics::mapping3Exons(getInfile("in"));
+			metrics_3exons = Statistics::mapping3Exons(in);
 
 			//parameters
 			parameters << "-3exons";
 		}
 
 		//store output
+		QString out = getOutfile("out");
 		if (getFlag("txt"))
 		{
 			QStringList output;
 			metrics.appendToStringList(output);
 			output << "";
 			metrics_3exons.appendToStringList(output, precision_overwrite);
-			Helper::storeTextFile(Helper::openFileForWriting(getOutfile("out"), true), output);
+			Helper::storeTextFile(Helper::openFileForWriting(out, true), output);
 		}
 		else
 		{
 			metrics.insert(metrics_3exons);
-			metrics.storeToQCML(getOutfile("out"), QStringList() << getInfile("in"), parameters.join(" "), precision_overwrite);
+			metrics.storeToQCML(out, QStringList() << in, parameters.join(" "), precision_overwrite);
 		}
 	}
 };
