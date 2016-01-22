@@ -191,7 +191,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
             if (al.IsProperPair())
             {
                 ++al_proper_paired;
-				int insert_size = std::min(abs(al.InsertSize), 1200); //cap insert size at 1200
+				int insert_size = std::min(abs(al.InsertSize), 999); //cap insert size at 1000
 				insert_size_sum += insert_size;
 				int bin = insert_size/5;
 				if (insert_dist.count()<=bin) insert_dist.resize(bin+1);
@@ -273,7 +273,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
     }
     if (al_dup==0)
     {
-		output.insert(QCValue("duplicate read percentage", "n/a (probably removed from BAM during data analysis)", "Percentage of reads removed because they were duplicates (PCR, optical, etc).", "QC:2000024"));
+		output.insert(QCValue("duplicate read percentage", "n/a (no duplicates marked or duplicates removed during data analysis)", "Percentage of reads removed because they were duplicates (PCR, optical, etc).", "QC:2000024"));
     }
     else
     {
@@ -308,21 +308,24 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	QFile::remove(plotname);
 
 	//add insert size distribution plot
-	LinePlot plot2;
-	plot2.setXLabel("insert size");
-	plot2.setYLabel("reads [%]");
-	plot2.setXValues(BasicStatistics::range(insert_dist.count(), 2.0, 5.0));
-	double insert_count = std::accumulate(insert_dist.begin(), insert_dist.end(), 0.0);
-	for (int i=0; i<insert_dist.count(); ++i)
+	if (paired_end)
 	{
-		insert_dist[i] = 100.0 * insert_dist[i] / insert_count;
-	}
-	plot2.addLine(insert_dist, "");
+		LinePlot plot2;
+		plot2.setXLabel("insert size");
+		plot2.setYLabel("reads [%]");
+		plot2.setXValues(BasicStatistics::range(insert_dist.count(), 2.0, 5.0));
+		double insert_count = std::accumulate(insert_dist.begin(), insert_dist.end(), 0.0);
+		for (int i=0; i<insert_dist.count(); ++i)
+		{
+			insert_dist[i] = 100.0 * insert_dist[i] / insert_count;
+		}
+		plot2.addLine(insert_dist, "");
 
-	plotname = Helper::tempFileName(".png");
-	plot2.store(plotname);
-	output.insert(QCValue::Image("insert size distribution plot", plotname, "Insert size distribution plot.", "QC:2000038"));
-	QFile::remove(plotname);
+		plotname = Helper::tempFileName(".png");
+		plot2.store(plotname);
+		output.insert(QCValue::Image("insert size distribution plot", plotname, "Insert size distribution plot.", "QC:2000038"));
+		QFile::remove(plotname);
+	}
 
     return output;
 }
@@ -371,7 +374,7 @@ QCCollection Statistics::mapping(double genome_size, const QString &bam_file, in
             if (al.IsProperPair())
             {
 				++al_proper_paired;
-				int insert_size = std::min(abs(al.InsertSize), 1200); //cap insert size at 1200
+				int insert_size = std::min(abs(al.InsertSize),  999); //cap insert size at 1000
 				insert_size_sum += insert_size;
 				int bin = insert_size/5;
 				if (insert_dist.count()<=bin) insert_dist.resize(bin+1);
@@ -433,21 +436,24 @@ QCCollection Statistics::mapping(double genome_size, const QString &bam_file, in
 	output.insert(QCValue("target region read depth", bases_overlap_roi / genome_size, "Average sequencing depth in target region.", "QC:2000025"));
 
 	//add insert size distribution plot
-	LinePlot plot2;
-	plot2.setXLabel("insert size");
-	plot2.setYLabel("reads [%]");
-	plot2.setXValues(BasicStatistics::range(insert_dist.count(), 2.0, 5.0));
-	double insert_count = std::accumulate(insert_dist.begin(), insert_dist.end(), 0.0);
-	for (int i=0; i<insert_dist.count(); ++i)
+	if (paired_end)
 	{
-		insert_dist[i] = 100.0 * insert_dist[i] / insert_count;
-	}
-	plot2.addLine(insert_dist, "");
+		LinePlot plot2;
+		plot2.setXLabel("insert size");
+		plot2.setYLabel("reads [%]");
+		plot2.setXValues(BasicStatistics::range(insert_dist.count(), 2.0, 5.0));
+		double insert_count = std::accumulate(insert_dist.begin(), insert_dist.end(), 0.0);
+		for (int i=0; i<insert_dist.count(); ++i)
+		{
+			insert_dist[i] = 100.0 * insert_dist[i] / insert_count;
+		}
+		plot2.addLine(insert_dist, "");
 
-	QString plotname = Helper::tempFileName(".png");
-	plot2.store(plotname);
-	output.insert(QCValue::Image("insert size distribution plot", plotname, "Insert size distribution plot.", "QC:2000038"));
-	QFile::remove(plotname);
+		QString plotname = Helper::tempFileName(".png");
+		plot2.store(plotname);
+		output.insert(QCValue::Image("insert size distribution plot", plotname, "Insert size distribution plot.", "QC:2000038"));
+		QFile::remove(plotname);
+	}
 
     return output;
 }

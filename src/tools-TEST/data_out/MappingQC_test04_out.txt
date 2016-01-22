@@ -1,8 +1,0 @@
-trimmed base percentage: 19.85
-mapped read percentage: 74.41
-on-target read percentage: 74.41
-properly-paired read percentage: 74.20
-insert size: 162.13
-duplicate read percentage: n/a (duplicates not marked or removed during data analysis)
-target region read depth: 0.00
-

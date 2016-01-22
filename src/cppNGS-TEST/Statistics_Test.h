@@ -84,7 +84,7 @@ private slots:
 		S_EQUAL(stats[4].name(), QString("insert size"));
 		S_EQUAL(stats[4].toString(), QString("180.02"));
 		S_EQUAL(stats[5].name(), QString("duplicate read percentage"));
-		S_EQUAL(stats[5].toString(), QString("n/a (probably removed from BAM during data analysis)"));
+		S_EQUAL(stats[5].toString(), QString("n/a (no duplicates marked or duplicates removed during data analysis)"));
 		S_EQUAL(stats[6].name(), QString("target region read depth"));
 		S_EQUAL(stats[6].toString(), QString("125.63"));
 		S_EQUAL(stats[7].name(), QString("target region 10x percentage"));
@@ -133,7 +133,7 @@ private slots:
 		S_EQUAL(stats[4].name(), QString("insert size"));
 		S_EQUAL(stats[4].toString(), QString("138.06"));
 		S_EQUAL(stats[5].name(), QString("duplicate read percentage"));
-		S_EQUAL(stats[5].toString(), QString("n/a (probably removed from BAM during data analysis)"));
+		S_EQUAL(stats[5].toString(), QString("n/a (no duplicates marked or duplicates removed during data analysis)"));
 		S_EQUAL(stats[6].name(), QString("target region read depth"));
 		S_EQUAL(stats[6].toString(), QString("415.05"));
 		S_EQUAL(stats[7].name(), QString("target region 10x percentage"));
@@ -183,13 +183,13 @@ private slots:
 	{
 		QCCollection stats = Statistics::mapping3Exons(TESTDATA("../tools-TEST/data_in/MappingQC_in2.bam"));
 		S_EQUAL(stats[0].name(), QString("error estimation read depth"));
-		S_EQUAL(stats[0].toString(), QString("238.84"));
+		S_EQUAL(stats[0].toString(), QString("79.98"));
 		S_EQUAL(stats[1].name(), QString("error estimation N percentage"));
-		S_EQUAL(stats[1].toString(4), QString("0.0693"));
+		S_EQUAL(stats[1].toString(4), QString("0.0007"));
 		S_EQUAL(stats[2].name(), QString("error estimation SNV percentage"));
-		S_EQUAL(stats[2].toString(4), QString("0.4310"));
+		S_EQUAL(stats[2].toString(4), QString("0.0390"));
 		S_EQUAL(stats[3].name(), QString("error estimation indel percentage"));
-		S_EQUAL(stats[3].toString(4), QString("0.0038"));
+		S_EQUAL(stats[3].toString(4), QString("0.0004"));
 		I_EQUAL(stats.count(), 4);
 
 		//check that there is a description for each term

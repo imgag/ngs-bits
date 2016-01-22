@@ -5,30 +5,41 @@ TEST_CLASS(MappingQC_Test)
 Q_OBJECT
 private slots:
 	
-	void txt_roi_3exons_panel()
+	void roi_amplicon()
 	{
-		EXECUTE("MappingQC", "-in " + TESTDATA("../cppNGS-TEST/data_in/panel.bam") + " -roi " + TESTDATA("../cppNGS-TEST/data_in/panel.bed") + " -out out/MappingQC_test01_out.txt -txt -3exons");
-		COMPARE_FILES("out/MappingQC_test01_out.txt", TESTDATA("data_out/MappingQC_test01_out.txt"));
+		EXECUTE("MappingQC", "-in " + TESTDATA("../cppNGS-TEST/data_in/panel.bam") + " -roi " + TESTDATA("../cppNGS-TEST/data_in/panel.bed") + " -out out/MappingQC_test01_out.qcML");
+		REMOVE_LINES("out/MappingQC_test01_out.qcML", QRegExp("creation "));
+		REMOVE_LINES("out/MappingQC_test01_out.qcML", QRegExp("<binary>"));
+		COMPARE_FILES("out/MappingQC_test01_out.qcML", TESTDATA("data_out/MappingQC_test01_out.qcML"));
 	}
 	
-	void txt_roi_3exons()
+	void roi_shotgun_3exons_txt()
 	{
 		EXECUTE("MappingQC", "-in " + TESTDATA("data_in/MappingQC_in2.bam") + " -roi " + TESTDATA("data_in/MappingQC_in2.bed") + " -out out/MappingQC_test02_out.txt -txt -3exons");
 		COMPARE_FILES("out/MappingQC_test02_out.txt", TESTDATA("data_out/MappingQC_test02_out.txt"));
 	}
 	
-	void qcml_roi_3exons()
+	void roi_shotgun_singleend()
 	{
-		EXECUTE("MappingQC", "-in " + TESTDATA("data_in/MappingQC_in2.bam") + " -roi " + TESTDATA("data_in/MappingQC_in2.bed") + " -out out/MappingQC_test03_out.qcML -3exons");
+		EXECUTE("MappingQC", "-in " + TESTDATA("data_in/MappingQC_in1.bam") + " -roi " + TESTDATA("data_in/MappingQC_in2.bed") + " -out out/MappingQC_test03_out.qcML");
 		REMOVE_LINES("out/MappingQC_test03_out.qcML", QRegExp("creation "));
 		REMOVE_LINES("out/MappingQC_test03_out.qcML", QRegExp("<binary>"));
 		COMPARE_FILES("out/MappingQC_test03_out.qcML", TESTDATA("data_out/MappingQC_test03_out.qcML"));
 	}
 	
-	void txt_wgs()
+	void wgs_shotgun()
 	{
-		EXECUTE("MappingQC", "-in " + TESTDATA("data_in/MappingQC_in2.bam") + " -wgs 3095693983 -out out/MappingQC_test04_out.txt -txt");
-	    COMPARE_FILES("out/MappingQC_test04_out.txt", TESTDATA("data_out/MappingQC_test04_out.txt"));
+		EXECUTE("MappingQC", "-in " + TESTDATA("data_in/MappingQC_in2.bam") + " -wgs 10000 -out out/MappingQC_test04_out.qcML");
+		REMOVE_LINES("out/MappingQC_test04_out.qcML", QRegExp("creation "));
+		REMOVE_LINES("out/MappingQC_test04_out.qcML", QRegExp("<binary>"));
+		COMPARE_FILES("out/MappingQC_test04_out.qcML", TESTDATA("data_out/MappingQC_test04_out.qcML"));
 	}
 
+	void wgs_shotgun_singleend()
+	{
+		EXECUTE("MappingQC", "-in " + TESTDATA("data_in/MappingQC_in1.bam") + " -wgs 10000 -out out/MappingQC_test05_out.qcML");
+		REMOVE_LINES("out/MappingQC_test05_out.qcML", QRegExp("creation "));
+		REMOVE_LINES("out/MappingQC_test05_out.qcML", QRegExp("<binary>"));
+		COMPARE_FILES("out/MappingQC_test05_out.qcML", TESTDATA("data_out/MappingQC_test05_out.qcML"));
+	}
 };
