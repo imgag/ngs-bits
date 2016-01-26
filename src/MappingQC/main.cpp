@@ -48,7 +48,7 @@ public:
 			metrics = Statistics::mapping(genome_size, in);
 
 			//parameters
-			parameters << "-wgs";
+			parameters << "-wgs " + QString::number(genome_size);
 		}
         else
         {

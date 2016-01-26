@@ -187,6 +187,12 @@ void MainWindow::loadFile(QString filename)
 		QApplication::restoreOverrideCursor();
 		QMessageBox::warning(this, "Error", "Loading the file '" + filename + "' or displaying the contained variants failed!\nError message:\n" + e.message());
 	}
+
+	//warn if no 'filter' column is present
+	if (variants_.annotationIndexByName("filter", true, false)==-1)
+	{
+		QMessageBox::warning(this, "Error: 'filter' column missing", "GSvar file does not contains the required 'filter' column.\nRun reanalysis starting from annotation using the sample information dialog!");
+	}
 }
 
 void MainWindow::on_actionAbout_triggered()

@@ -1,15 +1,19 @@
 === TODO ===
 
 libs:
-* test cppNGSD (include in libs)
+- test cppNGSD (include in libs)
 
 GSvar:
 - implement variant details dock widget (like sophia-genetics)
 * integrate HPO (phenotype(s) => temporary target region)
+* Classification dialog: allow moving variant comments to classification
 
 Tools:
+* VariantAnnotateNGSD: add classification_comment column
+- BedLowCoverage: add -wgs mode (get genome size from BAM header)
 - MappingQC:
-  * add %soft/hard-clipped quality parameter (see ssPWBRCA_v2)
+  - wgs: get genome size from BAM header
+  - add %soft/hard-clipped quality parameter (see ssPWBRCA_v2)
   * support RNA insert size, etc... + spike-in controls
 - SeqPurge: add error correction?
 - FastqDemultiplex: check for "carry-over" contamination from last run
