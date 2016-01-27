@@ -159,7 +159,7 @@ private slots:
 
 	void mapping_wgs()
 	{
-		QCCollection stats = Statistics::mapping(3095693983.0, TESTDATA("data_in/close_exons.bam"));
+		QCCollection stats = Statistics::mapping(TESTDATA("data_in/close_exons.bam"));
 		S_EQUAL(stats[0].name(), QString("trimmed base percentage"));
 		S_EQUAL(stats[0].toString(), QString("19.10"));
 		S_EQUAL(stats[1].name(), QString("mapped read percentage"));

@@ -8,6 +8,7 @@
 #include "Helper.h"
 #include "api/BamAlgorithms.h"
 #include "NGSHelper.h"
+#include "ChromosomeInfo.h"
 
 class ConcreteTool
 		: public ToolBase
@@ -41,15 +42,7 @@ public:
 		//open BAM file
 		BamReader reader;
 		NGSHelper::openBAM(reader, bam_file);
-
-		//create reference name vector with QString
-		QVector<Chromosome> id_to_chr;
-		const RefVector& ref_data = reader.GetReferenceData();
-		id_to_chr.reserve(ref_data.size());
-		for (unsigned int i=0; i<ref_data.size(); ++i)
-		{
-			id_to_chr.append(Chromosome(ref_data[i].RefName));
-		}
+		ChromosomeInfo chr_info(reader);
 
 		//init coverage statistics data structure
 		QVector<long> read_count;
@@ -64,7 +57,7 @@ public:
 			if (!al.IsPrimaryAlignment()) continue;
 			if (!al.IsMapped() || al.MapQuality<min_mapq) continue;
 
-			const Chromosome& chr = id_to_chr[al.RefID];
+			const Chromosome& chr = chr_info.chromosome(al.RefID);
 			int end_position = al.GetEndPosition();
 			QVector<int> indices = bed_idx.matchingIndices(chr, al.Position+1, end_position);
 			foreach(int index, indices)

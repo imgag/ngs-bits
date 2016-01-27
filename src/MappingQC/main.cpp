@@ -23,7 +23,7 @@ public:
 		//optional
 		addOutfile("out", "Output qcML file. If unset, writes to STDOUT.", true);
 		addInfile("roi", "Input target region BED file (for panel, WES, etc.).", true, true);
-		addFloat("wgs", "Overall genome size (for WGS).", true, -1.0);
+		addFlag("wgs", "WGS mode without target region. Genome information is taken from the BAM file.");
 		addFlag("txt", "Writes TXT format instead of qcML.");
 		addFlag("3exons", "Adds special QC terms estimating the sequencing error on reads from three exons.");
 	}
@@ -32,23 +32,23 @@ public:
 	{
 		//init
 		QString roi_file = getInfile("roi");
-		double genome_size = getFloat("wgs");
+		bool wgs = getFlag("wgs");
 		QString in = getInfile("in");
 
         //check that either ROI or WGS is given
-		if (roi_file=="" && genome_size<=0.0)
+		if (roi_file=="" && !wgs)
         {
             THROW(CommandLineParsingException, "You have to provide the parameter 'roi' or 'wgs'!");
         }
 
 		QStringList parameters;
 		QCCollection metrics;
-		if (genome_size>0.0)
+		if (wgs)
         {
-			metrics = Statistics::mapping(genome_size, in);
+			metrics = Statistics::mapping(in);
 
 			//parameters
-			parameters << "-wgs " + QString::number(genome_size);
+			parameters << "-wgs";
 		}
         else
         {

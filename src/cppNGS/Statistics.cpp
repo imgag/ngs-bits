@@ -12,6 +12,7 @@
 #include "FastqFileStream.h"
 #include "LinePlot.h"
 #include "Helper.h"
+#include "ChromosomeInfo.h"
 
 #include "api/BamReader.h"
 using namespace BamTools;
@@ -135,15 +136,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
     //open BAM file
     BamReader reader;
     NGSHelper::openBAM(reader, bam_file);
-
-    //create reference name vector with QString
-    QVector<Chromosome> id_to_chr;
-    const RefVector& ref_data = reader.GetReferenceData();
-    id_to_chr.reserve(ref_data.size());
-    for (unsigned int i=0; i<ref_data.size(); ++i)
-    {
-        id_to_chr.append(Chromosome(ref_data[i].RefName));
-    }
+	ChromosomeInfo chr_info(reader);
 
     //create coverage statistics data structure
     long roi_bases = 0;
@@ -203,7 +196,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
         {
             ++al_mapped;
 
-            const Chromosome& chr = id_to_chr[al.RefID];
+			const Chromosome& chr = chr_info.chromosome(al.RefID);
             int end_position = al.GetEndPosition();
             QVector<int> indices = roi_index.matchingIndices(chr, al.Position+1, end_position);
             if (indices.count()!=0)
@@ -330,22 +323,12 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
     return output;
 }
 
-QCCollection Statistics::mapping(double genome_size, const QString &bam_file, int min_mapq)
+QCCollection Statistics::mapping(const QString &bam_file, int min_mapq)
 {
     //open BAM file
     BamReader reader;
     NGSHelper::openBAM(reader, bam_file);
-
-    //create reference name vector with QString
-    QSet<int> nonspecial_chrs;
-    const RefVector& ref_data = reader.GetReferenceData();
-    for (unsigned int i=0; i<ref_data.size(); ++i)
-    {
-        if (Chromosome(ref_data[i].RefName).isNonSpecial())
-        {
-            nonspecial_chrs.insert(i);
-        }
-    }
+	ChromosomeInfo chr_info(reader);
 
     //init counts
     int al_total = 0;
@@ -386,7 +369,7 @@ QCCollection Statistics::mapping(double genome_size, const QString &bam_file, in
         {
             ++al_mapped;
 
-            if (nonspecial_chrs.contains(al.RefID))
+			if (chr_info.chromosome(al.RefID).isNonSpecial())
             {
                 ++al_ontarget;
 
@@ -433,7 +416,7 @@ QCCollection Statistics::mapping(double genome_size, const QString &bam_file, in
     {
 		output.insert(QCValue("duplicate read percentage", 100.0 * al_dup / al_total, "Percentage of reads removed because they were duplicates (PCR, optical, etc).", "QC:2000024"));
     }
-	output.insert(QCValue("target region read depth", bases_overlap_roi / genome_size, "Average sequencing depth in target region.", "QC:2000025"));
+	output.insert(QCValue("target region read depth", bases_overlap_roi / chr_info.genomeSize(true), "Average sequencing depth in target region.", "QC:2000025"));
 
 	//add insert size distribution plot
 	if (paired_end)
@@ -617,7 +600,7 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 		}
 
 		//iterate through all alignments on the chromosome
-		int ref_id = NGSHelper::getRefID(reader, chr);
+		int ref_id = ChromosomeInfo::refID(reader, chr);
 		bool jump_ok = reader.SetRegion(ref_id, 0, ref_id, reader.GetReferenceData()[ref_id].RefLength);
 		if (!jump_ok) THROW(FileAccessException, QString::fromStdString(reader.GetErrorString()));
 
@@ -673,15 +656,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
     //open BAM file
     BamReader reader;
     NGSHelper::openBAM(reader, bam_file);
-
-    //create reference name vector with QString
-    QVector<Chromosome> id_to_chr;
-    const RefVector& ref_data = reader.GetReferenceData();
-    id_to_chr.reserve(ref_data.size());
-    for (unsigned int i=0; i<ref_data.size(); ++i)
-    {
-        id_to_chr.append(Chromosome(ref_data[i].RefName));
-    }
+	ChromosomeInfo chr_info(reader);
 
     //init coverage statistics data structure
     QVector<long> cov;
@@ -696,7 +671,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 		if (!al.IsPrimaryAlignment()) continue;
         if (!al.IsMapped() || al.MapQuality<min_mapq) continue;
 
-		const Chromosome& chr = id_to_chr[al.RefID];
+		const Chromosome& chr = chr_info.chromosome(al.RefID);
         int end_position = al.GetEndPosition();
         QVector<int> indices = bed_idx.matchingIndices(chr, al.Position+1, end_position);
         foreach(int index, indices)
@@ -720,8 +695,8 @@ QString Statistics::genderXY(const QString& bam_file, QStringList& debug_output,
     NGSHelper::openBAM(reader, bam_file);
 
     //get RefID of X and Y chromosome
-    int chrx = NGSHelper::getRefID(reader, "chrX");
-    int chry = NGSHelper::getRefID(reader, "chrY");
+	int chrx = ChromosomeInfo::refID(reader, "chrX");
+	int chry = ChromosomeInfo::refID(reader, "chrY");
 
     //restrict to X and Y chromosome
 	bool jump_ok = reader.SetRegion(chrx, 0, chry, reader.GetReferenceData()[chry].RefLength);
@@ -763,7 +738,7 @@ QString Statistics::genderHetX(const QString& bam_file, QStringList& debug_outpu
     NGSHelper::openBAM(reader, bam_file);
 
     //restrict to X chromosome
-    int chrx = NGSHelper::getRefID(reader, "chrX");
+	int chrx = ChromosomeInfo::refID(reader, "chrX");
 	bool jump_ok = reader.SetRegion(chrx, 0, chrx, reader.GetReferenceData()[chrx].RefLength);
 	if (!jump_ok) THROW(FileAccessException, QString::fromStdString(reader.GetErrorString()));
 
@@ -846,7 +821,7 @@ QString Statistics::genderSRY(const QString& bam_file, QStringList& debug_output
 	NGSHelper::openBAM(reader, bam_file);
 
 	//restrict to SRY gene
-	int chry = NGSHelper::getRefID(reader, "chrY");
+	int chry = ChromosomeInfo::refID(reader, "chrY");
 	int start = 2655031;
 	int end = 2655641;
 	bool jump_ok = reader.SetRegion(chry, start, chry, end);
