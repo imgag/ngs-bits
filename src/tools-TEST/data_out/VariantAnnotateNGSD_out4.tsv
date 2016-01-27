@@ -4,6 +4,7 @@
 ##DESCRIPTION=ihdb_allsys_hom=Homozygous variant counts in NGSD independent of the processing system.
 ##DESCRIPTION=ihdb_allsys_het=Heterozygous variant counts in NGSD independent of the processing system.
 ##DESCRIPTION=classification=Classification from the NGSD.
+##DESCRIPTION=classification_comment=Classification comment from the NGSD.
 ##DESCRIPTION=validated=Validation information from the NGSD.
 ##DESCRIPTION=comment=Comments from the NGSD. Comments of other samples are listed in brackets!
 ##FILTER=anno_high_impact=Variant annotated to have high impact by SnpEff.
@@ -16,4 +17,4 @@
 ##FILTER=pred_pathogenic_2=Variant predicted pathogenic by two of the prediction tools.
 ##FILTER=pred_pathogenic_3=Variant predicted pathogenic by three of the prediction tools.
 ##FILTER=pred_pathogenic_4=Variant predicted pathogenic by four of the prediction tools.
-#chr	start	end	ref	obs	ihdb_hom	ihdb_het	ihdb_wt	ihdb_allsys_hom	ihdb_allsys_het	classification	validated	comment
+#chr	start	end	ref	obs	ihdb_hom	ihdb_het	ihdb_wt	ihdb_allsys_hom	ihdb_allsys_het	classification	classification_comment	validated	comment

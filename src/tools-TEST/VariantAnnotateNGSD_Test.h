@@ -58,9 +58,6 @@ private slots:
 		QString host = Settings::string("ngsd_test_host");
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
-		QString ref_file = Settings::string("reference_genome");
-		if (ref_file=="") SKIP("Test needs the reference genome!");
-
 		//init
 		NGSD db(true);
 		db.init();

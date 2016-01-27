@@ -26,7 +26,6 @@ public:
 		addOutfile("out", "Output variant list.", false, true);
 		//optional
 		addString("psname", "Processed sample name. If set, this name is used instead of the file name to find the sample in the DB.", true, "");
-		addInfile("ref", "Reference genome FASTA file for somatic mode. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addEnum("mode", "Determines annotation mode.", true, QStringList() << "germline" << "somatic", "germline");
 		addFlag("test", "Uses the test database instead of on the production database.");
 	}
@@ -34,9 +33,6 @@ public:
 	virtual void main()
 	{
 		//init
-		QString ref_file = getInfile("ref");
-		if (ref_file=="") ref_file = Settings::string("reference_genome");
-
 		QString psname = getString("psname");
 		if (psname=="") psname = getInfile("in");
 
@@ -55,7 +51,7 @@ public:
 		else if(mode=="somatic")
 		{
 			if (!test) GPD().annotateSomatic(variants); //TODO update when GPD is integrated into NGSD
-			NGSD(test).annotateSomatic(variants, psname, ref_file);
+			NGSD(test).annotateSomatic(variants, psname);
 		}
 
 		//store

@@ -89,7 +89,7 @@ public:
 	///Annotates (or re-annotates) the variant list with current NGSD information.
 	void annotate(VariantList& variants, QString filename);
 	///Annotates (or re-annotates) the variant list with current (somatic) NGSD information.
-	void annotateSomatic(VariantList& variants, QString filename, QString ref_file);
+	void annotateSomatic(VariantList& variants, QString filename);
 
 	///Returns validation status information (status, comment)
 	QPair<QString, QString> getValidationStatus(const QString& filename, const Variant& variant);

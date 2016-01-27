@@ -43,7 +43,7 @@ INSERT INTO variant (id, chr, start, end, ref, obs, genome_id) VALUES (7, 'chr1'
 INSERT INTO variant (id, chr, start, end, ref, obs, genome_id) VALUES (8, 'chr1', 120612040, 120612040, '-', 'CCTCCTCCG', 1);
 
 --variant_classification
-INSERT INTO variant_classification (id, variant_id, class) VALUES (1, 2, '5');
+INSERT INTO variant_classification (id, variant_id, class, comment) VALUES (1, 2, '5', 'pathogenic');
 INSERT INTO variant_classification (id, variant_id, class) VALUES (2, 8, '1');
 
 --detected variant NA12878

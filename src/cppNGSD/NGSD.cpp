@@ -439,6 +439,7 @@ void NGSD::annotate(VariantList& variants, QString filename)
 		}
 	}
 	removeColumnIfPresent(variants, "classification", true);
+	removeColumnIfPresent(variants, "classification_comment", true);
 	removeColumnIfPresent(variants, "validated", true);
 	removeColumnIfPresent(variants, "comment", true);
 
@@ -450,6 +451,7 @@ void NGSD::annotate(VariantList& variants, QString filename)
 	int ihdb_all_hom_idx = addColumn(variants, "ihdb_allsys_hom", "Homozygous variant counts in NGSD independent of the processing system.");
 	int ihdb_all_het_idx =  addColumn(variants, "ihdb_allsys_het", "Heterozygous variant counts in NGSD independent of the processing system.");
 	int class_idx = addColumn(variants, "classification", "Classification from the NGSD.");
+	int clacom_idx = addColumn(variants, "classification_comment", "Classification comment from the NGSD.");
 	int valid_idx = addColumn(variants, "validated", "Validation information from the NGSD.");
 	if (variants.annotationIndexByName("comment", true, false)==-1) addColumn(variants, "comment", "Comments from the NGSD. Comments of other samples are listed in brackets!");
 	int comment_idx = variants.annotationIndexByName("comment", true, false);
@@ -470,6 +472,7 @@ void NGSD::annotate(VariantList& variants, QString filename)
 		if (!classification.isNull())
 		{
 			v.annotations()[class_idx] = classification.toByteArray().replace("n/a", "");
+			v.annotations()[clacom_idx] = getValue("SELECT comment FROM variant_classification WHERE variant_id='" + v_id + "'", true).toByteArray().replace("\n", " ").replace("\t", " ");
 		}
 		//int t_v = timer.elapsed();
 		//timer.restart();
@@ -610,11 +613,8 @@ void NGSD::annotate(VariantList& variants, QString filename)
 	}
 }
 
-void NGSD::annotateSomatic(VariantList& variants, QString filename, QString ref_file)
+void NGSD::annotateSomatic(VariantList& variants, QString filename)
 {
-	//open refererence genome file
-	FastaFileIndex reference(ref_file);
-
 	//get sample ids
 	QStringList samples = filename.split('-');
 	QString ts_id = sampleId(samples[0], false);
