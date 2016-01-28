@@ -108,7 +108,7 @@ public:
 				value2_num = value2.toDouble(&ok);
 				if (!ok)
 				{
-					THROW(CommandLineParsingException, "Non-numeric value '" + value + "' for numeric filter operation '" + op + " in line " + QString::number(in.lineIndex()+1) + "!");
+					THROW(CommandLineParsingException, "Non-numeric value '" + value2 + "' for numeric filter operation '" + op + " in line " + QString::number(in.lineIndex()+1) + "!");
 				}
 			}
 

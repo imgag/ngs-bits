@@ -45,13 +45,7 @@ public:
 			BedLine& line = in[i];
 			genes << db.genesOverlapping(line.chr().str(), line.start(), line.end(), 0);
 		}
-
-		//remove duplicate genes
-		genes.sort();
-		genes.erase(std::unique(genes.begin(), genes.end()), genes.end());
-
-		//generate BED file for all genes
-		BedFile reg_all_genes = db.genesToRegions(genes, getEnum("source"), "exon", true);
+		genes.removeDuplicates();
 
 		//output header
 		QStringList output;
@@ -62,15 +56,7 @@ public:
 		foreach(QString gene, genes)
 		{
 			//create gene-specific regions
-			BedFile reg_gene;
-			for(int i=0; i<reg_all_genes.count(); ++i)
-			{
-				BedLine& line = reg_all_genes[i];
-				if (line.annotations().at(0).contains(gene))
-				{
-					reg_gene.append(line);
-				}
-			}
+			BedFile reg_gene = db.genesToRegions(QStringList() << gene, getEnum("source"), "exon", true);
 			reg_gene.merge();
 
 			//append output line
@@ -79,7 +65,6 @@ public:
 			reg_gene.intersect(in);
 			int bases_covered = reg_gene.baseCount();
 			if (bases_covered==0) continue; //wrong coding range in UCSC => gene does not really overlap => skip
-
 
 			output.append(gene + "\t" + QString::number(bases_gene) + "\t" + QString::number(bases_covered) + "\t" + QString::number(100.0*bases_covered/bases_gene, 'f', 2));
 
