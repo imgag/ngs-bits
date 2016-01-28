@@ -17,6 +17,7 @@ chr1	242168219	242168219	C	T	hom	4.45	4	10	SNV	1	intergenic	MAP1LC3C(dist=5834),
 chr18	20795787	20795787	G	C	hom	184	16	32	SNV	1	intronic	CABLES1	.	.	.	.	.	2491		passed	GS120297C11_annotated.tsv
 chr9	132322378	132322378	T	C	hom	46	21	13	SNV	1	intergenic	LOC100506190(dist=46413),C9orf50(dist=52126)	.	.	.	.	.	2095		passed	GS120297C11_annotated.tsv
 chr15	64322763	64322763	A	C	hom	15.1	11	19	SNV	1	intronic	DAPK2	.	.	.	.	.	.		failed	GS120298D7_annotated.tsv
+
 chr19	46947768	46947768	C	T	hom	12.9	13	11	SNV	0.9355	intergenic	CCDC8(dist=30849),PNMAL1(dist=21980)	.	.	.	.	.	1758		failed	GS120297C11_annotated.tsv
 chr2	10350931	10350931	C	T	het	23	15	41	SNV	0.375	UTR3	C2orf48	.	.	.	.	.	1573		passed	GS120297G10_annotated.tsv
 chr1	176877345	176877345	-	CTCC	hom	186	58	48	INDEL	1	intronic	ASTN1	.	.	.	.	.	.	600904	passed	GS120297E3_annotated.tsv

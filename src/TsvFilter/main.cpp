@@ -98,6 +98,8 @@ public:
 		while(!in.atEnd())
 		{
 			QList<QByteArray> parts = in.readLine();
+			if (parts.count()==0) continue;
+
 			QByteArray value2 = parts[col];
 			double value2_num = 0;
 			if (op_index<5)

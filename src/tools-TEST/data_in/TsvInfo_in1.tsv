@@ -1,4 +1,5 @@
 #chr	start	end	ref	obs	genotype	snp_q	depth	map_q	variant	variant_frequency	region	gene	variant_details	coding	snp_1000g2012feb_all	snp_snp135	ljb_phylop	ljb_mt	esp6500_ea	repeatmasker	quality_filter
+
 chr1	69453	69453	G	A	hom	66	7	45	SNV	0.7500	exonic	OR4F5	synonymous SNV	OR4F5:NM_001005484:exon1:c.G363A:p.K121K,	.	rs142004627	.	.	.	.	failed
 chr1	69511	69511	A	G	hom	103	6	34	SNV	1.0000	exonic	OR4F5	nonsynonymous SNV	OR4F5:NM_001005484:exon1:c.A421G:p.T141A,	0.65	rs2691305	0.8278	0.0002	0.8874	.	failed
 chr1	69552	69552	G	C	hom	65	3	43	SNV	1.0000	exonic	OR4F5	synonymous SNV	OR4F5:NM_001005484:exon1:c.G462C:p.A154A,	.	rs2531266	.	.	.	.	failed
