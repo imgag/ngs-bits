@@ -69,6 +69,7 @@ public:
 			output.append(gene + "\t" + QString::number(bases_gene) + "\t" + QString::number(bases_covered) + "\t" + QString::number(100.0*bases_covered/bases_gene, 'f', 2));
 
 			//update unassigned regions
+			reg_gene.sort();
 			reg_unassigned.subtract(reg_gene);
 		}
 
