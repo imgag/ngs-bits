@@ -264,6 +264,7 @@ CREATE  TABLE IF NOT EXISTS `sample` (
   `comment` TEXT NULL DEFAULT NULL,
   `quality` ENUM('n/a','good','medium','bad') NOT NULL DEFAULT 'n/a',
   `od_260_230` FLOAT NULL DEFAULT NULL,
+  `integrity_number` FLOAT NULL DEFAULT NULL,
   `tumor` TINYINT(1) NOT NULL,
   `ffpe` TINYINT(1) NOT NULL,
   `sender_id` INT(11) NOT NULL,
