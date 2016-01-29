@@ -100,7 +100,7 @@ QString ReportWorker::filterToGermanText(QString name, QString value)
 	{
 		output = "Spezieller Filter basierend auf Trio-Sequenzierung";
 	}
-	else
+	else if (name!="keep_class_ge" && name!="keep_class_m")
 	{
 		output = "Filter: " + name + " Wert: " + value;
 		Log::warn("Unknown filter name '" + name + "'. Using fallback format!");
@@ -132,9 +132,6 @@ QString ReportWorker::formatCodingSplicing(QByteArray text)
 
 BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, const BedFile& roi, QStringList genes, int min_cov)
 {
-	QString sample_name = QFileInfo(bam_file).fileName().replace(".bam", "");
-	writeHtmlHeader(stream, sample_name);
-
 	//get statistics values
 	QString avg_cov = "";
 	QString perc_cov20 = "";
@@ -148,40 +145,16 @@ BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file,
 	stream << "<p><b>Abdeckungsstatistik</b>" << endl;
 	stream << "<br />Durchschnittliche Sequenziertiefe: " << avg_cov << endl;
 
-	//calculate low coverage regions
+	//calculate low-coverage regions
 	BedFile low_cov = Statistics::lowCoverage(roi, bam_file, min_cov);
 
-	//annotate gene names
-	QSet<QString> skipped_genes;
-	BedFile gene_anno;
-	gene_anno.load(Settings::string("kgxref"));
-	gene_anno.extend(25); //extend to annotate splicing regions as well
-	ChromosomalIndex<BedFile> gene_idx(gene_anno);
-	for (int i=0; i<low_cov.count(); ++i)
+	//annotate low-coverage regions with gene names
+	NGSD db;
+	for(int i=0; i<low_cov.count(); ++i)
 	{
-		QStringList genes;
-		QVector<int> gene_indices = gene_idx.matchingIndices(low_cov[i].chr(), low_cov[i].start(), low_cov[i].end());
-		foreach(int index, gene_indices)
-		{
-			QString current = gene_anno[index].annotations().at(0).toUpper();
-
-			if (genes.isEmpty() || genes.contains(current))
-			{
-				if (!genes.contains(current)) genes.append(current);
-			}
-			else if (!genes.isEmpty() && !genes.contains(current))
-			{
-				skipped_genes.insert(current);
-			}
-		}
-		low_cov[i].annotations().clear();
-		low_cov[i].annotations().append(genes.join(", "));
-	}
-
-	//Log genes the were not in the gene list - if any
-	if (!skipped_genes.isEmpty())
-	{
-		Log::info("Genes not in gene list: " + QStringList(skipped_genes.toList()).join(", "));
+		BedLine& line = low_cov[i];
+		QStringList genes = db.genesOverlapping(line.chr().str(), line.start(), line.end(), 20); //extend by 20 to annotate splic
+		line.annotations().append(genes.join(", "));
 	}
 
 	//group by gene name
@@ -257,7 +230,6 @@ BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file,
 		stream << "</tr>" << endl;
 	}
 	stream << "</table>" << endl;
-	writeHtmlFooter(stream);
 
 	return low_cov;
 }
@@ -319,18 +291,6 @@ void ReportWorker::writeHTML()
 	stream << "<br />User: " << Helper::userName() << endl;
 	stream << "<br />Analysesoftware: "  << QCoreApplication::applicationName() << " " << QCoreApplication::applicationVersion() << endl;
 	stream << "</p>" << endl;
-	if (file_roi_!="")
-	{
-		stream << "<p><b>Zielregion</b>" << endl;
-		stream << "<br />Name: " << QFileInfo(file_roi_).baseName() << endl;
-		stream << "<br />Regionen: " << roi_.count() << endl;
-		stream << "<br />Basen: " << roi_.baseCount() << endl;
-		if (!genes_.isEmpty())
-		{
-			stream << "<br />Angereicherte Gene (" << QString::number(genes_.count()) << "): " << genes_.join(", ") << endl;
-		}
-		stream << "</p>" << endl;
-	}
 
 	//get column indices
 	int i_genotype = variants_.annotationIndexByName("genotype", true, false); //optinal because of tumor samples
@@ -357,7 +317,11 @@ void ReportWorker::writeHTML()
 	stream << "<br />Anzahl relevanter Varianten nach Filterung: " << variants_selected_.count() << endl;
 	for(auto it = filters_.cbegin(); it!=filters_.cend(); ++it)
 	{
-		stream << "<br />&nbsp;&nbsp;&nbsp;&nbsp;- " << filterToGermanText(it.key(), it.value()) << endl;
+		QString text = filterToGermanText(it.key(), it.value());
+		if (text!="")
+		{
+			stream << "<br />&nbsp;&nbsp;&nbsp;&nbsp;- " << text << endl;
+		}
 	}
 	stream << "</p>" << endl;
 
@@ -451,6 +415,20 @@ void ReportWorker::writeHTML()
 	stream << "<td colspan=\"4\"><span style=\"background-color: #FF0000\">Abschnitt mit Daten aus dem Report fuellen oder loeschen!<br />Im Moment nur f&uuml;r X-Diagnostik relevant!</span></td>" << endl;
 	stream << "</tr>" << endl;
 	stream << "</table>" << endl;
+
+	///Target region statistics
+	if (file_roi_!="")
+	{
+		stream << "<p><b>Zielregion</b>" << endl;
+		stream << "<br />Name: " << QFileInfo(file_roi_).baseName() << endl;
+		stream << "<br />Regionen: " << roi_.count() << endl;
+		stream << "<br />Basen: " << roi_.baseCount() << endl;
+		if (!genes_.isEmpty())
+		{
+			stream << "<br />Angereicherte Gene (" << QString::number(genes_.count()) << "): " << genes_.join(", ") << endl;
+		}
+		stream << "</p>" << endl;
+	}
 
 	///low-coverage analysis
 	if (file_bam_!="")

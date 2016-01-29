@@ -153,7 +153,7 @@ void MainWindow::loadFile(QString filename)
 {
 	//reset GUI and data structures
 	setWindowTitle(QCoreApplication::applicationName());
-	filter_widget_->reset();
+	filter_widget_->reset(true);
 	filename_ = "";
 	filewatcher_.clearFile();
 	db_annos_updated_ = false;
@@ -376,7 +376,7 @@ void MainWindow::applyDefaultFiltersSomatic()
 
 void MainWindow::clearFilters()
 {
-    filter_widget_->reset();
+	filter_widget_->reset(false);
 }
 
 void MainWindow::on_actionNGSD_triggered()
@@ -424,12 +424,6 @@ void MainWindow::on_actionStatisticsBED_triggered()
 void MainWindow::on_actionStatisticsFastA_triggered()
 {
 	ExternalToolDialog dialog("FastaInfo", "", this);
-	dialog.exec();
-}
-
-void MainWindow::on_actionGeneListBED_triggered()
-{
-	ExternalToolDialog dialog("BedGeneOverlap", "", this);
 	dialog.exec();
 }
 
@@ -561,7 +555,10 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 	QString output;
 	QTextStream stream(&output);
+	QString sample_name = QFileInfo(bam_file).fileName().replace(".bam", "");
+	ReportWorker::writeHtmlHeader(stream, sample_name);
 	ReportWorker::writeCoverageReport(stream, bam_file, roi, genes, min_cov);
+	ReportWorker::writeHtmlFooter(stream);
 	QApplication::restoreOverrideCursor();
 
 	//show output
@@ -685,6 +682,11 @@ void MainWindow::on_actionImportTranscripts_triggered()
 
 	//update in-memory copy of preferred transcripts
 	updatePreferredTranscripts();
+}
+
+void MainWindow::on_actionOpenDocumentation_triggered()
+{
+	QDesktopServices::openUrl(QUrl("https://github.com/marc-sturm/ngs-bits/tree/master/doc/GSvar/index.md"));
 }
 
 void MainWindow::on_actionCopy_triggered()
@@ -1244,19 +1246,6 @@ void MainWindow::varsContextMenu(QPoint pos)
 	}
 	else if (text=="Set classification")
 	{
-		//TODO re-implement multiselect?
-		/*
-		QModelIndexList selection = ui_.vars->selectionModel()->selectedRows();
-		bool multi_set = false;
-		if (selection.count()>1)
-		{
-			if (QMessageBox::question(this, "Set classification for multiple variants?", QString::number(selection.count()) + " variant rows are selected. Set classification for them all?")==QMessageBox::Yes)
-			{
-				multi_set = true;
-			}
-		}
-		*/
-
 		//update DB
 		ClassificationDialog dlg(this, variants_[item->row()]);
 

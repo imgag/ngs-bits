@@ -54,7 +54,7 @@ FilterDockWidget::FilterDockWidget(QWidget *parent)
 	loadROIFilters();
 	loadReferenceFiles();
 
-	reset();
+	reset(true);
 }
 
 void FilterDockWidget::setFilterColumns(const QMap<QString, QString>& filter_cols)
@@ -128,7 +128,7 @@ void FilterDockWidget::loadReferenceFiles()
     ui_.refs->setCurrentIndex(current_index);
 }
 
-void FilterDockWidget::resetSignalsUnblocked()
+void FilterDockWidget::resetSignalsUnblocked(bool clear_roi)
 {
     //annotations
     ui_.maf_enabled->setChecked(false);
@@ -156,8 +156,11 @@ void FilterDockWidget::resetSignalsUnblocked()
     }
 
     //rois
-    ui_.rois->setCurrentIndex(0);
-    ui_.rois->setToolTip("");
+	if (clear_roi)
+	{
+		ui_.rois->setCurrentIndex(0);
+		ui_.rois->setToolTip("");
+	}
 
     //gene
     last_genes_.clear();
@@ -169,10 +172,10 @@ void FilterDockWidget::resetSignalsUnblocked()
     ui_.refs->setToolTip("");
 }
 
-void FilterDockWidget::reset()
+void FilterDockWidget::reset(bool clear_roi)
 {
 	blockSignals(true);
-    resetSignalsUnblocked();
+	resetSignalsUnblocked(clear_roi);
 	blockSignals(false);
 
     emit filtersChanged();
@@ -183,7 +186,7 @@ void FilterDockWidget::applyDefaultFilters()
 	//block signals to avoid 10 updates of GUI
 	blockSignals(true);
 
-    resetSignalsUnblocked();
+	resetSignalsUnblocked(false);
 
 	//enable default filters
 	ui_.maf_enabled->setChecked(true);
@@ -220,7 +223,7 @@ void FilterDockWidget::applyDefaultFiltersSomatic()
     //block signals to avoid 10 updates of GUI
     blockSignals(true);
 
-    resetSignalsUnblocked();
+	resetSignalsUnblocked(false);
 
     //enable default filters
     ui_.maf_enabled->setChecked(true);

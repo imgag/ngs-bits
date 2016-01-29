@@ -76,8 +76,6 @@ public slots:
 	void on_actionStatisticsBED_triggered();
 	///File information FASTA
 	void on_actionStatisticsFastA_triggered();
-	///Gene list from BED file
-	void on_actionGeneListBED_triggered();
 	///Copy to clipboard
 	void on_actionCopy_triggered();
 	///Copy to clipboard and split quality column
@@ -100,6 +98,8 @@ public slots:
 	void on_actionShowTranscripts_triggered();
 	///Preferred transcript import from Alamut
 	void on_actionImportTranscripts_triggered();
+	///Opens online documentation
+	void on_actionOpenDocumentation_triggered();
 
 	///Finished the report generation
 	void reportGenerationFinished(bool success);

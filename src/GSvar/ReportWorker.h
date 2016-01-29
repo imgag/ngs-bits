@@ -27,6 +27,9 @@ public:
 	///writes a low-coverage report
 	static BedFile writeCoverageReport(QTextStream& stream, QString bam_file, const BedFile& roi, QStringList genes, int min_cov);
 
+	static void writeHtmlHeader(QTextStream& stream, QString sample_name);
+	static void writeHtmlFooter(QTextStream& stream);
+
 private:
 	//input variables
 	QString sample_name_;
@@ -53,8 +56,6 @@ private:
 	QString filterToGermanText(QString name, QString value);
 	QString formatCodingSplicing(QByteArray text);
 	int annotationIndexOrException(const QString& name, bool exact_match) const;
-	static void writeHtmlHeader(QTextStream& stream, QString sample_name);
-	static void writeHtmlFooter(QTextStream& stream);
 	void writeHTML();
 	void writeXML();
 };
