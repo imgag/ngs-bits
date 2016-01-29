@@ -299,15 +299,15 @@ private slots:
 	void lowCoverage_mapq20()
 	{
 		BedFile bed_file;
-		bed_file.load(TESTDATA("data_in/panel_chr1.bed"));
+		bed_file.load(TESTDATA("data_in/panel.bed"));
 		bed_file.merge();
-		I_EQUAL(bed_file.baseCount(), 14298);
+		I_EQUAL(bed_file.baseCount(), 271536);
 
 		BedFile low_cov =  Statistics::lowCoverage(bed_file, TESTDATA("data_in/panel.bam"), 20, 20);
-		I_EQUAL(low_cov.baseCount(), 1353);
+		I_EQUAL(low_cov.baseCount(), 16116);
 	}
 
-	void lowCoverage_mapq1()
+	void lowCoverage_closeExons_mapq1()
 	{
 		BedFile bed_file;
 		bed_file.load(TESTDATA("data_in/close_exons.bed"));

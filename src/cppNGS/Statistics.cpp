@@ -575,64 +575,55 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
     //check target region is merged/sorted and create index
     if (!bed_file.isMergedAndSorted())
     {
-        THROW(ArgumentException, "Merged and sorted BED file required for coverage details statistics!");
+		THROW(ArgumentException, "Merged and sorted BED file required for low-coverage statistics!");
     }
-    ChromosomalIndex<BedFile> roi_index(bed_file);
 
     //open BAM file
     BamReader reader;
     NGSHelper::openBAM(reader, bam_file);
+	ChromosomeInfo chr_info(reader);
 
-	//calculate statistics for each (used) chromosome separately
-	QSet<Chromosome> chroms = bed_file.chromosomes();
-	foreach(const Chromosome& chr, chroms)
+	//init datastructures
+	QVector<int> roi_cov;
+	BamAlignment al;
+
+	//iterate trough all regions (i.e. exons in most cases)
+	for (int i=0; i<bed_file.count(); ++i)
 	{
-		//init coverage statistics data structure
-		QMap<int, int> roi_cov;
-		for (int i=0; i<bed_file.count(); ++i)
-		{
-			if (bed_file[i].chr()!=chr) continue;
+		const BedLine& bed_line = bed_file[i];
+		const int start = bed_line.start();
+		//qDebug() << bed_line.chr().str().constData() << ":" << bed_line.start() << "-" << bed_line.end();
 
-			for(int p=bed_file[i].start(); p<=bed_file[i].end(); ++p)
-			{
-				roi_cov.insert(p, 0);
-			}
-		}
+		//init coverage statistics
+		roi_cov.fill(0, bed_line.length());
 
-		//iterate through all alignments on the chromosome
-		int ref_id = ChromosomeInfo::refID(reader, chr);
-		bool jump_ok = reader.SetRegion(ref_id, 0, ref_id, reader.GetReferenceData()[ref_id].RefLength);
+		//jump to region
+		int ref_id = chr_info.refID(bed_line.chr());
+		bool jump_ok = reader.SetRegion(ref_id, bed_line.start()-1, ref_id, bed_line.end());
 		if (!jump_ok) THROW(FileAccessException, QString::fromStdString(reader.GetErrorString()));
 
-		BamAlignment al;
+		//iterate through all alignments
 		while (reader.GetNextAlignmentCore(al))
 		{
 			if (al.IsDuplicate()) continue;
 			if (!al.IsPrimaryAlignment()) continue;
 			if (!al.IsMapped() || al.MapQuality<min_mapq) continue;
 
-			int end_position = al.GetEndPosition();
-			QVector<int> indices = roi_index.matchingIndices(chr, al.Position+1, end_position);
-			foreach(int index, indices)
+			const int ol_start = std::max(start, al.Position+1) - start;
+			const int ol_end = std::min(bed_line.end(), al.GetEndPosition()) - start;
+			for (int p=ol_start; p<=ol_end; ++p)
 			{
-				int ol_start = std::max(bed_file[index].start(), al.Position+1);
-				int ol_end = std::min(bed_file[index].end(), end_position);
-				for (int p=ol_start; p<=ol_end; ++p)
-				{
-					roi_cov[p] += 1;
-				}
+				++roi_cov[p];
 			}
 		}
 
-		//calculate coverage statistics
+		//create low-coverage regions file
 		BedFile tmp;
-		QMapIterator<int, int> it(roi_cov);
-		while(it.hasNext())
+		for (int p=0; p<roi_cov.count(); ++p)
 		{
-			it.next();
-			if (it.value()<cutoff)
+			if (roi_cov[p]<cutoff)
 			{
-				tmp.append(BedLine(chr, it.key(), it.key()));
+				tmp.append(BedLine(bed_line.chr(), p+start, p+start));
 			}
 		}
 
