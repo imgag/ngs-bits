@@ -12,19 +12,19 @@ Tools:
 - BedLowCoverage: add -wgs mode (get genome size from BAM header)
 - MappingQC:
   - add %soft/hard-clipped quality parameter (see ssPWBRCA_v2)
-  * support RNA insert size, etc... + spike-in controls
+  * support RNA: insert size, spike-in controls, etc.
 - SeqPurge: add error correction?
 - FastqDemultiplex: check for "carry-over" contamination from last run
 - ReadQC: create plots without python?
 
 CnvHunter:
  * instead of fixed 'n', use n>=10 and n<=30 with lowest number of CNVs or lowest z-score stdev?
- * calculate Z-score for each sample instead of fixed Z-score
+ * calculate Z-score cutoff for each sample instead of fixed Z-score
  - do not use bad regions for sample correlation calculation - remove bad regions after writing regions file...
  - do not exclude extreme outliers from reference sample calculation - we use median/mad
  - why "data[s].ref.append(exon_median);" - always use median/mad!?
  - annotate number of CNVs for each region in result file
- - merge larger regions to one region - otherwise they may be filter out
+ - merge larger regions to one region - use CBS!
  - integrate CNV databases:
    - http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/
    - https://decipher.sanger.ac.uk/disorders#syndromes/overview

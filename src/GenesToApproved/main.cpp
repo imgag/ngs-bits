@@ -44,6 +44,9 @@ public:
 		{
 			QByteArray gene = in->readLine().trimmed().toUpper();
 
+			//skip empty/comment lines
+			if (gene.isEmpty() || gene[0]=='#') continue;
+
 			//approved
 			q_gene.bindValue(0, gene);
 			q_gene.exec();
@@ -66,7 +69,8 @@ public:
 			}
 			else if(q_prev.size()>1)
 			{
-				messages << "Warning: Gene name '" << gene << "' is a previous name for more than one gene. Skipping it!\n";
+				messages << "Warning: Gene name '" << gene << "' is a previous name for more than one gene.\n";
+				out->write(gene + '\n');
 				continue;
 			}
 
@@ -83,11 +87,13 @@ public:
 			}
 			else if(q_syn.size()>1)
 			{
-				messages << "Warning: Gene name '" << gene << "' is a synonymous name for more than one gene. Skipping it!\n";
+				messages << "Warning: Gene name '" << gene << "' is a synonymous name for more than one gene.\n";
+				out->write(gene + '\n');
 				continue;
 			}
 
-			messages << "Warning: Gene name '" << gene << "' not found in HGNC database. Skipping it!\n";
+			messages << "Warning: Gene name '" << gene << "' not found in HGNC database.\n";
+			out->write(gene + '\n');
 		}
 	}
 };
