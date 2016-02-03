@@ -1,5 +1,5 @@
 ### BamLeftAlign tool help
-	BamLeftAlign (0.1-184-gc4d2f1b)
+	BamLeftAlign (0.1-190-g94e4c3d)
 	
 	Iteratively left-aligns and merges the insertions and deletions in all alignments.
 	
@@ -18,6 +18,6 @@
 	Special parameters:
 	  --help          Shows this help and exits.
 	  --version       Prints version and exits.
-	  --tdx           Writes a Tool Defition Xml file. The file name is the application name appended with '.tdx'.
+	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 [back to ngs-bits](https://github.com/marc-sturm/ngs-bits)
