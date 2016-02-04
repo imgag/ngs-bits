@@ -35,3 +35,13 @@ TODO
 ### Preferred transcripts
 
 TODO
+
+## IGV
+
+### IGV proxy settings
+IGV needs access to the Broad Institute web server to manage non-local genome files.  
+If it cannot access the server, during startup the error message `cannot connect to genome server` is shown and several other errors can occur.
+
+In that case, you have to set the proxy like shown here:
+![alt text](igv_proxy.png)
+

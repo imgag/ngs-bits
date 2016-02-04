@@ -20,8 +20,10 @@ public:
 	NGSD(bool test_db = false);
 	///Destructor.
 	~NGSD();
+	///Returns if the database connection is open
+	bool isOpen() const;
 
-	///Initializes the database (password is required for production database if it is not empty)
+	///Creates database tables and imports initial data (password is required for production database if it is not empty)
 	void init(QString password="");
 
 	/*** General database functionality ***/
@@ -67,13 +69,17 @@ public:
 	///Returns the NGSD processed sample ID for a file name. Throws an exception if it could not be determined.
 	QString processedSampleId(const QString& filename, bool throw_if_fails = true);
 	///Returns the NGSD ID for a variant. Returns '-1' or throws an exception if the ID cannot be determined.
-	QString variantId(const Variant& variant, bool throw_if_not_found = true);
+	QString variantId(const Variant& variant, bool throw_if_fails = true);
 	///Returns the ID of the current user as a string. Throws an exception if the user is not in the NGSD user table.
 	QString userId();
 
 	/*** Main NGSD functions ***/
-	///Returns the external sample name given the file name.
+	///Returns the external sample name, or "n/a" the sample cannot be found in the database.
 	QString getExternalSampleName(const QString& filename);
+	///Returns the tumor status of a sample, or "n/a" the sample cannot be found in the database.
+	QString sampleIsTumor(const QString& filename);
+	///Returns the FFPE status of a sample, or "n/a" the sample cannot be found in the database.
+	QString sampleIsFFPE(const QString& filename);
 	///Returns the processing system name and short name of the sample, or an empty string if it could not be detected.
 	enum SystemType {SHORT, LONG, BOTH};
 	QString getProcessingSystem(const QString& filename, SystemType type);
@@ -144,6 +150,7 @@ protected:
 	///The database adapter
 	QSqlDatabase db_;
 	bool test_db_;
+	bool is_open_;
 };
 
 #endif // NGSD_H

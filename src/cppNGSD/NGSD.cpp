@@ -20,7 +20,6 @@ NGSD::NGSD(bool test_db)
 	{
 		THROW(DatabaseException, "Could not connect to the NGSD database!");
 	}
-	//Log::info("MYSQL openend  - name: " + db_.connectionName() + " valid: " + (db_.isValid() ? "yes" : "no"));
 }
 
 QString NGSD::userId()
@@ -54,6 +53,20 @@ QString NGSD::sampleName(const QString& filename, bool throw_if_fails)
 	}
 
 	return parts[0];
+}
+
+QString NGSD::sampleIsTumor(const QString& filename)
+{
+	QVariant value = getValue("SELECT tumor FROM sample WHERE id='" + sampleId(filename, false) + "'");
+	if (value.isNull()) return "n/a";
+	return value.toInt() ? "yes" : "no";
+}
+
+QString NGSD::sampleIsFFPE(const QString& filename)
+{
+	QVariant value = getValue("SELECT ffpe FROM sample WHERE id='" + sampleId(filename, false) + "'");
+	if (value.isNull()) return "n/a";
+	return value.toInt() ? "yes" : "no";
 }
 
 QString NGSD::processedSampleName(const QString& filename, bool throw_if_fails)
@@ -127,7 +140,7 @@ QString NGSD::processedSampleId(const QString& filename, bool throw_if_fails)
 	return query.value(0).toString();
 }
 
-QString NGSD::variantId(const Variant& variant, bool throw_if_not_found)
+QString NGSD::variantId(const Variant& variant, bool throw_if_fails)
 {
 	SqlQuery query = getQuery(); //use binding user input (safety)
 	query.prepare("SELECT id FROM variant WHERE chr=:chr AND start='"+QString::number(variant.start())+"' AND end='"+QString::number(variant.end())+"' AND ref=:ref AND obs=:obs");
@@ -137,7 +150,7 @@ QString NGSD::variantId(const Variant& variant, bool throw_if_not_found)
 	query.exec();
 	if (query.size()==0)
 	{
-		if (throw_if_not_found)
+		if (throw_if_fails)
 		{
 			THROW(DatabaseException, "Variant " + variant.toString() + " not found in NGSD!");
 		}
@@ -253,6 +266,19 @@ NGSD::~NGSD()
 {
 	//Log::info("MYSQL closing  - name: " + db_.connectionName());
 	db_.close();
+}
+
+bool NGSD::isOpen() const
+{
+	static bool is_initialized = false;
+	static bool is_open = false;
+	if (!is_initialized)
+	{
+		is_open = QSqlQuery(db_).exec("SELECT 1");
+		is_initialized = true;
+	}
+
+	return is_open;
 }
 
 void NGSD::init(QString password)
