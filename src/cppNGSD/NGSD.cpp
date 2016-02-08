@@ -3,6 +3,7 @@
 #include "Helper.h"
 #include "Log.h"
 #include <QFileInfo>
+#include <QPair>
 #include "Settings.h"
 
 NGSD::NGSD(bool test_db)
@@ -851,7 +852,7 @@ void NGSD::tableExists(QString table)
 	}
 }
 
-bool NGSD::tableEmpty( QString table)
+bool NGSD::tableEmpty(QString table)
 {
 	SqlQuery query = getQuery();
 	query.exec("SELECT COUNT(*) FROM " + table);
@@ -906,6 +907,59 @@ int NGSD::geneToApprovedID(const QByteArray& gene)
 	}
 
 	return -1;
+}
+
+QPair<QByteArray, NGSD::ApprovedStatus> NGSD::geneToApproved(const QByteArray& gene)
+{
+	//init
+	static SqlQuery q_gene = getQuery();
+	static SqlQuery q_prev = getQuery();
+	static SqlQuery q_syn = getQuery();
+	static bool init = false;
+	if (!init)
+	{
+		q_gene.prepare("SELECT id FROM gene WHERE symbol=:1");
+		q_prev.prepare("SELECT g.symbol FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:1 AND ga.type='previous'");
+		q_syn.prepare("SELECT g.symbol FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:1 AND ga.type='synonym'");
+		init = true;
+	}
+
+	//approved
+	q_gene.bindValue(0, gene);
+	q_gene.exec();
+	if (q_gene.size()==1)
+	{
+		q_gene.next();
+		return qMakePair(gene, APPROVED);
+	}
+
+	//previous
+	q_prev.bindValue(0, gene);
+	q_prev.exec();
+	if (q_prev.size()==1)
+	{
+		q_prev.next();
+		return qMakePair(q_prev.value(0).toByteArray(), PREVIOUS);
+	}
+	else if(q_prev.size()>1)
+	{
+		return qMakePair(gene, ERR_PREVIOUS);
+	}
+
+	//synonymous
+	q_syn.bindValue(0, gene);
+	q_syn.exec();
+	if (q_syn.size()==1)
+	{
+		q_syn.next();
+		return qMakePair(q_syn.value(0).toByteArray(), SYNONYM);
+	}
+	else if(q_syn.size()>1)
+	{
+		return qMakePair(gene, ERR_SYNONYM);
+	}
+
+	return qMakePair(gene, ERR_UNKNOWN);
 }
 
 QStringList NGSD::genesOverlapping(QByteArray chr, int start, int end, int extend)

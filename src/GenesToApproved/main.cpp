@@ -30,12 +30,6 @@ public:
 		//init
 		QTextStream messages(stderr);
 		NGSD db(getFlag("test"));
-		SqlQuery q_gene = db.getQuery();
-		q_gene.prepare("SELECT id FROM gene WHERE symbol=:1");
-		SqlQuery q_prev = db.getQuery();
-		q_prev.prepare("SELECT g.symbol FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:1 AND ga.type='previous'");
-		SqlQuery q_syn = db.getQuery();
-		q_syn.prepare("SELECT g.symbol FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:1 AND ga.type='synonym'");
 
 		//process input
 		QSharedPointer<QFile> in = Helper::openFileForReading(getInfile("in"), true);
@@ -48,51 +42,32 @@ public:
 			if (gene.isEmpty() || gene[0]=='#') continue;
 
 			//approved
-			q_gene.bindValue(0, gene);
-			q_gene.exec();
-			if (q_gene.size()==1)
+			QPair<QByteArray, NGSD::ApprovedStatus> gene_info = db.geneToApproved(gene);
+			switch (gene_info.second)
 			{
-				out->write(gene + '\n');
-				continue;
+				case NGSD::APPROVED:
+					out->write(gene + '\n');
+					break;
+				case NGSD::PREVIOUS:
+					out->write(gene_info.first + '\n');
+					messages << "Notice: Gene name '" << gene + "' is a previous approved name. Replacing it by '" <<  gene_info.first << "'!\n";
+					break;
+				case NGSD::SYNONYM:
+					out->write(gene_info.first + '\n');
+					messages << "Notice: Gene name '" << gene + "' is a synonymous name. Replacing it by '" <<  gene_info.first << "'!\n";
+					break;
+				case NGSD::ERR_PREVIOUS:
+					messages << "Warning: Gene name '" << gene << "' is a previous name for more than one gene.\n";
+					out->write(gene + '\n');
+					break;
+				case NGSD::ERR_SYNONYM:
+					messages << "Warning: Gene name '" << gene << "' is a synonymous name for more than one gene.\n";
+					out->write(gene + '\n');
+					break;
+				case NGSD::ERR_UNKNOWN:
+					messages << "Warning: Gene name '" << gene << "' not found in HGNC database. Skipping it!\n";
+					break;
 			}
-
-			//previous
-			q_prev.bindValue(0, gene);
-			q_prev.exec();
-			if (q_prev.size()==1)
-			{
-				q_prev.next();
-				QByteArray gene2 = q_prev.value(0).toByteArray();
-				out->write(gene2 + '\n');
-				messages << "Notice: Gene name '" << gene + "' is a previous approved name. Replacing it by '" <<  gene2 << "'!\n";
-				continue;
-			}
-			else if(q_prev.size()>1)
-			{
-				messages << "Warning: Gene name '" << gene << "' is a previous name for more than one gene.\n";
-				out->write(gene + '\n');
-				continue;
-			}
-
-			//synonymous
-			q_syn.bindValue(0, gene);
-			q_syn.exec();
-			if (q_syn.size()==1)
-			{
-				q_syn.next();
-				QByteArray gene2 = q_syn.value(0).toByteArray();
-				out->write(gene2 + '\n');
-				messages << "Notice: Gene name '" << gene + "' is a synonymous name. Replacing it by '" <<  gene2 << "'!\n";
-				continue;
-			}
-			else if(q_syn.size()>1)
-			{
-				messages << "Warning: Gene name '" << gene << "' is a synonymous name for more than one gene.\n";
-				out->write(gene + '\n');
-				continue;
-			}
-
-			messages << "Warning: Gene name '" << gene << "' not found in HGNC database. Skipping it!\n";
 		}
 	}
 };

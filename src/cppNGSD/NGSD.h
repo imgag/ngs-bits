@@ -53,6 +53,18 @@ public:
 	/*** gene/transcript handling ***/
 	///Returns the gene ID, or -1 if none approved gene name could be found. Checks approved symbols, previous symbols and synonyms.
 	int geneToApprovedID(const QByteArray& gene);
+	///Approved gene status.
+	enum ApprovedStatus
+	{
+		APPROVED,      //Symbol kept. It was already an approved symbol.
+		SYNONYM,       //Symbol replaced. It was a synonym of an approved symbol.
+		PREVIOUS,      //Symbol replaced. It was a previous symbol of an approved symbol.
+		ERR_SYNONYM,   //Symbol kept. The symbol is a synonym of several approved symbols and thus could not be replaced.
+		ERR_PREVIOUS,  //Symbol kept. The symbol is a previous symbol of several approved symbols and thus could not be replaced.
+		ERR_UNKNOWN    //Symbol kept. The symbol is no approved symbol, synonym or previous symbol.
+	};
+	///Returns the the approved/original gene symbol and the action taken.
+	QPair<QByteArray, ApprovedStatus> geneToApproved(const QByteArray& gene);
 	///Returns the genes overlapping a regions (extended by some bases)
 	QStringList genesOverlapping(QByteArray chr, int start, int end, int extend=0);
 	///Returns the chromosomal regions corrsponding to the given genes.
