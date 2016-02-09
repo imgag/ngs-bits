@@ -31,6 +31,7 @@
 #include "ValidationDialog.h"
 #include "ClassificationDialog.h"
 #include "BasicStatistics.h"
+#include "ApprovedGenesDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -687,6 +688,12 @@ void MainWindow::on_actionImportTranscripts_triggered()
 void MainWindow::on_actionOpenDocumentation_triggered()
 {
 	QDesktopServices::openUrl(QUrl("https://github.com/marc-sturm/ngs-bits/tree/master/doc/GSvar/index.md"));
+}
+
+void MainWindow::on_actionConvertHgnc_triggered()
+{
+	ApprovedGenesDialog dlg(this);
+	dlg.exec();
 }
 
 void MainWindow::on_actionCopy_triggered()

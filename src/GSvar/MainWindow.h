@@ -100,6 +100,8 @@ public slots:
 	void on_actionImportTranscripts_triggered();
 	///Opens online documentation
 	void on_actionOpenDocumentation_triggered();
+	///Approved symbols dialog
+	void on_actionConvertHgnc_triggered();
 
 	///Finished the report generation
 	void reportGenerationFinished(bool success);

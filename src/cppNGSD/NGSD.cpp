@@ -909,7 +909,7 @@ int NGSD::geneToApprovedID(const QByteArray& gene)
 	return -1;
 }
 
-QPair<QByteArray, NGSD::ApprovedStatus> NGSD::geneToApproved(const QByteArray& gene)
+QPair<QByteArray, QByteArray> NGSD::geneToApproved(const QByteArray& gene)
 {
 	//init
 	static SqlQuery q_gene = getQuery();
@@ -930,7 +930,7 @@ QPair<QByteArray, NGSD::ApprovedStatus> NGSD::geneToApproved(const QByteArray& g
 	if (q_gene.size()==1)
 	{
 		q_gene.next();
-		return qMakePair(gene, APPROVED);
+		return qMakePair(gene, QByteArray("KEPT: is approved symbol"));
 	}
 
 	//previous
@@ -939,11 +939,17 @@ QPair<QByteArray, NGSD::ApprovedStatus> NGSD::geneToApproved(const QByteArray& g
 	if (q_prev.size()==1)
 	{
 		q_prev.next();
-		return qMakePair(q_prev.value(0).toByteArray(), PREVIOUS);
+		return qMakePair(q_prev.value(0).toByteArray(), "REPLACED: " + gene + " is a previous symbol");
 	}
 	else if(q_prev.size()>1)
 	{
-		return qMakePair(gene, ERR_PREVIOUS);
+		QByteArray genes;
+		while(q_prev.next())
+		{
+			if (!genes.isEmpty()) genes.append(", ");
+			genes.append(q_prev.value(0).toByteArray());
+		}
+		return qMakePair(gene, "ERROR: is a previous symbol of the genes " + genes);
 	}
 
 	//synonymous
@@ -952,14 +958,20 @@ QPair<QByteArray, NGSD::ApprovedStatus> NGSD::geneToApproved(const QByteArray& g
 	if (q_syn.size()==1)
 	{
 		q_syn.next();
-		return qMakePair(q_syn.value(0).toByteArray(), SYNONYM);
+		return qMakePair(q_syn.value(0).toByteArray(), "REPLACED: " + gene + " is a synonymous symbol");
 	}
 	else if(q_syn.size()>1)
 	{
-		return qMakePair(gene, ERR_SYNONYM);
+		QByteArray genes;
+		while(q_syn.next())
+		{
+			if (!genes.isEmpty()) genes.append(", ");
+			genes.append(q_syn.value(0).toByteArray());
+		}
+		return qMakePair(gene, "ERROR: is a synonymous symbol of the genes " + genes);
 	}
 
-	return qMakePair(gene, ERR_UNKNOWN);
+	return qMakePair(gene, QByteArray("ERROR: is unknown symbol"));
 }
 
 QStringList NGSD::genesOverlapping(QByteArray chr, int start, int end, int extend)

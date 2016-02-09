@@ -7,10 +7,8 @@ IQSEC2
 MRX1
 #synonymous symbol
 A15
-#synonymous symbol of several genes (no output)
+#synonymous symbol of several genes
 CARP
-#penotypes (no output)
+#phenotypes
 SCAX4
 WT2
-#unknown
-BLABLA
