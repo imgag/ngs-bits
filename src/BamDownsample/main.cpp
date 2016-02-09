@@ -67,7 +67,9 @@ public:
 		QHash<QString, BamAlignment> al_map;
 		while (reader.GetNextAlignment(al))
 		{
+			//skip secondary alinments
 			if(!al.IsPrimaryAlignment()) continue;
+
 			reads_count++;
 			if((!al.IsPaired())&&(qrand()%100)<getInt("percentage"))//if single end and should be saved
 			{

@@ -174,10 +174,13 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
     BamAlignment al;
     while (reader.GetNextAlignmentCore(al))
     {
+		//skip secondary alignments
+		if (!al.IsPrimaryAlignment()) continue;
+
         ++al_total;
         max_length = std::max(max_length, al.Length);
 
-		if (al.IsPaired() && al.IsPrimaryAlignment())
+		if (al.IsPaired())
         {
             paired_end = true;
 
@@ -203,7 +206,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
             {
                 ++al_ontarget;
 
-				if (al.IsPrimaryAlignment() && !al.IsDuplicate() && al.MapQuality>=min_mapq)
+				if (!al.IsDuplicate() && al.MapQuality>=min_mapq)
                 {
                     foreach(int index, indices)
                     {
@@ -346,11 +349,14 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq)
     //iterate through all alignments
     BamAlignment al;
     while (reader.GetNextAlignmentCore(al))
-    {
+	{
+		//skip secondary alignments
+		if (!al.IsPrimaryAlignment()) continue;
+
         ++al_total;
         max_length = std::max(max_length, al.Length);
 
-		if (al.IsPaired() && al.IsPrimaryAlignment())
+		if (al.IsPaired())
         {
             paired_end = true;
 
@@ -373,7 +379,7 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq)
             {
                 ++al_ontarget;
 
-				if (al.IsPrimaryAlignment() && !al.IsDuplicate() && al.MapQuality>=min_mapq)
+				if (!al.IsDuplicate() && al.MapQuality>=min_mapq)
 				{
                     bases_overlap_roi += al.Length;
                 }
