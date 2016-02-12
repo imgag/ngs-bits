@@ -5,8 +5,9 @@ libs:
 
 GSvar:
 - implement variant details dock widget (like sophia-genetics)
-* integrate HPO (phenotype(s) => temporary target region)
-* Classification dialog: allow moving variant comments to classification
+* Add HPO => Genes => Target region Dialog
+* Add gene managenement dialog for NGSD gene information
+- Classification dialog: allow moving variant comments to classification
 
 Tools:
 - BedLowCoverage: add -wgs mode (get genome size from BAM header)

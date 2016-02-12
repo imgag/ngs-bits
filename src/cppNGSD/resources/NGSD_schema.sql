@@ -255,7 +255,7 @@ CREATE  TABLE IF NOT EXISTS `sample` (
   `name_external` VARCHAR(255) NULL DEFAULT NULL,
   `received` DATE NULL DEFAULT NULL,
   `receiver_id` INT(11) NULL DEFAULT NULL,
-  `sample_type` ENUM('Amplicon','DNA','RNA','native') NOT NULL,
+  `sample_type` ENUM('DNA','DNA (amplicon)','DNA (native)','RNA') NOT NULL,
   `species_id` INT(11) NOT NULL,
   `concentration` FLOAT NULL DEFAULT NULL,
   `volume` FLOAT NULL DEFAULT NULL,
