@@ -18,7 +18,8 @@ SOURCES += main.cpp\
     ValidationDialog.cpp \
     ClassificationDialog.cpp \
     DBAnnotationWorker.cpp \
-    FilterColumnWidget.cpp
+    FilterColumnWidget.cpp \
+    ApprovedGenesDialog.cpp
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
@@ -31,7 +32,8 @@ HEADERS  += MainWindow.h \
     ValidationDialog.h \
     ClassificationDialog.h \
     DBAnnotationWorker.h \
-    FilterColumnWidget.h
+    FilterColumnWidget.h \
+    ApprovedGenesDialog.h
 
 
 FORMS    += MainWindow.ui \
@@ -42,7 +44,8 @@ FORMS    += MainWindow.ui \
     TrioDialog.ui \
     ClassificationDialog.ui \
     ValidationDialog.ui \
-    FilterColumnWidget.ui
+    FilterColumnWidget.ui \
+    ApprovedGenesDialog.ui
     
 
 include("../app_gui.pri")

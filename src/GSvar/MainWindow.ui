@@ -14,7 +14,7 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../GSmix/resources.qrc">
+   <iconset resource="resources.qrc">
     <normaloff>:/Icons/Icon.png</normaloff>:/Icons/Icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -118,7 +118,14 @@
      <addaction name="actionShowTranscripts"/>
      <addaction name="actionImportTranscripts"/>
     </widget>
+    <widget class="QMenu" name="menuGenes">
+     <property name="title">
+      <string>Genes</string>
+     </property>
+     <addaction name="actionConvertHgnc"/>
+    </widget>
     <addaction name="menuPreferred_transcripts_2"/>
+    <addaction name="menuGenes"/>
     <addaction name="separator"/>
     <addaction name="menuFileInfo"/>
     <addaction name="menuDetermine_gender"/>
@@ -277,7 +284,7 @@
   </action>
   <action name="actionNGSD">
    <property name="icon">
-    <iconset resource="../GSmix/resources.qrc">
+    <iconset resource="resources.qrc">
      <normaloff>:/Icons/NGSD.png</normaloff>:/Icons/NGSD.png</iconset>
    </property>
    <property name="text">
@@ -419,10 +426,14 @@
     <string>F1</string>
    </property>
   </action>
+  <action name="actionConvertHgnc">
+   <property name="text">
+    <string>Convert to HGNC</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="../GSmix/resources.qrc"/>
   <include location="resources.qrc"/>
  </resources>
  <connections/>
