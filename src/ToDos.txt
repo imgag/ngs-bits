@@ -11,6 +11,7 @@ Tools:
 - FastqDemultiplex: check for "carry-over" contamination from last run
 - ReadQC: create plots without python?
 - SampleOverview: add option for BAM files (check depth where variant is not found)
+- BedAnnotateGenes: add options for gene annotation (e.g. ccds, exon, gene) comparable to GenesToBed
 
 CnvHunter:
  - consider normalizing for read length somehow (or use read counts? But that does not help much either)
