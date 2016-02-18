@@ -34,9 +34,6 @@ public:
 	///Opens a BAM file for reading.
 	static void openBAM(BamTools::BamReader& reader, QString bam_file);
 
-    ///Returns the chromosome ID (called reference ID in BamTools). If the chomosome is not found, an ArgumentException is thrown.
-	static int getRefID(BamTools::BamReader& reader, const Chromosome& chr);
-
 	/**
 	  @brief Returns the pileup at the given chromosomal position (1-based).
 	  @param indel_window The value controls how far up- and down-stream of the given postion, indels are considered to compensate for alignment differences. Indels are not reported when this paramter is set to -1.

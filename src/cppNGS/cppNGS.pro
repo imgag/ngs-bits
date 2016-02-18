@@ -45,7 +45,8 @@ SOURCES += BedFile.cpp \
     FastaFileIndex.cpp \
     VariantAnnotationDescription.cpp \
     QCCollection.cpp \
-    StatisticsReads.cpp
+    StatisticsReads.cpp \
+    ChromosomeInfo.cpp
 
 HEADERS += BedFile.h \
 	Chromosome.h \
@@ -61,7 +62,8 @@ HEADERS += BedFile.h \
     VariantAnnotationDescription.h \
     QCCollection.h \
     StatisticsReads.h \
-    Sequence.h
+    Sequence.h \
+    ChromosomeInfo.h
 
 
 RESOURCES += \

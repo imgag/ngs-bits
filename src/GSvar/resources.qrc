@@ -14,10 +14,13 @@
         <file>Icons/AddTemporary.png</file>
         <file>Resources/ChangeLog.html</file>
         <file>Resources/DiagnosticReport_v1.xsd</file>
-        <file>Icons/Search.png</file>
         <file>Icons/PrimerDesign.png</file>
         <file>Icons/Trio.png</file>
         <file>Icons/Gaps_lookup.png</file>
         <file>Icons/Gaps_calculate.png</file>
+        <file>Icons/Keep.png</file>
+        <file>Icons/Keep_gray.png</file>
+        <file>Icons/Remove_gray.png</file>
+        <file>Icons/Filter_gray.png</file>
     </qresource>
 </RCC>

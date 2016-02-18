@@ -1,28 +1,31 @@
 === TODO ===
 
-GSvar:
-- somatic sample: Filter (MAF + custom)
+libs:
+- test cppNGSD (include in libs)
 
-GSmix:
-- Support copy-and-paste of text in fields
+GSvar:
+- implement variant details dock widget (like sophia-genetics)
+* Add HPO => Genes => Target region Dialog
+* Add gene managenement dialog for NGSD gene information
+- Classification dialog: allow moving variant comments to classification
 
 Tools:
-- SeqPurge: add error correction
+- BedLowCoverage: add -wgs mode (get genome size from BAM header)
+- MappingQC:
+  - add %soft/hard-clipped quality parameter (see ssPWBRCA_v2)
+  * support RNA: insert size, spike-in controls, etc.
+- SeqPurge: add error correction?
 - FastqDemultiplex: check for "carry-over" contamination from last run
 - ReadQC: create plots without python?
-- SampleOverview: add option for BAM files (check depth where variant is not found)
-- BedAnnotateGenes: add options for gene annotation (e.g. ccds, exon, gene) comparable to GenesToBed
 
 CnvHunter:
- - consider normalizing for read length somehow (or use read counts? But that does not help much either)
- - set min STDEV to 15% of mean (was 10%, make it a parameter)
+ * instead of fixed 'n', use n>=10 and n<=30 with lowest number of CNVs or lowest z-score stdev?
+ * calculate Z-score cutoff for each sample instead of fixed Z-score
  - do not use bad regions for sample correlation calculation - remove bad regions after writing regions file...
  - do not exclude extreme outliers from reference sample calculation - we use median/mad
  - why "data[s].ref.append(exon_median);" - always use median/mad!?
  - annotate number of CNVs for each region in result file
- - determine z-score cutoff for each sample individually?
- - merge larger regions to one region - otherwise they may be filter out
+ - merge larger regions to one region - use CBS!
  - integrate CNV databases:
    - http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/
    - https://decipher.sanger.ac.uk/disorders#syndromes/overview
- - instead of fixed 'n', majority vote for CNVs for n>=10 and n<=30?

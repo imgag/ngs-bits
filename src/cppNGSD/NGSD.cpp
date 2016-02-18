@@ -3,6 +3,7 @@
 #include "Helper.h"
 #include "Log.h"
 #include <QFileInfo>
+#include <QPair>
 #include "Settings.h"
 
 NGSD::NGSD(bool test_db)
@@ -20,7 +21,6 @@ NGSD::NGSD(bool test_db)
 	{
 		THROW(DatabaseException, "Could not connect to the NGSD database!");
 	}
-	//Log::info("MYSQL openend  - name: " + db_.connectionName() + " valid: " + (db_.isValid() ? "yes" : "no"));
 }
 
 QString NGSD::userId()
@@ -54,6 +54,20 @@ QString NGSD::sampleName(const QString& filename, bool throw_if_fails)
 	}
 
 	return parts[0];
+}
+
+QString NGSD::sampleIsTumor(const QString& filename)
+{
+	QVariant value = getValue("SELECT tumor FROM sample WHERE id='" + sampleId(filename, false) + "'");
+	if (value.isNull()) return "n/a";
+	return value.toInt() ? "yes" : "no";
+}
+
+QString NGSD::sampleIsFFPE(const QString& filename)
+{
+	QVariant value = getValue("SELECT ffpe FROM sample WHERE id='" + sampleId(filename, false) + "'");
+	if (value.isNull()) return "n/a";
+	return value.toInt() ? "yes" : "no";
 }
 
 QString NGSD::processedSampleName(const QString& filename, bool throw_if_fails)
@@ -127,7 +141,7 @@ QString NGSD::processedSampleId(const QString& filename, bool throw_if_fails)
 	return query.value(0).toString();
 }
 
-QString NGSD::variantId(const Variant& variant)
+QString NGSD::variantId(const Variant& variant, bool throw_if_fails)
 {
 	SqlQuery query = getQuery(); //use binding user input (safety)
 	query.prepare("SELECT id FROM variant WHERE chr=:chr AND start='"+QString::number(variant.start())+"' AND end='"+QString::number(variant.end())+"' AND ref=:ref AND obs=:obs");
@@ -137,7 +151,14 @@ QString NGSD::variantId(const Variant& variant)
 	query.exec();
 	if (query.size()==0)
 	{
-		THROW(DatabaseException, "Variant " + variant.toString() + " not found in NGSD!");
+		if (throw_if_fails)
+		{
+			THROW(DatabaseException, "Variant " + variant.toString() + " not found in NGSD!");
+		}
+		else
+		{
+			return "-1";
+		}
 	}
 	query.next();
 	return query.value(0).toString();
@@ -248,6 +269,19 @@ NGSD::~NGSD()
 	db_.close();
 }
 
+bool NGSD::isOpen() const
+{
+	static bool is_initialized = false;
+	static bool is_open = false;
+	if (!is_initialized)
+	{
+		is_open = QSqlQuery(db_).exec("SELECT 1");
+		is_initialized = true;
+	}
+
+	return is_open;
+}
+
 void NGSD::init(QString password)
 {
 	//remove existing tables
@@ -338,9 +372,9 @@ QCCollection NGSD::getQCData(const QString& filename)
 {
 	QString ps_id = processedSampleId(filename, false);
 
-	//get NGSO data
+	//get QC data
 	SqlQuery q = getQuery();
-	q.exec("SELECT n.name, nm.value, n.description, n.ngso_id FROM nm_processed_sample_ngso as nm, ngso as n WHERE nm.processed_sample_id='" + ps_id + "' AND nm.ngso_id=n.id");
+	q.exec("SELECT n.name, nm.value, n.description, n.qcml_id FROM processed_sample_qc as nm, qc_terms as n WHERE nm.processed_sample_id='" + ps_id + "' AND nm.qc_terms_id=n.id");
 	QCCollection output;
 	while(q.next())
 	{
@@ -355,7 +389,11 @@ QCCollection NGSD::getQCData(const QString& filename)
 	{
 		q2.next();
 		float numeric_value = 100.0 * q2.value(0).toFloat();
-		if (numeric_value>1.0)
+		if (numeric_value>100.0) //special case: random_error_prob>100%
+		{
+			value = "<font color=orange>KASP not performed (see NGSD)</font>";
+		}
+		else if (numeric_value>1.0) //random_error_prob>1% => warn
 		{
 			value = "<font color=red>"+QString::number(numeric_value)+"%</font>";
 		}
@@ -374,12 +412,12 @@ QVector<double> NGSD::getQCValues(const QString& accession, const QString& filen
 	//get processing system ID
 	QString sys_id = getValue("SELECT processing_system_id FROM processed_sample WHERE id='" + processedSampleId(filename) + "'").toString();
 
-	//get NGSO id
-	QString ngso_id = getValue("SELECT id FROM ngso WHERE ngso_id='" + accession + "'").toString();
+	//get QC id
+	QString qc_id = getValue("SELECT id FROM qc_terms WHERE qcml_id='" + accession + "'").toString();
 
 	//get QC data
 	SqlQuery q = getQuery();
-	q.exec("SELECT nm.value FROM nm_processed_sample_ngso as nm, processed_sample as ps WHERE ps.processing_system_id='" + sys_id + "' AND nm.ngso_id='" + ngso_id + "' AND nm.processed_sample_id=ps.id ");
+	q.exec("SELECT nm.value FROM processed_sample_qc as nm, processed_sample as ps WHERE ps.processing_system_id='" + sys_id + "' AND nm.qc_terms_id='" + qc_id + "' AND nm.processed_sample_id=ps.id ");
 
 	//fill output datastructure
 	QVector<double> output;
@@ -428,6 +466,7 @@ void NGSD::annotate(VariantList& variants, QString filename)
 		}
 	}
 	removeColumnIfPresent(variants, "classification", true);
+	removeColumnIfPresent(variants, "classification_comment", true);
 	removeColumnIfPresent(variants, "validated", true);
 	removeColumnIfPresent(variants, "comment", true);
 
@@ -438,7 +477,8 @@ void NGSD::annotate(VariantList& variants, QString filename)
 	int ihdb_wt_idx  = addColumn(variants, "ihdb_wt", "Wildtype variant counts in NGSD for the same processing system (" + num_samples + " samples).");
 	int ihdb_all_hom_idx = addColumn(variants, "ihdb_allsys_hom", "Homozygous variant counts in NGSD independent of the processing system.");
 	int ihdb_all_het_idx =  addColumn(variants, "ihdb_allsys_het", "Heterozygous variant counts in NGSD independent of the processing system.");
-	int class_idx = addColumn(variants, "classification", "VUS classification from the NGSD.");
+	int class_idx = addColumn(variants, "classification", "Classification from the NGSD.");
+	int clacom_idx = addColumn(variants, "classification_comment", "Classification comment from the NGSD.");
 	int valid_idx = addColumn(variants, "validated", "Validation information from the NGSD.");
 	if (variants.annotationIndexByName("comment", true, false)==-1) addColumn(variants, "comment", "Comments from the NGSD. Comments of other samples are listed in brackets!");
 	int comment_idx = variants.annotationIndexByName("comment", true, false);
@@ -450,15 +490,16 @@ void NGSD::annotate(VariantList& variants, QString filename)
 		//QTime timer;
 		//timer.start();
 
-		//variant infos
+		//variant id
 		Variant& v = variants[i];
-		QByteArray v_id = "-1";
-		query.exec("SELECT id, vus FROM variant WHERE chr='"+v.chr().str()+"' AND start='"+QString::number(v.start())+"' AND end='"+QString::number(v.end())+"' AND ref='"+v.ref()+"' AND obs='"+v.obs()+"'");
-		if (query.size()==1)
+		QByteArray v_id = variantId(v, false).toLatin1();
+
+		//variant classification
+		QVariant classification = getValue("SELECT class FROM variant_classification WHERE variant_id='" + v_id + "'", true);
+		if (!classification.isNull())
 		{
-			query.next();
-			v_id = query.value(0).toByteArray();
-			v.annotations()[class_idx] = query.value(1).toByteArray().replace("n/a", "");
+			v.annotations()[class_idx] = classification.toByteArray().replace("n/a", "");
+			v.annotations()[clacom_idx] = getValue("SELECT comment FROM variant_classification WHERE variant_id='" + v_id + "'", true).toByteArray().replace("\n", " ").replace("\t", " ");
 		}
 		//int t_v = timer.elapsed();
 		//timer.restart();
@@ -599,11 +640,8 @@ void NGSD::annotate(VariantList& variants, QString filename)
 	}
 }
 
-void NGSD::annotateSomatic(VariantList& variants, QString filename, QString ref_file)
+void NGSD::annotateSomatic(VariantList& variants, QString filename)
 {
-	//open refererence genome file
-	FastaFileIndex reference(ref_file);
-
 	//get sample ids
 	QStringList samples = filename.split('-');
 	QString ts_id = sampleId(samples[0], false);
@@ -698,9 +736,38 @@ void NGSD::setValidationStatus(const QString& filename, const Variant& variant, 
 	query.exec();
 }
 
-void NGSD::setClassification(const Variant& variant, const QString& classification)
+QPair<QString, QString> NGSD::getClassification(const Variant& variant)
 {
-	getQuery().exec("UPDATE variant SET vus='" + classification + "', vus_user='" + userId() + "', vus_date=CURRENT_TIMESTAMP WHERE id='" + variantId(variant) + "'");
+	SqlQuery query = getQuery();
+	query.exec("SELECT class, comment FROM variant_classification WHERE variant_id='" + variantId(variant) + "'");
+	if (query.size()==0)
+	{
+		return QPair<QString, QString>("n/a", "");
+	}
+	else
+	{
+		query.next();
+		return QPair<QString, QString>(query.value(0).toString().trimmed(), query.value(1).toString().trimmed());
+	}
+}
+
+void NGSD::setClassification(const Variant& variant, const QString& classification, const QString& comment)
+{
+	QString v_id = variantId(variant);
+	QVariant vc_id = getValue("SELECT id FROM variant_classification WHERE variant_id='" + v_id + "'");
+
+	SqlQuery query = getQuery(); //use binding (user input)
+	if (vc_id.isNull()) //insert
+	{
+		query.prepare("INSERT INTO variant_classification (variant_id, class, comment) VALUES ('" + v_id + "',:class,:comment)");
+	}
+	else //update
+	{
+		query.prepare("UPDATE variant_classification SET class=:class, comment=:comment WHERE id='" + vc_id.toString() + "'");
+	}
+	query.bindValue(":class", classification);
+	query.bindValue(":comment", comment);
+	query.exec();
 }
 
 QString NGSD::comment(const QString& filename, const Variant& variant)
@@ -785,7 +852,7 @@ void NGSD::tableExists(QString table)
 	}
 }
 
-bool NGSD::tableEmpty( QString table)
+bool NGSD::tableEmpty(QString table)
 {
 	SqlQuery query = getQuery();
 	query.exec("SELECT COUNT(*) FROM " + table);
@@ -840,6 +907,71 @@ int NGSD::geneToApprovedID(const QByteArray& gene)
 	}
 
 	return -1;
+}
+
+QPair<QByteArray, QByteArray> NGSD::geneToApproved(const QByteArray& gene)
+{
+	//init
+	static SqlQuery q_gene = getQuery();
+	static SqlQuery q_prev = getQuery();
+	static SqlQuery q_syn = getQuery();
+	static bool init = false;
+	if (!init)
+	{
+		q_gene.prepare("SELECT id FROM gene WHERE symbol=:1");
+		q_prev.prepare("SELECT g.symbol FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:1 AND ga.type='previous'");
+		q_syn.prepare("SELECT g.symbol FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:1 AND ga.type='synonym'");
+		init = true;
+	}
+
+	//approved
+	q_gene.bindValue(0, gene);
+	q_gene.exec();
+	if (q_gene.size()==1)
+	{
+		q_gene.next();
+		return qMakePair(gene, QByteArray("KEPT: is approved symbol"));
+	}
+
+	//previous
+	q_prev.bindValue(0, gene);
+	q_prev.exec();
+	if (q_prev.size()==1)
+	{
+		q_prev.next();
+		return qMakePair(q_prev.value(0).toByteArray(), "REPLACED: " + gene + " is a previous symbol");
+	}
+	else if(q_prev.size()>1)
+	{
+		QByteArray genes;
+		while(q_prev.next())
+		{
+			if (!genes.isEmpty()) genes.append(", ");
+			genes.append(q_prev.value(0).toByteArray());
+		}
+		return qMakePair(gene, "ERROR: is a previous symbol of the genes " + genes);
+	}
+
+	//synonymous
+	q_syn.bindValue(0, gene);
+	q_syn.exec();
+	if (q_syn.size()==1)
+	{
+		q_syn.next();
+		return qMakePair(q_syn.value(0).toByteArray(), "REPLACED: " + gene + " is a synonymous symbol");
+	}
+	else if(q_syn.size()>1)
+	{
+		QByteArray genes;
+		while(q_syn.next())
+		{
+			if (!genes.isEmpty()) genes.append(", ");
+			genes.append(q_syn.value(0).toByteArray());
+		}
+		return qMakePair(gene, "ERROR: is a synonymous symbol of the genes " + genes);
+	}
+
+	return qMakePair(gene, QByteArray("ERROR: is unknown symbol"));
 }
 
 QStringList NGSD::genesOverlapping(QByteArray chr, int start, int end, int extend)

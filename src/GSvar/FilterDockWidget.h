@@ -4,6 +4,7 @@
 #include <QDockWidget>
 #include "ui_FilterDockWidget.h"
 #include "VariantFilter.h"
+#include "BedFile.h"
 
 ///Filter manager dock widget
 class FilterDockWidget
@@ -16,9 +17,14 @@ public:
 	FilterDockWidget(QWidget *parent = 0);
 
 	/// Resets to initial state (uncheck boxes, no ROI)
-	void reset();
-	/// Applies predefined default filters.
+	void reset(bool clear_roi);
+	/// Sets filter columns present in the open file
+	void setFilterColumns(const QMap<QString, QString>& filter_cols);
+
+    /// Applies predefined default filters (germline).
 	void applyDefaultFilters();
+    /// Applies predefined default filters (somatic).
+    void applyDefaultFiltersSomatic();
 
 	/// Returns if the MAF filter is enabled.
 	bool applyMaf() const;
@@ -30,10 +36,10 @@ public:
 	/// Returns valid impact.
 	QStringList impact() const;
 
-	/// Returns if the VUS classification filter is enabled.
-	bool applyVus() const;
-	/// Returns the minimum VUS classification.
-	int vus() const;
+	/// Returns if the classification filter is enabled.
+	bool applyClassification() const;
+	/// Returns the minimum classification.
+	int classification() const;
 
 	/// Returns if the genotype filter is enabled.
 	bool applyGenotype() const;
@@ -45,21 +51,30 @@ public:
 	/// Returns the maximum IHDB filter value.
 	int ihdb() const;
 
-	/// Returns if the quality filter is enabled.
-	bool applyQuality() const;
-
 	/// Returns if the trio filter is enabled.
 	bool applyTrio() const;
 	/// Returns if the compound-heterzygous filter is enabled.
 	bool applyCompoundHet() const;
 
-	/// Returns if important variants should be kept.
-	bool keepImportant() const;
+	/// Returns variants with a classification >= X should be kept (returns -1 if unset).
+	int keepClassGreaterEqual() const;
+	/// Returns variants with a classification 'M' (modifier) should be kept.
+	bool keepClassM() const;
+
+	///Returns the filter column terms to keep.
+	QList<QByteArray> filterColumnsKeep() const;
+	///Returns the filter column terms to remove.
+	QList<QByteArray> filterColumnsRemove() const;
+    ///Returns the filter column terms to filter.
+    QList<QByteArray> filterColumnsFilter() const;
 
 	/// Returns the target region file name or an empty string if unset.
 	QString targetRegion() const;
 	/// Returns the gene names filter.
 	QList<QByteArray> genes() const;
+	/// Returns the single target region filter.
+	BedLine region() const;
+
 	/// Returns the reference sample name or an empty string if unset.
 	QString referenceSample() const;
 
@@ -79,12 +94,17 @@ protected slots:
 	void removeRef();
 	void referenceSampleChanged(int index);
 	void geneChanged();
+	void regionChanged();
+	void filterColumnStateChanged();
 
 private:
 	/// Loads the ROI filters from the INI file
 	void loadROIFilters();
 	/// Loads the reference file list of IGV
 	void loadReferenceFiles();
+
+    /// Resets the filters without blocking signals.
+	void resetSignalsUnblocked(bool clear_roi);
 
 	Ui::FilterDockWidget ui_;
 	QList<QByteArray> last_genes_;

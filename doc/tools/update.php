@@ -1,5 +1,10 @@
 <?php
 
+function contains($haystack, $needle)
+{
+	return strpos($haystack,$needle)!== false;
+}
+
 //remove .md files in this folder
 $files = glob("./*.md");
 foreach($files as $file)
@@ -9,7 +14,7 @@ foreach($files as $file)
 
 
 //copy DLLs to bin path
-$dlls = array("Qt5Core.dll", "libgcc_s_dw2-1.dll", "libwinpthread-1.dll", "libstdc++-6.dll", "Qt5XmlPatterns.dll", "Qt5Network.dll", "Qt5Sql.dll", "Qt5Xml.dll");
+$dlls = array("Qt5Core.dll", "libgcc_s_dw2-1.dll", "libwinpthread-1.dll", "libstdc++-6.dll", "Qt5XmlPatterns.dll", "Qt5Network.dll", "Qt5Sql.dll", "Qt5Xml.dll", "Qt5Gui.dll", "Qt5Widgets.dll");
 $qt_path = "C:\\Qt\\Qt5.5.0\\5.5\\mingw492_32\\bin\\";
 $bin_path = "..\\..\\bin\\";
 copy("..\\..\\bamtools\\lib\\libbamtools.dll", $bin_path."libbamtools.dll");
@@ -23,10 +28,10 @@ $files = glob($bin_path."*.exe");
 foreach($files as $exe)
 {
 	//skip tests
-	if (strpos($exe, "TEST")!==false) continue;
+	if (contains($exe, "TEST")) continue;
 
 	//skip GUI tools
-	if (strpos($exe, "GSvar")!==false) continue;
+	if (contains($exe, "GSvar") || contains($exe, "GSmix") || contains($exe, "GSpheno") ) continue;
 		
 	//print tool name
 	$tool = basename($exe, ".exe");

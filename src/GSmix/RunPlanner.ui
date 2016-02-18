@@ -86,54 +86,14 @@
     </layout>
    </item>
    <item>
-    <widget class="QTableWidget" name="samples">
-     <property name="acceptDrops">
-      <bool>true</bool>
-     </property>
-     <property name="dragEnabled">
-      <bool>true</bool>
-     </property>
-     <property name="dragDropMode">
-      <enum>QAbstractItemView::DragDrop</enum>
-     </property>
-     <property name="defaultDropAction">
-      <enum>Qt::CopyAction</enum>
-     </property>
-     <property name="selectionMode">
-      <enum>QAbstractItemView::ExtendedSelection</enum>
-     </property>
-     <property name="selectionBehavior">
-      <enum>QAbstractItemView::SelectItems</enum>
-     </property>
-     <property name="gridStyle">
-      <enum>Qt::SolidLine</enum>
-     </property>
-     <property name="columnCount">
-      <number>3</number>
-     </property>
-     <column>
-      <property name="text">
-       <string>Sample</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>MID i7</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>MID i5</string>
-      </property>
-     </column>
-    </widget>
+    <widget class="SampleList" name="samples"/>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
       <widget class="QPushButton" name="addButton">
        <property name="toolTip">
-        <string>Add sample</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add a single sample row&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="text">
         <string/>
@@ -141,6 +101,20 @@
        <property name="icon">
         <iconset resource="resources.qrc">
          <normaloff>:/Icons/add.png</normaloff>:/Icons/add.png</iconset>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pasteButton">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add sample(s) from the clipboard, e.g. copied from Excel.&lt;/p&gt;&lt;p&gt;Note: 3 tab-separated columns are required per row!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="resources.qrc">
+         <normaloff>:/Icons/paste.png</normaloff>:/Icons/paste.png</iconset>
        </property>
       </widget>
      </item>
@@ -228,17 +202,17 @@
        </property>
       </spacer>
      </item>
-     <item>
-      <widget class="QPushButton" name="debugButton">
-       <property name="text">
-        <string>debug</string>
-       </property>
-      </widget>
-     </item>
     </layout>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SampleList</class>
+   <extends>QTableWidget</extends>
+   <header>SampleList.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="resources.qrc"/>
  </resources>

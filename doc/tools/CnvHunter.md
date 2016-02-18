@@ -1,5 +1,5 @@
 ### CnvHunter tool help
-	CnvHunter (0.1-52-g9f9161f)
+	CnvHunter (0.1-190-g94e4c3d)
 	
 	Detects copy number variations from targeted resequencing data using non-matched control samples.
 	
@@ -8,8 +8,6 @@
 	  -out <file>            Output TSV file containing the detected CNVs.
 	
 	Optional parameters:
-	  -genes <file>          BED file used to annotate gene names (from 4th column).
-	                         Default value: ''
 	  -out_reg <file>        If set, writes a BED file with region information (baq QC, excluded, good).
 	                         Default value: ''
 	  -n <int>               The number of most similar samples to consider.
@@ -40,6 +38,6 @@
 	Special parameters:
 	  --help                 Shows this help and exits.
 	  --version              Prints version and exits.
-	  --tdx                  Writes a Tool Defition Xml file. The file name is the application name appended with '.tdx'.
+	  --tdx                  Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 [back to ngs-bits](https://github.com/marc-sturm/ngs-bits)

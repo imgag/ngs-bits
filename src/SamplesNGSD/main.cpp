@@ -25,6 +25,7 @@ public:
 		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
 		addString("project", "Project name filter.", true, "");
 		addString("sys", "Processing system short name filter.", true, "");
+		addString("run", "Sequencing run name filter.", true, "");
 		addEnum("quality", "Minimum processed sample/sample/run quality filter.", true, QStringList() << "bad" << "medium" << "good", "bad");
 		addFlag("no_tumor", "If set, tumor samples are excluded.");
 		addFlag("no_ffpe", "If set, FFPE samples are excluded.");
@@ -50,7 +51,7 @@ public:
 		conditions << "p.id=ps.project_id";
 		conditions << "sys.id=ps.processing_system_id";
 		bool qc = getFlag("qc");
-		QStringList qc_cols = db.getValuesAsString("SELECT name FROM ngso ORDER BY ngso_id");
+		QStringList qc_cols = db.getValuesAsString("SELECT name FROM qc_terms ORDER BY qcml_id");
 
 		//filter project
 		QString project = escape(getString("project"));
@@ -73,9 +74,22 @@ public:
 			QVariant tmp = db.getValue("SELECT id FROM processing_system WHERE name_short='"+sys+ "'", true).toString();
 			if (tmp.isNull())
 			{
-				THROW(DatabaseException, "Invalid processing system short name '"+project+".\nValid names are: " + db.getValuesAsString("SELECT name_short FROM procesing_system").join(", "));
+				THROW(DatabaseException, "Invalid processing system short name '"+sys+".\nValid names are: " + db.getValuesAsString("SELECT name_short FROM processing_system").join(", "));
 			}
 			conditions << "sys.name_short='"+sys+"'";
+		}
+
+		//filter sequencing run
+		QString run = escape(getString("run"));
+		if (run!="")
+		{
+			//check that name is valid
+			QVariant tmp = db.getValue("SELECT id FROM sequencing_run WHERE name='"+run+ "'", true).toString();
+			if (tmp.isNull())
+			{
+				THROW(DatabaseException, "Invalid sequencing run name '"+run+".\nValid names are: " + db.getValuesAsString("SELECT name FROM sequencing_run").join(", "));
+			}
+			conditions << "r.name='"+run+"'";
 		}
 
 		//filter quality
@@ -194,7 +208,7 @@ public:
 			if (qc)
 			{
 				SqlQuery qc_res = db.getQuery();
-				qc_res.exec("SELECT n.name, nm.value FROM ngso n, nm_processed_sample_ngso nm WHERE nm.ngso_id=n.id AND nm.processed_sample_id='" + result.value(0).toString() + "' ORDER BY n.ngso_id");
+				qc_res.exec("SELECT n.name, nm.value FROM qc_terms n, processed_sample_qc nm WHERE nm.qc_terms_id=n.id AND nm.processed_sample_id='" + result.value(0).toString() + "' ORDER BY n.qcml_id");
 				QMap<QString, QString> qc_map;
 				while(qc_res.next())
 				{

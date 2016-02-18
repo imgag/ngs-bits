@@ -5,7 +5,6 @@
 ##reference=GRCh37.p9
 ##phasing=partial
 ##variationPropertyDocumentationUrl=ftp://ftp.ncbi.nlm.nih.gov/snp/specs/dbSNP_BitField_latest.pdf	
-##FILTER=<ID=NC,Description="Inconsistent Genotype Submission For At Least One Sample">
 ##DESCRIPTION=ID=ID of the variant, often dbSNP rsnumber
 ##DESCRIPTION=QUAL=Phred-scaled quality score
 ##DESCRIPTION=FILTER=Filter status
@@ -70,6 +69,7 @@
 ##DESCRIPTION=CLNDSDBID=Variant disease database ID
 ##DESCRIPTION=CLNDBN=Variant disease name
 ##DESCRIPTION=CLNACC=Variant Accession and Versions
+##FILTER=NC=Inconsistent Genotype Submission For At Least One Sample
 #chr	start	end	ref	obs	ID	QUAL	FILTER	RS	RSPOS	RV	VP	GENEINFO	dbSNPBuildID	SAO	SSR	GMAF	WGT	VC	PM	TPA	PMC	S3D	SLO	NSF	NSM	NSN	REF	SYN	U3	U5	ASS	DSS	INT	R3	R5	OTH	CFL	ASP	MUT	VLD	G5A	G5	HD	GNO	KGValidated	KGPhase1	KGPilot123	KGPROD	OTHERKG	PH3	CDA	LSD	MTP	OM	NOC	WTD	NOV	GCF	CLNHGVS	CLNALLE	CLNSRC	CLNORIGIN	CLNSRCID	CLNSIG	CLNDSDB	CLNDSDBID	CLNDBN	CLNACC
 1	985955	985955	G	C	rs199476396	.	.	199476396	985955		0x050260000a01000002110100	AGRN:375790	136	1	0		1	SNV	TRUE			TRUE			TRUE		TRUE																						TRUE			TRUE		TRUE					NC_000001.10:g.985955G>C	1	OMIM Allelic Variant	1	103320.0001	5	GeneReviews:NCBI:OMIM:Orphanet	NBK1168:C1850792:254300:590	Myasthenia\x2c limb-girdle\x2c familial	RCV000019902.1
 1	1199489	1199489	G	A	rs207460006	.	.	207460006	1199489		0x050060080001000002110100	UBE2J2:118424	136	0	0		1	SNV	TRUE														TRUE																TRUE			TRUE		TRUE					NC_000001.10:g.1199489G>A	1		2		1				

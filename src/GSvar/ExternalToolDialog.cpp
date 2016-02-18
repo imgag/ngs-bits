@@ -24,13 +24,7 @@ void ExternalToolDialog::browse()
 
 	QString tool = ui_.tool_name->text();
 
-	if (tool == "BedGeneOverlap")
-	{
-		QString filename = getFileName("Select BED file", "BED files (*.bed)");
-		if (filename=="") return;
-		startTool("-db " + Settings::string("kgxref_merged") + " -in " + filename);
-	}
-	else if (tool == "BedInfo")
+	if (tool == "BedInfo")
 	{
 		QString filename = getFileName("Select BED file", "BED files (*.bed)");
 		if (filename=="") return;

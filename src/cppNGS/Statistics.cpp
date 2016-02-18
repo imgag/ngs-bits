@@ -12,6 +12,7 @@
 #include "FastqFileStream.h"
 #include "LinePlot.h"
 #include "Helper.h"
+#include "ChromosomeInfo.h"
 
 #include "api/BamReader.h"
 using namespace BamTools;
@@ -135,15 +136,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
     //open BAM file
     BamReader reader;
     NGSHelper::openBAM(reader, bam_file);
-
-    //create reference name vector with QString
-    QVector<Chromosome> id_to_chr;
-    const RefVector& ref_data = reader.GetReferenceData();
-    id_to_chr.reserve(ref_data.size());
-    for (unsigned int i=0; i<ref_data.size(); ++i)
-    {
-        id_to_chr.append(Chromosome(ref_data[i].RefName));
-    }
+	ChromosomeInfo chr_info(reader);
 
     //create coverage statistics data structure
     long roi_bases = 0;
@@ -181,18 +174,22 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
     BamAlignment al;
     while (reader.GetNextAlignmentCore(al))
     {
+		//skip secondary alignments
+		if (!al.IsPrimaryAlignment()) continue;
+
         ++al_total;
         max_length = std::max(max_length, al.Length);
 
-		if (al.IsPaired() && al.IsPrimaryAlignment())
+		if (al.IsPaired())
         {
             paired_end = true;
 
             if (al.IsProperPair())
             {
                 ++al_proper_paired;
-				insert_size_sum += abs(al.InsertSize);
-				int bin = std::min(abs(al.InsertSize)/5, 239); //upper bound of plot at 1200
+				int insert_size = std::min(abs(al.InsertSize), 999); //cap insert size at 1000
+				insert_size_sum += insert_size;
+				int bin = insert_size/5;
 				if (insert_dist.count()<=bin) insert_dist.resize(bin+1);
 				insert_dist[bin] += 1;
             }
@@ -202,14 +199,14 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
         {
             ++al_mapped;
 
-            const Chromosome& chr = id_to_chr[al.RefID];
+			const Chromosome& chr = chr_info.chromosome(al.RefID);
             int end_position = al.GetEndPosition();
             QVector<int> indices = roi_index.matchingIndices(chr, al.Position+1, end_position);
             if (indices.count()!=0)
             {
                 ++al_ontarget;
 
-				if (al.IsPrimaryAlignment() && !al.IsDuplicate() && al.MapQuality>=min_mapq)
+				if (!al.IsDuplicate() && al.MapQuality>=min_mapq)
                 {
                     foreach(int index, indices)
                     {
@@ -272,7 +269,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
     }
     if (al_dup==0)
     {
-		output.insert(QCValue("duplicate read percentage", "n/a (probably removed from BAM during data analysis)", "Percentage of reads removed because they were duplicates (PCR, optical, etc).", "QC:2000024"));
+		output.insert(QCValue("duplicate read percentage", "n/a (no duplicates marked or duplicates removed during data analysis)", "Percentage of reads removed because they were duplicates (PCR, optical, etc).", "QC:2000024"));
     }
     else
     {
@@ -307,51 +304,34 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	QFile::remove(plotname);
 
 	//add insert size distribution plot
-	LinePlot plot2;
-	plot2.setXLabel("insert size");
-	plot2.setYLabel("reads [%]");
-	plot2.setXValues(BasicStatistics::range(insert_dist.count(), 2.0, 5.0));
-	double insert_count = std::accumulate(insert_dist.begin(), insert_dist.end(), 0.0);
-	for (int i=0; i<insert_dist.count(); ++i)
+	if (paired_end)
 	{
-		insert_dist[i] = 100.0 * insert_dist[i] / insert_count;
-	}
-	plot2.addLine(insert_dist, "");
+		LinePlot plot2;
+		plot2.setXLabel("insert size");
+		plot2.setYLabel("reads [%]");
+		plot2.setXValues(BasicStatistics::range(insert_dist.count(), 2.0, 5.0));
+		double insert_count = std::accumulate(insert_dist.begin(), insert_dist.end(), 0.0);
+		for (int i=0; i<insert_dist.count(); ++i)
+		{
+			insert_dist[i] = 100.0 * insert_dist[i] / insert_count;
+		}
+		plot2.addLine(insert_dist, "");
 
-	plotname = Helper::tempFileName(".png");
-	plot2.store(plotname);
-	output.insert(QCValue::Image("insert size distribution plot", plotname, "Insert size distribution plot.", "QC:2000038"));
-	QFile::remove(plotname);
+		plotname = Helper::tempFileName(".png");
+		plot2.store(plotname);
+		output.insert(QCValue::Image("insert size distribution plot", plotname, "Insert size distribution plot.", "QC:2000038"));
+		QFile::remove(plotname);
+	}
 
     return output;
 }
 
-QCCollection Statistics::mapping(const QString& genome, const QString &bam_file, int min_mapq)
+QCCollection Statistics::mapping(const QString &bam_file, int min_mapq)
 {
-    double roi_bases = -1;
-    if (genome=="hg19")
-    {
-        roi_bases = 3137177833.0;
-    }
-    else
-    {
-        THROW(ArgumentException, "Unknown genome build '" + genome + "'!");
-    }
-
     //open BAM file
     BamReader reader;
     NGSHelper::openBAM(reader, bam_file);
-
-    //create reference name vector with QString
-    QSet<int> nonspecial_chrs;
-    const RefVector& ref_data = reader.GetReferenceData();
-    for (unsigned int i=0; i<ref_data.size(); ++i)
-    {
-        if (Chromosome(ref_data[i].RefName).isNonSpecial())
-        {
-            nonspecial_chrs.insert(i);
-        }
-    }
+	ChromosomeInfo chr_info(reader);
 
     //init counts
     int al_total = 0;
@@ -360,7 +340,7 @@ QCCollection Statistics::mapping(const QString& genome, const QString &bam_file,
     int al_dup = 0;
     int al_proper_paired = 0;
     double bases_trimmed = 0;
-    double insert_size_sum = 0;
+	double insert_size_sum = 0;
 	QVector<double> insert_dist;
     double bases_overlap_roi = 0;
     int max_length = 0;
@@ -369,19 +349,23 @@ QCCollection Statistics::mapping(const QString& genome, const QString &bam_file,
     //iterate through all alignments
     BamAlignment al;
     while (reader.GetNextAlignmentCore(al))
-    {
+	{
+		//skip secondary alignments
+		if (!al.IsPrimaryAlignment()) continue;
+
         ++al_total;
         max_length = std::max(max_length, al.Length);
 
-		if (al.IsPaired() && al.IsPrimaryAlignment())
+		if (al.IsPaired())
         {
             paired_end = true;
 
             if (al.IsProperPair())
             {
 				++al_proper_paired;
-				insert_size_sum += abs(al.InsertSize);
-				int bin = std::min(abs(al.InsertSize)/5, 239); //upper bound of plot at 1200
+				int insert_size = std::min(abs(al.InsertSize),  999); //cap insert size at 1000
+				insert_size_sum += insert_size;
+				int bin = insert_size/5;
 				if (insert_dist.count()<=bin) insert_dist.resize(bin+1);
 				insert_dist[bin] += 1;
             }
@@ -391,11 +375,11 @@ QCCollection Statistics::mapping(const QString& genome, const QString &bam_file,
         {
             ++al_mapped;
 
-            if (nonspecial_chrs.contains(al.RefID))
+			if (chr_info.chromosome(al.RefID).isNonSpecial())
             {
                 ++al_ontarget;
 
-				if (al.IsPrimaryAlignment() && !al.IsDuplicate() && al.MapQuality>=min_mapq)
+				if (!al.IsDuplicate() && al.MapQuality>=min_mapq)
 				{
                     bases_overlap_roi += al.Length;
                 }
@@ -438,24 +422,27 @@ QCCollection Statistics::mapping(const QString& genome, const QString &bam_file,
     {
 		output.insert(QCValue("duplicate read percentage", 100.0 * al_dup / al_total, "Percentage of reads removed because they were duplicates (PCR, optical, etc).", "QC:2000024"));
     }
-	output.insert(QCValue("target region read depth", bases_overlap_roi / roi_bases, "Average sequencing depth in target region.", "QC:2000025"));
+	output.insert(QCValue("target region read depth", bases_overlap_roi / chr_info.genomeSize(true), "Average sequencing depth in target region.", "QC:2000025"));
 
 	//add insert size distribution plot
-	LinePlot plot2;
-	plot2.setXLabel("insert size");
-	plot2.setYLabel("reads [%]");
-	plot2.setXValues(BasicStatistics::range(insert_dist.count(), 2.0, 5.0));
-	double insert_count = std::accumulate(insert_dist.begin(), insert_dist.end(), 0.0);
-	for (int i=0; i<insert_dist.count(); ++i)
+	if (paired_end)
 	{
-		insert_dist[i] = 100.0 * insert_dist[i] / insert_count;
-	}
-	plot2.addLine(insert_dist, "");
+		LinePlot plot2;
+		plot2.setXLabel("insert size");
+		plot2.setYLabel("reads [%]");
+		plot2.setXValues(BasicStatistics::range(insert_dist.count(), 2.0, 5.0));
+		double insert_count = std::accumulate(insert_dist.begin(), insert_dist.end(), 0.0);
+		for (int i=0; i<insert_dist.count(); ++i)
+		{
+			insert_dist[i] = 100.0 * insert_dist[i] / insert_count;
+		}
+		plot2.addLine(insert_dist, "");
 
-	QString plotname = Helper::tempFileName(".png");
-	plot2.store(plotname);
-	output.insert(QCValue::Image("insert size distribution plot", plotname, "Insert size distribution plot.", "QC:2000038"));
-	QFile::remove(plotname);
+		QString plotname = Helper::tempFileName(".png");
+		plot2.store(plotname);
+		output.insert(QCValue::Image("insert size distribution plot", plotname, "Insert size distribution plot.", "QC:2000038"));
+		QFile::remove(plotname);
+	}
 
     return output;
 }
@@ -594,64 +581,55 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
     //check target region is merged/sorted and create index
     if (!bed_file.isMergedAndSorted())
     {
-        THROW(ArgumentException, "Merged and sorted BED file required for coverage details statistics!");
+		THROW(ArgumentException, "Merged and sorted BED file required for low-coverage statistics!");
     }
-    ChromosomalIndex<BedFile> roi_index(bed_file);
 
     //open BAM file
     BamReader reader;
     NGSHelper::openBAM(reader, bam_file);
+	ChromosomeInfo chr_info(reader);
 
-	//calculate statistics for each (used) chromosome separately
-	QSet<Chromosome> chroms = bed_file.chromosomes();
-	foreach(const Chromosome& chr, chroms)
+	//init datastructures
+	QVector<int> roi_cov;
+	BamAlignment al;
+
+	//iterate trough all regions (i.e. exons in most cases)
+	for (int i=0; i<bed_file.count(); ++i)
 	{
-		//init coverage statistics data structure
-		QMap<int, int> roi_cov;
-		for (int i=0; i<bed_file.count(); ++i)
-		{
-			if (bed_file[i].chr()!=chr) continue;
+		const BedLine& bed_line = bed_file[i];
+		const int start = bed_line.start();
+		//qDebug() << bed_line.chr().str().constData() << ":" << bed_line.start() << "-" << bed_line.end();
 
-			for(int p=bed_file[i].start(); p<=bed_file[i].end(); ++p)
-			{
-				roi_cov.insert(p, 0);
-			}
-		}
+		//init coverage statistics
+		roi_cov.fill(0, bed_line.length());
 
-		//iterate through all alignments on the chromosome
-		int ref_id = NGSHelper::getRefID(reader, chr);
-		bool jump_ok = reader.SetRegion(ref_id, 0, ref_id, reader.GetReferenceData()[ref_id].RefLength);
+		//jump to region
+		int ref_id = chr_info.refID(bed_line.chr());
+		bool jump_ok = reader.SetRegion(ref_id, bed_line.start()-1, ref_id, bed_line.end());
 		if (!jump_ok) THROW(FileAccessException, QString::fromStdString(reader.GetErrorString()));
 
-		BamAlignment al;
+		//iterate through all alignments
 		while (reader.GetNextAlignmentCore(al))
 		{
 			if (al.IsDuplicate()) continue;
 			if (!al.IsPrimaryAlignment()) continue;
 			if (!al.IsMapped() || al.MapQuality<min_mapq) continue;
 
-			int end_position = al.GetEndPosition();
-			QVector<int> indices = roi_index.matchingIndices(chr, al.Position+1, end_position);
-			foreach(int index, indices)
+			const int ol_start = std::max(start, al.Position+1) - start;
+			const int ol_end = std::min(bed_line.end(), al.GetEndPosition()) - start;
+			for (int p=ol_start; p<=ol_end; ++p)
 			{
-				int ol_start = std::max(bed_file[index].start(), al.Position+1);
-				int ol_end = std::min(bed_file[index].end(), end_position);
-				for (int p=ol_start; p<=ol_end; ++p)
-				{
-					roi_cov[p] += 1;
-				}
+				++roi_cov[p];
 			}
 		}
 
-		//calculate coverage statistics
+		//create low-coverage regions file
 		BedFile tmp;
-		QMapIterator<int, int> it(roi_cov);
-		while(it.hasNext())
+		for (int p=0; p<roi_cov.count(); ++p)
 		{
-			it.next();
-			if (it.value()<cutoff)
+			if (roi_cov[p]<cutoff)
 			{
-				tmp.append(BedLine(chr, it.key(), it.key()));
+				tmp.append(BedLine(bed_line.chr(), p+start, p+start));
 			}
 		}
 
@@ -675,15 +653,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
     //open BAM file
     BamReader reader;
     NGSHelper::openBAM(reader, bam_file);
-
-    //create reference name vector with QString
-    QVector<Chromosome> id_to_chr;
-    const RefVector& ref_data = reader.GetReferenceData();
-    id_to_chr.reserve(ref_data.size());
-    for (unsigned int i=0; i<ref_data.size(); ++i)
-    {
-        id_to_chr.append(Chromosome(ref_data[i].RefName));
-    }
+	ChromosomeInfo chr_info(reader);
 
     //init coverage statistics data structure
     QVector<long> cov;
@@ -698,7 +668,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 		if (!al.IsPrimaryAlignment()) continue;
         if (!al.IsMapped() || al.MapQuality<min_mapq) continue;
 
-		const Chromosome& chr = id_to_chr[al.RefID];
+		const Chromosome& chr = chr_info.chromosome(al.RefID);
         int end_position = al.GetEndPosition();
         QVector<int> indices = bed_idx.matchingIndices(chr, al.Position+1, end_position);
         foreach(int index, indices)
@@ -722,8 +692,8 @@ QString Statistics::genderXY(const QString& bam_file, QStringList& debug_output,
     NGSHelper::openBAM(reader, bam_file);
 
     //get RefID of X and Y chromosome
-    int chrx = NGSHelper::getRefID(reader, "chrX");
-    int chry = NGSHelper::getRefID(reader, "chrY");
+	int chrx = ChromosomeInfo::refID(reader, "chrX");
+	int chry = ChromosomeInfo::refID(reader, "chrY");
 
     //restrict to X and Y chromosome
 	bool jump_ok = reader.SetRegion(chrx, 0, chry, reader.GetReferenceData()[chry].RefLength);
@@ -765,7 +735,7 @@ QString Statistics::genderHetX(const QString& bam_file, QStringList& debug_outpu
     NGSHelper::openBAM(reader, bam_file);
 
     //restrict to X chromosome
-    int chrx = NGSHelper::getRefID(reader, "chrX");
+	int chrx = ChromosomeInfo::refID(reader, "chrX");
 	bool jump_ok = reader.SetRegion(chrx, 0, chrx, reader.GetReferenceData()[chrx].RefLength);
 	if (!jump_ok) THROW(FileAccessException, QString::fromStdString(reader.GetErrorString()));
 
@@ -848,7 +818,7 @@ QString Statistics::genderSRY(const QString& bam_file, QStringList& debug_output
 	NGSHelper::openBAM(reader, bam_file);
 
 	//restrict to SRY gene
-	int chry = NGSHelper::getRefID(reader, "chrY");
+	int chry = ChromosomeInfo::refID(reader, "chrY");
 	int start = 2655031;
 	int end = 2655641;
 	bool jump_ok = reader.SetRegion(chry, start, chry, end);

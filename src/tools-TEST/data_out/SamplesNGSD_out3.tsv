@@ -1,3 +1,3 @@
 #ps.name	s.name_external	s.gender	s.quality	s.tumor	s.ffpe	ps.quality	ps.last_analysis	sys.name_short	p.name	p.type	r.name	r.fcid	r.recipe	r.quality	check_path
-NA12878_01		female	good	0	0	bad	2015-10-30	hpSYSv1	First project	research	First run	ABC	100+8+8+100	good	not found
-NA12878_02		female	good	0	0	n/a		ssHAEv5	Second project	diagnostic	Second run	XYZ	100+8+100	good	not found
+NA12878_01		female	good	0	0	bad	2015-10-30	hpSYSv1	First project	research	run1	ABC	100+8+8+100	good	not found
+NA12878_02		female	good	0	0	n/a		ssHAEv5	Second project	diagnostic	run2	XYZ	100+8+100	good	not found

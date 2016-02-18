@@ -54,6 +54,7 @@ public:
 		while(!in.atEnd())
 		{
 			QList<QByteArray> parts = in.readLine();
+			if (parts.count()==0) continue;
 			for(int i=0; i<col_count; ++i)
 			{
 				out->write(parts[cols[i]]);

@@ -21,10 +21,10 @@ public:
 	~RunPlanner();
 
 private slots:
-	void debug();
 	void runChanged(int index);
 	void laneChanged(int index);
 	void addItem();
+	void pasteItems();
 	void removeSelectedItems();
 	void clearVisualOutput();
 	void checkForMidCollisions();
@@ -37,8 +37,6 @@ private:
 	void updateRunData();
 	QString midToString(const GDBO& mid);
 	static QList<int> setToSortedList(const QSet<int>& set);
-	static QTableWidgetItem* readOnlyItem(QString text);
-	static QTableWidgetItem* readWriteItem(QString text);
 	void loadRunsFromNGSD();
 
 	Ui::RunPlanner* ui;

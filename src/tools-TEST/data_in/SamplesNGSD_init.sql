@@ -3,8 +3,8 @@
 INSERT INTO device (id, type, name) VALUES (1, 'HiSeq', 'Morpheus');
 
 -- sequencing_run
-INSERT INTO sequencing_run (id, name, fcid, device_id, recipe, quality) VALUES (1, 'First run', 'ABC', 1, '100+8+8+100', 'good');
-INSERT INTO sequencing_run (id, name, fcid, device_id, recipe, quality) VALUES (2, 'Second run', 'XYZ', 1, '100+8+100', 'good');
+INSERT INTO sequencing_run (id, name, fcid, device_id, recipe, quality) VALUES (1, 'run1', 'ABC', 1, '100+8+8+100', 'good');
+INSERT INTO sequencing_run (id, name, fcid, device_id, recipe, quality) VALUES (2, 'run2', 'XYZ', 1, '100+8+100', 'good');
 
 -- user
 INSERT INTO user (id, user_id, password, user_role, name, email, created, active) VALUES (2, 'ahuser', 's2d12kjg234hla0830t6hp9h3tt3t3tsdfg', 'user', 'The user', 'u@s.er', CURDATE(), '1');
@@ -27,15 +27,15 @@ INSERT INTO sample (id, name, sample_type, species_id, gender, tumor, ffpe, send
 INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane, operator_id, processing_system_id, project_id, last_analysis, quality) VALUES (1, 1, 1, 1, 1, 2, 1, 1, '2015-10-30', 'bad');
 INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane, operator_id, processing_system_id, project_id) VALUES (2, 1, 2, 2, 1, 2, 2, 2);
 
--- ngso
-INSERT INTO `ngso` (`id`, `ngso_id`, `name`, `description`) VALUES
+-- qc_terms
+INSERT INTO `qc_terms` (`id`, `qcml_id`, `name`, `description`) VALUES
 (4, 'QC:2000023', 'insert size', 'Average insert size (for paired-end reads only).'),
 (47, 'QC:2000025', 'target region read depth', 'Average sequencing depth in target region.'),
 (19, 'QC:2000026', 'target region 10x percentage', 'Percentage the target region that is covered at least 10-fold.'),
 (31, 'QC:2000027', 'target region 20x percentage', 'Percentage the target region that is covered at least 20-fold.');
 
--- nm_processed_sample_ngso
-INSERT INTO `nm_processed_sample_ngso` (`processed_sample_id`, `ngso_id`, `value`) VALUES
+-- processed_sample_qc
+INSERT INTO `processed_sample_qc` (`processed_sample_id`, `qc_terms_id`, `value`) VALUES
 (1, 4, '157.34'),
 (1, 47, '456.33'),
 (1, 19, '98.98'),

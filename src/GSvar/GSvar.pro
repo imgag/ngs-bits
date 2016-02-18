@@ -16,7 +16,10 @@ SOURCES += main.cpp\
     TrioDialog.cpp \
     HttpHandler.cpp \
     ValidationDialog.cpp \
+    ClassificationDialog.cpp \
     DBAnnotationWorker.cpp \
+    FilterColumnWidget.cpp \
+    ApprovedGenesDialog.cpp
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
@@ -27,7 +30,10 @@ HEADERS  += MainWindow.h \
     TrioDialog.h \
     HttpHandler.h \
     ValidationDialog.h \
+    ClassificationDialog.h \
     DBAnnotationWorker.h \
+    FilterColumnWidget.h \
+    ApprovedGenesDialog.h
 
 
 FORMS    += MainWindow.ui \
@@ -36,7 +42,10 @@ FORMS    += MainWindow.ui \
     ReportDialog.ui \
 	SampleInformationDialog.ui \
     TrioDialog.ui \
-    ValidationDialog.ui
+    ClassificationDialog.ui \
+    ValidationDialog.ui \
+    FilterColumnWidget.ui \
+    ApprovedGenesDialog.ui
     
 
 include("../app_gui.pri")
@@ -48,3 +57,7 @@ LIBS += -L$$PWD/../bin -lcppNGSD
 
 RESOURCES += \
     resources.qrc
+
+DISTFILES += \
+    Icons/Keep_gray.png \
+    Icons/Remove_gray.png

@@ -1,5 +1,5 @@
 ### VcfLeftAlign tool help
-	VcfLeftAlign (0.1-52-g9f9161f)
+	VcfLeftAlign (0.1-190-g94e4c3d)
 	
 	Shifts indels in a variant list as far to the left as possible. Complex indels and multi-allelic deletions are not shifted!
 	
@@ -14,6 +14,6 @@
 	Special parameters:
 	  --help      Shows this help and exits.
 	  --version   Prints version and exits.
-	  --tdx       Writes a Tool Defition Xml file. The file name is the application name appended with '.tdx'.
+	  --tdx       Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 [back to ngs-bits](https://github.com/marc-sturm/ngs-bits)

@@ -20,6 +20,7 @@
 #include <QInputDialog>
 #include <QClipboard>
 #include <QProgressBar>
+#include <QToolButton>
 #include "ReportWorker.h"
 #include "DBAnnotationWorker.h"
 #include "SampleInformationDialog.h"
@@ -28,7 +29,9 @@
 #include "TrioDialog.h"
 #include "HttpHandler.h"
 #include "ValidationDialog.h"
+#include "ClassificationDialog.h"
 #include "BasicStatistics.h"
+#include "ApprovedGenesDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -44,6 +47,19 @@ MainWindow::MainWindow(QWidget *parent)
 	setWindowTitle(QCoreApplication::applicationName());
 	addDockWidget(Qt::RightDockWidgetArea, filter_widget_);
 	filter_widget_->raise();
+
+    //filter menu button
+    auto filter_btn = new QToolButton();
+    filter_btn->setIcon(QIcon(":/Icons/Filter.png"));
+    filter_btn->setMenu(new QMenu());
+    filter_btn->menu()->addAction(ui_.actionFiltersGermline);
+    connect(ui_.actionFiltersGermline, SIGNAL(triggered(bool)), this, SLOT(applyDefaultFiltersGermline()));
+    filter_btn->menu()->addAction(ui_.actionFiltersSomatic);
+    connect(ui_.actionFiltersSomatic, SIGNAL(triggered(bool)), this, SLOT(applyDefaultFiltersSomatic()));
+    filter_btn->menu()->addAction(ui_.actionFiltersClear);
+    connect(ui_.actionFiltersClear, SIGNAL(triggered(bool)), this, SLOT(clearFilters()));
+    filter_btn->setPopupMode(QToolButton::InstantPopup);
+    ui_.tools->insertWidget(ui_.actionReport, filter_btn);
 
 	//signals and slots
 	connect(ui_.actionClose, SIGNAL(triggered()), this, SLOT(close()));
@@ -112,7 +128,7 @@ void MainWindow::delayedInizialization()
 void MainWindow::handleInputFileChange()
 {
 	QMessageBox::information(this, "GSvar file changed", "The input file changed.\nIt is reloaded now!");
-	loadFile(filename_, false);
+	loadFile(filename_);
 }
 
 void MainWindow::on_actionOpen_triggered()
@@ -134,11 +150,11 @@ void MainWindow::on_actionChangeLog_triggered()
 	dlg.exec();
 }
 
-void MainWindow::loadFile(QString filename, bool show_sample_info_dialog)
+void MainWindow::loadFile(QString filename)
 {
 	//reset GUI and data structures
 	setWindowTitle(QCoreApplication::applicationName());
-	filter_widget_->reset();
+	filter_widget_->reset(true);
 	filename_ = "";
 	filewatcher_.clearFile();
 	db_annos_updated_ = false;
@@ -153,6 +169,7 @@ void MainWindow::loadFile(QString filename, bool show_sample_info_dialog)
 	try
 	{
 		variants_.load(filename);
+		filter_widget_->setFilterColumns(variants_.filters());
 
 		//update data structures
 		Settings::setPath("path_variantlists", filename);
@@ -165,18 +182,17 @@ void MainWindow::loadFile(QString filename, bool show_sample_info_dialog)
 
 		variantListChanged();
 		QApplication::restoreOverrideCursor();
-
-		//show sample info dialog
-		if (show_sample_info_dialog)
-		{
-			SampleInformationDialog dialog(this, filename_);
-			dialog.exec();
-		}
 	}
 	catch(Exception& e)
 	{
 		QApplication::restoreOverrideCursor();
 		QMessageBox::warning(this, "Error", "Loading the file '" + filename + "' or displaying the contained variants failed!\nError message:\n" + e.message());
+	}
+
+	//warn if no 'filter' column is present
+	if (variants_.annotationIndexByName("filter", true, false)==-1)
+	{
+		QMessageBox::warning(this, "Error: 'filter' column missing", "GSvar file does not contains the required 'filter' column.\nRun reanalysis starting from annotation using the sample information dialog!");
 	}
 }
 
@@ -347,10 +363,21 @@ void MainWindow::databaseAnnotationFinished(bool success)
 	worker->deleteLater();
 }
 
-void MainWindow::on_actionFilters_triggered()
+void MainWindow::applyDefaultFiltersGermline()
 {
 	filter_widget_->applyDefaultFilters();
-	on_actionResize_triggered();
+    on_actionResize_triggered();
+}
+
+void MainWindow::applyDefaultFiltersSomatic()
+{
+    filter_widget_->applyDefaultFiltersSomatic();
+    on_actionResize_triggered();
+}
+
+void MainWindow::clearFilters()
+{
+	filter_widget_->reset(false);
 }
 
 void MainWindow::on_actionNGSD_triggered()
@@ -398,12 +425,6 @@ void MainWindow::on_actionStatisticsBED_triggered()
 void MainWindow::on_actionStatisticsFastA_triggered()
 {
 	ExternalToolDialog dialog("FastaInfo", "", this);
-	dialog.exec();
-}
-
-void MainWindow::on_actionGeneListBED_triggered()
-{
-	ExternalToolDialog dialog("BedGeneOverlap", "", this);
 	dialog.exec();
 }
 
@@ -535,7 +556,10 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 	QString output;
 	QTextStream stream(&output);
+	QString sample_name = QFileInfo(bam_file).fileName().replace(".bam", "");
+	ReportWorker::writeHtmlHeader(stream, sample_name);
 	ReportWorker::writeCoverageReport(stream, bam_file, roi, genes, min_cov);
+	ReportWorker::writeHtmlFooter(stream);
 	QApplication::restoreOverrideCursor();
 
 	//show output
@@ -659,6 +683,17 @@ void MainWindow::on_actionImportTranscripts_triggered()
 
 	//update in-memory copy of preferred transcripts
 	updatePreferredTranscripts();
+}
+
+void MainWindow::on_actionOpenDocumentation_triggered()
+{
+	QDesktopServices::openUrl(QUrl("https://github.com/marc-sturm/ngs-bits/tree/master/doc/GSvar/index.md"));
+}
+
+void MainWindow::on_actionConvertHgnc_triggered()
+{
+	ApprovedGenesDialog dlg(this);
+	dlg.exec();
 }
 
 void MainWindow::on_actionCopy_triggered()
@@ -800,7 +835,17 @@ void MainWindow::variantListChanged()
 	{
 		QString anno = variants_.annotations()[i].name();
 		QTableWidgetItem* header = new QTableWidgetItem(anno);
-		header->setToolTip(variants_.annotations()[i].description());
+		QString add_desc = "";
+		if (anno=="filter")
+		{
+			auto it = variants_.filters().cbegin();
+			while (it!=variants_.filters().cend())
+			{
+				add_desc += "\n - "+it.key() + ": " + it.value();
+				++it;
+			}
+		}
+		header->setToolTip(variants_.annotations()[i].description() + add_desc);
 		ui_.vars->setHorizontalHeaderItem(i+5, header);
 		//link columns
 		QStringList link_cols;
@@ -892,7 +937,7 @@ void MainWindow::variantListChanged()
 				item->setBackgroundColor(Qt::red);
 				is_warning_line = true;
 			}
-			else if (j==i_clinvar && (anno.contains("[pathogenic]") || anno.contains("[probable-pathogenic]")))
+			else if (j==i_clinvar && anno.contains("pathogenic")) //matches "pathogenic" and "likely pathogenic"
 			{
 				item->setBackgroundColor(Qt::red);
 				is_warning_line = true;
@@ -990,12 +1035,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 	sub_menu->addAction("Search for position in NGSD");
 	sub_menu->addSeparator();
 	sub_menu->addAction("Set validation status");
-	QMenu* sub_sub_menu = sub_menu->addMenu("Set classification");
-	QStringList vus_enum = NGSD().getEnum("variant", "vus");
-	foreach(QString entry, vus_enum)
-	{
-		sub_sub_menu->addAction(entry);
-	}
+	sub_menu->addAction("Set classification");
 	sub_menu->addAction("Edit comment");
 	menu.addAction(QIcon("://Icons/PrimerDesign.png"), "PrimerDesign");
 
@@ -1004,8 +1044,6 @@ void MainWindow::varsContextMenu(QPoint pos)
 	if (!action) return;
 
 	QByteArray text = action->text().toLatin1();
-	QString text_menu = qobject_cast<QMenu*>(action->parent())->title();
-
 	if (text=="Open annotation website")
 	{
 		QString header = ui_.vars->horizontalHeaderItem(item->column())->text();
@@ -1213,43 +1251,27 @@ void MainWindow::varsContextMenu(QPoint pos)
 			variantListChanged();
 		}
 	}
-	else if (text_menu=="Set classification")
+	else if (text=="Set classification")
 	{
-		//check if multiselect
-		QModelIndexList selection = ui_.vars->selectionModel()->selectedRows();
-		bool multi_set = false;
-		if (selection.count()>1)
-		{
-			if (QMessageBox::question(this, "Set VUS for multiple variants?", QString::number(selection.count()) + " variant rows are selected. Set VUS for them all?")==QMessageBox::Yes)
-			{
-				multi_set = true;
-			}
-		}
-
 		//update DB
-		try
-		{
-			if (multi_set)
-			{
-				for (int i=0; i<selection.count(); ++i)
-				{
-					NGSD().setClassification(variants_[selection.at(i).row()], text);
-				}
-			}
-			else
-			{
-				NGSD().setClassification(variants_[item->row()], text);
-			}
-		}
-		catch (DatabaseException e)
-		{
-			GUIHelper::showMessage("NGSD error", e.message());
-			return;
-		}
+		ClassificationDialog dlg(this, variants_[item->row()]);
 
-		//update GUI
-		variants_[item->row()].annotations()[variants_.annotationIndexByName("classification", true, true)] = text;
-		variantListChanged();
+		if (dlg.exec())
+		{
+			try
+			{
+				NGSD().setClassification(variants_[item->row()], dlg.classification(), dlg.comment());
+			}
+			catch (DatabaseException e)
+			{
+				GUIHelper::showMessage("NGSD error", e.message());
+				return;
+			}
+
+			//update GUI
+			variants_[item->row()].annotations()[variants_.annotationIndexByName("classification", true, true)] = dlg.classification().toLatin1();
+			variantListChanged();
+		}
 	}
 	else if (text=="Edit comment")
 	{
@@ -1468,25 +1490,6 @@ void MainWindow::filtersChanged()
 			}
 		}
 
-		//VUS filter
-		int i_class = variants_.annotationIndexByName("classification", true, true);
-		if (filter_widget_->applyVus())
-		{
-			int min_vus = filter_widget_->vus();
-			for(int i=0; i<variants_.count(); ++i)
-			{
-				if (!pass[i]) continue;
-
-				const QString& classification = variants_[i].annotations()[i_class];
-				if (classification=="M") continue; //M always passes
-
-				bool ok = false;
-				int classification_value = classification.toInt(&ok);
-
-				pass[i] = !ok || classification_value>=min_vus;
-			}
-		}
-
 		//genotype filter
 		if (filter_widget_->applyGenotype())
 		{
@@ -1505,73 +1508,118 @@ void MainWindow::filtersChanged()
 			int i_trio = variants_.annotationIndexByName("trio", true, true);
 			for(int i=0; i<variants_.count(); ++i)
 			{
-				pass[i] = pass[i] && !variants_[i].annotations()[i_trio].isEmpty();
+				if (!pass[i]) continue;
+				pass[i] = !variants_[i].annotations()[i_trio].isEmpty();
 			}
 		}
 
-		//prevent important variants from beeing filtered out
-		if (filter_widget_->keepImportant())
-		{
+        //filter columns(remove, keep)
+		QList<QByteArray> remove = filter_widget_->filterColumnsRemove();
+		QList<QByteArray> keep = filter_widget_->filterColumnsKeep();
+		if (remove.count()>0 || keep.count()>0)
+        {
 			for(int i=0; i<variants_.count(); ++i)
 			{
-				//warning (red)
-				if (!pass[i] && ui_.vars->verticalHeaderItem(i)!=0 && ui_.vars->verticalHeaderItem(i)->foreground().color()==Qt::red)
+                const QList<QByteArray>& filters = variants_[i].filters();
+                if(filters.isEmpty()) continue;
+
+				if (!pass[i])
 				{
-					pass[i] = true;
+					foreach(const QByteArray& f, filters)
+					{
+						if (keep.contains(f)) pass[i] = true;
+					}
 				}
-				//notice (orange)
-				if (!pass[i] && ui_.vars->verticalHeaderItem(i)!=0 && ui_.vars->verticalHeaderItem(i)->foreground().color()==QColor(255, 135, 60))
+
+				if (pass[i])
 				{
-					pass[i] = true;
+					foreach(const QByteArray& f, filters)
+					{
+						if (remove.contains(f)) pass[i] = false;
+					}
 				}
 			}
 		}
 
-		//quality filter
-		if (filter_widget_->applyQuality())
+		//remove variants with low classification
+		if (filter_widget_->applyClassification())
 		{
-			int i_qual = variants_.annotationIndexByName("quality", true, true);
-
+			int i_class = variants_.annotationIndexByName("classification", true, true);
+			int min_class = filter_widget_->classification();
 			for(int i=0; i<variants_.count(); ++i)
 			{
 				if (!pass[i]) continue;
 
-				QList<QByteArray> qual_parts = variants_[i].annotations()[i_qual].split(';');
-				foreach(const QByteArray& part, qual_parts)
+				const QByteArray& classification = variants_[i].annotations()[i_class];
+				if (classification=="A")
 				{
-					QList<QByteArray> key_value = part.split('=');
-					if (key_value.count()!=2 || !BasicStatistics::isValidFloat(key_value[1]))
-					{
-						THROW(ArgumentException, "Cannot parse quality column part '" + part + "'");
-					}
-					if ((key_value[0]=="QUAL" && key_value[1].toDouble()<100)
-						||
-						(key_value[0]=="MQM" && key_value[1].toDouble()<50)
-						||
-						(key_value[0]=="AF" && key_value[1].toDouble()<0.25)
-						||
-						(key_value[0]=="DP" && key_value[1].toDouble()<20)
-						)
-					{
-						pass[i] = false;
-					}
+					pass[i] = false;
+					continue;
 				}
+
+				bool ok = false;
+				int classification_value = variants_[i].annotations()[i_class].toInt(&ok);
+				if (!ok) continue;
+
+				pass[i] = (classification_value>=min_class);
 			}
 		}
 
-		//prevent class 4/5 variants from being filtered out by any filter
-		for(int i=0; i<variants_.count(); ++i)
+		//prevent class>=X variants from beeing filtered out by any filter (except region/gene filters)
+		if (filter_widget_->keepClassGreaterEqual()!=-1)
 		{
-			const QString& classification = variants_[i].annotations()[i_class];
-
-			if (classification=="4" || classification=="5")
+			int i_class = variants_.annotationIndexByName("classification", true, true);
+			int min_class = filter_widget_->keepClassGreaterEqual();
+			for(int i=0; i<variants_.count(); ++i)
 			{
-				pass[i] = true;
+				if (pass[i]) continue;
+
+				bool ok = false;
+				int classification_value = variants_[i].annotations()[i_class].toInt(&ok);
+				if (!ok) continue;
+
+				pass[i] = (classification_value>=min_class);
 			}
 		}
 
-		Log::perf("Applying annotation filter took ", timer);
-		timer.start();
+		//prevent class M variants from beeing filtered out by any filter (except region/gene filters)
+		if (filter_widget_->keepClassM())
+		{
+			int i_class = variants_.annotationIndexByName("classification", true, true);
+			for(int i=0; i<variants_.count(); ++i)
+			{
+                if (pass[i]) continue;
+
+				pass[i] = (variants_[i].annotations()[i_class]=="M");
+			}
+        }
+
+        //filter columns (filter)
+        QList<QByteArray> filter = filter_widget_->filterColumnsFilter();
+        if (filter.count()>0)
+        {
+            for(int i=0; i<variants_.count(); ++i)
+            {
+                if (!pass[i]) continue;
+
+                const QList<QByteArray>& filters = variants_[i].filters();
+                if(filters.isEmpty())
+                {
+                    pass[i] = false;
+                    continue;
+                }
+
+                bool keep = false;
+                foreach(const QByteArray& f, filters)
+                {
+                    if (filter.contains(f)) keep = true;
+                }
+                pass[i] = keep;
+            }
+        }
+
+        Log::perf("Applying annotation filter took ", timer);
+        timer.start();
 
 		//roi changed
 		QString roi = filter_widget_->targetRegion();
@@ -1628,6 +1676,19 @@ void MainWindow::filtersChanged()
 				pass[i] = contained;
 			}
 			Log::perf("Applying gene filter took ", timer);
+			timer.start();
+		}
+
+		//target region filter
+		BedLine region = filter_widget_->region();
+		if (region.isValid())
+		{
+			for(int i=0; i<variants_.count(); ++i)
+			{
+				if (!pass[i]) continue;
+				pass[i] = variants_[i].overlapsWith(region);
+			}
+			Log::perf("Applying region filter took ", timer);
 			timer.start();
 		}
 

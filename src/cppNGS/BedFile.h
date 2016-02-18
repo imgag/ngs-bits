@@ -12,10 +12,16 @@
 class CPPNGSSHARED_EXPORT BedLine
 {
 public:
-    ///Default constructor (needed mainly for containers).
+	///Default constructor (creates an invalid region - needed for containers only).
     BedLine();
     ///Constructor.
     BedLine(const Chromosome& chr, int start, int end, const QStringList& annotations = QStringList());
+
+	///Returns if the region is valid.
+	bool isValid() const
+	{
+		return chr_!="" && start_>=0 && start_<=end_;
+	}
 
     ///Returns the chromosome.
     const Chromosome& chr() const
@@ -93,7 +99,7 @@ public:
     bool adjacentTo(int start, int end)
     {
         return (start_==end+1 || end_==start-1);
-    }
+	}
 
 	///Converts the position part of the line to a string
 	QString toString(char delimiter = ' ')

@@ -169,7 +169,6 @@ public:
 	{
 		if (geno=="hom") return 1.0;
 		if (geno=="het") return 0.5;
-		if (geno=="lofreq") return 0.1;
 
 		THROW(ArgumentException, "Invalid genotype '" + geno + "' in input file.");
 	}

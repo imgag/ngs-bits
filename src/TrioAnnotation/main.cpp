@@ -134,13 +134,13 @@ public:
 		QMap<int, QList<QByteArray> > trio_col;
 		QMap<int, Genos> trio_genos;
 
-		//find VUS>2 or rare variants
+		//find classification>2 or rare variants
 		QSet<int> rare;
 		for (int i=0; i<vl.count(); ++i)
 		{
 			const Variant& v = vl[i];
 
-			//mark VUS>2 variants
+			//mark classification>2 variants
 			if (v.annotations()[i_class].toInt()>2)
 			{
 				trio_col[i].append("VUS"+v.annotations()[i_class]);

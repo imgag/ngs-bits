@@ -178,7 +178,7 @@
 											<xs:restriction base="xs:string">
 												<xs:enumeration value="hom"/>
 												<xs:enumeration value="het"/>
-												<xs:enumeration value="lofreq"/>
+                                                                                                <xs:enumeration value="somatic"/>
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>

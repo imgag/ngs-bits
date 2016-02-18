@@ -18,18 +18,32 @@ Variant::Variant()
 	, end_(-1)
 	, ref_()
 	, obs_()
+    , filters_()
 	, annotations_()
 {
 }
 
-Variant::Variant(const Chromosome& chr, int start, int end, const Sequence& ref, const Sequence& obs, const QList<QByteArray>& annotations)
+Variant::Variant(const Chromosome& chr, int start, int end, const Sequence& ref, const Sequence& obs, const QList<QByteArray>& annotations, int filter_index)
 	: chr_(chr)
 	, start_(start)
 	, end_(end)
 	, ref_(ref)
 	, obs_(obs)
+    , filters_()
 	, annotations_(annotations)
 {
+    if (filter_index>0)
+    {
+        QByteArray anno = annotations[filter_index].trimmed();
+        if (!anno.isEmpty() && anno!="." && anno!="PASS")
+        {
+            auto tmp = anno.split(';');
+            foreach(const QByteArray& t, tmp)
+            {
+                filters_.append(t.trimmed());
+            }
+        }
+    }
 }
 
 bool Variant::operator<(const Variant& rhs) const
@@ -134,6 +148,7 @@ bool VariantList::LessComparator::operator()(const Variant& a, const Variant& b)
 VariantList::VariantList()
 	: comments_()
 	, annotations_()
+	, filters_()
 	, variants_()
 	, sample_name_()
 {
@@ -142,6 +157,7 @@ VariantList::VariantList()
 void VariantList::copyMetaData(const VariantList& rhs)
 {
 	comments_ = rhs.comments();
+	filters_ = rhs.filters();
 	annotations_ = rhs.annotations();
 	sample_name_ = rhs.sampleName();
 }
@@ -290,12 +306,15 @@ void VariantList::store(QString filename, VariantList::Format format)
 
 void VariantList::loadFromTSV(QString filename)
 {
+    constexpr int special_cols = 5;
+
 	//remove old data
 	clear();
 
 	//parse from stream
 	QSharedPointer<QFile> file = Helper::openFileForReading(filename, true);
 	QHash <QString, QString> column_descriptions;
+    int filter_index = -1;
 	while(!file->atEnd())
 	{
 		QByteArray line = file->readLine();
@@ -304,23 +323,28 @@ void VariantList::loadFromTSV(QString filename)
 		//skip empty lines
 		if(line.length()==0) continue;
 
-		if (line.startsWith("##"))//column description or comment line
+		if (line.startsWith("##"))//comment/description line
 		{
-			QList <QByteArray> fields = line.split('=');
-
-			if ((fields.count()>2)&&line.startsWith("##DESCRIPTION"))//column description line
+			QList <QByteArray> parts = line.split('=');
+			if (line.startsWith("##DESCRIPTION=") && parts.count()>2)
 			{
-				//in case the description contains "=", too...
-				QList <QByteArray> fields_copy=fields;
-				fields_copy.pop_front();//remove ##DESCRIPTION
-				fields_copy.pop_front();//remove annotation
-				QString description=fields_copy[0];
-				for(int i=1; i<fields_copy.size(); ++i)//join the rest (if needed)
+				//QList<QByteArray>.join is not available in Qt 5.2
+				QByteArray tmp = parts[2];
+				for(int i=3; i<parts.count(); ++i)
 				{
-					description+="=";
-					description+=fields_copy[i];
+					tmp += "=" + parts[i];
 				}
-				column_descriptions[fields[1]]=description;
+				column_descriptions[parts[1]] = tmp;
+			}
+			else if (line.startsWith("##FILTER=") && parts.count()>2)
+			{
+				//QList<QByteArray>.join is not available in Qt 5.2
+				QByteArray tmp = parts[2];
+				for(int i=3; i<parts.count(); ++i)
+				{
+					tmp += "=" + parts[i];
+				}
+				filters_[parts[1]] = tmp;
 			}
 			else
 			{
@@ -331,7 +355,7 @@ void VariantList::loadFromTSV(QString filename)
 		if (line.startsWith("#"))//header
 		{
 			QList <QByteArray> fields = line.split('\t');
-			for (int i=5; i<fields.count(); ++i)
+            for (int i=special_cols; i<fields.count(); ++i)
 			{
 				if(column_descriptions.contains(fields[i]))
 				{
@@ -341,12 +365,17 @@ void VariantList::loadFromTSV(QString filename)
 				{
 					annotations().append(VariantAnnotationDescription(fields[i], "", VariantAnnotationDescription::STRING, false, "."));
 				}
+
+                if (fields[i]=="filter")
+                {
+                    filter_index = i - special_cols;
+                }
 			}
 			continue;
 		}
-		//error when less than 5 fields
-		QList<QByteArray> fields = line.split('\t');
-		if (fields.count()<5)
+        //error when special colums are not present
+        QList<QByteArray> fields = line.split('\t');
+        if (fields.count()<special_cols)
 		{
 			THROW(FileParseException, "Variant TSV file line with less than five fields found: '" + line.trimmed() + "'");
 		}
@@ -356,12 +385,12 @@ void VariantList::loadFromTSV(QString filename)
 		int end_pos = Helper::toInt(fields[2], "start position", line);
 
 		//variant line
-		QList<QByteArray> annos;
-		for (int i=5; i<fields.count(); ++i)
+        QList<QByteArray> annos;
+        for (int i=special_cols; i<fields.count(); ++i)
 		{
 			annos.append(fields[i]);
 		}
-		append(Variant(fields[0], start_pos, end_pos, fields[3], fields[4], annos));
+        append(Variant(fields[0], start_pos, end_pos, fields[3], fields[4], annos, filter_index));
 	}
 
 	//validate
@@ -407,6 +436,15 @@ void VariantList::storeToTSV(QString filename)
 			}
 			stream << endl;
 		}
+	}
+
+	//filter headers
+	auto it = filters().cbegin();
+	while(it != filters().cend())
+	{
+
+		stream << "##FILTER=" << it.key() << "=" << it.value() << endl;
+		++it;
 	}
 
 	//header
@@ -472,7 +510,7 @@ void VariantList::loadFromVCF(QString filename)
 		if(line.length()==0) continue;
 
 		//annotation description line
-		if (line.startsWith("##INFO")||line.startsWith("##FORMAT"))
+		if (line.startsWith("##INFO") || line.startsWith("##FORMAT"))
 		{
 			bool sample_dependent_data;
 			QString info_or_format;
@@ -558,6 +596,13 @@ void VariantList::loadFromVCF(QString filename)
 			new_annotation.setDescription(description_value);
 
 			annotations().append(new_annotation);
+		}
+		//other meta-information lines
+		else if (line.startsWith("##FILTER=<ID="))
+		{
+			QStringList parts = QString(line.mid(13, line.length()-15)).split(",Description=\"");
+			if(parts.count()!=2) THROW(FileParseException, "Malformed FILTER line: conains more/less than two parts: " + line);
+			filters_[parts[0]] = parts[1];
 		}
 		//other meta-information lines
 		else if (line.startsWith("##"))
@@ -683,7 +728,7 @@ void VariantList::loadFromVCF(QString filename)
 				}
 			}
 
-			append(Variant(chrom, start_pos, end_pos, ref_bases, var_bases, annos));
+            append(Variant(chrom, start_pos, end_pos, ref_bases, var_bases, annos, 2));
 		}
 	}
 
@@ -719,6 +764,15 @@ void VariantList::storeToVCF(QString filename)
 		QString desc = anno.description();
 		stream << ",Description=\"" << (desc!="" ? desc : "no description available") << "\"";
 		stream << ">\n";
+	}
+
+	//write filter headers
+	auto it = filters().cbegin();
+	while(it != filters().cend())
+	{
+
+		stream << "##FILTER=<ID=" << it.key() << ",Description=\"" << it.value() << "\">\n";
+		++it;
 	}
 
 	//write header line
@@ -901,6 +955,7 @@ void VariantList::clear()
 	clearVariants();
 	comments_.clear();
 	clearAnnotations();
+	filters_.clear();
 }
 
 void VariantList::clearAnnotations()
@@ -1104,7 +1159,7 @@ void VariantList::checkValid(QString action) const
 
 		if (variant.annotations().count()!=annotations_.count())
 		{
-			THROW(ArgumentException, "Invalid variant annotation data: Expected '" + QString::number(annotations_.count()) + " values, but " + QString::number(variant.annotations().count()) + " values found, while " + action);
+			THROW(ArgumentException, "Invalid variant annotation data: Expected " + QString::number(annotations_.count()) + " values, but " + QString::number(variant.annotations().count()) + " values found, while " + action);
 		}
 	}
 }

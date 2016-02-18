@@ -10,6 +10,9 @@
 #include "cmath"
 
 BedLine::BedLine()
+	: chr_()
+	, start_(0)
+	, end_(-1)
 {
 }
 
@@ -251,7 +254,7 @@ void BedFile::subtract(const BedFile& file2)
 	//check target region is merged/sorted and create index
 	if (!file2.isMergedAndSorted())
 	{
-		THROW(ArgumentException, "Merged and sorted BED file required for subtraction of BED files!");
+		THROW(ArgumentException, "Merged and sorted BED file required for calculating the difference of BED files!");
 	}
 	ChromosomalIndex<BedFile> file2_idx(file2);
 
@@ -307,7 +310,7 @@ void BedFile::intersect(const BedFile& file2)
 	//check target region is merged/sorted and create index
 	if (!file2.isMergedAndSorted())
 	{
-		THROW(ArgumentException, "Merged and sorted BED file required for subtraction of BED files!");
+		THROW(ArgumentException, "Merged and sorted BED file required for for calculating the intersect of BED files!");
 	}
 	ChromosomalIndex<BedFile> file2_idx(file2);
 
@@ -350,7 +353,7 @@ void BedFile::overlapping(const BedFile& file2)
 	//check target region is merged/sorted and create index
 	if (!file2.isMergedAndSorted())
 	{
-		THROW(ArgumentException, "Merged and sorted BED file required for subtraction of BED files!");
+		THROW(ArgumentException, "Merged and sorted BED file required for calculating the overlap of BED files!");
 	}
 	ChromosomalIndex<BedFile> file2_idx(file2);
 

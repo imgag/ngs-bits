@@ -35,6 +35,7 @@ public:
 		while(!instream.atEnd())
 		{
 			QList<QByteArray> parts = instream.readLine();
+			if (parts.count()==0) continue;
 			++rows;
 
 			for (int i=0; i<numeric.count(); ++i)

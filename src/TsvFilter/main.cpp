@@ -98,6 +98,8 @@ public:
 		while(!in.atEnd())
 		{
 			QList<QByteArray> parts = in.readLine();
+			if (parts.count()==0) continue;
+
 			QByteArray value2 = parts[col];
 			double value2_num = 0;
 			if (op_index<5)
@@ -106,7 +108,7 @@ public:
 				value2_num = value2.toDouble(&ok);
 				if (!ok)
 				{
-					THROW(CommandLineParsingException, "Non-numeric value '" + value + "' for numeric filter operation '" + op + " in line " + QString::number(in.lineIndex()+1) + "!");
+					THROW(CommandLineParsingException, "Non-numeric value '" + value2 + "' for numeric filter operation '" + op + " in line " + QString::number(in.lineIndex()+1) + "!");
 				}
 			}
 

@@ -1,5 +1,6 @@
 #include "NGSHelper.h"
 #include "Exceptions.h"
+#include "ChromosomeInfo.h"
 #include <QTextStream>
 #include <QFileInfo>
 #include <QDateTime>
@@ -33,18 +34,6 @@ void NGSHelper::openBAM(BamReader& reader, QString bam_file)
 	}
 }
 
-int NGSHelper::getRefID(BamReader& reader, const Chromosome& chr)
-{
-	//search chromosome ID
-	int id = reader.GetReferenceID(std::string(chr.strNormalized(true).data()));
-	if (id==-1)
-	{
-		THROW(ArgumentException, "Could not find chromosome '" + chr.strNormalized(true) + "' in BAM file '" + QString::fromStdString(reader.GetFilename()) + "'!");
-	}
-
-	return id;
-}
-
 Pileup NGSHelper::getPileup(BamTools::BamReader& reader, const Chromosome& chr, int pos, int indel_window, int min_mapq, bool anom, int min_baseq)
 {
 	//init
@@ -53,7 +42,7 @@ Pileup NGSHelper::getPileup(BamTools::BamReader& reader, const Chromosome& chr, 
 	int reads_mapq0 = 0;
 
 	//restrict region
-	int ref_id = NGSHelper::getRefID(reader, chr);
+	int ref_id = ChromosomeInfo::refID(reader, chr);
 	bool jump_ok = reader.SetRegion(ref_id, pos-1, ref_id, pos);
 	if (!jump_ok) THROW(FileAccessException, QString::fromStdString(reader.GetErrorString()));
 
@@ -104,7 +93,7 @@ void NGSHelper::getPileups(QList<Pileup>& pileups, BamReader& reader, const Chro
 	}
 
 	//restrict region
-	int ref_id = NGSHelper::getRefID(reader, chr);
+	int ref_id = ChromosomeInfo::refID(reader, chr);
 	bool jump_ok = reader.SetRegion(ref_id, start-1, ref_id, end);
 	if (!jump_ok) THROW(FileAccessException, QString::fromStdString(reader.GetErrorString()));
 
@@ -253,7 +242,7 @@ void NGSHelper::getIndels(const FastaFileIndex& reference, BamReader& reader, co
 	int reads_mapq0 = 0;
 
 	//restrict region
-	int ref_id = NGSHelper::getRefID(reader, chr);
+	int ref_id = ChromosomeInfo::refID(reader, chr);
 	bool jump_ok = reader.SetRegion(ref_id, start-1, ref_id, end);
 	if (!jump_ok) THROW(FileAccessException, QString::fromStdString(reader.GetErrorString()));
 

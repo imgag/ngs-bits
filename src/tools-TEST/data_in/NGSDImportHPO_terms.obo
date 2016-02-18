@@ -1,0 +1,81 @@
+format-version: 1.2
+data-version: releases/2015-12-01
+saved-by: Peter Robinson, Sebastian Koehler, Sandra Doelken, Chris Mungall, Melissa Haendel, Nicole Vasilevsky, Monarch Initiative, et al
+auto-generated-by: OBO-Edit 2.3
+subsetdef: hposlim_core "Core clinical terminology"
+subsetdef: secondary_consequence "Consequence of a disorder in another organ system."
+synonymtypedef: layperson "layperson term"
+default-namespace: human_phenotype
+ontology: hp
+owl-axioms: Prefix(owl:=<http://www.w3.org/2002/07/owl#>)\nPrefix(rdf:=<http://www.w3.org/1999/02/22-rdf-syntax-ns#>)\nPrefix(xml:=<http://www.w3.org/XML/1998/namespace>)\nPrefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)\nPrefix(rdfs:=<http://www.w3.org/2000/01/rdf-schema#>)\n\n\nOntology(\nAnnotationAssertion(<http://www.geneontology.org/formats/oboInOwl#hasExactSynonym> <http://purl.obolibrary.org/obo/HP_0000040> \"\")\nAnnotationAssertion(<http://www.geneontology.org/formats/oboInOwl#hasRelatedSynonym> <http://purl.obolibrary.org/obo/HP_0000510> \"\")\nAnnotationAssertion(<http://www.geneontology.org/formats/oboInOwl#hasOBONamespace> <http://purl.obolibrary.org/obo/HP_0030243> \"\")\nAnnotationAssertion(<http://www.geneontology.org/formats/oboInOwl#hasOBONamespace> <http://purl.obolibrary.org/obo/HP_0030370> \"\")\nAnnotationAssertion(rdfs:comment <http://purl.obolibrary.org/obo/HP_0040081> \"\")\nAnnotationAssertion(<http://www.geneontology.org/formats/oboInOwl#hasRelatedSynonym> <http://purl.obolibrary.org/obo/HP_0012377> \"\"^^xsd:string)\n)
+logical-definition-view-relation: has_part
+
+[Term]
+id: HP:0003114
+name: Abnormal cardiological findings
+comment: Consider abnormality of the cardiovascular system, HP:0001626.
+is_obsolete: true
+replaced_by: HP:0001113
+
+[Term]
+id: HP:0003114
+name: obsolete Abnormal cardiological findings
+comment: Consider abnormality of the cardiovascular system, HP:0001626.
+is_obsolete: true
+replaced_by: HP:0001113
+
+[Term]
+id: HP:0006625
+name: Multifocal breast carcinoma
+def: "Breast carcinoma that is bilateral or otherwise multifocal." [HPO:probinson]
+synonym: "Multifocal breast cancer" EXACT []
+is_a: HP:0003002 ! Breast carcinoma
+
+[Term]
+id: HP:0003002
+name: Breast carcinoma
+def: "The presence of a carcinoma of the breast." [HPO:probinson]
+synonym: "Breast cancer" EXACT []
+xref: UMLS:C0006142 "Breast Cancer"
+is_a: HP:0100013 ! Neoplasm of the breast
+property_value: HP:0040005 "The presence of a `carcinoma` (MPATH:549) of the `breast` (FMA:9601)." xsd:string {xref="HPO:probinson"}
+
+[Term]
+id: HP:0010619
+name: Fibroadenoma of the breast
+def: "A benign biphasic tumor of the breast with epithelial and stromal components." [HPO:probinson, pmid:23396888]
+comment: A connective tissue tumor of the breast which is usually benign and painless. Fibromas of the breast are more common in young woman.
+synonym: "Breast fibroadenoma" EXACT []
+synonym: "Breast fibroadenomas" EXACT [HPO:skoehler]
+is_a: HP:0010614 ! Fibroma
+is_a: HP:0100013 ! Neoplasm of the breast
+property_value: HP:0040005 "The presence of a `fibroma` (MPATH:407) of the `breast` (FMA:9601)." xsd:string {xref="HPO:probinson"}
+created_by: sandra1
+creation_date: 2009-10-28T06:13:11Z
+
+[Term]
+id: HP:0030075
+name: Ductal carcinoma in situ
+def: "Presence of abnormal cells inside a milk duct, that is, non-invasive breast cancer. Ductal carcinoma in situ is considered to be a precursor lesion to invasive breast cancer." [pmid:24415964]
+is_a: HP:0100013 ! Neoplasm of the breast
+
+[Term]
+id: HP:0030076
+name: Lobular carcinoma in situ
+is_a: HP:0100013 ! Neoplasm of the breast
+
+[Term]
+id: HP:0100013
+name: Neoplasm of the breast
+alt_id: HP:0010623
+def: "A tumor (abnormal growth of tissue) of the breast." [HPO:probinson]
+synonym: "Neoplasia of the breast" RELATED []
+synonym: "Tumours of the breast" RELATED []
+xref: MeSH:D001943 "Breast neoplasms"
+is_a: HP:0000769 ! Abnormality of the breast
+is_a: HP:0011793 ! Neoplasm by anatomical site
+property_value: HP:0040005 "A `neoplasm` (MPATH:218) of the `breast` (FMA:9601)." xsd:string {xref="HPO:probinson"}
+created_by: doelkens
+creation_date: 2010-05-14T09:45:09Z
+
+

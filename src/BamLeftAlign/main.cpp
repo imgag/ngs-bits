@@ -8,6 +8,7 @@
 #include "NGSHelper.h"
 #include "Exceptions.h"
 #include "FastaFileIndex.h"
+#include "ChromosomeInfo.h"
 
 using namespace BamTools;
 
@@ -48,6 +49,7 @@ public:
 		//open BAM reader
 		BamReader reader;
 		NGSHelper::openBAM(reader, getInfile("in"));
+		ChromosomeInfo chr_info(reader);
 
 		//open BAM writer
 		BamWriter writer;
@@ -66,8 +68,9 @@ public:
 			// skip unmapped alignments, as they cannot be left-realigned without CIGAR data
 			if (alignment.IsMapped())
 			{
+				const Chromosome& chr = chr_info.chromosome(alignment.RefID);
+
 				//This should not happen - kept because it was in original code...
-                Chromosome chr(reader.GetReferenceData()[alignment.RefID].RefName);
 				int length = alignment.GetEndPosition() - alignment.Position + 1;
 				if (alignment.Position < 0 || length <= 0)
 				{

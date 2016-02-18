@@ -22,7 +22,7 @@ public:
 	///Constructor
 	MainWindow(QWidget* parent = 0);
 	///Loads a variant list
-	void loadFile(QString filename, bool show_sample_info_dialog=true);
+	void loadFile(QString filename);
 	///Updates the GUI after the variant list changed
 	void variantListChanged();
 	///Sends a command to IGV through the default socket
@@ -64,9 +64,7 @@ public slots:
 	void on_actionReport_triggered();
 	///Database annotation
 	void on_actionDatabase_triggered();
-	///Default filters
-	void on_actionFilters_triggered();
-	///NGSD link
+    ///NGSD link
 	void on_actionNGSD_triggered();
 	///Sample information
 	void on_actionSampleInformation_triggered();
@@ -78,8 +76,6 @@ public slots:
 	void on_actionStatisticsBED_triggered();
 	///File information FASTA
 	void on_actionStatisticsFastA_triggered();
-	///Gene list from BED file
-	void on_actionGeneListBED_triggered();
 	///Copy to clipboard
 	void on_actionCopy_triggered();
 	///Copy to clipboard and split quality column
@@ -102,6 +98,10 @@ public slots:
 	void on_actionShowTranscripts_triggered();
 	///Preferred transcript import from Alamut
 	void on_actionImportTranscripts_triggered();
+	///Opens online documentation
+	void on_actionOpenDocumentation_triggered();
+	///Approved symbols dialog
+	void on_actionConvertHgnc_triggered();
 
 	///Finished the report generation
 	void reportGenerationFinished(bool success);
@@ -117,6 +117,11 @@ public slots:
 	void delayedInizialization();
 	///Handles the re-loading the variant list when the file changes.
 	void handleInputFileChange();
+
+    ///Default filters
+    void applyDefaultFiltersGermline();
+    void applyDefaultFiltersSomatic();
+    void clearFilters();
 
 private:
 	//GUI

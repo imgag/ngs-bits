@@ -38,13 +38,25 @@ private slots:
 		COMPARE_FILES("out/VariantAnnotateNGSD_out2.tsv", TESTDATA("data_out/VariantAnnotateNGSD_out2.tsv"));
 	}
 
-	void somatic()
+	void germline_empty_input_file()
 	{
 		QString host = Settings::string("ngsd_test_host");
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
-		QString ref_file = Settings::string("reference_genome");
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/VariantAnnotateNGSD_init1.sql"));
+
+		//test
+		EXECUTE("VariantAnnotateNGSD", "-test -in " + TESTDATA("data_in/VariantAnnotateNGSD_in2.tsv") + " -out out/VariantAnnotateNGSD_out4.tsv");
+		COMPARE_FILES("out/VariantAnnotateNGSD_out4.tsv", TESTDATA("data_out/VariantAnnotateNGSD_out4.tsv"));
+	}
+
+	void somatic()
+	{
+		QString host = Settings::string("ngsd_test_host");
+		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
 		//init
 		NGSD db(true);
