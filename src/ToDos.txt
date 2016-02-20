@@ -10,7 +10,6 @@ GSvar:
 - Classification dialog: allow moving variant comments to classification
 
 Tools:
-- BedLowCoverage: add -wgs mode (get genome size from BAM header)
 - MappingQC:
   - add %soft/hard-clipped quality parameter (see ssPWBRCA_v2)
   * support RNA: insert size, spike-in controls, etc.

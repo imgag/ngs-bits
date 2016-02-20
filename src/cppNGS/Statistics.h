@@ -25,7 +25,9 @@ public:
 
 	///Calculates the part of the target region that has a lower coverage than the given cutoff. The input BED file must be merged and sorted!
 	static BedFile lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq=1);
-	///Calculates and annotates the average coverage of the regions in the bed file. The input BED file must be merged and sorted!
+    ///Calculates the part of the genome that has a lower coverage than the given cutoff.
+    static BedFile lowCoverage(const QString& bam_file, int cutoff, int min_mapq=1);
+    ///Calculates and annotates the average coverage of the regions in the bed file. The input BED file must be merged and sorted!
 	static void avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq=1);
 
 	///Determines the gender based on the read ratio between X and Y chromosome.

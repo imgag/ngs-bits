@@ -51,12 +51,12 @@ void BedFile::append(const BedLine& line)
 	lines_.append(line);
 }
 
-long BedFile::baseCount() const
+long long BedFile::baseCount() const
 {
-	long output = 0;
+    long long output = 0;
 	for (int i=0; i<lines_.count(); ++i)
-	{
-		output += lines_[i].length();
+    {
+        output += lines_[i].length();
 	}
 	return output;
 }

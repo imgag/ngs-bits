@@ -1,6 +1,7 @@
 #include "BedFile.h"
 #include "ToolBase.h"
 #include "Statistics.h"
+#include "Exceptions.h"
 #include <QFileInfo>
 
 class ConcreteTool
@@ -21,20 +22,38 @@ public:
 		addInt("cutoff", "Minimum depth to consider a base 'high coverage'.", false);
 		//optional
 		addInfile("in", "Input BED file containing the regions of interest. If unset, reads from STDIN.", true);
+        addFlag("wgs", "WGS mode without target region. Genome information is taken from the BAM file.");
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
 		addInt("min_mapq", "Minimum mapping quality to consider a read.", true, 1);
 	}
 
 	virtual void main()
-	{
-		//load and merger regions
-		BedFile file;
-		file.load(getInfile("in"));
-		file.merge();
+    {
+        //init
+        QString in = getInfile("in");
+        bool wgs = getFlag("wgs");
+
+        //check that either IN or WGS is given
+        if (in=="" && !wgs)
+        {
+            THROW(CommandLineParsingException, "You have to provide the parameter 'in' or 'wgs'!");
+        }
 
 		//get low-cov regions and store them
-		BedFile ouput = Statistics::lowCoverage(file, getInfile("bam"), getInt("cutoff"), getInt("min_mapq"));
-		ouput.store(getOutfile("out"));
+        BedFile output;
+        if (wgs) //WGS
+        {
+            output = Statistics::lowCoverage(getInfile("bam"), getInt("cutoff"), getInt("min_mapq"));
+        }
+        else //ROI
+        {
+            BedFile file;
+            file.load(in);
+            file.merge();
+
+            output = Statistics::lowCoverage(file, getInfile("bam"), getInt("cutoff"), getInt("min_mapq"));
+        }
+        output.store(getOutfile("out"));
 	}
 };
 

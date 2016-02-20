@@ -60,10 +60,10 @@ public:
 			reg_gene.merge();
 
 			//append output line
-			int bases_gene = reg_gene.baseCount();
+            long long bases_gene = reg_gene.baseCount();
 			if (bases_gene==0) continue; //non-coding gene => skip
 			reg_gene.intersect(in);
-			int bases_covered = reg_gene.baseCount();
+            long long bases_covered = reg_gene.baseCount();
 			if (bases_covered==0) continue; //wrong coding range in UCSC => gene does not really overlap => skip
 
 			output.append(gene + "\t" + QString::number(bases_gene) + "\t" + QString::number(bases_covered) + "\t" + QString::number(100.0*bases_covered/bases_gene, 'f', 2));
