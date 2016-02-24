@@ -296,18 +296,19 @@ private slots:
 		}
 	}
 
-	void lowCoverage_mapq20()
+    void lowCoverage_roi_mapq20()
 	{
 		BedFile bed_file;
 		bed_file.load(TESTDATA("data_in/panel.bed"));
 		bed_file.merge();
 		I_EQUAL(bed_file.baseCount(), 271536);
 
-		BedFile low_cov =  Statistics::lowCoverage(bed_file, TESTDATA("data_in/panel.bam"), 20, 20);
-		I_EQUAL(low_cov.baseCount(), 16116);
+        BedFile low_cov =  Statistics::lowCoverage(bed_file, TESTDATA("data_in/panel.bam"), 20, 20);
+        I_EQUAL(low_cov.count(), 441);
+        I_EQUAL(low_cov.baseCount(), 16116);
 	}
 
-	void lowCoverage_closeExons_mapq1()
+    void lowCoverage_roi_closeExons()
 	{
 		BedFile bed_file;
 		bed_file.load(TESTDATA("data_in/close_exons.bed"));
@@ -317,6 +318,13 @@ private slots:
 		BedFile low_cov =  Statistics::lowCoverage(bed_file, TESTDATA("data_in/close_exons.bam"), 20, 1);
 		I_EQUAL(low_cov.baseCount(), 0);
 	}
+
+    void lowCoverage_wgs_mapq20()
+    {
+        BedFile low_cov =  Statistics::lowCoverage(TESTDATA("data_in/panel.bam"), 20, 20);
+        I_EQUAL(low_cov.count(), 1806);
+        I_EQUAL(low_cov.baseCount(), 3095115275ll);
+    }
 
 	void avgCoverage1()
 	{

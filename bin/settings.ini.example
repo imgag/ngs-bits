@@ -9,8 +9,9 @@ reference_genome = ""
 ###########################################################################
 
 #NGSD MySQL credentials
-ngsd_host = ""
-ngsd_name = ""
+ngsd_host = "localhost"
+ngsd_port = 3306
+ngsd_name = "ngsd"
 ngsd_user = ""
 ngsd_pass = ""
 
@@ -39,3 +40,5 @@ alamut_gene_list = ""
 
 #GSvar report archive folder
 gsvar_report_archive = ""
+
+

@@ -589,10 +589,6 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
     NGSHelper::openBAM(reader, bam_file);
 	ChromosomeInfo chr_info(reader);
 
-	//init datastructures
-	QVector<int> roi_cov;
-	BamAlignment al;
-
 	//iterate trough all regions (i.e. exons in most cases)
 	for (int i=0; i<bed_file.count(); ++i)
 	{
@@ -601,7 +597,7 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 		//qDebug() << bed_line.chr().str().constData() << ":" << bed_line.start() << "-" << bed_line.end();
 
 		//init coverage statistics
-		roi_cov.fill(0, bed_line.length());
+        QVector<int> roi_cov(bed_line.length(), 0);
 
 		//jump to region
 		int ref_id = chr_info.refID(bed_line.chr());
@@ -609,7 +605,8 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 		if (!jump_ok) THROW(FileAccessException, QString::fromStdString(reader.GetErrorString()));
 
 		//iterate through all alignments
-		while (reader.GetNextAlignmentCore(al))
+        BamAlignment al;
+        while (reader.GetNextAlignmentCore(al))
 		{
 			if (al.IsDuplicate()) continue;
 			if (!al.IsPrimaryAlignment()) continue;
@@ -623,23 +620,101 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 			}
 		}
 
-		//create low-coverage regions file
-		BedFile tmp;
-		for (int p=0; p<roi_cov.count(); ++p)
-		{
-			if (roi_cov[p]<cutoff)
-			{
-				tmp.append(BedLine(bed_line.chr(), p+start, p+start));
-			}
-		}
+        //create low-coverage regions file
+        bool reg_open = false;
+        int reg_start = -1;
+        for (int p=0; p<roi_cov.count(); ++p)
+        {
+            bool low_cov = roi_cov[p]<cutoff;
+            if (reg_open && !low_cov)
+            {
+                output.append(BedLine(bed_line.chr(), reg_start+start, p+start-1));
+                reg_open = false;
+                reg_start = -1;
+            }
+            if (!reg_open && low_cov)
+            {
+                reg_open = true;
+                reg_start = p;
+            }
+        }
+        if (reg_open)
+        {
+            output.append(BedLine(bed_line.chr(), reg_start+start, bed_line.length()+start-1));
+        }
+    }
 
-		//merge and add to output
-		tmp.merge();
-		output.add(tmp);
-	}
-
-	output.sort();
+    output.merge();
 	return output;
+}
+
+BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_mapq)
+{
+    BedFile output;
+
+    //open BAM file
+    BamReader reader;
+    NGSHelper::openBAM(reader, bam_file);
+    ChromosomeInfo chr_info(reader);
+
+    //iteratore through chromosomes
+    QList<Chromosome> chrs = chr_info.chromosomes();
+    foreach(const Chromosome& chr, chrs)
+    {
+        if (!chr.isNonSpecial()) continue;
+
+        int chr_size = chr_info.size(chr);
+        //qDebug() << chr.str() << chr_size;
+        QVector<int> cov(chr_size, 0);
+
+        //jump to chromosome
+        int ref_id = chr_info.refID(chr);
+        bool jump_ok = reader.SetRegion(ref_id, 0, ref_id, chr_size);
+        if (!jump_ok) THROW(FileAccessException, QString::fromStdString(reader.GetErrorString()));
+
+        //iterate through all alignments
+        BamAlignment al;
+        while (reader.GetNextAlignmentCore(al))
+        {
+            if (al.IsDuplicate()) continue;
+            if (!al.IsPrimaryAlignment()) continue;
+            if (!al.IsMapped() || al.MapQuality<min_mapq) continue;
+
+            const int end = al.GetEndPosition();
+            for (int p=al.Position; p<end; ++p)
+            {
+                ++cov[p];
+            }
+        }
+
+        //create low-coverage regions file
+        bool reg_open = false;
+        int reg_start = -1;
+        for (int p=0; p<cov.count(); ++p)
+        {
+            bool low_cov = cov[p]<cutoff;
+            if (reg_open && !low_cov)
+            {
+                //qDebug() << chr.str() << reg_start+1 << p;
+                output.append(BedLine(chr, reg_start+1, p));
+                reg_open = false;
+                reg_start = -1;
+            }
+            if (!reg_open && low_cov)
+            {
+                reg_open = true;
+                reg_start = p;
+            }
+        }
+        if (reg_open)
+        {
+            //qDebug() << chr.str() << reg_start+1 << chr_size;
+            output.append(BedLine(chr, reg_start+1, chr_size));
+        }
+    }
+
+    output.merge();
+    return output;
 }
 
 void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq)

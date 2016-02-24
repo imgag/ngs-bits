@@ -138,7 +138,7 @@ public:
         return lines_.count();
     }
     ///Returns the number of bases summed up over all elements. This method does not consider if elements overlap - they are counted several times then.
-    long baseCount() const;
+    long long baseCount() const;
 	///Returns the contained chromosomes
 	QSet<Chromosome> chromosomes() const;
 
