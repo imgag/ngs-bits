@@ -7,20 +7,26 @@
 #include "Settings.h"
 
 NGSD::NGSD(bool test_db)
-	: db_(QSqlDatabase::addDatabase("QMYSQL", "NGSD_" + Helper::randomString(20)))
-	, test_db_(test_db)
+	: test_db_(test_db)
 {
+	db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL", "NGSD_" + Helper::randomString(20))));
+
 	//connect to DB
 	QString prefix = "ngsd";
 	if (test_db_) prefix += "_test";
-	db_.setHostName(Settings::string(prefix + "_host"));
-	db_.setDatabaseName(Settings::string(prefix + "_name"));
-	db_.setUserName(Settings::string(prefix + "_user"));
-	db_.setPassword(Settings::string(prefix + "_pass"));
-	if (!db_.open())
+	db_->setHostName(Settings::string(prefix + "_host"));
+	db_->setPort(Settings::integer(prefix + "_port"));
+	db_->setDatabaseName(Settings::string(prefix + "_name"));
+	db_->setUserName(Settings::string(prefix + "_user"));
+	db_->setPassword(Settings::string(prefix + "_pass"));
+	if (!db_->open())
 	{
 		THROW(DatabaseException, "Could not connect to the NGSD database!");
 	}
+
+	//prepare queries for speed-up
+	q_approved_.reset(new SqlQuery(getQuery()));
+	q_approved_->prepare("SELECT DISTINCT g.symbol FROM gene g, gene_transcript gt WHERE g.id=gt.gene_id AND g.chromosome=:1 AND gt.start_coding IS NOT NULL AND ((gt.start_coding>=:2 AND gt.start_coding<=:3) OR (:4>=gt.start_coding AND :5<=gt.end_coding)) ORDER BY g.symbol");
 }
 
 QString NGSD::userId()
@@ -34,7 +40,6 @@ QString NGSD::userId()
 
 	return user_id;
 }
-
 
 QString NGSD::sampleName(const QString& filename, bool throw_if_fails)
 {
@@ -265,8 +270,15 @@ bool NGSD::removeColumnIfPresent(VariantList& variants, QString name, bool exact
 
 NGSD::~NGSD()
 {
-	//Log::info("MYSQL closing  - name: " + db_.connectionName());
-	db_.close();
+	//Log::info("MYSQL closing  - name: " + db_->connectionName());
+
+	//close prepared queries
+	q_approved_.clear();
+
+	//close database and remove it
+	QString connection_name = db_->connectionName();
+	db_.clear();
+	QSqlDatabase::removeDatabase(connection_name);
 }
 
 bool NGSD::isOpen() const
@@ -275,7 +287,7 @@ bool NGSD::isOpen() const
 	static bool is_open = false;
 	if (!is_initialized)
 	{
-		is_open = QSqlQuery(db_).exec("SELECT 1");
+		is_open = QSqlQuery(*db_).exec("SELECT 1");
 		is_initialized = true;
 	}
 
@@ -976,27 +988,18 @@ QPair<QByteArray, QByteArray> NGSD::geneToApproved(const QByteArray& gene)
 
 QStringList NGSD::genesOverlapping(QByteArray chr, int start, int end, int extend)
 {
-	//init
-	static SqlQuery query = getQuery();
-	static bool init = false;
-	if (!init)
-	{
-		query.prepare("SELECT DISTINCT g.symbol FROM gene g, gene_transcript gt WHERE g.id=gt.gene_id AND g.chromosome=:1 AND gt.start_coding IS NOT NULL AND ((gt.start_coding>=:2 AND gt.start_coding<=:3) OR (:4>=gt.start_coding AND :5<=gt.end_coding)) ORDER BY g.symbol");
-		init = true;
-	}
-
 	//annotate
-	query.bindValue(0, chr.replace("chr", ""));
-	query.bindValue(1, start - extend);
-	query.bindValue(2, end + extend);
-	query.bindValue(3, start - extend);
-	query.bindValue(4, start - extend);
-	query.exec();
+	q_approved_->bindValue(0, chr.replace("chr", ""));
+	q_approved_->bindValue(1, start - extend);
+	q_approved_->bindValue(2, end + extend);
+	q_approved_->bindValue(3, start - extend);
+	q_approved_->bindValue(4, start - extend);
+	q_approved_->exec();
 
 	QStringList genes;
-	while(query.next())
+	while(q_approved_->next())
 	{
-		genes.append(query.value(0).toString());
+		genes.append(q_approved_->value(0).toString());
 	}
 
 	return genes;

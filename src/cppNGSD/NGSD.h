@@ -4,6 +4,7 @@
 #include "cppNGSD_global.h"
 #include <QVariant>
 #include <QVariantList>
+#include <QSharedPointer>
 #include "VariantList.h"
 #include "BedFile.h"
 #include "QCCollection.h"
@@ -38,7 +39,7 @@ public:
 	///Returns a SqlQuery object on the NGSD for custom queries.
 	inline SqlQuery getQuery() const
 	{
-		return SqlQuery(db_);
+		return SqlQuery(*db_);
 	}
 	///Executes all queries from a text file.
 	void executeQueriesFromFile(QString filename);
@@ -149,9 +150,12 @@ protected:
 	bool removeColumnIfPresent(VariantList& variants, QString name, bool exact_name_match);
 
 	///The database adapter
-	QSqlDatabase db_;
+	QSharedPointer<QSqlDatabase> db_;
 	bool test_db_;
 	bool is_open_;
+
+	///Prepared queries for speed-up
+	QSharedPointer<SqlQuery> q_approved_;
 };
 
 #endif // NGSD_H

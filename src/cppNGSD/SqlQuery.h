@@ -5,12 +5,13 @@
 #include <QSqlDatabase>
 #include <QSqlQuery>
 
-///Wrapper for SQL query that performs error checks when executing
+///Wrapper for QSqlQuery that performs error checks when executing a query
 class CPPNGSDSHARED_EXPORT SqlQuery
 	: public QSqlQuery
 {
 public:
 		SqlQuery(QSqlDatabase db);
+		SqlQuery(const SqlQuery& query);
 		void exec(const QString& query);
 		void exec();
 };
