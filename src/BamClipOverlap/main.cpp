@@ -90,11 +90,29 @@ public:
 				BamAlignment mate;
 				mate = al_map.take(QString::fromStdString(al.Name));
 
+				//check if reads are on different strands
+				BamAlignment forward_read = mate;
+				BamAlignment reverse_read = al;
+				bool both_strands = false;
+				int s1 = mate.Position+1;
+				int e1 = mate.GetEndPosition();
+				int s2 = al.Position+1;
+				int e2 = al.GetEndPosition();
+				if(al.IsReverseStrand()!=mate.IsReverseStrand())
+				{
+					both_strands = true;
+					if(!al.IsReverseStrand())
+					{
+						forward_read = al;
+						reverse_read = mate;
+						s1 = al.Position+1;
+						e1 = al.GetEndPosition();
+						s2 = mate.Position+1;
+						e2 = mate.GetEndPosition();
+					}
+				}
+
 				//check if reads overlap
-				int s1 = al.Position+1;
-				int e1 = al.GetEndPosition();
-				int s2 = mate.Position+1;
-				int e2 = mate.GetEndPosition();
 				bool soft_clip = false;
 				if(s1<=s2 && s2<=e1)	soft_clip = true;
 				else if(s2<=s1 && s1<=e2)	soft_clip = true;
@@ -102,57 +120,53 @@ public:
 				//soft-clip overlapping reads
 				if(soft_clip)
 				{
-
-					//identify left and right read and prepare soft_clipping
-					BamAlignment left_read;
-					BamAlignment right_read;
-					int clip_left_read = 0;
-					int clip_right_read = 0;
+					int clip_forward_read = 0;
+					int clip_reverse_read = 0;
 					int overlap = 0;
-					if((s1<s2 && e1<e2) ||
-					   (s1==s2 && e1==e2) ||
-					   (s1<s2 && e1==e2) ||
-					   (s1==s2 && e1<e2))	//al is on the left of mate or both are completely overlapping
-					{
-						left_read = al;
-						right_read = mate;
 
-						overlap = left_read.GetEndPosition()-right_read.Position;
-						clip_left_read = static_cast<int>(overlap/2);
-						clip_right_read = static_cast<int>(overlap/2);
-						if(left_read.IsFirstMate())	clip_left_read +=  overlap%2;
-						else	clip_right_read +=  overlap%2;
+					if(s1<=s2 && e1<=e2)	//al is on the left of mate or both are completely overlapping
+					{
+						overlap = forward_read.GetEndPosition()-reverse_read.Position;
+						clip_forward_read = static_cast<int>(overlap/2);
+						clip_reverse_read = static_cast<int>(overlap/2);
+						if(forward_read.IsFirstMate())	clip_forward_read +=  overlap%2;
+						else	clip_reverse_read +=  overlap%2;
 					}
-					else if((s2<s1 && e2<e1) ||
-							(s1==s2 && e1>e2) ||
-							(s2<s1 && e1==e2))	//al is on the right of mate
+					else if(s1>s2 && e1>e2)	//al is on the right of mate
 					{
-						left_read = mate;
-						right_read = al;
-
-						overlap = left_read.GetEndPosition()-right_read.Position;
-						clip_left_read = static_cast<int>(overlap/2);
-						clip_right_read = static_cast<int>(overlap/2);
-						if(left_read.IsFirstMate())	clip_left_read +=  overlap%2;
-						else	clip_right_read +=  overlap%2;
+						overlap = reverse_read.GetEndPosition()-forward_read.Position;
+						clip_forward_read = static_cast<int>(overlap/2) + (forward_read.GetEndPosition()-reverse_read.GetEndPosition());
+						clip_reverse_read = static_cast<int>(overlap/2) + (forward_read.Position-reverse_read.Position);
+						if(forward_read.IsFirstMate())	clip_forward_read +=  overlap%2;
+						else	clip_reverse_read +=  overlap%2;
 					}
-					else if(s1>s2 && e1<e2)	//al lies completely within mate (soft-clipping in some cases possible)
+					else if(both_strands==false && s1>s2 && e1<e2)	//al lies completely within mate (soft-clipping in some cases possible)
 					{
-						left_read = al;
-						right_read = mate;
-
-						overlap = left_read.GetEndPosition()-left_read.Position;
-						clip_left_read = overlap;
-						clip_right_read = 0;
+						overlap = forward_read.GetEndPosition()-forward_read.Position;
+						clip_forward_read = overlap;
+						clip_reverse_read = 0;
 					}
-					else if(s2>s1 && e2<e1)	//mate lies completely within al (soft-clipping in some cases possible)
+					else if(both_strands==false && s1<s2 && e1>e2)	//mate lies completely within al (soft-clipping in some cases possible)
 					{
-						left_read = mate;
-						right_read = al;
-
-						overlap = left_read.GetEndPosition()-left_read.Position;
-						clip_left_read = overlap;
-						clip_right_read = 0;
+						overlap = reverse_read.GetEndPosition()-reverse_read.Position;
+						clip_forward_read = 0;
+						clip_reverse_read = overlap;
+					}
+					else if(both_strands==true && s1>s2 && e1<e2)
+					{
+						overlap = forward_read.GetEndPosition()-forward_read.Position;
+						clip_forward_read = static_cast<int>(overlap/2);
+						clip_reverse_read = static_cast<int>(overlap/2) + (forward_read.Position-reverse_read.Position);
+						if(forward_read.IsFirstMate())	clip_forward_read +=  overlap%2;
+						else	clip_reverse_read +=  overlap%2;
+					}
+					else if(both_strands==true && s1<s2 && e1>e2)	//mate lies completely within al (soft-clipping in some cases possible)
+					{
+						overlap = reverse_read.GetEndPosition()-reverse_read.Position;
+						clip_forward_read = static_cast<int>(overlap/2) + (forward_read.GetEndPosition()-reverse_read.GetEndPosition());
+						clip_reverse_read = static_cast<int>(overlap/2);
+						if(forward_read.IsFirstMate())	clip_forward_read +=  overlap%2;
+						else	clip_reverse_read +=  overlap%2;
 					}
 					else
 					{
@@ -166,37 +180,37 @@ public:
 						bool read = qrand()%2;
 						if(read)
 						{
-							clip_left_read = overlap;
-							clip_right_read = 0;
+							clip_forward_read = overlap;
+							clip_reverse_read = 0;
 						}
 						else
 						{
-							clip_left_read = 0;
-							clip_right_read = overlap;
+							clip_forward_read = 0;
+							clip_reverse_read = overlap;
 						}
 					}
 
-					if(verbose)	out << "left: " << left_read.Position << "-" << left_read.GetEndPosition() << " l: " << " - " << " d: "  << left_read.InsertSize << "; m: " << left_read.MatePosition << "; o: " << overlap << " CIGAR " << NGSHelper::Cigar2QString(left_read.CigarData) << endl;
-					if(verbose)	out << "right: " << right_read.Position << "-" << right_read.GetEndPosition() << " l: " << " - " << " d: "  << right_read.InsertSize << "; m: " << right_read.MatePosition << "; o: " << overlap << " CIGAR " << NGSHelper::Cigar2QString(right_read.CigarData) << endl;
-					if(verbose)	out << " clip left from " << (left_read.GetEndPosition()-clip_left_read+1) << " to " << left_read.GetEndPosition() << endl;
-					if(verbose)	out << " clip right from " << (right_read.Position+1) << " to " << (right_read.Position+clip_right_read) << endl;
+					if(verbose)	out << "forward: name - " << QString::fromStdString(forward_read.Name) << "region -" << forward_read.RefID << ":" << forward_read.Position << "-" << forward_read.GetEndPosition() << " is: "  << forward_read.InsertSize << "; m: " << forward_read.MatePosition << "; o: " << overlap << " CIGAR " << NGSHelper::Cigar2QString(forward_read.CigarData) << endl;
+					if(verbose)	out << "reverse: name - " << QString::fromStdString(reverse_read.Name) << "region -" << forward_read.RefID << ":" << reverse_read.Position << "-" << reverse_read.GetEndPosition() << " is: "  << reverse_read.InsertSize << "; m: " << reverse_read.MatePosition << "; o: " << overlap << " CIGAR " << NGSHelper::Cigar2QString(reverse_read.CigarData) << endl;
+					if(verbose)	out << " clip forward from " << (forward_read.GetEndPosition()-clip_forward_read+1) << " to " << forward_read.GetEndPosition() << endl;
+					if(verbose)	out << " clip reverse from " << (reverse_read.Position+1) << " to " << (reverse_read.Position+clip_reverse_read) << endl;
 
-					if(clip_left_read>0)	NGSHelper::softClipAlignment(left_read,(left_read.GetEndPosition()-clip_left_read+1),left_read.GetEndPosition());
-					if(clip_right_read>0)	NGSHelper::softClipAlignment(right_read,(right_read.Position+1),(right_read.Position+clip_right_read));
+					if(clip_forward_read>0)	NGSHelper::softClipAlignment(forward_read,(forward_read.GetEndPosition()-clip_forward_read+1),forward_read.GetEndPosition());
+					if(clip_reverse_read>0)	NGSHelper::softClipAlignment(reverse_read,(reverse_read.Position+1),(reverse_read.Position+clip_reverse_read));
 
 					//set new insert size and mate position
-					left_read.InsertSize = right_read.GetEndPosition()-left_read.Position;	//positive value
-					left_read.MatePosition = right_read.Position;
-					right_read.InsertSize = left_read.Position-right_read.GetEndPosition();	//negative value
-					right_read.MatePosition = left_read.Position;
+					forward_read.InsertSize = reverse_read.GetEndPosition()-forward_read.Position;	//positive value
+					forward_read.MatePosition = reverse_read.Position;
+					reverse_read.InsertSize = forward_read.Position-reverse_read.GetEndPosition();	//negative value
+					reverse_read.MatePosition = forward_read.Position;
 
-					if(verbose)	out << "-> left: " << left_read.Position << "-" << left_read.GetEndPosition() << " l: " << " - " << " d: "  << left_read.InsertSize << "; m: " << left_read.MatePosition << "; o: " << overlap << " CIGAR " << NGSHelper::Cigar2QString(left_read.CigarData) << endl;
-					if(verbose)	out << "-> right: " << right_read.Position << "-" << right_read.GetEndPosition() << " l: " << " - " << " d: "  << right_read.InsertSize << "; m: " << right_read.MatePosition << "; o: " << overlap << " CIGAR " << NGSHelper::Cigar2QString(right_read.CigarData) << endl;
+					if(verbose)	out << "-> forward: name - " << QString::fromStdString(forward_read.Name) << "region -" << forward_read.RefID << ":" << forward_read.Position << "-" << forward_read.GetEndPosition() << " is: "  << forward_read.InsertSize << "; m: " << forward_read.MatePosition << "; o: " << overlap << " CIGAR " << NGSHelper::Cigar2QString(forward_read.CigarData) << endl;
+					if(verbose)	out << "-> reverse: name - " << QString::fromStdString(reverse_read.Name) << "region -" << forward_read.RefID << ":" << reverse_read.Position << "-" << reverse_read.GetEndPosition() << " is: "  << reverse_read.InsertSize << "; m: " << reverse_read.MatePosition << "; o: " << overlap << " CIGAR " << NGSHelper::Cigar2QString(reverse_read.CigarData) << endl;
 					if(verbose)	out << endl;
 
 					//return reads
-					al = left_read;
-					mate = right_read;
+					al = forward_read;
+					mate = reverse_read;
 					bases_clipped += overlap;
 					reads_clipped += 2;
 				}
