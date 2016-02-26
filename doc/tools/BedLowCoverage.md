@@ -10,6 +10,8 @@
 	Optional parameters:
 	  -in <file>      Input BED file containing the regions of interest. If unset, reads from STDIN.
 	                  Default value: ''
+	  -wgs            WGS mode without target region. Genome information is taken from the BAM file.
+	                  Default value: 'false'
 	  -out <file>     Output BED file. If unset, writes to STDOUT.
 	                  Default value: ''
 	  -min_mapq <int> Minimum mapping quality to consider a read.

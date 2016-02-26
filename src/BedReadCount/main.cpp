@@ -23,7 +23,7 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Annoates the regions in a BED file with the read count from a BAM file.");
+		setDescription("Annotates the regions in a BED file with the read count from a BAM file.");
 		addInfile("bam", "Input BAM file.", false);
 		addInt("min_mapq", "Minimum mapping quality.", true, 1);
 		//optional

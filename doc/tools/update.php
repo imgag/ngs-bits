@@ -53,5 +53,6 @@ foreach($files as $exe)
 	file_put_contents($tool.".md", implode("\n", $output));
 }
 
+fgets(STDIN);
 
 ?>
