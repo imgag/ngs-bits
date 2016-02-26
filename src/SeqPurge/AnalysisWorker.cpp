@@ -109,9 +109,10 @@ void AnalysisWorker::run()
 	int length_s1_orig = seq1.count();
 	int length_s2_orig = seq2.count();
 	int min_length = std::min(length_s1_orig, length_s2_orig);
-
+	int max_length = std::max(length_s1_orig, length_s2_orig);
+	
 	//check length
-	if (std::max(length_s1_orig, length_s2_orig)>=stats_.bases_remaining.capacity())
+	if (max_length>=stats_.bases_remaining.capacity())
 	{
 		THROW(ProgrammingException, "Read length unsupported! A maximum read length of " + QString::number(stats_.bases_remaining.capacity()) + " is supported!");
 	}
@@ -465,6 +466,10 @@ void AnalysisWorker::run()
 	stats_.reads_trimmed_n += reads_trimmed_n;
 	stats_.reads_trimmed_q += reads_trimmed_q;
 	stats_.reads_removed += reads_removed;
+	if (max_length>=stats_.bases_remaining.count())
+	{
+		stats_.bases_remaining.resize(max_length+1);
+	}
 	stats_.bases_remaining[e1_->bases.length()] += 1;
 	stats_.bases_remaining[e2_->bases.length()] += 1;
 	stats_.bases_perc_trim_sum += (double)(length_s1_orig - e1_->bases.count()) / length_s1_orig;
