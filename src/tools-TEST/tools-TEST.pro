@@ -62,7 +62,6 @@ HEADERS += \
     BedGeneOverlap_Test.h \
     SeqPurge_Test.h \
     BamIndex_Test.h \
-    BamClipOverlap_Test.h \
     VcfToTsv_Test.h \
     BedChunk_Test.h \
     VcfSort_Test.h \
@@ -81,6 +80,7 @@ HEADERS += \
     BamDownsample_Test.h \
     BedReadCount_Test.h \
     NGSDImportHPO_Test.h \
+    BamClipOverlap_Test.h \
 
 SOURCES += \
     main.cpp \

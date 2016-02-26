@@ -94,17 +94,18 @@ public:
 				BamAlignment forward_read = mate;
 				BamAlignment reverse_read = al;
 				bool both_strands = false;
-				int s1 = mate.Position+1;
-				int e1 = mate.GetEndPosition();
-				int s2 = al.Position+1;
-				int e2 = al.GetEndPosition();
-				if(al.IsReverseStrand()!=mate.IsReverseStrand())
+				int s1 = forward_read.Position+1;
+				int e1 = forward_read.GetEndPosition();
+				int s2 = reverse_read.Position+1;
+				int e2 = reverse_read.GetEndPosition();
+				if(forward_read.IsReverseStrand()!=reverse_read.IsReverseStrand())
 				{
 					both_strands = true;
-					if(!al.IsReverseStrand())
+					if(!reverse_read.IsReverseStrand())
 					{
-						forward_read = al;
-						reverse_read = mate;
+						BamAlignment tmp_read = forward_read;
+						forward_read = reverse_read;
+						reverse_read = tmp_read;
 						s1 = al.Position+1;
 						e1 = al.GetEndPosition();
 						s2 = mate.Position+1;
@@ -124,7 +125,7 @@ public:
 					int clip_reverse_read = 0;
 					int overlap = 0;
 
-					if(s1<=s2 && e1<=e2)	//al is on the left of mate or both are completely overlapping
+					if(s1<=s2 && e1<=e2)	// forward read left of reverse read
 					{
 						overlap = forward_read.GetEndPosition()-reverse_read.Position;
 						clip_forward_read = static_cast<int>(overlap/2);
@@ -132,7 +133,7 @@ public:
 						if(forward_read.IsFirstMate())	clip_forward_read +=  overlap%2;
 						else	clip_reverse_read +=  overlap%2;
 					}
-					else if(s1>s2 && e1>e2)	//al is on the right of mate
+					else if(s1>s2 && e1>e2)	// forward read right of reverse read
 					{
 						overlap = reverse_read.GetEndPosition()-forward_read.Position;
 						clip_forward_read = static_cast<int>(overlap/2) + (forward_read.GetEndPosition()-reverse_read.GetEndPosition());
@@ -140,19 +141,7 @@ public:
 						if(forward_read.IsFirstMate())	clip_forward_read +=  overlap%2;
 						else	clip_reverse_read +=  overlap%2;
 					}
-					else if(both_strands==false && s1>s2 && e1<e2)	//al lies completely within mate (soft-clipping in some cases possible)
-					{
-						overlap = forward_read.GetEndPosition()-forward_read.Position;
-						clip_forward_read = overlap;
-						clip_reverse_read = 0;
-					}
-					else if(both_strands==false && s1<s2 && e1>e2)	//mate lies completely within al (soft-clipping in some cases possible)
-					{
-						overlap = reverse_read.GetEndPosition()-reverse_read.Position;
-						clip_forward_read = 0;
-						clip_reverse_read = overlap;
-					}
-					else if(both_strands==true && s1>s2 && e1<e2)
+					else if(both_strands==true && s1>=s2 && e1<=e2)	// forward read within reverse read
 					{
 						overlap = forward_read.GetEndPosition()-forward_read.Position;
 						clip_forward_read = static_cast<int>(overlap/2);
@@ -160,7 +149,7 @@ public:
 						if(forward_read.IsFirstMate())	clip_forward_read +=  overlap%2;
 						else	clip_reverse_read +=  overlap%2;
 					}
-					else if(both_strands==true && s1<s2 && e1>e2)	//mate lies completely within al (soft-clipping in some cases possible)
+					else if(both_strands==true && s1<=s2 && e1>=e2)	//reverse read within forward read
 					{
 						overlap = reverse_read.GetEndPosition()-reverse_read.Position;
 						clip_forward_read = static_cast<int>(overlap/2) + (forward_read.GetEndPosition()-reverse_read.GetEndPosition());
@@ -168,9 +157,21 @@ public:
 						if(forward_read.IsFirstMate())	clip_forward_read +=  overlap%2;
 						else	clip_reverse_read +=  overlap%2;
 					}
+					else if(both_strands==false && s1>s2 && e1<e2)	//forward read lies completely within reverse read
+					{
+						overlap = forward_read.GetEndPosition()-forward_read.Position;
+						clip_forward_read = overlap;
+						clip_reverse_read = 0;
+					}
+					else if(both_strands==false && s1<s2 && e1>e2)	//reverse read lies completely within foward read
+					{
+						overlap = reverse_read.GetEndPosition()-reverse_read.Position;
+						clip_forward_read = 0;
+						clip_reverse_read = overlap;
+					}
 					else
 					{
-						THROW(Exception, "Read orientation of reads "+QString::fromStdString(al.Name)+" ("+QString::number(al.RefID)+":"+QString::number(al.Position)+"-"+QString::number(al.GetEndPosition())+") and "+QString::fromStdString(mate.Name)+" ("+QString::number(mate.RefID)+":"+QString::number(mate.Position)+"-"+QString::number(mate.GetEndPosition())+") was not identified.");
+						THROW(Exception, "Read orientation of forward read "+QString::fromStdString(forward_read.Name)+" ("+QString::number(forward_read.RefID)+":"+QString::number(forward_read.Position)+"-"+QString::number(forward_read.GetEndPosition())+") and reverse read "+QString::fromStdString(reverse_read.Name)+" ("+QString::number(reverse_read.RefID)+":"+QString::number(reverse_read.Position)+"-"+QString::number(reverse_read.GetEndPosition())+") was not identified.");
 					}
 
 
