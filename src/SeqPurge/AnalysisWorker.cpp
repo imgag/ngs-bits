@@ -75,6 +75,8 @@ double AnalysisWorker::matchProbability(int matches, int mismatches)
 
 void AnalysisWorker::run()
 {	
+	QTextStream debug_out (stdout);
+
 	//check that headers match
 	QByteArray h1 = e1_->header.split(' ').at(0);
 	QByteArray h2 = e2_->header.split(' ').at(0);
@@ -93,12 +95,12 @@ void AnalysisWorker::run()
 
 	if (params_.debug)
 	{
-		qDebug() << "#############################################################################";
-		qDebug() << "Header:     " << h1;
-		qDebug() << "Read 1 in:  " << e1_->bases;
-		qDebug() << "Read 2 in:  " << e2_->bases;
-		qDebug() << "Quality 1:  " << e1_->qualities;
-		qDebug() << "Quality 2:  " << e2_->qualities;
+		debug_out << "#############################################################################" << endl;
+		debug_out << "Header:     " << h1 << endl;
+		debug_out << "Read 1 in:  " << e1_->bases << endl;
+		debug_out << "Read 2 in:  " << e2_->bases << endl;
+		debug_out << "Quality 1:  " << e1_->qualities << endl;
+		debug_out << "Quality 2:  " << e2_->qualities << endl;
 	}
 
 	//make sure the sequences have the same length
@@ -106,18 +108,10 @@ void AnalysisWorker::run()
 	QByteArray seq2 = NGSHelper::changeSeq(e2_->bases, true, true);
 	int length_s1_orig = seq1.count();
 	int length_s2_orig = seq2.count();
-	if (length_s1_orig>length_s2_orig)
-	{
-		seq2 = seq2.leftJustified(length_s1_orig, 'N');
-	}
-	else if (length_s1_orig<length_s2_orig)
-	{
-		seq1 = seq1.leftJustified(length_s2_orig, 'N');
-	}
+	int min_length = std::min(length_s1_orig, length_s2_orig);
 
 	//check length
-	int length = seq1.count();
-	if (length+1>stats_.bases_remaining.capacity())
+	if (std::max(length_s1_orig, length_s2_orig)>=stats_.bases_remaining.capacity())
 	{
 		THROW(ProgrammingException, "Read length unsupported! A maximum read length of " + QString::number(stats_.bases_remaining.capacity()) + " is supported!");
 	}
@@ -141,17 +135,17 @@ void AnalysisWorker::run()
 	double best_p = 1.0;
 	const char* seq1_data = seq1.constData();
 	const char* seq2_data = seq2.constData();
-	for (int offset=1; offset<length; ++offset)
+	for (int offset=1; offset<min_length; ++offset)
 	{
 		//optimization: we can abort when we have reached the maximum possible number of mismatches
 		//              for the current offset and read length. Like that we can avoid about 75% of
 		//              the base comparisons we would actually have to make.
-		int max_mismatches = (int)(std::ceil((1.0-params_.match_perc/100.0) * (length-offset)));
+		int max_mismatches = (int)(std::ceil((1.0-params_.match_perc/100.0) * (min_length-offset)));
 
 		int matches = 0;
 		int mismatches = 0;
 		int invalid = 0;
-		for (int j=offset; j<length; ++j)
+		for (int j=offset; j<min_length; ++j)
 		{
 			char b1 = seq1_data[j-offset];
 			char b2 = seq2_data[j];
@@ -169,24 +163,24 @@ void AnalysisWorker::run()
 				if (mismatches>max_mismatches) break;
 			}
 		}
-		//qDebug() << offset << matches << mismatches << (100.0*matches/(matches + mismatches));
+		//debug_out << offset << matches << mismatches << (100.0*matches/(matches + mismatches)) << endl;
 
-		if (100.0*matches/(matches + mismatches) <= params_.match_perc) continue;
+		if ((matches + mismatches)==0 || 100.0*matches/(matches + mismatches) <= params_.match_perc) continue;
 		if (params_.debug)
 		{
-			qDebug() << "  offset: " << offset;
-			qDebug() << "  match_perc: " << (100.0*matches/(matches + mismatches)) << "%";
+			debug_out << "  offset: " << offset << endl;
+			debug_out << "  match_perc: " << (100.0*matches/(matches + mismatches)) << "%" << endl;
 		}
 
 		//calculate the probability of seeing n or more matches at random
 		double p = matchProbability(matches, mismatches);
 		if (p>params_.mep) continue;
-		if (params_.debug) qDebug() << "  mep: " << p;
+		if (params_.debug) debug_out << "  mep: " << p << endl;
 
 		//check that at least on one side the adapter is present - if not continue
 		if (offset>=10)
 		{
-			QByteArray adapter1 = seq1.mid(length - offset, params_.adapter_overlap);
+			QByteArray adapter1 = seq1.mid(length_s2_orig-offset, params_.adapter_overlap);
 			int matches = 0;
 			int mismatches = 0;
 			int invalid = 0;
@@ -237,12 +231,12 @@ void AnalysisWorker::run()
 			double p2 = matchProbability(matches, mismatches);
 			if (p1*p2>params_.mep)
 			{
-				if (params_.debug) qDebug() << "  adatper overlap failed: " << p1 << p2;
+				if (params_.debug) debug_out << "  adatper overlap failed! mep1:" << p1 << " mep2:" << p2 << endl;
 				continue;
 			}
 			else
 			{
-				if (params_.debug) qDebug() << "  adatper overlap passed: " << p1 << p2;
+				if (params_.debug) debug_out << "  adatper overlap passed! mep1:" << p1 << " mep2:" << p2 << endl;
 			}
 		}
 
@@ -257,15 +251,14 @@ void AnalysisWorker::run()
 	if (best_offset!=-1)
 	{
 		//update sequence data
-		int new_length_s1 = std::min(length-best_offset, length_s1_orig);
-		e1_->bases.resize(new_length_s1);
-		e1_->qualities.resize(new_length_s1);
-		int new_length_s2 = std::min(length-best_offset, length_s2_orig);
-		e2_->bases.resize(new_length_s2);
-		e2_->qualities.resize(new_length_s2);
+		int new_length = length_s2_orig-best_offset;
+		e1_->bases.resize(new_length);
+		e1_->qualities.resize(new_length);
+		e2_->bases.resize(new_length);
+		e2_->qualities.resize(new_length);
 
 		//update consensus adapter sequence
-		QByteArray adapter1 = seq1.mid(length - best_offset);
+		QByteArray adapter1 = seq1.mid(new_length);
 		if (adapter1.count()>40) adapter1.resize(40);
 		for (int i=0; i<adapter1.count(); ++i)
 		{
@@ -281,7 +274,10 @@ void AnalysisWorker::run()
 		//update statistics
 		reads_trimmed_insert += 2.0;
 
-		if (params_.debug) qDebug() << "###Insert sequence hit - offset=" << best_offset << " prob=" << best_p << " adapter1= " << adapter1 << " adapter2=" << adapter2;
+		if (params_.debug)
+		{
+			debug_out << "###Insert sequence hit - offset=" << best_offset << " prob=" << best_p << " adapter1=" << adapter1 << " adapter2=" << adapter2 << endl;
+		}
 	}
 
 	//step 2: trim by adapter match - forward read
@@ -333,7 +329,10 @@ void AnalysisWorker::run()
 			e1_->qualities.resize(offset);
 			offset_forward = offset;
 
-			if (params_.debug) qDebug() << "###Adapter 1 hit - offset=" << offset << " prob=" << p << " matches=" << matches << " mismatches=" << mismatches << " invalid=" << invalid << " adapter=" << adapter;
+			if (params_.debug)
+			{
+				debug_out << "###Adapter 1 hit - offset=" << offset << " prob=" << p << " matches=" << matches << " mismatches=" << mismatches << " invalid=" << invalid << " adapter=" << adapter << endl;
+			}
 			break;
 		}
 
@@ -390,7 +389,7 @@ void AnalysisWorker::run()
 
 			if (params_.debug)
 			{
-				qDebug() << "###Adapter 2 hit - offset=" << offset << " prob=" << p << " matches=" << matches << " mismatches=" << mismatches << " invalid=" << invalid << " adapter=" << adapter;
+				debug_out << "###Adapter 2 hit - offset=" << offset << " prob=" << p << " matches=" << matches << " mismatches=" << mismatches << " invalid=" << invalid << " adapter=" << adapter << endl;
 			}
 			break;
 		}
@@ -431,8 +430,8 @@ void AnalysisWorker::run()
 
 	if (params_.debug)
 	{
-		qDebug() << "Read 1 out: " << e1_->bases;
-		qDebug() << "Read 2 out: " << e2_->bases;
+		debug_out << "Read 1 out: " << e1_->bases << endl;
+		debug_out << "Read 2 out: " << e2_->bases << endl;
 	}
 
 	//write output
@@ -466,10 +465,6 @@ void AnalysisWorker::run()
 	stats_.reads_trimmed_n += reads_trimmed_n;
 	stats_.reads_trimmed_q += reads_trimmed_q;
 	stats_.reads_removed += reads_removed;
-	if (length+1>stats_.bases_remaining.count())
-	{
-		stats_.bases_remaining.resize(length+1);
-	}
 	stats_.bases_remaining[e1_->bases.length()] += 1;
 	stats_.bases_remaining[e2_->bases.length()] += 1;
 	stats_.bases_perc_trim_sum += (double)(length_s1_orig - e1_->bases.count()) / length_s1_orig;

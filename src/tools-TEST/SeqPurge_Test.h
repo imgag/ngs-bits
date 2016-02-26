@@ -188,6 +188,16 @@ private slots:
 		COMPARE_GZ_FILES("out/SeqPurge_out17.fastq.gz", TESTDATA("data_out/SeqPurge_out17.fastq.gz"));
 	}
 
+	//GAIIx 76/77cycles (different read length bug)
+	void test_09()
+	{
+		EXECUTE("SeqPurge", "-in1 " + TESTDATA("data_in/SeqPurge_in11.fastq.gz") + " -in2 " + TESTDATA("data_in/SeqPurge_in12.fastq.gz") + " -out1 out/SeqPurge_out18.fastq.gz -out2 out/SeqPurge_out19.fastq.gz");
+		IS_TRUE(QFile::exists("out/SeqPurge_out18.fastq.gz"));
+		IS_TRUE(QFile::exists("out/SeqPurge_out19.fastq.gz"));
+		COMPARE_GZ_FILES("out/SeqPurge_out18.fastq.gz", TESTDATA("data_out/SeqPurge_out18.fastq.gz"));
+		COMPARE_GZ_FILES("out/SeqPurge_out19.fastq.gz", TESTDATA("data_out/SeqPurge_out19.fastq.gz"));
+	}
+
 	//multi-thread test
 	void test_multithread()
 	{
