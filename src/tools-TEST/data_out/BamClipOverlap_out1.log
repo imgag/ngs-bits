@@ -1,898 +1,898 @@
-left: 5291-5367 l:  -  d: 124; m: 5341; o: 26 CIGAR 76M
-right: 5341-5415 l:  -  d: -124; m: 5291; o: 26 CIGAR 74M
- clip left from 5355 to 5367
- clip right from 5342 to 5354
--> left: 5291-5354 l:  -  d: 124; m: 5354; o: 26 CIGAR 63M13S
--> right: 5354-5415 l:  -  d: -124; m: 5291; o: 26 CIGAR 13S61M
-
-left: 5791-5851 l:  -  d: -60; m: 5791; o: 60 CIGAR 60M
-right: 5791-5851 l:  -  d: 60; m: 5791; o: 60 CIGAR 60M
- clip left from 5822 to 5851
- clip right from 5792 to 5821
--> left: 5791-5821 l:  -  d: 60; m: 5821; o: 60 CIGAR 30M30S
--> right: 5821-5851 l:  -  d: -60; m: 5791; o: 60 CIGAR 30S30M
-
-left: 5810-5885 l:  -  d: 84; m: 5819; o: 66 CIGAR 75M
-right: 5819-5894 l:  -  d: -84; m: 5810; o: 66 CIGAR 75M
- clip left from 5853 to 5885
- clip right from 5820 to 5852
--> left: 5810-5852 l:  -  d: 84; m: 5852; o: 66 CIGAR 42M33S
--> right: 5852-5894 l:  -  d: -84; m: 5810; o: 66 CIGAR 33S42M
-
-left: 5855-5931 l:  -  d: 141; m: 5920; o: 11 CIGAR 76M
-right: 5920-5996 l:  -  d: -141; m: 5855; o: 11 CIGAR 76M
- clip left from 5926 to 5931
- clip right from 5921 to 5925
--> left: 5855-5925 l:  -  d: 141; m: 5925; o: 11 CIGAR 70M6S
--> right: 5925-5996 l:  -  d: -141; m: 5855; o: 11 CIGAR 5S71M
-
-left: 5913-5989 l:  -  d: 86; m: 5924; o: 65 CIGAR 76M
-right: 5924-5999 l:  -  d: -86; m: 5913; o: 65 CIGAR 75M
- clip left from 5958 to 5989
- clip right from 5925 to 5957
--> left: 5913-5957 l:  -  d: 86; m: 5957; o: 65 CIGAR 44M32S
--> right: 5957-5999 l:  -  d: -86; m: 5913; o: 65 CIGAR 33S42M
-
-left: 5905-5981 l:  -  d: 97; m: 5926; o: 55 CIGAR 76M
-right: 5926-6002 l:  -  d: -97; m: 5905; o: 55 CIGAR 76M
- clip left from 5955 to 5981
- clip right from 5927 to 5954
--> left: 5905-5954 l:  -  d: 97; m: 5954; o: 55 CIGAR 49M27S
--> right: 5954-6002 l:  -  d: -97; m: 5905; o: 55 CIGAR 28S48M
-
-left: 5887-5963 l:  -  d: 126; m: 5937; o: 26 CIGAR 76M
-right: 5937-6013 l:  -  d: -126; m: 5887; o: 26 CIGAR 76M
- clip left from 5951 to 5963
- clip right from 5938 to 5950
--> left: 5887-5950 l:  -  d: 126; m: 5950; o: 26 CIGAR 63M13S
--> right: 5950-6013 l:  -  d: -126; m: 5887; o: 26 CIGAR 13S63M
-
-left: 5930-6006 l:  -  d: 84; m: 5938; o: 68 CIGAR 76M
-right: 5938-6014 l:  -  d: -84; m: 5930; o: 68 CIGAR 76M
- clip left from 5973 to 6006
- clip right from 5939 to 5972
--> left: 5930-5972 l:  -  d: 84; m: 5972; o: 68 CIGAR 42M34S
--> right: 5972-6014 l:  -  d: -84; m: 5930; o: 68 CIGAR 34S42M
-
-left: 5962-6036 l:  -  d: -74; m: 5962; o: 74 CIGAR 74M
-right: 5962-6036 l:  -  d: 74; m: 5962; o: 74 CIGAR 74M
- clip left from 6000 to 6036
- clip right from 5963 to 5999
--> left: 5962-5999 l:  -  d: 74; m: 5999; o: 74 CIGAR 37M37S
--> right: 5999-6036 l:  -  d: -74; m: 5962; o: 74 CIGAR 37S37M
-
-left: 5892-5968 l:  -  d: 147; m: 5963; o: 5 CIGAR 76M
-right: 5963-6039 l:  -  d: -147; m: 5892; o: 5 CIGAR 76M
- clip left from 5966 to 5968
- clip right from 5964 to 5965
--> left: 5892-5965 l:  -  d: 147; m: 5965; o: 5 CIGAR 73M3S
--> right: 5965-6039 l:  -  d: -147; m: 5892; o: 5 CIGAR 2S74M
-
-left: 5966-6035 l:  -  d: -69; m: 5966; o: 69 CIGAR 69M
-right: 5966-6035 l:  -  d: 69; m: 5966; o: 69 CIGAR 69M
- clip left from 6002 to 6035
- clip right from 5967 to 6001
--> left: 5966-6001 l:  -  d: 69; m: 6001; o: 69 CIGAR 35M34S
--> right: 6001-6035 l:  -  d: -69; m: 5966; o: 69 CIGAR 35S34M
-
-left: 5968-6013 l:  -  d: -45; m: 5968; o: 45 CIGAR 45M
-right: 5968-6013 l:  -  d: 45; m: 5968; o: 45 CIGAR 45M
- clip left from 5991 to 6013
- clip right from 5969 to 5990
--> left: 5968-5990 l:  -  d: 45; m: 5990; o: 45 CIGAR 22M23S
--> right: 5990-6013 l:  -  d: -45; m: 5968; o: 45 CIGAR 22S23M
-
-left: 5952-6028 l:  -  d: 106; m: 5982; o: 46 CIGAR 76M
-right: 5982-6058 l:  -  d: -106; m: 5952; o: 46 CIGAR 76M
- clip left from 6006 to 6028
- clip right from 5983 to 6005
--> left: 5952-6005 l:  -  d: 106; m: 6005; o: 46 CIGAR 53M23S
--> right: 6005-6058 l:  -  d: -106; m: 5952; o: 46 CIGAR 23S53M
-
-left: 5938-6014 l:  -  d: 122; m: 5984; o: 30 CIGAR 76M
-right: 5984-6060 l:  -  d: -122; m: 5938; o: 30 CIGAR 76M
- clip left from 6000 to 6014
- clip right from 5985 to 5999
--> left: 5938-5999 l:  -  d: 122; m: 5999; o: 30 CIGAR 61M15S
--> right: 5999-6060 l:  -  d: -122; m: 5938; o: 30 CIGAR 15S61M
-
-left: 5984-6052 l:  -  d: -68; m: 5984; o: 68 CIGAR 68M
-right: 5984-6052 l:  -  d: 68; m: 5984; o: 68 CIGAR 68M
- clip left from 6019 to 6052
- clip right from 5985 to 6018
--> left: 5984-6018 l:  -  d: 68; m: 6018; o: 68 CIGAR 34M34S
--> right: 6018-6052 l:  -  d: -68; m: 5984; o: 68 CIGAR 34S34M
-
-left: 5990-6051 l:  -  d: -61; m: 5990; o: 61 CIGAR 61M
-right: 5990-6051 l:  -  d: 61; m: 5990; o: 61 CIGAR 61M
- clip left from 6022 to 6051
- clip right from 5991 to 6021
--> left: 5990-6021 l:  -  d: 61; m: 6021; o: 61 CIGAR 31M30S
--> right: 6021-6051 l:  -  d: -61; m: 5990; o: 61 CIGAR 31S30M
-
-left: 5992-6042 l:  -  d: -50; m: 5992; o: 50 CIGAR 50M
-right: 5992-6042 l:  -  d: 50; m: 5992; o: 50 CIGAR 50M
- clip left from 6018 to 6042
- clip right from 5993 to 6017
--> left: 5992-6017 l:  -  d: 50; m: 6017; o: 50 CIGAR 25M25S
--> right: 6017-6042 l:  -  d: -50; m: 5992; o: 50 CIGAR 25S25M
-
-left: 5951-6027 l:  -  d: 120; m: 5995; o: 32 CIGAR 76M
-right: 5995-6071 l:  -  d: -120; m: 5951; o: 32 CIGAR 76M
- clip left from 6012 to 6027
- clip right from 5996 to 6011
--> left: 5951-6011 l:  -  d: 120; m: 6011; o: 32 CIGAR 60M16S
--> right: 6011-6071 l:  -  d: -120; m: 5951; o: 32 CIGAR 16S60M
-
-left: 5992-6068 l:  -  d: 79; m: 5995; o: 73 CIGAR 76M
-right: 5995-6071 l:  -  d: -79; m: 5992; o: 73 CIGAR 76M
- clip left from 6032 to 6068
- clip right from 5996 to 6031
--> left: 5992-6031 l:  -  d: 79; m: 6031; o: 73 CIGAR 39M37S
--> right: 6031-6071 l:  -  d: -79; m: 5992; o: 73 CIGAR 36S40M
-
-left: 5928-6004 l:  -  d: 144; m: 5996; o: 8 CIGAR 76M
-right: 5996-6072 l:  -  d: -144; m: 5928; o: 8 CIGAR 76M
- clip left from 6001 to 6004
- clip right from 5997 to 6000
--> left: 5928-6000 l:  -  d: 144; m: 6000; o: 8 CIGAR 72M4S
--> right: 6000-6072 l:  -  d: -144; m: 5928; o: 8 CIGAR 4S72M
-
-left: 5984-6060 l:  -  d: 88; m: 5996; o: 64 CIGAR 76M
-right: 5996-6072 l:  -  d: -88; m: 5984; o: 64 CIGAR 76M
- clip left from 6029 to 6060
- clip right from 5997 to 6028
--> left: 5984-6028 l:  -  d: 88; m: 6028; o: 64 CIGAR 44M32S
--> right: 6028-6072 l:  -  d: -88; m: 5984; o: 64 CIGAR 32S44M
-
-left: 6000-6072 l:  -  d: -72; m: 6000; o: 72 CIGAR 72M
-right: 6000-6072 l:  -  d: 72; m: 6000; o: 72 CIGAR 72M
- clip left from 6037 to 6072
- clip right from 6001 to 6036
--> left: 6000-6036 l:  -  d: 72; m: 6036; o: 72 CIGAR 36M36S
--> right: 6036-6072 l:  -  d: -72; m: 6000; o: 72 CIGAR 36S36M
-
-left: 5958-6032 l:  -  d: 126; m: 6008; o: 24 CIGAR 74M
-right: 6008-6084 l:  -  d: -126; m: 5958; o: 24 CIGAR 76M
- clip left from 6021 to 6032
- clip right from 6009 to 6020
--> left: 5958-6020 l:  -  d: 126; m: 6020; o: 24 CIGAR 62M12S
--> right: 6020-6084 l:  -  d: -126; m: 5958; o: 24 CIGAR 12S64M
-
-left: 5942-6018 l:  -  d: 142; m: 6008; o: 10 CIGAR 76M
-right: 6008-6084 l:  -  d: -142; m: 5942; o: 10 CIGAR 76M
- clip left from 6014 to 6018
- clip right from 6009 to 6013
--> left: 5942-6013 l:  -  d: 142; m: 6013; o: 10 CIGAR 71M5S
--> right: 6013-6084 l:  -  d: -142; m: 5942; o: 10 CIGAR 5S71M
-
-left: 5995-6070 l:  -  d: 91; m: 6010; o: 60 CIGAR 75M
-right: 6010-6086 l:  -  d: -91; m: 5995; o: 60 CIGAR 76M
- clip left from 6041 to 6070
- clip right from 6011 to 6040
--> left: 5995-6040 l:  -  d: 91; m: 6040; o: 60 CIGAR 45M30S
--> right: 6040-6086 l:  -  d: -91; m: 5995; o: 60 CIGAR 30S46M
-
-left: 6011-6085 l:  -  d: 78; m: 6014; o: 71 CIGAR 74M
-right: 6014-6089 l:  -  d: -78; m: 6011; o: 71 CIGAR 75M
- clip left from 6051 to 6085
- clip right from 6015 to 6050
--> left: 6011-6050 l:  -  d: 78; m: 6050; o: 71 CIGAR 39M35S
--> right: 6050-6089 l:  -  d: -78; m: 6011; o: 71 CIGAR 36S39M
-
-left: 5978-6054 l:  -  d: 113; m: 6015; o: 39 CIGAR 76M
-right: 6015-6091 l:  -  d: -113; m: 5978; o: 39 CIGAR 76M
- clip left from 6035 to 6054
- clip right from 6016 to 6034
--> left: 5978-6034 l:  -  d: 113; m: 6034; o: 39 CIGAR 56M20S
--> right: 6034-6091 l:  -  d: -113; m: 5978; o: 39 CIGAR 19S57M
-
-left: 6018-6092 l:  -  d: -74; m: 6018; o: 74 CIGAR 74M
-right: 6018-6092 l:  -  d: 74; m: 6018; o: 74 CIGAR 74M
- clip left from 6056 to 6092
- clip right from 6019 to 6055
--> left: 6018-6055 l:  -  d: 74; m: 6055; o: 74 CIGAR 37M37S
--> right: 6055-6092 l:  -  d: -74; m: 6018; o: 74 CIGAR 37S37M
-
-left: 6019-6086 l:  -  d: -67; m: 6019; o: 67 CIGAR 67M
-right: 6019-6086 l:  -  d: 67; m: 6019; o: 67 CIGAR 67M
- clip left from 6053 to 6086
- clip right from 6020 to 6052
--> left: 6019-6052 l:  -  d: 67; m: 6052; o: 67 CIGAR 33M34S
--> right: 6052-6086 l:  -  d: -67; m: 6019; o: 67 CIGAR 33S34M
-
-left: 5981-6055 l:  -  d: 118; m: 6023; o: 32 CIGAR 74M
-right: 6023-6099 l:  -  d: -118; m: 5981; o: 32 CIGAR 76M
- clip left from 6040 to 6055
- clip right from 6024 to 6039
--> left: 5981-6039 l:  -  d: 118; m: 6039; o: 32 CIGAR 58M16S
--> right: 6039-6099 l:  -  d: -118; m: 5981; o: 32 CIGAR 16S60M
-
-left: 5967-6043 l:  -  d: 135; m: 6026; o: 17 CIGAR 76M
-right: 6026-6102 l:  -  d: -135; m: 5967; o: 17 CIGAR 76M
- clip left from 6035 to 6043
- clip right from 6027 to 6034
--> left: 5967-6034 l:  -  d: 135; m: 6034; o: 17 CIGAR 67M9S
--> right: 6034-6102 l:  -  d: -135; m: 5967; o: 17 CIGAR 8S68M
-
-left: 5952-6028 l:  -  d: 150; m: 6026; o: 2 CIGAR 76M
-right: 6026-6102 l:  -  d: -150; m: 5952; o: 2 CIGAR 76M
- clip left from 6028 to 6028
- clip right from 6027 to 6027
--> left: 5952-6027 l:  -  d: 150; m: 6027; o: 2 CIGAR 75M1S
--> right: 6027-6102 l:  -  d: -150; m: 5952; o: 2 CIGAR 1S75M
-
-left: 5963-6039 l:  -  d: 142; m: 6029; o: 10 CIGAR 76M
-right: 6029-6105 l:  -  d: -142; m: 5963; o: 10 CIGAR 76M
- clip left from 6035 to 6039
- clip right from 6030 to 6034
--> left: 5963-6034 l:  -  d: 142; m: 6034; o: 10 CIGAR 71M5S
--> right: 6034-6105 l:  -  d: -142; m: 5963; o: 10 CIGAR 5S71M
-
-left: 5968-6044 l:  -  d: 137; m: 6029; o: 15 CIGAR 76M
-right: 6029-6105 l:  -  d: -137; m: 5968; o: 15 CIGAR 76M
- clip left from 6037 to 6044
- clip right from 6030 to 6036
--> left: 5968-6036 l:  -  d: 137; m: 6036; o: 15 CIGAR 68M8S
--> right: 6036-6105 l:  -  d: -137; m: 5968; o: 15 CIGAR 7S69M
-
-left: 5965-6041 l:  -  d: 141; m: 6030; o: 11 CIGAR 76M
-right: 6030-6106 l:  -  d: -141; m: 5965; o: 11 CIGAR 76M
- clip left from 6036 to 6041
- clip right from 6031 to 6035
--> left: 5965-6035 l:  -  d: 141; m: 6035; o: 11 CIGAR 70M6S
--> right: 6035-6106 l:  -  d: -141; m: 5965; o: 11 CIGAR 5S71M
-
-left: 6031-6096 l:  -  d: -65; m: 6031; o: 65 CIGAR 65M
-right: 6031-6096 l:  -  d: 65; m: 6031; o: 65 CIGAR 65M
- clip left from 6065 to 6096
- clip right from 6032 to 6064
--> left: 6031-6064 l:  -  d: 65; m: 6064; o: 65 CIGAR 33M32S
--> right: 6064-6096 l:  -  d: -65; m: 6031; o: 65 CIGAR 33S32M
-
-left: 5983-6059 l:  -  d: 125; m: 6032; o: 27 CIGAR 76M
-right: 6032-6108 l:  -  d: -125; m: 5983; o: 27 CIGAR 76M
- clip left from 6047 to 6059
- clip right from 6033 to 6046
--> left: 5983-6046 l:  -  d: 125; m: 6046; o: 27 CIGAR 63M13S
--> right: 6046-6108 l:  -  d: -125; m: 5983; o: 27 CIGAR 14S62M
-
-left: 6014-6090 l:  -  d: 97; m: 6035; o: 55 CIGAR 76M
-right: 6035-6111 l:  -  d: -97; m: 6014; o: 55 CIGAR 76M
- clip left from 6064 to 6090
- clip right from 6036 to 6063
--> left: 6014-6063 l:  -  d: 97; m: 6063; o: 55 CIGAR 49M27S
--> right: 6063-6111 l:  -  d: -97; m: 6014; o: 55 CIGAR 28S48M
-
-left: 6009-6085 l:  -  d: 102; m: 6035; o: 50 CIGAR 76M
-right: 6035-6111 l:  -  d: -102; m: 6009; o: 50 CIGAR 76M
- clip left from 6061 to 6085
- clip right from 6036 to 6060
--> left: 6009-6060 l:  -  d: 102; m: 6060; o: 50 CIGAR 51M25S
--> right: 6060-6111 l:  -  d: -102; m: 6009; o: 50 CIGAR 25S51M
-
-left: 6035-6104 l:  -  d: -69; m: 6035; o: 69 CIGAR 69M
-right: 6035-6104 l:  -  d: 69; m: 6035; o: 69 CIGAR 69M
- clip left from 6071 to 6104
- clip right from 6036 to 6070
--> left: 6035-6070 l:  -  d: 69; m: 6070; o: 69 CIGAR 35M34S
--> right: 6070-6104 l:  -  d: -69; m: 6035; o: 69 CIGAR 35S34M
-
-left: 6035-6097 l:  -  d: -62; m: 6035; o: 62 CIGAR 62M
-right: 6035-6097 l:  -  d: 62; m: 6035; o: 62 CIGAR 62M
- clip left from 6067 to 6097
- clip right from 6036 to 6066
--> left: 6035-6066 l:  -  d: 62; m: 6066; o: 62 CIGAR 31M31S
--> right: 6066-6097 l:  -  d: -62; m: 6035; o: 62 CIGAR 31S31M
-
-left: 6015-6091 l:  -  d: 97; m: 6036; o: 55 CIGAR 76M
-right: 6036-6112 l:  -  d: -97; m: 6015; o: 55 CIGAR 76M
- clip left from 6064 to 6091
- clip right from 6037 to 6063
--> left: 6015-6063 l:  -  d: 97; m: 6063; o: 55 CIGAR 48M28S
--> right: 6063-6112 l:  -  d: -97; m: 6015; o: 55 CIGAR 27S49M
-
-left: 6031-6107 l:  -  d: 84; m: 6039; o: 68 CIGAR 76M
-right: 6039-6115 l:  -  d: -84; m: 6031; o: 68 CIGAR 76M
- clip left from 6074 to 6107
- clip right from 6040 to 6073
--> left: 6031-6073 l:  -  d: 84; m: 6073; o: 68 CIGAR 42M34S
--> right: 6073-6115 l:  -  d: -84; m: 6031; o: 68 CIGAR 34S42M
-
-left: 5983-6059 l:  -  d: 132; m: 6039; o: 20 CIGAR 76M
-right: 6039-6115 l:  -  d: -132; m: 5983; o: 20 CIGAR 76M
- clip left from 6050 to 6059
- clip right from 6040 to 6049
--> left: 5983-6049 l:  -  d: 132; m: 6049; o: 20 CIGAR 66M10S
--> right: 6049-6115 l:  -  d: -132; m: 5983; o: 20 CIGAR 10S66M
-
-left: 6017-6093 l:  -  d: 99; m: 6040; o: 53 CIGAR 76M
-right: 6040-6116 l:  -  d: -99; m: 6017; o: 53 CIGAR 76M
- clip left from 6067 to 6093
- clip right from 6041 to 6066
--> left: 6017-6066 l:  -  d: 99; m: 6066; o: 53 CIGAR 49M27S
--> right: 6066-6116 l:  -  d: -99; m: 6017; o: 53 CIGAR 26S50M
-
-left: 5991-6067 l:  -  d: 126; m: 6043; o: 24 CIGAR 76M
-right: 6043-6117 l:  -  d: -126; m: 5991; o: 24 CIGAR 74M
- clip left from 6056 to 6067
- clip right from 6044 to 6055
--> left: 5991-6055 l:  -  d: 126; m: 6055; o: 24 CIGAR 64M12S
--> right: 6055-6117 l:  -  d: -126; m: 5991; o: 24 CIGAR 12S62M
-
-left: 6006-6082 l:  -  d: 120; m: 6050; o: 32 CIGAR 76M
-right: 6050-6126 l:  -  d: -120; m: 6006; o: 32 CIGAR 76M
- clip left from 6067 to 6082
- clip right from 6051 to 6066
--> left: 6006-6066 l:  -  d: 120; m: 6066; o: 32 CIGAR 60M16S
--> right: 6066-6126 l:  -  d: -120; m: 6006; o: 32 CIGAR 16S60M
-
-left: 5990-6065 l:  -  d: 136; m: 6050; o: 15 CIGAR 75M
-right: 6050-6126 l:  -  d: -136; m: 5990; o: 15 CIGAR 76M
- clip left from 6058 to 6065
- clip right from 6051 to 6057
--> left: 5990-6057 l:  -  d: 136; m: 6057; o: 15 CIGAR 67M8S
--> right: 6057-6126 l:  -  d: -136; m: 5990; o: 15 CIGAR 7S69M
-
-left: 6044-6116 l:  -  d: 82; m: 6050; o: 66 CIGAR 72M
-right: 6050-6126 l:  -  d: -82; m: 6044; o: 66 CIGAR 76M
- clip left from 6084 to 6116
- clip right from 6051 to 6083
--> left: 6044-6083 l:  -  d: 82; m: 6083; o: 66 CIGAR 39M33S
--> right: 6083-6126 l:  -  d: -82; m: 6044; o: 66 CIGAR 33S43M
-
-left: 5983-6059 l:  -  d: 145; m: 6052; o: 7 CIGAR 76M
-right: 6052-6128 l:  -  d: -145; m: 5983; o: 7 CIGAR 76M
- clip left from 6056 to 6059
- clip right from 6053 to 6055
--> left: 5983-6055 l:  -  d: 145; m: 6055; o: 7 CIGAR 72M4S
--> right: 6055-6128 l:  -  d: -145; m: 5983; o: 7 CIGAR 3S73M
-
-left: 5990-6065 l:  -  d: 138; m: 6052; o: 13 CIGAR 75M
-right: 6052-6128 l:  -  d: -138; m: 5990; o: 13 CIGAR 76M
- clip left from 6060 to 6065
- clip right from 6053 to 6059
--> left: 5990-6059 l:  -  d: 138; m: 6059; o: 13 CIGAR 69M6S
--> right: 6059-6128 l:  -  d: -138; m: 5990; o: 13 CIGAR 7S69M
-
-left: 6008-6082 l:  -  d: 121; m: 6053; o: 29 CIGAR 74M
-right: 6053-6129 l:  -  d: -121; m: 6008; o: 29 CIGAR 76M
- clip left from 6068 to 6082
- clip right from 6054 to 6067
--> left: 6008-6067 l:  -  d: 121; m: 6067; o: 29 CIGAR 59M15S
--> right: 6067-6129 l:  -  d: -121; m: 6008; o: 29 CIGAR 14S62M
-
-left: 6054-6106 l:  -  d: -52; m: 6054; o: 52 CIGAR 52M
-right: 6054-6106 l:  -  d: 52; m: 6054; o: 52 CIGAR 52M
- clip left from 6081 to 6106
- clip right from 6055 to 6080
--> left: 6054-6080 l:  -  d: 52; m: 6080; o: 52 CIGAR 26M26S
--> right: 6080-6106 l:  -  d: -52; m: 6054; o: 52 CIGAR 26S26M
-
-left: 5989-6065 l:  -  d: 143; m: 6056; o: 9 CIGAR 76M
-right: 6056-6132 l:  -  d: -143; m: 5989; o: 9 CIGAR 76M
- clip left from 6061 to 6065
- clip right from 6057 to 6060
--> left: 5989-6060 l:  -  d: 143; m: 6060; o: 9 CIGAR 71M5S
--> right: 6060-6132 l:  -  d: -143; m: 5989; o: 9 CIGAR 4S72M
-
-left: 6027-6103 l:  -  d: 107; m: 6059; o: 44 CIGAR 76M
-right: 6059-6134 l:  -  d: -107; m: 6027; o: 44 CIGAR 75M
- clip left from 6082 to 6103
- clip right from 6060 to 6081
--> left: 6027-6081 l:  -  d: 107; m: 6081; o: 44 CIGAR 54M22S
--> right: 6081-6134 l:  -  d: -107; m: 6027; o: 44 CIGAR 22S53M
-
-left: 6031-6107 l:  -  d: 103; m: 6059; o: 48 CIGAR 76M
-right: 6059-6134 l:  -  d: -103; m: 6031; o: 48 CIGAR 75M
- clip left from 6084 to 6107
- clip right from 6060 to 6083
--> left: 6031-6083 l:  -  d: 103; m: 6083; o: 48 CIGAR 52M24S
--> right: 6083-6134 l:  -  d: -103; m: 6031; o: 48 CIGAR 24S51M
-
-left: 5998-6073 l:  -  d: 136; m: 6059; o: 14 CIGAR 75M
-right: 6059-6134 l:  -  d: -136; m: 5998; o: 14 CIGAR 75M
- clip left from 6067 to 6073
- clip right from 6060 to 6066
--> left: 5998-6066 l:  -  d: 136; m: 6066; o: 14 CIGAR 68M7S
--> right: 6066-6134 l:  -  d: -136; m: 5998; o: 14 CIGAR 7S68M
-
-left: 6018-6094 l:  -  d: 118; m: 6060; o: 34 CIGAR 76M
-right: 6060-6136 l:  -  d: -118; m: 6018; o: 34 CIGAR 76M
- clip left from 6078 to 6094
- clip right from 6061 to 6077
--> left: 6018-6077 l:  -  d: 118; m: 6077; o: 34 CIGAR 59M17S
--> right: 6077-6136 l:  -  d: -118; m: 6018; o: 34 CIGAR 17S59M
-
-left: 5998-6073 l:  -  d: 139; m: 6061; o: 12 CIGAR 75M
-right: 6061-6137 l:  -  d: -139; m: 5998; o: 12 CIGAR 76M
- clip left from 6068 to 6073
- clip right from 6062 to 6067
--> left: 5998-6067 l:  -  d: 139; m: 6067; o: 12 CIGAR 69M6S
--> right: 6067-6137 l:  -  d: -139; m: 5998; o: 12 CIGAR 6S70M
-
-left: 5987-6063 l:  -  d: 150; m: 6061; o: 2 CIGAR 76M
-right: 6061-6137 l:  -  d: -150; m: 5987; o: 2 CIGAR 76M
- clip left from 6063 to 6063
- clip right from 6062 to 6062
--> left: 5987-6062 l:  -  d: 150; m: 6062; o: 2 CIGAR 75M1S
--> right: 6062-6137 l:  -  d: -150; m: 5987; o: 2 CIGAR 1S75M
-
-left: 6040-6116 l:  -  d: 99; m: 6063; o: 53 CIGAR 76M
-right: 6063-6139 l:  -  d: -99; m: 6040; o: 53 CIGAR 76M
- clip left from 6090 to 6116
- clip right from 6064 to 6089
--> left: 6040-6089 l:  -  d: 99; m: 6089; o: 53 CIGAR 49M27S
--> right: 6089-6139 l:  -  d: -99; m: 6040; o: 53 CIGAR 26S50M
-
-left: 6063-6120 l:  -  d: -57; m: 6063; o: 57 CIGAR 57M
-right: 6063-6120 l:  -  d: 57; m: 6063; o: 57 CIGAR 57M
- clip left from 6092 to 6120
- clip right from 6064 to 6091
--> left: 6063-6091 l:  -  d: 57; m: 6091; o: 57 CIGAR 28M29S
--> right: 6091-6120 l:  -  d: -57; m: 6063; o: 57 CIGAR 28S29M
-
-left: 6063-6130 l:  -  d: -67; m: 6063; o: 67 CIGAR 67M
-right: 6063-6130 l:  -  d: 67; m: 6063; o: 67 CIGAR 67M
- clip left from 6098 to 6130
- clip right from 6064 to 6097
--> left: 6063-6097 l:  -  d: 67; m: 6097; o: 67 CIGAR 34M33S
--> right: 6097-6130 l:  -  d: -67; m: 6063; o: 67 CIGAR 34S33M
-
-left: 6039-6115 l:  -  d: 102; m: 6065; o: 50 CIGAR 76M
-right: 6065-6141 l:  -  d: -102; m: 6039; o: 50 CIGAR 76M
- clip left from 6091 to 6115
- clip right from 6066 to 6090
--> left: 6039-6090 l:  -  d: 102; m: 6090; o: 50 CIGAR 51M25S
--> right: 6090-6141 l:  -  d: -102; m: 6039; o: 50 CIGAR 25S51M
-
-left: 6066-6136 l:  -  d: -70; m: 6066; o: 70 CIGAR 70M
-right: 6066-6136 l:  -  d: 70; m: 6066; o: 70 CIGAR 70M
- clip left from 6102 to 6136
- clip right from 6067 to 6101
--> left: 6066-6101 l:  -  d: 70; m: 6101; o: 70 CIGAR 35M35S
--> right: 6101-6136 l:  -  d: -70; m: 6066; o: 70 CIGAR 35S35M
-
-left: 6065-6141 l:  -  d: 78; m: 6067; o: 74 CIGAR 76M
-right: 6067-6143 l:  -  d: -78; m: 6065; o: 74 CIGAR 76M
- clip left from 6105 to 6141
- clip right from 6068 to 6104
--> left: 6065-6104 l:  -  d: 78; m: 6104; o: 74 CIGAR 39M37S
--> right: 6104-6143 l:  -  d: -78; m: 6065; o: 74 CIGAR 37S39M
-
-left: 6006-6082 l:  -  d: 138; m: 6068; o: 14 CIGAR 76M
-right: 6068-6144 l:  -  d: -138; m: 6006; o: 14 CIGAR 76M
- clip left from 6076 to 6082
- clip right from 6069 to 6075
--> left: 6006-6075 l:  -  d: 138; m: 6075; o: 14 CIGAR 69M7S
--> right: 6075-6144 l:  -  d: -138; m: 6006; o: 14 CIGAR 7S69M
-
-left: 6015-6091 l:  -  d: 129; m: 6068; o: 23 CIGAR 76M
-right: 6068-6144 l:  -  d: -129; m: 6015; o: 23 CIGAR 76M
- clip left from 6081 to 6091
- clip right from 6069 to 6080
--> left: 6015-6080 l:  -  d: 129; m: 6080; o: 23 CIGAR 65M11S
--> right: 6080-6144 l:  -  d: -129; m: 6015; o: 23 CIGAR 12S64M
-
-left: 6016-6092 l:  -  d: 129; m: 6069; o: 23 CIGAR 76M
-right: 6069-6145 l:  -  d: -129; m: 6016; o: 23 CIGAR 76M
- clip left from 6082 to 6092
- clip right from 6070 to 6081
--> left: 6016-6081 l:  -  d: 129; m: 6081; o: 23 CIGAR 65M11S
--> right: 6081-6145 l:  -  d: -129; m: 6016; o: 23 CIGAR 12S64M
-
-left: 6010-6085 l:  -  d: 135; m: 6069; o: 16 CIGAR 75M
-right: 6069-6145 l:  -  d: -135; m: 6010; o: 16 CIGAR 76M
- clip left from 6078 to 6085
- clip right from 6070 to 6077
--> left: 6010-6077 l:  -  d: 135; m: 6077; o: 16 CIGAR 67M8S
--> right: 6077-6145 l:  -  d: -135; m: 6010; o: 16 CIGAR 8S68M
-
-left: 6064-6140 l:  -  d: 81; m: 6069; o: 71 CIGAR 76M
-right: 6069-6145 l:  -  d: -81; m: 6064; o: 71 CIGAR 76M
- clip left from 6105 to 6140
- clip right from 6070 to 6104
--> left: 6064-6104 l:  -  d: 81; m: 6104; o: 71 CIGAR 40M36S
--> right: 6104-6145 l:  -  d: -81; m: 6064; o: 71 CIGAR 35S41M
-
-left: 6037-6112 l:  -  d: 109; m: 6070; o: 42 CIGAR 75M
-right: 6070-6146 l:  -  d: -109; m: 6037; o: 42 CIGAR 76M
- clip left from 6092 to 6112
- clip right from 6071 to 6091
--> left: 6037-6091 l:  -  d: 109; m: 6091; o: 42 CIGAR 54M21S
--> right: 6091-6146 l:  -  d: -109; m: 6037; o: 42 CIGAR 21S55M
-
-left: 6070-6145 l:  -  d: -75; m: 6070; o: 75 CIGAR 75M
-right: 6070-6145 l:  -  d: 75; m: 6070; o: 75 CIGAR 75M
- clip left from 6109 to 6145
- clip right from 6071 to 6108
--> left: 6070-6108 l:  -  d: 75; m: 6108; o: 75 CIGAR 38M37S
--> right: 6108-6145 l:  -  d: -75; m: 6070; o: 75 CIGAR 38S37M
-
-left: 6071-6134 l:  -  d: -63; m: 6071; o: 63 CIGAR 63M
-right: 6071-6134 l:  -  d: 63; m: 6071; o: 63 CIGAR 63M
- clip left from 6104 to 6134
- clip right from 6072 to 6103
--> left: 6071-6103 l:  -  d: 63; m: 6103; o: 63 CIGAR 32M31S
--> right: 6103-6134 l:  -  d: -63; m: 6071; o: 63 CIGAR 32S31M
-
-left: 6010-6085 l:  -  d: 137; m: 6071; o: 14 CIGAR 75M
-right: 6071-6147 l:  -  d: -137; m: 6010; o: 14 CIGAR 76M
- clip left from 6079 to 6085
- clip right from 6072 to 6078
--> left: 6010-6078 l:  -  d: 137; m: 6078; o: 14 CIGAR 68M7S
--> right: 6078-6147 l:  -  d: -137; m: 6010; o: 14 CIGAR 7S69M
-
-left: 6054-6130 l:  -  d: 94; m: 6072; o: 58 CIGAR 76M
-right: 6072-6148 l:  -  d: -94; m: 6054; o: 58 CIGAR 76M
- clip left from 6102 to 6130
- clip right from 6073 to 6101
--> left: 6054-6101 l:  -  d: 94; m: 6101; o: 58 CIGAR 47M29S
--> right: 6101-6148 l:  -  d: -94; m: 6054; o: 58 CIGAR 29S47M
-
-left: 6035-6111 l:  -  d: 115; m: 6075; o: 36 CIGAR 76M
-right: 6075-6150 l:  -  d: -115; m: 6035; o: 36 CIGAR 75M
- clip left from 6094 to 6111
- clip right from 6076 to 6093
--> left: 6035-6093 l:  -  d: 115; m: 6093; o: 36 CIGAR 58M18S
--> right: 6093-6150 l:  -  d: -115; m: 6035; o: 36 CIGAR 18S57M
-
-left: 6075-6122 l:  -  d: -47; m: 6075; o: 47 CIGAR 47M
-right: 6075-6122 l:  -  d: 47; m: 6075; o: 47 CIGAR 47M
- clip left from 6100 to 6122
- clip right from 6076 to 6099
--> left: 6075-6099 l:  -  d: 47; m: 6099; o: 47 CIGAR 24M23S
--> right: 6099-6122 l:  -  d: -47; m: 6075; o: 47 CIGAR 24S23M
-
-left: 6063-6139 l:  -  d: 88; m: 6075; o: 64 CIGAR 76M
-right: 6075-6151 l:  -  d: -88; m: 6063; o: 64 CIGAR 76M
- clip left from 6108 to 6139
- clip right from 6076 to 6107
--> left: 6063-6107 l:  -  d: 88; m: 6107; o: 64 CIGAR 44M32S
--> right: 6107-6151 l:  -  d: -88; m: 6063; o: 64 CIGAR 32S44M
-
-left: 6070-6146 l:  -  d: 80; m: 6075; o: 71 CIGAR 76M
-right: 6075-6150 l:  -  d: -80; m: 6070; o: 71 CIGAR 75M
- clip left from 6112 to 6146
- clip right from 6076 to 6111
--> left: 6070-6111 l:  -  d: 80; m: 6111; o: 71 CIGAR 41M35S
--> right: 6111-6150 l:  -  d: -80; m: 6070; o: 71 CIGAR 36S39M
-
-left: 6055-6131 l:  -  d: 99; m: 6079; o: 52 CIGAR 76M
-right: 6079-6154 l:  -  d: -99; m: 6055; o: 52 CIGAR 75M
- clip left from 6106 to 6131
- clip right from 6080 to 6105
--> left: 6055-6105 l:  -  d: 99; m: 6105; o: 52 CIGAR 50M26S
--> right: 6105-6154 l:  -  d: -99; m: 6055; o: 52 CIGAR 26S49M
-
-left: 6035-6111 l:  -  d: 120; m: 6079; o: 32 CIGAR 76M
-right: 6079-6155 l:  -  d: -120; m: 6035; o: 32 CIGAR 76M
- clip left from 6096 to 6111
- clip right from 6080 to 6095
--> left: 6035-6095 l:  -  d: 120; m: 6095; o: 32 CIGAR 60M16S
--> right: 6095-6155 l:  -  d: -120; m: 6035; o: 32 CIGAR 16S60M
-
-left: 6080-6156 l:  -  d: -76; m: 6080; o: 76 CIGAR 76M
-right: 6080-6156 l:  -  d: 76; m: 6080; o: 76 CIGAR 76M
- clip left from 6119 to 6156
- clip right from 6081 to 6118
--> left: 6080-6118 l:  -  d: 76; m: 6118; o: 76 CIGAR 38M38S
--> right: 6118-6156 l:  -  d: -76; m: 6080; o: 76 CIGAR 38S38M
-
-left: 6062-6138 l:  -  d: 94; m: 6080; o: 58 CIGAR 76M
-right: 6080-6156 l:  -  d: -94; m: 6062; o: 58 CIGAR 76M
- clip left from 6110 to 6138
- clip right from 6081 to 6109
--> left: 6062-6109 l:  -  d: 94; m: 6109; o: 58 CIGAR 47M29S
--> right: 6109-6156 l:  -  d: -94; m: 6062; o: 58 CIGAR 29S47M
-
-left: 6037-6112 l:  -  d: 120; m: 6081; o: 31 CIGAR 75M
-right: 6081-6157 l:  -  d: -120; m: 6037; o: 31 CIGAR 76M
- clip left from 6098 to 6112
- clip right from 6082 to 6097
--> left: 6037-6097 l:  -  d: 120; m: 6097; o: 31 CIGAR 60M15S
--> right: 6097-6157 l:  -  d: -120; m: 6037; o: 31 CIGAR 16S60M
-
-left: 6013-6089 l:  -  d: 144; m: 6081; o: 8 CIGAR 76M
-right: 6081-6157 l:  -  d: -144; m: 6013; o: 8 CIGAR 76M
- clip left from 6086 to 6089
- clip right from 6082 to 6085
--> left: 6013-6085 l:  -  d: 144; m: 6085; o: 8 CIGAR 72M4S
--> right: 6085-6157 l:  -  d: -144; m: 6013; o: 8 CIGAR 4S72M
-
-left: 6083-6123 l:  -  d: -40; m: 6083; o: 40 CIGAR 40M
-right: 6083-6123 l:  -  d: 40; m: 6083; o: 40 CIGAR 40M
- clip left from 6104 to 6123
- clip right from 6084 to 6103
--> left: 6083-6103 l:  -  d: 40; m: 6103; o: 40 CIGAR 20M20S
--> right: 6103-6123 l:  -  d: -40; m: 6083; o: 40 CIGAR 20S20M
-
-left: 6084-6126 l:  -  d: -42; m: 6084; o: 42 CIGAR 42M
-right: 6084-6126 l:  -  d: 42; m: 6084; o: 42 CIGAR 42M
- clip left from 6106 to 6126
- clip right from 6085 to 6105
--> left: 6084-6105 l:  -  d: 42; m: 6105; o: 42 CIGAR 21M21S
--> right: 6105-6126 l:  -  d: -42; m: 6084; o: 42 CIGAR 21S21M
-
-left: 6085-6147 l:  -  d: -62; m: 6085; o: 62 CIGAR 62M
-right: 6085-6147 l:  -  d: 62; m: 6085; o: 62 CIGAR 62M
- clip left from 6117 to 6147
- clip right from 6086 to 6116
--> left: 6085-6116 l:  -  d: 62; m: 6116; o: 62 CIGAR 31M31S
--> right: 6116-6147 l:  -  d: -62; m: 6085; o: 62 CIGAR 31S31M
-
-left: 6055-6131 l:  -  d: 106; m: 6085; o: 46 CIGAR 76M
-right: 6085-6161 l:  -  d: -106; m: 6055; o: 46 CIGAR 76M
- clip left from 6109 to 6131
- clip right from 6086 to 6108
--> left: 6055-6108 l:  -  d: 106; m: 6108; o: 46 CIGAR 53M23S
--> right: 6108-6161 l:  -  d: -106; m: 6055; o: 46 CIGAR 23S53M
-
-left: 6065-6141 l:  -  d: 99; m: 6088; o: 53 CIGAR 76M
-right: 6088-6164 l:  -  d: -99; m: 6065; o: 53 CIGAR 76M
- clip left from 6116 to 6141
- clip right from 6089 to 6115
--> left: 6065-6115 l:  -  d: 99; m: 6115; o: 53 CIGAR 50M26S
--> right: 6115-6164 l:  -  d: -99; m: 6065; o: 53 CIGAR 27S49M
-
-left: 6064-6140 l:  -  d: 102; m: 6091; o: 49 CIGAR 76M
-right: 6091-6166 l:  -  d: -102; m: 6064; o: 49 CIGAR 75M
- clip left from 6117 to 6140
- clip right from 6092 to 6116
--> left: 6064-6116 l:  -  d: 102; m: 6116; o: 49 CIGAR 52M24S
--> right: 6116-6166 l:  -  d: -102; m: 6064; o: 49 CIGAR 25S50M
-
-left: 6072-6148 l:  -  d: 94; m: 6091; o: 57 CIGAR 76M
-right: 6091-6166 l:  -  d: -94; m: 6072; o: 57 CIGAR 75M
- clip left from 6121 to 6148
- clip right from 6092 to 6120
--> left: 6072-6120 l:  -  d: 94; m: 6120; o: 57 CIGAR 48M28S
--> right: 6120-6166 l:  -  d: -94; m: 6072; o: 57 CIGAR 29S46M
-
-left: 6091-6136 l:  -  d: -45; m: 6091; o: 45 CIGAR 45M
-right: 6091-6136 l:  -  d: 45; m: 6091; o: 45 CIGAR 45M
- clip left from 6114 to 6136
- clip right from 6092 to 6113
--> left: 6091-6113 l:  -  d: 45; m: 6113; o: 45 CIGAR 22M23S
--> right: 6113-6136 l:  -  d: -45; m: 6091; o: 45 CIGAR 22S23M
-
-left: 6091-6165 l:  -  d: -74; m: 6091; o: 74 CIGAR 74M
-right: 6091-6165 l:  -  d: 74; m: 6091; o: 74 CIGAR 74M
- clip left from 6129 to 6165
- clip right from 6092 to 6128
--> left: 6091-6128 l:  -  d: 74; m: 6128; o: 74 CIGAR 37M37S
--> right: 6128-6165 l:  -  d: -74; m: 6091; o: 74 CIGAR 37S37M
-
-left: 6093-6150 l:  -  d: -57; m: 6093; o: 57 CIGAR 57M
-right: 6093-6150 l:  -  d: 57; m: 6093; o: 57 CIGAR 57M
- clip left from 6122 to 6150
- clip right from 6094 to 6121
--> left: 6093-6121 l:  -  d: 57; m: 6121; o: 57 CIGAR 28M29S
--> right: 6121-6150 l:  -  d: -57; m: 6093; o: 57 CIGAR 28S29M
-
-left: 6091-6166 l:  -  d: 79; m: 6095; o: 71 CIGAR 75M
-right: 6095-6170 l:  -  d: -79; m: 6091; o: 71 CIGAR 75M
- clip left from 6132 to 6166
- clip right from 6096 to 6131
--> left: 6091-6131 l:  -  d: 79; m: 6131; o: 71 CIGAR 40M35S
--> right: 6131-6170 l:  -  d: -79; m: 6091; o: 71 CIGAR 36S39M
-
-left: 6084-6160 l:  -  d: 91; m: 6100; o: 60 CIGAR 76M
-right: 6100-6175 l:  -  d: -91; m: 6084; o: 60 CIGAR 75M
- clip left from 6131 to 6160
- clip right from 6101 to 6130
--> left: 6084-6130 l:  -  d: 91; m: 6130; o: 60 CIGAR 46M30S
--> right: 6130-6175 l:  -  d: -91; m: 6084; o: 60 CIGAR 30S45M
-
-left: 6064-6140 l:  -  d: 111; m: 6100; o: 40 CIGAR 76M
-right: 6100-6175 l:  -  d: -111; m: 6064; o: 40 CIGAR 75M
- clip left from 6121 to 6140
- clip right from 6101 to 6120
--> left: 6064-6120 l:  -  d: 111; m: 6120; o: 40 CIGAR 56M20S
--> right: 6120-6175 l:  -  d: -111; m: 6064; o: 40 CIGAR 20S55M
-
-left: 6094-6170 l:  -  d: 83; m: 6101; o: 69 CIGAR 76M
-right: 6101-6177 l:  -  d: -83; m: 6094; o: 69 CIGAR 76M
- clip left from 6137 to 6170
- clip right from 6102 to 6136
--> left: 6094-6136 l:  -  d: 83; m: 6136; o: 69 CIGAR 42M34S
--> right: 6136-6177 l:  -  d: -83; m: 6094; o: 69 CIGAR 35S41M
-
-left: 6029-6105 l:  -  d: 149; m: 6102; o: 3 CIGAR 76M
-right: 6102-6178 l:  -  d: -149; m: 6029; o: 3 CIGAR 76M
- clip left from 6104 to 6105
- clip right from 6103 to 6103
--> left: 6029-6103 l:  -  d: 149; m: 6103; o: 3 CIGAR 74M2S
--> right: 6103-6178 l:  -  d: -149; m: 6029; o: 3 CIGAR 1S75M
-
-left: 6068-6142 l:  -  d: 111; m: 6105; o: 37 CIGAR 74M
-right: 6105-6179 l:  -  d: -111; m: 6068; o: 37 CIGAR 74M
- clip left from 6125 to 6142
- clip right from 6106 to 6124
--> left: 6068-6124 l:  -  d: 111; m: 6124; o: 37 CIGAR 56M18S
--> right: 6124-6179 l:  -  d: -111; m: 6068; o: 37 CIGAR 19S55M
-
-left: 6073-6149 l:  -  d: 109; m: 6107; o: 42 CIGAR 76M
-right: 6107-6182 l:  -  d: -109; m: 6073; o: 42 CIGAR 75M
- clip left from 6129 to 6149
- clip right from 6108 to 6128
--> left: 6073-6128 l:  -  d: 109; m: 6128; o: 42 CIGAR 55M21S
--> right: 6128-6182 l:  -  d: -109; m: 6073; o: 42 CIGAR 21S54M
-
-left: 6042-6116 l:  -  d: 141; m: 6107; o: 9 CIGAR 74M
-right: 6107-6183 l:  -  d: -141; m: 6042; o: 9 CIGAR 76M
- clip left from 6112 to 6116
- clip right from 6108 to 6111
--> left: 6042-6111 l:  -  d: 141; m: 6111; o: 9 CIGAR 69M5S
--> right: 6111-6183 l:  -  d: -141; m: 6042; o: 9 CIGAR 4S72M
-
-left: 6043-6116 l:  -  d: 142; m: 6110; o: 6 CIGAR 73M
-right: 6110-6185 l:  -  d: -142; m: 6043; o: 6 CIGAR 75M
- clip left from 6114 to 6116
- clip right from 6111 to 6113
--> left: 6043-6113 l:  -  d: 142; m: 6113; o: 6 CIGAR 70M3S
--> right: 6113-6185 l:  -  d: -142; m: 6043; o: 6 CIGAR 3S72M
-
-left: 6091-6166 l:  -  d: 95; m: 6111; o: 55 CIGAR 75M
-right: 6111-6186 l:  -  d: -95; m: 6091; o: 55 CIGAR 75M
- clip left from 6140 to 6166
- clip right from 6112 to 6139
--> left: 6091-6139 l:  -  d: 95; m: 6139; o: 55 CIGAR 48M27S
--> right: 6139-6186 l:  -  d: -95; m: 6091; o: 55 CIGAR 28S47M
-
-left: 6063-6139 l:  -  d: 124; m: 6111; o: 28 CIGAR 76M
-right: 6111-6187 l:  -  d: -124; m: 6063; o: 28 CIGAR 76M
- clip left from 6126 to 6139
- clip right from 6112 to 6125
--> left: 6063-6125 l:  -  d: 124; m: 6125; o: 28 CIGAR 62M14S
--> right: 6125-6187 l:  -  d: -124; m: 6063; o: 28 CIGAR 14S62M
-
-left: 6052-6128 l:  -  d: 141; m: 6116; o: 12 CIGAR 76M
-right: 6116-6193 l:  -  d: -141; m: 6052; o: 12 CIGAR 61M1D15M
- clip left from 6123 to 6128
- clip right from 6117 to 6122
--> left: 6052-6122 l:  -  d: 141; m: 6122; o: 12 CIGAR 70M6S
--> right: 6122-6193 l:  -  d: -141; m: 6052; o: 12 CIGAR 6S55M1D15M
-
-left: 6077-6153 l:  -  d: 121; m: 6122; o: 31 CIGAR 76M
-right: 6122-6198 l:  -  d: -121; m: 6077; o: 31 CIGAR 76M
- clip left from 6139 to 6153
- clip right from 6123 to 6138
--> left: 6077-6138 l:  -  d: 121; m: 6138; o: 31 CIGAR 61M15S
--> right: 6138-6198 l:  -  d: -121; m: 6077; o: 31 CIGAR 16S60M
-
-left: 6115-6190 l:  -  d: 83; m: 6122; o: 68 CIGAR 75M
-right: 6122-6198 l:  -  d: -83; m: 6115; o: 68 CIGAR 76M
- clip left from 6157 to 6190
- clip right from 6123 to 6156
--> left: 6115-6156 l:  -  d: 83; m: 6156; o: 68 CIGAR 41M34S
--> right: 6156-6198 l:  -  d: -83; m: 6115; o: 68 CIGAR 34S42M
-
-left: 6076-6152 l:  -  d: 127; m: 6127; o: 25 CIGAR 76M
-right: 6127-6203 l:  -  d: -127; m: 6076; o: 25 CIGAR 76M
- clip left from 6140 to 6152
- clip right from 6128 to 6139
--> left: 6076-6139 l:  -  d: 127; m: 6139; o: 25 CIGAR 63M13S
--> right: 6139-6203 l:  -  d: -127; m: 6076; o: 25 CIGAR 12S64M
-
-left: 6096-6172 l:  -  d: 108; m: 6128; o: 44 CIGAR 76M
-right: 6128-6204 l:  -  d: -108; m: 6096; o: 44 CIGAR 76M
- clip left from 6151 to 6172
- clip right from 6129 to 6150
--> left: 6096-6150 l:  -  d: 108; m: 6150; o: 44 CIGAR 54M22S
--> right: 6150-6204 l:  -  d: -108; m: 6096; o: 44 CIGAR 22S54M
-
-left: 6054-6130 l:  -  d: 150; m: 6128; o: 2 CIGAR 76M
-right: 6128-6204 l:  -  d: -150; m: 6054; o: 2 CIGAR 76M
- clip left from 6130 to 6130
- clip right from 6129 to 6129
--> left: 6054-6129 l:  -  d: 150; m: 6129; o: 2 CIGAR 75M1S
--> right: 6129-6204 l:  -  d: -150; m: 6054; o: 2 CIGAR 1S75M
-
-left: 6133-6209 l:  -  d: 83; m: 6140; o: 69 CIGAR 76M
-right: 6140-6216 l:  -  d: -83; m: 6133; o: 69 CIGAR 76M
- clip left from 6175 to 6209
- clip right from 6141 to 6174
--> left: 6133-6174 l:  -  d: 83; m: 6174; o: 69 CIGAR 41M35S
--> right: 6174-6216 l:  -  d: -83; m: 6133; o: 69 CIGAR 34S42M
-
-left: 6138-6214 l:  -  d: 80; m: 6142; o: 72 CIGAR 76M
-right: 6142-6218 l:  -  d: -80; m: 6138; o: 72 CIGAR 76M
- clip left from 6179 to 6214
- clip right from 6143 to 6178
--> left: 6138-6178 l:  -  d: 80; m: 6178; o: 72 CIGAR 40M36S
--> right: 6178-6218 l:  -  d: -80; m: 6138; o: 72 CIGAR 36S40M
-
-left: 6110-6186 l:  -  d: 110; m: 6144; o: 42 CIGAR 76M
-right: 6144-6220 l:  -  d: -110; m: 6110; o: 42 CIGAR 76M
- clip left from 6166 to 6186
- clip right from 6145 to 6165
--> left: 6110-6165 l:  -  d: 110; m: 6165; o: 42 CIGAR 55M21S
--> right: 6165-6220 l:  -  d: -110; m: 6110; o: 42 CIGAR 21S55M
-
-left: 6125-6201 l:  -  d: 99; m: 6149; o: 52 CIGAR 76M
-right: 6149-6224 l:  -  d: -99; m: 6125; o: 52 CIGAR 75M
- clip left from 6176 to 6201
- clip right from 6150 to 6175
--> left: 6125-6175 l:  -  d: 99; m: 6175; o: 52 CIGAR 50M26S
--> right: 6175-6224 l:  -  d: -99; m: 6125; o: 52 CIGAR 26S49M
-
-left: 6085-6161 l:  -  d: 136; m: 6149; o: 12 CIGAR 76M
-right: 6149-6221 l:  -  d: -136; m: 6085; o: 12 CIGAR 72M
- clip left from 6156 to 6161
- clip right from 6150 to 6155
--> left: 6085-6155 l:  -  d: 136; m: 6155; o: 12 CIGAR 70M6S
--> right: 6155-6221 l:  -  d: -136; m: 6085; o: 12 CIGAR 6S66M
-
-left: 6132-6207 l:  -  d: 97; m: 6154; o: 53 CIGAR 75M
-right: 6154-6229 l:  -  d: -97; m: 6132; o: 53 CIGAR 75M
- clip left from 6181 to 6207
- clip right from 6155 to 6180
--> left: 6132-6180 l:  -  d: 97; m: 6180; o: 53 CIGAR 48M27S
--> right: 6180-6229 l:  -  d: -97; m: 6132; o: 53 CIGAR 26S49M
-
-left: 6156-6211 l:  -  d: -55; m: 6156; o: 55 CIGAR 55M
-right: 6156-6211 l:  -  d: 55; m: 6156; o: 55 CIGAR 55M
- clip left from 6185 to 6211
- clip right from 6157 to 6184
--> left: 6156-6184 l:  -  d: 55; m: 6184; o: 55 CIGAR 28M27S
--> right: 6184-6211 l:  -  d: -55; m: 6156; o: 55 CIGAR 28S27M
-
-left: 6086-6162 l:  -  d: 142; m: 6161; o: 1 CIGAR 76M
-right: 6161-6228 l:  -  d: -142; m: 6086; o: 1 CIGAR 67M
- clip left from 6162 to 6162
- clip right from 6162 to 6161
--> left: 6086-6161 l:  -  d: 142; m: 6161; o: 1 CIGAR 75M1S
--> right: 6161-6228 l:  -  d: -142; m: 6086; o: 1 CIGAR 67M
-
-left: 6100-6175 l:  -  d: 145; m: 6170; o: 5 CIGAR 75M
-right: 6170-6245 l:  -  d: -145; m: 6100; o: 5 CIGAR 75M
- clip left from 6174 to 6175
- clip right from 6171 to 6173
--> left: 6100-6173 l:  -  d: 145; m: 6173; o: 5 CIGAR 73M2S
--> right: 6173-6245 l:  -  d: -145; m: 6100; o: 5 CIGAR 3S72M
-
-left: 6160-6236 l:  -  d: 93; m: 6177; o: 59 CIGAR 76M
-right: 6177-6253 l:  -  d: -93; m: 6160; o: 59 CIGAR 76M
- clip left from 6207 to 6236
- clip right from 6178 to 6206
--> left: 6160-6206 l:  -  d: 93; m: 6206; o: 59 CIGAR 46M30S
--> right: 6206-6253 l:  -  d: -93; m: 6160; o: 59 CIGAR 29S47M
-
-left: 6141-6217 l:  -  d: 117; m: 6182; o: 35 CIGAR 76M
-right: 6182-6258 l:  -  d: -117; m: 6141; o: 35 CIGAR 76M
- clip left from 6200 to 6217
- clip right from 6183 to 6199
--> left: 6141-6199 l:  -  d: 117; m: 6199; o: 35 CIGAR 58M18S
--> right: 6199-6258 l:  -  d: -117; m: 6141; o: 35 CIGAR 17S59M
-
-left: 6191-6248 l:  -  d: -57; m: 6191; o: 57 CIGAR 57M
-right: 6191-6248 l:  -  d: 57; m: 6191; o: 57 CIGAR 57M
- clip left from 6221 to 6248
- clip right from 6192 to 6220
--> left: 6191-6220 l:  -  d: 57; m: 6220; o: 57 CIGAR 29M28S
--> right: 6220-6248 l:  -  d: -57; m: 6191; o: 57 CIGAR 29S28M
-
-left: 6162-6238 l:  -  d: 114; m: 6201; o: 37 CIGAR 76M
-right: 6201-6276 l:  -  d: -114; m: 6162; o: 37 CIGAR 75M
- clip left from 6221 to 6238
- clip right from 6202 to 6220
--> left: 6162-6220 l:  -  d: 114; m: 6220; o: 37 CIGAR 58M18S
--> right: 6220-6276 l:  -  d: -114; m: 6162; o: 37 CIGAR 19S56M
-
-left: 6329-6405 l:  -  d: 148; m: 6401; o: 4 CIGAR 76M
-right: 6401-6477 l:  -  d: -148; m: 6329; o: 4 CIGAR 76M
- clip left from 6404 to 6405
- clip right from 6402 to 6403
--> left: 6329-6403 l:  -  d: 148; m: 6403; o: 4 CIGAR 74M2S
--> right: 6403-6477 l:  -  d: -148; m: 6329; o: 4 CIGAR 2S74M
-
-left: 6403-6465 l:  -  d: -62; m: 6403; o: 62 CIGAR 62M
-right: 6403-6465 l:  -  d: 62; m: 6403; o: 62 CIGAR 62M
- clip left from 6435 to 6465
- clip right from 6404 to 6434
--> left: 6403-6434 l:  -  d: 62; m: 6434; o: 62 CIGAR 31M31S
--> right: 6434-6465 l:  -  d: -62; m: 6403; o: 62 CIGAR 31S31M
+forward: name - PC0206:37:64FA0AAXX:7:91:11115:13536region -17:5291-5367 is: 124; m: 5341; o: 26 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:91:11115:13536region -17:5341-5415 is: -124; m: 5291; o: 26 CIGAR 74M
+ clip forward from 5355 to 5367
+ clip reverse from 5342 to 5354
+-> forward: name - PC0206:37:64FA0AAXX:7:91:11115:13536region -17:5291-5354 is: 124; m: 5354; o: 26 CIGAR 63M13S
+-> reverse: name - PC0206:37:64FA0AAXX:7:91:11115:13536region -17:5354-5415 is: -124; m: 5291; o: 26 CIGAR 13S61M
+
+forward: name - PC0206:37:64FA0AAXX:7:109:9053:18742region -17:5791-5851 is: 60; m: 5791; o: 60 CIGAR 60M
+reverse: name - PC0206:37:64FA0AAXX:7:109:9053:18742region -17:5791-5851 is: -60; m: 5791; o: 60 CIGAR 60M
+ clip forward from 5822 to 5851
+ clip reverse from 5792 to 5821
+-> forward: name - PC0206:37:64FA0AAXX:7:109:9053:18742region -17:5791-5821 is: 60; m: 5821; o: 60 CIGAR 30M30S
+-> reverse: name - PC0206:37:64FA0AAXX:7:109:9053:18742region -17:5821-5851 is: -60; m: 5791; o: 60 CIGAR 30S30M
+
+forward: name - PC0206:37:64FA0AAXX:7:5:5657:18974region -17:5810-5885 is: 84; m: 5819; o: 66 CIGAR 75M
+reverse: name - PC0206:37:64FA0AAXX:7:5:5657:18974region -17:5819-5894 is: -84; m: 5810; o: 66 CIGAR 75M
+ clip forward from 5853 to 5885
+ clip reverse from 5820 to 5852
+-> forward: name - PC0206:37:64FA0AAXX:7:5:5657:18974region -17:5810-5852 is: 84; m: 5852; o: 66 CIGAR 42M33S
+-> reverse: name - PC0206:37:64FA0AAXX:7:5:5657:18974region -17:5852-5894 is: -84; m: 5810; o: 66 CIGAR 33S42M
+
+forward: name - PC0206:37:64FA0AAXX:7:80:18452:2417region -17:5855-5931 is: 141; m: 5920; o: 11 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:80:18452:2417region -17:5920-5996 is: -141; m: 5855; o: 11 CIGAR 76M
+ clip forward from 5926 to 5931
+ clip reverse from 5921 to 5925
+-> forward: name - PC0206:37:64FA0AAXX:7:80:18452:2417region -17:5855-5925 is: 141; m: 5925; o: 11 CIGAR 70M6S
+-> reverse: name - PC0206:37:64FA0AAXX:7:80:18452:2417region -17:5925-5996 is: -141; m: 5855; o: 11 CIGAR 5S71M
+
+forward: name - PC0206:37:64FA0AAXX:7:109:6778:4227region -17:5913-5989 is: 86; m: 5924; o: 65 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:109:6778:4227region -17:5924-5999 is: -86; m: 5913; o: 65 CIGAR 75M
+ clip forward from 5958 to 5989
+ clip reverse from 5925 to 5957
+-> forward: name - PC0206:37:64FA0AAXX:7:109:6778:4227region -17:5913-5957 is: 86; m: 5957; o: 65 CIGAR 44M32S
+-> reverse: name - PC0206:37:64FA0AAXX:7:109:6778:4227region -17:5957-5999 is: -86; m: 5913; o: 65 CIGAR 33S42M
+
+forward: name - PC0206:37:64FA0AAXX:7:56:17910:1857region -17:5905-5981 is: 97; m: 5926; o: 55 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:56:17910:1857region -17:5926-6002 is: -97; m: 5905; o: 55 CIGAR 76M
+ clip forward from 5955 to 5981
+ clip reverse from 5927 to 5954
+-> forward: name - PC0206:37:64FA0AAXX:7:56:17910:1857region -17:5905-5954 is: 97; m: 5954; o: 55 CIGAR 49M27S
+-> reverse: name - PC0206:37:64FA0AAXX:7:56:17910:1857region -17:5954-6002 is: -97; m: 5905; o: 55 CIGAR 28S48M
+
+forward: name - PC0206:37:64FA0AAXX:7:62:5880:14259region -17:5887-5963 is: 126; m: 5937; o: 26 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:62:5880:14259region -17:5937-6013 is: -126; m: 5887; o: 26 CIGAR 76M
+ clip forward from 5951 to 5963
+ clip reverse from 5938 to 5950
+-> forward: name - PC0206:37:64FA0AAXX:7:62:5880:14259region -17:5887-5950 is: 126; m: 5950; o: 26 CIGAR 63M13S
+-> reverse: name - PC0206:37:64FA0AAXX:7:62:5880:14259region -17:5950-6013 is: -126; m: 5887; o: 26 CIGAR 13S63M
+
+forward: name - PC0206:37:64FA0AAXX:7:87:7733:18400region -17:5930-6006 is: 84; m: 5938; o: 68 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:87:7733:18400region -17:5938-6014 is: -84; m: 5930; o: 68 CIGAR 76M
+ clip forward from 5973 to 6006
+ clip reverse from 5939 to 5972
+-> forward: name - PC0206:37:64FA0AAXX:7:87:7733:18400region -17:5930-5972 is: 84; m: 5972; o: 68 CIGAR 42M34S
+-> reverse: name - PC0206:37:64FA0AAXX:7:87:7733:18400region -17:5972-6014 is: -84; m: 5930; o: 68 CIGAR 34S42M
+
+forward: name - PC0206:37:64FA0AAXX:7:39:4498:9125region -17:5962-6036 is: 74; m: 5962; o: 74 CIGAR 74M
+reverse: name - PC0206:37:64FA0AAXX:7:39:4498:9125region -17:5962-6036 is: -74; m: 5962; o: 74 CIGAR 74M
+ clip forward from 6000 to 6036
+ clip reverse from 5963 to 5999
+-> forward: name - PC0206:37:64FA0AAXX:7:39:4498:9125region -17:5962-5999 is: 74; m: 5999; o: 74 CIGAR 37M37S
+-> reverse: name - PC0206:37:64FA0AAXX:7:39:4498:9125region -17:5999-6036 is: -74; m: 5962; o: 74 CIGAR 37S37M
+
+forward: name - PC0206:37:64FA0AAXX:7:115:7658:19748region -17:5892-5968 is: 147; m: 5963; o: 5 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:115:7658:19748region -17:5963-6039 is: -147; m: 5892; o: 5 CIGAR 76M
+ clip forward from 5966 to 5968
+ clip reverse from 5964 to 5965
+-> forward: name - PC0206:37:64FA0AAXX:7:115:7658:19748region -17:5892-5965 is: 147; m: 5965; o: 5 CIGAR 73M3S
+-> reverse: name - PC0206:37:64FA0AAXX:7:115:7658:19748region -17:5965-6039 is: -147; m: 5892; o: 5 CIGAR 2S74M
+
+forward: name - PC0206:37:64FA0AAXX:7:76:8632:17301region -17:5966-6035 is: 69; m: 5966; o: 69 CIGAR 69M
+reverse: name - PC0206:37:64FA0AAXX:7:76:8632:17301region -17:5966-6035 is: -69; m: 5966; o: 69 CIGAR 69M
+ clip forward from 6001 to 6035
+ clip reverse from 5967 to 6000
+-> forward: name - PC0206:37:64FA0AAXX:7:76:8632:17301region -17:5966-6000 is: 69; m: 6000; o: 69 CIGAR 34M35S
+-> reverse: name - PC0206:37:64FA0AAXX:7:76:8632:17301region -17:6000-6035 is: -69; m: 5966; o: 69 CIGAR 34S35M
+
+forward: name - PC0206:37:64FA0AAXX:7:78:12938:9219region -17:5968-6013 is: 45; m: 5968; o: 45 CIGAR 45M
+reverse: name - PC0206:37:64FA0AAXX:7:78:12938:9219region -17:5968-6013 is: -45; m: 5968; o: 45 CIGAR 45M
+ clip forward from 5992 to 6013
+ clip reverse from 5969 to 5991
+-> forward: name - PC0206:37:64FA0AAXX:7:78:12938:9219region -17:5968-5991 is: 45; m: 5991; o: 45 CIGAR 23M22S
+-> reverse: name - PC0206:37:64FA0AAXX:7:78:12938:9219region -17:5991-6013 is: -45; m: 5968; o: 45 CIGAR 23S22M
+
+forward: name - PC0206:37:64FA0AAXX:7:99:6917:11700region -17:5952-6028 is: 106; m: 5982; o: 46 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:99:6917:11700region -17:5982-6058 is: -106; m: 5952; o: 46 CIGAR 76M
+ clip forward from 6006 to 6028
+ clip reverse from 5983 to 6005
+-> forward: name - PC0206:37:64FA0AAXX:7:99:6917:11700region -17:5952-6005 is: 106; m: 6005; o: 46 CIGAR 53M23S
+-> reverse: name - PC0206:37:64FA0AAXX:7:99:6917:11700region -17:6005-6058 is: -106; m: 5952; o: 46 CIGAR 23S53M
+
+forward: name - PC0206:37:64FA0AAXX:7:53:19593:15487region -17:5938-6014 is: 122; m: 5984; o: 30 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:53:19593:15487region -17:5984-6060 is: -122; m: 5938; o: 30 CIGAR 76M
+ clip forward from 6000 to 6014
+ clip reverse from 5985 to 5999
+-> forward: name - PC0206:37:64FA0AAXX:7:53:19593:15487region -17:5938-5999 is: 122; m: 5999; o: 30 CIGAR 61M15S
+-> reverse: name - PC0206:37:64FA0AAXX:7:53:19593:15487region -17:5999-6060 is: -122; m: 5938; o: 30 CIGAR 15S61M
+
+forward: name - PC0206:37:64FA0AAXX:7:93:15880:5547region -17:5984-6052 is: 68; m: 5984; o: 68 CIGAR 68M
+reverse: name - PC0206:37:64FA0AAXX:7:93:15880:5547region -17:5984-6052 is: -68; m: 5984; o: 68 CIGAR 68M
+ clip forward from 6019 to 6052
+ clip reverse from 5985 to 6018
+-> forward: name - PC0206:37:64FA0AAXX:7:93:15880:5547region -17:5984-6018 is: 68; m: 6018; o: 68 CIGAR 34M34S
+-> reverse: name - PC0206:37:64FA0AAXX:7:93:15880:5547region -17:6018-6052 is: -68; m: 5984; o: 68 CIGAR 34S34M
+
+forward: name - PC0206:37:64FA0AAXX:7:89:9451:5088region -17:5990-6051 is: 61; m: 5990; o: 61 CIGAR 61M
+reverse: name - PC0206:37:64FA0AAXX:7:89:9451:5088region -17:5990-6051 is: -61; m: 5990; o: 61 CIGAR 61M
+ clip forward from 6021 to 6051
+ clip reverse from 5991 to 6020
+-> forward: name - PC0206:37:64FA0AAXX:7:89:9451:5088region -17:5990-6020 is: 61; m: 6020; o: 61 CIGAR 30M31S
+-> reverse: name - PC0206:37:64FA0AAXX:7:89:9451:5088region -17:6020-6051 is: -61; m: 5990; o: 61 CIGAR 30S31M
+
+forward: name - PC0206:37:64FA0AAXX:7:22:12540:11257region -17:5992-6042 is: 50; m: 5992; o: 50 CIGAR 50M
+reverse: name - PC0206:37:64FA0AAXX:7:22:12540:11257region -17:5992-6042 is: -50; m: 5992; o: 50 CIGAR 50M
+ clip forward from 6018 to 6042
+ clip reverse from 5993 to 6017
+-> forward: name - PC0206:37:64FA0AAXX:7:22:12540:11257region -17:5992-6017 is: 50; m: 6017; o: 50 CIGAR 25M25S
+-> reverse: name - PC0206:37:64FA0AAXX:7:22:12540:11257region -17:6017-6042 is: -50; m: 5992; o: 50 CIGAR 25S25M
+
+forward: name - PC0206:37:64FA0AAXX:7:12:11176:18388region -17:5951-6027 is: 120; m: 5995; o: 32 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:12:11176:18388region -17:5995-6071 is: -120; m: 5951; o: 32 CIGAR 76M
+ clip forward from 6012 to 6027
+ clip reverse from 5996 to 6011
+-> forward: name - PC0206:37:64FA0AAXX:7:12:11176:18388region -17:5951-6011 is: 120; m: 6011; o: 32 CIGAR 60M16S
+-> reverse: name - PC0206:37:64FA0AAXX:7:12:11176:18388region -17:6011-6071 is: -120; m: 5951; o: 32 CIGAR 16S60M
+
+forward: name - PC0206:37:64FA0AAXX:7:50:6633:4340region -17:5992-6068 is: 79; m: 5995; o: 73 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:50:6633:4340region -17:5995-6071 is: -79; m: 5992; o: 73 CIGAR 76M
+ clip forward from 6032 to 6068
+ clip reverse from 5996 to 6031
+-> forward: name - PC0206:37:64FA0AAXX:7:50:6633:4340region -17:5992-6031 is: 79; m: 6031; o: 73 CIGAR 39M37S
+-> reverse: name - PC0206:37:64FA0AAXX:7:50:6633:4340region -17:6031-6071 is: -79; m: 5992; o: 73 CIGAR 36S40M
+
+forward: name - PC0206:37:64FA0AAXX:7:101:8314:7457region -17:5928-6004 is: 144; m: 5996; o: 8 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:101:8314:7457region -17:5996-6072 is: -144; m: 5928; o: 8 CIGAR 76M
+ clip forward from 6001 to 6004
+ clip reverse from 5997 to 6000
+-> forward: name - PC0206:37:64FA0AAXX:7:101:8314:7457region -17:5928-6000 is: 144; m: 6000; o: 8 CIGAR 72M4S
+-> reverse: name - PC0206:37:64FA0AAXX:7:101:8314:7457region -17:6000-6072 is: -144; m: 5928; o: 8 CIGAR 4S72M
+
+forward: name - PC0206:37:64FA0AAXX:7:55:13371:13686region -17:5984-6060 is: 88; m: 5996; o: 64 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:55:13371:13686region -17:5996-6072 is: -88; m: 5984; o: 64 CIGAR 76M
+ clip forward from 6029 to 6060
+ clip reverse from 5997 to 6028
+-> forward: name - PC0206:37:64FA0AAXX:7:55:13371:13686region -17:5984-6028 is: 88; m: 6028; o: 64 CIGAR 44M32S
+-> reverse: name - PC0206:37:64FA0AAXX:7:55:13371:13686region -17:6028-6072 is: -88; m: 5984; o: 64 CIGAR 32S44M
+
+forward: name - PC0206:37:64FA0AAXX:7:84:14631:6607region -17:6000-6072 is: 72; m: 6000; o: 72 CIGAR 72M
+reverse: name - PC0206:37:64FA0AAXX:7:84:14631:6607region -17:6000-6072 is: -72; m: 6000; o: 72 CIGAR 72M
+ clip forward from 6037 to 6072
+ clip reverse from 6001 to 6036
+-> forward: name - PC0206:37:64FA0AAXX:7:84:14631:6607region -17:6000-6036 is: 72; m: 6036; o: 72 CIGAR 36M36S
+-> reverse: name - PC0206:37:64FA0AAXX:7:84:14631:6607region -17:6036-6072 is: -72; m: 6000; o: 72 CIGAR 36S36M
+
+forward: name - PC0206:37:64FA0AAXX:7:49:8893:16633region -17:5958-6032 is: 126; m: 6008; o: 24 CIGAR 74M
+reverse: name - PC0206:37:64FA0AAXX:7:49:8893:16633region -17:6008-6084 is: -126; m: 5958; o: 24 CIGAR 76M
+ clip forward from 6021 to 6032
+ clip reverse from 6009 to 6020
+-> forward: name - PC0206:37:64FA0AAXX:7:49:8893:16633region -17:5958-6020 is: 126; m: 6020; o: 24 CIGAR 62M12S
+-> reverse: name - PC0206:37:64FA0AAXX:7:49:8893:16633region -17:6020-6084 is: -126; m: 5958; o: 24 CIGAR 12S64M
+
+forward: name - PC0206:37:64FA0AAXX:7:75:5725:15871region -17:5942-6018 is: 142; m: 6008; o: 10 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:75:5725:15871region -17:6008-6084 is: -142; m: 5942; o: 10 CIGAR 76M
+ clip forward from 6014 to 6018
+ clip reverse from 6009 to 6013
+-> forward: name - PC0206:37:64FA0AAXX:7:75:5725:15871region -17:5942-6013 is: 142; m: 6013; o: 10 CIGAR 71M5S
+-> reverse: name - PC0206:37:64FA0AAXX:7:75:5725:15871region -17:6013-6084 is: -142; m: 5942; o: 10 CIGAR 5S71M
+
+forward: name - PC0206:37:64FA0AAXX:7:20:4010:4284region -17:5995-6070 is: 91; m: 6010; o: 60 CIGAR 75M
+reverse: name - PC0206:37:64FA0AAXX:7:20:4010:4284region -17:6010-6086 is: -91; m: 5995; o: 60 CIGAR 76M
+ clip forward from 6041 to 6070
+ clip reverse from 6011 to 6040
+-> forward: name - PC0206:37:64FA0AAXX:7:20:4010:4284region -17:5995-6040 is: 91; m: 6040; o: 60 CIGAR 45M30S
+-> reverse: name - PC0206:37:64FA0AAXX:7:20:4010:4284region -17:6040-6086 is: -91; m: 5995; o: 60 CIGAR 30S46M
+
+forward: name - PC0206:37:64FA0AAXX:7:51:10442:18185region -17:6011-6085 is: 78; m: 6014; o: 71 CIGAR 74M
+reverse: name - PC0206:37:64FA0AAXX:7:51:10442:18185region -17:6014-6089 is: -78; m: 6011; o: 71 CIGAR 75M
+ clip forward from 6051 to 6085
+ clip reverse from 6015 to 6050
+-> forward: name - PC0206:37:64FA0AAXX:7:51:10442:18185region -17:6011-6050 is: 78; m: 6050; o: 71 CIGAR 39M35S
+-> reverse: name - PC0206:37:64FA0AAXX:7:51:10442:18185region -17:6050-6089 is: -78; m: 6011; o: 71 CIGAR 36S39M
+
+forward: name - PC0206:37:64FA0AAXX:7:91:2749:19005region -17:5978-6054 is: 113; m: 6015; o: 39 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:91:2749:19005region -17:6015-6091 is: -113; m: 5978; o: 39 CIGAR 76M
+ clip forward from 6035 to 6054
+ clip reverse from 6016 to 6034
+-> forward: name - PC0206:37:64FA0AAXX:7:91:2749:19005region -17:5978-6034 is: 113; m: 6034; o: 39 CIGAR 56M20S
+-> reverse: name - PC0206:37:64FA0AAXX:7:91:2749:19005region -17:6034-6091 is: -113; m: 5978; o: 39 CIGAR 19S57M
+
+forward: name - PC0206:37:64FA0AAXX:7:101:8142:8829region -17:6018-6092 is: 74; m: 6018; o: 74 CIGAR 74M
+reverse: name - PC0206:37:64FA0AAXX:7:101:8142:8829region -17:6018-6092 is: -74; m: 6018; o: 74 CIGAR 74M
+ clip forward from 6056 to 6092
+ clip reverse from 6019 to 6055
+-> forward: name - PC0206:37:64FA0AAXX:7:101:8142:8829region -17:6018-6055 is: 74; m: 6055; o: 74 CIGAR 37M37S
+-> reverse: name - PC0206:37:64FA0AAXX:7:101:8142:8829region -17:6055-6092 is: -74; m: 6018; o: 74 CIGAR 37S37M
+
+forward: name - PC0206:37:64FA0AAXX:7:96:19013:7681region -17:6019-6086 is: 67; m: 6019; o: 67 CIGAR 67M
+reverse: name - PC0206:37:64FA0AAXX:7:96:19013:7681region -17:6019-6086 is: -67; m: 6019; o: 67 CIGAR 67M
+ clip forward from 6054 to 6086
+ clip reverse from 6020 to 6053
+-> forward: name - PC0206:37:64FA0AAXX:7:96:19013:7681region -17:6019-6053 is: 67; m: 6053; o: 67 CIGAR 34M33S
+-> reverse: name - PC0206:37:64FA0AAXX:7:96:19013:7681region -17:6053-6086 is: -67; m: 6019; o: 67 CIGAR 34S33M
+
+forward: name - PC0206:37:64FA0AAXX:7:31:8932:16590region -17:5981-6055 is: 118; m: 6023; o: 32 CIGAR 74M
+reverse: name - PC0206:37:64FA0AAXX:7:31:8932:16590region -17:6023-6099 is: -118; m: 5981; o: 32 CIGAR 76M
+ clip forward from 6040 to 6055
+ clip reverse from 6024 to 6039
+-> forward: name - PC0206:37:64FA0AAXX:7:31:8932:16590region -17:5981-6039 is: 118; m: 6039; o: 32 CIGAR 58M16S
+-> reverse: name - PC0206:37:64FA0AAXX:7:31:8932:16590region -17:6039-6099 is: -118; m: 5981; o: 32 CIGAR 16S60M
+
+forward: name - PC0206:37:64FA0AAXX:7:28:8366:5269region -17:5967-6043 is: 135; m: 6026; o: 17 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:28:8366:5269region -17:6026-6102 is: -135; m: 5967; o: 17 CIGAR 76M
+ clip forward from 6035 to 6043
+ clip reverse from 6027 to 6034
+-> forward: name - PC0206:37:64FA0AAXX:7:28:8366:5269region -17:5967-6034 is: 135; m: 6034; o: 17 CIGAR 67M9S
+-> reverse: name - PC0206:37:64FA0AAXX:7:28:8366:5269region -17:6034-6102 is: -135; m: 5967; o: 17 CIGAR 8S68M
+
+forward: name - PC0206:37:64FA0AAXX:7:84:7400:6663region -17:5952-6028 is: 150; m: 6026; o: 2 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:84:7400:6663region -17:6026-6102 is: -150; m: 5952; o: 2 CIGAR 76M
+ clip forward from 6028 to 6028
+ clip reverse from 6027 to 6027
+-> forward: name - PC0206:37:64FA0AAXX:7:84:7400:6663region -17:5952-6027 is: 150; m: 6027; o: 2 CIGAR 75M1S
+-> reverse: name - PC0206:37:64FA0AAXX:7:84:7400:6663region -17:6027-6102 is: -150; m: 5952; o: 2 CIGAR 1S75M
+
+forward: name - PC0206:37:64FA0AAXX:7:32:11283:15757region -17:5963-6039 is: 142; m: 6029; o: 10 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:32:11283:15757region -17:6029-6105 is: -142; m: 5963; o: 10 CIGAR 76M
+ clip forward from 6035 to 6039
+ clip reverse from 6030 to 6034
+-> forward: name - PC0206:37:64FA0AAXX:7:32:11283:15757region -17:5963-6034 is: 142; m: 6034; o: 10 CIGAR 71M5S
+-> reverse: name - PC0206:37:64FA0AAXX:7:32:11283:15757region -17:6034-6105 is: -142; m: 5963; o: 10 CIGAR 5S71M
+
+forward: name - PC0206:37:64FA0AAXX:7:9:10104:1824region -17:5968-6044 is: 137; m: 6029; o: 15 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:9:10104:1824region -17:6029-6105 is: -137; m: 5968; o: 15 CIGAR 76M
+ clip forward from 6037 to 6044
+ clip reverse from 6030 to 6036
+-> forward: name - PC0206:37:64FA0AAXX:7:9:10104:1824region -17:5968-6036 is: 137; m: 6036; o: 15 CIGAR 68M8S
+-> reverse: name - PC0206:37:64FA0AAXX:7:9:10104:1824region -17:6036-6105 is: -137; m: 5968; o: 15 CIGAR 7S69M
+
+forward: name - PC0206:37:64FA0AAXX:7:5:2430:19993region -17:5965-6041 is: 141; m: 6030; o: 11 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:5:2430:19993region -17:6030-6106 is: -141; m: 5965; o: 11 CIGAR 76M
+ clip forward from 6036 to 6041
+ clip reverse from 6031 to 6035
+-> forward: name - PC0206:37:64FA0AAXX:7:5:2430:19993region -17:5965-6035 is: 141; m: 6035; o: 11 CIGAR 70M6S
+-> reverse: name - PC0206:37:64FA0AAXX:7:5:2430:19993region -17:6035-6106 is: -141; m: 5965; o: 11 CIGAR 5S71M
+
+forward: name - PC0206:37:64FA0AAXX:7:97:10910:15308region -17:6031-6096 is: 65; m: 6031; o: 65 CIGAR 65M
+reverse: name - PC0206:37:64FA0AAXX:7:97:10910:15308region -17:6031-6096 is: -65; m: 6031; o: 65 CIGAR 65M
+ clip forward from 6064 to 6096
+ clip reverse from 6032 to 6063
+-> forward: name - PC0206:37:64FA0AAXX:7:97:10910:15308region -17:6031-6063 is: 65; m: 6063; o: 65 CIGAR 32M33S
+-> reverse: name - PC0206:37:64FA0AAXX:7:97:10910:15308region -17:6063-6096 is: -65; m: 6031; o: 65 CIGAR 32S33M
+
+forward: name - PC0206:37:64FA0AAXX:7:118:9947:16215region -17:5983-6059 is: 125; m: 6032; o: 27 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:118:9947:16215region -17:6032-6108 is: -125; m: 5983; o: 27 CIGAR 76M
+ clip forward from 6047 to 6059
+ clip reverse from 6033 to 6046
+-> forward: name - PC0206:37:64FA0AAXX:7:118:9947:16215region -17:5983-6046 is: 125; m: 6046; o: 27 CIGAR 63M13S
+-> reverse: name - PC0206:37:64FA0AAXX:7:118:9947:16215region -17:6046-6108 is: -125; m: 5983; o: 27 CIGAR 14S62M
+
+forward: name - PC0206:37:64FA0AAXX:7:105:4197:18773region -17:6014-6090 is: 97; m: 6035; o: 55 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:105:4197:18773region -17:6035-6111 is: -97; m: 6014; o: 55 CIGAR 76M
+ clip forward from 6064 to 6090
+ clip reverse from 6036 to 6063
+-> forward: name - PC0206:37:64FA0AAXX:7:105:4197:18773region -17:6014-6063 is: 97; m: 6063; o: 55 CIGAR 49M27S
+-> reverse: name - PC0206:37:64FA0AAXX:7:105:4197:18773region -17:6063-6111 is: -97; m: 6014; o: 55 CIGAR 28S48M
+
+forward: name - PC0206:37:64FA0AAXX:7:17:14616:17254region -17:6009-6085 is: 102; m: 6035; o: 50 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:17:14616:17254region -17:6035-6111 is: -102; m: 6009; o: 50 CIGAR 76M
+ clip forward from 6061 to 6085
+ clip reverse from 6036 to 6060
+-> forward: name - PC0206:37:64FA0AAXX:7:17:14616:17254region -17:6009-6060 is: 102; m: 6060; o: 50 CIGAR 51M25S
+-> reverse: name - PC0206:37:64FA0AAXX:7:17:14616:17254region -17:6060-6111 is: -102; m: 6009; o: 50 CIGAR 25S51M
+
+forward: name - PC0206:37:64FA0AAXX:7:97:11317:6048region -17:6035-6104 is: 69; m: 6035; o: 69 CIGAR 69M
+reverse: name - PC0206:37:64FA0AAXX:7:97:11317:6048region -17:6035-6104 is: -69; m: 6035; o: 69 CIGAR 69M
+ clip forward from 6070 to 6104
+ clip reverse from 6036 to 6069
+-> forward: name - PC0206:37:64FA0AAXX:7:97:11317:6048region -17:6035-6069 is: 69; m: 6069; o: 69 CIGAR 34M35S
+-> reverse: name - PC0206:37:64FA0AAXX:7:97:11317:6048region -17:6069-6104 is: -69; m: 6035; o: 69 CIGAR 34S35M
+
+forward: name - PC0206:37:64FA0AAXX:7:99:16059:1631region -17:6035-6097 is: 62; m: 6035; o: 62 CIGAR 62M
+reverse: name - PC0206:37:64FA0AAXX:7:99:16059:1631region -17:6035-6097 is: -62; m: 6035; o: 62 CIGAR 62M
+ clip forward from 6067 to 6097
+ clip reverse from 6036 to 6066
+-> forward: name - PC0206:37:64FA0AAXX:7:99:16059:1631region -17:6035-6066 is: 62; m: 6066; o: 62 CIGAR 31M31S
+-> reverse: name - PC0206:37:64FA0AAXX:7:99:16059:1631region -17:6066-6097 is: -62; m: 6035; o: 62 CIGAR 31S31M
+
+forward: name - PC0206:37:64FA0AAXX:7:8:10135:19169region -17:6015-6091 is: 97; m: 6036; o: 55 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:8:10135:19169region -17:6036-6112 is: -97; m: 6015; o: 55 CIGAR 76M
+ clip forward from 6064 to 6091
+ clip reverse from 6037 to 6063
+-> forward: name - PC0206:37:64FA0AAXX:7:8:10135:19169region -17:6015-6063 is: 97; m: 6063; o: 55 CIGAR 48M28S
+-> reverse: name - PC0206:37:64FA0AAXX:7:8:10135:19169region -17:6063-6112 is: -97; m: 6015; o: 55 CIGAR 27S49M
+
+forward: name - PC0206:37:64FA0AAXX:7:2:9727:11780region -17:6031-6107 is: 84; m: 6039; o: 68 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:2:9727:11780region -17:6039-6115 is: -84; m: 6031; o: 68 CIGAR 76M
+ clip forward from 6074 to 6107
+ clip reverse from 6040 to 6073
+-> forward: name - PC0206:37:64FA0AAXX:7:2:9727:11780region -17:6031-6073 is: 84; m: 6073; o: 68 CIGAR 42M34S
+-> reverse: name - PC0206:37:64FA0AAXX:7:2:9727:11780region -17:6073-6115 is: -84; m: 6031; o: 68 CIGAR 34S42M
+
+forward: name - PC0206:37:64FA0AAXX:7:64:14035:12781region -17:5983-6059 is: 132; m: 6039; o: 20 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:64:14035:12781region -17:6039-6115 is: -132; m: 5983; o: 20 CIGAR 76M
+ clip forward from 6050 to 6059
+ clip reverse from 6040 to 6049
+-> forward: name - PC0206:37:64FA0AAXX:7:64:14035:12781region -17:5983-6049 is: 132; m: 6049; o: 20 CIGAR 66M10S
+-> reverse: name - PC0206:37:64FA0AAXX:7:64:14035:12781region -17:6049-6115 is: -132; m: 5983; o: 20 CIGAR 10S66M
+
+forward: name - PC0206:37:64FA0AAXX:7:15:17723:14415region -17:6017-6093 is: 99; m: 6040; o: 53 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:15:17723:14415region -17:6040-6116 is: -99; m: 6017; o: 53 CIGAR 76M
+ clip forward from 6067 to 6093
+ clip reverse from 6041 to 6066
+-> forward: name - PC0206:37:64FA0AAXX:7:15:17723:14415region -17:6017-6066 is: 99; m: 6066; o: 53 CIGAR 49M27S
+-> reverse: name - PC0206:37:64FA0AAXX:7:15:17723:14415region -17:6066-6116 is: -99; m: 6017; o: 53 CIGAR 26S50M
+
+forward: name - PC0206:37:64FA0AAXX:7:3:9449:5146region -17:5991-6067 is: 126; m: 6043; o: 24 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:3:9449:5146region -17:6043-6117 is: -126; m: 5991; o: 24 CIGAR 74M
+ clip forward from 6056 to 6067
+ clip reverse from 6044 to 6055
+-> forward: name - PC0206:37:64FA0AAXX:7:3:9449:5146region -17:5991-6055 is: 126; m: 6055; o: 24 CIGAR 64M12S
+-> reverse: name - PC0206:37:64FA0AAXX:7:3:9449:5146region -17:6055-6117 is: -126; m: 5991; o: 24 CIGAR 12S62M
+
+forward: name - PC0206:37:64FA0AAXX:7:117:18009:14922region -17:6006-6082 is: 120; m: 6050; o: 32 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:117:18009:14922region -17:6050-6126 is: -120; m: 6006; o: 32 CIGAR 76M
+ clip forward from 6067 to 6082
+ clip reverse from 6051 to 6066
+-> forward: name - PC0206:37:64FA0AAXX:7:117:18009:14922region -17:6006-6066 is: 120; m: 6066; o: 32 CIGAR 60M16S
+-> reverse: name - PC0206:37:64FA0AAXX:7:117:18009:14922region -17:6066-6126 is: -120; m: 6006; o: 32 CIGAR 16S60M
+
+forward: name - PC0206:37:64FA0AAXX:7:31:7150:8932region -17:5990-6065 is: 136; m: 6050; o: 15 CIGAR 75M
+reverse: name - PC0206:37:64FA0AAXX:7:31:7150:8932region -17:6050-6126 is: -136; m: 5990; o: 15 CIGAR 76M
+ clip forward from 6058 to 6065
+ clip reverse from 6051 to 6057
+-> forward: name - PC0206:37:64FA0AAXX:7:31:7150:8932region -17:5990-6057 is: 136; m: 6057; o: 15 CIGAR 67M8S
+-> reverse: name - PC0206:37:64FA0AAXX:7:31:7150:8932region -17:6057-6126 is: -136; m: 5990; o: 15 CIGAR 7S69M
+
+forward: name - PC0206:37:64FA0AAXX:7:58:16445:15975region -17:6044-6116 is: 82; m: 6050; o: 66 CIGAR 72M
+reverse: name - PC0206:37:64FA0AAXX:7:58:16445:15975region -17:6050-6126 is: -82; m: 6044; o: 66 CIGAR 76M
+ clip forward from 6084 to 6116
+ clip reverse from 6051 to 6083
+-> forward: name - PC0206:37:64FA0AAXX:7:58:16445:15975region -17:6044-6083 is: 82; m: 6083; o: 66 CIGAR 39M33S
+-> reverse: name - PC0206:37:64FA0AAXX:7:58:16445:15975region -17:6083-6126 is: -82; m: 6044; o: 66 CIGAR 33S43M
+
+forward: name - PC0206:37:64FA0AAXX:7:38:2894:11767region -17:5983-6059 is: 145; m: 6052; o: 7 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:38:2894:11767region -17:6052-6128 is: -145; m: 5983; o: 7 CIGAR 76M
+ clip forward from 6056 to 6059
+ clip reverse from 6053 to 6055
+-> forward: name - PC0206:37:64FA0AAXX:7:38:2894:11767region -17:5983-6055 is: 145; m: 6055; o: 7 CIGAR 72M4S
+-> reverse: name - PC0206:37:64FA0AAXX:7:38:2894:11767region -17:6055-6128 is: -145; m: 5983; o: 7 CIGAR 3S73M
+
+forward: name - PC0206:37:64FA0AAXX:7:54:1679:6590region -17:5990-6065 is: 138; m: 6052; o: 13 CIGAR 75M
+reverse: name - PC0206:37:64FA0AAXX:7:54:1679:6590region -17:6052-6128 is: -138; m: 5990; o: 13 CIGAR 76M
+ clip forward from 6060 to 6065
+ clip reverse from 6053 to 6059
+-> forward: name - PC0206:37:64FA0AAXX:7:54:1679:6590region -17:5990-6059 is: 138; m: 6059; o: 13 CIGAR 69M6S
+-> reverse: name - PC0206:37:64FA0AAXX:7:54:1679:6590region -17:6059-6128 is: -138; m: 5990; o: 13 CIGAR 7S69M
+
+forward: name - PC0206:37:64FA0AAXX:7:36:17046:2942region -17:6008-6082 is: 121; m: 6053; o: 29 CIGAR 74M
+reverse: name - PC0206:37:64FA0AAXX:7:36:17046:2942region -17:6053-6129 is: -121; m: 6008; o: 29 CIGAR 76M
+ clip forward from 6068 to 6082
+ clip reverse from 6054 to 6067
+-> forward: name - PC0206:37:64FA0AAXX:7:36:17046:2942region -17:6008-6067 is: 121; m: 6067; o: 29 CIGAR 59M15S
+-> reverse: name - PC0206:37:64FA0AAXX:7:36:17046:2942region -17:6067-6129 is: -121; m: 6008; o: 29 CIGAR 14S62M
+
+forward: name - PC0206:37:64FA0AAXX:7:109:14261:18655region -17:6054-6106 is: 52; m: 6054; o: 52 CIGAR 52M
+reverse: name - PC0206:37:64FA0AAXX:7:109:14261:18655region -17:6054-6106 is: -52; m: 6054; o: 52 CIGAR 52M
+ clip forward from 6081 to 6106
+ clip reverse from 6055 to 6080
+-> forward: name - PC0206:37:64FA0AAXX:7:109:14261:18655region -17:6054-6080 is: 52; m: 6080; o: 52 CIGAR 26M26S
+-> reverse: name - PC0206:37:64FA0AAXX:7:109:14261:18655region -17:6080-6106 is: -52; m: 6054; o: 52 CIGAR 26S26M
+
+forward: name - PC0206:37:64FA0AAXX:7:26:14597:10960region -17:5989-6065 is: 143; m: 6056; o: 9 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:26:14597:10960region -17:6056-6132 is: -143; m: 5989; o: 9 CIGAR 76M
+ clip forward from 6061 to 6065
+ clip reverse from 6057 to 6060
+-> forward: name - PC0206:37:64FA0AAXX:7:26:14597:10960region -17:5989-6060 is: 143; m: 6060; o: 9 CIGAR 71M5S
+-> reverse: name - PC0206:37:64FA0AAXX:7:26:14597:10960region -17:6060-6132 is: -143; m: 5989; o: 9 CIGAR 4S72M
+
+forward: name - PC0206:37:64FA0AAXX:7:32:8898:10043region -17:6027-6103 is: 107; m: 6059; o: 44 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:32:8898:10043region -17:6059-6134 is: -107; m: 6027; o: 44 CIGAR 75M
+ clip forward from 6082 to 6103
+ clip reverse from 6060 to 6081
+-> forward: name - PC0206:37:64FA0AAXX:7:32:8898:10043region -17:6027-6081 is: 107; m: 6081; o: 44 CIGAR 54M22S
+-> reverse: name - PC0206:37:64FA0AAXX:7:32:8898:10043region -17:6081-6134 is: -107; m: 6027; o: 44 CIGAR 22S53M
+
+forward: name - PC0206:37:64FA0AAXX:7:76:4547:16724region -17:6031-6107 is: 103; m: 6059; o: 48 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:76:4547:16724region -17:6059-6134 is: -103; m: 6031; o: 48 CIGAR 75M
+ clip forward from 6084 to 6107
+ clip reverse from 6060 to 6083
+-> forward: name - PC0206:37:64FA0AAXX:7:76:4547:16724region -17:6031-6083 is: 103; m: 6083; o: 48 CIGAR 52M24S
+-> reverse: name - PC0206:37:64FA0AAXX:7:76:4547:16724region -17:6083-6134 is: -103; m: 6031; o: 48 CIGAR 24S51M
+
+forward: name - PC0206:37:64FA0AAXX:7:87:11973:2937region -17:5998-6073 is: 136; m: 6059; o: 14 CIGAR 75M
+reverse: name - PC0206:37:64FA0AAXX:7:87:11973:2937region -17:6059-6134 is: -136; m: 5998; o: 14 CIGAR 75M
+ clip forward from 6067 to 6073
+ clip reverse from 6060 to 6066
+-> forward: name - PC0206:37:64FA0AAXX:7:87:11973:2937region -17:5998-6066 is: 136; m: 6066; o: 14 CIGAR 68M7S
+-> reverse: name - PC0206:37:64FA0AAXX:7:87:11973:2937region -17:6066-6134 is: -136; m: 5998; o: 14 CIGAR 7S68M
+
+forward: name - PC0206:37:64FA0AAXX:7:23:7270:12127region -17:6018-6094 is: 118; m: 6060; o: 34 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:23:7270:12127region -17:6060-6136 is: -118; m: 6018; o: 34 CIGAR 76M
+ clip forward from 6078 to 6094
+ clip reverse from 6061 to 6077
+-> forward: name - PC0206:37:64FA0AAXX:7:23:7270:12127region -17:6018-6077 is: 118; m: 6077; o: 34 CIGAR 59M17S
+-> reverse: name - PC0206:37:64FA0AAXX:7:23:7270:12127region -17:6077-6136 is: -118; m: 6018; o: 34 CIGAR 17S59M
+
+forward: name - PC0206:37:64FA0AAXX:7:51:9738:12072region -17:5998-6073 is: 139; m: 6061; o: 12 CIGAR 75M
+reverse: name - PC0206:37:64FA0AAXX:7:51:9738:12072region -17:6061-6137 is: -139; m: 5998; o: 12 CIGAR 76M
+ clip forward from 6068 to 6073
+ clip reverse from 6062 to 6067
+-> forward: name - PC0206:37:64FA0AAXX:7:51:9738:12072region -17:5998-6067 is: 139; m: 6067; o: 12 CIGAR 69M6S
+-> reverse: name - PC0206:37:64FA0AAXX:7:51:9738:12072region -17:6067-6137 is: -139; m: 5998; o: 12 CIGAR 6S70M
+
+forward: name - PC0206:37:64FA0AAXX:7:73:4803:15492region -17:5987-6063 is: 150; m: 6061; o: 2 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:73:4803:15492region -17:6061-6137 is: -150; m: 5987; o: 2 CIGAR 76M
+ clip forward from 6063 to 6063
+ clip reverse from 6062 to 6062
+-> forward: name - PC0206:37:64FA0AAXX:7:73:4803:15492region -17:5987-6062 is: 150; m: 6062; o: 2 CIGAR 75M1S
+-> reverse: name - PC0206:37:64FA0AAXX:7:73:4803:15492region -17:6062-6137 is: -150; m: 5987; o: 2 CIGAR 1S75M
+
+forward: name - PC0206:37:64FA0AAXX:7:102:5692:8001region -17:6040-6116 is: 99; m: 6063; o: 53 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:102:5692:8001region -17:6063-6139 is: -99; m: 6040; o: 53 CIGAR 76M
+ clip forward from 6090 to 6116
+ clip reverse from 6064 to 6089
+-> forward: name - PC0206:37:64FA0AAXX:7:102:5692:8001region -17:6040-6089 is: 99; m: 6089; o: 53 CIGAR 49M27S
+-> reverse: name - PC0206:37:64FA0AAXX:7:102:5692:8001region -17:6089-6139 is: -99; m: 6040; o: 53 CIGAR 26S50M
+
+forward: name - PC0206:37:64FA0AAXX:7:20:18304:3295region -17:6063-6120 is: 57; m: 6063; o: 57 CIGAR 57M
+reverse: name - PC0206:37:64FA0AAXX:7:20:18304:3295region -17:6063-6120 is: -57; m: 6063; o: 57 CIGAR 57M
+ clip forward from 6093 to 6120
+ clip reverse from 6064 to 6092
+-> forward: name - PC0206:37:64FA0AAXX:7:20:18304:3295region -17:6063-6092 is: 57; m: 6092; o: 57 CIGAR 29M28S
+-> reverse: name - PC0206:37:64FA0AAXX:7:20:18304:3295region -17:6092-6120 is: -57; m: 6063; o: 57 CIGAR 29S28M
+
+forward: name - PC0206:37:64FA0AAXX:7:41:1911:16452region -17:6063-6130 is: 67; m: 6063; o: 67 CIGAR 67M
+reverse: name - PC0206:37:64FA0AAXX:7:41:1911:16452region -17:6063-6130 is: -67; m: 6063; o: 67 CIGAR 67M
+ clip forward from 6097 to 6130
+ clip reverse from 6064 to 6096
+-> forward: name - PC0206:37:64FA0AAXX:7:41:1911:16452region -17:6063-6096 is: 67; m: 6096; o: 67 CIGAR 33M34S
+-> reverse: name - PC0206:37:64FA0AAXX:7:41:1911:16452region -17:6096-6130 is: -67; m: 6063; o: 67 CIGAR 33S34M
+
+forward: name - PC0206:37:64FA0AAXX:7:43:10572:12938region -17:6039-6115 is: 102; m: 6065; o: 50 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:43:10572:12938region -17:6065-6141 is: -102; m: 6039; o: 50 CIGAR 76M
+ clip forward from 6091 to 6115
+ clip reverse from 6066 to 6090
+-> forward: name - PC0206:37:64FA0AAXX:7:43:10572:12938region -17:6039-6090 is: 102; m: 6090; o: 50 CIGAR 51M25S
+-> reverse: name - PC0206:37:64FA0AAXX:7:43:10572:12938region -17:6090-6141 is: -102; m: 6039; o: 50 CIGAR 25S51M
+
+forward: name - PC0206:37:64FA0AAXX:7:40:8137:13859region -17:6066-6136 is: 70; m: 6066; o: 70 CIGAR 70M
+reverse: name - PC0206:37:64FA0AAXX:7:40:8137:13859region -17:6066-6136 is: -70; m: 6066; o: 70 CIGAR 70M
+ clip forward from 6102 to 6136
+ clip reverse from 6067 to 6101
+-> forward: name - PC0206:37:64FA0AAXX:7:40:8137:13859region -17:6066-6101 is: 70; m: 6101; o: 70 CIGAR 35M35S
+-> reverse: name - PC0206:37:64FA0AAXX:7:40:8137:13859region -17:6101-6136 is: -70; m: 6066; o: 70 CIGAR 35S35M
+
+forward: name - PC0206:37:64FA0AAXX:7:113:2715:8397region -17:6065-6141 is: 78; m: 6067; o: 74 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:113:2715:8397region -17:6067-6143 is: -78; m: 6065; o: 74 CIGAR 76M
+ clip forward from 6105 to 6141
+ clip reverse from 6068 to 6104
+-> forward: name - PC0206:37:64FA0AAXX:7:113:2715:8397region -17:6065-6104 is: 78; m: 6104; o: 74 CIGAR 39M37S
+-> reverse: name - PC0206:37:64FA0AAXX:7:113:2715:8397region -17:6104-6143 is: -78; m: 6065; o: 74 CIGAR 37S39M
+
+forward: name - PC0206:37:64FA0AAXX:7:100:17049:17042region -17:6006-6082 is: 138; m: 6068; o: 14 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:100:17049:17042region -17:6068-6144 is: -138; m: 6006; o: 14 CIGAR 76M
+ clip forward from 6076 to 6082
+ clip reverse from 6069 to 6075
+-> forward: name - PC0206:37:64FA0AAXX:7:100:17049:17042region -17:6006-6075 is: 138; m: 6075; o: 14 CIGAR 69M7S
+-> reverse: name - PC0206:37:64FA0AAXX:7:100:17049:17042region -17:6075-6144 is: -138; m: 6006; o: 14 CIGAR 7S69M
+
+forward: name - PC0206:37:64FA0AAXX:7:99:13346:13509region -17:6015-6091 is: 129; m: 6068; o: 23 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:99:13346:13509region -17:6068-6144 is: -129; m: 6015; o: 23 CIGAR 76M
+ clip forward from 6081 to 6091
+ clip reverse from 6069 to 6080
+-> forward: name - PC0206:37:64FA0AAXX:7:99:13346:13509region -17:6015-6080 is: 129; m: 6080; o: 23 CIGAR 65M11S
+-> reverse: name - PC0206:37:64FA0AAXX:7:99:13346:13509region -17:6080-6144 is: -129; m: 6015; o: 23 CIGAR 12S64M
+
+forward: name - PC0206:37:64FA0AAXX:7:101:18673:18783region -17:6016-6092 is: 129; m: 6069; o: 23 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:101:18673:18783region -17:6069-6145 is: -129; m: 6016; o: 23 CIGAR 76M
+ clip forward from 6082 to 6092
+ clip reverse from 6070 to 6081
+-> forward: name - PC0206:37:64FA0AAXX:7:101:18673:18783region -17:6016-6081 is: 129; m: 6081; o: 23 CIGAR 65M11S
+-> reverse: name - PC0206:37:64FA0AAXX:7:101:18673:18783region -17:6081-6145 is: -129; m: 6016; o: 23 CIGAR 12S64M
+
+forward: name - PC0206:37:64FA0AAXX:7:13:4218:18517region -17:6010-6085 is: 135; m: 6069; o: 16 CIGAR 75M
+reverse: name - PC0206:37:64FA0AAXX:7:13:4218:18517region -17:6069-6145 is: -135; m: 6010; o: 16 CIGAR 76M
+ clip forward from 6078 to 6085
+ clip reverse from 6070 to 6077
+-> forward: name - PC0206:37:64FA0AAXX:7:13:4218:18517region -17:6010-6077 is: 135; m: 6077; o: 16 CIGAR 67M8S
+-> reverse: name - PC0206:37:64FA0AAXX:7:13:4218:18517region -17:6077-6145 is: -135; m: 6010; o: 16 CIGAR 8S68M
+
+forward: name - PC0206:37:64FA0AAXX:7:39:12493:3577region -17:6064-6140 is: 81; m: 6069; o: 71 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:39:12493:3577region -17:6069-6145 is: -81; m: 6064; o: 71 CIGAR 76M
+ clip forward from 6105 to 6140
+ clip reverse from 6070 to 6104
+-> forward: name - PC0206:37:64FA0AAXX:7:39:12493:3577region -17:6064-6104 is: 81; m: 6104; o: 71 CIGAR 40M36S
+-> reverse: name - PC0206:37:64FA0AAXX:7:39:12493:3577region -17:6104-6145 is: -81; m: 6064; o: 71 CIGAR 35S41M
+
+forward: name - PC0206:37:64FA0AAXX:7:20:19356:15245region -17:6037-6112 is: 109; m: 6070; o: 42 CIGAR 75M
+reverse: name - PC0206:37:64FA0AAXX:7:20:19356:15245region -17:6070-6146 is: -109; m: 6037; o: 42 CIGAR 76M
+ clip forward from 6092 to 6112
+ clip reverse from 6071 to 6091
+-> forward: name - PC0206:37:64FA0AAXX:7:20:19356:15245region -17:6037-6091 is: 109; m: 6091; o: 42 CIGAR 54M21S
+-> reverse: name - PC0206:37:64FA0AAXX:7:20:19356:15245region -17:6091-6146 is: -109; m: 6037; o: 42 CIGAR 21S55M
+
+forward: name - PC0206:37:64FA0AAXX:7:80:14298:19451region -17:6070-6145 is: 75; m: 6070; o: 75 CIGAR 75M
+reverse: name - PC0206:37:64FA0AAXX:7:80:14298:19451region -17:6070-6145 is: -75; m: 6070; o: 75 CIGAR 75M
+ clip forward from 6108 to 6145
+ clip reverse from 6071 to 6107
+-> forward: name - PC0206:37:64FA0AAXX:7:80:14298:19451region -17:6070-6107 is: 75; m: 6107; o: 75 CIGAR 37M38S
+-> reverse: name - PC0206:37:64FA0AAXX:7:80:14298:19451region -17:6107-6145 is: -75; m: 6070; o: 75 CIGAR 37S38M
+
+forward: name - PC0206:37:64FA0AAXX:7:111:15093:5636region -17:6071-6134 is: 63; m: 6071; o: 63 CIGAR 63M
+reverse: name - PC0206:37:64FA0AAXX:7:111:15093:5636region -17:6071-6134 is: -63; m: 6071; o: 63 CIGAR 63M
+ clip forward from 6103 to 6134
+ clip reverse from 6072 to 6102
+-> forward: name - PC0206:37:64FA0AAXX:7:111:15093:5636region -17:6071-6102 is: 63; m: 6102; o: 63 CIGAR 31M32S
+-> reverse: name - PC0206:37:64FA0AAXX:7:111:15093:5636region -17:6102-6134 is: -63; m: 6071; o: 63 CIGAR 31S32M
+
+forward: name - PC0206:37:64FA0AAXX:7:77:19545:10304region -17:6010-6085 is: 137; m: 6071; o: 14 CIGAR 75M
+reverse: name - PC0206:37:64FA0AAXX:7:77:19545:10304region -17:6071-6147 is: -137; m: 6010; o: 14 CIGAR 76M
+ clip forward from 6079 to 6085
+ clip reverse from 6072 to 6078
+-> forward: name - PC0206:37:64FA0AAXX:7:77:19545:10304region -17:6010-6078 is: 137; m: 6078; o: 14 CIGAR 68M7S
+-> reverse: name - PC0206:37:64FA0AAXX:7:77:19545:10304region -17:6078-6147 is: -137; m: 6010; o: 14 CIGAR 7S69M
+
+forward: name - PC0206:37:64FA0AAXX:7:94:15850:6410region -17:6054-6130 is: 94; m: 6072; o: 58 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:94:15850:6410region -17:6072-6148 is: -94; m: 6054; o: 58 CIGAR 76M
+ clip forward from 6102 to 6130
+ clip reverse from 6073 to 6101
+-> forward: name - PC0206:37:64FA0AAXX:7:94:15850:6410region -17:6054-6101 is: 94; m: 6101; o: 58 CIGAR 47M29S
+-> reverse: name - PC0206:37:64FA0AAXX:7:94:15850:6410region -17:6101-6148 is: -94; m: 6054; o: 58 CIGAR 29S47M
+
+forward: name - PC0206:37:64FA0AAXX:7:112:3649:12542region -17:6035-6111 is: 115; m: 6075; o: 36 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:112:3649:12542region -17:6075-6150 is: -115; m: 6035; o: 36 CIGAR 75M
+ clip forward from 6094 to 6111
+ clip reverse from 6076 to 6093
+-> forward: name - PC0206:37:64FA0AAXX:7:112:3649:12542region -17:6035-6093 is: 115; m: 6093; o: 36 CIGAR 58M18S
+-> reverse: name - PC0206:37:64FA0AAXX:7:112:3649:12542region -17:6093-6150 is: -115; m: 6035; o: 36 CIGAR 18S57M
+
+forward: name - PC0206:37:64FA0AAXX:7:46:12349:9884region -17:6075-6122 is: 47; m: 6075; o: 47 CIGAR 47M
+reverse: name - PC0206:37:64FA0AAXX:7:46:12349:9884region -17:6075-6122 is: -47; m: 6075; o: 47 CIGAR 47M
+ clip forward from 6099 to 6122
+ clip reverse from 6076 to 6098
+-> forward: name - PC0206:37:64FA0AAXX:7:46:12349:9884region -17:6075-6098 is: 47; m: 6098; o: 47 CIGAR 23M24S
+-> reverse: name - PC0206:37:64FA0AAXX:7:46:12349:9884region -17:6098-6122 is: -47; m: 6075; o: 47 CIGAR 23S24M
+
+forward: name - PC0206:37:64FA0AAXX:7:51:9621:14264region -17:6063-6139 is: 88; m: 6075; o: 64 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:51:9621:14264region -17:6075-6151 is: -88; m: 6063; o: 64 CIGAR 76M
+ clip forward from 6108 to 6139
+ clip reverse from 6076 to 6107
+-> forward: name - PC0206:37:64FA0AAXX:7:51:9621:14264region -17:6063-6107 is: 88; m: 6107; o: 64 CIGAR 44M32S
+-> reverse: name - PC0206:37:64FA0AAXX:7:51:9621:14264region -17:6107-6151 is: -88; m: 6063; o: 64 CIGAR 32S44M
+
+forward: name - PC0206:37:64FA0AAXX:7:79:4365:5332region -17:6070-6146 is: 80; m: 6075; o: 71 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:79:4365:5332region -17:6075-6150 is: -80; m: 6070; o: 71 CIGAR 75M
+ clip forward from 6112 to 6146
+ clip reverse from 6076 to 6111
+-> forward: name - PC0206:37:64FA0AAXX:7:79:4365:5332region -17:6070-6111 is: 80; m: 6111; o: 71 CIGAR 41M35S
+-> reverse: name - PC0206:37:64FA0AAXX:7:79:4365:5332region -17:6111-6150 is: -80; m: 6070; o: 71 CIGAR 36S39M
+
+forward: name - PC0206:37:64FA0AAXX:7:46:15158:20187region -17:6055-6131 is: 99; m: 6079; o: 52 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:46:15158:20187region -17:6079-6154 is: -99; m: 6055; o: 52 CIGAR 75M
+ clip forward from 6106 to 6131
+ clip reverse from 6080 to 6105
+-> forward: name - PC0206:37:64FA0AAXX:7:46:15158:20187region -17:6055-6105 is: 99; m: 6105; o: 52 CIGAR 50M26S
+-> reverse: name - PC0206:37:64FA0AAXX:7:46:15158:20187region -17:6105-6154 is: -99; m: 6055; o: 52 CIGAR 26S49M
+
+forward: name - PC0206:37:64FA0AAXX:7:49:5857:4187region -17:6035-6111 is: 120; m: 6079; o: 32 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:49:5857:4187region -17:6079-6155 is: -120; m: 6035; o: 32 CIGAR 76M
+ clip forward from 6096 to 6111
+ clip reverse from 6080 to 6095
+-> forward: name - PC0206:37:64FA0AAXX:7:49:5857:4187region -17:6035-6095 is: 120; m: 6095; o: 32 CIGAR 60M16S
+-> reverse: name - PC0206:37:64FA0AAXX:7:49:5857:4187region -17:6095-6155 is: -120; m: 6035; o: 32 CIGAR 16S60M
+
+forward: name - PC0206:37:64FA0AAXX:7:116:7302:17533region -17:6080-6156 is: 76; m: 6080; o: 76 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:116:7302:17533region -17:6080-6156 is: -76; m: 6080; o: 76 CIGAR 76M
+ clip forward from 6119 to 6156
+ clip reverse from 6081 to 6118
+-> forward: name - PC0206:37:64FA0AAXX:7:116:7302:17533region -17:6080-6118 is: 76; m: 6118; o: 76 CIGAR 38M38S
+-> reverse: name - PC0206:37:64FA0AAXX:7:116:7302:17533region -17:6118-6156 is: -76; m: 6080; o: 76 CIGAR 38S38M
+
+forward: name - PC0206:37:64FA0AAXX:7:32:13276:17553region -17:6062-6138 is: 94; m: 6080; o: 58 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:32:13276:17553region -17:6080-6156 is: -94; m: 6062; o: 58 CIGAR 76M
+ clip forward from 6110 to 6138
+ clip reverse from 6081 to 6109
+-> forward: name - PC0206:37:64FA0AAXX:7:32:13276:17553region -17:6062-6109 is: 94; m: 6109; o: 58 CIGAR 47M29S
+-> reverse: name - PC0206:37:64FA0AAXX:7:32:13276:17553region -17:6109-6156 is: -94; m: 6062; o: 58 CIGAR 29S47M
+
+forward: name - PC0206:37:64FA0AAXX:7:72:18482:10793region -17:6037-6112 is: 120; m: 6081; o: 31 CIGAR 75M
+reverse: name - PC0206:37:64FA0AAXX:7:72:18482:10793region -17:6081-6157 is: -120; m: 6037; o: 31 CIGAR 76M
+ clip forward from 6098 to 6112
+ clip reverse from 6082 to 6097
+-> forward: name - PC0206:37:64FA0AAXX:7:72:18482:10793region -17:6037-6097 is: 120; m: 6097; o: 31 CIGAR 60M15S
+-> reverse: name - PC0206:37:64FA0AAXX:7:72:18482:10793region -17:6097-6157 is: -120; m: 6037; o: 31 CIGAR 16S60M
+
+forward: name - PC0206:37:64FA0AAXX:7:74:5808:16886region -17:6013-6089 is: 144; m: 6081; o: 8 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:74:5808:16886region -17:6081-6157 is: -144; m: 6013; o: 8 CIGAR 76M
+ clip forward from 6086 to 6089
+ clip reverse from 6082 to 6085
+-> forward: name - PC0206:37:64FA0AAXX:7:74:5808:16886region -17:6013-6085 is: 144; m: 6085; o: 8 CIGAR 72M4S
+-> reverse: name - PC0206:37:64FA0AAXX:7:74:5808:16886region -17:6085-6157 is: -144; m: 6013; o: 8 CIGAR 4S72M
+
+forward: name - PC0206:37:64FA0AAXX:7:84:5357:4428region -17:6083-6123 is: 40; m: 6083; o: 40 CIGAR 40M
+reverse: name - PC0206:37:64FA0AAXX:7:84:5357:4428region -17:6083-6123 is: -40; m: 6083; o: 40 CIGAR 40M
+ clip forward from 6104 to 6123
+ clip reverse from 6084 to 6103
+-> forward: name - PC0206:37:64FA0AAXX:7:84:5357:4428region -17:6083-6103 is: 40; m: 6103; o: 40 CIGAR 20M20S
+-> reverse: name - PC0206:37:64FA0AAXX:7:84:5357:4428region -17:6103-6123 is: -40; m: 6083; o: 40 CIGAR 20S20M
+
+forward: name - PC0206:37:64FA0AAXX:7:38:9198:9031region -17:6084-6126 is: 42; m: 6084; o: 42 CIGAR 42M
+reverse: name - PC0206:37:64FA0AAXX:7:38:9198:9031region -17:6084-6126 is: -42; m: 6084; o: 42 CIGAR 42M
+ clip forward from 6106 to 6126
+ clip reverse from 6085 to 6105
+-> forward: name - PC0206:37:64FA0AAXX:7:38:9198:9031region -17:6084-6105 is: 42; m: 6105; o: 42 CIGAR 21M21S
+-> reverse: name - PC0206:37:64FA0AAXX:7:38:9198:9031region -17:6105-6126 is: -42; m: 6084; o: 42 CIGAR 21S21M
+
+forward: name - PC0206:37:64FA0AAXX:7:112:17668:12008region -17:6085-6147 is: 62; m: 6085; o: 62 CIGAR 62M
+reverse: name - PC0206:37:64FA0AAXX:7:112:17668:12008region -17:6085-6147 is: -62; m: 6085; o: 62 CIGAR 62M
+ clip forward from 6117 to 6147
+ clip reverse from 6086 to 6116
+-> forward: name - PC0206:37:64FA0AAXX:7:112:17668:12008region -17:6085-6116 is: 62; m: 6116; o: 62 CIGAR 31M31S
+-> reverse: name - PC0206:37:64FA0AAXX:7:112:17668:12008region -17:6116-6147 is: -62; m: 6085; o: 62 CIGAR 31S31M
+
+forward: name - PC0206:37:64FA0AAXX:7:6:14471:4513region -17:6055-6131 is: 106; m: 6085; o: 46 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:6:14471:4513region -17:6085-6161 is: -106; m: 6055; o: 46 CIGAR 76M
+ clip forward from 6109 to 6131
+ clip reverse from 6086 to 6108
+-> forward: name - PC0206:37:64FA0AAXX:7:6:14471:4513region -17:6055-6108 is: 106; m: 6108; o: 46 CIGAR 53M23S
+-> reverse: name - PC0206:37:64FA0AAXX:7:6:14471:4513region -17:6108-6161 is: -106; m: 6055; o: 46 CIGAR 23S53M
+
+forward: name - PC0206:37:64FA0AAXX:7:63:16669:5934region -17:6065-6141 is: 99; m: 6088; o: 53 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:63:16669:5934region -17:6088-6164 is: -99; m: 6065; o: 53 CIGAR 76M
+ clip forward from 6116 to 6141
+ clip reverse from 6089 to 6115
+-> forward: name - PC0206:37:64FA0AAXX:7:63:16669:5934region -17:6065-6115 is: 99; m: 6115; o: 53 CIGAR 50M26S
+-> reverse: name - PC0206:37:64FA0AAXX:7:63:16669:5934region -17:6115-6164 is: -99; m: 6065; o: 53 CIGAR 27S49M
+
+forward: name - PC0206:37:64FA0AAXX:7:100:17471:2944region -17:6064-6140 is: 102; m: 6091; o: 49 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:100:17471:2944region -17:6091-6166 is: -102; m: 6064; o: 49 CIGAR 75M
+ clip forward from 6117 to 6140
+ clip reverse from 6092 to 6116
+-> forward: name - PC0206:37:64FA0AAXX:7:100:17471:2944region -17:6064-6116 is: 102; m: 6116; o: 49 CIGAR 52M24S
+-> reverse: name - PC0206:37:64FA0AAXX:7:100:17471:2944region -17:6116-6166 is: -102; m: 6064; o: 49 CIGAR 25S50M
+
+forward: name - PC0206:37:64FA0AAXX:7:103:14143:4133region -17:6072-6148 is: 94; m: 6091; o: 57 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:103:14143:4133region -17:6091-6166 is: -94; m: 6072; o: 57 CIGAR 75M
+ clip forward from 6121 to 6148
+ clip reverse from 6092 to 6120
+-> forward: name - PC0206:37:64FA0AAXX:7:103:14143:4133region -17:6072-6120 is: 94; m: 6120; o: 57 CIGAR 48M28S
+-> reverse: name - PC0206:37:64FA0AAXX:7:103:14143:4133region -17:6120-6166 is: -94; m: 6072; o: 57 CIGAR 29S46M
+
+forward: name - PC0206:37:64FA0AAXX:7:111:4338:15025region -17:6091-6136 is: 45; m: 6091; o: 45 CIGAR 45M
+reverse: name - PC0206:37:64FA0AAXX:7:111:4338:15025region -17:6091-6136 is: -45; m: 6091; o: 45 CIGAR 45M
+ clip forward from 6115 to 6136
+ clip reverse from 6092 to 6114
+-> forward: name - PC0206:37:64FA0AAXX:7:111:4338:15025region -17:6091-6114 is: 45; m: 6114; o: 45 CIGAR 23M22S
+-> reverse: name - PC0206:37:64FA0AAXX:7:111:4338:15025region -17:6114-6136 is: -45; m: 6091; o: 45 CIGAR 23S22M
+
+forward: name - PC0206:37:64FA0AAXX:7:46:4499:3653region -17:6091-6165 is: 74; m: 6091; o: 74 CIGAR 74M
+reverse: name - PC0206:37:64FA0AAXX:7:46:4499:3653region -17:6091-6165 is: -74; m: 6091; o: 74 CIGAR 74M
+ clip forward from 6129 to 6165
+ clip reverse from 6092 to 6128
+-> forward: name - PC0206:37:64FA0AAXX:7:46:4499:3653region -17:6091-6128 is: 74; m: 6128; o: 74 CIGAR 37M37S
+-> reverse: name - PC0206:37:64FA0AAXX:7:46:4499:3653region -17:6128-6165 is: -74; m: 6091; o: 74 CIGAR 37S37M
+
+forward: name - PC0206:37:64FA0AAXX:7:43:15314:19791region -17:6093-6150 is: 57; m: 6093; o: 57 CIGAR 57M
+reverse: name - PC0206:37:64FA0AAXX:7:43:15314:19791region -17:6093-6150 is: -57; m: 6093; o: 57 CIGAR 57M
+ clip forward from 6123 to 6150
+ clip reverse from 6094 to 6122
+-> forward: name - PC0206:37:64FA0AAXX:7:43:15314:19791region -17:6093-6122 is: 57; m: 6122; o: 57 CIGAR 29M28S
+-> reverse: name - PC0206:37:64FA0AAXX:7:43:15314:19791region -17:6122-6150 is: -57; m: 6093; o: 57 CIGAR 29S28M
+
+forward: name - PC0206:37:64FA0AAXX:7:22:12145:1229region -17:6091-6166 is: 79; m: 6095; o: 71 CIGAR 75M
+reverse: name - PC0206:37:64FA0AAXX:7:22:12145:1229region -17:6095-6170 is: -79; m: 6091; o: 71 CIGAR 75M
+ clip forward from 6132 to 6166
+ clip reverse from 6096 to 6131
+-> forward: name - PC0206:37:64FA0AAXX:7:22:12145:1229region -17:6091-6131 is: 79; m: 6131; o: 71 CIGAR 40M35S
+-> reverse: name - PC0206:37:64FA0AAXX:7:22:12145:1229region -17:6131-6170 is: -79; m: 6091; o: 71 CIGAR 36S39M
+
+forward: name - PC0206:37:64FA0AAXX:7:28:2521:15210region -17:6084-6160 is: 91; m: 6100; o: 60 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:28:2521:15210region -17:6100-6175 is: -91; m: 6084; o: 60 CIGAR 75M
+ clip forward from 6131 to 6160
+ clip reverse from 6101 to 6130
+-> forward: name - PC0206:37:64FA0AAXX:7:28:2521:15210region -17:6084-6130 is: 91; m: 6130; o: 60 CIGAR 46M30S
+-> reverse: name - PC0206:37:64FA0AAXX:7:28:2521:15210region -17:6130-6175 is: -91; m: 6084; o: 60 CIGAR 30S45M
+
+forward: name - PC0206:37:64FA0AAXX:7:67:9541:18030region -17:6064-6140 is: 111; m: 6100; o: 40 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:67:9541:18030region -17:6100-6175 is: -111; m: 6064; o: 40 CIGAR 75M
+ clip forward from 6121 to 6140
+ clip reverse from 6101 to 6120
+-> forward: name - PC0206:37:64FA0AAXX:7:67:9541:18030region -17:6064-6120 is: 111; m: 6120; o: 40 CIGAR 56M20S
+-> reverse: name - PC0206:37:64FA0AAXX:7:67:9541:18030region -17:6120-6175 is: -111; m: 6064; o: 40 CIGAR 20S55M
+
+forward: name - PC0206:37:64FA0AAXX:7:4:10758:4568region -17:6094-6170 is: 83; m: 6101; o: 69 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:4:10758:4568region -17:6101-6177 is: -83; m: 6094; o: 69 CIGAR 76M
+ clip forward from 6137 to 6170
+ clip reverse from 6102 to 6136
+-> forward: name - PC0206:37:64FA0AAXX:7:4:10758:4568region -17:6094-6136 is: 83; m: 6136; o: 69 CIGAR 42M34S
+-> reverse: name - PC0206:37:64FA0AAXX:7:4:10758:4568region -17:6136-6177 is: -83; m: 6094; o: 69 CIGAR 35S41M
+
+forward: name - PC0206:37:64FA0AAXX:7:82:17107:14630region -17:6029-6105 is: 149; m: 6102; o: 3 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:82:17107:14630region -17:6102-6178 is: -149; m: 6029; o: 3 CIGAR 76M
+ clip forward from 6104 to 6105
+ clip reverse from 6103 to 6103
+-> forward: name - PC0206:37:64FA0AAXX:7:82:17107:14630region -17:6029-6103 is: 149; m: 6103; o: 3 CIGAR 74M2S
+-> reverse: name - PC0206:37:64FA0AAXX:7:82:17107:14630region -17:6103-6178 is: -149; m: 6029; o: 3 CIGAR 1S75M
+
+forward: name - PC0206:37:64FA0AAXX:7:36:15310:8809region -17:6068-6142 is: 111; m: 6105; o: 37 CIGAR 74M
+reverse: name - PC0206:37:64FA0AAXX:7:36:15310:8809region -17:6105-6179 is: -111; m: 6068; o: 37 CIGAR 74M
+ clip forward from 6125 to 6142
+ clip reverse from 6106 to 6124
+-> forward: name - PC0206:37:64FA0AAXX:7:36:15310:8809region -17:6068-6124 is: 111; m: 6124; o: 37 CIGAR 56M18S
+-> reverse: name - PC0206:37:64FA0AAXX:7:36:15310:8809region -17:6124-6179 is: -111; m: 6068; o: 37 CIGAR 19S55M
+
+forward: name - PC0206:37:64FA0AAXX:7:69:13472:3855region -17:6073-6149 is: 109; m: 6107; o: 42 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:69:13472:3855region -17:6107-6182 is: -109; m: 6073; o: 42 CIGAR 75M
+ clip forward from 6129 to 6149
+ clip reverse from 6108 to 6128
+-> forward: name - PC0206:37:64FA0AAXX:7:69:13472:3855region -17:6073-6128 is: 109; m: 6128; o: 42 CIGAR 55M21S
+-> reverse: name - PC0206:37:64FA0AAXX:7:69:13472:3855region -17:6128-6182 is: -109; m: 6073; o: 42 CIGAR 21S54M
+
+forward: name - PC0206:37:64FA0AAXX:7:94:5504:7304region -17:6042-6116 is: 141; m: 6107; o: 9 CIGAR 74M
+reverse: name - PC0206:37:64FA0AAXX:7:94:5504:7304region -17:6107-6183 is: -141; m: 6042; o: 9 CIGAR 76M
+ clip forward from 6112 to 6116
+ clip reverse from 6108 to 6111
+-> forward: name - PC0206:37:64FA0AAXX:7:94:5504:7304region -17:6042-6111 is: 141; m: 6111; o: 9 CIGAR 69M5S
+-> reverse: name - PC0206:37:64FA0AAXX:7:94:5504:7304region -17:6111-6183 is: -141; m: 6042; o: 9 CIGAR 4S72M
+
+forward: name - PC0206:37:64FA0AAXX:7:33:8622:8476region -17:6043-6116 is: 142; m: 6110; o: 6 CIGAR 73M
+reverse: name - PC0206:37:64FA0AAXX:7:33:8622:8476region -17:6110-6185 is: -142; m: 6043; o: 6 CIGAR 75M
+ clip forward from 6114 to 6116
+ clip reverse from 6111 to 6113
+-> forward: name - PC0206:37:64FA0AAXX:7:33:8622:8476region -17:6043-6113 is: 142; m: 6113; o: 6 CIGAR 70M3S
+-> reverse: name - PC0206:37:64FA0AAXX:7:33:8622:8476region -17:6113-6185 is: -142; m: 6043; o: 6 CIGAR 3S72M
+
+forward: name - PC0206:37:64FA0AAXX:7:26:9386:2699region -17:6091-6166 is: 95; m: 6111; o: 55 CIGAR 75M
+reverse: name - PC0206:37:64FA0AAXX:7:26:9386:2699region -17:6111-6186 is: -95; m: 6091; o: 55 CIGAR 75M
+ clip forward from 6140 to 6166
+ clip reverse from 6112 to 6139
+-> forward: name - PC0206:37:64FA0AAXX:7:26:9386:2699region -17:6091-6139 is: 95; m: 6139; o: 55 CIGAR 48M27S
+-> reverse: name - PC0206:37:64FA0AAXX:7:26:9386:2699region -17:6139-6186 is: -95; m: 6091; o: 55 CIGAR 28S47M
+
+forward: name - PC0206:37:64FA0AAXX:7:3:2912:18387region -17:6063-6139 is: 124; m: 6111; o: 28 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:3:2912:18387region -17:6111-6187 is: -124; m: 6063; o: 28 CIGAR 76M
+ clip forward from 6126 to 6139
+ clip reverse from 6112 to 6125
+-> forward: name - PC0206:37:64FA0AAXX:7:3:2912:18387region -17:6063-6125 is: 124; m: 6125; o: 28 CIGAR 62M14S
+-> reverse: name - PC0206:37:64FA0AAXX:7:3:2912:18387region -17:6125-6187 is: -124; m: 6063; o: 28 CIGAR 14S62M
+
+forward: name - PC0206:37:64FA0AAXX:7:20:19419:16120region -17:6052-6128 is: 141; m: 6116; o: 12 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:20:19419:16120region -17:6116-6193 is: -141; m: 6052; o: 12 CIGAR 61M1D15M
+ clip forward from 6123 to 6128
+ clip reverse from 6117 to 6122
+-> forward: name - PC0206:37:64FA0AAXX:7:20:19419:16120region -17:6052-6122 is: 141; m: 6122; o: 12 CIGAR 70M6S
+-> reverse: name - PC0206:37:64FA0AAXX:7:20:19419:16120region -17:6122-6193 is: -141; m: 6052; o: 12 CIGAR 6S55M1D15M
+
+forward: name - PC0206:37:64FA0AAXX:7:18:16507:8129region -17:6077-6153 is: 121; m: 6122; o: 31 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:18:16507:8129region -17:6122-6198 is: -121; m: 6077; o: 31 CIGAR 76M
+ clip forward from 6139 to 6153
+ clip reverse from 6123 to 6138
+-> forward: name - PC0206:37:64FA0AAXX:7:18:16507:8129region -17:6077-6138 is: 121; m: 6138; o: 31 CIGAR 61M15S
+-> reverse: name - PC0206:37:64FA0AAXX:7:18:16507:8129region -17:6138-6198 is: -121; m: 6077; o: 31 CIGAR 16S60M
+
+forward: name - PC0206:37:64FA0AAXX:7:80:4843:16918region -17:6115-6190 is: 83; m: 6122; o: 68 CIGAR 75M
+reverse: name - PC0206:37:64FA0AAXX:7:80:4843:16918region -17:6122-6198 is: -83; m: 6115; o: 68 CIGAR 76M
+ clip forward from 6157 to 6190
+ clip reverse from 6123 to 6156
+-> forward: name - PC0206:37:64FA0AAXX:7:80:4843:16918region -17:6115-6156 is: 83; m: 6156; o: 68 CIGAR 41M34S
+-> reverse: name - PC0206:37:64FA0AAXX:7:80:4843:16918region -17:6156-6198 is: -83; m: 6115; o: 68 CIGAR 34S42M
+
+forward: name - PC0206:37:64FA0AAXX:7:64:1554:15494region -17:6076-6152 is: 127; m: 6127; o: 25 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:64:1554:15494region -17:6127-6203 is: -127; m: 6076; o: 25 CIGAR 76M
+ clip forward from 6140 to 6152
+ clip reverse from 6128 to 6139
+-> forward: name - PC0206:37:64FA0AAXX:7:64:1554:15494region -17:6076-6139 is: 127; m: 6139; o: 25 CIGAR 63M13S
+-> reverse: name - PC0206:37:64FA0AAXX:7:64:1554:15494region -17:6139-6203 is: -127; m: 6076; o: 25 CIGAR 12S64M
+
+forward: name - PC0206:37:64FA0AAXX:7:109:10558:14304region -17:6096-6172 is: 108; m: 6128; o: 44 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:109:10558:14304region -17:6128-6204 is: -108; m: 6096; o: 44 CIGAR 76M
+ clip forward from 6151 to 6172
+ clip reverse from 6129 to 6150
+-> forward: name - PC0206:37:64FA0AAXX:7:109:10558:14304region -17:6096-6150 is: 108; m: 6150; o: 44 CIGAR 54M22S
+-> reverse: name - PC0206:37:64FA0AAXX:7:109:10558:14304region -17:6150-6204 is: -108; m: 6096; o: 44 CIGAR 22S54M
+
+forward: name - PC0206:37:64FA0AAXX:7:61:9885:1083region -17:6054-6130 is: 150; m: 6128; o: 2 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:61:9885:1083region -17:6128-6204 is: -150; m: 6054; o: 2 CIGAR 76M
+ clip forward from 6130 to 6130
+ clip reverse from 6129 to 6129
+-> forward: name - PC0206:37:64FA0AAXX:7:61:9885:1083region -17:6054-6129 is: 150; m: 6129; o: 2 CIGAR 75M1S
+-> reverse: name - PC0206:37:64FA0AAXX:7:61:9885:1083region -17:6129-6204 is: -150; m: 6054; o: 2 CIGAR 1S75M
+
+forward: name - PC0206:37:64FA0AAXX:7:70:1854:11338region -17:6133-6209 is: 83; m: 6140; o: 69 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:70:1854:11338region -17:6140-6216 is: -83; m: 6133; o: 69 CIGAR 76M
+ clip forward from 6175 to 6209
+ clip reverse from 6141 to 6174
+-> forward: name - PC0206:37:64FA0AAXX:7:70:1854:11338region -17:6133-6174 is: 83; m: 6174; o: 69 CIGAR 41M35S
+-> reverse: name - PC0206:37:64FA0AAXX:7:70:1854:11338region -17:6174-6216 is: -83; m: 6133; o: 69 CIGAR 34S42M
+
+forward: name - PC0206:37:64FA0AAXX:7:14:10618:8437region -17:6138-6214 is: 80; m: 6142; o: 72 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:14:10618:8437region -17:6142-6218 is: -80; m: 6138; o: 72 CIGAR 76M
+ clip forward from 6179 to 6214
+ clip reverse from 6143 to 6178
+-> forward: name - PC0206:37:64FA0AAXX:7:14:10618:8437region -17:6138-6178 is: 80; m: 6178; o: 72 CIGAR 40M36S
+-> reverse: name - PC0206:37:64FA0AAXX:7:14:10618:8437region -17:6178-6218 is: -80; m: 6138; o: 72 CIGAR 36S40M
+
+forward: name - PC0206:37:64FA0AAXX:7:103:12167:15547region -17:6110-6186 is: 110; m: 6144; o: 42 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:103:12167:15547region -17:6144-6220 is: -110; m: 6110; o: 42 CIGAR 76M
+ clip forward from 6166 to 6186
+ clip reverse from 6145 to 6165
+-> forward: name - PC0206:37:64FA0AAXX:7:103:12167:15547region -17:6110-6165 is: 110; m: 6165; o: 42 CIGAR 55M21S
+-> reverse: name - PC0206:37:64FA0AAXX:7:103:12167:15547region -17:6165-6220 is: -110; m: 6110; o: 42 CIGAR 21S55M
+
+forward: name - PC0206:37:64FA0AAXX:7:26:11560:14350region -17:6125-6201 is: 99; m: 6149; o: 52 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:26:11560:14350region -17:6149-6224 is: -99; m: 6125; o: 52 CIGAR 75M
+ clip forward from 6176 to 6201
+ clip reverse from 6150 to 6175
+-> forward: name - PC0206:37:64FA0AAXX:7:26:11560:14350region -17:6125-6175 is: 99; m: 6175; o: 52 CIGAR 50M26S
+-> reverse: name - PC0206:37:64FA0AAXX:7:26:11560:14350region -17:6175-6224 is: -99; m: 6125; o: 52 CIGAR 26S49M
+
+forward: name - PC0206:37:64FA0AAXX:7:77:3844:11734region -17:6085-6161 is: 136; m: 6149; o: 12 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:77:3844:11734region -17:6149-6221 is: -136; m: 6085; o: 12 CIGAR 72M
+ clip forward from 6156 to 6161
+ clip reverse from 6150 to 6155
+-> forward: name - PC0206:37:64FA0AAXX:7:77:3844:11734region -17:6085-6155 is: 136; m: 6155; o: 12 CIGAR 70M6S
+-> reverse: name - PC0206:37:64FA0AAXX:7:77:3844:11734region -17:6155-6221 is: -136; m: 6085; o: 12 CIGAR 6S66M
+
+forward: name - PC0206:37:64FA0AAXX:7:14:14512:6398region -17:6132-6207 is: 97; m: 6154; o: 53 CIGAR 75M
+reverse: name - PC0206:37:64FA0AAXX:7:14:14512:6398region -17:6154-6229 is: -97; m: 6132; o: 53 CIGAR 75M
+ clip forward from 6181 to 6207
+ clip reverse from 6155 to 6180
+-> forward: name - PC0206:37:64FA0AAXX:7:14:14512:6398region -17:6132-6180 is: 97; m: 6180; o: 53 CIGAR 48M27S
+-> reverse: name - PC0206:37:64FA0AAXX:7:14:14512:6398region -17:6180-6229 is: -97; m: 6132; o: 53 CIGAR 26S49M
+
+forward: name - PC0206:37:64FA0AAXX:7:25:13657:2436region -17:6156-6211 is: 55; m: 6156; o: 55 CIGAR 55M
+reverse: name - PC0206:37:64FA0AAXX:7:25:13657:2436region -17:6156-6211 is: -55; m: 6156; o: 55 CIGAR 55M
+ clip forward from 6184 to 6211
+ clip reverse from 6157 to 6183
+-> forward: name - PC0206:37:64FA0AAXX:7:25:13657:2436region -17:6156-6183 is: 55; m: 6183; o: 55 CIGAR 27M28S
+-> reverse: name - PC0206:37:64FA0AAXX:7:25:13657:2436region -17:6183-6211 is: -55; m: 6156; o: 55 CIGAR 27S28M
+
+forward: name - PC0206:37:64FA0AAXX:7:118:6575:3186region -17:6086-6162 is: 142; m: 6161; o: 1 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:118:6575:3186region -17:6161-6228 is: -142; m: 6086; o: 1 CIGAR 67M
+ clip forward from 6162 to 6162
+ clip reverse from 6162 to 6161
+-> forward: name - PC0206:37:64FA0AAXX:7:118:6575:3186region -17:6086-6161 is: 142; m: 6161; o: 1 CIGAR 75M1S
+-> reverse: name - PC0206:37:64FA0AAXX:7:118:6575:3186region -17:6161-6228 is: -142; m: 6086; o: 1 CIGAR 67M
+
+forward: name - PC0206:37:64FA0AAXX:7:107:14705:9298region -17:6100-6175 is: 145; m: 6170; o: 5 CIGAR 75M
+reverse: name - PC0206:37:64FA0AAXX:7:107:14705:9298region -17:6170-6245 is: -145; m: 6100; o: 5 CIGAR 75M
+ clip forward from 6174 to 6175
+ clip reverse from 6171 to 6173
+-> forward: name - PC0206:37:64FA0AAXX:7:107:14705:9298region -17:6100-6173 is: 145; m: 6173; o: 5 CIGAR 73M2S
+-> reverse: name - PC0206:37:64FA0AAXX:7:107:14705:9298region -17:6173-6245 is: -145; m: 6100; o: 5 CIGAR 3S72M
+
+forward: name - PC0206:37:64FA0AAXX:7:79:4001:20253region -17:6160-6236 is: 93; m: 6177; o: 59 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:79:4001:20253region -17:6177-6253 is: -93; m: 6160; o: 59 CIGAR 76M
+ clip forward from 6207 to 6236
+ clip reverse from 6178 to 6206
+-> forward: name - PC0206:37:64FA0AAXX:7:79:4001:20253region -17:6160-6206 is: 93; m: 6206; o: 59 CIGAR 46M30S
+-> reverse: name - PC0206:37:64FA0AAXX:7:79:4001:20253region -17:6206-6253 is: -93; m: 6160; o: 59 CIGAR 29S47M
+
+forward: name - PC0206:37:64FA0AAXX:7:20:4961:8868region -17:6141-6217 is: 117; m: 6182; o: 35 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:20:4961:8868region -17:6182-6258 is: -117; m: 6141; o: 35 CIGAR 76M
+ clip forward from 6200 to 6217
+ clip reverse from 6183 to 6199
+-> forward: name - PC0206:37:64FA0AAXX:7:20:4961:8868region -17:6141-6199 is: 117; m: 6199; o: 35 CIGAR 58M18S
+-> reverse: name - PC0206:37:64FA0AAXX:7:20:4961:8868region -17:6199-6258 is: -117; m: 6141; o: 35 CIGAR 17S59M
+
+forward: name - PC0206:37:64FA0AAXX:7:87:10503:18194region -17:6191-6248 is: 57; m: 6191; o: 57 CIGAR 57M
+reverse: name - PC0206:37:64FA0AAXX:7:87:10503:18194region -17:6191-6248 is: -57; m: 6191; o: 57 CIGAR 57M
+ clip forward from 6220 to 6248
+ clip reverse from 6192 to 6219
+-> forward: name - PC0206:37:64FA0AAXX:7:87:10503:18194region -17:6191-6219 is: 57; m: 6219; o: 57 CIGAR 28M29S
+-> reverse: name - PC0206:37:64FA0AAXX:7:87:10503:18194region -17:6219-6248 is: -57; m: 6191; o: 57 CIGAR 28S29M
+
+forward: name - PC0206:37:64FA0AAXX:7:102:19396:1355region -17:6162-6238 is: 114; m: 6201; o: 37 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:102:19396:1355region -17:6201-6276 is: -114; m: 6162; o: 37 CIGAR 75M
+ clip forward from 6221 to 6238
+ clip reverse from 6202 to 6220
+-> forward: name - PC0206:37:64FA0AAXX:7:102:19396:1355region -17:6162-6220 is: 114; m: 6220; o: 37 CIGAR 58M18S
+-> reverse: name - PC0206:37:64FA0AAXX:7:102:19396:1355region -17:6220-6276 is: -114; m: 6162; o: 37 CIGAR 19S56M
+
+forward: name - PC0206:37:64FA0AAXX:7:49:5014:8067region -17:6329-6405 is: 148; m: 6401; o: 4 CIGAR 76M
+reverse: name - PC0206:37:64FA0AAXX:7:49:5014:8067region -17:6401-6477 is: -148; m: 6329; o: 4 CIGAR 76M
+ clip forward from 6404 to 6405
+ clip reverse from 6402 to 6403
+-> forward: name - PC0206:37:64FA0AAXX:7:49:5014:8067region -17:6329-6403 is: 148; m: 6403; o: 4 CIGAR 74M2S
+-> reverse: name - PC0206:37:64FA0AAXX:7:49:5014:8067region -17:6403-6477 is: -148; m: 6329; o: 4 CIGAR 2S74M
+
+forward: name - PC0206:37:64FA0AAXX:7:20:5493:19830region -17:6403-6465 is: 62; m: 6403; o: 62 CIGAR 62M
+reverse: name - PC0206:37:64FA0AAXX:7:20:5493:19830region -17:6403-6465 is: -62; m: 6403; o: 62 CIGAR 62M
+ clip forward from 6435 to 6465
+ clip reverse from 6404 to 6434
+-> forward: name - PC0206:37:64FA0AAXX:7:20:5493:19830region -17:6403-6434 is: 62; m: 6434; o: 62 CIGAR 31M31S
+-> reverse: name - PC0206:37:64FA0AAXX:7:20:5493:19830region -17:6434-6465 is: -62; m: 6403; o: 62 CIGAR 31S31M
 
 Softclipped 256 of 322 reads.
 Softclipped 5418 bases.
