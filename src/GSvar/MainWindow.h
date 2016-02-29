@@ -120,6 +120,7 @@ public slots:
 
     ///Default filters
     void applyDefaultFiltersGermline();
+	void applyDefaultFiltersTrio();
     void applyDefaultFiltersSomatic();
     void clearFilters();
 

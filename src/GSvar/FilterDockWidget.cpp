@@ -218,6 +218,41 @@ void FilterDockWidget::applyDefaultFilters()
     emit filtersChanged();
 }
 
+void FilterDockWidget::applyDefaultFiltersTrio()
+{
+	//block signals to avoid 10 updates of GUI
+	blockSignals(true);
+
+	resetSignalsUnblocked(false);
+
+	//enable default filters
+	ui_.maf_enabled->setChecked(true);
+	ui_.maf->setValue(1.0);
+	ui_.impact_enabled->setChecked(true);
+	ui_.impact->setCurrentText("HIGH,MODERATE");
+	ui_.ihdb_enabled->setChecked(true);
+	ui_.ihdb->setValue(5);
+	ui_.keep_class_ge_enabled->setChecked(true);
+	ui_.keep_class_ge->setCurrentText("4");
+
+	//filter cols
+	QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
+	foreach(FilterColumnWidget* w, fcws)
+	{
+		if (w->objectName().startsWith("trio_"))
+		{
+			w->setState(FilterColumnWidget::KEEP);
+			w->setFilter(true);
+		}
+	}
+
+	//re-enable signals
+	blockSignals(false);
+
+	//emit signal to update GUI
+	emit filtersChanged();
+}
+
 void FilterDockWidget::applyDefaultFiltersSomatic()
 {
     //block signals to avoid 10 updates of GUI

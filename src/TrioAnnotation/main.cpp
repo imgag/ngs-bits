@@ -120,6 +120,7 @@ public:
 		out << "Variants overall: " << vl.count() << endl;
 
 		//get indices
+		int i_filter = vl.annotationIndexByName("filter", true, true);
 		int i_quality = vl.annotationIndexByName("quality", true, true);
 		int i_gene = vl.annotationIndexByName("gene", true, true);
 		int i_co_sp = vl.annotationIndexByName("coding_and_splicing", true, true);
@@ -129,6 +130,20 @@ public:
 		int i_class = vl.annotationIndexByName("classification", true, true);
 		int i_hom = vl.annotationIndexByName("ihdb_allsys_hom", true, true);
 		int i_het = vl.annotationIndexByName("ihdb_allsys_het", true, true);
+
+		//add filter column entry headers
+		QMap<QString, QString> filters;
+		filters["trio_denovo"] = "Trio analyis: Variant is de-novo in child.";
+		filters["trio_recessive"] = "Trio analyis: Variant is recessively inherited from parents.";
+		filters["trio_hemizygous"] = "Trio analyis: Variant is hemizygous.";
+		filters["trio_comp_m"] = "Trio analyis: Variant is compound-heteroygous inherited from mother.";
+		filters["trio_comp_f"] = "Trio analyis:Variant is compound-heteroygous inherited from father.";
+		QMapIterator<QString, QString> i(filters);
+		while (i.hasNext())
+		{
+			i.next();
+			vl.filters().insert(i.key(), i.value());
+		}
 
 		//open BAM reads
 		QMap<int, QList<QByteArray> > trio_col;
@@ -143,7 +158,6 @@ public:
 			//mark classification>2 variants
 			if (v.annotations()[i_class].toInt()>2)
 			{
-				trio_col[i].append("VUS"+v.annotations()[i_class]);
 				rare.insert(i);
 			}
 
@@ -208,7 +222,7 @@ public:
 			{
 				if (vl[it.key()].annotations()[i_het].toInt()<=max_ngsd)
 				{
-					trio_col[it.key()].append("DENOVO");
+					trio_col[it.key()].append("trio_denovo");
 					count += 1;
 				}
 			}
@@ -223,7 +237,7 @@ public:
 		{
 			if (it.value().f==HET && it.value().m==HET && it.value().c==HOM)
 			{
-				trio_col[it.key()].append("RECESSIVE");
+				trio_col[it.key()].append("trio_recessive");
 				count += 1;
 			}
 			++it;
@@ -239,7 +253,7 @@ public:
 				||
 				(it.value().f==WT && it.value().m==HET && it.value().c==HOM))
 			{
-				trio_col[it.key()].append("HEMIZYGOUS");
+				trio_col[it.key()].append("trio_hemizygous");
 				count += 1;
 			}
 			++it;
@@ -293,7 +307,7 @@ public:
 					{
 						if (gene_list.contains(gene))
 						{
-							trio_col[it.key()].append("COMPOUND_M");
+							trio_col[it.key()].append("trio_comp_m");
 							count += 1;
 						}
 					}
@@ -305,7 +319,7 @@ public:
 					{
 						if (gene_list.contains(gene))
 						{
-							trio_col[it.key()].append("COMPOUND_F");
+							trio_col[it.key()].append("trio_comp_f");
 							count += 1;
 						}
 					}
@@ -315,33 +329,23 @@ public:
 		}
 		out << "Compound-heterozygous variants: " << QString::number(count) << endl;
 
-		//remove old trio column if present
-		int index = vl.annotationIndexByName("trio", true, false);
-		if (index!=-1)
-		{
-			vl.removeAnnotation(index);
-		}
-
-		//store variant list with new column
-		vl.annotations().append(VariantAnnotationDescription("trio", "Trio information from TrioAnnotation tool.", VariantAnnotationDescription::STRING));
+		//store variant list with trio information in 'filter' column
 		for (int i=0; i<vl.count(); ++i)
 		{
 			if (trio_col.contains(i))
 			{
-				QByteArray tmp;
+				QByteArray tmp = vl[i].annotations()[i_filter];
 				for (int t=0; t<trio_col[i].count(); ++t)
 				{
-					if (t!=0)
+					QByteArray name = trio_col[i][t];
+					if (!vl.filters().contains(name))
 					{
-						tmp += ',';
+						THROW(ProgrammingException, "Undeclared trio filter value '" + name + "'!");
 					}
-					tmp += trio_col[i][t];
+					if (t!=0) tmp += ';';
+					tmp += name;
 				}
-				vl[i].annotations().append(tmp);
-			}
-			else
-			{
-				vl[i].annotations().append("");
+				vl[i].annotations()[i_filter] = tmp;
 			}
 		}
 		vl.store(getOutfile("out"));

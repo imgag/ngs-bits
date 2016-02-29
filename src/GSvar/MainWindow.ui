@@ -18,7 +18,7 @@
     <normaloff>:/Icons/Icon.png</normaloff>:/Icons/Icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QVBoxLayout" name="verticalLayout">
+   <layout class="QHBoxLayout" name="horizontalLayout">
     <property name="spacing">
      <number>3</number>
     </property>
@@ -429,6 +429,14 @@
   <action name="actionConvertHgnc">
    <property name="text">
     <string>Convert to HGNC</string>
+   </property>
+  </action>
+  <action name="actionFiltersTrio">
+   <property name="text">
+    <string>Default filters (germline, trio)</string>
+   </property>
+   <property name="toolTip">
+    <string>Apply default trio filters.</string>
    </property>
   </action>
  </widget>

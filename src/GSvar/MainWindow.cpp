@@ -54,6 +54,8 @@ MainWindow::MainWindow(QWidget *parent)
     filter_btn->setMenu(new QMenu());
     filter_btn->menu()->addAction(ui_.actionFiltersGermline);
     connect(ui_.actionFiltersGermline, SIGNAL(triggered(bool)), this, SLOT(applyDefaultFiltersGermline()));
+	filter_btn->menu()->addAction(ui_.actionFiltersTrio);
+	connect(ui_.actionFiltersTrio, SIGNAL(triggered(bool)), this, SLOT(applyDefaultFiltersTrio()));
     filter_btn->menu()->addAction(ui_.actionFiltersSomatic);
     connect(ui_.actionFiltersSomatic, SIGNAL(triggered(bool)), this, SLOT(applyDefaultFiltersSomatic()));
     filter_btn->menu()->addAction(ui_.actionFiltersClear);
@@ -367,6 +369,12 @@ void MainWindow::applyDefaultFiltersGermline()
 {
 	filter_widget_->applyDefaultFilters();
     on_actionResize_triggered();
+}
+
+void MainWindow::applyDefaultFiltersTrio()
+{
+	filter_widget_->applyDefaultFiltersTrio();
+	on_actionResize_triggered();
 }
 
 void MainWindow::applyDefaultFiltersSomatic()

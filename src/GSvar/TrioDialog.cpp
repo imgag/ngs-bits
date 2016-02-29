@@ -70,5 +70,5 @@ void TrioDialog::updateOkButton()
 	QString f = ui_.f_sys->text();
 	QString m = ui_.m_sys->text();
 	QString c = ui_.c_sys->text();
-	ui_.ok_button->setEnabled(f!="" && m!="" && c!="" && f==m && f==c);
+	ui_.ok_button->setEnabled(f!="" && m!="" && c!="" && f!="unknown" && m!="unknown" && c!="unknown" && f==m && f==c);
 }
