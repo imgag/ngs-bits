@@ -1,5 +1,6 @@
 #include "TrioDialog.h"
 #include "Settings.h"
+#include "Exceptions.h"
 
 TrioDialog::TrioDialog(QWidget* parent)
 	: QDialog(parent)
@@ -33,29 +34,35 @@ QString TrioDialog::child()
 
 void TrioDialog::father_changed(QString value)
 {
-	QString sys = db_.getProcessingSystem(value.trimmed(), NGSD::LONG);
-	if (sys=="") sys = "unknown";
-	ui_.f_sys->setText(sys);
-
+	ui_.f_sys->setText(name2sys(value));
 	updateOkButton();
 }
 
 void TrioDialog::mother_changed(QString value)
 {
-	QString sys = db_.getProcessingSystem(value.trimmed(), NGSD::LONG);
-	if (sys=="") sys = "unknown";
-	ui_.m_sys->setText(sys);
-
+	ui_.m_sys->setText(name2sys(value));
 	updateOkButton();
 }
 
 void TrioDialog::child_changed(QString value)
 {
-	QString sys = db_.getProcessingSystem(value.trimmed(), NGSD::LONG);
-	if (sys=="") sys = "unknown";
-	ui_.c_sys->setText(sys);
-
+	ui_.c_sys->setText(name2sys(value));
 	updateOkButton();
+}
+
+QString TrioDialog::name2sys(QString name)
+{
+	QString sys;
+	try
+	{
+		sys = db_.getProcessingSystem(name.trimmed(), NGSD::LONG);
+	}
+	catch (Exception&)
+	{
+		sys = "unknown";
+	}
+
+	return sys;
 }
 
 void TrioDialog::updateOkButton()

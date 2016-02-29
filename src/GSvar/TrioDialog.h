@@ -28,6 +28,7 @@ private slots:
 	void child_changed(QString value);
 
 private:
+	QString name2sys(QString name);
 	Ui::TrioDialog ui_;
 	NGSD db_;
 
