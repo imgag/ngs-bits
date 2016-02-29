@@ -45,6 +45,7 @@ public:
 		int bases_clipped = 0;
 		int reads_count = 0;
 		int reads_saved = 0;
+		int bases_count = 0;
 		QTextStream out(stderr);
 		bool verbose = getFlag("v");
 		BamReader reader;
@@ -58,6 +59,7 @@ public:
 		while (reader.GetNextAlignment(al))
 		{
 			++reads_count;
+			bases_count += al.Length;
 
 			//check preconditions and if unmet save read to out and continue
 			if(!al.IsPaired() || !al.IsPrimaryAlignment())
@@ -94,10 +96,6 @@ public:
 				BamAlignment forward_read = mate;
 				BamAlignment reverse_read = al;
 				bool both_strands = false;
-				int s1 = forward_read.Position+1;
-				int e1 = forward_read.GetEndPosition();
-				int s2 = reverse_read.Position+1;
-				int e2 = reverse_read.GetEndPosition();
 				if(forward_read.IsReverseStrand()!=reverse_read.IsReverseStrand())
 				{
 					both_strands = true;
@@ -106,17 +104,21 @@ public:
 						BamAlignment tmp_read = forward_read;
 						forward_read = reverse_read;
 						reverse_read = tmp_read;
-						s1 = al.Position+1;
-						e1 = al.GetEndPosition();
-						s2 = mate.Position+1;
-						e2 = mate.GetEndPosition();
 					}
 				}
+				int s1 = forward_read.Position+1;
+				int e1 = forward_read.GetEndPosition();
+				int s2 = reverse_read.Position+1;
+				int e2 = reverse_read.GetEndPosition();
 
 				//check if reads overlap
 				bool soft_clip = false;
-				if(s1<=s2 && s2<=e1)	soft_clip = true;
-				else if(s2<=s1 && s1<=e2)	soft_clip = true;
+				if(forward_read.RefID==reverse_read.RefID)	// same chromosome
+				{
+					if(s1>=s2 && s1<=e2)	soft_clip = true;	// start read1 within read2
+					else if(e1>=s2 && e1<=e2)	soft_clip = true;	// end read1 within read2
+					else if(s1<=s2 && e1>=e2)	soft_clip = true;	// start and end read1 outisde of read2
+				}
 
 				//soft-clip overlapping reads
 				if(soft_clip)
@@ -157,13 +159,13 @@ public:
 						if(forward_read.IsFirstMate())	clip_forward_read +=  overlap%2;
 						else	clip_reverse_read +=  overlap%2;
 					}
-					else if(both_strands==false && s1>s2 && e1<e2)	//forward read lies completely within reverse read
+					else if(both_strands==false && s1>=s2 && e1<=e2)	//forward read lies completely within reverse read
 					{
 						overlap = forward_read.GetEndPosition()-forward_read.Position;
 						clip_forward_read = overlap;
 						clip_reverse_read = 0;
 					}
-					else if(both_strands==false && s1<s2 && e1>e2)	//reverse read lies completely within foward read
+					else if(both_strands==false && s1<=s2 && e1>=e2)	//reverse read lies completely within foward read
 					{
 						overlap = reverse_read.GetEndPosition()-reverse_read.Position;
 						clip_forward_read = 0;
@@ -171,7 +173,14 @@ public:
 					}
 					else
 					{
-						THROW(Exception, "Read orientation of forward read "+QString::fromStdString(forward_read.Name)+" ("+QString::number(forward_read.RefID)+":"+QString::number(forward_read.Position)+"-"+QString::number(forward_read.GetEndPosition())+") and reverse read "+QString::fromStdString(reverse_read.Name)+" ("+QString::number(reverse_read.RefID)+":"+QString::number(reverse_read.Position)+"-"+QString::number(reverse_read.GetEndPosition())+") was not identified.");
+						if(both_strands)
+						{
+							THROW(Exception, "Read orientation of forward read "+QString::fromStdString(forward_read.Name)+" (chr"+QString::number(forward_read.RefID)+":"+QString::number(forward_read.Position)+"-"+QString::number(forward_read.GetEndPosition())+") and reverse read "+QString::fromStdString(reverse_read.Name)+" (chr"+QString::number(reverse_read.RefID)+":"+QString::number(reverse_read.Position)+"-"+QString::number(reverse_read.GetEndPosition())+") was not identified.");
+						}
+						else
+						{
+							THROW(Exception, "Read orientation of read1 "+QString::fromStdString(forward_read.Name)+" (chr"+QString::number(forward_read.RefID)+":"+QString::number(forward_read.Position)+"-"+QString::number(forward_read.GetEndPosition())+") and read2 "+QString::fromStdString(reverse_read.Name)+" (chr"+QString::number(reverse_read.RefID)+":"+QString::number(reverse_read.Position)+"-"+QString::number(reverse_read.GetEndPosition())+") was not identified.");
+						}
 					}
 
 
@@ -210,15 +219,13 @@ public:
 					if(verbose)	out << endl;
 
 					//return reads
-					al = forward_read;
-					mate = reverse_read;
 					bases_clipped += overlap;
 					reads_clipped += 2;
 				}
 
 				//save reads
-				writer.SaveAlignment(al);
-				writer.SaveAlignment(mate);
+				writer.SaveAlignment(forward_read);
+				writer.SaveAlignment(reverse_read);
 				reads_saved+=2;
 			}
 			else    //keep in map
@@ -237,8 +244,10 @@ public:
 
 		//step 4: write out statistics
 		if(reads_saved!=reads_count)	THROW(ToolFailedException, "Lost Reads: "+QString::number(reads_count-reads_saved)+"/"+QString::number(reads_count));
-		out << "Softclipped " << QString::number(reads_clipped) << " of " << QString::number(reads_count) << " reads." << endl;
-		out << "Softclipped " << QString::number(bases_clipped) << " bases." << endl;
+		out << "Softclipped " << QString::number(reads_clipped) << " of " << QString::number(reads_count) << " reads (" << QString::number(((double)reads_clipped/(double)reads_count*100),'f',2) << " %)." << endl;
+		out << "Softclipped " << QString::number(bases_clipped) << " of " << QString::number(bases_count) << " basepairs (" << QString::number((double)bases_clipped/(double)bases_count*100,'f',2) << " %)." << endl;
+		out << "QC:2000040 " << QString::number(((double)reads_clipped/(double)reads_count*100),'f',2) << endl;
+		out << "QC:2000041 " << QString::number((double)bases_clipped/(double)bases_count*100,'f',2) << endl;
 
 		//done
 		reader.Close();

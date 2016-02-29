@@ -894,5 +894,7 @@ reverse: name - PC0206:37:64FA0AAXX:7:20:5493:19830region -17:6403-6465 is: -62;
 -> forward: name - PC0206:37:64FA0AAXX:7:20:5493:19830region -17:6403-6434 is: 62; m: 6434; o: 62 CIGAR 31M31S
 -> reverse: name - PC0206:37:64FA0AAXX:7:20:5493:19830region -17:6434-6465 is: -62; m: 6403; o: 62 CIGAR 31S31M
 
-Softclipped 256 of 322 reads.
-Softclipped 5418 bases.
+Softclipped 256 of 322 reads (79.50 %).
+Softclipped 5418 of 23489 basepairs (23.07 %).
+QC:2000040 79.50
+QC:2000041 23.07

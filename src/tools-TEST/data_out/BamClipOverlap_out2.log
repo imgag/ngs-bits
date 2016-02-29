@@ -145,5 +145,7 @@ reverse: name - PC0196:48:64RNVAAXX:1:56:18350:9639region -12:124400996-12440106
 -> forward: name - PC0196:48:64RNVAAXX:1:56:18350:9639region -12:124400997-124401032 is: 70; m: 124401032; o: 70 CIGAR 35M36S
 -> reverse: name - PC0196:48:64RNVAAXX:1:56:18350:9639region -12:124401032-124401067 is: -70; m: 124400997; o: 70 CIGAR 36S35M
 
-Softclipped 42 of 100 reads.
-Softclipped 1095 bases.
+Softclipped 42 of 100 reads (42.00 %).
+Softclipped 1095 of 7282 basepairs (15.04 %).
+QC:2000040 42.00
+QC:2000041 15.04
