@@ -1511,17 +1511,6 @@ void MainWindow::filtersChanged()
 			}
 		}
 
-		//trio filter
-		if (filter_widget_->applyTrio())
-		{
-			int i_trio = variants_.annotationIndexByName("trio", true, true);
-			for(int i=0; i<variants_.count(); ++i)
-			{
-				if (!pass[i]) continue;
-				pass[i] = !variants_[i].annotations()[i_trio].isEmpty();
-			}
-		}
-
         //filter columns(remove, keep)
 		QList<QByteArray> remove = filter_widget_->filterColumnsRemove();
 		QList<QByteArray> keep = filter_widget_->filterColumnsKeep();

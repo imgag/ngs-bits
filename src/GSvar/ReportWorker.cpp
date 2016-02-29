@@ -96,10 +96,6 @@ QString ReportWorker::filterToGermanText(QString name, QString value)
 	{
 		output = "Varianten mit Genotyp: " + value;
 	}
-	else if (name=="trio")
-	{
-		output = "Spezieller Filter basierend auf Trio-Sequenzierung";
-	}
 	else if (name!="keep_class_ge" && name!="keep_class_m")
 	{
 		output = "Filter: " + name + " Wert: " + value;

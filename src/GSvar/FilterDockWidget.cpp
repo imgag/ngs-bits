@@ -33,7 +33,6 @@ FilterDockWidget::FilterDockWidget(QWidget *parent)
 	connect(ui_.keep_class_ge, SIGNAL(currentTextChanged(QString)), this, SIGNAL(filtersChanged()));
 	connect(ui_.keep_class_m, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
 
-	connect(ui_.trio_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
 	connect(ui_.compound_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
 
 	connect(ui_.roi_add, SIGNAL(clicked()), this, SLOT(addRoi()));
@@ -143,8 +142,7 @@ void FilterDockWidget::resetSignalsUnblocked(bool clear_roi)
     ui_.geno->setCurrentText("hom");
     ui_.keep_class_ge_enabled->setChecked(false);
     ui_.keep_class_ge->setCurrentText("3");
-    ui_.keep_class_m->setChecked(false);
-    ui_.trio_enabled->setChecked(false);
+	ui_.keep_class_m->setChecked(false);
     ui_.compound_enabled->setChecked(false);
 
     //filter cols
@@ -328,11 +326,6 @@ int FilterDockWidget::ihdb() const
 	return ui_.ihdb->value();
 }
 
-bool FilterDockWidget::applyTrio() const
-{
-	return ui_.trio_enabled->isChecked();
-}
-
 bool FilterDockWidget::applyCompoundHet() const
 {
 	return ui_.compound_enabled->isChecked();
@@ -441,7 +434,6 @@ QMap<QString, QString> FilterDockWidget::appliedFilters() const
 	if (applyGenotype()) output.insert("genotype" , genotype());
 	if (keepClassM()) output.insert("keep_class_m", "");
 	if (keepClassGreaterEqual()!=-1) output.insert("keep_class_ge", QString::number(keepClassGreaterEqual()));
-	if (applyTrio()) output.insert("trio", "");
 
 	return output;
 }

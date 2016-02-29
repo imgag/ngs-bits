@@ -191,7 +191,7 @@
       <property name="title">
        <string>Main filters</string>
       </property>
-      <layout class="QGridLayout" name="gridLayout" columnstretch="0,1">
+      <layout class="QGridLayout" name="gridLayout" columnstretch="0,0">
        <property name="leftMargin">
         <number>3</number>
        </property>
@@ -207,63 +207,6 @@
        <property name="spacing">
         <number>3</number>
        </property>
-       <item row="1" column="1">
-        <widget class="QComboBox" name="impact">
-         <property name="currentText">
-          <string>HIGH,MODERATE,LOW</string>
-         </property>
-         <item>
-          <property name="text">
-           <string>HIGH,MODERATE,LOW</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>HIGH,MODERATE</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>HIGH</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>MODERATE</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>LOW</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>MODIFIER</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QCheckBox" name="ihdb_enabled">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum occurences in ihdb_all_* column.&lt;/p&gt;&lt;p&gt;For heterozygous variants both the ihdb_all_het and ihdb_all_hom columns are filtered.&lt;/p&gt;&lt;p&gt;For homozygous variants only the ihdb_all_hom column is filtered.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>ihdb</string>
-         </property>
-        </widget>
-       </item>
-       <item row="10" column="0">
-        <widget class="QCheckBox" name="trio_enabled">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Filter for trio column (only for trio analysis).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>trio</string>
-         </property>
-        </widget>
-       </item>
        <item row="1" column="0">
         <widget class="QCheckBox" name="impact_enabled">
          <property name="toolTip">
@@ -375,7 +318,7 @@
          </item>
         </widget>
        </item>
-       <item row="11" column="0">
+       <item row="10" column="0">
         <widget class="QCheckBox" name="compound_enabled">
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Filter for compound-heterozygous variants, i.e. heterozygous variants of all genes that have at least two heterozygous variants.&lt;/p&gt;&lt;p&gt;This filter is applied after all other filters.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -476,6 +419,53 @@
          </item>
         </widget>
        </item>
+       <item row="1" column="1">
+        <widget class="QComboBox" name="impact">
+         <property name="currentText">
+          <string>HIGH,MODERATE,LOW</string>
+         </property>
+         <item>
+          <property name="text">
+           <string>HIGH,MODERATE,LOW</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>HIGH,MODERATE</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>HIGH</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>MODERATE</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>LOW</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>MODIFIER</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QCheckBox" name="ihdb_enabled">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum occurences in ihdb_all_* column.&lt;/p&gt;&lt;p&gt;For heterozygous variants both the ihdb_all_het and ihdb_all_hom columns are filtered.&lt;/p&gt;&lt;p&gt;For homozygous variants only the ihdb_all_hom column is filtered.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>ihdb</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
     </item>
@@ -536,7 +526,7 @@
             <x>0</x>
             <y>0</y>
             <width>281</width>
-            <height>165</height>
+            <height>185</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">

@@ -53,8 +53,6 @@ public:
 	/// Returns the maximum IHDB filter value.
 	int ihdb() const;
 
-	/// Returns if the trio filter is enabled.
-	bool applyTrio() const;
 	/// Returns if the compound-heterzygous filter is enabled.
 	bool applyCompoundHet() const;
 
