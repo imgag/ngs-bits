@@ -41,11 +41,11 @@ public:
 	virtual void main()
 	{
 		//step 1: init
-		int reads_clipped = 0;
-		int bases_clipped = 0;
 		int reads_count = 0;
 		int reads_saved = 0;
-		int bases_count = 0;
+		int reads_clipped = 0;
+		quint64 bases_count = 0;
+		quint64 bases_clipped = 0;
 		QTextStream out(stderr);
 		bool verbose = getFlag("v");
 		BamReader reader;
