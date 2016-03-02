@@ -334,7 +334,7 @@ public:
 		{
 			if (trio_col.contains(i))
 			{
-				QByteArray tmp = vl[i].annotations()[i_filter];
+				QByteArray tmp = vl[i].annotations()[i_filter].trimmed();
 				for (int t=0; t<trio_col[i].count(); ++t)
 				{
 					QByteArray name = trio_col[i][t];
@@ -342,7 +342,7 @@ public:
 					{
 						THROW(ProgrammingException, "Undeclared trio filter value '" + name + "'!");
 					}
-					if (t!=0) tmp += ';';
+					if (!tmp.isEmpty()) tmp += ';';
 					tmp += name;
 				}
 				vl[i].annotations()[i_filter] = tmp;
