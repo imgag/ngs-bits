@@ -1,5 +1,7 @@
 <?php
 
+$dir = dirname(__FILE__)."//";
+
 function contains($haystack, $needle)
 {
 	return strpos($haystack,$needle)!== false;
@@ -16,8 +18,8 @@ foreach($files as $file)
 //copy DLLs to bin path
 $dlls = array("Qt5Core.dll", "libgcc_s_dw2-1.dll", "libwinpthread-1.dll", "libstdc++-6.dll", "Qt5XmlPatterns.dll", "Qt5Network.dll", "Qt5Sql.dll", "Qt5Xml.dll", "Qt5Gui.dll", "Qt5Widgets.dll");
 $qt_path = "C:\\Qt\\Qt5.5.0\\5.5\\mingw492_32\\bin\\";
-$bin_path = "..\\..\\bin\\";
-copy("..\\..\\bamtools\\lib\\libbamtools.dll", $bin_path."libbamtools.dll");
+$bin_path = $dir."..\\..\\bin\\";
+copy($dir."..\\..\\bamtools\\lib\\libbamtools.dll", $bin_path."libbamtools.dll");
 foreach($dlls as $dll)
 {
 	copy($qt_path.$dll, $bin_path.$dll);
@@ -50,7 +52,7 @@ foreach($files as $exe)
 		$output[] = "\t".$line;
 	}
 	$output[] = "[back to ngs-bits](https://github.com/marc-sturm/ngs-bits)";
-	file_put_contents($tool.".md", implode("\n", $output));
+	file_put_contents($dir.$tool.".md", implode("\n", $output));
 }
 
 fgets(STDIN);

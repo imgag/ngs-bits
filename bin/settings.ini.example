@@ -2,6 +2,7 @@
 #          Common settings that need to be set for many tools             #
 ###########################################################################
 
+#Path to the reference genome FASTA file
 reference_genome = ""
 
 ############################ internal settings ############################

@@ -1,5 +1,5 @@
 
-#Installation instructions for Windows
+#ngs-bits installation for Windows
 
 ##Dependencies
 
@@ -30,4 +30,6 @@ Now, we can build the third-party libraries, and then ngs-bits:
   [BamTools](http://sourceforge.net/projects/bamtools/) is needed by ngs-bits to access BAM files.
 * Finally, build the ngs-bits tools using the QtCreator project file `src\tools.pro`.  
   After a successful build, the tools can be found in the `bin\` folder.
+* **Note:** To build GSvar and other GUI tools, you can now use the QtCreator project file `src\tools_gui.pro`.  
+
 

@@ -1,5 +1,7 @@
 #GSvar documentation
 
+**NOTE:** This documentation is work in (early) progress. Please contact Marc Sturm if you have suggestions for additional content!
+
 ##Sample quality control
 
 The sample information dialog shows the main quality metrics from the NGSD:
@@ -44,4 +46,5 @@ If it cannot access the server, during startup the error message `cannot connect
 
 In that case, you have to set the proxy like shown here:
 ![alt text](igv_proxy.png)
+
 

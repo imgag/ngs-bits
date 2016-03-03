@@ -1,7 +1,7 @@
 ### BedReadCount tool help
-	BedReadCount (0.1-190-g94e4c3d)
+	BedReadCount (0.1-222-g9be2128)
 	
-	Annoates the regions in a BED file with the read count from a BAM file.
+	Annotates the regions in a BED file with the read count from a BAM file.
 	
 	Mandatory parameters:
 	  -bam <file>     Input BAM file.
