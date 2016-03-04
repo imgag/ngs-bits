@@ -38,7 +38,7 @@ The database backend of the NGSD is a MySQL database. To set it up, follow these
 
 ##(2) Setup of MySQL tables
 
-The initial setup of the database tables is done using the ngs-gits tool *NGSDInit*:
+The initial setup of the database tables is done using the ngs-bits tool *NGSDInit*:
 
 * First, you need to build the ngs-bits toolset according to the instructions on the [project page](../../README.md).
 * After building ngss-bits, you need to configure it. Copy the `bin\settings.ini.example` to `bin\settings.ini` and fill in at least the following items:
@@ -83,7 +83,7 @@ Install like that:
 		[general]
 		basedir = "/DB/"
 
-  Then, copy the `DB/sites/NGSG/settings.ini.example` to `DB/sites/NGSG/settings.ini` and adapt the settings:
+  Then, copy the `DB/sites/NGSD/settings.ini.example` to `DB/sites/NGSD/settings.ini` and adapt the settings:
 		
 	<table>
 		<tr>
@@ -91,7 +91,7 @@ Install like that:
 			<td>The path to the ngs-bits `bin` folder.</td>
 		</tr>
 		<tr>
-			<td>db\_host<br>db\_name<br>db\_user<br>db\_pass</td>
+			<td>[database]<br>db\_host<br>db\_name<br>db\_user<br>db\_pass</td>
 			<td>MySQL database credentials, see (1).</td>
 		</tr>
 	</table>

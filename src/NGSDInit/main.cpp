@@ -38,7 +38,7 @@ public:
 		//output
 		QTextStream out(stdout);
 		out << "Database initialization succesfully." << endl;
-		out << "You are now able to login as user 'admin' and password 'admin' via the web fronted." << endl;
+		out << "You are now able to login as user 'admin' and password 'admin' via the web frontend." << endl;
 		out << "**Change password on first login!**" << endl;
 	}
 };
