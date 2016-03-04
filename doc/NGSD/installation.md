@@ -7,6 +7,13 @@ The NGSD manages samples, runs, variants and QC data for NGS sequencing.
 This document describes the installation of the NGSD database and the GSvar tool.  
 The installation instructions are based on Ubuntu 14.04 LTS, but should work similarly on other Linux distributions.
 
+## (0) Installation of dependencies
+
+First we need to make sure that we have all packages required the rest of the installation:
+
+	> apt-get install subversion git php5 g++ maven
+
+
 ##(1) Setup of the MySQL database
 
 The database backend of the NGSD is a MySQL database. To set it up, follow these instructions:
@@ -45,7 +52,7 @@ The initial setup of the database tables is done using the ngs-bits tool *NGSDIn
 <table>
 	<tr>
 		<td>reference\_genome</td>
-		<td>Path to the indexed reference genome FASTA file.</td>
+		<td>Path to the indexed reference genome FASTA file, see (5).</td>
 	</tr>
 	<tr>
 		<td>ngsd\_host<br>ngsd\_port<br>ngsd\_name<br>ngsd\_user<br>ngsd\_pass</td>
@@ -63,12 +70,7 @@ Install like that:
 
 * First, install the apache server:
 
-		> apt-get install apache2
-		> apt-get install php5 libapache2-mod-php5
-		> service apache2 restart
-* The NGSD source code is contained in a Subversion repository. Thus, install Subversion unless it's already installed:
-
-		> apt-get install subversion
+		> apt-get install apache2 libapache2-mod-php5
 
 * Check out the NGSD source code like that (contact us for the password):
 	
@@ -91,7 +93,7 @@ Install like that:
 			<td>The path to the ngs-bits `bin` folder.</td>
 		</tr>
 		<tr>
-			<td>[database]<br>db\_host<br>db\_name<br>db\_user<br>db\_pass</td>
+			<td>[database]<br>db_host<br>db_name<br>db_user<br>db_pass</td>
 			<td>MySQL database credentials, see (1).</td>
 		</tr>
 	</table>
@@ -108,7 +110,7 @@ GSvar is a variant filtering and reporting tool for Windows that is tightly inte
 <table>
 	<tr>
 		<td>reference\_genome</td>
-		<td>Path to the indexed reference genome FASTA file.</td>
+		<td>Path to the indexed reference genome FASTA file, see (5).</td>
 	</tr>
 	<tr>
 		<td>ngsd\_host<br>ngsd\_port<br>ngsd\_name<br>ngsd\_user<br>ngsd\_pass</td>
@@ -125,7 +127,51 @@ For more information on GSvar, open the help within GSvar (F1) or use this [link
 
 ##(5) Setup of the analysis pipeline 
 
-TODO
+First, we can check out the analysis pipeline code (contact us for the password):
+
+	> svn co http://saas1305xh.saas-secure.com/svn/php --username nightly --password [password]
+
+Next, we need to download and build some open-source tools that our pipeline relies on:
+
+	> cd [tool-folder] 
+	> ./scripts/download_tools.sh
+
+Next, we need to download and convert some open-source databases that our pipeline relies on:
+
+	> ./scripts/download_dbs.sh
+
+Now we need to configure the pipeline. Adapt the `src\Conf\default.ini` file:
+
+	[tools-ngs]
+	ngs-bits = [path]/bin/
+	samtools = [path]/samtools
+	freebayes = [path]/bin/freebayes
+	vcflib = [path]/bin/
+	abra = [path]/abra.jar
+	samblaster = [path]/samblaster
+	bwa = [path]/bwa
+	SnpEff = [path]/snpEff.jar
+	SnpSift = [path]/SnpSift.jar
+
+	[folders]
+	local_data = /tmp/local_ngs_data/
+	data_folder = [path]
+
+	[mysql-databases]
+	db_host['NGSD'] = "srv010.img.med.uni-tuebingen.de"
+	db_name['NGSD'] = "bioinf_ngsd"
+	db_user['NGSD'] = "bioinf_ngsd"
+	db_pass['NGSD'] = "3EYR6hR4W7yq8n9D"
+		
+Then, we create a local copy of the genome data:
+
+	> php src/Tools/setup_data.php
+
+
+Finally, we can run the tests:
+
+	> make test test_tools_ngs test_pipeline_a test_pipeline_x
+
 
 
 
