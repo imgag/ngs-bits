@@ -45,12 +45,26 @@ public:
 		QString mode = getEnum("mode");
 		if(mode=="germline")
 		{
-			if (!test) GPD().annotate(variants); //TODO update when GPD is integrated into NGSD
+			try
+			{
+				GPD().annotate(variants);
+			}
+			catch (DatabaseException& e)
+			{
+				Log::error("GPD database error: " + e.message());
+			}
 			NGSD(test).annotate(variants, psname);
 		}
 		else if(mode=="somatic")
 		{
-			if (!test) GPD().annotateSomatic(variants); //TODO update when GPD is integrated into NGSD
+			try
+			{
+				GPD().annotateSomatic(variants);
+			}
+			catch (DatabaseException& e)
+			{
+				Log::error("GPD database error: " + e.message());
+			}
 			NGSD(test).annotateSomatic(variants, psname);
 		}
 
