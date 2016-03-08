@@ -30,8 +30,10 @@ Then, we need to download and index the reference genome:
 	> ./download_hg19.sh
 
 Next, we need to download and convert some open-source databases that our pipeline relies on:
-	
+
 	> ./download_dbs.sh
+
+**Note:** OMIM, HGMD and COSMIC are not downloaded automatically because of license issues. If you have the license for those databasey, download/convert them accoring to the commented sections in the download script.
 
 Finally, we need to configure the pipeline:
 
@@ -168,6 +170,7 @@ GSvar is a variant filtering and reporting tool for Windows that is tightly inte
 </table>
 
 For more information on GSvar, open the help within GSvar (F1) or use this [link](../GSvar/index.md).
+
 
 
 
