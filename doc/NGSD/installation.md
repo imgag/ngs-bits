@@ -37,10 +37,6 @@ Finally, we need to configure the pipeline:
 
 	> cp setting.ini.default setting.ini
 
-Optionally, we can test the installation (takes an hour):
-
-	> make test_pipeline_a test_pipeline_x
-
 
 ##(2) Setup of the MySQL database
 
@@ -101,6 +97,7 @@ Install like that:
 * First, install the apache server:
 
 		> apt-get install apache2 libapache2-mod-php5
+		> a2enmod rewrite
 
 * Check out the NGSD source code like that (contact us for the password):
 	
@@ -110,12 +107,11 @@ Install like that:
 
 * Now we need to configure the NGSD:
 
-  Copy the `DB/settings.ini.example` to `DB/settings.ini` and adapt the settings:
-		
-		[general]
-		basedir = "/DB/"
+  Copy the `DB/.htaccess.example` to `.htaccess`.
 
-  Then, copy the `DB/sites/NGSD/settings.ini.example` to `DB/sites/NGSD/settings.ini` and adapt the settings:
+  Copy the `DB/settings.ini.example` to `DB/settings.ini`.
+
+  Copy the `DB/sites/NGSD/settings.ini.example` to `DB/sites/NGSD/settings.ini` and adapt the settings:
 		
 	<table>
 		<tr>
@@ -127,7 +123,26 @@ Install like that:
 			<td>MySQL database credentials, see (2).</td>
 		</tr>
 	</table>
-* **TODO: Christopher fragen?**
+
+	Apapt `/etc/apache2/apache2.conf` like that:
+        
+		<Directory /var/www/>
+        	Options Indexes FollowSymLinks MultiViews
+            AllowOverride All
+            Require all granted
+ 
+	        php_flag short_open_tag On
+	        php_flag display_errors On
+	        php_flag html_errors  On
+	        php_value memory_limit 2000M
+	        php_value session.cache_expire 1440
+	        php_value session.gc_maxlifetime 86400
+        </Directory>
+
+* Restart the server:
+
+		> service apache restart
+
 * Now, the NGSD database can be accessed at `http://localhost/DB/NGSD/`.
 
 ##(5) Setup of GSvar (Windows)
@@ -153,5 +168,6 @@ GSvar is a variant filtering and reporting tool for Windows that is tightly inte
 </table>
 
 For more information on GSvar, open the help within GSvar (F1) or use this [link](../GSvar/index.md).
+
 
 
