@@ -92,14 +92,14 @@ public:
 
 		while (reader.GetNextAlignment(al))
 		{
-			if (((counter%10000)==0)||(chrom_change))//write after every 10000th reads to reduce memory requirements
+			if (((counter%10000)==0)||(chrom_change))//reset read_groups hash after every 10000th reads to reduce memory requirements
 			{
 				QHash <grouping, readPair > read_groups_new;
 				QHash <grouping, readPair >::iterator i;
 				for (i = read_groups.begin(); i != read_groups.end(); ++i)
 				{
-					/*make sure that no duplicate is missed because of trimmed second read
-					(won't work if bam is not sorted by position TODO: Test if it works on sorted bams)*/
+					/*make sure that no duplicate is missed because read_groups hash reset
+					(won't work if bam is not sorted by position)*/
 					if ((i.key().end_pos)<last_start_pos||(chrom_change))
 					{
 						writer.SaveAlignment(i.value().first);
