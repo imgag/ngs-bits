@@ -47,7 +47,7 @@ public:
 		{
 			try
 			{
-				GPD().annotate(variants);
+				if (!test) GPD().annotate(variants);
 			}
 			catch (DatabaseException& e)
 			{
@@ -59,7 +59,7 @@ public:
 		{
 			try
 			{
-				GPD().annotateSomatic(variants);
+				if (!test) GPD().annotateSomatic(variants);
 			}
 			catch (DatabaseException& e)
 			{
