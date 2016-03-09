@@ -249,6 +249,14 @@ SUBDIRS += NGSDImportHPO
 tools-TEST.depends += NGSDImportHPO
 NGSDImportHPO.depends = cppNGSD
 
+SUBDIRS += BamDeduplicate
+tools-TEST.depends += BamDeduplicate
+NGSDImportHPO.depends = cppNGSD
+
+SUBDIRS += FastqBarcodeToHeader
+tools-TEST.depends += FastqBarcodeToHeader
+NGSDImportHPO.depends = cppNGSD
+
 #other stuff
 OTHER_FILES += ToDos.txt
 
