@@ -7,6 +7,8 @@ The NGSD manages samples, runs, variants and QC data for NGS sequencing.
 This document describes the installation of the NGSD database and the GSvar tool.  
 The installation instructions are based on Ubuntu 14.04 LTS, but should work similarly on other Linux distributions.
 
+These instructions assume that the installation is performed as root. If that is not the case, you have to prepend `sodo ` to all commands that need root privileges. 
+
 ## (0) Installation of dependencies
 
 First we need to make sure that we have all packages required the rest of the installation:
@@ -17,7 +19,7 @@ First we need to make sure that we have all packages required the rest of the in
 
 First, we can check out the analysis pipeline code (contact us for the password):
 
-	> svn co http://saas1305xh.saas-secure.com/svn/php --username nightly --password [password]
+	> svn co http://saas1305xh.saas-secure.com/svn/php --username nightly --password [svn-password]
 
 Next, we need to download and build some open-source tools that our pipeline relies on:
 
@@ -35,12 +37,16 @@ Next, we need to download and convert some open-source databases that our pipeli
 
 **Note:** OMIM, HGMD and COSMIC are not downloaded automatically because of license issues. If you have the license for those databasey, download/convert them accoring to the commented sections in the download script.
 
-Finally, we need to configure the pipeline:
+Finally, we need to configure the pipeline.
 
-	> cp setting.ini.default setting.ini
+	> cp php/settings.ini.default php/settings.ini
 
+Finally you need to choose a password for the MySQL database which we create in the next step. Set the password in the approprite line: 
 
-##(2) Setup of the MySQL database
+	[mysql-databases]
+	db_pass['NGSD'] = "[mysql-password]"
+
+##(2) Setup of the MySQL database for NGSD
 
 The database backend of the NGSD is a MySQL database. To set it up, follow these instructions:
 
@@ -55,7 +61,8 @@ The database backend of the NGSD is a MySQL database. To set it up, follow these
 * Create the NGSD database:
 
 		mysql> create database ngsd;
-		mysql> grant all on ngsd.* to 'ngsduser' identified by '[password]';
+		mysql> grant all on ngsd.* to 'ngsduser' identified by '[mysql-password]';
+		mysql> exit
 
 * In oder to optimize the performance of MySQL for the NGSD, adapt/add the following settings in the `/etc/mysql/my.cnf` file:
 
@@ -72,7 +79,7 @@ The database backend of the NGSD is a MySQL database. To set it up, follow these
 
 		> service mysql restart
 
-##(3) Setup of MySQL tables
+##(3) Setup of MySQL tables for NGSD
 
 The initial setup of the database tables is done using one of the ngs-bits tools:
 
@@ -89,7 +96,7 @@ The initial setup of the database tables is done using one of the ngs-bits tools
 </table>
 * To initialize the NGSD tables, use command:
 
-		> bin/NGSDInit -force [MySQL password]
+		> bin/NGSDInit -force [mysql-password]
 
 ##(4) Setup of the NGSD web frontend
 
@@ -104,7 +111,7 @@ Install like that:
 * Check out the NGSD source code like that (contact us for the password):
 	
 		> cd /var/www/html/
-		> svn co http://saas1305xh.saas-secure.com/svn/DB/http --username nightly --password [password]
+		> svn co http://saas1305xh.saas-secure.com/svn/DB/http --username nightly --password [svn-password]
 		> mv http DB
 
 * Now we need to configure the NGSD:
@@ -143,7 +150,7 @@ Install like that:
 
 * Restart the server:
 
-		> service apache restart
+		> service apache2 restart
 
 * Now, the NGSD database can be accessed at `http://localhost/DB/NGSD/`.
 
@@ -170,6 +177,7 @@ GSvar is a variant filtering and reporting tool for Windows that is tightly inte
 </table>
 
 For more information on GSvar, open the help within GSvar (F1) or use this [link](../GSvar/index.md).
+
 
 
 

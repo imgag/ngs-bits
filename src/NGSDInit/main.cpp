@@ -38,8 +38,8 @@ public:
 		//output
 		QTextStream out(stdout);
 		out << "Database initialization succesfully." << endl;
-		out << "You are now able to login as user 'admin' and password 'admin' via the web frontend." << endl;
-		out << "**Change password on first login!**" << endl;
+		out << "You are now able to login as user 'admin' and password 'admin' via the NGSD web frontend." << endl;
+		out << "**Please change the password on first login!**" << endl;
 	}
 };
 
