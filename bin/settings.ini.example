@@ -13,7 +13,7 @@ reference_genome = ""
 ngsd_host = "localhost"
 ngsd_port = 3306
 ngsd_name = "ngsd"
-ngsd_user = ""
+ngsd_user = "ngsduser"
 ngsd_pass = ""
 
 ngsd_test_host = ""
