@@ -8,8 +8,8 @@ private slots:
 	void test_01()
 	{
 		EXECUTE("FastqBarcodeToHeader", "-in " + TESTDATA("data_in/FastqBarcodeToHeader_in1.fastq.gz") + " -cut 10" + " -out_index out/FastqBarcodeToHeader_out1.fastq.gz" + " -out_main out/FastqBarcodeToHeader_out2.fastq.gz");
-		COMPARE_GZ_FILES("FastqBarcodeToHeader_out1.fastq.gz", TESTDATA("data_out/FastqBarcodeToHeader_out1.fastq.gz"));
-		COMPARE_GZ_FILES("FastqBarcodeToHeader_out2.fastq.gz", TESTDATA("data_out/FastqBarcodeToHeader_out2.fastq.gz"));
+		COMPARE_GZ_FILES("out/FastqBarcodeToHeader_out1.fastq.gz", TESTDATA("data_out/FastqBarcodeToHeader_out1.fastq.gz"));
+		COMPARE_GZ_FILES("out/FastqBarcodeToHeader_out2.fastq.gz", TESTDATA("data_out/FastqBarcodeToHeader_out2.fastq.gz"));
 	}
 
 	void test_02()
