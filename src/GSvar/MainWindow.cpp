@@ -1413,7 +1413,7 @@ QStringList MainWindow::getBamFilesTrio()
 
 bool MainWindow::isTrio()
 {
-	return (variants_.annotationIndexByName("trio", true, false)!=-1);
+	return (variants_.filters().contains("trio_denovo"));
 }
 
 void MainWindow::filtersChanged()

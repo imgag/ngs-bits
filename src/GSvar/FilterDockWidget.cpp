@@ -404,8 +404,12 @@ QList<QByteArray> FilterDockWidget::genes() const
 
 BedLine FilterDockWidget::region() const
 {
-	//accept three elements (format: tab-separated or "[c]:[s]-[e]")
-	QStringList region = ui_.region->text().trimmed().replace(':', '\t').replace('-', '\t').replace(',', "").split('\t');
+	//accept three tab-sparated elements (other formats, see below)
+	QString text = ui_.region->text().trimmed();
+	text = text.replace(',', ""); //remove thousands separator
+	text = text.replace(':', '\t').replace('-', '\t'); //also accept "[c]:[s]-[e]"
+	text = text.replace(QRegExp("[ ]+"), "\t"); //also accept "[c] [s] [e]" (with any number of spaces)
+	QStringList region = text.split('\t');
 
 	if (region.count()<3) return BedLine();
 
