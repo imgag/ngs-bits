@@ -33,7 +33,7 @@ foreach($files as $exe)
 	if (contains($exe, "TEST")) continue;
 
 	//skip GUI tools
-	if (contains($exe, "GSvar") || contains($exe, "GSmix") || contains($exe, "GSpheno") ) continue;
+	if (contains($exe, "GSvar") || contains($exe, "GSmix") ) continue;
 		
 	//print tool name
 	$tool = basename($exe, ".exe");

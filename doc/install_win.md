@@ -5,7 +5,7 @@
 
 First, we need to install some software:
 
-* Download and install [Qt 5.5.0 (32bit, MinGW)](http://www.qt.io/download-open-source/#section-2) to the default location.
+* Download and install [Qt 5.5.0 (32bit, MinGW)](http://download.qt.io/archive/qt/5.5/5.5.0/) to the default location.
 * Download and install [Git](https://git-scm.com/download/win).  
   It is needed to extract the repository version during the build process.  
 * Download and install [CMake](http://www.cmake.org/cmake/resources/software.html).  
@@ -17,7 +17,7 @@ First, we need to install some software:
 The Qt distribution contains an old MySQL driver that does not support binding as it should.  
 Thus, we need to build the driver ourselves:
 
-* Download the [MySQL Community Server 5.7.9 ZIP file (32-bit)](http://dev.mysql.com/downloads/mysql/) and extract it to C:\Qt\Qt5.5.0\mysql-5.7.9-win32\.  
+* Download the [MySQL Community Server 5.7.9 ZIP file (32-bit)](http://downloads.mysql.com/archives/community/) and extract it to C:\Qt\Qt5.5.0\mysql-5.7.9-win32\.  
 * Download the [Qt 5.5.0 sources](http://download.qt.io/archive/qt/5.5/5.5.0/single/) and extract them to C:\Qt\Qt5.5.0\qt-everywhere-opensource-src-5.5.0\.
 * Exececute the *mysql.bat* file from the ngs-bits root folder in a Qt shell.
 * Copy C:\Qt\Qt5.5.0\mysql-5.7.9-win32\lib\libmysql.dll to C:\Windows\
@@ -26,10 +26,29 @@ Thus, we need to build the driver ourselves:
 ##Building ngs-bits
 Now, we can build the third-party libraries, and then ngs-bits:
 
-* Build the BamTools library by executing the script `bamtools.bat`.  
-  [BamTools](http://sourceforge.net/projects/bamtools/) is needed by ngs-bits to access BAM files.
-* Finally, build the ngs-bits tools using the QtCreator project file `src\tools.pro`.  
-  After a successful build, the tools can be found in the `bin\` folder.
-* **Note:** To build GSvar and other GUI tools, you can now use the QtCreator project file `src\tools_gui.pro`.  
+* Build the BamTools library by executing the script `bamtools.bat`. [BamTools](http://sourceforge.net/projects/bamtools/) is needed by ngs-bits to access BAM files.  
+  **Note:** It is ok if that the script aborts after 94% progress. 
+* Then, build the ngs-bits tools using the QtCreator project file `src\tools.pro`.  
+* Then, build GSvar and other GUI tools using the QtCreator project file `src\tools_gui.pro`.  
+* Finally, you have to copy some DLLs to the `bin`folder before you can execute the ngs-bits tools:
 
+	<table>
+		<tr>
+			<td>from path</td>
+			<td>copy DLLs</td>
+		</tr>
+		<tr>
+			<td>ngs-bits\bamtools\lib\</td>
+			<td>libbamtools.dll</td>
+		</tr>
+		<tr>
+			<td>C:\Qt\Qt5.5.0\5.5\mingw492_32\bin\</td>
+			<td>Qt5Core.dll, Qt5XmlPatterns.dll, Qt5Network.dll, Qt5Sql.dll, Qt5Xml.dll, Qt5Gui.dll, Qt5Widgets.dll, libgcc_s_dw2-1.dll, libwinpthread-1.dll, libstdc++-6.dll</td>
+		</tr>
+		<tr>
+			<td>C:\Program Files (x86)\MySQL\MySQL Server 5.5\lib</td>
+			<td>libmysql.dll</td>
+		</tr>
+	</table>
+	
 
