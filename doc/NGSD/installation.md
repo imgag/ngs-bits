@@ -160,23 +160,26 @@ GSvar is a variant filtering and reporting tool for Windows that is tightly inte
 
 * To build the binaries, see the [Windows installation instructions](../install_win.md).  
   Alternatively, contact us for pre-built portable binaries.
-* After building GSvar, you need to configure it. Copy the `bin\settings.ini.example` to `bin\settings.ini` and fill in at least the following items:
-<table>
-	<tr>
-		<td>reference\_genome</td>
-		<td>Path to the indexed reference genome FASTA file, see (1).</td>
-	</tr>
-	<tr>
-		<td>ngsd\_host<br>ngsd\_port<br>ngsd\_name<br>ngsd\_user<br>ngsd\_pass</td>
-		<td>MySQL database credentials, see (2).</td>
-	</tr>
-	<tr>
-		<td>NGSD</td>
-		<td>The URL of the NGSD web frontend</td>
-	</tr>
-</table>
+* After building GSvar, you need to configure it:
+ * Copy the `bin\settings.ini.example` to `bin\settings.ini` and fill in at least the following items:
+	<table>
+		<tr>
+			<td>reference\_genome</td>
+			<td>Path to the indexed reference genome FASTA file, see (1).</td>
+		</tr>
+		<tr>
+			<td>ngsd\_host<br>ngsd\_port<br>ngsd\_name<br>ngsd\_user<br>ngsd\_pass</td>
+			<td>MySQL database credentials, see (2).</td>
+		</tr>
+		<tr>
+			<td>NGSD</td>
+			<td>The URL of the NGSD web frontend</td>
+		</tr>
+	</table>
+ * Copy the `bin\GSvar.ini.example` to `bin\GSvar.ini`.
 
 For more information on GSvar, open the help within GSvar (F1) or use this [link](../GSvar/index.md).
+
 
 
 
