@@ -7,7 +7,7 @@ The NGSD manages samples, runs, variants and QC data for NGS sequencing.
 This document describes the installation of the NGSD database and the GSvar tool.  
 The installation instructions are based on Ubuntu 14.04 LTS, but should work similarly on other Linux distributions.
 
-These instructions assume that the installation is performed as root. If that is not the case, you have to prepend `sodo ` to all commands that need root privileges. 
+These instructions assume that the installation is performed as root. If that is not the case, you have to prepend `sudo ` to all commands that need root privileges. 
 
 ## (0) Installation of dependencies
 
@@ -27,24 +27,24 @@ Next, we need to download and build some open-source tools that our pipeline rel
 	> chmod 755 download_*.sh
 	> ./download_tools.sh
 
-Then, we need to download and index the reference genome:
-	
-	> ./download_hg19.sh
-
-Next, we need to download and convert some open-source databases that our pipeline relies on:
-
-	> ./download_dbs.sh
-
-**Note:** OMIM, HGMD and COSMIC are not downloaded automatically because of license issues. If you have the license for those databasey, download/convert them accoring to the commented sections in the download script.
-
-Finally, we need to configure the pipeline.
+Now, we need to configure the pipeline. First, copy the default settings file:
 
 	> cp php/settings.ini.default php/settings.ini
 
-Finally you need to choose a password for the MySQL database which we create in the next step. Set the password in the approprite line: 
+Then, choose a password for the MySQL database which we will create in the next step and set the password in the appropriate line: 
 
 	[mysql-databases]
 	db_pass['NGSD'] = "[mysql-password]"
+
+Next, we need to download and index the reference genome:
+	
+	> ./download_hg19.sh
+
+Finally, we need to download and convert some open-source databases that our pipeline relies on:
+
+	> ./download_dbs.sh
+
+**Note:** OMIM, HGMD and COSMIC are not downloaded automatically because of license issues. If you have the license for those databases, download/convert them according to the commented sections in the download script.
 
 ##(2) Setup of the MySQL database for NGSD
 
@@ -64,7 +64,7 @@ The database backend of the NGSD is a MySQL database. To set it up, follow these
 		mysql> grant all on ngsd.* to 'ngsduser' identified by '[mysql-password]';
 		mysql> exit
 
-* In oder to optimize the performance of MySQL for the NGSD, adapt/add the following settings in the `/etc/mysql/my.cnf` file:
+* In order to optimize the performance of MySQL for the NGSD, adapt/add the following settings in the `/etc/mysql/my.cnf` file:
 
 		[mysqld]
 		join_buffer_size = 1M
@@ -172,11 +172,12 @@ GSvar is a variant filtering and reporting tool for Windows that is tightly inte
 	</tr>
 	<tr>
 		<td>NGSD</td>
-		<td>The URL of the NGSD webservice</td>
+		<td>The URL of the NGSD web frontend</td>
 	</tr>
 </table>
 
 For more information on GSvar, open the help within GSvar (F1) or use this [link](../GSvar/index.md).
+
 
 
 
