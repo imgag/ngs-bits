@@ -37,7 +37,11 @@ build_tools_release:
 		make;
 	cp bamtools/lib/libbamtools.so* bin/
 
-build_tools_release_noclean:
+build_release_noclean:
+	cd build-libs-Linux-Release; \
+		qmake ../src/libs.pro "CONFIG-=debug" "CONFIG+=release"; \
+		make;
+	cd ..
 	cd build-tools-Linux-Release; \
 		qmake ../src/tools.pro "CONFIG-=debug" "CONFIG+=release"; \
 		make;
@@ -54,6 +58,9 @@ test_lib:
 
 test_tools:
 	cd bin && ./tools-TEST
+
+test_single_tool:
+	cd bin && ./tools-TEST -s $(T)
 
 deploy_nobuild:
 	rm -rf /mnt/share/opt/owntools/* bin/out bin/*-TEST 
