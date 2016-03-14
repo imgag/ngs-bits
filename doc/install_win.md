@@ -19,7 +19,7 @@ Thus, we need to build the driver ourselves:
 
 * Download the [MySQL Community Server 5.7.9 ZIP file (32-bit)](http://downloads.mysql.com/archives/community/) and extract it to C:\Qt\Qt5.5.0\mysql-5.7.9-win32\.  
 * Download the [Qt 5.5.0 sources](http://download.qt.io/archive/qt/5.5/5.5.0/single/) and extract them to C:\Qt\Qt5.5.0\qt-everywhere-opensource-src-5.5.0\.
-* Exececute the *mysql.bat* file from the ngs-bits root folder in a Qt shell.
+* Execute the *mysql.bat* file from the ngs-bits root folder in a Qt shell.
 * Copy C:\Qt\Qt5.5.0\mysql-5.7.9-win32\lib\libmysql.dll to C:\Windows\
 
 
@@ -46,9 +46,10 @@ Now, we can build the third-party libraries, and then ngs-bits:
 			<td>Qt5Core.dll, Qt5XmlPatterns.dll, Qt5Network.dll, Qt5Sql.dll, Qt5Xml.dll, Qt5Gui.dll, Qt5Widgets.dll, libgcc_s_dw2-1.dll, libwinpthread-1.dll, libstdc++-6.dll</td>
 		</tr>
 		<tr>
-			<td>C:\Program Files (x86)\MySQL\MySQL Server 5.5\lib</td>
+			<td>C:\Qt\Qt5.5.0\mysql-5.7.9-win32\lib\</td>
 			<td>libmysql.dll</td>
 		</tr>
 	</table>
 	
+
 

@@ -157,10 +157,10 @@ Install like that:
 ##(5) Setup of GSvar (Windows)
 
 GSvar is a variant filtering and reporting tool for Windows that is tightly integrated with the NGSD.
+You can download the [pre-built binaries](https://medgen.medizin.uni-tuebingen.de/NGS-downloads/GSvar-current.zip), or you can build the GSvar according to the [Windows installation instructions](../install_win.md).  
 
-* To build the binaries, see the [Windows installation instructions](../install_win.md).  
-  Alternatively, contact us for pre-built portable binaries.
-* After building GSvar, you need to configure it:
+After building GSvar, you need to configure it:
+
  * Copy the `bin\settings.ini.example` to `bin\settings.ini` and fill in at least the following items:
 	<table>
 		<tr>
@@ -179,6 +179,15 @@ GSvar is a variant filtering and reporting tool for Windows that is tightly inte
  * Copy the `bin\GSvar.ini.example` to `bin\GSvar.ini`.
 
 For more information on GSvar, open the help within GSvar (F1) or use this [link](../GSvar/index.md).
+
+
+##Next steps
+
+Now you can run your first data analysis based on these [instructions](running_an_analysis.md).
+
+
+
+
 
 
 
