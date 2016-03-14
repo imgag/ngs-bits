@@ -12,6 +12,14 @@ private slots:
 		REMOVE_LINES("out/MappingQC_test01_out.qcML", QRegExp("<binary>"));
 		COMPARE_FILES("out/MappingQC_test01_out.qcML", TESTDATA("data_out/MappingQC_test01_out.qcML"));
 	}
+
+	void roi_amplicon_mapq0()
+	{
+		EXECUTE("MappingQC", "-in " + TESTDATA("../cppNGS-TEST/data_in/panel.bam") + " -roi " + TESTDATA("../cppNGS-TEST/data_in/panel.bed") + " -out out/MappingQC_test06_out.qcML -min_mapq 0");
+		REMOVE_LINES("out/MappingQC_test06_out.qcML", QRegExp("creation "));
+		REMOVE_LINES("out/MappingQC_test06_out.qcML", QRegExp("<binary>"));
+		COMPARE_FILES("out/MappingQC_test06_out.qcML", TESTDATA("data_out/MappingQC_test06_out.qcML"));
+	}
 	
 	void roi_shotgun_3exons_txt()
 	{

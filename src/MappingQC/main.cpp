@@ -25,6 +25,7 @@ public:
 		addInfile("roi", "Input target region BED file (for panel, WES, etc.).", true, true);
 		addFlag("wgs", "WGS mode without target region. Genome information is taken from the BAM file.");
 		addFlag("txt", "Writes TXT format instead of qcML.");
+		addInt("min_mapq", "Minmum mapping quality to consider a read mapped.", true, 1);
 		addFlag("3exons", "Adds special QC terms estimating the sequencing error on reads from three exons.");
 	}
 
@@ -34,6 +35,7 @@ public:
 		QString roi_file = getInfile("roi");
 		bool wgs = getFlag("wgs");
 		QString in = getInfile("in");
+		int min_maqp = getInt("min_mapq");
 
         //check that either ROI or WGS is given
 		if (roi_file=="" && !wgs)
@@ -45,7 +47,7 @@ public:
 		QCCollection metrics;
 		if (wgs)
         {
-			metrics = Statistics::mapping(in);
+			metrics = Statistics::mapping(in, min_maqp);
 
 			//parameters
 			parameters << "-wgs";
@@ -58,7 +60,7 @@ public:
 			roi.merge();
 
 			//calculate metrics
-			metrics = Statistics::mapping(roi, in);
+			metrics = Statistics::mapping(roi, in, min_maqp);
 
 			//parameters
 			parameters << "-roi" << QFileInfo(roi_file).fileName();
