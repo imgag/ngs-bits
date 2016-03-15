@@ -49,11 +49,6 @@ public:
 			min_mip=qMin(min_mip,qAbs(mip_start-mip_end));
 		}
 		input_file.close();
-		QFile out("min_mip.txt");
-		out.open(QIODevice::WriteOnly);
-		QTextStream outStream(&out);
-		outStream << min_mip;
-		out.close();
 		return min_mip;
 	}
 
