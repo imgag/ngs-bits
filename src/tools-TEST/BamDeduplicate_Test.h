@@ -34,7 +34,7 @@ private slots:
 
 	void test_duplicates_regarding_mip_file()
 	{
-		EXECUTE("BamDeduplicate", "-bam " + TESTDATA("data_in/BamDeduplicateByBarcode_in4.bam") + " -index " + TESTDATA("data_in/BamDeduplicateByBarcode_index_in4.fastq.gz") + " -mip_file " + TESTDATA("data_in/FastqBarcodeToHeader_in_mips1.txt") +" -out out/BamDeduplicate_out4.bam -mip_count_out out/BamDeduplicate_out1.tsv");
+		EXECUTE("BamDeduplicate", "-bam " + TESTDATA("data_in/BamDeduplicateByBarcode_in4.bam") + " -index " + TESTDATA("data_in/BamDeduplicateByBarcode_index_in4.fastq.gz") + " -mip_file " + TESTDATA("data_in/FastqExtractBarcode_in_mips1.txt") +" -out out/BamDeduplicate_out4.bam -mip_count_out out/BamDeduplicate_out1.tsv");
 		COMPARE_FILES("out/BamDeduplicate_out1.tsv", TESTDATA("data_out/BamDeduplicate_out1.tsv"));
 	}
 

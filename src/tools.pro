@@ -253,8 +253,8 @@ SUBDIRS += BamDeduplicate
 tools-TEST.depends += BamDeduplicate
 NGSDImportHPO.depends = cppNGSD
 
-SUBDIRS += FastqBarcodeToHeader
-tools-TEST.depends += FastqBarcodeToHeader
+SUBDIRS += FastqExtractBarcode
+tools-TEST.depends += FastqExtractBarcode
 NGSDImportHPO.depends = cppNGSD
 
 #other stuff
