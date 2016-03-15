@@ -19,4 +19,9 @@ private slots:
 		COMPARE_GZ_FILES("out/FastqBarcodeToHeader_out4.fastq.gz", TESTDATA("data_out/FastqBarcodeToHeader_out4.fastq.gz"));
 	}
 
+	void test_03()
+	{
+		EXECUTE("FastqBarcodeToHeader", "-in " + TESTDATA("data_in/FastqBarcodeToHeader_in2.fastq.gz") + " -cut 10 -mip_file " + TESTDATA("data_in/FastqBarcodeToHeader_in_mips1.txt") + " -out_index out/FastqBarcodeToHeader_out3.fastq.gz" + " -out_main out/FastqBarcodeToHeader_out4.fastq.gz");
+		//TODO: Tests with MIP-Files
+	}
 };
