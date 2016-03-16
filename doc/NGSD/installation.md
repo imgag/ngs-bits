@@ -13,7 +13,7 @@ These instructions assume that the installation is performed as root. If that is
 
 First we need to make sure that we have all packages required the rest of the installation:
 
-	> apt-get install subversion git php5 php5-mysql g++ maven libncurses5-dev qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql cmake python python-matplotlib tabix
+	> apt-get install subversion git php5 php5-mysql php5-gd g++ maven libncurses5-dev qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql cmake python python-matplotlib tabix
 
 ##(1) Setup of the analysis pipeline
 
@@ -97,6 +97,10 @@ The initial setup of the database tables is done using one of the ngs-bits tools
 * To initialize the NGSD tables, use command:
 
 		> bin/NGSDInit -force [mysql-password]
+
+* Then, the QC ontology needs to be imported:
+	
+		> php php/src/NGS/db_update_qcml.php
 
 ##(4) Setup of the NGSD web frontend
 
@@ -184,6 +188,8 @@ For more information on GSvar, open the help within GSvar (F1) or use this [link
 ##Next steps
 
 Now you can run your first data analysis based on these [instructions](running_an_analysis.md).
+
+
 
 
 

@@ -37,6 +37,9 @@ Additionally a GSvar file is created (open with the GSvar tool) and several qcML
 
 In order to import variants and QC values of a sample into the NGSD, you have to create a processed sample in the NGSD first:
 
-TODO
+TODO:
+
+ * 'sequencing run' is needed to see QC data of a processed sample.
+ * GSvar: update pre-built binaries because of GPD dependency.
 
 

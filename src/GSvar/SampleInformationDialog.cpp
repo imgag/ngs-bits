@@ -237,8 +237,15 @@ void SampleInformationDialog::refreshReanalysisStatus()
 		QString status = reanalyze_status_;
 		if (status=="")
 		{
-			HttpHandler handler;
-			status = handler.getHttpReply(Settings::string("SampleStatus")+"/status.php?ps_ID=" + ps_name);
+			try
+			{
+				HttpHandler handler;
+				status = handler.getHttpReply(Settings::string("SampleStatus")+"/status.php?ps_ID=" + ps_name);
+			}
+			catch (Exception& e)
+			{
+				Log::warn("Could not connect to SampleStatus web service!");
+			}
 		}
 		if (status=="unknown")
 		{

@@ -17,12 +17,14 @@ ngsd_user = "ngsduser"
 ngsd_pass = ""
 
 ngsd_test_host = ""
+ngsd_test_port = 3306
 ngsd_test_name = ""
 ngsd_test_user = ""
 ngsd_test_pass = ""
 
 #GPD MySQL credentials
 gpd_host = ""
+gpd_port = 3306
 gpd_name = ""
 gpd_user = ""
 gpd_pass = ""
