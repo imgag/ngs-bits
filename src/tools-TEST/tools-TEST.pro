@@ -81,8 +81,8 @@ HEADERS += \
     BedReadCount_Test.h \
     NGSDImportHPO_Test.h \
     BamClipOverlap_Test.h \
-    BamDeduplicate_Test.h \
-    FastqBarcodeToHeader_Test.h
+    BamDeduplicateByBarcode_Test.h \
+    FastqExtractBarcode_Test.h
 
 SOURCES += \
     main.cpp \
