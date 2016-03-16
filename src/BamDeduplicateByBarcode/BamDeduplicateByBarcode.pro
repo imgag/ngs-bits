@@ -8,7 +8,7 @@ QT       += core
 
 QT       -= gui
 
-TARGET = BamDeduplicate
+TARGET = BamDeduplicateByBarcode
 CONFIG   += console
 CONFIG   -= app_bundle
 
