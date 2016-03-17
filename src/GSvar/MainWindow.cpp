@@ -654,6 +654,29 @@ void MainWindow::on_actionExportVCF_triggered()
 	}
 }
 
+void MainWindow::on_actionExportGSvar_triggered()
+{
+	//create new VCF
+	VariantList output;
+	output.copyMetaData(variants_);
+	for(int i=0; i<variants_.count(); ++i)
+	{
+		if (!ui_.vars->isRowHidden(i))
+		{
+			output.append(variants_[i]);
+		}
+	}
+
+	//store to VCF file
+	QString file_name = filename_;
+	file_name.replace(".GSvar", "_export.GSvar");
+	file_name = QFileDialog::getSaveFileName(this, "Export GSvar", file_name, "GSvar (*.gsvar);;All files (*.*)");
+	if (file_name!="")
+	{
+		output.store(file_name, VariantList::TSV);
+	}
+}
+
 void MainWindow::on_actionShowTranscripts_triggered()
 {
 	QString text = "<pre>";

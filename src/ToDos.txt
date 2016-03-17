@@ -7,7 +7,6 @@ GSvar:
 - implement variant details dock widget (like sophia-genetics)
 * Add HPO => Genes => Target region Dialog
 * Add gene managenement dialog for NGSD gene information
-- Classification dialog: allow moving variant comments to classification
 
 Tools:
 - MappingQC:
@@ -18,6 +17,7 @@ Tools:
 - ReadQC: create plots without python?
 
 CnvHunter:
+ * output ref samples header: print ref correlation and ref sample list (without single sample correlation)
  * instead of fixed 'n', use n>=10 and n<=30 with lowest number of CNVs or lowest z-score stdev?
  * calculate Z-score cutoff for each sample instead of fixed Z-score
  - do not use bad regions for sample correlation calculation - remove bad regions after writing regions file...

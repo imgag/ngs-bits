@@ -94,6 +94,8 @@ public slots:
 	void on_actionGapsRecalculate_triggered();
 	///VCF export
 	void on_actionExportVCF_triggered();
+	///GSvar export
+	void on_actionExportGSvar_triggered();
 	///Preferred transcript list
 	void on_actionShowTranscripts_triggered();
 	///Preferred transcript import from Alamut
