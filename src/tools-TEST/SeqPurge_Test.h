@@ -143,30 +143,30 @@ private slots:
 		COMPARE_GZ_FILES("out/SeqPurge_out8.fastq.gz", TESTDATA("data_out/SeqPurge_out8.fastq.gz"));
 	}
 	
-	//MiSeq 151 cycles - test data where the adapter sequences are not obvious for sequence hits - with quality trimming
+	//MiSeq 151 cycles - with quality trimming
 	void test_05()
 	{
-	    EXECUTE("SeqPurge", "-in1 " + TESTDATA("data_in/SeqPurge_in5.fastq.gz") + " -in2 " + TESTDATA("data_in/SeqPurge_in6.fastq.gz") + " -out1 out/SeqPurge_out9.fastq.gz -out2 out/SeqPurge_out10.fastq.gz -qcut 15 -ncut 0");
+		EXECUTE("SeqPurge", "-in1 " + TESTDATA("data_in/SeqPurge_in1.fastq.gz") + " -in2 " + TESTDATA("data_in/SeqPurge_in2.fastq.gz") + " -out1 out/SeqPurge_out9.fastq.gz -out2 out/SeqPurge_out10.fastq.gz -qcut 15 -ncut 0");
 		IS_TRUE(QFile::exists("out/SeqPurge_out9.fastq.gz"));
 		IS_TRUE(QFile::exists("out/SeqPurge_out10.fastq.gz"));
 		COMPARE_GZ_FILES("out/SeqPurge_out9.fastq.gz", TESTDATA("data_out/SeqPurge_out9.fastq.gz"));
 		COMPARE_GZ_FILES("out/SeqPurge_out10.fastq.gz", TESTDATA("data_out/SeqPurge_out10.fastq.gz"));
 	}
 	
-	//MiSeq 151 cycles - test data where the adapter sequences are not obvious for sequence hits - with N trimming
+	//MiSeq 151 cycles - with N trimming
 	void test_06()
 	{
-		EXECUTE("SeqPurge", "-in1 " + TESTDATA("data_in/SeqPurge_in5.fastq.gz") + " -in2 " + TESTDATA("data_in/SeqPurge_in6.fastq.gz") + " -out1 out/SeqPurge_out11.fastq.gz -out2 out/SeqPurge_out12.fastq.gz -ncut 7 -qcut 0");
+		EXECUTE("SeqPurge", "-in1 " + TESTDATA("data_in/SeqPurge_in1.fastq.gz") + " -in2 " + TESTDATA("data_in/SeqPurge_in2.fastq.gz") + " -out1 out/SeqPurge_out11.fastq.gz -out2 out/SeqPurge_out12.fastq.gz -ncut 7 -qcut 0");
 		IS_TRUE(QFile::exists("out/SeqPurge_out11.fastq.gz"));
 		IS_TRUE(QFile::exists("out/SeqPurge_out12.fastq.gz"));
 		COMPARE_GZ_FILES("out/SeqPurge_out11.fastq.gz", TESTDATA("data_out/SeqPurge_out11.fastq.gz"));
 		COMPARE_GZ_FILES("out/SeqPurge_out12.fastq.gz", TESTDATA("data_out/SeqPurge_out12.fastq.gz"));
 	}
 
-	//MiSeq 151 cycles - test data where the adapter sequences are not obvious for sequence hits - with quality trimming and N trimming - with singleton output
+	//MiSeq 151 cycles - with quality trimming and N trimming - with singleton output
 	void test_07()
 	{
-		EXECUTE("SeqPurge", "-in1 " + TESTDATA("data_in/SeqPurge_in5.fastq.gz") + " -in2 " + TESTDATA("data_in/SeqPurge_in6.fastq.gz") + " -out1 out/SeqPurge_out13.fastq.gz -out2 out/SeqPurge_out14.fastq.gz -out3 out/SeqPurge_out15 -qcut 25 -min_len 30");
+		EXECUTE("SeqPurge", "-in1 " + TESTDATA("data_in/SeqPurge_in1.fastq.gz") + " -in2 " + TESTDATA("data_in/SeqPurge_in2.fastq.gz") + " -out1 out/SeqPurge_out13.fastq.gz -out2 out/SeqPurge_out14.fastq.gz -out3 out/SeqPurge_out15 -qcut 25 -min_len 30");
 		IS_TRUE(QFile::exists("out/SeqPurge_out13.fastq.gz"));
 		IS_TRUE(QFile::exists("out/SeqPurge_out14.fastq.gz"));
 		COMPARE_GZ_FILES("out/SeqPurge_out13.fastq.gz", TESTDATA("data_out/SeqPurge_out13.fastq.gz"));
@@ -188,7 +188,7 @@ private slots:
 		COMPARE_GZ_FILES("out/SeqPurge_out17.fastq.gz", TESTDATA("data_out/SeqPurge_out17.fastq.gz"));
 	}
 
-	//GAIIx 76/77cycles (different read length bug)
+	//GAIIx 76/77cycles - different read length bug
 	void test_09()
 	{
 		EXECUTE("SeqPurge", "-in1 " + TESTDATA("data_in/SeqPurge_in11.fastq.gz") + " -in2 " + TESTDATA("data_in/SeqPurge_in12.fastq.gz") + " -out1 out/SeqPurge_out18.fastq.gz -out2 out/SeqPurge_out19.fastq.gz");
