@@ -166,7 +166,7 @@ void AnalysisWorker::run()
 		}
 		//debug_out << offset << matches << mismatches << (100.0*matches/(matches + mismatches)) << endl;
 
-		if ((matches + mismatches)==0 || 100.0*matches/(matches + mismatches) <= params_.match_perc) continue;
+		if ((matches + mismatches)==0 || 100.0*matches/(matches + mismatches) < params_.match_perc) continue;
 		if (params_.debug)
 		{
 			debug_out << "  offset: " << offset << endl;
@@ -232,12 +232,12 @@ void AnalysisWorker::run()
 			double p2 = matchProbability(matches, mismatches);
 			if (p1*p2>params_.mep)
 			{
-				if (params_.debug) debug_out << "  adatper overlap failed! mep1:" << p1 << " mep2:" << p2 << endl;
+				if (params_.debug) debug_out << "  adapter overlap failed! mep1:" << p1 << " mep2:" << p2 << endl;
 				continue;
 			}
 			else
 			{
-				if (params_.debug) debug_out << "  adatper overlap passed! mep1:" << p1 << " mep2:" << p2 << endl;
+				if (params_.debug) debug_out << "  adapter overlap passed! mep1:" << p1 << " mep2:" << p2 << endl;
 			}
 		}
 
@@ -312,8 +312,7 @@ void AnalysisWorker::run()
 					++mismatches;
 				}
 			}
-
-			if (100.0*matches/(matches+mismatches) <= params_.match_perc) continue;
+			if (100.0*matches/(matches+mismatches) < params_.match_perc) continue;
 			double p = matchProbability(matches, mismatches);
 			if (p>params_.mep) continue;
 
@@ -369,7 +368,7 @@ void AnalysisWorker::run()
 				}
 			}
 
-			if (100.0*matches/(matches+mismatches) <= params_.match_perc) continue;
+			if (100.0*matches/(matches+mismatches) < params_.match_perc) continue;
 			double p = matchProbability(matches, mismatches);
 			if (p>params_.mep) continue;
 
