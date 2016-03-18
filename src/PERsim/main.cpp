@@ -79,7 +79,7 @@ public:
 		FastqOutfileStream out2(getOutfile("out2"), false);
 		BedFile roi;
 		roi.load(getInfile("roi"));
-		int count = getInt("count");
+		long count = getInt("count");
 		int length = getInt("length");
 		int ins_mean = getInt("ins_mean");
 		int ins_stdev = getInt("ins_stdev");
@@ -99,7 +99,6 @@ public:
 
 		//normal distribution for insert size
 		unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-		qDebug() << seed;
 		std::mt19937 gen(seed);
 		std::normal_distribution<> insert_dist(ins_mean, ins_stdev);
 
@@ -114,9 +113,9 @@ public:
 			const Chromosome& chr = reg.chr();
 
 			//determine how many reads to generate for this region
-			int r_count = std::round(count * reg.length() / overall_bases);
-			if (verbose) out << "Region: " << chr.str() << ":" << reg.start() << "-" << reg.end() << " length=" << reg.length() << " reads=" << r_count << endl;
-			for (int i=0; i<r_count; ++i)
+			long r_count = std::round((double)count * reg.length() / overall_bases);
+			out << "Region: " << chr.str() << ":" << reg.start() << "-" << reg.end() << " length=" << reg.length() << " reads=" << r_count << endl;
+			for (long i=0; i<r_count; ++i)
 			{
 				//determine insert size
 				int is = std::max((int)insert_dist(gen), 0);
@@ -130,7 +129,7 @@ public:
 
 				//get insert sequence;
 				Sequence seq = reference.seq(chr, start, end-start);
-				out << "  Insert: " << chr.str() << ":" << start << "-" << (end-1) << " length=" << seq.length() << endl;
+				if (verbose) out << "  Insert: " << chr.str() << ":" << start << "-" << (end-1) << " length=" << seq.length() << endl;
 
 				//get read seqence
 				FastqEntry r1;
@@ -155,8 +154,8 @@ public:
 				//add noise
 				int ec1 = addNoise(r1.bases, error, gen);
 				int ec2 = addNoise(r2.bases, error, gen);
-				out << "    Read 1: errors=" << ec1 << " seq=" << r1.bases << endl;
-				out << "    Read 2: errors=" << ec2 << " seq=" << r2.bases << endl;
+				if (verbose) out << "    Read 1: errors=" << ec1 << " seq=" << r1.bases << endl;
+				if (verbose) out << "    Read 2: errors=" << ec2 << " seq=" << r2.bases << endl;
 
 				//set headers and qualities
 				r1.header = "@PERsim:1:ABCDEF:1:" + chr.str() + ":" + QByteArray::number(start) + ":" + QByteArray::number(end-1) + " 1:N:0:AACGTGAT";
