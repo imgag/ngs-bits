@@ -84,7 +84,7 @@ public:
 		int ins_mean = getInt("ins_mean");
 		int ins_stdev = getInt("ins_stdev");
 		QString a1 = getString("a1");
-		QString a2 = getString("a1");
+		QString a2 = getString("a2");
 		bool verbose = getFlag("v");
 		double error = getFloat("error");
 
