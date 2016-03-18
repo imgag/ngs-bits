@@ -251,11 +251,15 @@ NGSDImportHPO.depends = cppNGSD
 
 SUBDIRS += BamDeduplicateByBarcode
 tools-TEST.depends += BamDeduplicateByBarcode
-NGSDImportHPO.depends = cppNGSD
+BamDeduplicateByBarcode.depends = cppNGSD
 
 SUBDIRS += FastqExtractBarcode
 tools-TEST.depends += FastqExtractBarcode
-NGSDImportHPO.depends = cppNGSD
+FastqExtractBarcode.depends = cppNGSD
+
+SUBDIRS += PERsim
+tools-TEST.depends += PERsim
+PERsim.depends = cppNGSD
 
 #other stuff
 OTHER_FILES += ToDos.txt
