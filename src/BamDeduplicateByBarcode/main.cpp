@@ -218,8 +218,8 @@ public:
 
 					grouping act_group;
 					act_group.barcode= read_headers2barcodes["@"+QString::fromStdString(al.Name)];
-					act_group.start_pos= qMin(al.GetEndPosition(),qMin(al.Position,qMin(mate.GetEndPosition(),mate.Position)));
-					act_group.end_pos= qMax(al.GetEndPosition(),qMax(al.Position,qMax(mate.GetEndPosition(),mate.Position)));
+					act_group.start_pos= qMin(al.Position,mate.Position);
+					act_group.end_pos= qMax(al.GetEndPosition(),mate.GetEndPosition());
 					//write pair to group, possibly overwriting previous read pairs of same group;
 
 					readPair act_read_pair(al,mate);
