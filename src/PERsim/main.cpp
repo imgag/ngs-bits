@@ -146,10 +146,10 @@ public:
 					r2.bases.append(a2.left(a_length));
 				}
 
-				//append random sequence (if still too short)
+				//append random sequence with overrepresended 'A' (if still too short)
 				int r_length = length - r1.bases.length();
-				r1.bases.append(Helper::randomString(r_length, "ACGT"));
-				r2.bases.append(Helper::randomString(r_length, "ACGT"));
+				r1.bases.append(Helper::randomString(r_length, "AACGT"));
+				r2.bases.append(Helper::randomString(r_length, "AACGT"));
 
 				//add noise
 				int ec1 = addNoise(r1.bases, error, gen);
