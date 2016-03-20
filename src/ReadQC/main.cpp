@@ -28,22 +28,23 @@ public:
 		//init
 		StatisticsReads stats;
 		FastqEntry entry;
+		QStringList infiles;
 
 		//process forward read file
-		QString forward_file = getInfile("in1");
-		FastqFileStream stream(forward_file);
+		QString in1 = getInfile("in1");
+		FastqFileStream stream(in1);
 		while(!stream.atEnd())
 		{
 			stream.readEntry(entry);
 			stats.update(entry, StatisticsReads::FORWARD);
 		}
+		infiles << in1;
 
 		//process reverse read file
 		QString in2 = getInfile("in2");
 		if (in2!="")
 		{
-			QString reverse_file = getInfile("in2");
-			FastqFileStream stream2(reverse_file);
+			FastqFileStream stream2(in2);
 			while(!stream2.atEnd())
 			{
 				 stream2.readEntry(entry);
@@ -53,8 +54,10 @@ public:
 			//check read counts matches
 			if (stream.index()!=stream2.index())
 			{
-				THROW(ArgumentException, "Differing number of reads in file '" + forward_file + "' and '" + reverse_file + "'!");
+				THROW(ArgumentException, "Differing number of reads in file '" + in1 + "' and '" + in2 + "'!");
 			}
+
+			infiles << in2;
 		}
 
 		//store output
@@ -67,7 +70,7 @@ public:
 		}
 		else
 		{
-			metrics.storeToQCML(getOutfile("out"), QStringList() << getInfile("in1") << getInfile("in2"), "");
+			metrics.storeToQCML(getOutfile("out"), infiles, "");
 		}
 	}
 };

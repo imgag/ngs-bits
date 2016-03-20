@@ -9,7 +9,7 @@ GSvar:
 * Add gene managenement dialog for NGSD gene information
 
 Tools:
-- ReadQC: Q-score plot is wrong when different read lengths are combined
+- ToolBase: add description line to tools.
 - MappingQC:
   - add %soft/hard-clipped quality parameter (see ssPWBRCA_v2)
   * support RNA: insert size, spike-in controls, etc.

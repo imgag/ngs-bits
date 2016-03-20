@@ -80,11 +80,11 @@ QCCollection StatisticsReads::getResult()
 	}
 
 	output.insert(QCValue("read count", total_reads, "Total number of reads (forward and reverse reads of paired-end sequencing count as two reads).", "QC:2000005"));
-	QString lengths = "";
-	foreach(int length, read_lengths_)
+	auto minmax = std::minmax_element(read_lengths_.begin(), read_lengths_.end());
+	QString lengths = QString::number(*minmax.first);
+	if (*minmax.second!=*minmax.first)
 	{
-		if (lengths!="") lengths += ", ";
-		lengths += QString::number(length);
+		lengths += "-" + QString::number(*minmax.second);
 	}
 	output.insert(QCValue("read length", lengths, "Raw read length of a single read before trimming. Comma-separated list of lenghs if several.", "QC:2000006"));
 	output.insert(QCValue("Q20 read percentage", 100.0*c_read_q20_/total_reads, "The percentage of reads with a mean base quality score greater than Q20.", "QC:2000007"));
@@ -125,8 +125,12 @@ QCCollection StatisticsReads::getResult()
 	QFile::remove(plotname);
 
 	//create output quality distribution plot
-	for(int j=0; j<qualities1_.count(); ++j) qualities1_[j] /= c_forward_;
-	for(int j=0; j<qualities2_.count(); ++j) qualities2_[j] /= c_reverse_;
+	for(int j=0; j<qualities1_.count(); ++j)
+	{
+		int depth = pileups_[j].depth(false, true) / 2;
+		qualities1_[j] /= depth;
+		qualities2_[j] /= depth;
+	}
 	LinePlot plot2;
 	plot2.setXLabel("cycle");
 	plot2.setYLabel("mean Q score");
