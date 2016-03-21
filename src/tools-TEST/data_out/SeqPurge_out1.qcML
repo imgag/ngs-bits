@@ -7,7 +7,7 @@
 <qcML version="0.0.8" xmlns="http://www.prime-xs.eu/ms/qcml" >
   <runQuality ID="rq0001">
     <qualityParameter ID="qp0001" name="read count" description="Total number of reads (forward and reverse reads of paired-end sequencing count as two reads)." value="5000" cvRef="QC" accession="QC:2000005"/>
-    <qualityParameter ID="qp0002" name="read length" description="Raw read length of a single read before trimming. Comma-separated list of lenghs if several." value="151" cvRef="QC" accession="QC:2000006"/>
+    <qualityParameter ID="qp0002" name="read length" description="Raw read length of a single read before trimming. Comma-separated list of lenghs or length range, if reads have different lengths." value="151" cvRef="QC" accession="QC:2000006"/>
     <qualityParameter ID="qp0003" name="Q20 read percentage" description="The percentage of reads with a mean base quality score greater than Q20." value="97.20" cvRef="QC" accession="QC:2000007"/>
     <qualityParameter ID="qp0004" name="Q30 base percentage" description="The percentage of bases with a minimum quality score of Q30." value="90.70" cvRef="QC" accession="QC:2000008"/>
     <qualityParameter ID="qp0005" name="no base call percentage" description="The percentage of bases without base call (N)." value="0.03" cvRef="QC" accession="QC:2000009"/>
