@@ -181,8 +181,8 @@ public:
 
 /*
 TODO:
-- more realistic error model (high at beginning of read/index, higher for later cycles)
-- error model for insertions/deletions/N
+- more realistic error model (high at beginning of read/index, higher for later cycles, higher for read 2)
+- model to add insertions/deletions/N
 - implement test!
 */
 
