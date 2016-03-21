@@ -80,13 +80,22 @@ QCCollection StatisticsReads::getResult()
 	}
 
 	output.insert(QCValue("read count", total_reads, "Total number of reads (forward and reverse reads of paired-end sequencing count as two reads).", "QC:2000005"));
-	auto minmax = std::minmax_element(read_lengths_.begin(), read_lengths_.end());
-	QString lengths = QString::number(*minmax.first);
-	if (*minmax.second!=*minmax.first)
+	QString lengths = "";
+	QList<int> tmp = read_lengths_.toList(); //why? QSet is hash-based!
+	std::sort(tmp.begin(), tmp.end()); 
+	if (tmp.size()<4)
 	{
-		lengths += "-" + QString::number(*minmax.second);
+		lengths = QString::number(tmp[0]);
+		for (int i=1; i<tmp.size(); ++i)
+		{
+			lengths += ", " + QString::number(tmp[i]);
+		}
 	}
-	output.insert(QCValue("read length", lengths, "Raw read length of a single read before trimming. Comma-separated list of lenghs if several.", "QC:2000006"));
+	else
+	{
+		lengths = QString::number(tmp[0]) + "-" + QString::number(tmp[tmp.size()-1]);
+	}
+	output.insert(QCValue("read length", lengths, "Raw read length of a single read before trimming. Comma-separated list of lenghs or length range, if reads have different lengths.", "QC:2000006"));
 	output.insert(QCValue("Q20 read percentage", 100.0*c_read_q20_/total_reads, "The percentage of reads with a mean base quality score greater than Q20.", "QC:2000007"));
 	output.insert(QCValue("Q30 base percentage", 100.0*c_base_q30_/bases_total, "The percentage of bases with a minimum quality score of Q30.", "QC:2000008"));
 	output.insert(QCValue("no base call percentage", 100.0*c_base_n/bases_total, "The percentage of bases without base call (N).", "QC:2000009"));

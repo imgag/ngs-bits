@@ -31,6 +31,7 @@ private slots:
 	{
 		EXECUTE("ReadQC", "-in1 " + TESTDATA("data_in/ReadQC_in3.fastq.gz") + " -in2 " + TESTDATA("data_in/ReadQC_in4.fastq.gz") + " -out out/ReadQC_out4.qcML");
 		REMOVE_LINES("out/ReadQC_out4.qcML", QRegExp("creation "));
+		REMOVE_LINES("out/ReadQC_out4.qcML", QRegExp("<binary>"));
 		COMPARE_FILES("out/ReadQC_out4.qcML", TESTDATA("data_out/ReadQC_out4.qcML"));
 	}
 };
