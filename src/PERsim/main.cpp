@@ -34,6 +34,7 @@ public:
 		addInt("ins_mean", "Library insert size mean value.", true, 200);
 		addInt("ins_stdev", "Library insert size mean standard deviation.", true, 70);
 		addFloat("error", "Base error probability (uniform distribution).", true, 0.01);
+		addInt("max_n", "Maximum number of N bases (from reference genome).", true, 5);
 		addString("a1", "Forward read sequencing adapter sequence (for read-through).", true, "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACGAGTTA");
 		addString("a2", "Reverse read sequencing adapter sequence (for read-through).", true, "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTC");
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
@@ -87,6 +88,7 @@ public:
 		QString a2 = getString("a2");
 		bool verbose = getFlag("v");
 		double error = getFloat("error");
+		int max_n = getInt("max_n");
 
 		//set qualities
 		QByteArray qualities = "AAAAAFFFFFFFGGGGGGFFFFFFFFFFEEEEEEEEEEEEEEEEEEEEEDDDDDDDDDDDDDDDDDDDDDDDDCCCCCCCCCCCCCCCCCCBBBBBBBBBBBBBBBBBBBBBBBBBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
@@ -114,7 +116,8 @@ public:
 
 			//determine how many reads to generate for this region
 			long r_count = std::round((double)count * reg.length() / overall_bases);
-			out << "Region: " << chr.str() << ":" << reg.start() << "-" << reg.end() << " length=" << reg.length() << " reads=" << r_count << endl;
+			out << "Region: " << chr.str() << ":" << reg.start() << "-" << reg.end() << " length=" << reg.length() << " read_pairs=" << r_count << endl;
+			int skipped_n = 0;
 			for (long i=0; i<r_count; ++i)
 			{
 				//determine insert size
@@ -137,6 +140,13 @@ public:
 				r1.bases = seq.left(length);
 				r2.bases = seq.right(length);
 				r2.bases = NGSHelper::changeSeq(r2.bases, true, true);
+
+				//skip read pairs with too many N bases
+				if (r1.bases.count('N')>max_n || r2.bases.count('N')>max_n)
+				{
+					++skipped_n;
+					continue;
+				}
 
 				//append sequencing adapers (if too short)
 				int a_length = length - r1.bases.length();
@@ -175,6 +185,8 @@ public:
 				out1.write(r1);
 				out2.write(r2);
 			}
+
+			if (skipped_n>0) out << "  Skipped read pairs (too many Ns): " << skipped_n << endl;
 		}
 	}
 };
@@ -182,7 +194,8 @@ public:
 /*
 TODO:
 - more realistic error model (high at beginning of read/index, higher for later cycles, higher for read 2)
-- model to add insertions/deletions/N
+- model to add variants (SNVs, indels)
+- model to add N bases
 - implement test!
 */
 
