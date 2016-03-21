@@ -12,7 +12,6 @@
 
 using namespace BamTools;
 using readPair = QPair < BamAlignment, BamAlignment>;
-using mipCounter = QPair < QString, int>;
 
 class grouping
 {
@@ -53,6 +52,14 @@ class position
 		}
 };
 
+struct mip_info
+{
+	int counter;
+	QString name;
+	position ligation_arm;
+	position extension_arm;
+};
+
 inline uint qHash(const position &pos1)
 {
 	return qHash(QString::number(pos1.start_pos) + QString::number(pos1.end_pos) + pos1.chr);
@@ -81,9 +88,9 @@ private:
 	}
 
 
-	QMap <position,mipCounter> createMipCounterMap(QString mip_file)
+	QMap <position,mip_info> createMipInfoMap(QString mip_file)
 	{
-		QMap <position,mipCounter> mipCounterMap;
+		QMap <position,mip_info> mip_info_map;
 		QFile input_file(mip_file);
 		input_file.open(QIODevice::ReadOnly);
 		QTextStream in(&input_file);
@@ -93,32 +100,40 @@ private:
 			QString line = in.readLine();
 			if (line.startsWith(">")) continue;
 			QStringList splitted_mip_entry=line.split(delimiters);
-			if (splitted_mip_entry.size()<3) continue;
+			if (splitted_mip_entry.size()<13) continue;
 
 			position mip_position;
+			mip_info new_mip_info;
 
 			mip_position.chr = splitted_mip_entry[0].toInt();
-			mip_position.start_pos =splitted_mip_entry[1].toInt()-1;//for unknown reasons, mip-file start coordinate is 1-base off
+			mip_position.start_pos =splitted_mip_entry[1].toInt()-1;
 			mip_position.end_pos=splitted_mip_entry[2].toInt();
 
+			new_mip_info.extension_arm.chr = splitted_mip_entry[0].toInt();
+			new_mip_info.extension_arm.start_pos = splitted_mip_entry[7].toInt();
+			new_mip_info.extension_arm.end_pos= splitted_mip_entry[8].toInt();
 
-			mipCounter mip_counter;
-			mip_counter.first=splitted_mip_entry.back();
-			mip_counter.second=0;
 
-			mipCounterMap[mip_position]=mip_counter;
+			new_mip_info.extension_arm.chr = splitted_mip_entry[0].toInt();
+			new_mip_info.extension_arm.start_pos = splitted_mip_entry[11].toInt();
+			new_mip_info.extension_arm.end_pos= splitted_mip_entry[12].toInt();
+
+			new_mip_info.name=splitted_mip_entry.back();
+			new_mip_info.counter=0;
+
+			mip_info_map[mip_position]=new_mip_info;
 		}
 		input_file.close();
 		QFile out("min_mip.txt");
 		out.open(QIODevice::WriteOnly);
 		QTextStream outStream(&out);
 		out.close();
-		return mipCounterMap;
+		return mip_info_map;
 	}
 
-	void writeMipCounterMap(QMap <position,mipCounter> mipCounterMap, QString outfile_name)
+	void writeMipInfoMap(QMap <position,mip_info> mip_info_map, QString outfile_name)
 	{
-		QMapIterator<position, mipCounter > i(mipCounterMap);
+		QMapIterator<position, mip_info > i(mip_info_map);
 		i.toBack();
 		QFile out(outfile_name);
 		out.open(QIODevice::WriteOnly);
@@ -127,7 +142,7 @@ private:
 		while (i.hasPrevious())
 		{
 			i.previous();
-			outStream << i.key().chr <<"\t" << i.key().start_pos<< "\t" << i.key().end_pos <<"\t" << i.value().first <<"\t" << i.value().second <<endl;
+			outStream << i.key().chr <<"\t" << i.key().start_pos<< "\t" << i.key().end_pos <<"\t" << i.value().name <<"\t" << i.value().counter <<endl;
 		}
 		out.close();
 	}
@@ -170,7 +185,7 @@ public:
 		bool chrom_change=false;
 
 
-		QMap <position,mipCounter> mipCounterMap= createMipCounterMap(mip_file);
+		QMap <position,mip_info> mip_info_map= createMipInfoMap(mip_file);
 
 		while (reader.GetNextAlignment(al))
 		{
@@ -190,9 +205,9 @@ public:
 							act_position.chr=last_ref;
 							act_position.start_pos=i.key().start_pos;
 							act_position.end_pos=i.key().end_pos;
-							if (mipCounterMap.contains(act_position))
+							if (mip_info_map.contains(act_position))
 							{
-								mipCounterMap[act_position].second++;
+								mip_info_map[act_position].counter++;
 							}
 						}
 
@@ -251,9 +266,9 @@ public:
 				act_position.chr=last_ref;
 				act_position.start_pos=i.key().start_pos;
 				act_position.end_pos=i.key().end_pos;
-				if (mipCounterMap.contains(act_position))
+				if (mip_info_map.contains(act_position))
 				{
-					mipCounterMap[act_position].second++;
+					mip_info_map[act_position].counter++;
 				}
 			}
 			writer.SaveAlignment(i.value().first);
@@ -264,7 +279,7 @@ public:
 		//done
 		reader.Close();
 		writer.Close();
-		if ((mip_file!="")&&(mip_count_out!="")) writeMipCounterMap(mipCounterMap,mip_count_out);
+		if ((mip_file!="")&&(mip_count_out!="")) writeMipInfoMap(mip_info_map,mip_count_out);
 	}
 
 };
