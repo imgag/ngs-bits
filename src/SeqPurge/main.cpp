@@ -30,7 +30,7 @@ public:
 		addString("a1", "Forward adapter sequence (at least 15 bases).", true, "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACGAGTTA");
 		addString("a2", "Reverse adapter sequence (at least 15 bases).", true, "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTC");
 		addFloat("match_perc", "Minimum percentage of matching bases for sequence/adapter matches.", true, 80.0);
-		addFloat("mep", "Maximum error probability of sequence matches.", true, 0.00001);
+		addFloat("mep", "Maximum error probability of insert and adapter matches.", true, 0.000001);
 		addInt("qcut", "Quality trimming cutoff for trimming from the end of reads using a sliding mindow approach. Set to 0 to disable.", true, 15);
 		addInt("qwin", "Quality trimming window size.", true, 5);
 		addInt("qoff", "Quality trimming FASTQ score offset.", true, 33);

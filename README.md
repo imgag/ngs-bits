@@ -66,6 +66,7 @@ _ngs-bits_ contains a lot of tools that we use for NGS short-read data analysis 
 * [VariantQC](doc/tools/VariantQC.md) - Quality control tool for a VCF file (output is [qcML](https://code.google.com/p/qcml/)).
 * [SampleCorrelation](doc/tools/SampleCorrelation.md) - Calculates the variant overlap and correlation of two VCF/BAM files.
 * [SampleGender](doc/tools/SampleGender.md) - Determines sample gender based on a BAM file.
+* [PERsim](doc/tools/PERsim.md) - Paired-end read simulator for Illumina reads.
 
 ### BAM tools
 
@@ -107,6 +108,7 @@ _ngs-bits_ contains a lot of tools that we use for NGS short-read data analysis 
 * [VcfLeftAlign](doc/tools/VcfLeftAlign.md) - Left-aligns indel variants in repeat regions.
 * [VcfSort](doc/tools/VcfSort.md) - Sorts variant lists according to chromosomal position.
   
+
 
 
 

@@ -1,5 +1,5 @@
 ### SeqPurge tool help
-	SeqPurge (0.1-190-g94e4c3d)
+	SeqPurge (0.1-256-g371df50)
 	
 	Removes adapter sequences from paired-end sequencing data.
 	
@@ -16,8 +16,8 @@
 	                      Default value: 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTC'
 	  -match_perc <float> Minimum percentage of matching bases for sequence/adapter matches.
 	                      Default value: '80'
-	  -mep <float>        Maximum error probability of sequence matches.
-	                      Default value: '1.0000000000000001e-05'
+	  -mep <float>        Maximum error probability of insert and adapter matches.
+	                      Default value: '9.9999999999999995e-07'
 	  -qcut <int>         Quality trimming cutoff for trimming from the end of reads using a sliding mindow approach. Set to 0 to disable.
 	                      Default value: '15'
 	  -qwin <int>         Quality trimming window size.
