@@ -46,7 +46,7 @@ In order to import variants and QC values of a sample into the NGSD, you have to
   * The 'recipe' is the read length(s), e.g. '100+8+100'
   * Use the 'device' you created above.
  * Create a `sample`:
-  * Name it 'NA12787'.
+  * Name it 'NA12878'.
   * Use the 'sender' you created above.
   * Select 'DNA' as sample type.
   * Select 'human' as species.
@@ -59,6 +59,7 @@ In order to import variants and QC values of a sample into the NGSD, you have to
 Now, you can import the variant and QC data of the sample `NA12878_01`into the NGSD using the following command:
 
 	php php/src/Pipelines/analyze.php -folder Sample_NA12878_01 -name NA12878_01 -system hpHBOCv5 -steps db
+
 
 
 
