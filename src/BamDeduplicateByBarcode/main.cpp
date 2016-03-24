@@ -7,7 +7,6 @@
 #include <QTime>
 #include <QString>
 #include "FastqFileStream.h"
-#include <QDebug>
 #include <QDataStream>
 
 using namespace BamTools;
@@ -56,8 +55,8 @@ struct mip_info
 {
 	int counter;
 	QString name;
-	position ligation_arm;
-	position extension_arm;
+	position left_arm;
+	position right_arm;
 };
 
 inline uint qHash(const position &pos1)
@@ -94,40 +93,43 @@ private:
 		QFile input_file(mip_file);
 		input_file.open(QIODevice::ReadOnly);
 		QTextStream in(&input_file);
-		QRegExp delimiters("(\\-|\\:|\\/|\\\t)");
+		QRegExp delimiters_mip_key("(\\-|\\:|\\/)");
 		while (!in.atEnd())
 		{
 			QString line = in.readLine();
 			if (line.startsWith(">")) continue;
-			QStringList splitted_mip_entry=line.split(delimiters);
+			QStringList splitted_mip_entry=line.split("\t");
 			if (splitted_mip_entry.size()<13) continue;
 
 			position mip_position;
 			mip_info new_mip_info;
 
-			mip_position.chr = splitted_mip_entry[0].toInt();
-			mip_position.start_pos =splitted_mip_entry[1].toInt()-1;
-			mip_position.end_pos=splitted_mip_entry[2].toInt();
+			QStringList splitted_mip_key=splitted_mip_entry[0].split(delimiters_mip_key);
+			mip_position.chr = splitted_mip_key[0].toInt();
+			mip_position.start_pos =splitted_mip_key[1].toInt()-1;
+			mip_position.end_pos=splitted_mip_key[2].toInt();
 
-			new_mip_info.extension_arm.chr = splitted_mip_entry[0].toInt();
-			new_mip_info.extension_arm.start_pos = splitted_mip_entry[7].toInt();
-			new_mip_info.extension_arm.end_pos= splitted_mip_entry[8].toInt();
+			new_mip_info.left_arm.chr = splitted_mip_entry[0].toInt();
+			new_mip_info.left_arm.start_pos = splitted_mip_entry[3].toInt();
+			new_mip_info.left_arm.end_pos= splitted_mip_entry[4].toInt();
 
 
-			new_mip_info.extension_arm.chr = splitted_mip_entry[0].toInt();
-			new_mip_info.extension_arm.start_pos = splitted_mip_entry[11].toInt();
-			new_mip_info.extension_arm.end_pos= splitted_mip_entry[12].toInt();
+			new_mip_info.right_arm.chr = splitted_mip_entry[0].toInt();
+			new_mip_info.right_arm.start_pos = splitted_mip_entry[7].toInt();
+			new_mip_info.right_arm.end_pos= splitted_mip_entry[8].toInt();
 
+			//make sure that left arm is really on the left side
+			if (new_mip_info.right_arm.start_pos<new_mip_info.left_arm.start_pos)
+			{
+				std::swap(new_mip_info.left_arm,new_mip_info.right_arm);
+			}
+			new_mip_info.left_arm.start_pos=new_mip_info.left_arm.start_pos-1;
 			new_mip_info.name=splitted_mip_entry.back();
 			new_mip_info.counter=0;
 
 			mip_info_map[mip_position]=new_mip_info;
 		}
 		input_file.close();
-		QFile out("min_mip.txt");
-		out.open(QIODevice::WriteOnly);
-		QTextStream outStream(&out);
-		out.close();
 		return mip_info_map;
 	}
 
@@ -145,6 +147,47 @@ private:
 			outStream << i.key().chr <<"\t" << i.key().start_pos<< "\t" << i.key().end_pos <<"\t" << i.value().name <<"\t" << i.value().counter <<endl;
 		}
 		out.close();
+	}
+
+	std::vector <CigarOp> correctCigarString(std::vector <CigarOp> original_cigar_ops, bool cut_front, int cut_bases )
+	{
+		return original_cigar_ops;
+	}
+
+	BamAlignment cutArms(BamAlignment original_alignment, position left_arm, position right_arm)
+	{
+		QFile out("min_mip.txt");
+		out.open(QIODevice::Append);
+		QTextStream outStream(&out);
+
+		//cut on right side
+		if (original_alignment.GetEndPosition()>right_arm.start_pos)
+		{
+			int elems_to_cut=(original_alignment.GetEndPosition())-right_arm.start_pos;
+			outStream<<QString::fromStdString(original_alignment.Name)<<"\t"<<NGSHelper::Cigar2QString(original_alignment.CigarData)<<"\t"<<endl;
+			outStream.flush();
+			//cut bases and qualties
+			original_alignment.QueryBases=original_alignment.QueryBases.substr(0,(original_alignment.QueryBases.size()-elems_to_cut));
+			original_alignment.Qualities=original_alignment.Qualities.substr(0,(original_alignment.Qualities.size()-elems_to_cut));
+			//check that CIGAR consists only matches there
+				//correct CIGAR
+		}
+
+		//cut on left side
+		if (original_alignment.Position<left_arm.end_pos)
+		{
+			int elems_to_cut=left_arm.end_pos-original_alignment.Position;
+			outStream.flush();
+			//cut bases and qualties
+			original_alignment.QueryBases=original_alignment.QueryBases.substr(elems_to_cut);
+			original_alignment.Qualities=original_alignment.Qualities.substr(elems_to_cut);
+			//correct start
+			original_alignment.Position=original_alignment.Position+elems_to_cut;
+			//check that CIGAR consists only matches there
+			//correct CIGAR
+		}
+		out.close();
+		return original_alignment;
 	}
 
 public:
@@ -205,14 +248,20 @@ public:
 							act_position.chr=last_ref;
 							act_position.start_pos=i.key().start_pos;
 							act_position.end_pos=i.key().end_pos;
-							if (mip_info_map.contains(act_position))
+							if (mip_info_map.contains(act_position))//trim and count reads that can be matched to mips
 							{
 								mip_info_map[act_position].counter++;
+								i.value().first=cutArms(i.value().first,mip_info_map[act_position].left_arm,mip_info_map[act_position].right_arm);
+								i.value().second=cutArms(i.value().second,mip_info_map[act_position].left_arm,mip_info_map[act_position].right_arm);
+								writer.SaveAlignment(i.value().first);
+								writer.SaveAlignment(i.value().second);
 							}
 						}
-
-						writer.SaveAlignment(i.value().first);
-						writer.SaveAlignment(i.value().second);
+						else
+						{
+							writer.SaveAlignment(i.value().first);
+							writer.SaveAlignment(i.value().second);
+						}
 					}
 					else
 					{
