@@ -149,45 +149,95 @@ private:
 		out.close();
 	}
 
-	std::vector <CigarOp> correctCigarString(std::vector <CigarOp> original_cigar_ops, bool cut_front, int cut_bases )
+	std::vector <CigarOp> correctCigarString(std::vector <CigarOp> original_cigar_ops, bool cut_front, int cutted_bases)
 	{
-		return original_cigar_ops;
+		if (cut_front)
+		{
+			for(unsigned int i=0; i<original_cigar_ops.size(); ++i)
+			{
+				CigarOp co = original_cigar_ops[i];
+				if ((co.Type=='M')||(co.Type=='=')||(co.Type=='X')||(co.Type=='I')||(co.Type=='S'))
+				{
+					int original_operation_length=co.Length;
+					co.Length=(unsigned int)qMax(0,(int)co.Length-cutted_bases);
+					cutted_bases=cutted_bases-original_operation_length;
+					original_cigar_ops[i]=co;
+					if (cutted_bases<=0)
+					{
+						break;
+					}
+				}
+			}
+		}
+		else
+		{
+			for(unsigned int i=original_cigar_ops.size()-1; i>=0; --i)
+			{
+				CigarOp co = original_cigar_ops[i];
+				if ((co.Type=='M')||(co.Type=='=')||(co.Type=='X')||(co.Type=='I')||(co.Type=='S'))
+				{
+					int original_operation_length=co.Length;
+					co.Length=(unsigned int)qMax(0,(int)co.Length-cutted_bases);
+					cutted_bases=cutted_bases-original_operation_length;
+					original_cigar_ops[i]=co;
+					if (cutted_bases<=0)
+					{
+						break;
+					}
+				}
+			}
+		}
+
+		//remove CIGAR Operations of Length 0
+		std::vector <CigarOp> cigar_ops_out=original_cigar_ops;
+		int deleted_elem_count=0;
+		for(unsigned int i=0; i<original_cigar_ops.size(); ++i)
+		{
+			CigarOp co = original_cigar_ops[i];
+			if (co.Length==0)
+			{
+				cigar_ops_out.erase(cigar_ops_out.begin()+i-deleted_elem_count);
+				++deleted_elem_count;
+			}
+		}
+		return cigar_ops_out;//TODO: Raise error?
 	}
 
-	BamAlignment cutArms(BamAlignment original_alignment, position left_arm, position right_arm)
+	BamAlignment cutArmsSingle(BamAlignment original_alignment, position left_arm, position right_arm)
 	{
-		QFile out("min_mip.txt");
-		out.open(QIODevice::Append);
-		QTextStream outStream(&out);
-
 		//cut on right side
 		if (original_alignment.GetEndPosition()>right_arm.start_pos)
 		{
 			int elems_to_cut=(original_alignment.GetEndPosition())-right_arm.start_pos;
-			outStream<<QString::fromStdString(original_alignment.Name)<<"\t"<<NGSHelper::Cigar2QString(original_alignment.CigarData)<<"\t"<<endl;
-			outStream.flush();
 			//cut bases and qualties
 			original_alignment.QueryBases=original_alignment.QueryBases.substr(0,(original_alignment.QueryBases.size()-elems_to_cut));
 			original_alignment.Qualities=original_alignment.Qualities.substr(0,(original_alignment.Qualities.size()-elems_to_cut));
-			//check that CIGAR consists only matches there
-				//correct CIGAR
+			//correct CIGAR
+			original_alignment.CigarData=correctCigarString(original_alignment.CigarData,false,elems_to_cut);
 		}
 
 		//cut on left side
 		if (original_alignment.Position<left_arm.end_pos)
 		{
 			int elems_to_cut=left_arm.end_pos-original_alignment.Position;
-			outStream.flush();
 			//cut bases and qualties
 			original_alignment.QueryBases=original_alignment.QueryBases.substr(elems_to_cut);
 			original_alignment.Qualities=original_alignment.Qualities.substr(elems_to_cut);
 			//correct start
 			original_alignment.Position=original_alignment.Position+elems_to_cut;
-			//check that CIGAR consists only matches there
 			//correct CIGAR
+			original_alignment.CigarData=correctCigarString(original_alignment.CigarData,true,elems_to_cut);
 		}
-		out.close();
 		return original_alignment;
+	}
+
+	readPair cutArmsPair(readPair original_alignments, position left_arm, position right_arm)
+	{
+		original_alignments.first=cutArmsSingle(original_alignments.first,left_arm,right_arm);
+		original_alignments.second=cutArmsSingle(original_alignments.second,left_arm,right_arm);
+		original_alignments.first.MatePosition=original_alignments.second.Position;;
+		original_alignments.second.MatePosition=original_alignments.first.Position;
+		return original_alignments;
 	}
 
 public:
@@ -227,7 +277,6 @@ public:
 		int new_ref=-1;
 		bool chrom_change=false;
 
-
 		QMap <position,mip_info> mip_info_map= createMipInfoMap(mip_file);
 
 		while (reader.GetNextAlignment(al))
@@ -251,8 +300,7 @@ public:
 							if (mip_info_map.contains(act_position))//trim and count reads that can be matched to mips
 							{
 								mip_info_map[act_position].counter++;
-								i.value().first=cutArms(i.value().first,mip_info_map[act_position].left_arm,mip_info_map[act_position].right_arm);
-								i.value().second=cutArms(i.value().second,mip_info_map[act_position].left_arm,mip_info_map[act_position].right_arm);
+								i.value()=cutArmsPair(i.value(),mip_info_map[act_position].left_arm,mip_info_map[act_position].right_arm);
 								writer.SaveAlignment(i.value().first);
 								writer.SaveAlignment(i.value().second);
 							}
@@ -318,10 +366,15 @@ public:
 				if (mip_info_map.contains(act_position))
 				{
 					mip_info_map[act_position].counter++;
+					writer.SaveAlignment(i.value().first);
+					writer.SaveAlignment(i.value().second);
 				}
 			}
-			writer.SaveAlignment(i.value().first);
-			writer.SaveAlignment(i.value().second);
+			else
+			{
+				writer.SaveAlignment(i.value().first);
+				writer.SaveAlignment(i.value().second);
+			}
 		}
 
 

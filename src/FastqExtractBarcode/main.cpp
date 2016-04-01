@@ -70,7 +70,6 @@ public:
 
 		while (!input_stream.atEnd())//foreach input read
 		{
-			//TODO: load second read, cut both to minimal mip if suited
 			FastqEntry read1;
 			input_stream.readEntry(read1);
 			FastqEntry read2=read1;
