@@ -1,5 +1,5 @@
 ### BedLowCoverage tool help
-	BedLowCoverage (0.1-190-g94e4c3d)
+	BedLowCoverage (0.1-222-g9be2128)
 	
 	Detects low-coverage regions from a BAM file.
 	
@@ -20,6 +20,10 @@
 	Special parameters:
 	  --help          Shows this help and exits.
 	  --version       Prints version and exits.
+	  --changelog     Prints changeloge and exits.
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	
+### BedLowCoverage changelog
+	BedLowCoverage 0.1-222-g9be2128
 	
 [back to ngs-bits](https://github.com/marc-sturm/ngs-bits)

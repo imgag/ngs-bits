@@ -1,5 +1,5 @@
 ### NGSDImportUCSC tool help
-	NGSDImportUCSC (0.1-190-g94e4c3d)
+	NGSDImportUCSC (0.1-222-g9be2128)
 	
 	Imports transcript information into NGSD (download from http://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/).
 	
@@ -18,6 +18,10 @@
 	Special parameters:
 	  --help         Shows this help and exits.
 	  --version      Prints version and exits.
+	  --changelog    Prints changeloge and exits.
 	  --tdx          Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	
+### NGSDImportUCSC changelog
+	NGSDImportUCSC 0.1-222-g9be2128
 	
 [back to ngs-bits](https://github.com/marc-sturm/ngs-bits)

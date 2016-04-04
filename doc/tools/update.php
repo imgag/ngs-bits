@@ -51,6 +51,19 @@ foreach($files as $exe)
 	{
 		$output[] = "\t".$line;
 	}
+	
+	//get changelog text
+	$change	= array();
+	exec("$exe --changelog 2>&1", $change, $ret);
+	if ($ret!=0) trigger_error("Executing tool $exe failed: ".implode("\n", $change), E_USER_ERROR);
+	
+	//store changelog
+	$output[] = "### $tool changelog";
+	foreach($change as $line)
+	{
+		$output[] = "\t".$line;
+	}
+	
 	$output[] = "[back to ngs-bits](https://github.com/marc-sturm/ngs-bits)";
 	file_put_contents($dir.$tool.".md", implode("\n", $output));
 }

@@ -25,6 +25,11 @@ public:
 	virtual void setup()
 	{
 		setDescription("Paired-end read simulator for Illumina reads.");
+		setExtendedDescription(QStringList() << "PERsim generates paired-end reads of a given length for a region of interest in the genome:"
+											 << " - insert size is modelled using a gaussian distribution."
+											 << " - read-through into the sequencing adapters is modelled."
+											 << " - sequencing errors are modelled using a simple uniform distribution."
+							   );
 		addInfile("roi", "Target region BED file (the corresponding reference genome is taken from the settings.ini file).", false);
 		addInt("count", "Number of read pairs to generate.", false);
 		addOutfile("out1", "Forward reads output file in .FASTQ.GZ format.", false);

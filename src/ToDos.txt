@@ -9,13 +9,13 @@ GSvar:
 * Add gene managenement dialog for NGSD gene information
 
 Tools:
-- ToolBase: add description line to tools (PERsim docu, SeqPurge citing).
 - MappingQC:
   - add %soft/hard-clipped quality parameter (see ssPWBRCA_v2)
-  * support RNA: insert size, spike-in controls, etc.
+  * support RNA: insert size, spike-in controls, mapping ribosomes/globulines, etc.
 - SeqPurge:
   - add error correction?
   - loq-quality trimming before adapter trimming? use single-base instead of sliding window?
+  - avoid overtrimming of 10-1 bases at read ends - allow 2-3 errors
 - FastqDemultiplex: check for "carry-over" contamination from last run
 - ReadQC: create plots without python?
 

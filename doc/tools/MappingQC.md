@@ -1,5 +1,5 @@
 ### MappingQC tool help
-	MappingQC (0.1-256-g371df50)
+	MappingQC (0.1-222-g9be2128)
 	
 	Calculates QC metrics based on mapped NGS reads.
 	
@@ -23,6 +23,10 @@
 	Special parameters:
 	  --help          Shows this help and exits.
 	  --version       Prints version and exits.
+	  --changelog     Prints changeloge and exits.
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	
+### MappingQC changelog
+	MappingQC 0.1-222-g9be2128
 	
 [back to ngs-bits](https://github.com/marc-sturm/ngs-bits)

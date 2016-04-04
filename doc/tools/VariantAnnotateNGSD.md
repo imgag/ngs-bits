@@ -1,5 +1,5 @@
 ### VariantAnnotateNGSD tool help
-	VariantAnnotateNGSD (0.1-190-g94e4c3d)
+	VariantAnnotateNGSD (0.1-222-g9be2128)
 	
 	Annotates a variant list with information from the NGSD.
 	
@@ -19,6 +19,10 @@
 	Special parameters:
 	  --help           Shows this help and exits.
 	  --version        Prints version and exits.
+	  --changelog      Prints changeloge and exits.
 	  --tdx            Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	
+### VariantAnnotateNGSD changelog
+	VariantAnnotateNGSD 0.1-222-g9be2128
 	
 [back to ngs-bits](https://github.com/marc-sturm/ngs-bits)

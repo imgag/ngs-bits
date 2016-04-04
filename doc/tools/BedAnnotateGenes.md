@@ -1,5 +1,5 @@
 ### BedAnnotateGenes tool help
-	BedAnnotateGenes (0.1-190-g94e4c3d)
+	BedAnnotateGenes (0.1-222-g9be2128)
 	
 	Annotates BED file regions with gene names.
 	
@@ -16,6 +16,10 @@
 	Special parameters:
 	  --help        Shows this help and exits.
 	  --version     Prints version and exits.
+	  --changelog   Prints changeloge and exits.
 	  --tdx         Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	
+### BedAnnotateGenes changelog
+	BedAnnotateGenes 0.1-222-g9be2128
 	
 [back to ngs-bits](https://github.com/marc-sturm/ngs-bits)

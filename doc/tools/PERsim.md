@@ -1,7 +1,12 @@
 ### PERsim tool help
-	PERsim (0.1-256-g371df50)
+	PERsim (0.1-222-g9be2128)
 	
 	Paired-end read simulator for Illumina reads.
+	
+	PERsim generates paired-end reads of a given length for a region of interest in the genome:
+	 - insert size is modelled using a gaussian distribution.
+	 - read-through into the sequencing adapters is modelled.
+	 - sequencing errors are modelled using a simple uniform distribution.
 	
 	Mandatory parameters:
 	  -roi <file>      Target region BED file (the corresponding reference genome is taken from the settings.ini file).
@@ -32,6 +37,10 @@
 	Special parameters:
 	  --help           Shows this help and exits.
 	  --version        Prints version and exits.
+	  --changelog      Prints changeloge and exits.
 	  --tdx            Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	
+### PERsim changelog
+	PERsim 0.1-222-g9be2128
 	
 [back to ngs-bits](https://github.com/marc-sturm/ngs-bits)
