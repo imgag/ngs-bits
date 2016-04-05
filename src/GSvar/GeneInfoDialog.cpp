@@ -1,0 +1,56 @@
+#include "GeneInfoDialog.h"
+#include "ui_GeneInfoDialog.h"
+#include "Helper.h"
+
+GeneInfoDialog::GeneInfoDialog(QString symbol, QWidget *parent)
+	: QDialog(parent)
+	, ui(new Ui::GeneInfoDialog)
+	, db_()
+{
+	//init dialog
+	ui->setupUi(this);
+	ui->inheritance_->addItems(db_.getEnum("geneinfo_germline", "inheritance"));
+	ui->notice_->setVisible(false);
+	connect(this, SIGNAL(accepted()), this, SLOT(storeGeneInfo()));
+
+	//get gene info
+	GeneInfo info = db_.geneInfo(symbol);
+
+	//show symbol
+	setWindowTitle("Gene information '" + info.symbol + "'");
+	ui->gene_->setText(info.symbol);
+	ui->inheritance_->setCurrentText(info.inheritance);
+	QString tmp = "[" + QDate::currentDate().toString("dd.MM.yyyy") + " " + Helper::userName() + "]\n<font color='red'>Add comment here</font>\n\n";
+	tmp.append(info.comments);
+	tmp.replace(QRegExp("((?:https?|ftp)://\\S+)"), "<a href=\"\\1\">\\1</a>");
+	tmp.replace("\n", "<br>");
+	ui->comments_->setHtml(tmp);
+
+	//show notice if necessary
+	if (!info.notice.startsWith("KEPT:"))
+	{
+		ui->notice_->setText("<font color='red'>" + info.notice + "</font>");
+		ui->notice_->setVisible(true);
+	}
+
+	//show alias gene symbols from HGNC
+	ui->previous_->setText(db_.previousSymbols(symbol).join(", "));
+	ui->synonymous_->setText(db_.synonymousSymbols(symbol).join(", "));
+
+	//show phenotypes/diseases from HPO
+	ui->pheno_->setText(db_.phenotypes(symbol).join(", "));
+}
+
+GeneInfoDialog::~GeneInfoDialog()
+{
+	delete ui;
+}
+
+void GeneInfoDialog::storeGeneInfo()
+{
+	GeneInfo tmp;
+	tmp.symbol = ui->gene_->text();
+	tmp.inheritance = ui->inheritance_->currentText();
+	tmp.comments = ui->comments_->toPlainText();
+	db_.setGeneInfo(tmp);
+}

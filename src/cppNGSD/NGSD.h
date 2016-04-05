@@ -10,6 +10,20 @@
 #include "QCCollection.h"
 #include "SqlQuery.h"
 
+/// Germline gene information.
+struct CPPNGSDSHARED_EXPORT GeneInfo
+{
+	//gene symbol
+	QString symbol;
+	//gene inheritance mode
+	QString inheritance;
+	//comments
+	QString comments;
+
+	//notice about the symbol based on HGNC data (unknown symbol, previous symbol, etc.)
+	QString notice;
+};
+
 /// NGSD accessor.
 class CPPNGSDSHARED_EXPORT NGSD
 		: public QObject
@@ -32,13 +46,12 @@ public:
 	///If no values are returned an error thrown or a default-constructed QVariant is returned (depending on @p empty_is_ok).
 	///If more than one value is returned a DatabaseError is thrown.
 	QVariant getValue(const QString& query, bool no_value_is_ok=true);
-	///Executes an SQL query and returns the return value list.
-	QVariantList getValues(const QString& query);
-	///Executes an SQL query and returns the return value list.
-	QStringList getValuesAsString(const QString& query);
+	///Executes an SQL query and returns the value list.
+	QStringList getValues(const QString& query);
 	///Returns a SqlQuery object on the NGSD for custom queries.
-	inline SqlQuery getQuery() const
+	inline SqlQuery getQuery(bool used_static = false) const
 	{
+		db_used_externally_as_static_ = db_used_externally_as_static_ || used_static;
 		return SqlQuery(*db_);
 	}
 	///Executes all queries from a text file.
@@ -54,12 +67,21 @@ public:
 	/*** gene/transcript handling ***/
 	///Returns the gene ID, or -1 if none approved gene name could be found. Checks approved symbols, previous symbols and synonyms.
 	int geneToApprovedID(const QByteArray& gene);
+	///Returns the gene symbol for a gene ID
+	QByteArray geneSymbol(int id);
 	///Returns the the approved/original gene symbol a status message.
 	QPair<QByteArray, QByteArray> geneToApproved(const QByteArray& gene);
+	///Returns previous symbols of a gene.
+	QStringList previousSymbols(QString symbol);
+	///Returns aliases of a gene.
+	QStringList synonymousSymbols(QString symbol);
 	///Returns the genes overlapping a regions (extended by some bases)
 	QStringList genesOverlapping(QByteArray chr, int start, int end, int extend=0);
 	///Returns the chromosomal regions corrsponding to the given genes.
 	BedFile genesToRegions(QStringList genes, QString source, QString mode, bool messages=false);
+
+	/*** phenotype handling (HPO) ***/
+	QStringList phenotypes(QString symbol);
 
 	/*** Base functionality for file/variant processing ***/
 	///Returns the sample name for a file name, e.g. 'GS120159' for '/some/path/GS120159_01.bam'. Throws an exception if the file name does not start with a valid name.
@@ -129,6 +151,11 @@ public:
 	///Sets processed sample quality
 	void setProcessedSampleQuality(const QString& filename, QString quality);
 
+	///Returns the germline gene information for a HGNC-approved gene symbol
+	GeneInfo geneInfo(QString symbol);
+	///Sets the germline gene information for a HGNC-approved gene symbol
+	void setGeneInfo(GeneInfo info);
+
 	///Returns the NGSD URL corresponding to a variant. Or an empty string if the variant/sample is not in the DB.
 	QString url(const QString& filename, const Variant& variant);
 	///Returns the NGSD URL corresponding to a processed sample. Or an empty string if the sample is not in the DB.
@@ -151,11 +178,13 @@ protected:
 
 	///The database adapter
 	QSharedPointer<QSqlDatabase> db_;
+	mutable bool db_used_externally_as_static_;
 	bool test_db_;
 	bool is_open_;
 
 	///Prepared queries for speed-up
 	QSharedPointer<SqlQuery> q_approved_;
 };
+
 
 #endif // NGSD_H

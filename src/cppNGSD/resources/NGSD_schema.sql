@@ -102,6 +102,19 @@ CHARSET=utf8
 COMMENT='Transcript exons';
 
 -- -----------------------------------------------------
+-- Table `geneinfo_germline`
+-- -----------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `geneinfo_germline` (
+`symbol` VARCHAR(40) NOT NULL,
+`inheritance` ENUM('AR','AD','AR+AD','XLR','XLD','XLR+XLD','MT','n/a') NOT NULL,
+`comments` text NOT NULL,
+PRIMARY KEY `symbol` (`symbol`)
+)
+ENGINE=InnoDB
+CHARSET=utf8;
+
+-- -----------------------------------------------------
 -- Table `mid`
 -- -----------------------------------------------------
 CREATE  TABLE IF NOT EXISTS `mid` (

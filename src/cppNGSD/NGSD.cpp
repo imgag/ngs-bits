@@ -7,7 +7,8 @@
 #include "Settings.h"
 
 NGSD::NGSD(bool test_db)
-	: test_db_(test_db)
+	: db_used_externally_as_static_(false)
+	, test_db_(test_db)
 {
 	db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL", "NGSD_" + Helper::randomString(20))));
 
@@ -194,21 +195,7 @@ QVariant NGSD::getValue(const QString& query, bool no_value_is_ok)
 	return q.value(0);
 }
 
-QVariantList NGSD::getValues(const QString& query)
-{
-	SqlQuery q = getQuery();
-	q.exec(query);
-
-	QVariantList output;
-	output.reserve(q.size());
-	while(q.next())
-	{
-		output.append(q.value(0));
-	}
-	return output;
-}
-
-QStringList NGSD::getValuesAsString(const QString& query)
+QStringList NGSD::getValues(const QString& query)
 {
 	SqlQuery q = getQuery();
 	q.exec(query);
@@ -278,7 +265,10 @@ NGSD::~NGSD()
 	//close database and remove it
 	QString connection_name = db_->connectionName();
 	db_.clear();
-	QSqlDatabase::removeDatabase(connection_name);
+	if (!db_used_externally_as_static_)
+	{
+		QSqlDatabase::removeDatabase(connection_name);
+	}
 }
 
 bool NGSD::isOpen() const
@@ -462,10 +452,11 @@ void NGSD::annotate(VariantList& variants, QString filename)
 
 	//get sample ids that have processed samples with the same processing system (not same sample, variants imported, same processing system, good quality of sample, not tumor)
 	QSet<int> sys_sample_ids;
-	QVariantList ps_ids_var = getValues("SELECT DISTINCT s.id FROM processed_sample as ps, sample s WHERE ps.processing_system_id='" + sys_id + "' AND ps.sample_id=s.id AND s.tumor='0' AND s.quality='good' AND s.id!='" + s_id + "' AND (SELECT count(id) FROM detected_variant as dv WHERE dv.processed_sample_id = ps.id)>0");
-	foreach(const QVariant& var, ps_ids_var)
+	SqlQuery tmp = getQuery();
+	tmp.exec("SELECT DISTINCT s.id FROM processed_sample as ps, sample s WHERE ps.processing_system_id='" + sys_id + "' AND ps.sample_id=s.id AND s.tumor='0' AND s.quality='good' AND s.id!='" + s_id + "' AND (SELECT count(id) FROM detected_variant as dv WHERE dv.processed_sample_id = ps.id)>0");
+	while(tmp.next())
 	{
-		sys_sample_ids.insert(var.toInt());
+		sys_sample_ids.insert(tmp.value(0).toInt());
 	}
 
 	//remove all NGSD-specific columns
@@ -875,9 +866,9 @@ bool NGSD::tableEmpty(QString table)
 int NGSD::geneToApprovedID(const QByteArray& gene)
 {
 	//init
-	static SqlQuery q_gene = getQuery();
-	static SqlQuery q_prev = getQuery();
-	static SqlQuery q_syn = getQuery();
+	static SqlQuery q_gene = getQuery(true);
+	static SqlQuery q_prev = getQuery(true);
+	static SqlQuery q_syn = getQuery(true);
 	static bool init = false;
 	if (!init)
 	{
@@ -921,12 +912,17 @@ int NGSD::geneToApprovedID(const QByteArray& gene)
 	return -1;
 }
 
+QByteArray NGSD::geneSymbol(int id)
+{
+	return getValue("SELECT symbol FROM gene WHERE id='" + QString::number(id) + "'").toByteArray();
+}
+
 QPair<QByteArray, QByteArray> NGSD::geneToApproved(const QByteArray& gene)
 {
 	//init
-	static SqlQuery q_gene = getQuery();
-	static SqlQuery q_prev = getQuery();
-	static SqlQuery q_syn = getQuery();
+	static SqlQuery q_gene = getQuery(true);
+	static SqlQuery q_prev = getQuery(true);
+	static SqlQuery q_syn = getQuery(true);
 	static bool init = false;
 	if (!init)
 	{
@@ -984,6 +980,21 @@ QPair<QByteArray, QByteArray> NGSD::geneToApproved(const QByteArray& gene)
 	}
 
 	return qMakePair(gene, QByteArray("ERROR: is unknown symbol"));
+}
+
+QStringList NGSD::previousSymbols(QString symbol)
+{
+	return getValues("SELECT ga.symbol FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND g.symbol='" + symbol + "' AND ga.type='previous'");
+}
+
+QStringList NGSD::synonymousSymbols(QString symbol)
+{
+	return getValues("SELECT ga.symbol FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND g.symbol='" + symbol + "' AND ga.type='synonymous'");
+}
+
+QStringList NGSD::phenotypes(QString symbol)
+{
+	return getValues("SELECT t.name FROM hpo_term t, hpo_genes g WHERE g.gene='" + symbol + "' AND t.id=g.hpo_term_id");
 }
 
 QStringList NGSD::genesOverlapping(QByteArray chr, int start, int end, int extend)
@@ -1189,4 +1200,53 @@ QString NGSD::getProcessedSampleQuality(const QString& filename, bool colored)
 void NGSD::setProcessedSampleQuality(const QString& filename, QString quality)
 {
 	getQuery().exec("UPDATE processed_sample SET quality='" + quality + "' WHERE id='" + processedSampleId(filename) + "'");
+}
+
+GeneInfo NGSD::geneInfo(QString symbol)
+{
+	GeneInfo output;
+
+	//get approved symbol
+	symbol = symbol.trimmed();
+	auto approved = geneToApproved(symbol.toLatin1());
+	output.symbol = approved.first;
+	output.notice = approved.second;
+
+	//update geneinfo_germline entry if necessary
+	if (output.notice.startsWith("REPLACED:"))
+	{
+		SqlQuery query = getQuery();
+		query.prepare("UPDATE geneinfo_germline SET symbol=:0 WHERE symbol=:1");
+		query.bindValue(0, output.symbol);
+		query.bindValue(1, symbol);
+		query.exec();
+	}
+
+	SqlQuery query = getQuery();
+	query.exec("SELECT inheritance, comments FROM geneinfo_germline WHERE symbol='" + output.symbol + "'");
+	if (query.size()==0)
+	{
+		output.inheritance = "n/a";
+		output.comments = "";
+	}
+	else
+	{
+		query.next();
+		output.inheritance = query.value(0).toString();
+		output.comments = query.value(1).toString();
+	}
+
+	return output;
+}
+
+void NGSD::setGeneInfo(GeneInfo info)
+{
+	SqlQuery query = getQuery();
+	query.prepare("INSERT INTO geneinfo_germline (symbol, inheritance, comments) VALUES (:0, :1, :2) ON DUPLICATE KEY UPDATE inheritance=:3, comments=:4");
+	query.bindValue(0, info.symbol);
+	query.bindValue(1, info.inheritance);
+	query.bindValue(2, info.comments);
+	query.bindValue(3, info.inheritance);
+	query.bindValue(4, info.comments);
+	query.exec();
 }

@@ -51,7 +51,7 @@ public:
 		conditions << "p.id=ps.project_id";
 		conditions << "sys.id=ps.processing_system_id";
 		bool qc = getFlag("qc");
-		QStringList qc_cols = db.getValuesAsString("SELECT name FROM qc_terms ORDER BY qcml_id");
+		QStringList qc_cols = db.getValues("SELECT name FROM qc_terms ORDER BY qcml_id");
 
 		//filter project
 		QString project = escape(getString("project"));
@@ -61,7 +61,7 @@ public:
 			QVariant tmp = db.getValue("SELECT id FROM project WHERE name='"+project+"'", true).toString();
 			if (tmp.isNull())
 			{
-				THROW(DatabaseException, "Invalid project name '" + project + ".\nValid names are: " + db.getValuesAsString("SELECT name FROM project").join(", "));
+				THROW(DatabaseException, "Invalid project name '" + project + ".\nValid names are: " + db.getValues("SELECT name FROM project").join(", "));
 			}
 			conditions << "p.name='"+project+"'";
 		}
@@ -74,7 +74,7 @@ public:
 			QVariant tmp = db.getValue("SELECT id FROM processing_system WHERE name_short='"+sys+ "'", true).toString();
 			if (tmp.isNull())
 			{
-				THROW(DatabaseException, "Invalid processing system short name '"+sys+".\nValid names are: " + db.getValuesAsString("SELECT name_short FROM processing_system").join(", "));
+				THROW(DatabaseException, "Invalid processing system short name '"+sys+".\nValid names are: " + db.getValues("SELECT name_short FROM processing_system").join(", "));
 			}
 			conditions << "sys.name_short='"+sys+"'";
 		}
@@ -87,7 +87,7 @@ public:
 			QVariant tmp = db.getValue("SELECT id FROM sequencing_run WHERE name='"+run+ "'", true).toString();
 			if (tmp.isNull())
 			{
-				THROW(DatabaseException, "Invalid sequencing run name '"+run+".\nValid names are: " + db.getValuesAsString("SELECT name FROM sequencing_run").join(", "));
+				THROW(DatabaseException, "Invalid sequencing run name '"+run+".\nValid names are: " + db.getValues("SELECT name FROM sequencing_run").join(", "));
 			}
 			conditions << "r.name='"+run+"'";
 		}

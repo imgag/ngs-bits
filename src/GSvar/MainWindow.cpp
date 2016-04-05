@@ -32,6 +32,7 @@
 #include "ClassificationDialog.h"
 #include "BasicStatistics.h"
 #include "ApprovedGenesDialog.h"
+#include "GeneInfoDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -727,6 +728,13 @@ void MainWindow::on_actionConvertHgnc_triggered()
 	dlg.exec();
 }
 
+void MainWindow::on_actionGeneInfo_triggered()
+{
+	QString symbol = QInputDialog::getText(this, "Gene information", "symbol");
+	GeneInfoDialog dlg(symbol, this);
+	dlg.exec();
+}
+
 void MainWindow::on_actionCopy_triggered()
 {
 	copyToClipboard(false);
@@ -1061,13 +1069,27 @@ void MainWindow::varsContextMenu(QPoint pos)
 	QMenu* sub_menu = menu.addMenu(QIcon("://Icons/IGV.png"), "IGV");
 	sub_menu->addAction("Open BAM and jump to position");
 	sub_menu->addAction("Jump to position");
-	sub_menu = menu.addMenu(QIcon("://Icons/NGSD.png"), "NGSD");
+
+	sub_menu = menu.addMenu(QIcon("://Icons/NGSD.png"), "Variant");
 	sub_menu->addAction("Open variant in NGSD");
 	sub_menu->addAction("Search for position in NGSD");
 	sub_menu->addSeparator();
 	sub_menu->addAction("Set validation status");
 	sub_menu->addAction("Set classification");
 	sub_menu->addAction("Edit comment");
+
+	int i_gene = variants_.annotationIndexByName("gene", true, true);
+	QString gene_str = variants_[item->row()].annotations()[i_gene];
+	QStringList genes = gene_str.split(',', QString::SkipEmptyParts);
+	if (!genes.isEmpty())
+	{
+		sub_menu = menu.addMenu(QIcon("://Icons/NGSD.png"), "Gene info");
+		foreach(QString g, genes)
+		{
+			sub_menu->addAction(g);
+		}
+	}
+
 	menu.addAction(QIcon("://Icons/PrimerDesign.png"), "PrimerDesign");
 
 	//Execute menu
@@ -1352,6 +1374,11 @@ void MainWindow::varsContextMenu(QPoint pos)
 			GUIHelper::showMessage("NGSD error", "Error while processing'"  + filename_ + "'!\nError message: " + e.message());
 			return;
 		}
+	}
+	else if (genes.contains(text))
+	{
+		GeneInfoDialog dlg(text, this);
+		dlg.exec();
 	}
 }
 

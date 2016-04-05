@@ -126,6 +126,7 @@
       <string>Genes</string>
      </property>
      <addaction name="actionConvertHgnc"/>
+     <addaction name="actionGeneInfo"/>
     </widget>
     <addaction name="menuPreferred_transcripts_2"/>
     <addaction name="menuGenes"/>
@@ -448,6 +449,11 @@
    </property>
    <property name="toolTip">
     <string>Export GSvar file (fitered)</string>
+   </property>
+  </action>
+  <action name="actionGeneInfo">
+   <property name="text">
+    <string>Gene info (germline)</string>
    </property>
   </action>
  </widget>

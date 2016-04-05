@@ -45,10 +45,7 @@ FilterDockWidget::FilterDockWidget(QWidget *parent)
 	connect(ui_.refs, SIGNAL(currentIndexChanged(int)), this, SLOT(referenceSampleChanged(int)));
 
 	connect(ui_.gene, SIGNAL(editingFinished()), this, SLOT(geneChanged()));
-	connect(ui_.gene, SIGNAL(textEdited()), this, SLOT(geneChanged()));
-
 	connect(ui_.region, SIGNAL(editingFinished()), this, SLOT(regionChanged()));
-	connect(ui_.region, SIGNAL(textEdited()), this, SLOT(regionChanged()));
 
 	loadROIFilters();
 	loadReferenceFiles();
