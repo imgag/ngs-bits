@@ -67,10 +67,12 @@ public:
 	*/
 	static void extractIndelsByCIGAR(QVector<Sequence>& indels, BamTools::BamAlignment& al, int pos, int indel_window=0);
 
+	///Returns the complement of a base
+	static char complement(char base);
 	///Changes a DNA sequence to reverse/complementary order.
 	static QByteArray changeSeq(const QByteArray& seq, bool rev, bool comp);
 
-	///Soft-clip alignment from the beginning or end
+	///Soft-clip alignment from the beginning or end (positions are 1-based)
 	static void softClipAlignment(BamTools::BamAlignment& al, int start_ref_pos, int end_ref_pos);
 
 	///Convert Cigar data to QString

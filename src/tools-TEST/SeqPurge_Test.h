@@ -198,6 +198,16 @@ private slots:
 		COMPARE_GZ_FILES("out/SeqPurge_out19.fastq.gz", TESTDATA("data_out/SeqPurge_out19.fastq.gz"));
 	}
 
+	//MiSeq 151 cycles - with error correction
+	void test_10()
+	{
+		EXECUTE("SeqPurge", "-in1 " + TESTDATA("data_in/SeqPurge_in1.fastq.gz") + " -in2 " + TESTDATA("data_in/SeqPurge_in2.fastq.gz") + " -out1 out/SeqPurge_out20.fastq.gz -out2 out/SeqPurge_out21.fastq.gz -ncut 0 -qcut 0 -ec");
+		IS_TRUE(QFile::exists("out/SeqPurge_out20.fastq.gz"));
+		IS_TRUE(QFile::exists("out/SeqPurge_out21.fastq.gz"));
+		COMPARE_GZ_FILES("out/SeqPurge_out20.fastq.gz", TESTDATA("data_out/SeqPurge_out20.fastq.gz"));
+		COMPARE_GZ_FILES("out/SeqPurge_out21.fastq.gz", TESTDATA("data_out/SeqPurge_out21.fastq.gz"));
+	}
+
 	//multi-thread test
 	void test_multithread()
 	{

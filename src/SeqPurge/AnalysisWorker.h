@@ -10,7 +10,7 @@ class AnalysisWorker
         : public QRunnable
 {
 public:
-	AnalysisWorker(QSharedPointer<FastqEntry> e1, QSharedPointer<FastqEntry> e2, TrimmingParameters& params, TrimmingStatistics& stats, TrimmingData& data);
+	AnalysisWorker(QSharedPointer<FastqEntry> e1, QSharedPointer<FastqEntry> e2, TrimmingParameters& params, TrimmingStatistics& stats, ErrorCorrectionStatistics& ecstats, TrimmingData& data);
 	~AnalysisWorker();
 	void run();
 
@@ -22,6 +22,7 @@ private:
 	QSharedPointer<FastqEntry> e2_;
 	TrimmingParameters& params_;
 	TrimmingStatistics& stats_;
+	ErrorCorrectionStatistics& ecstats_;
 	TrimmingData& data_;
 
 	///Factorial calulation
@@ -33,6 +34,9 @@ private:
 
 	///Helper function for writing output in threads
 	void writeWithThread(FastqOutfileStream* stream, FastqEntry& entry);
+
+	///Error correction
+	void correctErrors(QTextStream& debug_out);
 };
 
 #endif

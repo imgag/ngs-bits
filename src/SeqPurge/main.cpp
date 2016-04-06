@@ -41,8 +41,13 @@ public:
 		addOutfile("summary", "Write summary/progress to this file instead of STDOUT.", true, true);
 		addOutfile("qc", "If set, a read QC file in qcML format is created (just like ReadQC).", true, true);
 		addInt("prefetch", "Maximum number of reads that may be pre-fetched to speed up trimming", true, 1000);
+		addFlag("ec", "Enable error-correction of reads with insert match.");
 		addFlag("debug", "Enables debug output (use only with one thread).");
 		addFlag("progress", "Enables progress output.");
+
+		//changelog
+		changeLog(2016, 4,  6, "Added error correction (optional).");
+		changeLog(2016, 3, 16, "Version used in the SeqPurge paper: [TODO add link]");
 	}
 
 	int processingReadPairs() const
@@ -88,6 +93,7 @@ public:
 
 		params_.qc = getOutfile("qc");
 		data_.analysis_pool.setMaxThreadCount(getInt("threads"));
+		params_.ec = getFlag("ec");
 		params_.debug = getFlag("debug");
 
 		QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("summary"), true);
@@ -132,7 +138,7 @@ public:
 				QSharedPointer<FastqEntry> e2(new FastqEntry());
 				in2.readEntry(*e2);
 
-				data_.analysis_pool.start(new AnalysisWorker(e1, e2, params_, stats_, data_));
+				data_.analysis_pool.start(new AnalysisWorker(e1, e2, params_, stats_, ecstats_, data_));
 			}
 
 			//check that forward and reverse read file are both at the end
@@ -151,7 +157,7 @@ public:
 		data_.closeOutStreams();
 		if (progress) out << Helper::dateTime() << " closed - processing now: " << processingReadPairs() << " total processed: " << data_.reads_queued << endl;
 
-		//print statistics
+		//print trimming statistics
 		if (progress) out << Helper::dateTime() << " writing statistics summary" << endl;
 		stats_.writeStatistics(out, params_);
 
@@ -160,11 +166,19 @@ public:
 		{
 			stats_.qc.getResult().storeToQCML(getOutfile("qc"), QStringList() << in1_files << in2_files, "");
 		}
+
+		//print error correction statistics
+		if (params_.ec)
+		{
+			if (progress) out << Helper::dateTime() << " writing error corrections summary" << endl;
+			ecstats_.writeStatistics(out);
+		}
 	}
 
 private:
 	TrimmingParameters params_;
 	TrimmingStatistics stats_;
+	ErrorCorrectionStatistics ecstats_;
 	TrimmingData data_;
 };
 

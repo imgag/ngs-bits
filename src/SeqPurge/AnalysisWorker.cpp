@@ -5,12 +5,13 @@
 
 QVector<double> AnalysisWorker::fak_cache = QVector<double>();
 
-AnalysisWorker::AnalysisWorker(QSharedPointer<FastqEntry> e1, QSharedPointer<FastqEntry> e2, TrimmingParameters& params, TrimmingStatistics& stats, TrimmingData& data)
+AnalysisWorker::AnalysisWorker(QSharedPointer<FastqEntry> e1, QSharedPointer<FastqEntry> e2, TrimmingParameters& params, TrimmingStatistics& stats, ErrorCorrectionStatistics& ecstats, TrimmingData& data)
     : QRunnable()
 	, e1_(e1)
 	, e2_(e2)
 	, params_(params)
 	, stats_(stats)
+	, ecstats_(ecstats)
 	, data_(data)
 {
 }
@@ -73,9 +74,67 @@ double AnalysisWorker::matchProbability(int matches, int mismatches)
 	return p;
 }
 
+void AnalysisWorker::correctErrors(QTextStream& debug_out)
+{
+	int mm_count = 0;
+	const int count = e1_->bases.count();
+	for (int i=0; i<count; ++i)
+	{
+		const int i2 = count-i-1;
+
+		//error detected
+		if (e1_->bases[i]!=NGSHelper::complement(e2_->bases[i2]))
+		{
+			++mm_count;
+			int q1 = e1_->quality(i, params_.qoff);
+			int q2 = e2_->quality(i2, params_.qoff);
+
+			//debug output
+			if (params_.debug)
+			{
+				if (mm_count!=0)
+				{
+					debug_out << "R1: " << e1_->bases << endl;
+					debug_out << "Q1: "<< e1_->qualities << endl;
+					debug_out << "R2: "<< e2_->bases << endl;
+					debug_out << "Q2: "<< e2_->qualities << endl;
+				}
+				debug_out << "  MISMATCH index=" << i << " R1=" << e1_->bases[i] << "/" << q1 << " R2=" << e2_->bases[i2]<< "/" << q2 << endl;
+			}
+
+			//correct error
+			if (q1>q2)
+			{
+				char replacement = NGSHelper::complement(e1_->bases[i]);
+				if (params_.debug)
+				{
+					debug_out << "    CORRECTED R2: " << e2_->bases[i2] << " => " << replacement << endl;
+				}
+				e2_->bases[i2] = replacement;
+				++ecstats_.mismatch_r2[i2];
+			}
+			else if(q1<q2)
+			{
+				char replacement = NGSHelper::complement(e2_->bases[i2]);
+				if (params_.debug)
+				{
+					debug_out << "    CORRECTED R1: " << e1_->bases[i] << " => " << replacement << endl;
+				}
+				e1_->bases[i] = replacement;
+				++ecstats_.mismatch_r1[i];
+			}
+		}
+	}
+
+	if (mm_count>0)
+	{
+		++ecstats_.errors_per_read[mm_count];
+	}
+}
+
 void AnalysisWorker::run()
 {	
-	QTextStream debug_out (stdout);
+	QTextStream debug_out(stdout);
 
 	//check that headers match
 	QByteArray h1 = e1_->header.split(' ').at(0);
@@ -112,9 +171,9 @@ void AnalysisWorker::run()
 	int max_length = std::max(length_s1_orig, length_s2_orig);
 	
 	//check length
-	if (max_length>=stats_.bases_remaining.capacity())
+	if (max_length>=MAXLEN)
 	{
-		THROW(ProgrammingException, "Read length unsupported! A maximum read length of " + QString::number(stats_.bases_remaining.capacity()) + " is supported!");
+		THROW(ProgrammingException, "Read length unsupported! A maximum read length of " + QString::number(MAXLEN) + " is supported!");
 	}
 
 	//update QC statistics (has to be done before trimming)
@@ -279,6 +338,9 @@ void AnalysisWorker::run()
 		{
 			debug_out << "###Insert sequence hit - offset=" << best_offset << " prob=" << best_p << " adapter1=" << adapter1 << " adapter2=" << adapter2 << endl;
 		}
+
+		//error correction
+		if (params_.ec) correctErrors(debug_out);
 	}
 
 	//step 2: trim by adapter match - forward read
@@ -316,14 +378,6 @@ void AnalysisWorker::run()
 			double p = matchProbability(matches, mismatches);
 			if (p>params_.mep) continue;
 
-			//update consensus adapter sequence
-			QByteArray adapter = e1_->bases.right(length_s1_orig-offset);
-			if (adapter.count()>40) adapter.resize(40);
-			for (int i=0; i<adapter.count(); ++i)
-			{
-				stats_.acons1[i].inc(adapter.at(i));
-			}
-
 			//trim read
 			e1_->bases.resize(offset);
 			e1_->qualities.resize(offset);
@@ -331,6 +385,8 @@ void AnalysisWorker::run()
 
 			if (params_.debug)
 			{
+				QByteArray adapter = e1_->bases.right(length_s1_orig-offset);
+				adapter.truncate(20);
 				debug_out << "###Adapter 1 hit - offset=" << offset << " prob=" << p << " matches=" << matches << " mismatches=" << mismatches << " invalid=" << invalid << " adapter=" << adapter << endl;
 			}
 			break;
@@ -372,14 +428,6 @@ void AnalysisWorker::run()
 			double p = matchProbability(matches, mismatches);
 			if (p>params_.mep) continue;
 
-			//update consensus adapter sequence
-			QByteArray adapter = e2_->bases.right(length_s2_orig-offset);
-			if (adapter.count()>40) adapter.resize(40);
-			for (int i=0; i<adapter.count(); ++i)
-			{
-				stats_.acons2[i].inc(adapter.at(i));
-			}
-
 			//trim read
 			e2_->bases.resize(offset);
 			e2_->qualities.resize(offset);
@@ -389,6 +437,8 @@ void AnalysisWorker::run()
 
 			if (params_.debug)
 			{
+				QByteArray adapter = e2_->bases.right(length_s2_orig-offset);
+				adapter.truncate(20);
 				debug_out << "###Adapter 2 hit - offset=" << offset << " prob=" << p << " matches=" << matches << " mismatches=" << mismatches << " invalid=" << invalid << " adapter=" << adapter << endl;
 			}
 			break;
@@ -411,6 +461,9 @@ void AnalysisWorker::run()
 				e2_->bases.resize(offset_forward);
 				e2_->qualities.resize(offset_forward);
 			}
+
+			//error correction
+			if (params_.ec) correctErrors(debug_out);
 		}
 	}
 
@@ -465,10 +518,6 @@ void AnalysisWorker::run()
 	stats_.reads_trimmed_n += reads_trimmed_n;
 	stats_.reads_trimmed_q += reads_trimmed_q;
 	stats_.reads_removed += reads_removed;
-	if (max_length>=stats_.bases_remaining.count())
-	{
-		stats_.bases_remaining.resize(max_length+1);
-	}
 	stats_.bases_remaining[e1_->bases.length()] += 1;
 	stats_.bases_remaining[e2_->bases.length()] += 1;
 	stats_.bases_perc_trim_sum += (double)(length_s1_orig - e1_->bases.count()) / length_s1_orig;

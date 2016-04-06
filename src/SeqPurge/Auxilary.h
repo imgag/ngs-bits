@@ -6,6 +6,9 @@
 #include <Pileup.h>
 #include "StatisticsReads.h"
 
+
+const int MAXLEN = 1000;
+
 ///Output stream datastructure
 struct TrimmingData
 {
@@ -63,6 +66,7 @@ struct TrimmingParameters
 	int qwin;
 	int qoff;
 	int ncut;
+	bool ec;
 	bool debug;
 	QString qc;
 };
@@ -73,9 +77,9 @@ struct TrimmingStatistics
 	TrimmingStatistics()
 	: mutex()
 	, read_num(0)
-	, bases_remaining()
-	, acons1()
-	, acons2()
+	, bases_remaining(MAXLEN, 0) //fixed size - reallocation prevents parallel access
+	, acons1(40)
+	, acons2(40)
 	, reads_trimmed_insert(0.0)
 	, reads_trimmed_adapter(0.0)
 	, reads_trimmed_q(0.0)
@@ -84,13 +88,9 @@ struct TrimmingStatistics
 	, bases_perc_trim_sum(0.0)
 	, qc()
 	{
-		//reserve/resize array - reallocation of the array content can cause a crash because the array is accessed in parallel by several threads
-		bases_remaining.reserve(1000);
-		acons1.resize(40);
-		acons2.resize(40);
 	}
 
-	QMutex mutex; //Mutex for thread-safe writing
+	QMutex mutex; //Mutex for thread-safe access
 	int read_num;
 	QVector<double> bases_remaining;
 	QVector<Pileup> acons1;
@@ -152,13 +152,62 @@ struct TrimmingStatistics
 
 		//print length distribution after trimming
 		out << "Read length distribution after trimming:" << endl;
-		for (int i=0; i<bases_remaining.count(); ++i)
+		int max = bases_remaining.count()-1;
+		while(bases_remaining[max]==0) max -= 1;
+		for (int i=0; i<=max; ++i)
 		{
 			out << QString::number(i).rightJustified(4, ' ') << ": " << (long)(bases_remaining[i]) << endl;
 		}
 	}
 };
+///Statistics datastructure.
+struct ErrorCorrectionStatistics
+{
+	ErrorCorrectionStatistics()
+		: mismatch_r1(MAXLEN, 0) //fixed size - reallocation prevents parallel access
+		, mismatch_r2(MAXLEN, 0) //fixed size - reallocation prevents parallel access
+		, errors_per_read(MAXLEN, 0) //fixed size - reallocation prevents parallel access
+	{
+	}
 
+	QVector<long> mismatch_r1;
+	QVector<long> mismatch_r2;
+	QVector<long> errors_per_read;
+
+	void writeStatistics(QTextStream& out)
+	{
+		//print read error per cycle (read 1)
+		out << endl;
+		out << "Read error per cycle (read 1):" << endl;
+		int max = mismatch_r1.count()-1;
+		while(mismatch_r1[max]==0) max -= 1;
+		for (int i=1; i<=max; ++i)
+		{
+			out << QString::number(i).rightJustified(4, ' ') << ": " << mismatch_r1[i] << endl;
+		}
+
+		//print read error per cycle (read 2)
+		out << endl;
+		out << "Read error per cycle (read 2):" << endl;
+		max = mismatch_r2.count()-1;
+		while(mismatch_r2[max]==0) max -= 1;
+		for (int i=1; i<=max; ++i)
+		{
+			out << QString::number(i).rightJustified(4, ' ') << ": " << mismatch_r2[i] << endl;
+		}
+
+		//print error count distribution
+		out << endl;
+		out << "Read error count distribution:" << endl;
+		max = errors_per_read.count()-1;
+		while(errors_per_read[max]==0) max -= 1;
+		for (int i=1; i<=max; ++i)
+		{
+			out << QString::number(i).rightJustified(4, ' ') << ": " << errors_per_read[i] << endl;
+		}
+	}
+
+};
 
 #endif // AUXILARY_H
 

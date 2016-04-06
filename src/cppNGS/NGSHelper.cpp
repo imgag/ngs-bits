@@ -478,7 +478,6 @@ QString NGSHelper::Cigar2QString(std::vector<CigarOp> Cigar)
 	return cigar_string;
 }
 
-///soft clip reads, nb: positions are 1-based
 void NGSHelper::softClipAlignment(BamAlignment& al, int start_ref_pos, int end_ref_pos)
 {
 	std::vector<CigarOp> old_CIGAR = al.CigarData;
@@ -642,10 +641,29 @@ QByteArray NGSHelper::changeSeq(const QByteArray& seq, bool rev, bool comp)
 					output[i] = 'N';
 					break;
 				default:
-					THROW(ProgrammingException, "Could not convert base " + QString(seq.at(i)) + " to reverse complement!");
+					THROW(ProgrammingException, "Could not convert base " + QString(seq.at(i)) + " to complement!");
 			}
 		}
 	}
 
 	return output;
+}
+
+char NGSHelper::complement(char base)
+{
+	switch(base)
+	{
+		case 'A':
+			return 'T';
+		case 'C':
+			return 'G';
+		case 'T':
+			return 'A';
+		case 'G':
+			return 'C';
+		case 'N':
+			return 'N';
+		default:
+			THROW(ProgrammingException, "Could not convert base " + QString(base) + " to complement!");
+	}
 }

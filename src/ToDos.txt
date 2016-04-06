@@ -13,8 +13,9 @@ Tools:
   - add %soft/hard-clipped quality parameter (see ssPWBRCA_v2)
   * support RNA: insert size, spike-in controls, mapping ribosomes/globulines, etc.
 - SeqPurge:
+  * test error correction on amplicon test data (%SVN error, variants)
+  - use mutexes only if running in multi-thread mode (check if this speeds up processing)
   * avoid overtrimming of 10-1 bases at read ends - allow 2-3 errors
-  - add optional error correction and show error profile for both runs
   - low-quality trimming before adapter trimming? use single-base instead of sliding window?
 ? FastqDemultiplex: check for "carry-over" contamination from last run
 ? ReadQC: create plots without python
