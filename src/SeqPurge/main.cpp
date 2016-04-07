@@ -41,7 +41,7 @@ public:
 		addOutfile("summary", "Write summary/progress to this file instead of STDOUT.", true, true);
 		addOutfile("qc", "If set, a read QC file in qcML format is created (just like ReadQC).", true, true);
 		addInt("prefetch", "Maximum number of reads that may be pre-fetched to speed up trimming", true, 1000);
-		addFlag("ec", "Enable error-correction of reads with insert match.");
+		addFlag("ec", "Enable error-correction of adapter-trimmed reads.");
 		addFlag("debug", "Enables debug output (use only with one thread).");
 		addFlag("progress", "Enables progress output.");
 

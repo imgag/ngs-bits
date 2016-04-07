@@ -2,6 +2,7 @@
 #define PHENOTYPESELECTOR_H
 
 #include <QWidget>
+#include <QListWidgetItem>
 #include "NGSD.h"
 
 namespace Ui {
@@ -17,8 +18,12 @@ public:
 	explicit PhenotypeSelector(QWidget *parent = 0);
 	~PhenotypeSelector();
 
+signals:
+	QString phenotypeSelected(QString);
+
 private slots:
 	void search(QString text);
+	void itemDoubleClicked(QListWidgetItem* item);
 
 private:
 	Ui::PhenotypeSelector *ui;

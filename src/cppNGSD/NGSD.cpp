@@ -999,8 +999,6 @@ QStringList NGSD::phenotypes(QString symbol)
 
 QStringList NGSD::phenotypes(QStringList terms)
 {
-	qDebug() << endl << "DB: " << db_->hostName() << db_->databaseName() << getValue("SELECT COUNT(id) FROM hpo_term");
-
 	//trim terms and remove empty terms
 	QStringList tmp;
 	foreach (QString t, terms)
@@ -1008,25 +1006,23 @@ QStringList NGSD::phenotypes(QStringList terms)
 		t = t.trimmed();
 		if (!t.isEmpty()) tmp.append(t);
 	}
-	qDebug() << "TERMS" << tmp;
+	terms = tmp;
 
 	QStringList output;
 	if (terms.isEmpty()) //no terms => report all
 	{
 		output = getValues("SELECT name FROM hpo_term ORDER BY name ASC");
-		qDebug() << "out" << output;
 	}
 	else
 	{
 		SqlQuery query = getQuery();
-		query.prepare("SELECT name FROM hpo_term WHERE name LIKE '%:0%'");
+		query.prepare("SELECT name FROM hpo_term WHERE name LIKE :0");
 		foreach(QString t, tmp)
 		{
-			query.bindValue(0, t);
+			query.bindValue(0, "%" + t + "%");
 			query.exec();
 			while(query.next())
 			{
-				qDebug() << "out" << query.value(0).toString();
 				output.append(query.value(0).toString());
 			}
 		}

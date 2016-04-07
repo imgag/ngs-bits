@@ -62,7 +62,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QListView" name="pheno"/>
+        <widget class="QListWidget" name="pheno"/>
        </item>
       </layout>
      </widget>

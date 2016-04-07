@@ -5,8 +5,10 @@ libs:
 
 GSvar:
 - implement variant details dock widget (like sophia-genetics), show inheritance/comments from geneinfo_germline
-* Add HPO => Genes => Target region Dialog
 * Add gene managenement dialog: Inititialize from OMIM if parsing of inheritance is available
+* HPO dialog
+ - add term details e.g. on hover (parents, children, genes)
+ - fill genes/regions upon tab change
 
 Tools:
 - MappingQC:

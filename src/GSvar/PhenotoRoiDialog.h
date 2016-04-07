@@ -7,13 +7,17 @@ namespace Ui {
 class PhenotoRoiDialog;
 }
 
-class PhenoToRoiDialog : public QDialog
+class PhenoToRoiDialog
+	: public QDialog
 {
 	Q_OBJECT
 
 public:
-	explicit PhenoToRoiDialog(QWidget *parent = 0);
+	explicit PhenoToRoiDialog(QWidget* parent = 0);
 	~PhenoToRoiDialog();
+
+private slots:
+	void copyPhenotype(QString phenotype);
 
 private:
 	Ui::PhenotoRoiDialog *ui;
