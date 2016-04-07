@@ -125,11 +125,12 @@
      <property name="title">
       <string>Genes</string>
      </property>
-     <addaction name="actionConvertHgnc"/>
      <addaction name="actionGeneInfo"/>
+     <addaction name="actionPhenoToRoi"/>
+     <addaction name="actionConvertHgnc"/>
     </widget>
-    <addaction name="menuPreferred_transcripts_2"/>
     <addaction name="menuGenes"/>
+    <addaction name="menuPreferred_transcripts_2"/>
     <addaction name="separator"/>
     <addaction name="menuFileInfo"/>
     <addaction name="menuDetermine_gender"/>
@@ -454,6 +455,11 @@
   <action name="actionGeneInfo">
    <property name="text">
     <string>Gene info (germline)</string>
+   </property>
+  </action>
+  <action name="actionPhenoToRoi">
+   <property name="text">
+    <string>Phenotypes to genes/regions</string>
    </property>
   </action>
  </widget>

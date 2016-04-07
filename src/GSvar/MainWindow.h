@@ -106,6 +106,8 @@ public slots:
 	void on_actionConvertHgnc_triggered();
 	///Germline gene information dialog
 	void on_actionGeneInfo_triggered();
+	///HPO to genes to regions conversion dialog
+	void on_actionPhenoToRoi_triggered();
 
 	///Finished the report generation
 	void reportGenerationFinished(bool success);

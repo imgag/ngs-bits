@@ -33,6 +33,7 @@
 #include "BasicStatistics.h"
 #include "ApprovedGenesDialog.h"
 #include "GeneInfoDialog.h"
+#include "PhenoToRoiDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -730,8 +731,16 @@ void MainWindow::on_actionConvertHgnc_triggered()
 
 void MainWindow::on_actionGeneInfo_triggered()
 {
-	QString symbol = QInputDialog::getText(this, "Gene information", "symbol");
+	QString symbol = QInputDialog::getText(this, "Gene information", "symbol").trimmed();
+	if (symbol.isEmpty()) return;
+
 	GeneInfoDialog dlg(symbol, this);
+	dlg.exec();
+}
+
+void MainWindow::on_actionPhenoToRoi_triggered()
+{
+	PhenoToRoiDialog dlg(this);
 	dlg.exec();
 }
 

@@ -20,7 +20,9 @@ SOURCES += main.cpp\
     DBAnnotationWorker.cpp \
     FilterColumnWidget.cpp \
     ApprovedGenesDialog.cpp \
-    GeneInfoDialog.cpp
+    GeneInfoDialog.cpp \
+    PhenoToRoiDialog.cpp \
+    PhenotypeSelector.cpp
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
@@ -35,7 +37,9 @@ HEADERS  += MainWindow.h \
     DBAnnotationWorker.h \
     FilterColumnWidget.h \
     ApprovedGenesDialog.h \
-    GeneInfoDialog.h
+    GeneInfoDialog.h \
+    PhenoToRoiDialog.h \
+    PhenotypeSelector.h
 
 
 FORMS    += MainWindow.ui \
@@ -48,7 +52,9 @@ FORMS    += MainWindow.ui \
     ValidationDialog.ui \
     FilterColumnWidget.ui \
     ApprovedGenesDialog.ui \
-    GeneInfoDialog.ui
+    GeneInfoDialog.ui \
+    PhenoToRoiDialog.ui \
+    PhenotypeSelector.ui
     
 
 include("../app_gui.pri")
