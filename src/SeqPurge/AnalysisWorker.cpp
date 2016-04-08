@@ -111,6 +111,7 @@ void AnalysisWorker::correctErrors(QTextStream& debug_out)
 					debug_out << "    CORRECTED R2: " << e2_->bases[i2] << " => " << replacement << endl;
 				}
 				e2_->bases[i2] = replacement;
+				e2_->qualities[i2] = e1_->qualities[i];
 				++ecstats_.mismatch_r2[i2];
 			}
 			else if(q1<q2)
@@ -121,6 +122,7 @@ void AnalysisWorker::correctErrors(QTextStream& debug_out)
 					debug_out << "    CORRECTED R1: " << e1_->bases[i] << " => " << replacement << endl;
 				}
 				e1_->bases[i] = replacement;
+				e1_->qualities[i] = e2_->qualities[i2];
 				++ecstats_.mismatch_r1[i];
 			}
 		}
