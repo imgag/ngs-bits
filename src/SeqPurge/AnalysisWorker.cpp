@@ -380,17 +380,19 @@ void AnalysisWorker::run()
 			double p = matchProbability(matches, mismatches);
 			if (p>params_.mep) continue;
 
-			//trim read
-			e1_->bases.resize(offset);
-			e1_->qualities.resize(offset);
-			offset_forward = offset;
-
+			//debug output
 			if (params_.debug)
 			{
 				QByteArray adapter = e1_->bases.right(length_s1_orig-offset);
 				adapter.truncate(20);
 				debug_out << "###Adapter 1 hit - offset=" << offset << " prob=" << p << " matches=" << matches << " mismatches=" << mismatches << " invalid=" << invalid << " adapter=" << adapter << endl;
 			}
+
+			//trim read
+			e1_->bases.resize(offset);
+			e1_->qualities.resize(offset);
+			offset_forward = offset;
+
 			break;
 		}
 
@@ -430,6 +432,14 @@ void AnalysisWorker::run()
 			double p = matchProbability(matches, mismatches);
 			if (p>params_.mep) continue;
 
+			//debug output
+			if (params_.debug)
+			{
+				QByteArray adapter = e2_->bases.right(length_s2_orig-offset);
+				adapter.truncate(20);
+				debug_out << "###Adapter 2 hit - offset=" << offset << " prob=" << p << " matches=" << matches << " mismatches=" << mismatches << " invalid=" << invalid << " adapter=" << adapter << endl;
+			}
+
 			//trim read
 			e2_->bases.resize(offset);
 			e2_->qualities.resize(offset);
@@ -437,12 +447,6 @@ void AnalysisWorker::run()
 			//update statistics
 			offset_reverse = offset;
 
-			if (params_.debug)
-			{
-				QByteArray adapter = e2_->bases.right(length_s2_orig-offset);
-				adapter.truncate(20);
-				debug_out << "###Adapter 2 hit - offset=" << offset << " prob=" << p << " matches=" << matches << " mismatches=" << mismatches << " invalid=" << invalid << " adapter=" << adapter << endl;
-			}
 			break;
 		}
 
@@ -463,9 +467,6 @@ void AnalysisWorker::run()
 				e2_->bases.resize(offset_forward);
 				e2_->qualities.resize(offset_forward);
 			}
-
-			//error correction
-			if (params_.ec) correctErrors(debug_out);
 		}
 	}
 
