@@ -85,6 +85,8 @@ public:
 	QStringList phenotypes(QString symbol);
 	///Returns all phenotypes matching the given search terms (or all terms if no search term is given)
 	QStringList phenotypes(QStringList terms);
+	///Returns all genes associated to a phenotype
+	QStringList phenotypeToGenes(QString phenotype, bool recursive);
 
 	/*** Base functionality for file/variant processing ***/
 	///Returns the sample name for a file name, e.g. 'GS120159' for '/some/path/GS120159_01.bam'. Throws an exception if the file name does not start with a valid name.

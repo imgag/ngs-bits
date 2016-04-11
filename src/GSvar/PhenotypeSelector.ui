@@ -32,7 +32,7 @@
    <item>
     <widget class="QLineEdit" name="search">
      <property name="placeholderText">
-      <string>phenotype</string>
+      <string>phenotype search</string>
      </property>
      <property name="clearButtonEnabled">
       <bool>true</bool>
@@ -41,11 +41,23 @@
    </item>
    <item>
     <widget class="QListWidget" name="list">
+     <property name="contextMenuPolicy">
+      <enum>Qt::CustomContextMenu</enum>
+     </property>
+     <property name="toolTip">
+      <string>Double-click phenotype to select it.</string>
+     </property>
      <property name="frameShape">
       <enum>QFrame::NoFrame</enum>
      </property>
      <property name="frameShadow">
       <enum>QFrame::Sunken</enum>
+     </property>
+     <property name="dragEnabled">
+      <bool>false</bool>
+     </property>
+     <property name="dragDropMode">
+      <enum>QAbstractItemView::NoDragDrop</enum>
      </property>
     </widget>
    </item>

@@ -21,7 +21,7 @@ SOURCES += main.cpp\
     FilterColumnWidget.cpp \
     ApprovedGenesDialog.cpp \
     GeneInfoDialog.cpp \
-    PhenoToRoiDialog.cpp \
+    PhenoToGenesDialog.cpp \
     PhenotypeSelector.cpp
 
 HEADERS  += MainWindow.h \
@@ -38,7 +38,7 @@ HEADERS  += MainWindow.h \
     FilterColumnWidget.h \
     ApprovedGenesDialog.h \
     GeneInfoDialog.h \
-    PhenoToRoiDialog.h \
+    PhenoToGenesDialog.h \
     PhenotypeSelector.h
 
 
@@ -53,7 +53,7 @@ FORMS    += MainWindow.ui \
     FilterColumnWidget.ui \
     ApprovedGenesDialog.ui \
     GeneInfoDialog.ui \
-    PhenoToRoiDialog.ui \
+    PhenoToGenesDialog.ui \
     PhenotypeSelector.ui
     
 

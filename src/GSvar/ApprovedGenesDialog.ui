@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Convert gene symbols to HGNC approved symbols</string>
+   <string>Genes &gt; Approved symbols</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">

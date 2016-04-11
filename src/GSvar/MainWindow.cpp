@@ -33,7 +33,7 @@
 #include "BasicStatistics.h"
 #include "ApprovedGenesDialog.h"
 #include "GeneInfoDialog.h"
-#include "PhenoToRoiDialog.h"
+#include "PhenoToGenesDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -738,10 +738,15 @@ void MainWindow::on_actionGeneInfo_triggered()
 	dlg.exec();
 }
 
-void MainWindow::on_actionPhenoToRoi_triggered()
+void MainWindow::on_actionPhenoToGenes_triggered()
 {
-	PhenoToRoiDialog dlg(this);
+	PhenoToGenesDialog dlg(this);
 	dlg.exec();
+}
+
+void MainWindow::on_actionGenesToRegions_triggered()
+{
+	//TODO
 }
 
 void MainWindow::on_actionCopy_triggered()

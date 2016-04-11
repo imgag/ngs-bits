@@ -24,6 +24,7 @@ signals:
 private slots:
 	void search(QString text);
 	void itemDoubleClicked(QListWidgetItem* item);
+	void listContextMenu(QPoint p);
 
 private:
 	Ui::PhenotypeSelector *ui;

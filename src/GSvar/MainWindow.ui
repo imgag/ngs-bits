@@ -114,23 +114,25 @@
      <addaction name="actionSampleCorrelationTSV"/>
      <addaction name="actionSampleCorrelationBAM"/>
     </widget>
-    <widget class="QMenu" name="menuPreferred_transcripts_2">
-     <property name="title">
-      <string>Preferred transcripts</string>
-     </property>
-     <addaction name="actionShowTranscripts"/>
-     <addaction name="actionImportTranscripts"/>
-    </widget>
     <widget class="QMenu" name="menuGenes">
      <property name="title">
       <string>Genes</string>
      </property>
+     <widget class="QMenu" name="menuPreferred_transcripts">
+      <property name="title">
+       <string>Preferred transcripts</string>
+      </property>
+      <addaction name="actionShowTranscripts"/>
+      <addaction name="actionImportTranscripts"/>
+     </widget>
      <addaction name="actionGeneInfo"/>
-     <addaction name="actionPhenoToRoi"/>
      <addaction name="actionConvertHgnc"/>
+     <addaction name="actionGenesToRegions"/>
+     <addaction name="separator"/>
+     <addaction name="actionPhenoToGenes"/>
+     <addaction name="menuPreferred_transcripts"/>
     </widget>
     <addaction name="menuGenes"/>
-    <addaction name="menuPreferred_transcripts_2"/>
     <addaction name="separator"/>
     <addaction name="menuFileInfo"/>
     <addaction name="menuDetermine_gender"/>
@@ -433,7 +435,7 @@
   </action>
   <action name="actionConvertHgnc">
    <property name="text">
-    <string>Convert to HGNC</string>
+    <string>Genes to approved symbols (HGNC)</string>
    </property>
   </action>
   <action name="actionFiltersTrio">
@@ -457,9 +459,14 @@
     <string>Gene info (germline)</string>
    </property>
   </action>
-  <action name="actionPhenoToRoi">
+  <action name="actionPhenoToGenes">
    <property name="text">
-    <string>Phenotypes to genes/regions</string>
+    <string>Phenotypes to genes</string>
+   </property>
+  </action>
+  <action name="actionGenesToRegions">
+   <property name="text">
+    <string>Genes to regions</string>
    </property>
   </action>
  </widget>

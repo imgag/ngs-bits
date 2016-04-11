@@ -1008,30 +1008,89 @@ QStringList NGSD::phenotypes(QStringList terms)
 	}
 	terms = tmp;
 
-	QStringList output;
-	if (terms.isEmpty()) //no terms => report all
+	//no terms => all phenotypes
+	if (terms.isEmpty())
 	{
-		output = getValues("SELECT name FROM hpo_term ORDER BY name ASC");
+		return getValues("SELECT name FROM hpo_term ORDER BY name ASC");
 	}
-	else
+
+	//search for terms (intersect results of all terms)
+	bool first = true;
+	QSet<QString> output;
+	SqlQuery query = getQuery();
+	query.prepare("SELECT name FROM hpo_term WHERE name LIKE :0");
+	foreach(QString t, tmp)
 	{
-		SqlQuery query = getQuery();
-		query.prepare("SELECT name FROM hpo_term WHERE name LIKE :0");
-		foreach(QString t, tmp)
+		query.bindValue(0, "%" + t + "%");
+		query.exec();
+		QSet<QString> tmp2;
+		while(query.next())
 		{
-			query.bindValue(0, "%" + t + "%");
-			query.exec();
-			while(query.next())
-			{
-				output.append(query.value(0).toString());
-			}
+			QString pheno = query.value(0).toString();
+			tmp2.insert(pheno);
 		}
 
-		output.sort();
-		output.removeDuplicates();
+		if (first)
+		{
+			output = tmp2;
+			first = false;
+		}
+		else
+		{
+			output = output.intersect(tmp2);
+		}
 	}
 
-	return output;
+	return output.toList();
+}
+
+QStringList NGSD::phenotypeToGenes(QString phenotype, bool recursive)
+{
+	//prepare queries
+	SqlQuery pid2genes = getQuery();
+	pid2genes.prepare("SELECT gene FROM hpo_genes WHERE hpo_term_id=:0");
+	SqlQuery pid2children = getQuery();
+	pid2children.prepare("SELECT child FROM hpo_parent WHERE parent=:0");
+
+	//convert phenotype to id
+	SqlQuery tmp = getQuery();
+	tmp.prepare("SELECT id FROM hpo_term WHERE name=:0");
+	tmp.bindValue(0, phenotype);
+	tmp.exec();
+	if (!tmp.next()) THROW(ProgrammingException, "Unknown phenotype '" + phenotype + "'!");
+	QList<int> pheno_ids;
+	pheno_ids << tmp.value(0).toInt();
+
+	QStringList genes;
+	while (!pheno_ids.isEmpty())
+	{
+		int id = pheno_ids.last();
+		pheno_ids.removeLast();
+
+		//add genes of current phenotype
+		pid2genes.bindValue(0, id);
+		pid2genes.exec();
+		while(pid2genes.next())
+		{
+			genes << pid2genes.value(0).toString();
+		}
+
+		//add sub-phenotypes
+		if (recursive)
+		{
+			pid2children.bindValue(0, id);
+			pid2children.exec();
+			while(pid2children.next())
+			{
+				pheno_ids << pid2children.value(0).toInt();
+			}
+		}
+	}
+
+	//sort and remove dulicates
+	genes.sort();
+	genes.removeDuplicates();
+	return genes;
 }
 
 QStringList NGSD::genesOverlapping(QByteArray chr, int start, int end, int extend)
