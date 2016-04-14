@@ -28,28 +28,6 @@ public:
 		addInt("cut", "number of bases from the beginning of reads to use as barcodes.", true, 0);
 		addString("out_main","output filename for main fastq.", false);
 		addString("out_index","output filename for index fastq.", true, "index.fastq.gz");
-		addInfile("mip_file","input file for moleculare inversion probes (reads are trimmed to minimum MIP size to avoid readthrough).", true, "");
-	}
-
-	int get_min_mip(QString mip_file)
-	{
-		QFile input_file(mip_file);
-		input_file.open(QIODevice::ReadOnly);
-		QTextStream in(&input_file);
-		QRegExp delimiters("(\\-|\\:|\\/)");
-		int min_mip=std::numeric_limits<int>::max();
-		while (!in.atEnd())
-		{
-			QString line = in.readLine();
-			if (line.startsWith("<")) continue;
-			QStringList splitted_mip_entry=line.split(delimiters);
-			if (splitted_mip_entry.size()<3) continue;
-			int mip_start=splitted_mip_entry[1].toInt();
-			int mip_end=splitted_mip_entry[2].toInt();
-			min_mip=qMin(min_mip,qAbs(mip_start-mip_end));
-		}
-		input_file.close();
-		return min_mip;
 	}
 
 	virtual void main()
@@ -63,10 +41,6 @@ public:
 
 		FastqOutfileStream outstream_main(out_main, false);
 		FastqOutfileStream outsrtream_index(out_index, false);
-
-		QString mip_file=getInfile("mip_file");
-		int min_mip=std::numeric_limits<int>::max();
-		if (mip_file!="") min_mip=get_min_mip(mip_file);
 
 		while (!input_stream.atEnd())//foreach input read
 		{

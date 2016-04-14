@@ -34,8 +34,15 @@ private slots:
 
 	void test_duplicates_regarding_mip_file()
 	{
-		EXECUTE("BamDeduplicateByBarcode", "-bam " + TESTDATA("data_in/BamDeduplicateByBarcode_in4.bam") + " -index " + TESTDATA("data_in/BamDeduplicateByBarcode_index_in4.fastq.gz") + " -mip_file " + TESTDATA("data_in/FastqExtractBarcode_in_mips1.txt") +" -out out/BamDeduplicateByBarcode_out4.bam -mip_count_out out/BamDeduplicateByBarcode_out1.tsv");
-		COMPARE_FILES("out/BamDeduplicateByBarcode_out1.tsv", TESTDATA("data_out/BamDeduplicateByBarcode_out1.tsv"));
+		EXECUTE("BamDeduplicateByBarcode", "-bam " + TESTDATA("data_in/BamDeduplicateByBarcode_in4.bam") + " -index " + TESTDATA("data_in/BamDeduplicateByBarcode_index_in4.fastq.gz") + " -mip_file " + TESTDATA("data_in/FastqExtractBarcode_in_mips1.txt") +" -out out/BamDeduplicateByBarcode_out4.bam -mip_count_out out/BamDeduplicateByBarcode_out4.tsv");
+		COMPARE_FILES("out/BamDeduplicateByBarcode_out4.tsv", TESTDATA("data_out/BamDeduplicateByBarcode_out4.tsv"));
 	}
 
+	void test_duplicates_regarding_mip_file_no_match()
+	{
+		EXECUTE("BamDeduplicateByBarcode", "-bam " + TESTDATA("data_in/BamDeduplicateByBarcode_in4.bam") + " -index " + TESTDATA("data_in/BamDeduplicateByBarcode_index_in4.fastq.gz") + " -test -mip_file " + TESTDATA("data_in/FastqExtractBarcode_in_mips1.txt") +" -out out/BamDeduplicateByBarcode_out5.bam -mip_nomatch_out out/BamDeduplicateByBarcode_no_match_out5.bed -mip_count_out out/BamDeduplicateByBarcode_out5.tsv");
+		EXECUTE("BedSort", "-in out/BamDeduplicateByBarcode_no_match_out5.bed -out out/BamDeduplicateByBarcode_no_match_out5_sorted.bed")
+		COMPARE_FILES("out/BamDeduplicateByBarcode_out5.tsv", TESTDATA("data_out/BamDeduplicateByBarcode_out4.tsv"));
+		COMPARE_FILES("out/BamDeduplicateByBarcode_no_match_out5_sorted.bed", TESTDATA("data_out/BamDeduplicateByBarcode_no_match_out5_sorted.bed"));
+	}
 };
