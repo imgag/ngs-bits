@@ -6,13 +6,13 @@
 There are no binary releases yet.  
 Please use git to download the most recent development version:
 
-    git clone --recursive https://github.com/marc-sturm/ngs-bits.git
+    git clone --recursive https://github.com/imgag/ngs-bits.git
 
 ### Resolving proxy issues with git
 
 If you are behind a proxy that block the standard git port, you see something like this:
 
-    $ git clone --recursive https://github.com/marc-sturm/ngs-bits.git
+    $ git clone --recursive https://github.com/imgag/ngs-bits.git
     Cloning into 'ngs-bits'...
     fatal: Unable to look up github.com (port 9418) (Name or service not known)
 
@@ -108,6 +108,7 @@ _ngs-bits_ contains a lot of tools that we use for NGS short-read data analysis 
 * [VcfLeftAlign](doc/tools/VcfLeftAlign.md) - Left-aligns indel variants in repeat regions.
 * [VcfSort](doc/tools/VcfSort.md) - Sorts variant lists according to chromosomal position.
   
+
 
 
 

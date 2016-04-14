@@ -6,14 +6,16 @@ libs:
 GSvar:
 - implement variant details dock widget (like sophia-genetics), show inheritance/comments from geneinfo_germline
 * Add genes to regions dialog
-* Gene info table: Inititialize from OMIM, if parsing of inheritance is available
+* Gene info table:
+  - Use in report
+  - Inititialize from OMIM, if parsing of inheritance is available
 
 Tools:
+* BedLowCoverage: Take region names from input region.
 - MappingQC:
   - add %soft/hard-clipped quality parameter (see ssPWBRCA_v2)
   * support RNA: insert size, spike-in controls, mapping ribosomes/globulines, etc.
 - SeqPurge:
-  * test error correction on amplicon test data (%SVN error, variants)
   - use mutexes only if running in multi-thread mode (check if this speeds up processing)
   * avoid overtrimming of 10-1 bases at read ends - allow 2-3 errors
   - low-quality trimming before adapter trimming? use single-base instead of sliding window?
@@ -23,7 +25,7 @@ Tools:
 CnvHunter:
  * output ref samples header: print ref correlation and ref sample list (without single sample correlation)
  * instead of fixed 'n', use n>=10 and n<=30 with lowest number of CNVs or lowest z-score stdev?
- * calculate Z-score cutoff for each sample instead of fixed Z-score
+ * calculate Z-score cutoff for each sample instead of fixed Z-score (or normalize z-scores to mean 0 and stdev 1)
  - do not use bad regions for sample correlation calculation - remove bad regions after writing regions file...
  - do not exclude extreme outliers from reference sample calculation - we use median/mad
  - why "data[s].ref.append(exon_median);" - always use median/mad!?
@@ -32,3 +34,4 @@ CnvHunter:
  - integrate CNV databases:
    - http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/
    - https://decipher.sanger.ac.uk/disorders#syndromes/overview
+   - http://www.ncbi.nlm.nih.gov/dbvar
