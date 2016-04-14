@@ -17,6 +17,8 @@ class PhenotypeSelector
 public:
 	explicit PhenotypeSelector(QWidget *parent = 0);
 	~PhenotypeSelector();
+	///Initializes the widget with all phenotypes
+	void init();
 
 signals:
 	QString phenotypeSelected(QString);

@@ -13,7 +13,6 @@
 #include <QCoreApplication>
 #include <QXmlStreamWriter>
 #include "XmlHelper.h"
-#include "NGSD.h"
 
 ReportWorker::ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QVector< QPair<int, bool> >& variants_selected, QMap<QString, QString> preferred_transcripts, QString outcome, QString file_roi, QString file_bam, int min_cov, bool var_details, QStringList log_files, QString file_rep)
 	: WorkerBase("Report generation")
@@ -32,6 +31,7 @@ ReportWorker::ReportWorker(QString sample_name, QMap<QString, QString> filters, 
 	, file_rep_(file_rep)
 	, roi_()
 	, var_count_(variants_.count())
+	, db_()
 {
 }
 
@@ -126,7 +126,17 @@ QString ReportWorker::formatCodingSplicing(QByteArray text)
 	return transcripts.join(", ");
 }
 
-BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, const BedFile& roi, QStringList genes, int min_cov)
+QString ReportWorker::inheritance(QString gene)
+{
+	QString inheritance = db_.geneInfo(gene).inheritance;
+	if (inheritance=="n/a")
+	{
+		return "<span style=\"background-color: #FF0000\">n/a</span>";
+	}
+	return inheritance;
+}
+
+BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, const BedFile& roi, QStringList genes, int min_cov,  NGSD& db)
 {
 	//get statistics values
 	QString avg_cov = "";
@@ -145,7 +155,6 @@ BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file,
 	BedFile low_cov = Statistics::lowCoverage(roi, bam_file, min_cov);
 
 	//annotate low-coverage regions with gene names
-	NGSD db;
 	for(int i=0; i<low_cov.count(); ++i)
 	{
 		BedLine& line = low_cov[i];
@@ -280,9 +289,9 @@ void ReportWorker::writeHTML()
 	writeHtmlHeader(stream, sample_name_);
 
 	stream << "<h4>Technischer Report zur bioinformatischen Analyse</h4>" << endl;
-	stream << "<p><b>Probe: " << sample_name_ << "</b> (" << NGSD().getExternalSampleName(sample_name_) << ")" << endl;
-	stream << "<br />Prozessierungssystem: " << NGSD().getProcessingSystem(sample_name_, NGSD::LONG) << endl;
-	stream << "<br />Genom-Build: " << NGSD().getGenomeBuild(sample_name_) << endl;
+	stream << "<p><b>Probe: " << sample_name_ << "</b> (" << db_.getExternalSampleName(sample_name_) << ")" << endl;
+	stream << "<br />Prozessierungssystem: " << db_.getProcessingSystem(sample_name_, NGSD::LONG) << endl;
+	stream << "<br />Genom-Build: " << db_.getGenomeBuild(sample_name_) << endl;
 	stream << "<br />Datum: " << QDate::currentDate().toString("dd.MM.yyyy") << endl;
 	stream << "<br />User: " << Helper::userName() << endl;
 	stream << "<br />Analysesoftware: "  << QCoreApplication::applicationName() << " " << QCoreApplication::applicationVersion() << endl;
@@ -336,7 +345,8 @@ void ReportWorker::writeHTML()
 			if (!variants_selected_[i].second) continue;
 			const Variant& v = variants_[variants_selected_[i].first];
 			stream << "<table>" << endl;
-			stream << "<tr><td><b>Variante:</b> " << v.chr().str() << ":" << v.start() << "-" << v.end() << " " << v.ref() << ">" << v.obs() << " <b>Gen:</b> " << v.annotations()[i_gene] << " <b>Typ:</b> " << v.annotations()[i_type] << " <b>Klassifikation: </b>" << v.annotations()[i_class] << " <b>Vererbung:</b> </td></tr>" << endl;
+			QByteArray gene = v.annotations()[i_gene];
+			stream << "<tr><td><b>Variante:</b> " << v.chr().str() << ":" << v.start() << "-" << v.end() << " " << v.ref() << ">" << v.obs() << " <b>Gen:</b> " << gene << " <b>Typ:</b> " << v.annotations()[i_type] << " <b>Klassifikation: </b>" << v.annotations()[i_class] << " <b>Vererbung:</b>" << inheritance(gene) << "</td></tr>" << endl;
 			stream << "<tr><td><b>Details:</b> " << formatCodingSplicing(v.annotations()[i_co_sp]) << "</td></tr>" << endl;
 			QString dbsnp = v.annotations()[i_dbsnp]; //because string is const
 			stream << "<tr><td><b>Frequenz:</b> <b>1000g:</b> " << v.annotations()[i_1000g] << " <b>ExAC:</b> " << v.annotations()[i_exac] << " <b>ESP6500:</b> " << v.annotations()[i_esp] << " <b>dbSNP:</b> " << dbsnp.replace("[];", "") << "</td></tr>" << endl;
@@ -356,14 +366,15 @@ void ReportWorker::writeHTML()
 	for (int i=0; i<variants_selected_.count(); ++i)
 	{
 		const Variant& variant = variants_[variants_selected_[i].first];
+		QByteArray gene = variant.annotations()[i_gene];
 		stream << "<tr>" << endl;
-		stream << "<td>" << variant.annotations().at(i_gene) << "</td>" << endl;
+		stream << "<td>" << gene << "</td>" << endl;
 		stream << "<td>" << endl;
 		stream  << variant.chr().str() << "</td><td>" << variant.start() << "</td><td>" << variant.end() << "</td><td>" << variant.ref() << "</td><td>" << variant.obs() << "</td>";
 		stream << "<td>" << (tumor ? variant.annotations().at(i_tumor_af) : variant.annotations().at(i_genotype)) << "</td>" << endl;
 		stream << "<td>" << formatCodingSplicing(variant.annotations().at(i_co_sp)).replace(", ", "<br />") << "</td>" << endl;
 		stream << "<td>" << variant.annotations().at(i_class) << "</td>" << endl;
-		stream << "<td></td>" << endl;
+		stream << "<td>" << inheritance(gene) << "</td>" << endl;
 		stream << "</tr>" << endl;
 
 		//OMIM and comment line
@@ -429,7 +440,7 @@ void ReportWorker::writeHTML()
 	///low-coverage analysis
 	if (file_bam_!="")
 	{
-		BedFile low_cov = writeCoverageReport(stream, file_bam_, roi_, genes_, min_cov_);
+		BedFile low_cov = writeCoverageReport(stream, file_bam_, roi_, genes_, min_cov_, db_);
 
 		//additionally store low-coverage BED file
 		low_cov.store(QString(file_rep_).replace(".html", "_lowcov.bed"));
@@ -596,7 +607,7 @@ void ReportWorker::writeXML()
 	//element Sample
 	w.writeStartElement("Sample");
 	w.writeAttribute("name", sample_name_);
-	w.writeAttribute("name_external", NGSD().getExternalSampleName(sample_name_));
+	w.writeAttribute("name_external", db_.getExternalSampleName(sample_name_));
 	w.writeEndElement();
 
 	//element TargetRegion (optional)

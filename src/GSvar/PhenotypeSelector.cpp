@@ -12,13 +12,16 @@ PhenotypeSelector::PhenotypeSelector(QWidget *parent)
 	connect(ui->search, SIGNAL(textChanged(QString)), this, SLOT(search(QString)));
 	connect(ui->list, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(itemDoubleClicked(QListWidgetItem*)));
 	connect(ui->list, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(listContextMenu(QPoint)));
-	//init search
-	search("");
 }
 
 PhenotypeSelector::~PhenotypeSelector()
 {
 	delete ui;
+}
+
+void PhenotypeSelector::init()
+{
+	search("");
 }
 
 void PhenotypeSelector::search(QString text)

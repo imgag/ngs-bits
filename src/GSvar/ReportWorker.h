@@ -6,6 +6,7 @@
 #include <QTextStream>
 #include "VariantList.h"
 #include "WorkerBase.h"
+#include "NGSD.h"
 
 ///Report generation worker.
 class ReportWorker
@@ -25,7 +26,7 @@ public:
 	}
 
 	///writes a low-coverage report
-	static BedFile writeCoverageReport(QTextStream& stream, QString bam_file, const BedFile& roi, QStringList genes, int min_cov);
+	static BedFile writeCoverageReport(QTextStream& stream, QString bam_file, const BedFile& roi, QStringList genes, int min_cov, NGSD& db);
 
 	static void writeHtmlHeader(QTextStream& stream, QString sample_name);
 	static void writeHtmlFooter(QTextStream& stream);
@@ -53,8 +54,12 @@ private:
 	BedFile roi_;
 	int var_count_;
 
+	//NGSD access
+	NGSD db_;
+
 	QString filterToGermanText(QString name, QString value);
 	QString formatCodingSplicing(QByteArray text);
+	QString inheritance(QString gene);
 	int annotationIndexOrException(const QString& name, bool exact_match) const;
 	void writeHTML();
 	void writeXML();

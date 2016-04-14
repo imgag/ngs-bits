@@ -127,9 +127,10 @@
      </widget>
      <addaction name="actionGeneInfo"/>
      <addaction name="actionConvertHgnc"/>
-     <addaction name="actionGenesToRegions"/>
      <addaction name="separator"/>
      <addaction name="actionPhenoToGenes"/>
+     <addaction name="actionGenesToRegions"/>
+     <addaction name="separator"/>
      <addaction name="menuPreferred_transcripts"/>
     </widget>
     <addaction name="menuGenes"/>
@@ -461,12 +462,12 @@
   </action>
   <action name="actionPhenoToGenes">
    <property name="text">
-    <string>Phenotypes to genes</string>
+    <string>Phenotypes &gt; genes</string>
    </property>
   </action>
   <action name="actionGenesToRegions">
    <property name="text">
-    <string>Genes to regions</string>
+    <string>Genes &gt; regions</string>
    </property>
   </action>
  </widget>

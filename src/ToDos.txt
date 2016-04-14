@@ -6,9 +6,7 @@ libs:
 GSvar:
 - implement variant details dock widget (like sophia-genetics), show inheritance/comments from geneinfo_germline
 * Add genes to regions dialog
-* Gene info table:
-  - Use in report
-  - Inititialize from OMIM, if parsing of inheritance is available
+* Gene info table: Inititialize from OMIM, if parsing of inheritance is available
 
 Tools:
 * BedLowCoverage: Take region names from input region.

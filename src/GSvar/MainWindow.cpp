@@ -568,7 +568,8 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	QTextStream stream(&output);
 	QString sample_name = QFileInfo(bam_file).fileName().replace(".bam", "");
 	ReportWorker::writeHtmlHeader(stream, sample_name);
-	ReportWorker::writeCoverageReport(stream, bam_file, roi, genes, min_cov);
+	NGSD db;
+	ReportWorker::writeCoverageReport(stream, bam_file, roi, genes, min_cov, db);
 	ReportWorker::writeHtmlFooter(stream);
 	QApplication::restoreOverrideCursor();
 
