@@ -171,7 +171,7 @@ private:
 		}
 		else
 		{
-			for(unsigned int i=original_cigar_ops.size()-1; i>=0; --i)
+			for(int i=original_cigar_ops.size()-1; i>0; --i)
 			{
 				CigarOp co = original_cigar_ops[i];
 				if ((co.Type=='M')||(co.Type=='=')||(co.Type=='X')||(co.Type=='I')||(co.Type=='S'))
@@ -253,8 +253,10 @@ public:
 		addInfile("index", "Index FASTQ file.", false);
 		addOutfile("out", "Output BAM file.", false);
 		addFlag("flag", "flag duplicate reads insteadt of deleting them");
-		addInfile("mip_file","input file for moleculare inversion probes (reads are trimmed to minimum MIP size to avoid readthrough).", true, "");
+		addFlag("test", "adjust output for testing purposes");
+		addInfile("mip_file","input file for moleculare inversion probes (reads are filtered and cut to match only MIP inserts).", true, "");
 		addOutfile("mip_count_out","Output TSV file for counts of given mips).", true, "");
+		addOutfile("mip_nomatch_out","Output Bed file for reads not matching any mips).", true, "");
 	}
 
 	virtual void main()
@@ -267,7 +269,9 @@ public:
 		QHash <grouping, readPair > read_groups;
 		writer.Open(getOutfile("out").toStdString(), reader.GetConstSamHeader(), reader.GetReferenceData());
 		QString mip_count_out=getOutfile("mip_count_out");
+		QString mip_nomatch_out=getOutfile("mip_nomatch_out");
 		QString mip_file= getInfile("mip_file");
+		bool test =getFlag("test");
 		BamAlignment al;
 		QHash<QString, BamAlignment> al_map;
 		int counter = 1;
@@ -278,6 +282,14 @@ public:
 		bool chrom_change=false;
 
 		QMap <position,mip_info> mip_info_map= createMipInfoMap(mip_file);
+
+		QTextStream nomatch_out_stream;
+		QFile nomatch_out(mip_nomatch_out);
+		if (mip_nomatch_out!="")
+		{
+			nomatch_out.open(QIODevice::WriteOnly);
+			nomatch_out_stream.setDevice(&nomatch_out);
+		}
 
 		while (reader.GetNextAlignment(al))
 		{
@@ -303,6 +315,21 @@ public:
 								i.value()=cutArmsPair(i.value(),mip_info_map[act_position].left_arm,mip_info_map[act_position].right_arm);
 								writer.SaveAlignment(i.value().first);
 								writer.SaveAlignment(i.value().second);
+							}
+							else if (mip_nomatch_out!="")//write reads not matching a mip to a bed file
+							{
+								//adjust values of unmapped to be valid bed file coordinates
+								if (act_position.start_pos <0) act_position.start_pos=0;
+								if (act_position.end_pos <0) act_position.end_pos=1;
+								if (test)
+								{
+									//omit readname
+									nomatch_out_stream << act_position.chr <<"\t" << act_position.start_pos<< "\t" << act_position.end_pos <<"\t"<<"\t" <<endl;
+								}
+								else
+								{
+									nomatch_out_stream << act_position.chr <<"\t" << act_position.start_pos<< "\t" << act_position.end_pos <<"\t" << QString::fromStdString(i.value().first.Name) <<"\t" <<endl;
+								}
 							}
 						}
 						else
@@ -379,6 +406,10 @@ public:
 
 
 		//done
+		if (mip_nomatch_out!="")
+		{
+			nomatch_out.close();
+		}
 		reader.Close();
 		writer.Close();
 		if ((mip_file!="")&&(mip_count_out!="")) writeMipInfoMap(mip_info_map,mip_count_out);

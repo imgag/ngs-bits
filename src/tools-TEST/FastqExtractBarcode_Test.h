@@ -21,7 +21,6 @@ private slots:
 
 	void test_03()
 	{
-		EXECUTE( "FastqExtractBarcode", "-in " + TESTDATA("data_in/FastqExtractBarcode_in2.fastq.gz") + " -cut 10 -mip_file " + TESTDATA("data_in/FastqExtractBarcode_in_mips1.txt") + " -out_index out/FastqExtractBarcode_out3.fastq.gz" + " -out_main out/FastqExtractBarcode_out4.fastq.gz");
-		//TODO: Test after implementing cut to minimal mip
+		EXECUTE( "FastqExtractBarcode", "-in " + TESTDATA("data_in/FastqExtractBarcode_in2.fastq.gz") + " -cut 10 -out_index out/FastqExtractBarcode_out3.fastq.gz" + " -out_main out/FastqExtractBarcode_out4.fastq.gz");
 	}
 };
