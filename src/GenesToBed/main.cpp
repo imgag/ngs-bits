@@ -44,7 +44,8 @@ public:
 
 		//process
 		NGSD db(getFlag("test"));
-		BedFile output = db.genesToRegions(genes, source, mode, true);
+		QTextStream messages(stderr);
+		BedFile output = db.genesToRegions(genes, source, mode, &messages);
 
 		//store
 		output.store(getOutfile("out"));

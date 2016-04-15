@@ -34,6 +34,7 @@
 #include "ApprovedGenesDialog.h"
 #include "GeneInfoDialog.h"
 #include "PhenoToGenesDialog.h"
+#include "GenesToRegionsDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -747,7 +748,8 @@ void MainWindow::on_actionPhenoToGenes_triggered()
 
 void MainWindow::on_actionGenesToRegions_triggered()
 {
-	//TODO
+	GenesToRegionsDialog dlg(this);
+	dlg.exec();
 }
 
 void MainWindow::on_actionCopy_triggered()

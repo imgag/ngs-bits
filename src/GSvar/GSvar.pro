@@ -22,7 +22,8 @@ SOURCES += main.cpp\
     ApprovedGenesDialog.cpp \
     GeneInfoDialog.cpp \
     PhenoToGenesDialog.cpp \
-    PhenotypeSelector.cpp
+    PhenotypeSelector.cpp \
+    GenesToRegionsDialog.cpp
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
@@ -39,7 +40,8 @@ HEADERS  += MainWindow.h \
     ApprovedGenesDialog.h \
     GeneInfoDialog.h \
     PhenoToGenesDialog.h \
-    PhenotypeSelector.h
+    PhenotypeSelector.h \
+    GenesToRegionsDialog.h
 
 
 FORMS    += MainWindow.ui \
@@ -54,7 +56,8 @@ FORMS    += MainWindow.ui \
     ApprovedGenesDialog.ui \
     GeneInfoDialog.ui \
     PhenoToGenesDialog.ui \
-    PhenotypeSelector.ui
+    PhenotypeSelector.ui \
+    GenesToRegionsDialog.ui
     
 
 include("../app_gui.pri")

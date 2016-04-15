@@ -56,7 +56,8 @@ public:
 		foreach(QString gene, genes)
 		{
 			//create gene-specific regions
-			BedFile reg_gene = db.genesToRegions(QStringList() << gene, getEnum("source"), "exon", true);
+			QTextStream messages(stderr);
+			BedFile reg_gene = db.genesToRegions(QStringList() << gene, getEnum("source"), "exon", &messages);
 			reg_gene.merge();
 
 			//append output line

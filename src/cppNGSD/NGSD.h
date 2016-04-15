@@ -5,6 +5,7 @@
 #include <QVariant>
 #include <QVariantList>
 #include <QSharedPointer>
+#include <QTextStream>
 #include "VariantList.h"
 #include "BedFile.h"
 #include "QCCollection.h"
@@ -77,8 +78,8 @@ public:
 	QStringList synonymousSymbols(QString symbol);
 	///Returns the genes overlapping a regions (extended by some bases)
 	QStringList genesOverlapping(QByteArray chr, int start, int end, int extend=0);
-	///Returns the chromosomal regions corrsponding to the given genes.
-	BedFile genesToRegions(QStringList genes, QString source, QString mode, bool messages=false);
+	///Returns the chromosomal regions corrsponding to the given genes. Messages about unknown gene symbols etc. are written to the steam, if given.
+	BedFile genesToRegions(QStringList genes, QString source, QString mode, QTextStream* messages = nullptr);
 
 	/*** phenotype handling (HPO) ***/
 	///Returns the phenotypes of a gene

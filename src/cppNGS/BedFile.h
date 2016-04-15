@@ -145,7 +145,9 @@ public:
     ///Loads a 0-based BED file and converts it to 1-based positions. Throws ParseException.
     void load(QString filename);
 	///Stores this 1-based representation to a BED file with 0-based coordinates. If no filename is given, the output goes to the console. Throws ParseException and FileException.
-    void store(QString filename, QString header="");
+	void store(QString filename, QString header="") const;
+	///Convert this 1-based representation to a BED-like text. Throws ParseException and FileException.
+	QString toText() const;
 
     ///Removes all content.
     void clear()

@@ -436,7 +436,7 @@
   </action>
   <action name="actionConvertHgnc">
    <property name="text">
-    <string>Genes to approved symbols (HGNC)</string>
+    <string>Genes &gt; Approved symbols (HGNC)</string>
    </property>
   </action>
   <action name="actionFiltersTrio">
@@ -462,12 +462,12 @@
   </action>
   <action name="actionPhenoToGenes">
    <property name="text">
-    <string>Phenotypes &gt; genes</string>
+    <string>Phenotypes &gt; Genes</string>
    </property>
   </action>
   <action name="actionGenesToRegions">
    <property name="text">
-    <string>Genes &gt; regions</string>
+    <string>Genes &gt; Regions</string>
    </property>
   </action>
  </widget>

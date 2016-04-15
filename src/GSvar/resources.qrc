@@ -22,5 +22,7 @@
         <file>Icons/Keep_gray.png</file>
         <file>Icons/Remove_gray.png</file>
         <file>Icons/Filter_gray.png</file>
+        <file>Icons/CopyClipboard.png</file>
+        <file>Icons/CopyFile.png</file>
     </qresource>
 </RCC>

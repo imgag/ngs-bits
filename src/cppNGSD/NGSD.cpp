@@ -1112,7 +1112,7 @@ QStringList NGSD::genesOverlapping(QByteArray chr, int start, int end, int exten
 	return genes;
 }
 
-BedFile NGSD::genesToRegions(QStringList genes, QString source, QString mode, bool messages)
+BedFile NGSD::genesToRegions(QStringList genes, QString source, QString mode, QTextStream* messages)
 {
 	//check mode
 	QStringList valid_modes;
@@ -1125,7 +1125,6 @@ BedFile NGSD::genesToRegions(QStringList genes, QString source, QString mode, bo
 
 	//init
 	BedFile output;
-	QTextStream stream(stderr);
 
 	//prepare queries
 	SqlQuery q_transcript = getQuery();
@@ -1141,7 +1140,7 @@ BedFile NGSD::genesToRegions(QStringList genes, QString source, QString mode, bo
 		int id = geneToApprovedID(gene.toUtf8());
 		if (id==-1)
 		{
-			if (messages) stream << "Gene name '" << gene << "' is no HGNC-approved symbol. Skipping it!" << endl;
+			if (messages) *messages << "Gene name '" << gene << "' is no HGNC-approved symbol. Skipping it!" << endl;
 			continue;
 		}
 
@@ -1167,7 +1166,7 @@ BedFile NGSD::genesToRegions(QStringList genes, QString source, QString mode, bo
 
 			if (start_coding>end_coding)
 			{
-				if (messages) stream << "No coding transcripts found for gene name '" << gene << "'. Skipping it!" << endl;
+				if (messages) *messages << "No coding transcripts found for gene name '" << gene << "'. Skipping it!" << endl;
 			}
 			else
 			{
@@ -1198,7 +1197,7 @@ BedFile NGSD::genesToRegions(QStringList genes, QString source, QString mode, bo
 			}
 			if (line_count==0)
 			{
-				if (messages) stream << "No coding exons found for gene name '" << gene << "'. Skipping it!" << endl;
+				if (messages) *messages << "No coding exons found for gene name '" << gene << "'. Skipping it!" << endl;
 				continue;
 			}
 		}

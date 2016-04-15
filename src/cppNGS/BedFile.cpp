@@ -112,7 +112,7 @@ void BedFile::load(QString filename)
 	}
 }
 
-void BedFile::store(QString filename, QString header)
+void BedFile::store(QString filename, QString header) const
 {
 	//write to stream
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, true);
@@ -129,6 +129,23 @@ void BedFile::store(QString filename, QString header)
 		}
 		stream << "\n";
 	}
+}
+
+QString BedFile::toText() const
+{
+	QString output;
+
+	foreach(const BedLine& line, lines_)
+	{
+		output.append(line.chr().str() + "\t" + QString::number(line.start()-1) + "\t" + QString::number(line.end()));
+		if (line.annotations().count()!=0)
+		{
+			output.append("\t" + line.annotations().join("\t"));
+		}
+		output.append("\n");
+	}
+
+	return output;
 }
 
 void BedFile::clearAnnotations()

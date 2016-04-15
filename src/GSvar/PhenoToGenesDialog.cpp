@@ -1,6 +1,9 @@
 #include "PhenoToGenesDialog.h"
+#include "Helper.h"
 #include "ui_PhenoToGenesDialog.h"
 #include <QDebug>
+#include <QClipboard>
+#include <QFileDialog>
 
 PhenoToGenesDialog::PhenoToGenesDialog(QWidget *parent) :
 	QDialog(parent),
@@ -10,6 +13,9 @@ PhenoToGenesDialog::PhenoToGenesDialog(QWidget *parent) :
 	connect(ui->pheno_sel, SIGNAL(phenotypeSelected(QString)), this, SLOT(copyPhenotype(QString)));
 	connect(ui->pheno, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(deletePhenotype(QListWidgetItem*)));
 	connect(ui->tabs, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
+
+	connect(ui->clip_btn, SIGNAL(pressed()), this, SLOT(copyGenesToClipboard()));
+	connect(ui->store_btn, SIGNAL(pressed()), this, SLOT(storeGenesAsTSV()));
 }
 
 PhenoToGenesDialog::~PhenoToGenesDialog()
@@ -31,6 +37,20 @@ void PhenoToGenesDialog::copyPhenotype(QString phenotype)
 void PhenoToGenesDialog::deletePhenotype(QListWidgetItem* item)
 {
 	ui->pheno->takeItem(ui->pheno->row(item));
+}
+
+void PhenoToGenesDialog::copyGenesToClipboard()
+{
+	QApplication::clipboard()->setText(ui->genes->toPlainText());
+}
+
+void PhenoToGenesDialog::storeGenesAsTSV()
+{
+	QString filename = QFileDialog::getSaveFileName(this, "Store genes as TSV file", "", "TSV files (*.tsv);;TXT files (*.txt);;All files (*.*)");
+	if (filename.isEmpty()) return;
+
+	auto file_prt = Helper::openFileForWriting(filename);
+	file_prt->write(ui->genes->toPlainText().toLatin1());
 }
 
 void PhenoToGenesDialog::tabChanged(int num)
@@ -59,4 +79,8 @@ void PhenoToGenesDialog::tabChanged(int num)
 			++it;
 		}
 	}
+
+	//update buttons
+	ui->clip_btn->setEnabled(num==1);
+	ui->store_btn->setEnabled(num==1);
 }
