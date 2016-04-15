@@ -1284,7 +1284,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 			QString url = NGSD().url(filename_, variants_[item->row()]);
 			QDesktopServices::openUrl(QUrl(url));
 		}
-		catch (DatabaseException e)
+		catch (DatabaseException& e)
 		{
 			GUIHelper::showMessage("NGSD error", "The variant database ID could not be determined!\nDoes the file name '"  + filename_ + "' start with the prcessed sample ID?\nError message: " + e.message());
 			return;
@@ -1298,50 +1298,49 @@ void MainWindow::varsContextMenu(QPoint pos)
 	}
 	else if (text=="Set validation status")
 	{
-		ValidationDialog dlg(this, filename_, variants_[item->row()], variants_.annotationIndexByName("quality", true, true));
-
-		if (dlg.exec())
+		try
 		{
-			//update DB
-			try
+			ValidationDialog dlg(this, filename_, variants_[item->row()], variants_.annotationIndexByName("quality", true, true));
+
+			if (dlg.exec()) //update DB
 			{
 				NGSD().setValidationStatus(filename_, variants_[item->row()], dlg.status(), dlg.comment());
-			}
-			catch (DatabaseException e)
-			{
-				GUIHelper::showMessage("NGSD error", e.message());
-				return;
-			}
 
-			//update GUI
-			QByteArray status = dlg.status().toLatin1();
-			if (status=="true positive") status = "TP";
-			if (status=="false positive") status = "FP";
-			variants_[item->row()].annotations()[variants_.annotationIndexByName("validated", true, true)] = status;
-			variantListChanged();
+				//update GUI
+				QByteArray status = dlg.status().toLatin1();
+				if (status=="true positive") status = "TP";
+				if (status=="false positive") status = "FP";
+				variants_[item->row()].annotations()[variants_.annotationIndexByName("validated", true, true)] = status;
+				variantListChanged();
+			}
+		}
+		catch (DatabaseException& e)
+		{
+			GUIHelper::showMessage("NGSD error", e.message());
+			return;
 		}
 	}
 	else if (text=="Set classification")
 	{
-		//update DB
-		ClassificationDialog dlg(this, variants_[item->row()]);
-
-		if (dlg.exec())
+		try
 		{
-			try
-			{
-				NGSD().setClassification(variants_[item->row()], dlg.classification(), dlg.comment());
-			}
-			catch (DatabaseException e)
-			{
-				GUIHelper::showMessage("NGSD error", e.message());
-				return;
-			}
+			ClassificationDialog dlg(this, variants_[item->row()]);
 
-			//update GUI
-			variants_[item->row()].annotations()[variants_.annotationIndexByName("classification", true, true)] = dlg.classification().replace("n/a", "").toLatin1();
-			variants_[item->row()].annotations()[variants_.annotationIndexByName("classification_comment", true, true)] = dlg.comment().toLatin1();
-			variantListChanged();
+			if (dlg.exec())
+			{
+				//update DB
+					NGSD().setClassification(variants_[item->row()], dlg.classification(), dlg.comment());
+
+				//update GUI
+				variants_[item->row()].annotations()[variants_.annotationIndexByName("classification", true, true)] = dlg.classification().replace("n/a", "").toLatin1();
+				variants_[item->row()].annotations()[variants_.annotationIndexByName("classification_comment", true, true)] = dlg.comment().toLatin1();
+				variantListChanged();
+			}
+		}
+		catch (DatabaseException& e)
+		{
+			GUIHelper::showMessage("NGSD error", e.message());
+			return;
 		}
 	}
 	else if (text=="Edit comment")
@@ -1372,7 +1371,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 				}
 			}
 		}
-		catch (DatabaseException e)
+		catch (DatabaseException& e)
 		{
 			GUIHelper::showMessage("NGSD error", e.message());
 			return;

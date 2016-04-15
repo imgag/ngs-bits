@@ -4,9 +4,7 @@ libs:
 - test cppNGSD (include in libs)
 
 GSvar:
-* ChangeLog
 - implement variant details dock widget (like sophia-genetics), show inheritance/comments from geneinfo_germline
-* Fix: crash when classifying variants that are not in NGSD (also check other DB actions).
 * Gene info table: Inititialize from OMIM, if parsing of inheritance is available
 
 Tools:
