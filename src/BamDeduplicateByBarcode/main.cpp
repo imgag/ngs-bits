@@ -171,7 +171,7 @@ private:
 		}
 		else
 		{
-			for(int i=original_cigar_ops.size()-1; i>0; --i)
+			for(int i=original_cigar_ops.size()-1; i>=0; --i)
 			{
 				CigarOp co = original_cigar_ops[i];
 				if ((co.Type=='M')||(co.Type=='=')||(co.Type=='X')||(co.Type=='I')||(co.Type=='S'))
@@ -423,3 +423,4 @@ int main(int argc, char *argv[])
 	ConcreteTool tool(argc, argv);
 	return tool.execute();
 }
+
