@@ -59,6 +59,12 @@ struct mip_info
 	position right_arm;
 };
 
+struct most_frequent_read_selection
+{
+	readPair read_to_keep;
+	QList <readPair> reads_to_remove;
+};
+
 inline uint qHash(const position &pos1)
 {
 	return qHash(QString::number(pos1.start_pos) + QString::number(pos1.end_pos) + pos1.chr);
@@ -203,6 +209,38 @@ private:
 		return cigar_ops_out;//TODO: Raise error?
 	}
 
+	most_frequent_read_selection find_highest_freq_read(QList <readPair> readpairs)
+	{
+		//setup seq_count
+		QHash <QString, QList <readPair > > readpair_seq_count;
+
+		foreach(readPair readpair, readpairs)
+		{
+			readpair_seq_count[QString::fromStdString(readpair.first.QueryBases+"+"+readpair.second.QueryBases)].append(readpair);
+		}
+
+		//find highest count
+		int max_read_count=0;
+		QString max_seq;
+		foreach(QString seq,readpair_seq_count.keys())
+		{
+			if ((readpair_seq_count[seq].size())>max_read_count)
+			{
+				max_read_count=readpair_seq_count[seq].size();
+				max_seq=seq;
+			}
+		}
+		most_frequent_read_selection result;
+		result.read_to_keep=readpair_seq_count[max_seq].takeLast();
+
+		//collect duplicates
+		foreach (QList <readPair> read_pairs,readpair_seq_count.values())
+		{
+			result.reads_to_remove.append(read_pairs);
+		}
+		return result;
+	}
+
 	BamAlignment cutArmsSingle(BamAlignment original_alignment, position left_arm, position right_arm)
 	{
 		//cut on right side
@@ -240,6 +278,32 @@ private:
 		return original_alignments;
 	}
 
+	void writeReadsToBed(QTextStream &out_stream, position act_position, QString read_name, bool test)
+	{
+		//adjust values of unmapped to be valid bed file coordinates
+		if ((act_position.chr<1)||(act_position.start_pos <0)||(act_position.start_pos <0))
+		{
+			act_position.chr=0;
+			act_position.start_pos=0;
+			act_position.end_pos=1;
+		}
+		if (test)
+		{
+			//omit readname
+			out_stream << act_position.chr <<"\t" << act_position.start_pos<< "\t" << act_position.end_pos <<"\t"<<"\t" <<endl;
+		}
+		else
+		{
+			out_stream << act_position.chr <<"\t" << act_position.start_pos<< "\t" << act_position.end_pos <<"\t" << read_name <<endl;
+		}
+	}
+
+	void writePairToBam(BamTools::BamWriter &writer, readPair read_pair)
+	{
+		writer.SaveAlignment(read_pair.first);
+		writer.SaveAlignment(read_pair.second);
+	}
+
 public:
 	ConcreteTool(int& argc, char *argv[])
 		: ToolBase(argc, argv)
@@ -266,7 +330,7 @@ public:
 		BamReader reader;
 		NGSHelper::openBAM(reader, getInfile("bam"));
 		BamWriter writer;
-		QHash <grouping, readPair > read_groups;
+		QHash <grouping, QList<readPair> > read_groups;
 		writer.Open(getOutfile("out").toStdString(), reader.GetConstSamHeader(), reader.GetReferenceData());
 		QString mip_count_out=getOutfile("mip_count_out");
 		QString mip_nomatch_out=getOutfile("mip_nomatch_out");
@@ -295,8 +359,8 @@ public:
 		{
 			if (((counter%10000)==0)||((chrom_change)&&(last_ref!=-1)))//reset read_groups hash after every 10000th reads to reduce memory requirements
 			{
-				QHash <grouping, readPair > read_groups_new;
-				QHash <grouping, readPair >::iterator i;
+				QHash <grouping, QList<readPair> > read_groups_new;
+				QHash <grouping, QList<readPair> >::iterator i;
 				for (i = read_groups.begin(); i != read_groups.end(); ++i)
 				{
 					/*make sure that no duplicate is missed because read_groups hash reset
@@ -312,35 +376,22 @@ public:
 							if (mip_info_map.contains(act_position))//trim and count reads that can be matched to mips
 							{
 								mip_info_map[act_position].counter++;
-								i.value()=cutArmsPair(i.value(),mip_info_map[act_position].left_arm,mip_info_map[act_position].right_arm);
-								writer.SaveAlignment(i.value().first);
-								writer.SaveAlignment(i.value().second);
+								readPair cutted_last_value=cutArmsPair(i.value().last(),mip_info_map[act_position].left_arm,mip_info_map[act_position].right_arm);
+								writePairToBam(writer, cutted_last_value);
 							}
 							else if (mip_nomatch_out!="")//write reads not matching a mip to a bed file
 							{
-								//adjust values of unmapped to be valid bed file coordinates
-								if (act_position.start_pos <0) act_position.start_pos=0;
-								if (act_position.end_pos <0) act_position.end_pos=1;
-								if (test)
-								{
-									//omit readname
-									nomatch_out_stream << act_position.chr <<"\t" << act_position.start_pos<< "\t" << act_position.end_pos <<"\t"<<"\t" <<endl;
-								}
-								else
-								{
-									nomatch_out_stream << act_position.chr <<"\t" << act_position.start_pos<< "\t" << act_position.end_pos <<"\t" << QString::fromStdString(i.value().first.Name) <<"\t" <<endl;
-								}
+								writeReadsToBed(nomatch_out_stream,act_position,QString::fromStdString(i.value().last().first.Name),test);
 							}
 						}
 						else
 						{
-							writer.SaveAlignment(i.value().first);
-							writer.SaveAlignment(i.value().second);
+							writePairToBam(writer, i.value().last());
 						}
 					}
 					else
 					{
-						read_groups_new[i.key()]=i.value();
+						read_groups_new[i.key()].append(i.value());
 					}
 				}
 				read_groups=read_groups_new;
@@ -362,7 +413,7 @@ public:
 					//write pair to group, possibly overwriting previous read pairs of same group;
 
 					readPair act_read_pair(al,mate);
-					read_groups[act_group]=act_read_pair;
+					read_groups[act_group].append(act_read_pair);
 			}
 			else//if paired end and mate has not been seen yet
 			{
@@ -381,7 +432,7 @@ public:
 		}
 
 		//write remaining pairs
-		QHash <grouping, readPair >::iterator i;
+		QHash <grouping, QList<readPair> >::iterator i;
 		for (i = read_groups.begin(); i != read_groups.end(); ++i)
 		{
 			if (mip_file!="")
@@ -390,17 +441,20 @@ public:
 				act_position.chr=last_ref;
 				act_position.start_pos=i.key().start_pos;
 				act_position.end_pos=i.key().end_pos;
-				if (mip_info_map.contains(act_position))
+				if (mip_info_map.contains(act_position))//trim and count reads that can be matched to mips
 				{
 					mip_info_map[act_position].counter++;
-					writer.SaveAlignment(i.value().first);
-					writer.SaveAlignment(i.value().second);
+					readPair cutted_last_value=cutArmsPair(i.value().last(),mip_info_map[act_position].left_arm,mip_info_map[act_position].right_arm);
+					writePairToBam(writer, cutted_last_value);
+				}
+				else if (mip_nomatch_out!="")//write reads not matching a mip to a bed file
+				{
+					writeReadsToBed(nomatch_out_stream,act_position,QString::fromStdString(i.value().last().first.Name),test);
 				}
 			}
 			else
 			{
-				writer.SaveAlignment(i.value().first);
-				writer.SaveAlignment(i.value().second);
+				writePairToBam(writer, i.value().last());
 			}
 		}
 
@@ -423,4 +477,3 @@ int main(int argc, char *argv[])
 	ConcreteTool tool(argc, argv);
 	return tool.execute();
 }
-
