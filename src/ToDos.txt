@@ -20,14 +20,9 @@ Tools:
 ? ReadQC: create plots without python
 
 CnvHunter:
- * output ref samples header: print ref correlation and ref sample list (without single sample correlation)
- * instead of fixed 'n', use n>=10 and n<=30 with lowest number of CNVs or lowest z-score stdev?
- * calculate Z-score cutoff for each sample instead of fixed Z-score (or normalize z-scores to mean 0 and stdev 1)
- - do not use bad regions for sample correlation calculation - remove bad regions after writing regions file...
- - do not exclude extreme outliers from reference sample calculation - we use median/mad
- - why "data[s].ref.append(exon_median);" - always use median/mad!?
- - annotate number of CNVs for each region in result file
- - merge larger regions to one region - use CBS!
+ * instead of fixed 'n', use n>=10 and n<=30 with highest correlation or lowest z-score stdev?
+ * normalize Z-scores to mean 0 and stdev 1 to correct for sample quality
+ * merge larger regions to one region - use CBS or slope-based algorithm based on cummulative relative coverage.
  - integrate CNV databases:
    - http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/
    - https://decipher.sanger.ac.uk/disorders#syndromes/overview
