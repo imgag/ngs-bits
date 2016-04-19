@@ -1614,13 +1614,6 @@ void MainWindow::filtersChanged()
 			{
 				if (!pass[i]) continue;
 
-				const QByteArray& classification = variants_[i].annotations()[i_class];
-				if (classification=="A")
-				{
-					pass[i] = false;
-					continue;
-				}
-
 				bool ok = false;
 				int classification_value = variants_[i].annotations()[i_class].toInt(&ok);
 				if (!ok) continue;
