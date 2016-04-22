@@ -38,6 +38,14 @@ class position
 		int end_pos;
 		int chr;
 
+		position()=default;
+
+		position(int start_pos_ini, int end_pos_ini, int chr_ini)
+		{
+			start_pos=start_pos_ini;
+			end_pos=end_pos_ini;
+			chr=chr_ini;
+		}
 
 		bool operator==(const position &pos1) const
 		{
@@ -57,6 +65,12 @@ struct mip_info
 	QString name;
 	position left_arm;
 	position right_arm;
+};
+
+struct most_frequent_read_selection
+{
+	readPair most_freq_read;
+	QList <readPair> duplicates;
 };
 
 inline uint qHash(const position &pos1)
@@ -101,18 +115,13 @@ private:
 			QStringList splitted_mip_entry=line.split("\t");
 			if (splitted_mip_entry.size()<13) continue;
 
-			position mip_position;
-			mip_info new_mip_info;
-
 			QStringList splitted_mip_key=splitted_mip_entry[0].split(delimiters_mip_key);
-			mip_position.chr = splitted_mip_key[0].toInt();
-			mip_position.start_pos =splitted_mip_key[1].toInt()-1;
-			mip_position.end_pos=splitted_mip_key[2].toInt();
+			position mip_position(splitted_mip_key[1].toInt()-1,splitted_mip_key[2].toInt(),splitted_mip_key[0].toInt());
 
+			mip_info new_mip_info;
 			new_mip_info.left_arm.chr = splitted_mip_entry[0].toInt();
 			new_mip_info.left_arm.start_pos = splitted_mip_entry[3].toInt();
 			new_mip_info.left_arm.end_pos= splitted_mip_entry[4].toInt();
-
 
 			new_mip_info.right_arm.chr = splitted_mip_entry[0].toInt();
 			new_mip_info.right_arm.start_pos = splitted_mip_entry[7].toInt();
@@ -200,7 +209,39 @@ private:
 				++deleted_elem_count;
 			}
 		}
-		return cigar_ops_out;//TODO: Raise error?
+		return cigar_ops_out;
+	}
+
+	most_frequent_read_selection find_highest_freq_read(QList <readPair> readpairs)
+	{
+		//setup seq_count
+		QHash <QString, QList <readPair > > readpair_seq_count;
+
+		foreach(readPair readpair, readpairs)
+		{
+			readpair_seq_count[QString::fromStdString(readpair.first.QueryBases+"+"+readpair.second.QueryBases)].append(readpair);
+		}
+
+		//find highest count
+		int max_read_count=0;
+		QString max_seq;
+		foreach(QString seq,readpair_seq_count.keys())
+		{
+			if ((readpair_seq_count[seq].size())>max_read_count)
+			{
+				max_read_count=readpair_seq_count[seq].size();
+				max_seq=seq;
+			}
+		}
+		most_frequent_read_selection result;
+		result.most_freq_read=readpair_seq_count[max_seq].takeLast();
+
+		//collect duplicates
+		foreach (QList <readPair> read_pairs,readpair_seq_count.values())
+		{
+			result.duplicates.append(read_pairs);
+		}
+		return result;
 	}
 
 	BamAlignment cutArmsSingle(BamAlignment original_alignment, position left_arm, position right_arm)
@@ -231,13 +272,53 @@ private:
 		return original_alignment;
 	}
 
-	readPair cutArmsPair(readPair original_alignments, position left_arm, position right_arm)
+	most_frequent_read_selection cutAndSelectPair(QList <readPair> original_readpairs, position left_arm, position right_arm)
 	{
-		original_alignments.first=cutArmsSingle(original_alignments.first,left_arm,right_arm);
-		original_alignments.second=cutArmsSingle(original_alignments.second,left_arm,right_arm);
-		original_alignments.first.MatePosition=original_alignments.second.Position;;
-		original_alignments.second.MatePosition=original_alignments.first.Position;
-		return original_alignments;
+		QList <readPair> new_alignment_list;
+		foreach(readPair original_alignments, original_readpairs)
+		{
+			readPair new_alignments;
+			new_alignments.first=cutArmsSingle(original_alignments.first,left_arm,right_arm);
+			new_alignments.second=cutArmsSingle(original_alignments.second,left_arm,right_arm);
+			new_alignments.first.MatePosition=new_alignments.second.Position;
+			new_alignments.second.MatePosition=new_alignments.first.Position;
+			new_alignment_list.append(new_alignments);
+		}
+		return find_highest_freq_read(new_alignment_list);
+	}
+
+	void writeReadsToBed(QTextStream &out_stream, position act_position, QList <readPair> original_readpairs, QString barcode, bool test)
+	{
+		foreach(readPair original_readpair,original_readpairs)
+		{
+			QString read_name=QString::fromStdString(original_readpair.first.Name);
+			QString seq_1=QString::fromStdString(original_readpair.first.QueryBases);
+			QString seq_2=QString::fromStdString(original_readpair.second.QueryBases);
+			int counter=0;
+			//adjust values of unmapped to be valid bed file coordinates
+			if ((act_position.chr<1)||(act_position.start_pos <0)||(act_position.start_pos <0))
+			{
+				act_position.chr=0;
+				act_position.start_pos=0;
+				act_position.end_pos=1;
+			}
+			if (test)
+			{
+				//omit readname and sequences which randomly sorted in output and thus not comparable
+				out_stream << act_position.chr <<"\t" << act_position.start_pos<< "\t" << act_position.end_pos<<"\t" << "group " <<counter<<endl;
+				counter++;
+			}
+			else
+			{
+				out_stream << act_position.chr <<"\t" << act_position.start_pos<< "\t" << act_position.end_pos <<"\t" << read_name << barcode << '|' << seq_1 << '|'<< seq_2<<endl;
+			}
+		}
+	}
+
+	void writePairToBam(BamTools::BamWriter &writer, readPair read_pair)
+	{
+		writer.SaveAlignment(read_pair.first);
+		writer.SaveAlignment(read_pair.second);
 	}
 
 public:
@@ -257,6 +338,7 @@ public:
 		addInfile("mip_file","input file for moleculare inversion probes (reads are filtered and cut to match only MIP inserts).", true, "");
 		addOutfile("mip_count_out","Output TSV file for counts of given mips).", true, "");
 		addOutfile("mip_nomatch_out","Output Bed file for reads not matching any mips).", true, "");
+		addOutfile("mip_duplicate_out","Output Bed file for reads removed as duplicates).", true, "");
 	}
 
 	virtual void main()
@@ -266,10 +348,11 @@ public:
 		BamReader reader;
 		NGSHelper::openBAM(reader, getInfile("bam"));
 		BamWriter writer;
-		QHash <grouping, readPair > read_groups;
+		QHash <grouping, QList<readPair> > read_groups;
 		writer.Open(getOutfile("out").toStdString(), reader.GetConstSamHeader(), reader.GetReferenceData());
 		QString mip_count_out=getOutfile("mip_count_out");
 		QString mip_nomatch_out=getOutfile("mip_nomatch_out");
+		QString mip_duplicate_out=getOutfile("mip_duplicate_out");
 		QString mip_file= getInfile("mip_file");
 		bool test =getFlag("test");
 		BamAlignment al;
@@ -291,56 +374,51 @@ public:
 			nomatch_out_stream.setDevice(&nomatch_out);
 		}
 
+		QTextStream duplicate_out_stream;
+		QFile duplicate_out(mip_duplicate_out);
+		if (mip_duplicate_out!="")
+		{
+			duplicate_out.open(QIODevice::WriteOnly);
+			duplicate_out_stream.setDevice(&duplicate_out);
+		}
+
 		while (reader.GetNextAlignment(al))
 		{
 			if (((counter%10000)==0)||((chrom_change)&&(last_ref!=-1)))//reset read_groups hash after every 10000th reads to reduce memory requirements
 			{
-				QHash <grouping, readPair > read_groups_new;
-				QHash <grouping, readPair >::iterator i;
+				QHash <grouping, QList<readPair> > read_groups_new;
+				QHash <grouping, QList<readPair> >::iterator i;
 				for (i = read_groups.begin(); i != read_groups.end(); ++i)
 				{
-					/*make sure that no duplicate is missed because read_groups hash reset
-					(won't work if bam is not sorted by position)*/
+					/*assure that we already moved pass the readpair so no duplicates are missed by in-between reset of read group
+					 * (won't work if input is not sorted by position)*/
 					if ((i.key().end_pos)<last_start_pos||(chrom_change))
 					{
+						position act_position(i.key().start_pos,i.key().end_pos,last_ref);
 						if (mip_file!="")
 						{
-							position act_position;
-							act_position.chr=last_ref;
-							act_position.start_pos=i.key().start_pos;
-							act_position.end_pos=i.key().end_pos;
-							if (mip_info_map.contains(act_position))//trim and count reads that can be matched to mips
+							if (mip_info_map.contains(act_position))//trim, select and count unique reads that can be matched to mips
 							{
 								mip_info_map[act_position].counter++;
-								i.value()=cutArmsPair(i.value(),mip_info_map[act_position].left_arm,mip_info_map[act_position].right_arm);
-								writer.SaveAlignment(i.value().first);
-								writer.SaveAlignment(i.value().second);
+								most_frequent_read_selection read_selection = cutAndSelectPair(i.value(),mip_info_map[act_position].left_arm,mip_info_map[act_position].right_arm);
+								writePairToBam(writer, read_selection.most_freq_read);
+								writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
 							}
 							else if (mip_nomatch_out!="")//write reads not matching a mip to a bed file
 							{
-								//adjust values of unmapped to be valid bed file coordinates
-								if (act_position.start_pos <0) act_position.start_pos=0;
-								if (act_position.end_pos <0) act_position.end_pos=1;
-								if (test)
-								{
-									//omit readname
-									nomatch_out_stream << act_position.chr <<"\t" << act_position.start_pos<< "\t" << act_position.end_pos <<"\t"<<"\t" <<endl;
-								}
-								else
-								{
-									nomatch_out_stream << act_position.chr <<"\t" << act_position.start_pos<< "\t" << act_position.end_pos <<"\t" << QString::fromStdString(i.value().first.Name) <<"\t" <<endl;
-								}
+								writeReadsToBed(nomatch_out_stream,act_position,i.value(),i.key().barcode,test);
 							}
 						}
 						else
 						{
-							writer.SaveAlignment(i.value().first);
-							writer.SaveAlignment(i.value().second);
+							most_frequent_read_selection read_selection = find_highest_freq_read(i.value());
+							writePairToBam(writer, read_selection.most_freq_read);
+							writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
 						}
 					}
 					else
 					{
-						read_groups_new[i.key()]=i.value();
+						read_groups_new[i.key()].append(i.value());
 					}
 				}
 				read_groups=read_groups_new;
@@ -362,7 +440,7 @@ public:
 					//write pair to group, possibly overwriting previous read pairs of same group;
 
 					readPair act_read_pair(al,mate);
-					read_groups[act_group]=act_read_pair;
+					read_groups[act_group].append(act_read_pair);
 			}
 			else//if paired end and mate has not been seen yet
 			{
@@ -381,30 +459,38 @@ public:
 		}
 
 		//write remaining pairs
-		QHash <grouping, readPair >::iterator i;
+		QHash <grouping, QList<readPair> >::iterator i;
 		for (i = read_groups.begin(); i != read_groups.end(); ++i)
 		{
+			position act_position(i.key().start_pos,i.key().end_pos,last_ref);
 			if (mip_file!="")
 			{
-				position act_position;
-				act_position.chr=last_ref;
-				act_position.start_pos=i.key().start_pos;
-				act_position.end_pos=i.key().end_pos;
-				if (mip_info_map.contains(act_position))
+				if (mip_info_map.contains(act_position))//trim and count reads that can be matched to mips
 				{
 					mip_info_map[act_position].counter++;
-					writer.SaveAlignment(i.value().first);
-					writer.SaveAlignment(i.value().second);
+					most_frequent_read_selection read_selection = cutAndSelectPair(i.value(),mip_info_map[act_position].left_arm,mip_info_map[act_position].right_arm);
+					writePairToBam(writer, read_selection.most_freq_read);
+					writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
+				}
+				else if (mip_nomatch_out!="")//write reads not matching a mip to a bed file
+				{
+					writeReadsToBed(nomatch_out_stream,act_position,i.value(),i.key().barcode,test);
 				}
 			}
 			else
 			{
-				writer.SaveAlignment(i.value().first);
-				writer.SaveAlignment(i.value().second);
+				most_frequent_read_selection read_selection = find_highest_freq_read(i.value());
+				writePairToBam(writer, read_selection.most_freq_read);
+				writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
 			}
 		}
 
 
+		//done
+		if (mip_duplicate_out!="")
+		{
+			duplicate_out.close();
+		}
 		//done
 		if (mip_nomatch_out!="")
 		{
@@ -423,4 +509,3 @@ int main(int argc, char *argv[])
 	ConcreteTool tool(argc, argv);
 	return tool.execute();
 }
-

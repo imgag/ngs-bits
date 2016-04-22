@@ -31,10 +31,10 @@ public:
 		addString("a2", "Reverse adapter sequence (at least 15 bases).", true, "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTC");
 		addFloat("match_perc", "Minimum percentage of matching bases for sequence/adapter matches.", true, 80.0);
 		addFloat("mep", "Maximum error probability of insert and adapter matches.", true, 0.000001);
-		addInt("qcut", "Quality trimming cutoff for trimming from the end of reads using a sliding mindow approach. Set to 0 to disable.", true, 15);
+		addInt("qcut", "Quality trimming cutoff for trimming from the end of reads using a sliding window approach. Set to 0 to disable.", true, 15);
 		addInt("qwin", "Quality trimming window size.", true, 5);
 		addInt("qoff", "Quality trimming FASTQ score offset.", true, 33);
-		addInt("ncut", "Number of subsequent Ns to trimmed using a sliding mindow approach from the front of reads. Set to 0 to disable.", true, 7);
+		addInt("ncut", "Number of subsequent Ns to trimmed using a sliding window approach from the front of reads. Set to 0 to disable.", true, 7);
 		addInt("min_len", "Minimum read length after adapter trimming. Shorter reads are discarded.", true, 15);
 		addInt("threads", "The number of threads used for trimming (an additional thread is used for reading data).", true, 1);
 		addOutfile("out3", "Name prefix of singleton read output files (if only one read of a pair is discarded).", true, false);
@@ -46,6 +46,7 @@ public:
 		addFlag("progress", "Enables progress output.");
 
 		//changelog
+		changeLog(2016, 4, 15, "Removed large part of the overtrimming described in the paper (~75% of reads overtrimmed, ~50% of bases overtrimmed).");
 		changeLog(2016, 4,  6, "Added error correction (optional).");
 		changeLog(2016, 3, 16, "Version used in the SeqPurge paper: [TODO add link]");
 	}

@@ -46,7 +46,9 @@ SOURCES += BedFile.cpp \
     VariantAnnotationDescription.cpp \
     QCCollection.cpp \
     StatisticsReads.cpp \
-    ChromosomeInfo.cpp
+    ChromosomeInfo.cpp \
+    SampleCorrelation.cpp \
+    MultiVariantList.cpp
 
 HEADERS += BedFile.h \
 	Chromosome.h \
@@ -63,7 +65,9 @@ HEADERS += BedFile.h \
     QCCollection.h \
     StatisticsReads.h \
     Sequence.h \
-    ChromosomeInfo.h
+    ChromosomeInfo.h \
+    SampleCorrelation.h \
+    MultiVariantList.h
 
 
 RESOURCES += \

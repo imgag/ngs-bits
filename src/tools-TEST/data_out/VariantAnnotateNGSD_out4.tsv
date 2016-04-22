@@ -5,7 +5,7 @@
 ##DESCRIPTION=ihdb_allsys_het=Heterozygous variant counts in NGSD independent of the processing system.
 ##DESCRIPTION=classification=Classification from the NGSD.
 ##DESCRIPTION=classification_comment=Classification comment from the NGSD.
-##DESCRIPTION=validated=Validation information from the NGSD.
+##DESCRIPTION=validated=Validation information from the NGSD. Validation results of other samples are listed in brackets!
 ##DESCRIPTION=comment=Comments from the NGSD. Comments of other samples are listed in brackets!
 ##FILTER=anno_high_impact=Variant annotated to have high impact by SnpEff.
 ##FILTER=anno_pathogenic_clinvar=Variant annotated to be pathogenic by ClinVar.

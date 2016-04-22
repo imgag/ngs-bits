@@ -240,57 +240,73 @@ void AnalysisWorker::run()
 		if (params_.debug) debug_out << "  mep: " << p << endl;
 
 		//check that at least on one side the adapter is present - if not continue
-		if (offset>=10)
+		QByteArray adapter1 = seq1.mid(length_s2_orig-offset, params_.adapter_overlap);
+		int a1_matches = 0;
+		int a1_mismatches = 0;
+		int a1_invalid = 0;
+		for (int i=0; i<adapter1.count(); ++i)
 		{
-			QByteArray adapter1 = seq1.mid(length_s2_orig-offset, params_.adapter_overlap);
-			int matches = 0;
-			int mismatches = 0;
-			int invalid = 0;
-			for (int i=0; i<params_.adapter_overlap; ++i)
+			//forward
+			char b1 = adapter1.constData()[i];
+			char b2 = params_.a1.constData()[i];
+
+			if (b1=='N' || b2=='N')
 			{
-				//forward
-				char b1 = adapter1.constData()[i];
-				char b2 = params_.a1.constData()[i];
-
-				if (b1=='N' || b2=='N')
-				{
-					++invalid;
-				}
-				else if (b1==b2)
-				{
-					++matches;
-				}
-				else
-				{
-					++mismatches;
-				}
+				++a1_invalid;
 			}
-			double p1 = matchProbability(matches, mismatches);
-
-			QByteArray adapter2 = NGSHelper::changeSeq(seq2.left(offset), true, true).left(params_.adapter_overlap);
-			matches = 0;
-			mismatches = 0;
-			invalid = 0;
-			for (int i=0; i<params_.adapter_overlap; ++i)
+			else if (b1==b2)
 			{
-				//forward
-				char b1 = adapter2.constData()[i];
-				char b2 = params_.a2.constData()[i];
-
-				if (b1=='N' || b2=='N')
-				{
-					++invalid;
-				}
-				else if (b1==b2)
-				{
-					++matches;
-				}
-				else
-				{
-					++mismatches;
-				}
+				++a1_matches;
 			}
-			double p2 = matchProbability(matches, mismatches);
+			else
+			{
+				++a1_mismatches;
+			}
+		}
+
+		QByteArray adapter2 = NGSHelper::changeSeq(seq2.left(offset), true, true).left(params_.adapter_overlap);
+		int a2_matches = 0;
+		int a2_mismatches = 0;
+		int a2_invalid = 0;
+		for (int i=0; i<adapter2.count(); ++i)
+		{
+			//forward
+			char b1 = adapter2.constData()[i];
+			char b2 = params_.a2.constData()[i];
+
+			if (b1=='N' || b2=='N')
+			{
+				++a2_invalid;
+			}
+			else if (b1==b2)
+			{
+				++a2_matches;
+			}
+			else
+			{
+				++a2_mismatches;
+			}
+		}
+
+		if (offset<10) //when the adapter fragment is short => check only number of mismatches
+		{
+			int max_mm = 2;
+			if (offset<6) max_mm = 1;
+			if (offset<3) max_mm = 0;
+			if (a1_mismatches<=max_mm || a2_mismatches<=max_mm)
+			{
+				if (params_.debug) debug_out << "  adapter overlap passed! mismatches1:" << a1_mismatches << " mismatches2:" << a2_mismatches << endl;
+			}
+			else
+			{
+				if (params_.debug) debug_out << "  adapter overlap failed! mismatches1:" << a1_mismatches << " mismatches2:" << a2_mismatches << endl;
+				continue;
+			}
+		}
+		else //when the adapter fragment is short => require non-random adapter sequence hit
+		{
+			double p1 = matchProbability(a1_matches, a1_mismatches);
+			double p2 = matchProbability(a2_matches, a2_mismatches);
 			if (p1*p2>params_.mep)
 			{
 				if (params_.debug) debug_out << "  adapter overlap failed! mep1:" << p1 << " mep2:" << p2 << endl;

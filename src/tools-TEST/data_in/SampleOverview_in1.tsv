@@ -1,3 +1,39 @@
+##DESCRIPTION=variant_type=Variant type.
+##DESCRIPTION=gene=Affected gene list (comma-separated).
+##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, NM number, type, impact, exon number, HGVS.c, HGVS.p).
+##DESCRIPTION=filter=Annotations for filtering and ranking variants.
+##DESCRIPTION=RepeatMasker=RepeatMasker annotation.
+##DESCRIPTION=dbSNP=Identifier in dbSNP database.
+##DESCRIPTION=1000g=Allele frequency in all populations of 1000g project.
+##DESCRIPTION=ExAC=Allele frequency in all populations of ExAC project.
+##DESCRIPTION=ESP6500EA=Allele frequency in EA population of ESP6500 project.
+##DESCRIPTION=ESP6500AA=Allele frequency in AA population of ESP6500 project.
+##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.
+##DESCRIPTION=Sift=Sift effect prediction: D=damaging, T=tolerated.
+##DESCRIPTION=PP2_HVAR=Polyphen2 (HVAR) effect prediction: D=probably damaging, P=possibly damaging, B=benign.
+##DESCRIPTION=PP2_HDIV=Polyphen2 (HDIV) effect prediction: D=probably damaging, P=possibly damaging, B=benign.
+##DESCRIPTION=OMIM=OMIM database annotation.
+##DESCRIPTION=ClinVar=ClinVar database annotation.
+##DESCRIPTION=HGMD=HGMD database annotation.
+##DESCRIPTION=ihdb_hom=Homozygous variant counts in NGSD for the same processing system (124 samples).
+##DESCRIPTION=ihdb_het=Heterozyous variant counts in NGSD for the same processing system (124 samples).
+##DESCRIPTION=ihdb_wt=Wildtype variant counts in NGSD for the same processing system (124 samples).
+##DESCRIPTION=ihdb_allsys_hom=Homozygous variant counts in NGSD independent of the processing system.
+##DESCRIPTION=ihdb_allsys_het=Heterozygous variant counts in NGSD independent of the processing system.
+##DESCRIPTION=classification=Classification from the NGSD.
+##DESCRIPTION=classification_comment=Classification comment from the NGSD.
+##DESCRIPTION=validated=Validation information from the NGSD.
+##DESCRIPTION=comment=Comments from the NGSD. Comments of other samples are listed in brackets!
+##FILTER=anno_high_impact=Variant annotated to have high impact by SnpEff.
+##FILTER=anno_pathogenic_clinvar=Variant annotated to be pathogenic by ClinVar.
+##FILTER=anno_pathogenic_hgmd=Variant annotated to be pathogenic by HGMD.
+##FILTER=low_DP=Depth less than 20.
+##FILTER=low_MQM=Mean mapping quality of alternate allele less than Q50.
+##FILTER=low_QUAL=Variant quality less than Q30.
+##FILTER=pred_pathogenic_1=Variant predicted pathogenic by one of the prediction tools.
+##FILTER=pred_pathogenic_2=Variant predicted pathogenic by two of the prediction tools.
+##FILTER=pred_pathogenic_3=Variant predicted pathogenic by three of the prediction tools.
+##FILTER=pred_pathogenic_4=Variant predicted pathogenic by four of the prediction tools.
 #chr	start	end	ref	obs	genotype	snp_q	depth	map_q	variant	variant_frequency	variant_type	gene	variant_details	coding_and_splicing	snp_1000g2011may_all	snp_snp132	ljb_phylop	ljb_mt	esp6500si_ea	quality_filter	ihdb_hom_34	ihdb_het_34	ihdb_wt_34	ihdb_allsys
 chr1	153907297	153907305	CTGCTGCTG	-	het	217	44	48	INDEL	0.0476	exonic	DENND4B	nonframeshift deletion	DENND4B:NM_014856:exon18:c.2704_2712del:p.902_904del,	.	.	.	420		passed	0.6765	0	0.3235	25
 chr1	155257959	155257959	G	A	het	6.2	15	44	SNV	0.125	exonic	HCN3	nonsynonymous SNV	HCN3:NM_020897:exon8:c.G2030A:p.R677Q,	.	.	3.08	.	609973	failed	0.0294	0	0.9706	1

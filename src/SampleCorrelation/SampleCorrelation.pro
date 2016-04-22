@@ -5,7 +5,6 @@
 #-------------------------------------------------
 
 TEMPLATE = app
-
 QT       -= gui
 CONFIG   += console
 CONFIG   -= app_bundle

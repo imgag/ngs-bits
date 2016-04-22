@@ -22,6 +22,8 @@ public:
 	static QCCollection mapping3Exons(const QString& bam_file);
 	///Calculates target region statistics (term-value pairs). @p merge determines if overlapping regions are merged before calculating the statistics.
 	static QCCollection region(const BedFile& bed_file, bool merge);
+	///Calculates somatic QC metrics from BAM and vcf file
+	static QCCollection somatic(QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, bool filtered);
 
 	///Calculates the part of the target region that has a lower coverage than the given cutoff. The input BED file must be merged and sorted!
 	static BedFile lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq=1);

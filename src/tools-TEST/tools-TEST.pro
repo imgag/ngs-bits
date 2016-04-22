@@ -23,6 +23,7 @@ INCLUDEPATH += $$PWD/../cppNGSD
 LIBS += -L$$PWD/../../bin -lcppNGSD
 
 HEADERS += \
+    SampleOverview_Test.h \
     BedAnnotateGenes_Test.h \
     BedAnnotateGC_Test.h \
     BedCoverage_Test.h \
@@ -57,7 +58,6 @@ HEADERS += \
     FastqTrim_Test.h \
     FastqConvert_Test.h \
     EstimateTumorContent_Test.h \
-    SampleOverview_Test.h \
     CnvHunter_Test.h \
     BedGeneOverlap_Test.h \
     SeqPurge_Test.h \

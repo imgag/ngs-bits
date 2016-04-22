@@ -82,15 +82,6 @@ struct ResultData
     int copies; //Estimated genotype
 };
 
-struct GreaterSecond
-{
-    template<typename T1, typename T2>
-    bool operator()(const QPair<T1,T2> & a, const QPair<T1,T2> & b) const
-    {
-        return a.second > b.second;
-    }
-};
-
 class ConcreteTool
         : public ToolBase
 {
@@ -613,8 +604,8 @@ public:
                 }
             }
 
-            //sort by correlation (reverse)
-            std::sort(data[i].correl_all.begin(), data[i].correl_all.end(), GreaterSecond());
+			//sort by correlation (reverse)
+			std::sort(data[i].correl_all.begin(), data[i].correl_all.end(), [](const QPair<int, double> & a, const QPair<int, double> & b){return a.second > b.second;});
         }
 
         //construct reference from 'n' most similar samples
@@ -684,11 +675,11 @@ public:
 				int sidx = data[s].correl_all[i].first;
 				if (data[sidx].qc!="") continue;
 
-				sim_str += " " + data[sidx].name + "=" + QString::number(data[s].correl_all[i].second, 'f', 4);
+				sim_str += " " + data[sidx].name;
 				++sim_count;
 				if (sim_count==n) break;
 			}
-			comments << QString("ref samples of ") + data[s].name + ": " + sim_str;
+			comments << QString("ref samples of ") + data[s].name + " (corr=" + QString::number(data[s].ref_correl, 'f', 4) + "):" + sim_str;
 		}
 
         //remove bad samples

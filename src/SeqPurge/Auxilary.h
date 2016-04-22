@@ -160,6 +160,7 @@ struct TrimmingStatistics
 		}
 	}
 };
+
 ///Statistics datastructure.
 struct ErrorCorrectionStatistics
 {

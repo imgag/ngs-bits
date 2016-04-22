@@ -11,8 +11,11 @@
 #include "NGSHelper.h"
 #include "FastqFileStream.h"
 #include "LinePlot.h"
+#include "ScatterPlot.h"
 #include "Helper.h"
 #include "ChromosomeInfo.h"
+#include "SampleCorrelation.h"
+#include <QFileInfo>
 
 #include "api/BamReader.h"
 using namespace BamTools;
@@ -25,7 +28,7 @@ QCCollection Statistics::variantList(const VariantList& variants)
 	output.insert(QCValue("variant count", variants.count(), "Total number of variants in the target region.", "QC:2000013"));
 
     //var_perc_dbsnp
-	int index = variants.annotationIndexByName("ID", true, false);
+	int index = variants.annotationIndexByName("ID", NULL, true, false);
     if (variants.count()!=0 && index!=-1)
     {
         double dbsnp_count = 0;
@@ -44,7 +47,7 @@ QCCollection Statistics::variantList(const VariantList& variants)
     }
 
 	//high-impact variants
-	index = variants.annotationIndexByName("ANN", true, false);
+	index = variants.annotationIndexByName("ANN", NULL, true, false);
     if (variants.count()!=0 && index!=-1)
     {
 		double high_impact_count = 0;
@@ -63,7 +66,7 @@ QCCollection Statistics::variantList(const VariantList& variants)
     }
 
 	//homozygous variants
-	index = variants.annotationIndexByName("GT", true, false);
+	index = variants.annotationIndexByName("GT", NULL, true, false);
     if (variants.count()!=0 && index!=-1)
     {
         double hom_count = 0;
@@ -507,6 +510,113 @@ QCCollection Statistics::region(const BedFile& bed_file, bool merge)
     output.insert(QCValue("roi_fragment_stdev", length_stdev, "Fragment size standard deviation of (merged) target region."));
     return output;
 }
+
+QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, bool filtered)
+{
+	QCCollection output;
+
+	//sample correlation
+	SampleCorrelation sc;
+	sc.CalculateFromBam(tumor_bam,normal_bam,30,500);
+	output.insert(QCValue("sample_correlation", sc.correlation, ".", "QC:2000040"));
+
+	//variants
+	VariantList variants;
+	variants.load(somatic_vcf);
+	//filter variants if required
+	if(filtered)
+	{
+		variants.filterByFilterColumn();
+	}
+
+	//total variants
+	output.insert(QCValue("somatic variant count", variants.count(), "Total number of somatic variants in the target region.", "QC:2000041"));
+	//var_perc_dbsnp
+	int index = variants.annotationIndexByName("ID", true, false);
+	if (variants.count()!=0 && index!=-1)
+	{
+		double dbsnp_count = 0;
+		for(int i=0; i<variants.count(); ++i)
+		{
+			if (variants[i].annotations().at(index).startsWith("rs"))
+			{
+				++dbsnp_count;
+			}
+		}
+		output.insert(QCValue("known somatic variants percentage", 100.0*dbsnp_count/variants.count(), "Percentage of somatic variants that are known polymorphisms in the dbSNP database.", "QC:2000041"));
+	}
+	else
+	{
+		output.insert(QCValue("known somatic variants percentage", "n/a (no somatic variants)", "Percentage of somatic variants that are known polymorphisms in the dbSNP database.", "QC:2000041"));
+	}
+	//var_perc_indel / var_ti_tv_ratio
+	double indel_count = 0;
+	double ti_count = 0;
+	double tv_count = 0;
+	for(int i=0; i<variants.count(); ++i)
+	{
+		const Variant& var = variants[i];
+		if (var.ref().length()>1 || var.obs().length()>1)
+		{
+			++indel_count;
+		}
+		else if ((var.obs()=="A" && var.ref()=="G") || (var.obs()=="G" && var.ref()=="A") || (var.obs()=="T" && var.ref()=="C") || (var.obs()=="C" && var.ref()=="T"))
+		{
+			++ti_count;
+		}
+		else
+		{
+			++tv_count;
+		}
+	}
+	if (variants.count()!=0)
+	{
+		output.insert(QCValue("somatic indel variants percentage", 100.0*indel_count/variants.count(), "Percentage of somatic variants that are insertions/deletions.", "QC:2000042"));
+	}
+	else
+	{
+		output.insert(QCValue("somatic indel variants percentage", "n/a (no variants)", "Percentage of variants that are insertions/deletions.", "QC:2000042"));
+	}
+	if (tv_count!=0)
+	{
+		output.insert(QCValue("somatic transition/transversion ratio", ti_count/tv_count , "Somatic Transition/transversion ratio of SNV variants.", "QC:2000043"));
+	}
+	else
+	{
+		output.insert(QCValue("somatic transition/transversion ratio", "n/a (no variants or tansversions)", "Somatic transition/transversion ratio of SNV variants.", "QC:2000043"));
+	}
+
+
+	//plots
+	ScatterPlot plot;
+	plot.setXLabel("allele frequenciy normal");
+	plot.setYLabel("allele frequency tumor");
+	plot.setYRange(0.0,1.0);
+	plot.setXRange(0.0,1.0);
+
+	QList< QPair<double,double> > points;
+	for(int i=0; i<variants.count(); ++i)
+	{
+//		if(variant_tumor.annotations())
+
+		//find AF and set x and y points, implement freebayes and strelka fields, multi-vcf capability required!
+		QPair<double,double> point;
+		point.first = 0.5;
+		point.second = 0.5;
+		points.append(point);
+	}
+	QString plotname = Helper::tempFileName(".png");
+	plot.store(plotname);
+	output.insert(QCValue::Image("mutation allele frequencies plot", plotname, ".", "QC:2000048"));
+	QFile::remove(plotname);
+
+	output.insert(QCValue("somatic CNVs count", "", "Needs to be implemented.", "QC:2000044"));
+	output.insert(QCValue::Image("somatic variant signature plot", "", "Needs to be implemented.", "QC:2000047"));
+	output.insert(QCValue::Image("somatic variant distance plot", "", "Needs to be implemented.", "QC:2000046"));
+
+	return output;
+}
+
 
 QCCollection Statistics::mapping3Exons(const QString& bam_file)
 {

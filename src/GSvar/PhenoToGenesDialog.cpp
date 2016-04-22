@@ -10,7 +10,8 @@ PhenoToGenesDialog::PhenoToGenesDialog(QWidget *parent) :
         ui(new Ui::PhenoToGenesDialog)
 {
 	ui->setupUi(this);
-	connect(ui->pheno_sel, SIGNAL(phenotypeSelected(QString)), this, SLOT(copyPhenotype(QString)));
+	connect(ui->pheno_sel, SIGNAL(phenotypeDoubleClicked(QString)), this, SLOT(copyPhenotype(QString)));
+	connect(ui->pheno_sel, SIGNAL(phenotypeClicked(QString)), this, SLOT(showPhenotypeDetails()));
 	connect(ui->pheno, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(deletePhenotype(QListWidgetItem*)));
 	connect(ui->tabs, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
 
@@ -32,6 +33,19 @@ void PhenoToGenesDialog::copyPhenotype(QString phenotype)
 	}
 
 	ui->pheno->addItem(phenotype);
+}
+
+void PhenoToGenesDialog::showPhenotypeDetails()
+{
+	QString details = ui->pheno_sel->selectedItemDetails();
+	if (details.isEmpty())
+	{
+		ui->pheno_details->clear();
+	}
+	else
+	{
+		ui->pheno_details->setText(details);
+	}
 }
 
 void PhenoToGenesDialog::deletePhenotype(QListWidgetItem* item)

@@ -58,14 +58,27 @@ public:
 			vls.append(vl);
 		}
 
-		//create joined variant list of all input files (with reduced annotation set)
+		//set up combined variant list (annotation and filter descriptions)
 		VariantList vl_merged;
-		foreach(QString col, cols)
+		foreach(const VariantList& vl, vls)
 		{
-			if (col=="genotype") continue;
-			vl_merged.annotations().append(VariantAnnotationHeader(col));
-			vl_merged.annotation_descriptions().append(VariantAnnotationDescription(col, ""));
+			auto it = vl.filters().begin();
+			while(it!=vl.filters().end())
+			{
+				if (!vl_merged.filters().contains(it.key()))
+				{
+					vl_merged.filters().insert(it.key(), it.value());
+				}
+				++it;
+			}
 		}
+		foreach(int index, vls_anno_indices[0])
+		{
+			vl_merged.annotations().append(vls[0].annotations()[index]);
+		}
+
+		//merge variants
+		vl_merged.reserve(2 * vls[0].count());
 		for (int i=0; i<vls.count(); ++i)
 		{
 			for(int j=0; j<vls[i].count(); ++j)
@@ -92,8 +105,8 @@ public:
 			if(geno_index==-1)	geno_index = vls[i].annotationIndexByName("tumor_maf", true, true);
 
 			//add column header
-			vl_merged.annotations().append(VariantAnnotationHeader(QFileInfo(in[i]).baseName()));
 			vl_merged.annotation_descriptions().append(VariantAnnotationDescription(QFileInfo(in[i]).baseName(), ""));
+			vl_merged.annotations().append(VariantAnnotationHeader(QFileInfo(in[i]).baseName()));
 
 			//create index over variant list to speed up the search
 			const VariantList& vl = vls[i];

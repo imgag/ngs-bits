@@ -6,6 +6,7 @@
 #include "ui_MainWindow.h"
 #include "VariantList.h"
 #include "FilterDockWidget.h"
+#include "VariantDetailsDockWidget.h"
 #include "VariantFilter.h"
 #include "BedFile.h"
 #include "NGSD.h"
@@ -117,6 +118,8 @@ public slots:
 	void databaseAnnotationFinished(bool success);
 	///Shows the variant list contect menu
 	void varsContextMenu(QPoint pos);
+	///Updated the variant context menu
+	void updateVariantDetails();
 	///Updates the visible rows after filters have changed
 	void filtersChanged();
 	///Opens the recent file defined by the sender action text
@@ -136,6 +139,8 @@ private:
 	//GUI
 	Ui::MainWindow ui_;
 	FilterDockWidget* filter_widget_;
+	int var_last_;
+	VariantDetailsDockWidget* var_widget_;
 	BusyDialog* busy_dialog_;
 
 	//DATA
