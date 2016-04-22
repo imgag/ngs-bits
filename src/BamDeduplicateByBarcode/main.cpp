@@ -209,7 +209,7 @@ private:
 				++deleted_elem_count;
 			}
 		}
-		return cigar_ops_out;//TODO: Raise error?
+		return cigar_ops_out;
 	}
 
 	most_frequent_read_selection find_highest_freq_read(QList <readPair> readpairs)
@@ -287,11 +287,14 @@ private:
 		return find_highest_freq_read(new_alignment_list);
 	}
 
-	void writeReadsToBed(QTextStream &out_stream, position act_position, QList <readPair> original_readpairs, bool test)
+	void writeReadsToBed(QTextStream &out_stream, position act_position, QList <readPair> original_readpairs, QString barcode, bool test)
 	{
 		foreach(readPair original_readpair,original_readpairs)
 		{
 			QString read_name=QString::fromStdString(original_readpair.first.Name);
+			QString seq_1=QString::fromStdString(original_readpair.first.QueryBases);
+			QString seq_2=QString::fromStdString(original_readpair.second.QueryBases);
+			int counter=0;
 			//adjust values of unmapped to be valid bed file coordinates
 			if ((act_position.chr<1)||(act_position.start_pos <0)||(act_position.start_pos <0))
 			{
@@ -301,12 +304,13 @@ private:
 			}
 			if (test)
 			{
-				//omit readname
-				out_stream << act_position.chr <<"\t" << act_position.start_pos<< "\t" << act_position.end_pos <<"\t"<<"\t" <<endl;
+				//omit readname and sequences which randomly sorted in output and thus not comparable
+				out_stream << act_position.chr <<"\t" << act_position.start_pos<< "\t" << act_position.end_pos<<"\t" << "group " <<counter<<endl;
+				counter++;
 			}
 			else
 			{
-				out_stream << act_position.chr <<"\t" << act_position.start_pos<< "\t" << act_position.end_pos <<"\t" << read_name <<endl;
+				out_stream << act_position.chr <<"\t" << act_position.start_pos<< "\t" << act_position.end_pos <<"\t" << read_name << barcode << '|' << seq_1 << '|'<< seq_2<<endl;
 			}
 		}
 	}
@@ -398,18 +402,18 @@ public:
 								mip_info_map[act_position].counter++;
 								most_frequent_read_selection read_selection = cutAndSelectPair(i.value(),mip_info_map[act_position].left_arm,mip_info_map[act_position].right_arm);
 								writePairToBam(writer, read_selection.most_freq_read);
-								writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,test);
+								writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
 							}
 							else if (mip_nomatch_out!="")//write reads not matching a mip to a bed file
 							{
-								writeReadsToBed(nomatch_out_stream,act_position,i.value(),test);
+								writeReadsToBed(nomatch_out_stream,act_position,i.value(),i.key().barcode,test);
 							}
 						}
 						else
 						{
 							most_frequent_read_selection read_selection = find_highest_freq_read(i.value());
 							writePairToBam(writer, read_selection.most_freq_read);
-							writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,test);
+							writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
 						}
 					}
 					else
@@ -466,18 +470,18 @@ public:
 					mip_info_map[act_position].counter++;
 					most_frequent_read_selection read_selection = cutAndSelectPair(i.value(),mip_info_map[act_position].left_arm,mip_info_map[act_position].right_arm);
 					writePairToBam(writer, read_selection.most_freq_read);
-					writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,test);
+					writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
 				}
 				else if (mip_nomatch_out!="")//write reads not matching a mip to a bed file
 				{
-					writeReadsToBed(nomatch_out_stream,act_position,i.value(),test);
+					writeReadsToBed(nomatch_out_stream,act_position,i.value(),i.key().barcode,test);
 				}
 			}
 			else
 			{
 				most_frequent_read_selection read_selection = find_highest_freq_read(i.value());
 				writePairToBam(writer, read_selection.most_freq_read);
-				writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,test);
+				writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
 			}
 		}
 
