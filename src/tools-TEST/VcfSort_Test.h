@@ -17,6 +17,11 @@ private slots:
 		COMPARE_FILES("out/VcfSort_out2.vcf", TESTDATA("data_out/VcfSort_out2.vcf"));
 	}
 
+	void test_03()
+	{
+		EXECUTE("VcfSort", "-in " + TESTDATA("data_in/VcfSort_in3.vcf") + " -out out/VcfSort_out3.vcf -fai " + TESTDATA("data_in/hg19.fa.fai"));
+		COMPARE_FILES("out/VcfSort_out3.vcf", TESTDATA("data_out/VcfSort_out3.vcf"));
+	}
 };
 
 

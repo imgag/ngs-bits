@@ -896,5 +896,3 @@ reverse: name - PC0206:37:64FA0AAXX:7:20:5493:19830region -17:6403-6465 is: -62;
 
 Softclipped 256 of 322 reads (79.50 %).
 Softclipped 5418 of 23489 basepairs (23.07 %).
-QC:2000040 79.50
-QC:2000041 23.07

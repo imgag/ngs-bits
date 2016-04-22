@@ -246,8 +246,6 @@ public:
 		if(reads_saved!=reads_count)	THROW(ToolFailedException, "Lost Reads: "+QString::number(reads_count-reads_saved)+"/"+QString::number(reads_count));
 		out << "Softclipped " << QString::number(reads_clipped) << " of " << QString::number(reads_count) << " reads (" << QString::number(((double)reads_clipped/(double)reads_count*100),'f',2) << " %)." << endl;
 		out << "Softclipped " << QString::number(bases_clipped) << " of " << QString::number(bases_count) << " basepairs (" << QString::number((double)bases_clipped/(double)bases_count*100,'f',2) << " %)." << endl;
-		out << "QC:2000040 " << QString::number(((double)reads_clipped/(double)reads_count*100),'f',2) << endl;
-		out << "QC:2000041 " << QString::number((double)bases_clipped/(double)bases_count*100,'f',2) << endl;
 
 		//done
 		reader.Close();

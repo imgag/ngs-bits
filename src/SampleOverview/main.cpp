@@ -63,7 +63,8 @@ public:
 		foreach(QString col, cols)
 		{
 			if (col=="genotype") continue;
-			vl_merged.annotations().append(VariantAnnotationDescription(col, ""));
+			vl_merged.annotations().append(VariantAnnotationHeader(col));
+			vl_merged.annotation_descriptions().append(VariantAnnotationDescription(col, ""));
 		}
 		for (int i=0; i<vls.count(); ++i)
 		{
@@ -91,7 +92,8 @@ public:
 			if(geno_index==-1)	geno_index = vls[i].annotationIndexByName("tumor_maf", true, true);
 
 			//add column header
-			vl_merged.annotations().append(VariantAnnotationDescription(QFileInfo(in[i]).baseName(), ""));
+			vl_merged.annotations().append(VariantAnnotationHeader(QFileInfo(in[i]).baseName()));
+			vl_merged.annotation_descriptions().append(VariantAnnotationDescription(QFileInfo(in[i]).baseName(), ""));
 
 			//create index over variant list to speed up the search
 			const VariantList& vl = vls[i];

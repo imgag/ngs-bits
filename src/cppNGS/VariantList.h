@@ -204,24 +204,34 @@ public:
         return comments_;
     }
 
-    ///Returns sample name.
-	QString sampleName() const
-    {
-        return sample_name_;
-    }
-
     ///Const access to annotation headers.
-    const QList<VariantAnnotationDescription>& annotations() const
+	const QList<VariantAnnotationHeader>& annotations() const
     {
-        return annotations_;
+		return annotation_headers_;
     }
     ///Non-const access to annotation headers.
-    QList<VariantAnnotationDescription>& annotations()
+	QList<VariantAnnotationHeader>& annotations()
     {
-        return annotations_;
+		return annotation_headers_;
     }
+
+	///Const access to annotation headers.
+	const QList<VariantAnnotationDescription>& annotation_descriptions() const
+	{
+		return annotation_descriptions_;
+	}
+	///Non-const access to annotation headers.
+	QList<VariantAnnotationDescription>& annotation_descriptions()
+	{
+		return annotation_descriptions_;
+	}
+
+
+	VariantAnnotationDescription annotationDescriptionByName(const QString& description_name, const QString sample_id = NULL);
+
 	///Looks up annotation header index by name. If no or several annotations match, -1 is returned (or an error is thrown if @p error_on_mismatch is set).
-	int annotationIndexByName(const QString& name, bool exact_match, bool error_on_mismatch) const;
+	int annotationIndexByName(const QString& name, bool exact_match = true, bool error_on_mismatch = true) const;
+	int annotationIndexByName(const QString& name, const QString& sample_id, bool exact_match, bool error_on_mismatch) const;
 	///Removes an annotation column by index.
 	void removeAnnotation(int index);
 
@@ -252,6 +262,8 @@ public:
 	void filterByRegions(const BedFile& regions, bool invert=false);
     ///Removed all variants that do not pass all filters.
     void filterByRules(const QVector<VariantFilter>& filters);
+	///Filter all variants by filters given in file
+	void filterByFilterColumn();
 
     ///Remove duplicate variants.
 	void removeDuplicates(bool sort_by_quality);
@@ -270,10 +282,10 @@ public:
 
 protected:
     QStringList comments_;
-	QList<VariantAnnotationDescription> annotations_;
+	QList<VariantAnnotationDescription> annotation_descriptions_;
+	QList<VariantAnnotationHeader> annotation_headers_;
 	QMap<QString, QString> filters_;
     QVector<Variant> variants_;
-    QString sample_name_;
     ///Comparator helper class used by sortByFile.
     class LessComparatorByFile
     {

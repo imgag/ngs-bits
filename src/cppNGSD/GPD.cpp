@@ -81,11 +81,13 @@ GPD::~GPD()
 
 int GPD::addColumn(VariantList& variants, QString name, QString description)
 {
-	variants.annotations().append(VariantAnnotationDescription(name, description));
+	variants.annotations().append(VariantAnnotationHeader(name));
 	for (int i=0; i<variants.count(); ++i)
 	{
 		variants[i].annotations().append("");
 	}
+
+	variants.annotation_descriptions().append(VariantAnnotationDescription(name,description));
 
 	return variants.annotations().count() - 1;
 }

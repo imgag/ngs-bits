@@ -80,10 +80,14 @@ public:
 
 		//merge input files
 		VariantList vl;
-		vl.annotations().append(VariantAnnotationDescription("source", "Source sample."));
-		vl.annotations().append(VariantAnnotationDescription("match", "Match type, exact or fuzzy."));
-		vl.annotations().append(VariantAnnotationDescription("quality", "Variant quality (if available)."));
-		vl.annotations().append(VariantAnnotationDescription("genotype", "Genotype (if available)."));
+		vl.annotations().append(VariantAnnotationHeader("source"));
+		vl.annotation_descriptions().append(VariantAnnotationDescription("source", "Source sample."));
+		vl.annotations().append(VariantAnnotationHeader("match"));
+		vl.annotation_descriptions().append(VariantAnnotationDescription("match", "Match type, exact or fuzzy."));
+		vl.annotations().append(VariantAnnotationHeader("quality"));
+		vl.annotation_descriptions().append(VariantAnnotationDescription("quality", "Variant quality (if available)."));
+		vl.annotations().append(VariantAnnotationHeader("genotype"));
+		vl.annotation_descriptions().append(VariantAnnotationDescription("genotype", "Genotype (if available)."));
 		int c1 = appendStrippedVariants(vl, in1, "in1");
 		int c2 = appendStrippedVariants(vl, in2, "in2");
 		vl.sort(true);

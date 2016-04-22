@@ -237,11 +237,13 @@ void NGSD::executeQueriesFromFile(QString filename)
 
 int NGSD::addColumn(VariantList& variants, QString name, QString description)
 {
-	variants.annotations().append(VariantAnnotationDescription(name, description));
+	variants.annotations().append(VariantAnnotationHeader(name));
 	for (int i=0; i<variants.count(); ++i)
 	{
 		variants[i].annotations().append("");
 	}
+
+	variants.annotation_descriptions().append(VariantAnnotationDescription(name, description));
 
 	return variants.annotations().count() - 1;
 }
@@ -460,12 +462,12 @@ void NGSD::annotate(VariantList& variants, QString filename)
 	}
 
 	//remove all NGSD-specific columns
-	QList<VariantAnnotationDescription> descs = variants.annotations();
-	foreach(const VariantAnnotationDescription& desc, descs)
+	QList<VariantAnnotationHeader> headers = variants.annotations();
+	foreach(const VariantAnnotationHeader& header, headers)
 	{
-		if (desc.name().startsWith("ihdb_"))
+		if (header.name().startsWith("ihdb_"))
 		{
-			removeColumnIfPresent(variants, desc.name(), true);
+			removeColumnIfPresent(variants, header.name(), true);
 		}
 	}
 	removeColumnIfPresent(variants, "classification", true);
@@ -656,12 +658,12 @@ void NGSD::annotateSomatic(VariantList& variants, QString filename)
 	}
 
 	//remove all NGSD-specific columns
-	QList<VariantAnnotationDescription> descs = variants.annotations();
-	foreach(const VariantAnnotationDescription& desc, descs)
+	QList<VariantAnnotationHeader> headers = variants.annotations();
+	foreach(const VariantAnnotationHeader& header, headers)
 	{
-		if (desc.name().startsWith("som_ihdb"))
+		if (header.name().startsWith("som_ihdb"))
 		{
-			removeColumnIfPresent(variants, desc.name(), true);
+			removeColumnIfPresent(variants, header.name(), true);
 		}
 	}
 

@@ -7,6 +7,45 @@
 
 ///stores properties of a annotation.
 
+class CPPNGSSHARED_EXPORT VariantAnnotationHeader
+{
+public:
+//	VariantAnnotationHeader(const QByteArray& name);
+//	VariantAnnotationHeader(const QByteArray& name, const QByteArray& sample_id);
+	VariantAnnotationHeader(const QString& name);
+	VariantAnnotationHeader(const QString& name, const QString& sample_id);
+
+	///==Operator (two different INFO or FORMAT annotation can't have same ID in vcf)
+	bool operator==(VariantAnnotationHeader b)
+	{
+		return ((this->name_==b.name_)&&(this->sample_id_==b.sample_id_));
+	}
+
+	const QString sampleID() const
+	{
+		return sample_id_;
+	}
+
+	void setSampleID(const QString& sample_id)
+	{
+		sample_id_ = sample_id;
+	}
+
+	const QString name() const
+	{
+		return name_;
+	}
+
+	void setName(const QString& name)
+	{
+		name_=name;
+	}
+
+protected:
+	QString name_;
+	QString sample_id_;
+};
+
 class CPPNGSSHARED_EXPORT VariantAnnotationDescription
 {
 public:
@@ -14,7 +53,8 @@ public:
     enum AnnotationType {INTEGER,FLOAT,FLAG,CHARACTER,STRING};
 
     ///Constructor.
-    VariantAnnotationDescription(const QString& name, const QString& description, AnnotationType type=STRING, bool sample_specific=false, QString number="1");
+	VariantAnnotationDescription();
+	VariantAnnotationDescription(const QString& name, const QString& description, AnnotationType type=STRING, bool sample_specific=false, QString number="1", bool print=true);
 
 	///==Operator (two different INFO or FORMAT annotation can't have same ID in vcf)
 	bool operator==(VariantAnnotationDescription b)
@@ -73,6 +113,12 @@ public:
         number_=number;
     }
 
+	///Returns the print value of the annotation description (for VCF).
+	bool print() const
+	{
+		return print_;
+	}
+
 protected:
     ///Name of the annotation (nearly unique, sample-specific and -independent annotations may have the same name).
     QString name_;
@@ -84,6 +130,8 @@ protected:
     bool sample_specific_;
     ///The number of values the annotation consists of, may be positive int (including "0"), ".", "A" or "G".
     QString number_;
+	///Print this description to output
+	bool print_;
 };
 
 #endif // VARIANTANNOTATIONDESCRIPTION_H
