@@ -209,7 +209,7 @@ private:
 				++deleted_elem_count;
 			}
 		}
-		return cigar_ops_out;//TODO: Raise error?
+		return cigar_ops_out;
 	}
 
 	most_frequent_read_selection find_highest_freq_read(QList <readPair> readpairs)

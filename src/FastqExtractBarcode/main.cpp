@@ -8,8 +8,6 @@
 #include <QList>
 #include <QDir>
 
-//TODO: Find more suitable name for current tool
-
 class ConcreteTool
 		: public ToolBase
 {
