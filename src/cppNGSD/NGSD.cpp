@@ -482,7 +482,7 @@ void NGSD::annotate(VariantList& variants, QString filename)
 	int ihdb_all_het_idx =  addColumn(variants, "ihdb_allsys_het", "Heterozygous variant counts in NGSD independent of the processing system.");
 	int class_idx = addColumn(variants, "classification", "Classification from the NGSD.");
 	int clacom_idx = addColumn(variants, "classification_comment", "Classification comment from the NGSD.");
-	int valid_idx = addColumn(variants, "validated", "Validation information from the NGSD.");
+	int valid_idx = addColumn(variants, "validated", "Validation information from the NGSD. Validation results of other samples are listed in brackets!");
 	if (variants.annotationIndexByName("comment", true, false)==-1) addColumn(variants, "comment", "Comments from the NGSD. Comments of other samples are listed in brackets!");
 	int comment_idx = variants.annotationIndexByName("comment", true, false);
 

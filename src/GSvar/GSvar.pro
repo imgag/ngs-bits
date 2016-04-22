@@ -23,7 +23,8 @@ SOURCES += main.cpp\
     GeneInfoDialog.cpp \
     PhenoToGenesDialog.cpp \
     PhenotypeSelector.cpp \
-    GenesToRegionsDialog.cpp
+    GenesToRegionsDialog.cpp \
+    VariantDetailsDockWidget.cpp
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
@@ -41,7 +42,8 @@ HEADERS  += MainWindow.h \
     GeneInfoDialog.h \
     PhenoToGenesDialog.h \
     PhenotypeSelector.h \
-    GenesToRegionsDialog.h
+    GenesToRegionsDialog.h \
+    VariantDetailsDockWidget.h
 
 
 FORMS    += MainWindow.ui \
@@ -57,7 +59,8 @@ FORMS    += MainWindow.ui \
     GeneInfoDialog.ui \
     PhenoToGenesDialog.ui \
     PhenotypeSelector.ui \
-    GenesToRegionsDialog.ui
+    GenesToRegionsDialog.ui \
+    VariantDetailsDockWidget.ui
     
 
 include("../app_gui.pri")
@@ -69,7 +72,3 @@ LIBS += -L$$PWD/../bin -lcppNGSD
 
 RESOURCES += \
     resources.qrc
-
-DISTFILES += \
-    Icons/Keep_gray.png \
-    Icons/Remove_gray.png

@@ -1,7 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>Icons/Icon.png</file>
-        <file>Icons/Link.png</file>
         <file>Icons/Add.png</file>
         <file>Icons/Remove.png</file>
         <file>Icons/IGV.png</file>
@@ -24,5 +23,7 @@
         <file>Icons/Filter_gray.png</file>
         <file>Icons/CopyClipboard.png</file>
         <file>Icons/CopyFile.png</file>
+        <file>Icons/Next.png</file>
+        <file>Icons/Previous.png</file>
     </qresource>
 </RCC>

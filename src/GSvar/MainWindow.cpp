@@ -40,6 +40,8 @@ MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
 	, filter_widget_(new FilterDockWidget(this))
+	, var_last_(-1)
+	, var_widget_(new VariantDetailsDockWidget(this))
 	, busy_dialog_(nullptr)
 	, filename_()
 	, db_annos_updated_(false)
@@ -50,6 +52,8 @@ MainWindow::MainWindow(QWidget *parent)
 	setWindowTitle(QCoreApplication::applicationName());
 	addDockWidget(Qt::RightDockWidgetArea, filter_widget_);
 	filter_widget_->raise();
+	addDockWidget(Qt::BottomDockWidgetArea, var_widget_);
+	var_widget_->raise();
 
     //filter menu button
     auto filter_btn = new QToolButton();
@@ -70,6 +74,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.actionClose, SIGNAL(triggered()), this, SLOT(close()));
 	connect(ui_.vars, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(varsContextMenu(QPoint)));
 	connect(filter_widget_, SIGNAL(filtersChanged()), this, SLOT(filtersChanged()));
+	connect(ui_.vars, SIGNAL(itemSelectionChanged()), this, SLOT(updateVariantDetails()));
 	connect(&filewatcher_, SIGNAL(fileChanged()), this, SLOT(handleInputFileChange()));
 
 	//misc initialization
@@ -876,12 +881,14 @@ void MainWindow::variantListChanged()
 	QTime timer;
 	timer.start();
 
+	//update variant details widget
+	var_last_ = -1;
+
 	//resize
 	ui_.vars->setRowCount(variants_.count());
 	ui_.vars->setColumnCount(5 + variants_.annotations().count());
 
 	//header
-	link_indices_.clear();
 	ui_.vars->setHorizontalHeaderItem(0, new QTableWidgetItem("chr"));
 	ui_.vars->setHorizontalHeaderItem(1, new QTableWidgetItem("start"));
 	ui_.vars->setHorizontalHeaderItem(2, new QTableWidgetItem("end"));
@@ -903,17 +910,6 @@ void MainWindow::variantListChanged()
 		}
 		header->setToolTip(variants_.annotations()[i].description() + add_desc);
 		ui_.vars->setHorizontalHeaderItem(i+5, header);
-		//link columns
-		QStringList link_cols;
-		link_cols << "dbSNP" << "OMIM" << "ClinVar" << "HGMD" << "COSMIC" << "GPD_gene" << "GPD_var";
-		foreach(const QString& link_col, link_cols)
-		{
-			if (anno.contains(link_col))
-			{
-			   header->setIcon(QIcon("://Icons/Link.png"));
-			   link_indices_.insert(i+5);
-			}
-		}
 	}
 
 	//content
@@ -940,42 +936,6 @@ void MainWindow::variantListChanged()
 		{
 			QString anno = row.annotations().at(j);
 			QTableWidgetItem* item = new QTableWidgetItem(anno);
-
-			//tooltip
-			QString tooltip;
-			tooltip = nobr() + row.chr().str() + ":" + QString::number(row.start()) + "-" + QString::number(row.end()) + " " + row.ref() + ">" + row.obs();
-			//tooltip for link columns
-			if (link_indices_.contains(j+5))
-			{
-				QStringList entries = anno.split("];");
-				QString ids = "";
-				QString add_info = "";
-				foreach(const QString& entry, entries)
-				{
-					if (entry.trimmed()=="") continue;
-					if (ids!="")
-					{
-						ids += ", ";
-						add_info += "\n";
-					}
-					ids += entry.mid(0, entry.indexOf("[")-1).trimmed();
-					add_info += entry.trimmed();
-					if (entry.contains("[")) add_info += "]";
-				}
-				item->setText(ids);
-				tooltip += nobr() + add_info;
-			}
-
-			//tooltip for fields with large content
-			if (j==i_co_sp)
-			{
-				tooltip += formatTranscripts(item->text());
-			}
-			if (j==i_comment)
-			{
-				tooltip += nobr() + item->text();
-			}
-			item->setToolTip("<font>" + tooltip + "</font>");
 
 			//warning
 			if (j==i_co_sp && anno.contains(":HIGH:"))
@@ -1079,10 +1039,6 @@ void MainWindow::varsContextMenu(QPoint pos)
 
 	//create contect menu
 	QMenu menu(ui_.vars);
-	if (item->text()!="" && link_indices_.contains(item->column()))
-	{
-		menu.addAction(QIcon("://Icons/Link.png"), "Open annotation website");
-	}
 	QMenu* sub_menu = menu.addMenu(QIcon("://Icons/IGV.png"), "IGV");
 	sub_menu->addAction("Open BAM and jump to position");
 	sub_menu->addAction("Jump to position");
@@ -1114,66 +1070,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 	if (!action) return;
 
 	QByteArray text = action->text().toLatin1();
-	if (text=="Open annotation website")
-	{
-		QString header = ui_.vars->horizontalHeaderItem(item->column())->text();
-
-		//extract IDs
-		QStringList ids = item->text().split(", ", QString::SkipEmptyParts);
-		QStringList details = item->toolTip().replace("<font>", "").replace("</font>", "").split(nobr(), QString::SkipEmptyParts);
-		details = details.mid(1);
-		for(int i=0; i<ids.count(); ++i)
-		{
-			QString id = ids[i];
-
-			//determine URL
-			QString url;
-			if(header=="dbSNP")
-			{
-				url = "http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?rs=";
-			}
-			else if(header=="OMIM")
-			{
-				url = "http://omim.org/entry/";
-			}
-			else if(header=="ClinVar")
-			{
-				url = "http://www.ncbi.nlm.nih.gov/clinvar/";
-			}
-			else if(header=="HGMD")
-			{
-				if (i>=details.count()) THROW(ProgrammingException, "Invalid index " + QString::number(i) + " in details!");
-				QStringList gene_parts = details[i].split("GENE=");
-				if (gene_parts.count()<2) THROW(ProgrammingException, "Invalid gene index 1 in gene_parts!");
-				QString gene = gene_parts[1].left(gene_parts[1].length()-1);
-				url = "http://www.hgmd.cf.ac.uk/ac/gene.php?gene="+gene+"&accession=";
-			}
-			else if(header=="COSMIC")
-			{
-				if (id.startsWith("COSM"))
-				{
-					url = "http://cancer.sanger.ac.uk/cosmic/mutation/overview?id=";
-				}
-				else
-				{
-					url = "http://cancer.sanger.ac.uk/cosmic/ncv/overview?id=";
-				}
-				id = id.mid(4);
-			}
-			else if(header=="GPD_gene")
-			{
-				url = Settings::string("GPD")+"/genes/view/";
-			}
-			else if(header=="GPD_var")
-			{
-				url = Settings::string("GPD")+"/variants/view/";
-			}
-			else THROW(ProgrammingException, "Unknown link header " + header + "!");
-
-			QDesktopServices::openUrl(QUrl(url + id));
-		}
-	}
-	else if (text=="Open BAM and jump to position")
+	if (text=="Open BAM and jump to position")
 	{
 		//determine BAM file(s) to load
 		QStringList bam_files;
@@ -1395,6 +1292,28 @@ void MainWindow::varsContextMenu(QPoint pos)
 	{
 		GeneInfoDialog dlg(text, this);
 		dlg.exec();
+	}
+}
+
+void MainWindow::updateVariantDetails()
+{
+	if (!var_widget_->isVisible()) return;
+
+	//determine variant (first in first range)
+	auto ranges = ui_.vars->selectedRanges();
+	if (ranges.count()==0)
+	{
+		var_last_ = -1;
+		var_widget_->clear();
+		return;
+	}
+
+	//display variant details
+	int row = ranges[0].topRow();
+	if (row!=var_last_)
+	{
+		var_widget_->updateVariant(variants_, row);
+		var_last_ = row;
 	}
 }
 

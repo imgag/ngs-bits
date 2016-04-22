@@ -4,11 +4,10 @@ libs:
 - test cppNGSD (include in libs)
 
 GSvar:
-- implement variant details dock widget (like sophia-genetics), show inheritance/comments from geneinfo_germline
 * Gene info table: Inititialize from OMIM, if parsing of inheritance is available
 
 Tools:
-* BedLowCoverage: Take region names from input region.
+* BedLowCoverage: Write region names from input regions to output regions (merged).
 - MappingQC:
   - add %soft/hard-clipped quality parameter (see ssPWBRCA_v2)
   * support RNA: insert size, spike-in controls, mapping ribosomes/globulines, etc.
