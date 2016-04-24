@@ -11,7 +11,7 @@
 #include "NGSHelper.h"
 #include "FastqFileStream.h"
 #include "LinePlot.h"
-#include "ScatterPlot.h"
+//#include "ScatterPlot.h"
 #include "Helper.h"
 #include "ChromosomeInfo.h"
 #include "SampleCorrelation.h"
@@ -587,9 +587,17 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	}
 
 
-	//plots
+	// @todo currently only vcf and only strelka
+	// @todo get tumor and normal_id from pedigree tag
+	QString tumor_id = QFileInfo(tumor_bam).baseName();
+	QString normal_id = QFileInfo(normal_bam).baseName();
+	QStringList nuc;
+	nuc.append("A"); nuc.append("C"); nuc.append("T"); nuc.append("G");
+
+	//plots: allele frequencies
+	/*
 	ScatterPlot plot;
-	plot.setXLabel("allele frequenciy normal");
+	plot.setXLabel("allele frequency normal");
 	plot.setYLabel("allele frequency tumor");
 	plot.setYRange(0.0,1.0);
 	plot.setXRange(0.0,1.0);
@@ -597,22 +605,69 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	QList< QPair<double,double> > points;
 	for(int i=0; i<variants.count(); ++i)
 	{
-//		if(variant_tumor.annotations())
+		double af_tumor = -1;
+		int count_mut = 0;
+		int count_all = 0;
+		foreach(QString n, nuc)
+		{
+			int index_n = variants.annotationIndexByName((n+"U"), tumor_id);
+			int tmp = variants[i].annotations()[index_n].split(',')[0].toInt();
+			if(n==variants[i].obs())	count_mut += tmp;
+			count_all += tmp;
+		}
+		if(count_all>0)	af_tumor = (double)count_mut/count_all;
+
+		double af_normal = -1;
+		count_mut = 0;
+		count_all = 0;
+		foreach(QString n, nuc)
+		{
+			int index_n = variants.annotationIndexByName((n+"U"), normal_id);
+			int tmp = variants[i].annotations()[index_n].split(',')[0].toInt();
+			if(n==variants[i].obs())	count_mut += tmp;
+			count_all += tmp;
+		}
+		if(count_all>0)	af_normal = (double)count_mut/count_all;
+
+		if(af_tumor<0 || af_normal<0)	continue;
 
 		//find AF and set x and y points, implement freebayes and strelka fields, multi-vcf capability required!
 		QPair<double,double> point;
-		point.first = 0.5;
-		point.second = 0.5;
+		point.first = af_tumor;
+		point.second = af_normal;
 		points.append(point);
 	}
+	plot.setValues(points);
 	QString plotname = Helper::tempFileName(".png");
 	plot.store(plotname);
 	output.insert(QCValue::Image("mutation allele frequencies plot", plotname, ".", "QC:2000048"));
 	QFile::remove(plotname);
+	*/
 
-	output.insert(QCValue("somatic CNVs count", "", "Needs to be implemented.", "QC:2000044"));
+	//plots: somatic variant signature
+	QHash <QString, int> codons;
+	QString c;
+	QString co;
+	QString cod;
+	foreach(QString n, nuc)
+	{
+		c = n;
+		foreach(QString nn, nuc)
+		{
+			co = c + nn;
+			foreach(QString nnn, nuc)
+			{
+				cod = co + nnn;
+				codons[cod] = 0;
+			}
+		}
+
+	}
 	output.insert(QCValue::Image("somatic variant signature plot", "", "Needs to be implemented.", "QC:2000047"));
+
+	//plots: somatic variant distance, implement firs
 	output.insert(QCValue::Image("somatic variant distance plot", "", "Needs to be implemented.", "QC:2000046"));
+	output.insert(QCValue("somatic CNVs count", "", "Needs to be implemented.", "QC:2000044"));
 
 	return output;
 }

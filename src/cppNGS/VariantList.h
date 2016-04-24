@@ -231,7 +231,7 @@ public:
 
 	///Looks up annotation header index by name. If no or several annotations match, -1 is returned (or an error is thrown if @p error_on_mismatch is set).
 	int annotationIndexByName(const QString& name, bool exact_match = true, bool error_on_mismatch = true) const;
-	int annotationIndexByName(const QString& name, const QString& sample_id, bool exact_match, bool error_on_mismatch) const;
+	int annotationIndexByName(const QString& name, const QString& sample_id, bool exact_match = true, bool error_on_mismatch = true) const;
 	///Removes an annotation column by index.
 	void removeAnnotation(int index);
 
