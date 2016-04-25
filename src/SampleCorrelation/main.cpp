@@ -43,11 +43,11 @@ public:
 		if (getFlag("bam")==false)
 		{
 			int window = getInt("window");
-			sc.CalculateFromVcf(in1,in2,window);
+			sc.calculateFromVcf(in1,in2,window);
 
 			//print results to command line
 			out << "#overlap_percent\toverlap_correlation\tcount1\tcount2\tfile1\tfile2" << endl;
-			out << QString::number(sc.ol_perc, 'f', 2) << "\t" << QString::number(sc.correlation, 'f', 3) << "\t" << QString::number(sc.no_variants1) << "\t" << QString::number(sc.no_variants2) << "\t" << QFileInfo(in1).fileName() << "\t" << QFileInfo(in2).fileName() << endl;
+			out << QString::number(sc.olPerc(), 'f', 2) << "\t" << QString::number(sc.sampleCorrelation(), 'f', 3) << "\t" << QString::number(sc.noVariants1()) << "\t" << QString::number(sc.noVariants2()) << "\t" << QFileInfo(in1).fileName() << "\t" << QFileInfo(in2).fileName() << endl;
 		}
 		//BAM mode
 		else
@@ -56,15 +56,15 @@ public:
 			//parse parameters
 			int min_cov = getInt("min_cov");
 			int max_snps = getInt("max_snps");
-			sc.CalculateFromBam(in1, in2, min_cov, max_snps);
+			sc.calculateFromBam(in1, in2, min_cov, max_snps);
 
 			//output
-			out << "Number of high-coverage SNPs: " << QString::number(sc.no_variants1) << " of " << QString::number(sc.total_variants) << " (max_snps: " << QString::number(max_snps) << ")" << endl;
-			out << "Correlation: " << QString::number(sc.correlation, 'f', 4) << endl;
+			out << "Number of high-coverage SNPs: " << QString::number(sc.noVariants1()) << " of " << QString::number(sc.totalVariants()) << " (max_snps: " << QString::number(max_snps) << ")" << endl;
+			out << "Correlation: " << QString::number(sc.sampleCorrelation(), 'f', 4) << endl;
 		}
 
 		//print messages
-		foreach(QString message, sc.messages)
+		foreach(QString message, sc.messages())
 		{
 			out << message << endl;
 		}

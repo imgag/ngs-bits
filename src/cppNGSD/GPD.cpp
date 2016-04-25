@@ -87,7 +87,7 @@ int GPD::addColumn(VariantList& variants, QString name, QString description)
 		variants[i].annotations().append("");
 	}
 
-	variants.annotation_descriptions().append(VariantAnnotationDescription(name,description));
+	variants.annotationDescriptions().append(VariantAnnotationDescription(name,description));
 
 	return variants.annotations().count() - 1;
 }

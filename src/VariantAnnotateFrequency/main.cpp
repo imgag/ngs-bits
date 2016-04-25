@@ -78,16 +78,16 @@ public:
 		QString name = getString("name");
 		if (name!="") prefix = name + "_";
 		input.annotations().append(VariantAnnotationHeader(prefix + "freq"));
-		input.annotation_descriptions().append(VariantAnnotationDescription(prefix + "freq", "Variant frequency.", VariantAnnotationDescription::FLOAT));
+		input.annotationDescriptions().append(VariantAnnotationDescription(prefix + "freq", "Variant frequency.", VariantAnnotationDescription::FLOAT));
 		if (depth)
 		{
 			input.annotations().append(VariantAnnotationHeader(prefix + "depth"));
-			input.annotation_descriptions().append(VariantAnnotationDescription(prefix + "depth", "Sequencing depth at the variant position.",VariantAnnotationDescription::INTEGER));
+			input.annotationDescriptions().append(VariantAnnotationDescription(prefix + "depth", "Sequencing depth at the variant position.",VariantAnnotationDescription::INTEGER));
 		}
 		if (mapq0)
 		{
 			input.annotations().append(VariantAnnotationHeader(prefix + "mapq0_frac"));
-			input.annotation_descriptions().append(VariantAnnotationDescription(prefix + "mapq0_frac", "Fraction of reads with mapping quality 0 at the variant position.",VariantAnnotationDescription::INTEGER));
+			input.annotationDescriptions().append(VariantAnnotationDescription(prefix + "mapq0_frac", "Fraction of reads with mapping quality 0 at the variant position.",VariantAnnotationDescription::INTEGER));
 		}
 		input.store(getOutfile("out"));
 	}

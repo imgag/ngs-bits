@@ -122,13 +122,13 @@ bool VariantFilter::pass(const VariantList& list, int index, QHash<QString, int>
 			else if (field_name.startsWith("*") && field_name.endsWith("*"))
 			{
 				field_name = field_name.mid(1, field_name.count()-2);
-				int anno_index = list.annotationIndexByName(field_name, NULL, false, true);
+				int anno_index = list.annotationIndexByName(field_name, false, true);
 				field_string = variant.annotations()[anno_index];
 				anno_index_cache.insert("*" + field_name + "*", anno_index);
 			}
 			else
 			{
-				int anno_index = list.annotationIndexByName(field_name, NULL, true, true);
+				int anno_index = list.annotationIndexByName(field_name, true, true);
 				field_string = variant.annotations()[anno_index];
 				anno_index_cache.insert(field_name, anno_index);
 			}

@@ -211,23 +211,26 @@ public:
     }
     ///Non-const access to annotation headers.
 	QList<VariantAnnotationHeader>& annotations()
-    {
+	{
 		return annotation_headers_;
-    }
+	}
 
 	///Const access to annotation headers.
-	const QList<VariantAnnotationDescription>& annotation_descriptions() const
+	const QList<VariantAnnotationDescription>& annotationDescriptions() const
 	{
 		return annotation_descriptions_;
 	}
 	///Non-const access to annotation headers.
-	QList<VariantAnnotationDescription>& annotation_descriptions()
+	QList<VariantAnnotationDescription>& annotationDescriptions()
 	{
 		return annotation_descriptions_;
 	}
 
+	///get Annotation description by name
+	VariantAnnotationDescription annotationDescriptionByName(const QString& description_name, const QString& sample_id = nullptr);
 
-	VariantAnnotationDescription annotationDescriptionByName(const QString& description_name, const QString sample_id = NULL);
+	///Get names of samples in this variant list
+	const QStringList sampleNames();
 
 	///Looks up annotation header index by name. If no or several annotations match, -1 is returned (or an error is thrown if @p error_on_mismatch is set).
 	int annotationIndexByName(const QString& name, bool exact_match = true, bool error_on_mismatch = true) const;
@@ -286,6 +289,7 @@ protected:
 	QList<VariantAnnotationHeader> annotation_headers_;
 	QMap<QString, QString> filters_;
     QVector<Variant> variants_;
+
     ///Comparator helper class used by sortByFile.
     class LessComparatorByFile
     {

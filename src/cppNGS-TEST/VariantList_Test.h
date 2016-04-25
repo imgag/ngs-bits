@@ -110,29 +110,36 @@ private slots:
 		vl.load(TESTDATA("data_in/panel.vcf"));
 		I_EQUAL(vl.count(), 14);
 		I_EQUAL(vl.comments().count(), 2);
-		S_EQUAL(vl.sampleName(), QString("./Sample_GS120297A3/GS120297A3.bam"));
-
+		S_EQUAL(vl.sampleNames()[0], QString("./Sample_GS120297A3/GS120297A3.bam"));
 		I_EQUAL(vl.annotations().count(), 27);
-		S_EQUAL(vl.annotations()[0].name(), QString("ID"));
-		X_EQUAL(vl.annotations()[0].type(), VariantAnnotationDescription::STRING);
-		S_EQUAL(vl.annotations()[0].number(), QString("1"));
-		S_EQUAL(vl.annotations()[0].description(), QString("ID of the variant, often dbSNP rsnumber"));
-		IS_FALSE(vl.annotations()[0].sampleSpecific());
-		S_EQUAL(vl.annotations()[3].name(), QString("INDEL"));
-		X_EQUAL(vl.annotations()[3].type(), VariantAnnotationDescription::FLAG);
-		S_EQUAL(vl.annotations()[3].number(), QString("0"));
-		S_EQUAL(vl.annotations()[3].description(), QString("Indicates that the variant is an INDEL."));
-		IS_FALSE(vl.annotations()[3].sampleSpecific());
-		S_EQUAL(vl.annotations()[8].name(), QString("DP4"));
-		I_EQUAL(vl.annotations()[8].type(), VariantAnnotationDescription::INTEGER);
-		S_EQUAL(vl.annotations()[8].number(), QString("4"));
-		S_EQUAL(vl.annotations()[8].description(), QString("# high-quality ref-forward bases, ref-reverse, alt-forward and alt-reverse bases"));
-		IS_FALSE(vl.annotations()[8].sampleSpecific());
-		S_EQUAL(vl.annotations()[26].name(), QString("PL"));
-		S_EQUAL(vl.annotations()[26].number(), QString("G"));
-		S_EQUAL(vl.annotations()[26].description(), QString("List of Phred-scaled genotype likelihoods"));
-		IS_TRUE(vl.annotations()[26].sampleSpecific());
-		I_EQUAL(vl.annotations()[26].type(), VariantAnnotationDescription::INTEGER);
+
+		VariantAnnotationDescription vad = vl.annotationDescriptionByName("ID");
+		S_EQUAL(vad.name(), QString("ID"));
+		X_EQUAL(vad.type(), VariantAnnotationDescription::STRING);
+		S_EQUAL(vad.number(), QString("1"));
+		S_EQUAL(vad.description(), QString("ID of the variant, often dbSNP rsnumber"));
+		IS_FALSE(vad.sampleSpecific());
+
+		vad = vl.annotationDescriptionByName("INDEL");
+		S_EQUAL(vad.name(), QString("INDEL"));
+		X_EQUAL(vad.type(), VariantAnnotationDescription::FLAG);
+		S_EQUAL(vad.number(), QString("0"));
+		S_EQUAL(vad.description(), QString("Indicates that the variant is an INDEL."));
+		IS_FALSE(vad.sampleSpecific());
+
+		vad = vl.annotationDescriptionByName("DP4");
+		S_EQUAL(vad.name(), QString("DP4"));
+		I_EQUAL(vad.type(), VariantAnnotationDescription::INTEGER);
+		S_EQUAL(vad.number(), QString("4"));
+		S_EQUAL(vad.description(), QString("# high-quality ref-forward bases, ref-reverse, alt-forward and alt-reverse bases"));
+		IS_FALSE(vad.sampleSpecific());
+
+		vad = vl.annotationDescriptionByName("PL","./Sample_GS120297A3/GS120297A3.bam");
+		S_EQUAL(vad.name(), QString("PL"));
+		S_EQUAL(vad.number(), QString("G"));
+		S_EQUAL(vad.description(), QString("List of Phred-scaled genotype likelihoods"));
+		IS_TRUE(vad.sampleSpecific());
+		I_EQUAL(vad.type(), VariantAnnotationDescription::INTEGER);
 
 		I_EQUAL(vl.filters().count(), 2);
 		S_EQUAL(vl.filters()["q10"], QString("Quality below 10"));
@@ -146,10 +153,10 @@ private slots:
 		S_EQUAL(vl[0].annotations().at(3), QByteArray("TRUE"));
 		S_EQUAL(vl[0].annotations().at(8), QByteArray("4,3,11,11"));
 		S_EQUAL(vl[0].annotations().at(26), QByteArray("255,0,123"));
-        I_EQUAL(vl[0].filters().count(), 0);
+		I_EQUAL(vl[0].filters().count(), 0);
 
-        I_EQUAL(vl[11].filters().count(), 1);
-        S_EQUAL(vl[11].filters().at(0), QByteArray("low_DP"));
+		I_EQUAL(vl[11].filters().count(), 1);
+		S_EQUAL(vl[11].filters().at(0), QByteArray("low_DP"));
 
 		X_EQUAL(vl[12].chr(), Chromosome("chr9"));
 		I_EQUAL(vl[12].start(), 130931421);
@@ -159,14 +166,14 @@ private slots:
 		S_EQUAL(vl[12].annotations().at(3), QByteArray(""));
 		S_EQUAL(vl[12].annotations().at(8), QByteArray("457,473,752,757"));
 		S_EQUAL(vl[12].annotations().at(26), QByteArray("255,0,255"));
-        I_EQUAL(vl[12].filters().count(), 0);
+		I_EQUAL(vl[12].filters().count(), 0);
 
 		//load a second time to check initialization
 		vl.load(TESTDATA("data_in/panel.vcf"));
 		I_EQUAL(vl.count(), 14);
 		I_EQUAL(vl.annotations().count(), 27);
 		I_EQUAL(vl.comments().count(), 2);
-		S_EQUAL(vl.sampleName(), QString("./Sample_GS120297A3/GS120297A3.bam"));
+		S_EQUAL(vl.sampleNames()[0], QString("./Sample_GS120297A3/GS120297A3.bam"));
 	}
 
 	void loadFromVCF_noSampleOrFormatColumn()
@@ -177,14 +184,14 @@ private slots:
 		I_EQUAL(vl.count(), 14);
 		I_EQUAL(vl.annotations().count(), 27);
 		I_EQUAL(vl.comments().count(), 2);
-		S_EQUAL(vl.sampleName(), QString("Sample"));
+		S_EQUAL(vl.sampleNames()[0], QString("Sample"));
 
 		vl.clear();
 		vl.load(TESTDATA("data_in/VariantList_loadFromVCF_noFormatSample.vcf"));
 		I_EQUAL(vl.count(), 14);
 		I_EQUAL(vl.annotations().count(), 27);
 		I_EQUAL(vl.comments().count(), 2);
-		S_EQUAL(vl.sampleName(), QString("Sample"));
+		S_EQUAL(vl.sampleNames()[0], QString("Sample"));
 	}
 
 	void loadFromVCF_undeclaredAnnotations()
@@ -196,7 +203,7 @@ private slots:
 		I_EQUAL(vl.count(), 2);
 		I_EQUAL(vl.annotations().count(), 18);
 		QStringList names;
-		foreach(VariantAnnotationDescription d, vl.annotations())
+		foreach(VariantAnnotationHeader d, vl.annotations())
 		{
 			names << d.name();
 		}
@@ -233,29 +240,29 @@ private slots:
 		vl.load("out/VariantList_store_01.vcf");
 		I_EQUAL(vl.count(), 14);
 		I_EQUAL(vl.comments().count(), 2);
-		S_EQUAL(vl.sampleName(), QString("./Sample_GS120297A3/GS120297A3.bam"));
+		S_EQUAL(vl.sampleNames()[0], QString("./Sample_GS120297A3/GS120297A3.bam"));
 
 		I_EQUAL(vl.annotations().count(), 27);
 		S_EQUAL(vl.annotations()[0].name(), QString("ID"));
-		I_EQUAL(vl.annotations()[0].type(), VariantAnnotationDescription::STRING);
-		S_EQUAL(vl.annotations()[0].number(), QString("1"));
-		S_EQUAL(vl.annotations()[0].description(), QString("ID of the variant, often dbSNP rsnumber"));
-		IS_FALSE(vl.annotations()[0].sampleSpecific());
-		S_EQUAL(vl.annotations()[3].name(), QString("INDEL"));
-		I_EQUAL(vl.annotations()[3].type(), VariantAnnotationDescription::FLAG);
-		S_EQUAL(vl.annotations()[3].number(), QString("0"));
-		S_EQUAL(vl.annotations()[3].description(), QString("Indicates that the variant is an INDEL."));
-		IS_FALSE(vl.annotations()[3].sampleSpecific());
-		S_EQUAL(vl.annotations()[8].name(), QString("DP4"));
-		I_EQUAL(vl.annotations()[8].type(), VariantAnnotationDescription::INTEGER);
-		S_EQUAL(vl.annotations()[8].number(), QString("4"));
-		S_EQUAL(vl.annotations()[8].description(), QString("# high-quality ref-forward bases, ref-reverse, alt-forward and alt-reverse bases"));
-		IS_FALSE(vl.annotations()[8].sampleSpecific());
-		S_EQUAL(vl.annotations()[26].name(), QString("PL"));
-		S_EQUAL(vl.annotations()[26].number(), QString("G"));
-		S_EQUAL(vl.annotations()[26].description(), QString("List of Phred-scaled genotype likelihoods"));
-		IS_TRUE(vl.annotations()[26].sampleSpecific());
-		I_EQUAL(vl.annotations()[26].type(), VariantAnnotationDescription::INTEGER);
+		I_EQUAL(vl.annotationDescriptionByName("ID").type(), VariantAnnotationDescription::STRING);
+		S_EQUAL(vl.annotationDescriptionByName("ID").number(), QString("1"));
+		S_EQUAL(vl.annotationDescriptionByName("ID").description(), QString("ID of the variant, often dbSNP rsnumber"));
+		IS_FALSE(vl.annotationDescriptionByName("ID").sampleSpecific());
+		S_EQUAL(vl.annotationDescriptionByName("INDEL").name(), QString("INDEL"));
+		I_EQUAL(vl.annotationDescriptionByName("INDEL").type(), VariantAnnotationDescription::FLAG);
+		S_EQUAL(vl.annotationDescriptionByName("INDEL").number(), QString("0"));
+		S_EQUAL(vl.annotationDescriptionByName("INDEL").description(), QString("Indicates that the variant is an INDEL."));
+		IS_FALSE(vl.annotationDescriptionByName("INDEL").sampleSpecific());
+		S_EQUAL(vl.annotationDescriptionByName("DP4").name(), QString("DP4"));
+		I_EQUAL(vl.annotationDescriptionByName("DP4").type(), VariantAnnotationDescription::INTEGER);
+		S_EQUAL(vl.annotationDescriptionByName("DP4").number(), QString("4"));
+		S_EQUAL(vl.annotationDescriptionByName("DP4").description(), QString("# high-quality ref-forward bases, ref-reverse, alt-forward and alt-reverse bases"));
+		IS_FALSE(vl.annotationDescriptionByName("DP4").sampleSpecific());
+		S_EQUAL(vl.annotationDescriptionByName("PL","./Sample_GS120297A3/GS120297A3.bam").name(), QString("PL"));
+		S_EQUAL(vl.annotationDescriptionByName("PL","./Sample_GS120297A3/GS120297A3.bam").number(), QString("G"));
+		S_EQUAL(vl.annotationDescriptionByName("PL","./Sample_GS120297A3/GS120297A3.bam").description(), QString("List of Phred-scaled genotype likelihoods"));
+		IS_TRUE(vl.annotationDescriptionByName("PL","./Sample_GS120297A3/GS120297A3.bam").sampleSpecific());
+		I_EQUAL(vl.annotationDescriptionByName("PL","./Sample_GS120297A3/GS120297A3.bam").type(), VariantAnnotationDescription::INTEGER);
 
 		I_EQUAL(vl.filters().count(), 2);
 		S_EQUAL(vl.filters()["q10"], QString("Quality below 10"));
@@ -301,14 +308,14 @@ private slots:
 		S_EQUAL(vl[0].annotations().at(0), QByteArray("het"));
 		S_EQUAL(vl[0].annotations().at(5), QByteArray("0.5084"));
 		S_EQUAL(vl[0].annotations().at(26), QByteArray(""));
-        I_EQUAL(vl[0].filters().count(), 0);
+		I_EQUAL(vl[0].filters().count(), 0);
 
-        I_EQUAL(vl[13].filters().count(), 1);
-        S_EQUAL(vl[13].filters().at(0), QByteArray("low_QUAL"));
+		I_EQUAL(vl[13].filters().count(), 1);
+		S_EQUAL(vl[13].filters().at(0), QByteArray("low_QUAL"));
 
-        I_EQUAL(vl[72].filters().count(), 2);
-        S_EQUAL(vl[72].filters().at(0), QByteArray("low_QUAL"));
-        S_EQUAL(vl[72].filters().at(1), QByteArray("low_MQM"));
+		I_EQUAL(vl[72].filters().count(), 2);
+		S_EQUAL(vl[72].filters().at(0), QByteArray("low_QUAL"));
+		S_EQUAL(vl[72].filters().at(1), QByteArray("low_MQM"));
 
 		X_EQUAL(vl[74].chr(), Chromosome("chrX"));
 		I_EQUAL(vl[74].start(), 153009197);
@@ -317,8 +324,8 @@ private slots:
 		S_EQUAL(vl[74].obs(), Sequence("C"));
 		S_EQUAL(vl[74].annotations().at(0), QByteArray("het"));
 		S_EQUAL(vl[74].annotations().at(5), QByteArray("0.5368"));
-        S_EQUAL(vl[74].annotations().at(25), QByteArray(""));
-        I_EQUAL(vl[74].filters().count(), 0);
+		S_EQUAL(vl[74].annotations().at(25), QByteArray(""));
+		I_EQUAL(vl[74].filters().count(), 0);
 
 
 		//load a second time to check initialization
@@ -386,13 +393,13 @@ private slots:
 		I_EQUAL(vl.annotations().count(), 27);
 		I_EQUAL(vl.comments().count(), 1);
 		S_EQUAL(vl.annotations()[0].name(), QString("ID"));
-		S_EQUAL(vl.annotations()[0].description(), QString("ID of the variant, often dbSNP rsnumber"));
-		S_EQUAL(vl.annotations()[3].name(), QString("INDEL"));
-		S_EQUAL(vl.annotations()[3].description(), QString("Indicates that the variant is an INDEL."));
-		S_EQUAL(vl.annotations()[8].name(), QString("DP4"));
-		S_EQUAL(vl.annotations()[8].description(), QString("# high-quality ref-forward bases, ref-reverse, alt-forward and alt-reverse bases"));
-		S_EQUAL(vl.annotations()[26].name(), QString("PL_ss"));
-		S_EQUAL(vl.annotations()[26].description(), QString("List of Phred-scaled genotype likelihoods"));
+		S_EQUAL(vl.annotationDescriptionByName("ID").description(), QString("ID of the variant, often dbSNP rsnumber"));
+		S_EQUAL(vl.annotationDescriptionByName("INDEL").name(), QString("INDEL"));
+		S_EQUAL(vl.annotationDescriptionByName("INDEL").description(), QString("Indicates that the variant is an INDEL."));
+		S_EQUAL(vl.annotationDescriptionByName("DP4").name(), QString("DP4"));
+		S_EQUAL(vl.annotationDescriptionByName("DP4").description(), QString("# high-quality ref-forward bases, ref-reverse, alt-forward and alt-reverse bases"));
+		S_EQUAL(vl.annotationDescriptionByName("PL_ss").name(), QString("PL_ss"));
+		S_EQUAL(vl.annotationDescriptionByName("PL_ss").description(), QString("List of Phred-scaled genotype likelihoods"));
 
 
 		X_EQUAL(vl[0].chr(), Chromosome("chr17"));
@@ -426,9 +433,10 @@ private slots:
 		vl2.load("out/VariantList_emptyDescriptions_fixed.vcf");
 		I_EQUAL(vl2.count(), 14);
 		I_EQUAL(vl2.annotations().count(), 27);
-		foreach(VariantAnnotationDescription ad, vl2.annotations())
+		foreach(VariantAnnotationHeader ah, vl2.annotations())
 		{
-			if (ad.name()=="GQ" || ad.name()=="MQ")
+			VariantAnnotationDescription ad = vl2.annotationDescriptionByName(ah.name(),ah.sampleID());
+			if (ah.name()=="GQ" || ah.name()=="MQ")
 			{
 				S_EQUAL(ad.description(), "no description available");
 			}
@@ -688,7 +696,8 @@ private slots:
 	void removeAnnotation_bug()
 	{
 		VariantList vl;
-		vl.annotations().append(VariantAnnotationDescription("bla", "some desciption"));
+		vl.annotationDescriptions().append(VariantAnnotationDescription("bla", "some desciption"));
+		vl.annotations().append(VariantAnnotationHeader("bla"));
 
 		vl.removeAnnotation(0);
 

@@ -28,7 +28,7 @@ QCCollection Statistics::variantList(const VariantList& variants)
 	output.insert(QCValue("variant count", variants.count(), "Total number of variants in the target region.", "QC:2000013"));
 
     //var_perc_dbsnp
-	int index = variants.annotationIndexByName("ID", NULL, true, false);
+	int index = variants.annotationIndexByName("ID", true, false);
     if (variants.count()!=0 && index!=-1)
     {
         double dbsnp_count = 0;
@@ -47,7 +47,7 @@ QCCollection Statistics::variantList(const VariantList& variants)
     }
 
 	//high-impact variants
-	index = variants.annotationIndexByName("ANN", NULL, true, false);
+	index = variants.annotationIndexByName("ANN", true, false);
     if (variants.count()!=0 && index!=-1)
     {
 		double high_impact_count = 0;
@@ -66,7 +66,7 @@ QCCollection Statistics::variantList(const VariantList& variants)
     }
 
 	//homozygous variants
-	index = variants.annotationIndexByName("GT", NULL, true, false);
+	index = variants.annotationIndexByName("GT", true, false);
     if (variants.count()!=0 && index!=-1)
     {
         double hom_count = 0;
@@ -517,8 +517,8 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 
 	//sample correlation
 	SampleCorrelation sc;
-	sc.CalculateFromBam(tumor_bam,normal_bam,30,500);
-	output.insert(QCValue("sample_correlation", sc.correlation, ".", "QC:2000040"));
+	sc.calculateFromBam(tumor_bam,normal_bam,30,500);
+	output.insert(QCValue("sample_correlation", sc.sampleCorrelation(), ".", "QC:2000040"));
 
 	//variants
 	VariantList variants;

@@ -7,7 +7,7 @@
 #include "api/BamReader.h"
 using namespace BamTools;
 
-void SampleCorrelation::CalculateFromVcf(QString& in1, QString& in2, int window)
+void SampleCorrelation::calculateFromVcf(QString& in1, QString& in2, int window)
 {
 	//load input files
 	VariantList file1;
@@ -51,25 +51,25 @@ void SampleCorrelation::CalculateFromVcf(QString& in1, QString& in2, int window)
 		}
 	}
 
-	no_variants1 = file1.count();
-	no_variants2 = file2.count();
-	ol_perc = 100.0 * c_ol / std::min(no_variants1, no_variants2);
-	correlation = BasicStatistics::correlation(geno1, geno2);
+	no_variants1_ = file1.count();
+	no_variants2_ = file2.count();
+	ol_perc_ = 100.0 * c_ol / std::min(no_variants1_, no_variants2_);
+	sample_correlation_ = BasicStatistics::correlation(geno1, geno2);
 
 	//calulate percentage with same genotype if correlation is not calculatable
-	if (!BasicStatistics::isValidFloat(correlation))
+	if (!BasicStatistics::isValidFloat(sample_correlation_))
 	{
 		double equal = 0.0;
 		for (int i=0; i<geno1.count(); ++i)
 		{
 			equal += (geno1[i]==geno2[i]);
 		}
-		correlation = equal / geno1.count();
-		messages.append("Note: Could not calulate the genotype correlation, calculated the fraction of matching genotypes instead.");
+		sample_correlation_ = equal / geno1.count();
+		messages_.append("Note: Could not calulate the genotype correlation, calculated the fraction of matching genotypes instead.");
 	}
 }
 
-void SampleCorrelation::CalculateFromBam(QString& in1, QString& in2, int min_cov, int max_snps)
+void SampleCorrelation::calculateFromBam(QString& in1, QString& in2, int min_cov, int max_snps)
 {
 	VariantList snps = NGSHelper::getSNPs();
 
@@ -110,10 +110,10 @@ void SampleCorrelation::CalculateFromBam(QString& in1, QString& in2, int min_cov
 
 //	out << "Number of high-coverage SNPs: " << QString::number(high_cov) << " of " << QString::number(snps.count()) << " (max_snps: " << QString::number(max_snps) << ")" << endl;
 
-	no_variants1 = freq1.count();
-	no_variants2 = freq2.count();
-	total_variants = snps.count();
-	correlation = BasicStatistics::correlation(freq1, freq2);
+	no_variants1_ = freq1.count();
+	no_variants2_ = freq2.count();
+	total_variants_ = snps.count();
+	sample_correlation_ = BasicStatistics::correlation(freq1, freq2);
 }
 
 double SampleCorrelation::genoToDouble(const QString& geno)

@@ -40,6 +40,7 @@ public:
 		//load variant lists
 		QVector<VariantList> vls;
 		QVector<QVector<int> > vls_anno_indices;
+		QList <VariantAnnotationDescription> vls_anno_descriptions;
 		for (int i=0; i<in.count(); ++i)
 		{
 			VariantList vl;
@@ -52,6 +53,20 @@ public:
 				if (col=="genotype") continue;
 				int index = vl.annotationIndexByName(col, true, true);
 				anno_indices.append(index);
+
+				foreach(VariantAnnotationDescription vad, vl.annotationDescriptions())
+				{
+					if(vad.name()==col)
+					{
+						bool already_found = false;
+						foreach(VariantAnnotationDescription vad2,vls_anno_descriptions)
+						{
+							if(vad2.name()==col)	already_found = true;
+						}
+
+						if(!already_found)	vls_anno_descriptions.append(vad);
+					}
+				}
 			}
 
 			vls_anno_indices.append(anno_indices);
@@ -75,6 +90,10 @@ public:
 		foreach(int index, vls_anno_indices[0])
 		{
 			vl_merged.annotations().append(vls[0].annotations()[index]);
+		}
+		foreach(VariantAnnotationDescription vad, vls_anno_descriptions)
+		{
+			vl_merged.annotationDescriptions().append(vad);
 		}
 
 		//merge variants
@@ -102,10 +121,10 @@ public:
 		{
 			//get genotype index
 			int geno_index = vls[i].annotationIndexByName("genotype", true, false);
-			if(geno_index==-1)	geno_index = vls[i].annotationIndexByName("tumor_maf", true, true);
+			if(geno_index==-1)	geno_index = vls[i].annotationIndexByName("tumor_af", true, true);
 
 			//add column header
-			vl_merged.annotation_descriptions().append(VariantAnnotationDescription(QFileInfo(in[i]).baseName(), ""));
+			vl_merged.annotationDescriptions().append(VariantAnnotationDescription(QFileInfo(in[i]).baseName(), ""));
 			vl_merged.annotations().append(VariantAnnotationHeader(QFileInfo(in[i]).baseName()));
 
 			//create index over variant list to speed up the search

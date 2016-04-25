@@ -10,8 +10,6 @@
 class CPPNGSSHARED_EXPORT VariantAnnotationHeader
 {
 public:
-//	VariantAnnotationHeader(const QByteArray& name);
-//	VariantAnnotationHeader(const QByteArray& name, const QByteArray& sample_id);
 	VariantAnnotationHeader(const QString& name);
 	VariantAnnotationHeader(const QString& name, const QString& sample_id);
 
@@ -21,7 +19,7 @@ public:
 		return ((this->name_==b.name_)&&(this->sample_id_==b.sample_id_));
 	}
 
-	const QString sampleID() const
+	const QString& sampleID() const
 	{
 		return sample_id_;
 	}
@@ -31,7 +29,7 @@ public:
 		sample_id_ = sample_id;
 	}
 
-	const QString name() const
+	const QString& name() const
 	{
 		return name_;
 	}
