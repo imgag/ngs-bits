@@ -161,6 +161,12 @@ void VariantList::copyMetaData(const VariantList& rhs)
 	annotation_descriptions_ = rhs.annotationDescriptions();
 }
 
+
+VariantAnnotationDescription VariantList::annotationDescriptionByName(const QString& description_name)
+{
+	return annotationDescriptionByName(description_name, nullptr);
+}
+
 VariantAnnotationDescription VariantList::annotationDescriptionByName(const QString& description_name, const QString& sample_id)
 {
 	bool sample_specific = false;
