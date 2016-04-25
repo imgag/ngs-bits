@@ -126,14 +126,19 @@ QString ReportWorker::formatCodingSplicing(QByteArray text)
 	return transcripts.join(", ");
 }
 
-QString ReportWorker::inheritance(QString gene)
+QString ReportWorker::inheritance(QString genes)
 {
-	QString inheritance = db_.geneInfo(gene).inheritance;
-	if (inheritance=="n/a")
+	QStringList output;
+	foreach(QString gene, genes.split(","))
 	{
-		return "<span style=\"background-color: #FF0000\">n/a</span>";
+		QString inheritance = db_.geneInfo(gene).inheritance;
+		if (inheritance=="n/a")
+		{
+			inheritance = "<span style=\"background-color: #FF0000\">n/a</span>";
+		}
+		output << inheritance;
 	}
-	return inheritance;
+	return output.join(",");
 }
 
 BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, const BedFile& roi, QStringList genes, int min_cov,  NGSD& db)
@@ -345,8 +350,8 @@ void ReportWorker::writeHTML()
 			if (!variants_selected_[i].second) continue;
 			const Variant& v = variants_[variants_selected_[i].first];
 			stream << "<table>" << endl;
-			QByteArray gene = v.annotations()[i_gene];
-			stream << "<tr><td><b>Variante:</b> " << v.chr().str() << ":" << v.start() << "-" << v.end() << " " << v.ref() << ">" << v.obs() << " <b>Gen:</b> " << gene << " <b>Typ:</b> " << v.annotations()[i_type] << " <b>Klassifikation: </b>" << v.annotations()[i_class] << " <b>Vererbung:</b>" << inheritance(gene) << "</td></tr>" << endl;
+			QByteArray genes = v.annotations()[i_gene];
+			stream << "<tr><td><b>Variante:</b> " << v.chr().str() << ":" << v.start() << "-" << v.end() << " " << v.ref() << ">" << v.obs() << " <b>Gen:</b> " << genes << " <b>Typ:</b> " << v.annotations()[i_type] << " <b>Klassifikation: </b>" << v.annotations()[i_class] << " <b>Vererbung:</b>" << inheritance(genes) << "</td></tr>" << endl;
 			stream << "<tr><td><b>Details:</b> " << formatCodingSplicing(v.annotations()[i_co_sp]) << "</td></tr>" << endl;
 			QString dbsnp = v.annotations()[i_dbsnp]; //because string is const
 			stream << "<tr><td><b>Frequenz:</b> <b>1000g:</b> " << v.annotations()[i_1000g] << " <b>ExAC:</b> " << v.annotations()[i_exac] << " <b>ESP6500:</b> " << v.annotations()[i_esp] << " <b>dbSNP:</b> " << dbsnp.replace("[];", "") << "</td></tr>" << endl;
@@ -366,15 +371,15 @@ void ReportWorker::writeHTML()
 	for (int i=0; i<variants_selected_.count(); ++i)
 	{
 		const Variant& variant = variants_[variants_selected_[i].first];
-		QByteArray gene = variant.annotations()[i_gene];
+		QByteArray genes = variant.annotations()[i_gene];
 		stream << "<tr>" << endl;
-		stream << "<td>" << gene << "</td>" << endl;
+		stream << "<td>" << genes << "</td>" << endl;
 		stream << "<td>" << endl;
 		stream  << variant.chr().str() << "</td><td>" << variant.start() << "</td><td>" << variant.end() << "</td><td>" << variant.ref() << "</td><td>" << variant.obs() << "</td>";
 		stream << "<td>" << (tumor ? variant.annotations().at(i_tumor_af) : variant.annotations().at(i_genotype)) << "</td>" << endl;
 		stream << "<td>" << formatCodingSplicing(variant.annotations().at(i_co_sp)).replace(", ", "<br />") << "</td>" << endl;
 		stream << "<td>" << variant.annotations().at(i_class) << "</td>" << endl;
-		stream << "<td>" << inheritance(gene) << "</td>" << endl;
+		stream << "<td>" << inheritance(genes) << "</td>" << endl;
 		stream << "</tr>" << endl;
 
 		//OMIM and comment line

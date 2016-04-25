@@ -148,11 +148,12 @@ DEFAULT CHARACTER SET = utf8;
 CREATE  TABLE IF NOT EXISTS `processing_system` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NOT NULL,
+  `name_short` VARCHAR(50) NULL DEFAULT NULL,
+  `name_manufacturer` VARCHAR(50) NULL DEFAULT NULL,
   `adapter1_p5` VARCHAR(45) NULL DEFAULT NULL,
   `adapter2_p7` VARCHAR(45) NULL DEFAULT NULL,
   `shotgun` TINYINT(1) NOT NULL,
   `target_file` VARCHAR(255) NULL DEFAULT NULL,
-  `name_short` VARCHAR(50) NULL DEFAULT NULL,
   `genome_id` INT(11) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`name` ASC),
