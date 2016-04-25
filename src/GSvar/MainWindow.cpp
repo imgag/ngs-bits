@@ -894,9 +894,9 @@ void MainWindow::variantListChanged()
 	ui_.vars->setHorizontalHeaderItem(2, new QTableWidgetItem("end"));
 	ui_.vars->setHorizontalHeaderItem(3, new QTableWidgetItem("ref"));
 	ui_.vars->setHorizontalHeaderItem(4, new QTableWidgetItem("obs"));
-	for (int i=0; i<variants_.annotations().count(); ++i)
+	for (int i=0; i<variants_.annotation_descriptions().count(); ++i)
 	{
-		QString anno = variants_.annotations()[i].name();
+		QString anno = variants_.annotation_descriptions()[i].name();
 		QTableWidgetItem* header = new QTableWidgetItem(anno);
 		QString add_desc = "";
 		if (anno=="filter")
@@ -908,7 +908,7 @@ void MainWindow::variantListChanged()
 				++it;
 			}
 		}
-		header->setToolTip(variants_.annotations()[i].description() + add_desc);
+		header->setToolTip(variants_.annotation_descriptions()[i].description() + add_desc);
 		ui_.vars->setHorizontalHeaderItem(i+5, header);
 	}
 

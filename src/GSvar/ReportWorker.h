@@ -59,7 +59,7 @@ private:
 
 	QString filterToGermanText(QString name, QString value);
 	QString formatCodingSplicing(QByteArray text);
-	QString inheritance(QString gene);
+	QString inheritance(QString genes);
 	int annotationIndexOrException(const QString& name, bool exact_match) const;
 	void writeHTML();
 	void writeXML();
