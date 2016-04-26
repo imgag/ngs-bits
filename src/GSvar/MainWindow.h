@@ -138,6 +138,10 @@ public slots:
     void applyDefaultFiltersSomatic();
     void clearFilters();
 
+protected:
+	virtual void dragEnterEvent(QDragEnterEvent* e);
+	virtual void dropEvent(QDropEvent* e);
+
 private:
 	//GUI
 	Ui::MainWindow ui_;

@@ -21,6 +21,7 @@
 #include <QClipboard>
 #include <QProgressBar>
 #include <QToolButton>
+#include <QMimeData>
 #include "ReportWorker.h"
 #include "DBAnnotationWorker.h"
 #include "SampleInformationDialog.h"
@@ -765,7 +766,7 @@ void MainWindow::on_actionImportTranscripts_triggered()
 
 void MainWindow::on_actionOpenDocumentation_triggered()
 {
-	QDesktopServices::openUrl(QUrl("https://github.com/marc-sturm/ngs-bits/tree/master/doc/GSvar/index.md"));
+	QDesktopServices::openUrl(QUrl("https://github.com/imgag/ngs-bits/tree/master/doc/GSvar/index.md"));
 }
 
 void MainWindow::on_actionConvertHgnc_triggered()
@@ -910,6 +911,26 @@ QString MainWindow::formatTranscripts(QString line)
 QString MainWindow::nobr()
 {
 	return "<p style='white-space:pre; margin:0; padding:0;'>";
+}
+
+void MainWindow::dragEnterEvent(QDragEnterEvent* e)
+{
+	if (!e->mimeData()->hasFormat("text/uri-list")) return;
+	if (e->mimeData()->urls().count()!=1) return;
+	QUrl url = e->mimeData()->urls().at(0);
+	if (!url.isLocalFile()) return;
+
+	QString filename = url.toLocalFile();
+	if (QFile::exists(filename) && filename.endsWith(".GSvar"))
+	{
+		e->acceptProposedAction();
+	}
+}
+
+void MainWindow::dropEvent(QDropEvent* e)
+{
+	loadFile(e->mimeData()->urls().first().toLocalFile());
+	e->accept();
 }
 
 void MainWindow::variantListChanged()
@@ -1239,10 +1260,10 @@ void MainWindow::varsContextMenu(QPoint pos)
 
 			if (dlg.exec()) //update DB
 			{
-				NGSD().setValidationStatus(filename_, variants_[item->row()], dlg.status(), dlg.comment());
+				NGSD().setValidationStatus(filename_, variants_[item->row()], dlg.info());
 
 				//update GUI
-				QByteArray status = dlg.status().toLatin1();
+				QByteArray status = dlg.info().status.toLatin1();
 				if (status=="true positive") status = "TP";
 				if (status=="false positive") status = "FP";
 				variants_[item->row()].annotations()[variants_.annotationIndexByName("validated", true, true)] = status;
