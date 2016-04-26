@@ -17,6 +17,12 @@ ValidationDialog::ValidationDialog(QWidget* parent, QString filename, const Vari
 		ui_.status->addItem(s);
 	}
 
+	QStringList type = NGSD().getEnum("variant_validation", "type");
+	foreach(QString t, type)
+	{
+		ui_.type->addItem(t);
+	}
+
 	//set variant
 	QString var = variant.toString();
 	if (!variant.isSNV())
@@ -57,25 +63,21 @@ ValidationDialog::ValidationDialog(QWidget* parent, QString filename, const Vari
 	}
 
 	//get validation data from NGSD
-	QPair<QString, QString> val_data = NGSD().getValidationStatus(filename, variant);
-	ui_.status->setCurrentText(val_data.first);
-	ui_.comment->setPlainText(val_data.second);
+	ValidationInfo info = NGSD().getValidationStatus(filename, variant);
+	ui_.status->setCurrentText(info.status);
+	ui_.type->setCurrentText(info.type);
+	ui_.comment->setPlainText(info.comment);
 }
 
-QString ValidationDialog::status() const
+ValidationInfo ValidationDialog::info() const
 {
-	return ui_.status->currentText();
-}
-
-QString ValidationDialog::comment() const
-{
-	return ui_.comment->toPlainText();
+	return ValidationInfo{ ui_.status->currentText(), ui_.type->currentText(), ui_.comment->toPlainText()};
 }
 
 void ValidationDialog::statusChanged()
 {
 	QString text = ui_.comment->toPlainText().trimmed();
 	if (text!="") text += "\n";
-	text += "[" + status() + "] " + Helper::userName() + " " + QDate::currentDate().toString("dd.MM.yyyy");
+	text += "[" + ui_.status->currentText() + "] " + Helper::userName() + " " + QDate::currentDate().toString("dd.MM.yyyy");
 	ui_.comment->setPlainText(text);
 }

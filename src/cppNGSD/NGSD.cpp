@@ -357,18 +357,18 @@ QString NGSD::getGenomeBuild(const QString& filename)
 	return getValue("SELECT g.build FROM processed_sample ps, processing_system sys, genome g WHERE ps.id='" + processedSampleId(filename) + "' AND ps.processing_system_id=sys.id AND sys.genome_id=g.id").toString();
 }
 
-QPair<QString, QString> NGSD::getValidationStatus(const QString& filename, const Variant& variant)
+ValidationInfo NGSD::getValidationStatus(const QString& filename, const Variant& variant)
 {
 	SqlQuery query = getQuery();
-	query.exec("SELECT status, comment FROM variant_validation WHERE sample_id='" + sampleId(filename) + "' AND variant_id='" + variantId(variant) + "'");
+	query.exec("SELECT status, type, comment FROM variant_validation WHERE sample_id='" + sampleId(filename) + "' AND variant_id='" + variantId(variant) + "'");
 	if (query.size()==0)
 	{
-		return QPair<QString, QString>("n/a", "");
+		return ValidationInfo();
 	}
 	else
 	{
 		query.next();
-		return QPair<QString, QString>(query.value(0).toString().trimmed(), query.value(1).toString().trimmed());
+		return ValidationInfo{ query.value(0).toString().trimmed(), query.value(1).toString().trimmed(), query.value(2).toString().trimmed() };
 	}
 }
 
@@ -719,7 +719,7 @@ void NGSD::annotateSomatic(VariantList& variants, QString filename)
 }
 
 
-void NGSD::setValidationStatus(const QString& filename, const Variant& variant, const QString& status, const QString& comment)
+void NGSD::setValidationStatus(const QString& filename, const Variant& variant, const ValidationInfo& info)
 {
 	QString s_id = sampleId(filename);
 	QString v_id = variantId(variant);
@@ -730,14 +730,15 @@ void NGSD::setValidationStatus(const QString& filename, const Variant& variant, 
 	if (vv_id.isNull()) //insert
 	{
 		QString geno = getValue("SELECT genotype FROM detected_variant WHERE variant_id='" + v_id + "' AND processed_sample_id='" + processedSampleId(filename) + "'", false).toString();
-		query.prepare("INSERT INTO variant_validation (sample_id, variant_id, genotype, status, comment) VALUES ('" + s_id + "','" + v_id + "','" + geno + "',:status,:comment)");
+		query.prepare("INSERT INTO variant_validation (sample_id, variant_id, genotype, status, type, comment) VALUES ('" + s_id + "','" + v_id + "','" + geno + "',:status,:type,:comment)");
 	}
 	else //update
 	{
-		query.prepare("UPDATE variant_validation SET status=:status, comment=:comment WHERE id='" + vv_id.toString() + "'");
+		query.prepare("UPDATE variant_validation SET status=:status, type=:type, comment=:comment WHERE id='" + vv_id.toString() + "'");
 	}
-	query.bindValue(":status", status);
-	query.bindValue(":comment", comment);
+	query.bindValue(":status", info.status);
+	query.bindValue(":type", info.type);
+	query.bindValue(":comment", info.comment);
 	query.exec();
 }
 

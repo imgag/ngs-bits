@@ -25,6 +25,14 @@ struct CPPNGSDSHARED_EXPORT GeneInfo
 	QString notice;
 };
 
+///Variant validation information
+struct CPPNGSDSHARED_EXPORT ValidationInfo
+{
+	QString status;
+	QString type;
+	QString comment;
+};
+
 /// NGSD accessor.
 class CPPNGSDSHARED_EXPORT NGSD
 		: public QObject
@@ -128,9 +136,9 @@ public:
 	void annotateSomatic(VariantList& variants, QString filename);
 
 	///Returns validation status information (status, comment)
-	QPair<QString, QString> getValidationStatus(const QString& filename, const Variant& variant);
+	ValidationInfo getValidationStatus(const QString& filename, const Variant& variant);
 	///Sets that validation status of a variant in the NGSD.
-	void setValidationStatus(const QString& filename, const Variant& variant, const QString& status, const QString& comment);
+	void setValidationStatus(const QString& filename, const Variant& variant, const ValidationInfo& info);
 
 	///Returns classification information (classification, comment)
 	QPair<QString, QString> getClassification(const Variant& variant);
