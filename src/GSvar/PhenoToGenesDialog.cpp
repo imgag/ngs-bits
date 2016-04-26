@@ -89,7 +89,7 @@ void PhenoToGenesDialog::tabChanged(int num)
 		auto it = gene2pheno.begin();
 		while(it!=gene2pheno.end())
 		{
-			ui->genes->append(it.key() + "\t" + it.value().join(", "));
+			ui->genes->append(it.key() + "\t" + it.value().join(", ") + "\t" + QString::number(it.value().count()));
 			++it;
 		}
 	}

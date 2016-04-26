@@ -141,6 +141,37 @@ void MainWindow::handleInputFileChange()
 	loadFile(filename_);
 }
 
+QStringList MainWindow::geneInheritanceMissing(QBitArray selected)
+{
+	//get set of genes
+	int genes_index = variants_.annotationIndexByName("gene", true, true);
+	QSet<QByteArray> genes;
+	for (int i=0; i<variants_.count(); ++i)
+	{
+		if(selected[i])
+		{
+			foreach(QByteArray gene, variants_[i].annotations()[genes_index].split(','))
+			{
+				genes.insert(gene.trimmed());
+			}
+		}
+	}
+
+	//check if inheritance is missing
+	QStringList output;
+	NGSD db;
+	foreach(QByteArray gene, genes)
+	{
+		QString inheritance = db.geneInfo(gene).inheritance;
+		if (inheritance=="n/a")
+		{
+			output.append(gene);
+		}
+	}
+
+	return output;
+}
+
 void MainWindow::on_actionOpen_triggered()
 {
 	//get file to open
@@ -254,6 +285,13 @@ void MainWindow::on_actionReport_triggered()
 		{
 			visible.setBit(i, false);
 		}
+	}
+
+	//check if inheritance information is set for all genes in NGSD
+	QStringList missing = geneInheritanceMissing(visible);
+	if (!missing.empty() && QMessageBox::question(this, "Report", "Gene inheritance information is missing for these genes:\n" + missing.join(", ")+"\nDo you want to continue?")==QMessageBox::No)
+	{
+		return;
 	}
 
 	//show report dialog
@@ -894,9 +932,9 @@ void MainWindow::variantListChanged()
 	ui_.vars->setHorizontalHeaderItem(2, new QTableWidgetItem("end"));
 	ui_.vars->setHorizontalHeaderItem(3, new QTableWidgetItem("ref"));
 	ui_.vars->setHorizontalHeaderItem(4, new QTableWidgetItem("obs"));
-	for (int i=0; i<variants_.annotation_descriptions().count(); ++i)
+	for (int i=0; i<variants_.annotationDescriptions().count(); ++i)
 	{
-		QString anno = variants_.annotation_descriptions()[i].name();
+		QString anno = variants_.annotationDescriptions()[i].name();
 		QTableWidgetItem* header = new QTableWidgetItem(anno);
 		QString add_desc = "";
 		if (anno=="filter")
@@ -908,7 +946,7 @@ void MainWindow::variantListChanged()
 				++it;
 			}
 		}
-		header->setToolTip(variants_.annotation_descriptions()[i].description() + add_desc);
+		header->setToolTip(variants_.annotationDescriptions()[i].description() + add_desc);
 		ui_.vars->setHorizontalHeaderItem(i+5, header);
 	}
 

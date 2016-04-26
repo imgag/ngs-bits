@@ -129,6 +129,9 @@ public slots:
 	///Handles the re-loading the variant list when the file changes.
 	void handleInputFileChange();
 
+	///Returns a gene list where the inheritance information is not set (selected variants only)
+	QStringList geneInheritanceMissing(QBitArray selected);
+
     ///Default filters
     void applyDefaultFiltersGermline();
 	void applyDefaultFiltersTrio();
