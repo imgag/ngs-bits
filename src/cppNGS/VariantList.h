@@ -227,8 +227,7 @@ public:
 	}
 
 	///get Annotation description by name
-	VariantAnnotationDescription annotationDescriptionByName(const QString& description_name);
-	VariantAnnotationDescription annotationDescriptionByName(const QString& description_name, const QString& sample_id);
+	VariantAnnotationDescription annotationDescriptionByName(const QString& description_name, bool sample_specific = false, bool error_not_found = true);
 
 	///Get names of samples in this variant list
 	const QStringList sampleNames();

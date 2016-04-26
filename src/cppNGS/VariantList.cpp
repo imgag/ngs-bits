@@ -161,32 +161,27 @@ void VariantList::copyMetaData(const VariantList& rhs)
 	annotation_descriptions_ = rhs.annotationDescriptions();
 }
 
-
-VariantAnnotationDescription VariantList::annotationDescriptionByName(const QString& description_name)
+VariantAnnotationDescription VariantList::annotationDescriptionByName(const QString& description_name, bool sample_specific, bool error_not_found)
 {
-	return annotationDescriptionByName(description_name, nullptr);
-}
-
-VariantAnnotationDescription VariantList::annotationDescriptionByName(const QString& description_name, const QString& sample_id)
-{
-	bool sample_specific = false;
-	if(!sample_id.isNull())	sample_specific = true;
+	bool found_multiple = false;
 
 	int index = -1;
 	for(int i=0; i<annotationDescriptions().count(); ++i)
 	{
 		if(annotationDescriptions()[i].name()==description_name && annotationDescriptions()[i].sampleSpecific()==sample_specific)
 		{
-			if(index!=-1)
-			{
-				if(sample_specific)	THROW(ProgrammingException, "Sample specific column ("+ sample_id +") description for '" + description_name + "' occurs more than once.");
-				if(!sample_specific)	THROW(ProgrammingException, "Sample unspecific column description for '" + description_name + "' occurs more than once.");
-			}
-		   index = i;
+			if(index!=-1)	found_multiple = true;
+			index = i;
 		}
 	}
 
-	if(index==-1 || index>=annotationDescriptions().count())	THROW(ProgrammingException, "Could not find column description '" + description_name + "' for sample '"+sample_id+"'.");
+	if(error_not_found && index==-1)	THROW(ProgrammingException, "Could not find " + (sample_specific ? QString("sample-specific") : QString("")) + " column description '" + description_name + "'.");
+	if(error_not_found && found_multiple)	THROW(ProgrammingException, (sample_specific ? QString("Sample-specific d") : QString("D")) + "escription for '" + description_name + "' occurs more than once.");
+
+	if(!error_not_found && (found_multiple || index==-1))
+	{
+		return VariantAnnotationDescription();
+	}
 	return annotationDescriptions()[index];
 }
 
@@ -210,11 +205,23 @@ int VariantList::annotationIndexByName(const QString& name, const QString& sampl
 	}
 
 	//error checks
-	if (matches.count()!=1)
+	if (matches.count()<1)
 	{
 		if (error_on_mismatch)
 		{
 			THROW(ArgumentException, "Could not find required column '" + name + "' in variant list!");
+		}
+		else
+		{
+			return -1;
+		}
+	}
+
+	if (matches.count()>1)
+	{
+		if (error_on_mismatch)
+		{
+			THROW(ArgumentException, "Found multiple columns for '" + name + "' in variant list!");
 		}
 		else
 		{
@@ -919,7 +926,7 @@ void VariantList::storeToVCF(QString filename)
 		for (int i=3; i<v.annotations().count(); ++i) //why 3: skip ID Quality Filter
 		{
 			const VariantAnnotationHeader anno_header = annotations()[i];
-			const VariantAnnotationDescription anno_desc = annotationDescriptionByName(anno_header.name(), anno_header.sampleID());
+			const VariantAnnotationDescription anno_desc = annotationDescriptionByName(anno_header.name(), !anno_header.sampleID().isNull());
 
 			QByteArray anno_val = v.annotations()[i];
 			if (anno_val!="")//don't write annotations without values and not set flags

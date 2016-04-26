@@ -134,7 +134,7 @@ private slots:
 		S_EQUAL(vad.description(), QString("# high-quality ref-forward bases, ref-reverse, alt-forward and alt-reverse bases"));
 		IS_FALSE(vad.sampleSpecific());
 
-		vad = vl.annotationDescriptionByName("PL","./Sample_GS120297A3/GS120297A3.bam");
+		vad = vl.annotationDescriptionByName("PL",true);
 		S_EQUAL(vad.name(), QString("PL"));
 		S_EQUAL(vad.number(), QString("G"));
 		S_EQUAL(vad.description(), QString("List of Phred-scaled genotype likelihoods"));
@@ -244,25 +244,33 @@ private slots:
 
 		I_EQUAL(vl.annotations().count(), 27);
 		S_EQUAL(vl.annotations()[0].name(), QString("ID"));
-		I_EQUAL(vl.annotationDescriptionByName("ID").type(), VariantAnnotationDescription::STRING);
-		S_EQUAL(vl.annotationDescriptionByName("ID").number(), QString("1"));
-		S_EQUAL(vl.annotationDescriptionByName("ID").description(), QString("ID of the variant, often dbSNP rsnumber"));
-		IS_FALSE(vl.annotationDescriptionByName("ID").sampleSpecific());
-		S_EQUAL(vl.annotationDescriptionByName("INDEL").name(), QString("INDEL"));
-		I_EQUAL(vl.annotationDescriptionByName("INDEL").type(), VariantAnnotationDescription::FLAG);
-		S_EQUAL(vl.annotationDescriptionByName("INDEL").number(), QString("0"));
-		S_EQUAL(vl.annotationDescriptionByName("INDEL").description(), QString("Indicates that the variant is an INDEL."));
-		IS_FALSE(vl.annotationDescriptionByName("INDEL").sampleSpecific());
-		S_EQUAL(vl.annotationDescriptionByName("DP4").name(), QString("DP4"));
-		I_EQUAL(vl.annotationDescriptionByName("DP4").type(), VariantAnnotationDescription::INTEGER);
-		S_EQUAL(vl.annotationDescriptionByName("DP4").number(), QString("4"));
-		S_EQUAL(vl.annotationDescriptionByName("DP4").description(), QString("# high-quality ref-forward bases, ref-reverse, alt-forward and alt-reverse bases"));
-		IS_FALSE(vl.annotationDescriptionByName("DP4").sampleSpecific());
-		S_EQUAL(vl.annotationDescriptionByName("PL","./Sample_GS120297A3/GS120297A3.bam").name(), QString("PL"));
-		S_EQUAL(vl.annotationDescriptionByName("PL","./Sample_GS120297A3/GS120297A3.bam").number(), QString("G"));
-		S_EQUAL(vl.annotationDescriptionByName("PL","./Sample_GS120297A3/GS120297A3.bam").description(), QString("List of Phred-scaled genotype likelihoods"));
-		IS_TRUE(vl.annotationDescriptionByName("PL","./Sample_GS120297A3/GS120297A3.bam").sampleSpecific());
-		I_EQUAL(vl.annotationDescriptionByName("PL","./Sample_GS120297A3/GS120297A3.bam").type(), VariantAnnotationDescription::INTEGER);
+
+		VariantAnnotationDescription vad = vl.annotationDescriptionByName("ID");
+		I_EQUAL(vad.type(), VariantAnnotationDescription::STRING);
+		S_EQUAL(vad.number(), QString("1"));
+		S_EQUAL(vad.description(), QString("ID of the variant, often dbSNP rsnumber"));
+		IS_FALSE(vad.sampleSpecific());
+
+		vad = vl.annotationDescriptionByName("INDEL");
+		S_EQUAL(vad.name(), QString("INDEL"));
+		I_EQUAL(vad.type(), VariantAnnotationDescription::FLAG);
+		S_EQUAL(vad.number(), QString("0"));
+		S_EQUAL(vad.description(), QString("Indicates that the variant is an INDEL."));
+		IS_FALSE(vad.sampleSpecific());
+
+		vad = vl.annotationDescriptionByName("DP4");
+		S_EQUAL(vad.name(), QString("DP4"));
+		I_EQUAL(vad.type(), VariantAnnotationDescription::INTEGER);
+		S_EQUAL(vad.number(), QString("4"));
+		S_EQUAL(vad.description(), QString("# high-quality ref-forward bases, ref-reverse, alt-forward and alt-reverse bases"));
+		IS_FALSE(vad.sampleSpecific());
+
+		vad = vl.annotationDescriptionByName("PL",true);
+		S_EQUAL(vad.name(), QString("PL"));
+		S_EQUAL(vad.number(), QString("G"));
+		S_EQUAL(vad.description(), QString("List of Phred-scaled genotype likelihoods"));
+		IS_TRUE(vad.sampleSpecific());
+		I_EQUAL(vad.type(), VariantAnnotationDescription::INTEGER);
 
 		I_EQUAL(vl.filters().count(), 2);
 		S_EQUAL(vl.filters()["q10"], QString("Quality below 10"));
@@ -435,7 +443,7 @@ private slots:
 		I_EQUAL(vl2.annotations().count(), 27);
 		foreach(VariantAnnotationHeader ah, vl2.annotations())
 		{
-			VariantAnnotationDescription ad = vl2.annotationDescriptionByName(ah.name(),ah.sampleID());
+			VariantAnnotationDescription ad = vl2.annotationDescriptionByName(ah.name(),!ah.sampleID().isNull());
 			if (ah.name()=="GQ" || ah.name()=="MQ")
 			{
 				S_EQUAL(ad.description(), "no description available");
