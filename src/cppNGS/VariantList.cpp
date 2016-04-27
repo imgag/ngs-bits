@@ -156,9 +156,10 @@ VariantList::VariantList()
 
 void VariantList::copyMetaData(const VariantList& rhs)
 {
-	comments_ = rhs.comments();
-	filters_ = rhs.filters();
-	annotation_descriptions_ = rhs.annotationDescriptions();
+	comments_ = rhs.comments_;
+	annotation_descriptions_ = rhs.annotation_descriptions_;
+	annotation_headers_ = rhs.annotation_headers_;
+	filters_ = rhs.filters_;
 }
 
 VariantAnnotationDescription VariantList::annotationDescriptionByName(const QString& description_name, bool sample_specific, bool error_not_found)

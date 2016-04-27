@@ -711,4 +711,27 @@ private slots:
 
 		I_EQUAL(vl.annotations().count(), 0)
 	}
+
+	void copyMetaData()
+	{
+		VariantList vl;
+		vl.annotationDescriptions().append(VariantAnnotationDescription("bla", "some desciption"));
+		vl.annotations().append(VariantAnnotationHeader("bla"));
+		vl.filters().insert("MAF", "Minor allele frequency filter");
+		vl.addCommentLine("Comment1");
+		vl.append(Variant(Chromosome("chr1"), 1, 2, "A", "C"));
+
+		//copy meta data
+		VariantList vl2;
+		vl2.copyMetaData(vl);
+
+		//check meta data
+		I_EQUAL(vl2.annotationDescriptions().count(), 1);
+		I_EQUAL(vl2.annotations().count(), 1);
+		I_EQUAL(vl2.filters().count(), 1);
+		I_EQUAL(vl2.comments().count(), 1);
+
+		//check no variants
+		I_EQUAL(vl2.count(), 0);
+	}
 };
