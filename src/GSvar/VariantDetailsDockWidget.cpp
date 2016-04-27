@@ -4,6 +4,7 @@
 #include "Helper.h"
 #include <QDebug>
 #include <QPixmap>
+#include <QMessageBox>
 
 VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget *parent) :
 	QDockWidget(parent),
@@ -245,7 +246,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			}
 			else if (anno!="" && anno!="n/a")
 			{
-				THROW(ProgrammingException, "Unknown classification '" + anno + "'!");
+				QMessageBox::critical(this, "Variant details error", "Unknown variant classification '" + anno + "'.\nPlease update the NGSD annotations!");
 			}
 
 			//classification comment
