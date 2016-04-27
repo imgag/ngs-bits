@@ -93,7 +93,7 @@ void VariantDetailsDockWidget::clear()
 	}
 
 	//variant
-	ui->variant->setText("No variant selected");
+	ui->variant->setText("No variant or several variants selected");
 
 	//details
 	ui->trans->setText("<span style=\"font-weight:600; color:#222222;\">&nbsp;<span>"); //bold => higher
@@ -134,6 +134,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				Color color = NONE;
 				if (entry.details.contains("likely pathogenic")) color = ORANGE;
 				else if (entry.details.contains("pathogenic")) color = RED;
+				else if (entry.details.contains("benign")) color = GREEN;
 
 				text += formatLink(entry.id, "http://www.ncbi.nlm.nih.gov/clinvar/" + entry.id, color) + " ";
 				tooltip += nobr() + entry.id + ": " + entry.details;
@@ -152,6 +153,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				Color color = NONE;
 				if (entry.details.contains("CLASS=DM?")) color = ORANGE;
 				else if (entry.details.contains("CLASS=DM")) color = RED;
+				else if (entry.details.contains("CLASS=DP") || entry.details.contains("CLASS=DFP")) color = ORANGE;
 
 				text += formatLink(entry.id, "http://www.hgmd.cf.ac.uk/ac/gene.php?gene=" + gene + "&accession=" + entry.id, color) + " ";
 				tooltip += nobr() + entry.id + ": " + entry.details;

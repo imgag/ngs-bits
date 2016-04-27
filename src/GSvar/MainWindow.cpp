@@ -1365,7 +1365,7 @@ void MainWindow::updateVariantDetails()
 
 	//determine variant (first in first range)
 	auto ranges = ui_.vars->selectedRanges();
-	if (ranges.count()==0)
+	if (ranges.count()!=1 || ranges[0].rowCount()!=1)
 	{
 		var_last_ = -1;
 		var_widget_->clear();
