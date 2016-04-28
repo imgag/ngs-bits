@@ -4,8 +4,7 @@ libs:
 - test cppNGSD (include in libs)
 
 GSvar:
-* Overview gene lists: treat all variants as homozygous?
-* Gene info table: Inititialize from OMIM, if parsing of inheritance is available
+* Overview gene lists (missing genotype): treat all variants as homozygous?
 
 Tools:
 * BedLowCoverage: Write region names from input regions to output regions (merged).

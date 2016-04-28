@@ -18,6 +18,7 @@ public:
 	~GeneInfoDialog();
 
 private slots:
+	void enableOkButton();
 	void storeGeneInfo();
 
 private:

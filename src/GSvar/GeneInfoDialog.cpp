@@ -1,6 +1,7 @@
 #include "GeneInfoDialog.h"
 #include "ui_GeneInfoDialog.h"
 #include "Helper.h"
+#include <QPushButton>
 
 GeneInfoDialog::GeneInfoDialog(QString symbol, QWidget *parent)
 	: QDialog(parent)
@@ -39,11 +40,21 @@ GeneInfoDialog::GeneInfoDialog(QString symbol, QWidget *parent)
 
 	//show phenotypes/diseases from HPO
 	ui->pheno_->setText(db_.phenotypes(symbol).join(", "));
+
+	//disable ok button
+	ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(false);
+	connect(ui->inheritance_, SIGNAL(currentTextChanged(QString)), this, SLOT(enableOkButton()));
+	connect(ui->comments_, SIGNAL(textChanged()), this, SLOT(enableOkButton()));
 }
 
 GeneInfoDialog::~GeneInfoDialog()
 {
 	delete ui;
+}
+
+void GeneInfoDialog::enableOkButton()
+{
+	ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(true);
 }
 
 void GeneInfoDialog::storeGeneInfo()
