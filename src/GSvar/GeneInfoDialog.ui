@@ -140,7 +140,7 @@
    <item row="6" column="0" alignment="Qt::AlignTop">
     <widget class="QLabel" name="label_5">
      <property name="text">
-      <string>Comment</string>
+      <string>Comment:</string>
      </property>
     </widget>
    </item>
