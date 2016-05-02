@@ -338,11 +338,11 @@ QString NGSD::getProcessingSystem(const QString& filename, SystemType type)
 	}
 	else if (type==LONG)
 	{
-		what = "name";
+		what = "name_manufacturer";
 	}
 	else if (type==BOTH)
 	{
-		what = "CONCAT(name, ' (', name_short, ')')";
+		what = "CONCAT(name_manufacturer, ' (', name_short, ')')";
 	}
 	else
 	{

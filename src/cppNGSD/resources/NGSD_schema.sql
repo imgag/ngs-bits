@@ -147,7 +147,6 @@ DEFAULT CHARACTER SET = utf8;
 -- -----------------------------------------------------
 CREATE  TABLE IF NOT EXISTS `processing_system` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(45) NOT NULL,
   `name_short` VARCHAR(50) NULL DEFAULT NULL,
   `name_manufacturer` VARCHAR(50) NULL DEFAULT NULL,
   `adapter1_p5` VARCHAR(45) NULL DEFAULT NULL,
@@ -156,8 +155,8 @@ CREATE  TABLE IF NOT EXISTS `processing_system` (
   `target_file` VARCHAR(255) NULL DEFAULT NULL,
   `genome_id` INT(11) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `name_UNIQUE` (`name` ASC),
   UNIQUE INDEX `name_short` (`name_short` ASC),
+  UNIQUE INDEX `name_manufacturer` (`name_manufacturer` ASC),
   INDEX `fk_processing_system_genome1` (`genome_id` ASC),
   CONSTRAINT `fk_processing_system_genome1`
     FOREIGN KEY (`genome_id`)

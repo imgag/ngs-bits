@@ -94,7 +94,7 @@ QSharedPointer<DatabaseTableInfo> DatabaseCache::getInfos(QString table)
 				else if (field=="processing_system_id")
 				{
 					info.fk_table = "processing_system";
-					info.fk_field = "name";
+					info.fk_field = "name_manufacturer";
 					info.fk_label = "processing_system";
 					info.type = DatabaseFieldInfo::FK;
 				}
