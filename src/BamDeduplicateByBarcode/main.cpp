@@ -363,9 +363,11 @@ public:
 		int last_ref=-1;
 		int new_ref=-1;
 		bool chrom_change=false;
-
-		QMap <position,mip_info> mip_info_map= createMipInfoMap(mip_file);
-
+		QMap <position,mip_info> mip_info_map;
+		if(mip_file!="")
+		{
+			mip_info_map= createMipInfoMap(mip_file);
+		};
 		QTextStream nomatch_out_stream;
 		QFile nomatch_out(mip_nomatch_out);
 		if (mip_nomatch_out!="")
