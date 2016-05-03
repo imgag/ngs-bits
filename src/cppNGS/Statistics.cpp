@@ -513,7 +513,7 @@ QCCollection Statistics::region(const BedFile& bed_file, bool merge)
     return output;
 }
 
-QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, bool filtered)
+QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QString& somatic_vcf)
 {
 	QCCollection output;
 

@@ -25,7 +25,6 @@ public:
 		addInfile("somatic_vcf", "Input somatic vcf file.", false, true);
 		//optional
 		addOutfile("out", "Output qcML file. If unset, writes to STDOUT.", true);
-		addFlag("filtered", "Use only unfiltered variants for statistics.");
 	}
 
 	virtual void main()
@@ -34,14 +33,13 @@ public:
 		QString tumor_bam = getInfile("tumor_bam");
 		QString normal_bam = getInfile("normal_bam");
 		QString somatic_vcf = getInfile("somatic_vcf");
-		bool filtered = getFlag("filtered");
 
 		QCCollection metrics;
-		metrics = Statistics::somatic(tumor_bam, normal_bam, somatic_vcf, filtered);
+		metrics = Statistics::somatic(tumor_bam, normal_bam, somatic_vcf);
 
 		//store output
 		QString out = getOutfile("out");
-		metrics.storeToQCML(out, QStringList() << tumor_bam << normal_bam << somatic_vcf, QString::number(filtered));
+		metrics.storeToQCML(out, QStringList() << tumor_bam << normal_bam << somatic_vcf, "");
 	}
 };
 
