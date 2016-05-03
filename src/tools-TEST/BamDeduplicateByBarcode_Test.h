@@ -48,7 +48,7 @@ private slots:
 
 	void test_duplicates_regarding_mip_file_duplicates()
 	{
-		EXECUTE("BamDeduplicateByBarcode", "-bam " + TESTDATA("data_in/BamDeduplicateByBarcode_in4.bam") + " -index " + TESTDATA("data_in/BamDeduplicateByBarcode_index_in4.fastq.gz") + " -test -mip_file " + TESTDATA("data_in/FastqExtractBarcode_in_mips1.txt") +" -out out/BamDeduplicateByBarcode_out6.bam -mip_duplicate_out out/BamDeduplicateByBarcode_duplicate_out6.bed -mip_count_out out/BamDeduplicateByBarcode_out6.tsv");
+		EXECUTE("BamDeduplicateByBarcode", "-bam " + TESTDATA("data_in/BamDeduplicateByBarcode_in4.bam") + " -index " + TESTDATA("data_in/BamDeduplicateByBarcode_index_in4.fastq.gz") + " -test -mip_file " + TESTDATA("data_in/FastqExtractBarcode_in_mips1.txt") +" -out out/BamDeduplicateByBarcode_out6.bam -duplicate_out out/BamDeduplicateByBarcode_duplicate_out6.bed -mip_count_out out/BamDeduplicateByBarcode_out6.tsv");
 		EXECUTE("BedSort", "-in out/BamDeduplicateByBarcode_duplicate_out6.bed -out out/BamDeduplicateByBarcode_duplicate_out6_sorted.bed")
 		COMPARE_FILES("out/BamDeduplicateByBarcode_out6.tsv", TESTDATA("data_out/BamDeduplicateByBarcode_out4.tsv"));
 		COMPARE_FILES("out/BamDeduplicateByBarcode_duplicate_out6_sorted.bed", TESTDATA("data_out/BamDeduplicateByBarcode_duplicate_out6_sorted.bed"));

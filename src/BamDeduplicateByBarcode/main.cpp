@@ -289,6 +289,7 @@ private:
 
 	void writeReadsToBed(QTextStream &out_stream, position act_position, QList <readPair> original_readpairs, QString barcode, bool test)
 	{
+		if (!(out_stream.device())) return;
 		foreach(readPair original_readpair,original_readpairs)
 		{
 			QString read_name=QString::fromStdString(original_readpair.first.Name);
@@ -338,7 +339,7 @@ public:
 		addInfile("mip_file","input file for moleculare inversion probes (reads are filtered and cut to match only MIP inserts).", true, "");
 		addOutfile("mip_count_out","Output TSV file for counts of given mips).", true, "");
 		addOutfile("mip_nomatch_out","Output Bed file for reads not matching any mips).", true, "");
-		addOutfile("mip_duplicate_out","Output Bed file for reads removed as duplicates).", true, "");
+		addOutfile("duplicate_out","Output Bed file for reads removed as duplicates).", true, "");
 	}
 
 	virtual void main()
@@ -350,9 +351,9 @@ public:
 		BamWriter writer;
 		QHash <grouping, QList<readPair> > read_groups;
 		writer.Open(getOutfile("out").toStdString(), reader.GetConstSamHeader(), reader.GetReferenceData());
-		QString mip_count_out=getOutfile("mip_count_out");
-		QString mip_nomatch_out=getOutfile("mip_nomatch_out");
-		QString mip_duplicate_out=getOutfile("mip_duplicate_out");
+		QString mip_count_out_name=getOutfile("mip_count_out");
+		QString mip_nomatch_out_name=getOutfile("mip_nomatch_out");
+		QString duplicate_out_name=getOutfile("duplicate_out");
 		QString mip_file= getInfile("mip_file");
 		bool test =getFlag("test");
 		BamAlignment al;
@@ -369,16 +370,16 @@ public:
 			mip_info_map= createMipInfoMap(mip_file);
 		};
 		QTextStream nomatch_out_stream;
-		QFile nomatch_out(mip_nomatch_out);
-		if (mip_nomatch_out!="")
+		QFile nomatch_out(mip_nomatch_out_name);
+		if (mip_nomatch_out_name!="")
 		{
 			nomatch_out.open(QIODevice::WriteOnly);
 			nomatch_out_stream.setDevice(&nomatch_out);
 		}
 
 		QTextStream duplicate_out_stream;
-		QFile duplicate_out(mip_duplicate_out);
-		if (mip_duplicate_out!="")
+		QFile duplicate_out(duplicate_out_name);
+		if (duplicate_out_name!="")
 		{
 			duplicate_out.open(QIODevice::WriteOnly);
 			duplicate_out_stream.setDevice(&duplicate_out);
@@ -406,7 +407,7 @@ public:
 								writePairToBam(writer, read_selection.most_freq_read);
 								writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
 							}
-							else if (mip_nomatch_out!="")//write reads not matching a mip to a bed file
+							else//write reads not matching a mip to a bed file
 							{
 								writeReadsToBed(nomatch_out_stream,act_position,i.value(),i.key().barcode,test);
 							}
@@ -474,7 +475,7 @@ public:
 					writePairToBam(writer, read_selection.most_freq_read);
 					writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
 				}
-				else if (mip_nomatch_out!="")//write reads not matching a mip to a bed file
+				else//write reads not matching a mip to a bed file
 				{
 					writeReadsToBed(nomatch_out_stream,act_position,i.value(),i.key().barcode,test);
 				}
@@ -489,18 +490,18 @@ public:
 
 
 		//done
-		if (mip_duplicate_out!="")
+		if (duplicate_out_name!="")
 		{
 			duplicate_out.close();
 		}
 		//done
-		if (mip_nomatch_out!="")
+		if (mip_nomatch_out_name!="")
 		{
 			nomatch_out.close();
 		}
 		reader.Close();
 		writer.Close();
-		if ((mip_file!="")&&(mip_count_out!="")) writeMipInfoMap(mip_info_map,mip_count_out);
+		if ((mip_file!="")&&(mip_count_out_name!="")) writeMipInfoMap(mip_info_map,mip_count_out_name);
 	}
 
 };
