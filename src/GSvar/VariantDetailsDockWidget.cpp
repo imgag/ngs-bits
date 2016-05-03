@@ -69,7 +69,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	//public allel frequencies
 	setAnnotation(ui->tg, vl, index, "1000g");
 	setAnnotation(ui->exac, vl, index, "ExAC");
-	setAnnotation(ui->esp6500aa, vl, index, "ESP6500EA");
+	setAnnotation(ui->esp6500aa, vl, index, "ESP6500AA");
 	setAnnotation(ui->esp6500ea, vl, index, "ESP6500EA");
 
 	//pathogenity predictions

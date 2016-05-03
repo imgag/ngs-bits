@@ -5,7 +5,6 @@ libs:
 
 GSvar:
 * Overview gene lists (missing genotype): treat all variants as homozygous?
-* chr7:6026775 T>C ClinVar split
 
 Tools:
 * BedLowCoverage: Write region names from input regions to output regions (merged).
