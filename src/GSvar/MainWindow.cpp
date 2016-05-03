@@ -1862,6 +1862,9 @@ void MainWindow::updatePreferredTranscripts()
 	{
 		preferred_transcripts_.insert(it.key(), it.value().toString());
 	}
+
+	//update variant details widget
+	var_widget_->setPreferredTranscripts(preferred_transcripts_);
 }
 
 void MainWindow::openRecentFile()

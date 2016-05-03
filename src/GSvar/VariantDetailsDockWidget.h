@@ -19,6 +19,9 @@ public:
 	explicit VariantDetailsDockWidget(QWidget* parent = 0);
 	~VariantDetailsDockWidget();
 
+	//Sets preferred transcripts
+	void setPreferredTranscripts(QMap<QString, QString> data);
+
 	//Updates the widget to a new variant.
 	void updateVariant(const VariantList& vl, int index);
 	//Clears the widget (no variant selected).
@@ -65,7 +68,10 @@ private:
 	//Transcript data
 	QList<QStringList> trans_data;
 
+	//GUI
 	Ui::VariantDetailsDockWidget *ui;
+	//Preferred transcript list per gene
+	QMap<QString, QString> preferred_transcripts;
 };
 
 #endif // VARIANTDETAILSDOCKWIDGET_H

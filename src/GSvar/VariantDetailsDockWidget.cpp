@@ -41,6 +41,11 @@ VariantDetailsDockWidget::~VariantDetailsDockWidget()
 	delete ui;
 }
 
+void VariantDetailsDockWidget::setPreferredTranscripts(QMap<QString, QString> data)
+{
+	preferred_transcripts = data;
+}
+
 void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 {
 	//variant
@@ -349,9 +354,18 @@ void VariantDetailsDockWidget::initTranscriptDetails(const VariantList& vl, int 
 	if (trans_data.count()>1)
 	{
 		QString tooltip;
-		foreach(QByteArray t, transcripts)
+		for(int i=0; i<trans_data.count(); ++i)
 		{
-			tooltip += nobr() + t;
+			//highlight preferred transcripts
+			bool is_pt = false;
+			QString gene = trans_data[i][0];
+			if (preferred_transcripts.contains(gene))
+			{
+				QString transcript = trans_data[i][1];
+				if (transcript.startsWith(preferred_transcripts[gene])) is_pt = true;
+			}
+
+			tooltip += nobr() + (is_pt ? "<b>" : "") + transcripts[i] + (is_pt ? "</b>" : "");
 		}
 		ui->trans->setToolTip(tooltip);
 	}
