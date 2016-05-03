@@ -415,10 +415,6 @@ void VariantList::loadFromTSV(QString filename)
 			QList <QByteArray> fields = line.split('\t');
             for (int i=special_cols; i<fields.count(); ++i)
 			{
-				if(!column_descriptions.contains(fields[i]))
-				{
-					//@todo THROW(FileParseException, "Unknown colum '" + fields[i] + "'.");
-				}
                 if (fields[i]=="filter")
                 {
                     filter_index = i - special_cols;
@@ -480,10 +476,7 @@ void VariantList::storeToTSV(QString filename)
 		{
 			//don't write empty description information
 			if(act_anno.description()=="") continue;
-			if(act_anno.name()==".")
-			{
-				continue;
-			}
+			if(act_anno.name()==".")	continue;
 
 			if (act_anno.sampleSpecific())
 			{
@@ -664,7 +657,6 @@ void VariantList::loadFromVCF(QString filename)
 			new_annotation_description.setDescription(description_value);
 
 			annotationDescriptions().append(new_annotation_description);
-//			qDebug() << new_annotation_description.name() << QString::number(annotationDescriptions().count());
 		}
 		//other meta-information lines
 		else if (line.startsWith("##FILTER=<ID="))
@@ -801,8 +793,6 @@ void VariantList::loadFromVCF(QString filename)
 
 						index = annos.count();
 						annos.append(value);
-
-//						THROW(FileParseException, "No variant description within the Metadata for INFO field '"+key_value[0]+"'!");
 					}
 					annos[index] = value;
 				}
@@ -840,11 +830,7 @@ void VariantList::loadFromVCF(QString filename)
 							{
 								variants_[iii].annotations().append("");
 							}
-
-//							THROW(FileParseException, "No variant description within the Metadata for FORMAT field '"+names[ii]+"' of sample '"+sample_id+"'!");
 						}
-
-//qDebug() << "index: " + QString::number(index) + "; key_value: " + names[ii] + "; max_index: " + QString::number(annos.count());
 						annos[index] = value;
 					}
 				}
@@ -1106,11 +1092,6 @@ void VariantList::filterByRules(const QVector<VariantFilter>& filters)
 
 	//resize to new size
 	variants_.resize(to_index);
-}
-
-void VariantList::filterByFilterColumn()
-{
-	// @todo implement this filter
 }
 
 void VariantList::clear()

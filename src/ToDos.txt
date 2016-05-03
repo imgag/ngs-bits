@@ -2,6 +2,19 @@
 
 libs:
 - test cppNGSD (include in libs)
+- cppNGS:
+   - VariantList:
+      - use QSharedPointers to link VariantAnnotationHeaders with VariantAnnotationDescriptions
+      - check vcf and tsv files if valid (columns and their descriptions)
+   - Statistics:
+      - somatic(): normalize mutation signature (plot2) for panels using the reference genome, e.g. count of CCG in target region divided by CCG in the genome
+      - somatic(): normalize variant distance (plot3) for panels, e.g. calculate distances by target regions
+      - somatic(): add support for freebayes, currently only vcfs from strelka can be used
+      - somatic(): add plot comparing depth tumor/normal and allele frequencies of dbSNP variants
+      - somatic(): add cnv count - QCValue("somatic CNVs count", "", "Needs to be implemented.", "QC:2000044")
+      - somatic(): consider to use only filtered variants for statistics?
+- cppNGS-Tests:
+   - Statistics: add Tests for somatic statistics
 
 GSvar:
 * Overview gene lists (missing genotype): treat all variants as homozygous?
@@ -16,6 +29,9 @@ Tools:
   - low-quality trimming before adapter trimming? use single-base instead of sliding window?
 ? FastqDemultiplex: check for "carry-over" contamination from last run
 ? ReadQC: create plots without python
+- SomaticQC:
+   - write test
+- VcfCheck: Format check for vcf files
 
 CnvHunter:
  * instead of fixed 'n', use n>=10 and n<=30 with highest correlation or lowest z-score stdev?

@@ -125,6 +125,10 @@ SUBDIRS += VariantQC
 tools-TEST.depends += VariantQC
 VariantQC.depends = cppNGS
 
+SUBDIRS += SomaticQC
+tools-TEST.depends += SomaticQC
+SomaticQC.depends = cppNGS
+
 SUBDIRS += FastqExtract
 tools-TEST.depends += FastqExtract
 FastqExtract.depends = cppNGS

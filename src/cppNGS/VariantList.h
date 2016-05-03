@@ -265,8 +265,6 @@ public:
 	void filterByRegions(const BedFile& regions, bool invert=false);
     ///Removed all variants that do not pass all filters.
     void filterByRules(const QVector<VariantFilter>& filters);
-	///Filter all variants by filters given in file
-	void filterByFilterColumn();
 
     ///Remove duplicate variants.
 	void removeDuplicates(bool sort_by_quality);

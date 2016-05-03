@@ -11,11 +11,13 @@
 #include "NGSHelper.h"
 #include "FastqFileStream.h"
 #include "LinePlot.h"
-//#include "ScatterPlot.h"
+#include "ScatterPlot.h"
+#include "BarPlot.h"
 #include "Helper.h"
 #include "ChromosomeInfo.h"
 #include "SampleCorrelation.h"
 #include <QFileInfo>
+#include "Settings.h"
 
 #include "api/BamReader.h"
 using namespace BamTools;
@@ -523,11 +525,6 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	//variants
 	VariantList variants;
 	variants.load(somatic_vcf);
-	//filter variants if required
-	if(filtered)
-	{
-		variants.filterByFilterColumn();
-	}
 
 	//total variants
 	output.insert(QCValue("somatic variant count", variants.count(), "Total number of somatic variants in the target region.", "QC:2000041"));
@@ -586,22 +583,17 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 		output.insert(QCValue("somatic transition/transversion ratio", "n/a (no variants or tansversions)", "Somatic transition/transversion ratio of SNV variants.", "QC:2000043"));
 	}
 
-
-	// @todo currently only vcf and only strelka
-	// @todo get tumor and normal_id from pedigree tag
 	QString tumor_id = QFileInfo(tumor_bam).baseName();
 	QString normal_id = QFileInfo(normal_bam).baseName();
 	QStringList nuc;
-	nuc.append("A"); nuc.append("C"); nuc.append("T"); nuc.append("G");
+	nuc.append("A"); nuc.append("C"); nuc.append("G"); nuc.append("T");
 
-	//plots: allele frequencies
-	/*
-	ScatterPlot plot;
-	plot.setXLabel("allele frequency normal");
-	plot.setYLabel("allele frequency tumor");
-	plot.setYRange(0.0,1.0);
-	plot.setXRange(0.0,1.0);
-
+	//plot1: allele frequencies
+	ScatterPlot plot1;
+	plot1.setXLabel("allele frequency normal");
+	plot1.setYLabel("allele frequency tumor");
+	plot1.setXRange(0.0,1.0);
+	plot1.setYRange(0.0,1.0);
 	QList< QPair<double,double> > points;
 	for(int i=0; i<variants.count(); ++i)
 	{
@@ -637,37 +629,73 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 		point.second = af_normal;
 		points.append(point);
 	}
-	plot.setValues(points);
-	QString plotname = Helper::tempFileName(".png");
-	plot.store(plotname);
-	output.insert(QCValue::Image("mutation allele frequencies plot", plotname, ".", "QC:2000048"));
-	QFile::remove(plotname);
-	*/
+	plot1.setValues(points);
+	QString plot1name = Helper::tempFileName(".png");
+	plot1.store(plot1name);
+	output.insert(QCValue::Image("mutation allele frequencies plot", plot1name, ".", "QC:2000048"));
+	QFile::remove(plot1name);
 
-	//plots: somatic variant signature
-	QHash <QString, int> codons;
-	QString c;
-	QString co;
-	QString cod;
-	foreach(QString n, nuc)
+	//plot2: somatic variant signature, only pyrimidines are of interest
+	BarPlot plot2;
+	QString c,co,cod;
+	QMap<QString,QString> color_map;
+	color_map.insert("C>A","b");
+	color_map.insert("C>G","k");
+	color_map.insert("C>T","r");
+	color_map.insert("T>A","g");
+	color_map.insert("T>G","c");
+	color_map.insert("T>C","y");
+	foreach(QString color, color_map)
 	{
-		c = n;
-		foreach(QString nn, nuc)
+		plot2.addColorLegend(color,color_map.key(color));
+	}
+	QList<QString> codons;
+	QList<int> counts;
+	QList<QString> colors;
+	QStringList sig;
+	sig.append("C");sig.append("T");
+	//add prefix (0 is not a valid bar)
+	codons.append("");
+	counts.append(0);
+	colors.append("w");
+	foreach(QString r, sig)
+	{
+		c = r;
+		foreach(QString o, nuc)
 		{
-			co = c + nn;
-			foreach(QString nnn, nuc)
+			if(c == o)	continue;
+			foreach(QString rr, nuc)
 			{
-				cod = co + nnn;
-				codons[cod] = 0;
+				co = rr + c;
+				foreach(QString rrr, nuc)
+				{
+					cod = co + rrr + "-" + o;
+					codons.append(cod);
+					counts.append(0);
+					colors.append(color_map[r+">"+o]);
+				}
 			}
 		}
-
 	}
-	output.insert(QCValue::Image("somatic variant signature plot", "", "Needs to be implemented.", "QC:2000047"));
+	FastaFileIndex reference(Settings::string("reference_genome"));
+	int max = 0;
+	for(int i=0; i<variants.count(); ++i)
+	{
+		Variant v = variants[i];
+		QString c = reference.seq(v.chr(),v.start()-1,1) + v.ref() + reference.seq(v.chr(),v.start()+1,1) + "-" + v.obs();
 
-	//plots: somatic variant distance, implement firs
-	output.insert(QCValue::Image("somatic variant distance plot", "", "Needs to be implemented.", "QC:2000046"));
-	output.insert(QCValue("somatic CNVs count", "", "Needs to be implemented.", "QC:2000044"));
+		if(!codons.contains(c))	continue;
+		int index = codons.indexOf(c);
+		++counts[index];
+		if(counts[index]>max)	max = counts[index];
+	}
+	plot2.setValues(counts,codons,colors);
+	plot2.setXRange(0,97);
+	plot2.setYRange(0,max+20);
+	QString plot2name = Helper::tempFileName(".png");
+	plot2.store(plot2name);
+	output.insert(QCValue::Image("somatic variant signature plot", plot2name, ".", "QC:2000047"));
+	QFile::remove(plot2name);
 
 	return output;
 }
