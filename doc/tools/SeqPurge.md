@@ -1,5 +1,5 @@
 ### SeqPurge tool help
-	SeqPurge (0.1-222-g9be2128)
+	SeqPurge (0.1-327-g026bb74)
 	
 	Removes adapter sequences from paired-end sequencing data.
 	
@@ -18,13 +18,13 @@
 	                      Default value: '80'
 	  -mep <float>        Maximum error probability of insert and adapter matches.
 	                      Default value: '9.9999999999999995e-07'
-	  -qcut <int>         Quality trimming cutoff for trimming from the end of reads using a sliding mindow approach. Set to 0 to disable.
+	  -qcut <int>         Quality trimming cutoff for trimming from the end of reads using a sliding window approach. Set to 0 to disable.
 	                      Default value: '15'
 	  -qwin <int>         Quality trimming window size.
 	                      Default value: '5'
 	  -qoff <int>         Quality trimming FASTQ score offset.
 	                      Default value: '33'
-	  -ncut <int>         Number of subsequent Ns to trimmed using a sliding mindow approach from the front of reads. Set to 0 to disable.
+	  -ncut <int>         Number of subsequent Ns to trimmed using a sliding window approach from the front of reads. Set to 0 to disable.
 	                      Default value: '7'
 	  -min_len <int>      Minimum read length after adapter trimming. Shorter reads are discarded.
 	                      Default value: '15'
@@ -38,6 +38,8 @@
 	                      Default value: ''
 	  -prefetch <int>     Maximum number of reads that may be pre-fetched to speed up trimming
 	                      Default value: '1000'
+	  -ec                 Enable error-correction of adapter-trimmed reads (only those with insert match).
+	                      Default value: 'false'
 	  -debug              Enables debug output (use only with one thread).
 	                      Default value: 'false'
 	  -progress           Enables progress output.
@@ -50,6 +52,9 @@
 	  --tdx               Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SeqPurge changelog
-	SeqPurge 0.1-222-g9be2128
+	SeqPurge 0.1-327-g026bb74
 	
+	2016-04-15 Removed large part of the overtrimming described in the paper (~75% of reads overtrimmed, ~50% of bases overtrimmed).
+	2016-04-06 Added error correction (optional).
+	2016-03-16 Version used in the SeqPurge paper: http://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-016-1069-7
 [back to ngs-bits](https://github.com/marc-sturm/ngs-bits)

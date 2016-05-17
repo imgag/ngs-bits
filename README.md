@@ -60,7 +60,7 @@ _ngs-bits_ contains a lot of tools that we use for NGS short-read data analysis 
 
 ### Main tools
 
-* [SeqPurge](doc/tools/SeqPurge.md) - A highly-sensitive adapter trimmer for paired-end short-read data ([NGS'2016 poster](https://medgen.medizin.uni-tuebingen.de/NGS-downloads/Poster_SeqPurge_NGS2016.pdf)).
+* [SeqPurge](doc/tools/SeqPurge.md) - A highly-sensitive adapter trimmer for paired-end short-read data ([paper](http://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-016-1069-7)).
 * [ReadQC](doc/tools/ReadQC.md) - Quality control tool for FASTQ files (output is [qcML](https://code.google.com/p/qcml/)).
 * [MappingQC](doc/tools/MappingQC.md) - Quality control tool for a BAM file (output is [qcML](https://code.google.com/p/qcml/)).
 * [VariantQC](doc/tools/VariantQC.md) - Quality control tool for a VCF file (output is [qcML](https://code.google.com/p/qcml/)).
@@ -108,6 +108,7 @@ _ngs-bits_ contains a lot of tools that we use for NGS short-read data analysis 
 * [VcfLeftAlign](doc/tools/VcfLeftAlign.md) - Left-aligns indel variants in repeat regions.
 * [VcfSort](doc/tools/VcfSort.md) - Sorts variant lists according to chromosomal position.
   
+
 
 
 
