@@ -189,7 +189,7 @@ void FilterDockWidget::applyDefaultFilters()
 	ui_.impact_enabled->setChecked(true);
 	ui_.impact->setCurrentText("HIGH,MODERATE,LOW");
 	ui_.ihdb_enabled->setChecked(true);
-	ui_.ihdb->setValue(5);
+	ui_.ihdb->setValue(20);
 	ui_.classification_enabled->setChecked(true);
 	ui_.classification->setCurrentText("3");
     ui_.keep_class_ge_enabled->setChecked(true);

@@ -17,6 +17,7 @@ libs:
    - Statistics: add Tests for somatic statistics
 
 GSvar:
+* IGV: get genome from processing system
 * Overview gene lists (missing genotype): treat all variants as homozygous?
 
 Tools:
