@@ -82,7 +82,8 @@ HEADERS += \
     NGSDImportHPO_Test.h \
     BamClipOverlap_Test.h \
     BamDeduplicateByBarcode_Test.h \
-    FastqExtractBarcode_Test.h
+    FastqExtractBarcode_Test.h \
+    BamToFastq_Test.h \
 
 SOURCES += \
     main.cpp \

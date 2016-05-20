@@ -74,6 +74,7 @@ _ngs-bits_ contains a lot of tools that we use for NGS short-read data analysis 
 * [BamDownsample](doc/tools/BamDownsample.md) - Downsamples a BAM file to the given percentage of reads.
 * [BamIndex](doc/tools/BamIndex.md) - Creates a BAI index for a BAM file.
 * [BamLeftAlign](doc/tools/BamLeftAlign.md) - Left-aligns indels in repeat regions.
+* [BamToFastq](doc/tools/BamToFastq.md) - Converts a BAM file to FASTQ files (paired-end only).
 
 ### BED tools
 
@@ -108,6 +109,7 @@ _ngs-bits_ contains a lot of tools that we use for NGS short-read data analysis 
 * [VcfLeftAlign](doc/tools/VcfLeftAlign.md) - Left-aligns indel variants in repeat regions.
 * [VcfSort](doc/tools/VcfSort.md) - Sorts variant lists according to chromosomal position.
   
+
 
 
 

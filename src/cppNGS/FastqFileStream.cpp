@@ -6,7 +6,6 @@ void FastqEntry::validate() const
 
 	if (header.length()==0 || header[0]!='@')
     {
-
 		THROW(FileParseException, message + "First header line does not start with '@': '" + header + "'.");
     }
 	if (header2.length()==0 || header2[0]!='+')

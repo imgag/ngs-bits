@@ -233,6 +233,10 @@ SUBDIRS += BamDownsample
 tools-TEST.depends += BamDownsample
 BamDownsample.depends = cppNGS
 
+SUBDIRS += BamToFastq
+tools-TEST.depends += BamToFastq
+BamToFastq.depends = cppNGS
+
 SUBDIRS += NGSDInit
 tools-TEST.depends += NGSDInit
 NGSDInit.depends = cppNGSD
