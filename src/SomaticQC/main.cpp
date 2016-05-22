@@ -24,6 +24,7 @@ public:
 		addInfile("normal_bam", "Input normal bam file.", false, true);
 		addInfile("somatic_vcf", "Input somatic vcf file.", false, true);
 		//optional
+		addInfile("target_bed", "Target file used for tumor and normal experiment.", true);
 		addOutfile("out", "Output qcML file. If unset, writes to STDOUT.", true);
 	}
 
@@ -33,9 +34,10 @@ public:
 		QString tumor_bam = getInfile("tumor_bam");
 		QString normal_bam = getInfile("normal_bam");
 		QString somatic_vcf = getInfile("somatic_vcf");
+		QString target_bed = getInfile("target_bed");
 
 		QCCollection metrics;
-		metrics = Statistics::somatic(tumor_bam, normal_bam, somatic_vcf);
+		metrics = Statistics::somatic(tumor_bam, normal_bam, somatic_vcf, target_bed);
 
 		//store output
 		QString out = getOutfile("out");
