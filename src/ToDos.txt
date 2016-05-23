@@ -13,6 +13,8 @@ libs:
       - somatic(): add plot comparing depth tumor/normal and allele frequencies of dbSNP variants
       - somatic(): add cnv count - QCValue("somatic CNVs count", "", "Needs to be implemented.", "QC:2000044")
       - somatic(): consider to use only filtered variants for statistics?
+      - somatic(): check if target file works, make it faster
+      - somatic(): remove nonSpecialChromosomes from all statistics parameters
 - cppNGS-Tests:
    - Statistics: add Tests for somatic statistics
 
