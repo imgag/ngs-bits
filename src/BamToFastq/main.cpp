@@ -20,25 +20,34 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Converts a BAM file to FASTQ files (paired-end only).");
-		addInfile("in", "Input BAM file.", false, true);		
+		setDescription("Converts a coordinate-sorted BAM file to FASTQ files (paired-end only).");
+		addInfile("in", "Input BAM file.", false, true);
 		addOutfile("out1", "Read 1 output FASTQ.GZ file.", false);
 		addOutfile("out2", "Read 2 output FASTQ.GZ file.", false);
 	}
 
-	void write(FastqOutfileStream& out, const BamAlignment& al)
+	void write(FastqOutfileStream& out, const BamAlignment& al, bool rev_comp)
 	{
+		//create FASTQ entry
 		FastqEntry e;
 		e.header = "@" + QByteArray::fromRawData(al.Name.data(), al.Name.size());
 		e.bases = QByteArray::fromRawData(al.QueryBases.data(), al.QueryBases.size());
 		e.header2 = "+";
 		e.qualities = QByteArray::fromRawData(al.Qualities.data(), al.Qualities.size());
+
+		if (rev_comp)
+		{
+			e.bases = NGSHelper::changeSeq(e.bases, true, true);
+			e.qualities = NGSHelper::changeSeq(e.qualities, true, false);
+		}
+
 		out.write(e);
 	}
 
 	virtual void main()
 	{
 		//init
+		QTextStream out(stdout);
 		BamReader reader;
 		NGSHelper::openBAM(reader, getInfile("in"));
 
@@ -64,15 +73,24 @@ public:
 				continue;
 			}
 
-			QByteArray name = QByteArray::fromStdString(al.Name);
+			QByteArray name(al.Name.data()); //TODO use QByteArray::fromStdString (when upgraded to Qt5.4)
 
 			//store cached read when we encounter the mate
 			if (al_cache.contains(name))
 			{
 				BamAlignment mate = al_cache.take(name);
-				//TODO handle pair orientation!
-				write(out1, mate);
-				write(out2, al);
+				//out << name << " [AL] First: " << al.IsFirstMate() << " Reverse: " << al.IsReverseStrand() << " Seq: " << al.QueryBases.data() << endl;
+				//out << name << " [MA] First: " << mate.IsFirstMate() << " Reverse: " << mate.IsReverseStrand() << " Seq: " << mate.QueryBases.data() << endl;
+				if (al.IsFirstMate())
+				{
+					write(out1, al, al.IsReverseStrand());
+					write(out2, mate, mate.IsReverseStrand());
+				}
+				else
+				{
+					write(out1, mate, mate.IsReverseStrand());
+					write(out2, al, al.IsReverseStrand());
+				}
 				++c_paired;
 			}
 			//cache read for later retrieval
@@ -88,11 +106,11 @@ public:
 		out2.close();
 
 		//write debug output
-		QTextStream out(stdout);
-		out << "Pair reads (written)     : " << c_paired << endl;
-		out << "Unpaired reads (skipped) : " << c_unpaired << endl;
+		out << "Pair reads (written)            : " << c_paired << endl;
+		out << "Unpaired reads (skipped)        : " << c_unpaired << endl;
+		out << "Unmatched paired reads (skipped): " << al_cache.size() << endl;
 		out << endl;
-		out << "Maximum cached alignments: " << max_cached << endl;
+		out << "Maximum cached reads            : " << max_cached << endl;
 	}
 };
 #include "main.moc"

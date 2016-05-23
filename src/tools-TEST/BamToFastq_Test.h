@@ -8,7 +8,7 @@ private slots:
 
 	void test_01()
 	{
-		EXECUTE("BamToFastq", "-in " + TESTDATA("data_in/BamLeftAlign_in1.bam") + " -out1 out/BamToFastq_out1.fastq.gz -out2 out/BamToFastq_out2.fastq.gz");
+		EXECUTE("BamToFastq", "-in " + TESTDATA("data_in/BamToFastq_in1.bam") + " -out1 out/BamToFastq_out1.fastq.gz -out2 out/BamToFastq_out2.fastq.gz");
 		IS_TRUE(QFile::exists("out/BamToFastq_out1.fastq.gz"));
 		IS_TRUE(QFile::exists("out/BamToFastq_out2.fastq.gz"));
 		COMPARE_GZ_FILES("out/BamToFastq_out1.fastq.gz", TESTDATA("data_out/BamToFastq_out1.fastq.gz"));
