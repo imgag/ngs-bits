@@ -61,7 +61,8 @@ class position
 
 struct mip_info
 {
-	int counter;
+	int counter_unique;
+	int counter_all;
 	QString name;
 	position left_arm;
 	position right_arm;
@@ -69,7 +70,8 @@ struct mip_info
 
 struct hs_info
 {
-	int counter;
+	int counter_unique;
+	int counter_all;
 	QString name;
 };
 
@@ -139,7 +141,8 @@ private:
 			}
 			new_mip_info.left_arm.start_pos=new_mip_info.left_arm.start_pos-1;
 			new_mip_info.name=splitted_mip_entry.back();
-			new_mip_info.counter=0;
+			new_mip_info.counter_unique=0;
+			new_mip_info.counter_all=0;
 
 			mip_info_map[mip_position]=new_mip_info;
 		}
@@ -164,7 +167,8 @@ private:
 
 			hs_info new_hs_info;
 			new_hs_info.name=splitted_hs_entry[3];
-			new_hs_info.counter=0;
+			new_hs_info.counter_unique=0;
+			new_hs_info.counter_all=0;
 
 			hs_info_map[hs_position]=new_hs_info;
 		}
@@ -183,7 +187,7 @@ private:
 		while (i.hasPrevious())
 		{
 			i.previous();
-			outStream << i.key().chr <<"\t" << i.key().start_pos<< "\t" << i.key().end_pos <<"\t" << i.value().name <<"\t" << i.value().counter <<endl;
+			outStream << i.key().chr <<"\t" << i.key().start_pos<< "\t" << i.key().end_pos <<"\t" << i.value().name <<"\t" << i.value().counter_unique <<"\t" << i.value().counter_all <<endl;
 		}
 		out.close();
 	}
@@ -195,11 +199,11 @@ private:
 		QFile out(outfile_name);
 		out.open(QIODevice::WriteOnly);
 		QTextStream outStream(&out);
-		outStream <<"chr \tstart\tend\tMIP name\tcount"<<endl;
+		outStream <<"chr \tstart\tend\tAmplicon name\tcount"<<endl;
 		while (i.hasPrevious())
 		{
 			i.previous();
-			outStream << i.key().chr <<"\t" << i.key().start_pos<< "\t" << i.key().end_pos <<"\t" << i.value().name <<"\t" << i.value().counter <<endl;
+			outStream << i.key().chr <<"\t" << i.key().start_pos<< "\t" << i.key().end_pos <<"\t" << i.value().name <<"\t" << i.value().counter_unique <<"\t"<< i.value().counter_all<<endl;
 		}
 		out.close();
 	}
@@ -455,7 +459,8 @@ public:
 						{
 							if (mip_info_map.contains(act_position))//trim, select and count unique reads that can be matched to mips
 							{
-								mip_info_map[act_position].counter++;
+								mip_info_map[act_position].counter_unique++;
+								mip_info_map[act_position].counter_all+=i.value().count();
 								most_frequent_read_selection read_selection = cutAndSelectPair(i.value(),mip_info_map[act_position].left_arm,mip_info_map[act_position].right_arm);
 								writePairToBam(writer, read_selection.most_freq_read);
 								writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
@@ -469,7 +474,8 @@ public:
 						{
 							if (hs_info_map.contains(act_position))//trim, select and count unique reads that can be matched to mips
 							{
-								hs_info_map[act_position].counter++;
+								hs_info_map[act_position].counter_unique++;
+								hs_info_map[act_position].counter_all+=i.value().count();
 								most_frequent_read_selection read_selection = find_highest_freq_read(i.value());
 								writePairToBam(writer, read_selection.most_freq_read);
 								writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
@@ -537,7 +543,8 @@ public:
 			{
 				if (mip_info_map.contains(act_position))//trim and count reads that can be matched to mips
 				{
-					mip_info_map[act_position].counter++;
+					mip_info_map[act_position].counter_unique++;
+					mip_info_map[act_position].counter_all+=i.value().count();
 					most_frequent_read_selection read_selection = cutAndSelectPair(i.value(),mip_info_map[act_position].left_arm,mip_info_map[act_position].right_arm);
 					writePairToBam(writer, read_selection.most_freq_read);
 					writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
@@ -551,7 +558,8 @@ public:
 			{
 				if (hs_info_map.contains(act_position))//trim, select and count unique reads that can be matched to mips
 				{
-					hs_info_map[act_position].counter++;
+					hs_info_map[act_position].counter_unique++;
+					hs_info_map[act_position].counter_all+=i.value().count();
 					most_frequent_read_selection read_selection = find_highest_freq_read(i.value());
 					writePairToBam(writer, read_selection.most_freq_read);
 					writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
