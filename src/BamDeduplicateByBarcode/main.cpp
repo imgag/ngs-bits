@@ -67,6 +67,12 @@ struct mip_info
 	position right_arm;
 };
 
+struct hs_info
+{
+	int counter;
+	QString name;
+};
+
 struct most_frequent_read_selection
 {
 	readPair most_freq_read;
@@ -86,7 +92,6 @@ class ConcreteTool
 private:
 	QHash <QString,QString> createReadIndexHash(QString indexfile)
 	{
-
 		FastqFileStream indexstream(indexfile, false);
 		QHash <QString,QString> headers2barcodes;
 		while (!indexstream.atEnd())//foreach index read
@@ -142,9 +147,50 @@ private:
 		return mip_info_map;
 	}
 
+	QMap <position,hs_info> createHSInfoMap(QString hs_file)
+	{
+		QMap <position,hs_info> hs_info_map;
+		QFile input_file(hs_file);
+		input_file.open(QIODevice::ReadOnly);
+		QTextStream in(&input_file);
+		while (!in.atEnd())
+		{
+			QString line = in.readLine();
+			if (!(line.startsWith("chr"))) continue;
+			QStringList splitted_hs_entry=line.split("\t");
+			if (splitted_hs_entry.size()<4) continue;
+
+			position hs_position(splitted_hs_entry[1].toInt(),splitted_hs_entry[2].toInt(),splitted_hs_entry[0].mid(3).toInt());
+
+			hs_info new_hs_info;
+			new_hs_info.name=splitted_hs_entry[3];
+			new_hs_info.counter=0;
+
+			hs_info_map[hs_position]=new_hs_info;
+		}
+		input_file.close();
+		return hs_info_map;
+	}
+
 	void writeMipInfoMap(QMap <position,mip_info> mip_info_map, QString outfile_name)
 	{
 		QMapIterator<position, mip_info > i(mip_info_map);
+		i.toBack();
+		QFile out(outfile_name);
+		out.open(QIODevice::WriteOnly);
+		QTextStream outStream(&out);
+		outStream <<"chr \tstart\tend\tMIP name\tcount"<<endl;
+		while (i.hasPrevious())
+		{
+			i.previous();
+			outStream << i.key().chr <<"\t" << i.key().start_pos<< "\t" << i.key().end_pos <<"\t" << i.value().name <<"\t" << i.value().counter <<endl;
+		}
+		out.close();
+	}
+
+	void writeHSInfoMap(QMap <position,hs_info> hs_info_map, QString outfile_name)
+	{
+		QMapIterator<position, hs_info > i(hs_info_map);
 		i.toBack();
 		QFile out(outfile_name);
 		out.open(QIODevice::WriteOnly);
@@ -295,7 +341,6 @@ private:
 			QString read_name=QString::fromStdString(original_readpair.first.Name);
 			QString seq_1=QString::fromStdString(original_readpair.first.QueryBases);
 			QString seq_2=QString::fromStdString(original_readpair.second.QueryBases);
-			int counter=0;
 			//adjust values of unmapped to be valid bed file coordinates
 			if ((act_position.chr<1)||(act_position.start_pos <0)||(act_position.start_pos <0))
 			{
@@ -306,8 +351,7 @@ private:
 			if (test)
 			{
 				//omit readname and sequences which randomly sorted in output and thus not comparable
-				out_stream << act_position.chr <<"\t" << act_position.start_pos<< "\t" << act_position.end_pos<<"\t" << "group " <<counter<<endl;
-				counter++;
+				out_stream << act_position.chr <<"\t" << act_position.start_pos<< "\t" << act_position.end_pos<<"\t" <<endl;
 			}
 			else
 			{
@@ -336,25 +380,27 @@ public:
 		addOutfile("out", "Output BAM file.", false);
 		addFlag("flag", "flag duplicate reads insteadt of deleting them");
 		addFlag("test", "adjust output for testing purposes");
-		addInfile("mip_file","input file for moleculare inversion probes (reads are filtered and cut to match only MIP inserts).", true, "");
-		addOutfile("mip_count_out","Output TSV file for counts of given mips).", true, "");
-		addOutfile("mip_nomatch_out","Output Bed file for reads not matching any mips).", true, "");
+		addInfile("mip_file","input file for MIPS (reads are filtered and cut to match only MIP inserts).", true, "");
+		addInfile("hs_file","input file for Haloplex HS amplicons (reads are filtered to match only amplicons).", true, "");
+		addOutfile("count_out","Output TSV file for counts of given amplicon).", true, "");
+		addOutfile("nomatch_out","Output Bed file for reads not matching any amplicon).", true, "");
 		addOutfile("duplicate_out","Output Bed file for reads removed as duplicates).", true, "");
 	}
 
 	virtual void main()
 	{
-		//step 1: init
+		//init
 		QHash <QString,QString> read_headers2barcodes=createReadIndexHash(getInfile("index"));//build read_header => index hash
 		BamReader reader;
 		NGSHelper::openBAM(reader, getInfile("bam"));
 		BamWriter writer;
 		QHash <grouping, QList<readPair> > read_groups;
 		writer.Open(getOutfile("out").toStdString(), reader.GetConstSamHeader(), reader.GetReferenceData());
-		QString mip_count_out_name=getOutfile("mip_count_out");
-		QString mip_nomatch_out_name=getOutfile("mip_nomatch_out");
+		QString count_out_name=getOutfile("count_out");
+		QString nomatch_out_name=getOutfile("nomatch_out");
 		QString duplicate_out_name=getOutfile("duplicate_out");
 		QString mip_file= getInfile("mip_file");
+		QString hs_file= getInfile("hs_file");
 		bool test =getFlag("test");
 		BamAlignment al;
 		QHash<QString, BamAlignment> al_map;
@@ -369,9 +415,14 @@ public:
 		{
 			mip_info_map= createMipInfoMap(mip_file);
 		};
+		QMap <position,hs_info> hs_info_map;
+		if(hs_file!="")
+		{
+			hs_info_map= createHSInfoMap(hs_file);
+		};
 		QTextStream nomatch_out_stream;
-		QFile nomatch_out(mip_nomatch_out_name);
-		if (mip_nomatch_out_name!="")
+		QFile nomatch_out(nomatch_out_name);
+		if (nomatch_out_name!="")
 		{
 			nomatch_out.open(QIODevice::WriteOnly);
 			nomatch_out_stream.setDevice(&nomatch_out);
@@ -385,9 +436,11 @@ public:
 			duplicate_out_stream.setDevice(&duplicate_out);
 		}
 
+		//start deduplicating
 		while (reader.GetNextAlignment(al))
 		{
-			if (((counter%10000)==0)||((chrom_change)&&(last_ref!=-1)))//reset read_groups hash after every 10000th reads to reduce memory requirements
+			//write after every 10000th read to reduce memory requirements
+			if (((counter%10000)==0)||((chrom_change)&&(last_ref!=-1)))
 			{
 				QHash <grouping, QList<readPair> > read_groups_new;
 				QHash <grouping, QList<readPair> >::iterator i;
@@ -404,6 +457,20 @@ public:
 							{
 								mip_info_map[act_position].counter++;
 								most_frequent_read_selection read_selection = cutAndSelectPair(i.value(),mip_info_map[act_position].left_arm,mip_info_map[act_position].right_arm);
+								writePairToBam(writer, read_selection.most_freq_read);
+								writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
+							}
+							else//write reads not matching a mip to a bed file
+							{
+								writeReadsToBed(nomatch_out_stream,act_position,i.value(),i.key().barcode,test);
+							}
+						}
+						else if (hs_file!="")
+						{
+							if (hs_info_map.contains(act_position))//trim, select and count unique reads that can be matched to mips
+							{
+								hs_info_map[act_position].counter++;
+								most_frequent_read_selection read_selection = find_highest_freq_read(i.value());
 								writePairToBam(writer, read_selection.most_freq_read);
 								writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
 							}
@@ -480,6 +547,20 @@ public:
 					writeReadsToBed(nomatch_out_stream,act_position,i.value(),i.key().barcode,test);
 				}
 			}
+			else if (hs_file!="")
+			{
+				if (hs_info_map.contains(act_position))//trim, select and count unique reads that can be matched to mips
+				{
+					hs_info_map[act_position].counter++;
+					most_frequent_read_selection read_selection = find_highest_freq_read(i.value());
+					writePairToBam(writer, read_selection.most_freq_read);
+					writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
+				}
+				else//write reads not matching a mip to a bed file
+				{
+					writeReadsToBed(nomatch_out_stream,act_position,i.value(),i.key().barcode,test);
+				}
+			}
 			else
 			{
 				most_frequent_read_selection read_selection = find_highest_freq_read(i.value());
@@ -488,23 +569,23 @@ public:
 			}
 		}
 
+		if ((mip_file!="")&&(count_out_name!="")) writeMipInfoMap(mip_info_map,count_out_name);
+		if ((hs_file!="")&&(count_out_name!="")) writeHSInfoMap(hs_info_map,count_out_name);
 
-		//done
+		//close files
 		if (duplicate_out_name!="")
 		{
 			duplicate_out.close();
 		}
-		//done
-		if (mip_nomatch_out_name!="")
+		if (nomatch_out_name!="")
 		{
 			nomatch_out.close();
 		}
 		reader.Close();
 		writer.Close();
-		if ((mip_file!="")&&(mip_count_out_name!="")) writeMipInfoMap(mip_info_map,mip_count_out_name);
 	}
-
 };
+
 #include "main.moc"
 
 int main(int argc, char *argv[])
