@@ -64,6 +64,7 @@ struct mip_info
 {
 	int counter_unique;
 	int counter_all;
+	int counter_singles;
 	QString name;
 	position left_arm;
 	position right_arm;
@@ -73,6 +74,7 @@ struct hs_info
 {
 	int counter_unique;
 	int counter_all;
+	int counter_singles;
 	QString name;
 };
 
@@ -144,6 +146,7 @@ private:
 			new_mip_info.name=splitted_mip_entry.back();
 			new_mip_info.counter_unique=0;
 			new_mip_info.counter_all=0;
+			new_mip_info.counter_singles=0;
 
 			mip_info_map[mip_position]=new_mip_info;
 		}
@@ -170,6 +173,7 @@ private:
 			new_hs_info.name=splitted_hs_entry[3];
 			new_hs_info.counter_unique=0;
 			new_hs_info.counter_all=0;
+			new_hs_info.counter_singles=0;
 
 			hs_info_map[hs_position]=new_hs_info;
 		}
@@ -201,7 +205,7 @@ private:
 		while (i.hasPrevious())
 		{
 			i.previous();
-			outStream << i.key().chr <<"\t" << i.key().start_pos<< "\t" << i.key().end_pos <<"\t" << i.value().name <<"\t" << i.value().counter_unique <<"\t" << i.value().counter_all <<endl;
+			outStream << i.key().chr <<"\t" << i.key().start_pos<< "\t" << i.key().end_pos <<"\t" << i.value().name <<"\t" << i.value().counter_unique <<"\t" << i.value().counter_all <<"\t" << i.value().counter_singles <<endl;
 		}
 		write_dup_count_histo(dup_count_histo, outStream);
 		out.close();
@@ -218,7 +222,7 @@ private:
 		while (i.hasPrevious())
 		{
 			i.previous();
-			outStream << i.key().chr <<"\t" << i.key().start_pos<< "\t" << i.key().end_pos <<"\t" << i.value().name <<"\t" << i.value().counter_unique <<"\t"<< i.value().counter_all<<endl;
+			outStream << i.key().chr <<"\t" << i.key().start_pos<< "\t" << i.key().end_pos <<"\t" << i.value().name <<"\t" << i.value().counter_unique <<"\t"<< i.value().counter_all <<"\t"<< i.value().counter_singles<<endl;
 		}
 		write_dup_count_histo(dup_count_histo, outStream);
 		out.close();
@@ -478,6 +482,7 @@ public:
 							{
 								int dup_count = i.value().count();
 								mip_info_map[act_position].counter_unique++;
+								if (dup_count==1) mip_info_map[act_position].counter_singles++;
 								mip_info_map[act_position].counter_all+=dup_count;
 								if (dup_count_histo.contains(dup_count))
 								{
@@ -502,6 +507,7 @@ public:
 							{
 								int dup_count = i.value().count();
 								hs_info_map[act_position].counter_unique++;
+								if (dup_count==1) hs_info_map[act_position].counter_singles++;
 								hs_info_map[act_position].counter_all+=dup_count;
 								if (dup_count_histo.contains(dup_count))
 								{
@@ -580,6 +586,7 @@ public:
 				{
 					mip_info_map[act_position].counter_unique++;
 					int dup_count=i.value().count();
+					if (dup_count==1) mip_info_map[act_position].counter_singles++;
 					mip_info_map[act_position].counter_all+=dup_count;
 					if (dup_count_histo.contains(dup_count))
 					{
@@ -604,6 +611,7 @@ public:
 				{
 					hs_info_map[act_position].counter_unique++;
 					int dup_count=i.value().count();
+					if (dup_count==1) hs_info_map[act_position].counter_singles++;
 					hs_info_map[act_position].counter_all+=dup_count;
 					if (dup_count_histo.contains(dup_count))
 					{
