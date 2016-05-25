@@ -8,6 +8,7 @@
 #include <QString>
 #include "FastqFileStream.h"
 #include <QDataStream>
+#include <algorithm>
 
 using namespace BamTools;
 using readPair = QPair < BamAlignment, BamAlignment>;
@@ -176,7 +177,20 @@ private:
 		return hs_info_map;
 	}
 
-	void writeMipInfoMap(QMap <position,mip_info> mip_info_map, QString outfile_name)
+	void write_dup_count_histo(QHash <int, int> dup_count_histo, QTextStream &outStream)
+	{
+		QList <int> dup_counts =dup_count_histo.keys();
+		std::sort(dup_counts.begin(), dup_counts.end());
+
+		outStream <<endl<< "===amplicon counts distribution===" <<endl;
+		outStream << "duplicate counts" <<"\t" << "# of amplicons" <<endl;
+		foreach(int dup_count, dup_counts)
+		{
+			outStream << dup_count <<"\t" << dup_count_histo[dup_count] <<endl;
+		}
+	}
+
+	void writeMipInfoMap(QMap <position,mip_info> mip_info_map, QString outfile_name, QHash <int, int> dup_count_histo)
 	{
 		QMapIterator<position, mip_info > i(mip_info_map);
 		i.toBack();
@@ -189,10 +203,11 @@ private:
 			i.previous();
 			outStream << i.key().chr <<"\t" << i.key().start_pos<< "\t" << i.key().end_pos <<"\t" << i.value().name <<"\t" << i.value().counter_unique <<"\t" << i.value().counter_all <<endl;
 		}
+		write_dup_count_histo(dup_count_histo, outStream);
 		out.close();
 	}
 
-	void writeHSInfoMap(QMap <position,hs_info> hs_info_map, QString outfile_name)
+	void writeHSInfoMap(QMap <position,hs_info> hs_info_map, QString outfile_name, QHash <int, int> dup_count_histo)
 	{
 		QMapIterator<position, hs_info > i(hs_info_map);
 		i.toBack();
@@ -205,6 +220,7 @@ private:
 			i.previous();
 			outStream << i.key().chr <<"\t" << i.key().start_pos<< "\t" << i.key().end_pos <<"\t" << i.value().name <<"\t" << i.value().counter_unique <<"\t"<< i.value().counter_all<<endl;
 		}
+		write_dup_count_histo(dup_count_histo, outStream);
 		out.close();
 	}
 
@@ -409,6 +425,7 @@ public:
 		BamAlignment al;
 		QHash<QString, BamAlignment> al_map;
 		int counter = 1;
+		QHash <int,int> dup_count_histo;
 
 		int last_start_pos=0;
 		int last_ref=-1;
@@ -457,10 +474,19 @@ public:
 						position act_position(i.key().start_pos,i.key().end_pos,last_ref);
 						if (mip_file!="")
 						{
-							if (mip_info_map.contains(act_position))//trim, select and count unique reads that can be matched to mips
+							if (mip_info_map.contains(act_position))//trim, select and count reads that can be matched to mips
 							{
+								int dup_count = i.value().count();
 								mip_info_map[act_position].counter_unique++;
-								mip_info_map[act_position].counter_all+=i.value().count();
+								mip_info_map[act_position].counter_all+=dup_count;
+								if (dup_count_histo.contains(dup_count))
+								{
+									dup_count_histo[dup_count]++;
+								}
+								else
+								{
+									dup_count_histo[dup_count]=1;
+								}
 								most_frequent_read_selection read_selection = cutAndSelectPair(i.value(),mip_info_map[act_position].left_arm,mip_info_map[act_position].right_arm);
 								writePairToBam(writer, read_selection.most_freq_read);
 								writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
@@ -472,10 +498,19 @@ public:
 						}
 						else if (hs_file!="")
 						{
-							if (hs_info_map.contains(act_position))//trim, select and count unique reads that can be matched to mips
+							if (hs_info_map.contains(act_position))//trim, select and count reads that can be matched to mips
 							{
+								int dup_count = i.value().count();
 								hs_info_map[act_position].counter_unique++;
-								hs_info_map[act_position].counter_all+=i.value().count();
+								hs_info_map[act_position].counter_all+=dup_count;
+								if (dup_count_histo.contains(dup_count))
+								{
+									dup_count_histo[dup_count]++;
+								}
+								else
+								{
+									dup_count_histo[dup_count]=1;
+								}
 								most_frequent_read_selection read_selection = find_highest_freq_read(i.value());
 								writePairToBam(writer, read_selection.most_freq_read);
 								writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
@@ -544,7 +579,16 @@ public:
 				if (mip_info_map.contains(act_position))//trim and count reads that can be matched to mips
 				{
 					mip_info_map[act_position].counter_unique++;
-					mip_info_map[act_position].counter_all+=i.value().count();
+					int dup_count=i.value().count();
+					mip_info_map[act_position].counter_all+=dup_count;
+					if (dup_count_histo.contains(dup_count))
+					{
+						dup_count_histo[dup_count]++;
+					}
+					else
+					{
+						dup_count_histo[dup_count]=1;
+					}
 					most_frequent_read_selection read_selection = cutAndSelectPair(i.value(),mip_info_map[act_position].left_arm,mip_info_map[act_position].right_arm);
 					writePairToBam(writer, read_selection.most_freq_read);
 					writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
@@ -556,10 +600,19 @@ public:
 			}
 			else if (hs_file!="")
 			{
-				if (hs_info_map.contains(act_position))//trim, select and count unique reads that can be matched to mips
+				if (hs_info_map.contains(act_position))//trim, select and count reads that can be matched to mips
 				{
 					hs_info_map[act_position].counter_unique++;
-					hs_info_map[act_position].counter_all+=i.value().count();
+					int dup_count=i.value().count();
+					hs_info_map[act_position].counter_all+=dup_count;
+					if (dup_count_histo.contains(dup_count))
+					{
+						dup_count_histo[dup_count]++;
+					}
+					else
+					{
+						dup_count_histo[dup_count]=1;
+					}
 					most_frequent_read_selection read_selection = find_highest_freq_read(i.value());
 					writePairToBam(writer, read_selection.most_freq_read);
 					writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
@@ -577,8 +630,8 @@ public:
 			}
 		}
 
-		if ((mip_file!="")&&(count_out_name!="")) writeMipInfoMap(mip_info_map,count_out_name);
-		if ((hs_file!="")&&(count_out_name!="")) writeHSInfoMap(hs_info_map,count_out_name);
+		if ((mip_file!="")&&(count_out_name!="")) writeMipInfoMap(mip_info_map,count_out_name,dup_count_histo);
+		if ((hs_file!="")&&(count_out_name!="")) writeHSInfoMap(hs_info_map,count_out_name,dup_count_histo);
 
 		//close files
 		if (duplicate_out_name!="")
