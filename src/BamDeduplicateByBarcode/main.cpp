@@ -553,10 +553,10 @@ public:
 		//start deduplicating
 		while (reader.GetNextAlignment(al))
 		{
+			++counter;
 			//write after every 10000th read to reduce memory requirements
 			if (((counter%10000)==0)||(chrom_change))
 			{
-				++counter;
 				read_groups=reduceSingleReads(edit_distance,read_groups);
 				QHash <grouping, QList<readPair> > read_groups_new;
 				QHash <grouping, QList<readPair> >::iterator i;
