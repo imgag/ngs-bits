@@ -110,6 +110,38 @@ private:
 		return headers2barcodes;
 	}
 
+	int getEditDistance( const QString& s, const QString& t )
+	{
+	#define D( i, j ) d[(i) * n + (j)]
+		int i;
+		int j;
+		int m = s.length() + 1;
+		int n = t.length() + 1;
+		int *d = new int[m * n];
+		int result;
+
+		for ( i = 0; i < m; i++ )
+		D( i, 0 ) = i;
+		for ( j = 0; j < n; j++ )
+		D( 0, j ) = j;
+		for ( i = 1; i < m; i++ ) {
+		for ( j = 1; j < n; j++ ) {
+			if ( s[i - 1] == t[j - 1] ) {
+			D( i, j ) = D( i - 1, j - 1 );
+			} else {
+			int x = D( i - 1, j );
+			int y = D( i - 1, j - 1 );
+			int z = D( i, j - 1 );
+			D( i, j ) = 1 + qMin( qMin(x, y), z );
+			}
+		}
+		}
+		result = D( m - 1, n - 1 );
+		delete[] d;
+		return result;
+	#undef D
+	}
+
 
 	QMap <position,mip_info> createMipInfoMap(QString mip_file)
 	{
@@ -282,6 +314,61 @@ private:
 		return cigar_ops_out;
 	}
 
+	QHash <grouping, QList<readPair> > reduceSingleReads(int allowed_edit_distance, const QHash <grouping, QList<readPair> > &read_groups)
+	{
+		if (allowed_edit_distance<=0) return read_groups;
+		QHash <grouping, QList<readPair> > read_groups_new=read_groups;
+		QHash <grouping, QList<readPair> >::const_iterator i;
+
+		for (i = read_groups.begin(); i != read_groups.end(); ++i)
+		//iterate over old structure because elements on new structure might get deleted
+		{
+			if (read_groups_new[i.key()].count()==1) //check singlenessed in new structure because singles might already got matched by others
+			{
+				grouping single_key =i.key();
+				grouping match;
+				bool is_match=false;
+				bool is_unambigious_match=true;
+				QHash <grouping, QList<readPair> >::iterator j;
+				for (j = read_groups_new.begin(); j != read_groups_new.end(); ++j)
+				{
+					int edit_distance=getEditDistance(j.key().barcode,single_key.barcode);
+					//if same position and similar enough (but not identical) barcode
+					if ((j.key().end_pos==single_key.end_pos)&&(j.key().start_pos==single_key.start_pos)&&(0<edit_distance)&&(edit_distance<=allowed_edit_distance))
+					{
+						if(is_match)//if second match
+						{
+							is_unambigious_match=false;
+							break;
+						}
+						else
+						{
+							match=j.key();
+							is_match=true;
+						}
+					}
+				}
+
+				if (is_match)
+				{
+					if (is_unambigious_match)
+					{
+						//add the single read to match
+						read_groups_new[match].append(i.value());
+						//remove old entry of single
+						read_groups_new.remove(i.key());
+					}
+					else
+					{
+						//cannot match, but should still remove entry of single
+						read_groups_new.remove(i.key());
+					}
+				}
+			}
+		}
+		return read_groups_new;
+	}
+
 	most_frequent_read_selection find_highest_freq_read(QList <readPair> readpairs)
 	{
 		//setup seq_count
@@ -321,7 +408,7 @@ private:
 		{
 			int elems_to_cut=(original_alignment.GetEndPosition())-right_arm.start_pos;
 			//cut bases and qualties
-			original_alignment.QueryBases=original_alignment.QueryBases.substr(0,(original_alignment.QueryBases.size()-elems_to_cut));
+			original_alignment.QueryBases=original_alignment.QueryBases.substr(1,(original_alignment.QueryBases.size()-elems_to_cut));
 			original_alignment.Qualities=original_alignment.Qualities.substr(0,(original_alignment.Qualities.size()-elems_to_cut));
 			//correct CIGAR
 			original_alignment.CigarData=correctCigarString(original_alignment.CigarData,false,elems_to_cut);
@@ -404,6 +491,7 @@ public:
 		addOutfile("out", "Output BAM file.", false);
 		addFlag("flag", "flag duplicate reads insteadt of deleting them");
 		addFlag("test", "adjust output for testing purposes");
+		addInt("dist", "edit distance for single read matching .", true, 0);
 		addInfile("mip_file","input file for MIPS (reads are filtered and cut to match only MIP inserts).", true, "");
 		addInfile("hs_file","input file for Haloplex HS amplicons (reads are filtered to match only amplicons).", true, "");
 		addOutfile("count_out","Output TSV file for counts of given amplicon).", true, "");
@@ -425,6 +513,7 @@ public:
 		QString duplicate_out_name=getOutfile("duplicate_out");
 		QString mip_file= getInfile("mip_file");
 		QString hs_file= getInfile("hs_file");
+		int edit_distance=getInt("dist");
 		bool test =getFlag("test");
 		BamAlignment al;
 		QHash<QString, BamAlignment> al_map;
@@ -465,8 +554,9 @@ public:
 		while (reader.GetNextAlignment(al))
 		{
 			//write after every 10000th read to reduce memory requirements
-			if (((counter%10000)==0)||((chrom_change)&&(last_ref!=-1)))
+			if (((counter%10000)==0)||(chrom_change))
 			{
+				read_groups=reduceSingleReads(edit_distance,read_groups);
 				QHash <grouping, QList<readPair> > read_groups_new;
 				QHash <grouping, QList<readPair> >::iterator i;
 				for (i = read_groups.begin(); i != read_groups.end(); ++i)
@@ -570,12 +660,16 @@ public:
 			if (al.RefID!=last_ref)
 			{
 				new_ref=al.RefID;
-				chrom_change=true;
+				if (last_ref!=-1)
+				{
+					chrom_change=true;
+				}
 			}
 
 		}
 
 		//write remaining pairs
+		read_groups=reduceSingleReads(edit_distance,read_groups);
 		QHash <grouping, QList<readPair> >::iterator i;
 		for (i = read_groups.begin(); i != read_groups.end(); ++i)
 		{

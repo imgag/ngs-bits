@@ -1,5 +1,5 @@
 chr 	start	end	Amplicon name	count
-1	78577956	78578193	AM_930325_000001	141	903	21
+1	78577956	78578193	AM_930325_000001	120	882	0
 1	78578102	78578263	AM_930325_000003	0	0	0
 1	78578103	78578264	AM_930325_000004	0	0	0
 1	78578125	78578324	AM_930325_000005	0	0	0
@@ -89,7 +89,6 @@ chr 	start	end	Amplicon name	count
 
 ===amplicon counts distribution===
 duplicate counts	# of amplicons
-1	21
 2	7
 3	7
 4	8

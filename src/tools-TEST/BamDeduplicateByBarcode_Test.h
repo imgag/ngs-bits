@@ -61,4 +61,20 @@ private slots:
 		COMPARE_FILES("out/BamDeduplicateByBarcode_out7.tsv", TESTDATA("data_out/BamDeduplicateByBarcode_out7.tsv"));
 		COMPARE_FILES("out/BamDeduplicateByBarcode_duplicate_out7_sorted.bed", TESTDATA("data_out/BamDeduplicateByBarcode_duplicate_out7_sorted.bed"));
 	}
+
+	void test_duplicates_regarding_mip_file_reduce_singles()
+	{
+		EXECUTE("BamDeduplicateByBarcode", "-bam " + TESTDATA("data_in/BamDeduplicateByBarcode_in4.bam") + " -index " + TESTDATA("data_in/BamDeduplicateByBarcode_index_in4.fastq.gz") + " -test -dist 1 -mip_file " + TESTDATA("data_in/FastqExtractBarcode_in_mips1.txt") +" -out out/BamDeduplicateByBarcode_out8.bam -duplicate_out out/BamDeduplicateByBarcode_duplicate_out8.bed -count_out out/BamDeduplicateByBarcode_out8.tsv");
+		EXECUTE("BedSort", "-in out/BamDeduplicateByBarcode_duplicate_out8.bed -out out/BamDeduplicateByBarcode_duplicate_out8_sorted.bed")
+		COMPARE_FILES("out/BamDeduplicateByBarcode_out8.tsv", TESTDATA("data_out/BamDeduplicateByBarcode_out8.tsv"));
+		COMPARE_FILES("out/BamDeduplicateByBarcode_duplicate_out8_sorted.bed", TESTDATA("data_out/BamDeduplicateByBarcode_duplicate_out8_sorted.bed"));
+	}
+
+	void test_duplicates_regarding_hs_file_reduce_singles()
+	{
+		EXECUTE("BamDeduplicateByBarcode", "-bam " + TESTDATA("data_in/BamDeduplicateByBarcode_in7.bam") + " -index " + TESTDATA("data_in/BamDeduplicateByBarcode_index_in7.fastq.gz") + " -test -dist 100 -hs_file " + TESTDATA("data_in/FastqBamDeduplicate_in_hs1.bed") +" -out out/BamDeduplicateByBarcode_out9.bam -duplicate_out out/BamDeduplicateByBarcode_duplicate_out9.bed -nomatch_out out/BamDeduplicateByBarcode_no_match_out9.bed -count_out out/BamDeduplicateByBarcode_out9.tsv");
+		EXECUTE("BedSort", "-in out/BamDeduplicateByBarcode_duplicate_out9.bed -out out/BamDeduplicateByBarcode_duplicate_out9_sorted.bed")
+		COMPARE_FILES("out/BamDeduplicateByBarcode_out9.tsv", TESTDATA("data_out/BamDeduplicateByBarcode_out9.tsv"));
+		COMPARE_FILES("out/BamDeduplicateByBarcode_duplicate_out9_sorted.bed", TESTDATA("data_out/BamDeduplicateByBarcode_duplicate_out9_sorted.bed"));
+	}
 };
