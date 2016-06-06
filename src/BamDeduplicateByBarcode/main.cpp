@@ -84,6 +84,8 @@ struct most_frequent_read_selection
 	QList <readPair> duplicates;
 };
 
+typedef QPair <QHash <grouping, QList<readPair> >, int> reduced_singles;
+
 inline uint qHash(const position &pos1)
 {
 	return qHash(QString::number(pos1.start_pos) + QString::number(pos1.end_pos) + pos1.chr);
@@ -226,12 +228,12 @@ private:
 		}
 	}
 
-	void writeMipInfoMap(QMap <position,mip_info> mip_info_map, QString outfile_name, QHash <int, int> dup_count_histo)
+	void writeMipInfoMap(QMap <position,mip_info> mip_info_map, QString outfile_name, QHash <int, int> dup_count_histo, int lost_singles)
 	{
 		QMapIterator<position, mip_info > i(mip_info_map);
 		i.toBack();
 		QFile out(outfile_name);
-		out.open(QIODevice::WriteOnly);
+		out.open(QIODevice::WriteOnly|QIODevice::Text);
 		QTextStream outStream(&out);
 		outStream <<"chr \tstart\tend\tMIP name\tcount"<<endl;
 		while (i.hasPrevious())
@@ -240,15 +242,17 @@ private:
 			outStream << i.key().chr <<"\t" << i.key().start_pos<< "\t" << i.key().end_pos <<"\t" << i.value().name <<"\t" << i.value().counter_unique <<"\t" << i.value().counter_all <<"\t" << i.value().counter_singles <<endl;
 		}
 		write_dup_count_histo(dup_count_histo, outStream);
+		outStream <<endl;
+		outStream << lost_singles << " read(s) were deleted because of ambiguity of single matching";
 		out.close();
 	}
 
-	void writeHSInfoMap(QMap <position,hs_info> hs_info_map, QString outfile_name, QHash <int, int> dup_count_histo)
+	void writeHSInfoMap(QMap <position,hs_info> hs_info_map, QString outfile_name, QHash <int, int> dup_count_histo, int lost_singles)
 	{
 		QMapIterator<position, hs_info > i(hs_info_map);
 		i.toBack();
 		QFile out(outfile_name);
-		out.open(QIODevice::WriteOnly);
+		out.open(QIODevice::WriteOnly|QIODevice::Text);
 		QTextStream outStream(&out);
 		outStream <<"chr \tstart\tend\tAmplicon name\tcount"<<endl;
 		while (i.hasPrevious())
@@ -256,6 +260,8 @@ private:
 			i.previous();
 			outStream << i.key().chr <<"\t" << i.key().start_pos<< "\t" << i.key().end_pos <<"\t" << i.value().name <<"\t" << i.value().counter_unique <<"\t"<< i.value().counter_all <<"\t"<< i.value().counter_singles<<endl;
 		}
+		outStream <<endl;
+		outStream << lost_singles << " read(s) were deleted because of ambiguity of single matching";
 		write_dup_count_histo(dup_count_histo, outStream);
 		out.close();
 	}
@@ -314,11 +320,12 @@ private:
 		return cigar_ops_out;
 	}
 
-	QHash <grouping, QList<readPair> > reduceSingleReads(int allowed_edit_distance, const QHash <grouping, QList<readPair> > &read_groups)
+	reduced_singles reduceSingleReads(int allowed_edit_distance, const QHash <grouping, QList<readPair> > &read_groups)
 	{
-		if (allowed_edit_distance<=0) return read_groups;
+		if (allowed_edit_distance<=0) return qMakePair(read_groups,0);
 		QHash <grouping, QList<readPair> > read_groups_new=read_groups;
 		QHash <grouping, QList<readPair> >::const_iterator i;
+		int lost_singles=0;
 
 		for (i = read_groups.begin(); i != read_groups.end(); ++i)
 		//iterate over old structure because elements on new structure might get deleted
@@ -361,12 +368,13 @@ private:
 					else
 					{
 						//cannot match, but should still remove entry of single
+						++lost_singles;
 						read_groups_new.remove(i.key());
 					}
 				}
 			}
 		}
-		return read_groups_new;
+		return qMakePair(read_groups_new,lost_singles);
 	}
 
 	most_frequent_read_selection find_highest_freq_read(QList <readPair> readpairs)
@@ -494,7 +502,7 @@ public:
 		addInt("dist", "edit distance for single read matching .", true, 0);
 		addInfile("mip_file","input file for MIPS (reads are filtered and cut to match only MIP inserts).", true, "");
 		addInfile("hs_file","input file for Haloplex HS amplicons (reads are filtered to match only amplicons).", true, "");
-		addOutfile("count_out","Output TSV file for counts of given amplicon).", true, "");
+		addOutfile("stats","Output TSV file for statistics).", true, "");
 		addOutfile("nomatch_out","Output Bed file for reads not matching any amplicon).", true, "");
 		addOutfile("duplicate_out","Output Bed file for reads removed as duplicates).", true, "");
 	}
@@ -508,7 +516,7 @@ public:
 		BamWriter writer;
 		QHash <grouping, QList<readPair> > read_groups;
 		writer.Open(getOutfile("out").toStdString(), reader.GetConstSamHeader(), reader.GetReferenceData());
-		QString count_out_name=getOutfile("count_out");
+		QString stats_out_name=getOutfile("stats");
 		QString nomatch_out_name=getOutfile("nomatch_out");
 		QString duplicate_out_name=getOutfile("duplicate_out");
 		QString mip_file= getInfile("mip_file");
@@ -519,6 +527,7 @@ public:
 		QHash<QString, BamAlignment> al_map;
 		int counter = 1;
 		QHash <int,int> dup_count_histo;
+		int lost_singles=0;
 
 		int last_start_pos=0;
 		int last_ref=-1;
@@ -557,7 +566,10 @@ public:
 			//write after every 10000th read to reduce memory requirements
 			if (((counter%10000)==0)||(chrom_change))
 			{
-				read_groups=reduceSingleReads(edit_distance,read_groups);
+				reduced_singles reduced_singles_res=reduceSingleReads(edit_distance,read_groups);
+				read_groups=reduced_singles_res.first;
+				lost_singles+=reduced_singles_res.second;
+
 				QHash <grouping, QList<readPair> > read_groups_new;
 				QHash <grouping, QList<readPair> >::iterator i;
 				for (i = read_groups.begin(); i != read_groups.end(); ++i)
@@ -594,7 +606,7 @@ public:
 						}
 						else if (hs_file!="")
 						{
-							if (hs_info_map.contains(act_position))//trim, select and count reads that can be matched to mips
+							if (hs_info_map.contains(act_position))//select and count reads that can be matched to mips
 							{
 								int dup_count = i.value().count();
 								hs_info_map[act_position].counter_unique++;
@@ -670,7 +682,9 @@ public:
 		}
 
 		//write remaining pairs
-		read_groups=reduceSingleReads(edit_distance,read_groups);
+		reduced_singles reduced_singles_res=reduceSingleReads(edit_distance,read_groups);
+		read_groups=reduced_singles_res.first;
+		lost_singles+=reduced_singles_res.second;
 		QHash <grouping, QList<readPair> >::iterator i;
 		for (i = read_groups.begin(); i != read_groups.end(); ++i)
 		{
@@ -733,8 +747,8 @@ public:
 			}
 		}
 
-		if ((mip_file!="")&&(count_out_name!="")) writeMipInfoMap(mip_info_map,count_out_name,dup_count_histo);
-		if ((hs_file!="")&&(count_out_name!="")) writeHSInfoMap(hs_info_map,count_out_name,dup_count_histo);
+		if ((mip_file!="")&&(stats_out_name!="")) writeMipInfoMap(mip_info_map,stats_out_name,dup_count_histo,lost_singles);
+		if ((hs_file!="")&&(stats_out_name!="")) writeHSInfoMap(hs_info_map,stats_out_name,dup_count_histo,lost_singles);
 
 		//close files
 		if (duplicate_out_name!="")

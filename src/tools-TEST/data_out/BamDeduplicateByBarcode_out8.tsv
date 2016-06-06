@@ -1346,3 +1346,5 @@ chr 	start	end	MIP name	count
 duplicate counts	# of amplicons
 1	3327
 2	11
+
+0 read(s) were deleted because of ambiguity of single matching

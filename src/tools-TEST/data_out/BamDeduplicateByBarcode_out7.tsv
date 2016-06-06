@@ -87,6 +87,7 @@ chr 	start	end	Amplicon name	count
 1	152059811	152060238	AM_930325_000098	0	0	0
 1	152059883	1520600741	AM_930325_000099	0	0	0
 
+0 read(s) were deleted because of ambiguity of single matching
 ===amplicon counts distribution===
 duplicate counts	# of amplicons
 1	21
