@@ -62,20 +62,22 @@ class position
 
 struct mip_info
 {
-	int counter_unique;
-	int counter_all;
-	int counter_singles;
-	QString name;
+	int counter_unique; //number of reads after dedup
+	int counter_all; //number of reads before dedup
+	int counter_singles; //number of barcode families with only one read
+	QHash <QString,int> barcode_counters; //read counts of each barcode
+	QString name; //name of amplicon
 	position left_arm;
 	position right_arm;
 };
 
 struct hs_info
 {
-	int counter_unique;
-	int counter_all;
-	int counter_singles;
-	QString name;
+	int counter_unique; //number of reads after dedup
+	int counter_all; //number of reads before dedup
+	int counter_singles; //number of barcode families with only one read
+	QHash <QString,int> barcode_counters; //read counts of each barcode
+	QString name; //name of amplicon
 };
 
 struct most_frequent_read_selection
@@ -84,7 +86,7 @@ struct most_frequent_read_selection
 	QList <readPair> duplicates;
 };
 
-typedef QPair <QHash <grouping, QList<readPair> >, int> reduced_singles;
+typedef QPair <QHash <grouping, QList<readPair> >, QList <grouping> > reduced_singles;
 
 inline uint qHash(const position &pos1)
 {
@@ -243,7 +245,7 @@ private:
 		}
 		write_dup_count_histo(dup_count_histo, outStream);
 		outStream <<endl;
-		outStream << lost_singles << " read(s) were deleted because of ambiguity of single matching";
+		outStream << lost_singles << " read(s) were deleted in target region because of ambiguity of single matching";
 		out.close();
 	}
 
@@ -260,9 +262,9 @@ private:
 			i.previous();
 			outStream << i.key().chr <<"\t" << i.key().start_pos<< "\t" << i.key().end_pos <<"\t" << i.value().name <<"\t" << i.value().counter_unique <<"\t"<< i.value().counter_all <<"\t"<< i.value().counter_singles<<endl;
 		}
-		outStream <<endl;
-		outStream << lost_singles << " read(s) were deleted because of ambiguity of single matching";
 		write_dup_count_histo(dup_count_histo, outStream);
+		outStream <<endl;
+		outStream << lost_singles << " read(s) were deleted in target region because of ambiguity of single matching";
 		out.close();
 	}
 
@@ -322,10 +324,11 @@ private:
 
 	reduced_singles reduceSingleReads(int allowed_edit_distance, const QHash <grouping, QList<readPair> > &read_groups)
 	{
-		if (allowed_edit_distance<=0) return qMakePair(read_groups,0);
+		QList <grouping> lost_singles;
+
+		if (allowed_edit_distance<=0) return qMakePair(read_groups,lost_singles);
 		QHash <grouping, QList<readPair> > read_groups_new=read_groups;
 		QHash <grouping, QList<readPair> >::const_iterator i;
-		int lost_singles=0;
 
 		for (i = read_groups.begin(); i != read_groups.end(); ++i)
 		//iterate over old structure because elements on new structure might get deleted
@@ -333,6 +336,7 @@ private:
 			if (read_groups_new[i.key()].count()==1) //check singlenessed in new structure because singles might already got matched by others
 			{
 				grouping single_key =i.key();
+				QList<readPair> single_value=i.value();
 				grouping match;
 				bool is_match=false;
 				bool is_unambigious_match=true;
@@ -360,20 +364,46 @@ private:
 				{
 					if (is_unambigious_match)
 					{
-						//add the single read to match
-						read_groups_new[match].append(i.value());
-						//remove old entry of single
-						read_groups_new.remove(i.key());
+
+						//check that match is not itself an ambigious single barcode
+						bool is_match2=false;
+						bool is_unambigious_match2=true;
+						if (read_groups_new[match].count()==1)
+						{
+							QHash <grouping, QList<readPair> >::iterator j;
+							for (j = read_groups_new.begin(); j != read_groups_new.end(); ++j)
+							{
+								int edit_distance=getEditDistance(j.key().barcode,match.barcode);
+								//if same position and similar enough (but not identical) barcode
+								if ((j.key().end_pos==match.end_pos)&&(j.key().start_pos==match.start_pos)&&(0<edit_distance)&&(edit_distance<=allowed_edit_distance))
+								{
+									if(is_match2)//if second match
+									{
+										is_unambigious_match2=false;
+										break;
+									}
+									else is_match2=true;
+								}
+							}
+						}
+
+						if (is_unambigious_match2)
+						{
+							//add the single read to match
+							read_groups_new[match].append(i.value());
+							//remove old entry of single
+							read_groups_new.remove(single_key);
+						}
 					}
 					else
 					{
-						//cannot match, but should still remove entry of single
-						++lost_singles;
-						read_groups_new.remove(i.key());
+						lost_singles.append(single_key);
+						read_groups_new.remove(single_key);
 					}
 				}
 			}
 		}
+
 		return qMakePair(read_groups_new,lost_singles);
 	}
 
@@ -527,7 +557,8 @@ public:
 		QHash<QString, BamAlignment> al_map;
 		int counter = 1;
 		QHash <int,int> dup_count_histo;
-		int lost_singles=0;
+		int lost_single_counts=0;
+
 
 		int last_start_pos=0;
 		int last_ref=-1;
@@ -568,16 +599,29 @@ public:
 			{
 				reduced_singles reduced_singles_res=reduceSingleReads(edit_distance,read_groups);
 				read_groups=reduced_singles_res.first;
-				lost_singles+=reduced_singles_res.second;
+				QList<grouping> lost_singles=reduced_singles_res.second;
 
 				QHash <grouping, QList<readPair> > read_groups_new;
 				QHash <grouping, QList<readPair> >::iterator i;
+
+				//count single reads lost due to ambiguity within amplicons
+				foreach(grouping lost_single, lost_singles)
+				{
+					if (mip_info_map.contains(position(lost_single.start_pos,lost_single.end_pos,last_ref))) ++lost_single_counts;
+				}
+				foreach(grouping lost_single, lost_singles)
+				{
+					if (hs_info_map.contains(position(lost_single.start_pos,lost_single.end_pos,last_ref))) ++lost_single_counts;
+				}
+
+
 				for (i = read_groups.begin(); i != read_groups.end(); ++i)
 				{
 					/*assure that we already moved pass the readpair so no duplicates are missed by in-between reset of read group
 					 * (won't work if input is not sorted by position)*/
 					if ((i.key().end_pos)<last_start_pos||(chrom_change))
 					{
+
 						position act_position(i.key().start_pos,i.key().end_pos,last_ref);
 						if (mip_file!="")
 						{
@@ -585,6 +629,7 @@ public:
 							{
 								int dup_count = i.value().count();
 								mip_info_map[act_position].counter_unique++;
+								mip_info_map[act_position].barcode_counters[i.key().barcode]=dup_count;
 								if (dup_count==1) mip_info_map[act_position].counter_singles++;
 								mip_info_map[act_position].counter_all+=dup_count;
 								if (dup_count_histo.contains(dup_count))
@@ -610,6 +655,7 @@ public:
 							{
 								int dup_count = i.value().count();
 								hs_info_map[act_position].counter_unique++;
+								hs_info_map[act_position].barcode_counters[i.key().barcode]=dup_count;
 								if (dup_count==1) hs_info_map[act_position].counter_singles++;
 								hs_info_map[act_position].counter_all+=dup_count;
 								if (dup_count_histo.contains(dup_count))
@@ -684,7 +730,17 @@ public:
 		//write remaining pairs
 		reduced_singles reduced_singles_res=reduceSingleReads(edit_distance,read_groups);
 		read_groups=reduced_singles_res.first;
-		lost_singles+=reduced_singles_res.second;
+		QList<grouping> lost_singles=reduced_singles_res.second;
+		//count single reads lost due to ambiguity within amplicons
+		foreach(grouping lost_single, lost_singles)
+		{
+			if (mip_info_map.contains(position(lost_single.start_pos,lost_single.end_pos,last_ref))) ++lost_single_counts;
+		}
+		foreach(grouping lost_single, lost_singles)
+		{
+			if (hs_info_map.contains(position(lost_single.start_pos,lost_single.end_pos,last_ref))) ++lost_single_counts;
+		}
+
 		QHash <grouping, QList<readPair> >::iterator i;
 		for (i = read_groups.begin(); i != read_groups.end(); ++i)
 		{
@@ -695,6 +751,7 @@ public:
 				{
 					mip_info_map[act_position].counter_unique++;
 					int dup_count=i.value().count();
+					mip_info_map[act_position].barcode_counters[i.key().barcode]=dup_count;
 					if (dup_count==1) mip_info_map[act_position].counter_singles++;
 					mip_info_map[act_position].counter_all+=dup_count;
 					if (dup_count_histo.contains(dup_count))
@@ -720,6 +777,7 @@ public:
 				{
 					hs_info_map[act_position].counter_unique++;
 					int dup_count=i.value().count();
+					hs_info_map[act_position].barcode_counters[i.key().barcode]=dup_count;
 					if (dup_count==1) hs_info_map[act_position].counter_singles++;
 					hs_info_map[act_position].counter_all+=dup_count;
 					if (dup_count_histo.contains(dup_count))
@@ -747,8 +805,8 @@ public:
 			}
 		}
 
-		if ((mip_file!="")&&(stats_out_name!="")) writeMipInfoMap(mip_info_map,stats_out_name,dup_count_histo,lost_singles);
-		if ((hs_file!="")&&(stats_out_name!="")) writeHSInfoMap(hs_info_map,stats_out_name,dup_count_histo,lost_singles);
+		if ((mip_file!="")&&(stats_out_name!="")) writeMipInfoMap(mip_info_map,stats_out_name,dup_count_histo,lost_single_counts);
+		if ((hs_file!="")&&(stats_out_name!="")) writeHSInfoMap(hs_info_map,stats_out_name,dup_count_histo,lost_single_counts);
 
 		//close files
 		if (duplicate_out_name!="")

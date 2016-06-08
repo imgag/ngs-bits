@@ -1347,4 +1347,4 @@ duplicate counts	# of amplicons
 1	3341
 2	4
 
-0 read(s) were deleted because of ambiguity of single matching
+0 read(s) were deleted in target region because of ambiguity of single matching
