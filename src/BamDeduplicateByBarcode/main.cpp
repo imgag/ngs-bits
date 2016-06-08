@@ -515,6 +515,52 @@ private:
 		writer.SaveAlignment(read_pair.second);
 	}
 
+	void store_read_counts_mip(QMap <position,mip_info>  &mip_info_map, QHash <int,int> &dup_count_histo, position act_position, int dup_count, QString barcode)
+	{
+		mip_info_map[act_position].counter_unique++;
+		mip_info_map[act_position].barcode_counters[barcode]=dup_count;
+		if (dup_count==1) mip_info_map[act_position].counter_singles++;
+		mip_info_map[act_position].counter_all+=dup_count;
+		if (dup_count_histo.contains(dup_count))
+		{
+			dup_count_histo[dup_count]++;
+		}
+		else
+		{
+			dup_count_histo[dup_count]=1;
+		}
+	}
+
+	void store_read_counts_hs(QMap <position,hs_info>  &hs_info_map, QHash <int,int> &dup_count_histo, position act_position, int dup_count, QString barcode)
+	{
+		hs_info_map[act_position].counter_unique++;
+		hs_info_map[act_position].barcode_counters[barcode]=dup_count;
+		if (dup_count==1) hs_info_map[act_position].counter_singles++;
+		hs_info_map[act_position].counter_all+=dup_count;
+		if (dup_count_histo.contains(dup_count))
+		{
+			dup_count_histo[dup_count]++;
+		}
+		else
+		{
+			dup_count_histo[dup_count]=1;
+		}
+	}
+
+	int new_lost_singles_counts(QList <grouping> lost_singles,const QMap <position,mip_info> &mip_info_map,const QMap <position,hs_info> &hs_info_map, int last_ref)
+	{
+		int lost_single_counts=0;
+		foreach(grouping lost_single, lost_singles)
+		{
+			if (mip_info_map.contains(position(lost_single.start_pos,lost_single.end_pos,last_ref))) ++lost_single_counts;
+		}
+		foreach(grouping lost_single, lost_singles)
+		{
+			if (hs_info_map.contains(position(lost_single.start_pos,lost_single.end_pos,last_ref))) ++lost_single_counts;
+		}
+		return lost_single_counts;
+	}
+
 public:
 	ConcreteTool(int& argc, char *argv[])
 		: ToolBase(argc, argv)
@@ -539,12 +585,11 @@ public:
 
 	virtual void main()
 	{
-		//init
+		//init: parse input parameters
 		QHash <QString,QString> read_headers2barcodes=createReadIndexHash(getInfile("index"));//build read_header => index hash
 		BamReader reader;
 		NGSHelper::openBAM(reader, getInfile("bam"));
 		BamWriter writer;
-		QHash <grouping, QList<readPair> > read_groups;
 		writer.Open(getOutfile("out").toStdString(), reader.GetConstSamHeader(), reader.GetReferenceData());
 		QString stats_out_name=getOutfile("stats");
 		QString nomatch_out_name=getOutfile("nomatch_out");
@@ -553,27 +598,25 @@ public:
 		QString hs_file= getInfile("hs_file");
 		int edit_distance=getInt("dist");
 		bool test =getFlag("test");
+
+		//init: setup remaining variables
+		QHash <grouping, QList<readPair> > read_groups;
 		BamAlignment al;
 		QHash<QString, BamAlignment> al_map;
 		int counter = 1;
 		QHash <int,int> dup_count_histo;
 		int lost_single_counts=0;
-
-
 		int last_start_pos=0;
 		int last_ref=-1;
 		int new_ref=-1;
 		bool chrom_change=false;
+
 		QMap <position,mip_info> mip_info_map;
-		if(mip_file!="")
-		{
-			mip_info_map= createMipInfoMap(mip_file);
-		};
+		if(mip_file!="") mip_info_map= createMipInfoMap(mip_file);
+
 		QMap <position,hs_info> hs_info_map;
-		if(hs_file!="")
-		{
-			hs_info_map= createHSInfoMap(hs_file);
-		};
+		if(hs_file!="") hs_info_map= createHSInfoMap(hs_file);
+
 		QTextStream nomatch_out_stream;
 		QFile nomatch_out(nomatch_out_name);
 		if (nomatch_out_name!="")
@@ -601,20 +644,11 @@ public:
 				read_groups=reduced_singles_res.first;
 				QList<grouping> lost_singles=reduced_singles_res.second;
 
+				//count single reads lost due to ambiguity within amplicons
+				lost_single_counts+=new_lost_singles_counts(lost_singles,mip_info_map,hs_info_map,last_ref);
+
 				QHash <grouping, QList<readPair> > read_groups_new;
 				QHash <grouping, QList<readPair> >::iterator i;
-
-				//count single reads lost due to ambiguity within amplicons
-				foreach(grouping lost_single, lost_singles)
-				{
-					if (mip_info_map.contains(position(lost_single.start_pos,lost_single.end_pos,last_ref))) ++lost_single_counts;
-				}
-				foreach(grouping lost_single, lost_singles)
-				{
-					if (hs_info_map.contains(position(lost_single.start_pos,lost_single.end_pos,last_ref))) ++lost_single_counts;
-				}
-
-
 				for (i = read_groups.begin(); i != read_groups.end(); ++i)
 				{
 					/*assure that we already moved pass the readpair so no duplicates are missed by in-between reset of read group
@@ -625,21 +659,9 @@ public:
 						position act_position(i.key().start_pos,i.key().end_pos,last_ref);
 						if (mip_file!="")
 						{
-							if (mip_info_map.contains(act_position))//trim, select and count reads that can be matched to mips
+							if (mip_info_map.contains(act_position))
 							{
-								int dup_count = i.value().count();
-								mip_info_map[act_position].counter_unique++;
-								mip_info_map[act_position].barcode_counters[i.key().barcode]=dup_count;
-								if (dup_count==1) mip_info_map[act_position].counter_singles++;
-								mip_info_map[act_position].counter_all+=dup_count;
-								if (dup_count_histo.contains(dup_count))
-								{
-									dup_count_histo[dup_count]++;
-								}
-								else
-								{
-									dup_count_histo[dup_count]=1;
-								}
+								store_read_counts_mip(mip_info_map, dup_count_histo, act_position, i.value().count(),i.key().barcode);
 								most_frequent_read_selection read_selection = cutAndSelectPair(i.value(),mip_info_map[act_position].left_arm,mip_info_map[act_position].right_arm);
 								writePairToBam(writer, read_selection.most_freq_read);
 								writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
@@ -648,24 +670,13 @@ public:
 							{
 								writeReadsToBed(nomatch_out_stream,act_position,i.value(),i.key().barcode,test);
 							}
+
 						}
 						else if (hs_file!="")
 						{
-							if (hs_info_map.contains(act_position))//select and count reads that can be matched to mips
+							if (hs_info_map.contains(act_position))//select and count reads that can be matched to haloplex hs barcodes
 							{
-								int dup_count = i.value().count();
-								hs_info_map[act_position].counter_unique++;
-								hs_info_map[act_position].barcode_counters[i.key().barcode]=dup_count;
-								if (dup_count==1) hs_info_map[act_position].counter_singles++;
-								hs_info_map[act_position].counter_all+=dup_count;
-								if (dup_count_histo.contains(dup_count))
-								{
-									dup_count_histo[dup_count]++;
-								}
-								else
-								{
-									dup_count_histo[dup_count]=1;
-								}
+								store_read_counts_hs(hs_info_map, dup_count_histo, act_position, i.value().count(),i.key().barcode);
 								most_frequent_read_selection read_selection = find_highest_freq_read(i.value());
 								writePairToBam(writer, read_selection.most_freq_read);
 								writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
@@ -703,7 +714,6 @@ public:
 					act_group.barcode= read_headers2barcodes["@"+QString::fromStdString(al.Name)];
 					act_group.start_pos= qMin(al.Position,mate.Position);
 					act_group.end_pos= qMax(al.GetEndPosition(),mate.GetEndPosition());
-					//write pair to group, possibly overwriting previous read pairs of same group;
 
 					readPair act_read_pair(al,mate);
 					read_groups[act_group].append(act_read_pair);
@@ -719,10 +729,7 @@ public:
 			if (al.RefID!=last_ref)
 			{
 				new_ref=al.RefID;
-				if (last_ref!=-1)
-				{
-					chrom_change=true;
-				}
+				if (last_ref!=-1) chrom_change=true;
 			}
 
 		}
@@ -732,14 +739,8 @@ public:
 		read_groups=reduced_singles_res.first;
 		QList<grouping> lost_singles=reduced_singles_res.second;
 		//count single reads lost due to ambiguity within amplicons
-		foreach(grouping lost_single, lost_singles)
-		{
-			if (mip_info_map.contains(position(lost_single.start_pos,lost_single.end_pos,last_ref))) ++lost_single_counts;
-		}
-		foreach(grouping lost_single, lost_singles)
-		{
-			if (hs_info_map.contains(position(lost_single.start_pos,lost_single.end_pos,last_ref))) ++lost_single_counts;
-		}
+
+		lost_single_counts+=new_lost_singles_counts(lost_singles,mip_info_map,hs_info_map,last_ref);
 
 		QHash <grouping, QList<readPair> >::iterator i;
 		for (i = read_groups.begin(); i != read_groups.end(); ++i)
@@ -749,19 +750,7 @@ public:
 			{
 				if (mip_info_map.contains(act_position))//trim and count reads that can be matched to mips
 				{
-					mip_info_map[act_position].counter_unique++;
-					int dup_count=i.value().count();
-					mip_info_map[act_position].barcode_counters[i.key().barcode]=dup_count;
-					if (dup_count==1) mip_info_map[act_position].counter_singles++;
-					mip_info_map[act_position].counter_all+=dup_count;
-					if (dup_count_histo.contains(dup_count))
-					{
-						dup_count_histo[dup_count]++;
-					}
-					else
-					{
-						dup_count_histo[dup_count]=1;
-					}
+					store_read_counts_mip(mip_info_map, dup_count_histo, act_position, i.value().count(),i.key().barcode);
 					most_frequent_read_selection read_selection = cutAndSelectPair(i.value(),mip_info_map[act_position].left_arm,mip_info_map[act_position].right_arm);
 					writePairToBam(writer, read_selection.most_freq_read);
 					writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
@@ -775,19 +764,7 @@ public:
 			{
 				if (hs_info_map.contains(act_position))//trim, select and count reads that can be matched to mips
 				{
-					hs_info_map[act_position].counter_unique++;
-					int dup_count=i.value().count();
-					hs_info_map[act_position].barcode_counters[i.key().barcode]=dup_count;
-					if (dup_count==1) hs_info_map[act_position].counter_singles++;
-					hs_info_map[act_position].counter_all+=dup_count;
-					if (dup_count_histo.contains(dup_count))
-					{
-						dup_count_histo[dup_count]++;
-					}
-					else
-					{
-						dup_count_histo[dup_count]=1;
-					}
+					store_read_counts_hs(hs_info_map, dup_count_histo, act_position, i.value().count(),i.key().barcode);
 					most_frequent_read_selection read_selection = find_highest_freq_read(i.value());
 					writePairToBam(writer, read_selection.most_freq_read);
 					writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
@@ -809,14 +786,8 @@ public:
 		if ((hs_file!="")&&(stats_out_name!="")) writeHSInfoMap(hs_info_map,stats_out_name,dup_count_histo,lost_single_counts);
 
 		//close files
-		if (duplicate_out_name!="")
-		{
-			duplicate_out.close();
-		}
-		if (nomatch_out_name!="")
-		{
-			nomatch_out.close();
-		}
+		if (duplicate_out_name!="")	duplicate_out.close();
+		if (nomatch_out_name!="") nomatch_out.close();
 		reader.Close();
 		writer.Close();
 	}
