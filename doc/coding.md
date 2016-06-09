@@ -60,7 +60,7 @@ using [Doxygen](http://www.stack.nl/~dimitri/doxygen/).
 ##Optimization
 
 Premature optimization is the cause of many bugs.  
-Initially, a staight-forward version of each algorithm should be implemented, tested throughly and benchmarked.  
+Initially, a straight-forward version of each algorithm should be implemented, tested thoroughly and benchmarked.  
 After that, a more optimized version of the algorithm can be implemented.  
 Profiling the code before the optimizing is crucial, unless you are not 100% sure where the bottleneck is. A very easy-to-use profiler is [VerySleepy](http://www.codersnotes.com/sleepy).
 

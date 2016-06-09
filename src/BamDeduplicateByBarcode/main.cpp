@@ -32,27 +32,27 @@ inline uint qHash(const grouping &g1)
 	return qHash(QString::number(g1.start_pos) + QString::number(g1.end_pos) + g1.barcode);
 }
 
-class position
+class Position
 {
 	public:
 		int start_pos;
 		int end_pos;
 		int chr;
 
-		position()=default;
+		Position()=default;
 
-		position(int start_pos_ini, int end_pos_ini, int chr_ini)
+		Position(int start_pos_ini, int end_pos_ini, int chr_ini)
 		{
 			start_pos=start_pos_ini;
 			end_pos=end_pos_ini;
 			chr=chr_ini;
 		}
 
-		bool operator==(const position &pos1) const
+		bool operator==(const Position &pos1) const
 		{
 			return ((pos1.start_pos == start_pos)&&(pos1.end_pos == end_pos)&&(pos1.chr==chr));
 		}
-		bool operator<(const position &pos1) const
+		bool operator<(const Position &pos1) const
 		{
 			if (pos1.chr != chr) return (pos1.chr < chr);
 			if (pos1.start_pos != start_pos) return (pos1.start_pos < start_pos);
@@ -67,8 +67,8 @@ struct mip_info
 	int counter_singles; //number of barcode families with only one read
 	QHash <QString,int> barcode_counters; //read counts of each barcode
 	QString name; //name of amplicon
-	position left_arm;
-	position right_arm;
+	Position left_arm;
+	Position right_arm;
 };
 
 struct hs_info
@@ -88,7 +88,7 @@ struct most_frequent_read_selection
 
 typedef QPair <QHash <grouping, QList<readPair> >, QList <grouping> > reduced_singles;
 
-inline uint qHash(const position &pos1)
+inline uint qHash(const Position &pos1)
 {
 	return qHash(QString::number(pos1.start_pos) + QString::number(pos1.end_pos) + pos1.chr);
 }
@@ -99,7 +99,7 @@ class ConcreteTool
 	Q_OBJECT
 
 private:
-	QHash <QString,QString> createReadIndexHash(QString indexfile)
+	QHash <QString,QString> create_read_index_hash(QString indexfile)
 	{
 		FastqFileStream indexstream(indexfile, false);
 		QHash <QString,QString> headers2barcodes;
@@ -114,7 +114,7 @@ private:
 		return headers2barcodes;
 	}
 
-	int getEditDistance( const QString& s, const QString& t )
+	int get_edit_distance( const QString& s, const QString& t )
 	{
 	#define D( i, j ) d[(i) * n + (j)]
 		int i;
@@ -147,9 +147,9 @@ private:
 	}
 
 
-	QMap <position,mip_info> createMipInfoMap(QString mip_file)
+	QMap <Position,mip_info> create_mip_info_map(QString mip_file)
 	{
-		QMap <position,mip_info> mip_info_map;
+		QMap <Position,mip_info> mip_info_map;
 		QFile input_file(mip_file);
 		input_file.open(QIODevice::ReadOnly);
 		QTextStream in(&input_file);
@@ -162,7 +162,7 @@ private:
 			if (splitted_mip_entry.size()<13) continue;
 
 			QStringList splitted_mip_key=splitted_mip_entry[0].split(delimiters_mip_key);
-			position mip_position(splitted_mip_key[1].toInt()-1,splitted_mip_key[2].toInt(),splitted_mip_key[0].toInt());
+			Position mip_position(splitted_mip_key[1].toInt()-1,splitted_mip_key[2].toInt(),splitted_mip_key[0].toInt());
 
 			mip_info new_mip_info;
 			new_mip_info.left_arm.chr = splitted_mip_entry[0].toInt();
@@ -190,9 +190,9 @@ private:
 		return mip_info_map;
 	}
 
-	QMap <position,hs_info> createHSInfoMap(QString hs_file)
+	QMap <Position,hs_info> create_hs_info_map(QString hs_file)
 	{
-		QMap <position,hs_info> hs_info_map;
+		QMap <Position,hs_info> hs_info_map;
 		QFile input_file(hs_file);
 		input_file.open(QIODevice::ReadOnly);
 		QTextStream in(&input_file);
@@ -203,7 +203,7 @@ private:
 			QStringList splitted_hs_entry=line.split("\t");
 			if (splitted_hs_entry.size()<4) continue;
 
-			position hs_position(splitted_hs_entry[1].toInt(),splitted_hs_entry[2].toInt(),splitted_hs_entry[0].mid(3).toInt());
+			Position hs_position(splitted_hs_entry[1].toInt(),splitted_hs_entry[2].toInt(),splitted_hs_entry[0].mid(3).toInt());
 
 			hs_info new_hs_info;
 			new_hs_info.name=splitted_hs_entry[3];
@@ -230,9 +230,9 @@ private:
 		}
 	}
 
-	void writeMipInfoMap(QMap <position,mip_info> mip_info_map, QString outfile_name, QHash <int, int> dup_count_histo, int lost_singles)
+	void writeMipInfoMap(QMap <Position,mip_info> mip_info_map, QString outfile_name, QHash <int, int> dup_count_histo, int lost_singles)
 	{
-		QMapIterator<position, mip_info > i(mip_info_map);
+		QMapIterator<Position, mip_info > i(mip_info_map);
 		i.toBack();
 		QFile out(outfile_name);
 		out.open(QIODevice::WriteOnly|QIODevice::Text);
@@ -249,9 +249,9 @@ private:
 		out.close();
 	}
 
-	void writeHSInfoMap(QMap <position,hs_info> hs_info_map, QString outfile_name, QHash <int, int> dup_count_histo, int lost_singles)
+	void writeHSInfoMap(QMap <Position,hs_info> hs_info_map, QString outfile_name, QHash <int, int> dup_count_histo, int lost_singles)
 	{
-		QMapIterator<position, hs_info > i(hs_info_map);
+		QMapIterator<Position, hs_info > i(hs_info_map);
 		i.toBack();
 		QFile out(outfile_name);
 		out.open(QIODevice::WriteOnly|QIODevice::Text);
@@ -343,7 +343,7 @@ private:
 				QHash <grouping, QList<readPair> >::iterator j;
 				for (j = read_groups_new.begin(); j != read_groups_new.end(); ++j)
 				{
-					int edit_distance=getEditDistance(j.key().barcode,single_key.barcode);
+					int edit_distance=get_edit_distance(j.key().barcode,single_key.barcode);
 					//if same position and similar enough (but not identical) barcode
 					if ((j.key().end_pos==single_key.end_pos)&&(j.key().start_pos==single_key.start_pos)&&(0<edit_distance)&&(edit_distance<=allowed_edit_distance))
 					{
@@ -373,7 +373,7 @@ private:
 							QHash <grouping, QList<readPair> >::iterator j;
 							for (j = read_groups_new.begin(); j != read_groups_new.end(); ++j)
 							{
-								int edit_distance=getEditDistance(j.key().barcode,match.barcode);
+								int edit_distance=get_edit_distance(j.key().barcode,match.barcode);
 								//if same position and similar enough (but not identical) barcode
 								if ((j.key().end_pos==match.end_pos)&&(j.key().start_pos==match.start_pos)&&(0<edit_distance)&&(edit_distance<=allowed_edit_distance))
 								{
@@ -439,7 +439,7 @@ private:
 		return result;
 	}
 
-	BamAlignment cutArmsSingle(BamAlignment original_alignment, position left_arm, position right_arm)
+	BamAlignment cutArmsSingle(BamAlignment original_alignment, Position left_arm, Position right_arm)
 	{
 		//cut on right side
 		if (original_alignment.GetEndPosition()>right_arm.start_pos)
@@ -467,7 +467,7 @@ private:
 		return original_alignment;
 	}
 
-	most_frequent_read_selection cutAndSelectPair(QList <readPair> original_readpairs, position left_arm, position right_arm)
+	most_frequent_read_selection cutAndSelectPair(QList <readPair> original_readpairs, Position left_arm, Position right_arm)
 	{
 		QList <readPair> new_alignment_list;
 		foreach(readPair original_alignments, original_readpairs)
@@ -482,7 +482,7 @@ private:
 		return find_highest_freq_read(new_alignment_list);
 	}
 
-	void writeReadsToBed(QTextStream &out_stream, position act_position, QList <readPair> original_readpairs, QString barcode, bool test)
+	void writeReadsToBed(QTextStream &out_stream, Position act_position, QList <readPair> original_readpairs, QString barcode, bool test)
 	{
 		if (!(out_stream.device())) return;
 		foreach(readPair original_readpair,original_readpairs)
@@ -515,7 +515,7 @@ private:
 		writer.SaveAlignment(read_pair.second);
 	}
 
-	void store_read_counts_mip(QMap <position,mip_info>  &mip_info_map, QHash <int,int> &dup_count_histo, position act_position, int dup_count, QString barcode)
+	void store_read_counts_mip(QMap <Position,mip_info>  &mip_info_map, QHash <int,int> &dup_count_histo, Position act_position, int dup_count, QString barcode)
 	{
 		mip_info_map[act_position].counter_unique++;
 		mip_info_map[act_position].barcode_counters[barcode]=dup_count;
@@ -531,7 +531,7 @@ private:
 		}
 	}
 
-	void store_read_counts_hs(QMap <position,hs_info>  &hs_info_map, QHash <int,int> &dup_count_histo, position act_position, int dup_count, QString barcode)
+	void store_read_counts_hs(QMap <Position,hs_info>  &hs_info_map, QHash <int,int> &dup_count_histo, Position act_position, int dup_count, QString barcode)
 	{
 		hs_info_map[act_position].counter_unique++;
 		hs_info_map[act_position].barcode_counters[barcode]=dup_count;
@@ -547,16 +547,16 @@ private:
 		}
 	}
 
-	int new_lost_singles_counts(QList <grouping> lost_singles,const QMap <position,mip_info> &mip_info_map,const QMap <position,hs_info> &hs_info_map, int last_ref)
+	int new_lost_singles_counts(QList <grouping> lost_singles,const QMap <Position,mip_info> &mip_info_map,const QMap <Position,hs_info> &hs_info_map, int last_ref)
 	{
 		int lost_single_counts=0;
 		foreach(grouping lost_single, lost_singles)
 		{
-			if (mip_info_map.contains(position(lost_single.start_pos,lost_single.end_pos,last_ref))) ++lost_single_counts;
+			if (mip_info_map.contains(Position(lost_single.start_pos,lost_single.end_pos,last_ref))) ++lost_single_counts;
 		}
 		foreach(grouping lost_single, lost_singles)
 		{
-			if (hs_info_map.contains(position(lost_single.start_pos,lost_single.end_pos,last_ref))) ++lost_single_counts;
+			if (hs_info_map.contains(Position(lost_single.start_pos,lost_single.end_pos,last_ref))) ++lost_single_counts;
 		}
 		return lost_single_counts;
 	}
@@ -586,7 +586,7 @@ public:
 	virtual void main()
 	{
 		//init: parse input parameters
-		QHash <QString,QString> read_headers2barcodes=createReadIndexHash(getInfile("index"));//build read_header => index hash
+		QHash <QString,QString> read_headers2barcodes=create_read_index_hash(getInfile("index"));//build read_header => index hash
 		BamReader reader;
 		NGSHelper::openBAM(reader, getInfile("bam"));
 		BamWriter writer;
@@ -611,11 +611,11 @@ public:
 		int new_ref=-1;
 		bool chrom_change=false;
 
-		QMap <position,mip_info> mip_info_map;
-		if(mip_file!="") mip_info_map= createMipInfoMap(mip_file);
+		QMap <Position,mip_info> mip_info_map;
+		if(mip_file!="") mip_info_map= create_mip_info_map(mip_file);
 
-		QMap <position,hs_info> hs_info_map;
-		if(hs_file!="") hs_info_map= createHSInfoMap(hs_file);
+		QMap <Position,hs_info> hs_info_map;
+		if(hs_file!="") hs_info_map= create_hs_info_map(hs_file);
 
 		QTextStream nomatch_out_stream;
 		QFile nomatch_out(nomatch_out_name);
@@ -656,7 +656,7 @@ public:
 					if ((i.key().end_pos)<last_start_pos||(chrom_change))
 					{
 
-						position act_position(i.key().start_pos,i.key().end_pos,last_ref);
+						Position act_position(i.key().start_pos,i.key().end_pos,last_ref);
 						if (mip_file!="")
 						{
 							if (mip_info_map.contains(act_position))
@@ -745,7 +745,7 @@ public:
 		QHash <grouping, QList<readPair> >::iterator i;
 		for (i = read_groups.begin(); i != read_groups.end(); ++i)
 		{
-			position act_position(i.key().start_pos,i.key().end_pos,last_ref);
+			Position act_position(i.key().start_pos,i.key().end_pos,last_ref);
 			if (mip_file!="")
 			{
 				if (mip_info_map.contains(act_position))//trim and count reads that can be matched to mips
