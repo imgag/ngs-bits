@@ -19,7 +19,6 @@ libs:
 - cppNGSD: add test project
 
 GSvar:
-* Genes>Bed: do not store error messages to BED file.
 * Penno>Gene: remove gene list in details.
 * Get target regions from NGSD if available
 * Make NGSD use optional in INI file (hide NGSD-specific functionality if disabled)
@@ -30,9 +29,8 @@ Tools:
   - add %soft/hard-clipped quality parameter (see ssPWBRCA_v2)
   * support RNA: insert size, spike-in controls, mapping ribosomes/globulines, etc.
 - SeqPurge:
-  - use mutexes only if running in multi-thread mode (check if this speeds up processing)
+  - try using QBitArray instead of QByteArray to speed up sequence match counting.
   - low-quality trimming before adapter trimming? use single-base instead of sliding window?
-? FastqDemultiplex: check for "carry-over" contamination from last run
 - SomaticQC: write test
 - VcfCheck: Format check for vcf files
 * VariantFilterCustom: Refactor variant filtering from GSvar into cppNGS implement command-line tool.

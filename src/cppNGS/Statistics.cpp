@@ -993,7 +993,6 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
         }
     }
 
-	//TODO output.merge(true, true);
 	return output;
 }
 

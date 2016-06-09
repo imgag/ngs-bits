@@ -46,12 +46,12 @@ void GenesToRegionsDialog::convertGenesToRegions()
 	NGSD db;
 	QString messages;
 	QTextStream stream(&messages);
-	BedFile output = db.genesToRegions(genes, source, mode, &stream);
-	output.extend(ui->expand->value());
+	regions = db.genesToRegions(genes, source, mode, &stream);
+	regions.extend(ui->expand->value());
 
 	//set output
 	ui->regions->setPlainText(messages);
-	ui->regions->appendPlainText(output.toText());
+	ui->regions->appendPlainText(regions.toText());
 
 	//scroll to top
 	ui->regions->moveCursor(QTextCursor::Start);
@@ -68,6 +68,5 @@ void GenesToRegionsDialog::storeRegionsAsBED()
 	QString filename = QFileDialog::getSaveFileName(this, "Store regions as BED file", "", "BED files (*.bed);;All files (*.*)");
 	if (filename.isEmpty()) return;
 
-	auto file_prt = Helper::openFileForWriting(filename);
-	file_prt->write(ui->regions->toPlainText().toLatin1());
+	regions.store(filename);
 }

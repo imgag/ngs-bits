@@ -2,6 +2,7 @@
 #define GENESTOREGIONSDIALOG_H
 
 #include <QDialog>
+#include "BedFile.h"
 
 namespace Ui {
 class GenesToRegionsDialog;
@@ -23,6 +24,7 @@ private slots:
 
 private:
 	Ui::GenesToRegionsDialog *ui;
+	BedFile regions;
 };
 
 #endif // GENESTOREGIONSDIALOG_H
