@@ -8,3 +8,10 @@ target_regions=@Invalid()
 reference_files=@Invalid()
 igv_menu=@Invalid()
 preferred_transcripts=@Variant(\0\0\0\b\0\0\0\0)
+
+#Enable NGSD-based functionality
+NGSD_enabled=true
+
+#NGSD processing system target file folder (for converting Linux to/from Windows paths)
+target_file_folder_windows = ""
+target_file_folder_linux = ""

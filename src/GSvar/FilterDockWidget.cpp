@@ -2,6 +2,8 @@
 #include "Settings.h"
 #include "Helper.h"
 #include "FilterColumnWidget.h"
+#include "NGSD.h"
+#include "Log.h"
 #include <QCheckBox>
 #include <QFileInfo>
 #include <QFileDialog>
@@ -83,9 +85,33 @@ void FilterDockWidget::loadROIFilters()
 	//store old selection
 	QString current = ui_.rois->currentText();
 
-	//load from settings
 	ui_.rois->clear();
 	ui_.rois->addItem("none", "");
+	ui_.rois->insertSeparator(1);
+
+	//load ROIs from NGSD processing systems
+	if (Settings::boolean("NGSD_enabled", true))
+	{
+		QString p_win = Settings::string("target_file_folder_windows");
+		QString p_linux = Settings::string("target_file_folder_linux");
+		if (p_win=="" || p_linux=="")
+		{
+			Log::error("Cannot load target regions from NSGD: 'target_file_folder_windows' or 'target_file_folder_linux' is missing in settings!");
+		}
+		else
+		{
+			NGSD db;
+			SqlQuery query = db.getQuery();
+			query.exec("SELECT name_manufacturer, target_file FROM processing_system WHERE target_file!='' AND target_file IS NOT NULL ORDER BY name_short");
+			while(query.next())
+			{
+				ui_.rois->addItem("NGSD: " + query.value(0).toString(), query.value(1).toString().replace(p_linux, p_win));
+			}
+			ui_.rois->insertSeparator(ui_.rois->count());
+		}
+	}
+
+	//load additional ROIs from settings
 	QStringList rois = Settings::stringList("target_regions");
 	std::sort(rois.begin(), rois.end(), [](const QString& a, const QString& b){return QFileInfo(a).fileName().toUpper() < QFileInfo(b).fileName().toUpper();});
 	foreach(const QString& roi_file, rois)
