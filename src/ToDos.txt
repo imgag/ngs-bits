@@ -1,7 +1,6 @@
 === TODO ===
 
 libs:
-- test cppNGSD (include in libs)
 - cppNGS:
    - VariantList:
       - use QSharedPointers to link VariantAnnotationHeaders with VariantAnnotationDescriptions
@@ -17,13 +16,16 @@ libs:
       - somatic(): remove nonSpecialChromosomes from all statistics parameters
 - cppNGS-Tests:
    - Statistics: add Tests for somatic statistics
+- cppNGSD: add test project
 
 GSvar:
-* IGV: get genome from processing system
-* Overview gene lists (missing genotype): treat all variants as homozygous?
+* Genes>Bed: do not store error messages to BED file.
+* Penno>Gene: remove gene list in details.
+* Get target regions from NGSD if available
+* Make NGSD use optional in INI file (hide NGSD-specific functionality if disabled)
+- Overview gene lists (missing genotype): treat all variants as homozygous?
 
 Tools:
-* BedLowCoverage: Write region names from input regions to output regions (merged).
 - MappingQC:
   - add %soft/hard-clipped quality parameter (see ssPWBRCA_v2)
   * support RNA: insert size, spike-in controls, mapping ribosomes/globulines, etc.
@@ -31,10 +33,9 @@ Tools:
   - use mutexes only if running in multi-thread mode (check if this speeds up processing)
   - low-quality trimming before adapter trimming? use single-base instead of sliding window?
 ? FastqDemultiplex: check for "carry-over" contamination from last run
-? ReadQC: create plots without python
-- SomaticQC:
-   - write test
+- SomaticQC: write test
 - VcfCheck: Format check for vcf files
+* VariantFilterCustom: Refactor variant filtering from GSvar into cppNGS implement command-line tool.
 
 CnvHunter:
  * instead of fixed 'n', use n>=10 and n<=30 with highest correlation or lowest z-score stdev?

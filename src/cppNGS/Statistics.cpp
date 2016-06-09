@@ -971,13 +971,13 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 
         //create low-coverage regions file
         bool reg_open = false;
-        int reg_start = -1;
+		int reg_start = -1;
         for (int p=0; p<roi_cov.count(); ++p)
         {
             bool low_cov = roi_cov[p]<cutoff;
             if (reg_open && !low_cov)
             {
-                output.append(BedLine(bed_line.chr(), reg_start+start, p+start-1));
+				output.append(BedLine(bed_line.chr(), reg_start+start, p+start-1, bed_line.annotations()));
                 reg_open = false;
                 reg_start = -1;
             }
@@ -989,11 +989,11 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
         }
         if (reg_open)
         {
-            output.append(BedLine(bed_line.chr(), reg_start+start, bed_line.length()+start-1));
+			output.append(BedLine(bed_line.chr(), reg_start+start, bed_line.length()+start-1, bed_line.annotations()));
         }
     }
 
-    output.merge();
+	//TODO output.merge(true, true);
 	return output;
 }
 
