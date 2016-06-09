@@ -10,8 +10,8 @@ PhenotypeSelector::PhenotypeSelector(QWidget *parent)
 {
 	ui->setupUi(this);
 	connect(ui->search, SIGNAL(textChanged(QString)), this, SLOT(search(QString)));
-	connect(ui->list, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(itemDoubleClicked(QListWidgetItem*)));
-	connect(ui->list, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(itemClicked(QListWidgetItem*)));
+	connect(ui->list, SIGNAL(itemActivated(QListWidgetItem*)), this, SLOT(itemActivated(QListWidgetItem*)));
+	connect(ui->list, SIGNAL(currentItemChanged(QListWidgetItem*,QListWidgetItem*)), this, SLOT(itemChanged(QListWidgetItem*)));
 }
 
 PhenotypeSelector::~PhenotypeSelector()
@@ -37,37 +37,47 @@ void PhenotypeSelector::search(QString text)
 	}
 }
 
-void PhenotypeSelector::itemClicked(QListWidgetItem* item)
+void PhenotypeSelector::itemChanged(QListWidgetItem* item)
 {
-
-	emit phenotypeClicked(item->text());
+	emit phenotypeChanged(item->text());
 }
 
-void PhenotypeSelector::itemDoubleClicked(QListWidgetItem* item)
+void PhenotypeSelector::itemActivated(QListWidgetItem* item)
 {
-	emit phenotypeDoubleClicked(item->text());
+	emit phenotypeActivated(item->text());
 }
 
-QString PhenotypeSelector::selectedItemDetails()
+QString PhenotypeSelector::selectedItemDetails(bool show_name, bool shown_genes)
 {
 	QListWidgetItem* item = ui->list->currentItem();
 	if (item==nullptr) return "";
 
 	//get id/definition
 	SqlQuery query = db_.getQuery();
-	query.exec("SELECT id, definition FROM hpo_term WHERE name='" + item->text() + "'");
+	query.exec("SELECT id, name, definition FROM hpo_term WHERE name='" + item->text() + "'");
 	query.next();
 	QString id = query.value(0).toString();
-	QString def = query.value(1).toString();
-
-	//get genes
-	QStringList genes = db_.getValues("SELECT gene FROM hpo_genes WHERE hpo_term_id=" + id);
+	QString output;
+	if (show_name)
+	{
+		output = "<b>" + query.value(1).toString() + "</b><br><br>";
+	}
+	output += "<b>Definition:</b><br>" + query.value(2).toString();
 
 	//get parent items
 	QStringList parents = db_.getValues("SELECT t.name FROM hpo_term t, hpo_parent p WHERE t.id=p.parent AND p.child=" + id);
+	output += "<br><br><b>Parent items:</b><br>" + parents.join(", ");
 
 	//get child items
 	QStringList children = db_.getValues("SELECT t.name FROM hpo_term t, hpo_parent p WHERE t.id=p.child AND p.parent=" + id);
+	output += "<br><br><b>Child items:</b><br>" + children.join(", ");
 
-	return "<b>Definition:</b><br>" + def + "<br><br><b>Parent items:</b><br>" + parents.join(", ") + "<br><br><b>Child items:</b><br>" + children.join(", ") + "<br><br><b>Genes:</b><br>" + genes.join(", ");
+	//get genes
+	if (shown_genes)
+	{
+		QStringList genes = db_.getValues("SELECT gene FROM hpo_genes WHERE hpo_term_id=" + id);
+		output += "<br><br><b>Genes:</b><br>" + genes.join(", ");
+	}
+
+	return	output;
 }

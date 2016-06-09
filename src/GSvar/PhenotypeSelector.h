@@ -23,18 +23,18 @@ public:
 	void init();
 
 	///Returns HTML-formatted details for the currently selected item.
-	QString selectedItemDetails();
+	QString selectedItemDetails(bool show_name, bool show_genes);
 
 signals:
 	///Signal that a new item was clicked (mainly to update details).
-	QString phenotypeClicked(QString);
+	QString phenotypeChanged(QString);
 	///Signal that a new item was double-clicked (for selection).
-	QString phenotypeDoubleClicked(QString);
+	QString phenotypeActivated(QString);
 
 private slots:
 	void search(QString text);
-	void itemClicked(QListWidgetItem* item);
-	void itemDoubleClicked(QListWidgetItem* item);
+	void itemChanged(QListWidgetItem* item);
+	void itemActivated(QListWidgetItem* item);
 
 private:
 	Ui::PhenotypeSelector *ui;
