@@ -13,6 +13,7 @@
 #include <QCoreApplication>
 #include <QXmlStreamWriter>
 #include "XmlHelper.h"
+#include "VariantFilter.h"
 
 ReportWorker::ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QVector< QPair<int, bool> >& variants_selected, QMap<QString, QString> preferred_transcripts, QString outcome, QString file_roi, QString file_bam, int min_cov, bool var_details, QStringList log_files, QString file_rep)
 	: WorkerBase("Report generation")
@@ -43,9 +44,10 @@ void ReportWorker::process()
 		roi_.load(file_roi_);
 		roi_.merge();
 
-		VariantList tmp = variants_;
-		tmp.filterByRegions(roi_);
-		var_count_ = tmp.count();
+		//determine variant count (inside target region)
+		VariantFilter filter(const_cast<VariantList&>(variants_));
+		filter.flagByRegions(roi_);
+		var_count_ = filter.countPassing();
 
 		//load gene list file
 		QString filename = file_roi_.mid(0, file_roi_.length()-4) + "_genes.txt";
@@ -59,7 +61,7 @@ void ReportWorker::process()
 			genes_.sort();
 		}
 
-		//remove duplicates
+		//remove duplicates from gene list
 		int dups = genes_.removeDuplicates();
 		if (dups!=0)
 		{

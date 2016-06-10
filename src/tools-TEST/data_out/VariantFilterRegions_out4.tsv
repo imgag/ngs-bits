@@ -1,0 +1,5 @@
+#chr	start	end	ref	obs	genotype	SNP_Q	depth	Map_Q	type	a	c	t	g	depth	region	gene	type	coding	SNP(1000g2011may_all)	SNP(SNP132)	filter
+chr2	96964115	96964115	T	C	hom	33.8	2	46	SNV	0	2	0	0	2	exonic	SNRNP200	synonymous SNV	SNRNP200:uc002svu.2:exon9:c.A1026G:p.E342E,	.	.	passed
+chr2	74692191	74692191	C	T	hom	28.8	2	45	SNV	0	0	2	0	2	exonic	GCS1,MOGS	nonsynonymous SNV	GCS1:uc010yru.1:exon1:c.G184A:p.V62M,MOGS:uc010ffj.2:exon1:c.G184A:p.V62M,	0.0640	rs79181168	passed
+chr2	113346480	113346480	G	A	hom	18.8	2	25	SNV	2	0	0	0	2	UTR3	CHCHD5	.	.	0.1164	rs41278942	failed
+chr2	114035923	114035923	A	G	hom	47.8	2	44	SNV	0	0	0	2	2	intronic	PAX8	.	.	0.3578	rs1867763	passed

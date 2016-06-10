@@ -1,53 +1,81 @@
 #ifndef VARIANTFILTER_H
 #define VARIANTFILTER_H
 
-#include "cppNGS_global.h"
 #include <QBitArray>
-#include <QHash>
-#include <QString>
+#include "BedFile.h"
+#include "cppNGS_global.h"
 class VariantList;
 
-/**
-	@brief Variant filter
-
-	A criterion is composed of field name, operation and value.
-	Critera can be concatenated by '&&' and '||'.
-
-	Valid operations are >=, >, ==, <, <= for numbers and IS, IS_NOT, CONTAINS, CONTAINS_NOT for strings.
-*/
+///Variant filtering engine.
+///Variants are first flagged by several subsequent filters and then filtered according to the flags.
 class CPPNGSSHARED_EXPORT VariantFilter
 {
-public:
-	///Default constructor. Many containers need the elements to be default-constructible...
-	VariantFilter();
-	///Constructor.
-	VariantFilter(const QString& name, const QString& criteria);
+	public:
+		///Constructor.
+		VariantFilter(VariantList& vl);
 
-	///Return the filter name.
-    const QString& name() const
-    {
-        return name_;
-    }
-	///Returns the filter criteria string.
-    const QString& criteria() const
-    {
-        return criteria_;
-    }
+		///Flags variants by allele frequency in public databases (1000g, ExAC, etc.).
+		void flagByAllelFrequency(double max_af);
 
-	///Checks if a variant passes a filter criterion.
-	bool pass(const VariantList& list, int index) const;
+		///Flags variants by SnpEff impact.
+		void flagByImpact(QStringList impacts);
 
-	///Checks which variants from a variant list pass all filters.
-	static QBitArray multiPass(const VariantList& list, const QVector<VariantFilter>& filters);
+		///Flags variants by in-house database count (from NGSD).
+		void flagByIHDB(int max_count);
 
-protected:
-	///Checks if a variant passes a filter criterion using an annotation index cache for speedup.
-	bool pass(const VariantList& list, int index, QHash<QString, int>& annotation_indices) const;
-	///Checks if a filter criterion is valid. Throws a ArgumentException otherwise.
-	void checkValid();
+		///Flags variants by filter column entries.
+		void flagByFilterColumn(QStringList remove);
 
-	QString name_;
-	QString criteria_;
+		///Flags variants by classification filter.
+		void flagByClassification(int min_class);
+
+		///Flags variants by genes filter.
+		void flagByGenes(QStringList genes);
+
+
+		///Flags variants by annotations filter.
+		void flagByGenotype(QString genotype);
+
+		///Flags *heterozygous* variants (only compound-heterozygous variants pass).
+		void flagCompoundHeterozygous();
+
+
+		///Flags variants by region filter.
+		void flagByRegions(const BedFile& regions);
+
+		///Flags variants by region filter.
+		void flagByRegion(const BedLine& region);
+
+		///Generic filtering.
+		void flagGeneric(QString criteria);
+
+		///Direct access to flags array (for custom filters).
+		QBitArray& flags()
+		{
+			return pass;
+		}
+
+		///Clears flags, i.e. all variants pass.
+		void clear();
+
+		///Inverts the flags.
+		void invert()
+		{
+			pass = ~pass;
+		}
+
+		///Returns the number of passing variants.
+		int countPassing() const
+		{
+			return pass.count(true);
+		}
+
+		///Applies the flags. Variants with 'true' flag are kept, all other variants are removed.
+		void apply();
+
+	protected:
+		VariantList& variants;
+		QBitArray pass;
 };
 
 #endif // VARIANTFILTER_H

@@ -107,6 +107,9 @@ public:
 		return chr().str() + delimiter + QString::number(start()) + delimiter + QString::number(end());
 	}
 
+	///Parses a chromosomal region string and constructs a line from it. An invalid line is returned, if the string cannot be parsed.
+	static BedLine fromString(QString str);
+
 protected:
     Chromosome chr_;
     int start_;

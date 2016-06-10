@@ -3,7 +3,6 @@
 
 #include <QDockWidget>
 #include "ui_FilterDockWidget.h"
-#include "VariantFilter.h"
 #include "BedFile.h"
 
 ///Filter manager dock widget
@@ -62,18 +61,18 @@ public:
 	bool keepClassM() const;
 
 	///Returns the filter column terms to keep.
-	QList<QByteArray> filterColumnsKeep() const;
+	QStringList filterColumnsKeep() const;
 	///Returns the filter column terms to remove.
-	QList<QByteArray> filterColumnsRemove() const;
+	QStringList filterColumnsRemove() const;
     ///Returns the filter column terms to filter.
-    QList<QByteArray> filterColumnsFilter() const;
+	QStringList filterColumnsFilter() const;
 
 	/// Returns the target region file name or an empty string if unset.
 	QString targetRegion() const;
 	/// Returns the gene names filter.
-	QList<QByteArray> genes() const;
-	/// Returns the single target region filter.
-	BedLine region() const;
+	QStringList genes() const;
+	/// Returns the single target region filter, or an empty string if unset.
+	QString region() const;
 
 	/// Returns the reference sample name or an empty string if unset.
 	QString referenceSample() const;
@@ -107,7 +106,7 @@ private:
 	void resetSignalsUnblocked(bool clear_roi);
 
 	Ui::FilterDockWidget ui_;
-	QList<QByteArray> last_genes_;
+	QStringList last_genes_;
 };
 
 #endif // FILTERDOCKWIDGET_H

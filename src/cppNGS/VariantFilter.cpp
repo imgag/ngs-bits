@@ -1,25 +1,226 @@
 #include "VariantFilter.h"
-#include "VariantList.h"
+#include "ChromosomalIndex.h"
 #include "Exceptions.h"
-#include <QBitArray>
+#include "VariantList.h"
 
-VariantFilter::VariantFilter()
-	: name_()
-	, criteria_()
+VariantFilter::VariantFilter(VariantList& vl)
+	: variants(vl)
 {
+	clear();
 }
 
-VariantFilter::VariantFilter(const QString& name, const QString& criteria)
-	: name_(name)
-	, criteria_(criteria)
+void VariantFilter::flagByAllelFrequency(double max_af)
 {
-	checkValid();
+	//check input
+	if (max_af<0 || max_af>1)
+	{
+		THROW(ArgumentException, "Invalid MAF '" + QString::number(max_af) + "'. Must be between 0 and 1!");
+	}
+
+	//get column indices
+	int i_1000g = variants.annotationIndexByName("1000g", true, true);
+	int i_exac = variants.annotationIndexByName("ExAC", true, true);
+	int i_esp6500 = variants.annotationIndexByName("ESP6500EA", true, true);
+
+	//filter
+	for(int i=0; i<variants.count(); ++i)
+	{
+		pass[i] = pass[i]
+				&& variants[i].annotations()[i_1000g].toDouble()<=max_af
+				&& variants[i].annotations()[i_exac].toDouble()<=max_af
+				&& variants[i].annotations()[i_esp6500].toDouble()<=max_af;
+	}
 }
 
-void VariantFilter::checkValid()
+void VariantFilter::flagByImpact(QStringList impacts)
 {
-	//check if valid
-	QStringList o_crits = criteria_.split("||", QString::SkipEmptyParts);
+	//check input
+	QStringList valid;
+	valid << "HIGH" << "MODERATE" << "LOW" << "MODIFIER";
+	foreach(QString impact, impacts)
+	{
+		if (!valid.contains(impact))
+		{
+			THROW(ArgumentException, "Invalid SnpEff impact '" + impact + "'. Valid are:" + valid.join(", "));
+		}
+	}
+
+	//get column indices
+	int i_co_sp = variants.annotationIndexByName("coding_and_splicing", true, true);
+
+	//prepare impacts list
+	QList<QByteArray> impacts2;
+	foreach(const QString& impact, impacts)
+	{
+		impacts2.append(":" + impact.toLatin1() + ":");
+	}
+
+	//filter
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!pass[i]) continue;
+
+		bool pass_impact = false;
+		foreach(const QByteArray& impact, impacts2)
+		{
+			if (variants[i].annotations()[i_co_sp].contains(impact))
+			{
+				pass_impact = true;
+				break;
+			}
+		}
+		pass[i] = pass_impact;
+	}
+}
+
+void VariantFilter::flagByGenotype(QString genotype)
+{
+	//check input
+	if (genotype!="hom" && genotype!="het") THROW(ArgumentException, "Invalid genotype '" + genotype + "'!");
+
+	//get column indices
+	int i_geno = variants.annotationIndexByName("genotype", true, true);
+
+	//filter
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!pass[i]) continue;
+
+		pass[i] = (variants[i].annotations()[i_geno] == genotype);
+	}
+}
+
+void VariantFilter::flagByIHDB(int max_count)
+{
+	if (max_count<1)
+	{
+		THROW(ArgumentException, "Invalid ihdb count '" + QString::number(max_count) + "'. Must be be positive!");
+	}
+
+
+	//get column indices
+	int i_ihdb_hom = variants.annotationIndexByName("ihdb_allsys_hom", true, true);
+	int i_ihdb_het = variants.annotationIndexByName("ihdb_allsys_het", true, true);
+	int i_geno = variants.annotationIndexByName("genotype", true, true);
+
+	//filter
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!pass[i]) continue;
+
+		if (variants[i].annotations()[i_geno]=="hom")
+		{
+			pass[i] = variants[i].annotations()[i_ihdb_hom].toInt() <= max_count;
+		}
+		else if (variants[i].annotations()[i_geno]=="het")
+		{
+			pass[i] = (variants[i].annotations()[i_ihdb_hom].toInt() +  variants[i].annotations()[i_ihdb_het].toInt()) <= max_count;
+		}
+		else
+		{
+			THROW(ProgrammingException, "Unknown genotype '" + variants[i].annotations()[i_geno] + "'!");
+		}
+	}
+}
+
+void VariantFilter::flagByFilterColumn(QStringList remove)
+{
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!pass[i]) continue;
+
+		foreach(const QByteArray& f,  variants[i].filters())
+		{
+			if (remove.contains(f))
+			{
+				pass[i] = false;
+				break;
+			}
+		}
+	}
+}
+
+void VariantFilter::flagByClassification(int min_class)
+{
+	//get column indices
+	int i_class = variants.annotationIndexByName("classification", true, true);
+
+	//filter
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!pass[i]) continue;
+
+		bool ok = false;
+		int classification_value = variants[i].annotations()[i_class].toInt(&ok);
+		if (!ok) continue;
+
+		pass[i] = (classification_value>=min_class);
+	}
+}
+
+void VariantFilter::flagByGenes(QStringList genes)
+{
+	//get column indices
+	int i_gene = variants.annotationIndexByName("gene", true, true);
+
+	//filter
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!pass[i]) continue;
+
+		bool contained = false;
+		QList<QByteArray> genes_variant = variants[i].annotations()[i_gene].split(',');
+		for(int i=0; i<genes_variant.count(); ++i)
+		{
+			QString gene = genes_variant[i].trimmed().toUpper();
+			if (gene.isEmpty()) continue;
+
+			if (genes.contains(gene))
+			{
+				contained = true;
+				break;
+			}
+		}
+		pass[i] = contained;
+	}
+}
+
+void VariantFilter::flagByRegions(const BedFile& regions)
+{
+	//check regions
+	if(!regions.isMergedAndSorted())
+	{
+		THROW(ArgumentException, "Cannot filter variant list by regions that are not merged/sorted!");
+	}
+
+	//create region index
+	ChromosomalIndex<BedFile> regions_idx(regions);
+
+	//filter
+	for (int i=0; i<variants.count(); ++i)
+	{
+		if (!pass[i]) continue;
+
+		const Variant& v = variants[i];
+		int index = regions_idx.matchingIndex(v.chr(), v.start(), v.end());
+		pass[i] = (index!=-1);
+	}
+}
+
+void VariantFilter::flagByRegion(const BedLine& region)
+{
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!pass[i]) continue;
+
+		pass[i] = variants[i].overlapsWith(region);
+	}
+}
+
+void VariantFilter::flagGeneric(QString criteria)
+{
+	//check that criteria are valid
+	QStringList o_crits = criteria.split("||", QString::SkipEmptyParts);
 	foreach(const QString& o_crit, o_crits)
 	{
 		//OR parts
@@ -68,138 +269,182 @@ void VariantFilter::checkValid()
 			}
 		}
 	}
-}
 
-bool VariantFilter::pass(const VariantList& list, int index) const
-{
+	//init
 	QHash<QString, int> anno_index_cache;
-	return pass(list, index, anno_index_cache);
-}
 
-bool VariantFilter::pass(const VariantList& list, int index, QHash<QString, int>& anno_index_cache) const
-{
-	const Variant& variant = list[index];
-	bool result = false;
-
-	//AND parts
-	QStringList o_crits = criteria_.split("||", QString::SkipEmptyParts);
-	foreach(const QString& o_crit, o_crits)
+	for (int i=0; i<variants.count(); ++i)
 	{
-		//OR parts
-		bool and_result = true;
-		QStringList a_crits = o_crit.split("&&", QString::SkipEmptyParts);
-		foreach(const QString& a_crit, a_crits)
+		const Variant& variant = variants[i];
+
+		bool result = false;
+
+		//AND parts
+		QStringList o_crits = criteria.split("||", QString::SkipEmptyParts);
+		foreach(const QString& o_crit, o_crits)
 		{
-			QStringList parts = a_crit.split(" ", QString::SkipEmptyParts);
+			//OR parts
+			bool and_result = true;
+			QStringList a_crits = o_crit.split("&&", QString::SkipEmptyParts);
+			foreach(const QString& a_crit, a_crits)
+			{
+				QStringList parts = a_crit.split(" ", QString::SkipEmptyParts);
 
-			//check field value
-			QString field_name = parts[0];
-			QString field_string = "";
-			if (anno_index_cache.contains(field_name))
-			{
-				field_string = variant.annotations()[anno_index_cache[field_name]];
-			}
-			else if (field_name=="chr")
-			{
-				field_string = variant.chr().str();
-			}
-			else if (field_name=="start")
-			{
-				field_string = QString::number(variant.start());
-			}
-			else if (field_name=="end")
-			{
-				field_string = QString::number(variant.end());
-			}
-			else if (field_name=="ref")
-			{
-				field_string = variant.ref();
-			}
-			else if (field_name=="obs")
-			{
-				field_string = variant.obs();
-			}
-			else if (field_name.startsWith("*") && field_name.endsWith("*"))
-			{
-				field_name = field_name.mid(1, field_name.count()-2);
-				int anno_index = list.annotationIndexByName(field_name, false, true);
-				field_string = variant.annotations()[anno_index];
-				anno_index_cache.insert("*" + field_name + "*", anno_index);
-			}
-			else
-			{
-				int anno_index = list.annotationIndexByName(field_name, true, true);
-				field_string = variant.annotations()[anno_index];
-				anno_index_cache.insert(field_name, anno_index);
+				//check field value
+				QString field_name = parts[0];
+				QString field_string = "";
+				if (anno_index_cache.contains(field_name))
+				{
+					field_string = variant.annotations()[anno_index_cache[field_name]];
+				}
+				else if (field_name=="chr")
+				{
+					field_string = variant.chr().str();
+				}
+				else if (field_name=="start")
+				{
+					field_string = QString::number(variant.start());
+				}
+				else if (field_name=="end")
+				{
+					field_string = QString::number(variant.end());
+				}
+				else if (field_name=="ref")
+				{
+					field_string = variant.ref();
+				}
+				else if (field_name=="obs")
+				{
+					field_string = variant.obs();
+				}
+				else if (field_name.startsWith("*") && field_name.endsWith("*"))
+				{
+					field_name = field_name.mid(1, field_name.count()-2);
+					int anno_index = variants.annotationIndexByName(field_name, NULL, false, true);
+					field_string = variant.annotations()[anno_index];
+					anno_index_cache.insert("*" + field_name + "*", anno_index);
+				}
+				else
+				{
+					int anno_index = variants.annotationIndexByName(field_name, NULL, true, true);
+					field_string = variant.annotations()[anno_index];
+					anno_index_cache.insert(field_name, anno_index);
+				}
+
+				//operations
+				bool single_result = true;
+				QString op = parts[1];
+				QString op_string = QStringList(parts.mid(2)).join(' ');
+				if (op==">=" || op==">" || op=="==" || op=="<" || op=="<=")
+				{
+					double op_value = op_string.toDouble();
+					bool ok = true;
+					double field_value = field_string.toDouble(&ok);
+					if (!ok) THROW(ArgumentException, "Invalid variant annotation in field '" + field_string + "' for NUMERIC filter criterion '" + a_crit + "'");
+					if (op==">=") single_result = (field_value>=op_value);
+					if (op==">") single_result = (field_value>op_value);
+					if (op=="==") single_result = (field_value==op_value);
+					if (op=="<") single_result = (field_value<op_value);
+					if (op=="<=") single_result = (field_value<=op_value);
+				}
+				else if (op=="IS")
+				{
+					single_result = (field_string==op_string);
+				}
+				else if (op=="IS_NOT")
+				{
+					single_result = (field_string!=op_string);
+				}
+				else if (op=="CONTAINS")
+				{
+					single_result = (field_string.contains(op_string));
+				}
+				else if (op=="CONTAINS_NOT")
+				{
+					single_result = (!field_string.contains(op_string));
+				}
+
+				if (!single_result)
+				{
+					and_result = false;
+					break;
+				}
 			}
 
-			//operations
-			bool single_result = true;
-			QString op = parts[1];
-			QString op_string = QStringList(parts.mid(2)).join(' ');
-			if (op==">=" || op==">" || op=="==" || op=="<" || op=="<=")
+			if (and_result)
 			{
-				double op_value = op_string.toDouble();
-				bool ok = true;
-				double field_value = field_string.toDouble(&ok);
-				if (!ok) THROW(ArgumentException, "Invalid variant annotation in field '" + field_string + "' for NUMERIC filter criterion '" + a_crit + "'");
-				if (op==">=") single_result = (field_value>=op_value);
-				if (op==">") single_result = (field_value>op_value);
-				if (op=="==") single_result = (field_value==op_value);
-				if (op=="<") single_result = (field_value<op_value);
-				if (op=="<=") single_result = (field_value<=op_value);
-			}
-			else if (op=="IS")
-			{
-				single_result = (field_string==op_string);
-			}
-			else if (op=="IS_NOT")
-			{
-				single_result = (field_string!=op_string);
-			}
-			else if (op=="CONTAINS")
-			{
-				single_result = (field_string.contains(op_string));
-			}
-			else if (op=="CONTAINS_NOT")
-			{
-				single_result = (!field_string.contains(op_string));
-			}
-
-			if (!single_result)
-			{
-				and_result = false;
+				result = true;
 				break;
 			}
 		}
 
-		if (and_result)
+		pass[i] =  result;
+	}
+}
+
+void VariantFilter::flagCompoundHeterozygous()
+{
+	//get column indices
+	int i_gene = variants.annotationIndexByName("gene", true, true);
+	int i_geno = variants.annotationIndexByName("genotype", true, true);
+
+	//count heterozygous passing variants per gene
+	QHash<QByteArray, int> gene_to_het;
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!pass[i]) continue;
+
+		if (variants[i].annotations()[i_geno]!="het") continue;
+		QList<QByteArray> genes = variants[i].annotations()[i_gene].toUpper().split(',');
+		foreach(const QByteArray& gene, genes)
 		{
-			result = true;
-			break;
+			gene_to_het[gene.trimmed()] += 1;
 		}
 	}
 
-	return result;
-}
-
-QBitArray VariantFilter::multiPass(const VariantList& list, const QVector<VariantFilter>& filters)
-{
-	QBitArray output(list.count(), true);
-
-	//optimization: use annotation index cache
-	QHash<QString, int> anno_index_cache;
-	foreach(const VariantFilter& filter, filters)
+	//filter out variants of genes with less than two heterozygous variants
+	for(int i=0; i<variants.count(); ++i)
 	{
-		for(int i=0; i<list.count(); ++i)
+		if (!pass[i]) continue;
+		if (variants[i].annotations()[i_geno]!="het") continue;
+
+		pass[i] = false;
+		QList<QByteArray> genes = variants[i].annotations()[i_gene].toUpper().split(',');
+		foreach(const QByteArray& gene, genes)
 		{
-			//optimization: perform check only if the variant passed so far
-			if (output[i])
+			if (gene_to_het[gene.trimmed()]>=2)
 			{
-				output.setBit(i, filter.pass(list, i, anno_index_cache));
+				pass[i] = true;
+				break;
 			}
 		}
 	}
+}
 
-	return output;
+void VariantFilter::clear()
+{
+	pass = QBitArray(variants.count(), true);
+}
+
+void VariantFilter::apply()
+{
+	//move passing variant to the front of the variant list
+	int to_index = 0;
+	for (int i=0; i<variants.count(); ++i)
+	{
+		if (pass[i])
+		{
+			if (to_index!=i)
+			{
+				variants[to_index] = variants[i];
+			}
+			++to_index;
+		}
+	}
+
+	//resize to new size
+	variants.resize(to_index);
+
+	//re-init flags in case filtering goes on
+	clear();
 }

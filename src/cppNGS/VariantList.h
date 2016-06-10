@@ -4,7 +4,6 @@
 #include "cppNGS_global.h"
 #include "BedFile.h"
 #include "VariantAnnotationDescription.h"
-#include "VariantFilter.h"
 #include <QVector>
 #include <QStringList>
 #include <QtAlgorithms>
@@ -180,13 +179,17 @@ public:
     Variant& operator[](int index)
     {
         return variants_[index];
-    }
+	}
     ///Returns the variant count.
     int count() const
     {
         return variants_.count();
     }
-
+	///Resize variant list.
+	void resize(int size)
+	{
+		variants_.resize(size);
+	}
 	///Reserves space for a defined number of variants.
 	void reserve(int size)
 	{
@@ -260,11 +263,6 @@ public:
     void sort(bool use_quality = false);
     ///Sorts the lines accoring to FASTA index file. The order is chromosome (as given in the file), position, ref, obs, quality (if desired).
     void sortByFile(QString file_name);
-
-    ///Removes all variants that are not contained in the given chromosomal regions (must be merged and sorted).
-	void filterByRegions(const BedFile& regions, bool invert=false);
-    ///Removed all variants that do not pass all filters.
-    void filterByRules(const QVector<VariantFilter>& filters);
 
     ///Remove duplicate variants.
 	void removeDuplicates(bool sort_by_quality);

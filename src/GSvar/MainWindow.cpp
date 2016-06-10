@@ -36,6 +36,7 @@
 #include "GeneInfoDialog.h"
 #include "PhenoToGenesDialog.h"
 #include "GenesToRegionsDialog.h"
+#include "VariantFilter.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -415,19 +416,16 @@ void MainWindow::databaseAnnotationFinished(bool success)
 void MainWindow::applyDefaultFiltersGermline()
 {
 	filter_widget_->applyDefaultFilters();
-    on_actionResize_triggered();
 }
 
 void MainWindow::applyDefaultFiltersTrio()
 {
 	filter_widget_->applyDefaultFiltersTrio();
-	on_actionResize_triggered();
 }
 
 void MainWindow::applyDefaultFiltersSomatic()
 {
-    filter_widget_->applyDefaultFiltersSomatic();
-    on_actionResize_triggered();
+	filter_widget_->applyDefaultFiltersSomatic();
 }
 
 void MainWindow::clearFilters()
@@ -1475,115 +1473,38 @@ void MainWindow::filtersChanged()
 		QTime timer;
 		timer.start();
 
-		QBitArray pass(variants_.count(), true);
-
-		//MAF filter
+		//main filters
+		VariantFilter filter(variants_);
 		if (filter_widget_->applyMaf())
 		{
-			int i_1000g = variants_.annotationIndexByName("1000g", true, true);
-			int i_exac = variants_.annotationIndexByName("ExAC", true, true);
-			int i_esp6500 = variants_.annotationIndexByName("ESP6500EA", true, true);
-
-			double max_maf = filter_widget_->mafPerc() / 100.0;
-			for(int i=0; i<variants_.count(); ++i)
-			{
-				pass[i] = pass[i] && variants_[i].annotations()[i_1000g].toDouble()<=max_maf;
-				pass[i] = pass[i] && variants_[i].annotations()[i_exac].toDouble()<=max_maf;
-				pass[i] = pass[i] && variants_[i].annotations()[i_esp6500].toDouble()<=max_maf;
-			}
+			double max_af = filter_widget_->mafPerc() / 100.0;
+			filter.flagByAllelFrequency(max_af);
 		}
-
-		//impact filter
 		if (filter_widget_->applyImpact())
 		{
-			int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, true);
-
-			//determine impacts list
-			QStringList impacts = filter_widget_->impact();
-			for(int i=0; i<impacts.count(); ++i)
-			{
-				impacts[i] = ":" + impacts[i] + ":";
-			}
-
-			//filter
-			for(int i=0; i<variants_.count(); ++i)
-			{
-				if (!pass[i]) continue;
-
-				bool pass_impact = false;
-				foreach(const QString& impact, impacts)
-				{
-					if (variants_[i].annotations()[i_co_sp].contains(impact.toLatin1()))
-					{
-						pass_impact = true;
-						break;
-					}
-				}
-				pass[i] = pass_impact;
-			}
+			filter.flagByImpact(filter_widget_->impact());
 		}
-
-		//ihdb filter
 		if (filter_widget_->applyIhdb())
 		{
-			int i_ihdb_hom = variants_.annotationIndexByName("ihdb_allsys_hom", true, true);
-			int i_ihdb_het = variants_.annotationIndexByName("ihdb_allsys_het", true, true);
-			int i_geno = variants_.annotationIndexByName("genotype", true, true);
-
-			int max_ihdb = filter_widget_->ihdb();
-			for(int i=0; i<variants_.count(); ++i)
-			{
-				if (!pass[i]) continue;
-
-				const QString& genotype = variants_[i].annotations()[i_geno];
-				if (genotype=="hom")
-				{
-					pass[i] = variants_[i].annotations()[i_ihdb_hom].toInt()<=max_ihdb;
-				}
-				else if (genotype=="het")
-				{
-					pass[i] = variants_[i].annotations()[i_ihdb_hom].toInt()<=max_ihdb && variants_[i].annotations()[i_ihdb_het].toInt()<=max_ihdb;
-				}
-				else THROW(ProgrammingException, "Unknown genotype '" + genotype + "'!");
-			}
+			filter.flagByIHDB(filter_widget_->ihdb());
 		}
-
-		//genotype filter
-		if (filter_widget_->applyGenotype())
+		QStringList remove = filter_widget_->filterColumnsRemove();
+		if (remove.count()>0)
 		{
-			int i_geno = variants_.annotationIndexByName("genotype", true, true);
-			QString geno = filter_widget_->genotype();
-			for(int i=0; i<variants_.count(); ++i)
-			{
-				if (!pass[i]) continue;
-				pass[i] = (variants_[i].annotations()[i_geno] == geno);
-			}
+			filter.flagByFilterColumn(remove);
 		}
 
-        //filter columns(remove, keep)
-		QList<QByteArray> remove = filter_widget_->filterColumnsRemove();
-		QList<QByteArray> keep = filter_widget_->filterColumnsKeep();
-		if (remove.count()>0 || keep.count()>0)
+		//filter columns (keep)
+		QStringList keep = filter_widget_->filterColumnsKeep();
+		if (keep.count()>0)
         {
 			for(int i=0; i<variants_.count(); ++i)
 			{
-                const QList<QByteArray>& filters = variants_[i].filters();
-                if(filters.isEmpty()) continue;
+				if (filter.flags()[i]) continue;
 
-				if (!pass[i])
+				foreach(const QByteArray& f, variants_[i].filters())
 				{
-					foreach(const QByteArray& f, filters)
-					{
-						if (keep.contains(f)) pass[i] = true;
-					}
-				}
-
-				if (pass[i])
-				{
-					foreach(const QByteArray& f, filters)
-					{
-						if (remove.contains(f)) pass[i] = false;
-					}
+					if (keep.contains(f)) filter.flags()[i] = true;
 				}
 			}
 		}
@@ -1591,18 +1512,7 @@ void MainWindow::filtersChanged()
 		//remove variants with low classification
 		if (filter_widget_->applyClassification())
 		{
-			int i_class = variants_.annotationIndexByName("classification", true, true);
-			int min_class = filter_widget_->classification();
-			for(int i=0; i<variants_.count(); ++i)
-			{
-				if (!pass[i]) continue;
-
-				bool ok = false;
-				int classification_value = variants_[i].annotations()[i_class].toInt(&ok);
-				if (!ok) continue;
-
-				pass[i] = (classification_value>=min_class);
-			}
+			filter.flagByClassification(filter_widget_->classification());
 		}
 
 		//prevent class>=X variants from beeing filtered out by any filter (except region/gene filters)
@@ -1612,13 +1522,13 @@ void MainWindow::filtersChanged()
 			int min_class = filter_widget_->keepClassGreaterEqual();
 			for(int i=0; i<variants_.count(); ++i)
 			{
-				if (pass[i]) continue;
+				if (filter.flags()[i]) continue;
 
 				bool ok = false;
 				int classification_value = variants_[i].annotations()[i_class].toInt(&ok);
 				if (!ok) continue;
 
-				pass[i] = (classification_value>=min_class);
+				filter.flags()[i] = (classification_value>=min_class);
 			}
 		}
 
@@ -1628,33 +1538,33 @@ void MainWindow::filtersChanged()
 			int i_class = variants_.annotationIndexByName("classification", true, true);
 			for(int i=0; i<variants_.count(); ++i)
 			{
-                if (pass[i]) continue;
+				if (filter.flags()[i]) continue;
 
-				pass[i] = (variants_[i].annotations()[i_class]=="M");
+				filter.flags()[i] = (variants_[i].annotations()[i_class]=="M");
 			}
         }
 
         //filter columns (filter)
-        QList<QByteArray> filter = filter_widget_->filterColumnsFilter();
-        if (filter.count()>0)
+		QStringList filter_cols = filter_widget_->filterColumnsFilter();
+		if (filter_cols.count()>0)
         {
             for(int i=0; i<variants_.count(); ++i)
             {
-                if (!pass[i]) continue;
+				if (!filter.flags()[i]) continue;
 
                 const QList<QByteArray>& filters = variants_[i].filters();
                 if(filters.isEmpty())
                 {
-                    pass[i] = false;
+					filter.flags()[i] = false;
                     continue;
                 }
 
                 bool keep = false;
                 foreach(const QByteArray& f, filters)
                 {
-                    if (filter.contains(f)) keep = true;
+					if (filter_cols.contains(f)) keep = true;
                 }
-                pass[i] = keep;
+				filter.flags()[i] = keep;
             }
         }
 
@@ -1679,55 +1589,25 @@ void MainWindow::filtersChanged()
 		//roi filter
 		if (roi!="")
 		{
-			ChromosomalIndex<BedFile> bed_index(last_roi_);
-			for(int i=0; i<variants_.count(); ++i)
-			{
-				if (pass[i])
-				{
-					const Variant& variant = variants_[i];
-					int matches = bed_index.matchingIndices(variant.chr(), variant.start(), variant.end()).count();
-					pass[i] = (matches>0);
-				}
-			}
+			filter.flagByRegions(last_roi_);
 			Log::perf("Applying target region filter took ", timer);
 			timer.start();
 		}
 
 		//gene filter
-		QList<QByteArray> genes_filter = filter_widget_->genes();
+		QStringList genes_filter = filter_widget_->genes();
 		if (!genes_filter.empty())
 		{
-			int i_gene = variants_.annotationIndexByName("gene", true, true);
-			for(int i=0; i<variants_.count(); ++i)
-			{
-				if (!pass[i]) continue;
-				QList<QByteArray> genes_variant = variants_[i].annotations()[i_gene].split(',');
-				bool contained = false;
-				for(int i=0; i<genes_variant.count(); ++i)
-				{
-					QByteArray gene = genes_variant[i].trimmed().toUpper();
-					if (gene=="") continue;
-					if (genes_filter.contains(gene))
-					{
-						contained = true;
-						break;
-					}
-				}
-				pass[i] = contained;
-			}
+			filter.flagByGenes(genes_filter);
 			Log::perf("Applying gene filter took ", timer);
 			timer.start();
 		}
 
 		//target region filter
-		BedLine region = filter_widget_->region();
+		BedLine region = BedLine::fromString(filter_widget_->region());
 		if (region.isValid())
 		{
-			for(int i=0; i<variants_.count(); ++i)
-			{
-				if (!pass[i]) continue;
-				pass[i] = variants_[i].overlapsWith(region);
-			}
+			filter.flagByRegion(region);
 			Log::perf("Applying region filter took ", timer);
 			timer.start();
 		}
@@ -1735,40 +1615,15 @@ void MainWindow::filtersChanged()
 		//apply compound-heterozygous filter
 		if (filter_widget_->applyCompoundHet())
 		{
-			//count heterozygous passing variants per gene
-			int i_gene = variants_.annotationIndexByName("gene", true, true);
-			int i_geno = variants_.annotationIndexByName("genotype", true, true);
-			QHash<QByteArray, int> gene_to_het;
-			for(int i=0; i<variants_.count(); ++i)
-			{
-				if (!pass[i]) continue;
-				if (variants_[i].annotations()[i_geno]!="het") continue;
-				QList<QByteArray> genes = variants_[i].annotations()[i_gene].toUpper().split(',');
-				foreach(const QByteArray& gene, genes)
-				{
-					gene_to_het[gene.trimmed()] += 1;
-				}
-			}
-
-			//filter out variants of genes with less than two heterozygous variants
-			for(int i=0; i<variants_.count(); ++i)
-			{
-				if (!pass[i]) continue;
-				pass[i] = false;
-				if (variants_[i].annotations()[i_geno]!="het") continue;
-				QList<QByteArray> genes = variants_[i].annotations()[i_gene].toUpper().split(',');
-				foreach(const QByteArray& gene, genes)
-				{
-					if (gene_to_het[gene.trimmed()]>=2)
-					{
-						pass[i] = true;
-						break;
-					}
-				}
-			}
-
+			filter.flagCompoundHeterozygous();
 			Log::perf("Applying compound-heterozygous filter took ", timer);
 			timer.start();
+		}
+
+		//genotype filter
+		if (filter_widget_->applyGenotype())
+		{
+			filter.flagByGenotype(filter_widget_->genotype());
 		}
 
 		//update GUI
@@ -1776,7 +1631,7 @@ void MainWindow::filtersChanged()
 		ui_.vars->setUpdatesEnabled(false);
 		for(int i=0; i<variants_.count(); ++i)
 		{
-			if (pass[i])
+			if (filter.flags()[i])
 			{
 				ui_.vars->showRow(i);
 			}
@@ -1789,7 +1644,7 @@ void MainWindow::filtersChanged()
 		Log::perf("Applying filter results to GUI took ", timer);
 
 		//update status bar
-		QString status = QString::number(pass.count(true)) + " of " + QString::number(pass.count()) + " variants passed filters.";
+		QString status = QString::number(filter.countPassing()) + " of " + QString::number(variants_.count()) + " variants passed filters.";
 		ui_.statusBar->showMessage(status);
 	}
 	catch(Exception& e)

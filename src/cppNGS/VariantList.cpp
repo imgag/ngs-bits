@@ -1047,53 +1047,6 @@ void VariantList::removeDuplicates(bool sort_by_quality)
 	variants_.swap(output);
 }
 
-void VariantList::filterByRegions(const BedFile& regions, bool invert)
-{
-	//check
-	if(!regions.isMergedAndSorted())
-	{
-		THROW(ArgumentException, "Cannot filter variant list by regions that are not merged/sorted!");
-	}
-
-	//filter variants
-	int to_index = 0;
-	ChromosomalIndex<BedFile> regions_idx(regions);
-	for (int i=0; i<variants_.count(); ++i)
-	{
-		Variant v = variants_[i];
-		v.normalize("-");
-		int index = regions_idx.matchingIndex(v.chr(), v.start(), v.end());
-		if (invert ? index==-1 : index!=-1)
-		{
-			if (to_index!=i) variants_[to_index] = variants_[i];
-			++to_index;
-		}
-	}
-
-	//resize to new size
-	variants_.resize(to_index);
-}
-
-void VariantList::filterByRules(const QVector<VariantFilter>& filters)
-{
-	//create bit-array with filter result
-	QBitArray pass = VariantFilter::multiPass(*this, filters);
-
-	//filter variants
-	int to_index = 0;
-	for (int i=0; i<variants_.count(); ++i)
-	{
-		if (pass[i])
-		{
-			if (to_index!=i) variants_[to_index] = variants_[i];
-			++to_index;
-		}
-	}
-
-	//resize to new size
-	variants_.resize(to_index);
-}
-
 void VariantList::clear()
 {
 	clearVariants();

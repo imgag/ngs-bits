@@ -19,12 +19,15 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Filters variant lists accordning to a target region.");
+		setDescription("Filter a variant list based on a target region.");
 		addInfile("in", "Input variant list.", false);
-		addInfile("reg", "Input target region in BED format.", false);
 		addOutfile("out", "Output variant list. If unset, writes to STDOUT.", false);
 		//optional
+		addInfile("reg", "Input target region in BED format.", true);
+		addString("r", "Single target region in the format chr17:41194312-41279500.", true);
 		addFlag("invert", "If used, the variants inside the target region are removed.");
+
+		changeLog(2016, 6, 10, "Added single target region parameter '-r'.");
 	}
 
 	virtual void main()
@@ -33,13 +36,30 @@ public:
 		VariantList variants;
 		variants.load(getInfile("in"));
 
-		//filter by region
-		BedFile regions;
-		regions.load(getInfile("reg"));
-		regions.merge();
-		variants.filterByRegions(regions, getFlag("invert"));
+		//init filter
+		VariantFilter filter(variants);
 
-		//store variants
+		//filter by BED file
+		QString reg = getInfile("reg");
+		if (!reg.isEmpty())
+		{
+			BedFile regions;
+			regions.load(reg);
+			regions.merge();
+			filter.flagByRegions(regions);
+		}
+
+		//filter by region string
+		reg = getString("r");
+		if (!reg.isEmpty())
+		{
+			filter.flagByRegion(BedLine::fromString(reg));
+		}
+
+		if (getFlag("invert")) filter.invert();
+
+		filter.apply();
+
 		variants.store(getOutfile("out"));
 	}
 };

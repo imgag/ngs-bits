@@ -158,7 +158,7 @@ void FilterDockWidget::resetSignalsUnblocked(bool clear_roi)
     ui_.impact_enabled->setChecked(false);
     ui_.impact->setCurrentText("HIGH,MODERATE,LOW");
     ui_.ihdb_enabled->setChecked(false);
-    ui_.ihdb->setValue(5);
+	ui_.ihdb->setValue(20);
     ui_.classification_enabled->setChecked(false);
     ui_.classification->setCurrentText("3");
     ui_.geno_enabled->setChecked(false);
@@ -252,7 +252,7 @@ void FilterDockWidget::applyDefaultFiltersTrio()
 	ui_.impact_enabled->setChecked(true);
 	ui_.impact->setCurrentText("HIGH,MODERATE");
 	ui_.ihdb_enabled->setChecked(true);
-	ui_.ihdb->setValue(5);
+	ui_.ihdb->setValue(20);
 	ui_.keep_class_ge_enabled->setChecked(true);
 	ui_.keep_class_ge->setCurrentText("4");
 
@@ -365,43 +365,43 @@ bool FilterDockWidget::keepClassM() const
 	return ui_.keep_class_m->isChecked();
 }
 
-QList<QByteArray> FilterDockWidget::filterColumnsKeep() const
+QStringList FilterDockWidget::filterColumnsKeep() const
 {
-	QList<QByteArray> output;
+	QStringList output;
 	QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
 	foreach(FilterColumnWidget* w, fcws)
 	{
 		if (w->state()==FilterColumnWidget::KEEP)
 		{
-			output.append(w->objectName().toUtf8());
+			output.append(w->objectName());
 		}
 	}
 	return output;
 }
 
-QList<QByteArray> FilterDockWidget::filterColumnsRemove() const
+QStringList FilterDockWidget::filterColumnsRemove() const
 {
-	QList<QByteArray> output;
+	QStringList output;
 	QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
 	foreach(FilterColumnWidget* w, fcws)
 	{
 		if (w->state()==FilterColumnWidget::REMOVE)
 		{
-			output.append(w->objectName().toUtf8());
+			output.append(w->objectName());
 		}
 	}
     return output;
 }
 
-QList<QByteArray> FilterDockWidget::filterColumnsFilter() const
+QStringList FilterDockWidget::filterColumnsFilter() const
 {
-    QList<QByteArray> output;
+	QStringList output;
     QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
     foreach(FilterColumnWidget* w, fcws)
     {
         if (w->filter())
         {
-            output.append(w->objectName().toUtf8());
+			output.append(w->objectName());
         }
     }
     return output;
@@ -412,38 +412,24 @@ QString FilterDockWidget::targetRegion() const
 	return ui_.rois->toolTip();
 }
 
-QList<QByteArray> FilterDockWidget::genes() const
+QStringList FilterDockWidget::genes() const
 {
 	QStringList genes = ui_.gene->text().split(',');
 
-	QList<QByteArray> output;
 	for(int i=0; i<genes.count(); ++i)
 	{
-		QByteArray gene = genes[i].trimmed().toUpper().toLatin1();
-		if (gene!="") output.append(gene);
+		 genes[i] = genes[i].trimmed().toUpper();
 	}
-	return output;
+
+	genes.removeAll("");
+	genes.removeDuplicates();
+
+	return genes;
 }
 
-BedLine FilterDockWidget::region() const
+QString FilterDockWidget::region() const
 {
-	//accept three tab-sparated elements (other formats, see below)
-	QString text = ui_.region->text().trimmed();
-	text = text.replace(',', ""); //remove thousands separator
-	text = text.replace(':', '\t').replace('-', '\t'); //also accept "[c]:[s]-[e]"
-	text = text.replace(QRegExp("[ ]+"), "\t"); //also accept "[c] [s] [e]" (with any number of spaces)
-	QStringList region = text.split('\t');
-
-	if (region.count()<3) return BedLine();
-
-	try
-	{
-		return BedLine(region[0], Helper::toInt(region[1]), Helper::toInt(region[2]));
-	}
-	catch(...)
-	{
-		return BedLine();
-	}
+	return ui_.region->text().trimmed();
 }
 
 QString FilterDockWidget::referenceSample() const

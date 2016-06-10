@@ -32,6 +32,28 @@ bool BedLine::operator<(const BedLine& rhs) const
 	else return start_<rhs.start_;
 }
 
+BedLine BedLine::fromString(QString str)
+{
+	//normalize
+	str = str.replace(',', ""); //remove thousands separator
+	str = str.replace(':', '\t').replace('-', '\t'); //also accept "[c]:[s]-[e]"
+	str = str.replace(QRegExp("[ ]+"), "\t"); //also accept "[c] [s] [e]" (with any number of spaces)
+
+	//split
+	QStringList parts = str.split('\t');
+	if (parts.count()<3) return BedLine();
+
+	//convert
+	try
+	{
+		return BedLine(parts[0], Helper::toInt(parts[1]), Helper::toInt(parts[2]));
+	}
+	catch(...)
+	{
+		return BedLine();
+	}
+}
+
 BedFile::BedFile()
 {
 }

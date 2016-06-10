@@ -19,10 +19,11 @@ libs:
 - cppNGSD: add test project
 
 GSvar:
-* Use Settings::boolean("NGSD_enabled", true) to hide NGSD-specific functionality if NGSD use is disabled
+* Use Settings::boolean("NGSD_enabled", true) to hide all NGSD-based functionality if NGSD is disabled
 - Overview gene lists (missing genotype): treat all variants as homozygous?
 
 Tools:
+** VariantFilterAnnotations: add main filters and add tests
 - MappingQC:
   - add %soft/hard-clipped quality parameter (see ssPWBRCA_v2)
   * support RNA: insert size, spike-in controls, mapping ribosomes/globulines, etc.
@@ -31,7 +32,6 @@ Tools:
   - low-quality trimming before adapter trimming? use single-base instead of sliding window?
 - SomaticQC: write test
 - VcfCheck: Format check for vcf files
-* VariantFilterCustom: Refactor variant filtering from GSvar into cppNGS implement command-line tool.
 
 CnvHunter:
  * instead of fixed 'n', use n>=10 and n<=30 with highest correlation or lowest z-score stdev?
