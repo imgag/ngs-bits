@@ -84,6 +84,7 @@ HEADERS += \
     BamDeduplicateByBarcode_Test.h \
     FastqExtractBarcode_Test.h \
     BamToFastq_Test.h \
+    VariantFilterAnnotations_Test.h \
 
 SOURCES += \
     main.cpp \

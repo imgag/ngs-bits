@@ -92,11 +92,11 @@ void VariantFilter::flagByGenotype(QString genotype)
 
 void VariantFilter::flagByIHDB(int max_count)
 {
+	//check input
 	if (max_count<1)
 	{
 		THROW(ArgumentException, "Invalid ihdb count '" + QString::number(max_count) + "'. Must be be positive!");
 	}
-
 
 	//get column indices
 	int i_ihdb_hom = variants.annotationIndexByName("ihdb_allsys_hom", true, true);
@@ -142,6 +142,12 @@ void VariantFilter::flagByFilterColumn(QStringList remove)
 
 void VariantFilter::flagByClassification(int min_class)
 {
+	//check input
+	if (min_class<1 || min_class>5)
+	{
+		THROW(ArgumentException, "Invalid classification '" + QString::number(min_class) + "'!");
+	}
+
 	//get column indices
 	int i_class = variants.annotationIndexByName("classification", true, true);
 

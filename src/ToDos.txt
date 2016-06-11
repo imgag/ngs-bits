@@ -23,7 +23,6 @@ GSvar:
 - Overview gene lists (missing genotype): treat all variants as homozygous?
 
 Tools:
-** VariantFilterAnnotations: add main filters and add tests
 - MappingQC:
   - add %soft/hard-clipped quality parameter (see ssPWBRCA_v2)
   * support RNA: insert size, spike-in controls, mapping ribosomes/globulines, etc.

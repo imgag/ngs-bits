@@ -269,6 +269,10 @@ SUBDIRS += PERsim
 tools-TEST.depends += PERsim
 PERsim.depends = cppNGSD
 
+SUBDIRS += VariantFilterAnnotations
+tools-TEST.depends += VariantFilterAnnotations
+VariantFilterAnnotations.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt
 
