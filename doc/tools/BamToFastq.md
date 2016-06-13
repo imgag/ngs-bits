@@ -1,7 +1,7 @@
 ### BamToFastq tool help
-	BamToFastq (0.1-327-g026bb74)
+	BamToFastq (0.1-350-g2af2ea1)
 	
-	Converts a BAM file to FASTQ files (paired-end only).
+	Converts a coordinate-sorted BAM file to FASTQ files (paired-end only).
 	
 	Mandatory parameters:
 	  -in <file>   Input BAM file.
@@ -15,6 +15,6 @@
 	  --tdx        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BamToFastq changelog
-	BamToFastq 0.1-327-g026bb74
+	BamToFastq 0.1-350-g2af2ea1
 	
 [back to ngs-bits](https://github.com/marc-sturm/ngs-bits)

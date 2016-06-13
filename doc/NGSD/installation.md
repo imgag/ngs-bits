@@ -17,9 +17,9 @@ First we need to make sure that we have all packages required the rest of the in
 
 ##(1) Setup of the analysis pipeline
 
-First, we can check out the analysis pipeline code (contact us for the password):
+First, we can check out the analysis pipeline code (contact us for credentials):
 
-	> svn co http://saas1305xh.saas-secure.com/svn/php --username nightly --password [svn-password]
+	> svn co http://saas1305xh.saas-secure.com/svn/php --username [user] --password [password]
 
 Next, we need to download and build some open-source tools that our pipeline relies on:
 
@@ -113,10 +113,10 @@ Install like that:
 		> apt-get install apache2 libapache2-mod-php5
 		> a2enmod rewrite
 
-* Check out the NGSD source code like that (contact us for the password):
+* Check out the NGSD source code like that (contact us for credentials):
 	
 		> cd /var/www/html/
-		> svn co http://saas1305xh.saas-secure.com/svn/DB/http --username nightly --password [svn-password]
+		> svn co http://saas1305xh.saas-secure.com/svn/DB/http --username [user] --password [password]
 		> mv http DB
 
 * Now we need to configure the NGSD:
@@ -189,6 +189,7 @@ For more information on GSvar, open the help within GSvar (F1) or use this [link
 ##Next steps
 
 Now you can run your first data analysis based on these [instructions](running_an_analysis.md).
+
 
 
 
