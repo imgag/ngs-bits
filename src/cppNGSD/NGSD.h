@@ -195,9 +195,6 @@ protected:
 	mutable bool db_used_externally_as_static_;
 	bool test_db_;
 	bool is_open_;
-
-	///Prepared queries for speed-up
-	QSharedPointer<SqlQuery> q_approved_;
 };
 
 

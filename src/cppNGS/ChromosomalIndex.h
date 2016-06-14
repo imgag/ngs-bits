@@ -15,6 +15,9 @@ public:
 	///Constructor.
 	ChromosomalIndex(const T& container, int bin_size = 30);
 
+	///Re-creates the index (only needed if the container content changed after calling the index constructor).
+	void createIndex();
+
 	///Returns the underlying container
 	const T& container() const { return container_; }
 
@@ -27,7 +30,7 @@ protected:
 	const T& container_;
 	QHash<int, QVector<QPair<int, int> > > index_;
 	int max_length_;
-	void createIndex(int bin_size);
+	int bin_size_;
 	static bool firstOfPairComparator(const QPair<int, int>& a, const QPair<int, int>& b)
 	{
 		return	a.first < b.first;
@@ -39,12 +42,13 @@ ChromosomalIndex<T>::ChromosomalIndex(const T& container, int bin_size)
 	: container_(container)
 	, index_()
 	, max_length_(-1)
+	, bin_size_(bin_size)
 {
-	createIndex(bin_size);
+	createIndex();
 }
 
 template <class T>
-void ChromosomalIndex<T>::createIndex(int bin_size)
+void ChromosomalIndex<T>::createIndex()
 {
 	int min = std::numeric_limits<int>::min();
 	int max = std::numeric_limits<int>::max();
@@ -66,7 +70,7 @@ void ChromosomalIndex<T>::createIndex(int bin_size)
 			last_chr = container_[i].chr();
 			bin_count = 0;
 		}
-		else if (bin_count==bin_size)
+		else if (bin_count==bin_size_)
 		{
 			chr_indices.append(QPair<int, int>(container_[i].start(),i));
 			bin_count = 0;

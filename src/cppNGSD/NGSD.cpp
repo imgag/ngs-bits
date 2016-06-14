@@ -2,9 +2,10 @@
 #include "Exceptions.h"
 #include "Helper.h"
 #include "Log.h"
+#include "Settings.h"
+#include "ChromosomalIndex.h"
 #include <QFileInfo>
 #include <QPair>
-#include "Settings.h"
 
 NGSD::NGSD(bool test_db)
 	: db_used_externally_as_static_(false)
@@ -24,10 +25,6 @@ NGSD::NGSD(bool test_db)
 	{
 		THROW(DatabaseException, "Could not connect to the NGSD database!");
 	}
-
-	//prepare queries for speed-up
-	q_approved_.reset(new SqlQuery(getQuery()));
-	q_approved_->prepare("SELECT DISTINCT g.symbol FROM gene g, gene_transcript gt WHERE g.id=gt.gene_id AND g.chromosome=:1 AND gt.start_coding IS NOT NULL AND ((gt.start_coding>=:2 AND gt.start_coding<=:3) OR (:4>=gt.start_coding AND :5<=gt.end_coding)) ORDER BY g.symbol");
 }
 
 QString NGSD::userId()
@@ -260,9 +257,6 @@ bool NGSD::removeColumnIfPresent(VariantList& variants, QString name, bool exact
 NGSD::~NGSD()
 {
 	//Log::info("MYSQL closing  - name: " + db_->connectionName());
-
-	//close prepared queries
-	q_approved_.clear();
 
 	//close database and remove it
 	QString connection_name = db_->connectionName();
@@ -1098,19 +1092,30 @@ QStringList NGSD::phenotypeToGenes(QString phenotype, bool recursive)
 
 QStringList NGSD::genesOverlapping(QByteArray chr, int start, int end, int extend)
 {
-	//annotate
-	q_approved_->bindValue(0, chr.replace("chr", ""));
-	q_approved_->bindValue(1, start - extend);
-	q_approved_->bindValue(2, end + extend);
-	q_approved_->bindValue(3, start - extend);
-	q_approved_->bindValue(4, start - extend);
-	q_approved_->exec();
-
-	QStringList genes;
-	while(q_approved_->next())
+	//init static data (load gene regions file from NGSD to memory)
+	static BedFile bed;
+	static ChromosomalIndex<BedFile> index(bed);
+	if (bed.count()==0)
 	{
-		genes.append(q_approved_->value(0).toString());
+		SqlQuery query = getQuery();
+		query.exec("SELECT DISTINCT g.symbol, g.chromosome, gt.start_coding, gt.end_coding FROM gene g, gene_transcript gt WHERE g.id=gt.gene_id AND gt.start_coding IS NOT NULL AND gt.end_coding IS NOT NULL");
+		while(query.next())
+		{
+			bed.append(BedLine(query.value(1).toString(), query.value(2).toInt(), query.value(3).toInt(), QStringList() << query.value(0).toString()));
+		}
+		bed.sort();
+		index.createIndex();
 	}
+
+	//create gene list
+	QStringList genes;
+	QVector<int> matches = index.matchingIndices(chr, start-extend, end+extend);
+	foreach(int i, matches)
+	{
+		genes << bed[i].annotations()[0];
+	}
+	genes.sort();
+	genes.removeDuplicates();
 
 	return genes;
 }
