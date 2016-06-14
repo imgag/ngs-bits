@@ -323,12 +323,6 @@ void VariantDetailsDockWidget::initTranscriptDetails(const VariantList& vl, int 
 	{
 		QStringList parts = QString(t).split(':');
 
-		//fix protein-protein-contact entries
-		if (t.contains("protein_protein_contact"))
-		{
-			parts = QStringList() << parts[0] << parts[1] << parts[4] << parts[5] << parts[6] << parts[7] << parts[8];
-		}
-
 		//check number of parts
 		if (parts.count()!=7)
 		{
