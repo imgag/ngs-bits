@@ -505,7 +505,7 @@ void MainWindow::on_actionTrio_triggered()
 	if (dlg.exec()==QDialog::Accepted)
 	{
 		HttpHandler handler;
-		QString reply = handler.getHttpReply(Settings::string("SampleStatus")+"restart_trio.php?f=" + dlg.father() + "&m=" + dlg.mother() + "&c=" + dlg.child() + "&high_priority");
+		QString reply = handler.getHttpReply(Settings::string("SampleStatus")+"restart_trio.php?user="+Helper::userName()+"&f=" + dlg.father() + "&m=" + dlg.mother() + "&c=" + dlg.child() + "&high_priority");
 		if (!reply.startsWith("Restart successful"))
 		{
 			QMessageBox::warning(this, "Trio analysis", "Queueing trio analysis failed:\n" + reply);
