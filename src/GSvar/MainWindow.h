@@ -44,6 +44,8 @@ public:
 	void updateIGVMenu();
 	///Updates preferred transcripts from settings.ini
 	void updatePreferredTranscripts();
+	///Updates menu and toolbar according to NGSD-support
+	void updateNGSDSupport();
 	///Copy selected variants to clipboard
 	void copyToClipboard(bool split_quality);
 	///Formats transcripts, taking preferred transcripts into consideration

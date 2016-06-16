@@ -19,7 +19,6 @@ libs:
 - cppNGSD: add test project
 
 GSvar:
-* Use Settings::boolean("NGSD_enabled", true) to hide all NGSD-based functionality if NGSD is disabled
 - Overview gene lists (missing genotype): treat all variants as homozygous?
 
 Tools:

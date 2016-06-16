@@ -49,7 +49,7 @@ MainWindow::MainWindow(QWidget *parent)
 	, db_annos_updated_(false)
 	, last_report_path_(QDir::homePath())
 {
-	//set up GUI
+	//setup GUI
 	ui_.setupUi(this);
 	setWindowTitle(QCoreApplication::applicationName());
 	addDockWidget(Qt::RightDockWidgetArea, filter_widget_);
@@ -129,6 +129,7 @@ void MainWindow::delayedInizialization()
 	updateRecentFilesMenu();
 	updateIGVMenu();
 	updatePreferredTranscripts();
+	updateNGSDSupport();
 
 	//load command line argument
 	if (QApplication::arguments().count()>=2)
@@ -241,7 +242,7 @@ void MainWindow::loadFile(QString filename)
 
 void MainWindow::on_actionAbout_triggered()
 {
-	QMessageBox::about(this, "About " + QCoreApplication::applicationName(), QCoreApplication::applicationName()+ " " + QCoreApplication::applicationVersion()+ "\n\nGenome Sequencing Variant Viewer");
+	QMessageBox::about(this, "About " + QCoreApplication::applicationName(), QCoreApplication::applicationName()+ " " + QCoreApplication::applicationVersion()+ "\n\nA free viewing a filtering tool for genomic variants.\n\nInstitute of Medical Genetics and Applied Genomics\nUniversity Hospital Tübingen\nGermany\n\nMore information at:\nhttps://github.com/imgag/ngs-bits");
 }
 
 void MainWindow::on_actionResize_triggered()
@@ -581,6 +582,7 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	if (roi_file=="") return;
 	BedFile roi;
 	roi.load(roi_file);
+	roi.merge();
 
 	//check for BAM file
 	QString bam_file = getBamFile();
@@ -813,14 +815,23 @@ void MainWindow::copyToClipboard(bool split_quality)
 	//check quality column is present
 	QStringList quality_keys;
 	quality_keys << "QUAL" << "DP" << "AF" << "MQM" << "TRIO"; //if modified, also modify quality_values!!!
+	int qual_index = -1;
 	if (split_quality)
 	{
-		if (ui_.vars->columnCount()<7 || ui_.vars->horizontalHeaderItem(6)->text()!="quality")
+		for(int i=0; i<ui_.vars->columnCount(); ++i)
+		{
+			if (ui_.vars->horizontalHeaderItem(i)->text()=="quality")
+			{
+				qual_index = i;
+			}
+		}
+		if (qual_index==-1)
 		{
 			QMessageBox::warning(this, "Copy to clipboard", "Column with index 6 has other name than quality. Aborting!");
 			return;
 		}
 	}
+	
 
 	//copy header
 	QString selected_text = "";
@@ -830,7 +841,7 @@ void MainWindow::copyToClipboard(bool split_quality)
 		for (int col=range.leftColumn(); col<=range.rightColumn(); ++col)
 		{
 			if (col!=range.leftColumn()) selected_text.append("\t");
-			if (split_quality && col==6)
+			if (split_quality && col==qual_index)
 			{
 				selected_text.append(quality_keys.join('\t'));
 			}
@@ -851,7 +862,7 @@ void MainWindow::copyToClipboard(bool split_quality)
 		for (int col=range.leftColumn(); col<=range.rightColumn(); ++col)
 		{
 			if (col!=range.leftColumn()) selected_text.append("\t");
-			if (split_quality && col==6)
+			if (split_quality && col==qual_index)
 			{
 				QStringList quality_values;
 				for(int i=0; i<quality_keys.count(); ++i) quality_values.append("");
@@ -1099,6 +1110,9 @@ void MainWindow::varsContextMenu(QPoint pos)
 	QTableWidgetItem* item = ui_.vars->itemAt(pos);
 	if (!item) return;
 
+	bool ngsd_enabled = Settings::boolean("NGSD_enabled", true);
+	bool primerdesign_enabled = (Settings::string("PrimerDesign")!="");
+
 	//create contect menu
 	QMenu menu(ui_.vars);
 	QMenu* sub_menu = menu.addMenu(QIcon("://Icons/IGV.png"), "IGV");
@@ -1106,6 +1120,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 	sub_menu->addAction("Jump to position");
 
 	sub_menu = menu.addMenu(QIcon("://Icons/NGSD.png"), "Variant");
+	sub_menu->setEnabled(ngsd_enabled);
 	sub_menu->addAction("Open variant in NGSD");
 	sub_menu->addAction("Search for position in NGSD");
 	sub_menu->addSeparator();
@@ -1123,9 +1138,12 @@ void MainWindow::varsContextMenu(QPoint pos)
 		{
 			sub_menu->addAction(g);
 		}
+		sub_menu->setEnabled(ngsd_enabled);
 	}
 
-	menu.addAction(QIcon("://Icons/PrimerDesign.png"), "PrimerDesign");
+	QAction* action;
+	action = menu.addAction(QIcon("://Icons/PrimerDesign.png"), "PrimerDesign");
+	action->setEnabled(primerdesign_enabled);
 
 	//Execute menu
 	QAction* action = menu.exec(ui_.vars->viewport()->mapToGlobal(pos));
@@ -1720,6 +1738,25 @@ void MainWindow::updatePreferredTranscripts()
 
 	//update variant details widget
 	var_widget_->setPreferredTranscripts(preferred_transcripts_);
+}
+
+void MainWindow::updateNGSDSupport()
+{
+	bool ngsd_enabled = Settings::boolean("NGSD_enabled", true);
+
+	//toolbar
+	ui_.actionReport->setEnabled(ngsd_enabled);
+	ui_.actionNGSD->setEnabled(ngsd_enabled);
+	ui_.actionDatabase->setEnabled(ngsd_enabled);
+	ui_.actionTrio->setEnabled(ngsd_enabled);
+	ui_.actionSampleInformation->setEnabled(ngsd_enabled);
+	ui_.actionGapsRecalculate->setEnabled(ngsd_enabled);
+
+	//tools menu
+	ui_.actionGeneInfo->setEnabled(ngsd_enabled);
+	ui_.actionGenesToRegions->setEnabled(ngsd_enabled);
+	ui_.actionPhenoToGenes->setEnabled(ngsd_enabled);
+	ui_.actionConvertHgnc->setEnabled(ngsd_enabled);
 }
 
 void MainWindow::openRecentFile()
