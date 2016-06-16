@@ -242,7 +242,7 @@ void MainWindow::loadFile(QString filename)
 
 void MainWindow::on_actionAbout_triggered()
 {
-	QMessageBox::about(this, "About " + QCoreApplication::applicationName(), QCoreApplication::applicationName()+ " " + QCoreApplication::applicationVersion()+ "\n\nA free viewing a filtering tool for genomic variants.\n\nInstitute of Medical Genetics and Applied Genomics\nUniversity Hospital Tübingen\nGermany\n\nMore information at:\nhttps://github.com/imgag/ngs-bits");
+	QMessageBox::about(this, "About " + QCoreApplication::applicationName(), QCoreApplication::applicationName()+ " " + QCoreApplication::applicationVersion()+ "\n\nA free viewing and filtering tool for genomic variants.\n\nInstitute of Medical Genetics and Applied Genomics\nUniversity Hospital Tübingen\nGermany\n\nMore information at:\nhttps://github.com/imgag/ngs-bits");
 }
 
 void MainWindow::on_actionResize_triggered()
@@ -1146,7 +1146,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 	action->setEnabled(primerdesign_enabled);
 
 	//Execute menu
-	QAction* action = menu.exec(ui_.vars->viewport()->mapToGlobal(pos));
+	action = menu.exec(ui_.vars->viewport()->mapToGlobal(pos));
 	if (!action) return;
 
 	QByteArray text = action->text().toLatin1();
