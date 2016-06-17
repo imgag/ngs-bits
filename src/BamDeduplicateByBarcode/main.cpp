@@ -575,6 +575,7 @@ public:
 		addOutfile("out", "Output BAM file.", false);
 		addFlag("flag", "flag duplicate reads insteadt of deleting them");
 		addFlag("test", "adjust output for testing purposes");
+		addInt("min_group", "minimal numbers of reads to keep a barcode group.", true, 1);
 		addInt("dist", "edit distance for single read matching .", true, 0);
 		addInfile("mip_file","input file for MIPS (reads are filtered and cut to match only MIP inserts).", true, "");
 		addInfile("hs_file","input file for Haloplex HS amplicons (reads are filtered to match only amplicons).", true, "");
@@ -597,6 +598,7 @@ public:
 		QString mip_file= getInfile("mip_file");
 		QString hs_file= getInfile("hs_file");
 		int edit_distance=getInt("dist");
+		int minimal_group_size=getInt("min_group");
 		bool test =getFlag("test");
 
 		//init: setup remaining variables
@@ -655,13 +657,13 @@ public:
 					 * (won't work if input is not sorted by position)*/
 					if ((i.key().end_pos)<last_start_pos||(chrom_change))
 					{
-
+						int read_count=i.value().count();
 						Position act_position(i.key().start_pos,i.key().end_pos,last_ref);
 						if (mip_file!="")
 						{
-							if (mip_info_map.contains(act_position))
+							if (mip_info_map.contains(act_position)&&(read_count>=minimal_group_size))
 							{
-								store_read_counts_mip(mip_info_map, dup_count_histo, act_position, i.value().count(),i.key().barcode);
+								store_read_counts_mip(mip_info_map, dup_count_histo, act_position, read_count,i.key().barcode);
 								most_frequent_read_selection read_selection = cutAndSelectPair(i.value(),mip_info_map[act_position].left_arm,mip_info_map[act_position].right_arm);
 								writePairToBam(writer, read_selection.most_freq_read);
 								writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
@@ -674,9 +676,9 @@ public:
 						}
 						else if (hs_file!="")
 						{
-							if (hs_info_map.contains(act_position))//select and count reads that can be matched to haloplex hs barcodes
+							if (hs_info_map.contains(act_position)&&(read_count>=minimal_group_size))//select and count reads that can be matched to haloplex hs barcodes
 							{
-								store_read_counts_hs(hs_info_map, dup_count_histo, act_position, i.value().count(),i.key().barcode);
+								store_read_counts_hs(hs_info_map, dup_count_histo, act_position, read_count,i.key().barcode);
 								most_frequent_read_selection read_selection = find_highest_freq_read(i.value());
 								writePairToBam(writer, read_selection.most_freq_read);
 								writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
@@ -745,10 +747,11 @@ public:
 		QHash <grouping, QList<readPair> >::iterator i;
 		for (i = read_groups.begin(); i != read_groups.end(); ++i)
 		{
+			int read_count=i.value().count();
 			Position act_position(i.key().start_pos,i.key().end_pos,last_ref);
 			if (mip_file!="")
 			{
-				if (mip_info_map.contains(act_position))//trim and count reads that can be matched to mips
+				if (mip_info_map.contains(act_position)&&(read_count>=minimal_group_size))//trim and count reads that can be matched to mips
 				{
 					store_read_counts_mip(mip_info_map, dup_count_histo, act_position, i.value().count(),i.key().barcode);
 					most_frequent_read_selection read_selection = cutAndSelectPair(i.value(),mip_info_map[act_position].left_arm,mip_info_map[act_position].right_arm);
@@ -762,7 +765,7 @@ public:
 			}
 			else if (hs_file!="")
 			{
-				if (hs_info_map.contains(act_position))//trim, select and count reads that can be matched to mips
+				if (hs_info_map.contains(act_position)&&(read_count>=minimal_group_size))//trim, select and count reads that can be matched to mips
 				{
 					store_read_counts_hs(hs_info_map, dup_count_histo, act_position, i.value().count(),i.key().barcode);
 					most_frequent_read_selection read_selection = find_highest_freq_read(i.value());
