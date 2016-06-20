@@ -28,7 +28,6 @@ LIBS += -L$$PWD/../../bin -lcppNGS
 SOURCES += \
     SqlQuery.cpp\
     NGSD.cpp \
-    GPD.cpp \
     GDBO.cpp \
     DatabaseCache.cpp \
     GDBODialog.cpp \
@@ -38,7 +37,6 @@ SOURCES += \
 HEADERS += \
     SqlQuery.h \
     NGSD.h \
-    GPD.h \
     GDBO.h \
     DatabaseCache.h \
     GDBODialog.h \

@@ -6,9 +6,8 @@
 #include "WorkerBase.h"
 #include "BusyDialog.h"
 #include "NGSD.h"
-#include "GPD.h"
 
-///Database annotation worker (NGSD/GPD).
+///Database annotation worker for NGSD.
 class DBAnnotationWorker
 		: public WorkerBase
 {
@@ -22,7 +21,6 @@ private:
 	//input variables
 	QString filename_;
 	VariantList& variants_;
-	GPD gpd_;
 	NGSD ngsd_;
 };
 

@@ -36,6 +36,7 @@ CnvHunter:
  * normalize Z-scores to mean 0 and stdev 1 to correct for sample quality
  * merge larger regions to one region - use CBS or slope-based algorithm based on cummulative relative coverage.
  ? output: median instead of mean for "CNV events/sample/100 regions" and "regions/CNV event"
+ - Für alle/wichtige CNAs Plot (log-ratio/z-score/call) mit Umgebung
  - integrate CNV databases:
    - http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/
    - https://decipher.sanger.ac.uk/disorders#syndromes/overview

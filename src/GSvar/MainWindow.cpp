@@ -26,7 +26,6 @@
 #include "DBAnnotationWorker.h"
 #include "SampleInformationDialog.h"
 #include "ScrollableTextDialog.h"
-#include "GPD.h"
 #include "TrioDialog.h"
 #include "HttpHandler.h"
 #include "ValidationDialog.h"

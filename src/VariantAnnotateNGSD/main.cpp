@@ -4,7 +4,6 @@
 #include "VariantList.h"
 #include "BedFile.h"
 #include "NGSD.h"
-#include "GPD.h"
 #include "Log.h"
 #include "Settings.h"
 
@@ -45,26 +44,10 @@ public:
 		QString mode = getEnum("mode");
 		if(mode=="germline")
 		{
-			try
-			{
-				if (!test) GPD().annotate(variants);
-			}
-			catch (DatabaseException& e)
-			{
-				Log::error("GPD database error: " + e.message());
-			}
 			NGSD(test).annotate(variants, psname);
 		}
 		else if(mode=="somatic")
 		{
-			try
-			{
-				if (!test) GPD().annotateSomatic(variants);
-			}
-			catch (DatabaseException& e)
-			{
-				Log::error("GPD database error: " + e.message());
-			}
 			NGSD(test).annotateSomatic(variants, psname);
 		}
 

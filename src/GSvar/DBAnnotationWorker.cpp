@@ -6,11 +6,8 @@ DBAnnotationWorker::DBAnnotationWorker(QString filename, VariantList& variants, 
 	: WorkerBase("Database annotation")
 	, filename_(filename)
 	, variants_(variants)
-	, gpd_()
 	, ngsd_()
 {
-	connect(&gpd_, SIGNAL(initProgress(QString, bool)), busy, SLOT(init(QString, bool)));
-	connect(&gpd_, SIGNAL(updateProgress(int)), busy, SLOT(update(int)));
 	connect(&ngsd_, SIGNAL(initProgress(QString, bool)), busy, SLOT(init(QString, bool)));
 	connect(&ngsd_, SIGNAL(updateProgress(int)), busy, SLOT(update(int)));
 }
@@ -19,14 +16,6 @@ void DBAnnotationWorker::process()
 {
 	try
 	{
-		try
-		{
-			gpd_.annotate(variants_);
-		}
-		catch (DatabaseException& e)
-		{
-			Log::warn("Could not connect to GPD!");
-		}
 		ngsd_.annotate(variants_, filename_);
 	}
 	catch (Exception& e)

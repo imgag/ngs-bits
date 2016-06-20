@@ -116,7 +116,7 @@ public slots:
 
 	///Finished the report generation
 	void reportGenerationFinished(bool success);
-	///Finished NGSD/GPD annotation
+	///Finished NGSD annotation
 	void databaseAnnotationFinished(bool success);
 	///Shows the variant list contect menu
 	void varsContextMenu(QPoint pos);
