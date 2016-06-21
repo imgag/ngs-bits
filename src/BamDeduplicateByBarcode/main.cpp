@@ -13,23 +13,24 @@
 using namespace BamTools;
 using readPair = QPair < BamAlignment, BamAlignment>;
 
-class grouping
+class barcode
 {
 	public:
 		int start_pos;
 		int end_pos;
-		QString barcode;
+		QString barcode_sequence;
+		QString barcode_quality;
 
 
-		bool operator==(const grouping &g1) const
+		bool operator==(const barcode &g1) const
 		{
-			return ((g1.start_pos == start_pos)&&(g1.end_pos == end_pos)&&(g1.barcode==barcode));
+			return ((g1.start_pos == start_pos)&&(g1.end_pos == end_pos)&&(g1.barcode_sequence==barcode_sequence));
 		}
 };
 
-inline uint qHash(const grouping &g1)
+inline uint qHash(const barcode &g1)
 {
-	return qHash(QString::number(g1.start_pos) + QString::number(g1.end_pos) + g1.barcode);
+	return qHash(QString::number(g1.start_pos) + QString::number(g1.end_pos) + g1.barcode_sequence);
 }
 
 class Position
@@ -60,6 +61,51 @@ class Position
 		}
 };
 
+class BarcodeCountInfo
+{
+	private:
+	int _group_count;
+	float _avg_quality;
+
+
+	public:
+	int get_group_count()
+	{
+		return _group_count;
+	}
+
+	float get_avg_quality()
+	{
+		return _avg_quality;
+	}
+
+	void add_read_group(float quality)
+	{
+		if (_group_count==0)
+		{
+			_avg_quality=quality;
+		}
+		else
+		{
+			_avg_quality=(_avg_quality*_group_count+quality)/(_group_count+1);
+		}
+		++_group_count;
+	}
+
+	BarcodeCountInfo(float quality_ini)
+	{
+		_group_count=1;
+		_avg_quality=quality_ini;
+	}
+
+	BarcodeCountInfo()
+	{
+		_group_count=0;
+		_avg_quality=0.0;
+	}
+
+};
+
 struct mip_info
 {
 	int counter_unique; //number of reads after dedup
@@ -86,7 +132,7 @@ struct most_frequent_read_selection
 	QList <readPair> duplicates;
 };
 
-typedef QPair <QHash <grouping, QList<readPair> >, QList <grouping> > reduced_singles;
+typedef QPair <QHash <barcode, QList<readPair> >, QList <barcode> > reduced_singles;
 
 inline uint qHash(const Position &pos1)
 {
@@ -217,7 +263,7 @@ private:
 		return hs_info_map;
 	}
 
-	void write_dup_count_histo(QHash <int, int> dup_count_histo, QTextStream &outStream)
+	void write_dup_count_histo(QHash <int, BarcodeCountInfo> dup_count_histo, QTextStream &outStream)
 	{
 		QList <int> dup_counts =dup_count_histo.keys();
 		std::sort(dup_counts.begin(), dup_counts.end());
@@ -226,11 +272,11 @@ private:
 		outStream << "duplicate counts" <<"\t" << "# of amplicons" <<endl;
 		foreach(int dup_count, dup_counts)
 		{
-			outStream << dup_count <<"\t" << dup_count_histo[dup_count] <<endl;
+			outStream << dup_count <<"\t" << dup_count_histo[dup_count].get_group_count() << endl;
 		}
 	}
 
-	void writeMipInfoMap(QMap <Position,mip_info> mip_info_map, QString outfile_name, QHash <int, int> dup_count_histo, int lost_singles)
+	void writeMipInfoMap(QMap <Position,mip_info> mip_info_map, QString outfile_name, QHash <int, BarcodeCountInfo> dup_count_histo, int lost_singles)
 	{
 		QMapIterator<Position, mip_info > i(mip_info_map);
 		i.toBack();
@@ -249,7 +295,7 @@ private:
 		out.close();
 	}
 
-	void writeHSInfoMap(QMap <Position,hs_info> hs_info_map, QString outfile_name, QHash <int, int> dup_count_histo, int lost_singles)
+	void writeHSInfoMap(QMap <Position,hs_info> hs_info_map, QString outfile_name, QHash <int, BarcodeCountInfo> dup_count_histo, int lost_singles)
 	{
 		QMapIterator<Position, hs_info > i(hs_info_map);
 		i.toBack();
@@ -322,28 +368,28 @@ private:
 		return cigar_ops_out;
 	}
 
-	reduced_singles reduceSingleReads(int allowed_edit_distance, const QHash <grouping, QList<readPair> > &read_groups)
+	reduced_singles reduceSingleReads(int allowed_edit_distance, const QHash <barcode, QList<readPair> > &read_groups)
 	{
-		QList <grouping> lost_singles;
+		QList <barcode> lost_singles;
 
 		if (allowed_edit_distance<=0) return qMakePair(read_groups,lost_singles);
-		QHash <grouping, QList<readPair> > read_groups_new=read_groups;
-		QHash <grouping, QList<readPair> >::const_iterator i;
+		QHash <barcode, QList<readPair> > read_groups_new=read_groups;
+		QHash <barcode, QList<readPair> >::const_iterator i;
 
 		for (i = read_groups.begin(); i != read_groups.end(); ++i)
 		//iterate over old structure because elements on new structure might get deleted
 		{
 			if (read_groups_new[i.key()].count()==1) //check singlenessed in new structure because singles might already got matched by others
 			{
-				grouping single_key =i.key();
+				barcode single_key =i.key();
 				QList<readPair> single_value=i.value();
-				grouping match;
+				barcode match;
 				bool is_match=false;
 				bool is_unambigious_match=true;
-				QHash <grouping, QList<readPair> >::iterator j;
+				QHash <barcode, QList<readPair> >::iterator j;
 				for (j = read_groups_new.begin(); j != read_groups_new.end(); ++j)
 				{
-					int edit_distance=get_edit_distance(j.key().barcode,single_key.barcode);
+					int edit_distance=get_edit_distance(j.key().barcode_sequence,single_key.barcode_sequence);
 					//if same position and similar enough (but not identical) barcode
 					if ((j.key().end_pos==single_key.end_pos)&&(j.key().start_pos==single_key.start_pos)&&(0<edit_distance)&&(edit_distance<=allowed_edit_distance))
 					{
@@ -370,10 +416,10 @@ private:
 						bool is_unambigious_match2=true;
 						if (read_groups_new[match].count()==1)
 						{
-							QHash <grouping, QList<readPair> >::iterator j;
+							QHash <barcode, QList<readPair> >::iterator j;
 							for (j = read_groups_new.begin(); j != read_groups_new.end(); ++j)
 							{
-								int edit_distance=get_edit_distance(j.key().barcode,match.barcode);
+								int edit_distance=get_edit_distance(j.key().barcode_sequence,match.barcode_sequence);
 								//if same position and similar enough (but not identical) barcode
 								if ((j.key().end_pos==match.end_pos)&&(j.key().start_pos==match.start_pos)&&(0<edit_distance)&&(edit_distance<=allowed_edit_distance))
 								{
@@ -439,7 +485,7 @@ private:
 		return result;
 	}
 
-	BamAlignment cutArmsSingle(BamAlignment original_alignment, Position left_arm, Position right_arm)
+	BamAlignment cut_arms_single(BamAlignment original_alignment, Position left_arm, Position right_arm)
 	{
 		//cut on right side
 		if (original_alignment.GetEndPosition()>right_arm.start_pos)
@@ -473,8 +519,8 @@ private:
 		foreach(readPair original_alignments, original_readpairs)
 		{
 			readPair new_alignments;
-			new_alignments.first=cutArmsSingle(original_alignments.first,left_arm,right_arm);
-			new_alignments.second=cutArmsSingle(original_alignments.second,left_arm,right_arm);
+			new_alignments.first=cut_arms_single(original_alignments.first,left_arm,right_arm);
+			new_alignments.second=cut_arms_single(original_alignments.second,left_arm,right_arm);
 			new_alignments.first.MatePosition=new_alignments.second.Position;
 			new_alignments.second.MatePosition=new_alignments.first.Position;
 			new_alignment_list.append(new_alignments);
@@ -515,50 +561,59 @@ private:
 		writer.SaveAlignment(read_pair.second);
 	}
 
-	void store_read_counts_mip(QMap <Position,mip_info>  &mip_info_map, QHash <int,int> &dup_count_histo, Position act_position, int dup_count, QString barcode)
+	void store_read_counts_mip(QMap <Position,mip_info>  &mip_info_map, QHash <int,BarcodeCountInfo> &dup_count_histo, Position act_position, int dup_count, barcode act_barcode)
 	{
 		mip_info_map[act_position].counter_unique++;
-		mip_info_map[act_position].barcode_counters[barcode]=dup_count;
+		mip_info_map[act_position].barcode_counters[act_barcode.barcode_sequence]=dup_count;
 		if (dup_count==1) mip_info_map[act_position].counter_singles++;
 		mip_info_map[act_position].counter_all+=dup_count;
 		if (dup_count_histo.contains(dup_count))
 		{
-			dup_count_histo[dup_count]++;
+			dup_count_histo[dup_count].add_read_group(1.0);
 		}
 		else
 		{
-			dup_count_histo[dup_count]=1;
+			dup_count_histo[dup_count]=BarcodeCountInfo(500.0);
 		}
 	}
 
-	void store_read_counts_hs(QMap <Position,hs_info>  &hs_info_map, QHash <int,int> &dup_count_histo, Position act_position, int dup_count, QString barcode)
+	void store_read_counts_hs(QMap <Position,hs_info>  &hs_info_map, QHash <int,BarcodeCountInfo> &dup_count_histo, Position act_position, int dup_count, barcode act_barcode)
 	{
 		hs_info_map[act_position].counter_unique++;
-		hs_info_map[act_position].barcode_counters[barcode]=dup_count;
+		hs_info_map[act_position].barcode_counters[act_barcode.barcode_sequence]=dup_count;
 		if (dup_count==1) hs_info_map[act_position].counter_singles++;
 		hs_info_map[act_position].counter_all+=dup_count;
 		if (dup_count_histo.contains(dup_count))
 		{
-			dup_count_histo[dup_count]++;
+			dup_count_histo[dup_count].add_read_group(1.0);
 		}
 		else
 		{
-			dup_count_histo[dup_count]=1;
+			dup_count_histo[dup_count]=BarcodeCountInfo(0.0);
 		}
 	}
 
-	int new_lost_singles_counts(QList <grouping> lost_singles,const QMap <Position,mip_info> &mip_info_map,const QMap <Position,hs_info> &hs_info_map, int last_ref)
+	int new_lost_singles_counts(QList <barcode> lost_singles,const QMap <Position,mip_info> &mip_info_map,const QMap <Position,hs_info> &hs_info_map, int last_ref)
 	{
 		int lost_single_counts=0;
-		foreach(grouping lost_single, lost_singles)
+		foreach(barcode lost_single, lost_singles)
 		{
 			if (mip_info_map.contains(Position(lost_single.start_pos,lost_single.end_pos,last_ref))) ++lost_single_counts;
 		}
-		foreach(grouping lost_single, lost_singles)
+		foreach(barcode lost_single, lost_singles)
 		{
 			if (hs_info_map.contains(Position(lost_single.start_pos,lost_single.end_pos,last_ref))) ++lost_single_counts;
 		}
 		return lost_single_counts;
+	}
+
+	void add_read_pair( const QHash <QString,QString> &read_headers2barcodes, QHash <barcode, QList<readPair> > &read_groups, readPair read_pair)
+	{
+		barcode act_group;
+		act_group.barcode_sequence= read_headers2barcodes["@"+QString::fromStdString(read_pair.first.Name)];
+		act_group.start_pos= qMin(read_pair.first.Position,read_pair.second.Position);
+		act_group.end_pos= qMax(read_pair.first.GetEndPosition(),read_pair.second.GetEndPosition());
+		read_groups[act_group].append(read_pair);
 	}
 
 public:
@@ -602,11 +657,11 @@ public:
 		bool test =getFlag("test");
 
 		//init: setup remaining variables
-		QHash <grouping, QList<readPair> > read_groups;
+		QHash <barcode, QList<readPair> > read_groups;
 		BamAlignment al;
 		QHash<QString, BamAlignment> al_map;
 		int counter = 1;
-		QHash <int,int> dup_count_histo;
+		QHash <int,BarcodeCountInfo> dup_count_histo;
 		int lost_single_counts=0;
 		int last_start_pos=0;
 		int last_ref=-1;
@@ -644,13 +699,13 @@ public:
 			{
 				reduced_singles reduced_singles_res=reduceSingleReads(edit_distance,read_groups);
 				read_groups=reduced_singles_res.first;
-				QList<grouping> lost_singles=reduced_singles_res.second;
+				QList<barcode> lost_singles=reduced_singles_res.second;
 
 				//count single reads lost due to ambiguity within amplicons
 				lost_single_counts+=new_lost_singles_counts(lost_singles,mip_info_map,hs_info_map,last_ref);
 
-				QHash <grouping, QList<readPair> > read_groups_new;
-				QHash <grouping, QList<readPair> >::iterator i;
+				QHash <barcode, QList<readPair> > read_groups_new;
+				QHash <barcode, QList<readPair> >::iterator i;
 				for (i = read_groups.begin(); i != read_groups.end(); ++i)
 				{
 					/*assure that we already moved pass the readpair so no duplicates are missed by in-between reset of read group
@@ -663,14 +718,14 @@ public:
 						{
 							if (mip_info_map.contains(act_position)&&(read_count>=minimal_group_size))
 							{
-								store_read_counts_mip(mip_info_map, dup_count_histo, act_position, read_count,i.key().barcode);
+								store_read_counts_mip(mip_info_map, dup_count_histo, act_position, read_count,i.key());
 								most_frequent_read_selection read_selection = cutAndSelectPair(i.value(),mip_info_map[act_position].left_arm,mip_info_map[act_position].right_arm);
 								writePairToBam(writer, read_selection.most_freq_read);
-								writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
+								writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode_sequence,test);
 							}
 							else//write reads not matching a mip to a bed file
 							{
-								writeReadsToBed(nomatch_out_stream,act_position,i.value(),i.key().barcode,test);
+								writeReadsToBed(nomatch_out_stream,act_position,i.value(),i.key().barcode_sequence,test);
 							}
 
 						}
@@ -678,21 +733,21 @@ public:
 						{
 							if (hs_info_map.contains(act_position)&&(read_count>=minimal_group_size))//select and count reads that can be matched to haloplex hs barcodes
 							{
-								store_read_counts_hs(hs_info_map, dup_count_histo, act_position, read_count,i.key().barcode);
+								store_read_counts_hs(hs_info_map, dup_count_histo, act_position, read_count,i.key());
 								most_frequent_read_selection read_selection = find_highest_freq_read(i.value());
 								writePairToBam(writer, read_selection.most_freq_read);
-								writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
+								writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode_sequence,test);
 							}
 							else//write reads not matching a mip to a bed file
 							{
-								writeReadsToBed(nomatch_out_stream,act_position,i.value(),i.key().barcode,test);
+								writeReadsToBed(nomatch_out_stream,act_position,i.value(),i.key().barcode_sequence,test);
 							}
 						}
 						else
 						{
 							most_frequent_read_selection read_selection = find_highest_freq_read(i.value());
 							writePairToBam(writer, read_selection.most_freq_read);
-							writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
+							writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode_sequence,test);
 						}
 					}
 					else
@@ -709,16 +764,8 @@ public:
 
 			if((al_map.contains(QString::fromStdString(al.Name))))//if paired end and mate has been seen already
 			{
-					BamAlignment mate;
-					mate = al_map.take(QString::fromStdString(al.Name));
-
-					grouping act_group;
-					act_group.barcode= read_headers2barcodes["@"+QString::fromStdString(al.Name)];
-					act_group.start_pos= qMin(al.Position,mate.Position);
-					act_group.end_pos= qMax(al.GetEndPosition(),mate.GetEndPosition());
-
-					readPair act_read_pair(al,mate);
-					read_groups[act_group].append(act_read_pair);
+					readPair act_read_pair(al,al_map.take(QString::fromStdString(al.Name)));
+					add_read_pair(read_headers2barcodes, read_groups, act_read_pair);
 			}
 			else//if paired end and mate has not been seen yet
 			{
@@ -739,12 +786,12 @@ public:
 		//write remaining pairs
 		reduced_singles reduced_singles_res=reduceSingleReads(edit_distance,read_groups);
 		read_groups=reduced_singles_res.first;
-		QList<grouping> lost_singles=reduced_singles_res.second;
+		QList<barcode> lost_singles=reduced_singles_res.second;
 		//count single reads lost due to ambiguity within amplicons
 
 		lost_single_counts+=new_lost_singles_counts(lost_singles,mip_info_map,hs_info_map,last_ref);
 
-		QHash <grouping, QList<readPair> >::iterator i;
+		QHash <barcode, QList<readPair> >::iterator i;
 		for (i = read_groups.begin(); i != read_groups.end(); ++i)
 		{
 			int read_count=i.value().count();
@@ -753,35 +800,35 @@ public:
 			{
 				if (mip_info_map.contains(act_position)&&(read_count>=minimal_group_size))//trim and count reads that can be matched to mips
 				{
-					store_read_counts_mip(mip_info_map, dup_count_histo, act_position, i.value().count(),i.key().barcode);
+					store_read_counts_mip(mip_info_map, dup_count_histo, act_position, i.value().count(),i.key());
 					most_frequent_read_selection read_selection = cutAndSelectPair(i.value(),mip_info_map[act_position].left_arm,mip_info_map[act_position].right_arm);
 					writePairToBam(writer, read_selection.most_freq_read);
-					writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
+					writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode_sequence,test);
 				}
 				else//write reads not matching a mip to a bed file
 				{
-					writeReadsToBed(nomatch_out_stream,act_position,i.value(),i.key().barcode,test);
+					writeReadsToBed(nomatch_out_stream,act_position,i.value(),i.key().barcode_sequence,test);
 				}
 			}
 			else if (hs_file!="")
 			{
 				if (hs_info_map.contains(act_position)&&(read_count>=minimal_group_size))//trim, select and count reads that can be matched to mips
 				{
-					store_read_counts_hs(hs_info_map, dup_count_histo, act_position, i.value().count(),i.key().barcode);
+					store_read_counts_hs(hs_info_map, dup_count_histo, act_position, i.value().count(),i.key());
 					most_frequent_read_selection read_selection = find_highest_freq_read(i.value());
 					writePairToBam(writer, read_selection.most_freq_read);
-					writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
+					writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode_sequence,test);
 				}
 				else//write reads not matching a mip to a bed file
 				{
-					writeReadsToBed(nomatch_out_stream,act_position,i.value(),i.key().barcode,test);
+					writeReadsToBed(nomatch_out_stream,act_position,i.value(),i.key().barcode_sequence,test);
 				}
 			}
 			else
 			{
 				most_frequent_read_selection read_selection = find_highest_freq_read(i.value());
 				writePairToBam(writer, read_selection.most_freq_read);
-				writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode,test);
+				writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,i.key().barcode_sequence,test);
 			}
 		}
 
