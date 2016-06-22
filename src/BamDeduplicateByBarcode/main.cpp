@@ -697,6 +697,29 @@ public:
 		while (reader.GetNextAlignment(current_alignment))
 		{
 			++counter;
+			last_ref=new_ref;
+
+			if((!current_alignment.IsPrimaryAlignment())||(!current_alignment.IsPaired())) continue;
+
+			if((alignment_map.contains(QString::fromStdString(current_alignment.Name))))//if paired end and mate has been seen already
+			{
+					readPair act_read_pair(current_alignment,alignment_map.take(QString::fromStdString(current_alignment.Name)));
+					addReadPair(read_names2barcode_seqs, barcode_at_pos2read_list, act_read_pair);
+			}
+			else//if paired end and mate has not been seen yet
+			{
+				alignment_map.insert(QString::fromStdString(current_alignment.Name), current_alignment);
+				continue;
+			}
+
+			last_start_pos=qMin(current_alignment.Position,current_alignment.GetEndPosition());
+
+			if (current_alignment.RefID!=last_ref)
+			{
+				new_ref=current_alignment.RefID;
+				if (last_ref!=-1) chrom_change=true;
+			}
+
 			//write after every 10000th read to reduce memory requirements
 			if (((counter%10000)==0)||(chrom_change))
 			{
@@ -707,7 +730,7 @@ public:
 				//count single reads lost due to ambiguity within amplicons
 				lost_single_counts+=newLostSinglesCounts(lost_singles,position2mip_info,position2hs_info,last_ref);
 
-				QHash <barcode_at_pos, QList<readPair> > read_groups_new;
+				QHash <barcode_at_pos, QList<readPair> > new_barcode_at_pos2read_list;
 				QHash <barcode_at_pos, QList<readPair> >::iterator i;
 				for (i = barcode_at_pos2read_list.begin(); i != barcode_at_pos2read_list.end(); ++i)
 				{
@@ -757,34 +780,13 @@ public:
 					}
 					else
 					{
-						read_groups_new[barcode_and_pos].append(read_list);
+						new_barcode_at_pos2read_list[barcode_and_pos].append(read_list);
 					}
 				}
-				barcode_at_pos2read_list=read_groups_new;
+				barcode_at_pos2read_list=new_barcode_at_pos2read_list;
 				chrom_change = false;
 			}
-			last_ref=new_ref;
 
-			if((!current_alignment.IsPrimaryAlignment())||(!current_alignment.IsPaired())) continue;
-
-			if((alignment_map.contains(QString::fromStdString(current_alignment.Name))))//if paired end and mate has been seen already
-			{
-					readPair act_read_pair(current_alignment,alignment_map.take(QString::fromStdString(current_alignment.Name)));
-					addReadPair(read_names2barcode_seqs, barcode_at_pos2read_list, act_read_pair);
-			}
-			else//if paired end and mate has not been seen yet
-			{
-				alignment_map.insert(QString::fromStdString(current_alignment.Name), current_alignment);
-				continue;
-			}
-
-			last_start_pos=qMin(current_alignment.Position,current_alignment.GetEndPosition());
-
-			if (current_alignment.RefID!=last_ref)
-			{
-				new_ref=current_alignment.RefID;
-				if (last_ref!=-1) chrom_change=true;
-			}
 
 		}
 
