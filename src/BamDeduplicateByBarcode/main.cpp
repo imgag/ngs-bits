@@ -19,7 +19,7 @@ class barcode_at_pos
 		int start_pos;
 		int end_pos;
 		QString barcode_sequence;
-		QString avg_barcode_read_quality;
+		float barcode_sum_quality=0.0;
 
 
 		bool operator==(const barcode_at_pos &g1) const
@@ -79,7 +79,7 @@ class BarcodeCountInfo
 		return avg_quality_;
 	}
 
-	void add_read_group(float quality)
+	void add(float quality)
 	{
 		if (group_count_==0)
 		{
@@ -92,10 +92,10 @@ class BarcodeCountInfo
 		++group_count_;
 	}
 
-	BarcodeCountInfo(float quality_ini)
+	BarcodeCountInfo(float quality)
 	{
 		group_count_=1;
-		avg_quality_=quality_ini;
+		avg_quality_=quality;
 	}
 
 	BarcodeCountInfo()
@@ -143,10 +143,10 @@ class ConcreteTool
 	Q_OBJECT
 
 private:
-	QHash <QString,QString> create_read_bar_hash(QString indexfile,QString what)
+	QHash <QString,QByteArray> create_read_bar_hash(QString indexfile,QString what)
 	{
 		FastqFileStream indexstream(indexfile, false);
-		QHash <QString,QString> name2barcode;
+		QHash <QString,QByteArray> name2barcode;
 		while (!indexstream.atEnd())//foreach index read
 		{
 			FastqEntry read1;
@@ -268,10 +268,10 @@ private:
 		std::sort(dup_counts.begin(), dup_counts.end());
 
 		outStream <<endl<< "===amplicon counts distribution===" <<endl;
-		outStream << "duplicate counts" <<"\t" << "# of amplicons" <<endl;
+		outStream << "duplicate counts" <<"\t" << "# of amplicons" <<"\t" << "average quality" <<endl;
 		foreach(int dup_count, dup_counts)
 		{
-			outStream << dup_count <<"\t" << dup_count_histo[dup_count].group_count() << endl;
+			outStream << dup_count <<"\t" << dup_count_histo[dup_count].group_count() << "\t" << qRound(dup_count_histo[dup_count].avg_quality()) << endl;
 		}
 	}
 
@@ -367,30 +367,30 @@ private:
 		return cigar_ops_out;
 	}
 
-	reduced_singles reduceSingleReads(int allowed_edit_distance, const QHash <barcode_at_pos, QList<readPair> > &read_groups)
+	reduced_singles reduceSingleReads(int allowed_edit_distance, const QHash <barcode_at_pos, QList<readPair> > &barcode_at_pos2read_list)
 	{
 		QList <barcode_at_pos> lost_singles;
 
-		if (allowed_edit_distance<=0) return qMakePair(read_groups,lost_singles);
-		QHash <barcode_at_pos, QList<readPair> > read_groups_new=read_groups;
+		if (allowed_edit_distance<=0) return qMakePair(barcode_at_pos2read_list,lost_singles);
+		QHash <barcode_at_pos, QList<readPair> > new_barcode_at_pos2read_list=barcode_at_pos2read_list;
 		QHash <barcode_at_pos, QList<readPair> >::const_iterator i;
 
-		for (i = read_groups.begin(); i != read_groups.end(); ++i)
+		for (i = barcode_at_pos2read_list.begin(); i != barcode_at_pos2read_list.end(); ++i)
 		//iterate over old structure because elements on new structure might get deleted
 		{
-			if (read_groups_new[i.key()].count()==1) //check singlenessed in new structure because singles might already got matched by others
+			barcode_at_pos single_barcode_at_pos_i =i.key();
+			if (new_barcode_at_pos2read_list[single_barcode_at_pos_i].count()==1) //check singlenessed in new structure because singles might already got matched by others
 			{
-				barcode_at_pos single_key =i.key();
-				QList<readPair> single_value=i.value();
 				barcode_at_pos match;
 				bool is_match=false;
 				bool is_unambigious_match=true;
 				QHash <barcode_at_pos, QList<readPair> >::iterator j;
-				for (j = read_groups_new.begin(); j != read_groups_new.end(); ++j)
+				for (j = new_barcode_at_pos2read_list.begin(); j != new_barcode_at_pos2read_list.end(); ++j)
 				{
-					int edit_distance=get_edit_distance(j.key().barcode_sequence,single_key.barcode_sequence);
+					barcode_at_pos single_barcode_at_pos_j =j.key();
+					int edit_distance=get_edit_distance(single_barcode_at_pos_j.barcode_sequence,single_barcode_at_pos_i.barcode_sequence);
 					//if same position and similar enough (but not identical) barcode
-					if ((j.key().end_pos==single_key.end_pos)&&(j.key().start_pos==single_key.start_pos)&&(0<edit_distance)&&(edit_distance<=allowed_edit_distance))
+					if ((single_barcode_at_pos_j.end_pos==single_barcode_at_pos_i.end_pos)&&(single_barcode_at_pos_j.start_pos==single_barcode_at_pos_i.start_pos)&&(0<edit_distance)&&(edit_distance<=allowed_edit_distance))
 					{
 						if(is_match)//if second match
 						{
@@ -399,7 +399,7 @@ private:
 						}
 						else
 						{
-							match=j.key();
+							match=single_barcode_at_pos_j;
 							is_match=true;
 						}
 					}
@@ -413,14 +413,15 @@ private:
 						//check that match is not itself an ambigious single barcode
 						bool is_match2=false;
 						bool is_unambigious_match2=true;
-						if (read_groups_new[match].count()==1)
+						if (new_barcode_at_pos2read_list[match].count()==1)
 						{
-							QHash <barcode_at_pos, QList<readPair> >::iterator j;
-							for (j = read_groups_new.begin(); j != read_groups_new.end(); ++j)
+							QHash <barcode_at_pos, QList<readPair> >::iterator k;
+							for (k = new_barcode_at_pos2read_list.begin(); k != new_barcode_at_pos2read_list.end(); ++k)
 							{
-								int edit_distance=get_edit_distance(j.key().barcode_sequence,match.barcode_sequence);
+								barcode_at_pos single_barcode_at_pos_k =k.key();
+								int edit_distance=get_edit_distance(single_barcode_at_pos_k.barcode_sequence,match.barcode_sequence);
 								//if same position and similar enough (but not identical) barcode
-								if ((j.key().end_pos==match.end_pos)&&(j.key().start_pos==match.start_pos)&&(0<edit_distance)&&(edit_distance<=allowed_edit_distance))
+								if ((single_barcode_at_pos_k.end_pos==match.end_pos)&&(single_barcode_at_pos_k.start_pos==match.start_pos)&&(0<edit_distance)&&(edit_distance<=allowed_edit_distance))
 								{
 									if(is_match2)//if second match
 									{
@@ -434,22 +435,33 @@ private:
 
 						if (is_unambigious_match2)
 						{
+							//unfortunately, keys cannot be modified, so...
+
+							//save read pairs of match
+							QList<readPair> read_pairs_of_match=new_barcode_at_pos2read_list[match];
+							//remove old entry of match
+							new_barcode_at_pos2read_list.remove(match);
+							//sum up qualities
+							//match.barcode_sum_quality+=single_barcode_at_pos_i.barcode_sum_quality;
+							//re-add match
+							new_barcode_at_pos2read_list[match]=read_pairs_of_match;
+
 							//add the single read to match
-							read_groups_new[match].append(i.value());
+							new_barcode_at_pos2read_list[match].append(i.value());
 							//remove old entry of single
-							read_groups_new.remove(single_key);
+							new_barcode_at_pos2read_list.remove(single_barcode_at_pos_i);
 						}
 					}
 					else
 					{
-						lost_singles.append(single_key);
-						read_groups_new.remove(single_key);
+						lost_singles.append(single_barcode_at_pos_i);
+						new_barcode_at_pos2read_list.remove(single_barcode_at_pos_i);
 					}
 				}
 			}
 		}
 
-		return qMakePair(read_groups_new,lost_singles);
+		return qMakePair(new_barcode_at_pos2read_list,lost_singles);
 	}
 
 	most_frequent_read_selection findHighestFreqRead(QList <readPair> readpairs)
@@ -560,35 +572,37 @@ private:
 		writer.SaveAlignment(read_pair.second);
 	}
 
-	void storeReadCountsMip(QMap <Position,mip_info>  &mip_info_map, QHash <int,BarcodeCountInfo> &dup_count_histo, Position act_position, int dup_count)
+	void storeReadCountsMip(QMap <Position,mip_info>  &mip_info_map, QHash <int,BarcodeCountInfo> &dup_count_histo, Position act_position, int dup_count, float quality_sum)
 	{
 		mip_info_map[act_position].counter_unique++;
 		if (dup_count==1) mip_info_map[act_position].counter_singles++;
 		mip_info_map[act_position].counter_all+=dup_count;
 		if (dup_count_histo.contains(dup_count))
 		{
-			dup_count_histo[dup_count].add_read_group(1.0);
+			dup_count_histo[dup_count].add(quality_sum);
 		}
 		else
 		{
-			dup_count_histo[dup_count]=BarcodeCountInfo(500.0);
+			dup_count_histo[dup_count]=BarcodeCountInfo(quality_sum);
 		}
 	}
 
-	void storeReadCountsHs(QMap <Position,hs_info>  &hs_info_map, QHash <int,BarcodeCountInfo> &dup_count_histo, Position act_position, int dup_count)
+	void storeReadCountsHs(QMap <Position,hs_info>  &hs_info_map, QHash <int,BarcodeCountInfo> &dup_count_histo, Position act_position, int dup_count, float quality_sum)
 	{
 		hs_info_map[act_position].counter_unique++;
 		if (dup_count==1) hs_info_map[act_position].counter_singles++;
 		hs_info_map[act_position].counter_all+=dup_count;
 		if (dup_count_histo.contains(dup_count))
 		{
-			dup_count_histo[dup_count].add_read_group(1.0);
+			dup_count_histo[dup_count].add(quality_sum);
 		}
 		else
 		{
-			dup_count_histo[dup_count]=BarcodeCountInfo(0.0);
+			dup_count_histo[dup_count]=BarcodeCountInfo(quality_sum);
 		}
 	}
+
+
 
 	int newLostSinglesCounts(QList <barcode_at_pos> lost_singles,const QMap <Position,mip_info> &mip_info_map,const QMap <Position,hs_info> &hs_info_map, int last_ref)
 	{
@@ -604,13 +618,25 @@ private:
 		return lost_single_counts;
 	}
 
-	void addReadPair( const QHash <QString,QString> &read_headers2barcodes, QHash <barcode_at_pos, QList<readPair> > &read_groups, readPair read_pair)
+	float calculate_average_qual(QByteArray quality_string)
 	{
-		barcode_at_pos act_group;
-		act_group.barcode_sequence= read_headers2barcodes["@"+QString::fromStdString(read_pair.first.Name)];
-		act_group.start_pos= qMin(read_pair.first.Position,read_pair.second.Position);
-		act_group.end_pos= qMax(read_pair.first.GetEndPosition(),read_pair.second.GetEndPosition());
-		read_groups[act_group].append(read_pair);
+		float sum=0;
+		foreach(char coded_score,quality_string)
+		{
+			sum+=(float)coded_score-33.0;
+		}
+		return (sum/quality_string.size());
+	}
+
+	void addReadPair( const QHash <QString,QByteArray> &read_names2barcode_seqs, const QHash <QString,QByteArray> &read_names2barcode_quals ,QHash <barcode_at_pos, QList<readPair> > &barcode_at_pos2read_list, readPair read_pair)
+	{
+		barcode_at_pos new_barcode_at_pos;
+		QString read_name="@"+QString::fromStdString(read_pair.first.Name);
+		new_barcode_at_pos.barcode_sequence= read_names2barcode_seqs[read_name];
+		new_barcode_at_pos.barcode_sum_quality+=calculate_average_qual(read_names2barcode_quals[read_name]);
+		new_barcode_at_pos.start_pos= qMin(read_pair.first.Position,read_pair.second.Position);
+		new_barcode_at_pos.end_pos= qMax(read_pair.first.GetEndPosition(),read_pair.second.GetEndPosition());
+		barcode_at_pos2read_list[new_barcode_at_pos].append(read_pair);
 	}
 
 public:
@@ -639,8 +665,8 @@ public:
 	virtual void main()
 	{
 		//init: parse input parameters
-		QHash <QString,QString> read_names2barcode_seqs=create_read_bar_hash(getInfile("index"),"sequence");//hash read names => index barcode sequence
-		QHash <QString,QString> read_names2barcode_quals=create_read_bar_hash(getInfile("index"),"quality");//hash read names => index barcode quality
+		QHash <QString,QByteArray> read_names2barcode_seqs=create_read_bar_hash(getInfile("index"),"sequence");//hash read names => index barcode sequence
+		QHash <QString,QByteArray> read_names2barcode_quals=create_read_bar_hash(getInfile("index"),"quality");//hash read names => index barcode quality
 		QString stats_out_name=getOutfile("stats");
 		QString nomatch_out_name=getOutfile("nomatch_out");
 		QString duplicate_out_name=getOutfile("duplicate_out");
@@ -651,7 +677,7 @@ public:
 		bool test =getFlag("test");
 
 		//init: setup remaining variables
-		QHash <barcode_at_pos, QList<readPair> > barcode_at_pos2read_list; //hash (index barcode + position) => list of reads with that index aligned to that position
+		QHash <barcode_at_pos, QList<readPair> > barcode_at_pos2read_list; //hash (index barcode seq + qual + position) => list of reads with that index aligned to that position
 		QHash <int,BarcodeCountInfo> dup_count_histo; //hash int # => (number of groups (by barcode and position) with exactly # reads + average quality of barcode)
 
 		QMap <Position,mip_info> position2mip_info; //hash chromosomal position of mip => mip name, read counts, position of ext and lig arm
@@ -704,7 +730,7 @@ public:
 			if((alignment_map.contains(QString::fromStdString(current_alignment.Name))))//if paired end and mate has been seen already
 			{
 					readPair act_read_pair(current_alignment,alignment_map.take(QString::fromStdString(current_alignment.Name)));
-					addReadPair(read_names2barcode_seqs, barcode_at_pos2read_list, act_read_pair);
+					addReadPair(read_names2barcode_seqs, read_names2barcode_quals, barcode_at_pos2read_list, act_read_pair);
 			}
 			else//if paired end and mate has not been seen yet
 			{
@@ -746,7 +772,7 @@ public:
 						{
 							if (position2mip_info.contains(act_position)&&(read_count>=minimal_group_size))
 							{
-								storeReadCountsMip(position2mip_info, dup_count_histo, act_position, read_count);
+								storeReadCountsMip(position2mip_info, dup_count_histo, act_position, read_count, barcode_and_pos.barcode_sum_quality);
 								most_frequent_read_selection read_selection = cutAndSelectPair(read_list,position2mip_info[act_position].left_arm,position2mip_info[act_position].right_arm);
 								writePairToBam(writer, read_selection.most_freq_read);
 								writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,barcode_and_pos.barcode_sequence,test);
@@ -761,7 +787,7 @@ public:
 						{
 							if (position2hs_info.contains(act_position)&&(read_count>=minimal_group_size))//select and count reads that can be matched to haloplex hs barcodes
 							{
-								storeReadCountsHs(position2hs_info, dup_count_histo, act_position, read_count);
+								storeReadCountsHs(position2hs_info, dup_count_histo, act_position, read_count, barcode_and_pos.barcode_sum_quality);
 								most_frequent_read_selection read_selection = findHighestFreqRead(read_list);
 								writePairToBam(writer, read_selection.most_freq_read);
 								writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,barcode_and_pos.barcode_sequence,test);
@@ -809,7 +835,7 @@ public:
 			{
 				if (position2mip_info.contains(act_position)&&(read_count>=minimal_group_size))//trim and count reads that can be matched to mips
 				{
-					storeReadCountsMip(position2mip_info, dup_count_histo, act_position, read_list.count());
+					storeReadCountsMip(position2mip_info, dup_count_histo, act_position, read_list.count(),barcode_and_pos.barcode_sum_quality);
 					most_frequent_read_selection read_selection = cutAndSelectPair(read_list,position2mip_info[act_position].left_arm,position2mip_info[act_position].right_arm);
 					writePairToBam(writer, read_selection.most_freq_read);
 					writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,barcode_and_pos.barcode_sequence,test);
@@ -823,7 +849,7 @@ public:
 			{
 				if (position2hs_info.contains(act_position)&&(read_count>=minimal_group_size))//trim, select and count reads that can be matched to mips
 				{
-					storeReadCountsHs(position2hs_info, dup_count_histo, act_position, read_list.count());
+					storeReadCountsHs(position2hs_info, dup_count_histo, act_position, read_list.count(), barcode_and_pos.barcode_sum_quality);
 					most_frequent_read_selection read_selection = findHighestFreqRead(read_list);
 					writePairToBam(writer, read_selection.most_freq_read);
 					writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,barcode_and_pos.barcode_sequence,test);
