@@ -88,11 +88,11 @@ chr 	start	end	Amplicon name	count
 1	152059883	1520600741	AM_930325_000099	0	0	0
 
 ===amplicon counts distribution===
-duplicate counts	# of amplicons
-10	10
-11	5
-12	10
-13	3
-14	1
+duplicate counts	# of amplicons	average quality
+10	10	36
+11	5	36
+12	10	36
+13	3	37
+14	1	34
 
 21 read(s) were deleted in target region because of ambiguity of single matching
