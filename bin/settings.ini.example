@@ -22,19 +22,11 @@ ngsd_test_name = ""
 ngsd_test_user = ""
 ngsd_test_pass = ""
 
-#GPD MySQL credentials
-gpd_host = ""
-gpd_port = 3306
-gpd_name = ""
-gpd_user = ""
-gpd_pass = ""
-
 #projects folder
 projects_folder = ""
 
 #webservice URLs
 NGSD = ""
-GPD = ""
 SampleStatus = ""
 PrimerDesign = ""
 

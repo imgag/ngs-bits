@@ -19,6 +19,7 @@ libs:
 - cppNGSD: add test project
 
 GSvar:
+* Display inheritance mode in variant details (NGSD enabled?)
 - Overview gene lists (missing genotype): treat all variants as homozygous?
 
 Tools:

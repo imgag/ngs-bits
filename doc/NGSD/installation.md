@@ -103,6 +103,13 @@ The initial setup of the database tables is done using one of the ngs-bits tools
 	
 		> php php/src/NGS/db_update_qcml.php
 
+* Finally, gene information from several databases must be imported.  
+  Proceed accoding to the instructions of the following tools in the listed order:
+	
+		> bin/NGSDImportHGNC --help
+		> bin/NGSDImportUCSC --help
+		> bin/NGSDImportHPO --help
+
 ##(4) Setup of the NGSD web frontend
 
 The NGSD web frontend is that main GUI for the NGSD. It runs on a apache server.
@@ -189,6 +196,7 @@ For more information on GSvar, open the help within GSvar (F1) or use this [link
 ##Next steps
 
 Now you can run your first data analysis based on these [instructions](running_an_analysis.md).
+
 
 
 
