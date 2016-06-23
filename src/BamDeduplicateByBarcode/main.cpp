@@ -639,6 +639,43 @@ private:
 		barcode_at_pos2read_list[new_barcode_at_pos].append(read_pair);
 	}
 
+	void outputMip(QMap <Position,mip_info>  &position2mip_info, QHash <int,BarcodeCountInfo> &dup_count_histo, Position act_position, int read_count, int minimal_group_size, barcode_at_pos barcode_and_pos, QList <readPair> read_list, BamTools::BamWriter &writer, QTextStream &duplicate_out_stream, QTextStream &nomatch_out_stream,  bool test)
+	{
+		if (position2mip_info.contains(act_position)&&(read_count>=minimal_group_size))
+		{
+			storeReadCountsMip(position2mip_info, dup_count_histo, act_position, read_count, barcode_and_pos.barcode_sum_quality);
+			most_frequent_read_selection read_selection = cutAndSelectPair(read_list,position2mip_info[act_position].left_arm,position2mip_info[act_position].right_arm);
+			writePairToBam(writer, read_selection.most_freq_read);
+			writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,barcode_and_pos.barcode_sequence,test);
+		}
+		else//write reads not matching a mip to a bed file
+		{
+			writeReadsToBed(nomatch_out_stream,act_position,read_list,barcode_and_pos.barcode_sequence,test);
+		}
+	}
+
+	void outputHS(QMap <Position,hs_info>  &position2hs_info, QHash <int,BarcodeCountInfo> &dup_count_histo, Position act_position, int read_count, int minimal_group_size, barcode_at_pos barcode_and_pos, QList <readPair> read_list, BamTools::BamWriter &writer, QTextStream &duplicate_out_stream, QTextStream &nomatch_out_stream,  bool test)
+	{
+		if (position2hs_info.contains(act_position)&&(read_count>=minimal_group_size))//select and count reads that can be matched to haloplex hs barcodes
+		{
+			storeReadCountsHs(position2hs_info, dup_count_histo, act_position, read_count, barcode_and_pos.barcode_sum_quality);
+			most_frequent_read_selection read_selection = findHighestFreqRead(read_list);
+			writePairToBam(writer, read_selection.most_freq_read);
+			writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,barcode_and_pos.barcode_sequence,test);
+		}
+		else//write reads not matching a mip to a bed file
+		{
+			writeReadsToBed(nomatch_out_stream,act_position,read_list,barcode_and_pos.barcode_sequence,test);
+		}
+	}
+
+	void outputUnknown(Position act_position, barcode_at_pos barcode_and_pos, QList <readPair> read_list, BamTools::BamWriter &writer, QTextStream &duplicate_out_stream, bool test)
+	{
+		most_frequent_read_selection read_selection = findHighestFreqRead(read_list);
+		writePairToBam(writer, read_selection.most_freq_read);
+		writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,barcode_and_pos.barcode_sequence,test);
+	}
+
 public:
 	ConcreteTool(int& argc, char *argv[])
 		: ToolBase(argc, argv)
@@ -770,38 +807,15 @@ public:
 						Position act_position(barcode_and_pos.start_pos,barcode_and_pos.end_pos,last_ref);
 						if (mip_file!="")
 						{
-							if (position2mip_info.contains(act_position)&&(read_count>=minimal_group_size))
-							{
-								storeReadCountsMip(position2mip_info, dup_count_histo, act_position, read_count, barcode_and_pos.barcode_sum_quality);
-								most_frequent_read_selection read_selection = cutAndSelectPair(read_list,position2mip_info[act_position].left_arm,position2mip_info[act_position].right_arm);
-								writePairToBam(writer, read_selection.most_freq_read);
-								writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,barcode_and_pos.barcode_sequence,test);
-							}
-							else//write reads not matching a mip to a bed file
-							{
-								writeReadsToBed(nomatch_out_stream,act_position,read_list,barcode_and_pos.barcode_sequence,test);
-							}
-
+							outputMip(position2mip_info, dup_count_histo, act_position, read_count, minimal_group_size, barcode_and_pos, read_list, writer, duplicate_out_stream, nomatch_out_stream, test);
 						}
 						else if (hs_file!="")
 						{
-							if (position2hs_info.contains(act_position)&&(read_count>=minimal_group_size))//select and count reads that can be matched to haloplex hs barcodes
-							{
-								storeReadCountsHs(position2hs_info, dup_count_histo, act_position, read_count, barcode_and_pos.barcode_sum_quality);
-								most_frequent_read_selection read_selection = findHighestFreqRead(read_list);
-								writePairToBam(writer, read_selection.most_freq_read);
-								writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,barcode_and_pos.barcode_sequence,test);
-							}
-							else//write reads not matching a mip to a bed file
-							{
-								writeReadsToBed(nomatch_out_stream,act_position,read_list,barcode_and_pos.barcode_sequence,test);
-							}
+							outputHS(position2hs_info, dup_count_histo, act_position, read_count, minimal_group_size, barcode_and_pos, read_list, writer, duplicate_out_stream, nomatch_out_stream, test);
 						}
 						else
-						{
-							most_frequent_read_selection read_selection = findHighestFreqRead(read_list);
-							writePairToBam(writer, read_selection.most_freq_read);
-							writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,barcode_and_pos.barcode_sequence,test);
+						{					
+							outputUnknown(act_position, barcode_and_pos, read_list, writer, duplicate_out_stream, test);
 						}
 					}
 					else
@@ -812,8 +826,6 @@ public:
 				barcode_at_pos2read_list=new_barcode_at_pos2read_list;
 				chrom_change = false;
 			}
-
-
 		}
 
 		//write remaining pairs
@@ -833,37 +845,15 @@ public:
 			Position act_position(barcode_and_pos.start_pos,barcode_and_pos.end_pos,last_ref);
 			if (mip_file!="")
 			{
-				if (position2mip_info.contains(act_position)&&(read_count>=minimal_group_size))//trim and count reads that can be matched to mips
-				{
-					storeReadCountsMip(position2mip_info, dup_count_histo, act_position, read_list.count(),barcode_and_pos.barcode_sum_quality);
-					most_frequent_read_selection read_selection = cutAndSelectPair(read_list,position2mip_info[act_position].left_arm,position2mip_info[act_position].right_arm);
-					writePairToBam(writer, read_selection.most_freq_read);
-					writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,barcode_and_pos.barcode_sequence,test);
-				}
-				else//write reads not matching a mip to a bed file
-				{
-					writeReadsToBed(nomatch_out_stream,act_position,read_list,barcode_and_pos.barcode_sequence,test);
-				}
+				outputMip(position2mip_info, dup_count_histo, act_position, read_count, minimal_group_size, barcode_and_pos, read_list, writer, duplicate_out_stream, nomatch_out_stream, test);
 			}
 			else if (hs_file!="")
 			{
-				if (position2hs_info.contains(act_position)&&(read_count>=minimal_group_size))//trim, select and count reads that can be matched to mips
-				{
-					storeReadCountsHs(position2hs_info, dup_count_histo, act_position, read_list.count(), barcode_and_pos.barcode_sum_quality);
-					most_frequent_read_selection read_selection = findHighestFreqRead(read_list);
-					writePairToBam(writer, read_selection.most_freq_read);
-					writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,barcode_and_pos.barcode_sequence,test);
-				}
-				else//write reads not matching a mip to a bed file
-				{
-					writeReadsToBed(nomatch_out_stream,act_position,read_list,barcode_and_pos.barcode_sequence,test);
-				}
+				outputHS(position2hs_info, dup_count_histo, act_position, read_count, minimal_group_size, barcode_and_pos, read_list, writer, duplicate_out_stream, nomatch_out_stream, test);
 			}
 			else
 			{
-				most_frequent_read_selection read_selection = findHighestFreqRead(read_list);
-				writePairToBam(writer, read_selection.most_freq_read);
-				writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,barcode_and_pos.barcode_sequence,test);
+				outputUnknown(act_position, barcode_and_pos, read_list, writer, duplicate_out_stream, test);
 			}
 		}
 
