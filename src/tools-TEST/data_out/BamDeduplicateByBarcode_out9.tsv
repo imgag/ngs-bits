@@ -1,5 +1,5 @@
 chr 	start	end	Amplicon name	count
-1	78577956	78578193	AM_930325_000001	120	882	0
+1	78577956	78578193	AM_930325_000001	127	903	7
 1	78578102	78578263	AM_930325_000003	0	0	0
 1	78578103	78578264	AM_930325_000004	0	0	0
 1	78578125	78578324	AM_930325_000005	0	0	0
@@ -88,19 +88,20 @@ chr 	start	end	Amplicon name	count
 1	152059883	1520600741	AM_930325_000099	0	0	0
 
 ===amplicon counts distribution===
-duplicate counts	# of amplicons
-2	7
-3	7
-4	8
-5	10
-6	17
-7	15
-8	13
-9	14
-10	10
-11	5
-12	10
-13	3
-14	1
+duplicate counts	# of amplicons	average quality
+1	7	32
+2	6	37
+3	8	36
+4	8	36
+5	10	36
+6	15	34
+7	17	35
+8	10	36
+9	12	35
+10	14	36
+11	4	36
+12	12	36
+13	3	37
+14	1	34
 
-21 read(s) were deleted in target region because of ambiguity of single matching
+0 read(s) were deleted in target region because of ambiguity of single matching

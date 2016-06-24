@@ -1343,7 +1343,7 @@ chr 	start	end	MIP name	count
 22	24176310	24176430	SMARCB1_0871	0	0	0
 
 ===amplicon counts distribution===
-duplicate counts	# of amplicons
-2	11
+duplicate counts	# of amplicons	average quality
+2	11	35
 
 0 read(s) were deleted in target region because of ambiguity of single matching
