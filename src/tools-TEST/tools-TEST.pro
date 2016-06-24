@@ -85,6 +85,7 @@ HEADERS += \
     FastqExtractBarcode_Test.h \
     BamToFastq_Test.h \
     VariantFilterAnnotations_Test.h \
+    VcfLeftNormalize_Test.h \
 
 SOURCES += \
     main.cpp \

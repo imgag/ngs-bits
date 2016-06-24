@@ -128,7 +128,7 @@ Install like that:
 
 * Now we need to configure the NGSD:
 
-  Copy the `DB/.htaccess.example` to `.htaccess`.
+  Copy the `DB/.htaccess.example` to `DB/.htaccess`.
 
   Copy the `DB/settings.ini.example` to `DB/settings.ini`.
 
@@ -196,6 +196,7 @@ For more information on GSvar, open the help within GSvar (F1) or use this [link
 ##Next steps
 
 Now you can run your first data analysis based on these [instructions](running_an_analysis.md).
+
 
 
 

@@ -273,6 +273,10 @@ SUBDIRS += VariantFilterAnnotations
 tools-TEST.depends += VariantFilterAnnotations
 VariantFilterAnnotations.depends = cppNGS
 
+SUBDIRS += VcfLeftNormalize
+tools-TEST.depends += VcfLeftNormalize
+VcfLeftNormalize.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt
 
