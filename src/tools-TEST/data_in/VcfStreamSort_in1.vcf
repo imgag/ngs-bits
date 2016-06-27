@@ -11,3 +11,5 @@ chr2	12	.	G	A	255	.	CO=08
 chr2	11	.	G	A	255	.	CO=09
 chr2	14	.	G	A	255	.	CO=10
 chr2	13	.	G	A	255	.	CO=11
+chr2	14	.	G	T	255	.	CO=12
+chr2	14	.	G	C	255	.	CO=13

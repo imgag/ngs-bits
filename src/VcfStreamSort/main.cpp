@@ -94,7 +94,7 @@ public:
 			}
 
 			//insert line
-			lines.insert(pos, line);
+			lines.insertMulti(pos, line);
 
 			//write overflow lines
 			if (lines.count()>n)
