@@ -1,0 +1,13 @@
+##fileformat=VCFv4.1
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+chr1	1	.	G	A	255	.	CO=01
+chr1	2	.	G	A	255	.	CO=02
+chr1	6	.	G	A	255	.	CO=03
+chr1	4	.	G	A	255	.	CO=04
+chr2	3	.	G	A	255	.	CO=05
+chr2	10	.	G	A	255	.	CO=06
+chr2	5	.	G	A	255	.	CO=07
+chr2	12	.	G	A	255	.	CO=08
+chr2	11	.	G	A	255	.	CO=09
+chr2	14	.	G	A	255	.	CO=10
+chr2	13	.	G	A	255	.	CO=11

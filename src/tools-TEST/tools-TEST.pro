@@ -86,6 +86,7 @@ HEADERS += \
     BamToFastq_Test.h \
     VariantFilterAnnotations_Test.h \
     VcfLeftNormalize_Test.h \
+    VcfStreamSort_Test.h \
 
 SOURCES += \
     main.cpp \

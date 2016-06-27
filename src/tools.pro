@@ -277,6 +277,10 @@ SUBDIRS += VcfLeftNormalize
 tools-TEST.depends += VcfLeftNormalize
 VcfLeftNormalize.depends = cppNGS
 
+SUBDIRS += VcfStreamSort
+tools-TEST.depends += VcfStreamSort
+VcfStreamSort.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt
 
