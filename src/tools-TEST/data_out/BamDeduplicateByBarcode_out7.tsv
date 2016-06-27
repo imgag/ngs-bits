@@ -88,20 +88,20 @@ chr 	start	end	Amplicon name	count
 1	152059883	1520600741	AM_930325_000099	0	0	0
 
 ===amplicon counts distribution===
-duplicate counts	# of amplicons	average quality
-1	21	27
-2	7	37
-3	7	36
-4	8	36
-5	10	36
-6	17	35
-7	15	35
-8	13	35
-9	14	36
-10	10	36
-11	5	36
-12	10	36
-13	3	37
-14	1	34
+duplicate counts	# of barcodes	percentage of barcodes	percentage of reads	average quality
+1	21	14.89	2.33	27
+2	7	4.96	1.55	37
+3	7	4.96	2.33	36
+4	8	5.67	3.54	36
+5	10	7.09	5.54	36
+6	17	12.06	11.30	35
+7	15	10.64	11.63	35
+8	13	9.22	11.52	35
+9	14	9.93	13.95	36
+10	10	7.09	11.07	36
+11	5	3.55	6.09	36
+12	10	7.09	13.29	36
+13	3	2.13	4.32	37
+14	1	0.71	1.55	34
 
 0 read(s) were deleted in target region because of ambiguity of single matching

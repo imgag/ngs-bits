@@ -266,12 +266,21 @@ private:
 	{
 		QList <int> dup_counts =dup_count_histo.keys();
 		std::sort(dup_counts.begin(), dup_counts.end());
+		int reads_total=0;
+		int barcodes_total=0;
 
 		outStream <<endl<< "===amplicon counts distribution===" <<endl;
-		outStream << "duplicate counts" <<"\t" << "# of amplicons" <<"\t" << "average quality" <<endl;
+		outStream << "duplicate counts" <<"\t" << "# of barcodes" <<"\t" << "percentage of barcodes" <<"\t" << "percentage of reads" <<"\t" <<"average quality" <<endl;
 		foreach(int dup_count, dup_counts)
 		{
-			outStream << dup_count <<"\t" << dup_count_histo[dup_count].group_count() << "\t" << qRound(dup_count_histo[dup_count].avg_quality()) << endl;
+			barcodes_total+=dup_count_histo[dup_count].group_count();
+			reads_total+=dup_count_histo[dup_count].group_count()*dup_count;
+		}
+		foreach(int dup_count, dup_counts)
+		{
+			QString barcodes_percentage=QString::number(dup_count_histo[dup_count].group_count()*100.0/barcodes_total, 'f', 2);
+			QString reads_percentage=QString::number(dup_count_histo[dup_count].group_count()*dup_count*100.0/reads_total, 'f', 2);
+			outStream << dup_count <<"\t" << dup_count_histo[dup_count].group_count() << "\t"<<barcodes_percentage<< "\t" <<reads_percentage<< "\t" << qRound(dup_count_histo[dup_count].avg_quality())<< endl;
 		}
 	}
 
@@ -601,8 +610,6 @@ private:
 			dup_count_histo[dup_count]=BarcodeCountInfo(quality_sum);
 		}
 	}
-
-
 
 	int newLostSinglesCounts(QList <barcode_at_pos> lost_singles,const QMap <Position,mip_info> &mip_info_map,const QMap <Position,hs_info> &hs_info_map, int last_ref)
 	{
