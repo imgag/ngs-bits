@@ -106,8 +106,11 @@ _ngs-bits_ contains a lot of tools that we use for NGS short-read data analysis 
 ### VCF tools
 
 * [VariantFilterRegions](doc/tools/VariantFilterRegions.md) - Filter a variant list based on a target region.
-* [VcfLeftAlign](doc/tools/VcfLeftAlign.md) - Left-aligns indel variants in repeat regions.
+* [VcfLeftNormalize](doc/tools/VcfLeftNormalize.md) - Normalizes all variants and shifts indels to the left in a VCF file.
 * [VcfSort](doc/tools/VcfSort.md) - Sorts variant lists according to chromosomal position.
+* [VcfStreamSort](doc/tools/VcfStreamSort.md) - Sorts entries of a VCF file according to genomic position using a stream.
+
+
   
 
 

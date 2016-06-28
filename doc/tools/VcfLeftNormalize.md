@@ -1,13 +1,13 @@
-### VcfLeftAlign tool help
-	VcfLeftAlign (0.1-222-g9be2128)
+### VcfLeftNormalize tool help
+	VcfLeftNormalize (0.1-362-g5c5e975)
 	
-	Shifts indels in a variant list as far to the left as possible. Complex indels and multi-allelic deletions are not shifted!
-	
-	Mandatory parameters:
-	  -in <file>   Input variant list.
-	  -out <file>  Output variant list.
+	Normalizes all variants and shifts indels to the left in a VCF file. Multi-allelic and complex variant are not changed!
 	
 	Optional parameters:
+	  -in <file>   Input VCF file. If unset, reads from STDIN.
+	               Default value: ''
+	  -out <file>  Output VCF list. If unset, writes to STDOUT.
+	               Default value: ''
 	  -ref <file>  Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.
 	               Default value: ''
 	
@@ -17,7 +17,8 @@
 	  --changelog  Prints changeloge and exits.
 	  --tdx        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
-### VcfLeftAlign changelog
-	VcfLeftAlign 0.1-222-g9be2128
+### VcfLeftNormalize changelog
+	VcfLeftNormalize 0.1-362-g5c5e975
 	
+	2016-06-24 Initial implementation.
 [back to ngs-bits](https://github.com/marc-sturm/ngs-bits)
