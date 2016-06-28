@@ -40,8 +40,14 @@ public:
 		QSet<QByteArray> chr_done;
 
 		//open input/output streams
-		QSharedPointer<QFile> in_p = Helper::openFileForReading(getInfile("in"), true);
-		QSharedPointer<QFile> out_p = Helper::openFileForWriting(getOutfile("out"), true);
+		QString in = getInfile("in");
+		QString out = getOutfile("out");
+		if(in!="" && in==out)
+		{
+			THROW(ArgumentException, "Input and output files must be different!");
+		}
+		QSharedPointer<QFile> in_p = Helper::openFileForReading(in, true);
+		QSharedPointer<QFile> out_p = Helper::openFileForWriting(out, true);
 
 		while(!in_p->atEnd())
 		{
