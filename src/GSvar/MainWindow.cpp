@@ -185,6 +185,24 @@ void MainWindow::on_actionOpen_triggered()
 	loadFile(filename);
 }
 
+void MainWindow::on_actionOpenNGSD_triggered()
+{
+	//get processed sample name
+	QString ps_name = QInputDialog::getText(this, "Open processed sample from NGSD", "processed sample name:");
+	if (ps_name=="") return;
+
+	//convert name to file
+	try
+	{
+		QString file = NGSD().processedSamplePath(ps_name, NGSD::GSVAR);
+		loadFile(file);
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, "Open processed sample from NGSD", e.message());
+	}
+}
+
 void MainWindow::on_actionChangeLog_triggered()
 {
 	ScrollableTextDialog dlg(this);
@@ -1752,6 +1770,7 @@ void MainWindow::updateNGSDSupport()
 	ui_.actionGapsRecalculate->setEnabled(ngsd_enabled);
 
 	//tools menu
+	ui_.actionOpenNGSD->setEnabled(ngsd_enabled);
 	ui_.actionGeneInfo->setEnabled(ngsd_enabled);
 	ui_.actionGenesToRegions->setEnabled(ngsd_enabled);
 	ui_.actionPhenoToGenes->setEnabled(ngsd_enabled);

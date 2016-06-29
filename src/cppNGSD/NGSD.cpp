@@ -144,6 +144,50 @@ QString NGSD::processedSampleId(const QString& filename, bool throw_if_fails)
 	return query.value(0).toString();
 }
 
+QString NGSD::processedSamplePath(const QString& filename, PathType type, bool throw_if_fails)
+{
+	QString ps_id = processedSampleId(filename, throw_if_fails);
+	if (ps_id=="") return "";
+
+	SqlQuery query = getQuery();
+	query.prepare("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), p.type, p.name FROM processed_sample ps, sample s, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id AND ps.id=:id");
+	query.bindValue(":id", ps_id);
+	query.exec();
+	if (query.size()==0)
+	{
+		if (throw_if_fails)
+		{
+			THROW(DatabaseException, "Processed sample with id '" + ps_id + "' not found in NGSD!");
+		}
+		else
+		{
+			return "";
+		}
+	}
+	query.next();
+
+	//create sample folder
+	QString output = Settings::string("projects_folder") + "/";
+	QString p_type = query.value(1).toString();
+	if (p_type=="diagnostic") output += "gs_diag";
+	else if (p_type=="research") output += "gs";
+	else if (p_type=="test") output += "gs_test";
+	else if (p_type=="extern") output += "gs_ext";
+	else THROW(ProgrammingException, "Unknown project type '" + p_type + "'!");
+	QString p_name = query.value(2).toString();
+	output += "/" + p_name + "/";
+	QString ps_name = query.value(0).toString();
+	output += "Sample_" + ps_name + "/";
+
+	//append file name if requested
+	if (type==BAM) output += ps_name + ".bam";
+	else if (type==GSVAR) output += ps_name + ".GSvar";
+	else if (type==VCF) output += ps_name + "_var_annotated.vcf.gz";
+	else if (type!=FOLDER) THROW(ProgrammingException, "Unknown PathType '" + QString::number(type) + "'!");
+
+	return output;
+}
+
 QString NGSD::variantId(const Variant& variant, bool throw_if_fails)
 {
 	SqlQuery query = getQuery(); //use binding user input (safety)

@@ -57,6 +57,8 @@ public:
 public slots:
 	///Open dialog
 	void on_actionOpen_triggered();
+	///Open dialog for NGSD
+	void on_actionOpenNGSD_triggered();
 	///ChangeLog action
 	void on_actionChangeLog_triggered();
 	///About dialog

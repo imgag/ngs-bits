@@ -104,8 +104,11 @@ public:
 	static QString processedSampleName(const QString& filename, bool throw_if_fails = true);
 	///Returns the NGSD sample ID file name. Throws an exception if it could not be determined.
 	QString sampleId(const QString& filename, bool throw_if_fails = true);
-	///Returns the NGSD processed sample ID for a file name. Throws an exception if it could not be determined.
+	///Returns the NGSD processed sample ID from a file name or processed sample name. Throws an exception if it could not be determined.
 	QString processedSampleId(const QString& filename, bool throw_if_fails = true);
+	///Returns the default folder for a processed sample from file name or processed sample name. Throws an exception if it could not be determined.
+	enum PathType {FOLDER, BAM, GSVAR, VCF};
+	QString processedSamplePath(const QString& filename, PathType type, bool throw_if_fails = true);
 	///Returns the NGSD ID for a variant. Returns '-1' or throws an exception if the ID cannot be determined.
 	QString variantId(const Variant& variant, bool throw_if_fails = true);
 	///Returns the ID of the current user as a string. Throws an exception if the user is not in the NGSD user table.

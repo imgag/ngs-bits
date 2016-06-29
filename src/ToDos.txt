@@ -24,6 +24,7 @@ GSvar:
 - Overview gene lists (missing genotype): treat all variants as homozygous?
 
 Tools:
+* Check input/output file different for streaming tools
 - VariantFilterRegions, etc: Set input file format by command line argument => allow reading variant lists from stdin
 - MappingQC:
   - add %soft/hard-clipped quality parameter (see ssPWBRCA_v2)
