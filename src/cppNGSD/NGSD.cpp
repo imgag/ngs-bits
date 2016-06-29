@@ -1025,17 +1025,17 @@ QPair<QByteArray, QByteArray> NGSD::geneToApproved(const QByteArray& gene)
 
 QStringList NGSD::previousSymbols(QString symbol)
 {
-	return getValues("SELECT ga.symbol FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND g.symbol='" + symbol + "' AND ga.type='previous'");
+	return getValues("SELECT ga.symbol FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND g.symbol='" + symbol + "' AND ga.type='previous' ORDER BY ga.symbol ASC");
 }
 
 QStringList NGSD::synonymousSymbols(QString symbol)
 {
-	return getValues("SELECT ga.symbol FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND g.symbol='" + symbol + "' AND ga.type='synonymous'");
+	return getValues("SELECT ga.symbol FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND g.symbol='" + symbol + "' AND ga.type='synonymous' ORDER BY ga.symbol ASC");
 }
 
 QStringList NGSD::phenotypes(QString symbol)
 {
-	return getValues("SELECT t.name FROM hpo_term t, hpo_genes g WHERE g.gene='" + symbol + "' AND t.id=g.hpo_term_id");
+	return getValues("SELECT t.name FROM hpo_term t, hpo_genes g WHERE g.gene='" + symbol + "' AND t.id=g.hpo_term_id ORDER BY t.name ASC");
 }
 
 QStringList NGSD::phenotypes(QStringList terms)
@@ -1057,9 +1057,9 @@ QStringList NGSD::phenotypes(QStringList terms)
 
 	//search for terms (intersect results of all terms)
 	bool first = true;
-	QSet<QString> output;
+	QSet<QString> set;
 	SqlQuery query = getQuery();
-	query.prepare("SELECT name FROM hpo_term WHERE name LIKE :0");
+	query.prepare("SELECT name FROM hpo_term WHERE name LIKE :0 ORDER BY name ASC");
 	foreach(QString t, tmp)
 	{
 		query.bindValue(0, "%" + t + "%");
@@ -1073,16 +1073,16 @@ QStringList NGSD::phenotypes(QStringList terms)
 
 		if (first)
 		{
-			output = tmp2;
+			set = tmp2;
 			first = false;
 		}
 		else
 		{
-			output = output.intersect(tmp2);
+			set = set.intersect(tmp2);
 		}
 	}
 
-	return output.toList();
+	return set.toList();
 }
 
 QStringList NGSD::phenotypeToGenes(QString phenotype, bool recursive)

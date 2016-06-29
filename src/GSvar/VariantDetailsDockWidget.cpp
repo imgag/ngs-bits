@@ -343,7 +343,7 @@ void VariantDetailsDockWidget::initTranscriptDetails(const VariantList& vl, int 
 		//check number of parts
 		if (parts.count()!=7)
 		{
-			THROW(ProgrammingException, "coding_and_splicing annotation contains " + QString::number(parts.count()) + " parts (7 expected)!");
+			THROW(ProgrammingException, "coding_and_splicing annotation contains " + QString::number(parts.count()) + " parts (7 expected)!\nTo fix this error, please re-annotate the variant list using the sample information dialog!");
 		}
 
 		trans_data.append(parts);

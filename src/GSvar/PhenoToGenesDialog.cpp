@@ -101,6 +101,7 @@ void PhenoToGenesDialog::tabChanged(int num)
 				++it;
 			}
 		}
+		ui->genes->moveCursor(QTextCursor::Start);
 	}
 
 	//update buttons

@@ -29,6 +29,10 @@ void PhenotypeSelector::search(QString text)
 	//clear
 	ui->list->clear();
 
+	//no search without string (too many entries)
+	text = text.trimmed();
+	if (text.isEmpty()) return;
+
 	//add search terms
 	QStringList phenos = db_.phenotypes(text.split(" "));
 	foreach(QString pheno, phenos)
@@ -39,7 +43,13 @@ void PhenotypeSelector::search(QString text)
 
 void PhenotypeSelector::itemChanged(QListWidgetItem* item)
 {
-	emit phenotypeChanged(item->text());
+	QString text = "";
+	if (item!=nullptr)
+	{
+		text = item->text();
+	}
+
+	emit phenotypeChanged(text);
 }
 
 void PhenotypeSelector::itemActivated(QListWidgetItem* item)
