@@ -72,6 +72,8 @@ private:
 	Ui::VariantDetailsDockWidget *ui;
 	//Preferred transcript list per gene
 	QMap<QString, QString> preferred_transcripts;
+	//Flag that caches if NGSD-support is enabled (from settings)
+	bool ngsd_enabled;
 };
 
 #endif // VARIANTDETAILSDOCKWIDGET_H

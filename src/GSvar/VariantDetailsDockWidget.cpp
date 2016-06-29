@@ -5,10 +5,13 @@
 #include <QDebug>
 #include <QPixmap>
 #include <QMessageBox>
+#include "Settings.h"
+#include "NGSD.h"
 
 VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget *parent) :
 	QDockWidget(parent),
-	ui(new Ui::VariantDetailsDockWidget)
+	ui(new Ui::VariantDetailsDockWidget),
+	ngsd_enabled(Settings::boolean("NGSD_enabled", true))
 {
 	ui->setupUi(this);
 
@@ -273,6 +276,20 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			{
 				text = anno;
 			}
+		}
+		else if (name=="gene")
+		{
+			QStringList genes = anno.split(",");
+			if (ngsd_enabled)
+			{
+				for (int i=0; i<genes.count(); ++i)
+				{
+					QString gene = genes[i].trimmed();
+					QString inheritance = NGSD().geneInfo(gene).inheritance;
+					genes[i] =  gene + " (" + inheritance + ")";
+				}
+			}
+			text = genes.join(" ");
 		}
 		else //fallback: use complete annotations string
 		{
