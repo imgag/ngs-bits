@@ -19,7 +19,6 @@ libs:
 - cppNGSD: add test project
 
 GSvar:
-* Pheno>Genes: sort genes by number of hits
 * Display inheritance mode in variant details (NGSD enabled?)
 - Overview gene lists (missing genotype): treat all variants as homozygous?
 

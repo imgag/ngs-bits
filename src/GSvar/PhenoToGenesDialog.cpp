@@ -73,6 +73,7 @@ void PhenoToGenesDialog::tabChanged(int num)
 	if (num==1)
 	{
 		//get gene list
+		int max_phenotypes = 0;
 		QMap<QString, QStringList> gene2pheno;
 		for (int i=0; i<ui->pheno->count(); ++i)
 		{
@@ -81,16 +82,24 @@ void PhenoToGenesDialog::tabChanged(int num)
 			foreach(QString gene, genes)
 			{
 				gene2pheno[gene].append(pheno);
+				max_phenotypes = std::max(max_phenotypes, gene2pheno[gene].count());
 			}
 		}
 
 		//update view
 		ui->genes->clear();
-		auto it = gene2pheno.begin();
-		while(it!=gene2pheno.end())
+		for (int hits = max_phenotypes; hits>0; --hits)
 		{
-			ui->genes->append(it.key() + "\t" + it.value().join(", ") + "\t" + QString::number(it.value().count()));
-			++it;
+			auto it = gene2pheno.begin();
+			while(it!=gene2pheno.end())
+			{
+				int count_phenos = it.value().count();
+				if (count_phenos==hits)
+				{
+					ui->genes->append(it.key() + "\t" + it.value().join(", ") + "\t" + QString::number(count_phenos));
+				}
+				++it;
+			}
 		}
 	}
 
