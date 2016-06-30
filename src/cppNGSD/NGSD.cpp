@@ -1082,7 +1082,10 @@ QStringList NGSD::phenotypes(QStringList terms)
 		}
 	}
 
-	return set.toList();
+	QStringList list = set.toList();
+	list.sort();
+
+	return list;
 }
 
 QStringList NGSD::phenotypeToGenes(QString phenotype, bool recursive)

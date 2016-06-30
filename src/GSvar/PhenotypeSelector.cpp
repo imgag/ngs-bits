@@ -43,17 +43,19 @@ void PhenotypeSelector::search(QString text)
 
 void PhenotypeSelector::itemChanged(QListWidgetItem* item)
 {
-	QString text = "";
-	if (item!=nullptr)
+	if (item==nullptr)
 	{
-		text = item->text();
+		emit phenotypeChanged("");
+		return;
 	}
 
-	emit phenotypeChanged(text);
+	emit phenotypeChanged(item->text());
 }
 
 void PhenotypeSelector::itemActivated(QListWidgetItem* item)
 {
+	if (item==nullptr) return;
+
 	emit phenotypeActivated(item->text());
 }
 
