@@ -29,19 +29,25 @@ public:
 	{
 		//init
 		NGSD db(getFlag("test"));
+		QString in = getInfile("in");
+		QString out = getOutfile("out");
+		if(in!="" && in==out)
+		{
+			THROW(ArgumentException, "Input and output files must be different when streaming!");
+		}
 
 		//process input
-		QSharedPointer<QFile> in = Helper::openFileForReading(getInfile("in"), true);
-		QSharedPointer<QFile> out = Helper::openFileForWriting(getOutfile("out"), true);
-		while(!in->atEnd())
+		QSharedPointer<QFile> instream = Helper::openFileForReading(in, true);
+		QSharedPointer<QFile> outstream = Helper::openFileForWriting(out, true);
+		while(!instream->atEnd())
 		{
-			QByteArray gene = in->readLine().trimmed().toUpper();
+			QByteArray gene = instream->readLine().trimmed().toUpper();
 
 			//skip empty/comment lines
 			if (gene.isEmpty() || gene[0]=='#') continue;
 
 			QPair<QByteArray, QByteArray> gene_info = db.geneToApproved(gene);
-			out->write(gene_info.first + '\t' + gene_info.second + '\n');
+			outstream->write(gene_info.first + '\t' + gene_info.second + '\n');
 		}
 	}
 };

@@ -28,37 +28,43 @@ public:
 
 	virtual void main()
 	{
-		TSVFileStream in(getInfile("in"));
-		QSharedPointer<QFile> out = Helper::openFileForWriting(getOutfile("out"), true);
+		QString in = getInfile("in");
+		QString out = getOutfile("out");
+		if(in!="" && in==out)
+		{
+			THROW(ArgumentException, "Input and output files must be different when streaming!");
+		}
+		TSVFileStream instream(in);
+		QSharedPointer<QFile> outstream = Helper::openFileForWriting(out, true);
 
 		//check columns
-		QVector<int> cols = in.checkColumns(getString("cols"), getFlag("numeric"));
+		QVector<int> cols = instream.checkColumns(getString("cols"), getFlag("numeric"));
 		const int col_count = cols.count();
 
 		//write comments
-		foreach (QByteArray comment, in.comments())
+		foreach (QByteArray comment, instream.comments())
 		{
-			out->write(comment);
-			out->write("\n");
+			outstream->write(comment);
+			outstream->write("\n");
 		}
 
 		//write header
-		out->write("#");
+		outstream->write("#");
 		for(int i=0; i<col_count; ++i)
 		{
-			out->write(in.header()[cols[i]]);
-			out->write(i==col_count-1 ? "\n" : "\t");
+			outstream->write(instream.header()[cols[i]]);
+			outstream->write(i==col_count-1 ? "\n" : "\t");
 		}
 
 		//write content
-		while(!in.atEnd())
+		while(!instream.atEnd())
 		{
-			QList<QByteArray> parts = in.readLine();
+			QList<QByteArray> parts = instream.readLine();
 			if (parts.count()==0) continue;
 			for(int i=0; i<col_count; ++i)
 			{
-				out->write(parts[cols[i]]);
-				out->write(i==col_count-1 ? "\n" : "\t");
+				outstream->write(parts[cols[i]]);
+				outstream->write(i==col_count-1 ? "\n" : "\t");
 			}
 		}
     }

@@ -44,7 +44,7 @@ public:
 		QString out = getOutfile("out");
 		if(in!="" && in==out)
 		{
-			THROW(ArgumentException, "Input and output files must be different!");
+			THROW(ArgumentException, "Input and output files must be different when streaming!");
 		}
 		QSharedPointer<QFile> in_p = Helper::openFileForReading(in, true);
 		QSharedPointer<QFile> out_p = Helper::openFileForWriting(out, true);

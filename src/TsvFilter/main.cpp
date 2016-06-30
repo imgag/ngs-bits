@@ -23,7 +23,7 @@ public:
 		addString("filter", "Filter string with column name, operation and value,e.g. 'depth > 17'.\nValid operations are '" + ops.join("','") + "'.", false);
 		//optional
 		addInfile("in", "Input TSV file. If unset, reads from STDIN.", true);
-		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
+		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
 		addFlag("numeric", "If set, column name is interpreted as a 1-based column number.");
 		addFlag("v", "Invert filter.");
 	}
@@ -31,8 +31,14 @@ public:
 	virtual void main()
 	{
 		//init
-		TSVFileStream in(getInfile("in"));
-		QSharedPointer<QFile> out = Helper::openFileForWriting(getOutfile("out"), true);
+		QString in = getInfile("in");
+		QString out = getOutfile("out");
+		if(in!="" && in==out)
+		{
+			THROW(ArgumentException, "Input and output files must be different when streaming!");
+		}
+		TSVFileStream instream(in);
+		QSharedPointer<QFile> outstream = Helper::openFileForWriting(out, true);
 		bool v = getFlag("v");
 
 		//split filter
@@ -51,7 +57,7 @@ public:
 		}
 
 		//check column
-		QVector<int> cols = in.checkColumns(parts[0], getFlag("numeric"));
+		QVector<int> cols = instream.checkColumns(parts[0], getFlag("numeric"));
 		if (cols.count()!=1)
 		{
 			THROW(CommandLineParsingException, "Could not determine column name/index '" + parts[0] + "'!");
@@ -79,25 +85,25 @@ public:
 		}
 
 		//write comments
-		foreach (QByteArray comment, in.comments())
+		foreach (QByteArray comment, instream.comments())
 		{
-			out->write(comment);
-			out->write("\n");
+			outstream->write(comment);
+			outstream->write("\n");
 		}
 
 		//write header
-		const int col_count = in.header().count();
-		out->write("#");
+		const int col_count = instream.header().count();
+		outstream->write("#");
 		for(int i=0; i<col_count; ++i)
 		{
-			out->write(in.header()[i]);
-			out->write(i==col_count-1 ? "\n" : "\t");
+			outstream->write(instream.header()[i]);
+			outstream->write(i==col_count-1 ? "\n" : "\t");
 		}
 
 		//write content
-		while(!in.atEnd())
+		while(!instream.atEnd())
 		{
-			QList<QByteArray> parts = in.readLine();
+			QList<QByteArray> parts = instream.readLine();
 			if (parts.count()==0) continue;
 
 			QByteArray value2 = parts[col];
@@ -108,7 +114,7 @@ public:
 				value2_num = value2.toDouble(&ok);
 				if (!ok)
 				{
-					THROW(CommandLineParsingException, "Non-numeric value '" + value2 + "' for numeric filter operation '" + op + " in line " + QString::number(in.lineIndex()+1) + "!");
+					THROW(CommandLineParsingException, "Non-numeric value '" + value2 + "' for numeric filter operation '" + op + " in line " + QString::number(instream.lineIndex()+1) + "!");
 				}
 			}
 
@@ -147,8 +153,8 @@ public:
 
 			for(int i=0; i<col_count; ++i)
 			{
-				out->write(parts[i]);
-				out->write(i==col_count-1 ? "\n" : "\t");
+				outstream->write(parts[i]);
+				outstream->write(i==col_count-1 ? "\n" : "\t");
 			}
 		}
     }
