@@ -763,12 +763,12 @@ void NGSD::setValidationStatus(const QString& filename, const Variant& variant, 
 	QString v_id = variantId(variant);
 	QVariant vv_id = getValue("SELECT id FROM variant_validation WHERE sample_id='" + s_id + "' AND variant_id='" + v_id + "'");
 
-
 	SqlQuery query = getQuery(); //use binding (user input)
 	if (vv_id.isNull()) //insert
 	{
+		QString user_id = userId();
 		QString geno = getValue("SELECT genotype FROM detected_variant WHERE variant_id='" + v_id + "' AND processed_sample_id='" + processedSampleId(filename) + "'", false).toString();
-		query.prepare("INSERT INTO variant_validation (sample_id, variant_id, genotype, status, type, comment) VALUES ('" + s_id + "','" + v_id + "','" + geno + "',:status,:type,:comment)");
+		query.prepare("INSERT INTO variant_validation (user_id, sample_id, variant_id, genotype, status, type, comment) VALUES ('" + user_id + "','" + s_id + "','" + v_id + "','" + geno + "',:status,:type,:comment)");
 	}
 	else //update
 	{

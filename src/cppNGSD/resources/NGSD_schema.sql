@@ -453,13 +453,21 @@ DEFAULT CHARACTER SET = utf8;
 -- -----------------------------------------------------
 CREATE  TABLE IF NOT EXISTS `variant_validation` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `user_id` INT(11) NOT NULL,
+  `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `sample_id` INT(11) NOT NULL,
   `variant_id` INT(11) NOT NULL,
   `genotype` ENUM('hom','het') NOT NULL,
-  `status` ENUM('n/a','to validate','to segregate','cleared diagnostics','cleared research','not cleared','for reporting','true positive','false positive','wrong genotype') NOT NULL DEFAULT 'n/a',
+  `status` ENUM('n/a','to validate','to segregate','for reporting','true positive','false positive','wrong genotype') NOT NULL DEFAULT 'n/a',
   `type` ENUM('research','diagnostics') NOT NULL DEFAULT 'research',
   `comment` TEXT NULL DEFAULT NULL,
 PRIMARY KEY (`id`),
+INDEX `fk_user_id` (`user_id` ASC),
+CONSTRAINT `vv_user`
+  FOREIGN KEY (`user_id`)
+  REFERENCES `user` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION,
 CONSTRAINT `fk_variant_validation_has_sample`
     FOREIGN KEY (`sample_id`)
     REFERENCES `sample` (`id`)

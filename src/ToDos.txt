@@ -15,11 +15,12 @@ libs:
       - somatic(): check if target file works, make it faster
       - somatic(): remove nonSpecialChromosomes from all statistics parameters
 - cppNGS-Tests:
+   - VariantFilter: Overview gene lists (missing genotype): treat all variants as homozygous?
    - Statistics: add Tests for somatic statistics
 - cppNGSD: add test project
 
 GSvar:
-- Overview gene lists (missing genotype): treat all variants as homozygous?
+* Implement update tool that automatically checks for new versions
 
 Tools:
 - VariantFilterRegions, etc: Set input file format by command line argument => allow reading variant lists from stdin
