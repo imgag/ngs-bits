@@ -64,7 +64,7 @@ INSERT INTO detected_variant (id, processed_sample_id, variant_id, genotype, qua
 INSERT INTO detected_variant (id, processed_sample_id, variant_id, genotype, quality, comment) VALUES (9, 4, 4, 'het', '', 'from DUMMY');
 
 --variant validation NA12878
-INSERT INTO variant_validation (id, sample_id, variant_id, genotype, status, comment) VALUES (1, 1, 8, 'hom', 'false positive', 'val com1');
+INSERT INTO variant_validation (id, user_id, sample_id, variant_id, genotype, status, comment) VALUES (1, 2, 1, 8, 'hom', 'false positive', 'val com1');
 
 --variant validation DUMMY
-INSERT INTO variant_validation (id, sample_id, variant_id, genotype, status, comment) VALUES (2, 4, 4, 'hom', 'true positive', 'val com2');
+INSERT INTO variant_validation (id, user_id, sample_id, variant_id, genotype, status, comment) VALUES (2, 2, 4, 4, 'hom', 'true positive', 'val com2');
