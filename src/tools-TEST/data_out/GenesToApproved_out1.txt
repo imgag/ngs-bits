@@ -1,9 +1,9 @@
-BRCA1	KEPT: is approved symbol
-BRCA2	KEPT: is approved symbol
-TP53	KEPT: is approved symbol
-IQSEC2	KEPT: is approved symbol
+BRCA1	KEPT: BRCA1 is an approved symbol
+BRCA2	KEPT: BRCA2 is an approved symbol
+TP53	KEPT: TP53 is an approved symbol
+IQSEC2	KEPT: IQSEC2 is an approved symbol
 IQSEC2	REPLACED: MRX1 is a previous symbol
 TSPAN7	REPLACED: A15 is a synonymous symbol
-CARP	ERROR: is a synonymous symbol of the genes ANKRD1, CA8, FAM188A
-SCAX4	ERROR: is unknown symbol
-WT2	ERROR: is unknown symbol
+CARP	ERROR: CARP is a synonymous symbol of the genes ANKRD1, CA8, FAM188A
+SCAX4	ERROR: SCAX4 is unknown symbol
+WT2	ERROR: WT2 is unknown symbol
