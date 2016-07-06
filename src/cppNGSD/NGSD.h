@@ -78,7 +78,7 @@ public:
 	int geneToApprovedID(const QByteArray& gene);
 	///Returns the gene symbol for a gene ID
 	QByteArray geneSymbol(int id);
-	///Returns the the approved/original gene symbol a status message.
+	///Returns the the approved/original gene symbol and a status message.
 	QPair<QByteArray, QByteArray> geneToApproved(const QByteArray& gene);
 	///Returns previous symbols of a gene.
 	QStringList previousSymbols(QString symbol);
@@ -124,6 +124,8 @@ public:
 	///Returns the processing system name and short name of the sample, or an empty string if it could not be detected.
 	enum SystemType {SHORT, LONG, BOTH};
 	QString getProcessingSystem(const QString& filename, SystemType type);
+	///Returns all processing systems (long name) and the corresponding target regions.
+	QMap<QString, QString> getProcessingSystems(bool skip_systems_without_roi, bool windows_paths);
 	///Returns the genome build
 	QString getGenomeBuild(const QString& filename);
 	///Returns all QC terms of the sample
@@ -179,6 +181,9 @@ public:
 	QString url(const QString& filename);
 	///Returns the NGSD seach URL including the search term.
 	QString urlSearch(const QString& search_term);
+
+	///Returns the target file path (or sub-panel folder)
+	static QString getTargetFilePath(bool subpanels = false, bool windows = true);
 
 signals:
 	void initProgress(QString text, bool percentage);

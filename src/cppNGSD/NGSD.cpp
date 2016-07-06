@@ -389,6 +389,33 @@ QString NGSD::getProcessingSystem(const QString& filename, SystemType type)
 	return getValue("SELECT " + what + " FROM processing_system WHERE id='" + sys_id + "'").toString().trimmed();
 }
 
+QMap<QString, QString> NGSD::getProcessingSystems(bool skip_systems_without_roi, bool windows_paths)
+{
+	QMap<QString, QString> out;
+
+	//load paths
+	QString p_win;
+	QString p_linux;
+	if (windows_paths)
+	{
+		p_linux = getTargetFilePath(false, false);
+		p_win = getTargetFilePath(false, true);
+	}
+
+	//load processing systems
+	SqlQuery query = getQuery();
+	query.exec("SELECT name_manufacturer, target_file FROM processing_system");
+	while(query.next())
+	{
+		QString name = query.value(0).toString();
+		QString roi = query.value(1).toString().replace(p_linux, p_win);
+		if (roi=="" && skip_systems_without_roi) continue;
+		out.insert(name, roi);
+	}
+
+	return out;
+}
+
 
 QString NGSD::getGenomeBuild(const QString& filename)
 {
@@ -836,6 +863,23 @@ QString NGSD::urlSearch(const QString& search_term)
 	return Settings::string("NGSD")+"/search/processSearch/search_term=" + search_term;
 }
 
+QString NGSD::getTargetFilePath(bool subpanels, bool windows)
+{
+	QString key = windows ? "target_file_folder_windows" : "target_file_folder_linux";
+	QString output = Settings::string(key);
+	if (output=="")
+	{
+		THROW(ProgrammingException, "'" + key + "' entry is missing in settings!");
+	}
+
+	if (subpanels)
+	{
+		output += "/subpanels/";
+	}
+
+	return output;
+}
+
 void NGSD::setComment(const QString& filename, const Variant& variant, const QString& text)
 {
 	getQuery().exec("UPDATE detected_variant SET comment='" + text + "' WHERE processed_sample_id='" + processedSampleId(filename) + "' AND variant_id='" + variantId(variant) + "'");
@@ -979,7 +1023,7 @@ QPair<QByteArray, QByteArray> NGSD::geneToApproved(const QByteArray& gene)
 	if (q_gene.size()==1)
 	{
 		q_gene.next();
-		return qMakePair(gene, QByteArray("KEPT: is approved symbol"));
+		return qMakePair(gene, QByteArray("KEPT: " + gene + " is an approved symbol"));
 	}
 
 	//previous
@@ -998,7 +1042,7 @@ QPair<QByteArray, QByteArray> NGSD::geneToApproved(const QByteArray& gene)
 			if (!genes.isEmpty()) genes.append(", ");
 			genes.append(q_prev.value(0).toByteArray());
 		}
-		return qMakePair(gene, "ERROR: is a previous symbol of the genes " + genes);
+		return qMakePair(gene, "ERROR: " + gene + " is a previous symbol of the genes " + genes);
 	}
 
 	//synonymous
@@ -1017,10 +1061,10 @@ QPair<QByteArray, QByteArray> NGSD::geneToApproved(const QByteArray& gene)
 			if (!genes.isEmpty()) genes.append(", ");
 			genes.append(q_syn.value(0).toByteArray());
 		}
-		return qMakePair(gene, "ERROR: is a synonymous symbol of the genes " + genes);
+		return qMakePair(gene, "ERROR: " + gene + " is a synonymous symbol of the genes " + genes);
 	}
 
-	return qMakePair(gene, QByteArray("ERROR: is unknown symbol"));
+	return qMakePair(gene, QByteArray("ERROR: " + gene + " is unknown symbol"));
 }
 
 QStringList NGSD::previousSymbols(QString symbol)

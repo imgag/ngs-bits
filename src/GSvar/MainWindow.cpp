@@ -36,6 +36,7 @@
 #include "PhenoToGenesDialog.h"
 #include "GenesToRegionsDialog.h"
 #include "VariantFilter.h"
+#include "SubpanelDesignDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -100,7 +101,7 @@ void MainWindow::delayedInizialization()
 	delayed_init_timer_.stop();
 
 	//initialize LOG file
-	if (QFile(Log::fileName()).exists() && !QFileInfo(Log::fileName()).isWritable())
+	if (QFile::exists(Log::fileName()) && !Helper::isWritable(Log::fileName()))
 	{
 		QMessageBox::warning(this, "GSvar log file not writable", "The log file '" + Log::fileName() + "' is not writable.\nPlease inform your administrator!");
 		close();
@@ -811,6 +812,16 @@ void MainWindow::on_actionGenesToRegions_triggered()
 {
 	GenesToRegionsDialog dlg(this);
 	dlg.exec();
+}
+
+void MainWindow::on_actionDesignSubpanel_triggered()
+{
+	SubpanelDesignDialog dlg(this);
+	dlg.exec();
+	if (dlg.addedSubpanel())
+	{
+		filter_widget_->loadTargetRegions();
+	}
 }
 
 void MainWindow::on_actionCopy_triggered()
@@ -1775,6 +1786,7 @@ void MainWindow::updateNGSDSupport()
 	ui_.actionGenesToRegions->setEnabled(ngsd_enabled);
 	ui_.actionPhenoToGenes->setEnabled(ngsd_enabled);
 	ui_.actionConvertHgnc->setEnabled(ngsd_enabled);
+	ui_.actionDesignSubpanel->setEnabled(ngsd_enabled);
 }
 
 void MainWindow::openRecentFile()

@@ -17,7 +17,7 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="resources.qrc">
+   <iconset resource="../GSmix/resources.qrc">
     <normaloff>:/Icons/Icon.png</normaloff>:/Icons/Icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -137,7 +137,14 @@
      <addaction name="separator"/>
      <addaction name="menuPreferred_transcripts"/>
     </widget>
+    <widget class="QMenu" name="menuPanels">
+     <property name="title">
+      <string>Panels</string>
+     </property>
+     <addaction name="actionDesignSubpanel"/>
+    </widget>
     <addaction name="menuGenes"/>
+    <addaction name="menuPanels"/>
     <addaction name="separator"/>
     <addaction name="menuFileInfo"/>
     <addaction name="menuDetermine_gender"/>
@@ -296,7 +303,7 @@
   </action>
   <action name="actionNGSD">
    <property name="icon">
-    <iconset resource="resources.qrc">
+    <iconset resource="../GSmix/resources.qrc">
      <normaloff>:/Icons/NGSD.png</normaloff>:/Icons/NGSD.png</iconset>
    </property>
    <property name="text">
@@ -482,9 +489,15 @@
     <string>Ctrl+Shift+O</string>
    </property>
   </action>
+  <action name="actionDesignSubpanel">
+   <property name="text">
+    <string>Design sub-panel</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
+  <include location="../GSmix/resources.qrc"/>
   <include location="resources.qrc"/>
  </resources>
  <connections/>

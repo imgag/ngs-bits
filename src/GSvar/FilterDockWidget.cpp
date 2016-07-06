@@ -49,7 +49,7 @@ FilterDockWidget::FilterDockWidget(QWidget *parent)
 	connect(ui_.gene, SIGNAL(editingFinished()), this, SLOT(geneChanged()));
 	connect(ui_.region, SIGNAL(editingFinished()), this, SLOT(regionChanged()));
 
-	loadROIFilters();
+	loadTargetRegions();
 	loadReferenceFiles();
 
 	reset(true);
@@ -78,7 +78,7 @@ void FilterDockWidget::setFilterColumns(const QMap<QString, QString>& filter_col
 	ui_.filter_col->layout()->addItem(new QSpacerItem(1,1, QSizePolicy::Minimum, QSizePolicy::MinimumExpanding));
 }
 
-void FilterDockWidget::loadROIFilters()
+void FilterDockWidget::loadTargetRegions()
 {
 	ui_.rois->blockSignals(true);
 
@@ -89,26 +89,32 @@ void FilterDockWidget::loadROIFilters()
 	ui_.rois->addItem("none", "");
 	ui_.rois->insertSeparator(1);
 
-	//load ROIs from NGSD processing systems
+	//load ROIs of NGSD processing systems
 	if (Settings::boolean("NGSD_enabled", true))
 	{
-		QString p_win = Settings::string("target_file_folder_windows");
-		QString p_linux = Settings::string("target_file_folder_linux");
-		if (p_win=="" || p_linux=="")
+		QMap<QString, QString> systems = NGSD().getProcessingSystems(true, true);
+		auto it = systems.constBegin();
+		while (it != systems.constEnd())
 		{
-			Log::error("Cannot load target regions from NSGD: 'target_file_folder_windows' or 'target_file_folder_linux' is missing in settings!");
+			ui_.rois->addItem("Processing system: " + it.key(), it.value());
+			++it;
 		}
-		else
+		ui_.rois->insertSeparator(ui_.rois->count());
+	}
+
+	//load ROIs of sub-panels
+	if (Settings::string("target_file_folder_windows")!="")
+	{
+		QStringList subpanels;
+		Helper::findFiles(NGSD::getTargetFilePath(true), "*.bed", subpanels);
+		subpanels.sort(Qt::CaseInsensitive);
+		foreach(QString file, subpanels)
 		{
-			NGSD db;
-			SqlQuery query = db.getQuery();
-			query.exec("SELECT name_manufacturer, target_file FROM processing_system WHERE target_file!='' AND target_file IS NOT NULL ORDER BY name_short");
-			while(query.next())
-			{
-				ui_.rois->addItem("NGSD: " + query.value(0).toString(), query.value(1).toString().replace(p_linux, p_win));
-			}
-			ui_.rois->insertSeparator(ui_.rois->count());
+			QString name = QFileInfo(file).fileName();
+			name = name.left(name.size()-4);
+			ui_.rois->addItem("Sub-panel: " + name, file);
 		}
+		ui_.rois->insertSeparator(ui_.rois->count());
 	}
 
 	//load additional ROIs from settings
@@ -469,7 +475,7 @@ void FilterDockWidget::addRoi()
 	Settings::setStringList("target_regions", rois);
 
 	//update GUI
-	loadROIFilters();
+	loadTargetRegions();
 }
 
 void FilterDockWidget::addRoiTemp()
@@ -494,7 +500,7 @@ void FilterDockWidget::removeRoi()
 	Settings::setStringList("target_regions", rois);
 
 	//update GUI
-	loadROIFilters();
+	loadTargetRegions();
 	emit filtersChanged();
 }
 

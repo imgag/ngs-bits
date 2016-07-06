@@ -115,6 +115,8 @@ public slots:
 	void on_actionPhenoToGenes_triggered();
 	///Genes to regions conversion dialog
 	void on_actionGenesToRegions_triggered();
+	///Subpanel design dialog
+	void on_actionDesignSubpanel_triggered();
 
 	///Finished the report generation
 	void reportGenerationFinished(bool success);

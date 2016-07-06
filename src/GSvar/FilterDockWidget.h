@@ -80,6 +80,9 @@ public:
 	/// Returns a string representations of the applied filters
 	QMap<QString, QString> appliedFilters() const;
 
+	/// Loads filter target regions (Processing systems from NGSD, Sub-panels from file system and additional target regions from INI file)
+	void loadTargetRegions();
+
 signals:
 	/// Signal that is emitted when an annotation filter changes its checkbox state, or if the ROI changes, or if the gene changes
 	void filtersChanged();
@@ -97,8 +100,6 @@ protected slots:
 	void filterColumnStateChanged();
 
 private:
-	/// Loads the ROI filters from the INI file
-	void loadROIFilters();
 	/// Loads the reference file list of IGV
 	void loadReferenceFiles();
 

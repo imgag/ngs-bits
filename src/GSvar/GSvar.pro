@@ -24,7 +24,8 @@ SOURCES += main.cpp\
     PhenoToGenesDialog.cpp \
     PhenotypeSelector.cpp \
     GenesToRegionsDialog.cpp \
-    VariantDetailsDockWidget.cpp
+    VariantDetailsDockWidget.cpp \
+    SubpanelDesignDialog.cpp
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
@@ -43,7 +44,8 @@ HEADERS  += MainWindow.h \
     PhenoToGenesDialog.h \
     PhenotypeSelector.h \
     GenesToRegionsDialog.h \
-    VariantDetailsDockWidget.h
+    VariantDetailsDockWidget.h \
+    SubpanelDesignDialog.h
 
 
 FORMS    += MainWindow.ui \
@@ -60,7 +62,8 @@ FORMS    += MainWindow.ui \
     PhenoToGenesDialog.ui \
     PhenotypeSelector.ui \
     GenesToRegionsDialog.ui \
-    VariantDetailsDockWidget.ui
+    VariantDetailsDockWidget.ui \
+    SubpanelDesignDialog.ui
     
 
 include("../app_gui.pri")

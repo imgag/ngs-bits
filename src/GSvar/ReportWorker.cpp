@@ -565,7 +565,7 @@ void ReportWorker::writeHTML()
 	}
 
 	//copy temp file to output folder
-	if (QFile(file_rep_).exists() && !QFile(file_rep_).remove())
+	if (QFile::exists(file_rep_) && !QFile(file_rep_).remove())
 	{
 		THROW(FileAccessException, "Could not remove previous HTML report: " + file_rep_);
 	}
@@ -579,7 +579,7 @@ void ReportWorker::writeHTML()
 	if (archive_folder!="")
 	{
 		QString file_rep_copy = archive_folder + "\\" + QFileInfo(file_rep_).fileName();
-		if (QFile(file_rep_copy).exists() && !QFile::remove(file_rep_copy))
+		if (QFile::exists(file_rep_copy) && !QFile::remove(file_rep_copy))
 		{
 			THROW(FileAccessException, "Could not remove previous HTML report in archive folder: " + file_rep_copy);
 		}
