@@ -1,5 +1,16 @@
 help:
-	cat Makefile
+	@echo "General targets:"
+	@echo "  pull                  - Pulls current version from GitHub (including submodules)"
+	@echo "  build_3rdparty        - Builds 3rd party libraries"
+	@echo "  build_libs_release    - Builds base libraries in release mode"
+	@echo "  build_tools_release   - Builds tools in release mode"
+	@echo "  test_lib              - Executes library tests"
+	@echo "  test_tools            - Executes tool tests"
+	@echo "  test_release          - Builds libraries and tools in release mode and executes all tests"
+	@echo "  deploy_nobuild        - Deploys current build. Note: execute 'git status' and 'make test_release' first!"
+	@echo "Special targets to speed up development:"
+	@echo "  build_release_noclean - Build libraries and tools in release mode without cleaning up"
+	@echo "  test_single_tool      - Test single tools, e.g. use 'make test_single_tool T=SeqPurge' to execute the tests for SeqPurge only"
 
 ##################################### build - DEBUG #####################################
 
@@ -73,6 +84,9 @@ test_release:
 	make clean build_libs_release build_tools_release test_lib test_tools > t.log 2>&1
 	egrep "FAILED|SKIPPED" t.log
 
+pull:
+	git pull --recurse-submodules
+	
 dummy:
 
 #################################### 3rd party  ##################################
