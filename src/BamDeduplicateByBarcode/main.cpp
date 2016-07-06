@@ -38,11 +38,11 @@ class Position
 	public:
 		int start_pos;
 		int end_pos;
-		int chr;
+		Chromosome chr;
 
 		Position()=default;
 
-		Position(int start_pos_ini, int end_pos_ini, int chr_ini)
+		Position(int start_pos_ini, int end_pos_ini, Chromosome chr_ini)
 		{
 			start_pos=start_pos_ini;
 			end_pos=end_pos_ini;
@@ -134,7 +134,7 @@ typedef QPair <QHash <barcode_at_pos, QList<readPair> >, QList <barcode_at_pos> 
 
 inline uint qHash(const Position &pos1)
 {
-	return qHash(QString::number(pos1.start_pos) + QString::number(pos1.end_pos) + pos1.chr);
+	return qHash(QString::number(pos1.start_pos) + QString::number(pos1.end_pos) + pos1.chr.num());
 }
 
 class ConcreteTool
@@ -207,14 +207,14 @@ private:
 			if (splitted_mip_entry.size()<13) continue;
 
 			QStringList splitted_mip_key=splitted_mip_entry[0].split(delimiters_mip_key);
-			Position mip_position(splitted_mip_key[1].toInt()-1,splitted_mip_key[2].toInt(),splitted_mip_key[0].toInt());
+			Position mip_position(splitted_mip_key[1].toInt()-1,splitted_mip_key[2].toInt(),splitted_mip_key[0]);
 
 			mip_info new_mip_info;
-			new_mip_info.left_arm.chr = splitted_mip_entry[0].toInt();
+			new_mip_info.left_arm.chr = splitted_mip_entry[0];
 			new_mip_info.left_arm.start_pos = splitted_mip_entry[3].toInt();
 			new_mip_info.left_arm.end_pos= splitted_mip_entry[4].toInt();
 
-			new_mip_info.right_arm.chr = splitted_mip_entry[0].toInt();
+			new_mip_info.right_arm.chr = splitted_mip_entry[0];
 			new_mip_info.right_arm.start_pos = splitted_mip_entry[7].toInt();
 			new_mip_info.right_arm.end_pos= splitted_mip_entry[8].toInt();
 
@@ -248,7 +248,7 @@ private:
 			QStringList splitted_hs_entry=line.split("\t");
 			if (splitted_hs_entry.size()<4) continue;
 
-			Position hs_position(splitted_hs_entry[1].toInt(),splitted_hs_entry[2].toInt(),splitted_hs_entry[0].mid(3).toInt());
+			Position hs_position(splitted_hs_entry[1].toInt(),splitted_hs_entry[2].toInt(),splitted_hs_entry[0].mid(3));
 
 			hs_info new_hs_info;
 			new_hs_info.name=splitted_hs_entry[3];
@@ -295,7 +295,7 @@ private:
 		while (i.hasPrevious())
 		{
 			i.previous();
-			outStream << i.key().chr <<"\t" << i.key().start_pos<< "\t" << i.key().end_pos <<"\t" << i.value().name <<"\t" << i.value().counter_unique <<"\t" << i.value().counter_all <<"\t" << i.value().counter_singles <<endl;
+			outStream << i.key().chr.str() <<"\t" << i.key().start_pos<< "\t" << i.key().end_pos <<"\t" << i.value().name <<"\t" << i.value().counter_unique <<"\t" << i.value().counter_all <<"\t" << i.value().counter_singles <<endl;
 		}
 		writeDupCountHisto(dup_count_histo, outStream);
 		outStream <<endl;
@@ -314,7 +314,7 @@ private:
 		while (i.hasPrevious())
 		{
 			i.previous();
-			outStream << i.key().chr <<"\t" << i.key().start_pos<< "\t" << i.key().end_pos <<"\t" << i.value().name <<"\t" << i.value().counter_unique <<"\t"<< i.value().counter_all <<"\t"<< i.value().counter_singles<<endl;
+			outStream << i.key().chr.str() <<"\t" << i.key().start_pos<< "\t" << i.key().end_pos <<"\t" << i.value().name <<"\t" << i.value().counter_unique <<"\t"<< i.value().counter_all <<"\t"<< i.value().counter_singles<<endl;
 		}
 		writeDupCountHisto(dup_count_histo, outStream);
 		outStream <<endl;
@@ -557,20 +557,19 @@ private:
 			QString seq_1=QString::fromStdString(original_readpair.first.QueryBases);
 			QString seq_2=QString::fromStdString(original_readpair.second.QueryBases);
 			//adjust values of unmapped to be valid bed file coordinates
-			if ((act_position.chr<1)||(act_position.start_pos <0)||(act_position.start_pos <0))
+			if ((act_position.start_pos <0)||(act_position.start_pos <0))
 			{
-				act_position.chr=0;
 				act_position.start_pos=0;
 				act_position.end_pos=1;
 			}
 			if (test)
 			{
 				//omit readname and sequences which randomly sorted in output and thus not comparable
-				out_stream << act_position.chr <<"\t" << act_position.start_pos<< "\t" << act_position.end_pos<<"\t" <<endl;
+				out_stream << act_position.chr.str() <<"\t" << act_position.start_pos<< "\t" << act_position.end_pos<<"\t" <<endl;
 			}
 			else
 			{
-				out_stream << act_position.chr <<"\t" << act_position.start_pos<< "\t" << act_position.end_pos <<"\t" << read_name << barcode << '|' << seq_1 << '|'<< seq_2<<endl;
+				out_stream << act_position.chr.str() <<"\t" << act_position.start_pos<< "\t" << act_position.end_pos <<"\t" << read_name << barcode << '|' << seq_1 << '|'<< seq_2<<endl;
 			}
 		}
 	}
@@ -611,7 +610,7 @@ private:
 		}
 	}
 
-	int newLostSinglesCounts(QList <barcode_at_pos> lost_singles,const QMap <Position,mip_info> &mip_info_map,const QMap <Position,hs_info> &hs_info_map, int last_ref)
+	int newLostSinglesCounts(QList <barcode_at_pos> lost_singles,const QMap <Position,mip_info> &mip_info_map,const QMap <Position,hs_info> &hs_info_map, Chromosome last_ref)
 	{
 		int lost_single_counts=0;
 		foreach(barcode_at_pos lost_single, lost_singles)
@@ -749,8 +748,8 @@ public:
 		int lost_single_counts=0;//stores total number of single reads lost by ambiguity
 
 		int last_start_pos=0;
-		int last_ref=-1;
-		int new_ref=-1;
+		Chromosome last_ref=Chromosome("");
+		Chromosome new_ref=Chromosome("");
 		bool chrom_change=false;
 
 		BamReader reader;
@@ -784,10 +783,10 @@ public:
 
 			last_start_pos=qMin(current_alignment.Position,current_alignment.GetEndPosition());
 
-			if (current_alignment.RefID!=last_ref)
+			if (current_alignment.RefID!=last_ref.num())
 			{
-				new_ref=current_alignment.RefID;
-				if (last_ref!=-1) chrom_change=true;
+				new_ref=Chromosome(QString::number(current_alignment.RefID));
+				if (last_ref!=Chromosome("")) chrom_change=true;
 			}
 
 			//write after every 10000th read to reduce memory requirements
