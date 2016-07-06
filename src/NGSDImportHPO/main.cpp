@@ -17,9 +17,9 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Imports HPO terms and gene-phenotype correlations into NGSD (download from http://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/).");
-		addInfile("obo", "HPO ontology file 'hp.obo'.", false);
-		addInfile("gene", "HPO phenotype-gene relation file 'ALL_SOURCES_ALL_FREQUENCIES_diseases_to_genes_to_phenotypes.txt'", false);
+		setDescription("Imports HPO terms and gene-phenotype correlations into NGSD.");
+		addInfile("obo", "HPO ontology file 'hp.obo' from 'http://purl.obolibrary.org/obo/'.", false);
+		addInfile("gene", "HPO phenotype-gene relation file 'ALL_SOURCES_ALL_FREQUENCIES_diseases_to_genes_to_phenotypes.txt' from 'http://compbio.charite.de/jenkins/job/hpo.annotations.monthly/lastStableBuild/artifact/annotation/'", false);
 		//optional
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");

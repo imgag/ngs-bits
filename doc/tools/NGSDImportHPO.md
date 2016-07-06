@@ -1,11 +1,11 @@
 ### NGSDImportHPO tool help
-	NGSDImportHPO (0.1-222-g9be2128)
+	NGSDImportHPO (0.1-382-g4694ff9)
 	
-	Imports HPO terms and gene-phenotype correlations into NGSD (download from http://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/).
+	Imports HPO terms and gene-phenotype correlations into NGSD.
 	
 	Mandatory parameters:
-	  -obo <file>  HPO ontology file 'hp.obo'.
-	  -gene <file> HPO phenotype-gene relation file 'ALL_SOURCES_ALL_FREQUENCIES_diseases_to_genes_to_phenotypes.txt'
+	  -obo <file>  HPO ontology file 'hp.obo' from 'http://purl.obolibrary.org/obo/'.
+	  -gene <file> HPO phenotype-gene relation file 'ALL_SOURCES_ALL_FREQUENCIES_diseases_to_genes_to_phenotypes.txt' from 'http://compbio.charite.de/jenkins/job/hpo.annotations.monthly/lastStableBuild/artifact/annotation/'
 	
 	Optional parameters:
 	  -test        Uses the test database instead of on the production database.
@@ -20,6 +20,6 @@
 	  --tdx        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDImportHPO changelog
-	NGSDImportHPO 0.1-222-g9be2128
+	NGSDImportHPO 0.1-382-g4694ff9
 	
 [back to ngs-bits](https://github.com/marc-sturm/ngs-bits)
