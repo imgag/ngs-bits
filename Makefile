@@ -74,9 +74,18 @@ test_single_tool:
 	cd bin && ./tools-TEST -s $(T)
 
 deploy_nobuild:
-	rm -rf /mnt/share/opt/owntools/* bin/out bin/*-TEST 
+	@echo "#Clean up source"
+	rm -rf bin/out bin/*-TEST 
+	@echo ""
+	@echo "#Clean up target"
+	find /mnt/share/opt/owntools/ -type f | grep -v "settings" | xargs rm -rf
+	@echo ""
+	@echo "#Copy files from source to target"
 	cp bin/* /mnt/share/opt/owntools/
 	cp bamtools/lib/libbamtools.so* /mnt/share/opt/owntools/
+	@echo ""
+	@echo "#Diff settings"
+	diff bin/settings.ini /mnt/share/opt/owntools/settings.ini
 
 test_debug: clean build_libs_debug build_tools_debug test_lib test_tools
 
@@ -86,6 +95,7 @@ test_release:
 
 pull:
 	git pull --recurse-submodules
+	git submodule update --recursive
 	
 dummy:
 
