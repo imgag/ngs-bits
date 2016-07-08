@@ -669,7 +669,7 @@ private:
 			writePairToBam(writer, read_selection.most_freq_read);
 			writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,barcode_and_pos.barcode_sequence,test);
 		}
-		else//write reads not matching a mip to a bed file
+		else//write reads not matching a amplicon to a bed file
 		{
 			writeReadsToBed(nomatch_out_stream,act_position,read_list,barcode_and_pos.barcode_sequence,test);
 		}
@@ -680,6 +680,13 @@ private:
 		most_frequent_read_selection read_selection = findHighestFreqRead(read_list);
 		writePairToBam(writer, read_selection.most_freq_read);
 		writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,barcode_and_pos.barcode_sequence,test);
+	}
+
+	bool diff_chrom(int RefID, int chrom_id)
+	{
+		if ((RefID==23)&&(chrom_id==1001)) return false;
+		if ((RefID==24)&&(chrom_id==1002)) return false;
+		return (RefID!=chrom_id);
 	}
 
 public:
@@ -783,9 +790,11 @@ public:
 
 			last_start_pos=qMin(current_alignment.Position,current_alignment.GetEndPosition());
 
-			if (current_alignment.RefID!=last_ref.num())
+			if (diff_chrom(current_alignment.RefID,last_ref.num()))
 			{
-				new_ref=Chromosome(QString::number(current_alignment.RefID));
+				if (current_alignment.RefID==23) new_ref=Chromosome("chrX");
+				else if (current_alignment.RefID==24) new_ref=Chromosome("chrY");
+				else new_ref=Chromosome(QString::number(current_alignment.RefID));
 				if (last_ref!=Chromosome("")) chrom_change=true;
 			}
 
