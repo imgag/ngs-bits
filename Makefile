@@ -81,11 +81,12 @@ deploy_nobuild:
 	find /mnt/share/opt/owntools/ -type f | grep -v "settings" | xargs rm -rf
 	@echo ""
 	@echo "#Copy files from source to target"
-	cp bin/* /mnt/share/opt/owntools/
+	find bin/ -type f | grep -v "settings" | xargs -I{} cp {} /mnt/share/opt/owntools/
 	cp bamtools/lib/libbamtools.so* /mnt/share/opt/owntools/
 	@echo ""
 	@echo "#Diff settings"
 	diff bin/settings.ini /mnt/share/opt/owntools/settings.ini
+	chmod 775 /mnt/share/opt/owntools/*
 
 test_debug: clean build_libs_debug build_tools_debug test_lib test_tools
 
