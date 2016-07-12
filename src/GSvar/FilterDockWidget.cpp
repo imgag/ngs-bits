@@ -146,7 +146,8 @@ void FilterDockWidget::loadReferenceFiles()
 	QStringList refs = Settings::stringList("reference_files");
 	foreach(const QString& roi_file, refs)
 	{
-		QStringList parts = roi_file.split("\t");
+		QStringList parts = roi_file.trimmed().split("\t");
+		if (parts.count()!=2) continue;
 		ui_.refs->addItem(parts[0], parts[1]);
 	}
 

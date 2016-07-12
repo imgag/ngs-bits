@@ -20,7 +20,7 @@ libs:
 - cppNGSD: add test project
 
 GSvar:
-* Report: add statistics about gaps in CCDS+0bp regions and print overall sequenced size without gaps
+* Report: add statistics about gaps in CCDS+0bp regions and print overall sequenced size without gaps (consider only longest/preferred transcript)
 * Implement update tool that automatically checks for new versions, or find solution with reference to sub-folders (ask Martin)
 * Add buttons to search in goolge/pubmed for variant
 

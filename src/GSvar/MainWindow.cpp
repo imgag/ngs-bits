@@ -1744,8 +1744,8 @@ void MainWindow::updateIGVMenu()
 	{
 		foreach(QString entry, entries)
 		{
-			QStringList parts = entry.split("\t");
-			if(parts.count()!=3) THROW(ArgumentException, "Could not split 'igv_menu' entry from INI file into three parts: '" + entry + "'.");
+			QStringList parts = entry.trimmed().split("\t");
+			if(parts.count()!=3) continue;
 			QAction* action = ui_.menuIGV->addAction(parts[0]);
 			action->setCheckable(true);
 			action->setChecked(parts[1]=="1");

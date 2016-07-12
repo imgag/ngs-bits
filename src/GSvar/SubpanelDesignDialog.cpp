@@ -156,7 +156,7 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 	regions = db.genesToRegions(genes, "ccds", "exon", &stream);
 	regions.extend(20);
 	regions.merge();
-	showMessage("Sub-panel with " + QString::number(genes.count()) + " genes of size " + QString::number(regions.baseCount()) + " bp designed! You can store it now!", false);
+	showMessage("Sub-panel with " + QString::number(genes.count()) + " genes of size " + QString::number(regions.baseCount()) + " bp (CCDS exons with 20 flanking bases) designed. You can store it now!", false);
 
 	ui->store->setEnabled(true);
 }
