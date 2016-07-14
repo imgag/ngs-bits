@@ -148,7 +148,7 @@ DEFAULT CHARACTER SET = utf8;
 CREATE  TABLE IF NOT EXISTS `processing_system` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `name_short` VARCHAR(50) NULL DEFAULT NULL,
-  `name_manufacturer` VARCHAR(50) NULL DEFAULT NULL,
+  `name_manufacturer` VARCHAR(100) NULL DEFAULT NULL,
   `adapter1_p5` VARCHAR(45) NULL DEFAULT NULL,
   `adapter2_p7` VARCHAR(45) NULL DEFAULT NULL,
   `type` ENUM('WGS','WES','Panel','Panel Haloplex','Panel Haloplex HS','Panel MIPs','RNA') NOT NULL,
@@ -491,7 +491,7 @@ DEFAULT CHARACTER SET = utf8;
 CREATE  TABLE IF NOT EXISTS `variant_classification` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `variant_id` INT(11) NOT NULL,
-  `class` ENUM('n/a','1','2','3','4','5','M','A') NOT NULL,
+  `class` ENUM('n/a','1','2','3','4','5','M') NOT NULL,
   `comment` TEXT NULL DEFAULT NULL,
 PRIMARY KEY (`id`),
 UNIQUE KEY `fk_variant_classification_has_variant` (`variant_id`),
