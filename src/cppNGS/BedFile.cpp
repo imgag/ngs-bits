@@ -370,17 +370,17 @@ void BedFile::intersect(const BedFile& file2)
 			continue;
 		}
 
-		//intersect with first region
-		const BedLine& line2 = file2[matches[0]];
+		//intersect with first region (update line)
 		int start_original = line.start();
 		int end_original = line.end();
-		lines_[i].setStart(std::max(line.start(), line2.start()));
-		lines_[i].setEnd(std::min(line.end(), line2.end()));
+		lines_[i].setStart(std::max(start_original, file2[matches[0]].start()));
+		lines_[i].setEnd(std::min(end_original, file2[matches[0]].end()));
 
-		//intersect with more regions
+		//intersect with more regions (insert new lines => we must not use the 'line' variable inside the loop because the vector can be reallocated!)
+		Chromosome chr_original = line.chr();
 		for (int j=1; j<matches.count(); ++j)
 		{
-			lines_.append(BedLine(line.chr(), std::max(start_original, file2[matches[j]].start()), std::min(end_original, file2[matches[j]].end()) ));
+			lines_.append(BedLine(chr_original, std::max(start_original, file2[matches[j]].start()), std::min(end_original, file2[matches[j]].end()) ));
 		}
 	}
 
