@@ -804,8 +804,15 @@ void MainWindow::on_actionGeneInfo_triggered()
 
 void MainWindow::on_actionPhenoToGenes_triggered()
 {
-	PhenoToGenesDialog dlg(this);
-	dlg.exec();
+	try
+	{
+		PhenoToGenesDialog dlg(this);
+		dlg.exec();
+	}
+	catch (DatabaseException& e)
+	{
+		QMessageBox::warning(this, "Database error", e.message());
+	}
 }
 
 void MainWindow::on_actionGenesToRegions_triggered()

@@ -31,10 +31,9 @@ private:
 	void refresh();
 
 	///Formats a statistics label (outliers are colored red).
-	void statisticsLabel(QLabel* label, QString accession, const QCCollection& qc);
+	void statisticsLabel(NGSD& db, QLabel* label, QString accession, const QCCollection& qc);
 
 	Ui::SampleInformationDialog ui_;
-	NGSD db_;
 	QString filename_;
 	QString reanalyze_status_;
 	QTimer timer_;

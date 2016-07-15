@@ -28,8 +28,7 @@ private slots:
 	void tabChanged(int);
 
 private:
-        Ui::PhenoToGenesDialog *ui;
-	NGSD db_;
+	Ui::PhenoToGenesDialog *ui;
 };
 
 #endif // PHENOTOGENESDIALOG_H

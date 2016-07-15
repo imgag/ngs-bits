@@ -6,16 +6,16 @@
 GeneInfoDialog::GeneInfoDialog(QString symbol, QWidget *parent)
 	: QDialog(parent)
 	, ui(new Ui::GeneInfoDialog)
-	, db_()
 {
 	//init dialog
+	NGSD db;
 	ui->setupUi(this);
-	ui->inheritance_->addItems(db_.getEnum("geneinfo_germline", "inheritance"));
+	ui->inheritance_->addItems(db.getEnum("geneinfo_germline", "inheritance"));
 	ui->notice_->setVisible(false);
 	connect(this, SIGNAL(accepted()), this, SLOT(storeGeneInfo()));
 
 	//get gene info
-	GeneInfo info = db_.geneInfo(symbol);
+	GeneInfo info = db.geneInfo(symbol);
 
 	//show symbol
 	setWindowTitle("Gene information '" + info.symbol + "'");
@@ -35,11 +35,11 @@ GeneInfoDialog::GeneInfoDialog(QString symbol, QWidget *parent)
 	}
 
 	//show alias gene symbols from HGNC
-	ui->previous_->setText(db_.previousSymbols(symbol).join(", "));
-	ui->synonymous_->setText(db_.synonymousSymbols(symbol).join(", "));
+	ui->previous_->setText(db.previousSymbols(symbol).join(", "));
+	ui->synonymous_->setText(db.synonymousSymbols(symbol).join(", "));
 
 	//show phenotypes/diseases from HPO
-	ui->pheno_->setText(db_.phenotypes(symbol).join(", "));
+	ui->pheno_->setText(db.phenotypes(symbol).join(", "));
 
 	//disable ok button
 	ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(false);
@@ -63,5 +63,7 @@ void GeneInfoDialog::storeGeneInfo()
 	tmp.symbol = ui->gene_->text();
 	tmp.inheritance = ui->inheritance_->currentText();
 	tmp.comments = ui->comments_->toPlainText();
-	db_.setGeneInfo(tmp);
+
+	NGSD db;
+	db.setGeneInfo(tmp);
 }

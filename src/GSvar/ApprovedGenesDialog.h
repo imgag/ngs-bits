@@ -17,7 +17,6 @@ protected slots:
 
 private:
 	Ui::ApprovedGenesDialog ui_;
-	NGSD db_;
 };
 
 #endif // APPROVEDGENESDIALOG_H

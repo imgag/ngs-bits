@@ -72,13 +72,14 @@ void PhenoToGenesDialog::tabChanged(int num)
 	//update genes
 	if (num==1)
 	{
+		NGSD db;
 		//get gene list
 		int max_phenotypes = 0;
 		QMap<QString, QStringList> gene2pheno;
 		for (int i=0; i<ui->pheno->count(); ++i)
 		{
 			QString pheno = ui->pheno->item(i)->text();
-			QStringList genes = db_.phenotypeToGenes(pheno, true);
+			QStringList genes = db.phenotypeToGenes(pheno, true);
 			foreach(QString gene, genes)
 			{
 				gene2pheno[gene].append(pheno);

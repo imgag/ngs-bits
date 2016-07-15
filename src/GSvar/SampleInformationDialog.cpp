@@ -15,7 +15,6 @@
 SampleInformationDialog::SampleInformationDialog(QWidget* parent, QString filename)
 	: QDialog(parent)
 	, ui_()
-	, db_()
 	, filename_(filename)
 	, reanalyze_status_()
 {
@@ -34,10 +33,11 @@ SampleInformationDialog::SampleInformationDialog(QWidget* parent, QString filena
 	ui_.reanalyze_button->setMenu(menu);
 
 	//setup report button
-	if (db_.isOpen())
+	NGSD db;
+	if (db.isOpen())
 	{
 		menu = new QMenu();
-		QStringList status = db_.getEnum("diag_status", "status");
+		QStringList status = db.getEnum("diag_status", "status");
 		foreach(QString s, status)
 		{
 			menu->addAction(s, this, SLOT(setReportStatus()));
@@ -50,10 +50,10 @@ SampleInformationDialog::SampleInformationDialog(QWidget* parent, QString filena
 	}
 
 	//setup quality button
-	if (db_.isOpen())
+	if (db.isOpen())
 	{
 		menu = new QMenu();
-		QStringList quality = db_.getEnum("processed_sample", "quality");
+		QStringList quality = db.getEnum("processed_sample", "quality");
 		foreach(QString q, quality)
 		{
 			menu->addAction(q, this, SLOT(setQuality()));
@@ -101,7 +101,7 @@ void SampleInformationDialog::reanalyze()
 
 	//call web service
 	HttpHandler handler;
-	QString reply = handler.getHttpReply(Settings::string("SampleStatus")+"/restart.php?ps_ID=" + db_.processedSampleName(filename_) + start_step + "&high_priority&user=" + Helper::userName());
+	QString reply = handler.getHttpReply(Settings::string("SampleStatus")+"/restart.php?ps_ID=" + NGSD::processedSampleName(filename_) + start_step + "&high_priority&user=" + Helper::userName());
 	reanalyze_status_ = "";
 	if (!reply.startsWith("Restart successful"))
 	{
@@ -122,26 +122,30 @@ void SampleInformationDialog::setReportStatus()
 		if (result!=QMessageBox::Yes) return;
 	}
 
-	db_.setDiagnosticStatus(filename_, status);
+	NGSD db;
+	db.setDiagnosticStatus(filename_, status);
 	refresh();
 }
 
 void SampleInformationDialog::setQuality()
 {
 	QString quality = qobject_cast<QAction*>(sender())->text();
-	db_.setProcessedSampleQuality(filename_, quality);
+	NGSD db;
+	db.setProcessedSampleQuality(filename_, quality);
 	refresh();
 }
 
 void SampleInformationDialog::refresh()
 {
+	NGSD db;
+
 	//sample details
 	ui_.name->setText(QFileInfo(filename_).fileName());
 	try
 	{
-		ui_.name_ext->setText(db_.getExternalSampleName(filename_));
-		ui_.tumor_ffpe->setText(db_.sampleIsTumor(filename_) + " / " + db_.sampleIsFFPE(filename_));
-		ui_.system->setText(db_.getProcessingSystem(filename_, NGSD::LONG));
+		ui_.name_ext->setText(db.getExternalSampleName(filename_));
+		ui_.tumor_ffpe->setText(db.sampleIsTumor(filename_) + " / " + db.sampleIsFFPE(filename_));
+		ui_.system->setText(db.getProcessingSystem(filename_, NGSD::LONG));
 	}
 	catch(...)
 	{
@@ -150,14 +154,14 @@ void SampleInformationDialog::refresh()
 	//QC data
 	try
 	{
-		QCCollection qc = db_.getQCData(filename_);
+		QCCollection qc = db.getQCData(filename_);
 		ui_.qc_reads->setText(qc.value("QC:2000005", true).toString(0) + " (length: " + qc.value("QC:2000006", true).toString(0) + ")");
 
-		statisticsLabel(ui_.qc_avg_depth, "QC:2000025", qc);
-		statisticsLabel(ui_.qc_perc_20x, "QC:2000027", qc);
-		statisticsLabel(ui_.qc_insert_size,"QC:2000023", qc );
+		statisticsLabel(db, ui_.qc_avg_depth, "QC:2000025", qc);
+		statisticsLabel(db, ui_.qc_perc_20x, "QC:2000027", qc);
+		statisticsLabel(db, ui_.qc_insert_size,"QC:2000023", qc );
 		ui_.qc_kasp->setText(qc.value("kasp").asString());
-		ui_.qc_quality->setText(db_.getProcessedSampleQuality(filename_, true));
+		ui_.qc_quality->setText(db.getProcessedSampleQuality(filename_, true));
 	}
 	catch(...)
 	{
@@ -167,7 +171,7 @@ void SampleInformationDialog::refresh()
 	//report generation
 	try
 	{
-		QStringList diag_status = db_.getDiagnosticStatus(filename_);
+		QStringList diag_status = db.getDiagnosticStatus(filename_);
 		if (diag_status.count()==4)
 		{
 			ui_.report_status->setText(diag_status[0]);
@@ -195,7 +199,7 @@ void SampleInformationDialog::refresh()
 }
 
 
-void SampleInformationDialog::statisticsLabel(QLabel* label, QString accession, const QCCollection& qc)
+void SampleInformationDialog::statisticsLabel(NGSD& db, QLabel* label, QString accession, const QCCollection& qc)
 {
 	try
 	{
@@ -204,7 +208,7 @@ void SampleInformationDialog::statisticsLabel(QLabel* label, QString accession, 
 		label->setText(value_str);
 
 		//get QC value statistics
-		QVector<double> values = db_.getQCValues(accession, filename_);
+		QVector<double> values = db.getQCValues(accession, filename_);
 		std::sort(values.begin(), values.end());
 		double median = BasicStatistics::median(values);
 		double mad = 1.428 * BasicStatistics::mad(values, median);
@@ -231,7 +235,7 @@ void SampleInformationDialog::statisticsLabel(QLabel* label, QString accession, 
 
 void SampleInformationDialog::refreshReanalysisStatus()
 {
-	QString ps_name = db_.processedSampleName(filename_, false);
+	QString ps_name = NGSD::processedSampleName(filename_, false);
 	if (ps_name!="")
 	{
 		QString status = reanalyze_status_;

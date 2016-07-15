@@ -23,7 +23,6 @@ private slots:
 
 private:
 	Ui::GeneInfoDialog *ui;
-	NGSD db_;
 };
 
 #endif // GENEINFODIALOG_H
