@@ -599,32 +599,55 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	for(int i=0; i<variants.count(); ++i)
 	{
 		double af_tumor = -1;
+		double af_normal = -1;
 		int count_mut = 0;
 		int count_all = 0;
-		foreach(QString n, nuc)
+
+		//strelka tumor and normal
+		if(variants.annotationIndexByName(("AU"), tumor_id, true, false)!=-1)
 		{
-			int index_n = variants.annotationIndexByName((n+"U"), tumor_id);
-			int tmp = variants[i].annotations()[index_n].split(',')[0].toInt();
-			if(n==variants[i].obs())	count_mut += tmp;
-			count_all += tmp;
-		}
-		if(count_all>0)	af_tumor = (double)count_mut/count_all;
+			count_mut = 0;
+			count_all = 0;
+			foreach(QString n, nuc)
+			{
+				int index_n = variants.annotationIndexByName((n+"U"), tumor_id);
+				int tmp = variants[i].annotations()[index_n].split(',')[0].toInt();
+				if(n==variants[i].obs())	count_mut += tmp;
+				count_all += tmp;
+			}
+			if(count_all>0)	af_tumor = (double)count_mut/count_all;
 
-		double af_normal = -1;
-		count_mut = 0;
-		count_all = 0;
-		foreach(QString n, nuc)
+			count_mut = 0;
+			count_all = 0;
+			foreach(QString n, nuc)
+			{
+				int index_n = variants.annotationIndexByName((n+"U"), normal_id);
+				int tmp = variants[i].annotations()[index_n].split(',')[0].toInt();
+				if(n==variants[i].obs())	count_mut += tmp;
+				count_all += tmp;
+			}
+			if(count_all>0)	af_normal = (double)count_mut/count_all;
+		}
+
+		//freebayes tumor and normal
+		//##FORMAT=<ID=RO,Number=1,Type=Integer,Description="Reference allele observation count">
+		//##FORMAT=<ID=AO,RONumber=A,Type=Integer,Description="Alternate allele observation count">
+		if(variants.annotationIndexByName(("RO"), tumor_id, true, false)!=-1)
 		{
-			int index_n = variants.annotationIndexByName((n+"U"), normal_id);
-			int tmp = variants[i].annotations()[index_n].split(',')[0].toInt();
-			if(n==variants[i].obs())	count_mut += tmp;
-			count_all += tmp;
+			int index_ro = variants.annotationIndexByName("RO", tumor_id);
+			int index_ao = variants.annotationIndexByName("AO", tumor_id);
+			count_mut = variants[i].annotations()[index_ao].toInt();
+			count_all = variants[i].annotations()[index_ro].toInt();
+			if(count_all>0)	af_tumor = (double)count_mut/count_all;
+
+			index_ro = variants.annotationIndexByName("RO", tumor_id);
+			index_ao = variants.annotationIndexByName("AO", tumor_id);
+			count_mut = variants[i].annotations()[index_ao].toInt();
+			count_all = variants[i].annotations()[index_ro].toInt();
+			if(count_all>0)	af_normal = (double)count_mut/count_all;
 		}
-		if(count_all>0)	af_normal = (double)count_mut/count_all;
 
-		if(af_tumor<0 || af_normal<0)	continue;
-
-		//find AF and set x and y points, implement freebayes and strelka fields, multi-vcf capability required!
+		//find AF and set x and y points, implement freebayes and strelka fields
 		QPair<double,double> point;
 		point.first = af_tumor;
 		point.second = af_normal;
