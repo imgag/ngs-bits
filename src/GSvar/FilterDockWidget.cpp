@@ -90,7 +90,7 @@ void FilterDockWidget::loadTargetRegions()
 	ui_.rois->insertSeparator(1);
 
 	//load ROIs of NGSD processing systems
-	if (Settings::boolean("NGSD_enabled", true))
+	try
 	{
 		QMap<QString, QString> systems = NGSD().getProcessingSystems(true, true);
 		auto it = systems.constBegin();
@@ -101,9 +101,13 @@ void FilterDockWidget::loadTargetRegions()
 		}
 		ui_.rois->insertSeparator(ui_.rois->count());
 	}
+	catch (Exception& e)
+	{
+		Log::warn("Could not load NGSD processing system target regions: " + e.message());
+	}
 
 	//load ROIs of sub-panels
-	if (Settings::string("target_file_folder_windows")!="")
+	try
 	{
 		QStringList subpanels;
 		Helper::findFiles(NGSD::getTargetFilePath(true), "*.bed", subpanels);
@@ -115,6 +119,10 @@ void FilterDockWidget::loadTargetRegions()
 			ui_.rois->addItem("Sub-panel: " + name, file);
 		}
 		ui_.rois->insertSeparator(ui_.rois->count());
+	}
+	catch (Exception& e)
+	{
+		Log::warn("Could not load sub-panels target regions: " + e.message());
 	}
 
 	//load additional ROIs from settings

@@ -1778,6 +1778,7 @@ void MainWindow::updatePreferredTranscripts()
 void MainWindow::updateNGSDSupport()
 {
 	bool ngsd_enabled = Settings::boolean("NGSD_enabled", true);
+	bool target_file_folder_set = Settings::string("target_file_folder_windows")!="" && Settings::string("target_file_folder_linux")!="";
 
 	//toolbar
 	ui_.actionReport->setEnabled(ngsd_enabled);
@@ -1794,6 +1795,7 @@ void MainWindow::updateNGSDSupport()
 	ui_.actionPhenoToGenes->setEnabled(ngsd_enabled);
 	ui_.actionConvertHgnc->setEnabled(ngsd_enabled);
 	ui_.actionDesignSubpanel->setEnabled(ngsd_enabled);
+	ui_.actionDesignSubpanel->setEnabled(target_file_folder_set);
 }
 
 void MainWindow::openRecentFile()
