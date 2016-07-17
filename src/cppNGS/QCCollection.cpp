@@ -43,10 +43,14 @@ QCValue::QCValue(const QString& name, const QString& value, const QString& descr
 QCValue QCValue::Image(const QString& name, const QString& filename, const QString& description, const QString& accession)
 {
 	//load file
-	QFile file(filename);
-	file.open(QIODevice::ReadOnly);
-	QByteArray data = file.readAll().toBase64();
-	file.close();
+	QByteArray data = "";
+	if(QFileInfo(filename).isFile())
+	{
+		QFile file(filename);
+		file.open(QIODevice::ReadOnly);
+		data = file.readAll().toBase64();
+		file.close();
+	}
 
 	//create value
 	QCValue value;
@@ -190,6 +194,12 @@ void QCCollection::storeToQCML(QString filename, const QStringList& source_files
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, true);
 	QTextStream stream(file.data());
 
+	QStringList linked_files;
+	foreach(const QString& sf, source_files)
+	{
+		if(sf.endsWith(".qcML"))	linked_files.append(sf);
+	}
+
 	//write header
 	stream << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>" << endl;
 	stream << "<?xml-stylesheet type=\"text/xml\" href=\"#stylesheet\"?>" << endl;
@@ -197,7 +207,9 @@ void QCCollection::storeToQCML(QString filename, const QStringList& source_files
 	stream << "  <!ATTLIST xsl:stylesheet" << endl;
 	stream << "  id  ID  #REQUIRED>" << endl;
 	stream << "  ]>" << endl;
-	stream << "<qcML version=\"0.0.8\" xmlns=\"http://www.prime-xs.eu/ms/qcml\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"' >" << endl;
+	stream << "<qcML version=\"0.0.8\" xmlns=\"http://www.prime-xs.eu/ms/qcml\" ";
+//	if(linked_files.count()>0)	stream << " xmlns:xlink=\"http://www.w3.org/1999/xlink\"";
+	stream << ">" << endl;
 	stream << "  <runQuality ID=\"rq0001\">" << endl;
 
 	//write meta data
@@ -208,7 +220,7 @@ void QCCollection::storeToQCML(QString filename, const QStringList& source_files
 	foreach(const QString& sf, source_files)
 	{
 		QString link = "";
-		if(sf.toLower().endsWith(".qcML"))	link = "xlink:type=\"simple\" xlink:href=\"sf\"";
+		if(linked_files.contains(sf))	link = " link=\"" + sf + "\"";
 		stream << "    <metaDataParameter ID=\"md" << QString::number(sf_idx).rightJustified(4, '0') << "\" name=\"source file\" value=\"" << QFileInfo(sf).fileName() << "\" cvRef=\"QC\" accession=\"QC:1000005\"" << link << "/>" << endl;
 		++sf_idx;
 	}
@@ -242,7 +254,9 @@ void QCCollection::storeToQCML(QString filename, const QStringList& source_files
 	stream << "  </cvList>" << endl;
 
 	//write stylesheet
-	stream << "  <xsl:stylesheet id=\"stylesheet\" version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" xmlns:ns=\"http://www.prime-xs.eu/ms/qcml\" xmlns=\"\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"'>" << endl;
+	stream << "  <xsl:stylesheet id=\"stylesheet\" version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" xmlns:ns=\"http://www.prime-xs.eu/ms/qcml\" xmlns=\"\"";
+//	if(linked_files.count()>0)	stream <<  " xmlns:xlink=\"http://www.w3.org/1999/xlink\"";
+	stream << ">" << endl;
 	stream << "      <xsl:template match=\"/\">" << endl;
 	stream << "          <html>" << endl;
 	stream << "            <style type=\"text/css\">" << endl;
@@ -261,10 +275,16 @@ void QCCollection::storeToQCML(QString filename, const QStringList& source_files
 	stream << "                        <tr>" << endl;
 	stream << "                          <td><xsl:value-of select=\"@accession\"/></td>" << endl;
 	stream << "                          <td><span title=\"{@description}\"><xsl:value-of select=\"@name\"/></span></td>" << endl;
-	stream << "                          <td>" << endl;
-	stream << "								<xsl:if test=\"@xlink:type = 'simple' and @xlink:href\"><a href=\"@xlink:href\"><xsl:value-of select=\"@value\"/></a></xsl:if>" << endl;
-	stream << "								<xsl:if test=\"not(@xlink:href)\"><xsl:value-of select=\"@value\"/></xsl:if>" << endl;
-	stream << "                          </td>" << endl;
+	stream << "                          <td>";
+	if(!linked_files.count()>0)	stream << "<xsl:value-of select=\"@value\"/>";
+	else
+	{
+		stream << endl;
+		stream << "								<xsl:if test=\"@link\"><a href=\"{@value}\" target=\"blank\"><xsl:value-of select=\"@value\"/></a></xsl:if>" << endl;
+		stream << "								<xsl:if test=\"not(@link)\"><xsl:value-of select=\"@value\"/></xsl:if>" << endl;
+		stream << "                          ";
+	}
+	stream << "</td>" << endl;
 	stream << "                        </tr>" << endl;
 	stream << "                      </xsl:for-each>" << endl;
 	stream << "                    </xsl:for-each>" << endl;
