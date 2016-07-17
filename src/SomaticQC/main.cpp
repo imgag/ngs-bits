@@ -32,16 +32,24 @@ public:
 	{
 		//init
 		QString tumor_bam = getInfile("tumor_bam");
+		QString tumor_path = QFileInfo(tumor_bam).path() + "/" + QFileInfo(tumor_bam).baseName();
 		QString normal_bam = getInfile("normal_bam");
+		QString normal_path = QFileInfo(normal_bam).path() + "/" + QFileInfo(normal_bam).baseName();
 		QString somatic_vcf = getInfile("somatic_vcf");
 		QString target_bed = getInfile("target_bed");
 
 		QCCollection metrics;
 		metrics = Statistics::somatic(tumor_bam, normal_bam, somatic_vcf, target_bed);
 
+		QStringList qcml;
+		if(QFileInfo(tumor_path + "_stats_fastq.qcML").isFile())	qcml.append(tumor_path + "_stats_fastq.qcML");
+		if(QFileInfo(tumor_path + "_stats_map.qcML").isFile())	qcml.append(tumor_path + "_stats_map.qcML");
+		if(QFileInfo(normal_path + "_stats_fastq.qcML").isFile())	qcml.append(normal_path + "_stats_fastq.qcML");
+		if(QFileInfo(normal_path + "_stats_map.qcML").isFile())	qcml.append(normal_path + "_stats_map.qcML");
+
 		//store output
 		QString out = getOutfile("out");
-		metrics.storeToQCML(out, QStringList() << tumor_bam << normal_bam << somatic_vcf, "");
+		metrics.storeToQCML(out, QStringList() << tumor_bam << normal_bam << somatic_vcf << qcml, "");
 	}
 };
 

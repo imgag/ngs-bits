@@ -536,16 +536,17 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 		double dbsnp_count = 0;
 		for(int i=0; i<variants.count(); ++i)
 		{
+			if(!variants[i].filters().empty())	continue;
 			if (variants[i].annotations().at(index).startsWith("rs"))
 			{
 				++dbsnp_count;
 			}
 		}
-		output.insert(QCValue("known somatic variants percentage", 100.0*dbsnp_count/variants.count(), "Percentage of somatic variants that are known polymorphisms in the dbSNP database.", "QC:2000041"));
+		output.insert(QCValue("known somatic variants percentage", 100.0*dbsnp_count/variants.count(), "Percentage of somatic variants that are known polymorphisms in the dbSNP database.", "QC:2000045"));
 	}
 	else
 	{
-		output.insert(QCValue("known somatic variants percentage", "n/a (no somatic variants)", "Percentage of somatic variants that are known polymorphisms in the dbSNP database.", "QC:2000041"));
+		output.insert(QCValue("known somatic variants percentage", "n/a (no somatic variants)", "Percentage of somatic variants that are known polymorphisms in the dbSNP database.", "QC:2000045"));
 	}
 	//var_perc_indel / var_ti_tv_ratio
 	double indel_count = 0;
@@ -553,6 +554,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	double tv_count = 0;
 	for(int i=0; i<variants.count(); ++i)
 	{
+		if(!variants[i].filters().empty())	continue;
 		const Variant& var = variants[i];
 		if (var.ref().length()>1 || var.obs().length()>1)
 		{
@@ -595,7 +597,8 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	plot1.setYLabel("allele frequency tumor");
 	plot1.setXRange(0.0,1.0);
 	plot1.setYRange(0.0,1.0);
-	QList< QPair<double,double> > points;
+	QList< QPair<double,double> > points_green;
+	QList< QPair<double,double> > points_black;
 	for(int i=0; i<variants.count(); ++i)
 	{
 		double af_tumor = -1;
@@ -632,28 +635,49 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 		//freebayes tumor and normal
 		//##FORMAT=<ID=RO,Number=1,Type=Integer,Description="Reference allele observation count">
 		//##FORMAT=<ID=AO,RONumber=A,Type=Integer,Description="Alternate allele observation count">
-		if(variants.annotationIndexByName(("RO"), tumor_id, true, false)!=-1)
+		else if(variants.annotationIndexByName(("AO"), tumor_id, true, false)!=-1)
 		{
 			int index_ro = variants.annotationIndexByName("RO", tumor_id);
 			int index_ao = variants.annotationIndexByName("AO", tumor_id);
 			count_mut = variants[i].annotations()[index_ao].toInt();
-			count_all = variants[i].annotations()[index_ro].toInt();
+			count_all = count_mut + variants[i].annotations()[index_ro].toInt();
 			if(count_all>0)	af_tumor = (double)count_mut/count_all;
 
-			index_ro = variants.annotationIndexByName("RO", tumor_id);
-			index_ao = variants.annotationIndexByName("AO", tumor_id);
+			index_ro = variants.annotationIndexByName("RO", normal_id);
+			index_ao = variants.annotationIndexByName("AO", normal_id);
 			count_mut = variants[i].annotations()[index_ao].toInt();
-			count_all = variants[i].annotations()[index_ro].toInt();
+			count_all = count_mut + variants[i].annotations()[index_ro].toInt();
 			if(count_all>0)	af_normal = (double)count_mut/count_all;
+		}
+		else
+		{
+			qDebug() << "Could not identify vcf format in line " + QString::number(i) + ". Only strelka and freebayes are supported.";
 		}
 
 		//find AF and set x and y points, implement freebayes and strelka fields
 		QPair<double,double> point;
 		point.first = af_tumor;
 		point.second = af_normal;
-		points.append(point);
+		if(variants[i].filters().empty())	points_green.append(point);
+		else	points_black.append(point);
 	}
-	plot1.setValues(points);
+
+	//print black points first and add then green points
+	QList< QPair<double,double> > points;
+	points  << points_black << points_green;
+	QList< QString > colors;
+	for(int i=0;i<points_black.count();++i)
+	{
+		colors.append("'k'");
+	}
+	for(int i=0;i<points_green.count();++i)
+	{
+		colors.append("'g'");
+	}
+
+	plot1.setValues(points, colors);
+	plot1.addColorLegend("g","filtered variants");
+	plot1.addColorLegend("k","all variants");
 	QString plot1name = Helper::tempFileName(".png");
 	plot1.store(plot1name);
 	output.insert(QCValue::Image("mutation allele frequencies plot", plot1name, ".", "QC:2000048"));
@@ -675,7 +699,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	}
 	QList<QString> codons;
 	QList<int> counts;
-	QList<QString> colors;
+	colors = QList<QString>();
 	QStringList sig;
 	sig.append("C");sig.append("T");
 	//add prefix (0 is not a valid bar)
@@ -707,6 +731,8 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	FastaFileIndex reference(Settings::string("reference_genome"));
 	for(int i=0; i<variants.count(); ++i)
 	{
+		if(!variants[i].filters().empty())	continue;
+
 		Variant v = variants[i];
 		QString c = reference.seq(v.chr(),v.start()-1,1) + v.ref() + reference.seq(v.chr(),v.start()+1,1) + " - " + v.obs();
 
@@ -841,7 +867,9 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 		double max = 0;
 		for(int i=0; i<variants.count(); ++i)	//list has to be sorted by chrom. position
 		{
+			if(!variants[i].filters().empty())	continue;
 			if(!variants[i].chr().isNonSpecial())	continue;
+
 			if(tmp_chr == variants[i].chr().str())	//same chromosome
 			{
 				//convert distance to x-Axis position
