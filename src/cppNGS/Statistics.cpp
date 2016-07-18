@@ -668,11 +668,11 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	QList< QString > colors;
 	for(int i=0;i<points_black.count();++i)
 	{
-		colors.append("'k'");
+		colors.append("k");
 	}
 	for(int i=0;i<points_green.count();++i)
 	{
-		colors.append("'g'");
+		colors.append("g");
 	}
 
 	plot1.setValues(points, colors);
