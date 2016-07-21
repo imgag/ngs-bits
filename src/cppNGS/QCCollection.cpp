@@ -189,16 +189,10 @@ void QCCollection::clear()
 	values_.clear();
 }
 
-void QCCollection::storeToQCML(QString filename, const QStringList& source_files, QString parameters, QMap<QString, int> precision_overwrite)
+void QCCollection::storeToQCML(QString filename, const QStringList& source_files, QString parameters, QMap<QString, int> precision_overwrite, const QStringList& linked_files)
 {
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, true);
 	QTextStream stream(file.data());
-
-	QStringList linked_files;
-	foreach(const QString& sf, source_files)
-	{
-		if(sf.endsWith(".qcML"))	linked_files.append(sf);
-	}
 
 	//write header
 	stream << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>" << endl;
@@ -216,13 +210,16 @@ void QCCollection::storeToQCML(QString filename, const QStringList& source_files
 	stream << "    <metaDataParameter ID=\"md0001\" name=\"creation software\" value=\"" << QCoreApplication::applicationName() <<" " << QCoreApplication::applicationVersion() << "\" cvRef=\"QC\" accession=\"QC:1000002\"/>" << endl;
 	stream << "    <metaDataParameter ID=\"md0002\" name=\"creation software parameters\" value=\"" << parameters.toHtmlEscaped() << "\" cvRef=\"QC\" accession=\"QC:1000003\"/>" << endl;
 	stream << "    <metaDataParameter ID=\"md0003\" name=\"creation date\" value=\"" << Helper::dateTime("") << "\" cvRef=\"QC\" accession=\"QC:1000004\"/>" << endl;
-	int sf_idx = 4;
+	int idx = 4;
 	foreach(const QString& sf, source_files)
 	{
-		QString link = "";
-		if(linked_files.contains(sf))	link = " link=\"" + sf + "\"";
-		stream << "    <metaDataParameter ID=\"md" << QString::number(sf_idx).rightJustified(4, '0') << "\" name=\"source file\" value=\"" << QFileInfo(sf).fileName() << "\" cvRef=\"QC\" accession=\"QC:1000005\"" << link << "/>" << endl;
-		++sf_idx;
+		stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"source file\" value=\"" << QFileInfo(sf).fileName() << "\" cvRef=\"QC\" accession=\"QC:1000005\"/>" << endl;
+		++idx;
+	}
+	foreach(const QString& lf, linked_files)
+	{
+		stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"linked file\" value=\"" << QFileInfo(lf).fileName() << "\" cvRef=\"QC\" accession=\"QC:1000006\" link=\"" + lf + "\"/>" << endl;
+		++idx;
 	}
 
 	//write quality parameters
@@ -280,7 +277,7 @@ void QCCollection::storeToQCML(QString filename, const QStringList& source_files
 	else
 	{
 		stream << endl;
-		stream << "								<xsl:if test=\"@link\"><a href=\"{@value}\" target=\"blank\"><xsl:value-of select=\"@value\"/></a></xsl:if>" << endl;
+		stream << "								<xsl:if test=\"@link\"><a href=\"{@link}\" target=\"blank\"><xsl:value-of select=\"@value\"/></a></xsl:if>" << endl;
 		stream << "								<xsl:if test=\"not(@link)\"><xsl:value-of select=\"@value\"/></xsl:if>" << endl;
 		stream << "                          ";
 	}

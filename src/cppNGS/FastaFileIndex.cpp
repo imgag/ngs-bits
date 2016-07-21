@@ -79,8 +79,13 @@ Sequence FastaFileIndex::seq(const Chromosome& chr, int start, int length, bool 
 
 	//check if coords are valid
 	const FastaIndexEntry& entry = index(chr);
+	if((start+length) > entry.length)	Log::warn("Sequence length changed to chromosome end, was: " + chr.strNormalized(true) + ":" + QString::number(start+1) + "-" + QString::number(start+length));
 	length = min(length, entry.length - start);
-	if (start < 0 || length < 1) return "";
+	if (start < 0 || length < 1)
+	{
+		Log::error("Negative start or start bigger than chromosome length, was: " + chr.strNormalized(true) + ":" + QString::number(start+1));
+		return "";
+	}
 
 	//jump to postion
 	int newlines_before = start > 0 ? (start - 1) / entry.line_blen : 0;
