@@ -40,6 +40,8 @@ Next, we need to download and index the reference genome:
 	
 	> ./download_hg19.sh
 
+Now, we need to configure the the reference genome used by the ngs-bits tools. See (3) for details
+
 Finally, we need to download and convert some open-source databases that our pipeline relies on:
 
 	> ./download_dbs.sh
@@ -196,6 +198,7 @@ For more information on GSvar, open the help within GSvar (F1) or use this [link
 ##Next steps
 
 Now you can run your first data analysis based on these [instructions](running_an_analysis.md).
+
 
 
 
