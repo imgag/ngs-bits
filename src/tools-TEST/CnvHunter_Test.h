@@ -1,5 +1,6 @@
 #include "TestFramework.h"
 #include "Settings.h"
+#include "NGSD.h"
 
 TEST_CLASS(CnvHunter_Test)
 {
@@ -16,6 +17,24 @@ private slots:
 		}
 		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -out out/CnvHunter_out1.txt");
 		COMPARE_FILES("out/CnvHunter_out1.txt", TESTDATA("data_out/CnvHunter_out1.txt"));
+	}
+
+	void hpPDv3_anno()
+	{
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/CnvHunter_init.sql"));
+
+
+		QString data_folder = TESTDATA("data_in/CnvHunter1/");
+		QStringList in = QDir(data_folder).entryList(QStringList() << "*.cov");
+		for (int i=0; i<in.count(); ++i)
+		{
+			in[i] = data_folder + in[i];
+		}
+		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -out out/CnvHunter_out6.txt -anno -test");
+		COMPARE_FILES("out/CnvHunter_out6.txt", TESTDATA("data_out/CnvHunter_out6.txt"));
 	}
 
 	void hpSCv1()

@@ -165,7 +165,7 @@ BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file,
 	for(int i=0; i<low_cov.count(); ++i)
 	{
 		BedLine& line = low_cov[i];
-		QStringList genes = db.genesOverlapping(line.chr().str(), line.start(), line.end(), 20); //extend by 20 to annotate splicing regions as well
+		QStringList genes = db.genesOverlapping(line.chr(), line.start(), line.end(), 20); //extend by 20 to annotate splicing regions as well
 		line.annotations().append(genes.join(", "));
 	}
 

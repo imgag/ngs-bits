@@ -1181,7 +1181,7 @@ QStringList NGSD::phenotypeToGenes(QString phenotype, bool recursive)
 	return genes;
 }
 
-QStringList NGSD::genesOverlapping(QByteArray chr, int start, int end, int extend)
+QStringList NGSD::genesOverlapping(const Chromosome& chr, int start, int end, int extend)
 {
 	//init static data (load gene regions file from NGSD to memory)
 	static BedFile bed;

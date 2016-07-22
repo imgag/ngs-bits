@@ -85,7 +85,7 @@ public:
 	///Returns aliases of a gene.
 	QStringList synonymousSymbols(QString symbol);
 	///Returns the genes overlapping a regions (extended by some bases)
-	QStringList genesOverlapping(QByteArray chr, int start, int end, int extend=0);
+	QStringList genesOverlapping(const Chromosome& chr, int start, int end, int extend=0);
 	///Returns the chromosomal regions corrsponding to the given genes. Messages about unknown gene symbols etc. are written to the steam, if given.
 	BedFile genesToRegions(QStringList genes, QString source, QString mode, QTextStream* messages = nullptr);
 

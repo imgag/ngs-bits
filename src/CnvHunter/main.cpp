@@ -4,6 +4,7 @@
 #include "BasicStatistics.h"
 #include "BedFile.h"
 #include "NGSHelper.h"
+#include "NGSD.h"
 #include <QVector>
 #include <QFileInfo>
 #include <QDir>
@@ -112,6 +113,8 @@ public:
 		addFloat("reg_min_ncov", "QC: Minimum (average) normalized depth of a target region.", true, 0.01);
 		addFloat("reg_max_cv", "QC: Maximum coefficient of variation (median/mad) of target region.", true, 0.3);
         addFlag("verbose", "Enables verbose mode. Writes detail information files for samples, regions and results.");
+		addFlag("anno", "Enable annotation of gene names to regions (needs the NGSD database).");
+		addFlag("test", "Uses the test database instead of on the production database for annotation.");
     }
 
     QVector<QPair<int, int> > calculateLargeCNVs(const QVector<ResultData>& data)
@@ -232,7 +235,26 @@ public:
         }
     }
 
-	QPair<int, int> storeResultAsTSV(const QVector<ResultData>& results, const QVector<SampleData>& data, const QVector<ExonData>& exons, int ext_max_dist, QString filename, QStringList comments)
+	QStringList geneNames(const Chromosome& chr, int start, int end, bool test)
+	{
+		static QHash<QString, QStringList> cache;
+		static NGSD db(test);
+
+		//check cache
+		QString reg = chr.str() + ":" + QString::number(start) + "-" + QString::number(end);
+		if (cache.contains(reg))
+		{
+			qDebug() << "cache\n";
+			return cache[reg];
+		}
+
+		//get genes from NGSD
+		QStringList genes = db.genesOverlapping(chr, start, end, 20);
+		cache.insert(reg, genes);
+		return genes;
+	}
+
+	QPair<int, int> storeResultAsTSV(const QVector<ResultData>& results, const QVector<SampleData>& data, const QVector<ExonData>& exons, int ext_max_dist, QString filename, QStringList comments, bool anno, bool test)
     {
 		QSharedPointer<QFile> out = Helper::openFileForWriting(filename);
         QTextStream outstream(out.data());
@@ -243,18 +265,25 @@ public:
 			outstream << "##" << comment.trimmed() << endl;
 		}
 		//header
-		outstream << "#sample\tcoordinates\tnum_regions\tcopy_numbers\tregion_coordinates" << endl;
+		outstream << "#sample\tcoordinates\tnum_regions\tcopy_numbers\tregion_coordinates" << (anno ? "\tgenes" : "") << endl;
 
-        QPair<int, int> output = qMakePair(0, 0);
+		QPair<int, int> output = qMakePair(0, 0);
         for (int i=0; i<results.count(); ++i)
         {
             if (results[i].copies==2) continue;
             if (data[results[i].s].qc!="") continue;
 
+			//get copy-number,coordinates and genes for first region
             QStringList copies;
-            QStringList coords;
+			QStringList coords;
+			QStringList genes;
+
+			const ExonData& exon = exons[results[i].e];
             copies.append(QString::number(results[i].copies));
-            coords.append(exons[results[i].e].chr.str() + ":" + QString::number(exons[results[i].e].start) + "-" + QString::number(exons[results[i].e].end));
+			coords.append(exon.chr.str() + ":" + QString::number(exon.start) + "-" + QString::number(exon.end));
+			if (anno) genes = geneNames(exon.chr, exon.start, exon.end, test);
+
+			//get copy-number,coordinates and genes for adjacent regions
             int j=i+1;
             while (j<results.count() &&
                    results[j].copies!=2 && //CNV
@@ -264,13 +293,22 @@ public:
                    )
             {
                 copies.append(QString::number(results[j].copies));
-                coords.append(exons[results[j].e].chr.str() + ":" + QString::number(exons[results[j].e].start) + "-" + QString::number(exons[results[j].e].end));
+				const ExonData& exon2 = exons[results[j].e];
+				coords.append(exon2.chr.str() + ":" + QString::number(exon2.start) + "-" + QString::number(exon2.end));
+				if (anno) genes += geneNames(exon2.chr, exon2.start, exon2.end, test);
                 ++j;
-            }
-			const Chromosome& chr = exons[results[i].e].chr;
-			int start = exons[results[i].e].start;
+			}
+
+			//gene list: sort and remove duplicates
+			if (anno)
+			{
+				genes.sort();
+				genes.removeDuplicates();
+			}
+
+			//print output
 			int end = exons[results[j-1].e].end;
-			outstream << data[results[i].s].name << "\t" << chr.str() << ":" << start << "-" << end << "\t" << copies.count() << "\t" << copies.join(",") << "\t" << coords.join(",") << endl;
+			outstream << data[results[i].s].name << "\t" << exon.chr.str() << ":" << exon.start << "-" << end << "\t" << copies.count() << "\t" << copies.join(",") << "\t" + coords.join(",") << (anno ? "\t" + genes.join(",")  : "") << endl;
 
             //set index after CNV range (++i is performed in the loop => j-1)
             i=j-1;
@@ -839,7 +877,7 @@ public:
 		calculateLargeCNVs(results);
 
         //store results
-		QPair<int, int> tmp2 = storeResultAsTSV(results, data, exons, ext_max_dist, getOutfile("out"), comments);
+		QPair<int, int> tmp2 = storeResultAsTSV(results, data, exons, ext_max_dist, getOutfile("out"), comments, getFlag("anno"), getFlag("test"));
         int detected_merged = tmp2.first;
         detected = tmp2.second;
         outstream << "storing results TSV file..." << endl ;

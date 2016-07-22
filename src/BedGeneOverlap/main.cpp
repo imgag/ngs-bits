@@ -43,7 +43,7 @@ public:
 		for(int i=0; i<in.count(); ++i)
 		{
 			BedLine& line = in[i];
-			genes << db.genesOverlapping(line.chr().str(), line.start(), line.end(), 0);
+			genes << db.genesOverlapping(line.chr(), line.start(), line.end(), 0);
 		}
 		genes.removeDuplicates();
 
