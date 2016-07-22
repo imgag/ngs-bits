@@ -36,9 +36,7 @@ public:
 		//init
 		QString out = getOutfile("out");
 		QString tumor_bam = getInfile("tumor_bam");
-		QString tumor_path = QDir(out).relativeFilePath(QFileInfo(tumor_bam).path()) + "/" + QFileInfo(tumor_bam).baseName();
 		QString normal_bam = getInfile("normal_bam");
-		QString normal_path = QDir(out).relativeFilePath(QFileInfo(normal_bam).path()) + "/" + QFileInfo(normal_bam).baseName();
 		QString somatic_vcf = getInfile("somatic_vcf");
 		QString target_bed = getInfile("target_bed");
 		bool count = getFlag("count");
@@ -48,14 +46,25 @@ public:
 			QCCollection metrics;
 			metrics = Statistics::somatic(tumor_bam, normal_bam, somatic_vcf, target_bed);
 
+			// add linked files
 			QStringList qcml_files;
-			if(QFileInfo(tumor_path + "_stats_fastq.qcML").isFile())	qcml_files.append(tumor_path + "_stats_fastq.qcML");
-			if(QFileInfo(tumor_path + "_stats_map.qcML").isFile())	qcml_files.append(tumor_path + "_stats_map.qcML");
-			if(QFileInfo(normal_path + "_stats_fastq.qcML").isFile())	qcml_files.append(normal_path + "_stats_fastq.qcML");
-			if(QFileInfo(normal_path + "_stats_map.qcML").isFile())	qcml_files.append(normal_path + "_stats_map.qcML");
+			QDir out_dir = QFileInfo(out).absoluteDir();
+			QString tumor_path_qcml = out_dir.relativeFilePath( QFileInfo(tumor_bam).absolutePath() ) + "/" + QFileInfo(tumor_bam).baseName();
+			QString normal_path_qcml = out_dir.relativeFilePath( QFileInfo(normal_bam).absolutePath() ) + "/" + QFileInfo(normal_bam).baseName();
+			QString tumor_path = QFileInfo(tumor_bam).path() + "/" + QFileInfo(tumor_bam).baseName();
+			QString normal_path = QFileInfo(normal_bam).path() + "/" + QFileInfo(normal_bam).baseName();
+
+			if(QFileInfo(tumor_path + "_stats_fastq.qcML").isFile())	qcml_files.append(tumor_path_qcml + "_stats_fastq.qcML");
+			if(QFileInfo(tumor_path + "_stats_map.qcML").isFile())	qcml_files.append(tumor_path_qcml + "_stats_map.qcML");
+			if(QFileInfo(normal_path + "_stats_fastq.qcML").isFile())	qcml_files.append(normal_path_qcml + "_stats_fastq.qcML");
+			if(QFileInfo(normal_path + "_stats_map.qcML").isFile())	qcml_files.append(normal_path_qcml + "_stats_map.qcML");
+
+			qDebug() << tumor_path << normal_path;
 
 			//store output
-			metrics.storeToQCML(out, QStringList() << tumor_bam << normal_bam << somatic_vcf, "", QMap< QString, int >(), qcml_files);
+			QString parameters = "";
+			if(!target_bed.isEmpty())	parameters += "-target_bed " + target_bed;
+			metrics.storeToQCML(out, QStringList() << tumor_bam << normal_bam << somatic_vcf, parameters, QMap< QString, int >(), qcml_files);
 		}
 
 		//
