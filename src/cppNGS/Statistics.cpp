@@ -586,8 +586,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 
 	QString tumor_id = QFileInfo(tumor_bam).baseName();
 	QString normal_id = QFileInfo(normal_bam).baseName();
-	QStringList nuc;
-	nuc.append("A"); nuc.append("C"); nuc.append("G"); nuc.append("T");
+	QStringList nuc = QStringList{"A","C","G","T"};
 
 	//plot1: allele frequencies
 	ScatterPlot plot1;
@@ -666,36 +665,22 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 
 	//plot2: somatic variant signature, only pyrimidines are of interest
 	BarPlot plot2;
-	plot1.setXLabel("triplett");
-	plot1.setYLabel("count");
+	plot2.setXLabel("triplett");
+	plot2.setYLabel("count");
 	QString c,co,cod;
-	QMap<QString,QString> color_map;
-	color_map.insert("C>A","b");
-	color_map.insert("C>G","k");
-	color_map.insert("C>T","r");
-	color_map.insert("T>A","g");
-	color_map.insert("T>G","c");
-	color_map.insert("T>C","y");
+	QMap<QString,QString> color_map = QMap<QString,QString>{{"C>A","b"},{"C>G","k"},{"C>T","r"},{"T>A","g"},{"T>G","c"},{"T>C","y"}};
 	foreach(QString color, color_map)
 	{
 		plot2.addColorLegend(color,color_map.key(color));
 	}
-	QList<QString> codons;
-	QList<int> counts;
-	QList<int> counts_target;
-	QList<int> counts_genome;
-	QList<int> counts_normalized;
-	QList<QString> labels;
-	colors = QList<QString>();
-	QStringList sig;
-	sig.append("C");sig.append("T");
-	codons.append("");	//add prefix (0 is not a valid bar)
-	labels.append("");	//add prefix (0 is not a valid bar)
-	counts.append(0);
-	counts_target.append(0);
-	counts_genome.append(0);
-	counts_normalized.append(0);
-	colors.append("w");
+	QList<QString> codons = QList<QString>{""};
+	QList<int> counts = QList<int>{0};
+	QList<int> counts_target = QList<int>{0};
+	QList<int> counts_genome = QList<int>{0};
+	QList<int> counts_normalized = QList<int>{0};
+	QList<QString> labels = QList<QString>{""};
+	colors = QList<QString>{"w"};
+	QStringList sig = QStringList{"C","T"};
 	foreach(QString r, sig)
 	{
 		c = r;
@@ -736,7 +721,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	}
 	if(!target_file.isEmpty())	//calculate genome tripletts
 	{
-		plot1.setYLabel("normalized count");
+		plot2.setYLabel("normalized count");
 		//codons: use precalculated codon counts from reference genome (hg19)
 		QHash < QString, int > count_codons_genome({
 					{"ACA",57602816},{"ACC",33256008},{"ACG",7181818},{"ACT",45999566},{"CCA",52722217},{"CCC",37602581},{"CCG",7900670},{"CCT",50842624},
@@ -781,7 +766,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	QFile::remove(plot2name);
 
 	//plot3: somatic variant distances, only for whole genome sequencing
-	if(!target_file.isEmpty())	//calculate genome tripletts
+	if(target_file.isEmpty())
 	{
 		ScatterPlot plot3;
 		plot3.setXLabel("chromosomes");
@@ -816,50 +801,43 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 			plot3.addVLine(chrom_starts_norm[c]);
 		}
 		//(2) calculate distance for each chromosome and convert it to x-coordinates
-		if(target_file.isEmpty())
+		QList< QPair<double,double> > points3;
+		QString tmp_chr = "";
+		int tmp_pos = 0;
+		double tmp_offset = 0;
+		double max = 0;
+		for(int i=0; i<variants.count(); ++i)	//list has to be sorted by chrom. position
 		{
-			QList< QPair<double,double> > points3;
-			QString tmp_chr = "";
-			int tmp_pos = 0;
-			double tmp_offset = 0;
-			double max = 0;
-			for(int i=0; i<variants.count(); ++i)	//list has to be sorted by chrom. position
+			if(!variants[i].chr().isNonSpecial())	continue;
+
+			if(tmp_chr == variants[i].chr().str())	//same chromosome
 			{
-				if(!variants[i].chr().isNonSpecial())	continue;
-
-				if(tmp_chr == variants[i].chr().str())	//same chromosome
-				{
-					//convert distance to x-Axis position
-					QPair<double,double> point;
-					point.first = tmp_offset + double(variants[i].start())/double(genome_size);
-					point.second = variants[i].start() - tmp_pos;
-					if(max < point.second)	max = point.second;
-					points3.append(point);
-				}
-
-				if((tmp_chr != variants[i].chr().str()) && i>0)	//if a different chromosome is found => udpate offset
-				{
-					if(!chrom_starts_norm.contains(variants[i].chr()))	continue; //skip invalid chromosomes
-					tmp_pos = 0;
-					tmp_offset = chrom_starts_norm[tmp_chr];
-				}
-
-				tmp_chr = variants[i].chr().str();
-				tmp_pos = variants[i].start();
+				//convert distance to x-Axis position
+				QPair<double,double> point;
+				point.first = tmp_offset + double(variants[i].start())/double(genome_size);
+				point.second = variants[i].start() - tmp_pos;
+				if(max < point.second)	max = point.second;
+				points3.append(point);
 			}
-			plot3.setYRange(1,max*100);
-			plot3.setXRange(0,1);
-			plot3.noXTicks();
-			plot3.setValues(points3);
-			QString plot3name = Helper::tempFileName(".png");
-			plot3.store(plot3name);
-			output.insert(QCValue::Image("somatic variant distance plot", plot3name, ".", "QC:2000046"));
-			QFile::remove(plot3name);
+
+			if((tmp_chr != variants[i].chr().str()) && i>0)	//if a different chromosome is found => udpate offset
+			{
+				if(!chrom_starts_norm.contains(variants[i].chr()))	continue; //skip invalid chromosomes
+				tmp_pos = 0;
+				tmp_offset = chrom_starts_norm[tmp_chr];
+			}
+
+			tmp_chr = variants[i].chr().str();
+			tmp_pos = variants[i].start();
 		}
-	}
-	else
-	{
-		output.insert(QCValue::Image("somatic variant distance plot", "", "Target file given, skipping plot generation.", "QC:2000046"));
+		plot3.setYRange(1,max*100);
+		plot3.setXRange(0,1);
+		plot3.noXTicks();
+		plot3.setValues(points3);
+		QString plot3name = Helper::tempFileName(".png");
+		plot3.store(plot3name);
+		output.insert(QCValue::Image("somatic variant distance plot", plot3name, ".", "QC:2000046"));
+		QFile::remove(plot3name);
 	}
 
 	return output;
