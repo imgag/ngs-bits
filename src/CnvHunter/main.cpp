@@ -244,7 +244,6 @@ public:
 		QString reg = chr.str() + ":" + QString::number(start) + "-" + QString::number(end);
 		if (cache.contains(reg))
 		{
-			qDebug() << "cache\n";
 			return cache[reg];
 		}
 
