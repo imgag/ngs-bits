@@ -603,9 +603,11 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 		int count_mut = 0;
 		int count_all = 0;
 
-		//strelka tumor and normal
-		if(variants.annotationIndexByName(("AU"), tumor_id, true, false) != -1)
-		{
+		//strelka SNV tumor and normal
+		int idx_strelka_snv = variants.annotationIndexByName("AU", tumor_id, true, false);
+		int idx_strelka_indel = variants.annotationIndexByName("TIR", tumor_id, true, false);
+		if( idx_strelka_snv!=-1 && !variants[i].annotations()[idx_strelka_snv].isEmpty() )
+		{			
 			count_mut = 0;
 			count_all = 0;
 			foreach(QString n, nuc)
@@ -628,10 +630,30 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 			}
 			if(count_all>0)	af_normal = (double)count_mut/count_all;
 		}
+		else if( idx_strelka_indel!=-1 && !variants[i].annotations()[idx_strelka_indel].isEmpty() )	//indels strelka
+		{
+			//TIR + TAR tumor
+			count_mut = 0;
+			count_all = 0;
+			int idx = variants.annotationIndexByName("TIR", tumor_id);
+			count_mut = variants[i].annotations()[idx].split(',')[0].toInt();
+			idx = variants.annotationIndexByName("TAR", tumor_id);
+			count_all = variants[i].annotations()[idx].split(',')[0].toInt() + count_mut;
+			if(count_all>0)	af_tumor = (double)count_mut/count_all;
+
+			//TIR + TAR normal
+			count_mut = 0;
+			count_all = 0;
+			idx = variants.annotationIndexByName("TIR", normal_id);
+			count_mut = variants[i].annotations()[idx].split(',')[0].toInt();
+			idx = variants.annotationIndexByName("TAR", normal_id);
+			count_all = variants[i].annotations()[idx].split(',')[0].toInt() + count_mut;
+			if(count_all>0)	af_normal = (double)count_mut/count_all;
+		}
 		//freebayes tumor and normal
 		//##FORMAT=<ID=RO,Number=1,Type=Integer,Description="Reference allele observation count">
 		//##FORMAT=<ID=AO,RONumber=A,Type=Integer,Description="Alternate allele observation count">
-		else if(variants.annotationIndexByName(("AO"), tumor_id, true, false) != -1)
+		else if(variants.annotationIndexByName("AO", tumor_id, true, false) != -1)
 		{
 			int index_ro = variants.annotationIndexByName("RO", tumor_id);
 			int index_ao = variants.annotationIndexByName("AO", tumor_id);
@@ -647,7 +669,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 		}
 		else
 		{
-			Log::error("Could not identify vcf format in line " + QString::number(i) + " " + QString::number(af_tumor) + ". Only strelka and freebayes are currently supported.");
+			Log::error("Could not identify vcf format in line " + QString::number(i) + ". Sample-ID: " + tumor_id + ". Only strelka and freebayes are currently supported.");
 		}
 
 		//find AF and set x and y points, implement freebayes and strelka fields
@@ -710,6 +732,8 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	FastaFileIndex reference(Settings::string("reference_genome"));
 	for(int i=0; i<variants.count(); ++i)
 	{
+		if(!variants[i].isSNV())	continue;	//skip indels
+
 		Variant v = variants[i];
 		QString c = reference.seq(v.chr(),v.start()-1,1,true) + v.ref().toUpper() + reference.seq(v.chr(),v.start()+1,1,true) + " - " + v.obs().toUpper();
 
@@ -749,15 +773,17 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 		}
 		//codons: normalize current codons
 		y_max = 0;
+		sum = 0;
 		for(int i=1; i<codons.count(); ++i)
 		{
 			QString cod = codons[i].mid(0,3);
 			counts_normalized[i] = qRound(counts[i]*(double(count_codons_genome[cod])/double(count_codons_target[cod])));
+			sum += counts_normalized[i];
 			if(counts_normalized[i]>y_max)	y_max = counts_normalized[i];
 		}
 		counts = QList<int>(counts_normalized);
 	}
-	plot2.setYRange(0,y_max + 20);
+	plot2.setYRange(0,y_max + 0.2*y_max);
 	plot2.setValues(counts, labels, colors);
 	plot2.setXRange(0,97);
 	QString plot2name = Helper::tempFileName(".png");

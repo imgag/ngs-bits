@@ -210,7 +210,7 @@ int VariantList::annotationIndexByName(const QString& name, const QString& sampl
 	{
 		if (error_on_mismatch)
 		{
-			THROW(ArgumentException, "Could not find required column '" + name + "' in variant list!");
+			THROW(ArgumentException, "Could not find column '" + name + "' " + (!sample_id.isEmpty() ? QString("for patient '" + sample_id + "' ") : QString("")) + "in variant list!");
 		}
 		else
 		{
@@ -222,11 +222,12 @@ int VariantList::annotationIndexByName(const QString& name, const QString& sampl
 	{
 		if (error_on_mismatch)
 		{
-			THROW(ArgumentException, "Found multiple columns for '" + name + "' in variant list!");
+			THROW(ArgumentException, "Found multiple columns for '" + name + "' " + (!sample_id.isEmpty() ? QString("for patient '" + sample_id + "' ") : QString("")) + " in variant list!");
 		}
 		else
 		{
-			return -1;
+			Log::warn("Found multiple columns for '" + name + "' " + (!sample_id.isEmpty() ? QString("for patient '" + sample_id + "' ") : QString("")) + " in variant list!");
+			return -2;
 		}
 	}
 
@@ -656,6 +657,19 @@ void VariantList::loadFromVCF(QString filename)
 			description_value.chop(2);//remove '">'
 			new_annotation_description.setDescription(description_value);
 
+			//check if annotation description is a possible duplicate
+			bool found = false;
+			foreach(VariantAnnotationDescription vad, annotationDescriptions())
+			{
+				if(vad.name()==new_annotation_description.name() && vad.sampleSpecific()==new_annotation_description.sampleSpecific())
+				{
+					Log::warn("Duplicate metadata information for field named '" + new_annotation_description.name() + "'. Skipping metadata line " + QString::number(line_number) + ".");
+					found = true;
+					break;
+				}
+			}
+			if(found)	continue;
+
 			annotationDescriptions().append(new_annotation_description);
 		}
 		//other meta-information lines
@@ -785,10 +799,11 @@ void VariantList::loadFromVCF(QString filename)
 					{
 						annotations().append(VariantAnnotationHeader(key_value[0]));
 						annotationDescriptions().append(VariantAnnotationDescription(key_value[0],"no description available"));
+						Log::info("No metadata information for INFO field " + key_value[0] + " was found.");
 
 						for(int ii=0;ii<variants_.count();++ii)
 						{
-							variants_[ii].annotations().append("");
+							variants_[ii].annotations().append(QByteArray());
 						}
 
 						index = annos.count();
@@ -821,15 +836,16 @@ void VariantList::loadFromVCF(QString filename)
 						}
 						if(index==-1)
 						{
-							index = annos.count();
-							annos.append(value);
-
+							Log::info("No metadata information for FORMAT field " + names[ii] + ".");
 							annotations().append(VariantAnnotationHeader(names[ii],sample_id));
 							annotationDescriptions().append(VariantAnnotationDescription(names[ii],"no description available",VariantAnnotationDescription::STRING,true));
 							for(int iii=0;iii<variants_.count();++iii)
 							{
-								variants_[iii].annotations().append("");
+								variants_[iii].annotations().append(QByteArray());
 							}
+
+							index = annos.count();
+							annos.append(value);
 						}
 						annos[index] = value;
 					}

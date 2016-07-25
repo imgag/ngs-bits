@@ -59,8 +59,6 @@ public:
 			if(QFileInfo(normal_path + "_stats_fastq.qcML").isFile())	qcml_files.append(normal_path_qcml + "_stats_fastq.qcML");
 			if(QFileInfo(normal_path + "_stats_map.qcML").isFile())	qcml_files.append(normal_path_qcml + "_stats_map.qcML");
 
-			qDebug() << tumor_path << normal_path;
-
 			//store output
 			QString parameters = "";
 			if(!target_bed.isEmpty())	parameters += "-target_bed " + target_bed;
