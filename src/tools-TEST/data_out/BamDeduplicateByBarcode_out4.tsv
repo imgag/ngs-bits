@@ -1,4 +1,4 @@
-chr 	start	end	MIP name	count
+chr 	start	end	MIP name	condensed	uncondensed	singles
 1	43814862	43814982	MPL_0002_SNP_a	0	0	0
 1	43814874	43814994	MPL_0005	0	0	0
 1	43814936	43815056	MPL_0003	0	0	0
