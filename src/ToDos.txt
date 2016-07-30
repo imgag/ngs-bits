@@ -38,10 +38,13 @@ Tools:
 - VcfCheck: Format check for vcf files
 
 CnvHunter:
+ * Change output format to BED-like format to allow filtering using BED-based tools.
+ * Allow extension when z-score cutoff is reached, or when calculated CN is not 2 (both only when the trend is right)
  * add GC-normalization (then, check GS151166_01 gene C5orf42)
  * merge large CNVs to one region - use CBS or slope-based algorithm based on cummulative relative coverage.
  * normalize Z-scores to mean 0 and stdev 1 to correct for sample quality
  * instead of fixed 'n', use n>=10 and n<=30 with highest correlation or lowest z-score stdev?
+ * Check HaloPlex HS data
  ? output: median instead of mean for "CNV events/sample/100 regions" and "regions/CNV event"
  - Für alle/wichtige CNAs Plot (log-ratio/z-score/call) mit Umgebung
  - integrate CNV databases:
