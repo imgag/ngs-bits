@@ -39,10 +39,9 @@ Tools:
 - VcfCheck: Format check for vcf files
 
 CnvHunter:
- * Add maximal z-scores and ratios to output
- * Allow extension when z-score cutoff is reached, or when calculated CN is not 2 (both only when the trend is right)
+ * Add region z-scores to output
+ * merge large CNVs to one region - use CBS-like algorithm or slope-based algorithm based on cummulative normalized coverage.
  * add GC-normalization (then, check GS151166_01 gene C5orf42)
- * merge large CNVs to one region - use CBS or slope-based algorithm based on cummulative relative coverage.
  * Check HaloPlex HS data
  - Für alle/wichtige CNAs Plot (log-ratio/z-score/call) mit Umgebung
  - integrate CNV databases:
