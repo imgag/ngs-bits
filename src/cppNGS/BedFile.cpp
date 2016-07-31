@@ -104,8 +104,15 @@ void BedFile::load(QString filename)
 		QByteArray line = file->readLine();
 		while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
 
-		//skip empty lines and header lines
-		if(line.length()==0 || line.startsWith("track ") || line.startsWith("browser ")) continue;
+		//skip empty lines
+		if(line.length()==0) continue;
+
+		//store headers
+		if (line.startsWith("#") || line.startsWith("track ") || line.startsWith("browser "))
+		{
+			headers_.append(line);
+			continue;
+		}
 
 		//error when less than 3 fields
 		QList<QByteArray> fields = line.split('\t');
@@ -134,12 +141,19 @@ void BedFile::load(QString filename)
 	}
 }
 
-void BedFile::store(QString filename, QString header) const
+void BedFile::store(QString filename) const
 {
-	//write to stream
+	//open stream
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, true);
 	QTextStream stream(file.data());
-	if (header!="")	stream << header.trimmed()  << "\n";
+
+	//write headers
+	foreach(const QByteArray& header, headers_)
+	{
+		stream << header.trimmed()  << "\n";
+	}
+
+	//write contents
 	foreach(const BedLine& line, lines_)
 	{
 		QString line_text = line.chr().str() + "\t" + QString::number(line.start()-1) + "\t" + QString::number(line.end());
@@ -176,6 +190,11 @@ void BedFile::clearAnnotations()
 	{
 		lines_[i].annotations().clear();
 	}
+}
+
+void BedFile::clearHeaders()
+{
+	headers_.clear();
 }
 
 void BedFile::sort(bool uniq)
@@ -353,7 +372,7 @@ void BedFile::intersect(const BedFile& file2)
 	}
 	ChromosomalIndex<BedFile> file2_idx(file2);
 
-	//remove annotations
+	//remove annotations and headers
 	clearAnnotations();
 
 	//intersect

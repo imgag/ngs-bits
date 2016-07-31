@@ -15,7 +15,6 @@ libs:
       - somatic(): check if target file works, make it faster
       - somatic(): remove nonSpecialChromosomes from all statistics parameters
 - cppNGS-Tests:
-   * BedFile: handle headers and comments (for BED-like files, e.g. CnvHunter output)
    - VariantFilter: Overview gene lists (missing genotype): treat all variants as homozygous?
    - Statistics: add Tests for somatic statistics
 * cppNGSD: add test project

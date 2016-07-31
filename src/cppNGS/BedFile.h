@@ -144,21 +144,32 @@ public:
     long long baseCount() const;
 	///Returns the contained chromosomes
 	QSet<Chromosome> chromosomes() const;
+	const QVector<QByteArray>& headers() const
+	{
+		return headers_;
+	}
+	void appendHeader(const QByteArray& header)
+	{
+		headers_.append(header);
+	}
 
     ///Loads a 0-based BED file and converts it to 1-based positions. Throws ParseException.
     void load(QString filename);
 	///Stores this 1-based representation to a BED file with 0-based coordinates. If no filename is given, the output goes to the console. Throws ParseException and FileException.
-	void store(QString filename, QString header="") const;
+	void store(QString filename) const;
 	///Convert this 1-based representation to a BED-like text. Throws ParseException and FileException.
 	QString toText() const;
 
     ///Removes all content.
     void clear()
     {
+		headers_.clear();
         lines_.clear();
     }
     ///Clears annotations of all regions.
     void clearAnnotations();
+	///Clears headers.
+	void clearHeaders();
 
     ///Sorts the lines accoring to chromosome (lexicographical) and start position (ascending). If the @p uniq is @em true, duplicate entries are removed after sorting.
     void sort(bool uniq = false);
@@ -192,7 +203,8 @@ protected:
     ///Removes empty lines.
     void removeInvalidLines();
 
-    QVector<BedLine> lines_;
+	QVector<QByteArray> headers_;
+	QVector<BedLine> lines_;
 };
 
 #endif // BEDFILE_H

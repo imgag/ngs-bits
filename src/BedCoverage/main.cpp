@@ -33,7 +33,7 @@ public:
 		file.merge(false);
 
 		//get coverage info for bam files
-		QString header = "#chr\tstart\tend";
+		QByteArray header = "#chr\tstart\tend";
 		QStringList bams = getInfileList("bam");
 		foreach(QString bam, bams)
 		{
@@ -42,7 +42,9 @@ public:
 		}
 
 		//store
-		file.store(getOutfile("out"), header);
+		file.clearHeaders();
+		file.appendHeader(header);
+		file.store(getOutfile("out"));
 	}
 };
 
