@@ -15,8 +15,8 @@ private slots:
 		{
 			in[i] = data_folder + in[i];
 		}
-		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -out out/CnvHunter_out1.txt");
-		COMPARE_FILES("out/CnvHunter_out1.txt", TESTDATA("data_out/CnvHunter_out1.txt"));
+		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -out out/CnvHunter_out1.tsv");
+		COMPARE_FILES("out/CnvHunter_out1.tsv", TESTDATA("data_out/CnvHunter_out1.tsv"));
 	}
 
 	void hpPDv3_anno()
@@ -33,8 +33,8 @@ private slots:
 		{
 			in[i] = data_folder + in[i];
 		}
-		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -out out/CnvHunter_out6.txt -anno -test");
-		COMPARE_FILES("out/CnvHunter_out6.txt", TESTDATA("data_out/CnvHunter_out6.txt"));
+		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -out out/CnvHunter_out6.tsv -anno -test");
+		COMPARE_FILES("out/CnvHunter_out6.tsv", TESTDATA("data_out/CnvHunter_out6.tsv"));
 	}
 
 	void hpSCv1()
@@ -45,8 +45,8 @@ private slots:
 		{
 			in[i] = data_folder + in[i];
 		}
-		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -out out/CnvHunter_out2.txt");
-		COMPARE_FILES("out/CnvHunter_out2.txt", TESTDATA("data_out/CnvHunter_out2.txt"));
+		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -out out/CnvHunter_out2.tsv");
+		COMPARE_FILES("out/CnvHunter_out2.tsv", TESTDATA("data_out/CnvHunter_out2.tsv"));
 	}
 	
 	void ssX()
@@ -57,8 +57,8 @@ private slots:
 		{
 			in[i] = data_folder + in[i];
 		}
-		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -out out/CnvHunter_out3.txt");
-		COMPARE_FILES("out/CnvHunter_out3.txt", TESTDATA("data_out/CnvHunter_out3.txt"));
+		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -out out/CnvHunter_out3.tsv");
+		COMPARE_FILES("out/CnvHunter_out3.tsv", TESTDATA("data_out/CnvHunter_out3.tsv"));
 	}
 
 	void hpSCAv4_excludeReg_regionBedFile()
@@ -69,8 +69,8 @@ private slots:
 		{
 			in[i] = data_folder + in[i];
 		}
-		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -out out/CnvHunter_out4.txt -out_reg out/CnvHunter_out4.bed -exclude " +  TESTDATA("data_in/CnvHunter4/excluded.bed"));
-		COMPARE_FILES("out/CnvHunter_out4.txt", TESTDATA("data_out/CnvHunter_out4.txt"));
+		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -out out/CnvHunter_out4.tsv -out_reg out/CnvHunter_out4.bed -exclude " +  TESTDATA("data_in/CnvHunter4/excluded.bed"));
+		COMPARE_FILES("out/CnvHunter_out4.tsv", TESTDATA("data_out/CnvHunter_out4.tsv"));
 	}
 
 	void ssKM()
@@ -81,7 +81,7 @@ private slots:
 		{
 			in[i] = data_folder + in[i];
 		}
-		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -out out/CnvHunter_out5.txt");
-		COMPARE_FILES("out/CnvHunter_out5.txt", TESTDATA("data_out/CnvHunter_out5.txt"));
+		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -out out/CnvHunter_out5.tsv");
+		COMPARE_FILES("out/CnvHunter_out5.tsv", TESTDATA("data_out/CnvHunter_out5.tsv"));
 	}
 };

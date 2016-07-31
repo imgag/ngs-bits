@@ -264,7 +264,7 @@ public:
 			outstream << "##" << comment.trimmed() << endl;
 		}
 		//header
-		outstream << "#sample\tcoordinates\tnum_regions\tcopy_numbers\tregion_coordinates" << (anno ? "\tgenes" : "") << endl;
+		outstream << "#chr\tstart\tend\tsample\tregion_count\tregion_copy_numbers\tregion_coordinates" << (anno ? "\tgenes" : "") << endl;
 
 		QPair<int, int> output = qMakePair(0, 0);
         for (int i=0; i<results.count(); ++i)
@@ -307,7 +307,7 @@ public:
 
 			//print output
 			int end = exons[results[j-1].e].end;
-			outstream << data[results[i].s].name << "\t" << exon.chr.str() << ":" << exon.start << "-" << end << "\t" << copies.count() << "\t" << copies.join(",") << "\t" + coords.join(",") << (anno ? "\t" + genes.join(",")  : "") << endl;
+			outstream << exon.chr.str() << "\t" << exon.start << "\t" << end << "\t" << data[results[i].s].name << "\t" << copies.count() << "\t" << copies.join(",") << "\t" + coords.join(",") << (anno ? "\t" + genes.join(",")  : "") << endl;
 
             //set index after CNV range (++i is performed in the loop => j-1)
             i=j-1;
