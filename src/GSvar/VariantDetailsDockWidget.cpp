@@ -7,6 +7,7 @@
 #include <QMessageBox>
 #include "Settings.h"
 #include "NGSD.h"
+#include "Log.h"
 
 VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget *parent) :
 	QDockWidget(parent),
@@ -285,8 +286,16 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				for (int i=0; i<genes.count(); ++i)
 				{
 					QString gene = genes[i].trimmed();
-					QString inheritance = NGSD().geneInfo(gene).inheritance;
-					genes[i] =  gene + " (" + inheritance + ")";
+					QString inheritance = "error";
+					try
+					{
+						inheritance = NGSD().geneInfo(gene).inheritance;
+					}
+					catch (DatabaseException& e)
+					{
+						Log::warn("Could not get inheritance info from NGSD for gene '" + gene + "'");
+					}
+					genes[i] = gene + " (" + inheritance + ")";
 				}
 			}
 			text = genes.join(" ");

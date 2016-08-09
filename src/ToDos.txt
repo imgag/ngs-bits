@@ -21,7 +21,6 @@ libs:
 
 GSvar:
 * calcualte gaps by intersecting low-coverage BED file with current target region (if target region is equal or larger - needs roi name/sizes in BED header)
-* Catch DB-Exceptions of inheritance mode in variant details
 * VariantOverview: Show warning sign when other variants are close-by (variant details on hover)
 * Report: add statistics about gaps in CCDS+0bp regions and print overall sequenced size without gaps (consider only longest/preferred transcript)
 * Allow handling of several affected (i.e. integrate SampleOverview functionality)
