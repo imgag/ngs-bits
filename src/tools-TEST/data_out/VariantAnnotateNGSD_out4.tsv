@@ -1,6 +1,3 @@
-##DESCRIPTION=ihdb_hom=Homozygous variant counts in NGSD for the same processing system (0 samples).
-##DESCRIPTION=ihdb_het=Heterozyous variant counts in NGSD for the same processing system (0 samples).
-##DESCRIPTION=ihdb_wt=Wildtype variant counts in NGSD for the same processing system (0 samples).
 ##DESCRIPTION=ihdb_allsys_hom=Homozygous variant counts in NGSD independent of the processing system.
 ##DESCRIPTION=ihdb_allsys_het=Heterozygous variant counts in NGSD independent of the processing system.
 ##DESCRIPTION=classification=Classification from the NGSD.
@@ -17,4 +14,4 @@
 ##FILTER=pred_pathogenic_2=Variant predicted pathogenic by two of the prediction tools.
 ##FILTER=pred_pathogenic_3=Variant predicted pathogenic by three of the prediction tools.
 ##FILTER=pred_pathogenic_4=Variant predicted pathogenic by four of the prediction tools.
-#chr	start	end	ref	obs	ihdb_hom	ihdb_het	ihdb_wt	ihdb_allsys_hom	ihdb_allsys_het	classification	classification_comment	validated	comment
+#chr	start	end	ref	obs	ihdb_allsys_hom	ihdb_allsys_het	classification	classification_comment	validated	comment
