@@ -55,6 +55,27 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	//variant
 	ui->variant->setText(vl[index].toString());
 
+	//closeby variant warning
+	QStringList closeby;
+	int geno_i = vl.annotationIndexByName("genotype", true, false);
+	BedLine range(vl[index].chr(), vl[index].start()-2, vl[index].end()+2);
+	for (int i=std::max(0, index-10); i<std::min(vl.count(), index+10); ++i)
+	{
+		if (i==index) continue;
+		if (vl[i].overlapsWith(range))
+		{
+			QString variant = vl[i].toString();
+			if (geno_i!=-1)
+			{
+				variant += " (" + vl[i].annotations()[geno_i] + ")";
+			}
+			closeby.append(variant);
+		}
+	}
+	ui->warn_closeby->setPixmap(QPixmap(":/Icons/Attention.png"));
+	ui->warn_closeby->setVisible(closeby.count()>0);
+	ui->warn_closeby->setToolTip("Nearby variant(s):\n" + closeby.join("\n"));
+
 	//details
 	initTranscriptDetails(vl, index);
 
@@ -104,6 +125,7 @@ void VariantDetailsDockWidget::clear()
 
 	//variant
 	ui->variant->setText("No variant or several variants selected");
+	ui->warn_closeby->setVisible(false);
 
 	//details
 	ui->trans->setText("<span style=\"font-weight:600; color:#222222;\">&nbsp;<span>"); //bold => higher

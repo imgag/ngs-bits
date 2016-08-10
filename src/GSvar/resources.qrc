@@ -25,5 +25,6 @@
         <file>Icons/CopyFile.png</file>
         <file>Icons/Next.png</file>
         <file>Icons/Previous.png</file>
+        <file>Icons/Attention.png</file>
     </qresource>
 </RCC>
