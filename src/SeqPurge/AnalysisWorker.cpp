@@ -61,7 +61,7 @@ double AnalysisWorker::matchProbability(int matches, int mismatches)
 	double p = 0.0;
 	for (int i=matches; i<=count; ++i)
 	{
-		double q = std::pow(0.75, count-i) * std::pow(0.25, i) * fak(count) / fak(matches) / fak(mismatches);
+		double q = std::pow(0.75, count-i) * std::pow(0.25, i) * fak(count) / fak(i) / fak(count-i);
 		p += q;
 	}
 
