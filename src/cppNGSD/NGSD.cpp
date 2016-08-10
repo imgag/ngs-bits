@@ -517,15 +517,6 @@ void NGSD::annotate(VariantList& variants, QString filename)
 		found_in_db = false;
 	}
 
-	//get sample ids that have processed samples with the same processing system (not same sample, variants imported, same processing system, good quality of sample, not tumor)
-	QSet<int> sys_sample_ids;
-	SqlQuery tmp = getQuery();
-	tmp.exec("SELECT DISTINCT s.id FROM processed_sample as ps, sample s WHERE ps.processing_system_id='" + sys_id + "' AND ps.sample_id=s.id AND s.tumor='0' AND s.quality='good' AND s.id!='" + s_id + "' AND (SELECT count(id) FROM detected_variant as dv WHERE dv.processed_sample_id = ps.id)>0");
-	while(tmp.next())
-	{
-		sys_sample_ids.insert(tmp.value(0).toInt());
-	}
-
 	//remove all NGSD-specific columns
 	QList<VariantAnnotationHeader> headers = variants.annotations();
 	foreach(const VariantAnnotationHeader& header, headers)
@@ -541,10 +532,6 @@ void NGSD::annotate(VariantList& variants, QString filename)
 	removeColumnIfPresent(variants, "comment", true);
 
 	//get required column indices
-	QString num_samples = QString::number(sys_sample_ids.count());
-	int ihdb_hom_idx = addColumn(variants, "ihdb_hom", "Homozygous variant counts in NGSD for the same processing system (" + num_samples + " samples).");
-	int ihdb_het_idx = addColumn(variants, "ihdb_het", "Heterozyous variant counts in NGSD for the same processing system (" + num_samples + " samples).");
-	int ihdb_wt_idx  = addColumn(variants, "ihdb_wt", "Wildtype variant counts in NGSD for the same processing system (" + num_samples + " samples).");
 	int ihdb_all_hom_idx = addColumn(variants, "ihdb_allsys_hom", "Homozygous variant counts in NGSD independent of the processing system.");
 	int ihdb_all_het_idx =  addColumn(variants, "ihdb_allsys_het", "Heterozygous variant counts in NGSD independent of the processing system.");
 	int class_idx = addColumn(variants, "classification", "Classification from the NGSD.");
@@ -652,8 +639,6 @@ void NGSD::annotate(VariantList& variants, QString filename)
 		//genotype counts
 		int allsys_hom_count = 0;
 		int allsys_het_count = 0;
-		int sys_hom_count = 0;
-		int sys_het_count = 0;
 		QSet<int> s_ids_done;
 		int s_id_int = s_id.toInt();
 		query.exec("SELECT dv.genotype, ps.sample_id FROM detected_variant as dv, processed_sample ps WHERE dv.processed_sample_id=ps.id AND dv.variant_id='" + v_id + "'");
@@ -671,18 +656,10 @@ void NGSD::annotate(VariantList& variants, QString filename)
 			if (current_geno=="hom")
 			{
 				++allsys_hom_count;
-				if (sys_sample_ids.contains(current_sample))
-				{
-					++sys_hom_count;
-				}
 			}
 			else if (current_geno=="het")
 			{
 				++allsys_het_count;
-				if (sys_sample_ids.contains(current_sample))
-				{
-					++sys_het_count;
-				}
 			}
 		}
 		//qDebug() << (v.isSNV() ? "S" : "I") << query.size() << t_v << t_dv << t_val << t_com << timer.elapsed();
@@ -691,17 +668,11 @@ void NGSD::annotate(VariantList& variants, QString filename)
 		v.annotations()[ihdb_all_het_idx] = QByteArray::number(allsys_het_count);
 		if (found_in_db)
 		{
-			v.annotations()[ihdb_hom_idx] = QByteArray::number((double)sys_hom_count / sys_sample_ids.count(), 'f', 4);
-			v.annotations()[ihdb_het_idx] =  QByteArray::number((double)sys_het_count / sys_sample_ids.count(), 'f', 4);
-			v.annotations()[ihdb_wt_idx] =  QByteArray::number((double)(sys_sample_ids.count() - sys_hom_count - sys_het_count) / sys_sample_ids.count(), 'f', 4);
 			v.annotations()[valid_idx] = val_status;
 			v.annotations()[comment_idx] = comment.replace("\n", " ").replace("\t", " ");
 		}
 		else
 		{
-			v.annotations()[ihdb_hom_idx] = "n/a";
-			v.annotations()[ihdb_het_idx] = "n/a";
-			v.annotations()[ihdb_wt_idx] = "n/a";
 			v.annotations()[valid_idx] = "n/a";
 			v.annotations()[comment_idx] = "n/a";
 		}

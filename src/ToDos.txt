@@ -17,16 +17,20 @@ libs:
 - cppNGS-Tests:
    - VariantFilter: Overview gene lists (missing genotype): treat all variants as homozygous?
    - Statistics: add Tests for somatic statistics
-- cppNGSD: add test project
+* cppNGSD: add test project
 
 GSvar:
+* calcualte gaps by intersecting low-coverage BED file with current target region (if target region is equal or larger - needs roi name/sizes in BED header)
+* VariantOverview: Show warning sign when other variants are close-by (variant details on hover)
 * Report: add statistics about gaps in CCDS+0bp regions and print overall sequenced size without gaps (consider only longest/preferred transcript)
+* Allow handling of several affected (i.e. integrate SampleOverview functionality)
 - Implement update tool that automatically checks for new versions, or find solution with reference to sub-folders (ask Martin)
 - Add buttons to search in goolge/pubmed for variant
 
 Tools:
 * VariantQC: add mean deviation from expected AFs (0.0, 0.5, 1.0) for all high-coverage dbSNP SNPs to detect contamintations ('n/a' for SNP count<30 samples) => show in NGSD ps/run QC (cutoff 0.07/0.08)
 * Read-/MappingQC: Add statistics about raw sequenced size and usable sequenced size
+* QC: include qcML file into ngs-bits => init automatically
 - VariantFilterRegions, etc: Set input file format by command line argument => allow reading variant lists from stdin
 - MappingQC:
   - add %soft/hard-clipped quality parameter (see ssPWBRCA_v2)
@@ -38,13 +42,16 @@ Tools:
 - VcfCheck: Format check for vcf files
 
 CnvHunter:
+ * Add region z-scores to output
  * add GC-normalization (then, check GS151166_01 gene C5orf42)
- * merge large CNVs to one region - use CBS or slope-based algorithm based on cummulative relative coverage.
- * normalize Z-scores to mean 0 and stdev 1 to correct for sample quality
- * instead of fixed 'n', use n>=10 and n<=30 with highest correlation or lowest z-score stdev?
- ? output: median instead of mean for "CNV events/sample/100 regions" and "regions/CNV event"
+ * add percentile normalization
+ * merge large CNVs to one region - use CBS-like algorithm or slope-based algorithm based on cummulative normalized coverage
+ * Check HaloPlex HS data
  - Für alle/wichtige CNAs Plot (log-ratio/z-score/call) mit Umgebung
  - integrate CNV databases:
    - http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/
    - https://decipher.sanger.ac.uk/disorders#syndromes/overview
    - http://www.ncbi.nlm.nih.gov/dbvar
+ ? normalize Z-scores to mean 0 and stdev 1 to correct for sample quality
+ ? instead of fixed 'n', use n>=10 and n<=30 with highest correlation or lowest z-score stdev?
+ ? output: median instead of mean for "CNV events/sample/100 regions" and "regions/CNV event"

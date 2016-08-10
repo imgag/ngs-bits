@@ -291,7 +291,7 @@ private:
 		QFile out(outfile_name);
 		out.open(QIODevice::WriteOnly|QIODevice::Text);
 		QTextStream outStream(&out);
-		outStream <<"chr \tstart\tend\tMIP name\tcount"<<endl;
+		outStream <<"chr \tstart\tend\tMIP name\tcondensed\tuncondensed\tsingles"<<endl;
 		while (i.hasPrevious())
 		{
 			i.previous();
@@ -310,7 +310,7 @@ private:
 		QFile out(outfile_name);
 		out.open(QIODevice::WriteOnly|QIODevice::Text);
 		QTextStream outStream(&out);
-		outStream <<"chr \tstart\tend\tAmplicon name\tcount"<<endl;
+		outStream <<"chr \tstart\tend\tMIP name\tcondensed\tuncondensed\tsingles"<<endl;
 		while (i.hasPrevious())
 		{
 			i.previous();

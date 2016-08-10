@@ -117,55 +117,6 @@ public:
 		addFlag("test", "Uses the test database instead of on the production database for annotation.");
     }
 
-    QVector<QPair<int, int> > calculateLargeCNVs(const QVector<ResultData>& data)
-    {
-        //window size 9 => we need half the window size for calulation only
-        const int hws = 4;
-
-        //prepare output
-        QVector< QPair<int, int> > output;
-        int window_start = -1;
-        int window_end = -1;
-
-        QVector<int> tmp;
-        for (int i=hws; i<data.count()-hws; ++i)
-        {
-            tmp.clear();
-            for (int j=i-hws; j<=i+hws; ++j)
-            {
-                tmp.append(data.at(j).copies);
-            }
-			std::sort(tmp.begin(), tmp.end());
-            if (tmp[hws]!=2)
-            {
-                if (window_start==-1)
-                {
-                    window_start = i;
-                    window_end = -1;
-                }
-            }
-            else
-            {
-                if (window_start!=-1)
-                {
-                    window_end = i;
-                    output.append(qMakePair(window_start, window_end));
-					//qDebug() << "WINDOW: " << window_start  << window_end;
-                    window_start = -1;
-                }
-            }
-        }
-
-        if (window_start!=-1)
-        {
-            window_end = data.count() - hws;
-            output.append(qMakePair(window_start, window_end));
-			//qDebug() << "WINDOW: " << window_start  << window_end;
-        }
-
-        return output;
-    }
-
     void storeSampleInfo(const QVector<SampleData>& data)
     {
 		QSharedPointer<QFile> out = Helper::openFileForWriting("samples.tsv");
@@ -264,7 +215,7 @@ public:
 			outstream << "##" << comment.trimmed() << endl;
 		}
 		//header
-		outstream << "#sample\tcoordinates\tnum_regions\tcopy_numbers\tregion_coordinates" << (anno ? "\tgenes" : "") << endl;
+		outstream << "#chr\tstart\tend\tsample\tregion_count\tregion_copy_numbers\tregion_coordinates" << (anno ? "\tgenes" : "") << endl;
 
 		QPair<int, int> output = qMakePair(0, 0);
         for (int i=0; i<results.count(); ++i)
@@ -307,7 +258,7 @@ public:
 
 			//print output
 			int end = exons[results[j-1].e].end;
-			outstream << data[results[i].s].name << "\t" << exon.chr.str() << ":" << exon.start << "-" << end << "\t" << copies.count() << "\t" << copies.join(",") << "\t" + coords.join(",") << (anno ? "\t" + genes.join(",")  : "") << endl;
+			outstream << exon.chr.str() << "\t" << exon.start << "\t" << end << "\t" << data[results[i].s].name << "\t" << copies.count() << "\t" << copies.join(",") << "\t" + coords.join(",") << (anno ? "\t" + genes.join(",")  : "") << endl;
 
             //set index after CNV range (++i is performed in the loop => j-1)
             i=j-1;
@@ -802,9 +753,10 @@ public:
         detected = 0;
         for (int r=0; r<results.count(); ++r)
         {
-            if (results[r].copies==2) continue;
+			const ResultData& seed = results[r];
+			if (seed.copies==2) continue;
+			bool is_del = results[r].copies<2;
 
-            const ResultData& seed = results[r];
             //outstream << "  " << data[seed.s].filename << " " << exons[seed.e].name << " " << seed.z << " " << seed.copies << endl;
 
             //extend to left
@@ -812,13 +764,20 @@ public:
             while(i>0 && results[i].copies==2)
             {
                 const ResultData& curr = results[i];
-                if (curr.s!=seed.s) break; //same sample
-                if (exons[curr.e].chr!=exons[seed.e].chr) break; //same chromosome
-                if (exons[seed.e].start-exons[curr.e].end > ext_max_dist) break; //region distance
-                if (seed.z<0.0 && curr.z>-ext_min_z) break; //same CNV type (del)
-                if (seed.z>0.0 && curr.z<ext_min_z) break; //same CNV type (dup)
-                int copies = calculateCopies(data, curr.s, curr.e);
-                if (copies==2) break;
+				if (curr.s!=seed.s) break; //same sample
+				if (exons[curr.e].chr!=exons[seed.e].chr) break; //same chromosome
+				if (exons[seed.e].start-exons[curr.e].end > ext_max_dist) break; //region distance
+				int copies = calculateCopies(data, curr.s, curr.e);
+				if (is_del) //same CNV type (del)
+				{
+					if (curr.z>-ext_min_z) break;
+					if (copies>=2) break;
+				}
+				else //same CNV type (dup)
+				{
+					if (curr.z<ext_min_z) break;
+					if (copies<=2) break;
+				}
 
                 results[i].copies = copies;
                 //outstream << "    EX LEFT " << data[curr.s].filename << " " << exons[curr.e].name << " " << curr.z << " " << copies << endl;
@@ -832,12 +791,19 @@ public:
             {
                 const ResultData& curr = results[i];
                 if (curr.s!=seed.s) break; //same sample
-                if (exons[curr.e].chr!=exons[seed.e].chr) break; //same chromosome
-                if (exons[curr.e].start-exons[seed.e].end > ext_max_dist) break; //region distance
-                if (seed.z<0.0 && curr.z>-ext_min_z) break; //same CNV type (del)
-                if (seed.z>0.0 && curr.z<ext_min_z) break; //same CNV type (dup)
-                int copies = calculateCopies(data, curr.s, curr.e);
-                if (copies==2) break;
+				if (exons[curr.e].chr!=exons[seed.e].chr) break; //same chromosome
+				if (exons[curr.e].start-exons[seed.e].end > ext_max_dist) break; //region distance
+				int copies = calculateCopies(data, curr.s, curr.e);
+				if (is_del) //same CNV type (del)
+				{
+					if (curr.z>-ext_min_z) break;
+					if (copies>=2) break;
+				}
+				else //same CNV type (dup)
+				{
+					if (curr.z<ext_min_z) break;
+					if (copies<=2) break;
+				}
 
                 results[i].copies = copies;
                 //outstream << "    EX RIGH " << data[curr.s].filename << " " << exons[curr.e].name << " " << curr.z << " " << copies << endl;
@@ -871,9 +837,6 @@ public:
             }
         }
         outstream << "flagged " << c_bad_sample2 << " samples" << endl << endl;
-
-        //detect and merger large CNV regions
-		calculateLargeCNVs(results);
 
         //store results
 		QPair<int, int> tmp2 = storeResultAsTSV(results, data, exons, ext_max_dist, getOutfile("out"), comments, getFlag("anno"), getFlag("test"));

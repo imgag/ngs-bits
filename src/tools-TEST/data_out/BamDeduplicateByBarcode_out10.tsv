@@ -1,4 +1,4 @@
-chr 	start	end	Amplicon name	count
+chr 	start	end	MIP name	condensed	uncondensed	singles
 1	78577956	78578193	AM_930325_000001	29	328	0
 1	78578102	78578263	AM_930325_000003	0	0	0
 1	78578103	78578264	AM_930325_000004	0	0	0

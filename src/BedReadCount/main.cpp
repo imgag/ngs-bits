@@ -82,13 +82,13 @@ public:
 		file.merge(false);
 
 		//get coverage info for bam files
-		QString header = "#chr\tstart\tend";
 		QString bam = getInfile("bam");
 		readCount(file, bam, getInt("min_mapq"));
-		header += "\t" + QFileInfo(bam).baseName();
 
 		//store
-		file.store(getOutfile("out"), header);
+		file.clearHeaders();
+		file.appendHeader("#chr\tstart\tend\t" + QFileInfo(bam).baseName().toLatin1());
+		file.store(getOutfile("out"));
 	}
 };
 

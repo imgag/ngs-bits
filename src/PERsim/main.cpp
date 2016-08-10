@@ -7,6 +7,7 @@
 #include "Settings.h"
 #include "FastaFileIndex.h"
 #include <chrono>
+#include <random>
 
 #include "api/BamReader.h"
 using namespace BamTools;

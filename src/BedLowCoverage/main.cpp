@@ -33,6 +33,7 @@ public:
     {
         //init
         QString in = getInfile("in");
+		QString bam = getInfile("bam");
         bool wgs = getFlag("wgs");
 
         //check that either IN or WGS is given
@@ -42,19 +43,26 @@ public:
         }
 
 		//get low-cov regions and store them
-        BedFile output;
+		BedFile output;
         if (wgs) //WGS
         {
-            output = Statistics::lowCoverage(getInfile("bam"), getInt("cutoff"), getInt("min_mapq"));
+			output = Statistics::lowCoverage(bam, getInt("cutoff"), getInt("min_mapq"));
+
+			output.appendHeader("#BAM: " + QFileInfo(bam).baseName().toLatin1());
         }
         else //ROI
         {
             BedFile file;
             file.load(in);
 			file.merge(true, true);
+			output = Statistics::lowCoverage(file, bam, getInt("cutoff"), getInt("min_mapq"));
 
-            output = Statistics::lowCoverage(file, getInfile("bam"), getInt("cutoff"), getInt("min_mapq"));
+			output.appendHeader("#BAM: " + QFileInfo(bam).fileName().toLatin1());
+			output.appendHeader("#ROI: " + QFileInfo(in).fileName().toLatin1());
+			output.appendHeader("#ROI regions: " + QByteArray::number(file.count()));
+			output.appendHeader("#ROI bases: " + QByteArray::number(file.baseCount()));
         }
+
         output.store(getOutfile("out"));
 	}
 };
