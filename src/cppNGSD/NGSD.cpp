@@ -150,7 +150,7 @@ QString NGSD::processedSamplePath(const QString& filename, PathType type, bool t
 	if (ps_id=="") return "";
 
 	SqlQuery query = getQuery();
-	query.prepare("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), p.type, p.name FROM processed_sample ps, sample s, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id AND ps.id=:id");
+	query.prepare("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), p.type, p.name, sys.name_short FROM processed_sample ps, sample s, project p, processing_system sys WHERE ps.processing_system_id=sys.id AND ps.sample_id=s.id AND ps.project_id=p.id AND ps.id=:id");
 	query.bindValue(":id", ps_id);
 	query.exec();
 	if (query.size()==0)
@@ -178,11 +178,13 @@ QString NGSD::processedSamplePath(const QString& filename, PathType type, bool t
 	output += "/" + p_name + "/";
 	QString ps_name = query.value(0).toString();
 	output += "Sample_" + ps_name + "/";
+	QString sys_name = query.value(3).toString();
 
 	//append file name if requested
 	if (type==BAM) output += ps_name + ".bam";
 	else if (type==GSVAR) output += ps_name + ".GSvar";
 	else if (type==VCF) output += ps_name + "_var_annotated.vcf.gz";
+	else if (type==LOWCOV) output += ps_name + "_" + sys_name + "_lowcov.bed";
 	else if (type!=FOLDER) THROW(ProgrammingException, "Unknown PathType '" + QString::number(type) + "'!");
 
 	return output;
@@ -382,11 +384,31 @@ QString NGSD::getProcessingSystem(const QString& filename, SystemType type)
 	{
 		what = "CONCAT(name_manufacturer, ' (', name_short, ')')";
 	}
+	else if (type==TYPE)
+	{
+		what = "type";
+	}
+	else if (type==FILE)
+	{
+		what = "target_file";
+	}
 	else
 	{
 		THROW(ProgrammingException, "Unknown SystemType '" + QString::number(type) + "'!");
 	}
-	return getValue("SELECT " + what + " FROM processing_system WHERE id='" + sys_id + "'").toString().trimmed();
+
+	//get DB value
+	QString output = getValue("SELECT " + what + " FROM processing_system WHERE id='" + sys_id + "'").toString().trimmed();
+
+	//special handling for paths
+	if (type==FILE)
+	{
+		QString p_linux = getTargetFilePath(false, false);
+		QString p_win = getTargetFilePath(false, true);
+		output = output.replace(p_linux, p_win);
+	}
+
+	return output;
 }
 
 QMap<QString, QString> NGSD::getProcessingSystems(bool skip_systems_without_roi, bool windows_paths)

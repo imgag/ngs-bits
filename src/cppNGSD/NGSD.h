@@ -107,7 +107,7 @@ public:
 	///Returns the NGSD processed sample ID from a file name or processed sample name. Throws an exception if it could not be determined.
 	QString processedSampleId(const QString& filename, bool throw_if_fails = true);
 	///Returns the default folder for a processed sample from file name or processed sample name. Throws an exception if it could not be determined.
-	enum PathType {FOLDER, BAM, GSVAR, VCF};
+	enum PathType {FOLDER, BAM, GSVAR, VCF, LOWCOV};
 	QString processedSamplePath(const QString& filename, PathType type, bool throw_if_fails = true);
 	///Returns the NGSD ID for a variant. Returns '-1' or throws an exception if the ID cannot be determined.
 	QString variantId(const Variant& variant, bool throw_if_fails = true);
@@ -121,8 +121,8 @@ public:
 	QString sampleIsTumor(const QString& filename);
 	///Returns the FFPE status of a sample, or "n/a" the sample cannot be found in the database.
 	QString sampleIsFFPE(const QString& filename);
-	///Returns the processing system name and short name of the sample, or an empty string if it could not be detected.
-	enum SystemType {SHORT, LONG, BOTH};
+	///Returns the processing system information for the sample, or an empty string if it could not be detected.
+	enum SystemType {SHORT, LONG, BOTH, TYPE, FILE};
 	QString getProcessingSystem(const QString& filename, SystemType type);
 	///Returns all processing systems (long name) and the corresponding target regions.
 	QMap<QString, QString> getProcessingSystems(bool skip_systems_without_roi, bool windows_paths);

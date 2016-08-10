@@ -26,7 +26,14 @@ public:
 	}
 
 	///writes a low-coverage report
-	static BedFile writeCoverageReport(QTextStream& stream, QString bam_file, const BedFile& roi, QStringList genes, int min_cov, NGSD& db);
+	static BedFile writeCoverageReport(QTextStream& stream, QString bam_file, QString roi_file, const BedFile& roi, QStringList genes, int min_cov, NGSD& db);
+
+	///Returns if the pre-calcualed low-coverage file can be used to the given ROI.
+	///If the file is usable @p message contains the file. Otherwise, @p message contains an error message.
+	static bool precalculatedGapFileIsUsable(QString bam_file, QString roi_file, const BedFile& roi, int min_cov, NGSD& db, QString& message);
+
+	///Returns if given ROI file is the processing system target file corresponding to the BAM file.
+	static bool isProcessingSystemTargetFile(QString bam_file, QString roi_file, NGSD& db);
 
 	static void writeHtmlHeader(QTextStream& stream, QString sample_name);
 	static void writeHtmlFooter(QTextStream& stream);

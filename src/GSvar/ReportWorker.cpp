@@ -143,23 +143,47 @@ QString ReportWorker::inheritance(QString genes)
 	return output.join(",");
 }
 
-BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, const BedFile& roi, QStringList genes, int min_cov,  NGSD& db)
+BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, QString roi_file, const BedFile& roi, QStringList genes, int min_cov,  NGSD& db)
 {
-	//get statistics values
+	//get target region coverages (from NGSD of calculate)
 	QString avg_cov = "";
-	QString perc_cov20 = "";
-	QCCollection stats = Statistics::mapping(roi, bam_file);
+	QCCollection stats;
+	if (isProcessingSystemTargetFile(bam_file, roi_file, db))
+	{
+		try
+		{
+			QCCollection tmp = db.getQCData(bam_file);
+			stats = tmp;
+		}
+		catch(...)
+		{
+		}
+	}
+	if (stats.count()==0)
+	{
+		Log::warn("Target region depth from NGSD cannot be used because ROI is not the processing system target region! Recalculating...");
+		stats = Statistics::mapping(roi, bam_file);
+	}
 	for (int i=0; i<stats.count(); ++i)
 	{
-		if (stats[i].name()=="target region read depth") avg_cov = stats[i].toString();
-		if (stats[i].name()=="target region 20x percentage") perc_cov20 = stats[i].toString();
+		if (stats[i].accession()=="QC:2000025") avg_cov = stats[i].toString();
 	}
-
 	stream << "<p><b>Abdeckungsstatistik</b>" << endl;
 	stream << "<br />Durchschnittliche Sequenziertiefe: " << avg_cov << endl;
 
 	//calculate low-coverage regions
-	BedFile low_cov = Statistics::lowCoverage(roi, bam_file, min_cov);
+	BedFile low_cov;
+	QString message;
+	if (precalculatedGapFileIsUsable(bam_file, roi_file, roi, min_cov, db, message))
+	{
+		low_cov.load(message);
+		low_cov.intersect(roi);
+	}
+	else
+	{
+		Log::warn("Pre-calulated gap file cannot be used: " + message);
+		low_cov = Statistics::lowCoverage(roi, bam_file, min_cov);
+	}
 
 	//annotate low-coverage regions with gene names
 	for(int i=0; i<low_cov.count(); ++i)
@@ -244,6 +268,97 @@ BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file,
 	stream << "</table>" << endl;
 
 	return low_cov;
+}
+
+bool ReportWorker::precalculatedGapFileIsUsable(QString bam_file, QString roi_file, const BedFile& roi, int min_cov, NGSD& db, QString& message)
+{
+	//check depth cutoff
+	if (min_cov!=20)
+	{
+		message = "Depth cutoff is not 20!";
+		return false;
+	}
+
+	//find low-coverage file
+	QString low_cov_file = db.processedSamplePath(bam_file, NGSD::LOWCOV, false);
+	if(!QFile::exists(low_cov_file))
+	{
+		message = "Low-coverage file does not exist: " + low_cov_file;
+		return false;
+	}
+
+	//For WGS there is nothing more to check
+	QString sys_type = db.getProcessingSystem(bam_file, NGSD::TYPE);
+	if (sys_type=="WGS")
+	{
+		message = low_cov_file;
+		return true;
+	}
+
+	//extract processing system ROI statistics
+	int regions = -1;
+	long long bases = -1;
+	auto file = Helper::openFileForReading(low_cov_file);
+	while (!file->atEnd())
+	{
+		QByteArray line = file->readLine();
+		if (!line.startsWith("#")) break;
+
+		if (line.startsWith("#ROI bases: "))
+		{
+			bool ok = true;
+			bases = line.mid(12).trimmed().toLongLong(&ok);
+			if (!ok) bases = -1;
+		}
+		if (line.startsWith("#ROI regions: "))
+		{
+			bool ok = true;
+			regions = line.mid(14).trimmed().toInt(&ok);
+			if (!ok) regions = -1;
+		}
+	}
+	if (regions<0 || bases<0)
+	{
+		message = "Low-coverage file header does not contain target region statistics: " + low_cov_file;
+		return false;
+	}
+
+	//compare statistics to current processing system
+	QString sys_file = db.getProcessingSystem(bam_file, NGSD::FILE);
+	if (sys_file=="")
+	{
+		message = "Processing system target file not defined in NGSD!";
+		return false;
+	}
+	BedFile sys;
+	sys.load(sys_file);
+	sys.merge();
+	if (sys.count()!=regions || sys.baseCount()!=bases)
+	{
+		message = "Low-coverage file is outdated. It does not match processing system target region: " + low_cov_file;
+		return false;
+	}
+
+	//check that processing system BED file covers current ROI file
+	BedFile tmp(roi);
+	tmp.subtract(sys);
+	if (tmp.baseCount()==0)
+	{
+		message = low_cov_file;
+		return true;
+	}
+	else
+	{
+		message = "Current target region '" + roi_file + "' is larger than processing system target region '" + sys_file + "'";
+		return false;
+	}
+}
+
+bool ReportWorker::isProcessingSystemTargetFile(QString bam_file, QString roi_file, NGSD& db)
+{
+	QString sys_file = db.getProcessingSystem(bam_file, NGSD::FILE);
+
+	return QFileInfo(sys_file).canonicalFilePath() == QFileInfo(roi_file).canonicalFilePath();
 }
 
 void ReportWorker::writeHtmlHeader(QTextStream& stream, QString sample_name)
@@ -447,7 +562,7 @@ void ReportWorker::writeHTML()
 	///low-coverage analysis
 	if (file_bam_!="")
 	{
-		BedFile low_cov = writeCoverageReport(stream, file_bam_, roi_, genes_, min_cov_, db_);
+		BedFile low_cov = writeCoverageReport(stream, file_bam_, file_roi_, roi_, genes_, min_cov_, db_);
 
 		//additionally store low-coverage BED file
 		low_cov.store(QString(file_rep_).replace(".html", "_lowcov.bed"));
