@@ -1,5 +1,5 @@
 ### BedReadCount tool help
-	BedReadCount (0.1-222-g9be2128)
+	BedReadCount (0.1-420-g3536bb0)
 	
 	Annotates the regions in a BED file with the read count from a BAM file.
 	
@@ -21,6 +21,6 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BedReadCount changelog
-	BedReadCount 0.1-222-g9be2128
+	BedReadCount 0.1-420-g3536bb0
 	
-[back to ngs-bits](https://github.com/marc-sturm/ngs-bits)
+[back to ngs-bits](https://github.com/imgag/ngs-bits)

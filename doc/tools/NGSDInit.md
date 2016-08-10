@@ -1,5 +1,5 @@
 ### NGSDInit tool help
-	NGSDInit (0.1-222-g9be2128)
+	NGSDInit (0.1-420-g3536bb0)
 	
 	Sets up the NDSD database (creates tables and adds minimal data).
 	
@@ -18,6 +18,6 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDInit changelog
-	NGSDInit 0.1-222-g9be2128
+	NGSDInit 0.1-420-g3536bb0
 	
-[back to ngs-bits](https://github.com/marc-sturm/ngs-bits)
+[back to ngs-bits](https://github.com/imgag/ngs-bits)

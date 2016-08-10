@@ -1,5 +1,5 @@
 ### TsvFilter tool help
-	TsvFilter (0.1-382-g4694ff9)
+	TsvFilter (0.1-420-g3536bb0)
 	
 	Filters the rows of a TSV file according to the value of a specific column.
 	
@@ -24,6 +24,6 @@
 	  --tdx            Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### TsvFilter changelog
-	TsvFilter 0.1-382-g4694ff9
+	TsvFilter 0.1-420-g3536bb0
 	
-[back to ngs-bits](https://github.com/marc-sturm/ngs-bits)
+[back to ngs-bits](https://github.com/imgag/ngs-bits)

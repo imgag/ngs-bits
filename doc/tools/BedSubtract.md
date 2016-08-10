@@ -1,5 +1,5 @@
 ### BedSubtract tool help
-	BedSubtract (0.1-222-g9be2128)
+	BedSubtract (0.1-420-g3536bb0)
 	
 	Subtracts the regions in one BED file from another.
 	
@@ -19,6 +19,6 @@
 	  --tdx        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BedSubtract changelog
-	BedSubtract 0.1-222-g9be2128
+	BedSubtract 0.1-420-g3536bb0
 	
-[back to ngs-bits](https://github.com/marc-sturm/ngs-bits)
+[back to ngs-bits](https://github.com/imgag/ngs-bits)

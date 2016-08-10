@@ -1,5 +1,5 @@
 ### SampleDiff tool help
-	SampleDiff (0.1-222-g9be2128)
+	SampleDiff (0.1-420-g3536bb0)
 	
 	Calculates the differences/overlap between variant lists.
 	
@@ -24,6 +24,6 @@
 	  --tdx         Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SampleDiff changelog
-	SampleDiff 0.1-222-g9be2128
+	SampleDiff 0.1-420-g3536bb0
 	
-[back to ngs-bits](https://github.com/marc-sturm/ngs-bits)
+[back to ngs-bits](https://github.com/imgag/ngs-bits)

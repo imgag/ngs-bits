@@ -1,5 +1,5 @@
 ### Cidx tool help
-	Cidx (0.1-222-g9be2128)
+	Cidx (0.1-420-g3536bb0)
 	
 	Indexes and searches tab-separated chromosomal database files (1-based positions).
 	
@@ -33,6 +33,6 @@
 	  --tdx         Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### Cidx changelog
-	Cidx 0.1-222-g9be2128
+	Cidx 0.1-420-g3536bb0
 	
-[back to ngs-bits](https://github.com/marc-sturm/ngs-bits)
+[back to ngs-bits](https://github.com/imgag/ngs-bits)

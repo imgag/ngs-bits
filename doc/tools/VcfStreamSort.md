@@ -1,5 +1,5 @@
 ### VcfStreamSort tool help
-	VcfStreamSort (0.1-382-g4694ff9)
+	VcfStreamSort (0.1-420-g3536bb0)
 	
 	Sort entries of a VCF file according to genomic position using a stream. Variants must be grouped by chromosome!
 	
@@ -18,7 +18,7 @@
 	  --tdx        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VcfStreamSort changelog
-	VcfStreamSort 0.1-382-g4694ff9
+	VcfStreamSort 0.1-420-g3536bb0
 	
 	2016-06-27 Initial implementation.
-[back to ngs-bits](https://github.com/marc-sturm/ngs-bits)
+[back to ngs-bits](https://github.com/imgag/ngs-bits)

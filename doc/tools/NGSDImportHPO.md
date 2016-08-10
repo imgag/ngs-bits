@@ -1,5 +1,5 @@
 ### NGSDImportHPO tool help
-	NGSDImportHPO (0.1-382-g4694ff9)
+	NGSDImportHPO (0.1-420-g3536bb0)
 	
 	Imports HPO terms and gene-phenotype correlations into NGSD.
 	
@@ -20,6 +20,6 @@
 	  --tdx        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDImportHPO changelog
-	NGSDImportHPO 0.1-382-g4694ff9
+	NGSDImportHPO 0.1-420-g3536bb0
 	
-[back to ngs-bits](https://github.com/marc-sturm/ngs-bits)
+[back to ngs-bits](https://github.com/imgag/ngs-bits)
