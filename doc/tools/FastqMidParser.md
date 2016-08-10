@@ -1,5 +1,5 @@
 ### FastqMidParser tool help
-	FastqMidParser (0.1-222-g9be2128)
+	FastqMidParser (0.1-420-g3536bb0)
 	
 	Counts the number of occurances of each MID in a FASTQ file.
 	
@@ -23,6 +23,6 @@
 	  --tdx         Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### FastqMidParser changelog
-	FastqMidParser 0.1-222-g9be2128
+	FastqMidParser 0.1-420-g3536bb0
 	
-[back to ngs-bits](https://github.com/marc-sturm/ngs-bits)
+[back to ngs-bits](https://github.com/imgag/ngs-bits)

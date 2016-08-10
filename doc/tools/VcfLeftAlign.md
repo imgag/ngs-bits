@@ -1,14 +1,13 @@
-### BedToFasta tool help
-	BedToFasta (0.1-420-g3536bb0)
+### VcfLeftAlign tool help
+	VcfLeftAlign (0.1-420-g3536bb0)
 	
-	Converts a BED file to a FASTA file.
+	Shifts indels in a variant list as far to the left as possible. Complex indels and multi-allelic deletions are not shifted!
 	
 	Mandatory parameters:
-	  -in <file>   Input BED file.
+	  -in <file>   Input variant list.
+	  -out <file>  Output variant list.
 	
 	Optional parameters:
-	  -out <file>  Output FASTA file. If unset, writes to STDOUT.
-	               Default value: ''
 	  -ref <file>  Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.
 	               Default value: ''
 	
@@ -18,7 +17,7 @@
 	  --changelog  Prints changeloge and exits.
 	  --tdx        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
-### BedToFasta changelog
-	BedToFasta 0.1-420-g3536bb0
+### VcfLeftAlign changelog
+	VcfLeftAlign 0.1-420-g3536bb0
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

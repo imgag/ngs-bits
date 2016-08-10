@@ -1,5 +1,5 @@
 ### VariantFilterRegions tool help
-	VariantFilterRegions (0.1-350-g2af2ea1)
+	VariantFilterRegions (0.1-420-g3536bb0)
 	
 	Filter a variant list based on a target region.
 	
@@ -22,7 +22,7 @@
 	  --tdx        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterRegions changelog
-	VariantFilterRegions 0.1-350-g2af2ea1
+	VariantFilterRegions 0.1-420-g3536bb0
 	
 	2016-06-10 Added single target region parameter '-r'.
-[back to ngs-bits](https://github.com/marc-sturm/ngs-bits)
+[back to ngs-bits](https://github.com/imgag/ngs-bits)

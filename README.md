@@ -64,13 +64,14 @@ _ngs-bits_ contains a lot of tools that we use for NGS short-read data analysis 
 * [ReadQC](doc/tools/ReadQC.md) - Quality control tool for FASTQ files (output is [qcML](https://code.google.com/p/qcml/)).
 * [MappingQC](doc/tools/MappingQC.md) - Quality control tool for a BAM file (output is [qcML](https://code.google.com/p/qcml/)).
 * [VariantQC](doc/tools/VariantQC.md) - Quality control tool for a VCF file (output is [qcML](https://code.google.com/p/qcml/)).
+* [SomaticQC](doc/tools/SomaticQC.md) - Quality control tool for tumor-normal pairs (output is [qcML](https://code.google.com/p/qcml/)).
 * [SampleCorrelation](doc/tools/SampleCorrelation.md) - Calculates the variant overlap and correlation of two VCF/BAM files.
 * [SampleGender](doc/tools/SampleGender.md) - Determines sample gender based on a BAM file.
 * [PERsim](doc/tools/PERsim.md) - Paired-end read simulator for Illumina reads.
 
 ### BAM tools
 
-* [BamClipOverlap](doc/tools/BamClipOverlap.md) - Clips paired-end reads that overlap.
+* [BamClipOverlap](doc/tools/BamClipOverlap.md) - (Soft-)Clips paired-end reads that overlap.
 * [BamDownsample](doc/tools/BamDownsample.md) - Downsamples a BAM file to the given percentage of reads.
 * [BamIndex](doc/tools/BamIndex.md) - Creates a BAI index for a BAM file.
 * [BamLeftAlign](doc/tools/BamLeftAlign.md) - Left-aligns indels in repeat regions.

@@ -1,5 +1,5 @@
 ### BedAnnotateFreq tool help
-	BedAnnotateFreq (0.1-222-g9be2128)
+	BedAnnotateFreq (0.1-420-g3536bb0)
 	
 	Extracts base frequencies for given regions from BAMs files.
 	
@@ -19,6 +19,6 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BedAnnotateFreq changelog
-	BedAnnotateFreq 0.1-222-g9be2128
+	BedAnnotateFreq 0.1-420-g3536bb0
 	
-[back to ngs-bits](https://github.com/marc-sturm/ngs-bits)
+[back to ngs-bits](https://github.com/imgag/ngs-bits)

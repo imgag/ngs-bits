@@ -1,5 +1,5 @@
 ### PERsim tool help
-	PERsim (0.1-222-g9be2128)
+	PERsim (0.1-420-g3536bb0)
 	
 	Paired-end read simulator for Illumina reads.
 	
@@ -41,6 +41,6 @@
 	  --tdx            Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### PERsim changelog
-	PERsim 0.1-222-g9be2128
+	PERsim 0.1-420-g3536bb0
 	
-[back to ngs-bits](https://github.com/marc-sturm/ngs-bits)
+[back to ngs-bits](https://github.com/imgag/ngs-bits)

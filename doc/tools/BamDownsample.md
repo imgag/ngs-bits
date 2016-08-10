@@ -1,5 +1,5 @@
 ### BamDownsample tool help
-	BamDownsample (0.1-222-g9be2128)
+	BamDownsample (0.1-420-g3536bb0)
 	
 	Downsamples a BAM file to the given percentage of reads.
 	
@@ -19,6 +19,6 @@
 	  --tdx             Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BamDownsample changelog
-	BamDownsample 0.1-222-g9be2128
+	BamDownsample 0.1-420-g3536bb0
 	
-[back to ngs-bits](https://github.com/marc-sturm/ngs-bits)
+[back to ngs-bits](https://github.com/imgag/ngs-bits)

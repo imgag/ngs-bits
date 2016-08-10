@@ -1,5 +1,5 @@
 ### BamLeftAlign tool help
-	BamLeftAlign (0.1-222-g9be2128)
+	BamLeftAlign (0.1-420-g3536bb0)
 	
 	Iteratively left-aligns and merges the insertions and deletions in all alignments.
 	
@@ -22,6 +22,6 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BamLeftAlign changelog
-	BamLeftAlign 0.1-222-g9be2128
+	BamLeftAlign 0.1-420-g3536bb0
 	
-[back to ngs-bits](https://github.com/marc-sturm/ngs-bits)
+[back to ngs-bits](https://github.com/imgag/ngs-bits)

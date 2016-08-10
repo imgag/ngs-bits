@@ -1,5 +1,5 @@
 ### CnvHunter tool help
-	CnvHunter (0.1-222-g9be2128)
+	CnvHunter (0.1-420-g3536bb0)
 	
 	Detects copy number variations from targeted resequencing data using non-matched control samples.
 	
@@ -34,6 +34,10 @@
 	                         Default value: '0.29999999999999999'
 	  -verbose               Enables verbose mode. Writes detail information files for samples, regions and results.
 	                         Default value: 'false'
+	  -anno                  Enable annotation of gene names to regions (needs the NGSD database).
+	                         Default value: 'false'
+	  -test                  Uses the test database instead of on the production database for annotation.
+	                         Default value: 'false'
 	
 	Special parameters:
 	  --help                 Shows this help and exits.
@@ -42,6 +46,6 @@
 	  --tdx                  Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### CnvHunter changelog
-	CnvHunter 0.1-222-g9be2128
+	CnvHunter 0.1-420-g3536bb0
 	
-[back to ngs-bits](https://github.com/marc-sturm/ngs-bits)
+[back to ngs-bits](https://github.com/imgag/ngs-bits)

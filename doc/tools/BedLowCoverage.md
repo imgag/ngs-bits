@@ -1,5 +1,5 @@
 ### BedLowCoverage tool help
-	BedLowCoverage (0.1-350-g2af2ea1)
+	BedLowCoverage (0.1-420-g3536bb0)
 	
 	Detects low-coverage regions from a BAM file.
 	
@@ -24,7 +24,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BedLowCoverage changelog
-	BedLowCoverage 0.1-350-g2af2ea1
+	BedLowCoverage 0.1-420-g3536bb0
 	
 	2016-06-09 The BED line name if the input BED file is now passed on to the output BED file.
-[back to ngs-bits](https://github.com/marc-sturm/ngs-bits)
+[back to ngs-bits](https://github.com/imgag/ngs-bits)

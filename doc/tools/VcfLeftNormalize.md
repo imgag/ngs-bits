@@ -1,5 +1,5 @@
 ### VcfLeftNormalize tool help
-	VcfLeftNormalize (0.1-362-g5c5e975)
+	VcfLeftNormalize (0.1-420-g3536bb0)
 	
 	Normalizes all variants and shifts indels to the left in a VCF file. Multi-allelic and complex variant are not changed!
 	
@@ -18,7 +18,7 @@
 	  --tdx        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VcfLeftNormalize changelog
-	VcfLeftNormalize 0.1-362-g5c5e975
+	VcfLeftNormalize 0.1-420-g3536bb0
 	
 	2016-06-24 Initial implementation.
-[back to ngs-bits](https://github.com/marc-sturm/ngs-bits)
+[back to ngs-bits](https://github.com/imgag/ngs-bits)
