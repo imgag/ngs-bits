@@ -102,7 +102,7 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 	}
 	foreach(QString gene, genes)
 	{
-		QPair<QByteArray, QByteArray> geneinfo = db.geneToApproved(gene.toLatin1());
+		QPair<QString, QString> geneinfo = db.geneToApproved(gene);
 		if (geneinfo.first!=gene || geneinfo.second.contains("ERROR"))
 		{
 			showMessage(geneinfo.second, true);

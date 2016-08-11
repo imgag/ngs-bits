@@ -633,13 +633,15 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	ReportWorker::writeHtmlHeader(stream, sample_name);
 	NGSD db;
 	ReportWorker::writeCoverageReport(stream, bam_file, roi_file, roi, genes, min_cov, db);
+	ReportWorker::writeCoverageReportCCDS(stream, bam_file, genes, min_cov, db);
 	ReportWorker::writeHtmlFooter(stream);
 	QApplication::restoreOverrideCursor();
 
 	//show output
 	QTextEdit* edit = new QTextEdit();
 	edit->setText(output);
-	edit->setMinimumWidth(500);
+	edit->setMinimumWidth(800);
+	edit->setMinimumHeight(500);
 	edit->setWordWrapMode(QTextOption::NoWrap);
 	edit->setReadOnly(true);
 	GUIHelper::showWidgetAsDialog(edit, "Gaps in target region'" + roi_file + "':", false);

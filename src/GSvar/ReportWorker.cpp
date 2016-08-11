@@ -145,7 +145,7 @@ QString ReportWorker::inheritance(QString genes)
 
 BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, QString roi_file, const BedFile& roi, QStringList genes, int min_cov,  NGSD& db)
 {
-	//get target region coverages (from NGSD of calculate)
+	//get target region coverages (from NGSD or calculate)
 	QString avg_cov = "";
 	QCCollection stats;
 	if (isProcessingSystemTargetFile(bam_file, roi_file, db))
@@ -172,16 +172,11 @@ BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file,
 	stream << "<br />Durchschnittliche Sequenziertiefe: " << avg_cov << endl;
 
 	//calculate low-coverage regions
-	BedFile low_cov;
 	QString message;
-	if (precalculatedGapFileIsUsable(bam_file, roi_file, roi, min_cov, db, message))
+	BedFile low_cov = precalculatedGaps(bam_file, roi, min_cov, db, message);
+	if (!message.isEmpty())
 	{
-		low_cov.load(message);
-		low_cov.intersect(roi);
-	}
-	else
-	{
-		Log::warn("Pre-calulated gap file cannot be used: " + message);
+		Log::warn("Low-coverage statistics needs to be calculated. Pre-calulated gap file cannot be used because: " + message);
 		low_cov = Statistics::lowCoverage(roi, bam_file, min_cov);
 	}
 
@@ -194,7 +189,7 @@ BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file,
 	}
 
 	//group by gene name
-	QMap<QString, QVector<BedLine> > grouped;
+	QHash<QString, BedFile> grouped;
 	for (int i=0; i<low_cov.count(); ++i)
 	{
 		QString genes = low_cov[i].annotations()[0];
@@ -204,7 +199,6 @@ BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file,
 		// - SNPs for sample identification
 		if (genes=="") continue;
 
-		if (!grouped.contains(genes)) grouped.insert(genes, QVector<BedLine>());
 		grouped[genes].append(low_cov[i]);
 	}
 
@@ -229,13 +223,7 @@ BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file,
 		{
 			if (grouped.contains(gene))
 			{
-				const QVector<BedLine>& lines = grouped[gene];
-				int missing_bases = 0;
-				for (int i=0; i<lines.count(); ++i)
-				{
-					missing_bases += lines[i].length();
-				}
-				incomplete_genes << gene + " <span style=\"font-size: 80%;\">" + QString::number(missing_bases) + "</span> ";
+				incomplete_genes << gene + " <span style=\"font-size: 80%;\">" + QString::number(grouped[gene].baseCount()) + "</span> ";
 			}
 		}
 		stream << "<br />Fehlende Basen in nicht komplett abgedeckten Genen: " << incomplete_genes.join(", ") << endl;
@@ -244,23 +232,19 @@ BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file,
 	stream << "<p><span style=\"background-color: #FF0000\">Details Regionen mit Tiefe &lt;" << min_cov << ":</span>" << endl;
 	stream << "</p>" << endl;
 	stream << "<table>" << endl;
-	stream << "<tr><th>Gen</th><th>Basen</th><th>Chromosom</th><th>Koordinaten_hg19</th></tr>" << endl;
+	stream << "<tr><td><b>Gen</b></td><td><b>L&uuml;cken</b></td><td><b>Chromosom</b></td><td><b>Koordinaten (hg19)</b></td></tr>" << endl;
 	for (auto it=grouped.cbegin(); it!=grouped.cend(); ++it)
 	{
 		stream << "<tr>" << endl;
 		stream << "<td>" << endl;
-		QString chr;
-		QString coords;
-		int bases = 0;
-		const QVector<BedLine>& lines = it.value();
-		for (int i=0; i<lines.count(); ++i)
+		const BedFile& gaps = it.value();
+		QString chr = gaps[0].chr().strNormalized(true);;
+		QStringList coords;
+		for (int i=0; i<gaps.count(); ++i)
 		{
-			chr = lines[i].chr().str();
-			bases += lines[i].length();
-			if (coords!="") coords += ", ";
-			coords += QString::number(lines[i].start()) + "-" + QString::number(lines[i].end());
+			coords << QString::number(gaps[i].start()) + "-" + QString::number(gaps[i].end());
 		}
-		stream << it.key() << "</td><td>" << bases << "</td><td>" << chr << "</td><td>" << coords << endl;
+		stream << it.key() << "</td><td>" << gaps.baseCount() << "</td><td>" << chr << "</td><td>" << coords.join(", ") << endl;
 
 		stream << "</td>" << endl;
 		stream << "</tr>" << endl;
@@ -270,13 +254,57 @@ BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file,
 	return low_cov;
 }
 
-bool ReportWorker::precalculatedGapFileIsUsable(QString bam_file, QString roi_file, const BedFile& roi, int min_cov, NGSD& db, QString& message)
+void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file, QStringList genes, int min_cov, NGSD& db)
 {
+	stream << "<p><b>Abdeckungsstatistik f&uuml;r CCDS</b></p>" << endl;
+	stream << "<table>";
+	stream << "<tr><td><b>Gen</b></td><td><b>Transcript</b></td><td><b>Gr&ouml;&szlig;e</b></td><td><b>L&uuml;cken</b></td><td><b>Chromosom</b></td><td><b>Koordinaten (hg19)</b></td></tr>";
+	int bases_sequenced = 0;
+	foreach(QString gene, genes)
+	{
+		int gene_id = db.geneToApprovedID(gene);
+
+		//approved gene symbol
+		QString symbol = db.geneSymbol(gene_id);
+
+		//longest coding transcript
+		QString transcript;
+		BedFile regions;
+		Chromosome chr;
+		db.longestCodingTranscript(gene_id, "ccds", transcript, regions, chr);
+
+		//gaps
+		QString message;
+		BedFile gaps = precalculatedGaps(bam_file, regions, min_cov, db, message);
+		if (!message.isEmpty())
+		{
+			Log::warn("Low-coverage statistics for CCDS transcript " + transcript + " needs to be calculated. Pre-calulated gap file cannot be used because: " + message);
+			gaps = Statistics::lowCoverage(regions, bam_file, min_cov);
+		}
+
+		int bases_transcipt = regions.baseCount();
+		int bases_gaps = gaps.baseCount();
+		QStringList coords;
+		for (int i=0; i<gaps.count(); ++i)
+		{
+			coords << QString::number(gaps[i].start()) + "-" + QString::number(gaps[i].end());
+		}
+		stream << "<tr><td>" + symbol + "</td><td>" << transcript << "</td><td>" << bases_transcipt << "</td><td>" << bases_gaps << "</td><td>" << chr.strNormalized(true) << "</td><td>" << coords.join(", ") << "</td></tr>";
+		bases_sequenced += bases_transcipt - bases_gaps;
+	}
+	stream << "</table>";
+	stream << "<p>CCDS-Basen sequenziert: " << bases_sequenced << "</p>" << endl;
+}
+
+BedFile ReportWorker::precalculatedGaps(QString bam_file, const BedFile& roi, int min_cov, NGSD& db, QString& message)
+{
+	message.clear();
+
 	//check depth cutoff
 	if (min_cov!=20)
 	{
 		message = "Depth cutoff is not 20!";
-		return false;
+		return BedFile();
 	}
 
 	//find low-coverage file
@@ -284,26 +312,25 @@ bool ReportWorker::precalculatedGapFileIsUsable(QString bam_file, QString roi_fi
 	if(!QFile::exists(low_cov_file))
 	{
 		message = "Low-coverage file does not exist: " + low_cov_file;
-		return false;
+		return BedFile();
 	}
+
+	//load low-coverage file
+	BedFile gaps;
+	gaps.load(low_cov_file);
 
 	//For WGS there is nothing more to check
 	QString sys_type = db.getProcessingSystem(bam_file, NGSD::TYPE);
 	if (sys_type=="WGS")
 	{
-		message = low_cov_file;
-		return true;
+		return gaps;
 	}
 
 	//extract processing system ROI statistics
 	int regions = -1;
 	long long bases = -1;
-	auto file = Helper::openFileForReading(low_cov_file);
-	while (!file->atEnd())
+	foreach(QString line, gaps.headers())
 	{
-		QByteArray line = file->readLine();
-		if (!line.startsWith("#")) break;
-
 		if (line.startsWith("#ROI bases: "))
 		{
 			bool ok = true;
@@ -320,7 +347,7 @@ bool ReportWorker::precalculatedGapFileIsUsable(QString bam_file, QString roi_fi
 	if (regions<0 || bases<0)
 	{
 		message = "Low-coverage file header does not contain target region statistics: " + low_cov_file;
-		return false;
+		return BedFile();
 	}
 
 	//compare statistics to current processing system
@@ -328,7 +355,7 @@ bool ReportWorker::precalculatedGapFileIsUsable(QString bam_file, QString roi_fi
 	if (sys_file=="")
 	{
 		message = "Processing system target file not defined in NGSD!";
-		return false;
+		return BedFile();
 	}
 	BedFile sys;
 	sys.load(sys_file);
@@ -336,22 +363,19 @@ bool ReportWorker::precalculatedGapFileIsUsable(QString bam_file, QString roi_fi
 	if (sys.count()!=regions || sys.baseCount()!=bases)
 	{
 		message = "Low-coverage file is outdated. It does not match processing system target region: " + low_cov_file;
-		return false;
+		return BedFile();
 	}
 
-	//check that processing system BED file covers current ROI file
-	BedFile tmp(roi);
-	tmp.subtract(sys);
-	if (tmp.baseCount()==0)
-	{
-		message = low_cov_file;
-		return true;
-	}
-	else
-	{
-		message = "Current target region '" + roi_file + "' is larger than processing system target region '" + sys_file + "'";
-		return false;
-	}
+	//calculate gaps inside target region
+	gaps.intersect(roi);
+
+	//add target region bases not covered by processing system target file
+	BedFile uncovered(roi);
+	uncovered.subtract(sys);
+	gaps.add(uncovered);
+	gaps.merge();
+
+	return gaps;
 }
 
 bool ReportWorker::isProcessingSystemTargetFile(QString bam_file, QString roi_file, NGSD& db)
@@ -484,7 +508,7 @@ void ReportWorker::writeHTML()
 	stream << "<p><b>Liste gefilterter Varianten</b>" << endl;
 	stream << "</p>" << endl;
 	stream << "<table>" << endl;
-	stream << "<tr><th>Gen</th><th>chr</th><th>start</th><th>end</th><th>ref</th><th>obs</th><th>" << (tumor ? "Allelfrequenz" : "Genotyp") << "</th><th>Details</th><th>Klasse</th><th>Vererbung</th></tr>" << endl;
+	stream << "<tr><td><b>Gen</b></td><td><b>chr</b></td><td><b>start</b></td><td><b>end</b></td><td><b>ref</b></td><td><b>obs</b></td><td><b>" << (tumor ? "Allelfrequenz" : "Genotyp") << "</b></td><td><b>Details</b></td><td><b>Klasse</b></td><td><b>Vererbung</b></td></tr>" << endl;
 	for (int i=0; i<variants_selected_.count(); ++i)
 	{
 		const Variant& variant = variants_[variants_selected_[i].first];
@@ -539,7 +563,7 @@ void ReportWorker::writeHTML()
 	stream << "<p><b>Gefunden Copy-Number-Varianten</b>" << endl;
 	stream << "</p>" << endl;
 	stream << "<table>" << endl;
-	stream << "<tr><th>Koordianten</th><th>Exons</th><th>CopyNumbers</th><th>Details</th></tr>" << endl;
+	stream << "<tr><td><b>Koordianten</b></td><td><b>Exons</b></td><td><b>CopyNumbers</b></td><td><b>Details</b></td></tr>" << endl;
 	stream << "<tr>" << endl;
 	stream << "<td colspan=\"4\"><span style=\"background-color: #FF0000\">Abschnitt mit Daten aus dem Report fuellen oder loeschen!<br />Im Moment nur f&uuml;r X-Diagnostik relevant!</span></td>" << endl;
 	stream << "</tr>" << endl;
@@ -563,6 +587,7 @@ void ReportWorker::writeHTML()
 	if (file_bam_!="")
 	{
 		BedFile low_cov = writeCoverageReport(stream, file_bam_, file_roi_, roi_, genes_, min_cov_, db_);
+		writeCoverageReportCCDS(stream, file_bam_, genes_, min_cov_, db_);
 
 		//additionally store low-coverage BED file
 		low_cov.store(QString(file_rep_).replace(".html", "_lowcov.bed"));
@@ -573,10 +598,10 @@ void ReportWorker::writeHTML()
 	{
 		stream << "<p><b><span style=\"background-color: #FF0000\">Details zu Varianten (f&uuml;r interne Zwecke)</span>" << endl;
 		stream << "<table>" << endl;
-		stream << "<tr><th>chr</th><th>start</th><th>end</th><th>ref</th><th>obs</th>";
+		stream << "<tr><td><b>chr</b></td><td><b>start</b></td><td><b>end</b></td><td><b>ref</b></td><td><b>obs</b></td>";
 		for (int i=0; i<variants_.annotations().count(); ++i)
 		{
-			stream << "<th>" << variants_.annotations()[i].name() << "</th>";
+			stream << "<td><b>" << variants_.annotations()[i].name() << "</b></td>";
 		}
 		stream << "</tr>";
 		for (int i=0; i<variants_selected_.count(); ++i)
@@ -601,7 +626,7 @@ void ReportWorker::writeHTML()
 	stream << "<p><b><span style=\"background-color: #FF0000\">Details zu Analysetools (f&uuml;r interne Zwecke)</span></b>" << endl;
 	stream << "</p>" << endl;
 	stream << "<table>" << endl;
-	stream << "<tr><th>tool</th><th>version</th><th>parameters</th></tr>";
+	stream << "<tr><td><b>tool</b></td><td><b>version</b></td><td><b>parameters</b></td></tr>";
 	QStringList whitelist;
 	whitelist << "SeqPurge" << "samblaster" << "/bwa" << "samtools" << "VcfLeftAlign" <<  "freebayes" << "abra.jar" << "vcflib" << "SnpEff"; //current
 	whitelist << "varFilter" << "stampy.py" << "BamLeftAlign" << "GenomeAnalysisTK" << "VcfSplitMultiallelic" << "picard-tools"; //legacy

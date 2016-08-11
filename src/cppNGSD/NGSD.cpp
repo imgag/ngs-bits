@@ -941,7 +941,7 @@ bool NGSD::tableEmpty(QString table)
 	return query.value(0).toInt()==0;
 }
 
-int NGSD::geneToApprovedID(const QByteArray& gene)
+int NGSD::geneToApprovedID(const QString& gene)
 {
 	//init
 	static SqlQuery q_gene = getQuery(true);
@@ -990,12 +990,12 @@ int NGSD::geneToApprovedID(const QByteArray& gene)
 	return -1;
 }
 
-QByteArray NGSD::geneSymbol(int id)
+QString NGSD::geneSymbol(int id)
 {
-	return getValue("SELECT symbol FROM gene WHERE id='" + QString::number(id) + "'").toByteArray();
+	return getValue("SELECT symbol FROM gene WHERE id='" + QString::number(id) + "'").toString();
 }
 
-QPair<QByteArray, QByteArray> NGSD::geneToApproved(const QByteArray& gene)
+QPair<QString, QString> NGSD::geneToApproved(const QString& gene)
 {
 	//init
 	static SqlQuery q_gene = getQuery(true);
@@ -1016,7 +1016,7 @@ QPair<QByteArray, QByteArray> NGSD::geneToApproved(const QByteArray& gene)
 	if (q_gene.size()==1)
 	{
 		q_gene.next();
-		return qMakePair(gene, QByteArray("KEPT: " + gene + " is an approved symbol"));
+		return qMakePair(gene, QString("KEPT: " + gene + " is an approved symbol"));
 	}
 
 	//previous
@@ -1025,15 +1025,15 @@ QPair<QByteArray, QByteArray> NGSD::geneToApproved(const QByteArray& gene)
 	if (q_prev.size()==1)
 	{
 		q_prev.next();
-		return qMakePair(q_prev.value(0).toByteArray(), "REPLACED: " + gene + " is a previous symbol");
+		return qMakePair(q_prev.value(0).toString(), "REPLACED: " + gene + " is a previous symbol");
 	}
 	else if(q_prev.size()>1)
 	{
-		QByteArray genes;
+		QString genes;
 		while(q_prev.next())
 		{
 			if (!genes.isEmpty()) genes.append(", ");
-			genes.append(q_prev.value(0).toByteArray());
+			genes.append(q_prev.value(0).toString());
 		}
 		return qMakePair(gene, "ERROR: " + gene + " is a previous symbol of the genes " + genes);
 	}
@@ -1044,7 +1044,7 @@ QPair<QByteArray, QByteArray> NGSD::geneToApproved(const QByteArray& gene)
 	if (q_syn.size()==1)
 	{
 		q_syn.next();
-		return qMakePair(q_syn.value(0).toByteArray(), "REPLACED: " + gene + " is a synonymous symbol");
+		return qMakePair(q_syn.value(0).toString(), "REPLACED: " + gene + " is a synonymous symbol");
 	}
 	else if(q_syn.size()>1)
 	{
@@ -1052,12 +1052,12 @@ QPair<QByteArray, QByteArray> NGSD::geneToApproved(const QByteArray& gene)
 		while(q_syn.next())
 		{
 			if (!genes.isEmpty()) genes.append(", ");
-			genes.append(q_syn.value(0).toByteArray());
+			genes.append(q_syn.value(0).toString());
 		}
 		return qMakePair(gene, "ERROR: " + gene + " is a synonymous symbol of the genes " + genes);
 	}
 
-	return qMakePair(gene, QByteArray("ERROR: " + gene + " is unknown symbol"));
+	return qMakePair(gene, QString("ERROR: " + gene + " is unknown symbol"));
 }
 
 QStringList NGSD::previousSymbols(QString symbol)
@@ -1213,7 +1213,7 @@ BedFile NGSD::genesToRegions(QStringList genes, QString source, QString mode, QT
 
 	//check source
 	QStringList valid_sources = getEnum("gene_transcript", "source");
-	if (!valid_sources.contains(source)) THROW(ArgumentException, "Invalid source '" + source + "'. Valid modes are: " + valid_sources.join(", ") + ".");
+	if (!valid_sources.contains(source)) THROW(ArgumentException, "Invalid source '" + source + "'. Valid sources are: " + valid_sources.join(", ") + ".");
 
 	//init
 	BedFile output;
@@ -1229,7 +1229,7 @@ BedFile NGSD::genesToRegions(QStringList genes, QString source, QString mode, QT
 	{
 		//get approved gene id
 		gene = gene.toUpper();
-		int id = geneToApprovedID(gene.toUtf8());
+		int id = geneToApprovedID(gene);
 		if (id==-1)
 		{
 			if (messages) *messages << "Gene name '" << gene << "' is no HGNC-approved symbol. Skipping it!" << endl;
@@ -1237,7 +1237,7 @@ BedFile NGSD::genesToRegions(QStringList genes, QString source, QString mode, QT
 		}
 
 		//get chromosome
-		QString chr = "chr" + getValue("SELECT chromosome FROM gene WHERE id='" + QString::number(id) + "'").toString();
+		Chromosome chr = "chr" + getValue("SELECT chromosome FROM gene WHERE id='" + QString::number(id) + "'").toString();
 
 		//preprare annotations
 		QStringList annos;
@@ -1297,6 +1297,52 @@ BedFile NGSD::genesToRegions(QStringList genes, QString source, QString mode, QT
 
 	output.sort(true);
 	return output;
+}
+
+void NGSD::longestCodingTranscript(int id, QString source, QString& name, BedFile& region, Chromosome& chr)
+{
+	name.clear();
+	region.clear();
+	chr = Chromosome();
+
+	//check source
+	QStringList valid_sources = getEnum("gene_transcript", "source");
+	if (!valid_sources.contains(source)) THROW(ArgumentException, "Invalid source '" + source + "'. Valid sources are: " + valid_sources.join(", ") + ".");
+
+	//find transcript with maximal size
+	QString max_name = "";
+	int max = -1;
+	QHash<QString, int> sizes;
+	SqlQuery query = getQuery();
+	query.exec("SELECT gt.name, e.start, e.end FROM gene_transcript gt, gene_exon e WHERE gt.gene_id=" + QString::number(id) + " AND e.transcript_id=gt.id AND gt.source='" + source + "' AND gt.start_coding IS NOT NULL");
+	while(query.next())
+	{
+		QString name = query.value(0).toString();
+		int size_new  = query.value(2).toUInt() - query.value(1).toUInt() + 1 + sizes[name];
+		sizes[name] = size_new;
+
+		if (size_new> max)
+		{
+			max = size_new;
+			max_name = name;
+		}
+	}
+
+	//set name and region
+	if (max_name!="")
+	{
+		name = max_name;
+
+		chr = getValue("SELECT chromosome FROM gene WHERE id=" + QString::number(id)).toString();
+		while(query.previous())
+		{
+			if(query.value(0).toString()==max_name)
+			{
+				region.append(BedLine(chr, query.value(1).toInt(), query.value(2).toInt()));
+			}
+		}
+		region.merge();
+	}
 }
 
 QStringList NGSD::getDiagnosticStatus(const QString& filename)

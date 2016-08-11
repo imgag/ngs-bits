@@ -75,11 +75,11 @@ public:
 
 	/*** gene/transcript handling ***/
 	///Returns the gene ID, or -1 if none approved gene name could be found. Checks approved symbols, previous symbols and synonyms.
-	int geneToApprovedID(const QByteArray& gene);
+	int geneToApprovedID(const QString& gene);
 	///Returns the gene symbol for a gene ID
-	QByteArray geneSymbol(int id);
+	QString geneSymbol(int id);
 	///Returns the the approved/original gene symbol and a status message.
-	QPair<QByteArray, QByteArray> geneToApproved(const QByteArray& gene);
+	QPair<QString, QString> geneToApproved(const QString& gene);
 	///Returns previous symbols of a gene.
 	QStringList previousSymbols(QString symbol);
 	///Returns aliases of a gene.
@@ -88,6 +88,8 @@ public:
 	QStringList genesOverlapping(const Chromosome& chr, int start, int end, int extend=0);
 	///Returns the chromosomal regions corrsponding to the given genes. Messages about unknown gene symbols etc. are written to the steam, if given.
 	BedFile genesToRegions(QStringList genes, QString source, QString mode, QTextStream* messages = nullptr);
+	///Returns longest coding transcript name and region.
+	void longestCodingTranscript(int id, QString source, QString& name, BedFile& region, Chromosome& chr);
 
 	/*** phenotype handling (HPO) ***/
 	///Returns the phenotypes of a gene
