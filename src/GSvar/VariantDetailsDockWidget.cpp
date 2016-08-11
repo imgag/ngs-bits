@@ -53,11 +53,16 @@ void VariantDetailsDockWidget::setPreferredTranscripts(QMap<QString, QString> da
 void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 {
 	//variant
-	ui->variant->setText(vl[index].toString());
+	QString variant = vl[index].toString();
+	int geno_i = vl.annotationIndexByName("genotype", true, false);
+	if(geno_i!=-1)
+	{
+		variant += " (" + vl[index].annotations()[geno_i] + ")";
+	}
+	ui->variant->setText(variant);
 
 	//closeby variant warning
 	QStringList closeby;
-	int geno_i = vl.annotationIndexByName("genotype", true, false);
 	BedLine range(vl[index].chr(), vl[index].start()-2, vl[index].end()+2);
 	for (int i=std::max(0, index-10); i<std::min(vl.count(), index+10); ++i)
 	{
@@ -80,7 +85,6 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	initTranscriptDetails(vl, index);
 
 	//base information
-	setAnnotation(ui->genotype, vl, index, "genotype");
 	setAnnotation(ui->gene, vl, index, "gene");
 	setAnnotation(ui->quality, vl, index, "quality");
 
