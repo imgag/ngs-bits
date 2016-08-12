@@ -1,5 +1,5 @@
 TEMPLATE = subdirs
-SUBDIRS = cppCORE\
+SUBDIRS = cppCORE \
             cppCORE-TEST \
             cppXML \
             cppNGS \
