@@ -562,28 +562,41 @@ void NGSD::annotate(VariantList& variants, QString filename)
 	if (variants.annotationIndexByName("comment", true, false)==-1) addColumn(variants, "comment", "Comments from the NGSD. Comments of other samples are listed in brackets!");
 	int comment_idx = variants.annotationIndexByName("comment", true, false);
 
+	/*
+	//Timing benchmarks
+	//Outcome for Qt 5.5.0:
+	// - Prepared queries take about twice as long
+	// - Setting the query to forward-only has no effect
+	QTime timer;
+	timer.start();
+	long long time_cl = 0;
+	long long time_dv = 0;
+	long long time_vv = 0;
+	long long time_vvo = 0;
+	long long time_co = 0;
+	long long time_gt = 0;
+	*/
+
 	//(re-)annotate the variants
 	SqlQuery query = getQuery();
 	for (int i=0; i<variants.count(); ++i)
 	{
-		//QTime timer;
-		//timer.start();
-
 		//variant id
 		Variant& v = variants[i];
 		QByteArray v_id = variantId(v, false).toLatin1();
 
 		//variant classification
+		//timer.restart();
 		QVariant classification = getValue("SELECT class FROM variant_classification WHERE variant_id='" + v_id + "'", true);
 		if (!classification.isNull())
 		{
 			v.annotations()[class_idx] = classification.toByteArray().replace("n/a", "");
 			v.annotations()[clacom_idx] = getValue("SELECT comment FROM variant_classification WHERE variant_id='" + v_id + "'", true).toByteArray().replace("\n", " ").replace("\t", " ");
 		}
-		//int t_v = timer.elapsed();
-		//timer.restart();
+		//time_cl += timer.elapsed();
 
 		//detected variant infos
+		//timer.restart();
 		int dv_id = -1;
 		QByteArray comment = "";
 		if (found_in_db)
@@ -596,8 +609,10 @@ void NGSD::annotate(VariantList& variants, QString filename)
 				comment = query.value(1).toByteArray();
 			}
 		}
+		//time_dv += timer.elapsed();
 
 		//validation info
+		//timer.restart();
 		int vv_id = -1;
 		QByteArray val_status = "";
 		if (found_in_db)
@@ -610,11 +625,10 @@ void NGSD::annotate(VariantList& variants, QString filename)
 				val_status = query.value(1).toByteArray().replace("n/a", "");
 			}
 		}
-
-		//int t_dv = timer.elapsed();
-		//timer.restart();
+		//time_vv += timer.elapsed();
 
 		//validation info other samples
+		//timer.restart();
 		int tps = 0;
 		int fps = 0;
 		query.exec("SELECT id, status FROM variant_validation WHERE variant_id='"+v_id+"' AND status!='n/a'");
@@ -629,10 +643,10 @@ void NGSD::annotate(VariantList& variants, QString filename)
 			if (val_status=="") val_status = "n/a";
 			val_status += " (" + QByteArray::number(tps) + "xTP, " + QByteArray::number(fps) + "xFP)";
 		}
-		//int t_val = timer.elapsed();
-		//timer.restart();
+		//time_vvo += timer.elapsed();
 
 		//comments other samples
+		//timer.restart();
 		QList<QByteArray> comments;
 		query.exec("SELECT id, comment FROM detected_variant WHERE variant_id='"+v_id+"' AND comment IS NOT NULL");
 		while(query.next())
@@ -655,10 +669,10 @@ void NGSD::annotate(VariantList& variants, QString filename)
 			}
 			comment += ")";
 		}
-		//int t_com = timer.elapsed();
-		//timer.restart();
+		//time_co += timer.elapsed();
 
 		//genotype counts
+		//timer.restart();
 		int allsys_hom_count = 0;
 		int allsys_het_count = 0;
 		QSet<int> s_ids_done;
@@ -698,9 +712,19 @@ void NGSD::annotate(VariantList& variants, QString filename)
 			v.annotations()[valid_idx] = "n/a";
 			v.annotations()[comment_idx] = "n/a";
 		}
+		//time_gt += timer.elapsed();
 
 		emit updateProgress(100*i/variants.count());
 	}
+
+	/*
+	qDebug() << "class   : " << time_cl;
+	qDebug() << "det. var: " << time_dv;
+	qDebug() << "val     : " << time_vv;
+	qDebug() << "val oth : " << time_vvo;
+	qDebug() << "comment : " << time_co;
+	qDebug() << "counts  : " << time_gt;
+	*/
 }
 
 void NGSD::annotateSomatic(VariantList& variants, QString filename)

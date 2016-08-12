@@ -1,5 +1,5 @@
 ### SeqPurge tool help
-	SeqPurge (0.1-420-g3536bb0)
+	SeqPurge (0.1-438-g79b1e8b)
 	
 	Removes adapter sequences from paired-end sequencing data.
 	
@@ -52,8 +52,9 @@
 	  --tdx               Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SeqPurge changelog
-	SeqPurge 0.1-420-g3536bb0
+	SeqPurge 0.1-438-g79b1e8b
 	
+	2016-08-10 Fixed bug in binomial calculation (issue #1).
 	2016-04-15 Removed large part of the overtrimming described in the paper (~75% of reads overtrimmed, ~50% of bases overtrimmed).
 	2016-04-06 Added error correction (optional).
 	2016-03-16 Version used in the SeqPurge paper: http://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-016-1069-7
