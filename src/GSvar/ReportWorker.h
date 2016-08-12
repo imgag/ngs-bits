@@ -26,7 +26,15 @@ public:
 	}
 
 	///writes a low-coverage report
-	static BedFile writeCoverageReport(QTextStream& stream, QString bam_file, const BedFile& roi, QStringList genes, int min_cov, NGSD& db);
+	static BedFile writeCoverageReport(QTextStream& stream, QString bam_file, QString roi_file, const BedFile& roi, QStringList genes, int min_cov, NGSD& db);
+	static void writeCoverageReportCCDS(QTextStream& stream, QString bam_file, QStringList genes, int min_cov, NGSD& db);
+
+	///Returns if the pre-calcualed gaps for the given ROI.
+	///If using the pre-calculated gaps file is not possible, @p message contains an error message.
+	static BedFile precalculatedGaps(QString bam_file, const BedFile& roi, int min_cov, NGSD& db, QString& message);
+
+	///Returns if given ROI file is the processing system target file corresponding to the BAM file.
+	static bool isProcessingSystemTargetFile(QString bam_file, QString roi_file, NGSD& db);
 
 	static void writeHtmlHeader(QTextStream& stream, QString sample_name);
 	static void writeHtmlFooter(QTextStream& stream);

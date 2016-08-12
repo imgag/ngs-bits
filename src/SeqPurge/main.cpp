@@ -46,6 +46,7 @@ public:
 		addFlag("progress", "Enables progress output.");
 
 		//changelog
+		changeLog(2016, 8, 10, "Fixed bug in binomial calculation (issue #1).");
 		changeLog(2016, 4, 15, "Removed large part of the overtrimming described in the paper (~75% of reads overtrimmed, ~50% of bases overtrimmed).");
 		changeLog(2016, 4,  6, "Added error correction (optional).");
 		changeLog(2016, 3, 16, "Version used in the SeqPurge paper: http://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-016-1069-7");

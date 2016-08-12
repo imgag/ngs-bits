@@ -587,7 +587,7 @@ void MainWindow::on_actionGapsLookup_triggered()
 	edit->setMinimumWidth(500);
 	edit->setWordWrapMode(QTextOption::NoWrap);
 	edit->setReadOnly(true);
-	GUIHelper::showWidgetAsDialog(edit, "Gaps of gene '" + gene + "'' from low-coverage BED file '" + report + "':", false);
+	GUIHelper::showWidgetAsDialog(edit, "Gaps of gene '" + gene + "' from low-coverage BED file '" + report + "':", false);
 	edit->deleteLater();
 }
 
@@ -632,14 +632,16 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	QString sample_name = QFileInfo(bam_file).fileName().replace(".bam", "");
 	ReportWorker::writeHtmlHeader(stream, sample_name);
 	NGSD db;
-	ReportWorker::writeCoverageReport(stream, bam_file, roi, genes, min_cov, db);
+	ReportWorker::writeCoverageReport(stream, bam_file, roi_file, roi, genes, min_cov, db);
+	ReportWorker::writeCoverageReportCCDS(stream, bam_file, genes, min_cov, db);
 	ReportWorker::writeHtmlFooter(stream);
 	QApplication::restoreOverrideCursor();
 
 	//show output
 	QTextEdit* edit = new QTextEdit();
 	edit->setText(output);
-	edit->setMinimumWidth(500);
+	edit->setMinimumWidth(800);
+	edit->setMinimumHeight(500);
 	edit->setWordWrapMode(QTextOption::NoWrap);
 	edit->setReadOnly(true);
 	GUIHelper::showWidgetAsDialog(edit, "Gaps in target region'" + roi_file + "':", false);
@@ -1211,12 +1213,13 @@ void MainWindow::varsContextMenu(QPoint pos)
 			//load IGV tracks as requested
 			if (ui_.actionIgvSample->isChecked())
 			{
-				executeIGVCommand("load \"" + QString(filename_).replace(".GSvar", "_var_annotated.vcf.gz") + "\"");
+				QString var_file = NGSD().processedSamplePath(filename_, NGSD::VCF, false);
+				executeIGVCommand("load \"" + var_file + "\"");
 			}
 			if (ui_.actionIgvLowcov->isChecked())
 			{
-				QString system = NGSD().getProcessingSystem(filename_, NGSD::SHORT);
-				executeIGVCommand("load \"" + QString(filename_).replace(".GSvar", "_" + system + "_lowcov.bed") + "\"");
+				QString lowcov_file = NGSD().processedSamplePath(filename_, NGSD::LOWCOV, false);
+				executeIGVCommand("load \"" + lowcov_file + "\"");
 			}
 			QList<QAction*> igv_actions = ui_.menuIGV->findChildren<QAction*>();
 			foreach(QAction* action, igv_actions)

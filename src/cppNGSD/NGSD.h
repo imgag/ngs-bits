@@ -75,11 +75,11 @@ public:
 
 	/*** gene/transcript handling ***/
 	///Returns the gene ID, or -1 if none approved gene name could be found. Checks approved symbols, previous symbols and synonyms.
-	int geneToApprovedID(const QByteArray& gene);
+	int geneToApprovedID(const QString& gene);
 	///Returns the gene symbol for a gene ID
-	QByteArray geneSymbol(int id);
+	QString geneSymbol(int id);
 	///Returns the the approved/original gene symbol and a status message.
-	QPair<QByteArray, QByteArray> geneToApproved(const QByteArray& gene);
+	QPair<QString, QString> geneToApproved(const QString& gene);
 	///Returns previous symbols of a gene.
 	QStringList previousSymbols(QString symbol);
 	///Returns aliases of a gene.
@@ -88,6 +88,8 @@ public:
 	QStringList genesOverlapping(const Chromosome& chr, int start, int end, int extend=0);
 	///Returns the chromosomal regions corrsponding to the given genes. Messages about unknown gene symbols etc. are written to the steam, if given.
 	BedFile genesToRegions(QStringList genes, QString source, QString mode, QTextStream* messages = nullptr);
+	///Returns longest coding transcript name and region.
+	void longestCodingTranscript(int id, QString source, QString& name, BedFile& region, Chromosome& chr);
 
 	/*** phenotype handling (HPO) ***/
 	///Returns the phenotypes of a gene
@@ -107,7 +109,7 @@ public:
 	///Returns the NGSD processed sample ID from a file name or processed sample name. Throws an exception if it could not be determined.
 	QString processedSampleId(const QString& filename, bool throw_if_fails = true);
 	///Returns the default folder for a processed sample from file name or processed sample name. Throws an exception if it could not be determined.
-	enum PathType {FOLDER, BAM, GSVAR, VCF};
+	enum PathType {FOLDER, BAM, GSVAR, VCF, LOWCOV};
 	QString processedSamplePath(const QString& filename, PathType type, bool throw_if_fails = true);
 	///Returns the NGSD ID for a variant. Returns '-1' or throws an exception if the ID cannot be determined.
 	QString variantId(const Variant& variant, bool throw_if_fails = true);
@@ -121,8 +123,8 @@ public:
 	QString sampleIsTumor(const QString& filename);
 	///Returns the FFPE status of a sample, or "n/a" the sample cannot be found in the database.
 	QString sampleIsFFPE(const QString& filename);
-	///Returns the processing system name and short name of the sample, or an empty string if it could not be detected.
-	enum SystemType {SHORT, LONG, BOTH};
+	///Returns the processing system information for the sample, or an empty string if it could not be detected.
+	enum SystemType {SHORT, LONG, BOTH, TYPE, FILE};
 	QString getProcessingSystem(const QString& filename, SystemType type);
 	///Returns all processing systems (long name) and the corresponding target regions.
 	QMap<QString, QString> getProcessingSystems(bool skip_systems_without_roi, bool windows_paths);

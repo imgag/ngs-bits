@@ -41,13 +41,13 @@ public:
 		QSharedPointer<QFile> outstream = Helper::openFileForWriting(out, true);
 		while(!instream->atEnd())
 		{
-			QByteArray gene = instream->readLine().trimmed().toUpper();
+			QString gene = instream->readLine().trimmed().toUpper();
 
 			//skip empty/comment lines
 			if (gene.isEmpty() || gene[0]=='#') continue;
 
-			QPair<QByteArray, QByteArray> gene_info = db.geneToApproved(gene);
-			outstream->write(gene_info.first + '\t' + gene_info.second + '\n');
+			QPair<QString, QString> gene_info = db.geneToApproved(gene);
+			outstream->write(gene_info.first.toUtf8() + '\t' + gene_info.second.toUtf8() + '\n');
 		}
 	}
 };

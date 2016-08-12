@@ -13,13 +13,13 @@ void ApprovedGenesDialog::on_convertBtn_pressed()
 
 	QStringList lines = ui_.text->toPlainText().split('\n');
 	ui_.text->clear();
-	foreach(const QString& line, lines)
+	foreach(QString line, lines)
 	{
-		QByteArray line_trimmed = line.toLatin1().trimmed();
-		if (!line_trimmed.isEmpty() && line_trimmed[0]!='#')
+		line = line.trimmed();
+		if (!line.isEmpty() && line[0]!='#')
 		{
-			QList<QByteArray> parts = line_trimmed.split('\t');
-			QPair<QByteArray, QByteArray> output = db.geneToApproved(parts[0]);
+			QList<QString> parts = line.split('\t');
+			QPair<QString, QString> output = db.geneToApproved(parts[0]);
 			ui_.text->appendPlainText(output.first + '\t' + output.second);
 		}
 	}

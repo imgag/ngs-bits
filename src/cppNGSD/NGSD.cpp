@@ -150,7 +150,7 @@ QString NGSD::processedSamplePath(const QString& filename, PathType type, bool t
 	if (ps_id=="") return "";
 
 	SqlQuery query = getQuery();
-	query.prepare("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), p.type, p.name FROM processed_sample ps, sample s, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id AND ps.id=:id");
+	query.prepare("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), p.type, p.name, sys.name_short FROM processed_sample ps, sample s, project p, processing_system sys WHERE ps.processing_system_id=sys.id AND ps.sample_id=s.id AND ps.project_id=p.id AND ps.id=:id");
 	query.bindValue(":id", ps_id);
 	query.exec();
 	if (query.size()==0)
@@ -178,11 +178,13 @@ QString NGSD::processedSamplePath(const QString& filename, PathType type, bool t
 	output += "/" + p_name + "/";
 	QString ps_name = query.value(0).toString();
 	output += "Sample_" + ps_name + "/";
+	QString sys_name = query.value(3).toString();
 
 	//append file name if requested
 	if (type==BAM) output += ps_name + ".bam";
 	else if (type==GSVAR) output += ps_name + ".GSvar";
 	else if (type==VCF) output += ps_name + "_var_annotated.vcf.gz";
+	else if (type==LOWCOV) output += ps_name + "_" + sys_name + "_lowcov.bed";
 	else if (type!=FOLDER) THROW(ProgrammingException, "Unknown PathType '" + QString::number(type) + "'!");
 
 	return output;
@@ -382,11 +384,31 @@ QString NGSD::getProcessingSystem(const QString& filename, SystemType type)
 	{
 		what = "CONCAT(name_manufacturer, ' (', name_short, ')')";
 	}
+	else if (type==TYPE)
+	{
+		what = "type";
+	}
+	else if (type==FILE)
+	{
+		what = "target_file";
+	}
 	else
 	{
 		THROW(ProgrammingException, "Unknown SystemType '" + QString::number(type) + "'!");
 	}
-	return getValue("SELECT " + what + " FROM processing_system WHERE id='" + sys_id + "'").toString().trimmed();
+
+	//get DB value
+	QString output = getValue("SELECT " + what + " FROM processing_system WHERE id='" + sys_id + "'").toString().trimmed();
+
+	//special handling for paths
+	if (type==FILE)
+	{
+		QString p_linux = getTargetFilePath(false, false);
+		QString p_win = getTargetFilePath(false, true);
+		output = output.replace(p_linux, p_win);
+	}
+
+	return output;
 }
 
 QMap<QString, QString> NGSD::getProcessingSystems(bool skip_systems_without_roi, bool windows_paths)
@@ -540,28 +562,41 @@ void NGSD::annotate(VariantList& variants, QString filename)
 	if (variants.annotationIndexByName("comment", true, false)==-1) addColumn(variants, "comment", "Comments from the NGSD. Comments of other samples are listed in brackets!");
 	int comment_idx = variants.annotationIndexByName("comment", true, false);
 
+	/*
+	//Timing benchmarks
+	//Outcome for Qt 5.5.0:
+	// - Prepared queries take about twice as long
+	// - Setting the query to forward-only has no effect
+	QTime timer;
+	timer.start();
+	long long time_cl = 0;
+	long long time_dv = 0;
+	long long time_vv = 0;
+	long long time_vvo = 0;
+	long long time_co = 0;
+	long long time_gt = 0;
+	*/
+
 	//(re-)annotate the variants
 	SqlQuery query = getQuery();
 	for (int i=0; i<variants.count(); ++i)
 	{
-		//QTime timer;
-		//timer.start();
-
 		//variant id
 		Variant& v = variants[i];
 		QByteArray v_id = variantId(v, false).toLatin1();
 
 		//variant classification
+		//timer.restart();
 		QVariant classification = getValue("SELECT class FROM variant_classification WHERE variant_id='" + v_id + "'", true);
 		if (!classification.isNull())
 		{
 			v.annotations()[class_idx] = classification.toByteArray().replace("n/a", "");
 			v.annotations()[clacom_idx] = getValue("SELECT comment FROM variant_classification WHERE variant_id='" + v_id + "'", true).toByteArray().replace("\n", " ").replace("\t", " ");
 		}
-		//int t_v = timer.elapsed();
-		//timer.restart();
+		//time_cl += timer.elapsed();
 
 		//detected variant infos
+		//timer.restart();
 		int dv_id = -1;
 		QByteArray comment = "";
 		if (found_in_db)
@@ -574,8 +609,10 @@ void NGSD::annotate(VariantList& variants, QString filename)
 				comment = query.value(1).toByteArray();
 			}
 		}
+		//time_dv += timer.elapsed();
 
 		//validation info
+		//timer.restart();
 		int vv_id = -1;
 		QByteArray val_status = "";
 		if (found_in_db)
@@ -588,11 +625,10 @@ void NGSD::annotate(VariantList& variants, QString filename)
 				val_status = query.value(1).toByteArray().replace("n/a", "");
 			}
 		}
-
-		//int t_dv = timer.elapsed();
-		//timer.restart();
+		//time_vv += timer.elapsed();
 
 		//validation info other samples
+		//timer.restart();
 		int tps = 0;
 		int fps = 0;
 		query.exec("SELECT id, status FROM variant_validation WHERE variant_id='"+v_id+"' AND status!='n/a'");
@@ -607,10 +643,10 @@ void NGSD::annotate(VariantList& variants, QString filename)
 			if (val_status=="") val_status = "n/a";
 			val_status += " (" + QByteArray::number(tps) + "xTP, " + QByteArray::number(fps) + "xFP)";
 		}
-		//int t_val = timer.elapsed();
-		//timer.restart();
+		//time_vvo += timer.elapsed();
 
 		//comments other samples
+		//timer.restart();
 		QList<QByteArray> comments;
 		query.exec("SELECT id, comment FROM detected_variant WHERE variant_id='"+v_id+"' AND comment IS NOT NULL");
 		while(query.next())
@@ -633,10 +669,10 @@ void NGSD::annotate(VariantList& variants, QString filename)
 			}
 			comment += ")";
 		}
-		//int t_com = timer.elapsed();
-		//timer.restart();
+		//time_co += timer.elapsed();
 
 		//genotype counts
+		//timer.restart();
 		int allsys_hom_count = 0;
 		int allsys_het_count = 0;
 		QSet<int> s_ids_done;
@@ -676,9 +712,19 @@ void NGSD::annotate(VariantList& variants, QString filename)
 			v.annotations()[valid_idx] = "n/a";
 			v.annotations()[comment_idx] = "n/a";
 		}
+		//time_gt += timer.elapsed();
 
 		emit updateProgress(100*i/variants.count());
 	}
+
+	/*
+	qDebug() << "class   : " << time_cl;
+	qDebug() << "det. var: " << time_dv;
+	qDebug() << "val     : " << time_vv;
+	qDebug() << "val oth : " << time_vvo;
+	qDebug() << "comment : " << time_co;
+	qDebug() << "counts  : " << time_gt;
+	*/
 }
 
 void NGSD::annotateSomatic(VariantList& variants, QString filename)
@@ -919,7 +965,7 @@ bool NGSD::tableEmpty(QString table)
 	return query.value(0).toInt()==0;
 }
 
-int NGSD::geneToApprovedID(const QByteArray& gene)
+int NGSD::geneToApprovedID(const QString& gene)
 {
 	//init
 	static SqlQuery q_gene = getQuery(true);
@@ -968,12 +1014,12 @@ int NGSD::geneToApprovedID(const QByteArray& gene)
 	return -1;
 }
 
-QByteArray NGSD::geneSymbol(int id)
+QString NGSD::geneSymbol(int id)
 {
-	return getValue("SELECT symbol FROM gene WHERE id='" + QString::number(id) + "'").toByteArray();
+	return getValue("SELECT symbol FROM gene WHERE id='" + QString::number(id) + "'").toString();
 }
 
-QPair<QByteArray, QByteArray> NGSD::geneToApproved(const QByteArray& gene)
+QPair<QString, QString> NGSD::geneToApproved(const QString& gene)
 {
 	//init
 	static SqlQuery q_gene = getQuery(true);
@@ -994,7 +1040,7 @@ QPair<QByteArray, QByteArray> NGSD::geneToApproved(const QByteArray& gene)
 	if (q_gene.size()==1)
 	{
 		q_gene.next();
-		return qMakePair(gene, QByteArray("KEPT: " + gene + " is an approved symbol"));
+		return qMakePair(gene, QString("KEPT: " + gene + " is an approved symbol"));
 	}
 
 	//previous
@@ -1003,15 +1049,15 @@ QPair<QByteArray, QByteArray> NGSD::geneToApproved(const QByteArray& gene)
 	if (q_prev.size()==1)
 	{
 		q_prev.next();
-		return qMakePair(q_prev.value(0).toByteArray(), "REPLACED: " + gene + " is a previous symbol");
+		return qMakePair(q_prev.value(0).toString(), "REPLACED: " + gene + " is a previous symbol");
 	}
 	else if(q_prev.size()>1)
 	{
-		QByteArray genes;
+		QString genes;
 		while(q_prev.next())
 		{
 			if (!genes.isEmpty()) genes.append(", ");
-			genes.append(q_prev.value(0).toByteArray());
+			genes.append(q_prev.value(0).toString());
 		}
 		return qMakePair(gene, "ERROR: " + gene + " is a previous symbol of the genes " + genes);
 	}
@@ -1022,7 +1068,7 @@ QPair<QByteArray, QByteArray> NGSD::geneToApproved(const QByteArray& gene)
 	if (q_syn.size()==1)
 	{
 		q_syn.next();
-		return qMakePair(q_syn.value(0).toByteArray(), "REPLACED: " + gene + " is a synonymous symbol");
+		return qMakePair(q_syn.value(0).toString(), "REPLACED: " + gene + " is a synonymous symbol");
 	}
 	else if(q_syn.size()>1)
 	{
@@ -1030,12 +1076,12 @@ QPair<QByteArray, QByteArray> NGSD::geneToApproved(const QByteArray& gene)
 		while(q_syn.next())
 		{
 			if (!genes.isEmpty()) genes.append(", ");
-			genes.append(q_syn.value(0).toByteArray());
+			genes.append(q_syn.value(0).toString());
 		}
 		return qMakePair(gene, "ERROR: " + gene + " is a synonymous symbol of the genes " + genes);
 	}
 
-	return qMakePair(gene, QByteArray("ERROR: " + gene + " is unknown symbol"));
+	return qMakePair(gene, QString("ERROR: " + gene + " is unknown symbol"));
 }
 
 QStringList NGSD::previousSymbols(QString symbol)
@@ -1191,7 +1237,7 @@ BedFile NGSD::genesToRegions(QStringList genes, QString source, QString mode, QT
 
 	//check source
 	QStringList valid_sources = getEnum("gene_transcript", "source");
-	if (!valid_sources.contains(source)) THROW(ArgumentException, "Invalid source '" + source + "'. Valid modes are: " + valid_sources.join(", ") + ".");
+	if (!valid_sources.contains(source)) THROW(ArgumentException, "Invalid source '" + source + "'. Valid sources are: " + valid_sources.join(", ") + ".");
 
 	//init
 	BedFile output;
@@ -1207,7 +1253,7 @@ BedFile NGSD::genesToRegions(QStringList genes, QString source, QString mode, QT
 	{
 		//get approved gene id
 		gene = gene.toUpper();
-		int id = geneToApprovedID(gene.toUtf8());
+		int id = geneToApprovedID(gene);
 		if (id==-1)
 		{
 			if (messages) *messages << "Gene name '" << gene << "' is no HGNC-approved symbol. Skipping it!" << endl;
@@ -1215,7 +1261,7 @@ BedFile NGSD::genesToRegions(QStringList genes, QString source, QString mode, QT
 		}
 
 		//get chromosome
-		QString chr = "chr" + getValue("SELECT chromosome FROM gene WHERE id='" + QString::number(id) + "'").toString();
+		Chromosome chr = "chr" + getValue("SELECT chromosome FROM gene WHERE id='" + QString::number(id) + "'").toString();
 
 		//preprare annotations
 		QStringList annos;
@@ -1275,6 +1321,52 @@ BedFile NGSD::genesToRegions(QStringList genes, QString source, QString mode, QT
 
 	output.sort(true);
 	return output;
+}
+
+void NGSD::longestCodingTranscript(int id, QString source, QString& name, BedFile& region, Chromosome& chr)
+{
+	name.clear();
+	region.clear();
+	chr = Chromosome();
+
+	//check source
+	QStringList valid_sources = getEnum("gene_transcript", "source");
+	if (!valid_sources.contains(source)) THROW(ArgumentException, "Invalid source '" + source + "'. Valid sources are: " + valid_sources.join(", ") + ".");
+
+	//find transcript with maximal size
+	QString max_name = "";
+	int max = -1;
+	QHash<QString, int> sizes;
+	SqlQuery query = getQuery();
+	query.exec("SELECT gt.name, e.start, e.end FROM gene_transcript gt, gene_exon e WHERE gt.gene_id=" + QString::number(id) + " AND e.transcript_id=gt.id AND gt.source='" + source + "' AND gt.start_coding IS NOT NULL");
+	while(query.next())
+	{
+		QString name = query.value(0).toString();
+		int size_new  = query.value(2).toUInt() - query.value(1).toUInt() + 1 + sizes[name];
+		sizes[name] = size_new;
+
+		if (size_new> max)
+		{
+			max = size_new;
+			max_name = name;
+		}
+	}
+
+	//set name and region
+	if (max_name!="")
+	{
+		name = max_name;
+
+		chr = getValue("SELECT chromosome FROM gene WHERE id=" + QString::number(id)).toString();
+		while(query.previous())
+		{
+			if(query.value(0).toString()==max_name)
+			{
+				region.append(BedLine(chr, query.value(1).toInt(), query.value(2).toInt()));
+			}
+		}
+		region.merge();
+	}
 }
 
 QStringList NGSD::getDiagnosticStatus(const QString& filename)

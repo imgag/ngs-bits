@@ -132,8 +132,7 @@ public:
 			QByteArray hgnc_chr = db.getValue("SELECT chromosome FROM gene WHERE id='" + QString::number(gene_id) + "'").toByteArray();
 			if (hgnc_chr!=chr)
 			{
-				QByteArray hgnc_gene = db.geneSymbol(gene_id);
-				out << ucsc_id << ": chromosome mismatch (ucsc: " + gene + "/chr" + chr + ", hgnc:" + hgnc_gene + "/chr" + hgnc_chr + ")" << endl;
+				out << ucsc_id << ": chromosome mismatch (ucsc: " + gene + "/chr" + chr + ", hgnc:" + db.geneSymbol(gene_id) + "/chr" + hgnc_chr + ")" << endl;
 				continue; //TODO: handle PAR region on chrX/chrY?!
 			}
 
