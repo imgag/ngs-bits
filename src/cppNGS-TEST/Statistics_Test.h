@@ -41,7 +41,7 @@ private slots:
 		}
 	}
 
-	void variantList1()
+    void variantList_panel()
 	{
 		VariantList vl;
 		vl.load(TESTDATA("data_in/Statistics_variantList.vcf"));
@@ -62,7 +62,9 @@ private slots:
 		S_EQUAL(stats[4].toString(), QString("4.46"));
 		S_EQUAL(stats[5].name(), QString("transition/transversion ratio"));
 		S_EQUAL(stats[5].toString(), QString("3.29"));
-		I_EQUAL(stats.count(), 6);
+        S_EQUAL(stats[6].name(), QString("SNV allele frequency deviation"));
+        S_EQUAL(stats[6].toString(), QString("0.0339"));
+        I_EQUAL(stats.count(), 7);
 
 		//check that there is a description for each term
 		for (int i=0; i<stats.count(); ++i)
@@ -72,7 +74,7 @@ private slots:
 		}
 	}
 
-	void variantList2()
+    void variantList_empty()
 	{
 		VariantList vl;
 
@@ -88,8 +90,10 @@ private slots:
 		S_EQUAL(stats[4].name(), QString("indel variants percentage"));
 		IS_TRUE(stats[4].toString().startsWith("n/a "));
 		S_EQUAL(stats[5].name(), QString("transition/transversion ratio"));
-		IS_TRUE(stats[5].toString().startsWith("n/a "));
-		I_EQUAL(stats.count(), 6);
+        IS_TRUE(stats[5].toString().startsWith("n/a "));
+        S_EQUAL(stats[6].name(), QString("SNV allele frequency deviation"));
+        IS_TRUE(stats[6].toString().startsWith("n/a "));
+        I_EQUAL(stats.count(), 7);
 
 		//check that there is a description for each term
 		for (int i=0; i<stats.count(); ++i)
@@ -118,27 +122,29 @@ private slots:
 		S_EQUAL(stats[4].toString(), QString("180.02"));
 		S_EQUAL(stats[5].name(), QString("duplicate read percentage"));
 		S_EQUAL(stats[5].toString(), QString("n/a (no duplicates marked or duplicates removed during data analysis)"));
-		S_EQUAL(stats[6].name(), QString("target region read depth"));
-		S_EQUAL(stats[6].toString(), QString("125.63"));
-		S_EQUAL(stats[7].name(), QString("target region 10x percentage"));
-		S_EQUAL(stats[7].toString(), QString("97.08"));
-		S_EQUAL(stats[8].name(), QString("target region 20x percentage"));
-		S_EQUAL(stats[8].toString(), QString("94.06"));
-		S_EQUAL(stats[9].name(), QString("target region 30x percentage"));
-		S_EQUAL(stats[9].toString(), QString("90.25"));
-		S_EQUAL(stats[10].name(), QString("target region 50x percentage"));
-		S_EQUAL(stats[10].toString(), QString("80.81"));
-		S_EQUAL(stats[11].name(), QString("target region 100x percentage"));
-		S_EQUAL(stats[11].toString(), QString("55.51"));
-		S_EQUAL(stats[12].name(), QString("target region 200x percentage"));
-		S_EQUAL(stats[12].toString(), QString("18.22"));
-		S_EQUAL(stats[13].name(), QString("target region 500x percentage"));
-		S_EQUAL(stats[13].toString(), QString("0.06"));
-		S_EQUAL(stats[14].name(), QString("depth distribution plot"));
-		IS_TRUE(stats[14].type()==QVariant::ByteArray);
-		S_EQUAL(stats[15].name(), QString("insert size distribution plot"));
-		IS_TRUE(stats[15].type()==QVariant::ByteArray);
-		I_EQUAL(stats.count(), 16);
+        S_EQUAL(stats[6].name(), QString("bases usable (MB)"));
+        S_EQUAL(stats[6].toString(), QString("34.11"));
+        S_EQUAL(stats[7].name(), QString("target region read depth"));
+        S_EQUAL(stats[7].toString(), QString("125.63"));
+        S_EQUAL(stats[8].name(), QString("target region 10x percentage"));
+        S_EQUAL(stats[8].toString(), QString("97.08"));
+        S_EQUAL(stats[9].name(), QString("target region 20x percentage"));
+        S_EQUAL(stats[9].toString(), QString("94.06"));
+        S_EQUAL(stats[10].name(), QString("target region 30x percentage"));
+        S_EQUAL(stats[10].toString(), QString("90.25"));
+        S_EQUAL(stats[11].name(), QString("target region 50x percentage"));
+        S_EQUAL(stats[11].toString(), QString("80.81"));
+        S_EQUAL(stats[12].name(), QString("target region 100x percentage"));
+        S_EQUAL(stats[12].toString(), QString("55.51"));
+        S_EQUAL(stats[13].name(), QString("target region 200x percentage"));
+        S_EQUAL(stats[13].toString(), QString("18.22"));
+        S_EQUAL(stats[14].name(), QString("target region 500x percentage"));
+        S_EQUAL(stats[14].toString(), QString("0.06"));
+        S_EQUAL(stats[15].name(), QString("depth distribution plot"));
+        IS_TRUE(stats[15].type()==QVariant::ByteArray);
+        S_EQUAL(stats[16].name(), QString("insert size distribution plot"));
+        IS_TRUE(stats[16].type()==QVariant::ByteArray);
+        I_EQUAL(stats.count(), 17);
 
 		//check that there is a description for each term
 		for (int i=0; i<stats.count(); ++i)
@@ -167,27 +173,29 @@ private slots:
 		S_EQUAL(stats[4].toString(), QString("138.06"));
 		S_EQUAL(stats[5].name(), QString("duplicate read percentage"));
 		S_EQUAL(stats[5].toString(), QString("n/a (no duplicates marked or duplicates removed during data analysis)"));
-		S_EQUAL(stats[6].name(), QString("target region read depth"));
-		S_EQUAL(stats[6].toString(), QString("415.05"));
-		S_EQUAL(stats[7].name(), QString("target region 10x percentage"));
-		S_EQUAL(stats[7].toString(), QString("100.00"));
-		S_EQUAL(stats[8].name(), QString("target region 20x percentage"));
-		S_EQUAL(stats[8].toString(), QString("100.00"));
-		S_EQUAL(stats[9].name(), QString("target region 30x percentage"));
-		S_EQUAL(stats[9].toString(), QString("100.00"));
-		S_EQUAL(stats[10].name(), QString("target region 50x percentage"));
-		S_EQUAL(stats[10].toString(), QString("100.00"));
-		S_EQUAL(stats[11].name(), QString("target region 100x percentage"));
-		S_EQUAL(stats[11].toString(), QString("93.51"));
-		S_EQUAL(stats[12].name(), QString("target region 200x percentage"));
-		S_EQUAL(stats[12].toString(), QString("79.87"));
-		S_EQUAL(stats[13].name(), QString("target region 500x percentage"));
-		S_EQUAL(stats[13].toString(), QString("39.61"));
-		S_EQUAL(stats[14].name(), QString("depth distribution plot"));
-		IS_TRUE(stats[14].type()==QVariant::ByteArray);
-		S_EQUAL(stats[15].name(), QString("insert size distribution plot"));
-		IS_TRUE(stats[15].type()==QVariant::ByteArray);
-		I_EQUAL(stats.count(), 16);
+        S_EQUAL(stats[6].name(), QString("bases usable (MB)"));
+        S_EQUAL(stats[6].toString(), QString("0.06"));
+        S_EQUAL(stats[7].name(), QString("target region read depth"));
+        S_EQUAL(stats[7].toString(), QString("415.05"));
+        S_EQUAL(stats[8].name(), QString("target region 10x percentage"));
+        S_EQUAL(stats[8].toString(), QString("100.00"));
+        S_EQUAL(stats[9].name(), QString("target region 20x percentage"));
+        S_EQUAL(stats[9].toString(), QString("100.00"));
+        S_EQUAL(stats[10].name(), QString("target region 30x percentage"));
+        S_EQUAL(stats[10].toString(), QString("100.00"));
+        S_EQUAL(stats[11].name(), QString("target region 50x percentage"));
+        S_EQUAL(stats[11].toString(), QString("100.00"));
+        S_EQUAL(stats[12].name(), QString("target region 100x percentage"));
+        S_EQUAL(stats[12].toString(), QString("93.51"));
+        S_EQUAL(stats[13].name(), QString("target region 200x percentage"));
+        S_EQUAL(stats[13].toString(), QString("79.87"));
+        S_EQUAL(stats[14].name(), QString("target region 500x percentage"));
+        S_EQUAL(stats[14].toString(), QString("39.61"));
+        S_EQUAL(stats[15].name(), QString("depth distribution plot"));
+        IS_TRUE(stats[15].type()==QVariant::ByteArray);
+        S_EQUAL(stats[16].name(), QString("insert size distribution plot"));
+        IS_TRUE(stats[16].type()==QVariant::ByteArray);
+        I_EQUAL(stats.count(), 17);
 	}
 
 	void mapping_wgs()
@@ -205,11 +213,13 @@ private slots:
 		S_EQUAL(stats[4].toString(), QString("138.06"));
 		S_EQUAL(stats[5].name(), QString("duplicate read percentage"));
 		S_EQUAL(stats[5].toString(), QString("n/a (duplicates not marked or removed during data analysis)"));
-		S_EQUAL(stats[6].name(), QString("target region read depth"));
-		S_EQUAL(stats[6].toString(8), QString("0.00006626"));
-		S_EQUAL(stats[7].name(), QString("insert size distribution plot"));
-		IS_TRUE(stats[7].type()==QVariant::ByteArray);
-		I_EQUAL(stats.count(), 8);
+        S_EQUAL(stats[6].name(), QString("bases usable (MB)"));
+        S_EQUAL(stats[6].toString(), QString("0.21"));
+        S_EQUAL(stats[7].name(), QString("target region read depth"));
+        S_EQUAL(stats[7].toString(8), QString("0.00006626"));
+        S_EQUAL(stats[8].name(), QString("insert size distribution plot"));
+        IS_TRUE(stats[8].type()==QVariant::ByteArray);
+        I_EQUAL(stats.count(), 9);
 	}
 
 	void mapping3exons()

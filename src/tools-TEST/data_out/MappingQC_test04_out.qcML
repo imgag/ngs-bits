@@ -13,8 +13,9 @@
     <qualityParameter ID="qp0004" name="properly-paired read percentage" description="Percentage of properly paired reads (for paired-end reads only)." value="99.73" cvRef="QC" accession="QC:2000022"/>
     <qualityParameter ID="qp0005" name="insert size" description="Mean insert size (for paired-end reads only)." value="162.66" cvRef="QC" accession="QC:2000023"/>
     <qualityParameter ID="qp0006" name="duplicate read percentage" description="Percentage of reads removed because they were duplicates (PCR, optical, etc)." value="5.96" cvRef="QC" accession="QC:2000024"/>
-    <qualityParameter ID="qp0007" name="target region read depth" description="Average sequencing depth in target region." value="0.00" cvRef="QC" accession="QC:2000025"/>
-    <attachment ID="qp0008" name="insert size distribution plot" description="Insert size distribution plot." cvRef="QC" accession="QC:2000038">
+    <qualityParameter ID="qp0007" name="bases usable (MB)" description="Bases sequenced that are usable for variant calling (in megabases)." value="0.68" cvRef="QC" accession="QC:2000050"/>
+    <qualityParameter ID="qp0008" name="target region read depth" description="Average sequencing depth in target region." value="0.00" cvRef="QC" accession="QC:2000025"/>
+    <attachment ID="qp0009" name="insert size distribution plot" description="Insert size distribution plot." cvRef="QC" accession="QC:2000038">
     </attachment>
   </runQuality>
   <cvList>

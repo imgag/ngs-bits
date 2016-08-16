@@ -7,6 +7,7 @@ StatisticsReads::StatisticsReads()
 	, c_forward_(0)
 	, c_reverse_(0)
 	, read_lengths_()
+    , bases_sequenced_(0)
 	, c_read_q20_(0.0)
 	, c_base_q30_(0.0)
 	, pileups_()
@@ -31,6 +32,7 @@ void StatisticsReads::update(const FastqEntry& entry, ReadDirection direction)
 
 	//check number of cycles
 	int cycles = entry.bases.count();
+    bases_sequenced_ += cycles;
 	read_lengths_.insert(cycles);
 	if (cycles>pileups_.size())
 	{
@@ -91,12 +93,13 @@ QCCollection StatisticsReads::getResult()
 			lengths += ", " + QString::number(tmp[i]);
 		}
 	}
-	else
+    else
 	{
 		lengths = QString::number(tmp[0]) + "-" + QString::number(tmp[tmp.size()-1]);
 	}
 	output.insert(QCValue("read length", lengths, "Raw read length of a single read before trimming. Comma-separated list of lenghs or length range, if reads have different lengths.", "QC:2000006"));
-	output.insert(QCValue("Q20 read percentage", 100.0*c_read_q20_/total_reads, "The percentage of reads with a mean base quality score greater than Q20.", "QC:2000007"));
+    output.insert(QCValue("bases sequenced (MB)", (double)bases_sequenced_/1000000.0, "Bases sequenced in total (in megabases).", "QC:2000049"));
+    output.insert(QCValue("Q20 read percentage", 100.0*c_read_q20_/total_reads, "The percentage of reads with a mean base quality score greater than Q20.", "QC:2000007"));
 	output.insert(QCValue("Q30 base percentage", 100.0*c_base_q30_/bases_total, "The percentage of bases with a minimum quality score of Q30.", "QC:2000008"));
 	output.insert(QCValue("no base call percentage", 100.0*c_base_n/bases_total, "The percentage of bases without base call (N).", "QC:2000009"));
 	output.insert(QCValue("gc content percentage", 100.0*c_base_gc/(bases_total-c_base_n), "The percentage of bases that are called to be G or C.", "QC:2000010"));

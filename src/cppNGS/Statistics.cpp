@@ -30,13 +30,13 @@ QCCollection Statistics::variantList(const VariantList& variants)
 	output.insert(QCValue("variant count", variants.count(), "Total number of variants in the target region.", "QC:2000013"));
 
     //var_perc_dbsnp
-	int index = variants.annotationIndexByName("ID", true, false);
-    if (variants.count()!=0 && index!=-1)
+    const int i_id = variants.annotationIndexByName("ID", true, false);
+    if (variants.count()!=0 && i_id!=-1)
     {
         double dbsnp_count = 0;
         for(int i=0; i<variants.count(); ++i)
 		{
-			if (variants[i].annotations().at(index).startsWith("rs"))
+            if (variants[i].annotations().at(i_id).startsWith("rs"))
             {
                 ++dbsnp_count;
             }
@@ -49,13 +49,13 @@ QCCollection Statistics::variantList(const VariantList& variants)
     }
 
 	//high-impact variants
-	index = variants.annotationIndexByName("ANN", true, false);
-    if (variants.count()!=0 && index!=-1)
+    const int i_ann = variants.annotationIndexByName("ANN", true, false);
+    if (variants.count()!=0 && i_ann!=-1)
     {
 		double high_impact_count = 0;
         for(int i=0; i<variants.count(); ++i)
 		{
-			if (variants[i].annotations().at(index).contains("|HIGH|"))
+            if (variants[i].annotations().at(i_ann).contains("|HIGH|"))
             {
 				++high_impact_count;
             }
@@ -68,13 +68,13 @@ QCCollection Statistics::variantList(const VariantList& variants)
     }
 
 	//homozygous variants
-	index = variants.annotationIndexByName("GT", true, false);
-    if (variants.count()!=0 && index!=-1)
+    const int i_gt = variants.annotationIndexByName("GT", true, false);
+    if (variants.count()!=0 && i_gt!=-1)
     {
         double hom_count = 0;
         for(int i=0; i<variants.count(); ++i)
         {
-			QString geno = variants[i].annotations().at(index);
+            QString geno = variants[i].annotations().at(i_gt);
 			if (geno=="1/1" || geno=="1|1")
             {
                 ++hom_count;
@@ -126,6 +126,48 @@ QCCollection Statistics::variantList(const VariantList& variants)
 		output.insert(QCValue("transition/transversion ratio", "n/a (no variants or tansversions)", "Transition/transversion ratio of SNV variants.", "QC:2000018"));
     }
 
+    //deviation from expected allel frequency
+    int i_ao = -1;
+    int i_dp = -1;
+    for(int i=0; i<variants.annotationDescriptions().count(); ++i)
+    {
+        if (variants.annotationDescriptions()[i].name()=="AO" && !variants.annotationDescriptions()[i].sampleSpecific())
+        {
+           i_ao = i;
+        }
+        if (variants.annotationDescriptions()[i].name()=="DP" && !variants.annotationDescriptions()[i].sampleSpecific())
+        {
+           i_dp = i;
+        }
+    }
+    int diff_count = 0;
+    double diff_sum = 0.0;
+    if (i_ao!=-1 && i_dp!=-1)
+    {
+        for(int i=0; i<variants.count(); ++i)
+        {
+            if (!variants[i].isSNV()) continue;
+
+            bool ok = true;
+            int dp = variants[i].annotations().at(i_dp).toInt(&ok);
+            if (!ok || dp<30) continue;
+            int ao = variants[i].annotations().at(i_ao).toInt(&ok);
+            if (!ok) continue;
+            double af = (double)ao/dp;
+            double diff = std::min(std::min(af, std::fabs(0.5-af)), std::fabs(1.0-af));
+            diff_sum += diff;
+            ++diff_count;
+        }
+    }
+    if (diff_count>30)
+    {
+        output.insert(QCValue("SNV allele frequency deviation", QString::number(diff_sum/diff_count, 'f', 4), "Mean deviation from expected allele frequency (e.g. 0.0, 0.5 or 1.0 for diploid organisms) for single nucleotide variants.", "QC:2000051"));
+    }
+    else
+    {
+        output.insert(QCValue("SNV allele frequency deviation", "n/a (AO/DP annotation not found, or not enough variants)", "Mean deviation from expected allele frequency (e.g. 0.0, 0.5 or 1.0 for diploid organisms) for single nucleotide variants.", "QC:2000051"));
+    }
+
     return output;
 }
 
@@ -144,7 +186,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	ChromosomeInfo chr_info(reader);
 
     //create coverage statistics data structure
-    long roi_bases = 0;
+    long long roi_bases = 0;
     QHash<int, QMap<int, int> > roi_cov;
     for (int i=0; i<bed_file.count(); ++i)
     {
@@ -171,7 +213,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
     double bases_trimmed = 0;
 	double insert_size_sum = 0;
 	QVector<double> insert_dist;
-    double bases_overlap_roi = 0;
+    long long bases_usable = 0;
     int max_length = 0;
     bool paired_end = false;
 
@@ -217,7 +259,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
                     {
                         int ol_start = std::max(bed_file[index].start(), al.Position+1);
                         int ol_end = std::min(bed_file[index].end(), end_position);
-                        bases_overlap_roi += ol_end - ol_start + 1;
+                        bases_usable += ol_end - ol_start + 1;
                         QMap<int, int>& roi_cov_chr_map = roi_cov[chr.num()];
                         for (int p=ol_start; p<=ol_end; ++p)
                         {
@@ -280,7 +322,8 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
     {
 		output.insert(QCValue("duplicate read percentage", 100.0 * al_dup / al_total, "Percentage of reads removed because they were duplicates (PCR, optical, etc)", "QC:2000024"));
     }
-	output.insert(QCValue("target region read depth", bases_overlap_roi / roi_bases, "Average sequencing depth in target region.", "QC:2000025"));
+    output.insert(QCValue("bases usable (MB)", (double)bases_usable / 1000000.0, "Bases sequenced that are usable for variant calling (in megabases).", "QC:2000050"));
+    output.insert(QCValue("target region read depth", (double)bases_usable / roi_bases, "Average sequencing depth in target region.", "QC:2000025"));
 
     QVector<int> depths;
     depths << 10 << 20 << 30 << 50 << 100 << 200 << 500;
@@ -347,7 +390,7 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq)
     double bases_trimmed = 0;
 	double insert_size_sum = 0;
 	QVector<double> insert_dist;
-    double bases_overlap_roi = 0;
+    long long bases_usable = 0;
     int max_length = 0;
     bool paired_end = false;
 
@@ -386,7 +429,7 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq)
 
 				if (!al.IsDuplicate() && al.MapQuality>=min_mapq)
 				{
-                    bases_overlap_roi += al.Length;
+                    bases_usable += al.Length;
                 }
             }
         }
@@ -427,7 +470,8 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq)
     {
 		output.insert(QCValue("duplicate read percentage", 100.0 * al_dup / al_total, "Percentage of reads removed because they were duplicates (PCR, optical, etc).", "QC:2000024"));
     }
-	output.insert(QCValue("target region read depth", bases_overlap_roi / chr_info.genomeSize(true), "Average sequencing depth in target region.", "QC:2000025"));
+    output.insert(QCValue("bases usable (MB)", (double)bases_usable / 1000000.0, "Bases sequenced that are usable for variant calling (in megabases).", "QC:2000050"));
+    output.insert(QCValue("target region read depth", (double) bases_usable / chr_info.genomeSize(true), "Average sequencing depth in target region.", "QC:2000025"));
 
 	//add insert size distribution plot
 	if (paired_end)
