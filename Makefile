@@ -73,20 +73,22 @@ test_tools:
 test_single_tool:
 	cd bin && ./tools-TEST -s $(T)
 
+DEP_PATH=/mnt/share/opt/ngs-bits-$(shell  bin/SeqPurge --version | cut -d' ' -f2)/
 deploy_nobuild:
 	@echo "#Clean up source"
-	rm -rf bin/out bin/*-TEST 
+	rm -rf bin/out bin/*-TEST
 	@echo ""
-	@echo "#Clean up target"
-	find /mnt/share/opt/owntools/ -type f | grep -v "settings" | xargs rm -rf
+	@echo "#Deploy binaries"
+	mkdir $(DEP_PATH)
+	find bin/ -type f  -or -type l | grep -v "settings" | xargs -I{} cp {} $(DEP_PATH)
+	cp bamtools/lib/libbamtools.so* $(DEP_PATH)
 	@echo ""
-	@echo "#Copy files from source to target"
-	find bin/ -type f  -or -type l  | grep -v "settings" | xargs -I{} cp {} /mnt/share/opt/owntools/
-	cp bamtools/lib/libbamtools.so* /mnt/share/opt/owntools/
+	@echo "#Update permissions"
+	chmod 775 $(DEP_PATH)*
 	@echo ""
-	@echo "#Diff settings"
-	diff bin/settings.ini /mnt/share/opt/owntools/settings.ini
-	chmod 775 /mnt/share/opt/owntools/*
+	@echo "#Deploy settings"
+	cp /mnt/share/opt/ngs-bits-settings/settings.ini $(DEP_PATH)settings.ini
+	diff bin/settings.ini $(DEP_PATH)settings.ini
 
 test_debug: clean build_libs_debug build_tools_debug test_lib test_tools
 
