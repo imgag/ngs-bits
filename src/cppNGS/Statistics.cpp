@@ -528,7 +528,17 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	variants.sort();
 
 	//total variants
-	output.insert(QCValue("somatic variant count", variants.count(), "Total number of somatic variants in the target region.", "QC:2000041"));
+	output.insert(QCValue("variant count", variants.count(), "Total number of variants in the target region.", "QC:2000013"));
+
+	//total variants filtered
+	int somatic_count = 0;
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!variants[i].filters().empty())	continue;
+		++somatic_count;
+	}
+	output.insert(QCValue("somatic variant count", somatic_count, "Total number of somatic variants in the target region.", "QC:2000041"));
+
 	//var_perc_dbsnp
 	int index = variants.annotationIndexByName("ID", true, false);
 	if (variants.count()!=0 && index!=-1)
@@ -536,23 +546,28 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 		double dbsnp_count = 0;
 		for(int i=0; i<variants.count(); ++i)
 		{
+			if (!variants[i].filters().empty())	continue;
+
 			if (variants[i].annotations().at(index).startsWith("rs"))
 			{
 				++dbsnp_count;
 			}
 		}
-		output.insert(QCValue("known somatic variants percentage", 100.0*dbsnp_count/variants.count(), "Percentage of somatic variants that are known polymorphisms in the dbSNP database.", "QC:2000045"));
+		output.insert(QCValue("known somatic variants percentage", 100.0*dbsnp_count/somatic_count, "Percentage of somatic variants that are known polymorphisms in the dbSNP database.", "QC:2000045"));
 	}
 	else
 	{
 		output.insert(QCValue("known somatic variants percentage", "n/a (no somatic variants)", "Percentage of somatic variants that are known polymorphisms in the dbSNP database.", "QC:2000045"));
 	}
+
 	//var_perc_indel / var_ti_tv_ratio
 	double indel_count = 0;
 	double ti_count = 0;
 	double tv_count = 0;
 	for(int i=0; i<variants.count(); ++i)
 	{
+		if (!variants[i].filters().empty())	continue;
+
 		const Variant& var = variants[i];
 		if (var.ref().length()>1 || var.obs().length()>1)
 		{
@@ -567,9 +582,9 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 			++tv_count;
 		}
 	}
-	if (variants.count()!=0)
+	if (somatic_count!=0)
 	{
-		output.insert(QCValue("somatic indel percentage", 100.0*indel_count/variants.count(), "Percentage of somatic variants that are insertions/deletions.", "QC:2000042"));
+		output.insert(QCValue("somatic indel percentage", 100.0*indel_count/somatic_count, "Percentage of somatic variants that are insertions/deletions.", "QC:2000042"));
 	}
 	else
 	{
@@ -597,8 +612,8 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	plot1.setYLabel("allele frequency normal");
 	plot1.setXRange(0.0,1.0);
 	plot1.setYRange(0.0,1.0);
-	QList< QPair<double,double> > points;
-	QList< QString > colors;
+	QList< QPair<double,double> > points_black;
+	QList< QPair<double,double> > points_blue;
 	for(int i=0; i<variants.count(); ++i)
 	{
 		double af_tumor = -1;
@@ -679,10 +694,27 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 		QPair<double,double> point;
 		point.first = af_tumor;
 		point.second = af_normal;
-		points.append(point);
+		if (!variants[i].filters().empty())	points_black.append(point);
+		else points_blue.append(point);
+	}
+
+	QList< QPair<double,double> > points;
+	points  << points_black << points_blue;
+
+	QList< QString > colors;
+	for(int i=0;i<points_black.count();++i)
+	{
 		colors.append("k");
 	}
+	for(int i=0;i<points_blue.count();++i)
+	{
+		colors.append("b");
+	}
+
 	plot1.setValues(points, colors);
+	plot1.addColorLegend("b","filtered variants");
+	plot1.addColorLegend("k","all variants");
+
 	QString plot1name = Helper::tempFileName(".png");
 	plot1.store(plot1name);
 	output.insert(QCValue::Image("somatic variants allele frequencies plot", plot1name, ".", "QC:2000048"));
@@ -735,6 +767,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	FastaFileIndex reference(Settings::string("reference_genome"));
 	for(int i=0; i<variants.count(); ++i)
 	{
+		if(!variants[i].filters().empty())	continue;	//skip non-somatic variants
 		if(!variants[i].isSNV())	continue;	//skip indels
 
 		Variant v = variants[i];
@@ -746,102 +779,93 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 		++counts[index];
 		if(counts[index]>y_max)	y_max = counts[index];
 	}
-	if(!target_file.isEmpty())	//calculate genome tripletts
+
+	plot2.setYLabel("fraction [%]");
+	QHash < QString, int > count_codons_target({
+	   {"ACA",0},{"ACC",0},{"ACG",0},{"ACT",0},{"CCA",0},{"CCC",0},{"CCG",0},{"CCT",0},
+	   {"GCA",0},{"GCC",0},{"GCG",0},{"GCT",0},{"TCA",0},{"TCC",0},{"TCG",0},{"TCT",0},
+	   {"ATA",0},{"ATC",0},{"ATG",0},{"ATT",0},{"CTA",0},{"CTC",0},{"CTG",0},{"CTT",0},
+	   {"GTA",0},{"GTC",0},{"GTG",0},{"GTT",0},{"TTA",0},{"TTC",0},{"TTG",0},{"TTT",0}
+   });
+
+	if(target_file.isEmpty() && build=="hg19")
 	{
-		plot2.setYLabel("normalized count");
-		//codons: use precalculated codon counts from reference genome (hg19)
-		QHash < QString, int > count_codons_genome({
-		   {"ACA",0},{"ACC",0},{"ACG",0},{"ACT",0},{"CCA",0},{"CCC",0},{"CCG",0},{"CCT",0},
-		   {"GCA",0},{"GCC",0},{"GCG",0},{"GCT",0},{"TCA",0},{"TCC",0},{"TCG",0},{"TCT",0},
-		   {"ATA",0},{"ATC",0},{"ATG",0},{"ATT",0},{"CTA",0},{"CTC",0},{"CTG",0},{"CTT",0},
-		   {"GTA",0},{"GTC",0},{"GTG",0},{"GTT",0},{"TTA",0},{"TTC",0},{"TTG",0},{"TTT",0}
-	   });
-
-		//codons: use precalculated codon counts from reference genome (hg19/hg38)
-		if(build=="hg19")
+		count_codons_target = {
+			{"ACA",57602816},{"ACC",33256008},{"ACG",7181818},{"ACT",45999566},{"CCA",52722217},{"CCC",37602581},{"CCG",7900670},{"CCT",50842624},
+			{"GCA",41189353},{"GCC",34053539},{"GCG",6813566},{"GCT",40009228},{"TCA",56034760},{"TCC",44155965},{"TCG",6321389},{"TCT",63331604},
+			{"ATA",58959287},{"ATC",38179637},{"ATG",52548181},{"ATT",71375695},{"CTA",36871406},{"CTC",48167888},{"CTG",57996845},{"CTT",57146885},
+			{"GTA",32466396},{"GTC",27046634},{"GTG",43059504},{"GTT",41794778},{"TTA",59555859},{"TTC",56449722},{"TTG",54311749},{"TTT",110166711}
+		};
+	}
+	else if(target_file.isEmpty() && build=="hg38")
+	{
+		count_codons_target = {
+			{"ACA",59305516},{"ACC",33784390},{"ACG",7584302},{"ACT",47476086},{"CCA",53293160},{"CCC",38036593},{"CCG",8026845},{"CCT",51880303},
+			{"GCA",42481943},{"GCC",34497599},{"GCG",7078395},{"GCT",40674873},{"TCA",57800075},{"TCC",44918305},{"TCG",6712244},{"TCT",65492835},
+			{"ATA",60308591},{"ATC",39076747},{"ATG",53548035},{"ATT",73292370},{"CTA",37666053},{"CTC",49481013},{"CTG",59039769},{"CTT",59337262},
+			{"GTA",33265786},{"GTC",27466578},{"GTG",44578403},{"GTT",43191653},{"TTA",60159779},{"TTC",58899235},{"TTG",56762262},{"TTT",113868707}
+		};
+	}
+	else if(target_file.isEmpty() && build=="count")
+	{
+		QStringList sig = (QStringList() << "C" << "T");
+		QStringList nuc = (QStringList() << "A" << "C" << "G" << "T");
+		QList < QString > codons;
+		QList < long long > counts;
+		foreach(QString r, sig)
 		{
-			count_codons_genome = {
-				{"ACA",57602816},{"ACC",33256008},{"ACG",7181818},{"ACT",45999566},{"CCA",52722217},{"CCC",37602581},{"CCG",7900670},{"CCT",50842624},
-				{"GCA",41189353},{"GCC",34053539},{"GCG",6813566},{"GCT",40009228},{"TCA",56034760},{"TCC",44155965},{"TCG",6321389},{"TCT",63331604},
-				{"ATA",58959287},{"ATC",38179637},{"ATG",52548181},{"ATT",71375695},{"CTA",36871406},{"CTC",48167888},{"CTG",57996845},{"CTT",57146885},
-				{"GTA",32466396},{"GTC",27046634},{"GTG",43059504},{"GTT",41794778},{"TTA",59555859},{"TTC",56449722},{"TTG",54311749},{"TTT",110166711}
-			};
-		}
-		else if(build=="hg38")
-		{
-			count_codons_genome = {
-				{"ACA",59305516},{"ACC",33784390},{"ACG",7584302},{"ACT",47476086},{"CCA",53293160},{"CCC",38036593},{"CCG",8026845},{"CCT",51880303},
-				{"GCA",42481943},{"GCC",34497599},{"GCG",7078395},{"GCT",40674873},{"TCA",57800075},{"TCC",44918305},{"TCG",6712244},{"TCT",65492835},
-				{"ATA",60308591},{"ATC",39076747},{"ATG",53548035},{"ATT",73292370},{"CTA",37666053},{"CTC",49481013},{"CTG",59039769},{"CTT",59337262},
-				{"GTA",33265786},{"GTC",27466578},{"GTG",44578403},{"GTT",43191653},{"TTA",60159779},{"TTC",58899235},{"TTG",56762262},{"TTT",113868707}
-			};
-		}
-		else if(build=="count")
-		{
-			QStringList sig = (QStringList() << "C" << "T");
-			QStringList nuc = (QStringList() << "A" << "C" << "G" << "T");
-			QList < QString > codons;
-			QList < long long > counts;
-			foreach(QString r, sig)
+			QString c = r;
+			foreach(QString rr, nuc)
 			{
-				QString c = r;
-				foreach(QString rr, nuc)
+				QString co = rr + c;
+				foreach(QString rrr, nuc)
 				{
-					QString co = rr + c;
-					foreach(QString rrr, nuc)
-					{
-						codons.append(co + rrr);
-						counts.append(0);
-					}
+					codons.append(co + rrr);
+					counts.append(0);
 				}
 			}
+		}
 
 
-			FastaFileIndex reference(Settings::string("reference_genome"));
-			int bin = 50000000;
-			for(int i=0; i<reference.names().count(); ++i)
+		FastaFileIndex reference(Settings::string("reference_genome"));
+		int bin = 50000000;
+		for(int i=0; i<reference.names().count(); ++i)
+		{
+			Chromosome chr = reference.names().at(i);
+
+			if(!chr.isNonSpecial()) continue;
+
+			int chrom_length = reference.lengthOf(chr);
+			for(int j=1; j<=chrom_length; j+=bin)
 			{
-				Chromosome chr = reference.names().at(i);
-
-				if(!chr.isNonSpecial()) continue;
-
-				int chrom_length = reference.lengthOf(chr);
-				for(int j=1; j<=chrom_length; j+=bin)
+				int start = j;
+				int length = bin;
+				if(start>1)	//make bins overlap
 				{
-					int start = j;
-					int length = bin;
-					if(start>1)	//make bins overlap
-					{
-						start -= 2;
-						length += 2;
-					}
-					if((start+length-1)>chrom_length)	length = (chrom_length - start + 1);
-					Sequence seq = reference.seq(chr,start,length,true);
-					for(int k=0; k<codons.count(); ++k)
-					{
-						counts[k] += seq.count(codons[k].toUpper().toLatin1());
-					}
+					start -= 2;
+					length += 2;
+				}
+				if((start+length-1)>chrom_length)	length = (chrom_length - start + 1);
+				Sequence seq = reference.seq(chr,start,length,true);
+				for(int k=0; k<codons.count(); ++k)
+				{
+					counts[k] += seq.count(codons[k].toUpper().toLatin1());
 				}
 			}
-			for(int i=0; i<codons.count(); ++i)
-			{
-				count_codons_genome[codons[i]] = counts[i];
-				qDebug() << "reference genome" << codons[i] << QString::number(counts[i]);
-			}
-
 		}
-		else	Log::error("Unknown genome build " + build);
+		for(int i=0; i<codons.count(); ++i)
+		{
+			count_codons_target[codons[i]] = counts[i];
+			qDebug() << "reference genome" << codons[i] << QString::number(counts[i]);
+		}
 
+	}
+	else if(!target_file.isEmpty())
+	{
 		//codons: count in target file
 		BedFile target;
 		target.load(target_file);
 		if(target.baseCount()<100000)	Log::warn("Target size is less than 100 kb. Mutation signature may be imprecise.");
-		QHash < QString, int > count_codons_target({
-					{"ACA",0},{"ACC",0},{"ACG",0},{"ACT",0},{"CCA",0},{"CCC",0},{"CCG",0},{"CCT",0},
-					{"GCA",0},{"GCC",0},{"GCG",0},{"GCT",0},{"TCA",0},{"TCC",0},{"TCG",0},{"TCT",0},
-					{"ATA",0},{"ATC",0},{"ATG",0},{"ATT",0},{"CTA",0},{"CTC",0},{"CTG",0},{"CTT",0},
-					{"GTA",0},{"GTC",0},{"GTG",0},{"GTT",0},{"TTA",0},{"TTC",0},{"TTG",0},{"TTT",0}
-		});
 		for(int i=0; i<target.count(); ++i)
 		{
 			Sequence seq = reference.seq(target[i].chr(),target[i].start(),target[i].length(),true);
@@ -850,19 +874,21 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 				count_codons_target[codon] += seq.count(codon.toLatin1());
 			}
 		}
-		//codons: normalize current codons
-		y_max = 0;
-		sum = 0;
-		for(int i=1; i<codons.count(); ++i)
-		{
-			QString cod = codons[i].mid(0,3);
-			counts_normalized[i] = qRound(counts[i]*(double(count_codons_genome[cod])/double(count_codons_target[cod])));
-			sum += counts_normalized[i];
-			if(counts_normalized[i]>y_max)	y_max = counts_normalized[i];
-		}
-		counts = QList<int>(counts_normalized);
 	}
-	plot2.setYRange(0,(y_max==0?1:y_max + 0.2*y_max));
+	else	Log::error("Unknown genome build " + build + " or no target file given.");
+
+	//codons: normalize current codons
+	y_max = 5;
+	sum = 0;
+	for(int i=1; i<codons.count(); ++i)
+	{
+		QString cod = codons[i].mid(0,3);
+		counts_normalized[i] = qRound(counts[i]/double(count_codons_target[cod])*100);
+		sum += counts_normalized[i];
+		if(counts_normalized[i]>y_max)	y_max = counts_normalized[i];
+	}
+	counts = QList<int>(counts_normalized);
+	plot2.setYRange(0,(y_max==5?y_max:y_max*1.2));
 	plot2.setValues(counts, labels, colors);
 	plot2.setXRange(0,97);
 	QString plot2name = Helper::tempFileName(".png");
@@ -914,6 +940,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 		for(int i=0; i<variants.count(); ++i)	//list has to be sorted by chrom. position
 		{
 			if(!variants[i].chr().isNonSpecial())	continue;
+			if(!variants[i].filters().empty())	continue;	//skip non-somatic variants
 
 			if(tmp_chr == variants[i].chr().str())	//same chromosome
 			{

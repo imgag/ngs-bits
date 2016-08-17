@@ -7,6 +7,7 @@
 #include <QFileInfo>
 #include <QDir>
 #include "Settings.h"
+#include "Log.h"
 
 class ConcreteTool
 		: public ToolBase
@@ -30,6 +31,10 @@ public:
 		addInfile("target_bed", "Target file used for tumor and normal experiment.", true);
 		addInfileList("links","Files that appear in the link part of the qcML file.",true);
 		addEnum("genome_build", "Genome build. Option count uses the refence genome taken from the settings file and counts all trippletts on the fly.",true,QStringList({"hg19","hg38","count"}),"hg19");
+		setExtendedDescription(QStringList() << "SomaticQC integrates the output of the other QC tools "
+							   << "and adds several metrics specific for tumor-normal pairs. All tools produce qcML, "
+							   << "a generic XML format for QC of -omics experiments, which we adapted for NGS."
+							   );
 	}
 
 	virtual void main()
@@ -42,6 +47,18 @@ public:
 		QString target_bed = getInfile("target_bed");
 		QStringList links = getInfileList("links");
 		QString genome_build = getEnum("genome_build");
+
+		// convert linked files to relative paths
+		QDir out_dir = QFileInfo(out).absoluteDir();
+		for(int i=0;i<links.length();++i)
+		{
+			if(!QFileInfo(links[i]).isFile())
+			{
+				Log::error("Could not find file " + links[i] + ". Skipping.");
+				continue;
+			}
+			links[i] = out_dir.relativeFilePath( QFileInfo(links[i]).absolutePath() ) + "/" + QFileInfo(links[i]).fileName();
+		}
 
 		QCCollection metrics;
 		metrics = Statistics::somatic(tumor_bam, normal_bam, somatic_vcf, genome_build, target_bed);

@@ -19,19 +19,22 @@ private slots:
 		S_EQUAL(stats[0].name(), QString("sample correlation"));
 		S_EQUAL(stats[0].accession(), QString("QC:2000040"));
 		S_EQUAL(stats[0].toString(), QString("-0.86"));
-		S_EQUAL(stats[1].name(), QString("somatic variant count"));
-		S_EQUAL(stats[1].accession(), QString("QC:2000041"));
+		S_EQUAL(stats[1].name(), QString("variant count"));
+		S_EQUAL(stats[1].accession(), QString("QC:2000013"));
 		S_EQUAL(stats[1].toString(), QString("2"));
-		S_EQUAL(stats[2].name(), QString("known somatic variants percentage"));
-		S_EQUAL(stats[2].accession(), QString("QC:2000045"));
-		S_EQUAL(stats[2].toString(), QString("0.00"));
-		S_EQUAL(stats[3].name(), QString("somatic indel percentage"));
-		S_EQUAL(stats[3].accession(), QString("QC:2000042"));
-		S_EQUAL(stats[3].toString(), QString("50.00"));
-		S_EQUAL(stats[4].name(), QString("somatic transition/transversion ratio"));
-		S_EQUAL(stats[4].accession(), QString("QC:2000043"));
-		S_EQUAL(stats[4].toString(), QString("n/a (no variants or transversions)"));
-		I_EQUAL(stats.count(), 8);
+		S_EQUAL(stats[2].name(), QString("somatic variant count"));
+		S_EQUAL(stats[2].accession(), QString("QC:2000041"));
+		S_EQUAL(stats[2].toString(), QString("2"));
+		S_EQUAL(stats[3].name(), QString("known somatic variants percentage"));
+		S_EQUAL(stats[3].accession(), QString("QC:2000045"));
+		S_EQUAL(stats[3].toString(), QString("0.00"));
+		S_EQUAL(stats[4].name(), QString("somatic indel percentage"));
+		S_EQUAL(stats[4].accession(), QString("QC:2000042"));
+		S_EQUAL(stats[4].toString(), QString("50.00"));
+		S_EQUAL(stats[5].name(), QString("somatic transition/transversion ratio"));
+		S_EQUAL(stats[5].accession(), QString("QC:2000043"));
+		S_EQUAL(stats[5].toString(), QString("n/a (no variants or transversions)"));
+		I_EQUAL(stats.count(), 9);
 
 		//check that there is a description for each term
 		for (int i=0; i<stats.count(); ++i)
