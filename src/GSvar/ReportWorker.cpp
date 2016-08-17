@@ -192,14 +192,18 @@ BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file,
 	QHash<QString, BedFile> grouped;
 	for (int i=0; i<low_cov.count(); ++i)
 	{
-		QString genes = low_cov[i].annotations()[0];
+		QStringList genes = low_cov[i].annotations()[0].split(",");
+		foreach(QString gene, genes)
+		{
+			gene = gene.trimmed();
 
-		//skip non-gene regions
-		// - remains of VEGA database in old HaloPlex designs
-		// - SNPs for sample identification
-		if (genes=="") continue;
+			//skip non-gene regions
+			// - remains of VEGA database in old HaloPlex designs
+			// - SNPs for sample identification
+			if (gene=="") continue;
 
-		grouped[genes].append(low_cov[i]);
+			grouped[gene].append(low_cov[i]);
+		}
 	}
 
 	//output

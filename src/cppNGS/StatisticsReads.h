@@ -36,6 +36,7 @@ private:
 	int c_forward_;
 	int c_reverse_;
 	QSet<int> read_lengths_;
+    long long bases_sequenced_;
 	double c_read_q20_;
 	double c_base_q30_;
 	QVector<Pileup> pileups_;

@@ -4,6 +4,7 @@ on-target read percentage: 99.98
 properly-paired read percentage: 99.73
 insert size: 162.66
 duplicate read percentage: 5.96
+bases usable (MB): 0.68
 target region read depth: 80.19
 target region 10x percentage: 97.90
 target region 20x percentage: 93.99

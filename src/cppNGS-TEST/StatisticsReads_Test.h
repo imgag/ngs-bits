@@ -29,19 +29,21 @@ private slots:
 		S_EQUAL(result[0].toString(), QString("5000"));
 		S_EQUAL(result[1].name(), QString("read length"));
 		S_EQUAL(result[1].toString(), QString("151"));
-		S_EQUAL(result[2].name(), QString("Q20 read percentage"));
-		S_EQUAL(result[2].toString(), QString("99.40"));
-		S_EQUAL(result[3].name(), QString("Q30 base percentage"));
-		S_EQUAL(result[3].toString(), QString("96.30"));
-		S_EQUAL(result[4].name(), QString("no base call percentage"));
-		S_EQUAL(result[4].toString(), QString("0.00"));
-		S_EQUAL(result[5].name(), QString("gc content percentage"));
-		S_EQUAL(result[5].toString(), QString("46.26"));
-		S_EQUAL(result[6].name(), QString("base distribution plot"));
-		IS_TRUE(result[6].type()==QVariant::ByteArray);
-		S_EQUAL(result[7].name(), QString("Q score plot"));
-		IS_TRUE(result[7].type()==QVariant::ByteArray);
-		I_EQUAL(result.count(), 8);
+        S_EQUAL(result[2].name(), QString("bases sequenced (MB)"));
+        S_EQUAL(result[2].toString(), QString("0.76"));
+        S_EQUAL(result[3].name(), QString("Q20 read percentage"));
+        S_EQUAL(result[3].toString(), QString("99.40"));
+        S_EQUAL(result[4].name(), QString("Q30 base percentage"));
+        S_EQUAL(result[4].toString(), QString("96.30"));
+        S_EQUAL(result[5].name(), QString("no base call percentage"));
+        S_EQUAL(result[5].toString(), QString("0.00"));
+        S_EQUAL(result[6].name(), QString("gc content percentage"));
+        S_EQUAL(result[6].toString(), QString("46.26"));
+        S_EQUAL(result[7].name(), QString("base distribution plot"));
+        IS_TRUE(result[7].type()==QVariant::ByteArray);
+        S_EQUAL(result[8].name(), QString("Q score plot"));
+        IS_TRUE(result[8].type()==QVariant::ByteArray);
+        I_EQUAL(result.count(), 9);
 
 		//check that there is a description for each term
 		for (int i=0; i<result.count(); ++i)
