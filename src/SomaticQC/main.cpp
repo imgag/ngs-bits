@@ -57,7 +57,7 @@ public:
 				Log::error("Could not find file " + links[i] + ". Skipping.");
 				continue;
 			}
-			links[i] = out_dir.relativeFilePath( QFileInfo(links[i]).absolutePath() ) + "/" + QFileInfo(links[i]).fileName();
+			links[i] = "./" + out_dir.relativeFilePath( QFileInfo(links[i]).absolutePath() ) + "/" + QFileInfo(links[i]).fileName();
 		}
 
 		QCCollection metrics;

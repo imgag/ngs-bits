@@ -2,7 +2,7 @@
 <!-- qcML version 0.0.8
 Distributed under the Creative Commons license http://creativecommons.org/licenses/by/2.0/.
 -->
-<xsd:schema xmlns="http://www.prime-xs.eu/ms/qcml" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xlink="http://www.w3.org/1999/xlink" targetNamespace="http://www.prime-xs.eu/ms/qcml" elementFormDefault="qualified" version="0.0.7">
+<xsd:schema xmlns="http://www.prime-xs.eu/ms/qcml" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" targetNamespace="http://www.prime-xs.eu/ms/qcml" elementFormDefault="qualified" version="0.0.7">
 	<xsd:element name="qcML">
 		<xsd:annotation>
 			<xsd:documentation>The qcML file XML root element containing several QualityAssessments to runs and an optional QualityAssessment to the whole set</xsd:documentation>
@@ -351,11 +351,6 @@ Distributed under the Creative Commons license http://creativecommons.org/licens
                 <xsd:attribute name="ID" type="xsd:ID" use="required">
                         <xsd:annotation>
                                 <xsd:documentation>A file unique identifier for this meta data element</xsd:documentation>
-                        </xsd:annotation>
-                </xsd:attribute>
-                <xsd:attribute name="link" type="xsd:string" use="optional">
-                        <xsd:annotation>
-                                <xsd:documentation>A linked element.</xsd:documentation>
                         </xsd:annotation>
                 </xsd:attribute>
         </xsd:complexType>

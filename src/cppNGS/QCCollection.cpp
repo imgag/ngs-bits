@@ -218,7 +218,7 @@ void QCCollection::storeToQCML(QString filename, const QStringList& source_files
 	}
 	foreach(const QString& lf, linked_files)
 	{
-		stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"linked file\" value=\"" << QFileInfo(lf).fileName() << "\" cvRef=\"QC\" accession=\"QC:1000006\" link=\"" + lf + "\"/>" << endl;
+		stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"linked file\" value=\"" << lf << "\" cvRef=\"QC\" accession=\"QC:1000006\" />" << endl;
 		++idx;
 	}
 
@@ -252,7 +252,6 @@ void QCCollection::storeToQCML(QString filename, const QStringList& source_files
 
 	//write stylesheet
 	stream << "  <xsl:stylesheet id=\"stylesheet\" version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" xmlns:ns=\"http://www.prime-xs.eu/ms/qcml\" xmlns=\"\"";
-//	if(linked_files.count()>0)	stream <<  " xmlns:xlink=\"http://www.w3.org/1999/xlink\"";
 	stream << ">" << endl;
 	stream << "      <xsl:template match=\"/\">" << endl;
 	stream << "          <html>" << endl;
@@ -272,16 +271,12 @@ void QCCollection::storeToQCML(QString filename, const QStringList& source_files
 	stream << "                        <tr>" << endl;
 	stream << "                          <td><xsl:value-of select=\"@accession\"/></td>" << endl;
 	stream << "                          <td><span title=\"{@description}\"><xsl:value-of select=\"@name\"/></span></td>" << endl;
-	stream << "                          <td>";
-	if(!linked_files.count()>0)	stream << "<xsl:value-of select=\"@value\"/>";
-	else
-	{
-		stream << endl;
-		stream << "								<xsl:if test=\"@link\"><a href=\"{@link}\" target=\"blank\"><xsl:value-of select=\"@value\"/></a></xsl:if>" << endl;
-		stream << "								<xsl:if test=\"not(@link)\"><xsl:value-of select=\"@value\"/></xsl:if>" << endl;
-		stream << "                          ";
-	}
-	stream << "</td>" << endl;
+	stream << "                          <td>" << endl;
+	stream << "                            <xsl:choose>" << endl;
+	stream << "                              <xsl:when test=\"@accession = 'QC:1000006'\"><a href=\"{@value}\" target=\"blank\"><xsl:value-of select=\"@value\"/></a></xsl:when>" << endl;
+	stream << "                              <xsl:otherwise><xsl:value-of select=\"@value\"/></xsl:otherwise>" << endl;
+	stream << "                            </xsl:choose>" << endl;
+	stream << "                          </td>" << endl;
 	stream << "                        </tr>" << endl;
 	stream << "                      </xsl:for-each>" << endl;
 	stream << "                    </xsl:for-each>" << endl;

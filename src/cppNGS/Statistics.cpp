@@ -778,7 +778,8 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	QList<int> counts = QList<int>{0};
 	QList<int> counts_target = QList<int>{0};
 	QList<int> counts_genome = QList<int>{0};
-	QList<int> counts_normalized = QList<int>{0};
+	QList<double> counts_normalized = QList<double>{0};
+	QList<double> frequencies = QList<double>{0};
 	QList<QString> labels = QList<QString>{""};
 	colors = QList<QString>{"w"};
 	QStringList sig = QStringList{"C","T"};
@@ -799,6 +800,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 					counts_target.append(0);
 					counts_genome.append(0);
 					counts_normalized.append(0);
+					frequencies.append(0);
 					colors.append(color_map[r+">"+o]);
 					labels.append(co + rrr);
 				}
@@ -806,8 +808,6 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 		}
 	}
 	//codons: count codons from variant list
-	int sum = 0;
-	int y_max = 0;
 	FastaFileIndex reference(Settings::string("reference_genome"));
 	for(int i=0; i<variants.count(); ++i)
 	{
@@ -819,19 +819,16 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 
 		if(!codons.contains(c))	continue;
 		int index = codons.indexOf(c);
-		++sum;
 		++counts[index];
-		if(counts[index]>y_max)	y_max = counts[index];
 	}
 
-	plot2.setYLabel("fraction [%]");
+	plot2.setYLabel("variant type percentage");
 	QHash < QString, int > count_codons_target({
 	   {"ACA",0},{"ACC",0},{"ACG",0},{"ACT",0},{"CCA",0},{"CCC",0},{"CCG",0},{"CCT",0},
 	   {"GCA",0},{"GCC",0},{"GCG",0},{"GCT",0},{"TCA",0},{"TCC",0},{"TCG",0},{"TCT",0},
 	   {"ATA",0},{"ATC",0},{"ATG",0},{"ATT",0},{"CTA",0},{"CTC",0},{"CTG",0},{"CTT",0},
 	   {"GTA",0},{"GTC",0},{"GTG",0},{"GTT",0},{"TTA",0},{"TTC",0},{"TTG",0},{"TTT",0}
    });
-
 	if(target_file.isEmpty() && build=="hg19")
 	{
 		count_codons_target = {
@@ -921,19 +918,26 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	}
 	else	Log::error("Unknown genome build " + build + " or no target file given.");
 
-	//codons: normalize current codons
-	y_max = 5;
-	sum = 0;
+	//codons: normalize current codons and calculate percentages for each codon
+	double y_max = 5;
+	double sum = 0;
 	for(int i=1; i<codons.count(); ++i)
 	{
 		QString cod = codons[i].mid(0,3);
-		counts_normalized[i] = qRound(counts[i]/double(count_codons_target[cod])*100);
+		counts_normalized[i] = counts[i]/double(count_codons_target[cod]);
 		sum += counts_normalized[i];
-		if(counts_normalized[i]>y_max)	y_max = counts_normalized[i];
 	}
-	counts = QList<int>(counts_normalized);
+	if(sum!=0)
+	{
+		for(int i=1; i<counts_normalized.count(); ++i)
+		{
+			frequencies[i] = counts_normalized[i]/sum * 100;
+			if(frequencies[i]>y_max)	y_max = frequencies[i];
+		}
+	}
+
 	plot2.setYRange(0,(y_max==5?y_max:y_max*1.2));
-	plot2.setValues(counts, labels, colors);
+	plot2.setValues(frequencies, labels, colors);
 	plot2.setXRange(0,97);
 	QString plot2name = Helper::tempFileName(".png");
 	plot2.store(plot2name);
