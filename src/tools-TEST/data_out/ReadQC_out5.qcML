@@ -44,7 +44,12 @@
                         <tr>
                           <td><xsl:value-of select="@accession"/></td>
                           <td><span title="{@description}"><xsl:value-of select="@name"/></span></td>
-                          <td><xsl:value-of select="@value"/></td>
+                          <td>
+                            <xsl:choose>
+                              <xsl:when test="@accession = 'QC:1000006'"><a href="{@value}" target="blank"><xsl:value-of select="@value"/></a></xsl:when>
+                              <xsl:otherwise><xsl:value-of select="@value"/></xsl:otherwise>
+                            </xsl:choose>
+                          </td>
                         </tr>
                       </xsl:for-each>
                     </xsl:for-each>
