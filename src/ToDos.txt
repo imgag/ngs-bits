@@ -16,6 +16,8 @@ libs:
 * cppNGSD: add test project
 
 GSvar:
+* sub-panels: add dialog to archive/restore
+* variant detail view: show filter values
 - Allow handling of several affected (i.e. integrate SampleOverview functionality)
 - Color variant lines by gene, not by odd/even lines
 * Implement update tool that automatically checks for new versions, or find solution with reference to sub-folders (ask Martin)
@@ -32,8 +34,8 @@ Tools:
 
 CnvHunter:
  * Add region z-scores to output
- * add GC-normalization (then, check GS151166_01 gene C5orf42)
- * add percentile normalization
+ * add optional GC-normalization (then, check GS151166_01 gene C5orf42)
+ * add optional percentile normalization
  * merge large CNVs to one region - use CBS-like algorithm or slope-based algorithm based on cummulative normalized coverage
  * Check HaloPlex HS data
  - Für alle/wichtige CNAs Plot (log-ratio/z-score/call) mit Umgebung
