@@ -16,11 +16,13 @@ public:
 	virtual void setup()
 	{
 		setDescription("Calculates QC metrics on unprocessed paired-end reads (same number of cycles/reads).");
-		addInfile("in1", "Forward reads FASTQ file (gzipped or plain).", false, true);
-		addInfile("in2", "Reverse reads FASTQ file (gzipped or plain).", true, true);
+		addInfileList("in1", "Forward input gzipped FASTQ file(s).", false);
+		addInfileList("in2", "Reverse input gzipped FASTQ file(s).", true);
 		//optional
 		addOutfile("out", "Output qcML file. If unset, writes to STDOUT.", true);
 		addFlag("txt", "Writes TXT format instead of qcML.");
+
+		changeLog(2016,  8, 19, "Added support for multiple input files.");
 	}
 
 	virtual void main()
@@ -29,35 +31,43 @@ public:
 		StatisticsReads stats;
 		FastqEntry entry;
 		QStringList infiles;
-
-		//process forward read file
-		QString in1 = getInfile("in1");
-		FastqFileStream stream(in1);
-		while(!stream.atEnd())
+		QStringList in1 = getInfileList("in1");
+		QStringList in2 = getInfileList("in2");
+		if (in2.count()!=0 && in1.count()!=in2.count())
 		{
-			stream.readEntry(entry);
-			stats.update(entry, StatisticsReads::FORWARD);
+			THROW(CommandLineParsingException, "Input file lists 'in1' and 'in2' differ in counts!");
 		}
-		infiles << in1;
 
-		//process reverse read file
-		QString in2 = getInfile("in2");
-		if (in2!="")
+		//process
+		for (int i=0; i<in1.count(); ++i)
 		{
-			FastqFileStream stream2(in2);
-			while(!stream2.atEnd())
+			//forward
+			FastqFileStream stream(in1[i]);
+			while(!stream.atEnd())
 			{
-				 stream2.readEntry(entry);
-				 stats.update(entry, StatisticsReads::REVERSE);
+				stream.readEntry(entry);
+				stats.update(entry, StatisticsReads::FORWARD);
 			}
+			infiles << in1[i];
 
-			//check read counts matches
-			if (stream.index()!=stream2.index())
+			//reverse (optional)
+			if (i<in2.count())
 			{
-				THROW(ArgumentException, "Differing number of reads in file '" + in1 + "' and '" + in2 + "'!");
-			}
+				FastqFileStream stream2(in2[i]);
+				while(!stream2.atEnd())
+				{
+					 stream2.readEntry(entry);
+					 stats.update(entry, StatisticsReads::REVERSE);
+				}
 
-			infiles << in2;
+				//check read counts matches
+				if (stream.index()!=stream2.index())
+				{
+					THROW(ArgumentException, "Differing number of reads in file '" + in1[i] + "' and '" + in2[i] + "'!");
+				}
+
+				infiles << in2[i];
+			}
 		}
 
 		//store output
