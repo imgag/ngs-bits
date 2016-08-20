@@ -56,8 +56,8 @@ public:
 		{
 			if (getFlag("force"))
 			{
-				db.getQuery().exec("DELETE FROM gene_exon");
-				db.getQuery().exec("DELETE FROM gene_transcript");
+				db.clearTable("gene_exon");
+				db.clearTable("gene_transcript");
 			}
 			else
 			{

@@ -65,7 +65,7 @@ clean:
 	find bin -type f | grep -v ".ini" | xargs -l1 rm -rf
 
 test_lib:
-	cd bin && ./cppCORE-TEST && ./cppNGS-TEST
+	cd bin && ./cppCORE-TEST && ./cppNGS-TEST && ./cppNGSD-TEST
 
 test_tools:
 	cd bin && ./tools-TEST

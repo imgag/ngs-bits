@@ -68,10 +68,12 @@ public:
 
 	///Returns all possible values for a enum column.
 	QStringList getEnum(QString table, QString column);
-	///Checks if a table exists
+	///Checks if a table exists.
 	void tableExists(QString table);
-	///Checks if a table is empty
+	///Checks if a table is empty.
 	bool tableEmpty(QString table);
+	///Clears all contents from a table.
+	void clearTable(QString table);
 
 	/*** gene/transcript handling ***/
 	///Returns the gene ID, or -1 if none approved gene name could be found. Checks approved symbols, previous symbols and synonyms.

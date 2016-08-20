@@ -1,13 +1,18 @@
 TEMPLATE = subdirs
-SUBDIRS = cppCORE \
+SUBDIRS =   cppCORE \
             cppCORE-TEST \
             cppXML \
             cppNGS \
-            cppNGS-TEST
+            cppNGS-TEST \
+            cppNGSD \
+            cppNGSD-TEST
 
 cppCORE-TEST.depends = cppCORE
-cppNGS.depends = cppCORE cppXML
 cppXML.depends = cppCORE
+cppNGS.depends = cppXML
 cppNGS-TEST.depends = cppNGS
+cppNGSD.depends = cppNGS
+cppNGSD-TEST.depends = cppNGSD
+
 
 OTHER_FILES += ToDos.txt

@@ -64,9 +64,9 @@ public:
 		{
 			if (getFlag("force"))
 			{
-				db.getQuery().exec("DELETE FROM hpo_genes");
-				db.getQuery().exec("DELETE FROM hpo_parent");
-				db.getQuery().exec("DELETE FROM hpo_term");
+				db.clearTable("hpo_genes");
+				db.clearTable("hpo_parent");
+				db.clearTable("hpo_term");
 			}
 			else
 			{

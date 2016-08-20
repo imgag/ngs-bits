@@ -965,6 +965,12 @@ bool NGSD::tableEmpty(QString table)
 	return query.value(0).toInt()==0;
 }
 
+void NGSD::clearTable(QString table)
+{
+	SqlQuery query = getQuery();
+	query.exec("DELETE FROM " + table);
+}
+
 int NGSD::geneToApprovedID(const QString& gene)
 {
 	//init

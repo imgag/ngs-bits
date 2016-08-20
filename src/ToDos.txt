@@ -13,7 +13,6 @@ libs:
 - cppNGS-Tests:
    - VariantFilter: Overview gene lists (missing genotype): treat all variants as homozygous?
    - Statistics: add Tests for somatic statistics
-* cppNGSD: add test project
 
 GSvar:
 * sub-panels: add dialog to archive/restore
