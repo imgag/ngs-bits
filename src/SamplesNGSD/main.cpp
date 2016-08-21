@@ -184,15 +184,14 @@ public:
 				}
 				else
 				{
-					QStringList matches;
-					Helper::findFolders(project_path, "Sample_"+ps_name+"*", matches);
+					QStringList matches = Helper::findFolders(project_path, "Sample_"+ps_name+"*", true);
 					if (matches.count()!=0)
 					{
 						tokens << "special folder - " + matches[0];
 					}
 					else
 					{
-						Helper::findFiles(project_path, ps_name+"*.fastq.gz", matches);
+						matches = Helper::findFiles(project_path, ps_name+"*.fastq.gz", true);
 						if (matches.count()!=0)
 						{
 							QFileInfo info(matches[0]);

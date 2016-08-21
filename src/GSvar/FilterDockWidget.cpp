@@ -109,8 +109,7 @@ void FilterDockWidget::loadTargetRegions()
 	//load ROIs of sub-panels
 	try
 	{
-		QStringList subpanels;
-		Helper::findFiles(NGSD::getTargetFilePath(true), "*.bed", subpanels);
+		QStringList subpanels = Helper::findFiles(NGSD::getTargetFilePath(true), "*.bed", false);
 		subpanels.sort(Qt::CaseInsensitive);
 		foreach(QString file, subpanels)
 		{

@@ -545,14 +545,13 @@ void MainWindow::on_actionGapsLookup_triggered()
 	if (gene=="") return;
 
 	//locate report(s)
-	QDir dir = QFileInfo(filename_).absoluteDir();
-	dir.setNameFilters(QStringList("*_lowcov.bed"));
-	QStringList reports = dir.entryList();
+	QString folder = QFileInfo(filename_).absolutePath();
+	QStringList reports = Helper::findFiles(folder, "*_lowcov.bed", false);
 
 	//abort if no report is found
 	if (reports.count()==0)
 	{
-		GUIHelper::showMessage("Error", "Could not detect low-coverage BED file in folder '" + dir.absolutePath() + "'.");
+		GUIHelper::showMessage("Error", "Could not detect low-coverage BED file in folder '" + folder + "'.");
 		return;
 	}
 
@@ -571,7 +570,7 @@ void MainWindow::on_actionGapsLookup_triggered()
 
 	//look up data in report
 	QStringList output;
-	QStringList lines = Helper::loadTextFile(dir.absolutePath() + "/" + report, true);
+	QStringList lines = Helper::loadTextFile(folder + "/" + report, true);
 	foreach(QString line, lines)
 	{
 		QStringList parts = line.split('\t');
@@ -1473,14 +1472,14 @@ QStringList MainWindow::getLogFiles()
 
 QString MainWindow::getBamFile()
 {
-	QDir data_dir(QFileInfo(filename_).path());
-	QStringList bam_files = data_dir.entryList(QStringList("*.bam"),  QDir::Files);
+	QString folder = QFileInfo(filename_).path();
+	QStringList bam_files = Helper::findFiles(folder, "*.bam", false);
 	if (bam_files.count()!=1)
 	{
-		QMessageBox::warning(this, "Could not locate sample BAM file.", "Exactly one BAM file must be present in the sample folder:\n" + data_dir.path() + "\n\nFound the following files:\n" + bam_files.join("\n"));
+		QMessageBox::warning(this, "Could not locate sample BAM file.", "Exactly one BAM file must be present in the sample folder:\n" + folder + "\n\nFound the following files:\n" + bam_files.join("\n"));
 		return "";
 	}
-	return data_dir.path() + QDir::separator() + bam_files.at(0);
+	return folder + QDir::separator() + bam_files.at(0);
 }
 
 QStringList MainWindow::getBamFilesTrio()

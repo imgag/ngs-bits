@@ -81,4 +81,23 @@ private slots:
 		I_EQUAL(Helper::levenshtein("abc", ""), 3);
 	}
 
+	void findFiles()
+	{
+		QStringList files = Helper::findFiles(TESTDATA(""), "*.txt", false);
+		I_EQUAL(files.count(), 0);
+		files = Helper::findFiles(TESTDATA(""), "*.txt", true);
+		IS_TRUE(files.count()>0);
+		files = Helper::findFiles(TESTDATA(""), "*.blabla", true);
+		I_EQUAL(files.count(), 0);
+	}
+
+	void findFolder()
+	{
+		QStringList folders = Helper::findFolders(TESTDATA(""), "data_*", false);
+		I_EQUAL(folders.count(), 2);
+		folders = Helper::findFolders(TESTDATA(""), "data_*", true);
+		I_EQUAL(folders.count(), 2);
+		folders = Helper::findFolders(TESTDATA(""), "blabla_*", true);
+		I_EQUAL(folders.count(), 0);
+	}
 };

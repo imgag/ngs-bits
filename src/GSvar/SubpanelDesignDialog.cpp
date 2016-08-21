@@ -50,8 +50,7 @@ void SubpanelDesignDialog::loadProcessingSystems()
 
 void SubpanelDesignDialog::createSubpanelCompleter()
 {
-	QStringList tmp;
-	Helper::findFiles(NGSD::getTargetFilePath(true), "*.bed", tmp);
+	QStringList tmp = Helper::findFiles(NGSD::getTargetFilePath(true), "*.bed", false);
 	QStringList names;
 	foreach(QString t, tmp)
 	{

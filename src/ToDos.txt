@@ -33,8 +33,8 @@ Tools:
 
 CnvHunter:
  * merge large CNVs to one region - use CBS-like algorithm
- * add optional GC-normalization (then, check GS151166_01 gene C5orf42)
  * add optional percentile normalization
+ * add optional GC-normalization (then, check GS151166_01 gene C5orf42)
  * Check HaloPlex HS data
  - Für alle/wichtige CNAs Plot (log-ratio/z-score/call) mit Umgebung
  - integrate CNV databases:
