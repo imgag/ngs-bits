@@ -308,11 +308,8 @@ public:
     }
 
     int calculateCopies(const QVector<SampleData>& data, int s, int e)
-    {
-		double copies = 2.0*data[s].doc[e]/data[s].ref[e];
-		if (copies<0.2) return 0;
-		else if (copies<1.0) return 1;
-		else return round(copies);
+	{
+		return round(2.0*data[s].doc[e]/data[s].ref[e]);
     }
 
     double weightedMean(const QVector< QPair<double, int> >& data)
