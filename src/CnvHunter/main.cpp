@@ -215,7 +215,7 @@ public:
 			outstream << "##" << comment.trimmed() << endl;
 		}
 		//header
-		outstream << "#chr\tstart\tend\tsample\tregion_count\tregion_copy_numbers\tregion_coordinates" << (anno ? "\tgenes" : "") << endl;
+		outstream << "#chr\tstart\tend\tsample\tregion_count\tregion_copy_numbers\tregion_zscores\tregion_coordinates" << (anno ? "\tgenes" : "") << endl;
 
 		QPair<int, int> output = qMakePair(0, 0);
         for (int i=0; i<results.count(); ++i)
@@ -225,15 +225,18 @@ public:
 
 			//get copy-number,coordinates and genes for first region
             QStringList copies;
+			QStringList zscores;
 			QStringList coords;
 			QStringList genes;
 
 			const ExonData& exon = exons[results[i].e];
             copies.append(QString::number(results[i].copies));
+
+			zscores.append(QString::number(results[i].z, 'f', 2));
 			coords.append(exon.chr.str() + ":" + QString::number(exon.start) + "-" + QString::number(exon.end));
 			if (anno) genes = geneNames(exon.chr, exon.start, exon.end, test);
 
-			//get copy-number,coordinates and genes for adjacent regions
+			//get copy-number, z-scores, coordinates and genes for adjacent regions
             int j=i+1;
             while (j<results.count() &&
                    results[j].copies!=2 && //CNV
@@ -243,6 +246,7 @@ public:
                    )
             {
                 copies.append(QString::number(results[j].copies));
+				zscores.append(QString::number(results[j].z, 'f', 2));
 				const ExonData& exon2 = exons[results[j].e];
 				coords.append(exon2.chr.str() + ":" + QString::number(exon2.start) + "-" + QString::number(exon2.end));
 				if (anno) genes += geneNames(exon2.chr, exon2.start, exon2.end, test);
@@ -258,7 +262,7 @@ public:
 
 			//print output
 			int end = exons[results[j-1].e].end;
-			outstream << exon.chr.str() << "\t" << exon.start << "\t" << end << "\t" << data[results[i].s].name << "\t" << copies.count() << "\t" << copies.join(",") << "\t" + coords.join(",") << (anno ? "\t" + genes.join(",")  : "") << endl;
+			outstream << exon.chr.str() << "\t" << exon.start << "\t" << end << "\t" << data[results[i].s].name << "\t" << copies.count() << "\t" << copies.join(",") << "\t" << zscores.join(",") << "\t" << coords.join(",") << (anno ? "\t" + genes.join(",")  : "") << endl;
 
             //set index after CNV range (++i is performed in the loop => j-1)
             i=j-1;
