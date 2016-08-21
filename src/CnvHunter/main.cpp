@@ -104,8 +104,7 @@ public:
         addInt("n", "The number of most similar samples to consider.", true, 20);
         addInfile("exclude", "BED file with regions to exclude from the analysis.", true, true);
         addFloat("min_z", "Minimum z-score for CNV seed detection.", true, 4.0);
-        addFloat("ext_min_z", "Minimum z-score for CNV extension around seeds.", true, 2.5);
-        addInt("ext_max_dist", "Maximum region distance for extension.", true, 1000000);
+		addFloat("ext_min_z", "Minimum z-score for CNV extension around seeds.", true, 2.0);
         addFloat("sam_min_depth", "QC: Minimum average depth of a sample.", true, 40.0);
         addFloat("sam_min_corr", "QC: Minimum correlation of sample to constructed reference sample.", true, 0.95);
         addInt("sam_max_cnvs", "QC: Maximum number of CNV events in a sample.", true, 30);
@@ -204,7 +203,7 @@ public:
 		return genes;
 	}
 
-	QPair<int, int> storeResultAsTSV(const QVector<ResultData>& results, const QVector<SampleData>& data, const QVector<ExonData>& exons, int ext_max_dist, QString filename, QStringList comments, bool anno, bool test)
+	QPair<int, int> storeResultAsTSV(const QVector<ResultData>& results, const QVector<SampleData>& data, const QVector<ExonData>& exons, QString filename, QStringList comments, bool anno, bool test)
     {
 		QSharedPointer<QFile> out = Helper::openFileForWriting(filename);
         QTextStream outstream(out.data());
@@ -241,8 +240,7 @@ public:
             while (j<results.count() &&
                    results[j].copies!=2 && //CNV
                    results[j-1].s==results[j].s && //same sample (qc is also ok then, we checked above)
-                   exons[results[j-1].e].chr==exons[results[j].e].chr && //same chromosome
-                   exons[results[j].e].start-exons[results[j-1].e].end <= ext_max_dist //valid distance
+				   exons[results[j-1].e].chr==exons[results[j].e].chr //same chromosome
                    )
             {
                 copies.append(QString::number(results[j].copies));
@@ -332,16 +330,14 @@ public:
         return wsum / size;
     }
 
-    bool previousExists(const QVector<ResultData>& results, const QVector<ExonData>& exons, int i, int ext_max_dist)
+	bool previousExists(const QVector<ResultData>& results, const QVector<ExonData>& exons, int i)
     {
         //no previous result
         if (i==0) return false;
         //not same sample
         if (results[i-1].s!=results[i].s) return false;
         //not same chromosome
-        if (exons[results[i].e].chr!=exons[results[i-1].e].chr) return false;
-        //too large distance
-        if (exons[results[i].e].start-exons[results[i-1].e].end > ext_max_dist) return false;
+		if (exons[results[i].e].chr!=exons[results[i-1].e].chr) return false;
 
         return true;
     }
@@ -357,8 +353,7 @@ public:
         int n = getInt("n");
         if (in.count()<n+1) THROW(ArgumentException, "At least n+1 input files are required! Got " + QString::number(in.count()) + "!");
         double min_z = getFloat("min_z");
-        double ext_min_z = getFloat("ext_min_z");
-        int ext_max_dist = getInt("ext_max_dist");
+		double ext_min_z = getFloat("ext_min_z");
         double reg_min_ncov = getFloat("reg_min_ncov");
 		double reg_min_cov = getFloat("reg_min_cov");
         double reg_max_cv = getFloat("reg_max_cv");
@@ -770,7 +765,6 @@ public:
                 const ResultData& curr = results[i];
 				if (curr.s!=seed.s) break; //same sample
 				if (exons[curr.e].chr!=exons[seed.e].chr) break; //same chromosome
-				if (exons[seed.e].start-exons[curr.e].end > ext_max_dist) break; //region distance
 				int copies = calculateCopies(data, curr.s, curr.e);
 				if (is_del) //same CNV type (del)
 				{
@@ -796,7 +790,6 @@ public:
                 const ResultData& curr = results[i];
                 if (curr.s!=seed.s) break; //same sample
 				if (exons[curr.e].chr!=exons[seed.e].chr) break; //same chromosome
-				if (exons[curr.e].start-exons[seed.e].end > ext_max_dist) break; //region distance
 				int copies = calculateCopies(data, curr.s, curr.e);
 				if (is_del) //same CNV type (del)
 				{
@@ -825,7 +818,7 @@ public:
             //current region is CNV
             if (results[i].copies!=2)
             {
-                if (!previousExists(results, exons, i, ext_max_dist) || results[i-1].copies==2)
+				if (!previousExists(results, exons, i) || results[i-1].copies==2)
                 {
                     ++data[results[i].s].cnvs_merged;
                 }
@@ -843,7 +836,7 @@ public:
         outstream << "flagged " << c_bad_sample2 << " samples" << endl << endl;
 
         //store results
-		QPair<int, int> tmp2 = storeResultAsTSV(results, data, exons, ext_max_dist, getOutfile("out"), comments, getFlag("anno"), getFlag("test"));
+		QPair<int, int> tmp2 = storeResultAsTSV(results, data, exons, getOutfile("out"), comments, getFlag("anno"), getFlag("test"));
         int detected_merged = tmp2.first;
         detected = tmp2.second;
         outstream << "storing results TSV file..." << endl ;
