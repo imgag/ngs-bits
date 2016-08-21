@@ -7,7 +7,7 @@ TEST_CLASS(CnvHunter_Test)
 Q_OBJECT
 private slots:
 
-	void hpPDv3()
+	void hpPDv3_noanno()
 	{
 		QStringList in = Helper::findFiles(TESTDATA("data_in/CnvHunter1/"), "*.cov", false);
 		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -out out/CnvHunter_out1.tsv");
@@ -28,7 +28,6 @@ private slots:
 
 	void hpSCv1()
 	{
-
 		QStringList in = Helper::findFiles(TESTDATA("data_in/CnvHunter2/"), "*.cov", false);
 		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -out out/CnvHunter_out2.tsv");
 		COMPARE_FILES("out/CnvHunter_out2.tsv", TESTDATA("data_out/CnvHunter_out2.tsv"));

@@ -308,7 +308,7 @@ public:
     }
 
     int calculateCopies(const QVector<SampleData>& data, int s, int e)
-    {
+	{
 		double copies = 2.0*data[s].doc[e]/data[s].ref[e];
 		if (copies<0.2) return 0;
 		else if (copies<1.0) return 1;
@@ -342,6 +342,61 @@ public:
         return true;
     }
 
+	virtual void writeRegionDistributionCV(const QVector<ExonData>& exons, QTextStream& outstream)
+	{
+		outstream << "Region CV (normalized depth of coverage) histogram:" << endl;
+		QVector<int> counts(10, 0);
+		for (int e=0; e<exons.count(); ++e)
+		{
+			double cv = exons[e].mad/exons[e].median;
+			int bin = std::floor(cv/0.05);
+			if (bin<0) bin = 0;
+			if (bin>=10) bin = 9;
+			++counts[bin];
+		}
+		for (int i=0; i<10; ++i)
+		{
+			outstream << "  " << QString::number(0.05*i, 'f', 2) << "-" << QString::number(0.05*(i+1), 'f', 2) << ": " << counts[i] << endl;
+		}
+		outstream << endl;
+	}
+
+	virtual void writeSampleDistributionCNVs(const QVector<SampleData>& data, QTextStream& outstream)
+	{
+		outstream << "Merged CNVs per sample histogram:" << endl;
+		QVector<int> counts(21, 0);
+		for (int s=0; s<data.count(); ++s)
+		{
+			int bin = data[s].cnvs_merged;
+			if (bin>=21) bin = 20;
+			++counts[bin];
+		}
+		for (int i=0; i<21; ++i)
+		{
+			outstream << "  " << i << ": " << counts[i] << endl;
+		}
+		outstream << endl;
+	}
+
+	virtual void writeSampleDistributionCorrelation(const QVector<SampleData>& data, QTextStream& outstream)
+	{
+		outstream << "Reference sample correlation histogram:" << endl;
+		QVector<int> counts(10, 0);
+		for (int s=0; s<data.count(); ++s)
+		{
+			double corr = 1.0 - data[s].ref_correl;
+			int bin = std::floor(corr/0.02);
+			if (bin<0) bin = 0;
+			if (bin>=10) bin = 9;
+			++counts[bin];
+		}
+		for (int i=0; i<10; ++i)
+		{
+			outstream << "  " << QString::number(1.0-(0.02*i), 'f', 2) << "-" << QString::number(1.0-(0.02*(i+1)), 'f', 2) << ": " << counts[i] << endl;
+		}
+		outstream << endl;
+	}
+
     virtual void main()
     {
         //init
@@ -356,7 +411,7 @@ public:
 		double ext_min_z = getFloat("ext_min_z");
         double reg_min_ncov = getFloat("reg_min_ncov");
 		double reg_min_cov = getFloat("reg_min_cov");
-        double reg_max_cv = getFloat("reg_max_cv");
+		double reg_max_cv = getFloat("reg_max_cv");
         double sam_min_corr = getFloat("sam_min_corr");
         double sam_min_depth = getFloat("sam_min_depth");
         int sam_max_cnvs = getInt("sam_max_cnvs");
@@ -548,20 +603,20 @@ public:
 
             if (median<reg_min_ncov) exons[e].qc += "ncov<" + QString::number(reg_min_ncov) + " ";
 			if (median*avg_abs_cov<reg_min_cov) exons[e].qc += "cov<" + QString::number(reg_min_cov) + " ";
-            if (mad/median>reg_max_cv) exons[e].qc += "cv>" + QString::number(reg_max_cv)+ " ";
+			if (mad/median>reg_max_cv) exons[e].qc += "cv>" + QString::number(reg_max_cv)+ " ";
 			if (exclude!="" && excluded.overlapsWith(exons[e].chr, exons[e].start, exons[e].end)) exons[e].qc += "excluded ";
 			if (exons[e].chr.isY()) exons[e].qc += "chrY ";
             exons[e].median = median;
             exons[e].mad = mad;
             if (exons[e].qc!="")
-            {
-				outstream << "  bad region: " << exons[e].name << " ncov=" << exons[e].median << " cv=" << (mad/median) << " reason=" << exons[e].qc << endl;
+			{
 				comments << "bad region: " + exons[e].name + " " + exons[e].qc;
                 ++c_bad_region;
             }
         }
 		outstream << "bad regions: " << c_bad_region << " of " << exons.count() << endl << endl;
 		comments << "bad regions: " + QString::number(c_bad_region) + " of " + QString::number(exons.count());
+		writeRegionDistributionCV(exons, outstream);
 
         //write region info BED file
         QString out_reg = getOutfile("out_reg");
@@ -643,15 +698,15 @@ public:
             //print all bad samples (also those which were flagged as bad before, e.g. because os too low avg depth)
             if (data[s].qc!="")
             {
-                ++c_bad_sample;
-                outstream << "  bad sample: " << data[s].name << " " << data[s].qc << endl;
+				++c_bad_sample;
 				comments << "bad sample: " + data[s].name + " " + data[s].qc;
             }
         }
         outstream << "bad samples: " << c_bad_sample << " of " << data.count() << endl << endl;
 		comments << "bad samples: " + QString::number(c_bad_sample) + " of " + QString::number(data.count());
         if (verbose) storeSampleCorrel(data);
-        
+		writeSampleDistributionCorrelation(data, outstream);
+
 		//log 'n' most similar samples
 		for (int s=0; s<data.count(); ++s)
 		{
@@ -745,7 +800,7 @@ public:
                 results.append(res);
             }
         }
-        outstream << "detected " << detected << " seed regions" << endl << endl;
+		outstream << "detected " << detected << " seed regions" << endl << endl;
 
         //extending initial CNVs in both directions
         outstream << "extending CNV seeds..." << endl;
@@ -808,7 +863,7 @@ public:
                 ++i;
             }
         }
-        outstream << "extended to " << detected << " additional regions from seeds" << endl << endl;
+		outstream << "extended to " << detected << " additional regions from seeds" << endl << endl;
 
         //flag samples that have too many CNV events
         outstream << "flag samples that have too many CNV events as bad..." << endl;
@@ -834,6 +889,7 @@ public:
             }
         }
         outstream << "flagged " << c_bad_sample2 << " samples" << endl << endl;
+		writeSampleDistributionCNVs(data, outstream);
 
         //store results
 		QPair<int, int> tmp2 = storeResultAsTSV(results, data, exons, getOutfile("out"), comments, getFlag("anno"), getFlag("test"));
