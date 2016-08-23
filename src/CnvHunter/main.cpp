@@ -131,6 +131,7 @@ public:
         addInfile("exclude", "BED file with regions to exclude from the analysis.", true, true);
         addFloat("min_z", "Minimum z-score for CNV seed detection.", true, 4.0);
 		addFloat("ext_min_z", "Minimum z-score for CNV extension around seeds.", true, 2.0);
+		addFloat("ext_gap_span", "Percentage of orignal region size that can be spanned while merging nearby regions (0 disables it).", true, 20.0);
         addFloat("sam_min_depth", "QC: Minimum average depth of a sample.", true, 40.0);
         addFloat("sam_min_corr", "QC: Minimum correlation of sample to constructed reference sample.", true, 0.95);
         addInt("sam_max_cnvs", "QC: Maximum number of CNV events in a sample.", true, 30);
@@ -140,7 +141,10 @@ public:
         addFlag("verbose", "Enables verbose mode. Writes detail information files for samples, regions and results.");
 		addFlag("anno", "Enable annotation of gene names to regions (needs the NGSD database).");
 		addFlag("test", "Uses the test database instead of on the production database for annotation.");
-    }
+
+		changeLog(2016, 8, 23, "Added merging of large CNVs that were split to several regions due to noise.");
+		changeLog(2016, 8, 21, "Improved log output (to make parameter optimization easier).");
+	}
 
     void storeSampleInfo(const QVector<SampleData>& data)
     {
@@ -248,20 +252,12 @@ public:
 			const Range& range = ranges[r];
 			if (data[results[range.start].s].qc!="") continue;
 
-			//get copy-number,coordinates and genes for first region
+			//get copy-number, z-scores, coordinates and genes for adjacent regions
             QStringList copies;
 			QStringList zscores;
 			QStringList coords;
 			QSet<QString> genes;
-
-			const ExonData& exon = exons[results[range.start].e];
-			copies.append(QString::number(results[range.start].copies));
-			zscores.append(QString::number(results[range.start].z, 'f', 2));
-			coords.append(exon.toString());
-			if (anno) genes = geneNames(exon, test);
-
-			//get copy-number, z-scores, coordinates and genes for adjacent regions
-			for (int j=range.start+1; j<=range.end; ++j)
+			for (int j=range.start; j<=range.end; ++j)
             {
                 copies.append(QString::number(results[j].copies));
 				zscores.append(QString::number(results[j].z, 'f', 2));
@@ -271,11 +267,23 @@ public:
 			}
 
 			//print output
+			QByteArray chr = exons[results[range.start].e].chr.str();
 			int start = exons[results[range.start].e].start;
 			int end = exons[results[range.end].e].end;
-			outstream << exon.chr.str() << "\t" <<start << "\t" << end << "\t" << data[results[range.start].s].name << "\t" << copies.count() << "\t" << copies.join(",") << "\t" << zscores.join(",") << "\t" << coords.join(",") << (anno ? "\t" + genes.toList().join(",")  : "") << endl;
+			outstream << chr << "\t" <<start << "\t" << end << "\t" << data[results[range.start].s].name << "\t" << copies.count() << "\t" << copies.join(",") << "\t" << zscores.join(",") << "\t" << coords.join(",");
+			if (anno)
+			{
+				outstream << "\t";
+				bool first = true;
+				foreach(const QString& gene, genes)
+				{
+					outstream << (first ? "" : ",") << gene;
+					first = false;
+				}
+			}
+			outstream << endl;
 
-            //count CNV events and regions
+			//count number of regions
 			exon_count += range.size();
         }
 
@@ -418,6 +426,7 @@ public:
         if (in.count()<n+1) THROW(ArgumentException, "At least n+1 input files are required! Got " + QString::number(in.count()) + "!");
         double min_z = getFloat("min_z");
 		double ext_min_z = getFloat("ext_min_z");
+		double ext_gap_span = getFloat("ext_gap_span");
         double reg_min_ncov = getFloat("reg_min_ncov");
 		double reg_min_cov = getFloat("reg_min_cov");
 		double reg_max_cv = getFloat("reg_max_cv");
@@ -907,7 +916,6 @@ public:
 		writeSampleDistributionCNVs(data, outstream);
 
 		//merge adjacent ranges
-		outstream << "ranges before merge: " << ranges.count() << endl;
 		for (int r=ranges.count()-2; r>=0; --r)
 		{
 			Range& first = ranges[r];
@@ -920,10 +928,43 @@ public:
 			first.end = second.end;
 			ranges.removeAt(r+1);
 		}
-		outstream << "ranges after merge: " << ranges.count() << endl  << endl;
 
-		//TODO merge regions (same sample, same chr, dist<n) if (they show the same trend and the percentage of cn!=2 regions is still > 90%)
-		//const int n = 5;
+		//merge nearby regions (bridge gaps)
+		if (ext_gap_span>0)
+		{
+			for (int r=ranges.count()-2; r>=0; --r)
+			{
+				Range& first = ranges[r];
+				Range& second = ranges[r+1];
+				if(first.type!=second.type) continue; //same type (ins/del)
+				if(results[first.start].s!=results[second.start].s) continue; //same sample
+				if(exons[results[first.start].e].chr!=exons[results[second.start].e].chr) continue; //same chromosome
+				const int dist = second.start-first.end-1;
+				if (dist>ext_gap_span/100.0*(first.size() + second.size())) continue; //gap not greater than 20% of the combined regions size
+
+				//check that no exon with the wrong trend is in between
+				bool skip = false;
+				for (int i=first.end+1; i<second.start; ++i)
+				{
+					if (first.type==Range::INS && results[i].z<1.0)
+					{
+						skip = true;
+						break;
+					}
+					if (first.type==Range::DEL && results[i].z>-1.0)
+					{
+						skip = true;
+						break;
+					}
+
+					//TODO re-calculate CN!!!
+				}
+				if (skip) continue;
+
+				first.end = second.end;
+				ranges.removeAt(r+1);
+			}
+		}
 
         //store results
 		int exon_count = storeResultAsTSV(ranges, results, data, exons, getOutfile("out"), comments, getFlag("anno"), getFlag("test"));

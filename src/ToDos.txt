@@ -33,8 +33,7 @@ Tools:
 - SomaticQC: write test
 
 CnvHunter:
- * merge large CNVs to one region (CBS-like algorithm?)
- * refactoring use shared pointers to exons/samples instead of indices
+ * refactoring use shared pointers to exons/samples instead of indices (readability!)
  * add optional percentile normalization
  * add optional GC-normalization (then, check GS151166_01 gene C5orf42)
  * Check HaloPlex HS data
