@@ -956,11 +956,16 @@ public:
 						skip = true;
 						break;
 					}
-
-					//TODO re-calculate CN!!!
 				}
 				if (skip) continue;
 
+				//update estimated copy number
+				for (int i=first.end+1; i<second.start; ++i)
+				{
+					results[i].copies = calculateCopies(data, results[i].s, results[i].e);
+				}
+
+				//merge ranges
 				first.end = second.end;
 				ranges.removeAt(r+1);
 			}
