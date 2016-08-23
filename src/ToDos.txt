@@ -23,6 +23,7 @@ GSvar:
 - Add buttons to search in goolge/pubmed for variant
 
 Tools:
+* MappingQC: Add "clipped base percentage" parameter for soft-clipped und hard-clipped bases.
 * VariantFilterRegions, etc: Set input file format by command line argument => allow reading variant lists from stdin
 * MappingQC: support RNA: insert size, spike-in controls, mapping ribosomes/globulines, etc.
 - SeqPurge:
@@ -32,7 +33,8 @@ Tools:
 - SomaticQC: write test
 
 CnvHunter:
- * merge large CNVs to one region - use CBS-like algorithm
+ * merge large CNVs to one region (CBS-like algorithm?)
+ * refactoring use shared pointers to exons/samples instead of indices
  * add optional percentile normalization
  * add optional GC-normalization (then, check GS151166_01 gene C5orf42)
  * Check HaloPlex HS data

@@ -46,7 +46,6 @@ struct ExonData
     {
     }
 
-    QString name; //region name
     Chromosome chr; //chromosome
     int start; //start position
     int end; //end position
@@ -56,6 +55,11 @@ struct ExonData
 
     int cnvs; //number of CNVs
     QString qc; //QC warning flag
+
+	QString toString() const
+	{
+		return chr.str() + ":" + QString::number(start) + "-" + QString::number(end);
+	}
 };
 
 //CNV test data
@@ -81,6 +85,28 @@ struct ResultData
     int e; //exon index
     double z; //z-score
     int copies; //Estimated genotype
+};
+
+//Range of subsequent exons with same copy number trend (closed interval)
+struct Range
+{
+	enum Type {INS, DEL};
+
+	Range(int s, int e, Type t)
+		: start(s)
+		, end(e)
+		, type(t)
+	{
+	}
+
+	int size() const
+	{
+		return end - start + 1;
+	}
+
+	int start;
+	int end;
+	Type type; //flag if deletion
 };
 
 class ConcreteTool
@@ -146,7 +172,7 @@ public:
         outstream << "#region\tsize\tmedian_ncov\tmad_ncov\tcv_ncov\tcnvs" << endl;
         foreach(const ExonData& exon, exons)
         {
-            outstream << exon.name << "\t" << (exon.end-exon.start) << "\t" << exon.median << "\t" << exon.mad  << "\t" << (exon.mad/exon.median) << "\t" << exon.cnvs << endl;
+			outstream << exon.toString() << "\t" << (exon.end-exon.start) << "\t" << exon.median << "\t" << exon.mad  << "\t" << (exon.mad/exon.median) << "\t" << exon.cnvs << endl;
         }
     }
 
@@ -181,29 +207,29 @@ public:
         outstream << "#sample\tregion\tcopy_number\tz_score\tdepth\tref_depth\tref_stdev" << endl;
         foreach(const ResultData& r, results)
         {
-            outstream << data[r.s].name << "\t" << exons[r.e].name << "\t" << r.copies << "\t" << r.z << "\t" << data[r.s].doc[r.e] << "\t" << data[r.s].ref[r.e] << "\t" << data[r.s].ref_stdev[r.e] << endl;
+			outstream << data[r.s].name << "\t" << exons[r.e].toString() << "\t" << r.copies << "\t" << r.z << "\t" << data[r.s].doc[r.e] << "\t" << data[r.s].ref[r.e] << "\t" << data[r.s].ref_stdev[r.e] << endl;
         }
     }
 
-	QStringList geneNames(const Chromosome& chr, int start, int end, bool test)
+	QSet<QString> geneNames(const ExonData& exon, bool test)
 	{
-		static QHash<QString, QStringList> cache;
+		static QHash<QString, QSet<QString> > cache;
 		static NGSD db(test);
 
 		//check cache
-		QString reg = chr.str() + ":" + QString::number(start) + "-" + QString::number(end);
+		QString reg = exon.toString();
 		if (cache.contains(reg))
 		{
 			return cache[reg];
 		}
 
 		//get genes from NGSD
-		QStringList genes = db.genesOverlapping(chr, start, end, 20);
+		QSet<QString> genes = QSet<QString>::fromList(db.genesOverlapping(exon.chr, exon.start, exon.end, 20));
 		cache.insert(reg, genes);
 		return genes;
 	}
 
-	QPair<int, int> storeResultAsTSV(const QVector<ResultData>& results, const QVector<SampleData>& data, const QVector<ExonData>& exons, QString filename, QStringList comments, bool anno, bool test)
+	int storeResultAsTSV(const QList<Range>& ranges, const QVector<ResultData>& results, const QVector<SampleData>& data, const QVector<ExonData>& exons, QString filename, QStringList comments, bool anno, bool test)
     {
 		QSharedPointer<QFile> out = Helper::openFileForWriting(filename);
         QTextStream outstream(out.data());
@@ -216,61 +242,44 @@ public:
 		//header
 		outstream << "#chr\tstart\tend\tsample\tregion_count\tregion_copy_numbers\tregion_zscores\tregion_coordinates" << (anno ? "\tgenes" : "") << endl;
 
-		QPair<int, int> output = qMakePair(0, 0);
-        for (int i=0; i<results.count(); ++i)
+		int exon_count = 0;
+		for (int r=0; r<ranges.count(); ++r)
         {
-            if (results[i].copies==2) continue;
-            if (data[results[i].s].qc!="") continue;
+			const Range& range = ranges[r];
+			if (data[results[range.start].s].qc!="") continue;
 
 			//get copy-number,coordinates and genes for first region
             QStringList copies;
 			QStringList zscores;
 			QStringList coords;
-			QStringList genes;
+			QSet<QString> genes;
 
-			const ExonData& exon = exons[results[i].e];
-            copies.append(QString::number(results[i].copies));
-
-			zscores.append(QString::number(results[i].z, 'f', 2));
-			coords.append(exon.chr.str() + ":" + QString::number(exon.start) + "-" + QString::number(exon.end));
-			if (anno) genes = geneNames(exon.chr, exon.start, exon.end, test);
+			const ExonData& exon = exons[results[range.start].e];
+			copies.append(QString::number(results[range.start].copies));
+			zscores.append(QString::number(results[range.start].z, 'f', 2));
+			coords.append(exon.toString());
+			if (anno) genes = geneNames(exon, test);
 
 			//get copy-number, z-scores, coordinates and genes for adjacent regions
-            int j=i+1;
-            while (j<results.count() &&
-                   results[j].copies!=2 && //CNV
-                   results[j-1].s==results[j].s && //same sample (qc is also ok then, we checked above)
-				   exons[results[j-1].e].chr==exons[results[j].e].chr //same chromosome
-                   )
+			for (int j=range.start+1; j<=range.end; ++j)
             {
                 copies.append(QString::number(results[j].copies));
 				zscores.append(QString::number(results[j].z, 'f', 2));
 				const ExonData& exon2 = exons[results[j].e];
-				coords.append(exon2.chr.str() + ":" + QString::number(exon2.start) + "-" + QString::number(exon2.end));
-				if (anno) genes += geneNames(exon2.chr, exon2.start, exon2.end, test);
-                ++j;
-			}
-
-			//gene list: sort and remove duplicates
-			if (anno)
-			{
-				genes.sort();
-				genes.removeDuplicates();
+				coords.append(exon2.toString());
+				if (anno) genes += geneNames(exon2, test);
 			}
 
 			//print output
-			int end = exons[results[j-1].e].end;
-			outstream << exon.chr.str() << "\t" << exon.start << "\t" << end << "\t" << data[results[i].s].name << "\t" << copies.count() << "\t" << copies.join(",") << "\t" << zscores.join(",") << "\t" << coords.join(",") << (anno ? "\t" + genes.join(",")  : "") << endl;
-
-            //set index after CNV range (++i is performed in the loop => j-1)
-            i=j-1;
+			int start = exons[results[range.start].e].start;
+			int end = exons[results[range.end].e].end;
+			outstream << exon.chr.str() << "\t" <<start << "\t" << end << "\t" << data[results[range.start].s].name << "\t" << copies.count() << "\t" << copies.join(",") << "\t" << zscores.join(",") << "\t" << coords.join(",") << (anno ? "\t" + genes.toList().join(",")  : "") << endl;
 
             //count CNV events and regions
-            output.first += 1;
-            output.second += copies.count();
+			exon_count += range.size();
         }
 
-        return output;
+		return exon_count;
     }
 
     void storeNormalizedData(const QVector<SampleData>& data, const QVector<ExonData>& exons)
@@ -287,7 +296,7 @@ public:
         for (int e=0; e<exons.count(); ++e)
         {
             if (exons[e].qc!="") continue;
-            outstream << exons[e].name;
+			outstream << exons[e].toString();
             foreach(const SampleData& sample, data)
             {
                 if (sample.qc!="") continue;
@@ -429,7 +438,6 @@ public:
             ex.chr = parts[0].trimmed();
 			ex.start = Helper::toInt(parts[1], "start position" , line);
 			ex.end = Helper::toInt(parts[2], "end position" , line);
-            ex.name = ex.chr.str() + ":" + QString::number(ex.start) + "-" + QString::number(ex.end);
 
             //check that exons are sorted according to chromosome and start position
             if (exons.count()!=0 && ex.chr==exons.last().chr)
@@ -463,7 +471,7 @@ public:
                 QStringList parts = file[j].split('\t');
                 if (parts.count()<4) THROW(FileParseException, "Coverage file " + data[i].name + " contains line with less then four elements: " + file[j]);
                 QString ex = parts[0].trimmed() + ":" + parts[1].trimmed() + "-" + parts[2].trimmed();
-                if (ex!=exons[j].name) THROW(FileParseException, "Coverage file " + data[i].name + " contains different regions than reference file " + in[0] + ". Expected " + exons[j].name + ", got " + ex + ".");
+				if (ex!=exons[j].toString()) THROW(FileParseException, "Coverage file " + data[i].name + " contains different regions than reference file " + in[0] + ". Expected " + exons[j].toString() + ", got " + ex + ".");
 
 				double value = Helper::toDouble(parts[3], "coverge value", file[j]);
 				data[i].doc.append(value);
@@ -592,7 +600,7 @@ public:
                     //check that DOC data for good samples is ok
                     if (!BasicStatistics::isValidFloat(data[s].doc[e]))
                     {
-						THROW(ProgrammingException, "Normalized coverage value is invalid for sample '" + data[s].name + "' in exon '" + exons[e].name + "' (" + QString::number(data[s].doc[e]) + ")");
+						THROW(ProgrammingException, "Normalized coverage value is invalid for sample '" + data[s].name + "' in exon '" + exons[e].toString() + "' (" + QString::number(data[s].doc[e]) + ")");
 					}
                     tmp.append(data[s].doc[e]);
                 }
@@ -610,7 +618,7 @@ public:
             exons[e].mad = mad;
             if (exons[e].qc!="")
 			{
-				comments << "bad region: " + exons[e].name + " " + exons[e].qc;
+				comments << "bad region: " + exons[e].toString() + " " + exons[e].qc;
                 ++c_bad_region;
             }
         }
@@ -770,7 +778,8 @@ public:
 
         //detect CNVs from DOC data
         outstream << "initial CNV detection..." << endl;
-        int detected = 0;
+		int index = 0;
+		QList<Range> ranges;
         QVector<ResultData> results;
         results.reserve(exons.count() * data.count());
         for (int s=0; s<data.count(); ++s)
@@ -788,65 +797,70 @@ public:
                 {
                     data[s].cnvs += 1;
                     exons[e].cnvs += 1;
-                    res.copies = calculateCopies(data, s, e);
-                    ++detected;
+					res.copies = calculateCopies(data, s, e);
 
                     //warn if there is something wrong with the copy number estimation
                     if (res.copies==2)
                     {
-                        outstream << "  WARNING: Found z-score outlier (" << z << ") with estimated copy-number 2!" << endl;
-                    }
+						outstream << "  WARNING: Found z-score outlier (" << z << ") with estimated copy-number (i.e. rounded ratio) equal to 2!" << endl;
+					}
+					else
+					{
+						ranges.append(Range(index, index, res.copies<2 ? Range::DEL : Range::INS));
+					}
                 }
-                results.append(res);
-            }
+				results.append(res);
+				++index;
+			}
         }
-		outstream << "detected " << detected << " seed regions" << endl << endl;
+		outstream << "detected " << ranges.count() << " seed regions" << endl << endl;
 
         //extending initial CNVs in both directions
         outstream << "extending CNV seeds..." << endl;
-        detected = 0;
-        for (int r=0; r<results.count(); ++r)
-        {
-			const ResultData& seed = results[r];
+		int detected = 0;
+		for (int r=0; r<ranges.count(); ++r)
+		{
+			Range& range = ranges[r];
+			const ResultData& seed = results[range.start];
 			if (seed.copies==2) continue;
-			bool is_del = results[r].copies<2;
 
             //outstream << "  " << data[seed.s].filename << " " << exons[seed.e].name << " " << seed.z << " " << seed.copies << endl;
 
             //extend to left
-            int i=r-1;
+			int i=range.start-1;
             while(i>0 && results[i].copies==2)
             {
                 const ResultData& curr = results[i];
 				if (curr.s!=seed.s) break; //same sample
 				if (exons[curr.e].chr!=exons[seed.e].chr) break; //same chromosome
 				int copies = calculateCopies(data, curr.s, curr.e);
-				if (is_del) //same CNV type (del)
+				if (range.type==Range::DEL) //del
 				{
 					if (curr.z>-ext_min_z) break;
 					if (copies>=2) break;
 				}
-				else //same CNV type (dup)
+				else //dup
 				{
 					if (curr.z<ext_min_z) break;
 					if (copies<=2) break;
 				}
 
                 results[i].copies = copies;
+				range.start = i;
                 //outstream << "    EX LEFT " << data[curr.s].filename << " " << exons[curr.e].name << " " << curr.z << " " << copies << endl;
                 ++detected;
                 --i;
             }
 
             //extend to right
-            i=r+1;
+			i=range.end+1;
             while(i<results.count() && results[i].copies==2)
             {
                 const ResultData& curr = results[i];
                 if (curr.s!=seed.s) break; //same sample
 				if (exons[curr.e].chr!=exons[seed.e].chr) break; //same chromosome
 				int copies = calculateCopies(data, curr.s, curr.e);
-				if (is_del) //same CNV type (del)
+				if (range.type==Range::DEL) //same CNV type (del)
 				{
 					if (curr.z>-ext_min_z) break;
 					if (copies>=2) break;
@@ -858,6 +872,7 @@ public:
 				}
 
                 results[i].copies = copies;
+				range.end = i;
                 //outstream << "    EX RIGH " << data[curr.s].filename << " " << exons[curr.e].name << " " << curr.z << " " << copies << endl;
                 ++detected;
                 ++i;
@@ -891,14 +906,31 @@ public:
         outstream << "flagged " << c_bad_sample2 << " samples" << endl << endl;
 		writeSampleDistributionCNVs(data, outstream);
 
-        //store results
-		QPair<int, int> tmp2 = storeResultAsTSV(results, data, exons, getOutfile("out"), comments, getFlag("anno"), getFlag("test"));
-        int detected_merged = tmp2.first;
-        detected = tmp2.second;
-        outstream << "storing results TSV file..." << endl ;
-        outstream << "detected " << detected_merged << " CNV events (" << detected << " overall regions)" << endl << endl ;
+		//merge adjacent ranges
+		outstream << "ranges before merge: " << ranges.count() << endl;
+		for (int r=ranges.count()-2; r>=0; --r)
+		{
+			Range& first = ranges[r];
+			Range& second = ranges[r+1];
+			if(first.type!=second.type) continue; //same type (ins/del)
+			if(first.end!=second.start-1) continue; //subsequent exons
+			if(results[first.start].s!=results[second.start].s) continue; //same sample
+			if(exons[results[first.start].e].chr!=exons[results[second.start].e].chr) continue; //same chromosome
 
-        //print a little statistics
+			first.end = second.end;
+			ranges.removeAt(r+1);
+		}
+		outstream << "ranges after merge: " << ranges.count() << endl  << endl;
+
+		//TODO merge regions (same sample, same chr, dist<n) if (they show the same trend and the percentage of cn!=2 regions is still > 90%)
+		//const int n = 5;
+
+        //store results
+		int exon_count = storeResultAsTSV(ranges, results, data, exons, getOutfile("out"), comments, getFlag("anno"), getFlag("test"));
+        outstream << "storing results TSV file..." << endl ;
+		outstream << "detected " << ranges.count() << " CNV events (" << exon_count << " overall regions)" << endl << endl;
+
+		//print statistics
         double corr_sum = 0;
         foreach(const SampleData& sample, data)
         {
@@ -912,8 +944,8 @@ public:
         outstream << "  invalid regions: " << c_bad_region << " of " << (exons.count() + c_bad_region) << endl;
         outstream << "  invalid samples: " << (c_bad_sample + c_bad_sample2) << " of " << in.count() << endl;
         outstream << "  mean correlation of samples to reference: " << QString::number(corr_sum/c_valid, 'f', 4) << endl;
-        outstream << "  mean CNV events per sample per 100 regions: " << QString::number(1.0*detected_merged/c_valid/(exons.count()/100.0), 'f', 4) << endl;
-        outstream << "  mean regions per CNV event: " << QString::number(1.0*detected/detected_merged, 'f', 2) << endl;
+		outstream << "  mean CNV events per sample per 100 regions: " << QString::number(1.0*ranges.count()/c_valid/(exons.count()/100.0), 'f', 4) << endl;
+		outstream << "  mean regions per CNV event: " << QString::number(1.0*detected/ranges.count(), 'f', 2) << endl;
         outstream << endl << endl;
 
         //store verbose files
