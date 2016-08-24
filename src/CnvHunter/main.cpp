@@ -233,7 +233,7 @@ public:
 		return genes;
 	}
 
-	int storeResultAsTSV(const QList<Range>& ranges, const QVector<ResultData>& results, const QVector<SampleData>& data, const QVector<ExonData>& exons, QString filename, QStringList comments, bool anno, bool test)
+	void storeResultAsTSV(const QList<Range>& ranges, const QVector<ResultData>& results, const QVector<SampleData>& data, const QVector<ExonData>& exons, QString filename, QStringList comments, bool anno, bool test)
     {
 		QSharedPointer<QFile> out = Helper::openFileForWriting(filename);
         QTextStream outstream(out.data());
@@ -246,7 +246,6 @@ public:
 		//header
 		outstream << "#chr\tstart\tend\tsample\tregion_count\tregion_copy_numbers\tregion_zscores\tregion_coordinates" << (anno ? "\tgenes" : "") << endl;
 
-		int exon_count = 0;
 		for (int r=0; r<ranges.count(); ++r)
         {
 			const Range& range = ranges[r];
@@ -282,12 +281,7 @@ public:
 				}
 			}
 			outstream << endl;
-
-			//count number of regions
-			exon_count += range.size();
-        }
-
-		return exon_count;
+		}
     }
 
     void storeNormalizedData(const QVector<SampleData>& data, const QVector<ExonData>& exons)
@@ -361,7 +355,7 @@ public:
 
 	virtual void writeRegionDistributionCV(const QVector<ExonData>& exons, QTextStream& outstream)
 	{
-		outstream << "Region CV (normalized depth of coverage) histogram:" << endl;
+		outstream << "Region coefficient of variation (normalized depth of coverage) histogram:" << endl;
 		QVector<int> counts(10, 0);
 		for (int e=0; e<exons.count(); ++e)
 		{
@@ -380,7 +374,7 @@ public:
 
 	virtual void writeSampleDistributionCNVs(const QVector<SampleData>& data, QTextStream& outstream)
 	{
-		outstream << "Merged CNVs per sample histogram:" << endl;
+		outstream << "CNVs per sample histogram:" << endl;
 		QVector<int> counts(21, 0);
 		for (int s=0; s<data.count(); ++s)
 		{
@@ -488,7 +482,7 @@ public:
         }
 
         //count gonosome regions
-        outstream << "normalizing depth-of-coverage data..." << endl;
+		outstream << "=== normalizing depth-of-coverage data ===" << endl;
         int c_chrx = 0;
         int c_chry = 0;
         int c_chro = 0;
@@ -508,10 +502,10 @@ public:
             }
         }
         int c_auto = exons.count() - c_chrx - c_chry -c_chro;
-        outstream << "  number of autosomal regions: " << c_auto << endl;
-        outstream << "  number of regions on chrX: " << c_chrx << endl;
-        outstream << "  number of regions on chrY: " << c_chry << " (ignored)" << endl;
-        outstream << "  number of regions on other chromosomes: " << c_chro << " (ignored)" << endl;
+		outstream << "number of autosomal regions: " << c_auto << endl;
+		outstream << "number of regions on chrX: " << c_chrx << endl;
+		outstream << "number of regions on chrY: " << c_chry << " (ignored)" << endl;
+		outstream << "number of regions on other chromosomes: " << c_chro << " (ignored)" << endl;
 
         //normalize DOC by mean (for autosomes/gonosomes separately)
         for (int s=0; s<data.count(); ++s)
@@ -578,7 +572,7 @@ public:
 				data[s].qc += "avg_depth_autosomes=" + QString::number(mean_auto) + " ";
 			}
 		}
-        outstream << "done" << endl << endl;
+		outstream << endl << endl;
 
 		//calculate overall average depth (of good samples)
 		QVector<double> tmp;
@@ -597,7 +591,7 @@ public:
 		if(exclude!="") excluded.load(exclude);
 
         //region QC
-		outstream << "validating regions..." << endl;
+		outstream << "=== checking for bad regions ===" << endl;
         int c_bad_region = 0;
         for (int e=0; e<exons.count(); ++e)
         {
@@ -668,7 +662,7 @@ public:
         }
 
         //construct reference from 'n' most similar samples
-        outstream << "validating samples..." << endl;
+		outstream << "=== checking for bad samples ===" << endl;
         int c_bad_sample = 0;
         for (int s=0; s<data.count(); ++s)
 		{
@@ -786,7 +780,7 @@ public:
         exons.resize(to);
 
         //detect CNVs from DOC data
-        outstream << "initial CNV detection..." << endl;
+		outstream << "=== CNV seed detection ===" << endl;
 		int index = 0;
 		QList<Range> ranges;
         QVector<ResultData> results;
@@ -825,8 +819,8 @@ public:
 		outstream << "detected " << ranges.count() << " seed regions" << endl << endl;
 
         //extending initial CNVs in both directions
-        outstream << "extending CNV seeds..." << endl;
-		int detected = 0;
+		outstream << "=== CNV extension ===" << endl;
+		int c_extended = 0;
 		for (int r=0; r<ranges.count(); ++r)
 		{
 			Range& range = ranges[r];
@@ -857,7 +851,7 @@ public:
                 results[i].copies = copies;
 				range.start = i;
                 //outstream << "    EX LEFT " << data[curr.s].filename << " " << exons[curr.e].name << " " << curr.z << " " << copies << endl;
-                ++detected;
+				++c_extended;
                 --i;
             }
 
@@ -883,14 +877,14 @@ public:
                 results[i].copies = copies;
 				range.end = i;
                 //outstream << "    EX RIGH " << data[curr.s].filename << " " << exons[curr.e].name << " " << curr.z << " " << copies << endl;
-                ++detected;
+				++c_extended;
                 ++i;
             }
         }
-		outstream << "extended to " << detected << " additional regions from seeds" << endl << endl;
+		outstream << "extended seeds to " << c_extended << " additional regions" << endl << endl;
 
         //flag samples that have too many CNV events
-        outstream << "flag samples that have too many CNV events as bad..." << endl;
+		outstream << "=== flagging samples that have too many CNV events as bad ===" << endl;
         int c_bad_sample2 = 0;
         for (int i=0; i<results.count(); ++i)
         {
@@ -916,6 +910,8 @@ public:
 		writeSampleDistributionCNVs(data, outstream);
 
 		//merge adjacent ranges
+		outstream << "=== merging adjacent CNV regions to larger events ===" << endl;
+		int c_ranges_before_merge = ranges.count();
 		for (int r=ranges.count()-2; r>=0; --r)
 		{
 			Range& first = ranges[r];
@@ -929,7 +925,7 @@ public:
 			ranges.removeAt(r+1);
 		}
 
-		//merge nearby regions (bridge gaps)
+		//merge nearby regions (bridge gaps with CN=2)
 		if (ext_gap_span>0)
 		{
 			for (int r=ranges.count()-2; r>=0; --r)
@@ -970,11 +966,10 @@ public:
 				ranges.removeAt(r+1);
 			}
 		}
+		outstream << "merged " << c_ranges_before_merge << " to " << ranges.count() << " ranges" << endl << endl;
 
         //store results
-		int exon_count = storeResultAsTSV(ranges, results, data, exons, getOutfile("out"), comments, getFlag("anno"), getFlag("test"));
-        outstream << "storing results TSV file..." << endl ;
-		outstream << "detected " << ranges.count() << " CNV events (" << exon_count << " overall regions)" << endl << endl;
+		storeResultAsTSV(ranges, results, data, exons, getOutfile("out"), comments, getFlag("anno"), getFlag("test"));
 
 		//print statistics
         double corr_sum = 0;
@@ -986,12 +981,18 @@ public:
             }
         }
         int c_valid = in.count() - c_bad_sample - c_bad_sample2;
-        outstream << "statistics:" << endl;
-        outstream << "  invalid regions: " << c_bad_region << " of " << (exons.count() + c_bad_region) << endl;
-        outstream << "  invalid samples: " << (c_bad_sample + c_bad_sample2) << " of " << in.count() << endl;
-        outstream << "  mean correlation of samples to reference: " << QString::number(corr_sum/c_valid, 'f', 4) << endl;
-		outstream << "  mean CNV events per sample per 100 regions: " << QString::number(1.0*ranges.count()/c_valid/(exons.count()/100.0), 'f', 4) << endl;
-		outstream << "  mean regions per CNV event: " << QString::number(1.0*detected/ranges.count(), 'f', 2) << endl;
+		outstream << "=== statistics ===" << endl;
+		outstream << "invalid regions: " << c_bad_region << " of " << (exons.count() + c_bad_region) << endl;
+		outstream << "invalid samples: " << (c_bad_sample + c_bad_sample2) << " of " << in.count() << endl;
+		outstream << "mean correlation of samples to reference: " << QString::number(corr_sum/c_valid, 'f', 4) << endl;
+		double size_sum = 0;
+		foreach(const Range& range, ranges)
+		{
+			size_sum += range.size();
+		}
+		outstream << "number of CNV events: " << ranges.count() << " (consisting of " << size_sum << " regions)" << endl;
+		outstream << "mean regions per CNV event: " << QString::number(size_sum/ranges.count(), 'f', 2) << endl;
+		outstream << "mean CNV events per sample per 100 regions: " << QString::number(1.0*ranges.count()/c_valid/(exons.count()/100.0), 'f', 4) << endl;
         outstream << endl << endl;
 
         //store verbose files
