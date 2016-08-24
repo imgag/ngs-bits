@@ -654,10 +654,10 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	ScatterPlot plot1;
 	plot1.setXLabel("allele frequency tumor");
 	plot1.setYLabel("allele frequency normal");
-	plot1.setXRange(0.0,1.0);
-	plot1.setYRange(0.0,1.0);
+	plot1.setXRange(-0.015,1.015);
+	plot1.setYRange(-0.015,1.015);
 	QList< QPair<double,double> > points_black;
-	QList< QPair<double,double> > points_blue;
+	QList< QPair<double,double> > points_green;
 	for(int i=0; i<variants.count(); ++i)
 	{
 		double af_tumor = -1;
@@ -739,25 +739,27 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 		point.first = af_tumor;
 		point.second = af_normal;
 		if (!variants[i].filters().empty())	points_black.append(point);
-		else points_blue.append(point);
+		else points_green.append(point);
 	}
 
 	QList< QPair<double,double> > points;
-	points  << points_black << points_blue;
+	points  << points_black << points_green;
 
+	QString g = "k";
+	QString b = "g";
 	QList< QString > colors;
 	for(int i=0;i<points_black.count();++i)
 	{
-		colors.append("k");
+		colors.append(g);
 	}
-	for(int i=0;i<points_blue.count();++i)
+	for(int i=0;i<points_green.count();++i)
 	{
-		colors.append("b");
+		colors.append(b);
 	}
 
 	plot1.setValues(points, colors);
-	plot1.addColorLegend("b","filtered variants");
-	plot1.addColorLegend("k","all variants");
+	plot1.addColorLegend(g,"all variants");
+	plot1.addColorLegend(b,"filtered variants");
 
 	QString plot1name = Helper::tempFileName(".png");
 	plot1.store(plot1name);
@@ -774,14 +776,14 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	{
 		plot2.addColorLegend(color,color_map.key(color));
 	}
-	QList<QString> codons = QList<QString>{""};
-	QList<int> counts = QList<int>{0};
-	QList<int> counts_target = QList<int>{0};
-	QList<int> counts_genome = QList<int>{0};
-	QList<double> counts_normalized = QList<double>{0};
-	QList<double> frequencies = QList<double>{0};
-	QList<QString> labels = QList<QString>{""};
-	colors = QList<QString>{"w"};
+	QList<QString> codons;
+	QList<int> counts;
+	QList<int> counts_target;
+	QList<int> counts_genome;
+	QList<double> counts_normalized;
+	QList<double> frequencies;
+	QList<QString> labels;
+	colors = QList<QString>();
 	QStringList sig = QStringList{"C","T"};
 	foreach(QString r, sig)
 	{
@@ -921,7 +923,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	//codons: normalize current codons and calculate percentages for each codon
 	double y_max = 5;
 	double sum = 0;
-	for(int i=1; i<codons.count(); ++i)
+	for(int i=0; i<codons.count(); ++i)
 	{
 		QString cod = codons[i].mid(0,3);
 		counts_normalized[i] = counts[i]/double(count_codons_target[cod]);
@@ -929,16 +931,16 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	}
 	if(sum!=0)
 	{
-		for(int i=1; i<counts_normalized.count(); ++i)
+		for(int i=0; i<counts_normalized.count(); ++i)
 		{
 			frequencies[i] = counts_normalized[i]/sum * 100;
 			if(frequencies[i]>y_max)	y_max = frequencies[i];
 		}
 	}
 
-	plot2.setYRange(0,(y_max==5?y_max:y_max*1.2));
+	plot2.setXRange(-1.5,frequencies.count()+0.5);
+	plot2.setYRange(-y_max*0.02,y_max*1.2);
 	plot2.setValues(frequencies, labels, colors);
-	plot2.setXRange(0,97);
 	QString plot2name = Helper::tempFileName(".png");
 	plot2.store(plot2name);
 	output.insert(QCValue::Image("somatic variant signature plot", plot2name, ".", "QC:2000047"));
@@ -1010,8 +1012,8 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 			tmp_chr = variants[i].chr().str();
 			tmp_pos = variants[i].start();
 		}
-		plot3.setYRange(1,max*100);
-		plot3.setXRange(0,1);
+		plot3.setYRange(-0.5,max*100);
+		plot3.setXRange(-0.015,1.015);
 		plot3.noXTicks();
 		plot3.setValues(points3);
 		QString plot3name = Helper::tempFileName(".png");
