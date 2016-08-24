@@ -882,33 +882,6 @@ public:
             }
         }
 		outstream << "extended seeds to " << c_extended << " additional regions" << endl << endl;
-
-        //flag samples that have too many CNV events
-		outstream << "=== flagging samples that have too many CNV events as bad ===" << endl;
-        int c_bad_sample2 = 0;
-        for (int i=0; i<results.count(); ++i)
-        {
-            //current region is CNV
-            if (results[i].copies!=2)
-            {
-				if (!previousExists(results, exons, i) || results[i-1].copies==2)
-                {
-                    ++data[results[i].s].cnvs_merged;
-                }
-            }
-        }
-        for (int s=0; s<data.count(); ++s)
-        {
-            if (data[s].cnvs_merged>sam_max_cnvs)
-            {
-                data[s].qc += "sam_max_cnvs>" + QString::number(sam_max_cnvs) + " ";
-                outstream << "  bad sample: " << data[s].name << " cnvs=" << data[s].cnvs_merged << endl;
-                ++c_bad_sample2;
-            }
-        }
-        outstream << "flagged " << c_bad_sample2 << " samples" << endl << endl;
-		writeSampleDistributionCNVs(data, outstream);
-
 		//merge adjacent ranges
 		outstream << "=== merging adjacent CNV regions to larger events ===" << endl;
 		int c_ranges_before_merge = ranges.count();
@@ -936,9 +909,9 @@ public:
 				if(results[first.start].s!=results[second.start].s) continue; //same sample
 				if(exons[results[first.start].e].chr!=exons[results[second.start].e].chr) continue; //same chromosome
 				const int dist = second.start-first.end-1;
-				if (dist>ext_gap_span/100.0*(first.size() + second.size())) continue; //gap not greater than 20% of the combined regions size
+				if (dist>ext_gap_span/100.0*(first.size() + second.size())) continue; //gap not too big
 
-				//check that no exon with the wrong trend is in between
+				//check that no region with the wrong trend is in between
 				bool skip = false;
 				for (int i=first.end+1; i<second.start; ++i)
 				{
@@ -967,6 +940,32 @@ public:
 			}
 		}
 		outstream << "merged " << c_ranges_before_merge << " to " << ranges.count() << " ranges" << endl << endl;
+
+        //flag samples that have too many CNV events
+		outstream << "=== flagging samples that have too many CNV events as bad ===" << endl;
+        int c_bad_sample2 = 0;
+        for (int i=0; i<results.count(); ++i)
+        {
+            //current region is CNV
+            if (results[i].copies!=2)
+            {
+				if (!previousExists(results, exons, i) || results[i-1].copies==2)
+                {
+                    ++data[results[i].s].cnvs_merged;
+                }
+            }
+        }
+        for (int s=0; s<data.count(); ++s)
+        {
+            if (data[s].cnvs_merged>sam_max_cnvs)
+            {
+                data[s].qc += "sam_max_cnvs>" + QString::number(sam_max_cnvs) + " ";
+                outstream << "  bad sample: " << data[s].name << " cnvs=" << data[s].cnvs_merged << endl;
+                ++c_bad_sample2;
+            }
+        }
+        outstream << "flagged " << c_bad_sample2 << " samples" << endl << endl;
+		writeSampleDistributionCNVs(data, outstream);
 
         //store results
 		storeResultAsTSV(ranges, results, data, exons, getOutfile("out"), comments, getFlag("anno"), getFlag("test"));

@@ -33,9 +33,8 @@ Tools:
 - SomaticQC: write test
 
 CnvHunter:
+ * refactoring: use shared pointers to exons/samples instead of indices => store sample/chromosome in range?!
  * update test data (include MAPQ=0, add low-coverage genome data, ...)
- * refactoring: use shared pointers to exons/samples instead of indices (readability!)
- * refactoring: store sample/chromosome in range?!
  * add optional percentile normalization
  * add optional GC-normalization (then, check GS151166_01 gene C5orf42)
  * Check HaloPlex HS data
