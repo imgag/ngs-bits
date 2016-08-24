@@ -33,7 +33,7 @@ Tools:
 - SomaticQC: write test
 
 CnvHunter:
- * refactoring: use shared pointers to exons/samples instead of indices => store sample/chromosome in range?!
+ * refactoring: remove cnvs/cnvs_merged from sample/exon data?!
  * update test data (include MAPQ=0, add low-coverage genome data, ...)
  * add optional percentile normalization
  * add optional GC-normalization (then, check GS151166_01 gene C5orf42)
