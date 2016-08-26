@@ -1,7 +1,11 @@
 ### SomaticQC tool help
-	SomaticQC (0.1-438-g79b1e8b)
+	SomaticQC (0.1-461-ga421898)
 	
 	Calculates QC metrics based on tumor-normal pairs.
+	
+	SomaticQC integrates the output of the other QC tools
+	and adds several metrics specific for tumor-normal pairs. All tools produce qcML,
+	a generic XML format for QC of -omics experiments, which we adapted for NGS.
 	
 	Mandatory parameters:
 	  -tumor_bam <file>    Input tumor bam file.
@@ -26,6 +30,6 @@
 	  --tdx                Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SomaticQC changelog
-	SomaticQC 0.1-438-g79b1e8b
+	SomaticQC 0.1-461-ga421898
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
