@@ -61,13 +61,15 @@ _ngs-bits_ contains a lot of tools that we use for NGS short-read data analysis 
 ### Main tools
 
 * [SeqPurge](doc/tools/SeqPurge.md) - A highly-sensitive adapter trimmer for paired-end short-read data ([paper](http://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-016-1069-7)).
-* [ReadQC](doc/tools/ReadQC.md) - Quality control tool for FASTQ files (output is [qcML](https://code.google.com/p/qcml/)).
-* [MappingQC](doc/tools/MappingQC.md) - Quality control tool for a BAM file (output is [qcML](https://code.google.com/p/qcml/)).
-* [VariantQC](doc/tools/VariantQC.md) - Quality control tool for a VCF file (output is [qcML](https://code.google.com/p/qcml/)).
-* [SomaticQC](doc/tools/SomaticQC.md) - Quality control tool for tumor-normal pairs (output is [qcML](https://code.google.com/p/qcml/)). Examplary data for download: [tumor-normal.zip](doc/data/somatic_qc.zip).
 * [SampleCorrelation](doc/tools/SampleCorrelation.md) - Calculates the variant overlap and correlation of two VCF/BAM files.
 * [SampleGender](doc/tools/SampleGender.md) - Determines sample gender based on a BAM file.
 * [PERsim](doc/tools/PERsim.md) - Paired-end read simulator for Illumina reads.
+
+### QC tools
+* [ReadQC](doc/tools/ReadQC.md) - Quality control tool for FASTQ files (output is [qcML](https://code.google.com/p/qcml/)).
+* [MappingQC](doc/tools/MappingQC.md) - Quality control tool for a BAM file (output is [qcML](https://code.google.com/p/qcml/)).
+* [VariantQC](doc/tools/VariantQC.md) - Quality control tool for a VCF file (output is [qcML](https://code.google.com/p/qcml/)).
+* [SomaticQC](doc/tools/SomaticQC.md) - Quality control tool for tumor-normal pairs (output is [qcML](https://code.google.com/p/qcml/)). Examplary data for download: [tumor-normal.zip](doc/data/somatic_qc.zip?raw=true).
 
 ### BAM tools
 
