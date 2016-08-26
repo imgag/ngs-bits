@@ -34,7 +34,7 @@ ngs-bits depends on the following software to be installed
 * _cmake_ (to build the [bamtools](https://github.com/pezmaster31/bamtools) library)
 * __optional:__ python and matplotlib (for plot generation in QC tools)
 
-For example, the installation of the dependencies using Ubuntu 14.04 looks like that:
+For example, the installation of the dependencies using Ubuntu 14.04/16.04 looks like that:
 
 	> sudo apt-get install g++ qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql git cmake python python-matplotlib
 
