@@ -698,7 +698,7 @@ public:
                     }
                     if (values.count()==n) break;
                 }
-				if (values.count()==n) //TODO caclulate also when enough data points are available! How many are that? Test!
+				if (values.count()==n)
                 {
                     std::sort(values.begin(), values.end());
                     double median = BasicStatistics::median(values);

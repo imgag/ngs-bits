@@ -33,10 +33,10 @@ Tools:
 - SomaticQC: write test
 
 CnvHunter:
- * refactoring: remove cnvs/cnvs_merged from sample/exon data?!
  * update test data (include MAPQ=0, add low-coverage genome data, ...)
  * add optional percentile normalization
  * add optional GC-normalization (then, check GS151166_01 gene C5orf42)
+ * caclulate real ncov distribution also when enough data points are available. How many are that? Test/Simulate! (see line ~700: 'values.count()==n')
  * Check HaloPlex HS data
  - Für alle/wichtige CNAs Plot (log-ratio/z-score/call) mit Umgebung
  - integrate CNV databases:

@@ -1,5 +1,5 @@
 ### FastqTrim tool help
-	FastqTrim (0.1-420-g3536bb0)
+	FastqTrim (0.1-461-ga421898)
 	
 	Trims start/end bases from all reads in a FASTQ file.
 	
@@ -8,9 +8,11 @@
 	  -out <file>  Output gzipped FASTQ file.
 	
 	Optional parameters:
-	  -start <int> Number of bases to trim from start of the read.
+	  -start <int> Trim this number of bases from the start of the read.
 	               Default value: '0'
-	  -end <int>   Number of bases to trim from the end of the read.
+	  -end <int>   Trim this number of bases from the end of the read.
+	               Default value: '0'
+	  -len <int>   Restrict read length to this value (after trimming from start/end).
 	               Default value: '0'
 	
 	Special parameters:
@@ -20,6 +22,7 @@
 	  --tdx        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### FastqTrim changelog
-	FastqTrim 0.1-420-g3536bb0
+	FastqTrim 0.1-461-ga421898
 	
+	2016-08-26 Added 'len' parameter.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

@@ -1,5 +1,5 @@
 ### CnvHunter tool help
-	CnvHunter (0.1-420-g3536bb0)
+	CnvHunter (0.1-461-ga421898)
 	
 	Detects copy number variations from targeted resequencing data using non-matched control samples.
 	
@@ -17,9 +17,9 @@
 	  -min_z <float>         Minimum z-score for CNV seed detection.
 	                         Default value: '4'
 	  -ext_min_z <float>     Minimum z-score for CNV extension around seeds.
-	                         Default value: '2.5'
-	  -ext_max_dist <int>    Maximum region distance for extension.
-	                         Default value: '1000000'
+	                         Default value: '2'
+	  -ext_gap_span <float>  Percentage of orignal region size that can be spanned while merging nearby regions (0 disables it).
+	                         Default value: '20'
 	  -sam_min_depth <float> QC: Minimum average depth of a sample.
 	                         Default value: '40'
 	  -sam_min_corr <float>  QC: Minimum correlation of sample to constructed reference sample.
@@ -32,11 +32,11 @@
 	                         Default value: '0.01'
 	  -reg_max_cv <float>    QC: Maximum coefficient of variation (median/mad) of target region.
 	                         Default value: '0.29999999999999999'
-	  -verbose               Enables verbose mode. Writes detail information files for samples, regions and results.
-	                         Default value: 'false'
 	  -anno                  Enable annotation of gene names to regions (needs the NGSD database).
 	                         Default value: 'false'
-	  -test                  Uses the test database instead of on the production database for annotation.
+	  -verbose               Enables verbose mode. Writes detail information files for samples, regions and results.
+	                         Default value: 'false'
+	  -test                  Uses test database instead of production database for annotation.
 	                         Default value: 'false'
 	
 	Special parameters:
@@ -46,6 +46,8 @@
 	  --tdx                  Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### CnvHunter changelog
-	CnvHunter 0.1-420-g3536bb0
+	CnvHunter 0.1-461-ga421898
 	
+	2016-08-23 Added merging of large CNVs that were split to several regions due to noise.
+	2016-08-21 Improved log output (to make parameter optimization easier).
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
