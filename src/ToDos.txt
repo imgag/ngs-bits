@@ -6,10 +6,10 @@ libs:
       - use QSharedPointers to link VariantAnnotationHeaders with VariantAnnotationDescriptions
       - check vcf and tsv files if valid (columns and their descriptions)
    - Statistics:
-      - somatic(): normalize variant distance (plot3) for panels, e.g. calculate distances by target regions
       - somatic(): add plot comparing depth tumor/normal and allele frequencies of dbSNP variants
       - somatic(): add cnv count - QCValue("somatic CNVs count", "", "Needs to be implemented.", "QC:2000044")
-      - somatic(): consider to use only filtered variants for statistics?
+   - NGSHelper:
+      - consider soft-clipping of secondary alignments
 - cppNGS-Tests:
    - VariantFilter: Overview gene lists (missing genotype): treat all variants as homozygous?
    - Statistics: add Tests for somatic statistics

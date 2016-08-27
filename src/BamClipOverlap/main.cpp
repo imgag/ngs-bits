@@ -68,19 +68,19 @@ public:
 				++reads_saved;
 				continue;
 			}
-			if(!al.IsMapped() && !al.IsMateMapped())
+			if(!al.IsMapped() && !al.IsMateMapped())	// only mapped reads
 			{
 				writer.SaveAlignment(al);
 				++reads_saved;
 				continue;
 			}
-			if(al.RefID!=al.MateRefID)
+			if(al.RefID!=al.MateRefID)	// different chromosomes
 			{
 				writer.SaveAlignment(al);
 				++reads_saved;
 				continue;
 			}
-			if(al.CigarData.empty())
+			if(al.CigarData.empty())	// only with CIGAR data
 			{
 				writer.SaveAlignment(al);
 				++reads_saved;
@@ -200,8 +200,8 @@ public:
 						}
 					}
 
-					if(verbose)	out << "forward: name - " << QString::fromStdString(forward_read.Name) << "region -" << forward_read.RefID << ":" << forward_read.Position << "-" << forward_read.GetEndPosition() << " is: "  << forward_read.InsertSize << "; m: " << forward_read.MatePosition << "; o: " << overlap << " CIGAR " << NGSHelper::Cigar2QString(forward_read.CigarData) << endl;
-					if(verbose)	out << "reverse: name - " << QString::fromStdString(reverse_read.Name) << "region -" << forward_read.RefID << ":" << reverse_read.Position << "-" << reverse_read.GetEndPosition() << " is: "  << reverse_read.InsertSize << "; m: " << reverse_read.MatePosition << "; o: " << overlap << " CIGAR " << NGSHelper::Cigar2QString(reverse_read.CigarData) << endl;
+					if(verbose)	out << "forward: name - " << QString::fromStdString(forward_read.Name) << ", region - chr" << forward_read.RefID << ":" << forward_read.Position << "-" << forward_read.GetEndPosition() << ", insert size: "  << forward_read.InsertSize << " bp; mate: " << forward_read.MatePosition << "; overlap: " << overlap << ", CIGAR " << NGSHelper::Cigar2QString(forward_read.CigarData) << endl;
+					if(verbose)	out << "reverse: name - " << QString::fromStdString(reverse_read.Name) << ", region - chr" << forward_read.RefID << ":" << reverse_read.Position << "-" << reverse_read.GetEndPosition() << ", insert size: "  << reverse_read.InsertSize << " bp; mate: " << reverse_read.MatePosition << "; overlap: " << overlap << ", CIGAR " << NGSHelper::Cigar2QString(reverse_read.CigarData) << endl;
 					if(verbose)	out << " clip forward from " << (forward_read.GetEndPosition()-clip_forward_read+1) << " to " << forward_read.GetEndPosition() << endl;
 					if(verbose)	out << " clip reverse from " << (reverse_read.Position+1) << " to " << (reverse_read.Position+clip_reverse_read) << endl;
 
@@ -214,8 +214,8 @@ public:
 					reverse_read.InsertSize = forward_read.Position-reverse_read.GetEndPosition();	//negative value
 					reverse_read.MatePosition = forward_read.Position;
 
-					if(verbose)	out << "-> forward: name - " << QString::fromStdString(forward_read.Name) << "region -" << forward_read.RefID << ":" << forward_read.Position << "-" << forward_read.GetEndPosition() << " is: "  << forward_read.InsertSize << "; m: " << forward_read.MatePosition << "; o: " << overlap << " CIGAR " << NGSHelper::Cigar2QString(forward_read.CigarData) << endl;
-					if(verbose)	out << "-> reverse: name - " << QString::fromStdString(reverse_read.Name) << "region -" << forward_read.RefID << ":" << reverse_read.Position << "-" << reverse_read.GetEndPosition() << " is: "  << reverse_read.InsertSize << "; m: " << reverse_read.MatePosition << "; o: " << overlap << " CIGAR " << NGSHelper::Cigar2QString(reverse_read.CigarData) << endl;
+					if(verbose)	out << "-> forward: name - " << QString::fromStdString(forward_read.Name) << ", region - chr" << forward_read.RefID << ":" << forward_read.Position << "-" << forward_read.GetEndPosition() << ", insert size: "  << forward_read.InsertSize << " bp; mate: " << forward_read.MatePosition << "; overlap: " << overlap << ", CIGAR " << NGSHelper::Cigar2QString(forward_read.CigarData) << endl;
+					if(verbose)	out << "-> reverse: name - " << QString::fromStdString(reverse_read.Name) << ", region - chr" << forward_read.RefID << ":" << reverse_read.Position << "-" << reverse_read.GetEndPosition() << ", insert size: "  << reverse_read.InsertSize << " bp; mate: " << reverse_read.MatePosition << "; overlap: " << overlap << ", CIGAR " << NGSHelper::Cigar2QString(reverse_read.CigarData) << endl;
 					if(verbose)	out << endl;
 
 					//return reads

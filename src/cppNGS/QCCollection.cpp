@@ -202,7 +202,6 @@ void QCCollection::storeToQCML(QString filename, const QStringList& source_files
 	stream << "  id  ID  #REQUIRED>" << endl;
 	stream << "  ]>" << endl;
 	stream << "<qcML version=\"0.0.8\" xmlns=\"http://www.prime-xs.eu/ms/qcml\" ";
-//	if(linked_files.count()>0)	stream << " xmlns:xlink=\"http://www.w3.org/1999/xlink\"";
 	stream << ">" << endl;
 	stream << "  <runQuality ID=\"rq0001\">" << endl;
 

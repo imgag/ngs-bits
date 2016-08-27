@@ -486,40 +486,35 @@ void NGSHelper::softClipAlignment(BamAlignment& al, int start_ref_pos, int end_r
 
 	//check preconditions
 	if(start_ref_pos > end_ref_pos)	THROW(ToolFailedException, "End position is smaller than start position.");
-	if(start_ref_pos < al.Position+1 || start_ref_pos > al.GetEndPosition())	THROW(ToolFailedException, "Start position not within alignment.");
-	if(end_ref_pos < al.Position+1 || start_ref_pos > al.GetEndPosition())	THROW(ToolFailedException, "Start position not within alignment.");
+	if(start_ref_pos < al.Position+1 || start_ref_pos > al.GetEndPosition())	THROW(ToolFailedException, "Start position " + QString::number(start_ref_pos) + " not within alignment.");
+	if(end_ref_pos < al.Position+1 || start_ref_pos > al.GetEndPosition())	THROW(ToolFailedException, "Start position " + QString::number(start_ref_pos) + " not within alignment.");
 	for(unsigned int i=0;i<old_CIGAR.size(); ++i)
 	{
-		if(old_CIGAR[i].Type!='D' && old_CIGAR[i].Type!='S' && old_CIGAR[i].Type!='M' && old_CIGAR[i].Type!='I')	THROW(ToolFailedException, "Unsupported CIGAR type "+old_CIGAR[i].Type);	//check for supported CIGAR types
+		if(old_CIGAR[i].Type!='D' && old_CIGAR[i].Type!='S' && old_CIGAR[i].Type!='M' && old_CIGAR[i].Type!='I' && old_CIGAR[i].Type!='H')	THROW(ToolFailedException, "Unsupported CIGAR type '" + QString(old_CIGAR[i].Type) + "'");	//check for supported CIGAR types
 	}
 
 	//generate CIGAR char matrix from CIGAR
 	std::vector< std::pair<char,char> > matrix;
 	for (unsigned int i=0; i<old_CIGAR.size(); ++i)
 	{
-		//qDebug() << QString::fromStdString(al.Name) <<  old_CIGAR[i].Type;
 		for(unsigned int j=0; j<old_CIGAR[i].Length; ++j)
 		{
 			matrix.push_back(std::make_pair(old_CIGAR[i].Type,old_CIGAR[i].Type));
-			//qDebug() << " " << j;
 		}
 	}
 
 	//soft clip bases in matrix according to given ref_positions
 	unsigned int j = 0;
-	int current_ref_pos = al.Position+1;	//position is 0-based!
+	int current_ref_pos = al.Position+1;	//position is 0-based! (sam 1-based, bam 0-based)
 	while(current_ref_pos<=al.GetEndPosition())
 	{
 		if(j>=matrix.size())	THROW(ToolFailedException, "Index out of boundary!");
 
-		if(current_ref_pos>=start_ref_pos && current_ref_pos<=end_ref_pos)
+		if(matrix[j].first!='H')
 		{
-			matrix[j].second = 'S';
+			if(current_ref_pos>=start_ref_pos && current_ref_pos<=end_ref_pos)	matrix[j].second = 'S';
+			if(matrix[j].first=='D' || matrix[j].first=='M')	++current_ref_pos;
 		}
-
-		if(matrix[j].first=='D' || matrix[j].first=='M')	++current_ref_pos;
-
-		//qDebug() << QString::number(j) << matrix[j].first << "=>" << matrix[j].second;
 		++j;
 	}
 
@@ -529,12 +524,7 @@ void NGSHelper::softClipAlignment(BamAlignment& al, int start_ref_pos, int end_r
 	int tmp_count = 0;
 	for(unsigned int i=0; i<matrix.size(); ++i)
 	{
-		//qDebug() << matrix[i].first << " (" << matrix[i].second << ")" << tmp_count;
-		if(matrix[i].first=='D' && matrix[i].second=='S')	//skip soft-clipped deletions
-		{
-			//qDebug() << " soft-clipped deletion";
-			continue;
-		}
+		if(matrix[i].first=='D' && matrix[i].second=='S')	continue;	//skip soft-clipped deletions
 
 		if(matrix[i].second!=tmp_char)
 		{
@@ -558,12 +548,12 @@ void NGSHelper::softClipAlignment(BamAlignment& al, int start_ref_pos, int end_r
 	co.Length = tmp_count;
 	new_CIGAR.insert(new_CIGAR.end(), co);
 
-	//clean up cigar string;
+	//clean up cigar string; insertions and deletion around soft-clipped regions
 	for(unsigned int i=1; i<new_CIGAR.size(); ++i)
 	{
 		bool redo = false;
 
-		//1. remove deleted bases around soft-clipped bases
+		// 1. remove deleted bases around soft-clipped bases
 		if(new_CIGAR[i-1].Type=='S' && new_CIGAR[i].Type=='D')
 		{
 			new_CIGAR.erase(new_CIGAR.begin()+i);
@@ -592,17 +582,21 @@ void NGSHelper::softClipAlignment(BamAlignment& al, int start_ref_pos, int end_r
 	}
 
 	//correct left-most position if first bases are soft-clipped, consider bases that were already softclipped previously
-	if(matrix[0].second=='S')
+	unsigned int start_index = 0;
+	while(matrix[start_index].second=='H' && start_index < matrix.size())
 	{
-		unsigned int i = 0;
+		++start_index;
+	}
+	if(matrix[start_index].second=='S')
+	{
 		int offset = 0;
-		while(i<matrix.size() && matrix[i].second=='S')
+		while(matrix[start_index].second=='S' && start_index<matrix.size())
 		{
-			if(matrix[i].first=='M' || matrix[i].first=='D')
+			if(matrix[start_index].first=='M' || matrix[start_index].first=='D')
 			{
 				++offset;
 			}
-			++i;
+			++start_index;
 		}
 		al.Position = al.Position + offset;
 	}

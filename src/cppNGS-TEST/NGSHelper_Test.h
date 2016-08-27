@@ -251,38 +251,96 @@ private slots:
 
 	void softClipAlignment()
 	{
+		BamAlignment al;
+		QString clipped_cigar1;
+		QString clipped_cigar2;
+
+//positions in sam format are 1-based
+
 		BamReader reader;
 		NGSHelper::openBAM(reader, TESTDATA("data_in/panel.bam"));
-		BamAlignment al1;
 
-		//first soft-clip al1
-		reader.GetNextAlignment(al1);
-		while(!al1.IsMapped())		reader.GetNextAlignment(al1);
+		//first soft-clip al
+		reader.GetNextAlignment(al);
+		while(!al.IsMapped())		reader.GetNextAlignment(al);
 
-		NGSHelper::softClipAlignment(al1,317587,317596);
+		NGSHelper::softClipAlignment(al,317587,317596);
 		//build CIGAR-string
-		QString clipped_cigar1 = "10S123M13I5M";
-		QString clipped_cigar2 = NGSHelper::Cigar2QString(al1.CigarData);
+		clipped_cigar1 = "10S123M13I5M";
+		clipped_cigar2 = NGSHelper::Cigar2QString(al.CigarData);
 		S_EQUAL(clipped_cigar2, clipped_cigar1);
 
-		//second soft-clip same al1
-		NGSHelper::softClipAlignment(al1,317597,317721);
+		//second soft-clip same al
+		NGSHelper::softClipAlignment(al,317597,317721);
 		//build CIGAR-strings
-		QString clipped_cigar3 = "148S3M";
-		QString clipped_cigar4 = NGSHelper::Cigar2QString(al1.CigarData);
-		S_EQUAL(clipped_cigar4, clipped_cigar3);
+		clipped_cigar1 = "148S3M";
+		clipped_cigar2 = NGSHelper::Cigar2QString(al.CigarData);
+		S_EQUAL(clipped_cigar2, clipped_cigar1);
 
 		//next alignment
-		reader.GetNextAlignment(al1);
-		while(!al1.IsMapped())		reader.GetNextAlignment(al1);
+		reader.GetNextAlignment(al);
+		while(!al.IsMapped())		reader.GetNextAlignment(al);
 
 		//third soft-clip different al1
-		NGSHelper::softClipAlignment(al1,1048687,1048692);
+		NGSHelper::softClipAlignment(al,1048687,1048692);
 		//build CIGAR-strings
-		NGSHelper::softClipAlignment(al1,1048540,1048576);
-		QString clipped_cigar7 = "36S109M6S";
-		QString clipped_cigar8 = NGSHelper::Cigar2QString(al1.CigarData);
-		S_EQUAL(clipped_cigar7, clipped_cigar8);
+		NGSHelper::softClipAlignment(al,1048540,1048576);
+		clipped_cigar1 = "36S109M6S";
+		clipped_cigar2 = NGSHelper::Cigar2QString(al.CigarData);
+		S_EQUAL(clipped_cigar2, clipped_cigar1);
+
+		NGSHelper::openBAM(reader, TESTDATA("data_in/bamclipoverlap.bam"));
+
+		//first soft-clip al
+		reader.GetNextAlignment(al);
+		reader.GetNextAlignment(al);
+		reader.GetNextAlignment(al);
+		reader.GetNextAlignment(al);
+		reader.GetNextAlignment(al);
+		reader.GetNextAlignment(al);
+		reader.GetNextAlignment(al);
+		reader.GetNextAlignment(al);
+		reader.GetNextAlignment(al);
+		reader.GetNextAlignment(al);
+		reader.GetNextAlignment(al);
+		reader.GetNextAlignment(al);
+		reader.GetNextAlignment(al);
+		reader.GetNextAlignment(al);
+		reader.GetNextAlignment(al);
+		reader.GetNextAlignment(al);
+		reader.GetNextAlignment(al);
+		reader.GetNextAlignment(al);
+		while(!al.IsMapped())		reader.GetNextAlignment(al);
+
+		S_EQUAL(QString::fromStdString(al.Name), "PC0226:55:000000000-A5CV9:1:1101:2110:14905");
+		NGSHelper::softClipAlignment(al,33038615,33038624);
+		clipped_cigar1 = "5H10S141M";
+		clipped_cigar2 = NGSHelper::Cigar2QString(al.CigarData);
+		S_EQUAL(clipped_cigar2, clipped_cigar1);
+		S_EQUAL(al.Position, 33038624);
+
+		NGSHelper::softClipAlignment(al,33038756,33038765);
+		//build CIGAR-string
+		clipped_cigar1 = "5H10S131M10S";
+		clipped_cigar2 = NGSHelper::Cigar2QString(al.CigarData);
+		S_EQUAL(clipped_cigar2, clipped_cigar1);
+
+		reader.GetNextAlignment(al);
+		reader.GetNextAlignment(al);
+
+		S_EQUAL(QString::fromStdString(al.Name), "PC0226:55:000000000-A5CV9:1:1101:2110:14905");
+		NGSHelper::softClipAlignment(al,33038659,33038668);
+		//build CIGAR-string
+		clipped_cigar1 = "10S141M5H";
+		clipped_cigar2 = NGSHelper::Cigar2QString(al.CigarData);
+		S_EQUAL(clipped_cigar2, clipped_cigar1);
+		S_EQUAL(al.Position, 33038668);
+
+		NGSHelper::softClipAlignment(al,33038800,33038809);
+		//build CIGAR-string
+		clipped_cigar1 = "10S131M10S5H";
+		clipped_cigar2 = NGSHelper::Cigar2QString(al.CigarData);
+		S_EQUAL(clipped_cigar2, clipped_cigar1);
 	}
 
 	void cigar2String()

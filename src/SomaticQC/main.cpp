@@ -28,18 +28,15 @@ public:
 		addInfile("somatic_vcf", "Input somatic vcf file.", false, true);
 		//optional
 		addOutfile("out", "Output qcML file. If unset, writes to STDOUT.", true);
-		addInfile("target_bed", "Target file used for tumor and normal experiment.", true);
 		addInfileList("links","Files that appear in the link part of the qcML file.",true);
-		addEnum("genome_build", "Genome build. Option count uses the refence genome taken from the settings file and counts all trippletts on the fly.",true,QStringList({"hg19","hg38","count"}),"hg19");
-		setExtendedDescription(QStringList() << "SomaticQC integrates the output of the other QC tools "
-							   << "and adds several metrics specific for tumor-normal pairs. All tools produce qcML, "
-							   << "a generic XML format for QC of -omics experiments, which we adapted for NGS."
-							   );
+		addInfile("target_bed", "Target file used for tumor and normal experiment. The genome build form the settings file will be used to count variant signature.", true);
+		addEnum("genome_build", "For whole genome sequencing precalculated triplet counts are available for some genome builds. Selecting one of the available options will use these counts. Otherwise the triplets will be counted on the fly. This parameter is not required if a target_bed file is given.", true, QStringList({"hg19","hg38","count"}),"count");
+		setExtendedDescription(QStringList() << "SomaticQC integrates the output of the other QC tools and adds several metrics specific for tumor-normal pairs. All tools produce qcML, a generic XML format for QC of -omics experiments, which we adapted for NGS.");
 	}
 
 	virtual void main()
 	{
-		//init
+		// init
 		QString out = getOutfile("out");
 		QString tumor_bam = getInfile("tumor_bam");
 		QString normal_bam = getInfile("normal_bam");
@@ -66,8 +63,9 @@ public:
 		metrics = Statistics::somatic(tumor_bam, normal_bam, somatic_vcf, genome_build, target_bed);
 
 		//store output
-		QString parameters = "-build " + genome_build + ", ";
-		if(!target_bed.isEmpty())	parameters += "-target_bed " + target_bed;
+		QString parameters = "";
+		if(target_bed.isEmpty())	parameters = "-genome_build " + genome_build;	// WGS
+		else	parameters += "-target_bed " + target_bed;	// targeted Seq
 		metrics.storeToQCML(out, QStringList() << tumor_bam << normal_bam << somatic_vcf, parameters, QMap< QString, int >(), links);
 	}
 };

@@ -851,25 +851,6 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	}
 	else if(target_file.isEmpty() && build=="count")
 	{
-		QStringList sig = (QStringList() << "C" << "T");
-		QStringList nuc = (QStringList() << "A" << "C" << "G" << "T");
-		QList < QString > codons;
-		QList < long long > counts;
-		foreach(QString r, sig)
-		{
-			QString c = r;
-			foreach(QString rr, nuc)
-			{
-				QString co = rr + c;
-				foreach(QString rrr, nuc)
-				{
-					codons.append(co + rrr);
-					counts.append(0);
-				}
-			}
-		}
-
-
 		FastaFileIndex reference(Settings::string("reference_genome"));
 		int bin = 50000000;
 		for(int i=0; i<reference.names().count(); ++i)
@@ -890,18 +871,12 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 				}
 				if((start+length-1)>chrom_length)	length = (chrom_length - start + 1);
 				Sequence seq = reference.seq(chr,start,length,true);
-				for(int k=0; k<codons.count(); ++k)
+				foreach(QString codon, count_codons_target.keys())
 				{
-					counts[k] += seq.count(codons[k].toUpper().toLatin1());
+					count_codons_target[codon] += seq.count(codon.toUpper().toLatin1());
 				}
 			}
 		}
-		for(int i=0; i<codons.count(); ++i)
-		{
-			count_codons_target[codons[i]] = counts[i];
-			qDebug() << "reference genome" << codons[i] << QString::number(counts[i]);
-		}
-
 	}
 	else if(!target_file.isEmpty())
 	{
@@ -919,6 +894,11 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 		}
 	}
 	else	Log::error("Unknown genome build " + build + " or no target file given.");
+
+	foreach(QString codon, count_codons_target.keys())
+	{
+		qDebug() << codon << QString::number(count_codons_target[codon]);
+	}
 
 	//codons: normalize current codons and calculate percentages for each codon
 	double y_max = 5;
@@ -951,7 +931,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	{
 		ScatterPlot plot3;
 		plot3.setXLabel("chromosomes");
-		plot3.setYLabel("mutation distance [log]");
+		plot3.setYLabel("somatic variant distance [bp]");
 		plot3.setYLogScale(true);
 		//(0) generate chromosomal map
 		long long genome_size = 0;
@@ -1012,8 +992,9 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 			tmp_chr = variants[i].chr().str();
 			tmp_pos = variants[i].start();
 		}
-		plot3.setYRange(-0.5,max*100);
-		plot3.setXRange(-0.015,1.015);
+
+		plot3.setYRange(0.975,max*100);
+		plot3.setXRange(0,1);
 		plot3.noXTicks();
 		plot3.setValues(points3);
 		QString plot3name = Helper::tempFileName(".png");
