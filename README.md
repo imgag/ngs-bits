@@ -66,10 +66,13 @@ _ngs-bits_ contains a lot of tools that we use for NGS short-read data analysis 
 * [PERsim](doc/tools/PERsim.md) - Paired-end read simulator for Illumina reads.
 
 ### QC tools
-* [ReadQC](doc/tools/ReadQC.md) - Quality control tool for FASTQ files (output is [qcML](https://code.google.com/p/qcml/)).
-* [MappingQC](doc/tools/MappingQC.md) - Quality control tool for a BAM file (output is [qcML](https://code.google.com/p/qcml/)).
-* [VariantQC](doc/tools/VariantQC.md) - Quality control tool for a VCF file (output is [qcML](https://code.google.com/p/qcml/)).
-* [SomaticQC](doc/tools/SomaticQC.md) - Quality control tool for tumor-normal pairs (output is [qcML](https://code.google.com/p/qcml/)). Examplary data for download: [tumor-normal.zip](doc/data/somatic_qc.zip?raw=true).
+
+The default output format of the quality control tools is [qcML](https://github.com/HUPO-PSI/qcML-development/), an XML-based format for -omics quality control, that consists of an [XML schema](https://github.com/HUPO-PSI/qcML-development/blob/master/schema/v0_0_8/qcML_0.0.8.xsd), which defined the overall structure of the format, and an [ontology](https://github.com/HUPO-PSI/qcML-development/blob/master/cv/qc-cv.obo) which defines the QC metrics that can be used.
+
+* [ReadQC](doc/tools/ReadQC.md) - Quality control tool for FASTQ files.
+* [MappingQC](doc/tools/MappingQC.md) - Quality control tool for a BAM file.
+* [VariantQC](doc/tools/VariantQC.md) - Quality control tool for a VCF file.
+* [SomaticQC](doc/tools/SomaticQC.md) - Quality control tool for tumor-normal pairs. Examplary data for download: [tumor-normal.zip](doc/data/somatic_qc.zip?raw=true).
 
 ### BAM tools
 
@@ -115,6 +118,7 @@ _ngs-bits_ contains a lot of tools that we use for NGS short-read data analysis 
 
 
   
+
 
 
 

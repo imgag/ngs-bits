@@ -16,6 +16,7 @@ libs:
 
 GSvar:
 * sub-panels: add dialog to archive/restore
+* jump to IGV position by clicking coordiate (ask if BAM should be loaded when clicking the first time for a sample) - remove from contect menu
 * variant detail view: show filter values
 - Allow handling of several affected (i.e. integrate SampleOverview functionality)
 - Color variant lines by gene, not by odd/even lines
@@ -23,6 +24,7 @@ GSvar:
 - Add buttons to search in goolge/pubmed for variant
 
 Tools:
+* BedAnnotateGenes: add exon numbers to output (option)
 * MappingQC: Add "clipped base percentage" parameter for soft-clipped und hard-clipped bases.
 * VariantFilterRegions, etc: Set input file format by command line argument => allow reading variant lists from stdin
 * MappingQC: support RNA: insert size, spike-in controls, mapping ribosomes/globulines, etc.
