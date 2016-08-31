@@ -7,12 +7,12 @@ TEMPLATE = app
 RC_FILE	 = icon.rc
 
 SOURCES += main.cpp\
-        MainWindow.cpp \
+    MainWindow.cpp \
     FilterDockWidget.cpp \
     ExternalToolDialog.cpp \
     ReportDialog.cpp \
-	ReportWorker.cpp \
-	SampleInformationDialog.cpp \
+    ReportWorker.cpp \
+    SampleInformationDialog.cpp \
     TrioDialog.cpp \
     HttpHandler.cpp \
     ValidationDialog.cpp \
@@ -25,14 +25,15 @@ SOURCES += main.cpp\
     PhenotypeSelector.cpp \
     GenesToRegionsDialog.cpp \
     VariantDetailsDockWidget.cpp \
-    SubpanelDesignDialog.cpp
+    SubpanelDesignDialog.cpp \
+    SubpanelArchiveDialog.cpp \
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
     ExternalToolDialog.h \
     ReportDialog.h \
     ReportWorker.h \
-	SampleInformationDialog.h \
+    SampleInformationDialog.h \
     TrioDialog.h \
     HttpHandler.h \
     ValidationDialog.h \
@@ -45,14 +46,15 @@ HEADERS  += MainWindow.h \
     PhenotypeSelector.h \
     GenesToRegionsDialog.h \
     VariantDetailsDockWidget.h \
-    SubpanelDesignDialog.h
+    SubpanelDesignDialog.h \
+    SubpanelArchiveDialog.h \
 
 
 FORMS    += MainWindow.ui \
     FilterDockWidget.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
-	SampleInformationDialog.ui \
+    SampleInformationDialog.ui \
     TrioDialog.ui \
     ClassificationDialog.ui \
     ValidationDialog.ui \
@@ -63,7 +65,8 @@ FORMS    += MainWindow.ui \
     PhenotypeSelector.ui \
     GenesToRegionsDialog.ui \
     VariantDetailsDockWidget.ui \
-    SubpanelDesignDialog.ui
+    SubpanelDesignDialog.ui \
+    SubpanelArchiveDialog.ui \
     
 
 include("../app_gui.pri")

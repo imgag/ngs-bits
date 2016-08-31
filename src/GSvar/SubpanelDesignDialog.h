@@ -18,18 +18,20 @@ public:
 	explicit SubpanelDesignDialog(QWidget *parent = 0);
 	~SubpanelDesignDialog();
 
-	bool addedSubpanel();
+	///Indicates if one or more sub-panels were added
+	bool changedSubpanels();
 
 protected slots:
 	void checkAndCreatePanel();
 	void storePanel();
-	void openSubpanelFolder();
+	void disableStoreButton();
 
 private:
 	void loadProcessingSystems();
 	void createSubpanelCompleter();
 	QStringList geneList();
 	QString getBedFilename();
+	QString getBedFilenameArchive();
 	void showMessage(QString message, bool error);
 
 	Ui::SubpanelDesignDialog *ui;
@@ -38,7 +40,7 @@ private:
 	BedFile regions;
 	QString roi_file;
 	QString gene_file;
-	bool added_subpanel;
+	bool changed;
 
 };
 

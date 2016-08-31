@@ -37,6 +37,7 @@
 #include "GenesToRegionsDialog.h"
 #include "VariantFilter.h"
 #include "SubpanelDesignDialog.h"
+#include "SubpanelArchiveDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -826,7 +827,17 @@ void MainWindow::on_actionDesignSubpanel_triggered()
 {
 	SubpanelDesignDialog dlg(this);
 	dlg.exec();
-	if (dlg.addedSubpanel())
+	if (dlg.changedSubpanels())
+	{
+		filter_widget_->loadTargetRegions();
+	}
+}
+
+void MainWindow::on_actionArchiveSubpanel_triggered()
+{
+	SubpanelArchiveDialog dlg(this);
+	dlg.exec();
+	if (dlg.changedSubpanels())
 	{
 		filter_widget_->loadTargetRegions();
 	}

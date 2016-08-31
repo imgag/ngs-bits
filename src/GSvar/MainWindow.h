@@ -117,6 +117,8 @@ public slots:
 	void on_actionGenesToRegions_triggered();
 	///Subpanel design dialog
 	void on_actionDesignSubpanel_triggered();
+	///Subpanel archive dialog
+	void on_actionArchiveSubpanel_triggered();
 
 	///Finished the report generation
 	void reportGenerationFinished(bool success);

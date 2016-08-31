@@ -17,7 +17,7 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../GSmix/resources.qrc">
+   <iconset resource="resources.qrc">
     <normaloff>:/Icons/Icon.png</normaloff>:/Icons/Icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -142,6 +142,7 @@
       <string>Panels</string>
      </property>
      <addaction name="actionDesignSubpanel"/>
+     <addaction name="actionArchiveSubpanel"/>
     </widget>
     <addaction name="menuGenes"/>
     <addaction name="menuPanels"/>
@@ -303,7 +304,7 @@
   </action>
   <action name="actionNGSD">
    <property name="icon">
-    <iconset resource="../GSmix/resources.qrc">
+    <iconset resource="resources.qrc">
      <normaloff>:/Icons/NGSD.png</normaloff>:/Icons/NGSD.png</iconset>
    </property>
    <property name="text">
@@ -494,10 +495,14 @@
     <string>Design sub-panel</string>
    </property>
   </action>
+  <action name="actionArchiveSubpanel">
+   <property name="text">
+    <string>Archive/restore sub-panel</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="../GSmix/resources.qrc"/>
   <include location="resources.qrc"/>
  </resources>
  <connections/>

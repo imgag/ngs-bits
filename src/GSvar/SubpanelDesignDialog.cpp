@@ -6,14 +6,13 @@
 #include "Helper.h"
 #include <QDebug>
 #include <QPushButton>
-#include <QDesktopServices>
 #include <QFileInfo>
 #include <QMessageBox>
 
 SubpanelDesignDialog::SubpanelDesignDialog(QWidget *parent)
 	: QDialog(parent)
 	, ui(new Ui::SubpanelDesignDialog)
-	, added_subpanel(true)
+	, changed(false)
 {
 	ui->setupUi(this);
 	loadProcessingSystems();
@@ -21,7 +20,10 @@ SubpanelDesignDialog::SubpanelDesignDialog(QWidget *parent)
 
 	connect(ui->check, SIGNAL(pressed()), this, SLOT(checkAndCreatePanel()));
 	connect(ui->store, SIGNAL(pressed()), this, SLOT(storePanel()));
-	connect(ui->open_folder, SIGNAL(pressed()), this, SLOT(openSubpanelFolder()));
+
+	connect(ui->name, SIGNAL(textEdited(QString)), this, SLOT(disableStoreButton()));
+	connect(ui->base_panel, SIGNAL(currentTextChanged(QString)), this, SLOT(disableStoreButton()));
+	connect(ui->genes, SIGNAL(textChanged()), this, SLOT(disableStoreButton()));
 }
 
 SubpanelDesignDialog::~SubpanelDesignDialog()
@@ -29,9 +31,9 @@ SubpanelDesignDialog::~SubpanelDesignDialog()
 	delete ui;
 }
 
-bool SubpanelDesignDialog::addedSubpanel()
+bool SubpanelDesignDialog::changedSubpanels()
 {
-	return added_subpanel;
+	return changed;
 }
 
 
@@ -63,7 +65,6 @@ void SubpanelDesignDialog::createSubpanelCompleter()
 	ui->name->setCompleter(completer);
 }
 
-
 void SubpanelDesignDialog::checkAndCreatePanel()
 {
 	//clear
@@ -72,14 +73,9 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 
 	//name check name
 	QString name = ui->name->text().trimmed();
-	if (name.isEmpty())
+	if (!QRegExp("[0-9a-zA-Z_\\.]+").exactMatch(name))
 	{
-		showMessage("Name is not set!", true);
-		return;
-	}
-	if (name.contains(' '))
-	{
-		showMessage("Name '" + name + "' contains spaces!", true);
+		showMessage("Name '" + name + "' is empty or contains invalid characters!", true);
 		return;
 	}
 
@@ -88,6 +84,12 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 	if (QFile::exists(bed_file))
 	{
 		showMessage("Output file '" + bed_file + "' already exists!", true);
+		return;
+	}
+	QString bed_file_archive = getBedFilenameArchive();
+	if (QFile::exists(bed_file_archive))
+	{
+		showMessage("Output file '" + bed_file_archive + "' already exists!", true);
 		return;
 	}
 
@@ -168,12 +170,12 @@ void SubpanelDesignDialog::storePanel()
 	showMessage("Sub-panel '" + ui->name->text().trimmed() +"' written successfully!", false);
 	ui->store->setEnabled(false);
 
-	added_subpanel = true;
+	changed = true;
 }
 
-void SubpanelDesignDialog::openSubpanelFolder()
+void SubpanelDesignDialog::disableStoreButton()
 {
-	QDesktopServices::openUrl(QUrl(NGSD::getTargetFilePath(true)));
+	ui->store->setEnabled(false);
 }
 
 QStringList SubpanelDesignDialog::geneList()
@@ -183,6 +185,13 @@ QStringList SubpanelDesignDialog::geneList()
 	QStringList tmp = ui->genes->toPlainText().split('\n');
 	foreach (QString t, tmp)
 	{
+		//use only part before the first tab
+		int tab_pos  = t.indexOf('\t');
+		if (tab_pos!=-1)
+		{
+			t = t.left(tab_pos);
+		}
+
 		t = t.trimmed();
 		if (!t.isEmpty()) output.append(t);
 	}
@@ -193,6 +202,11 @@ QStringList SubpanelDesignDialog::geneList()
 QString SubpanelDesignDialog::getBedFilename()
 {
 	return NGSD::getTargetFilePath(true) + ui->name->text() + ".bed";
+}
+
+QString SubpanelDesignDialog::getBedFilenameArchive()
+{
+	return NGSD::getTargetFilePath(true) + "/archive/" + ui->name->text() + ".bed";
 }
 
 void SubpanelDesignDialog::showMessage(QString message, bool error)
