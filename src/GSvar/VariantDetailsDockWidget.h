@@ -27,9 +27,13 @@ public:
 	//Clears the widget (no variant selected).
 	void clear();
 
+signals:
+	void jumbToRegion(QString region);
+
 private slots:
 	void nextTanscript();
 	void previousTanscript();
+	void variantClicked(QString link);
 
 private:
 	//Database annotation datastructure

@@ -21,7 +21,7 @@
     <normaloff>:/Icons/Icon.png</normaloff>:/Icons/Icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QHBoxLayout" name="horizontalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout">
     <property name="spacing">
      <number>3</number>
     </property>
@@ -389,6 +389,9 @@
   </action>
   <action name="actionIgvLowcov">
    <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
     <bool>true</bool>
    </property>
    <property name="text">

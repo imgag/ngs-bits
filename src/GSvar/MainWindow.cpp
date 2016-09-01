@@ -38,6 +38,7 @@
 #include "VariantFilter.h"
 #include "SubpanelDesignDialog.h"
 #include "SubpanelArchiveDialog.h"
+#include "IgvDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -48,6 +49,7 @@ MainWindow::MainWindow(QWidget *parent)
 	, busy_dialog_(nullptr)
 	, filename_()
 	, db_annos_updated_(false)
+	, first_igv_click_(true)
 	, last_report_path_(QDir::homePath())
 {
 	//setup GUI
@@ -57,6 +59,7 @@ MainWindow::MainWindow(QWidget *parent)
 	filter_widget_->raise();
 	addDockWidget(Qt::BottomDockWidgetArea, var_widget_);
 	var_widget_->raise();
+	connect(var_widget_, SIGNAL(jumbToRegion(QString)), this, SLOT(openInIGV(QString)));
 
     //filter menu button
     auto filter_btn = new QToolButton();
@@ -145,6 +148,118 @@ void MainWindow::handleInputFileChange()
 	loadFile(filename_);
 }
 
+void MainWindow::openInIGV(QString region)
+{
+	QStringList init_commands;
+	if (first_igv_click_)
+	{
+		IgvDialog dlg(this);
+
+		//sample VCF
+		dlg.addFile("sample VCF", NGSD().processedSamplePath(filename_, NGSD::VCF, false), ui_.actionIgvSample->isChecked());
+
+		//sample BAM file(s)
+		if (isTrio())
+		{
+			QStringList bams = getBamFilesTrio();
+			if (bams.count()==0) return;
+			foreach(QString bam, bams)
+			{
+				dlg.addFile("sample BAM", bam, true);
+			}
+		}
+		else
+		{
+			QString bam = getBamFile();
+			if (bam=="") return;
+			dlg.addFile("sample BAM", bam, true);
+		}
+
+		//reference BAM
+		QString ref = filter_widget_->referenceSample();
+		if (ref!="")
+		{
+			dlg.addFile("reference BAM", ref, true);
+		}
+
+		//target region (+ amplicon file)
+		QString roi = filter_widget_->targetRegion();
+		if (roi!="")
+		{
+			dlg.addFile("target region", roi, true);
+
+			QString amplicons = roi.left(roi.length()-4) + "_amplicons.bed";
+			if (QFile::exists(amplicons))
+			{
+				dlg.addFile("target region amplicons", amplicons, true);
+			}
+		}
+
+		//sample low-coverage
+		dlg.addFile("sample low-coverage regions", NGSD().processedSamplePath(filename_, NGSD::LOWCOV, false), ui_.actionIgvLowcov->isChecked());
+
+		//custom tracks
+		dlg.addSeparator();
+		QList<QAction*> igv_actions = ui_.menuIGV->findChildren<QAction*>();
+		foreach(QAction* action, igv_actions)
+		{
+			QString text = action->text();
+			if (!text.startsWith("custom:")) continue;
+			dlg.addFile(text, action->toolTip(), action->isChecked());
+		}
+
+		//execute dialog
+		if (dlg.exec())
+		{
+			QStringList files_to_load = dlg.filesToLoad();
+			init_commands.append("new");
+			init_commands.append("genome hg19");
+
+			//load non-BAM files
+			foreach(QString file, files_to_load)
+			{
+				if (!file.endsWith(".bam"))
+				{
+					init_commands.append("load \"" + file + "\"");
+				}
+			}
+
+			//collapse tracks
+			init_commands.append("collapse");
+
+			//load BAM files
+			foreach(QString file, files_to_load)
+			{
+				if (file.endsWith(".bam"))
+				{
+					init_commands.append("load \"" + file + "\"");
+				}
+			}
+		}
+
+		first_igv_click_ = false;
+	}
+
+	//send commands to IGV
+	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+	try
+	{
+		//init
+		foreach(QString command, init_commands)
+		{
+			executeIGVCommand(command);
+		}
+
+		//jump
+		executeIGVCommand("goto " + region);
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::warning(this, "Error while sending command to IGV:", e.message());
+	}
+	QApplication::restoreOverrideCursor();
+}
+
 QStringList MainWindow::geneInheritanceMissing(QBitArray selected)
 {
 	//get set of genes
@@ -221,6 +336,7 @@ void MainWindow::loadFile(QString filename)
 	filename_ = "";
 	filewatcher_.clearFile();
 	db_annos_updated_ = false;
+	first_igv_click_ = true;
 	ui_.vars->setRowCount(0);
 	ui_.vars->setColumnCount(0);
 
@@ -1162,11 +1278,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 
 	//create contect menu
 	QMenu menu(ui_.vars);
-	QMenu* sub_menu = menu.addMenu(QIcon("://Icons/IGV.png"), "IGV");
-	sub_menu->addAction("Open BAM and jump to position");
-	sub_menu->addAction("Jump to position");
-
-	sub_menu = menu.addMenu(QIcon("://Icons/NGSD.png"), "Variant");
+	QMenu* sub_menu = menu.addMenu(QIcon("://Icons/NGSD.png"), "Variant");
 	sub_menu->setEnabled(ngsd_enabled);
 	sub_menu->addAction("Open variant in NGSD");
 	sub_menu->addAction("Search for position in NGSD");
@@ -1197,112 +1309,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 	if (!action) return;
 
 	QByteArray text = action->text().toLatin1();
-	if (text=="Open BAM and jump to position")
-	{
-		//determine BAM file(s) to load
-		QStringList bam_files;
-		if (isTrio())
-		{
-			bam_files = getBamFilesTrio();
-			if (bam_files.count()==0) return;
-		}
-		else
-		{
-			QString bam_file = getBamFile();
-			bam_files.append(bam_file);
-			if (bam_file=="") return;
-		}
-
-		//send commands to IGV
-		QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-		try
-		{
-			executeIGVCommand("new");
-			executeIGVCommand("genome hg19");
-
-			//load IGV tracks as requested
-			if (ui_.actionIgvSample->isChecked())
-			{
-				QString var_file = NGSD().processedSamplePath(filename_, NGSD::VCF, false);
-				executeIGVCommand("load \"" + var_file + "\"");
-			}
-			if (ui_.actionIgvLowcov->isChecked())
-			{
-				QString lowcov_file = NGSD().processedSamplePath(filename_, NGSD::LOWCOV, false);
-				executeIGVCommand("load \"" + lowcov_file + "\"");
-			}
-			QList<QAction*> igv_actions = ui_.menuIGV->findChildren<QAction*>();
-			foreach(QAction* action, igv_actions)
-			{
-				if (action->isChecked())
-				{
-					executeIGVCommand("load \"" + action->toolTip() + "\"");
-				}
-			}
-			executeIGVCommand("collapse");
-
-			//load BAM files
-			foreach(QString bam_file, bam_files)
-			{
-				executeIGVCommand("load \"" + bam_file + "\"");
-			}
-			//load reference file
-			QString ref = filter_widget_->referenceSample();
-			if (ref!="")
-			{
-				if (!QFile::exists(ref))
-				{
-					QMessageBox::warning(this, "IGV problem", "Reference file '" + ref + "' does not exist!");
-				}
-				else
-				{
-					executeIGVCommand("load \"" + ref + "\"");
-				}
-			}
-			//load target region file(s)
-			QString roi = filter_widget_->targetRegion();
-			if (roi!="")
-			{
-				if (!QFile::exists(roi))
-				{
-					QMessageBox::warning(this, "IGV problem", "Target region file '" + roi + "' does not exist!");
-				}
-				else
-				{
-					executeIGVCommand("load \"" + roi + "\"");
-				}
-				QString amplicons = roi.left(roi.length()-4) + "_amplicons.bed";
-				if (QFile::exists(amplicons))
-				{
-					executeIGVCommand("load \"" + amplicons + "\"");
-				}
-			}
-			//goto location
-			QString loc = ui_.vars->item(item->row(), 0)->text() + ":" + ui_.vars->item(item->row(), 1)->text() + "-" + ui_.vars->item(item->row(), 2)->text();
-			executeIGVCommand("goto " + loc);
-		}
-		catch(Exception& e)
-		{
-			QMessageBox::warning(this, "Could not connect to IGV", e.message());
-		}
-		QApplication::restoreOverrideCursor();
-	}
-	else if (text=="Jump to position")
-	{
-		//send commands to IGV
-		QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-		try
-		{
-			QString loc = ui_.vars->item(item->row(), 0)->text() + ":" + ui_.vars->item(item->row(), 1)->text() + "-" + ui_.vars->item(item->row(), 2)->text();
-			executeIGVCommand("goto " + loc);
-		}
-		catch(Exception& e)
-		{
-			QMessageBox::warning(this, "Could not connect to IGV", e.message());
-		}
-		QApplication::restoreOverrideCursor();
-	}
-	else if (text=="Open variant in NGSD")
+	if (text=="Open variant in NGSD")
 	{
 		try
 		{
@@ -1490,7 +1497,7 @@ QString MainWindow::getBamFile()
 		QMessageBox::warning(this, "Could not locate sample BAM file.", "Exactly one BAM file must be present in the sample folder:\n" + folder + "\n\nFound the following files:\n" + bam_files.join("\n"));
 		return "";
 	}
-	return folder + QDir::separator() + bam_files.at(0);
+	return bam_files.at(0);
 }
 
 QStringList MainWindow::getBamFilesTrio()
@@ -1758,7 +1765,7 @@ void MainWindow::updateIGVMenu()
 	QStringList entries = Settings::stringList("igv_menu");
 	if (entries.count()==0)
 	{
-		ui_.menuIGV->addAction("No entries in INI file!");
+		ui_.menuIGV->addAction("No custom entries in INI file!");
 	}
 	else
 	{
@@ -1766,7 +1773,7 @@ void MainWindow::updateIGVMenu()
 		{
 			QStringList parts = entry.trimmed().split("\t");
 			if(parts.count()!=3) continue;
-			QAction* action = ui_.menuIGV->addAction(parts[0]);
+			QAction* action = ui_.menuIGV->addAction("custom: " + parts[0]);
 			action->setCheckable(true);
 			action->setChecked(parts[1]=="1");
 			action->setToolTip(parts[2]);

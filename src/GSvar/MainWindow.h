@@ -136,6 +136,8 @@ public slots:
 	void delayedInizialization();
 	///Handles the re-loading the variant list when the file changes.
 	void handleInputFileChange();
+	///Open region in IGV
+	void openInIGV(QString region);
 
 	///Returns a gene list where the inheritance information is not set (selected variants only)
 	QStringList geneInheritanceMissing(QBitArray selected);
@@ -162,6 +164,7 @@ private:
 	QString filename_;
 	FileWatcher filewatcher_;
 	bool db_annos_updated_;
+	bool first_igv_click_;
 	VariantList variants_;
 	QMap<QString, QString> link_columns_;
 	QSet<int> link_indices_;

@@ -15,9 +15,7 @@ libs:
    - Statistics: add Tests for somatic statistics
 
 GSvar:
-* jump to IGV position by clicking coordiate (ask if BAM should be loaded when clicking the first time for a sample) - remove from context menu
 * Implement update tool that automatically checks for new versions, or find solution with reference to sub-folders (ask Martin)
-- Color variant lines by gene, not by odd/even lines
 - Allow handling of several affected (i.e. integrate SampleOverview functionality)
 - Add buttons to search in goolge/pubmed for variant
 

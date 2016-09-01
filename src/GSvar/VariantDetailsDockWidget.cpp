@@ -19,6 +19,7 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget *parent) :
 	//signals + slots
 	connect(ui->trans_prev, SIGNAL(clicked(bool)), this, SLOT(previousTanscript()));
 	connect(ui->trans_next, SIGNAL(clicked(bool)), this, SLOT(nextTanscript()));
+	connect(ui->variant, SIGNAL(linkActivated(QString)), this, SLOT(variantClicked(QString)));
 
 	//set up transcript buttons
 	ui->trans_prev->setStyleSheet("QPushButton {border: none; margin: 0px;padding: 0px;}");
@@ -28,7 +29,7 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget *parent) :
 	QList<QLabel*> labels = findChildren<QLabel*>();
 	foreach(QLabel* label, labels)
 	{
-		if (label->objectName().startsWith("label")) continue;
+		if (label->objectName().startsWith("label") || label->objectName()=="variant") continue;
 		int width = label->minimumWidth();
 		if (width==0) width = 200;
 		label->setMinimumWidth(width);
@@ -59,7 +60,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	{
 		variant += " (" + vl[index].annotations()[geno_i] + ")";
 	}
-	ui->variant->setText(variant);
+	ui->variant->setText(formatLink(variant, variant));
 
 	//closeby variant warning
 	QStringList closeby;
@@ -461,6 +462,14 @@ void VariantDetailsDockWidget::nextTanscript()
 void VariantDetailsDockWidget::previousTanscript()
 {
 	setTranscript(trans_curr-1);
+}
+
+void VariantDetailsDockWidget::variantClicked(QString link)
+{
+	//extract location only
+	link = link.left(link.indexOf(' '));
+
+	emit jumbToRegion(link);
 }
 
 QString VariantDetailsDockWidget::formatLink(QString text, QString url, Color bgcolor)

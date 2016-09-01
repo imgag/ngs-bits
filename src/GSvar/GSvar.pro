@@ -27,6 +27,7 @@ SOURCES += main.cpp\
     VariantDetailsDockWidget.cpp \
     SubpanelDesignDialog.cpp \
     SubpanelArchiveDialog.cpp \
+    IgvDialog.cpp
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
@@ -48,6 +49,7 @@ HEADERS  += MainWindow.h \
     VariantDetailsDockWidget.h \
     SubpanelDesignDialog.h \
     SubpanelArchiveDialog.h \
+    IgvDialog.h
 
 
 FORMS    += MainWindow.ui \
@@ -67,6 +69,7 @@ FORMS    += MainWindow.ui \
     VariantDetailsDockWidget.ui \
     SubpanelDesignDialog.ui \
     SubpanelArchiveDialog.ui \
+    IgvDialog.ui
     
 
 include("../app_gui.pri")
