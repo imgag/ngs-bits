@@ -139,7 +139,7 @@
     </widget>
     <widget class="QMenu" name="menuPanels">
      <property name="title">
-      <string>Panels</string>
+      <string>Sub-panels</string>
      </property>
      <addaction name="actionDesignSubpanel"/>
      <addaction name="actionArchiveSubpanel"/>
@@ -492,12 +492,12 @@
   </action>
   <action name="actionDesignSubpanel">
    <property name="text">
-    <string>Design sub-panel</string>
+    <string>Design</string>
    </property>
   </action>
   <action name="actionArchiveSubpanel">
    <property name="text">
-    <string>Archive/restore sub-panel</string>
+    <string>Archive/restore</string>
    </property>
   </action>
  </widget>
