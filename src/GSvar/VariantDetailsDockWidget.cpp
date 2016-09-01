@@ -87,6 +87,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	//base information
 	setAnnotation(ui->gene, vl, index, "gene");
 	setAnnotation(ui->quality, vl, index, "quality");
+	setAnnotation(ui->filter, vl, index, "filter");
 
 	//public databases
 	setAnnotation(ui->dbsnp, vl, index, "dbSNP");
@@ -98,6 +99,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	//public allel frequencies
 	setAnnotation(ui->tg, vl, index, "1000g");
 	setAnnotation(ui->exac, vl, index, "ExAC");
+	setAnnotation(ui->exac_hom, vl, index, "ExAC_hom");
 	setAnnotation(ui->esp6500aa, vl, index, "ESP6500AA");
 	setAnnotation(ui->esp6500ea, vl, index, "ESP6500EA");
 

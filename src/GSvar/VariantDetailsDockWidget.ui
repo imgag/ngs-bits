@@ -122,7 +122,7 @@
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1,0,1">
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1,0,1,0,1">
       <property name="spacing">
        <number>3</number>
       </property>
@@ -176,6 +176,20 @@
           <height>0</height>
          </size>
         </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Filter:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="filter">
         <property name="text">
          <string/>
         </property>
@@ -541,6 +555,20 @@
          </widget>
         </item>
         <item row="2" column="0">
+         <widget class="QLabel" name="label_12">
+          <property name="text">
+           <string>ESP6500EA:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_14">
+          <property name="text">
+           <string>ESP6500AA:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
          <widget class="QLabel" name="label_11">
           <property name="text">
            <string>ExAC:</string>
@@ -548,26 +576,6 @@
          </widget>
         </item>
         <item row="2" column="1">
-         <widget class="QLabel" name="exac">
-          <property name="minimumSize">
-           <size>
-            <width>100</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label_12">
-          <property name="text">
-           <string>ESP6500EA:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
          <widget class="QLabel" name="esp6500ea">
           <property name="minimumSize">
            <size>
@@ -580,14 +588,7 @@
           </property>
          </widget>
         </item>
-        <item row="4" column="0">
-         <widget class="QLabel" name="label_14">
-          <property name="text">
-           <string>ESP6500AA:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="1">
+        <item row="3" column="1">
          <widget class="QLabel" name="esp6500aa">
           <property name="minimumSize">
            <size>
@@ -595,6 +596,33 @@
             <height>0</height>
            </size>
           </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QLabel" name="exac">
+          <property name="minimumSize">
+           <size>
+            <width>100</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="label_4711">
+          <property name="text">
+           <string>Exac (hom):</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="QLabel" name="exac_hom">
           <property name="text">
            <string/>
           </property>
