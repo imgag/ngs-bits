@@ -132,8 +132,7 @@ public:
 		addFloat("ext_gap_span", "Percentage of orignal region size that can be spanned while merging nearby regions (0 disables it).", true, 20.0);
         addFloat("sam_min_depth", "QC: Minimum average depth of a sample.", true, 40.0);
         addFloat("sam_min_corr", "QC: Minimum correlation of sample to constructed reference sample.", true, 0.95);
-        addInt("sam_max_cnvs", "QC: Maximum number of CNV events in a sample.", true, 30);
-		addFloat("reg_min_cov", "QC: Minimum (average) absolute depth of a target region.", true, 20.0);
+        addFloat("reg_min_cov", "QC: Minimum (average) absolute depth of a target region.", true, 20.0);
 		addFloat("reg_min_ncov", "QC: Minimum (average) normalized depth of a target region.", true, 0.01);
 		addFloat("reg_max_cv", "QC: Maximum coefficient of variation (median/mad) of target region.", true, 0.3);
 		addFlag("anno", "Enable annotation of gene names to regions (needs the NGSD database).");
@@ -420,8 +419,7 @@ public:
 		double reg_max_cv = getFloat("reg_max_cv");
         double sam_min_corr = getFloat("sam_min_corr");
         double sam_min_depth = getFloat("sam_min_depth");
-        int sam_max_cnvs = getInt("sam_max_cnvs");
-		QStringList comments;
+        QStringList comments;
 
 		//timing
 		QTime timer;
@@ -971,21 +969,6 @@ public:
 				}
 			}
 		}
-
-        //flag samples that have too many CNV events
-		outstream << "=== flagging samples that have too many CNV events as bad ===" << endl;
-		int c_bad_sample2 = 0;
-		for (int s=0; s<samples.count(); ++s)
-        {
-			int cnvs = cnvs_sample[samples[s]];
-			if (cnvs>sam_max_cnvs)
-            {
-				samples[s]->qc += "sam_max_cnvs>" + QString::number(sam_max_cnvs) + " ";
-				outstream << "  bad sample: " << samples[s]->name << " cnvs=" << cnvs << endl;
-                ++c_bad_sample2;
-            }
-        }
-        outstream << "flagged " << c_bad_sample2 << " samples" << endl << endl;
 		writeSampleDistributionCNVs(samples, cnvs_sample, outstream);
 
         //store results
@@ -1000,10 +983,10 @@ public:
 				corr_sum += sample->ref_correl;
             }
         }
-        int c_valid = in.count() - c_bad_sample - c_bad_sample2;
+        int c_valid = in.count() - c_bad_sample;
 		outstream << "=== statistics ===" << endl;
 		outstream << "invalid regions: " << c_bad_region << " of " << (exons.count() + c_bad_region) << endl;
-		outstream << "invalid samples: " << (c_bad_sample + c_bad_sample2) << " of " << in.count() << endl;
+        outstream << "invalid samples: " << c_bad_sample << " of " << in.count() << endl;
 		outstream << "mean correlation of samples to reference: " << QString::number(corr_sum/c_valid, 'f', 4) << endl;
 		double size_sum = 0;
 		foreach(const Range& range, ranges)
