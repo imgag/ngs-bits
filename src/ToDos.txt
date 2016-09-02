@@ -31,13 +31,12 @@ Tools:
 - SomaticQC: write test
 
 CnvHunter:
- * add sample z-score mean/stdev
  * update test data (include MAPQ=0, add low-coverage genome data, ...)
  * caclulate real ncov distribution also when enough data points are available. How many are that? Test/Simulate! (see line ~700: 'values.count()==n')
- * normalize Z-scores to mean 0 and stdev 1 to correct for sample quality
  * add optional percentile normalization
  * add optional GC-normalization (then, check GS151166_01 gene C5orf42) - test effect of including different flanking regions
  * test mappability-normalization and exon-size normalization
+ * normalize Z-scores to mean 0 and stdev 1 to correct for sample quality
  * Check HaloPlex HS data
  - Für alle/wichtige CNAs Plot (log-ratio/z-score/call) mit Umgebung
  - integrate CNV databases:

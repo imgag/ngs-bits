@@ -152,18 +152,43 @@ public:
 		changeLog(2016, 8, 21, "Improved log output (to make parameter optimization easier).");
 	}
 
-    void storeSampleInfo(QString out, const QVector<QSharedPointer<SampleData>>& samples, const QVector<QSharedPointer<SampleData>>& samples_removed, const QHash<QSharedPointer<SampleData>, int>& cnvs_sample)
+    void storeSampleInfo(QString out, const QVector<QSharedPointer<SampleData>>& samples, const QVector<QSharedPointer<SampleData>>& samples_removed, const QHash<QSharedPointer<SampleData>, int>& cnvs_sample, const QVector<ResultData>& results)
     {
+        //init
         QSharedPointer<QFile> file = Helper::openFileForWriting(out.left(out.size()-4) + "_samples.tsv");
         QTextStream outstream(file.data());
-        outstream << "#sample\tdoc_mean\tref_correl\tcnvs\tqc_info" << endl;
+
+        //calcualte z-score statistics for each sample
+        QHash<QSharedPointer<SampleData>, double> z_scores;
+        QSharedPointer<SampleData> curr;
+        QVector<double> zs;
+        for (int r=0; r<results.count(); ++r)
+        {
+            if (results[r].sample!=curr)
+            {
+                if (!curr.isNull())
+                {
+                    std::sort(zs.begin(), zs.end());
+                    z_scores[curr] = BasicStatistics::mad(zs, 0);
+                    zs.clear();
+                }
+                curr = results[r].sample;
+            }
+
+            zs.append(results[r].z);
+        }
+        std::sort(zs.begin(), zs.end());
+        z_scores[curr] = BasicStatistics::mad(zs, 0);
+
+        //store file
+        outstream << "#sample\tdoc_mean\tref_correl\tz_score_mad\tcnvs\tqc_info" << endl;
 		foreach(const QSharedPointer<SampleData>& sample, samples)
         {
-            outstream << sample->name << "\t" << sample->doc_mean << "\t" << sample->ref_correl << "\t" << cnvs_sample[sample] << "\t" << sample->qc << endl;
+            outstream << sample->name << "\t" << sample->doc_mean << "\t" << sample->ref_correl << "\t" << z_scores[sample] << "\t" << cnvs_sample[sample] << "\t" << sample->qc << endl;
         }
         foreach(const QSharedPointer<SampleData>& sample, samples_removed)
         {
-            outstream << sample->name << "\t" << sample->doc_mean << "\t" << sample->ref_correl << "\t-\t" << sample->qc << endl;
+            outstream << sample->name << "\t" << sample->doc_mean << "\t" << sample->ref_correl << "\t-\t-\t" << sample->qc << endl;
         }
     }
 
@@ -989,7 +1014,7 @@ public:
 
         //store result files
         storeResultAsTSV(ranges, results, out, getFlag("anno"), getFlag("test"));
-        storeSampleInfo(out, samples, samples_removed, cnvs_sample);
+        storeSampleInfo(out, samples, samples_removed, cnvs_sample, results);
         storeRegionInfo(out, exons, exons_removed, cnvs_exon);
         if (verbose)
         {
