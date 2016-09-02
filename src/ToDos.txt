@@ -31,6 +31,9 @@ Tools:
 - SomaticQC: write test
 
 CnvHunter:
+ * check if bookshelf-regions are still merged
+ * output: median instead of mean for "CNV events/sample/100 regions" and "regions/CNV event"
+ * normalize Z-scores to mean 0 and stdev 1 to correct for sample quality
  * update test data (include MAPQ=0, add low-coverage genome data, ...)
  * add optional percentile normalization
  * add optional GC-normalization (then, check GS151166_01 gene C5orf42)
@@ -41,6 +44,4 @@ CnvHunter:
    - http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/
    - https://decipher.sanger.ac.uk/disorders#syndromes/overview
    - http://www.ncbi.nlm.nih.gov/dbvar
- ? normalize Z-scores to mean 0 and stdev 1 to correct for sample quality
  ? instead of fixed 'n', use n>=10 and n<=30 with highest correlation or lowest z-score stdev?
- ? output: median instead of mean for "CNV events/sample/100 regions" and "regions/CNV event"

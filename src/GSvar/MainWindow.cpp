@@ -256,6 +256,7 @@ void MainWindow::openInIGV(QString region)
 	catch(Exception& e)
 	{
 		QMessageBox::warning(this, "Error while sending command to IGV:", e.message());
+		first_igv_click_ = true;
 	}
 	QApplication::restoreOverrideCursor();
 }
