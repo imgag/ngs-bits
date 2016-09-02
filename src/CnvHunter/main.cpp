@@ -56,6 +56,14 @@ struct ExonData
 	{
 		return chr.str() + ":" + QString::number(start) + "-" + QString::number(end);
 	}
+
+    bool operator<(const ExonData& rhs) const
+    {
+        if (chr<rhs.chr) return true;
+        else if (chr>rhs.chr) return false;
+        else if (start==rhs.start) return end<rhs.end;
+        else return start<rhs.start;
+    }
 };
 
 //CNV test data
@@ -124,7 +132,7 @@ public:
         addInfileList("in", "Input TSV files (one per sample) containing coverage data (chr, start, end, avg_depth).", false, true);
         addOutfile("out", "Output TSV file containing the detected CNVs.", false, true);
 		//optional
-		addOutfile("out_reg", "If set, writes a BED file with region information (baq QC, excluded, good).", true, true);
+        addOutfile("out_reg", "If set, writes a BED file with region information (baq QC, excluded, good).", true, true);
         addInt("n", "The number of most similar samples to consider.", true, 20);
         addInfile("exclude", "BED file with regions to exclude from the analysis.", true, true);
         addFloat("min_z", "Minimum z-score for CNV seed detection.", true, 4.0);
@@ -134,46 +142,54 @@ public:
         addFloat("sam_min_corr", "QC: Minimum correlation of sample to constructed reference sample.", true, 0.95);
         addFloat("reg_min_cov", "QC: Minimum (average) absolute depth of a target region.", true, 20.0);
 		addFloat("reg_min_ncov", "QC: Minimum (average) normalized depth of a target region.", true, 0.01);
-		addFloat("reg_max_cv", "QC: Maximum coefficient of variation (median/mad) of target region.", true, 0.3);
+        addFloat("reg_max_cv", "QC: Maximum coefficient of variation (median/mad) of target region.", true, 0.3);
 		addFlag("anno", "Enable annotation of gene names to regions (needs the NGSD database).");
-		addFlag("verbose", "Enables verbose mode. Writes detail information files for samples, regions and results.");
+        addFlag("verbose", "Writes detail information files (normalized coverage, all z-scores, etc.).");
 		addFlag("test", "Uses test database instead of production database for annotation.");
 
+        changeLog(2016, 9,  1, "Sample and region information files are now always written.");
 		changeLog(2016, 8, 23, "Added merging of large CNVs that were split to several regions due to noise.");
 		changeLog(2016, 8, 21, "Improved log output (to make parameter optimization easier).");
 	}
 
-	void storeSampleInfo(const QVector<QSharedPointer<SampleData>>& samples, const QHash<QSharedPointer<SampleData>, int>& cnvs_sample)
+    void storeSampleInfo(QString out, const QVector<QSharedPointer<SampleData>>& samples, const QVector<QSharedPointer<SampleData>>& samples_removed, const QHash<QSharedPointer<SampleData>, int>& cnvs_sample)
     {
-		QSharedPointer<QFile> out = Helper::openFileForWriting("samples.tsv");
-        QTextStream outstream(out.data());
-		outstream << "#sample\tdoc_mean\tref_correl\tcnvs" << endl;
+        QSharedPointer<QFile> file = Helper::openFileForWriting(out.left(out.size()-4) + "_samples.tsv");
+        QTextStream outstream(file.data());
+        outstream << "#sample\tdoc_mean\tref_correl\tcnvs\tqc_info" << endl;
 		foreach(const QSharedPointer<SampleData>& sample, samples)
         {
-			if (sample->qc!="") continue;
-			outstream << sample->name << "\t" << sample->doc_mean << "\t" << sample->ref_correl << "\t" << cnvs_sample[sample] << endl;
+            outstream << sample->name << "\t" << sample->doc_mean << "\t" << sample->ref_correl << "\t" << cnvs_sample[sample] << "\t" << sample->qc << endl;
+        }
+        foreach(const QSharedPointer<SampleData>& sample, samples_removed)
+        {
+            outstream << sample->name << "\t" << sample->doc_mean << "\t" << sample->ref_correl << "\t-\t" << sample->qc << endl;
         }
     }
 
-	void storeSampleCorrel(const QVector<QSharedPointer<SampleData>>& samples)
+    void storeRegionInfo(QString out, const QVector<QSharedPointer<ExonData>>& exons, const QVector<QSharedPointer<ExonData>>& exons_removed, const QHash<QSharedPointer<ExonData>, int>& cnvs_exon)
     {
-		QSharedPointer<QFile> out = Helper::openFileForWriting("samples_correl_all.tsv");
-        QTextStream outstream(out.data());
-        outstream << "#sample\tdoc_mean\tref_correl\tqc" << endl;
-		foreach(const QSharedPointer<SampleData>& sample, samples)
-        {
-			outstream << sample->name << "\t" << sample->doc_mean << "\t" << sample->ref_correl << "\t" << sample->qc << endl;
-        }
-    }
+        QSharedPointer<QFile> file = Helper::openFileForWriting(out.left(out.size()-4) + "_regions.tsv");
+        QTextStream outstream(file.data());
+        outstream << "#region\tsize\tncov_median\tncov_mad\tncov_cv\tcnvs\tqc_info" << endl;
 
-	void storeRegionInfo(const QVector<QSharedPointer<ExonData>>& exons, const QHash<QSharedPointer<ExonData>, int>& cnvs_exon)
-    {
-		QSharedPointer<QFile> out = Helper::openFileForWriting("regions.tsv");
-        QTextStream outstream(out.data());
-        outstream << "#region\tsize\tmedian_ncov\tmad_ncov\tcv_ncov\tcnvs" << endl;
-		foreach(const QSharedPointer<ExonData>& exon, exons)
+        //contruct sorted array
+        QVector<QSharedPointer<ExonData>> tmp;
+        tmp.append(exons);
+        tmp.append(exons_removed);
+        std::sort(tmp.begin(), tmp.end(), [](const QSharedPointer<ExonData>& a, const QSharedPointer<ExonData>& b){return *(a.data()) < *(b.data());} );
+        foreach(const QSharedPointer<ExonData>& exon, tmp)
         {
-			outstream << exon->toString() << "\t" << (exon->end-exon->start) << "\t" << exon->median << "\t" << exon->mad  << "\t" << (exon->mad/exon->median) << "\t" << cnvs_exon[exon] << endl;
+            outstream << exon->toString() << "\t" << (exon->end-exon->start) << "\t" << exon->median << "\t" << exon->mad << "\t" << (exon->mad/exon->median) << "\t";
+            if (exon->qc.isEmpty())
+            {
+                outstream << cnvs_exon[exon];
+            }
+            else
+            {
+                outstream << "-";
+            }
+            outstream << "\t" << exon->qc << endl;
         }
     }
 
@@ -187,7 +203,7 @@ public:
         {
             QString color;
             QString text;
-			if (exon->qc=="")
+            if (exon->qc.isEmpty())
             {
                 color = "0,0,178";
                 text += "qc=ok";
@@ -201,10 +217,10 @@ public:
         }
     }
 
-	void storeResultInfo(const QVector<ResultData>& results)
+    void storeResultInfo(QString out, const QVector<ResultData>& results)
     {
-		QSharedPointer<QFile> out = Helper::openFileForWriting("results.tsv");
-        QTextStream outstream(out.data());
+        QSharedPointer<QFile> file = Helper::openFileForWriting(out.left(out.size()-4) + "_results.tsv");
+        QTextStream outstream(file.data());
         outstream << "#sample\tregion\tcopy_number\tz_score\tdepth\tref_depth\tref_stdev" << endl;
         foreach(const ResultData& r, results)
         {
@@ -230,23 +246,18 @@ public:
 		return genes;
 	}
 
-	void storeResultAsTSV(const QList<Range>& ranges, const QVector<ResultData>& results, QString filename, QStringList comments, bool anno, bool test)
+    void storeResultAsTSV(const QList<Range>& ranges, const QVector<ResultData>& results, QString filename, bool anno, bool test)
     {
 		QSharedPointer<QFile> out = Helper::openFileForWriting(filename);
         QTextStream outstream(out.data());
 
-		//comments
-		foreach(QString comment, comments)
-		{
-			outstream << "##" << comment.trimmed() << endl;
-		}
-		//header
+        //header
 		outstream << "#chr\tstart\tend\tsample\tregion_count\tregion_copy_numbers\tregion_zscores\tregion_coordinates" << (anno ? "\tgenes" : "") << endl;
 
 		for (int r=0; r<ranges.count(); ++r)
         {
 			const Range& range = ranges[r];
-			if (range.sample->qc!="") continue;
+            if (!range.sample->qc.isEmpty()) continue;
 
 			//get copy-number, z-scores, coordinates and genes for adjacent regions
             QStringList copies;
@@ -277,24 +288,24 @@ public:
 		}
     }
 
-	void storeNormalizedData(const QVector<QSharedPointer<SampleData>>& samples, const QVector<QSharedPointer<ExonData>>& exons)
+    void storeNormalizedData(QString out, const QVector<QSharedPointer<SampleData>>& samples, const QVector<QSharedPointer<ExonData>>& exons)
     {
-		QSharedPointer<QFile> out = Helper::openFileForWriting("normalized.tsv");
-        QTextStream outstream(out.data());
+        QSharedPointer<QFile> file = Helper::openFileForWriting(out.left(out.size()-4) + "_normalized.tsv");
+        QTextStream outstream(file.data());
         outstream << "#region";
 		foreach(const QSharedPointer<SampleData>& sample, samples)
         {
-			if (sample->qc!="") continue;
+            if (!sample->qc.isEmpty()) continue;
 			outstream << "\t" << sample->name;
         }
         outstream << endl;
         for (int e=0; e<exons.count(); ++e)
         {
-			if (exons[e]->qc!="") continue;
+            if (!exons[e]->qc.isEmpty()) continue;
 			outstream << exons[e]->toString();
 			foreach(const QSharedPointer<SampleData>& sample, samples)
             {
-				if (sample->qc!="") continue;
+                if (!sample->qc.isEmpty()) continue;
 				outstream << "\t" << QString::number(sample->doc[e], 'f', 4);
             }
             outstream << endl;
@@ -346,7 +357,7 @@ public:
         return true;
     }
 
-	virtual void writeRegionDistributionCV(const QVector<QSharedPointer<ExonData>>& exons, QTextStream& outstream)
+    virtual void printRegionDistributionCV(const QVector<QSharedPointer<ExonData>>& exons, QTextStream& outstream)
 	{
 		outstream << "Region coefficient of variation (normalized depth of coverage) histogram:" << endl;
 		QVector<int> counts(10, 0);
@@ -365,7 +376,7 @@ public:
 		outstream << endl;
 	}
 
-	virtual void writeSampleDistributionCNVs(const QVector<QSharedPointer<SampleData>>& samples, const QHash<QSharedPointer<SampleData>, int>& cnvs_sample, QTextStream& outstream)
+    virtual void printSampleDistributionCNVs(const QVector<QSharedPointer<SampleData>>& samples, const QHash<QSharedPointer<SampleData>, int>& cnvs_sample, QTextStream& outstream)
 	{
 		outstream << "CNVs per sample histogram:" << endl;
 		QVector<int> counts(21, 0);
@@ -382,7 +393,7 @@ public:
 		outstream << endl;
 	}
 
-	virtual void writeSampleDistributionCorrelation(const QVector<QSharedPointer<SampleData>>& samples, QTextStream& outstream)
+    virtual void printSampleDistributionCorrelation(const QVector<QSharedPointer<SampleData>>& samples, QTextStream& outstream)
 	{
 		outstream << "Reference sample correlation histogram:" << endl;
 		QVector<int> counts(10, 0);
@@ -406,9 +417,10 @@ public:
         //init
         bool verbose = getFlag("verbose");
         QStringList in = getInfileList("in");
+        QString out = getOutfile("out");
+        if (!out.endsWith(".tsv")) THROW(ArgumentException, "Output file name has to end with '.tsv'!");
         QString exclude = getInfile("exclude");
-		QSharedPointer<QFile> out = Helper::openFileForWriting("", true);
-        QTextStream outstream(out.data());
+        QTextStream outstream(stdout);
         int n = getInt("n");
         if (in.count()<n+1) THROW(ArgumentException, "At least n+1 input files are required! Got " + QString::number(in.count()) + "!");
         double min_z = getFloat("min_z");
@@ -511,7 +523,7 @@ public:
 		outstream << "number of autosomal regions: " << c_auto << endl;
 		outstream << "number of regions on chrX: " << c_chrx << endl;
 		outstream << "number of regions on chrY: " << c_chry << " (ignored)" << endl;
-		outstream << "number of regions on other chromosomes: " << c_chro << " (ignored)" << endl;
+        outstream << "number of regions on other chromosomes: " << c_chro << " (ignored)" << endl << endl;
 
         //normalize DOC by mean (for autosomes/gonosomes separately)
 		for (int s=0; s<samples.count(); ++s)
@@ -586,7 +598,7 @@ public:
 		tmp.reserve(samples.count());
 		for (int s=0; s<samples.count(); ++s)
 		{
-			if (samples[s]->qc=="")
+            if (samples[s]->qc.isEmpty())
 			{
 				tmp.append(samples[s]->doc_mean);
 			}
@@ -605,7 +617,7 @@ public:
             tmp.resize(0);
 			for (int s=0; s<samples.count(); ++s)
             {
-				if (samples[s]->qc=="")
+                if (samples[s]->qc.isEmpty())
                 {
                     //check that DOC data for good samples is ok
 					if (!BasicStatistics::isValidFloat(samples[s]->doc[e]))
@@ -626,16 +638,13 @@ public:
 			if (exons[e]->chr.isY()) exons[e]->qc += "chrY ";
 			exons[e]->median = median;
 			exons[e]->mad = mad;
-			if (exons[e]->qc!="")
+            if (!exons[e]->qc.isEmpty())
 			{
-				comments << "bad region: " + exons[e]->toString() + " " + exons[e]->qc;
                 ++c_bad_region;
             }
         }
-		outstream << "bad regions: " << c_bad_region << " of " << exons.count() << endl;
-		outstream << "took: " << Helper::elapsedTime(timer) << endl<< endl;
-		comments << "bad regions: " + QString::number(c_bad_region) + " of " + QString::number(exons.count());
-		writeRegionDistributionCV(exons, outstream);
+        outstream << "bad regions: " << c_bad_region << " of " << exons.count() << endl << endl;
+        printRegionDistributionCV(exons, outstream);
 		timings.append("detecting bad regions: " + Helper::elapsedTime(timer));
 		timer.restart();
 
@@ -686,7 +695,7 @@ public:
 				for (int i=0; i<samples.count()-1; ++i)
                 {
 					int sidx = samples[s]->correl_all[i].first;
-					if (samples[sidx]->qc=="") //do not use bad QC samples
+                    if (samples[sidx]->qc.isEmpty()) //do not use bad QC samples
                     {
 						double value = samples[sidx]->doc[e];
                         if (value>=0.25*exon_median && value<=1.75*exon_median) //do not use extreme outliers
@@ -719,16 +728,13 @@ public:
             }
 
             //print all bad samples (also those which were flagged as bad before, e.g. because os too low avg depth)
-			if (samples[s]->qc!="")
+            if (!samples[s]->qc.isEmpty())
             {
 				++c_bad_sample;
-				comments << "bad sample: " + samples[s]->name + " " + samples[s]->qc;
             }
         }
 		outstream << "bad samples: " << c_bad_sample << " of " << samples.count() << endl << endl;
-		comments << "bad samples: " + QString::number(c_bad_sample) + " of " + QString::number(samples.count());
-		if (verbose) storeSampleCorrel(samples);
-		writeSampleDistributionCorrelation(samples, outstream);
+        printSampleDistributionCorrelation(samples, outstream);
 
 		//log 'n' most similar samples
 		for (int s=0; s<samples.count(); ++s)
@@ -738,34 +744,40 @@ public:
 			for (int i=0; i<samples[s]->correl_all.count()-1; ++i)
 			{
 				int sidx = samples[s]->correl_all[i].first;
-				if (samples[sidx]->qc!="") continue;
+                if (!samples[sidx]->qc.isEmpty()) continue;
 
 				sim_str += " " + samples[sidx]->name;
 				++sim_count;
 				if (sim_count==n) break;
 			}
-			comments << QString("ref samples of ") + samples[s]->name + " (corr=" + QString::number(samples[s]->ref_correl, 'f', 4) + "):" + sim_str;
+            //comments << QString("ref samples of ") + samples[s]->name + " (corr=" + QString::number(samples[s]->ref_correl, 'f', 4) + "):" + sim_str;
 		}
 		timings.append("constructing reference samples: " + Helper::elapsedTime(timer));
 		timer.restart();
 
         //remove bad samples
+        QVector<QSharedPointer<SampleData>> samples_removed;
         int to = 0;
 		for (int s=0; s<samples.count(); ++s)
         {
-			if(samples[s]->qc=="")
+            if(samples[s]->qc.isEmpty())
             {
 				if (to!=s) samples[to] = samples[s];
                 ++to;
+            }
+            else
+            {
+                samples_removed.append(samples[s]);
             }
         }
 		samples.resize(to);
 
 		//remove bad regions
+        QVector<QSharedPointer<ExonData>> exons_removed;
 		to = 0;
 		for (int e=0; e<exons.count(); ++e)
 		{
-			if(exons[e]->qc=="")
+            if(exons[e]->qc.isEmpty())
 			{
 				if (to!=e)
 				{
@@ -780,6 +792,10 @@ public:
 				}
 				++to;
 			}
+            else
+            {
+                exons_removed.append(exons[e]);
+            }
 		}
 		exons.resize(to);
 		for (int s=0; s<samples.count(); ++s)
@@ -969,16 +985,23 @@ public:
 				}
 			}
 		}
-		writeSampleDistributionCNVs(samples, cnvs_sample, outstream);
+        printSampleDistributionCNVs(samples, cnvs_sample, outstream);
 
-        //store results
-		storeResultAsTSV(ranges, results, getOutfile("out"), comments, getFlag("anno"), getFlag("test"));
+        //store result files
+        storeResultAsTSV(ranges, results, out, getFlag("anno"), getFlag("test"));
+        storeSampleInfo(out, samples, samples_removed, cnvs_sample);
+        storeRegionInfo(out, exons, exons_removed, cnvs_exon);
+        if (verbose)
+        {
+            storeResultInfo(out, results);
+            storeNormalizedData(out, samples, exons);
+        }
 
 		//print statistics
         double corr_sum = 0;
 		foreach(const QSharedPointer<SampleData>& sample, samples)
         {
-			if (sample->qc=="")
+            if (sample->qc.isEmpty())
             {
 				corr_sum += sample->ref_correl;
             }
@@ -996,18 +1019,9 @@ public:
 		outstream << "number of CNV events: " << ranges.count() << " (consisting of " << size_sum << " regions)" << endl;
 		outstream << "mean regions per CNV event: " << QString::number(size_sum/ranges.count(), 'f', 2) << endl;
 		outstream << "mean CNV events per sample per 100 regions: " << QString::number(1.0*ranges.count()/c_valid/(exons.count()/100.0), 'f', 4) << endl;
-        outstream << endl << endl;
+        outstream << endl;
 
-        //store verbose files
-        if (verbose)
-        {
-			storeSampleInfo(samples, cnvs_sample);
-			storeRegionInfo(exons, cnvs_exon);
-			storeResultInfo(results);
-			storeNormalizedData(samples, exons);
-		}
-
-		//timing output
+        //print timing output
 		timings.append("statistics and writing output: " + Helper::elapsedTime(timer));
 		outstream << "=== timing ===" << endl;
 		foreach(const QString& line, timings)
