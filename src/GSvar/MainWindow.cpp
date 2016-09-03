@@ -156,7 +156,12 @@ void MainWindow::openInIGV(QString region)
 		IgvDialog dlg(this);
 
 		//sample VCF
-		dlg.addFile("sample VCF", NGSD().processedSamplePath(filename_, NGSD::VCF, false), ui_.actionIgvSample->isChecked());
+        QString folder = QFileInfo(filename_).absolutePath();
+        QStringList files = Helper::findFiles(folder,"*_var_annotated.vcf.gz", false);
+        if (files.count()==1)
+        {
+            dlg.addFile("sample VCF", files[0], ui_.actionIgvSample->isChecked());
+        }
 
 		//sample BAM file(s)
 		if (isTrio())
@@ -196,7 +201,11 @@ void MainWindow::openInIGV(QString region)
 		}
 
 		//sample low-coverage
-		dlg.addFile("sample low-coverage regions", NGSD().processedSamplePath(filename_, NGSD::LOWCOV, false), ui_.actionIgvLowcov->isChecked());
+        files = Helper::findFiles(folder,"*_lowcov.bed", false);
+        if (files.count()==1)
+        {
+            dlg.addFile("sample low-coverage regions", files[0], ui_.actionIgvLowcov->isChecked());
+        }
 
 		//custom tracks
 		dlg.addSeparator();

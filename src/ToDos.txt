@@ -15,7 +15,6 @@ libs:
    - Statistics: add Tests for somatic statistics
 
 GSvar:
-* remove NGSD dependency of IGV jumping
 * check ExAC annotation for chr2:215657183 A>- and chr5:56177849 CAA>- in NA12878_06 (should be 43%)
 * Implement update tool that automatically checks for new versions, or find solution with reference to sub-folders (ask Martin)
 - Allow handling of several affected (i.e. integrate SampleOverview functionality)

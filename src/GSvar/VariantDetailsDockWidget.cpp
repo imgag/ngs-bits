@@ -38,7 +38,6 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget *parent) :
 		if (width==0) width = 200;
 		label->setMinimumWidth(width);
 		label->setWordWrap(true);
-		label->setOpenExternalLinks(true);
 	}
 
 	//reset
