@@ -5,6 +5,7 @@
 #include "BedFile.h"
 #include "NGSHelper.h"
 #include "NGSD.h"
+#include "Histogram.h"
 #include <QVector>
 #include <QFileInfo>
 #include <QDir>
@@ -385,57 +386,52 @@ public:
     virtual void printRegionDistributionCV(const QVector<QSharedPointer<ExonData>>& exons, QTextStream& outstream)
 	{
 		outstream << "Region coefficient of variation (normalized depth of coverage) histogram:" << endl;
-		QVector<int> counts(10, 0);
+        Histogram hist;
+        hist.init(0.0, 0.5, 0.05);
 		for (int e=0; e<exons.count(); ++e)
 		{
-			double cv = exons[e]->mad/exons[e]->median;
-			int bin = std::floor(cv/0.05);
-			if (bin<0) bin = 0;
-			if (bin>=10) bin = 9;
-			++counts[bin];
+            hist.inc(exons[e]->mad/exons[e]->median, true);
 		}
-		for (int i=0; i<10; ++i)
-		{
-			outstream << "  " << QString::number(0.05*i, 'f', 2) << "-" << QString::number(0.05*(i+1), 'f', 2) << ": " << counts[i] << endl;
-		}
+        hist.print(outstream, "  ", 2, 0);
 		outstream << endl;
 	}
 
     virtual void printSampleDistributionCNVs(const QVector<QSharedPointer<SampleData>>& samples, const QHash<QSharedPointer<SampleData>, int>& cnvs_sample, QTextStream& outstream)
 	{
-		outstream << "CNVs per sample histogram:" << endl;
-		QVector<int> counts(21, 0);
-		for (int s=0; s<samples.count(); ++s)
-		{
-			int bin = cnvs_sample[samples[s]];
-			if (bin>=21) bin = 20;
-			++counts[bin];
-		}
-		for (int i=0; i<21; ++i)
-		{
-			outstream << "  " << i << ": " << counts[i] << endl;
-		}
-		outstream << endl;
-	}
+        //determine mean/stdev of CNV counts
+        QVector<double> counts;
+        for (auto it=cnvs_sample.cbegin(); it!=cnvs_sample.cend(); ++it)
+        {
+            counts.append(it.value());
+        }
+        double mean = BasicStatistics::mean(counts);
+        double stdev = BasicStatistics::stdev(counts, mean);
+
+        //historgam
+        outstream << "CNVs per sample histogram:" << endl;
+        double max = mean + 5.0*stdev;
+        Histogram hist;
+        hist.init(0.0, max, max/20);
+        for (int s=0; s<samples.count(); ++s)
+        {
+            hist.inc(cnvs_sample[samples[s]], true);
+        }
+        hist.print(outstream, "  ", 2, 0);
+        outstream << endl;
+    }
 
     virtual void printSampleDistributionCorrelation(const QVector<QSharedPointer<SampleData>>& samples, QTextStream& outstream)
 	{
 		outstream << "Reference sample correlation histogram:" << endl;
-		QVector<int> counts(10, 0);
-		for (int s=0; s<samples.count(); ++s)
-		{
-			double corr = 1.0 - samples[s]->ref_correl;
-			int bin = std::floor(corr/0.02);
-			if (bin<0) bin = 0;
-			if (bin>=10) bin = 9;
-			++counts[bin];
-		}
-		for (int i=0; i<10; ++i)
-		{
-			outstream << "  " << QString::number(1.0-(0.02*i), 'f', 2) << "-" << QString::number(1.0-(0.02*(i+1)), 'f', 2) << ": " << counts[i] << endl;
-		}
-		outstream << endl;
-	}
+        Histogram hist;
+        hist.init(0.8, 1.0, 0.02);
+        for (int s=0; s<samples.count(); ++s)
+        {
+            hist.inc(samples[s]->ref_correl, true);
+        }
+        hist.print(outstream, "  ", 2, 0, false);
+        outstream << endl;
+    }
 
     virtual void main()
     {

@@ -20,7 +20,6 @@ GSvar:
 - Add buttons to search in goolge/pubmed for variant
 
 Tools:
-* BedAnnotateGenes: add exon numbers to output (optional)
 * MappingQC: Add "clipped base percentage" parameter for soft-clipped und hard-clipped bases.
 * VariantFilterRegions, etc: Set input file format by command line argument => allow reading variant lists from stdin
 * MappingQC: support RNA: insert size, spike-in controls, mapping ribosomes/globulines, etc.
@@ -31,16 +30,16 @@ Tools:
 - SomaticQC: write test
 
 CnvHunter:
- * update test data (include MAPQ=0, add low-coverage genome data, ...)
+ * update test data (include MAPQ=0, types: HBOC, TruRisk, Exome, Low-coverage genome data, Cancer data)
  * caclulate real ncov distribution also when enough data points are available. How many are that? Test/Simulate! (see line ~700: 'values.count()==n')
- * add optional percentile normalization
  * add optional GC-normalization (then, check GS151166_01 gene C5orf42) - test effect of including different flanking regions
  * test mappability-normalization and exon-size normalization
+ * test percentile normalization
  * normalize Z-scores to mean 0 and stdev 1 to correct for sample quality
- * Check HaloPlex HS data
+ * test on HaloPlex HS data, multi-mapped data, chunked data
+ ? instead of fixed 'n', use n>=10 and n<=30 with highest correlation or lowest z-score stdev?
  - Für alle/wichtige CNAs Plot (log-ratio/z-score/call) mit Umgebung
  - integrate CNV databases:
    - http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/
    - https://decipher.sanger.ac.uk/disorders#syndromes/overview
    - http://www.ncbi.nlm.nih.gov/dbvar
- ? instead of fixed 'n', use n>=10 and n<=30 with highest correlation or lowest z-score stdev?
