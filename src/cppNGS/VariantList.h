@@ -110,9 +110,16 @@ public:
 		return obs_.length()==1 && ref_.length()==1 && obs_!="-" && ref_!="-";
     }
     ///Returns the coordinates and base exchange as a string e.g. "chr1:3435345-3435345 A>G"
-    QString toString() const
+    QString toString(bool space_separated=false) const
     {
-		return chr_.str() + ":" + QString::number(start_) + "-" + QString::number(end_) + " " + ref_ + ">" + obs_;
+        if (space_separated)
+        {
+            return chr_.str() + " " + QString::number(start_) + " " + QString::number(end_) + " " + ref_ + " " + obs_;
+        }
+        else
+        {
+            return chr_.str() + ":" + QString::number(start_) + "-" + QString::number(end_) + " " + ref_ + ">" + obs_;
+        }
     }
     /// Removes the common prefix/suffix from indels, adapts the start/end position and replaces empty sequences with a custom string.
 	void normalize(const Sequence& empty_seq="");

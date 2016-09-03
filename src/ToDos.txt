@@ -15,7 +15,8 @@ libs:
    - Statistics: add Tests for somatic statistics
 
 GSvar:
-* add ExAC-link
+* remove NGSD dependency of IGV jumping
+* check ExAC annotation for chr2:215657183 A>- and chr5:56177849 CAA>- in NA12878_06 (should be 43%)
 * Implement update tool that automatically checks for new versions, or find solution with reference to sub-folders (ask Martin)
 - Allow handling of several affected (i.e. integrate SampleOverview functionality)
 - Add buttons to search in goolge/pubmed for variant
@@ -31,14 +32,15 @@ Tools:
 - SomaticQC: write test
 
 CnvHunter:
+ * add on-refererence input BAM files paramter (for cancer, FFPE, ...)
  * update test data (include MAPQ=0, types: HBOC, TruRisk, Exome, Low-coverage genome data, Cancer data)
- * caclulate real ncov distribution also when enough data points are available. How many are that? Test/Simulate! (see line ~700: 'values.count()==n')
  * add optional GC-normalization (then, check GS151166_01 gene C5orf42) - test effect of including different flanking regions
+ * test caclulate real ncov distribution also when enough data points are available. How many are that? Test/Simulate! (see line ~700: 'values.count()==n')
  * test mappability-normalization and exon-size normalization
  * test percentile normalization
- * normalize Z-scores to mean 0 and stdev 1 to correct for sample quality
+ * test normalizing Z-scores to mean 0 and stdev 1 to correct for sample quality
  * test on HaloPlex HS data, multi-mapped data, chunked data
- ? instead of fixed 'n', use n>=10 and n<=30 with highest correlation or lowest z-score stdev?
+ * test using n>=10 and n<=30 with highest correlation or lowest z-score stdev instead of fixed 'n'
  - Für alle/wichtige CNAs Plot (log-ratio/z-score/call) mit Umgebung
  - integrate CNV databases:
    - http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/

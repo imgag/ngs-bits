@@ -5,9 +5,12 @@
 #include <QDebug>
 #include <QPixmap>
 #include <QMessageBox>
+#include <QDesktopServices>
+#include <QUrl>
 #include "Settings.h"
 #include "NGSD.h"
 #include "Log.h"
+#include "HttpHandler.h"
 
 VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget *parent) :
 	QDockWidget(parent),
@@ -20,6 +23,7 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget *parent) :
 	connect(ui->trans_prev, SIGNAL(clicked(bool)), this, SLOT(previousTanscript()));
 	connect(ui->trans_next, SIGNAL(clicked(bool)), this, SLOT(nextTanscript()));
 	connect(ui->variant, SIGNAL(linkActivated(QString)), this, SLOT(variantClicked(QString)));
+    connect(ui->exac, SIGNAL(linkActivated(QString)), this, SLOT(exacClicked(QString)));
 
 	//set up transcript buttons
 	ui->trans_prev->setStyleSheet("QPushButton {border: none; margin: 0px;padding: 0px;}");
@@ -29,7 +33,7 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget *parent) :
 	QList<QLabel*> labels = findChildren<QLabel*>();
 	foreach(QLabel* label, labels)
 	{
-		if (label->objectName().startsWith("label") || label->objectName()=="variant") continue;
+        if (label->objectName().startsWith("label")) continue;
 		int width = label->minimumWidth();
 		if (width==0) width = 200;
 		label->setMinimumWidth(width);
@@ -306,6 +310,12 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			{
 				text = anno;
 			}
+
+            //make ExAC value clickable (custom handling)
+            if(name=="ExAC")
+            {
+                text = formatLink(text, vl[index].toString(true));
+            }
 		}
 		else if (name=="gene")
 		{
@@ -502,4 +512,39 @@ QList<VariantDetailsDockWidget::DBEntry> VariantDetailsDockWidget::parseDB(QStri
 QString VariantDetailsDockWidget::nobr()
 {
 	return "<p style='white-space:pre; margin:0; padding:0;'>";
+}
+
+QString VariantDetailsDockWidget::getRef(const Chromosome &chr, int start, int end)
+{
+    HttpHandler handler;
+    QString reply = handler.getHttpReply("http://genome.ucsc.edu/cgi-bin/das/hg19/dna?segment=" + chr.strNormalized(false) + ":" + QString::number(start) + "," + QString::number(end));
+    return reply.remove(QRegExp("<[^>]*>")).trimmed().toUpper();
+}
+
+void VariantDetailsDockWidget::exacClicked(QString link)
+{
+    QStringList parts = link.split(' ');
+    Chromosome chr(parts[0]);
+    QString start = parts[1];
+    QString ref = parts[3];
+    QString obs = parts[4];
+
+    QString url;
+    if (obs=="-") //deletion
+    {
+        int pos = start.toInt()-1;
+        QString base = getRef(chr, pos, pos);
+        url = chr.strNormalized(false) + "-" + QString::number(pos) + "-" + base + ref + "-" + base;
+    }
+    else if (ref=="-") //insertion
+    {
+        int pos = start.toInt();
+        QString base = getRef(chr, pos, pos);
+        url = chr.strNormalized(false) + "-" + start + "-" + base + "-" + base + obs;
+    }
+    else //snv
+    {
+        url =  chr.strNormalized(false) + "-" + start + "-" + ref + "-" + obs;
+    }
+    QDesktopServices::openUrl(QUrl("http://exac.broadinstitute.org/variant/" + url));
 }

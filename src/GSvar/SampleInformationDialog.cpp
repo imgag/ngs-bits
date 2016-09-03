@@ -23,7 +23,6 @@ SampleInformationDialog::SampleInformationDialog(QWidget* parent, QString filena
 
 	//setup of UI
 	ui_.setupUi(this);
-	ui_.status->setOpenExternalLinks(true);
 
 	//setup reanalyze button
 	QMenu* menu = new QMenu();
