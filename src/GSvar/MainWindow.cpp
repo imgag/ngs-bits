@@ -688,7 +688,7 @@ void MainWindow::on_actionGapsLookup_triggered()
 
 	//look up data in report
 	QStringList output;
-	QStringList lines = Helper::loadTextFile(folder + "/" + report, true);
+	QStringList lines = Helper::loadTextFile(report, true);
 	foreach(QString line, lines)
 	{
 		QStringList parts = line.split('\t');
