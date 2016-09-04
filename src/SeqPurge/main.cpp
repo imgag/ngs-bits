@@ -191,3 +191,145 @@ int main(int argc, char *argv[])
 	ConcreteTool tool(argc, argv);
 	return tool.execute();
 }
+
+
+/* test code with bit-arrays (non-dynamic)
+//create sequences
+int repeats = 100000;
+int seq_len = 100;
+
+QVector<QByteArray> seqs;
+for (int i=0; i<=repeats; ++i)
+{
+    QByteArray seq = Helper::randomString(seq_len, "ACGT").toLatin1();
+    seq[95] = 'N';
+    seq[97] = 'N';
+    seq[99] = 'N';
+    seqs.append(seq);
+}
+
+//classical match calculation
+int match_sum = 0;
+int mismatch_sum = 0;
+int invalid_sum = 0;
+QTime timer;
+timer.start();
+for (int i=0; i<repeats; ++i)
+{
+    const char* seq1_data = seqs[i].constData();
+    const char* seq2_data = seqs[i+1].constData();
+    for (int offset=1; offset<seq_len; ++offset)
+    {
+        int matches = 0;
+        int mismatches = 0;
+        int invalid = 0;
+        for (int j=offset; j<seq_len; ++j)
+        {
+            char b1 = seq1_data[j-offset];
+            char b2 = seq2_data[j];
+            if (b1=='N' || b2=='N')
+            {
+                ++invalid;
+            }
+            else if (b1==b2)
+            {
+                ++matches;
+            }
+            else
+            {
+                ++mismatches;
+            }
+        }
+        match_sum += matches;
+        mismatch_sum += mismatches;
+        invalid_sum += invalid;
+    }
+}
+qDebug() << "old" << match_sum << mismatch_sum << invalid_sum << " timer:" << timer.elapsed();
+
+//bit-array-based match calculation
+match_sum = 0;
+mismatch_sum = 0;
+invalid_sum = 0;
+timer.restart();
+for (int i=0; i<repeats; ++i)
+{
+    const QByteArray& seq1 = seqs[i];
+    std::bitset<100> a1_;
+    std::bitset<100> c1_;
+    std::bitset<100> g1_;
+    std::bitset<100> t1_;
+    std::bitset<100> n1_;
+    const QByteArray& seq2 = seqs[i+1];
+    std::bitset<100> a2_;
+    std::bitset<100> c2_;
+    std::bitset<100> g2_;
+    std::bitset<100> t2_;
+    std::bitset<100> n2_;
+
+    for (int i=0; i<seq1.size(); ++i)
+    {
+        const int i_r = seq1.size()-i-1;
+        switch(seq1[i_r])
+        {
+            case 'C':
+                c1_.set(i, true);
+                break;
+            case 'A':
+                a1_.set(i, true);
+                break;
+            case 'G':
+                g1_.set(i, true);
+                break;
+            case 'T':
+                t1_.set(i, true);
+                break;
+            case 'N':
+                n1_.set(i, true);
+                break;
+            default:
+                THROW(ArgumentException, QString("Unknown base '") + seq1[i] + "'!");
+        }
+
+        switch(seq2[i_r])
+        {
+            case 'C':
+                c2_.set(i, true);
+                break;
+            case 'A':
+                a2_.set(i, true);
+                break;
+            case 'G':
+                g2_.set(i, true);
+                break;
+            case 'T':
+                t2_.set(i, true);
+                break;
+            case 'N':
+                n2_.set(i, true);
+                break;
+            default:
+                THROW(ArgumentException, QString("Unknown base '") + seq2[i] + "'!");
+        }
+    }
+
+    for (int offset=1; offset<seq_len; ++offset)
+    {
+
+        a2_ <<= 1;
+        c2_ <<= 1;
+        g2_ <<= 1;
+        t2_ <<= 1;
+        n2_ <<= 1;
+        n1_.set(offset-1, false);
+        int invalid = (n1_ | n2_).count();
+        int matches = (a1_ & a2_).count() + (c1_ & c2_).count() + (g1_ & g2_).count() + (t1_ & t2_).count();
+        int mismatches = seq_len - offset - invalid - matches;
+
+        match_sum += matches;
+        mismatch_sum += mismatches;
+        invalid_sum += invalid;
+    }
+}
+qDebug() << "new" << match_sum << mismatch_sum << invalid_sum << " timer:" << timer.elapsed();
+*/

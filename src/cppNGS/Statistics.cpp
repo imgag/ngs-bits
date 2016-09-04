@@ -895,11 +895,6 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	}
 	else	Log::error("Unknown genome build " + build + " or no target file given.");
 
-	foreach(QString codon, count_codons_target.keys())
-	{
-		qDebug() << codon << QString::number(count_codons_target[codon]);
-	}
-
 	//codons: normalize current codons and calculate percentages for each codon
 	double y_max = 5;
 	double sum = 0;

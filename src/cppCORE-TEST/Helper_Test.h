@@ -19,8 +19,13 @@ private slots:
 	void randomString()
 	{
 		I_EQUAL(Helper::randomString(8).count(), 8);
-		I_EQUAL(Helper::randomString(3, "AB").count(), 3);
-	}
+        QString bases = Helper::randomString(1000, "ACGT");
+        I_EQUAL(bases.count(), 1000);
+        IS_TRUE(bases.count('A')>0);
+        IS_TRUE(bases.count('C')>0);
+        IS_TRUE(bases.count('G')>0);
+        IS_TRUE(bases.count('T')>0);
+    }
 
 	void loadTextFile()
 	{

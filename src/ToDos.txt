@@ -3,32 +3,29 @@
 libs:
 - cppNGS:
    - VariantList:
-      - use QSharedPointers to link VariantAnnotationHeaders with VariantAnnotationDescriptions
+      - Statistics: add test for statistics::somatic(...) (CS)
+      - use QSharedPointers to link VariantAnnotationHeaders with VariantAnnotationDescriptions (CS)
       - check vcf and tsv files if valid (columns and their descriptions)
    - Statistics:
-      - somatic(): add plot comparing depth tumor/normal and allele frequencies of dbSNP variants
-      - somatic(): add cnv count - QCValue("somatic CNVs count", "", "Needs to be implemented.", "QC:2000044")
+      - somatic(): add plot comparing depth tumor/normal and allele frequencies of dbSNP variants (CS)
+      - somatic(): add cnv count - QCValue("somatic CNVs count", "", "Needs to be implemented.", "QC:2000044") (CS)
    - NGSHelper:
-      - consider soft-clipping of secondary alignments
-- cppNGS-Tests:
-   - VariantFilter: Overview gene lists (missing genotype): treat all variants as homozygous?
-   - Statistics: add Tests for somatic statistics
+      - consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-* check ExAC annotation for chr2:215657183 A>- and chr5:56177849 CAA>- in NA12878_06 (should be 43%)
 * Implement update tool that automatically checks for new versions, or find solution with reference to sub-folders (ask Martin)
 - Allow handling of several affected (i.e. integrate SampleOverview functionality)
+- Allow filtering of multi-sample variant lists => missing genotype (perhaps treat all variants as homozygous?)
 - Add buttons to search in goolge/pubmed for variant
+- Add MutationTaster link
 
 Tools:
 * MappingQC: Add "clipped base percentage" parameter for soft-clipped und hard-clipped bases.
 * VariantFilterRegions, etc: Set input file format by command line argument => allow reading variant lists from stdin
 * MappingQC: support RNA: insert size, spike-in controls, mapping ribosomes/globulines, etc.
 - SeqPurge:
-  ? try using QBitArray instead of QByteArray to speed up sequence match counting.
+  ? try using QBitArray instead of QByteArray to speed up sequence match counting - see test code at end of main.
   ? try pre-calculating all probabilities (bounded by factorial overflow) and test performance on large dataset.
-  ? low-quality trimming before adapter trimming? use single-base instead of sliding window?
-- SomaticQC: write test
 
 CnvHunter:
  * add on-refererence input BAM files paramter (for cancer, FFPE, ...)
