@@ -211,7 +211,9 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
     int al_dup = 0;
     int al_proper_paired = 0;
     double bases_trimmed = 0;
-	double insert_size_sum = 0;
+    double bases_mapped = 0;
+    double bases_clipped = 0;
+    double insert_size_sum = 0;
 	QVector<double> insert_dist;
     long long bases_usable = 0;
     int max_length = 0;
@@ -227,6 +229,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
         ++al_total;
         max_length = std::max(max_length, al.Length);
 
+        //insert size
 		if (al.IsPaired())
         {
             paired_end = true;
@@ -238,7 +241,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 				insert_size_sum += insert_size;
 				int bin = insert_size/5;
 				if (insert_dist.count()<=bin) insert_dist.resize(bin+1);
-				insert_dist[bin] += 1;
+                insert_dist[bin] += 1; //TODO use Histogram class!?
             }
         }
 
@@ -246,9 +249,21 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
         {
             ++al_mapped;
 
+            //calculate soft/hard-clipped bases
+            const int start_pos = al.Position+1;
+            const int end_pos = al.GetEndPosition();
+            bases_mapped += al.Length;
+            for (auto it=al.CigarData.cbegin(); it!=al.CigarData.cend(); ++it)
+            {
+                if (it->Type=='S' || it->Type=='H')
+                {
+                    bases_clipped += it->Length;
+                }
+            }
+
+            //calculate usable bases and base-resolution coverage
 			const Chromosome& chr = chr_info.chromosome(al.RefID);
-            int end_position = al.GetEndPosition();
-            QVector<int> indices = roi_index.matchingIndices(chr, al.Position+1, end_position);
+            QVector<int> indices = roi_index.matchingIndices(chr, start_pos, end_pos);
             if (indices.count()!=0)
             {
                 ++al_ontarget;
@@ -257,11 +272,11 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
                 {
                     foreach(int index, indices)
                     {
-                        int ol_start = std::max(bed_file[index].start(), al.Position+1);
-                        int ol_end = std::min(bed_file[index].end(), end_position);
+                        const int ol_start = std::max(bed_file[index].start(), start_pos);
+                        const int ol_end = std::min(bed_file[index].end(), end_pos);
                         bases_usable += ol_end - ol_start + 1;
-                        QMap<int, int>& roi_cov_chr_map = roi_cov[chr.num()];
-                        for (int p=ol_start; p<=ol_end; ++p)
+						QMap<int, int>& roi_cov_chr_map = roi_cov[chr.num()];
+                        for (int p=ol_start; p<=ol_end; ++p) //TODO use iterator, also for low-depth algo!
                         {
                             roi_cov_chr_map[p] += 1;
                         }
@@ -302,7 +317,8 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
     //output
     QCCollection output;
 	output.insert(QCValue("trimmed base percentage", 100.0 * bases_trimmed / al_total / max_length, "Percentage of bases that were trimmed during to adapter or quality trimming.", "QC:2000019"));
-	output.insert(QCValue("mapped read percentage", 100.0 * al_mapped / al_total, "Percentage of reads that could be mapped to the reference genome.", "QC:2000020"));
+    output.insert(QCValue("clipped base percentage", 100.0 * bases_clipped / bases_mapped, "Percentage of the bases that are soft-clipped or hand-clipped during mapping.", "QC:2000052"));
+    output.insert(QCValue("mapped read percentage", 100.0 * al_mapped / al_total, "Percentage of reads that could be mapped to the reference genome.", "QC:2000020"));
 	output.insert(QCValue("on-target read percentage", 100.0 * al_ontarget / al_total, "Percentage of reads that could be mapped to the target region.", "QC:2000021"));
     if (paired_end)
     {
@@ -388,7 +404,9 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq)
     int al_dup = 0;
     int al_proper_paired = 0;
     double bases_trimmed = 0;
-	double insert_size_sum = 0;
+    double bases_mapped = 0;
+    double bases_clipped = 0;
+    double insert_size_sum = 0;
 	QVector<double> insert_dist;
     long long bases_usable = 0;
     int max_length = 0;
@@ -404,6 +422,7 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq)
         ++al_total;
         max_length = std::max(max_length, al.Length);
 
+        //insert size
 		if (al.IsPaired())
         {
             paired_end = true;
@@ -411,9 +430,9 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq)
             if (al.IsProperPair())
             {
 				++al_proper_paired;
-				int insert_size = std::min(abs(al.InsertSize),  999); //cap insert size at 1000
+                const int insert_size = std::min(abs(al.InsertSize),  999); //cap insert size at 1000
 				insert_size_sum += insert_size;
-				int bin = insert_size/5;
+                int bin = insert_size/5;  //TODO use Histogram class!?
 				if (insert_dist.count()<=bin) insert_dist.resize(bin+1);
 				insert_dist[bin] += 1;
             }
@@ -423,6 +442,18 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq)
         {
             ++al_mapped;
 
+            //calculate soft/hard-clipped bases
+            bases_mapped += al.Length;
+            for (auto it=al.CigarData.cbegin(); it!=al.CigarData.cend(); ++it)
+            {
+                if (it->Type=='S' || it->Type=='H')
+                {
+                    qDebug() << it->Type << it->Length;
+                    bases_clipped += it->Length;
+                }
+            }
+
+            //usable
 			if (chr_info.chromosome(al.RefID).isNonSpecial())
             {
                 ++al_ontarget;
@@ -450,6 +481,7 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq)
     //output
     QCCollection output;
 	output.insert(QCValue("trimmed base percentage", 100.0 * bases_trimmed / al_total / max_length, "Percentage of bases that were trimmed during to adapter or quality trimming.", "QC:2000019"));
+    output.insert(QCValue("clipped base percentage", 100.0 * bases_clipped / bases_mapped, "Percentage of the bases that are soft-clipped or hand-clipped during mapping.", "QC:2000052"));
 	output.insert(QCValue("mapped read percentage", 100.0 * al_mapped / al_total, "Percentage of reads that could be mapped to the reference genome.", "QC:2000020"));
 	output.insert(QCValue("on-target read percentage", 100.0 * al_ontarget / al_total, "Percentage of reads that could be mapped to the target region.", "QC:2000021"));
     if (paired_end)

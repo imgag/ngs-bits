@@ -1,4 +1,5 @@
 trimmed base percentage: 1.34
+clipped base percentage: 0.06
 mapped read percentage: 99.98
 on-target read percentage: 99.98
 properly-paired read percentage: 99.73
