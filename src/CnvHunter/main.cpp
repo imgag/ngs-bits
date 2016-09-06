@@ -19,6 +19,7 @@ struct SampleData
     }
 
     QString name; //file name
+	bool noref;
 
     QVector<double> doc; //coverage data (normalized: divided by mean)
     double doc_mean; //mean coverage before normalizazion (aterwards it is 1.0)
@@ -133,6 +134,7 @@ public:
         addInfileList("in", "Input TSV files (one per sample) containing coverage data (chr, start, end, avg_depth).", false, true);
         addOutfile("out", "Output TSV file containing the detected CNVs.", false, true);
 		//optional
+		addInfileList("in_noref", "Input TSV files like 'in' but not used as reference (e.g. tumor samples).", true, true);
         addOutfile("out_reg", "If set, writes a BED file with region information (baq QC, excluded, good).", true, true);
         addInt("n", "The number of most similar samples to consider.", true, 20);
         addInfile("exclude", "BED file with regions to exclude from the analysis.", true, true);
@@ -182,14 +184,14 @@ public:
         z_scores[curr] = BasicStatistics::mad(zs, 0);
 
         //store file
-        outstream << "#sample\tdoc_mean\tref_correl\tz_score_mad\tcnvs\tqc_info" << endl;
+		outstream << "#sample\tref_sample\tdoc_mean\tref_correl\tz_score_mad\tcnvs\tqc_info" << endl;
 		foreach(const QSharedPointer<SampleData>& sample, samples)
         {
-            outstream << sample->name << "\t" << sample->doc_mean << "\t" << sample->ref_correl << "\t" << z_scores[sample] << "\t" << cnvs_sample[sample] << "\t" << sample->qc << endl;
+			outstream << sample->name << "\t" << (sample->noref ? "no" : "yes") << "\t" << sample->doc_mean << "\t" << sample->ref_correl << "\t" << z_scores[sample] << "\t" << cnvs_sample[sample] << "\t" << sample->qc << endl;
         }
         foreach(const QSharedPointer<SampleData>& sample, samples_removed)
         {
-            outstream << sample->name << "\t" << sample->doc_mean << "\t" << sample->ref_correl << "\t-\t-\t" << sample->qc << endl;
+			outstream << sample->name << "\t" << (sample->noref ? "no" : "yes") << "\t" << sample->doc_mean << "\t" << sample->ref_correl << "\t-\t-\t" << sample->qc << endl;
         }
     }
 
@@ -435,7 +437,8 @@ public:
         //init
         bool verbose = getFlag("verbose");
         QStringList in = getInfileList("in");
-        QString out = getOutfile("out");
+		QStringList in_noref = getInfileList("in_noref");
+		QString out = getOutfile("out");
         if (!out.endsWith(".tsv")) THROW(ArgumentException, "Output file name has to end with '.tsv'!");
         QString exclude = getInfile("exclude");
         QTextStream outstream(stdout);
@@ -449,7 +452,6 @@ public:
 		double reg_max_cv = getFloat("reg_max_cv");
         double sam_min_corr = getFloat("sam_min_corr");
         double sam_min_depth = getFloat("sam_min_depth");
-        QStringList comments;
 
 		//timing
 		QTime timer;
@@ -485,16 +487,19 @@ public:
 
 		//load input (and check input)
 		QVector<QSharedPointer<SampleData>> samples;
-        for (int i=0; i<in.count(); ++i)
+		QStringList in_all;
+		in_all << in << in_noref;
+		for (int i=0; i<in_all.count(); ++i)
         {
             //init
 			QSharedPointer<SampleData> sample(new SampleData());
-			sample->name = QFileInfo(in[i]).baseName();
+			sample->name = QFileInfo(in_all[i]).baseName();
+			sample->noref = (i>=in.count());
 			sample->doc.reserve(exons.count());
 
             //check exon count
-			file = Helper::loadTextFile(in[i], true, '#', true);
-			if (file.count()!=exons.count()) THROW(FileParseException, "Coverage file " + sample->name + " contains more/less regions than reference file " + in[0] + ". Expected " + QString::number(exons.count()) + ", got " + QString::number(file.count()) + ".");
+			file = Helper::loadTextFile(in_all[i], true, '#', true);
+			if (file.count()!=exons.count()) THROW(FileParseException, "Coverage file " + sample->name + " contains more/less regions than reference file " + in_all[0] + ". Expected " + QString::number(exons.count()) + ", got " + QString::number(file.count()) + ".");
 
             //depth-of-coverage data
             for (int j=0; j<file.count(); ++j)
@@ -685,6 +690,13 @@ public:
                 }
                 else
                 {
+					//skip non-reference samples
+					if (samples[j]->noref)
+					{
+						samples[i]->correl_all.append(qMakePair(j, -1.0));
+						continue;
+					}
+
                     double sum = 0.0;
                     for(int e=0; e<exons.count(); ++e)
                     {
