@@ -60,7 +60,7 @@ _ngs-bits_ contains a lot of tools that we use for NGS short-read data analysis 
 
 ### Main tools
 
-* [SeqPurge](doc/tools/SeqPurge.md) - A highly-sensitive adapter trimmer for paired-end short-read data ([paper](http://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-016-1069-7)).
+* [SeqPurge](doc/tools/SeqPurge.md) - A highly-sensitive adapter trimmer for paired-end short-read data ([paper](http://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-016-1069-7), [poster](doc/data/SeqPurge_poster.pdf) from ECCB 2016 with more recent benchmarks).
 * [SampleCorrelation](doc/tools/SampleCorrelation.md) - Calculates the variant overlap and correlation of two VCF/BAM files.
 * [SampleGender](doc/tools/SampleGender.md) - Determines sample gender based on a BAM file.
 * [PERsim](doc/tools/PERsim.md) - Paired-end read simulator for Illumina reads.
@@ -118,6 +118,7 @@ The default output format of the quality control tools is [qcML](https://github.
 
 
   
+
 
 
 
