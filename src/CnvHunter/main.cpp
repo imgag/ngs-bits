@@ -386,8 +386,7 @@ public:
     virtual void printRegionDistributionCV(const QVector<QSharedPointer<ExonData>>& exons, QTextStream& outstream)
 	{
 		outstream << "Region coefficient of variation (normalized depth of coverage) histogram:" << endl;
-        Histogram hist;
-        hist.init(0.0, 0.5, 0.05);
+		Histogram hist(0.0, 0.5, 0.05);
 		for (int e=0; e<exons.count(); ++e)
 		{
             hist.inc(exons[e]->mad/exons[e]->median, true);
@@ -410,8 +409,7 @@ public:
         //historgam
         outstream << "CNVs per sample histogram:" << endl;
         double max = mean + 5.0*stdev;
-        Histogram hist;
-        hist.init(0.0, max, max/20);
+		Histogram hist(0.0, max, max/20);
         for (int s=0; s<samples.count(); ++s)
         {
             hist.inc(cnvs_sample[samples[s]], true);
@@ -423,8 +421,7 @@ public:
     virtual void printSampleDistributionCorrelation(const QVector<QSharedPointer<SampleData>>& samples, QTextStream& outstream)
 	{
 		outstream << "Reference sample correlation histogram:" << endl;
-        Histogram hist;
-        hist.init(0.8, 1.0, 0.02);
+		Histogram hist(0.8, 1.0, 0.02);
         for (int s=0; s<samples.count(); ++s)
         {
             hist.inc(samples[s]->ref_correl, true);

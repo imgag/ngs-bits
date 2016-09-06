@@ -20,7 +20,6 @@ GSvar:
 - Add MutationTaster link
 
 Tools:
-* MappingQC: Add "clipped base percentage" parameter for soft-clipped und hard-clipped bases.
 * VariantFilterRegions, etc: Set input file format by command line argument => allow reading variant lists from stdin
 * MappingQC: support RNA: insert size, spike-in controls, mapping ribosomes/globulines, etc.
 - SeqPurge:

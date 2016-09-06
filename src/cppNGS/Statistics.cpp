@@ -18,6 +18,7 @@
 #include "SampleCorrelation.h"
 #include <QFileInfo>
 #include "Settings.h"
+#include "Histogram.h"
 
 #include "api/BamReader.h"
 using namespace BamTools;
@@ -214,7 +215,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
     double bases_mapped = 0;
     double bases_clipped = 0;
     double insert_size_sum = 0;
-	QVector<double> insert_dist;
+	Histogram insert_dist(0, 999, 5);
     long long bases_usable = 0;
     int max_length = 0;
     bool paired_end = false;
@@ -239,9 +240,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
                 ++al_proper_paired;
 				int insert_size = std::min(abs(al.InsertSize), 999); //cap insert size at 1000
 				insert_size_sum += insert_size;
-				int bin = insert_size/5;
-				if (insert_dist.count()<=bin) insert_dist.resize(bin+1);
-                insert_dist[bin] += 1; //TODO use Histogram class!?
+				insert_dist.inc(insert_size, true);
             }
         }
 
@@ -274,11 +273,13 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
                     {
                         const int ol_start = std::max(bed_file[index].start(), start_pos);
                         const int ol_end = std::min(bed_file[index].end(), end_pos);
-                        bases_usable += ol_end - ol_start + 1;
-						QMap<int, int>& roi_cov_chr_map = roi_cov[chr.num()];
-                        for (int p=ol_start; p<=ol_end; ++p) //TODO use iterator, also for low-depth algo!
-                        {
-                            roi_cov_chr_map[p] += 1;
+						bases_usable += ol_end - ol_start + 1;
+						auto it = roi_cov[chr.num()].lowerBound(ol_start);
+						auto end = roi_cov[chr.num()].upperBound(ol_end);
+						while (it!=end)
+						{
+							(*it)++;
+							++it;
                         }
                     }
                 }
@@ -299,8 +300,8 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
     reader.Close();
 
     //calculate coverage depth statistics
-	QVector<double> depth_dist;
-    QHashIterator<int, QMap<int, int> > it(roi_cov);
+	Histogram depth_dist(0, 1999, 5);
+	QHashIterator<int, QMap<int, int> > it(roi_cov);
     while(it.hasNext())
     {
 		it.next();
@@ -308,9 +309,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
         while(it2.hasNext())
         {
 			it2.next();
-			int bin = std::min(it2.value()/5, 399); //upper bound of plot at 2000x
-			if (depth_dist.count()<=bin) depth_dist.resize(bin+1);
-			depth_dist[bin] += 1.0;
+			depth_dist.inc(it2.value(), true);
         }
 	}
 
@@ -348,7 +347,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
     for (int i=0; i<depths.count(); ++i)
     {
 		double cov_bases = 0.0;
-		for (int j=depths[i]/5; j<depth_dist.count(); ++j) cov_bases += depth_dist[j];
+		for (int bin=depth_dist.binIndex(depths[i]); bin<depth_dist.binCount(); ++bin) cov_bases += depth_dist.binValue(bin);
 		output.insert(QCValue("target region " + QString::number(depths[i]) + "x percentage", 100.0 * cov_bases / roi_bases, "Percentage of the target region that is covered at least " + QString::number(depths[i]) + "-fold.", accessions[i]));
     }
 
@@ -356,12 +355,8 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	LinePlot plot;
 	plot.setXLabel("depth of coverage");
 	plot.setYLabel("target region [%]");
-	plot.setXValues(BasicStatistics::range(depth_dist.count(), 2.0, 5.0));
-	for (int i=0; i<depth_dist.count(); ++i)
-	{
-		depth_dist[i] = 100.0 * depth_dist[i] / roi_bases;
-	}
-	plot.addLine(depth_dist, "");
+	plot.setXValues(depth_dist.xCoords());
+	plot.addLine(depth_dist.yCoords());
 	QString plotname = Helper::tempFileName(".png");
 	plot.store(plotname);
 	output.insert(QCValue::Image("depth distribution plot", plotname, "Depth of coverage distribution plot calculated one the target region.", "QC:2000037"));
@@ -373,13 +368,8 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 		LinePlot plot2;
 		plot2.setXLabel("insert size");
 		plot2.setYLabel("reads [%]");
-		plot2.setXValues(BasicStatistics::range(insert_dist.count(), 2.0, 5.0));
-		double insert_count = std::accumulate(insert_dist.begin(), insert_dist.end(), 0.0);
-		for (int i=0; i<insert_dist.count(); ++i)
-		{
-			insert_dist[i] = 100.0 * insert_dist[i] / insert_count;
-		}
-		plot2.addLine(insert_dist, "");
+		plot2.setXValues(insert_dist.xCoords());
+		plot2.addLine(insert_dist.yCoords(true));
 
 		plotname = Helper::tempFileName(".png");
 		plot2.store(plotname);
@@ -407,7 +397,7 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq)
     double bases_mapped = 0;
     double bases_clipped = 0;
     double insert_size_sum = 0;
-	QVector<double> insert_dist;
+	Histogram insert_dist(0, 999, 5);
     long long bases_usable = 0;
     int max_length = 0;
     bool paired_end = false;
@@ -432,9 +422,7 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq)
 				++al_proper_paired;
                 const int insert_size = std::min(abs(al.InsertSize),  999); //cap insert size at 1000
 				insert_size_sum += insert_size;
-                int bin = insert_size/5;  //TODO use Histogram class!?
-				if (insert_dist.count()<=bin) insert_dist.resize(bin+1);
-				insert_dist[bin] += 1;
+				insert_dist.inc(insert_size, true);
             }
         }
 
@@ -511,13 +499,8 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq)
 		LinePlot plot2;
 		plot2.setXLabel("insert size");
 		plot2.setYLabel("reads [%]");
-		plot2.setXValues(BasicStatistics::range(insert_dist.count(), 2.0, 5.0));
-		double insert_count = std::accumulate(insert_dist.begin(), insert_dist.end(), 0.0);
-		for (int i=0; i<insert_dist.count(); ++i)
-		{
-			insert_dist[i] = 100.0 * insert_dist[i] / insert_count;
-		}
-		plot2.addLine(insert_dist, "");
+		plot2.setXValues(insert_dist.xCoords());
+		plot2.addLine(insert_dist.yCoords(true));
 
 		QString plotname = Helper::tempFileName(".png");
 		plot2.store(plotname);
