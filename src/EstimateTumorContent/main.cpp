@@ -106,7 +106,7 @@ public:
 		if (freqs.count()>=n)
 		{
 			freqs = freqs.mid(freqs.count()-n);
-			out << "estimated tumor content: " << QString::number(BasicStatistics::median(freqs)*200, 'f', 0) << "%" << endl;
+			out << "estimated tumor content: " << QString::number(BasicStatistics::median(freqs, false)*200, 'f', 0) << "%" << endl;
 		}
 		else
 		{

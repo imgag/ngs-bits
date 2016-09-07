@@ -17,6 +17,60 @@ private slots:
 		F_EQUAL(BasicStatistics::median(data), 0.9);
 	}
 
+	void q1()
+	{
+		QVector<double> data;
+		data << 0.1 << 0.2 << 0.3;
+		F_EQUAL(BasicStatistics::q1(data), 0.1);
+
+		data.clear();
+		data << 0.1 << 0.2 << 0.3 << 0.4;
+		F_EQUAL(BasicStatistics::q1(data), 0.2);
+
+		data.clear();
+		data << 0.1 << 0.2 << 0.3 << 0.4 << 0.5;
+		F_EQUAL(BasicStatistics::q1(data), 0.2);
+
+		data.clear();
+		data << 0.1 << 0.2 << 0.3 << 0.4 << 0.5 << 0.6;
+		F_EQUAL(BasicStatistics::q1(data), 0.2);
+
+		data.clear();
+		data << 0.1 << 0.2 << 0.3 << 0.4 << 0.5 << 0.6 << 0.7;
+		F_EQUAL(BasicStatistics::q1(data), 0.2);
+
+		data.clear();
+		data << 0.1 << 0.2 << 0.3 << 0.4 << 0.5 << 0.6 << 0.7 << 0.8;
+		F_EQUAL(BasicStatistics::q1(data), 0.3);
+	}
+
+	void q3()
+	{
+		QVector<double> data;
+		data << 0.1 << 0.2 << 0.3;
+		F_EQUAL(BasicStatistics::q3(data), 0.3);
+
+		data.clear();
+		data << 0.1 << 0.2 << 0.3 << 0.4;
+		F_EQUAL(BasicStatistics::q3(data), 0.4);
+
+		data.clear();
+		data << 0.1 << 0.2 << 0.3 << 0.4 << 0.5;
+		F_EQUAL(BasicStatistics::q3(data), 0.4);
+
+		data.clear();
+		data << 0.1 << 0.2 << 0.3 << 0.4 << 0.5 << 0.6;
+		F_EQUAL(BasicStatistics::q3(data), 0.5);
+
+		data.clear();
+		data << 0.1 << 0.2 << 0.3 << 0.4 << 0.5 << 0.6 << 0.7;
+		F_EQUAL(BasicStatistics::q3(data), 0.6);
+
+		data.clear();
+		data << 0.1 << 0.2 << 0.3 << 0.4 << 0.5 << 0.6 << 0.7 << 0.8;
+		F_EQUAL(BasicStatistics::q3(data), 0.7);
+	}
+
 	void isSorted()
 	{
 		QVector<double> data;

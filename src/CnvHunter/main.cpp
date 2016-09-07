@@ -385,7 +385,7 @@ public:
         return true;
     }
 
-    virtual void printRegionDistributionCV(const QVector<QSharedPointer<ExonData>>& exons, QTextStream& outstream)
+	void printRegionDistributionCV(const QVector<QSharedPointer<ExonData>>& exons, QTextStream& outstream)
 	{
 		outstream << "Region coefficient of variation (normalized depth of coverage) histogram:" << endl;
 		Histogram hist(0.0, 0.5, 0.05);
@@ -397,7 +397,7 @@ public:
 		outstream << endl;
 	}
 
-    virtual void printSampleDistributionCNVs(const QVector<QSharedPointer<SampleData>>& samples, const QHash<QSharedPointer<SampleData>, int>& cnvs_sample, QTextStream& outstream)
+	void printSampleDistributionCNVs(const QVector<QSharedPointer<SampleData>>& samples, const QHash<QSharedPointer<SampleData>, int>& cnvs_sample, QTextStream& outstream)
 	{
         //determine mean/stdev of CNV counts
         QVector<double> counts;
@@ -420,7 +420,7 @@ public:
         outstream << endl;
     }
 
-    virtual void printSampleDistributionCorrelation(const QVector<QSharedPointer<SampleData>>& samples, QTextStream& outstream)
+	void printSampleDistributionCorrelation(const QVector<QSharedPointer<SampleData>>& samples, QTextStream& outstream)
 	{
 		outstream << "Reference sample correlation histogram:" << endl;
 		Histogram hist(0.8, 1.0, 0.02);
@@ -431,6 +431,37 @@ public:
         hist.print(outstream, "  ", 2, 0, false);
         outstream << endl;
     }
+
+	void printCorrelationStatistics(const QVector<QSharedPointer<SampleData>>& samples, QTextStream& outstream)
+	{
+		//extract correlation to n nearest samples
+		const int n = std::min(samples.count()-1, 30);
+		QVector<QVector<double>> corrs;
+		corrs.resize(n);
+		for (int s=0; s<samples.count(); ++s)
+		{
+			for (int i=0; i<n; ++i)
+			{
+				double corr = samples[s]->correl_all[i].second;
+				if (corr!=-1)
+				{
+					corrs[i].append(corr);
+				}
+			}
+		}
+
+		//print output
+		outstream << "Sample correlation for different 'n' values:" << endl;
+		for (int i=0; i<n; ++i)
+		{
+			std::sort(corrs[i].begin(), corrs[i].end());
+			double median = BasicStatistics::median(corrs[i], false);
+			double q1 = BasicStatistics::q1(corrs[i], false);
+			double q3 = BasicStatistics::q3(corrs[i], false);
+			outstream << QString::number(i+1).rightJustified(4, ' ') << ": q3=" << QString::number(q3, 'f',3) << " median=" << QString::number(median, 'f', 3) << " q1=" << QString::number(q1, 'f',3) << endl;
+		}
+		outstream << endl;
+	}
 
     virtual void main()
     {
@@ -651,7 +682,7 @@ public:
                 }
             }
             std::sort(tmp.begin(), tmp.end());
-            double median = BasicStatistics::median(tmp);
+			double median = BasicStatistics::median(tmp, false);
             double mad = 1.428 * BasicStatistics::mad(tmp, median);
 
 			if (median<reg_min_ncov) exons[e]->qc += "ncov<" + QString::number(reg_min_ncov) + " ";
@@ -709,6 +740,7 @@ public:
 			//sort by correlation (reverse)
 			std::sort(samples[i]->correl_all.begin(), samples[i]->correl_all.end(), [](const QPair<int, double> & a, const QPair<int, double> & b){return a.second > b.second;});
 		}
+		printCorrelationStatistics(samples, outstream);
 		timings.append("calculating sample correlations: " + Helper::elapsedTime(timer));
 		timer.restart();
 
@@ -738,7 +770,7 @@ public:
 				if (values.count()==n)
                 {
                     std::sort(values.begin(), values.end());
-                    double median = BasicStatistics::median(values);
+					double median = BasicStatistics::median(values, false);
 					samples[s]->ref.append(median);
                     double stdev = 1.428 * BasicStatistics::mad(values, median);
 					samples[s]->ref_stdev.append(std::max(stdev, 0.1*median));

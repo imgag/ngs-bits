@@ -209,7 +209,7 @@ void SampleInformationDialog::statisticsLabel(NGSD& db, QLabel* label, QString a
 		//get QC value statistics
 		QVector<double> values = db.getQCValues(accession, filename_);
 		std::sort(values.begin(), values.end());
-		double median = BasicStatistics::median(values);
+		double median = BasicStatistics::median(values, false);
 		double mad = 1.428 * BasicStatistics::mad(values, median);
 		label->setToolTip("mean: " + QString::number(median, 'f', 2) + "<br>stdev: " + QString::number(mad, 'f', 2));
 
