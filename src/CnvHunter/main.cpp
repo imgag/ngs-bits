@@ -203,8 +203,8 @@ public:
 
         //contruct sorted array
         QVector<QSharedPointer<ExonData>> tmp;
-        tmp.append(exons);
-        tmp.append(exons_removed);
+		foreach(const QSharedPointer<ExonData>& exon, exons) tmp.append(exon);
+		foreach(const QSharedPointer<ExonData>& exon, exons_removed) tmp.append(exon);
         std::sort(tmp.begin(), tmp.end(), [](const QSharedPointer<ExonData>& a, const QSharedPointer<ExonData>& b){return *(a.data()) < *(b.data());} );
         foreach(const QSharedPointer<ExonData>& exon, tmp)
         {
