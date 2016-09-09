@@ -356,7 +356,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	plot.setXLabel("depth of coverage");
 	plot.setYLabel("target region [%]");
 	plot.setXValues(depth_dist.xCoords());
-	plot.addLine(depth_dist.yCoords());
+	plot.addLine(depth_dist.yCoords(true));
 	QString plotname = Helper::tempFileName(".png");
 	plot.store(plotname);
 	output.insert(QCValue::Image("depth distribution plot", plotname, "Depth of coverage distribution plot calculated one the target region.", "QC:2000037"));
