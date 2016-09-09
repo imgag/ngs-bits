@@ -988,45 +988,52 @@ public:
 			ranges.removeAt(r+1);
 		}
 
-		//merge nearby regions (bridge gaps with CN=2)
+		//merge adjacent regions to bridge gaps with CN=2
 		if (ext_gap_span>0)
 		{
-			for (int r=ranges.count()-2; r>=0; --r)
+			int regs_before = 0;
+			int regs_after = 1;
+			while(regs_before!=regs_after)
 			{
-				Range& first = ranges[r];
-				Range& second = ranges[r+1];
-				if(first.type!=second.type) continue; //same type (ins/del)
-				if(first.sample!=second.sample) continue; //same sample
-				if(results[first.start].exon->chr!=results[second.start].exon->chr) continue; //same chromosome
-				const int dist = second.start-first.end-1;
-				if (dist>ext_gap_span/100.0*(first.size() + second.size())) continue; //gap not too big
-
-				//check that no region with the wrong trend is in between
-				bool skip = false;
-				for (int i=first.end+1; i<second.start; ++i)
+				regs_before = ranges.count();
+				for (int r=ranges.count()-2; r>=0; --r)
 				{
-					if (first.type==Range::INS && results[i].z<1.0)
-					{
-						skip = true;
-						break;
-					}
-					if (first.type==Range::DEL && results[i].z>-1.0)
-					{
-						skip = true;
-						break;
-					}
-				}
-				if (skip) continue;
+					Range& first = ranges[r];
+					Range& second = ranges[r+1];
+					if(first.type!=second.type) continue; //same type (ins/del)
+					if(first.sample!=second.sample) continue; //same sample
+					if(results[first.start].exon->chr!=results[second.start].exon->chr) continue; //same chromosome
+					const int dist = second.start-first.end-1;
+					if (dist>ext_gap_span/100.0*(first.size() + second.size())) continue; //gap not too big
 
-				//update estimated copy number
-				for (int i=first.end+1; i<second.start; ++i)
-				{
-					results[i].copies = calculateCopies(results[i].sample, results[i].exon);
-				}
+					//check that no region with the wrong trend is in between
+					bool skip = false;
+					for (int i=first.end+1; i<second.start; ++i)
+					{
+						if (first.type==Range::INS && results[i].z<0.0)
+						{
+							skip = true;
+							break;
+						}
+						if (first.type==Range::DEL && results[i].z>0.0)
+						{
+							skip = true;
+							break;
+						}
+					}
+					if (skip) continue;
 
-				//merge ranges
-				first.end = second.end;
-				ranges.removeAt(r+1);
+					//update estimated copy number
+					for (int i=first.end+1; i<second.start; ++i)
+					{
+						results[i].copies = calculateCopies(results[i].sample, results[i].exon);
+					}
+
+					//merge ranges
+					first.end = second.end;
+					ranges.removeAt(r+1);
+				}
+				regs_after = ranges.count();
 			}
 		}
 		outstream << "merged " << c_ranges_before_merge << " to " << ranges.count() << " ranges" << endl << endl;
