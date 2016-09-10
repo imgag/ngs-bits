@@ -305,12 +305,10 @@ public:
 			if (anno)
 			{
 				outstream << "\t";
-				bool first = true;
-				foreach(const QString& gene, genes)
-				{
-					outstream << (first ? "" : ",") << gene;
-					first = false;
-				}
+
+				QStringList tmp(genes.toList());
+				std::sort(tmp.begin(), tmp.end());
+				outstream << tmp.join(",");
 			}
 			outstream << endl;
 		}
