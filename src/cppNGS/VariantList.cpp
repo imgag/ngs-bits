@@ -188,11 +188,11 @@ VariantAnnotationDescription VariantList::annotationDescriptionByName(const QStr
 
 int VariantList::annotationIndexByName(const QString& name, bool exact_match, bool error_on_mismatch) const
 {
-	return annotationIndexByName(name, nullptr, exact_match, error_on_mismatch);
+	return annotationIndexByName(name, "", exact_match, error_on_mismatch);
 }
 
 
-int VariantList::annotationIndexByName(const QString& name, const QString& sample_id, bool exact_match, bool error_on_mismatch) const
+int VariantList::annotationIndexByName(const QString& name, QString sample_id, bool exact_match, bool error_on_mismatch) const
 {
 	//find matches
 	QList<int> matches;
@@ -200,7 +200,7 @@ int VariantList::annotationIndexByName(const QString& name, const QString& sampl
 	{
 		if ((exact_match && annotations()[i].name()==name) || (!exact_match && annotations()[i].name().contains(name)))
 		{
-			if(!sample_id.isNull() && sample_id!=annotations()[i].sampleID())	continue;
+			if(!sample_id.isEmpty() && sample_id!=annotations()[i].sampleID())	continue;
 			matches.append(i);
 		}
 	}
@@ -249,14 +249,14 @@ void VariantList::removeAnnotation(int index)
 	}
 }
 
-const QStringList VariantList::sampleNames()
+QStringList VariantList::sampleNames() const
 {
 	QStringList sample_names;
 	if (annotations().count()>0)
 	{
 		foreach(const VariantAnnotationHeader& act_anno, annotations())
 		{
-			if (act_anno.sampleID().isNull())	continue;
+			if (act_anno.sampleID().isEmpty())	continue;
 			sample_names.append(act_anno.sampleID());
 		}
 	}
@@ -506,7 +506,7 @@ void VariantList::storeToTSV(QString filename)
 	{
 		foreach(const VariantAnnotationHeader& act_anno, annotation_headers_)
 		{
-			if (!act_anno.sampleID().isNull())
+			if (!act_anno.sampleID().isEmpty())
 			{
 				if(act_anno.name()==".")
 				{
@@ -718,7 +718,7 @@ void VariantList::loadFromVCF(QString filename)
 
 				for(int ii=0; ii<annotationDescriptions().count(); ++ii)
 				{
-					if(!annotationDescriptions()[ii].sampleSpecific())	continue;
+					if(!annotationDescriptions()[ii].sampleSpecific()) continue;
 					++sample_specific_count;
 					annotations().append(VariantAnnotationHeader(annotationDescriptions()[ii].name(),sample_id));
 				}
@@ -737,14 +737,14 @@ void VariantList::loadFromVCF(QString filename)
 				int sample_specific_count = 0;
 				for(int i=0; i<annotationDescriptions().count(); ++i)
 				{
-					if(!annotationDescriptions()[i].sampleSpecific())	continue;
+					if(!annotationDescriptions()[i].sampleSpecific()) continue;
 					annotations().append(VariantAnnotationHeader(annotationDescriptions()[i].name(),sample_id));
 					++sample_specific_count;
 				}
 
 				if(sample_specific_count==0)
 				{
-					annotations().append(VariantAnnotationHeader(".",sample_id));
+					annotations().append(VariantAnnotationHeader(".", sample_id));
 					annotationDescriptions().append(VariantAnnotationDescription(".", "Default column description since no FORMAT fields were defined.", VariantAnnotationDescription::STRING, true, "1", false));//add dummy description
 				}
 			}
@@ -798,8 +798,8 @@ void VariantList::loadFromVCF(QString filename)
 					if(index==-1)
 					{
 						annotations().append(VariantAnnotationHeader(key_value[0]));
-						annotationDescriptions().append(VariantAnnotationDescription(key_value[0],"no description available"));
-						Log::info("No metadata information for INFO field " + key_value[0] + " was found.");
+						annotationDescriptions().append(VariantAnnotationDescription(key_value[0], "no description available"));
+						//Log::info("No metadata information for INFO field " + key_value[0] + " was found.");
 
 						for(int ii=0;ii<variants_.count();++ii)
 						{
@@ -814,7 +814,6 @@ void VariantList::loadFromVCF(QString filename)
 			}
 
 			// extract sample-dependent annotations (if present)
-			QHash <QByteArray, QByteArray> dep_annos;
 			if (line_parts.count()>=10)//if present: extract sample dependent annotations
 			{
 				QList<QByteArray> names = line_parts[8].split(':');
@@ -836,7 +835,7 @@ void VariantList::loadFromVCF(QString filename)
 						}
 						if(index==-1)
 						{
-							Log::info("No metadata information for FORMAT field " + names[ii] + ".");
+							//Log::info("No metadata information for FORMAT field " + names[ii] + ".");
 							annotations().append(VariantAnnotationHeader(names[ii],sample_id));
 							annotationDescriptions().append(VariantAnnotationDescription(names[ii],"no description available",VariantAnnotationDescription::STRING,true));
 							for(int iii=0;iii<variants_.count();++iii)
@@ -903,7 +902,7 @@ void VariantList::storeToVCF(QString filename)
 	for (int j=3; j<annotations().count(); ++j) //why 3: skip ID Quality Filter
 	{
 		VariantAnnotationHeader& vah = annotations()[j];
-		if(!vah.sampleID().isNull() && !samples.contains(vah.sampleID()))
+		if(!vah.sampleID().isEmpty() && !samples.contains(vah.sampleID()))
 		{
 			samples.append(vah.sampleID());
 		}
@@ -929,14 +928,14 @@ void VariantList::storeToVCF(QString filename)
 		for (int i=3; i<v.annotations().count(); ++i) //why 3: skip ID Quality Filter
 		{
 			const VariantAnnotationHeader anno_header = annotations()[i];
-			const VariantAnnotationDescription anno_desc = annotationDescriptionByName(anno_header.name(), !anno_header.sampleID().isNull());
+			const VariantAnnotationDescription anno_desc = annotationDescriptionByName(anno_header.name(), !anno_header.sampleID().isEmpty());
 
 			QByteArray anno_val = v.annotations()[i];
 			if (anno_val!="")//don't write annotations without values and not set flags
 			{
 				if (anno_desc.sampleSpecific())
 				{
-					if(sample.isNull())	sample = anno_header.sampleID();
+					if(sample.isEmpty())	sample = anno_header.sampleID();
 					if(sample==anno_header.sampleID())
 					{
 						format_field+=anno_desc.name();

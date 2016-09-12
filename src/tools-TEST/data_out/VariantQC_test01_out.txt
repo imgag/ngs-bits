@@ -4,4 +4,4 @@ high-impact variants percentage: 1.27
 homozygous variants percentage: 39.49
 indel variants percentage: 4.46
 transition/transversion ratio: 3.29
-SNV allele frequency deviation: 0.0339
+SNV allele frequency deviation: 0.0334

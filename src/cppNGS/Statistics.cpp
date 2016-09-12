@@ -128,27 +128,17 @@ QCCollection Statistics::variantList(const VariantList& variants)
     }
 
     //deviation from expected allel frequency
-    int i_ao = -1;
-    int i_dp = -1;
-    for(int i=0; i<variants.annotationDescriptions().count(); ++i)
+	QString sample_name = variants.sampleNames().count() ? variants.sampleNames()[0] : "Sample";
+	int i_ao = variants.annotationIndexByName("AO", sample_name, true, false);
+	int i_dp = variants.annotationIndexByName("DP", sample_name, true, false);
+	QString value = "n/a (AO/DP annotation not found)";
+	if (i_ao>=0 && i_dp>=0)
     {
-        if (variants.annotationDescriptions()[i].name()=="AO" && !variants.annotationDescriptions()[i].sampleSpecific())
-        {
-           i_ao = i;
-        }
-        if (variants.annotationDescriptions()[i].name()=="DP" && !variants.annotationDescriptions()[i].sampleSpecific())
-        {
-           i_dp = i;
-        }
-    }
-    int diff_count = 0;
-    double diff_sum = 0.0;
-    if (i_ao!=-1 && i_dp!=-1)
-    {
+		int diff_count = 0;
+		double diff_sum = 0.0;
         for(int i=0; i<variants.count(); ++i)
         {
-            if (!variants[i].isSNV()) continue;
-
+			if (!variants[i].isSNV()) continue;
             bool ok = true;
             int dp = variants[i].annotations().at(i_dp).toInt(&ok);
             if (!ok || dp<30) continue;
@@ -159,15 +149,17 @@ QCCollection Statistics::variantList(const VariantList& variants)
             diff_sum += diff;
             ++diff_count;
         }
+
+		if (diff_count>30)
+		{
+			value = QString::number(diff_sum/diff_count, 'f', 4);
+		}
+		else
+		{
+			value = "n/a (not enough SNPs found)";
+		}
     }
-    if (diff_count>30)
-    {
-        output.insert(QCValue("SNV allele frequency deviation", QString::number(diff_sum/diff_count, 'f', 4), "Mean deviation from expected allele frequency (e.g. 0.0, 0.5 or 1.0 for diploid organisms) for single nucleotide variants.", "QC:2000051"));
-    }
-    else
-    {
-        output.insert(QCValue("SNV allele frequency deviation", "n/a (AO/DP annotation not found, or not enough variants)", "Mean deviation from expected allele frequency (e.g. 0.0, 0.5 or 1.0 for diploid organisms) for single nucleotide variants.", "QC:2000051"));
-    }
+	output.insert(QCValue("SNV allele frequency deviation", value, "Mean deviation from expected allele frequency (e.g. 0.0, 0.5 or 1.0 for diploid organisms) for single nucleotide variants.", "QC:2000051"));
 
     return output;
 }

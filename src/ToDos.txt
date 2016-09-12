@@ -13,16 +13,18 @@ libs:
       - consider soft-clipping of secondary alignments (CS)
 
 GSvar:
+** Override filter results with 'classification'!
 * Implement update tool that automatically checks for new versions, or find solution with reference to sub-folders (ask Martin)
 - Allow handling of several affected (i.e. integrate SampleOverview functionality)
 - Allow filtering of multi-sample variant lists => missing genotype (perhaps treat all variants as homozygous?)
-- Add buttons to search in goolge/pubmed for variant
-- Add MutationTaster link
+? Add buttons to search in goolge/pubmed for variant
+? Add MutationTaster link
 
 Tools:
 * MappingQC: support RNA: insert size, spike-in controls, mapping ribosomes/globulines, etc.
 
 CnvHunter:
+ ** check why CN=3 regions are so fragmented in (vc_cnvhunter somatic test) - check with Christopher
  * update test data (include MAPQ=0, types: HBOC, TruRisk, Exome, Low-coverage genome data, Cancer data)
  * look at properties to bad regions (HLA, common CNVs, GC, size, ...)
  * add optional GC-normalization (then, check GS151166_01 gene C5orf42) - test effect of including different flanking regions

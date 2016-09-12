@@ -66,7 +66,7 @@ private slots:
         S_EQUAL(stats[5].name(), QString("transition/transversion ratio"));
         S_EQUAL(stats[5].toString(), QString("3.29"));
         S_EQUAL(stats[6].name(), QString("SNV allele frequency deviation"));
-        S_EQUAL(stats[6].toString(), QString("0.0339"));
+		S_EQUAL(stats[6].toString(), QString("0.0334"));
         I_EQUAL(stats.count(), 7);
 
 		//check that there is a description for each term

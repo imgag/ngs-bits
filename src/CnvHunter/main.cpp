@@ -403,12 +403,12 @@ public:
         {
             counts.append(it.value());
         }
-        double mean = BasicStatistics::mean(counts);
-        double stdev = BasicStatistics::stdev(counts, mean);
+		double median = BasicStatistics::median(counts);
+		double mad = 1.428 * BasicStatistics::mad(counts, median);
 
         //historgam
         outstream << "CNVs per sample histogram:" << endl;
-        double max = mean + 5.0*stdev;
+		double max = median + 5.0*mad;
 		Histogram hist(0.0, max, max/20);
         for (int s=0; s<samples.count(); ++s)
         {
