@@ -76,6 +76,7 @@ The default output format of the quality control tools is [qcML](https://github.
 
 ### BAM tools
 
+* [BamDeduplicateByBarcode](doc/tools/BamDeduplicateByBarcode.md) - Deduplicate a BAM file based on given molecular barcodes.
 * [BamClipOverlap](doc/tools/BamClipOverlap.md) - (Soft-)Clips paired-end reads that overlap.
 * [BamDownsample](doc/tools/BamDownsample.md) - Downsamples a BAM file to the given percentage of reads.
 * [BamIndex](doc/tools/BamIndex.md) - Creates a BAI index for a BAM file.
@@ -103,6 +104,7 @@ The default output format of the quality control tools is [qcML](https://github.
 
 * [FastqConvert](doc/tools/FastqConvert.md) - Converts the quality scores from Illumina 1.5 offset to Sanger/Illumina 1.8 offset. 
 * [FastqExtract](doc/tools/FastqExtract.md) - Extracts reads from a FASTQ file according to an ID list.
+* [FastqExtractBarcode](doc/tools/FastqExtractBarcode.md) - Moves molecular barcodes of reads to a separate file.
 * [FastqFormat](doc/tools/FastqFormat.md) - Determines the quality score offset of a FASTQ file.
 * [FastqList](doc/tools/FastqList.md) - Lists read IDs and base counts.
 * [FastqMidParser](doc/tools/FastqMidParser.md) - Counts the number of occurances of each MID/index/barcode in a FASTQ file.
