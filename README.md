@@ -76,8 +76,8 @@ The default output format of the quality control tools is [qcML](https://github.
 
 ### BAM tools
 
-* [BamDeduplicateByBarcode](doc/tools/BamDeduplicateByBarcode.md) - Deduplicate a BAM file based on given molecular barcodes.
 * [BamClipOverlap](doc/tools/BamClipOverlap.md) - (Soft-)Clips paired-end reads that overlap.
+* [BamDeduplicateByBarcode](doc/tools/BamDeduplicateByBarcode.md) - Deduplicate a BAM file based on given molecular barcodes.
 * [BamDownsample](doc/tools/BamDownsample.md) - Downsamples a BAM file to the given percentage of reads.
 * [BamIndex](doc/tools/BamIndex.md) - Creates a BAI index for a BAM file.
 * [BamLeftAlign](doc/tools/BamLeftAlign.md) - Left-aligns indels in repeat regions.
