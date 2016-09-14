@@ -3,14 +3,9 @@
 libs:
 - cppNGS:
    - VariantList:
-      - Statistics: add test for statistics::somatic(...) (CS)
       - use QSharedPointers to link VariantAnnotationHeaders with VariantAnnotationDescriptions (CS)
-      - check vcf and tsv files if valid (columns and their descriptions)
-   - Statistics:
-      - somatic(): add plot comparing depth tumor/normal and allele frequencies of dbSNP variants (CS)
-      - somatic(): add cnv count - QCValue("somatic CNVs count", "", "Needs to be implemented.", "QC:2000044") (CS)
-   - NGSHelper:
-      - consider soft-clipping of secondary alignments (CS)
+      - check vcf and tsv files if valid - columns and their descriptions (CS)
+   - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
 ** Override filter results with 'classification'!
@@ -22,6 +17,8 @@ GSvar:
 
 Tools:
 * MappingQC: support RNA: insert size, spike-in controls, mapping ribosomes/globulines, etc.
+* SomaticQC: do not use precalculated triplet counts, count every time
+* BamClipOverlap: require sorted bam and paired-end sequencing
 
 CnvHunter:
  ** check why CN=3 regions are so fragmented in (vc_cnvhunter somatic test) - check with Christopher
