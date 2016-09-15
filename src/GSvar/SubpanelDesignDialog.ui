@@ -23,7 +23,7 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to design a sub-panel based on an existing processing system. The created target regions constist of the CCDS exon regions including &lt;span style=&quot; font-style:italic;&quot;&gt;x&lt;/span&gt; flanking bases.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to design a sub-panel based on an existing processing system. The created target regions constist of the CCDS exon regions including &lt;span style=&quot; font-style:italic;&quot;&gt;x&lt;/span&gt; flanking bases.&lt;/p&gt;&lt;p&gt;Sub-panels that are specific for a sample/patient should start with the following information by convention:&lt;br/&gt;[base panel]_individual_[sample identifier]&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="scaledContents">
       <bool>false</bool>
@@ -142,7 +142,7 @@
      <item>
       <widget class="QComboBox" name="flanking">
        <property name="currentText">
-        <string>20</string>
+        <string>3</string>
        </property>
        <item>
         <property name="text">

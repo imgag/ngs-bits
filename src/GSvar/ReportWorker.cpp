@@ -263,6 +263,7 @@ void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file
 	stream << "<p><b>Abdeckungsstatistik f&uuml;r CCDS</b></p>" << endl;
 	stream << "<table>";
 	stream << "<tr><td><b>Gen</b></td><td><b>Transcript</b></td><td><b>Gr&ouml;&szlig;e</b></td><td><b>L&uuml;cken</b></td><td><b>Chromosom</b></td><td><b>Koordinaten (hg19)</b></td></tr>";
+	int bases_overall = 0;
 	int bases_sequenced = 0;
 	foreach(QString gene, genes)
 	{
@@ -294,10 +295,13 @@ void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file
 			coords << QString::number(gaps[i].start()) + "-" + QString::number(gaps[i].end());
 		}
 		stream << "<tr><td>" + symbol + "</td><td>" << transcript << "</td><td>" << bases_transcipt << "</td><td>" << bases_gaps << "</td><td>" << chr.strNormalized(true) << "</td><td>" << coords.join(", ") << "</td></tr>";
+		bases_overall += bases_transcipt;
 		bases_sequenced += bases_transcipt - bases_gaps;
 	}
 	stream << "</table>";
-	stream << "<p>CCDS-Basen sequenziert: " << bases_sequenced << "</p>" << endl;
+	stream << "<p>CCDS-Basen gesamt: " << bases_overall << endl;
+	stream << "<br />CCDS-Basen sequenziert: " << bases_sequenced << " (" << QString::number(100.0 * bases_sequenced / bases_overall, 'f', 2)<< "%)" << endl;
+	stream << "</p>" << endl;
 }
 
 BedFile ReportWorker::precalculatedGaps(QString bam_file, const BedFile& roi, int min_cov, NGSD& db, QString& message)
