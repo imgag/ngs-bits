@@ -147,8 +147,8 @@ public:
 		addFloat("reg_min_ncov", "QC: Minimum (average) normalized depth of a target region.", true, 0.01);
         addFloat("reg_max_cv", "QC: Maximum coefficient of variation (median/mad) of target region.", true, 0.3);
 		addFlag("anno", "Enable annotation of gene names to regions (needs the NGSD database).");
-        addFlag("verbose", "Writes detail information files (normalized coverage, all z-scores, etc.).");
 		addFlag("test", "Uses test database instead of production database for annotation.");
+		addString("debug", "Writes debug informaion for the sample(s) matching the given name (or for all samples if 'ALL' is given).", true, "");
 
         changeLog(2016, 9,  1, "Sample and region information files are now always written.");
 		changeLog(2016, 8, 23, "Added merging of large CNVs that were split to several regions due to noise.");
@@ -187,11 +187,11 @@ public:
 		outstream << "#sample\tref_sample\tdoc_mean\tref_correl\tz_score_mad\tcnvs\tqc_info" << endl;
 		foreach(const QSharedPointer<SampleData>& sample, samples)
         {
-			outstream << sample->name << "\t" << (sample->noref ? "no" : "yes") << "\t" << sample->doc_mean << "\t" << sample->ref_correl << "\t" << z_scores[sample] << "\t" << cnvs_sample[sample] << "\t" << sample->qc << endl;
+			outstream << sample->name << "\t" << (sample->noref ? "no" : "yes") << "\t" << QString::number(sample->doc_mean, 'f', 1) << "\t" << QString::number(sample->ref_correl, 'f', 3) << "\t" << QString::number(z_scores[sample], 'f', 3) << "\t" << cnvs_sample[sample] << "\t" << sample->qc << endl;
         }
         foreach(const QSharedPointer<SampleData>& sample, samples_removed)
         {
-			outstream << sample->name << "\t" << (sample->noref ? "no" : "yes") << "\t" << sample->doc_mean << "\t" << sample->ref_correl << "\t-\t-\t" << sample->qc << endl;
+			outstream << sample->name << "\t" << (sample->noref ? "no" : "yes") << "\t" << QString::number(sample->doc_mean, 'f', 1) << "\t" << QString::number(sample->ref_correl, 'f', 3) << "\t-\t-\t" << sample->qc << endl;
         }
     }
 
@@ -199,7 +199,7 @@ public:
     {
         QSharedPointer<QFile> file = Helper::openFileForWriting(out.left(out.size()-4) + "_regions.tsv");
         QTextStream outstream(file.data());
-        outstream << "#region\tsize\tncov_median\tncov_mad\tncov_cv\tcnvs\tqc_info" << endl;
+		outstream << "#region\tsize\tndoc_median\tndoc_mad\tndoc_cv\tcnvs\tqc_info" << endl;
 
         //contruct sorted array
         QVector<QSharedPointer<ExonData>> tmp;
@@ -208,7 +208,7 @@ public:
         std::sort(tmp.begin(), tmp.end(), [](const QSharedPointer<ExonData>& a, const QSharedPointer<ExonData>& b){return *(a.data()) < *(b.data());} );
         foreach(const QSharedPointer<ExonData>& exon, tmp)
         {
-            outstream << exon->toString() << "\t" << (exon->end-exon->start) << "\t" << exon->median << "\t" << exon->mad << "\t" << (exon->mad/exon->median) << "\t";
+			outstream << exon->toString() << "\t" << (exon->end-exon->start) << "\t" << QString::number(exon->median, 'f', 3) << "\t" << QString::number(exon->mad, 'f', 3) << "\t" << QString::number(exon->mad/exon->median, 'f', 2) << "\t";
             if (exon->qc.isEmpty())
             {
                 outstream << cnvs_exon[exon];
@@ -245,21 +245,57 @@ public:
         }
     }
 
-    void storeResultInfo(QString out, const QVector<ResultData>& results)
+	void storeDebugInfo(QString debug, QString out, const QVector<QSharedPointer<SampleData>>& samples, const QVector<ResultData>& results)
     {
-        QSharedPointer<QFile> file = Helper::openFileForWriting(out.left(out.size()-4) + "_results.tsv");
+		//no debugging
+		if (debug=="") return;
+
+		//check debugging sample name
+		QSharedPointer<SampleData> debug_sample;
+		if(debug!="ALL")
+		{
+			foreach(const QSharedPointer<SampleData>& sample, samples)
+			{
+				if (sample->name==debug)
+				{
+					debug_sample = sample;
+				}
+			}
+			if (debug_sample.isNull())
+			{
+				QStringList sample_names;
+				foreach(const QSharedPointer<SampleData>& sample, samples)
+				{
+					sample_names.append(sample->name);
+				}
+				THROW(CommandLineParsingException, "Given debugging sample name '" + debug + "' is invalid. Valid names are: " + sample_names.join(", "));
+			}
+		}
+
+		QSharedPointer<QFile> file = Helper::openFileForWriting(out.left(out.size()-4) + "_debug.tsv");
         QTextStream outstream(file.data());
-        outstream << "#sample\tregion\tcopy_number\tz_score\tdepth\tref_depth\tref_stdev" << endl;
+		outstream << "#sample\tregion\tcopy_number\tz_score\tndoc\tref_ndoc\tref_ndoc_stdev\tlog2_ratio" << endl;
         foreach(const ResultData& r, results)
-        {
-			outstream << r.sample->name << "\t" << r.exon->toString() << "\t" << r.copies << "\t" << r.z << "\t" << r.sample->doc[r.exon->index] << "\t" << r.sample->ref[r.exon->index] << "\t" << r.sample->ref_stdev[r.exon->index] << endl;
+		{
+			if(debug_sample.isNull() || r.sample==debug_sample)
+			{
+				double ncov = r.sample->doc[r.exon->index];
+				double ncov_ref = r.sample->ref[r.exon->index];
+				double log_ratio = log2(ncov/ncov_ref);
+				outstream << r.sample->name << "\t" << r.exon->toString() << "\t" << r.copies << "\t" << QString::number(r.z, 'f', 2) << "\t" << QString::number(ncov, 'f', 3) << "\t" << QString::number(ncov_ref, 'f', 3) << "\t" << QString::number(r.sample->ref_stdev[r.exon->index], 'f', 3) << "\t" << QString::number(log_ratio, 'f', 2) << endl;
+			}
         }
     }
 
 	QSet<QString> geneNames(const QSharedPointer<ExonData>& exon, bool test)
 	{
 		static QHash<QString, QSet<QString> > cache;
-		static NGSD db(test);
+		static QSharedPointer<NGSD> db(nullptr);
+		if (db.isNull())
+		{
+			QTextStream(stdout) << "RESET";
+			db.reset(new NGSD(test));
+		}
 
 		//check cache
 		QString reg = exon->toString();
@@ -269,7 +305,7 @@ public:
 		}
 
 		//get genes from NGSD
-		QSet<QString> genes = QSet<QString>::fromList(db.genesOverlapping(exon->chr, exon->start, exon->end, 20));
+		QSet<QString> genes = QSet<QString>::fromList(db->genesOverlapping(exon->chr, exon->start, exon->end, 20));
 		cache.insert(reg, genes);
 		return genes;
 	}
@@ -277,11 +313,11 @@ public:
     void storeResultAsTSV(const QList<Range>& ranges, const QVector<ResultData>& results, QString filename, bool anno, bool test)
     {
 		QSharedPointer<QFile> out = Helper::openFileForWriting(filename);
-        QTextStream outstream(out.data());
+		QTextStream outstream(out.data());
 
         //header
 		outstream << "#chr\tstart\tend\tsample\tregion_count\tregion_copy_numbers\tregion_zscores\tregion_coordinates" << (anno ? "\tgenes" : "") << endl;
-
+		QTextStream(stdout) << "START OUTPUT";
 		for (int r=0; r<ranges.count(); ++r)
         {
 			const Range& range = ranges[r];
@@ -312,30 +348,7 @@ public:
 			}
 			outstream << endl;
 		}
-    }
-
-    void storeNormalizedData(QString out, const QVector<QSharedPointer<SampleData>>& samples, const QVector<QSharedPointer<ExonData>>& exons)
-    {
-        QSharedPointer<QFile> file = Helper::openFileForWriting(out.left(out.size()-4) + "_normalized.tsv");
-        QTextStream outstream(file.data());
-        outstream << "#region";
-		foreach(const QSharedPointer<SampleData>& sample, samples)
-        {
-            if (!sample->qc.isEmpty()) continue;
-			outstream << "\t" << sample->name;
-        }
-        outstream << endl;
-        for (int e=0; e<exons.count(); ++e)
-        {
-            if (!exons[e]->qc.isEmpty()) continue;
-			outstream << exons[e]->toString();
-			foreach(const QSharedPointer<SampleData>& sample, samples)
-            {
-                if (!sample->qc.isEmpty()) continue;
-				outstream << "\t" << QString::number(sample->doc[e], 'f', 4);
-            }
-            outstream << endl;
-        }
+		QTextStream(stdout) << "END OUTPUT";
     }
 
 	double calculateZ(const QSharedPointer<SampleData>& sample, int e)
@@ -464,7 +477,7 @@ public:
     virtual void main()
     {
         //init
-        bool verbose = getFlag("verbose");
+		QString debug = getString("debug");
         QStringList in = getInfileList("in");
 		QStringList in_noref = getInfileList("in_noref");
 		QString out = getOutfile("out");
@@ -1058,11 +1071,7 @@ public:
         storeResultAsTSV(ranges, results, out, getFlag("anno"), getFlag("test"));
         storeSampleInfo(out, samples, samples_removed, cnvs_sample, results);
         storeRegionInfo(out, exons, exons_removed, cnvs_exon);
-        if (verbose)
-        {
-            storeResultInfo(out, results);
-            storeNormalizedData(out, samples, exons);
-        }
+		storeDebugInfo(debug, out, samples, results);
 
 		//print statistics
         double corr_sum = 0;

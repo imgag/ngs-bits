@@ -18,10 +18,11 @@ private slots:
 		in_noref << in[index];
 		in.removeAt(index);
 
-		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -in_noref " + in_noref.join(" ") + " -out out/CnvHunter_out1.tsv");
+		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -in_noref " + in_noref.join(" ") + " -out out/CnvHunter_out1.tsv -debug GS120224_01");
         COMPARE_FILES("out/CnvHunter_out1.tsv", TESTDATA("data_out/CnvHunter_out1.tsv"));
         COMPARE_FILES("out/CnvHunter_out1_regions.tsv", TESTDATA("data_out/CnvHunter_out1_regions.tsv"));
         COMPARE_FILES("out/CnvHunter_out1_samples.tsv", TESTDATA("data_out/CnvHunter_out1_samples.tsv"));
+		COMPARE_FILES("out/CnvHunter_out1_debug.tsv", TESTDATA("data_out/CnvHunter_out1_debug.tsv"));
 	}
 
 	void hpPDv3_anno()
