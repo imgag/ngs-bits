@@ -36,7 +36,7 @@ build_libs_release:
 	rm -rf build-libs-Linux-Release;
 	mkdir -p build-libs-Linux-Release;
 	cd build-libs-Linux-Release; \
-		qmake ../src/libs.pro "CONFIG-=debug" "CONFIG+=release"; \
+		qmake ../src/libs.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make;
 	cp bamtools/lib/libbamtools.so* bin/
 
@@ -44,17 +44,17 @@ build_tools_release:
 	rm -rf build-tools-Linux-Release;
 	mkdir -p build-tools-Linux-Release;
 	cd build-tools-Linux-Release; \
-		qmake ../src/tools.pro "CONFIG-=debug" "CONFIG+=release"; \
+		qmake ../src/tools.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make;
 	cp bamtools/lib/libbamtools.so* bin/
 
 build_release_noclean:
 	cd build-libs-Linux-Release; \
-		qmake ../src/libs.pro "CONFIG-=debug" "CONFIG+=release"; \
+		qmake ../src/libs.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make;
 	cd ..
 	cd build-tools-Linux-Release; \
-		qmake ../src/tools.pro "CONFIG-=debug" "CONFIG+=release"; \
+		qmake ../src/tools.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make;
 
 #################################### other targets ##################################
