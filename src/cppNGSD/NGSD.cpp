@@ -8,8 +8,7 @@
 #include <QPair>
 
 NGSD::NGSD(bool test_db)
-	: db_used_externally_as_static_(false)
-	, test_db_(test_db)
+	: test_db_(test_db)
 {
 	db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL", "NGSD_" + Helper::randomString(20))));
 
@@ -307,10 +306,7 @@ NGSD::~NGSD()
 	//close database and remove it
 	QString connection_name = db_->connectionName();
 	db_.clear();
-	if (!db_used_externally_as_static_)
-	{
-		QSqlDatabase::removeDatabase(connection_name);
-	}
+	QSqlDatabase::removeDatabase(connection_name);
 }
 
 bool NGSD::isOpen() const
@@ -973,20 +969,9 @@ void NGSD::clearTable(QString table)
 
 int NGSD::geneToApprovedID(const QString& gene)
 {
-	//init
-	static SqlQuery q_gene = getQuery(true);
-	static SqlQuery q_prev = getQuery(true);
-	static SqlQuery q_syn = getQuery(true);
-	static bool init = false;
-	if (!init)
-	{
-		q_gene.prepare("SELECT id FROM gene WHERE symbol=:1");
-		q_prev.prepare("SELECT g.id FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:1 AND ga.type='previous'");
-		q_syn.prepare("SELECT g.id FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:1 AND ga.type='synonym'");
-		init = true;
-	}
-
 	//approved
+	SqlQuery q_gene = getQuery();
+	q_gene.prepare("SELECT id FROM gene WHERE symbol=:1");
 	q_gene.bindValue(0, gene);
 	q_gene.exec();
 	if (q_gene.size()==1)
@@ -996,6 +981,8 @@ int NGSD::geneToApprovedID(const QString& gene)
 	}
 
 	//previous
+	SqlQuery q_prev = getQuery();
+	q_prev.prepare("SELECT g.id FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:1 AND ga.type='previous'");
 	q_prev.bindValue(0, gene);
 	q_prev.exec();
 	if (q_prev.size()==1)
@@ -1009,6 +996,8 @@ int NGSD::geneToApprovedID(const QString& gene)
 	}
 
 	//synonymous
+	SqlQuery q_syn = getQuery();
+	q_syn.prepare("SELECT g.id FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:1 AND ga.type='synonym'");
 	q_syn.bindValue(0, gene);
 	q_syn.exec();
 	if (q_syn.size()==1)
@@ -1027,20 +1016,9 @@ QString NGSD::geneSymbol(int id)
 
 QPair<QString, QString> NGSD::geneToApproved(const QString& gene)
 {
-	//init
-	static SqlQuery q_gene = getQuery(true);
-	static SqlQuery q_prev = getQuery(true);
-	static SqlQuery q_syn = getQuery(true);
-	static bool init = false;
-	if (!init)
-	{
-		q_gene.prepare("SELECT id FROM gene WHERE symbol=:1");
-		q_prev.prepare("SELECT g.symbol FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:1 AND ga.type='previous'");
-		q_syn.prepare("SELECT g.symbol FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:1 AND ga.type='synonym'");
-		init = true;
-	}
-
 	//approved
+	SqlQuery q_gene = getQuery();
+	q_gene.prepare("SELECT id FROM gene WHERE symbol=:1");
 	q_gene.bindValue(0, gene);
 	q_gene.exec();
 	if (q_gene.size()==1)
@@ -1050,6 +1028,8 @@ QPair<QString, QString> NGSD::geneToApproved(const QString& gene)
 	}
 
 	//previous
+	SqlQuery q_prev = getQuery();
+	q_prev.prepare("SELECT g.symbol FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:1 AND ga.type='previous'");
 	q_prev.bindValue(0, gene);
 	q_prev.exec();
 	if (q_prev.size()==1)
@@ -1069,6 +1049,8 @@ QPair<QString, QString> NGSD::geneToApproved(const QString& gene)
 	}
 
 	//synonymous
+	SqlQuery q_syn = getQuery();
+	q_syn.prepare("SELECT g.symbol FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:1 AND ga.type='synonym'");
 	q_syn.bindValue(0, gene);
 	q_syn.exec();
 	if (q_syn.size()==1)

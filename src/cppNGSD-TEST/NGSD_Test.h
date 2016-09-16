@@ -22,6 +22,20 @@ private slots:
 		//getProcessingSystem
 		QString sys = db.getProcessingSystem("NA12878_03", NGSD::SHORT);
 		S_EQUAL(sys, "hpHBOCv5");
+
+		//geneToApproved
+		auto gene_app = db.geneToApproved("BRCA1");
+		S_EQUAL(gene_app.first, "BRCA1");
+		S_EQUAL(gene_app.second, "KEPT: BRCA1 is an approved symbol");
+		gene_app = db.geneToApproved("BLABLA");
+		S_EQUAL(gene_app.first, "BLABLA");
+		S_EQUAL(gene_app.second, "ERROR: BLABLA is unknown symbol");
+
+		//geneToApprovedID
+		int gene_app_id = db.geneToApprovedID("BRCA1");
+		I_EQUAL(gene_app_id, 1);
+		gene_app_id = db.geneToApprovedID("BLABLA");
+		I_EQUAL(gene_app_id, -1);
 	}
 
 	//Test for debugging (without initialization because of speed)

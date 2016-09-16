@@ -58,9 +58,8 @@ public:
 	///Executes an SQL query and returns the value list.
 	QStringList getValues(const QString& query);
 	///Returns a SqlQuery object on the NGSD for custom queries.
-	inline SqlQuery getQuery(bool used_static = false) const
+	inline SqlQuery getQuery() const
 	{
-		db_used_externally_as_static_ = db_used_externally_as_static_ || used_static;
 		return SqlQuery(*db_);
 	}
 	///Executes all queries from a text file.
@@ -204,7 +203,6 @@ protected:
 
 	///The database adapter
 	QSharedPointer<QSqlDatabase> db_;
-	mutable bool db_used_externally_as_static_;
 	bool test_db_;
 	bool is_open_;
 };
