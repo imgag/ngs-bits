@@ -148,7 +148,7 @@ public:
         addFloat("reg_max_cv", "QC: Maximum coefficient of variation (median/mad) of target region.", true, 0.3);
 		addFlag("anno", "Enable annotation of gene names to regions (needs the NGSD database).");
 		addFlag("test", "Uses test database instead of production database for annotation.");
-		addString("debug", "Writes debug informaion for the sample(s) matching the given name (or for all samples if 'ALL' is given).", true, "");
+		addString("debug", "Writes debug informaion for the sample matching the given name (or for all samples if 'ALL' is given).", true, "");
 
         changeLog(2016, 9,  1, "Sample and region information files are now always written.");
 		changeLog(2016, 8, 23, "Added merging of large CNVs that were split to several regions due to noise.");
@@ -272,9 +272,27 @@ public:
 			}
 		}
 
+		//write header
 		QSharedPointer<QFile> file = Helper::openFileForWriting(out.left(out.size()-4) + "_debug.tsv");
         QTextStream outstream(file.data());
 		outstream << "#sample\tregion\tcopy_number\tz_score\tndoc\tref_ndoc\tref_ndoc_stdev\tlog2_ratio" << endl;
+
+		//write sample correlations
+		foreach(const QSharedPointer<SampleData>& sample, samples)
+		{
+			if (sample==debug_sample)
+			{
+				outstream << "##correlation of " << debug_sample->name << " to other samples:" << endl;
+				for (int i=0; i<samples.count()-1; ++i)
+				{
+					int sidx = sample->correl_all[i].first;
+					double corr = sample->correl_all[i].second;
+					outstream << "##"<< samples[sidx]->name << "\t" << corr << endl;
+				}
+			}
+		}
+
+		//write details
         foreach(const ResultData& r, results)
 		{
 			if(debug_sample.isNull() || r.sample==debug_sample)
@@ -293,7 +311,6 @@ public:
 		static QSharedPointer<NGSD> db(nullptr);
 		if (db.isNull())
 		{
-			QTextStream(stdout) << "RESET";
 			db.reset(new NGSD(test));
 		}
 
@@ -317,7 +334,6 @@ public:
 
         //header
 		outstream << "#chr\tstart\tend\tsample\tregion_count\tregion_copy_numbers\tregion_zscores\tregion_coordinates" << (anno ? "\tgenes" : "") << endl;
-		QTextStream(stdout) << "START OUTPUT";
 		for (int r=0; r<ranges.count(); ++r)
         {
 			const Range& range = ranges[r];
@@ -348,7 +364,6 @@ public:
 			}
 			outstream << endl;
 		}
-		QTextStream(stdout) << "END OUTPUT";
     }
 
 	double calculateZ(const QSharedPointer<SampleData>& sample, int e)
@@ -509,7 +524,7 @@ public:
             QStringList parts = line.split('\t');
             if (parts.count()<4) THROW(FileParseException, "Coverage file " + in[0] + " contains line with less then four elements: " + line);
 			QSharedPointer<ExonData> ex(new ExonData());
-			ex->chr = parts[0].trimmed();
+			ex->chr = parts[0];
 			ex->start = Helper::toInt(parts[1], "start position" , line);
 			ex->end = Helper::toInt(parts[2], "end position" , line);
 			ex->index = exons.count();
@@ -541,7 +556,7 @@ public:
 
             //check exon count
 			file = Helper::loadTextFile(in_all[i], true, '#', true);
-			if (file.count()!=exons.count()) THROW(FileParseException, "Coverage file " + sample->name + " contains more/less regions than reference file " + in_all[0] + ". Expected " + QString::number(exons.count()) + ", got " + QString::number(file.count()) + ".");
+			if (file.count()!=exons.count()) THROW(FileParseException, "Coverage file " + in_all[i] + " contains more/less regions than reference file " + in_all[0] + ". Expected " + QString::number(exons.count()) + ", got " + QString::number(file.count()) + ".");
 
             //depth-of-coverage data
             for (int j=0; j<file.count(); ++j)

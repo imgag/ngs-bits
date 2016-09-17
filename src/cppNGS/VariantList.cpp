@@ -564,8 +564,7 @@ void VariantList::loadFromVCF(QString filename)
 		++line_number;
 
 		QByteArray line = file->readLine();
-		if (line.endsWith('\n')) line.chop(1);
-		if (line.endsWith('\r')) line.chop(1);
+		while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
 
 		//skip empty lines
 		if(line.length()==0) continue;

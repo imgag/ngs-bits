@@ -20,11 +20,12 @@ Tools:
 * BamClipOverlap: require sorted bam and paired-end sequencing (CS)
 
 CnvHunter:
- ** check why CN=3 regions are so fragmented in (vc_cnvhunter somatic test) - check with Christopher
+ ** check why some samples have so many CNVs => add ref samples and correlation to single-sample debug output
+ ** check why CN=3 regions are so fragmented - check in Cyto-WGS samples too
  * update test data (include MAPQ=0, types: HBOC, TruRisk, Exome, Low-coverage genome data, Cancer data)
  * look at properties of bad regions (HLA, common CNVs, GC, size, centromer, ...)
  * add optional GC-normalization (then, check GS151166_01 gene C5orf42) - test effect of including different flanking regions
- * test caclulate real ncov distribution also when enough data points are available. How many are that? Test/Simulate! (see line ~700: 'values.count()==n')
+ * test calculate real ncov distribution also when enough data points are available. How many are that? Test/Simulate! (see line ~700: 'values.count()==n')
  * test mappability-normalization and exon-size normalization
  * test percentile normalization
  * test normalizing Z-scores to mean 0 and stdev 1 to correct for sample quality
