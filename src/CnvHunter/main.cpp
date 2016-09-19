@@ -357,7 +357,7 @@ public:
 				QStringList genes;
 				for (int j=range.start; j<=range.end; ++j)
 				{
-					genes += geneNames(db, results[range.start].exon);
+					genes += geneNames(db, results[j].exon);
 				}
 
 				//sort and remove duplicates
