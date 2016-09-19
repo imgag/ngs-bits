@@ -305,16 +305,11 @@ public:
         }
     }
 
-	QSet<QString> geneNames(const QSharedPointer<ExonData>& exon, bool test)
+	QStringList geneNames(QSharedPointer<NGSD>& db, const QSharedPointer<ExonData>& exon)
 	{
-		static QHash<QString, QSet<QString> > cache;
-		static QSharedPointer<NGSD> db(nullptr);
-		if (db.isNull())
-		{
-			db.reset(new NGSD(test));
-		}
+		static QHash<QString, QStringList> cache;
 
-		//check cache
+		//check cache first
 		QString reg = exon->toString();
 		if (cache.contains(reg))
 		{
@@ -322,15 +317,16 @@ public:
 		}
 
 		//get genes from NGSD
-		QSet<QString> genes = QSet<QString>::fromList(db->genesOverlapping(exon->chr, exon->start, exon->end, 20));
-		cache.insert(reg, genes);
-		return genes;
+		QStringList tmp = db->genesOverlapping(exon->chr, exon->start, exon->end, 20);
+		cache.insert(reg, tmp);
+		return tmp;
 	}
 
     void storeResultAsTSV(const QList<Range>& ranges, const QVector<ResultData>& results, QString filename, bool anno, bool test)
     {
 		QSharedPointer<QFile> out = Helper::openFileForWriting(filename);
 		QTextStream outstream(out.data());
+		QSharedPointer<NGSD> db(anno ? new NGSD(test) : nullptr);
 
         //header
 		outstream << "#chr\tstart\tend\tsample\tregion_count\tregion_copy_numbers\tregion_zscores\tregion_coordinates" << (anno ? "\tgenes" : "") << endl;
@@ -343,25 +339,33 @@ public:
             QStringList copies;
 			QStringList zscores;
 			QStringList coords;
-			QSet<QString> genes;
 			for (int j=range.start; j<=range.end; ++j)
             {
                 copies.append(QString::number(results[j].copies));
 				zscores.append(QString::number(results[j].z, 'f', 2));
 				coords.append(results[j].exon->toString());
-				if (anno) genes += geneNames(results[j].exon, test);
 			}
 
 			//print output
 			outstream << results[range.start].exon->chr.str() << "\t" << results[range.start].exon->start << "\t" << results[range.end].exon->end << "\t" << range.sample->name << "\t" << copies.count() << "\t" << copies.join(",") << "\t" << zscores.join(",") << "\t" << coords.join(",");
+
+			//annotation
 			if (anno)
 			{
-				outstream << "\t";
+				outstream << '\t';
 
-				QStringList tmp(genes.toList());
-				std::sort(tmp.begin(), tmp.end());
-				outstream << tmp.join(",");
+				QStringList genes;
+				for (int j=range.start; j<=range.end; ++j)
+				{
+					genes += geneNames(db, results[range.start].exon);
+				}
+
+				//sort and remove duplicates
+				std::sort(genes.begin(), genes.end());
+				genes.removeDuplicates();
+				outstream << genes.join(",");
 			}
+
 			outstream << endl;
 		}
     }
@@ -436,7 +440,7 @@ public:
 
         //historgam
         outstream << "CNVs per sample histogram:" << endl;
-		double max = median + 5.0*mad;
+		double max = median + 3.0*mad;
 		Histogram hist(0.0, max, max/20);
         for (int s=0; s<samples.count(); ++s)
         {
