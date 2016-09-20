@@ -581,7 +581,7 @@ void ReportWorker::writeHTML()
 	if (file_roi_!="")
 	{
 		stream << "<p><b>Zielregion</b>" << endl;
-		stream << "<br />Name: " << QFileInfo(file_roi_).baseName() << endl;
+		stream << "<br />Name: " << QFileInfo(file_roi_).fileName().replace(".bed", "") << endl;
 		stream << "<br />Regionen: " << roi_.count() << endl;
 		stream << "<br />Basen: " << roi_.baseCount() << endl;
 		if (!genes_.isEmpty())
@@ -773,7 +773,7 @@ void ReportWorker::writeXML()
 		roi.merge();
 
 		w.writeStartElement("TargetRegion");
-		w.writeAttribute("name", QFileInfo(file_roi_).baseName());
+		w.writeAttribute("name", QFileInfo(file_roi_).fileName().replace(".bed", ""));
 		w.writeAttribute("regions", QString::number(roi.count()));
 		w.writeAttribute("bases", QString::number(roi.baseCount()));
 		w.writeEndElement();

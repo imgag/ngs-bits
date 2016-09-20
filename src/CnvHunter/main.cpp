@@ -278,16 +278,19 @@ public:
 		outstream << "#sample\tregion\tcopy_number\tz_score\tndoc\tref_ndoc\tref_ndoc_stdev\tlog2_ratio" << endl;
 
 		//write sample correlations
-		foreach(const QSharedPointer<SampleData>& sample, samples)
+		if (!debug_sample.isNull())
 		{
-			if (sample==debug_sample)
+			foreach(const QSharedPointer<SampleData>& sample, samples)
 			{
-				outstream << "##correlation of " << debug_sample->name << " to other samples:" << endl;
-				for (int i=0; i<samples.count()-1; ++i)
+				if (sample==debug_sample)
 				{
-					int sidx = sample->correl_all[i].first;
-					double corr = sample->correl_all[i].second;
-					outstream << "##"<< samples[sidx]->name << "\t" << corr << endl;
+					outstream << "##correlation of " << sample->name << " to other samples:" << endl;
+					for (int i=0; i<samples.count()-1; ++i)
+					{
+						int sidx = sample->correl_all[i].first;
+						double corr = sample->correl_all[i].second;
+						outstream << "##"<< samples[sidx]->name << "\t" << corr << endl;
+					}
 				}
 			}
 		}
