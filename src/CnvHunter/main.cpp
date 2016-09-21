@@ -11,6 +11,8 @@
 #include <QDir>
 #include "math.h"
 
+class SampleCorrelation;
+
 //Sample representation
 struct SampleData
 {
@@ -25,13 +27,33 @@ struct SampleData
     double doc_mean; //mean coverage before normalizazion (aterwards it is 1.0)
     double doc_stdev; //stdev of coverage after normalization
 
-    QVector< QPair<int, double> > correl_all; //correlation with all samples (-1.0 for self-correlation)
+	QVector<SampleCorrelation> correl_all; //correlation with all samples (-1.0 for self-correlation)
 
     QVector<double> ref; //reference sample (mean of 'n' most similar samples)
     QVector<double> ref_stdev; //reference sample standard deviation (deviation of 'n' most similar samples)
     double ref_correl; //correlation of sample to reference sample
 
     QString qc; //QC warning flag
+};
+
+//Sample correlation helper
+struct SampleCorrelation
+{
+
+	SampleCorrelation()
+		: sample(nullptr)
+		, correlation(-1)
+	{
+	}
+
+	SampleCorrelation(QSharedPointer<SampleData> s, double c)
+		: sample(s)
+		, correlation(c)
+	{
+	}
+
+	QSharedPointer<SampleData> sample;
+	double correlation;
 };
 
 //Exon/region representation
@@ -47,7 +69,7 @@ struct ExonData
     Chromosome chr; //chromosome
     int start; //start position
     int end; //end position
-	int index; //exon index (needed to access sample data arrays)
+	int index; //exon index (needed to access DOC data arrays of samples)
 
     double median; //median normalized DOC value
     double mad; //MAD of normalized DOC values
@@ -278,19 +300,14 @@ public:
 		outstream << "#sample\tregion\tcopy_number\tz_score\tndoc\tref_ndoc\tref_ndoc_stdev\tlog2_ratio" << endl;
 
 		//write sample correlations
-		if (!debug_sample.isNull())
+		foreach(const QSharedPointer<SampleData>& sample, samples)
 		{
-			foreach(const QSharedPointer<SampleData>& sample, samples)
+			if (sample==debug_sample)
 			{
-				if (sample==debug_sample)
+				outstream << "##correlation of " << sample->name << " to other samples:" << endl;
+				for (int i=0; i<samples.count()-1; ++i)
 				{
-					outstream << "##correlation of " << sample->name << " to other samples:" << endl;
-					for (int i=0; i<samples.count()-1; ++i)
-					{
-						int sidx = sample->correl_all[i].first;
-						double corr = sample->correl_all[i].second;
-						outstream << "##"<< samples[sidx]->name << "\t" << corr << endl;
-					}
+					outstream << "##" << (i+1) << "\t" << sample->correl_all[i].sample->name << "\t" << sample->correl_all[i].correlation << endl;
 				}
 			}
 		}
@@ -475,7 +492,7 @@ public:
 		{
 			for (int i=0; i<n; ++i)
 			{
-				double corr = samples[s]->correl_all[i].second;
+				double corr = samples[s]->correl_all[i].correlation;
 				if (corr!=-1)
 				{
 					corrs[i].append(corr);
@@ -750,14 +767,14 @@ public:
             {
                 if (i==j)
                 {
-					samples[i]->correl_all.append(qMakePair(j, -1.0));
+					samples[i]->correl_all.append(SampleCorrelation(samples[j], -1.0));
                 }
                 else
                 {
 					//skip non-reference samples
 					if (samples[j]->noref)
 					{
-						samples[i]->correl_all.append(qMakePair(j, -1.0));
+						samples[i]->correl_all.append(SampleCorrelation(samples[j], -1.0));
 						continue;
 					}
 
@@ -766,12 +783,12 @@ public:
                     {
 						sum += (samples[i]->doc[e]-1.0) * (samples[j]->doc[e]-1.0);
 					}
-					samples[i]->correl_all.append(qMakePair(j, sum / samples[i]->doc_stdev / samples[j]->doc_stdev / exons.count()));
+					samples[i]->correl_all.append(SampleCorrelation(samples[j], sum / samples[i]->doc_stdev / samples[j]->doc_stdev / exons.count()));
                 }
 			}
 
 			//sort by correlation (reverse)
-			std::sort(samples[i]->correl_all.begin(), samples[i]->correl_all.end(), [](const QPair<int, double> & a, const QPair<int, double> & b){return a.second > b.second;});
+			std::sort(samples[i]->correl_all.begin(), samples[i]->correl_all.end(), [](const SampleCorrelation& a, const SampleCorrelation& b){return a.correlation > b.correlation;});
 		}
 		printCorrelationStatistics(samples, outstream);
 		timings.append("calculating sample correlations: " + Helper::elapsedTime(timer));
@@ -788,11 +805,10 @@ public:
 				QVector<double> values;
 				values.reserve(n);
 				for (int i=0; i<samples.count()-1; ++i)
-                {
-					int sidx = samples[s]->correl_all[i].first;
-                    if (samples[sidx]->qc.isEmpty()) //do not use bad QC samples
+				{
+					if (samples[s]->correl_all[i].sample->qc.isEmpty()) //do not use bad QC samples
                     {
-						double value = samples[sidx]->doc[e];
+						double value = samples[s]->correl_all[i].sample->doc[e];
                         if (value>=0.25*exon_median && value<=1.75*exon_median) //do not use extreme outliers
                         {
                             values.append(value);
@@ -830,23 +846,6 @@ public:
         }
 		outstream << "bad samples: " << c_bad_sample << " of " << samples.count() << endl << endl;
         printSampleDistributionCorrelation(samples, outstream);
-
-		//log 'n' most similar samples
-		for (int s=0; s<samples.count(); ++s)
-		{
-			QString sim_str;
-			int sim_count = 0;
-			for (int i=0; i<samples[s]->correl_all.count()-1; ++i)
-			{
-				int sidx = samples[s]->correl_all[i].first;
-                if (!samples[sidx]->qc.isEmpty()) continue;
-
-				sim_str += " " + samples[sidx]->name;
-				++sim_count;
-				if (sim_count==n) break;
-			}
-            //comments << QString("ref samples of ") + samples[s]->name + " (corr=" + QString::number(samples[s]->ref_correl, 'f', 4) + "):" + sim_str;
-		}
 		timings.append("constructing reference samples: " + Helper::elapsedTime(timer));
 		timer.restart();
 
@@ -1089,10 +1088,10 @@ public:
 		}
         printSampleDistributionCNVs(samples, cnvs_sample, outstream);
 
-        //store result files
-        storeResultAsTSV(ranges, results, out, getFlag("anno"), getFlag("test"));
-        storeSampleInfo(out, samples, samples_removed, cnvs_sample, results);
-        storeRegionInfo(out, exons, exons_removed, cnvs_exon);
+		//store result files
+		storeResultAsTSV(ranges, results, out, getFlag("anno"), getFlag("test"));
+		storeSampleInfo(out, samples, samples_removed, cnvs_sample, results);
+		storeRegionInfo(out, exons, exons_removed, cnvs_exon);
 		storeDebugInfo(debug, out, samples, results);
 
 		//print statistics
@@ -1104,10 +1103,10 @@ public:
 				corr_sum += sample->ref_correl;
             }
         }
-        int c_valid = in.count() - c_bad_sample;
+		int c_valid = in_all.count() - c_bad_sample;
 		outstream << "=== statistics ===" << endl;
 		outstream << "invalid regions: " << c_bad_region << " of " << (exons.count() + c_bad_region) << endl;
-        outstream << "invalid samples: " << c_bad_sample << " of " << in.count() << endl;
+		outstream << "invalid samples: " << c_bad_sample << " of " << in_all.count() << endl;
 		outstream << "mean correlation of samples to reference: " << QString::number(corr_sum/c_valid, 'f', 4) << endl;
 		double size_sum = 0;
 		foreach(const Range& range, ranges)
