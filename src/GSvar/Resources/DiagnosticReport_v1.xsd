@@ -71,6 +71,20 @@
 						<xs:documentation>Information about the traget region used for the analysis</xs:documentation>
 					</xs:annotation>
 					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="Gene" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>List of genes contained in target region.</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="name" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>gene name</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
 						<xs:attribute name="name" use="required">
 							<xs:annotation>
 								<xs:documentation>target region name</xs:documentation>
@@ -90,6 +104,27 @@
 							<xs:annotation>
 								<xs:documentation>number of bases</xs:documentation>
 							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="gap_percentage" use="required">
+							<xs:annotation>
+								<xs:documentation>percentage of the target region that was not sequenced at sufficient depth.</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:float">
+									<xs:minInclusive value="0"/>
+									<xs:maxInclusive value="100"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="ccds_bases_sequenced" use="required">
+							<xs:annotation>
+								<xs:documentation>Absolute count of CCDS bases that are part of the target region and sequenced at sufficient depth.</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:int">
+									<xs:minInclusive value="0"/>
+								</xs:restriction>
+							</xs:simpleType>
 						</xs:attribute>
 					</xs:complexType>
 				</xs:element>
@@ -178,7 +213,7 @@
 											<xs:restriction base="xs:string">
 												<xs:enumeration value="hom"/>
 												<xs:enumeration value="het"/>
-                                                                                                <xs:enumeration value="somatic"/>
+												<xs:enumeration value="somatic"/>
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
@@ -206,10 +241,16 @@
 					</xs:complexType>
 				</xs:element>
 			</xs:sequence>
-			<xs:attribute name="version" type="xs:int" use="required">
+			<xs:attribute name="version" use="required">
 				<xs:annotation>
 					<xs:documentation>version of the format</xs:documentation>
 				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:int">
+						<xs:minInclusive value="1"/>
+						<xs:maxInclusive value="1"/>
+					</xs:restriction>
+				</xs:simpleType>
 			</xs:attribute>
 		</xs:complexType>
 	</xs:element>

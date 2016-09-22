@@ -69,6 +69,7 @@ void ReportWorker::process()
 		}
 	}
 
+	roi_stats_.clear();
 	writeHTML();
 	//disabled until it is needed
 	//writeXML();
@@ -128,13 +129,13 @@ QString ReportWorker::formatCodingSplicing(QByteArray text)
 	return transcripts.join(", ");
 }
 
-QString ReportWorker::inheritance(QString genes)
+QString ReportWorker::inheritance(QString genes, bool color)
 {
 	QStringList output;
 	foreach(QString gene, genes.split(","))
 	{
 		QString inheritance = db_.geneInfo(gene).inheritance;
-		if (inheritance=="n/a")
+		if (color && inheritance=="n/a")
 		{
 			inheritance = "<span style=\"background-color: #FF0000\">n/a</span>";
 		}
@@ -143,7 +144,7 @@ QString ReportWorker::inheritance(QString genes)
 	return output.join(",");
 }
 
-BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, QString roi_file, const BedFile& roi, QStringList genes, int min_cov,  NGSD& db)
+BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, QString roi_file, const BedFile& roi, QStringList genes, int min_cov,  NGSD& db, QMap<QString, QString>* output)
 {
 	//get target region coverages (from NGSD or calculate)
 	QString avg_cov = "";
@@ -219,7 +220,9 @@ BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file,
 		}
 		stream << "<br />Komplett abgedeckte Gene: " << complete_genes.join(", ") << endl;
 	}
-	stream << "<br />Anteil Regionen mit Tiefe &lt;" << min_cov << ": " << QString::number(100.0*low_cov.baseCount()/roi.baseCount(), 'f', 2) << "%" << endl;
+	QString gap_perc = QString::number(100.0*low_cov.baseCount()/roi.baseCount(), 'f', 2);
+	if (output!=nullptr) output->insert("gap_percentage", gap_perc);
+	stream << "<br />Anteil Regionen mit Tiefe &lt;" << min_cov << ": " << gap_perc << "%" << endl;
 	if (!genes.isEmpty())
 	{
 		QStringList incomplete_genes;
@@ -258,14 +261,14 @@ BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file,
 	return low_cov;
 }
 
-void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file, QStringList genes, int min_cov, NGSD& db)
+void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file, QStringList genes, int min_cov, NGSD& db, QMap<QString, QString>* output)
 {
 	stream << "<p><b>Abdeckungsstatistik f&uuml;r CCDS</b></p>" << endl;
 	stream << "<table>";
 	stream << "<tr><td><b>Gen</b></td><td><b>Transcript</b></td><td><b>Gr&ouml;&szlig;e</b></td><td><b>L&uuml;cken</b></td><td><b>Chromosom</b></td><td><b>Koordinaten (hg19)</b></td></tr>";
 	int bases_overall = 0;
 	int bases_sequenced = 0;
-	foreach(QString gene, genes)
+	foreach(const QString& gene, genes)
 	{
 		int gene_id = db.geneToApprovedID(gene);
 
@@ -302,6 +305,8 @@ void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file
 	stream << "<p>CCDS-Basen gesamt: " << bases_overall << endl;
 	stream << "<br />CCDS-Basen sequenziert: " << bases_sequenced << " (" << QString::number(100.0 * bases_sequenced / bases_overall, 'f', 2)<< "%)" << endl;
 	stream << "</p>" << endl;
+
+	if (output!=nullptr) output->insert("ccds_sequenced", QString::number(bases_sequenced));
 }
 
 BedFile ReportWorker::precalculatedGaps(QString bam_file, const BedFile& roi, int min_cov, NGSD& db, QString& message)
@@ -594,8 +599,8 @@ void ReportWorker::writeHTML()
 	///low-coverage analysis
 	if (file_bam_!="")
 	{
-		BedFile low_cov = writeCoverageReport(stream, file_bam_, file_roi_, roi_, genes_, min_cov_, db_);
-		writeCoverageReportCCDS(stream, file_bam_, genes_, min_cov_, db_);
+		BedFile low_cov = writeCoverageReport(stream, file_bam_, file_roi_, roi_, genes_, min_cov_, db_, &roi_stats_);
+		writeCoverageReportCCDS(stream, file_bam_, genes_, min_cov_, db_, &roi_stats_);
 
 		//additionally store low-coverage BED file
 		low_cov.store(QString(file_rep_).replace(".html", "_lowcov.bed"));
@@ -776,6 +781,17 @@ void ReportWorker::writeXML()
 		w.writeAttribute("name", QFileInfo(file_roi_).fileName().replace(".bed", ""));
 		w.writeAttribute("regions", QString::number(roi.count()));
 		w.writeAttribute("bases", QString::number(roi.baseCount()));
+		w.writeAttribute("gap_percentage", roi_stats_["gap_percentage"]); //cached in HTML report
+		w.writeAttribute("ccds_bases_sequenced", roi_stats_["ccds_sequenced"]); //cached in HTML report
+
+		//contained genes
+		foreach(const QString& gene, genes_)
+		{
+			w.writeStartElement("Gene");
+			w.writeAttribute("name", gene);
+			w.writeEndElement();
+		}
+
 		w.writeEndElement();
 	}
 
@@ -814,8 +830,11 @@ void ReportWorker::writeXML()
 			if (i==comment_idx) continue;
 
 			w.writeStartElement("Annotation");
-			w.writeAttribute("name", variants_.annotations()[i].name());
-			w.writeAttribute("value", v.annotations()[i]);
+			QString name = variants_.annotations()[i].name();
+			w.writeAttribute("name", name);
+			QByteArray value = v.annotations()[i];
+			if (name=="gene") value += " (" + inheritance(value, false) +")";
+			w.writeAttribute("value", value);
 			w.writeEndElement();
 		}
 		w.writeEndElement();

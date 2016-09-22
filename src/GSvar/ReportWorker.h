@@ -26,8 +26,8 @@ public:
 	}
 
 	///writes a low-coverage report
-	static BedFile writeCoverageReport(QTextStream& stream, QString bam_file, QString roi_file, const BedFile& roi, QStringList genes, int min_cov, NGSD& db);
-	static void writeCoverageReportCCDS(QTextStream& stream, QString bam_file, QStringList genes, int min_cov, NGSD& db);
+	static BedFile writeCoverageReport(QTextStream& stream, QString bam_file, QString roi_file, const BedFile& roi, QStringList genes, int min_cov, NGSD& db, QMap<QString, QString>* output=nullptr);
+	static void writeCoverageReportCCDS(QTextStream& stream, QString bam_file, QStringList genes, int min_cov, NGSD& db, QMap<QString, QString>* output=nullptr);
 
 	///Returns if the pre-calcualed gaps for the given ROI.
 	///If using the pre-calculated gaps file is not possible, @p message contains an error message.
@@ -61,13 +61,14 @@ private:
 	//temporary variables
 	BedFile roi_;
 	int var_count_;
+	QMap<QString, QString> roi_stats_;
 
 	//NGSD access
 	NGSD db_;
 
 	QString filterToGermanText(QString name, QString value);
 	QString formatCodingSplicing(QByteArray text);
-	QString inheritance(QString genes);
+	QString inheritance(QString genes, bool color=true);
 	int annotationIndexOrException(const QString& name, bool exact_match) const;
 	void writeHTML();
 	void writeXML();
