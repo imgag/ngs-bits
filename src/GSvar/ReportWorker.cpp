@@ -768,6 +768,7 @@ void ReportWorker::writeXML()
 	w.writeStartElement("Sample");
 	w.writeAttribute("name", sample_name_);
 	w.writeAttribute("name_external", db_.getExternalSampleName(sample_name_));
+	w.writeAttribute("processing_system", db_.getProcessingSystem(sample_name_, NGSD::LONG));
 	w.writeEndElement();
 
 	//element TargetRegion (optional)
