@@ -505,8 +505,26 @@ private:
 		return result;
 	}
 
+
+	BamAlignment softClipEnzymaticFootprint(BamAlignment original_alignment, int amplicon_start, int amplicon_end)
+	{
+		//first and last 5 bases of a haloplex amplicon are unreliable for undisclosed reasons. Parts of reads within these regions should be softclipped
+		//seems to work, but six insteadt of five are cut
+		if (original_alignment.Position<(amplicon_start+4))
+		{
+			NGSHelper::softClipAlignment(original_alignment,original_alignment.Position+1,amplicon_start+5);//softClipAlignment expects 1-based coordinates
+		}
+		if (original_alignment.GetEndPosition()>(amplicon_end-4))
+		{
+			NGSHelper::softClipAlignment(original_alignment,amplicon_end-4,original_alignment.GetEndPosition());
+		}
+		return original_alignment;
+	}
+
 	BamAlignment cutArmsSingle(BamAlignment original_alignment, Position left_arm, Position right_arm)
 	{
+		//extension and ligation arm sequence of MIPs cannot be used for variant calling, so these should be removed
+
 		//cut on right side
 		if (original_alignment.GetEndPosition()>right_arm.start_pos)
 		{
@@ -533,7 +551,7 @@ private:
 		return original_alignment;
 	}
 
-	most_frequent_read_selection cutAndSelectPair(QList <readPair> original_readpairs, Position left_arm, Position right_arm)
+	most_frequent_read_selection cutAndSelectPairMip(QList <readPair> original_readpairs, Position left_arm, Position right_arm)
 	{
 		QList <readPair> new_alignment_list;
 		foreach(readPair original_alignments, original_readpairs)
@@ -543,6 +561,19 @@ private:
 			new_alignments.second=cutArmsSingle(original_alignments.second,left_arm,right_arm);
 			new_alignments.first.MatePosition=new_alignments.second.Position;
 			new_alignments.second.MatePosition=new_alignments.first.Position;
+			new_alignment_list.append(new_alignments);
+		}
+		return findHighestFreqRead(new_alignment_list);
+	}
+
+	most_frequent_read_selection clipAndSelectPairHS(QList <readPair> original_readpairs, int amplicon_start, int amplicon_end)
+	{
+		QList <readPair> new_alignment_list;
+		foreach(readPair original_alignments, original_readpairs)
+		{
+			readPair new_alignments;
+			new_alignments.first=softClipEnzymaticFootprint(original_alignments.first,amplicon_start,amplicon_end);
+			new_alignments.second=softClipEnzymaticFootprint(original_alignments.second,amplicon_start,amplicon_end);
 			new_alignment_list.append(new_alignments);
 		}
 		return findHighestFreqRead(new_alignment_list);
@@ -650,7 +681,7 @@ private:
 		if (position2mip_info.contains(act_position)&&(read_count>=minimal_group_size))
 		{
 			storeReadCountsMip(position2mip_info, dup_count_histo, act_position, read_count, barcode_and_pos.barcode_sum_quality);
-			most_frequent_read_selection read_selection = cutAndSelectPair(read_list,position2mip_info[act_position].left_arm,position2mip_info[act_position].right_arm);
+			most_frequent_read_selection read_selection = cutAndSelectPairMip(read_list,position2mip_info[act_position].left_arm,position2mip_info[act_position].right_arm);
 			writePairToBam(writer, read_selection.most_freq_read);
 			writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,barcode_and_pos.barcode_sequence,test);
 		}
@@ -665,7 +696,7 @@ private:
 		if (position2hs_info.contains(act_position)&&(read_count>=minimal_group_size))//select and count reads that can be matched to haloplex hs barcodes
 		{
 			storeReadCountsHs(position2hs_info, dup_count_histo, act_position, read_count, barcode_and_pos.barcode_sum_quality);
-			most_frequent_read_selection read_selection = findHighestFreqRead(read_list);
+			most_frequent_read_selection read_selection = clipAndSelectPairHS(read_list,act_position.start_pos,act_position.end_pos);
 			writePairToBam(writer, read_selection.most_freq_read);
 			writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,barcode_and_pos.barcode_sequence,test);
 		}

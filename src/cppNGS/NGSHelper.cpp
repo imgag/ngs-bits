@@ -478,6 +478,7 @@ QString NGSHelper::Cigar2QString(std::vector<CigarOp> Cigar)
 	return cigar_string;
 }
 
+/*start and end position 1-based*/
 void NGSHelper::softClipAlignment(BamAlignment& al, int start_ref_pos, int end_ref_pos)
 {
 	std::vector<CigarOp> old_CIGAR = al.CigarData;
@@ -486,8 +487,10 @@ void NGSHelper::softClipAlignment(BamAlignment& al, int start_ref_pos, int end_r
 
 	//check preconditions
 	if(start_ref_pos > end_ref_pos)	THROW(ToolFailedException, "End position is smaller than start position.");
-	if(start_ref_pos < al.Position+1 || start_ref_pos > al.GetEndPosition())	THROW(ToolFailedException, "Start position " + QString::number(start_ref_pos) + " not within alignment.");
-	if(end_ref_pos < al.Position+1 || start_ref_pos > al.GetEndPosition())	THROW(ToolFailedException, "Start position " + QString::number(start_ref_pos) + " not within alignment.");
+	if(start_ref_pos < al.Position+1 || start_ref_pos > al.GetEndPosition())	THROW(ToolFailedException, "Start position " + QString::number(start_ref_pos) + " not within alignment (" + QString::number(al.Position) + ":" + QString::number(al.GetEndPosition()) + ").");
+
+	if(end_ref_pos < al.Position+1 || end_ref_pos > al.GetEndPosition())	THROW(ToolFailedException, "End position " + QString::number(end_ref_pos) + " not within alignment.");
+
 	for(unsigned int i=0;i<old_CIGAR.size(); ++i)
 	{
 		if(old_CIGAR[i].Type!='D' && old_CIGAR[i].Type!='S' && old_CIGAR[i].Type!='M' && old_CIGAR[i].Type!='I' && old_CIGAR[i].Type!='H')	THROW(ToolFailedException, "Unsupported CIGAR type '" + QString(old_CIGAR[i].Type) + "'");	//check for supported CIGAR types
