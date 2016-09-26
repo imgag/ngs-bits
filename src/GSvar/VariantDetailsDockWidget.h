@@ -63,8 +63,6 @@ private:
 	static QList<DBEntry> parseDB(QString anno);
 	//Returns 'nobr' paragraph start for tooltips
 	static QString nobr();
-    //Return reference bases from hg19 (1-based closed range).
-    QString getRef(const Chromosome& chr, int start, int end);
 
 	//Init transcript details
 	void initTranscriptDetails(const VariantList& vl, int index);

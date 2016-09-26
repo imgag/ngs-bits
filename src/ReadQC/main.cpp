@@ -15,9 +15,9 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Calculates QC metrics on unprocessed paired-end reads (same number of cycles/reads).");
+		setDescription("Calculates QC metrics on unprocessed NGS reads.");
 		addInfileList("in1", "Forward input gzipped FASTQ file(s).", false);
-		addInfileList("in2", "Reverse input gzipped FASTQ file(s).", true);
+		addInfileList("in2", "Reverse input gzipped FASTQ file(s) for paired-end mode (same number of cycles/reads as 'in1').", true);
 		//optional
 		addOutfile("out", "Output qcML file. If unset, writes to STDOUT.", true);
 		addFlag("txt", "Writes TXT format instead of qcML.");

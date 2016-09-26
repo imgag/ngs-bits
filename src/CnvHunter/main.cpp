@@ -829,6 +829,37 @@ public:
 					samples[s]->ref.append(exon_median);
 					samples[s]->ref_stdev.append(0.3*exon_median);
                 }
+/*try this!
+				//get DOC data from most similar samples
+				QVector<double> values;
+				values.reserve(n);
+				for (int i=0; i<samples.count()-1; ++i)
+				{
+					if (samples[s]->correl_all[i].sample->qc.isEmpty()) //do not use bad QC samples
+					{
+						values.append(samples[s]->correl_all[i].sample->doc[e]);
+					}
+					if (values.count()==n) break;
+				}
+				//remove outliers
+				std::sort(values.begin(), values.end());
+				double median = BasicStatistics::median(values, false);
+				while(!values.isEmpty() && values.first()<=0.25*median) values.removeFirst();
+				while(!values.isEmpty() && values.last()>=1.75*median) values.removeLast();
+				//calculate statistics
+				if (values.count()>10)
+				{
+					median = BasicStatistics::median(values, false);
+					samples[s]->ref.append(median);
+					double stdev = 1.428 * BasicStatistics::mad(values, median);
+					samples[s]->ref_stdev.append(std::max(stdev, 0.1*median));
+				}
+				else
+				{
+					samples[s]->ref.append(exons[e]->median);
+					samples[s]->ref_stdev.append(exons[e]->mad);
+				}
+*/
             }
 			samples[s]->ref_correl = BasicStatistics::correlation(samples[s]->doc, samples[s]->ref);
 

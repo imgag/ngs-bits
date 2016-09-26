@@ -513,13 +513,6 @@ QString VariantDetailsDockWidget::nobr()
 	return "<p style='white-space:pre; margin:0; padding:0;'>";
 }
 
-QString VariantDetailsDockWidget::getRef(const Chromosome &chr, int start, int end)
-{
-    HttpHandler handler;
-    QString reply = handler.getHttpReply("http://genome.ucsc.edu/cgi-bin/das/hg19/dna?segment=" + chr.strNormalized(false) + ":" + QString::number(start) + "," + QString::number(end));
-    return reply.remove(QRegExp("<[^>]*>")).trimmed().toUpper();
-}
-
 void VariantDetailsDockWidget::exacClicked(QString link)
 {
     QStringList parts = link.split(' ');
@@ -532,13 +525,15 @@ void VariantDetailsDockWidget::exacClicked(QString link)
     if (obs=="-") //deletion
     {
         int pos = start.toInt()-1;
-        QString base = getRef(chr, pos, pos);
-        url = chr.strNormalized(false) + "-" + QString::number(pos) + "-" + base + ref + "-" + base;
+		FastaFileIndex idx(Settings::string("reference_genome"));
+		QString base = idx.seq(chr, pos, 1);
+		url = chr.strNormalized(false) + "-" + QString::number(pos) + "-" + base + ref + "-" + base;
     }
     else if (ref=="-") //insertion
     {
         int pos = start.toInt();
-        QString base = getRef(chr, pos, pos);
+		FastaFileIndex idx(Settings::string("reference_genome"));
+		QString base = idx.seq(chr, pos, 1);
         url = chr.strNormalized(false) + "-" + start + "-" + base + "-" + base + obs;
     }
     else //snv
