@@ -20,7 +20,6 @@ Tools:
 * BamClipOverlap: require sorted bam and paired-end sequencing (CS)
 
 CnvHunter:
- *** add region size to output
  *** add z-score distribution to output
  * update test data (include MAPQ=0, types: HBOC, TruRisk, Exome, Low-coverage genome data, Cancer data)
  * look at properties of bad regions (HLA, common CNVs, GC, size, centromer, pseudo-autosomal region, ...)

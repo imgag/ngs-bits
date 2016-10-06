@@ -470,6 +470,18 @@ public:
         outstream << endl;
     }
 
+	void printZScoreDistribution(const QVector<ResultData>& results, QTextStream& outstream)
+	{
+		outstream << "Overall z-score histogram:" << endl;
+		Histogram hist(-6, 6, 1.0);
+		for (int r=0; r<results.count(); ++r)
+		{
+			hist.inc(results[r].z, true);
+		}
+		hist.print(outstream, "  ", 0, 0, true);
+		outstream << endl;
+	}
+
 	void printSampleDistributionCorrelation(const QVector<QSharedPointer<SampleData>>& samples, QTextStream& outstream)
 	{
 		outstream << "Reference sample correlation histogram:" << endl;
@@ -969,6 +981,7 @@ public:
         }
 		outstream << "detected " << ranges.count() << " seed regions" << endl << endl;
 		timings.append("CNV seed detection: " + Helper::elapsedTime(timer));
+		printZScoreDistribution(results, outstream);
 		timer.restart();
 
         //extending initial CNVs in both directions
