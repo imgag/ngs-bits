@@ -1,5 +1,5 @@
 ### CnvHunter tool help
-	CnvHunter (0.1-461-ga421898)
+	CnvHunter (0.1-487-g4a3dc62)
 	
 	Detects copy number variations from targeted resequencing data using non-matched control samples.
 	
@@ -8,6 +8,8 @@
 	  -out <file>            Output TSV file containing the detected CNVs.
 	
 	Optional parameters:
+	  -in_noref <filelist>   Input TSV files like 'in' but not used as reference (e.g. tumor samples).
+	                         Default value: ''
 	  -out_reg <file>        If set, writes a BED file with region information (baq QC, excluded, good).
 	                         Default value: ''
 	  -n <int>               The number of most similar samples to consider.
@@ -24,8 +26,6 @@
 	                         Default value: '40'
 	  -sam_min_corr <float>  QC: Minimum correlation of sample to constructed reference sample.
 	                         Default value: '0.94999999999999996'
-	  -sam_max_cnvs <int>    QC: Maximum number of CNV events in a sample.
-	                         Default value: '30'
 	  -reg_min_cov <float>   QC: Minimum (average) absolute depth of a target region.
 	                         Default value: '20'
 	  -reg_min_ncov <float>  QC: Minimum (average) normalized depth of a target region.
@@ -34,10 +34,10 @@
 	                         Default value: '0.29999999999999999'
 	  -anno                  Enable annotation of gene names to regions (needs the NGSD database).
 	                         Default value: 'false'
-	  -verbose               Enables verbose mode. Writes detail information files for samples, regions and results.
-	                         Default value: 'false'
 	  -test                  Uses test database instead of production database for annotation.
 	                         Default value: 'false'
+	  -debug <string>        Writes debug informaion for the sample matching the given name (or for all samples if 'ALL' is given).
+	                         Default value: ''
 	
 	Special parameters:
 	  --help                 Shows this help and exits.
@@ -46,8 +46,9 @@
 	  --tdx                  Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### CnvHunter changelog
-	CnvHunter 0.1-461-ga421898
+	CnvHunter 0.1-487-g4a3dc62
 	
+	2016-09-01 Sample and region information files are now always written.
 	2016-08-23 Added merging of large CNVs that were split to several regions due to noise.
 	2016-08-21 Improved log output (to make parameter optimization easier).
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
