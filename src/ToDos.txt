@@ -8,7 +8,6 @@ libs:
    - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-** Bug in IGV initialization: chancel dialog => do not set initialized flag
 * Gaps: Implement gaps window that shows gaps (CCDS+2 in red) and allows jumping to the IGV position and records which gaps should be closed in NGSD.
 - Allow handling of several affected (i.e. integrate SampleOverview functionality)
 - Allow filtering of multi-sample variant lists => missing genotype (perhaps treat all variants as homozygous?)
@@ -27,6 +26,7 @@ CnvHunter:
    - PAR: http://blog.kokocinski.net/index.php/par-regions?blog=2
    - TEL/CENT: http://blog.kokocinski.net/index.php/telomeric-and-centromeric-regions?blog=2
  * add optional GC-normalization (then, check GS151166_01 gene C5orf42) - test effect of including different flanking regions
+    - alternatively, test intra-sample normalization
  * test mappability-normalization
  * test percentile normalization
  * test on multi-mapped data, chunked data

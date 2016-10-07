@@ -244,9 +244,9 @@ void MainWindow::openInIGV(QString region)
 					init_commands.append("load \"" + file + "\"");
 				}
 			}
-		}
 
-		first_igv_click_ = false;
+			first_igv_click_ = false;
+		}
 	}
 
 	//send commands to IGV
