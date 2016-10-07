@@ -8,6 +8,7 @@ libs:
    - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
+** Bug in IGV initialization: chancel dialog => do not set initialized flag
 * Gaps: Implement gaps window that shows gaps (CCDS+2 in red) and allows jumping to the IGV position and records which gaps should be closed in NGSD.
 - Allow handling of several affected (i.e. integrate SampleOverview functionality)
 - Allow filtering of multi-sample variant lists => missing genotype (perhaps treat all variants as homozygous?)

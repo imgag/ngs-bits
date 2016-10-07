@@ -1102,12 +1102,15 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 
 		//jump to region
 		int ref_id = chr_info.refID(bed_line.chr());
-		bool jump_ok = reader.SetRegion(ref_id, bed_line.start()-1, ref_id, bed_line.end());
+		bool jump_ok = reader.SetRegion(ref_id, bed_line.start()-100, ref_id, bed_line.end()+100);
+		//TODO There is a bug in bamtools that leads to skipping of some reads if we use the exact region borders.
+		//     Regularly check if this bug is fixed and if so, restore the original jump line (below) and remove the test and test data.
+		//     bool jump_ok = reader.SetRegion(ref_id, bed_line.start()-1, ref_id, bed_line.end());
 		if (!jump_ok) THROW(FileAccessException, QString::fromStdString(reader.GetErrorString()));
 
 		//iterate through all alignments
-        BamAlignment al;
-        while (reader.GetNextAlignmentCore(al))
+		BamAlignment al;
+		while (reader.GetNextAlignmentCore(al))
 		{
 			if (al.IsDuplicate()) continue;
 			if (!al.IsPrimaryAlignment()) continue;
@@ -1122,7 +1125,7 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 		}
 
         //create low-coverage regions file
-        bool reg_open = false;
+		bool reg_open = false;
 		int reg_start = -1;
         for (int p=0; p<roi_cov.count(); ++p)
         {

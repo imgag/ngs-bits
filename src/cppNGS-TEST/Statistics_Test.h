@@ -371,6 +371,24 @@ private slots:
 		I_EQUAL(low_cov.baseCount(), 0);
 	}
 
+	void lowCoverage_roi_bug_case1()
+	{
+		BedFile bed_file;
+		bed_file.append(BedLine("chr13", 32931869, 32931970));
+
+		BedFile low_cov =  Statistics::lowCoverage(bed_file, TESTDATA("data_in/lowcov_bug_case1.bam"), 20, 1);
+		I_EQUAL(low_cov.baseCount(), 0);
+	}
+
+	void lowCoverage_roi_bug_case2()
+	{
+		BedFile bed_file;
+		bed_file.append(BedLine("chr13", 32931869, 32931970));
+
+		BedFile low_cov =  Statistics::lowCoverage(bed_file, TESTDATA("data_in/lowcov_bug_case2.bam"), 20, 1);
+		I_EQUAL(low_cov.baseCount(), 0);
+	}
+
     void lowCoverage_wgs_mapq20()
     {
         BedFile low_cov =  Statistics::lowCoverage(TESTDATA("data_in/panel.bam"), 20, 20);
