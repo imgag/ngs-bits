@@ -509,7 +509,11 @@ private:
 	BamAlignment softClipEnzymaticFootprint(BamAlignment original_alignment, int amplicon_start, int amplicon_end)
 	{
 		//first and last 5 bases of a haloplex amplicon are unreliable for undisclosed reasons. Parts of reads within these regions should be softclipped
-		//seems to work, but six insteadt of five are cut
+
+		if (original_alignment.Position==original_alignment.GetEndPosition())
+		{
+			return original_alignment;
+		}
 		if (original_alignment.Position<(amplicon_start+4))
 		{
 			NGSHelper::softClipAlignment(original_alignment,original_alignment.Position+1,amplicon_start+5);//softClipAlignment expects 1-based coordinates
@@ -860,7 +864,7 @@ public:
 							outputHS(position2hs_info, dup_count_histo, act_position, read_count, minimal_group_size, barcode_and_pos, read_list, writer, duplicate_out_stream, nomatch_out_stream, test);
 						}
 						else
-						{					
+						{
 							outputUnknown(act_position, barcode_and_pos, read_list, writer, duplicate_out_stream, test);
 						}
 					}
