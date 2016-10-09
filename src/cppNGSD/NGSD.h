@@ -87,6 +87,8 @@ public:
 	QStringList synonymousSymbols(QString symbol);
 	///Returns the genes overlapping a regions (extended by some bases)
 	QStringList genesOverlapping(const Chromosome& chr, int start, int end, int extend=0);
+	///Returns the genes overlapping a regions (extended by some bases)
+	QStringList genesOverlappingByExon(const Chromosome& chr, int start, int end, int extend=0);
 	///Returns the chromosomal regions corrsponding to the given genes. Messages about unknown gene symbols etc. are written to the steam, if given.
 	BedFile genesToRegions(QStringList genes, QString source, QString mode, QTextStream* messages = nullptr);
 	///Returns longest coding transcript name and region.
@@ -110,7 +112,7 @@ public:
 	///Returns the NGSD processed sample ID from a file name or processed sample name. Throws an exception if it could not be determined.
 	QString processedSampleId(const QString& filename, bool throw_if_fails = true);
 	///Returns the default folder for a processed sample from file name or processed sample name. Throws an exception if it could not be determined.
-	enum PathType {FOLDER, BAM, GSVAR, VCF, LOWCOV};
+	enum PathType {FOLDER, BAM, GSVAR, VCF};
 	QString processedSamplePath(const QString& filename, PathType type, bool throw_if_fails = true);
 	///Returns the NGSD ID for a variant. Returns '-1' or throws an exception if the ID cannot be determined.
 	QString variantId(const Variant& variant, bool throw_if_fails = true);

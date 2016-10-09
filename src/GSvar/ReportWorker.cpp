@@ -321,12 +321,14 @@ BedFile ReportWorker::precalculatedGaps(QString bam_file, const BedFile& roi, in
 	}
 
 	//find low-coverage file
-	QString low_cov_file = db.processedSamplePath(bam_file, NGSD::LOWCOV, false);
-	if(!QFile::exists(low_cov_file))
+	QString dir = QFileInfo(bam_file).absolutePath();
+	QStringList low_cov_files = Helper::findFiles(dir, "*_lowcov.bed", false);
+	if(low_cov_files.count()!=1)
 	{
-		message = "Low-coverage file does not exist: " + low_cov_file;
+		message = "Low-coverage file does not exist in " + dir;
 		return BedFile();
 	}
+	QString low_cov_file = low_cov_files[0];
 
 	//load low-coverage file
 	BedFile gaps;

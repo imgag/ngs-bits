@@ -149,7 +149,7 @@ QString NGSD::processedSamplePath(const QString& filename, PathType type, bool t
 	if (ps_id=="") return "";
 
 	SqlQuery query = getQuery();
-	query.prepare("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), p.type, p.name, sys.name_short FROM processed_sample ps, sample s, project p, processing_system sys WHERE ps.processing_system_id=sys.id AND ps.sample_id=s.id AND ps.project_id=p.id AND ps.id=:id");
+	query.prepare("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), p.type, p.name FROM processed_sample ps, sample s, project p, processing_system sys WHERE ps.processing_system_id=sys.id AND ps.sample_id=s.id AND ps.project_id=p.id AND ps.id=:id");
 	query.bindValue(":id", ps_id);
 	query.exec();
 	if (query.size()==0)
@@ -177,13 +177,11 @@ QString NGSD::processedSamplePath(const QString& filename, PathType type, bool t
 	output += "/" + p_name + "/";
 	QString ps_name = query.value(0).toString();
 	output += "Sample_" + ps_name + "/";
-	QString sys_name = query.value(3).toString();
 
 	//append file name if requested
 	if (type==BAM) output += ps_name + ".bam";
 	else if (type==GSVAR) output += ps_name + ".GSvar";
 	else if (type==VCF) output += ps_name + "_var_annotated.vcf.gz";
-	else if (type==LOWCOV) output += ps_name + "_" + sys_name + "_lowcov.bed";
 	else if (type!=FOLDER) THROW(ProgrammingException, "Unknown PathType '" + QString::number(type) + "'!");
 
 	return output;
@@ -1198,6 +1196,44 @@ QStringList NGSD::genesOverlapping(const Chromosome& chr, int start, int end, in
 		while(query.next())
 		{
 			bed.append(BedLine(query.value(1).toString(), query.value(2).toInt(), query.value(3).toInt(), QStringList() << query.value(0).toString()));
+		}
+		bed.sort();
+		index.createIndex();
+	}
+
+	//create gene list
+	QStringList genes;
+	QVector<int> matches = index.matchingIndices(chr, start-extend, end+extend);
+	foreach(int i, matches)
+	{
+		genes << bed[i].annotations()[0];
+	}
+	genes.sort();
+	genes.removeDuplicates();
+
+	return genes;
+}
+
+QStringList NGSD::genesOverlappingByExon(const Chromosome& chr, int start, int end, int extend)
+{
+	//init static data (load gene regions file from NGSD to memory)
+	static BedFile bed;
+	static ChromosomalIndex<BedFile> index(bed);
+	if (bed.count()==0)
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT id, symbol, chromosome FROM gene WHERE type='protein-coding gene'");
+		while(query.next())
+		{
+			QStringList symbol;
+			symbol << query.value(1).toString();
+			Chromosome chr = query.value(2).toString();
+			SqlQuery query2 = getQuery();
+			query2.exec("SELECT DISTINCT ge.start, ge.end FROM gene_exon ge, gene_transcript gt WHERE ge.transcript_id=gt.id AND gt.gene_id=" + query.value(0).toString());
+			while(query2.next())
+			{
+				bed.append(BedLine(chr, query2.value(0).toInt(), query2.value(1).toInt(), symbol));
+			}
 		}
 		bed.sort();
 		index.createIndex();

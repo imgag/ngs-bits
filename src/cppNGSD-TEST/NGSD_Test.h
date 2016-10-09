@@ -36,6 +36,41 @@ private slots:
 		I_EQUAL(gene_app_id, 1);
 		gene_app_id = db.geneToApprovedID("BLABLA");
 		I_EQUAL(gene_app_id, -1);
+
+		//genesOverlapping
+		QStringList genes = db.genesOverlapping("chr13", 90, 95, 0); //nearby left
+		I_EQUAL(genes.count(), 0);
+		genes = db.genesOverlapping("chr13", 205, 210, 0); //nearby right
+		I_EQUAL(genes.count(), 0);
+		genes = db.genesOverlapping("chr13", 100, 200, 0); //overlapping exons
+		I_EQUAL(genes.count(), 1);
+		S_EQUAL(genes[0], "BRCA2");
+		genes = db.genesOverlapping("chr13", 140, 160, 0); //overlapping intron
+		I_EQUAL(genes.count(), 1);
+		S_EQUAL(genes[0], "BRCA2");
+		genes = db.genesOverlapping("chr13", 90, 95, 6); //extend left
+		I_EQUAL(genes.count(), 1);
+		S_EQUAL(genes[0], "BRCA2");
+		genes = db.genesOverlapping("chr13", 205, 210, 6); //extend right
+		I_EQUAL(genes.count(), 1);
+		S_EQUAL(genes[0], "BRCA2");
+
+		//genesOverlappingByExon
+		genes = db.genesOverlappingByExon("chr13", 90, 95, 0); //nearby left
+		I_EQUAL(genes.count(), 0);
+		genes = db.genesOverlappingByExon("chr13", 205, 210, 0); //nearby right
+		I_EQUAL(genes.count(), 0);
+		genes = db.genesOverlappingByExon("chr13", 100, 200, 0); //overlapping exons
+		I_EQUAL(genes.count(), 1);
+		S_EQUAL(genes[0], "BRCA2");
+		genes = db.genesOverlappingByExon("chr13", 140, 160, 0); //overlapping intron
+		I_EQUAL(genes.count(), 0);
+		genes = db.genesOverlappingByExon("chr13", 90, 95, 6); //extend left
+		I_EQUAL(genes.count(), 1);
+		S_EQUAL(genes[0], "BRCA2");
+		genes = db.genesOverlappingByExon("chr13", 205, 210, 6); //extend right
+		I_EQUAL(genes.count(), 1);
+		S_EQUAL(genes[0], "BRCA2");
 	}
 
 	//Test for debugging (without initialization because of speed)

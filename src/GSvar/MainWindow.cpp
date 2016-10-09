@@ -39,6 +39,7 @@
 #include "SubpanelDesignDialog.h"
 #include "SubpanelArchiveDialog.h"
 #include "IgvDialog.h"
+#include "GapDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -723,7 +724,11 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 
 	//check for ROI file
 	QString roi_file = filter_widget_->targetRegion();
-	if (roi_file=="") return;
+	if (roi_file=="")
+	{
+		QMessageBox::warning(this, "Gaps error", "No target region filter set!");
+		return;
+	}
 	BedFile roi;
 	roi.load(roi_file);
 	roi.merge();
@@ -732,46 +737,27 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	QString bam_file = getBamFile();
 	if (bam_file=="") return;
 
-	//check for genes list file
+
+	//load genes list file
+	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+	QStringList genes;
 	QString genes_file = roi_file.mid(0, roi_file.length()-4) + "_genes.txt";
-	if (!QFile::exists(genes_file))
+	if (QFile::exists(genes_file))
 	{
-		QMessageBox::warning(this, "Could not locate gene list for target region.", "File '" + genes_file + "' does not exist!");
-		return;
+		genes = Helper::loadTextFile(genes_file, true, '#', true);
+		std::transform(genes.begin(), genes.end(), genes.begin(), [](const QString& s) { return s.toUpper(); });
 	}
-	QStringList genes = Helper::loadTextFile(genes_file, true, '#', true);
-	for(int i=0; i<genes.count(); ++i)
-	{
-		genes[i] = genes[i].toUpper();
-	}
-	genes.sort();
 
-	//get minimum coverage
-	bool ok = true;
-	int min_cov = QInputDialog::getInt(this, "Low-coverage analysis", "minimum coverage:", 20, 1, 999999, 5, &ok);
-	if (!ok) return;
-
-	//create report
-	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-	QString output;
-	QTextStream stream(&output);
+	//prepare dialog
+	GapDialog dlg(this);
 	QString sample_name = QFileInfo(bam_file).fileName().replace(".bam", "");
-	ReportWorker::writeHtmlHeader(stream, sample_name);
-	NGSD db;
-	ReportWorker::writeCoverageReport(stream, bam_file, roi_file, roi, genes, min_cov, db);
-	ReportWorker::writeCoverageReportCCDS(stream, bam_file, genes, min_cov, db);
-	ReportWorker::writeHtmlFooter(stream);
+	dlg.setSampleName(sample_name);
+	dlg.process(bam_file, roi, genes.toSet());
 	QApplication::restoreOverrideCursor();
 
-	//show output
-	QTextEdit* edit = new QTextEdit();
-	edit->setText(output);
-	edit->setMinimumWidth(800);
-	edit->setMinimumHeight(500);
-	edit->setWordWrapMode(QTextOption::NoWrap);
-	edit->setReadOnly(true);
-	GUIHelper::showWidgetAsDialog(edit, "Gaps in target region'" + roi_file + "':", false);
-	edit->deleteLater();
+	//show dialog
+	connect(&dlg, SIGNAL(openRegionInIgv(QString)), this, SLOT(openInIGV(QString)));
+	dlg.exec();
 }
 
 void MainWindow::on_actionExportVCF_triggered()

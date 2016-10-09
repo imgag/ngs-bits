@@ -18,6 +18,16 @@ INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_
 INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `chromosome`, `type`) VALUES (1,1001,'BRCA1','Breast cancer associated gene 1', '17', 'protein-coding gene');
 INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `chromosome`, `type`) VALUES (2,1002,'BRCA2','Breast cancer associated gene 2', '13', 'protein-coding gene');
 
+INSERT INTO `gene_transcript`(`id`, `gene_id`, `name`, `source`, `start_coding`, `end_coding`, `strand`) VALUES (1, 1,'BRCA1_TR1','ccds',100,200,'+');
+INSERT INTO `gene_transcript`(`id`, `gene_id`, `name`, `source`, `start_coding`, `end_coding`, `strand`) VALUES (2, 2,'BRCA2_TR1','ccds',100,200,'+');
+
+INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (1, 100, 110);
+INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (1, 120, 130);
+INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (1, 160, 170);
+INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (1, 190, 200);
+INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (2, 100, 120);
+INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (2, 180, 200);
+
 INSERT INTO `variant` (`id`, `chr`, `start`, `end`, `ref`, `obs`, `dbsnp`, `1000g`, `exac`, `esp6500`, `gene`, `variant_type`, `coding`, `genome_id`) VALUES
 (6, 'chr10', 43613843, 43613843, 'G', 'T', 'rs1800861', 0.7125, 0.742, 0.7653, 'RET', 'synonymous', 'RET:NM_020975.4:synonymous:LOW:exon13/20:c.2307G>T:p.Leu769Leu,RET:NM_020630.4:synonymous:LOW:exon13/19:c.2307G>T:p.Leu769Leu', 1),
 (405, 'chr17', 7579472, 7579472, 'G', 'C', 'rs1042522', 0.5429, 0.659, 0.7452, 'TP53', 'missense,upstream_gene', 'TP53:NM_000546.5:missense:MODERATE:exon4/11:c.215C>G:p.Pro72Arg,TP53:NM_001126112.2:missense:MODERATE:exon4/11:c.215C>G:p.Pro72Arg,TP53:NM_001126113.2:missense:MODERATE:exon4/12:c.215C>G:p.Pro72Arg,TP53:NM_001126114.2:missense:MODERATE:exon4/12:c.215C>G:p.Pro72Arg,TP53:NM_001126118.1:missense:MODERATE:exon3/10:c.98C>G:p.Pro33Arg,TP53:NM_001276695.1:missense:MODERATE:exon4/12:c.98C>G:p.Pro33Arg,TP53:NM_001276696.1:missense:MODERATE:exon4/12:c.98C>G:p.Pro33Arg,TP53:NM_001276760.1:missense:MODERATE:exon4/11:c.98C>G:p.Pro33Arg,TP53:NM_001276761.1:missense:MODERATE:exon4/11:c.98C>G:p.Pro33Arg,TP53:NM_001126115.1:upstream_gene:MODIFIER::c.-939C>G:,TP53:NM_001126116.1:upstream_gene:MODIFIER::c.-939C>G:,TP53:NM_001126117.1:upstream_gene:MODIFIER::c.-939C>G:,TP53:NM_001276697.1:upstream_gene:MODIFIER::c.-1020C>G:,TP53:NM_001276698.1:upstream_gene:MODIFIER::c.-1020C>G:,TP53:NM_001276699.1:upstream_gene:MODIFIER::c.-1020C>G:', 1),

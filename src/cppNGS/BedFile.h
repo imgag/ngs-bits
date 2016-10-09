@@ -91,20 +91,27 @@ public:
         return (start_>=start && start_<=end) || (start>=start_ && start<=end_);
     }
     ///Adjacent check - with no gap in between - for chromosome and position range.
-    bool adjacentTo(const Chromosome& chr, int start, int end)
+	bool adjacentTo(const Chromosome& chr, int start, int end) const
     {
         return chr_==chr && adjacentTo(start, end);
     }
     ///Adjacent check - with no gap in between - for position range only.
-    bool adjacentTo(int start, int end)
+	bool adjacentTo(int start, int end) const
     {
         return (start_==end+1 || end_==start-1);
 	}
 
 	///Converts the position part of the line to a string
-	QString toString(char delimiter = ' ')
+	QString toString(bool human_readable) const
 	{
-		return chr().str() + delimiter + QString::number(start()) + delimiter + QString::number(end());
+		if (human_readable)
+		{
+			return chr().str() + ":" + QString::number(start()) + "-" + QString::number(end());
+		}
+		else
+		{
+			return chr().str() + "\t" + QString::number(start()) + "\t" + QString::number(end());
+		}
 	}
 
 	///Parses a chromosomal region string and constructs a line from it. An invalid line is returned, if the string cannot be parsed.

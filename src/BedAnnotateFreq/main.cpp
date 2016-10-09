@@ -49,7 +49,7 @@ public:
 		{
 			if(file[i].length()!=1)
 			{
-				THROW(ToolFailedException, "BED file contains region with length > 1, which is not supported: " + file[i].toString());
+				THROW(ToolFailedException, "BED file contains region with length > 1, which is not supported: " + file[i].toString(true));
 			}
 
 			foreach(QString bam, bams)
@@ -58,7 +58,7 @@ public:
 				NGSHelper::openBAM(reader, bam);
 				Pileup pileup = NGSHelper::getPileup(reader, file[i].chr(), file[i].end());
 
-				outstream << file[i].toString('\t')+"\t"+QFileInfo(bam).baseName()+"\t"+QString::number(pileup.a())+"\t"+QString::number(pileup.c())+"\t"+QString::number(pileup.g())+"\t"+QString::number(pileup.t())+"\t"+QString::number(pileup.depth(false)) + "\n";
+				outstream << file[i].toString(false)+"\t"+QFileInfo(bam).baseName()+"\t"+QString::number(pileup.a())+"\t"+QString::number(pileup.c())+"\t"+QString::number(pileup.g())+"\t"+QString::number(pileup.t())+"\t"+QString::number(pileup.depth(false)) + "\n";
 			}
 		}
 	}

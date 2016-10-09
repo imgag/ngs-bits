@@ -8,7 +8,9 @@ libs:
    - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-* Gaps: Implement gaps window that shows gaps (CCDS+2 in red) and allows jumping to the IGV position and records which gaps should be closed in NGSD.
+* Gaps dialog:
+  - add validation state: yes, no, ?
+  - record in NGSD which gaps should be closed
 - Allow handling of several affected (i.e. integrate SampleOverview functionality)
 - Allow filtering of multi-sample variant lists => missing genotype (perhaps treat all variants as homozygous?)
 ? Add buttons to search in goolge/pubmed for variant
@@ -20,7 +22,7 @@ Tools:
 * BamClipOverlap: require sorted bam and paired-end sequencing (CS)
 
 CnvHunter:
- *** add z-score distribution to output
+ *** add region size to output
  * update test data (include MAPQ=0, types: HBOC, TruRisk, Exome, Low-coverage genome data, Cancer data)
  * look at properties of bad regions (HLA, common CNVs, GC, size, centromer, pseudo-autosomal region, ...)
    - PAR: http://blog.kokocinski.net/index.php/par-regions?blog=2
