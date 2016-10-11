@@ -8,6 +8,8 @@ libs:
    - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
+** Report: remove highlighted variants (tri-state)
+** GSvar: bug reload => crash (close menu entry?)
 * Gaps dialog:
   - add validation state: yes, no, ?
   - record in NGSD which gaps should be closed
@@ -28,7 +30,7 @@ CnvHunter:
    - PAR: http://blog.kokocinski.net/index.php/par-regions?blog=2
    - TEL/CENT: http://blog.kokocinski.net/index.php/telomeric-and-centromeric-regions?blog=2
  * add optional GC-normalization (then, check GS151166_01 gene C5orf42) - test effect of including different flanking regions
-    - alternatively, test intra-sample normalization
+    - alternatively, test intra-sample normalization using the most similar exons
  * test mappability-normalization
  * test percentile normalization
  * test on multi-mapped data, chunked data

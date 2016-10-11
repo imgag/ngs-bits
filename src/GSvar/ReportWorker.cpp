@@ -15,7 +15,7 @@
 #include "XmlHelper.h"
 #include "VariantFilter.h"
 
-ReportWorker::ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QVector< QPair<int, bool> >& variants_selected, QMap<QString, QString> preferred_transcripts, QString outcome, QString file_roi, QString file_bam, int min_cov, bool var_details, QStringList log_files, QString file_rep)
+ReportWorker::ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QVector< QPair<int, bool> >& variants_selected, QMap<QString, QString> preferred_transcripts, QString outcome, QString file_roi, QString file_bam, int min_cov, QStringList log_files, QString file_rep)
 	: WorkerBase("Report generation")
 	, sample_name_(sample_name)
 	, filters_(filters)
@@ -26,7 +26,6 @@ ReportWorker::ReportWorker(QString sample_name, QMap<QString, QString> filters, 
 	, file_roi_(file_roi)
 	, file_bam_(file_bam)
 	, min_cov_(min_cov)
-	, var_details_(var_details)
 	, genes_()
 	, log_files_(log_files)
 	, file_rep_(file_rep)
@@ -606,35 +605,6 @@ void ReportWorker::writeHTML()
 
 		//additionally store low-coverage BED file
 		low_cov.store(QString(file_rep_).replace(".html", "_lowcov.bed"));
-	}
-
-	//output variant details
-	if(var_details_)
-	{
-		stream << "<p><b><span style=\"background-color: #FF0000\">Details zu Varianten (f&uuml;r interne Zwecke)</span>" << endl;
-		stream << "<table>" << endl;
-		stream << "<tr><td><b>chr</b></td><td><b>start</b></td><td><b>end</b></td><td><b>ref</b></td><td><b>obs</b></td>";
-		for (int i=0; i<variants_.annotations().count(); ++i)
-		{
-			stream << "<td><b>" << variants_.annotations()[i].name() << "</b></td>";
-		}
-		stream << "</tr>";
-		for (int i=0; i<variants_selected_.count(); ++i)
-		{
-			const Variant& variant = variants_[variants_selected_[i].first];
-			stream << "<tr><td>" << variant.chr().str() << "</td><td>" << variant.start() << "</td><td>" << variant.end() << "</td><td>" << variant.ref() << "</td><td>" << variant.obs() << "</td>";
-			for (int j=0; j<variants_.annotations().count(); ++j)
-			{
-				QString anno = variant.annotations().at(j);
-				bool ok = false;
-				anno.toDouble(&ok);
-				if (ok) anno.replace(".", ",");
-				stream << "<td><nobr>" << anno.toHtmlEscaped() << "</nobr></td>";
-			}
-			stream << "</tr>" << endl;
-		}
-		stream << "</table>" << endl;
-		stream << "</p>" << endl;
 	}
 
 	//collect and display important tool versions

@@ -130,11 +130,6 @@ int ReportDialog::minCoverage() const
 	return ui_.min_cov->value();
 }
 
-bool ReportDialog::detailsVariants() const
-{
-	return ui_.details_var->isChecked();
-}
-
 QString ReportDialog::outcome() const
 {
 	return ui_.outcome->currentText();
