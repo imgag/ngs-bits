@@ -482,12 +482,7 @@ void MainWindow::on_actionReport_triggered()
 	//flag report variants in NGSD
 	try
 	{
-		QSet<int> indices;
-		for (auto it=dialog.selectedIndices().cbegin(); it!=dialog.selectedIndices().cend(); ++it)
-		{
-			indices.insert(it->first);
-		}
-		NGSD().setReportVariants(filename_, variants_, indices);
+		NGSD().setReportVariants(filename_, variants_, dialog.selectedIndices().toSet());
 		NGSD().setReportOutcome(filename_, dialog.outcome());
 	}
 	catch (DatabaseException& e)

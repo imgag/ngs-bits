@@ -57,8 +57,8 @@ void ReportDialog::addVariants(const VariantList& variants, const QBitArray& vis
 
 		const Variant& variant = variants[i];
 		ui_.vars->setItem(row, 0, new QTableWidgetItem(""));
-		ui_.vars->item(row, 0)->setFlags(Qt::ItemIsUserCheckable|Qt::ItemIsEnabled|Qt::ItemIsTristate|Qt::ItemIsUserTristate);
-		ui_.vars->item(row, 0)->setCheckState(Qt::PartiallyChecked);
+		ui_.vars->item(row, 0)->setFlags(Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
+		ui_.vars->item(row, 0)->setCheckState(Qt::Checked);
 		if (class_idx!=-1 && variant.annotations()[class_idx]=="1")
 		{
 			ui_.vars->item(row, 0)->setCheckState(Qt::Unchecked);
@@ -103,17 +103,16 @@ void ReportDialog::setTargetRegionSelected(bool is_selected)
 	}
 }
 
-QVector< QPair<int, bool> > ReportDialog::selectedIndices() const
+QList<int> ReportDialog::selectedIndices() const
 {
-	QVector< QPair<int, bool> > output;
+	QList<int> output;
 
 	for (int i=0; i<ui_.vars->rowCount(); ++i)
 	{
 		QTableWidgetItem* item = ui_.vars->item(i, 0);
-		if (item->checkState()==Qt::Checked || item->checkState()==Qt::PartiallyChecked)
+		if (item->checkState()==Qt::Checked)
 		{
-
-			output.append(qMakePair(item->data(Qt::UserRole).toInt(), item->checkState()==Qt::Checked));
+			output.append(item->data(Qt::UserRole).toInt());
 		}
 	}
 

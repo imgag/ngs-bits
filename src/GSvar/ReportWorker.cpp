@@ -15,7 +15,7 @@
 #include "XmlHelper.h"
 #include "VariantFilter.h"
 
-ReportWorker::ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QVector< QPair<int, bool> >& variants_selected, QMap<QString, QString> preferred_transcripts, QString outcome, QString file_roi, QString file_bam, int min_cov, QStringList log_files, QString file_rep)
+ReportWorker::ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QList<int>& variants_selected, QMap<QString, QString> preferred_transcripts, QString outcome, QString file_roi, QString file_bam, int min_cov, QStringList log_files, QString file_rep)
 	: WorkerBase("Report generation")
 	, sample_name_(sample_name)
 	, filters_(filters)
@@ -460,15 +460,8 @@ void ReportWorker::writeHTML()
 	//get column indices
 	int i_genotype = variants_.annotationIndexByName("genotype", true, false); //optinal because of tumor samples
 	int i_gene = variants_.annotationIndexByName("gene", true, true);
-	int i_type = variants_.annotationIndexByName("variant_type", true, true);
 	int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, true);
-	int i_dbsnp = variants_.annotationIndexByName("dbSNP", true, true);
-	int i_1000g = variants_.annotationIndexByName("1000g", true, true);
-	int i_exac = variants_.annotationIndexByName("ExAC", true, true);
-	int i_esp = variants_.annotationIndexByName("ESP6500EA", true, true);
 	int i_omim = variants_.annotationIndexByName("OMIM", true, true);
-	int i_clinvar = variants_.annotationIndexByName("ClinVar", true, true);
-	int i_hgmd = variants_.annotationIndexByName("HGMD", true, true);
 	int i_class = variants_.annotationIndexByName("classification", true, true);
 	int i_comment = variants_.annotationIndexByName("comment", true, true);
 
@@ -490,34 +483,6 @@ void ReportWorker::writeHTML()
 	}
 	stream << "</p>" << endl;
 
-	//output: very important variants
-	int important_variants = 0;
-	for (int i=0; i<variants_selected_.count(); ++i)
-	{
-		important_variants += variants_selected_[i].second;
-	}
-	if (important_variants>0)
-	{
-		stream << "<p><b>Liste wichtiger Varianten</b>" << endl;
-		stream << "</p>" << endl;
-		for (int i=0; i<variants_selected_.count(); ++i)
-		{
-			if (!variants_selected_[i].second) continue;
-			const Variant& v = variants_[variants_selected_[i].first];
-			stream << "<table>" << endl;
-			QByteArray genes = v.annotations()[i_gene];
-			stream << "<tr><td><b>Variante:</b> " << v.chr().str() << ":" << v.start() << "-" << v.end() << " " << v.ref() << ">" << v.obs() << " <b>Gen:</b> " << genes << " <b>Typ:</b> " << v.annotations()[i_type] << " <b>Klassifikation: </b>" << v.annotations()[i_class] << " <b>Vererbung:</b>" << inheritance(genes) << "</td></tr>" << endl;
-			stream << "<tr><td><b>Details:</b> " << formatCodingSplicing(v.annotations()[i_co_sp]) << "</td></tr>" << endl;
-			QString dbsnp = v.annotations()[i_dbsnp]; //because string is const
-			stream << "<tr><td><b>Frequenz:</b> <b>1000g:</b> " << v.annotations()[i_1000g] << " <b>ExAC:</b> " << v.annotations()[i_exac] << " <b>ESP6500:</b> " << v.annotations()[i_esp] << " <b>dbSNP:</b> " << dbsnp.replace("[];", "") << "</td></tr>" << endl;
-			stream << "<tr><td><b>OMIM:</b> " << v.annotations()[i_omim] << "</td></tr>" << endl;
-			stream << "<tr><td><b>ClinVar:</b> " << v.annotations()[i_clinvar] << "</td></tr>" << endl;
-			stream << "<tr><td><b>HGMD:</b> " << v.annotations()[i_hgmd] << "</td></tr>" << endl;
-			stream << "<tr><td><b>Kommentar:</b> <span style=\"background-color: #FF0000\">" << v.annotations()[i_comment] << "</span></td></tr>" << endl;
-			stream << "</table>" << endl;
-		}
-	}
-
 	//output: all rare variants
 	stream << "<p><b>Liste gefilterter Varianten</b>" << endl;
 	stream << "</p>" << endl;
@@ -525,7 +490,7 @@ void ReportWorker::writeHTML()
 	stream << "<tr><td><b>Gen</b></td><td><b>chr</b></td><td><b>start</b></td><td><b>end</b></td><td><b>ref</b></td><td><b>obs</b></td><td><b>" << (tumor ? "Allelfrequenz" : "Genotyp") << "</b></td><td><b>Details</b></td><td><b>Klasse</b></td><td><b>Vererbung</b></td></tr>" << endl;
 	for (int i=0; i<variants_selected_.count(); ++i)
 	{
-		const Variant& variant = variants_[variants_selected_[i].first];
+		const Variant& variant = variants_[variants_selected_[i]];
 		QByteArray genes = variant.annotations()[i_gene];
 		stream << "<tr>" << endl;
 		stream << "<td>" << genes << "</td>" << endl;
@@ -786,7 +751,7 @@ void ReportWorker::writeXML()
 	int comment_idx = variants_.annotationIndexByName("comment", true, true);
 	for (int i=0; i<variants_selected_.count(); ++i)
 	{
-		const Variant& v = variants_[variants_selected_[i].first];
+		const Variant& v = variants_[variants_selected_[i]];
 		w.writeStartElement("Variant");
 		w.writeAttribute("chr", v.chr().str());
 		w.writeAttribute("start", QString::number(v.start()));

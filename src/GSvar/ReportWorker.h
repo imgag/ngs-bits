@@ -16,7 +16,7 @@ class ReportWorker
 
 public:
 	///Constructor.
-	ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QVector< QPair<int, bool> >& variants_selected, QMap<QString, QString> preferred_transcripts, QString outcome, QString file_roi, QString file_bam, int min_cov, QStringList log_files, QString file_rep);
+	ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QList<int>& variants_selected, QMap<QString, QString> preferred_transcripts, QString outcome, QString file_roi, QString file_bam, int min_cov, QStringList log_files, QString file_rep);
 	virtual void process();
 
 	///Returns the file to which the HTML report was written.
@@ -45,7 +45,7 @@ private:
 	QString sample_name_external_;
 	QMap<QString, QString> filters_;
 	const VariantList& variants_;
-	QVector< QPair<int, bool> > variants_selected_;
+	QList<int> variants_selected_;
 	QMap<QString, QString> preferred_transcripts_;
 	QString outcome_;
 	QString file_roi_;

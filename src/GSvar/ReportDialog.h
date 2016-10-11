@@ -21,7 +21,7 @@ public:
 	void setTargetRegionSelected(bool is_selected);
 
 	///Returns the variants indices that were selected for export (along with the flag for very important variants).
-	QVector< QPair<int, bool> > selectedIndices() const;
+	QList<int> selectedIndices() const;
 	///Returns if low-coverage details should be added to the report
 	bool detailsCoverage() const;
 	///Returns the cutoff for low-coverage statistics
