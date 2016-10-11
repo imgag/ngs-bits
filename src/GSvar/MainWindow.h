@@ -119,6 +119,8 @@ public slots:
 	void on_actionDesignSubpanel_triggered();
 	///Subpanel archive dialog
 	void on_actionArchiveSubpanel_triggered();
+	///Close current file
+	void on_actionClose_triggered();
 
 	///Finished the report generation
 	void reportGenerationFinished(bool success);

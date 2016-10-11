@@ -78,7 +78,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui_.tools->insertWidget(ui_.actionReport, filter_btn);
 
 	//signals and slots
-	connect(ui_.actionClose, SIGNAL(triggered()), this, SLOT(close()));
+	connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(close()));
 	connect(ui_.vars, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(varsContextMenu(QPoint)));
 	connect(filter_widget_, SIGNAL(filtersChanged()), this, SLOT(filtersChanged()));
 	connect(ui_.vars, SIGNAL(itemSelectionChanged()), this, SLOT(updateVariantDetails()));
@@ -97,6 +97,11 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(&delayed_init_timer_, SIGNAL(timeout()), this, SLOT(delayedInizialization()));
 	delayed_init_timer_.setSingleShot(false);
 	delayed_init_timer_.start(50);
+}
+
+void MainWindow::on_actionClose_triggered()
+{
+	loadFile("");
 }
 
 void MainWindow::delayedInizialization()
@@ -350,6 +355,8 @@ void MainWindow::loadFile(QString filename)
 	first_igv_click_ = true;
 	ui_.vars->setRowCount(0);
 	ui_.vars->setColumnCount(0);
+
+	if (filename=="") return;
 
 	//update recent files (before try block to remove non-existing files from the recent files menu)
 	addToRecentFiles(filename);

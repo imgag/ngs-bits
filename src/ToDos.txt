@@ -8,7 +8,6 @@ libs:
    - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-** GSvar: bug reload => crash (close menu entry?)
 * Gaps dialog:
   - add validation state: yes, no, ?
   - record in NGSD which gaps should be closed
