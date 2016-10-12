@@ -1222,18 +1222,10 @@ QStringList NGSD::genesOverlappingByExon(const Chromosome& chr, int start, int e
 	if (bed.count()==0)
 	{
 		SqlQuery query = getQuery();
-		query.exec("SELECT id, symbol, chromosome FROM gene WHERE type='protein-coding gene'");
+		query.exec("SELECT DISTINCT g.symbol, g.chromosome, ge.start, ge.end FROM gene g, gene_exon ge, gene_transcript gt WHERE g.type='protein-coding gene' AND ge.transcript_id=gt.id AND gt.gene_id=g.id");
 		while(query.next())
 		{
-			QStringList symbol;
-			symbol << query.value(1).toString();
-			Chromosome chr = query.value(2).toString();
-			SqlQuery query2 = getQuery();
-			query2.exec("SELECT DISTINCT ge.start, ge.end FROM gene_exon ge, gene_transcript gt WHERE ge.transcript_id=gt.id AND gt.gene_id=" + query.value(0).toString());
-			while(query2.next())
-			{
-				bed.append(BedLine(chr, query2.value(0).toInt(), query2.value(1).toInt(), symbol));
-			}
+			bed.append(BedLine(query.value(1).toString(), query.value(2).toInt(), query.value(3).toInt(), QStringList() << query.value(0).toString()));
 		}
 		bed.sort();
 		index.createIndex();
