@@ -91,6 +91,7 @@ void ReportDialog::addVariants(const VariantList& variants, const QBitArray& vis
 	}
 
 	ui_.vars->resizeColumnsToContents();
+	ui_.vars->resizeRowsToContents();
 }
 
 void ReportDialog::setTargetRegionSelected(bool is_selected)

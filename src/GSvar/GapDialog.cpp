@@ -4,20 +4,21 @@
 #include "Statistics.h"
 #include "ReportWorker.h"
 #include "Log.h"
+#include "Helper.h"
 #include <QDebug>
+#include <QComboBox>
+#include <QFileInfo>
 
-GapDialog::GapDialog(QWidget *parent) :
-	QDialog(parent),
-	ui(new Ui::GapDialog)
+GapDialog::GapDialog(QWidget *parent, QString sample_name, QString roi_file)
+	: QDialog(parent)
+	, sample_name_(sample_name)
+	, roi_file_(roi_file)
+	, ui(new Ui::GapDialog)
 {
 	ui->setupUi(this);
-	connect(ui->gaps, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(gapDoubleClicked(QTableWidgetItem*)));
-}
-
-void GapDialog::setSampleName(QString sample_name)
-{
-	sample_name_ = sample_name;
 	setWindowTitle("Gaps of sample " + sample_name);
+
+	connect(ui->gaps, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(gapDoubleClicked(QTableWidgetItem*)));
 }
 
 void GapDialog::process(QString bam_file, const BedFile& roi, QSet<QString> genes)
@@ -40,7 +41,7 @@ void GapDialog::process(QString bam_file, const BedFile& roi, QSet<QString> gene
 	ui->percentage->setText("Percentage of target region with depth&lt;" + QString::number(cutoff) + ": " + gap_perc + "%");
 
 	//calculate average coverage for gaps
-	Statistics::avgCoverage(low_cov, bam_file);
+	Statistics::avgCoverage(low_cov, bam_file, 1, true);
 
 	//show gaps
 	ui->gaps->setRowCount(low_cov.count());
@@ -54,10 +55,12 @@ void GapDialog::process(QString bam_file, const BedFile& roi, QSet<QString> gene
 		ui->gaps->setItem(i, 1, createItem(QString::number(line.length()), false, true));
 
 		//depth
-		ui->gaps->setItem(i, 2, createItem(line.annotations()[0], false, true));
+		QString depth = line.annotations()[0];
+		bool highlight_depth = depth.toDouble()<10;
+		ui->gaps->setItem(i, 2, createItem(depth, highlight_depth, true));
 
 		//genes
-		QStringList genes_anno = db.genesOverlappingByExon(line.chr(), line.start(), line.end(), 20);
+		QStringList genes_anno = db.genesOverlappingByExon(line.chr(), line.start(), line.end(), 30);
 		bool highlight_genes = genes_anno.toSet().intersect(genes).count();
 		ui->gaps->setItem(i, 3, createItem(genes_anno.join(", "), highlight_genes));
 
@@ -66,14 +69,67 @@ void GapDialog::process(QString bam_file, const BedFile& roi, QSet<QString> gene
 		QString type = genes_core.count()==0 ? "intronic/intergenic" : "exonic/splicing";
 		bool highlight_type = genes_core.count();
 		ui->gaps->setItem(i, 4, createItem(type, highlight_type));
+
+		//validate
+		ui->gaps->setItem(i, 5, new QTableWidgetItem());
+		GapValidationLabel* label = new GapValidationLabel();
+		ui->gaps->setCellWidget(i, 5, label);
+		if(!highlight_type) label->setState(GapValidationLabel::NO_VALIDATION);
 	}
 
 	ui->gaps->resizeColumnsToContents();
+	ui->gaps->resizeRowsToContents();
 }
 
 GapDialog::~GapDialog()
 {
 	delete ui;
+}
+
+QString GapDialog::report() const
+{
+	QString output;
+	QTextStream stream(&output);
+
+	//header
+	stream << "Gap report\n";
+	stream << "\n";
+	stream << "Sample: " << sample_name_ << "\n";
+	stream << "Target region: " << QFileInfo(roi_file_).fileName().replace(".bed", "") << "\n";
+	stream << "\n";
+
+	//gaps (sanger)
+	stream << "Gaps to be closed by sanger sequencing:\n";
+	int closed_sanger = 0;
+	for (int row=0; row<ui->gaps->rowCount(); ++row)
+	{
+		if (state(row)==GapValidationLabel::VALIDATION)
+		{
+			stream << gapAsTsv(row) << "\n";
+			closed_sanger += gapSize(row);
+		}
+	}
+	stream << "\n";
+
+	//gaps (IGV)
+	stream << "Gaps closed by manual inspection (or intronic/intergenic):\n";
+	int closed_manual = 0;
+	for (int row=0; row<ui->gaps->rowCount(); ++row)
+	{
+		if (state(row)==GapValidationLabel::NO_VALIDATION)
+		{
+			stream << gapAsTsv(row) << "\n";
+			closed_manual += gapSize(row);
+		}
+	}
+	stream << "\n";
+
+	stream << "Gaps closed by sanger sequencing: " << closed_sanger << " bases\n";
+	stream << "Gaps closed by manual inspection: " << closed_manual << " bases\n";
+	stream << "Sum: " << (closed_sanger+closed_manual) << " bases\n";
+
+	stream.flush();
+	return  output;
 }
 
 void GapDialog::gapDoubleClicked(QTableWidgetItem* item)
@@ -82,5 +138,34 @@ void GapDialog::gapDoubleClicked(QTableWidgetItem* item)
 
 	QString region = ui->gaps->item(item->row(), 0)->text();
 	emit openRegionInIgv(region);
+}
+
+QTableWidgetItem*GapDialog::createItem(QString text, bool highlight, bool align_right)
+{
+	QTableWidgetItem* item = new QTableWidgetItem(text);
+	if (highlight)
+	{
+		QFont font;
+		font.setBold(true);
+		item->setFont(font);
+	}
+	item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+	if (align_right) item->setTextAlignment(Qt::AlignRight|Qt::AlignCenter);
+	return item;
+}
+
+GapValidationLabel::State GapDialog::state(int row) const
+{
+	return qobject_cast<GapValidationLabel*>(ui->gaps->cellWidget(row, 5))->state();
+}
+
+QString GapDialog::gapAsTsv(int row) const
+{
+	return ui->gaps->item(row, 0)->text().replace("-", "\t").replace(":", "\t") + "\t" + ui->gaps->item(row, 3)->text();
+}
+
+int GapDialog::gapSize(int row) const
+{
+	return Helper::toInt(ui->gaps->item(row, 1)->text(), "gap size");
 }
 

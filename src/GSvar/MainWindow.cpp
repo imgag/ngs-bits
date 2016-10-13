@@ -401,6 +401,7 @@ void MainWindow::on_actionAbout_triggered()
 void MainWindow::on_actionResize_triggered()
 {
 	ui_.vars->resizeColumnsToContents();
+	ui_.vars->resizeRowsToContents();
 
 	//limit column width to 400 pixel (approximate width of coding_splicing column with one entry)
 	for (int i=0; i<ui_.vars->columnCount(); ++i)
@@ -751,15 +752,19 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	}
 
 	//prepare dialog
-	GapDialog dlg(this);
 	QString sample_name = QFileInfo(bam_file).fileName().replace(".bam", "");
-	dlg.setSampleName(sample_name);
+	GapDialog dlg(this, sample_name, roi_file);
 	dlg.process(bam_file, roi, genes.toSet());
 	QApplication::restoreOverrideCursor();
 
 	//show dialog
 	connect(&dlg, SIGNAL(openRegionInIgv(QString)), this, SLOT(openInIGV(QString)));
-	dlg.exec();
+	if (dlg.exec())
+	{
+		QString report = dlg.report();
+		QApplication::clipboard()->setText(report);
+		QMessageBox::information(this, "Gap report", "Gap report was copied to clipboard.");
+	}
 }
 
 void MainWindow::on_actionExportVCF_triggered()
@@ -1256,6 +1261,9 @@ void MainWindow::variantListChanged()
 			if (item) delete(item);
 		}
 	}
+
+	//resize cells
+	on_actionResize_triggered();
 
 	QApplication::restoreOverrideCursor();
 

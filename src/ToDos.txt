@@ -8,9 +8,6 @@ libs:
    - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-* Gaps dialog:
-  - add validation state: yes, no, ?
-  - record in NGSD which gaps should be closed
 - Allow handling of several affected (i.e. integrate SampleOverview functionality)
 - Allow filtering of multi-sample variant lists => missing genotype (perhaps treat all variants as homozygous?)
 ? Add buttons to search in goolge/pubmed for variant
