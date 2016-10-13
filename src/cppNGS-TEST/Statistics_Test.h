@@ -396,7 +396,7 @@ private slots:
         I_EQUAL(low_cov.baseCount(), 3095115275ll);
     }
 
-	void avgCoverage1()
+	void avgCoverage_default()
 	{
 		BedFile bed_file;
 		bed_file.load(TESTDATA("data_in/panel.bed"));
@@ -411,13 +411,13 @@ private slots:
 		S_EQUAL(bed_file[0].annotations()[0], QString("105.12"));
 	}
 
-	void avgCoverage2()
+	void avgCoverage_panel()
 	{
 		BedFile bed_file;
 		bed_file.load(TESTDATA("data_in/close_exons.bed"));
 		bed_file.merge();
 
-		Statistics::avgCoverage(bed_file, TESTDATA("data_in/close_exons.bam"), 20);
+		Statistics::avgCoverage(bed_file, TESTDATA("data_in/close_exons.bam"), 20, true);
 
 		I_EQUAL(bed_file.count(), 2);
 		X_EQUAL(bed_file[0].chr(), Chromosome("chr1"));

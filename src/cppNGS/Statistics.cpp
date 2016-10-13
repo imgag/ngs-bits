@@ -1220,7 +1220,7 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
     return output;
 }
 
-void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq)
+void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq, bool panel_mode)
 {
     //check target region is merged/sorted and create index
     if (!bed_file.isMergedAndSorted())
@@ -1233,21 +1233,47 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
     NGSHelper::openBAM(reader, bam_file);
 	ChromosomeInfo chr_info(reader);
 
-	//iterate trough all regions (i.e. exons in most cases)
-	for (int i=0; i<bed_file.count(); ++i)
+	if (panel_mode) //panel mode
 	{
-		long cov = 0;
-		BedLine& bed_line = bed_file[i];
+		for (int i=0; i<bed_file.count(); ++i)
+		{
+			long cov = 0;
+			BedLine& bed_line = bed_file[i];
 
-		//jump to region
-		int ref_id = chr_info.refID(bed_line.chr());
-		bool jump_ok = reader.SetRegion(ref_id, bed_line.start()-100, ref_id, bed_line.end()+100);
-		//TODO There is a bug in bamtools that leads to skipping of some reads if we use the exact region borders.
-		//     Regularly check if this bug is fixed and if so, restore the original jump line (below).
-		//     bool jump_ok = reader.SetRegion(ref_id, bed_line.start()-1, ref_id, bed_line.end());
-		if (!jump_ok) THROW(FileAccessException, QString::fromStdString(reader.GetErrorString()));
+			//jump to region
+			int ref_id = chr_info.refID(bed_line.chr());
+			bool jump_ok = reader.SetRegion(ref_id, bed_line.start()-100, ref_id, bed_line.end()+100);
+			//TODO There is a bug in bamtools that leads to skipping of some reads if we use the exact region borders.
+			//     Regularly check if this bug is fixed and if so, restore the original jump line (below).
+			//     bool jump_ok = reader.SetRegion(ref_id, bed_line.start()-1, ref_id, bed_line.end());
+			if (!jump_ok) THROW(FileAccessException, QString::fromStdString(reader.GetErrorString()));
+
+			//iterate through all alignments
+			BamAlignment al;
+			while (reader.GetNextAlignmentCore(al))
+			{
+				if (al.IsDuplicate()) continue;
+				if (!al.IsPrimaryAlignment()) continue;
+				if (!al.IsMapped() || al.MapQuality<min_mapq) continue;
+
+				const int ol_start = std::max(bed_line.start(), al.Position+1);
+				const int ol_end = std::min(bed_line.end(), al.GetEndPosition());
+				if (ol_start<=ol_end)
+				{
+					cov += ol_end - ol_start;
+				}
+			}
+			bed_line.annotations().append(QString::number((double)cov / bed_line.length(), 'f', 2));
+		}
+	}
+	else //default mode
+	{
+		//init coverage statistics data structure
+		QVector<long> cov;
+		cov.fill(0, bed_file.count());
 
 		//iterate through all alignments
+		ChromosomalIndex<BedFile> bed_idx(bed_file);
 		BamAlignment al;
 		while (reader.GetNextAlignmentCore(al))
 		{
@@ -1255,16 +1281,21 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 			if (!al.IsPrimaryAlignment()) continue;
 			if (!al.IsMapped() || al.MapQuality<min_mapq) continue;
 
-			const int ol_start = std::max(bed_line.start(), al.Position+1);
-			const int ol_end = std::min(bed_line.end(), al.GetEndPosition());
-			if (ol_start<=ol_end)
+			const Chromosome& chr = chr_info.chromosome(al.RefID);
+			int end_position = al.GetEndPosition();
+			QVector<int> indices = bed_idx.matchingIndices(chr, al.Position+1, end_position);
+			foreach(int index, indices)
 			{
-				cov += ol_end - ol_start;
+				cov[index] += std::min(bed_file[index].end(), end_position) - std::max(bed_file[index].start(), al.Position+1);
 			}
 		}
-		bed_line.annotations().append(QString::number((double)cov / bed_line.length(), 'f', 2));
-	}
 
+		//calculate output
+		for (int i=0; i<bed_file.count(); ++i)
+		{
+			bed_file[i].annotations().append(QString::number((double)(cov[i]) / bed_file[i].length(), 'f', 2));
+		}
+	}
 	reader.Close();
 }
 

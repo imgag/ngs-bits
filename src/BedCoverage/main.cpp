@@ -21,8 +21,8 @@ public:
 		addInt("min_mapq", "Minimum mapping quality.", true, 1);
 		//optional
 		addInfile("in", "Input BED file (note that overlapping regions will be merged before processing). If unset, reads from STDIN.", true);
+		addEnum("mode", "Mode to optimize run time. Use 'panel' mode if only a small part of the data in the BAM file is accessed, e.g. a sub-panel of an exome.", true, QStringList() << "default" << "panel", "default");
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
-
 	}
 
 	virtual void main()
@@ -37,7 +37,7 @@ public:
 		QStringList bams = getInfileList("bam");
 		foreach(QString bam, bams)
 		{
-			Statistics::avgCoverage(file, bam, getInt("min_mapq"));
+			Statistics::avgCoverage(file, bam, getInt("min_mapq"), getEnum("mode")=="panel");
 			header += "\t" + QFileInfo(bam).baseName();
 		}
 
