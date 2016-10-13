@@ -121,6 +121,8 @@ public slots:
 	void on_actionArchiveSubpanel_triggered();
 	///Close current file
 	void on_actionClose_triggered();
+	///Force IGV initializazion
+	void on_actionIgvInit_triggered();
 
 	///Finished the report generation
 	void reportGenerationFinished(bool success);
@@ -166,7 +168,7 @@ private:
 	QString filename_;
 	FileWatcher filewatcher_;
 	bool db_annos_updated_;
-	bool first_igv_click_;
+	bool igv_initialized_;
 	VariantList variants_;
 	QMap<QString, QString> link_columns_;
 	QSet<int> link_indices_;

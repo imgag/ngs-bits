@@ -4,9 +4,10 @@
 #include <QCheckBox>
 #include <QFileInfo>
 
-IgvDialog::IgvDialog(QWidget *parent) :
-	QDialog(parent),
-	ui(new Ui::IgvDialog)
+IgvDialog::IgvDialog(QWidget *parent)
+	: QDialog(parent)
+	, ui(new Ui::IgvDialog)
+	, skip_session_(false)
 {
 	ui->setupUi(this);
 }
@@ -33,6 +34,11 @@ void IgvDialog::addSeparator()
 	ui->layout->addWidget(GUIHelper::horizontalLine());
 }
 
+bool IgvDialog::skipForSession() const
+{
+	return skip_session_;
+}
+
 QStringList IgvDialog::filesToLoad()
 {
 	QStringList output;
@@ -46,4 +52,10 @@ QStringList IgvDialog::filesToLoad()
 	}
 
 	return output;
+}
+
+void IgvDialog::on_skip_session_clicked()
+{
+	skip_session_ = true;
+	reject();
 }

@@ -17,7 +17,7 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="resources.qrc">
+   <iconset resource="../GSmix/resources.qrc">
     <normaloff>:/Icons/Icon.png</normaloff>:/Icons/Icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -157,9 +157,17 @@
     <property name="title">
      <string>IGV</string>
     </property>
-    <addaction name="actionIgvSample"/>
-    <addaction name="actionIgvLowcov"/>
+    <widget class="QMenu" name="menuTracks">
+     <property name="title">
+      <string>Tracks</string>
+     </property>
+     <addaction name="actionIgvSample"/>
+     <addaction name="actionIgvLowcov"/>
+     <addaction name="separator"/>
+    </widget>
+    <addaction name="actionIgvInit"/>
     <addaction name="separator"/>
+    <addaction name="menuTracks"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
@@ -512,9 +520,18 @@
     <string>Close file</string>
    </property>
   </action>
+  <action name="actionIgvInit">
+   <property name="text">
+    <string>Reset initialization status</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Force initialization of IGV next time it is used.&lt;br/&gt;This feature is used e.g. when IGV has crashed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
+  <include location="../GSmix/resources.qrc"/>
   <include location="resources.qrc"/>
  </resources>
  <connections/>

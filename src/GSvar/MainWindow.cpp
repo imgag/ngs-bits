@@ -50,7 +50,7 @@ MainWindow::MainWindow(QWidget *parent)
 	, busy_dialog_(nullptr)
 	, filename_()
 	, db_annos_updated_(false)
-	, first_igv_click_(true)
+	, igv_initialized_(false)
 	, last_report_path_(QDir::homePath())
 {
 	//setup GUI
@@ -102,6 +102,11 @@ MainWindow::MainWindow(QWidget *parent)
 void MainWindow::on_actionClose_triggered()
 {
 	loadFile("");
+}
+
+void MainWindow::on_actionIgvInit_triggered()
+{
+	igv_initialized_ = false;
 }
 
 void MainWindow::delayedInizialization()
@@ -157,7 +162,7 @@ void MainWindow::handleInputFileChange()
 void MainWindow::openInIGV(QString region)
 {
 	QStringList init_commands;
-	if (first_igv_click_)
+	if (!igv_initialized_)
 	{
 		IgvDialog dlg(this);
 
@@ -215,7 +220,7 @@ void MainWindow::openInIGV(QString region)
 
 		//custom tracks
 		dlg.addSeparator();
-		QList<QAction*> igv_actions = ui_.menuIGV->findChildren<QAction*>();
+		QList<QAction*> igv_actions = ui_.menuTracks->findChildren<QAction*>();
 		foreach(QAction* action, igv_actions)
 		{
 			QString text = action->text();
@@ -251,7 +256,11 @@ void MainWindow::openInIGV(QString region)
 				}
 			}
 
-			first_igv_click_ = false;
+			igv_initialized_ = true;
+		}
+		else //skipped
+		{
+			if (dlg.skipForSession()) igv_initialized_ = true;
 		}
 	}
 
@@ -271,7 +280,7 @@ void MainWindow::openInIGV(QString region)
 	catch(Exception& e)
 	{
 		QMessageBox::warning(this, "Error while sending command to IGV:", e.message());
-		first_igv_click_ = true;
+		igv_initialized_ = false;
 	}
 	QApplication::restoreOverrideCursor();
 }
@@ -352,7 +361,7 @@ void MainWindow::loadFile(QString filename)
 	filename_ = "";
 	filewatcher_.clearFile();
 	db_annos_updated_ = false;
-	first_igv_click_ = true;
+	igv_initialized_ = false;
 	ui_.vars->setRowCount(0);
 	ui_.vars->setColumnCount(0);
 
@@ -1771,7 +1780,7 @@ void MainWindow::updateIGVMenu()
 	QStringList entries = Settings::stringList("igv_menu");
 	if (entries.count()==0)
 	{
-		ui_.menuIGV->addAction("No custom entries in INI file!");
+		ui_.menuTracks->addAction("No custom entries in INI file!");
 	}
 	else
 	{
@@ -1779,7 +1788,7 @@ void MainWindow::updateIGVMenu()
 		{
 			QStringList parts = entry.trimmed().split("\t");
 			if(parts.count()!=3) continue;
-			QAction* action = ui_.menuIGV->addAction("custom: " + parts[0]);
+			QAction* action = ui_.menuTracks->addAction("custom: " + parts[0]);
 			action->setCheckable(true);
 			action->setChecked(parts[1]=="1");
 			action->setToolTip(parts[2]);

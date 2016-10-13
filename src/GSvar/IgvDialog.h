@@ -14,12 +14,19 @@ class IgvDialog : public QDialog
 public:
 	explicit IgvDialog(QWidget *parent = 0);
 	~IgvDialog();
+
 	void addFile(QString label, QString filename, bool checked);
 	void addSeparator();
+
+	bool skipForSession() const;
 	QStringList filesToLoad();
+
+protected slots:
+	void on_skip_session_clicked();
 
 private:
 	Ui::IgvDialog *ui;
+	bool skip_session_;
 };
 
 #endif // IGVDIALOG_H
