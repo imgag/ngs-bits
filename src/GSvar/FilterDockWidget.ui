@@ -83,7 +83,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="resources.qrc">
+            <iconset resource="GSvar.qrc">
              <normaloff>:/Icons/AddTemporary.png</normaloff>:/Icons/AddTemporary.png</iconset>
            </property>
           </widget>
@@ -104,7 +104,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="resources.qrc">
+            <iconset resource="GSvar.qrc">
              <normaloff>:/Icons/Add.png</normaloff>:/Icons/Add.png</iconset>
            </property>
           </widget>
@@ -118,7 +118,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="resources.qrc">
+            <iconset resource="GSvar.qrc">
              <normaloff>:/Icons/Remove.png</normaloff>:/Icons/Remove.png</iconset>
            </property>
           </widget>
@@ -405,7 +405,7 @@
        <item row="0" column="0">
         <widget class="QCheckBox" name="maf_enabled">
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum MAF in any of the columns 1000g, ExAC and ESP6500EA.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum MAF in any of the columns 1000g, ExAC and Kaviar.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
           <string>MAF</string>
@@ -613,7 +613,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="resources.qrc">
+            <iconset resource="GSvar.qrc">
              <normaloff>:/Icons/Add.png</normaloff>:/Icons/Add.png</iconset>
            </property>
           </widget>
@@ -627,7 +627,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="resources.qrc">
+            <iconset resource="GSvar.qrc">
              <normaloff>:/Icons/Remove.png</normaloff>:/Icons/Remove.png</iconset>
            </property>
           </widget>
@@ -654,7 +654,7 @@
   </widget>
  </widget>
  <resources>
-  <include location="resources.qrc"/>
+  <include location="GSvar.qrc"/>
  </resources>
  <connections/>
 </ui>

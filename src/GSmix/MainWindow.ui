@@ -14,7 +14,7 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../GSvar/resources.qrc">
+   <iconset resource="GSmix.qrc">
     <normaloff>:/Icons/Icon.png</normaloff>:/Icons/Icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -122,7 +122,7 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../GSvar/resources.qrc"/>
+  <include location="GSmix.qrc"/>
  </resources>
  <connections/>
 </ui>

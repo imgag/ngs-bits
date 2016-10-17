@@ -29,7 +29,7 @@ public:
 		addOutfile("out", "Output file in TSV format.", false, true);
 		//optional
 		addInt("min_depth", "Minimum depth in all three samples.", true, 10);
-		addFloat("max_maf", "Maximum minor allele frequency in 1000G,ExAC and ESP6500EA database annotation.", true, 0.01);
+		addFloat("max_maf", "Maximum minor allele frequency in 1000G,ExAC and Kaviar database annotation.", true, 0.01);
 		addInt("max_ngsd", "Maximum homozygous occurances in NGSD.", true, 30);
 	}
 
@@ -126,7 +126,7 @@ public:
 		int i_co_sp = vl.annotationIndexByName("coding_and_splicing", true, true);
 		int i_1000g = vl.annotationIndexByName("1000g", true, true);
 		int i_exac = vl.annotationIndexByName("ExAC", true, true);
-		int i_esp = vl.annotationIndexByName("ESP6500EA", true, true);
+		int i_kaviar = vl.annotationIndexByName("Kaviar", true, true);
 		int i_class = vl.annotationIndexByName("classification", true, true);
 		int i_hom = vl.annotationIndexByName("ihdb_allsys_hom", true, true);
 		int i_het = vl.annotationIndexByName("ihdb_allsys_het", true, true);
@@ -164,7 +164,7 @@ public:
 			//filter out common variants (public databases)
 			if (v.annotations()[i_1000g].toDouble()>max_maf) continue;
 			if (v.annotations()[i_exac].toDouble()>max_maf) continue;
-			if (v.annotations()[i_esp].toDouble()>max_maf) continue;
+			if (v.annotations()[i_kaviar].toDouble()>max_maf) continue;
 
 			//filter out common variants (in-house database)
 			if (v.annotations()[i_hom].toInt()>max_ngsd) continue;
