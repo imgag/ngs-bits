@@ -69,4 +69,4 @@ HEADERS += BedFile.h \
 
 
 RESOURCES += \
-    resources.qrc
+    cppNGS.qrc

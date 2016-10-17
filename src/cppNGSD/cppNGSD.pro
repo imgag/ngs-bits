@@ -47,4 +47,4 @@ FORMS += \
     GDBODialog.ui
 
 RESOURCES += \
-    resources.qrc
+    cppNGSD.qrc

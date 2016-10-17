@@ -33,5 +33,5 @@ INCLUDEPATH += $$PWD/../cppNGSD
 LIBS += -L$$PWD/../bin -lcppNGSD
 
 RESOURCES += \
-    resources.qrc
+    GSmix.qrc
 
