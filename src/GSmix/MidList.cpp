@@ -25,6 +25,7 @@ void MidList::loadMidsFromDB()
 	{
 		ui->mids->addItem(mid.get("name") + " (" + mid.get("sequence") + ")");
 	}
+	ui->mids->sortItems();
 
 	//delete timer object
 	qobject_cast<QTimer*>(sender())->deleteLater();
