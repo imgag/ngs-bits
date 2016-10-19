@@ -898,12 +898,18 @@ void NGSD::setComment(const QString& filename, const Variant& variant, const QSt
 
 void NGSD::setReportVariants(const QString& filename, const VariantList& variants, QSet<int> selected_indices)
 {
+	//reset all variants of the processed sample
 	QString ps_id = processedSampleId(filename);
+	getQuery().exec("UPDATE detected_variant SET report=0 WHERE processed_sample_id='" + ps_id + "'");
 
-	//get variant ID
+
+	//update variants used in report
 	for(int i=0; i<variants.count(); ++i)
 	{
-		getQuery().exec("UPDATE detected_variant SET report=" + QString(selected_indices.contains(i) ? "1" : "0" ) + " WHERE processed_sample_id='" + ps_id + "' AND variant_id='" + variantId(variants[i]) + "'");
+		if (selected_indices.contains(i))
+		{
+			getQuery().exec("UPDATE detected_variant SET report=1 WHERE processed_sample_id='" + ps_id + "' AND variant_id='" + variantId(variants[i]) + "'");
+		}
 	}
 }
 
