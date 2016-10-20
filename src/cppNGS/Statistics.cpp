@@ -1260,7 +1260,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 				const int ol_end = std::min(bed_line.end(), al.GetEndPosition());
 				if (ol_start<=ol_end)
 				{
-					cov += ol_end - ol_start;
+					cov += ol_end - ol_start + 1;
 				}
 			}
 			bed_line.annotations().append(QString::number((double)cov / bed_line.length(), 'f', 2));

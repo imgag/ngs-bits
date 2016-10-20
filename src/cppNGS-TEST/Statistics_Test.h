@@ -423,11 +423,11 @@ private slots:
 		X_EQUAL(bed_file[0].chr(), Chromosome("chr1"));
 		I_EQUAL(bed_file[0].start(), 45798425);
 		I_EQUAL(bed_file[0].end(), 45798516);
-		S_EQUAL(bed_file[0].annotations()[0], QString("462.97"));
+		S_EQUAL(bed_file[0].annotations()[0], QString("475.80"));
 		X_EQUAL(bed_file[1].chr(), Chromosome("chr1"));
 		I_EQUAL(bed_file[1].start(), 45798580);
 		I_EQUAL(bed_file[1].end(), 45798641);
-		S_EQUAL(bed_file[1].annotations()[0], QString("311.52"));
+		S_EQUAL(bed_file[1].annotations()[0], QString("324.90"));
 	}
 
 	void genderXY()
