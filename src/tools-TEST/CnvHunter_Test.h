@@ -7,7 +7,7 @@ TEST_CLASS(CnvHunter_Test)
 Q_OBJECT
 private slots:
 
-	void hpPDv3_noanno_noref()
+	void hpPDv3_noanno_noref_seg_debug()
 	{
 		QStringList in = Helper::findFiles(TESTDATA("data_in/CnvHunter1/"), "*.cov", false);
 		QStringList in_noref;
@@ -18,11 +18,12 @@ private slots:
 		in_noref << in[index];
 		in.removeAt(index);
 
-		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -in_noref " + in_noref.join(" ") + " -out out/CnvHunter_out1.tsv -debug GS120224_01");
+		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -in_noref " + in_noref.join(" ") + " -out out/CnvHunter_out1.tsv -debug GS120224_01 -seg GS120551_01");
         COMPARE_FILES("out/CnvHunter_out1.tsv", TESTDATA("data_out/CnvHunter_out1.tsv"));
         COMPARE_FILES("out/CnvHunter_out1_regions.tsv", TESTDATA("data_out/CnvHunter_out1_regions.tsv"));
         COMPARE_FILES("out/CnvHunter_out1_samples.tsv", TESTDATA("data_out/CnvHunter_out1_samples.tsv"));
 		COMPARE_FILES("out/CnvHunter_out1_debug.tsv", TESTDATA("data_out/CnvHunter_out1_debug.tsv"));
+		COMPARE_FILES("out/CnvHunter_out1.seg", TESTDATA("data_out/CnvHunter_out1.seg"));
 	}
 
 	void hpPDv3_anno()
@@ -51,10 +52,10 @@ private slots:
 		COMPARE_FILES("out/CnvHunter_out3.tsv", TESTDATA("data_out/CnvHunter_out3.tsv"));
 	}
 
-	void hpSCAv4_excludeReg_regionBedFile()
+	void hpSCAv4_excludeReg()
 	{
 		QStringList in = Helper::findFiles(TESTDATA("data_in/CnvHunter4/"), "*.cov", false);
-		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -out out/CnvHunter_out4.tsv -out_reg out/CnvHunter_out4.bed -exclude " +  TESTDATA("data_in/CnvHunter4/excluded.bed"));
+		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -out out/CnvHunter_out4.tsv -exclude " +  TESTDATA("data_in/CnvHunter4/excluded.bed"));
 		COMPARE_FILES("out/CnvHunter_out4.tsv", TESTDATA("data_out/CnvHunter_out4.tsv"));
 	}
 

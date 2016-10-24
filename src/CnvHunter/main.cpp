@@ -157,8 +157,7 @@ public:
         addOutfile("out", "Output TSV file containing the detected CNVs.", false, true);
 		//optional
 		addInfileList("in_noref", "Input TSV files like 'in' but not used as reference (e.g. tumor samples).", true, true);
-        addOutfile("out_reg", "If set, writes a BED file with region information (baq QC, excluded, good).", true, true);
-        addInt("n", "The number of most similar samples to consider.", true, 20);
+		addInt("n", "The number of most similar samples to consider.", true, 20);
         addInfile("exclude", "BED file with regions to exclude from the analysis.", true, true);
         addFloat("min_z", "Minimum z-score for CNV seed detection.", true, 4.0);
 		addFloat("ext_min_z", "Minimum z-score for CNV extension around seeds.", true, 2.0);
@@ -170,11 +169,13 @@ public:
         addFloat("reg_max_cv", "QC: Maximum coefficient of variation (median/mad) of target region.", true, 0.3);
 		addFlag("anno", "Enable annotation of gene names to regions (needs the NGSD database).");
 		addFlag("test", "Uses test database instead of production database for annotation.");
-		addString("debug", "Writes debug informaion for the sample matching the given name (or for all samples if 'ALL' is given).", true, "");
+		addString("debug", "Writes debug information for the sample matching the given name (or for all samples if 'ALL' is given).", true, "");
+		addString("seg", "Writes a SEG file for the sample matching the given name (used for visualization in IGV).", true);
 
-        changeLog(2016, 9,  1, "Sample and region information files are now always written.");
-		changeLog(2016, 8, 23, "Added merging of large CNVs that were split to several regions due to noise.");
-		changeLog(2016, 8, 21, "Improved log output (to make parameter optimization easier).");
+		changeLog(2016, 10, 24, "Added copy-number variant size to TSV output and added optional SEG output file.");
+		changeLog(2016, 9,   1, "Sample and region information files are now always written.");
+		changeLog(2016, 8,  23, "Added merging of large CNVs that were split to several regions due to noise.");
+		changeLog(2016, 8,  21, "Improved log output (to make parameter optimization easier).");
 	}
 
     void storeSampleInfo(QString out, const QVector<QSharedPointer<SampleData>>& samples, const QVector<QSharedPointer<SampleData>>& samples_removed, const QHash<QSharedPointer<SampleData>, int>& cnvs_sample, const QVector<ResultData>& results)
@@ -243,57 +244,8 @@ public:
         }
     }
 
-	void storeRegionInfoBED(QString out_reg, const QVector<QSharedPointer<ExonData>>& exons)
+	void storeDebugInfo(QSharedPointer<SampleData> debug_sample, QString out, const QVector<QSharedPointer<SampleData>>& samples, const QVector<ResultData>& results)
     {
-        //BED format: chr, start, end, name, score, strand, thickstart, thickend
-		QSharedPointer<QFile> out = Helper::openFileForWriting(out_reg);
-        QTextStream outstream(out.data());
-        outstream << "track name=\"CnvHunter region QC\" itemRgb=On visibility=4" << endl;
-		foreach(const QSharedPointer<ExonData>& exon, exons)
-        {
-            QString color;
-            QString text;
-            if (exon->qc.isEmpty())
-            {
-                color = "0,0,178";
-                text += "qc=ok";
-            }
-            else
-            {
-                color = "255,0,0";
-				text += "qc=" + exon->qc.trimmed().replace(" ", "_");
-            }
-			outstream << exon->chr.str() << "\t" << (exon->start-1) << "\t" << exon->end << "\t" << text << "\t" << QString::number(exon->median, 'f', 2) << "\t.\t" << (exon->start-1) << "\t" << (exon->end) << "\t" << color << endl;
-        }
-    }
-
-	void storeDebugInfo(QString debug, QString out, const QVector<QSharedPointer<SampleData>>& samples, const QVector<ResultData>& results)
-    {
-		//no debugging
-		if (debug=="") return;
-
-		//check debugging sample name
-		QSharedPointer<SampleData> debug_sample;
-		if(debug!="ALL")
-		{
-			foreach(const QSharedPointer<SampleData>& sample, samples)
-			{
-				if (sample->name==debug)
-				{
-					debug_sample = sample;
-				}
-			}
-			if (debug_sample.isNull())
-			{
-				QStringList sample_names;
-				foreach(const QSharedPointer<SampleData>& sample, samples)
-				{
-					sample_names.append(sample->name);
-				}
-				THROW(CommandLineParsingException, "Given debugging sample name '" + debug + "' is invalid. Valid names are: " + sample_names.join(", "));
-			}
-		}
-
 		//write header
 		QSharedPointer<QFile> file = Helper::openFileForWriting(out.left(out.size()-4) + "_debug.tsv");
         QTextStream outstream(file.data());
@@ -325,6 +277,68 @@ public:
         }
     }
 
+	QSharedPointer<SampleData> sampleByName(QString name, const QVector<QSharedPointer<SampleData>>& samples, const QVector<QSharedPointer<SampleData>>& samples_removed, bool removed_samples_ok)
+	{
+		//find samples (QC ok)
+		foreach(const QSharedPointer<SampleData>& sample, samples)
+		{
+			if (sample->name==name)
+			{
+				return sample;
+			}
+		}
+
+		//find samples (QC fail)
+		foreach(const QSharedPointer<SampleData>& sample, samples_removed)
+		{
+			if (sample->name==name)
+			{
+				if (!removed_samples_ok) THROW(CommandLineParsingException, "Given sample '" + name + "' failed QC check: " + sample->qc);
+				return sample;
+			}
+		}
+
+		//not found
+		QStringList sample_names;
+		foreach(const QSharedPointer<SampleData>& sample, samples)
+		{
+			sample_names.append(sample->name);
+		}
+		foreach(const QSharedPointer<SampleData>& sample, samples_removed)
+		{
+			sample_names.append(sample->name);
+		}
+		THROW(CommandLineParsingException, "Given sample name '" + name + "' is invalid. Valid names are: " + sample_names.join(", "));
+	}
+
+	void storeSegFile(QSharedPointer<SampleData> sample, QString out, const QVector<ResultData>& results, const QVector<QSharedPointer<ExonData>>& exons_removed)
+	{
+		//write header
+		QSharedPointer<QFile> file = Helper::openFileForWriting(out.left(out.size()-4) + ".seg");
+		QTextStream outstream(file.data());
+		outstream << "#type=GENE_EXPRESSION" << endl;
+		outstream << "#track graphtype=heatmap name=\"" + sample->name+ " CN z-score\" midRange=-2.5:2.5 color=0,0,255 altColor=255,0,0 viewLimits=-5:5 maxHeightPixels=80:80:80" << endl;
+		outstream << "ID	chr	start	end	log2-ratio	copy-number	z-score" << endl;
+
+		//write valid region details
+		foreach(const ResultData& r, results)
+		{
+			if(r.sample==sample)
+			{
+				double ncov = r.sample->doc[r.exon->index];
+				double ncov_ref = r.sample->ref[r.exon->index];
+				double log_ratio = log2(ncov/ncov_ref);
+				outstream << "\t" << r.exon->chr.str() << "\t" << r.exon->start << "\t" << r.exon->end << "\t" << QString::number(log_ratio, 'f', 2) << "\t" << r.copies << "\t" << QString::number(r.z, 'f', 2) << endl;
+			}
+		}
+
+		//write invalid regions
+		foreach(const QSharedPointer<ExonData>& exon, exons_removed)
+		{
+			outstream << "\t" << exon->chr.str() << "\t" << exon->start << "\t" << exon->end << "\tQC failed\tQC failed\t0.0" << endl;
+		}
+	}
+
 	QStringList geneNames(QSharedPointer<NGSD>& db, const QSharedPointer<ExonData>& exon)
 	{
 		static QHash<QString, QStringList> cache;
@@ -349,7 +363,7 @@ public:
 		QSharedPointer<NGSD> db(anno ? new NGSD(test) : nullptr);
 
         //header
-		outstream << "#chr\tstart\tend\tsample\tregion_count\tregion_copy_numbers\tregion_zscores\tregion_coordinates" << (anno ? "\tgenes" : "") << endl;
+		outstream << "#chr\tstart\tend\tsample\tsize\tregion_count\tregion_copy_numbers\tregion_zscores\tregion_coordinates" << (anno ? "\tgenes" : "") << endl;
 		for (int r=0; r<ranges.count(); ++r)
         {
 			const Range& range = ranges[r];
@@ -367,7 +381,9 @@ public:
 			}
 
 			//print output
-			outstream << results[range.start].exon->chr.str() << "\t" << results[range.start].exon->start << "\t" << results[range.end].exon->end << "\t" << range.sample->name << "\t" << copies.count() << "\t" << copies.join(",") << "\t" << zscores.join(",") << "\t" << coords.join(",");
+			QSharedPointer<ExonData> start = results[range.start].exon;
+			QSharedPointer<ExonData> end = results[range.end].exon;
+			outstream << start->chr.str() << "\t" << start->start << "\t" << end->end << "\t" << range.sample->name << "\t" << (end->end-start->start+1) << "\t" << copies.count() << "\t" << copies.join(",") << "\t" << zscores.join(",") << "\t" << coords.join(",");
 
 			//annotation
 			if (anno)
@@ -529,6 +545,7 @@ public:
     {
         //init
 		QString debug = getString("debug");
+		QString seg = getString("seg");
         QStringList in = getInfileList("in");
 		QStringList in_noref = getInfileList("in_noref");
 		QString out = getOutfile("out");
@@ -763,13 +780,6 @@ public:
         printRegionDistributionCV(exons, outstream);
 		timings.append("detecting bad regions: " + Helper::elapsedTime(timer));
 		timer.restart();
-
-        //write region info BED file
-        QString out_reg = getOutfile("out_reg");
-        if (out_reg!="")
-        {
-            storeRegionInfoBED(out_reg, exons);
-        }
 
         //calculate correlation between all samples
 		for (int i=0; i<samples.count(); ++i)
@@ -1136,7 +1146,25 @@ public:
 		storeResultAsTSV(ranges, results, out, getFlag("anno"), getFlag("test"));
 		storeSampleInfo(out, samples, samples_removed, cnvs_sample, results);
 		storeRegionInfo(out, exons, exons_removed, cnvs_exon);
-		storeDebugInfo(debug, out, samples, results);
+		if (debug!="")
+		{
+			QSharedPointer<SampleData> sample;
+			if (debug!="ALL") sample = sampleByName(debug, samples, samples_removed, false);
+
+			storeDebugInfo(sample, out, samples, results);
+		}
+		if (seg!="")
+		{
+			QSharedPointer<SampleData> sample = sampleByName(seg, samples, samples_removed, true);
+			if (sample->qc.isEmpty())
+			{
+				storeSegFile(sample, out, results, exons_removed);
+			}
+			else
+			{
+				outstream << "  WARNING: Skipping SEG file creation because sample '" + seg + "' failed QC check: " + sample->qc << endl;
+			}
+		}
 
 		//print statistics
         double corr_sum = 0;

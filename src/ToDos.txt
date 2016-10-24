@@ -8,6 +8,12 @@ libs:
    - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
+** GenePicker dialog (only active when sample is open)
+  - Select phenotypes
+  - Show genes, #phenotype hits, CCDS+-5 gaps in current sample, #bases of longest CCDS transcript
+  - Allow selection of genes and sum up ccds size
+  - When accepted, copy report to clipboard that can be used in sub-panel dialog
+  - when CNA analysis is in pipeline: Integrate CNV gaps/variants counts as column and allow selection of genes for CNA report
 - Allow handling of several affected (i.e. integrate SampleOverview functionality)
 - Allow filtering of multi-sample variant lists => missing genotype (perhaps treat all variants as homozygous?)
 ? Add buttons to search in goolge/pubmed for variant
@@ -24,12 +30,11 @@ CnvHunter:
  * look at properties of bad regions (HLA, common CNVs, GC, size, centromer, pseudo-autosomal region, ...)
    - PAR: http://blog.kokocinski.net/index.php/par-regions?blog=2
    - TEL/CENT: http://blog.kokocinski.net/index.php/telomeric-and-centromeric-regions?blog=2
- * add optional GC-normalization (then, check GS151166_01 gene C5orf42) - test effect of including different flanking regions
-    - alternatively, test intra-sample normalization using the most similar exons
- * test mappability-normalization
+ * test GC-normalization (check e.g. GS151166_01 gene C5orf42)
+    - test effect of including different flanking regions
+    - alternatively, test intra-sample normalization using the most similar exons on different chromosomes
  * test percentile normalization
  * test on multi-mapped data, chunked data
- - Für alle/wichtige CNAs Plot (log-ratio/z-score/call) mit Umgebung
  - integrate CNV databases:
    - http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/
    - https://decipher.sanger.ac.uk/disorders#syndromes/overview
