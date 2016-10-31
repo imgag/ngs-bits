@@ -40,6 +40,7 @@
 #include "SubpanelArchiveDialog.h"
 #include "IgvDialog.h"
 #include "GapDialog.h"
+#include "CnvWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -107,6 +108,16 @@ void MainWindow::on_actionClose_triggered()
 void MainWindow::on_actionIgvInit_triggered()
 {
 	igv_initialized_ = false;
+}
+
+void MainWindow::on_actionCNV_triggered()
+{
+	CnvWidget* list = new CnvWidget(filename_);
+	list->setGenesFilter(filter_widget_->genes());
+	list->setRoiFilter(filter_widget_->targetRegion());
+	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
+	GUIHelper::showWidgetAsDialog(list, "Copy-number variants", false);
+	list->deleteLater();
 }
 
 void MainWindow::delayedInizialization()
@@ -198,6 +209,13 @@ void MainWindow::openInIGV(QString region)
 			dlg.addFile("reference BAM", ref, true);
 		}
 
+		//sample CNVs
+		files = Helper::findFiles(folder,"*_cnvs.seg", false);
+		if (files.count()==1)
+		{
+			dlg.addFile("sample CNVs track", files[0], true);
+		}
+
 		//target region (+ amplicon file)
 		QString roi = filter_widget_->targetRegion();
 		if (roi!="")
@@ -216,7 +234,7 @@ void MainWindow::openInIGV(QString region)
         if (files.count()==1)
         {
             dlg.addFile("sample low-coverage regions", files[0], ui_.actionIgvLowcov->isChecked());
-        }
+		}
 
 		//custom tracks
 		dlg.addSeparator();
@@ -330,7 +348,7 @@ void MainWindow::on_actionOpen_triggered()
 void MainWindow::on_actionOpenNGSD_triggered()
 {
 	//get processed sample name
-	QString ps_name = QInputDialog::getText(this, "Open processed sample from NGSD", "processed sample name:");
+	QString ps_name = QInputDialog::getText(this, "Open processed sample from NGSD", "processed sample name:").trimmed();
 	if (ps_name=="") return;
 
 	//convert name to file
@@ -767,7 +785,7 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	QApplication::restoreOverrideCursor();
 
 	//show dialog
-	connect(&dlg, SIGNAL(openRegionInIgv(QString)), this, SLOT(openInIGV(QString)));
+	connect(&dlg, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
 	if (dlg.exec())
 	{
 		QString report = dlg.report();

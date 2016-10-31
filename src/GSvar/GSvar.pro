@@ -29,7 +29,8 @@ SOURCES += main.cpp\
     SubpanelArchiveDialog.cpp \
     IgvDialog.cpp \
     GapDialog.cpp \
-    GapValidationLabel.cpp
+    GapValidationLabel.cpp \
+    CnvWidget.cpp
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
@@ -53,7 +54,8 @@ HEADERS  += MainWindow.h \
     SubpanelArchiveDialog.h \
     IgvDialog.h \
     GapDialog.h \
-    GapValidationLabel.h
+    GapValidationLabel.h \
+    CnvWidget.h
 
 
 FORMS    += MainWindow.ui \
@@ -75,7 +77,8 @@ FORMS    += MainWindow.ui \
     SubpanelArchiveDialog.ui \
     IgvDialog.ui \
     GapDialog.ui \
-    GapValidationLabel.ui
+    GapValidationLabel.ui \
+    CnvWidget.ui
     
 
 include("../app_gui.pri")

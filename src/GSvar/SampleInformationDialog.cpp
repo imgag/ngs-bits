@@ -29,6 +29,7 @@ SampleInformationDialog::SampleInformationDialog(QWidget* parent, QString filena
 	menu->addAction("start at mapping (recommended)", this, SLOT(reanalyze()));
 	menu->addAction("start at variant calling", this, SLOT(reanalyze()));
 	menu->addAction("start at annotation", this, SLOT(reanalyze()));
+	menu->addAction("start at copy-number analysis", this, SLOT(reanalyze()));
 	ui_.reanalyze_button->setMenu(menu);
 
 	//setup report button
@@ -92,6 +93,10 @@ void SampleInformationDialog::reanalyze()
 	else if (action->text().contains("annotation"))
 	{
 		start_step = "&start_step=an";
+	}
+	else if (action->text().contains("copy-number"))
+	{
+		start_step = "&start_step=cn";
 	}
 	else
 	{

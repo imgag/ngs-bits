@@ -123,6 +123,8 @@ public slots:
 	void on_actionClose_triggered();
 	///Force IGV initializazion
 	void on_actionIgvInit_triggered();
+	///Open CNV dialog
+	void on_actionCNV_triggered();
 
 	///Finished the report generation
 	void reportGenerationFinished(bool success);

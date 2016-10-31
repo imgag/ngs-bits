@@ -78,12 +78,12 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="ok">
-       <property name="text">
-        <string>Ok</string>
+      <widget class="QPushButton" name="skip_session">
+       <property name="toolTip">
+        <string>Skip IGV initialization for the whole session, i.e. until a new sample is loaded.</string>
        </property>
-       <property name="default">
-        <bool>true</bool>
+       <property name="text">
+        <string>Skip (session)</string>
        </property>
       </widget>
      </item>
@@ -95,12 +95,12 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="skip_session">
-       <property name="toolTip">
-        <string>Skip IGV initialization for the whole session, i.e. until a new sample is loaded.</string>
-       </property>
+      <widget class="QPushButton" name="ok">
        <property name="text">
-        <string>Skip (session)</string>
+        <string>Ok</string>
+       </property>
+       <property name="default">
+        <bool>true</bool>
        </property>
       </widget>
      </item>

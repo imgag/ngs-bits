@@ -27,5 +27,6 @@
         <file>Icons/Previous.png</file>
         <file>Icons/Attention.png</file>
         <file>Icons/Question.png</file>
+        <file>Icons/CopyNumber.png</file>
     </qresource>
 </RCC>

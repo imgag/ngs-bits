@@ -137,7 +137,7 @@ void GapDialog::gapDoubleClicked(QTableWidgetItem* item)
 	if (item==nullptr) return;
 
 	QString region = ui->gaps->item(item->row(), 0)->text();
-	emit openRegionInIgv(region);
+	emit openRegionInIGV(region);
 }
 
 QTableWidgetItem*GapDialog::createItem(QString text, bool highlight, bool align_right)

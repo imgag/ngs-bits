@@ -21,7 +21,7 @@ public:
 	QString report() const;
 
 signals:
-	void openRegionInIgv(QString region);
+	void openRegionInIGV(QString region);
 
 private slots:
 	void gapDoubleClicked(QTableWidgetItem* item);

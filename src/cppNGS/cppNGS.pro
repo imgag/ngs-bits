@@ -47,7 +47,8 @@ SOURCES += BedFile.cpp \
     QCCollection.cpp \
     StatisticsReads.cpp \
     ChromosomeInfo.cpp \
-    SampleCorrelation.cpp
+    SampleCorrelation.cpp \
+    CnvList.cpp
 
 HEADERS += BedFile.h \
 	Chromosome.h \
@@ -65,7 +66,8 @@ HEADERS += BedFile.h \
     StatisticsReads.h \
     Sequence.h \
     ChromosomeInfo.h \
-    SampleCorrelation.h
+    SampleCorrelation.h \
+    CnvList.h
 
 
 RESOURCES += \

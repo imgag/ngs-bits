@@ -205,8 +205,10 @@
    <addaction name="actionSampleInformation"/>
    <addaction name="separator"/>
    <addaction name="actionTrio"/>
+   <addaction name="separator"/>
    <addaction name="actionGapsLookup"/>
    <addaction name="actionGapsRecalculate"/>
+   <addaction name="actionCNV"/>
   </widget>
   <action name="actionOpen">
    <property name="text">
@@ -526,6 +528,18 @@
    </property>
    <property name="toolTip">
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Force initialization of IGV next time it is used.&lt;br/&gt;This feature is used e.g. when IGV has crashed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </action>
+  <action name="actionCNV">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/CopyNumber.png</normaloff>:/Icons/CopyNumber.png</iconset>
+   </property>
+   <property name="text">
+    <string>CNV</string>
+   </property>
+   <property name="toolTip">
+    <string>Show copy-number variants.</string>
    </property>
   </action>
  </widget>
