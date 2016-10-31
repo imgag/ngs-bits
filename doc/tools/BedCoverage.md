@@ -1,5 +1,5 @@
 ### BedCoverage tool help
-	BedCoverage (0.1-528-gaae18be)
+	BedCoverage (0.1-543-gbfdc1f2)
 	
 	Extracts the average coverage for input regions from one or several BAM file(s).
 	
@@ -11,7 +11,7 @@
 	                  Default value: '1'
 	  -in <file>      Input BED file (note that overlapping regions will be merged before processing). If unset, reads from STDIN.
 	                  Default value: ''
-	  -mode <enum>    Mode to optimize run time. Use 'panel' mode if only a small part of the data in the BAM file is processed, e.g. a sub-panel of an exome
+	  -mode <enum>    Mode to optimize run time. Use 'panel' mode if only a small part of the data in the BAM file is accessed, e.g. a sub-panel of an exome.
 	                  Default value: 'default'
 	                  Valid: 'default,panel'
 	  -out <file>     Output BED file. If unset, writes to STDOUT.
@@ -24,6 +24,6 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BedCoverage changelog
-	BedCoverage 0.1-528-gaae18be
+	BedCoverage 0.1-543-gbfdc1f2
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

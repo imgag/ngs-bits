@@ -1,5 +1,5 @@
 ### TrioAnnotation tool help
-	TrioAnnotation (0.1-420-g3536bb0)
+	TrioAnnotation (0.1-543-gbfdc1f2)
 	
 	Annotates a child sample with trio information. Assumes that the child is the index patient and that the parents are unaffected.
 	
@@ -10,7 +10,7 @@
 	Optional parameters:
 	  -min_depth <int> Minimum depth in all three samples.
 	                   Default value: '10'
-	  -max_maf <float> Maximum minor allele frequency in 1000G,ExAC and ESP6500EA database annotation.
+	  -max_maf <float> Maximum minor allele frequency in 1000G,ExAC and Kaviar database annotation.
 	                   Default value: '0.01'
 	  -max_ngsd <int>  Maximum homozygous occurances in NGSD.
 	                   Default value: '30'
@@ -22,6 +22,6 @@
 	  --tdx            Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### TrioAnnotation changelog
-	TrioAnnotation 0.1-420-g3536bb0
+	TrioAnnotation 0.1-543-gbfdc1f2
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

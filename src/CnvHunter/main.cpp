@@ -152,7 +152,7 @@ public:
 
     virtual void setup()
     {
-        setDescription("Detects copy number variations from targeted resequencing data using non-matched control samples.");
+		setDescription("CNV detection from targeted resequencing data using non-matched control samples.");
         addInfileList("in", "Input TSV files (one per sample) containing coverage data (chr, start, end, avg_depth).", false, true);
         addOutfile("out", "Output TSV file containing the detected CNVs.", false, true);
 		//optional

@@ -1,5 +1,5 @@
 ### CnvHunter tool help
-	CnvHunter (0.1-487-g4a3dc62)
+	CnvHunter (0.1-543-gbfdc1f2)
 	
 	Detects copy number variations from targeted resequencing data using non-matched control samples.
 	
@@ -9,8 +9,6 @@
 	
 	Optional parameters:
 	  -in_noref <filelist>   Input TSV files like 'in' but not used as reference (e.g. tumor samples).
-	                         Default value: ''
-	  -out_reg <file>        If set, writes a BED file with region information (baq QC, excluded, good).
 	                         Default value: ''
 	  -n <int>               The number of most similar samples to consider.
 	                         Default value: '20'
@@ -36,7 +34,9 @@
 	                         Default value: 'false'
 	  -test                  Uses test database instead of production database for annotation.
 	                         Default value: 'false'
-	  -debug <string>        Writes debug informaion for the sample matching the given name (or for all samples if 'ALL' is given).
+	  -debug <string>        Writes debug information for the sample matching the given name (or for all samples if 'ALL' is given).
+	                         Default value: ''
+	  -seg <string>          Writes a SEG file for the sample matching the given name (used for visualization in IGV).
 	                         Default value: ''
 	
 	Special parameters:
@@ -46,8 +46,9 @@
 	  --tdx                  Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### CnvHunter changelog
-	CnvHunter 0.1-487-g4a3dc62
+	CnvHunter 0.1-543-gbfdc1f2
 	
+	2016-10-24 Added variant size to TSV output and optional SEG output file.
 	2016-09-01 Sample and region information files are now always written.
 	2016-08-23 Added merging of large CNVs that were split to several regions due to noise.
 	2016-08-21 Improved log output (to make parameter optimization easier).
