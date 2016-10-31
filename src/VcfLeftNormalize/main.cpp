@@ -120,6 +120,13 @@ public:
 				continue;
 			}
 
+			//skip all variants starting at first base of chromosome
+			if (pos==1)
+			{
+				writeLine(out_p, parts, pos, ref, alt);
+				continue;
+			}
+
 			//skip SNVs disguised as indels (e.g. ACGT => AXGT)
 			normalize(pos, ref, alt);
 			if (ref.length()==1 && alt.length()==1)
@@ -141,7 +148,7 @@ public:
 				//shift block to the left
 				Sequence block = Variant::minBlock(alt);
 				pos -= block.length();
-				while(reference.seq(chr, pos, block.length())==block)
+				while(pos>0 && reference.seq(chr, pos, block.length())==block)
 				{
 					pos -= block.length();
 				}
@@ -166,7 +173,7 @@ public:
 			{
 				//shift block to the left
 				Sequence block = Variant::minBlock(ref);
-				while(reference.seq(chr, pos, block.length())==block)
+				while(pos>=1 && reference.seq(chr, pos, block.length())==block)
 				{
 					pos -= block.length();
 				}
