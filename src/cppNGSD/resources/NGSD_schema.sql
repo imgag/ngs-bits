@@ -209,6 +209,54 @@ ENGINE = InnoDB
 AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8;
 
+-- -----------------------------------------------------
+-- Table `runqc_read`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `runqc_read` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `read_num` INT NOT NULL,
+  `cycles` INT NOT NULL,
+  `is_index` BOOLEAN NOT NULL,
+  `q30_perc` FLOAT NOT NULL,
+  `error_rate` FLOAT NOT NULL,
+  `sequencing_run_id` INT(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE (`sequencing_run_id`, `read_num`),
+  INDEX `fk_sequencing_run_id` (`sequencing_run_id` ASC),
+  CONSTRAINT `fk_sequencing_run_id`
+    FOREIGN KEY (`sequencing_run_id`)
+    REFERENCES `sequencing_run` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+AUTO_INCREMENT = 1
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `runqc_lane`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `runqc_lane` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `lane_num` INT NOT NULL,
+  `cluster_density` FLOAT NOT NULL,
+  `cluster_density_pf` FLOAT NOT NULL,
+  `yield` FLOAT NOT NULL,
+  `error_rate` FLOAT NOT NULL,
+  `q30_perc` FLOAT NOT NULL,
+  `runqc_read_id` INT(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE (`runqc_read_id`, `lane_num`),
+  INDEX `fk_runqc_read_id` (`runqc_read_id` ASC),
+  CONSTRAINT `fk_runqc_read_id`
+    FOREIGN KEY (`runqc_read_id`)
+    REFERENCES `runqc_read` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+AUTO_INCREMENT = 1
+DEFAULT CHARACTER SET = utf8;
+
 
 -- -----------------------------------------------------
 -- Table `species`
