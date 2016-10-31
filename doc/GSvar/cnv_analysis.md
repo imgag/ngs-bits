@@ -2,19 +2,19 @@
 
 Copy-number variant (CNV) calling is performed using the [CnvHunter](https://github.com/imgag/ngs-bits/) tool.
 
-CnvHunter is designed for targeted NGS sequencing. Thus, a single copy-number variant can consist of several subsequent regions (i.e. exons in most cases). For each region, the copy-number state and the a [z-score](https://en.wikipedia.org/wiki/Standard_score) indicating the significance are listed (see screenshot in the 'CNV filtering' section).
+CnvHunter is designed for targeted NGS sequencing, where exon target regions alternate with non-target intron regions. Thus, a single copy-number variant can consist of several subsequent regions (i.e. exons). For each region, the copy-number state and the [z-score](https://en.wikipedia.org/wiki/Standard_score) indicating the significance are listed (see screenshot in the 'CNV filtering' section).
 
 ###Re-analyzing a sample
 
-Copy-number variant calling is based on a virtul reference sample, which is constructed of the 20 most similar samples with the same processing system. Thus, at least 20 samples of the sample processing system are needed to to perform the CNV analysis. The more samples there are, the more accurte the CNV analysis will be.
+Copy-number variant calling is based on a virtual reference sample, which is constructed of the 20 most similar samples with the same processing system. Thus, at least 20 samples of the sample processing system are needed to perform the CNV analysis. The more samples there are, the more accurate the CNV analysis will be.
 
-Thus, re-analyzing copy-number variants once more reference samples are sequenced is a common task. It can be performed using the sample information dialog:
+Thus, re-analyzing copy-number variants when more reference samples are sequenced is a common task. It can be performed using the sample information dialog:
 
 ![alt text](cnv_reanalyze.png)
 
 ###CNV analysis quality
 
-Visualization and filtering of CNVs is done in a the "Copy-number variants" dialog, which is shown below.
+Visualization and filtering of CNVs is done in the "Copy-number variants" dialog, which is shown below.
 The dialog is opened from the main tool bar (0). 
 
 In the upper part of the dialog (1), sample-specific information about the CNV calling is shown. It gives an impression  of the sample quality:
@@ -35,6 +35,15 @@ Above the CNV list, there are several options for filtering CNVs (2):
 * target region (if set in the main filter panel for variants)
 * genes (if set in the main filter panel for variants)
 
+For each CNV the following stats are shown (3):
+
+* genomic position
+* affected genes (if they are annotated)
+* size
+* region count
+* copy-number state (one per region)
+* z-score (one per region)
+
 ![alt text](cnv_filtering.png)
 
 
@@ -53,6 +62,7 @@ The scale of the heatmap can be changed using the context menu of the track. Bes
 
 --
 [back to main page](index.md)
+
 
 
 
