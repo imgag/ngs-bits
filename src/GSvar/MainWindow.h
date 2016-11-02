@@ -48,8 +48,6 @@ public:
 	void updateNGSDSupport();
 	///Copy selected variants to clipboard
 	void copyToClipboard(bool split_quality);
-	///Formats transcripts, taking preferred transcripts into consideration
-	QString formatTranscripts(QString line);
 	///Returns 'nobr' paragraph start for Qt tooltips
 	static QString nobr();
 
@@ -103,7 +101,7 @@ public slots:
 	void on_actionExportGSvar_triggered();
 	///Preferred transcript list
 	void on_actionShowTranscripts_triggered();
-	///Preferred transcript import from Alamut
+	///Preferred transcript import
 	void on_actionImportTranscripts_triggered();
 	///Opens online documentation
 	void on_actionOpenDocumentation_triggered();

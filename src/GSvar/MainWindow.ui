@@ -419,7 +419,7 @@
   </action>
   <action name="actionImportTranscripts">
    <property name="text">
-    <string>Import from Alamut</string>
+    <string>Import</string>
    </property>
   </action>
   <action name="actionShowTranscripts">

@@ -7,7 +7,11 @@ kgxref=
 target_regions=@Invalid()
 reference_files=@Invalid()
 igv_menu=@Invalid()
+
+#Preferred transcript list
 preferred_transcripts=@Variant(\0\0\0\b\0\0\0\0)
+#Preferred transcript import file (Tab-separated file with gene name in first column and NM number including dot and version in third column)
+preferred_transcripts_file=
 
 #Enable NGSD-based functionality
 NGSD_enabled=true

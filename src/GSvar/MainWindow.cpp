@@ -904,10 +904,10 @@ void MainWindow::on_actionShowTranscripts_triggered()
 void MainWindow::on_actionImportTranscripts_triggered()
 {
 	//check if gene list file is set
-	QString gene_list = Settings::string("alamut_gene_list");
-	if (gene_list=="")
+	QString gene_list = Settings::string("preferred_transcripts_file").trimmed();
+	if (gene_list.isEmpty())
 	{
-		GUIHelper::showMessage("Preferred transcripts import", "Alamut gene list file not defined in 'GSvar.ini' file (key 'alamut_gene_list')!");
+		GUIHelper::showMessage("Preferred transcripts import", "Preferred transcripts list not defined in 'GSvar.ini' file (key 'preferred_transcripts_file')!");
 		return;
 	}
 
@@ -1087,27 +1087,6 @@ void MainWindow::copyToClipboard(bool split_quality)
 	}
 
 	QApplication::clipboard()->setText(selected_text);
-}
-
-QString MainWindow::formatTranscripts(QString line)
-{
-	QString output;
-	QStringList transcripts = line.split(",");
-	foreach(QString t, transcripts)
-	{
-		QStringList parts = t.split(":");
-		if (parts.count()>2)
-		{
-			QString pt = preferred_transcripts_.value(parts[0], "");
-			if(pt!="" && parts[1].startsWith(pt))
-			{
-				t = "<b>" + t + "</b>";
-			}
-		}
-		output += nobr() + t;
-	}
-
-	return output;
 }
 
 QString MainWindow::nobr()
