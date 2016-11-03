@@ -164,14 +164,9 @@ public:
 			}
 			if (check_path)
 			{
-				QString type = tokens[fields.indexOf("p.type")];
-				if (type=="diagnostic") type = "gs_diag";
-				else if (type=="research") type = "gs";
-				else if (type=="test") type = "gs_test";
-				else if (type=="extern") type = "gs_ext";
-				else THROW(ProgrammingException, "Unknown NGSD project type '" + type + "'!");
+				QString project_type = tokens[fields.indexOf("p.type")];
 				QString project_name = tokens[fields.indexOf("p.name")];
-				QString project_path = Settings::string("projects_folder") + "/" + type + "/" + project_name + "/";
+				QString project_path = Settings::string("projects_folder") + "/" + project_type + "/" + project_name + "/";
 				QString ps_name = tokens[fields.indexOf("ps.name")];
 
 				if (!QFile::exists(project_path))

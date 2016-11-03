@@ -168,11 +168,7 @@ QString NGSD::processedSamplePath(const QString& filename, PathType type, bool t
 	//create sample folder
 	QString output = Settings::string("projects_folder") + "/";
 	QString p_type = query.value(1).toString();
-	if (p_type=="diagnostic") output += "gs_diag";
-	else if (p_type=="research") output += "gs";
-	else if (p_type=="test") output += "gs_test";
-	else if (p_type=="extern") output += "gs_ext";
-	else THROW(ProgrammingException, "Unknown project type '" + p_type + "'!");
+	output += p_type;
 	QString p_name = query.value(2).toString();
 	output += "/" + p_name + "/";
 	QString ps_name = query.value(0).toString();
