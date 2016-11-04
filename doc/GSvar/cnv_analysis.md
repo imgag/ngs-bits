@@ -53,15 +53,16 @@ For each CNV the following stats are shown (3):
 
 If the sample folder contains a SEG file, this file can be shown as CNV track in IGV. The default visualization is in heatmap style. In this style regions with a non-significant z-score between -2.5 and 2.5 and regions for which no CNV calling could be performed are shown in white. Gains (z-score>2.5) are shown in red and losses (z-score<-2.5) are shown in blue. Grey areas indicate regions that are not part of the target region (i.e. introns and intergenic regions).
 
-In addition to the z-score which is vizualized, the CNV track also contains the log2-ratio and copy-number, which are shown as a tooltip when hovering of a region (see screenshot).
+In addition to the z-score which is vizualized, the CNV track also contains the log2-ratio and copy-number, which are shown as a tooltip when hovering over a region (see screenshot).
 
-The scale of the heatmap can be changed using the context menu of the track. Besides the heatmap vizualization, there are several other visualizations (points, bars, lines), which might be more informative depending on the use-case.
+The scale of the heatmap can be changed using the context menu of the track. Besides the heatmap vizualization, several other visualizations (points, bars, lines) can be selected in the context menu, which might be more informative depending on the use-case.
 
 
 ![alt text](cnv_visualization.png)
 
 --
 [back to main page](index.md)
+
 
 
 
