@@ -365,7 +365,7 @@ CREATE  TABLE IF NOT EXISTS `project` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NOT NULL,
   `aliases` TEXT DEFAULT NULL,
-  `type` ENUM('diagnostic','research','test','extern') NOT NULL,
+  `type` ENUM('diagnostic','research','test','external') NOT NULL,
   `internal_coordinator_id` INT(11) NOT NULL,
   `comment` TEXT NULL DEFAULT NULL,
   `analysis` ENUM('fastq','mapping','variant calling','annotation') NOT NULL DEFAULT 'annotation',
