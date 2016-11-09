@@ -41,6 +41,7 @@
 #include "IgvDialog.h"
 #include "GapDialog.h"
 #include "CnvWidget.h"
+#include "GeneSelectorDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -118,6 +119,23 @@ void MainWindow::on_actionCNV_triggered()
 	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
 	GUIHelper::showWidgetAsDialog(list, "Copy-number variants", false);
 	list->deleteLater();
+}
+
+void MainWindow::on_actionGeneSelector_triggered()
+{
+	if (filename_=="") return;
+
+	QString bam_file = getBamFile();
+	if (bam_file.isEmpty()) return;
+
+	GeneSelectorDialog dlg(bam_file, this);
+	connect(&dlg, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
+	if (dlg.exec())
+	{
+		QString report = dlg.report();
+		QApplication::clipboard()->setText(report);
+		QMessageBox::information(this, "Gene selection report", "Gene selection report was copied to clipboard.");
+	}
 }
 
 void MainWindow::delayedInizialization()
@@ -430,12 +448,13 @@ void MainWindow::on_actionResize_triggered()
 	ui_.vars->resizeColumnsToContents();
 	ui_.vars->resizeRowsToContents();
 
-	//limit column width to 400 pixel (approximate width of coding_splicing column with one entry)
+	//limit column width
 	for (int i=0; i<ui_.vars->columnCount(); ++i)
 	{
-		if (ui_.vars->columnWidth(i)>400)
+		int max = (i<6) ? 80 : 200;
+		if (ui_.vars->columnWidth(i)>max)
 		{
-			ui_.vars->setColumnWidth(i, 400);
+			ui_.vars->setColumnWidth(i, max);
 		}
 	}
 }

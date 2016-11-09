@@ -17,7 +17,7 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../GSmix/GSmix.qrc">
+   <iconset resource="GSvar.qrc">
     <normaloff>:/Icons/Icon.png</normaloff>:/Icons/Icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -57,6 +57,9 @@
       <property name="wordWrap">
        <bool>false</bool>
       </property>
+      <attribute name="verticalHeaderVisible">
+       <bool>false</bool>
+      </attribute>
      </widget>
     </item>
    </layout>
@@ -209,6 +212,7 @@
    <addaction name="actionGapsLookup"/>
    <addaction name="actionGapsRecalculate"/>
    <addaction name="actionCNV"/>
+   <addaction name="actionGeneSelector"/>
   </widget>
   <action name="actionOpen">
    <property name="text">
@@ -315,7 +319,7 @@
   </action>
   <action name="actionNGSD">
    <property name="icon">
-    <iconset resource="../GSmix/GSmix.qrc">
+    <iconset resource="GSvar.qrc">
      <normaloff>:/Icons/NGSD.png</normaloff>:/Icons/NGSD.png</iconset>
    </property>
    <property name="text">
@@ -542,10 +546,21 @@
     <string>Show copy-number variants.</string>
    </property>
   </action>
+  <action name="actionGeneSelector">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/List.png</normaloff>:/Icons/List.png</iconset>
+   </property>
+   <property name="text">
+    <string>GeneSelector</string>
+   </property>
+   <property name="toolTip">
+    <string>Select genes based on coverage and copy-number.</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="../GSmix/GSmix.qrc"/>
   <include location="GSvar.qrc"/>
  </resources>
  <connections/>

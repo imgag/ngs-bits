@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QListWidgetItem>
+#include <QTextEdit>
 #include "NGSD.h"
 
 namespace Ui {
@@ -18,6 +19,9 @@ class PhenotypeSelector
 public:
 	explicit PhenotypeSelector(QWidget *parent = 0);
 	~PhenotypeSelector();
+
+	///Sets the associated widget which is autoamtically updated when a phenotype is selected.
+	void setDetailsWidget(QTextEdit* edit);
 
 	///Initializes the widget with all phenotypes
 	void init();
@@ -38,6 +42,7 @@ private slots:
 
 private:
 	Ui::PhenotypeSelector *ui;
+	QTextEdit* details_;
 	NGSD db_;
 };
 

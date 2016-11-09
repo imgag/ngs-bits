@@ -7,6 +7,7 @@
 PhenotypeSelector::PhenotypeSelector(QWidget *parent)
 	: QWidget(parent)
 	, ui(new Ui::PhenotypeSelector)
+	, details_(nullptr)
 {
 	ui->setupUi(this);
 	connect(ui->search, SIGNAL(textChanged(QString)), this, SLOT(search(QString)));
@@ -17,6 +18,13 @@ PhenotypeSelector::PhenotypeSelector(QWidget *parent)
 PhenotypeSelector::~PhenotypeSelector()
 {
 	delete ui;
+}
+
+void PhenotypeSelector::setDetailsWidget(QTextEdit* edit)
+{
+	details_ = edit;
+	details_->setReadOnly(true);
+	details_->setPlaceholderText("phenotype details");
 }
 
 void PhenotypeSelector::init()
@@ -43,6 +51,13 @@ void PhenotypeSelector::search(QString text)
 
 void PhenotypeSelector::itemChanged(QListWidgetItem* item)
 {
+	//update details
+	if (details_!=nullptr)
+	{
+		details_->setText(selectedItemDetails(true, false));
+	}
+
+	//special handling for not item
 	if (item==nullptr)
 	{
 		emit phenotypeChanged("");

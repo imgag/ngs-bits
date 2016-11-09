@@ -20,7 +20,6 @@ public:
 
 private slots:
 	void copyPhenotype(QString phenotype);
-	void showPhenotypeDetails();
 	void deletePhenotype(QListWidgetItem* item);
 	void copyGenesToClipboard();
 	void storeGenesAsTSV();

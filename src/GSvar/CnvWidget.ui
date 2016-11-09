@@ -315,6 +315,9 @@
         <property name="gridStyle">
          <enum>Qt::SolidLine</enum>
         </property>
+        <attribute name="verticalHeaderVisible">
+         <bool>false</bool>
+        </attribute>
         <column>
          <property name="text">
           <string>position</string>

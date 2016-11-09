@@ -28,5 +28,6 @@
         <file>Icons/Attention.png</file>
         <file>Icons/Question.png</file>
         <file>Icons/CopyNumber.png</file>
+        <file>Icons/List.png</file>
     </qresource>
 </RCC>

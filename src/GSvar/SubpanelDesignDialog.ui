@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>702</width>
-    <height>380</height>
+    <width>664</width>
+    <height>429</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -75,7 +75,7 @@
       </sizepolicy>
      </property>
      <property name="placeholderText">
-      <string>Gene list (one gene per line)</string>
+      <string>Gene list (one gene per line, or before first tab)</string>
      </property>
     </widget>
    </item>

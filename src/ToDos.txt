@@ -9,12 +9,7 @@ libs:
 
 GSvar:
 ** LOVD upload for variant
-** GenePicker dialog (only active when sample is open)
-  - Select phenotypes
-  - Show genes, #phenotype hits, CCDS+-5 gaps in current sample, #bases of longest CCDS transcript
-  - Allow selection of genes and sum up ccds size
-  - When accepted, copy report to clipboard that can be used in sub-panel dialog
-  - integrate CNV gaps/variants counts as column and allow selection of genes for CNA report
+*** GenePicker dialog: fix Pheno to genes associations (breast carcinoma => BRCA1, BRCA2)
 - Allow handling of several related samples (i.e. integrate SampleOverview functionality) and allow filtering based on affected status
 - Allow filtering of multi-sample variant lists => missing genotype (perhaps treat all variants as homozygous?)
 ? Add buttons to search in goolge/pubmed for variant

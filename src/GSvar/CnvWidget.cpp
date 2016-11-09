@@ -129,8 +129,8 @@ void CnvWidget::loadCNVs(QString filename)
 	}
 
 	//resize columns
-	ui->cnvs->resizeRowsToContents();
 	ui->cnvs->resizeColumnsToContents();
+	ui->cnvs->resizeRowsToContents();
 	for(int c=0; c<ui->cnvs->columnCount(); ++c)
 	{
 		if (ui->cnvs->columnWidth(c)>200)
