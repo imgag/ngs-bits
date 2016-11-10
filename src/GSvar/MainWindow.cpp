@@ -208,7 +208,7 @@ void MainWindow::openInIGV(QString region)
         QStringList files = Helper::findFiles(folder,"*_var_annotated.vcf.gz", false);
         if (files.count()==1)
         {
-            dlg.addFile("sample VCF", files[0], ui_.actionIgvSample->isChecked());
+			dlg.addFile("sample variants (VCF)", files[0], ui_.actionIgvSample->isChecked());
         }
 
 		//sample BAM file(s)
@@ -218,21 +218,21 @@ void MainWindow::openInIGV(QString region)
 			if (bams.count()==0) return;
 			foreach(QString bam, bams)
 			{
-				dlg.addFile("sample BAM", bam, true);
+				dlg.addFile("sample reads (BAM)", bam, true);
 			}
 		}
 		else
 		{
 			QString bam = getBamFile();
 			if (bam=="") return;
-			dlg.addFile("sample BAM", bam, true);
+			dlg.addFile("sample reads (BAM)", bam, true);
 		}
 
 		//reference BAM
 		QString ref = filter_widget_->referenceSample();
 		if (ref!="")
 		{
-			dlg.addFile("reference BAM", ref, true);
+			dlg.addFile("reference reads (BAM)", ref, true);
 		}
 
 		//sample CNVs
@@ -246,12 +246,12 @@ void MainWindow::openInIGV(QString region)
 		QString roi = filter_widget_->targetRegion();
 		if (roi!="")
 		{
-			dlg.addFile("target region", roi, true);
+			dlg.addFile("target region track", roi, true);
 
 			QString amplicons = roi.left(roi.length()-4) + "_amplicons.bed";
 			if (QFile::exists(amplicons))
 			{
-				dlg.addFile("target region amplicons", amplicons, true);
+				dlg.addFile("target region amplicons track", amplicons, true);
 			}
 		}
 
@@ -259,7 +259,7 @@ void MainWindow::openInIGV(QString region)
         files = Helper::findFiles(folder,"*_lowcov.bed", false);
         if (files.count()==1)
         {
-            dlg.addFile("sample low-coverage regions", files[0], ui_.actionIgvLowcov->isChecked());
+			dlg.addFile("sample low-coverage regions track", files[0], ui_.actionIgvLowcov->isChecked());
 		}
 
 		//custom tracks
@@ -268,7 +268,7 @@ void MainWindow::openInIGV(QString region)
 		foreach(QAction* action, igv_actions)
 		{
 			QString text = action->text();
-			if (!text.startsWith("custom:")) continue;
+			if (!text.startsWith("custom track:")) continue;
 			dlg.addFile(text, action->toolTip(), action->isChecked());
 		}
 
@@ -793,7 +793,6 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	//check for BAM file
 	QString bam_file = getBamFile();
 	if (bam_file=="") return;
-
 
 	//load genes list file
 	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
@@ -1812,7 +1811,7 @@ void MainWindow::updateIGVMenu()
 		{
 			QStringList parts = entry.trimmed().split("\t");
 			if(parts.count()!=3) continue;
-			QAction* action = ui_.menuTracks->addAction("custom: " + parts[0]);
+			QAction* action = ui_.menuTracks->addAction("custom track: " + parts[0]);
 			action->setCheckable(true);
 			action->setChecked(parts[1]=="1");
 			action->setToolTip(parts[2]);
@@ -1846,6 +1845,7 @@ void MainWindow::updateNGSDSupport()
 	ui_.actionTrio->setEnabled(ngsd_enabled);
 	ui_.actionSampleInformation->setEnabled(ngsd_enabled);
 	ui_.actionGapsRecalculate->setEnabled(ngsd_enabled);
+	ui_.actionGeneSelector->setEnabled(ngsd_enabled);
 
 	//tools menu
 	ui_.actionOpenNGSD->setEnabled(ngsd_enabled);

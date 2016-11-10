@@ -8,7 +8,6 @@ libs:
    - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-*** Check NGSD dependencies of new dialogs (gaps, cnv, gene picker) and disable them accordingly
 ** LOVD upload for variant
 *** GenePicker dialog: fix Pheno to genes associations (breast carcinoma => BRCA1, BRCA2)
 - Allow handling of several related samples (i.e. integrate SampleOverview functionality) and allow filtering based on affected status
