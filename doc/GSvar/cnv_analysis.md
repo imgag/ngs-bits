@@ -49,7 +49,7 @@ For each CNV the following stats are shown (3):
 
 ###Visualizing copy-number data in IGV
 
-*Double-clicking* a CNV in the dialog, opens the CNV region in IGV.
+*Double-clicking* a CNV in the dialog, opens the CNV region in IGV (see also section [IGV integration](igv_integration.md)).
 
 If the sample folder contains a SEG file, this file can be shown as CNV track in IGV. The default visualization is in heatmap style. In this style regions with a non-significant z-score between -2.5 and 2.5 and regions for which no CNV calling could be performed are shown in white. Gains (z-score>2.5) are shown in red and losses (z-score<-2.5) are shown in blue. Grey areas indicate regions that are not part of the target region (i.e. introns and intergenic regions).
 
@@ -62,6 +62,7 @@ The scale of the heatmap can be changed using the context menu of the track. Bes
 
 --
 [back to main page](index.md)
+
 
 
 

@@ -85,6 +85,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(filter_widget_, SIGNAL(filtersChanged()), this, SLOT(filtersChanged()));
 	connect(ui_.vars, SIGNAL(itemSelectionChanged()), this, SLOT(updateVariantDetails()));
 	connect(&filewatcher_, SIGNAL(fileChanged()), this, SLOT(handleInputFileChange()));
+	connect(ui_.vars, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(variantDoubleClicked(QTableWidgetItem*)));
 
 	//misc initialization
 	filewatcher_.setDelayInSeconds(10);
@@ -186,6 +187,13 @@ void MainWindow::handleInputFileChange()
 {
 	QMessageBox::information(this, "GSvar file changed", "The input file changed.\nIt is reloaded now!");
 	loadFile(filename_);
+}
+
+void MainWindow::variantDoubleClicked(QTableWidgetItem* item)
+{
+	if (item==nullptr) return;
+
+	openInIGV(variants_[item->row()].toString());
 }
 
 void MainWindow::openInIGV(QString region)

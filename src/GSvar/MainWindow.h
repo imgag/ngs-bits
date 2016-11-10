@@ -142,6 +142,8 @@ public slots:
 	void delayedInizialization();
 	///Handles the re-loading the variant list when the file changes.
 	void handleInputFileChange();
+	///A variant has been double-clicked > open in IGV
+	void variantDoubleClicked(QTableWidgetItem* item);
 	///Open region in IGV
 	void openInIGV(QString region);
 

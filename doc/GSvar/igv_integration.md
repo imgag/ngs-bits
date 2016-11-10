@@ -1,6 +1,41 @@
 ## IGV intregration
 
-TODO
+IGV is a genome brwoser developed at the Broad institute (see also the [IGV user guide](http://software.broadinstitute.org/software/igv/UserGuide)).  
+It visualizes high-throughput sequencing data and many associated data formats, e.g.:
+
+* BAM - contains mapped reads
+* VCF - contains variants
+* BED - contains regions, e.g. target regions, low-coverage regions
+* SEG - copy-number calling data
+
+GSvar can communicate with an IGV to open the data and jump to specific genomic positions.  
+
+**Note:** GSvar cannot not start IGV. An instance of IGV has to be started manually before using the IGV integration.
+
+### Jumping to genomic locations
+
+Jumping to a genomic location in IGV can be triggered from several views/dialogs of GSvar:
+
+* *variant list* - clicking the variant coordinate in the variant details view (or double-clicking a line in the variant list) opens the variant location.
+* *low-coverage report dialog* - double-clicking a gap line opens the gap location.
+* *CNV dialog* - double-clicking a CNV line opens the location.
+* *gene selector dialog* - double-clicking a gene list opens the gene locus.
+
+### Initializing an IGV session
+
+When using the IGV integration for the first time, an initialization dialog is shown, in which the user can select with data files should be opened in IGV:
+
+![igv_init.png](igv_init.png)
+
+IGV initialization can be perfomed (`Ok`), skipped once (`Skip`), or skipped for the whole session (`Skip (session)`).  
+When IGV initialization was perfomed or when was skipped for the session, the initialization dialog will not be shown for any subsequent clicks to a variant/region.
+
+In order to force initialization, select `IGV > Reset initialization status` from the main menu, or re-load the sample.
+
+
+**Note:** Custom tracks can be added by your administrator through the GSvar INI file.
+
+
 
 ## FAQ
 
@@ -24,4 +59,5 @@ Finally, you have to restart IGV.
 
 --
 [back to main page](index.md)
+
 
