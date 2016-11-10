@@ -212,7 +212,7 @@ QString GeneSelectorDialog::report()
 	stream << "\n";
 
 	//selected genes
-	stream << "Genes selected:\n";
+	stream << "Genes selected for variant analysis:\n";
 	stream << "#gene\ttranscript\tsize\tgaps\n";
 	long sum = 0;
 	long gaps = 0;
@@ -234,7 +234,7 @@ QString GeneSelectorDialog::report()
 
 
 	//selected genes for CNA
-	stream << "Genes selected:\n";
+	stream << "Genes selected for CNV analysis:\n";
 	stream << "#gene\ttranscript\tCNVs detected\tCNV regions missing\n";;
 	for (int r=0; r<ui->genes->rowCount(); ++r)
 	{

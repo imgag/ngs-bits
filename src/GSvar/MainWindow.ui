@@ -555,7 +555,7 @@
     <string>GeneSelector</string>
    </property>
    <property name="toolTip">
-    <string>Select genes based on coverage and copy-number.</string>
+    <string>Select genes for variant/CNV analysis based on coverage and copy-number.</string>
    </property>
   </action>
  </widget>
