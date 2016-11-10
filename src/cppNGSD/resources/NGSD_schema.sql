@@ -151,7 +151,7 @@ CREATE  TABLE IF NOT EXISTS `processing_system` (
   `name_manufacturer` VARCHAR(100) NULL DEFAULT NULL,
   `adapter1_p5` VARCHAR(45) NULL DEFAULT NULL,
   `adapter2_p7` VARCHAR(45) NULL DEFAULT NULL,
-  `type` ENUM('WGS','WES','Panel','Panel Haloplex','Panel Haloplex HS','Panel MIPs','RNA') NOT NULL,
+  `type` ENUM('WGS','WES','Panel','Panel Haloplex','Panel Haloplex HS','Panel MIPs','RNA','ChIP-Seq') NOT NULL,
   `shotgun` TINYINT(1) NOT NULL,
   `target_file` VARCHAR(255) NULL DEFAULT NULL,
   `genome_id` INT(11) NOT NULL,
