@@ -149,15 +149,15 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 	//create target region
 	QString messages;
 	QTextStream stream(&messages);
+	regions = db.genesToRegions(genes, ui->source_db->currentText(), "exon", &stream);
 	if (messages!="")
 	{
 		showMessage(messages, true);
 		return;
 	}
-	regions = db.genesToRegions(genes, "ccds", "exon", &stream);
 	regions.extend(ui->flanking->currentText().toInt());
 	regions.merge();
-	showMessage("Sub-panel with " + QString::number(genes.count()) + " genes of size " + QString::number(regions.baseCount()) + " bp (CCDS exons with " + ui->flanking->currentText() + " flanking bases) designed. You can store it now!", false);
+	showMessage("Sub-panel with " + QString::number(genes.count()) + " genes of size " + QString::number(regions.baseCount()) + " bp (exons plus " + ui->flanking->currentText() + " flanking bases) designed. You can store it now!", false);
 
 	ui->store->setEnabled(true);
 }

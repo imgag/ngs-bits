@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>664</width>
-    <height>429</height>
+    <width>689</width>
+    <height>432</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -23,7 +23,7 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to design a sub-panel based on an existing processing system. The created target regions constist of the CCDS exon regions including &lt;span style=&quot; font-style:italic;&quot;&gt;x&lt;/span&gt; flanking bases.&lt;/p&gt;&lt;p&gt;Sub-panels that are specific for a sample/patient should start with the following information by convention:&lt;br/&gt;[base panel]_individual_[sample identifier]&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to design a sub-panel based on an existing processing system. The created target regions constist of the source database exon regions plus the &lt;span style=&quot; font-style:italic;&quot;&gt;x&lt;/span&gt; flanking bases.&lt;/p&gt;&lt;p&gt;Sub-panels that are specific for a sample/patient should start with the following information by convention:&lt;br/&gt;[base panel]_individual_[sample identifier]&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="scaledContents">
       <bool>false</bool>
@@ -79,14 +79,14 @@
      </property>
     </widget>
    </item>
-   <item row="6" column="0">
+   <item row="7" column="0">
     <widget class="QLabel" name="label_4">
      <property name="text">
       <string>Message:</string>
      </property>
     </widget>
    </item>
-   <item row="6" column="1">
+   <item row="7" column="1">
     <widget class="QLabel" name="messages">
      <property name="text">
       <string/>
@@ -96,7 +96,7 @@
      </property>
     </widget>
    </item>
-   <item row="7" column="0" colspan="2">
+   <item row="9" column="0" colspan="2">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <spacer name="horizontalSpacer">
@@ -168,6 +168,47 @@
      </item>
      <item>
       <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="label_7">
+     <property name="text">
+      <string>Source database:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <widget class="QComboBox" name="source_db">
+       <property name="currentText">
+        <string>ccds</string>
+       </property>
+       <item>
+        <property name="text">
+         <string>ccds</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>ucsc</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_3">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>

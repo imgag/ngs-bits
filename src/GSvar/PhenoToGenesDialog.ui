@@ -42,7 +42,7 @@
    <item>
     <widget class="QTabWidget" name="tabs">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab_p">
       <attribute name="title">
@@ -77,8 +77,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QTextEdit" name="pheno_details">
-          </widget>
+          <widget class="QTextEdit" name="pheno_details"/>
          </item>
         </layout>
        </item>
@@ -126,7 +125,7 @@
           <bool>true</bool>
          </property>
          <property name="textInteractionFlags">
-          <set>Qt::NoTextInteraction</set>
+          <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
          </property>
         </widget>
        </item>
