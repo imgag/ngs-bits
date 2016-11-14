@@ -8,7 +8,7 @@ You can download an example dataset of the NIST reference sample NA12878 [here](
 
 ##Running an analysis
 
-The analysis pipeline assumes that that all data to analyze resides in a sample folder as produced by Illumina's CASAVA tool. If that is the case, the whole analysis is performed with one command.  
+The analysis pipeline assumes that that all data to analyze resides in a sample folder as produced by Illumina's [bcl2fastq](http://support.illumina.com/sequencing/sequencing_software/bcl2fastq-conversion-software.html) tool. If that is the case, the whole analysis is performed with one command.  
 For example, the command to analyze the NA12878 test data is this:
 
 	php php/src/Pipelines/analyze.php -folder Sample_NA12878_01 -name NA12878_01 -system hpHBOCv5.ini -steps ma,vc,an
