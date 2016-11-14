@@ -734,14 +734,13 @@ public:
 	{
 		setDescription("Removes duplicates from a bam file based on a molecular barcode file.");
 		addInfile("bam", "Input BAM file.", false);
-		addInfile("index", "Index FASTQ file.", false);
+		addInfile("index", "FASTQ file containing the molecular barcode sequences.", false);
 		addOutfile("out", "Output BAM file.", false);
-		addFlag("flag", "flag duplicate reads insteadt of deleting them");
 		addFlag("test", "adjust output for testing purposes");
 		addInt("min_group", "minimal numbers of reads to keep a barcode group.", true, 1);
 		addInt("dist", "edit distance for single read matching .", true, 0);
 		addInfile("mip_file","input file for MIPS (reads are filtered and cut to match only MIP inserts).", true, "");
-		addInfile("hs_file","input file for Haloplex HS amplicons (reads are filtered to match only amplicons).", true, "");
+		addInfile("hs_file","Agilent's Haloplex HS _amplicons.bed file.", true, "");
 		addOutfile("stats","Output TSV file for statistics).", true, "");
 		addOutfile("nomatch_out","Output Bed file for reads not matching any amplicon).", true, "");
 		addOutfile("duplicate_out","Output Bed file for reads removed as duplicates).", true, "");
