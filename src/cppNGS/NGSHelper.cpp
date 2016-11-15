@@ -18,7 +18,11 @@ void NGSHelper::openBAM(BamReader& reader, QString bam_file)
 	QString bai_file = bam_file + ".bai";
 	if (!QFile::exists(bai_file))
 	{
-		THROW(FileAccessException, "BAI file missing " + bai_file + ".");
+		bai_file = bam_file.left(bam_file.length() - 3) + "bai"; //try *.bai instead of *.bam.bai
+		if (!QFile::exists(bai_file))
+		{
+			THROW(FileAccessException, "BAI file missing " + bai_file + " or "  + bam_file + ".bai.");
+		}
 	}
 
 	//abort BAI file is outdated (1 min margin because the order of SVN checkouts is not defined - BAM can be checked out after BAI)
