@@ -95,6 +95,9 @@
        <property name="text">
         <string>longest transcript</string>
        </property>
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Longest CCDS transcript and exon count.&lt;/p&gt;&lt;p&gt;If no CCDS transcript is defined for a gene, the longest transcript from UCSC known gene database is used.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
       </column>
       <column>
        <property name="text">

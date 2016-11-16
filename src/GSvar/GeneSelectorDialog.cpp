@@ -112,6 +112,10 @@ void GeneSelectorDialog::updateGeneTable()
 		BedFile region;
 		Chromosome chr;
 		db.longestCodingTranscript(gene_id, "ccds", transcript, region, chr);
+		if (region.baseCount()==0) //fallback to UCSC when no CCDS transcript is defined for the gene
+		{
+			db.longestCodingTranscript(gene_id, "ucsc", transcript, region, chr);
+		}
 		setGeneTableItem(r, 1, transcript + " (" + QString::number(region.count()) + " exons)");
 
 		//size
