@@ -78,6 +78,9 @@ public:
 	///Convert Cigar data to QString
 	static QString Cigar2QString(std::vector<CigarOp> Cigar);
 
+	///Converts text to gene list (one gene per tab-separated line)
+	static QStringList textToGenes(QString text, int col_index = 0);
+
 private:
 	///Constructor declared away
 	NGSHelper();

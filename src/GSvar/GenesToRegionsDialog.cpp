@@ -3,6 +3,7 @@
 #include "NGSD.h"
 #include "Exceptions.h"
 #include "Helper.h"
+#include "NGSHelper.h"
 #include <QClipboard>
 #include <QFileDialog>
 
@@ -23,22 +24,11 @@ GenesToRegionsDialog::~GenesToRegionsDialog()
 
 void GenesToRegionsDialog::convertGenesToRegions()
 {
-	QString text = ui->genes->toPlainText();
-	if (text.trimmed()=="")
-	{
-		ui->regions->clear();
-		return;
-	}
+	ui->regions->clear();
 
 	//convert input with tabs to plain gene list
-	QStringList genes = text.split("\n");
-	for (int i=0; i<genes.count(); ++i)
-	{
-		QString gene = genes[i];
-		int pos = gene.indexOf('\t');
-		if (pos!=-1) gene = gene.left(pos);
-		genes[i] = gene.trimmed();
-	}
+	QStringList genes = NGSHelper::textToGenes(ui->genes->toPlainText());
+	if (genes.isEmpty()) return;
 
 	//convert gene list to regions (BED)
 	QString source = ui->source->currentText().toLower();

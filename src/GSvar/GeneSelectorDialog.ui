@@ -13,7 +13,10 @@
   <property name="windowTitle">
    <string>Gene selector dialog</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout" columnstretch="1,2">
+  <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,1,0,0">
+   <property name="spacing">
+    <number>3</number>
+   </property>
    <property name="leftMargin">
     <number>3</number>
    </property>
@@ -26,98 +29,116 @@
    <property name="bottomMargin">
     <number>3</number>
    </property>
-   <property name="spacing">
-    <number>3</number>
-   </property>
-   <item row="0" column="0" colspan="2">
+   <item>
     <widget class="QLabel" name="label_3">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select a phenotype on the left (by double-clicking), to show genes associated with that phenotype on the right.&lt;br/&gt;Select genes on the right and click 'Ok' to generate a report.&lt;br/&gt;Double-click a line to open the gene locus in IGV.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Paste genes on the left and press the 'update' button to show sample-specific gene statistics on the right.&lt;br/&gt;Select genes on the right and click 'Ok' to generate a report.&lt;br/&gt;Double-click a line to open the gene locus in IGV.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="wordWrap">
       <bool>false</bool>
      </property>
     </widget>
    </item>
-   <item row="1" column="0" rowspan="2">
-    <layout class="QVBoxLayout" name="verticalLayout" stretch="2,1">
-     <item>
-      <widget class="PhenotypeSelector" name="pheno" native="true">
-       <property name="minimumSize">
-        <size>
-         <width>200</width>
-         <height>0</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QTextEdit" name="pheno_details"/>
-     </item>
-    </layout>
-   </item>
-   <item row="1" column="1">
-    <widget class="QTableWidget" name="genes">
-     <property name="frameShape">
-      <enum>QFrame::StyledPanel</enum>
+   <item>
+    <widget class="QSplitter" name="splitter">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
      </property>
-     <property name="alternatingRowColors">
-      <bool>true</bool>
-     </property>
-     <property name="selectionMode">
-      <enum>QAbstractItemView::SingleSelection</enum>
-     </property>
-     <property name="selectionBehavior">
-      <enum>QAbstractItemView::SelectRows</enum>
-     </property>
-     <attribute name="verticalHeaderVisible">
+     <property name="childrenCollapsible">
       <bool>false</bool>
-     </attribute>
-     <column>
-      <property name="text">
-       <string>gene</string>
+     </property>
+     <widget class="QTextEdit" name="genes">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>longest transcript</string>
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
       </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>transcript size</string>
+      <property name="placeholderText">
+       <string>paste genes here (one per line)</string>
       </property>
-      <property name="toolTip">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;transcript size (CCDS+-5bp).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </widget>
+     <widget class="QTableWidget" name="details">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
       </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>gaps</string>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
       </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>gaps (%)</string>
+      <property name="alternatingRowColors">
+       <bool>true</bool>
       </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>CNVs detected</string>
+      <property name="selectionMode">
+       <enum>QAbstractItemView::SingleSelection</enum>
       </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>CNV regions missing</string>
+      <property name="selectionBehavior">
+       <enum>QAbstractItemView::SelectRows</enum>
       </property>
-     </column>
+      <attribute name="verticalHeaderVisible">
+       <bool>false</bool>
+      </attribute>
+      <column>
+       <property name="text">
+        <string>gene</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>longest transcript</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>transcript size</string>
+       </property>
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;transcript size (CCDS+-5bp).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>gaps</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>gaps (%)</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>CNVs detected</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>CNV regions missing</string>
+       </property>
+      </column>
+     </widget>
     </widget>
    </item>
-   <item row="2" column="1">
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <property name="spacing">
       <number>3</number>
      </property>
+     <item>
+      <widget class="QPushButton" name="update_btn">
+       <property name="text">
+        <string>update</string>
+       </property>
+      </widget>
+     </item>
      <item>
       <spacer name="horizontalSpacer_2">
        <property name="orientation">
@@ -146,7 +167,7 @@
      </item>
     </layout>
    </item>
-   <item row="3" column="0" colspan="2">
+   <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -158,14 +179,6 @@
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>PhenotypeSelector</class>
-   <extends>QWidget</extends>
-   <header>PhenotypeSelector.h</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections>
   <connection>

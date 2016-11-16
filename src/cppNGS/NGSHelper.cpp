@@ -482,7 +482,27 @@ QString NGSHelper::Cigar2QString(std::vector<CigarOp> Cigar)
 	return cigar_string;
 }
 
-/*start and end position 1-based*/
+QStringList NGSHelper::textToGenes(QString text, int col_index)
+{
+	QStringList output;
+
+	QStringList lines = text.split('\n');
+	foreach(QString line, lines)
+	{
+		QStringList parts = line.split('\t');
+		if (col_index<parts.count())
+		{
+			QString gene = parts[col_index].trimmed();
+			if (!gene.isEmpty())
+			{
+				output.append(gene);
+			}
+		}
+	}
+
+	return output;
+}
+
 void NGSHelper::softClipAlignment(BamAlignment& al, int start_ref_pos, int end_ref_pos)
 {
 	std::vector<CigarOp> old_CIGAR = al.CigarData;

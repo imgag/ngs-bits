@@ -3,6 +3,7 @@
 #include "ReportWorker.h"
 #include "Helper.h"
 #include "NGSD.h"
+#include "NGSHelper.h"
 #include <QDebug>
 #include <QFileInfo>
 #include <QMessageBox>
@@ -13,11 +14,12 @@ GeneSelectorDialog::GeneSelectorDialog(QString bam_file, QWidget* parent)
 	, bam_file_(bam_file)
 {
 	ui->setupUi(this);
-	ui->pheno->setDetailsWidget(ui->pheno_details);
+	ui->splitter->setStretchFactor(0, 1);
+	ui->splitter->setStretchFactor(1, 3);
 
-	connect(ui->pheno, SIGNAL(phenotypeActivated(QString)), this, SLOT(updateGeneTable(QString)));
-	connect(ui->genes, SIGNAL(cellChanged(int,int)), this, SLOT(geneTableItemChanged(int, int)));
-	connect(ui->genes, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(geneDoubleClicked(QTableWidgetItem*)));
+	connect(ui->update_btn, SIGNAL(pressed()), this, SLOT(updateGeneTable()));
+	connect(ui->details, SIGNAL(cellChanged(int,int)), this, SLOT(geneTableItemChanged(int, int)));
+	connect(ui->details, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(geneDoubleClicked(QTableWidgetItem*)));
 }
 
 GeneSelectorDialog::~GeneSelectorDialog()
@@ -25,19 +27,18 @@ GeneSelectorDialog::~GeneSelectorDialog()
 	delete ui;
 }
 
-void GeneSelectorDialog::updateGeneTable(QString phenotype)
+void GeneSelectorDialog::updateGeneTable()
 {
-	//clear genes
-	ui->genes->clearContents();
-	if (phenotype=="") return;
+	//clear details
+	ui->details->clearContents();
+
+	//convert input to gene list
+	QStringList genes = NGSHelper::textToGenes(ui->genes->toPlainText());
+	if (genes.isEmpty()) return;
 
 	//set cursor
 	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-	ui->genes->blockSignals(true); //otherwise itemChanged is emitted
-
-	//get gene list
-	NGSD db;
-	QStringList genes = db.phenotypeToGenes(phenotype, true);
+	ui->details->blockSignals(true); //otherwise itemChanged is emitted
 
 	//check for CNA results
 	QString folder = QFileInfo(bam_file_).absolutePath();
@@ -73,32 +74,40 @@ void GeneSelectorDialog::updateGeneTable(QString phenotype)
 	files = Helper::findFiles(folder, "*_lowcov.bed", false);
 	if(files.count()!=1)
 	{
-		QMessageBox::warning(this, "Gene selection error", "Low-coverage BED file not found in " + folder);
+		updateError("Gene selection error", "Low-coverage BED file not found in " + folder);
 		return;
 	}
 	BedFile sys_gaps;
 	sys_gaps.load(files[0]);
 
 	//load processing system target region
+	NGSD db;
 	QString sys_file = db.getProcessingSystem(bam_file_, NGSD::FILE);
 	if (sys_file=="")
 	{
-		QMessageBox::warning(this, "Gene selection error", "Low-coverage BED file not found in " + folder);
+
+		updateError("Gene selection error", "Processing system target region BED file not found in " + folder);
 		return;
 	}
 	BedFile sys_roi;
 	sys_roi.load(sys_file);
 
 	//display genes
-	ui->genes->setRowCount(genes.count());
+	ui->details->setRowCount(genes.count());
 	for (int r=0; r<genes.count(); ++r)
 	{
-		//gene
+		//convert gene to approved symbol
 		QString gene = genes[r];
+		int gene_id = db.geneToApprovedID(gene);
+		if(gene_id==-1)
+		{
+			updateError("Gene selection error", "Gene symbol '" + gene + "' is not an approved symbol!");
+			return;
+		}
+		gene = db.geneSymbol(gene_id);
 		setGeneTableItem(r, 0, gene, Qt::AlignLeft, Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
 
 		//transcript
-		int gene_id = db.geneToApprovedID(gene);
 		QString transcript;
 		BedFile region;
 		Chromosome chr;
@@ -174,12 +183,12 @@ void GeneSelectorDialog::updateGeneTable(QString phenotype)
 	}
 
 	//resize
-	ui->genes->resizeColumnsToContents();
-	ui->genes->resizeRowsToContents();
+	ui->details->resizeColumnsToContents();
+	ui->details->resizeRowsToContents();
 
 	//reset cursor
 	QApplication::restoreOverrideCursor();
-	ui->genes->blockSignals(false);
+	ui->details->blockSignals(false);
 	updateSelectedGenesStatistics();
 }
 
@@ -195,7 +204,7 @@ void GeneSelectorDialog::geneDoubleClicked(QTableWidgetItem* item)
 {
 	if (item==nullptr) return;
 
-	emit openRegionInIGV(ui->genes->item(item->row(), 0)->text());
+	emit openRegionInIGV(ui->details->item(item->row(), 0)->text());
 }
 
 QString GeneSelectorDialog::report()
@@ -216,13 +225,13 @@ QString GeneSelectorDialog::report()
 	stream << "#gene\ttranscript\tsize\tgaps\n";
 	long sum = 0;
 	long gaps = 0;
-	for (int r=0; r<ui->genes->rowCount(); ++r)
+	for (int r=0; r<ui->details->rowCount(); ++r)
 	{
-		if (ui->genes->item(r, 0)->checkState() == Qt::Checked)
+		if (ui->details->item(r, 0)->checkState() == Qt::Checked)
 		{
-			stream << ui->genes->item(r, 0)->text() << "\t" << ui->genes->item(r, 1)->text() << "\t" << ui->genes->item(r, 2)->text() << "\t" << ui->genes->item(r, 3)->text() << "\n";
-			sum += ui->genes->item(r, 2)->text().toInt();
-			gaps += ui->genes->item(r, 3)->text().toInt();
+			stream << ui->details->item(r, 0)->text() << "\t" << ui->details->item(r, 1)->text() << "\t" << ui->details->item(r, 2)->text() << "\t" << ui->details->item(r, 3)->text() << "\n";
+			sum += ui->details->item(r, 2)->text().toInt();
+			gaps += ui->details->item(r, 3)->text().toInt();
 		}
 	}
 
@@ -236,11 +245,11 @@ QString GeneSelectorDialog::report()
 	//selected genes for CNA
 	stream << "Genes selected for CNV analysis:\n";
 	stream << "#gene\ttranscript\tCNVs detected\tCNV regions missing\n";;
-	for (int r=0; r<ui->genes->rowCount(); ++r)
+	for (int r=0; r<ui->details->rowCount(); ++r)
 	{
-		if (ui->genes->item(r, 5)->checkState() == Qt::Checked)
+		if (ui->details->item(r, 5)->checkState() == Qt::Checked)
 		{
-			stream << ui->genes->item(r, 0)->text() << "\t" << ui->genes->item(r, 1)->text() << "\t" << ui->genes->item(r, 5)->text() << "\t" << ui->genes->item(r, 6)->text() << "\n";
+			stream << ui->details->item(r, 0)->text() << "\t" << ui->details->item(r, 1)->text() << "\t" << ui->details->item(r, 5)->text() << "\t" << ui->details->item(r, 6)->text() << "\n";
 		}
 	}
 
@@ -260,7 +269,7 @@ void GeneSelectorDialog::setGeneTableItem(int row, int col, QString text, int al
 
 	item->setTextAlignment(Qt::AlignVCenter|alignment);
 
-	ui->genes->setItem(row, col, item);
+	ui->details->setItem(row, col, item);
 }
 
 void GeneSelectorDialog::updateSelectedGenesStatistics()
@@ -269,18 +278,32 @@ void GeneSelectorDialog::updateSelectedGenesStatistics()
 	long sum = 0;
 	long gaps = 0;
 	int sel_cnv = 0;
-	for (int r=0; r<ui->genes->rowCount(); ++r)
+	for (int r=0; r<ui->details->rowCount(); ++r)
 	{
-		if (ui->genes->item(r, 0)->checkState() == Qt::Checked)
+		if (ui->details->item(r, 0)->checkState() == Qt::Checked)
 		{
 			++sel_var;
-			sum += ui->genes->item(r, 2)->text().toInt();
-			gaps += ui->genes->item(r, 3)->text().toInt();
+			sum += ui->details->item(r, 2)->text().toInt();
+			gaps += ui->details->item(r, 3)->text().toInt();
 		}
-		if (ui->genes->item(r, 5)->checkState() == Qt::Checked)
+		if (ui->details->item(r, 5)->checkState() == Qt::Checked)
 		{
 			++sel_cnv;
 		}
 	}
 	ui->selection_details->setText("Gene for variant analysis: " + QString::number(sel_var) + " - base sum: " + QString::number(sum) + " - gap sum: " + QString::number(gaps) + "  //  Genes for CNA: " + QString::number(sel_cnv));
+}
+
+void GeneSelectorDialog::updateError(QString title, QString text)
+{
+	//show warning
+	QMessageBox::warning(this, title, text);
+
+	//reset content
+	ui->details->clearContents();
+	ui->details->setRowCount(0);
+
+	//clear cursor/block
+	QApplication::restoreOverrideCursor();
+	ui->details->blockSignals(false);
 }

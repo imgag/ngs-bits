@@ -24,7 +24,7 @@ signals:
 	void openRegionInIGV(QString gene);
 
 private slots:
-	void updateGeneTable(QString phenotype);
+	void updateGeneTable();
 	void geneTableItemChanged(int row, int col);
 	void geneDoubleClicked(QTableWidgetItem* item);
 
@@ -34,6 +34,7 @@ private:
 
 	void setGeneTableItem(int row, int col, QString text, int alignment = Qt::AlignLeft, Qt::ItemFlags flags = Qt::ItemIsEnabled);
 	void updateSelectedGenesStatistics();
+	void updateError(QString title, QString text);
 };
 
 #endif // GENESELECTORDIALOG_H
