@@ -184,27 +184,17 @@
    <item row="6" column="0">
     <widget class="QLabel" name="label_7">
      <property name="text">
-      <string>Source database:</string>
+      <string>Database:</string>
      </property>
     </widget>
    </item>
    <item row="6" column="1">
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
-      <widget class="QComboBox" name="source_db">
-       <property name="currentText">
-        <string>ccds</string>
+      <widget class="QCheckBox" name="fallback">
+       <property name="text">
+        <string>allow fallback to UCSC known genes database (if not CCDS transcript is defined)</string>
        </property>
-       <item>
-        <property name="text">
-         <string>ccds</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>ucsc</string>
-        </property>
-       </item>
       </widget>
      </item>
      <item>

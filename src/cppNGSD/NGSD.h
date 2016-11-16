@@ -90,7 +90,7 @@ public:
 	///Returns the genes overlapping a regions (extended by some bases)
 	QStringList genesOverlappingByExon(const Chromosome& chr, int start, int end, int extend=0);
 	///Returns the chromosomal regions corrsponding to the given genes. Messages about unknown gene symbols etc. are written to the steam, if given.
-	BedFile genesToRegions(QStringList genes, QString source, QString mode, QTextStream* messages = nullptr);
+	BedFile genesToRegions(QStringList genes, QString source, QString mode, bool fallback = false, QTextStream* messages = nullptr);
 	///Returns longest coding transcript name and region.
 	void longestCodingTranscript(int id, QString source, QString& name, BedFile& region, Chromosome& chr);
 
@@ -133,6 +133,8 @@ public:
 	QMap<QString, QString> getProcessingSystems(bool skip_systems_without_roi, bool windows_paths);
 	///Returns the genome build
 	QString getGenomeBuild(const QString& filename);
+	///Returns the gender of a processed sample
+	QString sampleGender(const QString& filename);
 	///Returns all QC terms of the sample
 	QCCollection getQCData(const QString& filename);
 	///Returns all values for a QC term (from sample of the same processing system)

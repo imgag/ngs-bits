@@ -31,6 +31,7 @@ public:
 		modes << "gene" << "exon";
 		addEnum("mode", "Mode: gene = start/end of gene, exon = start/end of all exons of all splice variants.", false, modes);
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true, true);
+		addFlag("fallback", "Allow fallback to all source databases, if not transcript for a gene is defined in the selected source database.");
 		addFlag("test", "Uses the test database instead of on the production database.");
 	}
 
@@ -39,13 +40,14 @@ public:
 		//init
 		QString source = getEnum("source");
 		QString mode = getEnum("mode");
+		bool fallback = getFlag("fallback");
 		QSharedPointer<QFile> infile = Helper::openFileForReading(getInfile("in"), true);
 		QStringList genes = Helper::loadTextFile(infile, true, '#', true);
 
 		//process
 		NGSD db(getFlag("test"));
 		QTextStream messages(stderr);
-		BedFile output = db.genesToRegions(genes, source, mode, &messages);
+		BedFile output = db.genesToRegions(genes, source, mode, fallback, &messages);
 
 		//store
 		output.store(getOutfile("out"));

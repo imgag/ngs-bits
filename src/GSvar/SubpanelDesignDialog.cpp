@@ -4,6 +4,7 @@
 #include "Settings.h"
 #include "Exceptions.h"
 #include "Helper.h"
+#include "NGSHelper.h"
 #include <QDebug>
 #include <QPushButton>
 #include <QFileInfo>
@@ -95,7 +96,7 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 
 	//check gene names
 	NGSD db;
-	genes = geneList();
+	genes = NGSHelper::textToGenes(ui->genes->toPlainText());
 	if (genes.size()==0)
 	{
 		showMessage("Genes are not set!", true);
@@ -149,7 +150,7 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 	//create target region
 	QString messages;
 	QTextStream stream(&messages);
-	regions = db.genesToRegions(genes, ui->source_db->currentText(), "exon", &stream);
+	regions = db.genesToRegions(genes, "ccds", "exon", ui->fallback->isChecked(), &stream);
 	if (messages!="")
 	{
 		showMessage(messages, true);
@@ -176,27 +177,6 @@ void SubpanelDesignDialog::storePanel()
 void SubpanelDesignDialog::disableStoreButton()
 {
 	ui->store->setEnabled(false);
-}
-
-QStringList SubpanelDesignDialog::geneList()
-{
-	QStringList output;
-
-	QStringList tmp = ui->genes->toPlainText().split('\n');
-	foreach (QString t, tmp)
-	{
-		//use only part before the first tab
-		int tab_pos  = t.indexOf('\t');
-		if (tab_pos!=-1)
-		{
-			t = t.left(tab_pos);
-		}
-
-		t = t.trimmed();
-		if (!t.isEmpty()) output.append(t);
-	}
-
-	return output;
 }
 
 QString SubpanelDesignDialog::getBedFilename()

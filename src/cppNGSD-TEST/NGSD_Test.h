@@ -71,6 +71,45 @@ private slots:
 		genes = db.genesOverlappingByExon("chr13", 205, 210, 6); //extend right
 		I_EQUAL(genes.count(), 1);
 		S_EQUAL(genes[0], "BRCA2");
+
+		//sampleGender
+		QString gender = db.sampleGender("NA12878_03");
+		S_EQUAL(gender, "female");
+
+		//genesToRegions
+		QString messages;
+		QTextStream stream(&messages);
+		BedFile regions;
+
+		messages.clear();
+		regions = db.genesToRegions(QStringList() << "BRCA1", "ccds", "gene", false, &stream); //gene mode, hit
+		I_EQUAL(regions.baseCount(), 101);
+		IS_TRUE(messages.isEmpty());
+
+		messages.clear();
+		regions = db.genesToRegions(QStringList() << "NIPA1", "ccds", "gene", false, &stream); //gene mode, no hit
+		I_EQUAL(regions.baseCount(), 0);
+		IS_FALSE(messages.isEmpty());
+
+		messages.clear();
+		regions = db.genesToRegions(QStringList() << "NIPA1", "ccds", "gene", true, &stream); //gene mode, no hit, fallback
+		I_EQUAL(regions.baseCount(), 301);
+		IS_TRUE(messages.isEmpty());
+
+		messages.clear();
+		regions = db.genesToRegions(QStringList() << "BRCA1", "ccds", "exon", false, &stream); //exon mode, hit
+		I_EQUAL(regions.baseCount(), 44);
+		IS_TRUE(messages.isEmpty());
+
+		messages.clear();
+		regions = db.genesToRegions(QStringList() << "NIPA1", "ccds", "exon", false, &stream); //exon mode, no hit
+		I_EQUAL(regions.baseCount(), 0);
+		IS_FALSE(messages.isEmpty());
+
+		messages.clear();
+		regions = db.genesToRegions(QStringList() << "NIPA1", "ccds", "exon", true, &stream); //exon mode, no hit, fallback
+		I_EQUAL(regions.baseCount(), 202);
+		IS_TRUE(messages.isEmpty());
 	}
 
 	//Test for debugging (without initialization because of speed)

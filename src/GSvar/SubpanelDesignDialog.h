@@ -29,7 +29,6 @@ protected slots:
 private:
 	void loadProcessingSystems();
 	void createSubpanelCompleter();
-	QStringList geneList();
 	QString getBedFilename();
 	QString getBedFilenameArchive();
 	void showMessage(QString message, bool error);

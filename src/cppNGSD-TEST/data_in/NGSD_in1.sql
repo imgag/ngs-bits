@@ -9,7 +9,7 @@ INSERT INTO `project` (`id`, `name`, `type`, `internal_coordinator_id`, `analysi
 
 INSERT INTO `sequencing_run` (`id`, `name`, `fcid`, `device_id`, `recipe`, `status`) VALUES (1, '#00372', 'AB2J9', 1, '158+8+158', 'analysis_finished');
 
-INSERT INTO `sample` (`id`, `name`, `sample_type`, `species_id`, `gender`, `quality`, `tumor`, `ffpe`, `sender_id`) VALUES (1, 'NA12878', 'DNA', 1, 'n/a', 'good', 0 ,0, 1);
+INSERT INTO `sample` (`id`, `name`, `sample_type`, `species_id`, `gender`, `quality`, `tumor`, `ffpe`, `sender_id`) VALUES (1, 'NA12878', 'DNA', 1, 'female', 'good', 0 ,0, 1);
 
 INSERT INTO `processing_system` (`id`, `name_short`, `name_manufacturer`, `adapter1_p5`, `adapter2_p7`, `type`, `shotgun`, `target_file`, `genome_id`) VALUES (1, 'hpHBOCv5', 'HaloPlex HBOC v5', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC ', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel HaloPlex', 0, '/mnt/share/data/enrichment/hpHBOCv5_2014_10_27.bed', 1);
 
@@ -17,9 +17,11 @@ INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_
 
 INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `chromosome`, `type`) VALUES (1,1001,'BRCA1','Breast cancer associated gene 1', '17', 'protein-coding gene');
 INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `chromosome`, `type`) VALUES (2,1002,'BRCA2','Breast cancer associated gene 2', '13', 'protein-coding gene');
+INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `chromosome`, `type`) VALUES (3,1003, 'NIPA1', 'non imprinted in Prader-Willi/Angelman syndrome 1', '15', 'protein-coding gene');
 
 INSERT INTO `gene_transcript`(`id`, `gene_id`, `name`, `source`, `start_coding`, `end_coding`, `strand`) VALUES (1, 1,'BRCA1_TR1','ccds',100,200,'+');
 INSERT INTO `gene_transcript`(`id`, `gene_id`, `name`, `source`, `start_coding`, `end_coding`, `strand`) VALUES (2, 2,'BRCA2_TR1','ccds',100,200,'+');
+INSERT INTO `gene_transcript`(`id`, `gene_id`, `name`, `source`, `start_coding`, `end_coding`, `strand`) VALUES (3, 3,'NIPA1_TR1','ucsc',100,400,'+');
 
 INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (1, 100, 110);
 INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (1, 120, 130);
@@ -27,6 +29,8 @@ INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (1, 160, 170);
 INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (1, 190, 200);
 INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (2, 100, 120);
 INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (2, 180, 200);
+INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (3, 100, 200);
+INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (3, 300, 400);
 
 INSERT INTO `variant` (`id`, `chr`, `start`, `end`, `ref`, `obs`, `dbsnp`, `1000g`, `exac`, `kaviar`, `gene`, `variant_type`, `coding`, `genome_id`) VALUES
 (6, 'chr10', 43613843, 43613843, 'G', 'T', 'rs1800861', 0.7125, 0.742, 0.7653, 'RET', 'synonymous', 'RET:NM_020975.4:synonymous:LOW:exon13/20:c.2307G>T:p.Leu769Leu,RET:NM_020630.4:synonymous:LOW:exon13/19:c.2307G>T:p.Leu769Leu', 1),
