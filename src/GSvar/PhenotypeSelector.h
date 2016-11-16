@@ -5,6 +5,7 @@
 #include <QListWidgetItem>
 #include <QTextEdit>
 #include "NGSD.h"
+#include "Phenotype.h"
 
 namespace Ui {
 class PhenotypeSelector;
@@ -26,8 +27,8 @@ public:
 	///Initializes the widget with all phenotypes
 	void init();
 
-	///Returns HTML-formatted details for the currently selected item.
-	QString selectedItemDetails(bool show_name, bool show_genes);
+	///Returns the selected phenotype
+	Phenotype selectedPhenotype() const;
 
 signals:
 	///Signal that a new item was clicked (mainly to update details).
@@ -41,6 +42,9 @@ private slots:
 	void itemActivated(QListWidgetItem* item);
 
 private:
+	///Returns HTML-formatted details for the currently selected item.
+	QString selectedItemDetails(bool show_name, bool show_genes);
+
 	Ui::PhenotypeSelector *ui;
 	QTextEdit* details_;
 	NGSD db_;

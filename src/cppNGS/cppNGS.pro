@@ -48,7 +48,9 @@ SOURCES += BedFile.cpp \
     StatisticsReads.cpp \
     ChromosomeInfo.cpp \
     SampleCorrelation.cpp \
-    CnvList.cpp
+    CnvList.cpp \
+    LovdUploadFile.cpp \
+    Phenotype.cpp
 
 HEADERS += BedFile.h \
 	Chromosome.h \
@@ -67,7 +69,9 @@ HEADERS += BedFile.h \
     Sequence.h \
     ChromosomeInfo.h \
     SampleCorrelation.h \
-    CnvList.h
+    CnvList.h \
+    LovdUploadFile.h \
+    Phenotype.h
 
 
 RESOURCES += \

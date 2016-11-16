@@ -50,6 +50,8 @@ public:
 	void copyToClipboard(bool split_quality);
 	///Returns 'nobr' paragraph start for Qt tooltips
 	static QString nobr();
+	///Upload variant to LOVD
+	void uploadtoLovd(int variant_index);
 
 
 public slots:

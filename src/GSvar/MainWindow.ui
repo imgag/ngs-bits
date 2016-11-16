@@ -135,8 +135,6 @@
      </widget>
      <addaction name="actionGeneInfo"/>
      <addaction name="actionConvertHgnc"/>
-     <addaction name="separator"/>
-     <addaction name="actionPhenoToGenes"/>
      <addaction name="actionGenesToRegions"/>
      <addaction name="separator"/>
      <addaction name="menuPreferred_transcripts"/>
@@ -148,7 +146,14 @@
      <addaction name="actionDesignSubpanel"/>
      <addaction name="actionArchiveSubpanel"/>
     </widget>
+    <widget class="QMenu" name="menuPhenotypes">
+     <property name="title">
+      <string>Phenotypes</string>
+     </property>
+     <addaction name="actionPhenoToGenes"/>
+    </widget>
     <addaction name="menuGenes"/>
+    <addaction name="menuPhenotypes"/>
     <addaction name="menuPanels"/>
     <addaction name="separator"/>
     <addaction name="menuFileInfo"/>

@@ -29,5 +29,6 @@
         <file>Icons/Question.png</file>
         <file>Icons/CopyNumber.png</file>
         <file>Icons/List.png</file>
+        <file>Icons/LOVD.png</file>
     </qresource>
 </RCC>

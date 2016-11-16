@@ -42,6 +42,8 @@
 #include "GapDialog.h"
 #include "CnvWidget.h"
 #include "GeneSelectorDialog.h"
+#include "LovdUploadFile.h"
+#include "PhenotypeSelector.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -1120,6 +1122,22 @@ QString MainWindow::nobr()
 	return "<p style='white-space:pre; margin:0; padding:0;'>";
 }
 
+void MainWindow::uploadtoLovd(int variant_index)
+{
+	QString sample = QFileInfo(filename_).baseName();
+	NGSD db;
+	QString gender = db.sampleGender(sample);
+
+	PhenotypeSelector p_sel;
+	bool ok = GUIHelper::showWidgetAsDialog(&p_sel, "Select patient phenotype", true);
+	Phenotype pheno = p_sel.selectedPhenotype();
+	if (!ok || pheno.name().isEmpty()) return;
+
+	QString upload_file = LovdUploadFile::create(sample, gender, pheno, variants_, variant_index);
+	QApplication::clipboard()->setText(upload_file);
+	QMessageBox::information(this, "LOVD upload", "JSON upload file was copied to clipboard!");
+}
+
 void MainWindow::dragEnterEvent(QDragEnterEvent* e)
 {
 	if (!e->mimeData()->hasFormat("text/uri-list")) return;
@@ -1342,6 +1360,11 @@ void MainWindow::varsContextMenu(QPoint pos)
 	action = menu.addAction(QIcon("://Icons/PrimerDesign.png"), "PrimerDesign");
 	action->setEnabled(primerdesign_enabled);
 
+	/* TODO
+	action = menu.addAction(QIcon(":/Icons/LOVD.png"), "Publish in LOVD");
+	action->setEnabled(ngsd_enabled);
+	*/
+
 	//Execute menu
 	action = menu.exec(ui_.vars->viewport()->mapToGlobal(pos));
 	if (!action) return;
@@ -1458,6 +1481,18 @@ void MainWindow::varsContextMenu(QPoint pos)
 		catch (Exception& e)
 		{
 			GUIHelper::showMessage("NGSD error", "Error while processing'"  + filename_ + "'!\nError message: " + e.message());
+			return;
+		}
+	}
+	else if (text=="Publish in LOVD")
+	{
+		try
+		{
+			uploadtoLovd(item->row());
+		}
+		catch (Exception& e)
+		{
+			GUIHelper::showMessage("LOVD upload error", "Error while uploading variant to LOVD: " + e.message());
 			return;
 		}
 	}

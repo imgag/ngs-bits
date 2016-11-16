@@ -49,6 +49,24 @@ void PhenotypeSelector::search(QString text)
 	}
 }
 
+Phenotype PhenotypeSelector::selectedPhenotype() const
+{
+	Phenotype pheno;
+	QListWidgetItem* item = ui->list->currentItem();
+	if (item==nullptr) return pheno;
+
+	//name
+	pheno.setName(item->text());
+
+	//accession
+	SqlQuery query = db_.getQuery();
+	query.exec("SELECT hpo_id FROM hpo_term WHERE name='" + pheno.name() + "'");
+	query.next();
+	pheno.setAccession(query.value(0).toString());
+
+	return pheno;
+}
+
 void PhenotypeSelector::itemChanged(QListWidgetItem* item)
 {
 	//update details
