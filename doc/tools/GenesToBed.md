@@ -1,5 +1,5 @@
 ### GenesToBed tool help
-	GenesToBed (0.1-420-g3536bb0)
+	GenesToBed (0.1-563-g5bbcca6)
 	
 	Converts a text file with gene names to a BED file.
 	
@@ -14,6 +14,8 @@
 	                 Default value: ''
 	  -out <file>    Output BED file. If unset, writes to STDOUT.
 	                 Default value: ''
+	  -fallback      Allow fallback to all source databases, if not transcript for a gene is defined in the selected source database.
+	                 Default value: 'false'
 	  -test          Uses the test database instead of on the production database.
 	                 Default value: 'false'
 	
@@ -24,6 +26,6 @@
 	  --tdx          Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### GenesToBed changelog
-	GenesToBed 0.1-420-g3536bb0
+	GenesToBed 0.1-563-g5bbcca6
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

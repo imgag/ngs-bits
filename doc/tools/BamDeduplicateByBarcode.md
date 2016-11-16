@@ -1,16 +1,14 @@
 ### BamDeduplicateByBarcode tool help
-	BamDeduplicateByBarcode (0.1-420-g3536bb0)
+	BamDeduplicateByBarcode (0.1-563-g5bbcca6)
 	
 	Removes duplicates from a bam file based on a molecular barcode file.
 	
 	Mandatory parameters:
 	  -bam <file>           Input BAM file.
-	  -index <file>         Index FASTQ file.
+	  -index <file>         FASTQ file containing the molecular barcode sequences.
 	  -out <file>           Output BAM file.
 	
 	Optional parameters:
-	  -flag                 flag duplicate reads insteadt of deleting them
-	                        Default value: 'false'
 	  -test                 adjust output for testing purposes
 	                        Default value: 'false'
 	  -min_group <int>      minimal numbers of reads to keep a barcode group.
@@ -19,7 +17,7 @@
 	                        Default value: '0'
 	  -mip_file <file>      input file for MIPS (reads are filtered and cut to match only MIP inserts).
 	                        Default value: ''
-	  -hs_file <file>       input file for Haloplex HS amplicons (reads are filtered to match only amplicons).
+	  -hs_file <file>       Agilent's Haloplex HS _amplicons.bed file.
 	                        Default value: ''
 	  -stats <file>         Output TSV file for statistics).
 	                        Default value: ''
@@ -35,6 +33,6 @@
 	  --tdx                 Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BamDeduplicateByBarcode changelog
-	BamDeduplicateByBarcode 0.1-420-g3536bb0
+	BamDeduplicateByBarcode 0.1-563-g5bbcca6
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

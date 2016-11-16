@@ -1,7 +1,7 @@
 ### CnvHunter tool help
-	CnvHunter (0.1-543-gbfdc1f2)
+	CnvHunter (0.1-563-g5bbcca6)
 	
-	Detects copy number variations from targeted resequencing data using non-matched control samples.
+	CNV detection from targeted resequencing data using non-matched control samples.
 	
 	Mandatory parameters:
 	  -in <filelist>         Input TSV files (one per sample) containing coverage data (chr, start, end, avg_depth).
@@ -46,9 +46,9 @@
 	  --tdx                  Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### CnvHunter changelog
-	CnvHunter 0.1-543-gbfdc1f2
+	CnvHunter 0.1-563-g5bbcca6
 	
-	2016-10-24 Added variant size to TSV output and optional SEG output file.
+	2016-10-24 Added copy-number variant size to TSV output and added optional SEG output file.
 	2016-09-01 Sample and region information files are now always written.
 	2016-08-23 Added merging of large CNVs that were split to several regions due to noise.
 	2016-08-21 Improved log output (to make parameter optimization easier).
