@@ -104,7 +104,7 @@
         <string>transcript size</string>
        </property>
        <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;transcript size (CCDS+-5bp).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;transcript size (exons +-5 bases flanking regions)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </column>
       <column>

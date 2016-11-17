@@ -184,7 +184,7 @@
    <item row="6" column="0">
     <widget class="QLabel" name="label_7">
      <property name="text">
-      <string>Database:</string>
+      <string>DB fallback:</string>
      </property>
     </widget>
    </item>
@@ -193,7 +193,7 @@
      <item>
       <widget class="QCheckBox" name="fallback">
        <property name="text">
-        <string>allow fallback to UCSC known genes database (if not CCDS transcript is defined)</string>
+        <string>allow fallback to UCSC known genes database, if not CCDS transcript is defined</string>
        </property>
       </widget>
      </item>

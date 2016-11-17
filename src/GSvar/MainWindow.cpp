@@ -926,7 +926,10 @@ void MainWindow::on_actionShowTranscripts_triggered()
 	{
 		text += it.key() + "\t" + it.value() + "\n";
 	}
-	GUIHelper::showWidgetAsDialog(new QTextEdit(text + "</pre>"), "Preferred transcripts list", false);
+	text += "</pre>";
+	QTextEdit* edit = new QTextEdit(text);
+	GUIHelper::showWidgetAsDialog(edit, "Preferred transcripts list", false);
+	edit->deleteLater();
 }
 
 void MainWindow::on_actionImportTranscripts_triggered()

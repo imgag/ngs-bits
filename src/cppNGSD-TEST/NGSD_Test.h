@@ -82,34 +82,96 @@ private slots:
 		BedFile regions;
 
 		messages.clear();
-		regions = db.genesToRegions(QStringList() << "BRCA1", "ccds", "gene", false, &stream); //gene mode, hit
+		regions = db.genesToRegions(QStringList() << "BRCA1", Transcript::CCDS, "gene", false, &stream); //gene mode, hit
 		I_EQUAL(regions.baseCount(), 101);
 		IS_TRUE(messages.isEmpty());
 
 		messages.clear();
-		regions = db.genesToRegions(QStringList() << "NIPA1", "ccds", "gene", false, &stream); //gene mode, no hit
+		regions = db.genesToRegions(QStringList() << "NIPA1", Transcript::CCDS, "gene", false, &stream); //gene mode, no hit
 		I_EQUAL(regions.baseCount(), 0);
 		IS_FALSE(messages.isEmpty());
 
 		messages.clear();
-		regions = db.genesToRegions(QStringList() << "NIPA1", "ccds", "gene", true, &stream); //gene mode, no hit, fallback
+		regions = db.genesToRegions(QStringList() << "NIPA1", Transcript::CCDS, "gene", true, &stream); //gene mode, no hit, fallback
 		I_EQUAL(regions.baseCount(), 301);
 		IS_TRUE(messages.isEmpty());
 
 		messages.clear();
-		regions = db.genesToRegions(QStringList() << "BRCA1", "ccds", "exon", false, &stream); //exon mode, hit
+		regions = db.genesToRegions(QStringList() << "BRCA1", Transcript::CCDS, "exon", false, &stream); //exon mode, hit
 		I_EQUAL(regions.baseCount(), 44);
 		IS_TRUE(messages.isEmpty());
 
 		messages.clear();
-		regions = db.genesToRegions(QStringList() << "NIPA1", "ccds", "exon", false, &stream); //exon mode, no hit
+		regions = db.genesToRegions(QStringList() << "NIPA1", Transcript::CCDS, "exon", false, &stream); //exon mode, no hit
 		I_EQUAL(regions.baseCount(), 0);
 		IS_FALSE(messages.isEmpty());
 
 		messages.clear();
-		regions = db.genesToRegions(QStringList() << "NIPA1", "ccds", "exon", true, &stream); //exon mode, no hit, fallback
+		regions = db.genesToRegions(QStringList() << "NIPA1", Transcript::CCDS, "exon", true, &stream); //exon mode, no hit, fallback
+		I_EQUAL(regions.baseCount(), 304);
+		regions.merge(); //serveral tarnsc
 		I_EQUAL(regions.baseCount(), 202);
 		IS_TRUE(messages.isEmpty());
+
+		//transcripts
+		QList<Transcript> transcripts = db.transcripts(1, Transcript::CCDS, true); //BRCA1, CCDS, coding
+		I_EQUAL(transcripts.count(), 1);
+		S_EQUAL(transcripts[0].name(), "BRCA1_TR1");
+		I_EQUAL(transcripts[0].strand(), Transcript::PLUS);
+		I_EQUAL(transcripts[0].source(), Transcript::CCDS);
+		I_EQUAL(transcripts[0].regions().count(), 4);
+		I_EQUAL(transcripts[0].regions().baseCount(), 44);
+
+		transcripts = db.transcripts(3, Transcript::UCSC, true); //NIPA1, UCSC, coding
+		I_EQUAL(transcripts.count(), 2);
+		S_EQUAL(transcripts[0].name(), "NIPA1_TR1");
+		I_EQUAL(transcripts[0].strand(), Transcript::MINUS);
+		I_EQUAL(transcripts[0].source(), Transcript::UCSC);
+		I_EQUAL(transcripts[0].regions().count(), 2);
+		I_EQUAL(transcripts[0].regions().baseCount(), 202);
+		S_EQUAL(transcripts[1].name(), "NIPA1_TR2");
+		I_EQUAL(transcripts[1].strand(), Transcript::MINUS);
+		I_EQUAL(transcripts[1].source(), Transcript::UCSC);
+		I_EQUAL(transcripts[1].regions().count(), 2);
+		I_EQUAL(transcripts[1].regions().baseCount(), 102);
+
+		transcripts = db.transcripts(3, Transcript::UCSC, false); //NIPA1, UCSC, non-coding
+		I_EQUAL(transcripts.count(), 2);
+		S_EQUAL(transcripts[0].name(), "NIPA1_TR1");
+		I_EQUAL(transcripts[0].strand(), Transcript::MINUS);
+		I_EQUAL(transcripts[0].source(), Transcript::UCSC);
+		I_EQUAL(transcripts[0].regions().count(), 2);
+		I_EQUAL(transcripts[0].regions().baseCount(), 202);
+		S_EQUAL(transcripts[1].name(), "NIPA1_TR2");
+		I_EQUAL(transcripts[1].strand(), Transcript::MINUS);
+		I_EQUAL(transcripts[1].source(), Transcript::UCSC);
+		I_EQUAL(transcripts[1].regions().count(), 4);
+		I_EQUAL(transcripts[1].regions().baseCount(), 224);
+
+		transcripts = db.transcripts(4, Transcript::UCSC, true); //NON-CODING, UCSC, coding
+		I_EQUAL(transcripts.count(), 0);
+
+		transcripts = db.transcripts(4, Transcript::UCSC, false); //NON-CODING, UCSC, non-coding
+		I_EQUAL(transcripts.count(), 1);
+		S_EQUAL(transcripts[0].name(), "NON-CODING_TR1");
+		I_EQUAL(transcripts[0].regions().count(), 2);
+		I_EQUAL(transcripts[0].regions().baseCount(), 202);
+
+		//longestCodingTranscript
+		Transcript transcript = db.longestCodingTranscript(4, Transcript::UCSC); //NON-CODING, zero transcripts
+		IS_FALSE(transcript.isValid());
+
+		transcript = db.longestCodingTranscript(1, Transcript::CCDS); //BRCA1, one transcript
+		IS_TRUE(transcript.isValid());
+		S_EQUAL(transcript.name(), "BRCA1_TR1");
+		I_EQUAL(transcript.regions().count(), 4);
+		I_EQUAL(transcript.regions().baseCount(), 44);
+
+		transcript = db.longestCodingTranscript(3, Transcript::UCSC); //NIPA1, two transcripts
+		IS_TRUE(transcript.isValid());
+		S_EQUAL(transcript.name(), "NIPA1_TR1");
+		I_EQUAL(transcript.regions().count(), 2);
+		I_EQUAL(transcript.regions().baseCount(), 202);
 	}
 
 	//Test for debugging (without initialization because of speed)

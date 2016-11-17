@@ -108,20 +108,18 @@ void GeneSelectorDialog::updateGeneTable()
 		setGeneTableItem(r, 0, gene, Qt::AlignLeft, Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
 
 		//transcript
-		QString transcript;
-		BedFile region;
-		Chromosome chr;
-		db.longestCodingTranscript(gene_id, "ccds", transcript, region, chr);
-		if (region.baseCount()==0) //fallback to UCSC when no CCDS transcript is defined for the gene
+		Transcript transcript = db.longestCodingTranscript(gene_id, Transcript::CCDS);
+		if (!transcript.isValid()) //fallback to UCSC when no CCDS transcript is defined for the gene
 		{
-			db.longestCodingTranscript(gene_id, "ucsc", transcript, region, chr);
+			transcript = db.longestCodingTranscript(gene_id, Transcript::UCSC);
 		}
-		setGeneTableItem(r, 1, transcript + " (" + QString::number(region.count()) + " exons)");
+		BedFile region = transcript.regions();
+		setGeneTableItem(r, 1, transcript.name() + " (" + QString::number(region.count()) + " exons)");
 
 		//size
 		region.extend(5);
 		region.merge();
-		int bases = region.baseCount();
+		long long bases = region.baseCount();
 		setGeneTableItem(r, 2, QString::number(bases), Qt::AlignRight);
 
 		//calculate gaps inside target region
@@ -133,7 +131,7 @@ void GeneSelectorDialog::updateGeneTable()
 		gaps.add(uncovered);
 		gaps.merge();
 		//output (absolute and percentage)
-		int gap_bases = gaps.baseCount();
+		long long gap_bases = gaps.baseCount();
 		setGeneTableItem(r, 3, QString::number(gap_bases), Qt::AlignRight);
 		setGeneTableItem(r, 4, QString::number(100.0 * gap_bases / bases, 'f', 2), Qt::AlignRight);
 

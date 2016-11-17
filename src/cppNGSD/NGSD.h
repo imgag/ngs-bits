@@ -8,6 +8,7 @@
 #include <QTextStream>
 #include "VariantList.h"
 #include "BedFile.h"
+#include "Transcript.h"
 #include "QCCollection.h"
 #include "SqlQuery.h"
 
@@ -89,10 +90,12 @@ public:
 	QStringList genesOverlapping(const Chromosome& chr, int start, int end, int extend=0);
 	///Returns the genes overlapping a regions (extended by some bases)
 	QStringList genesOverlappingByExon(const Chromosome& chr, int start, int end, int extend=0);
-	///Returns the chromosomal regions corrsponding to the given genes. Messages about unknown gene symbols etc. are written to the steam, if given.
-	BedFile genesToRegions(QStringList genes, QString source, QString mode, bool fallback = false, QTextStream* messages = nullptr);
-	///Returns longest coding transcript name and region.
-	void longestCodingTranscript(int id, QString source, QString& name, BedFile& region, Chromosome& chr);
+	///Returns the chromosomal regions corresponding to the given genes. Messages about unknown gene symbols etc. are written to the steam, if given.
+	BedFile genesToRegions(QStringList genes, Transcript::SOURCE source, QString mode, bool fallback = false, QTextStream* messages = nullptr);
+	///Returns transcripts of a gene (if @p coding_only is set, only coding transcripts and regions are returned).
+	QList<Transcript> transcripts(int gene_id, Transcript::SOURCE source, bool coding_only);
+	///Returns longest coding transcript of a gene.
+	Transcript longestCodingTranscript(int gene_id, Transcript::SOURCE source);
 
 	/*** phenotype handling (HPO) ***/
 	///Returns the phenotypes of a gene

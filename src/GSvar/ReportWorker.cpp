@@ -265,8 +265,8 @@ void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file
 	stream << "<p><b>Abdeckungsstatistik f&uuml;r CCDS</b></p>" << endl;
 	stream << "<table>";
 	stream << "<tr><td><b>Gen</b></td><td><b>Transcript</b></td><td><b>Gr&ouml;&szlig;e</b></td><td><b>L&uuml;cken</b></td><td><b>Chromosom</b></td><td><b>Koordinaten (hg19)</b></td></tr>";
-	int bases_overall = 0;
-	int bases_sequenced = 0;
+	long long bases_overall = 0;
+	long long bases_sequenced = 0;
 	foreach(const QString& gene, genes)
 	{
 		int gene_id = db.geneToApprovedID(gene);
@@ -275,28 +275,29 @@ void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file
 		QString symbol = db.geneSymbol(gene_id);
 
 		//longest coding transcript
-		QString transcript;
-		BedFile regions;
-		Chromosome chr;
-		db.longestCodingTranscript(gene_id, "ccds", transcript, regions, chr);
+		Transcript transcript = db.longestCodingTranscript(gene_id, Transcript::CCDS);
+		if (transcript.isValid()) //fallback to UCSC when no CCDS transcript is defined for the gene
+		{
+			transcript = db.longestCodingTranscript(gene_id, Transcript::UCSC);
+		}
 
 		//gaps
 		QString message;
-		BedFile gaps = precalculatedGaps(bam_file, regions, min_cov, db, message);
+		BedFile gaps = precalculatedGaps(bam_file, transcript.regions(), min_cov, db, message);
 		if (!message.isEmpty())
 		{
-			Log::warn("Low-coverage statistics for CCDS transcript " + transcript + " needs to be calculated. Pre-calulated gap file cannot be used because: " + message);
-			gaps = Statistics::lowCoverage(regions, bam_file, min_cov);
+			Log::warn("Low-coverage statistics for transcript " + transcript.name() + " needs to be calculated. Pre-calulated gap file cannot be used because: " + message);
+			gaps = Statistics::lowCoverage(transcript.regions(), bam_file, min_cov);
 		}
 
-		int bases_transcipt = regions.baseCount();
-		int bases_gaps = gaps.baseCount();
+		long long bases_transcipt = transcript.regions().baseCount();
+		long long bases_gaps = gaps.baseCount();
 		QStringList coords;
 		for (int i=0; i<gaps.count(); ++i)
 		{
 			coords << QString::number(gaps[i].start()) + "-" + QString::number(gaps[i].end());
 		}
-		stream << "<tr><td>" + symbol + "</td><td>" << transcript << "</td><td>" << bases_transcipt << "</td><td>" << bases_gaps << "</td><td>" << chr.strNormalized(true) << "</td><td>" << coords.join(", ") << "</td></tr>";
+		stream << "<tr><td>" + symbol + "</td><td>" << transcript.name() << "</td><td>" << bases_transcipt << "</td><td>" << bases_gaps << "</td><td>" << transcript.regions()[0].chr().strNormalized(true) << "</td><td>" << coords.join(", ") << "</td></tr>";
 		bases_overall += bases_transcipt;
 		bases_sequenced += bases_transcipt - bases_gaps;
 	}

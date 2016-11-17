@@ -38,7 +38,7 @@ public:
 	virtual void main()
 	{
 		//init
-		QString source = getEnum("source");
+		Transcript::SOURCE source = Transcript::stringToSource(getEnum("source"));
 		QString mode = getEnum("mode");
 		bool fallback = getFlag("fallback");
 		QSharedPointer<QFile> infile = Helper::openFileForReading(getInfile("in"), true);

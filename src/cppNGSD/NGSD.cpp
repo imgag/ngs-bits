@@ -1250,8 +1250,10 @@ QStringList NGSD::genesOverlappingByExon(const Chromosome& chr, int start, int e
 	return genes;
 }
 
-BedFile NGSD::genesToRegions(QStringList genes, QString source, QString mode, bool fallback, QTextStream* messages)
+BedFile NGSD::genesToRegions(QStringList genes, Transcript::SOURCE source, QString mode, bool fallback, QTextStream* messages)
 {
+	QString source_str = Transcript::sourceToString(source);
+
 	//check mode
 	QStringList valid_modes;
 	valid_modes << "gene" << "exon";
@@ -1260,19 +1262,12 @@ BedFile NGSD::genesToRegions(QStringList genes, QString source, QString mode, bo
 		THROW(ArgumentException, "Invalid mode '" + mode + "'. Valid modes are: " + valid_modes.join(", ") + ".");
 	}
 
-	//check source
-	QStringList valid_sources = getEnum("gene_transcript", "source");
-	if (!valid_sources.contains(source))
-	{
-		THROW(ArgumentException, "Invalid source '" + source + "'. Valid sources are: " + valid_sources.join(", ") + ".");
-	}
-
 	//init
 	BedFile output;
 
 	//prepare queries
 	SqlQuery q_transcript = getQuery();
-	q_transcript.prepare("SELECT id, start_coding, end_coding FROM gene_transcript WHERE source='" + source + "' AND gene_id=:1 AND start_coding IS NOT NULL");
+	q_transcript.prepare("SELECT id, start_coding, end_coding FROM gene_transcript WHERE source='" + source_str + "' AND gene_id=:1 AND start_coding IS NOT NULL");
 	SqlQuery q_transcript_fallback = getQuery();
 	q_transcript_fallback.prepare("SELECT id, start_coding, end_coding FROM gene_transcript WHERE gene_id=:1 AND start_coding IS NOT NULL");
 	SqlQuery q_exon = getQuery();
@@ -1333,7 +1328,7 @@ BedFile NGSD::genesToRegions(QStringList genes, QString source, QString mode, bo
 			{
 				if (messages)
 				{
-					*messages << "No coding transcripts found for gene gene '" + source + "'. Skipping it!" << endl;
+					*messages << "No coding transcripts found for gene gene '" + source_str + "'. Skipping it!" << endl;
 				}
 			}
 		}
@@ -1396,50 +1391,61 @@ BedFile NGSD::genesToRegions(QStringList genes, QString source, QString mode, bo
 	return output;
 }
 
-void NGSD::longestCodingTranscript(int id, QString source, QString& name, BedFile& region, Chromosome& chr)
+QList<Transcript> NGSD::transcripts(int gene_id, Transcript::SOURCE source, bool coding_only)
 {
-	name.clear();
-	region.clear();
-	chr = Chromosome();
+	QList<Transcript> output;
 
-	//check source
-	QStringList valid_sources = getEnum("gene_transcript", "source");
-	if (!valid_sources.contains(source)) THROW(ArgumentException, "Invalid source '" + source + "'. Valid sources are: " + valid_sources.join(", ") + ".");
+	//get chromosome
+	QString gene_id_str = QString::number(gene_id);
+	Chromosome chr = "chr" + getValue("SELECT chromosome FROM gene WHERE id='" + gene_id_str + "'").toString();
 
-	//find transcript with maximal size
-	QString max_name = "";
-	int max = -1;
-	QHash<QString, int> sizes;
+	//get transcripts
 	SqlQuery query = getQuery();
-	query.exec("SELECT gt.name, e.start, e.end FROM gene_transcript gt, gene_exon e WHERE gt.gene_id=" + QString::number(id) + " AND e.transcript_id=gt.id AND gt.source='" + source + "' AND gt.start_coding IS NOT NULL");
+	query.exec("SELECT id, name, start_coding, end_coding, strand FROM gene_transcript WHERE gene_id=" + gene_id_str + " AND source='" + Transcript::sourceToString(source) + "' " + (coding_only ? "AND start_coding IS NOT NULL AND end_coding IS NOT NULL" : "") + " ORDER BY name");
 	while(query.next())
 	{
-		QString name = query.value(0).toString();
-		int size_new  = query.value(2).toUInt() - query.value(1).toUInt() + 1 + sizes[name];
-		sizes[name] = size_new;
+		//get base information
+		Transcript transcript;
+		transcript.setName(query.value(1).toString());
+		transcript.setSource(source);
+		transcript.setStrand(Transcript::stringToStrand(query.value(4).toString()));
 
-		if (size_new> max)
+		//get exons
+		BedFile regions;
+		int start_coding = query.value(2).toUInt();
+		int end_coding = query.value(3).toUInt();
+		SqlQuery query2 = getQuery();
+		int id = query.value(0).toUInt();
+		query2.exec("SELECT start, end FROM gene_exon WHERE transcript_id=" + QString::number(id) + " ORDER BY start");
+		while(query2.next())
 		{
-			max = size_new;
-			max_name = name;
-		}
-	}
-
-	//set name and region
-	if (max_name!="")
-	{
-		name = max_name;
-
-		chr = getValue("SELECT chromosome FROM gene WHERE id=" + QString::number(id)).toString();
-		while(query.previous())
-		{
-			if(query.value(0).toString()==max_name)
+			int start = query2.value(0).toUInt();
+			int end = query2.value(1).toUInt();
+			if (coding_only)
 			{
-				region.append(BedLine(chr, query.value(1).toInt(), query.value(2).toInt()));
+				start = std::max(start, start_coding);
+				end = std::min(end, end_coding);
+				if (end<start_coding || start>end_coding) continue;
 			}
+			regions.append(BedLine(chr, start, end));
 		}
-		region.merge();
+		regions.merge();
+		transcript.setRegions(regions);
+
+		output.push_back(transcript);
 	}
+
+	return output;
+}
+
+Transcript NGSD::longestCodingTranscript(int gene_id, Transcript::SOURCE source)
+{
+	QList<Transcript> list = transcripts(gene_id, source, true);
+	if (list.isEmpty()) return Transcript();
+
+	//get longest transcript (transcripts regions are merged!)
+	auto max_it = std::max_element(list.begin(), list.end(), [](const Transcript& a, const Transcript& b){ return a.regions().baseCount() < b.regions().baseCount(); });
+	return *max_it;
 }
 
 QStringList NGSD::getDiagnosticStatus(const QString& filename)

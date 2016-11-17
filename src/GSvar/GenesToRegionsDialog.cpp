@@ -31,13 +31,17 @@ void GenesToRegionsDialog::convertGenesToRegions()
 	if (genes.isEmpty()) return;
 
 	//convert gene list to regions (BED)
-	QString source = ui->source->currentText().toLower();
+	Transcript::SOURCE source = Transcript::stringToSource(ui->source->currentText());
 	QString mode = ui->mode->currentText().toLower();
 	NGSD db;
 	QString messages;
 	QTextStream stream(&messages);
 	regions = db.genesToRegions(genes, source, mode, false, &stream);
-	regions.extend(ui->expand->value());
+	int extend_by = ui->expand->value();
+	if(extend_by>0)
+	{
+		regions.extend(ui->expand->value());
+	}
 
 	//set output
 	ui->regions->setPlainText(messages);

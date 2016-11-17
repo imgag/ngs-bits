@@ -150,7 +150,7 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 	//create target region
 	QString messages;
 	QTextStream stream(&messages);
-	regions = db.genesToRegions(genes, "ccds", "exon", ui->fallback->isChecked(), &stream);
+	regions = db.genesToRegions(genes, Transcript::CCDS, "exon", ui->fallback->isChecked(), &stream);
 	if (messages!="")
 	{
 		showMessage(messages, true);
