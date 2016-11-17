@@ -1169,7 +1169,9 @@ QStringList NGSD::phenotypeToGenes(QString phenotype, bool recursive)
 		pid2genes.exec();
 		while(pid2genes.next())
 		{
-			genes << pid2genes.value(0).toString();
+			QString gene = pid2genes.value(0).toString();
+			QPair<QString, QString> geneinfo = geneToApproved(gene);
+			genes.append(geneinfo.first);
 		}
 
 		//add sub-phenotypes
