@@ -9,8 +9,9 @@ libs:
 
 GSvar:
 ** LOVD upload for variant:
+  - implement TODOs in LovdUploadFile class
+  - implement dialog where user can double-check the data before upload
   - implement HTTP POST upload
-  - implement user check before upload
   - implement print-out of upload data for patient file
 - Allow handling of several related samples (i.e. integrate SampleOverview functionality) and allow filtering based on affected status
 - Allow filtering of multi-sample variant lists => missing genotype (perhaps treat all variants as homozygous?)

@@ -1131,14 +1131,27 @@ void MainWindow::uploadtoLovd(int variant_index)
 	NGSD db;
 	QString gender = db.sampleGender(sample);
 
+	//phenotype
 	PhenotypeSelector p_sel;
 	bool ok = GUIHelper::showWidgetAsDialog(&p_sel, "Select patient phenotype", true);
 	Phenotype pheno = p_sel.selectedPhenotype();
 	if (!ok || pheno.name().isEmpty()) return;
 
-	QString upload_file = LovdUploadFile::create(sample, gender, pheno, variants_, variant_index);
-	QApplication::clipboard()->setText(upload_file);
-	QMessageBox::information(this, "LOVD upload", "JSON upload file was copied to clipboard!");
+	//gene
+	QByteArray gene_anno = variants_[variant_index].annotations()[variants_.annotationIndexByName("gene")];
+	QStringList genes = QString(gene_anno).split(',');
+	ok = false;
+	QString gene = (genes.count()==1 ? genes[0] : QInputDialog::getItem(this, "Select gene", "affected gene:", genes, 0, false, &ok));
+	if (!ok) return;
+
+	//gene to approved
+	gene = db.geneToApproved(gene).first;
+
+	QString upload_file = LovdUploadFile::create(sample, gender, gene, pheno, variants_, variants_[variant_index]);
+	if (!upload_file.isEmpty())
+	{
+		LovdUploadFile::upload(upload_file);
+	}
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent* e)

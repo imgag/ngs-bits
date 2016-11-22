@@ -5,13 +5,23 @@
 #include "VariantList.h"
 #include "Phenotype.h"
 
+///Generator for LOVD upload file in JSON format
 class CPPNGSSHARED_EXPORT LovdUploadFile
 {
 	public:
-		static QString create(QString sample, QString gender, Phenotype pheno, const VariantList& vl, int variant_index);
+		static QString create(QString sample, QString gender, QString gene, const Phenotype& pheno, const VariantList& vl, const Variant& variant);
+		static void upload(QString file);
 
 	protected:
 		static QString getSettings(QString key);
+		static QString getAnnotation(const VariantList& vl, const Variant& variant, QString key);
+
+		static QString convertGender(QString gender);
+		static QString convertGenotype(QString genotype);
+		static QString convertClassification(QString classification);
+		static QString variantToHGVS(const Variant& v);
+		static QString chromosomeToAccession(const Chromosome& chr);
+
 		LovdUploadFile(); //declared 'away'
 };
 
