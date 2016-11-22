@@ -1346,4 +1346,7 @@ chr 	start	end	MIP name	condensed	uncondensed	singles
 duplicate counts	# of barcodes	percentage of barcodes	percentage of reads	average quality
 2	11	100.00	100.00	35
 
+read count before deduplication:	22
+read count after deduplication:	11 (50.00%)
+
 0 read(s) were deleted in target region because of ambiguity of single matching
