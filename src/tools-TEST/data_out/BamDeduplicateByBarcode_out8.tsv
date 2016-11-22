@@ -1347,4 +1347,7 @@ duplicate counts	# of barcodes	percentage of barcodes	percentage of reads	averag
 1	3327	99.67	99.34	35
 2	11	0.33	0.66	35
 
+read count before deduplication:	3349
+read count after deduplication:	3338 (99.67%)
+
 0 read(s) were deleted in target region because of ambiguity of single matching
