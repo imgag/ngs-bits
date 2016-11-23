@@ -89,7 +89,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	initTranscriptDetails(vl, index);
 
 	//base information
-	setAnnotation(ui->gene, vl, index, "gene");
+	setAnnotation(ui->gene, vl, index, "gene_info");
 	setAnnotation(ui->quality, vl, index, "quality");
 	setAnnotation(ui->filter, vl, index, "filter");
 
@@ -314,28 +314,6 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
             {
                 text = formatLink(text, vl[index].toString(true));
             }
-		}
-		else if (name=="gene")
-		{
-			QStringList genes = anno.split(",");
-			if (ngsd_enabled)
-			{
-				for (int i=0; i<genes.count(); ++i)
-				{
-					QString gene = genes[i].trimmed();
-					QString inheritance = "error";
-					try
-					{
-						inheritance = NGSD().geneInfo(gene).inheritance; //TODO take from variant list
-					}
-					catch (DatabaseException& e)
-					{
-						Log::warn("Could not get inheritance info from NGSD for gene '" + gene + "'");
-					}
-					genes[i] = gene + " (" + inheritance + ")";
-				}
-			}
-			text = genes.join(" ");
 		}
 		else //fallback: use complete annotations string
 		{

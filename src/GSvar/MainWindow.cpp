@@ -477,7 +477,8 @@ void MainWindow::on_actionReport_triggered()
 	if (variants_.annotationIndexByName("classification", true, false)==-1
 	 || variants_.annotationIndexByName("ihdb_allsys_hom", true, false)==-1
 	 || variants_.annotationIndexByName("ihdb_allsys_het", true, false)==-1
-	 || variants_.annotationIndexByName("comment", true, false)==-1)
+	 || variants_.annotationIndexByName("comment", true, false)==-1
+	 || variants_.annotationIndexByName("gene_info", true, false)==-1)
 	{
 		GUIHelper::showMessage("Error", "Cannot generate report without complete NGSD annotation!\nPlease re-annotate NGSD information first!");
 		return;

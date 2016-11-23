@@ -128,12 +128,19 @@ QString ReportWorker::formatCodingSplicing(QByteArray text)
 	return transcripts.join(", ");
 }
 
-QString ReportWorker::inheritance(QString genes, bool color)
+QString ReportWorker::inheritance(QString gene_info, bool color)
 {
 	QStringList output;
-	foreach(QString gene, genes.split(","))
+	foreach(QString gene, gene_info.split(","))
 	{
-		QString inheritance = db_.geneInfo(gene).inheritance;
+		//extract inheritance info
+		QString inheritance;
+		QStringList parts = gene.replace('(',' ').replace(')',' ').split(' ');
+		foreach(QString part, parts)
+		{
+			if (part.startsWith("inh=")) inheritance = part.mid(4);
+		}
+
 		if (color && inheritance=="n/a")
 		{
 			inheritance = "<span style=\"background-color: #FF0000\">n/a</span>";
@@ -459,7 +466,8 @@ void ReportWorker::writeHTML()
 	stream << "</p>" << endl;
 
 	//get column indices
-	int i_genotype = variants_.annotationIndexByName("genotype", true, false); //optinal because of tumor samples
+	int i_genotype = variants_.annotationIndexByName("genotype", true, false); //optional because of tumor samples
+	int i_geneinfo = variants_.annotationIndexByName("gene_info", true, true);
 	int i_gene = variants_.annotationIndexByName("gene", true, true);
 	int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, true);
 	int i_omim = variants_.annotationIndexByName("OMIM", true, true);
@@ -500,7 +508,7 @@ void ReportWorker::writeHTML()
 		stream << "<td>" << (tumor ? variant.annotations().at(i_tumor_af) : variant.annotations().at(i_genotype)) << "</td>" << endl;
 		stream << "<td>" << formatCodingSplicing(variant.annotations().at(i_co_sp)).replace(", ", "<br />") << "</td>" << endl;
 		stream << "<td>" << variant.annotations().at(i_class) << "</td>" << endl;
-		stream << "<td>" << inheritance(genes) << "</td>" << endl;
+		stream << "<td>" << inheritance(variant.annotations()[i_geneinfo]) << "</td>" << endl;
 		stream << "</tr>" << endl;
 
 		//OMIM and comment line
@@ -750,6 +758,7 @@ void ReportWorker::writeXML()
 	//element Variant
 	int geno_idx = variants_.annotationIndexByName("genotype", true, false);
 	int comment_idx = variants_.annotationIndexByName("comment", true, true);
+	int geneinfo_idx = variants_.annotationIndexByName("gene_info", true, false);
 	for (int i=0; i<variants_selected_.count(); ++i)
 	{
 		const Variant& v = variants_[variants_selected_[i]];
@@ -767,12 +776,13 @@ void ReportWorker::writeXML()
 		{
 			if (i==geno_idx) continue;
 			if (i==comment_idx) continue;
+			if (i==geneinfo_idx) continue;
 
 			w.writeStartElement("Annotation");
 			QString name = variants_.annotations()[i].name();
 			w.writeAttribute("name", name);
 			QByteArray value = v.annotations()[i];
-			if (name=="gene") value += " (" + inheritance(value, false) +")";
+			if (name=="gene") value += " (" + inheritance(v.annotations()[geneinfo_idx], false) +")";
 			w.writeAttribute("value", value);
 			w.writeEndElement();
 		}
