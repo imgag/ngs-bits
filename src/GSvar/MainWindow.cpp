@@ -1649,7 +1649,7 @@ void MainWindow::filtersChanged()
 		}
 		if (filter_widget_->applyIhdb())
 		{
-			filter.flagByIHDB(filter_widget_->ihdb());
+			filter.flagByIHDB(filter_widget_->ihdb(), filter_widget_->ihdbIgnoreGenotype());
 		}
 		QStringList remove = filter_widget_->filterColumnsRemove();
 		if (remove.count()>0)

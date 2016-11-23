@@ -24,6 +24,7 @@ FilterDockWidget::FilterDockWidget(QWidget *parent)
 
 	connect(ui_.ihdb, SIGNAL(valueChanged(int)), this, SIGNAL(filtersChanged()));
 	connect(ui_.ihdb_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
+	connect(ui_.ihdb_ignore_gt, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
 
 	connect(ui_.classification, SIGNAL(currentIndexChanged(int)), this, SIGNAL(filtersChanged()));
 	connect(ui_.classification_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
@@ -173,7 +174,8 @@ void FilterDockWidget::resetSignalsUnblocked(bool clear_roi)
     ui_.impact->setCurrentText("HIGH,MODERATE,LOW");
     ui_.ihdb_enabled->setChecked(false);
 	ui_.ihdb->setValue(20);
-    ui_.classification_enabled->setChecked(false);
+	ui_.ihdb_ignore_gt->setChecked(false);
+	ui_.classification_enabled->setChecked(false);
     ui_.classification->setCurrentText("3");
     ui_.geno_enabled->setChecked(false);
     ui_.geno->setCurrentText("hom");
@@ -230,6 +232,7 @@ void FilterDockWidget::applyDefaultFilters()
 	ui_.impact->setCurrentText("HIGH,MODERATE,LOW");
 	ui_.ihdb_enabled->setChecked(true);
 	ui_.ihdb->setValue(20);
+	ui_.ihdb_ignore_gt->setChecked(false);
 	ui_.classification_enabled->setChecked(true);
 	ui_.classification->setCurrentText("3");
     ui_.keep_class_ge_enabled->setChecked(true);
@@ -267,6 +270,7 @@ void FilterDockWidget::applyDefaultFiltersTrio()
 	ui_.impact->setCurrentText("HIGH,MODERATE");
 	ui_.ihdb_enabled->setChecked(true);
 	ui_.ihdb->setValue(20);
+	ui_.ihdb_ignore_gt->setChecked(false);
 	ui_.keep_class_ge_enabled->setChecked(true);
 	ui_.keep_class_ge->setCurrentText("4");
 
@@ -361,6 +365,11 @@ bool FilterDockWidget::applyIhdb() const
 int FilterDockWidget::ihdb() const
 {
 	return ui_.ihdb->value();
+}
+
+int FilterDockWidget::ihdbIgnoreGenotype() const
+{
+	return ui_.ihdb_ignore_gt->isChecked();
 }
 
 bool FilterDockWidget::applyCompoundHet() const

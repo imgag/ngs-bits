@@ -20,8 +20,8 @@ class CPPNGSSHARED_EXPORT VariantFilter
 		///Flags variants by SnpEff impact.
 		void flagByImpact(QStringList impacts);
 
-		///Flags variants by in-house database count (from NGSD).
-		void flagByIHDB(int max_count);
+		///Flags variants by in-house database count (from NGSD). If genotype is not ignored, for homozygous variants only homozygous NGSD variants are counted.
+		void flagByIHDB(int max_count, bool ignore_genotype);
 
 		///Flags variants by filter column entries.
 		void flagByFilterColumn(QStringList remove);

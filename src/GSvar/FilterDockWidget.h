@@ -51,6 +51,8 @@ public:
 	bool applyIhdb() const;
 	/// Returns the maximum IHDB filter value.
 	int ihdb() const;
+	/// Returns the if the genotype should be ignored for the IHDB filter.
+	int ihdbIgnoreGenotype() const;
 
 	/// Returns if the compound-heterzygous filter is enabled.
 	bool applyCompoundHet() const;

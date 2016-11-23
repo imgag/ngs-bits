@@ -25,7 +25,8 @@ public:
 		//optional
 		addFloat("max_af", "Maximum allele frequency in public databases. '0.01' means 1% allele frequency!", true, -1.0);
 		addString("impact", "Comma-separated list of SnpEff impacts that pass.", "");
-		addInt("max_ihdb", "Maximum in-house database frequency. For homozygous variants, only homozygous database entries count. For heterozygous variants all entries count.", true, -1);
+		addInt("max_ihdb", "Maximum in-house database count.", true, -1);
+		addFlag("max_ihdb_ignore_genotype", "If set, variant genotype is ignored. Otherwise, only homozygous database entries are counted for homozygous variants, and all entries are count for heterozygous variants.");
 		addInt("min_class", "Minimum classification of *classified* variants.", true, -1);
 		addString("filters", "Comma-separated list of filter column entries to remove.", true, "");
 		addFlag("comphet", "If set, only hompound-heterozygous variants pass of the *heterozygous* variants. Performed after all other filters!");
@@ -60,7 +61,7 @@ public:
 		int max_ihdb = getInt("max_ihdb");
 		if (max_ihdb>0)
 		{
-			filter.flagByIHDB(max_ihdb);
+			filter.flagByIHDB(max_ihdb, getFlag("max_ihdb_ignore_genotype"));
 		}
 
 		//filter classification

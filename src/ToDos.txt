@@ -14,9 +14,9 @@ GSvar:
   - implement HTTP POST upload
   - implement print-out of upload data for patient file
 - Allow handling of several related samples (i.e. integrate SampleOverview functionality) and allow filtering based on affected status
-- Allow filtering of multi-sample variant lists => missing genotype (perhaps treat all variants as homozygous?)
 
 Tools:
+** NGSDImportGeneUCSC: add import of RefSeq genes => use RefSeq as fallback for CCDS, not UCSC (HPO search microcephaly)
 ** NGSDImportGeneInfo: add (optional) import of inheritance mode from OMIM (use force flag)
 * MappingQC: support RNA: insert size, spike-in controls, mapping ribosomes/globulines, etc.
 * SomaticQC: do not use precalculated triplet counts, count every time (CS)

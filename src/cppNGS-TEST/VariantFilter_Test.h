@@ -219,14 +219,23 @@ private slots:
 		VariantList vl;
 		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
 
+		//consider genotype
 		VariantFilter filter(vl);
-		filter.flagByIHDB(5);
+		filter.flagByIHDB(5, false);
 
 		I_EQUAL(vl.count(), 143);
 		I_EQUAL(filter.countPassing(), 3);
 		IS_TRUE(filter.flags()[70]);
 		IS_TRUE(filter.flags()[92]);
 		IS_TRUE(filter.flags()[120]);
+
+		//ignore genotype
+		VariantFilter filter2(vl);
+		filter2.flagByIHDB(50, false);
+		I_EQUAL(filter2.countPassing(), 9);
+		filter2.clear();
+		filter2.flagByIHDB(50, true);
+		I_EQUAL(filter2.countPassing(), 8);
 	}
 
 	void flagByFilterColumn()

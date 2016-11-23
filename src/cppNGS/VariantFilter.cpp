@@ -90,7 +90,7 @@ void VariantFilter::flagByGenotype(QString genotype)
 	}
 }
 
-void VariantFilter::flagByIHDB(int max_count)
+void VariantFilter::flagByIHDB(int max_count, bool ignore_genotype)
 {
 	//check input
 	if (max_count<1)
@@ -101,20 +101,20 @@ void VariantFilter::flagByIHDB(int max_count)
 	//get column indices
 	int i_ihdb_hom = variants.annotationIndexByName("ihdb_allsys_hom", true, true);
 	int i_ihdb_het = variants.annotationIndexByName("ihdb_allsys_het", true, true);
-	int i_geno = variants.annotationIndexByName("genotype", true, true);
+	int i_geno = ignore_genotype ? -1 : variants.annotationIndexByName("genotype", true, true);
 
 	//filter
 	for(int i=0; i<variants.count(); ++i)
 	{
 		if (!pass[i]) continue;
 
-		if (variants[i].annotations()[i_geno]=="hom")
-		{
-			pass[i] = variants[i].annotations()[i_ihdb_hom].toInt() <= max_count;
-		}
-		else if (variants[i].annotations()[i_geno]=="het")
+		if (ignore_genotype || variants[i].annotations()[i_geno]=="het")
 		{
 			pass[i] = (variants[i].annotations()[i_ihdb_hom].toInt() +  variants[i].annotations()[i_ihdb_het].toInt()) <= max_count;
+		}
+		else if (variants[i].annotations()[i_geno]=="hom")
+		{
+			pass[i] = variants[i].annotations()[i_ihdb_hom].toInt() <= max_count;
 		}
 		else
 		{

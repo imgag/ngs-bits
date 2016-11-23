@@ -425,7 +425,7 @@
        <item row="2" column="0">
         <widget class="QCheckBox" name="ihdb_enabled">
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum occurences in the in-house database (e.g. NGSD).&lt;/p&gt;&lt;p&gt;For heterozygous variants both the ihdb_all_het and ihdb_all_hom columns are counted.&lt;/p&gt;&lt;p&gt;For homozygous variants only the ihdb_all_hom column is counted.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum occurences in the in-house database (e.g. NGSD).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
           <string>ihdb</string>
@@ -463,6 +463,16 @@
          </property>
          <property name="text">
           <string>compound heterozygous</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QCheckBox" name="ihdb_ignore_gt">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;By default, only homozygous database entries are counted for homzygous variants and all database entries are counted for heterozygous variants.&lt;/p&gt;&lt;p&gt;If the genotyps is ignored, all database entries are counted no matter which genotye the variant has.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>ignore genotype</string>
          </property>
         </widget>
        </item>
@@ -526,7 +536,7 @@
             <x>0</x>
             <y>0</y>
             <width>281</width>
-            <height>185</height>
+            <height>165</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
