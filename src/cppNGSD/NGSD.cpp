@@ -713,9 +713,10 @@ void NGSD::annotate(VariantList& variants, QString filename)
 		//gene info
 		if (gene_idx!=-1)
 		{
-			QList<QByteArray> genes = v.annotations()[gene_idx].split(',');
-			std::transform(genes.begin(), genes.end(), genes.begin(), [this](const QString& g) { return geneInfo(g).toString().toLatin1(); });
-			v.annotations()[geneinfo_idx] = genes.join(", ");
+			//TODO: use QByteArrayList (when upgraded to Qt5.5)
+			QStringList genes = QString(v.annotations()[gene_idx]).split(',');
+			std::transform(genes.begin(), genes.end(), genes.begin(), [this](const QString& g) { return geneInfo(g).toString(); });
+			v.annotations()[geneinfo_idx] = genes.join(", ").toLatin1();
 		}
 
 		emit updateProgress(100*i/variants.count());
