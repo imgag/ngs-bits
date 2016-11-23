@@ -19,6 +19,8 @@ struct CPPNGSDSHARED_EXPORT GeneInfo
 	QString symbol;
 	//gene inheritance mode
 	QString inheritance;
+	//ExAC pLI score (default is NULL)
+	QString exac_pli;
 	//comments
 	QString comments;
 
@@ -182,7 +184,7 @@ public:
 
 	///Returns the germline gene information for a HGNC-approved gene symbol
 	GeneInfo geneInfo(QString symbol);
-	///Sets the germline gene information for a HGNC-approved gene symbol
+	///Sets the germline gene information for a HGNC-approved gene symbol (not ExAC pLI score, because it is read-only)
 	void setGeneInfo(GeneInfo info);
 
 	///Returns the NGSD URL corresponding to a variant. Or an empty string if the variant/sample is not in the DB.

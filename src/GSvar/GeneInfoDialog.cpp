@@ -27,6 +27,9 @@ GeneInfoDialog::GeneInfoDialog(QString symbol, QWidget *parent)
 	tmp.replace("\n", "<br>");
 	ui->comments_->setHtml(tmp);
 
+	//show ExAC pLI score
+	ui->exac_pli->setText(info.exac_pli);
+
 	//show notice if necessary
 	if (!info.notice.startsWith("KEPT:"))
 	{
@@ -62,6 +65,7 @@ void GeneInfoDialog::storeGeneInfo()
 	GeneInfo tmp;
 	tmp.symbol = ui->gene_->text();
 	tmp.inheritance = ui->inheritance_->currentText();
+	tmp.exac_pli = ui->exac_pli->text();
 	tmp.comments = ui->comments_->toPlainText();
 
 	NGSD db;

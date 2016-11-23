@@ -1561,17 +1561,19 @@ GeneInfo NGSD::geneInfo(QString symbol)
 	}
 
 	SqlQuery query = getQuery();
-	query.exec("SELECT inheritance, comments FROM geneinfo_germline WHERE symbol='" + output.symbol + "'");
+	query.exec("SELECT inheritance, exac_pli, comments FROM geneinfo_germline WHERE symbol='" + output.symbol + "'");
 	if (query.size()==0)
 	{
 		output.inheritance = "n/a";
+		output.exac_pli = "";
 		output.comments = "";
 	}
 	else
 	{
 		query.next();
 		output.inheritance = query.value(0).toString();
-		output.comments = query.value(1).toString();
+		output.exac_pli = query.value(1).isNull() ? "" : query.value(1).toString();
+		output.comments = query.value(2).toString();
 	}
 
 	return output;
@@ -1580,7 +1582,7 @@ GeneInfo NGSD::geneInfo(QString symbol)
 void NGSD::setGeneInfo(GeneInfo info)
 {
 	SqlQuery query = getQuery();
-	query.prepare("INSERT INTO geneinfo_germline (symbol, inheritance, comments) VALUES (:0, :1, :2) ON DUPLICATE KEY UPDATE inheritance=:3, comments=:4");
+	query.prepare("INSERT INTO geneinfo_germline (symbol, inheritance, exac_pli, comments) VALUES (:0, :1, NULL, :2) ON DUPLICATE KEY UPDATE inheritance=:3, comments=:4");
 	query.bindValue(0, info.symbol);
 	query.bindValue(1, info.inheritance);
 	query.bindValue(2, info.comments);

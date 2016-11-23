@@ -326,7 +326,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 					QString inheritance = "error";
 					try
 					{
-						inheritance = NGSD().geneInfo(gene).inheritance;
+						inheritance = NGSD().geneInfo(gene).inheritance; //TODO take from variant list
 					}
 					catch (DatabaseException& e)
 					{

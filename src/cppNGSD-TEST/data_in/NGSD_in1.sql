@@ -41,6 +41,10 @@ INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (4, 410, 420);
 INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (5, 100, 200);
 INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (5, 300, 400);
 
+INSERT INTO `geneinfo_germline`(`symbol`, `inheritance`, `exac_pli`, `comments`) VALUES ('BRCA1', 'AD', 0.00, '');
+INSERT INTO `geneinfo_germline`(`symbol`, `inheritance`, `exac_pli`, `comments`) VALUES ('TP53', 'AD', 0.93, '');
+INSERT INTO `geneinfo_germline`(`symbol`, `inheritance`, `exac_pli`, `comments`) VALUES ('NIPA1', 'n/a', NULL, '');
+
 INSERT INTO `variant` (`id`, `chr`, `start`, `end`, `ref`, `obs`, `dbsnp`, `1000g`, `exac`, `kaviar`, `gene`, `variant_type`, `coding`, `genome_id`) VALUES
 (6, 'chr10', 43613843, 43613843, 'G', 'T', 'rs1800861', 0.7125, 0.742, 0.7653, 'RET', 'synonymous', 'RET:NM_020975.4:synonymous:LOW:exon13/20:c.2307G>T:p.Leu769Leu,RET:NM_020630.4:synonymous:LOW:exon13/19:c.2307G>T:p.Leu769Leu', 1),
 (405, 'chr17', 7579472, 7579472, 'G', 'C', 'rs1042522', 0.5429, 0.659, 0.7452, 'TP53', 'missense,upstream_gene', 'TP53:NM_000546.5:missense:MODERATE:exon4/11:c.215C>G:p.Pro72Arg,TP53:NM_001126112.2:missense:MODERATE:exon4/11:c.215C>G:p.Pro72Arg,TP53:NM_001126113.2:missense:MODERATE:exon4/12:c.215C>G:p.Pro72Arg,TP53:NM_001126114.2:missense:MODERATE:exon4/12:c.215C>G:p.Pro72Arg,TP53:NM_001126118.1:missense:MODERATE:exon3/10:c.98C>G:p.Pro33Arg,TP53:NM_001276695.1:missense:MODERATE:exon4/12:c.98C>G:p.Pro33Arg,TP53:NM_001276696.1:missense:MODERATE:exon4/12:c.98C>G:p.Pro33Arg,TP53:NM_001276760.1:missense:MODERATE:exon4/11:c.98C>G:p.Pro33Arg,TP53:NM_001276761.1:missense:MODERATE:exon4/11:c.98C>G:p.Pro33Arg,TP53:NM_001126115.1:upstream_gene:MODIFIER::c.-939C>G:,TP53:NM_001126116.1:upstream_gene:MODIFIER::c.-939C>G:,TP53:NM_001126117.1:upstream_gene:MODIFIER::c.-939C>G:,TP53:NM_001276697.1:upstream_gene:MODIFIER::c.-1020C>G:,TP53:NM_001276698.1:upstream_gene:MODIFIER::c.-1020C>G:,TP53:NM_001276699.1:upstream_gene:MODIFIER::c.-1020C>G:', 1),

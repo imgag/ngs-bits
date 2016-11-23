@@ -281,6 +281,10 @@ SUBDIRS += VcfStreamSort
 tools-TEST.depends += VcfStreamSort
 VcfStreamSort.depends = cppNGS
 
+SUBDIRS += NGSDImportGeneInfo
+tools-TEST.depends += NGSDImportGeneInfo
+NGSDImportGeneInfo.depends = cppNGSD
+
 #other stuff
 OTHER_FILES += ToDos.txt
 

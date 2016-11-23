@@ -172,6 +172,41 @@ private slots:
 		S_EQUAL(transcript.name(), "NIPA1_TR1");
 		I_EQUAL(transcript.regions().count(), 2);
 		I_EQUAL(transcript.regions().baseCount(), 202);
+
+		//geneInfo
+		GeneInfo ginfo = db.geneInfo("BRCA1");
+		S_EQUAL(ginfo.symbol, "BRCA1");
+		S_EQUAL(ginfo.exac_pli, "0");
+		S_EQUAL(ginfo.inheritance, "AD");
+		S_EQUAL(ginfo.comments, "");
+
+		ginfo = db.geneInfo("NIPA1");
+		S_EQUAL(ginfo.symbol, "NIPA1");
+		S_EQUAL(ginfo.exac_pli, "");
+		S_EQUAL(ginfo.inheritance, "n/a");
+		S_EQUAL(ginfo.comments, "");
+
+		//setGeneInfo (existing gene)
+		S_EQUAL(ginfo.symbol, "NIPA1");
+		ginfo.exac_pli = "1.23";
+		ginfo.inheritance = "AD";
+		ginfo.comments = "comment";
+		db.setGeneInfo(ginfo);
+		ginfo = db.geneInfo("NIPA1");
+		S_EQUAL(ginfo.symbol, "NIPA1");
+		S_EQUAL(ginfo.exac_pli, "");
+		S_EQUAL(ginfo.inheritance, "AD");
+		S_EQUAL(ginfo.comments, "comment");
+
+		//setGeneInfo (new gene)
+		ginfo.symbol = "NEWGENE";
+		db.setGeneInfo(ginfo);
+		ginfo = db.geneInfo("NEWGENE");
+		S_EQUAL(ginfo.symbol, "NEWGENE");
+		S_EQUAL(ginfo.exac_pli, "");
+		S_EQUAL(ginfo.inheritance, "AD");
+		S_EQUAL(ginfo.comments, "comment");
+
 	}
 
 	//Test for debugging (without initialization because of speed)

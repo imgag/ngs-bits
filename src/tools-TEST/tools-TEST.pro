@@ -88,7 +88,8 @@ HEADERS += \
     VcfLeftNormalize_Test.h \
     VcfStreamSort_Test.h \
     NGSDInit_Test.h \
-    SomaticQC_Test.h
+    SomaticQC_Test.h \
+    NGSDImportGeneInfo_Test.h	
 
 SOURCES += \
     main.cpp \
