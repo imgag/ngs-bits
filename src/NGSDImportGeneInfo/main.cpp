@@ -73,7 +73,7 @@ public:
 			update_query.bindValue(0, gene);
 
 			//pLI
-			double pLI = Helper::toDouble(parts[19], "ExAC pLI score");
+			QString pLI = QString::number(Helper::toDouble(parts[19], "ExAC pLI score"), 'f', 4);
 			update_query.bindValue(1, pLI);
 			update_query.bindValue(2, pLI);
 			update_query.exec();

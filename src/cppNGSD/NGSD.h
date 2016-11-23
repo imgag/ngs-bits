@@ -26,6 +26,12 @@ struct CPPNGSDSHARED_EXPORT GeneInfo
 
 	//notice about the symbol based on HGNC data (unknown symbol, previous symbol, etc.)
 	QString notice;
+
+	//returns the main gene information as a string
+	QString toString()
+	{
+		return symbol + " (inh=" + inheritance + " pLI=" + exac_pli + ")";
+	}
 };
 
 ///Variant validation information

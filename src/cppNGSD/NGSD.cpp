@@ -542,6 +542,7 @@ void NGSD::annotate(VariantList& variants, QString filename)
 			removeColumnIfPresent(variants, header.name(), true);
 		}
 	}
+	removeColumnIfPresent(variants, "gene_info", true);
 	removeColumnIfPresent(variants, "classification", true);
 	removeColumnIfPresent(variants, "classification_comment", true);
 	removeColumnIfPresent(variants, "validated", true);
@@ -555,7 +556,8 @@ void NGSD::annotate(VariantList& variants, QString filename)
 	int valid_idx = addColumn(variants, "validated", "Validation information from the NGSD. Validation results of other samples are listed in brackets!");
 	if (variants.annotationIndexByName("comment", true, false)==-1) addColumn(variants, "comment", "Comments from the NGSD. Comments of other samples are listed in brackets!");
 	int comment_idx = variants.annotationIndexByName("comment", true, false);
-
+	int gene_idx = variants.annotationIndexByName("gene", true, false);
+	int geneinfo_idx = addColumn(variants, "gene_info", "Gene information from NGSD (inheritance mode, ExAC pLI score).");
 	/*
 	//Timing benchmarks
 	//Outcome for Qt 5.5.0:
@@ -707,6 +709,14 @@ void NGSD::annotate(VariantList& variants, QString filename)
 			v.annotations()[comment_idx] = "n/a";
 		}
 		//time_gt += timer.elapsed();
+
+		//gene info
+		if (gene_idx!=-1)
+		{
+			QList<QByteArray> genes = v.annotations()[gene_idx].split(',');
+			std::transform(genes.begin(), genes.end(), genes.begin(), [this](const QString& g) { return geneInfo(g).toString().toLatin1(); });
+			v.annotations()[geneinfo_idx] = genes.join(", ");
+		}
 
 		emit updateProgress(100*i/variants.count());
 	}
@@ -1565,14 +1575,14 @@ GeneInfo NGSD::geneInfo(QString symbol)
 	if (query.size()==0)
 	{
 		output.inheritance = "n/a";
-		output.exac_pli = "";
+		output.exac_pli = "n/a";
 		output.comments = "";
 	}
 	else
 	{
 		query.next();
 		output.inheritance = query.value(0).toString();
-		output.exac_pli = query.value(1).isNull() ? "" : query.value(1).toString();
+		output.exac_pli = query.value(1).isNull() ? "n/a" : QString::number(query.value(1).toDouble(), 'f', 2);
 		output.comments = query.value(2).toString();
 	}
 

@@ -17,7 +17,7 @@ GSvar:
 - Allow filtering of multi-sample variant lists => missing genotype (perhaps treat all variants as homozygous?)
 
 Tools:
-** NGSDImportGeneInfo: add (optional) import of inheritance mode from OMIM
+** NGSDImportGeneInfo: add (optional) import of inheritance mode from OMIM (use force flag)
 * MappingQC: support RNA: insert size, spike-in controls, mapping ribosomes/globulines, etc.
 * SomaticQC: do not use precalculated triplet counts, count every time (CS)
 * BamClipOverlap: require sorted bam and paired-end sequencing (CS)

@@ -28,7 +28,7 @@ private slots:
 		F_EQUAL(ginfo.exac_pli.toDouble(), 0.00);
 
 		ginfo = db.geneInfo("OR4F5");
-		F_EQUAL(ginfo.exac_pli.toDouble(), 0.1763);
+		F_EQUAL(ginfo.exac_pli.toDouble(), 0.18);
 	}
 
 };

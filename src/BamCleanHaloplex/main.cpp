@@ -22,7 +22,7 @@ public:
 		setDescription("BAM cleaning for Haloplex.");
 		addInfile("in", "Input bam file.", false);
 		addOutfile("out", "Output bam file.", false);
-		//optinal
+		//optional
 		addInt("min_match", "Minimum number of CIGAR matches (M).", true, 30);
 	}
 

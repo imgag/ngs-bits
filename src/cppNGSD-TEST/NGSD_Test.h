@@ -176,13 +176,13 @@ private slots:
 		//geneInfo
 		GeneInfo ginfo = db.geneInfo("BRCA1");
 		S_EQUAL(ginfo.symbol, "BRCA1");
-		S_EQUAL(ginfo.exac_pli, "0");
+		S_EQUAL(ginfo.exac_pli, "0.00");
 		S_EQUAL(ginfo.inheritance, "AD");
 		S_EQUAL(ginfo.comments, "");
 
 		ginfo = db.geneInfo("NIPA1");
 		S_EQUAL(ginfo.symbol, "NIPA1");
-		S_EQUAL(ginfo.exac_pli, "");
+		S_EQUAL(ginfo.exac_pli, "n/a");
 		S_EQUAL(ginfo.inheritance, "n/a");
 		S_EQUAL(ginfo.comments, "");
 
@@ -194,7 +194,7 @@ private slots:
 		db.setGeneInfo(ginfo);
 		ginfo = db.geneInfo("NIPA1");
 		S_EQUAL(ginfo.symbol, "NIPA1");
-		S_EQUAL(ginfo.exac_pli, "");
+		S_EQUAL(ginfo.exac_pli, "n/a");
 		S_EQUAL(ginfo.inheritance, "AD");
 		S_EQUAL(ginfo.comments, "comment");
 
@@ -203,7 +203,7 @@ private slots:
 		db.setGeneInfo(ginfo);
 		ginfo = db.geneInfo("NEWGENE");
 		S_EQUAL(ginfo.symbol, "NEWGENE");
-		S_EQUAL(ginfo.exac_pli, "");
+		S_EQUAL(ginfo.exac_pli, "n/a");
 		S_EQUAL(ginfo.inheritance, "AD");
 		S_EQUAL(ginfo.comments, "comment");
 
