@@ -210,11 +210,11 @@ private:
 			Position mip_position(splitted_mip_key[1].toInt()-1,splitted_mip_key[2].toInt(),splitted_mip_key[0]);
 
 			mip_info new_mip_info;
-			new_mip_info.left_arm.chr = splitted_mip_entry[0];
+			new_mip_info.left_arm.chr = splitted_mip_key[0];
 			new_mip_info.left_arm.start_pos = splitted_mip_entry[3].toInt();
 			new_mip_info.left_arm.end_pos= splitted_mip_entry[4].toInt();
 
-			new_mip_info.right_arm.chr = splitted_mip_entry[0];
+			new_mip_info.right_arm.chr = splitted_mip_key[0];
 			new_mip_info.right_arm.start_pos = splitted_mip_entry[7].toInt();
 			new_mip_info.right_arm.end_pos= splitted_mip_entry[8].toInt();
 
@@ -536,14 +536,16 @@ private:
 	BamAlignment cutArmsSingle(BamAlignment original_alignment, Position left_arm, Position right_arm)
 	{
 		//extension and ligation arm sequence of MIPs cannot be used for variant calling, so these should be removed
-
 		//cut on right side
+		QTextStream out(stdout);
+
 		if (original_alignment.GetEndPosition()>right_arm.start_pos)
 		{
 			int elems_to_cut=(original_alignment.GetEndPosition())-right_arm.start_pos;
 			//cut bases and qualties
-			original_alignment.QueryBases=original_alignment.QueryBases.substr(1,(original_alignment.QueryBases.size()-elems_to_cut));
-			original_alignment.Qualities=original_alignment.Qualities.substr(0,(original_alignment.Qualities.size()-elems_to_cut));
+			int substr_end=qMin(0,static_cast<int>(original_alignment.QueryBases.size()-elems_to_cut));//cast size_t to int
+			original_alignment.QueryBases=original_alignment.QueryBases.substr(0,substr_end);
+			original_alignment.Qualities=original_alignment.Qualities.substr(0,substr_end);
 			//correct CIGAR
 			original_alignment.CigarData=correctCigarString(original_alignment.CigarData,false,elems_to_cut);
 		}
@@ -551,7 +553,7 @@ private:
 		//cut on left side
 		if (original_alignment.Position<left_arm.end_pos)
 		{
-			int elems_to_cut=left_arm.end_pos-original_alignment.Position;
+			int elems_to_cut=qMin(static_cast<int>(original_alignment.QueryBases.length()),left_arm.end_pos-original_alignment.Position);//cast size_t to int
 			//cut bases and qualties
 			original_alignment.QueryBases=original_alignment.QueryBases.substr(elems_to_cut);
 			original_alignment.Qualities=original_alignment.Qualities.substr(elems_to_cut);
