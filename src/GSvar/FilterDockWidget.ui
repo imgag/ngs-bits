@@ -469,7 +469,7 @@
        <item row="3" column="1">
         <widget class="QCheckBox" name="ihdb_ignore_gt">
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;By default, only homozygous database entries are counted for homzygous variants and all database entries are counted for heterozygous variants.&lt;/p&gt;&lt;p&gt;If the genotyps is ignored, all database entries are counted no matter which genotye the variant has.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;By default, only homozygous database entries are counted for homzygous variants and all database entries are counted for heterozygous variants.&lt;/p&gt;&lt;p&gt;If the genotyps is ignored, all database entries are counted independent of the variant genotype.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
           <string>ignore genotype</string>

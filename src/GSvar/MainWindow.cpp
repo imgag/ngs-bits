@@ -1599,17 +1599,26 @@ QStringList MainWindow::getBamFilesTrio()
 
 	//split folder name
 	QStringList folder_parts = trio_folder.baseName().split("_");
-	if (folder_parts.count()<7)
+	folder_parts.removeFirst(); //remove "Trio" part
+	if (folder_parts.count()==6) //merge processed sample identifiers
 	{
-		QMessageBox::warning(this, "Malformatted trio folder", "Trio folder does not consist of three processed sample names!\nIt should look like this:\nTrio_GS140527_02_GS140528_02_GS140531_02");
+		folder_parts[0] = folder_parts[0] + folder_parts[1];
+		folder_parts[1] = folder_parts[2] + folder_parts[3];
+		folder_parts[2] = folder_parts[4] + folder_parts[5];
+		folder_parts.removeLast();
+		folder_parts.removeLast();
+		folder_parts.removeLast();
+	}
+	if (folder_parts.count()!=3)
+	{
+		QMessageBox::warning(this, "Malformatted trio folder", "Trio folder does not consist of three (processed) sample names!\nIt should look like this:\nTrio_GS140527_02_GS140528_02_GS140531_02");
 		return QStringList();
 	}
 
 	//locate BAM files in sample folders
-	for (int i=1; i<=5; i+=2)
+	foreach (QString sample, folder_parts)
 	{
-		QString sample_name = folder_parts[i] + "_" + folder_parts[i+1];
-		QString bam_file = trio_folder.path() + "\\Sample_" + sample_name + "\\" + sample_name + ".bam";
+		QString bam_file = trio_folder.path() + "\\Sample_" + sample + "\\" + sample + ".bam";
 		if (!QFile::exists(bam_file))
 		{
 			QMessageBox::warning(this, "Missing BAM file!", "Could not find BAM file at: " + bam_file);
