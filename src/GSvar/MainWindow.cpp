@@ -210,7 +210,7 @@ void MainWindow::openInIGV(QString region)
         QStringList files = Helper::findFiles(folder,"*_var_annotated.vcf.gz", false);
         if (files.count()==1)
         {
-			dlg.addFile("sample variants (VCF)", files[0], ui_.actionIgvSample->isChecked());
+			dlg.addFile("variants (VCF)", files[0], ui_.actionIgvSample->isChecked());
         }
 
 		//sample BAM file(s)
@@ -218,50 +218,58 @@ void MainWindow::openInIGV(QString region)
 		{
 			QStringList bams = getBamFilesTrio();
 			if (bams.count()==0) return;
-			foreach(QString bam, bams)
-			{
-				dlg.addFile("sample reads (BAM)", bam, true);
-			}
+			dlg.addFile("reads index (BAM)", bams[0], true);
+			dlg.addFile("reads father (BAM)", bams[1], true);
+			dlg.addFile("reads mother (BAM)", bams[2], true);
 		}
 		else
 		{
 			QString bam = getBamFile();
 			if (bam=="") return;
-			dlg.addFile("sample reads (BAM)", bam, true);
+			dlg.addFile("reads sample (BAM)", bam, true);
 		}
 
 		//reference BAM
 		QString ref = filter_widget_->referenceSample();
 		if (ref!="")
 		{
-			dlg.addFile("reference reads (BAM)", ref, true);
+			dlg.addFile("reads reference (BAM)", ref, true);
 		}
 
 		//sample CNVs
 		files = Helper::findFiles(folder,"*_cnvs.seg", false);
 		if (files.count()==1)
 		{
-			dlg.addFile("sample CNVs track", files[0], true);
+			dlg.addFile("CNVs track", files[0], true);
 		}
 
-		//target region (+ amplicon file)
+		//target region
 		QString roi = filter_widget_->targetRegion();
 		if (roi!="")
 		{
 			dlg.addFile("target region track", roi, true);
-
-			QString amplicons = roi.left(roi.length()-4) + "_amplicons.bed";
-			if (QFile::exists(amplicons))
-			{
-				dlg.addFile("target region amplicons track", amplicons, true);
-			}
 		}
 
 		//sample low-coverage
         files = Helper::findFiles(folder,"*_lowcov.bed", false);
         if (files.count()==1)
         {
-			dlg.addFile("sample low-coverage regions track", files[0], ui_.actionIgvLowcov->isChecked());
+			dlg.addFile("low-coverage regions track", files[0], ui_.actionIgvLowcov->isChecked());
+		}
+
+		//amplicon file (of processing system)
+		try
+		{
+			QString ps_roi = NGSD().getProcessingSystem(filename_, NGSD::FILE);
+			QString amplicons = ps_roi.left(ps_roi.length()-4) + "_amplicons.bed";
+			if (QFile::exists(amplicons))
+			{
+				dlg.addFile("amplicons track (of processing system)", amplicons, true);
+			}
+		}
+		catch(...)
+		{
+			//nothing to do here
 		}
 
 		//custom tracks
@@ -1132,18 +1140,22 @@ void MainWindow::uploadtoLovd(int variant_index)
 	NGSD db;
 	QString gender = db.sampleGender(sample);
 
-	//phenotype
+	//select phenotype
 	PhenotypeSelector p_sel;
 	bool ok = GUIHelper::showWidgetAsDialog(&p_sel, "Select patient phenotype", true);
 	Phenotype pheno = p_sel.selectedPhenotype();
 	if (!ok || pheno.name().isEmpty()) return;
 
-	//gene
+	//select gene
 	QByteArray gene_anno = variants_[variant_index].annotations()[variants_.annotationIndexByName("gene")];
 	QStringList genes = QString(gene_anno).split(',');
-	ok = false;
-	QString gene = (genes.count()==1 ? genes[0] : QInputDialog::getItem(this, "Select gene", "affected gene:", genes, 0, false, &ok));
-	if (!ok) return;
+	QString gene = genes[0];
+	if (genes.count()!=1)
+	{
+		ok = false;
+		gene = (genes.count()==1 ? genes[0] : QInputDialog::getItem(this, "Select gene", "affected gene:", genes, 0, false, &ok));
+		if (!ok) return;
+	}
 
 	//gene to approved
 	gene = db.geneToApproved(gene).first;
@@ -1602,9 +1614,9 @@ QStringList MainWindow::getBamFilesTrio()
 	folder_parts.removeFirst(); //remove "Trio" part
 	if (folder_parts.count()==6) //merge processed sample identifiers
 	{
-		folder_parts[0] = folder_parts[0] + folder_parts[1];
-		folder_parts[1] = folder_parts[2] + folder_parts[3];
-		folder_parts[2] = folder_parts[4] + folder_parts[5];
+		folder_parts[0] = folder_parts[0] + "_" +  folder_parts[1];
+		folder_parts[1] = folder_parts[2] + "_" + folder_parts[3];
+		folder_parts[2] = folder_parts[4] + "_" + folder_parts[5];
 		folder_parts.removeLast();
 		folder_parts.removeLast();
 		folder_parts.removeLast();
