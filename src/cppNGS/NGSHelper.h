@@ -81,6 +81,9 @@ public:
 	///Converts text to gene list (one gene per tab-separated line)
 	static QStringList textToGenes(QString text, int col_index = 0);
 
+	///Create sample overview file
+	static void createSampleOverview(QStringList in, QString out, int indel_window=100, bool cols_auto=true, QStringList cols = QStringList());
+
 private:
 	///Constructor declared away
 	NGSHelper();

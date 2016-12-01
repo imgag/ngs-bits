@@ -1,6 +1,7 @@
 #include "NGSHelper.h"
 #include "Exceptions.h"
 #include "ChromosomeInfo.h"
+#include "Helper.h"
 #include <QTextStream>
 #include <QFileInfo>
 #include <QDateTime>
@@ -501,6 +502,211 @@ QStringList NGSHelper::textToGenes(QString text, int col_index)
 	}
 
 	return output;
+}
+
+void NGSHelper::createSampleOverview(QStringList in, QString out, int indel_window, bool cols_auto, QStringList cols)
+{
+	//determine columns contained in all samples from file headers (keep order)
+	if (cols_auto)
+	{
+		bool init = true;
+		foreach(QString filename, in)
+		{
+			auto file = Helper::openFileForReading(filename, false);
+			while (!file->atEnd())
+			{
+				QString line = file->readLine();
+				if (!line.startsWith('#')) break;
+				if (line.startsWith("#chr"))
+				{
+					if (init)
+					{
+						QStringList parts = line.trimmed().split('\t');
+						foreach(QString part, parts)
+						{
+							//skip base columns
+							if (part=="#chr" || part=="start" || part=="end" || part=="ref" || part=="obs") continue;
+
+							//skip sample-specific columns
+							if (part=="genotype" || part=="quality") continue;
+
+							cols.append(part);
+						}
+						init = false;
+					}
+					else
+					{
+						QSet<QString> parts = line.trimmed().split('\t').toSet();
+						for (int i=cols.count()-1; i>=0; --i)
+						{
+							if (!parts.contains(cols[i]))
+							{
+								cols.removeAt(i);
+							}
+						}
+					}
+				}
+			}
+			file->close();
+		}
+	}
+
+	//load variant lists
+	QVector<VariantList> vls;
+	QVector<QVector<int> > vls_anno_indices;
+	QList <VariantAnnotationDescription> vls_anno_descriptions;
+	foreach(QString filename, in)
+	{
+		VariantList vl;
+		vl.load(filename, VariantList::TSV);
+
+		//check the all required fields are present in the input file
+		QVector<int> anno_indices;
+		foreach(QString col, cols)
+		{
+			if (col=="genotype") continue;
+			int index = vl.annotationIndexByName(col, true, true);
+			anno_indices.append(index);
+
+			foreach(VariantAnnotationDescription vad, vl.annotationDescriptions())
+			{
+				if(vad.name()==col)
+				{
+					bool already_found = false;
+					foreach(VariantAnnotationDescription vad2, vls_anno_descriptions)
+					{
+						if(vad2.name()==col) already_found = true;
+					}
+
+					if(!already_found) vls_anno_descriptions.append(vad);
+				}
+			}
+		}
+
+		vls_anno_indices.append(anno_indices);
+		vls.append(vl);
+	}
+
+	//set up combined variant list (annotation and filter descriptions)
+	VariantList vl_merged;
+	foreach(const VariantList& vl, vls)
+	{
+		auto it = vl.filters().begin();
+		while(it!=vl.filters().end())
+		{
+			if (!vl_merged.filters().contains(it.key()))
+			{
+				vl_merged.filters().insert(it.key(), it.value());
+			}
+			++it;
+		}
+	}
+	foreach(int index, vls_anno_indices[0])
+	{
+		vl_merged.annotations().append(vls[0].annotations()[index]);
+	}
+	foreach(VariantAnnotationDescription vad, vls_anno_descriptions)
+	{
+		vl_merged.annotationDescriptions().append(vad);
+	}
+
+	//merge variants
+	vl_merged.reserve(2 * vls[0].count());
+	for (int i=0; i<vls.count(); ++i)
+	{
+		for(int j=0; j<vls[i].count(); ++j)
+		{
+			Variant v = vls[i][j];
+			QList<QByteArray> annos = v.annotations();
+			v.annotations().clear();
+			foreach(int index, vls_anno_indices[i])
+			{
+				v.annotations().append(annos[index]);
+			}
+			vl_merged.append(v);
+		}
+	}
+
+	//remove duplicates from variant list
+	vl_merged.removeDuplicates(true);
+
+	//append sample columns
+	for (int i=0; i<vls.count(); ++i)
+	{
+		//get genotype index
+		int geno_index = vls[i].annotationIndexByName("genotype", true, false);
+		if(geno_index==-1)	geno_index = vls[i].annotationIndexByName("tumor_af", true, true);
+
+		//add column header
+		vl_merged.annotationDescriptions().append(VariantAnnotationDescription(QFileInfo(in[i]).baseName(), ""));
+		vl_merged.annotations().append(VariantAnnotationHeader(QFileInfo(in[i]).baseName()));
+
+		//create index over variant list to speed up the search
+		const VariantList& vl = vls[i];
+		ChromosomalIndex<VariantList> cidx(vl);
+
+		//add sample-specific columns
+		for (int j=0; j<vl_merged.count(); ++j)
+		{
+			Variant& v = vl_merged[j];
+			QByteArray entry = "no";
+			if (v.isSNV()) //SNP
+			{
+				QVector<int> matches = cidx.matchingIndices(v.chr(), v.start(), v.end());
+				for (int k=0; k<matches.count(); ++k)
+				{
+					int match = matches[k];
+					if (match!=-1 && vl[match].ref()==v.ref() && vl[match].obs()==v.obs())
+					{
+						entry = "yes (" + vl[match].annotations()[geno_index] + ")";
+					}
+				}
+			}
+			else //indel
+			{
+				QVector<int> matches = cidx.matchingIndices(v.chr(), v.start()-indel_window, v.end()+indel_window);
+				if (matches.count()>0)
+				{
+					//exact match (start, obs, ref)
+					bool done = false;
+					for (int k=0; k<matches.count(); ++k)
+					{
+						const Variant& v2 = vl[matches[k]];
+						if (!done && v2.start()==v.start() && v2.ref()==v.ref() && v2.obs()==v.obs())
+						{
+							entry = "yes (" + v2.annotations()[geno_index] + ")";
+							done = true;
+						}
+					}
+
+					//same indel nearby (ref, obs)
+					for (int k=0; k<matches.count(); ++k)
+					{
+						const Variant& v2 = vl[matches[k]];
+						if (!done && v2.ref()==v.ref() && v2.obs()==v.obs())
+						{
+							entry = "near (" + v2.annotations()[geno_index] + ")";
+							done = true;
+						}
+					}
+
+					//different indel nearby
+					for (int k=0; k<matches.count(); ++k)
+					{
+						const Variant& v2 = vl[matches[k]];
+						if (!done && !v2.isSNV())
+						{
+							entry = "different (" + v2.annotations()[geno_index] + ")";
+							done = true;
+						}
+					}
+				}
+			}
+			v.annotations().append(entry);
+		}
+	}
+
+	vl_merged.store(out, VariantList::TSV);
 }
 
 void NGSHelper::softClipAlignment(BamAlignment& al, int start_ref_pos, int end_ref_pos)
