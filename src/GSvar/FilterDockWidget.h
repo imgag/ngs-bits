@@ -24,6 +24,8 @@ public:
 	void applyDefaultFilters();
 	/// Applies predefined default filters (trio).
 	void applyDefaultFiltersTrio();
+	/// Applies predefined default filters (multi-sample).
+	void applyDefaultFiltersMultiSample();
     /// Applies predefined default filters (somatic).
     void applyDefaultFiltersSomatic();
 

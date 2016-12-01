@@ -9,13 +9,12 @@ libs:
 
 GSvar:
 ** CNV: copy to clipboard, non-modal
-** Icons (download, clipboard new)
 ** LOVD upload for variant:
   - implement TODOs in LovdUploadFile class
   - implement dialog where user can double-check the data before upload
   - implement HTTP POST upload
   - implement print-out of upload data for patient file
-- Allow handling of several related samples (i.e. integrate SampleOverview functionality) and allow filtering based on affected status
+- Allow filtering sample-overview lists based on affected status
 
 Tools:
 ** NGSDImportGeneUCSC: add import of RefSeq genes => use RefSeq as fallback for CCDS, not UCSC (HPO search microcephaly)

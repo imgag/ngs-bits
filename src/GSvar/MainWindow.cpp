@@ -44,6 +44,7 @@
 #include "GeneSelectorDialog.h"
 #include "LovdUploadFile.h"
 #include "PhenotypeSelector.h"
+#include "NGSHelper.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -74,6 +75,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui_.actionFiltersGermline, SIGNAL(triggered(bool)), this, SLOT(applyDefaultFiltersGermline()));
 	filter_btn->menu()->addAction(ui_.actionFiltersTrio);
 	connect(ui_.actionFiltersTrio, SIGNAL(triggered(bool)), this, SLOT(applyDefaultFiltersTrio()));
+	filter_btn->menu()->addAction(ui_.actionFiltersMultiSample);
+	connect(ui_.actionFiltersMultiSample, SIGNAL(triggered(bool)), this, SLOT(applyDefaultFiltersMultiSample()));
     filter_btn->menu()->addAction(ui_.actionFiltersSomatic);
     connect(ui_.actionFiltersSomatic, SIGNAL(triggered(bool)), this, SLOT(applyDefaultFiltersSomatic()));
     filter_btn->menu()->addAction(ui_.actionFiltersClear);
@@ -138,6 +141,33 @@ void MainWindow::on_actionGeneSelector_triggered()
 		QString report = dlg.report();
 		QApplication::clipboard()->setText(report);
 		QMessageBox::information(this, "Gene selection report", "Gene selection report was copied to clipboard.");
+	}
+}
+
+void MainWindow::on_actionSampleOverview_triggered()
+{
+	//input files
+	QStringList in;
+	QStringList tmp;
+	while(!(tmp = QFileDialog::getOpenFileNames(this, "Select input files", QApplication::applicationDirPath(), "GSvar files (*.GSvar);;TSV files (*.tsv);;All files (*.*)")).isEmpty())
+	{
+		in.append(tmp);
+	}
+	if (in.count()<2) return;
+
+	//output file
+	QString out = QFileDialog::getSaveFileName(this, "Store overview as", QApplication::applicationDirPath(), "GSvar files (*.GSvar);;TSV files (*.tsv);;All files (*.*)");
+	if (out.isEmpty()) return;
+
+	//exec
+	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+	NGSHelper::createSampleOverview(in, out);
+	QApplication::restoreOverrideCursor();
+
+	//open
+	if(QMessageBox::question(this, "Overview file created", "The sample overview file was successfilly created. Do you want to open the file now")==QMessageBox::Yes)
+	{
+		loadFile(out);
 	}
 }
 
@@ -636,6 +666,11 @@ void MainWindow::applyDefaultFiltersGermline()
 void MainWindow::applyDefaultFiltersTrio()
 {
 	filter_widget_->applyDefaultFiltersTrio();
+}
+
+void MainWindow::applyDefaultFiltersMultiSample()
+{
+	filter_widget_->applyDefaultFiltersMultiSample();
 }
 
 void MainWindow::applyDefaultFiltersSomatic()

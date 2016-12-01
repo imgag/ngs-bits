@@ -127,6 +127,8 @@ public slots:
 	void on_actionCNV_triggered();
 	///Open gene picker dialog
 	void on_actionGeneSelector_triggered();
+	///Create sample overview file
+	void on_actionSampleOverview_triggered();
 
 	///Finished the report generation
 	void reportGenerationFinished(bool success);
@@ -155,6 +157,7 @@ public slots:
     ///Default filters
     void applyDefaultFiltersGermline();
 	void applyDefaultFiltersTrio();
+	void applyDefaultFiltersMultiSample();
     void applyDefaultFiltersSomatic();
     void clearFilters();
 

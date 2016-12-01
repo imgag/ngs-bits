@@ -161,7 +161,7 @@
        </property>
        <property name="icon">
         <iconset resource="GSvar.qrc">
-         <normaloff>:/Icons/CopyFile.png</normaloff>:/Icons/CopyFile.png</iconset>
+         <normaloff>:/Icons/Download.png</normaloff>:/Icons/Download.png</iconset>
        </property>
        <property name="autoDefault">
         <bool>false</bool>

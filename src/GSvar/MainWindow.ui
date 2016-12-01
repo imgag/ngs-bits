@@ -17,7 +17,7 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="GSvar.qrc">
+   <iconset resource="../GSmix/GSmix.qrc">
     <normaloff>:/Icons/Icon.png</normaloff>:/Icons/Icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -79,14 +79,14 @@
     </property>
     <addaction name="actionOpen"/>
     <addaction name="actionOpenNGSD"/>
-    <addaction name="actionExportVCF"/>
-    <addaction name="actionExportGSvar"/>
-    <addaction name="actionClose"/>
-    <addaction name="separator"/>
     <addaction name="actionRecent"/>
     <addaction name="separator"/>
-    <addaction name="actionExit"/>
+    <addaction name="actionExportVCF"/>
+    <addaction name="actionExportGSvar"/>
     <addaction name="separator"/>
+    <addaction name="actionClose"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -155,6 +155,8 @@
     <addaction name="menuGenes"/>
     <addaction name="menuPhenotypes"/>
     <addaction name="menuPanels"/>
+    <addaction name="separator"/>
+    <addaction name="actionSampleOverview"/>
     <addaction name="separator"/>
     <addaction name="menuFileInfo"/>
     <addaction name="menuDetermine_gender"/>
@@ -324,7 +326,7 @@
   </action>
   <action name="actionNGSD">
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset resource="../GSmix/GSmix.qrc">
      <normaloff>:/Icons/NGSD.png</normaloff>:/Icons/NGSD.png</iconset>
    </property>
    <property name="text">
@@ -563,9 +565,23 @@
     <string>Select genes for variant/CNV analysis based on coverage and copy-number.</string>
    </property>
   </action>
+  <action name="actionSampleOverview">
+   <property name="text">
+    <string>Create sample overview</string>
+   </property>
+  </action>
+  <action name="actionFiltersMultiSample">
+   <property name="text">
+    <string>Default filters (germline, multi-sample)</string>
+   </property>
+   <property name="toolTip">
+    <string>Apply default multi-sample filters.</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
+  <include location="../GSmix/GSmix.qrc"/>
   <include location="GSvar.qrc"/>
  </resources>
  <connections/>

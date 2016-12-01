@@ -292,6 +292,44 @@ void FilterDockWidget::applyDefaultFiltersTrio()
 	emit filtersChanged();
 }
 
+void FilterDockWidget::applyDefaultFiltersMultiSample()
+{
+	//block signals to avoid 10 updates of GUI
+	blockSignals(true);
+
+	resetSignalsUnblocked(false);
+
+	//enable default filters
+	ui_.maf_enabled->setChecked(true);
+	ui_.maf->setValue(1.0);
+	ui_.impact_enabled->setChecked(true);
+	ui_.impact->setCurrentText("HIGH,MODERATE,LOW");
+	ui_.ihdb_enabled->setChecked(true);
+	ui_.ihdb->setValue(20);
+	ui_.ihdb_ignore_gt->setChecked(true);
+	ui_.classification_enabled->setChecked(true);
+	ui_.classification->setCurrentText("3");
+	ui_.keep_class_ge_enabled->setChecked(true);
+	ui_.keep_class_ge->setCurrentText("3");
+	ui_.keep_class_m->setChecked(true);
+
+	//filter cols
+	QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
+	foreach(FilterColumnWidget* w, fcws)
+	{
+		if (w->objectName()=="anno_high_impact" || w->objectName()=="anno_pathogenic_clinvar" || w->objectName()=="anno_pathogenic_hgmd")
+		{
+			w->setState(FilterColumnWidget::KEEP);
+		}
+	}
+
+	//re-enable signals
+	blockSignals(false);
+
+	//emit signal to update GUI
+	emit filtersChanged();
+}
+
 void FilterDockWidget::applyDefaultFiltersSomatic()
 {
     //block signals to avoid 10 updates of GUI
