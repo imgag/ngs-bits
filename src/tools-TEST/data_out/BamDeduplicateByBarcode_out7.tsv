@@ -104,7 +104,7 @@ duplicate counts	# of barcodes	percentage of barcodes	percentage of reads	averag
 13	3	2.13	4.32	37
 14	1	0.71	1.55	34
 
-read count before deduplication:	903
-read count after deduplication:	141 (15.61%)
+read pairs matching defined amplicons before deduplication:	903
+read pairs matching defined amplicons after deduplication:	141 (15.61%)
 
 0 read(s) were deleted in target region because of ambiguity of single matching

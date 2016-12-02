@@ -288,8 +288,8 @@ private:
 		}
 
 		QString reads_percent_after = QString::number(reads_total_after*100.0/reads_total_before, 'f', 2);
-		outStream << "\nread count before deduplication:\t" << reads_total_before;
-		outStream << "\nread count after deduplication:\t" << reads_total_after << " (" << reads_percent_after <<  "%)\n";
+		outStream << "\nread pairs matching defined amplicons before deduplication:\t" << reads_total_before;
+		outStream << "\nread pairs matching defined amplicons after deduplication:\t" << reads_total_after << " (" << reads_percent_after <<  "%)\n";
 	}
 
 	void writeMipInfoMap(QMap <Position,mip_info> mip_info_map, QString outfile_name, QHash <int, BarcodeCountInfo> dup_count_histo, int lost_singles)
