@@ -191,7 +191,6 @@ private:
 	#undef D
 	}
 
-
 	QMap <Position,mip_info> createMipInfoMap(QString mip_file)
 	{
 		QMap <Position,mip_info> mip_info_map;
@@ -336,6 +335,10 @@ private:
 		{
 			for(unsigned int i=0; i<original_cigar_ops.size(); ++i)
 			{
+				if (cutted_bases<=0)
+				{
+					break;
+				}
 				CigarOp co = original_cigar_ops[i];
 				if ((co.Type=='M')||(co.Type=='=')||(co.Type=='X')||(co.Type=='I')||(co.Type=='S'))
 				{
@@ -343,10 +346,11 @@ private:
 					co.Length=(unsigned int)qMax(0,(int)co.Length-cutted_bases);
 					cutted_bases=cutted_bases-original_operation_length;
 					original_cigar_ops[i]=co;
-					if (cutted_bases<=0)
-					{
-						break;
-					}
+				}
+				else//remove deletions and similar operations
+				{
+					co.Length=(unsigned int)(0);
+					original_cigar_ops[i]=co;
 				}
 			}
 		}
@@ -354,6 +358,10 @@ private:
 		{
 			for(int i=original_cigar_ops.size()-1; i>=0; --i)
 			{
+				if (cutted_bases<=0)
+				{
+					break;
+				}
 				CigarOp co = original_cigar_ops[i];
 				if ((co.Type=='M')||(co.Type=='=')||(co.Type=='X')||(co.Type=='I')||(co.Type=='S'))
 				{
@@ -361,10 +369,11 @@ private:
 					co.Length=(unsigned int)qMax(0,(int)co.Length-cutted_bases);
 					cutted_bases=cutted_bases-original_operation_length;
 					original_cigar_ops[i]=co;
-					if (cutted_bases<=0)
-					{
-						break;
-					}
+				}
+				else//remove deletions and similar operations
+				{
+					co.Length=(unsigned int)(0);
+					original_cigar_ops[i]=co;
 				}
 			}
 		}
@@ -543,7 +552,7 @@ private:
 		{
 			int elems_to_cut=(original_alignment.GetEndPosition())-right_arm.start_pos;
 			//cut bases and qualties
-			int substr_end=qMin(0,static_cast<int>(original_alignment.QueryBases.size()-elems_to_cut));//cast size_t to int
+			int substr_end=qMax(0,static_cast<int>(original_alignment.QueryBases.size()-elems_to_cut));//cast size_t to int
 			original_alignment.QueryBases=original_alignment.QueryBases.substr(0,substr_end);
 			original_alignment.Qualities=original_alignment.Qualities.substr(0,substr_end);
 			//correct CIGAR
