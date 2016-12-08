@@ -278,4 +278,48 @@ private slots:
 		I_EQUAL(v.end(), 66);
 	}
 
+	void toHGVS()
+	{
+		QString ref_file = Settings::string("reference_genome");
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+		FastaFileIndex genome_index(ref_file);
+
+		//SNP
+		Variant v = Variant("chr1", 120611964, 120611964, "G", "C");
+		S_EQUAL(v.toHGVS(genome_index), "g.120611964G>C");
+
+		//INS
+		v = Variant("chr1", 866511, 866511, "-", "CCCT");
+		S_EQUAL(v.toHGVS(genome_index), "g.866511_866512insCCCT");
+		v = Variant("chr1", 866511, 866511, "", "CCCT");
+		S_EQUAL(v.toHGVS(genome_index), "g.866511_866512insCCCT");
+
+		//DEL (single base)
+		v = Variant("chr9", 98232224, 98232224, "A", "-");
+		S_EQUAL(v.toHGVS(genome_index), "g.98232224del");
+		v = Variant("chr9", 98232224, 98232224, "A", "");
+		S_EQUAL(v.toHGVS(genome_index), "g.98232224del");
+
+		//DEL (multiple base)
+		v = Variant("chr9", 98232224, 98232225, "AA", "-");
+		S_EQUAL(v.toHGVS(genome_index), "g.98232224_98232225del");
+		v = Variant("chr9", 98232224, 98232225, "AA", "");
+		S_EQUAL(v.toHGVS(genome_index), "g.98232224_98232225del");
+
+		//DUP (single base)
+		v = Variant("chr1", 120611965, 120611965, "-", "G");
+		S_EQUAL(v.toHGVS(genome_index), "g.120611964dup");
+		v = Variant("chr1", 120611965, 120611965, "", "G");
+		S_EQUAL(v.toHGVS(genome_index), "g.120611964dup");
+
+		//DUP (multiple base)
+		v = Variant("chr1", 120611967, 120611967, "-", "GCA");
+		S_EQUAL(v.toHGVS(genome_index), "g.120611964_120611966dup");
+		v = Variant("chr1", 120611967, 120611967, "", "GCA");
+		S_EQUAL(v.toHGVS(genome_index), "g.120611964_120611966dup");
+
+		//INV
+		v = Variant("chr1", 120611948, 120611952, "CATGC", "GCATG");
+		S_EQUAL(v.toHGVS(genome_index), "g.120611948_120611952inv");
+	}
 };

@@ -4,6 +4,7 @@
 #include "Helper.h"
 #include "Log.h"
 #include "ChromosomalIndex.h"
+#include "NGSHelper.h"
 
 #include <QFile>
 #include <QTextStream>
@@ -74,6 +75,90 @@ void Variant::normalize(const Sequence& empty_seq)
 	{
 		obs_ = empty_seq;
 	}
+}
+
+QString Variant::toHGVS(const FastaFileIndex& genome_index) const
+{
+	//check that variant is normalized
+	int start = start_;
+	Sequence ref_orig = ref_;
+	Sequence ref = ref_orig.replace("-", "");
+	Sequence obs_orig = obs_;
+	Sequence obs = obs_orig.replace("-", "");
+	obs.replace("-", "");
+	normalize(start, ref, obs);
+	if (start!=start_ || ref!=ref_orig || obs!=obs_orig)
+	{
+		THROW(ProgrammingException, "Cannot convert un-normalized variant " + toString() + " to HGVS!");
+	}
+
+	//init
+	QByteArray prefix = (chr().isM() ? "m." : "g.");
+	int end = start + ref.length() - 1;
+	int obs_len = obs.length();
+	int ref_len = ref.length();
+
+	//SNV
+	if (isSNV())
+	{
+		return prefix + QByteArray::number(start) + ref + '>' + obs;
+	}
+
+	//DEL
+	if (ref_len>0 && obs_len==0) //del
+	{
+		if (start == end)
+		{
+			return prefix + QString::number(start) + "del";
+		}
+		else
+		{
+			return prefix + QString::number(start) + '_' + QString::number(end) + "del";
+		}
+	}
+
+	//INS or DUP
+	if (obs_len>0 && ref_len==0)
+	{
+		//DUP
+		QString before = genome_index.seq(chr(), start-obs_len, obs_len);
+		if (obs==before)
+		{
+			start -= obs_len;
+			if (start == end)
+			{
+				return prefix + QString::number(start) + "dup";
+			}
+			else
+			{
+				return prefix + QString::number(start) + '_' + QString::number(end) + "dup";
+			}
+		}
+		//INS
+		else
+		{
+			end += 2;
+			return prefix + QString::number(start) + '_' + QString::number(end) + "ins" + obs;
+		}
+	}
+
+	//INV
+	if (obs==NGSHelper::changeSeq(ref, true, true))
+	{
+		return prefix + QString::number(start) + '_' + QString::number(end) + "inv";
+	}
+
+	//INDEL
+	if (start == end)
+	{
+		return prefix + QString::number(start) + "delins" + obs;
+	}
+	else
+	{
+		return prefix + QString::number(start) + '_' + QString::number(end) + "delins" + obs;
+	}
+
+	THROW(ProgrammingException, "Could not convert variant " + toString(false) + " to string! This should not happen!");
 }
 
 VariantList::LessComparatorByFile::LessComparatorByFile(QString filename)

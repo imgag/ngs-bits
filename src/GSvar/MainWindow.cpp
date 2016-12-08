@@ -1195,10 +1195,12 @@ void MainWindow::uploadtoLovd(int variant_index)
 	//gene to approved
 	gene = db.geneToApproved(gene).first;
 
-	QString upload_file = LovdUploadFile::create(sample, gender, gene, pheno, variants_, variants_[variant_index]);
+	QByteArray upload_file = LovdUploadFile::create(sample, gender, gene, pheno, variants_, variants_[variant_index]);
 	if (!upload_file.isEmpty())
 	{
-		LovdUploadFile::upload(upload_file);
+		//QString url = QInputDialog::getItem(this, "URL", "url", QStringList() << "http://databases.lovd.nl/shared/api/submissions" << "https://medgen.medizin.uni-tuebingen.de/echo.php" << "http://requestb.in/p11xmgp1" << "https://requestb.in/p11xmgp1", 0, false);
+		QString reply = HttpHandler().getHttpReply("http://databases.lovd.nl/shared/api/submissions", upload_file);
+		qDebug() << "REPLY:" << reply;
 	}
 }
 
