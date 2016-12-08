@@ -137,6 +137,12 @@ inline uint qHash(const Position &pos1)
 	return qHash(QString::number(pos1.start_pos) + QString::number(pos1.end_pos) + pos1.chr.num());
 }
 
+struct cigar_correction
+{
+	std::vector <CigarOp> corrected_cigar;
+	int arm_offset;
+};
+
 class ConcreteTool
 		: public ToolBase
 {
@@ -329,8 +335,10 @@ private:
 		out.close();
 	}
 
-	std::vector <CigarOp> correctCigarString(std::vector <CigarOp> original_cigar_ops, bool cut_front, int cutted_bases)
+	cigar_correction correctCigarString(std::vector <CigarOp> original_cigar_ops, bool cut_front, int cutted_bases)
 	{
+		cigar_correction result;
+		result.arm_offset=0;
 		if (cut_front)
 		{
 			for(unsigned int i=0; i<original_cigar_ops.size(); ++i)
@@ -340,15 +348,20 @@ private:
 					break;
 				}
 				CigarOp co = original_cigar_ops[i];
-				if ((co.Type=='M')||(co.Type=='=')||(co.Type=='X')||(co.Type=='I')||(co.Type=='S'))
+				if ((co.Type=='=')||(co.Type=='X')||(co.Type=='M')||(co.Type=='S')||(co.Type=='D'))
 				{
 					int original_operation_length=co.Length;
 					co.Length=(unsigned int)qMax(0,(int)co.Length-cutted_bases);
 					cutted_bases=cutted_bases-original_operation_length;
 					original_cigar_ops[i]=co;
+					if (co.Type=='D')//count deletions
+					{
+						result.arm_offset+=original_operation_length-co.Length;
+					}
 				}
-				else//remove deletions and similar operations
+				else if (co.Type=='I')//remove and count insertions
 				{
+					result.arm_offset+=co.Length;
 					co.Length=(unsigned int)(0);
 					original_cigar_ops[i]=co;
 				}
@@ -363,14 +376,18 @@ private:
 					break;
 				}
 				CigarOp co = original_cigar_ops[i];
-				if ((co.Type=='M')||(co.Type=='=')||(co.Type=='X')||(co.Type=='I')||(co.Type=='S'))
+				if ((co.Type=='=')||(co.Type=='X')||(co.Type=='M')||(co.Type=='S')||(co.Type=='D'))
 				{
 					int original_operation_length=co.Length;
 					co.Length=(unsigned int)qMax(0,(int)co.Length-cutted_bases);
 					cutted_bases=cutted_bases-original_operation_length;
 					original_cigar_ops[i]=co;
+					if (co.Type=='D')//count deletions
+					{
+						result.arm_offset+=original_operation_length-co.Length;
+					}
 				}
-				else//remove deletions and similar operations
+				else if (co.Type=='I')//remove insertions
 				{
 					co.Length=(unsigned int)(0);
 					original_cigar_ops[i]=co;
@@ -390,7 +407,9 @@ private:
 				++deleted_elem_count;
 			}
 		}
-		return cigar_ops_out;
+
+		result.corrected_cigar=cigar_ops_out;
+		return result;
 	}
 
 	reduced_singles reduceSingleReads(int allowed_edit_distance, const QHash <barcode_at_pos, QList<readPair> > &barcode_at_pos2read_list)
@@ -547,29 +566,33 @@ private:
 		//extension and ligation arm sequence of MIPs cannot be used for variant calling, so these should be removed
 		//cut on right side
 		QTextStream out(stdout);
-
 		if (original_alignment.GetEndPosition()>right_arm.start_pos)
 		{
-			int elems_to_cut=(original_alignment.GetEndPosition())-right_arm.start_pos;
+			int match_elems_to_cut=(original_alignment.GetEndPosition())-right_arm.start_pos;
+			//correct CIGAR
+			cigar_correction cigar_correction_result=correctCigarString(original_alignment.CigarData,false,match_elems_to_cut);
+			original_alignment.CigarData=cigar_correction_result.corrected_cigar;
 			//cut bases and qualties
-			int substr_end=qMax(0,static_cast<int>(original_alignment.QueryBases.size()-elems_to_cut));//cast size_t to int
+			int substr_end=qMax(0,static_cast<int>(original_alignment.QueryBases.size()-match_elems_to_cut+cigar_correction_result.arm_offset));//cast size_t to int
 			original_alignment.QueryBases=original_alignment.QueryBases.substr(0,substr_end);
 			original_alignment.Qualities=original_alignment.Qualities.substr(0,substr_end);
-			//correct CIGAR
-			original_alignment.CigarData=correctCigarString(original_alignment.CigarData,false,elems_to_cut);
+
 		}
 
 		//cut on left side
 		if (original_alignment.Position<left_arm.end_pos)
 		{
-			int elems_to_cut=qMin(static_cast<int>(original_alignment.QueryBases.length()),left_arm.end_pos-original_alignment.Position);//cast size_t to int
-			//cut bases and qualties
-			original_alignment.QueryBases=original_alignment.QueryBases.substr(elems_to_cut);
-			original_alignment.Qualities=original_alignment.Qualities.substr(elems_to_cut);
-			//correct start
-			original_alignment.Position=original_alignment.Position+elems_to_cut;
+			int read_length=static_cast<int>(original_alignment.QueryBases.length());//cast size_t to int
+			int match_elems_to_cut=qMin(read_length,left_arm.end_pos-original_alignment.Position);//cast size_t to int
 			//correct CIGAR
-			original_alignment.CigarData=correctCigarString(original_alignment.CigarData,true,elems_to_cut);
+			cigar_correction cigar_correction_result=correctCigarString(original_alignment.CigarData,true,match_elems_to_cut);
+			original_alignment.CigarData=cigar_correction_result.corrected_cigar;
+			//cut bases and qualties while considering insertion and deletions in cutted arm
+			int adjusted_elems_to_cut=qMin(read_length,match_elems_to_cut-cigar_correction_result.arm_offset);
+			original_alignment.QueryBases=original_alignment.QueryBases.substr(adjusted_elems_to_cut);
+			original_alignment.Qualities=original_alignment.Qualities.substr(adjusted_elems_to_cut);
+			//correct start
+			original_alignment.Position=original_alignment.Position+match_elems_to_cut;
 		}
 		return original_alignment;
 	}
