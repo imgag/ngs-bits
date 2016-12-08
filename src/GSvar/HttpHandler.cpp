@@ -4,6 +4,7 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QEventLoop>
+#include <QNetworkProxy>
 
 HttpHandler::HttpHandler(QObject* parent)
 	: QObject(parent)

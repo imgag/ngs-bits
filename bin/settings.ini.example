@@ -34,10 +34,10 @@ NGSD = ""
 SampleStatus = ""
 PrimerDesign = ""
 
-#alamut gene list file
-alamut_gene_list = ""
 
-#GSvar report archive folder
+#special folders for GSvar
+preferred_transcripts_file = ""
 gsvar_report_archive = ""
-
+gsvar_gap_transfer = ""
+gsvar_variant_transfer = ""
 

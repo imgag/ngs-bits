@@ -52,6 +52,8 @@ public:
 	static QString nobr();
 	///Upload variant to LOVD
 	void uploadtoLovd(int variant_index);
+	///Returns the target file name without extension and date part prefixed with '_', or an empty string if no target file is set
+	QString targetFileName() const;
 
 
 public slots:

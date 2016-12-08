@@ -369,6 +369,16 @@ void MainWindow::openInIGV(QString region)
 	QApplication::restoreOverrideCursor();
 }
 
+QString MainWindow::targetFileName() const
+{
+	if (filter_widget_->targetRegion()=="") return "";
+
+	QString output = "_" + QFileInfo(filter_widget_->targetRegion()).fileName();
+	output.remove(".bed");
+	output.remove(QRegExp("_[0-9_]{4}_[0-9_]{2}_[0-9_]{2}"));
+	return output;
+}
+
 QStringList MainWindow::geneInheritanceMissing(QBitArray selected)
 {
 	//get set of genes
@@ -554,14 +564,7 @@ void MainWindow::on_actionReport_triggered()
 
 	//get export file name
 	QString base_name = QFileInfo(filename_).baseName();
-	QString target_short = "";
-	if (filter_widget_->targetRegion()!="")
-	{
-		target_short = "_" + QFileInfo(filter_widget_->targetRegion()).fileName();
-		target_short.remove(".bed");
-		target_short.remove(QRegExp("_[0-9_]{4}_[0-9_]{2}_[0-9_]{2}"));
-	}
-	QString file_rep = QFileDialog::getSaveFileName(this, "Export report file", last_report_path_ + "/" + base_name + target_short + "_report_" + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
+	QString file_rep = QFileDialog::getSaveFileName(this, "Export report file", last_report_path_ + "/" + base_name + targetFileName() + "_report_" + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
 	if (file_rep=="") return;
 	last_report_path_ = QFileInfo(file_rep).absolutePath();
 
@@ -863,6 +866,14 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 		QString report = dlg.report();
 		QApplication::clipboard()->setText(report);
 		QMessageBox::information(this, "Gap report", "Gap report was copied to clipboard.");
+
+		//write report file to transfer folder
+		QString gsvar_gap_transfer = Settings::string("gsvar_gap_transfer");
+		if (gsvar_gap_transfer!="")
+		{
+			QString file_rep = gsvar_gap_transfer + "/" + QFileInfo(bam_file).baseName() + targetFileName() + "_gaps_" + QDate::currentDate().toString("yyyyMMdd") + ".txt";
+			Helper::storeTextFile(file_rep, report.split("\n"));
+		}
 	}
 }
 
