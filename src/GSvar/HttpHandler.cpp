@@ -89,12 +89,10 @@ QString HttpHandler::getHttpReply(QString url, QByteArray data)
 
 void HttpHandler::handleSslErrors(QList<QSslError> errors)
 {
-	/*
-		foreach(QSslError error, errors)
-		{
-			qDebug() << "IGNORED SSL ERROR - type:" << error.error() << " string:" << error.errorString();
-			Log::warn("Ignoring SSL error " + QString::number(error.error()) + ". Error messge: " + error.errorString());
-		}
-	*/
+	//foreach(QSslError error, errors)
+	//	{
+	//		qDebug() << "IGNORED SSL ERROR - type:" << error.error() << " string:" << error.errorString();
+	//		Log::warn("Ignoring SSL error " + QString::number(error.error()) + ". Error messge: " + error.errorString());
+	//	}
 	qobject_cast<QNetworkReply*>(sender())->ignoreSslErrors(errors);
 }

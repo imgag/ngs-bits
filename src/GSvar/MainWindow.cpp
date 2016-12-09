@@ -123,8 +123,8 @@ void MainWindow::on_actionCNV_triggered()
 	list->setGenesFilter(filter_widget_->genes());
 	list->setRoiFilter(filter_widget_->targetRegion());
 	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
-	GUIHelper::showWidgetAsDialog(list, "Copy-number variants", false);
-	list->deleteLater();
+	auto dlg = GUIHelper::showWidgetAsDialog(list, "Copy-number variants", false, false);
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionGeneSelector_triggered()
@@ -377,6 +377,26 @@ QString MainWindow::targetFileName() const
 	output.remove(".bed");
 	output.remove(QRegExp("_[0-9_]{4}_[0-9_]{2}_[0-9_]{2}"));
 	return output;
+}
+
+void MainWindow::addModelessDialog(QSharedPointer<QDialog> ptr)
+{
+	modeless_dialogs_.append(ptr);
+
+	//we always clean up when we add another dialog.
+	//Like that, only one dialog can be closed and not destroyed at the same time.
+	cleanUpModelessDialogs();
+}
+
+void MainWindow::cleanUpModelessDialogs()
+{
+	for (int i=modeless_dialogs_.count()-1; i>=0; --i)
+	{
+		if (modeless_dialogs_[i]->isHidden())
+		{
+			modeless_dialogs_.removeAt(i);
+		}
+	}
 }
 
 QStringList MainWindow::geneInheritanceMissing(QBitArray selected)
@@ -821,7 +841,6 @@ void MainWindow::on_actionGapsLookup_triggered()
 	edit->setWordWrapMode(QTextOption::NoWrap);
 	edit->setReadOnly(true);
 	GUIHelper::showWidgetAsDialog(edit, "Gaps of gene '" + gene + "' from low-coverage BED file '" + report + "':", false);
-	edit->deleteLater();
 }
 
 void MainWindow::on_actionGapsRecalculate_triggered()
@@ -984,7 +1003,6 @@ void MainWindow::on_actionShowTranscripts_triggered()
 	text += "</pre>";
 	QTextEdit* edit = new QTextEdit(text);
 	GUIHelper::showWidgetAsDialog(edit, "Preferred transcripts list", false);
-	edit->deleteLater();
 }
 
 void MainWindow::on_actionImportTranscripts_triggered()
@@ -1187,10 +1205,10 @@ void MainWindow::uploadtoLovd(int variant_index)
 	QString gender = db.sampleGender(sample);
 
 	//select phenotype
-	PhenotypeSelector p_sel;
-	bool ok = GUIHelper::showWidgetAsDialog(&p_sel, "Select patient phenotype", true);
-	Phenotype pheno = p_sel.selectedPhenotype();
-	if (!ok || pheno.name().isEmpty()) return;
+	PhenotypeSelector* p_sel = new PhenotypeSelector();
+	QSharedPointer<QDialog> dlg = GUIHelper::showWidgetAsDialog(p_sel, "Select patient phenotype", true);
+	Phenotype pheno = p_sel->selectedPhenotype();
+	if (dlg->result()==QDialog::Rejected || pheno.name().isEmpty()) return;
 
 	//select gene
 	QByteArray gene_anno = variants_[variant_index].annotations()[variants_.annotationIndexByName("gene")];
@@ -1198,7 +1216,7 @@ void MainWindow::uploadtoLovd(int variant_index)
 	QString gene = genes[0];
 	if (genes.count()!=1)
 	{
-		ok = false;
+		bool ok = false;
 		gene = (genes.count()==1 ? genes[0] : QInputDialog::getItem(this, "Select gene", "affected gene:", genes, 0, false, &ok));
 		if (!ok) return;
 	}
