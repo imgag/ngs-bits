@@ -23,9 +23,9 @@ For Ubuntu 16.04 install these packages:
 
 ##(1) Setup of the analysis pipeline
 
-First, we can check out the analysis pipeline code (contact us for credentials):
+First, we can check out the analysis pipeline code:
 
-	> svn co http://saas1305xh.saas-secure.com/svn/php --username [user] --password [password]
+	> git clone --recursive https://github.com/imgag/megSAP.git
 
 Next, we need to download and build some open-source tools that our pipeline relies on:
 
@@ -204,6 +204,7 @@ For more information on GSvar, open the help within GSvar (F1) or use this [link
 ##Next steps
 
 Now you can run your first data analysis based on these [instructions](running_an_analysis.md).
+
 
 
 

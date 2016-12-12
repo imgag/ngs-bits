@@ -52,7 +52,7 @@ Now the executables and all required libraries can be found in the bin/ folder!
 ## Support
 
 Please report any issues or questions to the [ngs-bits issue 
-tracker](https://github.com/marc-sturm/ngs-bits/issues).
+tracker](https://github.com/imgag/ngs-bits/issues).
 
 ## Tools list
 
@@ -121,6 +121,7 @@ The default output format of the quality control tools is [qcML](https://github.
 
 
   
+
 
 
 
