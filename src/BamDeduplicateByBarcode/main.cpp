@@ -128,6 +128,8 @@ struct most_frequent_read_selection
 {
 	readPair most_freq_read;
 	QList <readPair> duplicates;
+	int selected_read_count=0;
+	int all_read_count=0;
 };
 
 typedef QPair <QHash <barcode_at_pos, QList<readPair> >, QList <barcode_at_pos> > reduced_singles;
@@ -521,7 +523,9 @@ private:
 
 		//find highest count
 		int max_read_count=0;
+		int all_read_count=0;
 		QString max_seq;
+
 		foreach(QString seq,readpair_seq_count.keys())
 		{
 			if ((readpair_seq_count[seq].size())>max_read_count)
@@ -529,9 +533,12 @@ private:
 				max_read_count=readpair_seq_count[seq].size();
 				max_seq=seq;
 			}
+			all_read_count+=readpair_seq_count[seq].size();
 		}
 		most_frequent_read_selection result;
 		result.most_freq_read=readpair_seq_count[max_seq].takeLast();
+		result.selected_read_count=max_read_count;
+		result.all_read_count=all_read_count;
 
 		//collect duplicates
 		foreach (QList <readPair> read_pairs,readpair_seq_count.values())
@@ -722,13 +729,24 @@ private:
 		barcode_at_pos2read_list[new_barcode_at_pos].append(read_pair);
 	}
 
+	readPair annotate_alignment_with_group_info(most_frequent_read_selection selected_read_info)
+	{
+
+		selected_read_info.most_freq_read.first.AddTag ("sc", "i", selected_read_info.selected_read_count);
+		selected_read_info.most_freq_read.first.AddTag("ac", "i", selected_read_info.all_read_count);
+		selected_read_info.most_freq_read.second.AddTag("sc", "i", selected_read_info.selected_read_count);
+		selected_read_info.most_freq_read.second.AddTag("ac", "i", selected_read_info.all_read_count);
+
+		return selected_read_info.most_freq_read;
+	}
+
 	void outputMip(QMap <Position,mip_info>  &position2mip_info, QHash <int,BarcodeCountInfo> &dup_count_histo, Position act_position, int read_count, int minimal_group_size, barcode_at_pos barcode_and_pos, QList <readPair> read_list, BamTools::BamWriter &writer, QTextStream &duplicate_out_stream, QTextStream &nomatch_out_stream,  bool test)
 	{
 		if (position2mip_info.contains(act_position)&&(read_count>=minimal_group_size))
 		{
 			storeReadCountsMip(position2mip_info, dup_count_histo, act_position, read_count, barcode_and_pos.barcode_sum_quality);
 			most_frequent_read_selection read_selection = cutAndSelectPairMip(read_list,position2mip_info[act_position].left_arm,position2mip_info[act_position].right_arm);
-			writePairToBam(writer, read_selection.most_freq_read);
+			writePairToBam(writer, annotate_alignment_with_group_info(read_selection));
 			writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,barcode_and_pos.barcode_sequence,test);
 		}
 		else//write reads not matching a mip to a bed file
@@ -743,7 +761,7 @@ private:
 		{
 			storeReadCountsHs(position2hs_info, dup_count_histo, act_position, read_count, barcode_and_pos.barcode_sum_quality);
 			most_frequent_read_selection read_selection = clipAndSelectPairHS(read_list,act_position.start_pos,act_position.end_pos);
-			writePairToBam(writer, read_selection.most_freq_read);
+			writePairToBam(writer, annotate_alignment_with_group_info(read_selection));
 			writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,barcode_and_pos.barcode_sequence,test);
 		}
 		else//write reads not matching a amplicon to a bed file
@@ -855,8 +873,8 @@ public:
 
 			if((alignment_map.contains(QString::fromStdString(current_alignment.Name))))//if paired end and mate has been seen already
 			{
-					readPair act_read_pair(current_alignment,alignment_map.take(QString::fromStdString(current_alignment.Name)));
-					addReadPair(read_names2barcode_seqs, read_names2barcode_quals, barcode_at_pos2read_list, act_read_pair);
+				readPair act_read_pair(current_alignment,alignment_map.take(QString::fromStdString(current_alignment.Name)));
+				addReadPair(read_names2barcode_seqs, read_names2barcode_quals, barcode_at_pos2read_list, act_read_pair);
 			}
 			else//if paired end and mate has not been seen yet
 			{
