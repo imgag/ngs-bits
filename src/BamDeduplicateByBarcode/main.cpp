@@ -112,6 +112,7 @@ struct mip_info
 	int counter_unique; //number of reads after dedup
 	int counter_all; //number of reads before dedup
 	int counter_singles; //number of barcode families with only one read
+	std::string strand; //char is more suitable, but bamtools seems not to allow it
 	Position left_arm;
 	Position right_arm;
 };
@@ -211,7 +212,7 @@ private:
 			QString line = in.readLine();
 			if (line.startsWith(">")) continue;
 			QStringList splitted_mip_entry=line.split("\t");
-			if (splitted_mip_entry.size()<13) continue;
+			if (splitted_mip_entry.size()<16) continue;
 
 			QStringList splitted_mip_key=splitted_mip_entry[0].split(delimiters_mip_key);
 			Position mip_position(splitted_mip_key[1].toInt()-1,splitted_mip_key[2].toInt(),splitted_mip_key[0]);
@@ -230,11 +231,12 @@ private:
 			{
 				std::swap(new_mip_info.left_arm,new_mip_info.right_arm);
 			}
-			new_mip_info.left_arm.start_pos=new_mip_info.left_arm.start_pos-1;
-			new_mip_info.name=splitted_mip_entry.back();
-			new_mip_info.counter_unique=0;
-			new_mip_info.counter_all=0;
-			new_mip_info.counter_singles=0;
+			new_mip_info.left_arm.start_pos = new_mip_info.left_arm.start_pos-1;
+			new_mip_info.name = splitted_mip_entry.back();
+			new_mip_info.counter_unique = 0;
+			new_mip_info.counter_all = 0;
+			new_mip_info.counter_singles = 0;
+			new_mip_info.strand = splitted_mip_entry[17].toStdString();
 
 			mip_info_map[mip_position]=new_mip_info;
 		}
@@ -729,13 +731,16 @@ private:
 		barcode_at_pos2read_list[new_barcode_at_pos].append(read_pair);
 	}
 
-	readPair annotate_alignment_with_group_info(most_frequent_read_selection selected_read_info)
+	readPair annotate_alignment(most_frequent_read_selection selected_read_info, std::string strand="?")
 	{
 
 		selected_read_info.most_freq_read.first.AddTag ("sc", "i", selected_read_info.selected_read_count);
 		selected_read_info.most_freq_read.first.AddTag("ac", "i", selected_read_info.all_read_count);
+		selected_read_info.most_freq_read.first.AddTag("fs", "Z", strand);
+
 		selected_read_info.most_freq_read.second.AddTag("sc", "i", selected_read_info.selected_read_count);
 		selected_read_info.most_freq_read.second.AddTag("ac", "i", selected_read_info.all_read_count);
+		selected_read_info.most_freq_read.second.AddTag("fs", "Z", strand);
 
 		return selected_read_info.most_freq_read;
 	}
@@ -746,7 +751,7 @@ private:
 		{
 			storeReadCountsMip(position2mip_info, dup_count_histo, act_position, read_count, barcode_and_pos.barcode_sum_quality);
 			most_frequent_read_selection read_selection = cutAndSelectPairMip(read_list,position2mip_info[act_position].left_arm,position2mip_info[act_position].right_arm);
-			writePairToBam(writer, annotate_alignment_with_group_info(read_selection));
+			writePairToBam(writer, annotate_alignment(read_selection,position2mip_info[act_position].strand ));
 			writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,barcode_and_pos.barcode_sequence,test);
 		}
 		else//write reads not matching a mip to a bed file
@@ -761,7 +766,7 @@ private:
 		{
 			storeReadCountsHs(position2hs_info, dup_count_histo, act_position, read_count, barcode_and_pos.barcode_sum_quality);
 			most_frequent_read_selection read_selection = clipAndSelectPairHS(read_list,act_position.start_pos,act_position.end_pos);
-			writePairToBam(writer, annotate_alignment_with_group_info(read_selection));
+			writePairToBam(writer, annotate_alignment(read_selection));
 			writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,barcode_and_pos.barcode_sequence,test);
 		}
 		else//write reads not matching a amplicon to a bed file
