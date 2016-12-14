@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xml" href="#stylesheet"?>
+<!DOCTYPE catelog [
+  <!ATTLIST xsl:stylesheet
+  id  ID  #REQUIRED>
+  ]>
+<qcML version="0.0.8" xmlns="http://www.prime-xs.eu/ms/qcml" >
+  <runQuality ID="rq0001">
+    <metaDataParameter ID="md0004" name="source file" value="MappingQC_in3.bam" cvRef="QC" accession="QC:1000005"/>
+    <qualityParameter ID="qp0001" name="trimmed base percentage" description="Percentage of bases that were trimmed during to adapter or quality trimming." value="3.73" cvRef="QC" accession="QC:2000019"/>
+    <qualityParameter ID="qp0002" name="clipped base percentage" description="Percentage of the bases that are soft-clipped or hand-clipped during mapping." value="1.72" cvRef="QC" accession="QC:2000052"/>
+    <qualityParameter ID="qp0003" name="mapped read percentage" description="Percentage of reads that could be mapped to the reference genome." value="100.00" cvRef="QC" accession="QC:2000020"/>
+    <qualityParameter ID="qp0004" name="on-target read percentage" description="Percentage of reads that could be mapped to the target region." value="100.00" cvRef="QC" accession="QC:2000021"/>
+    <qualityParameter ID="qp0005" name="properly-paired read percentage" description="Percentage of properly paired reads (for paired-end reads only)." value="99.73" cvRef="QC" accession="QC:2000022"/>
+    <qualityParameter ID="qp0006" name="insert size" description="Mean insert size (for paired-end reads only)." value="259.44" cvRef="QC" accession="QC:2000023"/>
+    <qualityParameter ID="qp0007" name="duplicate read percentage" description="Percentage of reads removed because they were duplicates (PCR, optical, etc)." value="n/a (duplicates not marked or removed during data analysis)" cvRef="QC" accession="QC:2000024"/>
+    <qualityParameter ID="qp0008" name="bases usable (MB)" description="Bases sequenced that are usable for variant calling (in megabases)." value="1.11" cvRef="QC" accession="QC:2000050"/>
+    <attachment ID="qp0009" name="insert size distribution plot" description="Insert size distribution plot." cvRef="QC" accession="QC:2000038">
+    </attachment>
+  </runQuality>
+  <cvList>
+    <cv uri="https://qcml.googlecode.com/svn/trunk/cv/qc-cv.obo" ID="QC" fullName="QC" version="0.1"/>
+  </cvList>
+  <xsl:stylesheet id="stylesheet" version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:ns="http://www.prime-xs.eu/ms/qcml" xmlns="">
+      <xsl:template match="/">
+          <html>
+            <style type="text/css">
+            table {border: 1px solid #bbb; border-collapse: collapse; }
+            td {border: 1px solid #bbb; padding: 1px 2px 1px 2px; vertical-align: top; }
+            th {border: 1px solid #bbb; padding: 1px 2px 1px 2px; text-align: left; background-color: #eee; }
+            </style>
+              <body>
+                  <h2>Meta data:</h2>
+                  <table>
+                    <tr>
+                      <th>Accession</th><th>Name</th><th>Value</th>
+                    </tr>
+                    <xsl:for-each select="ns:qcML/ns:runQuality">
+                      <xsl:for-each select="ns:metaDataParameter">
+                        <tr>
+                          <td><xsl:value-of select="@accession"/></td>
+                          <td><span title="{@description}"><xsl:value-of select="@name"/></span></td>
+                          <td>
+                            <xsl:choose>
+                              <xsl:when test="@accession = 'QC:1000006'"><a href="{@value}" target="blank"><xsl:value-of select="@value"/></a></xsl:when>
+                              <xsl:otherwise><xsl:value-of select="@value"/></xsl:otherwise>
+                            </xsl:choose>
+                          </td>
+                        </tr>
+                      </xsl:for-each>
+                    </xsl:for-each>
+                  </table>
+                  <h2>Quality parameters:</h2>
+                  <table>
+                    <tr>
+                      <th>Accession</th><th>Name</th><th>Value</th>
+                    </tr>
+                    <xsl:for-each select="ns:qcML/ns:runQuality">
+                      <xsl:for-each select="ns:qualityParameter">
+                        <tr>
+                          <td><xsl:value-of select="@accession"/></td>
+                          <td><span title="{@description}"><xsl:value-of select="@name"/></span></td>
+                          <td><xsl:value-of select="@value"/></td>
+                        </tr>
+                      </xsl:for-each>
+                    </xsl:for-each>
+                    <xsl:for-each select="ns:qcML/ns:runQuality">
+                      <xsl:for-each select="ns:attachment">
+                          <xsl:choose>
+                              <xsl:when test="ns:binary">
+                                <tr>
+                                  <td><xsl:value-of select="@accession"/></td>
+                                  <td><span title="{@description}"><xsl:value-of select="@name"/></span></td>
+                                  <td>
+                                    <img>
+                                      <xsl:attribute name="src">
+                                        data:image/png;base64,<xsl:value-of select="ns:binary"/>
+                                      </xsl:attribute>
+                                    </img>
+                                  </td>
+                                </tr>
+                              </xsl:when>
+                          </xsl:choose>
+                      </xsl:for-each>
+                    </xsl:for-each>
+                  </table>
+              </body>
+          </html>
+      </xsl:template>
+  </xsl:stylesheet>
+</qcML>

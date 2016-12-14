@@ -50,4 +50,11 @@ private slots:
 		REMOVE_LINES("out/MappingQC_test05_out.qcML", QRegExp("<binary>"));
 		COMPARE_FILES("out/MappingQC_test05_out.qcML", TESTDATA("data_out/MappingQC_test05_out.qcML"));
 	}
+    void rna_pairedend()
+    {
+        EXECUTE("MappingQC", "-in " + TESTDATA("data_in/MappingQC_in3.bam") + " -rna -out out/MappingQC_test07_out.qcML");
+        REMOVE_LINES("out/MappingQC_test07_out.qcML", QRegExp("creation "));
+        REMOVE_LINES("out/MappingQC_test07_out.qcML", QRegExp("<binary>"));
+        COMPARE_FILES("out/MappingQC_test07_out.qcML", TESTDATA("data_out/MappingQC_test07_out.qcML"));
+    }
 };

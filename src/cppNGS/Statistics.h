@@ -16,6 +16,8 @@ public:
 	static QCCollection variantList(const VariantList& variants);
 	///Calculates mapping QC metrics for a target region from a BAM file. The input BED file must be merged!
 	static QCCollection mapping(const BedFile& bed_file, const QString& bam_file, int min_mapq=1);
+    ///Calculates mapping QC metrics for RNA from a BAM file.
+    static QCCollection mapping_rna(const QString& bam_file, int min_mapq=1);
 	///Calculates mapping QC metrics for WGS from a BAM file.
 	static QCCollection mapping(const QString& bam_file, int min_mapq=1);
     ///Calculates special mapping QC metrics on three defined exons.

@@ -17,6 +17,7 @@
 #include "ChromosomeInfo.h"
 #include "SampleCorrelation.h"
 #include <QFileInfo>
+#include <QPair>
 #include "Settings.h"
 #include "Histogram.h"
 
@@ -368,6 +369,206 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 		output.insert(QCValue::Image("insert size distribution plot", plotname, "Insert size distribution plot.", "QC:2000038"));
 		QFile::remove(plotname);
 	}
+
+    return output;
+}
+
+QCCollection Statistics::mapping_rna(const QString &bam_file, int min_mapq)
+{
+    //open BAM file
+    BamReader reader;
+    NGSHelper::openBAM(reader, bam_file);
+    ChromosomeInfo chr_info(reader);
+
+    //init counts
+    int al_total = 0;
+    int al_mapped = 0;
+    int al_ontarget = 0;
+    int al_dup = 0;
+    int al_proper_paired = 0;
+    double bases_trimmed = 0;
+    double bases_mapped = 0;
+    double bases_clipped = 0;
+    double insert_size_sum = 0;
+    Histogram insert_dist(0, 999, 5);
+    long long bases_usable = 0;
+    int max_length = 0;
+    bool paired_end = false;
+
+    //hash a read until its paired read occurs
+    typedef QMap<QString, QPair<std::vector<CigarOp>, int>> ReadHash;
+    ReadHash read_hash;
+
+    //iterate through all alignments
+    BamAlignment al;
+
+    //current reference ID
+    int old_ref_id = 0;
+    int cur_ref_id = 0;
+    while (reader.GetNextAlignment(al))
+    {
+        //skip secondary alignments
+        if (!al.IsPrimaryAlignment()) continue;
+
+        //empty hash if new reference sequence (chromosome) started
+        old_ref_id = cur_ref_id;
+        cur_ref_id = al.RefID;
+        if(cur_ref_id != old_ref_id) {
+            for (auto it = read_hash.begin(); it != read_hash.end();) {
+                  it = read_hash.erase(it);
+            }
+        }
+
+        ++al_total;
+        max_length = std::max(max_length, al.Length);
+
+        //insert size
+        if (al.IsPaired())
+        {
+            paired_end = true;
+            if (al.IsProperPair())
+            {
+                ++al_proper_paired;
+
+                int insert_size = abs(al.InsertSize);
+
+                //is the the paired read already present in the hash?
+                QString key = QString::fromStdString(al.Name);
+                auto search_result = read_hash.find(key);
+                if(search_result == read_hash.end()) {
+                    read_hash.insert(key, qMakePair(al.CigarData, al.Position));
+                } else {
+                    //compute the insert size using information of both reads
+                    std::vector<CigarOp> cigar1 = search_result->first;             // Cigar string read1
+                    std::vector<CigarOp> cigar2 = al.CigarData;                     // Cigar string read2
+                    int start1 = search_result->second;                             // Start pos read1
+                    int start2 = al.Position;                                       // Start pos read2
+                    int end1 = start1;                                              // End pos read1
+                    int end2 = start2;                                              // End pos read2
+
+                    //sweep over read1 and substract the introns from the insert size
+                    std::vector<CigarOp>::const_iterator cigarIter = cigar1.begin();
+                    std::vector<CigarOp>::const_iterator cigarEnd  = cigar1.end();
+                    for ( ; cigarIter != cigarEnd; ++cigarIter ) {
+                        const CigarOp& op = (*cigarIter);
+                        end1 += op.Length;
+
+                        // If the read spans an intron, decrease the insert size
+                        if(op.Type == Constants::BAM_CIGAR_REFSKIP_CHAR) {
+                            insert_size -= op.Length;
+                        }
+
+                        // Stop if read2 was reached
+                        if(end1 >= start2) {
+                            break;
+                        }
+                    }
+                    //sweep over read2 and substract the introns that starts after read1's end
+                    cigarIter = cigar2.begin();
+                    cigarEnd  = cigar2.end();
+                    for ( ; cigarIter != cigarEnd; ++cigarIter ) {
+                        const CigarOp& op = (*cigarIter);
+                        // Do not consider parts that were fully overlapped by read1
+                        if(end2 + op.Length < end1) {
+                            end2 += op.Length;
+                            continue;
+                        }
+
+                        end2 += op.Length;
+
+                        // If the read spans an intron, decrease the insert size
+                        if(op.Type == Constants::BAM_CIGAR_REFSKIP_CHAR) {
+                            insert_size -= op.Length;
+                        }
+                    }
+                    insert_size_sum += 2 * insert_size;     // Twice because the sum is divided by every read of pairs
+                    insert_dist.inc(insert_size, true);
+
+                    // The hashed read1 is not needed any more
+                    read_hash.erase(search_result);
+                }
+            }
+        }
+
+        if (al.IsMapped())
+        {
+            ++al_mapped;
+
+            //calculate soft/hard-clipped bases
+            bases_mapped += al.Length;
+            for (auto it=al.CigarData.cbegin(); it!=al.CigarData.cend(); ++it)
+            {
+                if (it->Type=='S' || it->Type=='H')
+                {
+                    bases_clipped += it->Length;
+                }
+            }
+
+            //usable
+            if (chr_info.chromosome(al.RefID).isNonSpecial())
+            {
+                ++al_ontarget;
+
+                if (!al.IsDuplicate() && al.MapQuality>=min_mapq)
+                {
+                    bases_usable += al.Length;
+                }
+            }
+        }
+
+        //trimmed bases (this is not entirely correct if the first alignments are all trimmed, but saves the second pass through the data)
+        if (al.Length<max_length)
+        {
+            bases_trimmed += (max_length - al.Length);
+        }
+
+        if (al.IsDuplicate())
+        {
+            ++al_dup;
+        }
+    }
+    reader.Close();
+
+    //output
+    QCCollection output;
+    output.insert(QCValue("trimmed base percentage", 100.0 * bases_trimmed / al_total / max_length, "Percentage of bases that were trimmed during to adapter or quality trimming.", "QC:2000019"));
+    output.insert(QCValue("clipped base percentage", 100.0 * bases_clipped / bases_mapped, "Percentage of the bases that are soft-clipped or hand-clipped during mapping.", "QC:2000052"));
+    output.insert(QCValue("mapped read percentage", 100.0 * al_mapped / al_total, "Percentage of reads that could be mapped to the reference genome.", "QC:2000020"));
+    output.insert(QCValue("on-target read percentage", 100.0 * al_ontarget / al_total, "Percentage of reads that could be mapped to the target region.", "QC:2000021"));
+    if (paired_end)
+    {
+        output.insert(QCValue("properly-paired read percentage", 100.0 * al_proper_paired / al_total, "Percentage of properly paired reads (for paired-end reads only).", "QC:2000022"));
+        output.insert(QCValue("insert size", insert_size_sum / al_proper_paired, "Mean insert size (for paired-end reads only).", "QC:2000023"));
+    }
+    else
+    {
+        output.insert(QCValue("properly-paired read percentage", "n/a (single end)", "Percentage of properly paired reads (for paired-end reads only).", "QC:2000022"));
+        output.insert(QCValue("insert size", "n/a (single end)", "Mean insert size (for paired-end reads only).", "QC:2000023"));
+    }
+    if (al_dup==0)
+    {
+        output.insert(QCValue("duplicate read percentage", "n/a (duplicates not marked or removed during data analysis)", "Percentage of reads removed because they were duplicates (PCR, optical, etc).", "QC:2000024"));
+    }
+    else
+    {
+        output.insert(QCValue("duplicate read percentage", 100.0 * al_dup / al_total, "Percentage of reads removed because they were duplicates (PCR, optical, etc).", "QC:2000024"));
+    }
+    output.insert(QCValue("bases usable (MB)", (double)bases_usable / 1000000.0, "Bases sequenced that are usable for variant calling (in megabases).", "QC:2000050"));
+
+    //add insert size distribution plot
+    if (paired_end)
+    {
+        LinePlot plot2;
+        plot2.setXLabel("insert size");
+        plot2.setYLabel("reads [%]");
+        plot2.setXValues(insert_dist.xCoords());
+        plot2.addLine(insert_dist.yCoords(true));
+
+        QString plotname = Helper::tempFileName(".png");
+        plot2.store(plotname);
+        output.insert(QCValue::Image("insert size distribution plot", plotname, "Insert size distribution plot.", "QC:2000038"));
+        QFile::remove(plotname);
+    }
 
     return output;
 }
