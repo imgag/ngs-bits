@@ -123,6 +123,7 @@ struct hs_info
 	int counter_unique; //number of reads after dedup
 	int counter_all; //number of reads before dedup
 	int counter_singles; //number of barcode families with only one read
+	std::string strand; //char is more suitable, but bamtools seems not to allow it
 };
 
 struct most_frequent_read_selection
@@ -260,10 +261,11 @@ private:
 			Position hs_position(splitted_hs_entry[1].toInt(),splitted_hs_entry[2].toInt(),splitted_hs_entry[0].mid(3));
 
 			hs_info new_hs_info;
-			new_hs_info.name=splitted_hs_entry[3];
-			new_hs_info.counter_unique=0;
-			new_hs_info.counter_all=0;
-			new_hs_info.counter_singles=0;
+			new_hs_info.name = splitted_hs_entry[3];
+			new_hs_info.counter_unique = 0;
+			new_hs_info.counter_all = 0;
+			new_hs_info.counter_singles = 0;
+			new_hs_info.strand = splitted_hs_entry[5].toStdString();
 
 			hs_info_map[hs_position]=new_hs_info;
 		}
@@ -731,7 +733,7 @@ private:
 		barcode_at_pos2read_list[new_barcode_at_pos].append(read_pair);
 	}
 
-	readPair annotate_alignment(most_frequent_read_selection selected_read_info, std::string strand="?")
+	readPair annotate_alignment(most_frequent_read_selection selected_read_info, std::string strand)
 	{
 
 		selected_read_info.most_freq_read.first.AddTag ("sc", "i", selected_read_info.selected_read_count);
@@ -766,7 +768,7 @@ private:
 		{
 			storeReadCountsHs(position2hs_info, dup_count_histo, act_position, read_count, barcode_and_pos.barcode_sum_quality);
 			most_frequent_read_selection read_selection = clipAndSelectPairHS(read_list,act_position.start_pos,act_position.end_pos);
-			writePairToBam(writer, annotate_alignment(read_selection));
+			writePairToBam(writer, annotate_alignment(read_selection,position2hs_info[act_position].strand));
 			writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,barcode_and_pos.barcode_sequence,test);
 		}
 		else//write reads not matching a amplicon to a bed file
