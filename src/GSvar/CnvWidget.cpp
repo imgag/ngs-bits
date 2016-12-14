@@ -4,6 +4,7 @@
 #include "Exceptions.h"
 #include <QFileInfo>
 #include <QBitArray>
+#include <QClipboard>
 
 CnvWidget::CnvWidget(QString filename, QWidget *parent)
 	: QWidget(parent)
@@ -13,6 +14,7 @@ CnvWidget::CnvWidget(QString filename, QWidget *parent)
 {
 	ui->setupUi(this);
 	connect(ui->cnvs, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(cnvDoubleClicked(QTableWidgetItem*)));
+	connect(ui->copy_clipboard, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
 
 	//connect
 	connect(ui->f_regs, SIGNAL(valueChanged(int)), this, SLOT(filtersChanged()));
@@ -232,6 +234,31 @@ void CnvWidget::filtersChanged()
 		ui->cnvs->setRowHidden(r, !pass[r]);
 	}
 	updateStatus(pass.count(true));
+}
+
+void CnvWidget::copyToClipboard()
+{
+	//header
+	QString output = "#";
+	for (int col=0; col<ui->cnvs->columnCount(); ++col)
+	{
+		if (col!=0) output += "\t";
+		output += ui->cnvs->horizontalHeaderItem(col)->text();
+	}
+	output += "\n";
+
+	//rows
+	for (int row=0; row<ui->cnvs->rowCount(); ++row)
+	{
+		for (int col=0; col<ui->cnvs->columnCount(); ++col)
+		{
+			if (col!=0) output += "\t";
+			output += ui->cnvs->item(row, col)->text();
+		}
+		output += "\n";
+	}
+
+	QApplication::clipboard()->setText(output);
 }
 
 void CnvWidget::updateStatus(int shown)

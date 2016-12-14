@@ -2,10 +2,11 @@
 #include "Settings.h"
 #include "Exceptions.h"
 #include "Helper.h"
+#include "NGSHelper.h"
 
-QString LovdUploadFile::create(QString sample, QString gender, QString gene, const Phenotype& pheno, const VariantList& vl, const Variant& variant)
+QByteArray LovdUploadFile::create(QString sample, QString gender, QString gene, const Phenotype& pheno, const VariantList& vl, const Variant& variant)
 {
-	QString output;
+	QByteArray output;
 	QTextStream stream(&output);
 
 	//create header part
@@ -48,7 +49,7 @@ QString LovdUploadFile::create(QString sample, QString gender, QString gene, con
 	stream << "                    {\n";
 	stream << "                        \"@term\": \"" << pheno.name() << "\",\n";
 	stream << "                        \"@source\": \"HPO\",\n";
-	stream << "                        \"@accession\": \"" << pheno.accession() << "\"\n";
+	stream << "                        \"@accession\": \"" << pheno.accession().mid(3) << "\"\n";
 	stream << "                    }\n";
 	stream << "                ],\n";
 
@@ -65,7 +66,8 @@ QString LovdUploadFile::create(QString sample, QString gender, QString gene, con
 	stream << "                        },\n";
 	stream << "                        \"name\": {\n";
 	stream << "                            \"@scheme\": \"HGVS\",\n";
-	stream << "                            \"#text\": \"" << variantToHGVS(variant) << "\"\n";
+	FastaFileIndex idx(Settings::string("reference_genome"));
+	stream << "                            \"#text\": \"" << variant.toHGVS(idx) << "\"\n";
 	stream << "                        },\n";
 	stream << "                        \"pathogenicity\": {\n";
 	stream << "                            \"@scope\": \"individual\",\n";
@@ -91,6 +93,7 @@ QString LovdUploadFile::create(QString sample, QString gender, QString gene, con
 		}
 		QString nm_number = parts[1];
 		QString hgvs_c = parts[5];
+		QString hgvs_r = "r.(?)";
 		QString hgvs_p = parts[6];
 		stream << "                                {\n";
 		stream << "                                    \"@type\": \"cDNA\",\n";
@@ -112,26 +115,35 @@ QString LovdUploadFile::create(QString sample, QString gender, QString gene, con
 		stream << "                                                \"@type\": \"RNA\",\n";
 		stream << "                                                \"name\": {\n";
 		stream << "                                                    \"@scheme\": \"HGVS\",\n";
-		stream << "                                                    \"#text\": \"" << "r.(?)" << "\"\n";
-		stream << "                                                },\n";
-		//TODO: skip this part for non-coding transcripts
-		stream << "                                                \"seq_changes\": {\n";
-		stream << "                                                    \"variant\": [\n";
-		stream << "                                                        {\n";
-		stream << "                                                            \"@type\": \"AA\",\n";
-		stream << "                                                            \"name\": {\n";
-		stream << "                                                                \"@scheme\": \"HGVS\",\n";
-		//TODO: use 'p.(=)' when no protein change is annotated
-		stream << "                                                                \"#text\": \"" << hgvs_p << "\"\n";
-		stream << "                                                            }\n";
-		stream << "                                                        }\n";
-		stream << "                                                    ]\n";
-		stream << "                                                }\n";
+		stream << "                                                    \"#text\": \"" << hgvs_r << "\"\n";
+		stream << "                                                }";
+		if (hgvs_p=="")
+		{
+			stream << "\n";
+		}
+		else
+		{
+			stream << ",\n";
+			stream << "                                                \"seq_changes\": {\n";
+			stream << "                                                    \"variant\": [\n";
+			stream << "                                                        {\n";
+			stream << "                                                            \"@type\": \"AA\",\n";
+			stream << "                                                            \"name\": {\n";
+			stream << "                                                                \"@scheme\": \"HGVS\",\n";
+			stream << "                                                                \"#text\": \"" << hgvs_p << "\"\n";
+			stream << "                                                            }\n";
+			stream << "                                                        }\n";
+			stream << "                                                    ]\n";
+			stream << "                                                }\n";
+		}
 		stream << "                                            }\n";
 		stream << "                                        ]\n";
 		stream << "                                    }\n";
 		stream << "                                }";
-		if (transcript!=transcripts.last()) stream << ",";
+		if (transcript!=transcripts.last())
+		{
+			stream << ",";
+		}
 		stream << "\n";
 	}
 
@@ -147,12 +159,6 @@ QString LovdUploadFile::create(QString sample, QString gender, QString gene, con
 	stream << "\n";
 
 	return output;
-}
-
-void LovdUploadFile::upload(QString file)
-{
-	//TODO implement HTTP POST upload
-	Helper::storeTextFile("C:\\Users\\ahsturm1\\Desktop\\LOVD\\upload.json", file.split('\n'));
 }
 
 QString LovdUploadFile::getSettings(QString key)
@@ -194,13 +200,6 @@ QString LovdUploadFile::convertClassification(QString classification)
 	}
 
 	THROW(ProgrammingException, "Unknown classification '" + classification + "' in LovdUploadFile::create(...) method!");
-}
-
-//TODO handle insertions/deletions correctly.
-//TODO Move to Variant class!?
-QString LovdUploadFile::variantToHGVS(const Variant& v)
-{
-	return "g." + QString::number(v.start()) + v.ref() + ">" + v.obs();
 }
 
 QString LovdUploadFile::chromosomeToAccession(const Chromosome& chr)

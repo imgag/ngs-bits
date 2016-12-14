@@ -8,11 +8,9 @@ libs:
    - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-** CNV: copy to clipboard, non-modal
+** GeneSelector => optionally open pre-filled subpanel design dialog => optionally set subpanel as target region
 ** LOVD upload for variant:
-  - implement TODOs in LovdUploadFile class
   - implement dialog where user can double-check the data before upload
-  - implement HTTP POST upload
   - implement print-out of upload data for patient file
 - Allow filtering sample-overview lists based on affected status
 

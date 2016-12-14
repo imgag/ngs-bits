@@ -21,8 +21,6 @@ SubpanelArchiveDialog::SubpanelArchiveDialog(QWidget *parent)
 
 	path_subpanel = QFileInfo(NGSD::getTargetFilePath(true)).canonicalFilePath();
 	path_archive = QFileInfo(path_subpanel + "/archive/").canonicalFilePath();
-	qDebug() << path_subpanel;
-	qDebug() << path_archive;
 	updateSubpanelLists();
 }
 

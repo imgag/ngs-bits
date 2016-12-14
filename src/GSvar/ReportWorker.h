@@ -70,7 +70,7 @@ private:
 	QString inheritance(QString gene_info, bool color=true);
 	int annotationIndexOrException(const QString& name, bool exact_match) const;
 	void writeHTML();
-	void writeXML();
+	void writeXML(QString outfile_name);
 };
 
 #endif

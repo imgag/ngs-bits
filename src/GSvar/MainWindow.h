@@ -52,6 +52,8 @@ public:
 	static QString nobr();
 	///Upload variant to LOVD
 	void uploadtoLovd(int variant_index);
+	///Returns the target file name without extension and date part prefixed with '_', or an empty string if no target file is set
+	QString targetFileName() const;
 
 
 public slots:
@@ -154,6 +156,11 @@ public slots:
 	///Returns a gene list where the inheritance information is not set (selected variants only)
 	QStringList geneInheritanceMissing(QBitArray selected);
 
+	///Adds a modeless dialog
+	void addModelessDialog(QSharedPointer<QDialog> ptr);
+	///Removes all modeless dialogs that have been closed
+	void cleanUpModelessDialogs();
+
     ///Default filters
     void applyDefaultFiltersGermline();
 	void applyDefaultFiltersTrio();
@@ -185,6 +192,7 @@ private:
 	BedFile last_roi_;
 	QString last_report_path_;
 	QMap<QString, QString> preferred_transcripts_;
+	QList<QSharedPointer<QDialog>> modeless_dialogs_;
 
 	//SPECIAL
 	///Timer to delay some initialization, e.g. load CLI argument after the main window is visible (otherwise the sample info dialog is shown before the main window)

@@ -123,8 +123,8 @@ void MainWindow::on_actionCNV_triggered()
 	list->setGenesFilter(filter_widget_->genes());
 	list->setRoiFilter(filter_widget_->targetRegion());
 	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
-	GUIHelper::showWidgetAsDialog(list, "Copy-number variants", false);
-	list->deleteLater();
+	auto dlg = GUIHelper::showWidgetAsDialog(list, "Copy-number variants", false, false);
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionGeneSelector_triggered()
@@ -369,6 +369,36 @@ void MainWindow::openInIGV(QString region)
 	QApplication::restoreOverrideCursor();
 }
 
+QString MainWindow::targetFileName() const
+{
+	if (filter_widget_->targetRegion()=="") return "";
+
+	QString output = "_" + QFileInfo(filter_widget_->targetRegion()).fileName();
+	output.remove(".bed");
+	output.remove(QRegExp("_[0-9_]{4}_[0-9_]{2}_[0-9_]{2}"));
+	return output;
+}
+
+void MainWindow::addModelessDialog(QSharedPointer<QDialog> ptr)
+{
+	modeless_dialogs_.append(ptr);
+
+	//we always clean up when we add another dialog.
+	//Like that, only one dialog can be closed and not destroyed at the same time.
+	cleanUpModelessDialogs();
+}
+
+void MainWindow::cleanUpModelessDialogs()
+{
+	for (int i=modeless_dialogs_.count()-1; i>=0; --i)
+	{
+		if (modeless_dialogs_[i]->isHidden())
+		{
+			modeless_dialogs_.removeAt(i);
+		}
+	}
+}
+
 QStringList MainWindow::geneInheritanceMissing(QBitArray selected)
 {
 	//get set of genes
@@ -554,14 +584,7 @@ void MainWindow::on_actionReport_triggered()
 
 	//get export file name
 	QString base_name = QFileInfo(filename_).baseName();
-	QString target_short = "";
-	if (filter_widget_->targetRegion()!="")
-	{
-		target_short = "_" + QFileInfo(filter_widget_->targetRegion()).fileName();
-		target_short.remove(".bed");
-		target_short.remove(QRegExp("_[0-9_]{4}_[0-9_]{2}_[0-9_]{2}"));
-	}
-	QString file_rep = QFileDialog::getSaveFileName(this, "Export report file", last_report_path_ + "/" + base_name + target_short + "_report_" + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
+	QString file_rep = QFileDialog::getSaveFileName(this, "Export report file", last_report_path_ + "/" + base_name + targetFileName() + "_report_" + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
 	if (file_rep=="") return;
 	last_report_path_ = QFileInfo(file_rep).absolutePath();
 
@@ -818,7 +841,6 @@ void MainWindow::on_actionGapsLookup_triggered()
 	edit->setWordWrapMode(QTextOption::NoWrap);
 	edit->setReadOnly(true);
 	GUIHelper::showWidgetAsDialog(edit, "Gaps of gene '" + gene + "' from low-coverage BED file '" + report + "':", false);
-	edit->deleteLater();
 }
 
 void MainWindow::on_actionGapsRecalculate_triggered()
@@ -863,6 +885,14 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 		QString report = dlg.report();
 		QApplication::clipboard()->setText(report);
 		QMessageBox::information(this, "Gap report", "Gap report was copied to clipboard.");
+
+		//write report file to transfer folder
+		QString gsvar_gap_transfer = Settings::string("gsvar_gap_transfer");
+		if (gsvar_gap_transfer!="")
+		{
+			QString file_rep = gsvar_gap_transfer + "/" + QFileInfo(bam_file).baseName() + targetFileName() + "_gaps_" + QDate::currentDate().toString("yyyyMMdd") + ".txt";
+			Helper::storeTextFile(file_rep, report.split("\n"));
+		}
 	}
 }
 
@@ -973,7 +1003,6 @@ void MainWindow::on_actionShowTranscripts_triggered()
 	text += "</pre>";
 	QTextEdit* edit = new QTextEdit(text);
 	GUIHelper::showWidgetAsDialog(edit, "Preferred transcripts list", false);
-	edit->deleteLater();
 }
 
 void MainWindow::on_actionImportTranscripts_triggered()
@@ -1176,10 +1205,10 @@ void MainWindow::uploadtoLovd(int variant_index)
 	QString gender = db.sampleGender(sample);
 
 	//select phenotype
-	PhenotypeSelector p_sel;
-	bool ok = GUIHelper::showWidgetAsDialog(&p_sel, "Select patient phenotype", true);
-	Phenotype pheno = p_sel.selectedPhenotype();
-	if (!ok || pheno.name().isEmpty()) return;
+	PhenotypeSelector* p_sel = new PhenotypeSelector();
+	QSharedPointer<QDialog> dlg = GUIHelper::showWidgetAsDialog(p_sel, "Select patient phenotype", true);
+	Phenotype pheno = p_sel->selectedPhenotype();
+	if (dlg->result()==QDialog::Rejected || pheno.name().isEmpty()) return;
 
 	//select gene
 	QByteArray gene_anno = variants_[variant_index].annotations()[variants_.annotationIndexByName("gene")];
@@ -1187,7 +1216,7 @@ void MainWindow::uploadtoLovd(int variant_index)
 	QString gene = genes[0];
 	if (genes.count()!=1)
 	{
-		ok = false;
+		bool ok = false;
 		gene = (genes.count()==1 ? genes[0] : QInputDialog::getItem(this, "Select gene", "affected gene:", genes, 0, false, &ok));
 		if (!ok) return;
 	}
@@ -1195,10 +1224,12 @@ void MainWindow::uploadtoLovd(int variant_index)
 	//gene to approved
 	gene = db.geneToApproved(gene).first;
 
-	QString upload_file = LovdUploadFile::create(sample, gender, gene, pheno, variants_, variants_[variant_index]);
+	QByteArray upload_file = LovdUploadFile::create(sample, gender, gene, pheno, variants_, variants_[variant_index]);
 	if (!upload_file.isEmpty())
 	{
-		LovdUploadFile::upload(upload_file);
+		//QString url = QInputDialog::getItem(this, "URL", "url", QStringList() << "http://databases.lovd.nl/shared/api/submissions" << "https://medgen.medizin.uni-tuebingen.de/echo.php" << "http://requestb.in/p11xmgp1" << "https://requestb.in/p11xmgp1", 0, false);
+		QString reply = HttpHandler().getHttpReply("http://databases.lovd.nl/shared/api/submissions", upload_file);
+		qDebug() << "REPLY:" << reply;
 	}
 }
 

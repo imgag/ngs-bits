@@ -112,6 +112,7 @@ struct mip_info
 	int counter_unique; //number of reads after dedup
 	int counter_all; //number of reads before dedup
 	int counter_singles; //number of barcode families with only one read
+	std::string strand; //char is more suitable, but bamtools seems not to allow it
 	Position left_arm;
 	Position right_arm;
 };
@@ -122,12 +123,15 @@ struct hs_info
 	int counter_unique; //number of reads after dedup
 	int counter_all; //number of reads before dedup
 	int counter_singles; //number of barcode families with only one read
+	std::string strand; //char is more suitable, but bamtools seems not to allow it
 };
 
 struct most_frequent_read_selection
 {
 	readPair most_freq_read;
 	QList <readPair> duplicates;
+	int selected_read_count=0;
+	int all_read_count=0;
 };
 
 typedef QPair <QHash <barcode_at_pos, QList<readPair> >, QList <barcode_at_pos> > reduced_singles;
@@ -136,6 +140,12 @@ inline uint qHash(const Position &pos1)
 {
 	return qHash(QString::number(pos1.start_pos) + QString::number(pos1.end_pos) + pos1.chr.num());
 }
+
+struct cigar_correction
+{
+	std::vector <CigarOp> corrected_cigar;
+	int arm_offset;
+};
 
 class ConcreteTool
 		: public ToolBase
@@ -191,7 +201,6 @@ private:
 	#undef D
 	}
 
-
 	QMap <Position,mip_info> createMipInfoMap(QString mip_file)
 	{
 		QMap <Position,mip_info> mip_info_map;
@@ -204,7 +213,7 @@ private:
 			QString line = in.readLine();
 			if (line.startsWith(">")) continue;
 			QStringList splitted_mip_entry=line.split("\t");
-			if (splitted_mip_entry.size()<13) continue;
+			if (splitted_mip_entry.size()<16) continue;
 
 			QStringList splitted_mip_key=splitted_mip_entry[0].split(delimiters_mip_key);
 			Position mip_position(splitted_mip_key[1].toInt()-1,splitted_mip_key[2].toInt(),splitted_mip_key[0]);
@@ -223,11 +232,12 @@ private:
 			{
 				std::swap(new_mip_info.left_arm,new_mip_info.right_arm);
 			}
-			new_mip_info.left_arm.start_pos=new_mip_info.left_arm.start_pos-1;
-			new_mip_info.name=splitted_mip_entry.back();
-			new_mip_info.counter_unique=0;
-			new_mip_info.counter_all=0;
-			new_mip_info.counter_singles=0;
+			new_mip_info.left_arm.start_pos = new_mip_info.left_arm.start_pos-1;
+			new_mip_info.name = splitted_mip_entry.back();
+			new_mip_info.counter_unique = 0;
+			new_mip_info.counter_all = 0;
+			new_mip_info.counter_singles = 0;
+			new_mip_info.strand = splitted_mip_entry[17].toStdString();
 
 			mip_info_map[mip_position]=new_mip_info;
 		}
@@ -251,10 +261,11 @@ private:
 			Position hs_position(splitted_hs_entry[1].toInt(),splitted_hs_entry[2].toInt(),splitted_hs_entry[0].mid(3));
 
 			hs_info new_hs_info;
-			new_hs_info.name=splitted_hs_entry[3];
-			new_hs_info.counter_unique=0;
-			new_hs_info.counter_all=0;
-			new_hs_info.counter_singles=0;
+			new_hs_info.name = splitted_hs_entry[3];
+			new_hs_info.counter_unique = 0;
+			new_hs_info.counter_all = 0;
+			new_hs_info.counter_singles = 0;
+			new_hs_info.strand = splitted_hs_entry[5].toStdString();
 
 			hs_info_map[hs_position]=new_hs_info;
 		}
@@ -330,23 +341,35 @@ private:
 		out.close();
 	}
 
-	std::vector <CigarOp> correctCigarString(std::vector <CigarOp> original_cigar_ops, bool cut_front, int cutted_bases)
+	cigar_correction correctCigarString(std::vector <CigarOp> original_cigar_ops, bool cut_front, int cutted_bases)
 	{
+		cigar_correction result;
+		result.arm_offset=0;
 		if (cut_front)
 		{
 			for(unsigned int i=0; i<original_cigar_ops.size(); ++i)
 			{
+				if (cutted_bases<=0)
+				{
+					break;
+				}
 				CigarOp co = original_cigar_ops[i];
-				if ((co.Type=='M')||(co.Type=='=')||(co.Type=='X')||(co.Type=='I')||(co.Type=='S'))
+				if ((co.Type=='=')||(co.Type=='X')||(co.Type=='M')||(co.Type=='S')||(co.Type=='D'))
 				{
 					int original_operation_length=co.Length;
 					co.Length=(unsigned int)qMax(0,(int)co.Length-cutted_bases);
 					cutted_bases=cutted_bases-original_operation_length;
 					original_cigar_ops[i]=co;
-					if (cutted_bases<=0)
+					if (co.Type=='D')//count deletions
 					{
-						break;
+						result.arm_offset+=original_operation_length-co.Length;
 					}
+				}
+				else if (co.Type=='I')//remove and count insertions
+				{
+					result.arm_offset+=co.Length;
+					co.Length=(unsigned int)(0);
+					original_cigar_ops[i]=co;
 				}
 			}
 		}
@@ -354,17 +377,26 @@ private:
 		{
 			for(int i=original_cigar_ops.size()-1; i>=0; --i)
 			{
+				if (cutted_bases<=0)
+				{
+					break;
+				}
 				CigarOp co = original_cigar_ops[i];
-				if ((co.Type=='M')||(co.Type=='=')||(co.Type=='X')||(co.Type=='I')||(co.Type=='S'))
+				if ((co.Type=='=')||(co.Type=='X')||(co.Type=='M')||(co.Type=='S')||(co.Type=='D'))
 				{
 					int original_operation_length=co.Length;
 					co.Length=(unsigned int)qMax(0,(int)co.Length-cutted_bases);
 					cutted_bases=cutted_bases-original_operation_length;
 					original_cigar_ops[i]=co;
-					if (cutted_bases<=0)
+					if (co.Type=='D')//count deletions
 					{
-						break;
+						result.arm_offset+=original_operation_length-co.Length;
 					}
+				}
+				else if (co.Type=='I')//remove insertions
+				{
+					co.Length=(unsigned int)(0);
+					original_cigar_ops[i]=co;
 				}
 			}
 		}
@@ -381,7 +413,9 @@ private:
 				++deleted_elem_count;
 			}
 		}
-		return cigar_ops_out;
+
+		result.corrected_cigar=cigar_ops_out;
+		return result;
 	}
 
 	reduced_singles reduceSingleReads(int allowed_edit_distance, const QHash <barcode_at_pos, QList<readPair> > &barcode_at_pos2read_list)
@@ -493,7 +527,9 @@ private:
 
 		//find highest count
 		int max_read_count=0;
+		int all_read_count=0;
 		QString max_seq;
+
 		foreach(QString seq,readpair_seq_count.keys())
 		{
 			if ((readpair_seq_count[seq].size())>max_read_count)
@@ -501,9 +537,12 @@ private:
 				max_read_count=readpair_seq_count[seq].size();
 				max_seq=seq;
 			}
+			all_read_count+=readpair_seq_count[seq].size();
 		}
 		most_frequent_read_selection result;
 		result.most_freq_read=readpair_seq_count[max_seq].takeLast();
+		result.selected_read_count=max_read_count;
+		result.all_read_count=all_read_count;
 
 		//collect duplicates
 		foreach (QList <readPair> read_pairs,readpair_seq_count.values())
@@ -538,29 +577,33 @@ private:
 		//extension and ligation arm sequence of MIPs cannot be used for variant calling, so these should be removed
 		//cut on right side
 		QTextStream out(stdout);
-
 		if (original_alignment.GetEndPosition()>right_arm.start_pos)
 		{
-			int elems_to_cut=(original_alignment.GetEndPosition())-right_arm.start_pos;
+			int match_elems_to_cut=(original_alignment.GetEndPosition())-right_arm.start_pos;
+			//correct CIGAR
+			cigar_correction cigar_correction_result=correctCigarString(original_alignment.CigarData,false,match_elems_to_cut);
+			original_alignment.CigarData=cigar_correction_result.corrected_cigar;
 			//cut bases and qualties
-			int substr_end=qMin(0,static_cast<int>(original_alignment.QueryBases.size()-elems_to_cut));//cast size_t to int
+			int substr_end=qMax(0,static_cast<int>(original_alignment.QueryBases.size()-match_elems_to_cut+cigar_correction_result.arm_offset));//cast size_t to int
 			original_alignment.QueryBases=original_alignment.QueryBases.substr(0,substr_end);
 			original_alignment.Qualities=original_alignment.Qualities.substr(0,substr_end);
-			//correct CIGAR
-			original_alignment.CigarData=correctCigarString(original_alignment.CigarData,false,elems_to_cut);
+
 		}
 
 		//cut on left side
 		if (original_alignment.Position<left_arm.end_pos)
 		{
-			int elems_to_cut=qMin(static_cast<int>(original_alignment.QueryBases.length()),left_arm.end_pos-original_alignment.Position);//cast size_t to int
-			//cut bases and qualties
-			original_alignment.QueryBases=original_alignment.QueryBases.substr(elems_to_cut);
-			original_alignment.Qualities=original_alignment.Qualities.substr(elems_to_cut);
-			//correct start
-			original_alignment.Position=original_alignment.Position+elems_to_cut;
+			int read_length=static_cast<int>(original_alignment.QueryBases.length());//cast size_t to int
+			int match_elems_to_cut=qMin(read_length,left_arm.end_pos-original_alignment.Position);//cast size_t to int
 			//correct CIGAR
-			original_alignment.CigarData=correctCigarString(original_alignment.CigarData,true,elems_to_cut);
+			cigar_correction cigar_correction_result=correctCigarString(original_alignment.CigarData,true,match_elems_to_cut);
+			original_alignment.CigarData=cigar_correction_result.corrected_cigar;
+			//cut bases and qualties while considering insertion and deletions in cutted arm
+			int adjusted_elems_to_cut=qMin(read_length,match_elems_to_cut-cigar_correction_result.arm_offset);
+			original_alignment.QueryBases=original_alignment.QueryBases.substr(adjusted_elems_to_cut);
+			original_alignment.Qualities=original_alignment.Qualities.substr(adjusted_elems_to_cut);
+			//correct start
+			original_alignment.Position=original_alignment.Position+match_elems_to_cut;
 		}
 		return original_alignment;
 	}
@@ -690,13 +733,27 @@ private:
 		barcode_at_pos2read_list[new_barcode_at_pos].append(read_pair);
 	}
 
+	readPair annotate_alignment(most_frequent_read_selection selected_read_info, std::string strand)
+	{
+
+		selected_read_info.most_freq_read.first.AddTag ("sc", "i", selected_read_info.selected_read_count);
+		selected_read_info.most_freq_read.first.AddTag("ac", "i", selected_read_info.all_read_count);
+		selected_read_info.most_freq_read.first.AddTag("fs", "Z", strand);
+
+		selected_read_info.most_freq_read.second.AddTag("sc", "i", selected_read_info.selected_read_count);
+		selected_read_info.most_freq_read.second.AddTag("ac", "i", selected_read_info.all_read_count);
+		selected_read_info.most_freq_read.second.AddTag("fs", "Z", strand);
+
+		return selected_read_info.most_freq_read;
+	}
+
 	void outputMip(QMap <Position,mip_info>  &position2mip_info, QHash <int,BarcodeCountInfo> &dup_count_histo, Position act_position, int read_count, int minimal_group_size, barcode_at_pos barcode_and_pos, QList <readPair> read_list, BamTools::BamWriter &writer, QTextStream &duplicate_out_stream, QTextStream &nomatch_out_stream,  bool test)
 	{
 		if (position2mip_info.contains(act_position)&&(read_count>=minimal_group_size))
 		{
 			storeReadCountsMip(position2mip_info, dup_count_histo, act_position, read_count, barcode_and_pos.barcode_sum_quality);
 			most_frequent_read_selection read_selection = cutAndSelectPairMip(read_list,position2mip_info[act_position].left_arm,position2mip_info[act_position].right_arm);
-			writePairToBam(writer, read_selection.most_freq_read);
+			writePairToBam(writer, annotate_alignment(read_selection,position2mip_info[act_position].strand ));
 			writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,barcode_and_pos.barcode_sequence,test);
 		}
 		else//write reads not matching a mip to a bed file
@@ -711,7 +768,7 @@ private:
 		{
 			storeReadCountsHs(position2hs_info, dup_count_histo, act_position, read_count, barcode_and_pos.barcode_sum_quality);
 			most_frequent_read_selection read_selection = clipAndSelectPairHS(read_list,act_position.start_pos,act_position.end_pos);
-			writePairToBam(writer, read_selection.most_freq_read);
+			writePairToBam(writer, annotate_alignment(read_selection,position2hs_info[act_position].strand));
 			writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,barcode_and_pos.barcode_sequence,test);
 		}
 		else//write reads not matching a amplicon to a bed file
@@ -823,8 +880,8 @@ public:
 
 			if((alignment_map.contains(QString::fromStdString(current_alignment.Name))))//if paired end and mate has been seen already
 			{
-					readPair act_read_pair(current_alignment,alignment_map.take(QString::fromStdString(current_alignment.Name)));
-					addReadPair(read_names2barcode_seqs, read_names2barcode_quals, barcode_at_pos2read_list, act_read_pair);
+				readPair act_read_pair(current_alignment,alignment_map.take(QString::fromStdString(current_alignment.Name)));
+				addReadPair(read_names2barcode_seqs, read_names2barcode_quals, barcode_at_pos2read_list, act_read_pair);
 			}
 			else//if paired end and mate has not been seen yet
 			{

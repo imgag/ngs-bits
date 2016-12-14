@@ -70,8 +70,6 @@ void ReportWorker::process()
 
 	roi_stats_.clear();
 	writeHTML();
-	//disabled until it is needed
-	//writeXML();
 }
 
 QString ReportWorker::filterToGermanText(QString name, QString value)
@@ -687,11 +685,17 @@ void ReportWorker::writeHTML()
 			THROW(FileAccessException, "Could not copy HTML report to archive folder: " + file_rep_copy);
 		}
 	}
+
+	//write XML file to transfer folder
+	QString gsvar_variant_transfer = Settings::string("gsvar_variant_transfer");
+	if (gsvar_variant_transfer!="")
+	{
+		writeXML(gsvar_variant_transfer + "/" + QFileInfo(file_rep_).fileName().replace(".html", ".xml"));
+	}
 }
 
-void ReportWorker::writeXML()
+void ReportWorker::writeXML(QString outfile_name)
 {
-	QString outfile_name = QString(file_rep_).replace(".html", ".xml");
 	QSharedPointer<QFile> outfile = Helper::openFileForWriting(outfile_name);
 
 	QXmlStreamWriter w(outfile.data());

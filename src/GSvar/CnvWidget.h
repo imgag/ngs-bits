@@ -29,6 +29,7 @@ signals:
 private slots:
 	void cnvDoubleClicked(QTableWidgetItem* item);
 	void filtersChanged();
+	void copyToClipboard();
 
 private:
 	void loadCNVs(QString filename);

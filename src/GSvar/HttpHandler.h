@@ -14,8 +14,10 @@ class HttpHandler
 public:
 	///Constructor
 	HttpHandler(QObject* parent=0);
-	///Handles request
+	///Handles request (GET)
 	QString getHttpReply(QString url);
+	///Handles request (POST)
+	QString getHttpReply(QString url, QByteArray data);
 
 private slots:
 	///Handles SSL errors (by ignoring them)

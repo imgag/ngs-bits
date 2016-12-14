@@ -9,8 +9,7 @@
 class CPPNGSSHARED_EXPORT LovdUploadFile
 {
 	public:
-		static QString create(QString sample, QString gender, QString gene, const Phenotype& pheno, const VariantList& vl, const Variant& variant);
-		static void upload(QString file);
+		static QByteArray create(QString sample, QString gender, QString gene, const Phenotype& pheno, const VariantList& vl, const Variant& variant);
 
 	protected:
 		static QString getSettings(QString key);
@@ -19,7 +18,6 @@ class CPPNGSSHARED_EXPORT LovdUploadFile
 		static QString convertGender(QString gender);
 		static QString convertGenotype(QString genotype);
 		static QString convertClassification(QString classification);
-		static QString variantToHGVS(const Variant& v);
 		static QString chromosomeToAccession(const Chromosome& chr);
 
 		LovdUploadFile(); //declared 'away'
