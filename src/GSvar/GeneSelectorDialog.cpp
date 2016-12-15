@@ -259,6 +259,21 @@ QString GeneSelectorDialog::report()
 	return  output;
 }
 
+QStringList GeneSelectorDialog::genesForVariants()
+{
+	QStringList output;
+
+	for (int r=0; r<ui->details->rowCount(); ++r)
+	{
+		if (ui->details->item(r, 0)->checkState() == Qt::Checked)
+		{
+			output << ui->details->item(r, 0)->text();
+		}
+	}
+
+	return output;
+}
+
 void GeneSelectorDialog::setGeneTableItem(int row, int col, QString text, int alignment, Qt::ItemFlags flags)
 {
 	auto item = new QTableWidgetItem(text);

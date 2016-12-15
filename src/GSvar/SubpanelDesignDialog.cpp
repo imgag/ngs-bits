@@ -32,6 +32,12 @@ SubpanelDesignDialog::~SubpanelDesignDialog()
 	delete ui;
 }
 
+void SubpanelDesignDialog::setGenes(QStringList genes)
+{
+	ui->genes->clear();
+	ui->genes->setPlainText(genes.join("\n"));
+}
+
 QString SubpanelDesignDialog::lastCreatedSubPanel()
 {
 	return last_created_subpanel;

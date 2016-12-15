@@ -91,6 +91,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.vars, SIGNAL(itemSelectionChanged()), this, SLOT(updateVariantDetails()));
 	connect(&filewatcher_, SIGNAL(fileChanged()), this, SLOT(handleInputFileChange()));
 	connect(ui_.vars, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(variantDoubleClicked(QTableWidgetItem*)));
+	connect(ui_.actionDesignSubpanel, SIGNAL(triggered()), this, SLOT(openSubpanelDesignDialog()));
 
 	//misc initialization
 	filewatcher_.setDelayInSeconds(10);
@@ -134,13 +135,21 @@ void MainWindow::on_actionGeneSelector_triggered()
 	QString bam_file = getBamFile();
 	if (bam_file.isEmpty()) return;
 
+	//show dialog
 	GeneSelectorDialog dlg(bam_file, this);
 	connect(&dlg, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
 	if (dlg.exec())
 	{
+		//copy report to clipboard
 		QString report = dlg.report();
 		QApplication::clipboard()->setText(report);
-		QMessageBox::information(this, "Gene selection report", "Gene selection report was copied to clipboard.");
+
+		//show message
+		if (QMessageBox::question(this, "Gene selection report", "Gene selection report was copied to clipboard.\nDo you want to open the sub-panel design dialog for selected genes?")==QMessageBox::Yes)
+		{
+			QStringList genes = dlg.genesForVariants();
+			openSubpanelDesignDialog(genes);
+		}
 	}
 }
 
@@ -1086,19 +1095,22 @@ void MainWindow::on_actionGenesToRegions_triggered()
 	dlg.exec();
 }
 
-void MainWindow::on_actionDesignSubpanel_triggered()
+void MainWindow::openSubpanelDesignDialog(QStringList genes)
 {
 	SubpanelDesignDialog dlg(this);
+	dlg.setGenes(genes);
+
 	dlg.exec();
-	QString subpanel = dlg.lastCreatedSubPanel();
-	if (subpanel!="")
+
+	if (dlg.lastCreatedSubPanel()!="")
 	{
 		//update target region list
 		filter_widget_->loadTargetRegions();
 
+		//optinally use sub-panel as target regions
 		if (QMessageBox::question(this, "Use sub-panel?", "Do you want to set the sub-panel as target region?")==QMessageBox::Yes)
 		{
-			filter_widget_->setTargetRegion(subpanel);
+			filter_widget_->setTargetRegion(dlg.lastCreatedSubPanel());
 		}
 	}
 

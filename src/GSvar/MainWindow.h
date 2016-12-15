@@ -118,8 +118,6 @@ public slots:
 	void on_actionPhenoToGenes_triggered();
 	///Genes to regions conversion dialog
 	void on_actionGenesToRegions_triggered();
-	///Subpanel design dialog
-	void on_actionDesignSubpanel_triggered();
 	///Subpanel archive dialog
 	void on_actionArchiveSubpanel_triggered();
 	///Close current file
@@ -157,6 +155,9 @@ public slots:
 	///Returns a gene list where the inheritance information is not set (selected variants only)
 	QStringList geneInheritanceMissing(QBitArray selected);
 
+	///Subpanel design dialog
+	void openSubpanelDesignDialog(QStringList genes = QStringList());
+
 	///Adds a modeless dialog
 	void addModelessDialog(QSharedPointer<QDialog> ptr);
 	///Removes all modeless dialogs that have been closed
@@ -168,6 +169,7 @@ public slots:
 	void applyDefaultFiltersMultiSample();
     void applyDefaultFiltersSomatic();
     void clearFilters();
+
 
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);

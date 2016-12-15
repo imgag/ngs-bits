@@ -18,7 +18,10 @@ class GeneSelectorDialog
 public:
 	GeneSelectorDialog(QString bam_file, QWidget *parent = 0);
 	~GeneSelectorDialog();
+	///Generates and returns the text report
 	QString report();
+	///Returns the selected gene list (for variants)
+	QStringList genesForVariants();
 
 signals:
 	void openRegionInIGV(QString gene);

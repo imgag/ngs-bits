@@ -18,6 +18,9 @@ public:
 	explicit SubpanelDesignDialog(QWidget *parent = 0);
 	~SubpanelDesignDialog();
 
+	///Sets the gene list
+	void setGenes(QStringList genes);
+
 	///Returns the last created subpane name (or an empty string if not subpanel was designed).
 	QString lastCreatedSubPanel();
 
