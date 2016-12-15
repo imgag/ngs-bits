@@ -18,8 +18,8 @@ public:
 	explicit SubpanelDesignDialog(QWidget *parent = 0);
 	~SubpanelDesignDialog();
 
-	///Indicates if one or more sub-panels were added
-	bool changedSubpanels();
+	///Returns the last created subpane name (or an empty string if not subpanel was designed).
+	QString lastCreatedSubPanel();
 
 protected slots:
 	void checkAndCreatePanel();
@@ -39,7 +39,7 @@ private:
 	BedFile regions;
 	QString roi_file;
 	QString gene_file;
-	bool changed;
+	QString last_created_subpanel;
 
 };
 

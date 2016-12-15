@@ -71,8 +71,11 @@ public:
     ///Returns the filter column terms to filter.
 	QStringList filterColumnsFilter() const;
 
-	/// Returns the target region file name or an empty string if unset.
+	///Returns the target region BED file name or an empty string if unset.
 	QString targetRegion() const;
+	///Sets the target region BED file.
+	void setTargetRegion(QString roi_file);
+
 	/// Returns the gene names filter.
 	QStringList genes() const;
 	/// Returns the single target region filter, or an empty string if unset.

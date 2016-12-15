@@ -1090,10 +1090,18 @@ void MainWindow::on_actionDesignSubpanel_triggered()
 {
 	SubpanelDesignDialog dlg(this);
 	dlg.exec();
-	if (dlg.changedSubpanels())
+	QString subpanel = dlg.lastCreatedSubPanel();
+	if (subpanel!="")
 	{
+		//update target region list
 		filter_widget_->loadTargetRegions();
+
+		if (QMessageBox::question(this, "Use sub-panel?", "Do you want to set the sub-panel as target region?")==QMessageBox::Yes)
+		{
+			filter_widget_->setTargetRegion(subpanel);
+		}
 	}
+
 }
 
 void MainWindow::on_actionArchiveSubpanel_triggered()

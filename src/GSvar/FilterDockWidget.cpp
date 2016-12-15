@@ -97,7 +97,7 @@ void FilterDockWidget::loadTargetRegions()
 		auto it = systems.constBegin();
 		while (it != systems.constEnd())
 		{
-			ui_.rois->addItem("Processing system: " + it.key(), it.value());
+			ui_.rois->addItem("Processing system: " + it.key(), Helper::canonicalPath(it.value()));
 			++it;
 		}
 		ui_.rois->insertSeparator(ui_.rois->count());
@@ -116,7 +116,7 @@ void FilterDockWidget::loadTargetRegions()
 		{
 			QString name = QFileInfo(file).fileName();
 			name = name.left(name.size()-4);
-			ui_.rois->addItem("Sub-panel: " + name, file);
+			ui_.rois->addItem("Sub-panel: " + name, Helper::canonicalPath(file));
 		}
 		ui_.rois->insertSeparator(ui_.rois->count());
 	}
@@ -156,7 +156,7 @@ void FilterDockWidget::loadReferenceFiles()
 	{
 		QStringList parts = roi_file.trimmed().split("\t");
 		if (parts.count()!=2) continue;
-		ui_.refs->addItem(parts[0], parts[1]);
+		ui_.refs->addItem(parts[0], Helper::canonicalPath(parts[1]));
 	}
 
 	//restore old selection
@@ -473,6 +473,19 @@ QString FilterDockWidget::targetRegion() const
 	return ui_.rois->toolTip();
 }
 
+void FilterDockWidget::setTargetRegion(QString roi_file)
+{
+	roi_file = Helper::canonicalPath(roi_file);
+	for (int i=0; i<ui_.rois->count(); ++i)
+	{
+		if (ui_.rois->itemData(i).toString()==roi_file)
+		{
+			ui_.rois->setCurrentIndex(i);
+			break;
+		}
+	}
+}
+
 QStringList FilterDockWidget::genes() const
 {
 	QStringList genes = ui_.gene->text().split(',');
@@ -541,7 +554,7 @@ void FilterDockWidget::addRoiTemp()
 	if (filename=="") return;
 
 	//add to list
-	ui_.rois->addItem(QFileInfo(filename).fileName(), filename);
+	ui_.rois->addItem(QFileInfo(filename).fileName(), Helper::canonicalPath(filename));
 }
 
 void FilterDockWidget::removeRoi()

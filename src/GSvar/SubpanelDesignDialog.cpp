@@ -13,7 +13,7 @@
 SubpanelDesignDialog::SubpanelDesignDialog(QWidget *parent)
 	: QDialog(parent)
 	, ui(new Ui::SubpanelDesignDialog)
-	, changed(false)
+	, last_created_subpanel("")
 {
 	ui->setupUi(this);
 	loadProcessingSystems();
@@ -32,11 +32,10 @@ SubpanelDesignDialog::~SubpanelDesignDialog()
 	delete ui;
 }
 
-bool SubpanelDesignDialog::changedSubpanels()
+QString SubpanelDesignDialog::lastCreatedSubPanel()
 {
-	return changed;
+	return last_created_subpanel;
 }
-
 
 void SubpanelDesignDialog::loadProcessingSystems()
 {
@@ -46,7 +45,7 @@ void SubpanelDesignDialog::loadProcessingSystems()
 	auto it = systems.constBegin();
 	while (it != systems.constEnd())
 	{
-		ui->base_panel->addItem(it.key(), it.value());
+		ui->base_panel->addItem(it.key(), Helper::canonicalPath(it.value()));
 		++it;
 	}
 }
@@ -171,7 +170,7 @@ void SubpanelDesignDialog::storePanel()
 	showMessage("Sub-panel '" + ui->name->text().trimmed() +"' written successfully!", false);
 	ui->store->setEnabled(false);
 
-	changed = true;
+	last_created_subpanel = roi_file;
 }
 
 void SubpanelDesignDialog::disableStoreButton()

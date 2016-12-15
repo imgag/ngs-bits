@@ -19,8 +19,8 @@ SubpanelArchiveDialog::SubpanelArchiveDialog(QWidget *parent)
 	connect(ui->list_subpanel, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(archive(QListWidgetItem*)));
 	connect(ui->list_archive, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(restore(QListWidgetItem*)));
 
-	path_subpanel = QFileInfo(NGSD::getTargetFilePath(true)).canonicalFilePath();
-	path_archive = QFileInfo(path_subpanel + "/archive/").canonicalFilePath();
+	path_subpanel = Helper::canonicalPath(NGSD::getTargetFilePath(true));
+	path_archive = Helper::canonicalPath(path_subpanel + "/archive/");
 	updateSubpanelLists();
 }
 

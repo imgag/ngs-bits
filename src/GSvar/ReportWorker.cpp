@@ -402,7 +402,7 @@ bool ReportWorker::isProcessingSystemTargetFile(QString bam_file, QString roi_fi
 {
 	QString sys_file = db.getProcessingSystem(bam_file, NGSD::FILE);
 
-	return QFileInfo(sys_file).canonicalFilePath() == QFileInfo(roi_file).canonicalFilePath();
+	return Helper::canonicalPath(sys_file) == Helper::canonicalPath(roi_file);
 }
 
 void ReportWorker::writeHtmlHeader(QTextStream& stream, QString sample_name)

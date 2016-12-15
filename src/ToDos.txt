@@ -8,7 +8,6 @@ libs:
    - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-** subpanel design dialog => optionally set subpanel as target region
 ** GeneSelector => optionally open pre-filled subpanel design dialog
 * LOVD upload for variant:
   - implement dialog where user can double-check the data before upload
