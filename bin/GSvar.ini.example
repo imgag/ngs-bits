@@ -19,3 +19,10 @@ NGSD_enabled=true
 #NGSD processing system target file folder (for converting Linux to/from Windows paths)
 target_file_folder_windows = ""
 target_file_folder_linux = ""
+
+#LODV credentials for variant upload
+lovd_lab=
+lovd_user_name=
+lovd_user_email=
+lovd_user_id=
+lovd_user_auth_token=

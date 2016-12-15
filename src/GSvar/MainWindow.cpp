@@ -1200,6 +1200,24 @@ QString MainWindow::nobr()
 
 void MainWindow::uploadtoLovd(int variant_index)
 {
+/*
+	HttpHandler http_handler;
+	qDebug() << "GET HTTPS";
+	qDebug() << http_handler.getHttpReply("https://httpbin.org/get");
+
+	qDebug() << "POST HTTPS";
+	qDebug() << http_handler.getHttpReply("https://httpbin.org/post", "my_conent");
+
+	qDebug() << "GET HTTP (local)";
+	qDebug() << http_handler.getHttpReply("http://localhost/");
+
+	qDebug() << "GET HTTP";
+	qDebug() << http_handler.getHttpReply("http://httpbin.org/get");
+
+	qDebug() << "POST HTTP";
+	qDebug() << http_handler.getHttpReply("http://httpbin.org/post", "my_conent");
+*/
+
 	QString sample = QFileInfo(filename_).baseName();
 	NGSD db;
 	QString gender = db.sampleGender(sample);
@@ -1227,8 +1245,8 @@ void MainWindow::uploadtoLovd(int variant_index)
 	QByteArray upload_file = LovdUploadFile::create(sample, gender, gene, pheno, variants_, variants_[variant_index]);
 	if (!upload_file.isEmpty())
 	{
-		//QString url = QInputDialog::getItem(this, "URL", "url", QStringList() << "http://databases.lovd.nl/shared/api/submissions" << "https://medgen.medizin.uni-tuebingen.de/echo.php" << "http://requestb.in/p11xmgp1" << "https://requestb.in/p11xmgp1", 0, false);
-		QString reply = HttpHandler().getHttpReply("http://databases.lovd.nl/shared/api/submissions", upload_file);
+		HttpHandler http_handler;
+		QString reply = http_handler.getHttpReply("http://databases.lovd.nl/shared/api/submissions", upload_file);
 		qDebug() << "REPLY:" << reply;
 	}
 }

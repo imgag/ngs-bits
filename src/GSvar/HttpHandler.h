@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QString>
 #include <QSslError>
+#include <QNetworkAccessManager>
 
 ///Helper class for HTTP(S) communication with webserver
 class HttpHandler
@@ -21,7 +22,12 @@ public:
 
 private slots:
 	///Handles SSL errors (by ignoring them)
-	void handleSslErrors(QList<QSslError> errors);
+	void handleSslErrors(QNetworkReply*, const QList<QSslError>&);
+	///Handles proxy authentification
+	void handleProxyAuthentification(const QNetworkProxy& , QAuthenticator*);
+
+private:
+	QNetworkAccessManager nmgr_;
 };
 
 #endif // HTTPHANDLER_H

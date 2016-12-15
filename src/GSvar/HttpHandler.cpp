@@ -1,62 +1,48 @@
 #include "HttpHandler.h"
 #include "Exceptions.h"
-#include <QNetworkAccessManager>
+#include "Settings.h"
+
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QEventLoop>
 #include <QNetworkProxy>
+#include <QInputDialog>
+#include <QApplication>
+#include <QAuthenticator>
 
 HttpHandler::HttpHandler(QObject* parent)
 	: QObject(parent)
+	, nmgr_()
 {
+	QNetworkProxyFactory::setUseSystemConfiguration(true);
+
+	connect(&nmgr_, SIGNAL(sslErrors(QNetworkReply*, const QList<QSslError> &)), this, SLOT(handleSslErrors(QNetworkReply*, const QList<QSslError>&)));
+	connect(&nmgr_, SIGNAL(proxyAuthenticationRequired(const QNetworkProxy& , QAuthenticator*)), this, SLOT(handleProxyAuthentification(const QNetworkProxy& , QAuthenticator*)));
 }
 
 QString HttpHandler::getHttpReply(QString url)
 {
-	QNetworkAccessManager nmgr;
-
 	//query
-	QNetworkReply* reply = nmgr.get(QNetworkRequest(QUrl(url)));
-	/* This would be the correct solution to handle the self-signed certificate, but is not used because of the high maintenance effort:
-	 * (1) certificate file needs to be renewed each year
-	 * (2) certificate is based on IP, which may change
-	 * QFile cert_file("://Resources/SRV017.crt");
-	 * cert_file.open(QIODevice::ReadOnly);
-	 * QSslCertificate certificate(&cert_file);
-	 * reply->ignoreSslErrors(QList<QSslError>() << QSslError(QSslError::SelfSignedCertificate, certificate));
-	 */
-	connect(reply, SIGNAL(sslErrors(QList<QSslError>)), this, SLOT(handleSslErrors(QList<QSslError>)));
+	QNetworkReply* reply = nmgr_.get(QNetworkRequest(QUrl(url)));
 
 	//make the loop process the reply immediately
 	QEventLoop loop;
 	connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
 	loop.exec();
 
-	//handle errors
+
+	//output
+	QString output = reply->readAll();
 	if (reply->error()!=QNetworkReply::NoError)
 	{
-		THROW(Exception, "Network error " + QString::number(reply->error()) + ". Error message: " + reply->errorString());
+		THROW(Exception, "Network error " + QString::number(reply->error()) + "\nError message: " + reply->errorString() + "\nReply: " + output);
 	}
-
-	//return result
-	QByteArray output = reply->readAll();
 	reply->deleteLater();
 	return output;
 }
 
 QString HttpHandler::getHttpReply(QString url, QByteArray data)
 {
-	QNetworkAccessManager nmgr;
-
-	//TODO: get proxy settings from INI file (except username/password) and make it optional
-	QNetworkProxy proxy;
-	proxy.setType(QNetworkProxy::HttpProxy);
-	proxy.setHostName("httpproxy.zit.med.uni-tuebingen.de");
-	proxy.setPort(88);
-	proxy.setUser("ahsturm1");
-	proxy.setPassword("sPW005?!");
-	nmgr.setProxy(proxy);
-
 	//request
 	QNetworkRequest request;
 	request.setUrl(url);
@@ -66,33 +52,68 @@ QString HttpHandler::getHttpReply(QString url, QByteArray data)
 	request.setRawHeader("Content-Length", QByteArray::number(data.count()));
 
 	//query
-	QNetworkReply* reply = nmgr.post(request, data);
-	connect(reply, SIGNAL(sslErrors(QList<QSslError>)), this, SLOT(handleSslErrors(QList<QSslError>)));
+	QNetworkReply* reply = nmgr_.post(request, data);
 
 	//make the loop process the reply immediately
 	QEventLoop loop;
 	connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
 	loop.exec();
 
+	//output
 	QString output = reply->readAll();
-
-	//handle errors
 	if (reply->error()!=QNetworkReply::NoError)
 	{
 		THROW(Exception, "Network error " + QString::number(reply->error()) + "\nError message: " + reply->errorString() + "\nReply: " + output);
 	}
-
-	//return result
 	reply->deleteLater();
 	return output;
 }
 
-void HttpHandler::handleSslErrors(QList<QSslError> errors)
+void HttpHandler::handleSslErrors(QNetworkReply* reply, const QList<QSslError>& errors)
 {
-	//foreach(QSslError error, errors)
-	//	{
-	//		qDebug() << "IGNORED SSL ERROR - type:" << error.error() << " string:" << error.errorString();
-	//		Log::warn("Ignoring SSL error " + QString::number(error.error()) + ". Error messge: " + error.errorString());
-	//	}
-	qobject_cast<QNetworkReply*>(sender())->ignoreSslErrors(errors);
+	foreach(const QSslError& error, errors)
+	{
+		qDebug() << "ignore error" << error.errorString();
+	}
+	reply->ignoreSslErrors(errors);
 }
+
+void HttpHandler::handleProxyAuthentification(const QNetworkProxy& proxy, QAuthenticator* auth)
+{
+	QString proxy_user = QInputDialog::getText(QApplication::activeWindow(), "Proxy user required", "Proxy user for " + proxy.hostName());
+	auth->setUser(proxy_user);
+	QString proxy_pass = QInputDialog::getText(QApplication::activeWindow(), "Proxy password required", "Proxy password for " + proxy.hostName(), QLineEdit::Password);
+	auth->setPassword(proxy_pass);
+}
+
+/* Not used - we use system proxy settings with credentials cache
+void HttpHandler::proxyFromSettings(QNetworkAccessManager& nmgr)
+{
+	//no proxy set => return
+	QString proxy_host = Settings::string("proxy_host");
+	if (proxy_host.isEmpty()) return;
+
+	//create proxy
+	QNetworkProxy proxy;
+	proxy.setType(QNetworkProxy::HttpProxy);
+	proxy.setHostName(proxy_host);
+	int proxy_port = Settings::integer("proxy_port");
+	proxy.setPort(proxy_port);
+
+	//set proxy user/password
+	QString proxy_user = Settings::string("proxy_user");
+	if (!proxy_user.isEmpty())
+	{
+		proxy.setUser(proxy_user);
+		QString proxy_password = Settings::string("proxy_password");
+		if (proxy_password=="ASK")
+		{
+			proxy_password = QInputDialog::getText(QApplication::activeWindow(), "Proxy password required", "Password for user " + proxy_user);
+		}
+		proxy.setPassword(proxy_password);
+	}
+
+	//set proxy
+	nmgr.setProxy(proxy);
+}
+*/
