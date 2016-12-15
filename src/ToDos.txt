@@ -8,7 +8,6 @@ libs:
    - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-** XML crash GS160590_01 hpSCAv5 report
 ** ReportDialog: add check/uncheck all functionality
 ** Edit variant comment => speed up GUI update
 ** GeneSelector => optionally open pre-filled subpanel design dialog => optionally set subpanel as target region

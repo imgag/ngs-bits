@@ -469,7 +469,7 @@ QCCollection Statistics::mapping_rna(const QString &bam_file, int min_mapq)
                     for ( ; cigarIter != cigarEnd; ++cigarIter ) {
                         const CigarOp& op = (*cigarIter);
                         // Do not consider parts that were fully overlapped by read1
-                        if(end2 + op.Length < end1) {
+						if(end2 + (int)op.Length < end1) {
                             end2 += op.Length;
                             continue;
                         }

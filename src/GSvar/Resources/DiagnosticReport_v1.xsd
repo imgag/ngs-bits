@@ -110,7 +110,7 @@
 								<xs:documentation>number of bases</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
-						<xs:attribute name="gap_percentage" use="required">
+						<xs:attribute name="gap_percentage">
 							<xs:annotation>
 								<xs:documentation>percentage of the target region that was not sequenced at sufficient depth.</xs:documentation>
 							</xs:annotation>
@@ -121,7 +121,7 @@
 								</xs:restriction>
 							</xs:simpleType>
 						</xs:attribute>
-						<xs:attribute name="ccds_bases_sequenced" use="required">
+						<xs:attribute name="ccds_bases_sequenced">
 							<xs:annotation>
 								<xs:documentation>Absolute count of CCDS bases that are part of the target region and sequenced at sufficient depth.</xs:documentation>
 							</xs:annotation>

@@ -732,8 +732,16 @@ void ReportWorker::writeXML(QString outfile_name)
 		w.writeAttribute("name", QFileInfo(file_roi_).fileName().replace(".bed", ""));
 		w.writeAttribute("regions", QString::number(roi.count()));
 		w.writeAttribute("bases", QString::number(roi.baseCount()));
-		w.writeAttribute("gap_percentage", roi_stats_["gap_percentage"]); //cached in HTML report
-		w.writeAttribute("ccds_bases_sequenced", roi_stats_["ccds_sequenced"]); //cached in HTML report
+		QString gap_percentage = roi_stats_["gap_percentage"]; //cached from HTML report
+		if (!gap_percentage.isEmpty())
+		{
+			w.writeAttribute("gap_percentage", gap_percentage);
+		}
+		QString ccds_sequenced = roi_stats_["ccds_sequenced"]; //cached from HTML report
+		if (!ccds_sequenced.isEmpty())
+		{
+			w.writeAttribute("ccds_bases_sequenced", ccds_sequenced);
+		}
 
 		//contained genes
 		foreach(const QString& gene, genes_)
