@@ -379,6 +379,19 @@ QString MainWindow::targetFileName() const
 	return output;
 }
 
+int MainWindow::guiColumnIndex(QString column) const
+{
+	for(int i=0; i<ui_.vars->columnCount(); ++i)
+	{
+		if (ui_.vars->horizontalHeaderItem(i)->text()==column)
+		{
+			return i;
+		}
+	}
+
+	return -1;
+}
+
 void MainWindow::addModelessDialog(QSharedPointer<QDialog> ptr)
 {
 	modeless_dialogs_.append(ptr);
@@ -1115,13 +1128,7 @@ void MainWindow::copyToClipboard(bool split_quality)
 	int qual_index = -1;
 	if (split_quality)
 	{
-		for(int i=0; i<ui_.vars->columnCount(); ++i)
-		{
-			if (ui_.vars->horizontalHeaderItem(i)->text()=="quality")
-			{
-				qual_index = i;
-			}
-		}
+		qual_index = guiColumnIndex("quality");
 		if (qual_index==-1)
 		{
 			QMessageBox::warning(this, "Copy to clipboard", "Column with index 6 has other name than quality. Aborting!");
@@ -1559,21 +1566,28 @@ void MainWindow::varsContextMenu(QPoint pos)
 			if (ok)
 			{
 				//update DB
-				NGSD().setComment(filename_, variants_[item->row()], text);
+				int row = item->row();
+				NGSD().setComment(filename_, variants_[row], text);
 
-				//update GUI (if comment column is present)
+				//get annotation text (from NGSD to get comments of other samples as well)
+				VariantList tmp;
+				tmp.append(variants_[row]);
+				NGSD().annotate(tmp, filename_);
+				text = tmp[0].annotations()[tmp.annotationIndexByName("comment", true, true)];
+
+				//update datastructure (if comment column is present)
 				int col_index = variants_.annotationIndexByName("comment", true, false);
 				if (col_index!=-1)
 				{
-					//annotate from NGSD to get comments of other samples as well
-					VariantList tmp;
-					tmp.append(variants_[item->row()]);
-					NGSD().annotate(tmp, filename_);
-					int tmp_index = tmp.annotationIndexByName("comment", true, true);
+					variants_[row].annotations()[col_index] = text;
+				}
 
-					variants_[item->row()].annotations()[col_index] = tmp[0].annotations()[tmp_index];
-
-					variantListChanged();
+				//update GUI (if column is present)
+				int gui_index = guiColumnIndex("comment");
+				if (gui_index!=-1)
+				{
+					ui_.vars->item(item->row(), gui_index)->setText(text);
+					var_widget_->updateVariant(variants_, row);
 				}
 			}
 		}

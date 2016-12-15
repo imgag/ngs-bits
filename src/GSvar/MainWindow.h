@@ -54,7 +54,8 @@ public:
 	void uploadtoLovd(int variant_index);
 	///Returns the target file name without extension and date part prefixed with '_', or an empty string if no target file is set
 	QString targetFileName() const;
-
+	///Returns the index of a colum in the GUI (or -1 if the column does not exist)
+	int guiColumnIndex(QString column) const;
 
 public slots:
 	///Open dialog
