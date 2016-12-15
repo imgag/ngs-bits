@@ -32,6 +32,7 @@ public:
 private slots:
 	void outcomeChanged(QString text);
 	void on_outcome_submit_clicked(bool checked);
+	void showContextMenu(QPoint pos);
 
 private:
 	Ui::ReportDialog ui_;

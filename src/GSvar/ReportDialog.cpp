@@ -5,6 +5,7 @@
 #include <QTableWidgetItem>
 #include <QBitArray>
 #include <QPushButton>
+#include <QMenu>
 
 
 ReportDialog::ReportDialog(QString filename, QWidget* parent)
@@ -19,6 +20,10 @@ ReportDialog::ReportDialog(QString filename, QWidget* parent)
 	labels_ << "" << "chr" << "start" << "end" << "ref" << "obs" << "ihdb_allsys_hom" << "ihdb_allsys_het" << "genotype" << "gene" << "variant_type" << "coding_and_splicing";
 	ui_.vars->setColumnCount(labels_.count());
 	ui_.vars->setHorizontalHeaderLabels(labels_);
+
+	//contect menu
+	ui_.vars->setContextMenuPolicy(Qt::CustomContextMenu);
+	connect(ui_.vars, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
 
 	//init outcome
 	ui_.outcome->addItems(NGSD().getEnum("diag_status", "outcome"));
@@ -143,4 +148,30 @@ void ReportDialog::outcomeChanged(QString text)
 void ReportDialog::on_outcome_submit_clicked(bool)
 {
 	NGSD().setReportOutcome(filename_, outcome());
+}
+
+void ReportDialog::showContextMenu(QPoint pos)
+{
+	QMenu menu(ui_.vars);
+	menu.addAction(QIcon(":/Icons/box_checked.png"), "select all");
+	menu.addAction(QIcon(":/Icons/box_unchecked.png"), "unselect all");
+
+	QAction* action = menu.exec(ui_.vars->viewport()->mapToGlobal(pos));
+	if (action==nullptr) return;
+
+	QByteArray text = action->text().toLatin1();
+	if (text=="select all")
+	{
+		for (int i=0; i<ui_.vars->rowCount(); ++i)
+		{
+			ui_.vars->item(i, 0)->setCheckState(Qt::Checked);
+		}
+	}
+	if (text=="unselect all")
+	{
+		for (int i=0; i<ui_.vars->rowCount(); ++i)
+		{
+			ui_.vars->item(i, 0)->setCheckState(Qt::Unchecked);
+		}
+	}
 }
