@@ -24,6 +24,7 @@ public:
 		addOutfile("out", "Output qcML file. If unset, writes to STDOUT.", true);
 		addInfile("roi", "Input target region BED file (for panel, WES, etc.).", true, true);
 		addFlag("wgs", "WGS mode without target region. Genome information is taken from the BAM file.");
+        addFlag("rna", "RNA mode without target region. Genome information is taken from the BAM file.");
 		addFlag("txt", "Writes TXT format instead of qcML.");
 		addInt("min_mapq", "Minmum mapping quality to consider a read mapped.", true, 1);
 		addFlag("3exons", "Adds special QC terms estimating the sequencing error on reads from three exons.");
@@ -34,13 +35,15 @@ public:
 		//init
 		QString roi_file = getInfile("roi");
 		bool wgs = getFlag("wgs");
+        bool rna = getFlag("rna");
 		QString in = getInfile("in");
 		int min_maqp = getInt("min_mapq");
 
-        //check that either ROI or WGS is given
-		if (roi_file=="" && !wgs)
+        // check that just one of roi_file, wgs, rna is set
+        int parameters_set =  (roi_file!="" ? 1 : 0) +  wgs + rna;
+        if (parameters_set!=1)
         {
-            THROW(CommandLineParsingException, "You have to provide the parameter 'roi' or 'wgs'!");
+            THROW(CommandLineParsingException, "You have to use exactly one of the parameters 'roi', 'wgs', or 'rna' !");
         }
 
 		QStringList parameters;
@@ -52,6 +55,13 @@ public:
 			//parameters
 			parameters << "-wgs";
 		}
+        else if(rna)
+		{
+            metrics = Statistics::mapping_rna(in, min_maqp);
+
+            //parameters
+            parameters << "-rna";
+        }
         else
         {
 			//load ROI
