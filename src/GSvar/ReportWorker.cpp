@@ -285,6 +285,11 @@ void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file
 		{
 			transcript = db.longestCodingTranscript(gene_id, Transcript::UCSC);
 		}
+		if (!transcript.isValid())
+		{
+			Log::warn("Low-coverage statistics for gene " + symbol + " cannot be calculated: No coding transcript found!");
+			continue;
+		}
 
 		//gaps
 		QString message;
@@ -573,6 +578,7 @@ void ReportWorker::writeHTML()
 	if (file_bam_!="")
 	{
 		BedFile low_cov = writeCoverageReport(stream, file_bam_, file_roi_, roi_, genes_, min_cov_, db_, &roi_stats_);
+
 		writeCoverageReportCCDS(stream, file_bam_, genes_, min_cov_, db_, &roi_stats_);
 
 		//additionally store low-coverage BED file
