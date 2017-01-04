@@ -28,6 +28,9 @@ public:
 		addFlag("txt", "Writes TXT format instead of qcML.");
 		addInt("min_mapq", "Minmum mapping quality to consider a read mapped.", true, 1);
 		addFlag("3exons", "Adds special QC terms estimating the sequencing error on reads from three exons.");
+
+		//changelog
+		changeLog(2016, 12, 20, "Added support for spliced RNA reads (relevant e.g. for insert size)");
 	}
 
 	virtual void main()

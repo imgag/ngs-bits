@@ -92,7 +92,7 @@ public:
 		}
 
 		//store variants
-		filter.apply();
+		filter.removeFlagged();
 		variants.store(getOutfile("out"));
 	}
 };

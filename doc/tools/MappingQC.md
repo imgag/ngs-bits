@@ -1,5 +1,5 @@
 ### MappingQC tool help
-	MappingQC (0.1-420-g3536bb0)
+	MappingQC (0.1-563-g5bbcca6)
 	
 	Calculates QC metrics based on mapped NGS reads.
 	
@@ -12,6 +12,8 @@
 	  -roi <file>     Input target region BED file (for panel, WES, etc.).
 	                  Default value: ''
 	  -wgs            WGS mode without target region. Genome information is taken from the BAM file.
+	                  Default value: 'false'
+	  -rna            RNA mode without target region. Genome information is taken from the BAM file.
 	                  Default value: 'false'
 	  -txt            Writes TXT format instead of qcML.
 	                  Default value: 'false'
@@ -27,6 +29,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### MappingQC changelog
-	MappingQC 0.1-420-g3536bb0
+	MappingQC 0.1-563-g5bbcca6
 	
+	2016-12-20 Added support for spliced RNA reads (relevant e.g. for insert size)
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

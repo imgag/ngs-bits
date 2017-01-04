@@ -322,4 +322,21 @@ private slots:
 		v = Variant("chr1", 120611948, 120611952, "CATGC", "GCATG");
 		S_EQUAL(v.toHGVS(genome_index), "g.120611948_120611952inv");
 	}
+
+	void addFilter()
+	{
+		Variant v = Variant("chr1", 120611964, 120611964, "G", "C");
+		v.annotations().append("");
+		I_EQUAL(v.filters().count(), 0);
+
+		v.addFilter("off-target", 0);
+
+		I_EQUAL(v.filters().count(), 1);
+		S_EQUAL(v.annotations()[0], "off-target");
+
+		v.addFilter("off-target2", 0);
+
+		I_EQUAL(v.filters().count(), 2);
+		S_EQUAL(v.annotations()[0], "off-target;off-target2");
+	}
 };

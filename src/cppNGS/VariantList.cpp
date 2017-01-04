@@ -44,7 +44,24 @@ Variant::Variant(const Chromosome& chr, int start, int end, const Sequence& ref,
                 filters_.append(t.trimmed());
             }
         }
-    }
+	}
+}
+
+void Variant::addFilter(QByteArray tag, int filter_column_index)
+{
+	//update column
+	QByteArray value = annotations_[filter_column_index].toUpper();
+	if (value.isEmpty() || value=="." || value=="PASS" || value=="PASSED")
+	{
+		annotations_[filter_column_index] = tag;
+	}
+	else
+	{
+		annotations_[filter_column_index].append(";" + tag);
+	}
+
+	//update filters
+	filters_.append(tag);
 }
 
 bool Variant::operator<(const Variant& rhs) const
@@ -283,7 +300,7 @@ int VariantList::annotationIndexByName(const QString& name, QString sample_id, b
 	QList<int> matches;
 	for(int i=0; i<annotations().count(); ++i)
 	{
-		if ((exact_match && annotations()[i].name()==name) || (!exact_match && annotations()[i].name().contains(name)))
+		if ((exact_match && annotations()[i].name().compare(name, Qt::CaseInsensitive)==0) || (!exact_match && annotations()[i].name().contains(name, Qt::CaseInsensitive)))
 		{
 			if(!sample_id.isEmpty() && sample_id!=annotations()[i].sampleID())	continue;
 			matches.append(i);
@@ -320,6 +337,19 @@ int VariantList::annotationIndexByName(const QString& name, QString sample_id, b
 	return matches.at(0);
 }
 
+int VariantList::addAnnotation(QString name, QString description, QByteArray default_value)
+{
+	annotations().append(VariantAnnotationHeader(name));
+	for (int i=0; i<variants_.count(); ++i)
+	{
+		variants_[i].annotations().push_back(default_value);
+	}
+
+	annotationDescriptions().append(VariantAnnotationDescription(name, description));
+
+	return annotations().count() - 1;
+}
+
 void VariantList::removeAnnotation(int index)
 {
 	if (index < 0 || index>=annotation_headers_.count())
@@ -331,6 +361,15 @@ void VariantList::removeAnnotation(int index)
 	for (int i=0; i<variants_.count(); ++i)
 	{
 		variants_[i].annotations().removeAt(index);
+	}
+}
+
+void VariantList::removeAnnotationByName(QString name, bool exact_match, bool error_on_mismatch)
+{
+	int index = annotationIndexByName(name, exact_match, error_on_mismatch);
+	if (index!=-1)
+	{
+		removeAnnotation(index);
 	}
 }
 
@@ -457,7 +496,6 @@ void VariantList::loadFromTSV(QString filename)
 
 	//parse from stream
 	QSharedPointer<QFile> file = Helper::openFileForReading(filename, true);
-	QHash <QString, QString> column_descriptions;
     int filter_index = -1;
 	while(!file->atEnd())
 	{
@@ -999,9 +1037,9 @@ void VariantList::storeToVCF(QString filename)
 	//write variants
 	foreach(const Variant& v, variants_)
 	{
-		QString ID=v.annotations()[0];//will only work correctly if source was a vcf-file
-		QString quality=v.annotations()[1];//will only work correctly if source was a vcf-file
-		QString filter=v.annotations()[2];//will only work correctly if source was a vcf-file
+		QString ID = v.annotations()[0];//will only work correctly if source was a vcf-file
+		QString quality = v.annotations()[1];//will only work correctly if source was a vcf-file
+		QString filter = v.annotations()[2];//will only work correctly if source was a vcf-file
 		QString info_field="\t";
 		QString format_field="\t";
 		QHash <QString, QStringList> genotype_fields;

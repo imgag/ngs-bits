@@ -57,7 +57,7 @@ public:
 		{
 			//create gene-specific regions
 			QTextStream messages(stderr);
-			BedFile reg_gene = db.genesToRegions(QStringList() << gene, Transcript::stringToSource(getEnum("source")), "exon", &messages);
+			BedFile reg_gene = db.genesToRegions(QStringList() << gene, Transcript::stringToSource(getEnum("source")), "exon", false, &messages);
 			reg_gene.merge();
 
 			//append output line

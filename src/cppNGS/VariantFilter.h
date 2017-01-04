@@ -70,8 +70,11 @@ class CPPNGSSHARED_EXPORT VariantFilter
 			return pass.count(true);
 		}
 
-		///Applies the flags. Variants with 'true' flag are kept, all other variants are removed.
-		void apply();
+		///Remove variants that did not pass the filter (with 'false' flag).
+		void removeFlagged();
+
+		///Tag variants that did not pass the filter (with 'false' flag) using the 'filter' column.
+		void tagFlagged(QByteArray tag, QByteArray description);
 
 	protected:
 		VariantList& variants;

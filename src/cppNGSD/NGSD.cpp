@@ -271,28 +271,6 @@ void NGSD::executeQueriesFromFile(QString filename)
 	}
 }
 
-int NGSD::addColumn(VariantList& variants, QString name, QString description)
-{
-	variants.annotations().append(VariantAnnotationHeader(name));
-	for (int i=0; i<variants.count(); ++i)
-	{
-		variants[i].annotations().append("");
-	}
-
-	variants.annotationDescriptions().append(VariantAnnotationDescription(name, description));
-
-	return variants.annotations().count() - 1;
-}
-
-bool NGSD::removeColumnIfPresent(VariantList& variants, QString name, bool exact_name_match)
-{
-	int index = variants.annotationIndexByName(name, exact_name_match, false);
-	if (index==-1) return false;
-
-	variants.removeAnnotation(index);
-	return true;
-}
-
 NGSD::~NGSD()
 {
 	//Log::info("MYSQL closing  - name: " + db_->connectionName());
@@ -539,25 +517,25 @@ void NGSD::annotate(VariantList& variants, QString filename)
 	{
 		if (header.name().startsWith("ihdb_"))
 		{
-			removeColumnIfPresent(variants, header.name(), true);
+			variants.removeAnnotationByName(header.name(), true, false);
 		}
 	}
-	removeColumnIfPresent(variants, "gene_info", true);
-	removeColumnIfPresent(variants, "classification", true);
-	removeColumnIfPresent(variants, "classification_comment", true);
-	removeColumnIfPresent(variants, "validated", true);
-	removeColumnIfPresent(variants, "comment", true);
+	variants.removeAnnotationByName("gene_info", true, false);
+	variants.removeAnnotationByName("classification", true, false);
+	variants.removeAnnotationByName("classification_comment", true, false);
+	variants.removeAnnotationByName("validated", true, false);
+	variants.removeAnnotationByName("comment", true, false);
 
 	//get required column indices
-	int ihdb_all_hom_idx = addColumn(variants, "ihdb_allsys_hom", "Homozygous variant counts in NGSD independent of the processing system.");
-	int ihdb_all_het_idx =  addColumn(variants, "ihdb_allsys_het", "Heterozygous variant counts in NGSD independent of the processing system.");
-	int class_idx = addColumn(variants, "classification", "Classification from the NGSD.");
-	int clacom_idx = addColumn(variants, "classification_comment", "Classification comment from the NGSD.");
-	int valid_idx = addColumn(variants, "validated", "Validation information from the NGSD. Validation results of other samples are listed in brackets!");
-	if (variants.annotationIndexByName("comment", true, false)==-1) addColumn(variants, "comment", "Comments from the NGSD. Comments of other samples are listed in brackets!");
+	int ihdb_all_hom_idx = variants.addAnnotation("ihdb_allsys_hom", "Homozygous variant counts in NGSD independent of the processing system.");
+	int ihdb_all_het_idx =  variants.addAnnotation("ihdb_allsys_het", "Heterozygous variant counts in NGSD independent of the processing system.");
+	int class_idx = variants.addAnnotation("classification", "Classification from the NGSD.");
+	int clacom_idx = variants.addAnnotation("classification_comment", "Classification comment from the NGSD.");
+	int valid_idx = variants.addAnnotation("validated", "Validation information from the NGSD. Validation results of other samples are listed in brackets!");
+	if (variants.annotationIndexByName("comment", true, false)==-1) variants.addAnnotation("comment", "Comments from the NGSD. Comments of other samples are listed in brackets!");
 	int comment_idx = variants.annotationIndexByName("comment", true, false);
 	int gene_idx = variants.annotationIndexByName("gene", true, false);
-	int geneinfo_idx = addColumn(variants, "gene_info", "Gene information from NGSD (inheritance mode, ExAC pLI score).");
+	int geneinfo_idx = variants.addAnnotation("gene_info", "Gene information from NGSD (inheritance mode, ExAC pLI score).");
 	/*
 	//Timing benchmarks
 	//Outcome for Qt 5.5.0:
@@ -750,13 +728,13 @@ void NGSD::annotateSomatic(VariantList& variants, QString filename)
 	{
 		if (header.name().startsWith("som_ihdb"))
 		{
-			removeColumnIfPresent(variants, header.name(), true);
+			variants.removeAnnotationByName(header.name(), true);
 		}
 	}
 
 	//get required column indices
-	int som_ihdb_c_idx = addColumn(variants, "som_ihdb_c", "Somatic variant count within NGSD.");
-	int som_ihdb_p_idx = addColumn(variants, "som_ihdb_p", "Projects with somatic variant in NGSD.");
+	int som_ihdb_c_idx = variants.addAnnotation("som_ihdb_c", "Somatic variant count within NGSD.");
+	int som_ihdb_p_idx = variants.addAnnotation("som_ihdb_p", "Projects with somatic variant in NGSD.");
 	//(re-)annotate the variants
 	for (int i=0; i<variants.count(); ++i)
 	{

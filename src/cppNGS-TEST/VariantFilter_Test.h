@@ -137,7 +137,7 @@ private slots:
 		IS_FALSE(filter.flags()[74]);
 	}
 
-	void flagByRegions_and_apply()
+	void flagByRegions_and_removeFlagged()
 	{
 		VariantList vl;
 		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
@@ -156,14 +156,15 @@ private slots:
 		IS_TRUE(filter.flags()[135]);
 		IS_TRUE(filter.flags()[136]);
 
-		filter.apply();
+		filter.removeFlagged();
 		I_EQUAL(vl.count(), 5);
 	}
 
-	void flagByRegion_and_apply()
+	void flagByRegion_and_tagFlagged()
 	{
 		VariantList vl;
 		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+		I_EQUAL(vl.annotationIndexByName("filter"), 1);
 
 		VariantFilter filter(vl);
 		filter.flagByRegion(BedLine::fromString("chr1	27687465	27687467"));
@@ -172,8 +173,18 @@ private slots:
 		I_EQUAL(filter.countPassing(), 1);
 		IS_TRUE(filter.flags()[0]);
 
-		filter.apply();
-		I_EQUAL(vl.count(), 1);
+		filter.tagFlagged("off-target", "Variants outside target region");
+		I_EQUAL(vl.annotationIndexByName("filter"), 1);
+		I_EQUAL(vl.count(), 143);
+		int filter_count = 0;
+		for (int i=0; i<vl.count(); ++i)
+		{
+			if (vl[i].filters().contains("off-target"))
+			{
+				++filter_count;
+			}
+		}
+		I_EQUAL(filter_count, 142);
 	}
 
 	void flagByAllelFrequency()

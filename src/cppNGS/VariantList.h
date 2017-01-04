@@ -81,6 +81,9 @@ public:
         return annotations_;
     }
 
+	///Adds the given tag to the filter column.
+	void addFilter(QByteArray tag, int filter_column_index);
+
     ///Convenience access to the filter annotation column (split by ';', trimmed).
     const QList<QByteArray>& filters() const
     {
@@ -247,9 +250,14 @@ public:
 	///Looks up annotation header index by name. If no or several annotations match, -1 is returned (or an error is thrown if @p error_on_mismatch is set).
 	int annotationIndexByName(const QString& name, bool exact_match = true, bool error_on_mismatch = true) const;
 	int annotationIndexByName(const QString& name, QString sample_id, bool exact_match = true, bool error_on_mismatch = true) const;
+
+	///Adds an annotation column and returns the index of the new column.
+	int addAnnotation(QString name, QString description, QByteArray default_value="");
+
 	///Removes an annotation column by index.
 	void removeAnnotation(int index);
-
+	///Removes an annotation column by name.
+	void removeAnnotationByName(QString name, bool exact_match=true, bool error_on_mismatch=true);
 
 	///Const access to filter descriptions.
 	const QMap<QString, QString>& filters() const
@@ -261,7 +269,6 @@ public:
 	{
 		return filters_;
 	}
-
 
     ///Loads a single-sample variant list from a file. Returns the format of the file.
     Format load(QString filename, Format format=AUTO);

@@ -25,8 +25,10 @@ public:
 		//optional
 		addInfile("reg", "Input target region in BED format.", true);
 		addString("r", "Single target region in the format chr17:41194312-41279500.", true);
-		addFlag("invert", "If used, the variants inside the target region are removed.");
+		addFlag("invert", "If set, the variants inside the target region are removed.");
+		addFlag("mark", "If set, the variants are not removed but marked as 'off-target' in the 'filter' column.");
 
+		changeLog(2017, 1,  4, "Added parameter '-mark' for flagging variants instead of filtering them out.");
 		changeLog(2016, 6, 10, "Added single target region parameter '-r'.");
 	}
 
@@ -56,9 +58,21 @@ public:
 			filter.flagByRegion(BedLine::fromString(reg));
 		}
 
-		if (getFlag("invert")) filter.invert();
+		//invert
+		if (getFlag("invert"))
+		{
+			filter.invert();
+		}
 
-		filter.apply();
+		//apply filter
+		if (getFlag("mark"))
+		{
+			filter.tagFlagged("off-target", "Variant outside the panel/exome target region.");
+		}
+		else
+		{
+			filter.removeFlagged();
+		}
 
 		variants.store(getOutfile("out"));
 	}

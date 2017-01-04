@@ -663,4 +663,36 @@ private slots:
 		//check no variants
 		I_EQUAL(vl2.count(), 0);
 	}
+
+	void addAnnotation()
+	{
+		VariantList vl;
+		vl.append(Variant(Chromosome("chr1"), 1, 2, "A", "C"));
+		vl.append(Variant(Chromosome("chr2"), 1, 2, "A", "C"));
+
+		int index = vl.addAnnotation("name", "desc", "default");
+
+		I_EQUAL(index, 0);
+		I_EQUAL(vl.annotations().count(), 1);
+		S_EQUAL(vl.annotationDescriptionByName("name", false, true).description(), "desc");
+		I_EQUAL(vl[0].annotations().count(), 1);
+		S_EQUAL(vl[0].annotations()[index], "default");
+		I_EQUAL(vl[1].annotations().count(), 1);
+		S_EQUAL(vl[1].annotations()[index], "default");
+	}
+
+	void removeAnnotationByName()
+	{
+		VariantList vl;
+		vl.append(Variant(Chromosome("chr1"), 1, 2, "A", "C"));
+		vl.append(Variant(Chromosome("chr2"), 1, 2, "A", "C"));
+		vl.addAnnotation("name", "desc", "default");
+
+		vl.removeAnnotationByName("name", true, true);
+
+		I_EQUAL(vl.annotations().count(), 0);
+		I_EQUAL(vl[0].annotations().count(), 0);
+		I_EQUAL(vl[1].annotations().count(), 0);
+	}
+
 };

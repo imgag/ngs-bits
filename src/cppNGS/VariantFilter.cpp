@@ -432,7 +432,7 @@ void VariantFilter::clear()
 	pass = QBitArray(variants.count(), true);
 }
 
-void VariantFilter::apply()
+void VariantFilter::removeFlagged()
 {
 	//move passing variant to the front of the variant list
 	int to_index = 0;
@@ -453,4 +453,29 @@ void VariantFilter::apply()
 
 	//re-init flags in case filtering goes on
 	clear();
+}
+
+void VariantFilter::tagFlagged(QByteArray tag, QByteArray description)
+{
+	//create 'filter' column (if missing)
+	int index = variants.annotationIndexByName("filter", true, false);
+	if (index==-1)
+	{
+		index = variants.addAnnotation("filter", "Filter column.");
+	}
+
+	//add tag description (if missing)
+	if (!variants.filters().contains(tag))
+	{
+		variants.filters().insert(tag, description);
+	}
+
+	//tag variants that did not pass
+	for (int i=0; i<variants.count(); ++i)
+	{
+		if (!pass[i])
+		{
+			variants[i].addFilter(tag, index);
+		}
+	}
 }

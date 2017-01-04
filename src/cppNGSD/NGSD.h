@@ -211,11 +211,6 @@ protected:
 	///Copy constructor "declared away".
 	NGSD(const NGSD&);
 
-	///Adds a sample-specific string column with empty entries. Returns the index of the added column.
-	int addColumn(VariantList& variants, QString name, QString description);
-	///Removes a column if it is present. Returns if the column was present.
-	bool removeColumnIfPresent(VariantList& variants, QString name, bool exact_name_match);
-
 	///The database adapter
 	QSharedPointer<QSqlDatabase> db_;
 	bool test_db_;
