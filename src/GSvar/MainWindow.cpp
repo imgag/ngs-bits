@@ -1793,7 +1793,7 @@ void MainWindow::filtersChanged()
 		QStringList remove = filter_widget_->filterColumnsRemove();
 		if (remove.count()>0)
 		{
-			filter.flagByFilterColumn(remove);
+			filter.flagByFilterColumnMatching(remove);
 		}
 
 		//filter columns (keep)

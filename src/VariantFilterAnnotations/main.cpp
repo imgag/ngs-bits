@@ -75,7 +75,7 @@ public:
 		QString filters = getString("filters");
 		if (!filters.isEmpty())
 		{
-			filter.flagByFilterColumn(filters.split(","));
+			filter.flagByFilterColumnMatching(filters.split(","));
 		}
 
 		//filter genotype

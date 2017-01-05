@@ -20,13 +20,23 @@
 #include <QPair>
 #include "Settings.h"
 #include "Histogram.h"
+#include "VariantFilter.h"
 
 #include "api/BamReader.h"
 using namespace BamTools;
 
-QCCollection Statistics::variantList(const VariantList& variants)
+QCCollection Statistics::variantList(VariantList variants, bool filter)
 {
     QCCollection output;
+
+	//filter variants
+	if (filter)
+	{
+		VariantFilter filter(variants);
+		filter.flagByFilterColumn();
+		filter.removeFlagged();
+	}
+
 
     //var_total
 	output.insert(QCValue("variant count", variants.count(), "Total number of variants in the target region.", "QC:2000013"));

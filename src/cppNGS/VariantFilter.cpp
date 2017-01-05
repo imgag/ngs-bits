@@ -123,7 +123,17 @@ void VariantFilter::flagByIHDB(int max_count, bool ignore_genotype)
 	}
 }
 
-void VariantFilter::flagByFilterColumn(QStringList remove)
+void VariantFilter::flagByFilterColumn()
+{
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!pass[i]) continue;
+
+		pass[i] = variants[i].filters().isEmpty();
+	}
+}
+
+void VariantFilter::flagByFilterColumnMatching(QStringList remove)
 {
 	for(int i=0; i<variants.count(); ++i)
 	{
@@ -478,4 +488,7 @@ void VariantFilter::tagFlagged(QByteArray tag, QByteArray description)
 			variants[i].addFilter(tag, index);
 		}
 	}
+
+	//re-init flags in case filtering goes on
+	clear();
 }

@@ -13,7 +13,7 @@ class CPPNGSSHARED_EXPORT Statistics
 {
 public:
 	///Calculates QC metrics on a variant list (only for VCF).
-	static QCCollection variantList(const VariantList& variants);
+	static QCCollection variantList(VariantList variants, bool filter);
 	///Calculates mapping QC metrics for a target region from a BAM file. The input BED file must be merged!
 	static QCCollection mapping(const BedFile& bed_file, const QString& bam_file, int min_mapq=1);
     ///Calculates mapping QC metrics for RNA from a BAM file.

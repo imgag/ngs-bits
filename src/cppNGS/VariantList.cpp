@@ -35,22 +35,25 @@ Variant::Variant(const Chromosome& chr, int start, int end, const Sequence& ref,
 {
     if (filter_index>0)
     {
-        QByteArray anno = annotations[filter_index].trimmed();
-        if (!anno.isEmpty() && anno!="." && anno!="PASS")
-        {
-            auto tmp = anno.split(';');
-            foreach(const QByteArray& t, tmp)
-            {
-                filters_.append(t.trimmed());
-            }
-        }
+		QList<QByteArray> tags = annotations[filter_index].split(';');
+		foreach(QByteArray tag, tags)
+		{
+			tag = tag.trimmed();
+
+			if (tag!="" && tag!="." && tag.toUpper()!="PASS" && tag.toUpper()!="PASSED")
+			{
+				filters_.append(tag);
+			}
+		}
 	}
 }
 
 void Variant::addFilter(QByteArray tag, int filter_column_index)
 {
+	tag = tag.trimmed();
+
 	//update column
-	QByteArray value = annotations_[filter_column_index].toUpper();
+	QByteArray value = annotations_[filter_column_index].trimmed().toUpper();
 	if (value.isEmpty() || value=="." || value=="PASS" || value=="PASSED")
 	{
 		annotations_[filter_column_index] = tag;

@@ -44,30 +44,52 @@ private slots:
 		}
 	}
 
-    void variantList_panel()
+	void variantList_panel_filter()
 	{
 		VariantList vl;
 		vl.load(TESTDATA("data_in/Statistics_variantList.vcf"));
 
-        QCCollection stats = Statistics::variantList(vl);
+		QCCollection stats = Statistics::variantList(vl, true);
         S_EQUAL(stats[0].name(), QString("variant count"));
-        S_EQUAL(stats[0].toString(), QString("157"));
+		S_EQUAL(stats[0].toString(), QString("151"));
         S_EQUAL(stats[0].accession(), QString("QC:2000013"));
         S_EQUAL(stats[1].name(), QString("known variants percentage"));
         S_EQUAL(stats[1].accession(), QString("QC:2000014"));
-        S_EQUAL(stats[1].toString(), QString("97.45"));
-        S_EQUAL(stats[2].name(), QString("high-impact variants percentage"));
-        S_EQUAL(stats[2].accession(), QString("QC:2000015"));
-        S_EQUAL(stats[2].toString(), QString("1.27"));
-        S_EQUAL(stats[3].name(), QString("homozygous variants percentage"));
-        S_EQUAL(stats[3].toString(), QString("39.49"));
-        S_EQUAL(stats[4].name(), QString("indel variants percentage"));
-        S_EQUAL(stats[4].toString(), QString("4.46"));
-        S_EQUAL(stats[5].name(), QString("transition/transversion ratio"));
-        S_EQUAL(stats[5].toString(), QString("3.29"));
-        S_EQUAL(stats[6].name(), QString("SNV allele frequency deviation"));
-		S_EQUAL(stats[6].toString(), QString("0.0334"));
+		S_EQUAL(stats[1].toString(), QString("97.35"));
         I_EQUAL(stats.count(), 7);
+
+		//check that there is a description for each term
+		for (int i=0; i<stats.count(); ++i)
+		{
+			IS_TRUE(stats[i].description()!="");
+			IS_TRUE(stats[i].accession()!="");
+		}
+	}
+
+	void variantList_panel_nofilter()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/Statistics_variantList.vcf"));
+
+		QCCollection stats = Statistics::variantList(vl, false);
+		S_EQUAL(stats[0].name(), QString("variant count"));
+		S_EQUAL(stats[0].toString(), QString("157"));
+		S_EQUAL(stats[0].accession(), QString("QC:2000013"));
+		S_EQUAL(stats[1].name(), QString("known variants percentage"));
+		S_EQUAL(stats[1].accession(), QString("QC:2000014"));
+		S_EQUAL(stats[1].toString(), QString("97.45"));
+		S_EQUAL(stats[2].name(), QString("high-impact variants percentage"));
+		S_EQUAL(stats[2].accession(), QString("QC:2000015"));
+		S_EQUAL(stats[2].toString(), QString("1.27"));
+		S_EQUAL(stats[3].name(), QString("homozygous variants percentage"));
+		S_EQUAL(stats[3].toString(), QString("39.49"));
+		S_EQUAL(stats[4].name(), QString("indel variants percentage"));
+		S_EQUAL(stats[4].toString(), QString("4.46"));
+		S_EQUAL(stats[5].name(), QString("transition/transversion ratio"));
+		S_EQUAL(stats[5].toString(), QString("3.29"));
+		S_EQUAL(stats[6].name(), QString("SNV allele frequency deviation"));
+		S_EQUAL(stats[6].toString(), QString("0.0334"));
+		I_EQUAL(stats.count(), 7);
 
 		//check that there is a description for each term
 		for (int i=0; i<stats.count(); ++i)
@@ -81,7 +103,7 @@ private slots:
 	{
 		VariantList vl;
 
-		QCCollection stats = Statistics::variantList(vl);
+		QCCollection stats = Statistics::variantList(vl, true);
         S_EQUAL(stats[0].name(), QString("variant count"));
         S_EQUAL(stats[0].toString(), QString("0"));
         S_EQUAL(stats[1].name(), QString("known variants percentage"));

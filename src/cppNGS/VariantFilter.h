@@ -23,8 +23,11 @@ class CPPNGSSHARED_EXPORT VariantFilter
 		///Flags variants by in-house database count (from NGSD). If genotype is not ignored, for homozygous variants only homozygous NGSD variants are counted.
 		void flagByIHDB(int max_count, bool ignore_genotype);
 
-		///Flags variants by filter column entries.
-		void flagByFilterColumn(QStringList remove);
+		///Flags variants by filter column entries (remove non-empty filter entries).
+		void flagByFilterColumn();
+
+		///Flags variants by filter column entries (remove matching entries).
+		void flagByFilterColumnMatching(QStringList remove);
 
 		///Flags variants by classification filter.
 		void flagByClassification(int min_class);

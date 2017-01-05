@@ -5,17 +5,24 @@ TEST_CLASS(VariantQC_Test)
 Q_OBJECT
 private slots:
 	
-	void test_01()
+	void test_txt_nofilter()
 	{
-		EXECUTE("VariantQC", "-in " + TESTDATA("data_in/VariantQC_in1.vcf") + " -out out/VariantQC_test01_out.txt -txt");
+		EXECUTE("VariantQC", "-in " + TESTDATA("data_in/VariantQC_in1.vcf") + " -out out/VariantQC_test01_out.txt -txt -ignore_filter");
 		COMPARE_FILES("out/VariantQC_test01_out.txt", TESTDATA("data_out/VariantQC_test01_out.txt"));
 	}
-	
-	void test_02()
+
+	void test_qcML_nofilter()
 	{
-		EXECUTE("VariantQC", "-in " + TESTDATA("data_in/VariantQC_in1.vcf") + " -out out/VariantQC_test02_out.qcML");
+		EXECUTE("VariantQC", "-in " + TESTDATA("data_in/VariantQC_in1.vcf") + " -out out/VariantQC_test02_out.qcML -ignore_filter");
 		REMOVE_LINES("out/VariantQC_test02_out.qcML", QRegExp("creation "));
 		COMPARE_FILES("out/VariantQC_test02_out.qcML", TESTDATA("data_out/VariantQC_test02_out.qcML"));
+	}
+
+	void test_qcML_filter()
+	{
+		EXECUTE("VariantQC", "-in " + TESTDATA("data_in/VariantQC_in1.vcf") + " -out out/VariantQC_test03_out.qcML");
+		REMOVE_LINES("out/VariantQC_test03_out.qcML", QRegExp("creation "));
+		COMPARE_FILES("out/VariantQC_test03_out.qcML", TESTDATA("data_out/VariantQC_test03_out.qcML"));
 	}
 
 };

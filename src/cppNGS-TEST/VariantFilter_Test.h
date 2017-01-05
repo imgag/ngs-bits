@@ -257,14 +257,14 @@ private slots:
 		VariantFilter filter(vl);
 
 		//first filter
-		filter.flagByFilterColumn(QStringList() << "low_MQM");
+		filter.flagByFilterColumnMatching(QStringList() << "low_MQM");
 
 		I_EQUAL(vl.count(), 143);
 		I_EQUAL(filter.countPassing(), 132);
 
 		//second filter
 		filter.clear();
-		filter.flagByFilterColumn(QStringList() << "low_MQM" << "low_DP");
+		filter.flagByFilterColumnMatching(QStringList() << "low_MQM" << "low_DP");
 
 		I_EQUAL(vl.count(), 143);
 		I_EQUAL(filter.countPassing(), 125);

@@ -84,7 +84,7 @@ public:
 	///Adds the given tag to the filter column.
 	void addFilter(QByteArray tag, int filter_column_index);
 
-    ///Convenience access to the filter annotation column (split by ';', trimmed).
+	///Convenience access to the filter annotation column (split by ';', trimmed, enties the indiacate passing removed).
     const QList<QByteArray>& filters() const
     {
         return filters_;
