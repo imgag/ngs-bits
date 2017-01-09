@@ -31,7 +31,7 @@ public:
 		modes << "gene" << "exon";
 		addEnum("mode", "Mode: gene = start/end of gene, exon = start/end of all exons of all splice variants.", false, modes);
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true, true);
-		addFlag("fallback", "Allow fallback to all source databases, if not transcript for a gene is defined in the selected source database.");
+		addFlag("fallback", "Allow fallback to all source databases, if no transcript for a gene is defined in the selected source database.");
 		addFlag("test", "Uses the test database instead of on the production database.");
 	}
 

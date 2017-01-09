@@ -16,7 +16,7 @@ public:
 	FilterDockWidget(QWidget *parent = 0);
 
 	/// Resets to initial state (uncheck boxes, no ROI)
-	void reset(bool clear_roi);
+	void reset(bool clear_roi, bool clear_off_target);
 	/// Sets filter columns present in the open file
 	void setFilterColumns(const QMap<QString, QString>& filter_cols);
 
@@ -111,7 +111,7 @@ private:
 	void loadReferenceFiles();
 
     /// Resets the filters without blocking signals.
-	void resetSignalsUnblocked(bool clear_roi);
+	void resetSignalsUnblocked(bool clear_roi, bool clear_off_target);
 
 	Ui::FilterDockWidget ui_;
 	QStringList last_genes_;

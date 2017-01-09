@@ -53,7 +53,7 @@ FilterDockWidget::FilterDockWidget(QWidget *parent)
 	loadTargetRegions();
 	loadReferenceFiles();
 
-	reset(true);
+	reset(true, true);
 }
 
 void FilterDockWidget::setFilterColumns(const QMap<QString, QString>& filter_cols)
@@ -165,7 +165,7 @@ void FilterDockWidget::loadReferenceFiles()
     ui_.refs->setCurrentIndex(current_index);
 }
 
-void FilterDockWidget::resetSignalsUnblocked(bool clear_roi)
+void FilterDockWidget::resetSignalsUnblocked(bool clear_roi, bool clear_off_target)
 {
     //annotations
     ui_.maf_enabled->setChecked(false);
@@ -190,6 +190,19 @@ void FilterDockWidget::resetSignalsUnblocked(bool clear_roi)
     {
         w->setState(FilterColumnWidget::NONE);
         w->setFilter(false);
+
+		//disable off-target by default
+		if (w->objectName()=="off-target")
+		{
+			if (clear_off_target)
+			{
+				w->setState(FilterColumnWidget::NONE);
+			}
+			else
+			{
+				w->setState(FilterColumnWidget::REMOVE);
+			}
+		}
     }
 
     //rois
@@ -209,10 +222,10 @@ void FilterDockWidget::resetSignalsUnblocked(bool clear_roi)
     ui_.refs->setToolTip("");
 }
 
-void FilterDockWidget::reset(bool clear_roi)
+void FilterDockWidget::reset(bool clear_roi, bool clear_off_target)
 {
 	blockSignals(true);
-	resetSignalsUnblocked(clear_roi);
+	resetSignalsUnblocked(clear_roi, clear_off_target);
 	blockSignals(false);
 
     emit filtersChanged();
@@ -223,7 +236,7 @@ void FilterDockWidget::applyDefaultFilters()
 	//block signals to avoid 10 updates of GUI
 	blockSignals(true);
 
-	resetSignalsUnblocked(false);
+	resetSignalsUnblocked(false, true);
 
 	//enable default filters
 	ui_.maf_enabled->setChecked(true);
@@ -247,6 +260,10 @@ void FilterDockWidget::applyDefaultFilters()
 		{
 			w->setState(FilterColumnWidget::KEEP);
 		}
+		else if (w->objectName()=="off-target")
+		{
+			w->setState(FilterColumnWidget::REMOVE);
+		}
 	}
 
 	//re-enable signals
@@ -261,7 +278,7 @@ void FilterDockWidget::applyDefaultFiltersTrio()
 	//block signals to avoid 10 updates of GUI
 	blockSignals(true);
 
-	resetSignalsUnblocked(false);
+	resetSignalsUnblocked(false, true);
 
 	//enable default filters
 	ui_.maf_enabled->setChecked(true);
@@ -297,7 +314,7 @@ void FilterDockWidget::applyDefaultFiltersMultiSample()
 	//block signals to avoid 10 updates of GUI
 	blockSignals(true);
 
-	resetSignalsUnblocked(false);
+	resetSignalsUnblocked(false, true);
 
 	//enable default filters
 	ui_.maf_enabled->setChecked(true);
@@ -321,6 +338,10 @@ void FilterDockWidget::applyDefaultFiltersMultiSample()
 		{
 			w->setState(FilterColumnWidget::KEEP);
 		}
+		else if (w->objectName()=="off-target")
+		{
+			w->setState(FilterColumnWidget::REMOVE);
+		}
 	}
 
 	//re-enable signals
@@ -335,7 +356,7 @@ void FilterDockWidget::applyDefaultFiltersSomatic()
     //block signals to avoid 10 updates of GUI
     blockSignals(true);
 
-	resetSignalsUnblocked(false);
+	resetSignalsUnblocked(false, true);
 
     //enable default filters
     ui_.maf_enabled->setChecked(true);

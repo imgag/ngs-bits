@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>295</width>
-    <height>680</height>
+    <width>287</width>
+    <height>540</height>
    </rect>
   </property>
   <property name="features">
@@ -22,19 +22,19 @@
   <widget class="QWidget" name="main_widget">
    <layout class="QVBoxLayout" name="verticalLayout_3">
     <property name="spacing">
-     <number>3</number>
+     <number>2</number>
     </property>
     <property name="leftMargin">
      <number>3</number>
     </property>
     <property name="topMargin">
-     <number>3</number>
+     <number>2</number>
     </property>
     <property name="rightMargin">
      <number>3</number>
     </property>
     <property name="bottomMargin">
-     <number>3</number>
+     <number>2</number>
     </property>
     <item>
      <widget class="QGroupBox" name="groupBox_2">
@@ -43,19 +43,19 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <property name="spacing">
-        <number>3</number>
+        <number>2</number>
        </property>
        <property name="leftMargin">
         <number>3</number>
        </property>
        <property name="topMargin">
-        <number>3</number>
+        <number>2</number>
        </property>
        <property name="rightMargin">
         <number>3</number>
        </property>
        <property name="bottomMargin">
-        <number>3</number>
+        <number>2</number>
        </property>
        <item>
         <widget class="QComboBox" name="rois">
@@ -72,7 +72,7 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout">
          <property name="spacing">
-          <number>3</number>
+          <number>2</number>
          </property>
          <item>
           <widget class="QPushButton" name="roi_add_temp">
@@ -196,16 +196,19 @@
         <number>3</number>
        </property>
        <property name="topMargin">
-        <number>3</number>
+        <number>2</number>
        </property>
        <property name="rightMargin">
         <number>3</number>
        </property>
        <property name="bottomMargin">
+        <number>2</number>
+       </property>
+       <property name="horizontalSpacing">
         <number>3</number>
        </property>
-       <property name="spacing">
-        <number>3</number>
+       <property name="verticalSpacing">
+        <number>2</number>
        </property>
        <item row="6" column="1">
         <widget class="QComboBox" name="classification">
@@ -510,17 +513,20 @@
        <string>Filter columns</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="spacing">
+        <number>3</number>
+       </property>
        <property name="leftMargin">
         <number>3</number>
        </property>
        <property name="topMargin">
-        <number>3</number>
+        <number>2</number>
        </property>
        <property name="rightMargin">
         <number>3</number>
        </property>
        <property name="bottomMargin">
-        <number>3</number>
+        <number>2</number>
        </property>
        <item>
         <widget class="QScrollArea" name="qscrollarea">
@@ -535,8 +541,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>281</width>
-            <height>165</height>
+            <width>273</width>
+            <height>69</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -572,8 +578,8 @@
       </property>
       <property name="sizeHint" stdset="0">
        <size>
-        <width>20</width>
-        <height>20</height>
+        <width>5</width>
+        <height>5</height>
        </size>
       </property>
      </spacer>
@@ -594,13 +600,13 @@
         <number>3</number>
        </property>
        <property name="topMargin">
-        <number>3</number>
+        <number>2</number>
        </property>
        <property name="rightMargin">
         <number>3</number>
        </property>
        <property name="bottomMargin">
-        <number>3</number>
+        <number>2</number>
        </property>
        <item>
         <widget class="QComboBox" name="refs">
@@ -612,7 +618,7 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <property name="spacing">
-          <number>3</number>
+          <number>2</number>
          </property>
          <item>
           <widget class="QPushButton" name="ref_add">

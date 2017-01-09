@@ -493,7 +493,7 @@ void MainWindow::loadFile(QString filename)
 {
 	//reset GUI and data structures
 	setWindowTitle(QCoreApplication::applicationName());
-	filter_widget_->reset(true);
+	filter_widget_->reset(true, false);
 	filename_ = "";
 	filewatcher_.clearFile();
 	db_annos_updated_ = false;
@@ -725,7 +725,7 @@ void MainWindow::applyDefaultFiltersSomatic()
 
 void MainWindow::clearFilters()
 {
-	filter_widget_->reset(false);
+	filter_widget_->reset(false, true);
 }
 
 void MainWindow::on_actionNGSD_triggered()

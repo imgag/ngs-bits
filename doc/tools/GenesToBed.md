@@ -14,7 +14,7 @@
 	                 Default value: ''
 	  -out <file>    Output BED file. If unset, writes to STDOUT.
 	                 Default value: ''
-	  -fallback      Allow fallback to all source databases, if not transcript for a gene is defined in the selected source database.
+	  -fallback      Allow fallback to all source databases, if no transcript for a gene is defined in the selected source database.
 	                 Default value: 'false'
 	  -test          Uses the test database instead of on the production database.
 	                 Default value: 'false'
