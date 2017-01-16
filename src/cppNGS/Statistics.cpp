@@ -775,7 +775,7 @@ QCCollection Statistics::region(const BedFile& bed_file, bool merge)
     return output;
 }
 
-QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString& build, QString target_file)
+QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString target_file, bool skip_plots)
 {
 	QCCollection output;
 
@@ -861,6 +861,9 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 		output.insert(QCValue("somatic transition/transversion ratio", "n/a (no variants or transversions)", "Somatic transition/transversion ratio of SNV variants.", "QC:2000043"));
 	}
 
+	if(skip_plots)	return output;
+
+	//plotting
 	QString tumor_id = QFileInfo(tumor_bam).baseName();
 	QString normal_id = QFileInfo(normal_bam).baseName();
 	QStringList nuc = QStringList{"A","C","G","T"};
@@ -1048,26 +1051,8 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	   {"GCA",0},{"GCC",0},{"GCG",0},{"GCT",0},{"TCA",0},{"TCC",0},{"TCG",0},{"TCT",0},
 	   {"ATA",0},{"ATC",0},{"ATG",0},{"ATT",0},{"CTA",0},{"CTC",0},{"CTG",0},{"CTT",0},
 	   {"GTA",0},{"GTC",0},{"GTG",0},{"GTT",0},{"TTA",0},{"TTC",0},{"TTG",0},{"TTT",0}
-   });
-	if(target_file.isEmpty() && build=="hg19")
-	{
-		count_codons_target = {
-			{"ACA",57602816},{"ACC",33256008},{"ACG",7181818},{"ACT",45999566},{"CCA",52722217},{"CCC",37602581},{"CCG",7900670},{"CCT",50842624},
-			{"GCA",41189353},{"GCC",34053539},{"GCG",6813566},{"GCT",40009228},{"TCA",56034760},{"TCC",44155965},{"TCG",6321389},{"TCT",63331604},
-			{"ATA",58959287},{"ATC",38179637},{"ATG",52548181},{"ATT",71375695},{"CTA",36871406},{"CTC",48167888},{"CTG",57996845},{"CTT",57146885},
-			{"GTA",32466396},{"GTC",27046634},{"GTG",43059504},{"GTT",41794778},{"TTA",59555859},{"TTC",56449722},{"TTG",54311749},{"TTT",110166711}
-		};
-	}
-	else if(target_file.isEmpty() && build=="hg38")
-	{
-		count_codons_target = {
-			{"ACA",59305516},{"ACC",33784390},{"ACG",7584302},{"ACT",47476086},{"CCA",53293160},{"CCC",38036593},{"CCG",8026845},{"CCT",51880303},
-			{"GCA",42481943},{"GCC",34497599},{"GCG",7078395},{"GCT",40674873},{"TCA",57800075},{"TCC",44918305},{"TCG",6712244},{"TCT",65492835},
-			{"ATA",60308591},{"ATC",39076747},{"ATG",53548035},{"ATT",73292370},{"CTA",37666053},{"CTC",49481013},{"CTG",59039769},{"CTT",59337262},
-			{"GTA",33265786},{"GTC",27466578},{"GTG",44578403},{"GTT",43191653},{"TTA",60159779},{"TTC",58899235},{"TTG",56762262},{"TTT",113868707}
-		};
-	}
-	else if(target_file.isEmpty() && build=="count")
+	});
+	if(target_file.isEmpty())
 	{
 		FastaFileIndex reference(Settings::string("reference_genome"));
 		int bin = 50000000;
@@ -1096,7 +1081,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 			}
 		}
 	}
-	else if(!target_file.isEmpty())
+	else
 	{
 		//codons: count in target file
 		BedFile target;
@@ -1111,7 +1096,11 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 			}
 		}
 	}
-	else	Log::error("Unknown genome build " + build + " or no target file given.");
+
+	foreach(QString codon, count_codons_target.keys())
+	{
+		qDebug() << codon << QString::number(count_codons_target[codon]);
+	}
 
 	//codons: normalize current codons and calculate percentages for each codon
 	double y_max = 5;

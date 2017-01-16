@@ -324,11 +324,14 @@ void QCCollection::storeToQCML(QString filename, const QStringList& source_files
 	file->close();
 
 	//validate output
-	QString xml_error = XmlHelper::isValidXml(filename, "://Resources/qcML_0.0.8.xsd");
-	if (xml_error!="")
+	if(filename!="")
 	{
-		//qDebug() << xml_error;
-		THROW(ProgrammingException, "QCCollection::storeToQCML produced an invalid XML file: " + xml_error);
+		QString xml_error = XmlHelper::isValidXml(filename, "://Resources/qcML_0.0.8.xsd");
+		if (xml_error!="")
+		{
+			//qDebug() << xml_error;
+			THROW(ProgrammingException, "QCCollection::storeToQCML produced an invalid XML file: " + xml_error);
+		}
 	}
 }
 

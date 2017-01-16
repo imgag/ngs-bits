@@ -26,12 +26,12 @@ public:
 		addInfile("tumor_bam", "Input tumor bam file.", false, true);
 		addInfile("normal_bam", "Input normal bam file.", false, true);
 		addInfile("somatic_vcf", "Input somatic vcf file.", false, true);
+		addOutfile("out", "Output qcML file. If unset, writes to STDOUT.", false, true);
 		//optional
-		addOutfile("out", "Output qcML file. If unset, writes to STDOUT.", true);
 		addInfileList("links","Files that appear in the link part of the qcML file.",true);
-		addInfile("target_bed", "Target file used for tumor and normal experiment. The genome build form the settings file will be used to count variant signature.", true);
-		addEnum("genome_build", "For whole genome sequencing precalculated triplet counts are available for some genome builds. Selecting one of the available options will use these counts. Otherwise the triplets will be counted on the fly. This parameter is not required if a target_bed file is given.", true, QStringList({"hg19","hg38","count"}),"count");
-		setExtendedDescription(QStringList() << "SomaticQC integrates the output of the other QC tools and adds several metrics specific for tumor-normal pairs. All tools produce qcML, a generic XML format for QC of -omics experiments, which we adapted for NGS.");
+		addInfile("target_bed", "Target file used for tumor and normal experiment.", true);
+		addFlag("skip_plots", "Skip plots (intended to increase speed of automated tests).");
+		setExtendedDescription(QStringList() << "SomaticQC integrates the output of the other QC tools and adds several metrics specific for tumor-normal pairs. The genome build form the settings file will be used during calcuation of QC metrics. All tools produce qcML, a generic XML format for QC of -omics experiments, which we adapted for NGS.");
 	}
 
 	virtual void main()
@@ -43,7 +43,7 @@ public:
 		QString somatic_vcf = getInfile("somatic_vcf");
 		QString target_bed = getInfile("target_bed");
 		QStringList links = getInfileList("links");
-		QString genome_build = getEnum("genome_build");
+		bool skip_plots = getFlag("skip_plots");
 
 		// convert linked files to relative paths
 		QDir out_dir = QFileInfo(out).absoluteDir();
@@ -60,12 +60,11 @@ public:
 		}
 
 		QCCollection metrics;
-		metrics = Statistics::somatic(tumor_bam, normal_bam, somatic_vcf, genome_build, target_bed);
+		metrics = Statistics::somatic(tumor_bam, normal_bam, somatic_vcf, target_bed, skip_plots);
 
 		//store output
 		QString parameters = "";
-		if(target_bed.isEmpty())	parameters = "-genome_build " + genome_build;	// WGS
-		else	parameters += "-target_bed " + target_bed;	// targeted Seq
+		if(!target_bed.isEmpty())	parameters += "-target_bed " + target_bed;	// targeted Seq
 		metrics.storeToQCML(out, QStringList() << tumor_bam << normal_bam << somatic_vcf, parameters, QMap< QString, int >(), links);
 	}
 };
