@@ -31,6 +31,9 @@ public:
 	virtual void setup()
 	{
 		setDescription("Softclipping of overlapping reads.");
+		setExtendedDescription(QStringList()	<< "Overlapping reads will be soft-clipped from start to end. "
+												<< "If mismatches are found in the overlap of both reads, the mapping quality of both reads will be set to zero."
+							   );
 		addInfile("in", "Input bam file. Needs to be sorted by name.", false);
 		addOutfile("out", "Output bam file.", false);
 		//optional
@@ -44,6 +47,7 @@ public:
 		int reads_count = 0;
 		int reads_saved = 0;
 		int reads_clipped = 0;
+		int reads_mismatch = 0;
 		quint64 bases_count = 0;
 		quint64 bases_clipped = 0;
 		QTextStream out(stderr);
@@ -183,7 +187,6 @@ public:
 						}
 					}
 
-
 					//amplicon mode
 					if(getFlag("amplicon"))
 					{
@@ -200,11 +203,36 @@ public:
 						}
 					}
 
-					if(verbose)	out << "forward: name - " << QString::fromStdString(forward_read.Name) << ", region - chr" << forward_read.RefID << ":" << forward_read.Position << "-" << forward_read.GetEndPosition() << ", insert size: "  << forward_read.InsertSize << " bp; mate: " << forward_read.MatePosition << "; overlap: " << overlap << ", CIGAR " << NGSHelper::Cigar2QString(forward_read.CigarData) << endl;
-					if(verbose)	out << "reverse: name - " << QString::fromStdString(reverse_read.Name) << ", region - chr" << forward_read.RefID << ":" << reverse_read.Position << "-" << reverse_read.GetEndPosition() << ", insert size: "  << reverse_read.InsertSize << " bp; mate: " << reverse_read.MatePosition << "; overlap: " << overlap << ", CIGAR " << NGSHelper::Cigar2QString(reverse_read.CigarData) << endl;
-					if(verbose)	out << " clip forward from " << (forward_read.GetEndPosition()-clip_forward_read+1) << " to " << forward_read.GetEndPosition() << endl;
-					if(verbose)	out << " clip reverse from " << (reverse_read.Position+1) << " to " << (reverse_read.Position+clip_reverse_read) << endl;
+					//verbose mode
+					if(verbose)	out << "forward read: name - " << QString::fromStdString(forward_read.Name) << ", region - chr" << forward_read.RefID << ":" << forward_read.Position << "-" << forward_read.GetEndPosition() << ", insert size: "  << forward_read.InsertSize << " bp; mate: " << forward_read.MatePosition << ", CIGAR " << NGSHelper::Cigar2QString(forward_read.CigarData) << ", overlap: " << overlap << " bp" << endl;
+					if(verbose)	out << "reverse read: name - " << QString::fromStdString(reverse_read.Name) << ", region - chr" << forward_read.RefID << ":" << reverse_read.Position << "-" << reverse_read.GetEndPosition() << ", insert size: "  << reverse_read.InsertSize << " bp; mate: " << reverse_read.MatePosition << ", CIGAR " << NGSHelper::Cigar2QString(reverse_read.CigarData) << ", overlap: " << overlap << " bp" << endl;
+					if(verbose)	out << "  clip forward read from position " << (forward_read.GetEndPosition()-clip_forward_read+1) << " to " << forward_read.GetEndPosition() << endl;
+					if(verbose)	out << "  clip reverse read from position " << (reverse_read.Position+1) << " to " << (reverse_read.Position+clip_reverse_read) << endl;
 
+					//check if bases in overlap match
+					int start = reverse_read.Position+1;
+					int end = std::min(forward_read.GetEndPosition(),reverse_read.GetEndPosition());	//min if forward read ends right of reverse read
+
+					QString forward_overlap = "";
+					for(int i=start;i<=end;++i)	forward_overlap += NGSHelper::extractBaseByCIGAR(forward_read,i).first;
+
+					QString reverse_overlap = "";
+					for(int i=start;i<=end;++i)	reverse_overlap += NGSHelper::extractBaseByCIGAR(reverse_read,i).first;
+
+					if(forward_overlap!=reverse_overlap)
+					{
+						forward_read.MapQuality = 0;
+						reverse_read.MapQuality = 0;
+						reads_mismatch += 2;
+						if(verbose) out << "  overlap mismatch for read pair " << QString::fromStdString(forward_read.Name) << "- " << forward_overlap << " != " << reverse_overlap << "." << endl;
+					}
+					else
+					{
+						if(verbose)	out << "  no overlap mismatch for read pair " << QString::fromStdString(forward_read.Name) << endl;
+
+					}
+
+					//actual soft clipping
 					if(clip_forward_read>0)	NGSHelper::softClipAlignment(forward_read,(forward_read.GetEndPosition()-clip_forward_read+1),forward_read.GetEndPosition());
 					if(clip_reverse_read>0)	NGSHelper::softClipAlignment(reverse_read,(reverse_read.Position+1),(reverse_read.Position+clip_reverse_read));
 
@@ -214,8 +242,8 @@ public:
 					reverse_read.InsertSize = forward_read.Position-reverse_read.GetEndPosition();	//negative value
 					reverse_read.MatePosition = forward_read.Position;
 
-					if(verbose)	out << "-> forward: name - " << QString::fromStdString(forward_read.Name) << ", region - chr" << forward_read.RefID << ":" << forward_read.Position << "-" << forward_read.GetEndPosition() << ", insert size: "  << forward_read.InsertSize << " bp; mate: " << forward_read.MatePosition << "; overlap: " << overlap << ", CIGAR " << NGSHelper::Cigar2QString(forward_read.CigarData) << endl;
-					if(verbose)	out << "-> reverse: name - " << QString::fromStdString(reverse_read.Name) << ", region - chr" << forward_read.RefID << ":" << reverse_read.Position << "-" << reverse_read.GetEndPosition() << ", insert size: "  << reverse_read.InsertSize << " bp; mate: " << reverse_read.MatePosition << "; overlap: " << overlap << ", CIGAR " << NGSHelper::Cigar2QString(reverse_read.CigarData) << endl;
+					if(verbose)	out << "  clipped forward read: name - " << QString::fromStdString(forward_read.Name) << ", region - chr" << forward_read.RefID << ":" << forward_read.Position << "-" << forward_read.GetEndPosition() << ", insert size: "  << forward_read.InsertSize << " bp; mate: " << forward_read.MatePosition << ", CIGAR " << NGSHelper::Cigar2QString(forward_read.CigarData) << ", overlap: " << overlap << " bp" << endl;
+					if(verbose)	out << "  clipped reverse read: name - " << QString::fromStdString(reverse_read.Name) << ", region - chr" << forward_read.RefID << ":" << reverse_read.Position << "-" << reverse_read.GetEndPosition() << ", insert size: "  << reverse_read.InsertSize << " bp; mate: " << reverse_read.MatePosition << ", CIGAR " << NGSHelper::Cigar2QString(reverse_read.CigarData) << ", overlap: " << overlap << " bp" << endl;
 					if(verbose)	out << endl;
 
 					//return reads
@@ -244,6 +272,7 @@ public:
 
 		//step 4: write out statistics
 		if(reads_saved!=reads_count)	THROW(ToolFailedException, "Lost Reads: "+QString::number(reads_count-reads_saved)+"/"+QString::number(reads_count));
+		out << "Mapping quality was set to zero for " << QString::number(reads_mismatch) << " of " << QString::number(reads_count) << " reads (" << QString::number((double)reads_mismatch/(double)reads_count*100,'f',2) << " %) due to overlap mismatch." << endl;
 		out << "Softclipped " << QString::number(reads_clipped) << " of " << QString::number(reads_count) << " reads (" << QString::number(((double)reads_clipped/(double)reads_count*100),'f',2) << " %)." << endl;
 		out << "Softclipped " << QString::number(bases_clipped) << " of " << QString::number(bases_count) << " basepairs (" << QString::number((double)bases_clipped/(double)bases_count*100,'f',2) << " %)." << endl;
 
