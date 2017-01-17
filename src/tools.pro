@@ -285,6 +285,10 @@ SUBDIRS += NGSDImportGeneInfo
 tools-TEST.depends += NGSDImportGeneInfo
 NGSDImportGeneInfo.depends = cppNGSD
 
+SUBDIRS += VariantAnnotateStrand
+tools-TEST.depends += VariantAnnotateStrand
+VariantAnnotateStrand.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt
 

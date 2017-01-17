@@ -89,7 +89,8 @@ HEADERS += \
     VcfStreamSort_Test.h \
     NGSDInit_Test.h \
     SomaticQC_Test.h \
-    NGSDImportGeneInfo_Test.h	
+    NGSDImportGeneInfo_Test.h \	
+    VariantAnnotateStrand.h
 
 SOURCES += \
     main.cpp \

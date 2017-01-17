@@ -1,0 +1,26 @@
+##fileformat=VCFv4.1
+##fileDate=20161222
+##FORMAT=<ID=AU,Number=1,Type=String,Description="no description available">
+##FORMAT=<ID=CU,Number=1,Type=String,Description="no description available">
+##FORMAT=<ID=DP,Number=1,Type=String,Description="no description available">
+##FORMAT=<ID=FDP,Number=1,Type=String,Description="no description available">
+##FORMAT=<ID=GU,Number=1,Type=String,Description="no description available">
+##FORMAT=<ID=SDP,Number=1,Type=String,Description="no description available">
+##FORMAT=<ID=SUBDP,Number=1,Type=String,Description="no description available">
+##FORMAT=<ID=TU,Number=1,Type=String,Description="no description available">
+##INFO=<ID=NT,Number=1,Type=String,Description="no description available">
+##INFO=<ID=OMIM,Number=1,Type=String,Description="no description available">
+##INFO=<ID=QSS,Number=1,Type=String,Description="no description available">
+##INFO=<ID=QSS_NT,Number=1,Type=String,Description="no description available">
+##INFO=<ID=SGT,Number=1,Type=String,Description="no description available">
+##INFO=<ID=TQSS,Number=1,Type=String,Description="no description available">
+##INFO=<ID=TQSS_NT,Number=1,Type=String,Description="no description available">
+##INFO=<ID=SOMATIC,Number=1,Type=String,Description="no description available">
+##INFO=<ID=ANN,Number=1,Type=String,Description="no description available">
+##INFO=<ID=LOF,Number=1,Type=String,Description="no description available">
+##INFO=<ID=NMD,Number=1,Type=String,Description="no description available">
+##INFO=<ID=dbNSFP_phyloP100way_vertebrate,Number=1,Type=String,Description="no description available">
+##INFO=<ID=COSMIC_ID,Number=1,Type=String,Description="no description available">
+##INFO=<ID=fs,Number=1,Type=String,Description="Strand information. Format: [mutation_plus]|[wildtype_plus],[mutation_minus]|[wildtype_minus].">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	normal	tumor
+chr22	30061033	.	A	T	0.0	PASS	NT=ref;OMIM=607379_[NF2_(confirmed)_Neurofibromatosis,type_2|Meningioma,NF2-related,somatic|Schwannomatosis];QSS=110;QSS_NT=106;SGT=AA->AT;TQSS=1;TQSS_NT=1;SOMATIC=TRUE;ANN=T|stop_gained|HIGH|NF2|NF2|transcript|NM_000268.3|protein_coding|9/16|c.865A>T|p.Lys289*|1308/6029|865/1788|289/595||,T|stop_gained|HIGH|NF2|NF2|transcript|NM_181825.2|protein_coding|9/16|c.865A>T|p.Lys289*|1308/3076|865/1773|289/590||,T|stop_gained|HIGH|NF2|NF2|transcript|NM_181831.2|protein_coding|7/15|c.616A>T|p.Lys206*|1059/2191|616/1524|206/507||,T|stop_gained|HIGH|NF2|NF2|transcript|NM_016418.5|protein_coding|9/17|c.865A>T|p.Lys289*|1308/6074|865/1773|289/590||,T|stop_gained|HIGH|NF2|NF2|transcript|NM_181828.2|protein_coding|8/16|c.739A>T|p.Lys247*|1182/5948|739/1647|247/548||,T|stop_gained|HIGH|NF2|NF2|transcript|NM_181829.2|protein_coding|8/16|c.742A>T|p.Lys248*|1185/5951|742/1650|248/549||,T|stop_gained|HIGH|NF2|NF2|transcript|NM_181830.2|protein_coding|7/15|c.616A>T|p.Lys206*|1059/5825|616/1524|206/507||,T|stop_gained|HIGH|NF2|NF2|transcript|NM_181832.2|protein_coding|9/17|c.865A>T|p.Lys289*|1308/6089|865/1773|289/590||,T|intron_variant|MODIFIER|NF2|NF2|transcript|NM_181833.2|protein_coding|4/4|c.447+22759A>T||||||;LOF=(NF2|NF2|9|0.89);NMD=(NF2|NF2|9|0.89);dbNSFP_phyloP100way_vertebrate=4.492000;COSMIC_ID=COSM23906;fs=32|90,38|86	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	96,96:0,0:96:0:0,0:0:0:0,0	176,176:0,0:246:0:0,0:0:0:70,70
