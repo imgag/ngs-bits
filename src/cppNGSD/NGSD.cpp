@@ -1319,7 +1319,7 @@ BedFile NGSD::genesToRegions(QStringList genes, Transcript::SOURCE source, QStri
 			{
 				if (messages)
 				{
-					*messages << "No coding transcripts found for gene gene '" + source_str + "'. Skipping it!" << endl;
+					*messages << "No coding transcripts found for gene '" + gene + "'. Skipping it!" << endl;
 				}
 			}
 		}

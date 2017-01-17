@@ -717,7 +717,7 @@ CREATE  TABLE IF NOT EXISTS `diag_status` (
   `status` ENUM('pending','in progress','sanger validation','done','repeat library and sequencing','repeat sequencing only','cancelled') NOT NULL,
   `user_id` INT(11) NOT NULL,
   `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `outcome` ENUM('n/a','no significant findings','uncertain','significant findings') NOT NULL DEFAULT 'n/a',
+  `outcome` ENUM('n/a','no significant findings','uncertain','significant findings','significant findings - second method') NOT NULL DEFAULT 'n/a',
   PRIMARY KEY (`processed_sample_id`),
   INDEX `user_id` (`user_id` ASC),
   CONSTRAINT `diag_status_ibfk_1`
