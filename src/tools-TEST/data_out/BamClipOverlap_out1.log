@@ -26,7 +26,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:80:18452:2417, region - chr17:5855-59
 reverse read: name - PC0206:37:64FA0AAXX:7:80:18452:2417, region - chr17:5920-5996, insert size: -141 bp; mate: 5855, CIGAR 76M, overlap: 11 bp
   clip forward read from position 5926 to 5931
   clip reverse read from position 5921 to 5925
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:80:18452:2417- GCCTGCCACCT != GCCGGCCGCCT.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:80:18452:2417 - GCCTGCCACCT != GCCGGCCGCCT.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:80:18452:2417, region - chr17:5855-5925, insert size: 141 bp; mate: 5925, CIGAR 70M6S, overlap: 11 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:80:18452:2417, region - chr17:5925-5996, insert size: -141 bp; mate: 5855, CIGAR 5S71M, overlap: 11 bp
 
@@ -34,7 +34,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:109:6778:4227, region - chr17:5913-59
 reverse read: name - PC0206:37:64FA0AAXX:7:109:6778:4227, region - chr17:5924-5999, insert size: -86 bp; mate: 5913, CIGAR 75M, overlap: 65 bp
   clip forward read from position 5958 to 5989
   clip reverse read from position 5925 to 5957
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:109:6778:4227- GCCACCTGGGACCACGGAGCCGGCACACGGAACCCCGTCCTTGGAGGTGAAGCCGGGGCAGGTGG != GCCACCTGGGACCACGGAGCCGTCCCACGGACCCCCGTCCTTGGAGGTGAAGACGTGGCAGGTGG.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:109:6778:4227 - GCCACCTGGGACCACGGAGCCGGCACACGGAACCCCGTCCTTGGAGGTGAAGCCGGGGCAGGTGG != GCCACCTGGGACCACGGAGCCGTCCCACGGACCCCCGTCCTTGGAGGTGAAGACGTGGCAGGTGG.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:109:6778:4227, region - chr17:5913-5957, insert size: 86 bp; mate: 5957, CIGAR 44M32S, overlap: 65 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:109:6778:4227, region - chr17:5957-5999, insert size: -86 bp; mate: 5913, CIGAR 33S42M, overlap: 65 bp
 
@@ -42,7 +42,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:56:17910:1857, region - chr17:5905-59
 reverse read: name - PC0206:37:64FA0AAXX:7:56:17910:1857, region - chr17:5926-6002, insert size: -97 bp; mate: 5905, CIGAR 76M, overlap: 55 bp
   clip forward read from position 5955 to 5981
   clip reverse read from position 5927 to 5954
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:56:17910:1857- CACCTGGGACCACGGAGCCGGCACACGGACCCCCGTCCTTGGAGGTGAAGACGTG != CGCCTGGGACCACGGAGCCGGCACACGGACCCCCGTCCTTGGAGGTGAAGACGTG.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:56:17910:1857 - CACCTGGGACCACGGAGCCGGCACACGGACCCCCGTCCTTGGAGGTGAAGACGTG != CGCCTGGGACCACGGAGCCGGCACACGGACCCCCGTCCTTGGAGGTGAAGACGTG.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:56:17910:1857, region - chr17:5905-5954, insert size: 97 bp; mate: 5954, CIGAR 49M27S, overlap: 55 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:56:17910:1857, region - chr17:5954-6002, insert size: -97 bp; mate: 5905, CIGAR 28S48M, overlap: 55 bp
 
@@ -66,7 +66,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:39:4498:9125, region - chr17:5962-603
 reverse read: name - PC0206:37:64FA0AAXX:7:39:4498:9125, region - chr17:5962-6036, insert size: -74 bp; mate: 5962, CIGAR 74M, overlap: 74 bp
   clip forward read from position 6000 to 6036
   clip reverse read from position 5963 to 5999
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:39:4498:9125- CCTTGGAGGTGAAGACGTGGCAGGGGGTCACGCGCACGGCACACTCACGTTTTCACGTAGGGGTCCGAGTAGCC != CCTTGGAGGTGAAGACGTGGCAGGTGGTCACGCGCACGGCACACTCACGTTTTCACGTAGGGGTCCGAGTAGCC.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:39:4498:9125 - CCTTGGAGGTGAAGACGTGGCAGGGGGTCACGCGCACGGCACACTCACGTTTTCACGTAGGGGTCCGAGTAGCC != CCTTGGAGGTGAAGACGTGGCAGGTGGTCACGCGCACGGCACACTCACGTTTTCACGTAGGGGTCCGAGTAGCC.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:39:4498:9125, region - chr17:5962-5999, insert size: 74 bp; mate: 5999, CIGAR 37M37S, overlap: 74 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:39:4498:9125, region - chr17:5999-6036, insert size: -74 bp; mate: 5962, CIGAR 37S37M, overlap: 74 bp
 
@@ -74,7 +74,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:115:7658:19748, region - chr17:5892-5
 reverse read: name - PC0206:37:64FA0AAXX:7:115:7658:19748, region - chr17:5963-6039, insert size: -147 bp; mate: 5892, CIGAR 76M, overlap: 5 bp
   clip forward read from position 5966 to 5968
   clip reverse read from position 5964 to 5965
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:115:7658:19748- CTTGG != ATGTG.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:115:7658:19748 - CTTGG != ATGTG.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:115:7658:19748, region - chr17:5892-5965, insert size: 147 bp; mate: 5965, CIGAR 73M3S, overlap: 5 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:115:7658:19748, region - chr17:5965-6039, insert size: -147 bp; mate: 5892, CIGAR 2S74M, overlap: 5 bp
 
@@ -98,7 +98,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:99:6917:11700, region - chr17:5952-60
 reverse read: name - PC0206:37:64FA0AAXX:7:99:6917:11700, region - chr17:5982-6058, insert size: -106 bp; mate: 5952, CIGAR 76M, overlap: 46 bp
   clip forward read from position 6006 to 6028
   clip reverse read from position 5983 to 6005
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:99:6917:11700- CAGGTGGTCACGCGCACGGCACACTCACGTTTTCACGTAGGGGTCC != CAGGTGGTCACGCGCACGGCACACTCACGTTTTCACGTGGGGGTCC.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:99:6917:11700 - CAGGTGGTCACGCGCACGGCACACTCACGTTTTCACGTAGGGGTCC != CAGGTGGTCACGCGCACGGCACACTCACGTTTTCACGTGGGGGTCC.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:99:6917:11700, region - chr17:5952-6005, insert size: 106 bp; mate: 6005, CIGAR 53M23S, overlap: 46 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:99:6917:11700, region - chr17:6005-6058, insert size: -106 bp; mate: 5952, CIGAR 23S53M, overlap: 46 bp
 
@@ -106,7 +106,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:53:19593:15487, region - chr17:5938-6
 reverse read: name - PC0206:37:64FA0AAXX:7:53:19593:15487, region - chr17:5984-6060, insert size: -122 bp; mate: 5938, CIGAR 76M, overlap: 30 bp
   clip forward read from position 6000 to 6014
   clip reverse read from position 5985 to 5999
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:53:19593:15487- GGTGGTCACGCGCACGGCACACTCACGCTT != GGTGGTCACGCGCGCGGCACACTCGCGTTT.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:53:19593:15487 - GGTGGTCACGCGCACGGCACACTCACGCTT != GGTGGTCACGCGCGCGGCACACTCGCGTTT.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:53:19593:15487, region - chr17:5938-5999, insert size: 122 bp; mate: 5999, CIGAR 61M15S, overlap: 30 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:53:19593:15487, region - chr17:5999-6060, insert size: -122 bp; mate: 5938, CIGAR 15S61M, overlap: 30 bp
 
@@ -114,7 +114,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:93:15880:5547, region - chr17:5984-60
 reverse read: name - PC0206:37:64FA0AAXX:7:93:15880:5547, region - chr17:5984-6052, insert size: -68 bp; mate: 5984, CIGAR 68M, overlap: 68 bp
   clip forward read from position 6019 to 6052
   clip reverse read from position 5985 to 6018
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:93:15880:5547- GGTGGTCACGCGCACGGCACACTCACGTTTTCACGTAGGGGCCCGAGTAGCCGTTGGCGTCCATGGCG != GGTGGTGCCGCCCGGGGCCCCCTCCCGTTTTCCCGAGGGGGCCCGAGTAGCCGTTGGCGTCCATGGCG.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:93:15880:5547 - GGTGGTCACGCGCACGGCACACTCACGTTTTCACGTAGGGGCCCGAGTAGCCGTTGGCGTCCATGGCG != GGTGGTGCCGCCCGGGGCCCCCTCCCGTTTTCCCGAGGGGGCCCGAGTAGCCGTTGGCGTCCATGGCG.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:93:15880:5547, region - chr17:5984-6018, insert size: 68 bp; mate: 6018, CIGAR 34M34S, overlap: 68 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:93:15880:5547, region - chr17:6018-6052, insert size: -68 bp; mate: 5984, CIGAR 34S34M, overlap: 68 bp
 
@@ -122,7 +122,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:89:9451:5088, region - chr17:5990-605
 reverse read: name - PC0206:37:64FA0AAXX:7:89:9451:5088, region - chr17:5990-6051, insert size: -61 bp; mate: 5990, CIGAR 61M, overlap: 61 bp
   clip forward read from position 6021 to 6051
   clip reverse read from position 5991 to 6020
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:89:9451:5088- CACGCGCACGGCACACTCACGTTTTCACGTAGGGGTCCGAGTAGCCGTTGGCGTCCATGGC != CACGCGCACGGCACCCTCCCGTTTTCACGTAGGGGTCCGAGTAGCCGTTGGCGTCCATGGC.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:89:9451:5088 - CACGCGCACGGCACACTCACGTTTTCACGTAGGGGTCCGAGTAGCCGTTGGCGTCCATGGC != CACGCGCACGGCACCCTCCCGTTTTCACGTAGGGGTCCGAGTAGCCGTTGGCGTCCATGGC.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:89:9451:5088, region - chr17:5990-6020, insert size: 61 bp; mate: 6020, CIGAR 30M31S, overlap: 61 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:89:9451:5088, region - chr17:6020-6051, insert size: -61 bp; mate: 5990, CIGAR 30S31M, overlap: 61 bp
 
@@ -138,7 +138,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:12:11176:18388, region - chr17:5951-6
 reverse read: name - PC0206:37:64FA0AAXX:7:12:11176:18388, region - chr17:5995-6071, insert size: -120 bp; mate: 5951, CIGAR 76M, overlap: 32 bp
   clip forward read from position 6012 to 6027
   clip reverse read from position 5996 to 6011
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:12:11176:18388- GCACGGCACACTCACGTTTTCACGTAGGGGTC != GAAGGGCACGCTCACGTTTTCACGTAGGGGCC.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:12:11176:18388 - GCACGGCACACTCACGTTTTCACGTAGGGGTC != GAAGGGCACGCTCACGTTTTCACGTAGGGGCC.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:12:11176:18388, region - chr17:5951-6011, insert size: 120 bp; mate: 6011, CIGAR 60M16S, overlap: 32 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:12:11176:18388, region - chr17:6011-6071, insert size: -120 bp; mate: 5951, CIGAR 16S60M, overlap: 32 bp
 
@@ -146,7 +146,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:50:6633:4340, region - chr17:5992-606
 reverse read: name - PC0206:37:64FA0AAXX:7:50:6633:4340, region - chr17:5995-6071, insert size: -79 bp; mate: 5992, CIGAR 76M, overlap: 73 bp
   clip forward read from position 6032 to 6068
   clip reverse read from position 5996 to 6031
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:50:6633:4340- GCACGGCACACTCACGGTTTCACGTGGGGGCCCGAGTAGCCGTTGGCGTCCATGGAGGCGAGGTGGGCGCACC != GCACGGCACGCTCGCGTTTTCACGTAGGGGTCCGAGTTGCCGTTGGCGTCCATGGCGGCCAGCTGGGCGGGCC.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:50:6633:4340 - GCACGGCACACTCACGGTTTCACGTGGGGGCCCGAGTAGCCGTTGGCGTCCATGGAGGCGAGGTGGGCGCACC != GCACGGCACGCTCGCGTTTTCACGTAGGGGTCCGAGTTGCCGTTGGCGTCCATGGCGGCCAGCTGGGCGGGCC.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:50:6633:4340, region - chr17:5992-6031, insert size: 79 bp; mate: 6031, CIGAR 39M37S, overlap: 73 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:50:6633:4340, region - chr17:6031-6071, insert size: -79 bp; mate: 5992, CIGAR 36S40M, overlap: 73 bp
 
@@ -178,7 +178,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:49:8893:16633, region - chr17:5958-60
 reverse read: name - PC0206:37:64FA0AAXX:7:49:8893:16633, region - chr17:6008-6084, insert size: -126 bp; mate: 5958, CIGAR 76M, overlap: 24 bp
   clip forward read from position 6021 to 6032
   clip reverse read from position 6009 to 6020
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:49:8893:16633- ACGTTTTCACGTAGGGGTCCGAGT != GCGTTTTCACGTAGGGGTCCGAGT.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:49:8893:16633 - ACGTTTTCACGTAGGGGTCCGAGT != GCGTTTTCACGTAGGGGTCCGAGT.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:49:8893:16633, region - chr17:5958-6020, insert size: 126 bp; mate: 6020, CIGAR 62M12S, overlap: 24 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:49:8893:16633, region - chr17:6020-6084, insert size: -126 bp; mate: 5958, CIGAR 12S64M, overlap: 24 bp
 
@@ -186,7 +186,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:75:5725:15871, region - chr17:5942-60
 reverse read: name - PC0206:37:64FA0AAXX:7:75:5725:15871, region - chr17:6008-6084, insert size: -142 bp; mate: 5942, CIGAR 76M, overlap: 10 bp
   clip forward read from position 6014 to 6018
   clip reverse read from position 6009 to 6013
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:75:5725:15871- ACGTTTTCAC != CCGTTTTCAC.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:75:5725:15871 - ACGTTTTCAC != CCGTTTTCAC.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:75:5725:15871, region - chr17:5942-6013, insert size: 142 bp; mate: 6013, CIGAR 71M5S, overlap: 10 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:75:5725:15871, region - chr17:6013-6084, insert size: -142 bp; mate: 5942, CIGAR 5S71M, overlap: 10 bp
 
@@ -194,7 +194,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:20:4010:4284, region - chr17:5995-607
 reverse read: name - PC0206:37:64FA0AAXX:7:20:4010:4284, region - chr17:6010-6086, insert size: -91 bp; mate: 5995, CIGAR 76M, overlap: 60 bp
   clip forward read from position 6041 to 6070
   clip reverse read from position 6011 to 6040
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:20:4010:4284- GTTTTCACGAAGGGGTCCGAGTAGCCGTTGGCGTCCATGGCGGCCAGGTGGGCGCACCGC != GTTTTCACGTGGGGGGCCGGGTAGCCGTTGGCGTCCATGGCGGCCAGGTGGGCGCGCCGC.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:20:4010:4284 - GTTTTCACGAAGGGGTCCGAGTAGCCGTTGGCGTCCATGGCGGCCAGGTGGGCGCACCGC != GTTTTCACGTGGGGGGCCGGGTAGCCGTTGGCGTCCATGGCGGCCAGGTGGGCGCGCCGC.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:20:4010:4284, region - chr17:5995-6040, insert size: 91 bp; mate: 6040, CIGAR 45M30S, overlap: 60 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:20:4010:4284, region - chr17:6040-6086, insert size: -91 bp; mate: 5995, CIGAR 30S46M, overlap: 60 bp
 
@@ -210,7 +210,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:91:2749:19005, region - chr17:5978-60
 reverse read: name - PC0206:37:64FA0AAXX:7:91:2749:19005, region - chr17:6015-6091, insert size: -113 bp; mate: 5978, CIGAR 76M, overlap: 39 bp
   clip forward read from position 6035 to 6054
   clip reverse read from position 6016 to 6034
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:91:2749:19005- CACGTAGGGGTCCGAGTAGCCGGTGGCGGCCATGGCGGC != CACGTAGGGGTCCGGGTAGCCGTTGGCGTCCATGGCGGC.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:91:2749:19005 - CACGTAGGGGTCCGAGTAGCCGGTGGCGGCCATGGCGGC != CACGTAGGGGTCCGGGTAGCCGTTGGCGTCCATGGCGGC.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:91:2749:19005, region - chr17:5978-6034, insert size: 113 bp; mate: 6034, CIGAR 56M20S, overlap: 39 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:91:2749:19005, region - chr17:6034-6091, insert size: -113 bp; mate: 5978, CIGAR 19S57M, overlap: 39 bp
 
@@ -218,7 +218,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:101:8142:8829, region - chr17:6018-60
 reverse read: name - PC0206:37:64FA0AAXX:7:101:8142:8829, region - chr17:6018-6092, insert size: -74 bp; mate: 6018, CIGAR 74M, overlap: 74 bp
   clip forward read from position 6056 to 6092
   clip reverse read from position 6019 to 6055
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:101:8142:8829- GTAGGGGTCCGAGTAGCCGTTGGCGTCCATGGCGGCCAGGTGGGCGCACCGCACGATGCCTACCAGCAGGCCTT != GTAGGGGTCCGAGGAGCCGTTGGCGTCCATGGCGGCCAGGTGGGCGCACCGCACGATGCCTACCAGCAGGCCTT.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:101:8142:8829 - GTAGGGGTCCGAGTAGCCGTTGGCGTCCATGGCGGCCAGGTGGGCGCACCGCACGATGCCTACCAGCAGGCCTT != GTAGGGGTCCGAGGAGCCGTTGGCGTCCATGGCGGCCAGGTGGGCGCACCGCACGATGCCTACCAGCAGGCCTT.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:101:8142:8829, region - chr17:6018-6055, insert size: 74 bp; mate: 6055, CIGAR 37M37S, overlap: 74 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:101:8142:8829, region - chr17:6055-6092, insert size: -74 bp; mate: 6018, CIGAR 37S37M, overlap: 74 bp
 
@@ -258,7 +258,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:32:11283:15757, region - chr17:5963-6
 reverse read: name - PC0206:37:64FA0AAXX:7:32:11283:15757, region - chr17:6029-6105, insert size: -142 bp; mate: 5963, CIGAR 76M, overlap: 10 bp
   clip forward read from position 6035 to 6039
   clip reverse read from position 6030 to 6034
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:32:11283:15757- AGTAGCCGCT != AGTAGCCGTT.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:32:11283:15757 - AGTAGCCGCT != AGTAGCCGTT.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:32:11283:15757, region - chr17:5963-6034, insert size: 142 bp; mate: 6034, CIGAR 71M5S, overlap: 10 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:32:11283:15757, region - chr17:6034-6105, insert size: -142 bp; mate: 5963, CIGAR 5S71M, overlap: 10 bp
 
@@ -266,7 +266,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:9:10104:1824, region - chr17:5968-604
 reverse read: name - PC0206:37:64FA0AAXX:7:9:10104:1824, region - chr17:6029-6105, insert size: -137 bp; mate: 5968, CIGAR 76M, overlap: 15 bp
   clip forward read from position 6037 to 6044
   clip reverse read from position 6030 to 6036
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:9:10104:1824- AGTAGCCGTTGGCGT != CGTCGCCGTTGGCGT.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:9:10104:1824 - AGTAGCCGTTGGCGT != CGTCGCCGTTGGCGT.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:9:10104:1824, region - chr17:5968-6036, insert size: 137 bp; mate: 6036, CIGAR 68M8S, overlap: 15 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:9:10104:1824, region - chr17:6036-6105, insert size: -137 bp; mate: 5968, CIGAR 7S69M, overlap: 15 bp
 
@@ -274,7 +274,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:5:2430:19993, region - chr17:5965-604
 reverse read: name - PC0206:37:64FA0AAXX:7:5:2430:19993, region - chr17:6030-6106, insert size: -141 bp; mate: 5965, CIGAR 76M, overlap: 11 bp
   clip forward read from position 6036 to 6041
   clip reverse read from position 6031 to 6035
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:5:2430:19993- GTAGCCGTTGG != GGAGCCGTTGG.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:5:2430:19993 - GTAGCCGTTGG != GGAGCCGTTGG.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:5:2430:19993, region - chr17:5965-6035, insert size: 141 bp; mate: 6035, CIGAR 70M6S, overlap: 11 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:5:2430:19993, region - chr17:6035-6106, insert size: -141 bp; mate: 5965, CIGAR 5S71M, overlap: 11 bp
 
@@ -290,7 +290,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:118:9947:16215, region - chr17:5983-6
 reverse read: name - PC0206:37:64FA0AAXX:7:118:9947:16215, region - chr17:6032-6108, insert size: -125 bp; mate: 5983, CIGAR 76M, overlap: 27 bp
   clip forward read from position 6047 to 6059
   clip reverse read from position 6033 to 6046
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:118:9947:16215- AGCCGTTGGCGTCCATGGCGGCCAGGC != AGCCGTTGGCGTCCATGGCGGCCAGGT.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:118:9947:16215 - AGCCGTTGGCGTCCATGGCGGCCAGGC != AGCCGTTGGCGTCCATGGCGGCCAGGT.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:118:9947:16215, region - chr17:5983-6046, insert size: 125 bp; mate: 6046, CIGAR 63M13S, overlap: 27 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:118:9947:16215, region - chr17:6046-6108, insert size: -125 bp; mate: 5983, CIGAR 14S62M, overlap: 27 bp
 
@@ -298,7 +298,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:105:4197:18773, region - chr17:6014-6
 reverse read: name - PC0206:37:64FA0AAXX:7:105:4197:18773, region - chr17:6035-6111, insert size: -97 bp; mate: 6014, CIGAR 76M, overlap: 55 bp
   clip forward read from position 6064 to 6090
   clip reverse read from position 6036 to 6063
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:105:4197:18773- CGTTGGCGTCCATGGCGGCCAGGTGGGCGCACCGTACGGTGCCTACCAGCAGGCC != CGTTGGCGTCCATGGCGGCCAGGTGGGCGCACCGCACGATGCCTACCAGCAGGCC.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:105:4197:18773 - CGTTGGCGTCCATGGCGGCCAGGTGGGCGCACCGTACGGTGCCTACCAGCAGGCC != CGTTGGCGTCCATGGCGGCCAGGTGGGCGCACCGCACGATGCCTACCAGCAGGCC.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:105:4197:18773, region - chr17:6014-6063, insert size: 97 bp; mate: 6063, CIGAR 49M27S, overlap: 55 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:105:4197:18773, region - chr17:6063-6111, insert size: -97 bp; mate: 6014, CIGAR 28S48M, overlap: 55 bp
 
@@ -322,7 +322,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:99:16059:1631, region - chr17:6035-60
 reverse read: name - PC0206:37:64FA0AAXX:7:99:16059:1631, region - chr17:6035-6097, insert size: -62 bp; mate: 6035, CIGAR 62M, overlap: 62 bp
   clip forward read from position 6067 to 6097
   clip reverse read from position 6036 to 6066
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:99:16059:1631- CGTTGGCGTCCATGGCGGCCAGGTGGGCGCACCGCACGAGGCCTACCCGCAGGACCTGCCTC != CGTTGGCGTCCATGGCGGCCAGGTGGGCGCACCGCACGATGCCTACCAGCAGGCCTTGCTTC.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:99:16059:1631 - CGTTGGCGTCCATGGCGGCCAGGTGGGCGCACCGCACGAGGCCTACCCGCAGGACCTGCCTC != CGTTGGCGTCCATGGCGGCCAGGTGGGCGCACCGCACGATGCCTACCAGCAGGCCTTGCTTC.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:99:16059:1631, region - chr17:6035-6066, insert size: 62 bp; mate: 6066, CIGAR 31M31S, overlap: 62 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:99:16059:1631, region - chr17:6066-6097, insert size: -62 bp; mate: 6035, CIGAR 31S31M, overlap: 62 bp
 
@@ -330,7 +330,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:8:10135:19169, region - chr17:6015-60
 reverse read: name - PC0206:37:64FA0AAXX:7:8:10135:19169, region - chr17:6036-6112, insert size: -97 bp; mate: 6015, CIGAR 76M, overlap: 55 bp
   clip forward read from position 6064 to 6091
   clip reverse read from position 6037 to 6063
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:8:10135:19169- GTTGGCGTCCATGGCGGCCAGGTGGGCGCACCCCACGATGCCTACCAGCAGGCCT != GTTGGCGTCCATGGCGGCCAGGCGGGCGCGCCGCACGATGCCTACCAGCAGGCCT.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:8:10135:19169 - GTTGGCGTCCATGGCGGCCAGGTGGGCGCACCCCACGATGCCTACCAGCAGGCCT != GTTGGCGTCCATGGCGGCCAGGCGGGCGCGCCGCACGATGCCTACCAGCAGGCCT.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:8:10135:19169, region - chr17:6015-6063, insert size: 97 bp; mate: 6063, CIGAR 48M28S, overlap: 55 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:8:10135:19169, region - chr17:6063-6112, insert size: -97 bp; mate: 6015, CIGAR 27S49M, overlap: 55 bp
 
@@ -362,7 +362,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:3:9449:5146, region - chr17:5991-6067
 reverse read: name - PC0206:37:64FA0AAXX:7:3:9449:5146, region - chr17:6043-6117, insert size: -126 bp; mate: 5991, CIGAR 74M, overlap: 24 bp
   clip forward read from position 6056 to 6067
   clip reverse read from position 6044 to 6055
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:3:9449:5146- TCCATGGCGGCCAGGTGGGCGCAC != TTCATGGCGGCCAGGTGGGCGCAA.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:3:9449:5146 - TCCATGGCGGCCAGGTGGGCGCAC != TTCATGGCGGCCAGGTGGGCGCAA.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:3:9449:5146, region - chr17:5991-6055, insert size: 126 bp; mate: 6055, CIGAR 64M12S, overlap: 24 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:3:9449:5146, region - chr17:6055-6117, insert size: -126 bp; mate: 5991, CIGAR 12S62M, overlap: 24 bp
 
@@ -386,7 +386,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:58:16445:15975, region - chr17:6044-6
 reverse read: name - PC0206:37:64FA0AAXX:7:58:16445:15975, region - chr17:6050-6126, insert size: -82 bp; mate: 6044, CIGAR 76M, overlap: 66 bp
   clip forward read from position 6084 to 6116
   clip reverse read from position 6051 to 6083
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:58:16445:15975- CGGCCAGGTGGGCGCACCGCACGATGCCTACCAGCAGGCCTTGCTTCTGTGCGATGTACTTGCGCG != CGGCCAGGTGGGCGCACCGCACGATGCCTACCAGCAGGCCTTGCTTCTGTGAGCTGTACTTGAGCG.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:58:16445:15975 - CGGCCAGGTGGGCGCACCGCACGATGCCTACCAGCAGGCCTTGCTTCTGTGCGATGTACTTGCGCG != CGGCCAGGTGGGCGCACCGCACGATGCCTACCAGCAGGCCTTGCTTCTGTGAGCTGTACTTGAGCG.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:58:16445:15975, region - chr17:6044-6083, insert size: 82 bp; mate: 6083, CIGAR 39M33S, overlap: 66 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:58:16445:15975, region - chr17:6083-6126, insert size: -82 bp; mate: 6044, CIGAR 33S43M, overlap: 66 bp
 
@@ -434,7 +434,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:32:8898:10043, region - chr17:6027-61
 reverse read: name - PC0206:37:64FA0AAXX:7:32:8898:10043, region - chr17:6059-6134, insert size: -107 bp; mate: 6027, CIGAR 75M, overlap: 44 bp
   clip forward read from position 6082 to 6103
   clip reverse read from position 6060 to 6081
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:32:8898:10043- GGGCGCCCCGCACGATGCCTACAAGCAGGCCTGGCTTCTGTGGC != GGGCGCTCCGCACGATGCCTACCAGCAGGCCTTGCTTCTGTGAG.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:32:8898:10043 - GGGCGCCCCGCACGATGCCTACAAGCAGGCCTGGCTTCTGTGGC != GGGCGCTCCGCACGATGCCTACCAGCAGGCCTTGCTTCTGTGAG.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:32:8898:10043, region - chr17:6027-6081, insert size: 107 bp; mate: 6081, CIGAR 54M22S, overlap: 44 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:32:8898:10043, region - chr17:6081-6134, insert size: -107 bp; mate: 6027, CIGAR 22S53M, overlap: 44 bp
 
@@ -450,7 +450,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:87:11973:2937, region - chr17:5998-60
 reverse read: name - PC0206:37:64FA0AAXX:7:87:11973:2937, region - chr17:6059-6134, insert size: -136 bp; mate: 5998, CIGAR 75M, overlap: 14 bp
   clip forward read from position 6067 to 6073
   clip reverse read from position 6060 to 6066
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:87:11973:2937- GGGCGCACCGCACC != GGGCGCACCGCACG.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:87:11973:2937 - GGGCGCACCGCACC != GGGCGCACCGCACG.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:87:11973:2937, region - chr17:5998-6066, insert size: 136 bp; mate: 6066, CIGAR 68M7S, overlap: 14 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:87:11973:2937, region - chr17:6066-6134, insert size: -136 bp; mate: 5998, CIGAR 7S68M, overlap: 14 bp
 
@@ -466,7 +466,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:51:9738:12072, region - chr17:5998-60
 reverse read: name - PC0206:37:64FA0AAXX:7:51:9738:12072, region - chr17:6061-6137, insert size: -139 bp; mate: 5998, CIGAR 76M, overlap: 12 bp
   clip forward read from position 6068 to 6073
   clip reverse read from position 6062 to 6067
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:51:9738:12072- GCGCACCGCACG != GCGCCCCGCACG.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:51:9738:12072 - GCGCACCGCACG != GCGCCCCGCACG.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:51:9738:12072, region - chr17:5998-6067, insert size: 139 bp; mate: 6067, CIGAR 69M6S, overlap: 12 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:51:9738:12072, region - chr17:6067-6137, insert size: -139 bp; mate: 5998, CIGAR 6S70M, overlap: 12 bp
 
@@ -482,7 +482,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:102:5692:8001, region - chr17:6040-61
 reverse read: name - PC0206:37:64FA0AAXX:7:102:5692:8001, region - chr17:6063-6139, insert size: -99 bp; mate: 6040, CIGAR 76M, overlap: 53 bp
   clip forward read from position 6090 to 6116
   clip reverse read from position 6064 to 6089
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:102:5692:8001- GCACCGCACGATGCCTACCAGCAGGCCTTGCTTCTGCGAGCTGTACTTGAGCG != ACACCGCACGATGCCTACCAGCAGGCCTTGCTTCTGTGAGCTGTACTTGAGCG.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:102:5692:8001 - GCACCGCACGATGCCTACCAGCAGGCCTTGCTTCTGCGAGCTGTACTTGAGCG != ACACCGCACGATGCCTACCAGCAGGCCTTGCTTCTGTGAGCTGTACTTGAGCG.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:102:5692:8001, region - chr17:6040-6089, insert size: 99 bp; mate: 6089, CIGAR 49M27S, overlap: 53 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:102:5692:8001, region - chr17:6089-6139, insert size: -99 bp; mate: 6040, CIGAR 26S50M, overlap: 53 bp
 
@@ -490,7 +490,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:20:18304:3295, region - chr17:6063-61
 reverse read: name - PC0206:37:64FA0AAXX:7:20:18304:3295, region - chr17:6063-6120, insert size: -57 bp; mate: 6063, CIGAR 57M, overlap: 57 bp
   clip forward read from position 6093 to 6120
   clip reverse read from position 6064 to 6092
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:20:18304:3295- GCACCGCACGATGCCTACCAGCAGGCCTTGCTTCTGTGAGCTGTACTTGAGCGAGAT != GCACCGCACGATGCCTACCAGCAGGCCTTGCTTCTGTGAGCTGTACTTGAGCGAGAC.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:20:18304:3295 - GCACCGCACGATGCCTACCAGCAGGCCTTGCTTCTGTGAGCTGTACTTGAGCGAGAT != GCACCGCACGATGCCTACCAGCAGGCCTTGCTTCTGTGAGCTGTACTTGAGCGAGAC.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:20:18304:3295, region - chr17:6063-6092, insert size: 57 bp; mate: 6092, CIGAR 29M28S, overlap: 57 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:20:18304:3295, region - chr17:6092-6120, insert size: -57 bp; mate: 6063, CIGAR 29S28M, overlap: 57 bp
 
@@ -546,7 +546,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:101:18673:18783, region - chr17:6016-
 reverse read: name - PC0206:37:64FA0AAXX:7:101:18673:18783, region - chr17:6069-6145, insert size: -129 bp; mate: 6016, CIGAR 76M, overlap: 23 bp
   clip forward read from position 6082 to 6092
   clip reverse read from position 6070 to 6081
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:101:18673:18783- CACGATGCCTACCAGCACGCCCT != CACGATGCCTACCAGCAGGCCTT.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:101:18673:18783 - CACGATGCCTACCAGCACGCCCT != CACGATGCCTACCAGCAGGCCTT.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:101:18673:18783, region - chr17:6016-6081, insert size: 129 bp; mate: 6081, CIGAR 65M11S, overlap: 23 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:101:18673:18783, region - chr17:6081-6145, insert size: -129 bp; mate: 6016, CIGAR 12S64M, overlap: 23 bp
 
@@ -554,7 +554,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:13:4218:18517, region - chr17:6010-60
 reverse read: name - PC0206:37:64FA0AAXX:7:13:4218:18517, region - chr17:6069-6145, insert size: -135 bp; mate: 6010, CIGAR 76M, overlap: 16 bp
   clip forward read from position 6078 to 6085
   clip reverse read from position 6070 to 6077
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:13:4218:18517- CACGATGCCTACCAGC != CAGGATGCCTACCAGC.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:13:4218:18517 - CACGATGCCTACCAGC != CAGGATGCCTACCAGC.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:13:4218:18517, region - chr17:6010-6077, insert size: 135 bp; mate: 6077, CIGAR 67M8S, overlap: 16 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:13:4218:18517, region - chr17:6077-6145, insert size: -135 bp; mate: 6010, CIGAR 8S68M, overlap: 16 bp
 
@@ -818,7 +818,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:69:13472:3855, region - chr17:6073-61
 reverse read: name - PC0206:37:64FA0AAXX:7:69:13472:3855, region - chr17:6107-6182, insert size: -109 bp; mate: 6073, CIGAR 75M, overlap: 42 bp
   clip forward read from position 6129 to 6149
   clip reverse read from position 6108 to 6128
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:69:13472:3855- ACTTGAGCGAGATGAGGATGCGGCCCCGCTCCTCCAGGGACT != GCTTGAGCGAGATGAGGATGCGGCCCCGCTCCTCCAGGGACT.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:69:13472:3855 - ACTTGAGCGAGATGAGGATGCGGCCCCGCTCCTCCAGGGACT != GCTTGAGCGAGATGAGGATGCGGCCCCGCTCCTCCAGGGACT.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:69:13472:3855, region - chr17:6073-6128, insert size: 109 bp; mate: 6128, CIGAR 55M21S, overlap: 42 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:69:13472:3855, region - chr17:6128-6182, insert size: -109 bp; mate: 6073, CIGAR 21S54M, overlap: 42 bp
 
@@ -826,7 +826,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:94:5504:7304, region - chr17:6042-611
 reverse read: name - PC0206:37:64FA0AAXX:7:94:5504:7304, region - chr17:6107-6183, insert size: -141 bp; mate: 6042, CIGAR 76M, overlap: 9 bp
   clip forward read from position 6112 to 6116
   clip reverse read from position 6108 to 6111
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:94:5504:7304- ACTTGAGCG != GCTTGAGCG.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:94:5504:7304 - ACTTGAGCG != GCTTGAGCG.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:94:5504:7304, region - chr17:6042-6111, insert size: 141 bp; mate: 6111, CIGAR 69M5S, overlap: 9 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:94:5504:7304, region - chr17:6111-6183, insert size: -141 bp; mate: 6042, CIGAR 4S72M, overlap: 9 bp
 
@@ -850,7 +850,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:3:2912:18387, region - chr17:6063-613
 reverse read: name - PC0206:37:64FA0AAXX:7:3:2912:18387, region - chr17:6111-6187, insert size: -124 bp; mate: 6063, CIGAR 76M, overlap: 28 bp
   clip forward read from position 6126 to 6139
   clip reverse read from position 6112 to 6125
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:3:2912:18387- GAGCGAGATGAGGATGCGGCCCCGCTCC != GAGCGAGATGAGGATGCGGTCCCGCTCC.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:3:2912:18387 - GAGCGAGATGAGGATGCGGCCCCGCTCC != GAGCGAGATGAGGATGCGGTCCCGCTCC.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:3:2912:18387, region - chr17:6063-6125, insert size: 124 bp; mate: 6125, CIGAR 62M14S, overlap: 28 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:3:2912:18387, region - chr17:6125-6187, insert size: -124 bp; mate: 6063, CIGAR 14S62M, overlap: 28 bp
 
@@ -858,7 +858,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:20:19419:16120, region - chr17:6052-6
 reverse read: name - PC0206:37:64FA0AAXX:7:20:19419:16120, region - chr17:6116-6193, insert size: -141 bp; mate: 6052, CIGAR 61M1D15M, overlap: 12 bp
   clip forward read from position 6123 to 6128
   clip reverse read from position 6117 to 6122
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:20:19419:16120- AGATGAGGATGC != AGATGAGGAGGC.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:20:19419:16120 - AGATGAGGATGC != AGATGAGGAGGC.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:20:19419:16120, region - chr17:6052-6122, insert size: 141 bp; mate: 6122, CIGAR 70M6S, overlap: 12 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:20:19419:16120, region - chr17:6122-6193, insert size: -141 bp; mate: 6052, CIGAR 6S55M1D15M, overlap: 12 bp
 
@@ -874,7 +874,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:80:4843:16918, region - chr17:6115-61
 reverse read: name - PC0206:37:64FA0AAXX:7:80:4843:16918, region - chr17:6122-6198, insert size: -83 bp; mate: 6115, CIGAR 76M, overlap: 68 bp
   clip forward read from position 6157 to 6190
   clip reverse read from position 6123 to 6156
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:80:4843:16918- GGATGCGGCCCCGCTCCTCCCGGGACTTGTCTTCGGTCTTGGCCACCTGTTGGACGGGACGGTCACTC != GCATCCGGCCCCGCTCCTCCGGGGTCTTGTCTTCGGTCTTGTCCACCTATTGGCCGGGACGGTCACTC.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:80:4843:16918 - GGATGCGGCCCCGCTCCTCCCGGGACTTGTCTTCGGTCTTGGCCACCTGTTGGACGGGACGGTCACTC != GCATCCGGCCCCGCTCCTCCGGGGTCTTGTCTTCGGTCTTGTCCACCTATTGGCCGGGACGGTCACTC.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:80:4843:16918, region - chr17:6115-6156, insert size: 83 bp; mate: 6156, CIGAR 41M34S, overlap: 68 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:80:4843:16918, region - chr17:6156-6198, insert size: -83 bp; mate: 6115, CIGAR 34S42M, overlap: 68 bp
 
@@ -954,7 +954,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:25:13657:2436, region - chr17:6156-62
 reverse read: name - PC0206:37:64FA0AAXX:7:25:13657:2436, region - chr17:6156-6211, insert size: -55 bp; mate: 6156, CIGAR 55M, overlap: 55 bp
   clip forward read from position 6184 to 6211
   clip reverse read from position 6157 to 6183
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:25:13657:2436- GGTCTTGTCCACCTGTTGGACGGGACGGTCACTCAGTCCCCACCTGCTCCCACCC != GGTCTTGTCCACCTGTTGGACGGGACGGTCACTCAGTCCTCACCTGCTCCCACCC.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:25:13657:2436 - GGTCTTGTCCACCTGTTGGACGGGACGGTCACTCAGTCCCCACCTGCTCCCACCC != GGTCTTGTCCACCTGTTGGACGGGACGGTCACTCAGTCCTCACCTGCTCCCACCC.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:25:13657:2436, region - chr17:6156-6183, insert size: 55 bp; mate: 6183, CIGAR 27M28S, overlap: 55 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:25:13657:2436, region - chr17:6183-6211, insert size: -55 bp; mate: 6156, CIGAR 27S28M, overlap: 55 bp
 
@@ -1002,7 +1002,7 @@ forward read: name - PC0206:37:64FA0AAXX:7:102:19396:1355, region - chr17:6162-6
 reverse read: name - PC0206:37:64FA0AAXX:7:102:19396:1355, region - chr17:6201-6276, insert size: -114 bp; mate: 6162, CIGAR 75M, overlap: 37 bp
   clip forward read from position 6221 to 6238
   clip reverse read from position 6202 to 6220
-  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:102:19396:1355- CCTCCCCCCCCCCTCCTCGACGCCCTTCGCCCCCCCC != GCTCCCACCCCTCTCTTGGCCGTCCTTGGCCTCCTCT.
+  overlap mismatch for read pair PC0206:37:64FA0AAXX:7:102:19396:1355 - CCTCCCCCCCCCCTCCTCGACGCCCTTCGCCCCCCCC != GCTCCCACCCCTCTCTTGGCCGTCCTTGGCCTCCTCT.
   clipped forward read: name - PC0206:37:64FA0AAXX:7:102:19396:1355, region - chr17:6162-6220, insert size: 114 bp; mate: 6220, CIGAR 58M18S, overlap: 37 bp
   clipped reverse read: name - PC0206:37:64FA0AAXX:7:102:19396:1355, region - chr17:6220-6276, insert size: -114 bp; mate: 6162, CIGAR 19S56M, overlap: 37 bp
 

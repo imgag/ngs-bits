@@ -213,7 +213,7 @@ public:
 					if(verbose)	out << "  clip reverse read from position " << (reverse_read.Position+1) << " to " << (reverse_read.Position+clip_reverse_read) << endl;
 
 					//check if bases in overlap match
-					int start = reverse_read.Position+1;
+					int start = std::max(reverse_read.Position+1,forward_read.Position+1);
 					int end = std::min(forward_read.GetEndPosition(),reverse_read.GetEndPosition());	//min if forward read ends right of reverse read
 
 					QString forward_overlap = "";
@@ -227,7 +227,7 @@ public:
 						forward_read.MapQuality = 0;
 						reverse_read.MapQuality = 0;
 						reads_mismatch += 2;
-						if(verbose) out << "  overlap mismatch for read pair " << QString::fromStdString(forward_read.Name) << "- " << forward_overlap << " != " << reverse_overlap << "." << endl;
+						if(verbose) out << "  overlap mismatch for read pair " << QString::fromStdString(forward_read.Name) << " - " << forward_overlap << " != " << reverse_overlap << "." << endl;
 					}
 					else
 					{
