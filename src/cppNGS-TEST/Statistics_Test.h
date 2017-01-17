@@ -13,8 +13,7 @@ private slots:
 		QString tumor_bam = TESTDATA("data_in/tumor.bam");
 		QString normal_bam = TESTDATA("data_in/normal.bam");
 		QString somatic_vcf = TESTDATA("data_in/somatic.vcf");
-		QString build = "hg19";
-		QCCollection stats = Statistics::somatic(tumor_bam, normal_bam, somatic_vcf, build);
+		QCCollection stats = Statistics::somatic(tumor_bam, normal_bam, somatic_vcf, QString(), true);
 
         S_EQUAL(stats[0].name(), QString("sample correlation"));
         S_EQUAL(stats[0].accession(), QString("QC:2000040"));
@@ -34,7 +33,7 @@ private slots:
         S_EQUAL(stats[5].name(), QString("somatic transition/transversion ratio"));
         S_EQUAL(stats[5].accession(), QString("QC:2000043"));
         S_EQUAL(stats[5].toString(), QString("n/a (no variants or transversions)"));
-        I_EQUAL(stats.count(), 9);
+		I_EQUAL(stats.count(), 6);
 
 		//check that there is a description for each term
 		for (int i=0; i<stats.count(); ++i)
