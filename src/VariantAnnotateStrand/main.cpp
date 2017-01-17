@@ -35,6 +35,9 @@ public:
 		addInfile("vcf", "Input vcf file.", false);
 		addInfile("bam", "Input BAM file.", false);
 		addOutfile("out", "Output vcf file.", false);
+
+		//changelog
+		changeLog(2017,01,17,"Initial commit.");
 	}
 
 	virtual void main()

@@ -39,6 +39,9 @@ public:
 		//optional
 		addFlag("amplicon", "Amplicon mode: one read of a pair will be clipped randomly.");
 		addFlag("v", "Verbose mode.");
+
+		//changelog
+		changeLog(2017,01,16,"Added overlap mismatch filter.");
 	}
 
 	virtual void main()

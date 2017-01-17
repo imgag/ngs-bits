@@ -17,8 +17,9 @@ GSvar:
 Tools:
 ** NGSDImportGeneInfo: add (optional) import of inheritance mode from OMIM (use force flag)
 * MappingQC: support RNA spike-in controls, mapping ribosomes/globulines, etc.
-* SomaticQC: do not use precalculated triplet counts, count every time (CS)
-* BamClipOverlap: require sorted bam and paired-end sequencing (CS)
+* SomaticQC: do not use precalculated triplet counts, count every time
+* BamClipOverlap: require sorted bam and paired-end sequencing
+* VariantAnnotateStrand: refactor and combine indel and snv handling
 
 CnvHunter:
  * compare results for GS160779_01 and GS160801_01 (same sample, different DNA extraction)

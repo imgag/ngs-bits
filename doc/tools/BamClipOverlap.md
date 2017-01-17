@@ -1,7 +1,10 @@
 ### BamClipOverlap tool help
-	BamClipOverlap (0.1-420-g3536bb0)
+	BamClipOverlap (0.1-606-g0e1e89d)
 	
 	Softclipping of overlapping reads.
+	
+	Overlapping reads will be soft-clipped from start to end.
+	If mismatches are found in the overlap of both reads, the mapping quality of both reads will be set to zero.
 	
 	Mandatory parameters:
 	  -in <file>   Input bam file. Needs to be sorted by name.
@@ -20,6 +23,7 @@
 	  --tdx        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BamClipOverlap changelog
-	BamClipOverlap 0.1-420-g3536bb0
+	BamClipOverlap 0.1-606-g0e1e89d
 	
+	2017-01-16 Added overlap mismatch filter.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
