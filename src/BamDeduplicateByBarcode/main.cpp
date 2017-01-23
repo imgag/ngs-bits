@@ -267,6 +267,16 @@ private:
 			new_hs_info.counter_singles = 0;
 			new_hs_info.strand = splitted_hs_entry[5].toStdString();
 
+			if (hs_info_map.contains(hs_position))
+			{
+				hs_info old_entry = hs_info_map[hs_position];
+				new_hs_info.name = old_entry.name + ";" + new_hs_info.name;
+				if (new_hs_info.strand != old_entry.strand)
+				{
+					new_hs_info.strand = ".";
+				}
+			}
+
 			hs_info_map[hs_position]=new_hs_info;
 		}
 		input_file.close();
