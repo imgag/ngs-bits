@@ -112,6 +112,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->sift, vl, index, "Sift");
 	setAnnotation(ui->pp2_hvar, vl, index, "PP2_HVAR");
 	setAnnotation(ui->pp2_hdiv, vl, index, "PP2_HDIV");
+	setAnnotation(ui->cadd, vl, index, "CADD");
 
 	//NGSD
 	setAnnotation(ui->ngsd_class, vl, index, "classification");
@@ -233,6 +234,23 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			if (ok && value>=1.6)
 			{
 				text = formatText(anno, RED);
+			}
+			else
+			{
+				text = anno;
+			}
+		}
+		else if(name=="CADD")
+		{
+			bool ok = true;
+			double value = anno.toDouble(&ok);
+			if (ok && value>=20)
+			{
+				text = formatText(anno, RED);
+			}
+			else if (ok && value>=15)
+			{
+				text = formatText(anno, ORANGE);
 			}
 			else
 			{
