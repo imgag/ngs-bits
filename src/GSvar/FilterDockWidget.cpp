@@ -9,6 +9,7 @@
 #include <QFileDialog>
 #include <QInputDialog>
 #include <QLabel>
+#include <QCompleter>
 
 FilterDockWidget::FilterDockWidget(QWidget *parent)
 	: QDockWidget(parent)
@@ -87,8 +88,9 @@ void FilterDockWidget::loadTargetRegions()
 	QString current = ui_.rois->currentText();
 
 	ui_.rois->clear();
+	ui_.rois->addItem("", "");
 	ui_.rois->addItem("none", "");
-	ui_.rois->insertSeparator(1);
+	ui_.rois->insertSeparator(ui_.rois->count());
 
 	//load ROIs of NGSD processing systems
 	try
@@ -136,12 +138,11 @@ void FilterDockWidget::loadTargetRegions()
 
 	//restore old selection
 	int current_index = ui_.rois->findText(current);
-	if (current_index==-1) current_index = 0;
+	if (current_index==-1) current_index = 1;
 	ui_.rois->setCurrentIndex(current_index);
 
 	ui_.rois->blockSignals(false);
 }
-
 
 void FilterDockWidget::loadReferenceFiles()
 {
@@ -208,7 +209,7 @@ void FilterDockWidget::resetSignalsUnblocked(bool clear_roi, bool clear_off_targ
     //rois
 	if (clear_roi)
 	{
-		ui_.rois->setCurrentIndex(0);
+		ui_.rois->setCurrentIndex(1);
 		ui_.rois->setToolTip("");
 	}
 
@@ -595,9 +596,38 @@ void FilterDockWidget::removeRoi()
 
 void FilterDockWidget::roiSelectionChanged(int index)
 {
+	//delete old completer
+	QCompleter* completer_old = ui_.rois->completer();
+	if ((void*)completer_old!=0)
+	{
+		completer_old->deleteLater();
+	}
+
+	//create completer for search mode
+	if (ui_.rois->currentIndex()==0)
+	{
+		ui_.rois->setEditable(true);
+
+		QCompleter* completer = new QCompleter(ui_.rois->model(), ui_.rois);
+		completer->setCompletionMode(QCompleter::PopupCompletion);
+		completer->setCaseSensitivity(Qt::CaseInsensitive);
+		completer->setFilterMode(Qt::MatchContains);
+		completer->setCompletionRole(Qt::DisplayRole);
+		ui_.rois->setCompleter(completer);
+	}
+	else
+	{
+		ui_.rois->setEditable(false);
+	}
+
+
 	ui_.rois->setToolTip(ui_.rois->itemData(index).toString());
 
-	emit filtersChanged();
+	if(index!=0)
+	{
+		emit filtersChanged();
+	}
+	//qDebug() << __LINE__ << ui_.rois->completer() << ui_.rois->itemData(index).toString();
 }
 
 

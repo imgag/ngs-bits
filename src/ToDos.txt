@@ -11,7 +11,6 @@ GSvar:
 ** Fix COSMIC links
 ** Allow using panel default coverage for report instead of calculating it on the fly.
 ** Annotation: add fast option (for ROI only)
-** Allow searching in the target region combo-box
 * LOVD upload for variant:
   - implement dialog where user can double-check the data before upload
   - implement print-out of upload data for patient file

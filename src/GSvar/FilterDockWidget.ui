@@ -62,6 +62,9 @@
          <property name="maxVisibleItems">
           <number>30</number>
          </property>
+         <property name="insertPolicy">
+          <enum>QComboBox::NoInsert</enum>
+         </property>
          <item>
           <property name="text">
            <string>none</string>

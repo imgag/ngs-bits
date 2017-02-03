@@ -94,4 +94,13 @@ private slots:
 		COMPARE_FILES("out/BamDeduplicateByBarcode_out11.tsv", TESTDATA("data_out/BamDeduplicateByBarcode_out11.tsv"));
 		COMPARE_FILES("out/BamDeduplicateByBarcode_duplicate_out11_sorted.bed", TESTDATA("data_out/BamDeduplicateByBarcode_duplicate_out8_sorted.bed"));
 	}
+
+	void test_duplicates_regarding_hs_file2_duplicates()
+	{
+		EXECUTE("BamDeduplicateByBarcode", "-bam " + TESTDATA("data_in/BamDeduplicateByBarcode_in7.bam") + " -index " + TESTDATA("data_in/BamDeduplicateByBarcode_index_in7.fastq.gz") + " -test -hs_file " + TESTDATA("data_in/FastqBamDeduplicate_in_hs2.bed") +" -out out/BamDeduplicateByBarcode_out12.bam -duplicate_out out/BamDeduplicateByBarcode_duplicate_out12.bed -nomatch_out out/BamDeduplicateByBarcode_no_match_out12.bed -stats out/BamDeduplicateByBarcode_out12.tsv");
+		EXECUTE("BedSort", "-in out/BamDeduplicateByBarcode_duplicate_out12.bed -out out/BamDeduplicateByBarcode_duplicate_out12_sorted.bed")
+		COMPARE_FILES("out/BamDeduplicateByBarcode_out12.tsv", TESTDATA("data_out/BamDeduplicateByBarcode_out12.tsv"));
+		COMPARE_FILES("out/BamDeduplicateByBarcode_duplicate_out12_sorted.bed", TESTDATA("data_out/BamDeduplicateByBarcode_duplicate_out12_sorted.bed"));
+	}
+
 };
