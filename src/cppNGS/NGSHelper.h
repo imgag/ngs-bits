@@ -76,7 +76,7 @@ public:
 	static void softClipAlignment(BamTools::BamAlignment& al, int start_ref_pos, int end_ref_pos);
 
 	///Convert Cigar data to QString
-	static QString Cigar2QString(std::vector<CigarOp> Cigar);
+	static QString Cigar2QString(std::vector<CigarOp> Cigar, bool expand = false);
 
 	///Converts text to gene list (one gene per tab-separated line)
 	static QStringList textToGenes(QString text, int col_index = 0);

@@ -15,6 +15,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GGAGAGGGGCTGAGGAATCCCCTTCCTTTCCTCTCTACCCTGTTTGAGCAAGATNCTGCCCTGAGC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:58:9731:16019 - GGAGAGGGGCTGAGGAATCCCCTTCCTTTCCTCTCTACCCTGTTTGAGCAAGATCCTGCCCTGAGC != GGAGAGGGGCTGAGGAATCCCCTTCCTTTCCTCTCTACCCTGTTTGAGCAAGATNCTGCCCTGAGC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:58:9731:16019, region - chr12:124400764-124400797, insert size: 66 bp; mate: 124400797, CIGAR 33M33S, overlap: 66 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:58:9731:16019, region - chr12:124400797-124400830, insert size: -66 bp; mate: 124400764, CIGAR 33S33M, overlap: 66 bp
 
@@ -34,6 +35,7 @@ finished indel correction forward bases TGGCAGGGCCACAGTTAAACGTGGGCTTTCAGCATCTGCC
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TGGCAGGGCCACAGTTAAACGTGGGCTTTCAGCATCTGCCTCCCTTCTCTTCCAGGTCGCTTCC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:105:12896:9215
   clipped forward read: name - PC0196:48:64RNVAAXX:1:105:12896:9215, region - chr12:124400936-124400980, insert size: 89 bp; mate: 124400980, CIGAR 44M32S, overlap: 64 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:105:12896:9215, region - chr12:124400980-124401025, insert size: -89 bp; mate: 124400936, CIGAR 32S45M, overlap: 64 bp
 
@@ -54,6 +56,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GCCACAGTTAAACGTGGGCTTTCAGCATCTGCCTCCCTTCTCTTCCAGGTCGCTTCCTTTAA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:32:7946:11441 - GCCACAGTTAAACGTGGGCTTTCAGCATCTGCCTCCCTTCTCTTCCAGGTCCGTTCCTTTAA != GCCACAGTTAAACGTGGGCTTTCAGCATCTGCCTCCCTTCTCTTCCAGGTCGCTTCCTTTAA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:32:7946:11441, region - chr12:124400941-124400986, insert size: 91 bp; mate: 124400986, CIGAR 45M31S, overlap: 62 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:32:7946:11441, region - chr12:124400986-124401032, insert size: -91 bp; mate: 124400941, CIGAR 31S46M, overlap: 62 bp
 
@@ -74,6 +77,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases ACAGTTAAACGTGGGCTTTCAGCATCTGCCTCCCTTCTCTTCCAGGTCGCTTCCTTTAATGNCCCTGACTTCC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:51:15366:7597 - ACAGTTAAACGTGGGCTTTCAGCATCTGCCTCCCTTCTCTTCCAGGTCGCTTCCTTTAATGACCCTGACTTCC != ACAGTTAAACGTGGGCTTTCAGCATCTGCCTCCCTTCTCTTCCAGGTCGCTTCCTTTAATGNCCCTGACTTCC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:51:15366:7597, region - chr12:124400958-124400995, insert size: 73 bp; mate: 124400995, CIGAR 37M36S, overlap: 73 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:51:15366:7597, region - chr12:124400995-124401031, insert size: -73 bp; mate: 124400958, CIGAR 37S36M, overlap: 73 bp
 
@@ -93,6 +97,7 @@ finished indel correction forward bases GTTA
 finished indel correction forward cigar MMMM
 finished indel correction reverse bases GTTA
 finished indel correction reverse cigar MMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:14:10746:17365
   clipped forward read: name - PC0196:48:64RNVAAXX:1:14:10746:17365, region - chr12:124400888-124400963, insert size: 149 bp; mate: 124400963, CIGAR 75M2S, overlap: 4 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:14:10746:17365, region - chr12:124400963-124401037, insert size: -149 bp; mate: 124400888, CIGAR 2S74M, overlap: 4 bp
 
@@ -113,6 +118,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CGTGGGCTTTCAGCATCTGCCTCCCTTCTCTTCCAGGTCGCTTCCTTTAATGACCCTGACTTCCTCAAGCA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:50:19305:6728 - CGTGGGCTTTCNGCATCTGCCTCCCTTCTCTTCCAGGTCGCTTCCTTTAATGACCCTGACTTCCTCAAGCA != CGTGGGCTTTCAGCATCTGCCTCCCTTCTCTTCCAGGTCGCTTCCTTTAATGACCCTGACTTCCTCAAGCA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:50:19305:6728, region - chr12:124400967-124401002, insert size: 71 bp; mate: 124401002, CIGAR 35M36S, overlap: 71 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:50:19305:6728, region - chr12:124401002-124401038, insert size: -71 bp; mate: 124400967, CIGAR 35S36M, overlap: 71 bp
 
@@ -133,6 +139,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TTTCAGCATCTGCCTCCCTTCTCTTCCAGGTCGCTTCCTTTAATGACCCTGACTTCCTCAAGCAGCTAGAGATG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:52:9538:15367 - TTTCAGCATCTNCCTCCCTTCTCTTCCAGGTCGCTTCCTTTAATGACCCTGACTTCCTCAAGCAGCTAGAGATG != TTTCAGCATCTGCCTCCCTTCTCTTCCAGGTCGCTTCCTTTAATGACCCTGACTTCCTCAAGCAGCTAGAGATG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:52:9538:15367, region - chr12:124400974-124401011, insert size: 74 bp; mate: 124401011, CIGAR 37M37S, overlap: 74 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:52:9538:15367, region - chr12:124401011-124401048, insert size: -74 bp; mate: 124400974, CIGAR 37S37M, overlap: 74 bp
 
@@ -153,6 +160,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CAGCATCTGCCTCCCTTCTCTTCCAGGTCGCTTCCTTTAATNACCCTGACTTC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:11:4816:8380 - CAGCATCTGCCTCCCTTCTCTTCCAGGTCGCTTCCTTTAATGACCCTGACTTC != CAGCATCTGCCTCCCTTCTCTTCCAGGTCGCTTCCTTTAATNACCCTGACTTC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:11:4816:8380, region - chr12:124400977-124401004, insert size: 53 bp; mate: 124401004, CIGAR 27M26S, overlap: 53 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:11:4816:8380, region - chr12:124401004-124401030, insert size: -53 bp; mate: 124400977, CIGAR 27S26M, overlap: 53 bp
 
@@ -173,6 +181,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CAGCATCTGCCTCCCTTCTCTTCCAGGTCGCTTCCTTTAATGACCCTGACTTCCTCAAGCAGCTANA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:71:13634:9027 - CAGCATCTGCCTCCCTTCTCTTCCAGGTCGCTTCCTTTAATGACCCTGACTTCCTCAAGCAGCTAGA != CAGCATCTGCCTCCCTTCTCTTCCAGGTCGCTTCCTTTAATGACCCTGACTTCCTCAAGCAGCTANA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:71:13634:9027, region - chr12:124400968-124401011, insert size: 86 bp; mate: 124401011, CIGAR 43M33S, overlap: 67 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:71:13634:9027, region - chr12:124401011-124401054, insert size: -86 bp; mate: 124400968, CIGAR 34S43M, overlap: 67 bp
 
@@ -193,6 +202,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AGCATCTGCCTCCCTTCTCTTCCAGGTCGCTTCCTTTAATGACCCTGACTTCCTCAAGCAGCTAGAG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:52:18976:3630 - AGCATCTGCCTNCCTTCTCTTCCAGGTCGCTTCCTTTAATGACCCTGACTTCCTCAAGCAGCTAGAG != AGCATCTGCCTCCCTTCTCTTCCAGGTCGCTTCCTTTAATGACCCTGACTTCCTCAAGCAGCTAGAG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:52:18976:3630, region - chr12:124400978-124401011, insert size: 67 bp; mate: 124401011, CIGAR 33M34S, overlap: 67 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:52:18976:3630, region - chr12:124401011-124401045, insert size: -67 bp; mate: 124400978, CIGAR 33S34M, overlap: 67 bp
 
@@ -212,6 +222,7 @@ finished indel correction forward bases GCCTCCCTTCTCTTCCAG
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GCCTCCCTTCTCTTCCAG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:39:8301:1140
   clipped forward read: name - PC0196:48:64RNVAAXX:1:39:8301:1140, region - chr12:124400926-124400994, insert size: 135 bp; mate: 124400994, CIGAR 68M9S, overlap: 18 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:39:8301:1140, region - chr12:124400994-124401061, insert size: -135 bp; mate: 124400926, CIGAR 9S67M, overlap: 18 bp
 
@@ -231,6 +242,7 @@ finished indel correction forward bases GCCTCCCTTCTCTTCCAG
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GCCTCCCTTCTCTTCCAG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:62:15106:12437
   clipped forward read: name - PC0196:48:64RNVAAXX:1:62:15106:12437, region - chr12:124400926-124400994, insert size: 135 bp; mate: 124400994, CIGAR 68M9S, overlap: 18 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:62:15106:12437, region - chr12:124400994-124401061, insert size: -135 bp; mate: 124400926, CIGAR 9S67M, overlap: 18 bp
 
@@ -251,6 +263,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CTCCCTTCTCTTCCAGGTCGCTTCCTTTAATGACCCTGACTTCCTCAAGCAGCTAGAGATGTCC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:46:2866:12713 - CTCCCTTCTCTTCCAGGGCGCTTCCTTTAATGACCCTGACTTCCTCAAGCAGCTAGAGATGTCC != CTCCCTTCTCTTCCAGGTCGCTTCCTTTAATGACCCTGACTTCCTCAAGCAGCTAGAGATGTCC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:46:2866:12713, region - chr12:124400974-124401019, insert size: 89 bp; mate: 124401019, CIGAR 45M32S, overlap: 64 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:46:2866:12713, region - chr12:124401019-124401063, insert size: -89 bp; mate: 124400974, CIGAR 32S44M, overlap: 64 bp
 
@@ -271,6 +284,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CTCCCTTCTCTTCCAGGTCGCTTCCTTTAATGACCCTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTAC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:8:6290:1566 - CTCCCTTCTNTTCCAGGTCGCTTCCTTTAATGACCCTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTAC != CTCCCTTCTCTTCCAGGTCGCTTCCTTTAATGACCCTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTAC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:8:6290:1566, region - chr12:124400985-124401023, insert size: 75 bp; mate: 124401023, CIGAR 38M37S, overlap: 73 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:8:6290:1566, region - chr12:124401023-124401060, insert size: -75 bp; mate: 124400985, CIGAR 36S37M, overlap: 73 bp
 
@@ -291,6 +305,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CCTTCTCTTCCAGGTCGCTTCCTTTAATGACCCTGACTTCCTCAAGCAGCTAGAGATGNCCATA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:118:17888:15533 - CCTTCTCTTCCAGGTCGCTTCCTTTAATGACCCTGACTTCCTCAAGCAGCTAGAGATGTCCATA != CCTTCTCTTCCAGGTCGCTTCCTTTAATGACCCTGACTTCCTCAAGCAGCTAGAGATGNCCATA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:118:17888:15533, region - chr12:124400978-124401022, insert size: 82 bp; mate: 124401022, CIGAR 44M32S, overlap: 64 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:118:17888:15533, region - chr12:124401022-124401060, insert size: -82 bp; mate: 124400978, CIGAR 32S38M, overlap: 64 bp
 
@@ -310,6 +325,7 @@ finished indel correction forward bases CCTTCTCTTCCAGGTCGCTTCCTTT
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CCTTCTCTTCCAGGTCGCTTCCTTT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:57:17334:13937
   clipped forward read: name - PC0196:48:64RNVAAXX:1:57:17334:13937, region - chr12:124400939-124401003, insert size: 128 bp; mate: 124401003, CIGAR 64M12S, overlap: 25 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:57:17334:13937, region - chr12:124401003-124401067, insert size: -128 bp; mate: 124400939, CIGAR 13S64M, overlap: 25 bp
 
@@ -329,6 +345,7 @@ finished indel correction forward bases CTTCTCTTCCAGGTCGCTTCCTTTAATGACCCTGA
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CTTCTCTTCCAGGTCGCTTCCTTTAATGACCCTGA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:89:15466:1686
   clipped forward read: name - PC0196:48:64RNVAAXX:1:89:15466:1686, region - chr12:124400949-124401008, insert size: 118 bp; mate: 124401008, CIGAR 59M18S, overlap: 35 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:89:15466:1686, region - chr12:124401008-124401067, insert size: -118 bp; mate: 124400949, CIGAR 17S59M, overlap: 35 bp
 
@@ -349,6 +366,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TTCTCTTCCAGGTCGCTTCCTTTAATGACCCTGACTTCCTCAAGCAGCTAGAGAT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:61:16192:18368 - TTCTCTTCCAGNTCGCTTCCTTTAATGACCCTGACTTCCTCAAGCAGCTAGAGAT != TTCTCTTCCAGGTCGCTTCCTTTAATGACCCTGACTTCCTCAAGCAGCTAGAGAT!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:61:16192:18368, region - chr12:124400992-124401019, insert size: 55 bp; mate: 124401019, CIGAR 27M28S, overlap: 55 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:61:16192:18368, region - chr12:124401019-124401047, insert size: -55 bp; mate: 124400992, CIGAR 27S28M, overlap: 55 bp
 
@@ -369,6 +387,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TCTCTTCCAGGTCGCTTCCTTTAATGACCCTGNCTTCCTCAAGC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:6:15407:16187 - TCTCTTCCAGGTCGCTTCCTTTAATGACCCTGACTTCCTCAAGC != TCTCTTCCAGGTCGCTTCCTTTAATGACCCTGNCTTCCTCAAGC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:6:15407:16187, region - chr12:124400993-124401015, insert size: 44 bp; mate: 124401015, CIGAR 22M22S, overlap: 44 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:6:15407:16187, region - chr12:124401015-124401037, insert size: -44 bp; mate: 124400993, CIGAR 22S22M, overlap: 44 bp
 
@@ -388,6 +407,7 @@ finished indel correction forward bases CTCTTCCAGGTCGCTTCCTTTAATGACC
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CTCTTCCAGGTCGCTTCCTTTAATGACC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:26:14279:20723
   clipped forward read: name - PC0196:48:64RNVAAXX:1:26:14279:20723, region - chr12:124400945-124401008, insert size: 125 bp; mate: 124401008, CIGAR 63M14S, overlap: 28 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:26:14279:20723, region - chr12:124401008-124401070, insert size: -125 bp; mate: 124400945, CIGAR 14S62M, overlap: 28 bp
 
@@ -408,6 +428,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TTCCAGGTCGCTTCCTTTAATGACCCTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:56:18350:9639 - TTCCAGGTCGCNTCCTTTAATGACCCTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCC != TTCCAGGTCGCTTCCTTTAATGACCCTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:56:18350:9639, region - chr12:124400997-124401032, insert size: 70 bp; mate: 124401032, CIGAR 35M35S, overlap: 70 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:56:18350:9639, region - chr12:124401032-124401067, insert size: -70 bp; mate: 124400997, CIGAR 35S35M, overlap: 70 bp
 
@@ -428,6 +449,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AGGTCGCTTCCTTTAATGACCCTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCNCTTTC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:50:5353:10799 - AGGTCGCTTCCTTTAATGACCCTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTC != AGGTCGCTTCCTTTAATGACCCTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCNCTTTC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:50:5353:10799, region - chr12:124400996-124401037, insert size: 82 bp; mate: 124401037, CIGAR 41M35S, overlap: 71 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:50:5353:10799, region - chr12:124401037-124401078, insert size: -82 bp; mate: 124400996, CIGAR 36S41M, overlap: 71 bp
 
@@ -447,6 +469,7 @@ finished indel correction forward bases GGTCGCTTCCTTTAATGACCCTGACTTCCTC
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GGTCGCTTCCTTTAATGACCCTGACTTCCTC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:11:9114:2353
   clipped forward read: name - PC0196:48:64RNVAAXX:1:11:9114:2353, region - chr12:124400957-124401018, insert size: 122 bp; mate: 124401018, CIGAR 61M15S, overlap: 31 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:11:9114:2353, region - chr12:124401018-124401079, insert size: -122 bp; mate: 124400957, CIGAR 16S61M, overlap: 31 bp
 
@@ -466,6 +489,7 @@ finished indel correction forward bases GGTCGCTTCCTTTAATGACCCTGACTTCCTC
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GGTCGCTTCCTTTAATGACCCTGACTTCCTC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:65:9062:10038
   clipped forward read: name - PC0196:48:64RNVAAXX:1:65:9062:10038, region - chr12:124400957-124401018, insert size: 122 bp; mate: 124401018, CIGAR 61M15S, overlap: 31 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:65:9062:10038, region - chr12:124401018-124401079, insert size: -122 bp; mate: 124400957, CIGAR 16S61M, overlap: 31 bp
 
@@ -485,6 +509,7 @@ finished indel correction forward bases GGTCGCTTCCTTTAATGACCCTGACTTCCTC
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GGTCGCTTCCTTTAATGACCCTGACTTCCTC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:75:16575:19735
   clipped forward read: name - PC0196:48:64RNVAAXX:1:75:16575:19735, region - chr12:124400957-124401018, insert size: 122 bp; mate: 124401018, CIGAR 61M15S, overlap: 31 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:75:16575:19735, region - chr12:124401018-124401079, insert size: -122 bp; mate: 124400957, CIGAR 16S61M, overlap: 31 bp
 
@@ -504,6 +529,7 @@ finished indel correction forward bases CGCTTCCTTTAATGACCCTGACTTCCTCAAGCAGCTAGAG
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CGCTTCCTTTAATGACCCTGACTTCCTCAAGCAGCTAGAG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:53:3888:9542
   clipped forward read: name - PC0196:48:64RNVAAXX:1:53:3888:9542, region - chr12:124400968-124401025, insert size: 113 bp; mate: 124401025, CIGAR 57M20S, overlap: 40 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:53:3888:9542, region - chr12:124401025-124401081, insert size: -113 bp; mate: 124400968, CIGAR 20S56M, overlap: 40 bp
 
@@ -523,6 +549,7 @@ finished indel correction forward bases GCTTCCTTTAATGACCCTGACTTCCTCAAGCAGCTAGAGA
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GCTTCCTTTAATGACCCTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:102:7268:2608
   clipped forward read: name - PC0196:48:64RNVAAXX:1:102:7268:2608, region - chr12:124400990-124401036, insert size: 93 bp; mate: 124401036, CIGAR 46M30S, overlap: 60 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:102:7268:2608, region - chr12:124401036-124401083, insert size: -93 bp; mate: 124400990, CIGAR 30S47M, overlap: 60 bp
 
@@ -542,6 +569,7 @@ finished indel correction forward bases GCTTCCTTTAATGACCCTGACTTCCTCAAGCAG
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GCTTCCTTTAATGACCCTGACTTCCTCAAGCAG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:35:12906:14933
   clipped forward read: name - PC0196:48:64RNVAAXX:1:35:12906:14933, region - chr12:124400962-124401022, insert size: 120 bp; mate: 124401022, CIGAR 60M17S, overlap: 33 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:35:12906:14933, region - chr12:124401022-124401082, insert size: -120 bp; mate: 124400962, CIGAR 16S60M, overlap: 33 bp
 
@@ -561,6 +589,7 @@ finished indel correction forward bases CTTCCTT
 finished indel correction forward cigar MMMMMMM
 finished indel correction reverse bases CTTCCTT
 finished indel correction reverse cigar MMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:16:18061:20871
   clipped forward read: name - PC0196:48:64RNVAAXX:1:16:18061:20871, region - chr12:124400952-124401011, insert size: 132 bp; mate: 124401011, CIGAR 59M3S, overlap: 7 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:16:18061:20871, region - chr12:124401011-124401084, insert size: -132 bp; mate: 124400952, CIGAR 4S73M, overlap: 7 bp
 
@@ -581,6 +610,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TTCCTTTAATGACNCTGACTTCCTCAAGCAGCTAGANATGTCCATAAA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:92:12832:1074 - TTCCTTTAATGACCCTGACTTCCTCAAGCAGNTAGNGATGTCCATAAA != TTCCTTTAATGACNCTGACTTCCTCAAGCAGCTAGANATGTCCATAAA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:92:12832:1074, region - chr12:124401008-124401032, insert size: 48 bp; mate: 124401032, CIGAR 24M24S, overlap: 48 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:92:12832:1074, region - chr12:124401032-124401056, insert size: -48 bp; mate: 124401008, CIGAR 24S24M, overlap: 48 bp
 
@@ -600,6 +630,7 @@ finished indel correction forward bases CTTTAATGACCCTGACTTCCT
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CTTTAATGACCCTGACTTCCT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:56:3520:11373
   clipped forward read: name - PC0196:48:64RNVAAXX:1:56:3520:11373, region - chr12:124400956-124401022, insert size: 132 bp; mate: 124401022, CIGAR 66M10S, overlap: 21 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:56:3520:11373, region - chr12:124401022-124401088, insert size: -132 bp; mate: 124400956, CIGAR 11S66M, overlap: 21 bp
 
@@ -620,6 +651,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TTTAATGACCCTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCNTGTTCCGCGAT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:113:3044:1568 - TTTAATGACCCTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGAT != TTTAATGACCCTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCNTGTTCCGCGAT!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:113:3044:1568, region - chr12:124401012-124401048, insert size: 72 bp; mate: 124401048, CIGAR 36M36S, overlap: 72 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:113:3044:1568, region - chr12:124401048-124401084, insert size: -72 bp; mate: 124401012, CIGAR 36S36M, overlap: 72 bp
 
@@ -640,6 +672,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TAATGACCCTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCNTGTTCCGCGAT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:50:12613:16105 - TAATGACCCTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGAT != TAATGACCCTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCNTGTTCCGCGAT!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:50:12613:16105, region - chr12:124401014-124401049, insert size: 70 bp; mate: 124401049, CIGAR 35M35S, overlap: 70 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:50:12613:16105, region - chr12:124401049-124401084, insert size: -70 bp; mate: 124401014, CIGAR 35S35M, overlap: 70 bp
 
@@ -659,6 +692,7 @@ finished indel correction forward bases TGACCC
 finished indel correction forward cigar MMMMMM
 finished indel correction reverse bases TGACCC
 finished indel correction reverse cigar MMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:66:14538:17790
   clipped forward read: name - PC0196:48:64RNVAAXX:1:66:14538:17790, region - chr12:124400946-124401020, insert size: 147 bp; mate: 124401020, CIGAR 74M3S, overlap: 6 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:66:14538:17790, region - chr12:124401020-124401093, insert size: -147 bp; mate: 124400946, CIGAR 3S73M, overlap: 6 bp
 
@@ -679,6 +713,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GACCCTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:60:14602:14015 - GACCCTGACTTNCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGA != GACCCTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:60:14602:14015, region - chr12:124401018-124401055, insert size: 74 bp; mate: 124401055, CIGAR 37M37S, overlap: 74 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:60:14602:14015, region - chr12:124401055-124401092, insert size: -74 bp; mate: 124401018, CIGAR 37S37M, overlap: 74 bp
 
@@ -698,6 +733,7 @@ finished indel correction forward bases GACCCTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGT
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GACCCTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTAC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:97:4306:5903
   clipped forward read: name - PC0196:48:64RNVAAXX:1:97:4306:5903, region - chr12:124400984-124401039, insert size: 111 bp; mate: 124401039, CIGAR 55M21S, overlap: 42 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:97:4306:5903, region - chr12:124401039-124401095, insert size: -111 bp; mate: 124400984, CIGAR 21S56M, overlap: 42 bp
 
@@ -718,6 +754,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CCCTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCNTTCCTGTTCCG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:20:11855:13585 - CCCTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCG != CCCTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCNTTCCTGTTCCG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:20:11855:13585, region - chr12:124401020-124401050, insert size: 60 bp; mate: 124401050, CIGAR 30M30S, overlap: 60 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:20:11855:13585, region - chr12:124401050-124401080, insert size: -60 bp; mate: 124401020, CIGAR 30S30M, overlap: 60 bp
 
@@ -738,6 +775,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CCCTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:81:13429:6976 - CCCTGACTTCCNCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCG != CCCTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:81:13429:6976, region - chr12:124401020-124401050, insert size: 60 bp; mate: 124401050, CIGAR 30M30S, overlap: 60 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:81:13429:6976, region - chr12:124401050-124401080, insert size: -60 bp; mate: 124401020, CIGAR 30S30M, overlap: 60 bp
 
@@ -758,6 +796,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CCCTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGANGTTGATGAATA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:99:14339:20819 - CCCTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATA != CCCTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGANGTTGATGAATA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:99:14339:20819, region - chr12:124401020-124401058, insert size: 75 bp; mate: 124401058, CIGAR 38M37S, overlap: 75 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:99:14339:20819, region - chr12:124401058-124401095, insert size: -75 bp; mate: 124401020, CIGAR 38S37M, overlap: 75 bp
 
@@ -778,6 +817,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTNAT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:33:1353:3801 - CTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGAT != CTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTNAT!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:33:1353:3801, region - chr12:124401014-124401056, insert size: 85 bp; mate: 124401056, CIGAR 42M34S, overlap: 68 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:33:1353:3801, region - chr12:124401056-124401099, insert size: -85 bp; mate: 124401014, CIGAR 34S43M, overlap: 68 bp
 
@@ -798,6 +838,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTNATGAATAC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:44:15821:19130 - CTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATAC != CTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTNATGAATAC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:44:15821:19130, region - chr12:124401020-124401059, insert size: 79 bp; mate: 124401059, CIGAR 39M37S, overlap: 74 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:44:15821:19130, region - chr12:124401059-124401099, insert size: -79 bp; mate: 124401020, CIGAR 37S40M, overlap: 74 bp
 
@@ -817,6 +858,7 @@ finished indel correction forward bases CTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGG
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CTGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:90:7503:13719
   clipped forward read: name - PC0196:48:64RNVAAXX:1:90:7503:13719, region - chr12:124400999-124401044, insert size: 100 bp; mate: 124401044, CIGAR 45M22S, overlap: 44 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:90:7503:13719, region - chr12:124401044-124401099, insert size: -100 bp; mate: 124400999, CIGAR 22S55M, overlap: 44 bp
 
@@ -836,6 +878,7 @@ finished indel correction forward bases TGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGG
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TGACTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:18:6037:20818
   clipped forward read: name - PC0196:48:64RNVAAXX:1:18:6037:20818, region - chr12:124400986-124401043, insert size: 113 bp; mate: 124401043, CIGAR 57M20S, overlap: 40 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:18:6037:20818, region - chr12:124401043-124401099, insert size: -113 bp; mate: 124400986, CIGAR 20S56M, overlap: 40 bp
 
@@ -855,6 +898,7 @@ finished indel correction forward bases ACTTCCTCA
 finished indel correction forward cigar MMMMMMMMM
 finished indel correction reverse bases ACTTCCTCA
 finished indel correction reverse cigar MMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:15:8184:16715
   clipped forward read: name - PC0196:48:64RNVAAXX:1:15:8184:16715, region - chr12:124400957-124401029, insert size: 144 bp; mate: 124401029, CIGAR 72M5S, overlap: 9 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:15:8184:16715, region - chr12:124401029-124401101, insert size: -144 bp; mate: 124400957, CIGAR 4S72M, overlap: 9 bp
 
@@ -875,6 +919,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCNTTCCTGTTCCG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:84:18040:15463 - CTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCG != CTTCCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCNTTCCTGTTCCG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:84:18040:15463, region - chr12:124401020-124401053, insert size: 60 bp; mate: 124401053, CIGAR 33M27S, overlap: 54 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:84:18040:15463, region - chr12:124401053-124401080, insert size: -60 bp; mate: 124401020, CIGAR 27S27M, overlap: 54 bp
 
@@ -894,6 +939,7 @@ finished indel correction forward bases CCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCT
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CCTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:103:1441:14294
   clipped forward read: name - PC0196:48:64RNVAAXX:1:103:1441:14294, region - chr12:124401005-124401050, insert size: 80 bp; mate: 124401050, CIGAR 45M22S, overlap: 43 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:103:1441:14294, region - chr12:124401050-124401085, insert size: -80 bp; mate: 124401005, CIGAR 21S35M, overlap: 43 bp
 
@@ -914,6 +960,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:112:13087:8828 - CTCAAGCAGCTNGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTG != CTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:112:13087:8828, region - chr12:124401030-124401059, insert size: 58 bp; mate: 124401059, CIGAR 29M29S, overlap: 58 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:112:13087:8828, region - chr12:124401059-124401088, insert size: -58 bp; mate: 124401030, CIGAR 29S29M, overlap: 58 bp
 
@@ -933,6 +980,7 @@ finished indel correction forward bases CTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTT
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGAT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:19:11052:5542
   clipped forward read: name - PC0196:48:64RNVAAXX:1:19:11052:5542, region - chr12:124401013-124401060, insert size: 93 bp; mate: 124401060, CIGAR 47M30S, overlap: 60 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:19:11052:5542, region - chr12:124401060-124401106, insert size: -93 bp; mate: 124401013, CIGAR 30S46M, overlap: 60 bp
 
@@ -952,6 +1000,7 @@ finished indel correction forward bases CTCAAGCAGCTAGAGATGTCCATAAAGTAC
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CTCAAGCAGCTAGAGATGTCCATAAAGTAC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:50:5868:1416
   clipped forward read: name - PC0196:48:64RNVAAXX:1:50:5868:1416, region - chr12:124400984-124401045, insert size: 123 bp; mate: 124401045, CIGAR 61M15S, overlap: 30 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:50:5868:1416, region - chr12:124401045-124401107, insert size: -123 bp; mate: 124400984, CIGAR 15S62M, overlap: 30 bp
 
@@ -972,6 +1021,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCAATGTTG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:53:3740:1713 - CTCAAGCAGCTNGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTG != CTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCAATGTTG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:53:3740:1713, region - chr12:124401030-124401059, insert size: 58 bp; mate: 124401059, CIGAR 29M29S, overlap: 58 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:53:3740:1713, region - chr12:124401059-124401088, insert size: -58 bp; mate: 124401030, CIGAR 29S29M, overlap: 58 bp
 
@@ -991,6 +1041,7 @@ finished indel correction forward bases CTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTT
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CTCAAGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGAT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:68:7748:17064
   clipped forward read: name - PC0196:48:64RNVAAXX:1:68:7748:17064, region - chr12:124401013-124401060, insert size: 93 bp; mate: 124401060, CIGAR 47M30S, overlap: 60 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:68:7748:17064, region - chr12:124401060-124401106, insert size: -93 bp; mate: 124401013, CIGAR 30S46M, overlap: 60 bp
 
@@ -1010,6 +1061,7 @@ finished indel correction forward bases AAGCAGCTAGAGATGTCCATAAAG
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AAGCAGCTAGAGATGTCCATAAAG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:99:9149:4073
   clipped forward read: name - PC0196:48:64RNVAAXX:1:99:9149:4073, region - chr12:124400980-124401045, insert size: 129 bp; mate: 124401045, CIGAR 65M12S, overlap: 24 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:99:9149:4073, region - chr12:124401045-124401109, insert size: -129 bp; mate: 124400980, CIGAR 12S64M, overlap: 24 bp
 
@@ -1029,6 +1081,7 @@ finished indel correction forward bases AGCAGCTAGAGATGTCCAT
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AGCAGCTAGAGATGTCCAT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:101:18503:4262
   clipped forward read: name - PC0196:48:64RNVAAXX:1:101:18503:4262, region - chr12:124400977-124401044, insert size: 134 bp; mate: 124401044, CIGAR 67M9S, overlap: 19 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:101:18503:4262, region - chr12:124401044-124401111, insert size: -134 bp; mate: 124400977, CIGAR 10S67M, overlap: 19 bp
 
@@ -1048,6 +1101,7 @@ finished indel correction forward bases AGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCT
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AGCAGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:120:11616:18067
   clipped forward read: name - PC0196:48:64RNVAAXX:1:120:11616:18067, region - chr12:124401009-124401060, insert size: 101 bp; mate: 124401060, CIGAR 51M26S, overlap: 52 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:120:11616:18067, region - chr12:124401060-124401110, insert size: -101 bp; mate: 124401009, CIGAR 26S50M, overlap: 52 bp
 
@@ -1067,6 +1121,7 @@ finished indel correction forward bases AGCTAGAGATGTCCATAAAGTACGGGACCC
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AGCTAGAGATGTCCATAAAGTACGGGACCC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:119:10939:18387
   clipped forward read: name - PC0196:48:64RNVAAXX:1:119:10939:18387, region - chr12:124400990-124401052, insert size: 119 bp; mate: 124401052, CIGAR 62M15S, overlap: 30 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:119:10939:18387, region - chr12:124401052-124401109, insert size: -119 bp; mate: 124400990, CIGAR 15S57M, overlap: 30 bp
 
@@ -1087,6 +1142,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:28:5224:14957 - AGCTAGAGATGNCCATAAAGTACGGGACCCCTTTCC != AGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:28:5224:14957, region - chr12:124401037-124401055, insert size: 36 bp; mate: 124401055, CIGAR 18M18S, overlap: 36 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:28:5224:14957, region - chr12:124401055-124401073, insert size: -36 bp; mate: 124401037, CIGAR 18S18M, overlap: 36 bp
 
@@ -1107,6 +1163,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:4:17258:18084 - AGCTAGAGATGNCCATAAAGTACGGGACCCCTTTCC != AGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:4:17258:18084, region - chr12:124401037-124401055, insert size: 36 bp; mate: 124401055, CIGAR 18M18S, overlap: 36 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:4:17258:18084, region - chr12:124401055-124401073, insert size: -36 bp; mate: 124401037, CIGAR 18S18M, overlap: 36 bp
 
@@ -1127,6 +1184,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:83:7025:12402 - AGCTAGAGATGNCCATAAAGTACGGGACCCCTTTCC != AGCTAGAGATGTCCATAAAGTACGGGACCCCTTTCC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:83:7025:12402, region - chr12:124401037-124401055, insert size: 36 bp; mate: 124401055, CIGAR 18M18S, overlap: 36 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:83:7025:12402, region - chr12:124401055-124401073, insert size: -36 bp; mate: 124401037, CIGAR 18S18M, overlap: 36 bp
 
@@ -1146,6 +1204,7 @@ finished indel correction forward bases GCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTC
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:110:3712:18884
   clipped forward read: name - PC0196:48:64RNVAAXX:1:110:3712:18884, region - chr12:124401009-124401062, insert size: 106 bp; mate: 124401062, CIGAR 53M23S, overlap: 47 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:110:3712:18884, region - chr12:124401062-124401115, insert size: -106 bp; mate: 124401009, CIGAR 24S53M, overlap: 47 bp
 
@@ -1165,6 +1224,7 @@ finished indel correction forward bases GCTAGAGATGTCCATAAAGTACG
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GCTAGAGATGTCCATAAAGTACG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:36:10319:18583
   clipped forward read: name - PC0196:48:64RNVAAXX:1:36:10319:18583, region - chr12:124400985-124401050, insert size: 130 bp; mate: 124401050, CIGAR 65M11S, overlap: 23 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:36:10319:18583, region - chr12:124401050-124401115, insert size: -130 bp; mate: 124400985, CIGAR 12S65M, overlap: 23 bp
 
@@ -1185,6 +1245,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGNTGAATACATCG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:75:17079:12224 - GCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCG != GCTAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGNTGAATACATCG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:75:17079:12224, region - chr12:124401038-124401069, insert size: 62 bp; mate: 124401069, CIGAR 31M31S, overlap: 62 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:75:17079:12224, region - chr12:124401069-124401100, insert size: -62 bp; mate: 124401038, CIGAR 31S31M, overlap: 62 bp
 
@@ -1204,6 +1265,7 @@ finished indel correction forward bases TAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCG
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:88:6885:3363
   clipped forward read: name - PC0196:48:64RNVAAXX:1:88:6885:3363, region - chr12:124401013-124401065, insert size: 104 bp; mate: 124401065, CIGAR 52M24S, overlap: 49 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:88:6885:3363, region - chr12:124401065-124401117, insert size: -104 bp; mate: 124401013, CIGAR 25S52M, overlap: 49 bp
 
@@ -1223,6 +1285,7 @@ finished indel correction forward bases TAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCG
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:90:7862:1588
   clipped forward read: name - PC0196:48:64RNVAAXX:1:90:7862:1588, region - chr12:124401013-124401065, insert size: 104 bp; mate: 124401065, CIGAR 52M24S, overlap: 49 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:90:7862:1588, region - chr12:124401065-124401117, insert size: -104 bp; mate: 124401013, CIGAR 25S52M, overlap: 49 bp
 
@@ -1242,6 +1305,7 @@ finished indel correction forward bases TAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCG
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TAGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACAT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:92:16126:8360
   clipped forward read: name - PC0196:48:64RNVAAXX:1:92:16126:8360, region - chr12:124401022-124401069, insert size: 95 bp; mate: 124401069, CIGAR 47M29S, overlap: 58 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:92:16126:8360, region - chr12:124401069-124401117, insert size: -95 bp; mate: 124401022, CIGAR 29S48M, overlap: 58 bp
 
@@ -1261,6 +1325,7 @@ finished indel correction forward bases AGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTT
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:110:1227:17579
   clipped forward read: name - PC0196:48:64RNVAAXX:1:110:1227:17579, region - chr12:124401000-124401059, insert size: 117 bp; mate: 124401059, CIGAR 59M18S, overlap: 36 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:110:1227:17579, region - chr12:124401059-124401117, insert size: -117 bp; mate: 124401000, CIGAR 18S58M, overlap: 36 bp
 
@@ -1281,6 +1346,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGNGATTG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:29:18426:17705 - AGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTG != AGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGNGATTG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:29:18426:17705, region - chr12:124401036-124401077, insert size: 82 bp; mate: 124401077, CIGAR 41M35S, overlap: 71 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:29:18426:17705, region - chr12:124401077-124401118, insert size: -82 bp; mate: 124401036, CIGAR 36S41M, overlap: 71 bp
 
@@ -1300,6 +1366,7 @@ finished indel correction forward bases AGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGC
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AGAGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:51:12846:15521
   clipped forward read: name - PC0196:48:64RNVAAXX:1:51:12846:15521, region - chr12:124401013-124401063, insert size: 93 bp; mate: 124401063, CIGAR 50M23S, overlap: 45 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:51:12846:15521, region - chr12:124401063-124401106, insert size: -93 bp; mate: 124401013, CIGAR 22S43M, overlap: 45 bp
 
@@ -1319,6 +1386,7 @@ finished indel correction forward bases AGAG
 finished indel correction forward cigar MMMM
 finished indel correction reverse bases AGAG
 finished indel correction reverse cigar MMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:62:3913:13476
   clipped forward read: name - PC0196:48:64RNVAAXX:1:62:3913:13476, region - chr12:124400968-124401043, insert size: 149 bp; mate: 124401043, CIGAR 75M2S, overlap: 4 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:62:3913:13476, region - chr12:124401043-124401117, insert size: -149 bp; mate: 124400968, CIGAR 2S74M, overlap: 4 bp
 
@@ -1338,6 +1406,7 @@ finished indel correction forward bases GAGATGTCCATAAAGTACGGGACC
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GAGATGTCCATAAAGTACGGGACC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:111:16124:7033
   clipped forward read: name - PC0196:48:64RNVAAXX:1:111:16124:7033, region - chr12:124400989-124401054, insert size: 95 bp; mate: 124401054, CIGAR 65M12S, overlap: 24 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:111:16124:7033, region - chr12:124401054-124401084, insert size: -95 bp; mate: 124400989, CIGAR 12S30M, overlap: 24 bp
 
@@ -1357,6 +1426,7 @@ finished indel correction forward bases AGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGA
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGAT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:102:12610:20683
   clipped forward read: name - PC0196:48:64RNVAAXX:1:102:12610:20683, region - chr12:124401013-124401066, insert size: 106 bp; mate: 124401066, CIGAR 53M24S, overlap: 47 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:102:12610:20683, region - chr12:124401066-124401119, insert size: -106 bp; mate: 124401013, CIGAR 23S53M, overlap: 47 bp
 
@@ -1376,6 +1446,7 @@ finished indel correction forward bases AGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGA
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGAT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:41:7135:9999
   clipped forward read: name - PC0196:48:64RNVAAXX:1:41:7135:9999, region - chr12:124401013-124401066, insert size: 106 bp; mate: 124401066, CIGAR 53M24S, overlap: 47 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:41:7135:9999, region - chr12:124401066-124401119, insert size: -106 bp; mate: 124401013, CIGAR 23S53M, overlap: 47 bp
 
@@ -1396,6 +1467,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:85:13640:7944 - AGATGTCCATANAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATG != AGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:85:13640:7944, region - chr12:124401043-124401067, insert size: 48 bp; mate: 124401067, CIGAR 24M24S, overlap: 48 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:85:13640:7944, region - chr12:124401067-124401091, insert size: -48 bp; mate: 124401043, CIGAR 24S24M, overlap: 48 bp
 
@@ -1415,6 +1487,7 @@ finished indel correction forward bases AGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGA
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AGATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGAT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:95:5587:16666
   clipped forward read: name - PC0196:48:64RNVAAXX:1:95:5587:16666, region - chr12:124401013-124401066, insert size: 106 bp; mate: 124401066, CIGAR 53M24S, overlap: 47 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:95:5587:16666, region - chr12:124401066-124401119, insert size: -106 bp; mate: 124401013, CIGAR 23S53M, overlap: 47 bp
 
@@ -1434,6 +1507,7 @@ finished indel correction forward bases
 finished indel correction forward cigar 
 finished indel correction reverse bases 
 finished indel correction reverse cigar 
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:99:13971:11243
   clipped forward read: name - PC0196:48:64RNVAAXX:1:99:13971:11243, region - chr12:124401043-124401081, insert size: 76 bp; mate: 124401081, CIGAR 38M39S, overlap: 76 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:99:13971:11243, region - chr12:124401081-124401119, insert size: -76 bp; mate: 124401043, CIGAR 38S38M, overlap: 76 bp
 
@@ -1453,6 +1527,7 @@ finished indel correction forward bases GATGTCCATAAAGTACGGGACCCCTTTCCTGTTC
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GATGTCCATAAAGTACGGGACCCCTTTCCTGTTC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:20:9218:3538
   clipped forward read: name - PC0196:48:64RNVAAXX:1:20:9218:3538, region - chr12:124401002-124401061, insert size: 119 bp; mate: 124401061, CIGAR 59M17S, overlap: 34 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:20:9218:3538, region - chr12:124401061-124401121, insert size: -119 bp; mate: 124401002, CIGAR 17S60M, overlap: 34 bp
 
@@ -1473,6 +1548,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGNGATTGACAACG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:55:12261:16856 - GATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACAACG != GATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGNGATTGACAACG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:55:12261:16856, region - chr12:124401044-124401081, insert size: 74 bp; mate: 124401081, CIGAR 37M37S, overlap: 74 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:55:12261:16856, region - chr12:124401081-124401118, insert size: -74 bp; mate: 124401044, CIGAR 37S37M, overlap: 74 bp
 
@@ -1493,6 +1569,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGNGATTGACAACG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:61:1664:11191 - GATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACAACG != GATGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGNGATTGACAACG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:61:1664:11191, region - chr12:124401044-124401081, insert size: 74 bp; mate: 124401081, CIGAR 37M37S, overlap: 74 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:61:1664:11191, region - chr12:124401081-124401118, insert size: -74 bp; mate: 124401044, CIGAR 37S37M, overlap: 74 bp
 
@@ -1512,6 +1589,7 @@ finished indel correction forward bases TGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGT
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:103:9390:19328
   clipped forward read: name - PC0196:48:64RNVAAXX:1:103:9390:19328, region - chr12:124401018-124401070, insert size: 104 bp; mate: 124401070, CIGAR 52M25S, overlap: 49 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:103:9390:19328, region - chr12:124401070-124401122, insert size: -104 bp; mate: 124401018, CIGAR 24S52M, overlap: 49 bp
 
@@ -1532,6 +1610,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCTATGTTGNTGAATACATCG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:24:15932:2272 - TGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCG != TGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCTATGTTGNTGAATACATCG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:24:15932:2272, region - chr12:124401046-124401073, insert size: 54 bp; mate: 124401073, CIGAR 27M27S, overlap: 54 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:24:15932:2272, region - chr12:124401073-124401100, insert size: -54 bp; mate: 124401046, CIGAR 27S27M, overlap: 54 bp
 
@@ -1551,6 +1630,7 @@ finished indel correction forward bases TGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGT
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGAT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:30:6784:7878
   clipped forward read: name - PC0196:48:64RNVAAXX:1:30:6784:7878, region - chr12:124401014-124401068, insert size: 109 bp; mate: 124401068, CIGAR 54M22S, overlap: 44 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:30:6784:7878, region - chr12:124401068-124401123, insert size: -109 bp; mate: 124401014, CIGAR 22S55M, overlap: 44 bp
 
@@ -1570,6 +1650,7 @@ finished indel correction forward bases TGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGT
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TGTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACAT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:9:16659:10031
   clipped forward read: name - PC0196:48:64RNVAAXX:1:9:16659:10031, region - chr12:124401021-124401072, insert size: 101 bp; mate: 124401072, CIGAR 51M26S, overlap: 52 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:9:16659:10031, region - chr12:124401072-124401122, insert size: -101 bp; mate: 124401021, CIGAR 26S50M, overlap: 52 bp
 
@@ -1589,6 +1670,7 @@ finished indel correction forward bases GTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTT
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:120:14220:1919
   clipped forward read: name - PC0196:48:64RNVAAXX:1:120:14220:1919, region - chr12:124401010-124401067, insert size: 113 bp; mate: 124401067, CIGAR 57M20S, overlap: 40 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:120:14220:1919, region - chr12:124401067-124401123, insert size: -113 bp; mate: 124401010, CIGAR 20S56M, overlap: 40 bp
 
@@ -1609,6 +1691,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GTCCATAAAGTACGGGACCCCTTTCCTGNTCCGCGATGTT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:52:2745:20164 - GTCCATAAAGTACGGGACCCCTTTCCTGGTCCGCGATGTT != GTCCATAAAGTACGGGACCCCTTTCCTGNTCCGCGATGTT!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:52:2745:20164, region - chr12:124401047-124401067, insert size: 40 bp; mate: 124401067, CIGAR 20M20S, overlap: 40 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:52:2745:20164, region - chr12:124401067-124401087, insert size: -40 bp; mate: 124401047, CIGAR 20S20M, overlap: 40 bp
 
@@ -1629,6 +1712,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTNACAACGTCTT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:96:5457:17387 - GTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACAACGTCTT != GTCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTNACAACGTCTT!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:96:5457:17387, region - chr12:124401046-124401085, insert size: 77 bp; mate: 124401085, CIGAR 39M37S, overlap: 75 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:96:5457:17387, region - chr12:124401085-124401123, insert size: -77 bp; mate: 124401046, CIGAR 38S38M, overlap: 75 bp
 
@@ -1649,6 +1733,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTNATTGACAACGT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:24:3512:3115 - TCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACAACGT != TCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTNATTGACAACGT!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:24:3512:3115, region - chr12:124401048-124401084, insert size: 71 bp; mate: 124401084, CIGAR 36M35S, overlap: 71 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:24:3512:3115, region - chr12:124401084-124401119, insert size: -71 bp; mate: 124401048, CIGAR 36S35M, overlap: 71 bp
 
@@ -1669,6 +1754,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATNGACAACGTCTT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:35:9034:19674 - TCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACAACGTCTT != TCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATNGACAACGTCTT!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:35:9034:19674, region - chr12:124401048-124401085, insert size: 74 bp; mate: 124401085, CIGAR 37M37S, overlap: 74 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:35:9034:19674, region - chr12:124401085-124401122, insert size: -74 bp; mate: 124401048, CIGAR 37S37M, overlap: 74 bp
 
@@ -1689,6 +1775,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:41:5367:8085 - TCCATAAAGTANGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACA != TCCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:41:5367:8085, region - chr12:124401048-124401072, insert size: 49 bp; mate: 124401072, CIGAR 24M25S, overlap: 49 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:41:5367:8085, region - chr12:124401072-124401097, insert size: -49 bp; mate: 124401048, CIGAR 24S25M, overlap: 49 bp
 
@@ -1709,6 +1796,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCNGTGATTGACAA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:100:17721:7136 - CCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACAA != CCATAAAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCNGTGATTGACAA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:100:17721:7136, region - chr12:124401049-124401083, insert size: 67 bp; mate: 124401083, CIGAR 34M33S, overlap: 67 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:100:17721:7136, region - chr12:124401083-124401116, insert size: -67 bp; mate: 124401049, CIGAR 34S33M, overlap: 67 bp
 
@@ -1728,6 +1816,7 @@ finished indel correction forward bases ATAAAGTACGGGACCCCT
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases ATAAAGTACGGGACCCCT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:39:7086:14887
   clipped forward read: name - PC0196:48:64RNVAAXX:1:39:7086:14887, region - chr12:124400993-124401060, insert size: 135 bp; mate: 124401060, CIGAR 67M9S, overlap: 18 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:39:7086:14887, region - chr12:124401060-124401128, insert size: -135 bp; mate: 124400993, CIGAR 9S68M, overlap: 18 bp
 
@@ -1748,6 +1837,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACCTCGATCCTGTGATTGNCAACGTCTTAG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:4:2001:4358 - AAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACAACGTCTTAG != AAGTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACCTCGATCCTGTGATTGNCAACGTCTTAG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:4:2001:4358, region - chr12:124401048-124401089, insert size: 76 bp; mate: 124401089, CIGAR 41M35S, overlap: 70 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:4:2001:4358, region - chr12:124401089-124401124, insert size: -76 bp; mate: 124401048, CIGAR 35S35M, overlap: 70 bp
 
@@ -1768,6 +1858,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACAACGTCTTAGAAAAAA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:104:2705:8350 - GTACGGGACCCNTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACAACGTCTTAGAAAAAA != GTACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACAACGTCTTAGAAAAAA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:104:2705:8350, region - chr12:124401056-124401093, insert size: 74 bp; mate: 124401093, CIGAR 37M37S, overlap: 74 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:104:2705:8350, region - chr12:124401093-124401130, insert size: -74 bp; mate: 124401056, CIGAR 37S37M, overlap: 74 bp
 
@@ -1788,6 +1879,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:29:19681:4917 - TACGGGACCCCNTTCCTGTTCCGCGATGTTGCTGAATACATCGATCCTGTGATTG != TACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:29:19681:4917, region - chr12:124401057-124401084, insert size: 55 bp; mate: 124401084, CIGAR 27M28S, overlap: 55 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:29:19681:4917, region - chr12:124401084-124401112, insert size: -55 bp; mate: 124401057, CIGAR 27S28M, overlap: 55 bp
 
@@ -1808,6 +1900,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACAACGTCTTAGAA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:56:4972:16229 - TACGGGACCCCNTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACAACGTCTTAGAA != TACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACAACGTCTTAGAA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:56:4972:16229, region - chr12:124401057-124401091, insert size: 69 bp; mate: 124401091, CIGAR 34M35S, overlap: 69 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:56:4972:16229, region - chr12:124401091-124401126, insert size: -69 bp; mate: 124401057, CIGAR 34S35M, overlap: 69 bp
 
@@ -1828,6 +1921,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACAACGTCTTAGAA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:74:6565:15065 - TACGGGACCCCNTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACAACGTCTTAGAA != TACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACAACGTCTTAGAA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:74:6565:15065, region - chr12:124401057-124401091, insert size: 69 bp; mate: 124401091, CIGAR 34M35S, overlap: 69 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:74:6565:15065, region - chr12:124401091-124401126, insert size: -69 bp; mate: 124401057, CIGAR 34S35M, overlap: 69 bp
 
@@ -1848,6 +1942,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACAACGTCTTAGAA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:91:15558:19444 - TACGGGACCCCNTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACAACGTCTTAGAA != TACGGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACAACGTCTTAGAA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:91:15558:19444, region - chr12:124401057-124401091, insert size: 69 bp; mate: 124401091, CIGAR 34M35S, overlap: 69 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:91:15558:19444, region - chr12:124401091-124401126, insert size: -69 bp; mate: 124401057, CIGAR 34S35M, overlap: 69 bp
 
@@ -1868,6 +1963,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACAACGTCTTAGA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:44:15630:13159 - GGGACCCCTTTNCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACAACGTCTTAGA != GGGACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACAACGTCTTAGA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:44:15630:13159, region - chr12:124401060-124401092, insert size: 65 bp; mate: 124401092, CIGAR 32M33S, overlap: 65 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:44:15630:13159, region - chr12:124401092-124401125, insert size: -65 bp; mate: 124401060, CIGAR 32S33M, overlap: 65 bp
 
@@ -1887,6 +1983,7 @@ finished indel correction forward bases GGACCCCTTTCCTGTTC
 finished indel correction forward cigar MMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GGACCCCTTTCCTGTTC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:2:15213:4527
   clipped forward read: name - PC0196:48:64RNVAAXX:1:2:15213:4527, region - chr12:124401008-124401069, insert size: 82 bp; mate: 124401069, CIGAR 61M9S, overlap: 17 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:2:15213:4527, region - chr12:124401069-124401090, insert size: -82 bp; mate: 124401008, CIGAR 8S21M, overlap: 17 bp
 
@@ -1907,6 +2004,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATNGACAACGTCTT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:87:11036:12474 - GACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACAACGTCTT != GACCCCTTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATNGACAACGTCTT!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:87:11036:12474, region - chr12:124401062-124401092, insert size: 60 bp; mate: 124401092, CIGAR 30M30S, overlap: 60 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:87:11036:12474, region - chr12:124401092-124401122, insert size: -60 bp; mate: 124401062, CIGAR 30S30M, overlap: 60 bp
 
@@ -1927,6 +2025,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGNGATTGACAACG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:118:3535:3853 - TTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACAACG != TTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGNGATTGACAACG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:118:3535:3853, region - chr12:124401068-124401093, insert size: 50 bp; mate: 124401093, CIGAR 25M25S, overlap: 50 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:118:3535:3853, region - chr12:124401093-124401118, insert size: -50 bp; mate: 124401068, CIGAR 25S25M, overlap: 50 bp
 
@@ -1947,6 +2046,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGNGATTGACAACG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:33:9005:17281 - TTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACAACG != TTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGNGATTGACAACG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:33:9005:17281, region - chr12:124401068-124401093, insert size: 50 bp; mate: 124401093, CIGAR 25M25S, overlap: 50 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:33:9005:17281, region - chr12:124401093-124401118, insert size: -50 bp; mate: 124401068, CIGAR 25S25M, overlap: 50 bp
 
@@ -1967,6 +2067,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGNGATTGACAACG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:70:14428:15354 - TTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACAACG != TTTCCTGTTCCGCGATGTTGATGAATACATCGATCCTGNGATTGACAACG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:70:14428:15354, region - chr12:124401068-124401093, insert size: 50 bp; mate: 124401093, CIGAR 25M25S, overlap: 50 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:70:14428:15354, region - chr12:124401093-124401118, insert size: -50 bp; mate: 124401068, CIGAR 25S25M, overlap: 50 bp
 
@@ -1986,6 +2087,7 @@ finished indel correction forward bases TCCTGTTCCGCGATGTTGATGAATACATCGATCCTGT
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TCCTGTTCCGCGATGTTGATGAATACATCGATCCTGT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:71:16944:19349
   clipped forward read: name - PC0196:48:64RNVAAXX:1:71:16944:19349, region - chr12:124401053-124401089, insert size: 94 bp; mate: 124401089, CIGAR 36M18S, overlap: 37 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:71:16944:19349, region - chr12:124401089-124401147, insert size: -94 bp; mate: 124401053, CIGAR 19S58M, overlap: 37 bp
 
@@ -2005,6 +2107,7 @@ finished indel correction forward bases CTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTG
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACAACGTCTTAGA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:22:14380:18096
   clipped forward read: name - PC0196:48:64RNVAAXX:1:22:14380:18096, region - chr12:124401049-124401099, insert size: 100 bp; mate: 124401099, CIGAR 50M26S, overlap: 53 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:22:14380:18096, region - chr12:124401099-124401149, insert size: -100 bp; mate: 124401049, CIGAR 27S50M, overlap: 53 bp
 
@@ -2025,6 +2128,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CTGTTCCGCGATGTTGATGAATACATCGATCCTGTNATTGACAACGT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:71:10381:20920 - CTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACAACGT != CTGTTCCGCGATGTTGATGAATACATCGATCCTGTNATTGACAACGT!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:71:10381:20920, region - chr12:124401072-124401096, insert size: 47 bp; mate: 124401096, CIGAR 24M23S, overlap: 47 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:71:10381:20920, region - chr12:124401096-124401119, insert size: -47 bp; mate: 124401072, CIGAR 24S23M, overlap: 47 bp
 
@@ -2044,6 +2148,7 @@ finished indel correction forward bases CTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTG
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CTGTTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACAACGTCTTAGA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:86:13712:1726
   clipped forward read: name - PC0196:48:64RNVAAXX:1:86:13712:1726, region - chr12:124401049-124401099, insert size: 100 bp; mate: 124401099, CIGAR 50M26S, overlap: 53 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:86:13712:1726, region - chr12:124401099-124401149, insert size: -100 bp; mate: 124401049, CIGAR 27S50M, overlap: 53 bp
 
@@ -2063,6 +2168,7 @@ finished indel correction forward bases TTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACA
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TTCCGCGATGTTGATGAATACATCGATCCTGTGATTGACAACGTCTTAGAAAAAAATATAA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:80:5444:17652
   clipped forward read: name - PC0196:48:64RNVAAXX:1:80:5444:17652, region - chr12:124401060-124401106, insert size: 92 bp; mate: 124401106, CIGAR 46M30S, overlap: 61 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:80:5444:17652, region - chr12:124401106-124401152, insert size: -92 bp; mate: 124401060, CIGAR 31S46M, overlap: 61 bp
 
@@ -2082,6 +2188,7 @@ finished indel correction forward bases TACATCGATCCTGTGATTGACAACGTCTTAGAAAAAAATA
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TACATCGATCCTGTGATTGACAACGTCTTAGAAAAAAATATAAAAGTC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:86:14655:20944
   clipped forward read: name - PC0196:48:64RNVAAXX:1:86:14655:20944, region - chr12:124401065-124401117, insert size: 105 bp; mate: 124401117, CIGAR 52M24S, overlap: 48 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:86:14655:20944, region - chr12:124401117-124401170, insert size: -105 bp; mate: 124401065, CIGAR 24S53M, overlap: 48 bp
 
@@ -2101,6 +2208,7 @@ finished indel correction forward bases CGATCCTGTGATTGACAACGTCTTAGAAAAAAATATAAAA
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CGATCCTGTGATTGACAACGTCTTAGAAAAAAATATAAAAGTCTCC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:51:3405:3880
   clipped forward read: name - PC0196:48:64RNVAAXX:1:51:3405:3880, region - chr12:124401068-124401121, insert size: 107 bp; mate: 124401121, CIGAR 53M23S, overlap: 46 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:51:3405:3880, region - chr12:124401121-124401175, insert size: -107 bp; mate: 124401068, CIGAR 23S54M, overlap: 46 bp
 
@@ -2121,6 +2229,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TCCCAAGGACGGCAGTTTATTATCCTGGGAGACNAGGAAGTGGAC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:61:2959:14303 - TCCCAAGGACGGCAGTTTATTATCCTGGGAGACAAGGAAGTGGAC != TCCCAAGGACGGCAGTTTATTATCCTGGGAGACNAGGAAGTGGAC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:61:2959:14303, region - chr12:124401141-124401164, insert size: 45 bp; mate: 124401164, CIGAR 23M22S, overlap: 45 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:61:2959:14303, region - chr12:124401164-124401186, insert size: -45 bp; mate: 124401141, CIGAR 23S22M, overlap: 45 bp
 
@@ -2141,6 +2250,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CCCAAGGACGGCAGTTTATTATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATNTCAGACTGTAC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:53:1466:11106 - CCCAAGGACGGCAGTTTATTATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTAC != CCCAAGGACGGCAGTTTATTATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATNTCAGACTGTAC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:53:1466:11106, region - chr12:124401142-124401176, insert size: 68 bp; mate: 124401176, CIGAR 34M34S, overlap: 68 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:53:1466:11106, region - chr12:124401176-124401210, insert size: -68 bp; mate: 124401142, CIGAR 34S34M, overlap: 68 bp
 
@@ -2161,6 +2271,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CCAAGGACGGCAGTTTATTATCCTGGGAGACAAGGAAGTGGA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:15:3808:7222 - CCAAGGACGGCNGTTTATTATCCTGGGAGACAAGGAAGTGGA != CCAAGGACGGCAGTTTATTATCCTGGGAGACAAGGAAGTGGA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:15:3808:7222, region - chr12:124401143-124401164, insert size: 42 bp; mate: 124401164, CIGAR 21M21S, overlap: 42 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:15:3808:7222, region - chr12:124401164-124401185, insert size: -42 bp; mate: 124401143, CIGAR 21S21M, overlap: 42 bp
 
@@ -2181,6 +2292,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AAGGACGGCAGTTTATTATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATTTCANACTGTACCTGA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:80:14171:3144 - AAGGACGGCAGTTTATTATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGA != AAGGACGGCAGTTTATTATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATTTCANACTGTACCTGA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:80:14171:3144, region - chr12:124401145-124401180, insert size: 69 bp; mate: 124401180, CIGAR 35M34S, overlap: 69 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:80:14171:3144, region - chr12:124401180-124401214, insert size: -69 bp; mate: 124401145, CIGAR 35S34M, overlap: 69 bp
 
@@ -2201,6 +2313,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AAGGACGGCAGTTTATTATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACNTGAACACCA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:86:5186:5982 - AAGGACGGCAGTTTATTATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACCA != AAGGACGGCAGTTTATTATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACNTGAACACCA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:86:5186:5982, region - chr12:124401144-124401183, insert size: 78 bp; mate: 124401183, CIGAR 39M37S, overlap: 75 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:86:5186:5982, region - chr12:124401183-124401222, insert size: -78 bp; mate: 124401144, CIGAR 38S39M, overlap: 75 bp
 
@@ -2221,6 +2334,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AAGGACGGCAGTTTATTATCCTGGGAGANAAGGAAGTGGA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:8:6318:13177 - AAGGACGGCAGTTTATTATCCTGGGAGACAAGGAAGTGGA != AAGGACGGCAGTTTATTATCCTGGGAGANAAGGAAGTGGA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:8:6318:13177, region - chr12:124401145-124401165, insert size: 40 bp; mate: 124401165, CIGAR 20M20S, overlap: 40 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:8:6318:13177, region - chr12:124401165-124401185, insert size: -40 bp; mate: 124401145, CIGAR 20S20M, overlap: 40 bp
 
@@ -2240,6 +2354,7 @@ finished indel correction forward bases AGGACGGCAGTTTATTATCCTGGGAGACAAGGAAGTGGAC
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AGGACGGCAGTTTATTATCCTGGGAGACAAGGAAGTGGACTATGATT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:105:10858:20995
   clipped forward read: name - PC0196:48:64RNVAAXX:1:105:10858:20995, region - chr12:124401117-124401170, insert size: 106 bp; mate: 124401170, CIGAR 53M23S, overlap: 47 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:105:10858:20995, region - chr12:124401170-124401223, insert size: -106 bp; mate: 124401117, CIGAR 24S53M, overlap: 47 bp
 
@@ -2259,6 +2374,7 @@ finished indel correction forward bases AGGACGGCAGTTTATTATCCTGGGAGACAAGGAAGTGGAC
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AGGACGGCAGTTTATTATCCTGGGAGACAAGGAAGTGGACTATGATT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:96:16895:4512
   clipped forward read: name - PC0196:48:64RNVAAXX:1:96:16895:4512, region - chr12:124401117-124401170, insert size: 106 bp; mate: 124401170, CIGAR 53M23S, overlap: 47 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:96:16895:4512, region - chr12:124401170-124401223, insert size: -106 bp; mate: 124401117, CIGAR 24S53M, overlap: 47 bp
 
@@ -2278,6 +2394,7 @@ finished indel correction forward bases ACGGCAGTTTAT
 finished indel correction forward cigar MMMMMMMMMMMM
 finished indel correction reverse bases ACGGCAGTTTAT
 finished indel correction reverse cigar MMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:100:9666:20393
   clipped forward read: name - PC0196:48:64RNVAAXX:1:100:9666:20393, region - chr12:124401084-124401155, insert size: 141 bp; mate: 124401155, CIGAR 71M6S, overlap: 12 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:100:9666:20393, region - chr12:124401155-124401225, insert size: -141 bp; mate: 124401084, CIGAR 6S70M, overlap: 12 bp
 
@@ -2298,6 +2415,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GGCAGTTTATTATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:80:3026:20637 - GGNAGTTTATTATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACC != GGCAGTTTATTATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:80:3026:20637, region - chr12:124401142-124401185, insert size: 85 bp; mate: 124401185, CIGAR 43M34S, overlap: 68 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:80:3026:20637, region - chr12:124401185-124401227, insert size: -85 bp; mate: 124401142, CIGAR 34S42M, overlap: 68 bp
 
@@ -2318,6 +2436,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CAGTTTATTATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACCAAGC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:86:9894:20516 - CAGTNTATTATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACCAAGC != CAGTTTATTATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACCAAGC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:86:9894:20516, region - chr12:124401146-124401188, insert size: 83 bp; mate: 124401188, CIGAR 42M35S, overlap: 70 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:86:9894:20516, region - chr12:124401188-124401229, insert size: -83 bp; mate: 124401146, CIGAR 35S41M, overlap: 70 bp
 
@@ -2338,6 +2457,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AGTTTATTATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACCNA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:33:9783:9798 - AGTTTATTATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACCAA != AGTTTATTATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACCNA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:33:9783:9798, region - chr12:124401145-124401188, insert size: 86 bp; mate: 124401188, CIGAR 43M33S, overlap: 67 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:33:9783:9798, region - chr12:124401188-124401231, insert size: -86 bp; mate: 124401145, CIGAR 34S43M, overlap: 67 bp
 
@@ -2358,6 +2478,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GTTTATTATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:28:19646:7793 - GTTTATTATCCNGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACC != GTTTATTATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:28:19646:7793, region - chr12:124401155-124401187, insert size: 64 bp; mate: 124401187, CIGAR 32M32S, overlap: 64 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:28:19646:7793, region - chr12:124401187-124401219, insert size: -64 bp; mate: 124401155, CIGAR 32S32M, overlap: 64 bp
 
@@ -2377,6 +2498,7 @@ finished indel correction forward bases TTTATTATCCTGGGAGACAAGGAAGTGGACTATGATTCAA
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TTTATTATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:106:14035:13578
   clipped forward read: name - PC0196:48:64RNVAAXX:1:106:14035:13578, region - chr12:124401141-124401187, insert size: 92 bp; mate: 124401187, CIGAR 46M30S, overlap: 61 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:106:14035:13578, region - chr12:124401187-124401233, insert size: -92 bp; mate: 124401141, CIGAR 31S46M, overlap: 61 bp
 
@@ -2396,6 +2518,7 @@ finished indel correction forward bases TTTATTATCCTGGGAGACAAGGAAGTGGACTATGATTCAA
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TTTATTATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:29:13801:7428
   clipped forward read: name - PC0196:48:64RNVAAXX:1:29:13801:7428, region - chr12:124401140-124401186, insert size: 92 bp; mate: 124401186, CIGAR 46M31S, overlap: 61 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:29:13801:7428, region - chr12:124401186-124401232, insert size: -92 bp; mate: 124401140, CIGAR 30S46M, overlap: 61 bp
 
@@ -2416,6 +2539,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TATTATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:25:3908:5515 - TATTATCCTGGNAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTG != TATTATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:25:3908:5515, region - chr12:124401158-124401185, insert size: 55 bp; mate: 124401185, CIGAR 27M28S, overlap: 55 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:25:3908:5515, region - chr12:124401185-124401213, insert size: -55 bp; mate: 124401158, CIGAR 27S28M, overlap: 55 bp
 
@@ -2435,6 +2559,7 @@ finished indel correction forward bases TATTATCCTGGGAGACAAGGAAGTGGACTATGATTCAAAT
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TATTATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:27:13893:5808
   clipped forward read: name - PC0196:48:64RNVAAXX:1:27:13893:5808, region - chr12:124401139-124401187, insert size: 96 bp; mate: 124401187, CIGAR 48M28S, overlap: 57 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:27:13893:5808, region - chr12:124401187-124401235, insert size: -96 bp; mate: 124401139, CIGAR 29S48M, overlap: 57 bp
 
@@ -2455,6 +2580,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TATTATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:49:6459:4276 - TATTATCCTGGNAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTG != TATTATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:49:6459:4276, region - chr12:124401158-124401185, insert size: 55 bp; mate: 124401185, CIGAR 27M28S, overlap: 55 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:49:6459:4276, region - chr12:124401185-124401213, insert size: -55 bp; mate: 124401158, CIGAR 27S28M, overlap: 55 bp
 
@@ -2474,6 +2600,7 @@ finished indel correction forward bases TTATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATTT
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TTATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACCAAGCT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:107:4183:18657
   clipped forward read: name - PC0196:48:64RNVAAXX:1:107:4183:18657, region - chr12:124401148-124401192, insert size: 89 bp; mate: 124401192, CIGAR 44M32S, overlap: 64 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:107:4183:18657, region - chr12:124401192-124401237, insert size: -89 bp; mate: 124401148, CIGAR 32S45M, overlap: 64 bp
 
@@ -2494,6 +2621,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases ATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACCAAGCNGGCCAATCCCA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:35:5857:6801 - ATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCCA != ATCCTGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACCAAGCNGGCCAATCCCA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:35:5857:6801, region - chr12:124401162-124401199, insert size: 73 bp; mate: 124401199, CIGAR 37M36S, overlap: 73 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:35:5857:6801, region - chr12:124401199-124401235, insert size: -73 bp; mate: 124401162, CIGAR 37S36M, overlap: 73 bp
 
@@ -2514,6 +2642,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTTCCTGAACACCA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:113:8148:17179 - TGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACCA != TGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTTCCTGAACACCA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:113:8148:17179, region - chr12:124401143-124401193, insert size: 99 bp; mate: 124401193, CIGAR 50M27S, overlap: 54 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:113:8148:17179, region - chr12:124401193-124401242, insert size: -99 bp; mate: 124401143, CIGAR 27S49M, overlap: 54 bp
 
@@ -2534,6 +2663,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TGGGAGACAAGGAAGTGGACTATGATTCAAATTTNAGACTGTACCT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:19:4198:3807 - TGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCT != TGGGAGACAAGGAAGTGGACTATGATTCAAATTTNAGACTGTACCT!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:19:4198:3807, region - chr12:124401166-124401189, insert size: 46 bp; mate: 124401189, CIGAR 23M23S, overlap: 46 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:19:4198:3807, region - chr12:124401189-124401212, insert size: -46 bp; mate: 124401166, CIGAR 23S23M, overlap: 46 bp
 
@@ -2553,6 +2683,7 @@ finished indel correction forward bases TGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACT
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACCA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:1:11438:19267
   clipped forward read: name - PC0196:48:64RNVAAXX:1:1:11438:19267, region - chr12:124401143-124401193, insert size: 99 bp; mate: 124401193, CIGAR 50M27S, overlap: 54 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:1:11438:19267, region - chr12:124401193-124401242, insert size: -99 bp; mate: 124401143, CIGAR 27S49M, overlap: 54 bp
 
@@ -2573,6 +2704,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTTCCTGAACACCA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:93:17385:21007 - TGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACCA != TGGGAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTTCCTGAACACCA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:93:17385:21007, region - chr12:124401143-124401193, insert size: 99 bp; mate: 124401193, CIGAR 50M27S, overlap: 54 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:93:17385:21007, region - chr12:124401193-124401242, insert size: -99 bp; mate: 124401143, CIGAR 27S49M, overlap: 54 bp
 
@@ -2592,6 +2724,7 @@ finished indel correction forward bases GAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTA
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GAGACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACCAAGCTGGCCAATC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:112:12357:18194
   clipped forward read: name - PC0196:48:64RNVAAXX:1:112:12357:18194, region - chr12:124401156-124401201, insert size: 90 bp; mate: 124401201, CIGAR 45M31S, overlap: 63 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:112:12357:18194, region - chr12:124401201-124401246, insert size: -90 bp; mate: 124401156, CIGAR 32S45M, overlap: 63 bp
 
@@ -2612,6 +2745,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases ACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCNAGATATTCCCC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:118:18575:9474 - ACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCC != ACAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCNAGATATTCCCC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:118:18575:9474, region - chr12:124401172-124401209, insert size: 73 bp; mate: 124401209, CIGAR 37M36S, overlap: 73 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:118:18575:9474, region - chr12:124401209-124401245, insert size: -73 bp; mate: 124401172, CIGAR 37S36M, overlap: 73 bp
 
@@ -2632,6 +2766,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases ACAAGGAAGTGGACTATGATTCAAATTTCAGGCTGTACCTGAACACCAAGCTGGCCAATCCCAG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:88:5198:11604 - ACAAGGAAGTGNACTATGATTCAAATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCCAG != ACAAGGAAGTGGACTATGATTCAAATTTCAGGCTGTACCTGAACACCAAGCTGGCCAATCCCAG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:88:5198:11604, region - chr12:124401172-124401204, insert size: 64 bp; mate: 124401204, CIGAR 32M32S, overlap: 64 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:88:5198:11604, region - chr12:124401204-124401236, insert size: -64 bp; mate: 124401172, CIGAR 32S32M, overlap: 64 bp
 
@@ -2652,6 +2787,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACCAATC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:28:1997:5983 - CAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACCAAGC != CAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACCAATC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:28:1997:5983, region - chr12:124401146-124401198, insert size: 103 bp; mate: 124401198, CIGAR 52M25S, overlap: 50 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:28:1997:5983, region - chr12:124401198-124401249, insert size: -103 bp; mate: 124401146, CIGAR 25S51M, overlap: 50 bp
 
@@ -2671,6 +2807,7 @@ finished indel correction forward bases CAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTG
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:38:4977:11587
   clipped forward read: name - PC0196:48:64RNVAAXX:1:38:4977:11587, region - chr12:124401136-124401193, insert size: 113 bp; mate: 124401193, CIGAR 57M20S, overlap: 40 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:38:4977:11587, region - chr12:124401193-124401249, insert size: -113 bp; mate: 124401136, CIGAR 20S56M, overlap: 40 bp
 
@@ -2690,6 +2827,7 @@ finished indel correction forward bases CAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTG
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CAAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACCAAGC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:3:3200:18235
   clipped forward read: name - PC0196:48:64RNVAAXX:1:3:3200:18235, region - chr12:124401146-124401198, insert size: 103 bp; mate: 124401198, CIGAR 52M25S, overlap: 50 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:3:3200:18235, region - chr12:124401198-124401249, insert size: -103 bp; mate: 124401146, CIGAR 25S51M, overlap: 50 bp
 
@@ -2710,6 +2848,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACNAAGCTGGCCAA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:26:15195:16129 - AAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACCAAGCTGGCCAA != AAGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACNAAGCTGGCCAA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:26:15195:16129, region - chr12:124401174-124401202, insert size: 56 bp; mate: 124401202, CIGAR 28M28S, overlap: 56 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:26:15195:16129, region - chr12:124401202-124401230, insert size: -56 bp; mate: 124401174, CIGAR 28S28M, overlap: 56 bp
 
@@ -2730,6 +2869,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCCA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:11:8198:11858 - AGGAAGTGGACNATGATTCAAATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCCA != AGGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCCA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:11:8198:11858, region - chr12:124401175-124401205, insert size: 60 bp; mate: 124401205, CIGAR 30M30S, overlap: 60 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:11:8198:11858, region - chr12:124401205-124401235, insert size: -60 bp; mate: 124401175, CIGAR 30S30M, overlap: 60 bp
 
@@ -2750,6 +2890,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GGAAGTGGACTATGATTCAAATTTCAGANTGTACCTGAAC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:27:16897:6817 - GGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAAC != GGAAGTGGACTATGATTCAAATTTCAGANTGTACCTGAAC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:27:16897:6817, region - chr12:124401176-124401196, insert size: 40 bp; mate: 124401196, CIGAR 20M20S, overlap: 40 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:27:16897:6817, region - chr12:124401196-124401216, insert size: -40 bp; mate: 124401176, CIGAR 20S20M, overlap: 40 bp
 
@@ -2769,6 +2910,7 @@ finished indel correction forward bases GGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAAC
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GGAAGTGGACTATGATTCAAATTTCAGACTGTACCTGAACACCAAGCTG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:9:8010:18609
   clipped forward read: name - PC0196:48:64RNVAAXX:1:9:8010:18609, region - chr12:124401148-124401200, insert size: 104 bp; mate: 124401200, CIGAR 52M25S, overlap: 49 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:9:8010:18609, region - chr12:124401200-124401252, insert size: -104 bp; mate: 124401148, CIGAR 24S52M, overlap: 49 bp
 
@@ -2788,6 +2930,7 @@ finished indel correction forward bases AAGTGGACTATGATTCAAATTTCAGACTGTACCTGA
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AAGTGGACTATGATTCAAATTTCAGACTGTACCTGA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:64:2587:12901
   clipped forward read: name - PC0196:48:64RNVAAXX:1:64:2587:12901, region - chr12:124401137-124401196, insert size: 117 bp; mate: 124401196, CIGAR 59M18S, overlap: 36 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:64:2587:12901, region - chr12:124401196-124401254, insert size: -117 bp; mate: 124401137, CIGAR 18S58M, overlap: 36 bp
 
@@ -2807,6 +2950,7 @@ finished indel correction forward bases GTGGACTATGATTCAAATTTCAGACTGTACCTGAACACCA
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GTGGACTATGATTCAAATTTCAGACTGTACCTGAACACCA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:40:3901:18491
   clipped forward read: name - PC0196:48:64RNVAAXX:1:40:3901:18491, region - chr12:124401144-124401200, insert size: 113 bp; mate: 124401200, CIGAR 56M20S, overlap: 40 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:40:3901:18491, region - chr12:124401200-124401257, insert size: -113 bp; mate: 124401144, CIGAR 20S57M, overlap: 40 bp
 
@@ -2827,6 +2971,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TGGACTATGATTCAAATTTCAGACTGTANCTGAACACCAA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:72:4522:1427 - TGGACTATGATTCAAATTTCAGACTGTACCTGAACACCAA != TGGACTATGATTCAAATTTCAGACTGTANCTGAACACCAA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:72:4522:1427, region - chr12:124401181-124401201, insert size: 40 bp; mate: 124401201, CIGAR 20M20S, overlap: 40 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:72:4522:1427, region - chr12:124401201-124401221, insert size: -40 bp; mate: 124401181, CIGAR 20S20M, overlap: 40 bp
 
@@ -2847,6 +2992,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GGACTATGATTCAAATTTCAGACTGTACCTGAACTCCAAGCNGGCCAATCCCA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:2:3982:18441 - GGACTATGATTCAAATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCCA != GGACTATGATTCAAATTTCAGACTGTACCTGAACTCCAAGCNGGCCAATCCCA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:2:3982:18441, region - chr12:124401182-124401209, insert size: 53 bp; mate: 124401209, CIGAR 27M26S, overlap: 53 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:2:3982:18441, region - chr12:124401209-124401235, insert size: -53 bp; mate: 124401182, CIGAR 27S26M, overlap: 53 bp
 
@@ -2867,6 +3013,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GGACTATGATTCAAATTTCAGACTGTACCTGAACACCAAGCNGGCCAATCCCA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:66:14376:20064 - GGACTATGATTCAAATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCCA != GGACTATGATTCAAATTTCAGACTGTACCTGAACACCAAGCNGGCCAATCCCA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:66:14376:20064, region - chr12:124401182-124401209, insert size: 53 bp; mate: 124401209, CIGAR 27M26S, overlap: 53 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:66:14376:20064, region - chr12:124401209-124401235, insert size: -53 bp; mate: 124401182, CIGAR 27S26M, overlap: 53 bp
 
@@ -2887,6 +3034,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GACTATGATTCAAATTTCAGACTGTACCTGAACACCAAG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:26:14659:4908 - GACTATGATTCNAATTTCAGACTGTACCTGAACACCAAG != GACTATGATTCAAATTTCAGACTGTACCTGAACACCAAG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:26:14659:4908, region - chr12:124401183-124401202, insert size: 39 bp; mate: 124401202, CIGAR 19M20S, overlap: 39 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:26:14659:4908, region - chr12:124401202-124401222, insert size: -39 bp; mate: 124401183, CIGAR 19S20M, overlap: 39 bp
 
@@ -2906,6 +3054,7 @@ finished indel correction forward bases GACTATGATTCAAATTTCAGACTGTACCTGAACACCAAGC
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GACTATGATTCAAATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:2:16795:5876
   clipped forward read: name - PC0196:48:64RNVAAXX:1:2:16795:5876, region - chr12:124401167-124401213, insert size: 93 bp; mate: 124401213, CIGAR 46M30S, overlap: 60 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:2:16795:5876, region - chr12:124401213-124401260, insert size: -93 bp; mate: 124401167, CIGAR 30S47M, overlap: 60 bp
 
@@ -2926,6 +3075,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GACTATGATTCAAATTTCAGACTGTACCTGAACACCAAGCT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:63:9853:4123 - GACTATGATTCNAATTTCAGACTGTACCTGAACACCAAGCT != GACTATGATTCAAATTTCAGACTGTACCTGAACACCAAGCT!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:63:9853:4123, region - chr12:124401183-124401203, insert size: 41 bp; mate: 124401203, CIGAR 20M21S, overlap: 41 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:63:9853:4123, region - chr12:124401203-124401224, insert size: -41 bp; mate: 124401183, CIGAR 20S21M, overlap: 41 bp
 
@@ -2946,6 +3096,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases ACTATGATTCAAATTTCAGACTGTACCTGAACCCCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:42:2631:9063 - ACTATGATTCANATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTT != ACTATGATTCAAATTTCAGACTGTACCTGAACCCCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTT!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:42:2631:9063, region - chr12:124401184-124401219, insert size: 71 bp; mate: 124401219, CIGAR 35M36S, overlap: 71 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:42:2631:9063, region - chr12:124401219-124401255, insert size: -71 bp; mate: 124401184, CIGAR 35S36M, overlap: 71 bp
 
@@ -2966,6 +3117,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CTATGATTCAAATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:2:10265:14970 - CTATGATTCAANTTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGG != CTATGATTCAAATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:2:10265:14970, region - chr12:124401185-124401221, insert size: 73 bp; mate: 124401221, CIGAR 36M37S, overlap: 73 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:2:10265:14970, region - chr12:124401221-124401258, insert size: -73 bp; mate: 124401185, CIGAR 36S37M, overlap: 73 bp
 
@@ -2986,6 +3138,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TATGATGCAAATTTCAGACTGTACCTGAACACC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:112:12786:20279 - TATGATTCAAATTTCAGACTGTACCTGAACACC != TATGATGCAAATTTCAGACTGTACCTGAACACC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:112:12786:20279, region - chr12:124401143-124401203, insert size: 120 bp; mate: 124401203, CIGAR 60M16S, overlap: 33 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:112:12786:20279, region - chr12:124401203-124401263, insert size: -120 bp; mate: 124401143, CIGAR 17S60M, overlap: 33 bp
 
@@ -3006,6 +3159,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GATTCAAATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:2:11175:3238 - GATTCAAATTTNAGACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAA != GATTCAAATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:2:11175:3238, region - chr12:124401189-124401224, insert size: 71 bp; mate: 124401224, CIGAR 35M36S, overlap: 71 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:2:11175:3238, region - chr12:124401224-124401260, insert size: -71 bp; mate: 124401189, CIGAR 35S36M, overlap: 71 bp
 
@@ -3026,6 +3180,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GATTCAAATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCNCCATCCGTGTT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:7:3186:6499 - GATTCAAATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTT != GATTCAAATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCNCCATCCGTGTT!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:7:3186:6499, region - chr12:124401189-124401222, insert size: 65 bp; mate: 124401222, CIGAR 33M32S, overlap: 65 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:7:3186:6499, region - chr12:124401222-124401254, insert size: -65 bp; mate: 124401189, CIGAR 33S32M, overlap: 65 bp
 
@@ -3046,6 +3201,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases ATTCAAATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTNGGAAAGC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:102:16039:1877 - ATTCAAATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGC != ATTCAAATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTNGGAAAGC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:102:16039:1877, region - chr12:124401187-124401227, insert size: 80 bp; mate: 124401227, CIGAR 40M36S, overlap: 73 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:102:16039:1877, region - chr12:124401227-124401267, insert size: -80 bp; mate: 124401187, CIGAR 37S40M, overlap: 73 bp
 
@@ -3066,6 +3222,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases ATTCAAATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTNGGAAAGC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:62:17146:6515 - ATTCAAATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGC != ATTCAAATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTNGGAAAGC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:62:17146:6515, region - chr12:124401187-124401227, insert size: 80 bp; mate: 124401227, CIGAR 40M36S, overlap: 73 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:62:17146:6515, region - chr12:124401227-124401267, insert size: -80 bp; mate: 124401187, CIGAR 37S40M, overlap: 73 bp
 
@@ -3085,6 +3242,7 @@ finished indel correction forward bases TCAAATTTCAGACTGTACCTGAACACCAAGCT
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TCAAATTTCAGACTGTACCTGAACACCAAGCT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:12:6580:9224
   clipped forward read: name - PC0196:48:64RNVAAXX:1:12:6580:9224, region - chr12:124401147-124401208, insert size: 121 bp; mate: 124401208, CIGAR 61M16S, overlap: 32 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:12:6580:9224, region - chr12:124401208-124401268, insert size: -121 bp; mate: 124401147, CIGAR 16S60M, overlap: 32 bp
 
@@ -3104,6 +3262,7 @@ finished indel correction forward bases TCAAATTTCAGACTGTACCTGAACACCAAGCT
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TCAAATTTCAGACTGTACCTGAACACCAAGCT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:23:11747:2887
   clipped forward read: name - PC0196:48:64RNVAAXX:1:23:11747:2887, region - chr12:124401147-124401208, insert size: 121 bp; mate: 124401208, CIGAR 61M16S, overlap: 32 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:23:11747:2887, region - chr12:124401208-124401268, insert size: -121 bp; mate: 124401147, CIGAR 16S60M, overlap: 32 bp
 
@@ -3124,6 +3283,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases ATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGNAAAGCTATGGT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:41:13819:10256 - ATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGT != ATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGNAAAGCTATGGT!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:41:13819:10256, region - chr12:124401196-124401233, insert size: 73 bp; mate: 124401233, CIGAR 37M36S, overlap: 73 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:41:13819:10256, region - chr12:124401233-124401269, insert size: -73 bp; mate: 124401196, CIGAR 37S36M, overlap: 73 bp
 
@@ -3144,6 +3304,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases ATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAANCTATGGTG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:98:15222:11694 - ATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTG != ATTTCAGACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAANCTATGGTG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:98:15222:11694, region - chr12:124401194-124401233, insert size: 79 bp; mate: 124401233, CIGAR 39M37S, overlap: 74 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:98:15222:11694, region - chr12:124401233-124401273, insert size: -79 bp; mate: 124401194, CIGAR 37S40M, overlap: 74 bp
 
@@ -3164,6 +3325,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TTCAGACTGTACCTGAACNCCAAGCTGGCC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:21:4092:16152 - TTCAGACTGTACCTGAACACCAAGCTGGCC != TTCAGACTGTACCTGAACNCCAAGCTGGCC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:21:4092:16152, region - chr12:124401198-124401213, insert size: 30 bp; mate: 124401213, CIGAR 15M15S, overlap: 30 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:21:4092:16152, region - chr12:124401213-124401228, insert size: -30 bp; mate: 124401198, CIGAR 15S15M, overlap: 30 bp
 
@@ -3184,6 +3346,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TTCAGACTGTACCTGAACNCCAAGCTGGCC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:37:18629:15807 - TTCAGACTGTACCTGAACACCACGCTGGCC != TTCAGACTGTACCTGAACNCCAAGCTGGCC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:37:18629:15807, region - chr12:124401198-124401213, insert size: 30 bp; mate: 124401213, CIGAR 15M15S, overlap: 30 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:37:18629:15807, region - chr12:124401213-124401228, insert size: -30 bp; mate: 124401198, CIGAR 15S15M, overlap: 30 bp
 
@@ -3204,6 +3367,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CAGACTGTAGCTGAACACCAAGCTGGCCAACCCCAGATATTCCCCATCCGTGTTTGGGAAAGCT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:114:16516:7345 - CAGACTGTACCNGAACACCAAGCTGGCCAACCCCAGATATTCCCCATCCGGGTTTGGGAAAGCT != CAGACTGTAGCTGAACACCAAGCTGGCCAACCCCAGATATTCCCCATCCGTGTTTGGGAAAGCT!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:114:16516:7345, region - chr12:124401200-124401232, insert size: 64 bp; mate: 124401232, CIGAR 32M32S, overlap: 64 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:114:16516:7345, region - chr12:124401232-124401264, insert size: -64 bp; mate: 124401200, CIGAR 32S32M, overlap: 64 bp
 
@@ -3224,6 +3388,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AGACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGNTTGGGAAAGCT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:106:12987:16451 - AGACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCT != AGACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGNTTGGGAAAGCT!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:106:12987:16451, region - chr12:124401201-124401233, insert size: 63 bp; mate: 124401233, CIGAR 32M31S, overlap: 63 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:106:12987:16451, region - chr12:124401233-124401264, insert size: -63 bp; mate: 124401201, CIGAR 32S31M, overlap: 63 bp
 
@@ -3244,6 +3409,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AGACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGNTTGGGAAAGCT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:4:18376:20531 - AGACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCT != AGACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGNTTGGGAAAGCT!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:4:18376:20531, region - chr12:124401201-124401233, insert size: 63 bp; mate: 124401233, CIGAR 32M31S, overlap: 63 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:4:18376:20531, region - chr12:124401233-124401264, insert size: -63 bp; mate: 124401201, CIGAR 32S31M, overlap: 63 bp
 
@@ -3264,6 +3430,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCNATCCGTGTTTG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:56:5016:20972 - GACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTG != GACTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCNATCCGTGTTTG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:56:5016:20972, region - chr12:124401202-124401229, insert size: 54 bp; mate: 124401229, CIGAR 27M27S, overlap: 54 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:56:5016:20972, region - chr12:124401229-124401256, insert size: -54 bp; mate: 124401202, CIGAR 27S27M, overlap: 54 bp
 
@@ -3283,6 +3450,7 @@ finished indel correction forward bases CTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCC
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:52:10574:1343
   clipped forward read: name - PC0196:48:64RNVAAXX:1:52:10574:1343, region - chr12:124401185-124401233, insert size: 95 bp; mate: 124401233, CIGAR 48M29S, overlap: 58 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:52:10574:1343, region - chr12:124401233-124401280, insert size: -95 bp; mate: 124401185, CIGAR 29S47M, overlap: 58 bp
 
@@ -3302,6 +3470,7 @@ finished indel correction forward bases CTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCC
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CTGTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTAT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:92:15801:6145
   clipped forward read: name - PC0196:48:64RNVAAXX:1:92:15801:6145, region - chr12:124401189-124401235, insert size: 91 bp; mate: 124401235, CIGAR 46M31S, overlap: 62 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:92:15801:6145, region - chr12:124401235-124401280, insert size: -91 bp; mate: 124401189, CIGAR 31S45M, overlap: 62 bp
 
@@ -3322,6 +3491,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGANCAATTA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:100:2791:15922 - GTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTA != GTACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGANCAATTA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:100:2791:15922, region - chr12:124401205-124401242, insert size: 78 bp; mate: 124401242, CIGAR 3S37M36S, overlap: 72 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:100:2791:15922, region - chr12:124401242-124401283, insert size: -78 bp; mate: 124401205, CIGAR 36S41M, overlap: 72 bp
 
@@ -3341,6 +3511,7 @@ finished indel correction forward bases GTACCTGAA
 finished indel correction forward cigar MMMMMMMMM
 finished indel correction reverse bases GTACCTGAA
 finished indel correction reverse cigar MMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:106:10119:8378
   clipped forward read: name - PC0196:48:64RNVAAXX:1:106:10119:8378, region - chr12:124401139-124401211, insert size: 144 bp; mate: 124401211, CIGAR 72M4S, overlap: 9 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:106:10119:8378, region - chr12:124401211-124401283, insert size: -144 bp; mate: 124401139, CIGAR 5S72M, overlap: 9 bp
 
@@ -3360,6 +3531,7 @@ finished indel correction forward bases GTACCTGAA
 finished indel correction forward cigar MMMMMMMMM
 finished indel correction reverse bases GTACCTGAA
 finished indel correction reverse cigar MMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:83:10248:11613
   clipped forward read: name - PC0196:48:64RNVAAXX:1:83:10248:11613, region - chr12:124401139-124401211, insert size: 144 bp; mate: 124401211, CIGAR 72M4S, overlap: 9 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:83:10248:11613, region - chr12:124401211-124401283, insert size: -144 bp; mate: 124401139, CIGAR 5S72M, overlap: 9 bp
 
@@ -3380,6 +3552,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGNTCAATTACACT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:9:10587:11046 - TACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTACACT != TACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGNTCAATTACACT!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:9:10587:11046, region - chr12:124401207-124401245, insert size: 75 bp; mate: 124401245, CIGAR 38M37S, overlap: 75 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:9:10587:11046, region - chr12:124401245-124401282, insert size: -75 bp; mate: 124401207, CIGAR 38S37M, overlap: 75 bp
 
@@ -3400,6 +3573,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases ACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:33:13161:9726 - ACCTNAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTA != ACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:33:13161:9726, region - chr12:124401201-124401243, insert size: 79 bp; mate: 124401243, CIGAR 42M35S, overlap: 70 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:33:13161:9726, region - chr12:124401243-124401280, insert size: -79 bp; mate: 124401201, CIGAR 35S37M4S, overlap: 70 bp
 
@@ -3420,6 +3594,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases ACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:40:10996:9568 - ACCTNAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTA != ACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:40:10996:9568, region - chr12:124401201-124401243, insert size: 79 bp; mate: 124401243, CIGAR 42M35S, overlap: 70 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:40:10996:9568, region - chr12:124401243-124401280, insert size: -79 bp; mate: 124401201, CIGAR 35S37M4S, overlap: 70 bp
 
@@ -3439,6 +3614,7 @@ finished indel correction forward bases ACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATC
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases ACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTCTGGGAAAGCTA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:55:6896:13350
   clipped forward read: name - PC0196:48:64RNVAAXX:1:55:6896:13350, region - chr12:124401188-124401236, insert size: 96 bp; mate: 124401236, CIGAR 48M29S, overlap: 57 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:55:6896:13350, region - chr12:124401236-124401284, insert size: -96 bp; mate: 124401188, CIGAR 28S48M, overlap: 57 bp
 
@@ -3459,6 +3635,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases ACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:57:1313:10148 - ACCTNAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTA != ACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:57:1313:10148, region - chr12:124401201-124401243, insert size: 79 bp; mate: 124401243, CIGAR 42M35S, overlap: 70 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:57:1313:10148, region - chr12:124401243-124401280, insert size: -79 bp; mate: 124401201, CIGAR 35S37M4S, overlap: 70 bp
 
@@ -3479,6 +3656,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases ACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:98:5020:4332 - NCCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCA != ACCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:98:5020:4332, region - chr12:124401197-124401241, insert size: 87 bp; mate: 124401241, CIGAR 44M33S, overlap: 66 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:98:5020:4332, region - chr12:124401241-124401284, insert size: -87 bp; mate: 124401197, CIGAR 33S43M, overlap: 66 bp
 
@@ -3499,6 +3677,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCNATGGTGATCAA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:22:11176:20573 - CCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAA != CCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCNATGGTGATCAA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:22:11176:20573, region - chr12:124401209-124401242, insert size: 66 bp; mate: 124401242, CIGAR 33M33S, overlap: 66 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:22:11176:20573, region - chr12:124401242-124401275, insert size: -66 bp; mate: 124401209, CIGAR 33S33M, overlap: 66 bp
 
@@ -3518,6 +3697,7 @@ finished indel correction forward bases CCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCC
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CCTGAACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:35:5336:2036
   clipped forward read: name - PC0196:48:64RNVAAXX:1:35:5336:2036, region - chr12:124401188-124401237, insert size: 96 bp; mate: 124401237, CIGAR 49M28S, overlap: 56 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:35:5336:2036, region - chr12:124401237-124401284, insert size: -96 bp; mate: 124401188, CIGAR 28S47M, overlap: 56 bp
 
@@ -3538,6 +3718,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GAACACCAAGCTGGCCAATCCCAGANATTCCCCATCC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:50:16363:12493 - GAACACCAAGCTGGCCAATCCCAGATATTCCCCATCC != GAACACCAAGCTGGCCAATCCCAGANATTCCCCATCC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:50:16363:12493, region - chr12:124401212-124401231, insert size: 37 bp; mate: 124401231, CIGAR 19M18S, overlap: 37 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:50:16363:12493, region - chr12:124401231-124401249, insert size: -37 bp; mate: 124401212, CIGAR 19S18M, overlap: 37 bp
 
@@ -3557,6 +3738,7 @@ finished indel correction forward bases AACACCAAGCTGGCCAATCCCAGA
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AACACCAAGCTGGCCAATCCCAGA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:58:14886:10885
   clipped forward read: name - PC0196:48:64RNVAAXX:1:58:14886:10885, region - chr12:124401161-124401225, insert size: 129 bp; mate: 124401225, CIGAR 64M12S, overlap: 24 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:58:14886:10885, region - chr12:124401225-124401290, insert size: -129 bp; mate: 124401161, CIGAR 12S65M, overlap: 24 bp
 
@@ -3576,6 +3758,7 @@ finished indel correction forward bases ACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTT
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases ACACCAAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:45:13495:1969
   clipped forward read: name - PC0196:48:64RNVAAXX:1:45:13495:1969, region - chr12:124401198-124401244, insert size: 93 bp; mate: 124401244, CIGAR 46M30S, overlap: 60 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:45:13495:1969, region - chr12:124401244-124401291, insert size: -93 bp; mate: 124401198, CIGAR 30S47M, overlap: 60 bp
 
@@ -3595,6 +3778,7 @@ finished indel correction forward bases CAAGCTGGC
 finished indel correction forward cigar MMMMMMMMM
 finished indel correction reverse bases CAAGCTGGC
 finished indel correction reverse cigar MMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:64:19482:14774
   clipped forward read: name - PC0196:48:64RNVAAXX:1:64:19482:14774, region - chr12:124401151-124401223, insert size: 132 bp; mate: 124401223, CIGAR 72M4S, overlap: 9 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:64:19482:14774, region - chr12:124401223-124401283, insert size: -132 bp; mate: 124401151, CIGAR 5S60M, overlap: 9 bp
 
@@ -3615,6 +3799,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGNTCAATTACACT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:105:12797:19891 - AAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTACACT != AAGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGNTCAATTACACT!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:105:12797:19891, region - chr12:124401219-124401251, insert size: 63 bp; mate: 124401251, CIGAR 32M31S, overlap: 63 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:105:12797:19891, region - chr12:124401251-124401282, insert size: -63 bp; mate: 124401219, CIGAR 32S31M, overlap: 63 bp
 
@@ -3635,6 +3820,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTNTGGTGATCAAT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:118:2730:4476 - AGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAAT != AGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTNTGGTGATCAAT!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:118:2730:4476, region - chr12:124401220-124401248, insert size: 56 bp; mate: 124401248, CIGAR 28M28S, overlap: 56 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:118:2730:4476, region - chr12:124401248-124401276, insert size: -56 bp; mate: 124401220, CIGAR 28S28M, overlap: 56 bp
 
@@ -3655,6 +3841,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTNTGGTGATCAAT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:72:10292:4859 - AGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAAT != AGCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTNTGGTGATCAAT!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:72:10292:4859, region - chr12:124401220-124401248, insert size: 56 bp; mate: 124401248, CIGAR 28M28S, overlap: 56 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:72:10292:4859, region - chr12:124401248-124401276, insert size: -56 bp; mate: 124401220, CIGAR 28S28M, overlap: 56 bp
 
@@ -3675,6 +3862,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTNCACTGGTAAGA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:105:1915:3433 - GCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTACACTGGTAAGA != GCTGGCCAATCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTNCACTGGTAAGA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:105:1915:3433, region - chr12:124401221-124401255, insert size: 68 bp; mate: 124401255, CIGAR 34M34S, overlap: 68 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:105:1915:3433, region - chr12:124401255-124401289, insert size: -68 bp; mate: 124401221, CIGAR 34S34M, overlap: 68 bp
 
@@ -3695,6 +3883,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTACACTGGTAAGAATGTGTNGAA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:27:4046:15555 - TCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTACACTGGTAAGAATGTGTAGAA != TCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTACACTGGTAAGAATGTGTNGAA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:27:4046:15555, region - chr12:124401223-124401265, insert size: 84 bp; mate: 124401265, CIGAR 42M34S, overlap: 69 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:27:4046:15555, region - chr12:124401265-124401307, insert size: -84 bp; mate: 124401223, CIGAR 35S42M, overlap: 69 bp
 
@@ -3715,6 +3904,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGNTCAATTACACT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:98:10801:13440 - TCCCAGATATTCCCCATCCGTGTTTGGGGAAGCTATGGTGATCAATTACACT != TCCCAGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGNTCAATTACACT!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:98:10801:13440, region - chr12:124401230-124401256, insert size: 52 bp; mate: 124401256, CIGAR 26M26S, overlap: 52 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:98:10801:13440, region - chr12:124401256-124401282, insert size: -52 bp; mate: 124401230, CIGAR 26S26M, overlap: 52 bp
 
@@ -3735,6 +3925,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CAGATATTCCCCATCCGTGTTTNGGAAAGCTATG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:35:4350:5832 - CAGATATTCCCCATCCGTGTTTGGGAAAGCTATG != CAGATATTCCCCATCCGTGTTTNGGAAAGCTATG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:35:4350:5832, region - chr12:124401233-124401250, insert size: 34 bp; mate: 124401250, CIGAR 17M17S, overlap: 34 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:35:4350:5832, region - chr12:124401250-124401267, insert size: -34 bp; mate: 124401233, CIGAR 17S17M, overlap: 34 bp
 
@@ -3755,6 +3946,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CAGATATTCCCCATCCGTGTTTNGGAAAGCTATG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:44:14789:11996 - CAGATATTCCCCATCCGTGTTTGGGAAAGCTATG != CAGATATTCCCCATCCGTGTTTNGGAAAGCTATG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:44:14789:11996, region - chr12:124401233-124401250, insert size: 34 bp; mate: 124401250, CIGAR 17M17S, overlap: 34 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:44:14789:11996, region - chr12:124401250-124401267, insert size: -34 bp; mate: 124401233, CIGAR 17S17M, overlap: 34 bp
 
@@ -3775,6 +3967,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTACACTGGNAAGAATGTGTA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:14:15672:17224 - AGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTACACTGGTAAGAATGTGTA != AGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTACACTGGNAAGAATGTGTA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:14:15672:17224, region - chr12:124401234-124401265, insert size: 62 bp; mate: 124401265, CIGAR 31M31S, overlap: 62 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:14:15672:17224, region - chr12:124401265-124401296, insert size: -62 bp; mate: 124401234, CIGAR 31S31M, overlap: 62 bp
 
@@ -3795,6 +3988,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTACACTGGNAAGAATGTGTA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:42:11341:3661 - AGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTACACTGGTAAGAATGTGTA != AGATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTACACTGGNAAGAATGTGTA!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:42:11341:3661, region - chr12:124401234-124401265, insert size: 62 bp; mate: 124401265, CIGAR 31M31S, overlap: 62 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:42:11341:3661, region - chr12:124401265-124401296, insert size: -62 bp; mate: 124401234, CIGAR 31S31M, overlap: 62 bp
 
@@ -3814,6 +4008,7 @@ finished indel correction forward bases ATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAAT
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases ATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTACACTGG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:33:13315:21339
   clipped forward read: name - PC0196:48:64RNVAAXX:1:33:13315:21339, region - chr12:124401207-124401260, insert size: 105 bp; mate: 124401260, CIGAR 53M24S, overlap: 48 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:33:13315:21339, region - chr12:124401260-124401312, insert size: -105 bp; mate: 124401207, CIGAR 24S52M, overlap: 48 bp
 
@@ -3833,6 +4028,7 @@ finished indel correction forward bases ATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAAT
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases ATATTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTACACTGG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:93:12043:16696
   clipped forward read: name - PC0196:48:64RNVAAXX:1:93:12043:16696, region - chr12:124401207-124401260, insert size: 105 bp; mate: 124401260, CIGAR 53M24S, overlap: 48 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:93:12043:16696, region - chr12:124401260-124401312, insert size: -105 bp; mate: 124401207, CIGAR 24S52M, overlap: 48 bp
 
@@ -3853,6 +4049,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTACACTGGTAAGAATGTGTAGAACCTCCACTGCTAATTC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:113:2305:7893 - TTCCCCATCCNTGTTTGGGAAAGCTATGGGGATCAATTACACTGGTAAGAATGTGTAGAACCTCCACTGCTAATTC != TTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTACACTGGTAAGAATGTGTAGAACCTCCACTGCTAATTC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:113:2305:7893, region - chr12:124401238-124401277, insert size: 77 bp; mate: 124401277, CIGAR 39M38S, overlap: 76 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:113:2305:7893, region - chr12:124401277-124401315, insert size: -77 bp; mate: 124401238, CIGAR 38S38M, overlap: 76 bp
 
@@ -3873,6 +4070,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTACACTGGTAAGAATGTGTAGAACCTCCACTGCTAATTC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:71:3423:4354 - TTCCCCATCCNTGTTTGGGAAAGCTATGGTGATCAATTACACTGGTAAGAATGTGTAGAACCTCCACTGCTAATTC != TTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTACACTGGTAAGAATGTGTAGAACCTCCACTGCTAATTC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:71:3423:4354, region - chr12:124401238-124401277, insert size: 77 bp; mate: 124401277, CIGAR 39M38S, overlap: 76 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:71:3423:4354, region - chr12:124401277-124401315, insert size: -77 bp; mate: 124401238, CIGAR 38S38M, overlap: 76 bp
 
@@ -3893,6 +4091,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTACACTGGTAAGAATGTGTAGAACCTCCACTGCTAATTC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:74:5368:2934 - TTCCCCATCCNTGTTTGGGAAAGCTATGGTGATCAATTACACTGGTAAGAATGTGTAGAACCTCCACTGCTAATTC != TTCCCCATCCGTGTTTGGGAAAGCTATGGTGATCAATTACACTGGTAAGAATGTGTAGAACCTCCACTGCTAATTC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:74:5368:2934, region - chr12:124401238-124401277, insert size: 77 bp; mate: 124401277, CIGAR 39M38S, overlap: 76 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:74:5368:2934, region - chr12:124401277-124401315, insert size: -77 bp; mate: 124401238, CIGAR 38S38M, overlap: 76 bp
 
@@ -3912,6 +4111,7 @@ finished indel correction forward bases TCCGTGTTTGGG
 finished indel correction forward cigar MMMMMMMMMMMM
 finished indel correction reverse bases TCCGTGTTTGGG
 finished indel correction reverse cigar MMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:68:15256:11462
   clipped forward read: name - PC0196:48:64RNVAAXX:1:68:15256:11462, region - chr12:124401182-124401252, insert size: 141 bp; mate: 124401252, CIGAR 70M6S, overlap: 12 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:68:15256:11462, region - chr12:124401252-124401323, insert size: -141 bp; mate: 124401182, CIGAR 6S71M, overlap: 12 bp
 
@@ -3931,6 +4131,7 @@ finished indel correction forward bases CC
 finished indel correction forward cigar MM
 finished indel correction reverse bases CC
 finished indel correction reverse cigar MM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:56:15663:14814
   clipped forward read: name - PC0196:48:64RNVAAXX:1:56:15663:14814, region - chr12:124401222-124401248, insert size: 102 bp; mate: 124401248, CIGAR 26M1S, overlap: 2 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:56:15663:14814, region - chr12:124401248-124401324, insert size: -102 bp; mate: 124401222, CIGAR 1S76M, overlap: 2 bp
 
@@ -3951,6 +4152,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CGTGTTTGGGAAAGCTATGGTGATCAATTACACTGGTAAGAATGTGTAGNACCTCCACTGC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:107:13443:20917 - CGTGTTTGGGAAAGCTATGGTGATCAATTACACTGGTAAGAATGTGTAGAACCTCCACTGC != CGTGTTTGGGAAAGCTATGGTGATCAATTACACTGGTAAGAATGTGTAGNACCTCCACTGC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:107:13443:20917, region - chr12:124401248-124401279, insert size: 61 bp; mate: 124401279, CIGAR 31M30S, overlap: 61 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:107:13443:20917, region - chr12:124401279-124401309, insert size: -61 bp; mate: 124401248, CIGAR 31S30M, overlap: 61 bp
 
@@ -3970,6 +4172,7 @@ finished indel correction forward bases CGTGTTTGGGAAAGC
 finished indel correction forward cigar MMMMMMMMMMMMMMM
 finished indel correction reverse bases CGTGTTTGGGAAAGC
 finished indel correction reverse cigar MMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:43:8671:15566
   clipped forward read: name - PC0196:48:64RNVAAXX:1:43:8671:15566, region - chr12:124401186-124401255, insert size: 138 bp; mate: 124401255, CIGAR 69M8S, overlap: 15 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:43:8671:15566, region - chr12:124401255-124401324, insert size: -138 bp; mate: 124401186, CIGAR 7S69M, overlap: 15 bp
 
@@ -3990,6 +4193,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GTGTTTGGGAAAGCTATGGTGATCAATTACACTGGTAAGAATGTGTAGAACCTCCACTGNTAATTCAGATG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:118:2664:13176 - GTGTTTGGGAAAGCTATGGTGATCAATTACACTGGTAAGAATGTGTAGAACCTCCACTGCTAATTCAGATG != GTGTTTGGGAAAGCTATGGTGATCAATTACACTGGTAAGAATGTGTAGAACCTCCACTGNTAATTCAGATG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:118:2664:13176, region - chr12:124401249-124401285, insert size: 71 bp; mate: 124401285, CIGAR 36M35S, overlap: 71 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:118:2664:13176, region - chr12:124401285-124401320, insert size: -71 bp; mate: 124401249, CIGAR 36S35M, overlap: 71 bp
 
@@ -4009,6 +4213,7 @@ finished indel correction forward bases TGTTTGGGAAAGCTATGGTGATCAATTACACTGGTAAGAA
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TGTTTGGGAAAGCTATGGTGATCAATTACACTGGTAAGAATGTGT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:14:11720:2268
   clipped forward read: name - PC0196:48:64RNVAAXX:1:14:11720:2268, region - chr12:124401218-124401272, insert size: 108 bp; mate: 124401272, CIGAR 54M23S, overlap: 45 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:14:11720:2268, region - chr12:124401272-124401326, insert size: -108 bp; mate: 124401218, CIGAR 22S54M, overlap: 45 bp
 
@@ -4028,6 +4233,7 @@ finished indel correction forward bases GAAAGCTATG
 finished indel correction forward cigar MMMMMMMMMM
 finished indel correction reverse bases GAAAGCTATG
 finished indel correction reverse cigar MMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:92:15132:10747
   clipped forward read: name - PC0196:48:64RNVAAXX:1:92:15132:10747, region - chr12:124401190-124401262, insert size: 143 bp; mate: 124401262, CIGAR 72M5S, overlap: 10 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:92:15132:10747, region - chr12:124401262-124401333, insert size: -143 bp; mate: 124401190, CIGAR 5S71M, overlap: 10 bp
 
@@ -4048,6 +4254,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AAGCTATGGTGATCAATTACACTGGTAAGAATGTGTAGAACCTCCACTGCTAATTCAGATGGTTATGAGGGAGAC
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:108:10367:5702 - AAGCTATGGNGATCAATTACACTGGTAAGAATGTGTAGAACCTCCACTGCTAATTCAGATGGTTATGAGGGAGAC != AAGCTATGGTGATCAATTACACTGGTAAGAATGTGTAGAACCTCCACTGCTAATTCAGATGGTTATGAGGGAGAC!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:108:10367:5702, region - chr12:124401257-124401296, insert size: 78 bp; mate: 124401296, CIGAR 39M38S, overlap: 75 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:108:10367:5702, region - chr12:124401296-124401335, insert size: -78 bp; mate: 124401257, CIGAR 37S39M, overlap: 75 bp
 
@@ -4067,6 +4274,7 @@ finished indel correction forward bases GGTGATCAATTACACTGGTAAGAATGT
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GGTGATCAATTACACTGGTAAGAATGT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:12:6212:9313
   clipped forward read: name - PC0196:48:64RNVAAXX:1:12:6212:9313, region - chr12:124401216-124401279, insert size: 126 bp; mate: 124401279, CIGAR 63M14S, overlap: 27 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:12:6212:9313, region - chr12:124401279-124401342, insert size: -126 bp; mate: 124401216, CIGAR 13S63M, overlap: 27 bp
 
@@ -4086,6 +4294,7 @@ finished indel correction forward bases TGATCAATTACACTGGTAAGAATGTGTAG
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TGATCAATTACACTGGTAAGAATGTGTAG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:92:12020:3854
   clipped forward read: name - PC0196:48:64RNVAAXX:1:92:12020:3854, region - chr12:124401220-124401282, insert size: 124 bp; mate: 124401282, CIGAR 62M15S, overlap: 29 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:92:12020:3854, region - chr12:124401282-124401344, insert size: -124 bp; mate: 124401220, CIGAR 14S62M, overlap: 29 bp
 
@@ -4105,6 +4314,7 @@ finished indel correction forward bases ATTACACTGGTAAGAATGTGTAGAACCTCCACTGCTAATT
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases ATTACACTGGTAAGAATGTGTAGAACCTCCACTGCTAATTCAGATGGTTATGAGGGAGA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:77:18368:3080
   clipped forward read: name - PC0196:48:64RNVAAXX:1:77:18368:3080, region - chr12:124401257-124401304, insert size: 94 bp; mate: 124401304, CIGAR 47M29S, overlap: 59 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:77:18368:3080, region - chr12:124401304-124401351, insert size: -94 bp; mate: 124401257, CIGAR 30S47M, overlap: 59 bp
 
@@ -4124,6 +4334,7 @@ finished indel correction forward bases AGAATGTGTAGAACC
 finished indel correction forward cigar MMMMMMMMMMMMMMM
 finished indel correction reverse bases AGAATGTGTAGAACC
 finished indel correction reverse cigar MMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:69:2606:2158
   clipped forward read: name - PC0196:48:64RNVAAXX:1:69:2606:2158, region - chr12:124401224-124401293, insert size: 138 bp; mate: 124401293, CIGAR 69M8S, overlap: 15 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:69:2606:2158, region - chr12:124401293-124401362, insert size: -138 bp; mate: 124401224, CIGAR 7S69M, overlap: 15 bp
 
@@ -4143,6 +4354,7 @@ finished indel correction forward bases AGAACCTCCACTGCTAATTCAGATGGTTATGAGGGAGACC
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AGAACCTCCACTGCTAATTCAGATGGTTATGAGGGAGACCGCAACCTCA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:23:4852:5055
   clipped forward read: name - PC0196:48:64RNVAAXX:1:23:4852:5055, region - chr12:124401268-124401320, insert size: 104 bp; mate: 124401320, CIGAR 52M24S, overlap: 49 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:23:4852:5055, region - chr12:124401320-124401372, insert size: -104 bp; mate: 124401268, CIGAR 25S52M, overlap: 49 bp
 
@@ -4162,6 +4374,7 @@ finished indel correction forward bases CGCAACCTCAGATCAAGGCATTCA
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases CGCAACCTCAGATCAAGGCATTCA
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:107:16493:7356
   clipped forward read: name - PC0196:48:64RNVAAXX:1:107:16493:7356, region - chr12:124401281-124401346, insert size: 129 bp; mate: 124401346, CIGAR 65M12S, overlap: 24 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:107:16493:7356, region - chr12:124401346-124401410, insert size: -129 bp; mate: 124401281, CIGAR 12S64M, overlap: 24 bp
 
@@ -4181,6 +4394,7 @@ finished indel correction forward bases TAGGCACATCTGGACTAGTCAGCTCTTACCAATTAGGTAC
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases TAGGCACATCTGGACTAGTCAGCTCTTACCAATTAGGTACCACTTAGAAGGTGTGAGGCCATGAG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:94:15002:7089
   clipped forward read: name - PC0196:48:64RNVAAXX:1:94:15002:7089, region - chr12:124401387-124401431, insert size: 88 bp; mate: 124401431, CIGAR 44M33S, overlap: 65 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:94:15002:7089, region - chr12:124401431-124401475, insert size: -88 bp; mate: 124401387, CIGAR 32S44M, overlap: 65 bp
 
@@ -4200,6 +4414,7 @@ finished indel correction forward bases GACTAGTCAGCTCTTACCAATTAGGTACCACTTAGAAGGT
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GACTAGTCAGCTCTTACCAATTAGGTACCACTTAGAAGGTGTGAGGCCATGAGTCACCTGTCAT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:14:9447:12189
   clipped forward read: name - PC0196:48:64RNVAAXX:1:14:9447:12189, region - chr12:124401398-124401443, insert size: 89 bp; mate: 124401443, CIGAR 45M32S, overlap: 64 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:14:9447:12189, region - chr12:124401443-124401487, insert size: -89 bp; mate: 124401398, CIGAR 32S44M, overlap: 64 bp
 
@@ -4219,6 +4434,7 @@ finished indel correction forward bases GACTAGTCAGCTCTTACCAATTAGGTACCACTTAGAAGGT
 finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases GACTAGTCAGCTCTTACCAATTAGGTACCACTTAGAAGGTGTGAGGCCATGAGTCACCTGTCAT
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  no overlap mismatch for read pair PC0196:48:64RNVAAXX:1:68:6988:11254
   clipped forward read: name - PC0196:48:64RNVAAXX:1:68:6988:11254, region - chr12:124401398-124401443, insert size: 89 bp; mate: 124401443, CIGAR 45M32S, overlap: 64 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:68:6988:11254, region - chr12:124401443-124401487, insert size: -89 bp; mate: 124401398, CIGAR 32S44M, overlap: 64 bp
 
@@ -4239,6 +4455,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AAGGTGTGAGGCCATGAGTCACCTGTCATGAGTCACGCTGAG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:112:3216:20680 - AAGGTGTGAGGNCATGAGTCACCTGTCATGAGTCACGCTGAG != AAGGTGTGAGGCCATGAGTCACCTGTCATGAGTCACGCTGAG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:112:3216:20680, region - chr12:124401446-124401467, insert size: 42 bp; mate: 124401467, CIGAR 21M21S, overlap: 42 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:112:3216:20680, region - chr12:124401467-124401488, insert size: -42 bp; mate: 124401446, CIGAR 21S21M, overlap: 42 bp
 
@@ -4259,6 +4476,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AAGGTGTGAGGCCATGAGTCACCTGTCATTAGTCACGCTGAG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:112:3216:20681 - AAGGTGTGAGGNCATGAGTCACCTGTCATGAGTCACGCTGAG != AAGGTGTGAGGCCATGAGTCACCTGTCATTAGTCACGCTGAG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:112:3216:20681, region - chr12:124401446-124401467, insert size: 42 bp; mate: 124401467, CIGAR 21M21S, overlap: 42 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:112:3216:20681, region - chr12:124401467-124401488, insert size: -42 bp; mate: 124401446, CIGAR 21S21M, overlap: 42 bp
 
@@ -4279,6 +4497,7 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMIIIMMMMMMM
 finished indel correction reverse bases AAGGTGTGAGGCCATGAGTCACCTGTCATG+++AGTCACGCTGAG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMIIIMMMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:112:3216:20682 - AAGGTGTGAGGNCATGAGTCACCTGTCATGCCCAGTCACGCTGAG != AAGGTGTGAGGCCATGAGTCACCTGTCATG+++AGTCACGCTGAG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:112:3216:20682, region - chr12:124401446-124401467, insert size: 42 bp; mate: 124401467, CIGAR 21M24S, overlap: 42 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:112:3216:20682, region - chr12:124401467-124401488, insert size: -42 bp; mate: 124401446, CIGAR 21S21M, overlap: 42 bp
 
@@ -4299,9 +4518,10 @@ finished indel correction forward cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 finished indel correction reverse bases AAGGTGTGAGGCCATGAGTCACCTGTCAT---TCACGCTGAG
 finished indel correction reverse cigar MMMMMMMMMMMMMMMMMMMMMMMMMMMMMDDDMMMMMMMMMM
   overlap mismatch for read pair PC0196:48:64RNVAAXX:1:112:3216:20683 - AAGGTGTGAGGNCATGAGTCACCTGTCATGAGTCACGCTGAG != AAGGTGTGAGGCCATGAGTCACCTGTCAT---TCACGCTGAG!
+   Removed pair.
   clipped forward read: name - PC0196:48:64RNVAAXX:1:112:3216:20683, region - chr12:124401446-124401467, insert size: 42 bp; mate: 124401467, CIGAR 21M21S, overlap: 42 bp
   clipped reverse read: name - PC0196:48:64RNVAAXX:1:112:3216:20683, region - chr12:124401467-124401488, insert size: -42 bp; mate: 124401446, CIGAR 21S8M3D10M, overlap: 42 bp
 
-Overlap mismatch filtering was used for 0 of 548 reads (0.00 %).
+Overlap mismatch filtering was used for 248 of 548 reads (45.26 %).
 Softclipped 440 of 548 reads (80.29 %).
 Softclipped 11183 of 37888 basepairs (29.52 %).

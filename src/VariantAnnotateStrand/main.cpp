@@ -7,9 +7,8 @@
 #include "cppNGS_global.h"
 #include "Settings.h"
 #include "ChromosomeInfo.h"
-#include <QTime>
-#include <QString>
 #include "FastqFileStream.h"
+#include <QString>
 #include <QDataStream>
 #include <algorithm>
 
@@ -63,9 +62,10 @@ public:
 
 			int st_mu_plus = 0;
 			int st_mu_minus = 0;
+			int st_mu_unknown = 0;
 			int st_wt_plus = 0;
 			int st_wt_minus = 0;
-			bool found = false;
+			int st_wt_unknown = 0;
 			if (variant.isSNV()) //SVN
 			{
 				int ref_id = ChromosomeInfo::refID(reader, variant.chr());
@@ -133,8 +133,6 @@ public:
 
 						if (genome_pos>=variant.start() && !no_count)
 						{
-							found = true;
-
 							if(!no_count)
 							{
 								int actual_pos = read_pos - (genome_pos + 1 - variant.start());
@@ -145,13 +143,17 @@ public:
 
 								if(base==variant.ref())	//wildtype
 								{
-									if(strand.compare("+"))	++st_wt_plus;
-									if(strand.compare("-"))	++st_wt_minus;
+									if(strand.compare("+")==0)	++st_wt_plus;
+									else if(strand.compare("-")==0)	++st_wt_minus;
+									else if(strand.compare(".")==0)	++st_wt_unknown;
+									else	THROW(Exception, "Found unknown strand '" + QString::fromStdString(strand) + "' for read " + QString::fromStdString(al.Name) + "!");
 								}
 								if(base==variant.obs())
 								{
-									if(strand.compare("+"))	++st_mu_plus;
-									if(strand.compare("-"))	++st_mu_minus;
+									if(strand.compare("+")==0)	++st_mu_plus;
+									else if(strand.compare("-")==0)	++st_mu_minus;
+									else if(strand.compare(".")==0)	++st_mu_unknown;
+									else	THROW(Exception, "Found unknown strand '" + QString::fromStdString(strand) + "' for read " + QString::fromStdString(al.Name) + "!");
 								}
 							}
 						}
@@ -165,7 +167,6 @@ public:
 
 				//get indels from region
 				QVector<Sequence> indels;
-	//			NGSHelper::getIndels(reference, reader, variant.chr(), reg.first-1, reg.second+1, indels, output.depth, output.mapq0_frac);
 
 				//restrict region
 				int ref_id = ChromosomeInfo::refID(reader, variant.chr());
@@ -176,6 +177,8 @@ public:
 				BamAlignment al;
 				while (reader.GetNextAlignment(al))
 				{
+					bool found = false;
+
 					//skip low-quality reads
 					if (al.IsDuplicate()) continue;
 					if (!al.IsProperPair()) continue;
@@ -185,14 +188,6 @@ public:
 
 					//skip reads that do not span the whole region
 					if (al.Position+1>reg.first || al.GetEndPosition()<reg.second ) continue;
-
-					//run time optimization: skip reads that do not contain Indels
-					bool contains_indels = false;
-					for (unsigned int i=0; i<al.CigarData.size(); ++i)
-					{
-						if (al.CigarData[i].Type=='I' || al.CigarData[i].Type=='D') contains_indels = true;
-					}
-					if (!contains_indels) continue;
 
 					//load string data
 					al.BuildCharData();
@@ -242,23 +237,27 @@ public:
 					{
 						std::string strand;
 						al.GetTag("fs", strand);
-						if(strand.compare("+"))	++st_mu_plus;
-						if(strand.compare("-"))	++st_mu_minus;
+						if(strand.compare("+")==0)	++st_mu_plus;
+						else if(strand.compare("-")==0)	++st_mu_minus;
+						else if(strand.compare(".")==0)	++st_mu_unknown;
+						else	THROW(Exception, "Found unknown strand '" + QString::fromStdString(strand) + "' for read " + QString::fromStdString(al.Name) + "!");
 					}
 					else
 					{
 						std::string strand;
 						al.GetTag("fs", strand);
-						if(strand.compare("+"))	++st_wt_plus;
-						if(strand.compare("-"))	++st_wt_minus;
+						if(strand.compare("+")==0)	++st_wt_plus;
+						else if(strand.compare("-")==0)	++st_wt_minus;
+						else if(strand.compare(".")==0)	++st_wt_unknown;
+						else	THROW(Exception, "Found unknown strand '" + QString::fromStdString(strand) + "' for read " + QString::fromStdString(al.Name) + "!");
 					}
 				}
 			}
-			QString field = QString::number(st_mu_minus) + "|" + QString::number(st_wt_minus) + "," + QString::number(st_mu_plus) + "|" + QString::number(st_wt_plus);
+			QString field = QString::number(st_mu_plus) + "|" + QString::number(st_mu_minus) + "|" + QString::number(st_mu_unknown) + "," + QString::number(st_wt_plus) + "|" + QString::number(st_wt_minus) +  + "|" + QString::number(st_wt_unknown);
 			variant.annotations().append(field.toLatin1());
 		}
 		variants.annotations().append(VariantAnnotationHeader("fs"));
-		variants.annotationDescriptions().append(VariantAnnotationDescription("fs", "Strand information. Format: [mutation_plus]|[wildtype_plus],[mutation_minus]|[wildtype_minus].", VariantAnnotationDescription::STRING));
+		variants.annotationDescriptions().append(VariantAnnotationDescription("fs", "Counts for strand information. Format: [mutation_plus]|[mutation_minus]|[mutation_unknown],[wildtype_plus]|[wildtype_minus]|[wildtype_unknown].", VariantAnnotationDescription::STRING, false, QString::number(2), true));
 		variants.store(getOutfile("out"));
 	}
 };

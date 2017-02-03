@@ -471,13 +471,20 @@ void NGSHelper::extractIndelsByCIGAR(QVector<Sequence>& indels, BamAlignment& al
 	}
 }
 
-QString NGSHelper::Cigar2QString(std::vector<CigarOp> Cigar)
+QString NGSHelper::Cigar2QString(std::vector<CigarOp> Cigar, bool expand)
 {
 	QString cigar_string = "";
 	for(unsigned int i=0; i<Cigar.size(); ++i)
 	{
 		CigarOp co = Cigar[i];
-		cigar_string = cigar_string + QString::number(co.Length) + QString(co.Type);
+		if(!expand)	cigar_string = cigar_string + QString::number(co.Length) + QString(co.Type);
+		else
+		{
+			for(unsigned int j=0; j<co.Length; ++j)
+			{
+				cigar_string = cigar_string + QString(co.Type);
+			}
+		}
 	}
 
 	return cigar_string;

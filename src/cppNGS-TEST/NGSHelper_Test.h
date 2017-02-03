@@ -355,6 +355,9 @@ private slots:
 		QString clipped_cigar5 = "36M2D115M";
 		QString clipped_cigar6 = NGSHelper::Cigar2QString(al1.CigarData);
 		S_EQUAL(clipped_cigar5, clipped_cigar6);
+		QString clipped_cigar7 = "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMDDMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM";
+		QString clipped_cigar8 = NGSHelper::Cigar2QString(al1.CigarData, true);
+		S_EQUAL(clipped_cigar7, clipped_cigar8);
 	}
 
 };

@@ -374,6 +374,14 @@ void VariantList::removeAnnotationByName(QString name, bool exact_match, bool er
 	{
 		removeAnnotation(index);
 	}
+
+	for(int i=0; i<annotationDescriptions().count(); ++i)
+	{
+		if ((exact_match && annotationDescriptions()[i].name().compare(name, Qt::CaseInsensitive)==0) || (!exact_match && annotationDescriptions()[i].name().contains(name, Qt::CaseInsensitive)))
+		{
+			annotation_descriptions_.removeAt(i);
+		}
+	}
 }
 
 QStringList VariantList::sampleNames() const
