@@ -28,7 +28,7 @@ Then you have to adapt your ~/.gitconfig file like that:
 
 ngs-bits depends on the following software to be installed
 
-* _g++_
+* _g++_ (4.5 or higher)
 * _qmake_ (Qt 5.3 or higher, including xmlpatterns and mysql package)
 * _git_ (to extract the version hash)
 * _cmake_ (to build the [bamtools](https://github.com/pezmaster31/bamtools) library)
@@ -121,6 +121,7 @@ The default output format of the quality control tools is [qcML](https://github.
 
 
   
+
 
 
 
