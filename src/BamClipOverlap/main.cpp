@@ -163,8 +163,8 @@ public:
 					else if(both_strands==true && s1>=s2 && e1<=e2)	// forward read within reverse read
 					{
 						overlap = forward_read.GetEndPosition()-forward_read.Position;
-						overlap_start  = forward_read.GetEndPosition();
-						overlap_end = forward_read.Position;
+						overlap_start  = forward_read.GetEndPosition()-1;
+						overlap_end = forward_read.Position+1;
 						clip_forward_read = static_cast<int>(overlap/2);
 						clip_reverse_read = static_cast<int>(overlap/2) + (forward_read.Position-reverse_read.Position);
 						if(forward_read.IsFirstMate())	clip_forward_read +=  overlap%2;
@@ -173,8 +173,8 @@ public:
 					else if(both_strands==true && s1<=s2 && e1>=e2)	//reverse read within forward read
 					{
 						overlap = reverse_read.GetEndPosition()-reverse_read.Position;
-						overlap_start  = reverse_read.GetEndPosition();
-						overlap_end = reverse_read.Position;
+						overlap_start  = reverse_read.GetEndPosition()-1;
+						overlap_end = reverse_read.Position+1;
 						clip_forward_read = static_cast<int>(overlap/2) + (forward_read.GetEndPosition()-reverse_read.GetEndPosition());
 						clip_reverse_read = static_cast<int>(overlap/2);
 						if(forward_read.IsFirstMate())	clip_forward_read +=  overlap%2;
@@ -183,16 +183,16 @@ public:
 					else if(both_strands==false && s1>=s2 && e1<=e2)	//forward read lies completely within reverse read
 					{
 						overlap = forward_read.GetEndPosition()-forward_read.Position;
-						overlap_start  = forward_read.GetEndPosition();
-						overlap_end = forward_read.Position;
+						overlap_start  = forward_read.GetEndPosition()-1;
+						overlap_end = forward_read.Position+1;
 						clip_forward_read = overlap;
 						clip_reverse_read = 0;
 					}
 					else if(both_strands==false && s1<=s2 && e1>=e2)	//reverse read lies completely within foward read
 					{
 						overlap = reverse_read.GetEndPosition()-reverse_read.Position;
-						overlap_start  = reverse_read.GetEndPosition();
-						overlap_end = reverse_read.Position;
+						overlap_start  = reverse_read.GetEndPosition()-1;
+						overlap_end = reverse_read.Position+1;
 						clip_forward_read = 0;
 						clip_reverse_read = overlap;
 					}
@@ -229,8 +229,10 @@ public:
 					if(verbose)	out << "reverse read: name - " << QString::fromStdString(reverse_read.Name) << ", region - chr" << reverse_read.RefID << ":" << reverse_read.Position << "-" << reverse_read.GetEndPosition() << ", insert size: "  << reverse_read.InsertSize << " bp; mate: " << reverse_read.MatePosition << ", CIGAR " << NGSHelper::Cigar2QString(reverse_read.CigarData) << ", overlap: " << overlap << " bp" << endl;
 					if(verbose) out << "forward read bases " << QString::fromStdString(forward_read.QueryBases) << endl;
 					if(verbose) out << "forward read qualities " << QString::fromStdString(forward_read.Qualities) << endl;
+					if(verbose) out << "forward CIGAR " << NGSHelper::Cigar2QString(forward_read.CigarData,true) << endl;
 					if(verbose) out << "reverse read bases " << QString::fromStdString(reverse_read.QueryBases) << endl;
 					if(verbose) out << "reverse read qualities " << QString::fromStdString(reverse_read.Qualities) << endl;
+					if(verbose) out << "reverse CIGAR " << NGSHelper::Cigar2QString(reverse_read.CigarData,true) << endl;
 					if(verbose)	out << "  clip forward read from position " << (forward_read.GetEndPosition()-clip_forward_read+1) << " to " << forward_read.GetEndPosition() << endl;
 					if(verbose)	out << "  clip reverse read from position " << (reverse_read.Position+1) << " to " << (reverse_read.Position+clip_reverse_read) << endl;
 
@@ -296,6 +298,7 @@ public:
 					//check if bases in overlap match
 					int start = overlap_start;
 					int end = overlap_end;
+					if(verbose)	out << "  overlap found from " << QString::number(start) << " to " << QString::number(end) << endl;
 
 					int genome_pos = forward_read.Position;
 					int read_pos = 0;
@@ -304,7 +307,7 @@ public:
 					QString forward_cigar = NGSHelper::Cigar2QString(forward_read.CigarData,true);
 					for(int i = 0;i<forward_cigar.length();++i)
 					{
-						if(start<=genome_pos && end>genome_pos)
+						if(genome_pos>=start && genome_pos<end && forward_cigar[i]!='H' && forward_cigar[i]!='S')
 						{
 							QChar current_base = forward_bases[read_pos];
 							if(forward_cigar[i]=='D')	current_base = '-';
@@ -339,7 +342,7 @@ public:
 					QString reverse_cigar = NGSHelper::Cigar2QString(reverse_read.CigarData,true);
 					for(int i=0; i<reverse_cigar.length();++i)
 					{
-						if(start<=genome_pos && end>genome_pos)
+						if(genome_pos>=start && genome_pos<end && reverse_cigar[i]!='H' && reverse_cigar[i]!='S')
 						{
 							QChar current_base = reverse_bases[read_pos];
 							if(reverse_cigar[i]=='D')	current_base = '-';
@@ -382,10 +385,10 @@ public:
 						}
 					}
 					if(forward_overlap.length()!=reverse_overlap.length())	THROW(Exception, "Length mismatch.");	//both cigar and base string should now be equally long
-					if(verbose)	out << "finished indel correction forward bases " << forward_overlap.getBases() << endl;
-					if(verbose)	out << "finished indel correction forward cigar " << forward_overlap.getCigar() << endl;
-					if(verbose)	out << "finished indel correction reverse bases " << reverse_overlap.getBases() << endl;
-					if(verbose)	out << "finished indel correction reverse cigar " << reverse_overlap.getCigar() << endl;
+					if(verbose)	out << "  finished indel correction forward bases " << forward_overlap.getBases() << endl;
+					if(verbose)	out << "  finished indel correction forward cigar " << forward_overlap.getCigar() << endl;
+					if(verbose)	out << "  finished indel correction reverse bases " << reverse_overlap.getBases() << endl;
+					if(verbose)	out << "  finished indel correction reverse cigar " << reverse_overlap.getCigar() << endl;
 
 					//detect mismtaches (read pos for, read pos rev)
 					QList<QPair<int,int>> mm_pos;
