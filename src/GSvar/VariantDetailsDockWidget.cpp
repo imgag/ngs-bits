@@ -108,10 +108,10 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 
 	//pathogenity predictions
 	setAnnotation(ui->phylop, vl, index, "phyloP");
-	setAnnotation(ui->metalr, vl, index, "MetaLR");
 	setAnnotation(ui->sift, vl, index, "Sift");
-	setAnnotation(ui->pp2_hvar, vl, index, "PP2_HVAR");
-	setAnnotation(ui->pp2_hdiv, vl, index, "PP2_HDIV");
+	setAnnotation(ui->metalr, vl, index, "MetaLR");
+	setAnnotation(ui->pp2, vl, index, "PolyPhen2");
+	setAnnotation(ui->fathmm, vl, index, "FATHMM");
 	setAnnotation(ui->cadd, vl, index, "CADD");
 
 	//NGSD
@@ -257,7 +257,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				text = anno;
 			}
 		}
-		else if(name=="MetaLR" || name=="Sift" || name=="PP2_HVAR" || name=="PP2_HDIV")
+		else if(name=="MetaLR" || name=="Sift" || name=="PolyPhen2" || name=="FATHMM")
 		{
 			text = anno.replace("D", formatText("D", RED)).replace("P", formatText("P", ORANGE));
 		}
