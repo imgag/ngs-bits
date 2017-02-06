@@ -163,8 +163,8 @@ public:
 					else if(both_strands==true && s1>=s2 && e1<=e2)	// forward read within reverse read
 					{
 						overlap = forward_read.GetEndPosition()-forward_read.Position;
-						overlap_start  = forward_read.GetEndPosition()-1;
-						overlap_end = forward_read.Position+1;
+						overlap_start  = forward_read.Position;
+						overlap_end = forward_read.GetEndPosition();
 						clip_forward_read = static_cast<int>(overlap/2);
 						clip_reverse_read = static_cast<int>(overlap/2) + (forward_read.Position-reverse_read.Position);
 						if(forward_read.IsFirstMate())	clip_forward_read +=  overlap%2;
@@ -173,8 +173,8 @@ public:
 					else if(both_strands==true && s1<=s2 && e1>=e2)	//reverse read within forward read
 					{
 						overlap = reverse_read.GetEndPosition()-reverse_read.Position;
-						overlap_start  = reverse_read.GetEndPosition()-1;
-						overlap_end = reverse_read.Position+1;
+						overlap_start  = reverse_read.Position;
+						overlap_end = reverse_read.GetEndPosition();
 						clip_forward_read = static_cast<int>(overlap/2) + (forward_read.GetEndPosition()-reverse_read.GetEndPosition());
 						clip_reverse_read = static_cast<int>(overlap/2);
 						if(forward_read.IsFirstMate())	clip_forward_read +=  overlap%2;
@@ -183,16 +183,16 @@ public:
 					else if(both_strands==false && s1>=s2 && e1<=e2)	//forward read lies completely within reverse read
 					{
 						overlap = forward_read.GetEndPosition()-forward_read.Position;
-						overlap_start  = forward_read.GetEndPosition()-1;
-						overlap_end = forward_read.Position+1;
+						overlap_start  = forward_read.Position;
+						overlap_end = forward_read.GetEndPosition();
 						clip_forward_read = overlap;
 						clip_reverse_read = 0;
 					}
 					else if(both_strands==false && s1<=s2 && e1>=e2)	//reverse read lies completely within foward read
 					{
 						overlap = reverse_read.GetEndPosition()-reverse_read.Position;
-						overlap_start  = reverse_read.GetEndPosition()-1;
-						overlap_end = reverse_read.Position+1;
+						overlap_start  = reverse_read.Position;
+						overlap_end = reverse_read.GetEndPosition() ;
 						clip_forward_read = 0;
 						clip_reverse_read = overlap;
 					}
@@ -370,25 +370,25 @@ public:
 					if(verbose)	out << "  finished reading overlap reverse cigar " << reverse_overlap.getCigar() << endl;
 
 					//correct for insertions
-					for(int i=0;i<reverse_overlap.length();++i)
-					{
-						if(forward_overlap.cigar[i]!=reverse_overlap.cigar[i] && reverse_overlap.cigar[i]=="I")
-						{
-							forward_overlap.insert(i,"+","I",forward_overlap.genome_pos[i],forward_overlap.read_pos[i]);
-						}
-					}
 					for(int i=0;i<forward_overlap.length();++i)
 					{
-						if(forward_overlap.cigar[i]!=reverse_overlap.cigar[i] && forward_overlap.cigar[i]=="I")
+						if(forward_overlap.cigar[i]!=reverse_overlap.cigar[i] && forward_overlap.cigar[i]=="I" && forward_overlap.base[i]!="+")
 						{
 							reverse_overlap.insert(i,"+","I",reverse_overlap.genome_pos[i],reverse_overlap.read_pos[i]);
 						}
 					}
-					if(forward_overlap.length()!=reverse_overlap.length())	THROW(Exception, "Length mismatch.");	//both cigar and base string should now be equally long
+					for(int i=0;i<reverse_overlap.length();++i)
+					{
+						if(forward_overlap.cigar[i]!=reverse_overlap.cigar[i] && reverse_overlap.cigar[i]=="I" && reverse_overlap.base[i]!="+")
+						{
+							forward_overlap.insert(i,"+","I",forward_overlap.genome_pos[i],forward_overlap.read_pos[i]);
+						}
+					}
 					if(verbose)	out << "  finished indel correction forward bases " << forward_overlap.getBases() << endl;
 					if(verbose)	out << "  finished indel correction forward cigar " << forward_overlap.getCigar() << endl;
 					if(verbose)	out << "  finished indel correction reverse bases " << reverse_overlap.getBases() << endl;
 					if(verbose)	out << "  finished indel correction reverse cigar " << reverse_overlap.getCigar() << endl;
+					if(forward_overlap.length()!=reverse_overlap.length())	THROW(Exception, "Length mismatch.");	//both cigar and base string should now be equally long
 
 					//detect mismtaches (read pos for, read pos rev)
 					QList<QPair<int,int>> mm_pos;
