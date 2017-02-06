@@ -376,9 +376,7 @@ public:
 						{
 							reverse_overlap.insert(i,"+","I",reverse_overlap.genome_pos[i],reverse_overlap.read_pos[i]);
 						}
-					}
-					for(int i=0;i<reverse_overlap.length();++i)
-					{
+						
 						if(forward_overlap.cigar[i]!=reverse_overlap.cigar[i] && reverse_overlap.cigar[i]=="I" && reverse_overlap.base[i]!="+")
 						{
 							forward_overlap.insert(i,"+","I",forward_overlap.genome_pos[i],forward_overlap.read_pos[i]);
