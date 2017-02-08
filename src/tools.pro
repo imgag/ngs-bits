@@ -13,10 +13,6 @@ cppNGSD.depends = cppNGS
 SUBDIRS += tools-TEST
 tools-TEST.depends = cppNGSD
 
-SUBDIRS += FastqDemultiplex
-tools-TEST.depends += FastqDemultiplex
-FastqDemultiplex.depends = cppNGS
-
 SUBDIRS += SamplesNGSD
 tools-TEST.depends += SamplesNGSD
 SamplesNGSD.depends = cppNGSD
