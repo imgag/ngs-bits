@@ -36,7 +36,7 @@ void GenesToRegionsDialog::convertGenesToRegions()
 	NGSD db;
 	QString messages;
 	QTextStream stream(&messages);
-	regions = db.genesToRegions(genes, source, mode, false, &stream);
+	regions = db.genesToRegions(genes, source, mode, false, false, &stream);
 	int extend_by = ui->expand->value();
 	if(extend_by>0)
 	{

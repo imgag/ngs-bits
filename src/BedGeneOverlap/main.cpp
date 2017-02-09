@@ -26,6 +26,8 @@ public:
 		addEnum("source", "Transcript source database.", false, sources);
 		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
 		addFlag("test", "Uses the test database instead of on the production database.");
+
+		changeLog(2017,  2,  9, "Added RefSeq source.");
 	}
 
 	virtual void main()
@@ -57,7 +59,7 @@ public:
 		{
 			//create gene-specific regions
 			QTextStream messages(stderr);
-			BedFile reg_gene = db.genesToRegions(QStringList() << gene, Transcript::stringToSource(getEnum("source")), "exon", false, &messages);
+			BedFile reg_gene = db.genesToRegions(QStringList() << gene, Transcript::stringToSource(getEnum("source")), "exon", false, false, &messages);
 			reg_gene.merge();
 
 			//append output line

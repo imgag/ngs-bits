@@ -37,7 +37,7 @@ private slots:
 		COMPARE_FILES("out/GenesToBed_out2.bed", TESTDATA("data_out/GenesToBed_out2.bed"));
 	}
 
-	void ccds_gene()
+	void ccds_gene_annotated()
 	{
 		QString host = Settings::string("ngsd_test_host");
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
@@ -48,11 +48,11 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/GenesToBed_init.sql"));
 
 		//test
-		EXECUTE("GenesToBed", "-test -in " + TESTDATA("data_in/GenesToBed_in1.txt") + " -out out/GenesToBed_out3.bed -source ccds -mode gene");
+		EXECUTE("GenesToBed", "-test -in " + TESTDATA("data_in/GenesToBed_in1.txt") + " -out out/GenesToBed_out3.bed -source ccds -mode gene -anno");
 		COMPARE_FILES("out/GenesToBed_out3.bed", TESTDATA("data_out/GenesToBed_out3.bed"));
 	}
 
-	void ccds_exon()
+	void ccds_exon_annotated()
 	{
 		QString host = Settings::string("ngsd_test_host");
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
@@ -63,7 +63,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/GenesToBed_init.sql"));
 
 		//test
-		EXECUTE("GenesToBed", "-test -in " + TESTDATA("data_in/GenesToBed_in1.txt") + " -out out/GenesToBed_out4.bed -source ccds -mode exon");
+		EXECUTE("GenesToBed", "-test -in " + TESTDATA("data_in/GenesToBed_in1.txt") + " -out out/GenesToBed_out4.bed -source ccds -mode exon -anno");
 		COMPARE_FILES("out/GenesToBed_out4.bed", TESTDATA("data_out/GenesToBed_out4.bed"));
 	}
 

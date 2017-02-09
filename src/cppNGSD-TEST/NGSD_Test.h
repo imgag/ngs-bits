@@ -82,34 +82,66 @@ private slots:
 		BedFile regions;
 
 		messages.clear();
-		regions = db.genesToRegions(QStringList() << "BRCA1", Transcript::CCDS, "gene", false, &stream); //gene mode, hit
+		regions = db.genesToRegions(QStringList() << "BRCA1", Transcript::CCDS, "gene", false, false, &stream); //gene mode, hit
+		I_EQUAL(regions.count(), 1);
+		S_EQUAL(regions[0].annotations()[0], "BRCA1");
 		I_EQUAL(regions.baseCount(), 101);
 		IS_TRUE(messages.isEmpty());
 
 		messages.clear();
-		regions = db.genesToRegions(QStringList() << "NIPA1", Transcript::CCDS, "gene", false, &stream); //gene mode, no hit
-		I_EQUAL(regions.baseCount(), 0);
-		IS_FALSE(messages.isEmpty());
-
-		messages.clear();
-		regions = db.genesToRegions(QStringList() << "NIPA1", Transcript::CCDS, "gene", true, &stream); //gene mode, no hit, fallback
+		regions = db.genesToRegions(QStringList() << "NIPA1", Transcript::UCSC, "gene", false, true, &stream); //gene mode, two hits, annotate_transcripts
+		I_EQUAL(regions.count(), 2);
+		S_EQUAL(regions[0].annotations()[0], "NIPA1 NIPA1_TR1");
+		S_EQUAL(regions[1].annotations()[0], "NIPA1 NIPA1_TR2");
+		regions.merge(); //overlapping regions
+		I_EQUAL(regions.count(), 1);
 		I_EQUAL(regions.baseCount(), 301);
 		IS_TRUE(messages.isEmpty());
 
 		messages.clear();
-		regions = db.genesToRegions(QStringList() << "BRCA1", Transcript::CCDS, "exon", false, &stream); //exon mode, hit
-		I_EQUAL(regions.baseCount(), 44);
-		IS_TRUE(messages.isEmpty());
-
-		messages.clear();
-		regions = db.genesToRegions(QStringList() << "NIPA1", Transcript::CCDS, "exon", false, &stream); //exon mode, no hit
+		regions = db.genesToRegions(QStringList() << "NIPA1", Transcript::CCDS, "gene", false, false, &stream); //gene mode, no hit
 		I_EQUAL(regions.baseCount(), 0);
 		IS_FALSE(messages.isEmpty());
 
 		messages.clear();
-		regions = db.genesToRegions(QStringList() << "NIPA1", Transcript::CCDS, "exon", true, &stream); //exon mode, no hit, fallback
+		regions = db.genesToRegions(QStringList() << "NIPA1", Transcript::CCDS, "gene", true, false, &stream); //gene mode, no hit, fallback
+		I_EQUAL(regions.count(), 2);
+		I_EQUAL(regions.baseCount(), 502);
+		regions.merge(); //overlapping regions
+		I_EQUAL(regions.count(), 1);
+		I_EQUAL(regions.baseCount(), 301);
+		IS_TRUE(messages.isEmpty());
+
+		messages.clear();
+		regions = db.genesToRegions(QStringList() << "BRCA1", Transcript::CCDS, "exon", false, false, &stream); //exon mode, hit
+		I_EQUAL(regions.count(), 4);
+		S_EQUAL(regions[0].annotations()[0], "BRCA1");
+		I_EQUAL(regions.baseCount(), 44);
+		IS_TRUE(messages.isEmpty());
+
+		messages.clear();
+		regions = db.genesToRegions(QStringList() << "NIPA1", Transcript::CCDS, "exon", false, false, &stream); //exon mode, no hit
+		I_EQUAL(regions.baseCount(), 0);
+		IS_FALSE(messages.isEmpty());
+
+		messages.clear();
+		regions = db.genesToRegions(QStringList() << "NIPA1", Transcript::CCDS, "exon", true, false, &stream); //exon mode, no hit, fallback
+		I_EQUAL(regions.count(), 4);
 		I_EQUAL(regions.baseCount(), 304);
-		regions.merge(); //serveral tarnsc
+		regions.merge(); //overlapping regions
+		I_EQUAL(regions.count(), 2);
+		I_EQUAL(regions.baseCount(), 202);
+		IS_TRUE(messages.isEmpty());
+
+		messages.clear();
+		regions = db.genesToRegions(QStringList() << "NIPA1", Transcript::UCSC, "exon", false, true, &stream); //exon mode, two hits, annotate_transcripts
+		I_EQUAL(regions.count(), 4);
+		S_EQUAL(regions[0].annotations()[0], "NIPA1 NIPA1_TR1");
+		S_EQUAL(regions[1].annotations()[0], "NIPA1 NIPA1_TR2");
+		S_EQUAL(regions[2].annotations()[0], "NIPA1 NIPA1_TR2");
+		S_EQUAL(regions[3].annotations()[0], "NIPA1 NIPA1_TR1");
+		regions.merge(); //overlapping regions
+		I_EQUAL(regions.count(), 2);
 		I_EQUAL(regions.baseCount(), 202);
 		IS_TRUE(messages.isEmpty());
 

@@ -25,6 +25,8 @@ public:
 		//optional
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");
+
+		changeLog(2017,  2,  9, "Added RefSeq input parameter.");
 	}
 
 	void removeEmptyElements(QList<QByteArray>& list)
