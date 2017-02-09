@@ -278,18 +278,24 @@ public:
 		//parse refGene.txt
 		//http://genome.ucsc.edu/cgi-bin/hgTables?db=hg19&hgta_group=genes&hgta_track=refGene&hgta_table=refGene&hgta_doSchema=describe+table+schema
 		imported = 0;
+		int line_nr = 0;
 		fp = Helper::openFileForReading(getInfile("refGene"));
 		while(!fp->atEnd())
 		{
 			QByteArray line = fp->readLine().trimmed();
 			if (line.isEmpty()) continue;
+			++line_nr;
 
 			QList<QByteArray> parts = line.split('\t');
 			if (parts.count()<16) THROW(FileParseException, fp->fileName() + " contains invalid line: " + line);
 
-			//get gene name
-			QByteArray refseq_id = parts[1];
+			//get identifier and gene name
+			QByteArray refseq_id = parts[1] + " (" + QByteArray::number(line_nr) + ")"; //RefSeq identifiers are not always unique - like this they are.
 			QByteArray gene = parts[12];
+
+			//skip special chromosomes
+			QByteArray chr = parts[2].replace("chr", "");
+			if (chr.contains("_")) continue;
 
 			//check that gene name is an HGNC-approved symbol
 			int gene_id = db.geneToApprovedID(gene);
@@ -300,7 +306,6 @@ public:
 			}
 
 			//check that chromosomes of HGNC/RefSeq match
-			QByteArray chr = parts[2].replace("chr", "");
 			QByteArray hgnc_chr = db.getValue("SELECT chromosome FROM gene WHERE id='" + QString::number(gene_id) + "'").toByteArray();
 			if (hgnc_chr!=chr)
 			{
