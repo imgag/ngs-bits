@@ -22,7 +22,7 @@ public:
 		setDescription("Calculates how much of each overlapping gene is covered.");
 		addInfile("in", "Input BED file. If unset, reads from STDIN.", true);
 		QStringList sources;
-		sources << "ccds" << "ucsc";
+		sources << "ccds" << "refseq" << "ucsc";
 		addEnum("source", "Transcript source database.", false, sources);
 		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
 		addFlag("test", "Uses the test database instead of on the production database.");

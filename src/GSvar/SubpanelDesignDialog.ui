@@ -193,7 +193,7 @@
      <item>
       <widget class="QCheckBox" name="fallback">
        <property name="text">
-        <string>allow fallback to UCSC known genes database, if not CCDS transcript is defined</string>
+        <string>allow fallback to RefSeq database, if not CCDS transcript is defined</string>
        </property>
       </widget>
      </item>

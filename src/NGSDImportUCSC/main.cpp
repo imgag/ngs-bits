@@ -17,10 +17,11 @@ public:
 	virtual void setup()
 	{
 		setDescription("Imports transcript information into NGSD (download from http://hgdownload.cse.ucsc.edu/goldenPath/hg19/database/).");
-		addInfile("ccds", "UCSC ccdsGene.txt file", false);
-		addInfile("ccdsKM", "UCSC ccdsKgMap.txt file", false);
-		addInfile("kg", "UCSC knownGene.txt file", false);
-		addInfile("kgXR", "UCSC kgXref.txt file", false);
+		addInfile("ccds", "UCSC ccdsGene.txt file.", false);
+		addInfile("ccdsKM", "UCSC ccdsKgMap.txt file.", false);
+		addInfile("kg", "UCSC knownGene.txt file.", false);
+		addInfile("kgXR", "UCSC kgXref.txt file.", false);
+		addInfile("refGene", "UCSC refGene.txt file.", false);
 		//optional
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");
@@ -104,6 +105,7 @@ public:
 		out << "Extracted " << ccds2ucsc.count() << " CCDS IDs from " << fp->fileName() << endl;
 
 		//parse knownGene.txt
+		//http://genome.ucsc.edu/cgi-bin/hgTables?db=hg19&hgta_group=genes&hgta_track=knownGene&hgta_table=knownGene&hgta_doSchema=describe+table+schema
 		int imported = 0;
 		fp = Helper::openFileForReading(getInfile("kg"));
 		while(!fp->atEnd())
@@ -177,6 +179,7 @@ public:
 		out << "Imported " << QString::number(imported) + " UCSC transcripts!" << endl;
 
 		//parse ccdsGene.txt
+		//http://genome.ucsc.edu/cgi-bin/hgTables?db=hg19&hgta_group=genes&hgta_track=ccdsGene&hgta_table=ccdsGene&hgta_doSchema=describe+table+schema
 		imported = 0;
 		fp = Helper::openFileForReading(getInfile("ccds"));
 		while(!fp->atEnd())
@@ -230,8 +233,8 @@ public:
 
 			//get rest of transcript information
 			QByteArray strand = parts[3];
-			int start_coding = Helper::toInt(parts[4], "coding start") + 1;
-			int end_coding = Helper::toInt(parts[5], "coding end");
+			int start_coding = Helper::toInt(parts[6], "coding start") + 1;
+			int end_coding = Helper::toInt(parts[7], "coding end");
 			QList<QByteArray> exon_starts = parts[9].split(',');
 			removeEmptyElements(exon_starts);
 			QList<QByteArray> exon_ends = parts[10].split(',');
@@ -271,6 +274,80 @@ public:
 			}
 		}
 		out << "Imported " << QString::number(imported) + " CCDS transcripts!" << endl;
+
+		//parse refGene.txt
+		//http://genome.ucsc.edu/cgi-bin/hgTables?db=hg19&hgta_group=genes&hgta_track=refGene&hgta_table=refGene&hgta_doSchema=describe+table+schema
+		imported = 0;
+		fp = Helper::openFileForReading(getInfile("refGene"));
+		while(!fp->atEnd())
+		{
+			QByteArray line = fp->readLine().trimmed();
+			if (line.isEmpty()) continue;
+
+			QList<QByteArray> parts = line.split('\t');
+			if (parts.count()<16) THROW(FileParseException, fp->fileName() + " contains invalid line: " + line);
+
+			//get gene name
+			QByteArray refseq_id = parts[1];
+			QByteArray gene = parts[12];
+
+			//check that gene name is an HGNC-approved symbol
+			int gene_id = db.geneToApprovedID(gene);
+			if (gene_id==-1)
+			{
+				out << refseq_id << "/" << gene << ": no approved gene name found." << endl;
+				continue;
+			}
+
+			//check that chromosomes of HGNC/RefSeq match
+			QByteArray chr = parts[2].replace("chr", "");
+			QByteArray hgnc_chr = db.getValue("SELECT chromosome FROM gene WHERE id='" + QString::number(gene_id) + "'").toByteArray();
+			if (hgnc_chr!=chr)
+			{
+				QString hgnc_gene = db.getValue("SELECT symbol FROM gene WHERE id='" + QString::number(gene_id) + "'").toString();
+				out << refseq_id << ": chromosome mismatch (RefSeq: " + gene + "/chr" + chr + ", hgnc:" + hgnc_gene + "/chr" + hgnc_chr + ")" << endl;
+				continue; //TODO: handle PAR region on chrX/chrY?!
+			}
+
+			//get rest of transcript information
+			QByteArray strand = parts[3];
+			int start_coding = Helper::toInt(parts[6], "coding start") + 1;
+			int end_coding = Helper::toInt(parts[7], "coding end");
+			QList<QByteArray> exon_starts = parts[9].split(',');
+			removeEmptyElements(exon_starts);
+			QList<QByteArray> exon_ends = parts[10].split(',');
+			removeEmptyElements(exon_ends);
+			if (exon_starts.count()!=exon_ends.count()) THROW(FileParseException, fp->fileName() + " contains exon start/end count mismatch: " + line);
+
+			//insert transcript (gene_id, name, sources, start_coding, end_coding, strand)
+			++imported;
+			qi_trans.bindValue(0, gene_id);
+			qi_trans.bindValue(1, refseq_id);
+			qi_trans.bindValue(2, "refseq");
+			if (start_coding<=end_coding)
+			{
+				qi_trans.bindValue(3, start_coding);
+				qi_trans.bindValue(4, end_coding);
+			}
+			else
+			{
+				qi_trans.bindValue(3, QVariant());
+				qi_trans.bindValue(4, QVariant());
+			}
+			qi_trans.bindValue(5, strand);
+			qi_trans.exec();
+			QVariant trans_id = qi_trans.lastInsertId().toInt();
+
+			//insert exons (transcript_id, start, end)
+			for(int i=0; i<exon_starts.count(); ++i)
+			{
+				qi_exon.bindValue(0, trans_id);
+				qi_exon.bindValue(1, Helper::toInt(exon_starts[i], "exon start") + 1);
+				qi_exon.bindValue(2, Helper::toInt(exon_ends[i], "exon end"));
+				qi_exon.exec();
+			}
+		}
+		out << "Imported " << QString::number(imported) + " RefSeq transcripts!" << endl;
 	}
 };
 

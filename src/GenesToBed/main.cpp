@@ -25,7 +25,7 @@ public:
 		setDescription("Converts a text file with gene names to a BED file.");
 		addInfile("in", "Input TXT file with one gene symbol per line. If unset, reads from STDIN.", true, true);
 		QStringList sources;
-		sources << "ccds" << "ucsc";
+		sources << "ccds" << "refseq" << "ucsc";
 		addEnum("source", "Transcript source database.", false, sources);
 		QStringList modes;
 		modes << "gene" << "exon";

@@ -18,15 +18,15 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportUCSC_init.sql"));
 
 		//test
-		EXECUTE("NGSDImportUCSC", "-test -kg " + TESTDATA("data_in/NGSDImportUCSC_kg.txt") + " -kgXR " + TESTDATA("data_in/NGSDImportUCSC_kgXR.txt") + " -ccdsKM " + TESTDATA("data_in/NGSDImportUCSC_ccdsKM.txt") + " -ccds " + TESTDATA("data_in/NGSDImportUCSC_ccds.txt"));
+		EXECUTE("NGSDImportUCSC", "-test -refGene " + TESTDATA("data_in/NGSDImportUCSC_refGene.txt") + " -kg " + TESTDATA("data_in/NGSDImportUCSC_kg.txt") + " -kgXR " + TESTDATA("data_in/NGSDImportUCSC_kgXR.txt") + " -ccdsKM " + TESTDATA("data_in/NGSDImportUCSC_ccdsKM.txt") + " -ccds " + TESTDATA("data_in/NGSDImportUCSC_ccds.txt"));
 
 		//check
 		int transcript_count = db.getValue("SELECT count(*) FROM gene_transcript").toInt();
-		I_EQUAL(transcript_count, 8)
+		I_EQUAL(transcript_count, 10)
 		int exon_count = db.getValue("SELECT count(*) FROM gene_exon").toInt();
-		I_EQUAL(exon_count, 76)
+		I_EQUAL(exon_count, 106)
 		int non_coding_count = db.getValue("SELECT count(*) FROM gene_transcript WHERE start_coding IS NULL AND end_coding IS NULL").toInt();
-		I_EQUAL(non_coding_count, 3)
+		I_EQUAL(non_coding_count, 4)
 	}
 
 };
