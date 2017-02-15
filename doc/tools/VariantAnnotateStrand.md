@@ -1,15 +1,15 @@
 ### VariantAnnotateStrand tool help
-	VariantAnnotateStrand (0.1-606-g0e1e89d)
+	VariantAnnotateStrand (0.1-630-g7df9763)
 	
 	Annotates strand and family information to variants in a vcf file.
 	
 	Annotates strand information to variants in a vcf file.
-	Bam file has to be annotated using BamDeduplicateByBarcode.
+	BAM file has to be annotated using BamDeduplicateByBarcode.
 	
 	Mandatory parameters:
-	  -vcf <file>  Input vcf file.
+	  -vcf <file>  Input VCF file.
 	  -bam <file>  Input BAM file.
-	  -out <file>  Output vcf file.
+	  -out <file>  Output VCF file.
 	
 	Special parameters:
 	  --help       Shows this help and exits.
@@ -18,7 +18,7 @@
 	  --tdx        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantAnnotateStrand changelog
-	VariantAnnotateStrand 0.1-606-g0e1e89d
+	VariantAnnotateStrand 0.1-630-g7df9763
 	
 	2017-01-17 Initial commit.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

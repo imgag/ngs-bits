@@ -8,6 +8,8 @@ libs:
    - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
+** Target region filter: reset to none if it looses focus in search mode
+** Sub-Panels: show contained genes
 ** Fix COSMIC links
 ** Allow using panel default coverage for report instead of calculating it on the fly.
 ** Annotation: add fast option (for ROI only)
@@ -34,6 +36,7 @@ CnvHunter:
     - alternatively, test intra-sample normalization using the most similar exons on different chromosomes
  * test percentile normalization
  * test on multi-mapped data, chunked data
+ * annotate exons/variants with count of events per exon
  - integrate CNV databases:
    - http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/
    - https://decipher.sanger.ac.uk/disorders#syndromes/overview

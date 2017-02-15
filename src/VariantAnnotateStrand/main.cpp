@@ -29,11 +29,11 @@ public:
 	{
 		setDescription("Annotates strand and family information to variants in a vcf file.");
 		setExtendedDescription(QStringList()	<< "Annotates strand information to variants in a vcf file."
-												<< "Bam file has to be annotated using BamDeduplicateByBarcode."
+												<< "BAM file has to be annotated using BamDeduplicateByBarcode."
 							   );
-		addInfile("vcf", "Input vcf file.", false);
+		addInfile("vcf", "Input VCF file.", false);
 		addInfile("bam", "Input BAM file.", false);
-		addOutfile("out", "Output vcf file.", false);
+		addOutfile("out", "Output VCF file.", false);
 
 		//changelog
 		changeLog(2017,01,17,"Initial commit.");
