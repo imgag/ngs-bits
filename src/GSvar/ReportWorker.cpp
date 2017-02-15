@@ -804,6 +804,25 @@ void ReportWorker::writeXML(QString outfile_name)
 			w.writeAttribute("value", value);
 			w.writeEndElement();
 		}
+
+		//element TranscriptInformation
+		int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, false);
+		if (i_co_sp!=-1)
+		{
+			QList<QByteArray> transcripts = v.annotations()[i_co_sp].split(',');
+			foreach(QByteArray transcript, transcripts)
+			{
+				w.writeStartElement("TranscriptInformation");
+				QList<QByteArray> parts = transcript.split(':');
+				w.writeAttribute("gene", parts[0]);
+				w.writeAttribute("transcript_id", parts[1]);
+				w.writeAttribute("hgvs_c", parts[5]);
+				w.writeAttribute("hgvs_p", parts[6]);
+				w.writeEndElement();
+			}
+		}
+
+		//end of variant
 		w.writeEndElement();
 	}
 	w.writeEndDocument();

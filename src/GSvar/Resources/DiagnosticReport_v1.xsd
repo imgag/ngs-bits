@@ -184,6 +184,33 @@
 												</xs:attribute>
 											</xs:complexType>
 										</xs:element>
+										<xs:element name="TranscriptInformation" minOccurs="0" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>Transcript-specific annotation data</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="gene" use="required">
+													<xs:annotation>
+														<xs:documentation>gene name</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="transcript_id" use="required">
+													<xs:annotation>
+														<xs:documentation>transcript identifier</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="hgvs_c" use="required">
+													<xs:annotation>
+														<xs:documentation>HGVS-compliant  cDNA change</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="hgvs_p" use="required">
+													<xs:annotation>
+														<xs:documentation>HGVS-compliant protein change</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
 									</xs:sequence>
 									<xs:attribute name="chr" type="xs:string" use="required">
 										<xs:annotation>
