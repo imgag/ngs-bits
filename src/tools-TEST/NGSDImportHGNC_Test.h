@@ -15,6 +15,7 @@ private slots:
 		//init
 		NGSD db(true);
 		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportHGNC_init.sql"));
 
 		//test
 		EXECUTE("NGSDImportHGNC", "-test -in " + TESTDATA("data_in/NGSDImportHGNC_in1.txt"));

@@ -21,7 +21,7 @@ public:
 	{
 		setDescription("Filter a variant list based on a target region.");
 		addInfile("in", "Input variant list.", false);
-		addOutfile("out", "Output variant list. If unset, writes to STDOUT.", false);
+		addOutfile("out", "Output variant list.", false);
 		//optional
 		addInfile("reg", "Input target region in BED format.", true);
 		addString("r", "Single target region in the format chr17:41194312-41279500.", true);

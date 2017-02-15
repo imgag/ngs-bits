@@ -37,6 +37,50 @@ public:
 		}
 	}
 
+	void updateGeneinfoGermline(NGSD& db)
+	{
+		QTextStream out(stdout);
+		out << "Updating entries in geneinfo_germline table..." << endl;
+		//get all gene names
+		SqlQuery query = db.getQuery();
+		query.exec("SELECT symbol FROM geneinfo_germline");
+		QSet<QString> genes;
+		while (query.next())
+		{
+			genes << query.value(0).toString();
+		}
+
+		//check if gene names are approved symbols
+		int c_del = 0;
+		int c_upd = 0;
+		foreach(QString gene, genes)
+		{
+			auto approved = db.geneToApproved(gene);
+
+			if (approved.second.startsWith("ERROR:"))
+			{
+				query.exec("DELETE FROM `geneinfo_germline` WHERE symbol='" + gene + "'");
+				++c_del;
+			}
+			if (approved.second.startsWith("REPLACED:"))
+			{
+				if (genes.contains(approved.first))
+				{
+					query.exec("DELETE FROM `geneinfo_germline` WHERE symbol='" + gene + "'");
+					++c_del;
+				}
+				else
+				{
+					query.exec("UPDATE geneinfo_germline SET symbol='" + approved.first + "' WHERE symbol='" + gene + "'");
+					++c_upd;
+				}
+			}
+		}
+		out << "  updated  " << c_upd << " entries" << endl;
+		out << "  deleted  " << c_del << " entries" << endl;
+
+	}
+
 	virtual void main()
 	{
 		//init
@@ -111,6 +155,9 @@ public:
 			addAliases(alias_query, gene_id, parts[6], "previous");
 			addAliases(alias_query, gene_id, parts[8], "synonym");
 		}
+
+		//update gene symbols in geneinfo_germline table
+		updateGeneinfoGermline(db);
 	}
 };
 
