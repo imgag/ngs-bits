@@ -132,6 +132,7 @@ struct most_frequent_read_selection
 	QList <readPair> duplicates;
 	int selected_read_count=0;
 	int all_read_count=0;
+	bool ambiguous_most_freq;
 };
 
 typedef QPair <QHash <barcode_at_pos, QList<readPair> >, QList <barcode_at_pos> > reduced_singles;
@@ -212,6 +213,7 @@ private:
 		{
 			QString line = in.readLine();
 			if (line.startsWith(">")) continue;
+			if (line.startsWith("#"))	continue;
 			QStringList splitted_mip_entry=line.split("\t");
 			if (splitted_mip_entry.size()<16) continue;
 
@@ -539,6 +541,7 @@ private:
 		int max_read_count=0;
 		int all_read_count=0;
 		QString max_seq;
+		bool ambiguous_most_freq = false;
 
 		foreach(QString seq,readpair_seq_count.keys())
 		{
@@ -546,6 +549,11 @@ private:
 			{
 				max_read_count=readpair_seq_count[seq].size();
 				max_seq=seq;
+				ambiguous_most_freq = false;
+			}
+			else if ((readpair_seq_count[seq].size()) == max_read_count)
+			{
+				ambiguous_most_freq = true;
 			}
 			all_read_count+=readpair_seq_count[seq].size();
 		}
@@ -553,6 +561,7 @@ private:
 		result.most_freq_read=readpair_seq_count[max_seq].takeLast();
 		result.selected_read_count=max_read_count;
 		result.all_read_count=all_read_count;
+		result.ambiguous_most_freq = ambiguous_most_freq;
 
 		//collect duplicates
 		foreach (QList <readPair> read_pairs,readpair_seq_count.values())
@@ -757,14 +766,15 @@ private:
 		return selected_read_info.most_freq_read;
 	}
 
-	void outputMip(QMap <Position,mip_info>  &position2mip_info, QHash <int,BarcodeCountInfo> &dup_count_histo, Position act_position, int read_count, int minimal_group_size, barcode_at_pos barcode_and_pos, QList <readPair> read_list, BamTools::BamWriter &writer, QTextStream &duplicate_out_stream, QTextStream &nomatch_out_stream,  bool test)
+	void outputMip(QMap <Position,mip_info>  &position2mip_info, QHash <int,BarcodeCountInfo> &dup_count_histo, Position act_position, int read_count, int minimal_group_size, barcode_at_pos barcode_and_pos, QList <readPair> read_list, BamTools::BamWriter &writer, QTextStream &duplicate_out_stream, QTextStream &nomatch_out_stream, bool delete_ambigous_selection, bool test)
 	{
 		if (position2mip_info.contains(act_position)&&(read_count>=minimal_group_size))
 		{
 			storeReadCountsMip(position2mip_info, dup_count_histo, act_position, read_count, barcode_and_pos.barcode_sum_quality);
 			most_frequent_read_selection read_selection = cutAndSelectPairMip(read_list,position2mip_info[act_position].left_arm,position2mip_info[act_position].right_arm);
-			writePairToBam(writer, annotate_alignment(read_selection,position2mip_info[act_position].strand ));
 			writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,barcode_and_pos.barcode_sequence,test);
+			if ((delete_ambigous_selection) && (read_selection.ambiguous_most_freq)) return;
+			writePairToBam(writer, annotate_alignment(read_selection,position2mip_info[act_position].strand ));
 		}
 		else//write reads not matching a mip to a bed file
 		{
@@ -772,14 +782,15 @@ private:
 		}
 	}
 
-	void outputHS(QMap <Position,hs_info>  &position2hs_info, QHash <int,BarcodeCountInfo> &dup_count_histo, Position act_position, int read_count, int minimal_group_size, barcode_at_pos barcode_and_pos, QList <readPair> read_list, BamTools::BamWriter &writer, QTextStream &duplicate_out_stream, QTextStream &nomatch_out_stream,  bool test)
+	void outputHS(QMap <Position,hs_info>  &position2hs_info, QHash <int,BarcodeCountInfo> &dup_count_histo, Position act_position, int read_count, int minimal_group_size, barcode_at_pos barcode_and_pos, QList <readPair> read_list, BamTools::BamWriter &writer, QTextStream &duplicate_out_stream, QTextStream &nomatch_out_stream, bool delete_ambigous_selection, bool test)
 	{
 		if (position2hs_info.contains(act_position)&&(read_count>=minimal_group_size))//select and count reads that can be matched to haloplex hs barcodes
 		{
 			storeReadCountsHs(position2hs_info, dup_count_histo, act_position, read_count, barcode_and_pos.barcode_sum_quality);
 			most_frequent_read_selection read_selection = clipAndSelectPairHS(read_list,act_position.start_pos,act_position.end_pos);
-			writePairToBam(writer, annotate_alignment(read_selection,position2hs_info[act_position].strand));
 			writeReadsToBed(duplicate_out_stream,act_position,read_selection.duplicates,barcode_and_pos.barcode_sequence,test);
+			if ((delete_ambigous_selection) && (read_selection.ambiguous_most_freq)) return;
+			writePairToBam(writer, annotate_alignment(read_selection,position2hs_info[act_position].strand));
 		}
 		else//write reads not matching a amplicon to a bed file
 		{
@@ -814,6 +825,7 @@ public:
 		addInfile("index", "FASTQ file containing the molecular barcode sequences.", false);
 		addOutfile("out", "Output BAM file.", false);
 		addFlag("test", "adjust output for testing purposes");
+		addFlag("del_amb", "remove barcode families where multiple read are tied for most frequent count");
 		addInt("min_group", "minimal numbers of reads to keep a barcode group.", true, 1);
 		addInt("dist", "edit distance for single read matching .", true, 0);
 		addInfile("mip_file","input file for MIPS (reads are filtered and cut to match only MIP inserts).", true, "");
@@ -836,6 +848,7 @@ public:
 		int edit_distance=getInt("dist");
 		int minimal_group_size=getInt("min_group");
 		bool test =getFlag("test");
+		bool delete_ambigous_selection = getFlag("del_amb");
 
 		//init: setup remaining variables
 		QHash <barcode_at_pos, QList<readPair> > barcode_at_pos2read_list; //hash (index barcode seq + qual + position) => list of reads with that index aligned to that position
@@ -933,11 +946,11 @@ public:
 						Position act_position(barcode_and_pos.start_pos,barcode_and_pos.end_pos,last_ref);
 						if (mip_file!="")
 						{
-							outputMip(position2mip_info, dup_count_histo, act_position, read_count, minimal_group_size, barcode_and_pos, read_list, writer, duplicate_out_stream, nomatch_out_stream, test);
+							outputMip(position2mip_info, dup_count_histo, act_position, read_count, minimal_group_size, barcode_and_pos, read_list, writer, duplicate_out_stream, nomatch_out_stream, delete_ambigous_selection, test);
 						}
 						else if (hs_file!="")
 						{
-							outputHS(position2hs_info, dup_count_histo, act_position, read_count, minimal_group_size, barcode_and_pos, read_list, writer, duplicate_out_stream, nomatch_out_stream, test);
+							outputHS(position2hs_info, dup_count_histo, act_position, read_count, minimal_group_size, barcode_and_pos, read_list, writer, duplicate_out_stream, nomatch_out_stream, delete_ambigous_selection, test);
 						}
 						else
 						{
@@ -971,11 +984,11 @@ public:
 			Position act_position(barcode_and_pos.start_pos,barcode_and_pos.end_pos,last_ref);
 			if (mip_file!="")
 			{
-				outputMip(position2mip_info, dup_count_histo, act_position, read_count, minimal_group_size, barcode_and_pos, read_list, writer, duplicate_out_stream, nomatch_out_stream, test);
+				outputMip(position2mip_info, dup_count_histo, act_position, read_count, minimal_group_size, barcode_and_pos, read_list, writer, duplicate_out_stream, nomatch_out_stream, delete_ambigous_selection, test);
 			}
 			else if (hs_file!="")
 			{
-				outputHS(position2hs_info, dup_count_histo, act_position, read_count, minimal_group_size, barcode_and_pos, read_list, writer, duplicate_out_stream, nomatch_out_stream, test);
+				outputHS(position2hs_info, dup_count_histo, act_position, read_count, minimal_group_size, barcode_and_pos, read_list, writer, duplicate_out_stream, nomatch_out_stream, delete_ambigous_selection, test);
 			}
 			else
 			{
