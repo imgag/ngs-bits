@@ -98,6 +98,8 @@ public:
 
 					while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
 					if (line.startsWith(";"))	continue;	// skip comment / header line
+					if (line.startsWith("browser position"))	continue;
+					if (line.startsWith("track name"))	continue;
 
 					// check that variant is completely covered by amplicons (n.b. deletions)
 					QList<QByteArray> fields = line.split('\t');
