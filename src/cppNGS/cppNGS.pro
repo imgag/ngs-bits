@@ -27,7 +27,7 @@ LIBS += -L$$PWD/../../bin -lcppXML
 
 #include bamtools library
 INCLUDEPATH += $$PWD/../../bamtools/src/
-LIBS += -L$$PWD/../../bamtools/lib/ -l bamtools
+LIBS += -L$$PWD/../../bamtools/lib/ -lbamtools
 
 #include zlib library
 LIBS += -lz

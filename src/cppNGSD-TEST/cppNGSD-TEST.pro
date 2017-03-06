@@ -32,10 +32,6 @@ LIBS += -L$$PWD/../../bin -lcppNGS
 INCLUDEPATH += $$PWD/../cppNGSD
 LIBS += -L$$PWD/../../bin -lcppNGSD
 
-#include bamtools library
-INCLUDEPATH += $$PWD/../../bamtools/include/
-LIBS += -L$$PWD/../../bamtools/lib/ -l bamtools
-
 #include cppTFW library
 INCLUDEPATH += $$PWD/../cppTFW
 
