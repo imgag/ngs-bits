@@ -33,6 +33,8 @@ public:
 							   );
 		addInfile("vcf", "Input VCF file.", false);
 		addInfile("bam", "Input BAM file.", false);
+		addInfile("mip", "Input MIP file.", true);
+		addInfile("hpHS", "Input HaloPlex HS file.", true);
 		addOutfile("out", "Output VCF file.", false);
 
 		//changelog
@@ -56,10 +58,59 @@ public:
 			if (header.name().startsWith("fs"))	variants.removeAnnotationByName(header.name(), true);
 		}
 
+		QString hpHS = getInfile("hpHS");
+		QString mip = getInfile("mip");
 		for (int i=0; i<variants.count(); ++i)
 		{
 			Variant& variant = variants[i];
 
+			// check if +/- strand amplicons are availabe for this region in a MIP file
+			int st_plus = 0;
+			int st_minus = 0;
+			if(mip!="" && hpHS!="")	THROW(ToolFailedException, "MIP or HaloPlex HS file can not be given in parallel.");
+			if(mip!="")
+			{
+				QSharedPointer<QFile> file = Helper::openFileForReading(mip, true);
+				while(!file->atEnd())
+				{
+					QByteArray line = file->readLine();
+
+					while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
+					if (line.startsWith(">"))	continue;	// skip comment / header line
+
+					// check that variant is completely covered by amplicons (n.b. deletions)
+					QList<QByteArray> fields = line.split('\t');
+					if(!variant.overlapsWith(Chromosome("chr"+fields[2]),fields[11].toInt(),fields[12].toInt()))	continue;	//TODO
+
+					QString strand = fields[17];	//TODO
+					if(strand=="+")	++st_plus;
+					else if(strand=="-")	++st_minus;
+					else	THROW(ToolFailedException, "Could not identify if amplicon is lying on + or - strand. Unknown strand " + strand);
+				}
+//				qDebug() << variant.chr().str() << QString::number(variant.start()) << QString::number(st_plus) << QString::number(st_minus);
+			}
+			if(hpHS!="")
+			{
+				QSharedPointer<QFile> file = Helper::openFileForReading(hpHS, true);
+				while(!file->atEnd())
+				{
+					QByteArray line = file->readLine();
+
+					while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
+					if (line.startsWith(";"))	continue;	// skip comment / header line
+
+					// check that variant is completely covered by amplicons (n.b. deletions)
+					QList<QByteArray> fields = line.split('\t');
+					if(!variant.overlapsWith(Chromosome(fields[0]),fields[1].toInt()+1,fields[2].toInt()))	continue;
+
+					QString strand = fields[5];	//TODO
+					if(strand=="+")	++st_plus;
+					else if(strand=="-")	++st_minus;
+					else	THROW(ToolFailedException, "Could not identify if amplicon is lying on + or - strand. Unknown strand " + strand);
+				}
+			}
+
+			// count variants on +/- strand
 			int st_mu_plus = 0;
 			int st_mu_minus = 0;
 			int st_mu_unknown = 0;
@@ -76,11 +127,11 @@ public:
 				BamAlignment al;
 				while (reader.GetNextAlignment(al))
 				{
-					if (!al.IsProperPair()) continue;
+					//if (!al.IsProperPair()) continue;
 					if (!al.IsPrimaryAlignment()) continue;
 					if (al.IsDuplicate()) continue;
 					if (!al.IsMapped()) continue;
-					if (!al.HasTag("fs"))	continue;
+					if (!al.HasTag("fs"))	THROW(ToolFailedException, "No fs tag available for read " + QString::fromStdString(al.Name));
 
 					//snps
 					int read_pos = 0;
@@ -131,10 +182,12 @@ public:
 							THROW(Exception, "Unknown CIGAR operation " + QString(QChar(op.Type)) + "!");
 						}
 
+//						if(variant.start()==21968199)	qDebug() << QString::number(variant.start()) << QString::fromStdString(al.Name) << QString::number(al.Position) << QString::number(genome_pos) << QString::number(read_pos) << NGSHelper::Cigar2QString(al.CigarData);
 						if (genome_pos>=variant.start() && !no_count)
 						{
 							if(!no_count)
 							{
+
 								int actual_pos = read_pos - (genome_pos + 1 - variant.start());
 								QString base = QString(al.QueryBases[actual_pos]);
 
@@ -155,6 +208,8 @@ public:
 									else if(strand.compare(".")==0)	++st_mu_unknown;
 									else	THROW(Exception, "Found unknown strand '" + QString::fromStdString(strand) + "' for read " + QString::fromStdString(al.Name) + "!");
 								}
+
+								no_count = true;	//found and should not be counted anymore
 							}
 						}
 					}
@@ -180,8 +235,8 @@ public:
 					bool found = false;
 
 					//skip low-quality reads
+					//if (!al.IsProperPair()) continue;
 					if (al.IsDuplicate()) continue;
-					if (!al.IsProperPair()) continue;
 					if (!al.IsPrimaryAlignment()) continue;
 					if (!al.IsMapped()) continue;
 					if (!al.HasTag("fs"))	continue;
@@ -253,11 +308,12 @@ public:
 					}
 				}
 			}
-			QString field = QString::number(st_mu_plus) + "|" + QString::number(st_mu_minus) + "|" + QString::number(st_mu_unknown) + "," + QString::number(st_wt_plus) + "|" + QString::number(st_wt_minus) +  + "|" + QString::number(st_wt_unknown);
+
+			QString field = QString::number(st_mu_plus) + "|" + QString::number(st_mu_minus) + "|" + QString::number(st_mu_unknown) + "," + QString::number(st_wt_plus) + "|" + QString::number(st_wt_minus) +  "|" + QString::number(st_wt_unknown) + ((mip!="" || hpHS!="")?"," + QString::number(st_plus) + "|" + QString::number(st_minus):"");
 			variant.annotations().append(field.toLatin1());
 		}
 		variants.annotations().append(VariantAnnotationHeader("fs"));
-		variants.annotationDescriptions().append(VariantAnnotationDescription("fs", "Counts for strand information. Format: [mutation_plus]|[mutation_minus]|[mutation_unknown],[wildtype_plus]|[wildtype_minus]|[wildtype_unknown].", VariantAnnotationDescription::STRING, false, QString::number(2), true));
+		variants.annotationDescriptions().append(VariantAnnotationDescription("fs", "Counts for strand information. Format: [mutation_plus]|[mutation_minus]|[mutation_unknown],[wildtype_plus]|[wildtype_minus]|[wildtype_unknown]" + ((mip!="" || hpHS!="")?QString(",[amplicon_plus_in_design]|[amplicon_minus_in_design]"):"")+".", VariantAnnotationDescription::STRING, false, QString::number(2), true));
 		variants.store(getOutfile("out"));
 	}
 };
