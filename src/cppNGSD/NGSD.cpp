@@ -187,7 +187,7 @@ QString NGSD::variantId(const Variant& variant, bool throw_if_fails)
 {
 	SqlQuery query = getQuery(); //use binding user input (safety)
 	query.prepare("SELECT id FROM variant WHERE chr=:chr AND start='"+QString::number(variant.start())+"' AND end='"+QString::number(variant.end())+"' AND ref=:ref AND obs=:obs");
-	query.bindValue(":chr", variant.chr().str());
+	query.bindValue(":chr", variant.chr().strNormalized(true));
 	query.bindValue(":ref", variant.ref());
 	query.bindValue(":obs", variant.obs());
 	query.exec();
