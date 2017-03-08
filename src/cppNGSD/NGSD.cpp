@@ -569,20 +569,9 @@ void NGSD::annotate(VariantList& variants, QString filename)
 		}
 		//time_cl += timer.elapsed();
 
-		//detected variant infos
+		//comment
 		//timer.restart();
-		int dv_id = -1;
-		QByteArray comment = "";
-		if (found_in_db)
-		{
-			query.exec("SELECT id, comment FROM detected_variant WHERE processed_sample_id='" + ps_id + "' AND variant_id='" + v_id + "'");
-			if (query.size()==1)
-			{
-				query.next();
-				dv_id = query.value(0).toInt();
-				comment = query.value(1).toByteArray();
-			}
-		}
+		QByteArray comment = !found_in_db ? "" : getValue("SELECT comment FROM detected_variant WHERE processed_sample_id='" + ps_id + "' AND variant_id='" + v_id + "'", true).toByteArray();
 		//time_dv += timer.elapsed();
 
 		//validation info
@@ -622,11 +611,10 @@ void NGSD::annotate(VariantList& variants, QString filename)
 		//comments other samples
 		//timer.restart();
 		QList<QByteArray> comments;
-		query.exec("SELECT id, comment FROM detected_variant WHERE variant_id='"+v_id+"' AND comment IS NOT NULL");
+		query.exec("SELECT comment FROM detected_variant WHERE variant_id='"+v_id+"' AND processed_sample_id!='" + ps_id + "' AND comment IS NOT NULL");
 		while(query.next())
 		{
-			if (query.value(0).toInt()==dv_id) continue;
-			QByteArray tmp = query.value(1).toByteArray().trimmed();
+			QByteArray tmp = query.value(0).toByteArray().trimmed();
 			if (tmp!="") comments.append(tmp);
 		}
 		if (comments.size()>0)
@@ -702,10 +690,10 @@ void NGSD::annotate(VariantList& variants, QString filename)
 
 	/*
 	qDebug() << "class   : " << time_cl;
-	qDebug() << "det. var: " << time_dv;
+	qDebug() << "com     : " << time_dv;
 	qDebug() << "val     : " << time_vv;
 	qDebug() << "val oth : " << time_vvo;
-	qDebug() << "comment : " << time_co;
+	qDebug() << "com oth : " << time_co;
 	qDebug() << "counts  : " << time_gt;
 	*/
 }
@@ -848,9 +836,7 @@ QString NGSD::comment(const QString& filename, const Variant& variant)
 
 QString NGSD::url(const QString& filename, const Variant& variant)
 {
-	QString dv_id = getValue("SELECT id FROM detected_variant WHERE processed_sample_id='" + processedSampleId(filename) + "' AND variant_id='" + variantId(variant) + "'", false).toString();
-
-	return Settings::string("NGSD")+"/variants/view/" + dv_id;
+	return Settings::string("NGSD")+"/variants/view/" + processedSampleId(filename) + "," + variantId(variant);
 }
 
 QString NGSD::url(const QString& filename)
