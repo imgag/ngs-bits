@@ -62,6 +62,7 @@ public:
 		NGSHelper::openBAM(reader, getInfile("in"));
 		BamWriter writer;
 		writer.Open(getOutfile("out").toStdString(), reader.GetConstSamHeader(), reader.GetReferenceData());
+		qsrand(QTime::currentTime().msec());	// seed random number generator
 
 		//step 2: get alignments and softclip if necessary
 		BamAlignment al;
@@ -211,17 +212,18 @@ public:
 					//amplicon mode
 					if(getFlag("amplicon"))
 					{
-						bool read = qrand()%2;
-						if(read)
+						int read = qrand()%2;
+						if(read==1)
 						{
 							clip_forward_read = overlap;
 							clip_reverse_read = 0;
 						}
-						else
+						else if(read==0)
 						{
 							clip_forward_read = 0;
 							clip_reverse_read = overlap;
 						}
+						else	THROW(Exception,"Unknown integer.")
 					}
 
 					//verbose mode

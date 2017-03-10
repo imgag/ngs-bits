@@ -35,6 +35,7 @@ public:
 		addInfile("bam", "Input BAM file.", false);
 		addInfile("mip", "Input MIP file.", true);
 		addInfile("hpHS", "Input HaloPlex HS file.", true);
+		addString("name", "Column name.", true);
 		addOutfile("out", "Output VCF file.", false);
 
 		//changelog
@@ -55,7 +56,7 @@ public:
 		QList<VariantAnnotationHeader> headers = variants.annotations();
 		foreach(const VariantAnnotationHeader& header, headers)
 		{
-			if (header.name().startsWith("fs"))	variants.removeAnnotationByName(header.name(), true);
+			if (header.name().endsWith("fs"))	variants.removeAnnotationByName(header.name(), true);
 		}
 
 		QString hpHS = getInfile("hpHS");
@@ -314,8 +315,9 @@ public:
 			QString field = QString::number(st_mu_plus) + "|" + QString::number(st_mu_minus) + "|" + QString::number(st_mu_unknown) + "," + QString::number(st_wt_plus) + "|" + QString::number(st_wt_minus) +  "|" + QString::number(st_wt_unknown) + ((mip!="" || hpHS!="")?"," + QString::number(st_plus) + "|" + QString::number(st_minus):"");
 			variant.annotations().append(field.toLatin1());
 		}
-		variants.annotations().append(VariantAnnotationHeader("fs"));
-		variants.annotationDescriptions().append(VariantAnnotationDescription("fs", "Counts for strand information. Format: [mutation_plus]|[mutation_minus]|[mutation_unknown],[wildtype_plus]|[wildtype_minus]|[wildtype_unknown]" + ((mip!="" || hpHS!="")?QString(",[amplicon_plus_in_design]|[amplicon_minus_in_design]"):"")+".", VariantAnnotationDescription::STRING, false, QString::number(2), true));
+		QString name = (getString("name").isEmpty() ? "" : getString("name") + "_") + "fs";
+		variants.annotations().append(VariantAnnotationHeader(name));
+		variants.annotationDescriptions().append(VariantAnnotationDescription(name, "Counts for strand information. Format: [mutation_plus]|[mutation_minus]|[mutation_unknown],[wildtype_plus]|[wildtype_minus]|[wildtype_unknown]" + ((mip!="" || hpHS!="")?QString(",[amplicon_plus_in_design]|[amplicon_minus_in_design]"):"")+".", VariantAnnotationDescription::STRING, false, QString::number(2), true));
 		variants.store(getOutfile("out"));
 	}
 };
