@@ -215,15 +215,14 @@ public:
 						int read = qrand()%2;
 						if(read==1)
 						{
-							clip_forward_read = overlap;
-							clip_reverse_read = 0;
-						}
-						else if(read==0)
-						{
 							clip_forward_read = 0;
 							clip_reverse_read = overlap;
 						}
-						else	THROW(Exception,"Unknown integer.")
+						else
+						{
+							clip_forward_read = overlap;
+							clip_reverse_read = 0;
+						}
 					}
 
 					//verbose mode

@@ -51,12 +51,13 @@ public:
 
 		BamReader reader;
 		NGSHelper::openBAM(reader, getInfile("bam"));
+		QString name = (getString("name").isEmpty() ? "" : getString("name") + "_") + "fs";
 
 		//remove all columns
 		QList<VariantAnnotationHeader> headers = variants.annotations();
 		foreach(const VariantAnnotationHeader& header, headers)
 		{
-			if (header.name().endsWith("fs"))	variants.removeAnnotationByName(header.name(), true);
+			if (header.name()==name)	variants.removeAnnotationByName(header.name(), true);
 		}
 
 		QString hpHS = getInfile("hpHS");
@@ -315,7 +316,6 @@ public:
 			QString field = QString::number(st_mu_plus) + "|" + QString::number(st_mu_minus) + "|" + QString::number(st_mu_unknown) + "," + QString::number(st_wt_plus) + "|" + QString::number(st_wt_minus) +  "|" + QString::number(st_wt_unknown) + ((mip!="" || hpHS!="")?"," + QString::number(st_plus) + "|" + QString::number(st_minus):"");
 			variant.annotations().append(field.toLatin1());
 		}
-		QString name = (getString("name").isEmpty() ? "" : getString("name") + "_") + "fs";
 		variants.annotations().append(VariantAnnotationHeader(name));
 		variants.annotationDescriptions().append(VariantAnnotationDescription(name, "Counts for strand information. Format: [mutation_plus]|[mutation_minus]|[mutation_unknown],[wildtype_plus]|[wildtype_minus]|[wildtype_unknown]" + ((mip!="" || hpHS!="")?QString(",[amplicon_plus_in_design]|[amplicon_minus_in_design]"):"")+".", VariantAnnotationDescription::STRING, false, QString::number(2), true));
 		variants.store(getOutfile("out"));
