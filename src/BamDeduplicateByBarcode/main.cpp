@@ -241,6 +241,18 @@ private:
 			new_mip_info.counter_singles = 0;
 			new_mip_info.strand = splitted_mip_entry[17].toStdString();
 
+			if (mip_info_map.contains(mip_position))
+			{
+				mip_info old_entry = mip_info_map[mip_position];
+				new_mip_info.name = old_entry.name + ";" + new_mip_info.name;
+				if (new_mip_info.strand != old_entry.strand)
+				{
+					new_mip_info.strand = ".";
+				}
+				new_mip_info.left_arm = qMin(new_mip_info.left_arm, old_entry.left_arm);
+				new_mip_info.right_arm = qMax(new_mip_info.left_arm, old_entry.right_arm);
+			}
+
 			mip_info_map[mip_position]=new_mip_info;
 		}
 		input_file.close();
