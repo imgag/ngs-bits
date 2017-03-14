@@ -475,10 +475,8 @@ CREATE  TABLE IF NOT EXISTS `variant` (
   `gene` TEXT NULL DEFAULT NULL,
   `variant_type` TEXT NULL DEFAULT NULL,
   `coding` TEXT NULL DEFAULT NULL,
-  `genome_id` INT(11) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `variant_UNIQUE` (`chr` ASC, `start` ASC, `end` ASC, `ref`(255) ASC, `obs`(255) ASC),
-  INDEX `fk_variant_genome1` (`genome_id` ASC),
   INDEX `chr` (`chr` ASC),
   INDEX `start` (`start` ASC),
   INDEX `end` (`end` ASC),
@@ -486,11 +484,7 @@ CREATE  TABLE IF NOT EXISTS `variant` (
   INDEX `obs` (`obs`(255) ASC),
   INDEX `gene` (`gene`(50) ASC),
   INDEX `1000g` (`1000g` ASC),
-  INDEX `exac` (`exac` ASC),
-  CONSTRAINT `fk_variant_genome1`
-    FOREIGN KEY (`genome_id`)
-    REFERENCES `genome` (`id`)
-    ON UPDATE NO ACTION
+  INDEX `exac` (`exac` ASC)
 )
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
