@@ -1350,4 +1350,7 @@ duplicate counts	# of barcodes	percentage of barcodes	percentage of reads	averag
 read pairs matching defined amplicons before deduplication:	3349
 read pairs matching defined amplicons after deduplication:	3338 (99.67%)
 
-0 read(s) were deleted in target region because of ambiguity of single matching
+0 read(s) were deleted because they didn't reach the given groupsize threshold
+1617 read(s) were deleted because their position didn't match any MIP
+0 read(s) were deleted because of ambiguity of single matching
+0 read(s) were deleted because of ambiguity of majority vote
