@@ -90,7 +90,8 @@ HEADERS += \
     NGSDInit_Test.h \
     SomaticQC_Test.h \
     NGSDImportGeneInfo_Test.h \	
-    VariantAnnotateStrand.h
+    VariantAnnotateStrand_Test.h \	
+    VcfAnnotateFromBed_Test.h \
 
 SOURCES += \
     main.cpp \

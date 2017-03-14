@@ -285,6 +285,10 @@ SUBDIRS += VariantAnnotateStrand
 tools-TEST.depends += VariantAnnotateStrand
 VariantAnnotateStrand.depends = cppNGS
 
+SUBDIRS += VcfAnnotateFromBed
+tools-TEST.depends += VcfAnnotateFromBed
+VcfAnnotateFromBed.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt
 

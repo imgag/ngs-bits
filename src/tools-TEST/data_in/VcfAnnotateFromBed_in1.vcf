@@ -1,0 +1,212 @@
+##fileformat=VCFv4.1
+##fileDate=20161019
+##source=freeBayes v1.0.2
+##reference=/tmp/local_ngs_data//hg19.fa
+##phasing=none
+##commandline="/mnt/share/opt/freebayes-1.0.2/bin/freebayes -b /mnt/projects//gs_test/KontrollDNACoriell/Sample_NA12878_03//NA12878_03.bam -f /tmp/local_ngs_data//hg19.fa -t /tmp/31980.1.srv018long/vc_freebayes_JhU8tK.bed --min-alternate-fraction 0.1 --min-mapping-quality 1 --min-base-quality 20 --min-alternate-qsum 90"
+##filter="QUAL > 5 & AO > 2"
+##INFO=<ID=NS,Number=.,Type=Integer,Description="Number of samples with data">
+##INFO=<ID=DP,Number=.,Type=Integer,Description="Total read depth at the locus">
+##INFO=<ID=DPB,Number=.,Type=Float,Description="Total read depth per bp at the locus; bases in reads overlapping / bases in haplotype">
+##INFO=<ID=AC,Number=A,Type=Integer,Description="Total number of alternate alleles in called genotypes">
+##INFO=<ID=AN,Number=.,Type=Integer,Description="Total number of alleles in called genotypes">
+##INFO=<ID=AF,Number=A,Type=Float,Description="Estimated allele frequency in the range (0,1]">
+##INFO=<ID=RO,Number=.,Type=Integer,Description="Reference allele observation count, with partial observations recorded fractionally">
+##INFO=<ID=AO,Number=A,Type=Integer,Description="Alternate allele observations, with partial observations recorded fractionally">
+##INFO=<ID=PRO,Number=.,Type=Float,Description="Reference allele observation count, with partial observations recorded fractionally">
+##INFO=<ID=PAO,Number=A,Type=Float,Description="Alternate allele observations, with partial observations recorded fractionally">
+##INFO=<ID=QR,Number=.,Type=Integer,Description="Reference allele quality sum in phred">
+##INFO=<ID=QA,Number=A,Type=Integer,Description="Alternate allele quality sum in phred">
+##INFO=<ID=PQR,Number=.,Type=Float,Description="Reference allele quality sum in phred for partial observations">
+##INFO=<ID=PQA,Number=A,Type=Float,Description="Alternate allele quality sum in phred for partial observations">
+##INFO=<ID=SRF,Number=.,Type=Integer,Description="Number of reference observations on the forward strand">
+##INFO=<ID=SRR,Number=.,Type=Integer,Description="Number of reference observations on the reverse strand">
+##INFO=<ID=SAF,Number=A,Type=Integer,Description="Number of alternate observations on the forward strand">
+##INFO=<ID=SAR,Number=A,Type=Integer,Description="Number of alternate observations on the reverse strand">
+##INFO=<ID=SRP,Number=.,Type=Float,Description="Strand balance probability for the reference allele: Phred-scaled upper-bounds estimate of the probability of observing the deviation between SRF and SRR given E(SRF/SRR) ~ 0.5, derived using Hoeffding's inequality">
+##INFO=<ID=SAP,Number=A,Type=Float,Description="Strand balance probability for the alternate allele: Phred-scaled upper-bounds estimate of the probability of observing the deviation between SAF and SAR given E(SAF/SAR) ~ 0.5, derived using Hoeffding's inequality">
+##INFO=<ID=AB,Number=A,Type=Float,Description="Allele balance at heterozygous sites: a number between 0 and 1 representing the ratio of reads showing the reference allele to all reads, considering only reads from individuals called as heterozygous">
+##INFO=<ID=ABP,Number=A,Type=Float,Description="Allele balance probability at heterozygous sites: Phred-scaled upper-bounds estimate of the probability of observing the deviation between ABR and ABA given E(ABR/ABA) ~ 0.5, derived using Hoeffding's inequality">
+##INFO=<ID=RUN,Number=A,Type=Integer,Description="Run length: the number of consecutive repeats of the alternate allele in the reference genome">
+##INFO=<ID=RPP,Number=A,Type=Float,Description="Read Placement Probability: Phred-scaled upper-bounds estimate of the probability of observing the deviation between RPL and RPR given E(RPL/RPR) ~ 0.5, derived using Hoeffding's inequality">
+##INFO=<ID=RPPR,Number=.,Type=Float,Description="Read Placement Probability for reference observations: Phred-scaled upper-bounds estimate of the probability of observing the deviation between RPL and RPR given E(RPL/RPR) ~ 0.5, derived using Hoeffding's inequality">
+##INFO=<ID=RPL,Number=A,Type=Float,Description="Reads Placed Left: number of reads supporting the alternate balanced to the left (5') of the alternate allele">
+##INFO=<ID=RPR,Number=A,Type=Float,Description="Reads Placed Right: number of reads supporting the alternate balanced to the right (3') of the alternate allele">
+##INFO=<ID=EPP,Number=A,Type=Float,Description="End Placement Probability: Phred-scaled upper-bounds estimate of the probability of observing the deviation between EL and ER given E(EL/ER) ~ 0.5, derived using Hoeffding's inequality">
+##INFO=<ID=EPPR,Number=.,Type=Float,Description="End Placement Probability for reference observations: Phred-scaled upper-bounds estimate of the probability of observing the deviation between EL and ER given E(EL/ER) ~ 0.5, derived using Hoeffding's inequality">
+##INFO=<ID=DPRA,Number=A,Type=Float,Description="Alternate allele depth ratio.  Ratio between depth in samples with each called alternate allele and those without.">
+##INFO=<ID=ODDS,Number=.,Type=Float,Description="The log odds ratio of the best genotype combination to the second-best.">
+##INFO=<ID=GTI,Number=.,Type=Integer,Description="Number of genotyping iterations required to reach convergence or bailout.">
+##INFO=<ID=TYPE,Number=A,Type=String,Description="The type of allele, either snp, mnp, ins, del, or complex.">
+##INFO=<ID=CIGAR,Number=A,Type=String,Description="The extended CIGAR representation of each alternate allele, with the exception that '=' is replaced by 'M' to ease VCF parsing.  Note that INDEL alleles do not have the first matched base (which is provided by default, per the spec) referred to by the CIGAR.">
+##INFO=<ID=NUMALT,Number=.,Type=Integer,Description="Number of unique non-reference alleles in called genotypes at this position.">
+##INFO=<ID=MEANALT,Number=A,Type=Float,Description="Mean number of unique non-reference allele observations per sample with the corresponding alternate alleles.">
+##INFO=<ID=LEN,Number=A,Type=Integer,Description="allele length">
+##INFO=<ID=MQM,Number=A,Type=Float,Description="Mean mapping quality of observed alternate alleles">
+##INFO=<ID=MQMR,Number=.,Type=Float,Description="Mean mapping quality of observed reference alleles">
+##INFO=<ID=PAIRED,Number=A,Type=Float,Description="Proportion of observed alternate alleles which are supported by properly paired read fragments">
+##INFO=<ID=PAIREDR,Number=.,Type=Float,Description="Proportion of observed reference alleles which are supported by properly paired read fragments">
+##INFO=<ID=MIN,Number=1,Type=Integer,Description="Minimum depth in gVCF output block.">
+##INFO=<ID=END,Number=1,Type=Integer,Description="Last position (inclusive) in gVCF output record.">
+##INFO=<ID=technology.ILLUMINA,Number=A,Type=Float,Description="Fraction of observations supporting the alternate observed in reads from ILLUMINA">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=GQ,Number=1,Type=Float,Description="Genotype Quality, the Phred-scaled marginal (or unconditional) probability of the called genotype">
+##FORMAT=<ID=GL,Number=G,Type=Float,Description="Genotype Likelihood, log10-scaled likelihoods of the data given the called genotype for each possible genotype generated from the reference and alternate alleles given the sample ploidy">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read Depth">
+##FORMAT=<ID=RO,Number=1,Type=Integer,Description="Reference allele observation count">
+##FORMAT=<ID=QR,Number=1,Type=Integer,Description="Sum of quality of the reference observations">
+##FORMAT=<ID=AO,Number=A,Type=Integer,Description="Alternate allele observation count">
+##FORMAT=<ID=QA,Number=A,Type=Integer,Description="Sum of quality of the alternate observations">
+##FORMAT=<ID=MIN,Number=1,Type=Integer,Description="Minimum depth in gVCF output block.">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA12878
+chr1	27687466	.	G	T	9673	.	MQM=60	GT:DP:AO	0/1:722:371
+chr1	45797505	.	C	G	3077	.	MQM=60	GT:DP:AO	0/1:228:115
+chr1	62713224	.	C	G	1165	.	MQM=60	GT:DP:AO	1/1:37:37
+chr1	62713246	.	G	A	1311	.	MQM=60	GT:DP:AO	0/1:117:51
+chr1	62728784	.	A	G	38097	.	MQM=60	GT:DP:AO	1/1:1194:1194
+chr1	62728838	.	T	C	35217	.	MQM=60	GT:DP:AO	1/1:1128:1128
+chr1	62728861	.	T	C	35517	.	MQM=60	GT:DP:AO	1/1:1118:1117
+chr1	62728918	.	G	A	5508	.	MQM=60	GT:DP:AO	1/1:180:180
+chr1	62732421	.	T	C	11204	.	MQM=60	GT:DP:AO	0/1:857:442
+chr1	62738904	.	T	C	1817	.	MQM=60	GT:DP:AO	1/1:62:62
+chr1	62739198	.	G	A	1755	.	MQM=60	GT:DP:AO	0/1:140:69
+chr1	62740065	.	A	G	1443	.	MQM=60	GT:DP:AO	0/1:119:58
+chr1	62740446	.	T	C	7262	.	MQM=60	GT:DP:AO	1/1:230:229
+chr1	62740449	.	T	C	7262	.	MQM=60	GT:DP:AO	1/1:230:229
+chr1	78578177	.	T	C	4935	.	MQM=60	GT:DP:AO	0/1:409:185
+chr1	120458004	.	A	T	1754	.	MQM=60	GT:DP:AO	0/1:127:70
+chr1	120539331	.	C	T	24963	.	MQM=49	GT:DP:AO	0/1:1886:978
+chr1	120611496	.	C	A	276	.	MQM=47	GT:DP:AO	0/1:41:20
+chr1	120611960	.	C	T	4746	.	MQM=47	GT:DP:AO	0/1:1920:405
+chr1	120611964	.	G	C	16501	.	MQM=59	GT:DP:AO	0/1:1927:738
+chr1	120612002	.	CGG	C	3785	.	MQM=48	GT:DP:AO	0/1:2016:389
+chr1	120612006	.	G	A	18427	.	MQM=58	GT:DP:AO	0/1:2004:780
+chr1	120612034	.	T	G	3634	.	MQM=48	GT:DP:AO	0/1:1994:399
+chr2	17942775	.	T	A	3025	.	MQM=60	GT:DP:AO	1/1:91:91
+chr2	17954027	.	G	A	959	.	MQM=60	GT:DP:AO	1/1:29:29
+chr2	17962450	.	A	G	3044	.	MQM=60	GT:DP:AO	1/1:93:93
+chr2	17962518	.	C	T	3585	.	MQM=60	GT:DP:AO	1/1:111:111
+chr2	47601106	.	T	C	747	.	MQM=60	GT:DP:AO	0/1:41:30
+chr2	48010488	.	G	A	143	.	MQM=60	GT:DP:AO	0/1:14:7
+chr2	48030692	.	T	A	247	.	MQM=60	GT:DP:AO	0/1:17:11
+chr2	147596973	.	A	G	10829	.	MQM=60	GT:DP:AO	0/1:814:415
+chr2	215595164	.	G	A	261	.	MQM=60	GT:DP:AO	0/1:27:12
+chr2	215632255	.	C	T	3036	.	MQM=60	GT:DP:AO	0/1:109:60
+chr2	215632256	.	A	G	3036	.	MQM=60	GT:DP:AO	1/1:109:60
+chr2	215645464	.	C	G	1090	.	MQM=60	GT:DP:AO	0/1:79:42
+chr2	215674224	.	G	A	8449	.	MQM=60	GT:DP:AO	0/1:775:380
+chr2	220416942	.	G	C	1036	.	MQM=60	GT:DP:AO	1/1:33:33
+chr2	220417266	.	C	T	4440	.	MQM=60	GT:DP:AO	1/1:146:146
+chr2	220419236	.	T	C	14156	.	MQM=60	GT:DP:AO	1/1:460:460
+chr2	220419339	.	T	C	21447	.	MQM=60	GT:DP:AO	1/1:685:685
+chr2	220420956	.	A	G	1331	.	MQM=60	GT:DP:AO	1/1:50:50
+chr2	220421417	.	C	G	23310	.	MQM=60	GT:DP:AO	1/1:726:726
+chr2	220422686	.	C	T	525	.	MQM=60	GT:DP:AO	0/1:62:27
+chr2	220422774	.	A	G	23903	.	MQM=60	GT:DP:AO	1/1:748:748
+chr2	220430203	.	C	T	23605	.	MQM=60	GT:DP:AO	1/1:730:730
+chr2	220435034	.	A	G	20207	.	MQM=60	GT:DP:AO	1/1:634:634
+chr2	220435375	.	G	A	364	.	MQM=60	GT:DP:AO	0/1:18:15
+chr3	10085536	.	A	G	2151	.	MQM=60	GT:DP:AO	0/1:292:126
+chr3	10089723	.	G	A	95	.	MQM=39	GT:DP:AO	0/1:144:30
+chr3	10106532	.	C	T	1265	.	MQM=60	GT:DP:AO	0/1:74:47
+chr3	10138069	.	T	G	9024	.	MQM=60	GT:DP:AO	0/1:767:359
+chr3	142168331	.	C	T	1580	.	MQM=60	GT:DP:AO	1/1:48:48
+chr3	142178144	.	C	T	1052	.	MQM=60	GT:DP:AO	0/1:77:42
+chr3	142188337	.	A	C	9939	.	MQM=60	GT:DP:AO	0/1:680:383
+chr3	142217537	.	A	G	3568	.	MQM=60	GT:DP:AO	0/1:347:176
+chr3	142277575	.	A	T	3122	.	MQM=60	GT:DP:AO	0/1:267:124
+chr3	142281612	.	A	G	6530	.	MQM=60	GT:DP:AO	0/1:524:254
+chr5	57617403	.	G	C	11917	.	MQM=60	GT:DP:AO	0/1:929:463
+chr5	79950781	.	A	G	420	.	MQM=60	GT:DP:AO	0/1:38:18
+chr5	80149981	.	A	G	27931	.	MQM=60	GT:DP:AO	1/1:894:894
+chr5	80168937	.	G	A	3732	.	MQM=60	GT:DP:AO	1/1:111:111
+chr5	112162854	.	T	C	1632	.	MQM=60	GT:DP:AO	0/1:181:74
+chr5	112164561	.	G	A	2508	.	MQM=60	GT:DP:AO	0/1:177:90
+chr5	112175770	.	G	A	5139	.	MQM=60	GT:DP:AO	0/1:417:203
+chr5	112176325	.	G	A	236	.	MQM=60	GT:DP:AO	0/1:25:13
+chr5	112176559	.	T	G	3244	.	MQM=60	GT:DP:AO	0/1:259:127
+chr5	112176756	.	T	A	4233	.	MQM=60	GT:DP:AO	0/1:367:166
+chr5	112177171	.	G	A	9860	.	MQM=60	GT:DP:AO	0/1:804:388
+chr5	131925483	.	G	C	814	.	MQM=60	GT:DP:AO	0/1:67:33
+chr6	35423662	.	A	C	855	.	MQM=60	GT:DP:AO	0/1:96:38
+chr6	131148863	.	A	T	4359	.	MQM=60	GT:DP:AO	0/1:361:188
+chr7	6026775	.	T	C	524	.	MQM=60	GT:DP:AO	1/1:21:21
+chr7	6036980	.	G	C	714	.	MQM=60	GT:DP:AO	1/1:22:22
+chr7	6037057	.	G	GA	161	.	MQM=60	GT:DP:AO	0/1:23:11
+chr7	128846328	.	G	C	28312	.	MQM=60	GT:DP:AO	1/1:899:899
+chr7	142460313	.	T	C	4872	.	MQM=60	GT:DP:AO	1/1:163:161
+chr7	142460865	.	T	C	10075	.	MQM=60	GT:DP:AO	1/1:347:347
+chr8	90958422	.	T	C	579	.	MQM=60	GT:DP:AO	0/1:46:25
+chr8	90958530	.	T	C	380	.	MQM=60	GT:DP:AO	0/1:35:16
+chr8	90967711	.	A	G	338	.	MQM=60	GT:DP:AO	0/1:36:15
+chr8	90990479	.	C	G	10729	.	MQM=60	GT:DP:AO	0/1:820:413
+chr8	90995019	.	C	T	103	.	MQM=60	GT:DP:AO	0/1:18:7
+chr8	107236280	.	G	T	20492	.	MQM=60	GT:DP:AO	1/1:641:641
+chr9	5921881	.	G	A	15076	.	MQM=60	GT:DP:AO	0/1:1040:554
+chr9	17273878	.	A	G	1135	.	MQM=60	GT:DP:AO	0/1:63:45
+chr9	17342383	.	C	T	983	.	MQM=60	GT:DP:AO	1/1:30:30
+chr9	17394536	.	C	T	1754	.	MQM=60	GT:DP:AO	1/1:55:55
+chr9	17394996	.	T	C	3131	.	MQM=60	GT:DP:AO	1/1:97:97
+chr9	17409366	.	G	A	12082	.	MQM=60	GT:DP:AO	1/1:378:378
+chr9	17457512	.	TA	T	104	.	MQM=60	GT:DP:AO	1/1:4:4
+chr9	21971137	.	T	G	264	.	MQM=60	GT:DP:AO	0/1:50:23
+chr9	35074917	.	T	C	3114	.	MQM=60	GT:DP:AO	1/1:98:98
+chr9	90062823	.	A	G	14819	.	MQM=60	GT:DP:AO	1/1:515:515
+chr9	98209594	.	G	A	1177	.	MQM=60	GT:DP:AO	0/1:67:46
+chr9	98232223	.	GA	G	261	.	MQM=60	GT:DP:AO	0/1:57:30
+chr10	43595968	.	A	G	16174	.	MQM=60	GT:DP:AO	1/1:519:519
+chr10	43613843	.	G	T	37407	.	MQM=60	GT:DP:AO	1/1:1133:1133
+chr10	88635779	.	C	A	845	.	MQM=52	GT:DP:AO	0/1:69:39
+chr10	104264107	.	C	T	9673	.	MQM=60	GT:DP:AO	1/1:384:384
+chr10	104387019	.	T	C	14782	.	MQM=60	GT:DP:AO	0/1:1165:572
+chr10	104389932	.	T	G	59072	.	MQM=60	GT:DP:AO	1/1:1845:1845
+chr11	13102924	.	G	A	271	.	MQM=60	GT:DP:AO	0/1:25:13
+chr11	64572018	.	T	C	8048	.	MQM=60	GT:DP:AO	1/1:246:246
+chr11	64572557	.	A	G	6503	.	MQM=60	GT:DP:AO	1/1:200:200
+chr11	108175394	.	T	C	161	.	MQM=60	GT:DP:AO	0/1:14:8
+chr11	108175462	.	G	A	388	.	MQM=60	GT:DP:AO	0/1:30:16
+chr11	108183167	.	A	G	14140	.	MQM=60	GT:DP:AO	1/1:443:443
+chr11	125525195	.	A	G	1962	.	MQM=60	GT:DP:AO	1/1:59:59
+chr13	32911888	.	A	G	803	.	MQM=60	GT:DP:AO	0/1:71:34
+chr13	32913055	.	A	G	31771	.	MQM=60	GT:DP:AO	1/1:973:973
+chr13	32915005	.	G	C	857	.	MQM=60	GT:DP:AO	1/1:26:26
+chr13	32929232	.	A	G	445	.	MQM=60	GT:DP:AO	0/1:35:19
+chr13	32929387	.	T	C	19168	.	MQM=60	GT:DP:AO	1/1:582:582
+chr13	79766188	.	A	G	10911	.	MQM=60	GT:DP:AO	0/1:815:421
+chr14	45606387	.	A	G	596	.	MQM=60	GT:DP:AO	0/1:52:25
+chr14	104165753	.	G	A	12756	.	MQM=60	GT:DP:AO	0/1:948:486
+chr15	43701946	.	TA	T	368	.	MQM=60	GT:DP:AO	0/1:58:25
+chr15	43707808	.	A	T	1600	.	MQM=60	GT:DP:AO	0/1:130:61
+chr15	43724646	.	T	G	19890	.	MQM=60	GT:DP:AO	1/1:624:623
+chr15	43748304	.	A	G	30103	.	MQM=60	GT:DP:AO	1/1:949:949
+chr15	43762196	.	C	T	3276	.	MQM=60	GT:DP:AO	0/1:203:119
+chr15	43767774	.	G	C	3605	.	MQM=60	GT:DP:AO	1/1:116:116
+chr16	3639139	.	A	G	1350	.	MQM=60	GT:DP:AO	0/1:100:53
+chr16	3639230	.	G	A	1406	.	MQM=60	GT:DP:AO	0/1:109:53
+chr16	68771372	.	C	T	3989	.	MQM=60	GT:DP:AO	1/1:125:125
+chr16	68857441	.	T	C	14734	.	MQM=60	GT:DP:AO	0/1:1126:589
+chr16	81816733	.	C	T	4971	.	MQM=60	GT:DP:AO	0/1:419:211
+chr16	89836323	.	C	T	825	.	MQM=60	GT:DP:AO	0/1:92:37
+chr16	89838078	.	A	G	12772	.	MQM=60	GT:DP:AO	0/1:1034:500
+chr16	89849480	.	C	T	6693	.	MQM=60	GT:DP:AO	1/1:199:199
+chr16	89866043	.	T	C	9348	.	MQM=60	GT:DP:AO	0/1:724:360
+chr17	7579472	.	G	C	7571	.	MQM=60	GT:DP:AO	0/1:555:299
+chr17	29553485	.	G	A	2514	.	MQM=60	GT:DP:AO	1/1:83:83
+chr17	33433487	.	C	T	2514	.	MQM=60	GT:DP:AO	1/1:84:84
+chr17	33445549	.	G	A	1499	.	MQM=60	GT:DP:AO	0/1:114:58
+chr17	41223094	.	T	C	4307	.	MQM=60	GT:DP:AO	0/1:414:192
+chr17	41234470	.	A	G	321	.	MQM=60	GT:DP:AO	0/1:32:15
+chr17	41244000	.	T	C	4691	.	MQM=60	GT:DP:AO	0/1:347:171
+chr17	41244435	.	T	C	10733	.	MQM=60	GT:DP:AO	0/1:958:463
+chr17	41244936	.	G	A	2116	.	MQM=60	GT:DP:AO	0/1:128:75
+chr17	41245237	.	A	G	1541	.	MQM=60	GT:DP:AO	0/1:126:58
+chr17	41245466	.	G	A	458	.	MQM=60	GT:DP:AO	0/1:60:26
+chr17	59760996	.	A	G	7596	.	MQM=60	GT:DP:AO	1/1:305:305
+chr17	59763347	.	A	G	369	.	MQM=60	GT:DP:AO	1/1:12:12
+chr17	59763465	.	T	C	3654	.	MQM=60	GT:DP:AO	1/1:113:113
+chr18	19995753	.	T	C	428	.	MQM=60	GT:DP:AO	1/1:17:17
+chr18	19996011	.	G	A	1512	.	MQM=60	GT:DP:AO	0/1:133:61
+chr19	17389648	.	C	T	1227	.	MQM=60	GT:DP:AO	0/1:106:50
+chr19	17389704	.	G	A	6272	.	MQM=60	GT:DP:AO	0/1:526:247
+chr20	14167283	.	A	G	893	.	MQM=60	GT:DP:AO	1/1:30:30
+chr20	48301146	.	G	A	39469	.	MQM=60	GT:DP:AO	1/1:1195:1193

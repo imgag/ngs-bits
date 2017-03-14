@@ -1,11 +1,11 @@
 ### VariantFilterRegions tool help
-	VariantFilterRegions (0.1-563-g5bbcca6)
+	VariantFilterRegions (0.1-645-gfc628cd)
 	
 	Filter a variant list based on a target region.
 	
 	Mandatory parameters:
 	  -in <file>   Input variant list.
-	  -out <file>  Output variant list. If unset, writes to STDOUT.
+	  -out <file>  Output variant list.
 	
 	Optional parameters:
 	  -reg <file>  Input target region in BED format.
@@ -24,7 +24,7 @@
 	  --tdx        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterRegions changelog
-	VariantFilterRegions 0.1-563-g5bbcca6
+	VariantFilterRegions 0.1-645-gfc628cd
 	
 	2017-01-04 Added parameter '-mark' for flagging variants instead of filtering them out.
 	2016-06-10 Added single target region parameter '-r'.

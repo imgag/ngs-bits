@@ -1,5 +1,5 @@
 ### BamDeduplicateByBarcode tool help
-	BamDeduplicateByBarcode (0.1-563-g5bbcca6)
+	BamDeduplicateByBarcode (0.1-645-gfc628cd)
 	
 	Removes duplicates from a bam file based on a molecular barcode file.
 	
@@ -10,6 +10,8 @@
 	
 	Optional parameters:
 	  -test                 adjust output for testing purposes
+	                        Default value: 'false'
+	  -del_amb              remove barcode families where multiple read are tied for most frequent count
 	                        Default value: 'false'
 	  -min_group <int>      minimal numbers of reads to keep a barcode group.
 	                        Default value: '1'
@@ -33,6 +35,6 @@
 	  --tdx                 Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BamDeduplicateByBarcode changelog
-	BamDeduplicateByBarcode 0.1-563-g5bbcca6
+	BamDeduplicateByBarcode 0.1-645-gfc628cd
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
