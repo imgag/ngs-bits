@@ -86,7 +86,7 @@ public:
 			bool ok = false;
 			int start = parts[1].toInt(&ok);
 			if (!ok) THROW(FileParseException, "Could not convert VCF variant position '" + parts[1] + "' to integer!");
-			int end = start + parts[3].length(); //length of ref
+			int end = start + parts[3].length() - 1; //length of ref
 
 			//get annotation data
 			QByteArray anno = "";

@@ -73,7 +73,7 @@ The default output format of the quality control tools is [qcML](https://github.
 * [ReadQC](doc/tools/ReadQC.md) - Quality control tool for FASTQ files.
 * [MappingQC](doc/tools/MappingQC.md) - Quality control tool for a BAM file.
 * [VariantQC](doc/tools/VariantQC.md) - Quality control tool for a VCF file.
-* [SomaticQC](doc/tools/SomaticQC.md) - Quality control tool for tumor-normal pairs. See the [paper](https://www.ncbi.nlm.nih.gov/pubmed/28130233) and [examplary data](doc/data/somatic_qc.zip?raw=true) for details.
+* [SomaticQC](doc/tools/SomaticQC.md) - Quality control tool for tumor-normal pairs ([paper](https://www.ncbi.nlm.nih.gov/pubmed/28130233) and [example output data](doc/data/somatic_qc.zip?raw=true)).
 
 ### BAM tools
 
@@ -114,6 +114,7 @@ The default output format of the quality control tools is [qcML](https://github.
 
 ### VCF tools
 
+* [VcfAnnotateFromBed](doc/tools/VcfAnnotateFromBed.md) - Annotates the INFO column of a VCF with data from a BED file.
 * [VariantFilterRegions](doc/tools/VariantFilterRegions.md) - Filter a variant list based on a target region.
 * [VcfLeftNormalize](doc/tools/VcfLeftNormalize.md) - Normalizes all variants and shifts indels to the left in a VCF file.
 * [VcfSort](doc/tools/VcfSort.md) - Sorts variant lists according to chromosomal position.
@@ -121,6 +122,8 @@ The default output format of the quality control tools is [qcML](https://github.
 
 
   
+
+
 
 
 
