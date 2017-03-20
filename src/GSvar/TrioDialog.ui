@@ -223,6 +223,16 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>c_ps</tabstop>
+  <tabstop>f_ps</tabstop>
+  <tabstop>m_ps</tabstop>
+  <tabstop>ok_button</tabstop>
+  <tabstop>cancel_button</tabstop>
+  <tabstop>c_sys</tabstop>
+  <tabstop>f_sys</tabstop>
+  <tabstop>m_sys</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

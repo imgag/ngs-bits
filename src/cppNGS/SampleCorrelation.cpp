@@ -51,6 +51,12 @@ void SampleCorrelation::calculateFromVcf(QString& in1, QString& in2, int window)
 		}
 	}
 
+	//abort if no overlap
+	if (geno1.count()==0 || geno2.count()==0)
+	{
+		THROW(ArgumentException, "Zero overlap between variant lists!")
+	}
+
 	no_variants1_ = file1.count();
 	no_variants2_ = file2.count();
 	ol_perc_ = 100.0 * c_ol / std::min(no_variants1_, no_variants2_);
@@ -106,6 +112,12 @@ void SampleCorrelation::calculateFromBam(QString& in1, QString& in2, int min_cov
 		freq1.append(p1_freq);
 		freq2.append(p2_freq);
 		if (freq1.count()==max_snps) break;
+	}
+
+	//abort if no overlap
+	if (freq1.count()==0 || freq2.count()==0)
+	{
+		THROW(ArgumentException, "Zero common SNPs found!")
 	}
 
 //	out << "Number of high-coverage SNPs: " << QString::number(high_cov) << " of " << QString::number(snps.count()) << " (max_snps: " << QString::number(max_snps) << ")" << endl;
