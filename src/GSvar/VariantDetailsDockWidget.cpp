@@ -206,17 +206,10 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			QStringList ids = anno.split(", ");
 			foreach(QString id, ids)
 			{
-				id = id.trimmed();
+				id = id.mid(4).trimmed();
 				if (id.isEmpty()) continue;
 
-				if (id.startsWith("COSM"))
-				{
-					text += formatLink(id.mid(4), "http://cancer.sanger.ac.uk/cosmic/mutation/overview?id=" + id) + " ";
-				}
-				else
-				{
-					text += formatLink(id.mid(4), "http://cancer.sanger.ac.uk/cosmic/ncv/overview?id=" + id) + " ";
-				}
+				text += formatLink(id, "http://cancer.sanger.ac.uk/cosmic/mutation/overview?id=" + id) + " ";
 			}
 		}
 		else if(name=="quality")

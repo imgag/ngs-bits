@@ -11,9 +11,8 @@ GSvar:
 ** VCF export should not load the complete VCF file at once (OOM for genomes)
 ** Target region filter: reset to none if it looses focus in search mode
 ** Sub-Panels: show contained genes
-** Fix COSMIC links
 ** Allow using panel default coverage for report instead of calculating it on the fly.
-** Annotation: add fast option (for ROI only)
+** Annotation: add fast option (for ROI only and/or for AF<5% only)
 * LOVD upload for variant:
   - implement dialog where user can double-check the data before upload
   - implement print-out of upload data for patient file
