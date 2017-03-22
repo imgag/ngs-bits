@@ -8,10 +8,11 @@
 #include <QFileInfo>
 #include <QMessageBox>
 
-GeneSelectorDialog::GeneSelectorDialog(QString bam_file, QWidget* parent)
+GeneSelectorDialog::GeneSelectorDialog(QString sample_folder, QString sample_name, QWidget* parent)
 	: QDialog(parent)
 	, ui(new Ui::GeneSelectorDialog)
-	, bam_file_(bam_file)
+	, sample_folder_(sample_folder)
+	, sample_name_(sample_name)
 {
 	ui->setupUi(this);
 	ui->splitter->setStretchFactor(0, 1);
@@ -41,8 +42,7 @@ void GeneSelectorDialog::updateGeneTable()
 	ui->details->blockSignals(true); //otherwise itemChanged is emitted
 
 	//check for CNA results
-	QString folder = QFileInfo(bam_file_).absolutePath();
-	QStringList files = Helper::findFiles(folder, "*_cnvs.seg", false);
+	QStringList files = Helper::findFiles(sample_folder_, "*_cnvs.seg", false);
 	bool cna_result_present = (files.count()==1);
 
 	//load CNA results
@@ -71,10 +71,10 @@ void GeneSelectorDialog::updateGeneTable()
 	}
 
 	//load low-coverage file for processing system
-	files = Helper::findFiles(folder, "*_lowcov.bed", false);
+	files = Helper::findFiles(sample_folder_, "*_lowcov.bed", false);
 	if(files.count()!=1)
 	{
-		updateError("Gene selection error", "Low-coverage BED file not found in " + folder);
+		updateError("Gene selection error", "Low-coverage BED file not found in " + sample_folder_);
 		return;
 	}
 	BedFile sys_gaps;
@@ -82,11 +82,11 @@ void GeneSelectorDialog::updateGeneTable()
 
 	//load processing system target region
 	NGSD db;
-	QString sys_file = db.getProcessingSystem(bam_file_, NGSD::FILE);
+	QString sys_file = db.getProcessingSystem(sample_name_, NGSD::FILE);
 	if (sys_file=="")
 	{
 
-		updateError("Gene selection error", "Processing system target region BED file not found in " + folder);
+		updateError("Gene selection error", "Processing system target region BED file not found for sample '" + sample_name_ +  "'");
 		return;
 	}
 	BedFile sys_roi;
@@ -217,9 +217,9 @@ QString GeneSelectorDialog::report()
 	//header
 	stream << "Gene selection report\n";
 	stream << "\n";
-	stream << "Sample: " << QFileInfo(bam_file_).fileName().replace(".bam", "") << "\n";
+	stream << "Sample: " << sample_name_ << "\n";
 	NGSD db;
-	stream << "Target region: " << db.getProcessingSystem(bam_file_, NGSD::LONG) << "\n";
+	stream << "Target region: " << db.getProcessingSystem(sample_name_, NGSD::LONG) << "\n";
 	stream << "\n";
 
 	//selected genes

@@ -45,6 +45,8 @@
 #include "LovdUploadFile.h"
 #include "PhenotypeSelector.h"
 #include "NGSHelper.h"
+#include "XmlHelper.h"
+#include "QCCollection.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -132,11 +134,10 @@ void MainWindow::on_actionGeneSelector_triggered()
 {
 	if (filename_=="") return;
 
-	QString bam_file = getBamFile();
-	if (bam_file.isEmpty()) return;
-
 	//show dialog
-	GeneSelectorDialog dlg(bam_file, this);
+	QString sample_folder = QFileInfo(filename_).absolutePath();
+	QString sample_name = QFileInfo(filename_).baseName();
+	GeneSelectorDialog dlg(sample_folder, sample_name, this);
 	connect(&dlg, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
 	if (dlg.exec())
 	{
@@ -253,7 +254,14 @@ void MainWindow::openInIGV(QString region)
         }
 
 		//sample BAM file(s)
-		if (isTrio())
+		if (isSomatic())
+		{
+			QStringList bams = getBamFilesSomatic();
+			if (bams.count()==0) return;
+			dlg.addFile("reads tumor (BAM)", bams[0], true);
+			dlg.addFile("reads normal (BAM)", bams[1], true);
+		}
+		else if (isTrio())
 		{
 			QStringList bams = getBamFilesTrio();
 			if (bams.count()==0) return;
@@ -563,6 +571,227 @@ void MainWindow::on_actionReport_triggered()
 {
 	if (variants_.count()==0) return;
 
+	//check if this is a germline or somatic
+	if (isSomatic())
+	{
+		generateReportSomatic();
+	}
+	else
+	{
+		generateReport();
+	}
+}
+
+void MainWindow::generateReportSomatic()
+{
+	QString roi_file = filter_widget_->targetRegion();
+	if (roi_file=="")
+	{
+		QMessageBox::warning(this, "Somatic report", "Report cannot be created because target region is not set.");
+		return;
+	}
+
+	//init
+	NGSD db;
+	int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, true);
+	int i_snpq = variants_.annotationIndexByName("snp_q", true, true);
+	int i_tum_af = variants_.annotationIndexByName("tumor_af", true, true);
+	int i_tum_dp = variants_.annotationIndexByName("tumor_dp", true, true);
+	int i_nor_af = variants_.annotationIndexByName("normal_af", true, true);
+	int i_nor_dp = variants_.annotationIndexByName("normal_dp", true, true);
+	int i_cosm = variants_.annotationIndexByName("COSMIC", true, true);
+
+	//determine tumor/normal processed sample name
+	QString base_name = QFileInfo(filename_).baseName();
+	QStringList parts = base_name.replace("-", "_").replace(".", "_").split("_");
+	QString tumor = parts[0] + "_" + parts[1];
+	QString normal = parts[2] + "_" + parts[3];
+
+	//report header
+	QString temp_filename = Helper::tempFileName(".html");
+	QSharedPointer<QFile> outfile = Helper::openFileForWriting(temp_filename);
+	QTextStream stream(outfile.data());
+	ReportWorker::writeHtmlHeader(stream, tumor + "-" + normal);
+
+	stream << "<h4>Technischer Report zur bioinformatischen Analyse</h4>" << endl;
+	stream << "<p>Probe Tumor: " << tumor << " (" << db.getExternalSampleName(tumor) << ")" << endl;
+	stream << "<br />Probe Normal: " << normal << " (" << db.getExternalSampleName(normal) << ")" << endl;
+	stream << "<br />Prozessierungssystem: " << db.getProcessingSystem(tumor, NGSD::LONG) << endl;
+	stream << "<br />Datum: " << QDate::currentDate().toString("dd.MM.yyyy") << endl;
+	stream << "<br />User: " << Helper::userName() << endl;
+	stream << "<br />Analysesoftware: "  << QCoreApplication::applicationName() << " " << QCoreApplication::applicationVersion() << endl;
+	stream << "</p>" << endl;
+
+	//QC statistics
+	stream << "<p><b>Statistik Sequenzierung:</b>" << endl;
+	QCCollection stats = db.getQCData(tumor);
+	for (int i=0; i<stats.count(); ++i)
+	{
+		if (stats[i].accession()=="QC:2000025" || stats[i].accession()=="QC:2000030")
+		{
+			stream << "<br />Tumor - " << stats[i].name() << ": " << stats[i].asString();
+		}
+	}
+	stats = db.getQCData(normal);
+	for (int i=0; i<stats.count(); ++i)
+	{
+		if (stats[i].accession()=="QC:2000025" || stats[i].accession()=="QC:2000030")
+		{
+			stream << "<br />Nomal - " << stats[i].name() << ": " << stats[i].asString();
+		}
+	}
+	stream << "</p>" << endl;
+
+	//somatic variants
+	stream << "<p><b>Varianten:</b>" << endl;
+	stream << "<table>" << endl;
+	stream << "<tr> <td><b>Position</b></td> <td><b>Ref</b></td> <td><b>Obs</b></td> <td><b>Quality</b></td> <td><b><nobr>Tumor AF/DP</nobr></b></td> <td><b><nobr>Normal AF/DP</nobr></b></td> <td><b>COSMIC</b></td> <td><b>Details</b></td> </tr>" << endl;
+	int var_count = 0;
+	for (int i=0; i<variants_.count(); ++i)
+	{
+		if (ui_.vars->isRowHidden(i)) continue;
+
+		const Variant& variant = variants_[i];
+		stream << "<tr>" << endl;
+		stream << "<td><nobr>" << variant.chr().str() << ":" << variant.start() << "-" << variant.end() << "</nobr></td><td>" << variant.ref() << "</td><td>" << variant.obs() << "</td>";
+		stream << "<td>" << variant.annotations().at(i_snpq) << "</td>" << endl;
+		stream << "<td>" << variant.annotations().at(i_tum_af)  << "/" << variant.annotations().at(i_tum_dp) << "</td>" << endl;
+		stream << "<td>" << variant.annotations().at(i_nor_af)  << "/" << variant.annotations().at(i_nor_dp) << "</td>" << endl;
+		QByteArray tmp = variant.annotations().at(i_cosm);
+		tmp.replace(",", "");
+		stream << "<td>" << tmp << "</td>" << endl;
+		tmp = variant.annotations().at(i_co_sp);
+		tmp.replace(",", " ");
+		stream << "<td>" << tmp << "</td>" << endl;
+		stream << "</tr>" << endl;
+		++var_count;
+	}
+	stream << "</table>" << endl;
+	stream << "Variantenzahl: " << var_count << endl;
+	stream << "</p>" << endl;
+
+	//CNVs
+	BedFile roi = BedFile();
+	roi.load(roi_file);
+	ChromosomalIndex<BedFile> roi_idx(roi);
+	stream << "<p><b>CNVs:</b>" << endl;
+	stream << "<table>" << endl;
+	QString cnv_file = filename_;
+	cnv_file.replace(".GSvar", "_cnvs.tsv");
+	QStringList file = Helper::loadTextFile(cnv_file, true);
+	foreach(QString line, file)
+	{
+		if (line=="" || line.startsWith("##")) continue;
+		if (line.startsWith("#"))
+		{
+			stream << "<tr><td><b>" << line.replace("\t", "</b></td><td><b>") << "</b></td></tr>" << endl;
+		}
+		else
+		{
+			QStringList parts = line.split("\t");
+			if (roi_idx.matchingIndex(parts[0], parts[1].toInt(), parts[2].toInt())!=-1)
+			{
+				stream << "<tr><td>" << line.replace("\t", "</td><td>") << "</td></tr>" << endl;
+			}
+		}
+	}
+	stream << "</table>" << endl;
+	stream << "</p>" << endl;
+
+	//gaps
+	stream << "<p><b>Lückenstatistik:</b>" << endl;
+	stream << "<br />Zielregion: " << QFileInfo(roi_file).fileName();
+	stream << "<br />Zielregion Regionen: " << roi.count();
+	stream << "<br />Zielregion Basen: " << roi.baseCount();
+
+	BedFile roi_inter;
+	roi_inter.load(db.getProcessingSystem(tumor, NGSD::FILE));
+	roi_inter.intersect(roi);
+	if (roi_inter.baseCount()!=roi.baseCount())
+	{
+		QString message = "Gaps cannot be calculated because the selected target region is larger than the processing system target region:";
+		BedFile roi_missing;
+		roi_missing.load(roi_file);
+		roi_missing.subtract(roi_inter);
+		for (int i=0; i<std::min(10, roi_missing.count()); ++i)
+		{
+			message += "\n" + roi_missing[i].toString(true);
+		}
+		QMessageBox::warning(this, "Invalid target region", message);
+		return;
+	}
+
+	QString low_cov_file = filename_;
+	low_cov_file.replace(".GSvar", "_stat_lowcov.bed");
+	BedFile low_cov;
+	low_cov.load(low_cov_file);
+	low_cov.intersect(roi);
+	stream << "<br />Lücken Regionen: " << low_cov.count();
+	stream << "<br />Lücken Basen: " << low_cov.baseCount() << " (" << QString::number(100.0 * low_cov.baseCount()/roi.baseCount(), 'f', 2) << "%)";
+
+
+	//annotate low-coverage regions with gene names
+	for(int i=0; i<low_cov.count(); ++i)
+	{
+		BedLine& line = low_cov[i];
+		QStringList genes = db.genesOverlapping(line.chr(), line.start(), line.end(), 20); //extend by 20 to annotate splicing regions as well
+		line.annotations().append(genes.join(", "));
+	}
+
+	//group by gene name
+	QHash<QString, BedFile> grouped;
+	for (int i=0; i<low_cov.count(); ++i)
+	{
+		QStringList genes = low_cov[i].annotations()[0].split(",");
+		foreach(QString gene, genes)
+		{
+			gene = gene.trimmed();
+
+			//skip non-gene regions
+			// - remains of VEGA database in old HaloPlex designs
+			// - SNPs for sample identification
+			if (gene=="") continue;
+
+			grouped[gene].append(low_cov[i]);
+		}
+	}
+
+	stream << "<table>" << endl;
+	stream << "<tr><td><b>Gen</b></td><td><b>L&uuml;cken</b></td><td><b>Chromosom</b></td><td><b>Koordinaten (hg19)</b></td></tr>" << endl;
+	for (auto it=grouped.cbegin(); it!=grouped.cend(); ++it)
+	{
+		stream << "<tr> <td>" << endl;
+		const BedFile& gaps = it.value();
+		QString chr = gaps[0].chr().strNormalized(true);;
+		QStringList coords;
+		for (int i=0; i<gaps.count(); ++i)
+		{
+			coords << QString::number(gaps[i].start()) + "-" + QString::number(gaps[i].end());
+		}
+		stream << it.key() << "</td><td>" << gaps.baseCount() << "</td><td>" << chr << "</td><td>" << coords.join(", ") << endl;
+
+		stream << "</td> </tr>" << endl;
+	}
+	stream << "</table>" << endl;
+	stream << "</p>" << endl;
+
+	//close stream
+	ReportWorker::writeHtmlFooter(stream);
+	outfile->close();
+
+	//validate/store
+	QString file_rep = QFileDialog::getSaveFileName(this, "Export report file", last_report_path_ + "/" + base_name + "_report_" + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
+	ReportWorker::validateAndCopyReport(temp_filename, file_rep);
+
+	//show result info box
+	if (QMessageBox::question(this, "Report", "Report generated successfully!\nDo you want to open the report in your browser?")==QMessageBox::Yes)
+	{
+		QDesktopServices::openUrl(file_rep);
+	}
+}
+
+void MainWindow::generateReport()
+{
 	//check if NGSD annotations are present
 	if (variants_.annotationIndexByName("classification", true, false)==-1
 	 || variants_.annotationIndexByName("ihdb_allsys_hom", true, false)==-1
@@ -1760,9 +1989,41 @@ QStringList MainWindow::getBamFilesTrio()
 	return output;
 }
 
+QStringList MainWindow::getBamFilesSomatic()
+{
+	//determine tumor/normal processed sample name
+	QStringList parts = QFileInfo(filename_).baseName().replace("-", "_").replace(".", "_").split("_");
+	QString tumor = parts[0] + "_" + parts[1];
+	QString normal = parts[2] + "_" + parts[3];
+	QString project_folder = QFileInfo(QFileInfo(filename_).path()).path();
+
+	//tumor
+	QString bam_tumor = project_folder + "\\Sample_" + tumor + "\\" + tumor + ".bam";
+	if (!QFile::exists(bam_tumor))
+	{
+		QMessageBox::warning(this, "Missing tumor BAM file!", "Could not find BAM file at: " + bam_tumor);
+		return QStringList();
+	}
+
+	//normal
+	QString bam_normal = project_folder + "\\Sample_" + normal + "\\" + normal + ".bam";
+	if (!QFile::exists(bam_normal))
+	{
+		QMessageBox::warning(this, "Missing normal BAM file!", "Could not find BAM file at: " + bam_normal);
+		return QStringList();
+	}
+
+	return QStringList() << bam_tumor << bam_normal;
+}
+
 bool MainWindow::isTrio()
 {
 	return (variants_.filters().contains("trio_denovo"));
+}
+
+bool MainWindow::isSomatic()
+{
+	return (variants_.annotationIndexByName("tumor_af", true, false)!=-1 && variants_.annotationIndexByName("normal_af", true, false)!=-1);
 }
 
 void MainWindow::filtersChanged()

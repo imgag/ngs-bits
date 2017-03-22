@@ -16,7 +16,7 @@ class GeneSelectorDialog
 	Q_OBJECT
 
 public:
-	GeneSelectorDialog(QString bam_file, QWidget *parent = 0);
+	GeneSelectorDialog(QString sample_folder, QString sample_name, QWidget *parent = 0);
 	~GeneSelectorDialog();
 	///Generates and returns the text report
 	QString report();
@@ -33,7 +33,8 @@ private slots:
 
 private:
 	Ui::GeneSelectorDialog *ui;
-	QString bam_file_;
+	QString sample_folder_;
+	QString sample_name_;
 
 	void setGeneTableItem(int row, int col, QString text, int alignment = Qt::AlignLeft, Qt::ItemFlags flags = Qt::ItemIsEnabled);
 	void updateSelectedGenesStatistics();

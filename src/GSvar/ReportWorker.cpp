@@ -2,18 +2,22 @@
 #include "Log.h"
 #include "Helper.h"
 #include "Exceptions.h"
-#include <QFile>
-#include <QTextStream>
-#include <QFileInfo>
 #include "Statistics.h"
 #include "Settings.h"
 #include "BedFile.h"
 #include "ChromosomalIndex.h"
 #include "VariantList.h"
-#include <QCoreApplication>
-#include <QXmlStreamWriter>
 #include "XmlHelper.h"
 #include "VariantFilter.h"
+
+#include <QFile>
+#include <QTextStream>
+#include <QFileInfo>
+#include <QCoreApplication>
+#include <QXmlStreamWriter>
+#include <QMessageBox>
+#include <QDesktopServices>
+#include <QApplication>
 
 ReportWorker::ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QList<int>& variants_selected, QMap<QString, QString> preferred_transcripts, QString outcome, QString file_roi, QString file_bam, int min_cov, QStringList log_files, QString file_rep)
 	: WorkerBase("Report generation")
@@ -660,43 +664,47 @@ void ReportWorker::writeHTML()
 	writeHtmlFooter(stream);
 	outfile->close();
 
-	//validate written HTML file
-	QString validation_error = XmlHelper::isValidXml(temp_filename);
-	if (validation_error!="")
-	{
-		Log::warn("Generated report is not well-formed: " + validation_error);
-	}
-
-	//copy temp file to output folder
-	if (QFile::exists(file_rep_) && !QFile(file_rep_).remove())
-	{
-		THROW(FileAccessException, "Could not remove previous HTML report: " + file_rep_);
-	}
-	if (!QFile::rename(temp_filename, file_rep_))
-	{
-		THROW(FileAccessException, "Could not copy HTML report from temporary file " + temp_filename + " to " + file_rep_ + " !");
-	}
-
-	//copy report to archive folder
-	QString archive_folder = Settings::string("gsvar_report_archive");
-	if (archive_folder!="")
-	{
-		QString file_rep_copy = archive_folder + "\\" + QFileInfo(file_rep_).fileName();
-		if (QFile::exists(file_rep_copy) && !QFile::remove(file_rep_copy))
-		{
-			THROW(FileAccessException, "Could not remove previous HTML report in archive folder: " + file_rep_copy);
-		}
-		if (!QFile::copy(file_rep_, file_rep_copy))
-		{
-			THROW(FileAccessException, "Could not copy HTML report to archive folder: " + file_rep_copy);
-		}
-	}
+	validateAndCopyReport(temp_filename, file_rep_);
 
 	//write XML file to transfer folder
 	QString gsvar_variant_transfer = Settings::string("gsvar_variant_transfer");
 	if (gsvar_variant_transfer!="")
 	{
 		writeXML(gsvar_variant_transfer + "/" + QFileInfo(file_rep_).fileName().replace(".html", ".xml"));
+	}
+}
+
+void ReportWorker::validateAndCopyReport(QString from, QString to)
+{
+	//validate written HTML file
+	QString validation_error = XmlHelper::isValidXml(from);
+	if (validation_error!="")
+	{
+		Log::warn("Generated report at " + from + " is not well-formed: " + validation_error);
+	}
+
+	if (QFile::exists(to) && !QFile(to).remove())
+	{
+		THROW(FileAccessException, "Could not remove previous HTML report: " + to);
+	}
+	if (!QFile::rename(from, to))
+	{
+		THROW(FileAccessException, "Could not copy HTML report from temporary file " + from + " to " + to + " !");
+	}
+
+	//copy report to archive folder
+	QString archive_folder = Settings::string("gsvar_report_archive");
+	if (archive_folder!="")
+	{
+		QString file_rep_copy = archive_folder + "\\" + QFileInfo(to).fileName();
+		if (QFile::exists(file_rep_copy) && !QFile::remove(file_rep_copy))
+		{
+			THROW(FileAccessException, "Could not remove previous HTML report in archive folder: " + file_rep_copy);
+		}
+		if (!QFile::copy(to, file_rep_copy))
+		{
+			THROW(FileAccessException, "Could not copy HTML report to archive folder: " + file_rep_copy);
+		}
 	}
 }
 

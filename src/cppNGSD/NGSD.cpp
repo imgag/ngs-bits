@@ -121,18 +121,21 @@ QString NGSD::sampleId(const QString& filename, bool throw_if_fails)
 QString NGSD::processedSampleId(const QString& filename, bool throw_if_fails)
 {
 	QStringList parts = QFileInfo(filename).baseName().append('_').split('_');
+	QString sample = parts[0];
+	QString ps_num = parts[1];
+	if (ps_num.size()>2) ps_num = ps_num.left(2);
 
 	//get sample ID
 	SqlQuery query = getQuery(); //use binding (user input)
 	query.prepare("SELECT ps.id FROM processed_sample ps, sample s WHERE s.name=:sample AND ps.sample_id=s.id AND ps.process_id=:psnum");
-	query.bindValue(":sample", parts[0]);
-	query.bindValue(":psnum", QString::number(parts[1].toInt()));
+	query.bindValue(":sample", sample);
+	query.bindValue(":psnum", QString::number(ps_num.toInt()));
 	query.exec();
 	if (query.size()==0)
 	{
 		if(throw_if_fails)
 		{
-			THROW(DatabaseException, "Processed sample name '" + parts[0] + "_" + parts[1] + "' not found in NGSD!");
+			THROW(DatabaseException, "Processed sample name '" + sample + "_" + ps_num + "' not found in NGSD!");
 		}
 		else
 		{

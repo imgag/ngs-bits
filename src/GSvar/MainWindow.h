@@ -34,8 +34,12 @@ public:
 	QString getBamFile();
 	///Returns the BAM files of a trio folder. Order is the same as in the folder name. If no or more BAM files are found, an empty list is returned.
 	QStringList getBamFilesTrio();
-	///Returns if the current file is a trio file
+	///Returns the BAM files of a somatic folder. Order is tumor, normal. If no or more BAM files are found, an empty list is returned.
+	QStringList getBamFilesSomatic();
+	///Returns if the current file is a trio variant list
 	bool isTrio();
+	///Returns if the current file is a somatic variant list
+	bool isSomatic();
 	///Adds a file to the recent file list
 	void addToRecentFiles(QString filename);
 	///Updates recent files menu
@@ -131,8 +135,13 @@ public slots:
 	///Create sample overview file
 	void on_actionSampleOverview_triggered();
 
-	///Finished the report generation
+	///Generates a report (somatic)
+	void generateReportSomatic();
+	///Generates a report (germline)
+	void generateReport();
+	///Finished the report generation (germline)
 	void reportGenerationFinished(bool success);
+
 	///Finished NGSD annotation
 	void databaseAnnotationFinished(bool success);
 	///Shows the variant list contect menu

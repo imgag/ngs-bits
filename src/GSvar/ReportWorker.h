@@ -38,6 +38,7 @@ public:
 
 	static void writeHtmlHeader(QTextStream& stream, QString sample_name);
 	static void writeHtmlFooter(QTextStream& stream);
+	static void validateAndCopyReport(QString from, QString to);
 
 private:
 	//input variables
