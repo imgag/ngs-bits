@@ -644,13 +644,18 @@ void MainWindow::generateReportSomatic()
 
 	//somatic variants
 	stream << "<p><b>Varianten:</b>" << endl;
-	stream << "<table>" << endl;
-	stream << "<tr> <td><b>Position</b></td> <td><b>Ref</b></td> <td><b>Obs</b></td> <td><b>Quality</b></td> <td><b><nobr>Tumor AF/DP</nobr></b></td> <td><b><nobr>Normal AF/DP</nobr></b></td> <td><b>COSMIC</b></td> <td><b>Details</b></td> </tr>" << endl;
-	int var_count = 0;
+	QList<int> indices;
 	for (int i=0; i<variants_.count(); ++i)
 	{
 		if (ui_.vars->isRowHidden(i)) continue;
+		indices.append(i);
+	}
+	stream << "<br />Variantenzahl: " << indices.count() << endl;
 
+	stream << "<table>" << endl;
+	stream << "<tr> <td><b>Position</b></td> <td><b>Ref</b></td> <td><b>Obs</b></td> <td><b>Quality</b></td> <td><b><nobr>Tumor AF/DP</nobr></b></td> <td><b><nobr>Normal AF/DP</nobr></b></td> <td><b>COSMIC</b></td> <td><b>Details</b></td> </tr>" << endl;
+	foreach(int i, indices)
+	{
 		const Variant& variant = variants_[i];
 		stream << "<tr>" << endl;
 		stream << "<td><nobr>" << variant.chr().str() << ":" << variant.start() << "-" << variant.end() << "</nobr></td><td>" << variant.ref() << "</td><td>" << variant.obs() << "</td>";
@@ -664,10 +669,9 @@ void MainWindow::generateReportSomatic()
 		tmp.replace(",", " ");
 		stream << "<td>" << tmp << "</td>" << endl;
 		stream << "</tr>" << endl;
-		++var_count;
 	}
 	stream << "</table>" << endl;
-	stream << "Variantenzahl: " << var_count << endl;
+	stream << "Position = chromosomale Position der Variante (hg19), Ref = Wildtyp-Allel, Obs = mutiertes Allel, AF / DF = Anteil der Variante an allen Reads (Allelfrequenz) / gesamte Sequenziertiefe, COSMIC = Catalogue of Somatic Mutations in Cancer, Details: Auswirkung der Variante auf cDNA- bzw. Proteinebene inkl. Transkript ID" << endl;
 	stream << "</p>" << endl;
 
 	//CNVs
@@ -701,6 +705,11 @@ void MainWindow::generateReportSomatic()
 	//gaps
 	stream << "<p><b>Lückenstatistik:</b>" << endl;
 	stream << "<br />Zielregion: " << QFileInfo(roi_file).fileName();
+	QStringList genes = ReportWorker::loadGeneList(roi_file);
+	if (!genes.isEmpty())
+	{
+		stream << "<br />Zielregion Gene (" << QString::number(genes.count()) << "): " << genes.join(", ") << endl;
+	}
 	stream << "<br />Zielregion Regionen: " << roi.count();
 	stream << "<br />Zielregion Basen: " << roi.baseCount();
 

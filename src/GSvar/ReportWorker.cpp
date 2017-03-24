@@ -53,23 +53,7 @@ void ReportWorker::process()
 		var_count_ = filter.countPassing();
 
 		//load gene list file
-		QString filename = file_roi_.mid(0, file_roi_.length()-4) + "_genes.txt";
-		if (QFile::exists(filename))
-		{
-			genes_ = Helper::loadTextFile(filename, true, '#', true);
-			for(int i=0; i<genes_.count(); ++i)
-			{
-				genes_[i] = genes_[i].toUpper();
-			}
-			genes_.sort();
-		}
-
-		//remove duplicates from gene list
-		int dups = genes_.removeDuplicates();
-		if (dups!=0)
-		{
-			Log::warn("Gene list contains '" + filename + "' contains " + QString::number(dups) + " duplicates!");
-		}
+		genes_ = loadGeneList(file_roi_);
 	}
 
 	roi_stats_.clear();
@@ -412,6 +396,31 @@ bool ReportWorker::isProcessingSystemTargetFile(QString bam_file, QString roi_fi
 	QString sys_file = db.getProcessingSystem(bam_file, NGSD::FILE);
 
 	return Helper::canonicalPath(sys_file) == Helper::canonicalPath(roi_file);
+}
+
+QStringList ReportWorker::loadGeneList(QString roi_file)
+{
+	QStringList genes;
+
+	QString filename = roi_file.mid(0, roi_file.length()-4) + "_genes.txt";
+	if (QFile::exists(filename))
+	{
+		genes = Helper::loadTextFile(filename, true, '#', true);
+		for(int i=0; i<genes.count(); ++i)
+		{
+			genes[i] = genes[i].toUpper();
+		}
+	}
+
+	//remove duplicates from gene list
+	genes.sort();
+	int dups = genes.removeDuplicates();
+	if (dups!=0)
+	{
+		Log::warn("Gene list '" + filename + "' contains " + QString::number(dups) + " duplicates!");
+	}
+
+	return genes;
 }
 
 void ReportWorker::writeHtmlHeader(QTextStream& stream, QString sample_name)

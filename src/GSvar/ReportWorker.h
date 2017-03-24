@@ -36,6 +36,9 @@ public:
 	///Returns if given ROI file is the processing system target file corresponding to the BAM file.
 	static bool isProcessingSystemTargetFile(QString bam_file, QString roi_file, NGSD& db);
 
+	///Loads the gene list corresponding to the given target region
+	static QStringList loadGeneList(QString roi_file);
+
 	static void writeHtmlHeader(QTextStream& stream, QString sample_name);
 	static void writeHtmlFooter(QTextStream& stream);
 	static void validateAndCopyReport(QString from, QString to);
