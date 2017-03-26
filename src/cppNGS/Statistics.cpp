@@ -1463,7 +1463,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 					cov += ol_end - ol_start + 1;
 				}
 			}
-			bed_line.annotations().append(QString::number((double)cov / bed_line.length(), 'f', 2));
+			bed_line.annotations().append(QByteArray::number((double)cov / bed_line.length(), 'f', 2));
 		}
 	}
 	else //default mode
@@ -1493,7 +1493,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 		//calculate output
 		for (int i=0; i<bed_file.count(); ++i)
 		{
-			bed_file[i].annotations().append(QString::number((double)(cov[i]) / bed_file[i].length(), 'f', 2));
+			bed_file[i].annotations().append(QByteArray ::number((double)(cov[i]) / bed_file[i].length(), 'f', 2));
 		}
 	}
 	reader.Close();

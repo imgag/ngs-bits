@@ -102,7 +102,7 @@ public:
 			if (parts.count()<5) THROW(FileParseException, "VCF with too few columns: " + line);
 
 			Chromosome chr = parts[0];
-			int pos = Helper::toInt(parts[1], "variant position");
+			int pos = atoi(parts[1]);
 			Sequence ref = parts[3].toUpper();
 			Sequence alt = parts[4].toUpper();
 

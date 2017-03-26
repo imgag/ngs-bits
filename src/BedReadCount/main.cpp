@@ -45,7 +45,7 @@ public:
 		ChromosomeInfo chr_info(reader);
 
 		//init coverage statistics data structure
-		QVector<long> read_count;
+		QVector<qlonglong> read_count;
 		read_count.fill(0, bed_file.count());
 
 		//iterate through all alignments
@@ -70,7 +70,7 @@ public:
 		//append readcounts to bed file structure
 		for (int i=0; i<bed_file.count(); ++i)
 		{
-			bed_file[i].annotations().append(QString::number((double)(read_count[i])));
+			bed_file[i].annotations().append(QByteArray::number(read_count[i]));
 		}
 	}
 

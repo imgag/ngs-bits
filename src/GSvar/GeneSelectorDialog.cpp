@@ -52,7 +52,7 @@ void GeneSelectorDialog::updateGeneTable()
 		auto f = Helper::openFileForReading(files[0]);
 		while(!f->atEnd())
 		{
-			QString line = f->readLine();
+			QByteArray line = f->readLine();
 
 			//skip headers
 			if (line.isEmpty() || line[0]!='\t')
@@ -61,12 +61,12 @@ void GeneSelectorDialog::updateGeneTable()
 			}
 
 			//parse content
-			QStringList parts = line.split('\t');
+			QList<QByteArray> parts = line.split('\t');
 			if (parts.count()<6) THROW(FileParseException, "SEG file line invalid: " + line);
 			Chromosome chr(parts[1]);
 			int start = Helper::toInt(parts[2], "SEG start position", line);
 			int end = Helper::toInt(parts[3], "SEG end position", line);
-			cna_results.append(BedLine(chr, start, end, QStringList() << parts[5]));
+			cna_results.append(BedLine(chr, start, end, QList<QByteArray>() << parts[5]));
 		}
 	}
 

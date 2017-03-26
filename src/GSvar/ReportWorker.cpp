@@ -136,7 +136,7 @@ QString ReportWorker::inheritance(QString gene_info, bool color)
 	return output.join(",");
 }
 
-BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, QString roi_file, const BedFile& roi, QStringList genes, int min_cov,  NGSD& db, QMap<QString, QString>* output)
+BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, QString roi_file, const BedFile& roi, QList<QByteArray> genes, int min_cov,  NGSD& db, QMap<QString, QString>* output)
 {
 	//get target region coverages (from NGSD or calculate)
 	QString avg_cov = "";
@@ -178,15 +178,15 @@ BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file,
 	{
 		BedLine& line = low_cov[i];
 		QStringList genes = db.genesOverlapping(line.chr(), line.start(), line.end(), 20); //extend by 20 to annotate splicing regions as well
-		line.annotations().append(genes.join(", "));
+		line.annotations().append(genes.join(", ").toLatin1());
 	}
 
 	//group by gene name
-	QHash<QString, BedFile> grouped;
+	QHash<QByteArray, BedFile> grouped;
 	for (int i=0; i<low_cov.count(); ++i)
 	{
-		QStringList genes = low_cov[i].annotations()[0].split(",");
-		foreach(QString gene, genes)
+		QList<QByteArray> genes = low_cov[i].annotations()[0].split(',');
+		foreach(QByteArray gene, genes)
 		{
 			gene = gene.trimmed();
 
@@ -203,7 +203,7 @@ BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file,
 	if (!genes.isEmpty())
 	{
 		QStringList complete_genes;
-		foreach(const QString& gene, genes)
+		foreach(const QByteArray& gene, genes)
 		{
 			if (!grouped.contains(gene))
 			{
@@ -218,7 +218,7 @@ BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file,
 	if (!genes.isEmpty())
 	{
 		QStringList incomplete_genes;
-		foreach(const QString& gene, genes)
+		foreach(const QByteArray& gene, genes)
 		{
 			if (grouped.contains(gene))
 			{
@@ -253,7 +253,7 @@ BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file,
 	return low_cov;
 }
 
-void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file, QStringList genes, int min_cov, NGSD& db, QMap<QString, QString>* output)
+void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file, QList<QByteArray> genes, int min_cov, NGSD& db, QMap<QString, QString>* output)
 {
 	stream << "<p><b>Abdeckungsstatistik f&uuml;r CCDS</b></p>" << endl;
 	stream << "<table>";
@@ -398,29 +398,27 @@ bool ReportWorker::isProcessingSystemTargetFile(QString bam_file, QString roi_fi
 	return Helper::canonicalPath(sys_file) == Helper::canonicalPath(roi_file);
 }
 
-QStringList ReportWorker::loadGeneList(QString roi_file)
+QList<QByteArray> ReportWorker::loadGeneList(QString roi_file)
 {
-	QStringList genes;
-
 	QString filename = roi_file.mid(0, roi_file.length()-4) + "_genes.txt";
 	if (QFile::exists(filename))
 	{
-		genes = Helper::loadTextFile(filename, true, '#', true);
-		for(int i=0; i<genes.count(); ++i)
-		{
-			genes[i] = genes[i].toUpper();
-		}
+		return QList<QByteArray>();
 	}
 
-	//remove duplicates from gene list
-	genes.sort();
-	int dups = genes.removeDuplicates();
-	if (dups!=0)
+	QSet<QByteArray> genes;
+	auto file = Helper::openFileForReading(filename);
+	while (!file->atEnd())
 	{
-		Log::warn("Gene list '" + filename + "' contains " + QString::number(dups) + " duplicates!");
+		QByteArray line = file->readLine().trimmed().toUpper();
+
+		if (line.isEmpty() || line[0]=='#') continue;
+
+
+		genes.insert(line);
 	}
 
-	return genes;
+	return genes.toList();
 }
 
 void ReportWorker::writeHtmlHeader(QTextStream& stream, QString sample_name)

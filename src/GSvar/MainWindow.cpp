@@ -705,7 +705,7 @@ void MainWindow::generateReportSomatic()
 	//gaps
 	stream << "<p><b>Lückenstatistik:</b>" << endl;
 	stream << "<br />Zielregion: " << QFileInfo(roi_file).fileName();
-	QStringList genes = ReportWorker::loadGeneList(roi_file);
+	QList<QByteArray> genes = ReportWorker::loadGeneList(roi_file);
 	if (!genes.isEmpty())
 	{
 		stream << "<br />Zielregion Gene (" << QString::number(genes.count()) << "): " << genes.join(", ") << endl;
@@ -744,15 +744,15 @@ void MainWindow::generateReportSomatic()
 	{
 		BedLine& line = low_cov[i];
 		QStringList genes = db.genesOverlapping(line.chr(), line.start(), line.end(), 20); //extend by 20 to annotate splicing regions as well
-		line.annotations().append(genes.join(", "));
+		line.annotations().append(genes.join(", ").toLatin1());
 	}
 
 	//group by gene name
-	QHash<QString, BedFile> grouped;
+	QHash<QByteArray, BedFile> grouped;
 	for (int i=0; i<low_cov.count(); ++i)
 	{
-		QStringList genes = low_cov[i].annotations()[0].split(",");
-		foreach(QString gene, genes)
+		QList<QByteArray> genes = low_cov[i].annotations()[0].split(',');
+		foreach(QByteArray gene, genes)
 		{
 			gene = gene.trimmed();
 

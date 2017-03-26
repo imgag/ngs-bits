@@ -16,7 +16,7 @@ BedLine::BedLine()
 {
 }
 
-BedLine::BedLine(const Chromosome& chr, int start, int end, const QStringList& annotations)
+BedLine::BedLine(const Chromosome& chr, int start, int end, const QList<QByteArray>& annotations)
 	: chr_(chr)
 	, start_(start)
 	, end_(end)
@@ -46,7 +46,7 @@ BedLine BedLine::fromString(QString str)
 	//convert
 	try
 	{
-		return BedLine(parts[0], Helper::toInt(parts[1]), Helper::toInt(parts[2]));
+		return BedLine(parts[0], parts[1].toInt(), parts[2].toInt());
 	}
 	catch(...)
 	{
@@ -121,23 +121,7 @@ void BedFile::load(QString filename)
 			THROW(FileParseException, "BED file line with less than three fields found: '" + line.trimmed() + "'");
 		}
 
-		//error when chromosome is empty
-		if (fields[0]=="")
-		{
-			THROW(FileParseException, "Empty BED file chromosome field '" + fields[0] + "'!");
-		}
-
-		//error on position converion
-		int start_pos = Helper::toInt(fields[1], "start position", line);
-		int end_pos = Helper::toInt(fields[2], "end position", line);
-
-		//create line
-		QStringList annos;
-		for (int i=3; i<fields.count(); ++i)
-		{
-			annos.append(fields[i]);
-		}
-		append(BedLine(fields[0], start_pos+1, end_pos, annos));
+		append(BedLine(fields[0], atoi(fields[1].data())+1, atoi(fields[2].data()), fields.mid(3)));
 	}
 }
 
@@ -218,7 +202,7 @@ void BedFile::merge(bool merge_back_to_back, bool merge_names)
 	{
 		if (merge_names)
 		{
-			QString name = lines_[i].annotations().count() ? lines_[i].annotations()[0] : "";
+			QByteArray name = lines_[i].annotations().count() ? lines_[i].annotations()[0] : "";
 			lines_[i].annotations().clear();
 			lines_[i].annotations().append(name);
 		}

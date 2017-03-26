@@ -42,7 +42,7 @@ public:
 			if (line.annotations().empty()) line.annotations().append("");
 
 			QStringList genes = db.genesOverlapping(line.chr(), line.start(), line.end(), extend);
-			line.annotations()[0] = genes.join(", ");
+			line.annotations()[0] = genes.join(", ").toLatin1();
 		}
 
 		//store

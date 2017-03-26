@@ -4,7 +4,7 @@
 #include "cppNGS_global.h"
 #include "Chromosome.h"
 
-#include <QStringList>
+#include <QList>
 #include <QVector>
 #include <QSet>
 
@@ -15,7 +15,7 @@ public:
 	///Default constructor (creates an invalid region - needed for containers only).
     BedLine();
     ///Constructor.
-    BedLine(const Chromosome& chr, int start, int end, const QStringList& annotations = QStringList());
+	BedLine(const Chromosome& chr, int start, int end, const QList<QByteArray>& annotations = QList<QByteArray>());
 
 	///Returns if the region is valid.
 	bool isValid() const
@@ -63,12 +63,12 @@ public:
     }
 
     ///Read-only access to the annotations list.
-    const QStringList& annotations() const
+	const QList<QByteArray>& annotations() const
     {
         return annotations_;
     }
     ///Read-write access to the annotations list.
-    QStringList& annotations()
+	QList<QByteArray>& annotations()
     {
         return annotations_;
     }
@@ -121,7 +121,7 @@ protected:
     Chromosome chr_;
     int start_;
     int end_;
-    QStringList annotations_;
+	QList<QByteArray> annotations_;
 };
 
 ///Representation of a BED file (header lines are not handled, 1-based)

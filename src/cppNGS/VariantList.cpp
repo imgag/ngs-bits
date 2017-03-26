@@ -559,6 +559,7 @@ void VariantList::loadFromTSV(QString filename)
 			}
 			continue;
 		}
+
         //error when special colums are not present
         QList<QByteArray> fields = line.split('\t');
         if (fields.count()<special_cols)
@@ -566,17 +567,7 @@ void VariantList::loadFromTSV(QString filename)
 			THROW(FileParseException, "Variant TSV file line with less than five fields found: '" + line.trimmed() + "'");
 		}
 
-		//error on position conversion
-		int start_pos = Helper::toInt(fields[1], "start position", line);
-		int end_pos = Helper::toInt(fields[2], "start position", line);
-
-		//variant line
-        QList<QByteArray> annos;
-        for (int i=special_cols; i<fields.count(); ++i)
-		{
-			annos.append(fields[i]);
-		}
-        append(Variant(fields[0], start_pos, end_pos, fields[3], fields[4], annos, filter_index));
+		append(Variant(fields[0], atoi(fields[1]), atoi(fields[2]), fields[3], fields[4], fields.mid(special_cols), filter_index));
 	}
 
 	//validate

@@ -65,11 +65,6 @@ void CnvList::load(QString filename)
 			QStringList parts = line.split("\t");
 			if (parts.count()<9) THROW(FileParseException, "Invalid CnvHunter file line: " + line);
 
-			//coords
-			Chromosome chr = parts[0];
-			int start = Helper::toInt(parts[1], "CNV start position", line);
-			int end = Helper::toInt(parts[2], "CNV end position", line);
-
 			//sample
 			if (!sample.isEmpty() && sample!=parts[3])
 			{
@@ -82,7 +77,7 @@ void CnvList::load(QString filename)
 			QStringList tmp = parts[6].split(",");
 			foreach(QString t, tmp)
 			{
-				cns.append(Helper::toInt(t, "copy-number value", line));
+				cns.append(t.toInt());
 			}
 
 			//z-scores
@@ -97,7 +92,7 @@ void CnvList::load(QString filename)
 			tmp.clear();
 			if (parts.count()>=10) tmp = parts[9].split(",");
 
-			variants_.append(CopyNumberVariant(chr, start, end, parts[8].split(","), cns, zs, tmp));
+			variants_.append(CopyNumberVariant(parts[0], parts[1].toInt(), parts[2].toInt(), parts[8].split(","), cns, zs, tmp));
 		}
 	}
 }

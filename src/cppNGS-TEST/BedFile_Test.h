@@ -174,9 +174,9 @@ private slots:
 		S_EQUAL(file[2].annotations()[0], QString(""));
 
 		//merge_names (with content)
-		file.append(BedLine("chr1", 2, 31, QStringList() << "bli"));
-		file.append(BedLine("chr2", 2, 7, QStringList() << "bla"));
-		file.append(BedLine("chr2", 19, 25, QStringList() << "bluff"));
+		file.append(BedLine("chr1", 2, 31, QList<QByteArray>() << "bli"));
+		file.append(BedLine("chr2", 2, 7, QList<QByteArray>() << "bla"));
+		file.append(BedLine("chr2", 19, 25, QList<QByteArray>() << "bluff"));
 		file.merge(true, true);
 		I_EQUAL(file.count(), 2);
 		X_EQUAL(file[0].chr(), Chromosome("chr1"));
@@ -465,10 +465,10 @@ private slots:
 	{
 		//first test: simple regions
 		BedFile f;
-		f.append(BedLine("chr1", 100, 110, QStringList() << "1"));
+		f.append(BedLine("chr1", 100, 110, QList<QByteArray>() << "1"));
 		f.append(BedLine("chr2", 200, 219));
 		f.append(BedLine("chr3", 250, 270));
-		f.append(BedLine("chr4", 300, 330, QStringList() << "1" << "2" << "3"));
+		f.append(BedLine("chr4", 300, 330, QList<QByteArray>() << "1" << "2" << "3"));
 		f.append(BedLine("chr5", 400, 440));
 		f.append(BedLine("chr6", 500, 550));
 		f.append(BedLine("chr7", 600, 660));
@@ -478,17 +478,17 @@ private slots:
 		f.chunk(15);
 		I_EQUAL(f.count(), 32);
 		X_EQUAL(f[0], BedLine("chr1", 100, 110));
-		X_EQUAL(f[0].annotations(), QStringList() << "1");
+		X_EQUAL(f[0].annotations(), QList<QByteArray>() << "1");
 		X_EQUAL(f[1], BedLine("chr2", 200, 219));
-		X_EQUAL(f[1].annotations(), QStringList());
+		X_EQUAL(f[1].annotations(), QList<QByteArray>());
 		X_EQUAL(f[2], BedLine("chr3", 250, 259));
-		X_EQUAL(f[2].annotations(), QStringList());
+		X_EQUAL(f[2].annotations(), QList<QByteArray>());
 		X_EQUAL(f[3], BedLine("chr3", 260, 270));
-		X_EQUAL(f[3].annotations(), QStringList());
+		X_EQUAL(f[3].annotations(), QList<QByteArray>());
 		X_EQUAL(f[4], BedLine("chr4", 300, 315));
-		X_EQUAL(f[4].annotations(), QStringList() << "1" << "2" << "3");
+		X_EQUAL(f[4].annotations(), QList<QByteArray>() << "1" << "2" << "3");
 		X_EQUAL(f[5], BedLine("chr4", 316, 330));
-		X_EQUAL(f[5].annotations(), QStringList() << "1" << "2" << "3");
+		X_EQUAL(f[5].annotations(), QList<QByteArray>() << "1" << "2" << "3");
 		/* further tests are skipped
 		chr5 size=41 chunks=(13, 14, 14)
 		chr6 size=51 chunks=(17, 17, 17)

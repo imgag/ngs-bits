@@ -55,7 +55,7 @@ public:
 			}
 			else
 			{
-				r.annotations().append(QString::number((double)gc/(gc+at), 'f', 4));
+				r.annotations().append(QByteArray::number((double)gc/(gc+at), 'f', 4));
 			}
 		}
 
