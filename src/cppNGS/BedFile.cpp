@@ -142,10 +142,9 @@ void BedFile::store(QString filename) const
 	{
 		QString line_text = line.chr().str() + "\t" + QString::number(line.start()-1) + "\t" + QString::number(line.end());
 		stream << line_text.toLatin1();
-		if (line.annotations().size()>0)
+		foreach(const QByteArray& anno, line.annotations())
 		{
-			QString add_text = "\t" + line.annotations().join("\t");
-			stream << add_text.toLatin1();
+			stream << '\t' << anno;
 		}
 		stream << "\n";
 	}
@@ -158,9 +157,9 @@ QString BedFile::toText() const
 	foreach(const BedLine& line, lines_)
 	{
 		output.append(line.chr().str() + "\t" + QString::number(line.start()-1) + "\t" + QString::number(line.end()));
-		if (line.annotations().count()!=0)
+		foreach(const QByteArray& anno, line.annotations())
 		{
-			output.append("\t" + line.annotations().join("\t"));
+			output.append("\t" + anno);
 		}
 		output.append("\n");
 	}
