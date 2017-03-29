@@ -528,7 +528,7 @@ void MainWindow::loadFile(QString filename)
 
 		//update GUI
 		setWindowTitle(QCoreApplication::applicationName() + " - " + filename);
-		ui_.statusBar->showMessage("Loaded variant list with " + QString::number(variants_.count()) + " variant.");
+		ui_.statusBar->showMessage("Loaded variant list with " + QString::number(variants_.count()) + " variants.");
 
 		variantListChanged();
 		QApplication::restoreOverrideCursor();
@@ -1707,8 +1707,11 @@ void MainWindow::varsContextMenu(QPoint pos)
 	QTableWidgetItem* item = ui_.vars->itemAt(pos);
 	if (!item) return;
 
+	//init
 	bool ngsd_enabled = Settings::boolean("NGSD_enabled", true);
-	bool primerdesign_enabled = (Settings::string("PrimerDesign")!="");
+	const Variant& variant = variants_[item->row()];
+	int i_gene = variants_.annotationIndexByName("gene", true, true);
+	QStringList genes = QString(variant.annotations()[i_gene]).split(',', QString::SkipEmptyParts);
 
 	//create contect menu
 	QMenu menu(ui_.vars);
@@ -1720,10 +1723,6 @@ void MainWindow::varsContextMenu(QPoint pos)
 	sub_menu->addAction("Set validation status");
 	sub_menu->addAction("Set classification");
 	sub_menu->addAction("Edit comment");
-
-	int i_gene = variants_.annotationIndexByName("gene", true, true);
-	QString gene_str = variants_[item->row()].annotations()[i_gene];
-	QStringList genes = gene_str.split(',', QString::SkipEmptyParts);
 	if (!genes.isEmpty())
 	{
 		sub_menu = menu.addMenu(QIcon("://Icons/NGSD.png"), "Gene info");
@@ -1734,9 +1733,49 @@ void MainWindow::varsContextMenu(QPoint pos)
 		sub_menu->setEnabled(ngsd_enabled);
 	}
 
-	QAction* action;
-	action = menu.addAction(QIcon("://Icons/PrimerDesign.png"), "PrimerDesign");
-	action->setEnabled(primerdesign_enabled);
+	//PrimerDesign
+	QAction* action = menu.addAction(QIcon("://Icons/PrimerDesign.png"), "PrimerDesign");
+	action->setEnabled(Settings::string("PrimerDesign")!="");
+
+	//Alamut
+	if (Settings::string("Alamut")!="")
+	{
+		sub_menu = menu.addMenu(QIcon("://Icons/Alamut.png"), "Alamut");
+
+		//BAM
+		if (!isSomatic() && !isTrio())
+		{
+			sub_menu->addAction("BAM");
+		}
+
+		//genomic location
+		sub_menu->addAction(variant.chr().str() + ":" + QByteArray::number(variant.start()));
+
+		//genes
+		foreach(QString g, genes)
+		{
+			sub_menu->addAction(g);
+		}
+		sub_menu->addSeparator();
+
+		//transcript variants
+		int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, true);
+		QList<QByteArray> transcripts = variant.annotations()[i_co_sp].split(',');
+		foreach(QByteArray transcript, transcripts)
+		{
+			QList<QByteArray> parts = transcript.split(':');
+			if (parts.count()>5)
+			{
+				QString gene = parts[0].trimmed();
+				QString trans_id = parts[1].trimmed();
+				QString cdna_change = parts[5].trimmed();
+				if  (trans_id!="" && cdna_change!="")
+				{
+					sub_menu->addAction(trans_id + ":" + cdna_change + " (" + gene + ")");
+				}
+			}
+		}
+	}
 
 	/* TODO
 	action = menu.addAction(QIcon(":/Icons/LOVD.png"), "Publish in LOVD");
@@ -1746,13 +1785,14 @@ void MainWindow::varsContextMenu(QPoint pos)
 	//Execute menu
 	action = menu.exec(ui_.vars->viewport()->mapToGlobal(pos));
 	if (!action) return;
+	QMenu* parent_menu = qobject_cast<QMenu*>(action->parent());
 
 	QByteArray text = action->text().toLatin1();
 	if (text=="Open variant in NGSD")
 	{
 		try
 		{
-			QString url = NGSD().url(filename_, variants_[item->row()]);
+			QString url = NGSD().url(filename_, variant);
 			QDesktopServices::openUrl(QUrl(url));
 		}
 		catch (DatabaseException& e)
@@ -1763,25 +1803,26 @@ void MainWindow::varsContextMenu(QPoint pos)
 	}
 	else if (text=="Search for position in NGSD")
 	{
-		const Variant& v = variants_[item->row()];
-		QString url = NGSD().urlSearch(v.chr().str() + ":" + QString::number(v.start()) + "-" + QString::number(v.end()));
+		QString url = NGSD().urlSearch(variant.chr().str() + ":" + QString::number(variant.start()) + "-" + QString::number(variant.end()));
 		QDesktopServices::openUrl(QUrl(url));
 	}
 	else if (text=="Set validation status")
 	{
 		try
 		{
-			ValidationDialog dlg(this, filename_, variants_[item->row()], variants_.annotationIndexByName("quality", true, true));
+			int i_quality = variants_.annotationIndexByName("quality", true, true);
+			ValidationDialog dlg(this, filename_, variant, i_quality);
 
 			if (dlg.exec()) //update DB
 			{
-				NGSD().setValidationStatus(filename_, variants_[item->row()], dlg.info());
+				NGSD().setValidationStatus(filename_, variant, dlg.info());
 
 				//update GUI
 				QByteArray status = dlg.info().status.toLatin1();
 				if (status=="true positive") status = "TP";
 				if (status=="false positive") status = "FP";
-				variants_[item->row()].annotations()[variants_.annotationIndexByName("validated", true, true)] = status;
+				int i_validated = variants_.annotationIndexByName("validated", true, true);
+				variants_[item->row()].annotations()[i_validated] = status;
 				variantListChanged();
 			}
 		}
@@ -1795,16 +1836,18 @@ void MainWindow::varsContextMenu(QPoint pos)
 	{
 		try
 		{
-			ClassificationDialog dlg(this, variants_[item->row()]);
+			ClassificationDialog dlg(this, variant);
 
 			if (dlg.exec())
 			{
 				//update DB
-					NGSD().setClassification(variants_[item->row()], dlg.classification(), dlg.comment());
+					NGSD().setClassification(variant, dlg.classification(), dlg.comment());
 
 				//update GUI
-				variants_[item->row()].annotations()[variants_.annotationIndexByName("classification", true, true)] = dlg.classification().replace("n/a", "").toLatin1();
-				variants_[item->row()].annotations()[variants_.annotationIndexByName("classification_comment", true, true)] = dlg.comment().toLatin1();
+				int i_class = variants_.annotationIndexByName("classification", true, true);
+				variants_[item->row()].annotations()[i_class] = dlg.classification().replace("n/a", "").toLatin1();
+				int i_class_comment = variants_.annotationIndexByName("classification_comment", true, true);
+				variants_[item->row()].annotations()[i_class_comment] = dlg.comment().toLatin1();
 				variantListChanged();
 			}
 		}
@@ -1819,7 +1862,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 		try
 		{
 			bool ok = true;
-			QByteArray text = QInputDialog::getMultiLineText(this, "Variant comment", "Text: ", NGSD().comment(filename_, variants_[item->row()]), &ok).toUtf8();
+			QByteArray text = QInputDialog::getMultiLineText(this, "Variant comment", "Text: ", NGSD().comment(filename_, variant), &ok).toUtf8();
 
 			if (ok)
 			{
@@ -1859,8 +1902,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 	{
 		try
 		{
-			const Variant& v = variants_[item->row()];
-			QString url = Settings::string("PrimerDesign")+"/index.php?user="+Helper::userName()+"&sample="+NGSD::sampleName(filename_)+"&chr="+v.chr().str()+"&start="+QString::number(v.start())+"&end="+QString::number(v.end())+"";
+			QString url = Settings::string("PrimerDesign")+"/index.php?user="+Helper::userName()+"&sample="+NGSD::sampleName(filename_)+"&chr="+variant.chr().str()+"&start="+QString::number(variant.start())+"&end="+QString::number(variant.end())+"";
 			QDesktopServices::openUrl(QUrl(url));
 		}
 		catch (Exception& e)
@@ -1881,10 +1923,23 @@ void MainWindow::varsContextMenu(QPoint pos)
 			return;
 		}
 	}
-	else if (genes.contains(text))
+	else if (parent_menu && parent_menu->title()=="Gene info")
 	{
 		GeneInfoDialog dlg(text, this);
 		dlg.exec();
+	}
+	else if (parent_menu && parent_menu->title()=="Alamut")
+	{
+		QStringList parts = action->text().split(" ");
+		if (parts.count()>=1)
+		{
+			QString value = parts[0];
+			if (value=="BAM")
+			{
+				value = "BAM<" + getBamFile();
+			}
+			QDesktopServices::openUrl(QUrl(Settings::string("Alamut")+"/show?request="+value));
+		}
 	}
 }
 

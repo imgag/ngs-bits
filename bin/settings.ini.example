@@ -33,6 +33,7 @@ target_file_folder_linux = ""
 NGSD = ""
 SampleStatus = ""
 PrimerDesign = ""
+Alamut = ""
 
 
 #special folders for GSvar
