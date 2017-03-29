@@ -62,7 +62,6 @@ public:
 		NGSHelper::openBAM(reader, getInfile("in"));
 		BamWriter writer;
 		writer.Open(getOutfile("out").toStdString(), reader.GetConstSamHeader(), reader.GetReferenceData());
-		qsrand(QTime::currentTime().msec());	// seed random number generator
 
 		//step 2: get alignments and softclip if necessary
 		BamAlignment al;
@@ -206,22 +205,6 @@ public:
 						else
 						{
 							THROW(Exception, "Read orientation of read1 "+QString::fromStdString(forward_read.Name)+" (chr"+QString::number(forward_read.RefID)+":"+QString::number(forward_read.Position)+"-"+QString::number(forward_read.GetEndPosition())+") and read2 "+QString::fromStdString(reverse_read.Name)+" (chr"+QString::number(reverse_read.RefID)+":"+QString::number(reverse_read.Position)+"-"+QString::number(reverse_read.GetEndPosition())+") was not identified.");
-						}
-					}
-
-					//amplicon mode
-					if(getFlag("amplicon"))
-					{
-						int read = qrand()%2;
-						if(read==1)
-						{
-							clip_forward_read = 0;
-							clip_reverse_read = overlap;
-						}
-						else
-						{
-							clip_forward_read = overlap;
-							clip_reverse_read = 0;
 						}
 					}
 
