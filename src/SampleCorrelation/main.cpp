@@ -25,8 +25,8 @@ public:
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
 		addFlag("bam", "Input files are BAM files instead of TSV files.");
 		addInt("window", "Window to consider around indel positions to compensate for differing alignments (TSV input).", true, 100);
-		addInt("min_cov",  "Minimum coverage to consider a SNP for the analysis. (BAM input)",  true,  30);
-		addInt("max_snps",  "The maximum number of high-coverage SNPs to analyze. 0 means unlimited. (BAM input)",  true,  500);
+		addInt("min_cov",  "Minimum coverage to consider a SNP for the analysis (BAM input).",  true,  30);
+		addInt("max_snps",  "The maximum number of high-coverage SNPs to analyze. 0 means unlimited (BAM input).",  true,  500);
 	}
 
 	virtual void main()
