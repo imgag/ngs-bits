@@ -16,7 +16,7 @@ class ReportWorker
 
 public:
 	///Constructor.
-	ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QList<int>& variants_selected, QMap<QString, QString> preferred_transcripts, QString outcome, QString file_roi, QString file_bam, int min_cov, QStringList log_files, QString file_rep);
+	ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QList<int>& variants_selected, QMap<QString, QString> preferred_transcripts, QString outcome, QString file_roi, QString file_bam, int min_cov, QStringList log_files, QString file_rep, bool calculate_depth);
 	virtual void process();
 
 	///Returns the file to which the HTML report was written.
@@ -26,7 +26,7 @@ public:
 	}
 
 	///writes a low-coverage report
-	static BedFile writeCoverageReport(QTextStream& stream, QString bam_file, QString roi_file, const BedFile& roi, QList<QByteArray> genes, int min_cov, NGSD& db, QMap<QString, QString>* output=nullptr);
+	static BedFile writeCoverageReport(QTextStream& stream, QString bam_file, QString roi_file, const BedFile& roi, QList<QByteArray> genes, int min_cov, NGSD& db, bool calculate_depth, QMap<QString, QString>* output=nullptr);
 	static void writeCoverageReportCCDS(QTextStream& stream, QString bam_file, QList<QByteArray> genes, int min_cov, NGSD& db, QMap<QString, QString>* output=nullptr);
 
 	///Returns if the pre-calcualed gaps for the given ROI.
@@ -57,6 +57,7 @@ private:
 	int min_cov_;
 	QList<QByteArray> genes_;
 	QStringList log_files_;
+	bool calculate_depth_;
 
 	//output variables
 	QString file_rep_;

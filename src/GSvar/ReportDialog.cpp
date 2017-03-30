@@ -48,6 +48,9 @@ ReportDialog::ReportDialog(QString filename, QWidget* parent)
 			ui_.outcome->setCurrentIndex(index);
 		}
 	}
+
+	//enable/disable low-coverage settings
+	connect(ui_.details_cov, SIGNAL(stateChanged(int)), this, SLOT(updateCoverageSettings(int)));
 }
 
 void ReportDialog::addVariants(const VariantList& variants, const QBitArray& visible)
@@ -105,7 +108,6 @@ void ReportDialog::setTargetRegionSelected(bool is_selected)
 	{
 		ui_.details_cov->setChecked(false);
 		ui_.details_cov->setEnabled(false);
-		ui_.min_cov->setEnabled(false);
 	}
 }
 
@@ -128,6 +130,11 @@ QList<int> ReportDialog::selectedIndices() const
 bool ReportDialog::detailsCoverage() const
 {
 	return ui_.details_cov->isChecked();
+}
+
+bool ReportDialog::calculateDepth() const
+{
+	return ui_.depth_calc->isChecked();
 }
 
 int ReportDialog::minCoverage() const
@@ -174,4 +181,11 @@ void ReportDialog::showContextMenu(QPoint pos)
 			ui_.vars->item(i, 0)->setCheckState(Qt::Unchecked);
 		}
 	}
+}
+
+void ReportDialog::updateCoverageSettings(int state)
+{
+	ui_.min_cov->setEnabled(state==Qt::Checked);
+	ui_.min_cov_label->setEnabled(state==Qt::Checked);
+	ui_.depth_calc->setEnabled(state==Qt::Checked);
 }

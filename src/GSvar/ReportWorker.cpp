@@ -19,7 +19,7 @@
 #include <QDesktopServices>
 #include <QApplication>
 
-ReportWorker::ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QList<int>& variants_selected, QMap<QString, QString> preferred_transcripts, QString outcome, QString file_roi, QString file_bam, int min_cov, QStringList log_files, QString file_rep)
+ReportWorker::ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QList<int>& variants_selected, QMap<QString, QString> preferred_transcripts, QString outcome, QString file_roi, QString file_bam, int min_cov, QStringList log_files, QString file_rep, bool calculate_depth)
 	: WorkerBase("Report generation")
 	, sample_name_(sample_name)
 	, filters_(filters)
@@ -32,6 +32,7 @@ ReportWorker::ReportWorker(QString sample_name, QMap<QString, QString> filters, 
 	, min_cov_(min_cov)
 	, genes_()
 	, log_files_(log_files)
+	, calculate_depth_(calculate_depth)
 	, file_rep_(file_rep)
 	, roi_()
 	, var_count_(variants_.count())
@@ -136,17 +137,16 @@ QString ReportWorker::inheritance(QString gene_info, bool color)
 	return output.join(",");
 }
 
-BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, QString roi_file, const BedFile& roi, QList<QByteArray> genes, int min_cov,  NGSD& db, QMap<QString, QString>* output)
+BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, QString roi_file, const BedFile& roi, QList<QByteArray> genes, int min_cov,  NGSD& db, bool calculate_depth, QMap<QString, QString>* output)
 {
 	//get target region coverages (from NGSD or calculate)
 	QString avg_cov = "";
 	QCCollection stats;
-	if (isProcessingSystemTargetFile(bam_file, roi_file, db))
+	if (isProcessingSystemTargetFile(bam_file, roi_file, db) || !calculate_depth)
 	{
 		try
 		{
-			QCCollection tmp = db.getQCData(bam_file);
-			stats = tmp;
+			stats = db.getQCData(bam_file);
 		}
 		catch(...)
 		{
@@ -588,7 +588,7 @@ void ReportWorker::writeHTML()
 	///low-coverage analysis
 	if (file_bam_!="")
 	{
-		BedFile low_cov = writeCoverageReport(stream, file_bam_, file_roi_, roi_, genes_, min_cov_, db_, &roi_stats_);
+		BedFile low_cov = writeCoverageReport(stream, file_bam_, file_roi_, roi_, genes_, min_cov_, db_, calculate_depth_, &roi_stats_);
 
 		writeCoverageReportCCDS(stream, file_bam_, genes_, min_cov_, db_, &roi_stats_);
 
