@@ -52,6 +52,8 @@ void SubpanelArchiveDialog::updateSubpanelList(QListWidget* list, QString path)
 	QStringList files = Helper::findFiles(path, "*.bed", false);
 	foreach(QString file, files)
 	{
+		if (file.endsWith("_amplicons.bed")) continue;
+
 		QString name = QFileInfo(file).fileName().replace(".bed", "");
 		list->addItem(name);
 	}
@@ -64,6 +66,12 @@ void SubpanelArchiveDialog::archive(QListWidgetItem* item)
 	move(item->text() + ".bed", path_subpanel, path_archive);
 	move(item->text() + "_genes.txt", path_subpanel, path_archive);
 
+	QString amplicons = item->text() + "_amplicons.bed";
+	if (QFile::exists(amplicons))
+	{
+		move(item->text() + "_amplicons.bed", path_subpanel, path_archive);
+	}
+
 	updateSubpanelLists();
 }
 
@@ -73,6 +81,12 @@ void SubpanelArchiveDialog::restore(QListWidgetItem* item)
 
 	move(item->text() + ".bed", path_archive, path_subpanel);
 	move(item->text() + "_genes.txt", path_archive, path_subpanel);
+
+	QString amplicons = item->text() + "_amplicons.bed";
+	if (QFile::exists(amplicons))
+	{
+		move(item->text() + "_amplicons.bed", path_archive, path_subpanel);
+	}
 
 	updateSubpanelLists();
 }

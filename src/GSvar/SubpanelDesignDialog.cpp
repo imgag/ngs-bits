@@ -62,8 +62,9 @@ void SubpanelDesignDialog::createSubpanelCompleter()
 	QStringList names;
 	foreach(QString t, tmp)
 	{
-		QString name = QFileInfo(t).fileName();
-		name = name.left(name.size()-4);
+		if(t.endsWith("_amplicons.bed")) continue;
+
+		QString name = QFileInfo(t).fileName().replace(".bed", "");
 		names.append(name);
 	}
 

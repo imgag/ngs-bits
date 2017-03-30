@@ -116,8 +116,9 @@ void FilterDockWidget::loadTargetRegions()
 		subpanels.sort(Qt::CaseInsensitive);
 		foreach(QString file, subpanels)
 		{
-			QString name = QFileInfo(file).fileName();
-			name = name.left(name.size()-4);
+			if (file.endsWith("_amplicons.bed")) continue;
+
+			QString name = QFileInfo(file).fileName().replace(".bed", "");
 			ui_.rois->addItem("Sub-panel: " + name, Helper::canonicalPath(file));
 		}
 		ui_.rois->insertSeparator(ui_.rois->count());
