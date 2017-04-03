@@ -6,6 +6,8 @@
 #include "NGSHelper.h"
 #include "NGSD.h"
 #include "Histogram.h"
+#include "GeneSet.h"
+
 #include <QVector>
 #include <QFileInfo>
 #include <QDir>
@@ -339,9 +341,9 @@ public:
 		}
 	}
 
-	QStringList geneNames(QSharedPointer<NGSD>& db, const QSharedPointer<ExonData>& exon)
+	GeneSet geneNames(QSharedPointer<NGSD>& db, const QSharedPointer<ExonData>& exon)
 	{
-		static QHash<QString, QStringList> cache;
+		static QHash<QString, GeneSet> cache;
 
 		//check cache first
 		QString reg = exon->toString();
@@ -351,7 +353,7 @@ public:
 		}
 
 		//get genes from NGSD
-		QStringList tmp = db->genesOverlapping(exon->chr, exon->start, exon->end, 20);
+		GeneSet tmp = db->genesOverlapping(exon->chr, exon->start, exon->end, 20);
 		cache.insert(reg, tmp);
 		return tmp;
 	}
@@ -390,15 +392,11 @@ public:
 			{
 				outstream << '\t';
 
-				QStringList genes;
+				GeneSet genes;
 				for (int j=range.start; j<=range.end; ++j)
 				{
-					genes += geneNames(db, results[j].exon);
+					genes.insert(geneNames(db, results[j].exon));
 				}
-
-				//sort and remove duplicates
-				std::sort(genes.begin(), genes.end());
-				genes.removeDuplicates();
 				outstream << genes.join(",");
 			}
 

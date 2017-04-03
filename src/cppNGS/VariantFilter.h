@@ -5,6 +5,7 @@
 #include "BedFile.h"
 #include "cppNGS_global.h"
 class VariantList;
+class GeneSet;
 
 ///Variant filtering engine.
 ///Variants are first flagged by several subsequent filters and then filtered according to the flags.
@@ -33,8 +34,7 @@ class CPPNGSSHARED_EXPORT VariantFilter
 		void flagByClassification(int min_class);
 
 		///Flags variants by genes filter.
-		void flagByGenes(QStringList genes);
-
+		void flagByGenes(const GeneSet& genes);
 
 		///Flags variants by annotations filter.
 		void flagByGenotype(QString genotype);

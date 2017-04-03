@@ -41,13 +41,11 @@ public:
 		in.merge();
 
 		//look up genes overlapping the input region
-		QStringList genes;
+		GeneSet genes;
 		for(int i=0; i<in.count(); ++i)
 		{
-			BedLine& line = in[i];
-			genes << db.genesOverlapping(line.chr(), line.start(), line.end(), 0);
+			genes.insert(db.genesOverlapping(in[i].chr(), in[i].start(), in[i].end(), 0));
 		}
-		genes.removeDuplicates();
 
 		//output header
 		QStringList output;
@@ -55,11 +53,11 @@ public:
 
 		//process
 		BedFile reg_unassigned = in;
-		foreach(QString gene, genes)
+		foreach(QByteArray gene, genes)
 		{
 			//create gene-specific regions
 			QTextStream messages(stderr);
-			BedFile reg_gene = db.genesToRegions(QStringList() << gene, Transcript::stringToSource(getEnum("source")), "exon", false, false, &messages);
+			BedFile reg_gene = db.genesToRegions(GeneSet() << gene, Transcript::stringToSource(getEnum("source")), "exon", false, false, &messages);
 			reg_gene.merge();
 
 			//append output line

@@ -21,7 +21,7 @@ GapDialog::GapDialog(QWidget *parent, QString sample_name, QString roi_file)
 	connect(ui->gaps, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(gapDoubleClicked(QTableWidgetItem*)));
 }
 
-void GapDialog::process(QString bam_file, const BedFile& roi, QSet<QString> genes)
+void GapDialog::process(QString bam_file, const BedFile& roi, const GeneSet& genes)
 {
 	//init
 	NGSD db;
@@ -60,12 +60,12 @@ void GapDialog::process(QString bam_file, const BedFile& roi, QSet<QString> gene
 		ui->gaps->setItem(i, 2, createItem(depth, highlight_depth, true));
 
 		//genes
-		QStringList genes_anno = db.genesOverlappingByExon(line.chr(), line.start(), line.end(), 30);
-		bool highlight_genes = genes_anno.toSet().intersect(genes).count();
+		GeneSet genes_anno = db.genesOverlappingByExon(line.chr(), line.start(), line.end(), 30);
+		bool highlight_genes = genes_anno.contains(genes);
 		ui->gaps->setItem(i, 3, createItem(genes_anno.join(", "), highlight_genes));
 
 		//type
-		QStringList genes_core = db.genesOverlappingByExon(line.chr(), line.start(), line.end(), 5);
+		GeneSet genes_core = db.genesOverlappingByExon(line.chr(), line.start(), line.end(), 5);
 		QString type = genes_core.count()==0 ? "intronic/intergenic" : "exonic/splicing";
 		bool highlight_type = genes_core.count();
 		ui->gaps->setItem(i, 4, createItem(type, highlight_type));

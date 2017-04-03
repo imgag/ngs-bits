@@ -7,6 +7,7 @@
 #include "Log.h"
 #include "Helper.h"
 #include "GUIHelper.h"
+#include "GeneSet.h"
 #include <QDir>
 #include <QBitArray>
 #include <QDesktopServices>
@@ -705,7 +706,7 @@ void MainWindow::generateReportSomatic()
 	//gaps
 	stream << "<p><b>Lückenstatistik:</b>" << endl;
 	stream << "<br />Zielregion: " << QFileInfo(roi_file).fileName();
-	QList<QByteArray> genes = ReportWorker::loadGeneList(roi_file);
+	GeneSet genes = GeneSet::createFromFile(roi_file);
 	if (!genes.isEmpty())
 	{
 		stream << "<br />Zielregion Gene (" << QString::number(genes.count()) << "): " << genes.join(", ") << endl;
@@ -743,8 +744,8 @@ void MainWindow::generateReportSomatic()
 	for(int i=0; i<low_cov.count(); ++i)
 	{
 		BedLine& line = low_cov[i];
-		QStringList genes = db.genesOverlapping(line.chr(), line.start(), line.end(), 20); //extend by 20 to annotate splicing regions as well
-		line.annotations().append(genes.join(", ").toLatin1());
+		GeneSet genes = db.genesOverlapping(line.chr(), line.start(), line.end(), 20); //extend by 20 to annotate splicing regions as well
+		line.annotations().append(genes.join(", "));
 	}
 
 	//group by gene name
@@ -1124,18 +1125,17 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 
 	//load genes list file
 	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-	QStringList genes;
+	GeneSet genes;
 	QString genes_file = roi_file.mid(0, roi_file.length()-4) + "_genes.txt";
 	if (QFile::exists(genes_file))
 	{
-		genes = Helper::loadTextFile(genes_file, true, '#', true);
-		std::transform(genes.begin(), genes.end(), genes.begin(), [](const QString& s) { return s.toUpper(); });
+		genes = GeneSet::createFromFile(genes_file);
 	}
 
 	//prepare dialog
 	QString sample_name = QFileInfo(bam_file).fileName().replace(".bam", "");
 	GapDialog dlg(this, sample_name, roi_file);
-	dlg.process(bam_file, roi, genes.toSet());
+	dlg.process(bam_file, roi, genes);
 	QApplication::restoreOverrideCursor();
 
 	//show dialog
@@ -2222,8 +2222,8 @@ void MainWindow::filtersChanged()
 		}
 
 		//gene filter
-		QStringList genes_filter = filter_widget_->genes();
-		if (!genes_filter.empty())
+		GeneSet genes_filter = filter_widget_->genes();
+		if (!genes_filter.isEmpty())
 		{
 			filter.flagByGenes(genes_filter);
 			Log::perf("Applying gene filter took ", timer);

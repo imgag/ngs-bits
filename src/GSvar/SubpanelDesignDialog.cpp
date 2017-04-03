@@ -102,8 +102,8 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 
 	//check gene names
 	NGSD db;
-	genes = NGSHelper::textToGenes(ui->genes->toPlainText());
-	if (genes.size()==0)
+	genes = GeneSet::createFromText(ui->genes->toPlainText().toLatin1());
+	if (genes.count()==0)
 	{
 		showMessage("Genes are not set!", true);
 		return;
@@ -128,8 +128,8 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 			showMessage("Base panel gene file " + base_panel_file + " does not exist!", true);
 			return;
 		}
-		QStringList base_genes = Helper::loadTextFile(base_panel_file, true, '#', true);
-		foreach (QString g, genes)
+		GeneSet base_genes = GeneSet::createFromFile(base_panel_file);
+		foreach (const QByteArray& g, genes)
 		{
 			if (!base_genes.contains(g))
 			{
@@ -172,7 +172,7 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 void SubpanelDesignDialog::storePanel()
 {
 	regions.store(roi_file);
-	Helper::storeTextFile(gene_file, genes);
+	genes.store(gene_file);
 
 	showMessage("Sub-panel '" + ui->name->text().trimmed() +"' written successfully!", false);
 	ui->store->setEnabled(false);

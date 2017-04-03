@@ -2,6 +2,7 @@
 #include "ChromosomalIndex.h"
 #include "Exceptions.h"
 #include "VariantList.h"
+#include "GeneSet.h"
 
 VariantFilter::VariantFilter(VariantList& vl)
 	: variants(vl)
@@ -174,7 +175,7 @@ void VariantFilter::flagByClassification(int min_class)
 	}
 }
 
-void VariantFilter::flagByGenes(QStringList genes)
+void VariantFilter::flagByGenes(const GeneSet& genes)
 {
 	//get column indices
 	int i_gene = variants.annotationIndexByName("gene", true, true);
@@ -186,11 +187,8 @@ void VariantFilter::flagByGenes(QStringList genes)
 
 		bool contained = false;
 		QList<QByteArray> genes_variant = variants[i].annotations()[i_gene].split(',');
-		for(int i=0; i<genes_variant.count(); ++i)
+		foreach(const QByteArray& gene, genes_variant)
 		{
-			QString gene = genes_variant[i].trimmed().toUpper();
-			if (gene.isEmpty()) continue;
-
 			if (genes.contains(gene))
 			{
 				contained = true;

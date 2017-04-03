@@ -4,6 +4,7 @@
 #include "Log.h"
 #include "Settings.h"
 #include "ChromosomalIndex.h"
+#include "NGSHelper.h"
 #include <QFileInfo>
 #include <QPair>
 
@@ -991,9 +992,9 @@ int NGSD::geneToApprovedID(const QString& gene)
 	return -1;
 }
 
-QString NGSD::geneSymbol(int id)
+QByteArray NGSD::geneSymbol(int id)
 {
-	return getValue("SELECT symbol FROM gene WHERE id='" + QString::number(id) + "'").toString();
+	return getValue("SELECT symbol FROM gene WHERE id='" + QString::number(id) + "'").toByteArray();
 }
 
 QPair<QString, QString> NGSD::geneToApproved(const QString& gene)
@@ -1170,7 +1171,7 @@ QStringList NGSD::phenotypeToGenes(QString phenotype, bool recursive)
 	return genes;
 }
 
-QStringList NGSD::genesOverlapping(const Chromosome& chr, int start, int end, int extend)
+GeneSet NGSD::genesOverlapping(const Chromosome& chr, int start, int end, int extend)
 {
 	//init static data (load gene regions file from NGSD to memory)
 	static BedFile bed;
@@ -1188,19 +1189,16 @@ QStringList NGSD::genesOverlapping(const Chromosome& chr, int start, int end, in
 	}
 
 	//create gene list
-	QStringList genes;
+	GeneSet genes;
 	QVector<int> matches = index.matchingIndices(chr, start-extend, end+extend);
 	foreach(int i, matches)
 	{
 		genes << bed[i].annotations()[0];
 	}
-	genes.sort();
-	genes.removeDuplicates();
-
 	return genes;
 }
 
-QStringList NGSD::genesOverlappingByExon(const Chromosome& chr, int start, int end, int extend)
+GeneSet NGSD::genesOverlappingByExon(const Chromosome& chr, int start, int end, int extend)
 {
 	//init static data (load gene regions file from NGSD to memory)
 	static BedFile bed;
@@ -1218,19 +1216,17 @@ QStringList NGSD::genesOverlappingByExon(const Chromosome& chr, int start, int e
 	}
 
 	//create gene list
-	QStringList genes;
+	GeneSet genes;
 	QVector<int> matches = index.matchingIndices(chr, start-extend, end+extend);
 	foreach(int i, matches)
 	{
 		genes << bed[i].annotations()[0];
 	}
-	genes.sort();
-	genes.removeDuplicates();
 
 	return genes;
 }
 
-BedFile NGSD::genesToRegions(QStringList genes, Transcript::SOURCE source, QString mode, bool fallback, bool annotate_transcript_names, QTextStream* messages)
+BedFile NGSD::genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QString mode, bool fallback, bool annotate_transcript_names, QTextStream* messages)
 {
 	QString source_str = Transcript::sourceToString(source);
 
@@ -1252,7 +1248,7 @@ BedFile NGSD::genesToRegions(QStringList genes, Transcript::SOURCE source, QStri
 
 	//process input data
 	BedFile output;
-	foreach(QString gene, genes)
+	foreach(QByteArray gene, genes)
 	{
 		//get approved gene id
 		int id = geneToApprovedID(gene);
@@ -1268,7 +1264,7 @@ BedFile NGSD::genesToRegions(QStringList genes, Transcript::SOURCE source, QStri
 
 		//prepare annotations
 		QList<QByteArray> annos;
-		annos << gene.toLatin1();
+		annos << gene;
 
 		if (mode=="gene")
 		{
@@ -1282,7 +1278,7 @@ BedFile NGSD::genesToRegions(QStringList genes, Transcript::SOURCE source, QStri
 				if (annotate_transcript_names)
 				{
 					annos.clear();
-					annos << gene.toLatin1() + " " + q_transcript.value(3).toByteArray();
+					annos << gene + " " + q_transcript.value(3).toByteArray();
 				}
 				output.append(BedLine(chr, q_transcript.value(1).toInt(), q_transcript.value(2).toInt(), annos));
 				hits = true;
@@ -1298,7 +1294,7 @@ BedFile NGSD::genesToRegions(QStringList genes, Transcript::SOURCE source, QStri
 					if (annotate_transcript_names)
 					{
 						annos.clear();
-						annos << gene.toLatin1() + " " + q_transcript_fallback.value(3).toByteArray();
+						annos << gene + " " + q_transcript_fallback.value(3).toByteArray();
 					}
 
 					output.append(BedLine(chr, q_transcript_fallback.value(1).toInt(), q_transcript_fallback.value(2).toInt(), annos));
@@ -1322,7 +1318,7 @@ BedFile NGSD::genesToRegions(QStringList genes, Transcript::SOURCE source, QStri
 				if (annotate_transcript_names)
 				{
 					annos.clear();
-					annos << gene.toLatin1() + " " + q_transcript.value(3).toByteArray();
+					annos << gene + " " + q_transcript.value(3).toByteArray();
 				}
 
 				int trans_id = q_transcript.value(0).toInt();
@@ -1351,7 +1347,7 @@ BedFile NGSD::genesToRegions(QStringList genes, Transcript::SOURCE source, QStri
 					if (annotate_transcript_names)
 					{
 						annos.clear();
-						annos << gene.toLatin1() + " " + q_transcript_fallback.value(3).toByteArray();
+						annos << gene + " " + q_transcript_fallback.value(3).toByteArray();
 					}
 
 					int trans_id = q_transcript_fallback.value(0).toInt();

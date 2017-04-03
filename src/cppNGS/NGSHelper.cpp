@@ -490,27 +490,6 @@ QString NGSHelper::Cigar2QString(std::vector<CigarOp> Cigar, bool expand)
 	return cigar_string;
 }
 
-QStringList NGSHelper::textToGenes(QString text, int col_index)
-{
-	QStringList output;
-
-	QStringList lines = text.split('\n');
-	foreach(QString line, lines)
-	{
-		QStringList parts = line.split('\t');
-		if (col_index<parts.count())
-		{
-			QString gene = parts[col_index].trimmed();
-			if (!gene.isEmpty())
-			{
-				output.append(gene);
-			}
-		}
-	}
-
-	return output;
-}
-
 void NGSHelper::createSampleOverview(QStringList in, QString out, int indel_window, bool cols_auto, QStringList cols)
 {
 	//determine columns contained in all samples from file headers (keep order)

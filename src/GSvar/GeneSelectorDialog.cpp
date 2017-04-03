@@ -34,7 +34,7 @@ void GeneSelectorDialog::updateGeneTable()
 	ui->details->clearContents();
 
 	//convert input to gene list
-	QStringList genes = NGSHelper::textToGenes(ui->genes->toPlainText());
+	GeneSet genes = GeneSet::createFromText(ui->genes->toPlainText().toLatin1());
 	if (genes.isEmpty()) return;
 
 	//set cursor
@@ -97,7 +97,7 @@ void GeneSelectorDialog::updateGeneTable()
 	for (int r=0; r<genes.count(); ++r)
 	{
 		//convert gene to approved symbol
-		QString gene = genes[r];
+		QByteArray gene = genes[r];
 		int gene_id = db.geneToApprovedID(gene);
 		if(gene_id==-1)
 		{

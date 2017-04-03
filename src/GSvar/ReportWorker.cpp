@@ -9,6 +9,7 @@
 #include "VariantList.h"
 #include "XmlHelper.h"
 #include "VariantFilter.h"
+#include "NGSHelper.h"
 
 #include <QFile>
 #include <QTextStream>
@@ -54,7 +55,7 @@ void ReportWorker::process()
 		var_count_ = filter.countPassing();
 
 		//load gene list file
-		genes_ = loadGeneList(file_roi_);
+		genes_ = GeneSet::createFromFile(file_roi_.mid(0, file_roi_.length()-4) + "_genes.txt");
 	}
 
 	roi_stats_.clear();
@@ -137,7 +138,7 @@ QString ReportWorker::inheritance(QString gene_info, bool color)
 	return output.join(",");
 }
 
-BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, QString roi_file, const BedFile& roi, QList<QByteArray> genes, int min_cov,  NGSD& db, bool calculate_depth, QMap<QString, QString>* output)
+BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, QString roi_file, const BedFile& roi, const GeneSet& genes, int min_cov,  NGSD& db, bool calculate_depth, QMap<QString, QString>* output)
 {
 	//get target region coverages (from NGSD or calculate)
 	QString avg_cov = "";
@@ -177,8 +178,8 @@ BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file,
 	for(int i=0; i<low_cov.count(); ++i)
 	{
 		BedLine& line = low_cov[i];
-		QStringList genes = db.genesOverlapping(line.chr(), line.start(), line.end(), 20); //extend by 20 to annotate splicing regions as well
-		line.annotations().append(genes.join(", ").toLatin1());
+		GeneSet genes = db.genesOverlapping(line.chr(), line.start(), line.end(), 20); //extend by 20 to annotate splicing regions as well
+		line.annotations().append(genes.join(", "));
 	}
 
 	//group by gene name
@@ -253,7 +254,7 @@ BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file,
 	return low_cov;
 }
 
-void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file, QList<QByteArray> genes, int min_cov, NGSD& db, QMap<QString, QString>* output)
+void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file, const GeneSet& genes, int min_cov, NGSD& db, QMap<QString, QString>* output)
 {
 	stream << "<p><b>Abdeckungsstatistik f&uuml;r CCDS</b></p>" << endl;
 	stream << "<table>";
@@ -265,7 +266,7 @@ void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file
 		int gene_id = db.geneToApprovedID(gene);
 
 		//approved gene symbol
-		QString symbol = db.geneSymbol(gene_id);
+		QByteArray symbol = db.geneSymbol(gene_id);
 
 		//longest coding transcript
 		Transcript transcript = db.longestCodingTranscript(gene_id, Transcript::CCDS);
@@ -396,29 +397,6 @@ bool ReportWorker::isProcessingSystemTargetFile(QString bam_file, QString roi_fi
 	QString sys_file = db.getProcessingSystem(bam_file, NGSD::FILE);
 
 	return Helper::canonicalPath(sys_file) == Helper::canonicalPath(roi_file);
-}
-
-QList<QByteArray> ReportWorker::loadGeneList(QString roi_file)
-{
-	QString filename = roi_file.mid(0, roi_file.length()-4) + "_genes.txt";
-	if (QFile::exists(filename))
-	{
-		return QList<QByteArray>();
-	}
-
-	QSet<QByteArray> genes;
-	auto file = Helper::openFileForReading(filename);
-	while (!file->atEnd())
-	{
-		QByteArray line = file->readLine().trimmed().toUpper();
-
-		if (line.isEmpty() || line[0]=='#') continue;
-
-
-		genes.insert(line);
-	}
-
-	return genes.toList();
 }
 
 void ReportWorker::writeHtmlHeader(QTextStream& stream, QString sample_name)

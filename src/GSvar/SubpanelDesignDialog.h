@@ -4,6 +4,7 @@
 #include <QDialog>
 #include <QCompleter>
 #include "BedFile.h"
+#include "GeneSet.h"
 
 namespace Ui {
 class SubpanelDesignDialog;
@@ -38,7 +39,7 @@ private:
 
 	Ui::SubpanelDesignDialog *ui;
 	QCompleter* completer;
-	QStringList genes;
+	GeneSet genes;
 	BedFile regions;
 	QString roi_file;
 	QString gene_file;

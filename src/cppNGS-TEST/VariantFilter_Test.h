@@ -1,6 +1,7 @@
 #include "TestFramework.h"
 #include "VariantFilter.h"
 #include "VariantList.h"
+#include "GeneSet.h"
 
 TEST_CLASS(VariantFilter_Test)
 {
@@ -299,14 +300,14 @@ private slots:
 		VariantFilter filter(vl);
 
 		//first filter
-		filter.flagByGenes(QStringList() << "TP53");
+		filter.flagByGenes(GeneSet() << "TP53");
 
 		I_EQUAL(vl.count(), 143);
 		I_EQUAL(filter.countPassing(), 1);
 
 		//second filter
 		filter.clear();
-		filter.flagByGenes(QStringList() << "TP53" << "BRCA1");
+		filter.flagByGenes(GeneSet() << "TP53" << "BRCA1");
 
 		I_EQUAL(vl.count(), 143);
 		I_EQUAL(filter.countPassing(), 8);

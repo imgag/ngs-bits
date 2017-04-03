@@ -47,7 +47,7 @@ CnvWidget::~CnvWidget()
 	delete ui;
 }
 
-void CnvWidget::setGenesFilter(QStringList genes)
+void CnvWidget::setGenesFilter(const GeneSet& genes)
 {
 	if (genes.isEmpty())
 	{

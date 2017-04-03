@@ -1,8 +1,9 @@
 #ifndef NGSHELPER_H
 #define NGSHELPER_H
 
-#include "api/BamReader.h"
 #include "cppNGS_global.h"
+#include "api/BamReader.h"
+
 #include "Pileup.h"
 #include "VariantList.h"
 #include "ChromosomalIndex.h"
@@ -77,9 +78,6 @@ public:
 
 	///Convert Cigar data to QString
 	static QString Cigar2QString(std::vector<CigarOp> Cigar, bool expand = false);
-
-	///Converts text to gene list (one gene per tab-separated line)
-	static QStringList textToGenes(QString text, int col_index = 0);
 
 	///Create sample overview file
 	static void createSampleOverview(QStringList in, QString out, int indel_window=100, bool cols_auto=true, QStringList cols = QStringList());

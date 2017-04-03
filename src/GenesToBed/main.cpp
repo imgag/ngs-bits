@@ -5,6 +5,8 @@
 #include "BedFile.h"
 #include "Settings.h"
 #include "NGSD.h"
+#include "NGSHelper.h"
+
 #include <QSet>
 #include <QFile>
 #include <QTextStream>
@@ -46,8 +48,7 @@ public:
 		QString mode = getEnum("mode");
 		bool fallback = getFlag("fallback");
 		bool anno = getFlag("anno");
-		QSharedPointer<QFile> infile = Helper::openFileForReading(getInfile("in"), true);
-		QStringList genes = Helper::loadTextFile(infile, true, '#', true);
+		GeneSet genes = GeneSet::createFromFile(getInfile("in"));
 
 		//process
 		NGSD db(getFlag("test"));

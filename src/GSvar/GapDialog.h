@@ -5,6 +5,7 @@
 #include <QTableWidgetItem>
 #include "BedFile.h"
 #include "GapValidationLabel.h"
+#include "GeneSet.h"
 
 namespace Ui {
 class GapDialog;
@@ -17,7 +18,7 @@ class GapDialog : public QDialog
 public:
 	explicit GapDialog(QWidget* parent, QString sample_name, QString roi_file);
 	~GapDialog();
-	void process(QString bam_file, const BedFile& roi, QSet<QString> genes);
+	void process(QString bam_file, const BedFile& roi, const GeneSet& genes);
 	QString report() const;
 
 signals:

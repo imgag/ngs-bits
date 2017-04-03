@@ -27,7 +27,7 @@ void GenesToRegionsDialog::convertGenesToRegions()
 	ui->regions->clear();
 
 	//convert input with tabs to plain gene list
-	QStringList genes = NGSHelper::textToGenes(ui->genes->toPlainText());
+	GeneSet genes = GeneSet::createFromText(ui->genes->toPlainText().toLatin1());
 	if (genes.isEmpty()) return;
 
 	//convert gene list to regions (BED)

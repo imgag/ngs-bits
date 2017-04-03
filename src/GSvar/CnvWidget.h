@@ -5,6 +5,7 @@
 #include <QTableWidgetItem>
 #include "CnvList.h"
 #include "BedFile.h"
+#include "GeneSet.h"
 
 namespace Ui {
 class CnvList;
@@ -20,7 +21,7 @@ public:
 	explicit CnvWidget(QString filename, QWidget *parent = 0);
 	~CnvWidget();
 
-	void setGenesFilter(QStringList genes);
+	void setGenesFilter(const GeneSet& genes);
 	void setRoiFilter(QString filename);
 
 signals:
@@ -39,7 +40,7 @@ private:
 
 	Ui::CnvList *ui;
 	CnvList cnvs;
-	QStringList f_genes;
+	GeneSet f_genes;
 	BedFile f_roi;
 };
 

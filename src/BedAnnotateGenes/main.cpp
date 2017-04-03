@@ -41,8 +41,8 @@ public:
 			//make sure we have an annotation to store the genes
 			if (line.annotations().empty()) line.annotations().append("");
 
-			QStringList genes = db.genesOverlapping(line.chr(), line.start(), line.end(), extend);
-			line.annotations()[0] = genes.join(", ").toLatin1();
+			GeneSet genes = db.genesOverlapping(line.chr(), line.start(), line.end(), extend);
+			line.annotations()[0] = genes.join(", ");
 		}
 
 		//store

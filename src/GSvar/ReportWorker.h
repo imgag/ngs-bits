@@ -26,8 +26,8 @@ public:
 	}
 
 	///writes a low-coverage report
-	static BedFile writeCoverageReport(QTextStream& stream, QString bam_file, QString roi_file, const BedFile& roi, QList<QByteArray> genes, int min_cov, NGSD& db, bool calculate_depth, QMap<QString, QString>* output=nullptr);
-	static void writeCoverageReportCCDS(QTextStream& stream, QString bam_file, QList<QByteArray> genes, int min_cov, NGSD& db, QMap<QString, QString>* output=nullptr);
+	static BedFile writeCoverageReport(QTextStream& stream, QString bam_file, QString roi_file, const BedFile& roi, const GeneSet& genes, int min_cov, NGSD& db, bool calculate_depth, QMap<QString, QString>* output=nullptr);
+	static void writeCoverageReportCCDS(QTextStream& stream, QString bam_file, const GeneSet& genes, int min_cov, NGSD& db, QMap<QString, QString>* output=nullptr);
 
 	///Returns if the pre-calcualed gaps for the given ROI.
 	///If using the pre-calculated gaps file is not possible, @p message contains an error message.
@@ -35,9 +35,6 @@ public:
 
 	///Returns if given ROI file is the processing system target file corresponding to the BAM file.
 	static bool isProcessingSystemTargetFile(QString bam_file, QString roi_file, NGSD& db);
-
-	///Loads the gene list corresponding to the given target region
-	static QList<QByteArray> loadGeneList(QString roi_file);
 
 	static void writeHtmlHeader(QTextStream& stream, QString sample_name);
 	static void writeHtmlFooter(QTextStream& stream);
@@ -55,7 +52,7 @@ private:
 	QString file_roi_;
 	QString file_bam_;
 	int min_cov_;
-	QList<QByteArray> genes_;
+	GeneSet genes_;
 	QStringList log_files_;
 	bool calculate_depth_;
 

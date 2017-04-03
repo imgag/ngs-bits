@@ -50,7 +50,8 @@ HEADERS += \
         FastqFileStream_Test.h \
         FastaFileIndex_Test.h \
         QCCollection_Test.h \
-        StatisticsReads_Test.h
+        StatisticsReads_Test.h \
+		GeneSet_Test.h \
 
 SOURCES += \
         main.cpp

@@ -51,7 +51,8 @@ SOURCES += BedFile.cpp \
     CnvList.cpp \
     LovdUploadFile.cpp \
     Phenotype.cpp \
-    Transcript.cpp
+    Transcript.cpp \
+    GeneSet.cpp
 
 HEADERS += BedFile.h \
 	Chromosome.h \
@@ -73,7 +74,8 @@ HEADERS += BedFile.h \
     CnvList.h \
     LovdUploadFile.h \
     Phenotype.h \
-    Transcript.h
+    Transcript.h \
+    GeneSet.h
 
 
 RESOURCES += \

@@ -6,11 +6,13 @@
 #include <QVariantList>
 #include <QSharedPointer>
 #include <QTextStream>
+
 #include "VariantList.h"
 #include "BedFile.h"
 #include "Transcript.h"
 #include "QCCollection.h"
 #include "SqlQuery.h"
+#include "GeneSet.h"
 
 /// Germline gene information.
 struct CPPNGSDSHARED_EXPORT GeneInfo
@@ -87,7 +89,7 @@ public:
 	///Returns the gene ID, or -1 if none approved gene name could be found. Checks approved symbols, previous symbols and synonyms.
 	int geneToApprovedID(const QString& gene);
 	///Returns the gene symbol for a gene ID
-	QString geneSymbol(int id);
+	QByteArray geneSymbol(int id);
 	///Returns the the approved/original gene symbol and a status message.
 	QPair<QString, QString> geneToApproved(const QString& gene);
 	///Returns previous symbols of a gene.
@@ -95,11 +97,11 @@ public:
 	///Returns aliases of a gene.
 	QStringList synonymousSymbols(QString symbol);
 	///Returns the genes overlapping a regions (extended by some bases)
-	QStringList genesOverlapping(const Chromosome& chr, int start, int end, int extend=0);
+	GeneSet genesOverlapping(const Chromosome& chr, int start, int end, int extend=0);
 	///Returns the genes overlapping a regions (extended by some bases)
-	QStringList genesOverlappingByExon(const Chromosome& chr, int start, int end, int extend=0);
+	GeneSet genesOverlappingByExon(const Chromosome& chr, int start, int end, int extend=0);
 	///Returns the chromosomal regions corresponding to the given genes. Messages about unknown gene symbols etc. are written to the steam, if given.
-	BedFile genesToRegions(QStringList genes, Transcript::SOURCE source, QString mode, bool fallback = false, bool annotate_transcript_names = false, QTextStream* messages = nullptr);
+	BedFile genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QString mode, bool fallback = false, bool annotate_transcript_names = false, QTextStream* messages = nullptr);
 	///Returns transcripts of a gene (if @p coding_only is set, only coding transcripts and regions are returned).
 	QList<Transcript> transcripts(int gene_id, Transcript::SOURCE source, bool coding_only);
 	///Returns longest coding transcript of a gene.
