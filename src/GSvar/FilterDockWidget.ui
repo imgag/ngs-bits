@@ -139,6 +139,20 @@
            </property>
           </spacer>
          </item>
+         <item>
+          <widget class="QPushButton" name="roi_details">
+           <property name="toolTip">
+            <string>Show target region details.</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="GSvar.qrc">
+             <normaloff>:/Icons/Info.png</normaloff>:/Icons/Info.png</iconset>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
        <item>

@@ -55,7 +55,7 @@ void ReportWorker::process()
 		var_count_ = filter.countPassing();
 
 		//load gene list file
-		genes_ = GeneSet::createFromFile(file_roi_.mid(0, file_roi_.length()-4) + "_genes.txt");
+		genes_ = GeneSet::createFromFile(file_roi_.left(file_roi_.size()-4) + "_genes.txt");
 	}
 
 	roi_stats_.clear();

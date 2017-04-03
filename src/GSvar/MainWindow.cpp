@@ -1126,7 +1126,7 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	//load genes list file
 	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 	GeneSet genes;
-	QString genes_file = roi_file.mid(0, roi_file.length()-4) + "_genes.txt";
+	QString genes_file = roi_file.left(roi_file.size()-4) + "_genes.txt";
 	if (QFile::exists(genes_file))
 	{
 		genes = GeneSet::createFromFile(genes_file);

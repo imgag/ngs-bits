@@ -4,6 +4,7 @@
 #include <QDockWidget>
 #include "ui_FilterDockWidget.h"
 #include "BedFile.h"
+#include "GeneSet.h"
 
 ///Filter manager dock widget
 class FilterDockWidget
@@ -77,7 +78,7 @@ public:
 	void setTargetRegion(QString roi_file);
 
 	/// Returns the gene names filter.
-	QStringList genes() const;
+	GeneSet genes() const;
 	/// Returns the single target region filter, or an empty string if unset.
 	QString region() const;
 
@@ -105,6 +106,7 @@ protected slots:
 	void geneChanged();
 	void regionChanged();
 	void filterColumnStateChanged();
+	void showTargetRegionDetails();
 
 private:
 	/// Loads the reference file list of IGV
@@ -114,7 +116,7 @@ private:
 	void resetSignalsUnblocked(bool clear_roi, bool clear_off_target);
 
 	Ui::FilterDockWidget ui_;
-	QStringList last_genes_;
+	GeneSet last_genes_;
 };
 
 #endif // FILTERDOCKWIDGET_H
