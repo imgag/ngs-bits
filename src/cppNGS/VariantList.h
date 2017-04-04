@@ -273,7 +273,7 @@ public:
     ///Loads a single-sample variant list from a file. Returns the format of the file.
     Format load(QString filename, Format format=AUTO);
     ///Stores the variant list to a file.
-    void store(QString filename, Format format=AUTO);
+	void store(QString filename, Format format=AUTO);
 
     ///Sorts the variants. The order is chromosome (numeric), position, ref, obs, quality (if desired).
     void sort(bool use_quality = false);
@@ -292,8 +292,8 @@ public:
     ///Shifts each non complex insert or deletion to the left as far as possible. Then, removes duplicates.
     void leftAlign(QString ref_file);
 
-    ///Checks if the variants are valid. Throws ArgumentException if not. The @p action string is appended to the error message after ', while'.
-    void checkValid(QString action) const;
+	///Checks if the variants are valid. Throws ArgumentException if not.
+	void checkValid() const;
 
 protected:
     QStringList comments_;
@@ -331,8 +331,12 @@ protected:
     void loadFromTSV(QString filename);
     ///Stores the variant list as a TSV file.
     void storeToTSV(QString filename);
-    ///Loadss the variant list from a VCF file.
+	///Loads the variant list from a VCF file.
     void loadFromVCF(QString filename);
+	///Loads the variant list from a VCF.GZ file.
+	void loadFromVCFGZ(QString filename);
+	///Processes a VCF line (both for VCF and VCF.GZ).
+	void processVcfLine(QList<QByteArray>& header_fields, int& line_number, QByteArray line);
     ///Stores the variant list as a VCF file.
     void storeToVCF(QString filename);
 	///Converts an annotation type to a string (for VCF only)
