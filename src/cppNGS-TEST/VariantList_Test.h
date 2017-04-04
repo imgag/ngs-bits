@@ -185,6 +185,30 @@ private slots:
 		S_EQUAL(vl.sampleNames()[0], QString("./Sample_GS120297A3/GS120297A3.bam"));
 	}
 
+	void loadFromVCF_withROI()
+	{
+		BedFile roi;
+		roi.append(BedLine("chr17", 72196820, 72196892));
+		roi.append(BedLine("chr18", 67904549, 67904670));
+
+		VariantList vl;
+		vl.load(TESTDATA("data_in/panel.vcf"), VariantList::VCF, &roi);
+		vl.checkValid();
+		I_EQUAL(vl.count(), 4);
+		I_EQUAL(vl.comments().count(), 2);
+		S_EQUAL(vl.sampleNames()[0], QString("./Sample_GS120297A3/GS120297A3.bam"));
+		I_EQUAL(vl.annotations().count(), 27);
+
+		X_EQUAL(vl[0].chr(), Chromosome("chr17"));
+		I_EQUAL(vl[0].start(), 72196887);
+		X_EQUAL(vl[1].chr(), Chromosome("chr17"));
+		I_EQUAL(vl[1].start(), 72196892);
+		X_EQUAL(vl[2].chr(), Chromosome("chr18"));
+		I_EQUAL(vl[2].start(), 67904549);
+		X_EQUAL(vl[3].chr(), Chromosome("chr18"));
+		I_EQUAL(vl[3].start(), 67904586);
+	}
+
 	void loadFromVCF_noSampleOrFormatColumn()
 	{
 		VariantList vl;
@@ -357,6 +381,33 @@ private slots:
 		vl.checkValid();
 		I_EQUAL(vl.count(), 75);
 		I_EQUAL(vl.annotations().count(), 27);
+	}
+
+	void loadFromTSV_withROI()
+	{
+		BedFile roi;
+		roi.append(BedLine("chr16", 74750405, 74808425));
+		roi.append(BedLine("chr19", 7607441, 7607564));
+
+		VariantList vl;
+		vl.load(TESTDATA("data_in/panel.tsv"), VariantList::TSV, &roi);
+		I_EQUAL(vl.count(), 4);
+		I_EQUAL(vl.annotations().count(), 27);
+		S_EQUAL(vl.annotations()[0].name(), QString("genotype"));
+		S_EQUAL(vl.annotations()[26].name(), QString("validated"));
+		I_EQUAL(vl.filters().count(), 3);
+		S_EQUAL(vl.filters()["low_DP"], QString("Depth less than 20 at variant location."));
+		S_EQUAL(vl.filters()["low_MQM"], QString("Mean mapping quality of alternate allele less than Q50."));
+		S_EQUAL(vl.filters()["low_QUAL"], QString("Variant quality less than Q30."));
+
+		X_EQUAL(vl[0].chr(), Chromosome("chr16"));
+		I_EQUAL(vl[0].start(), 74750405);
+		X_EQUAL(vl[1].chr(), Chromosome("chr16"));
+		I_EQUAL(vl[1].start(), 74808425);
+		X_EQUAL(vl[2].chr(), Chromosome("chr19"));
+		I_EQUAL(vl[2].start(), 7607441);
+		X_EQUAL(vl[3].chr(), Chromosome("chr19"));
+		I_EQUAL(vl[3].start(), 7607564);
 	}
 
 	void storeToTSV()

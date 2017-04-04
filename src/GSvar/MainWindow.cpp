@@ -1158,6 +1158,14 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 
 void MainWindow::on_actionExportVCF_triggered()
 {
+	//create BED file with 15 flanking bases around variants
+	BedFile roi;
+	for(int i=0; i<variants_.count(); ++i)
+	{
+		if (ui_.vars->isRowHidden(i)) continue;
+		roi.append(BedLine(variants_[i].chr(), variants_[i].start()-15, variants_[i].end()+15));
+	}
+
 	//load original VCF
 	QString orig_name = filename_;
 	orig_name.replace(".GSvar", "_var_annotated.vcf.gz");
@@ -1167,7 +1175,7 @@ void MainWindow::on_actionExportVCF_triggered()
 		return;
 	}
 	VariantList orig_vcf;
-	orig_vcf.load(orig_name);
+	orig_vcf.load(orig_name, VariantList::VCF_GZ, &roi);
 	ChromosomalIndex<VariantList> orig_idx(orig_vcf);
 
 	//create new VCF
@@ -1175,48 +1183,49 @@ void MainWindow::on_actionExportVCF_triggered()
 	output.copyMetaData(orig_vcf);
 	for(int i=0; i<variants_.count(); ++i)
 	{
-		if (!ui_.vars->isRowHidden(i))
+		if (ui_.vars->isRowHidden(i)) continue;
+		int hit_count = 0;
+		const Variant& v = variants_[i];
+		QVector<int> matches = orig_idx.matchingIndices(v.chr(), v.start()-10, v.end()+10);
+		foreach(int index, matches)
 		{
-			int hit_count = 0;
-			const Variant& v = variants_[i];
-			QVector<int> matches = orig_idx.matchingIndices(v.chr(), v.start()-10, v.end()+10);
-			foreach(int index, matches)
+			const Variant& v2 = orig_vcf[index];
+			if (v.isSNV()) //SNV
 			{
-				const Variant& v2 = orig_vcf[index];
-				if (v.isSNV()) //SNV
+				if (v.start()==v2.start() && v.obs()==v2.obs())
 				{
-					if (v.start()==v2.start() && v.obs()==v2.obs())
-					{
-						output.append(v2);
-						++hit_count;
-					}
-				}
-				else if (v.ref()=="-") //insertion
-				{
-					if (v.start()==v2.start() && v2.ref().count()==1 && v2.obs().mid(1)==v.obs())
-					{
-						output.append(v2);
-						++hit_count;
-					}
-				}
-				else if (v.obs()=="-") //deletion
-				{
-					if (v.start()-1==v2.start() && v2.obs().count()==1 && v2.ref().mid(1)==v.ref())
-					{
-						output.append(v2);
-						++hit_count;
-					}
-				}
-				else //complex
-				{
-					if (v.start()==v2.start() && v2.obs()==v.obs() && v2.ref()==v.ref())
-					{
-						output.append(v2);
-						++hit_count;
-					}
+					output.append(v2);
+					++hit_count;
 				}
 			}
-			if (hit_count!=1) THROW(ProgrammingException, "Found " + QString::number(hit_count) + " matching variants for " + v.toString() + " in VCF file. Exactly one expected!");
+			else if (v.ref()=="-") //insertion
+			{
+				if (v.start()==v2.start() && v2.ref().count()==1 && v2.obs().mid(1)==v.obs())
+				{
+					output.append(v2);
+					++hit_count;
+				}
+			}
+			else if (v.obs()=="-") //deletion
+			{
+				if (v.start()-1==v2.start() && v2.obs().count()==1 && v2.ref().mid(1)==v.ref())
+				{
+					output.append(v2);
+					++hit_count;
+				}
+			}
+			else //complex
+			{
+				if (v.start()==v2.start() && v2.obs()==v.obs() && v2.ref()==v.ref())
+				{
+					output.append(v2);
+					++hit_count;
+				}
+			}
+		}
+		if (hit_count!=1)
+		{
+			THROW(ProgrammingException, "Found " + QString::number(hit_count) + " matching variants for " + v.toString() + " in VCF file. Exactly one expected!");
 		}
 	}
 

@@ -8,8 +8,6 @@ libs:
    - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-
-** VCF export should not load the complete VCF file at once (OOM for genomes)
 ** Annotation: add fast option (for ROI only and/or for AF<5% only)
 ** Target region filter: reset to none if it looses focus in search mode
 * LOVD upload for variant:

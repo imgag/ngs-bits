@@ -399,13 +399,12 @@ QStringList VariantList::sampleNames() const
 	return sample_names;
 }
 
-VariantList::Format VariantList::load(QString filename, VariantList::Format format)
+VariantList::Format VariantList::load(QString filename, VariantList::Format format, const BedFile* roi)
 {
 	//determine format
 	if (format==AUTO)
 	{
 		QString fn_lower = filename.toLower();
-		//qDebug() << fn_lower;
 		if(fn_lower.indexOf(':')>1 && fn_lower.count(':')==1)
 		{
 			fn_lower = fn_lower.left(fn_lower.indexOf(':'));
@@ -429,20 +428,38 @@ VariantList::Format VariantList::load(QString filename, VariantList::Format form
 		}
 	}
 
+	//create ROI index (if given)
+	ChromosomalIndex<BedFile>* roi_idx = nullptr;
+	if (roi!=nullptr)
+	{
+		if (!roi->isSorted())
+		{
+			THROW(ArgumentException, "Target region unsorted, but needs to be sorted (given for reading file " + filename + ")!");
+		}
+		roi_idx = new ChromosomalIndex<BedFile>(*roi);
+	}
+
+	//load variant list
 	if (format==VCF)
 	{
-		loadFromVCF(filename);
+		loadFromVCF(filename, roi_idx);
 		return VariantList::VCF;
 	}
 	else if (format==VCF_GZ)
 	{
-		loadFromVCFGZ(filename);
+		loadFromVCFGZ(filename, roi_idx);
 		return VariantList::VCF_GZ;
 	}
 	else
 	{
-		loadFromTSV(filename);
+		loadFromTSV(filename, roi_idx);
 		return VariantList::TSV;
+	}
+
+	//delete ROI index (if given)
+	if (roi!=nullptr)
+	{
+		delete roi_idx;
 	}
 }
 
@@ -476,7 +493,7 @@ void VariantList::store(QString filename, VariantList::Format format)
 	}
 }
 
-void VariantList::loadFromTSV(QString filename)
+void VariantList::loadFromTSV(QString filename, ChromosomalIndex<BedFile>* roi_idx)
 {
 	constexpr int special_cols = 5;
 
@@ -545,7 +562,19 @@ void VariantList::loadFromTSV(QString filename)
 			THROW(FileParseException, "Variant TSV file line with less than five fields found: '" + line.trimmed() + "'");
 		}
 
-		append(Variant(fields[0], atoi(fields[1]), atoi(fields[2]), fields[3], fields[4], fields.mid(special_cols), filter_index));
+		//Skip variants that are not in the target region (if given)
+		Chromosome chr = fields[0];
+		int start = atoi(fields[1]);
+		int end = atoi(fields[2]);
+		if (roi_idx!=nullptr)
+		{
+			if (roi_idx->matchingIndex(chr, start, end)==-1)
+			{
+				continue;
+			}
+		}
+
+		append(Variant(chr, start, end, fields[3], fields[4], fields.mid(special_cols), filter_index));
 	}
 }
 
@@ -634,7 +663,7 @@ void VariantList::storeToTSV(QString filename)
 	}
 }
 
-void VariantList::loadFromVCF(QString filename)
+void VariantList::loadFromVCF(QString filename, ChromosomalIndex<BedFile>* roi_idx)
 {
 	//remove old data
 	clear();
@@ -650,11 +679,11 @@ void VariantList::loadFromVCF(QString filename)
 	QSharedPointer<QFile> file = Helper::openFileForReading(filename, true);
 	while(!file->atEnd())
 	{
-		processVcfLine(header_fields, line_number, file->readLine());
+		processVcfLine(header_fields, line_number, file->readLine(), roi_idx);
 	}
 }
 
-void VariantList::loadFromVCFGZ(QString filename)
+void VariantList::loadFromVCFGZ(QString filename, ChromosomalIndex<BedFile>* roi_idx)
 {
 	//remove old data
 	clear();
@@ -677,13 +706,13 @@ void VariantList::loadFromVCFGZ(QString filename)
 	char* buffer = new char[8192];
 	while(!gzeof(file))
 	{
-		processVcfLine(header_fields, line_number, QByteArray(gzgets(file, buffer, 8192)));
+		processVcfLine(header_fields, line_number, QByteArray(gzgets(file, buffer, 8192)), roi_idx);
 	}
 	gzclose(file);
 	delete buffer;
 }
 
-void VariantList::processVcfLine(QList<QByteArray>& header_fields, int& line_number, QByteArray line)
+void VariantList::processVcfLine(QList<QByteArray>& header_fields, int& line_number, QByteArray line, ChromosomalIndex<BedFile>* roi_idx)
 {
 	while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
 
@@ -791,22 +820,28 @@ void VariantList::processVcfLine(QList<QByteArray>& header_fields, int& line_num
 		if(found) return;
 
 		annotationDescriptions().append(new_annotation_description);
+
+		return;
 	}
-	//other meta-information lines
-	else if (line.startsWith("##FILTER=<ID="))
+
+	//filter lines
+	if (line.startsWith("##FILTER=<ID="))
 	{
 		QStringList parts = QString(line.mid(13, line.length()-15)).split(",Description=\"");
 		if(parts.count()!=2) THROW(FileParseException, "Malformed FILTER line: conains more/less than two parts: " + line);
 		filters_[parts[0]] = parts[1];
+		return;
 	}
+
 	//other meta-information lines
-	else if (line.startsWith("##"))
+	if (line.startsWith("##"))
 	{
 		addCommentLine(line);
+		return;
 	}
 
 	//header line
-	else if (line.startsWith("#CHROM"))
+	if (line.startsWith("#CHROM"))
 	{
 		header_fields = line.mid(1).split('\t');
 
@@ -868,62 +903,102 @@ void VariantList::processVcfLine(QList<QByteArray>& header_fields, int& line_num
 				annotationDescriptions().append(VariantAnnotationDescription(".", "Default column description since no FORMAT fields were defined.", VariantAnnotationDescription::STRING, true, "1", false));//add dummy description
 			}
 		}
+		return;
 	}
 
 	//variant line
-	else
+	QList<QByteArray> line_parts = line.split('\t');
+	if (line_parts.count()<7)
 	{
-		//extract and convert mandatory information
-		QList<QByteArray> line_parts = line.split('\t');
-		if (line_parts.count()<7)
-		{
-			THROW(FileParseException, "VCF data line needs at least 7 tab-separated columns! Found " + QString::number(line_parts.count()) + " column(s) in line number " + QString::number(line_number) + ": " + line);
-		}
-		QString chrom = line_parts[0];
-		int start_pos = line_parts[1].toInt();
-		Sequence ref_bases = line_parts[3].toUpper();
-		Sequence var_bases = line_parts[4].toUpper();
-		int end_pos = start_pos + ref_bases.length()-1;
-		QByteArray id_annotation_value = line_parts[2];
-		QByteArray qual_annotation_value = line_parts[5];
-		QByteArray filter_annotation_value = line_parts[6];
+		THROW(FileParseException, "VCF data line needs at least 7 tab-separated columns! Found " + QString::number(line_parts.count()) + " column(s) in line number " + QString::number(line_number) + ": " + line);
+	}
 
-		//extract sample-independent annotations (if present)
-		QList <QByteArray> annos;
-		annos << id_annotation_value << qual_annotation_value << filter_annotation_value;
-		for(int i=3; i<annotations().count();++i)
+	//Skip variants that are not in the target region (if given)
+	Chromosome chr = line_parts[0];
+	int start = atoi(line_parts[1]);
+	Sequence ref_bases = line_parts[3].toUpper();
+	int end = start + ref_bases.length()-1;
+	if (roi_idx!=nullptr)
+	{
+		if (roi_idx->matchingIndex(chr, start, end)==-1)
 		{
-			annos.append(QByteArray());
+			return;
 		}
+	}
 
-		if ((line_parts.count()>=8)&&(line_parts[7]!="."))
+	//extract sample-independent annotations
+	QList <QByteArray> annos;
+	annos << line_parts[2] << line_parts[5] << line_parts[6]; //id, quality, filter
+	for(int i=3; i<annotations().count();++i)
+	{
+		annos.append(QByteArray());
+	}
+
+	if ((line_parts.count()>=8)&&(line_parts[7]!="."))
+	{
+		QList<QByteArray> anno_parts = line_parts[7].split(';');
+		for (int i=0; i<anno_parts.count(); ++i)
 		{
-			QList<QByteArray> anno_parts = line_parts[7].split(';');
-			for (int i=0; i<anno_parts.count(); ++i)
+			QList<QByteArray> key_value = anno_parts[i].split('=');
+
+			QByteArray value;
+			if (key_value.count()==1) //no value (flag)
 			{
-				QList<QByteArray> key_value = anno_parts[i].split('=');
+				value = "TRUE";
+			}
+			else
+			{
+				value = key_value[1];
+				value = (value=="." ? "" : value);
+			}
 
-				QByteArray value;
-				if (key_value.count()==1) //no value (flag)
+			int index = annotations().indexOf(VariantAnnotationHeader(key_value[0]));
+			if(index==-1)
+			{
+				annotations().append(VariantAnnotationHeader(key_value[0]));
+				annotationDescriptions().append(VariantAnnotationDescription(key_value[0], "no description available"));
+				//Log::info("No metadata information for INFO field " + key_value[0] + " was found.");
+
+				for(int ii=0;ii<variants_.count();++ii)
 				{
-					value = "TRUE";
-				}
-				else
-				{
-					value = key_value[1];
-					value = (value=="." ? "" : value);
+					variants_[ii].annotations().append(QByteArray());
 				}
 
-				int index = annotations().indexOf(VariantAnnotationHeader(key_value[0]));
+				index = annos.count();
+				annos.append(value);
+			}
+			annos[index] = value;
+		}
+	}
+
+	//extract sample-dependent annotations
+	if (line_parts.count()>=10)//if present: extract sample dependent annotations
+	{
+		QList<QByteArray> names = line_parts[8].split(':');
+		for(int i=9; i<header_fields.count(); ++i)
+		{
+			QString sample_id = QString(header_fields[i]);
+			if(sample_id.isEmpty() && header_fields.count()==10)	sample_id = "Sample";
+
+			QList<QByteArray> values = line_parts[i].split(':');
+			for (int ii=0; ii<names.count(); ++ii)
+			{
+				QByteArray value = "";
+				if (values[ii]!=".") value = values[ii];
+
+				int index = annotations().indexOf(VariantAnnotationHeader(names[ii],sample_id));
+				if(index==-1 && names[ii]==".")
+				{
+					THROW(FileParseException, "Invalid empty FORMAT field of sample '"+sample_id+"'!");
+				}
 				if(index==-1)
 				{
-					annotations().append(VariantAnnotationHeader(key_value[0]));
-					annotationDescriptions().append(VariantAnnotationDescription(key_value[0], "no description available"));
-					//Log::info("No metadata information for INFO field " + key_value[0] + " was found.");
-
-					for(int ii=0;ii<variants_.count();++ii)
+					//Log::info("No metadata information for FORMAT field " + names[ii] + ".");
+					annotations().append(VariantAnnotationHeader(names[ii],sample_id));
+					annotationDescriptions().append(VariantAnnotationDescription(names[ii],"no description available",VariantAnnotationDescription::STRING,true));
+					for(int iii=0;iii<variants_.count();++iii)
 					{
-						variants_[ii].annotations().append(QByteArray());
+						variants_[iii].annotations().append(QByteArray());
 					}
 
 					index = annos.count();
@@ -932,46 +1007,9 @@ void VariantList::processVcfLine(QList<QByteArray>& header_fields, int& line_num
 				annos[index] = value;
 			}
 		}
-
-		// extract sample-dependent annotations (if present)
-		if (line_parts.count()>=10)//if present: extract sample dependent annotations
-		{
-			QList<QByteArray> names = line_parts[8].split(':');
-			for(int i=9; i<header_fields.count(); ++i)
-			{
-				QString sample_id = QString(header_fields[i]);
-				if(sample_id.isEmpty() && header_fields.count()==10)	sample_id = "Sample";
-
-				QList<QByteArray> values = line_parts[i].split(':');
-				for (int ii=0; ii<names.count(); ++ii)
-				{
-					QByteArray value = "";
-					if (values[ii]!=".") value = values[ii];
-
-					int index = annotations().indexOf(VariantAnnotationHeader(names[ii],sample_id));
-					if(index==-1 && names[ii]==".")
-					{
-						THROW(FileParseException, "Invalid empty FORMAT field of sample '"+sample_id+"'!");
-					}
-					if(index==-1)
-					{
-						//Log::info("No metadata information for FORMAT field " + names[ii] + ".");
-						annotations().append(VariantAnnotationHeader(names[ii],sample_id));
-						annotationDescriptions().append(VariantAnnotationDescription(names[ii],"no description available",VariantAnnotationDescription::STRING,true));
-						for(int iii=0;iii<variants_.count();++iii)
-						{
-							variants_[iii].annotations().append(QByteArray());
-						}
-
-						index = annos.count();
-						annos.append(value);
-					}
-					annos[index] = value;
-				}
-			}
-		}
-		append(Variant(chrom, start_pos, end_pos, ref_bases, var_bases, annos, 2));
 	}
+
+	append(Variant(chr, start, end, ref_bases, line_parts[4].toUpper(), annos, 2));
 }
 
 void VariantList::storeToVCF(QString filename)

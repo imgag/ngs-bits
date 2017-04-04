@@ -25,7 +25,6 @@ public:
 		//optional
 		addInfile("reg", "Input target region in BED format.", true);
 		addString("r", "Single target region in the format chr17:41194312-41279500.", true);
-		addFlag("invert", "If set, the variants inside the target region are removed.");
 		addFlag("mark", "If set, the variants are not removed but marked as 'off-target' in the 'filter' column.");
 
 		changeLog(2017, 1,  4, "Added parameter '-mark' for flagging variants instead of filtering them out.");
@@ -34,46 +33,35 @@ public:
 
 	virtual void main()
 	{
-		//load variants
-		VariantList variants;
-		variants.load(getInfile("in"));
-
-		//init filter
-		VariantFilter filter(variants);
-
-		//filter by BED file
-		QString reg = getInfile("reg");
-		if (!reg.isEmpty())
+		//load target region
+		BedFile roi;
+		if (getInfile("reg")!="")
 		{
-			BedFile regions;
-			regions.load(reg);
-			regions.merge();
-			filter.flagByRegions(regions);
+			roi.load(getInfile("reg"));
+			roi.merge();
 		}
-
-		//filter by region string
-		reg = getString("r");
-		if (!reg.isEmpty())
+		else if (getString("r")!="")
 		{
-			filter.flagByRegion(BedLine::fromString(reg));
+			roi.append(BedLine::fromString(getString("r")));
 		}
-
-		//invert
-		if (getFlag("invert"))
+		else
 		{
-			filter.invert();
+			THROW(ArgumentException, "You have to provide either the 'reg' or the 'r' parameter!");
 		}
 
 		//apply filter
+		VariantList variants;
 		if (getFlag("mark"))
 		{
+			variants.load(getInfile("in"));
+			VariantFilter filter(variants);
+			filter.flagByRegions(roi);
 			filter.tagFlagged("off-target", "Variant outside the panel/exome target region.");
 		}
 		else
 		{
-			filter.removeFlagged();
+			variants.load(getInfile("in"), VariantList::AUTO, &roi);
 		}
-
 		variants.store(getOutfile("out"));
 	}
 };

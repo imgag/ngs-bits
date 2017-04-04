@@ -1,3 +1,6 @@
+#c++11 support
+CONFIG += c++11
+
 #base settings
 QT       -= gui
 CONFIG   += console
