@@ -155,8 +155,8 @@ public:
 	///Returns the next processing ID for the given sample.
 	QString nextProcessingId(const QString& sample_id);
 
-	///Annotates (or re-annotates) the variant list with current NGSD information.
-	void annotate(VariantList& variants, QString filename);
+	///Annotates (or re-annotates) the variant list with current NGSD information. If roi is non-empty, only the variants in the target region are annotated.
+	void annotate(VariantList& variants, QString filename, BedFile roi = BedFile());
 	///Annotates (or re-annotates) the variant list with current (somatic) NGSD information.
 	void annotateSomatic(VariantList& variants, QString filename);
 

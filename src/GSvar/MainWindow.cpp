@@ -57,7 +57,7 @@ MainWindow::MainWindow(QWidget *parent)
 	, var_widget_(new VariantDetailsDockWidget(this))
 	, busy_dialog_(nullptr)
 	, filename_()
-	, db_annos_updated_(false)
+	, db_annos_updated_(NO)
 	, igv_initialized_(false)
 	, last_report_path_(QDir::homePath())
 {
@@ -70,10 +70,23 @@ MainWindow::MainWindow(QWidget *parent)
 	var_widget_->raise();
 	connect(var_widget_, SIGNAL(jumbToRegion(QString)), this, SLOT(openInIGV(QString)));
 
+	//annotation menu button
+	auto anno_btn = new QToolButton();
+	anno_btn->setIcon(QIcon(":/Icons/Database.png"));
+	anno_btn->setToolTip("Re-annotate variant list with frequency information and comments from NGSD.");
+	anno_btn->setMenu(new QMenu());
+	anno_btn->menu()->addAction(ui_.actionDatabase);
+	connect(ui_.actionDatabase, SIGNAL(triggered(bool)), this, SLOT(annotateVariantsComplete()));
+	anno_btn->menu()->addAction(ui_.actionDatabaseROI);
+	connect(ui_.actionDatabaseROI, SIGNAL(triggered(bool)), this, SLOT(annotateVariantsROI()));
+	anno_btn->setPopupMode(QToolButton::InstantPopup);
+	ui_.tools->insertWidget(ui_.actionReport, anno_btn);
+
     //filter menu button
     auto filter_btn = new QToolButton();
     filter_btn->setIcon(QIcon(":/Icons/Filter.png"));
-    filter_btn->setMenu(new QMenu());
+	filter_btn->setToolTip("Apply default variant filters.");
+	filter_btn->setMenu(new QMenu());
     filter_btn->menu()->addAction(ui_.actionFiltersGermline);
     connect(ui_.actionFiltersGermline, SIGNAL(triggered(bool)), this, SLOT(applyDefaultFiltersGermline()));
 	filter_btn->menu()->addAction(ui_.actionFiltersTrio);
@@ -91,6 +104,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(close()));
 	connect(ui_.vars, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(varsContextMenu(QPoint)));
 	connect(filter_widget_, SIGNAL(filtersChanged()), this, SLOT(filtersChanged()));
+	connect(filter_widget_, SIGNAL(targetRegionChanged()), this, SLOT(resetAnnoationStatus()));
 	connect(ui_.vars, SIGNAL(itemSelectionChanged()), this, SLOT(updateVariantDetails()));
 	connect(&filewatcher_, SIGNAL(fileChanged()), this, SLOT(handleInputFileChange()));
 	connect(ui_.vars, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(variantDoubleClicked(QTableWidgetItem*)));
@@ -505,7 +519,7 @@ void MainWindow::loadFile(QString filename)
 	filter_widget_->reset(true, false);
 	filename_ = "";
 	filewatcher_.clearFile();
-	db_annos_updated_ = false;
+	db_annos_updated_ = NO;
 	igv_initialized_ = false;
 	ui_.vars->setRowCount(0);
 	ui_.vars->setColumnCount(0);
@@ -815,9 +829,12 @@ void MainWindow::generateReport()
 
 	//check if NGSD annotations are up-to-date
 	QString mod_date = QFileInfo(filename_).lastModified().toString("yyyy-MM-dd");
-	if (!db_annos_updated_ && QMessageBox::question(this, "Report", "NGSD re-annotation not performed!\nDo you want to continue with annotations from " + mod_date + "?")==QMessageBox::No)
+	if (db_annos_updated_==NO)
 	{
-		return;
+		if (QMessageBox::question(this, "Report", "NGSD re-annotation not performed!\nDo you want to continue with annotations from " + mod_date + "?")==QMessageBox::No)
+		{
+			return;
+		}
 	}
 
 	//determine visible variants
@@ -909,7 +926,7 @@ void MainWindow::reportGenerationFinished(bool success)
 	worker->deleteLater();
 }
 
-void MainWindow::on_actionDatabase_triggered()
+void MainWindow::annotateVariantsComplete()
 {
 	if (variants_.count()==0) return;
 
@@ -922,6 +939,26 @@ void MainWindow::on_actionDatabase_triggered()
 	worker->start();
 }
 
+
+void MainWindow::annotateVariantsROI()
+{
+	if (variants_.count()==0) return;
+
+	if (filter_widget_->targetRegion()=="")
+	{
+		QMessageBox::warning(this, "Error", "ROI-based variant annotation is only possible when a target region is selected!");
+		return;
+	}
+
+	//show busy dialog
+	busy_dialog_ = new BusyDialog("Database annotation", this);
+
+	//start worker
+	DBAnnotationWorker* worker = new DBAnnotationWorker(filename_, variants_, busy_dialog_, filter_widget_->targetRegion());
+	connect(worker, SIGNAL(finished(bool)), this, SLOT(databaseAnnotationFinished(bool)));
+	worker->start();
+}
+
 void MainWindow::databaseAnnotationFinished(bool success)
 {
 	delete busy_dialog_;
@@ -930,7 +967,7 @@ void MainWindow::databaseAnnotationFinished(bool success)
 	DBAnnotationWorker* worker = qobject_cast<DBAnnotationWorker*>(sender());
 	if (success)
 	{
-		db_annos_updated_ = true;
+		db_annos_updated_ = worker->targetRegionOnly() ? ROI : YES;
 		variantListChanged();
 	}
 	else
@@ -2289,6 +2326,16 @@ void MainWindow::filtersChanged()
 	}
 
 	QApplication::restoreOverrideCursor();
+}
+
+void MainWindow::resetAnnoationStatus()
+{
+	qDebug() << "ROI changed"; //TODO
+	if (db_annos_updated_==ROI)
+	{
+		qDebug() << "  reset status"; //TODO
+		db_annos_updated_ = NO;
+	}
 }
 
 void MainWindow::addToRecentFiles(QString filename)

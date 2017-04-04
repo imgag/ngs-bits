@@ -233,6 +233,7 @@ void FilterDockWidget::reset(bool clear_roi, bool clear_off_target)
 	blockSignals(false);
 
     emit filtersChanged();
+	if (clear_roi) emit targetRegionChanged();
 }
 
 void FilterDockWidget::applyDefaultFilters()
@@ -509,6 +510,8 @@ void FilterDockWidget::setTargetRegion(QString roi_file)
 			break;
 		}
 	}
+
+	emit targetRegionChanged();
 }
 
 GeneSet FilterDockWidget::genes() const
@@ -619,6 +622,7 @@ void FilterDockWidget::roiSelectionChanged(int index)
 	if(index!=0)
 	{
 		emit filtersChanged();
+		emit targetRegionChanged();
 	}
 	//qDebug() << __LINE__ << ui_.rois->completer() << ui_.rois->itemData(index).toString();
 }

@@ -74,8 +74,6 @@ public slots:
 	void on_actionResize_triggered();
 	///Report dialog
 	void on_actionReport_triggered();
-	///Database annotation
-	void on_actionDatabase_triggered();
     ///NGSD link
 	void on_actionNGSD_triggered();
 	///Sample information
@@ -150,6 +148,8 @@ public slots:
 	void updateVariantDetails();
 	///Updates the visible rows after filters have changed
 	void filtersChanged();
+	///Resets the annotation status
+	void resetAnnoationStatus();
 	///Opens the recent file defined by the sender action text
 	void openRecentFile();
 	///Loads the command line input file.
@@ -172,13 +172,16 @@ public slots:
 	///Removes all modeless dialogs that have been closed
 	void cleanUpModelessDialogs();
 
-    ///Default filters
+	///Variant default filters
     void applyDefaultFiltersGermline();
 	void applyDefaultFiltersTrio();
 	void applyDefaultFiltersMultiSample();
     void applyDefaultFiltersSomatic();
     void clearFilters();
 
+	///Variant database annotation
+	void annotateVariantsComplete();
+	void annotateVariantsROI();
 
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);
@@ -195,7 +198,7 @@ private:
 	//DATA
 	QString filename_;
 	FileWatcher filewatcher_;
-	bool db_annos_updated_;
+	enum {YES, NO, ROI} db_annos_updated_;
 	bool igv_initialized_;
 	VariantList variants_;
 	QMap<QString, QString> link_columns_;

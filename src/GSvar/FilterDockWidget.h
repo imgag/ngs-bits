@@ -94,6 +94,8 @@ public:
 signals:
 	/// Signal that is emitted when an annotation filter changes its checkbox state, or if the ROI changes, or if the gene changes
 	void filtersChanged();
+	/// Signal is emitted when the target region changes
+	void targetRegionChanged();
 
 protected slots:
 	void addRoi();

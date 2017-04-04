@@ -498,7 +498,7 @@ QVector<double> NGSD::getQCValues(const QString& accession, const QString& filen
 	return output;
 }
 
-void NGSD::annotate(VariantList& variants, QString filename)
+void NGSD::annotate(VariantList& variants, QString filename, BedFile roi)
 {
 	initProgress("NGSD annotation", true);
 
@@ -530,6 +530,18 @@ void NGSD::annotate(VariantList& variants, QString filename)
 	variants.removeAnnotationByName("validated", true, false);
 	variants.removeAnnotationByName("comment", true, false);
 
+	//load target region (if given)
+	QScopedPointer<ChromosomalIndex<BedFile>> roi_index;
+	if (roi.count()!=0)
+	{
+		if (!roi.isSorted())
+		{
+			THROW(ArgumentException, "Target region unsorted, but needs to be sorted for indexing!");
+		}
+
+		roi_index.reset(new ChromosomalIndex<BedFile>(roi));
+	}
+
 	//get required column indices
 	int ihdb_all_hom_idx = variants.addAnnotation("ihdb_allsys_hom", "Homozygous variant counts in NGSD independent of the processing system.");
 	int ihdb_all_het_idx =  variants.addAnnotation("ihdb_allsys_het", "Heterozygous variant counts in NGSD independent of the processing system.");
@@ -559,8 +571,18 @@ void NGSD::annotate(VariantList& variants, QString filename)
 	SqlQuery query = getQuery();
 	for (int i=0; i<variants.count(); ++i)
 	{
-		//variant id
 		Variant& v = variants[i];
+
+		//skip variant outside the target region
+		if (!roi_index.isNull())
+		{
+			if (roi_index->matchingIndex(v.chr(), v.start(), v.end())==-1)
+			{
+				continue;
+			}
+		}
+
+		//variant id
 		QByteArray v_id = variantId(v, false).toLatin1();
 
 		//variant classification

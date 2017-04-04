@@ -1,26 +1,25 @@
 === TODO ===
 
 libs:
-- cppNGS:
-   - VariantList:
-      - use QSharedPointers to link VariantAnnotationHeaders with VariantAnnotationDescriptions (CS)
-      - check vcf and tsv files if valid - columns and their descriptions (CS)
-   - NGSHelper: consider soft-clipping of secondary alignments (CS)
+- VariantList:
+    * determine file format from file header instead of file name => make more tools pipeable (MS)
+    - use QSharedPointers to link VariantAnnotationHeaders with VariantAnnotationDescriptions (CS)
+    - check vcf and tsv files if valid - columns and their descriptions (CS)
+- NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-** Annotation: add fast option (for ROI only and/or for AF<5% only)
-** Target region filter: reset to none if it looses focus in search mode
+* Target region filter: reset to none if it looses focus in search mode
 * LOVD upload for variant:
   - implement dialog where user can double-check the data before upload
   - implement print-out of upload data for patient file
-- Allow filtering sample-overview lists based on affected status
+** Allow filtering sample-overview lists based on affected status in multi-sample context
 
 Tools:
 ** NGSDImportGeneInfo: add (optional) import of inheritance mode from OMIM (use force flag)
-* MappingQC: support RNA spike-in controls, mapping ribosomes/globulines, etc.
-* SomaticQC: do not use precalculated triplet counts, count every time
-* BamClipOverlap: require sorted bam and paired-end sequencing
-* VariantAnnotateStrand:
+- MappingQC: support RNA spike-in controls, mapping ribosomes/globulines, etc.
+- SomaticQC: do not use precalculated triplet counts, count every time (CS)
+- BamClipOverlap: require sorted bam and paired-end sequencing (CS)
+- VariantAnnotateStrand:
     - add column prefix
     - extend test for indels
     - refactor and combine indel and snv handling

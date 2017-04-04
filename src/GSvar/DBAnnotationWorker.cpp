@@ -2,10 +2,11 @@
 #include "Exceptions.h"
 #include "Log.h"
 
-DBAnnotationWorker::DBAnnotationWorker(QString filename, VariantList& variants, BusyDialog* busy)
+DBAnnotationWorker::DBAnnotationWorker(QString filename, VariantList& variants, BusyDialog* busy, QString roi_file)
 	: WorkerBase("Database annotation")
 	, filename_(filename)
 	, variants_(variants)
+	, roi_file_(roi_file)
 	, ngsd_()
 {
 	connect(&ngsd_, SIGNAL(initProgress(QString, bool)), busy, SLOT(init(QString, bool)));
@@ -16,7 +17,12 @@ void DBAnnotationWorker::process()
 {
 	try
 	{
-		ngsd_.annotate(variants_, filename_);
+		BedFile roi;
+		if (roi_file_!="")
+		{
+			roi.load(roi_file_);
+		}
+		ngsd_.annotate(variants_, filename_, roi);
 	}
 	catch (Exception& e)
 	{
@@ -30,5 +36,10 @@ void DBAnnotationWorker::process()
 	{
 		error_message_ = "Unknown exception!";
 	}
+}
+
+bool DBAnnotationWorker::targetRegionOnly()
+{
+	return roi_file_!="";
 }
 

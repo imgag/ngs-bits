@@ -429,37 +429,31 @@ VariantList::Format VariantList::load(QString filename, VariantList::Format form
 	}
 
 	//create ROI index (if given)
-	ChromosomalIndex<BedFile>* roi_idx = nullptr;
+	QScopedPointer<ChromosomalIndex<BedFile>> roi_idx;
 	if (roi!=nullptr)
 	{
 		if (!roi->isSorted())
 		{
 			THROW(ArgumentException, "Target region unsorted, but needs to be sorted (given for reading file " + filename + ")!");
 		}
-		roi_idx = new ChromosomalIndex<BedFile>(*roi);
+		roi_idx.reset(new ChromosomalIndex<BedFile>(*roi));
 	}
 
 	//load variant list
 	if (format==VCF)
 	{
-		loadFromVCF(filename, roi_idx);
+		loadFromVCF(filename, roi_idx.data());
 		return VariantList::VCF;
 	}
 	else if (format==VCF_GZ)
 	{
-		loadFromVCFGZ(filename, roi_idx);
+		loadFromVCFGZ(filename, roi_idx.data());
 		return VariantList::VCF_GZ;
 	}
 	else
 	{
-		loadFromTSV(filename, roi_idx);
+		loadFromTSV(filename, roi_idx.data());
 		return VariantList::TSV;
-	}
-
-	//delete ROI index (if given)
-	if (roi!=nullptr)
-	{
-		delete roi_idx;
 	}
 }
 
