@@ -32,7 +32,7 @@ private:
 	Ui::TrioDialog ui_;
 	NGSD db_;
 
-	void updateOkButton();
+	void updateStartButton();
 };
 
 #endif // TRIODIALOG_H

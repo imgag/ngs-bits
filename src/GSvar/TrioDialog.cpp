@@ -14,7 +14,7 @@ TrioDialog::TrioDialog(QWidget* parent)
 	connect(ui_.m_ps, SIGNAL(textChanged(QString)), this, SLOT(mother_changed(QString)));
 	connect(ui_.c_ps, SIGNAL(textChanged(QString)), this, SLOT(child_changed(QString)));
 
-	updateOkButton();
+	updateStartButton();
 }
 
 QString TrioDialog::father()
@@ -35,19 +35,19 @@ QString TrioDialog::child()
 void TrioDialog::father_changed(QString value)
 {
 	ui_.f_sys->setText(name2sys(value));
-	updateOkButton();
+	updateStartButton();
 }
 
 void TrioDialog::mother_changed(QString value)
 {
 	ui_.m_sys->setText(name2sys(value));
-	updateOkButton();
+	updateStartButton();
 }
 
 void TrioDialog::child_changed(QString value)
 {
 	ui_.c_sys->setText(name2sys(value));
-	updateOkButton();
+	updateStartButton();
 }
 
 QString TrioDialog::name2sys(QString name)
@@ -65,10 +65,10 @@ QString TrioDialog::name2sys(QString name)
 	return sys;
 }
 
-void TrioDialog::updateOkButton()
+void TrioDialog::updateStartButton()
 {
 	QString f = ui_.f_sys->text();
 	QString m = ui_.m_sys->text();
 	QString c = ui_.c_sys->text();
-	ui_.ok_button->setEnabled(f!="" && m!="" && c!="" && f!="unknown" && m!="unknown" && c!="unknown" && f==m && f==c);
+	ui_.start_button->setEnabled(f!="" && m!="" && c!="" && f!="unknown" && m!="unknown" && c!="unknown" && f==m && f==c);
 }

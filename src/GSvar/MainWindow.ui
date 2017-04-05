@@ -17,7 +17,7 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="GSvar.qrc">
+   <iconset resource="../GSmix/GSmix.qrc">
     <normaloff>:/Icons/Icon.png</normaloff>:/Icons/Icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -214,6 +214,7 @@
    <addaction name="actionSampleInformation"/>
    <addaction name="separator"/>
    <addaction name="actionTrio"/>
+   <addaction name="actionMultiSample"/>
    <addaction name="separator"/>
    <addaction name="actionGapsLookup"/>
    <addaction name="actionGapsRecalculate"/>
@@ -320,7 +321,7 @@
   </action>
   <action name="actionNGSD">
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset resource="../GSmix/GSmix.qrc">
      <normaloff>:/Icons/NGSD.png</normaloff>:/Icons/NGSD.png</iconset>
    </property>
    <property name="text">
@@ -361,10 +362,10 @@
      <normaloff>:/Icons/Trio.png</normaloff>:/Icons/Trio.png</iconset>
    </property>
    <property name="text">
-    <string>Trigger trio analysis</string>
+    <string>Trigger trio analysis (child is the index).</string>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Triggers a trio analysis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>Trigger trio analysis (child is the index).</string>
    </property>
   </action>
   <action name="actionGapsLookup">
@@ -583,9 +584,25 @@
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
+  <action name="actionMultiSample">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/MultiSample.png</normaloff>:/Icons/MultiSample.png</iconset>
+   </property>
+   <property name="text">
+    <string>actionMultiSample</string>
+   </property>
+   <property name="toolTip">
+    <string>Trigger multi-sample analysis (affected vs. unaffected).</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
+  <include location="../GSmix/GSmix.qrc"/>
   <include location="GSvar.qrc"/>
  </resources>
  <connections/>

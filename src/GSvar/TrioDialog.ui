@@ -36,7 +36,7 @@
      </property>
     </widget>
    </item>
-   <item row="8" column="0" colspan="3">
+   <item row="7" column="0" colspan="3">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -62,7 +62,10 @@
    <item row="0" column="0" colspan="3">
     <widget class="QLabel" name="label_7">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Enter processed sample names (e.g. GS110998_01) of the trio. All thee samples have to be processes with the same processing system. Press the 'Ok' button to start the analysis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to start a trio analysis. Enter processed sample names (e.g. GS110998_01) of the trio. All thee samples have to be processes with the same processing system.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
@@ -82,11 +85,28 @@
      </property>
     </widget>
    </item>
-   <item row="10" column="0" colspan="3">
+   <item row="9" column="0" colspan="3">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <property name="spacing">
       <number>3</number>
      </property>
+     <item>
+      <widget class="QLabel" name="label_5">
+       <property name="text">
+        <string>status:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="status_page_link">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="openExternalLinks">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
      <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
@@ -101,16 +121,9 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="ok_button">
+      <widget class="QPushButton" name="start_button">
        <property name="text">
-        <string>OK</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="cancel_button">
-       <property name="text">
-        <string>Cancel</string>
+        <string>Start analysis</string>
        </property>
       </widget>
      </item>
@@ -123,16 +136,6 @@
        <horstretch>2</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
-     </property>
-    </widget>
-   </item>
-   <item row="7" column="1">
-    <widget class="QLabel" name="status_page_link">
-     <property name="text">
-      <string/>
-     </property>
-     <property name="openExternalLinks">
-      <bool>true</bool>
      </property>
     </widget>
    </item>
@@ -180,13 +183,6 @@
      </property>
     </widget>
    </item>
-   <item row="7" column="0">
-    <widget class="QLabel" name="label_5">
-     <property name="text">
-      <string>status:</string>
-     </property>
-    </widget>
-   </item>
    <item row="3" column="0">
     <widget class="QLabel" name="label_4">
      <property name="text">
@@ -214,21 +210,13 @@
      </property>
     </widget>
    </item>
-   <item row="6" column="0" colspan="3">
-    <widget class="Line" name="line_2">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
   </layout>
  </widget>
  <tabstops>
   <tabstop>c_ps</tabstop>
   <tabstop>f_ps</tabstop>
   <tabstop>m_ps</tabstop>
-  <tabstop>ok_button</tabstop>
-  <tabstop>cancel_button</tabstop>
+  <tabstop>start_button</tabstop>
   <tabstop>c_sys</tabstop>
   <tabstop>f_sys</tabstop>
   <tabstop>m_sys</tabstop>
@@ -236,29 +224,13 @@
  <resources/>
  <connections>
   <connection>
-   <sender>ok_button</sender>
+   <sender>start_button</sender>
    <signal>clicked()</signal>
    <receiver>TrioDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>220</x>
-     <y>118</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>174</x>
-     <y>69</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>cancel_button</sender>
-   <signal>clicked()</signal>
-   <receiver>TrioDialog</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>301</x>
      <y>118</y>
     </hint>
     <hint type="destinationlabel">

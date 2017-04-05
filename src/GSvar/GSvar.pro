@@ -31,7 +31,8 @@ SOURCES += main.cpp\
     GapDialog.cpp \
     GapValidationLabel.cpp \
     CnvWidget.cpp \
-    GeneSelectorDialog.cpp
+    GeneSelectorDialog.cpp \
+    MultiSampleDialog.cpp
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
@@ -57,7 +58,8 @@ HEADERS  += MainWindow.h \
     GapDialog.h \
     GapValidationLabel.h \
     CnvWidget.h \
-    GeneSelectorDialog.h
+    GeneSelectorDialog.h \
+    MultiSampleDialog.h
 
 
 FORMS    += MainWindow.ui \
@@ -81,7 +83,8 @@ FORMS    += MainWindow.ui \
     GapDialog.ui \
     GapValidationLabel.ui \
     CnvWidget.ui \
-    GeneSelectorDialog.ui
+    GeneSelectorDialog.ui \
+    MultiSampleDialog.ui
     
 
 include("../app_gui.pri")

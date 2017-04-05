@@ -48,6 +48,7 @@
 #include "NGSHelper.h"
 #include "XmlHelper.h"
 #include "QCCollection.h"
+#include "MultiSampleDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -1079,11 +1080,29 @@ void MainWindow::on_actionTrio_triggered()
 		QString reply = handler.getHttpReply(Settings::string("SampleStatus")+"restart_trio.php?user="+Helper::userName()+"&f=" + dlg.father() + "&m=" + dlg.mother() + "&c=" + dlg.child() + "&high_priority");
 		if (!reply.startsWith("Restart successful"))
 		{
-			QMessageBox::warning(this, "Trio analysis", "Queueing trio analysis failed:\n" + reply);
+			QMessageBox::warning(this, "Trio analysis", "Queueing analysis failed:\n" + reply);
 		}
 		else
 		{
-			QMessageBox::information(this, "Trio analysis", "Queueing trio analysis successful!");
+			QMessageBox::information(this, "Trio analysis", "Queueing analysis successful!");
+		}
+	}
+}
+
+void MainWindow::on_actionMultiSample_triggered()
+{
+	MultiSampleDialog dlg(this);
+	if (dlg.exec()==QDialog::Accepted)
+	{
+		HttpHandler handler;
+		QString reply = handler.getHttpReply(Settings::string("SampleStatus")+"restart_multi.php?user="+Helper::userName()+"&samples=" + dlg.samples().join(',')+"&status=" + dlg.status().join(','));
+		if (!reply.startsWith("Restart successful"))
+		{
+			QMessageBox::warning(this, "Multi-sample analysis", "Queueing analysis failed:\n" + reply);
+		}
+		else
+		{
+			QMessageBox::information(this, "Multi-sample analysis", "Queueing analysis successful!");
 		}
 	}
 }
