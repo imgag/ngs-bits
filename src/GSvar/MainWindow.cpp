@@ -2349,10 +2349,8 @@ void MainWindow::filtersChanged()
 
 void MainWindow::resetAnnoationStatus()
 {
-	qDebug() << "ROI changed"; //TODO
 	if (db_annos_updated_==ROI)
 	{
-		qDebug() << "  reset status"; //TODO
 		db_annos_updated_ = NO;
 	}
 }
