@@ -38,7 +38,7 @@ INSERT INTO variant (id, chr, start, end, ref, obs) VALUES (2, 'chr3', 142277575
 INSERT INTO variant (id, chr, start, end, ref, obs) VALUES (3, 'chr2', 48032740, 48032740, '-', 'T');
 
 --detected somatic variant
-INSERT INTO detected_somatic_variant (id, processed_sample_id_tumor, processed_sample_id_normal, variant_id) VALUES (1, 1, 3, 1);
-INSERT INTO detected_somatic_variant (id, processed_sample_id_tumor, processed_sample_id_normal, variant_id) VALUES (2, 1, 3, 2);
-INSERT INTO detected_somatic_variant (id, processed_sample_id_tumor, processed_sample_id_normal, variant_id) VALUES (3, 2, 4, 2);
-INSERT INTO detected_somatic_variant (id, processed_sample_id_tumor, processed_sample_id_normal, variant_id) VALUES (4, 2, 4, 3);
+INSERT INTO detected_somatic_variant (id, processed_sample_id_tumor, processed_sample_id_normal, variant_id, variant_frequency, depth) VALUES (1, 1, 3, 1, 0.1, 500);
+INSERT INTO detected_somatic_variant (id, processed_sample_id_tumor, processed_sample_id_normal, variant_id, variant_frequency, depth) VALUES (2, 1, 3, 2, 0.1, 500);
+INSERT INTO detected_somatic_variant (id, processed_sample_id_tumor, processed_sample_id_normal, variant_id, variant_frequency, depth) VALUES (3, 2, 4, 2, 0.1, 500);
+INSERT INTO detected_somatic_variant (id, processed_sample_id_tumor, processed_sample_id_normal, variant_id, variant_frequency, depth) VALUES (4, 2, 4, 3, 0.1, 500);
