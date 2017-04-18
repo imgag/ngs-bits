@@ -721,7 +721,7 @@ void MainWindow::generateReportSomatic()
 	//gaps
 	stream << "<p><b>Lückenstatistik:</b>" << endl;
 	stream << "<br />Zielregion: " << QFileInfo(roi_file).fileName();
-	GeneSet genes = GeneSet::createFromFile(roi_file);
+	GeneSet genes = GeneSet::createFromFile(roi_file.left(roi_file.size()-4) + "_genes.txt");
 	if (!genes.isEmpty())
 	{
 		stream << "<br />Zielregion Gene (" << QString::number(genes.count()) << "): " << genes.join(", ") << endl;
