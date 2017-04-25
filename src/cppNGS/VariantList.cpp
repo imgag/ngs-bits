@@ -510,23 +510,11 @@ void VariantList::loadFromTSV(QString filename, ChromosomalIndex<BedFile>* roi_i
 			QList <QByteArray> parts = line.split('=');
 			if (line.startsWith("##DESCRIPTION=") && parts.count()>2)
 			{
-				//TODO QList<QByteArray>.join is not available in Qt 5.2
-				QByteArray tmp = parts[2];
-				for(int i=3; i<parts.count(); ++i)
-				{
-					tmp += "=" + parts[i];
-				}
-				annotationDescriptions().append(VariantAnnotationDescription(parts[1], tmp, VariantAnnotationDescription::STRING, false, "."));
+				annotationDescriptions().append(VariantAnnotationDescription(parts[1], parts.mid(2).join('='), VariantAnnotationDescription::STRING, false, "."));
 			}
 			else if (line.startsWith("##FILTER=") && parts.count()>2)
 			{
-				//TODO QList<QByteArray>.join is not available in Qt 5.2
-				QByteArray tmp = parts[2];
-				for(int i=3; i<parts.count(); ++i)
-				{
-					tmp += "=" + parts[i];
-				}
-				filters_[parts[1]] = tmp;
+				filters_[parts[1]] = parts.mid(2).join('=');
 			}
 			else
 			{

@@ -705,10 +705,9 @@ void NGSD::annotate(VariantList& variants, QString filename, BedFile roi)
 		//gene info
 		if (gene_idx!=-1)
 		{
-			//TODO: use QByteArrayList (when upgraded to Qt5.5)
-			QStringList genes = QString(v.annotations()[gene_idx]).split(',');
-			std::transform(genes.begin(), genes.end(), genes.begin(), [this](const QString& g) { return geneInfo(g).toString(); });
-			v.annotations()[geneinfo_idx] = genes.join(", ").toLatin1();
+			QByteArrayList genes = v.annotations()[gene_idx].split(',');
+			std::transform(genes.begin(), genes.end(), genes.begin(), [this](const QByteArray& g) { return geneInfo(g).toString().toLatin1(); });
+			v.annotations()[geneinfo_idx] = genes.join(", ");
 		}
 
 		emit updateProgress(100*i/variants.count());
@@ -1547,13 +1546,13 @@ void NGSD::setProcessedSampleQuality(const QString& filename, QString quality)
 	getQuery().exec("UPDATE processed_sample SET quality='" + quality + "' WHERE id='" + processedSampleId(filename) + "'");
 }
 
-GeneInfo NGSD::geneInfo(QString symbol)
+GeneInfo NGSD::geneInfo(QByteArray symbol)
 {
 	GeneInfo output;
 
 	//get approved symbol
 	symbol = symbol.trimmed();
-	auto approved = geneToApproved(symbol.toLatin1());
+	auto approved = geneToApproved(symbol);
 	output.symbol = approved.first;
 	output.notice = approved.second;
 

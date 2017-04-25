@@ -6,19 +6,6 @@ GeneSet::GeneSet()
 {
 }
 
-QByteArray GeneSet::join(QByteArray sep) const
-{
-	QByteArray output;
-
-	foreach(const QByteArray& gene, *this)
-	{
-		if (!output.isEmpty()) output += sep;
-		output += gene;
-	}
-
-	return output;
-}
-
 void GeneSet::insert(const QByteArray& gene)
 {
 	QByteArray tmp = gene.trimmed().toUpper();

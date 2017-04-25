@@ -16,8 +16,7 @@ class CPPNGSSHARED_EXPORT GeneSet
 		using QList<QByteArray>::clear;
 		using QList<QByteArray>::count;
 		using QList<QByteArray>::operator[];
-		//TODO when Qt5.5 is available: using QList<QByteArray>::join;
-		QByteArray join(QByteArray sep) const;
+		using QList<QByteArray>::join;
 		using QList<QByteArray>::isEmpty;
 		using QList<QByteArray>::const_iterator;
 		using QList<QByteArray>::begin;

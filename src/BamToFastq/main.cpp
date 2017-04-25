@@ -73,7 +73,7 @@ public:
 				continue;
 			}
 
-			QByteArray name(al.Name.data()); //TODO use QByteArray::fromStdString (when upgraded to Qt5.4)
+			QByteArray name = QByteArray::fromStdString(al.Name);
 
 			//store cached read when we encounter the mate
 			if (al_cache.contains(name))
