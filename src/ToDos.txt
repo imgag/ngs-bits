@@ -13,8 +13,9 @@ GSvar:
   - implement dialog where user can double-check the data before upload
   - implement print-out of upload data for patient file
 ** multi-sample anaysis:
-  - IGV: allow opening BAMs
-  - Allow filtering sample-overview lists based on affected status
+  - Color affected/control samples in red/grey
+  - IGV: allow opening multi-sample BAMs
+  - Allow filtering sample-overview lists based on affected/control status
   - Update multi-sample documentation
   - Deploy and remove SampleStatus restart_*.php
 
