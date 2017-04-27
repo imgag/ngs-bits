@@ -105,7 +105,7 @@ void SampleInformationDialog::reanalyze()
 
 	//call web service
 	HttpHandler handler;
-	QString reply = handler.getHttpReply(Settings::string("SampleStatus")+"/restart.php?ps_ID=" + NGSD::processedSampleName(filename_) + start_step + "&high_priority&user=" + Helper::userName());
+	QString reply = handler.getHttpReply(Settings::string("SampleStatus")+"/restart.php?type=sample&high_priority&user=" + Helper::userName() + "&ps_ID=" + NGSD::processedSampleName(filename_) + start_step);
 	reanalyze_status_ = "";
 	if (!reply.startsWith("Restart successful"))
 	{

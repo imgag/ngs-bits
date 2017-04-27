@@ -339,7 +339,7 @@ void FilterDockWidget::applyDefaultFiltersMultiSample()
 	QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
 	foreach(FilterColumnWidget* w, fcws)
 	{
-		if (w->objectName()=="anno_high_impact" || w->objectName()=="anno_pathogenic_clinvar" || w->objectName()=="anno_pathogenic_hgmd")
+		if (w->objectName()=="anno_pathogenic_clinvar" || w->objectName()=="anno_pathogenic_hgmd")
 		{
 			w->setState(FilterColumnWidget::KEEP);
 		}
@@ -665,8 +665,9 @@ void FilterDockWidget::showTargetRegionDetails()
 	text << "Regions: " + QString::number(file.count());
 	text << "Bases: " + QString::number(file.baseCount());
 	text << "";
-	text << "Genes:";
-	text << GeneSet::createFromFile(roi.left(roi.size()-4) + "_genes.txt").join(", ");
+	GeneSet genes = GeneSet::createFromFile(roi.left(roi.size()-4) + "_genes.txt");
+	text << "Genes: " + QString::number(genes.count());
+	text << genes.join(", ");
 
 	//show text
 	ScrollableTextDialog dlg(this);

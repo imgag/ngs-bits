@@ -132,8 +132,6 @@ public slots:
 	void on_actionCNV_triggered();
 	///Open gene picker dialog
 	void on_actionGeneSelector_triggered();
-	///Create sample overview file
-	void on_actionSampleOverview_triggered();
 
 	///Generates a report (somatic)
 	void generateReportSomatic();

@@ -58,7 +58,7 @@
        <bool>false</bool>
       </property>
       <attribute name="verticalHeaderVisible">
-       <bool>true</bool>
+       <bool>false</bool>
       </attribute>
      </widget>
     </item>
@@ -155,8 +155,6 @@
     <addaction name="menuGenes"/>
     <addaction name="menuPhenotypes"/>
     <addaction name="menuPanels"/>
-    <addaction name="separator"/>
-    <addaction name="actionSampleOverview"/>
     <addaction name="separator"/>
     <addaction name="menuFileInfo"/>
     <addaction name="menuDetermine_gender"/>
@@ -377,7 +375,7 @@
     <string>Show gaps</string>
    </property>
    <property name="toolTip">
-    <string>Show low-coverage regions from the pre-calcualated low-coverage BED file in the sample folder.</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show low-coverage regions from the pre-calcualated low-coverage BED file in the sample folder.&lt;/p&gt;&lt;p&gt;Note: the gaps are based on the target region of the mapping step, not the current target region&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="actionShowHGMD">
@@ -560,11 +558,6 @@
     <string>Select genes for variant/CNV analysis based on coverage and copy-number.</string>
    </property>
   </action>
-  <action name="actionSampleOverview">
-   <property name="text">
-    <string>Create sample overview</string>
-   </property>
-  </action>
   <action name="actionFiltersMultiSample">
    <property name="text">
     <string>Default filters (germline, multi-sample)</string>
@@ -586,7 +579,7 @@
   </action>
   <action name="actionMultiSample">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="icon">
     <iconset resource="GSvar.qrc">

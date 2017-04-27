@@ -170,33 +170,6 @@ void MainWindow::on_actionGeneSelector_triggered()
 	}
 }
 
-void MainWindow::on_actionSampleOverview_triggered()
-{
-	//input files
-	QStringList in;
-	QStringList tmp;
-	while(!(tmp = QFileDialog::getOpenFileNames(this, "Select input files", QApplication::applicationDirPath(), "GSvar files (*.GSvar);;TSV files (*.tsv);;All files (*.*)")).isEmpty())
-	{
-		in.append(tmp);
-	}
-	if (in.count()<2) return;
-
-	//output file
-	QString out = QFileDialog::getSaveFileName(this, "Store overview as", QApplication::applicationDirPath(), "GSvar files (*.GSvar);;TSV files (*.tsv);;All files (*.*)");
-	if (out.isEmpty()) return;
-
-	//exec
-	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-	NGSHelper::createSampleOverview(in, out);
-	QApplication::restoreOverrideCursor();
-
-	//open
-	if(QMessageBox::question(this, "Overview file created", "The sample overview file was successfilly created. Do you want to open the file now")==QMessageBox::Yes)
-	{
-		loadFile(out);
-	}
-}
-
 void MainWindow::delayedInizialization()
 {
 	if (!isVisible()) return;
@@ -1077,7 +1050,7 @@ void MainWindow::on_actionTrio_triggered()
 	if (dlg.exec()==QDialog::Accepted)
 	{
 		HttpHandler handler;
-		QString reply = handler.getHttpReply(Settings::string("SampleStatus")+"restart_trio.php?user="+Helper::userName()+"&f=" + dlg.father() + "&m=" + dlg.mother() + "&c=" + dlg.child() + "&high_priority");
+		QString reply = handler.getHttpReply(Settings::string("SampleStatus")+"restart.php?type=trio&high_priority&user="+Helper::userName()+"&f=" + dlg.father() + "&m=" + dlg.mother() + "&c=" + dlg.child());
 		if (!reply.startsWith("Restart successful"))
 		{
 			QMessageBox::warning(this, "Trio analysis", "Queueing analysis failed:\n" + reply);
@@ -1095,7 +1068,7 @@ void MainWindow::on_actionMultiSample_triggered()
 	if (dlg.exec()==QDialog::Accepted)
 	{
 		HttpHandler handler;
-		QString reply = handler.getHttpReply(Settings::string("SampleStatus")+"restart_multi.php?user="+Helper::userName()+"&samples=" + dlg.samples().join(',')+"&status=" + dlg.status().join(','));
+		QString reply = handler.getHttpReply(Settings::string("SampleStatus")+"restart.php?type=multi&high_priority&user="+Helper::userName()+"&samples=" + dlg.samples().join(',')+"&status=" + dlg.status().join(','));
 		if (!reply.startsWith("Restart successful"))
 		{
 			QMessageBox::warning(this, "Multi-sample analysis", "Queueing analysis failed:\n" + reply);

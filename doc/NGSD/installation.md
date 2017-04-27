@@ -82,7 +82,12 @@ The database backend of the NGSD is a MySQL database. To set it up, follow these
 		max_heap_table_size = 256M
 		innodb_buffer_pool_size = 2G
 		innodb_flush_log_at_trx_commit = 2
+		innodb_lock_wait_timeout = 600
 		bind_address = 0.0.0.0
+		innodb_lru_scan_depth = 512
+		max_allowed_packet = 64M
+		wait_timeout = 108000
+
 
 * Restart the server:
 
@@ -204,6 +209,7 @@ For more information on GSvar, open the help within GSvar (F1) or use this [link
 ##Next steps
 
 Now you can run your first data analysis based on these [instructions](running_an_analysis.md).
+
 
 
 
