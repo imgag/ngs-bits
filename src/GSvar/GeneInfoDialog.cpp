@@ -15,7 +15,7 @@ GeneInfoDialog::GeneInfoDialog(QString symbol, QWidget *parent)
 	connect(this, SIGNAL(accepted()), this, SLOT(storeGeneInfo()));
 
 	//get gene info
-	GeneInfo info = db.geneInfo(symbol);
+	GeneInfo info = db.geneInfo(symbol.toLatin1());
 
 	//show symbol
 	setWindowTitle("Gene information '" + info.symbol + "'");
