@@ -13,11 +13,12 @@ GSvar:
   - implement dialog where user can double-check the data before upload
   - implement print-out of upload data for patient file
 ** multi-sample anaysis:
-  - Color affected/control samples in red/grey
-  - IGV: allow opening multi-sample BAMs
   - Allow filtering sample-overview lists based on affected/control status
   - Update multi-sample documentation
-  - Deploy and remove SampleStatus restart_*.php
+  - SampleStatus: remove SampleStatus restart_*.php
+  - megSAP:
+    - add ##SAMPLE header to somatic/trio pipeline and update all data
+    - remove affected status from header for multi-sample
 
 Tools:
 ** NGSDImportGeneInfo: add (optional) import of inheritance mode from OMIM (use force flag)

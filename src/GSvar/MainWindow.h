@@ -30,16 +30,11 @@ public:
 	void executeIGVCommand(QString command);
 	///Returns the LOG files corresponding to the variant list.
 	QStringList getLogFiles();
-	///Returns the BAM file corresponding to the variant list (single sample folder). If no or more BAM files are found, an empty string is returned.
-	QString getBamFile();
-	///Returns the BAM files of a trio folder. Order is the same as in the folder name. If no or more BAM files are found, an empty list is returned.
-	QStringList getBamFilesTrio();
-	///Returns the BAM files of a somatic folder. Order is tumor, normal. If no or more BAM files are found, an empty list is returned.
-	QStringList getBamFilesSomatic();
-	///Returns if the current file is a trio variant list
-	bool isTrio();
-	///Returns if the current file is a somatic variant list
-	bool isSomatic();
+	///Returns the BAM files corresponding to the analysis.
+	QMap<QString, QString> getBamFiles();
+	enum VariantListType {SINGLE, TRIO, MULTI, SOMATIC};
+	///Retruns the type of the current variant list
+	VariantListType getType();
 	///Adds a file to the recent file list
 	void addToRecentFiles(QString filename);
 	///Updates recent files menu
@@ -60,6 +55,10 @@ public:
 	QString targetFileName() const;
 	///Returns the index of a colum in the GUI (or -1 if the column does not exist)
 	int guiColumnIndex(QString column) const;
+
+	///Parses and returns sample data from header
+	using SampleHeaderData = QMap<QString, QMap<QString, QString>>;
+	SampleHeaderData getSampleHeader();
 
 public slots:
 	///Open dialog
