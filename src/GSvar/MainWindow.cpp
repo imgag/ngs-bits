@@ -243,26 +243,13 @@ void MainWindow::openInIGV(QString region)
         }
 
 		//sample BAM file(s)
-		if (isSomatic())
+		QMap<QString, QString> bams = getBamFiles();
+		if (bams.empty()) return;
+
+		auto it = bams.cbegin();
+		while(it!=bams.cend())
 		{
-			QStringList bams = getBamFilesSomatic();
-			if (bams.count()==0) return;
-			dlg.addFile("reads tumor (BAM)", bams[0], true);
-			dlg.addFile("reads normal (BAM)", bams[1], true);
-		}
-		else if (isTrio())
-		{
-			QStringList bams = getBamFilesTrio();
-			if (bams.count()==0) return;
-			dlg.addFile("reads index (BAM)", bams[0], true);
-			dlg.addFile("reads father (BAM)", bams[1], true);
-			dlg.addFile("reads mother (BAM)", bams[2], true);
-		}
-		else
-		{
-			QString bam = getBamFile();
-			if (bam=="") return;
-			dlg.addFile("reads sample (BAM)", bam, true);
+			dlg.addFile(it.key(), it.value(), true);
 		}
 
 		//reference BAM
@@ -561,13 +548,13 @@ void MainWindow::on_actionReport_triggered()
 	if (variants_.count()==0) return;
 
 	//check if this is a germline or somatic
-	if (isSomatic())
+	if (getType()==SOMATIC)
 	{
 		generateReportSomatic();
 	}
 	else
 	{
-		generateReport();
+            generateReport();
 	}
 }
 
@@ -844,17 +831,9 @@ void MainWindow::generateReport()
 	QString bam_file = "";
 	if (dialog.detailsCoverage())
 	{
-		if (isTrio())
-		{
-			QStringList bam_files = getBamFilesTrio();
-			if (bam_files.count()==0) return;
-			bam_file = bam_files[0];
-		}
-		else
-		{
-			bam_file = getBamFile();
-			if (bam_file=="") return;
-		}
+		QMap<QString, QString> bams = getBamFiles();
+		if (bams.count()==0) return;
+		bam_file = bams.values().first();
 	}
 
 	//flag report variants in NGSD
@@ -931,6 +910,44 @@ void MainWindow::annotateVariantsROI()
 	DBAnnotationWorker* worker = new DBAnnotationWorker(filename_, variants_, busy_dialog_, filter_widget_->targetRegion());
 	connect(worker, SIGNAL(finished(bool)), this, SLOT(databaseAnnotationFinished(bool)));
 	worker->start();
+}
+
+MainWindow::SampleHeaderData MainWindow::getSampleHeader()
+{
+	SampleHeaderData output;
+
+	foreach(QString line, variants_.comments())
+	{
+		line = line.trimmed();
+
+		if (line.startsWith("##SAMPLE=<"))
+		{
+			auto parts = line.mid(10, line.length()-11).split(',');
+			QString name;
+			foreach(const QString& part, parts)
+			{
+				int sep_idx = part.indexOf('=');
+				if (sep_idx==-1)
+				{
+					qDebug() << "Invalid sample header entry " << part << " in " << line;
+					continue;
+				}
+
+				QString key = part.left(sep_idx);
+				QString value = part.mid(sep_idx+1);
+				if (key=="ID")
+				{
+					name = value;
+				}
+				else
+				{
+					output[name][key] = value;
+				}
+			}
+		}
+	}
+
+	return output;
 }
 
 void MainWindow::databaseAnnotationFinished(bool success)
@@ -1149,8 +1166,9 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	roi.merge();
 
 	//check for BAM file
-	QString bam_file = getBamFile();
-	if (bam_file=="") return;
+	QMap<QString, QString> bams = getBamFiles();
+	if (bams.empty()) return;
+	QString bam_file = bams.values().first();
 
 	//load genes list file
 	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
@@ -1162,9 +1180,9 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	}
 
 	//prepare dialog
-	QString sample_name = QFileInfo(bam_file).fileName().replace(".bam", "");
+        QString sample_name = QFileInfo(bam_file).fileName().replace(".bam", "");
 	GapDialog dlg(this, sample_name, roi_file);
-	dlg.process(bam_file, roi, genes);
+        dlg.process(bam_file, roi, genes);
 	QApplication::restoreOverrideCursor();
 
 	//show dialog
@@ -1583,6 +1601,7 @@ void MainWindow::variantListChanged()
 
 	//update variant details widget
 	var_last_ = -1;
+	SampleHeaderData sample_data = getSampleHeader();
 
 	//resize
 	ui_.vars->setRowCount(variants_.count());
@@ -1598,6 +1617,8 @@ void MainWindow::variantListChanged()
 	{
 		QString anno = variants_.annotations()[i].name();
 		QTableWidgetItem* header = new QTableWidgetItem(anno);
+
+		//additional descriptions for filter column
 		QString add_desc = "";
 		if (anno=="filter")
 		{
@@ -1605,6 +1626,25 @@ void MainWindow::variantListChanged()
 			while (it!=variants_.filters().cend())
 			{
 				add_desc += "\n - "+it.key() + ": " + it.value();
+				++it;
+			}
+		}
+
+		//additional descriptions and color for genotype columns
+		QColor bg = Qt::black;
+		if (sample_data.contains(anno))
+		{
+			auto it = sample_data[anno].cbegin();
+			while(it != sample_data[anno].cend())
+			{
+
+				add_desc += "\n - "+it.key() + ": " + it.value();
+
+				if (it.key().toLower()=="status" && it.value().toLower()=="affected")
+				{
+					header->setForeground(QBrush(Qt::darkRed));
+				}
+
 				++it;
 			}
 		}
@@ -1781,7 +1821,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 		sub_menu = menu.addMenu(QIcon("://Icons/Alamut.png"), "Alamut");
 
 		//BAM
-		if (!isSomatic() && !isTrio())
+		if (getType()==SINGLE)
 		{
 			sub_menu->addAction("BAM");
 		}
@@ -1974,7 +2014,9 @@ void MainWindow::varsContextMenu(QPoint pos)
 			QString value = parts[0];
 			if (value=="BAM")
 			{
-				value = "BAM<" + getBamFile();
+				QMap<QString, QString> bams = getBamFiles();
+				if (bams.empty()) return;
+				value = "BAM<" + bams.values().first();
 			}
 			QDesktopServices::openUrl(QUrl(Settings::string("Alamut")+"/show?request="+value));
 		}
@@ -2039,93 +2081,64 @@ QStringList MainWindow::getLogFiles()
 	return output;
 }
 
-QString MainWindow::getBamFile()
+QMap<QString, QString> MainWindow::getBamFiles()
 {
-	QString folder = QFileInfo(filename_).path();
-	QStringList bam_files = Helper::findFiles(folder, "*.bam", false);
-	if (bam_files.count()!=1)
-	{
-		QMessageBox::warning(this, "Could not locate sample BAM file.", "Exactly one BAM file must be present in the sample folder:\n" + folder + "\n\nFound the following files:\n" + bam_files.join("\n"));
-		return "";
-	}
-	return bam_files.at(0);
+    QMap<QString, QString> output;
+
+    QFileInfo file_info(filename_);
+
+	SampleHeaderData data = getSampleHeader();
+    if (!data.empty())
+    {
+        QString project_folder = QFileInfo(file_info.path()).path();
+
+        foreach(QString sample, data.keys())
+        {
+			QString bam = project_folder + "/Sample_" + sample + "/" + sample + ".bam";
+            if (!QFile::exists(bam))
+            {
+                QMessageBox::warning(this, "Missing BAM file!", "Could not find BAM file at: " + bam);
+                output.clear();
+                return output;
+            }
+
+            output[sample] = bam;
+        }
+    }
+    else //fallback for old single-sample variant lists without '##SAMPLE' header
+    {
+        QString folder = file_info.path();
+        QStringList bams = Helper::findFiles(folder, "*.bam", false);
+        if (bams.count()!=1)
+        {
+            QMessageBox::warning(this, "Could not locate sample BAM file.", "Exactly one BAM file must be present in the sample folder:\n" + folder + "\n\nFound the following files:\n" + bams.join("\n"));
+            return output;
+        }
+        output[file_info.baseName()] = bams[0];
+    }
+
+    return output;
 }
 
-QStringList MainWindow::getBamFilesTrio()
+MainWindow::VariantListType MainWindow::getType()
 {
-	QStringList output;
-
-	//get folder name
-	QFileInfo trio_folder(QFileInfo(filename_).path());
-
-	//split folder name
-	QStringList folder_parts = trio_folder.baseName().split("_");
-	folder_parts.removeFirst(); //remove "Trio" part
-	if (folder_parts.count()==6) //merge processed sample identifiers
+	if (variants_.filters().contains("trio_denovo"))
 	{
-		folder_parts[0] = folder_parts[0] + "_" +  folder_parts[1];
-		folder_parts[1] = folder_parts[2] + "_" + folder_parts[3];
-		folder_parts[2] = folder_parts[4] + "_" + folder_parts[5];
-		folder_parts.removeLast();
-		folder_parts.removeLast();
-		folder_parts.removeLast();
-	}
-	if (folder_parts.count()!=3)
-	{
-		QMessageBox::warning(this, "Malformatted trio folder", "Trio folder does not consist of three (processed) sample names!\nIt should look like this:\nTrio_GS140527_02_GS140528_02_GS140531_02");
-		return QStringList();
+		return TRIO;
 	}
 
-	//locate BAM files in sample folders
-	foreach (QString sample, folder_parts)
+	if (variants_.annotationIndexByName("tumor_af", true, false)!=-1 && variants_.annotationIndexByName("normal_af", true, false)!=-1)
 	{
-		QString bam_file = trio_folder.path() + "\\Sample_" + sample + "\\" + sample + ".bam";
-		if (!QFile::exists(bam_file))
-		{
-			QMessageBox::warning(this, "Missing BAM file!", "Could not find BAM file at: " + bam_file);
-			return QStringList();
-		}
-		output.append(bam_file);
+		return SOMATIC;
 	}
 
-	return output;
-}
-
-QStringList MainWindow::getBamFilesSomatic()
-{
-	//determine tumor/normal processed sample name
-	QStringList parts = QFileInfo(filename_).baseName().replace("-", "_").replace(".", "_").split("_");
-	QString tumor = parts[0] + "_" + parts[1];
-	QString normal = parts[2] + "_" + parts[3];
-	QString project_folder = QFileInfo(QFileInfo(filename_).path()).path();
-
-	//tumor
-	QString bam_tumor = project_folder + "\\Sample_" + tumor + "\\" + tumor + ".bam";
-	if (!QFile::exists(bam_tumor))
+	SampleHeaderData data = getSampleHeader();
+	if (data.count()>=2)
 	{
-		QMessageBox::warning(this, "Missing tumor BAM file!", "Could not find BAM file at: " + bam_tumor);
-		return QStringList();
+		return MULTI;
 	}
 
-	//normal
-	QString bam_normal = project_folder + "\\Sample_" + normal + "\\" + normal + ".bam";
-	if (!QFile::exists(bam_normal))
-	{
-		QMessageBox::warning(this, "Missing normal BAM file!", "Could not find BAM file at: " + bam_normal);
-		return QStringList();
-	}
-
-	return QStringList() << bam_tumor << bam_normal;
-}
-
-bool MainWindow::isTrio()
-{
-	return (variants_.filters().contains("trio_denovo"));
-}
-
-bool MainWindow::isSomatic()
-{
-	return (variants_.annotationIndexByName("tumor_af", true, false)!=-1 && variants_.annotationIndexByName("normal_af", true, false)!=-1);
+	return SINGLE;
 }
 
 void MainWindow::filtersChanged()
