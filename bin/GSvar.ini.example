@@ -7,6 +7,8 @@ kgxref=
 target_regions=@Invalid()
 reference_files=@Invalid()
 igv_menu=@Invalid()
+igv_host=127.0.0.1
+igv_port=60151
 
 #Preferred transcript list
 preferred_transcripts=@Variant(\0\0\0\b\0\0\0\0)

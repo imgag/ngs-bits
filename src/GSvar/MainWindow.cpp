@@ -2058,10 +2058,12 @@ void MainWindow::executeIGVCommand(QString command)
 {
 	//connect
 	QAbstractSocket socket(QAbstractSocket::UnknownSocketType, this);
-	socket.connectToHost("127.0.0.1", 60151);
+	int igv_port = Settings::integer("igv_port", 60151);
+	QString igv_host = Settings::string("igv_host", "127.0.0.1");
+	socket.connectToHost(igv_host, igv_port);
 	if (!socket.waitForConnected(1000))
 	{
-		THROW(Exception, "Could not connect to IGV.\nPlease start IGV and enable the remote control port and proxy:\nView => Preferences => Advanced => Enable port => 60151\nView => Preferences => Proxy");
+		THROW(Exception, "Could not connect to IGV at host " + igv_host + " and port " + QString::number(igv_port) + ".\nPlease start IGV and enable the remote control port:\nView => Preferences => Advanced => Enable port");
 	}
 
 	//execute command
