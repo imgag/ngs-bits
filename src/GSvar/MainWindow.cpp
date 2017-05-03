@@ -249,7 +249,8 @@ void MainWindow::openInIGV(QString region)
 		auto it = bams.cbegin();
 		while(it!=bams.cend())
 		{
-			dlg.addFile(it.key(), it.value(), true);
+			dlg.addFile(it.key() + " (BAM)", it.value(), true);
+			++it;
 		}
 
 		//reference BAM
@@ -1631,7 +1632,6 @@ void MainWindow::variantListChanged()
 		}
 
 		//additional descriptions and color for genotype columns
-		QColor bg = Qt::black;
 		if (sample_data.contains(anno))
 		{
 			auto it = sample_data[anno].cbegin();
@@ -1645,6 +1645,15 @@ void MainWindow::variantListChanged()
 					header->setForeground(QBrush(Qt::darkRed));
 				}
 
+				++it;
+			}
+		}
+		if (sample_data.count()==1 && anno=="genotype") //special case for single-sample variant lists
+		{
+			auto it = sample_data.begin()->cbegin();
+			while(it != sample_data.begin()->cend())
+			{
+				add_desc += "\n - "+it.key() + ": " + it.value();
 				++it;
 			}
 		}
@@ -2085,36 +2094,42 @@ QMap<QString, QString> MainWindow::getBamFiles()
 {
     QMap<QString, QString> output;
 
-    QFileInfo file_info(filename_);
-
 	SampleHeaderData data = getSampleHeader();
     if (!data.empty())
     {
-        QString project_folder = QFileInfo(file_info.path()).path();
+		QString sample_folder = QFileInfo(filename_).path();
+		QString project_folder = QFileInfo(sample_folder).path();
 
         foreach(QString sample, data.keys())
-        {
-			QString bam = project_folder + "/Sample_" + sample + "/" + sample + ".bam";
-            if (!QFile::exists(bam))
+		{
+			QString bam1 = sample_folder + "/" + sample + ".bam";
+			QString bam2 = project_folder + "/Sample_" + sample + "/" + sample + ".bam";
+			if (QFile::exists(bam1))
+			{
+				output[sample] = bam1;
+			}
+			else if (QFile::exists(bam2))
+			{
+				output[sample] = bam2;
+			}
+			else
             {
-                QMessageBox::warning(this, "Missing BAM file!", "Could not find BAM file at: " + bam);
+				QMessageBox::warning(this, "Missing BAM file!", "Could not find BAM file at default locations:\n" + bam1 + "\n" + bam2);
                 output.clear();
                 return output;
             }
-
-            output[sample] = bam;
         }
     }
-    else //fallback for old single-sample variant lists without '##SAMPLE' header
-    {
-        QString folder = file_info.path();
+	else //fallback for old single-sample variant lists without '##SAMPLE' header. Old trio/somatic variant lists are no longer supported.
+	{
+		QString folder = QFileInfo(filename_).path();
         QStringList bams = Helper::findFiles(folder, "*.bam", false);
         if (bams.count()!=1)
         {
             QMessageBox::warning(this, "Could not locate sample BAM file.", "Exactly one BAM file must be present in the sample folder:\n" + folder + "\n\nFound the following files:\n" + bams.join("\n"));
             return output;
         }
-        output[file_info.baseName()] = bams[0];
+		output[QFileInfo(bams[0]).baseName()] = bams[0];
     }
 
     return output;
