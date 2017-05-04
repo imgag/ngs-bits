@@ -8,6 +8,7 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
+** update MULTISAMPLE/TRIO/SOMATIC variant lists => use ANALYSISTYPE header in getType()
 * multi-sample anaysis: allow relaxing affected/control genotype filters by requiring only X out of Y
 - Target region filter: reset to none if it looses focus in search mode
 * LOVD upload for variant:
