@@ -233,7 +233,7 @@ private slots:
 
 		//consider genotype
 		VariantFilter filter(vl);
-		filter.flagByIHDB(5, false);
+		filter.flagByIHDB(5, QStringList() << "genotype");
 
 		I_EQUAL(vl.count(), 143);
 		I_EQUAL(filter.countPassing(), 3);
@@ -243,10 +243,10 @@ private slots:
 
 		//ignore genotype
 		VariantFilter filter2(vl);
-		filter2.flagByIHDB(50, false);
+		filter2.flagByIHDB(50, QStringList() << "genotype");
 		I_EQUAL(filter2.countPassing(), 9);
 		filter2.clear();
-		filter2.flagByIHDB(50, true);
+		filter2.flagByIHDB(50, QStringList());
 		I_EQUAL(filter2.countPassing(), 8);
 	}
 
@@ -347,10 +347,7 @@ private slots:
 		I_EQUAL(filter.countPassing(), 9);
 
 		//first filter
-		filter.flagCompoundHeterozygous();
-		I_EQUAL(filter.countPassing(), 6);
-
-		filter.flagByGenotype("het");
+		filter.flagCompoundHeterozygous(QStringList() << "genotype");
 		I_EQUAL(filter.countPassing(), 3);
 	}
 

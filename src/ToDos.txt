@@ -8,15 +8,11 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
+* multi-sample anaysis: allow relaxing affected/control genotype filters by requiring only X out of Y
 - Target region filter: reset to none if it looses focus in search mode
 * LOVD upload for variant:
   - implement dialog where user can double-check the data before upload
   - implement print-out of upload data for patient file
-** multi-sample anaysis:
-  - Allow filtering sample-overview lists based on affected/control status
-  - Trio data: Update to add ##SAMPLE header
-  - Somatic data: Update to add ##SAMPLE header
-  - SampleStatus: deploy GSvar > remove SampleStatus restart_*.php
 
 Tools:
 ** NGSDImportGeneInfo: add (optional) import of inheritance mode from OMIM (use force flag)

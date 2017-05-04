@@ -61,7 +61,12 @@ public:
 		int max_ihdb = getInt("max_ihdb");
 		if (max_ihdb>0)
 		{
-			filter.flagByIHDB(max_ihdb, getFlag("max_ihdb_ignore_genotype"));
+			QStringList geno_cols;
+			if (!getFlag("max_ihdb_ignore_genotype"))
+			{
+				geno_cols << "genotype";
+			}
+			filter.flagByIHDB(max_ihdb, geno_cols);
 		}
 
 		//filter classification
@@ -88,7 +93,7 @@ public:
 		//filter compound-heterozygous
 		if (getFlag("comphet"))
 		{
-			filter.flagCompoundHeterozygous();
+			filter.flagCompoundHeterozygous(QStringList() << "genotype");
 		}
 
 		//store variants

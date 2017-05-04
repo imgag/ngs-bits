@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>287</width>
-    <height>540</height>
+    <height>541</height>
    </rect>
   </property>
   <property name="features">
@@ -142,7 +142,7 @@
          <item>
           <widget class="QPushButton" name="roi_details">
            <property name="toolTip">
-            <string>Show target region details.</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show detail information about the selected target region.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
             <string/>
@@ -227,36 +227,24 @@
        <property name="verticalSpacing">
         <number>2</number>
        </property>
-       <item row="6" column="1">
-        <widget class="QComboBox" name="classification">
-         <property name="currentText">
-          <string>5</string>
+       <item row="3" column="1">
+        <widget class="QCheckBox" name="ihdb_ignore_gt">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;By default, only homozygous database entries are counted for homzygous variants and all database entries are counted for heterozygous variants.&lt;/p&gt;&lt;p&gt;If the genotyps is ignored, all database entries are counted independent of the variant genotype.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
-         <item>
-          <property name="text">
-           <string>5</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>4</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>3</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>2</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>1</string>
-          </property>
-         </item>
+         <property name="text">
+          <string>ignore genotype</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="0" colspan="2">
+        <widget class="QCheckBox" name="keep_class_m">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Overwrites the filters:&lt;br/&gt;- MAF&lt;br/&gt;- impact&lt;br/&gt;- ihdb&lt;br/&gt;- genotype&lt;br/&gt;- filter columns&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>keep classification M (modifier)</string>
+         </property>
         </widget>
        </item>
        <item row="7" column="1">
@@ -288,100 +276,13 @@
          </item>
         </widget>
        </item>
-       <item row="5" column="0">
-        <spacer name="verticalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Fixed</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>5</width>
-           <height>5</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="8" column="0" colspan="2">
-        <widget class="QCheckBox" name="keep_class_m">
+       <item row="1" column="0">
+        <widget class="QCheckBox" name="impact_enabled">
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Overwrites the filters:&lt;br/&gt;- MAF&lt;br/&gt;- impact&lt;br/&gt;- ihdb&lt;br/&gt;- genotype&lt;br/&gt;- filter columns&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Impact filter of variant in coding_and_splicing column.&lt;br/&gt;&lt;br/&gt;Details about impact can be found here:&lt;br/&gt;http://snpeff.sourceforge.net/SnpEff_manual.html#eff&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
-          <string>keep classification M (modifier)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QDoubleSpinBox" name="maf">
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="suffix">
-          <string>%</string>
-         </property>
-         <property name="maximum">
-          <double>100.000000000000000</double>
-         </property>
-         <property name="singleStep">
-          <double>0.100000000000000</double>
-         </property>
-         <property name="value">
-          <double>0.000000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QSpinBox" name="ihdb">
-         <property name="maximum">
-          <number>100000</number>
-         </property>
-         <property name="singleStep">
-          <number>5</number>
-         </property>
-         <property name="value">
-          <number>20</number>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="0">
-        <widget class="QCheckBox" name="classification_enabled">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Overwrites the filters:&lt;br/&gt;- MAF&lt;br/&gt;- impact&lt;br/&gt;- ihdb&lt;br/&gt;- genotype&lt;br/&gt;- filter columns&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>remove classification &lt;</string>
-         </property>
-        </widget>
-       </item>
-       <item row="9" column="0">
-        <spacer name="verticalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Fixed</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>5</width>
-           <height>5</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="7" column="0">
-        <widget class="QCheckBox" name="keep_class_ge_enabled">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Overwrites the filters:&lt;br/&gt;- MAF&lt;br/&gt;- impact&lt;br/&gt;- ihdb&lt;br/&gt;- genotype&lt;br/&gt;- filter columns&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>keep classification ≥</string>
+          <string>impact</string>
          </property>
         </widget>
        </item>
@@ -422,48 +323,134 @@
          </item>
         </widget>
        </item>
+       <item row="7" column="0">
+        <widget class="QCheckBox" name="keep_class_ge_enabled">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Overwrites the filters:&lt;br/&gt;- MAF&lt;br/&gt;- impact&lt;br/&gt;- ihdb&lt;br/&gt;- genotype&lt;br/&gt;- filter columns&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>keep classification ≥</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QSpinBox" name="ihdb">
+         <property name="maximum">
+          <number>100000</number>
+         </property>
+         <property name="singleStep">
+          <number>5</number>
+         </property>
+         <property name="value">
+          <number>20</number>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0">
+        <widget class="QCheckBox" name="classification_enabled">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Overwrites the filters:&lt;br/&gt;- MAF&lt;br/&gt;- impact&lt;br/&gt;- ihdb&lt;br/&gt;- genotype&lt;br/&gt;- filter columns&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>remove classification &lt;</string>
+         </property>
+        </widget>
+       </item>
        <item row="0" column="0">
         <widget class="QCheckBox" name="maf_enabled">
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum MAF in any of the columns 1000g, ExAC and Kaviar.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum MAF (minor allele frequency)  in any of the databases 1000g, ExAC and Kaviar.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
           <string>MAF</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="0">
-        <widget class="QCheckBox" name="impact_enabled">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Impact filter of variant in coding_and_splicing column.&lt;br/&gt;&lt;br/&gt;Details about impact can be found here:&lt;br/&gt;http://snpeff.sourceforge.net/SnpEff_manual.html#eff&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       <item row="0" column="1">
+        <widget class="QDoubleSpinBox" name="maf">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>16777215</height>
+          </size>
          </property>
-         <property name="text">
-          <string>impact</string>
+         <property name="suffix">
+          <string>%</string>
+         </property>
+         <property name="maximum">
+          <double>100.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.100000000000000</double>
+         </property>
+         <property name="value">
+          <double>0.000000000000000</double>
          </property>
         </widget>
        </item>
-       <item row="2" column="0">
-        <widget class="QCheckBox" name="ihdb_enabled">
+       <item row="6" column="1">
+        <widget class="QComboBox" name="classification">
+         <property name="currentText">
+          <string>5</string>
+         </property>
+         <item>
+          <property name="text">
+           <string>5</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>4</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>3</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>2</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>1</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="11" column="0">
+        <widget class="QCheckBox" name="geno_affected_enabled">
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum occurences in the in-house database (e.g. NGSD).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Genotype filter for affected samples.&lt;/p&gt;&lt;p&gt;Applied after all other filters.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
-          <string>ihdb</string>
+          <string>genotype (affected)</string>
          </property>
         </widget>
        </item>
-       <item row="12" column="0">
-        <widget class="QCheckBox" name="geno_enabled">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Genotype filter.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Applied after all other filters.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       <item row="5" column="0">
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
          </property>
-         <property name="text">
-          <string>genotype</string>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
          </property>
-        </widget>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>5</width>
+           <height>5</height>
+          </size>
+         </property>
+        </spacer>
        </item>
        <item row="12" column="1">
-        <widget class="QComboBox" name="geno">
+        <widget class="QComboBox" name="geno_control">
+         <property name="currentIndex">
+          <number>2</number>
+         </property>
          <item>
           <property name="text">
            <string>hom</string>
@@ -474,25 +461,56 @@
            <string>het</string>
           </property>
          </item>
+         <item>
+          <property name="text">
+           <string>wt</string>
+          </property>
+         </item>
         </widget>
        </item>
-       <item row="11" column="0" colspan="2">
-        <widget class="QCheckBox" name="compound_enabled">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Filter for compound-heterozygous variants, i.e. heterozygous variants of all genes that have at least two heterozygous variants.&lt;/p&gt;&lt;p&gt;This filter affects heterozygous variants only, i.e. homozygous variants are kept.&lt;/p&gt;&lt;p&gt;This filter is applied after all other filters.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>compound heterozygous</string>
+       <item row="9" column="0" colspan="2">
+        <widget class="Line" name="line">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
          </property>
         </widget>
        </item>
-       <item row="3" column="1">
-        <widget class="QCheckBox" name="ihdb_ignore_gt">
+       <item row="12" column="0">
+        <widget class="QCheckBox" name="geno_control_enabled">
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;By default, only homozygous database entries are counted for homzygous variants and all database entries are counted for heterozygous variants.&lt;/p&gt;&lt;p&gt;If the genotyps is ignored, all database entries are counted independent of the variant genotype.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Genotype filter for control samples (non-affected).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
-          <string>ignore genotype</string>
+          <string>genotype (controls)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="11" column="1">
+        <widget class="QComboBox" name="geno_affected">
+         <item>
+          <property name="text">
+           <string>hom</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>compound-het</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>het</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QCheckBox" name="ihdb_enabled">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum occurences in the in-house database (e.g. NGSD).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>ihdb</string>
          </property>
         </widget>
        </item>
@@ -604,7 +622,7 @@
     <item>
      <widget class="QGroupBox" name="groupBox_3">
       <property name="toolTip">
-       <string>Reference sample that is loaded into IGS in addition to the currently active sample.</string>
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reference sample that is loaded into IGV in addition to the currently active sample.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="title">
        <string>IGV reference sample</string>

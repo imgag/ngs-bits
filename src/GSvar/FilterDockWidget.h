@@ -45,10 +45,15 @@ public:
 	/// Returns the minimum classification.
 	int classification() const;
 
-	/// Returns if the genotype filter is enabled.
-	bool applyGenotype() const;
-	/// Returns the requested genotype.
-	QString genotype() const;
+	/// Returns if the genotype filter is enabled (affected samples).
+	bool applyGenotypeAffected() const;
+	/// Returns the requested genotype (affected samples).
+	QString genotypeAffected() const;
+
+	/// Returns if the genotype filter is enabled (control samples).
+	bool applyGenotypeControl() const;
+	/// Returns the requested genotype (control samples).
+	QString genotypeControl() const;
 
 	/// Returns if the IHDB filter is enabled.
 	bool applyIhdb() const;
@@ -56,9 +61,6 @@ public:
 	int ihdb() const;
 	/// Returns the if the genotype should be ignored for the IHDB filter.
 	int ihdbIgnoreGenotype() const;
-
-	/// Returns if the compound-heterzygous filter is enabled.
-	bool applyCompoundHet() const;
 
 	/// Returns variants with a classification >= X should be kept (returns -1 if unset).
 	int keepClassGreaterEqual() const;

@@ -21,8 +21,8 @@ class CPPNGSSHARED_EXPORT VariantFilter
 		///Flags variants by SnpEff impact.
 		void flagByImpact(QStringList impacts);
 
-		///Flags variants by in-house database count (from NGSD). If genotype is not ignored, for homozygous variants only homozygous NGSD variants are counted.
-		void flagByIHDB(int max_count, bool ignore_genotype);
+		///Flags variants by in-house database count (from NGSD). If genotype columns are given, for homozygous/heterozygous variants are handled differently.
+		void flagByIHDB(int max_count, QStringList genotype_columns = QStringList() << "genotype");
 
 		///Flags variants by filter column entries (remove non-empty filter entries).
 		void flagByFilterColumn();
@@ -37,11 +37,10 @@ class CPPNGSSHARED_EXPORT VariantFilter
 		void flagByGenes(const GeneSet& genes);
 
 		///Flags variants by annotations filter.
-		void flagByGenotype(QString genotype);
+		void flagByGenotype(QString genotype, QStringList genotype_columns = QStringList() << "genotype");
 
-		///Flags *heterozygous* variants (only compound-heterozygous variants pass).
-		void flagCompoundHeterozygous();
-
+		///Flags variants by letting only compound-heterozygous variants pass.
+		void flagCompoundHeterozygous(QStringList genotype_columns = QStringList() << "genotype");
 
 		///Flags variants by region filter.
 		void flagByRegions(const BedFile& regions);

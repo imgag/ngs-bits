@@ -22,10 +22,13 @@ To perform a multi-sample analysis, follow those steps:
 2. When the analysis is finished, a folder with the prefix 'Multi_' and the sample names was created.  
 Open the GSvar variant list from the trio folder.
 3. For filtering the trio variant list, use the default filter `germline, multi-sample` from the main tool bar.
-4. Further filtering is done using the filter toolbar on the right.
+4. Further filtering is done using these filters in the filter tool bar on the right:
+	* only cnosider variants with high/moderate impact
+	* filter based on inheritance mode using the affected/control genotype filters
 
 --
 [back to main page](index.md)
+
 
 
 

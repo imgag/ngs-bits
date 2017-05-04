@@ -31,14 +31,14 @@ FilterDockWidget::FilterDockWidget(QWidget *parent)
 	connect(ui_.classification, SIGNAL(currentIndexChanged(int)), this, SIGNAL(filtersChanged()));
 	connect(ui_.classification_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
 
-	connect(ui_.geno, SIGNAL(currentIndexChanged(int)), this, SIGNAL(filtersChanged()));
-	connect(ui_.geno_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
+	connect(ui_.geno_affected, SIGNAL(currentIndexChanged(int)), this, SIGNAL(filtersChanged()));
+	connect(ui_.geno_affected_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
+	connect(ui_.geno_control, SIGNAL(currentIndexChanged(int)), this, SIGNAL(filtersChanged()));
+	connect(ui_.geno_control_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
 
 	connect(ui_.keep_class_ge_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
 	connect(ui_.keep_class_ge, SIGNAL(currentTextChanged(QString)), this, SIGNAL(filtersChanged()));
 	connect(ui_.keep_class_m, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
-
-	connect(ui_.compound_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
 
 	connect(ui_.roi_add, SIGNAL(clicked()), this, SLOT(addRoi()));
 	connect(ui_.roi_add_temp, SIGNAL(clicked()), this, SLOT(addRoiTemp()));
@@ -181,12 +181,13 @@ void FilterDockWidget::resetSignalsUnblocked(bool clear_roi, bool clear_off_targ
 	ui_.ihdb_ignore_gt->setChecked(false);
 	ui_.classification_enabled->setChecked(false);
     ui_.classification->setCurrentText("3");
-    ui_.geno_enabled->setChecked(false);
-    ui_.geno->setCurrentText("hom");
+	ui_.geno_affected_enabled->setChecked(false);
+	ui_.geno_affected->setCurrentText("hom");
+	ui_.geno_control_enabled->setChecked(false);
+	ui_.geno_control->setCurrentText("wt");
     ui_.keep_class_ge_enabled->setChecked(false);
     ui_.keep_class_ge->setCurrentText("3");
 	ui_.keep_class_m->setChecked(false);
-    ui_.compound_enabled->setChecked(false);
 
     //filter cols
     QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
@@ -289,7 +290,7 @@ void FilterDockWidget::applyDefaultFiltersTrio()
 	ui_.maf_enabled->setChecked(true);
 	ui_.maf->setValue(1.0);
 	ui_.impact_enabled->setChecked(true);
-	ui_.impact->setCurrentText("HIGH,MODERATE");
+	ui_.impact->setCurrentText("HIGH,MODERATE,LOW");
 	ui_.ihdb_enabled->setChecked(true);
 	ui_.ihdb->setValue(20);
 	ui_.ihdb_ignore_gt->setChecked(false);
@@ -328,7 +329,7 @@ void FilterDockWidget::applyDefaultFiltersMultiSample()
 	ui_.impact->setCurrentText("HIGH,MODERATE,LOW");
 	ui_.ihdb_enabled->setChecked(true);
 	ui_.ihdb->setValue(20);
-	ui_.ihdb_ignore_gt->setChecked(true);
+	ui_.ihdb_ignore_gt->setChecked(false);
 	ui_.classification_enabled->setChecked(true);
 	ui_.classification->setCurrentText("3");
 	ui_.keep_class_ge_enabled->setChecked(true);
@@ -411,14 +412,24 @@ int FilterDockWidget::classification() const
 	return ui_.classification->currentText().toInt();
 }
 
-bool FilterDockWidget::applyGenotype() const
+bool FilterDockWidget::applyGenotypeAffected() const
 {
-	return ui_.geno_enabled->isChecked();
+	return ui_.geno_affected_enabled->isChecked();
 }
 
-QString FilterDockWidget::genotype() const
+QString FilterDockWidget::genotypeAffected() const
 {
-	return ui_.geno->currentText();
+	return ui_.geno_affected->currentText();
+}
+
+bool FilterDockWidget::applyGenotypeControl() const
+{
+	return ui_.geno_control_enabled->isChecked();
+}
+
+QString FilterDockWidget::genotypeControl() const
+{
+	return ui_.geno_control->currentText();
 }
 
 bool FilterDockWidget::applyIhdb() const
@@ -434,11 +445,6 @@ int FilterDockWidget::ihdb() const
 int FilterDockWidget::ihdbIgnoreGenotype() const
 {
 	return ui_.ihdb_ignore_gt->isChecked();
-}
-
-bool FilterDockWidget::applyCompoundHet() const
-{
-	return ui_.compound_enabled->isChecked();
 }
 
 int FilterDockWidget::keepClassGreaterEqual() const
@@ -536,7 +542,8 @@ QMap<QString, QString> FilterDockWidget::appliedFilters() const
 	if (applyImpact()) output.insert("impact", impact().join(","));
 	if (applyIhdb()) output.insert("ihdb", QString::number(ihdb()));
 	if (applyClassification()) output.insert("classification", QString::number(classification()));
-	if (applyGenotype()) output.insert("genotype" , genotype());
+	if (applyGenotypeAffected()) output.insert("genotype (affected)" , genotypeAffected());
+	if (applyGenotypeControl()) output.insert("genotype (control)" , genotypeControl());
 	if (keepClassM()) output.insert("keep_class_m", "");
 	if (keepClassGreaterEqual()!=-1) output.insert("keep_class_ge", QString::number(keepClassGreaterEqual()));
 

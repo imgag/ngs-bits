@@ -56,9 +56,19 @@ public:
 	///Returns the index of a colum in the GUI (or -1 if the column does not exist)
 	int guiColumnIndex(QString column) const;
 
+	struct SampleInfo
+	{
+		QString column_name;
+		QMap<QString, QString> properties;
+
+		bool isAffected() const;
+	};
+
 	///Parses and returns sample data from header
-	using SampleHeaderData = QMap<QString, QMap<QString, QString>>;
-	SampleHeaderData getSampleHeader();
+	QMap<QString, SampleInfo> getSampleHeader();
+	///Returns genotype column names
+	enum AffectedState {AFFECTED, CONTROL, ALL};
+	QStringList genotypeColumns(AffectedState state =  ALL);
 
 public slots:
 	///Open dialog

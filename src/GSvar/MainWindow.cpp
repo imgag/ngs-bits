@@ -913,9 +913,9 @@ void MainWindow::annotateVariantsROI()
 	worker->start();
 }
 
-MainWindow::SampleHeaderData MainWindow::getSampleHeader()
+QMap<QString, MainWindow::SampleInfo> MainWindow::getSampleHeader()
 {
-	SampleHeaderData output;
+	QMap<QString, SampleInfo> output;
 
 	foreach(QString line, variants_.comments())
 	{
@@ -939,12 +939,48 @@ MainWindow::SampleHeaderData MainWindow::getSampleHeader()
 				if (key=="ID")
 				{
 					name = value;
+					output[name].column_name = value;
 				}
 				else
 				{
-					output[name][key] = value;
+					output[name].properties[key] = value;
 				}
 			}
+		}
+	}
+
+	//special handling of single-sample analysis
+	for (int i=0; i<variants_.annotations().count(); ++i)
+	{
+		if (variants_.annotations()[i].name()=="genotype")
+		{
+			if (output.count()==0) //old single-sample analysis without '#SAMPLE header'. Old trio/somatic variant lists are no longer supported.
+			{
+				QString name = QFileInfo(filename_).baseName();
+				output[name].properties["Status"] = "Affected";
+			}
+
+			if (output.count()==1)
+			{
+				output.first().column_name = "genotype";
+			}
+		}
+		break;
+	}
+
+	return output;
+}
+
+QStringList MainWindow::genotypeColumns(MainWindow::AffectedState state)
+{
+	QStringList output;
+
+	QMap<QString, SampleInfo> data = getSampleHeader();
+	foreach(const SampleInfo& info, data)
+	{
+		if (state==ALL || (state==AFFECTED && info.isAffected()) || (state==CONTROL && !info.isAffected()))
+		{
+			output << info.column_name;
 		}
 	}
 
@@ -1602,7 +1638,7 @@ void MainWindow::variantListChanged()
 
 	//update variant details widget
 	var_last_ = -1;
-	SampleHeaderData sample_data = getSampleHeader();
+	QMap<QString, SampleInfo> sample_data = getSampleHeader();
 
 	//resize
 	ui_.vars->setRowCount(variants_.count());
@@ -1632,29 +1668,22 @@ void MainWindow::variantListChanged()
 		}
 
 		//additional descriptions and color for genotype columns
-		if (sample_data.contains(anno))
+		foreach(const SampleInfo& info, sample_data)
 		{
-			auto it = sample_data[anno].cbegin();
-			while(it != sample_data[anno].cend())
+			if (info.column_name==anno)
 			{
-
-				add_desc += "\n - "+it.key() + ": " + it.value();
-
-				if (it.key().toLower()=="status" && it.value().toLower()=="affected")
+				auto it = info.properties.cbegin();
+				while(it != info.properties.cend())
 				{
-					header->setForeground(QBrush(Qt::darkRed));
-				}
+					add_desc += "\n - "+it.key() + ": " + it.value();
 
-				++it;
-			}
-		}
-		if (sample_data.count()==1 && anno=="genotype") //special case for single-sample variant lists
-		{
-			auto it = sample_data.begin()->cbegin();
-			while(it != sample_data.begin()->cend())
-			{
-				add_desc += "\n - "+it.key() + ": " + it.value();
-				++it;
+					if (info.isAffected())
+					{
+						header->setForeground(QBrush(Qt::darkRed));
+					}
+
+					++it;
+				}
 			}
 		}
 
@@ -1782,7 +1811,7 @@ void MainWindow::variantListChanged()
 
 	QApplication::restoreOverrideCursor();
 
-	Log::perf("Painting took ", timer);
+	Log::perf("Initializing variant table took ", timer);
 
 	//re-filter in case some relevant columns changed
 	filtersChanged();
@@ -2096,43 +2125,29 @@ QMap<QString, QString> MainWindow::getBamFiles()
 {
     QMap<QString, QString> output;
 
-	SampleHeaderData data = getSampleHeader();
-    if (!data.empty())
-    {
-		QString sample_folder = QFileInfo(filename_).path();
-		QString project_folder = QFileInfo(sample_folder).path();
+	QString sample_folder = QFileInfo(filename_).path();
+	QString project_folder = QFileInfo(sample_folder).path();
 
-        foreach(QString sample, data.keys())
-		{
-			QString bam1 = sample_folder + "/" + sample + ".bam";
-			QString bam2 = project_folder + "/Sample_" + sample + "/" + sample + ".bam";
-			if (QFile::exists(bam1))
-			{
-				output[sample] = bam1;
-			}
-			else if (QFile::exists(bam2))
-			{
-				output[sample] = bam2;
-			}
-			else
-            {
-				QMessageBox::warning(this, "Missing BAM file!", "Could not find BAM file at default locations:\n" + bam1 + "\n" + bam2);
-                output.clear();
-                return output;
-            }
-        }
-    }
-	else //fallback for old single-sample variant lists without '##SAMPLE' header. Old trio/somatic variant lists are no longer supported.
+	QMap<QString, SampleInfo> data = getSampleHeader();
+	foreach(QString sample, data.keys())
 	{
-		QString folder = QFileInfo(filename_).path();
-        QStringList bams = Helper::findFiles(folder, "*.bam", false);
-        if (bams.count()!=1)
-        {
-            QMessageBox::warning(this, "Could not locate sample BAM file.", "Exactly one BAM file must be present in the sample folder:\n" + folder + "\n\nFound the following files:\n" + bams.join("\n"));
-            return output;
-        }
-		output[QFileInfo(bams[0]).baseName()] = bams[0];
-    }
+		QString bam1 = sample_folder + "/" + sample + ".bam";
+		QString bam2 = project_folder + "/Sample_" + sample + "/" + sample + ".bam";
+		if (QFile::exists(bam1))
+		{
+			output[sample] = bam1;
+		}
+		else if (QFile::exists(bam2))
+		{
+			output[sample] = bam2;
+		}
+		else
+		{
+			QMessageBox::warning(this, "Missing BAM file!", "Could not find BAM file at one of the default locations:\n" + bam1 + "\n" + bam2);
+			output.clear();
+			return output;
+		}
+	}
 
     return output;
 }
@@ -2149,7 +2164,7 @@ MainWindow::VariantListType MainWindow::getType()
 		return SOMATIC;
 	}
 
-	SampleHeaderData data = getSampleHeader();
+	QMap<QString, SampleInfo> data = getSampleHeader();
 	if (data.count()>=2)
 	{
 		return MULTI;
@@ -2181,7 +2196,8 @@ void MainWindow::filtersChanged()
 		}
 		if (filter_widget_->applyIhdb())
 		{
-			filter.flagByIHDB(filter_widget_->ihdb(), filter_widget_->ihdbIgnoreGenotype());
+			QStringList geno_cols = (filter_widget_->ihdbIgnoreGenotype() ? QStringList() : genotypeColumns(AFFECTED));
+			filter.flagByIHDB(filter_widget_->ihdb(), geno_cols);
 		}
 		QStringList remove = filter_widget_->filterColumnsRemove();
 		if (remove.count()>0)
@@ -2307,18 +2323,26 @@ void MainWindow::filtersChanged()
 			timer.start();
 		}
 
-		//apply compound-heterozygous filter
-		if (filter_widget_->applyCompoundHet())
+		//genotype filter (control)
+		if (filter_widget_->applyGenotypeControl())
 		{
-			filter.flagCompoundHeterozygous();
-			Log::perf("Applying compound-heterozygous filter took ", timer);
-			timer.start();
+			filter.flagByGenotype(filter_widget_->genotypeControl(), genotypeColumns(CONTROL));
+			Log::perf("Applying genotype filter (control) took ", timer);
 		}
 
-		//genotype filter
-		if (filter_widget_->applyGenotype())
+		//genotype filter (affected)
+		if (filter_widget_->applyGenotypeAffected())
 		{
-			filter.flagByGenotype(filter_widget_->genotype());
+			QString geno = filter_widget_->genotypeAffected();
+			if (geno == "compound-het")
+			{
+				filter.flagCompoundHeterozygous(genotypeColumns(AFFECTED));
+			}
+			else
+			{
+				filter.flagByGenotype(filter_widget_->genotypeAffected(), genotypeColumns(AFFECTED));
+			}
+			Log::perf("Applying genotype filter (affected) took ", timer);
 		}
 
 		//update GUI
@@ -2453,4 +2477,20 @@ void MainWindow::openRecentFile()
 {
 	QAction* action = qobject_cast<QAction*>(sender());
 	loadFile(action->text());
+}
+
+bool MainWindow::SampleInfo::isAffected() const
+{
+	auto it = properties.cbegin();
+	while(it != properties.cend())
+	{
+		if (it.key().toLower()=="status" && it.value().toLower()=="affected")
+		{
+			return true;
+		}
+
+		++it;
+	}
+
+	return false;
 }

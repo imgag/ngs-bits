@@ -74,24 +74,34 @@ void VariantFilter::flagByImpact(QStringList impacts)
 	}
 }
 
-void VariantFilter::flagByGenotype(QString genotype)
+void VariantFilter::flagByGenotype(QString genotype, QStringList genotype_columns)
 {
 	//check input
-	if (genotype!="hom" && genotype!="het") THROW(ArgumentException, "Invalid genotype '" + genotype + "'!");
+	if (genotype!="hom" && genotype!="het" && genotype!="wt") THROW(ArgumentException, "Invalid genotype '" + genotype + "'!");
 
 	//get column indices
-	int i_geno = variants.annotationIndexByName("genotype", true, true);
+	QList<int> geno_indices;
+	foreach(const QString& column, genotype_columns)
+	{
+		geno_indices << variants.annotationIndexByName(column, true, true);
+	}
 
 	//filter
 	for(int i=0; i<variants.count(); ++i)
 	{
 		if (!pass[i]) continue;
 
-		pass[i] = (variants[i].annotations()[i_geno] == genotype);
+		foreach(int index, geno_indices)
+		{
+			if (variants[i].annotations()[index] != genotype)
+			{
+				pass[i] = false;
+			}
+		}
 	}
 }
 
-void VariantFilter::flagByIHDB(int max_count, bool ignore_genotype)
+void VariantFilter::flagByIHDB(int max_count, QStringList genotype_columns)
 {
 	//check input
 	if (max_count<1)
@@ -102,25 +112,33 @@ void VariantFilter::flagByIHDB(int max_count, bool ignore_genotype)
 	//get column indices
 	int i_ihdb_hom = variants.annotationIndexByName("ihdb_allsys_hom", true, true);
 	int i_ihdb_het = variants.annotationIndexByName("ihdb_allsys_het", true, true);
-	int i_geno = ignore_genotype ? -1 : variants.annotationIndexByName("genotype", true, true);
+	QList<int> geno_indices;
+	foreach(const QString& column, genotype_columns)
+	{
+		geno_indices << variants.annotationIndexByName(column, true, true);
+	}
 
 	//filter
 	for(int i=0; i<variants.count(); ++i)
 	{
 		if (!pass[i]) continue;
 
-		if (ignore_genotype || variants[i].annotations()[i_geno]=="het")
+		bool var_is_hom = false;
+		foreach(int index, geno_indices)
 		{
-			pass[i] = (variants[i].annotations()[i_ihdb_hom].toInt() +  variants[i].annotations()[i_ihdb_het].toInt()) <= max_count;
+			const QByteArray& var_geno = variants[i].annotations()[index];
+			if (var_geno=="hom")
+			{
+				var_is_hom = true;
+				break;
+			}
+			else if (var_geno!="het" && var_geno!="wt")
+			{
+				THROW(ProgrammingException, "Unknown genotype '" + var_geno + "'!");
+			}
 		}
-		else if (variants[i].annotations()[i_geno]=="hom")
-		{
-			pass[i] = variants[i].annotations()[i_ihdb_hom].toInt() <= max_count;
-		}
-		else
-		{
-			THROW(ProgrammingException, "Unknown genotype '" + variants[i].annotations()[i_geno] + "'!");
-		}
+
+		pass[i] = (variants[i].annotations()[i_ihdb_hom].toInt() + (var_is_hom ? 0 : variants[i].annotations()[i_ihdb_het].toInt())) <= max_count;
 	}
 }
 
@@ -396,11 +414,15 @@ void VariantFilter::flagGeneric(QString criteria)
 	}
 }
 
-void VariantFilter::flagCompoundHeterozygous()
+void VariantFilter::flagCompoundHeterozygous(QStringList genotype_columns)
 {
 	//get column indices
 	int i_gene = variants.annotationIndexByName("gene", true, true);
-	int i_geno = variants.annotationIndexByName("genotype", true, true);
+	QList<int> geno_indices;
+	foreach(const QString& column, genotype_columns)
+	{
+		geno_indices << variants.annotationIndexByName(column, true, true);
+	}
 
 	//count heterozygous passing variants per gene
 	QHash<QByteArray, int> gene_to_het;
@@ -408,7 +430,21 @@ void VariantFilter::flagCompoundHeterozygous()
 	{
 		if (!pass[i]) continue;
 
-		if (variants[i].annotations()[i_geno]!="het") continue;
+		bool var_het = true;
+		foreach(int index, geno_indices)
+		{
+			if (variants[i].annotations()[index]!="het")
+			{
+				var_het = false;
+				break;
+			}
+		}
+		if (!var_het)
+		{
+			pass[i] = false;
+			continue;
+		}
+
 		QList<QByteArray> genes = variants[i].annotations()[i_gene].toUpper().split(',');
 		foreach(const QByteArray& gene, genes)
 		{
@@ -420,7 +456,6 @@ void VariantFilter::flagCompoundHeterozygous()
 	for(int i=0; i<variants.count(); ++i)
 	{
 		if (!pass[i]) continue;
-		if (variants[i].annotations()[i_geno]!="het") continue;
 
 		pass[i] = false;
 		QList<QByteArray> genes = variants[i].annotations()[i_gene].toUpper().split(',');
