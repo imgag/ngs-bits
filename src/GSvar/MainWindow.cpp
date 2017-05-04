@@ -549,13 +549,18 @@ void MainWindow::on_actionReport_triggered()
 	if (variants_.count()==0) return;
 
 	//check if this is a germline or somatic
-	if (getType()==SOMATIC)
+	VariantListType type = getType();
+	if (type==SOMATIC_PAIR)
 	{
 		generateReportSomatic();
 	}
-	else
+	else if (type==GERMLINE_SINGLE)
 	{
             generateReport();
+	}
+	else
+	{
+		QMessageBox::information(this, "Report error", "Report not supported for this type of analysis!");
 	}
 }
 
@@ -1859,7 +1864,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 		sub_menu = menu.addMenu(QIcon("://Icons/Alamut.png"), "Alamut");
 
 		//BAM
-		if (getType()==SINGLE)
+		if (getType()==GERMLINE_SINGLE)
 		{
 			sub_menu->addAction("BAM");
 		}
@@ -2056,7 +2061,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 				if (bams.empty()) return;
 				value = "BAM<" + bams.values().first();
 			}
-			QDesktopServices::openUrl(QUrl(Settings::string("Alamut")+"/show?request="+value));
+			HttpHandler().getHttpReply(Settings::string("Alamut")+"/show?request="+value);
 		}
 	}
 }
@@ -2156,21 +2161,21 @@ MainWindow::VariantListType MainWindow::getType()
 {
 	if (variants_.filters().contains("trio_denovo"))
 	{
-		return TRIO;
+		return GERMLINE_TRIO;
 	}
 
 	if (variants_.annotationIndexByName("tumor_af", true, false)!=-1 && variants_.annotationIndexByName("normal_af", true, false)!=-1)
 	{
-		return SOMATIC;
+		return SOMATIC_PAIR;
 	}
 
 	QMap<QString, SampleInfo> data = getSampleHeader();
 	if (data.count()>=2)
 	{
-		return MULTI;
+		return GERMLINE_MULTI;
 	}
 
-	return SINGLE;
+	return GERMLINE_SINGLE;
 }
 
 void MainWindow::filtersChanged()

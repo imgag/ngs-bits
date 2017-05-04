@@ -32,7 +32,7 @@ public:
 	QStringList getLogFiles();
 	///Returns the BAM files corresponding to the analysis.
 	QMap<QString, QString> getBamFiles();
-	enum VariantListType {SINGLE, TRIO, MULTI, SOMATIC};
+	enum VariantListType {GERMLINE_SINGLE, GERMLINE_TRIO, GERMLINE_MULTI, SOMATIC_SINGLE, SOMATIC_PAIR};
 	///Retruns the type of the current variant list
 	VariantListType getType();
 	///Adds a file to the recent file list

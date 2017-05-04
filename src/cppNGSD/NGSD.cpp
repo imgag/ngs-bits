@@ -23,7 +23,7 @@ NGSD::NGSD(bool test_db)
 	db_->setPassword(Settings::string(prefix + "_pass"));
 	if (!db_->open())
 	{
-		THROW(DatabaseException, "Could not connect to the NGSD database!");
+		THROW(DatabaseException, "Could not connect to the NGSD database: '" + prefix + "'");
 	}
 }
 
