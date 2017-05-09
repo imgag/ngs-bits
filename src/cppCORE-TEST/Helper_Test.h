@@ -114,5 +114,6 @@ private slots:
 		S_EQUAL(Helper::canonicalPath("C://.//file.bed"), "C:\\file.bed");
 		S_EQUAL(Helper::canonicalPath("C://ignore_me//../folder/file.bed"), "C:\\folder\\file.bed");
 		S_EQUAL(Helper::canonicalPath("C://ignore_me//..//ignore_me2//../folder/file.bed"), "C:\\folder\\file.bed");
+		S_EQUAL(Helper::canonicalPath("\\\\some-server\\\\some-share\\some_file.txt"), "\\\\some-server\\some-share\\some_file.txt");
 	}
 };
