@@ -22,6 +22,7 @@ CnvWidget::CnvWidget(QString filename, QWidget *parent)
 	connect(ui->f_roi, SIGNAL(stateChanged(int)), this, SLOT(filtersChanged()));
 	connect(ui->f_genes, SIGNAL(stateChanged(int)), this, SLOT(filtersChanged()));
 	connect(ui->f_size, SIGNAL(valueChanged(double)), this, SLOT(filtersChanged()));
+	connect(ui->f_z, SIGNAL(valueChanged(double)), this, SLOT(filtersChanged()));
 
 	//load CNV data file
 	QString path = QFileInfo(filename).absolutePath();
@@ -95,6 +96,7 @@ void CnvWidget::disableGUI()
 	ui->f_roi->setEnabled(false);
 	ui->f_regs->setEnabled(false);
 	ui->f_size->setEnabled(false);
+	ui->f_z->setEnabled(false);
 }
 
 void CnvWidget::loadCNVs(QString filename)
@@ -190,6 +192,26 @@ void CnvWidget::filtersChanged()
 					break;
 				}
 				if (f_cni==4 && cn>4)
+				{
+					hit = true;
+					break;
+				}
+			}
+			pass[r] = hit;
+		}
+	}
+
+	//filter by z-score
+	const double f_z = ui->f_z->value();
+	if (f_z>0.0)
+	{
+		for(int r=0; r<rows; ++r)
+		{
+			if (!pass[r]) continue;
+			bool hit = false;
+			foreach (double z, cnvs[r].zScores())
+			{
+				if (z>=f_z || z<=-f_z)
 				{
 					hit = true;
 					break;

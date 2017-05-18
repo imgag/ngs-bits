@@ -8,7 +8,6 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-*** CNV tool: add z-score filter
 *** Gap tool: show min coverage instead of average
 ** somatic report: add table of deleted/amplified genes below CNV table
 ** allow filtering affected for hom/compound at the same time
