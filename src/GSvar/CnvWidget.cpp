@@ -250,6 +250,8 @@ void CnvWidget::copyToClipboard()
 	//rows
 	for (int row=0; row<ui->cnvs->rowCount(); ++row)
 	{
+		if (ui->cnvs->isRowHidden(row)) continue;
+
 		for (int col=0; col<ui->cnvs->columnCount(); ++col)
 		{
 			if (col!=0) output += "\t";
