@@ -254,9 +254,10 @@ BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file,
 	return low_cov;
 }
 
-void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file, const GeneSet& genes, int min_cov, NGSD& db, QMap<QString, QString>* output)
+void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file, const GeneSet& genes, int min_cov, int extend, NGSD& db, QMap<QString, QString>* output)
 {
-	stream << "<p><b>Abdeckungsstatistik f&uuml;r CCDS</b></p>" << endl;
+	QString ext_string = (extend==0 ? "" : " +-" + QString::number(extend) + " ");
+	stream << "<p><b>Abdeckungsstatistik f&uuml;r CCDS " << ext_string << "</b></p>" << endl;
 	stream << "<table>";
 	stream << "<tr><td><b>Gen</b></td><td><b>Transcript</b></td><td><b>Gr&ouml;&szlig;e</b></td><td><b>L&uuml;cken</b></td><td><b>Chromosom</b></td><td><b>Koordinaten (hg19)</b></td></tr>";
 	long long bases_overall = 0;
@@ -276,33 +277,39 @@ void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file
 		}
 		if (!transcript.isValid())
 		{
-			Log::warn("Low-coverage statistics for gene " + symbol + " cannot be calculated: No coding transcript found in CCDS/RefSeq!");
+			stream << "<br>Warning:Low-coverage statistics for gene " + symbol + " cannot be calculated: No coding transcript found in CCDS/RefSeq!";
 			continue;
 		}
 
 		//gaps
 		QString message;
-		BedFile gaps = precalculatedGaps(bam_file, transcript.regions(), min_cov, db, message);
+		BedFile roi = transcript.regions();
+		if (extend>0)
+		{
+			roi.extend(extend);
+			roi.merge();
+		}
+		BedFile gaps = precalculatedGaps(bam_file, roi, min_cov, db, message);
 		if (!message.isEmpty())
 		{
 			Log::warn("Low-coverage statistics for transcript " + transcript.name() + " needs to be calculated. Pre-calulated gap file cannot be used because: " + message);
-			gaps = Statistics::lowCoverage(transcript.regions(), bam_file, min_cov);
+			gaps = Statistics::lowCoverage(roi, bam_file, min_cov);
 		}
 
-		long long bases_transcipt = transcript.regions().baseCount();
+		long long bases_transcipt = roi.baseCount();
 		long long bases_gaps = gaps.baseCount();
 		QStringList coords;
 		for (int i=0; i<gaps.count(); ++i)
 		{
 			coords << QString::number(gaps[i].start()) + "-" + QString::number(gaps[i].end());
 		}
-		stream << "<tr><td>" + symbol + "</td><td>" << transcript.name() << "</td><td>" << bases_transcipt << "</td><td>" << bases_gaps << "</td><td>" << transcript.regions()[0].chr().strNormalized(true) << "</td><td>" << coords.join(", ") << "</td></tr>";
+		stream << "<tr><td>" + symbol + "</td><td>" << transcript.name() << "</td><td>" << bases_transcipt << "</td><td>" << bases_gaps << "</td><td>" << roi[0].chr().strNormalized(true) << "</td><td>" << coords.join(", ") << "</td></tr>";
 		bases_overall += bases_transcipt;
 		bases_sequenced += bases_transcipt - bases_gaps;
 	}
 	stream << "</table>";
-	stream << "<p>CCDS-Basen gesamt: " << bases_overall << endl;
-	stream << "<br />CCDS-Basen sequenziert: " << bases_sequenced << " (" << QString::number(100.0 * bases_sequenced / bases_overall, 'f', 2)<< "%)" << endl;
+	stream << "<p>CCDS " << ext_string << "gesamt: " << bases_overall << endl;
+	stream << "<br />CCDS " << ext_string << "sequenziert: " << bases_sequenced << " (" << QString::number(100.0 * bases_sequenced / bases_overall, 'f', 2)<< "%)" << endl;
 	stream << "</p>" << endl;
 
 	if (output!=nullptr) output->insert("ccds_sequenced", QString::number(bases_sequenced));
@@ -568,7 +575,9 @@ void ReportWorker::writeHTML()
 	{
 		BedFile low_cov = writeCoverageReport(stream, file_bam_, file_roi_, roi_, genes_, min_cov_, db_, calculate_depth_, &roi_stats_);
 
-		writeCoverageReportCCDS(stream, file_bam_, genes_, min_cov_, db_, &roi_stats_);
+		writeCoverageReportCCDS(stream, file_bam_, genes_, min_cov_, 0, db_, &roi_stats_);
+
+		writeCoverageReportCCDS(stream, file_bam_, genes_, min_cov_, 5, db_, &roi_stats_);
 
 		//additionally store low-coverage BED file
 		low_cov.store(QString(file_rep_).replace(".html", "_lowcov.bed"));

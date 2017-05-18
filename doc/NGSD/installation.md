@@ -44,7 +44,7 @@ Then, choose a password for the MySQL database which we will create in the next 
 
 Next, we need to download and index the reference genome:
 	
-	> ./download_hg19.sh
+	> ./download_GRCh37.sh
 
 Now, we need to configure the the reference genome used by the ngs-bits tools. See (3) for details
 
