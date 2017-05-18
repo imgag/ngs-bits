@@ -91,6 +91,8 @@ public slots:
 	void on_actionGenderXY_triggered();
 	///Gender determination
 	void on_actionGenderHet_triggered();
+	///Gender determination
+	void on_actionGenderSRY_triggered();
 	///File information BED
 	void on_actionStatisticsBED_triggered();
 	///File information FASTA

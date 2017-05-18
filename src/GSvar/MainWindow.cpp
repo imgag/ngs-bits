@@ -1073,6 +1073,12 @@ void MainWindow::on_actionGenderHet_triggered()
 	dialog.exec();
 }
 
+void MainWindow::on_actionGenderSRY_triggered()
+{
+	ExternalToolDialog dialog("SampleGender", "-method sry", this);
+	dialog.exec();
+}
+
 void MainWindow::on_actionStatisticsBED_triggered()
 {
 	ExternalToolDialog dialog("BedInfo", "", this);

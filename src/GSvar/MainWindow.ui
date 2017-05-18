@@ -17,7 +17,7 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="GSvar.qrc">
+   <iconset resource="../GSmix/GSmix.qrc">
     <normaloff>:/Icons/Icon.png</normaloff>:/Icons/Icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -114,6 +114,7 @@
      </property>
      <addaction name="actionGenderXY"/>
      <addaction name="actionGenderHet"/>
+     <addaction name="actionGenderSRY"/>
     </widget>
     <widget class="QMenu" name="menuSample_correlation">
      <property name="title">
@@ -319,7 +320,7 @@
   </action>
   <action name="actionNGSD">
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset resource="../GSmix/GSmix.qrc">
      <normaloff>:/Icons/NGSD.png</normaloff>:/Icons/NGSD.png</iconset>
    </property>
    <property name="text">
@@ -592,9 +593,15 @@
     <string>Trigger multi-sample analysis (affected vs. unaffected).</string>
    </property>
   </action>
+  <action name="actionGenderSRY">
+   <property name="text">
+    <string>Based on SRY gene</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
+  <include location="../GSmix/GSmix.qrc"/>
   <include location="GSvar.qrc"/>
  </resources>
  <connections/>

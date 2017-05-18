@@ -8,7 +8,6 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-*** Gender tool: Add SRY method
 *** CNV tool: bug copy-to-clipboard > only filtered!
 *** CNV tool: add z-score filter
 *** Gap tool: show min coverage instead of average
