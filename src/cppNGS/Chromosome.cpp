@@ -42,7 +42,6 @@ QByteArray Chromosome::normalizedStringRepresentation() const
 {
 	QByteArray tmp = str_.toUpper();
 	if (tmp.size()>3 && tmp.startsWith("CHR")) tmp = tmp.mid(3);
-	if (tmp=="MT") tmp = "M";
 	return tmp;
 }
 
@@ -64,7 +63,7 @@ int Chromosome::numericRepresentation() const
 	{
 		return 1002;
 	}
-	if (tmp=="M")
+    if (tmp=="M" || tmp=="MT")
 	{
 		return 1003;
 	}

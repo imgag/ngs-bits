@@ -16,7 +16,10 @@ private slots:
 	//Test with name and depth arguments
 	void test_02()
 	{
-		EXECUTE("VariantAnnotateStrand", "-bam " + TESTDATA("data_in/VariantAnnotateStrand_in2.bam") + " -vcf " + TESTDATA("data_in/VariantAnnotateStrand_in2.vcf") + " -out out/VariantAnnotateStrand_out2.vcf");
+        QString ref_file = Settings::string("reference_genome");
+        if (ref_file=="") SKIP("Test needs the reference genome!");
+
+        EXECUTE("VariantAnnotateStrand", "-bam " + TESTDATA("data_in/VariantAnnotateStrand_in2.bam") + " -vcf " + TESTDATA("data_in/VariantAnnotateStrand_in2.vcf") + " -out out/VariantAnnotateStrand_out2.vcf");
 		COMPARE_FILES("out/VariantAnnotateStrand_out2.vcf", TESTDATA("data_out/VariantAnnotateStrand_out2.vcf"));
 	}
 };
