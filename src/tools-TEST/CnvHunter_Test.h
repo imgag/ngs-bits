@@ -28,7 +28,10 @@ private slots:
 
 	void hpPDv3_anno()
 	{
-		//init
+        QString host = Settings::string("ngsd_test_host");
+        if (host=="") SKIP("Test needs access to the NGSD test database!");
+
+        //init
 		NGSD db(true);
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/CnvHunter_init.sql"));
