@@ -27,14 +27,14 @@ private slots:
 		S_EQUAL(Chromosome("chr01").strNormalized(false), QByteArray("01"));
 		S_EQUAL(Chromosome("CHRX").strNormalized(false), QByteArray("X"));
 		S_EQUAL(Chromosome("chrY").strNormalized(false), QByteArray("Y"));
-		S_EQUAL(Chromosome("M").strNormalized(false), QByteArray("M"));
+		S_EQUAL(Chromosome("M").strNormalized(false), QByteArray("MT"));
         S_EQUAL(Chromosome("MT").strNormalized(false), QByteArray("MT"));
 
 		S_EQUAL(Chromosome("1").strNormalized(true),  QByteArray("chr1"));
 		S_EQUAL(Chromosome("chr1").strNormalized(true), QByteArray("chr1"));
 		S_EQUAL(Chromosome("CHRX").strNormalized(true), QByteArray("chrX"));
 		S_EQUAL(Chromosome("chrY").strNormalized(true), QByteArray("chrY"));
-		S_EQUAL(Chromosome("M").strNormalized(true), QByteArray("chrM"));
+		S_EQUAL(Chromosome("M").strNormalized(true), QByteArray("chrMT"));
         S_EQUAL(Chromosome("MT").strNormalized(true), QByteArray("chrMT"));
 	}
 
