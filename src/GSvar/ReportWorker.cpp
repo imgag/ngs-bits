@@ -310,6 +310,8 @@ void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file
 	stream << "</table>";
 	stream << "<p>CCDS " << ext_string << "gesamt: " << bases_overall << endl;
 	stream << "<br />CCDS " << ext_string << "sequenziert: " << bases_sequenced << " (" << QString::number(100.0 * bases_sequenced / bases_overall, 'f', 2)<< "%)" << endl;
+	long long gaps = bases_overall - bases_sequenced;
+	stream << "<br />CCDS " << ext_string << "Regionen mit Tiefe &lt;" << min_cov << ": " << gaps << " (" << QString::number(100.0 * gaps / bases_overall, 'f', 2)<< "%)" << endl;
 	stream << "</p>" << endl;
 
 	if (output!=nullptr) output->insert("ccds_sequenced", QString::number(bases_sequenced));

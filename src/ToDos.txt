@@ -8,6 +8,7 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
+*** Report: show completely covered genes for CCDS +-5
 *** Gap tool: show min coverage instead of average
 ** somatic report: add table of deleted/amplified genes below CNV table
 ** allow filtering affected for hom/compound at the same time
@@ -45,4 +46,4 @@ CnvHunter:
     - test effect of including different flanking regions
     - alternatively, test intra-sample normalization using the most similar exons on different chromosomes
  * test percentile normalization
- * test with anomalous reads; with multi-mapped reads; chunked data
+ * test with duplicate reads; with anomalous reads; with multi-mapped reads; chunked data
