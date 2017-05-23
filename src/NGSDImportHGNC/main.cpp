@@ -139,7 +139,7 @@ public:
 			//curate data
 			QByteArray id = parts[0].mid(5);
 			QByteArray symbol = parts[1].toUpper();
-			QByteArray chr = parts[10].replace('q', ' ').replace('p', ' ').replace("cen", " ").replace("mitochondria", "M").append(' ');
+			QByteArray chr = parts[10].replace('q', ' ').replace('p', ' ').replace("cen", " ").replace("mitochondria", "MT").append(' ');
 			chr = chr.left(chr.indexOf(' ')).trimmed();
 			if (!valid_chrs.contains(chr)) chr = "none";
 

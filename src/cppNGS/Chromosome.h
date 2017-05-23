@@ -86,11 +86,7 @@ class CPPNGSSHARED_EXPORT Chromosome
 		///Returns the normalized string representation (upper-case letters, 'chr' on demand only).
 		QByteArray strNormalized(bool prepend_chr) const
 		{
-			if (prepend_chr)
-			{
-				return "chr" + normalizedStringRepresentation();
-			}
-			return normalizedStringRepresentation();
+			return (prepend_chr ? "chr" : "") + normalizedStringRepresentation();
 		}
 
         //numeric representation (0=invalid, 1-1000=autosome, 1001=X, 1002=Y, 1003=M, 1004+=other non-numeric chromosomes)

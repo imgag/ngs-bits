@@ -229,7 +229,7 @@ QString LovdUploadFile::chromosomeToAccession(const Chromosome& chr)
 	else if (chr_str=="22") return "NC_000022.10";
 	else if (chr_str=="X") return "NC_000023.10";
 	else if (chr_str=="Y") return "NC_000024.9";
-	else if (chr_str=="M") return "NC_012920.1";
+	else if (chr_str=="MT") return "NC_012920.1";
 
 	THROW(ProgrammingException, "Unknown chromosome '" + chr_str + "' in LovdUploadFile::create(...) method!");
 }
