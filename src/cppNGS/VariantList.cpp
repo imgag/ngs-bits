@@ -685,10 +685,10 @@ void VariantList::loadFromVCFGZ(QString filename, ChromosomalIndex<BedFile>* roi
 		THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
 	}
 
-	char* buffer = new char[8192];
+	char* buffer = new char[65536];
 	while(!gzeof(file))
 	{
-		processVcfLine(header_fields, line_number, QByteArray(gzgets(file, buffer, 8192)), roi_idx);
+		processVcfLine(header_fields, line_number, QByteArray(gzgets(file, buffer, 65536)), roi_idx);
 	}
 	gzclose(file);
 	delete buffer;
