@@ -861,6 +861,19 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 		output.insert(QCValue("somatic transition/transversion ratio", "n/a (no variants or transversions)", "Somatic transition/transversion ratio of SNV variants.", "QC:2000043"));
 	}
 
+	BamReader reader;
+	reader.Open(tumor_bam.toStdString());
+	ChromosomeInfo chr(reader);
+	double target_size = chr.genomeSize(true);
+	if(!target_file.isEmpty())
+	{
+		BedFile bed_file;
+		bed_file.load(target_file);
+		target_size = bed_file.baseCount();
+	}
+	double mutation_rate = (double) (somatic_count * 1000000) / target_size;
+	output.insert(QCValue("somatic mutation rate", mutation_rate, "Somatic mutation rate [mutations/Mb] normalized for the target region.", "QC:2000052"));
+
 	if(skip_plots)	return output;
 
 	//plotting

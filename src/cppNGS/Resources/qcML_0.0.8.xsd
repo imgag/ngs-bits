@@ -328,7 +328,12 @@ Distributed under the Creative Commons license http://creativecommons.org/licens
 				<xsd:documentation>The name of the cvTerm describing the parameter</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="description" type="xsd:string">
+                <xsd:attribute name="uri" type="xsd:anyURI">
+                        <xsd:annotation>
+                                <xsd:documentation>The URI of the source CV.</xsd:documentation>
+                        </xsd:annotation>
+                </xsd:attribute>
+                <xsd:attribute name="description" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>Description of the parameter, containing information to allow the user interpreting the QC value.</xsd:documentation>
 			</xsd:annotation>

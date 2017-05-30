@@ -37,7 +37,6 @@ public:
 		addInfile("in", "Input bam file. Needs to be sorted by name.", false);
 		addOutfile("out", "Output bam file.", false);
 		//optional
-		addFlag("amplicon", "Amplicon mode: one read of a pair will be clipped randomly.");
 		addFlag("overlap_mismatch_mapq", "Set mapping quality of pair to 0 if mismatch is found in overlapping reads.");
 		addFlag("overlap_mismatch_remove", "Remove pair if mismatch is found in overlapping reads.");
 		addFlag("overlap_mismatch_baseq", "Reduce base quality if mismatch is found in overlapping reads.");

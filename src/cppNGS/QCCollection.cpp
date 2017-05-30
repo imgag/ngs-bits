@@ -217,7 +217,7 @@ void QCCollection::storeToQCML(QString filename, const QStringList& source_files
 	}
 	foreach(const QString& lf, linked_files)
 	{
-		stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"linked file\" value=\"" << lf << "\" cvRef=\"QC\" accession=\"QC:1000006\" />" << endl;
+		stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"linked file\" value=\"" << QFileInfo(lf).fileName() << "\" uri=\"" << lf << "\" cvRef=\"QC\" accession=\"QC:1000006\" />" << endl;
 		++idx;
 	}
 
@@ -272,7 +272,7 @@ void QCCollection::storeToQCML(QString filename, const QStringList& source_files
 	stream << "                          <td><span title=\"{@description}\"><xsl:value-of select=\"@name\"/></span></td>" << endl;
 	stream << "                          <td>" << endl;
 	stream << "                            <xsl:choose>" << endl;
-	stream << "                              <xsl:when test=\"@accession = 'QC:1000006'\"><a href=\"{@value}\" target=\"blank\"><xsl:value-of select=\"@value\"/></a></xsl:when>" << endl;
+	stream << "                              <xsl:when test=\"@accession = 'QC:1000006'\"><a href=\"{@uri}\" title=\"{@uri}\" target=\"blank\"><xsl:value-of select=\"@value\"/></a></xsl:when>" << endl;
 	stream << "                              <xsl:otherwise><xsl:value-of select=\"@value\"/></xsl:otherwise>" << endl;
 	stream << "                            </xsl:choose>" << endl;
 	stream << "                          </td>" << endl;
