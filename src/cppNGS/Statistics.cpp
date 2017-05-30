@@ -872,7 +872,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 		target_size = bed_file.baseCount();
 	}
 	double mutation_rate = (double) (somatic_count * 1000000) / target_size;
-	output.insert(QCValue("somatic mutation rate", mutation_rate, "Somatic mutation rate [mutations/Mb] normalized for the target region.", "QC:2000052"));
+	output.insert(QCValue("somatic mutation rate", mutation_rate, "Somatic mutation rate [mutations/Mb] normalized for the target region.", "QC:2000053"));
 
 	if(skip_plots)	return output;
 
