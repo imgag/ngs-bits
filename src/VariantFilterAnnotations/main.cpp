@@ -19,8 +19,8 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Filter a variant list based on variant annotations.");
-		addInfile("in", "Input variant list.", false);
+		setDescription("Filter a variant list in GSvar format based on variant annotations.");
+		addInfile("in", "Input variant list in GSvar format.", false);
 		addOutfile("out", "Output variant list. If unset, writes to STDOUT.", false);
 		//optional
 		addFloat("max_af", "Maximum allele frequency in public databases. '0.01' means 1% allele frequency!", true, -1.0);
@@ -29,8 +29,8 @@ public:
 		addFlag("max_ihdb_ignore_genotype", "If set, variant genotype is ignored. Otherwise, only homozygous database entries are counted for homozygous variants, and all entries are count for heterozygous variants.");
 		addInt("min_class", "Minimum classification of *classified* variants.", true, -1);
 		addString("filters", "Comma-separated list of filter column entries to remove.", true, "");
-		addFlag("comphet", "If set, only hompound-heterozygous variants pass of the *heterozygous* variants. Performed after all other filters!");
-		addString("genotype", "If set, only variants with that genotype pass. Performed after all other filters!", true, "");
+		addFlag("comphet", "If set, only hompound-heterozygous variants pass. Performed after all other filters!");
+		addString("genotype", "If set, only variants with the specified genotype pass. Performed after all other filters!", true, "");
 
 		changeLog(2016, 6, 11, "Initial commit.");
 	}
