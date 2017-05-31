@@ -1,10 +1,10 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (0.1-568-ga0c0b35)
+	VariantFilterAnnotations (0.1-699-g594d5da)
 	
-	Filter a variant list based on variant annotations.
+	Filter a variant list in GSvar format based on variant annotations.
 	
 	Mandatory parameters:
-	  -in <file>                 Input variant list.
+	  -in <file>                 Input variant list in GSvar format.
 	  -out <file>                Output variant list. If unset, writes to STDOUT.
 	
 	Optional parameters:
@@ -20,9 +20,9 @@
 	                             Default value: '-1'
 	  -filters <string>          Comma-separated list of filter column entries to remove.
 	                             Default value: ''
-	  -comphet                   If set, only hompound-heterozygous variants pass of the *heterozygous* variants. Performed after all other filters!
+	  -comphet                   If set, only hompound-heterozygous variants pass. Performed after all other filters!
 	                             Default value: 'false'
-	  -genotype <string>         If set, only variants with that genotype pass. Performed after all other filters!
+	  -genotype <string>         If set, only variants with the specified genotype pass. Performed after all other filters!
 	                             Default value: ''
 	
 	Special parameters:
@@ -32,7 +32,7 @@
 	  --tdx                      Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 0.1-568-ga0c0b35
+	VariantFilterAnnotations 0.1-699-g594d5da
 	
 	2016-06-11 Initial commit.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

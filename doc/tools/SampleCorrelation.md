@@ -1,5 +1,5 @@
 ### SampleCorrelation tool help
-	SampleCorrelation (0.1-420-g3536bb0)
+	SampleCorrelation (0.1-699-g594d5da)
 	
 	Calculates the variant overlap and correlation of two variant lists.
 	
@@ -14,9 +14,9 @@
 	                  Default value: 'false'
 	  -window <int>   Window to consider around indel positions to compensate for differing alignments (TSV input).
 	                  Default value: '100'
-	  -min_cov <int>  Minimum coverage to consider a SNP for the analysis. (BAM input)
+	  -min_cov <int>  Minimum coverage to consider a SNP for the analysis (BAM input).
 	                  Default value: '30'
-	  -max_snps <int> The maximum number of high-coverage SNPs to analyze. 0 means unlimited. (BAM input)
+	  -max_snps <int> The maximum number of high-coverage SNPs to analyze. 0 means unlimited (BAM input).
 	                  Default value: '500'
 	
 	Special parameters:
@@ -26,6 +26,6 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SampleCorrelation changelog
-	SampleCorrelation 0.1-420-g3536bb0
+	SampleCorrelation 0.1-699-g594d5da
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
