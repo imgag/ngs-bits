@@ -31,9 +31,11 @@ private slots:
         S_EQUAL(stats[4].accession(), QString("QC:2000042"));
         S_EQUAL(stats[4].toString(), QString("50.00"));
         S_EQUAL(stats[5].name(), QString("somatic transition/transversion ratio"));
-        S_EQUAL(stats[5].accession(), QString("QC:2000043"));
-        S_EQUAL(stats[5].toString(), QString("n/a (no variants or transversions)"));
-		I_EQUAL(stats.count(), 6);
+		S_EQUAL(stats[5].accession(), QString("QC:2000043"));
+		S_EQUAL(stats[5].toString(), QString("n/a (no variants or transversions)"));
+		S_EQUAL(stats[6].accession(), QString("QC:2000053"));
+		S_EQUAL(stats[6].toString(), QString("0.00"));
+		I_EQUAL(stats.count(), 7);
 
 		//check that there is a description for each term
 		for (int i=0; i<stats.count(); ++i)
