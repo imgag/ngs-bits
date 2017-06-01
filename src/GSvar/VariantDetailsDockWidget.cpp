@@ -104,6 +104,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->tg, vl, index, "1000g");
 	setAnnotation(ui->exac, vl, index, "ExAC");
 	setAnnotation(ui->exac_hom, vl, index, "ExAC_hom");
+	setAnnotation(ui->exac_sub, vl, index, "ExAC_sub");
 	setAnnotation(ui->kaviar, vl, index, "Kaviar");
 
 	//pathogenity predictions

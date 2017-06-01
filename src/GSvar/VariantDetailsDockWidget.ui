@@ -614,6 +614,9 @@
         </item>
         <item row="4" column="0">
          <widget class="QLabel" name="label_4711">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Homozygous sample counts from ExAC in the order ALL,NFE,AFR&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
           <property name="text">
            <string>ExAC (hom):</string>
           </property>
@@ -621,6 +624,23 @@
         </item>
         <item row="4" column="1">
          <widget class="QLabel" name="exac_hom">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="label_14">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Subpopulation allele frequencies from ExAC in the order AFR,AMR,EAS,NFE,SAS&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>ExAC (sub):</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="QLabel" name="exac_sub">
           <property name="text">
            <string/>
           </property>
