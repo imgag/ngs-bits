@@ -311,7 +311,7 @@ void MainWindow::openInIGV(QString region)
 		{
 			QStringList files_to_load = dlg.filesToLoad();
 			init_commands.append("new");
-			init_commands.append("genome hg19");
+			init_commands.append("genome 1kg_v37");
 
 			//load non-BAM files
 			foreach(QString file, files_to_load)

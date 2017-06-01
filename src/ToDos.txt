@@ -16,7 +16,9 @@ GSvar:
 * preferred transscript bold in Alamut menu
 * update MULTISAMPLE/TRIO/SOMATIC variant lists => use ANALYSISTYPE header in getType()
 * multi-sample anaysis: allow relaxing affected/control genotype filters by requiring only X out of Y
-- Gap tool: show min coverage instead of average
+- Gap tool:
+  - show min coverage instead of average
+  - allow filtering by gene name
 - Target region filter: reset to none if it looses focus in search mode
 *** ClinVar/LOVD upload for variant:
   - implement dialog where user can double-check the data before upload
@@ -40,6 +42,7 @@ CnvHunter:
    - https://decipher.sanger.ac.uk/disorders#syndromes/overview
    - http://www.ncbi.nlm.nih.gov/dbvar
    - ExAC
+ * test if re-normalization without CNV regions improves z-score distribution and thus CNV calling results
  * look at properties of bad regions (HLA, common CNVs, GC content, size, centromer, pseudo-autosomal region, ...)
    - PAR: http://blog.kokocinski.net/index.php/par-regions?blog=2
    - TEL/CENT: http://blog.kokocinski.net/index.php/telomeric-and-centromeric-regions?blog=2
