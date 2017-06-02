@@ -434,13 +434,32 @@ private slots:
 		S_EQUAL(bed_file[0].annotations()[0], QString("105.12"));
 	}
 
-	void avgCoverage_panel()
+	void avgCoverage_panel_mode()
 	{
 		BedFile bed_file;
 		bed_file.load(TESTDATA("data_in/close_exons.bed"));
 		bed_file.merge();
 
-		Statistics::avgCoverage(bed_file, TESTDATA("data_in/close_exons.bam"), 20, true);
+		Statistics::avgCoverage(bed_file, TESTDATA("data_in/close_exons.bam"), 20, false, true);
+
+		I_EQUAL(bed_file.count(), 2);
+		X_EQUAL(bed_file[0].chr(), Chromosome("chr1"));
+		I_EQUAL(bed_file[0].start(), 45798425);
+		I_EQUAL(bed_file[0].end(), 45798516);
+		S_EQUAL(bed_file[0].annotations()[0], QString("475.80"));
+		X_EQUAL(bed_file[1].chr(), Chromosome("chr1"));
+		I_EQUAL(bed_file[1].start(), 45798580);
+		I_EQUAL(bed_file[1].end(), 45798641);
+		S_EQUAL(bed_file[1].annotations()[0], QString("324.90"));
+	}
+
+	void avgCoverage_with_duplicates()
+	{
+		BedFile bed_file;
+		bed_file.load(TESTDATA("data_in/close_exons.bed"));
+		bed_file.merge();
+
+		Statistics::avgCoverage(bed_file, TESTDATA("data_in/close_exons.bam"), 20, true, true);
 
 		I_EQUAL(bed_file.count(), 2);
 		X_EQUAL(bed_file[0].chr(), Chromosome("chr1"));

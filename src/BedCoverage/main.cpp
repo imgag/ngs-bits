@@ -18,11 +18,14 @@ public:
 	{
 		setDescription("Extracts the average coverage for input regions from one or several BAM file(s).");
 		addInfileList("bam", "Input BAM file(s).", false);
-		addInt("min_mapq", "Minimum mapping quality.", true, 1);
 		//optional
+		addInt("min_mapq", "Minimum mapping quality.", true, 1);
+		addFlag("dup", "Include reads marked as duplicates.");
 		addInfile("in", "Input BED file (note that overlapping regions will be merged before processing). If unset, reads from STDIN.", true);
 		addEnum("mode", "Mode to optimize run time. Use 'panel' mode if only a small part of the data in the BAM file is accessed, e.g. a sub-panel of an exome.", true, QStringList() << "default" << "panel", "default");
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
+
+		changeLog(2017,  6,  2, "Added 'dup' parameter.");
 	}
 
 	virtual void main()
@@ -37,7 +40,7 @@ public:
 		QStringList bams = getInfileList("bam");
 		foreach(QString bam, bams)
 		{
-			Statistics::avgCoverage(file, bam, getInt("min_mapq"), getEnum("mode")=="panel");
+			Statistics::avgCoverage(file, bam, getInt("min_mapq"), getFlag("dup"), getEnum("mode")=="panel");
 			header += "\t" + QFileInfo(bam).baseName();
 		}
 

@@ -41,7 +41,7 @@ void GapDialog::process(QString bam_file, const BedFile& roi, const GeneSet& gen
 	ui->percentage->setText("Percentage of target region with depth&lt;" + QString::number(cutoff) + ": " + gap_perc + "%");
 
 	//calculate average coverage for gaps
-	Statistics::avgCoverage(low_cov, bam_file, 1, true);
+	Statistics::avgCoverage(low_cov, bam_file, 1, false, true);
 
 	//show gaps
 	ui->gaps->setRowCount(low_cov.count());

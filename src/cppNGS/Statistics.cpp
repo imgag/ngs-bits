@@ -1433,7 +1433,7 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
     return output;
 }
 
-void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq, bool panel_mode)
+void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq, bool include_duplicates, bool panel_mode)
 {
     //check target region is merged/sorted and create index
     if (!bed_file.isMergedAndSorted())
@@ -1465,7 +1465,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 			BamAlignment al;
 			while (reader.GetNextAlignmentCore(al))
 			{
-				if (al.IsDuplicate()) continue;
+				if (!include_duplicates && al.IsDuplicate()) continue;
 				if (!al.IsPrimaryAlignment()) continue;
 				if (!al.IsMapped() || al.MapQuality<min_mapq) continue;
 

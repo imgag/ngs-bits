@@ -42,12 +42,11 @@ CnvHunter:
    - https://decipher.sanger.ac.uk/disorders#syndromes/overview
    - http://www.ncbi.nlm.nih.gov/dbvar
    - ExAC
- * test if re-normalization without CNV regions improves z-score distribution and thus CNV calling results
- * look at properties of bad regions (HLA, common CNVs, GC content, size, centromer, pseudo-autosomal region, ...)
+* test if re-normalization without CNV regions improves z-score distribution and thus CNV calling results
+* look at properties of bad regions (HLA, common CNVs, GC content, size, centromer, pseudo-autosomal region, ...)
    - PAR: http://blog.kokocinski.net/index.php/par-regions?blog=2
    - TEL/CENT: http://blog.kokocinski.net/index.php/telomeric-and-centromeric-regions?blog=2
- * test GC-normalization (check e.g. GS151166_01 gene C5orf42)
+* test GC-normalization (check e.g. GS151166_01 gene C5orf42)
     - test effect of including different flanking regions
     - alternatively, test intra-sample normalization using the most similar exons on different chromosomes
- * test percentile normalization
- * test with duplicate reads; with anomalous reads; with multi-mapped reads; chunked data
+* test with duplicate reads; with anomalous reads; with multi-mapped reads; chunked data
