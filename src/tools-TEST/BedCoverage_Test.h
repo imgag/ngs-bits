@@ -13,7 +13,7 @@ private slots:
 
 	void with_duplicates()
 	{
-		EXECUTE("BedCoverage", "-in " + TESTDATA("../cppNGS-TEST/data_in/panel.bed") + " -dup -bam " + TESTDATA("../cppNGS-TEST/data_in/panel.bam") + " -out out/BedCoverage_test02_out.tsv");
+		EXECUTE("BedCoverage", "-in " + TESTDATA("data_in/BedCoverage_in2.bed") + " -dup -bam " + TESTDATA("data_in/BedCoverage_in2.bam") + " -out out/BedCoverage_test02_out.tsv");
 		COMPARE_FILES("out/BedCoverage_test02_out.tsv", TESTDATA("data_out/BedCoverage_test02_out.tsv"));
 	}
 

@@ -1490,7 +1490,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 		BamAlignment al;
 		while (reader.GetNextAlignmentCore(al))
 		{
-			if (al.IsDuplicate()) continue;
+			if (!include_duplicates && al.IsDuplicate()) continue;
 			if (!al.IsPrimaryAlignment()) continue;
 			if (!al.IsMapped() || al.MapQuality<min_mapq) continue;
 
