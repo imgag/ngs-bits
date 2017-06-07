@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>278</width>
-    <height>460</height>
+    <height>471</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -136,34 +136,6 @@
      <property name="spacing">
       <number>3</number>
      </property>
-     <item row="6" column="0">
-      <widget class="QLabel" name="label_18">
-       <property name="text">
-        <string>Quality:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="QLabel" name="qc_reads">
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_12">
-       <property name="text">
-        <string>Reads:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="1">
-      <widget class="QLabel" name="qc_perc_20x">
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
      <item row="3" column="0">
       <widget class="QLabel" name="label_16">
        <property name="text">
@@ -171,8 +143,8 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="1">
-      <widget class="QLabel" name="qc_avg_depth">
+     <item row="3" column="1">
+      <widget class="QLabel" name="qc_perc_20x">
        <property name="text">
         <string/>
        </property>
@@ -185,10 +157,48 @@
        </property>
       </widget>
      </item>
-     <item row="4" column="0">
-      <widget class="QLabel" name="label_13">
+     <item row="7" column="1">
+      <widget class="QLabel" name="qc_quality">
        <property name="text">
-        <string>Avg. insert size:</string>
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="0">
+      <widget class="QLabel" name="label_18">
+       <property name="text">
+        <string>Quality:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="1">
+      <widget class="QLabel" name="qc_kasp">
+       <property name="toolTip">
+        <string>Sample swap probability</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_12">
+       <property name="text">
+        <string>Reads:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLabel" name="qc_reads">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="0">
+      <widget class="QLabel" name="label_14">
+       <property name="text">
+        <string>KASP result:</string>
        </property>
       </widget>
      </item>
@@ -199,44 +209,14 @@
        </property>
       </widget>
      </item>
-     <item row="9" column="1">
-      <spacer name="horizontalSpacer_2">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>5</width>
-         <height>5</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item row="5" column="0">
-      <widget class="QLabel" name="label_14">
+     <item row="4" column="0">
+      <widget class="QLabel" name="label_13">
        <property name="text">
-        <string>KASP result:</string>
+        <string>Avg. insert size:</string>
        </property>
       </widget>
      </item>
-     <item row="5" column="1">
-      <widget class="QLabel" name="qc_kasp">
-       <property name="toolTip">
-        <string>Sample swap probability</string>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-     <item row="6" column="1">
-      <widget class="QLabel" name="qc_quality">
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="0" colspan="2">
+     <item row="9" column="0" colspan="2">
       <layout class="QHBoxLayout" name="horizontalLayout">
        <property name="spacing">
         <number>3</number>
@@ -262,6 +242,43 @@
         </spacer>
        </item>
       </layout>
+     </item>
+     <item row="10" column="1">
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>5</width>
+         <height>5</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLabel" name="qc_avg_depth">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="label_21">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Average deviation of SNP allele frequencies from expected values (0.0, 0.5, 1.0).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="text">
+        <string>AF deviation:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="QLabel" name="qc_af_dev">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>

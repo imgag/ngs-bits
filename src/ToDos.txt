@@ -2,40 +2,36 @@
 
 libs:
 - VariantList:
-    * determine file format from file header instead of file name => make more tools pipeable (MS)
+    - determine file format from file header instead of file name => make more tools pipeable (MS)
     - use QSharedPointers to link VariantAnnotationHeaders with VariantAnnotationDescriptions (CS)
     - check vcf and tsv files if valid - columns and their descriptions (CS)
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-*** Variant info: Add QC term for contamintation detection
 *** Filter: Add OMIM-only filter for variants / CNVs
 *** Report: show completely covered genes for CCDS +-5
 ** somatic report: add table of deleted/amplified genes below CNV table
 ** allow filtering affected for hom/compound at the same time
 ** allow filtering controls !hom
-* multi-sample anaysis: allow relaxing affected/control genotype filters by requiring only X out of Y
-- Gap tool:
-  - show min coverage instead of average
-  - allow filtering by gene name
+- multi-sample anaysis: allow relaxing affected/control genotype filters by requiring only X out of Y
+* Gap tool: allow filtering by gene name
 - Target region filter: reset to none if it looses focus in search mode
-*** ClinVar/LOVD upload for variant:
+** ClinVar/LOVD upload for variant:
   - implement dialog where user can double-check the data before upload
   - implement print-out of upload data for patient file
 
 Tools:
 ** NGSDImportGeneInfo: add (optional) import of inheritance mode from OMIM (use force flag)
-- MappingQC: support RNA spike-in controls, mapping ribosomes/globulines, etc.
 - SomaticQC: do not use precalculated triplet counts, count every time (CS)
 - BamClipOverlap: require sorted bam and paired-end sequencing (CS)
 - VariantAnnotateStrand:
-    - add column prefix
-    - extend test for indels
-    - refactor and combine indel and snv handling
+    - add column prefix (CS)
+    - extend test for indels (CS)
+    - refactor and combine indel and snv handling (CS)
 
 CnvHunter:
-** calculate stddev from z-scores and show median
-** annotate exons/variants with count of events per exon
+*** calculate stddev from z-scores and show median
+*** annotate exons/variants with count of events per exon
 ** integrate CNV databases:
    - http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/
    - https://decipher.sanger.ac.uk/disorders#syndromes/overview

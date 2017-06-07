@@ -163,7 +163,9 @@ void SampleInformationDialog::refresh()
 
 		statisticsLabel(db, ui_.qc_avg_depth, "QC:2000025", qc);
 		statisticsLabel(db, ui_.qc_perc_20x, "QC:2000027", qc);
-		statisticsLabel(db, ui_.qc_insert_size,"QC:2000023", qc );
+		statisticsLabel(db, ui_.qc_insert_size,"QC:2000023", qc);
+		statisticsLabel(db, ui_.qc_af_dev,"QC:2000051", qc, 4);
+
 		ui_.qc_kasp->setText(qc.value("kasp").asString());
 		ui_.qc_quality->setText(db.getProcessedSampleQuality(filename_, true));
 	}
@@ -203,7 +205,7 @@ void SampleInformationDialog::refresh()
 }
 
 
-void SampleInformationDialog::statisticsLabel(NGSD& db, QLabel* label, QString accession, const QCCollection& qc)
+void SampleInformationDialog::statisticsLabel(NGSD& db, QLabel* label, QString accession, const QCCollection& qc, int decimal_places)
 {
 	try
 	{
@@ -216,7 +218,7 @@ void SampleInformationDialog::statisticsLabel(NGSD& db, QLabel* label, QString a
 		std::sort(values.begin(), values.end());
 		double median = BasicStatistics::median(values, false);
 		double mad = 1.428 * BasicStatistics::mad(values, median);
-		label->setToolTip("mean: " + QString::number(median, 'f', 2) + "<br>stdev: " + QString::number(mad, 'f', 2));
+		label->setToolTip("mean: " + QString::number(median, 'f', decimal_places) + "<br>stdev: " + QString::number(mad, 'f', decimal_places));
 
 		//mark QC value red if it is an outlier
 		bool ok = false;

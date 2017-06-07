@@ -31,7 +31,7 @@ private:
 	void refresh();
 
 	///Formats a statistics label (outliers are colored red).
-	void statisticsLabel(NGSD& db, QLabel* label, QString accession, const QCCollection& qc);
+	void statisticsLabel(NGSD& db, QLabel* label, QString accession, const QCCollection& qc, int decimal_places = 2);
 
 	Ui::SampleInformationDialog ui_;
 	QString filename_;
