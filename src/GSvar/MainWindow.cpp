@@ -554,7 +554,7 @@ void MainWindow::on_actionReport_triggered()
 	{
 		generateReportSomatic();
 	}
-	else if (type==GERMLINE_SINGLE)
+	else if (type==GERMLINE_SINGLESAMPLE)
 	{
             generateReport();
 	}
@@ -1870,7 +1870,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 		sub_menu = menu.addMenu(QIcon("://Icons/Alamut.png"), "Alamut");
 
 		//BAM
-		if (getType()==GERMLINE_SINGLE)
+		if (getType()==GERMLINE_SINGLESAMPLE)
 		{
 			sub_menu->addAction("BAM");
 		}
@@ -2165,23 +2165,22 @@ QMap<QString, QString> MainWindow::getBamFiles()
 
 MainWindow::VariantListType MainWindow::getType()
 {
-	if (variants_.filters().contains("trio_denovo"))
+	foreach(QString line, variants_.comments())
 	{
-		return GERMLINE_TRIO;
+		line = line.trimmed();
+		if (line.startsWith("##ANALYSISTYPE="))
+		{
+			QString type = line.mid(15);
+			if (type=="GERMLINE_SINGLESAMPLE") return GERMLINE_SINGLESAMPLE;
+			else if (type=="GERMLINE_TRIO") return GERMLINE_TRIO;
+			else if (type=="GERMLINE_MULTISAMPLE") return GERMLINE_MULTISAMPLE;
+			else if (type=="SOMATIC_SINGLESAMPLE") return SOMATIC_SINGLESAMPLE;
+			else if (type=="SOMATIC_PAIR") return SOMATIC_PAIR;
+			else THROW(FileParseException, "Invalid analysis type '" + type + "' in GSvar file!");
+		}
 	}
 
-	if (variants_.annotationIndexByName("tumor_af", true, false)!=-1 && variants_.annotationIndexByName("normal_af", true, false)!=-1)
-	{
-		return SOMATIC_PAIR;
-	}
-
-	QMap<QString, SampleInfo> data = getSampleHeader();
-	if (data.count()>=2)
-	{
-		return GERMLINE_MULTI;
-	}
-
-	return GERMLINE_SINGLE;
+	return GERMLINE_SINGLESAMPLE; //fallback for old files without ANALYSISTYPE header
 }
 
 void MainWindow::filtersChanged()
