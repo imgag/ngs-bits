@@ -217,7 +217,7 @@ private:
 	QString last_roi_filename_;
 	BedFile last_roi_;
 	QString last_report_path_;
-	QMap<QString, QString> preferred_transcripts_;
+	QMap<QString, QStringList> preferred_transcripts_;
 	QList<QSharedPointer<QDialog>> modeless_dialogs_;
 
 	//SPECIAL

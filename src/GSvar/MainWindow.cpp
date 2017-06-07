@@ -1362,7 +1362,7 @@ void MainWindow::on_actionShowTranscripts_triggered()
 	QString text = "<pre>";
 	for (auto it=preferred_transcripts_.cbegin(); it!=preferred_transcripts_.cend(); ++it)
 	{
-		text += it.key() + "\t" + it.value() + "\n";
+		text += it.key() + "\t" + it.value().join(", ") + "\n";
 	}
 	text += "</pre>";
 	QTextEdit* edit = new QTextEdit(text);
@@ -1372,27 +1372,52 @@ void MainWindow::on_actionShowTranscripts_triggered()
 void MainWindow::on_actionImportTranscripts_triggered()
 {
 	//check if gene list file is set
-	QString gene_list = Settings::string("preferred_transcripts_file").trimmed();
-	if (gene_list.isEmpty())
-	{
-		GUIHelper::showMessage("Preferred transcripts import", "Preferred transcripts list not defined in 'GSvar.ini' file (key 'preferred_transcripts_file')!");
-		return;
-	}
+	QString filename = QFileDialog::getOpenFileName(this, "Import preferred transcript file", "" , "TSV files (*.tsv);;All files (*.*)");
+	if (filename=="") return;
 
 	//parse file
-	QMap<QString, QVariant> preferred_transcripts;
-	QStringList file = Helper::loadTextFile(gene_list);
+	QMap<QString, QStringList> preferred_transcripts;
+	QStringList file = Helper::loadTextFile(filename);
 	foreach(QString line, file)
 	{
+		line = line.trimmed();
+		if (line.isEmpty() || line.startsWith("#")) continue;
+
 		QStringList parts = line.trimmed().split('\t');
-		if (parts.count()<3) continue;
+		if (parts.count()!=2)
+		{
+			QMessageBox::warning(this, "Invalid preferred transcript line", "Found line that does not contain two tab-separated colmnns:\n" + line + "\n\nAborting!");
+			return;
+		}
 
-		//remove version number NM_000543.3 => NM_000543.
-		QString transcript = parts[2].left(parts[2].lastIndexOf('.')) + ".";
+		//check gene
+		QString gene = parts[0].trimmed();
+		NGSD db;
+		int gene_id = db.geneToApprovedID(gene);
+		if(gene_id==-1)
+		{
+			QMessageBox::warning(this, "Invalid preferred transcript line", "Gene name '" + gene + "' is not a HGNC-approved name!\n\nAborting!");
+			return;
+		}
+		gene = db.geneSymbol(gene_id);
 
-		preferred_transcripts.insert(parts[0], transcript);
+		//remove version number if present (NM_000543.3 => NM_000543.)
+		QString transcript = parts[1].trimmed();
+		if (transcript.contains("."))
+		{
+			transcript = transcript.left(transcript.lastIndexOf('.'));
+		}
+
+		preferred_transcripts[gene].append(transcript);
 	}
-	Settings::setMap("preferred_transcripts", preferred_transcripts);
+
+	//store in INI file
+	QMap<QString, QVariant> tmp;
+	for(auto it=preferred_transcripts.cbegin(); it!=preferred_transcripts.cend(); ++it)
+	{
+		tmp.insert(it.key(), it.value());
+	}
+	Settings::setMap("preferred_transcripts", tmp);
 
 	//update in-memory copy of preferred transcripts
 	updatePreferredTranscripts();
@@ -1885,7 +1910,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 		}
 		sub_menu->addSeparator();
 
-		//transcript variants
+		//transcripts
 		int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, true);
 		QList<QByteArray> transcripts = variant.annotations()[i_co_sp].split(',');
 		foreach(QByteArray transcript, transcripts)
@@ -1898,7 +1923,15 @@ void MainWindow::varsContextMenu(QPoint pos)
 				QString cdna_change = parts[5].trimmed();
 				if  (trans_id!="" && cdna_change!="")
 				{
-					sub_menu->addAction(trans_id + ":" + cdna_change + " (" + gene + ")");
+					QAction* action = sub_menu->addAction(trans_id + ":" + cdna_change + " (" + gene + ")");
+
+					//highlight preferred transcripts
+					if (preferred_transcripts_.value(gene).contains(trans_id))
+					{
+						QFont font = action->font();
+						font.setBold(true);
+						action->setFont(font);
+					}
 				}
 			}
 		}
@@ -2452,7 +2485,7 @@ void MainWindow::updatePreferredTranscripts()
 	QMap<QString, QVariant> tmp = Settings::map("preferred_transcripts");
 	for(auto it=tmp.cbegin(); it!=tmp.cend(); ++it)
 	{
-		preferred_transcripts_.insert(it.key(), it.value().toString());
+		preferred_transcripts_[it.key()] = it.value().toStringList();
 	}
 
 	//update variant details widget

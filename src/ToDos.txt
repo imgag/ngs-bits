@@ -14,7 +14,6 @@ GSvar:
 ** somatic report: add table of deleted/amplified genes below CNV table
 ** allow filtering affected for hom/compound at the same time
 ** allow filtering controls !hom
-* preferred transscript bold in Alamut menu
 * multi-sample anaysis: allow relaxing affected/control genotype filters by requiring only X out of Y
 - Gap tool:
   - show min coverage instead of average

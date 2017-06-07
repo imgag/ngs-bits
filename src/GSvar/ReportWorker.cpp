@@ -20,7 +20,7 @@
 #include <QDesktopServices>
 #include <QApplication>
 
-ReportWorker::ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QList<int>& variants_selected, QMap<QString, QString> preferred_transcripts, QString outcome, QString file_roi, QString file_bam, int min_cov, QStringList log_files, QString file_rep, bool calculate_depth)
+ReportWorker::ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QList<int>& variants_selected, QMap<QString, QStringList> preferred_transcripts, QString outcome, QString file_roi, QString file_bam, int min_cov, QStringList log_files, QString file_rep, bool calculate_depth)
 	: WorkerBase("Report generation")
 	, sample_name_(sample_name)
 	, filters_(filters)
@@ -97,6 +97,9 @@ QString ReportWorker::filterToGermanText(QString name, QString value)
 
 QString ReportWorker::formatCodingSplicing(QByteArray text)
 {
+	QList<QByteArray> out_all;
+	QList<QByteArray> out_pt;
+
 	QList<QByteArray> transcripts = text.split(',');
 	for (int i=0; i<transcripts.count(); ++i)
 	{
@@ -107,13 +110,19 @@ QString ReportWorker::formatCodingSplicing(QByteArray text)
 		QByteArray trans = parts[1].trimmed();
 		QByteArray output = gene + ":" + trans + ":" + parts[5].trimmed() + ":" + parts[6].trimmed();
 
-		//return only preferred transcript if we know it
-		QString pt = preferred_transcripts_.value(gene, "");
-		if (pt!="" && QString(trans).startsWith(pt)) return output;
-
-		transcripts[i] = output;
+		if (preferred_transcripts_.value(gene).contains(trans))
+		{
+			out_pt.append(output);
+		}
+		out_all.append(output);
 	}
-	return transcripts.join(", ");
+
+	//return only preferred transcripts if present
+	if (out_pt.count()>0)
+	{
+		return out_pt.join(", ");
+	}
+	return out_all.join(", ");
 }
 
 QString ReportWorker::inheritance(QString gene_info, bool color)

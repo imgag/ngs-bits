@@ -20,7 +20,7 @@ public:
 	~VariantDetailsDockWidget();
 
 	//Sets preferred transcripts
-	void setPreferredTranscripts(QMap<QString, QString> data);
+	void setPreferredTranscripts(QMap<QString, QStringList> data);
 
 	//Updates the widget to a new variant.
 	void updateVariant(const VariantList& vl, int index);
@@ -76,7 +76,7 @@ private:
 	//GUI
 	Ui::VariantDetailsDockWidget *ui;
 	//Preferred transcript list per gene
-	QMap<QString, QString> preferred_transcripts;
+	QMap<QString, QStringList> preferred_transcripts;
 	//Flag that caches if NGSD-support is enabled (from settings)
 	bool ngsd_enabled;
 };
