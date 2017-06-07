@@ -423,7 +423,7 @@ void VariantDetailsDockWidget::setTranscript(int index)
 	trans_curr = index;
 
 	//set transcript label
-	QString text = trans_data[trans_curr][0] + " " + trans_data[trans_curr][1];
+	QString text = trans_data[trans_curr][0] + " " + formatLink(trans_data[trans_curr][1], "http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?t=" + trans_data[trans_curr][1]);
 	if (trans_data.count()>1)
 	{
 		text += " (" + QString::number(trans_curr+1) + "/" + QString::number(trans_data.count()) + ")";
