@@ -8,12 +8,11 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-*** Report: show completely covered genes for CCDS +-5
+*** Gap tool: allow filtering by gene name
 *** Filter: Add OMIM-only filter for variants / CNVs
 ** allow filtering affected for hom/compound at the same time
 ** allow filtering controls !hom
 - multi-sample anaysis: allow relaxing affected/control genotype filters by requiring only X out of Y
-* Gap tool: allow filtering by gene name
 - Target region filter: reset to none if it looses focus in search mode
 ** ClinVar/LOVD upload for variant:
   - implement dialog where user can double-check the data before upload

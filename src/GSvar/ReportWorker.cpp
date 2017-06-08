@@ -269,6 +269,7 @@ void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file
 	stream << "<p><b>Abdeckungsstatistik f&uuml;r CCDS " << ext_string << "</b></p>" << endl;
 	stream << "<table>";
 	stream << "<tr><td><b>Gen</b></td><td><b>Transcript</b></td><td><b>Gr&ouml;&szlig;e</b></td><td><b>L&uuml;cken</b></td><td><b>Chromosom</b></td><td><b>Koordinaten (hg19)</b></td></tr>";
+	QMap<QByteArray, int> gap_count;
 	long long bases_overall = 0;
 	long long bases_sequenced = 0;
 	foreach(const QString& gene, genes)
@@ -313,15 +314,37 @@ void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file
 			coords << QString::number(gaps[i].start()) + "-" + QString::number(gaps[i].end());
 		}
 		stream << "<tr><td>" + symbol + "</td><td>" << transcript.name() << "</td><td>" << bases_transcipt << "</td><td>" << bases_gaps << "</td><td>" << roi[0].chr().strNormalized(true) << "</td><td>" << coords.join(", ") << "</td></tr>";
+		gap_count[symbol] += bases_gaps;
 		bases_overall += bases_transcipt;
 		bases_sequenced += bases_transcipt - bases_gaps;
 	}
 	stream << "</table>";
+
+	//overall statistics
 	stream << "<p>CCDS " << ext_string << "gesamt: " << bases_overall << endl;
 	stream << "<br />CCDS " << ext_string << "sequenziert: " << bases_sequenced << " (" << QString::number(100.0 * bases_sequenced / bases_overall, 'f', 2)<< "%)" << endl;
 	long long gaps = bases_overall - bases_sequenced;
 	stream << "<br />CCDS " << ext_string << "Regionen mit Tiefe &lt;" << min_cov << ": " << gaps << " (" << QString::number(100.0 * gaps / bases_overall, 'f', 2)<< "%)" << endl;
 	stream << "</p>" << endl;
+
+	//gene statistics
+	QByteArrayList genes_complete;
+	QByteArrayList genes_incomplete;
+	for (auto it = gap_count.cbegin(); it!=gap_count.cend(); ++it)
+	{
+		if (it.value()==0)
+		{
+			genes_complete << it.key();
+		}
+		else
+		{
+			genes_incomplete << it.key() + " <span style=\"font-size: 80%;\">" + QByteArray::number(it.value()) + "</span> ";
+		}
+	}
+	stream << "<p>";
+	stream << "<br />Komplett abgedeckte Gene: " << genes_complete.join(", ") << endl;
+	stream << "<br />Fehlende Basen in nicht komplett abgedeckten Genen: " << genes_incomplete.join(", ") << endl;
+	stream << "</p>";
 
 	if (output!=nullptr) output->insert("ccds_sequenced", QString::number(bases_sequenced));
 }
@@ -588,7 +611,7 @@ void ReportWorker::writeHTML()
 
 		writeCoverageReportCCDS(stream, file_bam_, genes_, min_cov_, 0, db_, &roi_stats_);
 
-		writeCoverageReportCCDS(stream, file_bam_, genes_, min_cov_, 5, db_, &roi_stats_);
+		writeCoverageReportCCDS(stream, file_bam_, genes_, min_cov_, 5, db_);
 
 		//additionally store low-coverage BED file
 		low_cov.store(QString(file_rep_).replace(".html", "_lowcov.bed"));
