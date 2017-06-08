@@ -556,7 +556,7 @@ void MainWindow::on_actionReport_triggered()
 	}
 	else if (type==GERMLINE_SINGLESAMPLE)
 	{
-            generateReport();
+		generateReport();
 	}
 	else
 	{
@@ -656,23 +656,22 @@ void MainWindow::generateReportSomatic()
 	stream << "Position = chromosomale Position der Variante (hg19), Ref = Wildtyp-Allel, Obs = mutiertes Allel, AF / DF = Anteil der Variante an allen Reads (Allelfrequenz) / gesamte Sequenziertiefe, COSMIC = Catalogue of Somatic Mutations in Cancer, Details: Auswirkung der Variante auf cDNA- bzw. Proteinebene inkl. Transkript ID" << endl;
 	stream << "</p>" << endl;
 
-	//CNVs
+	//CNV table
 	BedFile roi = BedFile();
 	roi.load(roi_file);
 	ChromosomalIndex<BedFile> roi_idx(roi);
 	stream << "<p><b>CNVs:</b>" << endl;
 	stream << "<table>" << endl;
-	QString cnv_file = filename_;
-	cnv_file.replace(".GSvar", "_cnvs.tsv");
-	QStringList file = Helper::loadTextFile(cnv_file, true);
+	QStringList file = Helper::loadTextFile(QString(filename_).replace(".GSvar", "_cnvs.tsv"), true);
 	foreach(QString line, file)
 	{
 		if (line=="" || line.startsWith("##")) continue;
-		if (line.startsWith("#"))
+
+		if (line.startsWith("#")) //header
 		{
 			stream << "<tr><td><b>" << line.replace("\t", "</b></td><td><b>") << "</b></td></tr>" << endl;
 		}
-		else
+		else //contents
 		{
 			QStringList parts = line.split("\t");
 			if (roi_idx.matchingIndex(parts[0], parts[1].toInt(), parts[2].toInt())!=-1)
@@ -682,6 +681,35 @@ void MainWindow::generateReportSomatic()
 		}
 	}
 	stream << "</table>" << endl;
+
+	//CNV loss/gain genes list
+	QStringList genes_loss;
+	QStringList genes_gain;
+	foreach(QString line, file)
+	{
+		if (line=="" || line.startsWith("#")) continue;
+
+		QStringList parts = line.split("\t");
+		if (roi_idx.matchingIndex(parts[0], parts[1].toInt(), parts[2].toInt())!=-1)
+		{
+			QStringList genes = parts[9].split(',');
+			QStringList cns = parts[6].split(',');
+			if (cns[0].toInt()>2)
+			{
+				genes_gain << genes;
+			}
+			else
+			{
+				genes_loss << genes;
+			}
+		}
+	}
+	genes_loss.sort();
+	genes_loss.removeDuplicates();
+	stream << "<br> Gene mit Deletion: " << genes_loss.join(", ") << endl;
+	genes_gain.sort();
+	genes_gain.removeDuplicates();
+	stream << "<br> Gene mit Amplifikation: " << genes_gain.join(", ") << endl;
 	stream << "</p>" << endl;
 
 	//gaps
