@@ -26,6 +26,7 @@ signals:
 
 private slots:
 	void gapDoubleClicked(QTableWidgetItem* item);
+	void updateGeneFilter(QString text);
 
 private:
 	QTableWidgetItem* createItem(QString text, bool highlight = false, bool align_right = false);

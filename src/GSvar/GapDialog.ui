@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>793</width>
-    <height>436</height>
+    <width>699</width>
+    <height>650</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -30,11 +30,59 @@
     <number>3</number>
    </property>
    <item>
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to check gaps and decide which gaps must be sanger-validated.&lt;br/&gt;If a gene list is defined for the target region, the genes on the list are highlighted.&lt;/p&gt;&lt;p&gt;Usage:&lt;br/&gt;Double-click a gap to jump to the corresponding IGV position.&lt;br/&gt;Right-click the validation status to change it.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-    </widget>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to check gaps and decide which gaps must be sanger-validated.&lt;br/&gt;If a gene list is defined for the target region, the genes on the list are highlighted.&lt;/p&gt;&lt;p&gt;Usage:&lt;br/&gt;Double-click a gap to jump to the corresponding IGV position.&lt;br/&gt;Right-click the validation status to change it.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="Line" name="line">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Filter:</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="filter_gene">
+         <property name="placeholderText">
+          <string>gene</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Minimum</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+    </layout>
    </item>
    <item>
     <widget class="QLabel" name="percentage">
@@ -91,9 +139,6 @@
       </property>
      </column>
     </widget>
-   </item>
-   <item>
-    <widget class="QWidget" name="widget" native="true"/>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">

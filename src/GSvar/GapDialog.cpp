@@ -19,6 +19,7 @@ GapDialog::GapDialog(QWidget *parent, QString sample_name, QString roi_file)
 	setWindowTitle("Gaps of sample " + sample_name);
 
 	connect(ui->gaps, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(gapDoubleClicked(QTableWidgetItem*)));
+	connect(ui->filter_gene, SIGNAL(textEdited(QString)), this, SLOT(updateGeneFilter(QString)));
 }
 
 void GapDialog::process(QString bam_file, const BedFile& roi, const GeneSet& genes)
@@ -138,6 +139,15 @@ void GapDialog::gapDoubleClicked(QTableWidgetItem* item)
 
 	QString region = ui->gaps->item(item->row(), 0)->text();
 	emit openRegionInIGV(region);
+}
+
+void GapDialog::updateGeneFilter(QString text)
+{
+	for (int i=0; i<ui->gaps->rowCount(); ++i)
+	{
+		bool hide = !ui->gaps->item(i, 3)->text().contains(text, Qt::CaseInsensitive);
+		ui->gaps->setRowHidden(i, hide);
+	}
 }
 
 QTableWidgetItem*GapDialog::createItem(QString text, bool highlight, bool align_right)

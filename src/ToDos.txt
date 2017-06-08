@@ -8,7 +8,6 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-*** Gap tool: allow filtering by gene name
 *** Filter: Add OMIM-only filter for variants / CNVs
 ** allow filtering affected for hom/compound at the same time
 ** allow filtering controls !hom
