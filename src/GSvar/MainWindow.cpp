@@ -649,6 +649,8 @@ void MainWindow::generateReportSomatic()
 		stream << "<td>" << tmp << "</td>" << endl;
 		tmp = variant.annotations().at(i_co_sp);
 		tmp.replace(",", " ");
+		tmp.replace(">", "&gt;");
+		tmp.replace("&", "&name;");
 		stream << "<td>" << tmp << "</td>" << endl;
 		stream << "</tr>" << endl;
 	}
@@ -706,10 +708,10 @@ void MainWindow::generateReportSomatic()
 	}
 	genes_loss.sort();
 	genes_loss.removeDuplicates();
-	stream << "<br> Gene mit Deletion: " << genes_loss.join(", ") << endl;
+	stream << "<br /> Gene mit Deletion: " << genes_loss.join(", ") << endl;
 	genes_gain.sort();
 	genes_gain.removeDuplicates();
-	stream << "<br> Gene mit Amplifikation: " << genes_gain.join(", ") << endl;
+	stream << "<br /> Gene mit Amplifikation: " << genes_gain.join(", ") << endl;
 	stream << "</p>" << endl;
 
 	//gaps
