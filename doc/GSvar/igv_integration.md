@@ -58,6 +58,8 @@ In that case, you have to set the proxy like shown here:
 Finally, you have to restart IGV.
 
 --
+
 [back to main page](index.md)
+
 
 

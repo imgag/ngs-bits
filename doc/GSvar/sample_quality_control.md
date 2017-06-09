@@ -22,7 +22,9 @@ Here an example:
 ![alt text](qc2.png)
 
 --
+
 [back to main page](index.md)
+
 
 
 

@@ -27,7 +27,9 @@ Open the GSvar variant list from the trio folder.
 	* filter based on inheritance mode using the affected/control genotype filters
 
 --
+
 [back to main page](index.md)
+
 
 
 

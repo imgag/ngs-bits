@@ -61,7 +61,9 @@ The scale of the heatmap can be changed using the context menu of the track. Bes
 ![alt text](cnv_visualization.png)
 
 --
+
 [back to main page](index.md)
+
 
 
 

@@ -68,5 +68,7 @@
 - Variant details view: Using local reference genome for base lookup of ExAC link now (was using a webservice before, which did not always respond).
 
 --
+
 [back to main page](index.md)
+
 
