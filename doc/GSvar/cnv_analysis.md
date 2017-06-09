@@ -1,10 +1,10 @@
-##CNV analysis
+## CNV analysis
 
 Copy-number variant (CNV) calling is performed using the [CnvHunter](https://github.com/imgag/ngs-bits/) tool.
 
 CnvHunter is designed for targeted NGS sequencing, where exon target regions alternate with non-target intron regions. Thus, a single copy-number variant can consist of several subsequent regions (i.e. exons). For each region, the copy-number state and the [z-score](https://en.wikipedia.org/wiki/Standard_score) indicating the significance are listed (see screenshot in the 'CNV filtering' section).
 
-###Re-analyzing a sample
+### Re-analyzing a sample
 
 Copy-number variant calling is based on a virtual reference sample, which is constructed of the 20 most similar samples with the same processing system. Thus, at least 20 samples of the sample processing system are needed to perform the CNV analysis. The more samples there are, the more accurate the CNV analysis will be.
 
@@ -12,7 +12,7 @@ Thus, re-analyzing copy-number variants when more reference samples are sequence
 
 ![alt text](cnv_reanalyze.png)
 
-###CNV analysis quality
+### CNV analysis quality
 
 Visualization and filtering of CNVs is done in the "Copy-number variants" dialog, which is shown below.
 The dialog is opened from the main tool bar (0). 
@@ -25,7 +25,7 @@ In the upper part of the dialog (1), sample-specific information about the CNV c
 	* Low reference sample correlation (indicated by 'corr' entry)
 	* Low average depth on the target region (indicated by 'avg_depth' entry)
 
-###CNV filtering
+### CNV filtering
 
 Above the CNV list, there are several options for filtering CNVs (2):
 
@@ -47,7 +47,7 @@ For each CNV the following stats are shown (3):
 ![alt text](cnv_filtering.png)
 
 
-###Visualizing copy-number data in IGV
+### Visualizing copy-number data in IGV
 
 *Double-clicking* a CNV in the dialog, opens the CNV region in IGV (see also section [IGV integration](igv_integration.md)).
 
@@ -62,6 +62,7 @@ The scale of the heatmap can be changed using the context menu of the track. Bes
 
 --
 [back to main page](index.md)
+
 
 
 

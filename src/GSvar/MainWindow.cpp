@@ -468,10 +468,7 @@ void MainWindow::on_actionOpenNGSD_triggered()
 
 void MainWindow::on_actionChangeLog_triggered()
 {
-	ScrollableTextDialog dlg(this);
-	dlg.setWindowTitle("ChangeLog");
-	dlg.setText(Helper::loadTextFile("://Resources/ChangeLog.html").join("\n"));
-	dlg.exec();
+	QDesktopServices::openUrl(QUrl("https://github.com/imgag/ngs-bits/tree/master/doc/GSvar/changelog.md"));
 }
 
 void MainWindow::loadFile(QString filename)
