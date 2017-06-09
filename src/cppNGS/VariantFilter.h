@@ -40,7 +40,7 @@ class CPPNGSSHARED_EXPORT VariantFilter
 		void flagByGenotype(QString genotype, QStringList genotype_columns = QStringList() << "genotype");
 
 		///Flags variants by letting only compound-heterozygous variants pass.
-		void flagCompoundHeterozygous(QStringList genotype_columns = QStringList() << "genotype");
+		void flagCompoundHeterozygous(QStringList genotype_columns = QStringList() << "genotype", bool hom_also_passes = false);
 
 		///Flags variants by region filter.
 		void flagByRegions(const BedFile& regions);

@@ -351,4 +351,73 @@ private slots:
 		I_EQUAL(filter.countPassing(), 3);
 	}
 
+	void flagCompoundHeterozygousOrHom()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+
+		VariantFilter filter(vl);
+
+		//first filter
+		filter.flagGeneric("chr IS chr1");
+		filter.flagByImpact(QStringList() << "HIGH" << "MODERATE");
+		I_EQUAL(filter.countPassing(), 9);
+
+		//first second
+		filter.flagCompoundHeterozygous(QStringList() << "genotype", true);
+		I_EQUAL(filter.countPassing(), 6);
+	}
+
+	void flagByGenotype_multiSample()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in_multi.GSvar"));
+
+		VariantFilter filter(vl);
+
+		//first filter
+		filter.flagByGenotype("hom", QStringList() << "Affected1" << "Affected2");
+
+		I_EQUAL(vl.count(), 256);
+		I_EQUAL(filter.countPassing(), 65);
+
+		//second filter
+		filter.clear();
+		filter.flagByGenotype("het", QStringList() << "Affected1" << "Affected2");
+
+		I_EQUAL(vl.count(), 256);
+		I_EQUAL(filter.countPassing(), 95);
+	}
+
+	void flagCompoundHeterozygous_multiSample()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in_multi.GSvar"));
+
+		VariantFilter filter(vl);
+
+		//first filter
+		filter.flagByAllelFrequency(0.01);
+		I_EQUAL(filter.countPassing(), 36);
+
+		//second filter
+		filter.flagCompoundHeterozygous(QStringList() << "Affected1" << "Affected2");
+		I_EQUAL(filter.countPassing(), 2);
+	}
+
+	void flagCompoundHeterozygousOrHom_multiSample()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in_multi.GSvar"));
+
+		VariantFilter filter(vl);
+
+		//first filter
+		filter.flagByAllelFrequency(0.01);
+		I_EQUAL(filter.countPassing(), 36);
+
+		//second filter
+		filter.flagCompoundHeterozygous(QStringList() << "Affected1" << "Affected2", true);
+		I_EQUAL(filter.countPassing(), 3);
+	}
 };

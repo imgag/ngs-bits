@@ -414,7 +414,7 @@ void VariantFilter::flagGeneric(QString criteria)
 	}
 }
 
-void VariantFilter::flagCompoundHeterozygous(QStringList genotype_columns)
+void VariantFilter::flagCompoundHeterozygous(QStringList genotype_columns, bool hom_also_passes)
 {
 	//get column indices
 	int i_gene = variants.annotationIndexByName("gene", true, true);
@@ -422,6 +422,31 @@ void VariantFilter::flagCompoundHeterozygous(QStringList genotype_columns)
 	foreach(const QString& column, genotype_columns)
 	{
 		geno_indices << variants.annotationIndexByName(column, true, true);
+	}
+
+	//get set of homozygous variant indices
+	QSet<int> hom_indices;
+	if (hom_also_passes)
+	{
+		for(int i=0; i<variants.count(); ++i)
+		{
+			if (!pass[i]) continue;
+
+			bool var_hom = true;
+			foreach(int index, geno_indices)
+			{
+				if (variants[i].annotations()[index]!="hom")
+				{
+					var_hom = false;
+					break;
+				}
+			}
+
+			if(var_hom)
+			{
+				hom_indices.insert(i);
+			}
+		}
 	}
 
 	//count heterozygous passing variants per gene
@@ -439,16 +464,19 @@ void VariantFilter::flagCompoundHeterozygous(QStringList genotype_columns)
 				break;
 			}
 		}
-		if (!var_het)
+
+		if (var_het)
+		{
+			QList<QByteArray> genes = variants[i].annotations()[i_gene].toUpper().split(',');
+			foreach(const QByteArray& gene, genes)
+			{
+				gene_to_het[gene.trimmed()] += 1;
+			}
+
+		}
+		else if (!hom_also_passes || !hom_indices.contains(i))
 		{
 			pass[i] = false;
-			continue;
-		}
-
-		QList<QByteArray> genes = variants[i].annotations()[i_gene].toUpper().split(',');
-		foreach(const QByteArray& gene, genes)
-		{
-			gene_to_het[gene.trimmed()] += 1;
 		}
 	}
 
@@ -456,6 +484,7 @@ void VariantFilter::flagCompoundHeterozygous(QStringList genotype_columns)
 	for(int i=0; i<variants.count(); ++i)
 	{
 		if (!pass[i]) continue;
+		if (hom_also_passes && hom_indices.contains(i)) continue;
 
 		pass[i] = false;
 		QList<QByteArray> genes = variants[i].annotations()[i_gene].toUpper().split(',');

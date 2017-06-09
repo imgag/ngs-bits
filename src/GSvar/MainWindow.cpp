@@ -2411,6 +2411,10 @@ void MainWindow::filtersChanged()
 			{
 				filter.flagCompoundHeterozygous(genotypeColumns(AFFECTED));
 			}
+			else if (geno == "compound-het + hom")
+			{
+				filter.flagCompoundHeterozygous(genotypeColumns(AFFECTED), true);
+			}
 			else
 			{
 				filter.flagByGenotype(filter_widget_->genotypeAffected(), genotypeColumns(AFFECTED));

@@ -499,6 +499,11 @@
          </item>
          <item>
           <property name="text">
+           <string>compound-het + hom</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
            <string>het</string>
           </property>
          </item>
