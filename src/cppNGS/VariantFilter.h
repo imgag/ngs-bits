@@ -37,7 +37,7 @@ class CPPNGSSHARED_EXPORT VariantFilter
 		void flagByGenes(const GeneSet& genes);
 
 		///Flags variants by annotations filter.
-		void flagByGenotype(QString genotype, QStringList genotype_columns = QStringList() << "genotype");
+		void flagByGenotype(QString genotype, bool invert = false, QStringList genotype_columns = QStringList() << "genotype");
 
 		///Flags variants by letting only compound-heterozygous variants pass.
 		void flagCompoundHeterozygous(QStringList genotype_columns = QStringList() << "genotype", bool hom_also_passes = false);

@@ -2396,7 +2396,14 @@ void MainWindow::filtersChanged()
 		//genotype filter (control)
 		if (filter_widget_->applyGenotypeControl())
 		{
-			filter.flagByGenotype(filter_widget_->genotypeControl(), genotypeColumns(CONTROL));
+			QString geno = filter_widget_->genotypeControl();
+			bool invert = false;
+			if (geno.startsWith("not "))
+			{
+				geno = geno.mid(4);
+				invert = true;
+			}
+			filter.flagByGenotype(geno, invert, genotypeColumns(CONTROL));
 			Log::perf("Applying genotype filter (control) took ", timer);
 		}
 
@@ -2408,13 +2415,13 @@ void MainWindow::filtersChanged()
 			{
 				filter.flagCompoundHeterozygous(genotypeColumns(AFFECTED));
 			}
-			else if (geno == "compound-het + hom")
+			else if (geno == "compound-het or hom")
 			{
 				filter.flagCompoundHeterozygous(genotypeColumns(AFFECTED), true);
 			}
 			else
 			{
-				filter.flagByGenotype(filter_widget_->genotypeAffected(), genotypeColumns(AFFECTED));
+				filter.flagByGenotype(filter_widget_->genotypeAffected(), false, genotypeColumns(AFFECTED));
 			}
 			Log::perf("Applying genotype filter (affected) took ", timer);
 		}

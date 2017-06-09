@@ -74,7 +74,7 @@ void VariantFilter::flagByImpact(QStringList impacts)
 	}
 }
 
-void VariantFilter::flagByGenotype(QString genotype, QStringList genotype_columns)
+void VariantFilter::flagByGenotype(QString genotype, bool invert, QStringList genotype_columns)
 {
 	//check input
 	if (genotype!="hom" && genotype!="het" && genotype!="wt") THROW(ArgumentException, "Invalid genotype '" + genotype + "'!");
@@ -91,11 +91,26 @@ void VariantFilter::flagByGenotype(QString genotype, QStringList genotype_column
 	{
 		if (!pass[i]) continue;
 
-		foreach(int index, geno_indices)
+		if (invert)
 		{
-			if (variants[i].annotations()[index] != genotype)
+			foreach(int index, geno_indices)
 			{
-				pass[i] = false;
+				if (variants[i].annotations()[index] == genotype)
+				{
+					pass[i] = false;
+					break;
+				}
+			}
+		}
+		else
+		{
+			foreach(int index, geno_indices)
+			{
+				if (variants[i].annotations()[index] != genotype)
+				{
+					pass[i] = false;
+					break;
+				}
 			}
 		}
 	}

@@ -1,4 +1,14 @@
 
+### 0.1-718-gfd420dd (09.06.2017)
+- General: Several preferred transcripts per gene are now possible.
+- Filters: Added 'compound-het or hom' filter for affected.
+- Filters: Added 'not hom' filter for controls.
+- Variant details: Ensembl transcript variants now link to Ensembl website.
+- Gap dialog: Added gene name filter.
+- Sample information dialog: Added variant allele frequency deviation to detect sample contamination.
+- Report: Added list of gene with copy-number loss/gain to somatic report.
+- Report: Added list of complete/incomplete genes to CCDS coverage statistics.
+
 ### 0.1-706-g0ee82f3 (01.06.2017)
 - IGV: changed genome from hg19 to GRCh37, i.e. it is now possibe to jump to chrMT variants.
 - Variant details: ExAC subpopulation allele frequencies are now shown when available.
@@ -57,4 +67,6 @@
 - Report: Fixed truncated target file names when they contain several dots.
 - Variant details view: Using local reference genome for base lookup of ExAC link now (was using a webservice before, which did not always respond).
 
+--
+[back to main page](index.md)
 

@@ -332,6 +332,15 @@ private slots:
 
 		I_EQUAL(vl.count(), 143);
 		I_EQUAL(filter.countPassing(), 86);
+
+
+		//third filter (invert)
+		filter.clear();
+		filter.flagByGenotype("hom", true);
+
+		I_EQUAL(vl.count(), 143);
+		I_EQUAL(filter.countPassing(), 86);
+
 	}
 
 	void flagCompoundHeterozygous()
@@ -376,17 +385,25 @@ private slots:
 		VariantFilter filter(vl);
 
 		//first filter
-		filter.flagByGenotype("hom", QStringList() << "Affected1" << "Affected2");
+		filter.flagByGenotype("hom", false, QStringList() << "Affected1" << "Affected2");
 
 		I_EQUAL(vl.count(), 256);
 		I_EQUAL(filter.countPassing(), 65);
 
 		//second filter
 		filter.clear();
-		filter.flagByGenotype("het", QStringList() << "Affected1" << "Affected2");
+		filter.flagByGenotype("het", false, QStringList() << "Affected1" << "Affected2");
 
 		I_EQUAL(vl.count(), 256);
 		I_EQUAL(filter.countPassing(), 95);
+
+
+		//second filter (invert)
+		filter.clear();
+		filter.flagByGenotype("hom", true, QStringList() << "Affected1" << "Affected2");
+
+		I_EQUAL(vl.count(), 256);
+		I_EQUAL(filter.countPassing(), 160);
 	}
 
 	void flagCompoundHeterozygous_multiSample()
