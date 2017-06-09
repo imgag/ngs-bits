@@ -21,7 +21,8 @@ void VariantFilter::flagByAllelFrequency(double max_af)
 	//get column indices
 	int i_1000g = variants.annotationIndexByName("1000g", true, true);
 	int i_exac = variants.annotationIndexByName("ExAC", true, true);
-	int i_kaviar = variants.annotationIndexByName("Kaviar", true, true);
+	int i_kaviar = variants.annotationIndexByName("Kaviar", true, false);
+	int i_gnomad = variants.annotationIndexByName("gnomAD", true, false);
 
 	//filter
 	for(int i=0; i<variants.count(); ++i)
@@ -29,7 +30,8 @@ void VariantFilter::flagByAllelFrequency(double max_af)
 		pass[i] = pass[i]
 				&& variants[i].annotations()[i_1000g].toDouble()<=max_af
 				&& variants[i].annotations()[i_exac].toDouble()<=max_af
-				&& variants[i].annotations()[i_kaviar].toDouble()<=max_af;
+				&& (i_kaviar==-1 || variants[i].annotations()[i_kaviar].toDouble()<=max_af)
+				&& (i_gnomad==-1 || variants[i].annotations()[i_gnomad].toDouble()<=max_af);
 	}
 }
 

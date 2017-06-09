@@ -105,7 +105,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->exac, vl, index, "ExAC");
 	setAnnotation(ui->exac_hom, vl, index, "ExAC_hom");
 	setAnnotation(ui->exac_sub, vl, index, "ExAC_sub");
-	setAnnotation(ui->kaviar, vl, index, "Kaviar");
+	setAnnotation(ui->gnomad, vl, index, "gnomAD");
 
 	//pathogenity predictions
 	setAnnotation(ui->phylop, vl, index, "phyloP");
@@ -308,7 +308,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				tooltip = vl[index].annotations()[c_index];
 			}
 		}
-		else if(name=="1000g" || name=="ExAC" || name=="Kaviar")
+		else if(name=="1000g" || name=="ExAC" || name=="gnomAD")
 		{
 			bool ok = true;
 			double value = anno.toDouble(&ok);
