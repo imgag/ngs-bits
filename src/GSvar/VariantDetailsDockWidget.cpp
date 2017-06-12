@@ -24,6 +24,7 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget *parent) :
 	connect(ui->trans_next, SIGNAL(clicked(bool)), this, SLOT(nextTanscript()));
 	connect(ui->variant, SIGNAL(linkActivated(QString)), this, SLOT(variantClicked(QString)));
     connect(ui->exac, SIGNAL(linkActivated(QString)), this, SLOT(exacClicked(QString)));
+	connect(ui->gnomad, SIGNAL(linkActivated(QString)), this, SLOT(gnomadClicked(QString)));
 
 	//set up transcript buttons
 	ui->trans_prev->setStyleSheet("QPushButton {border: none; margin: 0px;padding: 0px;}");
@@ -322,7 +323,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			}
 
             //make ExAC value clickable (custom handling)
-            if(name=="ExAC")
+			if(name=="ExAC" || name=="gnomAD")
             {
                 text = formatLink(text, vl[index].toString(true));
             }
@@ -522,5 +523,35 @@ void VariantDetailsDockWidget::exacClicked(QString link)
     {
         url =  chr.strNormalized(false) + "-" + start + "-" + ref + "-" + obs;
     }
-    QDesktopServices::openUrl(QUrl("http://exac.broadinstitute.org/variant/" + url));
+	QDesktopServices::openUrl(QUrl("http://exac.broadinstitute.org/variant/" + url));
+}
+
+void VariantDetailsDockWidget::gnomadClicked(QString link)
+{
+	QStringList parts = link.split(' ');
+	Chromosome chr(parts[0]);
+	QString start = parts[1];
+	QString ref = parts[3];
+	QString obs = parts[4];
+
+	QString url;
+	if (obs=="-") //deletion
+	{
+		int pos = start.toInt()-1;
+		FastaFileIndex idx(Settings::string("reference_genome"));
+		QString base = idx.seq(chr, pos, 1);
+		url = chr.strNormalized(false) + "-" + QString::number(pos) + "-" + base + ref + "-" + base;
+	}
+	else if (ref=="-") //insertion
+	{
+		int pos = start.toInt();
+		FastaFileIndex idx(Settings::string("reference_genome"));
+		QString base = idx.seq(chr, pos, 1);
+		url = chr.strNormalized(false) + "-" + start + "-" + base + "-" + base + obs;
+	}
+	else //snv
+	{
+		url =  chr.strNormalized(false) + "-" + start + "-" + ref + "-" + obs;
+	}
+	QDesktopServices::openUrl(QUrl("http://gnomad.broadinstitute.org/variant/" + url));
 }

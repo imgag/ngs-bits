@@ -35,6 +35,7 @@ private slots:
 	void previousTanscript();
 	void variantClicked(QString link);
     void exacClicked(QString link);
+	void gnomadClicked(QString link);
 
 private:
 	//Database annotation datastructure
