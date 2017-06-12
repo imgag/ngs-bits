@@ -1,5 +1,5 @@
 
-### 0.1-718-gfd420dd (09.06.2017)
+### 0.1-722-gaa8a403 (12.06.2017)
 - General: Several preferred transcripts per gene are now possible.
 - Filters: Added 'compound-het or hom' filter for affected.
 - Filters: Added 'not hom' filter for controls.
@@ -70,5 +70,6 @@
 --
 
 [back to main page](index.md)
+
 
 
