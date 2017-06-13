@@ -2540,6 +2540,7 @@ void MainWindow::updateNGSDSupport()
 	ui_.actionNGSD->setEnabled(ngsd_enabled);
 	ui_.actionDatabase->setEnabled(ngsd_enabled);
 	ui_.actionTrio->setEnabled(ngsd_enabled);
+	ui_.actionMultiSample->setEnabled(ngsd_enabled);
 	ui_.actionSampleInformation->setEnabled(ngsd_enabled);
 	ui_.actionGapsRecalculate->setEnabled(ngsd_enabled);
 	ui_.actionGeneSelector->setEnabled(ngsd_enabled);

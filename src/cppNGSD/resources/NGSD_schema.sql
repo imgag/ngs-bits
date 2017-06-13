@@ -484,7 +484,8 @@ CREATE  TABLE IF NOT EXISTS `variant` (
   INDEX `obs` (`obs`(255) ASC),
   INDEX `gene` (`gene`(50) ASC),
   INDEX `1000g` (`1000g` ASC),
-  INDEX `exac` (`exac` ASC)
+  INDEX `exac` (`exac` ASC),
+  INDEX `gnomad` (`exac` ASC)
 )
 ENGINE = InnoDB
 AUTO_INCREMENT = 1

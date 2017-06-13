@@ -12,7 +12,7 @@
 ### 0.1-706-g0ee82f3 (01.06.2017)
 - IGV: changed genome from hg19 to GRCh37, i.e. it is now possibe to jump to chrMT variants.
 - Variant details: ExAC subpopulation allele frequencies are now shown when available.
-- VCF export: fixed bug caued by too small buffer size.
+- VCF export: fixed bug caused by too small buffer size.
 
 ### 0.1-693-g3face3e (18.05.2017)
 - Report: added CCDS+-5 bases gap statistics to report.
@@ -70,6 +70,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 
