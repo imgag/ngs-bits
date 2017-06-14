@@ -1,3 +1,5 @@
+### 0.1-728-gb6bf123 (14.06.2017)
+- Filters: Added sub-population allele frequency filter.
 
 ### 0.1-722-gaa8a403 (12.06.2017)
 - General: Several preferred transcripts per gene are now possible.
