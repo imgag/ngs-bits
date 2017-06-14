@@ -378,7 +378,7 @@ void FilterDockWidget::applyDefaultFiltersSomatic()
     //enable default filters
     ui_.maf_enabled->setChecked(true);
     ui_.maf->setValue(1.0);
-	ui_.maf_sub_enabled->setChecked(true);
+	ui_.maf_sub_enabled->setChecked(false);
 	ui_.maf_sub->setValue(1.0);
 
     //filter cols

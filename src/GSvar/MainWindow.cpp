@@ -646,8 +646,8 @@ void MainWindow::generateReportSomatic()
 		stream << "<td>" << tmp << "</td>" << endl;
 		tmp = variant.annotations().at(i_co_sp);
 		tmp.replace(",", " ");
+		tmp.replace("&", "&amp;");
 		tmp.replace(">", "&gt;");
-		tmp.replace("&", "&name;");
 		stream << "<td>" << tmp << "</td>" << endl;
 		stream << "</tr>" << endl;
 	}
