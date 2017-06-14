@@ -1,5 +1,5 @@
 ### SeqPurge tool help
-	SeqPurge (0.1-438-g79b1e8b)
+	SeqPurge (0.1-722-gaa8a403)
 	
 	Removes adapter sequences from paired-end sequencing data.
 	
@@ -27,7 +27,7 @@
 	  -ncut <int>         Number of subsequent Ns to trimmed using a sliding window approach from the front of reads. Set to 0 to disable.
 	                      Default value: '7'
 	  -min_len <int>      Minimum read length after adapter trimming. Shorter reads are discarded.
-	                      Default value: '15'
+	                      Default value: '30'
 	  -threads <int>      The number of threads used for trimming (an additional thread is used for reading data).
 	                      Default value: '1'
 	  -out3 <file>        Name prefix of singleton read output files (if only one read of a pair is discarded).
@@ -52,8 +52,9 @@
 	  --tdx               Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SeqPurge changelog
-	SeqPurge 0.1-438-g79b1e8b
+	SeqPurge 0.1-722-gaa8a403
 	
+	2017-06-15 Changed default value of 'min_len' parameter from 15 to 30.
 	2016-08-10 Fixed bug in binomial calculation (issue #1).
 	2016-04-15 Removed large part of the overtrimming described in the paper (~75% of reads overtrimmed, ~50% of bases overtrimmed).
 	2016-04-06 Added error correction (optional).

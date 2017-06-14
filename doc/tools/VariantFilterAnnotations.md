@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (0.1-699-g594d5da)
+	VariantFilterAnnotations (0.1-722-gaa8a403)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -8,7 +8,9 @@
 	  -out <file>                Output variant list. If unset, writes to STDOUT.
 	
 	Optional parameters:
-	  -max_af <float>            Maximum allele frequency in public databases. '0.01' means 1% allele frequency!
+	  -max_af <float>            Maximum overall allele frequency in public databases. '0.01' means 1% allele frequency!
+	                             Default value: '-1'
+	  -max_af_sub <float>        Maximum sub-population allele frequency in public databases. '0.01' means 1% allele frequency!
 	                             Default value: '-1'
 	  -impact <string>           Comma-separated list of SnpEff impacts that pass.
 	                             Default value: ''
@@ -32,7 +34,8 @@
 	  --tdx                      Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 0.1-699-g594d5da
+	VariantFilterAnnotations 0.1-722-gaa8a403
 	
+	2017-06-14 Added sub-population allele frequency filter.
 	2016-06-11 Initial commit.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
