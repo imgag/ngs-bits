@@ -35,7 +35,7 @@ public:
 		addInt("qwin", "Quality trimming window size.", true, 5);
 		addInt("qoff", "Quality trimming FASTQ score offset.", true, 33);
 		addInt("ncut", "Number of subsequent Ns to trimmed using a sliding window approach from the front of reads. Set to 0 to disable.", true, 7);
-		addInt("min_len", "Minimum read length after adapter trimming. Shorter reads are discarded.", true, 15);
+		addInt("min_len", "Minimum read length after adapter trimming. Shorter reads are discarded.", true, 30);
 		addInt("threads", "The number of threads used for trimming (an additional thread is used for reading data).", true, 1);
 		addOutfile("out3", "Name prefix of singleton read output files (if only one read of a pair is discarded).", true, false);
 		addOutfile("summary", "Write summary/progress to this file instead of STDOUT.", true, true);
@@ -46,6 +46,7 @@ public:
 		addFlag("progress", "Enables progress output.");
 
 		//changelog
+		changeLog(2017, 6, 15, "Changed default value of 'min_len' parameter from 15 to 30.");
 		changeLog(2016, 8, 10, "Fixed bug in binomial calculation (issue #1).");
 		changeLog(2016, 4, 15, "Removed large part of the overtrimming described in the paper (~75% of reads overtrimmed, ~50% of bases overtrimmed).");
 		changeLog(2016, 4,  6, "Added error correction (optional).");
