@@ -15,8 +15,11 @@ class CPPNGSSHARED_EXPORT VariantFilter
 		///Constructor.
 		VariantFilter(VariantList& vl);
 
-		///Flags variants by allele frequency in public databases (1000g, ExAC, etc.).
-		void flagByAllelFrequency(double max_af);
+		///Flags variants by allele frequency in public databases (1000g, ExAC, gnomAD).
+		void flagByAlleleFrequency(double max_af);
+
+		///Flags variants by sub-population allele frequency in public databases (ExAC).
+		void flagBySubPopulationAlleleFrequency(double max_af);
 
 		///Flags variants by SnpEff impact.
 		void flagByImpact(QStringList impacts);

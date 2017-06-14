@@ -28,6 +28,12 @@ private slots:
 		EXECUTE("VariantFilterAnnotations", "-in " + TESTDATA("data_in/VariantFilterAnnotations_in.tsv") + " -min_class 3 -comphet -filters low_DP,low_MQM,low_QUAL -genotype het -out out/VariantFilterAnnotations_out4.tsv");
 		COMPARE_FILES("out/VariantFilterAnnotations_out4.tsv", TESTDATA("data_out/VariantFilterAnnotations_out4.tsv"));
 	}
+
+	void max_af_sub()
+	{
+		EXECUTE("VariantFilterAnnotations", "-in " + TESTDATA("data_in/VariantFilterAnnotations_in.tsv") + " -max_af_sub 0.01 -out out/VariantFilterAnnotations_out5.tsv");
+		COMPARE_FILES("out/VariantFilterAnnotations_out5.tsv", TESTDATA("data_out/VariantFilterAnnotations_out5.tsv"));
+	}
 };
 
 

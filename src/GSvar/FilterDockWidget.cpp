@@ -21,6 +21,9 @@ FilterDockWidget::FilterDockWidget(QWidget *parent)
 	connect(ui_.maf, SIGNAL(valueChanged(double)), this, SIGNAL(filtersChanged()));
 	connect(ui_.maf_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
 
+	connect(ui_.maf_sub, SIGNAL(valueChanged(double)), this, SIGNAL(filtersChanged()));
+	connect(ui_.maf_sub_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
+
 	connect(ui_.impact, SIGNAL(currentIndexChanged(int)), this, SIGNAL(filtersChanged()));
 	connect(ui_.impact_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
 
@@ -174,6 +177,8 @@ void FilterDockWidget::resetSignalsUnblocked(bool clear_roi, bool clear_off_targ
     //annotations
     ui_.maf_enabled->setChecked(false);
     ui_.maf->setValue(1.0);
+	ui_.maf_sub_enabled->setChecked(false);
+	ui_.maf_sub->setValue(1.0);
     ui_.impact_enabled->setChecked(false);
     ui_.impact->setCurrentText("HIGH,MODERATE,LOW");
     ui_.ihdb_enabled->setChecked(false);
@@ -247,6 +252,8 @@ void FilterDockWidget::applyDefaultFilters()
 	//enable default filters
 	ui_.maf_enabled->setChecked(true);
 	ui_.maf->setValue(1.0);
+	ui_.maf_sub_enabled->setChecked(true);
+	ui_.maf_sub->setValue(1.0);
 	ui_.impact_enabled->setChecked(true);
 	ui_.impact->setCurrentText("HIGH,MODERATE,LOW");
 	ui_.ihdb_enabled->setChecked(true);
@@ -289,6 +296,8 @@ void FilterDockWidget::applyDefaultFiltersTrio()
 	//enable default filters
 	ui_.maf_enabled->setChecked(true);
 	ui_.maf->setValue(1.0);
+	ui_.maf_sub_enabled->setChecked(true);
+	ui_.maf_sub->setValue(1.0);
 	ui_.impact_enabled->setChecked(true);
 	ui_.impact->setCurrentText("HIGH,MODERATE,LOW");
 	ui_.ihdb_enabled->setChecked(true);
@@ -325,6 +334,8 @@ void FilterDockWidget::applyDefaultFiltersMultiSample()
 	//enable default filters
 	ui_.maf_enabled->setChecked(true);
 	ui_.maf->setValue(1.0);
+	ui_.maf_sub_enabled->setChecked(true);
+	ui_.maf_sub->setValue(1.0);
 	ui_.impact_enabled->setChecked(true);
 	ui_.impact->setCurrentText("HIGH,MODERATE,LOW");
 	ui_.ihdb_enabled->setChecked(true);
@@ -367,6 +378,8 @@ void FilterDockWidget::applyDefaultFiltersSomatic()
     //enable default filters
     ui_.maf_enabled->setChecked(true);
     ui_.maf->setValue(1.0);
+	ui_.maf_sub_enabled->setChecked(true);
+	ui_.maf_sub->setValue(1.0);
 
     //filter cols
     QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
@@ -390,6 +403,16 @@ bool FilterDockWidget::applyMaf() const
 double FilterDockWidget::mafPerc() const
 {
 	return ui_.maf->value();
+}
+
+bool FilterDockWidget::applyMafSub() const
+{
+	return ui_.maf_sub_enabled->isChecked();
+}
+
+double FilterDockWidget::mafSubPerc() const
+{
+	return ui_.maf_sub->value();
 }
 
 bool FilterDockWidget::applyImpact() const

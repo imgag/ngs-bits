@@ -2258,7 +2258,12 @@ void MainWindow::filtersChanged()
 		if (filter_widget_->applyMaf())
 		{
 			double max_af = filter_widget_->mafPerc() / 100.0;
-			filter.flagByAllelFrequency(max_af);
+			filter.flagByAlleleFrequency(max_af);
+		}
+		if (filter_widget_->applyMafSub())
+		{
+			double max_af = filter_widget_->mafSubPerc() / 100.0;
+			filter.flagBySubPopulationAlleleFrequency(max_af);
 		}
 		if (filter_widget_->applyImpact())
 		{

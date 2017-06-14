@@ -23,7 +23,8 @@ public:
 		addInfile("in", "Input variant list in GSvar format.", false);
 		addOutfile("out", "Output variant list. If unset, writes to STDOUT.", false);
 		//optional
-		addFloat("max_af", "Maximum allele frequency in public databases. '0.01' means 1% allele frequency!", true, -1.0);
+		addFloat("max_af", "Maximum overall allele frequency in public databases. '0.01' means 1% allele frequency!", true, -1.0);
+		addFloat("max_af_sub", "Maximum sub-population allele frequency in public databases. '0.01' means 1% allele frequency!", true, -1.0);
 		addString("impact", "Comma-separated list of SnpEff impacts that pass.", "");
 		addInt("max_ihdb", "Maximum in-house database count.", true, -1);
 		addFlag("max_ihdb_ignore_genotype", "If set, variant genotype is ignored. Otherwise, only homozygous database entries are counted for homozygous variants, and all entries are count for heterozygous variants.");
@@ -32,6 +33,7 @@ public:
 		addFlag("comphet", "If set, only hompound-heterozygous variants pass. Performed after all other filters!");
 		addString("genotype", "If set, only variants with the specified genotype pass. Performed after all other filters!", true, "");
 
+		changeLog(2017, 6, 14, "Added sub-population allele frequency filter.");
 		changeLog(2016, 6, 11, "Initial commit.");
 	}
 
@@ -47,7 +49,14 @@ public:
 		double max_af = getFloat("max_af");
 		if (max_af>=0)
 		{
-			filter.flagByAllelFrequency(max_af);
+			filter.flagByAlleleFrequency(max_af);
+		}
+
+		//filter AF sub-populations
+		double max_af_sub = getFloat("max_af_sub");
+		if (max_af_sub>=0)
+		{
+			filter.flagBySubPopulationAlleleFrequency(max_af_sub);
 		}
 
 		//filter impact

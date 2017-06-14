@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>287</width>
-    <height>541</height>
+    <height>563</height>
    </rect>
   </property>
   <property name="features">
@@ -227,7 +227,7 @@
        <property name="verticalSpacing">
         <number>2</number>
        </property>
-       <item row="3" column="1">
+       <item row="4" column="1">
         <widget class="QCheckBox" name="ihdb_ignore_gt">
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;By default, only homozygous database entries are counted for homzygous variants and all database entries are counted for heterozygous variants.&lt;/p&gt;&lt;p&gt;If the genotyps is ignored, all database entries are counted independent of the variant genotype.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -237,7 +237,7 @@
          </property>
         </widget>
        </item>
-       <item row="8" column="0" colspan="2">
+       <item row="9" column="0" colspan="2">
         <widget class="QCheckBox" name="keep_class_m">
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Overwrites the filters:&lt;br/&gt;- MAF&lt;br/&gt;- impact&lt;br/&gt;- ihdb&lt;br/&gt;- genotype&lt;br/&gt;- filter columns&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -247,7 +247,7 @@
          </property>
         </widget>
        </item>
-       <item row="7" column="1">
+       <item row="8" column="1">
         <widget class="QComboBox" name="keep_class_ge">
          <item>
           <property name="text">
@@ -276,7 +276,7 @@
          </item>
         </widget>
        </item>
-       <item row="1" column="0">
+       <item row="2" column="0">
         <widget class="QCheckBox" name="impact_enabled">
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Impact filter of variant in coding_and_splicing column.&lt;br/&gt;&lt;br/&gt;Details about impact can be found here:&lt;br/&gt;http://snpeff.sourceforge.net/SnpEff_manual.html#eff&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -286,7 +286,7 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="1">
+       <item row="2" column="1">
         <widget class="QComboBox" name="impact">
          <property name="currentText">
           <string>HIGH,MODERATE,LOW</string>
@@ -323,7 +323,7 @@
          </item>
         </widget>
        </item>
-       <item row="7" column="0">
+       <item row="8" column="0">
         <widget class="QCheckBox" name="keep_class_ge_enabled">
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Overwrites the filters:&lt;br/&gt;- MAF&lt;br/&gt;- impact&lt;br/&gt;- ihdb&lt;br/&gt;- genotype&lt;br/&gt;- filter columns&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -333,7 +333,7 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="1">
+       <item row="3" column="1">
         <widget class="QSpinBox" name="ihdb">
          <property name="maximum">
           <number>100000</number>
@@ -346,7 +346,7 @@
          </property>
         </widget>
        </item>
-       <item row="6" column="0">
+       <item row="7" column="0">
         <widget class="QCheckBox" name="classification_enabled">
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Overwrites the filters:&lt;br/&gt;- MAF&lt;br/&gt;- impact&lt;br/&gt;- ihdb&lt;br/&gt;- genotype&lt;br/&gt;- filter columns&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -356,39 +356,7 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="0">
-        <widget class="QCheckBox" name="maf_enabled">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum MAF (minor allele frequency)  in any of the databases 1000g, ExAC and Kaviar.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>MAF</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QDoubleSpinBox" name="maf">
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="suffix">
-          <string>%</string>
-         </property>
-         <property name="maximum">
-          <double>100.000000000000000</double>
-         </property>
-         <property name="singleStep">
-          <double>0.100000000000000</double>
-         </property>
-         <property name="value">
-          <double>0.000000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="1">
+       <item row="7" column="1">
         <widget class="QComboBox" name="classification">
          <property name="currentText">
           <string>5</string>
@@ -420,7 +388,7 @@
          </item>
         </widget>
        </item>
-       <item row="11" column="0">
+       <item row="12" column="0">
         <widget class="QCheckBox" name="geno_affected_enabled">
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Genotype filter for affected samples.&lt;/p&gt;&lt;p&gt;Applied after all other filters.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -430,7 +398,7 @@
          </property>
         </widget>
        </item>
-       <item row="5" column="0">
+       <item row="6" column="0">
         <spacer name="verticalSpacer_2">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -446,7 +414,7 @@
          </property>
         </spacer>
        </item>
-       <item row="12" column="1">
+       <item row="13" column="1">
         <widget class="QComboBox" name="geno_control">
          <property name="currentIndex">
           <number>0</number>
@@ -473,14 +441,14 @@
          </item>
         </widget>
        </item>
-       <item row="9" column="0" colspan="2">
+       <item row="10" column="0" colspan="2">
         <widget class="Line" name="line">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
         </widget>
        </item>
-       <item row="12" column="0">
+       <item row="13" column="0">
         <widget class="QCheckBox" name="geno_control_enabled">
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Genotype filter for control samples (non-affected).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -490,7 +458,7 @@
          </property>
         </widget>
        </item>
-       <item row="11" column="1">
+       <item row="12" column="1">
         <widget class="QComboBox" name="geno_affected">
          <item>
           <property name="text">
@@ -514,13 +482,83 @@
          </item>
         </widget>
        </item>
-       <item row="2" column="0">
+       <item row="3" column="0">
         <widget class="QCheckBox" name="ihdb_enabled">
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum occurences in the in-house database (e.g. NGSD).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
           <string>ihdb</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QDoubleSpinBox" name="maf_sub">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Sub-population allle frequency cutoff.</string>
+         </property>
+         <property name="suffix">
+          <string>%</string>
+         </property>
+         <property name="maximum">
+          <double>100.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.100000000000000</double>
+         </property>
+         <property name="value">
+          <double>0.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QDoubleSpinBox" name="maf">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Overall allele frequency cutoff.</string>
+         </property>
+         <property name="suffix">
+          <string>%</string>
+         </property>
+         <property name="maximum">
+          <double>100.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.100000000000000</double>
+         </property>
+         <property name="value">
+          <double>0.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QCheckBox" name="maf_enabled">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum overall allele frequency in any of the databases 1000g, ExAC and gnomAD.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>AF (overall)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QCheckBox" name="maf_sub_enabled">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum sub-population allele frequency in ExAC populations.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>AF (sub-population)</string>
          </property>
         </widget>
        </item>

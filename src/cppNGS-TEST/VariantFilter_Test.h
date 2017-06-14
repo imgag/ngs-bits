@@ -188,13 +188,13 @@ private slots:
 		I_EQUAL(filter_count, 142);
 	}
 
-	void flagByAllelFrequency()
+	void flagByAlleleFrequency()
 	{
 		VariantList vl;
 		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
 
 		VariantFilter filter(vl);
-		filter.flagByAllelFrequency(0.001);
+		filter.flagByAlleleFrequency(0.001);
 
 		I_EQUAL(vl.count(), 143);
 		I_EQUAL(filter.countPassing(), 4);
@@ -202,6 +202,22 @@ private slots:
 		IS_TRUE(filter.flags()[74]);
 		IS_TRUE(filter.flags()[101]);
 		IS_TRUE(filter.flags()[120]);
+	}
+
+
+	void flagBySubPopulationAlleleFrequency()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+
+		VariantFilter filter(vl);
+		filter.flagByAlleleFrequency(0.01);
+		I_EQUAL(vl.count(), 143);
+		I_EQUAL(filter.countPassing(), 9);
+
+		filter.flagBySubPopulationAlleleFrequency(0.01);
+		I_EQUAL(vl.count(), 143);
+		I_EQUAL(filter.countPassing(), 7);
 	}
 
 	void flagByImpact()
@@ -414,7 +430,7 @@ private slots:
 		VariantFilter filter(vl);
 
 		//first filter
-		filter.flagByAllelFrequency(0.01);
+		filter.flagByAlleleFrequency(0.01);
 		I_EQUAL(filter.countPassing(), 36);
 
 		//second filter
@@ -430,7 +446,7 @@ private slots:
 		VariantFilter filter(vl);
 
 		//first filter
-		filter.flagByAllelFrequency(0.01);
+		filter.flagByAlleleFrequency(0.01);
 		I_EQUAL(filter.countPassing(), 36);
 
 		//second filter

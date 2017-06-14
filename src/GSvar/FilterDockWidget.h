@@ -35,6 +35,11 @@ public:
 	/// Returns the maximum MAF percentage filter value.
 	double mafPerc() const;
 
+	/// Returns if the MAF filter for sub-populations is enabled.
+	bool applyMafSub() const;
+	/// Returns the maximum MAF percentage filter value for sub-populations.
+	double mafSubPerc() const;
+
 	/// Returns if the impact filter is enabled.
 	bool applyImpact() const;
 	/// Returns valid impact.

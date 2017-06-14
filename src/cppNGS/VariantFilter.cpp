@@ -10,7 +10,7 @@ VariantFilter::VariantFilter(VariantList& vl)
 	clear();
 }
 
-void VariantFilter::flagByAllelFrequency(double max_af)
+void VariantFilter::flagByAlleleFrequency(double max_af)
 {
 	//check input
 	if (max_af<0 || max_af>1)
@@ -32,6 +32,32 @@ void VariantFilter::flagByAllelFrequency(double max_af)
 				&& variants[i].annotations()[i_exac].toDouble()<=max_af
 				&& (i_kaviar==-1 || variants[i].annotations()[i_kaviar].toDouble()<=max_af)
 				&& (i_gnomad==-1 || variants[i].annotations()[i_gnomad].toDouble()<=max_af);
+	}
+}
+
+void VariantFilter::flagBySubPopulationAlleleFrequency(double max_af)
+{
+	//check input
+	if (max_af<0 || max_af>1)
+	{
+		THROW(ArgumentException, "Invalid MAF '" + QString::number(max_af) + "'. Must be between 0 and 1!");
+	}
+
+	//filter
+	int index = variants.annotationIndexByName("ExAC_sub", true, true);
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!pass[i]) continue;
+
+		QByteArrayList parts = variants[i].annotations()[index].split(',');
+		foreach(const QByteArray& part, parts)
+		{
+			if (part.toDouble()>max_af)
+			{
+				pass[i] = false;
+				break;
+			}
+		}
 	}
 }
 
