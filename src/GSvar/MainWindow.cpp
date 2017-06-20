@@ -945,80 +945,6 @@ void MainWindow::annotateVariantsROI()
 	worker->start();
 }
 
-QMap<QString, MainWindow::SampleInfo> MainWindow::getSampleHeader()
-{
-	QMap<QString, SampleInfo> output;
-
-	foreach(QString line, variants_.comments())
-	{
-		line = line.trimmed();
-
-		if (line.startsWith("##SAMPLE=<"))
-		{
-			auto parts = line.mid(10, line.length()-11).split(',');
-			QString name;
-			foreach(const QString& part, parts)
-			{
-				int sep_idx = part.indexOf('=');
-				if (sep_idx==-1)
-				{
-					qDebug() << "Invalid sample header entry " << part << " in " << line;
-					continue;
-				}
-
-				QString key = part.left(sep_idx);
-				QString value = part.mid(sep_idx+1);
-				if (key=="ID")
-				{
-					name = value;
-					output[name].column_name = value;
-				}
-				else
-				{
-					output[name].properties[key] = value;
-				}
-			}
-		}
-	}
-
-	//special handling of single-sample analysis
-	for (int i=0; i<variants_.annotations().count(); ++i)
-	{
-		if (variants_.annotations()[i].name()=="genotype")
-		{
-			if (output.count()==0) //old single-sample analysis without '#SAMPLE header'. Old trio/somatic variant lists are no longer supported.
-			{
-				QString name = QFileInfo(filename_).baseName();
-				output[name].properties["Status"] = "Affected";
-			}
-
-			if (output.count()==1)
-			{
-				output.first().column_name = "genotype";
-			}
-		}
-		break;
-	}
-
-	return output;
-}
-
-QStringList MainWindow::genotypeColumns(MainWindow::AffectedState state)
-{
-	QStringList output;
-
-	QMap<QString, SampleInfo> data = getSampleHeader();
-	foreach(const SampleInfo& info, data)
-	{
-		if (state==ALL || (state==AFFECTED && info.isAffected()) || (state==CONTROL && !info.isAffected()))
-		{
-			output << info.column_name;
-		}
-	}
-
-	return output;
-}
-
 void MainWindow::databaseAnnotationFinished(bool success)
 {
 	delete busy_dialog_;
@@ -1701,7 +1627,7 @@ void MainWindow::variantListChanged()
 
 	//update variant details widget
 	var_last_ = -1;
-	QMap<QString, SampleInfo> sample_data = getSampleHeader();
+	SampleHeaderInfo sample_data = NGSHelper::getSampleHeader(variants_, filename_);
 
 	//resize
 	ui_.vars->setRowCount(variants_.count());
@@ -2199,7 +2125,7 @@ QMap<QString, QString> MainWindow::getBamFiles()
 	QString sample_folder = QFileInfo(filename_).path();
 	QString project_folder = QFileInfo(sample_folder).path();
 
-	QMap<QString, SampleInfo> data = getSampleHeader();
+	SampleHeaderInfo data = NGSHelper::getSampleHeader(variants_, filename_);
 	foreach(QString sample, data.keys())
 	{
 		QString bam1 = sample_folder + "/" + sample + ".bam";
@@ -2253,6 +2179,9 @@ void MainWindow::filtersChanged()
 		QTime timer;
 		timer.start();
 
+		//get sample info
+		SampleHeaderInfo sample_data = NGSHelper::getSampleHeader(variants_, filename_);
+
 		//main filters
 		VariantFilter filter(variants_);
 		if (filter_widget_->applyMaf())
@@ -2271,7 +2200,7 @@ void MainWindow::filtersChanged()
 		}
 		if (filter_widget_->applyIhdb())
 		{
-			QStringList geno_cols = (filter_widget_->ihdbIgnoreGenotype() ? QStringList() : genotypeColumns(AFFECTED));
+			QStringList geno_cols = (filter_widget_->ihdbIgnoreGenotype() ? QStringList() : sample_data.sampleColumns(true));
 			filter.flagByIHDB(filter_widget_->ihdb(), geno_cols);
 		}
 		QStringList remove = filter_widget_->filterColumnsRemove();
@@ -2408,7 +2337,7 @@ void MainWindow::filtersChanged()
 				geno = geno.mid(4);
 				invert = true;
 			}
-			filter.flagByGenotype(geno, invert, genotypeColumns(CONTROL));
+			filter.flagByGenotype(geno, sample_data.sampleColumns(false), invert);
 			Log::perf("Applying genotype filter (control) took ", timer);
 		}
 
@@ -2418,15 +2347,15 @@ void MainWindow::filtersChanged()
 			QString geno = filter_widget_->genotypeAffected();
 			if (geno == "compound-het")
 			{
-				filter.flagCompoundHeterozygous(genotypeColumns(AFFECTED));
+				filter.flagCompoundHeterozygous(sample_data.sampleColumns(true));
 			}
 			else if (geno == "compound-het or hom")
 			{
-				filter.flagCompoundHeterozygous(genotypeColumns(AFFECTED), true);
+				filter.flagCompoundHeterozygous(sample_data.sampleColumns(true), true);
 			}
 			else
 			{
-				filter.flagByGenotype(filter_widget_->genotypeAffected(), false, genotypeColumns(AFFECTED));
+				filter.flagByGenotype(filter_widget_->genotypeAffected(), sample_data.sampleColumns(true));
 			}
 			Log::perf("Applying genotype filter (affected) took ", timer);
 		}
@@ -2566,18 +2495,3 @@ void MainWindow::openRecentFile()
 	loadFile(action->text());
 }
 
-bool MainWindow::SampleInfo::isAffected() const
-{
-	auto it = properties.cbegin();
-	while(it != properties.cend())
-	{
-		if (it.key().toLower()=="status" && it.value().toLower()=="affected")
-		{
-			return true;
-		}
-
-		++it;
-	}
-
-	return false;
-}

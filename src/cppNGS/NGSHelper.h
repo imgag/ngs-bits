@@ -13,7 +13,7 @@
 
 using namespace BamTools;
 
-///Variant details struct
+///Variant details struct for variants.
 struct VariantDetails
 {
 	VariantDetails()
@@ -26,6 +26,28 @@ struct VariantDetails
 	int depth;
 	double frequency;
 	double mapq0_frac;
+};
+
+
+///Sample header struct for samples in variant lists (GSvar).
+struct CPPNGSSHARED_EXPORT SampleInfo
+{
+	QString column_name;
+	QMap<QString, QString> properties;
+
+	///Returns if the sample has state 'affected'.
+	bool isAffected() const;
+};
+
+///Sample header information from GSvar files.
+class CPPNGSSHARED_EXPORT SampleHeaderInfo
+	: public QMap<QString, SampleInfo>
+{
+	public:
+		///Returns all sample genotype column names of all samples.
+		 QStringList sampleColumns() const;
+		///Returns all sample genotype column names of affected/unaffected samples.
+		QStringList sampleColumns(bool affected) const;
 };
 
 ///Helper class for NGS-specific stuff.
@@ -81,6 +103,9 @@ public:
 
 	///Create sample overview file
 	static void createSampleOverview(QStringList in, QString out, int indel_window=100, bool cols_auto=true, QStringList cols = QStringList());
+
+	///Parses and returns sample data from variant list header. The @p filename argument is needed to support old germline variant lists without sample header.
+	static SampleHeaderInfo getSampleHeader(const VariantList& vl, QString gsvar_file);
 
 private:
 	///Constructor declared away

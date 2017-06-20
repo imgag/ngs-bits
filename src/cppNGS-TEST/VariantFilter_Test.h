@@ -337,14 +337,14 @@ private slots:
 		VariantFilter filter(vl);
 
 		//first filter
-		filter.flagByGenotype("hom");
+		filter.flagByGenotype("hom", QStringList() <<"genotype");
 
 		I_EQUAL(vl.count(), 143);
 		I_EQUAL(filter.countPassing(), 57);
 
 		//second filter
 		filter.clear();
-		filter.flagByGenotype("het");
+		filter.flagByGenotype("het", QStringList() <<"genotype");
 
 		I_EQUAL(vl.count(), 143);
 		I_EQUAL(filter.countPassing(), 86);
@@ -352,7 +352,7 @@ private slots:
 
 		//third filter (invert)
 		filter.clear();
-		filter.flagByGenotype("hom", true);
+		filter.flagByGenotype("hom", QStringList() <<"genotype", true);
 
 		I_EQUAL(vl.count(), 143);
 		I_EQUAL(filter.countPassing(), 86);
@@ -401,14 +401,14 @@ private slots:
 		VariantFilter filter(vl);
 
 		//first filter
-		filter.flagByGenotype("hom", false, QStringList() << "Affected1" << "Affected2");
+		filter.flagByGenotype("hom", QStringList() << "Affected1" << "Affected2", false);
 
 		I_EQUAL(vl.count(), 256);
 		I_EQUAL(filter.countPassing(), 65);
 
 		//second filter
 		filter.clear();
-		filter.flagByGenotype("het", false, QStringList() << "Affected1" << "Affected2");
+		filter.flagByGenotype("het", QStringList() << "Affected1" << "Affected2", false);
 
 		I_EQUAL(vl.count(), 256);
 		I_EQUAL(filter.countPassing(), 95);
@@ -416,7 +416,7 @@ private slots:
 
 		//second filter (invert)
 		filter.clear();
-		filter.flagByGenotype("hom", true, QStringList() << "Affected1" << "Affected2");
+		filter.flagByGenotype("hom", QStringList() << "Affected1" << "Affected2", true);
 
 		I_EQUAL(vl.count(), 256);
 		I_EQUAL(filter.countPassing(), 160);

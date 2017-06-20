@@ -695,6 +695,64 @@ void NGSHelper::createSampleOverview(QStringList in, QString out, int indel_wind
 	vl_merged.store(out, VariantList::TSV);
 }
 
+SampleHeaderInfo NGSHelper::getSampleHeader(const VariantList& vl, QString gsvar_file)
+{
+	SampleHeaderInfo output;
+
+	foreach(QString line, vl.comments())
+	{
+		line = line.trimmed();
+
+		if (line.startsWith("##SAMPLE=<"))
+		{
+			auto parts = line.mid(10, line.length()-11).split(',');
+			QString name;
+			foreach(const QString& part, parts)
+			{
+				int sep_idx = part.indexOf('=');
+				if (sep_idx==-1)
+				{
+					qDebug() << "Invalid sample header entry " << part << " in " << line;
+					continue;
+				}
+
+				QString key = part.left(sep_idx);
+				QString value = part.mid(sep_idx+1);
+				if (key=="ID")
+				{
+					name = value;
+					output[name].column_name = value;
+				}
+				else
+				{
+					output[name].properties[key] = value;
+				}
+			}
+		}
+	}
+
+	//special handling of single-sample analysis
+	for (int i=0; i<vl.annotations().count(); ++i)
+	{
+		if (vl.annotations()[i].name()=="genotype")
+		{
+			if (output.count()==0) //old single-sample analysis without '#SAMPLE header'. Old trio/somatic variant lists are no longer supported.
+			{
+				QString name = QFileInfo(gsvar_file).baseName();
+				output[name].properties["Status"] = "Affected";
+			}
+
+			if (output.count()==1)
+			{
+				output.first().column_name = "genotype";
+			}
+		}
+		break;
+	}
+
+	return output;
+}
+
 void NGSHelper::softClipAlignment(BamAlignment& al, int start_ref_pos, int end_ref_pos)
 {
 	std::vector<CigarOp> old_CIGAR = al.CigarData;
@@ -879,4 +937,47 @@ char NGSHelper::complement(char base)
 		default:
 			THROW(ProgrammingException, "Could not convert base " + QString(base) + " to complement!");
 	}
+}
+
+
+bool SampleInfo::isAffected() const
+{
+	auto it = properties.cbegin();
+	while(it != properties.cend())
+	{
+		if (it.key().toLower()=="status" && it.value().toLower()=="affected")
+		{
+			return true;
+		}
+
+		++it;
+	}
+
+	return false;
+}
+
+
+QStringList SampleHeaderInfo::sampleColumns() const
+{
+	QStringList output;
+	foreach(const SampleInfo& info, *this)
+	{
+		output << info.column_name;
+	}
+
+	return output;
+}
+
+QStringList SampleHeaderInfo::sampleColumns(bool affected) const
+{
+	QStringList output;
+	foreach(const SampleInfo& info, *this)
+	{
+		if (affected==info.isAffected())
+		{
+			output << info.column_name;
+		}
+	}
+
+	return output;
 }

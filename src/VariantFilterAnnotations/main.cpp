@@ -5,6 +5,7 @@
 #include "BedFile.h"
 #include "Helper.h"
 #include "VariantFilter.h"
+#include "NGSHelper.h"
 
 class ConcreteTool
 	: public ToolBase
@@ -30,9 +31,10 @@ public:
 		addFlag("max_ihdb_ignore_genotype", "If set, variant genotype is ignored. Otherwise, only homozygous database entries are counted for homozygous variants, and all entries are count for heterozygous variants.");
 		addInt("min_class", "Minimum classification of *classified* variants.", true, -1);
 		addString("filters", "Comma-separated list of filter column entries to remove.", true, "");
-		addFlag("comphet", "If set, only hompound-heterozygous variants pass. Performed after all other filters!");
-		addString("genotype", "If set, only variants with the specified genotype pass. Performed after all other filters!", true, "");
+		addEnum("geno_affected", "If set, only variants with the specified genotype in affected samples pass. Performed after all other filters!", true, QStringList() << "hom" << "het" << "comphet" << "comphet+hom" << "any", "any");
+		addEnum("geno_control", "If set, only variants with the specified genotype in control samples pass. Performed after all other filters!", true, QStringList() << "hom" << "het" << "wt" << "not_hom" << "any", "any");
 
+		changeLog(2017, 6, 14, "Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.");
 		changeLog(2017, 6, 14, "Added sub-population allele frequency filter.");
 		changeLog(2016, 6, 11, "Initial commit.");
 	}
@@ -40,8 +42,9 @@ public:
 	virtual void main()
 	{
 		//load variants
+		QString in = getInfile("in");
 		VariantList variants;
-		variants.load(getInfile("in"));
+		variants.load(in);
 
 		VariantFilter filter(variants);
 
@@ -67,15 +70,11 @@ public:
 		}
 
 		//filter IHDB
+		QStringList samples_affected = NGSHelper::getSampleHeader(variants, in).sampleColumns(true);
 		int max_ihdb = getInt("max_ihdb");
 		if (max_ihdb>0)
 		{
-			QStringList geno_cols;
-			if (!getFlag("max_ihdb_ignore_genotype"))
-			{
-				geno_cols << "genotype";
-			}
-			filter.flagByIHDB(max_ihdb, geno_cols);
+			filter.flagByIHDB(max_ihdb, getFlag("max_ihdb_ignore_genotype") ? QStringList() : samples_affected);
 		}
 
 		//filter classification
@@ -92,17 +91,33 @@ public:
 			filter.flagByFilterColumnMatching(filters.split(","));
 		}
 
-		//filter genotype
-		QString genotype = getString("genotype");
-		if (!genotype.isEmpty())
+		//filter genotype (affected)
+		QString geno_affected = getEnum("geno_affected");
+		if (geno_affected=="comphet")
 		{
-			filter.flagByGenotype(genotype);
+			filter.flagCompoundHeterozygous(samples_affected);
+		}
+		else if (geno_affected=="comphet+hom")
+		{
+			filter.flagCompoundHeterozygous(samples_affected, true);
+		}
+		else if (geno_affected!="any")
+		{
+			filter.flagByGenotype(geno_affected, samples_affected);
 		}
 
-		//filter compound-heterozygous
-		if (getFlag("comphet"))
+		//filter genotype (control)
+		QString geno_control = getEnum("geno_control");
+		if (geno_control!="any")
 		{
-			filter.flagCompoundHeterozygous(QStringList() << "genotype");
+			QStringList samples_control = NGSHelper::getSampleHeader(variants, in).sampleColumns(false);
+			bool invert = false;
+			if (geno_control.startsWith("not_"))
+			{
+				geno_control = geno_control.mid(4);
+				invert = true;
+			}
+			filter.flagByGenotype(geno_control, samples_control, invert);
 		}
 
 		//store variants

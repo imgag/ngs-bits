@@ -16,7 +16,6 @@ GSvar:
   - implement print-out of upload data for patient file
 
 Tools:
-** SeqPurge: increase stringency and document that it should be relaxed for amplicon data.
 ** NGSDImportGeneInfo:
   - add (optional) import of inheritance mode from OMIM (use force flag)
   - add Ensembl transcripts
