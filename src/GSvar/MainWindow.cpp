@@ -888,7 +888,6 @@ void MainWindow::generateReport()
 	//flag report variants in NGSD
 	try
 	{
-		NGSD().setReportVariants(filename_, variants_, dialog.selectedIndices().toSet());
 		NGSD().setReportOutcome(filename_, dialog.outcome());
 	}
 	catch (DatabaseException& e)

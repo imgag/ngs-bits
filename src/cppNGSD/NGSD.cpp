@@ -906,23 +906,6 @@ void NGSD::setComment(const QString& filename, const Variant& variant, const QSt
 	getQuery().exec("UPDATE detected_variant SET comment='" + text + "' WHERE processed_sample_id='" + processedSampleId(filename) + "' AND variant_id='" + variantId(variant) + "'");
 }
 
-void NGSD::setReportVariants(const QString& filename, const VariantList& variants, QSet<int> selected_indices)
-{
-	//reset all variants of the processed sample
-	QString ps_id = processedSampleId(filename);
-	getQuery().exec("UPDATE detected_variant SET report=0 WHERE processed_sample_id='" + ps_id + "'");
-
-
-	//update variants used in report
-	for(int i=0; i<variants.count(); ++i)
-	{
-		if (selected_indices.contains(i))
-		{
-			getQuery().exec("UPDATE detected_variant SET report=1 WHERE processed_sample_id='" + ps_id + "' AND variant_id='" + variantId(variants[i]) + "'");
-		}
-	}
-}
-
 QString NGSD::nextProcessingId(const QString& sample_id)
 {
 	QString max_num = getValue("SELECT MAX(process_id) FROM processed_sample WHERE sample_id=" + sample_id).toString();

@@ -179,9 +179,6 @@ public:
 	///Sets the comment of a variant in the NGSD.
 	void setComment(const QString& filename, const Variant& variant, const QString& text);
 
-	///Sets the report status of all variants in the NGSD.
-	void setReportVariants(const QString& filename, const VariantList& variants, QSet<int> selected_indices);
-
 	///Returns the diagnostic status of a sample (status, user, datetime, outcome), or an empty result if an error occurred.
 	QStringList getDiagnosticStatus(const QString& filename);
 	///Sets the diagnostic status.

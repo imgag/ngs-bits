@@ -331,6 +331,7 @@ CREATE  TABLE IF NOT EXISTS `sample` (
   `tumor` TINYINT(1) NOT NULL,
   `ffpe` TINYINT(1) NOT NULL,
   `sender_id` INT(11) NOT NULL,
+  `disease_group` ENUM('n/a','Neoplasms','Diseases of the blood or blood-forming organs','Diseases of the immune system','Endocrine, nutritional or metabolic diseases','Mental, behavioural or neurodevelopmental disorders','Sleep-wake disorders','Diseases of the nervous system','Diseases of the visual system','Diseases of the ear or mastoid process','Diseases of the circulatory system','Diseases of the respiratory system','Diseases of the digestive system','Diseases of the skin','Diseases of the musculoskeletal system or connective tissue','Diseases of the genitourinary system','Developmental anomalies','Other diseases','No disease - control sample') NOT NULL DEFAULT 'n/a',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_UNIQUE` (`name` ASC),
   INDEX `fk_samples_species1` (`species_id` ASC),
@@ -339,6 +340,7 @@ CREATE  TABLE IF NOT EXISTS `sample` (
   INDEX `name_external` (`name_external` ASC),
   INDEX `tumor` (`tumor` ASC),
   INDEX `quality` (`quality` ASC),
+  INDEX `disease_group` (`disease_group`),
   CONSTRAINT `fk_samples_species1`
     FOREIGN KEY (`species_id`)
     REFERENCES `species` (`id`)
@@ -559,13 +561,9 @@ CREATE  TABLE IF NOT EXISTS `detected_variant` (
   `variant_id` INT(11) NOT NULL,
   `genotype` ENUM('hom','het') NOT NULL,
   `comment` TEXT NULL DEFAULT NULL,
-  `report` TINYINT(1) NOT NULL DEFAULT '0',
-  `disease_group` ENUM('n/a','Neoplasms','Diseases of the blood or blood-forming organs','Diseases of the immune system','Endocrine, nutritional or metabolic diseases','Mental, behavioural or neurodevelopmental disorders','Sleep-wake disorders','Diseases of the nervous system','Diseases of the visual system','Diseases of the ear or mastoid process','Diseases of the circulatory system','Diseases of the respiratory system','Diseases of the digestive system','Diseases of the skin','Diseases of the musculoskeletal system or connective tissue','Diseases of the genitourinary system','Developmental anomalies','Other diseases','No disease - control sample') NOT NULL DEFAULT 'n/a',
   PRIMARY KEY (`processed_sample_id`, `variant_id`),
   INDEX `fk_detected_variant_variant1` (`variant_id` ASC),
   INDEX `comment` (`comment`(50) ASC),
-  INDEX `report` (`report`),
-  INDEX `disease_group` (`disease_group`),
   CONSTRAINT `fk_processed_sample_has_variant_processed_sample1`
     FOREIGN KEY (`processed_sample_id`)
     REFERENCES `processed_sample` (`id`)
