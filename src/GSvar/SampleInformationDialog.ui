@@ -44,22 +44,8 @@
      <property name="spacing">
       <number>3</number>
      </property>
-     <item row="0" column="1">
-      <widget class="QLabel" name="name">
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="label_8">
-       <property name="text">
-        <string>System:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="1">
-      <widget class="QLabel" name="system">
+     <item row="2" column="1">
+      <widget class="QLabel" name="tumor_ffpe">
        <property name="text">
         <string/>
        </property>
@@ -72,7 +58,21 @@
        </property>
       </widget>
      </item>
-     <item row="4" column="1">
+     <item row="4" column="0">
+      <widget class="QLabel" name="label_8">
+       <property name="text">
+        <string>System:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_19">
+       <property name="text">
+        <string>Name (external):</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
       <spacer name="horizontalSpacer_7">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -88,17 +88,24 @@
        </property>
       </spacer>
      </item>
-     <item row="1" column="1">
-      <widget class="QLabel" name="name_ext">
+     <item row="0" column="1">
+      <widget class="QLabel" name="name">
        <property name="text">
         <string/>
        </property>
       </widget>
      </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_19">
+     <item row="4" column="1">
+      <widget class="QLabel" name="system">
        <property name="text">
-        <string>Name (external):</string>
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLabel" name="name_ext">
+       <property name="text">
+        <string/>
        </property>
       </widget>
      </item>
@@ -109,8 +116,15 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="1">
-      <widget class="QLabel" name="tumor_ffpe">
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_22">
+       <property name="text">
+        <string>Disease group:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLabel" name="disease_group">
        <property name="text">
         <string/>
        </property>

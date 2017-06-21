@@ -73,6 +73,16 @@ QString NGSD::sampleIsFFPE(const QString& filename)
 	return value.toInt() ? "yes" : "no";
 }
 
+QString NGSD::sampleDiseaseGroup(const QString& filename)
+{
+	return getValue("SELECT disease_group FROM sample WHERE id='" + sampleId(filename, false) + "'").toString();
+}
+
+void NGSD::setSampleDiseaseGroup(const QString& filename, const QString& disease_group)
+{
+	getQuery().exec("UPDATE sample SET disease_group='" + disease_group + "' WHERE id='" + sampleId(filename, false) + "'");
+}
+
 QString NGSD::processedSampleName(const QString& filename, bool throw_if_fails)
 {
 	QString basename = QFileInfo(filename).baseName();

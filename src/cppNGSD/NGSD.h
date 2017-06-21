@@ -139,6 +139,10 @@ public:
 	QString sampleIsTumor(const QString& filename);
 	///Returns the FFPE status of a sample, or "n/a" the sample cannot be found in the database.
 	QString sampleIsFFPE(const QString& filename);
+	///Returns the diease group associated to a sample.
+	QString sampleDiseaseGroup(const QString& filename);
+	///Sets the diease group associated to a sample.
+	void setSampleDiseaseGroup(const QString& filename, const QString& disease_group);
 	///Returns the processing system information for the sample, or an empty string if it could not be detected.
 	enum SystemType {SHORT, LONG, BOTH, TYPE, FILE};
 	QString getProcessingSystem(const QString& filename, SystemType type);

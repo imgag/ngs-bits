@@ -831,6 +831,22 @@ void MainWindow::generateReport()
 		}
 	}
 
+	//check disease group
+	bool ngsd_enabled = Settings::boolean("NGSD_enabled", true);
+	if (ngsd_enabled)
+	{
+		NGSD db;
+		if (db.sampleId(filename_, false)!="" && db.sampleDiseaseGroup(filename_)=="n/a")
+		{
+			bool ok = false;
+			QString disease_group = QInputDialog::getItem(this, "Please set disease group of sample", "disease group:", db.getEnum("sample", "disease_group"), 0, false, &ok);
+			if (ok && disease_group!="n/a")
+			{
+				db.setSampleDiseaseGroup(filename_, disease_group);
+			}
+		}
+	}
+
 	//determine visible variants
 	QBitArray visible(variants_.count(), true);
 	for (int i=0; i<variants_.count(); ++i)
