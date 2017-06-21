@@ -2053,7 +2053,15 @@ void MainWindow::varsContextMenu(QPoint pos)
 				if (bams.empty()) return;
 				value = "BAM<" + bams.values().first();
 			}
-			HttpHandler().getHttpReply(Settings::string("Alamut")+"/show?request="+value);
+
+			try
+			{
+				HttpHandler().getHttpReply(Settings::string("Alamut")+"/show?request="+value);
+			}
+			catch (Exception& e)
+			{
+				QMessageBox::warning(this, "Communication with Alamut failed!", e.message());
+			}
 		}
 	}
 }
