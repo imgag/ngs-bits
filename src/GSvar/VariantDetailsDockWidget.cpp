@@ -328,6 +328,11 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
                 text = formatLink(text, vl[index].toString(true));
             }
 		}
+		else if(name=="comment")
+		{
+			text = anno;
+			tooltip = anno;
+		}
 		else //fallback: use complete annotations string
 		{
 			text = anno;

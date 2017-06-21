@@ -8,7 +8,6 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-** Variant details comment: show whole comment as tooltip
 ** NGSD: move comment to variant => speed up
 * Check trio/multisample IGV integration
 * Do not show variant lists over 1000 variants without filters => click to show
