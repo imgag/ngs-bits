@@ -8,7 +8,6 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-** NGSD: move detected_variant.comment to variant table and remove detected_variant.report => speed up
 * Check trio/multisample IGV integration
 * Do not show variant lists over 1000 variants without filters => click to show
 - multi-sample anaysis: allow relaxing affected/control genotype filters by requiring only X out of Y

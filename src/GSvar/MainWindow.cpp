@@ -1990,13 +1990,13 @@ void MainWindow::varsContextMenu(QPoint pos)
 		try
 		{
 			bool ok = true;
-			QByteArray text = QInputDialog::getMultiLineText(this, "Variant comment", "Text: ", NGSD().comment(filename_, variant), &ok).toUtf8();
+			QByteArray text = QInputDialog::getMultiLineText(this, "Variant comment", "Text: ", NGSD().comment(variant), &ok).toUtf8();
 
 			if (ok)
 			{
 				//update DB
 				int row = item->row();
-				NGSD().setComment(filename_, variants_[row], text);
+				NGSD().setComment(variants_[row], text);
 
 				//get annotation text (from NGSD to get comments of other samples as well)
 				VariantList tmp;

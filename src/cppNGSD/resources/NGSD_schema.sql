@@ -476,7 +476,8 @@ CREATE  TABLE IF NOT EXISTS `variant` (
   `gnomad` FLOAT NULL DEFAULT NULL,
   `gene` TEXT NULL DEFAULT NULL,
   `variant_type` TEXT NULL DEFAULT NULL,
-  `coding` TEXT NULL DEFAULT NULL,
+  `coding` TEXT NULL DEFAULT NULL,  
+  `comment` TEXT NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `variant_UNIQUE` (`chr` ASC, `start` ASC, `end` ASC, `ref`(255) ASC, `obs`(255) ASC),
   INDEX `chr` (`chr` ASC),
@@ -487,7 +488,8 @@ CREATE  TABLE IF NOT EXISTS `variant` (
   INDEX `gene` (`gene`(50) ASC),
   INDEX `1000g` (`1000g` ASC),
   INDEX `exac` (`exac` ASC),
-  INDEX `gnomad` (`exac` ASC)
+  INDEX `gnomad` (`gnomad` ASC),
+  INDEX `comment` (`comment`(50) ASC)
 )
 ENGINE = InnoDB
 AUTO_INCREMENT = 1
@@ -560,10 +562,8 @@ CREATE  TABLE IF NOT EXISTS `detected_variant` (
   `processed_sample_id` INT(11) NOT NULL,
   `variant_id` INT(11) NOT NULL,
   `genotype` ENUM('hom','het') NOT NULL,
-  `comment` TEXT NULL DEFAULT NULL,
   PRIMARY KEY (`processed_sample_id`, `variant_id`),
   INDEX `fk_detected_variant_variant1` (`variant_id` ASC),
-  INDEX `comment` (`comment`(50) ASC),
   CONSTRAINT `fk_processed_sample_has_variant_processed_sample1`
     FOREIGN KEY (`processed_sample_id`)
     REFERENCES `processed_sample` (`id`)

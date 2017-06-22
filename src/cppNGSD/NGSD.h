@@ -175,9 +175,9 @@ public:
 	void setClassification(const Variant& variant, const QString& classification, const QString& comment);
 
 	///Returns the comment of a variant in the NGSD.
-	QString comment(const QString& filename, const Variant& variant);
+	QString comment(const Variant& variant);
 	///Sets the comment of a variant in the NGSD.
-	void setComment(const QString& filename, const Variant& variant, const QString& text);
+	void setComment(const Variant& variant, const QString& text);
 
 	///Returns the diagnostic status of a sample (status, user, datetime, outcome), or an empty result if an error occurred.
 	QStringList getDiagnosticStatus(const QString& filename);
