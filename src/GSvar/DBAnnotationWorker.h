@@ -14,7 +14,7 @@ class DBAnnotationWorker
 	Q_OBJECT
 
 public:
-	DBAnnotationWorker(QString filename, VariantList& variants, BusyDialog* busy, QString roi_file="");
+	DBAnnotationWorker(QString filename, VariantList& variants, BusyDialog* busy, QString roi_file="", double max_af=0.0);
 	virtual void process();
 	bool targetRegionOnly();
 
@@ -23,6 +23,7 @@ private:
 	QString filename_;
 	VariantList& variants_;
 	QString roi_file_;
+	double max_af_;
 	NGSD ngsd_;
 };
 

@@ -3,13 +3,13 @@
 ##DESCRIPTION=classification=Classification from the NGSD.
 ##DESCRIPTION=classification_comment=Classification comment from the NGSD.
 ##DESCRIPTION=validated=Validation information from the NGSD. Validation results of other samples are listed in brackets!
-##DESCRIPTION=comment=Comments from the NGSD. Comments of other samples are listed in brackets!
+##DESCRIPTION=comment=Variant comments from the NGSD.
 ##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, ExAC pLI score).
 #chr	start	end	ref	obs	genotype	snp_q	depth	map_q	variant	variant_frequency	region	gene	variant_details	coding_and_splicing_details	1000g_2012feb	dbSNP_137	ljb2_phylop	ljb2_mt	ljb2_sift	ljb2_pp2hvar	ljb2_pp2hdiv	esp6500si_ea	cosmic64	RepeatMasker	OMIM	ClinVar	ihdb_allsys_hom	ihdb_allsys_het	classification	classification_comment	validated	comment	gene_info
-1	62713224	62713224	C	G	hom	222	116	60	SNV	1	exonic	KANK4	nonsynonymous SNV	KANK4:NM_181712:exon9:c.G2803C:p.V935L,	0.98	rs2941679 [];	0.5600	0.0000	0.3000	0.0010	0.0000	0.9598					1	2				from NA12880	KANK4 (inh=n/a pLI=n/a)
+1	62713224	62713224	C	G	hom	222	116	60	SNV	1	exonic	KANK4	nonsynonymous SNV	KANK4:NM_181712:exon9:c.G2803C:p.V935L,	0.98	rs2941679 [];	0.5600	0.0000	0.3000	0.0010	0.0000	0.9598					2	2				from NA12880	KANK4 (inh=n/a pLI=n/a)
 1	62713246	62713246	G	A	het	225	228	59	SNV	0.4693	exonic	KANK4	synonymous SNV	KANK4:NM_181712:exon9:c.C2781T:p.H927H,	0.31	rs10889315 [];						0.4209					0	0	5	pathogenic			KANK4 (inh=n/a pLI=n/a)
 1	62728784	62728784	A	G	hom	222	386	60	SNV	1	exonic	KANK4	nonsynonymous SNV	KANK4:NM_181712:exon7:c.T2519C:p.V840A,	0.72	rs2666472 [];	-0.8140	0.0038	0.2200	0.0600	0.0680	0.7338					0	1					KANK4 (inh=n/a pLI=n/a)
-1	62728838	62728838	T	C	hom	222	238	60	SNV	0.9958	exonic	KANK4	nonsynonymous SNV	KANK4:NM_181712:exon7:c.A2465G:p.H822R,	0.72	rs2258470 [];	0.6280	0.0000	0.2100	0.0000	0.0000	0.7340					0	2			true positive	from DUMMY	KANK4 (inh=n/a pLI=n/a)
+1	62728838	62728838	T	C	hom	222	238	60	SNV	0.9958	exonic	KANK4	nonsynonymous SNV	KANK4:NM_181712:exon7:c.A2465G:p.H822R,	0.72	rs2258470 [];	0.6280	0.0000	0.2100	0.0000	0.0000	0.7340					0	3			true positive	from DUMMY	KANK4 (inh=n/a pLI=n/a)
 chr1	120539331	120539331	C	T	het	175	325	53	SNV	0.2646	intronic	NOTCH2				rs2124109 [];							248829 [1(pancreas)]; 				0	0					NOTCH2 (inh=n/a pLI=n/a)
 chr1	120611964	120611964	G	C	het	131	403	49	SNV	0.2407	exonic	NOTCH2	nonsynonymous SNV	NOTCH2:NM_024408:exon1:c.C57G:p.C19W,NOTCH2:NM_001200001:exon1:c.C57G:p.C19W,	0.32	rs11810554 [];	1.7600	0.1049	0.1900	0.0000	0.0020		132738 [1(central_nervous_system)]; 				0	0					NOTCH2 (inh=n/a pLI=n/a)
 chr1	120612034	120612034	T	G	het	30	386	49	SNV	0.1839	UTR5	NOTCH2				rs201668322 [];											0	0					NOTCH2 (inh=n/a pLI=n/a)

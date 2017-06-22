@@ -1,3 +1,7 @@
+### 0.1-741-??? (22.06.2017)
+- NGSD re-annotation: improved speed and added option to skip high-frequency variants
+- General: added disease group support (sample info dialog and check if set before creating a report)
+
 ### 0.1-728-gb6bf123 (14.06.2017)
 - Filters: Added sub-population allele frequency filter.
 
@@ -72,6 +76,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 

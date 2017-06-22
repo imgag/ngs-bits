@@ -573,11 +573,7 @@ void VariantFilter::removeFlagged()
 void VariantFilter::tagFlagged(QByteArray tag, QByteArray description)
 {
 	//create 'filter' column (if missing)
-	int index = variants.annotationIndexByName("filter", true, false);
-	if (index==-1)
-	{
-		index = variants.addAnnotation("filter", "Filter column.");
-	}
+	int index = variants.addAnnotationIfMissing("filter", "Filter column.");
 
 	//add tag description (if missing)
 	if (!variants.filters().contains(tag))

@@ -5,6 +5,7 @@
 #include "Settings.h"
 #include "ChromosomalIndex.h"
 #include "NGSHelper.h"
+#include "VariantFilter.h"
 #include <QFileInfo>
 #include <QPair>
 
@@ -508,7 +509,7 @@ QVector<double> NGSD::getQCValues(const QString& accession, const QString& filen
 	return output;
 }
 
-void NGSD::annotate(VariantList& variants, QString filename, BedFile roi)
+void NGSD::annotate(VariantList& variants, QString filename, BedFile roi, double max_af)
 {
 	initProgress("NGSD annotation", true);
 
@@ -525,21 +526,6 @@ void NGSD::annotate(VariantList& variants, QString filename, BedFile roi)
 		found_in_db = false;
 	}
 
-	//remove all NGSD-specific columns
-	QList<VariantAnnotationHeader> headers = variants.annotations();
-	foreach(const VariantAnnotationHeader& header, headers)
-	{
-		if (header.name().startsWith("ihdb_"))
-		{
-			variants.removeAnnotationByName(header.name(), true, false);
-		}
-	}
-	variants.removeAnnotationByName("gene_info", true, false);
-	variants.removeAnnotationByName("classification", true, false);
-	variants.removeAnnotationByName("classification_comment", true, false);
-	variants.removeAnnotationByName("validated", true, false);
-	variants.removeAnnotationByName("comment", true, false);
-
 	//load target region (if given)
 	QScopedPointer<ChromosomalIndex<BedFile>> roi_index;
 	if (roi.count()!=0)
@@ -552,16 +538,22 @@ void NGSD::annotate(VariantList& variants, QString filename, BedFile roi)
 		roi_index.reset(new ChromosomalIndex<BedFile>(roi));
 	}
 
+	//apply AF filter (if given)
+	VariantFilter filter(variants);
+	if (max_af>0)
+	{
+		filter.flagByAlleleFrequency(max_af);
+	}
+
 	//get required column indices
-	int ihdb_all_hom_idx = variants.addAnnotation("ihdb_allsys_hom", "Homozygous variant counts in NGSD independent of the processing system.");
-	int ihdb_all_het_idx =  variants.addAnnotation("ihdb_allsys_het", "Heterozygous variant counts in NGSD independent of the processing system.");
-	int class_idx = variants.addAnnotation("classification", "Classification from the NGSD.");
-	int clacom_idx = variants.addAnnotation("classification_comment", "Classification comment from the NGSD.");
-	int valid_idx = variants.addAnnotation("validated", "Validation information from the NGSD. Validation results of other samples are listed in brackets!");
-	if (variants.annotationIndexByName("comment", true, false)==-1) variants.addAnnotation("comment", "Comments from the NGSD. Comments of other samples are listed in brackets!");
-	int comment_idx = variants.annotationIndexByName("comment", true, false);
+	int ihdb_all_hom_idx = variants.addAnnotationIfMissing("ihdb_allsys_hom", "Homozygous variant counts in NGSD independent of the processing system.");
+	int ihdb_all_het_idx =  variants.addAnnotationIfMissing("ihdb_allsys_het", "Heterozygous variant counts in NGSD independent of the processing system.");
+	int class_idx = variants.addAnnotationIfMissing("classification", "Classification from the NGSD.");
+	int clacom_idx = variants.addAnnotationIfMissing("classification_comment", "Classification comment from the NGSD.");
+	int valid_idx = variants.addAnnotationIfMissing("validated", "Validation information from the NGSD. Validation results of other samples are listed in brackets!");
+	int comment_idx = variants.addAnnotationIfMissing("comment", "Variant comments from the NGSD.");
+	int geneinfo_idx = variants.addAnnotationIfMissing("gene_info", "Gene information from NGSD (inheritance mode, ExAC pLI score).");
 	int gene_idx = variants.annotationIndexByName("gene", true, false);
-	int geneinfo_idx = variants.addAnnotation("gene_info", "Gene information from NGSD (inheritance mode, ExAC pLI score).");
 
 	/*
 	//Timing benchmarks
@@ -583,6 +575,12 @@ void NGSD::annotate(VariantList& variants, QString filename, BedFile roi)
 	for (int i=0; i<variants.count(); ++i)
 	{
 		Variant& v = variants[i];
+
+		//skip variants with too high allele frequency
+		if(max_af>0.0)
+		{
+			if (!filter.flags()[i]) continue;
+		}
 
 		//skip variant outside the target region
 		if (!roi_index.isNull())
@@ -657,7 +655,7 @@ void NGSD::annotate(VariantList& variants, QString filename, BedFile roi)
 		//timer.restart();
 		int allsys_hom_count = 0;
 		int allsys_het_count = 0;
-		query.exec("SELECT COUNT(DISTINCT ps.sample_id), dv.genotype FROM `variant` v, detected_variant dv, processed_sample ps WHERE dv.variant_id=v.id AND dv.processed_sample_id=ps.id AND v.id='"+v_id+"' AND ps.sample_id!='"+s_id+"' GROUP BY dv.genotype");
+		query.exec("SELECT COUNT(DISTINCT ps.sample_id), dv.genotype FROM `variant` v, detected_variant dv, processed_sample ps WHERE dv.variant_id=v.id AND dv.processed_sample_id=ps.id AND v.id='"+v_id+"' GROUP BY dv.genotype");
 		while(query.next())
 		{
 			if (query.value(1).toByteArray()=="hom")
@@ -709,19 +707,10 @@ void NGSD::annotateSomatic(VariantList& variants, QString filename)
 		Log::warn("Could not find processed sample in NGSD from name '" + QFileInfo(filename).baseName() + "'. Annotation will be incomplete because processing system could not be determined!");
 	}
 
-	//remove all NGSD-specific columns
-	QList<VariantAnnotationHeader> headers = variants.annotations();
-	foreach(const VariantAnnotationHeader& header, headers)
-	{
-		if (header.name().startsWith("som_ihdb"))
-		{
-			variants.removeAnnotationByName(header.name(), true);
-		}
-	}
-
 	//get required column indices
-	int som_ihdb_c_idx = variants.addAnnotation("som_ihdb_c", "Somatic variant count within NGSD.");
-	int som_ihdb_p_idx = variants.addAnnotation("som_ihdb_p", "Projects with somatic variant in NGSD.");
+	int som_ihdb_c_idx = variants.addAnnotationIfMissing("som_ihdb_c", "Somatic variant count within NGSD.");
+	int som_ihdb_p_idx = variants.addAnnotationIfMissing("som_ihdb_p", "Projects with somatic variant in NGSD.");
+
 	//(re-)annotate the variants
 	for (int i=0; i<variants.count(); ++i)
 	{

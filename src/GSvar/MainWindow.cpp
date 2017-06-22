@@ -49,6 +49,7 @@
 #include "XmlHelper.h"
 #include "QCCollection.h"
 #include "MultiSampleDialog.h"
+#include "NGSDReannotationDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -70,18 +71,6 @@ MainWindow::MainWindow(QWidget *parent)
 	addDockWidget(Qt::BottomDockWidgetArea, var_widget_);
 	var_widget_->raise();
 	connect(var_widget_, SIGNAL(jumbToRegion(QString)), this, SLOT(openInIGV(QString)));
-
-	//annotation menu button
-	auto anno_btn = new QToolButton();
-	anno_btn->setIcon(QIcon(":/Icons/Database.png"));
-	anno_btn->setToolTip("Re-annotate variant list with frequency information and comments from NGSD.");
-	anno_btn->setMenu(new QMenu());
-	anno_btn->menu()->addAction(ui_.actionDatabase);
-	connect(ui_.actionDatabase, SIGNAL(triggered(bool)), this, SLOT(annotateVariantsComplete()));
-	anno_btn->menu()->addAction(ui_.actionDatabaseROI);
-	connect(ui_.actionDatabaseROI, SIGNAL(triggered(bool)), this, SLOT(annotateVariantsROI()));
-	anno_btn->setPopupMode(QToolButton::InstantPopup);
-	ui_.tools->insertWidget(ui_.actionReport, anno_btn);
 
     //filter menu button
     auto filter_btn = new QToolButton();
@@ -105,7 +94,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(close()));
 	connect(ui_.vars, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(varsContextMenu(QPoint)));
 	connect(filter_widget_, SIGNAL(filtersChanged()), this, SLOT(filtersChanged()));
-	connect(filter_widget_, SIGNAL(targetRegionChanged()), this, SLOT(resetAnnoationStatus()));
+	connect(filter_widget_, SIGNAL(targetRegionChanged()), this, SLOT(resetAnnotationStatus()));
 	connect(ui_.vars, SIGNAL(itemSelectionChanged()), this, SLOT(updateVariantDetails()));
 	connect(&filewatcher_, SIGNAL(fileChanged()), this, SLOT(handleInputFileChange()));
 	connect(ui_.vars, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(variantDoubleClicked(QTableWidgetItem*)));
@@ -168,6 +157,23 @@ void MainWindow::on_actionGeneSelector_triggered()
 			openSubpanelDesignDialog(genes);
 		}
 	}
+}
+
+void MainWindow::on_actionNGSDAnnotation_triggered()
+{
+	if (variants_.count()==0) return;
+
+	//show NGSD annotation dialog
+	NGSDReannotationDialog dlg(filter_widget_->targetRegion(), this);
+	if (!dlg.exec()) return;
+
+	//show busy dialog
+	busy_dialog_ = new BusyDialog("Database annotation", this);
+
+	//start worker
+	DBAnnotationWorker* worker = new DBAnnotationWorker(filename_, variants_, busy_dialog_, dlg.roiFile(), dlg.maxAlleleFrequency());
+	connect(worker, SIGNAL(finished(bool)), this, SLOT(databaseAnnotationFinished(bool)));
+	worker->start();
 }
 
 void MainWindow::delayedInizialization()
@@ -925,39 +931,6 @@ void MainWindow::reportGenerationFinished(bool success)
 
 	//clean
 	worker->deleteLater();
-}
-
-void MainWindow::annotateVariantsComplete()
-{
-	if (variants_.count()==0) return;
-
-	//show busy dialog
-	busy_dialog_ = new BusyDialog("Database annotation", this);
-
-	//start worker
-	DBAnnotationWorker* worker = new DBAnnotationWorker(filename_, variants_, busy_dialog_);
-	connect(worker, SIGNAL(finished(bool)), this, SLOT(databaseAnnotationFinished(bool)));
-	worker->start();
-}
-
-
-void MainWindow::annotateVariantsROI()
-{
-	if (variants_.count()==0) return;
-
-	if (filter_widget_->targetRegion()=="")
-	{
-		QMessageBox::warning(this, "Error", "ROI-based variant annotation is only possible when a target region is selected!");
-		return;
-	}
-
-	//show busy dialog
-	busy_dialog_ = new BusyDialog("Database annotation", this);
-
-	//start worker
-	DBAnnotationWorker* worker = new DBAnnotationWorker(filename_, variants_, busy_dialog_, filter_widget_->targetRegion());
-	connect(worker, SIGNAL(finished(bool)), this, SLOT(databaseAnnotationFinished(bool)));
-	worker->start();
 }
 
 void MainWindow::databaseAnnotationFinished(bool success)
@@ -2412,7 +2385,7 @@ void MainWindow::filtersChanged()
 	QApplication::restoreOverrideCursor();
 }
 
-void MainWindow::resetAnnoationStatus()
+void MainWindow::resetAnnotationStatus()
 {
 	if (db_annos_updated_==ROI)
 	{
@@ -2495,7 +2468,7 @@ void MainWindow::updateNGSDSupport()
 	//toolbar
 	ui_.actionReport->setEnabled(ngsd_enabled);
 	ui_.actionNGSD->setEnabled(ngsd_enabled);
-	ui_.actionDatabase->setEnabled(ngsd_enabled);
+	ui_.actionNGSDAnnotation->setEnabled(ngsd_enabled);
 	ui_.actionTrio->setEnabled(ngsd_enabled);
 	ui_.actionMultiSample->setEnabled(ngsd_enabled);
 	ui_.actionSampleInformation->setEnabled(ngsd_enabled);

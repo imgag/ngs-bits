@@ -1,4 +1,4 @@
-##Variant filtering
+## Variant filtering
 
 ### Single-sample analysis
 
@@ -29,6 +29,7 @@ Open the GSvar variant list from the trio folder.
 --
 
 [back to main page](index.md)
+
 
 
 

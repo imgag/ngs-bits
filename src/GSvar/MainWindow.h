@@ -129,6 +129,8 @@ public slots:
 	void on_actionCNV_triggered();
 	///Open gene picker dialog
 	void on_actionGeneSelector_triggered();
+	///Open NGSD annotation dialog.
+	void on_actionNGSDAnnotation_triggered();
 
 	///Generates a report (somatic)
 	void generateReportSomatic();
@@ -146,7 +148,7 @@ public slots:
 	///Updates the visible rows after filters have changed
 	void filtersChanged();
 	///Resets the annotation status
-	void resetAnnoationStatus();
+	void resetAnnotationStatus();
 	///Opens the recent file defined by the sender action text
 	void openRecentFile();
 	///Loads the command line input file.
@@ -175,10 +177,6 @@ public slots:
 	void applyDefaultFiltersMultiSample();
     void applyDefaultFiltersSomatic();
     void clearFilters();
-
-	///Variant database annotation
-	void annotateVariantsComplete();
-	void annotateVariantsROI();
 
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);

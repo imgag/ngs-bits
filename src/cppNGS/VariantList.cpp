@@ -353,6 +353,18 @@ int VariantList::addAnnotation(QString name, QString description, QByteArray def
 	return annotations().count() - 1;
 }
 
+int VariantList::addAnnotationIfMissing(QString name, QString description, QByteArray default_value)
+{
+	int index = annotationIndexByName(name, true, false);
+
+	if (index==-1)
+	{
+		index = addAnnotation(name, description, default_value);
+	}
+
+	return index;
+}
+
 void VariantList::removeAnnotation(int index)
 {
 	if (index < 0 || index>=annotation_headers_.count())

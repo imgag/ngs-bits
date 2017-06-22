@@ -765,6 +765,23 @@ private slots:
 		S_EQUAL(vl[1].annotations()[index], "default");
 	}
 
+	void addAnnotationIfMissing()
+	{
+		VariantList vl;
+		vl.append(Variant(Chromosome("chr1"), 1, 2, "A", "C"));
+		vl.append(Variant(Chromosome("chr2"), 1, 2, "A", "C"));
+
+		int index = vl.addAnnotation("name", "desc", "default");
+		I_EQUAL(index, 0);
+		index = vl.addAnnotationIfMissing("name", "desc", "default");
+		I_EQUAL(index, 0);
+
+		index = vl.addAnnotationIfMissing("name2", "desc", "default");
+		I_EQUAL(index, 1);
+		index = vl.addAnnotationIfMissing("name2", "desc", "default");
+		I_EQUAL(index, 1);
+	}
+
 	void removeAnnotationByName()
 	{
 		VariantList vl;
