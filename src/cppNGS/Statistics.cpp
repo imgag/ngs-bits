@@ -801,26 +801,54 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	}
 	output.insert(QCValue("somatic variant count", somatic_count, "Total number of somatic variants in the target region.", "QC:2000041"));
 
-	//var_perc_dbsnp
-	int index = variants.annotationIndexByName("ID", true, false);
-	if (variants.count()!=0 && index!=-1)
+	//percentage known variants - either dbSNP or if available EXAC
+	int exac = variants.annotationIndexByName("EXAC_AF", true, false);
+	if(exac >= 0)	//use EXAC AF information if available
 	{
-		double dbsnp_count = 0;
-		for(int i=0; i<variants.count(); ++i)
+		if (variants.count()!=0)
 		{
-			if (!variants[i].filters().empty())	continue;
-
-			if (variants[i].annotations().at(index).startsWith("rs"))
+			double known_count = 0;
+			for(int i=0; i<variants.count(); ++i)
 			{
-				++dbsnp_count;
+
+				if (!variants[i].filters().empty())	continue;
+
+				if (variants[i].annotations().at(exac).toDouble() > 0.01)
+				{
+					++known_count;
+				}
+				output.insert(QCValue("known somatic variants percentage EXAC", 100.0*known_count/somatic_count, "Percentage of somatic variants listed by EXAC with allele frequency > 1 %.", "QC:2000053"));
 			}
 		}
-		output.insert(QCValue("known somatic variants percentage", 100.0*dbsnp_count/somatic_count, "Percentage of somatic variants that are known polymorphisms in the dbSNP database.", "QC:2000045"));
+		else
+		{
+			output.insert(QCValue("known somatic variants percentage EXAC", "n/a (no somatic variants)", "Percentage of somatic variants listed by EXAC with allele frequency > 1 %.", "QC:2000053"));
+		}
 	}
-	else
+	else	//without EXAC information use dbSNP
 	{
-		output.insert(QCValue("known somatic variants percentage", "n/a (no somatic variants)", "Percentage of somatic variants that are known polymorphisms in the dbSNP database.", "QC:2000045"));
+		int dbsnp = variants.annotationIndexByName("ID", true, false);
+
+		if (variants.count()!=0 && dbsnp!=-1)
+		{
+			double known_count = 0;
+			for(int i=0; i<variants.count(); ++i)
+			{
+				if (!variants[i].filters().empty())	continue;
+
+				if (variants[i].annotations().at(dbsnp).startsWith("rs"))
+				{
+					++known_count;
+				}
+			}
+			output.insert(QCValue("known somatic variants percentage dbSNP", 100.0*known_count/somatic_count, "Percentage of somatic variants that are known polymorphisms in the dbSNP database.", "QC:2000045"));
+		}
+		else
+		{
+			output.insert(QCValue("known somatic variants percentage dbSNP", "n/a (no somatic variants)", "Percentage of somatic variants listed by dbSNP.", "QC:2000045"));
+		}
 	}
+	
 
 	//var_perc_indel / var_ti_tv_ratio
 	double indel_count = 0;
