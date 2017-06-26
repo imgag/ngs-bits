@@ -817,12 +817,12 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 				{
 					++known_count;
 				}
-				output.insert(QCValue("known somatic variants percentage EXAC", 100.0*known_count/somatic_count, "Percentage of somatic variants listed by EXAC with allele frequency > 1 %.", "QC:2000053"));
+				output.insert(QCValue("known somatic variants percentage EXAC", 100.0*known_count/somatic_count, "Percentage of somatic variants listed by EXAC with allele frequency > 1 %.", "QC:2000054"));
 			}
 		}
 		else
 		{
-			output.insert(QCValue("known somatic variants percentage EXAC", "n/a (no somatic variants)", "Percentage of somatic variants listed by EXAC with allele frequency > 1 %.", "QC:2000053"));
+			output.insert(QCValue("known somatic variants percentage EXAC", "n/a (no somatic variants)", "Percentage of somatic variants listed by EXAC with allele frequency > 1 %.", "QC:2000054"));
 		}
 	}
 	else	//without EXAC information use dbSNP
