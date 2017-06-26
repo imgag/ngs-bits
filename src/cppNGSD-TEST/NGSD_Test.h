@@ -19,6 +19,11 @@ private slots:
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in1.sql"));
 
+		//getEnum
+		QStringList enum_values = db.getEnum("sample", "disease_group");
+		I_EQUAL(enum_values.count(), 19);
+		S_EQUAL(enum_values[4], "Endocrine, nutritional or metabolic diseases");
+
 		//getProcessingSystem
 		QString sys = db.getProcessingSystem("NA12878_03", NGSD::SHORT);
 		S_EQUAL(sys, "hpHBOCv5");

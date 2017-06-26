@@ -1,4 +1,4 @@
-### 0.1-741-??? (22.06.2017)
+### 0.1-741-gb7e8a75 (22.06.2017)
 - NGSD re-annotation: improved speed and added option to skip high-frequency variants
 - General: added disease group support (sample info dialog and check if set before creating a report)
 

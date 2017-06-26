@@ -882,10 +882,8 @@ QStringList NGSD::getEnum(QString table, QString column)
 	while (q.next())
 	{
 		QString type = q.value(1).toString();
-		type.replace("'", "");
-		type.replace("enum(", "");
-		type.replace(")", "");
-		cache[hash] = type.split(",");
+		type = type.mid(6,type.length()-8);
+		cache[hash] = type.split("','");
 		return cache[hash];
 	}
 

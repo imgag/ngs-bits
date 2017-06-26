@@ -70,7 +70,6 @@ HEADERS += \
     TsvInfo_Test.h \
     TsvSlice_Test.h \
     TsvFilter_Test.h \
-    FastqDemultiplex_Test.h \
     BamLeftAlign_Test.h \
     FastqToFasta_Test.h \
     BamCleanHaloplex_Test.h \
