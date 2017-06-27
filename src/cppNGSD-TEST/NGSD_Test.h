@@ -21,7 +21,7 @@ private slots:
 
 		//getEnum
 		QStringList enum_values = db.getEnum("sample", "disease_group");
-		I_EQUAL(enum_values.count(), 19);
+		I_EQUAL(enum_values.count(), 18);
 		S_EQUAL(enum_values[4], "Endocrine, nutritional or metabolic diseases");
 
 		//getProcessingSystem

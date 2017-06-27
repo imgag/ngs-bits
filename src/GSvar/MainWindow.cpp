@@ -50,6 +50,7 @@
 #include "QCCollection.h"
 #include "MultiSampleDialog.h"
 #include "NGSDReannotationDialog.h"
+#include "DiseaseInfoDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -816,7 +817,7 @@ void MainWindow::generateReportSomatic()
 
 void MainWindow::generateReport()
 {
-	//check if NGSD annotations are present
+	//check if required NGSD annotations are present
 	if (variants_.annotationIndexByName("classification", true, false)==-1
 	 || variants_.annotationIndexByName("ihdb_allsys_hom", true, false)==-1
 	 || variants_.annotationIndexByName("ihdb_allsys_het", true, false)==-1
@@ -828,28 +829,22 @@ void MainWindow::generateReport()
 	}
 
 	//check if NGSD annotations are up-to-date
-	QString mod_date = QFileInfo(filename_).lastModified().toString("yyyy-MM-dd");
-	if (db_annos_updated_==NO)
+	QDateTime mod_date = QFileInfo(filename_).lastModified();
+	if (db_annos_updated_==NO && mod_date < QDateTime::currentDateTime().addDays(-14))
 	{
-		if (QMessageBox::question(this, "Report", "NGSD re-annotation not performed!\nDo you want to continue with annotations from " + mod_date + "?")==QMessageBox::No)
+		if (QMessageBox::question(this, "NGSD annotations outdated", "NGSD annotation data is older than two weeks!\nDo you want to continue with annotations from " + mod_date.toString("yyyy-MM-dd") + "?")==QMessageBox::No)
 		{
 			return;
 		}
 	}
 
-	//check disease group
-	bool ngsd_enabled = Settings::boolean("NGSD_enabled", true);
-	if (ngsd_enabled)
+	//check disease information
+	if (Settings::boolean("NGSD_enabled", true))
 	{
-		NGSD db;
-		if (db.sampleId(filename_, false)!="" && db.sampleDiseaseGroup(filename_)=="n/a")
+		DiseaseInfoDialog dlg(filename_, this);
+		if (dlg.sampleNameIsValid() && dlg.diseaseInformationMissing())
 		{
-			bool ok = false;
-			QString disease_group = QInputDialog::getItem(this, "Please set disease group of sample", "disease group:", db.getEnum("sample", "disease_group"), 0, false, &ok);
-			if (ok && disease_group!="n/a")
-			{
-				db.setSampleDiseaseGroup(filename_, disease_group);
-			}
+			dlg.exec();
 		}
 	}
 

@@ -945,7 +945,8 @@ bool SampleInfo::isAffected() const
 	auto it = properties.cbegin();
 	while(it != properties.cend())
 	{
-		if (it.key().toLower()=="status" && it.value().toLower()=="affected")
+		//support for old and new disease status annotations
+		if ((it.key().toLower()=="diseasestatus" || it.key().toLower()=="status") && it.value().toLower()=="affected")
 		{
 			return true;
 		}

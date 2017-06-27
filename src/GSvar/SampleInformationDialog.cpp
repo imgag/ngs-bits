@@ -150,6 +150,7 @@ void SampleInformationDialog::refresh()
 		ui_.name_ext->setText(db.getExternalSampleName(filename_));
 		ui_.tumor_ffpe->setText(db.sampleIsTumor(filename_) + " / " + db.sampleIsFFPE(filename_));
 		ui_.disease_group->setText(db.sampleDiseaseGroup(filename_));
+		ui_.disease_status->setText(db.sampleDiseaseStatus(filename_));
 		ui_.system->setText(db.getProcessingSystem(filename_, NGSD::LONG));
 	}
 	catch(...)

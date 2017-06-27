@@ -17,9 +17,9 @@ GSvar:
   - implement print-out of upload data for patient file
 
 Tools:
-** NGSDImportGeneInfo:
-  - add (optional) import of inheritance mode from OMIM (use force flag)
-  - add Ensembl transcripts
+- NGSDImportGeneInfo:
+  * add (optional) import of inheritance mode from OMIM (use force flag)
+  ** add Ensembl transcripts
   - remove UCSC/RefSeq transcripts?
 - SomaticQC: do not use precalculated triplet counts, count every time (CS)
 - BamClipOverlap: require sorted bam and paired-end sequencing (CS)

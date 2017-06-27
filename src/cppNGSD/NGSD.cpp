@@ -84,6 +84,16 @@ void NGSD::setSampleDiseaseGroup(const QString& filename, const QString& disease
 	getQuery().exec("UPDATE sample SET disease_group='" + disease_group + "' WHERE id='" + sampleId(filename, false) + "'");
 }
 
+QString NGSD::sampleDiseaseStatus(const QString& filename)
+{
+	return getValue("SELECT disease_status FROM sample WHERE id='" + sampleId(filename, false) + "'").toString();
+}
+
+void NGSD::setSampleDiseaseStatus(const QString& filename, const QString& disease_status)
+{
+	getQuery().exec("UPDATE sample SET disease_status='" + disease_status + "' WHERE id='" + sampleId(filename, false) + "'");
+}
+
 QString NGSD::processedSampleName(const QString& filename, bool throw_if_fails)
 {
 	QString basename = QFileInfo(filename).baseName();
