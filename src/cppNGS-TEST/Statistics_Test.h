@@ -24,7 +24,7 @@ private slots:
         S_EQUAL(stats[2].name(), QString("somatic variant count"));
         S_EQUAL(stats[2].accession(), QString("QC:2000041"));
         S_EQUAL(stats[2].toString(), QString("2"));
-        S_EQUAL(stats[3].name(), QString("known somatic variants percentage"));
+		S_EQUAL(stats[3].name(), QString("known somatic variants percentage dbSNP"));
         S_EQUAL(stats[3].accession(), QString("QC:2000045"));
         S_EQUAL(stats[3].toString(), QString("0.00"));
         S_EQUAL(stats[4].name(), QString("somatic indel percentage"));
