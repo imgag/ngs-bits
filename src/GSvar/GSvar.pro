@@ -33,7 +33,8 @@ SOURCES += main.cpp\
     CnvWidget.cpp \
     GeneSelectorDialog.cpp \
     MultiSampleDialog.cpp \
-    NGSDReannotationDialog.cpp
+    NGSDReannotationDialog.cpp \
+    DiseaseInfoDialog.cpp
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
@@ -61,7 +62,8 @@ HEADERS  += MainWindow.h \
     CnvWidget.h \
     GeneSelectorDialog.h \
     MultiSampleDialog.h \
-    NGSDReannotationDialog.h
+    NGSDReannotationDialog.h \
+    DiseaseInfoDialog.h
 
 
 FORMS    += MainWindow.ui \
@@ -87,7 +89,8 @@ FORMS    += MainWindow.ui \
     CnvWidget.ui \
     GeneSelectorDialog.ui \
     MultiSampleDialog.ui \
-    NGSDReannotationDialog.ui
+    NGSDReannotationDialog.ui \
+    DiseaseInfoDialog.ui
     
 
 include("../app_gui.pri")

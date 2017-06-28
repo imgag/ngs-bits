@@ -143,6 +143,12 @@ public:
 	QString sampleDiseaseGroup(const QString& filename);
 	///Sets the diease group associated to a sample.
 	void setSampleDiseaseGroup(const QString& filename, const QString& disease_group);
+
+	///Returns the diease status associated to a sample.
+	QString sampleDiseaseStatus(const QString& filename);
+	///Sets the diease status associated to a sample.
+	void setSampleDiseaseStatus(const QString& filename, const QString& disease_status);
+
 	///Returns the processing system information for the sample, or an empty string if it could not be detected.
 	enum SystemType {SHORT, LONG, BOTH, TYPE, FILE};
 	QString getProcessingSystem(const QString& filename, SystemType type);
