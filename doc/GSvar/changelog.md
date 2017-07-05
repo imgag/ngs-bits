@@ -1,3 +1,6 @@
+###0.1-751-gf9ebc81 (05.07.2017)
+- NGSD re-annotation: speed-up of reannotation by precalculated variant counts.
+
 ### 0.1-741-gb7e8a75 (22.06.2017)
 - NGSD re-annotation: improved speed and added option to skip high-frequency variants
 - General: added disease group support (sample info dialog and check if set before creating a report)
@@ -76,6 +79,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 
