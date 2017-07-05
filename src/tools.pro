@@ -289,6 +289,10 @@ SUBDIRS += VcfAnnotateFromBed
 tools-TEST.depends += VcfAnnotateFromBed
 VcfAnnotateFromBed.depends = cppNGS
 
+SUBDIRS += NGSDPrecalculate
+tools-TEST.depends += NGSDPrecalculate
+NGSDPrecalculate.depends = cppNGSD
+
 #other stuff
 OTHER_FILES += ToDos.txt
 

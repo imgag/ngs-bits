@@ -10,10 +10,13 @@ INSERT INTO `project` (`id`, `name`, `type`, `internal_coordinator_id`, `analysi
 INSERT INTO `sequencing_run` (`id`, `name`, `fcid`, `device_id`, `recipe`, `status`) VALUES (1, '#00372', 'AB2J9', 1, '158+8+158', 'analysis_finished');
 
 INSERT INTO `sample` (`id`, `name`, `sample_type`, `species_id`, `gender`, `quality`, `tumor`, `ffpe`, `sender_id`) VALUES (1, 'NA12878', 'DNA', 1, 'female', 'good', 0 ,0, 1);
+INSERT INTO `sample` (`id`, `name`, `sample_type`, `species_id`, `gender`, `quality`, `tumor`, `ffpe`, `sender_id`) VALUES (2, 'NA12123', 'DNA', 1, 'female', 'good', 0 ,0, 1);
 
 INSERT INTO `processing_system` (`id`, `name_short`, `name_manufacturer`, `adapter1_p5`, `adapter2_p7`, `type`, `shotgun`, `target_file`, `genome_id`) VALUES (1, 'hpHBOCv5', 'HaloPlex HBOC v5', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC ', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel HaloPlex', 0, '/mnt/share/data/enrichment/hpHBOCv5_2014_10_27.bed', 1);
 
 INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_id`, `lane`, `processing_system_id`, `project_id`) VALUES (3999, 1, 3, 1, '1', 1, 1);
+INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_id`, `lane`, `processing_system_id`, `project_id`) VALUES (4000, 1, 4, 1, '1', 1, 1);
+INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_id`, `lane`, `processing_system_id`, `project_id`) VALUES (4001, 2, 4, 1, '1', 1, 1);
 
 INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `chromosome`, `type`) VALUES (1,1001,'BRCA1','Breast cancer associated gene 1', '17', 'protein-coding gene');
 INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `chromosome`, `type`) VALUES (2,1002,'BRCA2','Breast cancer associated gene 2', '13', 'protein-coding gene');
@@ -182,7 +185,8 @@ INSERT INTO `variant` (`id`, `chr`, `start`, `end`, `ref`, `obs`, `dbsnp`, `1000
 (2336573, 'chr5', 131925483, 131925483, 'G', 'C', 'rs55653181', 0.0002, 0.0001, 0, 'RAD50', 'missense', 'RAD50:NM_005732.3:missense:MODERATE:exon9/25:c.1406G>C:p.Gly469Ala'),
 (2336993, 'chr16', 3639230, 3639230, 'G', 'A', 'rs72778139', 0.0002, 0.0001, 0.0002, 'SLX4', 'missense', 'SLX4:NM_032444.2:missense:MODERATE:exon12/15:c.4409C>T:p.Pro1470Leu'),
 (2346586, 'chr7', 6037057, 6037057, '-', 'A', 'rs570998668;rs61373265;rs774538869', 0.0264, 0.036, 0, 'PMS2', 'splice_region&intron', 'PMS2:NM_000535.5:splice_region&intron:LOW:exon6/14:c.706-4dupT:,PMS2:NR_003085.2:splice_region&intron:LOW:exon6/14:n.788-4dupT:'),
-(2407544, 'chr9', 98232224, 98232224, 'A', '-', 'rs779000277', 0, 0.0014, 0.0018, 'PTCH1,LOC100507346', 'splice_region&intron,non_coding_exon', 'PTCH1:NM_000264.3:splice_region&intron:LOW:exon12/23:c.1729-11delT:,PTCH1:NM_001083607.1:splice_region&intron:LOW:exon12/23:c.1276-11delT:,PTCH1:NM_001083606.1:splice_region&intron:LOW:exon12/23:c.1276-11delT:,PTCH1:NM_001083604.1:splice_region&intron:LOW:exon12/23:c.1276-11delT:,PTCH1:NM_001083605.1:splice_region&intron:LOW:exon12/23:c.1276-11delT:,PTCH1:NM_001083602.1:splice_region&intron:LOW:exon12/23:c.1531-11delT:,PTCH1:NM_001083603.1:splice_region&intron:LOW:exon12/23:c.1726-11delT:,LOC100507346:NR_038982.1:non_coding_exon:MODIFIER:exon4/4:n.1887delA:');
+(2407544, 'chr9', 98232224, 98232224, 'A', '-', 'rs779000277', 0, 0.0014, 0.0018, 'PTCH1,LOC100507346', 'splice_region&intron,non_coding_exon', 'PTCH1:NM_000264.3:splice_region&intron:LOW:exon12/23:c.1729-11delT:,PTCH1:NM_001083607.1:splice_region&intron:LOW:exon12/23:c.1276-11delT:,PTCH1:NM_001083606.1:splice_region&intron:LOW:exon12/23:c.1276-11delT:,PTCH1:NM_001083604.1:splice_region&intron:LOW:exon12/23:c.1276-11delT:,PTCH1:NM_001083605.1:splice_region&intron:LOW:exon12/23:c.1276-11delT:,PTCH1:NM_001083602.1:splice_region&intron:LOW:exon12/23:c.1531-11delT:,PTCH1:NM_001083603.1:splice_region&intron:LOW:exon12/23:c.1726-11delT:,LOC100507346:NR_038982.1:non_coding_exon:MODIFIER:exon4/4:n.1887delA:'),
+(2407599, 'chr9', 98232299, 98232299, '-', 'AGT', 'unused', 0, 0.0014, 0.0018, 'unused', 'unused', 'unused');
 
 INSERT INTO `detected_variant` (`processed_sample_id`, `variant_id`, `genotype`) VALUES
 (3999, 6, 'hom'),
@@ -321,4 +325,11 @@ INSERT INTO `detected_variant` (`processed_sample_id`, `variant_id`, `genotype`)
 (3999, 2336573, 'het'),
 (3999, 2336993, 'het'),
 (3999, 2346586, 'het'),
-(3999, 2407544, 'het');
+(3999, 2407544, 'het'),
+
+(4000, 2346586, 'hom'),
+(4000, 2407544, 'het'),
+
+(4001, 2346586, 'hom'),
+(4001, 2407544, 'het');
+

@@ -244,6 +244,16 @@ private slots:
 		S_EQUAL(ginfo.inheritance, "AD");
 		S_EQUAL(ginfo.comments, "comment");
 
+		//precalculateGenotypeCounts
+		messages.clear();
+		db.precalculateGenotypeCounts(&stream, 50);
+		//qDebug() << messages.split("\n");
+		I_EQUAL(db.getValue("SELECT count_hom FROM detected_variant_counts WHERE variant_id=2336993").toInt(), 0);
+		I_EQUAL(db.getValue("SELECT count_het FROM detected_variant_counts WHERE variant_id=2336993").toInt(), 1);
+		I_EQUAL(db.getValue("SELECT count_hom FROM detected_variant_counts WHERE variant_id=2346586").toInt(), 2);
+		I_EQUAL(db.getValue("SELECT count_het FROM detected_variant_counts WHERE variant_id=2346586").toInt(), 1);
+		I_EQUAL(db.getValue("SELECT count_hom FROM detected_variant_counts WHERE variant_id=2407544").toInt(), 0);
+		I_EQUAL(db.getValue("SELECT count_het FROM detected_variant_counts WHERE variant_id=2407544").toInt(), 2);
 	}
 
 	//Test for debugging (without initialization because of speed)

@@ -581,6 +581,24 @@ AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
+-- Table `detected_variant_counts`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `detected_variant_counts` (
+  `variant_id` INT(11) NOT NULL,
+  `count_het` INT(11) NOT NULL,
+  `count_hom` INT(11) NOT NULL,
+  PRIMARY KEY (`variant_id`),
+  CONSTRAINT `fk_detected_variant_counts`
+    FOREIGN KEY (`variant_id`)
+    REFERENCES `variant` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+AUTO_INCREMENT = 1
+DEFAULT CHARACTER SET = utf8
+COMMENT='Precalculated variant counts used for fast annotation';
+
+-- -----------------------------------------------------
 -- Table `qc_terms`
 -- -----------------------------------------------------
 CREATE  TABLE IF NOT EXISTS `qc_terms` (

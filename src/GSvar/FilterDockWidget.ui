@@ -555,7 +555,7 @@
        <item row="1" column="0">
         <widget class="QCheckBox" name="maf_sub_enabled">
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum sub-population allele frequency in ExAC populations.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum allele frequency in any of the ExAC sub-populations.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
           <string>AF (sub-population)</string>

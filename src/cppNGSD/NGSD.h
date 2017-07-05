@@ -165,6 +165,8 @@ public:
 	///Returns the next processing ID for the given sample.
 	QString nextProcessingId(const QString& sample_id);
 
+	///Precalcualtes genotype counts for all variants.
+	void precalculateGenotypeCounts(QTextStream* messages = nullptr, int progress_interval = -1);
 	///Annotates (or re-annotates) the variant list with current NGSD information. If @p roi is non-empty, only the variants in the target region are annotated. If max_af is greater than 0, only variants with AF<=cutoff are annotated.
 	void annotate(VariantList& variants, QString filename, BedFile roi = BedFile(), double max_af = 0.0);
 	///Annotates (or re-annotates) the variant list with current (somatic) NGSD information.
