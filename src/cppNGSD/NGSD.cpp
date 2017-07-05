@@ -890,17 +890,22 @@ QString NGSD::nextProcessingId(const QString& sample_id)
 
 void NGSD::precalculateGenotypeCounts(QTextStream* messages, int progress_interval)
 {
+	//init
+	QTime timer_overall;
+	timer_overall.start();
+	int deleted = 0;
+
 	//get variant IDs
 	SqlQuery query = getQuery();
 	query.exec("SELECT id FROM variant");
 	int variant_count = query.size();
 	if (messages)
 	{
-		(*messages) << "starting processing of " << variant_count << " variants" << endl;
+		(*messages) << Helper::dateTime() << "\tstarting processing of " << variant_count << " variants" << endl;
 	}
 
 	QTime timer;
-	int deleted = 0;
+	timer.start();
 	int i = 0;
 	while(query.next())
 	{
@@ -930,15 +935,16 @@ void NGSD::precalculateGenotypeCounts(QTextStream* messages, int progress_interv
 		{
 			if (messages)
 			{
-				(*messages) << "  processing variant " << i << " / " << variant_count << " - deleted " << deleted << " - took " << Helper::elapsedTime(timer) << endl;
+				(*messages) << Helper::dateTime() << "\tprogress: variant " << i << " / " << variant_count << " - deleted " << deleted << " - took " << Helper::elapsedTime(timer) << endl;
+				timer.restart();
 			}
 		}
 	}
 	if (messages)
 	{
-		(*messages) << "processed " << variant_count << " variants" << endl;
-		(*messages) << "deleted " << deleted << " variants" << endl;
-		(*messages) << "took " << Helper::elapsedTime(timer) << endl;
+		(*messages) << Helper::dateTime() << "\tfinished processing " << variant_count << " variants" << endl;
+		(*messages) << Helper::dateTime() << "\tdeleted " << deleted << " variants" << endl;
+		(*messages) << Helper::dateTime() << "\ttook " << Helper::elapsedTime(timer_overall) << endl;
 	}
 }
 
