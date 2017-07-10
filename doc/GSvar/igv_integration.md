@@ -39,6 +39,11 @@ In order to force initialization, select `IGV > Reset initialization status` fro
 
 ## FAQ
 
+### Why are reads colored sometimes
+
+Colored reads normally mean that the insert size of the read lies outside the expected insert size interval.  
+More information can be found at in the [IGV documentation](https://software.broadinstitute.org/software/igv/interpreting_insert_size).
+
 ### IGV does not open
 Follow these instructions, if only the black console window of IGV but not the actual application opens.
 
@@ -60,6 +65,7 @@ Finally, you have to restart IGV.
 --
 
 [back to main page](index.md)
+
 
 
 
