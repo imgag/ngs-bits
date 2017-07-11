@@ -898,6 +898,8 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	int count_hotspot = 0;	// somatic variants in hotspots that may falsify interpolation
 	if(!target_file.isEmpty())
 	{
+		genome_size = 38020303;	// targeted sequencing normally targets coding sequence, therefore reduce normalization to ssHAEv6 coding region
+
 		BedFile bed_file;
 		bed_file.load(target_file);
 		target_size = (static_cast<double>(bed_file.baseCount())/1000000);
