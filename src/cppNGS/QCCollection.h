@@ -70,7 +70,7 @@ public:
 	void clear();
 
 	///Stores the collection to a qcML file. Double precitions for selected terms can be overwritten (default is 2).
-	void storeToQCML(QString filename, const QStringList& source_files, QString parameters, QMap<QString, int> precision_overwrite = QMap<QString, int>(), const QStringList& linked_files = QStringList());
+	void storeToQCML(QString filename, const QStringList& source_files, QString parameters, QMap<QString, int> precision_overwrite = QMap<QString, int>(), const QStringList& linked_files = QStringList(), const QStringList& sequencing_information = QStringList());
 	///Appends the terms to a string list, e.g. for text output. Skips PNG images. Double precitions for selected terms can be overwritten (default is 2).
 	void appendToStringList(QStringList& list, QMap<QString, int> precision_overwrite = QMap<QString, int>());
 

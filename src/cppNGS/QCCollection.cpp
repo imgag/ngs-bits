@@ -189,7 +189,7 @@ void QCCollection::clear()
 	values_.clear();
 }
 
-void QCCollection::storeToQCML(QString filename, const QStringList& source_files, QString parameters, QMap<QString, int> precision_overwrite, const QStringList& linked_files)
+void QCCollection::storeToQCML(QString filename, const QStringList& source_files, QString parameters, QMap<QString, int> precision_overwrite, const QStringList& linked_files, const QStringList& sequencing_information)
 {
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, true);
 	QTextStream stream(file.data());
@@ -213,6 +213,11 @@ void QCCollection::storeToQCML(QString filename, const QStringList& source_files
 	foreach(const QString& sf, source_files)
 	{
 		stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"source file\" value=\"" << QFileInfo(sf).fileName() << "\" cvRef=\"QC\" accession=\"QC:1000005\"/>" << endl;
+		++idx;
+	}
+	foreach(const QString& si, sequencing_information)
+	{
+		stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"sequencing instrument\" value=\"" << si << "\" cvRef=\"QC\" accession=\"QC:?\"/>" << endl;
 		++idx;
 	}
 	foreach(const QString& lf, linked_files)
