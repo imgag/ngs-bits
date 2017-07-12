@@ -11,10 +11,8 @@ QString Transcript::sourceToString(Transcript::SOURCE source)
 	{
 		case CCDS:
 			return "CCDS";
-		case UCSC:
-			return "UCSC";
-		case REFSEQ:
-			return "REFSEQ";
+		case ENSEMBL:
+			return "ENSEMBL";
 	}
 
 	THROW(ProgrammingException, "Unknown transcript source enum value '" + QString::number(source) + "!");
@@ -27,13 +25,9 @@ Transcript::SOURCE Transcript::stringToSource(QString source)
 	{
 		return CCDS;
 	}
-	if (source=="UCSC")
+	if (source=="ENSEMBL")
 	{
-		return UCSC;
-	}
-	if (source=="REFSEQ")
-	{
-		return REFSEQ;
+		return ENSEMBL;
 	}
 
 	THROW(ProgrammingException, "Unknown transcript source string '" + source + "!");

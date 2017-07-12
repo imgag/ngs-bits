@@ -14,13 +14,11 @@ CREATE TABLE IF NOT EXISTS `gene` (
 `hgnc_id` int(10) unsigned NOT NULL,
 `symbol` varchar(40) NOT NULL,
 `name` TEXT NOT NULL,
-`chromosome` enum('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','X','Y','M','none') NOT NULL,
 `type` enum('protein-coding gene','pseudogene','non-coding RNA','other') NOT NULL,
 
 PRIMARY KEY (`id`), 
 UNIQUE KEY `hgnc_id` (`hgnc_id`),
 UNIQUE KEY `symbol` (`symbol`),
-KEY `chromosome` (`chromosome`), 
 KEY `type` (`type`)
 )
 ENGINE=InnoDB DEFAULT
@@ -58,7 +56,8 @@ CREATE TABLE IF NOT EXISTS `gene_transcript` (
 `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
 `gene_id` int(10) unsigned NOT NULL,
 `name` varchar(40) NOT NULL,
-`source` enum('ccds', 'ucsc','refseq') NOT NULL,
+`source` enum('ccds', 'ensembl') NOT NULL,
+`chromosome` enum('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','X','Y','MT') NOT NULL,
 `start_coding` int(10) unsigned NULL,
 `end_coding` int(10) unsigned NULL,
 `strand` enum('+', '-') NOT NULL,
@@ -72,6 +71,7 @@ CONSTRAINT `fk_gene_id3`
   ON UPDATE NO ACTION,
 UNIQUE KEY `gene_name_unique` (`gene_id`, `name`),
 KEY `source` (`source`),
+KEY `chromosome` (`chromosome`),
 KEY `start_coding` (`start_coding`), 
 KEY `end_coding` (`end_coding`)
 ) 
@@ -174,7 +174,7 @@ DEFAULT CHARACTER SET = utf8;
 -- -----------------------------------------------------
 CREATE  TABLE IF NOT EXISTS `device` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `type` ENUM('GAIIx','MiSeq','HiSeq','NextSeq500') NOT NULL,
+  `type` ENUM('GAIIx','MiSeq','HiSeq2500','NextSeq500','NovaSeq5000','NovaSeq6000') NOT NULL,
   `name` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`name` ASC))

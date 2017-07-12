@@ -22,7 +22,7 @@ public:
 		setDescription("Calculates how much of each overlapping gene is covered.");
 		addInfile("in", "Input BED file. If unset, reads from STDIN.", true);
 		QStringList sources;
-		sources << "ccds" << "refseq" << "ucsc";
+		sources << "ccds" << "ensembl";
 		addEnum("source", "Transcript source database.", false, sources);
 		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
 		addFlag("test", "Uses the test database instead of on the production database.");
@@ -64,8 +64,7 @@ public:
             long long bases_gene = reg_gene.baseCount();
 			if (bases_gene==0) continue; //non-coding gene => skip
 			reg_gene.intersect(in);
-            long long bases_covered = reg_gene.baseCount();
-			if (bases_covered==0) continue; //wrong coding range in UCSC => gene does not really overlap => skip
+			long long bases_covered = reg_gene.baseCount();
 
 			output.append(gene + "\t" + QString::number(bases_gene) + "\t" + QString::number(bases_covered) + "\t" + QString::number(100.0*bases_covered/bases_gene, 'f', 2));
 

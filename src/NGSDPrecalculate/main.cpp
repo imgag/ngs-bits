@@ -17,7 +17,7 @@ public:
 	{
 		setDescription("Precalculates variant counts for fast annotation.");
 		//optional
-		addInt("log_interval", "Log every n entries", true, 1000);
+		addInt("log_interval", "Log every n entries", true, 10000);
 		addFlag("test", "Uses the test database instead of on the production database.");
 	}
 

@@ -21,7 +21,7 @@ private slots:
 		COMPARE_FILES("out/BedGeneOverlap_out1.tsv", TESTDATA("data_out/BedGeneOverlap_out1.tsv"));
 	}
 
-	void source_ucsc()
+	void source_ensembl()
 	{
 		QString host = Settings::string("ngsd_test_host");
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
@@ -31,7 +31,7 @@ private slots:
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/BedGeneOverlap_init.sql"));
 
-		EXECUTE("BedGeneOverlap", "-test -source ucsc -in " + TESTDATA("data_in/BedGeneOverlap_in1.bed") + " -out out/BedGeneOverlap_out2.tsv");
+		EXECUTE("BedGeneOverlap", "-test -source ensembl -in " + TESTDATA("data_in/BedGeneOverlap_in1.bed") + " -out out/BedGeneOverlap_out2.tsv");
 		COMPARE_FILES("out/BedGeneOverlap_out2.tsv", TESTDATA("data_out/BedGeneOverlap_out2.tsv"));
 	}
 

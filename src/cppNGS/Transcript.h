@@ -27,8 +27,7 @@ public:
 	enum SOURCE
 	{
 		CCDS,
-		UCSC,
-		REFSEQ
+		ENSEMBL
 	};
 	SOURCE source() const
 	{

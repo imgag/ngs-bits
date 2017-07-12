@@ -108,12 +108,11 @@ public:
 		}
 
 		//get enum data
-		QStringList valid_chrs = db.getEnum("gene", "chromosome");
 		QStringList valid_types = db.getEnum("gene", "type");
 
 		//prepare SQL queries
 		SqlQuery gene_query = db.getQuery();
-		gene_query.prepare("INSERT INTO gene (hgnc_id, symbol, name, chromosome, type) VALUES (:0, :1, :2, :3, :4);");
+		gene_query.prepare("INSERT INTO gene (hgnc_id, symbol, name, type) VALUES (:0, :1, :2, :3);");
 		SqlQuery alias_query = db.getQuery();
 		alias_query.prepare("INSERT INTO gene_alias (gene_id, symbol, type) VALUES (:0, :1, :2);");
 
@@ -139,16 +138,12 @@ public:
 			//curate data
 			QByteArray id = parts[0].mid(5);
 			QByteArray symbol = parts[1].toUpper();
-			QByteArray chr = parts[10].replace('q', ' ').replace('p', ' ').replace("cen", " ").replace("mitochondria", "MT").append(' ');
-			chr = chr.left(chr.indexOf(' ')).trimmed();
-			if (!valid_chrs.contains(chr)) chr = "none";
 
 			//insert gene
 			gene_query.bindValue(0, id);
 			gene_query.bindValue(1, symbol);
 			gene_query.bindValue(2, parts[2]);
-			gene_query.bindValue(3, chr);
-			gene_query.bindValue(4, locus);
+			gene_query.bindValue(3, locus);
 			gene_query.exec();
 			QVariant gene_id = gene_query.lastInsertId();
 

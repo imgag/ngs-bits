@@ -15,8 +15,8 @@ INSERT INTO `processing_system` (`id`, `name_short`, `name_manufacturer`, `adapt
 
 INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_id`, `lane`, `processing_system_id`, `project_id`) VALUES (3999, 1, 3, 1, '1', 1, 1);
 
-INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `chromosome`, `type`) VALUES (1,1001,'BRCA1','Breast cancer associated gene 1', '17', 'protein-coding gene');
-INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `chromosome`, `type`) VALUES (2,1002,'BRCA2','Breast cancer associated gene 2', '13', 'protein-coding gene');
+INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `type`) VALUES (1,1001,'BRCA1','Breast cancer associated gene 1', 'protein-coding gene');
+INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `type`) VALUES (2,1002,'BRCA2','Breast cancer associated gene 2', 'protein-coding gene');
 
 INSERT INTO `variant` (`id`, `chr`, `start`, `end`, `ref`, `obs`, `dbsnp`, `1000g`, `exac`, `gnomAD`, `gene`, `variant_type`, `coding`) VALUES
 (6, 'chr10', 43613843, 43613843, 'G', 'T', 'rs1800861', 0.7125, 0.742, 0.7653, 'RET', 'synonymous', 'RET:NM_020975.4:synonymous:LOW:exon13/20:c.2307G>T:p.Leu769Leu,RET:NM_020630.4:synonymous:LOW:exon13/19:c.2307G>T:p.Leu769Leu'),

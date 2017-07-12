@@ -18,16 +18,16 @@ INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_
 INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_id`, `lane`, `processing_system_id`, `project_id`) VALUES (4000, 1, 4, 1, '1', 1, 1);
 INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_id`, `lane`, `processing_system_id`, `project_id`) VALUES (4001, 2, 4, 1, '1', 1, 1);
 
-INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `chromosome`, `type`) VALUES (1,1001,'BRCA1','Breast cancer associated gene 1', '17', 'protein-coding gene');
-INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `chromosome`, `type`) VALUES (2,1002,'BRCA2','Breast cancer associated gene 2', '13', 'protein-coding gene');
-INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `chromosome`, `type`) VALUES (3,1003, 'NIPA1', 'non imprinted in Prader-Willi/Angelman syndrome 1', '15', 'protein-coding gene');
-INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `chromosome`, `type`) VALUES (4,1004, 'NON-CODING', 'non-coding RNA', '22', 'non-coding RNA');
+INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `type`) VALUES (1,1001, 'BRCA1','Breast cancer associated gene 1', 'protein-coding gene');
+INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `type`) VALUES (2,1002, 'BRCA2','Breast cancer associated gene 2', 'protein-coding gene');
+INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `type`) VALUES (3,1003, 'NIPA1', 'non imprinted in Prader-Willi/Angelman syndrome 1', 'protein-coding gene');
+INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `type`) VALUES (4,1004, 'NON-CODING', 'non-coding RNA', 'non-coding RNA');
 
-INSERT INTO `gene_transcript`(`id`, `gene_id`, `name`, `source`, `start_coding`, `end_coding`, `strand`) VALUES (1, 1,'BRCA1_TR1','ccds',100,200,'+');
-INSERT INTO `gene_transcript`(`id`, `gene_id`, `name`, `source`, `start_coding`, `end_coding`, `strand`) VALUES (2, 2,'BRCA2_TR1','ccds',100,200,'+');
-INSERT INTO `gene_transcript`(`id`, `gene_id`, `name`, `source`, `start_coding`, `end_coding`, `strand`) VALUES (3, 3,'NIPA1_TR1','ucsc',100,400,'-');
-INSERT INTO `gene_transcript`(`id`, `gene_id`, `name`, `source`, `start_coding`, `end_coding`, `strand`) VALUES (4, 3,'NIPA1_TR2','ucsc',150,350,'-');
-INSERT INTO `gene_transcript`(`id`, `gene_id`, `name`, `source`, `start_coding`, `end_coding`, `strand`) VALUES (5, 4,'NON-CODING_TR1','ucsc',NULL,NULL,'-');
+INSERT INTO `gene_transcript`(`id`, `gene_id`, `name`, `source`, `chromosome`, `start_coding`, `end_coding`, `strand`) VALUES (1, 1,'BRCA1_TR1','ccds','17',100,200,'+');
+INSERT INTO `gene_transcript`(`id`, `gene_id`, `name`, `source`, `chromosome`, `start_coding`, `end_coding`, `strand`) VALUES (2, 2,'BRCA2_TR1','ccds','13',100,200,'+');
+INSERT INTO `gene_transcript`(`id`, `gene_id`, `name`, `source`, `chromosome`, `start_coding`, `end_coding`, `strand`) VALUES (3, 3,'NIPA1_TR1','ensembl','15',100,400,'-');
+INSERT INTO `gene_transcript`(`id`, `gene_id`, `name`, `source`, `chromosome`, `start_coding`, `end_coding`, `strand`) VALUES (4, 3,'NIPA1_TR2','ensembl','15',150,350,'-');
+INSERT INTO `gene_transcript`(`id`, `gene_id`, `name`, `source`, `chromosome`, `start_coding`, `end_coding`, `strand`) VALUES (5, 4,'NON-CODING_TR1','ensembl','22',NULL,NULL,'-');
 
 INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (1, 100, 110);
 INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (1, 120, 130);

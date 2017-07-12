@@ -241,9 +241,9 @@ SUBDIRS += NGSDImportHGNC
 tools-TEST.depends += NGSDImportHGNC
 NGSDImportHGNC.depends = cppNGSD
 
-SUBDIRS += NGSDImportUCSC
-tools-TEST.depends += NGSDImportUCSC
-NGSDImportUCSC.depends = cppNGSD
+SUBDIRS += NGSDImportEnsembl
+tools-TEST.depends += NGSDImportEnsembl
+NGSDImportEnsembl.depends = cppNGSD
 
 SUBDIRS += BedReadCount
 tools-TEST.depends += BedReadCount

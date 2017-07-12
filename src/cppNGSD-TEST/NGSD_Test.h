@@ -94,7 +94,7 @@ private slots:
 		IS_TRUE(messages.isEmpty());
 
 		messages.clear();
-		regions = db.genesToRegions(GeneSet() << "NIPA1", Transcript::UCSC, "gene", false, true, &stream); //gene mode, two hits, annotate_transcripts
+		regions = db.genesToRegions(GeneSet() << "NIPA1", Transcript::ENSEMBL, "gene", false, true, &stream); //gene mode, two hits, annotate_transcripts
 		I_EQUAL(regions.count(), 2);
 		S_EQUAL(regions[0].annotations()[0], "NIPA1 NIPA1_TR1");
 		S_EQUAL(regions[1].annotations()[0], "NIPA1 NIPA1_TR2");
@@ -139,7 +139,7 @@ private slots:
 		IS_TRUE(messages.isEmpty());
 
 		messages.clear();
-		regions = db.genesToRegions(GeneSet() << "NIPA1", Transcript::UCSC, "exon", false, true, &stream); //exon mode, two hits, annotate_transcripts
+		regions = db.genesToRegions(GeneSet() << "NIPA1", Transcript::ENSEMBL, "exon", false, true, &stream); //exon mode, two hits, annotate_transcripts
 		I_EQUAL(regions.count(), 4);
 		S_EQUAL(regions[0].annotations()[0], "NIPA1 NIPA1_TR1");
 		S_EQUAL(regions[1].annotations()[0], "NIPA1 NIPA1_TR2");
@@ -159,43 +159,43 @@ private slots:
 		I_EQUAL(transcripts[0].regions().count(), 4);
 		I_EQUAL(transcripts[0].regions().baseCount(), 44);
 
-		transcripts = db.transcripts(3, Transcript::UCSC, true); //NIPA1, UCSC, coding
+		transcripts = db.transcripts(3, Transcript::ENSEMBL, true); //NIPA1, Ensembl, coding
 		I_EQUAL(transcripts.count(), 2);
 		S_EQUAL(transcripts[0].name(), "NIPA1_TR1");
 		I_EQUAL(transcripts[0].strand(), Transcript::MINUS);
-		I_EQUAL(transcripts[0].source(), Transcript::UCSC);
+		I_EQUAL(transcripts[0].source(), Transcript::ENSEMBL);
 		I_EQUAL(transcripts[0].regions().count(), 2);
 		I_EQUAL(transcripts[0].regions().baseCount(), 202);
 		S_EQUAL(transcripts[1].name(), "NIPA1_TR2");
 		I_EQUAL(transcripts[1].strand(), Transcript::MINUS);
-		I_EQUAL(transcripts[1].source(), Transcript::UCSC);
+		I_EQUAL(transcripts[1].source(), Transcript::ENSEMBL);
 		I_EQUAL(transcripts[1].regions().count(), 2);
 		I_EQUAL(transcripts[1].regions().baseCount(), 102);
 
-		transcripts = db.transcripts(3, Transcript::UCSC, false); //NIPA1, UCSC, non-coding
+		transcripts = db.transcripts(3, Transcript::ENSEMBL, false); //NIPA1, Ensembl, non-coding
 		I_EQUAL(transcripts.count(), 2);
 		S_EQUAL(transcripts[0].name(), "NIPA1_TR1");
 		I_EQUAL(transcripts[0].strand(), Transcript::MINUS);
-		I_EQUAL(transcripts[0].source(), Transcript::UCSC);
+		I_EQUAL(transcripts[0].source(), Transcript::ENSEMBL);
 		I_EQUAL(transcripts[0].regions().count(), 2);
 		I_EQUAL(transcripts[0].regions().baseCount(), 202);
 		S_EQUAL(transcripts[1].name(), "NIPA1_TR2");
 		I_EQUAL(transcripts[1].strand(), Transcript::MINUS);
-		I_EQUAL(transcripts[1].source(), Transcript::UCSC);
+		I_EQUAL(transcripts[1].source(), Transcript::ENSEMBL);
 		I_EQUAL(transcripts[1].regions().count(), 4);
 		I_EQUAL(transcripts[1].regions().baseCount(), 224);
 
-		transcripts = db.transcripts(4, Transcript::UCSC, true); //NON-CODING, UCSC, coding
+		transcripts = db.transcripts(4, Transcript::ENSEMBL, true); //NON-CODING, Ensembl, coding
 		I_EQUAL(transcripts.count(), 0);
 
-		transcripts = db.transcripts(4, Transcript::UCSC, false); //NON-CODING, UCSC, non-coding
+		transcripts = db.transcripts(4, Transcript::ENSEMBL, false); //NON-CODING, Ensembl, non-coding
 		I_EQUAL(transcripts.count(), 1);
 		S_EQUAL(transcripts[0].name(), "NON-CODING_TR1");
 		I_EQUAL(transcripts[0].regions().count(), 2);
 		I_EQUAL(transcripts[0].regions().baseCount(), 202);
 
 		//longestCodingTranscript
-		Transcript transcript = db.longestCodingTranscript(4, Transcript::UCSC); //NON-CODING, zero transcripts
+		Transcript transcript = db.longestCodingTranscript(4, Transcript::ENSEMBL); //NON-CODING, zero transcripts
 		IS_FALSE(transcript.isValid());
 
 		transcript = db.longestCodingTranscript(1, Transcript::CCDS); //BRCA1, one transcript
@@ -204,7 +204,7 @@ private slots:
 		I_EQUAL(transcript.regions().count(), 4);
 		I_EQUAL(transcript.regions().baseCount(), 44);
 
-		transcript = db.longestCodingTranscript(3, Transcript::UCSC); //NIPA1, two transcripts
+		transcript = db.longestCodingTranscript(3, Transcript::ENSEMBL); //NIPA1, two transcripts
 		IS_TRUE(transcript.isValid());
 		S_EQUAL(transcript.name(), "NIPA1_TR1");
 		I_EQUAL(transcript.regions().count(), 2);

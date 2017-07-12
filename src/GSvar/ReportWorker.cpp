@@ -281,9 +281,9 @@ void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file
 
 		//longest coding transcript
 		Transcript transcript = db.longestCodingTranscript(gene_id, Transcript::CCDS);
-		if (!transcript.isValid()) //fallback to REFSEQ when no CCDS transcript is defined for the gene
+		if (!transcript.isValid()) //fallback when no CCDS transcript is defined for the gene
 		{
-			transcript = db.longestCodingTranscript(gene_id, Transcript::REFSEQ);
+			transcript = db.longestCodingTranscript(gene_id, Transcript::ENSEMBL);
 		}
 		if (!transcript.isValid())
 		{
