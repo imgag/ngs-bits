@@ -189,7 +189,7 @@ void QCCollection::clear()
 	values_.clear();
 }
 
-void QCCollection::storeToQCML(QString filename, const QStringList& source_files, QString parameters, QMap<QString, int> precision_overwrite, const QStringList& linked_files, const QStringList& sequencing_information)
+void QCCollection::storeToQCML(QString filename, const QStringList& source_files, QString parameters, QMap<QString, int> precision_overwrite, const QList<QList<QString>> metadata)
 {
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, true);
 	QTextStream stream(file.data());
@@ -215,14 +215,11 @@ void QCCollection::storeToQCML(QString filename, const QStringList& source_files
 		stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"source file\" value=\"" << QFileInfo(sf).fileName() << "\" cvRef=\"QC\" accession=\"QC:1000005\"/>" << endl;
 		++idx;
 	}
-	foreach(const QString& si, sequencing_information)
+	foreach(const QList<QString>& md, metadata)
 	{
-		stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"sequencing instrument\" value=\"" << si << "\" cvRef=\"QC\" accession=\"QC:?\"/>" << endl;
-		++idx;
-	}
-	foreach(const QString& lf, linked_files)
-	{
-		stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"linked file\" value=\"" << QFileInfo(lf).fileName() << "\" uri=\"" << lf << "\" cvRef=\"QC\" accession=\"QC:1000006\" />" << endl;
+		if(md[0]=="QC:1000005")	stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"" << md[1] << "\" value=\"" << QFileInfo(md[2]).fileName() << "\" cvRef=\"QC\" accession=\"" << md[0] << "\"/>" << endl;
+		else if(md[0]=="QC:1000006")	stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"" << md[1] << "\" value=\"" << QFileInfo(md[2]).fileName() << "\" uri=\"" << md[2] << "\" cvRef=\"QC\" accession=\"" << md[0] << "\" />" << endl;
+		else	stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"" << md[1] << "\" value=\"" << md[2] << "\" cvRef=\"QC\" accession=\"" << md[0] << "\"/>" << endl;
 		++idx;
 	}
 

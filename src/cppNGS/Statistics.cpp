@@ -1207,7 +1207,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 
 	foreach(QString codon, count_codons_target.keys())
 	{
-		qDebug() << codon << QString::number(count_codons_target[codon]);
+		//qDebug() << codon << QString::number(count_codons_target[codon]);
 	}
 
 	//codons: normalize current codons and calculate percentages for each codon

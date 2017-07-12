@@ -53,7 +53,82 @@ public:
 		QStringList links = getInfileList("links");
 		bool skip_plots = getFlag("skip_plots");
 
-		// convert linked files to relative paths
+		// metadata
+		QList<QList<QString>> metadata;
+		metadata += QList<QString>({"QC:1000005","source file",tumor_bam});
+		metadata += QList<QString>({"QC:1000005","source file",normal_bam});
+		metadata += QList<QString>({"QC:1000005","source file",somatic_vcf});
+
+		// metadata - add information about sequencing device from bam files
+		int count;
+		QString tmp_instrument;
+		QString tmp_enrichment;
+		BamReader reader;
+		SamReadGroupDictionary read_group_dic;
+
+		count = 0;
+		tmp_instrument = "";
+		tmp_enrichment = "";
+		NGSHelper::openBAM(reader, tumor_bam);
+		read_group_dic = reader.GetHeader().ReadGroups;
+		for(SamReadGroupIterator i = read_group_dic.Begin(); i != read_group_dic.End(); ++i)
+		{
+			SamReadGroup read_group = *i;
+			if(count>0 && tmp_instrument!="")	tmp_instrument += ":";
+			if(count>0 && tmp_enrichment!="")	tmp_enrichment += ":";
+
+			if(read_group.HasSequencingTechnology())	tmp_instrument += QString::fromStdString(read_group.SequencingTechnology);
+			else tmp_instrument += "unknown_platform";
+
+			QString tmp_i = "";
+			QString tmp_e = "";
+			for(uint j = 0; j < read_group.CustomTags.size(); ++j)
+			{
+				if(read_group.CustomTags[j].TagName == "PM")	tmp_i = QString::fromStdString(read_group.CustomTags[j].TagValue);
+				if(read_group.CustomTags[j].TagName == "en")	tmp_e = QString::fromStdString(read_group.CustomTags[j].TagValue);
+			}
+			if(tmp_i == "")	tmp_i = "unknown_device";
+			if(tmp_e == "")	tmp_e = "unknown";
+			tmp_instrument += " " + tmp_i;
+			tmp_enrichment += " " + tmp_e;
+
+			++count;
+		}
+		metadata += QList<QString>({"QC?","sequencing instrument",tmp_instrument + " (" + QFileInfo(tumor_bam).fileName() + ")"});
+		metadata += QList<QString>({"QC?","enrichment",tmp_enrichment + " (" + QFileInfo(tumor_bam).fileName() + ")"});
+
+		count = 0;
+		tmp_instrument = "";
+		tmp_enrichment = "";
+		NGSHelper::openBAM(reader, normal_bam);
+		read_group_dic = reader.GetHeader().ReadGroups;
+		for(SamReadGroupIterator i = read_group_dic.Begin(); i != read_group_dic.End(); ++i)
+		{
+			SamReadGroup read_group = *i;
+			if(count>0 && tmp_instrument!="")	tmp_instrument += ":";
+			if(count>0 && tmp_enrichment!="")	tmp_enrichment += ":";
+
+			if(read_group.HasSequencingTechnology())	tmp_instrument += QString::fromStdString(read_group.SequencingTechnology);
+			else tmp_instrument += "unknown_platform";
+
+			QString tmp_i = "";
+			QString tmp_e = "";
+			for(uint j = 0; j < read_group.CustomTags.size(); ++j)
+			{
+				if(read_group.CustomTags[j].TagName == "PM")	tmp_i = QString::fromStdString(read_group.CustomTags[j].TagValue);
+				if(read_group.CustomTags[j].TagName == "en")	tmp_e = QString::fromStdString(read_group.CustomTags[j].TagValue);
+			}
+			if(tmp_i == "")	tmp_i = "unknown_device";
+			if(tmp_e == "")	tmp_e = "unknown";
+			tmp_instrument += " " + tmp_i;
+			tmp_enrichment += " " + tmp_e;
+
+			++count;
+		}
+		metadata += QList<QString>({"QC?","sequencing instrument",tmp_instrument + " (" + QFileInfo(normal_bam).fileName() + ")"});
+		metadata += QList<QString>({"QC?","enrichment",tmp_enrichment + " (" + QFileInfo(normal_bam).fileName() + ")"});
+
+		// metadata - add linked files as relative paths
 		QDir out_dir = QFileInfo(out).absoluteDir();
 		for(int i=0;i<links.length();++i)
 		{
@@ -64,67 +139,17 @@ public:
 			}
 			QString rel = out_dir.relativeFilePath( QFileInfo(links[i]).absolutePath() );
 			if(!rel.isEmpty())	 rel += "/";
-			links[i] =  rel + QFileInfo(links[i]).fileName();
+			metadata += QList<QString>({"QC:1000006","linked file",rel + QFileInfo(links[i]).fileName()});
 		}
 
-		// add sequencing information from bam files
-		int count;
-		QString tmp_info;
-		QStringList info;
-		BamReader reader;
-		SamReadGroupDictionary read_group_dic;
-
-		count = 0;
-		tmp_info = "";
-		NGSHelper::openBAM(reader, tumor_bam);
-		read_group_dic = reader.GetHeader().ReadGroups;
-		for(SamReadGroupIterator i = read_group_dic.Begin(); i != read_group_dic.End(); ++i)
-		{
-			SamReadGroup read_group = *i;
-			if(count>0 && tmp_info!="")	tmp_info += ":";
-			if(read_group.HasSequencingTechnology())	tmp_info += QString::fromStdString(read_group.SequencingTechnology);
-			else tmp_info += "UNKNOWN_PLATFORM";
-			QString sequencing_device = "";
-			for(uint j = 0; j < read_group.CustomTags.size(); ++j)
-			{
-				if(read_group.CustomTags[j].TagName == "PM")	sequencing_device = QString::fromStdString(read_group.CustomTags[j].TagValue);
-			}
-			if(sequencing_device!="")	tmp_info += " " + sequencing_device;
-			else	tmp_info += " UNKOWN_DEVICE";
-			++count;
-		}
-		if(tmp_info=="")	tmp_info = "UNKNOWN_PLATFORM";
-		info += tmp_info + " (" + QFileInfo(tumor_bam).fileName() + ")";
-
-		count = 0;
-		tmp_info = "";
-		NGSHelper::openBAM(reader, normal_bam);
-		read_group_dic = reader.GetHeader().ReadGroups;
-		for(SamReadGroupIterator i = read_group_dic.Begin(); i != read_group_dic.End(); ++i)
-		{
-			SamReadGroup read_group = *i;
-			if(count>0 && tmp_info!="")	tmp_info += ":";
-			if(read_group.HasSequencingTechnology())	tmp_info += QString::fromStdString(read_group.SequencingTechnology);
-			else tmp_info += "UNKNOWN_PLATFORM";
-			QString sequencing_device = "";
-			for(uint j = 0; j < read_group.CustomTags.size(); ++j)
-			{
-				if(read_group.CustomTags[j].TagName == "PM")	sequencing_device = QString::fromStdString(read_group.CustomTags[j].TagValue);
-			}
-			if(sequencing_device!="")	tmp_info += " " + sequencing_device;
-			else	tmp_info += " UNKOWN_DEVICE";
-			++count;
-		}
-		info += tmp_info + " (" + QFileInfo(normal_bam).fileName() + ")";
-
-		// calculate QC metrics
+		// calculate somatic QC metrics
 		QCCollection metrics;
 		metrics = Statistics::somatic(tumor_bam, normal_bam, somatic_vcf, target_bed, skip_plots);
 
 		//store output
 		QString parameters = "";
 		if(!target_bed.isEmpty())	parameters += "-target_bed " + target_bed;	// targeted Seq
-		metrics.storeToQCML(out, QStringList() << tumor_bam << normal_bam << somatic_vcf, parameters, QMap< QString, int >(), links, info);
+		metrics.storeToQCML(out, QStringList(), parameters, QMap< QString, int >(), metadata);
 	}
 };
 
