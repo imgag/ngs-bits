@@ -56,8 +56,7 @@ public:
 
 	int addTranscript(SqlQuery& query, int gene_id, QByteArray name, QByteArray source, const TranscriptData& t_data)
 	{
-		//TODO
-		QTextStream(stdout) << "Adding transcript name=" << name << " source=" << source << " gene=" << t_data.ngsd_gene_id << " start_coding=" << t_data.start_coding << " end_coding=" << t_data.end_coding << endl;
+		//QTextStream(stdout) << "Adding transcript name=" << name << " source=" << source << " gene=" << t_data.ngsd_gene_id << " start_coding=" << t_data.start_coding << " end_coding=" << t_data.end_coding << endl;
 		query.bindValue(0, gene_id);
 		query.bindValue(1, name);
 		query.bindValue(2, source);
@@ -80,9 +79,7 @@ public:
 
 	void addExons(SqlQuery& query, int transcript_id, const BedFile& exons)
 	{
-
-		//TODO
-		QTextStream(stdout) << " " << exons.count() << endl;
+		//QTextStream(stdout) << " " << exons.count() << endl;
 		for (int i=0; i<exons.count(); ++i)
 		{
 			//out << "  Adding exon start=" << exons[i].start() << " end=" <<exons[i].end() << endl;
