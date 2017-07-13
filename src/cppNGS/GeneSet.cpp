@@ -48,7 +48,7 @@ GeneSet GeneSet::createFromFile(QString filename)
 {
 	GeneSet output;
 
-	auto handle = Helper::openFileForReading(filename);
+	auto handle = Helper::openFileForReading(filename, true);
 	while (!handle->atEnd())
 	{
 		QByteArray line = handle->readLine();
