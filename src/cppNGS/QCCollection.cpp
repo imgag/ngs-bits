@@ -217,7 +217,7 @@ void QCCollection::storeToQCML(QString filename, const QStringList& source_files
 	}
 	foreach(const QList<QString>& md, metadata)
 	{
-		if(md[0]=="QC:1000005")	stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"" << md[1] << "\" value=\"" << QFileInfo(md[2]).fileName() << "\" cvRef=\"QC\" accession=\"" << md[0] << "\"/>" << endl;
+		if(md[0]=="QC:1000005")	stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"" << md[1] << "\" value=\"" << md[2] << "\" cvRef=\"QC\" accession=\"" << md[0] << "\"/>" << endl;
 		else if(md[0]=="QC:1000006")	stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"" << md[1] << "\" value=\"" << QFileInfo(md[2]).fileName() << "\" uri=\"" << md[2] << "\" cvRef=\"QC\" accession=\"" << md[0] << "\" />" << endl;
 		else	stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"" << md[1] << "\" value=\"" << md[2] << "\" cvRef=\"QC\" accession=\"" << md[0] << "\"/>" << endl;
 		++idx;

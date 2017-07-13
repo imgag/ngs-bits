@@ -55,8 +55,8 @@ public:
 
 		// metadata
 		QList<QList<QString>> metadata;
-		metadata += QList<QString>({"QC:1000005","source file",tumor_bam});
-		metadata += QList<QString>({"QC:1000005","source file",normal_bam});
+		metadata += QList<QString>({"QC:1000005","source file",QFileInfo(tumor_bam).fileName() + " (tumor)"});
+		metadata += QList<QString>({"QC:1000005","source file",QFileInfo(normal_bam).fileName() + " (normal)"});
 		metadata += QList<QString>({"QC:1000005","source file",somatic_vcf});
 
 		// metadata - add information about sequencing device from bam files
@@ -88,14 +88,13 @@ public:
 				if(read_group.CustomTags[j].TagName == "en")	tmp_e = QString::fromStdString(read_group.CustomTags[j].TagValue);
 			}
 			if(tmp_i == "")	tmp_i = "unknown_device";
-			if(tmp_e == "")	tmp_e = "unknown";
+			if(tmp_e == "")	tmp_e = "unknown_enrichment";
 			tmp_instrument += " " + tmp_i;
 			tmp_enrichment += tmp_e;
 
 			++count;
 		}
-		metadata += QList<QString>({"QC?","sequencing instrument",tmp_instrument + " (" + QFileInfo(tumor_bam).fileName() + ")"});
-		metadata += QList<QString>({"QC?","enrichment",tmp_enrichment + " (" + QFileInfo(tumor_bam).fileName() + ")"});
+		metadata += QList<QString>({"QC?","experiment",tmp_instrument + " " + tmp_enrichment + " (tumor)"});
 
 		count = 0;
 		tmp_instrument = "";
@@ -119,14 +118,13 @@ public:
 				if(read_group.CustomTags[j].TagName == "en")	tmp_e = QString::fromStdString(read_group.CustomTags[j].TagValue);
 			}
 			if(tmp_i == "")	tmp_i = "unknown_device";
-			if(tmp_e == "")	tmp_e = "unknown";
+			if(tmp_e == "")	tmp_e = "unknown_enrichment";
 			tmp_instrument += " " + tmp_i;
 			tmp_enrichment += tmp_e;
 
 			++count;
 		}
-		metadata += QList<QString>({"QC?","sequencing instrument",tmp_instrument + " (" + QFileInfo(normal_bam).fileName() + ")"});
-		metadata += QList<QString>({"QC?","enrichment",tmp_enrichment + " (" + QFileInfo(normal_bam).fileName() + ")"});
+		metadata += QList<QString>({"QC?","experiment",tmp_instrument + " " + tmp_enrichment + " (normal)"});
 
 		// metadata - add linked files as relative paths
 		QDir out_dir = QFileInfo(out).absoluteDir();
