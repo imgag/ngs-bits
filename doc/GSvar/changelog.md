@@ -1,3 +1,6 @@
+### 0.1-763-g42b5a3e (13.07.2017)
+- Replaced RefSeq/UCSC transcripts by Ensembl transcripts in NGSD.
+
 ### 0.1-751-gf9ebc81 (05.07.2017)
 - NGSD re-annotation: speed-up of reannotation by precalculated variant counts.
 
@@ -79,6 +82,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 
