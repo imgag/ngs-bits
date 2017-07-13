@@ -185,9 +185,16 @@ public:
 				int ngsd_gene_id = db.geneToApprovedID(gene);
 				if (ngsd_gene_id==-1)
 				{
-					out << "ERROR " << data["gene_id"] << "/" << gene << ": no approved gene names found." << endl;
+					out << "Notice: Gene " << data["gene_id"] << "/" << gene << " without HGNC-approved name is skipped." << endl;
 					continue;
 				}
+				
+				if (!Chromosome(parts[0]).isNonSpecial())
+				{
+					out << "Notice: Gene " << data["gene_id"] << "/" << gene << " on special chromosome " << parts[0] << " is skipped." << endl;
+					continue;
+				}
+				
 				gene_ensemble2ngsd[data["ID"]] = ngsd_gene_id;
 			}
 
@@ -196,12 +203,17 @@ public:
 			{
 				if (all || data.value("tag")=="basic")
 				{
+					QByteArray parent_id = data["Parent"];
+					
+					//skip transcripts of unhandled genes (e.g. no HGNC gene name)
+					if (!gene_ensemble2ngsd.contains(parent_id)) continue;
+				
 					TranscriptData tmp;
 					tmp.name = data["transcript_id"];
 					tmp.name_ccds = data.value("ccdsid", "");
 					tmp.chr = parts[0];
 					tmp.strand = parts[6];
-					tmp.ngsd_gene_id = gene_ensemble2ngsd[data["Parent"]];
+					tmp.ngsd_gene_id = gene_ensemble2ngsd[parent_id];
 					transcripts[data["ID"]] = tmp;
 				}
 			}
