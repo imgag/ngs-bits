@@ -24,7 +24,7 @@ Tools:
 - NGSDPrecalculate:
   * add check for tumor samples variants that have been imported into 'detected_variant' table
   * add check for outdated gene names in 'geneinfo_germline' and 'hpo_genes'
-  * remove variants/qc-data for merged processed samples?!
+  * remove/warn when variants/qc-data is present for bad/merged processed samples
 - NGSDImportGeneInfo:
   ** add (optional) import of inheritance mode from OMIM
 - SomaticQC: do not use precalculated triplet counts, count every time (CS)

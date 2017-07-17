@@ -1,6 +1,6 @@
 
 -- device
-INSERT INTO device (id, type, name) VALUES (1, 'HiSeq', 'Morpheus');
+INSERT INTO device (id, type, name) VALUES (1, 'HiSeq2500', 'Morpheus');
 
 -- sequencing_run
 INSERT INTO sequencing_run (id, name, fcid, device_id, recipe, quality) VALUES (1, 'run1', 'ABC', 1, '100+8+8+100', 'good');
