@@ -782,7 +782,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	//sample correlation
 	SampleCorrelation sc;
 	sc.calculateFromBam(tumor_bam,normal_bam,30,500);
-	output.insert(QCValue("sample correlation", sc.sampleCorrelation(), ".", "QC:2000040"));
+	output.insert(QCValue("sample correlation", sc.sampleCorrelation(), "SNV-based sample correlation of tumor / normal.", "QC:2000040"));
 
 	//variants
 	VariantList variants;
@@ -895,7 +895,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	ChromosomeInfo chr(reader);
 	double target_size = chr.genomeSize(true)/1000000;
 	double genome_size = chr.genomeSize(true)/1000000;
-	int count_hotspot = 0;	// somatic variants in hotspots that may falsify interpolation
+	int count_tumorgenes = 0;	// somatic variants in typical tumor suppressors / oncogenes may falsify interpolation
 	if(!target_file.isEmpty())
 	{
 		genome_size = 38020303;	// targeted sequencing normally targets coding sequence, therefore reduce normalization to ssHAEv6 coding region
@@ -935,7 +935,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 			  << "ARHGAP20" << "KIAA1391" << "RB1" << "RASL10A" << "RRP22" << "SASH1" << "KIAA0790" << "PEPE1" << "ST20" << "HCCS1" << "STARD13" << "DLC2" << "GT650" << "SUFU" << "UNQ650/PRO1280" << "SUSD2"
 			  << "STK11" << "LKB1" << "PJS" << "SUSD6" << "DRAGO" << "KIAA0247" << "TXNIP" << "VDUP1" << "TSC1" << "KIAA0243" << "TSC" << "TSC2" << "TSC4" << "UFL1" << "KIAA0776" << "NLBP" << "RCAD";
 
-		// identify truncating mutations located in mutational hotspots; these mutations may falsify calculation of somatic mutation rates in targeted sequencing
+		// identify truncating mutations located in typical tumor suppressors and oncogenes; these mutations may falsify calculation of somatic mutation rates in targeted sequencing
 		int ann = variants.annotationIndexByName("ANN", true, false);
 		if(ann >= 0)	// annotation information availble
 		{
@@ -955,19 +955,19 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 					{
 						if(annotation.contains(("|"+genes[j]+"|")))	cancergene = true;
 					}
-					if(cancergene && truncating)	++count_hotspot;
+					if(cancergene && truncating)	++count_tumorgenes;
 				}
 			}
 		}
 	}
-	double mutation_rate = (static_cast<double>(somatic_count - count_hotspot)/target_size*genome_size + count_hotspot)/genome_size;
+	double mutation_rate = (static_cast<double>(somatic_count - count_tumorgenes)/target_size*genome_size + count_tumorgenes)/genome_size;
 
 	QString value = "";
 	if(mutation_rate > 23.1)	value = "high";
 	else if(mutation_rate >= 3.3)	value = "intermediate";
 	else	value = "low";
 	value += " ("+ QString::number(mutation_rate,'f',2) +" mut/Mb)";
-	output.insert(QCValue("somatic mutation rate", mutation_rate, "Somatic mutation rate [mutations/Mb] normalized for the target region. Considered " + QString::number(count_hotspot) + " hotspot mutations during calculation.", "QC:2000053"));
+	output.insert(QCValue("somatic mutation rate", mutation_rate, "Somatic mutation rate [mutations/Mb] normalized for the target region. Considered " + QString::number(count_tumorgenes) + " truncating mutation(s) in tumor suppressors / oncogenes during calculation.", "QC:2000053"));
 
 	if(skip_plots)	return output;
 
@@ -981,8 +981,8 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 
 	//plot1: allele frequencies
 	ScatterPlot plot1;
-	plot1.setXLabel("allele frequency tumor");
-	plot1.setYLabel("allele frequency normal");
+	plot1.setXLabel("tumor allele frequency");
+	plot1.setYLabel("normal allele frequency");
 	plot1.setXRange(-0.015,1.015);
 	plot1.setYRange(-0.015,1.015);
 	QList< QPair<double,double> > points_black;
@@ -1088,14 +1088,14 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 
 	plot1.setValues(points, colors);
 	plot1.addColorLegend(g,"all variants");
-	plot1.addColorLegend(b,"variants passing filters");
+	plot1.addColorLegend(b,"variants filter PASS");
 
 	QString plot1name = Helper::tempFileName(".png");
 	plot1.store(plot1name);
 	output.insert(QCValue::Image("somatic variants allele frequencies plot", plot1name, ".", "QC:2000048"));
 	QFile::remove(plot1name);
 
-	//plot2: somatic variant signature, only pyrimidines are of interest
+	//plot2: somatic variant signature
 	BarPlot plot2;
 	plot2.setXLabel("triplett");
 	plot2.setYLabel("count");
@@ -1107,8 +1107,6 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	}
 	QList<QString> codons;
 	QList<int> counts;
-	QList<int> counts_target;
-	QList<int> counts_genome;
 	QList<double> counts_normalized;
 	QList<double> frequencies;
 	QList<QString> labels;
@@ -1128,8 +1126,6 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 					cod = co + rrr + " - " + o;
 					codons.append(cod);
 					counts.append(0);
-					counts_target.append(0);
-					counts_genome.append(0);
 					counts_normalized.append(0);
 					frequencies.append(0);
 					colors.append(color_map[r+">"+o]);
@@ -1146,12 +1142,24 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 		if(!variants[i].isSNV())	continue;	//skip indels
 
 		Variant v = variants[i];
-		QString c = reference.seq(v.chr(),v.start()-1,1,true) + v.ref().toUpper() + reference.seq(v.chr(),v.start()+1,1,true) + " - " + v.obs().toUpper();
 
-		if(!codons.contains(c))	continue;
-		int index = codons.indexOf(c);
-		++counts[index];
+		bool contained = false;
+		QString c = reference.seq(v.chr(),v.start()-1,1,true) + v.ref().toUpper() + reference.seq(v.chr(),v.start()+1,1,true) + " - " + v.obs().toUpper();
+		if(codons.contains(c))	contained = true;
+		else
+		{
+			c = NGSHelper::changeSeq(reference.seq(v.chr(),v.start()-1,1,true).toUpper() + v.ref().toUpper() + reference.seq(v.chr(),v.start()+1,1,true).toUpper(),true,true) + " - " + NGSHelper::changeSeq(v.obs().toUpper(),true,true);
+			if(codons.contains(c))	contained = true;
+		}
+
+		if(!contained)	continue;
+		++counts[codons.indexOf(c)];
 	}
+
+//	for(int i=0; i<codons.length();++i)
+//	{
+//		qDebug() << codons[i] << QString::number(counts[i]);
+//	}
 
 	plot2.setYLabel("variant type percentage");
 	QHash < QString, int > count_codons_target({
@@ -1185,6 +1193,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 				foreach(QString codon, count_codons_target.keys())
 				{
 					count_codons_target[codon] += seq.count(codon.toUpper().toLatin1());
+					count_codons_target[codon] += seq.count(NGSHelper::changeSeq(codon.toLatin1(),true,true));
 				}
 			}
 		}
@@ -1201,14 +1210,15 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 			foreach(QString codon, count_codons_target.keys())
 			{
 				count_codons_target[codon] += seq.count(codon.toLatin1());
+				count_codons_target[codon] += seq.count(NGSHelper::changeSeq(codon.toLatin1(),true,true));
 			}
 		}
 	}
 
-	foreach(QString codon, count_codons_target.keys())
-	{
-		//qDebug() << codon << QString::number(count_codons_target[codon]);
-	}
+//	foreach(QString codon, count_codons_target.keys())
+//	{
+//		qDebug() << codon << QString::number(count_codons_target[codon]);
+//	}
 
 	//codons: normalize current codons and calculate percentages for each codon
 	double y_max = 5;
@@ -1233,7 +1243,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	plot2.setValues(frequencies, labels, colors);
 	QString plot2name = Helper::tempFileName(".png");
 	plot2.store(plot2name);
-	output.insert(QCValue::Image("somatic variant signature plot", plot2name, ".", "QC:2000047"));
+	output.insert(QCValue::Image("somatic SNV signature plot", plot2name, ".", "QC:2000047"));
 	QFile::remove(plot2name);
 
 	//plot3: somatic variant distances, only for whole genome sequencing
