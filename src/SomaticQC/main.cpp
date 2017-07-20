@@ -34,6 +34,7 @@ public:
 		//optional
 		addInfileList("links","Files that appear in the link part of the qcML file.",true);
 		addInfile("target_bed", "Target file used for tumor and normal experiment.", true);
+		addInfile("ref_fasta", "Reference fasta file. If unset the reference file from the settings file will be used.", true);
 		addFlag("skip_plots", "Skip plots (intended to increase speed of automated tests).");
 		setExtendedDescription(QStringList() << "SomaticQC integrates the output of the other QC tools and adds several metrics specific for tumor-normal pairs. The genome build form the settings file will be used during calcuation of QC metrics. All tools produce qcML, a generic XML format for QC of -omics experiments, which we adapted for NGS.");
 
@@ -50,6 +51,8 @@ public:
 		QString normal_bam = getInfile("normal_bam");
 		QString somatic_vcf = getInfile("somatic_vcf");
 		QString target_bed = getInfile("target_bed");
+		QString ref_fasta = getInfile("ref_fasta");
+		if(ref_fasta.isEmpty())	ref_fasta = Settings::string("reference_genome");
 		QStringList links = getInfileList("links");
 		bool skip_plots = getFlag("skip_plots");
 
@@ -57,7 +60,7 @@ public:
 		QList<QList<QString>> metadata;
 		metadata += QList<QString>({"QC:1000005","source file",QFileInfo(tumor_bam).fileName() + " (tumor)"});
 		metadata += QList<QString>({"QC:1000005","source file",QFileInfo(normal_bam).fileName() + " (normal)"});
-		metadata += QList<QString>({"QC:1000005","source file",somatic_vcf});
+		metadata += QList<QString>({"QC:1000005","source file",QFileInfo(somatic_vcf).fileName()});
 
 		// metadata - add information about sequencing device from bam files
 		int count;
@@ -94,7 +97,7 @@ public:
 
 			++count;
 		}
-		metadata += QList<QString>({"QC?","experiment",tmp_instrument + " " + tmp_enrichment + " (tumor)"});
+		metadata += QList<QString>({"QC?","experiment",tmp_instrument + ", " + tmp_enrichment + " (tumor)"});
 
 		count = 0;
 		tmp_instrument = "";
@@ -124,7 +127,7 @@ public:
 
 			++count;
 		}
-		metadata += QList<QString>({"QC?","experiment",tmp_instrument + " " + tmp_enrichment + " (normal)"});
+		metadata += QList<QString>({"QC:?","experiment",tmp_instrument + ", " + tmp_enrichment + " (normal)"});
 
 		// metadata - add linked files as relative paths
 		QDir out_dir = QFileInfo(out).absoluteDir();
@@ -142,7 +145,7 @@ public:
 
 		// calculate somatic QC metrics
 		QCCollection metrics;
-		metrics = Statistics::somatic(tumor_bam, normal_bam, somatic_vcf, target_bed, skip_plots);
+		metrics = Statistics::somatic(tumor_bam, normal_bam, somatic_vcf, ref_fasta, target_bed, skip_plots);
 
 		//store output
 		QString parameters = "";
