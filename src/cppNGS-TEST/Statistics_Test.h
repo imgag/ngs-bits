@@ -13,7 +13,7 @@ private slots:
 		QString tumor_bam = TESTDATA("data_in/tumor.bam");
 		QString normal_bam = TESTDATA("data_in/normal.bam");
 		QString somatic_vcf = TESTDATA("data_in/somatic.vcf");
-		QCCollection stats = Statistics::somatic(tumor_bam, normal_bam, somatic_vcf, QString(), true);
+		QCCollection stats = Statistics::somatic(tumor_bam, normal_bam, somatic_vcf, QString(), QString(), true);
 
         S_EQUAL(stats[0].name(), QString("sample correlation"));
         S_EQUAL(stats[0].accession(), QString("QC:2000040"));

@@ -18,7 +18,6 @@
 #include "SampleCorrelation.h"
 #include <QFileInfo>
 #include <QPair>
-#include "Settings.h"
 #include "Histogram.h"
 #include "VariantFilter.h"
 
@@ -775,7 +774,7 @@ QCCollection Statistics::region(const BedFile& bed_file, bool merge)
     return output;
 }
 
-QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString target_file, bool skip_plots)
+QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, QString target_file, bool skip_plots)
 {
 	QCCollection output;
 
@@ -1088,7 +1087,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 
 	plot1.setValues(points, colors);
 	plot1.addColorLegend(g,"all variants");
-	plot1.addColorLegend(b,"variants filter PASS");
+	plot1.addColorLegend(b,"variants with filter PASS");
 
 	QString plot1name = Helper::tempFileName(".png");
 	plot1.store(plot1name);
@@ -1135,7 +1134,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 		}
 	}
 	//codons: count codons from variant list
-	FastaFileIndex reference(Settings::string("reference_genome"));
+	FastaFileIndex reference(ref_fasta);
 	for(int i=0; i<variants.count(); ++i)
 	{
 		if(!variants[i].filters().empty())	continue;	//skip non-somatic variants
@@ -1162,6 +1161,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 //	}
 
 	plot2.setYLabel("variant type percentage");
+	if(!target_file.isEmpty())	plot2.setYLabel("normalized variant type percentage");
 	QHash < QString, int > count_codons_target({
 	   {"ACA",0},{"ACC",0},{"ACG",0},{"ACT",0},{"CCA",0},{"CCC",0},{"CCG",0},{"CCT",0},
 	   {"GCA",0},{"GCC",0},{"GCG",0},{"GCT",0},{"TCA",0},{"TCC",0},{"TCG",0},{"TCT",0},
@@ -1170,7 +1170,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	});
 	if(target_file.isEmpty())
 	{
-		FastaFileIndex reference(Settings::string("reference_genome"));
+		FastaFileIndex reference(ref_fasta);
 		int bin = 50000000;
 		for(int i=0; i<reference.names().count(); ++i)
 		{
@@ -1243,7 +1243,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	plot2.setValues(frequencies, labels, colors);
 	QString plot2name = Helper::tempFileName(".png");
 	plot2.store(plot2name);
-	output.insert(QCValue::Image("somatic SNV signature plot", plot2name, ".", "QC:2000047"));
+	output.insert(QCValue::Image("somatic SNV signature plot", plot2name, "Percentage of different variant types. If a target file was given, the variant type percentage is normalized to the reference genome.", "QC:2000047"));
 	QFile::remove(plot2name);
 
 	//plot3: somatic variant distances, only for whole genome sequencing
@@ -1256,7 +1256,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 		//(0) generate chromosomal map
 		long long genome_size = 0;
 		QMap<Chromosome,long long> chrom_starts;
-		QStringList fai = Helper::loadTextFile(Settings::string("reference_genome") + ".fai", true, '~', true);
+		QStringList fai = Helper::loadTextFile(ref_fasta + ".fai", true, '~', true);
 		foreach(QString line, fai)
 		{
 			QStringList parts = line.split("\t");
