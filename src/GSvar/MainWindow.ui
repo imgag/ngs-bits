@@ -135,6 +135,7 @@
       <addaction name="actionImportTranscripts"/>
      </widget>
      <addaction name="actionGeneInfo"/>
+     <addaction name="actionGeneVariantInfo"/>
      <addaction name="actionConvertHgnc"/>
      <addaction name="actionGenesToRegions"/>
      <addaction name="separator"/>
@@ -604,6 +605,11 @@
   <action name="actionGenderSRY">
    <property name="text">
     <string>Based on SRY gene</string>
+   </property>
+  </action>
+  <action name="actionGeneVariantInfo">
+   <property name="text">
+    <string>Gene variant info</string>
    </property>
   </action>
  </widget>

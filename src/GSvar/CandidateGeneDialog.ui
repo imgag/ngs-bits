@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CandidateGeneDialog</class>
+ <widget class="QDialog" name="CandidateGeneDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>906</width>
+    <height>627</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Gene variant check dialog</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <property name="leftMargin">
+    <number>3</number>
+   </property>
+   <property name="topMargin">
+    <number>3</number>
+   </property>
+   <property name="rightMargin">
+    <number>3</number>
+   </property>
+   <property name="bottomMargin">
+    <number>3</number>
+   </property>
+   <property name="spacing">
+    <number>3</number>
+   </property>
+   <item row="4" column="1">
+    <widget class="QCheckBox" name="filter_recessive">
+     <property name="text">
+      <string>recessive (only hom/compound-het variants)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="label_3">
+     <property name="toolTip">
+      <string>Maximum allele frequency in ExAC/gnomAD/1000G.</string>
+     </property>
+     <property name="text">
+      <string>Frequency:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QPushButton" name="update_btn">
+     <property name="text">
+      <string>Update</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="toolTip">
+      <string>Variant impact on protein.</string>
+     </property>
+     <property name="text">
+      <string>Impact:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label">
+     <property name="toolTip">
+      <string>Comma-separted list of genes.</string>
+     </property>
+     <property name="text">
+      <string>Gene(s):</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QLineEdit" name="genes">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QComboBox" name="filter_impact">
+       <property name="currentIndex">
+        <number>1</number>
+       </property>
+       <item>
+        <property name="text">
+         <string>HIGH</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>HIGH,MODERATE</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>HIGH,MODERATE,LOW</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>HIGH,MODERATE,LOW, MODIFIER</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="filter_gencode_basic">
+       <property name="text">
+        <string>only GENCODE basic transcripts</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item row="0" column="0" colspan="2">
+    <widget class="QLabel" name="label_4">
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to check all rare variants of one or several genes in the NGSD. &lt;br/&gt;The output is copied to the clipboard and can be pasted into Excel or similar programs.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QDoubleSpinBox" name="filter_af">
+       <property name="suffix">
+        <string>%</string>
+       </property>
+       <property name="maximum">
+        <double>100.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>0.100000000000000</double>
+       </property>
+       <property name="value">
+        <double>1.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>658</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="label_5">
+     <property name="text">
+      <string>Inheritance:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0" colspan="2">
+    <widget class="QTableWidget" name="variants">
+     <property name="editTriggers">
+      <set>QAbstractItemView::NoEditTriggers</set>
+     </property>
+     <property name="showDropIndicator" stdset="0">
+      <bool>false</bool>
+     </property>
+     <property name="columnCount">
+      <number>13</number>
+     </property>
+     <attribute name="verticalHeaderVisible">
+      <bool>false</bool>
+     </attribute>
+     <column>
+      <property name="text">
+       <string>gene</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>variant</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>ngsd_het</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>ngsd_hom</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>af_gnomad</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>af_exac</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>af_1000g</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>variant_type</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>coding_and_splicing</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>sample</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>genotype</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>project</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>disease_group</string>
+      </property>
+     </column>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

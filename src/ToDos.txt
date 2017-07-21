@@ -8,6 +8,7 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
+* Add KASP result to report
 * Add menu entry to open sample folder.
 * Sample info dialog: add button(s) to open qcML-files in sample folder.
 * Add variant overview table with processed samples/project/disease_group/genotypes/diagnostic_status and statistics (counts/p-values)
@@ -21,6 +22,7 @@ GSvar:
   - implement print-out of upload data for patient file
 
 Tools:
+- SampleCorrelation: add ROI to speed up BAM-mode
 - NGSDPrecalculate:
   * add check for tumor samples variants that have been imported into 'detected_variant' table
   * add check for outdated gene names in 'geneinfo_germline' and 'hpo_genes'

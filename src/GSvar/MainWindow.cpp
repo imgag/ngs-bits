@@ -51,6 +51,7 @@
 #include "MultiSampleDialog.h"
 #include "NGSDReannotationDialog.h"
 #include "DiseaseInfoDialog.h"
+#include "CandidateGeneDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -175,6 +176,13 @@ void MainWindow::on_actionNGSDAnnotation_triggered()
 	DBAnnotationWorker* worker = new DBAnnotationWorker(filename_, variants_, busy_dialog_, dlg.roiFile(), dlg.maxAlleleFrequency());
 	connect(worker, SIGNAL(finished(bool)), this, SLOT(databaseAnnotationFinished(bool)));
 	worker->start();
+}
+
+void MainWindow::on_actionGeneVariantInfo_triggered()
+{
+	CandidateGeneDialog dlg(this);
+
+	dlg.exec();
 }
 
 void MainWindow::delayedInizialization()
@@ -2474,6 +2482,7 @@ void MainWindow::updateNGSDSupport()
 	ui_.actionOpenNGSD->setEnabled(ngsd_enabled);
 	ui_.actionGeneInfo->setEnabled(ngsd_enabled);
 	ui_.actionGenesToRegions->setEnabled(ngsd_enabled);
+	ui_.actionGeneVariantInfo->setEnabled(ngsd_enabled);
 	ui_.actionPhenoToGenes->setEnabled(ngsd_enabled);
 	ui_.actionConvertHgnc->setEnabled(ngsd_enabled);
 	ui_.actionDesignSubpanel->setEnabled(ngsd_enabled);

@@ -131,6 +131,8 @@ public slots:
 	void on_actionGeneSelector_triggered();
 	///Open NGSD annotation dialog.
 	void on_actionNGSDAnnotation_triggered();
+	///Open gene variant info check dialog.
+	void on_actionGeneVariantInfo_triggered();
 
 	///Generates a report (somatic)
 	void generateReportSomatic();
