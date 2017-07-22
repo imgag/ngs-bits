@@ -17,7 +17,7 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../GSmix/GSmix.qrc">
+   <iconset resource="GSvar.qrc">
     <normaloff>:/Icons/Icon.png</normaloff>:/Icons/Icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -83,6 +83,9 @@
     <addaction name="separator"/>
     <addaction name="actionExportVCF"/>
     <addaction name="actionExportGSvar"/>
+    <addaction name="separator"/>
+    <addaction name="actionOpenSampleFolder"/>
+    <addaction name="actionOpenSampleQcFiles"/>
     <addaction name="separator"/>
     <addaction name="actionClose"/>
     <addaction name="separator"/>
@@ -329,7 +332,7 @@
   </action>
   <action name="actionNGSD">
    <property name="icon">
-    <iconset resource="../GSmix/GSmix.qrc">
+    <iconset resource="GSvar.qrc">
      <normaloff>:/Icons/NGSD.png</normaloff>:/Icons/NGSD.png</iconset>
    </property>
    <property name="text">
@@ -612,10 +615,19 @@
     <string>Gene variant info</string>
    </property>
   </action>
+  <action name="actionOpenSampleFolder">
+   <property name="text">
+    <string>Open sample folder</string>
+   </property>
+  </action>
+  <action name="actionOpenSampleQcFiles">
+   <property name="text">
+    <string>Open sample qcML files</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="../GSmix/GSmix.qrc"/>
   <include location="GSvar.qrc"/>
  </resources>
  <connections/>

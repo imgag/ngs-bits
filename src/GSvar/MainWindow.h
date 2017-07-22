@@ -133,6 +133,10 @@ public slots:
 	void on_actionNGSDAnnotation_triggered();
 	///Open gene variant info check dialog.
 	void on_actionGeneVariantInfo_triggered();
+	///Open sample folder in explorer.
+	void on_actionOpenSampleFolder_triggered();
+	///Open sample QC files.
+	void on_actionOpenSampleQcFiles_triggered();
 
 	///Generates a report (somatic)
 	void generateReportSomatic();

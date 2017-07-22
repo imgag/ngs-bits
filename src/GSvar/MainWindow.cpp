@@ -185,6 +185,25 @@ void MainWindow::on_actionGeneVariantInfo_triggered()
 	dlg.exec();
 }
 
+void MainWindow::on_actionOpenSampleFolder_triggered()
+{
+	if (filename_=="") return;
+
+	QDesktopServices::openUrl(QFileInfo(filename_).absolutePath());
+
+}
+
+void MainWindow::on_actionOpenSampleQcFiles_triggered()
+{
+	if (filename_=="") return;
+
+	QStringList files = Helper::findFiles(QFileInfo(filename_).absolutePath(), "*.qcML", false);
+	foreach(QString file, files)
+	{
+		QDesktopServices::openUrl(file);
+	}
+}
+
 void MainWindow::delayedInizialization()
 {
 	if (!isVisible()) return;

@@ -9,9 +9,6 @@ libs:
 
 GSvar:
 * Add KASP result to report
-* Add menu entry to open sample folder.
-* Sample info dialog: add button(s) to open qcML-files in sample folder.
-* Add variant overview table with processed samples/project/disease_group/genotypes/diagnostic_status and statistics (counts/p-values)
 * Do not show variant lists over 10000 variants without filters => click to show
 * Allow settings disease_group/disease_status for multi-sample GSvar files
 * Check trio/multisample IGV integration
