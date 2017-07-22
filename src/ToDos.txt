@@ -8,7 +8,6 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-* Add KASP result to report
 * Do not show variant lists over 10000 variants without filters => click to show
 * Allow settings disease_group/disease_status for multi-sample GSvar files
 * Check trio/multisample IGV integration

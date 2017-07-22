@@ -495,7 +495,8 @@ void ReportWorker::writeHTML()
 	stream << "<br />Genom-Build: " << db_.getGenomeBuild(sample_name_) << endl;
 	stream << "<br />Datum: " << QDate::currentDate().toString("dd.MM.yyyy") << endl;
 	stream << "<br />User: " << Helper::userName() << endl;
-	stream << "<br />Analysesoftware: "  << QCoreApplication::applicationName() << " " << QCoreApplication::applicationVersion() << endl;
+	stream << "<br />Analysesoftware: "  << QCoreApplication::applicationName() << " " << QCoreApplication::applicationVersion() << endl;	
+	stream << "<br />KASP result: " << db_.getQCData(sample_name_).value("kasp").asString() << endl;
 	stream << "</p>" << endl;
 
 	//get column indices
