@@ -39,7 +39,7 @@ public:
 	}
 
 	void calculateFromVcf(QString& in1, QString& in2, int window);
-	void calculateFromBam(QString& in1, QString& in2, int min_cov, int max_snps);
+	void calculateFromBam(QString& in1, QString& in2, int min_cov, int max_snps, QString roi_file = "");
 
 private:
 	double genoToDouble(const QString& geno);

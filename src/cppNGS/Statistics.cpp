@@ -780,7 +780,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 
 	//sample correlation
 	SampleCorrelation sc;
-	sc.calculateFromBam(tumor_bam,normal_bam,30,500);
+	sc.calculateFromBam(tumor_bam,normal_bam,30,500, target_file);
 	output.insert(QCValue("sample correlation", sc.sampleCorrelation(), "SNV-based sample correlation of tumor / normal.", "QC:2000040"));
 
 	//variants
@@ -1668,18 +1668,16 @@ QString Statistics::genderHetX(const QString& bam_file, QStringList& debug_outpu
 
     //restrict to X chromosome
 	int chrx = ChromosomeInfo::refID(reader, "chrX");
-	bool jump_ok = reader.SetRegion(chrx, 0, chrx, reader.GetReferenceData()[chrx].RefLength);
+	int chrx_end_pos = reader.GetReferenceData()[chrx].RefLength;
+	bool jump_ok = reader.SetRegion(chrx, 0, chrx, chrx_end_pos);
 	if (!jump_ok) THROW(FileAccessException, QString::fromStdString(reader.GetErrorString()));
 
-    //get SNP positions on X chromsome
-    QVector<int> positions;
-    VariantList snps = NGSHelper::getSNPs();
-    for(int i=0; i<snps.count(); ++i)
-    {
-        if (snps[i].chr()=="chrX") positions.append(snps[i].start());
-    }
+	//load SNPs on chrX
+	BedFile roi_chrx;
+	roi_chrx.append(BedLine("chrX", 1, chrx_end_pos));
+	VariantList snps = NGSHelper::getSNPs(&roi_chrx);
     QVector<Pileup> counts;
-    counts.fill(Pileup(), positions.count());
+	counts.fill(Pileup(), snps.count());
 
     //iterate through all alignments and create counts
     BamAlignment al;
@@ -1691,9 +1689,9 @@ QString Statistics::genderHetX(const QString& bam_file, QStringList& debug_outpu
         int end = al.GetEndPosition();
         bool char_data_built = false;
 
-        for (int i=0; i<positions.count(); ++i)
+		for (int i=0; i<snps.count(); ++i)
         {
-            int pos = positions[i];
+			int pos = snps[i].start();
             if (start <= pos && end >= pos)
             {
                 if (!char_data_built)
@@ -1712,7 +1710,7 @@ QString Statistics::genderHetX(const QString& bam_file, QStringList& debug_outpu
     //count
     int hom_count = 0;
     int het_count = 0;
-    for (int i=0; i<positions.count(); ++i)
+	for (int i=0; i<snps.count(); ++i)
     {
         int depth = counts[i].depth(false);
         if (depth>=30)
@@ -1731,7 +1729,7 @@ QString Statistics::genderHetX(const QString& bam_file, QStringList& debug_outpu
 
     //debug output
     double het_frac = (double) het_count / (het_count + hom_count);
-    debug_output << "SNPs with coverage 30 or more: " +  QString::number(hom_count + het_count) + " of " + QString::number(positions.count());
+	debug_output << "SNPs with coverage 30 or more: " +  QString::number(hom_count + het_count) + " of " + QString::number(snps.count());
     debug_output << "hom count: " + QString::number(hom_count);
     debug_output << "het count: " + QString::number(het_count);
     debug_output << "het fraction: " + QString::number(het_frac, 'f', 4);

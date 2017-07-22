@@ -1,11 +1,11 @@
 ### GenesToBed tool help
-	GenesToBed (0.1-630-g7df9763)
+	GenesToBed (0.1-773-g0c7504d)
 	
 	Converts a text file with gene names to a BED file.
 	
 	Mandatory parameters:
 	  -source <enum> Transcript source database.
-	                 Valid: 'ccds,refseq,ucsc'
+	                 Valid: 'ccds,ensembl'
 	  -mode <enum>   Mode: gene = start/end of gene, exon = start/end of all exons of all splice variants.
 	                 Valid: 'gene,exon'
 	
@@ -28,7 +28,7 @@
 	  --tdx          Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### GenesToBed changelog
-	GenesToBed 0.1-630-g7df9763
+	GenesToBed 0.1-773-g0c7504d
 	
 	2017-02-09 Added RefSeq source.
 	2017-02-09 Added option to annotate transcript names.

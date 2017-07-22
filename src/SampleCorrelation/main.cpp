@@ -27,6 +27,9 @@ public:
 		addInt("window", "Window to consider around indel positions to compensate for differing alignments (TSV input).", true, 100);
 		addInt("min_cov",  "Minimum coverage to consider a SNP for the analysis (BAM input).",  true,  30);
 		addInt("max_snps",  "The maximum number of high-coverage SNPs to analyze. 0 means unlimited (BAM input).",  true,  500);
+		addInfile("roi", "Target region used to speed up calculations e.g. for panel data (BAM intput).", true);
+
+		changeLog(2017,  7, 22, "Added 'roi' parameter.");
 	}
 
 	virtual void main()
@@ -52,11 +55,10 @@ public:
 		//BAM mode
 		else
 		{
-
 			//parse parameters
 			int min_cov = getInt("min_cov");
 			int max_snps = getInt("max_snps");
-			sc.calculateFromBam(in1, in2, min_cov, max_snps);
+			sc.calculateFromBam(in1, in2, min_cov, max_snps, getInfile("roi"));
 
 			//output
 			out << "Number of high-coverage SNPs: " << QString::number(sc.noVariants1()) << " of " << QString::number(sc.totalVariants()) << " (max_snps: " << QString::number(max_snps) << ")" << endl;

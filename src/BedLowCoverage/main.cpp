@@ -26,7 +26,7 @@ public:
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
 		addInt("min_mapq", "Minimum mapping quality to consider a read.", true, 1);
 
-		changeLog(2016,  6,  9, "The BED line name if the input BED file is now passed on to the output BED file.");
+		changeLog(2016,  6,  9, "The BED line name of the input BED file is now passed on to the output BED file.");
 	}
 
 	virtual void main()

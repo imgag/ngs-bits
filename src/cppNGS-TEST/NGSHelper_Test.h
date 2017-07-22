@@ -168,6 +168,12 @@ private slots:
 	{
 		VariantList list = NGSHelper::getSNPs();
 		I_EQUAL(list.count(), 19255);
+
+		//only chrX
+		BedFile roi_chrx;
+		roi_chrx.append(BedLine("chrX", 1, 155270560));
+		list = NGSHelper::getSNPs(&roi_chrx);
+		I_EQUAL(list.count(), 363);
 	}
 
 	void getIndels()

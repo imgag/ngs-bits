@@ -64,7 +64,7 @@ private slots:
 		seq = index.seq("chr16", 87637933, 5);
 		S_EQUAL(seq, Sequence("CTGTA"));
 
-		seq = index.seq("chrUn_gl000249", 1, 5);
+		seq = index.seq("chrGL000249.1", 1, 5);
 		S_EQUAL(seq, Sequence("GATCA"));
 	}
 

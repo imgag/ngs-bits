@@ -344,10 +344,10 @@ void NGSHelper::getIndels(const FastaFileIndex& reference, BamReader& reader, co
 	mapq0_frac = (double)reads_mapq0 / reads_mapped;
 }
 
-VariantList NGSHelper::getSNPs()
+VariantList NGSHelper::getSNPs(const BedFile* roi)
 {
 	VariantList output;
-	output.load("://Resources/hg19_snps.tsv");
+	output.load("://Resources/hg19_snps.tsv", VariantList::AUTO, roi);
 	return output;
 }
 

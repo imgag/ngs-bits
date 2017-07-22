@@ -75,7 +75,7 @@ public:
 	static void getIndels(const FastaFileIndex& reference, BamTools::BamReader& reader, const Chromosome& chr, int start, int end, QVector<Sequence>& indels, int& depth, double& mapq0_frac);
 
 	///Returns selected SNPs of the hg19 genome (only single base exchange, MAF 20%-80%).
-	static VariantList getSNPs();
+	static VariantList getSNPs(const BedFile* roi = nullptr);
 
 	/**
 	  @brief Returns the correct base of an alignment at a chromosomal position (1-based) using the CIGAR data (compensates for indels) along with its quality value (calculated form the ASCII character by using an offset of 33).

@@ -75,9 +75,19 @@ void SampleCorrelation::calculateFromVcf(QString& in1, QString& in2, int window)
 	}
 }
 
-void SampleCorrelation::calculateFromBam(QString& in1, QString& in2, int min_cov, int max_snps)
+void SampleCorrelation::calculateFromBam(QString& in1, QString& in2, int min_cov, int max_snps, QString roi_file)
 {
-	VariantList snps = NGSHelper::getSNPs();
+	VariantList snps;
+	if (!roi_file.trimmed().isEmpty())
+	{
+		BedFile roi;
+		roi.load(roi_file);
+		snps = NGSHelper::getSNPs(&roi);
+	}
+	else
+	{
+		snps = NGSHelper::getSNPs();
+	}
 
 	//open BAM readers
 	BamReader r1;

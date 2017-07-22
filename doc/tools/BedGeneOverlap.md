@@ -1,11 +1,11 @@
 ### BedGeneOverlap tool help
-	BedGeneOverlap (0.1-630-g7df9763)
+	BedGeneOverlap (0.1-773-g0c7504d)
 	
 	Calculates how much of each overlapping gene is covered.
 	
 	Mandatory parameters:
 	  -source <enum> Transcript source database.
-	                 Valid: 'ccds,refseq,ucsc'
+	                 Valid: 'ccds,ensembl'
 	
 	Optional parameters:
 	  -in <file>     Input BED file. If unset, reads from STDIN.
@@ -22,7 +22,7 @@
 	  --tdx          Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BedGeneOverlap changelog
-	BedGeneOverlap 0.1-630-g7df9763
+	BedGeneOverlap 0.1-773-g0c7504d
 	
 	2017-02-09 Added RefSeq source.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
