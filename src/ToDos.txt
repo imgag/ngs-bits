@@ -9,6 +9,7 @@ libs:
 
 GSvar:
 ** Do not show variant lists over 10000 variants without filters => click to show
+** Add carrier variant filter: MAF/SMAF<1% AND ihdb<20? AND keep Class>=4 AND remove class<=2 AND remove ExAC hom>4 AND (OMIM OR ClinVar/HGMD pathogenic OR high-impact)
 * Allow settings disease_group/disease_status for multi-sample GSvar files
 * Check trio/multisample IGV integration
 - multi-sample anaysis: allow relaxing affected/control genotype filters by requiring only X out of Y
@@ -18,8 +19,6 @@ GSvar:
   - implement print-out of upload data for patient file
 
 Tools:
-  * integrate into MappingQC?
-  * remove af_deviation from VariantQC?
 - NGSDPrecalculate:
   * add check for tumor samples variants that have been imported into 'detected_variant' table
   * add check for outdated gene names in 'geneinfo_germline' and 'hpo_genes'

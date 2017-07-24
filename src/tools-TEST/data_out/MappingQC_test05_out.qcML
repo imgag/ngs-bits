@@ -16,6 +16,7 @@
     <qualityParameter ID="qp0007" name="duplicate read percentage" description="Percentage of reads removed because they were duplicates (PCR, optical, etc)." value="6.00" cvRef="QC" accession="QC:2000024"/>
     <qualityParameter ID="qp0008" name="bases usable (MB)" description="Bases sequenced that are usable for variant calling (in megabases)." value="0.34" cvRef="QC" accession="QC:2000050"/>
     <qualityParameter ID="qp0009" name="target region read depth" description="Average sequencing depth in target region." value="0.00" cvRef="QC" accession="QC:2000025"/>
+    <qualityParameter ID="qp0010" name="SNV allele frequency deviation" description="Percentage of common SNPs that deviate from the expected allele frequency (i.e. 0.0, 0.5 or 1.0 for diploid organisms)" value="n/a" cvRef="QC" accession="QC:2000051"/>
   </runQuality>
   <cvList>
     <cv uri="https://qcml.googlecode.com/svn/trunk/cv/qc-cv.obo" ID="QC" fullName="QC" version="0.1"/>

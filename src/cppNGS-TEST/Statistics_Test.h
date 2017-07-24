@@ -57,7 +57,7 @@ private slots:
         S_EQUAL(stats[1].name(), QString("known variants percentage"));
         S_EQUAL(stats[1].accession(), QString("QC:2000014"));
 		S_EQUAL(stats[1].toString(), QString("97.35"));
-        I_EQUAL(stats.count(), 7);
+		I_EQUAL(stats.count(), 6);
 
 		//check that there is a description for each term
 		for (int i=0; i<stats.count(); ++i)
@@ -88,9 +88,7 @@ private slots:
 		S_EQUAL(stats[4].toString(), QString("4.46"));
 		S_EQUAL(stats[5].name(), QString("transition/transversion ratio"));
 		S_EQUAL(stats[5].toString(), QString("3.29"));
-		S_EQUAL(stats[6].name(), QString("SNV allele frequency deviation"));
-		S_EQUAL(stats[6].toString(), QString("0.0334"));
-		I_EQUAL(stats.count(), 7);
+		I_EQUAL(stats.count(), 6);
 
 		//check that there is a description for each term
 		for (int i=0; i<stats.count(); ++i)
@@ -117,9 +115,7 @@ private slots:
         IS_TRUE(stats[4].toString().startsWith("n/a "));
         S_EQUAL(stats[5].name(), QString("transition/transversion ratio"));
         IS_TRUE(stats[5].toString().startsWith("n/a "));
-        S_EQUAL(stats[6].name(), QString("SNV allele frequency deviation"));
-        IS_TRUE(stats[6].toString().startsWith("n/a "));
-        I_EQUAL(stats.count(), 7);
+		I_EQUAL(stats.count(), 6);
 
 		//check that there is a description for each term
 		for (int i=0; i<stats.count(); ++i)
@@ -180,6 +176,14 @@ private slots:
 			IS_TRUE(stats[i].description()!="");
 			IS_TRUE(stats[i].accession()!="");
 		}
+	}
+
+	void contamination()
+	{
+		QCCollection stats = Statistics::contamination(TESTDATA("data_in/panel.bam"));
+		S_EQUAL(stats[0].name(), QString("SNV allele frequency deviation"));
+		S_EQUAL(stats[0].toString(), QString("1.23"));
+		I_EQUAL(stats.count(), 1);
 	}
 
 	void mapping_close_exons()

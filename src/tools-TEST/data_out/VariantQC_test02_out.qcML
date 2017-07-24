@@ -13,7 +13,6 @@
     <qualityParameter ID="qp0004" name="homozygous variants percentage" description="Percentage of variants that are called as homozygous." value="39.49" cvRef="QC" accession="QC:2000016"/>
     <qualityParameter ID="qp0005" name="indel variants percentage" description="Percentage of variants that are insertions/deletions." value="4.46" cvRef="QC" accession="QC:2000017"/>
     <qualityParameter ID="qp0006" name="transition/transversion ratio" description="Transition/transversion ratio of SNV variants." value="3.29" cvRef="QC" accession="QC:2000018"/>
-    <qualityParameter ID="qp0007" name="SNV allele frequency deviation" description="Mean deviation from expected allele frequency (e.g. 0.0, 0.5 or 1.0 for diploid organisms) for single nucleotide variants." value="0.0334" cvRef="QC" accession="QC:2000051"/>
   </runQuality>
   <cvList>
     <cv uri="https://qcml.googlecode.com/svn/trunk/cv/qc-cv.obo" ID="QC" fullName="QC" version="0.1"/>

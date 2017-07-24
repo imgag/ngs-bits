@@ -77,10 +77,6 @@ SUBDIRS += SampleCorrelation
 tools-TEST.depends += SampleCorrelation
 SampleCorrelation.depends = cppNGS
 
-SUBDIRS += SampleContamination
-tools-TEST.depends += SampleContamination
-SampleContamination.depends = cppNGS
-
 SUBDIRS += SampleDiff
 tools-TEST.depends += SampleDiff
 SampleDiff.depends = cppNGS

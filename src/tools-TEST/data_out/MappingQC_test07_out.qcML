@@ -15,6 +15,7 @@
     <qualityParameter ID="qp0006" name="insert size" description="Mean insert size (for paired-end reads only)." value="259.44" cvRef="QC" accession="QC:2000023"/>
     <qualityParameter ID="qp0007" name="duplicate read percentage" description="Percentage of reads removed because they were duplicates (PCR, optical, etc)." value="n/a (duplicates not marked or removed during data analysis)" cvRef="QC" accession="QC:2000024"/>
     <qualityParameter ID="qp0008" name="bases usable (MB)" description="Bases sequenced that are usable for variant calling (in megabases)." value="1.11" cvRef="QC" accession="QC:2000050"/>
+    <qualityParameter ID="qp0010" name="SNV allele frequency deviation" description="Percentage of common SNPs that deviate from the expected allele frequency (i.e. 0.0, 0.5 or 1.0 for diploid organisms)" value="n/a" cvRef="QC" accession="QC:2000051"/>
     <attachment ID="qp0009" name="insert size distribution plot" description="Insert size distribution plot." cvRef="QC" accession="QC:2000038">
     </attachment>
   </runQuality>

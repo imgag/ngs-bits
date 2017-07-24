@@ -26,6 +26,8 @@ public:
 	static QCCollection region(const BedFile& bed_file, bool merge);
 	///Calculates somatic QC metrics from BAM and vcf file
 	static QCCollection somatic(QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, QString target_file = QString(), bool skip_plots = false);
+	///Calculates the percentage of common SNPs that lie outside the expected allele frequency range for diploid organisms.
+	static QCCollection contamination(QString bam, bool debug = false, int min_cov = 20, int min_snps = 50);
 
 	///Calculates the part of the target region that has a lower coverage than the given cutoff. The input BED file must be merged and sorted!
 	static BedFile lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq=1);

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>278</width>
-    <height>487</height>
+    <height>503</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -294,7 +294,7 @@
      <item row="5" column="0">
       <widget class="QLabel" name="label_21">
        <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Average deviation of SNP allele frequencies from expected values (0.0, 0.5, 1.0).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;PercentageofcommonSNPsthatdeviatefromtheexpectedallelefrequency(i.e.0.0,0.5or1.0fordiploidorganisms).&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="text">
         <string>AF deviation:</string>

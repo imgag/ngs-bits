@@ -28,6 +28,8 @@ public:
 		addFlag("txt", "Writes TXT format instead of qcML.");
 		addInt("min_mapq", "Minmum mapping quality to consider a read mapped.", true, 1);
 		addFlag("3exons", "Adds special QC terms estimating the sequencing error on reads from three exons.");
+		addFlag("no_cont", "Disables sample contamination calculation, e.g. for tumor samples.");
+		addFlag("debug", "Enables verbose debug outout.");
 
 		//changelog
 		changeLog(2016, 12, 20, "Added support for spliced RNA reads (relevant e.g. for insert size)");
@@ -41,7 +43,7 @@ public:
         bool rna = getFlag("rna");
 		QString in = getInfile("in");
 		int min_maqp = getInt("min_mapq");
-
+		bool debug = getFlag("debug");
         // check that just one of roi_file, wgs, rna is set
         int parameters_set =  (roi_file!="" ? 1 : 0) +  wgs + rna;
         if (parameters_set!=1)
@@ -79,6 +81,13 @@ public:
 			parameters << "-roi" << QFileInfo(roi_file).fileName();
         }
 
+		//sample contamination
+		QCCollection metrics_cont;
+		if (!getFlag("no_cont"))
+		{
+			metrics_cont = Statistics::contamination(in, debug);
+		}
+
 		//special QC for 3 exons
 		QMap<QString, int> precision_overwrite;
 		precision_overwrite.insert("error estimation N percentage", 4);
@@ -100,11 +109,14 @@ public:
 			QStringList output;
 			metrics.appendToStringList(output);
 			output << "";
+			metrics_cont.appendToStringList(output);
+			output << "";
 			metrics_3exons.appendToStringList(output, precision_overwrite);
 			Helper::storeTextFile(Helper::openFileForWriting(out, true), output);
 		}
 		else
 		{
+			metrics.insert(metrics_cont);
 			metrics.insert(metrics_3exons);
 			metrics.storeToQCML(out, QStringList() << in, parameters.join(" "), precision_overwrite);
 		}

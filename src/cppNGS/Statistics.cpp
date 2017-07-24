@@ -137,40 +137,6 @@ QCCollection Statistics::variantList(VariantList variants, bool filter)
 		output.insert(QCValue("transition/transversion ratio", "n/a (no variants or tansversions)", "Transition/transversion ratio of SNV variants.", "QC:2000018"));
     }
 
-    //deviation from expected allel frequency
-	QString sample_name = variants.sampleNames().count() ? variants.sampleNames()[0] : "Sample";
-	int i_ao = variants.annotationIndexByName("AO", sample_name, true, false);
-	int i_dp = variants.annotationIndexByName("DP", sample_name, true, false);
-	QString value = "n/a (AO/DP annotation not found)";
-	if (i_ao>=0 && i_dp>=0)
-    {
-		int diff_count = 0;
-		double diff_sum = 0.0;
-        for(int i=0; i<variants.count(); ++i)
-        {
-			if (!variants[i].isSNV()) continue;
-            bool ok = true;
-            int dp = variants[i].annotations().at(i_dp).toInt(&ok);
-            if (!ok || dp<30) continue;
-            int ao = variants[i].annotations().at(i_ao).toInt(&ok);
-            if (!ok) continue;
-            double af = (double)ao/dp;
-            double diff = std::min(std::min(af, std::fabs(0.5-af)), std::fabs(1.0-af));
-            diff_sum += diff;
-            ++diff_count;
-        }
-
-		if (diff_count>30)
-		{
-			value = QString::number(diff_sum/diff_count, 'f', 4);
-		}
-		else
-		{
-			value = "n/a (not enough SNPs found)";
-		}
-    }
-	output.insert(QCValue("SNV allele frequency deviation", value, "Mean deviation from expected allele frequency (e.g. 0.0, 0.5 or 1.0 for diploid organisms) for single nucleotide variants.", "QC:2000051"));
-
     return output;
 }
 
@@ -1326,6 +1292,54 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	return output;
 }
 
+QCCollection Statistics::contamination(QString bam, bool debug, int min_cov, int min_snps)
+{
+	//open BAM
+	BamReader reader;
+	NGSHelper::openBAM(reader, bam);
+
+	//calcualate frequency histogram
+	Histogram hist(0, 1, 0.05);
+	int passed = 0;
+	double passed_depth_sum = 0.0;
+	VariantList snps = NGSHelper::getSNPs();
+	for(int i=0; i<snps.count(); ++i)
+	{
+		Pileup pileup = NGSHelper::getPileup(reader, snps[i].chr(), snps[i].start());
+		int depth = pileup.depth(false);
+		if (depth<min_cov) continue;
+
+		double freq = pileup.frequency(snps[i].ref()[0], snps[i].obs()[0]);
+
+		//skip non-informative snps
+		if (!BasicStatistics::isValidFloat(freq)) continue;
+
+		++passed;
+		passed_depth_sum += depth;
+
+		hist.inc(freq);
+	}
+
+	//debug output
+	if (debug)
+	{
+		QTextStream stream(stdout);
+		stream << "Contamination debug output:\n";
+		stream << passed << " of " << snps.count() << " SNPs passed quality filters\n";
+		stream << "Average depth of passed SNPs: " << QString::number(passed_depth_sum/passed,'f', 2) << "\n";
+		stream << "\nAF histogram:\n";
+		hist.print(stream, "", 2, 0);
+	}
+
+	//output
+	double off = 0.0;
+	for (int i=1; i<=5; ++i) off += hist.binValue(i, true);
+	for (int i=14; i<=18; ++i) off += hist.binValue(i, true);
+	QCCollection output;
+	QString value = (passed < min_snps) ? "n/a" : QString::number(off, 'f', 2);
+	output.insert(QCValue("SNV allele frequency deviation", value, "Percentage of common SNPs that deviate from the expected allele frequency (i.e. 0.0, 0.5 or 1.0 for diploid organisms)", "QC:2000051"));
+	return output;
+}
 
 QCCollection Statistics::mapping3Exons(const QString& bam_file)
 {
