@@ -1,5 +1,6 @@
 #include "CandidateGeneDialog.h"
 #include "NGSD.h"
+#include "GUIHelper.h"
 #include <QDebug>
 #include <QApplication>
 #include <QClipboard>
@@ -179,14 +180,7 @@ void CandidateGeneDialog::updateVariants()
 	}
 
 	//resize cols
-	ui_.variants->resizeColumnsToContents();
-	for (int i=0; i<ui_.variants->columnCount(); ++i)
-	{
-		if (ui_.variants->columnWidth(i)>600)
-		{
-			ui_.variants->setColumnWidth(i, 600);
-		}
-	}
+	GUIHelper::resizeTableCells(ui_.variants, 600);
 
 	//reset cursor
 	QApplication::restoreOverrideCursor();

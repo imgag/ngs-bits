@@ -5,6 +5,7 @@
 #include "ReportWorker.h"
 #include "Log.h"
 #include "Helper.h"
+#include "GUIHelper.h"
 #include <QDebug>
 #include <QComboBox>
 #include <QFileInfo>
@@ -78,8 +79,7 @@ void GapDialog::process(QString bam_file, const BedFile& roi, const GeneSet& gen
 		if(!highlight_type) label->setState(GapValidationLabel::NO_VALIDATION);
 	}
 
-	ui->gaps->resizeColumnsToContents();
-	ui->gaps->resizeRowsToContents();
+	GUIHelper::resizeTableCells(ui->gaps);
 }
 
 GapDialog::~GapDialog()

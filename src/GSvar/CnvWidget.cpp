@@ -2,6 +2,7 @@
 #include "ui_CnvWidget.h"
 #include "Helper.h"
 #include "Exceptions.h"
+#include "GUIHelper.h"
 #include <QFileInfo>
 #include <QBitArray>
 #include <QClipboard>
@@ -133,15 +134,7 @@ void CnvWidget::loadCNVs(QString filename)
 	}
 
 	//resize columns
-	ui->cnvs->resizeColumnsToContents();
-	ui->cnvs->resizeRowsToContents();
-	for(int c=0; c<ui->cnvs->columnCount(); ++c)
-	{
-		if (ui->cnvs->columnWidth(c)>200)
-		{
-			ui->cnvs->setColumnWidth(c, 200);
-		}
-	}
+	GUIHelper::resizeTableCells(ui->cnvs, 200);
 
 	updateStatus(cnvs.count());
 }

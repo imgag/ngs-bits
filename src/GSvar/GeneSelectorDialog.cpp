@@ -4,6 +4,7 @@
 #include "Helper.h"
 #include "NGSD.h"
 #include "NGSHelper.h"
+#include "GUIHelper.h"
 #include <QDebug>
 #include <QFileInfo>
 #include <QMessageBox>
@@ -185,8 +186,7 @@ void GeneSelectorDialog::updateGeneTable()
 	}
 
 	//resize
-	ui->details->resizeColumnsToContents();
-	ui->details->resizeRowsToContents();
+	GUIHelper::resizeTableCells(ui->details);
 
 	//reset cursor
 	QApplication::restoreOverrideCursor();

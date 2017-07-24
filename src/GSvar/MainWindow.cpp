@@ -561,16 +561,14 @@ void MainWindow::on_actionAbout_triggered()
 
 void MainWindow::on_actionResize_triggered()
 {
-	ui_.vars->resizeColumnsToContents();
-	ui_.vars->resizeRowsToContents();
+	GUIHelper::resizeTableCells(ui_.vars, 200);
 
-	//limit column width
-	for (int i=0; i<ui_.vars->columnCount(); ++i)
+	//restrict the first 5 columns further
+	for (int i=0; i<5; ++i)
 	{
-		int max = (i<6) ? 80 : 200;
-		if (ui_.vars->columnWidth(i)>max)
+		if (ui_.vars->columnWidth(i)>80)
 		{
-			ui_.vars->setColumnWidth(i, max);
+			ui_.vars->setColumnWidth(i, 80);
 		}
 	}
 }

@@ -2,6 +2,7 @@
 #include "ReportDialog.h"
 #include "NGSD.h"
 #include "Log.h"
+#include "GUIHelper.h"
 #include <QTableWidgetItem>
 #include <QBitArray>
 #include <QPushButton>
@@ -98,8 +99,7 @@ void ReportDialog::addVariants(const VariantList& variants, const QBitArray& vis
 		++row;
 	}
 
-	ui_.vars->resizeColumnsToContents();
-	ui_.vars->resizeRowsToContents();
+	GUIHelper::resizeTableCells(ui_.vars);
 }
 
 void ReportDialog::setTargetRegionSelected(bool is_selected)
