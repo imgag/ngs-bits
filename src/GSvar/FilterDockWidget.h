@@ -21,15 +21,6 @@ public:
 	/// Sets filter columns present in the open file
 	void setFilterColumns(const QMap<QString, QString>& filter_cols);
 
-    /// Applies predefined default filters (germline).
-	void applyDefaultFilters();
-	/// Applies predefined default filters (trio).
-	void applyDefaultFiltersTrio();
-	/// Applies predefined default filters (multi-sample).
-	void applyDefaultFiltersMultiSample();
-    /// Applies predefined default filters (somatic).
-    void applyDefaultFiltersSomatic();
-
 	/// Returns if the MAF filter is enabled.
 	bool applyMaf() const;
 	/// Returns the maximum MAF percentage filter value.
@@ -97,6 +88,19 @@ public:
 
 	/// Loads filter target regions (Processing systems from NGSD, Sub-panels from file system and additional target regions from INI file)
 	void loadTargetRegions();
+
+public slots:
+
+	/// Applies predefined default filters (germline).
+	void applyDefaultFilters();
+	/// Applies predefined default filters (trio).
+	void applyDefaultFiltersTrio();
+	/// Applies predefined default filters (multi-sample).
+	void applyDefaultFiltersMultiSample();
+	/// Applies predefined default filters (somatic).
+	void applyDefaultFiltersSomatic();
+	/// Applies predefined default filters (carrier).
+	void applyDefaultFiltersCarrier();
 
 signals:
 	/// Signal that is emitted when an annotation filter changes its checkbox state, or if the ROI changes, or if the gene changes

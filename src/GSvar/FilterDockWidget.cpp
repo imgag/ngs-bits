@@ -395,6 +395,46 @@ void FilterDockWidget::applyDefaultFiltersSomatic()
     emit filtersChanged();
 }
 
+void FilterDockWidget::applyDefaultFiltersCarrier()
+{
+	//block signals to avoid 10 updates of GUI
+	blockSignals(true);
+
+	resetSignalsUnblocked(false, true);
+
+	//enable default filters
+	ui_.maf_enabled->setChecked(true);
+	ui_.maf->setValue(1.0);
+	ui_.maf_sub_enabled->setChecked(true);
+	ui_.maf_sub->setValue(1.0);
+	ui_.impact_enabled->setChecked(true);
+	ui_.impact->setCurrentText("HIGH,MODERATE,LOW"); //TODO => HIGH,MODERATE?
+	ui_.ihdb_enabled->setChecked(true);
+	ui_.ihdb->setValue(50); //TODO => 50 because carrier
+	ui_.ihdb_ignore_gt->setChecked(false);
+	ui_.classification_enabled->setChecked(true);
+	ui_.classification->setCurrentText("3");
+	ui_.keep_class_ge_enabled->setChecked(true);
+	ui_.keep_class_ge->setCurrentText("4");
+	ui_.keep_class_m->setChecked(false);
+
+	//filter cols
+	QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
+	foreach(FilterColumnWidget* w, fcws)
+	{
+		if (w->objectName()=="anno_high_impact" || w->objectName()=="anno_pathogenic_clinvar" || w->objectName()=="anno_pathogenic_hgmd" || w->objectName()=="anno_omim")
+		{
+			w->setFilter(true);
+		}
+	}
+
+	//re-enable signals
+	blockSignals(false);
+
+	//emit signal to update GUI
+	emit filtersChanged();
+}
+
 bool FilterDockWidget::applyMaf() const
 {
 	return ui_.maf_enabled->isChecked();

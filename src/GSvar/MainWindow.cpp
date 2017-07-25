@@ -79,15 +79,19 @@ MainWindow::MainWindow(QWidget *parent)
     filter_btn->setIcon(QIcon(":/Icons/Filter.png"));
 	filter_btn->setToolTip("Apply default variant filters.");
 	filter_btn->setMenu(new QMenu());
-    filter_btn->menu()->addAction(ui_.actionFiltersGermline);
-    connect(ui_.actionFiltersGermline, SIGNAL(triggered(bool)), this, SLOT(applyDefaultFiltersGermline()));
+	filter_btn->menu()->addAction(ui_.actionFiltersGermline);
+	connect(ui_.actionFiltersGermline, SIGNAL(triggered(bool)), filter_widget_, SLOT(applyDefaultFilters()));
 	filter_btn->menu()->addAction(ui_.actionFiltersTrio);
-	connect(ui_.actionFiltersTrio, SIGNAL(triggered(bool)), this, SLOT(applyDefaultFiltersTrio()));
+	connect(ui_.actionFiltersTrio, SIGNAL(triggered(bool)), filter_widget_, SLOT(applyDefaultFiltersTrio()));
 	filter_btn->menu()->addAction(ui_.actionFiltersMultiSample);
-	connect(ui_.actionFiltersMultiSample, SIGNAL(triggered(bool)), this, SLOT(applyDefaultFiltersMultiSample()));
+	connect(ui_.actionFiltersMultiSample, SIGNAL(triggered(bool)), filter_widget_, SLOT(applyDefaultFiltersMultiSample()));
     filter_btn->menu()->addAction(ui_.actionFiltersSomatic);
-    connect(ui_.actionFiltersSomatic, SIGNAL(triggered(bool)), this, SLOT(applyDefaultFiltersSomatic()));
-    filter_btn->menu()->addAction(ui_.actionFiltersClear);
+	connect(ui_.actionFiltersSomatic, SIGNAL(triggered(bool)), filter_widget_, SLOT(applyDefaultFiltersSomatic()));
+	filter_btn->menu()->addSeparator();
+	filter_btn->menu()->addAction(ui_.actionFiltersCarrier);
+	connect(ui_.actionFiltersCarrier, SIGNAL(triggered(bool)), filter_widget_, SLOT(applyDefaultFiltersCarrier()));
+	filter_btn->menu()->addSeparator();
+	filter_btn->menu()->addAction(ui_.actionFiltersClear);
     connect(ui_.actionFiltersClear, SIGNAL(triggered(bool)), this, SLOT(clearFilters()));
     filter_btn->setPopupMode(QToolButton::InstantPopup);
     ui_.tools->insertWidget(ui_.actionReport, filter_btn);
@@ -971,26 +975,6 @@ void MainWindow::databaseAnnotationFinished(bool success)
 
 	//clean
 	worker->deleteLater();
-}
-
-void MainWindow::applyDefaultFiltersGermline()
-{
-	filter_widget_->applyDefaultFilters();
-}
-
-void MainWindow::applyDefaultFiltersTrio()
-{
-	filter_widget_->applyDefaultFiltersTrio();
-}
-
-void MainWindow::applyDefaultFiltersMultiSample()
-{
-	filter_widget_->applyDefaultFiltersMultiSample();
-}
-
-void MainWindow::applyDefaultFiltersSomatic()
-{
-	filter_widget_->applyDefaultFiltersSomatic();
 }
 
 void MainWindow::clearFilters()

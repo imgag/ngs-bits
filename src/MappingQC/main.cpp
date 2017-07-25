@@ -28,7 +28,7 @@ public:
 		addFlag("txt", "Writes TXT format instead of qcML.");
 		addInt("min_mapq", "Minmum mapping quality to consider a read mapped.", true, 1);
 		addFlag("3exons", "Adds special QC terms estimating the sequencing error on reads from three exons.");
-		addFlag("no_cont", "Disables sample contamination calculation, e.g. for tumor samples.");
+		addFlag("no_cont", "Disables sample contamination calculation, e.g. for tumor or non-human samples.");
 		addFlag("debug", "Enables verbose debug outout.");
 
 		//changelog

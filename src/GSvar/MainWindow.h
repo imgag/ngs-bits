@@ -178,10 +178,6 @@ public slots:
 	void cleanUpModelessDialogs();
 
 	///Variant default filters
-    void applyDefaultFiltersGermline();
-	void applyDefaultFiltersTrio();
-	void applyDefaultFiltersMultiSample();
-    void applyDefaultFiltersSomatic();
     void clearFilters();
 
 protected:
