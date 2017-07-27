@@ -134,7 +134,7 @@
    <item row="0" column="0" colspan="2">
     <widget class="QLabel" name="label_4">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to check all rare variants of one or several genes in the NGSD. &lt;br/&gt;The output is copied to the clipboard and can be pasted into Excel or similar programs.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to search for rare variants of one or several genes in the NGSD. &lt;br/&gt;The output can be copied to the clipboard and used in Excel or similar programs.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
    </item>

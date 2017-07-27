@@ -567,8 +567,8 @@ void MainWindow::on_actionResize_triggered()
 {
 	GUIHelper::resizeTableCells(ui_.vars, 200);
 
-	//restrict the first 5 columns further
-	for (int i=0; i<5; ++i)
+	//restrict REF/ALT column with
+	for (int i=3; i<=4; ++i)
 	{
 		if (ui_.vars->columnWidth(i)>80)
 		{
@@ -1539,24 +1539,6 @@ QString MainWindow::nobr()
 
 void MainWindow::uploadtoLovd(int variant_index)
 {
-/*
-	HttpHandler http_handler;
-	qDebug() << "GET HTTPS";
-	qDebug() << http_handler.getHttpReply("https://httpbin.org/get");
-
-	qDebug() << "POST HTTPS";
-	qDebug() << http_handler.getHttpReply("https://httpbin.org/post", "my_conent");
-
-	qDebug() << "GET HTTP (local)";
-	qDebug() << http_handler.getHttpReply("http://localhost/");
-
-	qDebug() << "GET HTTP";
-	qDebug() << http_handler.getHttpReply("http://httpbin.org/get");
-
-	qDebug() << "POST HTTP";
-	qDebug() << http_handler.getHttpReply("http://httpbin.org/post", "my_conent");
-*/
-
 	QString sample = QFileInfo(filename_).baseName();
 	NGSD db;
 	QString gender = db.sampleGender(sample);

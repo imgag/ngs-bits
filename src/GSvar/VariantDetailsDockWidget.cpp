@@ -380,6 +380,8 @@ void VariantDetailsDockWidget::initTranscriptDetails(const VariantList& vl, int 
 	QList<QByteArray> transcripts = vl[index].annotations()[a_index].split(',');
 	foreach(QByteArray t, transcripts)
 	{
+		if (t.trimmed().isEmpty()) continue;
+
 		QStringList parts = QString(t).split(':');
 
 		//check number of parts
