@@ -101,10 +101,6 @@ SUBDIRS += VariantFilterRegions
 tools-TEST.depends += VariantFilterRegions
 VariantFilterRegions.depends = cppNGS
 
-SUBDIRS += BamIndex
-tools-TEST.depends += BamIndex
-BamIndex.depends = cppNGS
-
 SUBDIRS += VariantAnnotateFrequency
 tools-TEST.depends += VariantAnnotateFrequency
 VariantAnnotateFrequency.depends = cppNGS
