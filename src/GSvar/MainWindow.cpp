@@ -1567,7 +1567,7 @@ void MainWindow::uploadtoLovd(int variant_index)
 	if (!upload_file.isEmpty())
 	{
 		HttpHandler http_handler;
-		QString reply = http_handler.getHttpReply("http://databases.lovd.nl/shared/api/submissions", upload_file);
+		QString reply = http_handler.getHttpReply("https://databases.lovd.nl/shared/api/submissions", upload_file);
 		qDebug() << "REPLY:" << reply;
 	}
 }

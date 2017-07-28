@@ -408,9 +408,9 @@ void FilterDockWidget::applyDefaultFiltersCarrier()
 	ui_.maf_sub_enabled->setChecked(true);
 	ui_.maf_sub->setValue(1.0);
 	ui_.impact_enabled->setChecked(true);
-	ui_.impact->setCurrentText("HIGH,MODERATE,LOW"); //TODO => HIGH,MODERATE?
+	ui_.impact->setCurrentText("HIGH");
 	ui_.ihdb_enabled->setChecked(true);
-	ui_.ihdb->setValue(50); //TODO => 50 because carrier
+	ui_.ihdb->setValue(50);
 	ui_.ihdb_ignore_gt->setChecked(false);
 	ui_.classification_enabled->setChecked(true);
 	ui_.classification->setCurrentText("3");
@@ -422,9 +422,13 @@ void FilterDockWidget::applyDefaultFiltersCarrier()
 	QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
 	foreach(FilterColumnWidget* w, fcws)
 	{
-		if (w->objectName()=="anno_high_impact" || w->objectName()=="anno_pathogenic_clinvar" || w->objectName()=="anno_pathogenic_hgmd" || w->objectName()=="anno_omim")
+		if (w->objectName()=="anno_omim")
 		{
 			w->setFilter(true);
+		}
+		if (w->objectName()=="anno_pathogenic_clinvar" || w->objectName()=="anno_pathogenic_hgmd")
+		{
+			w->setState(FilterColumnWidget::KEEP);
 		}
 	}
 
