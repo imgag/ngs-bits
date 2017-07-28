@@ -1,3 +1,11 @@
+### 0.1-782-ge325449 (28.07.2017)
+- General: Speed-up of variant list loading.
+- General: Added menu entry to open sample QC data in browser (File > Open sample qcML files). 
+- General: Added menu entry to open sample folder (File > Open sample folder). 
+- General: Added candidate gene search dialog (Tools > Genes > Gene variant info).
+- Filters: Added carrier filter.
+- Report: Added KASP result to header.
+
 ### 0.1-763-g42b5a3e (13.07.2017)
 - Replaced RefSeq/UCSC transcripts by Ensembl transcripts in NGSD.
 
@@ -82,6 +90,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 
