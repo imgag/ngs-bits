@@ -782,36 +782,17 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 				{
 					++known_count;
 				}
-				output.insert(QCValue("known somatic variants percentage EXAC", 100.0*known_count/somatic_count, "Percentage of somatic variants listed by EXAC with allele frequency > 1 %.", "QC:2000054"));
+				output.insert(QCValue("known somatic variants percentage EXAC", 100.0*known_count/somatic_count, "Percentage of somatic variants listed by EXAC with allele frequency > 1 %.", "QC:2000045"));
 			}
 		}
 		else
 		{
-			output.insert(QCValue("known somatic variants percentage EXAC", "n/a (no somatic variants)", "Percentage of somatic variants listed by EXAC with allele frequency > 1 %.", "QC:2000054"));
+			output.insert(QCValue("known somatic variants percentage", "n/a (no somatic variants)", "Percentage of somatic variants listed by EXAC with allele frequency > 1 %.", "QC:2000045"));
 		}
 	}
 	else	//without EXAC information use dbSNP
 	{
-		int dbsnp = variants.annotationIndexByName("ID", true, false);
-
-		if (variants.count()!=0 && dbsnp!=-1)
-		{
-			double known_count = 0;
-			for(int i=0; i<variants.count(); ++i)
-			{
-				if (!variants[i].filters().empty())	continue;
-
-				if (variants[i].annotations().at(dbsnp).startsWith("rs"))
-				{
-					++known_count;
-				}
-			}
-			output.insert(QCValue("known somatic variants percentage dbSNP", 100.0*known_count/somatic_count, "Percentage of somatic variants that are known polymorphisms in the dbSNP database.", "QC:2000045"));
-		}
-		else
-		{
-			output.insert(QCValue("known somatic variants percentage dbSNP", "n/a (no somatic variants)", "Percentage of somatic variants listed by dbSNP.", "QC:2000045"));
-		}
+		output.insert(QCValue("known somatic variants percentage", "n/a (no EXAC annotation)", "Percentage of somatic variants listed by EXAC with allele frequency > 1 %.", "QC:2000045"));
 	}
 	
 
@@ -854,7 +835,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 		output.insert(QCValue("somatic transition/transversion ratio", "n/a (no variants or transversions)", "Somatic transition/transversion ratio of SNV variants.", "QC:2000043"));
 	}
 
-	//somatic mutation rate
+	//somatic variant rate
 	BamReader reader;
 	reader.Open(tumor_bam.toStdString());
 	ChromosomeInfo chr(reader);
@@ -925,14 +906,62 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 			}
 		}
 	}
-	double mutation_rate = (static_cast<double>(somatic_count - count_tumorgenes)/target_size*genome_size + count_tumorgenes)/genome_size;
+	double variant_rate = (static_cast<double>(somatic_count - count_tumorgenes)/target_size*genome_size + count_tumorgenes)/genome_size;
 
 	QString value = "";
-	if(mutation_rate > 23.1)	value = "high";
-	else if(mutation_rate >= 3.3)	value = "intermediate";
+	if(variant_rate > 23.1)	value = "high";
+	else if(variant_rate >= 3.3)	value = "intermediate";
 	else	value = "low";
-	value += " ("+ QString::number(mutation_rate,'f',2) +" mut/Mb)";
-	output.insert(QCValue("somatic mutation rate", mutation_rate, "Somatic mutation rate [mutations/Mb] normalized for the target region. Considered " + QString::number(count_tumorgenes) + " truncating mutation(s) in tumor suppressors / oncogenes during calculation.", "QC:2000053"));
+	value += " ("+ QString::number(variant_rate,'f',2) +" var/Mb)";
+	output.insert(QCValue("somatic variant rate", value, "Categorized somatic variant rate (high/intermediate/low) followed by the somatic variant rate [variants/Mb] normalized for the target region and corrected for truncating variant(s) in tumor suppressors / oncogenes.", "QC:2000053"));
+
+	//estimate tumor content
+	int min_depth = 30;
+	double max_somatic = 0.01;
+	int n = 10;
+	//process variants
+	QVector<double> freqs;
+	BamReader reader_tumor;
+	NGSHelper::openBAM(reader_tumor, tumor_bam);
+	BamReader reader_normal;
+	NGSHelper::openBAM(reader_normal, normal_bam);
+	for (int i=0; i<variants.count(); ++i)
+	{
+		const Variant& v = variants[i];
+
+		if (!v.isSNV()) continue;
+		if (!v.chr().isAutosome()) continue;
+		if(!variants[i].filters().empty())	continue;	//skip non-somatic variants
+
+		Pileup pileup_tu = NGSHelper::getPileup(reader_tumor, v.chr(), v.start());
+		if (pileup_tu.depth(true) < min_depth) continue;
+		Pileup pileup_no = NGSHelper::getPileup(reader_normal, v.chr(), v.start());
+		if (pileup_no.depth(true) < min_depth) continue;
+
+		double no_freq = pileup_no.frequency(v.ref()[0], v.obs()[0]);
+		if (!BasicStatistics::isValidFloat(no_freq) || no_freq >= max_somatic) continue;
+
+		double tu_freq = pileup_tu.frequency(v.ref()[0], v.obs()[0]);
+		if (!BasicStatistics::isValidFloat(tu_freq) || tu_freq > 0.6) continue;
+
+		freqs.append(tu_freq);
+	}
+
+	//sort data
+	std::sort(freqs.begin(), freqs.end());
+
+	//print tumor content estimate
+	value = "";
+	if (freqs.count()>=n)
+	{
+		freqs = freqs.mid(freqs.count()-n);
+		value = QString::number(BasicStatistics::median(freqs, false)*200, 'f', 2);
+	}
+	else
+	{
+		value = "n/a (too few variants)";
+	}
+	output.insert(QCValue("tumor content estimate", value, "Estimate of tumor content.", "QC:2000054"));
 
 	if(skip_plots)	return output;
 
@@ -943,6 +972,76 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 
 	if(!variants.sampleNames().contains(tumor_id))	Log::error("Tumor sample " + tumor_id + " was not found in variant file " + somatic_vcf);
 	if(!variants.sampleNames().contains(normal_id))	Log::error("Normal sample " + normal_id + " was not found in variant file " + somatic_vcf);
+
+	//plot0: histogram allele frequencies somatic mutations
+	Histogram hist(0,1,0.0125);
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if(!variants[i].filters().empty())	continue;	//skip non-somatic variants
+		if(!variants[i].isSNV())	continue;	//skip indels
+
+		//strelka SNV tumor and normal
+		int idx_strelka_snv = variants.annotationIndexByName("AU", tumor_id, true, false);
+		if( idx_strelka_snv!=-1 && !variants[i].annotations()[idx_strelka_snv].isEmpty() )
+		{
+			int count_mut = 0;
+			int count_all = 0;
+			foreach(QString n, nuc)
+			{
+				int index_n = variants.annotationIndexByName((n+"U"), tumor_id);
+				int tmp = variants[i].annotations()[index_n].split(',')[0].toInt();
+				if(n==variants[i].obs())	count_mut += tmp;
+				count_all += tmp;
+			}
+			if(count_all>0)	hist.inc((double)count_mut/count_all);
+
+		}
+		//freebayes tumor and normal
+		//##FORMAT=<ID=RO,Number=1,Type=Integer,Description="Reference allele observation count">
+		//##FORMAT=<ID=AO,RONumber=A,Type=Integer,Description="Alternate allele observation count">
+		else if(variants.annotationIndexByName("AO", tumor_id, true, false) != -1)
+		{
+			int index_ro = variants.annotationIndexByName("RO", tumor_id);
+			int index_ao = variants.annotationIndexByName("AO", tumor_id);
+			int count_mut = variants[i].annotations()[index_ao].toInt();
+			int count_all = count_mut + variants[i].annotations()[index_ro].toInt();
+			if(count_all>0)	hist.inc((double)count_mut/count_all);
+		}
+		//mutect
+		//##FORMAT=<ID=FA,Number=A,Type=Float,Description="Allele fraction of the alternate allele with regard to reference">
+		else if(variants.annotationIndexByName("FA", tumor_id, true, false) != -1)
+		{
+			int index_fa = variants.annotationIndexByName("FA", tumor_id);
+			hist.inc(variants[i].annotations()[index_fa].toDouble());
+		}
+		// else: strelka indel
+	}
+	QList<double> data0 = hist.yCoords().toList();
+	data0.prepend(0);
+	data0.append(0);
+
+	BarPlot plot0;
+	plot0.setXLabel("somatic allele frequency");
+	plot0.setYLabel("count");
+	plot0.setXRange(0-hist.binSize(),1+hist.binSize());
+	plot0.setYRange(0, ( hist.maxValue()>10 ? hist.maxValue() : (hist.maxValue()+0.2*hist.maxValue())) );
+	QList<QString> labels0;
+	labels0.append("");
+	int count = 1;
+	labels0.append("0.00-" + QString::number((0+hist.binSize())*100,'f',2) + "%");
+	foreach(double l, hist.xCoords())
+	{
+		if(count % 4 == 0)	labels0.append(QString::number((l-hist.binSize()/2)*100,'f',2) + "-" + QString::number((l+hist.binSize()/2)*100,'f',2)+"%");
+		else labels0.append("");
+
+		++count;
+	}
+	labels0.append("");
+	plot0.setValues(data0, labels0);
+	QString plot0name = Helper::tempFileName(".png");
+	plot0.store(plot0name);
+	output.insert(QCValue::Image("somatic SNVs allele frequency histogram", plot0name, "Allele frequency histogram of somatic SNVs.", "QC:2000055"));
+	QFile::remove(plot0name);
 
 	//plot1: allele frequencies
 	ScatterPlot plot1;
@@ -1023,9 +1122,19 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 			count_all = count_mut + variants[i].annotations()[index_ro].toInt();
 			if(count_all>0)	af_normal = (double)count_mut/count_all;
 		}
+		//mutect
+		//##FORMAT=<ID=FA,Number=A,Type=Float,Description="Allele fraction of the alternate allele with regard to reference">
+		else if(variants.annotationIndexByName("FA", tumor_id, true, false) != -1)
+		{
+			int index_fa = variants.annotationIndexByName("FA", tumor_id);
+			af_tumor = variants[i].annotations()[index_fa].toDouble();
+
+			index_fa = variants.annotationIndexByName("FA", normal_id);
+			af_normal = variants[i].annotations()[index_fa].toDouble();
+		}
 		else
 		{
-			Log::error("Could not identify vcf format in line " + QString::number(i) + ". Sample-ID: " + tumor_id + ". Only strelka and freebayes are currently supported.");
+			Log::error("Could not identify vcf format in line " + QString::number(i+1) + ". Sample-ID: " + tumor_id + ". Position " + variants[i].chr().str() + ":" + QString::number(variants[i].start()) + ". Only strelka and freebayes are currently supported.");
 		}
 
 		//find AF and set x and y points, implement freebayes and strelka fields

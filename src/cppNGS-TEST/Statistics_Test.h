@@ -24,9 +24,9 @@ private slots:
         S_EQUAL(stats[2].name(), QString("somatic variant count"));
         S_EQUAL(stats[2].accession(), QString("QC:2000041"));
         S_EQUAL(stats[2].toString(), QString("2"));
-		S_EQUAL(stats[3].name(), QString("known somatic variants percentage dbSNP"));
+		S_EQUAL(stats[3].name(), QString("known somatic variants percentage"));
         S_EQUAL(stats[3].accession(), QString("QC:2000045"));
-        S_EQUAL(stats[3].toString(), QString("0.00"));
+		S_EQUAL(stats[3].toString(), QString("n/a (no EXAC annotation)"));
         S_EQUAL(stats[4].name(), QString("somatic indel percentage"));
         S_EQUAL(stats[4].accession(), QString("QC:2000042"));
         S_EQUAL(stats[4].toString(), QString("50.00"));
@@ -34,8 +34,10 @@ private slots:
 		S_EQUAL(stats[5].accession(), QString("QC:2000043"));
 		S_EQUAL(stats[5].toString(), QString("n/a (no variants or transversions)"));
 		S_EQUAL(stats[6].accession(), QString("QC:2000053"));
-		S_EQUAL(stats[6].toString(), QString("0.00"));
-		I_EQUAL(stats.count(), 7);
+		S_EQUAL(stats[6].toString(), QString("low (0.00 var/Mb)"));
+		S_EQUAL(stats[7].accession(), QString("QC:2000054"));
+		S_EQUAL(stats[7].toString(), QString("n/a (too few variants)"));
+		I_EQUAL(stats.count(), 8);
 
 		//check that there is a description for each term
 		for (int i=0; i<stats.count(); ++i)

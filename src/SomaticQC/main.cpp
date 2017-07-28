@@ -122,7 +122,7 @@ public:
 			}
 			if(tmp_i == "")	tmp_i = "unknown_device";
 			if(tmp_e == "")	tmp_e = "unknown_enrichment";
-			tmp_instrument += " " + tmp_i;
+			tmp_instrument += ", " + tmp_i;
 			tmp_enrichment += tmp_e;
 
 			++count;

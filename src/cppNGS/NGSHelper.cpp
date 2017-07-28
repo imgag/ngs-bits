@@ -513,8 +513,11 @@ void NGSHelper::createSampleOverview(QStringList in, QString out, int indel_wind
 							//skip base columns
 							if (part=="#chr" || part=="start" || part=="end" || part=="ref" || part=="obs") continue;
 
-							//skip sample-specific columns
+							//skip sample-specific germline columns
 							if (part=="genotype" || part=="quality") continue;
+
+							//skip sample-specific somatic columns
+							if (part=="tumor_af" || part=="tumor_dp" || part=="normal_af" || part=="normal_dp")	continue;
 
 							cols.append(part);
 						}

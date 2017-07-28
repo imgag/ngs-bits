@@ -32,7 +32,7 @@ public:
 		addOutfile("out", "Output TXT file. If unset, writes to STDOUT.", true);
 		addInt("min_depth", "Minmum depth in tumor and normal sample to consider a variant.", true, 30);
 		addFloat("max_somatic", "Maximum frequency in normal sample to consider a variant somatic.", true, 0.01);
-		addInt("n", "Minimal number of somatic autosomal heterocygous variants to calculate the tumor content.", true, 10);
+		addInt("n", "Minimal number of somatic autosomal heterozygous variants to calculate the tumor content.", true, 10);
 	}
 
 	virtual void main()
