@@ -1,6 +1,6 @@
 # *ngs-bits* - Short-read sequencing tools
 
-![TravisCI status](https://api.travis-ci.org/imgag/ngs-bits.svg?branch=master)
+[![TravisCI status](https://api.travis-ci.org/imgag/ngs-bits.svg?branch=master)](https://travis-ci.org/imgag/ngs-bits/builds)
 
 ## Obtaining ngs-bits
 
@@ -122,6 +122,7 @@ The default output format of the quality control tools is [qcML](https://github.
 
 
   
+
 
 
 
