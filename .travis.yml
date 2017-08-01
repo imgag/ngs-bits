@@ -4,10 +4,7 @@ compiler: gcc
 sudo: required
 services: docker
 
-
-script:  docker run --privileged -v $TRAVIS_BUILD_DIR:/root/ngs-bits ubuntu:16.04 "cd /root/ngs-bits/ && ./tools/TravisCI/run.sh"
-
-
+script:  docker run --privileged -v $TRAVIS_BUILD_DIR:/root/ngs-bits ubuntu:16.04 cd /root/ngs-bits/ && ./tools/TravisCI/run.sh
 
 #TODOs:
 # - also test clang compiler
