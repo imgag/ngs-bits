@@ -5,8 +5,7 @@ sudo: required
 services: docker
 
 script:
-  - docker run -v $TRAVIS_BUILD_DIR:/mnt:Z --name my_container ubuntu:16.04
-  - docker attach my_container
+  - docker run -t -v $TRAVIS_BUILD_DIR:/mnt:Z --name my_container ubuntu:16.04
   - docker exec my_container /mnt/tools/TravisCI/build.sh
 
 
