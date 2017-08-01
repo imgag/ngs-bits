@@ -1,0 +1,22 @@
+language: cpp
+os: linux
+compiler: gcc 
+
+addons:
+   apt:
+      packages:
+	    - qt5-default
+        - libqt5xmlpatterns5-dev
+		- libqt5sql5-mysql
+		- git
+		- cmake
+		- python
+		- python-matplotlib
+		
+
+script: make build_3rdparty build_tools_release 
+
+
+
+#TODOs:
+# - also use clang compiler

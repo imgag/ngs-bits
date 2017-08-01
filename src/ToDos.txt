@@ -10,6 +10,7 @@ libs:
 GSvar:
 * Allow settings disease_group/disease_status for multi-sample GSvar files
 * Check trio/multisample IGV integration
+- candiateGeneVariants: allow sorting by sample/variant/etc
 - multi-sample anaysis: allow relaxing affected/control genotype filters by requiring only X out of Y
 - Target region filter: reset to none if it looses focus in search mode
 ** ClinVar/LOVD upload for variant:
