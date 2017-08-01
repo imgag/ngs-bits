@@ -4,7 +4,7 @@ compiler: gcc
 sudo: required
 services: docker
 
-script: docker run ubuntu:16.04 grep -v '^#' /etc/apt/sources.list
+script: docker run -v imgag/ngs-bits:/mnt --name my_container ubuntu:16.04 && docker exec -it my_container ls /mnt/
 
 
 
