@@ -5,10 +5,8 @@ sudo: required
 services: docker
 
 script:
-  - docker run -v $TRAVIS_BUILD_DIR:/mnt --name my_container ubuntu:16.04
-  - docker exec my_container touch /mnt/bla.txt
-  - ls $TRAVIS_BUILD_DIR
-  - docker exec my_container /mnt/ngs-bits/tools/TravisCI/build.sh > /mnt/build.log
+  - docker run -v $TRAVIS_BUILD_DIR:/mnt:rw --name my_container ubuntu:16.04
+  - docker exec my_container /mnt/tools/TravisCI/build.sh > /mnt/build.log
   - cat $TRAVIS_BUILD_DIR/build.log
 
 
