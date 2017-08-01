@@ -4,7 +4,7 @@ compiler: gcc
 sudo: required
 services: docker
 
-script: docker run -v $TRAVIS_BUILD_DIR/ngs-bits/:/mnt --name my_container ubuntu:16.04 && docker exec -it my_container ls /mnt/
+script: docker run -v $TRAVIS_BUILD_DIR/ngs-bits/:/mnt ubuntu:16.04 ls /mnt/
 
 
 
