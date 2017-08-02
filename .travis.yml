@@ -1,13 +1,12 @@
 language: cpp
 os: linux
-compiler: gcc 
+compiler:
+ - gcc
+ - clang
 sudo: required
 services: docker
 
 git:
   depth: 3
 
-script:  docker run --privileged -v $TRAVIS_BUILD_DIR:/root/ngs-bits -w /root/ngs-bits/ ubuntu:16.04 /bin/bash ./tools/TravisCI/run.sh
-
-#TODOs:
-# - also test clang compiler
+script: docker run --privileged -v $TRAVIS_BUILD_DIR:/root/ngs-bits -w /root/ngs-bits/ ubuntu:16.04 /bin/bash ./tools/TravisCI/run.sh
