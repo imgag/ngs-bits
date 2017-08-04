@@ -165,10 +165,6 @@ SUBDIRS += VariantAnnotateNGSD
 tools-TEST.depends += VariantAnnotateNGSD
 VariantAnnotateNGSD.depends = cppNGSD
 
-SUBDIRS += EstimateTumorContent
-tools-TEST.depends += EstimateTumorContent
-EstimateTumorContent.depends = cppNGS
-
 SUBDIRS += SampleOverview
 tools-TEST.depends += SampleOverview
 SampleOverview.depends = cppNGS

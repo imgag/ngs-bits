@@ -62,14 +62,14 @@ CREATE TABLE IF NOT EXISTS `gene_transcript` (
 `end_coding` int(10) unsigned NULL,
 `strand` enum('+', '-') NOT NULL,
 
-PRIMARY KEY (`id`), 
-KEY `fk_gene_id2` (`gene_id` ASC) ,
+PRIMARY KEY (`id`),
 CONSTRAINT `fk_gene_id3`
   FOREIGN KEY (`gene_id` )
   REFERENCES `gene` (`id` )
   ON DELETE NO ACTION
   ON UPDATE NO ACTION,
 UNIQUE KEY `gene_name_unique` (`gene_id`, `name`),
+KEY `name` (`name`) ,
 KEY `source` (`source`),
 KEY `chromosome` (`chromosome`),
 KEY `start_coding` (`start_coding`), 

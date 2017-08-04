@@ -39,8 +39,9 @@ public:
 		setExtendedDescription(QStringList() << "SomaticQC integrates the output of the other QC tools and adds several metrics specific for tumor-normal pairs. The genome build form the settings file will be used during calcuation of QC metrics. All tools produce qcML, a generic XML format for QC of -omics experiments, which we adapted for NGS.");
 
 		//changelog
-		changeLog(2017,1,16,"Increased speed for mutation profile, removed genome build switch.");
-		changeLog(2016,8,25,"Version used in the application note.");
+		changeLog(2017, 7, 28, "Added somatic allele frequency histogram and tumor estimate.");
+		changeLog(2017, 1, 16, "Increased speed for mutation profile, removed genome build switch.");
+		changeLog(2016, 8, 25, "Version used in the application note.");
 	}
 
 	virtual void main()
