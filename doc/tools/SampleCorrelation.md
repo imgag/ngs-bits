@@ -1,5 +1,5 @@
 ### SampleCorrelation tool help
-	SampleCorrelation (0.1-699-g594d5da)
+	SampleCorrelation (0.1-782-ge325449)
 	
 	Calculates the variant overlap and correlation of two variant lists.
 	
@@ -18,6 +18,8 @@
 	                  Default value: '30'
 	  -max_snps <int> The maximum number of high-coverage SNPs to analyze. 0 means unlimited (BAM input).
 	                  Default value: '500'
+	  -roi <file>     Target region used to speed up calculations e.g. for panel data (BAM intput).
+	                  Default value: ''
 	
 	Special parameters:
 	  --help          Shows this help and exits.
@@ -26,6 +28,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SampleCorrelation changelog
-	SampleCorrelation 0.1-699-g594d5da
+	SampleCorrelation 0.1-782-ge325449
 	
+	2017-07-22 Added 'roi' parameter.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

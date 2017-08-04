@@ -1,5 +1,5 @@
 ### MappingQC tool help
-	MappingQC (0.1-563-g5bbcca6)
+	MappingQC (0.1-782-ge325449)
 	
 	Calculates QC metrics based on mapped NGS reads.
 	
@@ -21,6 +21,10 @@
 	                  Default value: '1'
 	  -3exons         Adds special QC terms estimating the sequencing error on reads from three exons.
 	                  Default value: 'false'
+	  -no_cont        Disables sample contamination calculation, e.g. for tumor or non-human samples.
+	                  Default value: 'false'
+	  -debug          Enables verbose debug outout.
+	                  Default value: 'false'
 	
 	Special parameters:
 	  --help          Shows this help and exits.
@@ -29,7 +33,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### MappingQC changelog
-	MappingQC 0.1-563-g5bbcca6
+	MappingQC 0.1-782-ge325449
 	
 	2016-12-20 Added support for spliced RNA reads (relevant e.g. for insert size)
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

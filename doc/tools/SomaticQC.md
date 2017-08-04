@@ -1,5 +1,5 @@
 ### SomaticQC tool help
-	SomaticQC (0.1-773-g0c7504d)
+	SomaticQC (0.1-782-ge325449)
 	
 	Calculates QC metrics based on tumor-normal pairs.
 	
@@ -28,8 +28,9 @@
 	  --tdx               Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SomaticQC changelog
-	SomaticQC 0.1-773-g0c7504d
+	SomaticQC 0.1-782-ge325449
 	
+	2017-07-28 Added somatic allele frequency histogram and tumor estimate.
 	2017-01-16 Increased speed for mutation profile, removed genome build switch.
 	2016-08-25 Version used in the application note.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
