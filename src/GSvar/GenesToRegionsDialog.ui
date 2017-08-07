@@ -70,16 +70,16 @@
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Source database.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="currentText">
-        <string>CCDS</string>
+        <string>Ensembl</string>
        </property>
        <item>
         <property name="text">
-         <string>CCDS</string>
+         <string>Ensembl</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>UCSC</string>
+         <string>CCDS</string>
         </property>
        </item>
       </widget>

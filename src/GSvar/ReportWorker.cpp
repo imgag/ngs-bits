@@ -287,7 +287,7 @@ void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file
 		}
 		if (!transcript.isValid())
 		{
-			stream << "<br>Warning:Low-coverage statistics for gene " + symbol + " cannot be calculated: No coding transcript found in CCDS/RefSeq!";
+			stream << "<br>Warning:Low-coverage statistics for gene " + symbol + " cannot be calculated: No coding transcript found in CCDS/Ensembl!";
 			continue;
 		}
 
