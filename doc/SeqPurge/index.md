@@ -6,7 +6,7 @@ SeqPurge is a highly sensitive adapter trimmer for paired-end short read data.
 
 Using SeqPurge is pretty intuituve. This example shows the use when trimming and merging data of a sample that was sequenced on two lanes:
 
-	> SeqPurge -in_for R1_L1.fastq.gz R1_L2.fastq.gz -in_rev R2_L1.fastq.gz R2_L2.fastq.gz -out1 R1.fastq.gz -out R2.fastq.gz
+	> SeqPurge -in1 R1_L1.fastq.gz R1_L2.fastq.gz -in2 R2_L1.fastq.gz R2_L2.fastq.gz -out1 R1.fastq.gz -out2 R2.fastq.gz
 
 The main parameters of SeqPurge are:
 
