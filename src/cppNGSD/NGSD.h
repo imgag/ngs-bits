@@ -214,6 +214,9 @@ public:
 	///Returns the target file path (or sub-panel folder)
 	static QString getTargetFilePath(bool subpanels = false, bool windows = true);
 
+	///Checks for errors/inconsistencies and fixes them if @p fix_errors is set.
+	void maintain(QTextStream* messages, bool fix_errors);
+
 signals:
 	void initProgress(QString text, bool percentage);
 	void updateProgress(int percentage);
@@ -221,6 +224,7 @@ signals:
 protected:
 	///Copy constructor "declared away".
 	NGSD(const NGSD&);
+	void fixGeneNames(QTextStream* messages, bool fix_errors, QString table, QString column);
 
 	///The database adapter
 	QSharedPointer<QSqlDatabase> db_;

@@ -876,6 +876,140 @@ QString NGSD::getTargetFilePath(bool subpanels, bool windows)
 	return output;
 }
 
+void NGSD::fixGeneNames(QTextStream* messages, bool fix_errors, QString table, QString column)
+{
+	SqlQuery query = getQuery();
+	query.exec("SELECT DISTINCT " + column + " FROM " + table + " tmp WHERE NOT EXISTS(SELECT * FROM gene WHERE symbol=tmp." + column + ")");
+	while(query.next())
+	{
+		*messages << "Outdated gene name in '" << table << "': " << query.value(0).toString() << endl;
+		if (fix_errors)
+		{
+			QString gene = query.value(0).toString();
+			auto approved_data = geneToApproved(gene);
+			if (approved_data.second.contains("ERROR"))
+			{
+				*messages << "  FAIL: Cannot fix error in '" << gene << "' because: " << approved_data.second << endl;
+			}
+			else
+			{
+				query.exec("UPDATE " + table + " SET " + column + "='" + approved_data.first + "' WHERE " + column + "='" + gene +"'");
+			}
+		}
+	}
+}
+
+void NGSD::maintain(QTextStream* messages, bool fix_errors)
+{
+	SqlQuery query = getQuery();
+
+	// (1) tumor samples variants that have been imported into 'detected_variant' table
+	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), ps.id FROM sample s, processed_sample ps WHERE ps.sample_id=s.id AND s.tumor='1' AND EXISTS(SELECT * FROM detected_variant WHERE processed_sample_id=ps.id)");
+	while(query.next())
+	{
+		*messages << "Tumor sample imported into germline variant table: " << query.value(0).toString() << endl;
+
+		if (fix_errors)
+		{
+			getQuery().exec("DELETE FROM detected_variant WHERE processed_sample_id=" + query.value(1).toString());
+		}
+	}
+
+	// (2) outdated gene names
+	fixGeneNames(messages, fix_errors, "geneinfo_germline", "symbol");
+	fixGeneNames(messages, fix_errors,"hpo_genes", "gene");
+
+	// (3) variants/qc-data/KASP present for merged processed samples
+	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), p.type, p.name, s.id, ps.id FROM sample s, processed_sample ps, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id");
+	while(query.next())
+	{
+		QString ps_name = query.value(0).toString();
+		QString p_type = query.value(1).toString();
+
+		QString folder = Settings::string("projects_folder") + "/" + p_type + "/" + query.value(2).toString() + "/Sample_" + ps_name + "/";
+		if (!QFile::exists(folder))
+		{
+			QString ps_id = query.value(4).toString();
+
+			//check if merged
+			bool merged = false;
+			SqlQuery query2 = getQuery();
+			query2.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), p.type, p.name FROM sample s, processed_sample ps, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id AND s.id='" + query.value(3).toString()+"' AND ps.id!='" + ps_id + "'");
+			while(query2.next())
+			{
+				QString folder2 = Settings::string("projects_folder") + "/" + query2.value(1).toString() + "/" + query2.value(2).toString() + "/Sample_" + query2.value(0).toString() + "/";
+				if (QFile::exists(folder2))
+				{
+					QStringList files = Helper::findFiles(folder2, ps_name + "*.fastq.gz", false);
+					if (files.count()>0)
+					{
+						//qDebug() << "Sample " << ps_name << " merged into sample folder " << folder2 << "!" << endl;
+						merged = true;
+					}
+				}
+			}
+
+			//check status
+			if (merged)
+			{
+				//check if variants are present
+				int c_var = getValue("SELECT COUNT(*) FROM detected_variant WHERE processed_sample_id='" + ps_id + "'").toInt();
+				if (c_var>0)
+				{
+					*messages << "Merged sample " << ps_name << " has variant data!" << endl;
+
+					if (fix_errors)
+					{
+						getQuery().exec("DELETE FROM detected_variant WHERE processed_sample_id='" + ps_id + "'");
+					}
+				}
+				int c_qc = getValue("SELECT COUNT(*) FROM processed_sample_qc WHERE processed_sample_id='" + ps_id + "'").toInt();
+				if (c_qc>0)
+				{
+					*messages << "Merged sample " << ps_name << " has QC data!" << endl;
+
+					if (fix_errors)
+					{
+						getQuery().exec("DELETE FROM processed_sample_qc WHERE processed_sample_id='" + ps_id + "'");
+					}
+				}
+				if (p_type=="diagnostic")
+				{
+					QVariant kasp = getValue("SELECT random_error_prob FROM kasp_status WHERE processed_sample_id='" + ps_id + "'");
+					if (kasp.isNull())
+					{
+						*messages << "Merged sample " << ps_name << " KASP result missing!" << endl;
+
+						if (fix_errors)
+						{
+							getQuery().exec("INSERT INTO `kasp_status`(`processed_sample_id`, `random_error_prob`, `snps_evaluated`, `snps_match`) VALUES ('" + ps_id + "',999,0,0)");
+						}
+					}
+				}
+			}
+		}
+	}
+
+	//(4) variants for bad processed samples
+	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), ps.id FROM sample s, processed_sample ps WHERE ps.sample_id=s.id AND ps.quality='bad'");
+	while(query.next())
+	{
+		QString ps_id = query.value(1).toString();
+
+		//check if variants are present
+		int c_var = getValue("SELECT COUNT(*) FROM detected_variant WHERE processed_sample_id='" + ps_id + "'").toInt();
+		if (c_var>0)
+		{
+			*messages << "Bad sample " << query.value(0).toString() << " has variant data!" << endl;
+
+			if (fix_errors)
+			{
+				getQuery().exec("DELETE FROM detected_variant WHERE processed_sample_id='" + ps_id + "'");
+			}
+		}
+	}
+}
+
 void NGSD::setComment(const Variant& variant, const QString& text)
 {
 	getQuery().exec("UPDATE variant SET comment='" + text + "' WHERE id='" + variantId(variant) + "'");
@@ -1306,6 +1440,8 @@ BedFile NGSD::genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QS
 		}
 		gene = geneSymbol(id);
 
+		qDebug() << id << gene;
+
 		//prepare annotations
 		QList<QByteArray> annos;
 		annos << gene;
@@ -1365,6 +1501,8 @@ BedFile NGSD::genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QS
 					annos << gene + " " + q_transcript.value(4).toByteArray();
 				}
 
+				qDebug() << q_transcript.value(4).toByteArray();
+
 				int trans_id = q_transcript.value(0).toInt();
 				int start_coding = q_transcript.value(2).toInt();
 				int end_coding = q_transcript.value(3).toInt();
@@ -1374,6 +1512,7 @@ BedFile NGSD::genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QS
 				{
 					int start = std::max(start_coding, q_exon.value(0).toInt());
 					int end = std::min(end_coding, q_exon.value(1).toInt());
+					qDebug() << start << end << start_coding << end_coding;
 					if (end<start_coding || start>end_coding) continue;
 
 					output.append(BedLine("chr"+q_transcript.value(1).toByteArray(), start, end, annos));

@@ -90,6 +90,7 @@ HEADERS += \
     NGSDImportGeneInfo_Test.h \	
     VariantAnnotateStrand_Test.h \	
     VcfAnnotateFromBed_Test.h \
+    NGSDMaintain_Test.h \
 
 SOURCES += \
     main.cpp \

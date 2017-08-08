@@ -8,9 +8,8 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-* Allow settings disease_group/disease_status for multi-sample GSvar files
-* Check trio/multisample IGV integration
-* Allow non-coding transcripts in sub-panel design MIR137HG
+* Allow non-coding transcripts in sub-panel design (or in general?) e.g. MIR137HG
+- Allow settings disease_group/disease_status for multi-sample GSvar files
 - candiateGeneVariants: allow sorting by sample/variant/etc
 - multi-sample anaysis: allow relaxing affected/control genotype filters by requiring only X out of Y
 - Target region filter: reset to none if it looses focus in search mode
@@ -19,11 +18,6 @@ GSvar:
   - implement print-out of upload data for patient file
 
 Tools:
-** NGSDMaintain:
-  - add check for tumor samples variants that have been imported into 'detected_variant' table
-  - add check for outdated gene names in 'geneinfo_germline' and 'hpo_genes'
-  - warn when variants/qc-data is present for merged processed samples (also handle KASP)
-  - warn when variants is present for bad processed samples
 - NGSDImportGeneInfo:
   ** add (optional) import of inheritance mode from OMIM
 - SomaticQC: do not use precalculated triplet counts, count every time (CS)

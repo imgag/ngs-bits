@@ -285,6 +285,10 @@ SUBDIRS += NGSDPrecalculate
 tools-TEST.depends += NGSDPrecalculate
 NGSDPrecalculate.depends = cppNGSD
 
+SUBDIRS += NGSDMaintain
+tools-TEST.depends += NGSDMaintain
+NGSDMaintain.depends = cppNGSD
+
 #other stuff
 OTHER_FILES += ToDos.txt
 
