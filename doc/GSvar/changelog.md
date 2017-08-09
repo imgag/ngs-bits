@@ -1,3 +1,6 @@
+### 0.1-813-g48244c7 (09.08.2016)
+- General: gene/region and region/gene conversion now also supports non-coding genes.
+
 ### 0.1-782-ge325449 (28.07.2017)
 - General: Speed-up of variant list loading.
 - General: Added menu entry to open sample QC data in browser (File > Open sample qcML files). 
@@ -90,6 +93,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 

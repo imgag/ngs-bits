@@ -1,5 +1,5 @@
 ### GenesToBed tool help
-	GenesToBed (0.1-773-g0c7504d)
+	GenesToBed (0.1-782-ge325449)
 	
 	Converts a text file with gene names to a BED file.
 	
@@ -28,8 +28,7 @@
 	  --tdx          Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### GenesToBed changelog
-	GenesToBed 0.1-773-g0c7504d
+	GenesToBed 0.1-782-ge325449
 	
-	2017-02-09 Added RefSeq source.
 	2017-02-09 Added option to annotate transcript names.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

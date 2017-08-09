@@ -1,5 +1,5 @@
 ### BedGeneOverlap tool help
-	BedGeneOverlap (0.1-773-g0c7504d)
+	BedGeneOverlap (0.1-782-ge325449)
 	
 	Calculates how much of each overlapping gene is covered.
 	
@@ -22,7 +22,6 @@
 	  --tdx          Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BedGeneOverlap changelog
-	BedGeneOverlap 0.1-773-g0c7504d
+	BedGeneOverlap 0.1-782-ge325449
 	
-	2017-02-09 Added RefSeq source.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
