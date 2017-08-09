@@ -746,8 +746,8 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 
 	//sample correlation
 	SampleCorrelation sc;
-	sc.calculateFromBam(tumor_bam,normal_bam,30,500, target_file);
-	output.insert(QCValue("sample correlation", ( sc.totalVariants()==0 ? "n/a" : QString::number(sc.sampleCorrelation(),'f',2) ), "SNV-based sample correlation of tumor / normal.", "QC:2000040"));
+	sc.calculateFromBam(tumor_bam,normal_bam,30,500, target_file,false);
+	output.insert(QCValue("sample correlation", ( sc.totalVariants()==0 ? "n/a (too few variants)" : QString::number(sc.sampleCorrelation(),'f',2) ), "SNP-based sample correlation of tumor / normal.", "QC:2000040"));
 
 	//variants
 	VariantList variants;
