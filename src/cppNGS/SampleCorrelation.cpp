@@ -75,7 +75,7 @@ void SampleCorrelation::calculateFromVcf(QString& in1, QString& in2, int window)
 	}
 }
 
-void SampleCorrelation::calculateFromBam(QString& in1, QString& in2, int min_cov, int max_snps, QString roi_file)
+void SampleCorrelation::calculateFromBam(QString& in1, QString& in2, int min_cov, int max_snps, QString roi_file, bool error)
 {
 	VariantList snps;
 	if (!roi_file.trimmed().isEmpty())
@@ -127,7 +127,15 @@ void SampleCorrelation::calculateFromBam(QString& in1, QString& in2, int min_cov
 	//abort if no overlap
 	if (freq1.count()==0 || freq2.count()==0)
 	{
-		THROW(ArgumentException, "Zero common SNPs found!")
+		if(error)	THROW(ArgumentException, "Zero common SNPs found!")
+		else
+		{
+			no_variants1_ = 0;
+			no_variants2_ = 0;
+			total_variants_ = 0;
+			sample_correlation_ = std::numeric_limits<double>::quiet_NaN();
+			return;
+		}
 	}
 
 //	out << "Number of high-coverage SNPs: " << QString::number(high_cov) << " of " << QString::number(snps.count()) << " (max_snps: " << QString::number(max_snps) << ")" << endl;
