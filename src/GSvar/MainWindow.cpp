@@ -609,12 +609,10 @@ void MainWindow::generateReportSomatic()
 	//init
 	NGSD db;
 	int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, true);
-	int i_snpq = variants_.annotationIndexByName("snp_q", true, true);
 	int i_tum_af = variants_.annotationIndexByName("tumor_af", true, true);
 	int i_tum_dp = variants_.annotationIndexByName("tumor_dp", true, true);
 	int i_nor_af = variants_.annotationIndexByName("normal_af", true, true);
 	int i_nor_dp = variants_.annotationIndexByName("normal_dp", true, true);
-	int i_cosm = variants_.annotationIndexByName("COSMIC", true, true);
 
 	//determine tumor/normal processed sample name
 	QString base_name = QFileInfo(filename_).baseName();
@@ -668,19 +666,15 @@ void MainWindow::generateReportSomatic()
 	stream << "<br />Variantenzahl: " << indices.count() << endl;
 
 	stream << "<table>" << endl;
-	stream << "<tr> <td><b>Position</b></td> <td><b>Ref</b></td> <td><b>Obs</b></td> <td><b>Quality</b></td> <td><b><nobr>Tumor AF/DP</nobr></b></td> <td><b><nobr>Normal AF/DP</nobr></b></td> <td><b>COSMIC</b></td> <td><b>Details</b></td> </tr>" << endl;
+	stream << "<tr> <td><b>Position</b></td> <td><b>Ref</b></td> <td><b>Obs</b></td> <td><b><nobr>Tumor AF/DP</nobr></b></td> <td><b><nobr>Normal AF/DP</nobr></b></td> <td><b>Details</b></td> </tr>" << endl;
 	foreach(int i, indices)
 	{
 		const Variant& variant = variants_[i];
 		stream << "<tr>" << endl;
 		stream << "<td><nobr>" << variant.chr().str() << ":" << variant.start() << "-" << variant.end() << "</nobr></td><td>" << variant.ref() << "</td><td>" << variant.obs() << "</td>";
-		stream << "<td>" << variant.annotations().at(i_snpq) << "</td>" << endl;
-		stream << "<td>" << variant.annotations().at(i_tum_af)  << "/" << variant.annotations().at(i_tum_dp) << "</td>" << endl;
-		stream << "<td>" << variant.annotations().at(i_nor_af)  << "/" << variant.annotations().at(i_nor_dp) << "</td>" << endl;
-		QByteArray tmp = variant.annotations().at(i_cosm);
-		tmp.replace(",", "");
-		stream << "<td>" << tmp << "</td>" << endl;
-		tmp = variant.annotations().at(i_co_sp);
+		stream << "<td>" << QString::number(variant.annotations().at(i_tum_af).toDouble(), 'f', 2)  << "/" << variant.annotations().at(i_tum_dp) << "</td>" << endl;
+		stream << "<td>" << QString::number(variant.annotations().at(i_nor_af).toDouble(), 'f', 2)  << "/" << variant.annotations().at(i_nor_dp) << "</td>" << endl;
+		QByteArray tmp = variant.annotations().at(i_co_sp);
 		tmp.replace(",", " ");
 		tmp.replace("&", "&amp;");
 		tmp.replace(">", "&gt;");
