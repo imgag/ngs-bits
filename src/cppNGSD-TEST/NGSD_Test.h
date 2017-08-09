@@ -59,6 +59,9 @@ private slots:
 		genes = db.genesOverlapping("chr13", 205, 210, 6); //extend right
 		I_EQUAL(genes.count(), 1);
 		S_EQUAL(genes[0], "BRCA2");
+		genes = db.genesOverlapping("chr22", 80, 110, 0); //non-coding
+		I_EQUAL(genes.count(), 1);
+		S_EQUAL(genes[0], "NON-CODING");
 
 		//genesOverlappingByExon
 		genes = db.genesOverlappingByExon("chr13", 90, 95, 0); //nearby left
@@ -76,6 +79,9 @@ private slots:
 		genes = db.genesOverlappingByExon("chr13", 205, 210, 6); //extend right
 		I_EQUAL(genes.count(), 1);
 		S_EQUAL(genes[0], "BRCA2");
+		genes = db.genesOverlappingByExon("chr22", 110, 190, 0); //non-coding
+		I_EQUAL(genes.count(), 1);
+		S_EQUAL(genes[0], "NON-CODING");
 
 		//sampleGender
 		QString gender = db.sampleGender("NA12878_03");
@@ -96,11 +102,12 @@ private slots:
 		messages.clear();
 		regions = db.genesToRegions(GeneSet() << "NIPA1", Transcript::ENSEMBL, "gene", false, true, &stream); //gene mode, two hits, annotate_transcripts
 		I_EQUAL(regions.count(), 2);
-		S_EQUAL(regions[0].annotations()[0], "NIPA1 NIPA1_TR1");
-		S_EQUAL(regions[1].annotations()[0], "NIPA1 NIPA1_TR2");
+		S_EQUAL(regions[0].annotations()[0], "NIPA1 NIPA1_TR2");
+		S_EQUAL(regions[1].annotations()[0], "NIPA1 NIPA1_TR1");
+		I_EQUAL(regions.baseCount(), 642);
 		regions.merge(); //overlapping regions
 		I_EQUAL(regions.count(), 1);
-		I_EQUAL(regions.baseCount(), 301);
+		I_EQUAL(regions.baseCount(), 341);
 		IS_TRUE(messages.isEmpty());
 
 		messages.clear();
@@ -111,10 +118,10 @@ private slots:
 		messages.clear();
 		regions = db.genesToRegions(GeneSet() << "NIPA1", Transcript::CCDS, "gene", true, false, &stream); //gene mode, no hit, fallback
 		I_EQUAL(regions.count(), 2);
-		I_EQUAL(regions.baseCount(), 502);
+		I_EQUAL(regions.baseCount(), 642);
 		regions.merge(); //overlapping regions
 		I_EQUAL(regions.count(), 1);
-		I_EQUAL(regions.baseCount(), 301);
+		I_EQUAL(regions.baseCount(), 341);
 		IS_TRUE(messages.isEmpty());
 
 		messages.clear();
@@ -149,6 +156,16 @@ private slots:
 		I_EQUAL(regions.count(), 2);
 		I_EQUAL(regions.baseCount(), 202);
 		IS_TRUE(messages.isEmpty());
+
+		messages.clear();
+		regions = db.genesToRegions(GeneSet() << "NON-CODING", Transcript::ENSEMBL, "exon", false, true, &stream); //exon mode, non-coding, annotate_transcripts
+		I_EQUAL(regions.count(), 2);
+		S_EQUAL(regions[0].annotations()[0], "NON-CODING NON-CODING_TR1");
+		S_EQUAL(regions[1].annotations()[0], "NON-CODING NON-CODING_TR1");
+		I_EQUAL(regions.count(), 2);
+		I_EQUAL(regions.baseCount(), 202);
+		IS_TRUE(messages.isEmpty());
+
 
 		//transcripts
 		QList<Transcript> transcripts = db.transcripts(1, Transcript::CCDS, true); //BRCA1, CCDS, coding

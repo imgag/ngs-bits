@@ -37,7 +37,6 @@ public:
 		addFlag("anno", "Annotate transcript identifier in addition to gene name.");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
-		changeLog(2017,  2,  9, "Added RefSeq source.");
 		changeLog(2017,  2,  9, "Added option to annotate transcript names.");
 	}
 

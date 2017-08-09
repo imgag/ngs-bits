@@ -893,7 +893,7 @@ void NGSD::fixGeneNames(QTextStream* messages, bool fix_errors, QString table, Q
 			}
 			else
 			{
-				query.exec("UPDATE " + table + " SET " + column + "='" + approved_data.first + "' WHERE " + column + "='" + gene +"'");
+				getQuery().exec("UPDATE " + table + " SET " + column + "='" + approved_data.first + "' WHERE " + column + "='" + gene +"'");
 			}
 		}
 	}
@@ -1359,12 +1359,15 @@ GeneSet NGSD::genesOverlapping(const Chromosome& chr, int start, int end, int ex
 	static ChromosomalIndex<BedFile> index(bed);
 	if (bed.count()==0)
 	{
+		//add transcripts
 		SqlQuery query = getQuery();
-		query.exec("SELECT DISTINCT g.symbol, gt.chromosome, gt.start_coding, gt.end_coding FROM gene g, gene_transcript gt WHERE g.id=gt.gene_id AND gt.start_coding IS NOT NULL AND gt.end_coding IS NOT NULL");
+		query.exec("SELECT g.symbol, gt.chromosome, MIN(ge.start), MAX(ge.end) FROM gene g, gene_transcript gt, gene_exon ge WHERE ge.transcript_id=gt.id AND gt.gene_id=g.id GROUP BY gt.id");
 		while(query.next())
 		{
 			bed.append(BedLine(query.value(1).toString(), query.value(2).toInt(), query.value(3).toInt(), QList<QByteArray>() << query.value(0).toByteArray()));
 		}
+
+		//sort and index
 		bed.sort();
 		index.createIndex();
 	}
@@ -1387,7 +1390,7 @@ GeneSet NGSD::genesOverlappingByExon(const Chromosome& chr, int start, int end, 
 	if (bed.count()==0)
 	{
 		SqlQuery query = getQuery();
-		query.exec("SELECT DISTINCT g.symbol, gt.chromosome, ge.start, ge.end FROM gene g, gene_exon ge, gene_transcript gt WHERE g.type='protein-coding gene' AND ge.transcript_id=gt.id AND gt.gene_id=g.id");
+		query.exec("SELECT DISTINCT g.symbol, gt.chromosome, ge.start, ge.end FROM gene g, gene_exon ge, gene_transcript gt WHERE ge.transcript_id=gt.id AND gt.gene_id=g.id");
 		while(query.next())
 		{
 			bed.append(BedLine(query.value(1).toString(), query.value(2).toInt(), query.value(3).toInt(), QList<QByteArray>() << query.value(0).toByteArray()));
@@ -1421,9 +1424,11 @@ BedFile NGSD::genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QS
 
 	//prepare queries
 	SqlQuery q_transcript = getQuery();
-	q_transcript.prepare("SELECT id, chromosome, start_coding, end_coding, name FROM gene_transcript WHERE source='" + source_str + "' AND gene_id=:1 AND start_coding IS NOT NULL");
+	q_transcript.prepare("SELECT id, chromosome, start_coding, end_coding, name FROM gene_transcript WHERE source='" + source_str + "' AND gene_id=:1");
 	SqlQuery q_transcript_fallback = getQuery();
-	q_transcript_fallback.prepare("SELECT id, chromosome, start_coding, end_coding, name FROM gene_transcript WHERE gene_id=:1 AND start_coding IS NOT NULL");
+	q_transcript_fallback.prepare("SELECT id, chromosome, start_coding, end_coding, name FROM gene_transcript WHERE gene_id=:1");
+	SqlQuery q_range = getQuery();
+	q_range.prepare("SELECT MIN(start), MAX(end) FROM gene_exon WHERE transcript_id=:1");
 	SqlQuery q_exon = getQuery();
 	q_exon.prepare("SELECT start, end FROM gene_exon WHERE transcript_id=:1");
 
@@ -1440,12 +1445,11 @@ BedFile NGSD::genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QS
 		}
 		gene = geneSymbol(id);
 
-		qDebug() << id << gene;
-
 		//prepare annotations
 		QList<QByteArray> annos;
 		annos << gene;
 
+		//GENE mode
 		if (mode=="gene")
 		{
 			bool hits = false;
@@ -1460,7 +1464,12 @@ BedFile NGSD::genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QS
 					annos.clear();
 					annos << gene + " " + q_transcript.value(4).toByteArray();
 				}
-				output.append(BedLine("chr"+q_transcript.value(1).toByteArray(), q_transcript.value(2).toInt(), q_transcript.value(3).toInt(), annos));
+
+				q_range.bindValue(0, q_transcript.value(0).toInt());
+				q_range.exec();
+				q_range.next();
+
+				output.append(BedLine("chr"+q_transcript.value(1).toByteArray(), q_range.value(0).toInt(), q_range.value(1).toInt(), annos));
 				hits = true;
 			}
 
@@ -1477,16 +1486,24 @@ BedFile NGSD::genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QS
 						annos << gene + " " + q_transcript_fallback.value(4).toByteArray();
 					}
 
-					output.append(BedLine("chr"+q_transcript_fallback.value(1).toByteArray(), q_transcript_fallback.value(2).toInt(), q_transcript_fallback.value(3).toInt(), annos));
+
+					q_range.bindValue(0, q_transcript_fallback.value(0).toInt());
+					q_range.exec();
+					q_range.next();
+
+					output.append(BedLine("chr"+q_transcript_fallback.value(1).toByteArray(), q_range.value(0).toInt(), q_range.value(1).toInt(), annos));
+
 					hits = true;
 				}
 			}
 
 			if (!hits && messages!=nullptr)
 			{
-				*messages << "No coding transcripts found for gene '" + gene + "'. Skipping it!" << endl;
+				*messages << "No transcripts found for gene '" + gene + "'. Skipping it!" << endl;
 			}
 		}
+
+		//EXON mode
 		else if (mode=="exon")
 		{
 			bool hits = false;
@@ -1501,19 +1518,25 @@ BedFile NGSD::genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QS
 					annos << gene + " " + q_transcript.value(4).toByteArray();
 				}
 
-				qDebug() << q_transcript.value(4).toByteArray();
-
 				int trans_id = q_transcript.value(0).toInt();
+				bool is_coding = !q_transcript.value(2).isNull() && !q_transcript.value(3).isNull();
 				int start_coding = q_transcript.value(2).toInt();
 				int end_coding = q_transcript.value(3).toInt();
+
 				q_exon.bindValue(0, trans_id);
 				q_exon.exec();
 				while(q_exon.next())
 				{
-					int start = std::max(start_coding, q_exon.value(0).toInt());
-					int end = std::min(end_coding, q_exon.value(1).toInt());
-					qDebug() << start << end << start_coding << end_coding;
-					if (end<start_coding || start>end_coding) continue;
+					int start = q_exon.value(0).toInt();
+					int end = q_exon.value(1).toInt();
+					if (is_coding)
+					{
+						start = std::max(start_coding, start);
+						end = std::min(end_coding, end);
+
+						//skip non-coding exons of coding transcripts
+						if (end<start_coding || start>end_coding) continue;
+					}
 
 					output.append(BedLine("chr"+q_transcript.value(1).toByteArray(), start, end, annos));
 					hits = true;
@@ -1534,15 +1557,23 @@ BedFile NGSD::genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QS
 					}
 
 					int trans_id = q_transcript_fallback.value(0).toInt();
+					bool is_coding = !q_transcript_fallback.value(2).isNull() && !q_transcript_fallback.value(3).isNull();
 					int start_coding = q_transcript_fallback.value(2).toInt();
 					int end_coding = q_transcript_fallback.value(3).toInt();
 					q_exon.bindValue(0, trans_id);
 					q_exon.exec();
 					while(q_exon.next())
 					{
-						int start = std::max(start_coding, q_exon.value(0).toInt());
-						int end = std::min(end_coding, q_exon.value(1).toInt());
-						if (end<start_coding || start>end_coding) continue;
+						int start = q_exon.value(0).toInt();
+						int end = q_exon.value(1).toInt();
+						if (is_coding)
+						{
+							start = std::max(start_coding, start);
+							end = std::min(end_coding, end);
+
+							//skip non-coding exons of coding transcripts
+							if (end<start_coding || start>end_coding) continue;
+						}
 
 						output.append(BedLine("chr"+q_transcript_fallback.value(1).toByteArray(), start, end, annos));
 						hits = true;
@@ -1552,7 +1583,7 @@ BedFile NGSD::genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QS
 
 			if (!hits && messages!=nullptr)
 			{
-				*messages << "No coding exons found for gene '" << gene << "'. Skipping it!" << endl;
+				*messages << "No transcripts found for gene '" << gene << "'. Skipping it!" << endl;
 			}
 		}
 	}
