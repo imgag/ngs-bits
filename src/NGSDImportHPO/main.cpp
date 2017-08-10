@@ -21,6 +21,7 @@ public:
 		addInfile("obo", "HPO ontology file 'hp.obo' from 'http://purl.obolibrary.org/obo/hp.obo'.", false);
 		addInfile("anno", "HPO annotations file 'phenotype_annotation.tab' from 'http://compbio.charite.de/jenkins/job/hpo.annotations/lastStableBuild/artifact/misc/phenotype_annotation.tab'", false);
 		addInfile("genes", "HPO genes file 'diseases_to_genes.txt' from 'http://compbio.charite.de/jenkins/job/hpo.annotations.monthly/lastStableBuild/artifact/annotation/diseases_to_genes.txt'", false);
+		addInfile("omim", "OMIM 'morbidmap.txt' file, from 'https://omim.org/downloads/'.", true);
 
 		//optional
 		addFlag("test", "Uses the test database instead of on the production database.");
@@ -165,7 +166,7 @@ public:
 		}
 		fp->close();
 
-		//parse disease-gene relations
+		//parse disease-gene relations from HPO
 		fp = Helper::openFileForReading(getInfile("genes"));
 		QHash<QByteArray, QSet<QByteArray> > disease2genes;
 		while(!fp->atEnd())
@@ -180,7 +181,7 @@ public:
 			int approved_id = db.geneToApprovedID(gene);
 			if (approved_id==-1)
 			{
-				out << "Skipped gene '" << gene << "' because it is not an approved NGNC symbol!" << endl;
+				out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!" << endl;
 				continue;
 			}
 
@@ -188,7 +189,41 @@ public:
 		}
 		fp->close();
 
-		//import term-gene relations from HPO
+		//parse disease-gene relations from OMIM
+		QString omim_file = getInfile("omim");
+		QHash<QByteArray, QSet<QByteArray> > disease2genes_omim;
+		if (omim_file!="")
+		{
+			//parse disease-gene relations
+			fp = Helper::openFileForReading(omim_file);
+			QRegExp mim_exp("([0-9]{6})");
+			while(!fp->atEnd())
+			{
+				QList<QByteArray> parts = fp->readLine().trimmed().split('\t');
+				if (parts.count()<4) continue;
+
+				QByteArray pheno = parts[0].trimmed();
+				QList<QByteArray> genes = parts[1].split(',');
+				QByteArray mim_number = parts[2].trimmed();
+
+				if (mim_exp.indexIn(pheno)!=-1)
+				{
+					mim_number = mim_exp.cap().toLatin1();
+				}
+
+				foreach(const QByteArray& gene, genes)
+				{
+					//make sure the gene symbol is spproved by HGNC
+					int approved_id = db.geneToApprovedID(gene);
+					if (approved_id==-1) continue;
+
+					disease2genes_omim["OMIM:"+mim_number].insert(db.geneSymbol(approved_id));
+				}
+			}
+			fp->close();
+		}
+
+		//import term-gene relations
 		int count_tg = 0;
 		QHashIterator<int, QSet<QByteArray> > it2(term2diseases);
 		while (it2.hasNext())
@@ -203,6 +238,10 @@ public:
 				if (disease2genes.contains(disease))
 				{
 					genes.unite(disease2genes[disease]);
+				}
+				if (disease2genes_omim.contains(disease))
+				{
+					genes.unite(disease2genes_omim[disease]);
 				}
 			}
 
