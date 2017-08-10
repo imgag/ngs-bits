@@ -8,18 +8,16 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-* Allow non-coding transcripts in sub-panel design (or in general?) e.g. MIR137HG
+- CandiateGeneDialog: allow sorting by sample/variant/etc
 - Allow settings disease_group/disease_status for multi-sample GSvar files
-- candiateGeneVariants: allow sorting by sample/variant/etc
-- multi-sample anaysis: allow relaxing affected/control genotype filters by requiring only X out of Y
+- Multi-sample anaysis: allow relaxing affected/control genotype filters by requiring only X out of Y
 - Target region filter: reset to none if it looses focus in search mode
 ** ClinVar/LOVD upload for variant:
   - implement dialog where user can double-check the data before upload
   - implement print-out of upload data for patient file
 
 Tools:
-- NGSDImportGeneInfo:
-  ** add (optional) import of inheritance mode from OMIM
+* NGSDImportGeneInfo: add (optional) import of inheritance mode from OMIM
 - SomaticQC: do not use precalculated triplet counts, count every time (CS)
 - BamClipOverlap: require sorted bam and paired-end sequencing (CS)
 - VariantAnnotateStrand:
@@ -28,8 +26,10 @@ Tools:
     - refactor and combine indel and snv handling (CS)
 
 CnvHunter:
+*** speed up similarity search (by using only part of the exons) and statistics (what is taking so long?)
+*** check the effect of sample similarity search
 *** calculate stddev from z-scores and show median
-*** annotate exons/variants with count of events per exon
+*** annotate CNVs with count of events/CN (remove region QC?)
 ** integrate CNV databases:
    - http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/
    - https://decipher.sanger.ac.uk/disorders#syndromes/overview
