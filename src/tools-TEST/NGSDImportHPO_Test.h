@@ -15,9 +15,10 @@ private slots:
 		//init
 		NGSD db(true);
 		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportHPO_init.sql"));
 
 		//test
-		EXECUTE("NGSDImportHPO", "-test -obo " + TESTDATA("data_in/NGSDImportHPO_terms.obo") + " -gene " + TESTDATA("data_in/NGSDImportHPO_genes.txt"));
+		EXECUTE("NGSDImportHPO", "-test -obo " + TESTDATA("data_in/NGSDImportHPO_terms.obo") + " -anno " + TESTDATA("data_in/NGSDImportHPO_anno.txt") + " -genes " + TESTDATA("data_in/NGSDImportHPO_genes.txt"));
 
 		//check
 		int count = db.getValue("SELECT count(*) FROM hpo_term").toInt();

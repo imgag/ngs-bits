@@ -17,9 +17,11 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Imports HPO terms and gene-phenotype correlations into NGSD.");
-		addInfile("obo", "HPO ontology file 'hp.obo' from 'http://purl.obolibrary.org/obo/'.", false);
-		addInfile("gene", "HPO phenotype-gene relation file 'ALL_SOURCES_ALL_FREQUENCIES_diseases_to_genes_to_phenotypes.txt' from 'http://compbio.charite.de/jenkins/job/hpo.annotations.monthly/lastStableBuild/artifact/annotation/'", false);
+		setDescription("Imports HPO terms and gene-phenotype relations into the NGSD.");
+		addInfile("obo", "HPO ontology file 'hp.obo' from 'http://purl.obolibrary.org/obo/hp.obo'.", false);
+		addInfile("anno", "HPO annotations file 'phenotype_annotation.tab' from 'http://compbio.charite.de/jenkins/job/hpo.annotations/lastStableBuild/artifact/misc/phenotype_annotation.tab'", false);
+		addInfile("genes", "HPO genes file 'diseases_to_genes.txt' from 'http://compbio.charite.de/jenkins/job/hpo.annotations.monthly/lastStableBuild/artifact/annotation/diseases_to_genes.txt'", false);
+
 		//optional
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");
@@ -123,7 +125,7 @@ public:
 		out << "Imported " << id2ngsd.count() << " non-obsolete HPO terms." << endl;
 
 		//insert parent-child relations between (valid) terms
-		int count = 0;
+		int count_pc = 0;
 		QHashIterator<QByteArray, QList<QByteArray> > it(child_parents);
 		while (it.hasNext())
 		{
@@ -142,47 +144,77 @@ public:
 				qi_parent.bindValue(0, p_db);
 				qi_parent.bindValue(1, c_db);
 				qi_parent.exec();
-				++count;
+				++count_pc;
 			}
 		}
-		out << "Imported " << count << " parent-child relations between terms." << endl;
+		out << "Imported " << count_pc << " parent-child relations between terms." << endl;
 
-		//parse gene-phenotype relations of (valid) terms
-		fp = Helper::openFileForReading(getInfile("gene"));
-		QHash<int, QSet<QByteArray> > term2genes;
+
+		//parse term-disease relations of (valid) terms
+		fp = Helper::openFileForReading(getInfile("anno"));
+		QHash<int, QSet<QByteArray> > term2diseases;
 		while(!fp->atEnd())
 		{
 			QList<QByteArray> parts = fp->readLine().trimmed().split('\t');
-			if (parts.count()!=5) continue;
+			if (parts.count()<14) continue;
 
-			QByteArray id = parts[3];
-			int db = id2ngsd.value(id, -1);
+			int db = id2ngsd.value(parts[4], -1);
 			if (db==-1) continue;
 
-			term2genes[db].insert(parts[1]);
+			term2diseases[db].insert(parts[5]);
 		}
 		fp->close();
 
-		//import gene-phenotype relations
-		count = 0;
-		QHashIterator<int, QSet<QByteArray> > it2(term2genes);
+		//parse disease-gene relations
+		fp = Helper::openFileForReading(getInfile("genes"));
+		QHash<QByteArray, QSet<QByteArray> > disease2genes;
+		while(!fp->atEnd())
+		{
+			QList<QByteArray> parts = fp->readLine().trimmed().split('\t');
+			if (parts.count()<3) continue;
+
+			QByteArray disease = parts[0].trimmed();
+			QByteArray gene = parts[2].trimmed();
+
+			//make sure the gene symbol is spproved by HGNC
+			int approved_id = db.geneToApprovedID(gene);
+			if (approved_id==-1)
+			{
+				out << "Skipped gene '" << gene << "' because it is not an approved NGNC symbol!" << endl;
+				continue;
+			}
+
+			disease2genes[disease].insert(db.geneSymbol(approved_id));
+		}
+		fp->close();
+
+		//import term-gene relations from HPO
+		int count_tg = 0;
+		QHashIterator<int, QSet<QByteArray> > it2(term2diseases);
 		while (it2.hasNext())
 		{
 			it2.next();
 
 			int term_id = it2.key();
+			QSet<QByteArray> genes;
+			const QSet<QByteArray>& diseases = it2.value();
+			foreach(const QByteArray& disease, diseases)
+			{
+				if (disease2genes.contains(disease))
+				{
+					genes.unite(disease2genes[disease]);
+				}
+			}
 
-			QSet<QByteArray> genes = it2.value();
 			foreach(const QByteArray& gene, genes)
 			{
 				qi_gene.bindValue(0, term_id);
 				qi_gene.bindValue(1, gene);
 				qi_gene.exec();
-				++count;
+				++count_tg;
 			}
 		}
-		out << "Imported " << count << " phenotype-gene relations." << endl;
-
+		out << "Imported " << count_tg << " term-gene relations from HPO." << endl;
 	}
 };
 
