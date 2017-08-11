@@ -171,13 +171,13 @@ public:
 		QHash<QByteArray, QSet<QByteArray> > disease2genes;
 		while(!fp->atEnd())
 		{
-			QList<QByteArray> parts = fp->readLine().trimmed().split('\t');
+			QList<QByteArray> parts = fp->readLine().split('\t');
 			if (parts.count()<3) continue;
 
 			QByteArray disease = parts[0].trimmed();
 			QByteArray gene = parts[2].trimmed();
 
-			//make sure the gene symbol is spproved by HGNC
+			//make sure the gene symbol is approved by HGNC
 			int approved_id = db.geneToApprovedID(gene);
 			if (approved_id==-1)
 			{

@@ -87,7 +87,7 @@ public:
 
 	/*** gene/transcript handling ***/
 	///Returns the gene ID, or -1 if none approved gene name could be found. Checks approved symbols, previous symbols and synonyms.
-	int geneToApprovedID(const QString& gene);
+	int geneToApprovedID(const QByteArray& gene);
 	///Returns the gene symbol for a gene ID
 	QByteArray geneSymbol(int id);
 	///Returns the the approved/original gene symbol and a status message.

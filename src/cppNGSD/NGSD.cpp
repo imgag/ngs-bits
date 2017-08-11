@@ -1131,7 +1131,7 @@ void NGSD::clearTable(QString table)
 	query.exec("DELETE FROM " + table);
 }
 
-int NGSD::geneToApprovedID(const QString& gene)
+int NGSD::geneToApprovedID(const QByteArray& gene)
 {
 	//approved
 	SqlQuery q_gene = getQuery();
