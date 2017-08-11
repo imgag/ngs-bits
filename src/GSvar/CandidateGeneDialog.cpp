@@ -44,7 +44,7 @@ void CandidateGeneDialog::updateVariants()
 	foreach(QString gene, genes)
 	{
 		//check gene name
-		int gene_id = db.geneToApprovedID(gene);
+		int gene_id = db.geneToApprovedID(gene.toLatin1());
 		if (gene_id==-1)
 		{
 			comments.append("Error: Gene name '" + gene + "' is not a HGNC-approved symbol => Skipping it!");

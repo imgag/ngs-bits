@@ -21,6 +21,8 @@ public:
 		addInfile("obo", "HPO ontology file 'hp.obo' from 'http://purl.obolibrary.org/obo/hp.obo'.", false);
 		addInfile("anno", "HPO annotations file 'phenotype_annotation.tab' from 'http://compbio.charite.de/jenkins/job/hpo.annotations/lastStableBuild/artifact/misc/phenotype_annotation.tab'", false);
 		addInfile("genes", "HPO genes file 'diseases_to_genes.txt' from 'http://compbio.charite.de/jenkins/job/hpo.annotations.monthly/lastStableBuild/artifact/annotation/diseases_to_genes.txt'", false);
+		//TODO: phenotype-gene relations are currently missing when using HPO only:
+		//for 'breast carcinoma' the following genes are missing: BARD1, BRCA2, RAD51, RAD51C, RAD51D, RAD54L, PALB2, ATM, NBN
 		addInfile("omim", "OMIM 'morbidmap.txt' file, from 'https://omim.org/downloads/'.", true);
 
 		//optional

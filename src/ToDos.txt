@@ -26,11 +26,12 @@ Tools:
     - refactor and combine indel and snv handling (CS)
 
 CnvHunter:
-*** speed up similarity search (by using only part of the exons) and statistics (what is taking so long?)
-*** check the effect of sample similarity search
-*** calculate stddev from z-scores and show median
+- allow input of one multi-sample COV file (reduce test data size and loading time)
+** speed up similarity search (by using only part of the exons if too many are present)
+** check the effect of sample similarity search
+** calculate stddev from z-scores and show median
 *** annotate CNVs with count of events/CN (remove region QC?)
-** integrate CNV databases:
+*** integrate CNV databases:
    - http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/
    - https://decipher.sanger.ac.uk/disorders#syndromes/overview
    - http://www.ncbi.nlm.nih.gov/dbvar

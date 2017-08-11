@@ -1330,7 +1330,7 @@ void MainWindow::on_actionImportTranscripts_triggered()
 		}
 
 		//check gene
-		QString gene = parts[0].trimmed();
+		QByteArray gene = parts[0].toLatin1().trimmed();
 		NGSD db;
 		int gene_id = db.geneToApprovedID(gene);
 		if(gene_id==-1)

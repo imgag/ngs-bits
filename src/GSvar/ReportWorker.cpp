@@ -272,7 +272,7 @@ void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file
 	QMap<QByteArray, int> gap_count;
 	long long bases_overall = 0;
 	long long bases_sequenced = 0;
-	foreach(const QString& gene, genes)
+	foreach(const QByteArray& gene, genes)
 	{
 		int gene_id = db.geneToApprovedID(gene);
 
