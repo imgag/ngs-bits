@@ -39,7 +39,6 @@ public:
 
 		//check columns
 		QVector<int> cols = instream.checkColumns(getString("cols"), getFlag("numeric"));
-		const int col_count = cols.count();
 
 		//write comments
 		foreach (QByteArray comment, instream.comments())
@@ -50,10 +49,10 @@ public:
 
 		//write header
 		outstream->write("#");
-		for(int i=0; i<col_count; ++i)
+		for(int i=0; i<cols.count(); ++i)
 		{
 			outstream->write(instream.header()[cols[i]]);
-			outstream->write(i==col_count-1 ? "\n" : "\t");
+			outstream->write(i==cols.count()-1 ? "\n" : "\t");
 		}
 
 		//write content
@@ -61,10 +60,10 @@ public:
 		{
 			QList<QByteArray> parts = instream.readLine();
 			if (parts.count()==0) continue;
-			for(int i=0; i<col_count; ++i)
+			for(int i=0; i<cols.count(); ++i)
 			{
 				outstream->write(parts[cols[i]]);
-				outstream->write(i==col_count-1 ? "\n" : "\t");
+				outstream->write(i==cols.count()-1 ? "\n" : "\t");
 			}
 		}
     }

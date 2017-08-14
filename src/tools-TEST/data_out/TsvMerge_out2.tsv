@@ -1,0 +1,15 @@
+##Comment File1
+##Comment File3 - Line1
+##Comment File3 - Line2
+#chr	start	end	File1_Col1	File2_Col1	File3_Col2	File3_Col1
+chr1	100	200	1.1	2.1	3.1	3.10
+chr1	200	300	1.2	2.2	missing	missing
+chr2	100	200	1.3	2.3	3.2	3.11
+chr3	100	200	1.4	missing	3.3	3.12
+chr4	100	200	1.5	2.4	3.4	3.13
+chr5	100	200	1.6	2.5	3.5	3.14
+chr6	100	200	1.7	2.6	3.6	3.15
+chr7	100	200	1.8	2.7	3.7	3.16
+chr8	100	200	1.9	2.8	3.8	3.17
+chr9	100	200	missing	2.9	missing	missing
+chr10	100	200	missing	missing	3.9	3.18

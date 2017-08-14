@@ -289,6 +289,10 @@ SUBDIRS += NGSDMaintain
 tools-TEST.depends += NGSDMaintain
 NGSDMaintain.depends = cppNGSD
 
+SUBDIRS += TsvMerge
+tools-TEST.depends += TsvMerge
+TsvMerge.depends = cppNGSD
+
 #other stuff
 OTHER_FILES += ToDos.txt
 
