@@ -174,6 +174,7 @@ public:
 		addString("debug", "Writes debug information for the sample matching the given name (or for all samples if 'ALL' is given).", true, "");
 		addString("seg", "Writes a SEG file for the sample matching the given name (used for visualization in IGV).", true);
 
+		changeLog(2017, 8,  15, "Added allele frequency for each region to TSV output.");
 		changeLog(2016, 10, 24, "Added copy-number variant size to TSV output and added optional SEG output file.");
 		changeLog(2016, 9,   1, "Sample and region information files are now always written.");
 		changeLog(2016, 8,  23, "Added merging of large CNVs that were split to several regions due to noise.");
@@ -358,14 +359,14 @@ public:
 		return tmp;
 	}
 
-    void storeResultAsTSV(const QList<Range>& ranges, const QVector<ResultData>& results, QString filename, bool anno, bool test)
+	void storeResultAsTSV(const QList<Range>& ranges, const QVector<ResultData>& results, QString filename, bool anno, bool test, const QHash<QSharedPointer<ExonData>, int>& cnvs_exon, int sample_count)
     {
 		QSharedPointer<QFile> out = Helper::openFileForWriting(filename);
 		QTextStream outstream(out.data());
 		QSharedPointer<NGSD> db(anno ? new NGSD(test) : nullptr);
 
         //header
-		outstream << "#chr\tstart\tend\tsample\tsize\tregion_count\tregion_copy_numbers\tregion_zscores\tregion_coordinates" << (anno ? "\tgenes" : "") << endl;
+		outstream << "#chr\tstart\tend\tsample\tsize\tregion_count\tregion_copy_numbers\tregion_zscores\tregion_cnv_af\tregion_coordinates" << (anno ? "\tgenes" : "") << endl;
 		for (int r=0; r<ranges.count(); ++r)
         {
 			const Range& range = ranges[r];
@@ -375,17 +376,19 @@ public:
             QStringList copies;
 			QStringList zscores;
 			QStringList coords;
+			QStringList cnv_counts;
 			for (int j=range.start; j<=range.end; ++j)
             {
                 copies.append(QString::number(results[j].copies));
 				zscores.append(QString::number(results[j].z, 'f', 2));
 				coords.append(results[j].exon->toString());
+				cnv_counts.append(QString::number(1.0 * cnvs_exon[results[j].exon] / sample_count, 'f', 3));
 			}
 
 			//print output
 			QSharedPointer<ExonData> start = results[range.start].exon;
 			QSharedPointer<ExonData> end = results[range.end].exon;
-			outstream << start->chr.str() << "\t" << start->start << "\t" << end->end << "\t" << range.sample->name << "\t" << (end->end-start->start+1) << "\t" << copies.count() << "\t" << copies.join(",") << "\t" << zscores.join(",") << "\t" << coords.join(",");
+			outstream << start->chr.str() << "\t" << start->start << "\t" << end->end << "\t" << range.sample->name << "\t" << (end->end-start->start+1) << "\t" << copies.count() << "\t" << copies.join(",") << "\t" << zscores.join(",") << "\t" << cnv_counts.join(",") << "\t" << coords.join(",");
 
 			//annotation
 			if (anno)
@@ -572,7 +575,7 @@ public:
         foreach(const QString& line, file)
         {
             //create exon
-            QStringList parts = line.split('\t');
+			QStringList parts = line.split('\t');
             if (parts.count()<4) THROW(FileParseException, "Coverage file " + in[0] + " contains line with less then four elements: " + line);
 			QSharedPointer<ExonData> ex(new ExonData());
 			ex->chr = parts[0];
@@ -1141,7 +1144,7 @@ public:
         printSampleDistributionCNVs(samples, cnvs_sample, outstream);
 
 		//store result files
-		storeResultAsTSV(ranges, results, out, getFlag("anno"), getFlag("test"));
+		storeResultAsTSV(ranges, results, out, getFlag("anno"), getFlag("test"), cnvs_exon, samples.count());
 		storeSampleInfo(out, samples, samples_removed, cnvs_sample, results);
 		storeRegionInfo(out, exons, exons_removed, cnvs_exon);
 		if (debug!="")

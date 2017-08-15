@@ -27,16 +27,13 @@ Tools:
 
 CnvHunter:
 - allow input of one multi-sample COV file (reduce test data size and loading time)
-** speed up similarity search (by using only part of the exons if too many are present)
-** check the effect of sample similarity search
-** calculate stddev from z-scores and show median
-*** annotate CNVs with count of events/CN (remove region QC?)
+*** speed up similarity search (by using only part of the exons if too many are present)
+*** test if input file of CN poymorpthisms to exclude them from normalization improves the results
 *** integrate CNV databases:
    - http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/
    - https://decipher.sanger.ac.uk/disorders#syndromes/overview
    - http://www.ncbi.nlm.nih.gov/dbvar
    - ExAC
-* test if re-normalization without CNV regions improves z-score distribution and thus CNV calling results
 * look at properties of bad regions (HLA, common CNVs, GC content, size, centromer, pseudo-autosomal region, ...)
    - PAR: http://blog.kokocinski.net/index.php/par-regions?blog=2
    - TEL/CENT: http://blog.kokocinski.net/index.php/telomeric-and-centromeric-regions?blog=2
@@ -44,3 +41,4 @@ CnvHunter:
     - test effect of including different flanking regions
     - alternatively, test intra-sample normalization using the most similar exons on different chromosomes
 * test with duplicate reads; with anomalous reads; with multi-mapped reads; chunked data
+* test the effect of sample similarity search
