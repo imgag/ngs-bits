@@ -1,6 +1,6 @@
-#QtCreator setup
+# QtCreator setup
 
-##General settings
+## General settings
 There are a few things we have to set in the QtCreator options just once:
 
  * `Tools -> Options -> Environment -> General -> Language: English`
@@ -9,8 +9,9 @@ There are a few things we have to set in the QtCreator options just once:
  * `Tools -> Options -> C++ -> File Naming -> Lower case file names: off`
  * `Help -> About Plugins... -> Utilities -> Todo : on`
 
-##Project settings
+## Project settings
 For each project file we have to set the following:
 	
  * `Projects -> Code Style -> Current Settings: MedGen`
+
 

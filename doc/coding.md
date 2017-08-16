@@ -1,6 +1,6 @@
-#Coding convention
+# Coding convention
 
-##Coding
+## Coding
 
 __Classes/methods/variables__  
 Class names are written in camel-case with the first letter upper-case.  
@@ -46,21 +46,22 @@ __Example:__
     	SomeType some_value_;
     };
 
-##Testing
+## Testing
 
 Code testing is important to make sure the code really does what you intended it to do. Additionally, a good test coverage
 allows large-scale refactoring without worring that you have broken the functionality.  
 Each class method with complicated code or more then three lines of code must be tested in a unit test.
 
-##Documenting
+## Documenting
 
 Each class and method should be documented. The documentation is done in the source code 
 using [Doxygen](http://www.stack.nl/~dimitri/doxygen/).  
 
-##Optimization
+## Optimization
 
 Premature optimization is the cause of many bugs.  
 Initially, a straight-forward version of each algorithm should be implemented, tested thoroughly and benchmarked.  
 After that, a more optimized version of the algorithm can be implemented.  
 Profiling the code before the optimizing is crucial, unless you are not 100% sure where the bottleneck is. A very easy-to-use profiler is [VerySleepy](http://www.codersnotes.com/sleepy).
+
 

@@ -1,7 +1,7 @@
 
-#ngs-bits installation for Windows
+# ngs-bits installation for Windows
 
-##Dependencies
+## Dependencies
 
 First, we need to install some software:
 
@@ -12,18 +12,16 @@ First, we need to install some software:
   It is needed to build BamTools. Make sure to add the CMake folder to the path during the installation.
 * **Optional:** To create plots in qcML files, install [WinPython](http://winpython.github.io/) and add the python directory to the PATH (it is inside the WinPython directory).
 
-##Building the MySQL driver
+## Different MySQL driver
 
 The Qt distribution contains an old MySQL driver that does not support binding as it should.  
-Thus, we need to build the driver ourselves:
+Thus, we need to use a different driver:
 
 * Download the [MySQL Community Server 5.7.9 ZIP file (32-bit)](http://downloads.mysql.com/archives/community/) and extract it to C:\Qt\Qt5.5.0\mysql-5.7.9-win32\.  
-* Download the [Qt 5.5.0 sources](http://download.qt.io/archive/qt/5.5/5.5.0/single/) and extract them to C:\Qt\Qt5.5.0\qt-everywhere-opensource-src-5.5.0\.
-* Execute the *mysql.bat* file from the ngs-bits root folder in a Qt shell.
 * Copy C:\Qt\Qt5.5.0\mysql-5.7.9-win32\lib\libmysql.dll to C:\Windows\
 
 
-##Building ngs-bits
+## Building ngs-bits
 Now, we can build the third-party libraries, and then ngs-bits:
 
 * Build the BamTools library by executing the script `bamtools.bat`. [BamTools](http://sourceforge.net/projects/bamtools/) is needed by ngs-bits to access BAM files.  
@@ -51,5 +49,7 @@ Now, we can build the third-party libraries, and then ngs-bits:
 		</tr>
 	</table>
 	
+
+
 
 
