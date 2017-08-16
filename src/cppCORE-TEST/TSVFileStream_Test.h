@@ -39,8 +39,12 @@ private slots:
 
 		I_EQUAL(stream.header().count(), 3);
 		S_EQUAL(stream.header()[0], QByteArray("one"));
+		I_EQUAL(stream.colIndex("one", false), 0);
 		S_EQUAL(stream.header()[1], QByteArray("two"));
+		I_EQUAL(stream.colIndex("two", false), 1);
 		S_EQUAL(stream.header()[2], QByteArray("three"));
+		I_EQUAL(stream.colIndex("three", false), 2);
+		I_EQUAL(stream.colIndex("four", false), -1);
 		I_EQUAL(stream.comments().count(), 3);
 		S_EQUAL(stream.comments()[0], QByteArray("##bli"));
 		S_EQUAL(stream.comments()[1], QByteArray("##bla"));

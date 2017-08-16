@@ -24,6 +24,7 @@ CnvWidget::CnvWidget(QString filename, QWidget *parent)
 	connect(ui->f_genes, SIGNAL(stateChanged(int)), this, SLOT(filtersChanged()));
 	connect(ui->f_size, SIGNAL(valueChanged(double)), this, SLOT(filtersChanged()));
 	connect(ui->f_z, SIGNAL(valueChanged(double)), this, SLOT(filtersChanged()));
+	connect(ui->f_af, SIGNAL(valueChanged(double)), this, SLOT(filtersChanged()));
 
 	//load CNV data file
 	QString path = QFileInfo(filename).absolutePath();
@@ -98,6 +99,7 @@ void CnvWidget::disableGUI()
 	ui->f_regs->setEnabled(false);
 	ui->f_size->setEnabled(false);
 	ui->f_z->setEnabled(false);
+	ui->f_af->setEnabled(false);
 }
 
 void CnvWidget::loadCNVs(QString filename)
@@ -106,7 +108,7 @@ void CnvWidget::loadCNVs(QString filename)
 	cnvs.load(filename);
 
 	//show comments
-	foreach(QString comment, cnvs.comments())
+	foreach(QByteArray comment, cnvs.comments())
 	{
 		addInfoLine(comment);
 	}
@@ -116,21 +118,30 @@ void CnvWidget::loadCNVs(QString filename)
 	for (int r=0; r<cnvs.count(); ++r)
 	{
 		ui->cnvs->setItem(r, 0, new QTableWidgetItem(cnvs[r].toString()));
-		ui->cnvs->setItem(r, 1, new QTableWidgetItem(cnvs[r].genes().join(",")));
+		ui->cnvs->setItem(r, 1, new QTableWidgetItem(QString(cnvs[r].genes().join(','))));
 		ui->cnvs->setItem(r, 2, new QTableWidgetItem(QString::number(cnvs[r].size()/1000.0, 'f', 3)));
 		ui->cnvs->setItem(r, 3, new QTableWidgetItem(QString::number(cnvs[r].regionCount())));
+
 		QStringList tmp;
 		foreach (int cn, cnvs[r].copyNumbers())
 		{
 			tmp.append(QString::number(cn));
 		}
 		ui->cnvs->setItem(r, 4, new QTableWidgetItem(tmp.join(",")));
+
 		tmp.clear();
 		foreach (double z, cnvs[r].zScores())
 		{
 			tmp.append(QString::number(z));
 		}
 		ui->cnvs->setItem(r, 5, new QTableWidgetItem(tmp.join(",")));
+
+		tmp.clear();
+		foreach (double af, cnvs[r].alleleFrequencies())
+		{
+			tmp.append(QString::number(af, 'f', 3));
+		}
+		ui->cnvs->setItem(r, 6, new QTableWidgetItem(tmp.join(",")));
 	}
 
 	//resize columns
@@ -214,6 +225,26 @@ void CnvWidget::filtersChanged()
 		}
 	}
 
+	//filter by allele frequency
+	const double f_af = ui->f_af->value();
+	if (f_af>0.0)
+	{
+		for(int r=0; r<rows; ++r)
+		{
+			if (!pass[r]) continue;
+			bool hit = false;
+			foreach (double af, cnvs[r].alleleFrequencies())
+			{
+				if (af<f_af)
+				{
+					hit = true;
+					break;
+				}
+			}
+			pass[r] = hit;
+		}
+	}
+
 	//filter by genes
 	if (ui->f_genes->isChecked())
 	{
@@ -221,7 +252,7 @@ void CnvWidget::filtersChanged()
 		{
 			if (!pass[r]) continue;
 			bool hit = false;
-			foreach(QString gene, f_genes)
+			foreach(const QByteArray& gene, f_genes)
 			{
 				if (cnvs[r].genes().contains(gene))
 				{
@@ -280,7 +311,7 @@ void CnvWidget::copyToClipboard()
 
 void CnvWidget::updateStatus(int shown)
 {
-	QString text = QString::number(shown) + "/" + QString::number(cnvs.count()) + " remaining";
+	QString text = QString::number(shown) + "/" + QString::number(cnvs.count()) + " passing filter(s)";
 	ui->status->setText(text);
 }
 

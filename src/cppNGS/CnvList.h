@@ -3,7 +3,8 @@
 
 #include "cppNGS_global.h"
 #include "Chromosome.h"
-#include <QStringList>
+#include <QList>
+#include <QByteArrayList>
 
 ///Copy-number variant composed of sub-regions as reported by CnvHunter.
 class CPPNGSSHARED_EXPORT CopyNumberVariant
@@ -12,7 +13,7 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 		///Default constructor.
 		CopyNumberVariant();
 		///Main constructor.
-		CopyNumberVariant(const Chromosome& chr, int start, int end, QStringList regions, QList<int> cns, QList<double> z_scores, QStringList genes);
+		CopyNumberVariant(const Chromosome& chr, int start, int end, QByteArrayList regions, QList<int> cns, QList<double> z_scores, QList<double> afs, QByteArrayList genes);
 
 		///Returns the chromosome.
 		const Chromosome& chr() const
@@ -30,7 +31,7 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 			return end_;
 		}
 		///Returns the sub-regions.
-		const QStringList& regions() const
+		const QByteArrayList& regions() const
 		{
 			return regions_;
 		}
@@ -44,8 +45,13 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 		{
 			return z_scores_;
 		}
+		///Returns the CNV allele frequencies (per sub-region).
+		const QList<double>& alleleFrequencies() const
+		{
+			return afs_;
+		}
 		///Returns the annotated genes.
-		const QStringList& genes() const
+		const QByteArrayList& genes() const
 		{
 			return genes_;
 		}
@@ -70,10 +76,11 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 		Chromosome chr_;
 		int start_;
 		int end_;
-		QStringList regions_;
+		QByteArrayList regions_;
 		QList<int> cns_;
 		QList<double> z_scores_;
-		QStringList genes_;
+		QList<double> afs_;
+		QByteArrayList genes_;
 };
 
 class CPPNGSSHARED_EXPORT CnvList
@@ -87,7 +94,7 @@ class CPPNGSSHARED_EXPORT CnvList
 		void load(QString filename);
 
 		///Returns the comment header lines (without leading '##').
-		const QStringList& comments() const
+		const QByteArrayList& comments() const
 		{
 			return comments_;
 		}
@@ -103,7 +110,7 @@ class CPPNGSSHARED_EXPORT CnvList
 		}
 
 	protected:
-		QStringList comments_;
+		QByteArrayList comments_;
 		QList<CopyNumberVariant> variants_;
 };
 

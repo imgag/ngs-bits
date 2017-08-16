@@ -1,6 +1,7 @@
 #include "CnvList.h"
 #include "Exceptions.h"
 #include "Helper.h"
+#include "TSVFileStream.h"
 
 CopyNumberVariant::CopyNumberVariant()
 	: chr_()
@@ -9,20 +10,22 @@ CopyNumberVariant::CopyNumberVariant()
 	, regions_()
 	, cns_()
 	, z_scores_()
+	, afs_()
 	, genes_()
 {
 }
 
-CopyNumberVariant::CopyNumberVariant(const Chromosome& chr, int start, int end, QStringList regions, QList<int> cns, QList<double> z_scores, QStringList genes)
+CopyNumberVariant::CopyNumberVariant(const Chromosome& chr, int start, int end, QByteArrayList regions, QList<int> cns, QList<double> z_scores, QList<double> afs, QByteArrayList genes)
 	: chr_(chr)
 	, start_(start)
 	, end_(end)
 	, regions_(regions)
 	, cns_(cns)
 	, z_scores_(z_scores)
+	, afs_(afs)
 	, genes_(genes)
 {
-	if (regions_.count()!=cns_.count() || regions_.count()!=z_scores_.count())
+	if (regions_.count()!=cns_.count() || regions_.count()!=z_scores_.count() || regions_.count()!=afs_.count())
 	{
 		THROW(ProgrammingException, "Error while constructing copy-number variant. Region count mismatch for copy-numbers and/or z-scores!");
 	}
@@ -45,55 +48,73 @@ void CnvList::load(QString filename)
 	//clear previous content
 	clear();
 
+	//get column indices
+	TSVFileStream file(filename);
+	comments_ = file.comments();
+	int i_chr = file.colIndex("chr", true);
+	int i_start = file.colIndex("start", true);
+	int i_end = file.colIndex("end", true);
+	int i_sample = file.colIndex("sample", true);
+	int i_cns = file.colIndex("region_copy_numbers", true);
+	int i_zscores = file.colIndex("region_zscores", true);
+	int i_coords = file.colIndex("region_coordinates", true);
+	int i_afs = file.colIndex("region_cnv_af", false);
+	int i_genes = file.colIndex("genes", false);
+
 	//parse input file
-	QSharedPointer<QFile> file = Helper::openFileForReading(filename);
-	QString sample;
-	while (!file->atEnd())
+	QByteArray sample;
+	while (!file.atEnd())
 	{
-		QString line = file->readLine().trimmed();
-		if (line.isEmpty()) continue;
+		QByteArrayList parts = file.readLine();
+		if (parts.count()<9) THROW(FileParseException, "Invalid CnvHunter file line: " + parts.join('\t'));
 
-		if (line.startsWith("#"))
+		QString line = parts.join('\t');
+
+		//sample
+		if (!sample.isEmpty() && sample!=parts[i_sample])
 		{
-			if (line.startsWith("##"))
+			THROW(FileParseException, "Multi-sample CNV files are currently not supported! Found data for " + sample + "'  and '" + parts[3] + "'!");
+		}
+		sample = parts[i_sample];
+
+		//copy-numbers
+		QList<int> cns;
+		QByteArrayList tmp = parts[i_cns].split(',');
+		foreach(const QByteArray& t, tmp)
+		{
+			cns.append(t.toInt());
+		}
+
+		//z-scores
+		QList<double> zs;
+		tmp = parts[i_zscores].split(',');
+		foreach(const QByteArray& t, tmp)
+		{
+			zs.append(Helper::toDouble(t, "z-score value", line));
+		}
+
+		//allele frequencies (optional)
+		QList<double> afs;
+		if (i_afs!=-1)
+		{
+			tmp = parts[i_afs].split(',');
+			foreach(const QByteArray& t, tmp)
 			{
-				comments_.append(line.mid(2, line.length()-2));
+				afs.append(Helper::toDouble(t, "allele frequency value", line));
 			}
 		}
-		else
+		while(afs.count()<zs.count())
 		{
-			QStringList parts = line.split("\t");
-			if (parts.count()<9) THROW(FileParseException, "Invalid CnvHunter file line: " + line);
-
-			//sample
-			if (!sample.isEmpty() && sample!=parts[3])
-			{
-				THROW(FileParseException, "Multi-sample CNV files are currently not supported! Found data for " + sample + "'  and '" + parts[3] + "'!");
-			}
-			sample = parts[3];
-
-			//copy-numbers
-			QList<int> cns;
-			QStringList tmp = parts[6].split(",");
-			foreach(QString t, tmp)
-			{
-				cns.append(t.toInt());
-			}
-
-			//z-scores
-			QList<double> zs;
-			tmp = parts[7].split(",");
-			foreach(QString t, tmp)
-			{
-				zs.append(Helper::toDouble(t, "z-score value", line));
-			}
-
-			//genes
-			tmp.clear();
-			if (parts.count()>=10) tmp = parts[9].split(",");
-
-			variants_.append(CopyNumberVariant(parts[0], parts[1].toInt(), parts[2].toInt(), parts[8].split(","), cns, zs, tmp));
+			afs.append(0.0);
 		}
+
+		//genes (optional)
+		if (i_genes!=-1)
+		{
+			tmp = parts[i_genes].split(',');
+		}
+
+		variants_.append(CopyNumberVariant(parts[i_chr], parts[i_start].toInt(), parts[i_end].toInt(), parts[i_coords].split(','), cns, zs, afs, tmp));
 	}
 }
 
