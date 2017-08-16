@@ -1,5 +1,5 @@
 ### CnvHunter tool help
-	CnvHunter (0.1-563-g5bbcca6)
+	CnvHunter (0.1-827-g472ac9f)
 	
 	CNV detection from targeted resequencing data using non-matched control samples.
 	
@@ -46,8 +46,9 @@
 	  --tdx                  Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### CnvHunter changelog
-	CnvHunter 0.1-563-g5bbcca6
+	CnvHunter 0.1-827-g472ac9f
 	
+	2017-08-15 Added allele frequency for each region to TSV output.
 	2016-10-24 Added copy-number variant size to TSV output and added optional SEG output file.
 	2016-09-01 Sample and region information files are now always written.
 	2016-08-23 Added merging of large CNVs that were split to several regions due to noise.
