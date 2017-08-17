@@ -166,6 +166,7 @@ public:
 		addFloat("ext_gap_span", "Percentage of orignal region size that can be spanned while merging nearby regions (0 disables it).", true, 20.0);
         addFloat("sam_min_depth", "QC: Minimum average depth of a sample.", true, 40.0);
         addFloat("sam_min_corr", "QC: Minimum correlation of sample to constructed reference sample.", true, 0.95);
+		addInt("sam_corr_regs", "Maximum number of regions used for sample correlation calculation (to speed up comparisons for exoms etc.).", true, 20000);
         addFloat("reg_min_cov", "QC: Minimum (average) absolute depth of a target region.", true, 20.0);
 		addFloat("reg_min_ncov", "QC: Minimum (average) normalized depth of a target region.", true, 0.01);
         addFloat("reg_max_cv", "QC: Maximum coefficient of variation (median/mad) of target region.", true, 0.3);
@@ -174,6 +175,7 @@ public:
 		addString("debug", "Writes debug information for the sample matching the given name (or for all samples if 'ALL' is given).", true, "");
 		addString("seg", "Writes a SEG file for the sample matching the given name (used for visualization in IGV).", true);
 
+		changeLog(2017, 8,  17, "Added down-sampleing if input to speed up sample correlation (sam_corr_regs parameter).");
 		changeLog(2017, 8,  15, "Added allele frequency for each region to TSV output.");
 		changeLog(2016, 10, 24, "Added copy-number variant size to TSV output and added optional SEG output file.");
 		changeLog(2016, 9,   1, "Sample and region information files are now always written.");
@@ -563,6 +565,7 @@ public:
 		double reg_max_cv = getFloat("reg_max_cv");
         double sam_min_corr = getFloat("sam_min_corr");
         double sam_min_depth = getFloat("sam_min_depth");
+		int sam_corr_regs = getInt("sam_corr_regs");
 
 		//timing
 		QTime timer;
@@ -782,7 +785,7 @@ public:
 		timings.append("detecting bad regions: " + Helper::elapsedTime(timer));
 		timer.restart();
 
-        //calculate correlation between all samples
+		//calculate correlation between all samples
 		for (int i=0; i<samples.count(); ++i)
 		{
             //calculate correlation to all other samples
@@ -801,12 +804,13 @@ public:
 						continue;
 					}
 
-                    double sum = 0.0;
-                    for(int e=0; e<exons.count(); ++e)
+					double sum = 0.0;
+					int steps = std::max(1, exons.count() / sam_corr_regs);
+					for(int e=0; e<exons.count(); e += steps)
                     {
 						sum += (samples[i]->doc[e]-1.0) * (samples[j]->doc[e]-1.0);
 					}
-					samples[i]->correl_all.append(SampleCorrelation(samples[j], sum / samples[i]->doc_stdev / samples[j]->doc_stdev / exons.count()));
+					samples[i]->correl_all.append(SampleCorrelation(samples[j], sum / samples[i]->doc_stdev / samples[j]->doc_stdev / exons.count() * steps));
                 }
 			}
 
