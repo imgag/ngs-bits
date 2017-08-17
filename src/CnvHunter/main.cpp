@@ -6,6 +6,7 @@
 #include "NGSD.h"
 #include "Histogram.h"
 #include "GeneSet.h"
+#include "TSVFileStream.h"
 
 #include <QVector>
 #include <QFileInfo>
@@ -21,7 +22,7 @@ struct SampleData
     {
     }
 
-    QString name; //file name
+	QByteArray name; //file name
 	bool noref;
 
 	QVector<float> doc; //coverage data (normalized: divided by mean)
@@ -34,7 +35,7 @@ struct SampleData
 	QVector<float> ref_stdev; //reference sample standard deviation (deviation of 'n' most similar samples)
 	float ref_correl; //correlation of sample to reference sample
 
-    QString qc; //QC warning flag
+	QByteArray qc; //QC warning flag
 };
 
 //Sample correlation helper
@@ -62,24 +63,28 @@ struct ExonData
 {
     ExonData()
         : start(-1)
+		, start_str()
         , end(-1)
+		, end_str()
 		, index(-1)
     {
     }
 
     Chromosome chr; //chromosome
     int start; //start position
+	QByteArray start_str; //start position as string
     int end; //end position
+	QByteArray end_str; //end position as string
 	int index; //exon index (needed to access DOC data arrays of samples)
 
 	float median; //median normalized DOC value
 	float mad; //MAD of normalized DOC values
 
-    QString qc; //QC warning flag
+	QByteArray qc; //QC warning flag
 
-	QString toString() const
+	QByteArray toString() const
 	{
-		return chr.str() + ":" + QString::number(start) + "-" + QString::number(end);
+		return chr.str() + ":" + start_str + "-" + end_str;
 	}
 
     bool operator<(const ExonData& rhs) const
@@ -182,6 +187,7 @@ public:
 		changeLog(2016, 8,  21, "Improved log output (to make parameter optimization easier).");
 	}
 
+	//TODO: replace fun_* by BasicStatistics (rewrite the functions as template functions)
 	float fun_mean(const QVector<float>& data)
 	{
 		if (data.count()==0) THROW(StatisticsException, "Cannot calculate mean on empty data array.");
@@ -295,7 +301,7 @@ public:
 		return value;
 	}
 
-    void storeSampleInfo(QString out, const QVector<QSharedPointer<SampleData>>& samples, const QVector<QSharedPointer<SampleData>>& samples_removed, const QHash<QSharedPointer<SampleData>, int>& cnvs_sample, const QVector<ResultData>& results)
+	void storeSampleInfo(QString out, const QVector<QSharedPointer<SampleData>>& samples, const QVector<QSharedPointer<SampleData>>& samples_removed, const QHash<QSharedPointer<SampleData>, int>& cnvs_sample, const QVector<ResultData>& results)
     {
         //init
         QSharedPointer<QFile> file = Helper::openFileForWriting(out.left(out.size()-4) + "_samples.tsv");
@@ -327,15 +333,15 @@ public:
 		outstream << "#sample\tref_sample\tdoc_mean\tref_correl\tz_score_mad\tcnvs\tqc_info" << endl;
 		foreach(const QSharedPointer<SampleData>& sample, samples)
         {
-			outstream << sample->name << "\t" << (sample->noref ? "no" : "yes") << "\t" << QString::number(sample->doc_mean, 'f', 1) << "\t" << QString::number(sample->ref_correl, 'f', 3) << "\t" << QString::number(z_scores[sample], 'f', 3) << "\t" << cnvs_sample[sample] << "\t" << sample->qc << endl;
+			outstream << sample->name << "\t" << (sample->noref ? "no" : "yes") << "\t" << QByteArray::number(sample->doc_mean, 'f', 1) << "\t" << QByteArray::number(sample->ref_correl, 'f', 3) << "\t" << QByteArray::number(z_scores[sample], 'f', 3) << "\t" << cnvs_sample[sample] << "\t" << sample->qc << endl;
         }
         foreach(const QSharedPointer<SampleData>& sample, samples_removed)
         {
-			outstream << sample->name << "\t" << (sample->noref ? "no" : "yes") << "\t" << QString::number(sample->doc_mean, 'f', 1) << "\t" << QString::number(sample->ref_correl, 'f', 3) << "\t-\t-\t" << sample->qc << endl;
+			outstream << sample->name << "\t" << (sample->noref ? "no" : "yes") << "\t" << QByteArray::number(sample->doc_mean, 'f', 1) << "\t" << QByteArray::number(sample->ref_correl, 'f', 3) << "\t-\t-\t" << sample->qc << endl;
         }
     }
 
-    void storeRegionInfo(QString out, const QVector<QSharedPointer<ExonData>>& exons, const QVector<QSharedPointer<ExonData>>& exons_removed, const QHash<QSharedPointer<ExonData>, int>& cnvs_exon)
+	void storeRegionInfo(QString out, const QVector<QSharedPointer<ExonData>>& exons, const QVector<QSharedPointer<ExonData>>& exons_removed, const QHash<QSharedPointer<ExonData>, int>& cnvs_exon)
     {
         QSharedPointer<QFile> file = Helper::openFileForWriting(out.left(out.size()-4) + "_regions.tsv");
         QTextStream outstream(file.data());
@@ -348,7 +354,7 @@ public:
         std::sort(tmp.begin(), tmp.end(), [](const QSharedPointer<ExonData>& a, const QSharedPointer<ExonData>& b){return *(a.data()) < *(b.data());} );
         foreach(const QSharedPointer<ExonData>& exon, tmp)
         {
-			outstream << exon->toString() << "\t" << (exon->end-exon->start) << "\t" << QString::number(exon->median, 'f', 3) << "\t" << QString::number(exon->mad, 'f', 3) << "\t" << QString::number(exon->mad/exon->median, 'f', 2) << "\t";
+			outstream << exon->toString() << "\t" << (exon->end-exon->start) << "\t" << QByteArray::number(exon->median, 'f', 3) << "\t" << QByteArray::number(exon->mad, 'f', 3) << "\t" << QByteArray::number(exon->mad/exon->median, 'f', 2) << "\t";
             if (exon->qc.isEmpty())
             {
                 outstream << cnvs_exon[exon];
@@ -389,12 +395,12 @@ public:
 				float ncov = r.sample->doc[r.exon->index];
 				float ncov_ref = r.sample->ref[r.exon->index];
 				float log_ratio = log2(ncov/ncov_ref);
-				outstream << r.sample->name << "\t" << r.exon->toString() << "\t" << r.copies << "\t" << QString::number(r.z, 'f', 2) << "\t" << QString::number(ncov, 'f', 3) << "\t" << QString::number(ncov_ref, 'f', 3) << "\t" << QString::number(r.sample->ref_stdev[r.exon->index], 'f', 3) << "\t" << QString::number(log_ratio, 'f', 2) << endl;
+				outstream << r.sample->name << "\t" << r.exon->toString() << "\t" << r.copies << "\t" << QByteArray::number(r.z, 'f', 2) << "\t" << QByteArray::number(ncov, 'f', 3) << "\t" << QByteArray::number(ncov_ref, 'f', 3) << "\t" << QByteArray::number(r.sample->ref_stdev[r.exon->index], 'f', 3) << "\t" << QByteArray::number(log_ratio, 'f', 2) << endl;
 			}
         }
     }
 
-	QSharedPointer<SampleData> sampleByName(QString name, const QVector<QSharedPointer<SampleData>>& samples, const QVector<QSharedPointer<SampleData>>& samples_removed, bool removed_samples_ok)
+	QSharedPointer<SampleData> sampleByName(QByteArray name, const QVector<QSharedPointer<SampleData>>& samples, const QVector<QSharedPointer<SampleData>>& samples_removed, bool removed_samples_ok)
 	{
 		//find samples (QC ok)
 		foreach(const QSharedPointer<SampleData>& sample, samples)
@@ -416,7 +422,7 @@ public:
 		}
 
 		//not found
-		QStringList sample_names;
+		QByteArrayList sample_names;
 		foreach(const QSharedPointer<SampleData>& sample, samples)
 		{
 			sample_names.append(sample->name);
@@ -445,7 +451,7 @@ public:
 				float ncov = r.sample->doc[r.exon->index];
 				float ncov_ref = r.sample->ref[r.exon->index];
 				float log_ratio = log2(ncov/ncov_ref);
-				outstream << "\t" << r.exon->chr.str() << "\t" << r.exon->start << "\t" << r.exon->end << "\t" << QString::number(log_ratio, 'f', 2) << "\t" << r.copies << "\t" << QString::number(r.z, 'f', 2) << endl;
+				outstream << "\t" << r.exon->chr.str() << "\t" << r.exon->start << "\t" << r.exon->end << "\t" << QByteArray::number(log_ratio, 'f', 2) << "\t" << r.copies << "\t" << QByteArray::number(r.z, 'f', 2) << endl;
 			}
 		}
 
@@ -458,10 +464,10 @@ public:
 
 	GeneSet geneNames(QSharedPointer<NGSD>& db, const QSharedPointer<ExonData>& exon)
 	{
-		static QHash<QString, GeneSet> cache;
+		static QHash<QByteArray, GeneSet> cache;
 
 		//check cache first
-		QString reg = exon->toString();
+		QByteArray reg = exon->toString();
 		if (cache.contains(reg))
 		{
 			return cache[reg];
@@ -487,16 +493,16 @@ public:
             if (!range.sample->qc.isEmpty()) continue;
 
 			//get copy-number, z-scores, coordinates and genes for adjacent regions
-            QStringList copies;
-			QStringList zscores;
-			QStringList coords;
-			QStringList cnv_counts;
+			QByteArrayList copies;
+			QByteArrayList zscores;
+			QByteArrayList coords;
+			QByteArrayList cnv_counts;
 			for (int j=range.start; j<=range.end; ++j)
             {
-                copies.append(QString::number(results[j].copies));
-				zscores.append(QString::number(results[j].z, 'f', 2));
+				copies.append(QByteArray::number(results[j].copies));
+				zscores.append(QByteArray::number(results[j].z, 'f', 2));
 				coords.append(results[j].exon->toString());
-				cnv_counts.append(QString::number(1.0f * cnvs_exon[results[j].exon] / sample_count, 'f', 3));
+				cnv_counts.append(QByteArray::number(1.0f * cnvs_exon[results[j].exon] / sample_count, 'f', 3));
 			}
 
 			//print output
@@ -523,7 +529,7 @@ public:
 
 	float calculateZ(const QSharedPointer<SampleData>& sample, int e)
     {
-		if(sample->ref_stdev[e]==0.0 || sample->ref[e]==0.0)
+		if(sample->ref_stdev[e]==0.0f || sample->ref[e]==0.0f)
         {
 			return std::numeric_limits<float>::quiet_NaN();
         }
@@ -536,15 +542,15 @@ public:
 		float copies = 2.0f*s->doc[e->index]/s->ref[e->index];
 		if (copies<0.2f) return 0;
 		else if (copies<1.0f) return 1;
-		else return round(copies);
+		else return roundf(copies);
     }
 
 	float weightedMean(const QVector< QPair<float, int> >& data)
     {
         if (data.count()==0) return 0.0;
 
-		double wsum = 0.0;
-		double size = 0.0;
+		float wsum = 0.0;
+		float size = 0.0;
         for (int i=0; i<data.count(); ++i)
         {
             wsum += data[i].first * data[i].second;
@@ -651,7 +657,7 @@ public:
 			float median = fun_median(corrs[i]);
 			float q1 = fun_q1(corrs[i]);
 			float q3 = fun_q3(corrs[i]);
-			outstream << QString::number(i+1).rightJustified(4, ' ') << ": q3=" << QString::number(q3, 'f',3) << " median=" << QString::number(median, 'f', 3) << " q1=" << QString::number(q1, 'f',3) << endl;
+			outstream << QByteArray::number(i+1).rightJustified(4, ' ') << ": q3=" << QByteArray::number(q3, 'f',3) << " median=" << QByteArray::number(median, 'f', 3) << " q1=" << QByteArray::number(q1, 'f',3) << endl;
 		}
 		outstream << endl;
 	}
@@ -661,14 +667,14 @@ public:
         //init
 		QString debug = getString("debug");
 		QString seg = getString("seg");
-        QStringList in = getInfileList("in");
+		QStringList in = getInfileList("in");
 		QStringList in_noref = getInfileList("in_noref");
 		QString out = getOutfile("out");
         if (!out.endsWith(".tsv")) THROW(ArgumentException, "Output file name has to end with '.tsv'!");
-        QString exclude = getInfile("exclude");
+		QString exclude = getInfile("exclude");
         QTextStream outstream(stdout);
         int n = getInt("n");
-        if (in.count()<n+1) THROW(ArgumentException, "At least n+1 input files are required! Got " + QString::number(in.count()) + "!");
+		if (in.count()<n+1) THROW(ArgumentException, "At least n+1 input files are required! Got " + QByteArray::number(in.count()) + "!");
 		float min_z = getFloat("min_z");
 		float ext_min_z = getFloat("ext_min_z");
 		float ext_gap_span = getFloat("ext_gap_span");
@@ -682,33 +688,39 @@ public:
 		//timing
 		QTime timer;
 		timer.start();
-		QList<QString> timings;
+		QList<QByteArray> timings;
 
 		//load exon list
 		QVector<QSharedPointer<ExonData>> exons;
-        QStringList file = Helper::loadTextFile(in[0], true, '#', true);
-        foreach(const QString& line, file)
-        {
-            //create exon
-			QStringList parts = line.split('\t');
-            if (parts.count()<4) THROW(FileParseException, "Coverage file " + in[0] + " contains line with less then four elements: " + line);
-			QSharedPointer<ExonData> ex(new ExonData());
-			ex->chr = parts[0];
-			ex->start = Helper::toInt(parts[1], "start position" , line);
-			ex->end = Helper::toInt(parts[2], "end position" , line);
-			ex->index = exons.count();
+		{
+			TSVFileStream stream(in[0]);
+			while(!stream.atEnd())
+			{
+				QByteArrayList parts = stream.readLine();
+				if (parts.count()<4) THROW(FileParseException, "Coverage file " + in[0] + " contains line with less then four elements: " + parts.join('\t'));
+				QSharedPointer<ExonData> ex(new ExonData());
+				ex->chr = parts[0];
+				ex->start_str = parts[1];
+				bool ok = false;
+				ex->start = ex->start_str.toInt(&ok);
+				if (!ok) THROW(ArgumentException, "Could not convert coverage value '" + ex->start_str + "' to float.");
+				ex->end_str = parts[2];
+				ex->end = ex->end_str.toInt(&ok);
+				if (!ok) THROW(ArgumentException, "Could not convert coverage value '" + ex->end_str + "' to float.");
+				ex->index = exons.count();
 
-            //check that exons are sorted according to chromosome and start position
-			if (exons.count()!=0 && ex->chr==exons.last()->chr)
-            {
-				if(ex->start<exons.last()->start)
-                {
-					THROW(FileParseException, "Exons not sorted according to chromosome/position! " + ex->chr.str() + ":" + QString::number(ex->start) + " after " + ex->chr.str() + ":" + QString::number(exons.last()->start) + "!");
-                }
-            }
+				//check that exons are sorted according to chromosome and start position
+				if (exons.count()!=0 && ex->chr==exons.last()->chr)
+				{
+					if(ex->start<exons.last()->start)
+					{
+						THROW(FileParseException, "Exons not sorted according to chromosome/position! " + ex->chr.str() + ":" + QByteArray::number(ex->start) + " after " + ex->chr.str() + ":" + QByteArray::number(exons.last()->start) + "!");
+					}
+				}
 
-            //append exon to data
-			exons.append(ex);
+				//append exon to data
+				exons.append(ex);
+			}
 		}
 
 		//load input (and check input)
@@ -719,35 +731,38 @@ public:
         {
             //init
 			QSharedPointer<SampleData> sample(new SampleData());
-			sample->name = QFileInfo(in_all[i]).baseName();
+			sample->name = QFileInfo(in_all[i]).baseName().toLatin1();
 			sample->noref = (i>=in.count());
 			sample->doc.reserve(exons.count());
 
-            //check exon count
-			file = Helper::loadTextFile(in_all[i], true, '#', true); //TODO use TSVFileStream instead
-			if (file.count()!=exons.count()) THROW(FileParseException, "Coverage file " + in_all[i] + " contains more/less regions than reference file " + in_all[0] + ". Expected " + QString::number(exons.count()) + ", got " + QString::number(file.count()) + ".");
-
-            //depth-of-coverage data
-            for (int j=0; j<file.count(); ++j)
+			//depth-of-coverage data
+			TSVFileStream stream(in_all[i]);
+			int line_count = 0;
+			while(!stream.atEnd())
             {
-                QStringList parts = file[j].split('\t');
+				QByteArrayList parts = stream.readLine();
 				if (parts.count()<4)
 				{
-					THROW(FileParseException, "Coverage file " + sample->name + " contains line with less then four elements: " + file[j]);
+					THROW(FileParseException, "Coverage file " + in_all[i] + " contains line with less then four elements: " + parts.join('\t'));
 				}
-				if (parts[0]!=exons[j]->chr.str() || parts[1].toInt()!=exons[j]->start || parts[2].toInt()!=exons[j]->end)
+				if (parts[0]!=exons[line_count]->chr.str() || parts[1]!=exons[line_count]->start_str || parts[2]!=exons[line_count]->end_str)
 				{
-					THROW(FileParseException, "Coverage file " + sample->name + " contains different regions than reference file " + in[0] + ". Expected " + exons[j]->toString() + ", got " + parts[0] + ":" + parts[1] + "-" + parts[2] + ".");
+					THROW(FileParseException, "Coverage file " + in_all[i] + " contains different regions than reference file " + in_all[0] + ". Expected " + exons[line_count]->toString() + ", got " + parts[0] + ":" + parts[1] + "-" + parts[2] + ".");
 				}
-
 				bool ok = false;
 				float value = parts[3].toFloat(&ok);
-				if (!ok) THROW(ArgumentException, "Could not convert coverage value" + parts[3] + "to float");
+				if (!ok) THROW(ArgumentException, "Could not convert coverage value '" + parts[3] + "' to float.");
 
 				sample->doc.append(value);
+				++line_count;
             }
+
+			//check exon count
+			if (line_count!=exons.count()) THROW(FileParseException, "Coverage file " + in_all[i] + " contains more/less regions than reference file " + in_all[0] + ". Expected " + QByteArray::number(exons.count()) + ", got " + QByteArray::number(line_count) + ".");
+
 			samples.append(sample);
 		}
+
 		timings.append("loading input: " + Helper::elapsedTime(timer));
 		timer.restart();
 
@@ -820,26 +835,26 @@ public:
 			samples[s]->doc_mean = (c_chrx>c_auto) ? mean_chrx : mean_auto;
 			if (!fun_isValidFloat(samples[s]->doc_mean))
 			{
-				THROW(ProgrammingException, "Mean depth of coverage (DOC) is invalid for sample '" + samples[s]->name + "': " + QString::number(samples[s]->doc_mean));
+				THROW(ProgrammingException, "Mean depth of coverage (DOC) is invalid for sample '" + samples[s]->name + "': " + QByteArray::number(samples[s]->doc_mean));
 			}
 			samples[s]->doc_stdev = fun_stdev(samples[s]->doc, 1.0);
 			if (!fun_isValidFloat(samples[s]->doc_stdev))
 			{
-				THROW(ProgrammingException, "Standard deviation of depth of coverage (DOC) is invalid for sample '" + samples[s]->name + "': " + QString::number(samples[s]->doc_stdev));
+				THROW(ProgrammingException, "Standard deviation of depth of coverage (DOC) is invalid for sample '" + samples[s]->name + "': " + QByteArray::number(samples[s]->doc_stdev));
 			}
 
             //flag low-depth samples
 			if (samples[s]->doc_mean < sam_min_depth)
             {
-				samples[s]->qc += "avg_depth=" + QString::number(samples[s]->doc_mean) + " ";
+				samples[s]->qc += "avg_depth=" + QByteArray::number(samples[s]->doc_mean) + " ";
             }
 			if (c_chrx>0 && mean_chrx<5)
 			{
-				samples[s]->qc += "avg_depth_chrx=" + QString::number(mean_chrx) + " ";
+				samples[s]->qc += "avg_depth_chrx=" + QByteArray::number(mean_chrx) + " ";
 			}
 			if (c_auto>0 && mean_auto<5)
 			{
-				samples[s]->qc += "avg_depth_autosomes=" + QString::number(mean_auto) + " ";
+				samples[s]->qc += "avg_depth_autosomes=" + QByteArray::number(mean_auto) + " ";
 			}
 		}
 		timings.append("normalizing data: " + Helper::elapsedTime(timer));
@@ -874,7 +889,7 @@ public:
                     //check that DOC data for good samples is ok
 					if (!fun_isValidFloat(samples[s]->doc[e]))
                     {
-						THROW(ProgrammingException, "Normalized coverage value is invalid for sample '" + samples[s]->name + "' in exon '" + exons[e]->toString() + "' (" + QString::number(samples[s]->doc[e]) + ")");
+						THROW(ProgrammingException, "Normalized coverage value is invalid for sample '" + samples[s]->name + "' in exon '" + exons[e]->toString() + "' (" + QByteArray::number(samples[s]->doc[e]) + ")");
 					}
 					tmp.append(samples[s]->doc[e]);
                 }
@@ -883,9 +898,9 @@ public:
 			float median = fun_median(tmp);
 			float mad = 1.428f * fun_mad(tmp, median);
 
-			if (median<reg_min_ncov) exons[e]->qc += "ncov<" + QString::number(reg_min_ncov) + " ";
-			if (median*avg_abs_cov<reg_min_cov) exons[e]->qc += "cov<" + QString::number(reg_min_cov) + " ";
-			if (mad/median>reg_max_cv) exons[e]->qc += "cv>" + QString::number(reg_max_cv)+ " ";
+			if (median<reg_min_ncov) exons[e]->qc += "ncov<" + QByteArray::number(reg_min_ncov) + " ";
+			if (median*avg_abs_cov<reg_min_cov) exons[e]->qc += "cov<" + QByteArray::number(reg_min_cov) + " ";
+			if (mad/median>reg_max_cv) exons[e]->qc += "cv>" + QByteArray::number(reg_max_cv)+ " ";
 			if (exclude!="" && excluded.overlapsWith(exons[e]->chr, exons[e]->start, exons[e]->end)) exons[e]->qc += "excluded ";
 			if (exons[e]->chr.isY()) exons[e]->qc += "chrY ";
 			exons[e]->median = median;
@@ -919,7 +934,7 @@ public:
 						continue;
 					}
 
-					double sum = 0.0;
+					float sum = 0.0;
 					int steps = std::max(1, exons.count() / sam_corr_regs);
 					for(int e=0; e<exons.count(); e += steps)
                     {
@@ -938,13 +953,13 @@ public:
 
         //construct reference from 'n' most similar samples
 		outstream << "=== checking for bad samples ===" << endl;
-        int c_bad_sample = 0;
+		int c_bad_sample = 0;
 		for (int s=0; s<samples.count(); ++s)
 		{
 			for (int e=0; e<exons.count(); ++e)
             {
 				float exon_median = exons[e]->median;
-				QVector<float> values; //TODO move outside the loop?!
+				QVector<float> values;
 				values.reserve(n);
 				for (int i=0; i<samples.count()-1; ++i)
 				{
@@ -971,44 +986,13 @@ public:
 					samples[s]->ref.append(exon_median);
 					samples[s]->ref_stdev.append(0.3f*exon_median);
                 }
-/*try this!
-				//get DOC data from most similar samples
-				QVector<double> values;
-				values.reserve(n);
-				for (int i=0; i<samples.count()-1; ++i)
-				{
-					if (samples[s]->correl_all[i].sample->qc.isEmpty()) //do not use bad QC samples
-					{
-						values.append(samples[s]->correl_all[i].sample->doc[e]);
-					}
-					if (values.count()==n) break;
-				}
-				//remove outliers
-				std::sort(values.begin(), values.end());
-				double median = BasicStatistics::median(values, false);
-				while(!values.isEmpty() && values.first()<=0.25*median) values.removeFirst();
-				while(!values.isEmpty() && values.last()>=1.75*median) values.removeLast();
-				//calculate statistics
-				if (values.count()>10)
-				{
-					median = BasicStatistics::median(values, false);
-					samples[s]->ref.append(median);
-					double stdev = 1.428 * BasicStatistics::mad(values, median);
-					samples[s]->ref_stdev.append(std::max(stdev, 0.1*median));
-				}
-				else
-				{
-					samples[s]->ref.append(exons[e]->median);
-					samples[s]->ref_stdev.append(exons[e]->mad);
-				}
-*/
             }
 			samples[s]->ref_correl = fun_correlation(samples[s]->doc, samples[s]->ref);
 
             //flag samples with bad correlation
 			if (samples[s]->ref_correl<sam_min_corr)
             {
-				samples[s]->qc += "corr=" + QString::number(samples[s]->ref_correl, 'f', 3) + " ";
+				samples[s]->qc += "corr=" + QByteArray::number(samples[s]->ref_correl, 'f', 3) + " ";
             }
 
             //print all bad samples (also those which were flagged as bad before, e.g. because os too low avg depth)
@@ -1269,13 +1253,13 @@ public:
 		if (debug!="")
 		{
 			QSharedPointer<SampleData> sample;
-			if (debug!="ALL") sample = sampleByName(debug, samples, samples_removed, false);
+			if (debug!="ALL") sample = sampleByName(debug.toLatin1(), samples, samples_removed, false);
 
 			storeDebugInfo(sample, out, samples, results);
 		}
 		if (seg!="")
 		{
-			QSharedPointer<SampleData> sample = sampleByName(seg, samples, samples_removed, true);
+			QSharedPointer<SampleData> sample = sampleByName(seg.toLatin1(), samples, samples_removed, true);
 			if (sample->qc.isEmpty())
 			{
 				storeSegFile(sample, out, results, exons_removed);
@@ -1299,21 +1283,21 @@ public:
 		outstream << "=== statistics ===" << endl;
 		outstream << "invalid regions: " << c_bad_region << " of " << (exons.count() + c_bad_region) << endl;
 		outstream << "invalid samples: " << c_bad_sample << " of " << in_all.count() << endl;
-		outstream << "mean correlation of samples to reference: " << QString::number(corr_sum/c_valid, 'f', 4) << endl;
+		outstream << "mean correlation of samples to reference: " << QByteArray::number(corr_sum/c_valid, 'f', 4) << endl;
 		float size_sum = 0;
 		foreach(const Range& range, ranges)
 		{
 			size_sum += range.size();
 		}
 		outstream << "number of CNV events: " << ranges.count() << " (consisting of " << size_sum << " regions)" << endl;
-		outstream << "mean regions per CNV event: " << QString::number(size_sum/ranges.count(), 'f', 2) << endl;
-		outstream << "mean CNV events per sample per 100 regions: " << QString::number(1.0f*ranges.count()/c_valid/(exons.count()/100.0), 'f', 4) << endl;
+		outstream << "mean regions per CNV event: " << QByteArray::number(size_sum/ranges.count(), 'f', 2) << endl;
+		outstream << "mean CNV events per sample per 100 regions: " << QByteArray::number(1.0f*ranges.count()/c_valid/(exons.count()/100.0), 'f', 4) << endl;
         outstream << endl;
 
         //print timing output
 		timings.append("statistics and writing output: " + Helper::elapsedTime(timer));
 		outstream << "=== timing ===" << endl;
-		foreach(const QString& line, timings)
+		foreach(const QByteArray& line, timings)
 		{
 			outstream << line << endl;
 		}
