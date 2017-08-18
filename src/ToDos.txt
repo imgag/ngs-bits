@@ -27,7 +27,6 @@ Tools:
 
 CnvHunter:
 - allow input of one multi-sample COV file (reduce test data size and loading time)
-*** speed up: debug output
 *** test if input file of CN poymorpthisms to exclude them from normalization improves the results
 *** integrate CNV databases:
    - http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/

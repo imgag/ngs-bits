@@ -11,7 +11,6 @@
 #include <QVector>
 #include <QFileInfo>
 #include <QDir>
-#include "math.h"
 
 class SampleCorrelation;
 
@@ -188,14 +187,6 @@ public:
 	}
 
 	//TODO: replace fun_* by BasicStatistics (rewrite the functions as template functions)
-	float fun_mean(const QVector<float>& data)
-	{
-		if (data.count()==0) THROW(StatisticsException, "Cannot calculate mean on empty data array.");
-
-		return std::accumulate(data.begin(), data.end(), 0.0) / data.count();
-	}
-
-
 	float fun_median(const QVector<float>& data)
 	{
 		if (data.count()==0)
@@ -206,7 +197,7 @@ public:
 
 		if (data.count()%2==0)
 		{
-			return 0.5 * (data[data.count()/2] + data[data.count()/2-1]);
+			return 0.5f * (data[data.count()/2] + data[data.count()/2-1]);
 		}
 		else
 		{
@@ -218,10 +209,10 @@ public:
 	{
 		if (data.count()==0) THROW(StatisticsException, "Cannot calculate standard deviation on empty data array.");
 
-		float output = 0.0;
+		double output = 0.0;
 		for (int i=0; i<data.count(); ++i)
 		{
-			output += pow(data[i]-mean, 2);
+			output += pow(data[i]-mean, 2.0);
 		}
 		return sqrt(output/data.count());
 	}
@@ -237,16 +228,20 @@ public:
 			THROW(StatisticsException, "Cannot calculate correlation of data arrays with zero length!");
 		}
 
-		const float x_mean = std::accumulate(x.begin(), x.end(), 0.0f) / x.count();
-		const float y_mean = std::accumulate(y.begin(), y.end(), 0.0f) / y.count();
+		const double x_mean = std::accumulate(x.begin(), x.end(), 0.0) / x.count();
+		const double y_mean = std::accumulate(y.begin(), y.end(), 0.0) / x.count();
 
-		float sum = 0.0;
-		for(int i=0; i<x.size(); ++i)
+		double sum = 0.0;
+		double x_square_sum = 0.0;
+		double y_square_sum = 0.0;
+		for(int i=0; i<x.count(); ++i)
 		{
 			sum += (x[i]-x_mean) * (y[i]-y_mean);
+			x_square_sum += pow(x[i]-x_mean, 2.0);
+			y_square_sum += pow(y[i]-y_mean, 2.0);
 		}
 
-		return sum / fun_stdev(x, x_mean) / fun_stdev(y, y_mean) / x.size();
+		return sum / sqrt(x_square_sum/x.count()) / sqrt(y_square_sum/x.count()) / x.count();
 	}
 
 
@@ -256,7 +251,7 @@ public:
 		devs.reserve(data.count());
 		foreach(float value, data)
 		{
-			devs.append(fabs(value-median));
+			devs.append(fabsf(value-median));
 		}
 		std::sort(devs.begin(), devs.end());
 		return fun_median(devs);
@@ -317,7 +312,6 @@ public:
             {
                 if (!curr.isNull())
                 {
-                    std::sort(zs.begin(), zs.end());
 					z_scores[curr] = fun_mad(zs, 0);
                     zs.clear();
                 }
@@ -325,8 +319,7 @@ public:
             }
 
             zs.append(results[r].z);
-        }
-        std::sort(zs.begin(), zs.end());
+		}
 		z_scores[curr] = fun_mad(zs, 0);
 
         //store file
@@ -545,19 +538,28 @@ public:
 		else return roundf(copies);
     }
 
-	float weightedMean(const QVector< QPair<float, int> >& data)
+	QPair<float, float> weightedMean(const QVector<QSharedPointer<ExonData>>& exons, const QSharedPointer<SampleData>& sample)
     {
-        if (data.count()==0) return 0.0;
+		double wsum_auto = 0.0;
+		double wsum_chrx = 0.0;
+		double size_sum_auto = 0.0;
+		double size_sum_chrx = 0.0;
+		for (int e=0; e<exons.count(); ++e)
+		{
+			int size = exons[e]->end-exons[e]->start;
+			if (exons[e]->chr.isAutosome())
+			{
+				wsum_auto += (double)(sample->doc[e]) * size;
+				size_sum_auto += size;
+			}
+			else if (exons[e]->chr.isX())
+			{
+				wsum_chrx += (double)(sample->doc[e]) * size;
+				size_sum_chrx += size;
+			}
+		}
 
-		float wsum = 0.0;
-		float size = 0.0;
-        for (int i=0; i<data.count(); ++i)
-        {
-            wsum += data[i].first * data[i].second;
-            size += data[i].second;
-        }
-
-        return wsum / size;
+		return qMakePair(size_sum_auto==0.0 ? 0.0 : wsum_auto/size_sum_auto, size_sum_chrx==0.0 ? 0.0 : wsum_chrx/size_sum_chrx);
     }
 
 	bool previousExists(const QVector<ResultData>& results, int i)
@@ -592,6 +594,7 @@ public:
         {
             counts.append(it.value());
         }
+		std::sort(counts.begin(), counts.end());
 		float median = fun_median(counts);
 		float mad = 1.428f * fun_mad(counts, median);
 
@@ -795,24 +798,10 @@ public:
         //normalize DOC by mean (for autosomes/gonosomes separately)
 		for (int s=0; s<samples.count(); ++s)
         {
-            //calculate means
-			QVector< QPair<float, int> > doc_auto;
-            doc_auto.reserve(c_auto);
-			QVector< QPair<float, int> > doc_chrx;
-            doc_chrx.reserve(c_chrx);
-            for (int e=0; e<exons.count(); ++e)
-            {
-				if (exons[e]->chr.isAutosome())
-                {
-					doc_auto.append(qMakePair(samples[s]->doc[e], exons[e]->end-exons[e]->start));
-                }
-				else if (exons[e]->chr.isX())
-                {
-					doc_chrx.append(qMakePair(samples[s]->doc[e], exons[e]->end-exons[e]->start));
-                }
-            }
-			float mean_chrx = weightedMean(doc_chrx);
-			float mean_auto = weightedMean(doc_auto);
+			//calculate mean depths
+			QPair<float, float> tmp = weightedMean(exons, samples[s]);
+			float mean_auto = tmp.first;
+			float mean_chrx = tmp.second;
 
             //normalize
             for (int e=0; e<exons.count(); ++e)
@@ -861,16 +850,17 @@ public:
 		timer.restart();
 
 		//calculate overall average depth (of good samples)
-		QVector<float> tmp;
-		tmp.reserve(samples.count());
+		float avg_abs_cov = 0.0f;
+		int samples_valid = 0;
 		for (int s=0; s<samples.count(); ++s)
 		{
             if (samples[s]->qc.isEmpty())
 			{
-				tmp.append(samples[s]->doc_mean);
+				avg_abs_cov += samples[s]->doc_mean;
+				++samples_valid;
 			}
 		}
-		float avg_abs_cov = fun_mean(tmp);
+		avg_abs_cov /= samples_valid;
 
         //load excluded regions file
         BedFile excluded;
@@ -878,10 +868,11 @@ public:
 
         //region QC
 		outstream << "=== checking for bad regions ===" << endl;
-        int c_bad_region = 0;
+		int c_bad_region = 0;
+		QVector<float> tmp;
         for (int e=0; e<exons.count(); ++e)
-        {
-            tmp.resize(0);
+		{
+			tmp.resize(0);
 			for (int s=0; s<samples.count(); ++s)
             {
                 if (samples[s]->qc.isEmpty())
@@ -918,6 +909,8 @@ public:
 		//calculate correlation between all samples
 		for (int i=0; i<samples.count(); ++i)
 		{
+			samples[i]->correl_all.reserve(samples.count());
+
             //calculate correlation to all other samples
 			for (int j=0; j<samples.count(); ++j)
             {
@@ -956,11 +949,15 @@ public:
 		int c_bad_sample = 0;
 		for (int s=0; s<samples.count(); ++s)
 		{
+			//reserve space
+			samples[s]->ref.reserve(exons.count());
+			samples[s]->ref_stdev.reserve(exons.count());
+
+			//calcualte reference mean and stddev for each exon
 			for (int e=0; e<exons.count(); ++e)
             {
 				float exon_median = exons[e]->median;
-				QVector<float> values;
-				values.reserve(n);
+				tmp.resize(0);
 				for (int i=0; i<samples.count()-1; ++i)
 				{
 					if (samples[s]->correl_all[i].sample->qc.isEmpty()) //do not use bad QC samples
@@ -968,17 +965,19 @@ public:
 						float value = samples[s]->correl_all[i].sample->doc[e];
 						if (value>=0.25f*exon_median && value<=1.75f*exon_median) //do not use extreme outliers
                         {
-                            values.append(value);
+							tmp.append(value);
                         }
                     }
-                    if (values.count()==n) break;
+					if (tmp.count()==n) break;
                 }
-				if (values.count()==n)
+				if (tmp.count()==n)
                 {
-                    std::sort(values.begin(), values.end());
-					float median = fun_median(values);
+					std::sort(tmp.begin(), tmp.end());
+					float median = fun_median(tmp);
 					samples[s]->ref.append(median);
-					float stdev = 1.428f * fun_mad(values, median);
+					std::for_each(tmp.begin(), tmp.end(), [median](float& value){ value = fabsf(value-median); });
+					std::sort(tmp.begin(), tmp.end());
+					float stdev = 1.428f * fun_median(tmp);
 					samples[s]->ref_stdev.append(std::max(stdev, 0.1f*median));
                 }
 				else
@@ -1088,7 +1087,7 @@ public:
 					{
 						ranges.append(Range(samples[s], index, index, res.copies<2 ? Range::DEL : Range::INS));
 					}
-                }
+				}
 				results.append(res);
 				++index;
 			}
