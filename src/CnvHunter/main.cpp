@@ -11,6 +11,7 @@
 #include <QVector>
 #include <QFileInfo>
 #include <QDir>
+#include "math.h"
 
 class SampleCorrelation;
 
@@ -354,7 +355,7 @@ public:
             }
             else
             {
-                outstream << "-";
+				outstream << "nan";
             }
             outstream << "\t" << exon->qc << endl;
         }
