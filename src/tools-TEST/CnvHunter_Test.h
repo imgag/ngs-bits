@@ -7,8 +7,16 @@ TEST_CLASS(CnvHunter_Test)
 Q_OBJECT
 private slots:
 
-	void hpPDv3_noanno_noref_seg_debug()
+	void hpPDv3_anno_noref_seg_debug()
 	{
+		QString host = Settings::string("ngsd_test_host");
+		if (host=="") SKIP("Test needs access to the NGSD test database!");
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/CnvHunter_init.sql"));
+
 		QStringList in = Helper::findFiles(TESTDATA("data_in/CnvHunter1/"), "*.cov", false);
 		QStringList in_noref;
 		int index = in.indexOf(QRegExp(".*GS120271_03.bam.cov"));
@@ -18,7 +26,7 @@ private slots:
 		in_noref << in[index];
 		in.removeAt(index);
 
-		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -in_noref " + in_noref.join(" ") + " -out out/CnvHunter_out1.tsv -debug GS120224_01 -seg GS120551_01");
+		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -in_noref " + in_noref.join(" ") + " -out out/CnvHunter_out1.tsv -debug GS120224_01 -seg GS120551_01 -anno -test -cnp_file " +  TESTDATA("data_in/CnvHunter_cnp_file.bed"));
         COMPARE_FILES("out/CnvHunter_out1.tsv", TESTDATA("data_out/CnvHunter_out1.tsv"));
         COMPARE_FILES("out/CnvHunter_out1_regions.tsv", TESTDATA("data_out/CnvHunter_out1_regions.tsv"));
         COMPARE_FILES("out/CnvHunter_out1_samples.tsv", TESTDATA("data_out/CnvHunter_out1_samples.tsv"));
@@ -26,46 +34,10 @@ private slots:
 		COMPARE_FILES("out/CnvHunter_out1.seg", TESTDATA("data_out/CnvHunter_out1.seg"));
 	}
 
-	void hpPDv3_anno()
-	{
-        QString host = Settings::string("ngsd_test_host");
-        if (host=="") SKIP("Test needs access to the NGSD test database!");
-
-        //init
-		NGSD db(true);
-		db.init();
-		db.executeQueriesFromFile(TESTDATA("data_in/CnvHunter_init.sql"));
-
-		QStringList in = Helper::findFiles(TESTDATA("data_in/CnvHunter1/"), "*.cov", false);
-		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -out out/CnvHunter_out6.tsv -anno -test");
-		COMPARE_FILES("out/CnvHunter_out6.tsv", TESTDATA("data_out/CnvHunter_out6.tsv"));
-	}
-
-	void hpSCv1()
+	void ssHAEv6()
 	{
 		QStringList in = Helper::findFiles(TESTDATA("data_in/CnvHunter2/"), "*.cov", false);
-		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -out out/CnvHunter_out2.tsv");
+		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -out out/CnvHunter_out2.tsv -sam_min_corr 0.8 -reg_max_cv 0.5 -sam_corr_regs 250000 -cnp_file " +  TESTDATA("data_in/CnvHunter_cnp_file.bed"));
 		COMPARE_FILES("out/CnvHunter_out2.tsv", TESTDATA("data_out/CnvHunter_out2.tsv"));
-	}
-	
-	void ssX()
-	{
-		QStringList in = Helper::findFiles(TESTDATA("data_in/CnvHunter3/"), "*.cov", false);
-		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -out out/CnvHunter_out3.tsv");
-		COMPARE_FILES("out/CnvHunter_out3.tsv", TESTDATA("data_out/CnvHunter_out3.tsv"));
-	}
-
-	void hpSCAv4_excludeReg()
-	{
-		QStringList in = Helper::findFiles(TESTDATA("data_in/CnvHunter4/"), "*.cov", false);
-		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -out out/CnvHunter_out4.tsv -exclude " +  TESTDATA("data_in/CnvHunter4/excluded.bed"));
-		COMPARE_FILES("out/CnvHunter_out4.tsv", TESTDATA("data_out/CnvHunter_out4.tsv"));
-	}
-
-	void ssKM()
-	{
-		QStringList in = Helper::findFiles(TESTDATA("data_in/CnvHunter5/"), "*.cov", false);
-		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -out out/CnvHunter_out5.tsv");
-		COMPARE_FILES("out/CnvHunter_out5.tsv", TESTDATA("data_out/CnvHunter_out5.tsv"));
 	}
 };
