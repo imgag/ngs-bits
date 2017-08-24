@@ -52,6 +52,7 @@
 #include "NGSDReannotationDialog.h"
 #include "DiseaseInfoDialog.h"
 #include "CandidateGeneDialog.h"
+#include "TSVFileStream.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -686,58 +687,41 @@ void MainWindow::generateReportSomatic()
 	stream << "</p>" << endl;
 
 	//CNV table
+	GeneSet genes_loss;
+	GeneSet genes_gain;
 	BedFile roi = BedFile();
 	roi.load(roi_file);
 	ChromosomalIndex<BedFile> roi_idx(roi);
 	stream << "<p><b>CNVs:</b>" << endl;
 	stream << "<table>" << endl;
-	QStringList file = Helper::loadTextFile(QString(filename_).replace(".GSvar", "_cnvs.tsv"), true);
-	foreach(QString line, file)
+	TSVFileStream file(QString(filename_).replace(".GSvar", "_cnvs.tsv"));
+	int i_genes = file.colIndex("genes", true);
+	int i_cns = file.colIndex("region_copy_numbers", true);
+	stream << "<tr><td><b>" << file.header().join("</b></td><td><b>") << "</b></td></tr>" << endl;
+	while(!file.atEnd())
 	{
-		if (line=="" || line.startsWith("##")) continue;
+		QByteArrayList parts = file.readLine();
+		if (roi_idx.matchingIndex(parts[0], parts[1].toInt(), parts[2].toInt())!=-1)
+		{
+			stream << "<tr><td>" << parts.join("</td><td>").replace(",", ", ") << "</td></tr>" << endl;
 
-		if (line.startsWith("#")) //header
-		{
-			stream << "<tr><td><b>" << line.replace("\t", "</b></td><td><b>") << "</b></td></tr>" << endl;
-		}
-		else //contents
-		{
-			QStringList parts = line.split("\t");
-			if (roi_idx.matchingIndex(parts[0], parts[1].toInt(), parts[2].toInt())!=-1)
+			//update loss/gain gene list
+			QByteArrayList genes = parts[i_genes].split(',');
+			QByteArrayList cns = parts[i_cns].split(',');
+			if (cns[0].toInt()>2)
 			{
-				stream << "<tr><td>" << line.replace("\t", "</td><td>") << "</td></tr>" << endl;
+				genes_gain.insert(genes);
+			}
+			else
+			{
+				genes_loss.insert(genes);
 			}
 		}
 	}
 	stream << "</table>" << endl;
 
-	//CNV loss/gain genes list
-	QStringList genes_loss;
-	QStringList genes_gain;
-	foreach(QString line, file)
-	{
-		if (line=="" || line.startsWith("#")) continue;
-
-		QStringList parts = line.split("\t");
-		if (roi_idx.matchingIndex(parts[0], parts[1].toInt(), parts[2].toInt())!=-1)
-		{
-			QStringList genes = parts[9].split(',');
-			QStringList cns = parts[6].split(',');
-			if (cns[0].toInt()>2)
-			{
-				genes_gain << genes;
-			}
-			else
-			{
-				genes_loss << genes;
-			}
-		}
-	}
-	genes_loss.sort();
-	genes_loss.removeDuplicates();
+	//CNV loss/gain genes table
 	stream << "<br /> Gene mit Deletion: " << genes_loss.join(", ") << endl;
-	genes_gain.sort();
-	genes_gain.removeDuplicates();
 	stream << "<br /> Gene mit Amplifikation: " << genes_gain.join(", ") << endl;
 	stream << "</p>" << endl;
 
