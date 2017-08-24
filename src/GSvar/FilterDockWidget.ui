@@ -349,7 +349,7 @@
        <item row="7" column="0">
         <widget class="QCheckBox" name="classification_enabled">
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Overwrites the filters:&lt;br/&gt;- MAF&lt;br/&gt;- impact&lt;br/&gt;- ihdb&lt;br/&gt;- genotype&lt;br/&gt;- filter columns&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Overwrites the filters:&lt;br/&gt;- AF&lt;br/&gt;- impact&lt;br/&gt;- ihdb&lt;br/&gt;- genotype&lt;br/&gt;- filter columns&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
           <string>remove classification &lt;</string>

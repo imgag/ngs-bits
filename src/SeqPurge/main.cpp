@@ -27,8 +27,8 @@ public:
 		addOutfile("out1", "Forward output gzipped FASTQ file.", false);
 		addOutfile("out2", "Reverse output gzipped FASTQ file.", false);
 		//optional
-		addString("a1", "Forward adapter sequence (at least 15 bases).", true, "AGATCGGAAGAGCACACGTCTGAACTCCAGTCACGAGTTA");
-		addString("a2", "Reverse adapter sequence (at least 15 bases).", true, "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTC");
+		addString("a1", "Forward adapter sequence (at least 15 bases).", true, "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA");
+		addString("a2", "Reverse adapter sequence (at least 15 bases).", true, "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT");
 		addFloat("match_perc", "Minimum percentage of matching bases for sequence/adapter matches.", true, 80.0);
 		addFloat("mep", "Maximum error probability of insert and adapter matches.", true, 0.000001);
 		addInt("qcut", "Quality trimming cutoff for trimming from the end of reads using a sliding window approach. Set to 0 to disable.", true, 15);
