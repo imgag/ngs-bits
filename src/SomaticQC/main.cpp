@@ -93,12 +93,12 @@ public:
 			}
 			if(tmp_i == "")	tmp_i = "unknown_device";
 			if(tmp_e == "")	tmp_e = "unknown_enrichment";
-			tmp_instrument += " " + tmp_i;
+			tmp_instrument += ", " + tmp_i;
 			tmp_enrichment += tmp_e;
 
 			++count;
 		}
-		metadata += QList<QString>({"QC?","experiment",tmp_instrument + ", " + tmp_enrichment + " (tumor)"});
+		metadata += QList<QString>({"QC:?","experiment",tmp_instrument + ", " + tmp_enrichment + " (tumor)"});
 
 		count = 0;
 		tmp_instrument = "";

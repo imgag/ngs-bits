@@ -975,11 +975,10 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	if(!variants.sampleNames().contains(normal_id))	Log::error("Normal sample " + normal_id + " was not found in variant file " + somatic_vcf);
 
 	//plot0: histogram allele frequencies somatic mutations
-	QList<double> allele_frequencies;
-	Histogram hist(0,1,0.0125);
+	Histogram hist_filtered(0,1,0.0125);
+	Histogram hist_all(0,1,0.0125);
 	for(int i=0; i<variants.count(); ++i)
 	{
-		if(!variants[i].filters().empty())	continue;	//skip non-somatic variants
 		if(!variants[i].isSNV())	continue;	//skip indels
 
 		//strelka SNV tumor and normal
@@ -997,10 +996,9 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 			}
 			if(count_all>0)
 			{
-				allele_frequencies.append((double)count_mut/count_all);
-				hist.inc((double)count_mut/count_all);
+				hist_all.inc((double)count_mut/count_all);
+				if(variants[i].filters().empty())	hist_filtered.inc((double)count_mut/count_all);
 			}
-
 		}
 		//freebayes tumor and normal
 		//##FORMAT=<ID=RO,Number=1,Type=Integer,Description="Reference allele observation count">
@@ -1011,24 +1009,79 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 			int index_ao = variants.annotationIndexByName("AO", tumor_id);
 			int count_mut = variants[i].annotations()[index_ao].toInt();
 			int count_all = count_mut + variants[i].annotations()[index_ro].toInt();
-			if(count_all>0)	hist.inc((double)count_mut/count_all);
+			if(count_all>0)
+			{
+				hist_all.inc((double)count_mut/count_all);
+				if(variants[i].filters().empty())	hist_filtered.inc((double)count_mut/count_all);
+			}
 		}
 		//mutect
 		//##FORMAT=<ID=FA,Number=A,Type=Float,Description="Allele fraction of the alternate allele with regard to reference">
 		else if(variants.annotationIndexByName("FA", tumor_id, true, false) != -1)
 		{
 			int index_fa = variants.annotationIndexByName("FA", tumor_id);
-			hist.inc(variants[i].annotations()[index_fa].toDouble());
+			hist_all.inc(variants[i].annotations()[index_fa].toDouble());;
+			if(variants[i].filters().empty())	hist_filtered.inc(variants[i].annotations()[index_fa].toDouble());
 		}
 		// else: strelka indel
 	}
 
 	QString plot0name = Helper::tempFileName(".png");
-	hist.setXLabel("tumor allele frequency");
-	hist.setYLabel("count");
-	hist.store(plot0name);
+	hist_all.setLabel("all variants");
+	hist_filtered.setLabel("variants with filter PASS");
+	Histogram::storeCombinedHistogram(plot0name, QList<Histogram>({hist_all,hist_filtered}),"tumor allele frequency","count");
 	output.insert(QCValue::Image("somatic SNVs allele frequency histogram", plot0name, "Allele frequency histogram of somatic SNVs.", "QC:2000055"));
 	QFile::remove(plot0name);
+
+	//plot0b: absolute count mutation distribution
+	BarPlot plot0b;
+	plot0b.setXLabel("base change");
+	plot0b.setYLabel("count");
+	QMap<QString,QString> color_map = QMap<QString,QString>{{"C>A","b"},{"C>G","k"},{"C>T","r"},{"T>A","g"},{"T>G","c"},{"T>C","y"}};
+	foreach(QString color, color_map)
+	{
+		plot0b.addColorLegend(color,color_map.key(color));
+	}
+
+	QList<int> counts({0,0,0,0,0,0});
+	QList<QString> nuc_changes({"C>A","C>G","C>T","T>A","T>G","T>C"});
+	QList<QString> colors({"b","k","r","g","c","y"});
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if(!variants[i].filters().empty())	continue;	//skip non-somatic variants
+		if(!variants[i].isSNV())	continue;	//skip indels
+
+		Variant v = variants[i];
+		QString n = v.ref()+">"+v.obs();
+		bool contained = false;
+		if(nuc_changes.contains(n))	contained = true;
+		else
+		{
+			n = NGSHelper::changeSeq(v.ref(),true,true) + ">" + NGSHelper::changeSeq(v.obs(),true,true);
+			if(nuc_changes.contains(n))	contained = true;
+		}
+
+		if(!contained)
+		{
+			Log::warn("Unidentified nucleotide change " + n);
+			continue;
+		}
+		++counts[nuc_changes.indexOf(n)];
+	}
+
+	int ymax = 0;
+	foreach(int c, counts)
+	{
+		if(c>ymax)	ymax = c;
+	}
+
+	plot0b.setYRange(-ymax*0.02,ymax*1.2);
+	plot0b.setXRange(-1.5,nuc_changes.count()+0.5);
+	plot0b.setValues(counts, nuc_changes, colors);
+	QString plot0bname = Helper::tempFileName(".png");
+	plot0b.store(plot0bname);
+	output.insert(QCValue::Image("somatic SNV mutation types", plot0bname, "", "QC:?"));
+	QFile::remove(plot0bname);
 
 	//plot1: allele frequencies
 	ScatterPlot plot1;
@@ -1137,7 +1190,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 
 	QString g = "k";
 	QString b = "g";
-	QList< QString > colors;
+	colors.clear();
 	for(int i=0;i<points_black.count();++i)
 	{
 		colors.append(g);
@@ -1161,13 +1214,13 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	plot2.setXLabel("triplett");
 	plot2.setYLabel("count");
 	QString c,co,cod;
-	QMap<QString,QString> color_map = QMap<QString,QString>{{"C>A","b"},{"C>G","k"},{"C>T","r"},{"T>A","g"},{"T>G","c"},{"T>C","y"}};
+	color_map = QMap<QString,QString>{{"C>A","b"},{"C>G","k"},{"C>T","r"},{"T>A","g"},{"T>G","c"},{"T>C","y"}};
 	foreach(QString color, color_map)
 	{
 		plot2.addColorLegend(color,color_map.key(color));
 	}
 	QList<QString> codons;
-	QList<int> counts;
+	counts.clear();
 	QList<double> counts_normalized;
 	QList<double> frequencies;
 	QList<QString> labels;
