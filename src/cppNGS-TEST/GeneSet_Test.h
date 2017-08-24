@@ -121,6 +121,23 @@ private slots:
 		S_EQUAL(set[2], "C");
 	}
 
+	void insert_multi_list()
+	{
+		GeneSet set;
+		set.insert("A");
+		set.insert("B");
+		QByteArrayList set2;
+		set2 << "A";
+		set2 << "C";
+
+		set.insert(set2);
+
+		I_EQUAL(set.count(), 3);
+		S_EQUAL(set[0], "A");
+		S_EQUAL(set[1], "B");
+		S_EQUAL(set[2], "C");
+	}
+
 	void createFromFile()
 	{
 		GeneSet set = GeneSet::createFromFile(TESTDATA("data_in/GeneSet_in1.tsv"));
