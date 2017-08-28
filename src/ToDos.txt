@@ -26,14 +26,15 @@ Tools:
     - refactor and combine indel and snv handling (CS)
 
 CnvHunter:
-*** annotate disease genes (phenotype in brackets after the gene)
-*** annotate CNV databases:
+*** implement generic annotation mode from BED files > annotate OMIM.bed file
+** test the effect of sample similarity search - which 'n' is stable?
+** test the effect of downsampling on sililary - with 'corr_min_regs' is stable?
+** test GC-normalization (check e.g. GS151166_01 gene C5orf42)
+    - test effect of including different flanking regions
+    - alternatively, test intra-sample normalization using the most similar exons on different chromosomes
+** annotate CNV databases:
    - http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/
    - https://decipher.sanger.ac.uk/disorders#syndromes/overview
    - ExAC
-** test the effect of sample similarity search - find out which exons to use (0.5-1.5 ncov?)
-* test GC-normalization (check e.g. GS151166_01 gene C5orf42)
-    - test effect of including different flanking regions
-    - alternatively, test intra-sample normalization using the most similar exons on different chromosomes
 * test with duplicate reads; with anomalous reads; with multi-mapped reads; chunked data
 - allow input of one multi-sample COV file (reduce test data size and loading time)

@@ -7,7 +7,7 @@ TEST_CLASS(CnvHunter_Test)
 Q_OBJECT
 private slots:
 
-	void hpPDv3_anno_noref_seg_debug()
+	void hpPDv3_anno_seg_debug()
 	{
 		QString host = Settings::string("ngsd_test_host");
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
@@ -18,15 +18,8 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/CnvHunter_init.sql"));
 
 		QStringList in = Helper::findFiles(TESTDATA("data_in/CnvHunter1/"), "*.cov", false);
-		QStringList in_noref;
-		int index = in.indexOf(QRegExp(".*GS120271_03.bam.cov"));
-		in_noref << in[index];
-		in.removeAt(index);
-		index = in.indexOf(QRegExp(".*GS120477_01.bam.cov"));
-		in_noref << in[index];
-		in.removeAt(index);
 
-		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -in_noref " + in_noref.join(" ") + " -out out/CnvHunter_out1.tsv -debug GS120224_01 -seg GS120551_01 -anno -test -cnp_file " +  TESTDATA("data_in/CnvHunter_cnp_file.bed"));
+		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -out out/CnvHunter_out1.tsv -debug GS120224_01 -seg GS120551_01 -anno -test -cnp_file " +  TESTDATA("data_in/CnvHunter_cnp_file.bed"));
         COMPARE_FILES("out/CnvHunter_out1.tsv", TESTDATA("data_out/CnvHunter_out1.tsv"));
         COMPARE_FILES("out/CnvHunter_out1_regions.tsv", TESTDATA("data_out/CnvHunter_out1_regions.tsv"));
         COMPARE_FILES("out/CnvHunter_out1_samples.tsv", TESTDATA("data_out/CnvHunter_out1_samples.tsv"));

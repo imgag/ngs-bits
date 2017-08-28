@@ -23,7 +23,6 @@ struct SampleData
     }
 
 	QByteArray name; //file name
-	bool noref;
 
 	QVector<float> doc; //coverage data (normalized: divided by mean)
 	float doc_mean; //mean coverage before normalizazion (aterwards it is 1.0)
@@ -79,8 +78,8 @@ struct ExonData
     int end; //end position
 	QByteArray end_str; //end position as string
 	int index; //exon index (needed to access DOC data arrays of samples)
-	int is_par; //flag indicating if the region lies inside the pseudoautosomal region of X chromosome
-	int is_cnp; //flag indicating if the region lies inside a known copy-number-polymorphism region (i.e. not pathogenic)
+	int is_par; //flag indicating if the region lies inside the pseudoautosomal region of X chromosome (normalization with autosomes)
+	int is_cnp; //flag indicating if the region lies inside a known copy-number-polymorphism region (i.e. probably not pathogenic)
 
 	float median; //median normalized DOC value
 	float mad; //MAD of normalized DOC values
@@ -167,7 +166,6 @@ public:
         addInfileList("in", "Input TSV files (one per sample) containing coverage data (chr, start, end, avg_depth).", false, true);
         addOutfile("out", "Output TSV file containing the detected CNVs.", false, true);
 		//optional
-		addInfileList("in_noref", "Input TSV files like 'in' but not used as reference (e.g. tumor samples).", true, true);
 		addInt("n", "The number of most similar samples to consider.", true, 20);
         addFloat("min_z", "Minimum z-score for CNV seed detection.", true, 4.0);
 		addFloat("ext_min_z", "Minimum z-score for CNV extension around seeds.", true, 2.0);
@@ -331,14 +329,14 @@ public:
 		z_scores[curr] = fun_mad(zs, 0);
 
         //store file
-		outstream << "#sample\tref_sample\tdoc_mean\tref_correl\tz_score_mad\tcnvs\tqc_info" << endl;
+		outstream << "#sample\tdoc_mean\tref_correl\tz_score_mad\tcnvs\tqc_info" << endl;
 		foreach(const QSharedPointer<SampleData>& sample, samples)
         {
-			outstream << sample->name << "\t" << (sample->noref ? "no" : "yes") << "\t" << QByteArray::number(sample->doc_mean, 'f', 1) << "\t" << QByteArray::number(sample->ref_correl, 'f', 3) << "\t" << QByteArray::number(z_scores[sample], 'f', 3) << "\t" << cnvs_sample[sample] << "\t" << sample->qc << endl;
+			outstream << sample->name << "\t" << QByteArray::number(sample->doc_mean, 'f', 1) << "\t" << QByteArray::number(sample->ref_correl, 'f', 3) << "\t" << QByteArray::number(z_scores[sample], 'f', 3) << "\t" << cnvs_sample[sample] << "\t" << sample->qc << endl;
         }
         foreach(const QSharedPointer<SampleData>& sample, samples_removed)
         {
-			outstream << sample->name << "\t" << (sample->noref ? "no" : "yes") << "\t" << QByteArray::number(sample->doc_mean, 'f', 1) << "\t" << QByteArray::number(sample->ref_correl, 'f', 3) << "\tnan\tnan\t" << sample->qc << endl;
+			outstream << sample->name << "\t" << QByteArray::number(sample->doc_mean, 'f', 1) << "\t" << QByteArray::number(sample->ref_correl, 'f', 3) << "\tnan\tnan\t" << sample->qc << endl;
         }
     }
 
@@ -693,7 +691,6 @@ public:
 		QString debug = getString("debug");
 		QString seg = getString("seg");
 		QStringList in = getInfileList("in");
-		QStringList in_noref = getInfileList("in_noref");
 		QString out = getOutfile("out");
 		if (!out.endsWith(".tsv")) THROW(ArgumentException, "Output file name has to end with '.tsv'!");
         QTextStream outstream(stdout);
@@ -775,29 +772,26 @@ public:
 
 		//load input (and check input)
 		QVector<QSharedPointer<SampleData>> samples;
-		QStringList in_all;
-		in_all << in << in_noref;
-		for (int i=0; i<in_all.count(); ++i)
+		for (int i=0; i<in.count(); ++i)
         {
             //init
 			QSharedPointer<SampleData> sample(new SampleData());
-			sample->name = QFileInfo(in_all[i]).baseName().toLatin1();
-			sample->noref = (i>=in.count());
+			sample->name = QFileInfo(in[i]).baseName().toLatin1();
 			sample->doc.reserve(exons.count());
 
 			//depth-of-coverage data
-			TSVFileStream stream(in_all[i]);
+			TSVFileStream stream(in[i]);
 			int line_count = 0;
 			while(!stream.atEnd())
             {
 				QByteArrayList parts = stream.readLine();
 				if (parts.count()<4)
 				{
-					THROW(FileParseException, "Coverage file " + in_all[i] + " contains line with less then four elements: " + parts.join('\t'));
+					THROW(FileParseException, "Coverage file " + in[i] + " contains line with less then four elements: " + parts.join('\t'));
 				}
 				if (parts[0]!=exons[line_count]->chr.str() || parts[1]!=exons[line_count]->start_str || parts[2]!=exons[line_count]->end_str)
 				{
-					THROW(FileParseException, "Coverage file " + in_all[i] + " contains different regions than reference file " + in_all[0] + ". Expected " + exons[line_count]->toString() + ", got " + parts[0] + ":" + parts[1] + "-" + parts[2] + ".");
+					THROW(FileParseException, "Coverage file " + in[i] + " contains different regions than reference file " + in[0] + ". Expected " + exons[line_count]->toString() + ", got " + parts[0] + ":" + parts[1] + "-" + parts[2] + ".");
 				}
 				bool ok = false;
 				float value = parts[3].toFloat(&ok);
@@ -808,7 +802,7 @@ public:
             }
 
 			//check exon count
-			if (line_count!=exons.count()) THROW(FileParseException, "Coverage file " + in_all[i] + " contains more/less regions than reference file " + in_all[0] + ". Expected " + QByteArray::number(exons.count()) + ", got " + QByteArray::number(line_count) + ".");
+			if (line_count!=exons.count()) THROW(FileParseException, "Coverage file " + in[i] + " contains more/less regions than reference file " + in[0] + ". Expected " + QByteArray::number(exons.count()) + ", got " + QByteArray::number(line_count) + ".");
 
 			samples.append(sample);
 		}
@@ -1002,13 +996,6 @@ public:
                 }
                 else
                 {
-					//skip non-reference samples
-					if (samples[j]->noref)
-					{
-						samples[i]->correl_all.append(SampleCorrelation(samples[j], -1.0f));
-						continue;
-					}
-
 					const float ndoc_mean_sample_i = samples[i]->ndoc_mean;
 					const float ndoc_mean_sample_j = samples[j]->ndoc_mean;
 
@@ -1363,10 +1350,10 @@ public:
 				corr_sum += sample->ref_correl;
             }
         }
-		int c_valid = in_all.count() - c_bad_sample;
+		int c_valid = in.count() - c_bad_sample;
 		outstream << "=== statistics ===" << endl;
 		outstream << "invalid regions: " << c_bad_region << " of " << (exons.count() + c_bad_region) << endl;
-		outstream << "invalid samples: " << c_bad_sample << " of " << in_all.count() << endl;
+		outstream << "invalid samples: " << c_bad_sample << " of " << in.count() << endl;
 		outstream << "mean correlation of samples to reference: " << QByteArray::number(corr_sum/c_valid, 'f', 4) << endl;
 		long long size_sum = 0;
 		foreach(const Range& range, ranges)
