@@ -16,7 +16,7 @@ BedLine::BedLine()
 {
 }
 
-BedLine::BedLine(const Chromosome& chr, int start, int end, const QList<QByteArray>& annotations)
+BedLine::BedLine(const Chromosome& chr, int start, int end, const QByteArrayList& annotations)
 	: chr_(chr)
 	, start_(start)
 	, end_(end)
@@ -115,7 +115,7 @@ void BedFile::load(QString filename)
 		}
 
 		//error when less than 3 fields
-		QList<QByteArray> fields = line.split('\t');
+		QByteArrayList fields = line.split('\t');
 		if (fields.count()<3)
 		{
 			THROW(FileParseException, "BED file line with less than three fields found: '" + line.trimmed() + "'");

@@ -26,7 +26,6 @@ Tools:
     - refactor and combine indel and snv handling (CS)
 
 CnvHunter:
-*** implement generic annotation mode from BED files > annotate OMIM.bed file
 ** test the effect of sample similarity search - which 'n' is stable?
 ** test the effect of downsampling on sililary - with 'corr_min_regs' is stable?
 ** test GC-normalization (check e.g. GS151166_01 gene C5orf42)

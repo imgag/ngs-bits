@@ -3,7 +3,6 @@
 #include "Exceptions.h"
 #include "BedFile.h"
 #include "NGSHelper.h"
-#include "NGSD.h"
 #include "Histogram.h"
 #include "GeneSet.h"
 #include "TSVFileStream.h"
@@ -80,6 +79,7 @@ struct ExonData
 	int index; //exon index (needed to access DOC data arrays of samples)
 	int is_par; //flag indicating if the region lies inside the pseudoautosomal region of X chromosome (normalization with autosomes)
 	int is_cnp; //flag indicating if the region lies inside a known copy-number-polymorphism region (i.e. probably not pathogenic)
+	QList<QSet<QByteArray>> annotations; //annotation sets, one for each annotation file given.
 
 	float median; //median normalized DOC value
 	float mad; //MAD of normalized DOC values
@@ -176,12 +176,11 @@ public:
         addFloat("reg_min_cov", "QC: Minimum (average) absolute depth of a target region.", true, 20.0);
 		addFloat("reg_min_ncov", "QC: Minimum (average) normalized depth of a target region.", true, 0.01);
         addFloat("reg_max_cv", "QC: Maximum coefficient of variation (median/mad) of target region.", true, 0.3);
-		addFlag("anno", "Enable annotation of gene names to regions (needs the NGSD database).");
-		addFlag("test", "Uses test database instead of production database for annotation.");
 		addString("debug", "Writes debug information for the sample matching the given name (or for all samples if 'ALL' is given).", true, "");
 		addString("seg", "Writes a SEG file for the sample matching the given name (used for visualization in IGV).", true);
 		addString("par", "Comma-separated list of pseudo-autosomal regions on the X chromosome.", true, "1-2699520,154931044-155270560");
 		addInfile("cnp_file", "BED file containing copy-number-polymorphism regions. They are excluded from the normalization/correlation calculation. E.g use the CNV map from http://dx.doi.org/10.1038/nrg3871.", true);
+		addInfileList("annotate", "List of BED files used for annotation. Each file adds a column to the output file. The base filename is used as colum name and 4th column of the BED file is used as annotation value.", true);
 
 		changeLog(2017, 8,  24, "Added copy-number-polymorphisms regions input file ('cnp_file' parameter).");
 		changeLog(2017, 8,  17, "Added down-sampleing if input to speed up sample correlation ('sam_corr_regs' parameter).");
@@ -461,31 +460,20 @@ public:
 		}
 	}
 
-	GeneSet geneNames(QSharedPointer<NGSD>& db, const QSharedPointer<ExonData>& exon)
-	{
-		static QHash<QByteArray, GeneSet> cache;
-
-		//check cache first
-		QByteArray reg = exon->toString();
-		if (cache.contains(reg))
-		{
-			return cache[reg];
-		}
-
-		//get genes from NGSD
-		GeneSet tmp = db->genesOverlapping(exon->chr, exon->start, exon->end, 20);
-		cache.insert(reg, tmp);
-		return tmp;
-	}
-
-	void storeResultAsTSV(const QList<Range>& ranges, const QVector<ResultData>& results, QString filename, bool anno, bool test, const QHash<QSharedPointer<ExonData>, int>& cnvs_exon, int sample_count)
+	void storeResultAsTSV(const QList<Range>& ranges, const QVector<ResultData>& results, QString filename, QStringList annotate, const QHash<QSharedPointer<ExonData>, int>& cnvs_exon, int sample_count)
     {
 		QSharedPointer<QFile> out = Helper::openFileForWriting(filename);
 		QTextStream outstream(out.data());
-		QSharedPointer<NGSD> db(anno ? new NGSD(test) : nullptr);
 
         //header
-		outstream << "#chr\tstart\tend\tsample\tsize\tregion_count\tregion_copy_numbers\tregion_zscores\toverlaps_cnp_region\tregion_cnv_af\tregion_coordinates" << (anno ? "\tgenes" : "") << endl;
+		outstream << "#chr\tstart\tend\tsample\tsize\tregion_count\tregion_copy_numbers\tregion_zscores\toverlaps_cnp_region\tregion_cnv_af\tregion_coordinates";
+		foreach(QString anno, annotate)
+		{
+			outstream << "\t" << QFileInfo(anno).baseName();
+		}
+		outstream << endl;
+
+		//content
 		for (int r=0; r<ranges.count(); ++r)
         {
 			const Range& range = ranges[r];
@@ -522,18 +510,17 @@ public:
 			outstream << copies.join(",") << "\t" << zscores.join(",") << "\t" << (overlaps_cnp_region ? "yes" : "") << "\t" << cnv_counts.join(",") << "\t" << coords.join(",");
 
 			//annotation
-			if (anno)
+			for (int i=0; i<annotate.count(); ++i)
 			{
-				outstream << '\t';
-
-				GeneSet genes;
+				GeneSet values;
 				for (int j=range.start; j<=range.end; ++j)
 				{
-					genes.insert(geneNames(db, results[j].exon));
+					values.insert(results[j].exon->annotations[i]);
 				}
-				outstream << genes.join(",");
+				outstream << "\t" << values.join(",");
 			}
 
+			//end of line
 			outstream << endl;
 		}
     }
@@ -707,6 +694,7 @@ public:
 		int sam_corr_regs = getInt("sam_corr_regs");
 		QString par = getString("par");
 		QString cnp_file = getInfile("cnp_file");
+		QStringList annotate = getInfileList("annotate");
 
 		//timing
 		QTime timer;
@@ -716,7 +704,6 @@ public:
 		//load exon list
 		QVector<QSharedPointer<ExonData>> exons;
 		{
-
 			//load pseudoautosomal regions
 			BedFile par_regs;
 			QStringList parts = par.split(',');
@@ -734,7 +721,7 @@ public:
 
 			//load CNP list
 			BedFile cnp_regs;
-			if (cnp_file!="") cnp_regs.load(cnp_file);
+			if (!cnp_file.isEmpty()) cnp_regs.load(cnp_file);
 			ChromosomalIndex<BedFile> cnp_regs_index(cnp_regs);
 
 			//load input data
@@ -754,7 +741,7 @@ public:
 				if (!ok) THROW(ArgumentException, "Could not convert coverage value '" + ex->end_str + "' to float.");
 				ex->index = exons.count();
 				ex->is_par = ex->chr.isX() && par_index.matchingIndex(ex->chr, ex->start, ex->end)!=-1;
-				ex->is_cnp = cnp_regs_index.matchingIndex(ex->chr, ex->start, ex->end)!=-1;
+				ex->is_cnp = (!cnp_file.isEmpty() && cnp_regs_index.matchingIndex(ex->chr, ex->start, ex->end)!=-1);
 
 				//check that exons are sorted according to chromosome and start position
 				if (exons.count()!=0 && ex->chr==exons.last()->chr)
@@ -767,6 +754,32 @@ public:
 
 				//append exon to data
 				exons.append(ex);
+			}
+		}
+
+		//annotate regions
+		foreach(QString anno, annotate)
+		{
+			BedFile anno_file;
+			anno_file.load(anno);
+			anno_file.sort();
+			ChromosomalIndex<BedFile> anno_index(anno_file);
+			for (int i=0; i<exons.count(); ++i)
+			{
+				QSet<QByteArray> annos;
+				QVector<int> indices = anno_index.matchingIndices(exons[i]->chr, exons[i]->start, exons[i]->end);
+				foreach(int index, indices)
+				{
+					if (anno_file[index].annotations().isEmpty())
+					{
+						annos.insert("yes");
+					}
+					else
+					{
+						annos.insert(anno_file[index].annotations()[0]);
+					}
+				}
+				exons[i]->annotations.append(annos);
 			}
 		}
 
@@ -1318,7 +1331,7 @@ public:
         printSampleDistributionCNVs(samples, cnvs_sample, outstream);
 
 		//store result files
-		storeResultAsTSV(ranges, results, out, getFlag("anno"), getFlag("test"), cnvs_exon, samples.count());
+		storeResultAsTSV(ranges, results, out, annotate, cnvs_exon, samples.count());
 		storeSampleInfo(out, samples, samples_removed, cnvs_sample, results);
 		storeRegionInfo(out, exons, exons_removed, cnvs_exon);
 		if (debug!="")

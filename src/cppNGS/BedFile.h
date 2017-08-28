@@ -4,9 +4,9 @@
 #include "cppNGS_global.h"
 #include "Chromosome.h"
 
-#include <QList>
 #include <QVector>
 #include <QSet>
+#include <QByteArrayList>
 
 ///Representation of a BED file line (1-based)
 class CPPNGSSHARED_EXPORT BedLine
@@ -15,7 +15,7 @@ public:
 	///Default constructor (creates an invalid region - needed for containers only).
     BedLine();
     ///Constructor.
-	BedLine(const Chromosome& chr, int start, int end, const QList<QByteArray>& annotations = QList<QByteArray>());
+	BedLine(const Chromosome& chr, int start, int end, const QByteArrayList& annotations = QByteArrayList());
 
 	///Returns if the region is valid.
 	bool isValid() const
@@ -63,12 +63,12 @@ public:
     }
 
     ///Read-only access to the annotations list.
-	const QList<QByteArray>& annotations() const
+	const QByteArrayList& annotations() const
     {
         return annotations_;
     }
     ///Read-write access to the annotations list.
-	QList<QByteArray>& annotations()
+	QByteArrayList& annotations()
     {
         return annotations_;
     }
@@ -121,7 +121,7 @@ protected:
     Chromosome chr_;
     int start_;
     int end_;
-	QList<QByteArray> annotations_;
+	QByteArrayList annotations_;
 };
 
 ///Representation of a BED file (header lines are not handled, 1-based)

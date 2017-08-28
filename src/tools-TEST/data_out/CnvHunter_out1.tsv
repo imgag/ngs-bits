@@ -1,4 +1,4 @@
-#chr	start	end	sample	size	region_count	region_copy_numbers	region_zscores	overlaps_cnp_region	region_cnv_af	region_coordinates	genes
+#chr	start	end	sample	size	region_count	region_copy_numbers	region_zscores	overlaps_cnp_region	region_cnv_af	region_coordinates	CnvHunter_genes
 chr3	184041978	184042145	GS120211_01	168	1	3	4.18		0.005	chr3:184041978-184042145	
 chr6	162683546	162683807	GS120212_02	262	1	0	-9.96		0.045	chr6:162683546-162683807	PRKN
 chr6	162683546	162683807	GS120213_02	262	1	0	-9.98		0.045	chr6:162683546-162683807	PRKN

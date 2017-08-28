@@ -3,6 +3,7 @@
 
 #include "cppNGS_global.h"
 #include <QList>
+#include <QSet>
 #include <QByteArray>
 
 // A set of gene names (sorted, upper-case and without duplicates)
@@ -44,6 +45,16 @@ class CPPNGSSHARED_EXPORT GeneSet
 				insert(gene);
 			}
 		}
+
+		///Inserts a gene set
+		void insert(const QSet<QByteArray>& genes)
+		{
+			foreach(const QByteArray& gene, genes)
+			{
+				insert(gene);
+			}
+		}
+
 
 		///Inserts a gene
 		GeneSet& operator<<(const QByteArray& gene)
