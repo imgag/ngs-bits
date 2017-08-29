@@ -1,5 +1,5 @@
 ### SeqPurge tool help
-	SeqPurge (0.1-722-gaa8a403)
+	SeqPurge (0.1-852-g5a7f2d2)
 	
 	Removes adapter sequences from paired-end sequencing data.
 	
@@ -11,9 +11,9 @@
 	
 	Optional parameters:
 	  -a1 <string>        Forward adapter sequence (at least 15 bases).
-	                      Default value: 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCACGAGTTA'
+	                      Default value: 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCA'
 	  -a2 <string>        Reverse adapter sequence (at least 15 bases).
-	                      Default value: 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTC'
+	                      Default value: 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT'
 	  -match_perc <float> Minimum percentage of matching bases for sequence/adapter matches.
 	                      Default value: '80'
 	  -mep <float>        Maximum error probability of insert and adapter matches.
@@ -52,7 +52,7 @@
 	  --tdx               Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SeqPurge changelog
-	SeqPurge 0.1-722-gaa8a403
+	SeqPurge 0.1-852-g5a7f2d2
 	
 	2017-06-15 Changed default value of 'min_len' parameter from 15 to 30.
 	2016-08-10 Fixed bug in binomial calculation (issue #1).

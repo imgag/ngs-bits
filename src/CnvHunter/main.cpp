@@ -182,6 +182,8 @@ public:
 		addInfile("cnp_file", "BED file containing copy-number-polymorphism (CNP) regions. They are excluded from the normalization/correlation calculation. E.g use the CNV map from http://dx.doi.org/10.1038/nrg3871.", true);
 		addInfileList("annotate", "List of BED files used for annotation. Each file adds a column to the output file. The base filename is used as colum name and 4th column of the BED file is used as annotation value.", true);
 
+		changeLog(2017, 8,  29, "Updated default values of parameters 'n' and 'reg_max_cv' based on latest benchmarks.");
+		changeLog(2017, 8,  28, "Added generic annotation mechanism for annotation from BED files.");
 		changeLog(2017, 8,  24, "Added copy-number-polymorphisms regions input file ('cnp_file' parameter).");
 		changeLog(2017, 8,  17, "Added down-sampleing if input to speed up sample correlation ('sam_corr_regs' parameter).");
 		changeLog(2017, 8,  15, "Added allele frequency for each region to TSV output.");
