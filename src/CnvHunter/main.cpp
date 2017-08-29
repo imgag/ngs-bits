@@ -468,7 +468,7 @@ public:
 		QTextStream outstream(out.data());
 
         //header
-		outstream << "#chr\tstart\tend\tsample\tsize\tregion_count\tregion_copy_numbers\tregion_zscores\toverlaps_cnp_region\tregion_cnv_af\tregion_coordinates";
+		outstream << "#chr\tstart\tend\tsample\tsize\tregion_count\tregion_copy_numbers\tregion_zscores\tregion_cnv_af\tregion_coordinates\toverlaps_cnp_region";
 		foreach(QString anno, annotate)
 		{
 			outstream << "\t" << QFileInfo(anno).baseName();
@@ -509,7 +509,7 @@ public:
 			QSharedPointer<ExonData> start = results[range.start].exon;
 			QSharedPointer<ExonData> end = results[range.end].exon;
 			outstream << start->chr.str() << "\t" << start->start << "\t" << end->end << "\t" << range.sample->name << "\t" << (end->end-start->start+1) << "\t" << copies.count() << "\t";
-			outstream << copies.join(",") << "\t" << zscores.join(",") << "\t" << (overlaps_cnp_region ? "yes" : "") << "\t" << cnv_counts.join(",") << "\t" << coords.join(",");
+			outstream << copies.join(",") << "\t" << zscores.join(",") << "\t" << cnv_counts.join(",") << "\t" << coords.join(",") << "\t" << (overlaps_cnp_region ? "yes" : "");
 
 			//annotation
 			for (int i=0; i<annotate.count(); ++i)
