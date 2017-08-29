@@ -166,7 +166,7 @@ public:
         addInfileList("in", "Input TSV files (one per sample) containing coverage data (chr, start, end, avg_depth).", false, true);
         addOutfile("out", "Output TSV file containing the detected CNVs.", false, true);
 		//optional
-		addInt("n", "The number of most similar samples to consider.", true, 20);
+		addInt("n", "The number of most similar samples to use for reference construction.", true, 30);
         addFloat("min_z", "Minimum z-score for CNV seed detection.", true, 4.0);
 		addFloat("ext_min_z", "Minimum z-score for CNV extension around seeds.", true, 2.0);
 		addFloat("ext_gap_span", "Percentage of orignal region size that can be spanned while merging nearby regions (0 disables it).", true, 20.0);
@@ -175,7 +175,7 @@ public:
 		addInt("sam_corr_regs", "Maximum number of regions used for sample correlation calculation (to speed up comparisons for exoms etc.).", true, 20000);
         addFloat("reg_min_cov", "QC: Minimum (average) absolute depth of a target region.", true, 20.0);
 		addFloat("reg_min_ncov", "QC: Minimum (average) normalized depth of a target region.", true, 0.01);
-        addFloat("reg_max_cv", "QC: Maximum coefficient of variation (median/mad) of target region.", true, 0.3);
+		addFloat("reg_max_cv", "QC: Maximum coefficient of variation (median/mad) of target region.", true, 0.4);
 		addString("debug", "Writes debug information for the sample matching the given name (or for all samples if 'ALL' is given).", true, "");
 		addString("seg", "Writes a SEG file for the sample matching the given name (used for visualization in IGV).", true);
 		addString("par", "Comma-separated list of pseudo-autosomal regions on the X chromosome.", true, "1-2699520,154931044-155270560");
@@ -460,7 +460,7 @@ public:
 		}
 	}
 
-	void storeResultAsTSV(const QList<Range>& ranges, const QVector<ResultData>& results, QString filename, QStringList annotate, const QHash<QSharedPointer<ExonData>, int>& cnvs_exon, int sample_count, int& events_overlapping_cnp_regions)
+	void storeResultAsTSV(const QList<Range>& ranges, const QVector<ResultData>& results, QString filename, QStringList annotate, const QHash<QSharedPointer<ExonData>, int>& cnvs_exon, int sample_count, int& regions_overlapping_cnp_regions)
     {
 		QSharedPointer<QFile> out = Helper::openFileForWriting(filename);
 		QTextStream outstream(out.data());
@@ -499,8 +499,7 @@ public:
 				if (results[r].exon->is_cnp)
 				{
 					overlaps_cnp_region = true;
-					++events_overlapping_cnp_regions;
-					break;
+					++regions_overlapping_cnp_regions;
 				}
 			}
 
@@ -1334,8 +1333,8 @@ public:
         printSampleDistributionCNVs(samples, cnvs_sample, outstream);
 
 		//store result files
-		int events_overlapping_cnp_regions = 0;
-		storeResultAsTSV(ranges, results, out, annotate, cnvs_exon, samples.count(), events_overlapping_cnp_regions);
+		int regions_overlapping_cnp_regions = 0;
+		storeResultAsTSV(ranges, results, out, annotate, cnvs_exon, samples.count(), regions_overlapping_cnp_regions);
 		storeSampleInfo(out, samples, samples_removed, cnvs_sample, results);
 		storeRegionInfo(out, exons, exons_removed, cnvs_exon);
 		if (debug!="")
@@ -1380,7 +1379,7 @@ public:
 		outstream << "number of CNV events: " << ranges.count() << " (consisting of " << size_sum << " regions)" << endl;
 		outstream << "mean regions per CNV event: " << QByteArray::number((double)size_sum/ranges.count(), 'f', 2) << endl;
 		outstream << "mean CNV events per sample per 1000 regions: " << QByteArray::number(1.0f*ranges.count()/c_valid/(exons.count()/1000.0), 'f', 4) << endl;
-		outstream << "events overlapping CNP regions: " << QByteArray::number(100.0f * events_overlapping_cnp_regions/ranges.count(), 'f', 2) << '%' << endl;
+		outstream << "CNV regions overlapping CNP regions: " << QByteArray::number(100.0f * regions_overlapping_cnp_regions/size_sum, 'f', 2) << '%' << endl;
         outstream << endl;
 
         //print timing output
