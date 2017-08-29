@@ -179,7 +179,7 @@ public:
 		addString("debug", "Writes debug information for the sample matching the given name (or for all samples if 'ALL' is given).", true, "");
 		addString("seg", "Writes a SEG file for the sample matching the given name (used for visualization in IGV).", true);
 		addString("par", "Comma-separated list of pseudo-autosomal regions on the X chromosome.", true, "1-2699520,154931044-155270560");
-		addInfile("cnp_file", "BED file containing copy-number-polymorphism regions. They are excluded from the normalization/correlation calculation. E.g use the CNV map from http://dx.doi.org/10.1038/nrg3871.", true);
+		addInfile("cnp_file", "BED file containing copy-number-polymorphism (CNP) regions. They are excluded from the normalization/correlation calculation. E.g use the CNV map from http://dx.doi.org/10.1038/nrg3871.", true);
 		addInfileList("annotate", "List of BED files used for annotation. Each file adds a column to the output file. The base filename is used as colum name and 4th column of the BED file is used as annotation value.", true);
 
 		changeLog(2017, 8,  24, "Added copy-number-polymorphisms regions input file ('cnp_file' parameter).");
@@ -460,7 +460,7 @@ public:
 		}
 	}
 
-	void storeResultAsTSV(const QList<Range>& ranges, const QVector<ResultData>& results, QString filename, QStringList annotate, const QHash<QSharedPointer<ExonData>, int>& cnvs_exon, int sample_count)
+	void storeResultAsTSV(const QList<Range>& ranges, const QVector<ResultData>& results, QString filename, QStringList annotate, const QHash<QSharedPointer<ExonData>, int>& cnvs_exon, int sample_count, int& events_overlapping_cnp_regions)
     {
 		QSharedPointer<QFile> out = Helper::openFileForWriting(filename);
 		QTextStream outstream(out.data());
@@ -499,6 +499,7 @@ public:
 				if (results[r].exon->is_cnp)
 				{
 					overlaps_cnp_region = true;
+					++events_overlapping_cnp_regions;
 					break;
 				}
 			}
@@ -918,10 +919,11 @@ public:
         //region QC
 		outstream << "=== checking for bad regions ===" << endl;
 		int c_bad_region = 0;
-		QVector<float> tmp;
+
         for (int e=0; e<exons.count(); ++e)
 		{
-			tmp.resize(0);
+			QVector<float> tmp;
+			tmp.reserve(samples.count());
 			for (int s=0; s<samples.count(); ++s)
             {
                 if (samples[s]->qc.isEmpty())
@@ -979,20 +981,18 @@ public:
 		}
 
 		//pre-calcualte mean/stdev of normalized coverage
+		for (int i=0; i<samples.count(); ++i)
 		{
 			QVector<float> tmp;
-			for (int i=0; i<samples.count(); ++i)
-			{
-				tmp.clear();
+			tmp.reserve(exon_indices.count());
 
-				for(int k=0; k<exon_indices.count(); ++k)
-				{
-					tmp.append(samples[i]->doc[exon_indices[k]]);
-				}
-				float mean = std::accumulate(tmp.begin(), tmp.end(), 0.0f) / exon_indices.count();
-				samples[i]->ndoc_mean = mean;
-				samples[i]->ndoc_stdev = fun_stdev(tmp, mean);
+			for(int k=0; k<exon_indices.count(); ++k)
+			{
+				tmp.append(samples[i]->doc[exon_indices[k]]);
 			}
+			float mean = std::accumulate(tmp.begin(), tmp.end(), 0.0f) / exon_indices.count();
+			samples[i]->ndoc_mean = mean;
+			samples[i]->ndoc_stdev = fun_stdev(tmp, mean);
 		}
 
 		//calculate correlation between all samples
@@ -1040,19 +1040,21 @@ public:
 
 			//calcualte reference mean and stddev for each exon
 			for (int e=0; e<exons.count(); ++e)
-            {
+			{
 				float exon_median = exons[e]->median;
-				tmp.resize(0);
+				QVector<float> tmp;
+				tmp.reserve(n);
 				for (int i=0; i<samples.count()-1; ++i)
 				{
-					if (samples[s]->correl_all[i].sample->qc.isEmpty()) //do not use bad QC samples
-                    {
-						float value = samples[s]->correl_all[i].sample->doc[e];
-						if (value>=0.25f*exon_median && value<=1.75f*exon_median) //do not use extreme outliers
-                        {
-							tmp.append(value);
-                        }
-                    }
+					//do not use bad QC samples
+					if (!samples[s]->correl_all[i].sample->qc.isEmpty()) continue;
+
+					//do not use extreme outliers
+					float value = samples[s]->correl_all[i].sample->doc[e];
+					if (value<0.25f*exon_median || value>1.75f*exon_median) continue;
+
+					tmp.append(value);
+
 					if (tmp.count()==n) break;
                 }
 				if (tmp.count()==n)
@@ -1073,6 +1075,7 @@ public:
             }
 			samples[s]->ref_correl = fun_correlation(samples[s]->doc, samples[s]->ref);
 
+
             //flag samples with bad correlation
 			if (samples[s]->ref_correl<sam_min_corr)
             {
@@ -1084,7 +1087,7 @@ public:
             {
 				++c_bad_sample;
             }
-        }
+		}
 		outstream << "bad samples: " << c_bad_sample << " of " << samples.count() << endl << endl;
         printSampleDistributionCorrelation(samples, outstream);
 		timings.append("constructing reference samples: " + Helper::elapsedTime(timer));
@@ -1331,7 +1334,8 @@ public:
         printSampleDistributionCNVs(samples, cnvs_sample, outstream);
 
 		//store result files
-		storeResultAsTSV(ranges, results, out, annotate, cnvs_exon, samples.count());
+		int events_overlapping_cnp_regions = 0;
+		storeResultAsTSV(ranges, results, out, annotate, cnvs_exon, samples.count(), events_overlapping_cnp_regions);
 		storeSampleInfo(out, samples, samples_removed, cnvs_sample, results);
 		storeRegionInfo(out, exons, exons_removed, cnvs_exon);
 		if (debug!="")
@@ -1376,6 +1380,7 @@ public:
 		outstream << "number of CNV events: " << ranges.count() << " (consisting of " << size_sum << " regions)" << endl;
 		outstream << "mean regions per CNV event: " << QByteArray::number((double)size_sum/ranges.count(), 'f', 2) << endl;
 		outstream << "mean CNV events per sample per 1000 regions: " << QByteArray::number(1.0f*ranges.count()/c_valid/(exons.count()/1000.0), 'f', 4) << endl;
+		outstream << "events overlapping CNP regions: " << QByteArray::number(100.0f * events_overlapping_cnp_regions/ranges.count(), 'f', 2) << '%' << endl;
         outstream << endl;
 
         //print timing output

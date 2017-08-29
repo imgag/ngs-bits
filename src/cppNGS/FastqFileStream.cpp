@@ -73,9 +73,9 @@ int FastqEntry::trimQuality(int cutoff, int window, int offset)
     }
 
     //no windows above cutoff => remove all bases
-	bases.resize(0);
-	qualities.resize(0);
-    return count;
+	bases.clear();
+	qualities.clear();
+	return count;
 }
 
 int FastqEntry::trimN(int num_n)

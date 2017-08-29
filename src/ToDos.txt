@@ -26,8 +26,8 @@ Tools:
     - refactor and combine indel and snv handling (CS)
 
 CnvHunter:
-** test the effect of sample similarity search - which 'n' is stable?
-** test the effect of downsampling on sililary - with 'corr_min_regs' is stable?
+*** test the effect of sample similarity search - which 'n' is stable?
+*** test the effect of downsampling on sililary - with 'corr_min_regs' is stable?
 ** test GC-normalization (check e.g. GS151166_01 gene C5orf42)
     - test effect of including different flanking regions
     - alternatively, test intra-sample normalization using the most similar exons on different chromosomes
