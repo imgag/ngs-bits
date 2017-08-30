@@ -610,12 +610,13 @@ public:
         //historgam
         outstream << "CNVs per sample histogram:" << endl;
 		double max = median + 3.0*mad;
+		max = ceil(max / 20.0) * 20.0; //round to next highest number that can be devided by 20
 		Histogram hist(0.0, max, max/20);
         for (int s=0; s<samples.count(); ++s)
         {
 			hist.inc(cnvs_sample[samples[s]], true);
         }
-        hist.print(outstream, "  ", 2, 0);
+		hist.print(outstream, "  ", 0, 0);
         outstream << endl;
     }
 
