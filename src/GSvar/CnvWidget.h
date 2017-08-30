@@ -31,6 +31,9 @@ private slots:
 	void cnvDoubleClicked(QTableWidgetItem* item);
 	void filtersChanged();
 	void copyToClipboard();
+	void annotationFilterColumnChanged();
+	void annotationFilterOperationChanged();
+	void showContextMenu(QPoint p);
 
 private:
 	void loadCNVs(QString filename);
@@ -42,6 +45,7 @@ private:
 	CnvList cnvs;
 	GeneSet f_genes;
 	BedFile f_roi;
+	QMap<QString, int> annotation_col_indices_;
 };
 
 #endif // CNVWIDGET_H

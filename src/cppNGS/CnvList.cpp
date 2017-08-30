@@ -2,6 +2,7 @@
 #include "Exceptions.h"
 #include "Helper.h"
 #include "TSVFileStream.h"
+#include "BasicStatistics.h"
 
 CopyNumberVariant::CopyNumberVariant()
 	: chr_()
@@ -12,10 +13,11 @@ CopyNumberVariant::CopyNumberVariant()
 	, z_scores_()
 	, afs_()
 	, genes_()
+	, annotations_()
 {
 }
 
-CopyNumberVariant::CopyNumberVariant(const Chromosome& chr, int start, int end, QByteArrayList regions, QList<int> cns, QList<double> z_scores, QList<double> afs, QByteArrayList genes)
+CopyNumberVariant::CopyNumberVariant(const Chromosome& chr, int start, int end, QByteArrayList regions, QList<int> cns, QList<double> z_scores, QList<double> afs, QByteArrayList genes, QByteArrayList annotations)
 	: chr_(chr)
 	, start_(start)
 	, end_(end)
@@ -24,6 +26,7 @@ CopyNumberVariant::CopyNumberVariant(const Chromosome& chr, int start, int end, 
 	, z_scores_(z_scores)
 	, afs_(afs)
 	, genes_(genes)
+	, annotations_(annotations)
 {
 	if (regions_.count()!=cns_.count() || regions_.count()!=z_scores_.count() || regions_.count()!=afs_.count())
 	{
@@ -34,6 +37,7 @@ CopyNumberVariant::CopyNumberVariant(const Chromosome& chr, int start, int end, 
 CnvList::CnvList()
 	: comments_()
 	, variants_()
+	, annotation_headers_()
 {
 }
 
@@ -41,6 +45,7 @@ void CnvList::clear()
 {
 	comments_.clear();
 	variants_.clear();
+	annotation_headers_.clear();
 }
 
 void CnvList::load(QString filename)
@@ -48,18 +53,36 @@ void CnvList::load(QString filename)
 	//clear previous content
 	clear();
 
-	//get column indices
+	//parse file
 	TSVFileStream file(filename);
 	comments_ = file.comments();
+
+	//handle column indices
+	QVector<int> annotation_indices = BasicStatistics::range(file.header().count(), 0, 1);
 	int i_chr = file.colIndex("chr", true);
+	annotation_indices.removeAll(i_chr);
 	int i_start = file.colIndex("start", true);
+	annotation_indices.removeAll(i_start);
 	int i_end = file.colIndex("end", true);
+	annotation_indices.removeAll(i_end);
 	int i_sample = file.colIndex("sample", true);
+	annotation_indices.removeAll(i_sample);
 	int i_cns = file.colIndex("region_copy_numbers", true);
+	annotation_indices.removeAll(i_cns);
 	int i_zscores = file.colIndex("region_zscores", true);
+	annotation_indices.removeAll(i_zscores);
 	int i_coords = file.colIndex("region_coordinates", true);
-	int i_afs = file.colIndex("region_cnv_af", false);
-	int i_genes = file.colIndex("genes", false);
+	annotation_indices.removeAll(i_coords);
+	int i_afs = file.colIndex("region_cnv_af", false); //optinal - added in a later version
+	annotation_indices.removeAll(i_afs);
+	int i_genes = file.colIndex("genes", false); //optional
+	annotation_indices.removeAll(i_genes);
+
+	//parse annotation headers
+	foreach(int index, annotation_indices)
+	{
+		annotation_headers_ << file.header()[index];
+	}
 
 	//parse input file
 	QByteArray sample;
@@ -114,7 +137,14 @@ void CnvList::load(QString filename)
 			tmp = parts[i_genes].split(',');
 		}
 
-		variants_.append(CopyNumberVariant(parts[i_chr], parts[i_start].toInt(), parts[i_end].toInt(), parts[i_coords].split(','), cns, zs, afs, tmp));
+		//parse annotation headers
+		QByteArrayList annos;
+		foreach(int index, annotation_indices)
+		{
+			annos << parts[index];
+		}
+
+		variants_.append(CopyNumberVariant(parts[i_chr], parts[i_start].toInt(), parts[i_end].toInt(), parts[i_coords].split(','), cns, zs, afs, tmp, annos));
 	}
 }
 

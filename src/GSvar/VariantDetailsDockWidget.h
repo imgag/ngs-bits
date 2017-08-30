@@ -27,6 +27,16 @@ public:
 	//Clears the widget (no variant selected).
 	void clear();
 
+
+	//Database annotation datastructure
+	struct DBEntry
+	{
+		QString id;
+		QString details;
+	};
+	//Parse database entries (OMIM, ClinVar, HGMD, ...) to a map (ID=>details).
+	static QList<DBEntry> parseDB(QString anno);
+
 signals:
 	void jumbToRegion(QString region);
 
@@ -38,12 +48,6 @@ private slots:
 	void gnomadClicked(QString link);
 
 private:
-	//Database annotation datastructure
-	struct DBEntry
-	{
-		QString id;
-		QString details;
-	};
 	enum Color
 	{
 		NONE,
@@ -60,8 +64,7 @@ private:
 	static QString formatLink(QString text, QString url, Color bgcolor = NONE);
 	//Format colored text for a label.
 	static QString formatText(QString text, Color bgcolor);
-	//Parse database entries (OMIM, ClinVar, HGMD, ...) to a map (ID=>details).
-	static QList<DBEntry> parseDB(QString anno);
+
 	//Returns 'nobr' paragraph start for tooltips
 	static QString nobr();
 

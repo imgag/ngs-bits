@@ -3,9 +3,13 @@
 #include "Helper.h"
 #include "Exceptions.h"
 #include "GUIHelper.h"
+#include "VariantDetailsDockWidget.h"
 #include <QFileInfo>
 #include <QBitArray>
 #include <QClipboard>
+#include <QMenu>
+#include <QDesktopServices>
+#include <QUrl>
 
 CnvWidget::CnvWidget(QString filename, QWidget *parent)
 	: QWidget(parent)
@@ -15,6 +19,7 @@ CnvWidget::CnvWidget(QString filename, QWidget *parent)
 {
 	ui->setupUi(this);
 	connect(ui->cnvs, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(cnvDoubleClicked(QTableWidgetItem*)));
+	connect(ui->cnvs, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
 	connect(ui->copy_clipboard, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
 
 	//connect
@@ -25,6 +30,11 @@ CnvWidget::CnvWidget(QString filename, QWidget *parent)
 	connect(ui->f_size, SIGNAL(valueChanged(double)), this, SLOT(filtersChanged()));
 	connect(ui->f_z, SIGNAL(valueChanged(double)), this, SLOT(filtersChanged()));
 	connect(ui->f_af, SIGNAL(valueChanged(double)), this, SLOT(filtersChanged()));
+	connect(ui->f_anno_name, SIGNAL(currentIndexChanged(int)), this, SLOT(filtersChanged()));
+	connect(ui->f_anno_name, SIGNAL(currentIndexChanged(int)), this, SLOT(annotationFilterColumnChanged()));
+	connect(ui->f_anno_op, SIGNAL(currentIndexChanged(int)), this, SLOT(filtersChanged()));
+	connect(ui->f_anno_op, SIGNAL(currentIndexChanged(int)), this, SLOT(annotationFilterOperationChanged()));
+	connect(ui->f_anno_value, SIGNAL(textEdited(QString)), this, SLOT(filtersChanged()));
 
 	//load CNV data file
 	QString path = QFileInfo(filename).absolutePath();
@@ -113,6 +123,26 @@ void CnvWidget::loadCNVs(QString filename)
 		addInfoLine(comment);
 	}
 
+	//add generic annotations
+	QVector<int> annotation_indices;
+	for(int i=0; i<cnvs.annotationHeaders().count(); ++i)
+	{
+		QByteArray header = cnvs.annotationHeaders()[i];
+		if (header=="size" || header=="region_count") continue;
+
+		ui->cnvs->setColumnCount(ui->cnvs->columnCount() + 1);
+		ui->cnvs->setHorizontalHeaderItem(ui->cnvs->columnCount() -1, new QTableWidgetItem(QString(header)));
+		annotation_indices.append(i);
+	}
+
+	//add generic annotation filter names
+	ui->f_anno_name->clear();
+	ui->f_anno_name->addItem("");
+	foreach(int index, annotation_indices)
+	{
+		ui->f_anno_name->addItem(cnvs.annotationHeaders()[index], index);
+	}
+
 	//show variants
 	ui->cnvs->setRowCount(cnvs.count());
 	for (int r=0; r<cnvs.count(); ++r)
@@ -142,12 +172,26 @@ void CnvWidget::loadCNVs(QString filename)
 			tmp.append(QString::number(af, 'f', 3));
 		}
 		ui->cnvs->setItem(r, 6, new QTableWidgetItem(tmp.join(",")));
+
+		int c = 7;
+		foreach(int index, annotation_indices)
+		{
+			QTableWidgetItem* item = new QTableWidgetItem(QString(cnvs[r].annotations()[index]));
+			//special handling for OMIM
+			if (cnvs.annotationHeaders()[index]=="omim")
+			{
+				item->setText(item->text().replace("_", " "));
+			}
+			item->setToolTip(item->text());
+			ui->cnvs->setItem(r, c++, item);
+		}
 	}
 
 	//resize columns
-	GUIHelper::resizeTableCells(ui->cnvs, 200);
+	GUIHelper::resizeTableCells(ui->cnvs, 180);
 
-	updateStatus(cnvs.count());
+	//apply default filters (and update status)
+	filtersChanged();
 }
 
 void CnvWidget::filtersChanged()
@@ -227,22 +271,19 @@ void CnvWidget::filtersChanged()
 
 	//filter by allele frequency
 	const double f_af = ui->f_af->value();
-	if (f_af>0.0)
+	for(int r=0; r<rows; ++r)
 	{
-		for(int r=0; r<rows; ++r)
+		if (!pass[r]) continue;
+		bool hit = false;
+		foreach (double af, cnvs[r].alleleFrequencies())
 		{
-			if (!pass[r]) continue;
-			bool hit = false;
-			foreach (double af, cnvs[r].alleleFrequencies())
+			if (af<f_af)
 			{
-				if (af<f_af)
-				{
-					hit = true;
-					break;
-				}
+				hit = true;
+				break;
 			}
-			pass[r] = hit;
 		}
+		pass[r] = hit;
 	}
 
 	//filter by genes
@@ -271,6 +312,38 @@ void CnvWidget::filtersChanged()
 		{
 			if (!pass[r]) continue;
 			pass[r] = f_roi.overlapsWith(cnvs[r].chr(), cnvs[r].start(), cnvs[r].end());
+		}
+	}
+
+	//filter by generic annotation
+	if (ui->f_anno_name->currentText()!="")
+	{
+		int anno_col_index = ui->f_anno_name->currentData().toInt();
+		QString anno_op = ui->f_anno_op->currentText();
+		if (anno_op=="is empty")
+		{
+			for(int r=0; r<rows; ++r)
+			{
+				if (!pass[r]) continue;
+				pass[r] = cnvs[r].annotations()[anno_col_index].isEmpty();
+			}
+		}
+		else if (anno_op=="is not empty")
+		{
+			for(int r=0; r<rows; ++r)
+			{
+				if (!pass[r]) continue;
+				pass[r] = !cnvs[r].annotations()[anno_col_index].isEmpty();
+			}
+		}
+		else
+		{
+			QByteArray anno_value = ui->f_anno_value->text().toLatin1();
+			for(int r=0; r<rows; ++r)
+			{
+				if (!pass[r]) continue;
+				pass[r] = cnvs[r].annotations()[anno_col_index].contains(anno_value);
+			}
 		}
 	}
 
@@ -307,6 +380,72 @@ void CnvWidget::copyToClipboard()
 	}
 
 	QApplication::clipboard()->setText(output);
+}
+
+void CnvWidget::annotationFilterColumnChanged()
+{
+	ui->f_anno_op->setEnabled(ui->f_anno_name->currentText()!="");
+}
+
+void CnvWidget::annotationFilterOperationChanged()
+{
+	if (ui->f_anno_op->currentText()=="contains")
+	{
+		ui->f_anno_value->setEnabled(true);
+	}
+	else
+	{
+		ui->f_anno_value->setEnabled(false);
+		ui->f_anno_value->clear();
+	}
+}
+
+void CnvWidget::showContextMenu(QPoint p)
+{
+	//make sure a row was clicked
+	int row = ui->cnvs->indexAt(p).row();
+	if (row==-1) return;
+
+
+	//create menu
+	QMenu menu;
+	menu.addAction("Open in DGV");
+	menu.addAction("Open in UCSC Genome Browser");
+
+	int omim_index = cnvs.annotationHeaders().indexOf("omim");
+	if (omim_index!=-1)
+	{
+		auto entries = VariantDetailsDockWidget::parseDB(cnvs[row].annotations()[omim_index]);
+		foreach(VariantDetailsDockWidget::DBEntry entry, entries)
+		{
+			menu.addAction("Open OMIM: " + entry.id);
+		}
+	}
+
+	//exec menu
+	QAction* action = menu.exec(ui->cnvs->viewport()->mapToGlobal(p));
+	if (action==nullptr) return;
+	QString text = action->text();
+
+	//DGV
+	if (text=="Open in DGV")
+	{
+		QDesktopServices::openUrl(QUrl("http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/?name=" + cnvs[row].toString()));
+	}
+
+	//UCSC
+	if (text=="Open in UCSC Genome Browser")
+	{
+		QDesktopServices::openUrl(QUrl("http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=" + cnvs[row].toString()));
+	}
+
+	//OMIM
+	if (text.startsWith("Open OMIM:"))
+	{
+		QString id = text.mid(text.indexOf(":")+2);
+		QDesktopServices::openUrl(QUrl("http://omim.org/entry/" + id));
+	}
+
 }
 
 void CnvWidget::updateStatus(int shown)

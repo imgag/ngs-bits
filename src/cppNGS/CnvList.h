@@ -13,7 +13,7 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 		///Default constructor.
 		CopyNumberVariant();
 		///Main constructor.
-		CopyNumberVariant(const Chromosome& chr, int start, int end, QByteArrayList regions, QList<int> cns, QList<double> z_scores, QList<double> afs, QByteArrayList genes);
+		CopyNumberVariant(const Chromosome& chr, int start, int end, QByteArrayList regions, QList<int> cns, QList<double> z_scores, QList<double> afs, QByteArrayList genes, QByteArrayList annotations);
 
 		///Returns the chromosome.
 		const Chromosome& chr() const
@@ -71,6 +71,11 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 		{
 			return chr_.str() + ":" + QString::number(start_) + "-" + QString::number(end_);
 		}
+		///Generic annotations (see also CnvList::annotationHeaders()).
+		const QByteArrayList& annotations() const
+		{
+			return annotations_;
+		}
 
 	protected:
 		Chromosome chr_;
@@ -81,6 +86,7 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 		QList<double> z_scores_;
 		QList<double> afs_;
 		QByteArrayList genes_;
+		QByteArrayList annotations_;
 };
 
 class CPPNGSSHARED_EXPORT CnvList
@@ -108,10 +114,16 @@ class CPPNGSSHARED_EXPORT CnvList
 		{
 			return variants_[index];
 		}
+		///Returns annotation headers
+		const QByteArrayList& annotationHeaders() const
+		{
+			return annotation_headers_;
+		}
 
 	protected:
 		QByteArrayList comments_;
 		QList<CopyNumberVariant> variants_;
+		QByteArrayList annotation_headers_;
 };
 
 #endif // COPYNUMBERVARIANTLIST_H
