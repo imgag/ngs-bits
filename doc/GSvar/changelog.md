@@ -1,5 +1,5 @@
-### 0.1-829-g46fd73e (16.08.2016)
-- CNVs: added filter option for CNV allele frequency.
+### 0.1-856-g19c01af (30.08.2016)
+- CNV dialog: added filter options for new CNV result columns.
 
 ### 0.1-813-g48244c7 (09.08.2016)
 - General: gene/region and region/gene conversion now also supports non-coding genes.
@@ -96,6 +96,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 

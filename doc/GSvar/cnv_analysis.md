@@ -32,10 +32,13 @@ Above the CNV list, there are several options for filtering CNVs (2):
 * size
 * number of regions
 * copy-number state
+* z-score
+* frequency (in-house CNV frequency) 
 * target region (if set in the main filter panel for variants)
 * genes (if set in the main filter panel for variants)
+* generic annotation columns
 
-For each CNV the following stats are shown (3):
+For each CNV the following properties are shown (3):
 
 * genomic position
 * affected genes (if they are annotated)
@@ -43,8 +46,17 @@ For each CNV the following stats are shown (3):
 * region count
 * copy-number state (one per region)
 * z-score (one per region)
+* frequency (one per region)
+
+Additionally, generic annotation columns can be added (4), e.g.:
+
+* overlap with copy-number polymorpthism region (strict copy number map from [Zarrei et. al. 2015](http://www.nature.com/nrg/journal/v16/n3/abs/nrg3871.html))
+* dosage-sensitive disease genes (from [Zarrei et. al. 2015](http://www.nature.com/nrg/journal/v16/n3/abs/nrg3871.html))
+* OMIM genes
 
 ![alt text](cnv_filtering.png)
+
+Mor information about a copy-number variant can be found through the resources linked in the context menu (5). 
 
 
 ### Visualizing copy-number data in IGV
@@ -63,6 +75,8 @@ The scale of the heatmap can be changed using the context menu of the track. Bes
 --
 
 [back to main page](index.md)
+
+
 
 
 
