@@ -82,6 +82,8 @@ MainWindow::MainWindow(QWidget *parent)
 	filter_btn->setMenu(new QMenu());
 	filter_btn->menu()->addAction(ui_.actionFiltersGermline);
 	connect(ui_.actionFiltersGermline, SIGNAL(triggered(bool)), filter_widget_, SLOT(applyDefaultFilters()));
+	filter_btn->menu()->addAction(ui_.actionFiltersGermlineRecessive);
+	connect(ui_.actionFiltersGermlineRecessive, SIGNAL(triggered(bool)), filter_widget_, SLOT(applyDefaultFiltersRecessive()));
 	filter_btn->menu()->addAction(ui_.actionFiltersTrio);
 	connect(ui_.actionFiltersTrio, SIGNAL(triggered(bool)), filter_widget_, SLOT(applyDefaultFiltersTrio()));
 	filter_btn->menu()->addAction(ui_.actionFiltersMultiSample);

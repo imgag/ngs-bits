@@ -93,6 +93,8 @@ public slots:
 
 	/// Applies predefined default filters (germline).
 	void applyDefaultFilters();
+	/// Applies predefined default filters (germline - recessive).
+	void applyDefaultFiltersRecessive();
 	/// Applies predefined default filters (trio).
 	void applyDefaultFiltersTrio();
 	/// Applies predefined default filters (multi-sample).

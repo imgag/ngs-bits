@@ -283,7 +283,49 @@ void FilterDockWidget::applyDefaultFilters()
 	blockSignals(false);
 
 	//emit signal to update GUI
-    emit filtersChanged();
+	emit filtersChanged();
+}
+
+void FilterDockWidget::applyDefaultFiltersRecessive()
+{
+	//block signals to avoid 10 updates of GUI
+	blockSignals(true);
+
+	resetSignalsUnblocked(false, true);
+
+	//enable default filters
+	ui_.maf_enabled->setChecked(true);
+	ui_.maf->setValue(1.0);
+	ui_.maf_sub_enabled->setChecked(true);
+	ui_.maf_sub->setValue(1.0);
+	ui_.impact_enabled->setChecked(true);
+	ui_.impact->setCurrentText("HIGH,MODERATE,LOW");
+	ui_.ihdb_enabled->setChecked(true);
+	ui_.ihdb->setValue(15);
+	ui_.ihdb_ignore_gt->setChecked(true);
+	ui_.classification_enabled->setChecked(false);
+	ui_.classification->setCurrentText("3");
+	ui_.keep_class_ge_enabled->setChecked(true);
+	ui_.keep_class_ge->setCurrentText("4");
+	ui_.keep_class_m->setChecked(false);
+	ui_.geno_affected_enabled->setChecked(true);
+	ui_.geno_affected->setCurrentText("compound-het or hom");
+
+	//filter cols
+	QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
+	foreach(FilterColumnWidget* w, fcws)
+	{
+		if (w->objectName()=="gene_blacklist")
+		{
+			w->setState(FilterColumnWidget::REMOVE);
+		}
+	}
+
+	//re-enable signals
+	blockSignals(false);
+
+	//emit signal to update GUI
+	emit filtersChanged();
 }
 
 void FilterDockWidget::applyDefaultFiltersTrio()
