@@ -29,6 +29,5 @@ CnvHunter:
 ** test GC-normalization (check e.g. GS151166_01 gene C5orf42)
     - test effect of including different flanking regions
     - alternatively, test intra-sample normalization using the most similar exons on different chromosomes
-** test mean/stdev instead of median/mad for reference sample (to speed up reference sample constrution)
 * test with duplicate reads; with anomalous reads; with multi-mapped reads; chunked data
 - allow input of one multi-sample COV file (reduce test data size and loading time)

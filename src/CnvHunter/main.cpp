@@ -43,18 +43,18 @@ struct SampleCorrelation
 
 	SampleCorrelation()
 		: sample(nullptr)
-		, correlation(-1)
+		, rmsd_inv(-1)
 	{
 	}
 
 	SampleCorrelation(QSharedPointer<SampleData> s, float c)
 		: sample(s)
-		, correlation(c)
+		, rmsd_inv(c)
 	{
 	}
 
 	QSharedPointer<SampleData> sample;
-	float correlation;
+	float rmsd_inv;
 };
 
 //Exon/region representation
@@ -68,6 +68,7 @@ struct ExonData
 		, index(-1)
 		, is_par(false)
 		, is_cnp(false)
+		, annotations()
     {
     }
 
@@ -251,7 +252,6 @@ public:
 		return sum / sqrt(x_square_sum/x.count()) / sqrt(y_square_sum/x.count()) / x.count();
 	}
 
-
 	float fun_mad(const QVector<float>& data, float median)
 	{
 		QVector<float> devs;
@@ -379,10 +379,10 @@ public:
 		{
 			if (sample==debug_sample)
 			{
-				outstream << "##correlation of " << sample->name << " to other samples:" << endl;
+				outstream << "##RMSD of " << sample->name << " to other samples:" << endl;
 				for (int i=0; i<samples.count()-1; ++i)
 				{
-					outstream << "##" << (i+1) << "\t" << sample->correl_all[i].sample->name << "\t" << sample->correl_all[i].correlation << endl;
+					outstream << "##" << (i+1) << "\t" << sample->correl_all[i].sample->name << "\t" << sample->correl_all[i].rmsd_inv << endl;
 				}
 			}
 		}
@@ -620,6 +620,19 @@ public:
         outstream << endl;
     }
 
+
+	void printCnvRegionCountDistribution(QList<Range> ranges, QTextStream& outstream)
+	{
+		outstream << "Region count of CNV events histogram:" << endl;
+		Histogram hist(0.0, 15.0, 1.0);
+		foreach(const Range& range, ranges)
+		{
+			hist.inc(range.size(), true);
+		}
+		hist.print(outstream, "  ", 0, 0);
+		outstream << endl;
+	}
+
 	void printZScoreDistribution(const QVector<ResultData>& results, QTextStream& outstream)
 	{
 		outstream << "Overall z-score histogram:" << endl;
@@ -643,37 +656,6 @@ public:
         hist.print(outstream, "  ", 2, 0, false);
         outstream << endl;
     }
-
-	void printCorrelationStatistics(const QVector<QSharedPointer<SampleData>>& samples, QTextStream& outstream)
-	{
-		//extract correlation to n nearest samples
-		const int n = std::min(samples.count()-1, 30);
-		QVector<QVector<float>> corrs;
-		corrs.resize(n);
-		for (int s=0; s<samples.count(); ++s)
-		{
-			for (int i=0; i<n; ++i)
-			{
-				float corr = samples[s]->correl_all[i].correlation;
-				if (corr!=-1)
-				{
-					corrs[i].append(corr);
-				}
-			}
-		}
-
-		//print output
-		outstream << "Sample correlation for different 'n' values:" << endl;
-		for (int i=0; i<n; ++i)
-		{
-			std::sort(corrs[i].begin(), corrs[i].end());
-			float median = fun_median(corrs[i]);
-			float q1 = fun_q1(corrs[i]);
-			float q3 = fun_q3(corrs[i]);
-			outstream << QByteArray::number(i+1).rightJustified(4, ' ') << ": q3=" << QByteArray::number(q3, 'f',3) << " median=" << QByteArray::number(median, 'f', 3) << " q1=" << QByteArray::number(q1, 'f',3) << endl;
-		}
-		outstream << endl;
-	}
 
     virtual void main()
     {
@@ -726,6 +708,7 @@ public:
 			BedFile cnp_regs;
 			if (!cnp_file.isEmpty()) cnp_regs.load(cnp_file);
 			ChromosomalIndex<BedFile> cnp_regs_index(cnp_regs);
+
 
 			//load input data
 			TSVFileStream stream(in[0]);
@@ -1010,24 +993,22 @@ public:
 					samples[i]->correl_all.append(SampleCorrelation(samples[j], -1.0f));
                 }
                 else
-                {
-					const float ndoc_mean_sample_i = samples[i]->ndoc_mean;
-					const float ndoc_mean_sample_j = samples[j]->ndoc_mean;
-
-					double sum = 0.0;
+				{
+					//calculdate inverse of RMSD as proxy for correlation (faster to calculate and gives better results)
+					double rmsd = 0.0;
 					for(int k=0; k<exon_indices.count(); ++k)
                     {
 						const int e = exon_indices[k];
-						sum += (samples[i]->doc[e]-ndoc_mean_sample_i) * (samples[j]->doc[e]-ndoc_mean_sample_j);
+						rmsd += std::pow(samples[j]->doc[e]-samples[i]->doc[e], 2);
 					}
-					samples[i]->correl_all.append(SampleCorrelation(samples[j], sum / samples[i]->ndoc_stdev / samples[j]->ndoc_stdev / exon_indices.count()));
+					rmsd = 1.0 / std::sqrt(rmsd/exon_indices.count());
+					samples[i]->correl_all.append(SampleCorrelation(samples[j], rmsd));
 				}
 			}
 
 			//sort by correlation (reverse)
-			std::sort(samples[i]->correl_all.begin(), samples[i]->correl_all.end(), [](const SampleCorrelation& a, const SampleCorrelation& b){return a.correlation > b.correlation;});
+			std::sort(samples[i]->correl_all.begin(), samples[i]->correl_all.end(), [](const SampleCorrelation& a, const SampleCorrelation& b){return a.rmsd_inv > b.rmsd_inv;});
 		}
-		printCorrelationStatistics(samples, outstream);
 		timings.append("calculating sample correlations: " + Helper::elapsedTime(timer));
 		timer.restart();
 
@@ -1060,7 +1041,7 @@ public:
 					if (tmp.count()==n) break;
                 }
 				if (tmp.count()==n)
-                {
+				{
 					std::sort(tmp.begin(), tmp.end());
 					float median = fun_median(tmp);
 					samples[s]->ref.append(median);
@@ -1334,6 +1315,9 @@ public:
 			}
 		}
         printSampleDistributionCNVs(samples, cnvs_sample, outstream);
+
+		//print region count of CNV events
+		printCnvRegionCountDistribution(ranges, outstream);
 
 		//store result files
 		int regions_overlapping_cnp_regions = 0;
