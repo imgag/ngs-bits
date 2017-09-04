@@ -3,7 +3,7 @@
 #include "Helper.h"
 #include <QPushButton>
 
-GeneInfoDialog::GeneInfoDialog(QString symbol, QWidget *parent)
+GeneInfoDialog::GeneInfoDialog(QByteArray symbol, QWidget *parent)
 	: QDialog(parent)
 	, ui(new Ui::GeneInfoDialog)
 {
@@ -15,7 +15,7 @@ GeneInfoDialog::GeneInfoDialog(QString symbol, QWidget *parent)
 	connect(this, SIGNAL(accepted()), this, SLOT(storeGeneInfo()));
 
 	//get gene info
-	GeneInfo info = db.geneInfo(symbol.toLatin1());
+	GeneInfo info = db.geneInfo(symbol);
 
 	//show symbol
 	setWindowTitle("Gene information '" + info.symbol + "'");
@@ -38,8 +38,9 @@ GeneInfoDialog::GeneInfoDialog(QString symbol, QWidget *parent)
 	}
 
 	//show alias gene symbols from HGNC
-	ui->previous_->setText(db.previousSymbols(symbol).join(", "));
-	ui->synonymous_->setText(db.synonymousSymbols(symbol).join(", "));
+	int gene_id = db.geneToApprovedID(symbol);
+	ui->previous_->setText(db.previousSymbols(gene_id).join(", "));
+	ui->synonymous_->setText(db.synonymousSymbols(gene_id).join(", "));
 
 	//show phenotypes/diseases from HPO
 	ui->pheno_->setText(db.phenotypes(symbol).join(", "));

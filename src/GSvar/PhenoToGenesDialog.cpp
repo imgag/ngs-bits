@@ -62,12 +62,12 @@ void PhenoToGenesDialog::tabChanged(int num)
 		NGSD db;
 		//get gene list
 		int max_phenotypes = 0;
-		QMap<QString, QStringList> gene2pheno;
+		QMap<QByteArray, QStringList> gene2pheno;
 		for (int i=0; i<ui->pheno->count(); ++i)
 		{
 			QString pheno = ui->pheno->item(i)->text();
-			QStringList genes = db.phenotypeToGenes(pheno, true);
-			foreach(QString gene, genes)
+			GeneSet genes = db.phenotypeToGenes(pheno, true);
+			foreach(QByteArray gene, genes)
 			{
 				gene2pheno[gene].append(pheno);
 				max_phenotypes = std::max(max_phenotypes, gene2pheno[gene].count());
