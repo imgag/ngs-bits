@@ -40,11 +40,13 @@ void CandidateGeneDialog::updateVariants()
 	//process
 	QStringList comments;
 	QList<QStringList> output;
-	QStringList genes = ui_.genes->text().replace(" ", ",").split(",",QString::SkipEmptyParts);
-	foreach(QString gene, genes)
+	QByteArrayList genes = ui_.genes->text().toLatin1().replace(' ', ',').split(',');
+	foreach(QByteArray gene, genes)
 	{
+		if (gene.trimmed()=="") continue;
+
 		//check gene name
-		int gene_id = db.geneToApprovedID(gene.toLatin1());
+		int gene_id = db.geneToApprovedID(gene);
 		if (gene_id==-1)
 		{
 			comments.append("Error: Gene name '" + gene + "' is not a HGNC-approved symbol => Skipping it!");
@@ -72,6 +74,12 @@ void CandidateGeneDialog::updateVariants()
 		QString start =  QString::number(query.value(1).toInt()-20);
 		QString end =  QString::number(query.value(2).toInt()+20);
 
+		//get alternate gene symbols
+		GeneSet gene_symbols;
+		gene_symbols.insert(gene);
+		gene_symbols.insert(db.synonymousSymbols(gene_id));
+		gene_symbols.insert(db.previousSymbols(gene_id));
+
 		//get variants in chromosomal range
 		QList<QStringList> var_data;
 		QString af = QString::number(ui_.filter_af->value()/100.0);
@@ -93,7 +101,10 @@ void CandidateGeneDialog::updateVariants()
 			QStringList parts_match;
 			foreach(QString part, parts)
 			{
-				if (!part.startsWith(gene + ":")) continue;
+				int index = part.indexOf(':');
+				if (index==-1) continue;
+				QByteArray current_gene = part.left(index).toLatin1();
+				if (!gene_symbols.contains(current_gene)) continue;
 
 				foreach(QString impact, impacts)
 				{

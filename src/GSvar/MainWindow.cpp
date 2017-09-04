@@ -1364,7 +1364,7 @@ void MainWindow::on_actionGeneInfo_triggered()
 	QString symbol = QInputDialog::getText(this, "Gene information", "symbol").trimmed();
 	if (symbol.isEmpty()) return;
 
-	GeneInfoDialog dlg(symbol, this);
+	GeneInfoDialog dlg(symbol.toLatin1(), this);
 	dlg.exec();
 }
 

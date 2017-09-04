@@ -93,9 +93,9 @@ public:
 	///Returns the the approved/original gene symbol and a status message.
 	QPair<QString, QString> geneToApproved(const QString& gene);
 	///Returns previous symbols of a gene.
-	QStringList previousSymbols(QString symbol);
+	GeneSet previousSymbols(int id);
 	///Returns aliases of a gene.
-	QStringList synonymousSymbols(QString symbol);
+	GeneSet synonymousSymbols(int id);
 	///Returns the genes overlapping a regions (extended by some bases)
 	GeneSet genesOverlapping(const Chromosome& chr, int start, int end, int extend=0);
 	///Returns the genes overlapping a regions (extended by some bases)
@@ -109,11 +109,11 @@ public:
 
 	/*** phenotype handling (HPO) ***/
 	///Returns the phenotypes of a gene
-	QStringList phenotypes(QString symbol);
+	QStringList phenotypes(QByteArray symbol);
 	///Returns all phenotypes matching the given search terms (or all terms if no search term is given)
 	QStringList phenotypes(QStringList terms);
 	///Returns all genes associated to a phenotype
-	QStringList phenotypeToGenes(QString phenotype, bool recursive);
+	GeneSet phenotypeToGenes(QString phenotype, bool recursive);
 
 	/*** Base functionality for file/variant processing ***/
 	///Returns the sample name for a file name, e.g. 'GS120159' for '/some/path/GS120159_01.bam'. Throws an exception if the file name does not start with a valid name.

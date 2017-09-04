@@ -1236,17 +1236,35 @@ QPair<QString, QString> NGSD::geneToApproved(const QString& gene)
 	return qMakePair(gene, QString("ERROR: " + gene + " is unknown symbol"));
 }
 
-QStringList NGSD::previousSymbols(QString symbol)
+GeneSet NGSD::previousSymbols(int id)
 {
-	return getValues("SELECT ga.symbol FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND g.symbol='" + symbol + "' AND ga.type='previous' ORDER BY ga.symbol ASC");
+	GeneSet output;
+
+	SqlQuery q = getQuery();
+	q.exec("SELECT symbol FROM gene_alias WHERE gene_id='" + QByteArray::number(id) + "' AND type='previous'");
+	while(q.next())
+	{
+		output.insert(q.value(0).toByteArray());
+	}
+
+	return output;
 }
 
-QStringList NGSD::synonymousSymbols(QString symbol)
+GeneSet NGSD::synonymousSymbols(int id)
 {
-	return getValues("SELECT ga.symbol FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND g.symbol='" + symbol + "' AND ga.type='synonymous' ORDER BY ga.symbol ASC");
+	GeneSet output;
+
+	SqlQuery q = getQuery();
+	q.exec("SELECT symbol FROM gene_alias WHERE gene_id='" + QByteArray::number(id) + "' AND type='synonymous'");
+	while(q.next())
+	{
+		output.insert(q.value(0).toByteArray());
+	}
+
+	return output;
 }
 
-QStringList NGSD::phenotypes(QString symbol)
+QStringList NGSD::phenotypes(QByteArray symbol)
 {
 	return getValues("SELECT t.name FROM hpo_term t, hpo_genes g WHERE g.gene='" + symbol + "' AND t.id=g.hpo_term_id ORDER BY t.name ASC");
 }
@@ -1301,7 +1319,7 @@ QStringList NGSD::phenotypes(QStringList terms)
 	return list;
 }
 
-QStringList NGSD::phenotypeToGenes(QString phenotype, bool recursive)
+GeneSet NGSD::phenotypeToGenes(QString phenotype, bool recursive)
 {
 	//prepare queries
 	SqlQuery pid2genes = getQuery();
@@ -1318,7 +1336,7 @@ QStringList NGSD::phenotypeToGenes(QString phenotype, bool recursive)
 	QList<int> pheno_ids;
 	pheno_ids << tmp.value(0).toInt();
 
-	QStringList genes;
+	GeneSet genes;
 	while (!pheno_ids.isEmpty())
 	{
 		int id = pheno_ids.last();
@@ -1331,7 +1349,7 @@ QStringList NGSD::phenotypeToGenes(QString phenotype, bool recursive)
 		{
 			QString gene = pid2genes.value(0).toString();
 			QPair<QString, QString> geneinfo = geneToApproved(gene);
-			genes.append(geneinfo.first);
+			genes.insert(geneinfo.first.toLatin1());
 		}
 
 		//add sub-phenotypes
@@ -1346,9 +1364,6 @@ QStringList NGSD::phenotypeToGenes(QString phenotype, bool recursive)
 		}
 	}
 
-	//sort and remove dulicates
-	genes.sort();
-	genes.removeDuplicates();
 	return genes;
 }
 

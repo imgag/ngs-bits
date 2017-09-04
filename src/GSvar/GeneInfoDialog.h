@@ -14,7 +14,7 @@ class GeneInfoDialog
 	Q_OBJECT
 
 public:
-	explicit GeneInfoDialog(QString symbol, QWidget* parent = 0);
+	explicit GeneInfoDialog(QByteArray symbol, QWidget* parent = 0);
 	~GeneInfoDialog();
 
 private slots:
