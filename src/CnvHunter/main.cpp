@@ -6,6 +6,7 @@
 #include "Histogram.h"
 #include "GeneSet.h"
 #include "TSVFileStream.h"
+#include "Settings.h"
 
 #include <QVector>
 #include <QFileInfo>
@@ -24,9 +25,7 @@ struct SampleData
 	QByteArray name; //file name
 
 	QVector<float> doc; //coverage data (normalized: divided by mean)
-	float doc_mean; //mean coverage before normalizazion (aterwards it is 1.0)
-	float ndoc_mean; //mean of coverage after normalization
-	float ndoc_stdev; //stdev of coverage after normalization
+	float doc_mean; //mean coverage before normalizazion (afterwards it is 1.0)
 
 	QVector<SampleCorrelation> correl_all; //correlation with all samples (-1.0 for self-correlation)
 
@@ -68,6 +67,7 @@ struct ExonData
 		, index(-1)
 		, is_par(false)
 		, is_cnp(false)
+		, gc(-1.0)
 		, annotations()
     {
     }
@@ -80,6 +80,7 @@ struct ExonData
 	int index; //exon index (needed to access DOC data arrays of samples)
 	int is_par; //flag indicating if the region lies inside the pseudoautosomal region of X chromosome (normalization with autosomes)
 	int is_cnp; //flag indicating if the region lies inside a known copy-number-polymorphism region (i.e. probably not pathogenic)
+	float gc; //GC content
 	QList<QSet<QByteArray>> annotations; //annotation sets, one for each annotation file given.
 
 	float median; //median normalized DOC value
@@ -182,7 +183,10 @@ public:
 		addString("par", "Comma-separated list of pseudo-autosomal regions on the X chromosome.", true, "1-2699520,154931044-155270560");
 		addInfile("cnp_file", "BED file containing copy-number-polymorphism (CNP) regions. They are excluded from the normalization/correlation calculation. E.g use the CNV map from http://dx.doi.org/10.1038/nrg3871.", true);
 		addInfileList("annotate", "List of BED files used for annotation. Each file adds a column to the output file. The base filename is used as colum name and 4th column of the BED file is used as annotation value.", true);
+		addInt("gc_window", "Window size for moving median GC-content normalization (disabled by default).", true, -1);
+		addInfile("ref", "Reference genome FASTA file used for GC normalization. If unset, 'reference_genome' from the 'settings.ini' file is used.", true, false);
 
+		changeLog(2017, 9,   4, "Added GC normalization.");
 		changeLog(2017, 8,  29, "Updated default values of parameters 'n' and 'reg_max_cv' based on latest benchmarks.");
 		changeLog(2017, 8,  28, "Added generic annotation mechanism for annotation from BED files.");
 		changeLog(2017, 8,  24, "Added copy-number-polymorphisms regions input file ('cnp_file' parameter).");
@@ -192,6 +196,53 @@ public:
 		changeLog(2016, 9,   1, "Sample and region information files are now always written.");
 		changeLog(2016, 8,  23, "Added merging of large CNVs that were split to several regions due to noise.");
 		changeLog(2016, 8,  21, "Improved log output (to make parameter optimization easier).");
+	}
+
+	void movingMedianNormalization(QVector<float>& values, const QVector<QPair<int, double>>& order, int window_size)
+	{
+		//check input
+		if (values.count() != order.count())
+		{
+			THROW(StatisticsException, "Value and order count not the same for median normalization!");
+		}
+
+		//init
+		if (window_size%2==0) ++window_size;
+		const int hws = window_size/2;
+
+		//construct baseline
+		QVector<float> baseline;
+		baseline.reserve(order.count());
+		QVector<float> tmp;
+		for (int i=0; i<window_size; ++i)
+		{
+			tmp.append(values[order[i].first]);
+		}
+		std::sort(tmp.begin(), tmp.end());
+		baseline.fill(tmp[hws], hws+1);
+		for (int i=hws+1; i<order.count()-hws; ++i)
+		{
+			float val_before = values[order[i-hws-1].first];
+			tmp.erase(std::lower_bound(tmp.begin(), tmp.end(), val_before));
+
+			float val_after = values[order[i+hws].first];
+			tmp.insert(std::lower_bound(tmp.begin(), tmp.end(), val_after), val_after);
+
+			baseline.append(tmp[hws]);
+		}
+		while(baseline.count()<order.count())
+		{
+			baseline.append(baseline.last());
+		}
+
+		//determine maximum
+		float max = *(std::max_element(baseline.begin(), baseline.end()));
+
+		//scale up by GC baseline
+		for (int i=0; i<order.count(); ++i)
+		{
+			values[order[i].first] *= max / baseline[i];
+		}
 	}
 
 	//TODO: replace fun_* by BasicStatistics (rewrite the functions as template functions)
@@ -211,18 +262,6 @@ public:
 		{
 			return data[data.count()/2];
 		}
-	}
-
-	float fun_stdev(const QVector<float>& data, float mean)
-	{
-		if (data.count()==0) THROW(StatisticsException, "Cannot calculate standard deviation on empty data array.");
-
-		double output = 0.0;
-		for (int i=0; i<data.count(); ++i)
-		{
-			output += pow(data[i]-mean, 2.0);
-		}
-		return sqrt(output/data.count());
 	}
 
 	float fun_correlation(const QVector<float>& x, const QVector<float>& y)
@@ -262,20 +301,6 @@ public:
 		}
 		std::sort(devs.begin(), devs.end());
 		return fun_median(devs);
-	}
-
-	float fun_q1(const QVector<float>& data)
-	{
-		if (data.count()==0) THROW(StatisticsException, "Cannot calculate q1 on empty data array!");
-
-		return data[data.count()/4];
-	}
-
-	float fun_q3(const QVector<float>& data)
-	{
-		if (data.count()==0) THROW(StatisticsException, "Cannot calculate q3 on empty data array!");
-
-		return data[3*data.count()/4];
 	}
 
 	bool fun_isValidFloat(float value)
@@ -345,7 +370,7 @@ public:
     {
         QSharedPointer<QFile> file = Helper::openFileForWriting(out.left(out.size()-4) + "_regions.tsv");
         QTextStream outstream(file.data());
-		outstream << "#region\tsize\tndoc_median\tndoc_mad\tndoc_cv\tcnvs\tqc_info\toverlaps_cnp_region" << endl;
+		outstream << "#region\tsize\tgc_content\tndoc_median\tndoc_mad\tndoc_cv\tcnvs\tqc_info\toverlaps_cnp_region" << endl;
 
         //contruct sorted array
         QVector<QSharedPointer<ExonData>> tmp;
@@ -354,7 +379,7 @@ public:
         std::sort(tmp.begin(), tmp.end(), [](const QSharedPointer<ExonData>& a, const QSharedPointer<ExonData>& b){return *(a.data()) < *(b.data());} );
         foreach(const QSharedPointer<ExonData>& exon, tmp)
         {
-			outstream << exon->toString() << "\t" << (exon->end-exon->start) << "\t" << QByteArray::number(exon->median, 'f', 3) << "\t" << QByteArray::number(exon->mad, 'f', 3) << "\t" << QByteArray::number(exon->mad/exon->median, 'f', 2) << "\t";
+			outstream << exon->toString() << "\t" << (exon->end-exon->start) << "\t" << QByteArray::number(exon->gc, 'f', 2) << "\t" << QByteArray::number(exon->median, 'f', 3) << "\t" << QByteArray::number(exon->mad, 'f', 3) << "\t" << QByteArray::number(exon->mad/exon->median, 'f', 2) << "\t";
             if (exon->qc.isEmpty())
             {
                 outstream << cnvs_exon[exon];
@@ -620,7 +645,6 @@ public:
         outstream << endl;
     }
 
-
 	void printCnvRegionCountDistribution(QList<Range> ranges, QTextStream& outstream)
 	{
 		outstream << "Region count of CNV events histogram:" << endl;
@@ -680,6 +704,7 @@ public:
 		QString par = getString("par");
 		QString cnp_file = getInfile("cnp_file");
 		QStringList annotate = getInfileList("annotate");
+		int gc_window = getInt("gc_window");
 
 		//timing
 		QTime timer;
@@ -743,7 +768,7 @@ public:
 			}
 		}
 
-		//annotate regions
+		//annotate regions (generic)
 		foreach(QString anno, annotate)
 		{
 			BedFile anno_file;
@@ -768,6 +793,29 @@ public:
 				exons[i]->annotations.append(annos);
 			}
 		}
+
+		//annotate regions (GC content)
+		QString ref_file = getInfile("ref");
+		if (ref_file=="") ref_file = Settings::string("reference_genome");
+		if (ref_file!="")
+		{
+			FastaFileIndex reference(ref_file);
+
+			//determine GC content of exons
+			for (int e=0; e<exons.count(); ++e)
+			{
+				Sequence seq = reference.seq(exons[e]->chr, exons[e]->start, exons[e]->end-exons[e]->start, true);
+				int gc = 0;
+				int at = 0;
+				for(int i=0; i<seq.length(); ++i)
+				{
+					if (seq[i]=='G' || seq[i]=='C') ++gc;
+					else if (seq[i]=='A' || seq[i]=='T') ++at;
+				}
+				exons[e]->gc = (double)gc/(gc+at);
+			}
+		}
+
 
 		//load input (and check input)
 		QVector<QSharedPointer<SampleData>> samples;
@@ -806,9 +854,6 @@ public:
 			samples.append(sample);
 		}
 
-		timings.append("loading input: " + Helper::elapsedTime(timer));
-		timer.restart();
-
 
 		//count gonosome regions
 		outstream << "=== normalizing depth-of-coverage data ===" << endl;
@@ -839,30 +884,12 @@ public:
 		outstream << "number of regions on chrY (ignored): " << c_chry << endl;
 		outstream << "number of regions on other chromosomes (ignored): " << c_chro << endl << endl;
 
-        //normalize DOC by mean (for autosomes/gonosomes separately)
+		//calculate and store mean DOC (for autosomes/gonosomes separately)
 		for (int s=0; s<samples.count(); ++s)
-        {
-			//calculate mean depths
+		{
 			QPair<float, float> tmp = weightedMean(exons, samples[s]);
 			float mean_auto = tmp.first;
 			float mean_chrx = tmp.second;
-
-            //normalize
-            for (int e=0; e<exons.count(); ++e)
-            {
-				if ((exons[e]->chr.isAutosome() || exons[e]->is_par) && mean_auto>0)
-                {
-					samples[s]->doc[e] /= mean_auto;
-                }
-				else if (exons[e]->chr.isX() && !exons[e]->is_par && mean_chrx>0)
-				{
-					samples[s]->doc[e] /= mean_chrx;
-				}
-                else
-				{
-					samples[s]->doc[e] = 0;
-                }
-            }
 
 			//store mean
 			samples[s]->doc_mean = (c_chrx>c_auto) ? mean_chrx : mean_auto;
@@ -885,7 +912,59 @@ public:
 				samples[s]->qc += "avg_depth_autosomes=" + QByteArray::number(mean_auto) + " ";
 			}
 		}
-		timings.append("normalizing data: " + Helper::elapsedTime(timer));
+
+		timings.append("loading input: " + Helper::elapsedTime(timer));
+		timer.restart();
+
+		//normalize DOC by GC content
+		if (gc_window>0)
+		{
+			//determine GC content of exons
+			QVector<QPair<int, double>> gc_indices;
+			gc_indices.reserve(exons.count());
+			for (int e=0; e<exons.count(); ++e)
+			{
+				gc_indices.append(qMakePair(e, exons[e]->gc));
+			}
+
+			//sort exons by gc content
+			std::sort(gc_indices.begin(), gc_indices.end(), [](const QPair<int, double>& a, const QPair<int, double>& b){ return a.second < b.second ;});
+
+			//normalize samples
+			for (int s=0; s<samples.count(); ++s)
+			{
+				movingMedianNormalization(samples[s]->doc, gc_indices, gc_window);
+			}
+		}
+		timings.append("normalizing data (GC content): " + Helper::elapsedTime(timer));
+		timer.restart();
+
+		//normalize by mean DOC (for autosomes/gonosomes separately)
+		for (int s=0; s<samples.count(); ++s)
+		{
+			//calculate mean depths
+			QPair<float, float> tmp = weightedMean(exons, samples[s]);
+			float mean_auto = tmp.first;
+			float mean_chrx = tmp.second;
+
+			//normalize
+			for (int e=0; e<exons.count(); ++e)
+			{
+				if ((exons[e]->chr.isAutosome() || exons[e]->is_par) && mean_auto>0)
+				{
+					samples[s]->doc[e] /= mean_auto;
+				}
+				else if (exons[e]->chr.isX() && !exons[e]->is_par && mean_chrx>0)
+				{
+					samples[s]->doc[e] /= mean_chrx;
+				}
+				else
+				{
+					samples[s]->doc[e] = 0;
+				}
+			}
+		}
+		timings.append("normalizing data (mean): " + Helper::elapsedTime(timer));
 		timer.restart();
 
 		//calculate overall average depth (of good samples)
@@ -963,21 +1042,6 @@ public:
 			{
 				exon_indices.append(tmp[i]);
 			}
-		}
-
-		//pre-calcualte mean/stdev of normalized coverage
-		for (int i=0; i<samples.count(); ++i)
-		{
-			QVector<float> tmp;
-			tmp.reserve(exon_indices.count());
-
-			for(int k=0; k<exon_indices.count(); ++k)
-			{
-				tmp.append(samples[i]->doc[exon_indices[k]]);
-			}
-			float mean = std::accumulate(tmp.begin(), tmp.end(), 0.0f) / exon_indices.count();
-			samples[i]->ndoc_mean = mean;
-			samples[i]->ndoc_stdev = fun_stdev(tmp, mean);
 		}
 
 		//calculate correlation between all samples

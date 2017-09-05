@@ -9,8 +9,8 @@ private slots:
 
 	void hpPDv3_annotate_seg_debug()
 	{
-		QString host = Settings::string("ngsd_test_host");
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		QString ref_file = Settings::string("reference_genome");
+		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		QStringList in = Helper::findFiles(TESTDATA("data_in/CnvHunter1/"), "*.cov", false);
 
@@ -24,6 +24,9 @@ private slots:
 
 	void ssHAEv6_cnpfile()
 	{
+		QString ref_file = Settings::string("reference_genome");
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
 		QStringList in = Helper::findFiles(TESTDATA("data_in/CnvHunter2/"), "*.cov", false);
 		EXECUTE("CnvHunter", "-in " + in.join(" ") + " -out out/CnvHunter_out2.tsv -sam_min_corr 0.8 -reg_max_cv 0.5 -sam_corr_regs 250000 -cnp_file " +  TESTDATA("data_in/CnvHunter_cnp_file.bed"));
 		COMPARE_FILES("out/CnvHunter_out2.tsv", TESTDATA("data_out/CnvHunter_out2.tsv"));
