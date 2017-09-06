@@ -183,8 +183,9 @@ public:
 		addString("par", "Comma-separated list of pseudo-autosomal regions on the X chromosome.", true, "1-2699520,154931044-155270560");
 		addInfile("cnp_file", "BED file containing copy-number-polymorphism (CNP) regions. They are excluded from the normalization/correlation calculation. E.g use the CNV map from http://dx.doi.org/10.1038/nrg3871.", true);
 		addInfileList("annotate", "List of BED files used for annotation. Each file adds a column to the output file. The base filename is used as colum name and 4th column of the BED file is used as annotation value.", true);
-		addInt("gc_window", "Window size for moving median GC-content normalization (disabled by default).", true, -1);
-		addInfile("ref", "Reference genome FASTA file used for GC normalization. If unset, 'reference_genome' from the 'settings.ini' file is used.", true, false);
+		addInt("gc_window", "Moving median GC-content normalization window size (disabled by default).", true, -1);
+		addInt("gc_extend", "Moving median GC-content normalization extension around target region.", true, 0);
+		addInfile("ref", "Reference genome FASTA file. If unset, 'reference_genome' from the 'settings.ini' file is used.", true, false);
 
 		changeLog(2017, 9,   4, "Added GC normalization.");
 		changeLog(2017, 8,  29, "Updated default values of parameters 'n' and 'reg_max_cv' based on latest benchmarks.");
@@ -705,6 +706,7 @@ public:
 		QString cnp_file = getInfile("cnp_file");
 		QStringList annotate = getInfileList("annotate");
 		int gc_window = getInt("gc_window");
+		int gc_extend = getInt("gc_extend");
 
 		//timing
 		QTime timer;
@@ -804,7 +806,7 @@ public:
 			//determine GC content of exons
 			for (int e=0; e<exons.count(); ++e)
 			{
-				Sequence seq = reference.seq(exons[e]->chr, exons[e]->start, exons[e]->end-exons[e]->start, true);
+				Sequence seq = reference.seq(exons[e]->chr, exons[e]->start-gc_extend, exons[e]->end-exons[e]->start+2*gc_extend, true);
 				int gc = 0;
 				int at = 0;
 				for(int i=0; i<seq.length(); ++i)

@@ -10,6 +10,7 @@ libs:
 GSvar:
 ** AF deviation docu in sample info => add spaces
 ** Add variant context menu entry to jump to UCSC
+* Add inheritance mode to gene column => allow filtering
 - CandiateGeneDialog: allow sorting by sample/variant/etc
 - Allow settings disease_group/disease_status for multi-sample GSvar files
 - Multi-sample anaysis: allow relaxing affected/control genotype filters by requiring only X out of Y
