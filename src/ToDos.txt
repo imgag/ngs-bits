@@ -8,6 +8,9 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
+** AF deviation docu in sample info => add spaces
+** Add variant context menu entry to jump to UCSC
+* Add inheritance mode to gene column => allow filtering
 - CandiateGeneDialog: allow sorting by sample/variant/etc
 - Allow settings disease_group/disease_status for multi-sample GSvar files
 - Multi-sample anaysis: allow relaxing affected/control genotype filters by requiring only X out of Y
@@ -29,6 +32,5 @@ CnvHunter:
 ** test GC-normalization (check e.g. GS151166_01 gene C5orf42)
     - test effect of including different flanking regions
     - alternatively, test intra-sample normalization using the most similar exons on different chromosomes
-** test mean/stdev instead of median/mad for reference sample (to speed up reference sample constrution)
 * test with duplicate reads; with anomalous reads; with multi-mapped reads; chunked data
 - allow input of one multi-sample COV file (reduce test data size and loading time)
