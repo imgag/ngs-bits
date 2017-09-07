@@ -294,7 +294,7 @@
      <item row="5" column="0">
       <widget class="QLabel" name="label_21">
        <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;PercentageofcommonSNPsthatdeviatefromtheexpectedallelefrequency(i.e.0.0,0.5or1.0fordiploidorganisms).&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Percentage of common SNPs that deviate from the expected allele frequency (i.e.0.0, 0.5 or 1.0 for diploid organisms).&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="text">
         <string>AF deviation:</string>

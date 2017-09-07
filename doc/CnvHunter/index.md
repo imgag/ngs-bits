@@ -2,7 +2,7 @@
 
 CnvHunter is a CNV detection algorithm for targeted NGS data, i.e. panel or exome sequencing. It detects CNVs in one sample based on the coverage statistics determined from the other samples, i.e. the reference samples.  
 
-##Input
+## Input
 
 Coverage profiles of sequencing data (i.e. the average coverage of each exon) for multiple samples are the input of the algorithm. 
 
@@ -58,4 +58,5 @@ Please also have a look at the [poster presented at ESHG 2017](CnvHunter_poster.
 The CnvHunter command-line help and changelog can be found [here](../tools/CnvHunter.md).
 
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
+
 

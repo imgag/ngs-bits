@@ -338,11 +338,11 @@ void CnvWidget::filtersChanged()
 		}
 		else
 		{
-			QByteArray anno_value = ui->f_anno_value->text().toLatin1();
+			QByteArray anno_value = ui->f_anno_value->text().toLatin1().toUpper();
 			for(int r=0; r<rows; ++r)
 			{
 				if (!pass[r]) continue;
-				pass[r] = cnvs[r].annotations()[anno_col_index].contains(anno_value);
+				pass[r] = cnvs[r].annotations()[anno_col_index].toUpper().contains(anno_value);
 			}
 		}
 	}
@@ -409,8 +409,8 @@ void CnvWidget::showContextMenu(QPoint p)
 
 	//create menu
 	QMenu menu;
-	menu.addAction("Open in DGV");
-	menu.addAction("Open in UCSC Genome Browser");
+	menu.addAction(QIcon("://Icons/DGV.png"), "Open in DGV");
+	menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC Genome Browser");
 
 	int omim_index = cnvs.annotationHeaders().indexOf("omim");
 	if (omim_index!=-1)

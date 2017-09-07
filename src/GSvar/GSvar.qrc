@@ -35,5 +35,7 @@
         <file>Icons/MultiSample.png</file>
         <file>Icons/Add_green.png</file>
         <file>Icons/Add_red.png</file>
+        <file>Icons/DGV.png</file>
+        <file>Icons/UCSC.png</file>
     </qresource>
 </RCC>

@@ -103,9 +103,13 @@ QString ReportWorker::formatCodingSplicing(QByteArray text)
 	QList<QByteArray> transcripts = text.split(',');
 	for (int i=0; i<transcripts.count(); ++i)
 	{
-		QList<QByteArray> parts = transcripts[i].split(':');
-		if (parts.count()<7) THROW(ProgrammingException, "Could not split 'coding_and_splicing' transcript information to 7 parts: " + transcripts[i]);
-
+		QByteArray transcript = transcripts[i].trimmed();
+		if (transcript.isEmpty()) continue;
+		QList<QByteArray> parts = transcript.split(':');
+		if (parts.count()<7)
+		{
+			THROW(ProgrammingException, "Could not split 'coding_and_splicing' transcript information to 7 parts: " + transcript);
+		}
 		QByteArray gene = parts[0].trimmed();
 		QByteArray trans = parts[1].trimmed();
 		QByteArray output = gene + ":" + trans + ":" + parts[5].trimmed() + ":" + parts[6].trimmed();

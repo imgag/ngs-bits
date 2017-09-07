@@ -8,8 +8,6 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-** AF deviation docu in sample info => add spaces
-** Add variant context menu entry to jump to UCSC
 * Add inheritance mode to gene column => allow filtering
 - CandiateGeneDialog: allow sorting by sample/variant/etc
 - Allow settings disease_group/disease_status for multi-sample GSvar files
@@ -20,6 +18,7 @@ GSvar:
   - implement print-out of upload data for patient file
 
 Tools:
+** NGSDImportHPO: Add augment mode.
 * NGSDImportGeneInfo: add (optional) import of inheritance mode from OMIM
 - SomaticQC: do not use precalculated triplet counts, count every time (CS)
 - BamClipOverlap: require sorted bam and paired-end sequencing (CS)

@@ -50,20 +50,20 @@ For each CNV the following properties are shown (3):
 
 Additionally, generic annotation columns can be added (4), e.g.:
 
-* overlap with copy-number polymorpthism region (strict copy number map from [Zarrei et. al. 2015](http://www.nature.com/nrg/journal/v16/n3/abs/nrg3871.html))
+* overlap with copy-number polymorphism region (strict copy number map from [Zarrei et. al. 2015](http://www.nature.com/nrg/journal/v16/n3/abs/nrg3871.html))
 * dosage-sensitive disease genes (from [Zarrei et. al. 2015](http://www.nature.com/nrg/journal/v16/n3/abs/nrg3871.html))
 * OMIM genes
 
 ![alt text](cnv_filtering.png)
 
-Mor information about a copy-number variant can be found through the resources linked in the context menu (5). 
+More information about a copy-number variant can be found through the resources linked in the context menu (5). 
 
 
 ### Visualizing copy-number data in IGV
 
 *Double-clicking* a CNV in the dialog, opens the CNV region in IGV (see also section [IGV integration](igv_integration.md)).
 
-If the sample folder contains a SEG file, this file can be shown as CNV track in IGV. The default visualization is in heatmap style. In this style regions with a non-significant z-score between -2.5 and 2.5 and regions for which no CNV calling could be performed are shown in white. Gains (z-score>2.5) are shown in red and losses (z-score<-2.5) are shown in blue. Grey areas indicate regions that are not part of the target region (i.e. introns and intergenic regions).
+If the sample folder contains a SEG file, this file can be shown as CNV track in IGV. The default visualization is in heatmap style. In this style regions with a non-significant z-score between -2.5 and 2.5 and regions for which no CNV calling could be performed are shown in white. Gains (z-score>2.5) are shown in blue and losses (z-score<-2.5) are shown in red. Grey areas indicate regions that are not part of the target region (i.e. introns and intergenic regions).
 
 In addition to the z-score which is vizualized, the CNV track also contains the log2-ratio and copy-number, which are shown as a tooltip when hovering over a region (see screenshot).
 
@@ -75,6 +75,9 @@ The scale of the heatmap can be changed using the context menu of the track. Bes
 --
 
 [back to main page](index.md)
+
+
+
 
 
 

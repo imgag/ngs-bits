@@ -1844,6 +1844,9 @@ void MainWindow::varsContextMenu(QPoint pos)
 		}
 	}
 
+	//UCSC
+	menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC Genome Browser");
+
 	/* TODO
 	action = menu.addAction(QIcon(":/Icons/LOVD.png"), "Publish in LOVD");
 	action->setEnabled(ngsd_enabled);
@@ -1977,6 +1980,10 @@ void MainWindow::varsContextMenu(QPoint pos)
 			GUIHelper::showMessage("NGSD error", "Error while processing'"  + filename_ + "'!\nError message: " + e.message());
 			return;
 		}
+	}
+	else if (text=="Open in UCSC Genome Browser")
+	{
+		QDesktopServices::openUrl(QUrl("http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=" + variant.chr().str()+":"+QString::number(variant.start()-20)+"-"+QString::number(variant.end()+20)));
 	}
 	else if (text=="Publish in LOVD")
 	{
