@@ -604,7 +604,7 @@ void ReportWorker::writeHTML()
 		stream << "<br />Basen: " << roi_.baseCount() << endl;
 		if (!genes_.isEmpty())
 		{
-			stream << "<br />Angereicherte Gene (" << QString::number(genes_.count()) << "): " << genes_.join(", ") << endl;
+			stream << "<br />Ausgewertete Gene (" << QString::number(genes_.count()) << "): " << genes_.join(", ") << endl;
 		}
 		stream << "</p>" << endl;
 	}
