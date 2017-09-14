@@ -11,7 +11,7 @@
 #include <QVector>
 #include <QFileInfo>
 #include <QDir>
-#include "math.h"
+#include <cmath>
 
 class SampleCorrelation;
 

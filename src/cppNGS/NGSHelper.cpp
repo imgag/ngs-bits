@@ -5,7 +5,7 @@
 #include <QTextStream>
 #include <QFileInfo>
 #include <QDateTime>
-#include "math.h"
+#include <cmath>
 
 void NGSHelper::openBAM(BamReader& reader, QString bam_file)
 {

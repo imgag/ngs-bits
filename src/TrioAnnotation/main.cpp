@@ -5,7 +5,7 @@
 #include "api/BamReader.h"
 #include "FastaFileIndex.h"
 #include "Helper.h"
-#include <math.h>
+#include <cmath>
 #include <QTextStream>
 #include <QSet>
 

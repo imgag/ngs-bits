@@ -5,7 +5,7 @@
 #include "api/BamReader.h"
 #include "FastaFileIndex.h"
 #include "Settings.h"
-#include <math.h>
+#include <cmath>
 
 using namespace BamTools;
 
