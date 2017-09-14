@@ -27,6 +27,7 @@ public:
 		setDescription("Annotates a child sample with trio information. Assumes that the child is the index patient and that the parents are unaffected.");
 		addInfile("in", "Input variant list of child in TSV format.", false, true);
 		addOutfile("out", "Output file in TSV format.", false, true);
+		addEnum("gender", "Gender of the child.", false, QStringList() << "male" << "female");
 		//optional
 		addInt("min_depth", "Minimum depth in all three samples.", true, 10);
 		addFloat("max_maf", "Maximum minor allele frequency in 1000G,ExAC and gnomAD database annotation.", true, 0.01);
@@ -75,28 +76,31 @@ public:
 		double c_af;
 	};
 
-	double mendelianErrorCount(const QMap<int, Genos>& trio_genos)
+	QPair<int, int> mendelianErrorCount(const QMap<int, Genos>& trio_genos, const VariantList& vl)
 	{
 		int me = 0;
+		int all = 0;
 
-		QMap<int, Genos>::const_iterator it = trio_genos.begin();
-		while(it!=trio_genos.end())
+		for (auto it = trio_genos.cbegin(); it!=trio_genos.cend(); ++it)
 		{
+			if (!vl[it.key()].chr().isAutosome()) continue;
+
+			++all;
+
 			//hom, hom => het/wt
 			if (it.value().f==HOM && it.value().m==HOM && it.value().c!=HOM) me += 1;
 			//hom, het => wt
-			if (it.value().f==HOM && it.value().m==HET && it.value().c==WT) me += 1;
-			if (it.value().f==HET && it.value().m==HOM && it.value().c==WT) me += 1;
+			else if (it.value().f==HOM && it.value().m==HET && it.value().c==WT) me += 1;
+			else if (it.value().f==HET && it.value().m==HOM && it.value().c==WT) me += 1;
 			//het, wt  => hom
-			if (it.value().f==HET && it.value().m==WT && it.value().c==HOM) me += 1;
-			if (it.value().f==WT && it.value().m==HET && it.value().c==HOM) me += 1;
+			else if (it.value().f==HET && it.value().m==WT && it.value().c==HOM) me += 1;
+			else if (it.value().f==WT && it.value().m==HET && it.value().c==HOM) me += 1;
 			//wt, wt  => het/hom
-			if (it.value().f==WT && it.value().m==WT && it.value().c!=WT) me += 1;
+			else if (it.value().f==WT && it.value().m==WT && it.value().c!=WT) me += 1;
 
-			++it;
 		}
 
-		return me;
+		return qMakePair(me, all);
 	}
 
 	Genotype str2geno(const QByteArray& genotype)
@@ -112,6 +116,7 @@ public:
 		int min_depth = getInt("min_depth");
 		double max_maf = getFloat("max_maf");
 		int max_ngsd = getInt("max_ngsd");
+		bool child_is_male = getEnum("gender")=="male";
 
 		//load variant list
 		VariantList vl;
@@ -137,6 +142,10 @@ public:
 		filters["trio_denovo"] = "Trio analyis: Variant is de-novo in child.";
 		filters["trio_recessive"] = "Trio analyis: Variant is recessively inherited from parents.";
 		filters["trio_hemizygous"] = "Trio analyis: Variant is hemizygous.";
+		if (child_is_male)
+		{
+			filters["trio_hemizygous_chrX"] = "Trio analyis: Variant is hemizygous (only for males on chrX).";
+		}
 		filters["trio_comp_m"] = "Trio analyis: Variant is compound-heteroygous inherited from mother.";
 		filters["trio_comp_f"] = "Trio analyis:Variant is compound-heteroygous inherited from father.";
 		QMapIterator<QString, QString> i(filters);
@@ -150,16 +159,19 @@ public:
 		QMap<int, QList<QByteArray> > trio_col;
 		QMap<int, Genos> trio_genos;
 
-		//find classification>2 or rare variants
+		//find classification 3/4/5 or rare variants
 		QSet<int> rare;
 		for (int i=0; i<vl.count(); ++i)
 		{
 			const Variant& v = vl[i];
 
-			//mark classification>2 variants
-			if (v.annotations()[i_class].toInt()>2)
+			//keep class 3/4/5 variants
+			bool is_numeric = false;
+			int classification = v.annotations()[i_class].toInt(&is_numeric);
+			if (is_numeric && classification>2)
 			{
 				rare.insert(i);
+				continue;
 			}
 
 			//filter out common variants (public databases)
@@ -168,15 +180,12 @@ public:
 			if (i_kaviar!=-1 && v.annotations()[i_kaviar].toDouble()>max_maf) continue;
 			if (i_gnomad!=-1 && v.annotations()[i_gnomad].toDouble()>max_maf) continue;
 
-			//filter out common variants (in-house database)
+			//filter out common variants (NGSD)
 			if (v.annotations()[i_hom].toInt()>max_ngsd) continue;
-
-			//filter out gonosomal variants
-			if (v.chr().isGonosome()) continue;
 
 			rare.insert(i);
 		}
-		out << "Variants rare and autosomal: " << rare.count() << endl;
+		out << "Variants rare or class 3/4/5: " << rare.count() << endl;
 
 		//check depth
 		foreach(int i, rare)
@@ -210,14 +219,13 @@ public:
 
 		//print QC statistics
 		out << endl;
-		int me_count = mendelianErrorCount(trio_genos);
-		out << "Mendelian errors: " << QString::number(me_count) << " of " << QString::number(trio_genos.count()) << " ~" << QString::number(100.0*me_count/trio_genos.count(), 'f', 2) << "%" << endl;
+		QPair<int, int> me_count = mendelianErrorCount(trio_genos, vl);
+		out << "Mendelian errors: " << QString::number(me_count.first) << " of " << QString::number(me_count.second) << " autosomal variants ~" << QString::number(100.0*me_count.first/me_count.second, 'f', 2) << "%" << endl;
 		out << endl;
 
 		//find de-novo
-		int count = 0;
-		QMap<int, Genos>::const_iterator it = trio_genos.begin();
-		while(it!=trio_genos.end())
+		int count = 0;		
+		for (auto it = trio_genos.cbegin(); it!=trio_genos.cend(); ++it)
 		{
 			//filter for genotype and for allele frequency (to get rid of artefacts)
 			if (it.value().c!=WT && it.value().f==WT && it.value().f_af<0.05 && it.value().m==WT && it.value().m_af<0.05)
@@ -228,29 +236,29 @@ public:
 					count += 1;
 				}
 			}
-			++it;
 		}
 		out << "De-novo variants: " << QString::number(count) << endl;
 
 		//find recessive variants
 		count = 0;
-		it = trio_genos.begin();
-		while(it!=trio_genos.end())
+		for (auto it = trio_genos.cbegin(); it!=trio_genos.cend(); ++it)
 		{
+			if (child_is_male && !vl[it.key()].chr().isAutosome()) continue;
+
 			if (it.value().f==HET && it.value().m==HET && it.value().c==HOM)
 			{
 				trio_col[it.key()].append("trio_recessive");
 				count += 1;
 			}
-			++it;
 		}
 		out << "Recessive variants: " << QString::number(count) << endl;
 
 		//find hemizygous variants
 		count = 0;
-		it = trio_genos.begin();
-		while(it!=trio_genos.end())
+		for (auto it = trio_genos.cbegin(); it!=trio_genos.cend(); ++it)
 		{
+			if (!vl[it.key()].chr().isAutosome()) continue;
+
 			if ((it.value().f==HET && it.value().m==WT && it.value().c==HOM)
 				||
 				(it.value().f==WT && it.value().m==HET && it.value().c==HOM))
@@ -258,16 +266,16 @@ public:
 				trio_col[it.key()].append("trio_hemizygous");
 				count += 1;
 			}
-			++it;
 		}
 		out << "Hemizygous variants: " << QString::number(count) << endl;
 
 		//find genes that might have compound-heterozygous variants (one from each parent)
 		QSet<QString> genes_mother;
 		QSet<QString> genes_father;
-		it = trio_genos.begin();
-		while(it!=trio_genos.end())
+		for (auto it = trio_genos.cbegin(); it!=trio_genos.cend(); ++it)
 		{
+			if (!vl[it.key()].chr().isAutosome()) continue;
+
 			//filter for LOW/MODERATE/HIGH impact - otherwise we get too many UTR and intronic variants
 			QString co_sp = vl[it.key()].annotations()[i_co_sp];
 			if (co_sp.contains(":HIGH:") || co_sp.contains(":MODERATE:") || co_sp.contains(":LOW:"))
@@ -289,15 +297,15 @@ public:
 					}
 				}
 			}
-			++it;
 		}
 		QSet<QString> comp_genes = genes_mother.intersect(genes_father);
 
 		//mark variants in compound-heterozygous genes
 		count = 0;
-		it = trio_genos.begin();
-		while(it!=trio_genos.end())
+		for (auto it = trio_genos.cbegin(); it!=trio_genos.cend(); ++it)
 		{
+			if (!vl[it.key()].chr().isAutosome()) continue;
+
 			//filter for LOW/MODERATE/HIGH impact - otherwise we get too many UTR and intronic variants
 			QString co_sp = vl[it.key()].annotations()[i_co_sp];
 			if (co_sp.contains(":HIGH:") || co_sp.contains(":MODERATE:") || co_sp.contains(":LOW:"))
@@ -327,9 +335,25 @@ public:
 					}
 				}
 			}
-			++it;
 		}
 		out << "Compound-heterozygous variants: " << QString::number(count) << endl;
+
+		//Mark hemizygous variants on chrX for male index patients
+		if (child_is_male)
+		{
+			count = 0;
+			for (auto it = trio_genos.cbegin(); it!=trio_genos.cend(); ++it)
+			{
+				if (!vl[it.key()].chr().isX()) continue;
+
+				if (it.value().f==WT && it.value().m==HET && it.value().c==HOM)
+				{
+					trio_col[it.key()].append("trio_hemizygous_chrX");
+					count += 1;
+				}
+			}
+			out << "Hemizygous variants (chrX of males): " << QString::number(count) << endl;
+		}
 
 		//store variant list with trio information in 'filter' column
 		for (int i=0; i<vl.count(); ++i)
