@@ -8,6 +8,7 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
+* Add genotype equal for affected
 * Add inheritance mode to gene column => allow filtering
 - CandiateGeneDialog: allow sorting by sample/variant/etc
 - Allow settings disease_group/disease_status for multi-sample GSvar files

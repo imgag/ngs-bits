@@ -455,7 +455,7 @@ void FilterDockWidget::applyDefaultFiltersCarrier()
 	ui_.ihdb->setValue(50);
 	ui_.ihdb_ignore_gt->setChecked(false);
 	ui_.classification_enabled->setChecked(true);
-	ui_.classification->setCurrentText("3");
+	ui_.classification->setCurrentText("4");
 	ui_.keep_class_ge_enabled->setChecked(true);
 	ui_.keep_class_ge->setCurrentText("4");
 	ui_.keep_class_m->setChecked(false);
