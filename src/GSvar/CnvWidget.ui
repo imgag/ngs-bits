@@ -316,6 +316,32 @@
          </spacer>
         </item>
         <item>
+         <widget class="QCheckBox" name="f_comphet">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Compound-heterozygous filter, i.e.&lt;br/&gt;- two CNV hits in one gene, or&lt;br/&gt;- one CNV hit and one heterozygous SNV/indel variant in one gene.&lt;/p&gt;&lt;p&gt;This filter is applied after all other variant and CNV filters.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>comp-het</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_10">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Fixed</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>30</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
          <widget class="QCheckBox" name="f_roi">
           <property name="enabled">
            <bool>false</bool>

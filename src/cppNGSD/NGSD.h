@@ -90,8 +90,10 @@ public:
 	int geneToApprovedID(const QByteArray& gene);
 	///Returns the gene symbol for a gene ID
 	QByteArray geneSymbol(int id);
+	///Returns the the approved gene symbol or "" if it could not be determined.
+	QByteArray geneToApproved(QByteArray gene);
 	///Returns the the approved/original gene symbol and a status message.
-	QPair<QString, QString> geneToApproved(const QString& gene);
+	QPair<QString, QString> geneToApprovedWithMessage(const QString& gene);
 	///Returns previous symbols of a gene.
 	GeneSet previousSymbols(int id);
 	///Returns aliases of a gene.
@@ -114,6 +116,8 @@ public:
 	QStringList phenotypes(QStringList terms);
 	///Returns all genes associated to a phenotype
 	GeneSet phenotypeToGenes(QString phenotype, bool recursive);
+	///Returns the list of all approved gene names
+	const GeneSet& approvedGeneNames();
 
 	/*** Base functionality for file/variant processing ***/
 	///Returns the sample name for a file name, e.g. 'GS120159' for '/some/path/GS120159_01.bam'. Throws an exception if the file name does not start with a valid name.

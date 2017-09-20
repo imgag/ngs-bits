@@ -25,7 +25,7 @@ bool GeneSet::contains(const QByteArray& gene) const
 	return (it != end() && *it == tmp);
 }
 
-bool GeneSet::contains(const GeneSet& genes) const
+bool GeneSet::intersectsWith(const GeneSet& genes) const
 {
 	foreach(const QByteArray& gene, genes)
 	{
@@ -59,11 +59,11 @@ GeneSet GeneSet::createFromFile(QString filename)
 	return output;
 }
 
-GeneSet GeneSet::createFromText(const QByteArray& text)
+GeneSet GeneSet::createFromText(const QByteArray& text, char seperator)
 {
 	GeneSet output;
 
-	QList<QByteArray> lines = text.split('\n');
+	QList<QByteArray> lines = text.split(seperator);
 	foreach(const QByteArray& line, lines)
 	{
 		if (line.startsWith("#")) continue;

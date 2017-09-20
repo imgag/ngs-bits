@@ -631,7 +631,7 @@ void FilterDockWidget::setTargetRegion(QString roi_file)
 
 GeneSet FilterDockWidget::genes() const
 {
-	return GeneSet::createFromText(ui_.gene->text().toLatin1().replace(',','\n'));
+	return GeneSet::createFromText(ui_.gene->text().toLatin1(), ',');
 }
 
 QString FilterDockWidget::region() const

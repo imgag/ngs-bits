@@ -246,17 +246,7 @@ void VariantFilter::flagByGenes(const GeneSet& genes)
 	{
 		if (!pass[i]) continue;
 
-		bool contained = false;
-		QList<QByteArray> genes_variant = variants[i].annotations()[i_gene].split(',');
-		foreach(const QByteArray& gene, genes_variant)
-		{
-			if (genes.contains(gene))
-			{
-				contained = true;
-				break;
-			}
-		}
-		pass[i] = contained;
+		pass[i] = GeneSet::createFromText(variants[i].annotations()[i_gene], ',').intersectsWith(genes);
 	}
 }
 

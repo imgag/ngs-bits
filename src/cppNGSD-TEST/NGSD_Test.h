@@ -29,12 +29,18 @@ private slots:
 		S_EQUAL(sys, "hpHBOCv5");
 
 		//geneToApproved
-		auto gene_app = db.geneToApproved("BRCA1");
-		S_EQUAL(gene_app.first, "BRCA1");
-		S_EQUAL(gene_app.second, "KEPT: BRCA1 is an approved symbol");
+		QByteArray gene_app = db.geneToApproved("BRCA1");
+		S_EQUAL(gene_app, "BRCA1");
 		gene_app = db.geneToApproved("BLABLA");
-		S_EQUAL(gene_app.first, "BLABLA");
-		S_EQUAL(gene_app.second, "ERROR: BLABLA is unknown symbol");
+		S_EQUAL(gene_app, "");
+
+		//geneToApprovedWithMessage
+		auto gene_app2 = db.geneToApprovedWithMessage("BRCA1");
+		S_EQUAL(gene_app2.first, "BRCA1");
+		S_EQUAL(gene_app2.second, "KEPT: BRCA1 is an approved symbol");
+		gene_app2 = db.geneToApprovedWithMessage("BLABLA");
+		S_EQUAL(gene_app2.first, "BLABLA");
+		S_EQUAL(gene_app2.second, "ERROR: BLABLA is unknown symbol");
 
 		//geneToApprovedID
 		int gene_app_id = db.geneToApprovedID("BRCA1");
@@ -271,6 +277,11 @@ private slots:
 		I_EQUAL(db.getValue("SELECT count_het FROM detected_variant_counts WHERE variant_id=2346586").toInt(), 1);
 		I_EQUAL(db.getValue("SELECT count_hom FROM detected_variant_counts WHERE variant_id=2407544").toInt(), 0);
 		I_EQUAL(db.getValue("SELECT count_het FROM detected_variant_counts WHERE variant_id=2407544").toInt(), 2);
+
+		//approvedGeneNames
+		GeneSet approved = db.approvedGeneNames();
+		I_EQUAL(approved.count(), 4);
+
 	}
 
 	//Test for debugging (without initialization because of speed)

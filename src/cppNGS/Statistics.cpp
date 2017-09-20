@@ -604,8 +604,7 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq)
             {
                 if (it->Type=='S' || it->Type=='H')
                 {
-                    qDebug() << it->Type << it->Length;
-                    bases_clipped += it->Length;
+					bases_clipped += it->Length;
                 }
             }
 

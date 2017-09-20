@@ -55,7 +55,7 @@ public:
 		int c_upd = 0;
 		foreach(QString gene, genes)
 		{
-			auto approved = db.geneToApproved(gene);
+			auto approved = db.geneToApprovedWithMessage(gene);
 
 			if (approved.second.startsWith("ERROR:"))
 			{

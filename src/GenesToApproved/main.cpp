@@ -46,8 +46,8 @@ public:
 			//skip empty/comment lines
 			if (gene.isEmpty() || gene[0]=='#') continue;
 
-			QPair<QString, QString> gene_info = db.geneToApproved(gene);
-			outstream->write(gene_info.first.toUtf8() + '\t' + gene_info.second.toUtf8() + '\n');
+			QPair<QString, QString> gene_info = db.geneToApprovedWithMessage(gene);
+			outstream->write(gene_info.first.toLatin1() + '\t' + gene_info.second.toLatin1() + '\n');
 		}
 	}
 };

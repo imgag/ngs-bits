@@ -38,7 +38,7 @@ public:
 		while(query.next())
 		{
 			QString symbol = query.value(0).toString();
-			auto approved = db.geneToApproved(symbol);
+			auto approved = db.geneToApprovedWithMessage(symbol);
 			if (!approved.second.startsWith("KEPT:"))
 			{
 				out << "  skipped " << symbol << ": " << approved.second << endl;
@@ -63,7 +63,7 @@ public:
 
 			//gene
 			QString gene = parts[1];
-			auto approved = db.geneToApproved(gene);
+			auto approved = db.geneToApprovedWithMessage(gene);
 			if (approved.second.startsWith("ERROR:"))
 			{
 				out << "  skipped " << gene << ": " << approved.second << endl;

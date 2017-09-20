@@ -4,6 +4,7 @@
 #include "Exceptions.h"
 #include "GUIHelper.h"
 #include "VariantDetailsDockWidget.h"
+#include "NGSD.h"
 #include <QFileInfo>
 #include <QBitArray>
 #include <QClipboard>
@@ -11,11 +12,11 @@
 #include <QDesktopServices>
 #include <QUrl>
 
-CnvWidget::CnvWidget(QString filename, QWidget *parent)
+CnvWidget::CnvWidget(QString filename, FilterDockWidget* filter_widget, QWidget *parent)
 	: QWidget(parent)
+	, var_filters(filter_widget)
 	, ui(new Ui::CnvList)
 	, cnvs()
-	, f_genes()
 {
 	ui->setupUi(this);
 	connect(ui->cnvs, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(cnvDoubleClicked(QTableWidgetItem*)));
@@ -27,6 +28,7 @@ CnvWidget::CnvWidget(QString filename, QWidget *parent)
 	connect(ui->f_cn, SIGNAL(currentIndexChanged(int)), this, SLOT(filtersChanged()));
 	connect(ui->f_roi, SIGNAL(stateChanged(int)), this, SLOT(filtersChanged()));
 	connect(ui->f_genes, SIGNAL(stateChanged(int)), this, SLOT(filtersChanged()));
+	connect(ui->f_comphet, SIGNAL(stateChanged(int)), this, SLOT(filtersChanged()));
 	connect(ui->f_size, SIGNAL(valueChanged(double)), this, SLOT(filtersChanged()));
 	connect(ui->f_z, SIGNAL(valueChanged(double)), this, SLOT(filtersChanged()));
 	connect(ui->f_af, SIGNAL(valueChanged(double)), this, SLOT(filtersChanged()));
@@ -35,6 +37,8 @@ CnvWidget::CnvWidget(QString filename, QWidget *parent)
 	connect(ui->f_anno_op, SIGNAL(currentIndexChanged(int)), this, SLOT(filtersChanged()));
 	connect(ui->f_anno_op, SIGNAL(currentIndexChanged(int)), this, SLOT(annotationFilterOperationChanged()));
 	connect(ui->f_anno_value, SIGNAL(textEdited(QString)), this, SLOT(filtersChanged()));
+	connect(var_filters, SIGNAL(filtersChanged()), this, SLOT(variantFiltersChanged()));
+	connect(var_filters, SIGNAL(targetRegionChanged()), this, SLOT(variantFiltersChanged()));
 
 	//load CNV data file
 	QString path = QFileInfo(filename).absolutePath();
@@ -53,39 +57,14 @@ CnvWidget::CnvWidget(QString filename, QWidget *parent)
 	{
 		loadCNVs(cnv_files[0]);
 	}
+
+	//update variant list dependent filters (and apply filters)
+	variantFiltersChanged();
 }
 
 CnvWidget::~CnvWidget()
 {
 	delete ui;
-}
-
-void CnvWidget::setGenesFilter(const GeneSet& genes)
-{
-	if (genes.isEmpty())
-	{
-		ui->f_genes->setEnabled(false);
-		f_genes.clear();
-	}
-	else
-	{
-		ui->f_genes->setEnabled(true);
-		f_genes = genes;
-	}
-}
-
-void CnvWidget::setRoiFilter(QString filename)
-{
-	if (filename=="")
-	{
-		ui->f_roi->setEnabled(false);
-		f_roi.clear();
-	}
-	else
-	{
-		ui->f_roi->setEnabled(true);
-		f_roi.load(filename);
-	}
 }
 
 void CnvWidget::cnvDoubleClicked(QTableWidgetItem* item)
@@ -189,9 +168,6 @@ void CnvWidget::loadCNVs(QString filename)
 
 	//resize columns
 	GUIHelper::resizeTableCells(ui->cnvs, 180);
-
-	//apply default filters (and update status)
-	filtersChanged();
 }
 
 void CnvWidget::filtersChanged()
@@ -292,26 +268,21 @@ void CnvWidget::filtersChanged()
 		for(int r=0; r<rows; ++r)
 		{
 			if (!pass[r]) continue;
-			bool hit = false;
-			foreach(const QByteArray& gene, f_genes)
-			{
-				if (cnvs[r].genes().contains(gene))
-				{
-					hit = true;
-					break;
-				}
-			}
-			pass[r] = hit;
+
+			pass[r] = cnvs[r].genes().intersectsWith(var_filters->genes());
 		}
 	}
 
 	//filter by ROI
 	if (ui->f_roi->isChecked())
 	{
+		BedFile roi;
+		roi.load(var_filters->targetRegion());
 		for(int r=0; r<rows; ++r)
 		{
 			if (!pass[r]) continue;
-			pass[r] = f_roi.overlapsWith(cnvs[r].chr(), cnvs[r].start(), cnvs[r].end());
+
+			pass[r] = roi.overlapsWith(cnvs[r].chr(), cnvs[r].start(), cnvs[r].end());
 		}
 	}
 
@@ -347,12 +318,57 @@ void CnvWidget::filtersChanged()
 		}
 	}
 
+	//filter comp-het
+	if (ui->f_comphet->isChecked())
+	{
+		//count hits per gene for CNVs
+		QMap<QByteArray, int> gene_count;
+		for(int r=0; r<rows; ++r)
+		{
+			foreach(const QByteArray& gene, cnvs[r].genes())
+			{
+				if (!pass[r]) continue;
+				gene_count[gene] += 1;
+			}
+		}
+
+		//double CNV hit
+		GeneSet double_hit;
+		for(auto it=gene_count.cbegin(); it!=gene_count.cend(); ++it)
+		{
+			if (it.value()>1)
+			{
+				double_hit.insert(it.key());
+			}
+		}
+		for(int r=0; r<rows; ++r)
+		{
+			if (!pass[r]) continue;
+
+			pass[r] = cnvs[r].genes().intersectsWith(double_hit);
+		}
+
+		//TODO count CNV/small variant hits (use NGSD::gene2approved to make sure the genes names match)
+	}
+
 	//update GUI
 	for(int r=0; r<rows; ++r)
 	{
 		ui->cnvs->setRowHidden(r, !pass[r]);
 	}
 	updateStatus(pass.count(true));
+}
+
+void CnvWidget::variantFiltersChanged()
+{
+	ui->f_genes->setEnabled(!var_filters->genes().isEmpty());
+	if (!ui->f_genes->isEnabled()) ui->f_genes->setChecked(false);
+
+	ui->f_roi->setEnabled(!var_filters->targetRegion().isEmpty());
+	if (!ui->f_roi->isEnabled()) ui->f_roi->setChecked(false);
+
+	//re-apply filters in case the genes/target region changed
+	filtersChanged();
 }
 
 void CnvWidget::copyToClipboard()
@@ -453,4 +469,5 @@ void CnvWidget::updateStatus(int shown)
 	QString text = QString::number(shown) + "/" + QString::number(cnvs.count()) + " passing filter(s)";
 	ui->status->setText(text);
 }
+
 

@@ -3,6 +3,7 @@
 
 #include "cppNGS_global.h"
 #include "Chromosome.h"
+#include "GeneSet.h"
 #include <QList>
 #include <QByteArrayList>
 
@@ -13,7 +14,7 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 		///Default constructor.
 		CopyNumberVariant();
 		///Main constructor.
-		CopyNumberVariant(const Chromosome& chr, int start, int end, QByteArrayList regions, QList<int> cns, QList<double> z_scores, QList<double> afs, QByteArrayList genes, QByteArrayList annotations);
+		CopyNumberVariant(const Chromosome& chr, int start, int end, QByteArrayList regions, QList<int> cns, QList<double> z_scores, QList<double> afs, GeneSet genes, QByteArrayList annotations);
 
 		///Returns the chromosome.
 		const Chromosome& chr() const
@@ -51,7 +52,7 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 			return afs_;
 		}
 		///Returns the annotated genes.
-		const QByteArrayList& genes() const
+		const GeneSet& genes() const
 		{
 			return genes_;
 		}
@@ -85,7 +86,7 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 		QList<int> cns_;
 		QList<double> z_scores_;
 		QList<double> afs_;
-		QByteArrayList genes_;
+		GeneSet genes_;
 		QByteArrayList annotations_;
 };
 

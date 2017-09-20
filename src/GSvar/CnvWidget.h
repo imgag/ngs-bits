@@ -6,6 +6,7 @@
 #include "CnvList.h"
 #include "BedFile.h"
 #include "GeneSet.h"
+#include "FilterDockWidget.h"
 
 namespace Ui {
 class CnvList;
@@ -18,11 +19,8 @@ class CnvWidget
 	Q_OBJECT
 
 public:
-	explicit CnvWidget(QString filename, QWidget *parent = 0);
+	explicit CnvWidget(QString filename, FilterDockWidget* filter_widget, QWidget *parent = 0);
 	~CnvWidget();
-
-	void setGenesFilter(const GeneSet& genes);
-	void setRoiFilter(QString filename);
 
 signals:
 	void openRegionInIGV(QString region);
@@ -30,6 +28,7 @@ signals:
 private slots:
 	void cnvDoubleClicked(QTableWidgetItem* item);
 	void filtersChanged();
+	void variantFiltersChanged();
 	void copyToClipboard();
 	void annotationFilterColumnChanged();
 	void annotationFilterOperationChanged();
@@ -41,10 +40,9 @@ private:
 	void addInfoLine(QString text);
 	void updateStatus(int shown);
 
+	FilterDockWidget* var_filters;
 	Ui::CnvList *ui;
 	CnvList cnvs;
-	GeneSet f_genes;
-	BedFile f_roi;
 	QMap<QString, int> annotation_col_indices_;
 };
 

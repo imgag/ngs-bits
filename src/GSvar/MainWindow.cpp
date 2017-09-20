@@ -136,9 +136,7 @@ void MainWindow::on_actionIgvInit_triggered()
 
 void MainWindow::on_actionCNV_triggered()
 {
-	CnvWidget* list = new CnvWidget(filename_);
-	list->setGenesFilter(filter_widget_->genes());
-	list->setRoiFilter(filter_widget_->targetRegion());
+	CnvWidget* list = new CnvWidget(filename_, filter_widget_);
 	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
 	auto dlg = GUIHelper::showWidgetAsDialog(list, "Copy-number variants", false, false);
 	addModelessDialog(dlg);
@@ -1541,9 +1539,10 @@ void MainWindow::uploadtoLovd(int variant_index)
 	}
 
 	//gene to approved
-	gene = db.geneToApproved(gene).first;
+	QByteArray gene_approved = db.geneToApproved(gene.toLatin1());
+	if (gene_approved.isEmpty()) gene_approved = gene.toLatin1().trimmed().toUpper();
 
-	QByteArray upload_file = LovdUploadFile::create(sample, gender, gene, pheno, variants_, variants_[variant_index]);
+	QByteArray upload_file = LovdUploadFile::create(sample, gender, gene_approved, pheno, variants_, variants_[variant_index]);
 	if (!upload_file.isEmpty())
 	{
 		HttpHandler http_handler;
@@ -1932,7 +1931,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 		try
 		{
 			bool ok = true;
-			QByteArray text = QInputDialog::getMultiLineText(this, "Variant comment", "Text: ", NGSD().comment(variant), &ok).toUtf8();
+			QByteArray text = QInputDialog::getMultiLineText(this, "Variant comment", "Text: ", NGSD().comment(variant), &ok).toLatin1();
 
 			if (ok)
 			{

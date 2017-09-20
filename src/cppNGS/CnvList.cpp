@@ -17,7 +17,7 @@ CopyNumberVariant::CopyNumberVariant()
 {
 }
 
-CopyNumberVariant::CopyNumberVariant(const Chromosome& chr, int start, int end, QByteArrayList regions, QList<int> cns, QList<double> z_scores, QList<double> afs, QByteArrayList genes, QByteArrayList annotations)
+CopyNumberVariant::CopyNumberVariant(const Chromosome& chr, int start, int end, QByteArrayList regions, QList<int> cns, QList<double> z_scores, QList<double> afs, GeneSet genes, QByteArrayList annotations)
 	: chr_(chr)
 	, start_(start)
 	, end_(end)
@@ -132,9 +132,10 @@ void CnvList::load(QString filename)
 		}
 
 		//genes (optional)
+		GeneSet genes;
 		if (i_genes!=-1)
 		{
-			tmp = parts[i_genes].split(',');
+			genes.insert(parts[i_genes].split(','));
 		}
 
 		//parse annotation headers
@@ -144,7 +145,7 @@ void CnvList::load(QString filename)
 			annos << parts[index];
 		}
 
-		variants_.append(CopyNumberVariant(parts[i_chr], parts[i_start].toInt(), parts[i_end].toInt(), parts[i_coords].split(','), cns, zs, afs, tmp, annos));
+		variants_.append(CopyNumberVariant(parts[i_chr], parts[i_start].toInt(), parts[i_end].toInt(), parts[i_coords].split(','), cns, zs, afs, genes, annos));
 	}
 }
 

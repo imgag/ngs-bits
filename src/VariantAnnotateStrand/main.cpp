@@ -9,7 +9,6 @@
 #include "ChromosomeInfo.h"
 #include "FastqFileStream.h"
 #include <QString>
-#include <QDataStream>
 #include <algorithm>
 
 using namespace BamTools;

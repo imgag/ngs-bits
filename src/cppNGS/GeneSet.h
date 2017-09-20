@@ -5,6 +5,7 @@
 #include <QList>
 #include <QSet>
 #include <QByteArray>
+#include <QDataStream>
 
 // A set of gene names (sorted, upper-case and without duplicates)
 class CPPNGSSHARED_EXPORT GeneSet
@@ -78,12 +79,12 @@ class CPPNGSSHARED_EXPORT GeneSet
 		///Checks if the gene is contained
 		bool contains(const QByteArray& gene) const;
 		///Checks if any gene is contained
-		bool contains(const GeneSet& gene) const;
+		bool intersectsWith(const GeneSet& genes) const;
 
 		///Load gene list from file
 		static GeneSet createFromFile(QString filename);
 		///Load gene list from text array
-		static GeneSet createFromText(const QByteArray& text);
+		static GeneSet createFromText(const QByteArray& text, char seperator = '\n');
 		///Stores the gene set to a file
 		void store(QString filename) const;
 };

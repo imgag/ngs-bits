@@ -76,7 +76,7 @@ private slots:
 		IS_FALSE(set.contains("C"));
 	}
 
-	void contains_multi()
+	void intersectsWith()
 	{
 		GeneSet set;
 		set << "A" << "B";
@@ -84,12 +84,12 @@ private slots:
 		GeneSet set2;
 		set2 << "C" << "D";
 
-		IS_FALSE(set.contains(set2));
-		IS_FALSE(set2.contains(set));
+		IS_FALSE(set.intersectsWith(set2));
+		IS_FALSE(set2.intersectsWith(set));
 
 		set2 << "B";
-		IS_TRUE(set.contains(set2));
-		IS_TRUE(set2.contains(set));
+		IS_TRUE(set.intersectsWith(set2));
+		IS_TRUE(set2.intersectsWith(set));
 	}
 
 	void insert_stream()
@@ -158,6 +158,15 @@ private slots:
 		S_EQUAL(set[2], "C");
 	}
 
+	void createFromText_custom_separator()
+	{
+		GeneSet set = GeneSet::createFromText("#bla,A,C,B", ',');
+
+		I_EQUAL(set.count(), 3);
+		S_EQUAL(set[0], "A");
+		S_EQUAL(set[1], "B");
+		S_EQUAL(set[2], "C");
+	}
 	void store()
 	{
 		GeneSet set;

@@ -7,7 +7,6 @@
 #include <QTime>
 #include <QString>
 #include "FastqFileStream.h"
-#include <QDataStream>
 #include <algorithm>
 
 using namespace BamTools;

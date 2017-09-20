@@ -63,7 +63,7 @@ void GapDialog::process(QString bam_file, const BedFile& roi, const GeneSet& gen
 
 		//genes
 		GeneSet genes_anno = db.genesOverlappingByExon(line.chr(), line.start(), line.end(), 30);
-		bool highlight_genes = genes_anno.contains(genes);
+		bool highlight_genes = genes_anno.intersectsWith(genes);
 		ui->gaps->setItem(i, 3, createItem(genes_anno.join(", "), highlight_genes));
 
 		//type

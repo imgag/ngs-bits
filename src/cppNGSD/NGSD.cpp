@@ -886,8 +886,8 @@ void NGSD::fixGeneNames(QTextStream* messages, bool fix_errors, QString table, Q
 		if (fix_errors)
 		{
 			QString gene = query.value(0).toString();
-			auto approved_data = geneToApproved(gene);
-			if (approved_data.second.contains("ERROR"))
+			auto approved_data = geneToApprovedWithMessage(gene);
+			if (approved_data.second.startsWith("ERROR"))
 			{
 				*messages << "  FAIL: Cannot fix error in '" << gene << "' because: " << approved_data.second << endl;
 			}
@@ -1178,7 +1178,34 @@ QByteArray NGSD::geneSymbol(int id)
 	return getValue("SELECT symbol FROM gene WHERE id='" + QString::number(id) + "'").toByteArray();
 }
 
-QPair<QString, QString> NGSD::geneToApproved(const QString& gene)
+QByteArray NGSD::geneToApproved(QByteArray gene)
+{
+	gene = gene.trimmed().toUpper();
+
+	//already approved gene
+	if (approvedGeneNames().contains(gene))
+	{
+		qDebug() << __LINE__ << gene; //TODO
+		return gene;
+	}
+
+	//check if already cached
+	static QMap<QByteArray, QByteArray> mapping;
+	if (mapping.contains(gene))
+	{
+		qDebug() << __LINE__ << mapping[gene]; //TODO
+		return mapping[gene];
+	}
+
+	//not cached => try to convert
+	int gene_id = geneToApprovedID(gene);
+	mapping[gene] = (gene_id!=-1) ? geneSymbol(gene_id) : "";
+
+	qDebug() << __LINE__ << mapping[gene]; //TODO
+	return mapping[gene];
+}
+
+QPair<QString, QString> NGSD::geneToApprovedWithMessage(const QString& gene)
 {
 	//approved
 	SqlQuery q_gene = getQuery();
@@ -1348,7 +1375,7 @@ GeneSet NGSD::phenotypeToGenes(QString phenotype, bool recursive)
 		while(pid2genes.next())
 		{
 			QString gene = pid2genes.value(0).toString();
-			QPair<QString, QString> geneinfo = geneToApproved(gene);
+			QPair<QString, QString> geneinfo = geneToApprovedWithMessage(gene);
 			genes.insert(geneinfo.first.toLatin1());
 		}
 
@@ -1366,6 +1393,25 @@ GeneSet NGSD::phenotypeToGenes(QString phenotype, bool recursive)
 
 	return genes;
 }
+
+const GeneSet& NGSD::approvedGeneNames()
+{
+	static GeneSet output;
+
+	if (output.count()==0)
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT symbol from gene");
+
+		while(query.next())
+		{
+			output.insert(query.value(0).toByteArray());
+		}
+	}
+
+	return output;
+}
+
 
 GeneSet NGSD::genesOverlapping(const Chromosome& chr, int start, int end, int extend)
 {
@@ -1760,7 +1806,7 @@ GeneInfo NGSD::geneInfo(QByteArray symbol)
 
 	//get approved symbol
 	symbol = symbol.trimmed();
-	auto approved = geneToApproved(symbol);
+	auto approved = geneToApprovedWithMessage(symbol);
 	output.symbol = approved.first;
 	output.notice = approved.second;
 

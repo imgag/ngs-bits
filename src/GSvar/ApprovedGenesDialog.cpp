@@ -19,7 +19,7 @@ void ApprovedGenesDialog::on_convertBtn_pressed()
 		if (!line.isEmpty() && line[0]!='#')
 		{
 			QList<QString> parts = line.split('\t');
-			QPair<QString, QString> output = db.geneToApproved(parts[0]);
+			QPair<QString, QString> output = db.geneToApprovedWithMessage(parts[0]);
 			ui_.text->appendPlainText(output.first + '\t' + output.second);
 		}
 	}
