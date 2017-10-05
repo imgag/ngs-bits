@@ -739,11 +739,13 @@ void MainWindow::generateReportSomatic()
 	BedFile roi_inter;
 	roi_inter.load(db.getProcessingSystem(tumor, NGSD::FILE));
 	roi_inter.intersect(roi);
+	roi_inter.merge();
 	if (roi_inter.baseCount()!=roi.baseCount())
 	{
 		QString message = "Gaps cannot be calculated because the selected target region is larger than the processing system target region:";
 		BedFile roi_missing;
 		roi_missing.load(roi_file);
+		roi_missing.merge();
 		roi_missing.subtract(roi_inter);
 		for (int i=0; i<std::min(10, roi_missing.count()); ++i)
 		{
