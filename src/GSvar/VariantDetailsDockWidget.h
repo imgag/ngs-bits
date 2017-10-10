@@ -27,7 +27,6 @@ public:
 	//Clears the widget (no variant selected).
 	void clear();
 
-
 	//Database annotation datastructure
 	struct DBEntry
 	{

@@ -1178,14 +1178,13 @@ QByteArray NGSD::geneSymbol(int id)
 	return getValue("SELECT symbol FROM gene WHERE id='" + QString::number(id) + "'").toByteArray();
 }
 
-QByteArray NGSD::geneToApproved(QByteArray gene)
+QByteArray NGSD::geneToApproved(QByteArray gene, bool return_input_when_unconvertable)
 {
 	gene = gene.trimmed().toUpper();
 
 	//already approved gene
 	if (approvedGeneNames().contains(gene))
 	{
-		qDebug() << __LINE__ << gene; //TODO
 		return gene;
 	}
 
@@ -1193,7 +1192,11 @@ QByteArray NGSD::geneToApproved(QByteArray gene)
 	static QMap<QByteArray, QByteArray> mapping;
 	if (mapping.contains(gene))
 	{
-		qDebug() << __LINE__ << mapping[gene]; //TODO
+		if (return_input_when_unconvertable && mapping[gene].isEmpty())
+		{
+			return gene;
+		}
+
 		return mapping[gene];
 	}
 
@@ -1201,8 +1204,28 @@ QByteArray NGSD::geneToApproved(QByteArray gene)
 	int gene_id = geneToApprovedID(gene);
 	mapping[gene] = (gene_id!=-1) ? geneSymbol(gene_id) : "";
 
-	qDebug() << __LINE__ << mapping[gene]; //TODO
+	if (return_input_when_unconvertable && mapping[gene].isEmpty())
+	{
+		return gene;
+	}
+
 	return mapping[gene];
+}
+
+GeneSet NGSD::genesToApproved(GeneSet genes, bool return_input_when_unconvertable)
+{
+	GeneSet output;
+
+	foreach(const QByteArray& gene, genes)
+	{
+		QByteArray gene_new = geneToApproved(gene, return_input_when_unconvertable);
+		if (!gene_new.isEmpty())
+		{
+			output.insert(gene_new);
+		}
+	}
+
+	return output;
 }
 
 QPair<QString, QString> NGSD::geneToApprovedWithMessage(const QString& gene)

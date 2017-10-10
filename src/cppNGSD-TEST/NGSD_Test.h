@@ -33,6 +33,10 @@ private slots:
 		S_EQUAL(gene_app, "BRCA1");
 		gene_app = db.geneToApproved("BLABLA");
 		S_EQUAL(gene_app, "");
+		gene_app = db.geneToApproved("BLABLA", true);
+		S_EQUAL(gene_app, "BLABLA");
+		gene_app = db.geneToApproved("BLABLA2", true);
+		S_EQUAL(gene_app, "BLABLA2");
 
 		//geneToApprovedWithMessage
 		auto gene_app2 = db.geneToApprovedWithMessage("BRCA1");

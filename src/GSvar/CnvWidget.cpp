@@ -5,6 +5,8 @@
 #include "GUIHelper.h"
 #include "VariantDetailsDockWidget.h"
 #include "NGSD.h"
+#include "Settings.h"
+#include <QMessageBox>
 #include <QFileInfo>
 #include <QBitArray>
 #include <QClipboard>
@@ -12,9 +14,10 @@
 #include <QDesktopServices>
 #include <QUrl>
 
-CnvWidget::CnvWidget(QString filename, FilterDockWidget* filter_widget, QWidget *parent)
+CnvWidget::CnvWidget(QString filename, FilterDockWidget* filter_widget, const GeneSet& het_hit_genes, QWidget *parent)
 	: QWidget(parent)
 	, var_filters(filter_widget)
+	, var_het_hit_genes(het_hit_genes)
 	, ui(new Ui::CnvList)
 	, cnvs()
 {
@@ -321,6 +324,8 @@ void CnvWidget::filtersChanged()
 	//filter comp-het
 	if (ui->f_comphet->isChecked())
 	{
+		qDebug() << __LINE__;
+
 		//count hits per gene for CNVs
 		QMap<QByteArray, int> gene_count;
 		for(int r=0; r<rows; ++r)
@@ -332,23 +337,44 @@ void CnvWidget::filtersChanged()
 			}
 		}
 
-		//double CNV hit
-		GeneSet double_hit;
+		//two CNV hits
+		GeneSet double_hit_cnv;
+		GeneSet single_hit_cnv;
 		for(auto it=gene_count.cbegin(); it!=gene_count.cend(); ++it)
 		{
+			if (it.value()==1)
+			{
+				single_hit_cnv.insert(it.key());
+			}
 			if (it.value()>1)
 			{
-				double_hit.insert(it.key());
+				double_hit_cnv.insert(it.key());
 			}
 		}
+
+		//one CNV and one SNV/INDEL hit
+		if (Settings::boolean("NGSD_enabled", true))
+		{
+			NGSD db;
+			single_hit_cnv = db.genesToApproved(single_hit_cnv);
+		}
+
+		GeneSet double_hit_cnv_var;
+		foreach(const QByteArray& gene, single_hit_cnv)
+		{
+			if (var_het_hit_genes.contains(gene))
+			{
+				double_hit_cnv_var.insert(gene);
+			}
+		}
+
+		//flag passing CNVs
 		for(int r=0; r<rows; ++r)
 		{
 			if (!pass[r]) continue;
 
-			pass[r] = cnvs[r].genes().intersectsWith(double_hit);
+			pass[r] = cnvs[r].genes().intersectsWith(double_hit_cnv) || cnvs[r].genes().intersectsWith(double_hit_cnv_var);
 		}
-
-		//TODO count CNV/small variant hits (use NGSD::gene2approved to make sure the genes names match)
 	}
 
 	//update GUI

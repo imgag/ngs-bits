@@ -8,15 +8,16 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-* Candidate gene dialog: add classification column
-* Gap report: add avg. coverage
+** Candidate gene dialog: add classification column
+** Gap report: add avg. coverage
+** Sample info dialog: add comment
 * Add genotype equal for affected
 * Add inheritance mode to gene column => allow filtering
 - CandiateGeneDialog: allow sorting by sample/variant/etc
 - Allow settings disease_group/disease_status for multi-sample GSvar files
 - Multi-sample anaysis: allow relaxing affected/control genotype filters by requiring only X out of Y
 - Target region filter: reset to none if it looses focus in search mode
-** ClinVar/LOVD upload for variant:
+*** ClinVar/LOVD upload for variant:
   - implement dialog where user can double-check the data before upload
   - implement print-out of upload data for patient file
 

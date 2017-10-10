@@ -318,7 +318,7 @@
         <item>
          <widget class="QCheckBox" name="f_comphet">
           <property name="toolTip">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Compound-heterozygous filter, i.e.&lt;br/&gt;- two CNV hits in one gene, or&lt;br/&gt;- one CNV hit and one heterozygous SNV/indel variant in one gene.&lt;/p&gt;&lt;p&gt;This filter is applied after all other variant and CNV filters.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Compound-heterozygous filter, i.e.&lt;br/&gt;- two CNV hits in one gene, or&lt;br/&gt;- one CNV hit and one heterozygous SNV/indel variant in one gene.&lt;/p&gt;&lt;p&gt;This filter is applied after all other variant and CNV filters.&lt;/p&gt;&lt;p&gt;Note: The list of genes with heterozygous SNV/indel variants that pass the variant filter is created when the CNV dialog is opened. Changing the variant filters afterwards will not affect this filter. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="text">
            <string>comp-het</string>

@@ -7,6 +7,7 @@
 #include "BedFile.h"
 #include "GeneSet.h"
 #include "FilterDockWidget.h"
+#include "VariantList.h"
 
 namespace Ui {
 class CnvList;
@@ -19,7 +20,7 @@ class CnvWidget
 	Q_OBJECT
 
 public:
-	explicit CnvWidget(QString filename, FilterDockWidget* filter_widget, QWidget *parent = 0);
+	explicit CnvWidget(QString filename, FilterDockWidget* filter_widget, const GeneSet& het_hit_genes, QWidget *parent = 0);
 	~CnvWidget();
 
 signals:
@@ -41,6 +42,7 @@ private:
 	void updateStatus(int shown);
 
 	FilterDockWidget* var_filters;
+	GeneSet var_het_hit_genes;
 	Ui::CnvList *ui;
 	CnvList cnvs;
 	QMap<QString, int> annotation_col_indices_;

@@ -91,7 +91,9 @@ public:
 	///Returns the gene symbol for a gene ID
 	QByteArray geneSymbol(int id);
 	///Returns the the approved gene symbol or "" if it could not be determined.
-	QByteArray geneToApproved(QByteArray gene);
+	QByteArray geneToApproved(QByteArray gene, bool return_input_when_unconvertable=false);
+	///Returns the the approved gene symbols. Unconvertaglb if it could not be determined.
+	GeneSet genesToApproved(GeneSet genes, bool return_input_when_unconvertable=false);
 	///Returns the the approved/original gene symbol and a status message.
 	QPair<QString, QString> geneToApprovedWithMessage(const QString& gene);
 	///Returns previous symbols of a gene.

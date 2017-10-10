@@ -136,7 +136,36 @@ void MainWindow::on_actionIgvInit_triggered()
 
 void MainWindow::on_actionCNV_triggered()
 {
-	CnvWidget* list = new CnvWidget(filename_, filter_widget_);
+	//create list of genes with heterozygous variant hits
+	GeneSet het_hit_genes;
+	int i_genes = variants_.annotationIndexByName("gene", true, false);
+	int i_genotype = variants_.annotationIndexByName("genotype", true, false);
+	if (i_genes!=-1 && i_genotype!=-1)
+	{
+		for (int i=0; i<variants_.count(); ++i)
+		{
+			if (ui_.vars->isRowHidden(i)) continue;
+			if (variants_[i].annotations()[i_genotype]!="het") continue;
+
+			GeneSet genes = GeneSet::createFromText(variants_[i].annotations()[i_genes], ',');
+			foreach(const QByteArray& gene, genes)
+			{
+				het_hit_genes.insert(gene);
+			}
+		}
+	}
+	else
+	{
+		QMessageBox::information(this, "Invalid variant list", "Column 'genotype' or 'gene' not found in variant list. Cannot apply compound-heterozygous filter based on variants!");
+	}
+
+	if (Settings::boolean("NGSD_enabled", true))
+	{
+		NGSD db;
+		het_hit_genes = db.genesToApproved(het_hit_genes);
+	}
+
+	CnvWidget* list = new CnvWidget(filename_, filter_widget_, het_hit_genes);
 	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
 	auto dlg = GUIHelper::showWidgetAsDialog(list, "Copy-number variants", false, false);
 	addModelessDialog(dlg);
