@@ -77,7 +77,7 @@ double AnalysisWorker::matchProbability(int matches, int mismatches)
 void AnalysisWorker::correctErrors(QTextStream& debug_out)
 {
 	int mm_count = 0;
-	const int count = e1_->bases.count();
+	const int count = std::min(e1_->bases.count(), e2_->bases.count());
 	for (int i=0; i<count; ++i)
 	{
 		const int i2 = count-i-1;
@@ -330,10 +330,17 @@ void AnalysisWorker::run()
 	{
 		//update sequence data
 		int new_length = length_s2_orig-best_offset;
-		e1_->bases.resize(new_length);
-		e1_->qualities.resize(new_length);
-		e2_->bases.resize(new_length);
-		e2_->qualities.resize(new_length);
+
+		if (e1_->bases.count()>new_length)
+		{
+			e1_->bases.resize(new_length);
+			e1_->qualities.resize(new_length);
+		}
+		if (e2_->bases.count()>new_length)
+		{
+			e2_->bases.resize(new_length);
+			e2_->qualities.resize(new_length);
+		}
 
 		//update consensus adapter sequence
 		QByteArray adapter1 = seq1.mid(new_length);
