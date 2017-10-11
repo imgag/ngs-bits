@@ -1,11 +1,13 @@
 ### TrioAnnotation tool help
-	TrioAnnotation (0.1-722-gaa8a403)
+	TrioAnnotation (0.1-873-g04f7bd6)
 	
 	Annotates a child sample with trio information. Assumes that the child is the index patient and that the parents are unaffected.
 	
 	Mandatory parameters:
 	  -in <file>       Input variant list of child in TSV format.
 	  -out <file>      Output file in TSV format.
+	  -gender <enum>   Gender of the child.
+	                   Valid: 'male,female'
 	
 	Optional parameters:
 	  -min_depth <int> Minimum depth in all three samples.
@@ -22,6 +24,6 @@
 	  --tdx            Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### TrioAnnotation changelog
-	TrioAnnotation 0.1-722-gaa8a403
+	TrioAnnotation 0.1-873-g04f7bd6
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

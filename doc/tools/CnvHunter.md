@@ -1,5 +1,5 @@
 ### CnvHunter tool help
-	CnvHunter (0.1-852-g5a7f2d2)
+	CnvHunter (0.1-873-g04f7bd6)
 	
 	CNV detection from targeted resequencing data using non-matched control samples.
 	
@@ -38,6 +38,12 @@
 	                         Default value: ''
 	  -annotate <filelist>   List of BED files used for annotation. Each file adds a column to the output file. The base filename is used as colum name and 4th column of the BED file is used as annotation value.
 	                         Default value: ''
+	  -gc_window <int>       Moving median GC-content normalization window size (disabled by default).
+	                         Default value: '-1'
+	  -gc_extend <int>       Moving median GC-content normalization extension around target region.
+	                         Default value: '0'
+	  -ref <file>            Reference genome FASTA file. If unset, 'reference_genome' from the 'settings.ini' file is used.
+	                         Default value: ''
 	
 	Special parameters:
 	  --help                 Shows this help and exits.
@@ -46,8 +52,9 @@
 	  --tdx                  Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### CnvHunter changelog
-	CnvHunter 0.1-852-g5a7f2d2
+	CnvHunter 0.1-873-g04f7bd6
 	
+	2017-09-04 Added GC normalization.
 	2017-08-29 Updated default values of parameters 'n' and 'reg_max_cv' based on latest benchmarks.
 	2017-08-28 Added generic annotation mechanism for annotation from BED files.
 	2017-08-24 Added copy-number-polymorphisms regions input file ('cnp_file' parameter).
