@@ -31,7 +31,7 @@ CnvWidget::CnvWidget(QString filename, FilterDockWidget* filter_widget, const Ge
 	connect(ui->f_cn, SIGNAL(currentIndexChanged(int)), this, SLOT(filtersChanged()));
 	connect(ui->f_roi, SIGNAL(stateChanged(int)), this, SLOT(filtersChanged()));
 	connect(ui->f_genes, SIGNAL(stateChanged(int)), this, SLOT(filtersChanged()));
-	connect(ui->f_comphet, SIGNAL(stateChanged(int)), this, SLOT(filtersChanged()));
+	connect(ui->f_comphet, SIGNAL(currentIndexChanged(int)), this, SLOT(filtersChanged()));
 	connect(ui->f_size, SIGNAL(valueChanged(double)), this, SLOT(filtersChanged()));
 	connect(ui->f_z, SIGNAL(valueChanged(double)), this, SLOT(filtersChanged()));
 	connect(ui->f_af, SIGNAL(valueChanged(double)), this, SLOT(filtersChanged()));
@@ -322,10 +322,8 @@ void CnvWidget::filtersChanged()
 	}
 
 	//filter comp-het
-	if (ui->f_comphet->isChecked())
+	if (ui->f_comphet->currentText()!="n/a")
 	{
-		qDebug() << __LINE__;
-
 		//count hits per gene for CNVs
 		QMap<QByteArray, int> gene_count;
 		for(int r=0; r<rows; ++r)
@@ -338,33 +336,42 @@ void CnvWidget::filtersChanged()
 		}
 
 		//two CNV hits
-		GeneSet double_hit_cnv;
-		GeneSet single_hit_cnv;
-		for(auto it=gene_count.cbegin(); it!=gene_count.cend(); ++it)
+		GeneSet comphet_hit;
+		if (ui->f_comphet->currentText()=="CNV-CNV")
 		{
-			if (it.value()==1)
+			for(auto it=gene_count.cbegin(); it!=gene_count.cend(); ++it)
 			{
-				single_hit_cnv.insert(it.key());
-			}
-			if (it.value()>1)
-			{
-				double_hit_cnv.insert(it.key());
+				if (it.value()>1)
+				{
+					comphet_hit.insert(it.key());
+				}
 			}
 		}
 
 		//one CNV and one SNV/INDEL hit
-		if (Settings::boolean("NGSD_enabled", true))
+		else
 		{
-			NGSD db;
-			single_hit_cnv = db.genesToApproved(single_hit_cnv);
-		}
-
-		GeneSet double_hit_cnv_var;
-		foreach(const QByteArray& gene, single_hit_cnv)
-		{
-			if (var_het_hit_genes.contains(gene))
+			GeneSet single_hit_cnv;
+			for(auto it=gene_count.cbegin(); it!=gene_count.cend(); ++it)
 			{
-				double_hit_cnv_var.insert(gene);
+				if (it.value()==1)
+				{
+					single_hit_cnv.insert(it.key());
+				}
+			}
+
+			if (Settings::boolean("NGSD_enabled", true))
+			{
+				NGSD db;
+				single_hit_cnv = db.genesToApproved(single_hit_cnv);
+			}
+
+			foreach(const QByteArray& gene, single_hit_cnv)
+			{
+				if (var_het_hit_genes.contains(gene))
+				{
+					comphet_hit.insert(gene);
+				}
 			}
 		}
 
@@ -373,7 +380,7 @@ void CnvWidget::filtersChanged()
 		{
 			if (!pass[r]) continue;
 
-			pass[r] = cnvs[r].genes().intersectsWith(double_hit_cnv) || cnvs[r].genes().intersectsWith(double_hit_cnv_var);
+			pass[r] = cnvs[r].genes().intersectsWith(comphet_hit);
 		}
 	}
 

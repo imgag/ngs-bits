@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1200</width>
+    <width>1313</width>
     <height>800</height>
    </rect>
   </property>
@@ -316,13 +316,32 @@
          </spacer>
         </item>
         <item>
-         <widget class="QCheckBox" name="f_comphet">
+         <widget class="QLabel" name="label_7">
           <property name="toolTip">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Compound-heterozygous filter, i.e.&lt;br/&gt;- two CNV hits in one gene, or&lt;br/&gt;- one CNV hit and one heterozygous SNV/indel variant in one gene.&lt;/p&gt;&lt;p&gt;This filter is applied after all other variant and CNV filters.&lt;/p&gt;&lt;p&gt;Note: The list of genes with heterozygous SNV/indel variants that pass the variant filter is created when the CNV dialog is opened. Changing the variant filters afterwards will not affect this filter. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Compound-heterozygous filters:&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;1) CNV-CNV&lt;/p&gt;&lt;p&gt;Two CNVs in the same gene&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;2) CNV-SNP/INDEL&lt;/p&gt;&lt;p&gt;One CNV and one heterozygous SNP/INDEL.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="text">
-           <string>comp-het</string>
+           <string>Compound-heterozygous:</string>
           </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="f_comphet">
+          <item>
+           <property name="text">
+            <string>n/a</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>CNV-CNV</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>CNV-SNP/INDEL</string>
+           </property>
+          </item>
          </widget>
         </item>
         <item>
