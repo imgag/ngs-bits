@@ -1,7 +1,16 @@
-### 0.1-856-g19c01af (30.08.2016)
+### 0.1-880-ge0ae009 (11.10.2017)
+- Gap dialog: added average coverage to gap report. 
+- CNV dialog: added option for compound-heterozygous filtering.
+- CNV dialog: added context menu entries to open CNV regions in DGV/UCSC.
+- Sample information dialog: Added processed sample comment.
+- Candidate gene dialog: added custom sorting via table headers. 
+- Candidate gene dialog: added classification column.
+- General: added default filter for recessive inheritance.
+
+### 0.1-856-g19c01af (30.08.2017)
 - CNV dialog: added filter options for new CNV result columns.
 
-### 0.1-813-g48244c7 (09.08.2016)
+### 0.1-813-g48244c7 (09.08.2017)
 - General: gene/region and region/gene conversion now also supports non-coding genes.
 
 ### 0.1-782-ge325449 (28.07.2017)
@@ -96,6 +105,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 
