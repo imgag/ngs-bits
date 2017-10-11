@@ -1823,6 +1823,11 @@ void NGSD::setProcessedSampleQuality(const QString& filename, QString quality)
 	getQuery().exec("UPDATE processed_sample SET quality='" + quality + "' WHERE id='" + processedSampleId(filename) + "'");
 }
 
+QString NGSD::getProcessedSampleComment(const QString& filename)
+{
+	return getValue("SELECT comment FROM processed_sample WHERE id='" + processedSampleId(filename) + "'", false).toString();
+}
+
 GeneInfo NGSD::geneInfo(QByteArray symbol)
 {
 	GeneInfo output;

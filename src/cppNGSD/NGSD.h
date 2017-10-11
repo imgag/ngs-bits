@@ -205,6 +205,9 @@ public:
 	///Sets processed sample quality
 	void setProcessedSampleQuality(const QString& filename, QString quality);
 
+	///Returns processed sample comment
+	QString getProcessedSampleComment(const QString& filename);
+
 	///Returns the germline gene information for a HGNC-approved gene symbol
 	GeneInfo geneInfo(QByteArray symbol);
 	///Sets the germline gene information for a HGNC-approved gene symbol (not ExAC pLI score, because it is read-only)

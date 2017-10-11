@@ -170,6 +170,7 @@ void SampleInformationDialog::refresh()
 
 		ui_.qc_kasp->setText(qc.value("kasp").asString());
 		ui_.qc_quality->setText(db.getProcessedSampleQuality(filename_, true));
+		ui_.comment->setText(db.getProcessedSampleComment(filename_));
 	}
 	catch(...)
 	{

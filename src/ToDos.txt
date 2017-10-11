@@ -10,7 +10,6 @@ libs:
 GSvar:
 ** Candidate gene dialog: add classification column
 ** Gap report: add avg. coverage
-** Sample info dialog: add comment
 * Add genotype equal for affected
 * Add inheritance mode to gene column => allow filtering
 - CandiateGeneDialog: allow sorting by sample/variant/etc
