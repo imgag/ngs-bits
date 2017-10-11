@@ -171,7 +171,12 @@ GapValidationLabel::State GapDialog::state(int row) const
 
 QString GapDialog::gapAsTsv(int row) const
 {
-	return ui->gaps->item(row, 0)->text().replace("-", "\t").replace(":", "\t") + "\t" + ui->gaps->item(row, 3)->text();
+	QString output = ui->gaps->item(row, 0)->text().replace("-", "\t").replace(":", "\t") + "\t";
+	output += "avg_depth=" + ui->gaps->item(row, 2)->text();
+	QString gene = ui->gaps->item(row, 3)->text().trimmed();
+	if (!gene.isEmpty()) output += " gene=" + gene;
+
+	return  output;
 }
 
 int GapDialog::gapSize(int row) const
