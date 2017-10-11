@@ -8,7 +8,6 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-** Candidate gene dialog: add classification column
 ** Gap report: add avg. coverage
 * Add genotype equal for affected
 * Add inheritance mode to gene column => allow filtering

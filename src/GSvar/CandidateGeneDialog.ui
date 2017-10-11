@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>906</width>
-    <height>627</height>
+    <width>1450</width>
+    <height>680</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -193,7 +193,7 @@
       <bool>false</bool>
      </property>
      <property name="columnCount">
-      <number>13</number>
+      <number>14</number>
      </property>
      <attribute name="verticalHeaderVisible">
       <bool>false</bool>
@@ -261,6 +261,11 @@
      <column>
       <property name="text">
        <string>disease_group</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>classification</string>
       </property>
      </column>
     </widget>
