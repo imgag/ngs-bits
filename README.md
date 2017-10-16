@@ -62,7 +62,7 @@ _ngs-bits_ contains a lot of tools that we use for NGS short-read data analysis 
 ### Main tools
 
 * [SeqPurge](doc/SeqPurge/index.md) - A highly-sensitive adapter trimmer for paired-end short-read data.
-* [SampleCorrelation](doc/tools/SampleCorrelation.md) - Calculates the variant overlap and correlation of two VCF/BAM files.
+* [SampleCorrelation](doc/SampleCorrelation/index.md) - Calculates the variant overlap and correlation of two VCF/BAM files.
 * [SampleGender](doc/tools/SampleGender.md) - Determines sample gender based on a BAM file.
 * [PERsim](doc/tools/PERsim.md) - Paired-end read simulator for Illumina reads.
 * [CnvHunter](doc/CnvHunter/index.md) - CNV detection from targeted resequencing data using non-matched control samples.
@@ -122,6 +122,7 @@ The default output format of the quality control tools is [qcML](https://github.
 
 
   
+
 
 
 
