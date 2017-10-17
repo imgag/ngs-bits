@@ -133,6 +133,8 @@ public:
 		fields << "r.fcid";
 		fields << "r.recipe";
 		fields << "r.quality";
+		fields << "s.disease_group";
+		fields << "s.disease_status";
 		SqlQuery result = db.getQuery();
 		result.exec("SELECT "+fields.join(", ")+" FROM "+tables.join(", ")+" WHERE "+conditions.join(" AND "));
 

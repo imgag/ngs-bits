@@ -21,11 +21,13 @@ INSERT INTO processing_system (id, name_manufacturer, shotgun, name_short, genom
 INSERT INTO processing_system (id, name_manufacturer, shotgun, name_short, genome_id) VALUES (2, 'SureSelect Human All Exon v5', '1', 'ssHAEv5', 1);
 
 -- sample
-INSERT INTO sample (id, name, sample_type, species_id, gender, tumor, ffpe, sender_id, quality) VALUES (1, 'NA12878', 'DNA', 1, 'female', '0', '0', 1, 'good');
+INSERT INTO sample (id, name, sample_type, species_id, gender, tumor, ffpe, sender_id, quality, disease_group, disease_status) VALUES (1, 'NA12878', 'DNA', 1, 'female', '0', '0', 1, 'good', 'Neoplasms', 'Affected');
+INSERT INTO sample (id, name, sample_type, species_id, gender, tumor, ffpe, sender_id, quality) VALUES (2, 'NA12880', 'DNA', 1, 'female', '0', '0', 1, 'good');
 
 -- processed_sample
 INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane, operator_id, processing_system_id, project_id, last_analysis, quality) VALUES (1, 1, 1, 1, 1, 2, 1, 1, '2015-10-30', 'bad');
 INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane, operator_id, processing_system_id, project_id) VALUES (2, 1, 2, 2, 1, 2, 2, 2);
+INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane, operator_id, processing_system_id, project_id) VALUES (3, 2, 1, 2, 1, 2, 2, 2);
 
 -- qc_terms
 INSERT INTO `qc_terms` (`id`, `qcml_id`, `name`, `description`) VALUES
