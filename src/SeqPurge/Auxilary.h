@@ -25,7 +25,7 @@ struct TrimmingData
 
 	//analysis datastructures
 	QThreadPool analysis_pool;
-	int reads_queued;
+	long reads_queued;
 
 	//output streams
 	QMutex out1_out2_mutex; ///< Mutex to ensure the order of reads in forward/reverse read file matches
@@ -55,7 +55,7 @@ struct TrimmingParameters
 	}
 
 	int adapter_overlap;
-	int max_reads_queued;
+	long max_reads_queued;
 	QByteArray a1;
 	QByteArray a2;
 	int a_size;
@@ -91,7 +91,7 @@ struct TrimmingStatistics
 	}
 
 	QMutex mutex; //Mutex for thread-safe access
-	int read_num;
+	long read_num;
 	QVector<double> bases_remaining;
 	QVector<Pileup> acons1;
 	QVector<Pileup> acons2;

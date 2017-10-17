@@ -53,7 +53,7 @@ public:
 		changeLog(2016, 3, 16, "Version used in the SeqPurge paper: http://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-016-1069-7");
 	}
 
-	int processingReadPairs() const
+	long processingReadPairs() const
 	{
 		return data_.reads_queued - stats_.read_num;
 	}
