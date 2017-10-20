@@ -16,14 +16,12 @@ SubpanelDesignDialog::SubpanelDesignDialog(QWidget *parent)
 	, last_created_subpanel("")
 {
 	ui->setupUi(this);
-	loadProcessingSystems();
 	createSubpanelCompleter();
 
 	connect(ui->check, SIGNAL(pressed()), this, SLOT(checkAndCreatePanel()));
 	connect(ui->store, SIGNAL(pressed()), this, SLOT(storePanel()));
 
 	connect(ui->name, SIGNAL(textEdited(QString)), this, SLOT(disableStoreButton()));
-	connect(ui->base_panel, SIGNAL(currentTextChanged(QString)), this, SLOT(disableStoreButton()));
 	connect(ui->genes, SIGNAL(textChanged()), this, SLOT(disableStoreButton()));
 }
 
@@ -41,19 +39,6 @@ void SubpanelDesignDialog::setGenes(QStringList genes)
 QString SubpanelDesignDialog::lastCreatedSubPanel()
 {
 	return last_created_subpanel;
-}
-
-void SubpanelDesignDialog::loadProcessingSystems()
-{
-	ui->base_panel->addItem("<select>");
-
-	QMap<QString, QString> systems = NGSD().getProcessingSystems(true, true);
-	auto it = systems.constBegin();
-	while (it != systems.constEnd())
-	{
-		ui->base_panel->addItem(it.key(), Helper::canonicalPath(it.value()));
-		++it;
-	}
 }
 
 void SubpanelDesignDialog::createSubpanelCompleter()
@@ -113,29 +98,8 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 		QPair<QString, QString> geneinfo = db.geneToApprovedWithMessage(gene);
 		if (geneinfo.first!=gene || geneinfo.second.startsWith("ERROR"))
 		{
-			showMessage(geneinfo.second, true);
+			showMessage("Gene " + geneinfo.first + ": " + geneinfo.second, true);
 			return;
-		}
-	}
-
-	//check that genes are contained on base panel
-	QString base_panel_file = ui->base_panel->currentData().toString();
-	if (base_panel_file!="")
-	{
-		base_panel_file = base_panel_file.left(base_panel_file.size()-4) + "_genes.txt";
-		if (!QFile::exists(base_panel_file))
-		{
-			showMessage("Base panel gene file " + base_panel_file + " does not exist!", true);
-			return;
-		}
-		GeneSet base_genes = GeneSet::createFromFile(base_panel_file);
-		foreach (const QByteArray& g, genes)
-		{
-			if (!base_genes.contains(g))
-			{
-				showMessage("Gene '" + g + "' is not part of the base panel!", true);
-				return;
-			}
 		}
 	}
 
@@ -162,7 +126,11 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 		showMessage(messages, true);
 		return;
 	}
-	regions.extend(ui->flanking->currentText().toInt());
+	int flanking  = ui->flanking->currentText().toInt();
+	if (flanking>0)
+	{
+		regions.extend(flanking);
+	}
 	regions.merge();
 	showMessage("Sub-panel with " + QString::number(genes.count()) + " genes of size " + QString::number(regions.baseCount()) + " bp (exons plus " + ui->flanking->currentText() + " flanking bases) designed. You can store it now!", false);
 

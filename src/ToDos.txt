@@ -8,6 +8,8 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
+** CandidateGeneDialog: add option to filter for inhouse-count (allele count?!) and disease group (positive/negative)
+* Target region archive dialog: add functionality to search for filters with a certain gene
 * Add genotype equal for affected
 * Add inheritance mode to gene column => allow filtering
 - Allow settings disease_group/disease_status for multi-sample GSvar files
@@ -28,7 +30,7 @@ Tools:
     - refactor and combine indel and snv handling (CS)
 
 CnvHunter:
-** test GC-normalization (check e.g. GS151166_01 gene C5orf42)
+** test GC-normalization (check GS151166_01 C5orf42, DX170123_01 SEC23B del)
     - test effect of including different flanking regions
     - alternatively, test intra-sample normalization using the most similar exons on different chromosomes
 * test with duplicate reads; with anomalous reads; with multi-mapped reads; chunked data

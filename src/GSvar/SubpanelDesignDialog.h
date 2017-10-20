@@ -31,7 +31,6 @@ protected slots:
 	void disableStoreButton();
 
 private:
-	void loadProcessingSystems();
 	void createSubpanelCompleter();
 	QString getBedFilename();
 	QString getBedFilenameArchive();
