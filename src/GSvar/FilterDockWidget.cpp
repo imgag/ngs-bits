@@ -418,7 +418,7 @@ void FilterDockWidget::applyDefaultFiltersSomatic()
 	resetSignalsUnblocked(false, true);
 
     //enable default filters
-    ui_.maf_enabled->setChecked(true);
+	ui_.maf_enabled->setChecked(false);
     ui_.maf->setValue(1.0);
 	ui_.maf_sub_enabled->setChecked(false);
 	ui_.maf_sub->setValue(1.0);
