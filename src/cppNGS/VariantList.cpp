@@ -28,8 +28,8 @@ Variant::Variant(const Chromosome& chr, int start, int end, const Sequence& ref,
 	: chr_(chr)
 	, start_(start)
 	, end_(end)
-	, ref_(ref)
-	, obs_(obs)
+	, ref_(ref.trimmed())
+	, obs_(obs.trimmed())
     , filters_()
 	, annotations_(annotations)
 {

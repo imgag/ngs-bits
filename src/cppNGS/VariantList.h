@@ -59,7 +59,7 @@ public:
     ///Sets the reference base.
 	void setRef(const Sequence& ref)
     {
-        ref_ = ref;
+		ref_ = ref.trimmed();
     }
     ///Returns the observed base.
 	const Sequence& obs() const
@@ -69,7 +69,7 @@ public:
     ///Sets the observed base.
 	void setObs(const Sequence& obs)
     {
-        obs_ = obs;
+		obs_ = obs.trimmed();
     }
 
     ///Read-only access to the annotations.
