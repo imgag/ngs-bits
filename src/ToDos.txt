@@ -9,15 +9,16 @@ libs:
 
 GSvar:
 ** CandidateGeneDialog: add option to filter for inhouse-count (allele count?!) and disease group (positive/negative)
+* subpanel dialog: allow gene(s) search
 * Target region archive dialog: add functionality to search for filters with a certain gene
 * Add genotype equal for affected
 * Add inheritance mode to gene column => allow filtering
 - Allow settings disease_group/disease_status for multi-sample GSvar files
 - Multi-sample anaysis: allow relaxing affected/control genotype filters by requiring only X out of Y
 - Target region filter: reset to none if it looses focus in search mode
-*** ClinVar/LOVD upload for variant:
-  - implement dialog where user can double-check the data before upload
+**** ClinVar/LOVD upload for variant:
   - implement print-out of upload data for patient file
+  - store uploaded data in NGSD: variant, class, target DB, addinfo (HPO terms, gene, transcript, .g, .c, .p)
 
 Tools:
 ** NGSDImportHPO: Add augment mode.

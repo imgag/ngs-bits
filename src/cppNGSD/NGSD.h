@@ -110,6 +110,8 @@ public:
 	QList<Transcript> transcripts(int gene_id, Transcript::SOURCE source, bool coding_only);
 	///Returns longest coding transcript of a gene.
 	Transcript longestCodingTranscript(int gene_id, Transcript::SOURCE source);
+	///Returns the list of all approved gene names
+	const GeneSet& approvedGeneNames();
 
 	/*** phenotype handling (HPO) ***/
 	///Returns the phenotypes of a gene
@@ -117,9 +119,9 @@ public:
 	///Returns all phenotypes matching the given search terms (or all terms if no search term is given)
 	QStringList phenotypes(QStringList terms);
 	///Returns all genes associated to a phenotype
-	GeneSet phenotypeToGenes(QString phenotype, bool recursive);
-	///Returns the list of all approved gene names
-	const GeneSet& approvedGeneNames();
+	GeneSet phenotypeToGenes(QByteArray phenotype, bool recursive);
+	///Returns the phenotype name for an phenotype ID. Throws an exception if the ID is not valid.
+	QByteArray phenotypeIdToName(QByteArray id);
 
 	/*** Base functionality for file/variant processing ***/
 	///Returns the sample name for a file name, e.g. 'GS120159' for '/some/path/GS120159_01.bam'. Throws an exception if the file name does not start with a valid name.

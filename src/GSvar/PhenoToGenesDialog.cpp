@@ -1,48 +1,24 @@
 #include "PhenoToGenesDialog.h"
 #include "Helper.h"
-#include "ui_PhenoToGenesDialog.h"
 #include <QDebug>
 #include <QClipboard>
 #include <QFileDialog>
 
-PhenoToGenesDialog::PhenoToGenesDialog(QWidget *parent) :
-	QDialog(parent),
-        ui(new Ui::PhenoToGenesDialog)
+PhenoToGenesDialog::PhenoToGenesDialog(QWidget *parent)
+	: QDialog(parent)
+	, ui()
 {
-	ui->setupUi(this);
-	ui->pheno_sel->setDetailsWidget(ui->pheno_details);
-	connect(ui->pheno_sel, SIGNAL(phenotypeActivated(QString)), this, SLOT(copyPhenotype(QString)));
-	connect(ui->pheno, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(deletePhenotype(QListWidgetItem*)));
-	connect(ui->tabs, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
+	ui.setupUi(this);
 
-	connect(ui->clip_btn, SIGNAL(pressed()), this, SLOT(copyGenesToClipboard()));
-	connect(ui->store_btn, SIGNAL(pressed()), this, SLOT(storeGenesAsTSV()));
-}
+	connect(ui.tabs, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
 
-PhenoToGenesDialog::~PhenoToGenesDialog()
-{
-	delete ui;
-}
-
-void PhenoToGenesDialog::copyPhenotype(QString phenotype)
-{
-	//skip if already contained
-	for (int i=0; i<ui->pheno->count(); ++i)
-	{
-		if (ui->pheno->item(i)->text()==phenotype) return;
-	}
-
-	ui->pheno->addItem(phenotype);
-}
-
-void PhenoToGenesDialog::deletePhenotype(QListWidgetItem* item)
-{
-	ui->pheno->takeItem(ui->pheno->row(item));
+	connect(ui.clip_btn, SIGNAL(pressed()), this, SLOT(copyGenesToClipboard()));
+	connect(ui.store_btn, SIGNAL(pressed()), this, SLOT(storeGenesAsTSV()));
 }
 
 void PhenoToGenesDialog::copyGenesToClipboard()
 {
-	QApplication::clipboard()->setText(ui->genes->toPlainText());
+	QApplication::clipboard()->setText(ui.genes->toPlainText());
 }
 
 void PhenoToGenesDialog::storeGenesAsTSV()
@@ -51,7 +27,7 @@ void PhenoToGenesDialog::storeGenesAsTSV()
 	if (filename.isEmpty()) return;
 
 	auto file_prt = Helper::openFileForWriting(filename);
-	file_prt->write(ui->genes->toPlainText().toLatin1());
+	file_prt->write(ui.genes->toPlainText().toLatin1());
 }
 
 void PhenoToGenesDialog::tabChanged(int num)
@@ -63,19 +39,19 @@ void PhenoToGenesDialog::tabChanged(int num)
 		//get gene list
 		int max_phenotypes = 0;
 		QMap<QByteArray, QStringList> gene2pheno;
-		for (int i=0; i<ui->pheno->count(); ++i)
+		QList<Phenotype> phenos = ui.pheno_selector->selectedPhenotypes();
+		for (int i=0; i<phenos.count(); ++i)
 		{
-			QString pheno = ui->pheno->item(i)->text();
-			GeneSet genes = db.phenotypeToGenes(pheno, true);
+			GeneSet genes = db.phenotypeToGenes(phenos[i].name(), true);
 			foreach(QByteArray gene, genes)
 			{
-				gene2pheno[gene].append(pheno);
+				gene2pheno[gene].append(phenos[i].name());
 				max_phenotypes = std::max(max_phenotypes, gene2pheno[gene].count());
 			}
 		}
 
 		//update view
-		ui->genes->clear();
+		ui.genes->clear();
 		for (int hits = max_phenotypes; hits>0; --hits)
 		{
 			auto it = gene2pheno.begin();
@@ -84,15 +60,15 @@ void PhenoToGenesDialog::tabChanged(int num)
 				int count_phenos = it.value().count();
 				if (count_phenos==hits)
 				{
-					ui->genes->append(it.key() + "\t" + it.value().join(", ") + "\t" + QString::number(count_phenos));
+					ui.genes->append(it.key() + "\t" + it.value().join(", ") + "\t" + QString::number(count_phenos));
 				}
 				++it;
 			}
 		}
-		ui->genes->moveCursor(QTextCursor::Start);
+		ui.genes->moveCursor(QTextCursor::Start);
 	}
 
 	//update buttons
-	ui->clip_btn->setEnabled(num==1);
-	ui->store_btn->setEnabled(num==1);
+	ui.clip_btn->setEnabled(num==1);
+	ui.store_btn->setEnabled(num==1);
 }

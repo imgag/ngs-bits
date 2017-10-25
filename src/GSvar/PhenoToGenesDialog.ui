@@ -65,34 +65,7 @@
         <number>3</number>
        </property>
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout_2" stretch="2,1">
-         <item>
-          <widget class="PhenotypeSelector" name="pheno_sel" native="true">
-           <property name="minimumSize">
-            <size>
-             <width>200</width>
-             <height>200</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QTextEdit" name="pheno_details"/>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <widget class="QListWidget" name="pheno">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Selected phenotypes.&lt;/p&gt;&lt;p&gt;Double-click a phenotype to remove it.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="dragEnabled">
-          <bool>false</bool>
-         </property>
-         <property name="dragDropMode">
-          <enum>QAbstractItemView::NoDragDrop</enum>
-         </property>
-        </widget>
+        <widget class="PhenotypeSelectionWidget" name="pheno_selector" native="true"/>
        </item>
       </layout>
      </widget>
@@ -191,9 +164,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>PhenotypeSelector</class>
+   <class>PhenotypeSelectionWidget</class>
    <extends>QWidget</extends>
-   <header>PhenotypeSelector.h</header>
+   <header>PhenotypeSelectionWidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

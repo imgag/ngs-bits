@@ -56,13 +56,13 @@ Phenotype PhenotypeSelector::selectedPhenotype() const
 	if (item==nullptr) return pheno;
 
 	//name
-	pheno.setName(item->text());
+	pheno.setName(item->text().toLatin1());
 
 	//accession
 	SqlQuery query = db_.getQuery();
 	query.exec("SELECT hpo_id FROM hpo_term WHERE name='" + pheno.name() + "'");
 	query.next();
-	pheno.setAccession(query.value(0).toString());
+	pheno.setAccession(query.value(0).toByteArray());
 
 	return pheno;
 }

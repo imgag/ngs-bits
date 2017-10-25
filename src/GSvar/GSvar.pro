@@ -35,7 +35,9 @@ SOURCES += main.cpp\
     MultiSampleDialog.cpp \
     NGSDReannotationDialog.cpp \
     DiseaseInfoDialog.cpp \
-    CandidateGeneDialog.cpp
+    CandidateGeneDialog.cpp \
+    PhenotypeSelectionWidget.cpp \
+    LovdUploadDialog.cpp
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
@@ -65,7 +67,9 @@ HEADERS  += MainWindow.h \
     MultiSampleDialog.h \
     NGSDReannotationDialog.h \
     DiseaseInfoDialog.h \
-    CandidateGeneDialog.h
+    CandidateGeneDialog.h \
+    PhenotypeSelectionWidget.h \
+    LovdUploadDialog.h
 
 
 FORMS    += MainWindow.ui \
@@ -93,7 +97,9 @@ FORMS    += MainWindow.ui \
     MultiSampleDialog.ui \
     NGSDReannotationDialog.ui \
     DiseaseInfoDialog.ui \
-    CandidateGeneDialog.ui
+    CandidateGeneDialog.ui \
+    PhenotypeSelectionWidget.ui \
+    LovdUploadDialog.ui
     
 
 include("../app_gui.pri")

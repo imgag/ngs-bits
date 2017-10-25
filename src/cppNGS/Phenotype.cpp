@@ -1,6 +1,6 @@
 #include "Phenotype.h"
 
-Phenotype::Phenotype(QString accession, QString name)
+Phenotype::Phenotype(QByteArray accession, QByteArray name)
 	: accession_(accession)
 	, name_(name)
 {

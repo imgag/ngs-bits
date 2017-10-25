@@ -2,12 +2,7 @@
 #define PHENOTOGENESDIALOG_H
 
 #include <QDialog>
-#include "NGSD.h"
-#include <QListWidgetItem>
-
-namespace Ui {
-class PhenoToGenesDialog;
-}
+#include "ui_PhenoToGenesDialog.h"
 
 class PhenoToGenesDialog
 	: public QDialog
@@ -15,19 +10,16 @@ class PhenoToGenesDialog
 	Q_OBJECT
 
 public:
-        explicit PhenoToGenesDialog(QWidget* parent = 0);
-        ~PhenoToGenesDialog();
+	PhenoToGenesDialog(QWidget* parent = 0);
 
 private slots:
-	void copyPhenotype(QString phenotype);
-	void deletePhenotype(QListWidgetItem* item);
 	void copyGenesToClipboard();
 	void storeGenesAsTSV();
 
 	void tabChanged(int);
 
 private:
-	Ui::PhenoToGenesDialog *ui;
+	Ui::PhenoToGenesDialog ui;
 };
 
 #endif // PHENOTOGENESDIALOG_H

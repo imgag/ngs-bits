@@ -1369,7 +1369,7 @@ QStringList NGSD::phenotypes(QStringList terms)
 	return list;
 }
 
-GeneSet NGSD::phenotypeToGenes(QString phenotype, bool recursive)
+GeneSet NGSD::phenotypeToGenes(QByteArray phenotype, bool recursive)
 {
 	//prepare queries
 	SqlQuery pid2genes = getQuery();
@@ -1415,6 +1415,11 @@ GeneSet NGSD::phenotypeToGenes(QString phenotype, bool recursive)
 	}
 
 	return genes;
+}
+
+QByteArray NGSD::phenotypeIdToName(QByteArray id)
+{
+	return getValue("SELECT name FROM hpo_term WHERE hpo_id='"+id+"'", false).toByteArray();
 }
 
 const GeneSet& NGSD::approvedGeneNames()

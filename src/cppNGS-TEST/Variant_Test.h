@@ -8,6 +8,16 @@ TEST_CLASS(Variant_Test)
 Q_OBJECT
 private slots:
 
+	void constructor()
+	{
+		Variant variant("chr11", 5, 10, " r ", " o ");
+		S_EQUAL(variant.chr().str(), "chr11");
+		I_EQUAL(variant.start(), 5);
+		I_EQUAL(variant.end(), 10);
+		S_EQUAL(variant.ref(), "r");
+		S_EQUAL(variant.obs(), "o");
+	}
+
 	void static_normalize()
 	{
 		Sequence ref = "A";

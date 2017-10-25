@@ -8,29 +8,34 @@
 class CPPNGSSHARED_EXPORT Phenotype
 {
 public:
-	Phenotype(QString accession="", QString name="");
+	Phenotype(QByteArray accession="", QByteArray name="");
 
-	QString accession() const
+	QByteArray accession() const
 	{
 		return accession_;
 	}
-	void setAccession(QString accession)
+	void setAccession(QByteArray accession)
 	{
 		accession_ = accession;
 	}
 
-	QString name() const
+	QByteArray name() const
 	{
 		return name_;
 	}
-	void setName(QString name)
+	void setName(QByteArray name)
 	{
 		name_ = name;
 	}
 
+	bool operator==(const Phenotype& rhs) const
+	{
+		return accession_==rhs.accession_;
+	}
+
 protected:
-	QString accession_;
-	QString name_;
+	QByteArray accession_;
+	QByteArray name_;
 };
 
 #endif // PHENOTYPE_H

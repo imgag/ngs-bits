@@ -22,6 +22,13 @@ ngsd_test_name = ""
 ngsd_test_user = ""
 ngsd_test_pass = ""
 
+#GL8 MySQL credentials
+genlab_host = ""
+genlab_port = 3306
+genlab_name = ""
+genlab_user = ""
+genlab_pass = ""
+
 #projects folder
 projects_folder = ""
 
@@ -34,6 +41,7 @@ NGSD = ""
 SampleStatus = ""
 PrimerDesign = ""
 Alamut = ""
+VariantInfoRefSeq = ""
 
 #special folders for GSvar
 preferred_transcripts_file = ""

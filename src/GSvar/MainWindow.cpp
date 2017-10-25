@@ -43,8 +43,6 @@
 #include "GapDialog.h"
 #include "CnvWidget.h"
 #include "GeneSelectorDialog.h"
-#include "LovdUploadFile.h"
-#include "PhenotypeSelector.h"
 #include "NGSHelper.h"
 #include "XmlHelper.h"
 #include "QCCollection.h"
@@ -53,6 +51,7 @@
 #include "DiseaseInfoDialog.h"
 #include "CandidateGeneDialog.h"
 #include "TSVFileStream.h"
+#include "LovdUploadDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -1548,38 +1547,68 @@ QString MainWindow::nobr()
 
 void MainWindow::uploadtoLovd(int variant_index)
 {
-	QString sample = QFileInfo(filename_).baseName();
+	//(1) prepare data as far as we can (not RefSeq transcript data is available)
+	LovdUploadData data;
+
+	//sample name
+	data.processed_sample = QFileInfo(filename_).baseName();
+
+	//gender
 	NGSD db;
-	QString gender = db.sampleGender(sample);
+	data.gender = db.sampleGender(data.processed_sample);
 
-	//select phenotype
-	PhenotypeSelector* p_sel = new PhenotypeSelector();
-	QSharedPointer<QDialog> dlg = GUIHelper::showWidgetAsDialog(p_sel, "Select patient phenotype", true);
-	Phenotype pheno = p_sel->selectedPhenotype();
-	if (dlg->result()==QDialog::Rejected || pheno.name().isEmpty()) return;
-
-	//select gene
-	QByteArray gene_anno = variants_[variant_index].annotations()[variants_.annotationIndexByName("gene")];
-	QStringList genes = QString(gene_anno).split(',');
-	QString gene = genes[0];
-	if (genes.count()!=1)
+	//phenotype(s) from GenLab
+	QSharedPointer<QSqlDatabase> db2(new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL", "GENLAB_" + Helper::randomString(20))));
+	db2->setHostName(Settings::string("genlab_host"));
+	db2->setPort(Settings::integer("genlab_port"));
+	db2->setDatabaseName(Settings::string("genlab_name"));
+	db2->setUserName(Settings::string("genlab_user"));
+	db2->setPassword(Settings::string("genlab_pass"));
+	if (!db2->open())
 	{
-		bool ok = false;
-		gene = (genes.count()==1 ? genes[0] : QInputDialog::getItem(this, "Select gene", "affected gene:", genes, 0, false, &ok));
-		if (!ok) return;
+		THROW(DatabaseException, "Could not connect to the GenLab database:!");
+	}
+	QString sample_name = data.processed_sample.left(data.processed_sample.length()-3);
+	QSqlQuery query = db2->exec("SELECT HPOTERM1,HPOTERM2,HPOTERM3,HPOTERM4 FROM v_ngs_sap WHERE labornummer='"+sample_name+"'");
+	while(query.next())
+	{
+		for (int i=0; i<4; ++i)
+		{
+			if (query.value(i).toString().trimmed().isEmpty()) continue;
+
+			QByteArray pheno_id = query.value(i).toByteArray();
+			try
+			{
+				QByteArray pheno_name = db.phenotypeIdToName(pheno_id);
+				data.phenos.append(Phenotype(pheno_id, pheno_name));
+			}
+			catch(DatabaseException e)
+			{
+				Log::error("Invalid HPO term ID '" + pheno_id + "' found in GenLab:" + e.message());
+			}
+		}
 	}
 
-	//gene to approved
-	QByteArray gene_approved = db.geneToApproved(gene.toLatin1());
-	if (gene_approved.isEmpty()) gene_approved = gene.toLatin1().trimmed().toUpper();
+	//chromosome
+	const Variant& variant = variants_[variant_index];
+	data.chr = variant.chr();
 
-	QByteArray upload_file = LovdUploadFile::create(sample, gender, gene_approved, pheno, variants_, variants_[variant_index]);
-	if (!upload_file.isEmpty())
-	{
-		HttpHandler http_handler;
-		QString reply = http_handler.getHttpReply("https://databases.lovd.nl/shared/api/submissions", upload_file);
-		qDebug() << "REPLY:" << reply;
-	}
+	//genotype
+	int genotype_index = variants_.annotationIndexByName("genotype");
+	data.genotype = variant.annotations()[genotype_index];
+
+	//HGVS.g
+	FastaFileIndex idx(Settings::string("reference_genome"));
+	data.hgvs_g = variant.toHGVS(idx);
+
+	//classification
+	int classification_index = variants_.annotationIndexByName("classification");
+	data.classification = variant.annotations()[classification_index];
+
+	// (2) show dialog
+	LovdUploadDialog dlg(this);
+	dlg.setData(variant, data);
+	dlg.exec();
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent* e)
@@ -1877,10 +1906,9 @@ void MainWindow::varsContextMenu(QPoint pos)
 	//UCSC
 	menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC Genome Browser");
 
-	/* TODO
+	//LOVD upload
 	action = menu.addAction(QIcon(":/Icons/LOVD.png"), "Publish in LOVD");
 	action->setEnabled(ngsd_enabled);
-	*/
 
 	//Execute menu
 	action = menu.exec(ui_.vars->viewport()->mapToGlobal(pos));

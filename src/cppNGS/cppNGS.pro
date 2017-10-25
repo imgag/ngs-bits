@@ -49,7 +49,6 @@ SOURCES += BedFile.cpp \
     ChromosomeInfo.cpp \
     SampleCorrelation.cpp \
     CnvList.cpp \
-    LovdUploadFile.cpp \
     Phenotype.cpp \
     Transcript.cpp \
     GeneSet.cpp
@@ -72,7 +71,6 @@ HEADERS += BedFile.h \
     ChromosomeInfo.h \
     SampleCorrelation.h \
     CnvList.h \
-    LovdUploadFile.h \
     Phenotype.h \
     Transcript.h \
     GeneSet.h
