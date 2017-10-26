@@ -16,9 +16,6 @@ GSvar:
 - Allow settings disease_group/disease_status for multi-sample GSvar files
 - Multi-sample anaysis: allow relaxing affected/control genotype filters by requiring only X out of Y
 - Target region filter: reset to none if it looses focus in search mode
-**** ClinVar/LOVD upload for variant:
-  - implement print-out of upload data for patient file
-  - store uploaded data in NGSD: variant, class, target DB, addinfo (HPO terms, gene, transcript, .g, .c, .p)
 
 Tools:
 ** NGSDImportHPO: Add augment mode.

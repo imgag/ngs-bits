@@ -85,35 +85,3 @@ void HttpHandler::handleProxyAuthentification(const QNetworkProxy& proxy, QAuthe
 	QString proxy_pass = QInputDialog::getText(QApplication::activeWindow(), "Proxy password required", "Proxy password for " + proxy.hostName(), QLineEdit::Password);
 	auth->setPassword(proxy_pass);
 }
-
-/* Not used - we use system proxy settings with credentials cache
-void HttpHandler::proxyFromSettings(QNetworkAccessManager& nmgr)
-{
-	//no proxy set => return
-	QString proxy_host = Settings::string("proxy_host");
-	if (proxy_host.isEmpty()) return;
-
-	//create proxy
-	QNetworkProxy proxy;
-	proxy.setType(QNetworkProxy::HttpProxy);
-	proxy.setHostName(proxy_host);
-	int proxy_port = Settings::integer("proxy_port");
-	proxy.setPort(proxy_port);
-
-	//set proxy user/password
-	QString proxy_user = Settings::string("proxy_user");
-	if (!proxy_user.isEmpty())
-	{
-		proxy.setUser(proxy_user);
-		QString proxy_password = Settings::string("proxy_password");
-		if (proxy_password=="ASK")
-		{
-			proxy_password = QInputDialog::getText(QApplication::activeWindow(), "Proxy password required", "Password for user " + proxy_user);
-		}
-		proxy.setPassword(proxy_password);
-	}
-
-	//set proxy
-	nmgr.setProxy(proxy);
-}
-*/

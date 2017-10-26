@@ -5,6 +5,7 @@
 #include "ui_LovdUploadDialog.h"
 
 #include "Phenotype.h"
+#include "NGSD.h"
 
 //Datastructure for upload data
 struct LovdUploadData
@@ -15,7 +16,7 @@ struct LovdUploadData
 	QString genotype;
 
 	//variant data
-	Chromosome chr;
+	Variant variant;
 	QString gene;
 	QString nm_number;
 	QString hgvs_g;
@@ -43,10 +44,12 @@ private slots:
 	void dataToGui();
 	void guiToData();
 	void checkGuiData();
+	void printResults();
 
 private:
 	Ui::LovdUploadDialog ui_;
 	LovdUploadData data_;
+	NGSD db_;
 
 
 	static QByteArray create(const LovdUploadData& data);

@@ -1591,7 +1591,7 @@ void MainWindow::uploadtoLovd(int variant_index)
 
 	//chromosome
 	const Variant& variant = variants_[variant_index];
-	data.chr = variant.chr();
+	data.variant = variant;
 
 	//genotype
 	int genotype_index = variants_.annotationIndexByName("genotype");

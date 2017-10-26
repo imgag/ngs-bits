@@ -839,6 +839,35 @@ void NGSD::setClassification(const Variant& variant, const QString& classificati
 	query.exec();
 }
 
+void NGSD::addVariantPublication(QString filename, const Variant& variant, QString database, QString classification, QString details)
+{
+	QString s_id = sampleId(filename);
+	QString v_id = variantId(variant);
+	QString user_id = userId();
+
+	//insert
+	getQuery().exec("INSERT INTO variant_publication (sample_id, variant_id, db, class, details, user_id) VALUES ("+s_id+","+v_id+", '"+database+"', '"+classification+"', '"+details+"', "+user_id+")");
+}
+
+QString NGSD::getVariantPublication(QString filename, const Variant& variant)
+{
+	QString s_id = sampleId(filename);
+	QString v_id = variantId(variant);
+
+	//select
+	SqlQuery query = getQuery();
+	query.exec("SELECT vp.db, vp.class, vp.details, vp.date, u.name FROM variant_publication vp LEFT JOIN user u on vp.user_id=u.id WHERE sample_id="+s_id+" AND variant_id="+v_id);
+
+	//create output
+	QStringList output;
+	while (query.next())
+	{
+		output << "db: " + query.value("db").toString() + " class: " + query.value("class").toString() + " user: " + query.value("name").toString() + " date: " + query.value("date").toString().replace("T", " ") + "\n  " + query.value("details").toString().replace(";", "\n  ").replace("=", ": ");
+	}
+
+	return output.join("\n");
+}
+
 QString NGSD::comment(const Variant& variant)
 {
 	return getValue("SELECT comment FROM variant WHERE id='" + variantId(variant) + "'").toString();

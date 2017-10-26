@@ -536,6 +536,39 @@ AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
+-- Table `variant_publication`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `variant_publication` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `sample_id` INT(11) NOT NULL,
+  `variant_id` INT(11) NOT NULL,
+  `db` ENUM('LOVD','ClinVar') NOT NULL,
+  `class` ENUM('1','2','3','4','5') NOT NULL,
+  `details` TEXT NOT NULL,
+  `user_id` INT(11) NOT NULL,
+  `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+PRIMARY KEY (`id`),
+CONSTRAINT `fk_variant_publication_has_user`
+  FOREIGN KEY (`user_id`)
+  REFERENCES `user` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION,
+CONSTRAINT `fk_variant_publication_has_sample`
+    FOREIGN KEY (`sample_id`)
+    REFERENCES `sample` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+CONSTRAINT `fk_variant_publication_has_variant`
+  FOREIGN KEY (`variant_id`)
+  REFERENCES `variant` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+AUTO_INCREMENT = 1
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
 -- Table `variant_classification`
 -- -----------------------------------------------------
 CREATE  TABLE IF NOT EXISTS `variant_classification` (

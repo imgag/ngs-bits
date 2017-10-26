@@ -190,6 +190,11 @@ public:
 	///Sets the classification of a variant in the NGSD.
 	void setClassification(const Variant& variant, const QString& classification, const QString& comment);
 
+	///Adds a variant publication
+	void addVariantPublication(QString filename, const Variant& variant, QString database, QString classification, QString details);
+	///Returns variant publication data as text
+	QString getVariantPublication(QString filename, const Variant& variant);
+
 	///Returns the comment of a variant in the NGSD.
 	QString comment(const Variant& variant);
 	///Sets the comment of a variant in the NGSD.

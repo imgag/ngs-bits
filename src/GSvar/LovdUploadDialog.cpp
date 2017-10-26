@@ -2,6 +2,12 @@
 #include "HttpHandler.h"
 #include "Settings.h"
 #include "Exceptions.h"
+#include "Helper.h"
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QPrinter>
+#include <QPrintDialog>
 
 LovdUploadDialog::LovdUploadDialog(QWidget *parent)
 	: QDialog(parent)
@@ -17,6 +23,7 @@ LovdUploadDialog::LovdUploadDialog(QWidget *parent)
 	connect(ui_.hgvs_g, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
 	connect(ui_.classification, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
 	connect(ui_.phenos, SIGNAL(phenotypeSelectionChanged()), this, SLOT(checkGuiData()));
+	connect(ui_.print_btn, SIGNAL(clicked(bool)), this, SLOT(printResults()));
 }
 
 void LovdUploadDialog::setData(const Variant& variant, LovdUploadData data)
@@ -37,15 +44,77 @@ void LovdUploadDialog::upload()
 	QByteArray upload_file = create(data_);
 
 	//upload data
-	HttpHandler http_handler;
+	static HttpHandler http_handler; //static to allow caching of credentials
 	try
 	{
 		QString reply = http_handler.getHttpReply("https://databases.lovd.nl/shared/api/submissions", upload_file);
 		ui_.comment_upload->setText(reply);
+
+		//parse JSON result
+		QJsonDocument json = QJsonDocument::fromJson(reply.toLatin1());
+		QStringList messages;
+		bool success = false;
+		foreach(QJsonValue o, json.object()["messages"].toArray())
+		{
+			messages << "MESSAGE: " + o.toString();
+			if (o.toString().startsWith("Data successfully scheduled for import."))
+			{
+				success = true;
+			}
+		}
+		foreach(QJsonValue o, json.object()["errors"].toArray())
+		{
+			messages << "ERROR: " + o.toString();
+		}
+		foreach(QJsonValue o, json.object()["warnings"].toArray())
+		{
+			messages << "WARNING: " +o.toString();
+		}
+
+		//add entry to NGSD
+		if (success)
+		{
+			QStringList details;
+			details << "gene=" + data_.gene;
+			details << "transcript=" + data_.nm_number;
+			details << "hgvs_g=" + data_.hgvs_g;
+			details << "hgvs_c=" + data_.hgvs_c;
+			details << "hgvs_p=" + data_.hgvs_p;
+			details << "genotype=" + data_.genotype;
+			foreach(const Phenotype& pheno, data_.phenos)
+			{
+
+				details << "phenotype=" + pheno.accession() + " - " + pheno.name();
+			}
+
+			db_.addVariantPublication(data_.processed_sample, data_.variant, "LOVD", data_.classification, details.join(";"));
+
+			//show result
+			QStringList lines;
+			lines << "DATA UPLOAD TO LOVD SUCCESSFUL";
+			lines << "";
+			lines << messages.join("\n");
+			lines << "";
+			lines << "sample: " + data_.processed_sample;
+			lines << "variant: " + data_.variant.toString();
+			lines << "classification: " + data_.classification;
+			lines << "";
+			lines << "user: " + Helper::userName();
+			lines << "date: " + Helper::dateTime();
+			lines << "";
+			lines << details;
+
+			ui_.comment_upload->setText(lines.join("\n").replace("=", ": "));
+		}
+		else
+		{
+			ui_.comment_upload->setText("DATA UPLOAD ERROR:\n" + messages.join("\n"));
+		}
+
 	}
 	catch(Exception e)
 	{
-		ui_.comment_upload->setText("ERROR:\n" + e.message());
+		ui_.comment_upload->setText("DATA UPLOAD FAILED:\n" + e.message());
 	}
 }
 
@@ -57,7 +126,7 @@ void LovdUploadDialog::dataToGui()
 	ui_.genotype->setText(data_.genotype);
 
 	//variant data
-	ui_.chr->setText(data_.chr.str());
+	ui_.chr->setText(data_.variant.chr().str());
 	ui_.gene->setText(data_.gene);
 	ui_.nm_number->setText(data_.nm_number);
 	ui_.hgvs_g->setText(data_.hgvs_g);
@@ -77,8 +146,6 @@ void LovdUploadDialog::guiToData()
 	data_.genotype = ui_.genotype->text();
 
 	//variant data
-
-	data_.chr = ui_.chr->text();
 	data_.gene = ui_.gene->text();
 	data_.nm_number = ui_.nm_number->text();
 	data_.hgvs_g = ui_.hgvs_g->text();
@@ -129,7 +196,29 @@ void LovdUploadDialog::checkGuiData()
 	{
 		ui_.upload_btn->setEnabled(true);
 		ui_.comment_upload->clear();
+
+		//check if already published
+		QString previsous_upload_data = db_.getVariantPublication(data_.processed_sample, data_.variant);
+		if (previsous_upload_data!="")
+		{
+			ui_.comment_upload->setText("WARNING: variant already uploaded!\n" + previsous_upload_data);
+		}
 	}
+}
+
+void LovdUploadDialog::printResults()
+{
+	QPrinter printer(QPrinter::HighResolution);
+	printer.setFullPage(true);
+	QPrintDialog *dlg = new QPrintDialog(&printer, this);
+	if (dlg->exec() == QDialog::Accepted)
+	{
+		QTextDocument *doc = new QTextDocument();
+		doc->setPlainText(ui_.comment_upload->toPlainText());
+		doc->print(&printer);
+		delete doc;
+	}
+	delete dlg;
 }
 
 QByteArray LovdUploadDialog::create(const LovdUploadData& data)
@@ -191,7 +280,7 @@ QByteArray LovdUploadDialog::create(const LovdUploadData& data)
 	stream << "                        \"@type\": \"DNA\",\n";
 	stream << "                        \"ref_seq\": {\n";
 	stream << "                            \"@source\": \"genbank\",\n";
-	stream << "                            \"@accession\": \"" << chromosomeToAccession(data.chr) << "\"\n"; //official identifier for hg19
+	stream << "                            \"@accession\": \"" << chromosomeToAccession(data.variant.chr()) << "\"\n"; //official identifier for hg19
 	stream << "                        },\n";
 	stream << "                        \"name\": {\n";
 	stream << "                            \"@scheme\": \"HGVS\",\n";
