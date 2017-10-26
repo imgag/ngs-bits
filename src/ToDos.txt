@@ -8,7 +8,6 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-** CandidateGeneDialog: add option to filter for inhouse-count (allele count?!) and disease group (positive/negative)
 * subpanel dialog: allow gene(s) search
 * Target region archive dialog: add functionality to search for filters with a certain gene
 * Add genotype equal for affected
