@@ -719,12 +719,11 @@ DEFAULT CHARACTER SET = utf8;
 CREATE  TABLE IF NOT EXISTS `detected_somatic_variant` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `processed_sample_id_tumor` INT(11) NOT NULL,
-  `processed_sample_id_normal` INT(11) NOT NULL,
+  `processed_sample_id_normal` INT(11) NULL DEFAULT NULL,
   `variant_id` INT(11) NOT NULL,
   `variant_frequency` FLOAT NOT NULL,
   `depth` INT(11) NOT NULL,
   `quality_snp` FLOAT NULL DEFAULT NULL,
-  `comment` TEXT NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `detected_somatic_variant_UNIQUE` (`processed_sample_id_tumor` ASC, `processed_sample_id_normal` ASC, `variant_id` ASC),
   INDEX `variant_id_INDEX` (`variant_id` ASC),
