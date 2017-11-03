@@ -45,6 +45,7 @@ private slots:
 	void guiToData();
 	void checkGuiData();
 	void printResults();
+	void updatePrintButton();
 
 private:
 	Ui::LovdUploadDialog ui_;

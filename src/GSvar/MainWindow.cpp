@@ -1580,7 +1580,11 @@ void MainWindow::uploadtoLovd(int variant_index)
 			try
 			{
 				QByteArray pheno_name = db.phenotypeIdToName(pheno_id);
-				data.phenos.append(Phenotype(pheno_id, pheno_name));
+				Phenotype pheno = Phenotype(pheno_id, pheno_name);
+				if (!data.phenos.contains(pheno))
+				{
+					data.phenos.append(pheno);
+				}
 			}
 			catch(DatabaseException e)
 			{

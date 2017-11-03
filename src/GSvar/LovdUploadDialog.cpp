@@ -24,6 +24,7 @@ LovdUploadDialog::LovdUploadDialog(QWidget *parent)
 	connect(ui_.classification, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
 	connect(ui_.phenos, SIGNAL(phenotypeSelectionChanged()), this, SLOT(checkGuiData()));
 	connect(ui_.print_btn, SIGNAL(clicked(bool)), this, SLOT(printResults()));
+	connect(ui_.comment_upload, SIGNAL(textChanged()), this, SLOT(updatePrintButton()));
 }
 
 void LovdUploadDialog::setData(const Variant& variant, LovdUploadData data)
@@ -201,7 +202,7 @@ void LovdUploadDialog::checkGuiData()
 		QString previsous_upload_data = db_.getVariantPublication(data_.processed_sample, data_.variant);
 		if (previsous_upload_data!="")
 		{
-			ui_.comment_upload->setText("WARNING: variant already uploaded!\n" + previsous_upload_data);
+			ui_.comment_upload->setText("<font color='red'>WARNING: variant already uploaded!</font><br>" + previsous_upload_data);
 		}
 	}
 }
@@ -219,6 +220,11 @@ void LovdUploadDialog::printResults()
 		delete doc;
 	}
 	delete dlg;
+}
+
+void LovdUploadDialog::updatePrintButton()
+{
+	ui_.print_btn->setEnabled(!ui_.comment_upload->toPlainText().trimmed().isEmpty());
 }
 
 QByteArray LovdUploadDialog::create(const LovdUploadData& data)
