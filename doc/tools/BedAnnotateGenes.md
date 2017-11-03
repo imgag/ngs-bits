@@ -1,5 +1,5 @@
 ### BedAnnotateGenes tool help
-	BedAnnotateGenes (0.1-420-g3536bb0)
+	BedAnnotateGenes (0.1-893-g1246b60)
 	
 	Annotates BED file regions with gene names.
 	
@@ -20,6 +20,7 @@
 	  --tdx         Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BedAnnotateGenes changelog
-	BedAnnotateGenes 0.1-420-g3536bb0
+	BedAnnotateGenes 0.1-893-g1246b60
 	
+	2017-11-03 Now appends a column to the BED file instead of always writing it into the 4th column.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
