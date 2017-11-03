@@ -23,6 +23,8 @@ public:
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
 		addInt("extend", "The number of bases to extend the gene regions before annotation.", true, 0);
 		addFlag("test", "Uses the test database instead of on the production database.");
+
+		changeLog(2017, 11, 03, "Now appends a column to the BED file instead of always writing it into the 4th column.");
 	}
 
 	virtual void main()
@@ -38,11 +40,8 @@ public:
 		{
 			BedLine& line = file[i];
 
-			//make sure we have an annotation to store the genes
-			if (line.annotations().empty()) line.annotations().append("");
-
 			GeneSet genes = db.genesOverlapping(line.chr(), line.start(), line.end(), extend);
-			line.annotations()[0] = genes.join(", ");
+			line.annotations() << genes.join(", ");
 		}
 
 		//store
