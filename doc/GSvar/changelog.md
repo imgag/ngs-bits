@@ -1,3 +1,8 @@
+### 0.1-890-g45f7ed29 (03.11.2017)
+- General: added variant upload to LOVD from variant context menu.
+- Default filters: removed AF<1% filter from somatic filter.
+- Subpanel design: removed base panel setting (caused too much confusion).
+
 ### 0.1-880-ge0ae009 (11.10.2017)
 - Gap dialog: added average coverage to gap report. 
 - CNV dialog: added option for compound-heterozygous filtering.
@@ -105,6 +110,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 

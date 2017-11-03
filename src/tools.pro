@@ -293,6 +293,10 @@ SUBDIRS += TsvMerge
 tools-TEST.depends += TsvMerge
 TsvMerge.depends = cppNGSD
 
+SUBDIRS += BedAnnotateFromBed
+tools-TEST.depends += BedAnnotateFromBed
+BedAnnotateFromBed.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt
 

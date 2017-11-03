@@ -91,6 +91,7 @@ HEADERS += \
     VcfAnnotateFromBed_Test.h \
     NGSDMaintain_Test.h \
     TsvMerge_Test.h \
+    BedAnnotateFromBed_Test.h \
 
 SOURCES += \
     main.cpp \
