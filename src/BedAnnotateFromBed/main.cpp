@@ -41,20 +41,21 @@ public:
 		{
 			BedLine& line = file[i];
 
-			QSet<QByteArray> annos;
+			QList<QString> annos;
 			QVector<int> indices = anno_index.matchingIndices(line.chr(), line.start(), line.end());
 			foreach(int index, indices)
 			{
 				if (anno_file[index].annotations().isEmpty())
 				{
-					annos.insert("yes");
+					annos.append("yes");
 				}
 				else
 				{
-					annos.insert(anno_file[index].annotations()[0]);
+					annos.append(anno_file[index].annotations()[0]);
 				}
 			}
-			line.annotations().append(annos.toList().join(","));
+			annos.removeDuplicates();
+			line.annotations().append(annos.join(",").toLatin1());
 		}
 
 		//store
