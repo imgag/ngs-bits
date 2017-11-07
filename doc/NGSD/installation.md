@@ -21,7 +21,7 @@ For Ubuntu 16.04 install these packages:
 
 	> apt-get install subversion git php7.0-cli php7.0-mysql php7.0-xml php7.0-gd g++ maven libncurses5-dev qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql cmake python python-matplotlib tabix
 
-##(1) Setup of the analysis pipeline
+## (1) Setup of the analysis pipeline
 
 First, we can check out the analysis pipeline code:
 
@@ -29,13 +29,13 @@ First, we can check out the analysis pipeline code:
 
 Next, we need to download and build some open-source tools that our pipeline relies on:
 
-	> cd php/data/
+	> cd megSAP/data/
 	> chmod 755 download_*.sh
 	> ./download_tools.sh
 
 Now, we need to configure the pipeline. First, copy the default settings file:
 
-	> cp php/settings.ini.default php/settings.ini
+	> cp megSAP/settings.ini.default megSAP/settings.ini
 
 Then, choose a password for the MySQL database which we will create in the next step and set the password in the appropriate line: 
 
@@ -54,7 +54,7 @@ Finally, we need to download and convert some open-source databases that our pip
 
 **Note:** OMIM, HGMD and COSMIC are not downloaded automatically because of license issues. If you have the license for those databases, download/convert them according to the commented sections in the download script.
 
-##(2) Setup of the MySQL database for NGSD
+## (2) Setup of the MySQL database for NGSD
 
 The database backend of the NGSD is a MySQL database. To set it up, follow these instructions:
 
@@ -93,11 +93,11 @@ The database backend of the NGSD is a MySQL database. To set it up, follow these
 
 		> service mysql restart
 
-##(3) Setup of MySQL tables for NGSD
+## (3) Setup of MySQL tables for NGSD
 
 The initial setup of the database tables is done using one of the ngs-bits tools:
 
-* First you need to configure ngs-bits, which we installed to `php/data/tools/ngs-bits/`. Copy the `bin/settings.ini.example` to `bin/settings.ini` and fill in at least the following items:
+* First you need to configure ngs-bits, which we installed to `megSAP/data/tools/ngs-bits/`. Copy the `bin/settings.ini.example` to `bin/settings.ini` and fill in at least the following items:
 <table>
 	<tr>
 		<td>reference\_genome</td>
@@ -114,7 +114,7 @@ The initial setup of the database tables is done using one of the ngs-bits tools
 
 * Then, the QC ontology needs to be imported:
 	
-		> php php/src/NGS/db_update_qcml.php
+		> php megSAP/src/NGS/db_update_qcml.php
 
 * Finally, gene information from several databases must be imported.  
   Proceed accoding to the instructions of the following tools in the listed order:
@@ -124,7 +124,7 @@ The initial setup of the database tables is done using one of the ngs-bits tools
 		> bin/NGSDImportGeneInfo --help
 		> bin/NGSDImportHPO --help
 
-##(4) Setup of the NGSD web frontend
+## (4) Setup of the NGSD web frontend
 
 The NGSD web frontend is that main GUI for the NGSD. It runs on a apache server.
 Install like that:
@@ -180,7 +180,7 @@ Install like that:
 
 * Now, the NGSD database can be accessed at `http://localhost/DB/NGSD/`.
 
-##(5) Setup of GSvar (Windows)
+## (5) Setup of GSvar (Windows)
 
 GSvar is a variant filtering and reporting tool for Windows that is tightly integrated with the NGSD.
 You can download the [pre-built binaries](https://medgen.medizin.uni-tuebingen.de/NGS-downloads/GSvar-current.zip), or you can build the GSvar according to the [Windows installation instructions](../install_win.md).  
@@ -207,7 +207,7 @@ After building GSvar, you need to configure it:
 For more information on GSvar, open the help within GSvar (F1) or use this [link](../GSvar/index.md).
 
 
-##Next steps
+## Next steps
 
 Now you can run your first data analysis based on these [instructions](running_an_analysis.md).
 
