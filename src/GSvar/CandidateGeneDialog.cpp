@@ -166,7 +166,7 @@ void CandidateGeneDialog::updateVariants()
 			QMap<QString, int> hits;
 			foreach(const QStringList& line, var_data)
 			{
-				hits[line[9]] += line[10]=="hom" ? 2 : 1;
+				hits[line[9]] += line[11]=="hom" ? 2 : 1;
 			}
 
 			//remove samples with less than two hits
