@@ -1,12 +1,12 @@
 
-#Running a NGS data analysis
+# Running a NGS data analysis
 
-##Downloading test data
+## Downloading test data
 
 For the first data anlysis you first some test data.  
 You can download an example dataset of the NIST reference sample NA12878 [here](https://medgen.medizin.uni-tuebingen.de/NGS-downloads/NA12878_01.zip).
 
-##Running an analysis
+## Running an analysis
 
 The analysis pipeline assumes that that all data to analyze resides in a sample folder as produced by Illumina's [bcl2fastq](http://support.illumina.com/sequencing/sequencing_software/bcl2fastq-conversion-software.html) tool. If that is the case, the whole analysis is performed with one command.  
 For example, the command to analyze the NA12878 test data is this:
@@ -16,7 +16,7 @@ For example, the command to analyze the NA12878 test data is this:
 After the data analysis, the sample folder contains BAM and VCF (gzipped) files as expected.  
 Additionally a GSvar file is created (open with the GSvar tool) and several qcML files that contain QC data (open with a browser).
 
-##Importing variant/QC data into the NGSD
+## Importing variant/QC data into the NGSD
 
 In order to import variants and QC values of a sample into the NGSD, you have to create a processed sample in the NGSD first:
 
