@@ -100,11 +100,11 @@ The initial setup of the database tables is done using one of the ngs-bits tools
 * First you need to configure ngs-bits, which we installed to `megSAP/data/tools/ngs-bits/`. Copy the `bin/settings.ini.example` to `bin/settings.ini` and fill in at least the following items:
 <table>
 	<tr>
-		<td>reference\_genome</td>
+		<td>reference_genome</td>
 		<td>Path to the indexed reference genome FASTA file, see (1).</td>
 	</tr>
 	<tr>
-		<td>ngsd\_host<br>ngsd\_port<br>ngsd\_name<br>ngsd\_user<br>ngsd\_pass</td>
+		<td>ngsd_host<br>ngsd_port<br>ngsd_name<br>ngsd_user<br>ngsd_pass</td>
 		<td>MySQL database credentials, see (2).</td>
 	</tr>
 </table>
@@ -190,11 +190,11 @@ After building GSvar, you need to configure it:
  * Copy the `bin\settings.ini.example` to `bin\settings.ini` and fill in at least the following items:
 	<table>
 		<tr>
-			<td>reference\_genome</td>
+			<td>reference_genome</td>
 			<td>Path to the indexed reference genome FASTA file, see (1).</td>
 		</tr>
 		<tr>
-			<td>ngsd\_host<br>ngsd\_port<br>ngsd\_name<br>ngsd\_user<br>ngsd\_pass</td>
+			<td>ngsd_host<br>ngsd_port<br>ngsd_name<br>ngsd_user<br>ngsd_pass</td>
 			<td>MySQL database credentials, see (2).</td>
 		</tr>
 		<tr>
