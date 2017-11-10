@@ -1871,16 +1871,7 @@ GeneInfo NGSD::geneInfo(QByteArray symbol)
 	auto approved = geneToApprovedWithMessage(symbol);
 	output.symbol = approved.first;
 	output.notice = approved.second;
-
-	//update geneinfo_germline entry if necessary
-	if (output.notice.startsWith("REPLACED:"))
-	{
-		SqlQuery query = getQuery();
-		query.prepare("UPDATE geneinfo_germline SET symbol=:0 WHERE symbol=:1");
-		query.bindValue(0, output.symbol);
-		query.bindValue(1, symbol);
-		query.exec();
-	}
+	output.name = getValue("SELECT name FROM gene WHERE symbol='" + output.symbol + "'").toString();
 
 	SqlQuery query = getQuery();
 	query.exec("SELECT inheritance, exac_pli, comments FROM geneinfo_germline WHERE symbol='" + output.symbol + "'");

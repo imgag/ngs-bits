@@ -125,7 +125,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="store_btn">
+      <widget class="QToolButton" name="store_btn">
        <property name="toolTip">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Store gene list as text file (TSV format).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
@@ -136,13 +136,16 @@
         <iconset resource="GSvar.qrc">
          <normaloff>:/Icons/Download.png</normaloff>:/Icons/Download.png</iconset>
        </property>
-       <property name="autoDefault">
-        <bool>false</bool>
+       <property name="iconSize">
+        <size>
+         <width>18</width>
+         <height>18</height>
+        </size>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="clip_btn">
+      <widget class="QToolButton" name="clip_btn">
        <property name="toolTip">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Copy gene list to clipboard.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
@@ -153,8 +156,17 @@
         <iconset resource="GSvar.qrc">
          <normaloff>:/Icons/CopyClipboard.png</normaloff>:/Icons/CopyClipboard.png</iconset>
        </property>
-       <property name="autoDefault">
-        <bool>false</bool>
+       <property name="iconSize">
+        <size>
+         <width>18</width>
+         <height>18</height>
+        </size>
+       </property>
+       <property name="popupMode">
+        <enum>QToolButton::InstantPopup</enum>
+       </property>
+       <property name="arrowType">
+        <enum>Qt::NoArrow</enum>
        </property>
       </widget>
      </item>

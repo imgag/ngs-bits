@@ -13,7 +13,8 @@ public:
 	PhenoToGenesDialog(QWidget* parent = 0);
 
 private slots:
-	void copyGenesToClipboard();
+	void copyGenesToClipboardAsTable();
+	void copyGenesToClipboardAsList();
 	void storeGenesAsTSV();
 
 	void tabChanged(int);

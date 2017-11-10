@@ -8,13 +8,8 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-# GeneInfo dialog: add gene name
 # Link to GeneCards (for genes)
-# pheno2genes dialog: copy clipboard as comma-separated for use in gene filter
-# subpanel design dialog: use existsing as template, use 20 flanking as default
-# Make all labels editable/copiable
-# CNV dialog: AF => step 0.05
-# Prefered transcript editable => use list
+# subpanel design dialog: use existing as template
 *** LOVD: allow uploading variant that is not in NGSD, add LOVD link/query
 ** Report dialog: allow checking/unchecking all variants
 * subpanel dialog: allow gene(s) search

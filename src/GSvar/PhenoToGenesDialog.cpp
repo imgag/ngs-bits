@@ -3,6 +3,7 @@
 #include <QDebug>
 #include <QClipboard>
 #include <QFileDialog>
+#include <QMenu>
 
 PhenoToGenesDialog::PhenoToGenesDialog(QWidget *parent)
 	: QDialog(parent)
@@ -11,14 +12,34 @@ PhenoToGenesDialog::PhenoToGenesDialog(QWidget *parent)
 	ui.setupUi(this);
 
 	connect(ui.tabs, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
-
-	connect(ui.clip_btn, SIGNAL(pressed()), this, SLOT(copyGenesToClipboard()));
 	connect(ui.store_btn, SIGNAL(pressed()), this, SLOT(storeGenesAsTSV()));
+	QMenu* menu = new QMenu();
+	menu->addAction("tab-separated table", this, SLOT(copyGenesToClipboardAsTable()));
+	menu->addAction("comma-separated gene list", this, SLOT(copyGenesToClipboardAsList()));
+	ui.clip_btn->setMenu(menu);
 }
 
-void PhenoToGenesDialog::copyGenesToClipboard()
+void PhenoToGenesDialog::copyGenesToClipboardAsTable()
 {
 	QApplication::clipboard()->setText(ui.genes->toPlainText());
+}
+
+void PhenoToGenesDialog::copyGenesToClipboardAsList()
+{
+	QStringList output;
+
+	QStringList lines = ui.genes->toPlainText().split("\n");
+	foreach(QString line, lines)
+	{
+		line = line.trimmed();
+		if (line.isEmpty()) continue;
+
+		QStringList parts = line.split("\t");
+		output.append(parts[0]);
+
+	}
+
+	QApplication::clipboard()->setText(output.join(", "));
 }
 
 void PhenoToGenesDialog::storeGenesAsTSV()

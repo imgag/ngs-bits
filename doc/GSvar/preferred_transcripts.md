@@ -1,32 +1,36 @@
 ## Preferred transcripts
 
 Some genes have many different transcripts, but in most cases only one of the transcripts is relevant for diagnostics.  
-Therefor, a preferred transcript can be defined for each gene.
+Therefor, one or several preferred transcripts can be defined per gene.
 
-The preferred transcript is used for:
+The preferred transcripts are used to:
 
-* Automatically select the preferred transcript in the variant details list.
-* Listing only the the preferred transcript in the variant details of the report.
+* automatically select the preferred transcript in the variant details list 
+* list only the the preferred transcript in the variant details of the report
+* highlight the preferred transcript in the `Alamut` contect menu
 
-### Setting preferred transcripts
+### Show/edit preferred transcripts
 
-Setting preferred transcripts is only possible by a batch import using the menu entry `Tools > Genes > Preferred trascripts > Import`.  
-The import does not give any feedback unless an error occurs. 
-
-*Detail information for administrators:  
-The file is a tab-separated file with the gene name in first column and ENST number in the second column.  
-To import several preferred transcripts per gene, add two rows with the same gene name.*
-
-### Listing preferred transcripts
-
-Preferred transcripts can be listed using the menu entry `Tools > Genes > Preferred trascripts > Show`:
+Showing preferred transcripts is done using the menu entry `Tools > Genes > Show/edit preferred transcripts`:
 
 ![alt text](preferred_transcripts_list.png)
 
+In this dialog you can also edit preferred transcripts.  
+The changes are imported when hitting the `ok` button at the bottom of the dialog.
+
+The import does not give any feedback unless an error occurs. 
+
+The preferred transcript list is a tab-separated list with the 
+
+* gene name in first column and
+* one or several comma-separated ENST number in the second column.  
 
 --
 
 [back to main page](index.md)
+
+
+
 
 
 

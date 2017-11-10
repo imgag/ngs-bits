@@ -19,6 +19,8 @@ struct CPPNGSDSHARED_EXPORT GeneInfo
 {
 	//gene symbol
 	QString symbol;
+	//gene name
+	QString name;
 	//gene inheritance mode
 	QString inheritance;
 	//ExAC pLI score (default is NULL)

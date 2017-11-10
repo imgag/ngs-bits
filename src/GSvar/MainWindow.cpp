@@ -1314,8 +1314,9 @@ void MainWindow::on_actionExportGSvar_triggered()
 	}
 }
 
-void MainWindow::on_actionShowTranscripts_triggered()
+void MainWindow::on_actionPreferredTranscripts_triggered()
 {
+	//show dialog
 	QString text = "<pre>";
 	for (auto it=preferred_transcripts_.cbegin(); it!=preferred_transcripts_.cend(); ++it)
 	{
@@ -1323,61 +1324,65 @@ void MainWindow::on_actionShowTranscripts_triggered()
 	}
 	text += "</pre>";
 	QTextEdit* edit = new QTextEdit(text);
-	GUIHelper::showWidgetAsDialog(edit, "Preferred transcripts list", false);
-}
+	edit->setMinimumHeight(600);
+	edit->setMinimumWidth(500);
+	QSharedPointer<QDialog> dlg = GUIHelper::showWidgetAsDialog(edit, "Preferred transcripts list", true);
 
-void MainWindow::on_actionImportTranscripts_triggered()
-{
-	//check if gene list file is set
-	QString filename = QFileDialog::getOpenFileName(this, "Import preferred transcript file", "" , "TSV files (*.tsv);;All files (*.*)");
-	if (filename=="") return;
-
-	//parse file
-	QMap<QString, QStringList> preferred_transcripts;
-	QStringList file = Helper::loadTextFile(filename);
-	foreach(QString line, file)
+	//update data
+	if (dlg->result()==QDialog::Accepted)
 	{
-		line = line.trimmed();
-		if (line.isEmpty() || line.startsWith("#")) continue;
-
-		QStringList parts = line.trimmed().split('\t');
-		if (parts.count()!=2)
+		//parse file
+		QMap<QString, QStringList> preferred_transcripts;
+		QStringList lines = edit->toPlainText().split("\n");
+		foreach(QString line, lines)
 		{
-			QMessageBox::warning(this, "Invalid preferred transcript line", "Found line that does not contain two tab-separated colmnns:\n" + line + "\n\nAborting!");
-			return;
+			line = line.trimmed();
+			if (line.isEmpty() || line.startsWith("#")) continue;
+
+			QStringList parts = line.trimmed().split('\t');
+			if (parts.count()!=2)
+			{
+				QMessageBox::warning(this, "Invalid preferred transcript line", "Found line that does not contain two tab-separated colmnns:\n" + line + "\n\nAborting!");
+				return;
+			}
+
+			//check gene
+			QByteArray gene = parts[0].toLatin1().trimmed();
+			NGSD db;
+			int gene_id = db.geneToApprovedID(gene);
+			if(gene_id==-1)
+			{
+				QMessageBox::warning(this, "Invalid preferred transcript line", "Gene name '" + gene + "' is not a HGNC-approved name!\n\nAborting!");
+				return;
+			}
+			gene = db.geneSymbol(gene_id);
+
+			//remove version number if present (NM_000543.3 => NM_000543.)
+			QStringList transcripts = parts[1].split(",");
+			foreach(QString transcript, transcripts)
+			{
+				transcript = transcript.trimmed();
+				if (transcript.isEmpty()) continue;
+				if (transcript.contains("."))
+				{
+					transcript = transcript.left(transcript.lastIndexOf('.'));
+				}
+
+				preferred_transcripts[gene].append(transcript);
+			}
 		}
 
-		//check gene
-		QByteArray gene = parts[0].toLatin1().trimmed();
-		NGSD db;
-		int gene_id = db.geneToApprovedID(gene);
-		if(gene_id==-1)
+		//store in INI file
+		QMap<QString, QVariant> tmp;
+		for(auto it=preferred_transcripts.cbegin(); it!=preferred_transcripts.cend(); ++it)
 		{
-			QMessageBox::warning(this, "Invalid preferred transcript line", "Gene name '" + gene + "' is not a HGNC-approved name!\n\nAborting!");
-			return;
+			tmp.insert(it.key(), it.value());
 		}
-		gene = db.geneSymbol(gene_id);
+		Settings::setMap("preferred_transcripts", tmp);
 
-		//remove version number if present (NM_000543.3 => NM_000543.)
-		QString transcript = parts[1].trimmed();
-		if (transcript.contains("."))
-		{
-			transcript = transcript.left(transcript.lastIndexOf('.'));
-		}
-
-		preferred_transcripts[gene].append(transcript);
+		//update in-memory copy of preferred transcripts
+		updatePreferredTranscripts();
 	}
-
-	//store in INI file
-	QMap<QString, QVariant> tmp;
-	for(auto it=preferred_transcripts.cbegin(); it!=preferred_transcripts.cend(); ++it)
-	{
-		tmp.insert(it.key(), it.value());
-	}
-	Settings::setMap("preferred_transcripts", tmp);
-
-	//update in-memory copy of preferred transcripts
-	updatePreferredTranscripts();
 }
 
 void MainWindow::on_actionOpenDocumentation_triggered()

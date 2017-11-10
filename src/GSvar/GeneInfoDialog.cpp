@@ -20,6 +20,7 @@ GeneInfoDialog::GeneInfoDialog(QByteArray symbol, QWidget *parent)
 	//show symbol
 	setWindowTitle("Gene information '" + info.symbol + "'");
 	ui->gene_->setText(info.symbol);
+	ui->name_->setText(info.name);
 	ui->inheritance_->setCurrentText(info.inheritance);
 	QString tmp = "[" + QDate::currentDate().toString("dd.MM.yyyy") + " " + Helper::userName() + "]\n<font color='red'>Add comment here</font>\n\n";
 	tmp.append(info.comments);

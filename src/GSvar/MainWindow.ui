@@ -17,7 +17,7 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="GSvar.qrc">
+   <iconset resource="../GSmix/GSmix.qrc">
     <normaloff>:/Icons/Icon.png</normaloff>:/Icons/Icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -130,19 +130,12 @@
      <property name="title">
       <string>Genes</string>
      </property>
-     <widget class="QMenu" name="menuPreferred_transcripts">
-      <property name="title">
-       <string>Preferred transcripts</string>
-      </property>
-      <addaction name="actionShowTranscripts"/>
-      <addaction name="actionImportTranscripts"/>
-     </widget>
      <addaction name="actionGeneInfo"/>
      <addaction name="actionGeneVariantInfo"/>
      <addaction name="actionConvertHgnc"/>
      <addaction name="actionGenesToRegions"/>
      <addaction name="separator"/>
-     <addaction name="menuPreferred_transcripts"/>
+     <addaction name="actionPreferredTranscripts"/>
     </widget>
     <widget class="QMenu" name="menuPanels">
      <property name="title">
@@ -332,7 +325,7 @@
   </action>
   <action name="actionNGSD">
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset resource="../GSmix/GSmix.qrc">
      <normaloff>:/Icons/NGSD.png</normaloff>:/Icons/NGSD.png</iconset>
    </property>
    <property name="text">
@@ -641,9 +634,15 @@
     <string>Apply default diagnostic filters - recessive.</string>
    </property>
   </action>
+  <action name="actionPreferredTranscripts">
+   <property name="text">
+    <string>Show/edit preferred transcripts</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
+  <include location="../GSmix/GSmix.qrc"/>
   <include location="GSvar.qrc"/>
  </resources>
  <connections/>

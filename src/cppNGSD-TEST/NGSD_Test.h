@@ -240,6 +240,7 @@ private slots:
 		//geneInfo
 		GeneInfo ginfo = db.geneInfo("BRCA1");
 		S_EQUAL(ginfo.symbol, "BRCA1");
+		S_EQUAL(ginfo.name, "Breast cancer associated gene 1");
 		S_EQUAL(ginfo.exac_pli, "0.00");
 		S_EQUAL(ginfo.inheritance, "AD");
 		S_EQUAL(ginfo.comments, "");

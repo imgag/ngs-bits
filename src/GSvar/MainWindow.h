@@ -110,9 +110,7 @@ public slots:
 	///GSvar export
 	void on_actionExportGSvar_triggered();
 	///Preferred transcript list
-	void on_actionShowTranscripts_triggered();
-	///Preferred transcript import
-	void on_actionImportTranscripts_triggered();
+	void on_actionPreferredTranscripts_triggered();
 	///Opens online documentation
 	void on_actionOpenDocumentation_triggered();
 	///Approved symbols dialog
