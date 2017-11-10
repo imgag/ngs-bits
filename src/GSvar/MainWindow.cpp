@@ -325,10 +325,17 @@ void MainWindow::openInIGV(QString region)
 		}
 
 		//sample CNV file(s)
-		QMap<QString, QString> segs = getSegFiles();
+		QMap<QString, QString> segs = getSegFilesCnv();
 		for (auto it = segs.cbegin(); it!=segs.cend(); ++it)
 		{
-			dlg.addFile(it.key() + " (SEG)", it.value(), true);
+			dlg.addFile(it.key() + " (CNVs)", it.value(), true);
+		}
+
+		//sample CNV file(s)
+		QMap<QString, QString> bafs = getSegFilesBaf();
+		for (auto it = bafs.cbegin(); it!=bafs.cend(); ++it)
+		{
+			dlg.addFile(it.key() + " (BAFs)", it.value(), true);
 		}
 
 		//target region
@@ -2184,7 +2191,7 @@ QMap<QString, QString> MainWindow::getBamFiles()
 	return output;
 }
 
-QMap<QString, QString> MainWindow::getSegFiles()
+QMap<QString, QString> MainWindow::getSegFilesCnv()
 {
 	QMap<QString, QString> output;
 	QMap<QString, QString> tmp = getBamFiles();
@@ -2199,6 +2206,23 @@ QMap<QString, QString> MainWindow::getSegFiles()
 		else
 		{
 			QMessageBox::warning(this, "Missing SEG file!", "Could not find SEG file at default locations:\n" + segfile);
+		}
+	}
+
+	return output;
+}
+
+QMap<QString, QString> MainWindow::getSegFilesBaf()
+{
+	QMap<QString, QString> output;
+	QMap<QString, QString> tmp = getBamFiles();
+
+	for(auto it = tmp.begin();it!=tmp.end(); ++it)
+	{
+		QString segfile = it.value().left(it.value().length()-4) + "_bafs.seg";
+		if (QFile::exists(segfile))
+		{
+			output[it.key()] = segfile;
 		}
 	}
 

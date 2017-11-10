@@ -30,10 +30,12 @@ public:
 	void executeIGVCommand(QString command);
 	///Returns the LOG files corresponding to the variant list.
 	QStringList getLogFiles();
-	///Returns the BAM files corresponding to the analysis.
+	///Returns the BAM files for the analysis.
 	QMap<QString, QString> getBamFiles();
-	///Returns the SEG files corresponding to the analysis.
-	QMap<QString, QString> getSegFiles();
+	///Returns CNV SEG files for the analysis.
+	QMap<QString, QString> getSegFilesCnv();
+	///Returns BAF SEG files for the analysis.
+	QMap<QString, QString> getSegFilesBaf();
 	enum VariantListType {GERMLINE_SINGLESAMPLE, GERMLINE_TRIO, GERMLINE_MULTISAMPLE, SOMATIC_SINGLESAMPLE, SOMATIC_PAIR};
 	///Retruns the type of the current variant list
 	VariantListType getType();
