@@ -766,18 +766,18 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	output.insert(QCValue("somatic variant count", somatic_count, "Total number of somatic variants in the target region.", "QC:2000041"));
 
 	//percentage known variants - either dbSNP or if available EXAC
-	int exac = variants.annotationIndexByName("EXAC_AF", true, false);
-	if(exac >= 0)	//use EXAC AF information if available
+	int i_exac = variants.annotationIndexByName("EXAC_AF", true, false);
+	double known_count = 0;
+	if(i_exac >= 0)	//use EXAC AF information if available
 	{
 		if (variants.count()!=0)
 		{
-			double known_count = 0;
 			for(int i=0; i<variants.count(); ++i)
 			{
 
 				if (!variants[i].filters().empty())	continue;
 
-				if (variants[i].annotations().at(exac).toDouble() > 0.01)
+				if (variants[i].annotations().at(i_exac).toDouble() > 0.01)
 				{
 					++known_count;
 				}
@@ -834,7 +834,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 		output.insert(QCValue("somatic transition/transversion ratio", "n/a (no variants or transversions)", "Somatic transition/transversion ratio of SNV variants.", "QC:2000043"));
 	}
 
-	//somatic variant rate
+	//somatic mutaiton load
 	BamReader reader;
 	reader.Open(tumor_bam.toStdString());
 	ChromosomeInfo chr(reader);
@@ -850,10 +850,10 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 		target_size = (static_cast<double>(bed_file.baseCount())/1000000);
 	}
 
-	QStringList truncating_effects;	// truncating effects taken from sequence ontology v. 3
+	QByteArrayList truncating_effects;	// truncating effects taken from sequence ontology v. 3
 	truncating_effects << "stop_gained" << "frameshift variant" << "plus_1_frameshift_variant" << "minus_1_frameshift_variant" << "frame_restoring_variant" << "frameshift_elongation"
 					   << "plus_2_frameshift_variant" << "minus_2_frameshift_variant" << "inframe_deletion" << "disruptive_inframe_deletion" << "conservative_inframe_deletion";
-	QStringList genes;	// typical driver oncogenes and tumor suppressor genes
+	QByteArrayList genes;	// typical driver oncogenes and tumor suppressor genes
 	genes << "AGAP2" << "CENTG1" << "KIAA0167" << "AIM2" << "APC" << "DP2.5" << "PYCARD" << "ASC" << "CARD5" << "TMS1" << "ARID3B" << "BDP" << "DRIL2" << "CDKN2A" << "CDKN2" << "MLM"
 		  << "ATM" << "AXIN1" << "AXIN" << "BANP" << "BEND1" << "SMAR1" << "BAX" << "BCL2L4" << "BCL10" << "CIPER" << "CLAP" << "BRMS1" << "BRD7" << "BP75" << "CELTIX1" << "BIN1" << "AMPHL"
 		  << "CADM1" << "IGSF4" << "IGSF4A" << "NECL2" << "SYNCAM" << "TSLC1" << "BUB1B" << "BUBR1" << "MAD3L" << "SSK1" << "CCAR2" << "DBC1" << "KIAA1967" << "BRCA1" << "RNF53" << "BRCA2"
@@ -882,31 +882,41 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 		  << "STK11" << "LKB1" << "PJS" << "SUSD6" << "DRAGO" << "KIAA0247" << "TXNIP" << "VDUP1" << "TSC1" << "KIAA0243" << "TSC" << "TSC2" << "TSC4" << "UFL1" << "KIAA0776" << "NLBP" << "RCAD";
 
 	// identify truncating mutations located in typical tumor suppressors and oncogenes; these mutations may falsify calculation of somatic mutation rates in targeted sequencing
-	int ann = variants.annotationIndexByName("ANN", true, false);
-	if(ann >= 0)	// annotation information availble
+	int i_ann = variants.annotationIndexByName("ANN", true, false);
+	if(i_ann >= 0)	// annotation information availble
 	{
-		if (variants.count()!=0)
+		for(int i=0; i<variants.count(); ++i)
 		{
-			for(int i=0; i<variants.count(); ++i)
-			{
-				if (!variants[i].filters().empty())	continue;
+			if (!variants[i].filters().empty())	continue;
 
-				QString annotation = variants[i].annotations()[ann];
-				bool truncating = false;
-				for(int j=0;j<truncating_effects.size();++j)
+			//skip common variants with AF greater than 1%
+			if(i_exac >= 0)	//use EXAC AF information if available
+			{
+				if (variants[i].annotations().at(i_exac).toDouble() > 0.01)
 				{
-					if(annotation.contains(truncating_effects[j]))	truncating = true;
+					continue;
 				}
-				bool cancergene = false;
-				for(int j=0;j<genes.size();++j)
-				{
-					if(annotation.contains(("|"+genes[j]+"|")))	cancergene = true;
-				}
-				if(cancergene && truncating)	++count_tumorgenes;
 			}
+
+			QByteArray annotation = variants[i].annotations()[i_ann];
+			bool truncating = false;
+			foreach(const QByteArray& effect, truncating_effects)
+			{
+				if(annotation.contains(effect)) truncating = true;
+			}
+			if (!truncating) continue;
+
+			bool cancergene = false;
+			foreach(const QByteArray& gene, genes)
+			{
+				if(annotation.contains("|"+gene+"|")) cancergene = true;
+			}
+			if (!cancergene) continue;
+
+			++count_tumorgenes;
 		}
 	}
-	double variant_rate = (static_cast<double>(somatic_count - count_tumorgenes)/target_size*genome_size + count_tumorgenes)/genome_size;
+	double variant_rate = (static_cast<double>((somatic_count-known_count) - count_tumorgenes)/target_size*genome_size + count_tumorgenes)/genome_size;
 
 	QString value = "";
 	if(variant_rate > 23.1)	value = "high";
