@@ -834,48 +834,47 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 		output.insert(QCValue("somatic transition/transversion ratio", "n/a (no variants or transversions)", "Somatic transition/transversion ratio of SNV variants.", "QC:2000043"));
 	}
 
-	//somatic mutaiton load
+	//somatic mutation load
 	BamReader reader;
 	reader.Open(tumor_bam.toStdString());
 	ChromosomeInfo chr(reader);
-	double target_size = chr.genomeSize(true)/1000000;
-	double genome_size = chr.genomeSize(true)/1000000;
+	double genome_size = chr.genomeSize(true)/1000000.0;
+	double target_size = genome_size;
 	int count_tumorgenes = 0;	// somatic variants in typical tumor suppressors / oncogenes may falsify interpolation
 	if(!target_file.isEmpty())
 	{
-		genome_size = 38020303;	// targeted sequencing normally targets coding sequence, therefore reduce normalization to ssHAEv6 coding region
+		genome_size = 38.02;	// targeted sequencing normally targets coding sequence, therefore reduce normalization to ssHAEv6 coding region
 
 		BedFile bed_file;
 		bed_file.load(target_file);
-		target_size = (static_cast<double>(bed_file.baseCount())/1000000);
+		target_size = bed_file.baseCount()/1000000.0;
 	}
 
 	QByteArrayList truncating_effects;	// truncating effects taken from sequence ontology v. 3
-	truncating_effects << "stop_gained" << "frameshift variant" << "plus_1_frameshift_variant" << "minus_1_frameshift_variant" << "frame_restoring_variant" << "frameshift_elongation"
-					   << "plus_2_frameshift_variant" << "minus_2_frameshift_variant" << "inframe_deletion" << "disruptive_inframe_deletion" << "conservative_inframe_deletion";
+	truncating_effects << "stop_gained" << "frameshift_variant" << "inframe_deletion";
 	QByteArrayList genes;	// typical driver oncogenes and tumor suppressor genes
 	genes << "AGAP2" << "CENTG1" << "KIAA0167" << "AIM2" << "APC" << "DP2.5" << "PYCARD" << "ASC" << "CARD5" << "TMS1" << "ARID3B" << "BDP" << "DRIL2" << "CDKN2A" << "CDKN2" << "MLM"
 		  << "ATM" << "AXIN1" << "AXIN" << "BANP" << "BEND1" << "SMAR1" << "BAX" << "BCL2L4" << "BCL10" << "CIPER" << "CLAP" << "BRMS1" << "BRD7" << "BP75" << "CELTIX1" << "BIN1" << "AMPHL"
 		  << "CADM1" << "IGSF4" << "IGSF4A" << "NECL2" << "SYNCAM" << "TSLC1" << "BUB1B" << "BUBR1" << "MAD3L" << "SSK1" << "CCAR2" << "DBC1" << "KIAA1967" << "BRCA1" << "RNF53" << "BRCA2"
-		  << "FACD" << "FANCD1" << "CADM4" << "IGSF4C" << "NECL4" << "TSLL2" << "CDC73" << "C1orf28" << "HRPT2" << "CDKN1C" << "KIP2" << "CDKN1B" << "KIP1" << "CDKN2A" << "CDKN2" << "MTS1"
-		  << "CDKN2D" << "CHD5" << "KIAA0444" << "CDKN2B" << "MTS2" << "CDK2AP1" << "CDKAP1" << "DOC1" << "CHEK2" << "CDS1" << "CHK2" << "RAD53" << "C10orf99" << "UNQ1833/PRO3446" << "C10orf90"
+		  << "FACD" << "FANCD1" << "CADM4" << "IGSF4C" << "NECL4" << "TSLL2" << "CDC73" << "C1ORF28" << "HRPT2" << "CDKN1C" << "KIP2" << "CDKN1B" << "KIP1" << "CDKN2A" << "CDKN2" << "MTS1"
+		  << "CDKN2D" << "CHD5" << "KIAA0444" << "CDKN2B" << "MTS2" << "CDK2AP1" << "CDKAP1" << "DOC1" << "CHEK2" << "CDS1" << "CHK2" << "RAD53" << "C10ORF99" << "UNQ1833/PRO3446" << "C10ORF90"
 		  << "FATS" << "MCC" << "CTCF" << "CREBL2" << "CYLD" << "CYLD1" << "KIAA0849" << "HSPC057" << "DAPK3" << "ZIPK" << "DAB2IP" << "AF9Q34" << "AIP1" << "KIAA1743" << "DAB2" << "DOC2" << "DIS3L2"
 		  << "FAM6A" << "DCC" << "IGDCC1" << "DMTN" << "DMT" << "EPB49" << "DEC1" << "CTS9" << "DLEC1" << "DLC1" << "DMBT1" << "GP340" << "DMTF1" << "DMP1" << "DFNA5" << "ICERE1" << "DPH1" << "DPH2L"
 		  << "DPH2L1" << "OVCA1" << "EFNA1" << "EPLG1" << "LERK1" << "TNFAIP4" << "EPB41L3" << "DAL1" << "KIAA0987" << "EPHB2" << "DRT" << "EPHT3" << "EPTH3" << "ERK" << "HEK5" << "TYRO5" << "EXT1"
-		  << "EXT2" << "FAM120A" << "C9orf10" << "KIAA0183" << "OSSA" << "ERRFI1" << "MIG6" << "FES" << "FPS" << "FHIT" << "FLCN" << "BHD" << "FRK" << "PTK5" << "RAK" << "FH" << "HIF3A" << "BHLHE17"
+		  << "EXT2" << "FAM120A" << "C9ORF10" << "KIAA0183" << "OSSA" << "ERRFI1" << "MIG6" << "FES" << "FPS" << "FHIT" << "FLCN" << "BHD" << "FRK" << "PTK5" << "RAK" << "FH" << "HIF3A" << "BHLHE17"
 		  << "MOP7" << "PASD7" << "HIC1" << "ZBTB29" << "HTATIP2" << "CC3" << "TIP30" << "PYHIN1" << "IFIX" << "KLK10" << "NES1" << "PRSSL1" << "PRKCI" << "DXS1179E" << "PRKCD" << "NBL1" << "DAN"
 		  << "DAND1" << "MUC1" << "PUM" << "MUTYH" << "MYH" << "NEURL1" << "NEURL" << "NEURL1A" << "RNF67" << "NDRG2" << "KIAA1248" << "SYLD" << "NF1" << "NKX3-1" << "NKX3.1" << "NKX3A" << "NAT6"
 		  << "FUS2" << "TP73" << "P73" << "PAF1" << "PD2" << "TP53" << "P53" << "GPR68" << "OGR1" << "RHOB" << "ARH6" << "ARHB" << "DLC1" << "ARHGAP7" << "KIAA1723" << "STARD12" << "SIK1" << "SIK"
 		  << "SNF1LK" << "SIRT4" << "SIR2L4" << "SMARCB1" << "BAF47" << "INI1" << "SNF5L1" << "SDHA" << "SDH2" << "SDHF" << "SLC5A8" << "AIT" << "SMCT" << "SMCT1" << "TCHP" << "TP53INP1" << "P53DINP1"
-		  << "SIP" << "TBRG1" << "NIAM" << "TET2" << "KIAA1546" << "Nbla00191" << "TRIM24" << "RNF82" << "TIF1" << "TIF1A" << "TCP10L" << "PRED77" << "TMEM127" << "VHL" << "TUSC2" << "C3orf11" << "FUS1"
+		  << "SIP" << "TBRG1" << "NIAM" << "TET2" << "KIAA1546" << "NBLA00191" << "TRIM24" << "RNF82" << "TIF1" << "TIF1A" << "TCP10L" << "PRED77" << "TMEM127" << "VHL" << "TUSC2" << "C3ORF11" << "FUS1"
 		  << "LGCC" << "PDAP2" << "XRN1" << "SEP1" << "VWA5A" << "BCSC1" << "LOH11CR2A" << "WWOX" << "FOR" << "SDR41C1" << "WOX1" << "WT1" << "XAF1" << "BIRC4BP" << "XIAPAF1" << "ZMYND11" << "BRAM1"
-		  << "BS69" << "ZBTB7C" << "APM1" << "ZBTB36" << "ZNF857C" << "ZDHHC17" << "HIP14" << "HIP3" << "HYPH" << "KIAA0946" << "HSPC294" << "ING4" << "My036" << "KCTD11" << "C17orf36" << "REN" << "ING1"
+		  << "BS69" << "ZBTB7C" << "APM1" << "ZBTB36" << "ZNF857C" << "ZDHHC17" << "HIP14" << "HIP3" << "HYPH" << "KIAA0946" << "HSPC294" << "ING4" << "MY036" << "KCTD11" << "C17ORF36" << "REN" << "ING1"
 		  << "KANK1" << "ANKRD15" << "KANK" << "KIAA0172" << "IRF1" << "LATS1" << "WARTS" << "LIN9" << "BARA" << "TGS" << "DLEU1" << "LEU1" << "XTP6" << "LIMD1" << "RPS6KA2" << "MAPKAPK1C" << "RSK3"
 		  << "LATS2" << "KPM" << "LGR6" << "UNQ6427/PRO21331" << "VTS20631" << "MAFB" << "KRML" << "MAPKAPK5" << "PRAK" << "MAFA" << "LZTS1" << "FEZ1" << "MAF" << "NF2" << "SCH" << "MCTS1" << "MCT1"
 		  << "MFHAS1" << "MASL1" << "MN1" << "MLH1" << "COCA2" << "MTSS1" << "KIAA0429" << "MIM" << "MTUS1" << "ATBP" << "ATIP" << "GK1" << "KIAA1288" << "MTSG1" << "MSH2" << "NPRL2" << "TUSC4" << "PANO1"
 		  << "PANO" << "PALB2" << "FANCN" << "PARK7" << "PBRM1" << "BAF180" << "PB1" << "PDCD4" << "H731" << "PHLDA3" << "TIH1" << "PHLPP1" << "KIAA0606" << "PHLPP" << "PLEKHE1" << "SCOP" << "HPGD" << "PGDH1"
 		  << "SDR36C1" << "PNN" << "DRS" << "MEMA" << "PHLPP2" << "KIAA0931" << "PHLPPL" << "PLEKHG2" << "PLPP5" << "DPPL1" << "HTPAP" << "PPAPDC1B" << "PMS2" << "PMSL2" << "PINX1" << "LPTL" << "LPTS"
-		  << "PLEKHO1" << "CKIP1" << "OC120" << "HQ0024c" << "PLK2" << "SNK" << "PMS1" << "PMSL1" << "PML" << "MYL" << "PP8675" << "RNF71" << "TRIM19" << "PRR5" << "PROTOR1" << "PP610" << "PRKCDBP" << "SRBC"
+		  << "PLEKHO1" << "CKIP1" << "OC120" << "HQ0024C" << "PLK2" << "SNK" << "PMS1" << "PMSL1" << "PML" << "MYL" << "PP8675" << "RNF71" << "TRIM19" << "PRR5" << "PROTOR1" << "PP610" << "PRKCDBP" << "SRBC"
 		  << "PTCH1" << "PTCH" << "PTEN" << "MMAC1" << "TEP1" << "RASSF1" << "RDA32" << "RB1CC1" << "KIAA0203" << "RBICC" << "RASSF2" << "CENP-34" << "KIAA0168" << "RAP1A" << "KREV1" << "RASA1" << "GAP"
 		  << "RASA" << "RASSF4" << "AD037" << "RASSF5" << "NORE1" << "RAPL" << "RBL1" << "RECK" << "ST15" << "GPRC5A" << "GPCR5A" << "RAI3" << "RAIG1" << "RBL2" << "RB2" << "RBMX" << "HNRPG" << "RBMXP1"
 		  << "ARHGAP20" << "KIAA1391" << "RB1" << "RASL10A" << "RRP22" << "SASH1" << "KIAA0790" << "PEPE1" << "ST20" << "HCCS1" << "STARD13" << "DLC2" << "GT650" << "SUFU" << "UNQ650/PRO1280" << "SUSD2"
@@ -916,7 +915,8 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 			++count_tumorgenes;
 		}
 	}
-	double variant_rate = (static_cast<double>((somatic_count-known_count) - count_tumorgenes)/target_size*genome_size + count_tumorgenes)/genome_size;
+
+	double variant_rate = ((somatic_count - known_count - count_tumorgenes) / target_size * genome_size + count_tumorgenes) / genome_size;
 
 	QString value = "";
 	if(variant_rate > 23.1)	value = "high";
