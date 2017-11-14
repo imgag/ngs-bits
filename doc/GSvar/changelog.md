@@ -1,3 +1,11 @@
+### 0.1-907-gc7b0851 (14.11.2017)
+- General: Added LOVD link to variant context menu.
+- General: LOVD upload is now also possible for variants not found by NGS.
+- General: Preferred transcripts can now be edited in the GUI.
+- IGV: Added support for b-allele frequncy (BAF) files.
+- Phenotype>genes dialog: Genes can now be copied as comma-separated list to cpliboard (for pasting into gene filter).
+- Variant details: Text values can now be marked my mouse and copied through context menu.
+
 ### 0.1-890-g45f7ed29 (03.11.2017)
 - General: added variant upload to LOVD from variant context menu.
 - Default filters: removed AF<1% filter from somatic filter.
@@ -110,6 +118,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 
