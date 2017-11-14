@@ -139,6 +139,8 @@ public slots:
 	void on_actionOpenSampleFolder_triggered();
 	///Open sample QC files.
 	void on_actionOpenSampleQcFiles_triggered();
+	///Upload variant that is not part of the variant list to LOVD.
+	void on_actionPublishVariantInLOVD_triggered();
 
 	///Generates a report (somatic)
 	void generateReportSomatic();

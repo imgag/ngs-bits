@@ -237,6 +237,19 @@ void MainWindow::on_actionOpenSampleQcFiles_triggered()
 	}
 }
 
+void MainWindow::on_actionPublishVariantInLOVD_triggered()
+{
+	if (filename_=="")
+	{
+		QMessageBox::warning(this, "No sample loaded", "Please load a sample to upload variant data to LOVD.");
+		return;
+	}
+
+	LovdUploadDialog dlg(this);
+	dlg.setData(LovdUploadData::fromSample(filename_));
+	dlg.exec();
+}
+
 void MainWindow::delayedInizialization()
 {
 	if (!isVisible()) return;
@@ -331,7 +344,7 @@ void MainWindow::openInIGV(QString region)
 			dlg.addFile(it.key() + " (CNVs)", it.value(), true);
 		}
 
-		//sample CNV file(s)
+		//sample BAF file(s)
 		QMap<QString, QString> bafs = getSegFilesBaf();
 		for (auto it = bafs.cbegin(); it!=bafs.cend(); ++it)
 		{
@@ -1071,8 +1084,7 @@ void MainWindow::on_actionTrio_triggered()
 	TrioDialog dlg(this);
 	if (dlg.exec()==QDialog::Accepted)
 	{
-		HttpHandler handler;
-		QString reply = handler.getHttpReply(Settings::string("SampleStatus")+"restart.php?type=trio&high_priority&user="+Helper::userName()+"&f=" + dlg.father() + "&m=" + dlg.mother() + "&c=" + dlg.child());
+		QString reply = HttpHandler(HttpHandler::NONE).getHttpReply(Settings::string("SampleStatus")+"restart.php?type=trio&high_priority&user="+Helper::userName()+"&f=" + dlg.father() + "&m=" + dlg.mother() + "&c=" + dlg.child());
 		if (!reply.startsWith("Restart successful"))
 		{
 			QMessageBox::warning(this, "Trio analysis", "Queueing analysis failed:\n" + reply);
@@ -1089,8 +1101,7 @@ void MainWindow::on_actionMultiSample_triggered()
 	MultiSampleDialog dlg(this);
 	if (dlg.exec()==QDialog::Accepted)
 	{
-		HttpHandler handler;
-		QString reply = handler.getHttpReply(Settings::string("SampleStatus")+"restart.php?type=multi&high_priority&user="+Helper::userName()+"&samples=" + dlg.samples().join(',')+"&status=" + dlg.status().join(','));
+		QString reply = HttpHandler(HttpHandler::NONE).getHttpReply(Settings::string("SampleStatus")+"restart.php?type=multi&high_priority&user="+Helper::userName()+"&samples=" + dlg.samples().join(',')+"&status=" + dlg.status().join(','));
 		if (!reply.startsWith("Restart successful"))
 		{
 			QMessageBox::warning(this, "Multi-sample analysis", "Queueing analysis failed:\n" + reply);
@@ -1557,50 +1568,7 @@ QString MainWindow::nobr()
 void MainWindow::uploadtoLovd(int variant_index)
 {
 	//(1) prepare data as far as we can (not RefSeq transcript data is available)
-	LovdUploadData data;
-
-	//sample name
-	data.processed_sample = QFileInfo(filename_).baseName();
-
-	//gender
-	NGSD db;
-	data.gender = db.sampleGender(data.processed_sample);
-
-	//phenotype(s) from GenLab
-	QSharedPointer<QSqlDatabase> db2(new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL", "GENLAB_" + Helper::randomString(20))));
-	db2->setHostName(Settings::string("genlab_host"));
-	db2->setPort(Settings::integer("genlab_port"));
-	db2->setDatabaseName(Settings::string("genlab_name"));
-	db2->setUserName(Settings::string("genlab_user"));
-	db2->setPassword(Settings::string("genlab_pass"));
-	if (!db2->open())
-	{
-		THROW(DatabaseException, "Could not connect to the GenLab database:!");
-	}
-	QString sample_name = data.processed_sample.left(data.processed_sample.length()-3);
-	QSqlQuery query = db2->exec("SELECT HPOTERM1,HPOTERM2,HPOTERM3,HPOTERM4 FROM v_ngs_sap WHERE labornummer='"+sample_name+"'");
-	while(query.next())
-	{
-		for (int i=0; i<4; ++i)
-		{
-			if (query.value(i).toString().trimmed().isEmpty()) continue;
-
-			QByteArray pheno_id = query.value(i).toByteArray();
-			try
-			{
-				QByteArray pheno_name = db.phenotypeIdToName(pheno_id);
-				Phenotype pheno = Phenotype(pheno_id, pheno_name);
-				if (!data.phenos.contains(pheno))
-				{
-					data.phenos.append(pheno);
-				}
-			}
-			catch(DatabaseException e)
-			{
-				Log::error("Invalid HPO term ID '" + pheno_id + "' found in GenLab:" + e.message());
-			}
-		}
-	}
+	LovdUploadData data = LovdUploadData::fromSample(filename_);
 
 	//chromosome
 	const Variant& variant = variants_[variant_index];
@@ -1620,7 +1588,7 @@ void MainWindow::uploadtoLovd(int variant_index)
 
 	// (2) show dialog
 	LovdUploadDialog dlg(this);
-	dlg.setData(variant, data);
+	dlg.setData(data);
 	dlg.exec();
 }
 
@@ -1920,7 +1888,9 @@ void MainWindow::varsContextMenu(QPoint pos)
 	menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC Genome Browser");
 
 	//LOVD upload
-	action = menu.addAction(QIcon(":/Icons/LOVD.png"), "Publish in LOVD");
+	sub_menu = menu.addMenu(QIcon("://Icons/LOVD.png"), "LOVD");
+	sub_menu->addAction("Find in LOVD");
+	action = sub_menu->addAction("Publish in LOVD");
 	action->setEnabled(ngsd_enabled);
 
 	//Execute menu
@@ -2056,6 +2026,10 @@ void MainWindow::varsContextMenu(QPoint pos)
 	{
 		QDesktopServices::openUrl(QUrl("http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=" + variant.chr().str()+":"+QString::number(variant.start()-20)+"-"+QString::number(variant.end()+20)));
 	}
+	else if (text=="Find in LOVD")
+	{
+		QDesktopServices::openUrl(QUrl("https://databases.lovd.nl/shared/variants#search_chromosome=" + variant.chr().strNormalized(false)+"&search_VariantOnGenome/DNA=g." + QString::number(variant.start())));
+	}
 	else if (text=="Publish in LOVD")
 	{
 		try
@@ -2088,7 +2062,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 
 			try
 			{
-				HttpHandler().getHttpReply(Settings::string("Alamut")+"/show?request="+value);
+				HttpHandler(HttpHandler::NONE).getHttpReply(Settings::string("Alamut")+"/show?request="+value);
 			}
 			catch (Exception& e)
 			{

@@ -21,6 +21,13 @@ public:
     ///Convenience constructor.
     Variant(const Chromosome& chr, int start, int end, const Sequence& ref, const Sequence& obs, const QList<QByteArray>& annotations = QList<QByteArray>(), int filter_index = -1);
 
+
+	///Returns if the variant is valid
+	bool isValid() const
+	{
+		return chr_.isValid() && start_!=-1 && end_!=-1 && !ref_.isEmpty() && !obs_.isEmpty();
+	}
+
     ///Returns the chromosome.
     const Chromosome& chr() const
     {

@@ -184,9 +184,16 @@
     <addaction name="separator"/>
     <addaction name="actionResize"/>
    </widget>
+   <widget class="QMenu" name="menuVariants">
+    <property name="title">
+     <string>Variants</string>
+    </property>
+    <addaction name="actionPublishVariantInLOVD"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuTools"/>
+   <addaction name="menuVariants"/>
    <addaction name="menuIGV"/>
    <addaction name="menuHelp"/>
   </widget>
@@ -637,6 +644,15 @@
   <action name="actionPreferredTranscripts">
    <property name="text">
     <string>Show/edit preferred transcripts</string>
+   </property>
+  </action>
+  <action name="actionPublishVariantInLOVD">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/LOVD.png</normaloff>:/Icons/LOVD.png</iconset>
+   </property>
+   <property name="text">
+    <string>Publish in LOVD</string>
    </property>
   </action>
  </widget>

@@ -13,8 +13,16 @@ class HttpHandler
 	Q_OBJECT
 
 public:
+	///Proxy type
+	enum ProxyType
+	{
+		SYSTEM, //from system settings
+		INI, //from ini file
+		NONE //no proxy
+	};
+
 	///Constructor
-	HttpHandler(QObject* parent=0);
+	HttpHandler(ProxyType proxy_type, QObject* parent=0);
 	///Handles request (GET)
 	QString getHttpReply(QString url);
 	///Handles request (POST)
@@ -28,6 +36,9 @@ private slots:
 
 private:
 	QNetworkAccessManager nmgr_;
+
+	//declared away
+	HttpHandler();
 };
 
 #endif // HTTPHANDLER_H

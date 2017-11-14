@@ -10,11 +10,26 @@
 #include <QApplication>
 #include <QAuthenticator>
 
-HttpHandler::HttpHandler(QObject* parent)
+HttpHandler::HttpHandler(ProxyType proxy_type, QObject* parent)
 	: QObject(parent)
 	, nmgr_()
 {
-	QNetworkProxyFactory::setUseSystemConfiguration(true);
+	if (proxy_type==SYSTEM)
+	{
+		QNetworkProxyFactory::setUseSystemConfiguration(true);
+	}
+	else if (proxy_type==INI)
+	{
+		QNetworkProxy proxy;
+		proxy.setType(QNetworkProxy::HttpProxy);
+		proxy.setHostName(Settings::string("proxy_host"));
+		proxy.setPort(Settings::integer("proxy_port"));
+		nmgr_.setProxy(proxy);
+	}
+	else
+	{
+		nmgr_.setProxy(QNetworkProxy(QNetworkProxy::NoProxy));
+	}
 
 	connect(&nmgr_, SIGNAL(sslErrors(QNetworkReply*, const QList<QSslError> &)), this, SLOT(handleSslErrors(QNetworkReply*, const QList<QSslError>&)));
 	connect(&nmgr_, SIGNAL(proxyAuthenticationRequired(const QNetworkProxy& , QAuthenticator*)), this, SLOT(handleProxyAuthentification(const QNetworkProxy& , QAuthenticator*)));

@@ -43,6 +43,10 @@ PrimerDesign = ""
 Alamut = ""
 VariantInfoRefSeq = ""
 
+#proxy settings for GSvar
+proxy_host = ""
+proxy_port = 
+
 #special folders for GSvar
 preferred_transcripts_file = ""
 gsvar_report_archive = ""

@@ -224,7 +224,7 @@ QString NGSD::variantId(const Variant& variant, bool throw_if_fails)
 		}
 		else
 		{
-			return "-1";
+			return "";
 		}
 	}
 	query.next();
@@ -851,8 +851,10 @@ void NGSD::addVariantPublication(QString filename, const Variant& variant, QStri
 
 QString NGSD::getVariantPublication(QString filename, const Variant& variant)
 {
-	QString s_id = sampleId(filename);
-	QString v_id = variantId(variant);
+	QString s_id = sampleId(filename, false);
+	QString v_id = variantId(variant, false);
+
+	if (s_id=="" || v_id=="") return "";
 
 	//select
 	SqlQuery query = getQuery();

@@ -26,6 +26,8 @@ struct LovdUploadData
 
 	//phenotype data
 	QList<Phenotype> phenos;
+
+	static LovdUploadData fromSample(QString filename);
 };
 
 ///LOVD upload dialog
@@ -37,7 +39,8 @@ class LovdUploadDialog
 public:
 	LovdUploadDialog(QWidget *parent = 0);
 
-	void setData(const Variant& variant, LovdUploadData data);
+	void setData(LovdUploadData data);
+
 
 private slots:
 	void upload();

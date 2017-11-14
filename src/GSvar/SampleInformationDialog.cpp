@@ -104,8 +104,7 @@ void SampleInformationDialog::reanalyze()
 	}
 
 	//call web service
-	HttpHandler handler;
-	QString reply = handler.getHttpReply(Settings::string("SampleStatus")+"/restart.php?type=sample&high_priority&user=" + Helper::userName() + "&ps_ID=" + NGSD::processedSampleName(filename_) + start_step);
+	QString reply = HttpHandler(HttpHandler::NONE).getHttpReply(Settings::string("SampleStatus")+"/restart.php?type=sample&high_priority&user=" + Helper::userName() + "&ps_ID=" + NGSD::processedSampleName(filename_) + start_step);
 	reanalyze_status_ = "";
 	if (!reply.startsWith("Restart successful"))
 	{
@@ -252,8 +251,7 @@ void SampleInformationDialog::refreshReanalysisStatus()
 		{
 			try
 			{
-				HttpHandler handler;
-				status = handler.getHttpReply(Settings::string("SampleStatus")+"/status.php?ps_ID=" + ps_name);
+				status = HttpHandler(HttpHandler::NONE).getHttpReply(Settings::string("SampleStatus")+"/status.php?ps_ID=" + ps_name);
 			}
 			catch (Exception& e)
 			{

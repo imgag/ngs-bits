@@ -3,11 +3,13 @@
 #include "Settings.h"
 #include "Exceptions.h"
 #include "Helper.h"
+#include "Log.h"
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QPrinter>
 #include <QPrintDialog>
+#include <QFileInfo>
 
 LovdUploadDialog::LovdUploadDialog(QWidget *parent)
 	: QDialog(parent)
@@ -21,13 +23,15 @@ LovdUploadDialog::LovdUploadDialog(QWidget *parent)
 	connect(ui_.nm_number, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
 	connect(ui_.hgvs_c, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
 	connect(ui_.hgvs_g, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-	connect(ui_.classification, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.chr, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.genotype, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.classification, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
 	connect(ui_.phenos, SIGNAL(phenotypeSelectionChanged()), this, SLOT(checkGuiData()));
 	connect(ui_.print_btn, SIGNAL(clicked(bool)), this, SLOT(printResults()));
 	connect(ui_.comment_upload, SIGNAL(textChanged()), this, SLOT(updatePrintButton()));
 }
 
-void LovdUploadDialog::setData(const Variant& variant, LovdUploadData data)
+void LovdUploadDialog::setData(LovdUploadData data)
 {
 	//fill in data
 	data_ = data;
@@ -35,7 +39,8 @@ void LovdUploadDialog::setData(const Variant& variant, LovdUploadData data)
 
 	//reference external webservice
 	QString url = Settings::string("VariantInfoRefSeq");
-	ui_.comment_var->setText("HGVS notation for RefSeq transcripts is not available in megSAP/GSvar. Thus it needs to be created by the external webservice <a href=\"" + url + "?variant_data=" + variant.toString(true).replace(" ", "\t") + "\">VariantInfoRefSeq</a>.\nPlease fill in the missing fields!");
+	QString url_args = data.variant.isValid() ? "?variant_data=" + data.variant.toString(true).replace(" ", "\t") : "";
+	ui_.comment_var->setText("HGVS notation for RefSeq transcripts is not available in megSAP/GSvar. Thus it needs to be created by the external webservice <a href=\"" + url + url_args + "\">VariantInfoRefSeq</a>.\nPlease fill in the missing fields!");
 }
 
 void LovdUploadDialog::upload()
@@ -45,7 +50,7 @@ void LovdUploadDialog::upload()
 	QByteArray upload_file = create(data_);
 
 	//upload data
-	static HttpHandler http_handler; //static to allow caching of credentials
+	static HttpHandler http_handler(HttpHandler::INI); //static to allow caching of credentials
 	try
 	{
 		QString reply = http_handler.getHttpReply("https://databases.lovd.nl/shared/api/submissions", upload_file);
@@ -84,11 +89,14 @@ void LovdUploadDialog::upload()
 			details << "genotype=" + data_.genotype;
 			foreach(const Phenotype& pheno, data_.phenos)
 			{
-
 				details << "phenotype=" + pheno.accession() + " - " + pheno.name();
 			}
 
-			db_.addVariantPublication(data_.processed_sample, data_.variant, "LOVD", data_.classification, details.join(";"));
+			//Upload only if a variant was selected for the dialog
+			if (data_.variant.isValid())
+			{
+				db_.addVariantPublication(data_.processed_sample, data_.variant, "LOVD", data_.classification, details.join(";"));
+			}
 
 			//show result
 			QStringList lines;
@@ -97,7 +105,10 @@ void LovdUploadDialog::upload()
 			lines << messages.join("\n");
 			lines << "";
 			lines << "sample: " + data_.processed_sample;
-			lines << "variant: " + data_.variant.toString();
+			if (data_.variant.isValid())
+			{
+				lines << "variant: " + data_.variant.toString();
+			}
 			lines << "classification: " + data_.classification;
 			lines << "";
 			lines << "user: " + Helper::userName();
@@ -124,16 +135,23 @@ void LovdUploadDialog::dataToGui()
 	//sample data
 	ui_.processed_sample->setText(data_.processed_sample);
 	ui_.gender->setText(data_.gender);
-	ui_.genotype->setText(data_.genotype);
+	ui_.genotype->setCurrentText(data_.genotype);
 
 	//variant data
-	ui_.chr->setText(data_.variant.chr().str());
-	ui_.gene->setText(data_.gene);
-	ui_.nm_number->setText(data_.nm_number);
-	ui_.hgvs_g->setText(data_.hgvs_g);
-	ui_.hgvs_c->setText(data_.hgvs_c);
-	ui_.hgvs_p->setText(data_.hgvs_p);
-	ui_.classification->setText(data_.classification);
+	if(data_.variant.isValid())
+	{
+		ui_.chr->setCurrentText(data_.variant.chr().str());
+		ui_.gene->setText(data_.gene);
+		ui_.nm_number->setText(data_.nm_number);
+		ui_.hgvs_g->setText(data_.hgvs_g);
+		ui_.hgvs_c->setText(data_.hgvs_c);
+		ui_.hgvs_p->setText(data_.hgvs_p);
+		ui_.classification->setCurrentText(data_.classification);
+
+		ui_.chr->setEnabled(false);
+		ui_.classification->setEnabled(false);
+		ui_.genotype->setEnabled(false);
+	}
 
 	//phenotype data
 	ui_.phenos->setPhenotypes(data_.phenos);
@@ -144,7 +162,7 @@ void LovdUploadDialog::guiToData()
 	//sample data
 	data_.processed_sample = ui_.processed_sample->text();
 	data_.gender = ui_.gender->text();
-	data_.genotype = ui_.genotype->text();
+	data_.genotype = ui_.genotype->currentText();
 
 	//variant data
 	data_.gene = ui_.gene->text();
@@ -152,7 +170,11 @@ void LovdUploadDialog::guiToData()
 	data_.hgvs_g = ui_.hgvs_g->text();
 	data_.hgvs_c = ui_.hgvs_c->text();
 	data_.hgvs_p = ui_.hgvs_p->text();
-	data_.classification = ui_.classification->text();
+	data_.classification = ui_.classification->currentText();
+	if(!data_.variant.isValid())
+	{
+		data_.variant.setChr(ui_.chr->currentText());
+	}
 
 	//phenotype data
 	data_.phenos = ui_.phenos->selectedPhenotypes();
@@ -160,31 +182,48 @@ void LovdUploadDialog::guiToData()
 
 void LovdUploadDialog::checkGuiData()
 {
+	//check if already published
+	QString upload_details = db_.getVariantPublication(data_.processed_sample, data_.variant);
+	if (upload_details!="")
+	{
+		ui_.upload_btn->setEnabled(false);
+		ui_.comment_upload->setText("<font color='red'>WARNING: variant already uploaded!</font><br>" + upload_details);
+		return;
+	}
+
 	//perform checks
 	QStringList errors;
+	if (ui_.chr->currentText().trimmed().isEmpty())
+	{
+		errors << "Chromosome unset!";
+	}
 	if (ui_.gene->text().trimmed().isEmpty())
 	{
-		errors << "Gene empty!";
+		errors << "Gene unset!";
 	}
 	if (ui_.nm_number->text().trimmed().isEmpty())
 	{
-		errors << "Transcript empty!";
+		errors << "Transcript unset!";
 	}
 	if (ui_.hgvs_g->text().trimmed().isEmpty())
 	{
-		errors << "HGVS.g empty!";
+		errors << "HGVS.g unset!";
 	}
 	if (ui_.hgvs_c->text().trimmed().isEmpty())
 	{
-		errors << "HGVS.c empty!";
+		errors << "HGVS.c unset!";
 	}
-	if (ui_.classification->text().trimmed().isEmpty())
+	if (ui_.genotype->currentText().trimmed().isEmpty())
 	{
-		errors << "classification empty!";
+		errors << "Genotype unset!";
+	}
+	if (ui_.classification->currentText().trimmed().isEmpty())
+	{
+		errors << "Classification unset!";
 	}
 	if (ui_.phenos->selectedPhenotypes().count()==0)
 	{
-		errors << "no phenotypes selected!";
+		errors << "No phenotypes selected!";
 	}
 
 	//show error or enable upload button
@@ -197,13 +236,6 @@ void LovdUploadDialog::checkGuiData()
 	{
 		ui_.upload_btn->setEnabled(true);
 		ui_.comment_upload->clear();
-
-		//check if already published
-		QString previsous_upload_data = db_.getVariantPublication(data_.processed_sample, data_.variant);
-		if (previsous_upload_data!="")
-		{
-			ui_.comment_upload->setText("<font color='red'>WARNING: variant already uploaded!</font><br>" + previsous_upload_data);
-		}
 	}
 }
 
@@ -461,4 +493,55 @@ QString LovdUploadDialog::convertGenotype(QString genotype)
 	}
 
 	THROW(ProgrammingException, "Unknown genotype '" + genotype + "' in LovdUploadDialog::create(...) method!")
+}
+
+
+LovdUploadData LovdUploadData::fromSample(QString filename)
+{
+	LovdUploadData data;
+
+	//sample name
+	data.processed_sample = QFileInfo(filename).baseName();
+
+	//gender
+	NGSD db;
+	data.gender = db.sampleGender(data.processed_sample);
+
+	//phenotype(s) from GenLab
+	QSharedPointer<QSqlDatabase> db2(new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL", "GENLAB_" + Helper::randomString(20))));
+	db2->setHostName(Settings::string("genlab_host"));
+	db2->setPort(Settings::integer("genlab_port"));
+	db2->setDatabaseName(Settings::string("genlab_name"));
+	db2->setUserName(Settings::string("genlab_user"));
+	db2->setPassword(Settings::string("genlab_pass"));
+	if (!db2->open())
+	{
+		THROW(DatabaseException, "Could not connect to the GenLab database:!");
+	}
+	QString sample_name = data.processed_sample.left(data.processed_sample.length()-3);
+	QSqlQuery query = db2->exec("SELECT HPOTERM1,HPOTERM2,HPOTERM3,HPOTERM4 FROM v_ngs_sap WHERE labornummer='"+sample_name+"'");
+	while(query.next())
+	{
+		for (int i=0; i<4; ++i)
+		{
+			if (query.value(i).toString().trimmed().isEmpty()) continue;
+
+			QByteArray pheno_id = query.value(i).toByteArray();
+			try
+			{
+				QByteArray pheno_name = db.phenotypeIdToName(pheno_id);
+				Phenotype pheno = Phenotype(pheno_id, pheno_name);
+				if (!data.phenos.contains(pheno))
+				{
+					data.phenos.append(pheno);
+				}
+			}
+			catch(DatabaseException e)
+			{
+				Log::error("Invalid HPO term ID '" + pheno_id + "' found in GenLab:" + e.message());
+			}
+		}
+	}
+
+	return data;
 }

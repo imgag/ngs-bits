@@ -8,10 +8,9 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-# Link to GeneCards (for genes)
-# subpanel design dialog: use existing as template
-*** LOVD: allow uploading variant that is not in NGSD, add LOVD link/query
 ** Report dialog: allow checking/unchecking all variants
+# Link to GeneCards: http://www.genecards.org/cgi-bin/carddisp.pl?gene=KIF5A
+# subpanel design dialog: use existing as template
 * subpanel dialog: allow gene(s) search
 * Target region archive dialog: add functionality to search for filters with a certain gene
 * Add genotype equal for affected
@@ -21,7 +20,7 @@ GSvar:
 - Target region filter: reset to none if it looses focus in search mode
 
 Tools:
-** add new tool BedHighCoverage
+** add new tool BamHighCoverage
 ** NGSDImportHPO: Add augment mode.
 # NGSDImportGeneInfo: add (optional) import of inheritance mode from OMIM
 - SomaticQC: do not use precalculated triplet counts, count every time (CS)
