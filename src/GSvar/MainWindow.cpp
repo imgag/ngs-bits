@@ -239,14 +239,8 @@ void MainWindow::on_actionOpenSampleQcFiles_triggered()
 
 void MainWindow::on_actionPublishVariantInLOVD_triggered()
 {
-	if (filename_=="")
-	{
-		QMessageBox::warning(this, "No sample loaded", "Please load a sample to upload variant data to LOVD.");
-		return;
-	}
-
 	LovdUploadDialog dlg(this);
-	dlg.setData(LovdUploadData::fromSample(filename_));
+	dlg.setData(LovdUploadData());
 	dlg.exec();
 }
 
@@ -1567,8 +1561,51 @@ QString MainWindow::nobr()
 
 void MainWindow::uploadtoLovd(int variant_index)
 {
-	//(1) prepare data as far as we can (not RefSeq transcript data is available)
-	LovdUploadData data = LovdUploadData::fromSample(filename_);
+	//(1) prepare data as far as we can (no RefSeq transcript data is available)
+	LovdUploadData data;
+
+	//sample name
+	data.processed_sample = QFileInfo(filename_).baseName();
+
+	//gender
+	NGSD db;
+	data.gender = db.sampleGender(data.processed_sample);
+
+	//phenotype(s) from GenLab
+	QSharedPointer<QSqlDatabase> db2(new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL", "GENLAB_" + Helper::randomString(20))));
+	db2->setHostName(Settings::string("genlab_host"));
+	db2->setPort(Settings::integer("genlab_port"));
+	db2->setDatabaseName(Settings::string("genlab_name"));
+	db2->setUserName(Settings::string("genlab_user"));
+	db2->setPassword(Settings::string("genlab_pass"));
+	if (!db2->open())
+	{
+		THROW(DatabaseException, "Could not connect to the GenLab database:!");
+	}
+	QString sample_name = data.processed_sample.left(data.processed_sample.length()-3);
+	QSqlQuery query = db2->exec("SELECT HPOTERM1,HPOTERM2,HPOTERM3,HPOTERM4 FROM v_ngs_sap WHERE labornummer='"+sample_name+"'");
+	while(query.next())
+	{
+		for (int i=0; i<4; ++i)
+		{
+			if (query.value(i).toString().trimmed().isEmpty()) continue;
+
+			QByteArray pheno_id = query.value(i).toByteArray();
+			try
+			{
+				QByteArray pheno_name = db.phenotypeIdToName(pheno_id);
+				Phenotype pheno = Phenotype(pheno_id, pheno_name);
+				if (!data.phenos.contains(pheno))
+				{
+					data.phenos.append(pheno);
+				}
+			}
+			catch(DatabaseException e)
+			{
+				Log::error("Invalid HPO term ID '" + pheno_id + "' found in GenLab:" + e.message());
+			}
+		}
+	}
 
 	//chromosome
 	const Variant& variant = variants_[variant_index];

@@ -50,21 +50,36 @@
      <item row="0" column="1">
       <widget class="QLineEdit" name="processed_sample">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="readOnly">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QLineEdit" name="gender">
-       <property name="enabled">
-        <bool>false</bool>
+      <widget class="QComboBox" name="gender">
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>16777215</height>
+        </size>
        </property>
-       <property name="readOnly">
-        <bool>true</bool>
-       </property>
+       <item>
+        <property name="text">
+         <string>n/a</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>male</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>female</string>
+        </property>
+       </item>
       </widget>
      </item>
     </layout>

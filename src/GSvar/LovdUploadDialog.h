@@ -26,8 +26,6 @@ struct LovdUploadData
 
 	//phenotype data
 	QList<Phenotype> phenos;
-
-	static LovdUploadData fromSample(QString filename);
 };
 
 ///LOVD upload dialog
