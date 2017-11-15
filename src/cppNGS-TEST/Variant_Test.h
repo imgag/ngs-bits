@@ -299,10 +299,10 @@ private slots:
 		S_EQUAL(v.toHGVS(genome_index), "g.120611964G>C");
 
 		//INS
-		v = Variant("chr1", 866511, 866511, "-", "CCCT");
-		S_EQUAL(v.toHGVS(genome_index), "g.866511_866512insCCCT");
-		v = Variant("chr1", 866511, 866511, "", "CCCT");
-		S_EQUAL(v.toHGVS(genome_index), "g.866511_866512insCCCT");
+		v = Variant("chr1", 866509, 866509, "-", "CCCT");
+		S_EQUAL(v.toHGVS(genome_index), "g.866509_866510insCCCT");
+		v = Variant("chr1", 866509, 866509, "", "CCCT");
+		S_EQUAL(v.toHGVS(genome_index), "g.866509_866510insCCCT");
 
 		//DEL (single base)
 		v = Variant("chr9", 98232224, 98232224, "A", "-");
@@ -317,16 +317,28 @@ private slots:
 		S_EQUAL(v.toHGVS(genome_index), "g.98232224_98232225del");
 
 		//DUP (single base)
-		v = Variant("chr1", 120611965, 120611965, "-", "G");
+		v = Variant("chr1", 120611964, 120611964, "-", "G");
 		S_EQUAL(v.toHGVS(genome_index), "g.120611964dup");
-		v = Variant("chr1", 120611965, 120611965, "", "G");
+		v = Variant("chr1", 120611964, 120611964, "", "G");
 		S_EQUAL(v.toHGVS(genome_index), "g.120611964dup");
+		v = Variant("chr20", 49508924, 49508924, "-", "T");
+		S_EQUAL(v.toHGVS(genome_index), "g.49508924dup");
+		v = Variant("chr20", 49508924, 49508924, "", "T");
+		S_EQUAL(v.toHGVS(genome_index), "g.49508924dup");
+		v = Variant("chr20", 49508923, 49508923, "-", "T");
+		S_EQUAL(v.toHGVS(genome_index), "g.49508924dup");
+		v = Variant("chr20", 49508923, 49508923, "", "T");
+		S_EQUAL(v.toHGVS(genome_index), "g.49508924dup");
 
 		//DUP (multiple base)
-		v = Variant("chr1", 120611967, 120611967, "-", "GCA");
+		v = Variant("chr1", 120611966, 120611966, "-", "GCA");
 		S_EQUAL(v.toHGVS(genome_index), "g.120611964_120611966dup");
-		v = Variant("chr1", 120611967, 120611967, "", "GCA");
+		v = Variant("chr1", 120611966, 120611966, "", "GCA");
 		S_EQUAL(v.toHGVS(genome_index), "g.120611964_120611966dup");
+		v = Variant("chr1", 120611969, 120611969, "-", "GCA");
+		S_EQUAL(v.toHGVS(genome_index), "g.120611967_120611969dup");
+		v = Variant("chr1", 120611969, 120611969, "", "GCA");
+		S_EQUAL(v.toHGVS(genome_index), "g.120611967_120611969dup");
 
 		//INV
 		v = Variant("chr1", 120611948, 120611952, "CATGC", "GCATG");

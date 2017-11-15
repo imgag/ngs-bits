@@ -12,7 +12,6 @@ GSvar:
 # Link to GeneCards: http://www.genecards.org/cgi-bin/carddisp.pl?gene=KIF5A
 # subpanel design dialog: use existing as template
 * subpanel dialog: allow gene(s) search
-* Target region archive dialog: add functionality to search for filters with a certain gene
 * Add genotype equal for affected
 * Add inheritance mode to gene column => allow filtering
 - Allow settings disease_group/disease_status for multi-sample GSvar files

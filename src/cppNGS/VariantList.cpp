@@ -114,7 +114,6 @@ QString Variant::toHGVS(const FastaFileIndex& genome_index) const
 
 	//init
 	QByteArray prefix = (chr().isM() ? "m." : "g.");
-	int end = start + ref.length() - 1;
 	int obs_len = obs.length();
 	int ref_len = ref.length();
 
@@ -127,55 +126,64 @@ QString Variant::toHGVS(const FastaFileIndex& genome_index) const
 	//DEL
 	if (ref_len>0 && obs_len==0) //del
 	{
-		if (start == end)
+		if (ref_len==1)
 		{
 			return prefix + QString::number(start) + "del";
 		}
 		else
 		{
-			return prefix + QString::number(start) + '_' + QString::number(end) + "del";
+			return prefix + QString::number(start) + '_' + QString::number(start + ref_len - 1) + "del";
 		}
 	}
 
 	//INS or DUP
 	if (obs_len>0 && ref_len==0)
 	{
-		//DUP
-		QString before = genome_index.seq(chr(), start-obs_len, obs_len);
-		if (obs==before)
+		//DUP (base before)
+		if (obs==genome_index.seq(chr(), start+1-obs_len, obs_len))
 		{
-			start -= obs_len;
-			if (start == end)
+			if (obs_len==1)
 			{
 				return prefix + QString::number(start) + "dup";
 			}
 			else
 			{
-				return prefix + QString::number(start) + '_' + QString::number(end) + "dup";
+				return prefix + QString::number(start+1-obs_len) + '_' + QString::number(start) + "dup";
+			}
+		}
+		//DUP (base after)
+		else if (obs==genome_index.seq(chr(), start+1, obs_len))
+		{
+			if (obs_len==1)
+			{
+				return prefix + QString::number(start+1) + "dup";
+			}
+			else
+			{
+				return prefix + QString::number(start+1) + '_' + QString::number(start + obs_len) + "dup";
 			}
 		}
 		//INS
 		else
 		{
-			end += 2;
-			return prefix + QString::number(start) + '_' + QString::number(end) + "ins" + obs;
+			return prefix + QString::number(start) + '_' + QString::number(start + ref_len + 1) + "ins" + obs;
 		}
 	}
 
 	//INV
 	if (obs==NGSHelper::changeSeq(ref, true, true))
 	{
-		return prefix + QString::number(start) + '_' + QString::number(end) + "inv";
+		return prefix + QString::number(start) + '_' + QString::number(start + ref_len - 1) + "inv";
 	}
 
 	//INDEL
-	if (start == end)
+	if (ref_len==1)
 	{
 		return prefix + QString::number(start) + "delins" + obs;
 	}
 	else
 	{
-		return prefix + QString::number(start) + '_' + QString::number(end) + "delins" + obs;
+		return prefix + QString::number(start) + '_' + QString::number(start + ref_len - 1) + "delins" + obs;
 	}
 
 	THROW(ProgrammingException, "Could not convert variant " + toString(false) + " to string! This should not happen!");
