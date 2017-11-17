@@ -14,7 +14,7 @@ class MultiSampleDialog
 public:
 	MultiSampleDialog(QWidget* parent = 0);
 
-	//Returns the sample name list
+	//Returns the sample name list (the first sample defines the target region to use for the multi-sample analysis, if they are not the same)
 	QStringList samples();
 	//Rreturns the sample status list (affected/control)
 	QStringList status();
@@ -28,6 +28,8 @@ protected:
 protected slots:
 	void on_add_control_clicked(bool);
 	void on_add_affected_clicked(bool);
+	void updateStartButton();
+	void startAnalysis();
 
 private:
 	Ui::MultiSampleDialog ui_;
