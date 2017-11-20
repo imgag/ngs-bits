@@ -2,6 +2,9 @@
 #include "Exceptions.h"
 #include "ChromosomeInfo.h"
 #include "Helper.h"
+#include "VariantFilter.h"
+#include "BasicStatistics.h"
+
 #include <QTextStream>
 #include <QFileInfo>
 #include <QDateTime>
@@ -344,10 +347,45 @@ void NGSHelper::getIndels(const FastaFileIndex& reference, BamReader& reader, co
 	mapq0_frac = (double)reads_mapq0 / reads_mapped;
 }
 
-VariantList NGSHelper::getSNPs(const BedFile* roi)
+VariantList NGSHelper::getKnownVariants(bool only_snvs, double min_af, double max_af, const BedFile* roi)
 {
 	VariantList output;
-	output.load("://Resources/hg19_snps.tsv", VariantList::AUTO, roi);
+	output.load(":/Resources/GRCh37_snps.vcf", VariantList::VCF, roi);
+
+	//only SNVs
+	if (only_snvs)
+	{
+		VariantFilter filter(output);
+		for (int i=0; i<output.count(); ++i)
+		{
+			filter.flags()[i] = output[i].isSNV();
+		}
+		filter.removeFlagged();
+	}
+
+	//filter my min AF
+	if (min_af<0.0 || min_af>1.0)
+	{
+		THROW(ArgumentException, "Minumum allele frequency out of range (0.0-1.0): " + QByteArray::number(min_af));
+	}
+	if (max_af<0.0 || max_af>1.0)
+	{
+		THROW(ArgumentException, "Maximum allele frequency out of range (0.0-1.0): " + QByteArray::number(max_af));
+	}
+	bool min_set = min_af>0.0;
+	bool max_set = max_af<1.0;
+	if (min_set || max_set)
+	{
+		VariantFilter filter(output);
+		int i_af = output.annotationIndexByName("AF");
+		for (int i=0; i<output.count(); ++i)
+		{
+			double af = output[i].annotations()[i_af].toDouble();
+			filter.flags()[i] = (!min_set || af>min_af) && (!max_set || af<max_af);
+		}
+		filter.removeFlagged();
+	}
+
 	return output;
 }
 

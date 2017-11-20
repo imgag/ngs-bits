@@ -82,11 +82,11 @@ void SampleCorrelation::calculateFromBam(QString& in1, QString& in2, int min_cov
 	{
 		BedFile roi;
 		roi.load(roi_file);
-		snps = NGSHelper::getSNPs(&roi);
+		snps = NGSHelper::getKnownVariants(true, 0.2, 0.8, &roi);
 	}
 	else
 	{
-		snps = NGSHelper::getSNPs();
+		snps = NGSHelper::getKnownVariants(true, 0.2, 0.8);
 	}
 
 	//open BAM readers

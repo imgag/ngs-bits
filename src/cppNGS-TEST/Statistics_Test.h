@@ -17,7 +17,7 @@ private slots:
 
         S_EQUAL(stats[0].name(), QString("sample correlation"));
         S_EQUAL(stats[0].accession(), QString("QC:2000040"));
-        S_EQUAL(stats[0].toString(), QString("-0.86"));
+		S_EQUAL(stats[0].toString(), QString("n/a (too few variants)"));
         S_EQUAL(stats[1].name(), QString("variant count"));
         S_EQUAL(stats[1].accession(), QString("QC:2000013"));
         S_EQUAL(stats[1].toString(), QString("2"));
@@ -184,7 +184,7 @@ private slots:
 	{
 		QCCollection stats = Statistics::contamination(TESTDATA("data_in/panel.bam"));
 		S_EQUAL(stats[0].name(), QString("SNV allele frequency deviation"));
-		S_EQUAL(stats[0].toString(), QString("1.23"));
+		S_EQUAL(stats[0].toString(), QString("1.57"));
 		I_EQUAL(stats.count(), 1);
 	}
 

@@ -11,6 +11,7 @@ GSvar:
 ** LOVD dialog: Report to transfer folder (if set), add documentation
 ** Gap report split to ccds+-5 and all gaps:
 ** Report dialog: allow checking/unchecking all variants
+** Mutli-sample/trio diaglog: check sample quality (bad => warning)
 # Link to GeneCards: http://www.genecards.org/cgi-bin/carddisp.pl?gene=KIF5A
 # subpanel design dialog: use existing as template
 * subpanel dialog: allow gene(s) search
@@ -21,9 +22,10 @@ GSvar:
 - Target region filter: reset to none if it looses focus in search mode
 
 Tools:
-** add new tool BamHighCoverage
+** add new tool BedHighCoverage
 ** NGSDImportHPO: Add augment mode.
 # NGSDImportGeneInfo: add (optional) import of inheritance mode from OMIM
+- SampleCorrelation: Use only rare snps e.g. below 5% AF, but only when they are known variants (MS)
 - SomaticQC: do not use precalculated triplet counts, count every time (CS)
 - BamClipOverlap: require sorted bam and paired-end sequencing (CS)
 - VariantAnnotateStrand:

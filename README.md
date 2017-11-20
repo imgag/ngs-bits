@@ -66,6 +66,7 @@ _ngs-bits_ contains a lot of tools that we use for NGS short-read data analysis 
 * [SampleGender](doc/tools/SampleGender.md) - Determines sample gender based on a BAM file.
 * [PERsim](doc/tools/PERsim.md) - Paired-end read simulator for Illumina reads.
 * [CnvHunter](doc/CnvHunter/index.md) - CNV detection from targeted resequencing data using non-matched control samples.
+* [RohHunter](doc/RohHunter/index.md) - ROH detection based on a variant list
 
 ### QC tools
 
@@ -122,6 +123,7 @@ The default output format of the quality control tools is [qcML](https://github.
 
 
   
+
 
 
 
