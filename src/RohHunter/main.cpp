@@ -3,6 +3,7 @@
 #include "VariantFilter.h"
 #include "Helper.h"
 #include "NGSHelper.h"
+#include "BasicStatistics.h"
 
 #include <QTextStream>
 #include <QDebug>
@@ -20,19 +21,23 @@ public:
 
     virtual void setup()
     {
-		setDescription("ROH detection based on a variant list.");
+		setDescription("ROH detection based on a variant list annotated with AF values.");
 		addInfile("in", "Input variant list in VCF or GSvar format.", true);
-		addInfile("roi", "Target region BED file with regions where variant calling was performed to generate the 'in' file.", true);
 		addOutfile("out", "Output TSV file with ROH regions.", true);
-
 		//optional
-		addInt("min_dp", "Minimum depth. Variants with lower depth are excluded from the analysis.", true, 20);
-		addFloat("min_q", "Minimum quality score. Variants with lower depth are excluded from the analysis.", true, 30);
+		addInt("var_min_dp", "Minimum variant depth ('DP'). Variants with lower depth are excluded from the analysis.", true, 20);
+		addFloat("var_min_q", "Minimum variant quality. Variants with lower depth are excluded from the analysis.", true, 30);
+		addString("var_af_keys", "Annotation keys of allele frequency values (comma-separated).", true, "GNOMAD_AF,T1000GP_AF,EXAC_AF");
+		addFloat("roh_min_q", "Minimum Q score of ROH regions.", true, 30.0);
+		addInt("roh_min_markers", "Minimum marker count of ROH regions.", true, 20);
+		addFloat("roh_min_size", "Minimum size in kB of ROH regions.", true, 20.0);
+		addInt("ext_max_het", "Number of heterozygous variants that can be spanned when merging ROH regions.", true, 2);
+		addFloat("ext_size_perc", "Percentage of ROH size that can be spanned when merging ROH regions.", true, 20.0);
 
-		//TODO changeLog(2017, 11, 20, "First version.");
+		changeLog(2017, 11, 21, "First version.");
 	}
 
-	//Input data struct
+	//Input data struct of the algorithm
 	struct VariantInfo
 	{
 		//position
@@ -46,12 +51,53 @@ public:
 		float af;
 	};
 
-	//algorithm implementation
-	static QStringList calculate(const QList<VariantInfo>& var_info)
+	//Output data struct of the algorithm
+	struct RohRegion
 	{
-		QTextStream out(stdout); //TODO
+		Chromosome chr;
+		int start_pos;
+		int end_pos;
 
-		QStringList output;
+		int start_index;
+		int end_index;
+
+		int het_count;
+
+		//returns the region
+		QString toString() const
+		{
+			return chr.str() + ":" + QString::number(start_pos) + "-" + QString::number(end_pos);
+		}
+
+		//returns the marker count
+		int sizeMarkers() const
+		{
+			return end_index-start_index+1;
+		}
+
+		//returns the size in bases
+		int sizeBases() const
+		{
+			return end_pos-start_pos;
+		}
+
+		//returns the probability to observe the event as Q score
+		double qScore(const QList<VariantInfo>& var_info) const
+		{
+			double p = 1.0;
+			for (int i=start_index; i<=end_index; ++i)
+			{
+				p *= std::pow(var_info[i].af, 2);
+			}
+
+			return -10.0 * log10(p);
+		}
+	};
+
+	//raw ROH detection
+	static QList<RohRegion> calculateRawRohs(const QList<VariantInfo>& var_info, double roh_min_q)
+	{
+		QList<RohRegion> output;
 		const int count = var_info.count();
 		int last_end = -1;
 		while(true)
@@ -71,45 +117,66 @@ public:
 			--end;
 
 			last_end = end;
-			double p = 1.0;
-			for (int i=start; i<=end; ++i)
+
+			RohRegion region{var_info[start].chr, var_info[start].pos, var_info[end].pos, start, end, 0};
+			if (region.qScore(var_info)>=roh_min_q)
 			{
-				p *= var_info[i].af * var_info[i].af;
+				output << region;
 			}
-			out << var_info[end].chr.str() << ":" << var_info[start].pos << "-" << var_info[end].pos << "\t" << (end-start+1) << "\t" << (var_info[end].pos-var_info[start].pos) << "\t" << (-10.0 * log10(p)) << endl;
 		}
 
 		return output;
 	}
 
+	//ROH merging
+	void mergeRohs(QList<RohRegion>& raw, int ext_max_het, double ext_size_perc)
+	{
+		bool merged = false;
+		do
+		{
+			merged = false;
+			for (int i=0; i<raw.count()-1; ++i)
+			{
+				//same chr
+				if (raw[i].chr!=raw[i+1].chr) continue;
+
+				//not too far apart (indices)
+				int index_diff = raw[i+1].start_index-raw[i].end_index-1;
+				if (index_diff > ext_max_het) continue;
+
+				//not too far apart (bases)
+				if (raw[i+1].start_pos - raw[i].end_pos > ext_size_perc * std::max(raw[i].sizeBases(), raw[i+1].sizeBases())) continue;
+
+				raw[i].end_index = raw[i+1].end_index;
+				raw[i].end_pos = raw[i+1].end_pos;
+				raw[i].het_count += raw[i+1].het_count + index_diff;
+
+				raw.removeAt(i+1);
+				i-=1;
+				merged = true;
+			}
+		}
+		while(merged);
+	}
+
 /*
 TODO:
-- special handling gonosomes
-- shrink test data (a few chromosomes only?) and test ROI
-- optimize quality cutoffs based on variants that are het on chrX of males (AF, DP, MQM, ...)
+- shrink test data - a few chromosomes only
+- special handling gonosomes/genders?
+- optimize quality cutoffs based on variants that are het on chrX of males (AF, DP, MQM, blacklist!, InDels!, ...)
 */
 
 	virtual void main()
 	{
 		//init
 		QTextStream out(stdout);
-		int min_dp = getInt("min_dp");
-		float min_q = getFloat("min_q");
 
 		//load variant list
 		VariantList vl;
 		vl.load(getInfile("in"));
 		out << "Variants in VCF: " << vl.count() << endl;
 
-		//filter by target region (to get rid of off-target calls)
-		BedFile roi;
-		roi.load(getInfile("roi"));
-		VariantFilter roi_filter(vl);
-		roi_filter.flagByRegions(roi);
-		roi_filter.removeFlagged();
-		out << "Variants inside ROI: " << vl.count() << endl;
-
-		//convert to datastructure used in algorithm
+		//determine required annotation indices
 		int idx_qual = vl.annotationIndexByName("QUAL");
 		int idx_dp = -1;
 		for(int i=0; i<vl.annotationDescriptions().count(); ++i)
@@ -120,13 +187,16 @@ TODO:
 			}
 		}
 		if (idx_dp==-1) THROW(ArgumentException, "Could not find 'DP' annotation in variant list!");
-
-		//load known variant list
-		VariantList kv = NGSHelper::getKnownVariants(false, 0.0, 1.0, &roi);
-		ChromosomalIndex<VariantList> kv_index(kv);
-		int idx_af_kv = kv.annotationIndexByName("AF");
+		QStringList var_af_keys = getString("var_af_keys").split(",", QString::SkipEmptyParts);
+		QVector<int> var_af_indices;
+		foreach(QString key, var_af_keys)
+		{
+			var_af_indices << vl.annotationIndexByName(key);
+		}
 
 		//convert variant list to data structure
+		int var_min_dp = getInt("var_min_dp");
+		float var_min_q = getFloat("var_min_q");
 		int vars_hom = 0;
 		int vars_known = 0;
 		int i_gt = vl.annotationIndexByName("GT");
@@ -137,9 +207,9 @@ TODO:
 
 			//skip low quality variants
 			bool ok = true;
-			if (vl[i].annotations().at(idx_dp).toInt(&ok) < min_dp) continue;
+			if (vl[i].annotations().at(idx_dp).toInt(&ok) < var_min_dp) continue;
 			if (!ok) THROW(ArgumentException, "Could not convert 'DP' value of variant " + v.toString() + " to integer.");
-			if (vl[i].annotations().at(idx_qual).toDouble(&ok) < min_q) continue;
+			if (vl[i].annotations().at(idx_qual).toDouble(&ok) < var_min_q) continue;
 			if (!ok) THROW(ArgumentException, "Could not convert 'QUAL' value of variant " + v.toString() + " to double.");
 
 			//determine if homozygous
@@ -148,31 +218,61 @@ TODO:
 			if (geno_hom) ++vars_hom;
 
 			//determine database AF
+			bool var_known = false;
 			float af = 0.01;
-			QVector<int> indices = kv_index.matchingIndices(v.chr(), v.start()-1, v.end()+1);
-			foreach(int index, indices)
+			foreach(int index, var_af_indices)
 			{
-				if (kv[index].start()==v.start() && kv[index].ref()==v.ref() && kv[index].obs()==v.obs())
-				{
-					af = std::max(af, kv[index].annotations()[idx_af_kv].toFloat(&ok));
-					if (!ok) THROW(ProgrammingException, "Could not convert 'AF' value of known variant " + kv[index].toString() + " to double.");
-					++vars_known;
-				}
+				float af_new = v.annotations()[index].toFloat(&ok);
+				if (!ok) continue;
+				af = std::max(af, af_new);
+				if (af_new>0.0) var_known = true;
 			}
+			if (var_known) ++vars_known;
 
 			var_info.append(VariantInfo{v.chr(), v.start(), geno_hom, af});
 		}
 		out << "Variants passing QC filters: " << var_info.count() << endl;
 		out << endl;
-		out << "Variants homozygous: " << QByteArray::number(100.0*vars_hom/var_info.count(), 'f', 2) << "%" << endl;
-		out << "Variants known: " << QByteArray::number(100.0*vars_known/var_info.count(), 'f', 2) << "%" << endl;
+		double hom_perc = 100.0*vars_hom/var_info.count();
+		out << "Variants homozygous: " << QByteArray::number(hom_perc, 'f', 2) << "%" << endl;
+		out << "Variants with AF annoation: " << QByteArray::number(100.0*vars_known/var_info.count(), 'f', 2) << "%" << endl;
+		out << endl;
 
-		//find ROH regions
-		QStringList output = calculate(var_info);
+		//detect raw ROHs
+		float roh_min_q = getFloat("roh_min_q");
+		QList<RohRegion> regions = calculateRawRohs(var_info, roh_min_q);
+		out << "Raw ROH count: " << regions.count() << endl;
 
-		//write output
+		//merge raw ROHs
+		int ext_max_het = getInt("ext_max_het");
+		int ext_size_perc = getFloat("ext_size_perc");
+		mergeRohs(regions, ext_max_het, ext_size_perc);
+		out << "Merged ROH count: " << regions.count() << endl;
+
+		//filter and write output
+		int roh_min_markers = getInt("roh_min_markers");
+		float roh_min_size = getFloat("roh_min_size");
+		QStringList output;
+		output << "#chr\tstart\tend\tnumber of markers\thet markers\tsize [kB]\tQ score";
+		foreach(const RohRegion& reg, regions)
+		{
+			int markers = reg.sizeMarkers();
+			if (markers<roh_min_markers) continue;
+			double size_kb = reg.sizeBases()/1000.0;
+			if (size_kb<roh_min_size) continue;
+
+			QString line;
+			line += reg.chr.str() + "\t";
+			line += QString::number(reg.start_pos) + "\t";
+			line += QString::number(reg.end_pos) + "\t";
+			line += QString::number(markers) + "\t";
+			line += QString::number(reg.het_count) + "\t";
+			line += QString::number(size_kb, 'f', 2) + "\t";
+			line += QString::number(reg.qScore(var_info), 'f', 2);
+			output << line;
+		}
 		Helper::storeTextFile(getOutfile("out"), output);
-
+		out << "ROH count after filters: " << (output.count()-1) << endl;
 	}
 };
 
