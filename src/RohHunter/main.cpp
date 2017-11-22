@@ -31,8 +31,8 @@ public:
 		addFloat("roh_min_q", "Minimum Q score of ROH regions.", true, 30.0);
 		addInt("roh_min_markers", "Minimum marker count of ROH regions.", true, 20);
 		addFloat("roh_min_size", "Minimum size in kB of ROH regions.", true, 20.0);
-		addInt("ext_max_het", "Number of heterozygous variants that can be spanned when merging ROH regions.", true, 2);
-		addFloat("ext_size_perc", "Percentage of ROH size that can be spanned when merging ROH regions.", true, 20.0);
+		addFloat("ext_merker_perc", "Percentage of ROH markers that can be spanned when merging ROH regions .", true, 1.0);
+		addFloat("ext_size_perc", "Percentage of ROH size that can be spanned when merging ROH regions.", true, 50.0);
 
 		changeLog(2017, 11, 21, "First version.");
 	}
@@ -90,7 +90,13 @@ public:
 				p *= std::pow(var_info[i].af, 2);
 			}
 
-			return -10.0 * log10(p);
+			//max of 10000, also because of numeric overflow
+			double q_score = -10.0 * log10(p);
+			if (q_score>10000.0)
+			{
+				q_score = 10000;
+			}
+			return q_score;
 		}
 	};
 
@@ -129,10 +135,10 @@ public:
 	}
 
 	//ROH merging
-	void mergeRohs(QList<RohRegion>& raw, int ext_max_het, double ext_size_perc)
+	void mergeRohs(QList<RohRegion>& raw, double ext_merker_perc, double ext_size_perc)
 	{
-		bool merged = false;
-		do
+		bool merged = true;
+		while(merged)
 		{
 			merged = false;
 			for (int i=0; i<raw.count()-1; ++i)
@@ -140,13 +146,14 @@ public:
 				//same chr
 				if (raw[i].chr!=raw[i+1].chr) continue;
 
-				//not too far apart (indices)
+				//not too far apart (markers)
 				int index_diff = raw[i+1].start_index-raw[i].end_index-1;
-				if (index_diff > ext_max_het) continue;
+				if (index_diff>1 && index_diff > ext_merker_perc / 100.0 * (raw[i].sizeMarkers() + raw[i+1].sizeMarkers())) continue;
 
 				//not too far apart (bases)
-				if (raw[i+1].start_pos - raw[i].end_pos > ext_size_perc * std::max(raw[i].sizeBases(), raw[i+1].sizeBases())) continue;
+				if (raw[i+1].start_pos - raw[i].end_pos > ext_size_perc / 100.0 * (raw[i].sizeBases() + raw[i+1].sizeBases())) continue;
 
+				//merge
 				raw[i].end_index = raw[i+1].end_index;
 				raw[i].end_pos = raw[i+1].end_pos;
 				raw[i].het_count += raw[i+1].het_count + index_diff;
@@ -156,14 +163,12 @@ public:
 				merged = true;
 			}
 		}
-		while(merged);
 	}
 
 /*
 TODO:
-- shrink test data - a few chromosomes only
 - special handling gonosomes/genders?
-- optimize quality cutoffs based on variants that are het on chrX of males (AF, DP, MQM, blacklist!, InDels!, ...)
+- optimize quality cutoffs based on variants that are het on chrX for males (AF, DP, MQM, blacklist, InDels, ...)
 */
 
 	virtual void main()
@@ -244,9 +249,9 @@ TODO:
 		out << "Raw ROH count: " << regions.count() << endl;
 
 		//merge raw ROHs
-		int ext_max_het = getInt("ext_max_het");
-		int ext_size_perc = getFloat("ext_size_perc");
-		mergeRohs(regions, ext_max_het, ext_size_perc);
+		double ext_merker_perc = getFloat("ext_merker_perc");
+		double ext_size_perc = getFloat("ext_size_perc");
+		mergeRohs(regions, ext_merker_perc, ext_size_perc);
 		out << "Merged ROH count: " << regions.count() << endl;
 
 		//filter and write output
