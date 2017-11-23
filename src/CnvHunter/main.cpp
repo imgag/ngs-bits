@@ -191,7 +191,7 @@ public:
 		changeLog(2017, 8,  29, "Updated default values of parameters 'n' and 'reg_max_cv' based on latest benchmarks.");
 		changeLog(2017, 8,  28, "Added generic annotation mechanism for annotation from BED files.");
 		changeLog(2017, 8,  24, "Added copy-number-polymorphisms regions input file ('cnp_file' parameter).");
-		changeLog(2017, 8,  17, "Added down-sampleing if input to speed up sample correlation ('sam_corr_regs' parameter).");
+		changeLog(2017, 8,  17, "Added down-sampling if input to speed up sample correlation ('sam_corr_regs' parameter).");
 		changeLog(2017, 8,  15, "Added allele frequency for each region to TSV output.");
 		changeLog(2016, 10, 24, "Added copy-number variant size to TSV output and added optional SEG output file.");
 		changeLog(2016, 9,   1, "Sample and region information files are now always written.");

@@ -7,6 +7,7 @@
 
 #include <QTextStream>
 #include <QDebug>
+#include <cmath>
 
 class ConcreteTool
         : public ToolBase
@@ -165,12 +166,6 @@ public:
 		}
 	}
 
-/*
-TODO:
-- special handling gonosomes/genders?
-- optimize quality cutoffs based on variants that are het on chrX for males (AF, DP, MQM, blacklist, InDels, ...)
-*/
-
 	virtual void main()
 	{
 		//init
@@ -179,6 +174,8 @@ TODO:
 		//load variant list
 		VariantList vl;
 		vl.load(getInfile("in"));
+
+		out << "=== Loading input data ===" << endl;
 		out << "Variants in VCF: " << vl.count() << endl;
 
 		//determine required annotation indices
@@ -237,13 +234,13 @@ TODO:
 			var_info.append(VariantInfo{v.chr(), v.start(), geno_hom, af});
 		}
 		out << "Variants passing QC filters: " << var_info.count() << endl;
-		out << endl;
 		double hom_perc = 100.0*vars_hom/var_info.count();
 		out << "Variants homozygous: " << QByteArray::number(hom_perc, 'f', 2) << "%" << endl;
 		out << "Variants with AF annoation: " << QByteArray::number(100.0*vars_known/var_info.count(), 'f', 2) << "%" << endl;
 		out << endl;
 
 		//detect raw ROHs
+		out << "=== Detecting ROHs ===" << endl;
 		float roh_min_q = getFloat("roh_min_q");
 		QList<RohRegion> regions = calculateRawRohs(var_info, roh_min_q);
 		out << "Raw ROH count: " << regions.count() << endl;
@@ -253,10 +250,12 @@ TODO:
 		double ext_size_perc = getFloat("ext_size_perc");
 		mergeRohs(regions, ext_merker_perc, ext_size_perc);
 		out << "Merged ROH count: " << regions.count() << endl;
+		out << endl;
 
 		//filter and write output
 		int roh_min_markers = getInt("roh_min_markers");
 		float roh_min_size = getFloat("roh_min_size");
+		double size_sum_kb = 0.0;
 		QStringList output;
 		output << "#chr\tstart\tend\tnumber of markers\thet markers\tsize [kB]\tQ score";
 		foreach(const RohRegion& reg, regions)
@@ -265,6 +264,8 @@ TODO:
 			if (markers<roh_min_markers) continue;
 			double size_kb = reg.sizeBases()/1000.0;
 			if (size_kb<roh_min_size) continue;
+
+			size_sum_kb += size_kb;
 
 			QString line;
 			line += reg.chr.str() + "\t";
@@ -277,7 +278,9 @@ TODO:
 			output << line;
 		}
 		Helper::storeTextFile(getOutfile("out"), output);
+		out << "=== Statistics output ===" << endl;
 		out << "ROH count after filters: " << (output.count()-1) << endl;
+		out << "Overall ROH size sum: " << QString::number(size_sum_kb/1000.0 ,'f', 2) << "Mb" << endl;
 	}
 };
 

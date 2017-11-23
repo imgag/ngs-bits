@@ -586,10 +586,10 @@ void ReportWorker::writeHTML()
 	stream << "</p>" << endl;
 
 	///CNVs
-	stream << "<p><b>Gefunden Copy-Number-Varianten</b>" << endl;
+	stream << "<p><b>Gefundene Copy-Number-Varianten</b>" << endl;
 	stream << "</p>" << endl;
 	stream << "<table>" << endl;
-	stream << "<tr><td><b>Koordianten</b></td><td><b>Exons</b></td><td><b>CopyNumbers</b></td><td><b>Details</b></td></tr>" << endl;
+	stream << "<tr><td><b>Koordinaten</b></td><td><b>Exons</b></td><td><b>CopyNumbers</b></td><td><b>Details</b></td></tr>" << endl;
 	stream << "<tr>" << endl;
 	stream << "<td colspan=\"4\"><span style=\"background-color: #FF0000\">Abschnitt mit Daten aus dem Report fuellen oder loeschen!<br />Im Moment nur f&uuml;r X-Diagnostik relevant!</span></td>" << endl;
 	stream << "</tr>" << endl;
