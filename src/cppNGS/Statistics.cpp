@@ -456,6 +456,8 @@ QCCollection Statistics::mapping_rna(const QString &bam_file, int min_mapq)
                             insert_size -= op.Length;
                         }
                     }
+
+                    insert_size = std::min(insert_size, 999); // cap insert size at 1000
                     insert_size_sum += 2 * insert_size;     // Twice because the sum is divided by every read of pairs
                     insert_dist.inc(insert_size, true);
 
