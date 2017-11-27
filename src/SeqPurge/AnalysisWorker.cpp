@@ -74,6 +74,21 @@ double AnalysisWorker::matchProbability(int matches, int mismatches)
 	return p;
 }
 
+void AnalysisWorker::checkHeaders(const QByteArray& h1, const QByteArray& h2)
+{
+	QByteArray tmp1 = h1.split(' ').at(0);
+	QByteArray tmp2 = h2.split(' ').at(0);
+	if (tmp1.endsWith("/1") && tmp2.endsWith("/2"))
+	{
+		tmp1.chop(2);
+		tmp2.chop(2);
+	}
+	if (tmp1!=tmp2)
+	{
+		THROW(Exception, "Headers of reads do not match:\n" + tmp1 + "\n" + tmp2);
+	}
+}
+
 void AnalysisWorker::correctErrors(QTextStream& debug_out)
 {
 	int mm_count = 0;
@@ -139,25 +154,12 @@ void AnalysisWorker::run()
 	QTextStream debug_out(stdout);
 
 	//check that headers match
-	QByteArray h1 = e1_->header.split(' ').at(0);
-	QByteArray h2 = e2_->header.split(' ').at(0);
-	if (h1!=h2)
-	{
-		if (h1.endsWith("/1") && h2.endsWith("/2"))
-		{
-			h1.chop(2);
-			h2.chop(2);
-			if (h1!=h2)
-			{
-				THROW(Exception, "Headers of read do not match:\n" + h1 + "\n" + h2);
-			}
-		}
-	}
+	checkHeaders(e1_->header, e2_->header);
 
 	if (params_.debug)
 	{
 		debug_out << "#############################################################################" << endl;
-		debug_out << "Header:     " << h1 << endl;
+		debug_out << "Header:     " << e1_->header << endl;
 		debug_out << "Read 1 in:  " << e1_->bases << endl;
 		debug_out << "Read 2 in:  " << e2_->bases << endl;
 		debug_out << "Quality 1:  " << e1_->qualities << endl;
@@ -516,17 +518,19 @@ void AnalysisWorker::run()
 	//write output
 	if (e1_->bases.count()>=params_.min_len && e2_->bases.count()>=params_.min_len)
 	{
+		checkHeaders(e1_->header, e2_->header);
+
 		data_.out1_out2_mutex.lock();
 		data_.out1->write(*e1_);
 		data_.out2->write(*e2_);
 		data_.out1_out2_mutex.unlock();
 	}
-	else if (data_.out3 && e1_->bases.count()>=params_.min_len)
+	else if (data_.out3!=nullptr && e1_->bases.count()>=params_.min_len)
 	{
 		reads_removed += 1;
 		data_.out3->write(*e1_);
 	}
-	else if (data_.out4 && e2_->bases.count()>=params_.min_len)
+	else if (data_.out4!=nullptr && e2_->bases.count()>=params_.min_len)
 	{
 		reads_removed += 1;
 		data_.out4->write(*e2_);

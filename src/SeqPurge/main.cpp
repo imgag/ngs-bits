@@ -90,8 +90,8 @@ public:
 		QString out3_base = getOutfile("out3").trimmed();
 		if (out3_base!="")
 		{
-			data_.out3 = new FastqOutfileStream(out3_base + "_R1.fastq.gz", false);
-			data_.out4 = new FastqOutfileStream(out3_base + "_R2.fastq.gz", false);
+			data_.out3 = new FastqOutfileStream(out3_base + "_R1.fastq.gz", true);
+			data_.out4 = new FastqOutfileStream(out3_base + "_R2.fastq.gz", true);
 		}
 
 		params_.qc = getOutfile("qc");

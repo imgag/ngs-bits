@@ -16,10 +16,10 @@ struct TrimmingData
 	: analysis_pool()
 	, reads_queued(0)
 	, out1_out2_mutex()
-	, out1(0)
-	, out2(0)
-	, out3(0)
-	, out4(0)
+	, out1(nullptr)
+	, out2(nullptr)
+	, out3(nullptr)
+	, out4(nullptr)
 	{
 	}
 
