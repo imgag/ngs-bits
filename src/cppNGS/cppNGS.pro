@@ -51,7 +51,8 @@ SOURCES += BedFile.cpp \
     CnvList.cpp \
     Phenotype.cpp \
     Transcript.cpp \
-    GeneSet.cpp
+    GeneSet.cpp \
+    OntologyTermCollection.cpp
 
 HEADERS += BedFile.h \
 	Chromosome.h \
@@ -73,7 +74,8 @@ HEADERS += BedFile.h \
     CnvList.h \
     Phenotype.h \
     Transcript.h \
-    GeneSet.h
+    GeneSet.h \
+    OntologyTermCollection.h
 
 
 RESOURCES += \

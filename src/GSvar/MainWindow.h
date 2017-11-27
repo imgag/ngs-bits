@@ -142,8 +142,8 @@ public slots:
 	///Upload variant that is not part of the variant list to LOVD.
 	void on_actionPublishVariantInLOVD_triggered();
 
-	///Generates a report (somatic)
-	void generateReportSomatic();
+	///Generates a report (somatic) in .rtf format
+	void generateReportSomaticRTF();
 	///Generates a report (germline)
 	void generateReport();
 	///Finished the report generation (germline)

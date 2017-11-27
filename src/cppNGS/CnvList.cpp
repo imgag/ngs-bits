@@ -149,3 +149,9 @@ void CnvList::load(QString filename)
 	}
 }
 
+void CnvList::copyMetaData(const CnvList& rhs)
+{
+	annotation_headers_ = rhs.annotation_headers_;
+	comments_ = rhs.comments_;
+}
+

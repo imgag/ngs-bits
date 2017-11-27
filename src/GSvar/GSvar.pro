@@ -37,7 +37,8 @@ SOURCES += main.cpp\
     DiseaseInfoDialog.cpp \
     CandidateGeneDialog.cpp \
     PhenotypeSelectionWidget.cpp \
-    LovdUploadDialog.cpp
+    LovdUploadDialog.cpp \
+    ReportHelper.cpp
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
@@ -69,7 +70,8 @@ HEADERS  += MainWindow.h \
     DiseaseInfoDialog.h \
     CandidateGeneDialog.h \
     PhenotypeSelectionWidget.h \
-    LovdUploadDialog.h
+    LovdUploadDialog.h \
+    ReportHelper.h
 
 
 FORMS    += MainWindow.ui \

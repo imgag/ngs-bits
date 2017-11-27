@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xml" href="#stylesheet"?>
+<!DOCTYPE catelog [
+  <!ATTLIST xsl:stylesheet
+  id  ID  #REQUIRED>
+  ]>
+<qcML version="0.0.8" xmlns="http://www.prime-xs.eu/ms/qcml" >
+  <runQuality ID="rq0001">
+    <metaDataParameter ID="md0001" name="creation software" value="TestSoftware1" cvRef="QC" accession="QC:1000002"/>
+    <qualityParameter ID="qp0001" name="sample correlation" description="Correlation1" value="5.0" cvRef="QC" accession="QC:2000040"/>
+	</runQuality>
+</qcML>

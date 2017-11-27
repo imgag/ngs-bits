@@ -6,8 +6,8 @@
 #include <QTextStream>
 #include <QCoreApplication>
 #include <QFileInfo>
-
-
+#include <QList>
+#include <QFile>
 QCValue::QCValue()
 	: name_("")
 	, value_()
@@ -91,7 +91,7 @@ int QCValue::asInt() const
 
 double QCValue::asDouble() const
 {
-	if (value_.type()!=QVariant::LongLong) THROW(TypeConversionException, "QCValue '" + name_ + "' requested as double, but has different type!");
+	if (value_.type()!=QVariant::Double) THROW(TypeConversionException, "QCValue '" + name_ + "' requested as double, but has different type!");
 
 	return value_.toDouble();
 }
@@ -351,5 +351,77 @@ void QCCollection::appendToStringList(QStringList& list, QMap<QString, int> prec
 		}
 
 		list << name + ": " + value;
+	}
+}
+
+QCCollection QCCollection::fromQCML(QString filename)
+{
+	QFile f(filename);
+
+	QDomDocument doc;
+	QString error_msg;
+	int error_line, error_column;
+	if(!doc.setContent(&f,&error_msg,&error_line,&error_column))
+		THROW(FileParseException, "qcML file is invalid: " + error_msg + " line: " + error_line + " column: " + error_column);
+	
+	//make list of all elements in doc
+	QList<QDomElement> found_elements;
+	QCCollection::findElements(doc.documentElement(),found_elements);
+
+
+	QCCollection result_collection;
+
+	foreach(QDomElement element, found_elements)
+	{
+		QCValue tmp;
+		//only keep elements with qcML data
+		if(element.hasAttribute("accession"))
+		{
+			QString name = element.attribute("name");
+			QVariant value = QVariant(element.attribute("value"));
+			QString accession = element.attribute("accession");
+			QString description = element.attribute("description");
+
+			//check whether value is a double
+			if(value.toDouble() != 0.)
+			{
+				tmp = QCValue(name,value.toDouble(),description,accession);
+			}//check whether value can be an image
+			else if(value.canConvert(QVariant::Image))
+			{
+				tmp = QCValue::Image(name,value.toString(),description,accession);
+			}
+			else if(value.type() == QVariant::String)
+			{
+				tmp = QCValue(name,value.toString(),description,accession);
+			}
+		}
+		result_collection.insert(tmp);
+	}
+	return result_collection;
+}
+
+void QCCollection::findElements(const QDomElement &elem, QList<QDomElement>& foundElements)
+{
+	foundElements.append(elem);
+	QDomElement child = elem.firstChildElement();
+
+	while(!child.isNull())
+	{
+		QCCollection::findElements(child,foundElements);
+		child = child.nextSiblingElement();
+	}
+}
+
+void QCCollection::findElementsWithAttributes(const QDomElement &elem, const QString &attr, QList<QDomElement>& foundElements)
+{
+	if(elem.attributes().contains(attr))
+		foundElements.append(elem);
+	QDomElement child = elem.firstChildElement();
+
+	while(!child.isNull())
+	{
+		QCCollection::findElementsWithAttributes(child,attr,foundElements);
+		child = child.nextSiblingElement();
 	}
 }

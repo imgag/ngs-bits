@@ -23,6 +23,7 @@
 #include <QProgressBar>
 #include <QToolButton>
 #include <QMimeData>
+#include <QSqlError>
 #include "ReportWorker.h"
 #include "DBAnnotationWorker.h"
 #include "SampleInformationDialog.h"
@@ -52,6 +53,8 @@
 #include "CandidateGeneDialog.h"
 #include "TSVFileStream.h"
 #include "LovdUploadDialog.h"
+#include "OntologyTermCollection.h"
+#include "ReportHelper.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -625,7 +628,7 @@ void MainWindow::on_actionReport_triggered()
 	VariantListType type = getType();
 	if (type==SOMATIC_PAIR)
 	{
-		generateReportSomatic();
+		generateReportSomaticRTF();
 	}
 	else if (type==GERMLINE_SINGLESAMPLE)
 	{
@@ -637,227 +640,32 @@ void MainWindow::on_actionReport_triggered()
 	}
 }
 
-void MainWindow::generateReportSomatic()
+void MainWindow::generateReportSomaticRTF()
 {
-	QString roi_file = filter_widget_->targetRegion();
-	if (roi_file=="")
+	QString target_region = filter_widget_->targetRegion();
+	if (target_region == "")
 	{
 		QMessageBox::warning(this, "Somatic report", "Report cannot be created because target region is not set.");
 		return;
 	}
 
-	//init
-	NGSD db;
-	int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, true);
-	int i_tum_af = variants_.annotationIndexByName("tumor_af", true, true);
-	int i_tum_dp = variants_.annotationIndexByName("tumor_dp", true, true);
-	int i_nor_af = variants_.annotationIndexByName("normal_af", true, true);
-	int i_nor_dp = variants_.annotationIndexByName("normal_dp", true, true);
+	//List of genes which will be included in CNV-report independent on their z-scores
+	GeneSet cnv_keep_genes_filter;
+	cnv_keep_genes_filter << "MYC" << "MDM2" << "MDM4" << "CDKN2A" << "CDKN2A-AS1" << "CDK4" << "CDK6" << "PTEN" << "CCND1" << "RB1" << "CCND3" << "BRAF" << "KRAS" << "NRAS";
+	//Genes which will appear in germline report
+	GeneSet snv_germline_filter;
+	snv_germline_filter << "BRCA1" << "BRCA2" << "TP53" << "STK11" << "PTEN" << "MSH2" << "MSH6" << "MLH1" << "PMS2" << "APC" << "MUTYH" << "SMAD4" << "VHL"<< "MEN1"<< "RET"<< "RB1"<< "TSC1"<< "TSC2"<< "NF2"<< "WT1"<<"SDHB"<<"SDHD"<<"SDHC"<<"SDHAF2"<<"BMPR1A";
 
-	//determine tumor/normal processed sample name
-	QString base_name = QFileInfo(filename_).baseName();
-	QStringList parts = base_name.replace("-", "_").replace(".", "_").split("_");
-	QString tumor = parts[0] + "_" + parts[1];
-	QString normal = parts[2] + "_" + parts[3];
-
-	//report header
-	QString temp_filename = Helper::tempFileName(".html");
-	QSharedPointer<QFile> outfile = Helper::openFileForWriting(temp_filename);
-	QTextStream stream(outfile.data());
-	ReportWorker::writeHtmlHeader(stream, tumor + "-" + normal);
-
-	stream << "<h4>Technischer Report zur bioinformatischen Analyse</h4>" << endl;
-	stream << "<p>Probe Tumor: " << tumor << " (" << db.getExternalSampleName(tumor) << ")" << endl;
-	stream << "<br />Probe Normal: " << normal << " (" << db.getExternalSampleName(normal) << ")" << endl;
-	stream << "<br />Prozessierungssystem: " << db.getProcessingSystem(tumor, NGSD::LONG) << endl;
-	stream << "<br />Datum: " << QDate::currentDate().toString("dd.MM.yyyy") << endl;
-	stream << "<br />User: " << Helper::userName() << endl;
-	stream << "<br />Analysesoftware: "  << QCoreApplication::applicationName() << " " << QCoreApplication::applicationVersion() << endl;
-	stream << "</p>" << endl;
-
-	//QC statistics
-	stream << "<p><b>Statistik Sequenzierung:</b>" << endl;
-	QCCollection stats = db.getQCData(tumor);
-	for (int i=0; i<stats.count(); ++i)
-	{
-		if (stats[i].accession()=="QC:2000025" || stats[i].accession()=="QC:2000030")
-		{
-			stream << "<br />Tumor - " << stats[i].name() << ": " << stats[i].asString();
-		}
-	}
-	stats = db.getQCData(normal);
-	for (int i=0; i<stats.count(); ++i)
-	{
-		if (stats[i].accession()=="QC:2000025" || stats[i].accession()=="QC:2000030")
-		{
-			stream << "<br />Nomal - " << stats[i].name() << ": " << stats[i].asString();
-		}
-	}
-	stream << "</p>" << endl;
-
-	//somatic variants
-	stream << "<p><b>Varianten:</b>" << endl;
-	QList<int> indices;
-	for (int i=0; i<variants_.count(); ++i)
-	{
-		if (ui_.vars->isRowHidden(i)) continue;
-		indices.append(i);
-	}
-	stream << "<br />Variantenzahl: " << indices.count() << endl;
-
-	stream << "<table>" << endl;
-	stream << "<tr> <td><b>Position</b></td> <td><b>Ref</b></td> <td><b>Obs</b></td> <td><b><nobr>Tumor AF/DP</nobr></b></td> <td><b><nobr>Normal AF/DP</nobr></b></td> <td><b>Details</b></td> </tr>" << endl;
-	foreach(int i, indices)
-	{
-		const Variant& variant = variants_[i];
-		stream << "<tr>" << endl;
-		stream << "<td><nobr>" << variant.chr().str() << ":" << variant.start() << "-" << variant.end() << "</nobr></td><td>" << variant.ref() << "</td><td>" << variant.obs() << "</td>";
-		stream << "<td>" << QString::number(variant.annotations().at(i_tum_af).toDouble(), 'f', 2)  << "/" << variant.annotations().at(i_tum_dp) << "</td>" << endl;
-		stream << "<td>" << QString::number(variant.annotations().at(i_nor_af).toDouble(), 'f', 2)  << "/" << variant.annotations().at(i_nor_dp) << "</td>" << endl;
-		QByteArray tmp = variant.annotations().at(i_co_sp);
-		tmp.replace(",", " ");
-		tmp.replace("&", "&amp;");
-		tmp.replace(">", "&gt;");
-		stream << "<td>" << tmp << "</td>" << endl;
-		stream << "</tr>" << endl;
-	}
-	stream << "</table>" << endl;
-	stream << "Position = chromosomale Position der Variante (hg19), Ref = Wildtyp-Allel, Obs = mutiertes Allel, AF / DF = Anteil der Variante an allen Reads (Allelfrequenz) / gesamte Sequenziertiefe, COSMIC = Catalogue of Somatic Mutations in Cancer, Details: Auswirkung der Variante auf cDNA- bzw. Proteinebene inkl. Transkript ID" << endl;
-	stream << "</p>" << endl;
-
-	//CNV table
-	GeneSet genes_loss;
-	GeneSet genes_gain;
-	BedFile roi = BedFile();
-	roi.load(roi_file);
-	ChromosomalIndex<BedFile> roi_idx(roi);
-	stream << "<p><b>CNVs:</b>" << endl;
-	stream << "<table>" << endl;
-	TSVFileStream file(QString(filename_).replace(".GSvar", "_cnvs.tsv"));
-	int i_genes = file.colIndex("genes", true);
-	int i_cns = file.colIndex("region_copy_numbers", true);
-	stream << "<tr><td><b>" << file.header().join("</b></td><td><b>") << "</b></td></tr>" << endl;
-	while(!file.atEnd())
-	{
-		QByteArrayList parts = file.readLine();
-		if (roi_idx.matchingIndex(parts[0], parts[1].toInt(), parts[2].toInt())!=-1)
-		{
-			stream << "<tr><td>" << parts.join("</td><td>").replace(",", ", ") << "</td></tr>" << endl;
-
-			//update loss/gain gene list
-			QByteArrayList genes = parts[i_genes].split(',');
-			QByteArrayList cns = parts[i_cns].split(',');
-			if (cns[0].toInt()>2)
-			{
-				genes_gain.insert(genes);
-			}
-			else
-			{
-				genes_loss.insert(genes);
-			}
-		}
-	}
-	stream << "</table>" << endl;
-
-	//CNV loss/gain genes table
-	stream << "<br /> Gene mit Deletion: " << genes_loss.join(", ") << endl;
-	stream << "<br /> Gene mit Amplifikation: " << genes_gain.join(", ") << endl;
-	stream << "</p>" << endl;
-
-	//gaps
-	stream << "<p><b>Lückenstatistik:</b>" << endl;
-	stream << "<br />Zielregion: " << QFileInfo(roi_file).fileName();
-	GeneSet genes = GeneSet::createFromFile(roi_file.left(roi_file.size()-4) + "_genes.txt");
-	if (!genes.isEmpty())
-	{
-		stream << "<br />Zielregion Gene (" << QString::number(genes.count()) << "): " << genes.join(", ") << endl;
-	}
-	stream << "<br />Zielregion Regionen: " << roi.count();
-	stream << "<br />Zielregion Basen: " << roi.baseCount();
-
-	BedFile roi_inter;
-	roi_inter.load(db.getProcessingSystem(tumor, NGSD::FILE));
-	roi_inter.intersect(roi);
-	roi_inter.merge();
-	if (roi_inter.baseCount()!=roi.baseCount())
-	{
-		QString message = "Gaps cannot be calculated because the selected target region is larger than the processing system target region:";
-		BedFile roi_missing;
-		roi_missing.load(roi_file);
-		roi_missing.merge();
-		roi_missing.subtract(roi_inter);
-		for (int i=0; i<std::min(10, roi_missing.count()); ++i)
-		{
-			message += "\n" + roi_missing[i].toString(true);
-		}
-		QMessageBox::warning(this, "Invalid target region", message);
-		return;
-	}
-
-	QString low_cov_file = filename_;
-	low_cov_file.replace(".GSvar", "_stat_lowcov.bed");
-	BedFile low_cov;
-	low_cov.load(low_cov_file);
-	low_cov.intersect(roi);
-	stream << "<br />Lücken Regionen: " << low_cov.count();
-	stream << "<br />Lücken Basen: " << low_cov.baseCount() << " (" << QString::number(100.0 * low_cov.baseCount()/roi.baseCount(), 'f', 2) << "%)";
-
-
-	//annotate low-coverage regions with gene names
-	for(int i=0; i<low_cov.count(); ++i)
-	{
-		BedLine& line = low_cov[i];
-		GeneSet genes = db.genesOverlapping(line.chr(), line.start(), line.end(), 20); //extend by 20 to annotate splicing regions as well
-		line.annotations().append(genes.join(", "));
-	}
-
-	//group by gene name
-	QHash<QByteArray, BedFile> grouped;
-	for (int i=0; i<low_cov.count(); ++i)
-	{
-		QList<QByteArray> genes = low_cov[i].annotations()[0].split(',');
-		foreach(QByteArray gene, genes)
-		{
-			gene = gene.trimmed();
-
-			//skip non-gene regions
-			// - remains of VEGA database in old HaloPlex designs
-			// - SNPs for sample identification
-			if (gene=="") continue;
-
-			grouped[gene].append(low_cov[i]);
-		}
-	}
-
-	stream << "<table>" << endl;
-	stream << "<tr><td><b>Gen</b></td><td><b>L&uuml;cken</b></td><td><b>Chromosom</b></td><td><b>Koordinaten (hg19)</b></td></tr>" << endl;
-	for (auto it=grouped.cbegin(); it!=grouped.cend(); ++it)
-	{
-		stream << "<tr> <td>" << endl;
-		const BedFile& gaps = it.value();
-		QString chr = gaps[0].chr().strNormalized(true);;
-		QStringList coords;
-		for (int i=0; i<gaps.count(); ++i)
-		{
-			coords << QString::number(gaps[i].start()) + "-" + QString::number(gaps[i].end());
-		}
-		stream << it.key() << "</td><td>" << gaps.baseCount() << "</td><td>" << chr << "</td><td>" << coords.join(", ") << endl;
-
-		stream << "</td> </tr>" << endl;
-	}
-	stream << "</table>" << endl;
-	stream << "</p>" << endl;
-
-	//close stream
-	ReportWorker::writeHtmlFooter(stream);
-	outfile->close();
+	QString temp_filename = Helper::tempFileName(".rtf");
+	ReportHelper report(filename_,snv_germline_filter,cnv_keep_genes_filter,target_region);
+	report.writeRtf(temp_filename);
 
 	//validate/store
-	QString file_rep = QFileDialog::getSaveFileName(this, "Export report file", last_report_path_ + "/" + base_name + "_report_" + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
-	ReportWorker::validateAndCopyReport(temp_filename, file_rep);
+	QString file_rep = QFileDialog::getSaveFileName(this, "Export report file", last_report_path_ + "/" + QFileInfo(filename_).baseName() + "_report_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf", "RTF files (*.rtf);;All files(*.*)");
+	ReportWorker::validateAndCopyReport(temp_filename, file_rep,false,true);
 
 	//show result info box
-	if (QMessageBox::question(this, "Report", "Report generated successfully!\nDo you want to open the report in your browser?")==QMessageBox::Yes)
+	if (QMessageBox::question(this, "Report", "Report generated successfully!\nDo you want to open the report in your standard .RTF viewer?")==QMessageBox::Yes)
 	{
 		QDesktopServices::openUrl(file_rep);
 	}

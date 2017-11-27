@@ -106,7 +106,7 @@ class CPPNGSSHARED_EXPORT CnvList
 			return comments_;
 		}
 		///Returns the number of variants
-		int count()
+		int count() const
 		{
 			return variants_.count();
 		}
@@ -120,6 +120,13 @@ class CPPNGSSHARED_EXPORT CnvList
 		{
 			return annotation_headers_;
 		}
+		///Appends copy number variant
+		void append(const CopyNumberVariant& add)
+		{
+			variants_.append(add);
+		}
+		///Copies Annotation Header and Comments
+		void copyMetaData(const CnvList& rhs);
 
 	protected:
 		QByteArrayList comments_;

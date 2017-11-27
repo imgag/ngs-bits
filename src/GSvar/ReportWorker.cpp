@@ -697,7 +697,7 @@ void ReportWorker::writeHTML()
 	writeHtmlFooter(stream);
 	outfile->close();
 
-	validateAndCopyReport(temp_filename, file_rep_);
+	validateAndCopyReport(temp_filename, file_rep_,true,true);
 
 	//write XML file to transfer folder
 	QString gsvar_variant_transfer = Settings::string("gsvar_variant_transfer");
@@ -707,36 +707,68 @@ void ReportWorker::writeHTML()
 	}
 }
 
-void ReportWorker::validateAndCopyReport(QString from, QString to)
+void ReportWorker::validateAndCopyReport(QString from, QString to,bool put_to_archive,bool is_rtf)
 {
 	//validate written HTML file
 	QString validation_error = XmlHelper::isValidXml(from);
-	if (validation_error!="")
+	if (validation_error!="" && !is_rtf)
 	{
 		Log::warn("Generated report at " + from + " is not well-formed: " + validation_error);
 	}
 
 	if (QFile::exists(to) && !QFile(to).remove())
 	{
-		THROW(FileAccessException, "Could not remove previous HTML report: " + to);
+		if(is_rtf)
+		{
+			THROW(FileAccessException, "Could not remove previous RTF report: " + to);
+		}
+		else
+		{
+			THROW(FileAccessException, "Could not remove previous HTML report: " + to);
+		}
 	}
 	if (!QFile::rename(from, to))
 	{
-		THROW(FileAccessException, "Could not copy HTML report from temporary file " + from + " to " + to + " !");
+		if(is_rtf)
+		{
+			THROW(FileAccessException, "Could not copy RTF report from temporary file " + from + " to " + to + " !");
+		}
+		else
+		{
+			THROW(FileAccessException, "Could not copy HTML report from temporary file " + from + " to " + to + " !");
+		}
 	}
 
 	//copy report to archive folder
-	QString archive_folder = Settings::string("gsvar_report_archive");
-	if (archive_folder!="")
+	if(put_to_archive)
 	{
-		QString file_rep_copy = archive_folder + "\\" + QFileInfo(to).fileName();
-		if (QFile::exists(file_rep_copy) && !QFile::remove(file_rep_copy))
+		QString archive_folder = Settings::string("gsvar_report_archive");
+		if (archive_folder!="")
 		{
-			THROW(FileAccessException, "Could not remove previous HTML report in archive folder: " + file_rep_copy);
-		}
-		if (!QFile::copy(to, file_rep_copy))
-		{
-			THROW(FileAccessException, "Could not copy HTML report to archive folder: " + file_rep_copy);
+			QString file_rep_copy = archive_folder + "\\" + QFileInfo(to).fileName();
+			if (QFile::exists(file_rep_copy) && !QFile::remove(file_rep_copy))
+			{
+				if(is_rtf)
+				{
+					THROW(FileAccessException, "Could not remove previous RTF report in archive folder: " + file_rep_copy);
+				}
+				else
+				{
+					THROW(FileAccessException, "Could not remove previous HTML report in archive folder: " + file_rep_copy);
+				}
+			}
+			if (!QFile::copy(to, file_rep_copy))
+			{
+				if(is_rtf)
+				{
+					THROW(FileAccessException, "Could not copy RTF report to archive folder: " + file_rep_copy);
+				}
+				else
+				{
+					THROW(FileAccessException, "Could not copy HTML report to archive folder: " + file_rep_copy);
+
+				}
+			}
 		}
 	}
 }

@@ -4,6 +4,7 @@
 #include "cppNGS_global.h"
 #include <QVariant>
 #include <QVector>
+#include <QtXml/QDomElement>
 
 ///QC value.
 class CPPNGSSHARED_EXPORT QCValue
@@ -41,7 +42,6 @@ public:
 	///Returns the string representation of the value.
 	QString toString(int double_precision = 2) const;
 
-
 protected:
 	QString name_;
 	QVariant value_;
@@ -73,6 +73,17 @@ public:
 	void storeToQCML(QString filename, const QStringList& source_files, QString parameters, QMap<QString, int> precision_overwrite = QMap<QString, int>(), QList<QList<QString>> metadata = QList<QList<QString>>());
 	///Appends the terms to a string list, e.g. for text output. Skips PNG images. Double precitions for selected terms can be overwritten (default is 2).
 	void appendToStringList(QStringList& list, QMap<QString, int> precision_overwrite = QMap<QString, int>());
+
+	///reads a whole QCML file
+	static QCCollection fromQCML(QString filename);
+
+
+
+private:
+	///Helper method to iterate through all elements recursively
+	static void findElements(const QDomElement& elem, QList<QDomElement>& foundElements);
+	///Recursive method to search a QDomElement (xml, qcml file) for elements with certain attributes, results are stored in foundElements
+	static void findElementsWithAttributes(const QDomElement& elem, const QString& attr, QList<QDomElement>& foundElements);
 
 protected:
 	QVector<QCValue> values_;

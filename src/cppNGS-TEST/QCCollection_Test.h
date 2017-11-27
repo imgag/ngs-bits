@@ -14,8 +14,18 @@ private slots:
 		col.insert(QCValue("float", 47.11, "description3", "A3"));
 		col.insert(QCValue::Image("image", TESTDATA("data_in/QCCollection_01.png"), "some plot", "A4"));
 		col.storeToQCML("out/QCCollection_qcML_out01.qcML", QStringList() << "bli" << "bla" << "bluff", "some\"nasty parameters");
-
 		REMOVE_LINES("out/QCCollection_qcML_out01.qcML", QRegExp("creation "));
 		COMPARE_FILES("out/QCCollection_qcML_out01.qcML", TESTDATA("data_out/QCCollection_qcML_out01.qcML"));
+	}
+
+	void loadFromQCML()
+	{
+		QCCollection col = QCCollection::fromQCML(TESTDATA("data_in/qcML_infile_test.qcML"));
+		F_EQUAL(col.value("QC:2000040",true).asDouble(),5.0);
+		F_EQUAL(col.value("sample correlation",false).asDouble(),5.0);
+		S_EQUAL(col.value("QC:1000002",true).asString(),"TestSoftware1");
+		S_EQUAL(col.value("creation software",false).asString(),"TestSoftware1");
+		S_EQUAL(col[1].accession(),"QC:1000002");
+		S_EQUAL(col[2].accession(),"QC:2000040");
 	}
 };
