@@ -518,8 +518,6 @@ void AnalysisWorker::run()
 	//write output
 	if (e1_->bases.count()>=params_.min_len && e2_->bases.count()>=params_.min_len)
 	{
-		checkHeaders(e1_->header, e2_->header);
-
 		data_.out1_out2_mutex.lock();
 		data_.out1->write(*e1_);
 		data_.out2->write(*e2_);
@@ -550,7 +548,13 @@ void AnalysisWorker::run()
 	stats_.reads_removed += reads_removed;
 	stats_.bases_remaining[e1_->bases.length()] += 1;
 	stats_.bases_remaining[e2_->bases.length()] += 1;
-	stats_.bases_perc_trim_sum += (double)(length_s1_orig - e1_->bases.count()) / length_s1_orig;
-	stats_.bases_perc_trim_sum += (double)(length_s2_orig - e2_->bases.count()) / length_s2_orig;
+	if (length_s1_orig>0)
+	{
+		stats_.bases_perc_trim_sum += (double)(length_s1_orig - e1_->bases.count()) / length_s1_orig;
+	}
+	if (length_s2_orig>0)
+	{
+		stats_.bases_perc_trim_sum += (double)(length_s2_orig - e2_->bases.count()) / length_s2_orig;
+	}
 	stats_.mutex.unlock();
 }
