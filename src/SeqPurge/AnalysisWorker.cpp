@@ -332,17 +332,10 @@ void AnalysisWorker::run()
 	{
 		//update sequence data
 		int new_length = length_s2_orig-best_offset;
-
-		if (e1_->bases.count()>new_length)
-		{
-			e1_->bases.resize(new_length);
-			e1_->qualities.resize(new_length);
-		}
-		if (e2_->bases.count()>new_length)
-		{
-			e2_->bases.resize(new_length);
-			e2_->qualities.resize(new_length);
-		}
+		e1_->bases.truncate(new_length);
+		e1_->qualities.truncate(new_length);
+		e2_->bases.truncate(new_length);
+		e2_->qualities.truncate(new_length);
 
 		//update consensus adapter sequence
 		QByteArray adapter1 = seq1.mid(new_length);
@@ -414,8 +407,8 @@ void AnalysisWorker::run()
 			}
 
 			//trim read
-			e1_->bases.resize(offset);
-			e1_->qualities.resize(offset);
+			e1_->bases.truncate(offset);
+			e1_->qualities.truncate(offset);
 			offset_forward = offset;
 
 			break;
@@ -466,8 +459,8 @@ void AnalysisWorker::run()
 			}
 
 			//trim read
-			e2_->bases.resize(offset);
-			e2_->qualities.resize(offset);
+			e2_->bases.truncate(offset);
+			e2_->qualities.truncate(offset);
 
 			//update statistics
 			offset_reverse = offset;
@@ -482,15 +475,15 @@ void AnalysisWorker::run()
 			reads_trimmed_adapter += 2;
 
 			//if only one adapter has been trimmed => trim the other read as well
-			if (offset_forward==-1 && e1_->bases.count()>offset_reverse)
+			if (offset_forward==-1)
 			{
-				e1_->bases.resize(offset_reverse);
-				e1_->qualities.resize(offset_reverse);
+				e1_->bases.truncate(offset_reverse);
+				e1_->qualities.truncate(offset_reverse);
 			}
-			if (offset_reverse==-1 && e2_->bases.count()>offset_forward)
+			if (offset_reverse==-1)
 			{
-				e2_->bases.resize(offset_forward);
-				e2_->qualities.resize(offset_forward);
+				e2_->bases.truncate(offset_forward);
+				e2_->qualities.truncate(offset_forward);
 			}
 		}
 	}

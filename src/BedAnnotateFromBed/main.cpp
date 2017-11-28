@@ -22,7 +22,9 @@ public:
 		//optional
 		addInfile("in", "Input BED file. If unset, reads from STDIN.", true);
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
+		addFlag("clear", "Clear all annotations present in the input file.");
 
+		changeLog(2017, 11, 28, "Added 'clear' flag.");
 		changeLog(2017, 11, 03, "Initial commit.");
 	}
 
@@ -31,6 +33,10 @@ public:
 		//load annoation database
 		BedFile anno_file;
 		anno_file.load(getInfile("in2"));
+		if (getFlag("clear"))
+		{
+			anno_file.clearAnnotations();
+		}
 		anno_file.sort();
 		ChromosomalIndex<BedFile> anno_index(anno_file);
 
