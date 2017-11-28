@@ -482,12 +482,12 @@ void AnalysisWorker::run()
 			reads_trimmed_adapter += 2;
 
 			//if only one adapter has been trimmed => trim the other read as well
-			if (offset_forward==-1)
+			if (offset_forward==-1 && e1_->bases.count()>offset_reverse)
 			{
 				e1_->bases.resize(offset_reverse);
 				e1_->qualities.resize(offset_reverse);
 			}
-			if (offset_reverse==-1)
+			if (offset_reverse==-1 && e2_->bases.count()>offset_forward)
 			{
 				e2_->bases.resize(offset_forward);
 				e2_->qualities.resize(offset_forward);
