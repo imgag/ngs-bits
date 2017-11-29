@@ -1849,7 +1849,7 @@ QString Statistics::genderHetX(const QString& bam_file, QStringList& debug_outpu
 	//load SNPs on chrX
 	BedFile roi_chrx;
 	roi_chrx.append(BedLine("chrX", 1, chrx_end_pos));
-	VariantList snps = NGSHelper::getKnownVariants(true, 0.0, 1.0, &roi_chrx);
+	VariantList snps = NGSHelper::getKnownVariants(true, 0.2, 0.8, &roi_chrx);
     QVector<Pileup> counts;
 	counts.fill(Pileup(), snps.count());
 

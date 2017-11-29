@@ -1,5 +1,5 @@
-SNPs with coverage 30 or more: 6 of 1948
-hom count: 5
+SNPs with coverage 30 or more: 3 of 524
+hom count: 2
 het count: 1
-het fraction: 0.1667
+het fraction: 0.3333
 gender: unknown (too few SNPs)

@@ -31,7 +31,7 @@ public:
 		addString("var_af_keys", "Annotation keys of allele frequency values (comma-separated).", true, "GNOMAD_AF,T1000GP_AF,EXAC_AF");
 		addFloat("roh_min_q", "Minimum Q score of ROH regions.", true, 30.0);
 		addInt("roh_min_markers", "Minimum marker count of ROH regions.", true, 20);
-		addFloat("roh_min_size", "Minimum size in kB of ROH regions.", true, 20.0);
+		addFloat("roh_min_size", "Minimum size in Kb of ROH regions.", true, 20.0);
 		addFloat("ext_merker_perc", "Percentage of ROH markers that can be spanned when merging ROH regions .", true, 1.0);
 		addFloat("ext_size_perc", "Percentage of ROH size that can be spanned when merging ROH regions.", true, 50.0);
 
