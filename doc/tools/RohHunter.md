@@ -1,5 +1,5 @@
 ### RohHunter tool help
-	RohHunter (0.1-912-gdda42a4)
+	RohHunter (0.1-925-g71012e7)
 	
 	ROH detection based on a variant list annotated with AF values.
 	
@@ -18,7 +18,7 @@
 	                           Default value: '30'
 	  -roh_min_markers <int>   Minimum marker count of ROH regions.
 	                           Default value: '20'
-	  -roh_min_size <float>    Minimum size in kB of ROH regions.
+	  -roh_min_size <float>    Minimum size in Kb of ROH regions.
 	                           Default value: '20'
 	  -ext_merker_perc <float> Percentage of ROH markers that can be spanned when merging ROH regions .
 	                           Default value: '1'
@@ -32,7 +32,7 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### RohHunter changelog
-	RohHunter 0.1-912-gdda42a4
+	RohHunter 0.1-925-g71012e7
 	
 	2017-11-21 First version.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
