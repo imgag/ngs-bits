@@ -29,7 +29,7 @@ public:
 		addFloat("min_male","Minimum Y/X ratio for male (method xy).", true, 0.09);
 		addFloat("min_female","Minimum heterocygous SNP fraction for female (method hetx).", true, 0.24);
 		addFloat("max_male","Maximum heterocygous SNP fraction for male (method hetx).", true, 0.15);
-		addFloat("sry_cov","Maximum average coverage of SRY gene for males (method sry).", true, 20.0);
+		addFloat("sry_cov","Minimum average coverage of SRY gene for males (method sry).", true, 20.0);
 	}
 
 	virtual void main()
