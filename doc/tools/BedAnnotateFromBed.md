@@ -1,5 +1,5 @@
 ### BedAnnotateFromBed tool help
-	BedAnnotateFromBed (0.1-893-g1246b60)
+	BedAnnotateFromBed (0.1-925-g71012e7)
 	
 	Annotates BED file regions with information from a second BED file.
 	
@@ -11,6 +11,8 @@
 	               Default value: ''
 	  -out <file>  Output BED file. If unset, writes to STDOUT.
 	               Default value: ''
+	  -clear       Clear all annotations present in the input file.
+	               Default value: 'false'
 	
 	Special parameters:
 	  --help       Shows this help and exits.
@@ -19,7 +21,8 @@
 	  --tdx        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BedAnnotateFromBed changelog
-	BedAnnotateFromBed 0.1-893-g1246b60
+	BedAnnotateFromBed 0.1-925-g71012e7
 	
+	2017-11-28 Added 'clear' flag.
 	2017-11-03 Initial commit.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
