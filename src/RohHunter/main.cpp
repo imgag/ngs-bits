@@ -34,7 +34,9 @@ public:
 		addFloat("roh_min_size", "Minimum size in Kb of ROH regions.", true, 20.0);
 		addFloat("ext_merker_perc", "Percentage of ROH markers that can be spanned when merging ROH regions .", true, 1.0);
 		addFloat("ext_size_perc", "Percentage of ROH size that can be spanned when merging ROH regions.", true, 50.0);
+		addFlag("inc_chrx", "Include chrX into the analysis. Excluded by default.");
 
+		changeLog(2017, 11, 29, "Added 'inc_chrx' flag.");
 		changeLog(2017, 11, 21, "First version.");
 	}
 
@@ -170,6 +172,7 @@ public:
 	{
 		//init
 		QTextStream out(stdout);
+		bool inc_chrx = getFlag("inc_chrx");
 
 		//load variant list
 		VariantList vl;
@@ -206,6 +209,12 @@ public:
 		for(int i=0; i<vl.count(); ++i)
 		{
 			const Variant& v = vl[i];
+
+			//skip gonosomes
+			if (!v.chr().isAutosome() && !(inc_chrx && v.chr().isX()))
+			{
+				continue;
+			}
 
 			//skip low quality variants
 			bool ok = true;
