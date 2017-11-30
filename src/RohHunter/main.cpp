@@ -23,8 +23,8 @@ public:
     virtual void setup()
     {
 		setDescription("ROH detection based on a variant list annotated with AF values.");
-		addInfile("in", "Input variant list in VCF or GSvar format.", true);
-		addOutfile("out", "Output TSV file with ROH regions.", true);
+		addInfile("in", "Input variant list in VCF or GSvar format.", false);
+		addOutfile("out", "Output TSV file with ROH regions.", false);
 		//optional
 		addInt("var_min_dp", "Minimum variant depth ('DP'). Variants with lower depth are excluded from the analysis.", true, 20);
 		addFloat("var_min_q", "Minimum variant quality. Variants with lower depth are excluded from the analysis.", true, 30);

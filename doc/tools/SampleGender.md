@@ -1,5 +1,5 @@
 ### SampleGender tool help
-	SampleGender (0.1-420-g3536bb0)
+	SampleGender (0.1-928-g55f9a87)
 	
 	Determines the gender of a sample from the BAM file.
 	
@@ -19,7 +19,7 @@
 	                      Default value: '0.23999999999999999'
 	  -max_male <float>   Maximum heterocygous SNP fraction for male (method hetx).
 	                      Default value: '0.14999999999999999'
-	  -sry_cov <float>    Maximum average coverage of SRY gene for males (method sry).
+	  -sry_cov <float>    Minimum average coverage of SRY gene for males (method sry).
 	                      Default value: '20'
 	
 	Special parameters:
@@ -29,6 +29,6 @@
 	  --tdx               Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SampleGender changelog
-	SampleGender 0.1-420-g3536bb0
+	SampleGender 0.1-928-g55f9a87
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

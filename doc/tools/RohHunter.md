@@ -1,13 +1,13 @@
 ### RohHunter tool help
-	RohHunter (0.1-925-g71012e7)
+	RohHunter (0.1-928-g55f9a87)
 	
 	ROH detection based on a variant list annotated with AF values.
 	
-	Optional parameters:
+	Mandatory parameters:
 	  -in <file>               Input variant list in VCF or GSvar format.
-	                           Default value: ''
 	  -out <file>              Output TSV file with ROH regions.
-	                           Default value: ''
+	
+	Optional parameters:
 	  -var_min_dp <int>        Minimum variant depth ('DP'). Variants with lower depth are excluded from the analysis.
 	                           Default value: '20'
 	  -var_min_q <float>       Minimum variant quality. Variants with lower depth are excluded from the analysis.
@@ -24,6 +24,8 @@
 	                           Default value: '1'
 	  -ext_size_perc <float>   Percentage of ROH size that can be spanned when merging ROH regions.
 	                           Default value: '50'
+	  -inc_chrx                Include chrX into the analysis. Excluded by default.
+	                           Default value: 'false'
 	
 	Special parameters:
 	  --help                   Shows this help and exits.
@@ -32,7 +34,8 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### RohHunter changelog
-	RohHunter 0.1-925-g71012e7
+	RohHunter 0.1-928-g55f9a87
 	
+	2017-11-29 Added 'inc_chrx' flag.
 	2017-11-21 First version.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
