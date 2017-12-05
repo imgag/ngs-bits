@@ -76,6 +76,23 @@ private slots:
 		IS_FALSE(set.contains("C"));
 	}
 
+	void containsAll()
+	{
+		GeneSet set;
+		GeneSet set2;
+		IS_TRUE(set.containsAll(set2));
+		IS_TRUE(set2.containsAll(set));
+
+		set << "A" << "B";
+		IS_TRUE(set.containsAll(set2));
+		IS_FALSE(set2.containsAll(set));
+
+		set2 << "C" << "D" << "A" << "B";
+
+		IS_FALSE(set.containsAll(set2));
+		IS_TRUE(set2.containsAll(set));
+	}
+
 	void intersectsWith()
 	{
 		GeneSet set;

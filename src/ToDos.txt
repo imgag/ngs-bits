@@ -15,19 +15,11 @@ GSvar:
 ** Add ROH dialog (when integrated into the analysis pipeline for WES/WGS samples)
 # Link to GeneCards: http://www.genecards.org/cgi-bin/carddisp.pl?gene=KIF5A
 # subpanel design dialog: use existing as template
-* subpanel dialog: allow gene(s) search
 * Add genotype equal for affected
 * Add inheritance mode to gene column => allow filtering
 - Allow settings disease_group/disease_status for multi-sample GSvar files
 - Multi-sample anaysis: allow relaxing affected/control genotype filters by requiring only X out of Y
 - Target region filter: reset to none if it looses focus in search mode
-
-RohHunter:
-- sort output by size
-- add generic annotation functionality like in CnvHunter
-- add SEG file output?
-- optimize quality cutoffs based on variants that are het on chrX for males (AF, DP, MQM, blacklist, InDels, no AF annotation, homopolymer region,...)
-- special handling gonosomes/genders?
 
 Tools:
 ** add new tool BedHighCoverage (wait until bamtools is replaced by HTSlib)
@@ -48,3 +40,13 @@ CnvHunter:
     - alternatively, test intra-sample normalization using the most similar exons on different chromosomes
 * test with duplicate reads; with anomalous reads; with multi-mapped reads; chunked data
 - allow input of one multi-sample COV file (reduce test data size and loading time)
+
+RohHunter:
+- really count number of het variants
+- add generic annotation functionality like in CnvHunter
+- add class A/B/C statistcs output (counts, overall size sum)
+- optimize quality cutoffs based on variants that are het on chrX for males (AF, DP, MQM, blacklist, InDels, no AF annotation, homopolymer region,...)
+- test splitting regions when dist is too high, e.g. > 100Kb => Q-score cutoff removes random parts?!
+- test input of high-cov ROI to augment the input data with WT SNPs with AF>1-5%
+- test if sub-population AF improves result
+- benchmarks: chrX of males, add errors up to 2 percent, overlap WGS/WES
