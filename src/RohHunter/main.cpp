@@ -38,6 +38,7 @@ public:
 		addFloat("ext_size_perc", "Percentage of ROH size that can be spanned when merging ROH regions.", true, 50.0);
 		addFlag("inc_chrx", "Include chrX into the analysis. Excluded by default.");
 
+		changeLog(2017, 12, 07, "Added generic annotation feature.");
 		changeLog(2017, 11, 29, "Added 'inc_chrx' flag.");
 		changeLog(2017, 11, 21, "First version.");
 	}
@@ -311,11 +312,8 @@ public:
 			outstream << '\t' << QFileInfo(anno).baseName();
 		}
 		outstream << '\n';
-		double size_sum = 0.0;
 		foreach(const RohRegion& reg, regions)
 		{
-			size_sum += reg.sizeBases();
-
 			outstream << reg.chr.str() << '\t';
 			outstream << QString::number(reg.start_pos) << '\t';
 			outstream << QString::number(reg.end_pos) << '\t';
@@ -332,8 +330,39 @@ public:
 
 		//statistics output
 		out << "=== Statistics output ===" << endl;
-		out << "ROH count after filters: " << regions.count() << endl;
-		out << "Overall ROH size sum: " << QString::number(size_sum/1000000.0 ,'f', 2) << "Mb" << endl;
+		out << "Overall ROH count: " << regions.count() << endl;
+		int count_a = 0;
+		double sum_a = 0.0;
+		int count_b = 0;
+		double sum_b = 0.0;
+		int count_c = 0;
+		double sum_c = 0.0;
+		foreach(const RohRegion& reg, regions)
+		{
+			int bases = reg.sizeBases();
+			if (bases <500000)
+			{
+				++count_a;
+				sum_a += bases;
+			}
+			else if (bases <1500000)
+			{
+				++count_b;
+				sum_b += bases;
+			}
+			else
+			{
+				++count_c;
+				sum_c += bases;
+			}
+		}
+		out << "Overall ROH size sum: " << QString::number((sum_a+sum_b+sum_c)/1000000.0 ,'f', 2) << "Mb" << endl;
+		out << "Class A ROH count: " << count_a << endl;
+		out << "Class A ROH size sum: " << QString::number(sum_a/1000000.0 ,'f', 2) << "Mb" << endl;
+		out << "Class B ROH count: " << count_b << endl;
+		out << "Class B ROH size sum: " << QString::number(sum_b/1000000.0 ,'f', 2) << "Mb" << endl;
+		out << "Class C ROH count: " << count_c << endl;
+		out << "Class C ROH size sum: " << QString::number(sum_c/1000000.0 ,'f', 2) << "Mb" << endl;
 	}
 };
 

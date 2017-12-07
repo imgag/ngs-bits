@@ -43,7 +43,6 @@ CnvHunter:
 - allow input of one multi-sample COV file (reduce test data size and loading time)
 
 RohHunter:
-- add class A/B/C statistcs output (counts, overall size sum)
 - really count number of het variants
 - optimize quality cutoffs based on variants that are het on chrX for males (AF, DP, MQM, blacklist, InDels, no AF annotation, homopolymer region,...)
 - test splitting regions when dist is too high, e.g. > 100Kb => Q-score cutoff removes random parts?!
