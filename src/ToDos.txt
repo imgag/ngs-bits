@@ -35,6 +35,7 @@ Tools:
     - refactor and combine indel and snv handling (CS)
 
 CnvHunter:
+**** multi pipeline: skip CNV analysis when file missing => warning
 ** test GC-normalization (check GS151166_01 C5orf42, DX170123_01 SEC23B del)
     - test effect of including different flanking regions
     - alternatively, test intra-sample normalization using the most similar exons on different chromosomes
@@ -42,9 +43,8 @@ CnvHunter:
 - allow input of one multi-sample COV file (reduce test data size and loading time)
 
 RohHunter:
-- really count number of het variants
-- add generic annotation functionality like in CnvHunter
 - add class A/B/C statistcs output (counts, overall size sum)
+- really count number of het variants
 - optimize quality cutoffs based on variants that are het on chrX for males (AF, DP, MQM, blacklist, InDels, no AF annotation, homopolymer region,...)
 - test splitting regions when dist is too high, e.g. > 100Kb => Q-score cutoff removes random parts?!
 - test input of high-cov ROI to augment the input data with WT SNPs with AF>1-5%

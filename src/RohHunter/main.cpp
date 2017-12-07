@@ -6,6 +6,7 @@
 #include "BasicStatistics.h"
 
 #include <QTextStream>
+#include <QFileInfo>
 #include <QDebug>
 #include <cmath>
 
@@ -26,6 +27,7 @@ public:
 		addInfile("in", "Input variant list in VCF or GSvar format.", false);
 		addOutfile("out", "Output TSV file with ROH regions.", false);
 		//optional
+		addInfileList("annotate", "List of BED files used for annotation. Each file adds a column to the output file. The base filename is used as colum name and 4th column of the BED file is used as annotation value.", true);
 		addInt("var_min_dp", "Minimum variant depth ('DP'). Variants with lower depth are excluded from the analysis.", true, 20);
 		addFloat("var_min_q", "Minimum variant quality. Variants with lower depth are excluded from the analysis.", true, 30);
 		addString("var_af_keys", "Annotation keys of allele frequency values (comma-separated).", true, "GNOMAD_AF,T1000GP_AF,EXAC_AF");
@@ -65,6 +67,8 @@ public:
 		int end_index;
 
 		int het_count;
+
+		QStringList annotations;
 
 		//returns the region
 		QString toString() const
@@ -127,7 +131,7 @@ public:
 
 			last_end = end;
 
-			RohRegion region{var_info[start].chr, var_info[start].pos, var_info[end].pos, start, end, 0};
+			RohRegion region{var_info[start].chr, var_info[start].pos, var_info[end].pos, start, end, 0, QStringList()};
 			if (region.qScore(var_info)>=roh_min_q)
 			{
 				output << region;
@@ -261,35 +265,75 @@ public:
 		out << "Merged ROH count: " << regions.count() << endl;
 		out << endl;
 
-		//filter and write output
+		//filter regions
 		int roh_min_markers = getInt("roh_min_markers");
-		float roh_min_size = getFloat("roh_min_size");
-		double size_sum_kb = 0.0;
-		QStringList output;
-		output << "#chr\tstart\tend\tnumber of markers\thet markers\tsize [kB]\tQ score";
+		auto it = std::remove_if(regions.begin(), regions.end(), [roh_min_markers](const RohRegion& reg){return reg.sizeMarkers()<roh_min_markers;});
+		regions.erase(it, regions.end());
+		float roh_min_size = getFloat("roh_min_size") * 1000.0;
+		it = std::remove_if(regions.begin(), regions.end(), [roh_min_size](const RohRegion& reg){return reg.sizeBases()<roh_min_size;});
+		regions.erase(it, regions.end());
+
+		//annotate regions
+		QStringList annotate = getInfileList("annotate");
+		foreach(QString anno, annotate)
+		{
+			BedFile anno_file;
+			anno_file.load(anno);
+			anno_file.sort();
+			ChromosomalIndex<BedFile> anno_index(anno_file);
+			for (int i=0; i<regions.count(); ++i)
+			{
+				QSet<QString> annos;
+				QVector<int> indices = anno_index.matchingIndices(regions[i].chr, regions[i].start_pos, regions[i].end_pos);
+				foreach(int index, indices)
+				{
+					if (anno_file[index].annotations().isEmpty())
+					{
+						annos.insert("yes");
+					}
+					else
+					{
+						annos.insert(anno_file[index].annotations()[0]);
+					}
+				}
+				QStringList annos_sorted = annos.toList();
+				std::sort(annos_sorted.begin(), annos_sorted.end());
+				regions[i].annotations << annos_sorted.join(',');
+			}
+		}
+
+		//ROH output
+		QSharedPointer<QFile> file = Helper::openFileForWriting(getOutfile("out"));
+		QTextStream outstream(file.data());
+		outstream << "#chr\tstart\tend\tnumber of markers\thet markers\tsize [kB]\tQ score";
+		foreach(QString anno, annotate)
+		{
+			outstream << '\t' << QFileInfo(anno).baseName();
+		}
+		outstream << '\n';
+		double size_sum = 0.0;
 		foreach(const RohRegion& reg, regions)
 		{
-			int markers = reg.sizeMarkers();
-			if (markers<roh_min_markers) continue;
-			double size_kb = reg.sizeBases()/1000.0;
-			if (size_kb<roh_min_size) continue;
+			size_sum += reg.sizeBases();
 
-			size_sum_kb += size_kb;
-
-			QString line;
-			line += reg.chr.str() + "\t";
-			line += QString::number(reg.start_pos) + "\t";
-			line += QString::number(reg.end_pos) + "\t";
-			line += QString::number(markers) + "\t";
-			line += QString::number(reg.het_count) + "\t";
-			line += QString::number(size_kb, 'f', 2) + "\t";
-			line += QString::number(reg.qScore(var_info), 'f', 2);
-			output << line;
+			outstream << reg.chr.str() << '\t';
+			outstream << QString::number(reg.start_pos) << '\t';
+			outstream << QString::number(reg.end_pos) << '\t';
+			outstream << QString::number(reg.sizeMarkers()) << '\t';
+			outstream << QString::number(reg.het_count) << '\t';
+			outstream << QString::number(reg.sizeBases()/1000.0, 'f', 2) << '\t';
+			outstream << QString::number(reg.qScore(var_info), 'f', 2);
+			if (annotate.count())
+			{
+				outstream << '\t' << reg.annotations.join("\t");
+			}
+			outstream << '\n';
 		}
-		Helper::storeTextFile(getOutfile("out"), output);
+
+		//statistics output
 		out << "=== Statistics output ===" << endl;
-		out << "ROH count after filters: " << (output.count()-1) << endl;
-		out << "Overall ROH size sum: " << QString::number(size_sum_kb/1000.0 ,'f', 2) << "Mb" << endl;
+		out << "ROH count after filters: " << regions.count() << endl;
+		out << "Overall ROH size sum: " << QString::number(size_sum/1000000.0 ,'f', 2) << "Mb" << endl;
 	}
 };
 
