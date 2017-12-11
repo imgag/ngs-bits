@@ -43,7 +43,7 @@ CnvHunter:
 - allow input of one multi-sample COV file (reduce test data size and loading time)
 
 RohHunter:
-- really count number of het variants
+*** really count number of het variants => Pipeline => GSvar
 - optimize quality cutoffs based on variants that are het on chrX for males (AF, DP, MQM, blacklist, InDels, no AF annotation, homopolymer region,...)
 - test splitting regions when dist is too high, e.g. > 100Kb => Q-score cutoff removes random parts?!
 - test input of high-cov ROI to augment the input data with WT SNPs with AF>1-5%

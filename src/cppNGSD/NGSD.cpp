@@ -122,8 +122,8 @@ QString NGSD::sampleId(const QString& filename, bool throw_if_fails)
 
 	//get sample ID
 	SqlQuery query = getQuery(); //use binding (user input)
-	query.prepare("SELECT id FROM sample WHERE name=:sample");
-	query.bindValue(":sample", parts[0]);
+	query.prepare("SELECT id FROM sample WHERE name=:0");
+	query.bindValue(0, parts[0]);
 	query.exec();
 	if (query.size()==0)
 	{
@@ -149,9 +149,9 @@ QString NGSD::processedSampleId(const QString& filename, bool throw_if_fails)
 
 	//get sample ID
 	SqlQuery query = getQuery(); //use binding (user input)
-	query.prepare("SELECT ps.id FROM processed_sample ps, sample s WHERE s.name=:sample AND ps.sample_id=s.id AND ps.process_id=:psnum");
-	query.bindValue(":sample", sample);
-	query.bindValue(":psnum", QString::number(ps_num.toInt()));
+	query.prepare("SELECT ps.id FROM processed_sample ps, sample s WHERE s.name=:0 AND ps.sample_id=s.id AND ps.process_id=:1");
+	query.bindValue(0, sample);
+	query.bindValue(1, QString::number(ps_num.toInt()));
 	query.exec();
 	if (query.size()==0)
 	{
@@ -174,8 +174,8 @@ QString NGSD::processedSamplePath(const QString& filename, PathType type, bool t
 	if (ps_id=="") return "";
 
 	SqlQuery query = getQuery();
-	query.prepare("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), p.type, p.name FROM processed_sample ps, sample s, project p, processing_system sys WHERE ps.processing_system_id=sys.id AND ps.sample_id=s.id AND ps.project_id=p.id AND ps.id=:id");
-	query.bindValue(":id", ps_id);
+	query.prepare("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), p.type, p.name FROM processed_sample ps, sample s, project p, processing_system sys WHERE ps.processing_system_id=sys.id AND ps.sample_id=s.id AND ps.project_id=p.id AND ps.id=:0");
+	query.bindValue(0, ps_id);
 	query.exec();
 	if (query.size()==0)
 	{
@@ -211,10 +211,10 @@ QString NGSD::processedSamplePath(const QString& filename, PathType type, bool t
 QString NGSD::variantId(const Variant& variant, bool throw_if_fails)
 {
 	SqlQuery query = getQuery(); //use binding user input (safety)
-	query.prepare("SELECT id FROM variant WHERE chr=:chr AND start='"+QString::number(variant.start())+"' AND end='"+QString::number(variant.end())+"' AND ref=:ref AND obs=:obs");
-	query.bindValue(":chr", variant.chr().strNormalized(true));
-	query.bindValue(":ref", variant.ref());
-	query.bindValue(":obs", variant.obs());
+	query.prepare("SELECT id FROM variant WHERE chr=:0 AND start='"+QString::number(variant.start())+"' AND end='"+QString::number(variant.end())+"' AND ref=:1 AND obs=:2");
+	query.bindValue(0, variant.chr().strNormalized(true));
+	query.bindValue(1, variant.ref());
+	query.bindValue(2, variant.obs());
 	query.exec();
 	if (query.size()==0)
 	{
@@ -1166,7 +1166,7 @@ int NGSD::geneToApprovedID(const QByteArray& gene)
 {
 	//approved
 	SqlQuery q_gene = getQuery();
-	q_gene.prepare("SELECT id FROM gene WHERE symbol=:1");
+	q_gene.prepare("SELECT id FROM gene WHERE symbol=:0");
 	q_gene.bindValue(0, gene);
 	q_gene.exec();
 	if (q_gene.size()==1)
@@ -1177,7 +1177,7 @@ int NGSD::geneToApprovedID(const QByteArray& gene)
 
 	//previous
 	SqlQuery q_prev = getQuery();
-	q_prev.prepare("SELECT g.id FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:1 AND ga.type='previous'");
+	q_prev.prepare("SELECT g.id FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:0 AND ga.type='previous'");
 	q_prev.bindValue(0, gene);
 	q_prev.exec();
 	if (q_prev.size()==1)
@@ -1192,7 +1192,7 @@ int NGSD::geneToApprovedID(const QByteArray& gene)
 
 	//synonymous
 	SqlQuery q_syn = getQuery();
-	q_syn.prepare("SELECT g.id FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:1 AND ga.type='synonym'");
+	q_syn.prepare("SELECT g.id FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:0 AND ga.type='synonym'");
 	q_syn.bindValue(0, gene);
 	q_syn.exec();
 	if (q_syn.size()==1)
@@ -1263,7 +1263,7 @@ QPair<QString, QString> NGSD::geneToApprovedWithMessage(const QString& gene)
 {
 	//approved
 	SqlQuery q_gene = getQuery();
-	q_gene.prepare("SELECT id FROM gene WHERE symbol=:1");
+	q_gene.prepare("SELECT id FROM gene WHERE symbol=:0");
 	q_gene.bindValue(0, gene);
 	q_gene.exec();
 	if (q_gene.size()==1)
@@ -1274,7 +1274,7 @@ QPair<QString, QString> NGSD::geneToApprovedWithMessage(const QString& gene)
 
 	//previous
 	SqlQuery q_prev = getQuery();
-	q_prev.prepare("SELECT g.symbol FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:1 AND ga.type='previous'");
+	q_prev.prepare("SELECT g.symbol FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:0 AND ga.type='previous'");
 	q_prev.bindValue(0, gene);
 	q_prev.exec();
 	if (q_prev.size()==1)
@@ -1295,7 +1295,7 @@ QPair<QString, QString> NGSD::geneToApprovedWithMessage(const QString& gene)
 
 	//synonymous
 	SqlQuery q_syn = getQuery();
-	q_syn.prepare("SELECT g.symbol FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:1 AND ga.type='synonym'");
+	q_syn.prepare("SELECT g.symbol FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:0 AND ga.type='synonym'");
 	q_syn.bindValue(0, gene);
 	q_syn.exec();
 	if (q_syn.size()==1)
@@ -1347,7 +1347,18 @@ GeneSet NGSD::synonymousSymbols(int id)
 
 QStringList NGSD::phenotypes(QByteArray symbol)
 {
-	return getValues("SELECT t.name FROM hpo_term t, hpo_genes g WHERE g.gene='" + symbol + "' AND t.id=g.hpo_term_id ORDER BY t.name ASC");
+	QStringList output;
+
+	SqlQuery query = getQuery();
+	query.prepare("SELECT t.name FROM hpo_term t, hpo_genes g WHERE g.gene=:0 AND t.id=g.hpo_term_id ORDER BY t.name ASC");
+	query.bindValue(0, symbol);
+	query.exec();
+	while(query.next())
+	{
+		output << query.value(0).toString();
+	}
+
+	return output;
 }
 
 QStringList NGSD::phenotypes(QStringList terms)
@@ -1873,10 +1884,23 @@ GeneInfo NGSD::geneInfo(QByteArray symbol)
 	auto approved = geneToApprovedWithMessage(symbol);
 	output.symbol = approved.first;
 	output.notice = approved.second;
-	output.name = getValue("SELECT name FROM gene WHERE symbol='" + output.symbol + "'").toString();
-
 	SqlQuery query = getQuery();
-	query.exec("SELECT inheritance, exac_pli, comments FROM geneinfo_germline WHERE symbol='" + output.symbol + "'");
+	query.prepare("SELECT name FROM gene WHERE symbol=:0");
+	query.bindValue(0, output.symbol);
+	query.exec();
+	if (query.size()==0)
+	{
+		output.name = "";
+	}
+	else
+	{
+		query.next();
+		output.name = query.value(0).toString();
+	}
+
+	query.prepare("SELECT inheritance, exac_pli, comments FROM geneinfo_germline WHERE symbol=:0");
+	query.bindValue(0, output.symbol);
+	query.exec();
 	if (query.size()==0)
 	{
 		output.inheritance = "n/a";
