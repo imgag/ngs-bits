@@ -34,7 +34,7 @@ public:
 		addFloat("roh_min_q", "Minimum Q score of ROH regions.", true, 30.0);
 		addInt("roh_min_markers", "Minimum marker count of ROH regions.", true, 20);
 		addFloat("roh_min_size", "Minimum size in Kb of ROH regions.", true, 20.0);
-		addFloat("ext_merker_perc", "Percentage of ROH markers that can be spanned when merging ROH regions .", true, 1.0);
+		addFloat("ext_marker_perc", "Percentage of ROH markers that can be spanned when merging ROH regions .", true, 1.0);
 		addFloat("ext_size_perc", "Percentage of ROH size that can be spanned when merging ROH regions.", true, 50.0);
 		addFlag("inc_chrx", "Include chrX into the analysis. Excluded by default.");
 
@@ -143,7 +143,7 @@ public:
 	}
 
 	//ROH merging
-	void mergeRohs(QList<RohRegion>& raw, double ext_merker_perc, double ext_size_perc)
+	void mergeRohs(QList<RohRegion>& raw, const QList<VariantInfo>& var_info, double ext_marker_perc, double ext_size_perc)
 	{
 		bool merged = true;
 		while(merged)
@@ -155,8 +155,12 @@ public:
 				if (raw[i].chr!=raw[i+1].chr) continue;
 
 				//not too far apart (markers)
-				int index_diff = raw[i+1].start_index-raw[i].end_index-1;
-				if (index_diff>1 && index_diff > ext_merker_perc / 100.0 * (raw[i].sizeMarkers() + raw[i+1].sizeMarkers())) continue;
+				int het_count = 0;
+				for (int j=raw[i].end_index+1; j<raw[i+1].start_index; ++j)
+				{
+					het_count += !var_info[j].geno_hom;
+				}
+				if (het_count>1 && het_count > ext_marker_perc / 100.0 * (raw[i].sizeMarkers() + raw[i+1].sizeMarkers())) continue;
 
 				//not too far apart (bases)
 				if (raw[i+1].start_pos - raw[i].end_pos > ext_size_perc / 100.0 * (raw[i].sizeBases() + raw[i+1].sizeBases())) continue;
@@ -164,7 +168,7 @@ public:
 				//merge
 				raw[i].end_index = raw[i+1].end_index;
 				raw[i].end_pos = raw[i+1].end_pos;
-				raw[i].het_count += raw[i+1].het_count + index_diff;
+				raw[i].het_count += raw[i+1].het_count + het_count;
 
 				raw.removeAt(i+1);
 				i-=1;
@@ -260,9 +264,9 @@ public:
 		out << "Raw ROH count: " << regions.count() << endl;
 
 		//merge raw ROHs
-		double ext_merker_perc = getFloat("ext_merker_perc");
+		double ext_marker_perc = getFloat("ext_marker_perc");
 		double ext_size_perc = getFloat("ext_size_perc");
-		mergeRohs(regions, ext_merker_perc, ext_size_perc);
+		mergeRohs(regions, var_info, ext_marker_perc, ext_size_perc);
 		out << "Merged ROH count: " << regions.count() << endl;
 		out << endl;
 
