@@ -1,10 +1,13 @@
+### 0.1-??? (???.2017)
+- General: Multi-sample analysis can now be started when mixed processing systems were used.
+
 ### 0.1-907-gc7b0851 (14.11.2017)
-- General: Added LOVD link to variant context menu.
+- General: added LOVD database link to variant context menu.
 - General: LOVD upload is now also possible for variants not found by NGS.
-- General: Preferred transcripts can now be edited in the GUI.
-- IGV: Added support for b-allele frequncy (BAF) files.
-- Phenotype>genes dialog: Genes can now be copied as comma-separated list to cpliboard (for pasting into gene filter).
-- Variant details: Text values can now be marked my mouse and copied through context menu.
+- General: preferred transcripts can now be edited in the GUI.
+- IGV: added support for b-allele frequency (BAF) files.
+- Phenotype>genes dialog: genes can now be copied as comma-separated list to clipboard (for pasting into gene filter).
+- Variant details: text values can now be marked my mouse and copied via the context menu.
 
 ### 0.1-890-g45f7ed29 (03.11.2017)
 - General: added variant upload to LOVD from variant context menu.
@@ -58,7 +61,7 @@
 - Report: Added list of complete/incomplete genes to CCDS coverage statistics.
 
 ### 0.1-706-g0ee82f3 (01.06.2017)
-- IGV: changed genome from hg19 to GRCh37, i.e. it is now possibe to jump to chrMT variants.
+- IGV: changed genome from hg19 to GRCh37, i.e. it is now possible to jump to chrMT variants.
 - Variant details: ExAC subpopulation allele frequencies are now shown when available.
 - VCF export: fixed bug caused by too small buffer size.
 
@@ -75,7 +78,7 @@
 - General: Added NGSD annotation of target region only (for fast annotation of exome/genome samples).
 - General: Added target region details dialog (in filter widget on the right).
 - General: Added Alamut optional to variant context menu.
-- Report: Made averge depth calculation optional to allow faster creation of reports.
+- Report: Made average depth calculation optional to allow faster creation of reports.
 - Report: Added report for somatic analyses (tumor-normal pairs).
 - Variant details: Fixed COSMIC links.
 
@@ -113,23 +116,10 @@
 ### 0.1-518-geaae991 (26.09.2016)
 - Report: Added percentage of gaps in CCDS transcripts.
 - Report: Fixed truncated target file names when they contain several dots.
-- Variant details view: Using local reference genome for base lookup of ExAC link now (was using a webservice before, which did not always respond).
+- Variant details view: Using local reference genome for base lookup of ExAC link now (was using a web service before, which did not always respond).
 
 --
 
 [back to main page](index.md)
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

@@ -74,6 +74,21 @@ double AnalysisWorker::matchProbability(int matches, int mismatches)
 	return p;
 }
 
+void AnalysisWorker::checkHeaders(const QByteArray& h1, const QByteArray& h2)
+{
+	QByteArray tmp1 = h1.split(' ').at(0);
+	QByteArray tmp2 = h2.split(' ').at(0);
+	if (tmp1.endsWith("/1") && tmp2.endsWith("/2"))
+	{
+		tmp1.chop(2);
+		tmp2.chop(2);
+	}
+	if (tmp1!=tmp2)
+	{
+		THROW(Exception, "Headers of reads do not match:\n" + tmp1 + "\n" + tmp2);
+	}
+}
+
 void AnalysisWorker::correctErrors(QTextStream& debug_out)
 {
 	int mm_count = 0;
@@ -139,25 +154,12 @@ void AnalysisWorker::run()
 	QTextStream debug_out(stdout);
 
 	//check that headers match
-	QByteArray h1 = e1_->header.split(' ').at(0);
-	QByteArray h2 = e2_->header.split(' ').at(0);
-	if (h1!=h2)
-	{
-		if (h1.endsWith("/1") && h2.endsWith("/2"))
-		{
-			h1.chop(2);
-			h2.chop(2);
-			if (h1!=h2)
-			{
-				THROW(Exception, "Headers of read do not match:\n" + h1 + "\n" + h2);
-			}
-		}
-	}
+	checkHeaders(e1_->header, e2_->header);
 
 	if (params_.debug)
 	{
 		debug_out << "#############################################################################" << endl;
-		debug_out << "Header:     " << h1 << endl;
+		debug_out << "Header:     " << e1_->header << endl;
 		debug_out << "Read 1 in:  " << e1_->bases << endl;
 		debug_out << "Read 2 in:  " << e2_->bases << endl;
 		debug_out << "Quality 1:  " << e1_->qualities << endl;
@@ -330,17 +332,10 @@ void AnalysisWorker::run()
 	{
 		//update sequence data
 		int new_length = length_s2_orig-best_offset;
-
-		if (e1_->bases.count()>new_length)
-		{
-			e1_->bases.resize(new_length);
-			e1_->qualities.resize(new_length);
-		}
-		if (e2_->bases.count()>new_length)
-		{
-			e2_->bases.resize(new_length);
-			e2_->qualities.resize(new_length);
-		}
+		e1_->bases.truncate(new_length);
+		e1_->qualities.truncate(new_length);
+		e2_->bases.truncate(new_length);
+		e2_->qualities.truncate(new_length);
 
 		//update consensus adapter sequence
 		QByteArray adapter1 = seq1.mid(new_length);
@@ -412,8 +407,8 @@ void AnalysisWorker::run()
 			}
 
 			//trim read
-			e1_->bases.resize(offset);
-			e1_->qualities.resize(offset);
+			e1_->bases.truncate(offset);
+			e1_->qualities.truncate(offset);
 			offset_forward = offset;
 
 			break;
@@ -464,8 +459,8 @@ void AnalysisWorker::run()
 			}
 
 			//trim read
-			e2_->bases.resize(offset);
-			e2_->qualities.resize(offset);
+			e2_->bases.truncate(offset);
+			e2_->qualities.truncate(offset);
 
 			//update statistics
 			offset_reverse = offset;
@@ -482,13 +477,13 @@ void AnalysisWorker::run()
 			//if only one adapter has been trimmed => trim the other read as well
 			if (offset_forward==-1)
 			{
-				e1_->bases.resize(offset_reverse);
-				e1_->qualities.resize(offset_reverse);
+				e1_->bases.truncate(offset_reverse);
+				e1_->qualities.truncate(offset_reverse);
 			}
 			if (offset_reverse==-1)
 			{
-				e2_->bases.resize(offset_forward);
-				e2_->qualities.resize(offset_forward);
+				e2_->bases.truncate(offset_forward);
+				e2_->qualities.truncate(offset_forward);
 			}
 		}
 	}
@@ -521,12 +516,12 @@ void AnalysisWorker::run()
 		data_.out2->write(*e2_);
 		data_.out1_out2_mutex.unlock();
 	}
-	else if (data_.out3 && e1_->bases.count()>=params_.min_len)
+	else if (data_.out3!=nullptr && e1_->bases.count()>=params_.min_len)
 	{
 		reads_removed += 1;
 		data_.out3->write(*e1_);
 	}
-	else if (data_.out4 && e2_->bases.count()>=params_.min_len)
+	else if (data_.out4!=nullptr && e2_->bases.count()>=params_.min_len)
 	{
 		reads_removed += 1;
 		data_.out4->write(*e2_);
@@ -546,7 +541,13 @@ void AnalysisWorker::run()
 	stats_.reads_removed += reads_removed;
 	stats_.bases_remaining[e1_->bases.length()] += 1;
 	stats_.bases_remaining[e2_->bases.length()] += 1;
-	stats_.bases_perc_trim_sum += (double)(length_s1_orig - e1_->bases.count()) / length_s1_orig;
-	stats_.bases_perc_trim_sum += (double)(length_s2_orig - e2_->bases.count()) / length_s2_orig;
+	if (length_s1_orig>0)
+	{
+		stats_.bases_perc_trim_sum += (double)(length_s1_orig - e1_->bases.count()) / length_s1_orig;
+	}
+	if (length_s2_orig>0)
+	{
+		stats_.bases_perc_trim_sum += (double)(length_s2_orig - e2_->bases.count()) / length_s2_orig;
+	}
 	stats_.mutex.unlock();
 }

@@ -12,7 +12,7 @@
     <metaDataParameter ID="md0007" name="experiment" value="ILLUMINA, unknown_device, unknown_enrichment (tumor)" cvRef="QC" accession="QC:?"/>
     <metaDataParameter ID="md0008" name="experiment" value="ILLUMINA, unknown_device, unknown_enrichment (normal)" cvRef="QC" accession="QC:?"/>
     <metaDataParameter ID="md0009" name="linked file" value="SomaticQC_in4.qcML" uri="../../src/tools-TEST/data_in/SomaticQC_in4.qcML" cvRef="QC" accession="QC:1000006" />
-    <qualityParameter ID="qp0001" name="sample correlation" description="SNP-based sample correlation of tumor / normal." value="-0.86" cvRef="QC" accession="QC:2000040"/>
+    <qualityParameter ID="qp0001" name="sample correlation" description="SNP-based sample correlation of tumor / normal." value="n/a (too few variants)" cvRef="QC" accession="QC:2000040"/>
     <qualityParameter ID="qp0002" name="variant count" description="Total number of variants in the target region." value="4" cvRef="QC" accession="QC:2000013"/>
     <qualityParameter ID="qp0003" name="somatic variant count" description="Total number of somatic variants in the target region." value="4" cvRef="QC" accession="QC:2000041"/>
     <qualityParameter ID="qp0004" name="known somatic variants percentage" description="Percentage of somatic variants that are listed as germline variants in public datbases (e.g. AF&gt;1% in ExAC)." value="50.00" cvRef="QC" accession="QC:2000045"/>

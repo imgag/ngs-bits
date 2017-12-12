@@ -43,7 +43,7 @@ public:
 		{
 			const BedLine& line = file[i];
 			out << ">" << line.chr().str() << ":" << line.start() << "-" << line.end() << "\n";
-			out << reference.seq(line.chr().str(), line.start(), line.length(), false) << "\n";
+			out << reference.seq(line.chr(), line.start(), line.length(), false) << "\n";
 		}
 	}
 };

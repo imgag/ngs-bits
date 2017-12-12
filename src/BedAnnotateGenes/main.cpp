@@ -23,7 +23,9 @@ public:
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
 		addInt("extend", "The number of bases to extend the gene regions before annotation.", true, 0);
 		addFlag("test", "Uses the test database instead of on the production database.");
+		addFlag("clear", "Clear all annotations present in the input file.");
 
+		changeLog(2017, 11, 28, "Added 'clear' flag.");
 		changeLog(2017, 11, 03, "Now appends a column to the BED file instead of always writing it into the 4th column.");
 	}
 
@@ -36,6 +38,11 @@ public:
 		//process
 		BedFile file;
 		file.load(getInfile("in"));
+		if (getFlag("clear"))
+		{
+			file.clearAnnotations();
+		}
+
 		for(int i=0; i<file.count(); ++i)
 		{
 			BedLine& line = file[i];

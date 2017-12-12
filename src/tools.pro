@@ -297,6 +297,10 @@ SUBDIRS += BedAnnotateFromBed
 tools-TEST.depends += BedAnnotateFromBed
 BedAnnotateFromBed.depends = cppNGS
 
+SUBDIRS += RohHunter
+tools-TEST.depends += RohHunter
+RohHunter.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt
 

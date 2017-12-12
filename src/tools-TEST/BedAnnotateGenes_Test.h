@@ -36,4 +36,20 @@ private slots:
 		EXECUTE("BedAnnotateGenes", "-test -extend 25 -in " + TESTDATA("data_in/BedAnnotateGenes_in2.bed") + " -out out/BedAnnotateGenes_out2.bed");
 		COMPARE_FILES("out/BedAnnotateGenes_out2.bed", TESTDATA("data_out/BedAnnotateGenes_out2.bed"));
 	}
+
+
+	void with_existing_annotations_and_clear()
+	{
+		QString host = Settings::string("ngsd_test_host");
+		if (host=="") SKIP("Test needs access to the NGSD test database!");
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/BedAnnotateGenes_init.sql"));
+
+		//test
+		EXECUTE("BedAnnotateGenes", "-test -clear -in " + TESTDATA("data_in/BedAnnotateGenes_in2.bed") + " -out out/BedAnnotateGenes_out3.bed");
+		COMPARE_FILES("out/BedAnnotateGenes_out3.bed", TESTDATA("data_out/BedAnnotateGenes_out3.bed"));
+	}
 };

@@ -25,6 +25,16 @@ bool GeneSet::contains(const QByteArray& gene) const
 	return (it != end() && *it == tmp);
 }
 
+bool GeneSet::containsAll(const GeneSet& genes) const
+{
+	foreach(const QByteArray& gene, genes)
+	{
+		if (!contains(gene)) return false;
+	}
+
+	return true;
+}
+
 bool GeneSet::intersectsWith(const GeneSet& genes) const
 {
 	foreach(const QByteArray& gene, genes)

@@ -192,18 +192,15 @@ void FastqOutfileStream::write(const FastqEntry& entry)
 {
 	if (thread_safe_) mutex_.lock();
 
-    int written = 0;
-
-	written += gzputs(gzfile_, entry.header.data());
-    written += gzwrite(gzfile_, "\n", 1);
-	written += gzputs(gzfile_, entry.bases.data());
-    written += gzwrite(gzfile_, "\n", 1);
-	written += gzputs(gzfile_, entry.header2.data());
-    written += gzwrite(gzfile_, "\n", 1);
-	written += gzputs(gzfile_, entry.qualities.data());
-    written += gzwrite(gzfile_, "\n", 1);
-
-    if (written==0)
+	gzputs(gzfile_, entry.header.data());
+	gzwrite(gzfile_, "\n", 1);
+	gzputs(gzfile_, entry.bases.data());
+	gzwrite(gzfile_, "\n", 1);
+	gzputs(gzfile_, entry.header2.data());
+	gzwrite(gzfile_, "\n", 1);
+	gzputs(gzfile_, entry.qualities.data());
+	int written = gzwrite(gzfile_, "\n", 1);
+	if (written==0)
     {
         THROW(FileAccessException, "Could not write to file '" + filename_ + "'!");
     }

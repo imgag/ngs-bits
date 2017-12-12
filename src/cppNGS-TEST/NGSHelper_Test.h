@@ -164,16 +164,32 @@ private slots:
 	}
 
 
-	void getSNPs()
+	void getKnownVariants()
 	{
-		VariantList list = NGSHelper::getSNPs();
-		I_EQUAL(list.count(), 19255);
+		VariantList list = NGSHelper::getKnownVariants(false);
+		I_EQUAL(list.count(), 102467);
 
-		//only chrX
+		//only SNPs
+		list = NGSHelper::getKnownVariants(true);
+		I_EQUAL(list.count(), 97469);
+
+		//only SNPs, AF<80%
+		list = NGSHelper::getKnownVariants(true, 0.0, 0.8);
+		I_EQUAL(list.count(), 91185);
+
+		//only SNPs, AF>20%
+		list = NGSHelper::getKnownVariants(true, 0.2);
+		I_EQUAL(list.count(), 36022);
+
+		//only SNPs, AF>20%, AF<80%
+		list = NGSHelper::getKnownVariants(true, 0.2, 0.8);
+		I_EQUAL(list.count(), 29738);
+
+		//only SNPs on chrX
 		BedFile roi_chrx;
 		roi_chrx.append(BedLine("chrX", 1, 155270560));
-		list = NGSHelper::getSNPs(&roi_chrx);
-		I_EQUAL(list.count(), 363);
+		list = NGSHelper::getKnownVariants(true, 0.0, 1.0, &roi_chrx);
+		I_EQUAL(list.count(), 1948);
 	}
 
 	void getIndels()

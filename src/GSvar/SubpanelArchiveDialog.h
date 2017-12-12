@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QListWidgetItem>
+#include "GeneSet.h"
 
 namespace Ui {
 class SubpanelArchiveDialog;
@@ -27,7 +28,7 @@ protected slots:
 	void restore(QListWidgetItem* item);
 
 private:
-	void updateSubpanelList(QListWidget* list, QString path);
+	void updateSubpanelList(QListWidget* list, QString path, const GeneSet& genes);
 	void move(QString name, QString from, QString to);
 
 	Ui::SubpanelArchiveDialog *ui;

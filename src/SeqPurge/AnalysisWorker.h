@@ -32,8 +32,8 @@ private:
 	///Match probability calulation
 	static double matchProbability(int matches, int mismatches);
 
-	///Helper function for writing output in threads
-	void writeWithThread(FastqOutfileStream* stream, FastqEntry& entry);
+	///Check read headers match (input and output)
+	static void checkHeaders(const QByteArray& h1, const QByteArray& h2);
 
 	///Error correction
 	void correctErrors(QTextStream& debug_out);

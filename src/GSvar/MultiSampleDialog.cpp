@@ -15,6 +15,9 @@ MultiSampleDialog::MultiSampleDialog(QWidget *parent)
 	ui_.setupUi(this);
 	ui_.samples_table->resizeColumnsToContents();
 	ui_.status_page_link->setText("<a href=\"" + Settings::string("SampleStatus") + "\"><span style=\"text-decoration: underline; color:#0000ff;\">[open status page]</span></a>");
+
+	connect(ui_.target_region, SIGNAL(currentIndexChanged(int)), this, SLOT(updateStartButton()));
+	connect(ui_.start_button, SIGNAL(clicked(bool)), this, SLOT(startAnalysis()));
 }
 
 QStringList MultiSampleDialog::samples()
@@ -63,14 +66,33 @@ void MultiSampleDialog::addSample(bool affected)
 		QMessageBox::warning(this, "Error adding sample", "Could not determine processing system of sample " + sample + " from NGSD!");
 		return;
 	}
-	if (samples_.count()>0 && sys!=samples_[0].system)
+
+	//fill target region combobox
+	bool contained = false;
+	for (int i=0; i<ui_.target_region->count(); ++i)
 	{
-		QMessageBox::warning(this, "Error adding sample", "Processing system of sample " + sample + " is " + sys + ".\nExpected same processing system as other samples: " + samples_[0].system);
-		return;
+		if (ui_.target_region->itemText(i)==sys)
+		{
+			contained = true;
+		}
+	}
+	if (!contained)
+	{
+		ui_.target_region->addItem(sys);
+		if (ui_.target_region->count()==2)
+		{
+			ui_.target_region->setCurrentText(sys);
+		}
+		if (ui_.target_region->count()>2)
+		{
+			ui_.target_region->setCurrentText("n/a");
+		}
 	}
 
+	//add sample
 	samples_.append(SampleInfo {sample, sys, affected});
 	updateSampleTable();
+	updateStartButton();
 }
 
 QString MultiSampleDialog::name2sys(QString name)
@@ -95,6 +117,7 @@ QString MultiSampleDialog::affected2str(bool affected)
 
 void MultiSampleDialog::updateSampleTable()
 {
+	//update GUI
 	ui_.samples_table->clearContents();
 	ui_.samples_table->setRowCount(samples_.count());
 	for (int i=0; i<samples_.count(); ++i)
@@ -104,7 +127,29 @@ void MultiSampleDialog::updateSampleTable()
 		ui_.samples_table->setItem(i, 2, new QTableWidgetItem(affected2str(samples_[i].affected)));
 	}
 	ui_.samples_table->resizeColumnsToContents();
+}
 
-	//start button
-	ui_.start_button->setEnabled(samples_.count()>=2);
+void MultiSampleDialog::updateStartButton()
+{
+	ui_.start_button->setEnabled(samples_.count()>=2 && ui_.target_region->currentText()!="n/a");
+}
+
+void MultiSampleDialog::startAnalysis()
+{
+	//reorder samples (if more then one processing system is available)
+	QString system = ui_.target_region->currentText();
+	if (system!="n/a")
+	{
+		for (int i=0; i<samples_.count(); ++i)
+		{
+			if (samples_[i].system==system)
+			{
+				samples_.swap(0, i);
+				break;
+			}
+		}
+	}
+
+	//accept dialog
+	accept();
 }

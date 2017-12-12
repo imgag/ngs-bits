@@ -1,5 +1,5 @@
 ### CnvHunter tool help
-	CnvHunter (0.1-873-g04f7bd6)
+	CnvHunter (0.1-928-g55f9a87)
 	
 	CNV detection from targeted resequencing data using non-matched control samples.
 	
@@ -52,13 +52,13 @@
 	  --tdx                  Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### CnvHunter changelog
-	CnvHunter 0.1-873-g04f7bd6
+	CnvHunter 0.1-928-g55f9a87
 	
 	2017-09-04 Added GC normalization.
 	2017-08-29 Updated default values of parameters 'n' and 'reg_max_cv' based on latest benchmarks.
 	2017-08-28 Added generic annotation mechanism for annotation from BED files.
 	2017-08-24 Added copy-number-polymorphisms regions input file ('cnp_file' parameter).
-	2017-08-17 Added down-sampleing if input to speed up sample correlation ('sam_corr_regs' parameter).
+	2017-08-17 Added down-sampling of input to speed up sample correlation ('sam_corr_regs' parameter).
 	2017-08-15 Added allele frequency for each region to TSV output.
 	2016-10-24 Added copy-number variant size to TSV output and added optional SEG output file.
 	2016-09-01 Sample and region information files are now always written.

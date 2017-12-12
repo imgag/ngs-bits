@@ -60,7 +60,9 @@ Phenotype PhenotypeSelector::selectedPhenotype() const
 
 	//accession
 	SqlQuery query = db_.getQuery();
-	query.exec("SELECT hpo_id FROM hpo_term WHERE name='" + pheno.name() + "'");
+	query.prepare("SELECT hpo_id FROM hpo_term WHERE name=:0");
+	query.bindValue(0, pheno.name());
+	query.exec();
 	query.next();
 	pheno.setAccession(query.value(0).toByteArray());
 
@@ -99,7 +101,9 @@ QString PhenotypeSelector::selectedItemDetails(bool show_name, bool shown_genes)
 
 	//get id/definition
 	SqlQuery query = db_.getQuery();
-	query.exec("SELECT id, hpo_id, name, definition FROM hpo_term WHERE name='" + item->text() + "'");
+	query.prepare("SELECT id, hpo_id, name, definition FROM hpo_term WHERE name=:0");
+	query.bindValue(0, item->text());
+	query.exec();
 	query.next();
 	QString id = query.value(0).toString();
 	QString output;

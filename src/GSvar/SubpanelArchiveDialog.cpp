@@ -18,6 +18,7 @@ SubpanelArchiveDialog::SubpanelArchiveDialog(QWidget *parent)
 	connect(ui->open_folder, SIGNAL(clicked(bool)), this, SLOT(openSubpanelFolder()));
 	connect(ui->list_subpanel, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(archive(QListWidgetItem*)));
 	connect(ui->list_archive, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(restore(QListWidgetItem*)));
+	connect(ui->genes_apply, SIGNAL(clicked(bool)), this, SLOT(updateSubpanelLists()));
 
 	path_subpanel = Helper::canonicalPath(NGSD::getTargetFilePath(true));
 	path_archive = Helper::canonicalPath(path_subpanel + "/archive/");
@@ -41,11 +42,14 @@ void SubpanelArchiveDialog::openSubpanelFolder()
 
 void SubpanelArchiveDialog::updateSubpanelLists()
 {
-	updateSubpanelList(ui->list_subpanel, path_subpanel);
-	updateSubpanelList(ui->list_archive, path_archive);
+	//create gene set for filter
+	GeneSet genes = GeneSet::createFromText(ui->genes->text().toLatin1(), ',');
+
+	updateSubpanelList(ui->list_subpanel, path_subpanel, genes);
+	updateSubpanelList(ui->list_archive, path_archive, genes);
 }
 
-void SubpanelArchiveDialog::updateSubpanelList(QListWidget* list, QString path)
+void SubpanelArchiveDialog::updateSubpanelList(QListWidget* list, QString path, const GeneSet& genes)
 {
 	list->clear();
 
@@ -55,6 +59,18 @@ void SubpanelArchiveDialog::updateSubpanelList(QListWidget* list, QString path)
 		if (file.endsWith("_amplicons.bed")) continue;
 
 		QString name = QFileInfo(file).fileName().replace(".bed", "");
+
+		//apply gene filter
+		if (genes.count())
+		{
+			//no gene file => skip
+			QString genes_file = file.replace(".bed", "_genes.txt");
+			if (!QFile::exists(genes_file)) continue;
+
+			//not all genes contained => skip
+			if (!GeneSet::createFromFile(genes_file).containsAll(genes)) continue;
+		}
+
 		list->addItem(name);
 	}
 }

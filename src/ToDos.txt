@@ -8,10 +8,13 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-** Report dialog: allow checking/unchecking all variants
+*** LOVD dialog: Report to transfer folder (if set), add documentation
+*** Gap report split to ccds+-5 and all gaps
+*** Report dialog: allow checking/unchecking all variants
+*** Mutli-sample/trio diaglog: check sample quality (bad => warning)
+** Add ROH dialog (when integrated into the analysis pipeline for WES/WGS samples)
 # Link to GeneCards: http://www.genecards.org/cgi-bin/carddisp.pl?gene=KIF5A
 # subpanel design dialog: use existing as template
-* subpanel dialog: allow gene(s) search
 * Add genotype equal for affected
 * Add inheritance mode to gene column => allow filtering
 - Allow settings disease_group/disease_status for multi-sample GSvar files
@@ -19,9 +22,11 @@ GSvar:
 - Target region filter: reset to none if it looses focus in search mode
 
 Tools:
-** add new tool BamHighCoverage
+** add new tool BedHighCoverage (wait until bamtools is replaced by HTSlib)
+** add tool NGSDVariants: filter genes, filter impact, filter max AF, filter max ihdb, output formats TSV/GSvar/VCF
 ** NGSDImportHPO: Add augment mode.
 # NGSDImportGeneInfo: add (optional) import of inheritance mode from OMIM
+- SampleCorrelation: Use only rare snps e.g. below 5% AF, but only when they are known variants (MS)
 - SomaticQC: do not use precalculated triplet counts, count every time (CS)
 - BamClipOverlap: require sorted bam and paired-end sequencing (CS)
 - VariantAnnotateStrand:
@@ -30,8 +35,16 @@ Tools:
     - refactor and combine indel and snv handling (CS)
 
 CnvHunter:
+**** multi pipeline: skip CNV analysis when file missing => warning
 ** test GC-normalization (check GS151166_01 C5orf42, DX170123_01 SEC23B del)
     - test effect of including different flanking regions
     - alternatively, test intra-sample normalization using the most similar exons on different chromosomes
 * test with duplicate reads; with anomalous reads; with multi-mapped reads; chunked data
 - allow input of one multi-sample COV file (reduce test data size and loading time)
+
+RohHunter:
+- optimize quality cutoffs based on variants that are het on chrX for males (AF, DP, MQM, blacklist, InDels, no AF annotation, homopolymer region,...)
+- test splitting regions when dist is too high, e.g. > 100Kb => Q-score cutoff removes random parts?!
+- test input of high-cov ROI to augment the input data with WT SNPs with AF>1-5%
+- test if sub-population AF improves result
+- benchmarks: chrX of males, add errors up to 2 percent, overlap WGS/WES

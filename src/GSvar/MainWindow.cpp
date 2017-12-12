@@ -138,6 +138,8 @@ void MainWindow::on_actionIgvInit_triggered()
 
 void MainWindow::on_actionCNV_triggered()
 {
+	if (filename_=="") return;
+
 	//create list of genes with heterozygous variant hits
 	GeneSet het_hit_genes;
 	int i_genes = variants_.annotationIndexByName("gene", true, false);

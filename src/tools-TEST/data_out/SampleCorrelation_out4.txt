@@ -1,2 +1,2 @@
-Number of high-coverage SNPs: 100 of 114 (max_snps: 100)
-Correlation: 0.9868
+Number of high-coverage SNPs: 86 of 87 (max_snps: 100)
+Correlation: 0.9871

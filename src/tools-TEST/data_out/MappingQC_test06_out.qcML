@@ -23,7 +23,7 @@
     <qualityParameter ID="qp0014" name="target region 100x percentage" description="Percentage of the target region that is covered at least 100-fold." value="55.67" cvRef="QC" accession="QC:2000030"/>
     <qualityParameter ID="qp0015" name="target region 200x percentage" description="Percentage of the target region that is covered at least 200-fold." value="18.26" cvRef="QC" accession="QC:2000031"/>
     <qualityParameter ID="qp0016" name="target region 500x percentage" description="Percentage of the target region that is covered at least 500-fold." value="0.06" cvRef="QC" accession="QC:2000032"/>
-    <qualityParameter ID="qp0019" name="SNV allele frequency deviation" description="Percentage of common SNPs that deviate from the expected allele frequency (i.e. 0.0, 0.5 or 1.0 for diploid organisms)" value="1.23" cvRef="QC" accession="QC:2000051"/>
+    <qualityParameter ID="qp0019" name="SNV allele frequency deviation" description="Percentage of common SNPs that deviate from the expected allele frequency (i.e. 0.0, 0.5 or 1.0 for diploid organisms)" value="1.57" cvRef="QC" accession="QC:2000051"/>
     <attachment ID="qp0017" name="depth distribution plot" description="Depth of coverage distribution plot calculated one the target region." cvRef="QC" accession="QC:2000037">
     </attachment>
     <attachment ID="qp0018" name="insert size distribution plot" description="Insert size distribution plot." cvRef="QC" accession="QC:2000038">

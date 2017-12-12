@@ -85,7 +85,7 @@ QCCollection Statistics::variantList(VariantList variants, bool filter)
         double hom_count = 0;
         for(int i=0; i<variants.count(); ++i)
         {
-            QString geno = variants[i].annotations().at(i_gt);
+			QByteArray geno = variants[i].annotations().at(i_gt);
 			if (geno=="1/1" || geno=="1|1")
             {
                 ++hom_count;
@@ -456,6 +456,8 @@ QCCollection Statistics::mapping_rna(const QString &bam_file, int min_mapq)
                             insert_size -= op.Length;
                         }
                     }
+
+                    insert_size = std::min(insert_size, 999); // cap insert size at 1000
                     insert_size_sum += 2 * insert_size;     // Twice because the sum is divided by every read of pairs
                     insert_dist.inc(insert_size, true);
 
@@ -745,7 +747,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 
 	//sample correlation
 	SampleCorrelation sc;
-	sc.calculateFromBam(tumor_bam,normal_bam,30,500, target_file,false);
+	sc.calculateFromBam(tumor_bam,normal_bam, 30, 500, target_file, false);
 	output.insert(QCValue("sample correlation", ( sc.totalVariants()==0 ? "n/a (too few variants)" : QString::number(sc.sampleCorrelation(),'f',2) ), "SNP-based sample correlation of tumor / normal.", "QC:2000040"));
 
 	//variants
@@ -1460,7 +1462,7 @@ QCCollection Statistics::contamination(QString bam, bool debug, int min_cov, int
 	Histogram hist(0, 1, 0.05);
 	int passed = 0;
 	double passed_depth_sum = 0.0;
-	VariantList snps = NGSHelper::getSNPs();
+	VariantList snps = NGSHelper::getKnownVariants(true, 0.2, 0.8);
 	for(int i=0; i<snps.count(); ++i)
 	{
 		Pileup pileup = NGSHelper::getPileup(reader, snps[i].chr(), snps[i].start());
@@ -1847,7 +1849,7 @@ QString Statistics::genderHetX(const QString& bam_file, QStringList& debug_outpu
 	//load SNPs on chrX
 	BedFile roi_chrx;
 	roi_chrx.append(BedLine("chrX", 1, chrx_end_pos));
-	VariantList snps = NGSHelper::getSNPs(&roi_chrx);
+	VariantList snps = NGSHelper::getKnownVariants(true, 0.2, 0.8, &roi_chrx);
     QVector<Pileup> counts;
 	counts.fill(Pileup(), snps.count());
 

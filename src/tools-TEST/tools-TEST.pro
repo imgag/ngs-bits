@@ -92,6 +92,7 @@ HEADERS += \
     NGSDMaintain_Test.h \
     TsvMerge_Test.h \
     BedAnnotateFromBed_Test.h \
+    RohHunter_Test.h \
 
 SOURCES += \
     main.cpp \
