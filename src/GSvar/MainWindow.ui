@@ -223,6 +223,7 @@
    <addaction name="actionGapsLookup"/>
    <addaction name="actionGapsRecalculate"/>
    <addaction name="actionCNV"/>
+   <addaction name="actionROH"/>
    <addaction name="actionGeneSelector"/>
   </widget>
   <action name="actionOpen">
@@ -653,6 +654,18 @@
    </property>
    <property name="text">
     <string>Publish in LOVD</string>
+   </property>
+  </action>
+  <action name="actionROH">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/RunsOfHomozygosity.png</normaloff>:/Icons/RunsOfHomozygosity.png</iconset>
+   </property>
+   <property name="text">
+    <string>ROH</string>
+   </property>
+   <property name="toolTip">
+    <string>Show runs of homozygosity (ROH).</string>
    </property>
   </action>
  </widget>

@@ -1,33 +1,33 @@
-#ifndef CNVWIDGET_H
-#define CNVWIDGET_H
+#ifndef RohWidget_H
+#define RohWidget_H
 
 #include <QWidget>
 #include <QTableWidgetItem>
-#include "CnvList.h"
+#include "RohList.h"
 #include "BedFile.h"
 #include "GeneSet.h"
 #include "FilterDockWidget.h"
 #include "VariantList.h"
 
 namespace Ui {
-class CnvWidget;
+class RohWidget;
 }
 
-///Widget for visualization and filtering of CNVs.
-class CnvWidget
+///Widget for visualization and filtering of ROHs.
+class RohWidget
 	: public QWidget
 {
 	Q_OBJECT
 
 public:
-	explicit CnvWidget(QString filename, FilterDockWidget* filter_widget, const GeneSet& het_hit_genes, QWidget *parent = 0);
-	~CnvWidget();
+	explicit RohWidget(QString filename, FilterDockWidget* filter_widget, QWidget *parent = 0);
+	~RohWidget();
 
 signals:
 	void openRegionInIGV(QString region);
 
 private slots:
-	void cnvDoubleClicked(QTableWidgetItem* item);
+	void rohDoubleClicked(QTableWidgetItem* item);
 	void filtersChanged();
 	void variantFiltersChanged();
 	void copyToClipboard();
@@ -36,16 +36,15 @@ private slots:
 	void showContextMenu(QPoint p);
 
 private:
-	void loadCNVs(QString filename);
+	void loadROHs(QString filename);
 	void disableGUI();
 	void addInfoLine(QString text);
 	void updateStatus(int shown);
 
 	FilterDockWidget* var_filters;
-	GeneSet var_het_hit_genes;
-	Ui::CnvWidget *ui;
-	CnvList cnvs;
+	Ui::RohWidget *ui;
+	RohList rohs;
 	QMap<QString, int> annotation_col_indices_;
 };
 
-#endif // CNVWIDGET_H
+#endif // RohWidget_H

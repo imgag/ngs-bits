@@ -79,6 +79,8 @@ public:
 	GeneSet genes() const;
 	/// Returns the single target region filter, or an empty string if unset.
 	QString region() const;
+	/// Sets the single target region filter, or an empty string if unset.
+	void setRegion(QString region);
 
 	/// Returns the reference sample name or an empty string if unset.
 	QString referenceSample() const;

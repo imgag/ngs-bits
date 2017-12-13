@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>CnvWidget</class>
- <widget class="QWidget" name="CnvWidget">
+ <class>RohWidget</class>
+ <widget class="QWidget" name="RohWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -19,7 +19,7 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0">
+  <layout class="QVBoxLayout" name="verticalLayout_3">
    <property name="spacing">
     <number>3</number>
    </property>
@@ -38,7 +38,7 @@
    <item>
     <widget class="QGroupBox" name="info_box">
      <property name="title">
-      <string>CNV calling information</string>
+      <string>ROH calling information</string>
      </property>
      <property name="flat">
       <bool>true</bool>
@@ -63,30 +63,14 @@
     </widget>
    </item>
    <item>
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeType">
-      <enum>QSizePolicy::Fixed</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>10</width>
-       <height>10</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item>
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
-      <string>CNVs</string>
+      <string>ROH calls</string>
      </property>
      <property name="flat">
       <bool>true</bool>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_3">
+     <layout class="QVBoxLayout" name="verticalLayout">
       <property name="spacing">
        <number>3</number>
       </property>
@@ -124,12 +108,12 @@
          </widget>
         </item>
         <item>
-         <widget class="QDoubleSpinBox" name="f_size">
+         <widget class="QDoubleSpinBox" name="f_size_kb">
           <property name="maximum">
            <double>999999.000000000000000</double>
           </property>
           <property name="singleStep">
-           <double>10.000000000000000</double>
+           <double>500.000000000000000</double>
           </property>
          </widget>
         </item>
@@ -150,27 +134,24 @@
          </spacer>
         </item>
         <item>
-         <widget class="QLabel" name="label_2">
-          <property name="toolTip">
-           <string>Minimum number of regions.</string>
-          </property>
+         <widget class="QLabel" name="label_3">
           <property name="text">
-           <string>Min regions:</string>
+           <string>Min markers:</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="f_regs">
-          <property name="minimum">
-           <number>1</number>
-          </property>
+         <widget class="QSpinBox" name="f_size_markers">
           <property name="maximum">
            <number>999999</number>
           </property>
+          <property name="singleStep">
+           <number>20</number>
+          </property>
          </widget>
         </item>
         <item>
-         <spacer name="horizontalSpacer_7">
+         <spacer name="horizontalSpacer_10">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -187,120 +168,23 @@
         </item>
         <item>
          <widget class="QLabel" name="label_4">
-          <property name="toolTip">
-           <string>Minimum z-score.</string>
-          </property>
           <property name="text">
-           <string>Min z-score:</string>
+           <string>Min q score:</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QDoubleSpinBox" name="f_z">
-          <property name="singleStep">
-           <double>0.500000000000000</double>
-          </property>
-          <property name="value">
-           <double>4.000000000000000</double>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer name="horizontalSpacer_3">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeType">
-           <enum>QSizePolicy::Fixed</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>30</width>
-            <height>1</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_3">
-          <property name="text">
-           <string>Copy-number:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QComboBox" name="f_cn">
-          <item>
-           <property name="text">
-            <string>n/a</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>0</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>1</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>3</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>4+</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-        <item>
-         <spacer name="horizontalSpacer_4">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeType">
-           <enum>QSizePolicy::Fixed</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>30</width>
-            <height>1</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_5">
-          <property name="toolTip">
-           <string>Maximum frequency (all regions).</string>
-          </property>
-          <property name="text">
-           <string>Max frequency:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QDoubleSpinBox" name="f_af">
-          <property name="decimals">
-           <number>2</number>
-          </property>
+         <widget class="QDoubleSpinBox" name="f_q_score">
           <property name="maximum">
-           <double>1.000000000000000</double>
+           <double>99999.000000000000000</double>
           </property>
           <property name="singleStep">
-           <double>0.050000000000000</double>
-          </property>
-          <property name="value">
-           <double>1.000000000000000</double>
+           <double>20.000000000000000</double>
           </property>
          </widget>
         </item>
         <item>
-         <spacer name="horizontalSpacer_5">
+         <spacer name="horizontalSpacer_7">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -310,52 +194,7 @@
           <property name="sizeHint" stdset="0">
            <size>
             <width>30</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_7">
-          <property name="toolTip">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Compound-heterozygous filters:&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;1) CNV-CNV&lt;/p&gt;&lt;p&gt;Two CNVs in the same gene&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;2) CNV-SNP/INDEL&lt;/p&gt;&lt;p&gt;One CNV and one heterozygous SNP/INDEL.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-          </property>
-          <property name="text">
-           <string>Compound-heterozygous:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QComboBox" name="f_comphet">
-          <item>
-           <property name="text">
-            <string>n/a</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>CNV-CNV</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>CNV-SNP/INDEL</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-        <item>
-         <spacer name="horizontalSpacer_10">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeType">
-           <enum>QSizePolicy::Fixed</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>30</width>
-            <height>20</height>
+            <height>1</height>
            </size>
           </property>
          </spacer>
@@ -499,7 +338,7 @@
        </layout>
       </item>
       <item>
-       <widget class="QTableWidget" name="cnvs">
+       <widget class="QTableWidget" name="rohs">
         <property name="contextMenuPolicy">
          <enum>Qt::CustomContextMenu</enum>
         </property>
@@ -521,6 +360,9 @@
         <property name="gridStyle">
          <enum>Qt::SolidLine</enum>
         </property>
+        <property name="wordWrap">
+         <bool>false</bool>
+        </property>
         <attribute name="verticalHeaderVisible">
          <bool>false</bool>
         </attribute>
@@ -541,22 +383,17 @@
         </column>
         <column>
          <property name="text">
-          <string>regions</string>
+          <string>size (markers)</string>
          </property>
         </column>
         <column>
          <property name="text">
-          <string>region_copy_numbers</string>
+          <string>markers heterozygous</string>
          </property>
         </column>
         <column>
          <property name="text">
-          <string>region_zscores</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>region_allele_frequency</string>
+          <string>q score</string>
          </property>
         </column>
        </widget>
@@ -566,6 +403,9 @@
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="spacing">
+      <number>3</number>
+     </property>
      <item>
       <widget class="QLabel" name="status">
        <property name="text">

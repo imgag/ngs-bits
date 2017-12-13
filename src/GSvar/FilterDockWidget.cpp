@@ -639,6 +639,12 @@ QString FilterDockWidget::region() const
 	return ui_.region->text().trimmed();
 }
 
+void FilterDockWidget::setRegion(QString region)
+{
+	ui_.region->setText(region);
+	regionChanged();
+}
+
 QString FilterDockWidget::referenceSample() const
 {
 	return ui_.refs->toolTip();

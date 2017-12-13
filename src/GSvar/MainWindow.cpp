@@ -42,6 +42,7 @@
 #include "IgvDialog.h"
 #include "GapDialog.h"
 #include "CnvWidget.h"
+#include "RohWidget.h"
 #include "GeneSelectorDialog.h"
 #include "NGSHelper.h"
 #include "XmlHelper.h"
@@ -169,6 +170,16 @@ void MainWindow::on_actionCNV_triggered()
 	CnvWidget* list = new CnvWidget(filename_, filter_widget_, het_hit_genes);
 	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
 	auto dlg = GUIHelper::showWidgetAsDialog(list, "Copy-number variants", false, false);
+	addModelessDialog(dlg);
+}
+
+void MainWindow::on_actionROH_triggered()
+{
+	if (filename_=="") return;
+
+	RohWidget* list = new RohWidget(filename_, filter_widget_);
+	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
+	auto dlg = GUIHelper::showWidgetAsDialog(list, "Runs of homozygosity", false, false);
 	addModelessDialog(dlg);
 }
 
