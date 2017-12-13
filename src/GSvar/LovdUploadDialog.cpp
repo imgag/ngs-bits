@@ -118,6 +118,14 @@ void LovdUploadDialog::upload()
 			lines << details;
 
 			ui_.comment_upload->setText(lines.join("\n").replace("=", ": "));
+
+			//write report file to transfer folder
+			QString gsvar_publication_transfer = Settings::string("gsvar_publication_transfer");
+			if (gsvar_publication_transfer!="")
+			{
+				QString file_rep = gsvar_publication_transfer + "/" + data_.processed_sample + "_LOVD_" + QDate::currentDate().toString("yyyyMMdd") + ".txt";
+				Helper::storeTextFile(file_rep, ui_.comment_upload->toPlainText().split("\n"));
+			}
 		}
 		else
 		{
