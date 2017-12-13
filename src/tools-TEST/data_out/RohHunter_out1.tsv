@@ -1,4 +1,4 @@
-#chr	start	end	number of markers	het markers	size [kB]	Q score
+#chr	start	end	number of markers	het markers	size [Kb]	Q score
 chr15	36905834	48580713	297	6	11674.88	2226.40
 chr15	63848805	64263795	20	1	414.99	149.89
 chr15	84651290	86123019	43	1	1471.73	349.48
