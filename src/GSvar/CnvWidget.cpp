@@ -18,7 +18,7 @@ CnvWidget::CnvWidget(QString filename, FilterDockWidget* filter_widget, const Ge
 	: QWidget(parent)
 	, var_filters(filter_widget)
 	, var_het_hit_genes(het_hit_genes)
-	, ui(new Ui::CnvList)
+	, ui(new Ui::CnvWidget)
 	, cnvs()
 {
 	ui->setupUi(this);
@@ -170,7 +170,7 @@ void CnvWidget::loadCNVs(QString filename)
 	}
 
 	//resize columns
-	GUIHelper::resizeTableCells(ui->cnvs, 180);
+	GUIHelper::resizeTableCells(ui->cnvs, 200);
 }
 
 void CnvWidget::filtersChanged()

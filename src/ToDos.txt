@@ -8,11 +8,10 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-*** LOVD dialog: Report to transfer folder (if set), add documentation
+** Subpanel dialog: trim name to remove whitespaces
+*** ROH dialog: show size sum (in header?)
+** Trio dialog: allow different processing systems - also show quality
 *** Gap report split to ccds+-5 and all gaps
-*** Report dialog: allow checking/unchecking all variants
-*** Mutli-sample/trio diaglog: check sample quality (bad => warning)
-** Add ROH dialog (when integrated into the analysis pipeline for WES/WGS samples)
 # Link to GeneCards: http://www.genecards.org/cgi-bin/carddisp.pl?gene=KIF5A
 # subpanel design dialog: use existing as template
 * Add genotype equal for affected
@@ -35,7 +34,6 @@ Tools:
     - refactor and combine indel and snv handling (CS)
 
 CnvHunter:
-**** multi pipeline: skip CNV analysis when file missing => warning
 ** test GC-normalization (check GS151166_01 C5orf42, DX170123_01 SEC23B del)
     - test effect of including different flanking regions
     - alternatively, test intra-sample normalization using the most similar exons on different chromosomes

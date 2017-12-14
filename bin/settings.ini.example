@@ -52,4 +52,4 @@ preferred_transcripts_file = ""
 gsvar_report_archive = ""
 gsvar_gap_transfer = ""
 gsvar_variant_transfer = ""
-
+gsvar_publication_transfer = ""

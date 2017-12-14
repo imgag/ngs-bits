@@ -21,8 +21,7 @@ public:
 
 protected:
 	void addSample(bool affected);
-	QString name2sys(QString name);
-	QString affected2str(bool affected);
+	QString formatAffected(bool affected);
 	void updateSampleTable();
 
 protected slots:
@@ -39,6 +38,7 @@ private:
 		QString name;
 		QString system;
 		bool affected;
+		QString quality;
 	};
 	QList<SampleInfo> samples_;
 	NGSD db_;

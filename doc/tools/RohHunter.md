@@ -1,5 +1,5 @@
 ### RohHunter tool help
-	RohHunter (0.1-928-g55f9a87)
+	RohHunter (0.1-936-g9573691)
 	
 	ROH detection based on a variant list annotated with AF values.
 	
@@ -8,6 +8,8 @@
 	  -out <file>              Output TSV file with ROH regions.
 	
 	Optional parameters:
+	  -annotate <filelist>     List of BED files used for annotation. Each file adds a column to the output file. The base filename is used as colum name and 4th column of the BED file is used as annotation value.
+	                           Default value: ''
 	  -var_min_dp <int>        Minimum variant depth ('DP'). Variants with lower depth are excluded from the analysis.
 	                           Default value: '20'
 	  -var_min_q <float>       Minimum variant quality. Variants with lower depth are excluded from the analysis.
@@ -20,7 +22,7 @@
 	                           Default value: '20'
 	  -roh_min_size <float>    Minimum size in Kb of ROH regions.
 	                           Default value: '20'
-	  -ext_merker_perc <float> Percentage of ROH markers that can be spanned when merging ROH regions .
+	  -ext_marker_perc <float> Percentage of ROH markers that can be spanned when merging ROH regions .
 	                           Default value: '1'
 	  -ext_size_perc <float>   Percentage of ROH size that can be spanned when merging ROH regions.
 	                           Default value: '50'
@@ -34,8 +36,9 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### RohHunter changelog
-	RohHunter 0.1-928-g55f9a87
+	RohHunter 0.1-936-g9573691
 	
+	2017-12-07 Added generic annotation feature.
 	2017-11-29 Added 'inc_chrx' flag.
 	2017-11-21 First version.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

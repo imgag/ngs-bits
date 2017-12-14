@@ -37,5 +37,6 @@
         <file>Icons/Add_red.png</file>
         <file>Icons/DGV.png</file>
         <file>Icons/UCSC.png</file>
+        <file>Icons/RunsOfHomozygosity.png</file>
     </qresource>
 </RCC>

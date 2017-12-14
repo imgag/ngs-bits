@@ -1,5 +1,5 @@
-#ifndef COPYNUMBERVARIANTLIST_H
-#define COPYNUMBERVARIANTLIST_H
+#ifndef CNVLIST_H
+#define CNVLIST_H
 
 #include "cppNGS_global.h"
 #include "Chromosome.h"
@@ -134,4 +134,4 @@ class CPPNGSSHARED_EXPORT CnvList
 		QByteArrayList annotation_headers_;
 };
 
-#endif // COPYNUMBERVARIANTLIST_H
+#endif // CNVLIST_H

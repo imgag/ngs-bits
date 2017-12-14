@@ -310,7 +310,7 @@ public:
 		//ROH output
 		QSharedPointer<QFile> file = Helper::openFileForWriting(getOutfile("out"));
 		QTextStream outstream(file.data());
-		outstream << "#chr\tstart\tend\tnumber of markers\thet markers\tsize [kB]\tQ score";
+		outstream << "#chr\tstart\tend\tnumber of markers\thet markers\tsize [Kb]\tQ score";
 		foreach(QString anno, annotate)
 		{
 			outstream << '\t' << QFileInfo(anno).baseName();

@@ -38,7 +38,7 @@ QStringList MultiSampleDialog::status()
 
 	foreach(const SampleInfo& info, samples_)
 	{
-		output << affected2str(info.affected);
+		output << formatAffected(info.affected);
 	}
 
 	return output;
@@ -60,12 +60,20 @@ void MultiSampleDialog::addSample(bool affected)
 	if (sample=="") return;
 
 	//check processing system
-	QString sys = name2sys(sample);
-	if (sys=="unknown")
+	NGSD db;
+	QString sys;
+	QString quality;
+	try
 	{
-		QMessageBox::warning(this, "Error adding sample", "Could not determine processing system of sample " + sample + " from NGSD!");
+		sys = db.getProcessingSystem(sample, NGSD::LONG);
+		quality = db.getProcessedSampleQuality(sample, false);
+	}
+	catch (Exception&)
+	{
+		QMessageBox::warning(this, "Error adding sample", "Could not determine processing system or quality of sample " + sample + " from NGSD!");
 		return;
 	}
+
 
 	//fill target region combobox
 	bool contained = false;
@@ -90,27 +98,12 @@ void MultiSampleDialog::addSample(bool affected)
 	}
 
 	//add sample
-	samples_.append(SampleInfo {sample, sys, affected});
+	samples_.append(SampleInfo {sample, sys, affected, quality});
 	updateSampleTable();
 	updateStartButton();
 }
 
-QString MultiSampleDialog::name2sys(QString name)
-{
-	QString sys;
-	try
-	{
-		sys = NGSD().getProcessingSystem(name.trimmed(), NGSD::LONG);
-	}
-	catch (Exception&)
-	{
-		sys = "unknown";
-	}
-
-	return sys;
-}
-
-QString MultiSampleDialog::affected2str(bool affected)
+QString MultiSampleDialog::formatAffected(bool affected)
 {
 	return affected ? "affected" : "control";
 }
@@ -124,7 +117,8 @@ void MultiSampleDialog::updateSampleTable()
 	{
 		ui_.samples_table->setItem(i, 0, new QTableWidgetItem(samples_[i].name));
 		ui_.samples_table->setItem(i, 1, new QTableWidgetItem(samples_[i].system));
-		ui_.samples_table->setItem(i, 2, new QTableWidgetItem(affected2str(samples_[i].affected)));
+		ui_.samples_table->setItem(i, 2, new QTableWidgetItem(formatAffected(samples_[i].affected)));
+		ui_.samples_table->setItem(i, 3, new QTableWidgetItem(samples_[i].quality));
 	}
 	ui_.samples_table->resizeColumnsToContents();
 }
