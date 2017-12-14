@@ -8,7 +8,7 @@ private slots:
 
 	void loadFromOboFile()
 	{
-		OntologyTermCollection collection_with_obsoletes(":/W:/share/data/dbs/miso/so-xp_2_5_3_v2.obo",true);
+		OntologyTermCollection collection_with_obsoletes(":/Resources/so-xp_2_5_3_v2.obo",true);
 
 		IS_THROWN(FileAccessException,OntologyTermCollection test("LKJDSAFL",true));
 		IS_THROWN(ArgumentException,OntologyTerm obsolete_term = collection_with_obsoletes.findByID("hdskafhkj"));
