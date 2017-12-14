@@ -118,11 +118,12 @@ void CnvList::load(QString filename)
 
 		//allele frequencies (optional)
 		QList<double> afs;
-		if (i_afs!=-1)
+		if (i_afs!=-1 && parts[i_afs]!="no_data")
 		{
 			tmp = parts[i_afs].split(',');
 			foreach(const QByteArray& t, tmp)
 			{
+
 				afs.append(Helper::toDouble(t, "allele frequency value", line));
 			}
 		}

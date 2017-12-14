@@ -469,7 +469,7 @@ ReportHelper::ReportHelper(QString snv_filename, GeneSet snv_germline_filter, Ge
 VariantList ReportHelper::filterSnvFromCgi()
 {
 	//extract obo terms for filtering
-	OntologyTermCollection obo_terms(":/W:/share/data/dbs/miso/so-xp_2_5_3_v2.obo",true);
+	OntologyTermCollection obo_terms(":/Resources/so-xp_2_5_3_v2.obo",true);
 	QList<QByteArray> ids;
 	ids << obo_terms.childIDs("SO:0001580",true); //coding variants
 	ids << obo_terms.childIDs("SO:0001568",true); //splicing variants
