@@ -1,5 +1,9 @@
-### 0.1-??? (???.2017)
+### 0.1-946-g385628a (15.12.2017)
 - General: Multi-sample analysis can now be started when mixed processing systems were used.
+- LOVD upload: report is now automatically written to transfer folder.
+- Added ROH dialog button to main tool bar (next to CNV button).
+- Subpanels: archive/restore dialog now allows filtering for gene(s).
+- Somatic Report: Major refactoring.
 
 ### 0.1-907-gc7b0851 (14.11.2017)
 - General: added LOVD database link to variant context menu.
@@ -121,5 +125,9 @@
 --
 
 [back to main page](index.md)
+
+
+
+
 
 
