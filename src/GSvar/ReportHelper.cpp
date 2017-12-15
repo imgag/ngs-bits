@@ -217,13 +217,11 @@ void RtfTools::writeRtfTableCNV(QTextStream& stream, const QList<int>& colWidths
 
 	QList<int> widths;
 
-	bool cnv_type_is_set = false;
-	int i_cnv_type;
+	int i_cnv_type = -1;
 	for(int i=0;i<important_cnvs.annotationHeaders().count();i++)
 	{
 		if(important_cnvs.annotationHeaders()[i] == "cnv_type")
 		{
-			cnv_type_is_set = true;
 			i_cnv_type = i;
 		}
 	}
@@ -262,14 +260,19 @@ void RtfTools::writeRtfTableCNV(QTextStream& stream, const QList<int>& colWidths
 	QList<QString> header_columns;
 
 	header_columns << "\\qc Position" << "\\qc Gr\\u246;\\u223;e [kb]" << "\\qc Typ" << "\\qc CN" << "\\qc CGI-gelistete Gene in dieser Region";
-	if(cnv_type_is_set)
+	if(i_cnv_type!=-1)
+	{
 		header_columns << "\\qc Typ";
+	}
 	header_cnvs << header_columns;
-	qDebug() <<header_cnvs << endl;
-	if(cnv_type_is_set)
+	if(i_cnv_type!=-1)
+	{
 		RtfTools::writeRtfWholeTable(stream,header_cnvs,widths_cnv_type,20,true,true);
+	}
 	else
+	{
 		RtfTools::writeRtfWholeTable(stream,header_cnvs,widths,20,true,true);
+	}
 
 	widths.clear();
 	widths << max_table_width;
@@ -308,19 +311,22 @@ void RtfTools::writeRtfTableCNV(QTextStream& stream, const QList<int>& colWidths
 		//gene names, only print genes in CGI
 		columns.append(variant.annotations().at(i_cgi_drug_assoc));
 
-		if(cnv_type_is_set)
+		if(i_cnv_type!=-1)
+		{
 			columns.append("\\qc " + variant.annotations().at(i_cnv_type));
+		}
 
 		somatic_cnv_table.append(columns);
 	}
 	widths.clear();
-	if(cnv_type_is_set)
+	if(i_cnv_type!=-1)
 	{
 		widths = widths_cnv_type;
 	}
 	else
+	{
 		widths = colWidths;
-
+	}
 	RtfTools::writeRtfWholeTable(stream,somatic_cnv_table,widths,20,true,false);
 
 	//Germline
