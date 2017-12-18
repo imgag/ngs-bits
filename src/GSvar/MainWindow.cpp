@@ -2031,18 +2031,24 @@ QMap<QString, QString> MainWindow::getBamFiles()
 QMap<QString, QString> MainWindow::getSegFilesCnv()
 {
 	QMap<QString, QString> output;
-	QMap<QString, QString> tmp = getBamFiles();
 
-	for(auto it = tmp.begin();it!=tmp.end(); ++it)
+	if (getType()==SOMATIC_PAIR)
 	{
-		QString segfile = it.value().left(it.value().length()-4) + "_cnvs.seg";
-		if (QFile::exists(segfile))
+		QString seg = filename_.left(filename_.length()-6) + "_cnvs.seg";
+		QString pair = QFileInfo(filename_).baseName();
+		output[pair] = seg;
+	}
+	else
+	{
+		QMap<QString, QString> tmp = getBamFiles();
+
+		for(auto it = tmp.begin();it!=tmp.end(); ++it)
 		{
-			output[it.key()] = segfile;
-		}
-		else
-		{
-			QMessageBox::warning(this, "Missing SEG file!", "Could not find SEG file at default locations:\n" + segfile);
+			QString segfile = it.value().left(it.value().length()-4) + "_cnvs.seg";
+			if (QFile::exists(segfile))
+			{
+				output[it.key()] = segfile;
+			}
 		}
 	}
 
@@ -2052,14 +2058,24 @@ QMap<QString, QString> MainWindow::getSegFilesCnv()
 QMap<QString, QString> MainWindow::getSegFilesBaf()
 {
 	QMap<QString, QString> output;
-	QMap<QString, QString> tmp = getBamFiles();
 
-	for(auto it = tmp.begin();it!=tmp.end(); ++it)
+	if (getType()==SOMATIC_PAIR)
 	{
-		QString segfile = it.value().left(it.value().length()-4) + "_bafs.seg";
-		if (QFile::exists(segfile))
+		QString seg = filename_.left(filename_.length()-6) + "_bafs.seg";
+		QString pair = QFileInfo(filename_).baseName();
+		output[pair] = seg;
+	}
+	else
+	{
+		QMap<QString, QString> tmp = getBamFiles();
+
+		for(auto it = tmp.begin();it!=tmp.end(); ++it)
 		{
-			output[it.key()] = segfile;
+			QString segfile = it.value().left(it.value().length()-4) + "_bafs.seg";
+			if (QFile::exists(segfile))
+			{
+				output[it.key()] = segfile;
+			}
 		}
 	}
 
