@@ -670,6 +670,13 @@ void MainWindow::generateReportSomaticRTF()
 	snv_germline_filter << "BRCA1" << "BRCA2" << "TP53" << "STK11" << "PTEN" << "MSH2" << "MSH6" << "MLH1" << "PMS2" << "APC" << "MUTYH" << "SMAD4" << "VHL"<< "MEN1"<< "RET"<< "RB1"<< "TSC1"<< "TSC2"<< "NF2"<< "WT1"<<"SDHB"<<"SDHD"<<"SDHC"<<"SDHAF2"<<"BMPR1A";
 
 	QString temp_filename = Helper::tempFileName(".rtf");
+
+	if(variants_.annotationIndexByName("CGI_drug_assoc",true,false) == -1 || variants_.annotationIndexByName("CGI_drug_assoc",true,false) == -2)
+	{
+		QMessageBox::warning(this,"Somatic report", "Report cannot be created because GSVar-file does not contain CGI-data.");
+		return;
+	}
+
 	ReportHelper report(filename_,snv_germline_filter,cnv_keep_genes_filter,target_region);
 	report.writeRtf(temp_filename);
 
