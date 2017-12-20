@@ -675,6 +675,7 @@ void MainWindow::generateReportSomaticRTF()
 
 	//validate/store
 	QString file_rep = QFileDialog::getSaveFileName(this, "Export report file", last_report_path_ + "/" + QFileInfo(filename_).baseName() + "_report_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf", "RTF files (*.rtf);;All files(*.*)");
+	if (file_rep=="") return;
 	ReportWorker::validateAndCopyReport(temp_filename, file_rep,false,true);
 
 	//show result info box
