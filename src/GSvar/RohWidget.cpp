@@ -239,11 +239,22 @@ void RohWidget::filtersChanged()
 	}
 
 	//update GUI
+	double count_pass = 0;
+	double size = 0.0;
 	for(int r=0; r<rows; ++r)
 	{
-		ui->rohs->setRowHidden(r, !pass[r]);
+		if (pass[r])
+		{
+			ui->rohs->setRowHidden(r, false);
+			++count_pass;
+			size += rohs[r].size();
+		}
+		else
+		{
+			ui->rohs->setRowHidden(r, true);
+		}
 	}
-	updateStatus(pass.count(true));
+	updateStatus(count_pass, size);
 }
 
 void RohWidget::variantFiltersChanged()
@@ -351,9 +362,9 @@ void RohWidget::showContextMenu(QPoint p)
 	}
 }
 
-void RohWidget::updateStatus(int shown)
+void RohWidget::updateStatus(int shown, double size)
 {
-	QString text = QString::number(shown) + "/" + QString::number(rohs.count()) + " passing filter(s)";
+	QString text = QString::number(shown) + "/" + QString::number(rohs.count()) + " passing filter(s) - size sum " + QString::number(size/1000000.0, 'f', 3) + " Mb";
 	ui->status->setText(text);
 }
 

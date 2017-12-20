@@ -39,7 +39,7 @@ private:
 	void loadROHs(QString filename);
 	void disableGUI();
 	void addInfoLine(QString text);
-	void updateStatus(int shown);
+	void updateStatus(int shown, double size);
 
 	FilterDockWidget* var_filters;
 	Ui::RohWidget *ui;

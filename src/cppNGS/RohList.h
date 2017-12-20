@@ -57,7 +57,7 @@ class CPPNGSSHARED_EXPORT RunOfHomozygosity
 		{
 			return markers_het_;
 		}
-		///Returns the overall variant size.
+		///Returns the bases count.
 		int size() const
 		{
 			return end_ - start_ + 1;
