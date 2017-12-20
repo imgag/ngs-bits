@@ -481,11 +481,11 @@ QString VariantDetailsDockWidget::formatText(QString text, Color bgcolor)
 	return "<span style=\"background-color: " + colorToString(bgcolor) + ";\">" + text + "</span>";
 }
 
-QList<VariantDetailsDockWidget::DBEntry> VariantDetailsDockWidget::parseDB(QString anno)
+QList<VariantDetailsDockWidget::DBEntry> VariantDetailsDockWidget::parseDB(QString anno, QString sep)
 {
 	QList<DBEntry> output;
 
-	QStringList entries = anno.split("];");
+	QStringList entries = anno.split(sep);
 	foreach(QString entry, entries)
 	{
 		entry = entry.trimmed();

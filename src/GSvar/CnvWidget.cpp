@@ -464,7 +464,7 @@ void CnvWidget::showContextMenu(QPoint p)
 	int omim_index = cnvs.annotationHeaders().indexOf("omim");
 	if (omim_index!=-1)
 	{
-		auto entries = VariantDetailsDockWidget::parseDB(cnvs[row].annotations()[omim_index]);
+		auto entries = VariantDetailsDockWidget::parseDB(cnvs[row].annotations()[omim_index], "],");
 		foreach(VariantDetailsDockWidget::DBEntry entry, entries)
 		{
 			menu.addAction("Open OMIM: " + entry.id);

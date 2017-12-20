@@ -34,7 +34,7 @@ public:
 		QString details;
 	};
 	//Parse database entries (OMIM, ClinVar, HGMD, ...) to a map (ID=>details).
-	static QList<DBEntry> parseDB(QString anno);
+	static QList<DBEntry> parseDB(QString anno, QString sep="];");
 
 signals:
 	void jumbToRegion(QString region);
