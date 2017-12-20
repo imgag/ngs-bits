@@ -8,6 +8,8 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
+# phenotypes>genes: allow searching for HPO number e.g. HP:0006799
+** LOVD: upload compound-het variants together ('variant' twice)
 * Bug: create report => choose folder dialog => select abort => crash
 * Docu: LOVD upload, ROH
 ** CNV/ROH widget: support multiple OMIM links in context menu

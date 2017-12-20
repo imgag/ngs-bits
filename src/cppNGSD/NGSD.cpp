@@ -1364,13 +1364,8 @@ QStringList NGSD::phenotypes(QByteArray symbol)
 QStringList NGSD::phenotypes(QStringList terms)
 {
 	//trim terms and remove empty terms
-	QStringList tmp;
-	foreach (QString t, terms)
-	{
-		t = t.trimmed();
-		if (!t.isEmpty()) tmp.append(t);
-	}
-	terms = tmp;
+	std::for_each(terms.begin(), terms.end(), [](QString& term){ term = term.trimmed(); });
+	terms.removeAll("");
 
 	//no terms => all phenotypes
 	if (terms.isEmpty())
@@ -1382,10 +1377,11 @@ QStringList NGSD::phenotypes(QStringList terms)
 	bool first = true;
 	QSet<QString> set;
 	SqlQuery query = getQuery();
-	query.prepare("SELECT name FROM hpo_term WHERE name LIKE :0 ORDER BY name ASC");
-	foreach(QString t, tmp)
+	query.prepare("SELECT name FROM hpo_term WHERE name LIKE :0 OR hpo_id LIKE :1 ORDER BY name ASC");
+	foreach(QString t, terms)
 	{
 		query.bindValue(0, "%" + t + "%");
+		query.bindValue(1, "%" + t + "%");
 		query.exec();
 		QSet<QString> tmp2;
 		while(query.next())
