@@ -12,7 +12,6 @@ GSvar:
 * Docu: LOVD upload, ROH
 ** Trio dialog: allow different processing systems - also show quality
 *** Gap report split to ccds+-5 and all gaps
-# Link to GeneCards: http://www.genecards.org/cgi-bin/carddisp.pl?gene=KIF5A
 # subpanel design dialog: use existing as template
 - Add genotype equal for affected
 * Add inheritance mode to gene column => allow filtering

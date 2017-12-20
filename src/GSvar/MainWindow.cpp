@@ -1698,6 +1698,13 @@ void MainWindow::varsContextMenu(QPoint pos)
 		sub_menu->setEnabled(ngsd_enabled);
 	}
 
+	//GeneCards
+	sub_menu = menu.addMenu(QIcon("://Icons/GeneCards.png"), "GeneCards");
+	foreach(QString g, genes)
+	{
+		sub_menu->addAction(g);
+	}
+
 	//PrimerDesign
 	QAction* action = menu.addAction(QIcon("://Icons/PrimerDesign.png"), "PrimerDesign");
 	action->setEnabled(Settings::string("PrimerDesign")!="");
@@ -1912,6 +1919,10 @@ void MainWindow::varsContextMenu(QPoint pos)
 	{
 		GeneInfoDialog dlg(text, this);
 		dlg.exec();
+	}
+	else if (parent_menu && parent_menu->title()=="GeneCards")
+	{
+		QDesktopServices::openUrl(QUrl("http://www.genecards.org/cgi-bin/carddisp.pl?gene=" + text));
 	}
 	else if (parent_menu && parent_menu->title()=="Alamut")
 	{

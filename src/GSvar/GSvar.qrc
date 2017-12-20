@@ -38,5 +38,6 @@
         <file>Icons/DGV.png</file>
         <file>Icons/UCSC.png</file>
         <file>Icons/RunsOfHomozygosity.png</file>
+        <file>Icons/GeneCards.png</file>
     </qresource>
 </RCC>
