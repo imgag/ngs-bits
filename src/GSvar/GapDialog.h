@@ -33,6 +33,7 @@ private:
 	GapValidationLabel::State state(int row) const;
 	QString gapAsTsv(int row) const;
 	int gapSize(int row) const;
+	bool isExonicSplicing(int row) const;
 
 	QString sample_name_;
 	QString roi_file_;

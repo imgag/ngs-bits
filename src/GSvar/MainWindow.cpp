@@ -1019,9 +1019,9 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	}
 
 	//prepare dialog
-        QString sample_name = QFileInfo(bam_file).fileName().replace(".bam", "");
+	QString sample_name = QFileInfo(bam_file).fileName().replace(".bam", "");
 	GapDialog dlg(this, sample_name, roi_file);
-        dlg.process(bam_file, roi, genes);
+	dlg.process(bam_file, roi, genes);
 	QApplication::restoreOverrideCursor();
 
 	//show dialog

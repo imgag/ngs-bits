@@ -40,7 +40,7 @@ void GapDialog::process(QString bam_file, const BedFile& roi, const GeneSet& gen
 
 	//show percentage of gaps
 	QString gap_perc = QString::number(100.0 * low_cov.baseCount() / roi.baseCount(), 'f', 2);
-	ui->percentage->setText("Percentage of target region with depth&lt;" + QString::number(cutoff) + ": " + gap_perc + "%");
+	ui->percentage->setText("Percentage of target region with depth&lt;" + QString::number(cutoff) + "x: " + gap_perc + "%");
 
 	//calculate average coverage for gaps
 	Statistics::avgCoverage(low_cov, bam_file, 1, false, true);
@@ -102,12 +102,17 @@ QString GapDialog::report() const
 	//gaps (sanger)
 	stream << "Gaps to be closed by sanger sequencing:\n";
 	int closed_sanger = 0;
+	int closed_sanger_exonic = 0;
 	for (int row=0; row<ui->gaps->rowCount(); ++row)
 	{
 		if (state(row)==GapValidationLabel::VALIDATION)
 		{
 			stream << gapAsTsv(row) << "\n";
 			closed_sanger += gapSize(row);
+			if (isExonicSplicing(row))
+			{
+				closed_sanger_exonic += gapSize(row);
+			}
 		}
 	}
 	stream << "\n";
@@ -115,19 +120,31 @@ QString GapDialog::report() const
 	//gaps (IGV)
 	stream << "Gaps closed by manual inspection (or intronic/intergenic):\n";
 	int closed_manual = 0;
+	int closed_manual_exonic = 0;
 	for (int row=0; row<ui->gaps->rowCount(); ++row)
 	{
-		if (state(row)==GapValidationLabel::NO_VALIDATION)
+		if (state(row)==GapValidationLabel::NO_VALIDATION || state(row)==GapValidationLabel::CHECK)
 		{
 			stream << gapAsTsv(row) << "\n";
 			closed_manual += gapSize(row);
+			if (isExonicSplicing(row))
+			{
+				closed_manual_exonic += gapSize(row);
+			}
 		}
 	}
 	stream << "\n";
 
+	stream << "Summary overall\n";
 	stream << "Gaps closed by sanger sequencing: " << closed_sanger << " bases\n";
 	stream << "Gaps closed by manual inspection: " << closed_manual << " bases\n";
 	stream << "Sum: " << (closed_sanger+closed_manual) << " bases\n";
+	stream << "\n";
+
+	stream << "Summary exonic/splicing (CCDS+-5)\n";
+	stream << "Gaps closed by sanger sequencing: " << closed_sanger_exonic << " bases\n";
+	stream << "Gaps closed by manual inspection: " << closed_manual_exonic << " bases\n";
+	stream << "Sum: " << (closed_sanger_exonic+closed_manual_exonic) << " bases\n";
 
 	stream.flush();
 	return  output;
@@ -175,6 +192,7 @@ QString GapDialog::gapAsTsv(int row) const
 	output += "avg_depth=" + ui->gaps->item(row, 2)->text();
 	QString gene = ui->gaps->item(row, 3)->text().trimmed();
 	if (!gene.isEmpty()) output += " gene=" + gene;
+	if (isExonicSplicing(row)) output += " exonic/splicing";
 
 	return  output;
 }
@@ -182,5 +200,10 @@ QString GapDialog::gapAsTsv(int row) const
 int GapDialog::gapSize(int row) const
 {
 	return Helper::toInt(ui->gaps->item(row, 1)->text(), "gap size");
+}
+
+bool GapDialog::isExonicSplicing(int row) const
+{
+	return ui->gaps->item(row, 4)->text()=="exonic/splicing";
 }
 
