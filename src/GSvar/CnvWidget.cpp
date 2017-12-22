@@ -461,18 +461,13 @@ void CnvWidget::showContextMenu(QPoint p)
 	menu.addAction(QIcon("://Icons/DGV.png"), "Open in DGV");
 	menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC Genome Browser");
 
+	QAction* action = menu.addAction("Open OMIM entries");
 	int omim_index = cnvs.annotationHeaders().indexOf("omim");
-	if (omim_index!=-1)
-	{
-		auto entries = VariantDetailsDockWidget::parseDB(cnvs[row].annotations()[omim_index], "],");
-		foreach(VariantDetailsDockWidget::DBEntry entry, entries)
-		{
-			menu.addAction("Open OMIM: " + entry.id);
-		}
-	}
+	QString omim_text = cnvs[row].annotations()[omim_index].trimmed();
+	action->setEnabled(!omim_text.isEmpty());
 
 	//exec menu
-	QAction* action = menu.exec(ui->cnvs->viewport()->mapToGlobal(p));
+	action = menu.exec(ui->cnvs->viewport()->mapToGlobal(p));
 	if (action==nullptr) return;
 	QString text = action->text();
 
@@ -489,12 +484,14 @@ void CnvWidget::showContextMenu(QPoint p)
 	}
 
 	//OMIM
-	if (text.startsWith("Open OMIM:"))
+	if (text=="Open OMIM entries")
 	{
-		QString id = text.mid(text.indexOf(":")+2);
-		QDesktopServices::openUrl(QUrl("http://omim.org/entry/" + id));
+		auto entries = VariantDetailsDockWidget::parseDB(omim_text, "],");
+		foreach(VariantDetailsDockWidget::DBEntry entry, entries)
+		{
+			QDesktopServices::openUrl(QUrl("http://omim.org/entry/" + entry.id));
+		}
 	}
-
 }
 
 void CnvWidget::updateStatus(int shown)

@@ -325,20 +325,15 @@ void RohWidget::showContextMenu(QPoint p)
 	QMenu menu;
 	menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC Genome Browser");
 
+	QAction* action = menu.addAction("Open OMIM entries");
 	int omim_index = rohs.annotationHeaders().indexOf("omim");
-	if (omim_index!=-1)
-	{
-		auto entries = VariantDetailsDockWidget::parseDB(rohs[row].annotations()[omim_index], "],");
-		foreach(VariantDetailsDockWidget::DBEntry entry, entries)
-		{
-			menu.addAction("Open OMIM: " + entry.id);
-		}
-	}
+	QString omim_text = rohs[row].annotations()[omim_index].trimmed();
+	action->setEnabled(!omim_text.isEmpty());
 
 	menu.addAction("Use as variant filter region");
 
 	//exec menu
-	QAction* action = menu.exec(ui->rohs->viewport()->mapToGlobal(p));
+	action = menu.exec(ui->rohs->viewport()->mapToGlobal(p));
 	if (action==nullptr) return;
 	QString text = action->text();
 
@@ -349,10 +344,13 @@ void RohWidget::showContextMenu(QPoint p)
 	}
 
 	//OMIM
-	if (text.startsWith("Open OMIM:"))
+	if (text=="Open OMIM entries")
 	{
-		QString id = text.mid(text.indexOf(":")+2);
-		QDesktopServices::openUrl(QUrl("http://omim.org/entry/" + id));
+		auto entries = VariantDetailsDockWidget::parseDB(omim_text, "],");
+		foreach(VariantDetailsDockWidget::DBEntry entry, entries)
+		{
+			QDesktopServices::openUrl(QUrl("http://omim.org/entry/" + entry.id));
+		}
 	}
 
 	//Region filter
