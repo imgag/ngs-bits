@@ -907,7 +907,9 @@ void MainWindow::on_actionTrio_triggered()
 	TrioDialog dlg(this);
 	if (dlg.exec()==QDialog::Accepted)
 	{
-		QString reply = HttpHandler(HttpHandler::NONE).getHttpReply(Settings::string("SampleStatus")+"restart.php?type=trio&high_priority&user="+Helper::userName()+"&f=" + dlg.father() + "&m=" + dlg.mother() + "&c=" + dlg.child());
+		QStringList samples = dlg.samples();
+		qDebug() << samples;
+		QString reply = HttpHandler(HttpHandler::NONE).getHttpReply(Settings::string("SampleStatus")+"restart.php?type=trio&high_priority&user=" + Helper::userName() + "&c=" + samples[0] + "&f=" + samples[1] + "&m=" + samples[2]);
 		if (!reply.startsWith("Restart successful"))
 		{
 			QMessageBox::warning(this, "Trio analysis", "Queueing analysis failed:\n" + reply);

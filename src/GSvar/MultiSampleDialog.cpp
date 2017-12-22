@@ -9,8 +9,8 @@
 MultiSampleDialog::MultiSampleDialog(QWidget *parent)
 	: QDialog(parent)
 	, ui_()
-	, samples_()
 	, db_()
+	, samples_()
 {
 	ui_.setupUi(this);
 	ui_.samples_table->resizeColumnsToContents();
@@ -60,13 +60,12 @@ void MultiSampleDialog::addSample(bool affected)
 	if (sample=="") return;
 
 	//check processing system
-	NGSD db;
 	QString sys;
 	QString quality;
 	try
 	{
-		sys = db.getProcessingSystem(sample, NGSD::LONG);
-		quality = db.getProcessedSampleQuality(sample, false);
+		sys = db_.getProcessingSystem(sample, NGSD::LONG);
+		quality = db_.getProcessedSampleQuality(sample, false);
 	}
 	catch (Exception&)
 	{
@@ -100,7 +99,6 @@ void MultiSampleDialog::addSample(bool affected)
 	//add sample
 	samples_.append(SampleInfo {sample, sys, affected, quality});
 	updateSampleTable();
-	updateStartButton();
 }
 
 QString MultiSampleDialog::formatAffected(bool affected)
@@ -110,7 +108,6 @@ QString MultiSampleDialog::formatAffected(bool affected)
 
 void MultiSampleDialog::updateSampleTable()
 {
-	//update GUI
 	ui_.samples_table->clearContents();
 	ui_.samples_table->setRowCount(samples_.count());
 	for (int i=0; i<samples_.count(); ++i)
@@ -121,6 +118,8 @@ void MultiSampleDialog::updateSampleTable()
 		ui_.samples_table->setItem(i, 3, new QTableWidgetItem(samples_[i].quality));
 	}
 	ui_.samples_table->resizeColumnsToContents();
+
+	updateStartButton();
 }
 
 void MultiSampleDialog::updateStartButton()

@@ -19,11 +19,6 @@ public:
 	//Rreturns the sample status list (affected/control)
 	QStringList status();
 
-protected:
-	void addSample(bool affected);
-	QString formatAffected(bool affected);
-	void updateSampleTable();
-
 protected slots:
 	void on_add_control_clicked(bool);
 	void on_add_affected_clicked(bool);
@@ -32,7 +27,7 @@ protected slots:
 
 private:
 	Ui::MultiSampleDialog ui_;
-
+	NGSD db_;
 	struct SampleInfo
 	{
 		QString name;
@@ -41,7 +36,10 @@ private:
 		QString quality;
 	};
 	QList<SampleInfo> samples_;
-	NGSD db_;
+
+	void addSample(bool affected);
+	QString formatAffected(bool affected);
+	void updateSampleTable();
 };
 
 #endif // MULTISAMPLEDIALOG_H

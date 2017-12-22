@@ -10,7 +10,6 @@ libs:
 GSvar:
 ** LOVD: upload compound-het variants together ('variant' twice)
 * Docu: LOVD upload, ROH
-** Trio dialog: allow different processing systems - also show quality
 # subpanel design dialog: use existing as template
 - Add genotype equal for affected
 * Add inheritance mode to gene column => allow filtering
