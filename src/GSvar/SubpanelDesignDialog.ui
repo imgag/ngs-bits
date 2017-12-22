@@ -13,7 +13,29 @@
   <property name="windowTitle">
    <string>Sub-panel design</string>
   </property>
-  <layout class="QFormLayout" name="formLayout">
+  <layout class="QGridLayout" name="gridLayout">
+   <property name="leftMargin">
+    <number>3</number>
+   </property>
+   <property name="topMargin">
+    <number>3</number>
+   </property>
+   <property name="rightMargin">
+    <number>3</number>
+   </property>
+   <property name="bottomMargin">
+    <number>3</number>
+   </property>
+   <property name="spacing">
+    <number>3</number>
+   </property>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label_3">
+     <property name="text">
+      <string>File name:</string>
+     </property>
+    </widget>
+   </item>
    <item row="0" column="0" colspan="2">
     <widget class="QLabel" name="label_5">
      <property name="sizePolicy">
@@ -23,7 +45,7 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to design a sub-panel based on an existing processing system. The created target regions constist of the source database exon regions plus the &lt;span style=&quot; font-style:italic;&quot;&gt;x&lt;/span&gt; flanking bases.&lt;/p&gt;&lt;p&gt;Sub-panels that are specific for a sample/patient should start with the following information by convention:&lt;br/&gt;[base panel]_individual_[sample identifier]&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to design a sub-panel. The created target regions constist of the source database exon regions plus the &lt;span style=&quot; font-style:italic;&quot;&gt;x&lt;/span&gt; flanking bases.&lt;/p&gt;&lt;p&gt;Sub-panels that are specific for a sample/patient should start with the following information by convention:&lt;br/&gt;[base panel]_individual_[sample identifier]&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="scaledContents">
       <bool>false</bool>
@@ -33,23 +55,44 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="label_3">
+   <item row="5" column="0">
+    <widget class="QLabel" name="label_7">
      <property name="text">
-      <string>File name:</string>
+      <string>DB fallback:</string>
      </property>
     </widget>
    </item>
-   <item row="1" column="1">
-    <widget class="QLineEdit" name="name"/>
-   </item>
    <item row="3" column="0">
     <widget class="QLabel" name="label">
-     <property name="toolTip">
-      <string>Approved genes list (one per line).</string>
-     </property>
      <property name="text">
       <string>Genes:</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="1">
+    <widget class="QLabel" name="messages">
+     <property name="text">
+      <string/>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="label_6">
+     <property name="text">
+      <string>Flanking bases:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="label_4">
+     <property name="text">
+      <string>Message:</string>
      </property>
     </widget>
    </item>
@@ -66,15 +109,48 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="0">
-    <widget class="QLabel" name="label_6">
-     <property name="text">
-      <string>Flanking bases:</string>
+   <item row="7" column="0" colspan="2">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="spacing">
+      <number>0</number>
      </property>
-    </widget>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="check">
+       <property name="text">
+        <string>check</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="store">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>store</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item row="4" column="1">
     <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <property name="spacing">
+      <number>0</number>
+     </property>
      <item>
       <widget class="QComboBox" name="flanking">
        <property name="currentText">
@@ -122,19 +198,15 @@
      </item>
     </layout>
    </item>
-   <item row="5" column="0">
-    <widget class="QLabel" name="label_7">
-     <property name="text">
-      <string>DB fallback:</string>
-     </property>
-    </widget>
-   </item>
    <item row="5" column="1">
     <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <property name="spacing">
+      <number>0</number>
+     </property>
      <item>
       <widget class="QCheckBox" name="fallback">
        <property name="text">
-        <string>allow fallback to Ensembl database, if no CCDS transcript is defined</string>
+        <string>allow fallback to Ensembl database, if no CCDS transcript is defined.</string>
        </property>
       </widget>
      </item>
@@ -153,52 +225,28 @@
      </item>
     </layout>
    </item>
-   <item row="6" column="0">
-    <widget class="QLabel" name="label_4">
-     <property name="text">
-      <string>Message:</string>
+   <item row="1" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <property name="spacing">
+      <number>0</number>
      </property>
-    </widget>
-   </item>
-   <item row="6" column="1">
-    <widget class="QLabel" name="messages">
-     <property name="text">
-      <string/>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="8" column="0" colspan="2">
-    <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
+      <widget class="QLineEdit" name="name"/>
      </item>
      <item>
-      <widget class="QPushButton" name="check">
+      <widget class="QPushButton" name="import_btn">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Import name and gene list from existing sub-panel.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
        <property name="text">
-        <string>check</string>
+        <string/>
        </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="store">
-       <property name="enabled">
+       <property name="icon">
+        <iconset resource="GSvar.qrc">
+         <normaloff>:/Icons/Import.png</normaloff>:/Icons/Import.png</iconset>
+       </property>
+       <property name="flat">
         <bool>false</bool>
-       </property>
-       <property name="text">
-        <string>store</string>
        </property>
       </widget>
      </item>
@@ -206,6 +254,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="GSvar.qrc"/>
+ </resources>
  <connections/>
 </ui>

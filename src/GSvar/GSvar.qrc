@@ -39,5 +39,6 @@
         <file>Icons/UCSC.png</file>
         <file>Icons/RunsOfHomozygosity.png</file>
         <file>Icons/GeneCards.png</file>
+        <file>Icons/Import.png</file>
     </qresource>
 </RCC>

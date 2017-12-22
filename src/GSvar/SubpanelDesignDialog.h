@@ -29,8 +29,10 @@ protected slots:
 	void checkAndCreatePanel();
 	void storePanel();
 	void disableStoreButton();
+	void importFromExistingSubpanel();
 
 private:
+	QStringList subpanelList();
 	void createSubpanelCompleter();
 	QString getBedFilename();
 	QString getBedFilenameArchive();

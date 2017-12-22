@@ -9,8 +9,7 @@ libs:
 
 GSvar:
 ** LOVD: upload compound-het variants together ('variant' twice)
-* Docu: LOVD upload, ROH
-# subpanel design dialog: use existing as template
+- Docu: LOVD upload, ROH analysis
 - Add genotype equal for affected
 * Add inheritance mode to gene column => allow filtering
 

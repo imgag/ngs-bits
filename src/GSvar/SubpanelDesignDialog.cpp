@@ -9,6 +9,7 @@
 #include <QPushButton>
 #include <QFileInfo>
 #include <QMessageBox>
+#include <QInputDialog>
 
 SubpanelDesignDialog::SubpanelDesignDialog(QWidget *parent)
 	: QDialog(parent)
@@ -18,8 +19,9 @@ SubpanelDesignDialog::SubpanelDesignDialog(QWidget *parent)
 	ui->setupUi(this);
 	createSubpanelCompleter();
 
-	connect(ui->check, SIGNAL(pressed()), this, SLOT(checkAndCreatePanel()));
-	connect(ui->store, SIGNAL(pressed()), this, SLOT(storePanel()));
+	connect(ui->check, SIGNAL(clicked()), this, SLOT(checkAndCreatePanel()));
+	connect(ui->store, SIGNAL(clicked()), this, SLOT(storePanel()));
+	connect(ui->import_btn, SIGNAL(clicked()), this, SLOT(importFromExistingSubpanel()));
 
 	connect(ui->name, SIGNAL(textEdited(QString)), this, SLOT(disableStoreButton()));
 	connect(ui->genes, SIGNAL(textChanged()), this, SLOT(disableStoreButton()));
@@ -41,19 +43,26 @@ QString SubpanelDesignDialog::lastCreatedSubPanel()
 	return last_created_subpanel;
 }
 
-void SubpanelDesignDialog::createSubpanelCompleter()
+
+QStringList SubpanelDesignDialog::subpanelList()
 {
-	QStringList tmp = Helper::findFiles(NGSD::getTargetFilePath(true), "*.bed", false);
 	QStringList names;
+
+	QStringList tmp = Helper::findFiles(NGSD::getTargetFilePath(true), "*.bed", false);
 	foreach(QString t, tmp)
 	{
 		if(t.endsWith("_amplicons.bed")) continue;
 
-		QString name = QFileInfo(t).fileName().replace(".bed", "");
-		names.append(name);
+		names.append(QFileInfo(t).fileName().replace(".bed", ""));
 	}
 
-	completer = new QCompleter(names);
+	return names;
+}
+
+void SubpanelDesignDialog::createSubpanelCompleter()
+{
+
+	completer = new QCompleter(subpanelList());
 	ui->name->setCompleter(completer);
 }
 
@@ -151,6 +160,20 @@ void SubpanelDesignDialog::storePanel()
 void SubpanelDesignDialog::disableStoreButton()
 {
 	ui->store->setEnabled(false);
+}
+
+void SubpanelDesignDialog::importFromExistingSubpanel()
+{
+	bool ok;
+	QString selected = QInputDialog::getItem(this, "Import data from existing sub-panel", "source sub-panel:", subpanelList(), 0, false, &ok);
+	if (!ok) return;
+
+	//set name
+	ui->name->setText(selected);
+
+	//set genes
+	QString filename = NGSD::getTargetFilePath(true) + "/" + selected + "_genes.txt";
+	setGenes(Helper::loadTextFile(filename));
 }
 
 QString SubpanelDesignDialog::getBedFilename()
