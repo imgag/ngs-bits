@@ -535,7 +535,7 @@ void MainWindow::on_actionOpen_triggered()
 {
 	//get file to open
 	QString path = Settings::path("path_variantlists");
-	QString filename = QFileDialog::getOpenFileName(this, "Open variant list", path, "Supported formats (*.GSvar;*.tsv);; GSvar files (*.GSvar);;TSV files (*.tsv);;All files (*.*)");
+	QString filename = QFileDialog::getOpenFileName(this, "Open variant list", path, "GSvar files (*.GSvar);;All files (*.*)");
 	if (filename=="") return;
 
 	//update data
@@ -545,13 +545,32 @@ void MainWindow::on_actionOpen_triggered()
 void MainWindow::on_actionOpenNGSD_triggered()
 {
 	//get processed sample name
-	QString ps_name = QInputDialog::getText(this, "Open processed sample from NGSD", "processed sample name:").trimmed();
+	QString ps_name = QInputDialog::getText(this, "Open processed sample from NGSD", "processed sample:").trimmed();
 	if (ps_name=="") return;
 
 	//convert name to file
 	try
 	{
-		QString file = NGSD().processedSamplePath(ps_name, NGSD::GSVAR);
+		NGSD db;
+		QString file = db.processedSamplePath(ps_name, NGSD::GSVAR);
+
+		//check if this is a somatic tumor sample
+		QString normal_sample = db.normalSample(ps_name);
+		if (normal_sample!="")
+		{
+			QString gsvar_somatic = file.split("Sample_")[0]+ "/" + "Somatic_" + ps_name + "-" + normal_sample + "/" + ps_name + "-" + normal_sample + ".GSvar";
+			if (QMessageBox::question(this, "Tumor sample", "The sample is the tumor sample of a tumor-normal pair.\nDo you want to open the somatic variant list?")==QMessageBox::Yes)
+			{
+				file = gsvar_somatic;
+			}
+		}
+
+		if (!QFile::exists(file))
+		{
+			QMessageBox::warning(this, "GSvar file missing", "The GSvar file does not exist:\n" + file);
+			return;
+		}
+
 		loadFile(file);
 	}
 	catch (Exception& e)

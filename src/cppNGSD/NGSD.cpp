@@ -74,6 +74,16 @@ QString NGSD::sampleIsFFPE(const QString& filename)
 	return value.toInt() ? "yes" : "no";
 }
 
+QString NGSD::normalSample(const QString& filename)
+{
+	QVariant value = getValue("SELECT normal_id FROM processed_sample WHERE id=" + processedSampleId(filename), true);
+	if (value.isNull()) return "";
+
+	QVariant value2 = getValue("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.id=" + value.toString());
+
+	return value2.toString();
+}
+
 QString NGSD::sampleDiseaseGroup(const QString& filename)
 {
 	return getValue("SELECT disease_group FROM sample WHERE id='" + sampleId(filename, false) + "'").toString();

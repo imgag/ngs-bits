@@ -149,6 +149,8 @@ public:
 	QString sampleIsTumor(const QString& filename);
 	///Returns the FFPE status of a sample, or "n/a" the sample cannot be found in the database.
 	QString sampleIsFFPE(const QString& filename);
+	///Returns the normal sample corresponding to a tumor sample, or "" if no normal samples is defined.
+	QString normalSample(const QString& filename);
 	///Returns the diease group associated to a sample.
 	QString sampleDiseaseGroup(const QString& filename);
 	///Sets the diease group associated to a sample.
