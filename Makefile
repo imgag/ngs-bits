@@ -48,6 +48,14 @@ build_tools_release:
 		make;
 	cp bamtools/lib/libbamtools.so* bin/
 
+build_gui_release:
+	rm -rf build-tools_gui-Linux-Release;
+	mkdir -p build-tools_gui-Linux-Release;
+	cd build-tools_gui-Linux-Release; \
+		qmake ../src/tools_gui.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+		make;
+	cp bamtools/lib/libbamtools.so* bin/
+
 build_release_noclean:
 	cd build-libs-Linux-Release; \
 		qmake ../src/libs.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
@@ -56,7 +64,11 @@ build_release_noclean:
 	cd build-tools-Linux-Release; \
 		qmake ../src/tools.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make;
-
+	cd ..
+	cd build-tools_gui-Linux-Release; \
+		qmake ../src/tools_gui.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+		make;
+	
 #################################### other targets ##################################
 
 clean:
@@ -93,7 +105,7 @@ deploy_nobuild:
 test_debug: clean build_libs_debug build_tools_debug test_lib test_tools
 
 test_release:
-	make clean build_libs_release build_tools_release test_lib test_tools > t.log 2>&1
+	make clean build_libs_release build_tools_release build_gui_release test_lib test_tools > t.log 2>&1
 	egrep "FAILED|SKIPPED" t.log
 
 pull:

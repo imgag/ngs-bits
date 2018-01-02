@@ -1,14 +1,13 @@
 #include "ReportHelper.h"
+#include "BasicStatistics.h"
+#include "OntologyTermCollection.h"
+#include "VariantFilter.h"
+#include "Helper.h"
 #include <QFileInfo>
 #include <QDir>
-#include <OntologyTermCollection.h>
-#include <qdebug.h>
-#include <VariantFilter.h>
 #include <QMessageBox>
 #include <QMainWindow>
-#include <Helper.h>
 #include <QSqlError>
-#include "BasicStatistics.h"
 
 void RtfTools::writeRtfHeader(QTextStream& stream)
 {
@@ -579,7 +578,7 @@ CnvList ReportHelper::filterCnvFromCgi()
 		QList<double> zscores = variant.zScores();
 		for(int j=0;j<zscores.count();j++)
 		{
-			zscores[j] = std::fabs(zscores[j]);
+			zscores[j] = fabs(zscores[j]);
 		}
 		//only keep genes with high enough z-scores
 		if(*std::max_element(zscores.begin(),zscores.end()) < 5.)
@@ -594,7 +593,7 @@ CnvList ReportHelper::filterCnvFromCgi()
 		foreach (QByteArray gene, variant.genes())
 		{
 
-			if(cnv_keep_genes_filter_.contains(gene) && std::fabs(*std::max_element(zscores.begin(),zscores.end()))>=5.)
+			if(cnv_keep_genes_filter_.contains(gene) && fabs(*std::max_element(zscores.begin(),zscores.end()))>=5.)
 			{
 				skip = false;
 			}
@@ -626,7 +625,7 @@ CnvList ReportHelper::filterImportantCnv()
 		QList<double> zscores = variant.zScores();
 		for(int j=0;j<zscores.count();j++)
 		{
-			zscores[j] = std::fabs(zscores[j]);
+			zscores[j] = fabs(zscores[j]);
 		}
 
 
@@ -675,7 +674,7 @@ CnvList ReportHelper::germlineCnv()
 		QList<double> zscores = variant.zScores();
 		for(int j=0;j<zscores.length();j++)
 		{
-			zscores[j] = std::fabs(zscores[j]);
+			zscores[j] = fabs(zscores[j]);
 		}
 
 		//only keep genes with high enough z-scores
