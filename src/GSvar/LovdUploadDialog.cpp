@@ -95,6 +95,9 @@ void LovdUploadDialog::setData(LovdUploadData data)
 
 void LovdUploadDialog::upload()
 {
+	//init
+	ui_.upload_btn->setEnabled(false);
+
 	//create JSON-formatted upload data
 	QByteArray upload_file = createJson();
 
@@ -190,24 +193,28 @@ void LovdUploadDialog::upload()
 		else
 		{
 			ui_.comment_upload->setText("DATA UPLOAD ERROR:\n" + messages.join("\n"));
+			ui_.upload_btn->setEnabled(true);
 		}
-
 	}
 	catch(Exception e)
 	{
 		ui_.comment_upload->setText("DATA UPLOAD FAILED:\n" + e.message());
+		ui_.upload_btn->setEnabled(true);
 	}
 }
 
 void LovdUploadDialog::checkGuiData()
 {
 	//check if already published
-	QString upload_details = db_.getVariantPublication(ui_.processed_sample->text(), variant1);
-	if (upload_details!="")
+	if (ui_.processed_sample->text()!="" && variant1.isValid())
 	{
-		ui_.upload_btn->setEnabled(false);
-		ui_.comment_upload->setText("<font color='red'>ERROR: variant already uploaded!</font><br>" + upload_details);
-		return;
+		QString upload_details = db_.getVariantPublication(ui_.processed_sample->text(), variant1);
+		if (upload_details!="")
+		{
+			ui_.upload_btn->setEnabled(false);
+			ui_.comment_upload->setText("<font color='red'>ERROR: variant already uploaded!</font><br>" + upload_details);
+			return;
+		}
 	}
 
 	//perform checks
