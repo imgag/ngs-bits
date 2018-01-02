@@ -54,7 +54,7 @@ public:
 	///Returns 'nobr' paragraph start for Qt tooltips
 	static QString nobr();
 	///Upload variant to LOVD
-	void uploadtoLovd(int variant_index);
+	void uploadtoLovd(int variant_index, int variant_index2 = -1);
 	///Returns the target file name without extension and date part prefixed with '_', or an empty string if no target file is set
 	QString targetFileName() const;
 	///Returns the index of a colum in the GUI (or -1 if the column does not exist)

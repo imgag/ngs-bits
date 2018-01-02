@@ -10,6 +10,7 @@
 #include <QPrinter>
 #include <QPrintDialog>
 #include <QFileInfo>
+#include <QDesktopServices>
 
 LovdUploadDialog::LovdUploadDialog(QWidget *parent)
 	: QDialog(parent)
@@ -20,35 +21,82 @@ LovdUploadDialog::LovdUploadDialog(QWidget *parent)
 	connect(ui_.upload_btn, SIGNAL(clicked(bool)), this, SLOT(upload()));
 
 	connect(ui_.processed_sample, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.chr, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
 	connect(ui_.gene, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
 	connect(ui_.nm_number, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
 	connect(ui_.hgvs_c, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
 	connect(ui_.hgvs_g, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-	connect(ui_.chr, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
 	connect(ui_.genotype, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
 	connect(ui_.classification, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.hgvs_c2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.hgvs_g2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.genotype2, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.classification2, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
 	connect(ui_.phenos, SIGNAL(phenotypeSelectionChanged()), this, SLOT(checkGuiData()));
+
+	//update GUI elements for 2nd variant (only for free mode)
+	connect(ui_.genotype, SIGNAL(currentTextChanged(QString)), this, SLOT(updateSecondVariantGui()));
+	connect(ui_.genotype2, SIGNAL(currentTextChanged(QString)), this, SLOT(updateSecondVariantGui()));
+
 	connect(ui_.print_btn, SIGNAL(clicked(bool)), this, SLOT(printResults()));
 	connect(ui_.comment_upload, SIGNAL(textChanged()), this, SLOT(updatePrintButton()));
+	connect(ui_.refseq_btn, SIGNAL(clicked(bool)), this, SLOT(queryRefSeqWebservice()));
+	connect(ui_.refseq_btn2, SIGNAL(clicked(bool)), this, SLOT(queryRefSeqWebservice()));
 }
 
 void LovdUploadDialog::setData(LovdUploadData data)
 {
-	//fill in data
-	data_ = data;
-	dataToGui();
+	//sample data
+	ui_.processed_sample->setText(data.processed_sample);
+	ui_.gender->setCurrentText(data.gender);
 
-	//reference external webservice
-	QString url = Settings::string("VariantInfoRefSeq");
-	QString url_args = data.variant.isValid() ? "?variant_data=" + data.variant.toString(true).replace(" ", "\t") : "";
-	ui_.comment_var->setText("HGVS notation for RefSeq transcripts is not available in megSAP/GSvar. Thus it needs to be created by the external webservice <a href=\"" + url + url_args + "\">VariantInfoRefSeq</a>.\nPlease fill in the missing fields!");
+	ui_.processed_sample->setEnabled(false);
+	ui_.gender->setEnabled(false);
+
+	//variant data
+	variant1 = data.variant;
+	ui_.chr->setCurrentText(data.variant.chr().str());
+	ui_.gene->setText(data.gene);
+	ui_.nm_number->setText(data.nm_number);
+	ui_.hgvs_g->setText(data.hgvs_g);
+	ui_.hgvs_c->setText(data.hgvs_c);
+	ui_.hgvs_p->setText(data.hgvs_p);
+	ui_.classification->setCurrentText(data.classification);
+	ui_.genotype->setCurrentText(data.genotype);
+
+	ui_.chr->setEnabled(false);
+	ui_.classification->setEnabled(false);
+	ui_.genotype->setEnabled(false);
+
+	//variant data
+	if(data.variant2.isValid())
+	{
+		variant2 = data.variant2;
+		ui_.hgvs_g2->setText(data.hgvs_g2);
+		ui_.hgvs_c2->setText(data.hgvs_c2);
+		ui_.hgvs_p2->setText(data.hgvs_p2);
+		ui_.classification2->setCurrentText(data.classification2);
+		ui_.genotype2->setCurrentText(data.genotype2);
+		ui_.hgvs_g2->setEnabled(true);
+		ui_.hgvs_c2->setEnabled(true);
+		ui_.hgvs_p2->setEnabled(true);
+		ui_.refseq_btn2->setEnabled(true);
+	}
+
+	ui_.genotype2->setEnabled(false);
+	ui_.classification2->setEnabled(false);
+
+	//if not in free mode => GUI of 2nd variant needs no updates
+	disconnect(this, SLOT(updateSecondVariantGui()));
+
+	//phenotype data
+	ui_.phenos->setPhenotypes(data.phenos);
 }
 
 void LovdUploadDialog::upload()
 {
 	//create JSON-formatted upload data
-	guiToData();
-	QByteArray upload_file = create(data_);
+	QByteArray upload_file = createJson();
 
 	//upload data
 	static HttpHandler http_handler(HttpHandler::INI); //static to allow caching of credentials
@@ -81,22 +129,40 @@ void LovdUploadDialog::upload()
 		//add entry to NGSD
 		if (success)
 		{
+			QString processed_sample = ui_.processed_sample->text().trimmed();
+
 			QStringList details;
-			details << "gene=" + data_.gene;
-			details << "transcript=" + data_.nm_number;
-			details << "hgvs_g=" + data_.hgvs_g;
-			details << "hgvs_c=" + data_.hgvs_c;
-			details << "hgvs_p=" + data_.hgvs_p;
-			details << "genotype=" + data_.genotype;
-			foreach(const Phenotype& pheno, data_.phenos)
+			details << "gene=" + ui_.gene->text();
+			details << "transcript=" + ui_.nm_number->text();
+
+			details << "hgvs_g=" + ui_.hgvs_g->text();
+			details << "hgvs_c=" + ui_.hgvs_c->text();
+			details << "hgvs_p=" + ui_.hgvs_p->text();
+			details << "genotype=" + ui_.genotype->currentText();
+			details << "classification=" + ui_.classification->currentText();
+
+			if (isCompHet())
+			{
+				details << "hgvs_g2=" + ui_.hgvs_g2->text();
+				details << "hgvs_c2=" + ui_.hgvs_c2->text();
+				details << "hgvs_p2=" + ui_.hgvs_p2->text();
+				details << "genotype2=" + ui_.genotype2->currentText();
+				details << "classification2=" + ui_.classification2->currentText();
+			}
+
+			foreach(const Phenotype& pheno, ui_.phenos->selectedPhenotypes())
 			{
 				details << "phenotype=" + pheno.accession() + " - " + pheno.name();
 			}
 
-			//Upload only if a variant was selected for the dialog
-			if (data_.variant.isValid())
+			//Upload only if variant(s) are set
+			if (variant1.isValid())
 			{
-				db_.addVariantPublication(data_.processed_sample, data_.variant, "LOVD", data_.classification, details.join(";"));
+				db_.addVariantPublication(processed_sample, variant1, "LOVD", ui_.classification->currentText(), details.join(";"));
+			}
+			if (variant2.isValid())
+			{
+				db_.addVariantPublication(processed_sample, variant2, "LOVD", ui_.classification2->currentText(), details.join(";"));
 			}
 
 			//show result
@@ -105,13 +171,7 @@ void LovdUploadDialog::upload()
 			lines << "";
 			lines << messages.join("\n");
 			lines << "";
-			lines << "sample: " + data_.processed_sample;
-			if (data_.variant.isValid())
-			{
-				lines << "variant: " + data_.variant.toString();
-			}
-			lines << "classification: " + data_.classification;
-			lines << "";
+			lines << "sample: " + processed_sample;
 			lines << "user: " + Helper::userName();
 			lines << "date: " + Helper::dateTime();
 			lines << "";
@@ -123,7 +183,7 @@ void LovdUploadDialog::upload()
 			QString gsvar_publication_transfer = Settings::string("gsvar_publication_transfer");
 			if (gsvar_publication_transfer!="")
 			{
-				QString file_rep = gsvar_publication_transfer + "/" + data_.processed_sample + "_LOVD_" + QDate::currentDate().toString("yyyyMMdd") + ".txt";
+				QString file_rep = gsvar_publication_transfer + "/" + processed_sample + "_LOVD_" + QDate::currentDate().toString("yyyyMMdd") + ".txt";
 				Helper::storeTextFile(file_rep, ui_.comment_upload->toPlainText().split("\n"));
 			}
 		}
@@ -139,71 +199,14 @@ void LovdUploadDialog::upload()
 	}
 }
 
-void LovdUploadDialog::dataToGui()
-{
-	//sample data
-	if (data_.processed_sample!="")
-	{
-		ui_.processed_sample->setText(data_.processed_sample);
-		ui_.gender->setCurrentText(data_.gender);
-		ui_.genotype->setCurrentText(data_.genotype);
-
-		ui_.processed_sample->setEnabled(false);
-		ui_.gender->setEnabled(false);
-		ui_.genotype->setEnabled(false);
-	}
-
-	//variant data
-	if(data_.variant.isValid())
-	{
-		ui_.chr->setCurrentText(data_.variant.chr().str());
-		ui_.gene->setText(data_.gene);
-		ui_.nm_number->setText(data_.nm_number);
-		ui_.hgvs_g->setText(data_.hgvs_g);
-		ui_.hgvs_c->setText(data_.hgvs_c);
-		ui_.hgvs_p->setText(data_.hgvs_p);
-		ui_.classification->setCurrentText(data_.classification);
-
-		ui_.chr->setEnabled(false);
-		ui_.classification->setEnabled(false);
-		ui_.genotype->setEnabled(false);
-	}
-
-	//phenotype data
-	ui_.phenos->setPhenotypes(data_.phenos);
-}
-
-void LovdUploadDialog::guiToData()
-{
-	//sample data
-	data_.processed_sample = ui_.processed_sample->text();
-	data_.gender = ui_.gender->currentText();
-	data_.genotype = ui_.genotype->currentText();
-
-	//variant data
-	data_.gene = ui_.gene->text();
-	data_.nm_number = ui_.nm_number->text();
-	data_.hgvs_g = ui_.hgvs_g->text();
-	data_.hgvs_c = ui_.hgvs_c->text();
-	data_.hgvs_p = ui_.hgvs_p->text();
-	data_.classification = ui_.classification->currentText();
-	if(!data_.variant.isValid())
-	{
-		data_.variant.setChr(ui_.chr->currentText());
-	}
-
-	//phenotype data
-	data_.phenos = ui_.phenos->selectedPhenotypes();
-}
-
 void LovdUploadDialog::checkGuiData()
 {
 	//check if already published
-	QString upload_details = db_.getVariantPublication(data_.processed_sample, data_.variant);
+	QString upload_details = db_.getVariantPublication(ui_.processed_sample->text(), variant1);
 	if (upload_details!="")
 	{
 		ui_.upload_btn->setEnabled(false);
-		ui_.comment_upload->setText("<font color='red'>WARNING: variant already uploaded!</font><br>" + upload_details);
+		ui_.comment_upload->setText("<font color='red'>ERROR: variant already uploaded!</font><br>" + upload_details);
 		return;
 	}
 
@@ -241,6 +244,27 @@ void LovdUploadDialog::checkGuiData()
 	{
 		errors << "Classification unset!";
 	}
+
+	if (isCompHet())
+	{
+		if (ui_.hgvs_g2->text().trimmed().isEmpty())
+		{
+			errors << "HGVS.g unset (variant 2)!";
+		}
+		if (ui_.hgvs_c2->text().trimmed().isEmpty())
+		{
+			errors << "HGVS.c unset (variant 2)!";
+		}
+		if (ui_.genotype->currentText()!="het" || ui_.genotype2->currentText()!="het")
+		{
+			errors << "Two variants for upload, but they are not compound-heterozygous!";
+		}
+		if (ui_.classification2->currentText().trimmed().isEmpty())
+		{
+			errors << "Classification unset (variant 2)!";
+		}
+	}
+
 	if (ui_.phenos->selectedPhenotypes().count()==0)
 	{
 		errors << "No phenotypes selected!";
@@ -250,7 +274,7 @@ void LovdUploadDialog::checkGuiData()
 	if (errors.count()>0)
 	{
 		ui_.upload_btn->setEnabled(false);
-		ui_.comment_upload->setText("Cannot upload data because:\n  - " +  errors.join("\n  -"));
+		ui_.comment_upload->setText("Cannot upload data because:\n  - " +  errors.join("\n  - "));
 	}
 	else
 	{
@@ -279,7 +303,31 @@ void LovdUploadDialog::updatePrintButton()
 	ui_.print_btn->setEnabled(!ui_.comment_upload->toPlainText().trimmed().isEmpty());
 }
 
-QByteArray LovdUploadDialog::create(const LovdUploadData& data)
+void LovdUploadDialog::queryRefSeqWebservice()
+{
+	QString url = Settings::string("VariantInfoRefSeq");
+	if (sender()==qobject_cast<QObject*>(ui_.refseq_btn) && variant1.isValid()) url += "?variant_data=" + variant1.toString(true).replace(" ", "\t");
+	if (sender()==qobject_cast<QObject*>(ui_.refseq_btn2) && variant2.isValid()) url += "?variant_data=" + variant2.toString(true).replace(" ", "\t");
+	QDesktopServices::openUrl(QUrl(url));
+}
+
+void LovdUploadDialog::updateSecondVariantGui()
+{
+	bool enabled = ui_.genotype->currentText()=="het" && ui_.genotype2->currentText()=="het";
+
+	ui_.hgvs_g2->setEnabled(enabled);
+	ui_.hgvs_c2->setEnabled(enabled);
+	ui_.hgvs_p2->setEnabled(enabled);
+	ui_.classification2->setEnabled(enabled);
+	ui_.refseq_btn2->setEnabled(enabled);
+}
+
+bool LovdUploadDialog::isCompHet() const
+{
+	return variant2.isValid() || ui_.genotype2->currentText()=="het";
+}
+
+QByteArray LovdUploadDialog::createJson()
 {
 	QByteArray output;
 	QTextStream stream(&output);
@@ -316,11 +364,11 @@ QByteArray LovdUploadDialog::create(const LovdUploadData& data)
 	//create patient part
 	stream << "        \"individual\": [\n";
 	stream << "            {\n";
-	stream << "                \"@id\": \"" << data.processed_sample.trimmed() << "\",\n";
+	stream << "                \"@id\": \"" << ui_.processed_sample->text().trimmed() << "\",\n";
 	stream << "                \"gender\": {\n";
-	stream << "                    \"@code\": \"" << convertGender(data.gender.trimmed()) <<"\"\n";
+	stream << "                    \"@code\": \"" << convertGender(ui_.gender->currentText().trimmed()) <<"\"\n";
 	stream << "                },\n";
-	foreach(const Phenotype& pheno, data.phenos)
+	foreach(const Phenotype& pheno, ui_.phenos->selectedPhenotypes())
 	{
 		stream << "                \"phenotype\": [\n";
 		stream << "                    {\n";
@@ -331,22 +379,46 @@ QByteArray LovdUploadDialog::create(const LovdUploadData& data)
 		stream << "                ],\n";
 	}
 
-	//general variant info
+	//variant info
 	stream << "                \"variant\": [\n";
+	QString chr = ui_.chr->currentText().trimmed();
+	QString gene = ui_.gene->text().trimmed();
+	QString transcript = ui_.nm_number->text().trimmed();
+	createJsonForVariant(stream, chr, gene, transcript, ui_.hgvs_g, ui_.hgvs_c, ui_.hgvs_p, ui_.genotype, ui_.classification);
+	if (isCompHet())
+	{
+		stream << ",\n";
+		createJsonForVariant(stream, chr, gene, transcript, ui_.hgvs_g2, ui_.hgvs_c2, ui_.hgvs_g2, ui_.genotype, ui_.classification);
+	}
+	stream << "\n";
+
+	//close all brackets
+	stream << "                ]\n";
+	stream << "            }\n";
+	stream << "        ]\n";
+	stream << "    }\n";
+	stream << "}\n";
+	stream << "\n";
+
+	return output;
+}
+
+void LovdUploadDialog::createJsonForVariant(QTextStream& stream, QString chr, QString gene, QString transcript, QLineEdit* hgvs_g, QLineEdit* hgvs_c, QLineEdit* hgvs_p, QComboBox* genotype, QComboBox* classification)
+{
 	stream << "                    {\n";
-	stream << "                        \"@copy_count\": \"" << convertGenotype(data.genotype.trimmed()) << "\",\n";
+	stream << "                        \"@copy_count\": \"" << convertGenotype(genotype->currentText().trimmed()) << "\",\n";
 	stream << "                        \"@type\": \"DNA\",\n";
 	stream << "                        \"ref_seq\": {\n";
 	stream << "                            \"@source\": \"genbank\",\n";
-	stream << "                            \"@accession\": \"" << chromosomeToAccession(data.variant.chr()) << "\"\n"; //official identifier for hg19
+	stream << "                            \"@accession\": \"" << chromosomeToAccession(chr) << "\"\n"; //official identifier for hg19
 	stream << "                        },\n";
 	stream << "                        \"name\": {\n";
 	stream << "                            \"@scheme\": \"HGVS\",\n";
-	stream << "                            \"#text\": \"" << data.hgvs_g.trimmed() << "\"\n";
+	stream << "                            \"#text\": \"" << hgvs_g->text().trimmed() << "\"\n";
 	stream << "                        },\n";
 	stream << "                        \"pathogenicity\": {\n";
 	stream << "                            \"@scope\": \"individual\",\n";
-	stream << "                            \"@term\": \"" << convertClassification(data.classification.trimmed()) << "\"\n";
+	stream << "                            \"@term\": \"" << convertClassification(classification->currentText().trimmed()) << "\"\n";
 	stream << "                        },\n";
 	stream << "                        \"variant_detection\": [\n";
 	stream << "                            {\n";
@@ -360,15 +432,15 @@ QByteArray LovdUploadDialog::create(const LovdUploadData& data)
 	stream << "                                    \"@type\": \"cDNA\",\n";
 	stream << "                                    \"gene\": {\n";
 	stream << "                                        \"@source\": \"HGNC\",\n";
-	stream << "                                        \"@accession\": \"" << data.gene.trimmed() << "\"\n";
+	stream << "                                        \"@accession\": \"" << gene << "\"\n";
 	stream << "                                    },\n";
 	stream << "                                    \"ref_seq\": {\n";
 	stream << "                                        \"@source\": \"genbank\",\n";
-	stream << "                                        \"@accession\": \"" << data.nm_number.trimmed() << "\"\n";
+	stream << "                                        \"@accession\": \"" << transcript << "\"\n";
 	stream << "                                    },\n";
 	stream << "                                    \"name\": {\n";
 	stream << "                                        \"@scheme\": \"HGVS\",\n";
-	stream << "                                        \"#text\": \"" << data.hgvs_c.trimmed() << "\"\n";
+	stream << "                                        \"#text\": \"" << hgvs_c->text().trimmed() << "\"\n";
 	stream << "                                    },\n";
 	stream << "                                    \"seq_changes\": {\n";
 	stream << "                                        \"variant\": [\n";
@@ -378,7 +450,7 @@ QByteArray LovdUploadDialog::create(const LovdUploadData& data)
 	stream << "                                                    \"@scheme\": \"HGVS\",\n";
 	stream << "                                                    \"#text\": \"r.(?)\"\n"; //we do not have HGVS.r info!
 	stream << "                                                }";
-	if (data.hgvs_p.trimmed()=="")
+	if (hgvs_p->text().trimmed()=="")
 	{
 		stream << "\n";
 	}
@@ -391,7 +463,7 @@ QByteArray LovdUploadDialog::create(const LovdUploadData& data)
 		stream << "                                                            \"@type\": \"AA\",\n";
 		stream << "                                                            \"name\": {\n";
 		stream << "                                                                \"@scheme\": \"HGVS\",\n";
-		stream << "                                                                \"#text\": \"" << data.hgvs_p.trimmed() << "\"\n";
+		stream << "                                                                \"#text\": \"" << hgvs_p->text().trimmed() << "\"\n";
 		stream << "                                                            }\n";
 		stream << "                                                        }\n";
 		stream << "                                                    ]\n";
@@ -400,20 +472,10 @@ QByteArray LovdUploadDialog::create(const LovdUploadData& data)
 	stream << "                                            }\n";
 	stream << "                                        ]\n";
 	stream << "                                    }\n";
-	stream << "                                }\n";
-
-	//close all brackets
+	stream << "                                }";
 	stream << "                            ]\n";
 	stream << "                        }\n";
 	stream << "                    }\n";
-	stream << "                ]\n";
-	stream << "            }\n";
-	stream << "        ]\n";
-	stream << "    }\n";
-	stream << "}\n";
-	stream << "\n";
-
-	return output;
 }
 
 QString LovdUploadDialog::getSettings(QString key)

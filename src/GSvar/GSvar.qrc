@@ -12,7 +12,6 @@
         <file>Icons/Info.png</file>
         <file>Icons/AddTemporary.png</file>
         <file>Resources/DiagnosticReport_v1.xsd</file>
-        <file>Icons/PrimerDesign.png</file>
         <file>Icons/Trio.png</file>
         <file>Icons/Gaps_lookup.png</file>
         <file>Icons/Gaps_calculate.png</file>
@@ -40,5 +39,6 @@
         <file>Icons/RunsOfHomozygosity.png</file>
         <file>Icons/GeneCards.png</file>
         <file>Icons/Import.png</file>
+        <file>Icons/WebService.png</file>
     </qresource>
 </RCC>

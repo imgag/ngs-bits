@@ -103,92 +103,167 @@
      <property name="spacing">
       <number>3</number>
      </property>
-     <item row="6" column="1">
-      <widget class="QLineEdit" name="hgvs_c"/>
+     <item row="8" column="2">
+      <widget class="QComboBox" name="classification2">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <item>
+        <property name="text">
+         <string/>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>1</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>2</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>3</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>4</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>5</string>
+        </property>
+       </item>
+      </widget>
      </item>
-     <item row="5" column="0">
+     <item row="4" column="0">
       <widget class="QLabel" name="label_3">
        <property name="text">
         <string>HGVS.g:</string>
        </property>
       </widget>
      </item>
-     <item row="4" column="1">
-      <widget class="QLineEdit" name="nm_number"/>
-     </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="label_4">
-       <property name="text">
-        <string>Gene:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="7" column="1">
-      <widget class="QLineEdit" name="hgvs_p"/>
-     </item>
-     <item row="9" column="0">
-      <widget class="QLabel" name="label_9">
-       <property name="text">
-        <string>Classification:</string>
-       </property>
-      </widget>
-     </item>
      <item row="6" column="0">
-      <widget class="QLabel" name="label_6">
-       <property name="text">
-        <string>HGVS.c:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="1">
-      <widget class="QLineEdit" name="gene"/>
-     </item>
-     <item row="7" column="0">
       <widget class="QLabel" name="label_7">
        <property name="text">
         <string>HGVS.p:</string>
        </property>
       </widget>
      </item>
-     <item row="4" column="0">
+     <item row="6" column="2">
+      <widget class="QLineEdit" name="hgvs_p2">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="label_6">
+       <property name="text">
+        <string>HGVS.c:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="QLineEdit" name="hgvs_c"/>
+     </item>
+     <item row="5" column="2">
+      <widget class="QLineEdit" name="hgvs_c2">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>Gene:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
       <widget class="QLabel" name="label_5">
        <property name="text">
         <string>Transcript:</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="0" colspan="2">
-      <widget class="QLabel" name="comment_var">
-       <property name="text">
-        <string>text</string>
+     <item row="8" column="1">
+      <widget class="QComboBox" name="classification">
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>16777215</height>
+        </size>
        </property>
-       <property name="openExternalLinks">
-        <bool>true</bool>
-       </property>
+       <item>
+        <property name="text">
+         <string/>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>1</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>2</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>3</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>4</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>5</string>
+        </property>
+       </item>
       </widget>
      </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>Chr:</string>
+     <item row="7" column="1">
+      <widget class="QComboBox" name="genotype">
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>16777215</height>
+        </size>
        </property>
+       <item>
+        <property name="text">
+         <string/>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>hom</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>het</string>
+        </property>
+       </item>
       </widget>
      </item>
-     <item row="5" column="1">
-      <widget class="QLineEdit" name="hgvs_g">
-       <property name="readOnly">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="0">
-      <widget class="QLabel" name="label_8">
-       <property name="text">
-        <string>Genotype:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1">
+     <item row="1" column="1">
       <widget class="QComboBox" name="chr">
        <property name="maximumSize">
         <size>
@@ -328,8 +403,94 @@
        </item>
       </widget>
      </item>
-     <item row="8" column="1">
-      <widget class="QComboBox" name="genotype">
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>Chr:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="0">
+      <widget class="QLabel" name="label_8">
+       <property name="text">
+        <string>Genotype:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="0">
+      <widget class="QLabel" name="label_9">
+       <property name="text">
+        <string>Classification:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="gene"/>
+     </item>
+     <item row="6" column="1">
+      <widget class="QLineEdit" name="hgvs_p"/>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLineEdit" name="nm_number"/>
+     </item>
+     <item row="4" column="1">
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <widget class="QLineEdit" name="hgvs_g">
+         <property name="readOnly">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="refseq_btn">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;HGVS notation for RefSeq transcriptsis not available in megSAP/GSvar.&lt;br/&gt;Thus, it needs to be created by the externa lwebservice VariantInfoRefSeq.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="GSvar.qrc">
+           <normaloff>:/Icons/WebService.png</normaloff>:/Icons/WebService.png</iconset>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="4" column="2">
+      <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <item>
+        <widget class="QLineEdit" name="hgvs_g2">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="refseq_btn2">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;HGVS notation for RefSeq transcriptsis not available in megSAP/GSvar.&lt;br/&gt;Thus, it needs to be created by the externa lwebservice VariantInfoRefSeq.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="GSvar.qrc">
+           <normaloff>:/Icons/WebService.png</normaloff>:/Icons/WebService.png</iconset>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="7" column="2">
+      <widget class="QComboBox" name="genotype2">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
        <property name="maximumSize">
         <size>
          <width>100</width>
@@ -349,46 +510,6 @@
        <item>
         <property name="text">
          <string>het</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item row="9" column="1">
-      <widget class="QComboBox" name="classification">
-       <property name="maximumSize">
-        <size>
-         <width>100</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <item>
-        <property name="text">
-         <string/>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>1</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>2</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>3</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>4</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>5</string>
         </property>
        </item>
       </widget>
@@ -501,6 +622,8 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="GSvar.qrc"/>
+ </resources>
  <connections/>
 </ui>

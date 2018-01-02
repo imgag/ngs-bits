@@ -256,7 +256,6 @@ void MainWindow::on_actionOpenSampleQcFiles_triggered()
 void MainWindow::on_actionPublishVariantInLOVD_triggered()
 {
 	LovdUploadDialog dlg(this);
-	dlg.setData(LovdUploadData());
 	dlg.exec();
 }
 
@@ -1409,7 +1408,7 @@ QString MainWindow::nobr()
 	return "<p style='white-space:pre; margin:0; padding:0;'>";
 }
 
-void MainWindow::uploadtoLovd(int variant_index)
+void MainWindow::uploadtoLovd(int variant_index, int variant_index2)
 {
 	//(1) prepare data as far as we can (no RefSeq transcript data is available)
 	LovdUploadData data;
@@ -1457,21 +1456,25 @@ void MainWindow::uploadtoLovd(int variant_index)
 		}
 	}
 
-	//chromosome
+	//data 1st variant
 	const Variant& variant = variants_[variant_index];
 	data.variant = variant;
-
-	//genotype
 	int genotype_index = variants_.annotationIndexByName("genotype");
 	data.genotype = variant.annotations()[genotype_index];
-
-	//HGVS.g
 	FastaFileIndex idx(Settings::string("reference_genome"));
 	data.hgvs_g = variant.toHGVS(idx);
-
-	//classification
 	int classification_index = variants_.annotationIndexByName("classification");
 	data.classification = variant.annotations()[classification_index];
+
+	//data 2nd variant (comp-het)
+	if (variant_index2!=-1)
+	{
+		const Variant& variant2 = variants_[variant_index2];
+		data.variant2 = variant2;
+		data.genotype2 = variant2.annotations()[genotype_index];
+		data.hgvs_g2 = variant2.toHGVS(idx);
+		data.classification2 = variant2.annotations()[classification_index];
+	}
 
 	// (2) show dialog
 	LovdUploadDialog dlg(this);
@@ -1727,7 +1730,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 	}
 
 	//PrimerDesign
-	QAction* action = menu.addAction(QIcon("://Icons/PrimerDesign.png"), "PrimerDesign");
+	QAction* action = menu.addAction(QIcon("://Icons/WebService.png"), "PrimerDesign");
 	action->setEnabled(Settings::string("PrimerDesign")!="");
 
 	//Alamut
@@ -1928,7 +1931,17 @@ void MainWindow::varsContextMenu(QPoint pos)
 	{
 		try
 		{
-			uploadtoLovd(item->row());
+			//check comp-het
+			if (ui_.vars->selectedRanges().count()==1 && ui_.vars->selectedRanges()[0].rowCount()==2)
+			{
+				int index1 = ui_.vars->selectedRanges()[0].topRow();
+				int index2 = ui_.vars->selectedRanges()[0].bottomRow();
+				uploadtoLovd(index1, index2);
+			}
+			else
+			{
+				uploadtoLovd(item->row());
+			}
 		}
 		catch (Exception& e)
 		{
