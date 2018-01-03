@@ -18,6 +18,12 @@ Large ROHs are typically caused by:
 2. Uniparental disomy.
 3. Heterozygous deletions.
 
+The following plot gives an impression of the amount of ROHs that one can expect when dealing with consanguinous patients.  
+The cummulative ROH size is plotted against the degree of relatedness:
+
+![alt text](roh_consanguinity.png)
+
+
 ### ROH viewing and filtering
 
 ROHs of a sample are shown in a separate dialog that can be opened from the main tool bar (1)
@@ -54,6 +60,7 @@ The screenshot below shows a 6Mb heterozygous deletion, indicated by the selecti
 --
 
 [back to main page](index.md)
+
 
 
 
