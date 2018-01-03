@@ -926,7 +926,6 @@ void MainWindow::on_actionTrio_triggered()
 	if (dlg.exec()==QDialog::Accepted)
 	{
 		QStringList samples = dlg.samples();
-		qDebug() << samples;
 		QString reply = HttpHandler(HttpHandler::NONE).getHttpReply(Settings::string("SampleStatus")+"restart.php?type=trio&high_priority&user=" + Helper::userName() + "&c=" + samples[0] + "&f=" + samples[1] + "&m=" + samples[2]);
 		if (!reply.startsWith("Restart successful"))
 		{

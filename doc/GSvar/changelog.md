@@ -1,3 +1,13 @@
+### 0.1-??? (02.01.2018)
+- General: added GeneCards link to variant context menu.
+- General: trio analysis can now be started using samples based on different processing systems.
+- Gap report: now shows overall and ccds+-5 statistics separately.
+- Phenotypes>Genes dialog: phenotypes can now be found by HPO id.
+- ROH dialog: now shows size sum after filtering.
+- Somatic: Added quick-open of somatic variant lists via tumor processed sample name.
+- Sub-panels: can now be designed using existing sub-panels as template.
+- LOVD upload: uploading compound-heterozygous variants together is now possible.
+
 ### 0.1-946-g385628a (15.12.2017)
 - General: Multi-sample analysis can now be started when mixed processing systems were used.
 - LOVD upload: report is now automatically written to transfer folder.
@@ -125,6 +135,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 

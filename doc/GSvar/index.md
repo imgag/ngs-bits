@@ -7,6 +7,7 @@
 - [Sample quality control](sample_quality_control.md)
 - [Variant filtering](variant_filtering.md)
 - [CNV analysis](cnv_analysis.md)
+- [ROH analysis](roh_analysis.md)
 
 ## Auxilary functionality
 
@@ -17,6 +18,7 @@
 ## Misc
 
 - [ChangeLog](changelog.md)
+
 
 
 
