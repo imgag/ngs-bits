@@ -100,7 +100,7 @@ QString GapDialog::report() const
 	stream << "\n";
 
 	//gaps (sanger)
-	stream << "Gaps to be closed by sanger sequencing:\n";
+	stream << "Gaps to be closed by Sanger sequencing:\n";
 	int closed_sanger = 0;
 	int closed_sanger_exonic = 0;
 	for (int row=0; row<ui->gaps->rowCount(); ++row)
@@ -136,13 +136,13 @@ QString GapDialog::report() const
 	stream << "\n";
 
 	stream << "Summary overall\n";
-	stream << "Gaps closed by sanger sequencing: " << closed_sanger << " bases\n";
+	stream << "Gaps closed by Sanger sequencing: " << closed_sanger << " bases\n";
 	stream << "Gaps closed by manual inspection: " << closed_manual << " bases\n";
 	stream << "Sum: " << (closed_sanger+closed_manual) << " bases\n";
 	stream << "\n";
 
 	stream << "Summary exonic/splicing (CCDS+-5)\n";
-	stream << "Gaps closed by sanger sequencing: " << closed_sanger_exonic << " bases\n";
+	stream << "Gaps closed by Sanger sequencing: " << closed_sanger_exonic << " bases\n";
 	stream << "Gaps closed by manual inspection: " << closed_manual_exonic << " bases\n";
 	stream << "Sum: " << (closed_sanger_exonic+closed_manual_exonic) << " bases\n";
 

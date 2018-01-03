@@ -1,4 +1,4 @@
-### 0.1-??? (02.01.2018)
+### 0.1-965-g86d04d8 (03.01.2018)
 - General: added GeneCards link to variant context menu.
 - General: trio analysis can now be started using samples based on different processing systems.
 - Gap report: now shows overall and ccds+-5 statistics separately.
@@ -135,6 +135,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 
