@@ -16,8 +16,17 @@ void SampleCorrelation::calculateFromVcf(QString& in1, QString& in2, int window)
 	file2.load(in2);
 
 	//get genotype column indices
-	int col_geno1 = file1.annotationIndexByName("genotype", true, true);
-	int col_geno2 = file2.annotationIndexByName("genotype", true, true);
+	int col_geno1 = file1.annotationIndexByName("genotype", true, false);
+	int col_geno2 = file2.annotationIndexByName("genotype", true, false);
+	if (col_geno1==-1 || col_geno2==-1) //VCF format
+	{
+		col_geno1 = file1.annotationIndexByName("GT", true, false);
+		col_geno2 = file2.annotationIndexByName("GT", true, false);
+	}
+	if (col_geno1==-1 || col_geno2==-1)
+	{
+		THROW(FileParseException, "Could not determine genotype column ('genotype' for GSvar, 'GT' for VCF).");
+	}
 
 	//calculate overlap / correlation
 	int c_ol = 0;
@@ -71,11 +80,11 @@ void SampleCorrelation::calculateFromVcf(QString& in1, QString& in2, int window)
 			equal += (geno1[i]==geno2[i]);
 		}
 		sample_correlation_ = equal / geno1.count();
-		messages_.append("Note: Could not calulate the genotype correlation, calculated the fraction of matching genotypes instead.");
+		messages_.append("Could not calulate genotype correlation, calculated the fraction of matching genotypes instead.");
 	}
 }
 
-void SampleCorrelation::calculateFromBam(QString& in1, QString& in2, int min_cov, int max_snps, QString roi_file, bool error)
+void SampleCorrelation::calculateFromBam(QString& in1, QString& in2, int min_cov, int max_snps, QString roi_file)
 {
 	VariantList snps;
 	if (!roi_file.trimmed().isEmpty())
@@ -102,13 +111,10 @@ void SampleCorrelation::calculateFromBam(QString& in1, QString& in2, int min_cov
 	freq2.reserve(max_snps);
 	for(int i=0; i<snps.count(); ++i)
 	{
-		//out << "SNP " << snp.chr << " " << QString::number(snp.pos) << endl;
 		Pileup p1 = NGSHelper::getPileup(r1, snps[i].chr(), snps[i].start());
-		//out << " D1: " <<p1.depth() << endl;
 		if (p1.depth(false)<min_cov) continue;
 
 		Pileup p2 = NGSHelper::getPileup(r2, snps[i].chr(), snps[i].start());
-		//out << " D2: " <<p2.depth() << endl;
 		if (p2.depth(false)<min_cov) continue;
 
 		QChar ref = snps[i].ref()[0];
@@ -125,31 +131,34 @@ void SampleCorrelation::calculateFromBam(QString& in1, QString& in2, int min_cov
 	}
 
 	//abort if no overlap
-	if (freq1.count()==0 || freq2.count()==0)
+	if (freq1.count()==0)
 	{
-		if(error)	THROW(ArgumentException, "Zero common SNPs found!")
-		else
-		{
-			no_variants1_ = 0;
-			no_variants2_ = 0;
-			total_variants_ = 0;
-			sample_correlation_ = std::numeric_limits<double>::quiet_NaN();
-			return;
-		}
+		no_variants1_ = 0;
+		no_variants2_ = 0;
+		total_variants_ = 0;
+		sample_correlation_ = std::numeric_limits<double>::quiet_NaN();
+
+		messages_.append("Could not calulate genotype correlation, calculated the fraction of matching genotypes instead.");
 	}
-
-//	out << "Number of high-coverage SNPs: " << QString::number(high_cov) << " of " << QString::number(snps.count()) << " (max_snps: " << QString::number(max_snps) << ")" << endl;
-
-	no_variants1_ = freq1.count();
-	no_variants2_ = freq2.count();
-	total_variants_ = snps.count();
-	sample_correlation_ = BasicStatistics::correlation(freq1, freq2);
+	else
+	{
+		no_variants1_ = freq1.count();
+		no_variants2_ = freq2.count();
+		total_variants_ = snps.count();
+		sample_correlation_ = BasicStatistics::correlation(freq1, freq2);
+	}
 }
 
 double SampleCorrelation::genoToDouble(const QString& geno)
 {
+	//GSvar format
 	if (geno=="hom") return 1.0;
 	if (geno=="het") return 0.5;
+
+	//VCF format
+	if (geno=="1/1" || geno=="1|1") return 1.0;
+	if (geno=="0/1" || geno=="0|1" || geno=="./1" || geno==".|1" || geno=="1/0" || geno=="1|0" || geno=="1/." || geno=="1|.") return 0.5;
+	if (geno=="0/0" || geno=="0|0") return 0.0;
 
 	THROW(ArgumentException, "Invalid genotype '" + geno + "' in input file.");
 }

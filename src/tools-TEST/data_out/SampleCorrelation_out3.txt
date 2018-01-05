@@ -1,2 +1,2 @@
-Number of high-coverage SNPs: 159 of 29738 (max_snps: 200)
-Correlation: 0.9831
+#file1	file2	variant_count	overlap_correlation	comments
+SampleCorrelation_in4.bam	SampleCorrelation_in5.bam	86	0.9871	

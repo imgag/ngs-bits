@@ -1,2 +1,2 @@
-Number of high-coverage SNPs: 86 of 87 (max_snps: 100)
-Correlation: 0.9871
+#file1	file2	overlap_percent	overlap_correlation	count1	count2	comments
+SampleCorrelation_in6.vcf.gz	SampleCorrelation_in7.vcf.gz	91.19	0.9860	329	159	
