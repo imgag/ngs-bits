@@ -55,7 +55,7 @@ void ExternalToolDialog::browse()
 		if (filename1=="") return;
 		QString filename2 = getFileName(header , filter);
 		if (filename2=="") return;
-		startTool("-in1 " + filename1 + " -in2 " + filename2);
+		startTool("-in " + filename1 + " " + filename2);
 	}
 	else if (tool == "SampleDiff")
 	{
