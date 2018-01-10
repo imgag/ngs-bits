@@ -354,7 +354,7 @@ void MainWindow::openInIGV(QString region)
 		}
 
 		//sample BAF file(s)
-		QMap<QString, QString> bafs = getSegFilesBaf();
+		QMap<QString, QString> bafs = getIgvFilesBaf();
 		for (auto it = bafs.cbegin(); it!=bafs.cend(); ++it)
 		{
 			dlg.addFile(it.key() + " (BAFs)", it.value(), true);
@@ -2107,13 +2107,13 @@ QMap<QString, QString> MainWindow::getSegFilesCnv()
 	return output;
 }
 
-QMap<QString, QString> MainWindow::getSegFilesBaf()
+QMap<QString, QString> MainWindow::getIgvFilesBaf()
 {
 	QMap<QString, QString> output;
 
 	if (getType()==SOMATIC_PAIR)
 	{
-		QString seg = filename_.left(filename_.length()-6) + "_bafs.seg";
+		QString seg = filename_.left(filename_.length()-6) + "_bafs.igv";
 		QString pair = QFileInfo(filename_).baseName();
 		output[pair] = seg;
 	}
@@ -2123,7 +2123,7 @@ QMap<QString, QString> MainWindow::getSegFilesBaf()
 
 		for(auto it = tmp.begin();it!=tmp.end(); ++it)
 		{
-			QString segfile = it.value().left(it.value().length()-4) + "_bafs.seg";
+			QString segfile = it.value().left(it.value().length()-4) + "_bafs.igv";
 			if (QFile::exists(segfile))
 			{
 				output[it.key()] = segfile;

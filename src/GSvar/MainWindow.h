@@ -35,7 +35,7 @@ public:
 	///Returns CNV SEG files for the analysis.
 	QMap<QString, QString> getSegFilesCnv();
 	///Returns BAF SEG files for the analysis.
-	QMap<QString, QString> getSegFilesBaf();
+	QMap<QString, QString> getIgvFilesBaf();
 	enum VariantListType {GERMLINE_SINGLESAMPLE, GERMLINE_TRIO, GERMLINE_MULTISAMPLE, SOMATIC_SINGLESAMPLE, SOMATIC_PAIR};
 	///Retruns the type of the current variant list
 	VariantListType getType();
