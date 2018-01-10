@@ -180,7 +180,8 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				else if (entry.details.contains("pathogenic")) color = RED;
 				else if (entry.details.contains("benign")) color = GREEN;
 
-				text += formatLink(entry.id, "http://www.ncbi.nlm.nih.gov/clinvar/" + entry.id, color) + " ";
+				QString url = entry.id.startsWith("RCV") ? "http://www.ncbi.nlm.nih.gov/clinvar/" : "http://www.ncbi.nlm.nih.gov/clinvar?term=";
+				text += formatLink(entry.id, url + entry.id, color) + " ";
 				tooltip += nobr() + entry.id + ": " + entry.details;
 			}
 		}
