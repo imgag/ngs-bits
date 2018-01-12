@@ -63,7 +63,7 @@ HEADERS += \
     VcfToTsv_Test.h \
     BedChunk_Test.h \
     VcfSort_Test.h \
-    SamplesNGSD_Test.h \
+    NGSDExportSamples_Test.h \
     TrioAnnotation_Test.h \
     TsvInfo_Test.h \
     TsvSlice_Test.h \

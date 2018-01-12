@@ -13,9 +13,9 @@ cppNGSD.depends = cppNGS
 SUBDIRS += tools-TEST
 tools-TEST.depends = cppNGSD
 
-SUBDIRS += SamplesNGSD
-tools-TEST.depends += SamplesNGSD
-SamplesNGSD.depends = cppNGSD
+SUBDIRS += NGSDExportSamples
+tools-TEST.depends += NGSDExportSamples
+NGSDExportSamples.depends = cppNGSD
 
 SUBDIRS += BedChunk
 tools-TEST.depends += BedChunk
