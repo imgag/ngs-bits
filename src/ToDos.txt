@@ -8,8 +8,9 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
+- warn when one of these genes is inside the current target region filter: PADI6, SRD5A2, SYN2, NEFL, ABO, NR2E3, TTC25
 + Add genotype equal for affected
-* Add inheritance mode to gene column => allow filtering
++ Allow filtering of inheritance mode and pLI score
 - Make default filters configurable in INI file
 + No longer use external tools, but use the algorithms instead
 
