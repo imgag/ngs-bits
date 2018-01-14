@@ -124,6 +124,7 @@ protected slots:
 	void regionChanged();
 	void filterColumnStateChanged();
 	void showTargetRegionDetails();
+	void updateGeneWarning();
 
 private:
 	/// Loads the reference file list of IGV

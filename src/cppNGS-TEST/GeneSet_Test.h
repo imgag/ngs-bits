@@ -109,6 +109,39 @@ private slots:
 		IS_TRUE(set2.intersectsWith(set));
 	}
 
+	void intersect()
+	{
+		GeneSet set;
+		set << "A" << "B";
+
+		GeneSet set2;
+		set2 << "C" << "D";
+
+		//no intesetc
+		I_EQUAL(set.intersect(set2).count(), 0);
+		I_EQUAL(set2.intersect(set).count(), 0);
+
+		//one gene intersect
+		set2 << "B";
+		GeneSet inter = set.intersect(set2);
+		I_EQUAL(inter.count(), 1);
+		S_EQUAL(inter[0], "B");
+		inter = set2.intersect(set);
+		I_EQUAL(inter.count(), 1);
+		S_EQUAL(inter[0], "B");
+
+		//two genes intersect
+		set << "C";
+		inter = set.intersect(set2);
+		I_EQUAL(inter.count(), 2);
+		S_EQUAL(inter[0], "B");
+		S_EQUAL(inter[1], "C");
+		inter = set2.intersect(set);
+		I_EQUAL(inter.count(), 2);
+		S_EQUAL(inter[0], "B");
+		S_EQUAL(inter[1], "C");
+	}
+
 	void insert_stream()
 	{
 		GeneSet set;

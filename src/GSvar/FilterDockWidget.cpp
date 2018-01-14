@@ -48,6 +48,7 @@ FilterDockWidget::FilterDockWidget(QWidget *parent)
 	connect(ui_.roi_remove, SIGNAL(clicked()), this, SLOT(removeRoi()));
 	connect(ui_.rois, SIGNAL(currentIndexChanged(int)), this, SLOT(roiSelectionChanged(int)));
 	connect(ui_.roi_details, SIGNAL(clicked(bool)), this, SLOT(showTargetRegionDetails()));
+	connect(this, SIGNAL(targetRegionChanged()), this, SLOT(updateGeneWarning()));
 
 	connect(ui_.ref_add, SIGNAL(clicked()), this, SLOT(addRef()));
 	connect(ui_.ref_remove, SIGNAL(clicked()), this, SLOT(removeRef()));
@@ -153,7 +154,7 @@ void FilterDockWidget::loadTargetRegions()
 void FilterDockWidget::loadReferenceFiles()
 {
 	//store old selection
-	QString current = ui_.rois->currentText();
+	QString current = ui_.refs->currentText();
 
 	//load from settings
 	ui_.refs->clear();
@@ -220,6 +221,7 @@ void FilterDockWidget::resetSignalsUnblocked(bool clear_roi, bool clear_off_targ
 	{
 		ui_.rois->setCurrentIndex(1);
 		ui_.rois->setToolTip("");
+		ui_.gene_warning->setHidden(true);
 	}
 
     //gene
@@ -787,15 +789,48 @@ void FilterDockWidget::showTargetRegionDetails()
 	text << "Regions: " + QString::number(file.count());
 	text << "Bases: " + QString::number(file.baseCount());
 	text << "";
-	GeneSet genes = GeneSet::createFromFile(roi.left(roi.size()-4) + "_genes.txt");
-	text << "Genes: " + QString::number(genes.count());
-	text << genes.join(", ");
+	QString genes_file = roi.left(roi.size()-4) + "_genes.txt";
+	if (QFile::exists(genes_file))
+	{
+		GeneSet genes = GeneSet::createFromFile(genes_file);
+		text << "Genes: " + QString::number(genes.count());
+		text << genes.join(", ");
+	}
+	else
+	{
+		text << "Genes: gene file not available for this target region!";
+	}
 
 	//show text
 	ScrollableTextDialog dlg(this);
 	dlg.setWindowTitle("Target region details");
 	dlg.setText(text.join("\n"));
 	dlg.exec();
+}
+
+void FilterDockWidget::updateGeneWarning()
+{
+	bool show_warning = false;
+
+	QString roi = targetRegion();
+	if (roi!="")
+	{
+		QString genes_file = roi.left(roi.size()-4) + "_genes.txt";
+		if (QFile::exists(genes_file))
+		{
+			GeneSet roi_genes = GeneSet::createFromFile(genes_file);
+			GeneSet non_coding;
+			non_coding << "PADI6" << "SRD5A2" << "SYN2" << "NEFL" << "ABO" << "NR2E3" << "TTC25";
+			GeneSet inter = roi_genes.intersect(non_coding);
+			if (!inter.isEmpty())
+			{
+				show_warning = true;
+				ui_.gene_warning->setToolTip("Some genes (" + inter.join(", ") + ") of the target region are non-coding in the Ensembl annotation of GRCh37, but coding for GRCh38.\nVariants in non-coding genes have LOW/MODIFIER impact. Make sure to check these variants too!");
+			}
+		}
+	}
+
+	ui_.gene_warning->setHidden(!show_warning);
 }
 
 void FilterDockWidget::addRef()

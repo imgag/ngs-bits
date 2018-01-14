@@ -80,6 +80,8 @@ class CPPNGSSHARED_EXPORT GeneSet
 		bool contains(const QByteArray& gene) const;
 		///Checks if the gene is contained
 		bool containsAll(const GeneSet& genes) const;
+		///Returns the intersection of two gene sets
+		GeneSet intersect(const GeneSet& genes) const;
 		///Checks if any gene is contained
 		bool intersectsWith(const GeneSet& genes) const;
 
