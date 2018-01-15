@@ -45,40 +45,62 @@ void GapDialog::process(QString bam_file, const BedFile& roi, const GeneSet& gen
 	//calculate average coverage for gaps
 	Statistics::avgCoverage(low_cov, bam_file, 1, false, true);
 
-	//show gaps
-	ui->gaps->setRowCount(low_cov.count());
+	//update data structure
+	gaps_.clear();
 	for(int i=0; i<low_cov.count(); ++i)
 	{
+		GapInfo info;
+		info.line = low_cov[i];
+		info.avg_depth = low_cov[i].annotations()[0].toDouble();
+		info.genes = db.genesOverlappingByExon(info.line.chr(), info.line.start(), info.line.end(), 30);
+
+		BedFile ccds_overlap = db.genesToRegions(info.genes, Transcript::CCDS, "exon", true);
+		ccds_overlap.extend(5);
+		BedFile current_gap;
+		current_gap.append(info.line);
+		ccds_overlap.intersect(current_gap);
+		if (ccds_overlap.baseCount()>0)
+		{
+			info.ccds_overlap = ccds_overlap[0];
+
+			if (ccds_overlap.count()>1)
+			{
+				Log::warn("GSvar gap dialog: one gap split into to CCDS gaps. Only using the first gap!");
+			}
+		}
+
+		gaps_.append(info);
+	}
+
+	//update GUI
+	ui->gaps->setRowCount(gaps_.count());
+	for(int i=0; i<gaps_.count(); ++i)
+	{
 		//gap
-		const BedLine& line = low_cov[i];
-		ui->gaps->setItem(i, 0, createItem(line.toString(true)));
+		const GapInfo& gap = gaps_[i];
+		ui->gaps->setItem(i, 0, createItem(gap.line.toString(true)));
 
 		//size
-		ui->gaps->setItem(i, 1, createItem(QString::number(line.length()), false, true));
+		QString size = QString::number(gap.line.length());
+		if (gap.isExonicSplicing()) size += " (" + QString::number(gap.ccds_overlap.length()) + ")";
+		ui->gaps->setItem(i, 1, createItem(size, false, true));
 
 		//depth
-		QString depth = line.annotations()[0];
-		bool highlight_depth = depth.toDouble()<10;
-		ui->gaps->setItem(i, 2, createItem(depth, highlight_depth, true));
+		QString depth = QString::number(gap.avg_depth, 'f', 2);
+		ui->gaps->setItem(i, 2, createItem(depth, gap.avg_depth<10, true));
 
 		//genes
-		GeneSet genes_anno = db.genesOverlappingByExon(line.chr(), line.start(), line.end(), 30);
-		bool highlight_genes = genes_anno.intersectsWith(genes);
-		ui->gaps->setItem(i, 3, createItem(genes_anno.join(", "), highlight_genes));
+		ui->gaps->setItem(i, 3, createItem(gap.genes.join(", "), gap.genes.intersectsWith(genes)));
 
 		//type
-		GeneSet genes_core = db.genesOverlappingByExon(line.chr(), line.start(), line.end(), 5);
-		QString type = genes_core.count()==0 ? "intronic/intergenic" : "exonic/splicing";
-		bool highlight_type = genes_core.count();
-		ui->gaps->setItem(i, 4, createItem(type, highlight_type));
+		ui->gaps->setItem(i, 4, createItem(gap.isExonicSplicing() ? "exonic/splicing" : "intronic/intergenic" , gap.isExonicSplicing()));
 
 		//validate
 		ui->gaps->setItem(i, 5, new QTableWidgetItem());
 		GapValidationLabel* label = new GapValidationLabel();
 		ui->gaps->setCellWidget(i, 5, label);
-		if(!highlight_type) label->setState(GapValidationLabel::NO_VALIDATION);
+		if(!gap.isExonicSplicing()) label->setState(GapValidationLabel::NO_VALIDATION);
 	}
-
 	GUIHelper::resizeTableCells(ui->gaps);
 }
 
@@ -99,55 +121,62 @@ QString GapDialog::report() const
 	stream << "Target region: " << QFileInfo(roi_file_).fileName().replace(".bed", "") << "\n";
 	stream << "\n";
 
-	//gaps (sanger)
-	stream << "Gaps to be closed by Sanger sequencing:\n";
-	int closed_sanger = 0;
-	int closed_sanger_exonic = 0;
-	for (int row=0; row<ui->gaps->rowCount(); ++row)
-	{
-		if (state(row)==GapValidationLabel::VALIDATION)
-		{
-			stream << gapAsTsv(row) << "\n";
-			closed_sanger += gapSize(row);
-			if (isExonicSplicing(row))
-			{
-				closed_sanger_exonic += gapSize(row);
-			}
-		}
-	}
+	//exonic/splicing report
+	stream << "### Gaps in exonic/splicing regions (CCDS+-5) ###\n";
 	stream << "\n";
+	reportSection(stream, true);
 
-	//gaps (IGV)
-	stream << "Gaps closed by manual inspection (or intronic/intergenic):\n";
-	int closed_manual = 0;
-	int closed_manual_exonic = 0;
-	for (int row=0; row<ui->gaps->rowCount(); ++row)
-	{
-		if (state(row)==GapValidationLabel::NO_VALIDATION || state(row)==GapValidationLabel::CHECK)
-		{
-			stream << gapAsTsv(row) << "\n";
-			closed_manual += gapSize(row);
-			if (isExonicSplicing(row))
-			{
-				closed_manual_exonic += gapSize(row);
-			}
-		}
-	}
+	//complete report
 	stream << "\n";
-
-	stream << "Summary overall\n";
-	stream << "Gaps closed by Sanger sequencing: " << closed_sanger << " bases\n";
-	stream << "Gaps closed by manual inspection: " << closed_manual << " bases\n";
-	stream << "Sum: " << (closed_sanger+closed_manual) << " bases\n";
+	stream << "### Gaps in complete target regions ###\n";
 	stream << "\n";
-
-	stream << "Summary exonic/splicing (CCDS+-5)\n";
-	stream << "Gaps closed by Sanger sequencing: " << closed_sanger_exonic << " bases\n";
-	stream << "Gaps closed by manual inspection: " << closed_manual_exonic << " bases\n";
-	stream << "Sum: " << (closed_sanger_exonic+closed_manual_exonic) << " bases\n";
+	reportSection(stream, false);
 
 	stream.flush();
 	return  output;
+}
+
+
+void GapDialog::reportSection(QTextStream& stream, bool ccds_only) const
+{
+	stream << "Gaps to be closed by Sanger sequencing:\n";
+	int closed_sanger = 0;
+	for (int row=0; row<ui->gaps->rowCount(); ++row)
+	{
+		const GapInfo& gap = gaps_[row];
+
+		if (ccds_only && !gap.isExonicSplicing()) continue;
+
+		if (state(row)==GapValidationLabel::VALIDATION)
+		{
+			stream << gap.asTsv(ccds_only) << "\n";
+			closed_sanger += ccds_only ? gap.ccds_overlap.length() : gap.line.length();
+		}
+	}
+	stream << "\n";
+
+	stream << "Gaps closed by manual inspection";
+	if (!ccds_only) stream << " (or intronic/intergenic)";
+	stream << "\n";
+	int closed_manual = 0;
+	for (int row=0; row<ui->gaps->rowCount(); ++row)
+	{
+		const GapInfo& gap = gaps_[row];
+
+		if (ccds_only && !gap.isExonicSplicing()) continue;
+
+		if (state(row)==GapValidationLabel::NO_VALIDATION || state(row)==GapValidationLabel::CHECK)
+		{
+			stream << gap.asTsv(ccds_only) << "\n";
+			closed_manual += ccds_only ? gap.ccds_overlap.length() : gap.line.length();
+		}
+	}
+	stream << "\n";
+
+	stream << "Summary:\n";
+	stream << "Gaps closed by Sanger sequencing: " << closed_sanger << " bases\n";
+	stream << "Gaps closed by manual inspection: " << closed_manual << " bases\n";
+	stream << "Sum: " << (closed_sanger+closed_manual) << " bases\n";
 }
 
 void GapDialog::gapDoubleClicked(QTableWidgetItem* item)
@@ -185,25 +214,3 @@ GapValidationLabel::State GapDialog::state(int row) const
 {
 	return qobject_cast<GapValidationLabel*>(ui->gaps->cellWidget(row, 5))->state();
 }
-
-QString GapDialog::gapAsTsv(int row) const
-{
-	QString output = ui->gaps->item(row, 0)->text().replace("-", "\t").replace(":", "\t") + "\t";
-	output += "avg_depth=" + ui->gaps->item(row, 2)->text();
-	QString gene = ui->gaps->item(row, 3)->text().trimmed();
-	if (!gene.isEmpty()) output += " gene=" + gene;
-	if (isExonicSplicing(row)) output += " exonic/splicing";
-
-	return  output;
-}
-
-int GapDialog::gapSize(int row) const
-{
-	return Helper::toInt(ui->gaps->item(row, 1)->text(), "gap size");
-}
-
-bool GapDialog::isExonicSplicing(int row) const
-{
-	return ui->gaps->item(row, 4)->text()=="exonic/splicing";
-}
-

@@ -31,12 +31,33 @@ private slots:
 private:
 	QTableWidgetItem* createItem(QString text, bool highlight = false, bool align_right = false);
 	GapValidationLabel::State state(int row) const;
-	QString gapAsTsv(int row) const;
-	int gapSize(int row) const;
-	bool isExonicSplicing(int row) const;
+	void reportSection(QTextStream& stream, bool ccds_only) const;
 
 	QString sample_name_;
 	QString roi_file_;
+	struct GapInfo
+	{
+		BedLine line;
+		double avg_depth;
+		GeneSet genes;
+		BedLine ccds_overlap;
+
+		QString asTsv(bool ccds_only) const
+		{
+			QString output = (ccds_only ? ccds_overlap.toString(false) : line.toString(false)) + "\t";
+			output += "avg_depth=" + QString::number(avg_depth, 'f', 2);
+			if (!genes.isEmpty()) output += " gene=" + genes.join(",");
+			if (!ccds_only && isExonicSplicing()) output += " exonic/splicing";
+
+			return  output;
+		}
+
+		bool isExonicSplicing() const
+		{
+			return ccds_overlap.length()>0;
+		}
+	};
+	QList<GapInfo> gaps_;
 	Ui::GapDialog* ui;
 };
 

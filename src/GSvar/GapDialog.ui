@@ -117,6 +117,9 @@
       <property name="text">
        <string>size</string>
       </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Gap size (size of exonic/splicing region in brackets).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
      </column>
      <column>
       <property name="text">
