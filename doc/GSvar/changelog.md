@@ -1,6 +1,11 @@
+### 0.1-980-g9addffe (15.01.2018)
+- Fixed LOVD upload: protein change of second variant in hompound-heterozygous mode was wrong.
+- Fixed gap dialog: gaps of exoninc/splicing regions are sometimes too large.
+- General: added warning for genes that are non-coding in GRCH37 Ensembl, but coding for GRCh38.
+
 ### 0.1-975-g18c7992 (12.01.2018)
-- General: using IGV files instead of SEG files to visualize BAFs
-- General: now also supports ClinVar variantion IDs in addition to RCV IDs
+- General: using IGV files instead of SEG files to visualize BAFs.
+- General: now also supports ClinVar variantion IDs in addition to RCV IDs.
 
 ### 0.1-965-g86d04d8 (03.01.2018)
 - General: added GeneCards link to variant context menu.
@@ -139,6 +144,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 
