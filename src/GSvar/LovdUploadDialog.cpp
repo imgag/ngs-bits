@@ -395,7 +395,7 @@ QByteArray LovdUploadDialog::createJson()
 	if (isCompHet())
 	{
 		stream << ",\n";
-		createJsonForVariant(stream, chr, gene, transcript, ui_.hgvs_g2, ui_.hgvs_c2, ui_.hgvs_g2, ui_.genotype, ui_.classification);
+		createJsonForVariant(stream, chr, gene, transcript, ui_.hgvs_g2, ui_.hgvs_c2, ui_.hgvs_p2, ui_.genotype, ui_.classification);
 	}
 	stream << "\n";
 
