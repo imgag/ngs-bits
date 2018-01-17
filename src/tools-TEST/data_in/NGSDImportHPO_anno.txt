@@ -41,3 +41,4 @@ ORPHA	79501	Punctate palmoplantar keratoderma type 1		HP:0003002	ORPHA:79501	TAS
 ORPHA	86893	Nodular lymphocyte predominant Hodgkin lymphoma		HP:0003002	ORPHA:86893	TAS		HP:0040283		O		2017-06-30	orphadata
 ORPHA	902	Werner syndrome		HP:0003002	ORPHA:902	TAS		HP:0040283		O		2017-06-30	orphadata
 ORPHA	97290	Familial papillary thyroid carcinoma with renal papillary neoplasia		HP:0003002	ORPHA:97290	TAS		HP:0040283		O		2017-06-30	orphadata
+OMIM	123456	Breast carcinoma		HP:0003002	OMIM:123456	IEA				O		2015-09-25	HPO:marc
