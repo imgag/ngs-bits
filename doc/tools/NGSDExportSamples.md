@@ -1,5 +1,5 @@
-### SamplesNGSD tool help
-	SamplesNGSD (0.1-420-g3536bb0)
+### NGSDExportSamples tool help
+	NGSDExportSamples (0.1-983-gfeaa1f3)
 	
 	Lists processed samples from NGSD.
 	
@@ -32,7 +32,7 @@
 	  --changelog       Prints changeloge and exits.
 	  --tdx             Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
-### SamplesNGSD changelog
-	SamplesNGSD 0.1-420-g3536bb0
+### NGSDExportSamples changelog
+	NGSDExportSamples 0.1-983-gfeaa1f3
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

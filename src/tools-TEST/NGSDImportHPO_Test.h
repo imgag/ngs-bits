@@ -18,7 +18,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportHPO_init.sql"));
 
 		//test
-		EXECUTE("NGSDImportHPO", "-test -obo " + TESTDATA("data_in/NGSDImportHPO_terms.obo") + " -anno " + TESTDATA("data_in/NGSDImportHPO_anno.txt") + " -genes " + TESTDATA("data_in/NGSDImportHPO_genes.txt"));
+		EXECUTE("NGSDImportHPO", "-test -obo " + TESTDATA("data_in/NGSDImportHPO_terms.obo") + " -anno " + TESTDATA("data_in/NGSDImportHPO_anno.txt"));
 
 		//check
 		int count = db.getValue("SELECT count(*) FROM hpo_term").toInt();
@@ -42,7 +42,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportHPO_init.sql"));
 
 		//test
-		EXECUTE("NGSDImportHPO", "-test -obo " + TESTDATA("data_in/NGSDImportHPO_terms.obo") + " -anno " + TESTDATA("data_in/NGSDImportHPO_anno.txt") + " -genes " + TESTDATA("data_in/NGSDImportHPO_genes.txt") + " -omim " + TESTDATA("data_in/NGSDImportHPO_omim.txt"));
+		EXECUTE("NGSDImportHPO", "-test -obo " + TESTDATA("data_in/NGSDImportHPO_terms.obo") + " -anno " + TESTDATA("data_in/NGSDImportHPO_anno.txt") + " -omim " + TESTDATA("data_in/NGSDImportHPO_omim.txt"));
 
 		//check
 		int count = db.getValue("SELECT count(*) FROM hpo_term").toInt();
@@ -50,7 +50,7 @@ private slots:
 		count = db.getValue("SELECT count(*) FROM hpo_parent").toInt();
 		I_EQUAL(count, 5)
 		count = db.getValue("SELECT count(*) FROM hpo_genes").toInt();
-		I_EQUAL(count, 65)
+		I_EQUAL(count, 64)
 		IS_TRUE(db.phenotypeToGenes("Breast carcinoma", false).contains("BRCA1"))
 		IS_TRUE(db.phenotypeToGenes("Breast carcinoma", false).contains("BRCA2"))
 	}
@@ -66,7 +66,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportHPO_init.sql"));
 
 		//test
-		EXECUTE("NGSDImportHPO", "-test -obo " + TESTDATA("data_in/NGSDImportHPO_terms.obo") + " -anno " + TESTDATA("data_in/NGSDImportHPO_anno.txt") + " -genes " + TESTDATA("data_in/NGSDImportHPO_genes.txt") + " -clinvar " + TESTDATA("data_in/NGSDImportHPO_clinvar.txt") + " -debug");
+		EXECUTE("NGSDImportHPO", "-test -obo " + TESTDATA("data_in/NGSDImportHPO_terms.obo") + " -anno " + TESTDATA("data_in/NGSDImportHPO_anno.txt") + " -clinvar " + TESTDATA("data_in/NGSDImportHPO_clinvar.txt") + " -debug");
 
 		//check
 		int count = db.getValue("SELECT count(*) FROM hpo_term").toInt();

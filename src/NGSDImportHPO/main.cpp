@@ -19,8 +19,7 @@ public:
 	{
 		setDescription("Imports HPO terms and gene-phenotype relations into the NGSD.");
 		addInfile("obo", "HPO ontology file from 'http://purl.obolibrary.org/obo/hp.obo'.", false);
-		addInfile("anno", "HPO annotations file from 'http://compbio.charite.de/jenkins/job/hpo.annotations/lastStableBuild/artifact/misc/phenotype_annotation.tab'", false);
-		addInfile("genes", "HPO genes file from 'http://compbio.charite.de/jenkins/job/hpo.annotations.monthly/lastStableBuild/artifact/annotation/diseases_to_genes.txt'", false);
+		addInfile("anno", "HPO annotations file from 'http://compbio.charite.de/jenkins/job/hpo.annotations.monthly/lastStableBuild/artifact/annotation/ALL_SOURCES_ALL_FREQUENCIES_diseases_to_genes_to_phenotypes.txt'", false);
 
 		//optional
 		addInfile("omim", "OMIM 'morbidmap.txt' file for additional disease-gene information, from 'https://omim.org/downloads/'.", true);
@@ -110,7 +109,7 @@ public:
 
 		//parse OBO and insert terms
 		QByteArray id, name, def = "";
-		QHash<QByteArray, QList<QByteArray> > child_parents;
+		QHash<QByteArray, QByteArrayList > child_parents;
 		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("obo"));
 		while(!fp->atEnd())
 		{
@@ -139,7 +138,7 @@ public:
 			}
 			else if (line.startsWith("is_a: HP:"))
 			{
-				if (!child_parents.contains(id)) child_parents[id] = QList<QByteArray>();
+				if (!child_parents.contains(id)) child_parents[id] = QByteArrayList();
 				child_parents[id].append(line.mid(6, 10));
 			}
 		}
@@ -155,7 +154,7 @@ public:
 			int c_db = id2ngsd.value(c_id, -1);
 			if (c_db==-1) continue;
 
-			QList<QByteArray> parent_ids = it.value();
+			QByteArrayList parent_ids = it.value();
 			foreach(const QByteArray& p_id, parent_ids)
 			{
 				int p_db = id2ngsd.value(p_id, -1);
@@ -169,59 +168,45 @@ public:
 		out << "Imported " << db.getValue("SELECT COUNT(*) FROM hpo_parent").toInt() << " parent-child relations between terms." << endl;
 
 
-		//parse term-disease relations of (valid) terms
+		//parse term-disease and disease-gene relations from HPO
 		fp = Helper::openFileForReading(getInfile("anno"));
+		QSet<QByteArray> non_hgnc_genes;
 		QHash<int, QSet<QByteArray> > term2diseases;
-		while(!fp->atEnd())
-		{
-			QList<QByteArray> parts = fp->readLine().trimmed().split('\t');
-			if (parts.count()<14) continue;
-
-			int db = id2ngsd.value(parts[4], -1);
-			if (db==-1) continue;
-
-			QByteArrayList diseases = parts[5].split(';');
-			foreach(QByteArray disease, diseases)
-			{
-				disease = disease.trimmed();
-				if (disease.startsWith("MIM:")) disease = "O" + disease; //MIM id == OMIM id
-				if (disease.startsWith("OMIM:") || disease.startsWith("ORPHA:"))
-				{
-					if (debug) out << "HPO-DISEASE: " << parts[4] << " - " << disease << endl;
-					term2diseases[db].insert(disease);
-				}
-			}
-
-		}
-		fp->close();
-
-		//parse disease-gene relations from HPO
-		fp = Helper::openFileForReading(getInfile("genes"));
 		QHash<QByteArray, GeneSet> disease2genes;
 		while(!fp->atEnd())
 		{
-			QList<QByteArray> parts = fp->readLine().split('\t');
-			if (parts.count()<3) continue;
+			QByteArrayList parts = fp->readLine().trimmed().split('\t');
+			if (parts.count()<5) continue;
 
 			QByteArray disease = parts[0].trimmed();
-			QByteArray gene = parts[2].trimmed();
 
-			//make sure the gene symbol is approved by HGNC
-			int approved_id = db.geneToApprovedID(gene);
-			if (approved_id==-1)
+			int term_db_id = id2ngsd.value(parts[3], -1);
+			if (term_db_id!=-1)
 			{
-				out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!" << endl;
-				continue;
+				if (debug) out << "HPO-DISEASE: " << parts[3] << " - " << disease << endl;
+				term2diseases[term_db_id].insert(disease);
 			}
 
-			if (debug) out << "DISEASE-GENE (HPO): " << disease << " - " << db.geneSymbol(approved_id) << endl;
-
-			disease2genes[disease].insert(db.geneSymbol(approved_id));
+			QByteArray gene = parts[1].trimmed();
+			int gene_db_id = db.geneToApprovedID(gene);
+			if (gene_db_id!=-1)
+			{
+				if (debug) out << "DISEASE-GENE (HPO): " << disease << " - " << db.geneSymbol(gene_db_id) << endl;
+				disease2genes[disease].insert(db.geneSymbol(gene_db_id));
+			}
+			else
+			{
+				non_hgnc_genes << gene;
+			}
 		}
 		fp->close();
+		foreach(const QByteArray& gene, non_hgnc_genes)
+		{
+			out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!" << endl;
+		}
 
 		importTermGeneRelations(qi_gene, term2diseases, disease2genes);
-		out << "Imported term-gene relations (via disease) from HPO. Overall count: " << db.getValue("SELECT COUNT(*) FROM hpo_genes").toInt() << endl;
+		out << "Imported term-gene relations from HPO. Overall count: " << db.getValue("SELECT COUNT(*) FROM hpo_genes").toInt() << endl;
 
 		//parse disease-gene relations from OMIM
 		QString omim_file = getInfile("omim");
@@ -233,11 +218,11 @@ public:
 			QRegExp mim_exp("([0-9]{6})");
 			while(!fp->atEnd())
 			{
-				QList<QByteArray> parts = fp->readLine().trimmed().split('\t');
+				QByteArrayList parts = fp->readLine().trimmed().split('\t');
 				if (parts.count()<4) continue;
 
 				QByteArray pheno = parts[0].trimmed();
-				QList<QByteArray> genes = parts[1].split(',');
+				QByteArrayList genes = parts[1].split(',');
 				QByteArray mim_number = parts[2].trimmed();
 
 				if (mim_exp.indexIn(pheno)!=-1)
@@ -276,7 +261,7 @@ public:
 				QByteArray line = fp->readLine().trimmed();
 				if (!line.contains("Pathogenic") && !line.contains("Likely_pathogenic")) continue;
 
-				QList<QByteArray> parts = line.split('\t');
+				QByteArrayList parts = line.split('\t');
 				if (parts.count()<8) continue;
 
 				//parse gene/disease info from from INFO field
