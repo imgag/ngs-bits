@@ -122,6 +122,8 @@ public:
 	QStringList phenotypes(QStringList terms);
 	///Returns all genes associated to a phenotype
 	GeneSet phenotypeToGenes(QByteArray phenotype, bool recursive);
+	///Returns all child terms of the given phenotype
+	QStringList phenotypesChildIds(QString hpo_name, bool recursive);
 	///Returns the phenotype name for an phenotype ID. Throws an exception if the ID is not valid.
 	QByteArray phenotypeIdToName(QByteArray id);
 

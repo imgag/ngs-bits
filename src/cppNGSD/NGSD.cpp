@@ -1465,6 +1465,42 @@ GeneSet NGSD::phenotypeToGenes(QByteArray phenotype, bool recursive)
 	return genes;
 }
 
+QStringList NGSD::phenotypesChildIds(QString hpo_name, bool recursive)
+{
+	//prepare queries
+	SqlQuery pid2children = getQuery();
+	pid2children.prepare("SELECT child, (SELECT hpo_id FROM hpo_term WHERE id=child) FROM hpo_parent WHERE parent=:0");
+
+	//convert phenotype to id
+	SqlQuery tmp = getQuery();
+	tmp.prepare("SELECT id FROM hpo_term WHERE name=:0");
+	tmp.bindValue(0, hpo_name);
+	tmp.exec();
+	if (!tmp.next()) THROW(ProgrammingException, "Unknown phenotype '" + hpo_name + "'!");
+	QList<int> pheno_ids;
+	pheno_ids << tmp.value(0).toInt();
+
+	QStringList terms;
+	while (!pheno_ids.isEmpty())
+	{
+		int id = pheno_ids.last();
+		pheno_ids.removeLast();
+
+		pid2children.bindValue(0, id);
+		pid2children.exec();
+		while(pid2children.next())
+		{
+			terms << pid2children.value(1).toString();
+			if (recursive)
+			{
+				pheno_ids << pid2children.value(0).toInt();
+			}
+		}
+	}
+
+	return terms;
+}
+
 QByteArray NGSD::phenotypeIdToName(QByteArray id)
 {
 	return getValue("SELECT name FROM hpo_term WHERE hpo_id='"+id+"'", false).toByteArray();

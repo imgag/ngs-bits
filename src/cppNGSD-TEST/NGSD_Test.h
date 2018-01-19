@@ -287,6 +287,28 @@ private slots:
 		GeneSet approved = db.approvedGeneNames();
 		I_EQUAL(approved.count(), 4);
 
+		//phenotypeChildren
+		QStringList hpo_ids = db.phenotypesChildIds("All", true);
+		I_EQUAL(hpo_ids.count(), 10);
+		hpo_ids = db.phenotypesChildIds("All", false);
+		I_EQUAL(hpo_ids.count(), 4);
+		IS_TRUE(hpo_ids.contains("HP:0000005"));
+		IS_TRUE(hpo_ids.contains("HP:0000118"));
+		IS_TRUE(hpo_ids.contains("HP:0012823"));
+		IS_TRUE(hpo_ids.contains("HP:0040279"));
+		//inner node
+		hpo_ids = db.phenotypesChildIds("Mode of inheritance", true);
+		I_EQUAL(hpo_ids.count(), 6);
+		IS_TRUE(hpo_ids.contains("HP:0001419"));
+		hpo_ids = db.phenotypesChildIds("Mode of inheritance", false);
+		I_EQUAL(hpo_ids.count(), 4);
+		IS_FALSE(hpo_ids.contains("HP:0001419"));
+		//leaf
+		hpo_ids = db.phenotypesChildIds("Mitochondrial inheritance", true);
+		I_EQUAL(hpo_ids.count(), 0);
+		hpo_ids = db.phenotypesChildIds("Mitochondrial inheritance", false);
+		I_EQUAL(hpo_ids.count(), 0);
+
 	}
 
 	//Test for debugging (without initialization because of speed)

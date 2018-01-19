@@ -22,13 +22,14 @@ private slots:
 
 		//check
 		int count = db.getValue("SELECT count(*) FROM hpo_term").toInt();
-		I_EQUAL(count, 6)
+		I_EQUAL(count, 14)
 		count = db.getValue("SELECT count(*) FROM hpo_parent").toInt();
-		I_EQUAL(count, 5)
+		I_EQUAL(count, 11)
 		count = db.getValue("SELECT count(*) FROM hpo_genes").toInt();
-		I_EQUAL(count, 52)
+		I_EQUAL(count, 53)
 		IS_TRUE(db.phenotypeToGenes("Breast carcinoma", false).contains("BRCA1"))
 		IS_FALSE(db.phenotypeToGenes("Breast carcinoma", false).contains("BRCA2"))
+		IS_TRUE(db.phenotypeToGenes("Autosomal dominant inheritance", false).contains("PTEN"))
 	}
 
 	void with_omim()
@@ -46,13 +47,14 @@ private slots:
 
 		//check
 		int count = db.getValue("SELECT count(*) FROM hpo_term").toInt();
-		I_EQUAL(count, 6)
+		I_EQUAL(count, 14)
 		count = db.getValue("SELECT count(*) FROM hpo_parent").toInt();
-		I_EQUAL(count, 5)
+		I_EQUAL(count, 11)
 		count = db.getValue("SELECT count(*) FROM hpo_genes").toInt();
-		I_EQUAL(count, 64)
+		I_EQUAL(count, 65)
 		IS_TRUE(db.phenotypeToGenes("Breast carcinoma", false).contains("BRCA1"))
 		IS_TRUE(db.phenotypeToGenes("Breast carcinoma", false).contains("BRCA2"))
+		IS_TRUE(db.phenotypeToGenes("Autosomal dominant inheritance", false).contains("PTEN"))
 	}
 
 	void with_clinvar()
@@ -70,13 +72,14 @@ private slots:
 
 		//check
 		int count = db.getValue("SELECT count(*) FROM hpo_term").toInt();
-		I_EQUAL(count, 6)
+		I_EQUAL(count, 14)
 		count = db.getValue("SELECT count(*) FROM hpo_parent").toInt();
-		I_EQUAL(count, 5)
+		I_EQUAL(count, 11)
 		count = db.getValue("SELECT count(*) FROM hpo_genes").toInt();
-		I_EQUAL(count, 54)
+		I_EQUAL(count, 55)
 		IS_TRUE(db.phenotypeToGenes("Breast carcinoma", false).contains("BRCA1"))
 		IS_TRUE(db.phenotypeToGenes("Breast carcinoma", false).contains("BRCA2"))
+		IS_TRUE(db.phenotypeToGenes("Autosomal dominant inheritance", false).contains("PTEN"))
 	}
 
 };
