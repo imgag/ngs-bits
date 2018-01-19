@@ -121,8 +121,8 @@ The initial setup of the database tables is done using one of the ngs-bits tools
 	
 		> bin/NGSDImportHGNC --help
 		> bin/NGSDImportEnsembl --help
-		> bin/NGSDImportGeneInfo --help
 		> bin/NGSDImportHPO --help
+		> bin/NGSDImportGeneInfo --help
 
 ## (4) Setup of the NGSD web frontend
 
@@ -210,6 +210,7 @@ For more information on GSvar, open the help within GSvar (F1) or use this [link
 ## Next steps
 
 Now you can run your first data analysis based on these [instructions](running_an_analysis.md).
+
 
 
 
