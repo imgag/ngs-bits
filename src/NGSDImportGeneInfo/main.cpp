@@ -91,13 +91,6 @@ public:
 			SqlQuery update_query = db.getQuery();
 			update_query.prepare("INSERT INTO geneinfo_germline (symbol, inheritance, exac_pli, comments) VALUES (:0, :1, null, '') ON DUPLICATE KEY UPDATE inheritance=:2");
 
-			QMap<QString, QString> hpo2germline;
-			hpo2germline.insert("Autosomal recessive inheritance", "AR");
-			hpo2germline.insert("Autosomal dominant inheritance", "AD");
-			hpo2germline.insert("X-linked recessive inheritance", "XLR");
-			hpo2germline.insert("X-linked dominant inheritance", "XLD");
-			hpo2germline.insert("Mitochondrial inheritance", "MT");
-
 			int c_noinfo = 0;
 			int c_unchanged = 0;
 			int c_update = 0;
@@ -117,25 +110,60 @@ public:
 				QRegExp digits("\\d");
 				foreach(QString mode, hpo_modes)
 				{
-					if (chr.contains("X") && mode=="X-linked recessive inheritance")
+					if (mode=="X-linked recessive inheritance")
 					{
-						inh_hpo_list << "XLR";
+						if (chr.contains("X"))
+						{
+							inh_hpo_list << "XLR";
+						}
+						else
+						{
+							out << "  skipped invalid inheritance mode '" << mode << "' for gene " << gene << " (chromosome " << chr << ")" << endl;
+						}
 					}
-					if (chr.contains("X") && mode=="X-linked dominant inheritance")
+					if (mode=="X-linked dominant inheritance")
 					{
-						inh_hpo_list << "XLD";
+						if (chr.contains("X"))
+						{
+							inh_hpo_list << "XLD";
+						}
+						else
+						{
+							out << "  skipped invalid inheritance mode '" << mode << "' for gene " << gene << " (chromosome " << chr << ")" << endl;
+						}
 					}
-					if (chr.contains("M") && mode=="Mitochondrial inheritance")
+					if (mode=="Mitochondrial inheritance")
 					{
-						inh_hpo_list << "MT";
+						if (chr.contains("M"))
+						{
+							inh_hpo_list << "MT";
+						}
+						else
+						{
+							out << "  skipped invalid inheritance mode '" << mode << "' for gene " << gene << " (chromosome " << chr << ")" << endl;
+						}
 					}
-					if (digits.indexIn(chr)!=-1 && mode=="Autosomal recessive inheritance")
+					if (mode=="Autosomal recessive inheritance")
 					{
-						inh_hpo_list << "AR";
+						if (digits.indexIn(chr)!=-1)
+						{
+							inh_hpo_list << "AR";
+						}
+						else
+						{
+							out << "  skipped invalid inheritance mode '" << mode << "' for gene " << gene << " (chromosome " << chr << ")" << endl;
+						}
 					}
-					if (digits.indexIn(chr)!=-1 && mode=="Autosomal dominant inheritance")
+					if (mode=="Autosomal dominant inheritance")
 					{
-						inh_hpo_list << "AD";
+						if (digits.indexIn(chr)!=-1)
+						{
+							inh_hpo_list << "AD";
+						}
+						else
+						{
+							out << "  skipped invalid inheritance mode '" << mode << "' for gene " << gene << " (chromosome " << chr << ")" << endl;
+						}
 					}
 				}
 				QString inh_new = inh_hpo_list.count()==0 ? "n/a" : inh_hpo_list.join("+");
@@ -155,12 +183,10 @@ public:
 
 				if (inh_old=="n/a")
 				{
-					/*TODO
 					update_query.bindValue(0, gene);
-					update_query.bindValue(0, inh_new);
 					update_query.bindValue(1, inh_new);
+					update_query.bindValue(2, inh_new);
 					update_query.exec();
-					*/
 					++c_update;
 				}
 				else

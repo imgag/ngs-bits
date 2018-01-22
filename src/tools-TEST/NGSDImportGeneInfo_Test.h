@@ -23,12 +23,15 @@ private slots:
 		//check
 		GeneInfo ginfo = db.geneInfo("BRCA1");
 		F_EQUAL(ginfo.exac_pli.toDouble(), 0.00);
+		S_EQUAL(ginfo.inheritance, "AD");
 
 		ginfo = db.geneInfo("BRCA2");
 		F_EQUAL(ginfo.exac_pli.toDouble(), 0.00);
+		S_EQUAL(ginfo.inheritance, "AD");
 
 		ginfo = db.geneInfo("OR4F5");
 		F_EQUAL(ginfo.exac_pli.toDouble(), 0.18);
+		S_EQUAL(ginfo.inheritance, "AR");
 	}
 
 };
