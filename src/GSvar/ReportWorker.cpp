@@ -284,11 +284,7 @@ void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file
 		QByteArray symbol = db.geneSymbol(gene_id);
 
 		//longest coding transcript
-		Transcript transcript = db.longestCodingTranscript(gene_id, Transcript::CCDS);
-		if (!transcript.isValid()) //fallback when no CCDS transcript is defined for the gene
-		{
-			transcript = db.longestCodingTranscript(gene_id, Transcript::ENSEMBL);
-		}
+		Transcript transcript = db.longestCodingTranscript(gene_id, Transcript::CCDS, true);
 		if (!transcript.isValid())
 		{
 			stream << "<br>Warning:Low-coverage statistics for gene " + symbol + " cannot be calculated: No coding transcript found in CCDS/Ensembl!";

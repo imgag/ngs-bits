@@ -111,7 +111,7 @@ public:
 	///Returns transcripts of a gene (if @p coding_only is set, only coding transcripts and regions are returned).
 	QList<Transcript> transcripts(int gene_id, Transcript::SOURCE source, bool coding_only);
 	///Returns longest coding transcript of a gene.
-	Transcript longestCodingTranscript(int gene_id, Transcript::SOURCE source);
+	Transcript longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_ensembl=false, bool fallback_ensembl_nocoding=false);
 	///Returns the list of all approved gene names
 	const GeneSet& approvedGeneNames();
 

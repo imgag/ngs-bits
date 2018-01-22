@@ -1812,9 +1812,18 @@ QList<Transcript> NGSD::transcripts(int gene_id, Transcript::SOURCE source, bool
 	return output;
 }
 
-Transcript NGSD::longestCodingTranscript(int gene_id, Transcript::SOURCE source)
+Transcript NGSD::longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_ensembl, bool fallback_ensembl_nocoding)
 {
 	QList<Transcript> list = transcripts(gene_id, source, true);
+	if (list.isEmpty() && fallback_ensembl)
+	{
+		list = transcripts(gene_id, Transcript::ENSEMBL, true);
+	}
+	if (list.isEmpty() && fallback_ensembl_nocoding)
+	{
+		list = transcripts(gene_id, Transcript::ENSEMBL, false);
+	}
+
 	if (list.isEmpty()) return Transcript();
 
 	//get longest transcript (transcripts regions are merged!)

@@ -109,11 +109,7 @@ void GeneSelectorDialog::updateGeneTable()
 		setGeneTableItem(r, 0, gene, Qt::AlignLeft, Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
 
 		//transcript
-		Transcript transcript = db.longestCodingTranscript(gene_id, Transcript::CCDS);
-		if (!transcript.isValid()) //fallback when no CCDS transcript is defined for the gene
-		{
-			transcript = db.longestCodingTranscript(gene_id, Transcript::ENSEMBL);
-		}
+		Transcript transcript = db.longestCodingTranscript(gene_id, Transcript::CCDS, true);
 		BedFile region = transcript.regions();
 		setGeneTableItem(r, 1, transcript.name() + " (" + QString::number(region.count()) + " exons)");
 

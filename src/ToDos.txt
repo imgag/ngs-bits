@@ -9,16 +9,15 @@ libs:
 
 GSvar:
 *** Add HPO-based filtering of variant lists (via genes or via ROI?)
-** GapReport: use longest coding transcript
-+ Add genotype equal for affected
-+ Allow filtering of inheritance mode and pLI score
+- Add genotype equal for affected
+** Allow filtering of inheritance mode and pLI score
 - Make default filters configurable in INI file
-+ No longer use external tools, but use the algorithms instead
+* No longer use external tools, but use the algorithms instead
 
 Tools:
 - Remove UMI tools that are no longer used: BamDeduplicateByBarcode, FastqExtractBarcode?
 ** add new tool BedHighCoverage (wait until bamtools is replaced by HTSlib)
-+ add tool NGSDvariants: filter genes, filter impact, filter max AF, filter max ihdb, output formats TSV/GSvar/VCF
+- add tool NGSDvariants: filter genes, filter impact, filter max AF, filter max ihdb, output formats TSV/GSvar/VCF
 - SampleCorrelation: Add option to use only rare snps e.g. 0.1-10.0% AF in VCF/GSvar mode (MS)
 - SomaticQC: do not use precalculated triplet counts, count every time (CS)
 - BamClipOverlap: require sorted bam and paired-end sequencing (CS)
