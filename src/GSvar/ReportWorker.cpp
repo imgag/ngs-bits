@@ -511,6 +511,8 @@ void ReportWorker::writeHTML()
 	int i_omim = variants_.annotationIndexByName("OMIM", true, true);
 	int i_class = variants_.annotationIndexByName("classification", true, true);
 	int i_comment = variants_.annotationIndexByName("comment", true, true);
+	int i_exac = variants_.annotationIndexByName("ExAC", true, true);
+	int i_gnomad = variants_.annotationIndexByName("gnomAD", true, true);
 
 	//get tumor specific column indices
 	bool tumor = (i_genotype==-1);
@@ -519,7 +521,7 @@ void ReportWorker::writeHTML()
 	//output: applied filters
 	stream << "<p><b>Filterkriterien</b>" << endl;
 	stream << "<br />Gefundene Varianten in Zielregion gesamt: " << var_count_ << endl;
-	stream << "<br />Anzahl relevanter Varianten nach Filterung: " << variants_selected_.count() << endl;
+	stream << "<br />Anzahl Varianten nach automatischer Filterung: " << variants_selected_.count() << endl;
 	for(auto it = filters_.cbegin(); it!=filters_.cend(); ++it)
 	{
 		QString text = filterToGermanText(it.key(), it.value());
@@ -531,10 +533,10 @@ void ReportWorker::writeHTML()
 	stream << "</p>" << endl;
 
 	//output: all rare variants
-	stream << "<p><b>Liste gefilterter Varianten</b>" << endl;
+	stream << "<p><b>Liste relevanter Varianten</b>" << endl;
 	stream << "</p>" << endl;
 	stream << "<table>" << endl;
-	stream << "<tr><td><b>Gen</b></td><td><b>chr</b></td><td><b>start</b></td><td><b>end</b></td><td><b>ref</b></td><td><b>obs</b></td><td><b>" << (tumor ? "Allelfrequenz" : "Genotyp") << "</b></td><td><b>Details</b></td><td><b>Klasse</b></td><td><b>Vererbung</b></td></tr>" << endl;
+	stream << "<tr><td><b>Gen</b></td><td><b>chr</b></td><td><b>start</b></td><td><b>end</b></td><td><b>ref</b></td><td><b>obs</b></td><td><b>" << (tumor ? "Allelfrequenz" : "Genotyp") << "</b></td><td><b>Details</b></td><td><b>Klasse</b></td><td><b>Vererbung</b></td><td><b>ExAC AF</b></td><td><b>gnomAD AF</b></td></tr>" << endl;
 	for (int i=0; i<variants_selected_.count(); ++i)
 	{
 		const Variant& variant = variants_[variants_selected_[i]];
@@ -547,6 +549,8 @@ void ReportWorker::writeHTML()
 		stream << "<td>" << formatCodingSplicing(variant.annotations().at(i_co_sp)).replace(", ", "<br />") << "</td>" << endl;
 		stream << "<td>" << variant.annotations().at(i_class) << "</td>" << endl;
 		stream << "<td>" << inheritance(variant.annotations()[i_geneinfo]) << "</td>" << endl;
+		stream << "<td>" << variant.annotations().at(i_exac) << "</td>" << endl;
+		stream << "<td>" << variant.annotations().at(i_gnomad) << "</td>" << endl;
 		stream << "</tr>" << endl;
 
 		//OMIM and comment line
@@ -591,7 +595,7 @@ void ReportWorker::writeHTML()
 	stream << "<table>" << endl;
 	stream << "<tr><td><b>Koordinaten</b></td><td><b>Exons</b></td><td><b>CopyNumbers</b></td><td><b>Details</b></td></tr>" << endl;
 	stream << "<tr>" << endl;
-	stream << "<td colspan=\"4\"><span style=\"background-color: #FF0000\">Abschnitt mit Daten aus dem Report fuellen oder loeschen!<br />Im Moment nur f&uuml;r X-Diagnostik relevant!</span></td>" << endl;
+	stream << "<td colspan=\"4\"><span style=\"background-color: #FF0000\">Abschnitt fuellen wenn relevante CNV gefunden oder loeschen!</span></td>" << endl;
 	stream << "</tr>" << endl;
 	stream << "</table>" << endl;
 

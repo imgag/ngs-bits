@@ -9,11 +9,7 @@ libs:
 
 GSvar:
 *** Add HPO-based filtering of variant lists (via genes or via ROI?)
-* GapReport: use longest coding transcript
-* Report:
-  - Text: CNVs only for chrX > only when relevant
-  - Text: Variant count after (auto) filtering
-  - add gnomAD + ExAC freq
+** GapReport: use longest coding transcript
 + Add genotype equal for affected
 + Allow filtering of inheritance mode and pLI score
 - Make default filters configurable in INI file

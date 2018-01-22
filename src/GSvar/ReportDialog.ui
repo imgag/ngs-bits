@@ -110,7 +110,7 @@
       <item>
        <widget class="QCheckBox" name="details_cov">
         <property name="text">
-         <string>Add coverage details:</string>
+         <string>Add coverage details</string>
         </property>
         <property name="checked">
          <bool>true</bool>
