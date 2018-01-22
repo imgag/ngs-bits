@@ -212,8 +212,11 @@ VariantDetails NGSHelper::getVariantDetails(BamReader& reader, const FastaFileIn
 		NGSHelper::getIndels(reference, reader, variant.chr(), reg.first-1, reg.second+1, indels, output.depth, output.mapq0_frac);
 		//qDebug() << "INDELS:" << indels.join(" ");
 
+		Variant variant_normalized = variant;
+		variant_normalized.normalize("-");
+
 		//count indels
-		if (variant.ref()!="-" && variant.obs()!="-")
+		if (variant_normalized.ref()!="-" && variant_normalized.obs()!="-")
 		{
 			int c_ins = 0;
 			int c_del = 0;
@@ -225,13 +228,13 @@ VariantDetails NGSHelper::getVariantDetails(BamReader& reader, const FastaFileIn
 			}
 			output.frequency = std::min(c_ins, c_del);
 		}
-		else if (variant.ref()=="-")
+		else if (variant_normalized.ref()=="-")
 		{
-			output.frequency = indels.count("+" + variant.obs());
+			output.frequency = indels.count("+" + variant_normalized.obs());
 		}
 		else
 		{
-			output.frequency = indels.count("-" + variant.ref());
+			output.frequency = indels.count("-" + variant_normalized.ref());
 		}
 
 		//we might count more indels than depth because of the window - correct that
@@ -279,7 +282,11 @@ void NGSHelper::getIndels(const FastaFileIndex& reference, BamReader& reader, co
 		bool contains_indels = false;
 		for (unsigned int i=0; i<al.CigarData.size(); ++i)
 		{
-			if (al.CigarData[i].Type=='I' || al.CigarData[i].Type=='D') contains_indels = true;
+			if (al.CigarData[i].Type=='I' || al.CigarData[i].Type=='D')
+			{
+				contains_indels = true;
+				break;
+			}
 		}
 		if (!contains_indels) continue;
 
