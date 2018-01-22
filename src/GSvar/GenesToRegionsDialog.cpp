@@ -26,9 +26,15 @@ void GenesToRegionsDialog::convertGenesToRegions()
 {
 	ui->regions->clear();
 
-	//convert input with tabs to plain gene list
-	GeneSet genes = GeneSet::createFromText(ui->genes->toPlainText().toLatin1());
-	if (genes.isEmpty()) return;
+	//convert input to gene list (text before first tab in each line)
+	GeneSet genes;
+	QByteArrayList lines = ui->genes->toPlainText().toLatin1().split('\n');
+	foreach(const QByteArray& line, lines)
+	{
+		if (line.startsWith("#")) continue;
+		QByteArrayList parts = line.split('\t');
+		genes.insert(parts[0]);
+	}
 
 	//convert gene list to regions (BED)
 	Transcript::SOURCE source = Transcript::stringToSource(ui->source->currentText());
