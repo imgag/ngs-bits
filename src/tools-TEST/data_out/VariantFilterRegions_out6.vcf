@@ -76,7 +76,7 @@
 ##INFO=<ID=CLINVAR_SIG,Number=.,Type=String,Description="ClinVar clinical significance">
 ##INFO=<ID=CLINVAR_ACC,Number=.,Type=String,Description="ClinVar accession">
 ##INFO=<ID=COSMIC_ID,Number=1,Type=String,Description="COSMIC accession">
-##FILTER=<ID=off-target,Description="Variant outside the panel/exome target region.">
+##FILTER=<ID=off-target,Description="Variant marked as 'off-target'.">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA12878
 chr16	771898	.	G	A	31.8	off-target	.	.	.
 chrX	135958685	.	C	A	40	off-target	.	.	.

@@ -419,7 +419,7 @@ QStringList VariantList::sampleNames() const
 	return sample_names;
 }
 
-VariantList::Format VariantList::load(QString filename, VariantList::Format format, const BedFile* roi)
+VariantList::Format VariantList::load(QString filename, VariantList::Format format, const BedFile* roi, bool invert)
 {
 	//determine format
 	if (format==AUTO)
@@ -462,17 +462,17 @@ VariantList::Format VariantList::load(QString filename, VariantList::Format form
 	//load variant list
 	if (format==VCF)
 	{
-		loadFromVCF(filename, roi_idx.data());
+		loadFromVCF(filename, roi_idx.data(), invert);
 		return VariantList::VCF;
 	}
 	else if (format==VCF_GZ)
 	{
-		loadFromVCFGZ(filename, roi_idx.data());
+		loadFromVCFGZ(filename, roi_idx.data(), invert);
 		return VariantList::VCF_GZ;
 	}
 	else
 	{
-		loadFromTSV(filename, roi_idx.data());
+		loadFromTSV(filename, roi_idx.data(), invert);
 		return VariantList::TSV;
 	}
 }
@@ -507,7 +507,7 @@ void VariantList::store(QString filename, VariantList::Format format)
 	}
 }
 
-void VariantList::loadFromTSV(QString filename, ChromosomalIndex<BedFile>* roi_idx)
+void VariantList::loadFromTSV(QString filename, ChromosomalIndex<BedFile>* roi_idx, bool invert)
 {
 	constexpr int special_cols = 5;
 
@@ -570,7 +570,9 @@ void VariantList::loadFromTSV(QString filename, ChromosomalIndex<BedFile>* roi_i
 		int end = atoi(fields[2]);
 		if (roi_idx!=nullptr)
 		{
-			if (roi_idx->matchingIndex(chr, start, end)==-1)
+
+			bool in_roi = roi_idx->matchingIndex(chr, start, end)!=-1;
+			if ((!in_roi && !invert) || (in_roi && invert))
 			{
 				continue;
 			}
@@ -665,7 +667,7 @@ void VariantList::storeToTSV(QString filename)
 	}
 }
 
-void VariantList::loadFromVCF(QString filename, ChromosomalIndex<BedFile>* roi_idx)
+void VariantList::loadFromVCF(QString filename, ChromosomalIndex<BedFile>* roi_idx, bool invert)
 {
 	//remove old data
 	clear();
@@ -681,11 +683,11 @@ void VariantList::loadFromVCF(QString filename, ChromosomalIndex<BedFile>* roi_i
 	QSharedPointer<QFile> file = Helper::openFileForReading(filename, true);
 	while(!file->atEnd())
 	{
-		processVcfLine(header_fields, line_number, file->readLine(), roi_idx);
+		processVcfLine(header_fields, line_number, file->readLine(), roi_idx, invert);
 	}
 }
 
-void VariantList::loadFromVCFGZ(QString filename, ChromosomalIndex<BedFile>* roi_idx)
+void VariantList::loadFromVCFGZ(QString filename, ChromosomalIndex<BedFile>* roi_idx, bool invert)
 {
 	//remove old data
 	clear();
@@ -708,13 +710,13 @@ void VariantList::loadFromVCFGZ(QString filename, ChromosomalIndex<BedFile>* roi
 	char* buffer = new char[131072];
 	while(!gzeof(file))
 	{
-		processVcfLine(header_fields, line_number, QByteArray(gzgets(file, buffer, 131072)), roi_idx);
+		processVcfLine(header_fields, line_number, QByteArray(gzgets(file, buffer, 131072)), roi_idx, invert);
 	}
 	gzclose(file);
 	delete buffer;
 }
 
-void VariantList::processVcfLine(QList<QByteArray>& header_fields, int& line_number, QByteArray line, ChromosomalIndex<BedFile>* roi_idx)
+void VariantList::processVcfLine(QList<QByteArray>& header_fields, int& line_number, QByteArray line, ChromosomalIndex<BedFile>* roi_idx, bool invert)
 {
 	while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
 
@@ -922,7 +924,8 @@ void VariantList::processVcfLine(QList<QByteArray>& header_fields, int& line_num
 	int end = start + ref_bases.length()-1;
 	if (roi_idx!=nullptr)
 	{
-		if (roi_idx->matchingIndex(chr, start, end)==-1)
+		bool in_roi = roi_idx->matchingIndex(chr, start, end)!=-1;
+		if ((!in_roi && !invert) || (in_roi && invert))
 		{
 			return;
 		}

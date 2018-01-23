@@ -78,8 +78,8 @@ class CPPNGSSHARED_EXPORT VariantFilter
 		///Remove variants that did not pass the filter (with 'false' flag).
 		void removeFlagged();
 
-		///Tag variants that did not pass the filter (with 'false' flag) using the 'filter' column.
-		void tagFlagged(QByteArray tag, QByteArray description);
+		///Tag variants that did not pass the filter using the 'filter' column.
+		void tagNonPassing(QByteArray tag, QByteArray description);
 
 	protected:
 		VariantList& variants;

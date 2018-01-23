@@ -1,0 +1,255 @@
+##FILTER=off-target=Variant marked as 'off-target'.
+#chr	start	end	ref	obs	genotype	SNP_Q	depth	Map_Q	type	a	c	t	g	depth	region	gene	type	coding	SNP(1000g2011may_all)	SNP(SNP132)	filter
+chr16	771898	771898	G	A	hom	31.8	2	44	SNV	2	0	0	0	2	exonic	FAM173A	nonsynonymous SNV	FAM173A:uc002cje.2:exon3:c.G365A:p.G122D,	.	.	passed
+chrX	135958685	135958685	C	A	het	40	3	46	SNV	2	1	0	0	3	exonic	CCBL2,RBMX	nonsynonymous SNV	CCBL2:uc004faf.1:exon4:c.G101T:p.S34I,RBMX:uc004fad.1:exon5:c.G518T:p.S173I,RBMX:uc010nsf.1:exon4:c.G401T:p.S134I,RBMX:uc004fag.1:exon3:c.G134T:p.S45I,CCBL2:uc011mwg.1:exon5:c.G401T:p.S134I,RBMX:uc004fae.1:exon5:c.G518T:p.S173I,	.	.	passed
+chr21	33849136	33849136	C	G	hom	14.9	2	49	SNV	0	0	0	2	2	ncRNA	C21orf63	.	.	.	.	failed
+chr2	96964115	96964115	T	C	hom	33.8	2	46	SNV	0	2	0	0	2	exonic	SNRNP200	synonymous SNV	SNRNP200:uc002svu.2:exon9:c.A1026G:p.E342E,	.	.	passed
+chr19	22363796	22363796	A	G	hom	41.8	2	44	SNV	0	0	0	0	0	exonic	ZNF676	synonymous SNV	ZNF676:uc002nqs.1:exon3:c.T723C:p.T241T,	0.1245	.	passed
+chr8	66647125	66647125	C	T	hom	18.8	2	47	SNV	0	0	2	0	2	exonic	PDE7A	nonsynonymous SNV	PDE7A:uc003xvp.2:exon7:c.G522A:p.M174I,PDE7A:uc003xvq.2:exon7:c.G600A:p.M200I,PDE7A:uc003xvr.2:exon7:c.G600A:p.M200I,	.	.	failed
+chr11	1092726	1092726	C	T	hom	22.8	2	29	SNV	0	0	2	0	2	exonic	MUC2	synonymous SNV	MUC2:uc001lsx.1:exon30:c.C4545T:p.T1515T,	.	.	passed
+chr16	67981282	67981282	T	C	hom	29.8	2	47	SNV	0	2	0	0	2	exonic	SLC12A4	nonsynonymous SNV	SLC12A4:uc010vkh.1:exon16:c.A1931G:p.Y644C,SLC12A4:uc002euz.2:exon16:c.A2024G:p.Y675C,SLC12A4:uc010vkj.1:exon15:c.A2030G:p.Y677C,SLC12A4:uc010ceu.2:exon16:c.A2006G:p.Y669C,SLC12A4:uc002eva.2:exon16:c.A2024G:p.Y675C,SLC12A4:uc010vki.1:exon16:c.A2024G:p.Y675C,	.	.	passed
+chr13	111154019	111154019	A	G	hom	28.8	2	34	SNV	0	0	0	2	2	exonic	COL4A2	synonymous SNV	COL4A2:uc001vqx.2:exon41:c.A3765G:p.E1255E,	.	.	passed
+chr11	65479751	65479751	G	T	hom	41.8	2	44	SNV	0	0	2	0	2	exonic;splicing	KAT5;KAT5(uc001ofi.2:c.12+1G>T,uc001ofj.2:c.12+1G>T)	nonsynonymous SNV	KAT5:uc010roo.1:exon1:c.G13T:p.V5L,KAT5:uc001ofk.2:exon1:c.G13T:p.V5L,	.	.	passed
+chr7	141618727	141618727	G	T	hom	42.8	2	44	SNV	0	0	2	0	2	exonic	OR9A4	nonsynonymous SNV	OR9A4:uc003vwu.1:exon1:c.G52T:p.G18C,	.	.	passed
+chrX	118603709	118603709	-	G	hom	10.6	2	27	INDEL	.	.	.	.	4	exonic	SLC25A5	frameshift insertion	SLC25A5:uc004erh.3:exon2:c.197_198insG:p.G66fs,	.	.	failed
+chr20	43057022	43057022	C	A	het	41	3	46	SNV	2	1	0	0	3	exonic	HNF4A	nonsynonymous SNV	HNF4A:uc002xlz.2:exon9:c.C1177A:p.L393M,HNF4A:uc010ggq.2:exon10:c.C1156A:p.L386M,HNF4A:uc002xlu.2:exon9:c.C1111A:p.L371M,HNF4A:uc002xlv.2:exon9:c.C1111A:p.L371M,HNF4A:uc002xma.2:exon9:c.C1177A:p.L393M,	.	.	passed
+chr4	8869466	8869466	C	T	hom	39.8	2	44	SNV	0	0	2	0	2	exonic	HMX1	nonsynonymous SNV	HMX1:uc003izz.1:exon2:c.G1000A:p.A334T,	.	.	passed
+chr14	36219738	36219738	C	G	hom	28.8	2	36	SNV	0	0	0	2	2	exonic	RALGAPA1	nonsynonymous SNV	RALGAPA1:uc001wti.2:exon9:c.G961C:p.G321R,RALGAPA1:uc001wtk.1:exon4:c.G514C:p.G172R,RALGAPA1:uc010tpw.1:exon9:c.G961C:p.G321R,RALGAPA1:uc001wtj.2:exon9:c.G961C:p.G321R,RALGAPA1:uc010tpv.1:exon9:c.G961C:p.G321R,	.	.	passed
+chr8	67342070	67342070	T	C	hom	31.8	2	45	SNV	0	2	0	0	2	exonic	RRS1	nonsynonymous SNV	RRS1:uc003xwa.2:exon1:c.T704C:p.F235S,	.	.	passed
+chr3	75788394	75788394	C	G	hom	38.8	2	35	SNV	0	0	0	2	2	exonic	ZNF717	nonsynonymous SNV	ZNF717:uc011bgi.1:exon5:c.G380C:p.R127T,	.	.	passed
+chr8	144620949	144620949	A	G	hom	44.8	2	44	SNV	0	0	0	2	2	exonic	ZC3H3	synonymous SNV	ZC3H3:uc003yyd.2:exon2:c.T588C:p.P196P,	.	.	passed
+chr7	117060267	117060267	C	A	hom	47.8	2	44	SNV	2	0	0	0	2	exonic	ASZ1	nonsynonymous SNV	ASZ1:uc011kno.1:exon4:c.G390T:p.K130N,ASZ1:uc003vjb.2:exon4:c.G390T:p.K130N,	.	.	passed
+chr3	167405069	167405069	G	T	hom	48.8	2	44	SNV	0	0	2	0	2	exonic	PDCD10	stopgain SNV	PDCD10:uc003fez.2:exon7:c.C510A:p.Y170X,PDCD10:uc003fex.2:exon8:c.C510A:p.Y170X,PDCD10:uc003fey.2:exon8:c.C510A:p.Y170X,	.	.	passed
+chr3	75788382	75788382	-	TT	hom	22.2	2	35	INDEL	.	.	.	.	2	exonic	ZNF717	frameshift insertion	ZNF717:uc011bgi.1:exon5:c.392_393insAA:p.G131fs,	.	.	failed
+chr14	103059612	103059612	G	A	hom	30.8	2	45	SNV	2	0	0	0	2	exonic	RCOR1	nonsynonymous SNV	RCOR1:uc001ymb.2:exon2:c.G302A:p.G101D,	.	.	passed
+chr12	111800506	111800506	C	G	hom	29.8	2	45	SNV	0	0	0	2	2	exonic	FAM109A	nonsynonymous SNV	FAM109A:uc001tsc.2:exon2:c.G795C:p.W265C,FAM109A:uc009zvu.2:exon3:c.G668C:p.G223A,FAM109A:uc001tsd.3:exon3:c.G726C:p.W242C,	.	.	passed
+chr1	60104017	60104017	T	C	het	4.77	3	49	SNV	0	2	1	0	3	exonic	FGGY	synonymous SNV	FGGY:uc001czj.3:exon11:c.T1188C:p.S396S,FGGY:uc001czl.3:exon9:c.T927C:p.S309S,FGGY:uc009wac.2:exon11:c.T1191C:p.S397S,FGGY:uc001czi.3:exon11:c.T1191C:p.S397S,FGGY:uc001czk.3:exon10:c.T855C:p.S285S,FGGY:uc001czm.3:exon5:c.T294C:p.S98S,	.	.	failed
+chr19	17735650	17735650	G	A	hom	20.8	2	42	SNV	2	0	0	0	2	exonic	UNC13A	synonymous SNV	UNC13A:uc002nhd.2:exon36:c.C4446T:p.L1482L,	.	.	passed
+chrX	55185568	55185568	-	ACTGTG	hom	14.4	5	35	INDEL	.	.	.	.	2	exonic	FAM104B	nonframeshift insertion	FAM104B:uc004dui.3:exon2:c.114_115insCACAGT:p.D38delinsDTV,FAM104B:uc004duh.1:exon2:c.114_115insCACAGT:p.D38delinsDTV,FAM104B:uc004dug.1:exon2:c.114_115insCACAGT:p.D38delinsDTV,	.	.	failed
+chr7	99957051	99957051	G	T	hom	42.8	2	37	SNV	0	0	2	0	2	exonic	PILRB	nonsynonymous SNV	PILRB:uc003uul.2:exon16:c.G337T:p.A113S,PILRB:uc003uuk.2:exon17:c.G546T:p.W182C,PILRB:uc003uun.2:exon3:c.G546T:p.W182C,	.	.	passed
+chr11	59245341	59245341	G	T	hom	46.8	2	44	SNV	0	0	2	0	2	exonic	OR4D10	nonsynonymous SNV	OR4D10:uc001nnz.1:exon1:c.G439T:p.A147S,	.	.	passed
+chr17	5087272	5087272	C	T	hom	16.9	2	47	SNV	0	0	2	0	2	exonic	ZNF594	nonsynonymous SNV	ZNF594:uc010cla.1:exon2:c.G280A:p.A94T,	.	.	failed
+chr14	105407647	105407647	G	T	hom	32.8	2	47	SNV	0	0	2	0	2	exonic	AHNAK2	nonsynonymous SNV	AHNAK2:uc001ypx.2:exon7:c.C13841A:p.T4614N,AHNAK2:uc010axc.1:exon7:c.C14141A:p.T4714N,	.	.	passed
+chrX	103042854	103042854	C	A	hom	43.8	2	44	SNV	2	0	0	0	2	exonic	PLP1	nonsynonymous SNV	PLP1:uc004elj.2:exon4:c.C476A:p.S159Y,PLP1:uc011msf.1:exon4:c.C416A:p.S139Y,PLP1:uc010nox.2:exon3:c.C443A:p.S148Y,PLP1:uc004elk.2:exon4:c.C581A:p.S194Y,PLP1:uc010nov.2:exon5:c.C581A:p.S194Y,	.	.	off-target
+chr3	183097111	183097111	G	T	hom	46.8	2	44	SNV	0	0	2	0	2	exonic	KIAA0861,MCF2L2	synonymous SNV	KIAA0861:uc003flp.1:exon3:c.C354A:p.V118V,MCF2L2:uc003flj.1:exon3:c.C249A:p.V83V,MCF2L2:uc003fli.1:exon3:c.C249A:p.V83V,	.	.	passed
+chr12	56818914	56818916	TTC	-	hom	61.2	2	50	INDEL	.	.	.	.	2	exonic	TIMELESS	nonframeshift deletion	TIMELESS:uc001slf.2:exon14:c.1599_1601del:p.533_534del,	.	.	passed
+chr14	63174539	63174539	A	G	hom	43.8	2	44	SNV	0	0	0	2	2	exonic	KCNH5	nonsynonymous SNV	KCNH5:uc001xfx.2:exon11:c.T2654C:p.L885P,	.	.	passed
+chr1	247611783	247611783	G	A	hom	31.8	2	47	SNV	2	0	0	0	2	exonic	NLRP3	nonsynonymous SNV	NLRP3:uc001icu.2:exon9:c.G3088A:p.V1030I,NLRP3:uc001ics.2:exon9:c.G2917A:p.V973I,NLRP3:uc001icw.2:exon8:c.G2917A:p.V973I,NLRP3:uc010pyw.1:exon9:c.G3022A:p.V1008I,NLRP3:uc001icr.2:exon11:c.G3088A:p.V1030I,NLRP3:uc001icv.2:exon7:c.G2746A:p.V916I,	.	.	passed
+chrX	69500135	69500135	G	A	het	21	5	48	SNV	2	0	0	3	5	intronic	ARR3	.	.	.	.	passed
+chr5	139422124	139422124	C	T	hom	47.8	2	44	SNV	0	0	2	0	2	exonic	NRG2	synonymous SNV	NRG2:uc003lex.1:exon1:c.G531A:p.E177E,NRG2:uc003lev.1:exon1:c.G531A:p.E177E,NRG2:uc003lew.1:exon1:c.G531A:p.E177E,NRG2:uc003ley.1:exon1:c.G531A:p.E177E,	.	.	passed
+chr12	95927156	95927156	G	T	hom	48.8	2	44	SNV	0	0	2	0	2	exonic	USP44	nonsynonymous SNV	USP44:uc009zte.2:exon2:c.C868A:p.H290N,USP44:uc001teg.2:exon2:c.C877A:p.H293N,USP44:uc001teh.2:exon2:c.C877A:p.H293N,	.	.	passed
+chrX	53576100	53576100	C	T	hom	44.8	2	43	SNV	0	0	2	0	2	exonic	HUWE1	stopgain SNV	HUWE1:uc004dsn.2:exon36:c.G6279A:p.W2093X,HUWE1:uc004dsp.2:exon67:c.G9855A:p.W3285X,	.	.	off-target
+chr15	42127038	42127038	C	T	hom	22.8	2	47	SNV	0	0	2	0	2	exonic	JMJD7,JMJD7-PLA2G4B,cPLA2 beta	synonymous SNV	JMJD7:uc001zon.2:exon2:c.C165T:p.R55R,JMJD7-PLA2G4B:uc001zoo.3:exon2:c.C165T:p.R55R,cPLA2 beta:uc010bcn.2:exon2:c.C165T:p.R55R,	.	.	passed
+chr20	26188933	26188933	-	ACCG	hom	3.52	8	21	INDEL	.	.	.	.	20	ncRNA	BC036544	.	.	.	.	failed
+chrX	41419080	41419080	A	G	hom	16.9	2	48	SNV	0	0	0	2	2	exonic	CASK	synonymous SNV	CASK:uc004dfm.3:exon18:c.T1689C:p.I563I,CASK:uc004dfj.3:exon6:c.T378C:p.I126I,CASK:uc004dfn.3:exon17:c.T1671C:p.I557I,CASK:uc004dfl.3:exon18:c.T1689C:p.I563I,CASK:uc004dfk.3:exon13:c.T1134C:p.I378I,	.	.	failed;off-target
+chr14	35008759	35008759	A	T	hom	29.8	2	45	SNV	0	0	2	0	2	splicing	EAPP(uc001wsd.1:c.74+2T>A)	.	.	.	.	passed
+chrX	153420159	153420159	T	C	hom	56	3	31	SNV	0	3	0	0	3	exonic	OPN1LW	nonsynonymous SNV	OPN1LW:uc004fjz.3:exon4:c.T689C:p.I230T,	0.0033	.	passed
+chr10	70916875	70916875	T	C	hom	42.8	2	44	SNV	0	2	0	0	2	exonic	VPS26A	synonymous SNV	VPS26A:uc001jpd.2:exon3:c.T9C:p.V3V,VPS26A:uc001jpc.2:exon4:c.T342C:p.V114V,VPS26A:uc001jpb.2:exon4:c.T342C:p.V114V,VPS26A:uc009xqa.2:exon5:c.T321C:p.V107V,	.	.	passed
+chr5	178359621	178359621	A	T	het	11.3	3	49	SNV	1	0	2	0	3	exonic	ZFP2	nonsynonymous SNV	ZFP2:uc010jky.2:exon5:c.A1307T:p.K436I,ZFP2:uc010jkx.1:exon4:c.A1307T:p.K436I,ZFP2:uc003mjn.1:exon5:c.A1307T:p.K436I,	.	.	failed
+chr14	75538091	75538091	G	T	hom	47.8	2	44	SNV	0	0	2	0	2	exonic	FAM164C	nonsynonymous SNV	FAM164C:uc001xri.2:exon2:c.G815T:p.R272I,FAM164C:uc001xrh.2:exon2:c.G815T:p.R272I,	.	.	passed
+chr19	17531424	17531424	C	T	hom	13.9	2	49	SNV	0	0	2	0	2	exonic	FAM125A	synonymous SNV	FAM125A:uc002ngn.1:exon3:c.C267T:p.V89V,FAM125A:uc002ngo.1:exon3:c.C267T:p.V89V,	.	.	failed
+chrX	129215301	129215301	C	T	hom	44.8	2	44	SNV	0	0	2	0	2	exonic	ELF4	nonsynonymous SNV	ELF4:uc004eve.3:exon2:c.G4A:p.A2T,ELF4:uc004evd.3:exon2:c.G4A:p.A2T,	.	.	passed
+chr5	175516446	175516446	A	G	hom	13	2	24	SNV	0	0	0	2	2	ncRNA	KIAA0752	.	.	.	.	failed
+chr16	89347794	89347794	A	T	het	6.98	3	48	SNV	1	0	2	0	3	exonic	ANKRD11	nonsynonymous SNV	ANKRD11:uc002fnb.1:exon6:c.T5027A:p.M1676K,ANKRD11:uc002fmx.1:exon9:c.T5156A:p.M1719K,ANKRD11:uc002fnc.1:exon9:c.T5156A:p.M1719K,ANKRD11:uc002fmy.1:exon10:c.T5156A:p.M1719K,	.	.	failed
+chr17	7851268	7851268	C	A	hom	47.8	2	44	SNV	2	0	0	0	2	exonic	CNTROB	nonsynonymous SNV	CNTROB:uc002gjq.2:exon16:c.C2180A:p.P727H,CNTROB:uc002gjp.2:exon16:c.C2180A:p.P727H,CNTROB:uc002gjr.2:exon14:c.C1886A:p.P629H,	.	.	passed
+chr12	57928228	57928228	A	C	hom	12	2	49	SNV	0	2	0	0	2	exonic	DCTN2	nonsynonymous SNV	DCTN2:uc009zpv.1:exon8:c.T110G:p.V37G,DCTN2:uc009zpw.1:exon7:c.T110G:p.V37G,DCTN2:uc001son.1:exon6:c.T110G:p.V37G,DCTN2:uc001som.1:exon6:c.T371G:p.V124G,DCTN2:uc009zpu.1:exon6:c.T368G:p.V123G,DCTN2:uc009zpx.1:exon6:c.T371G:p.V124G,DCTN2:uc001sop.1:exon6:c.T110G:p.V37G,	.	.	failed
+chr19	17735657	17735657	G	C	hom	28.8	2	42	SNV	0	2	0	0	2	exonic	UNC13A	nonsynonymous SNV	UNC13A:uc002nhd.2:exon36:c.C4439G:p.P1480R,	.	.	passed
+chrX	150345269	150345269	G	A	hom	33.8	2	46	SNV	2	0	0	0	2	exonic	GPR50	nonsynonymous SNV	GPR50:uc011myc.1:exon1:c.G76A:p.A26T,GPR50:uc010ntg.1:exon1:c.G76A:p.A26T,	.	.	passed
+chr6	38851733	38851733	G	T	hom	48.8	2	44	SNV	0	0	2	0	2	exonic	DNAH8	nonsynonymous SNV	DNAH8:uc003ooe.1:exon54:c.G7567T:p.D2523Y,	.	.	passed
+chr3	75788390	75788390	A	C	hom	38.8	2	35	SNV	0	2	0	0	2	exonic	ZNF717	synonymous SNV	ZNF717:uc011bgi.1:exon5:c.T384G:p.V128V,	.	.	passed
+chrX	118603713	118603713	T	C	hom	17.8	2	27	SNV	0	4	0	0	4	exonic	SLC25A5	synonymous SNV	SLC25A5:uc004erh.3:exon2:c.T201C:p.V67V,	.	.	failed
+chr2	232373903	232373903	T	C	hom	45.8	2	44	SNV	0	2	0	0	2	exonic	C2orf52	nonsynonymous SNV	C2orf52:uc002vrx.1:exon3:c.A188G:p.N63S,	.	.	passed
+chr17	10364359	10364359	T	G	hom	47.8	2	44	SNV	0	0	0	2	2	exonic	MYH4	nonsynonymous SNV	MYH4:uc002gmn.2:exon12:c.A1021C:p.I341L,	.	.	passed
+chr20	644682	644682	C	A	hom	35.8	2	46	SNV	2	0	0	0	2	exonic	SCRT2	nonsynonymous SNV	SCRT2:uc002wec.2:exon2:c.G557T:p.R186L,	.	.	passed
+chr19	42911425	42911425	A	G	hom	16.9	2	47	SNV	0	0	0	2	2	exonic	LIPE	nonsynonymous SNV	LIPE:uc002otr.2:exon6:c.T2038C:p.S680P,	.	.	failed
+chr9	73151476	73151476	G	T	hom	45.8	2	44	SNV	0	0	2	0	2	exonic	TRPM3	nonsynonymous SNV	TRPM3:uc004ahx.2:exon26:c.C4094A:p.A1365D,TRPM3:uc004aib.2:exon24:c.C4028A:p.A1343D,TRPM3:uc004ahz.2:exon25:c.C4064A:p.A1355D,TRPM3:uc004ahy.2:exon25:c.C4103A:p.A1368D,TRPM3:uc004aid.2:exon25:c.C4517A:p.A1506D,TRPM3:uc004aia.2:exon25:c.C4058A:p.A1353D,TRPM3:uc004ahu.2:exon22:c.C4043A:p.A1348D,TRPM3:uc004ahv.2:exon21:c.C3923A:p.A1308D,TRPM3:uc004ahw.2:exon26:c.C4133A:p.A1378D,	.	.	passed
+chr16	22545897	22545897	G	T	hom	25.8	2	29	SNV	0	0	2	0	2	exonic	LOC100132247	nonsynonymous SNV	LOC100132247:uc010bxi.2:exon7:c.G1536T:p.K512N,LOC100132247:uc010vbv.1:exon7:c.G1593T:p.K531N,LOC100132247:uc010bxk.2:exon4:c.G1044T:p.K348N,LOC100132247:uc010bxg.2:exon9:c.G1593T:p.K531N,	0.36893	.	passed
+chr21	32898367	32898367	-	AAAA	hom	59.2	2	50	INDEL	.	.	.	.	2	intronic	TIAM1	.	.	.	.	passed
+chr11	64032430	64032430	C	T	hom	48.8	2	44	SNV	0	0	2	0	2	exonic	PLCB3	nonsynonymous SNV	PLCB3:uc009ypg.1:exon23:c.C2660T:p.A887V,PLCB3:uc009ypi.2:exon23:c.C2660T:p.A887V,PLCB3:uc001nzb.2:exon23:c.C2660T:p.A887V,PLCB3:uc009yph.1:exon21:c.C2459T:p.A820V,	.	.	passed
+chr16	75272040	75272040	G	A	hom	32.8	2	37	SNV	2	0	0	0	2	UTR5	BCAR1	.	.	.	.	passed
+chrX	118987968	118987968	C	T	het	33	3	46	SNV	0	1	2	0	3	exonic	UPF3B	synonymous SNV	UPF3B:uc004esa.1:exon9:c.G1032A:p.E344E,UPF3B:uc004erz.1:exon10:c.G1071A:p.E357E,	.	.	passed
+chr21	47656749	47656749	G	T	hom	48.8	2	44	SNV	0	0	2	0	2	exonic	KIAA0572,MCM3AP	nonsynonymous SNV	MCM3AP:uc002zip.1:exon12:c.C2001A:p.S667R,MCM3AP:uc002zir.1:exon27:c.C5778A:p.S1926R,KIAA0572:uc002zio.1:exon6:c.C1263A:p.S421R,MCM3AP:uc002ziq.1:exon17:c.C2559A:p.S853R,	.	.	passed
+chr5	129072762	129072762	G	A	hom	44.8	2	44	SNV	2	0	0	0	2	exonic;splicing	ADAMTS19;ADAMTS19	nonsynonymous SNV	ADAMTS19:uc003kvb.1:exon23:c.G3475A:p.A1159T,	.	.	passed
+chr20	35929759	35929759	C	A	hom	42.8	2	44	SNV	2	0	0	0	2	exonic	MANBAL	synonymous SNV	MANBAL:uc002xgv.2:exon2:c.C93A:p.I31I,MANBAL:uc002xgu.2:exon3:c.C93A:p.I31I,	.	.	passed
+chr14	65521362	65521362	A	G	hom	44.8	2	44	SNV	0	0	0	2	2	exonic	FNTB	synonymous SNV	FNTB:uc001xid.2:exon9:c.A405G:p.G135G,FNTB:uc010tsm.1:exon12:c.A999G:p.G333G,FNTB:uc010tsl.1:exon13:c.A1239G:p.G413G,FNTB:uc001xia.2:exon11:c.A1137G:p.G379G,FNTB:uc010tso.1:exon8:c.A882G:p.G294G,	.	.	passed
+chr19	1012467	1012467	G	-	het	3.28	3	50	INDEL	.	.	.	.	3	exonic	C19orf6	frameshift deletion	C19orf6:uc002lqr.1:exon4:c.713delC:p.T238fs,C19orf6:uc002lqs.1:exon4:c.713delC:p.T238fs,	.	.	failed
+chr1	18808292	18808292	C	A	hom	41.8	2	44	SNV	2	0	0	0	2	exonic	KLHDC7A	nonsynonymous SNV	KLHDC7A:uc001bax.2:exon1:c.C817A:p.H273N,KLHDC7A:uc009vpg.2:exon1:c.C163A:p.H55N,	0.8404	rs2992753	passed
+chr1	45504720	45504720	G	C	hom	42.8	2	37	SNV	0	2	0	0	2	exonic	ZSWIM5	synonymous SNV	ZSWIM5:uc001cnd.2:exon8:c.C1782G:p.T594T,	0.58317	rs7551698	passed
+chr1	46871986	46871986	T	C	hom	44.8	2	44	SNV	0	2	0	0	2	exonic	FAAH	synonymous SNV	FAAH:uc001cpu.2:exon7:c.T897C:p.C299C,	0.8713	rs324419	passed
+chr1	67795319	67795319	T	C	hom	47.8	2	44	SNV	0	2	0	0	2	exonic	IL12RB2	synonymous SNV	IL12RB2:uc010oqj.1:exon7:c.T714C:p.S238S,IL12RB2:uc001ddu.2:exon6:c.T714C:p.S238S,IL12RB2:uc010oqi.1:exon7:c.T714C:p.S238S,IL12RB2:uc010oqm.1:exon5:c.T714C:p.S238S,IL12RB2:uc010oql.1:exon5:c.T714C:p.S238S,	0.94963	rs1495963	passed
+chr1	156556321	156556321	G	A	hom	45.8	2	44	SNV	2	0	0	0	2	exonic	TTC24	synonymous SNV	TTC24:uc009wsc.1:exon9:c.G888A:p.S296S,	0.9435	rs10796961	passed
+chr1	156563852	156563852	C	T	hom	38.8	2	35	SNV	0	0	2	0	2	exonic	AIBP,APOA1BP	synonymous SNV	APOA1BP:uc001fph.2:exon6:c.C843T:p.T281T,APOA1BP:uc010php.1:exon5:c.C534T:p.T178T,APOA1BP:uc001fpk.2:exon5:c.C534T:p.T178T,AIBP:uc001fpj.2:exon6:c.C594T:p.T198T,	0.96374	rs942963	passed
+chr1	202287156	202287156	C	T	hom	37.8	2	41	SNV	0	0	2	0	2	exonic	LGR6	synonymous SNV	LGR6:uc001gxw.2:exon16:c.C1308T:p.S436S,LGR6:uc001gxv.2:exon18:c.C1569T:p.S523S,LGR6:uc001gxu.2:exon18:c.C1725T:p.S575S,	0.1054	rs12123010	passed
+chr1	202287206	202287206	T	C	hom	27.8	2	41	SNV	0	2	0	0	2	exonic	LGR6	nonsynonymous SNV	LGR6:uc001gxw.2:exon16:c.T1358C:p.V453A,LGR6:uc001gxv.2:exon18:c.T1619C:p.V540A,LGR6:uc001gxu.2:exon18:c.T1775C:p.V592A,	0.6183	rs788795	passed
+chr1	203787700	203787700	T	C	hom	40.8	2	44	SNV	0	2	0	0	2	exonic;splicing	ZC3H11A;ZC3H11A	synonymous SNV	ZC3H11A:uc001had.2:exon6:c.T57C:p.G19G,ZC3H11A:uc001hag.1:exon3:c.T57C:p.G19G,ZC3H11A:uc001haf.2:exon4:c.T57C:p.G19G,ZC3H11A:uc001hac.2:exon6:c.T57C:p.G19G,ZC3H11A:uc001hae.2:exon6:c.T57C:p.G19G,	0.99906	rs4951260	passed
+chr10	1046712	1046712	G	A	hom	39.8	2	44	SNV	2	0	0	0	2	exonic	CRFG,GTPBP4	synonymous SNV	CRFG:uc010qad.1:exon6:c.G402A:p.A134A,GTPBP4:uc010qae.1:exon7:c.G609A:p.A203A,GTPBP4:uc001ift.2:exon7:c.G750A:p.A250A,CRFG:uc010qac.1:exon5:c.G123A:p.A41A,	0.53220	rs2306409	passed
+chr10	13166076	13166076	A	G	hom	75	3	44	SNV	0	0	0	3	3	exonic	OPTN	nonsynonymous SNV	OPTN:uc010qbr.1:exon8:c.A793G:p.K265E,OPTN:uc001ily.1:exon10:c.A946G:p.K316E,OPTN:uc001ilz.1:exon8:c.A946G:p.K316E,OPTN:uc001ilx.1:exon8:c.A964G:p.K322E,OPTN:uc001ilu.1:exon10:c.A964G:p.K322E,OPTN:uc001ilw.1:exon10:c.A964G:p.K322E,OPTN:uc001ilv.1:exon9:c.A964G:p.K322E,	0.99801	rs523747	passed
+chr10	82095968	82095968	T	G	hom	46.8	2	44	SNV	0	0	0	2	2	UTR3	DYDC1	.	.	0.8800	rs1340383	passed
+chr10	88717140	88717140	T	A	hom	43.8	2	40	SNV	2	0	0	0	2	exonic	MMRN2	synonymous SNV	MMRN2:uc001kea.2:exon1:c.A159T:p.V53V,MMRN2:uc009xtb.2:exon1:c.A159T:p.V53V,	0.9751	rs4244973	passed
+chr10	95372734	95372734	G	A	hom	35.8	2	40	SNV	2	0	0	0	2	exonic	PDE6C	synonymous SNV	PDE6C:uc001kiu.3:exon1:c.G252A:p.L84L,	0.1730	rs1131978	passed
+chr10	99205686	99205686	A	G	hom	42.8	2	44	SNV	0	0	0	2	2	ncRNA	EXOSC1	.	.	0.3619	rs2297666	passed
+chr10	104573017	104573017	G	T	hom	41.8	2	40	SNV	0	0	2	0	2	exonic	C10orf26	nonsynonymous SNV	C10orf26:uc001kwf.3:exon4:c.G1021T:p.A341S,C10orf26:uc001kwe.3:exon4:c.G958T:p.A320S,	0.1925	rs284859	passed
+chr10	105344451	105344451	G	A	hom	17.8	2	48	SNV	2	0	0	0	2	exonic	NEURL	nonsynonymous SNV	NEURL:uc001kxh.2:exon4:c.G808A:p.G270S,	0.1957	rs11191737	failed
+chr11	5443963	5443963	G	A	het	22	3	47	SNV	2	0	0	1	3	exonic	OR51Q1	nonsynonymous SNV	OR51Q1:uc010qzd.1:exon1:c.G533A:p.R178H,	0.5744	rs10838095	passed
+chr11	67795380	67795380	-	C	hom	27.2	2	50	INDEL	.	.	.	.	2	exonic;splicing	ALDH3B1;ALDH3B1(uc010rpy.1:c.1371+3->C,uc001omz.2:c.1371+3->C,uc001ona.2:c.1263+3->C)	frameshift insertion	ALDH3B1:uc010rpy.1:exon13:c.1372_1373insC:p.Q458fs,ALDH3B1:uc001omz.2:exon13:c.1372_1373insC:p.Q458fs,ALDH3B1:uc001ona.2:exon11:c.1264_1265insC:p.Q422fs,	.	rs58238184	failed
+chr11	92534442	92534442	A	G	hom	48.8	2	44	SNV	0	0	0	2	2	exonic	FAT3	nonsynonymous SNV	FAT3:uc001pdj.3:exon9:c.A8263G:p.I2755V,	0.86642	rs3847531	passed
+chr11	123513161	123513161	G	A	hom	32.8	2	46	SNV	2	0	0	0	2	exonic	SCN3B	synonymous SNV	SCN3B:uc001pza.1:exon4:c.C438T:p.T146T,SCN3B:uc001pzb.1:exon3:c.C438T:p.T146T,	0.08546	rs1275085	passed
+chr11	125452303	125452303	-	C	hom	27.2	2	47	INDEL	.	.	.	.	2	exonic;splicing	EI24;EI24(uc001qca.2:c.843+4->C,uc001qcb.2:c.732+3->C)	frameshift insertion	EI24:uc010sbe.1:exon10:c.805_806insC:p.L269fs,EI24:uc009zbl.2:exon10:c.847_848insC:p.L283fs,EI24:uc001qcb.2:exon10:c.733_734insC:p.L245fs,EI24:uc001qca.2:exon11:c.845_846insC:p.P282fs,	.	rs55912941	failed
+chr12	235022	235022	C	T	hom	27.8	2	60	SNV	0	0	2	0	2	exonic	IQSEC3	nonsynonymous SNV	IQSEC3:uc001qht.1:exon3:c.C193T:p.P65S,	0.9838	rs12822449	passed
+chr12	50749221	50749221	G	C	hom	38.8	2	35	SNV	0	2	0	0	2	exonic	FAM186A	nonsynonymous SNV	FAM186A:uc010smt.1:exon1:c.C728G:p.A243G,FAM186A:uc001rwl.2:exon4:c.C1394G:p.A465G,	0.99637	rs4435082	passed
+chr12	50749227	50749227	T	G	hom	38.8	2	35	SNV	0	0	0	2	2	exonic	FAM186A	nonsynonymous SNV	FAM186A:uc010smt.1:exon1:c.A722C:p.K241T,FAM186A:uc001rwl.2:exon4:c.A1388C:p.K463T,	0.99819	rs4625558	passed
+chr12	51203371	51203371	C	T	hom	38.8	2	35	SNV	0	0	2	0	2	exonic;splicing	ATF1;ATF1	synonymous SNV	ATF1:uc001rww.3:exon4:c.C327T:p.Y109Y,	0.35822	rs1129406	passed
+chr12	54975837	54975837	T	C	hom	46.8	2	44	SNV	0	2	0	0	2	exonic	PPP1R1A	nonsynonymous SNV	PPP1R1A:uc001sgg.2:exon5:c.A326G:p.E109G,	0.9970	rs1249958	passed
+chr12	129189941	129189941	G	A	hom	42.8	2	44	SNV	2	0	0	0	2	exonic	TMEM132C	nonsynonymous SNV	TMEM132C:uc001uhs.3:exon8:c.G2092A:p.G698R,	0.5789	rs12424159	passed
+chr13	24243200	24243200	T	C	hom	44.8	2	44	SNV	0	2	0	0	2	exonic	TNFRSF19	synonymous SNV	TNFRSF19:uc001uow.2:exon9:c.T1209C:p.G403G,TNFRSF19:uc010tcu.1:exon7:c.T813C:p.G271G,TNFRSF19:uc001uot.2:exon9:c.T1209C:p.G403G,TNFRSF19:uc001uov.1:exon9:c.T1209C:p.G403G,	0.86248	rs3751363	passed
+chr13	31036681	31036681	A	G	hom	11.1	2	29	SNV	0	0	0	2	2	exonic	HMG1L1,HMG1L10,HMGB1	synonymous SNV	HMG1L1:uc001usy.2:exon4:c.T348C:p.Y116Y,HMGB1:uc001usz.2:exon4:c.T465C:p.Y155Y,HMGB1:uc001usx.2:exon4:c.T465C:p.Y155Y,HMGB1:uc001usw.2:exon4:c.T465C:p.Y155Y,HMG1L10:uc001uta.1:exon4:c.T465C:p.Y155Y,HMG1L10:uc001usv.2:exon3:c.T465C:p.Y155Y,	0.99910	rs1929606	failed
+chr13	52603194	52603194	G	T	het	39	3	46	SNV	0	0	2	1	3	exonic	UTP14C	nonsynonymous SNV	UTP14C:uc001vgb.2:exon2:c.G254T:p.G85V,	0.68877	rs3742289	passed
+chr13	111111173	111111173	G	A	hom	45.8	2	44	SNV	2	0	0	0	2	exonic	COL4A2	synonymous SNV	COL4A2:uc001vqx.2:exon22:c.G1488A:p.P496P,	0.58511	rs7990214	passed
+chr14	50251369	50251369	A	G	hom	29.8	2	46	SNV	0	0	0	2	2	exonic	SDCCAG1	synonymous SNV	SDCCAG1:uc001wxc.2:exon33:c.T3216C:p.N1072N,SDCCAG1:uc001wwz.2:exon10:c.T816C:p.N272N,SDCCAG1:uc010tqi.1:exon32:c.T3153C:p.N1051N,SDCCAG1:uc001wxa.2:exon11:c.T1056C:p.N352N,SDCCAG1:uc010anj.1:exon33:c.T3216C:p.N1072N,	0.99906	rs10143621	passed
+chr14	73963383	73963383	T	C	hom	45.8	2	44	SNV	0	2	0	0	2	splicing	HEATR4(uc010tua.1:c.2405-2A>G)	.	.	0.73383	rs8014577	passed
+chr14	94756794	94756794	T	C	hom	48.8	2	44	SNV	0	2	0	0	2	exonic	SERPINA10	nonsynonymous SNV	SERPINA10:uc001yct.2:exon2:c.A137G:p.K46R,SERPINA10:uc001ycu.3:exon2:c.A137G:p.K46R,	0.7689	rs941590	passed
+chr14	105350868	105350868	C	T	hom	43.8	2	44	SNV	0	0	2	0	2	exonic	KIAA0284	synonymous SNV	KIAA0284:uc010axb.2:exon9:c.C1752T:p.A584A,KIAA0284:uc001yps.2:exon5:c.C1470T:p.A490A,KIAA0284:uc001ypr.2:exon8:c.C1542T:p.A514A,	0.7266	rs9788594	passed
+chr15	45047573	45047573	C	T	hom	48.8	2	44	SNV	0	0	2	0	2	exonic;splicing	TRIM69;TRIM69	nonsynonymous SNV	TRIM69:uc001zug.1:exon2:c.C482T:p.T161M,TRIM69:uc001zuf.2:exon3:c.C482T:p.T161M,	0.82482	rs3100139	passed
+chr15	48053229	48053229	C	A	hom	48.8	2	44	SNV	2	0	0	0	2	exonic	SEMA6D	synonymous SNV	SEMA6D:uc001zvy.2:exon4:c.C276A:p.P92P,SEMA6D:uc001zvx.1:exon4:c.C276A:p.P92P,SEMA6D:uc001zvw.2:exon7:c.C276A:p.P92P,SEMA6D:uc001zwa.2:exon4:c.C276A:p.P92P,SEMA6D:uc001zvz.2:exon4:c.C276A:p.P92P,SEMA6D:uc010bek.2:exon4:c.C276A:p.P92P,SEMA6D:uc001zwb.2:exon4:c.C276A:p.P92P,SEMA6D:uc001zwc.2:exon4:c.C276A:p.P92P,	0.5567	rs501916	passed
+chr15	67768151	67768151	G	C	hom	48.8	2	44	SNV	0	2	0	0	2	exonic	IQCH	nonsynonymous SNV	IQCH:uc002aqo.1:exon18:c.G2794C:p.V932L,IQCH:uc002aqq.1:exon13:c.G1765C:p.V589L,IQCH:uc002aqp.1:exon15:c.G1777C:p.V593L,	1.00000	rs3985641	passed
+chr15	80263406	80263406	C	T	hom	41.8	2	44	SNV	0	0	2	0	2	exonic	BCL2A1	nonsynonymous SNV	BCL2A1:uc002bfc.3:exon1:c.G56A:p.C19Y,BCL2A1:uc002bfd.3:exon1:c.G56A:p.C19Y,	0.4389	rs1138357	passed
+chr15	90210263	90210263	A	G	hom	28.8	2	47	SNV	0	0	0	2	2	exonic	PLIN1	synonymous SNV	PLIN1:uc010upx.1:exon8:c.T1113C:p.P371P,PLIN1:uc002boh.2:exon8:c.T1113C:p.P371P,	0.3337	rs2304795	passed
+chr15	90213229	90213229	G	C	hom	45.8	2	44	SNV	0	2	0	0	2	exonic	PLIN1	nonsynonymous SNV	PLIN1:uc010upx.1:exon5:c.C580G:p.P194A,PLIN1:uc002boh.2:exon5:c.C580G:p.P194A,	0.9567	rs6496589	passed
+chr16	427784	427784	G	A	hom	66	3	38	SNV	3	0	0	0	3	exonic	TMEM8A	synonymous SNV	TMEM8A:uc002cgu.3:exon2:c.C186T:p.Y62Y,	0.5191	rs11641742	passed
+chr16	427820	427820	C	T	hom	38.8	2	35	SNV	0	0	2	0	2	exonic	TMEM8A	synonymous SNV	TMEM8A:uc002cgu.3:exon2:c.G150A:p.S50S,	0.5122	rs12922073	passed
+chr16	705795	705795	C	T	hom	31.8	2	46	SNV	0	0	2	0	2	exonic	WDR90	synonymous SNV	WDR90:uc002cik.1:exon3:c.C453T:p.S151S,WDR90:uc002cih.1:exon17:c.C1875T:p.S625S,WDR90:uc002cig.1:exon17:c.C1872T:p.S624S,WDR90:uc002cii.1:exon17:c.C1872T:p.S624S,	0.2422	rs12599798	passed
+chr16	717523	717523	G	T	hom	38.8	2	35	SNV	0	0	2	0	2	exonic	WDR90	synonymous SNV	WDR90:uc002cin.1:exon12:c.G1026T:p.P342P,WDR90:uc010bqx.1:exon6:c.G834T:p.P278P,WDR90:uc002cio.1:exon7:c.G978T:p.P326P,WDR90:uc002cii.1:exon41:c.G5181T:p.P1727P,	0.8408	rs3752493	passed
+chr16	717544	717544	G	C	hom	38.8	2	35	SNV	0	2	0	0	2	exonic	WDR90	synonymous SNV	WDR90:uc002cin.1:exon12:c.G1047C:p.T349T,WDR90:uc010bqx.1:exon6:c.G855C:p.T285T,WDR90:uc002cio.1:exon7:c.G999C:p.T333T,WDR90:uc002cii.1:exon41:c.G5202C:p.T1734T,	0.4841	rs3752492	passed
+chr16	1260481	1260481	T	C	hom	48.8	2	44	SNV	0	2	0	0	2	exonic	CACNA1H	synonymous SNV	CACNA1H:uc002cku.2:exon2:c.T75C:p.D25D,CACNA1H:uc002ckv.2:exon2:c.T75C:p.D25D,CACNA1H:uc002ckt.2:exon19:c.T3957C:p.D1319D,CACNA1H:uc010brj.2:exon2:c.T75C:p.D25D,CACNA1H:uc002cks.2:exon19:c.T3957C:p.D1319D,	0.8307	rs8063574	passed
+chr16	4445327	4445327	C	T	hom	47.8	2	44	SNV	0	0	2	0	2	exonic	CORO7	nonsynonymous SNV	CORO7:uc002cwh.3:exon7:c.G578A:p.R193Q,CORO7:uc002cwf.2:exon7:c.G578A:p.R193Q,CORO7:uc010uxi.1:exon5:c.G323A:p.R108Q,CORO7:uc010uxh.1:exon7:c.G524A:p.R175Q,	0.6890	rs3747579	passed
+chr16	28513403	28513403	A	G	hom	47.8	2	44	SNV	0	0	0	2	2	exonic	IL27	nonsynonymous SNV	IL27:uc002dqc.2:exon4:c.T356C:p.L119P,	0.2673	rs181206	passed
+chr16	33965507	33965507	G	C	hom	39.1	8	18	SNV	1	8	0	1	10	intergenic	BC068290(dist=178981),UBE2MP1(dist=438295)	.	.	.	rs74614199	passed
+chr16	57702274	57702274	G	T	hom	29.8	2	44	SNV	0	0	2	0	2	exonic	GPR97	nonsynonymous SNV	GPR97:uc002emh.2:exon1:c.G15T:p.R5S,GPR97:uc010cdc.2:exon1:c.G15T:p.R5S,	0.1308	rs62039891	passed
+chr16	71509796	71509796	C	G	hom	33.8	2	44	SNV	0	0	0	2	2	exonic	ZNF19	nonsynonymous SNV	ZNF19:uc002fal.1:exon5:c.G618C:p.Q206H,ZNF19:uc002fak.1:exon5:c.G618C:p.Q206H,ZNF19:uc010cgc.1:exon6:c.G654C:p.Q218H,ZNF19:uc002fam.1:exon6:c.G654C:p.Q218H,	0.66209	rs8050871	passed
+chr16	71988106	71988106	C	T	hom	48.8	2	44	SNV	0	0	2	0	2	exonic	PKD1L3	nonsynonymous SNV	PKD1L3:uc010vmm.1:exon17:c.G2707A:p.V903I,	0.76404	rs9921412	passed
+chr17	1373612	1373612	C	T	hom	6.98	2	47	SNV	0	0	1	1	2	exonic	MYO1C	nonsynonymous SNV	MYO1C:uc002fsn.2:exon24:c.G2326A:p.V776I,MYO1C:uc002fso.2:exon24:c.G2278A:p.V760I,MYO1C:uc002fsp.2:exon24:c.G2383A:p.V795I,MYO1C:uc010vqj.1:exon24:c.G2278A:p.V760I,	0.8949	rs8081370	failed
+chr17	33478187	33478187	A	G	hom	222	82	34	SNV	0	0	0	31	31	intronic	UNC45B	.	.	.	rs62062408	passed
+chr17	33478216	33478216	T	C	het	181	59	33	SNV	0	19	7	0	26	intronic	UNC45B	.	.	.	rs12165042	passed
+chr17	33478229	33478229	A	T	hom	222	53	34	SNV	0	0	22	0	22	intronic	UNC45B	.	.	.	rs28625679	passed
+chr17	39619193	39619193	C	T	hom	37.8	2	44	SNV	0	0	2	0	2	exonic	KRT32	nonsynonymous SNV	KRT32:uc002hwr.2:exon6:c.G1106A:p.R369Q,	0.1607	rs11078993	passed
+chr17	41244000	41244000	T	C	hom	48.8	2	44	SNV	0	2	0	0	2	exonic	BRCA1	nonsynonymous SNV	BRCA1:uc002icp.3:exon10:c.A3335G:p.K1112R,BRCA1:uc010cyy.1:exon10:c.A3548G:p.K1183R,BRCA1:uc010wht.1:exon2:c.A2660G:p.K887R,BRCA1:uc010cza.2:exon9:c.A3470G:p.K1157R,BRCA1:uc010whs.1:exon10:c.A3548G:p.K1183R,BRCA1:uc002idd.2:exon9:c.A3548G:p.K1183R,BRCA1:uc002ide.1:exon4:c.A3041G:p.K1014R,BRCA1:uc010cyx.2:exon9:c.A3407G:p.K1136R,BRCA1:uc002icq.2:exon10:c.A3548G:p.K1183R,BRCA1:uc010cyz.2:exon11:c.A3407G:p.K1136R,BRCA1:uc002ict.2:exon10:c.A3548G:p.K1183R,	0.35649	rs16942	passed
+chr17	45216210	45216210	A	G	hom	11.1	2	21	SNV	0	0	0	3	3	exonic	CDC27	synonymous SNV	CDC27:uc002ild.3:exon13:c.T1599C:p.V533V,CDC27:uc002ilf.3:exon13:c.T1596C:p.V532V,CDC27:uc002ile.3:exon13:c.T1617C:p.V539V,CDC27:uc010wkp.1:exon12:c.T1416C:p.V472V,	.	rs62075659	failed
+chr17	45216216	45216216	A	G	hom	11.1	2	21	SNV	0	0	0	3	3	exonic	CDC27	synonymous SNV	CDC27:uc002ild.3:exon13:c.T1593C:p.Y531Y,CDC27:uc002ilf.3:exon13:c.T1590C:p.Y530Y,CDC27:uc002ile.3:exon13:c.T1611C:p.Y537Y,CDC27:uc010wkp.1:exon12:c.T1410C:p.Y470Y,	.	rs62077260	failed
+chr17	45216231	45216231	T	C	hom	11.1	2	21	SNV	0	3	0	0	3	exonic	CDC27	synonymous SNV	CDC27:uc002ild.3:exon13:c.A1578G:p.R526R,CDC27:uc002ilf.3:exon13:c.A1575G:p.R525R,CDC27:uc002ile.3:exon13:c.A1596G:p.R532R,CDC27:uc010wkp.1:exon12:c.A1395G:p.R465R,	.	rs76715333	failed
+chr17	45234298	45234298	G	C	het	84	11	32	SNV	0	7	0	3	9	exonic	CDC27	nonsynonymous SNV	CDC27:uc002ild.3:exon7:c.C823G:p.L275V,CDC27:uc002ilf.3:exon7:c.C823G:p.L275V,CDC27:uc002ile.3:exon7:c.C823G:p.L275V,CDC27:uc010wkp.1:exon6:c.C640G:p.L214V,	.	rs62077263	passed
+chr17	45234343	45234343	T	G	hom	126	19	27	SNV	0	0	1	17	18	exonic	CDC27	nonsynonymous SNV	CDC27:uc002ild.3:exon7:c.A778C:p.N260H,CDC27:uc002ilf.3:exon7:c.A778C:p.N260H,CDC27:uc002ile.3:exon7:c.A778C:p.N260H,CDC27:uc010wkp.1:exon6:c.A595C:p.N199H,	.	rs3208659	passed
+chr17	45234360	45234360	A	C	het	88	12	26	SNV	1	13	0	0	14	exonic	CDC27	stopgain SNV	CDC27:uc002ild.3:exon7:c.T761G:p.L254X,CDC27:uc002ilf.3:exon7:c.T761G:p.L254X,CDC27:uc002ile.3:exon7:c.T761G:p.L254X,CDC27:uc010wkp.1:exon6:c.T578G:p.L193X,	.	rs62077264	passed
+chr17	45234626	45234626	T	G	hom	13.2	3	16	SNV	0	0	0	6	6	exonic	CDC27	synonymous SNV	CDC27:uc002ild.3:exon6:c.A600C:p.T200T,CDC27:uc002ilf.3:exon6:c.A600C:p.T200T,CDC27:uc002ile.3:exon6:c.A600C:p.T200T,CDC27:uc010wkp.1:exon5:c.A417C:p.T139T,	.	rs76359747	failed
+chr17	45234632	45234632	A	G	hom	13.2	3	16	SNV	0	0	0	7	7	exonic	CDC27	synonymous SNV	CDC27:uc002ild.3:exon6:c.T594C:p.P198P,CDC27:uc002ilf.3:exon6:c.T594C:p.P198P,CDC27:uc002ile.3:exon6:c.T594C:p.P198P,CDC27:uc010wkp.1:exon5:c.T411C:p.P137P,	.	rs75175938	failed
+chr17	45234645	45234645	G	C	hom	13.2	3	16	SNV	0	8	0	0	8	exonic	CDC27	nonsynonymous SNV	CDC27:uc002ild.3:exon6:c.C581G:p.S194C,CDC27:uc002ilf.3:exon6:c.C581G:p.S194C,CDC27:uc002ile.3:exon6:c.C581G:p.S194C,CDC27:uc010wkp.1:exon5:c.C398G:p.S133C,	.	rs75990396	failed
+chr17	45249306	45249306	T	C	hom	23.5	4	16	SNV	0	3	0	0	3	exonic	CDC27	synonymous SNV	CDC27:uc002ild.3:exon3:c.A228G:p.A76A,CDC27:uc002ilf.3:exon3:c.A228G:p.A76A,CDC27:uc002ile.3:exon3:c.A228G:p.A76A,	.	rs62077265	passed
+chr17	45249316	45249316	T	C	hom	23.5	4	16	SNV	0	4	0	0	4	exonic	CDC27	nonsynonymous SNV	CDC27:uc002ild.3:exon3:c.A218G:p.Y73C,CDC27:uc002ilf.3:exon3:c.A218G:p.Y73C,CDC27:uc002ile.3:exon3:c.A218G:p.Y73C,	.	rs62077266	passed
+chr17	45249330	45249330	T	G	hom	35.3	5	16	SNV	0	0	0	6	6	exonic	CDC27	synonymous SNV	CDC27:uc002ild.3:exon3:c.A204C:p.T68T,CDC27:uc002ilf.3:exon3:c.A204C:p.T68T,CDC27:uc002ile.3:exon3:c.A204C:p.T68T,	.	rs1058201	passed
+chr17	45258951	45258951	A	G	hom	30	3	24	SNV	0	0	0	0	0	exonic	CDC27	nonsynonymous SNV	CDC27:uc002ild.3:exon2:c.T80C:p.L27P,CDC27:uc002ilf.3:exon2:c.T80C:p.L27P,CDC27:uc002ile.3:exon2:c.T80C:p.L27P,	.	rs62077275	passed
+chr17	45258954	45258954	A	G	hom	30	3	24	SNV	0	0	0	0	0	exonic	CDC27	nonsynonymous SNV	CDC27:uc002ild.3:exon2:c.T77C:p.F26S,CDC27:uc002ilf.3:exon2:c.T77C:p.F26S,CDC27:uc002ile.3:exon2:c.T77C:p.F26S,	.	rs62077276	passed
+chr17	45266522	45266522	T	C	hom	40	5	26	SNV	0	3	0	0	3	exonic	CDC27	nonsynonymous SNV	CDC27:uc002ild.3:exon1:c.A17G:p.E6G,CDC27:uc002ilf.3:exon1:c.A17G:p.E6G,CDC27:uc002ile.3:exon1:c.A17G:p.E6G,	.	rs62077279	passed
+chr17	45266535	45266535	T	C	hom	108	8	30	SNV	0	5	0	0	5	exonic	CDC27	nonsynonymous SNV	CDC27:uc002ild.3:exon1:c.A4G:p.T2A,CDC27:uc002ilf.3:exon1:c.A4G:p.T2A,CDC27:uc002ile.3:exon1:c.A4G:p.T2A,	.	rs62077280	passed
+chr17	45266571	45266571	T	A	het	78	9	30	SNV	6	0	0	0	6	ncRNA	CDC27	.	.	.	rs62077281	passed
+chr17	53851228	53851228	C	T	hom	48.8	2	44	SNV	0	0	2	0	2	exonic	PC-TP,PCTP	nonsynonymous SNV	PC-TP:uc010dcg.2:exon4:c.C335T:p.S112L,	0.92644	rs2960062	passed
+chr17	73625286	73625286	G	A	hom	48.8	2	44	SNV	2	0	0	0	2	exonic	RECQL5	synonymous SNV	RECQL5:uc010dgl.2:exon16:c.C2217T:p.S739S,RECQL5:uc010dgk.2:exon15:c.C2136T:p.S712S,	0.3153	rs820190	passed
+chr17	79770740	79770740	C	T	hom	32.8	2	47	SNV	0	0	2	0	2	exonic	GCGR	synonymous SNV	GCGR:uc010wuw.1:exon12:c.C1095T:p.F365F,GCGR:uc010wux.1:exon11:c.C1185T:p.F395F,	0.1731	rs5384	passed
+chr17	80159566	80159566	T	C	hom	43.8	2	44	SNV	0	2	0	0	2	exonic	CCDC57	synonymous SNV	CCDC57:uc002kdz.1:exon3:c.A255G:p.E85E,CCDC57:uc002kdx.1:exon2:c.A255G:p.E85E,	0.7216	rs8072670	passed
+chr18	14796214	14796214	G	T	hom	48.8	2	40	SNV	0	0	2	0	2	ncRNA	ANKRD30B	.	.	0.44073	rs9303863	passed
+chr18	33779896	33779896	A	G	hom	37.8	2	44	SNV	0	0	0	2	2	exonic	MOCOS	nonsynonymous SNV	MOCOS:uc002kzq.3:exon4:c.A550G:p.S184G,	1.00000	rs540967	passed
+chr19	580388	580388	C	G	hom	46.8	2	44	SNV	0	0	0	2	2	exonic	BSG	synonymous SNV	BSG:uc002loz.2:exon4:c.C582G:p.S194S,BSG:uc002lpc.2:exon2:c.C723G:p.S241S,BSG:uc002loy.2:exon2:c.C42G:p.S14S,BSG:uc002lpa.2:exon3:c.C234G:p.S78S,BSG:uc010drr.2:exon3:c.C234G:p.S78S,	0.1437	rs2229664	passed
+chr19	10444603	10444603	C	G	hom	35.8	2	44	SNV	0	0	0	2	2	exonic	ICAM3	nonsynonymous SNV	ICAM3:uc002mob.2:exon7:c.G1574C:p.S525T,ICAM3:uc010dxd.1:exon7:c.G1343C:p.S448T,	0.1970	rs2230399	passed
+chr19	17306031	17306031	T	C	hom	48.8	2	44	SNV	0	2	0	0	2	exonic	MYO9B	synonymous SNV	MYO9B:uc002nfi.2:exon22:c.T3795C:p.P1265P,MYO9B:uc010eak.2:exon22:c.T3795C:p.P1265P,MYO9B:uc002nfj.1:exon21:c.T3795C:p.P1265P,	0.7581	rs2279003	passed
+chr19	41869392	41869392	T	C	hom	47.8	2	44	SNV	0	2	0	0	2	exonic	B9D2	nonsynonymous SNV	B9D2:uc002oqj.2:exon2:c.A33G:p.I11M,	0.6365	rs2241714	passed
+chr19	44590558	44590558	C	T	hom	48.8	2	44	SNV	0	0	2	0	2	exonic	ZNF284	synonymous SNV	ZNF284:uc002oyg.1:exon5:c.C927T:p.H309H,	0.59710	rs7255701	passed
+chr19	44611066	44611066	T	C	hom	47.8	2	44	SNV	0	2	0	0	2	exonic	ZNF224	synonymous SNV	ZNF224:uc002oyh.1:exon6:c.T753C:p.H251H,	0.76306	rs7508149	passed
+chr19	49640002	49640002	G	T	hom	43.8	2	40	SNV	0	0	2	0	2	exonic	PPFIA3	nonsynonymous SNV	PPFIA3:uc010emt.2:exon13:c.G1459T:p.A487S,PPFIA3:uc002pmr.2:exon15:c.G1687T:p.A563S,PPFIA3:uc002pms.2:exon12:c.G1291T:p.A431S,	0.4723	rs2303053	passed
+chr19	54974318	54974318	T	C	hom	40.8	2	44	SNV	0	2	0	0	2	exonic	LENG9	nonsynonymous SNV	LENG9:uc010yez.1:exon1:c.A458G:p.H153R,	0.6207	rs10406453	passed
+chr19	55329783	55329783	A	G	hom	43.8	2	44	SNV	0	0	0	2	2	exonic	KIR3DL1,KIR3DS1	synonymous SNV	KIR3DS1:uc002qhl.3:exon3:c.A84G:p.K28K,KIR3DL1:uc002qhk.3:exon3:c.A84G:p.K28K,	0.3918	rs642893	passed
+chr2	24974945	24974945	T	G	hom	47.8	2	44	SNV	0	0	0	2	2	exonic	NCOA1,PAX3/NCOA1 fusion	synonymous SNV	NCOA1:uc002rfl.2:exon18:c.T3801G:p.L1267L,NCOA1:uc010eye.2:exon19:c.T3801G:p.L1267L,NCOA1:uc002rfi.2:exon18:c.T3348G:p.L1116L,NCOA1:uc002rfj.2:exon18:c.T3801G:p.L1267L,PAX3/NCOA1 fusion:uc010eyf.2:exon2:c.T480G:p.L160L,NCOA1:uc002rfk.2:exon18:c.T3801G:p.L1267L,	0.89870	rs11125763	passed
+chr2	74692191	74692191	C	T	hom	28.8	2	45	SNV	0	0	2	0	2	exonic	GCS1,MOGS	nonsynonymous SNV	GCS1:uc010yru.1:exon1:c.G184A:p.V62M,MOGS:uc010ffj.2:exon1:c.G184A:p.V62M,	0.0640	rs79181168	passed
+chr2	113346480	113346480	G	A	hom	18.8	2	25	SNV	2	0	0	0	2	UTR3	CHCHD5	.	.	0.1164	rs41278942	failed
+chr2	114035923	114035923	A	G	hom	47.8	2	44	SNV	0	0	0	2	2	intronic	PAX8	.	.	0.3578	rs1867763	passed
+chr2	121036333	121036333	G	A	hom	47.8	2	44	SNV	2	0	0	0	2	exonic	RALB	synonymous SNV	RALB:uc010yys.1:exon2:c.G159A:p.T53T,RALB:uc002tmk.2:exon2:c.G93A:p.T31T,RALB:uc002tml.2:exon2:c.G93A:p.T31T,	0.09109	rs11545293	passed
+chr2	179600475	179600475	C	T	hom	48.8	2	44	SNV	0	0	2	0	2	exonic	TTN	nonsynonymous SNV	TTN:uc010zfg.1:exon47:c.G10966A:p.A3656T,TTN:uc002umz.1:exon5:c.G949A:p.A317T,	0.00820	rs72648923	passed
+chr2	220505265	220505265	T	C	hom	48.8	2	44	SNV	0	2	0	0	2	exonic	SLC4A3	synonymous SNV	SLC4A3:uc002vmo.3:exon21:c.T3472C:p.L1158L,SLC4A3:uc010fwm.2:exon21:c.T2041C:p.L681L,SLC4A3:uc002vmp.3:exon21:c.T3391C:p.L1131L,	0.8029	rs684428	passed
+chr20	26188824	26188824	T	C	hom	102	15	32	SNV	2	10	0	0	12	ncRNA	BC036544	.	.	.	rs28670321	passed
+chr20	26188912	26188912	A	C	hom	120	13	29	SNV	0	20	0	0	20	ncRNA	BC036544	.	.	.	rs7266947	passed
+chr20	26188923	26188923	A	C	hom	95	10	24	SNV	0	20	0	0	20	ncRNA	BC036544	.	.	.	rs62196805	passed
+chr20	36869516	36869516	C	A	hom	41.8	3	44	SNV	3	0	0	0	3	exonic	KIAA1755	nonsynonymous SNV	KIAA1755:uc002xhy.1:exon3:c.G1017T:p.K339N,KIAA1755:uc002xhz.1:exon3:c.G1017T:p.K339N,	0.28937	rs1205434	passed
+chr20	43379454	43379454	T	C	hom	39.8	2	44	SNV	0	2	0	0	2	exonic	KCNK15	nonsynonymous SNV	KCNK15:uc002xmr.2:exon2:c.T968C:p.L323P,	0.4911	rs13042905	passed
+chr20	62320968	62320968	T	C	hom	48.8	2	44	SNV	0	2	0	0	2	exonic	RTEL1	synonymous SNV	RTEL1:uc011abd.1:exon23:c.T2064C:p.D688D,RTEL1:uc002yft.1:exon23:c.T1992C:p.D664D,RTEL1:uc002yfu.1:exon23:c.T1992C:p.D664D,RTEL1:uc011abe.1:exon22:c.T1323C:p.D441D,	0.7574	rs6062302	passed
+chr21	46021390	46021390	G	C	hom	21.8	2	29	SNV	0	2	0	0	2	exonic	KRTAP10-7	nonsynonymous SNV	KRTAP10-7:uc002zfn.3:exon2:c.G854C:p.S285T,	0.9231	rs446817	passed
+chr21	46067180	46067180	C	T	hom	78	4	44	SNV	0	0	4	0	4	exonic	KRTAP10-11	nonsynonymous SNV	KRTAP10-11:uc002zfr.3:exon1:c.C805T:p.R269C,	0.8106	rs462007	passed
+chr21	47538960	47538960	G	A	hom	44.8	2	44	SNV	2	0	0	0	2	exonic	COL6A2	nonsynonymous SNV	COL6A2:uc002zhy.1:exon14:c.G1196A:p.S399N,COL6A2:uc002zia.1:exon14:c.G1196A:p.S399N,COL6A2:uc002zhz.1:exon14:c.G1196A:p.S399N,	0.8492	rs2839110	passed
+chr22	34009972	34009972	C	T	hom	62	3	45	SNV	0	0	3	0	3	intronic	LARGE	.	.	0.72727	rs2283922	passed
+chr22	40054948	40054948	T	C	hom	35.8	2	44	SNV	0	2	0	0	2	exonic	CACNA1I	synonymous SNV	CACNA1I:uc003aye.2:exon11:c.T1902C:p.I634I,CACNA1I:uc003ayc.2:exon12:c.T2157C:p.I719I,CACNA1I:uc003ayd.2:exon11:c.T2052C:p.I684I,CACNA1I:uc003ayf.2:exon10:c.T1797C:p.I599I,	0.8913	rs5757761	passed
+chr3	42700630	42700630	A	G	hom	23.8	2	47	SNV	0	0	0	2	2	exonic	AK127065	synonymous SNV	AK127065:uc003clt.1:exon2:c.A783G:p.P261P,	0.6429	rs339723	passed
+chr3	47518266	47518266	C	T	hom	46.8	2	44	SNV	0	0	2	0	2	upstream	SCAP	.	.	0.5013	rs11716763	passed
+chr3	51978220	51978220	A	G	hom	28.8	2	46	SNV	0	0	0	2	2	exonic	PARP3	nonsynonymous SNV	PARP3:uc003dbz.2:exon3:c.A320G:p.H107R,PARP3:uc003dby.2:exon3:c.A299G:p.H100R,	0.9870	rs28547534	passed
+chr3	75787372	75787372	A	T	het	27	4	40	SNV	2	0	2	0	4	exonic	ZNF717	nonsynonymous SNV	ZNF717:uc011bgi.1:exon5:c.T1402A:p.L468I,	0.1175	rs62250108	passed
+chr3	75787382	75787382	T	C	het	32	4	40	SNV	0	2	2	0	4	exonic	ZNF717	synonymous SNV	ZNF717:uc011bgi.1:exon5:c.A1392G:p.S464S,	0.2891	rs3009014	passed
+chr3	75787794	75787794	A	G	hom	28.8	2	38	SNV	0	0	0	2	2	exonic	ZNF717	nonsynonymous SNV	ZNF717:uc011bgi.1:exon5:c.T980C:p.I327T,	.	rs75467043	passed
+chr3	121641693	121641693	G	A	het	37	4	47	SNV	2	0	0	2	4	exonic	SLC15A2	synonymous SNV	SLC15A2:uc003eep.2:exon9:c.G852A:p.A284A,SLC15A2:uc011bjn.1:exon8:c.G759A:p.A253A,	0.5597	rs2293616	passed
+chr3	125875915	125875915	C	G	het	8.65	3	49	SNV	0	1	0	2	3	ncRNA	DKFZp434O2417	.	.	0.0959	rs4646704	failed
+chr4	5795412	5795412	C	T	hom	41.8	2	44	SNV	0	0	2	0	2	exonic	EVC	synonymous SNV	EVC:uc003gil.1:exon13:c.C1854T:p.G618G,	0.4270	rs11737221	passed
+chr4	83788344	83788344	A	T	hom	46.8	2	44	SNV	0	0	2	0	2	exonic	SEC31A	synonymous SNV	SEC31A:uc003hnk.2:exon9:c.T1008A:p.G336G,SEC31A:uc003hno.2:exon9:c.T1008A:p.G336G,SEC31A:uc011ccl.1:exon9:c.T1008A:p.G336G,SEC31A:uc003hni.2:exon9:c.T1008A:p.G336G,SEC31A:uc003hnh.2:exon9:c.T1008A:p.G336G,SEC31A:uc003hnm.2:exon11:c.T1008A:p.G336G,SEC31A:uc003hnl.2:exon9:c.T1008A:p.G336G,SEC31A:uc003hnn.1:exon9:c.T1008A:p.G336G,SEC31A:uc011ccn.1:exon9:c.T1008A:p.G336G,SEC31A:uc011ccm.1:exon8:c.T993A:p.G331G,SEC31A:uc003hnj.2:exon9:c.T1008A:p.G336G,SEC31A:uc003hng.2:exon9:c.T1008A:p.G336G,SEC31A:uc003hnf.2:exon9:c.T1008A:p.G336G,SEC31A:uc003hne.2:exon3:c.T324A:p.G108G,	1.00000	rs2045478	passed
+chr4	100140306	100140306	A	T	hom	47.8	2	44	SNV	0	0	2	0	2	exonic	ADH6	nonsynonymous SNV	ADH6:uc003huo.2:exon1:c.T4A:p.C2S,ADH6:uc010ile.2:exon1:c.T4A:p.C2S,ADH6:uc003hup.3:exon1:c.T4A:p.C2S,	0.99728	rs4699735	passed
+chr4	169049312	169049312	A	T	hom	29.8	2	46	SNV	0	0	2	0	2	exonic	ANXA10	synonymous SNV	ANXA10:uc003irm.2:exon2:c.A96T:p.G32G,	0.01487	rs56253080	passed
+chr5	112312676	112312676	T	C	hom	37.8	2	40	SNV	0	2	0	0	2	exonic	DCP2	nonsynonymous SNV	DCP2:uc003kqh.2:exon1:c.T46C:p.F16L,	1.0000	rs33555	passed
+chr5	150945699	150945699	G	A	hom	29.8	2	45	SNV	2	0	0	0	2	exonic	FAT2	synonymous SNV	FAT2:uc010jhx.1:exon1:c.C2794T:p.L932L,FAT2:uc003lue.3:exon1:c.C2794T:p.L932L,	0.48289	rs10085060	passed
+chr5	154395158	154395158	G	T	hom	44.8	2	44	SNV	0	0	2	0	2	exonic	KIF4B	nonsynonymous SNV	KIF4B:uc010jih.1:exon1:c.G1739T:p.R580L,	0.71350	rs6580126	passed
+chr5	176930135	176930135	G	A	hom	40.8	2	44	SNV	2	0	0	0	2	exonic	DOK3	nonsynonymous SNV	DOK3:uc003mhi.3:exon6:c.C904T:p.R302C,DOK3:uc003mhj.3:exon5:c.C598T:p.R200C,DOK3:uc003mhh.3:exon4:c.C562T:p.R188C,	0.9928	rs28376231	passed
+chr6	32063681	32063681	C	T	hom	48.8	2	44	SNV	0	0	2	0	2	exonic	TNXB	nonsynonymous SNV	TNXB:uc003nzl.2:exon3:c.G1949A:p.R650H,	0.1211	rs17201602	passed
+chr6	32487309	32487309	T	C	hom	48.8	2	44	SNV	0	2	0	0	2	exonic	HLA-DRB5	nonsynonymous SNV	HLA-DRB5:uc003obk.3:exon3:c.A490G:p.S164G,HLA-DRB5:uc003obj.2:exon3:c.A490G:p.S164G,	.	rs3200405	passed
+chr6	33256471	33256471	T	C	hom	36.8	2	44	SNV	0	2	0	0	2	exonic;splicing	WDR46;WDR46	nonsynonymous SNV	WDR46:uc011dra.1:exon3:c.A118G:p.T40A,WDR46:uc003ods.2:exon3:c.A280G:p.T94A,	0.8908	rs3130257	passed
+chr6	41754575	41754575	-	TCT	hom	61.2	2	50	INDEL	.	.	.	.	2	exonic	PRICKLE4	nonframeshift insertion	PRICKLE4:uc011duf.1:exon8:c.863_864insTCT:p.L288delinsLL,	.	rs76510495	passed
+chr6	57398270	57398270	C	T	hom	20.8	2	29	SNV	0	0	2	0	2	exonic	PRIM2	stopgain SNV	PRIM2:uc003pdx.2:exon10:c.C973T:p.Q325X,	.	rs62398999	passed
+chr6	74125888	74125888	A	G	hom	30.8	2	43	SNV	0	0	0	2	2	exonic	DDX43	nonsynonymous SNV	DDX43:uc003pgw.2:exon16:c.A1886G:p.Q629R,	0.53539	rs311685	passed
+chr6	105821449	105821449	A	G	hom	47.8	2	44	SNV	0	0	0	2	2	exonic	PREP	synonymous SNV	PREP:uc003prc.2:exon5:c.T390C:p.Y130Y,	0.6601	rs9486069	passed
+chr6	146126419	146126419	C	T	hom	34.8	2	46	SNV	0	0	2	0	2	exonic	FBXO30	nonsynonymous SNV	FBXO30:uc003qla.2:exon2:c.G1123A:p.V375M,	0.35909	rs9373475	passed
+chr7	5391702	5391702	C	G	hom	78	3	44	SNV	0	0	0	3	3	exonic	KIAA1856,TNRC18	nonsynonymous SNV	TNRC18:uc003soi.3:exon17:c.G5218C:p.E1740Q,KIAA1856:uc003soj.2:exon2:c.G364C:p.E122Q,	0.19881	rs3801048	passed
+chr7	29605975	29605975	C	G	hom	45.8	2	44	SNV	0	0	0	2	2	exonic	PRR15	synonymous SNV	PRR15:uc003tac.1:exon2:c.C30G:p.S10S,	0.9044	rs2302618	passed
+chr7	100488658	100488658	G	C	hom	21.8	2	46	SNV	0	2	0	0	2	exonic	ACHE	nonsynonymous SNV	ACHE:uc003uxe.2:exon5:c.C1775G:p.P592R,ACHE:uc003uxg.2:exon5:c.C1775G:p.P592R,	0.3889	rs1799806	passed
+chr7	129938598	129938598	G	T	hom	31.8	2	47	SNV	0	0	2	0	2	exonic	CPA4	nonsynonymous SNV	CPA4:uc003vpr.2:exon2:c.G81T:p.L27F,CPA4:uc011kpd.1:exon2:c.G81T:p.L27F,	0.37796	rs34587586	passed
+chr7	137128830	137128830	T	C	hom	47.8	2	44	SNV	0	2	0	0	2	exonic	DGKI,DGKi	synonymous SNV	DGKi:uc003vtu.2:exon28:c.A1785G:p.E595E,DGKI:uc003vtt.2:exon29:c.A2778G:p.E926E,	0.5727	rs1918837	passed
+chr7	149503923	149503926	TAGA	-	hom	61.2	2	50	INDEL	.	.	.	.	2	exonic;splicing	SSPO;SSPO	frameshift deletion	SSPO:uc010lpk.2:exon60:c.8738_8741del:p.2913_2914del,	.	rs66470151	passed
+chr8	1806229	1806229	A	C	hom	47.8	2	44	SNV	0	2	0	0	2	exonic	ARHGEF10	synonymous SNV	ARHGEF10:uc003wpq.1:exon4:c.A213C:p.P71P,ARHGEF10:uc003wpr.2:exon3:c.A141C:p.P47P,ARHGEF10:uc003wps.2:exon3:c.A141C:p.P47P,	0.2350	rs4875950	passed
+chr8	24774683	24774683	C	A	hom	42.8	2	37	SNV	2	0	0	0	2	exonic	NEFM	nonsynonymous SNV	NEFM:uc003xed.3:exon3:c.C1315A:p.P439T,NEFM:uc011lac.1:exon3:c.C1315A:p.P439T,NEFM:uc010lue.2:exon3:c.C187A:p.P63T,	0.92371	rs196864	passed
+chr8	41583294	41583294	C	T	hom	37.8	2	44	SNV	0	0	2	0	2	exonic	ANK1	synonymous SNV	ANK1:uc003xoj.2:exon6:c.G597A:p.P199P,ANK1:uc003xok.2:exon6:c.G597A:p.P199P,ANK1:uc003xol.2:exon6:c.G597A:p.P199P,ANK1:uc003xoi.2:exon6:c.G597A:p.P199P,ANK1:uc003xom.2:exon6:c.G696A:p.P232P,	0.1602	rs2304873	passed
+chr8	101727750	101727750	T	C	hom	6.02	2	18	SNV	0	2	0	0	2	exonic	PABPC1	nonsynonymous SNV	PABPC1:uc011lhd.1:exon5:c.A448G:p.I150V,PABPC1:uc003yjs.1:exon4:c.A583G:p.I195V,PABPC1:uc011lhc.1:exon5:c.A487G:p.I163V,PABPC1:uc003yjt.1:exon4:c.A583G:p.I195V,	.	rs77621597	failed
+chr8	101730064	101730064	G	A	hom	8.44	2	19	SNV	2	0	0	0	2	exonic	PABPC1	nonsynonymous SNV	PABPC1:uc011lhd.1:exon4:c.C305T:p.T102M,PABPC1:uc003yjs.1:exon3:c.C440T:p.T147M,PABPC1:uc011lhc.1:exon4:c.C344T:p.T115M,PABPC1:uc003yjt.1:exon3:c.C440T:p.T147M,	.	rs72681442	failed
+chr8	108970367	108970367	A	G	hom	32.8	2	47	SNV	0	0	0	2	2	exonic	RSPO2	nonsynonymous SNV	RSPO2:uc003yms.2:exon5:c.T557C:p.L186P,RSPO2:uc003ymq.2:exon4:c.T356C:p.L119P,RSPO2:uc003ymr.2:exon4:c.T365C:p.L122P,	0.62662	rs601558	passed
+chr8	143695144	143695144	G	A	hom	26.8	2	47	SNV	2	0	0	0	2	exonic	ARC	synonymous SNV	ARC:uc003ywn.1:exon1:c.C489T:p.D163D,	0.4905	rs2234911	passed
+chr9	74975136	74975136	T	C	hom	42.8	2	37	SNV	0	2	0	0	2	exonic;splicing	ZFAND5;ZFAND5	synonymous SNV	ZFAND5:uc004aix.2:exon4:c.A153G:p.G51G,ZFAND5:uc010moy.1:exon3:c.A153G:p.G51G,ZFAND5:uc004aiy.2:exon3:c.A153G:p.G51G,ZFAND5:uc004aiw.2:exon3:c.A153G:p.G51G,ZFAND5:uc004aiv.2:exon3:c.A153G:p.G51G,	0.99441	rs2809270	passed
+chr9	86284178	86284178	C	A	hom	31.8	2	47	SNV	2	0	0	0	2	exonic	UBQLN1	synonymous SNV	UBQLN1:uc004amw.2:exon7:c.G1170T:p.L390L,UBQLN1:uc004amv.2:exon7:c.G1170T:p.L390L,	0.8084	rs1044175	passed
+chr9	90502458	90502458	T	A	hom	72	3	44	SNV	3	0	0	0	3	exonic	C9orf79	nonsynonymous SNV	C9orf79:uc004app.3:exon4:c.T3056A:p.V1019E,	0.8106	rs10868670	passed
+chrX	3235724	3235724	C	T	het	30	4	47	SNV	0	2	2	0	4	exonic	MXRA5	nonsynonymous SNV	MXRA5:uc004crg.3:exon6:c.G5998A:p.G2000S,	0.6684	rs1635242	passed
+chrX	8138080	8138080	G	C	hom	26.8	2	29	SNV	0	2	0	0	2	exonic	VCX2	nonsynonymous SNV	VCX2:uc004csb.2:exon3:c.C413G:p.T138S,	0.7987	rs1058239	passed
+chrX	31089930	31089930	C	T	hom	40.8	2	44	SNV	0	0	2	0	2	exonic	FTHL17	synonymous SNV	FTHL17:uc004dcl.1:exon1:c.G141A:p.V47V,	0.3769	rs438870	passed
+chrX	38145911	38145911	C	T	hom	34.8	2	44	SNV	0	0	2	0	2	exonic	RPGR	nonsynonymous SNV	RPGR:uc004ded.1:exon15:c.G2341A:p.A781T,	0.1367	rs5917557	passed
+chrX	43603391	43603391	T	C	hom	48.8	2	44	SNV	0	2	0	0	2	exonic	MAOA	synonymous SNV	MAOA:uc004dfy.2:exon14:c.T1410C:p.D470D,MAOA:uc011mkw.1:exon15:c.T1011C:p.D337D,	0.68702	rs1137070	off-target
+chrX	47662972	47662972	T	G	hom	47.8	2	44	SNV	0	0	0	2	2	intergenic	AK094108(dist=66945),LOC441493(dist=30846)	.	.	0.7824	rs909713	passed
+chrX	50121147	50121147	-	G	hom	34.2	3	50	INDEL	.	.	.	.	3	exonic;splicing	DGKK;DGKK	frameshift insertion	DGKK:uc010njr.1:exon23:c.3040_3041insC:p.L1014fs,	.	rs11415594	failed
+chrX	55172537	55172537	G	A	het	54	4	46	SNV	2	0	0	1	3	exonic	FAM104B	stopgain SNV	FAM104B:uc004dui.3:exon3:c.C331T:p.R111X,	.	rs1047054	passed
+chrX	55172645	55172645	C	T	hom	93.3	6	34	SNV	0	0	4	0	4	exonic	FAM104B	nonsynonymous SNV	FAM104B:uc004dui.3:exon3:c.G223A:p.D75N,FAM104B:uc004duh.1:exon3:c.G220A:p.D74N,FAM104B:uc004dug.1:exon3:c.G223A:p.D75N,	.	rs1047042	passed
+chrX	55172687	55172687	T	C	hom	42	4	26	SNV	0	2	0	0	2	exonic	FAM104B	nonsynonymous SNV	FAM104B:uc004dui.3:exon3:c.A181G:p.S61G,FAM104B:uc004duh.1:exon3:c.A178G:p.S60G,FAM104B:uc004dug.1:exon3:c.A181G:p.S61G,	.	rs1047037	passed
+chrX	55172708	55172708	T	G	hom	45.5	4	26	SNV	0	0	0	2	2	exonic	FAM104B	nonsynonymous SNV	FAM104B:uc004dui.3:exon3:c.A160C:p.I54L,FAM104B:uc004duh.1:exon3:c.A157C:p.I53L,FAM104B:uc004dug.1:exon3:c.A160C:p.I54L,	.	rs1047034	passed
+chrX	55185656	55185656	C	A	het	31	4	40	SNV	2	1	0	0	3	exonic	FAM104B	nonsynonymous SNV	FAM104B:uc004dui.3:exon2:c.G26T:p.R9I,FAM104B:uc004duh.1:exon2:c.G26T:p.R9I,FAM104B:uc004dug.1:exon2:c.G26T:p.R9I,	.	rs5003001	passed
+chrX	57475132	57475132	T	C	het	32	4	47	SNV	0	2	2	0	4	exonic	FAAH2	synonymous SNV	FAAH2:uc004dvc.2:exon10:c.T1404C:p.P468P,	0.68102	rs1367830	passed
+chrX	71493691	71493691	C	T	hom	41.8	2	44	SNV	0	0	2	0	2	exonic	RPS4X	synonymous SNV	RPS4X:uc004ear.2:exon5:c.G492A:p.L164L,	0.67023	rs7580	passed
+chrX	79698593	79698593	C	G	hom	34.8	2	46	SNV	0	0	0	2	2	exonic	FAM46D	nonsynonymous SNV	FAM46D:uc004edm.1:exon3:c.C555G:p.D185E,FAM46D:uc004edl.1:exon5:c.C555G:p.D185E,	0.66065	rs1113265	passed
+chrX	100245606	100245606	A	G	hom	44.8	2	44	SNV	0	0	0	2	2	UTR3	ARL13A	.	.	0.86292	rs6523438	passed
+chrX	110494841	110494841	C	G	het	27	3	46	SNV	0	1	0	2	3	exonic	CAPN6	nonsynonymous SNV	CAPN6:uc004epc.1:exon6:c.G829C:p.V277L,CAPN6:uc011msu.1:exon4:c.G64C:p.V22L,	0.4925	rs12013711	passed
+chrX	118603668	118603668	A	G	hom	17.8	2	27	SNV	0	0	0	2	2	exonic	SLC25A5	synonymous SNV	SLC25A5:uc004erh.3:exon2:c.A156G:p.K52K,	.	rs113618375	failed
+chrX	118603844	118603844	T	G	hom	41.8	2	44	SNV	0	0	0	2	2	exonic	SLC25A5	nonsynonymous SNV	SLC25A5:uc004erh.3:exon2:c.T332G:p.L111R,	0.51650	rs371749	passed
+chrX	132437337	132437337	G	A	hom	41.8	2	44	SNV	2	0	0	0	2	exonic	GPC4	nonsynonymous SNV	GPC4:uc011mvg.1:exon8:c.C1115T:p.A372V,GPC4:uc004exc.1:exon8:c.C1325T:p.A442V,	0.5045	rs1048369	passed
+chrX	135431358	135431358	C	T	het	34	3	46	SNV	0	0	2	0	2	exonic	GPR112	synonymous SNV	GPR112:uc004ezu.1:exon6:c.C5493T:p.P1831P,GPR112:uc010nsc.1:exon1:c.C4794T:p.P1598P,GPR112:uc010nsb.1:exon3:c.C4878T:p.P1626P,	0.45265	rs5930933	passed
+chrX	140993642	140993642	C	T	hom	41.8	2	44	SNV	0	0	2	0	2	exonic	MAGEC1	nonsynonymous SNV	MAGEC1:uc004fbt.2:exon4:c.C452T:p.T151I,	0.4124	rs176037	passed
+chrX	140994171	140994171	C	G	het	68	4	43	SNV	0	1	0	3	4	exonic	MAGEC1	nonsynonymous SNV	MAGEC1:uc004fbt.2:exon4:c.C981G:p.H327Q,	0.7086	rs176047	passed
+chrX	140994407	140994407	C	G	het	21	4	43	SNV	0	2	0	2	4	exonic	MAGEC1	nonsynonymous SNV	MAGEC1:uc004fbt.2:exon4:c.C1217G:p.S406C,	0.0698	rs62611965	passed
+chrX	142795225	142795225	G	A	hom	109	4	44	SNV	4	0	0	0	4	exonic	SPANXN2	synonymous SNV	SPANXN2:uc004fbz.2:exon2:c.C453T:p.D151D,	0.7380	rs3859898	passed
+chrX	149013727	149013727	A	G	hom	41.8	2	44	SNV	0	0	0	2	2	exonic	MAGEA8	synonymous SNV	MAGEA8:uc004fdw.1:exon3:c.A681G:p.A227A,	0.8352	rs5983916	passed
+chrX	152610228	152610236	ACCTCTGTG	-	hom	61.2	2	50	INDEL	.	.	.	.	2	splicing	ZNF275	.	.	.	rs3047915	passed
+chrX	153222835	153222835	G	C	hom	38.8	2	44	SNV	0	2	0	0	2	exonic	HCFC1	synonymous SNV	HCFC1:uc004fjp.2:exon13:c.C2283G:p.T761T,	0.6254	rs2071134	passed
+chrX	153248248	153248248	G	A	hom	40.8	2	44	SNV	2	0	0	0	2	exonic	TMEM187	synonymous SNV	TMEM187:uc004fjq.2:exon2:c.G735A:p.T245T,	0.5676	rs13397	passed
+chrX	153994596	153994596	G	T	hom	36.8	2	44	SNV	0	0	2	0	2	exonic	DKC1	synonymous SNV	DKC1:uc004fmm.2:exon5:c.G369T:p.T123T,DKC1:uc010nvf.2:exon5:c.G369T:p.T123T,	1.0000	rs2728532	off-target

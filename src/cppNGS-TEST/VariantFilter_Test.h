@@ -161,7 +161,7 @@ private slots:
 		I_EQUAL(vl.count(), 5);
 	}
 
-	void flagByRegion_and_tagFlagged()
+	void flagByRegion_and_tagNonPassing()
 	{
 		VariantList vl;
 		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
@@ -174,7 +174,7 @@ private slots:
 		I_EQUAL(filter.countPassing(), 1);
 		IS_TRUE(filter.flags()[0]);
 
-		filter.tagFlagged("off-target", "Variants outside target region");
+		filter.tagNonPassing("off-target", "Variants outside target region");
 		I_EQUAL(vl.annotationIndexByName("filter"), 1);
 		I_EQUAL(vl.count(), 143);
 		int filter_count = 0;

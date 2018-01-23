@@ -25,14 +25,20 @@ public:
 		//optional
 		addInfile("reg", "Input target region in BED format.", true);
 		addString("r", "Single target region in the format chr17:41194312-41279500.", true);
-		addFlag("mark", "If set, the variants are not removed but marked as 'off-target' in the 'filter' column.");
+		addString("mark", "If set, instead of removing variants, they are marked with the given flag in the 'filter' column.", true);
+		addFlag("inv", "Inverts the filter, i.e. variants inside the region are removed/marked");
 
+		changeLog(2018, 1, 23, "Added parameter '-inv' and made parameter '-mark' a string parameter to allow custom annotations names.");
 		changeLog(2017, 1,  4, "Added parameter '-mark' for flagging variants instead of filtering them out.");
 		changeLog(2016, 6, 10, "Added single target region parameter '-r'.");
 	}
 
 	virtual void main()
 	{
+		//init
+		bool inv = getFlag("inv");
+		QByteArray mark = getString("mark").toLatin1();
+
 		//load target region
 		BedFile roi;
 		if (getInfile("reg")!="")
@@ -51,16 +57,17 @@ public:
 
 		//apply filter
 		VariantList variants;
-		if (getFlag("mark"))
+		if (mark!="")
 		{
 			variants.load(getInfile("in"));
 			VariantFilter filter(variants);
 			filter.flagByRegions(roi);
-			filter.tagFlagged("off-target", "Variant outside the panel/exome target region.");
+			if (inv) filter.invert();
+			filter.tagNonPassing(mark, "Variant marked as '" + mark + "'.");
 		}
 		else
 		{
-			variants.load(getInfile("in"), VariantList::AUTO, &roi);
+			variants.load(getInfile("in"), VariantList::AUTO, &roi, inv);
 		}
 		variants.store(getOutfile("out"));
 	}

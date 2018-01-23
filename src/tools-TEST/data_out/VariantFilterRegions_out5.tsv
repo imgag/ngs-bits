@@ -1,4 +1,4 @@
-##FILTER=off-target=Variant outside the panel/exome target region.
+##FILTER=off-target=Variant marked as 'off-target'.
 #chr	start	end	ref	obs	genotype	SNP_Q	depth	Map_Q	type	a	c	t	g	depth	region	gene	type	coding	SNP(1000g2011may_all)	SNP(SNP132)	filter
 chr16	771898	771898	G	A	hom	31.8	2	44	SNV	2	0	0	0	2	exonic	FAM173A	nonsynonymous SNV	FAM173A:uc002cje.2:exon3:c.G365A:p.G122D,	.	.	off-target
 chrX	135958685	135958685	C	A	het	40	3	46	SNV	2	1	0	0	3	exonic	CCBL2,RBMX	nonsynonymous SNV	CCBL2:uc004faf.1:exon4:c.G101T:p.S34I,RBMX:uc004fad.1:exon5:c.G518T:p.S173I,RBMX:uc010nsf.1:exon4:c.G401T:p.S134I,RBMX:uc004fag.1:exon3:c.G134T:p.S45I,CCBL2:uc011mwg.1:exon5:c.G401T:p.S134I,RBMX:uc004fae.1:exon5:c.G518T:p.S173I,	.	.	off-target

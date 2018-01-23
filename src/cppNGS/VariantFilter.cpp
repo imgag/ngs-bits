@@ -560,7 +560,7 @@ void VariantFilter::removeFlagged()
 	clear();
 }
 
-void VariantFilter::tagFlagged(QByteArray tag, QByteArray description)
+void VariantFilter::tagNonPassing(QByteArray tag, QByteArray description)
 {
 	//create 'filter' column (if missing)
 	int index = variants.addAnnotationIfMissing("filter", "Filter column.");
