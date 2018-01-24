@@ -13,6 +13,7 @@
 #include "QCCollection.h"
 #include "SqlQuery.h"
 #include "GeneSet.h"
+#include "Phenotype.h"
 
 /// Germline gene information.
 struct CPPNGSDSHARED_EXPORT GeneInfo
@@ -94,7 +95,7 @@ public:
 	QByteArray geneSymbol(int id);
 	///Returns the the approved gene symbol or "" if it could not be determined.
 	QByteArray geneToApproved(QByteArray gene, bool return_input_when_unconvertable=false);
-	///Returns the the approved gene symbols. Unconvertaglb if it could not be determined.
+	///Returns the the approved gene symbols.
 	GeneSet genesToApproved(GeneSet genes, bool return_input_when_unconvertable=false);
 	///Returns the the approved/original gene symbol and a status message.
 	QPair<QString, QString> geneToApprovedWithMessage(const QString& gene);
@@ -117,15 +118,15 @@ public:
 
 	/*** phenotype handling (HPO) ***/
 	///Returns the phenotypes of a gene
-	QStringList phenotypes(QByteArray symbol);
+	QList<Phenotype> phenotypes(const QByteArray& symbol);
 	///Returns all phenotypes matching the given search terms (or all terms if no search term is given)
-	QStringList phenotypes(QStringList terms);
+	QList<Phenotype> phenotypes(QStringList search_terms);
 	///Returns all genes associated to a phenotype
-	GeneSet phenotypeToGenes(QByteArray phenotype, bool recursive);
+	GeneSet phenotypeToGenes(const Phenotype& phenotype, bool recursive);
 	///Returns all child terms of the given phenotype
-	QStringList phenotypesChildIds(QString hpo_name, bool recursive);
+	QList<Phenotype> phenotypeChildTems(const Phenotype& phenotype, bool recursive);
 	///Returns the phenotype name for an phenotype ID. Throws an exception if the ID is not valid.
-	QByteArray phenotypeIdToName(QByteArray id);
+	QByteArray phenotypeAccessionToName(const QByteArray& accession);
 
 	/*** Base functionality for file/variant processing ***/
 	///Returns the sample name for a file name, e.g. 'GS120159' for '/some/path/GS120159_01.bam'. Throws an exception if the file name does not start with a valid name.

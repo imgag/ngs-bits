@@ -1355,69 +1355,75 @@ GeneSet NGSD::synonymousSymbols(int id)
 	return output;
 }
 
-QStringList NGSD::phenotypes(QByteArray symbol)
+QList<Phenotype> NGSD::phenotypes(const QByteArray& symbol)
 {
-	QStringList output;
+	QList<Phenotype> output;
 
 	SqlQuery query = getQuery();
-	query.prepare("SELECT t.name FROM hpo_term t, hpo_genes g WHERE g.gene=:0 AND t.id=g.hpo_term_id ORDER BY t.name ASC");
+	query.prepare("SELECT t.hpo_id, t.name FROM hpo_term t, hpo_genes g WHERE g.gene=:0 AND t.id=g.hpo_term_id ORDER BY t.name ASC");
 	query.bindValue(0, symbol);
 	query.exec();
 	while(query.next())
 	{
-		output << query.value(0).toString();
+		output << Phenotype(query.value(0).toByteArray(), query.value(1).toByteArray());
 	}
 
 	return output;
 }
 
-QStringList NGSD::phenotypes(QStringList terms)
+QList<Phenotype> NGSD::phenotypes(QStringList search_terms)
 {
 	//trim terms and remove empty terms
-	std::for_each(terms.begin(), terms.end(), [](QString& term){ term = term.trimmed(); });
-	terms.removeAll("");
+	std::for_each(search_terms.begin(), search_terms.end(), [](QString& term){ term = term.trimmed(); });
+	search_terms.removeAll("");
 
-	//no terms => all phenotypes
-	if (terms.isEmpty())
-	{
-		return getValues("SELECT name FROM hpo_term ORDER BY name ASC");
-	}
+	QList<Phenotype> list;
 
-	//search for terms (intersect results of all terms)
-	bool first = true;
-	QSet<QString> set;
-	SqlQuery query = getQuery();
-	query.prepare("SELECT name FROM hpo_term WHERE name LIKE :0 OR hpo_id LIKE :1 ORDER BY name ASC");
-	foreach(QString t, terms)
+	if (search_terms.isEmpty()) //no terms => all phenotypes
 	{
-		query.bindValue(0, "%" + t + "%");
-		query.bindValue(1, "%" + t + "%");
-		query.exec();
-		QSet<QString> tmp2;
+		SqlQuery query = getQuery();
+		query.exec("SELECT hpo_id, name FROM hpo_term ORDER BY name ASC");
 		while(query.next())
 		{
-			QString pheno = query.value(0).toString();
-			tmp2.insert(pheno);
-		}
-
-		if (first)
-		{
-			set = tmp2;
-			first = false;
-		}
-		else
-		{
-			set = set.intersect(tmp2);
+			list << Phenotype(query.value(0).toByteArray(), query.value(1).toByteArray());
 		}
 	}
+	else //search for terms (intersect results of all terms)
+	{
+		bool first = true;
+		QSet<Phenotype> set;
+		SqlQuery query = getQuery();
+		query.prepare("SELECT hpo_id, name FROM hpo_term WHERE name LIKE :0 OR hpo_id LIKE :1");
+		foreach(const QString& term, search_terms)
+		{
+			query.bindValue(0, "%" + term + "%");
+			query.bindValue(1, "%" + term + "%");
+			query.exec();
+			QSet<Phenotype> tmp;
+			while(query.next())
+			{
+				tmp << Phenotype(query.value(0).toByteArray(), query.value(1).toByteArray());
+			}
 
-	QStringList list = set.toList();
-	list.sort();
+			if (first)
+			{
+				set = tmp;
+				first = false;
+			}
+			else
+			{
+				set = set.intersect(tmp);
+			}
+		}
+
+		list = set.toList();
+		std::sort(list.begin(), list.end(), [](const Phenotype& a, const Phenotype& b){ return a.name()<b.name(); });
+	}
 
 	return list;
 }
 
-GeneSet NGSD::phenotypeToGenes(QByteArray phenotype, bool recursive)
+GeneSet NGSD::phenotypeToGenes(const Phenotype& phenotype, bool recursive)
 {
 	//prepare queries
 	SqlQuery pid2genes = getQuery();
@@ -1428,9 +1434,9 @@ GeneSet NGSD::phenotypeToGenes(QByteArray phenotype, bool recursive)
 	//convert phenotype to id
 	SqlQuery tmp = getQuery();
 	tmp.prepare("SELECT id FROM hpo_term WHERE name=:0");
-	tmp.bindValue(0, phenotype);
+	tmp.bindValue(0, phenotype.name());
 	tmp.exec();
-	if (!tmp.next()) THROW(ProgrammingException, "Unknown phenotype '" + phenotype + "'!");
+	if (!tmp.next()) THROW(ProgrammingException, "Unknown phenotype '" + phenotype.toString() + "'!");
 	QList<int> pheno_ids;
 	pheno_ids << tmp.value(0).toInt();
 
@@ -1465,32 +1471,28 @@ GeneSet NGSD::phenotypeToGenes(QByteArray phenotype, bool recursive)
 	return genes;
 }
 
-QStringList NGSD::phenotypesChildIds(QString hpo_name, bool recursive)
+QList<Phenotype> NGSD::phenotypeChildTems(const Phenotype& phenotype, bool recursive)
 {
 	//prepare queries
 	SqlQuery pid2children = getQuery();
-	pid2children.prepare("SELECT child, (SELECT hpo_id FROM hpo_term WHERE id=child) FROM hpo_parent WHERE parent=:0");
+	pid2children.prepare("SELECT t.id, t.hpo_id, t.name  FROM hpo_parent p, hpo_term t WHERE p.parent=:0 AND p.child=t.id");
 
 	//convert phenotype to id
-	SqlQuery tmp = getQuery();
-	tmp.prepare("SELECT id FROM hpo_term WHERE name=:0");
-	tmp.bindValue(0, hpo_name);
-	tmp.exec();
-	if (!tmp.next()) THROW(ProgrammingException, "Unknown phenotype '" + hpo_name + "'!");
 	QList<int> pheno_ids;
-	pheno_ids << tmp.value(0).toInt();
+	bool ok;
+	pheno_ids << getValue("SELECT id FROM hpo_term WHERE name='" + phenotype.name() + "'").toInt(&ok);
+	if (!ok) THROW(ProgrammingException, "Unknown phenotype '" + phenotype.toString() + "'!");
 
-	QStringList terms;
+	QList<Phenotype> terms;
 	while (!pheno_ids.isEmpty())
 	{
-		int id = pheno_ids.last();
-		pheno_ids.removeLast();
+		int id = pheno_ids.takeLast();
 
 		pid2children.bindValue(0, id);
 		pid2children.exec();
 		while(pid2children.next())
 		{
-			terms << pid2children.value(1).toString();
+			terms.append(Phenotype(pid2children.value(1).toByteArray(), pid2children.value(2).toByteArray()));
 			if (recursive)
 			{
 				pheno_ids << pid2children.value(0).toInt();
@@ -1501,9 +1503,9 @@ QStringList NGSD::phenotypesChildIds(QString hpo_name, bool recursive)
 	return terms;
 }
 
-QByteArray NGSD::phenotypeIdToName(QByteArray id)
+QByteArray NGSD::phenotypeAccessionToName(const QByteArray& accession)
 {
-	return getValue("SELECT name FROM hpo_term WHERE hpo_id='"+id+"'", false).toByteArray();
+	return getValue("SELECT name FROM hpo_term WHERE hpo_id='" + accession + "'", false).toByteArray();
 }
 
 const GeneSet& NGSD::approvedGeneNames()

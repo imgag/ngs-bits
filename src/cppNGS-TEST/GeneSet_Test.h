@@ -176,7 +176,7 @@ private slots:
 		GeneSet set;
 		set.insert("A");
 		set.insert("B");
-		QByteArrayList set2;
+		GeneSet set2;
 		set2 << "A";
 		set2 << "C";
 

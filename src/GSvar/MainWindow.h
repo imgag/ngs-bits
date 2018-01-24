@@ -209,6 +209,8 @@ private:
 	QString last_roi_filename_;
 	BedFile last_roi_;
 	QString last_report_path_;
+	QList<Phenotype> last_phenos_;
+	BedFile last_phenos_roi_;
 	QMap<QString, QStringList> preferred_transcripts_;
 	QList<QSharedPointer<QDialog>> modeless_dialogs_;
 

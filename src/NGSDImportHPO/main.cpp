@@ -171,7 +171,7 @@ public:
 		//parse term-disease and disease-gene relations from HPO
 		fp = Helper::openFileForReading(getInfile("anno"));
 		QSet<QByteArray> non_hgnc_genes;
-		QStringList inheritance_terms = db.phenotypesChildIds("Mode of inheritance", true);
+		QList<Phenotype> inheritance_terms = db.phenotypeChildTems(Phenotype("HP:0000005", "Mode of inheritance"), true);
 		QHash<int, QSet<QByteArray> > term2diseases;
 		QHash<QByteArray, GeneSet> disease2genes;
 		while(!fp->atEnd())
@@ -181,18 +181,18 @@ public:
 
 			QByteArray disease = parts[0].trimmed();
 			QByteArray gene = parts[1].trimmed();
-			QByteArray term_id = parts[3].trimmed();
+			QByteArray term_accession = parts[3].trimmed();
 
 			int gene_db_id = db.geneToApprovedID(gene);
-			int term_db_id = id2ngsd.value(term_id, -1);
+			int term_db_id = id2ngsd.value(term_accession, -1);
 
 			if (term_db_id!=-1)
 			{
-				if (inheritance_terms.contains(term_id))
+				if (inheritance_terms.contains(Phenotype(term_accession, "")))
 				{
 					if (gene_db_id!=-1)
 					{
-						if (debug) out << "HPO-GENE: " << term_id << " - " << gene << endl;
+						if (debug) out << "HPO-GENE: " << term_accession << " - " << gene << endl;
 						qi_gene.bindValue(0, term_db_id);
 						qi_gene.bindValue(1, gene);
 						qi_gene.exec();
@@ -200,7 +200,7 @@ public:
 				}
 				else
 				{
-					if (debug) out << "HPO-DISEASE: " << term_id << " - " << disease << endl;
+					if (debug) out << "HPO-DISEASE: " << term_accession << " - " << disease << endl;
 					term2diseases[term_db_id].insert(disease);
 				}
 			}

@@ -8,11 +8,10 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-*** Add HPO-based filtering of variant lists (via genes or via ROI?)
 - Add genotype equal for affected
-** Allow filtering of inheritance mode and pLI score
+*** Allow filtering of inheritance mode and pLI score
 - Make default filters configurable in INI file
-* No longer use external tools, but use the algorithms instead
+** No longer use external tools, but use the algorithms instead
 
 Tools:
 - Remove UMI tools that are no longer used: BamDeduplicateByBarcode, FastqExtractBarcode?

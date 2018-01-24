@@ -136,7 +136,7 @@ void CnvList::load(QString filename)
 		GeneSet genes;
 		if (i_genes!=-1)
 		{
-			genes.insert(parts[i_genes].split(','));
+			genes << GeneSet::createFromText(parts[i_genes], ',');
 		}
 
 		//parse annotation headers

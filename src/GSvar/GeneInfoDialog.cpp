@@ -44,7 +44,13 @@ GeneInfoDialog::GeneInfoDialog(QByteArray symbol, QWidget *parent)
 	ui->synonymous_->setText(db.synonymousSymbols(gene_id).join(", "));
 
 	//show phenotypes/diseases from HPO
-	ui->pheno_->setText(db.phenotypes(symbol).join(", "));
+	QByteArrayList pheno_names;
+	QList<Phenotype> pheno_list = db.phenotypes(symbol);
+	foreach(const Phenotype& pheno, pheno_list)
+	{
+		pheno_names << pheno.name();
+	}
+	ui->pheno_->setText(pheno_names.join(", "));
 
 	//disable ok button
 	ui->buttons->button(QDialogButtonBox::Ok)->setEnabled(false);

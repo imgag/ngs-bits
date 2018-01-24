@@ -543,7 +543,10 @@ public:
 				GeneSet values;
 				for (int j=range.start; j<=range.end; ++j)
 				{
-					values.insert(results[j].exon->annotations[i]);
+					foreach(const QByteArray& anno, results[j].exon->annotations[i])
+					{
+						values.insert(anno);
+					}
 				}
 				outstream << "\t" << values.join(",");
 			}

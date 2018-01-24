@@ -288,25 +288,25 @@ private slots:
 		I_EQUAL(approved.count(), 4);
 
 		//phenotypeChildren
-		QStringList hpo_ids = db.phenotypesChildIds("All", true);
+		QList<Phenotype> hpo_ids = db.phenotypeChildTems(Phenotype("HP:0000001", "All"), true);
 		I_EQUAL(hpo_ids.count(), 10);
-		hpo_ids = db.phenotypesChildIds("All", false);
+		hpo_ids = db.phenotypeChildTems(Phenotype("HP:0000001", "All"), false);
 		I_EQUAL(hpo_ids.count(), 4);
-		IS_TRUE(hpo_ids.contains("HP:0000005"));
-		IS_TRUE(hpo_ids.contains("HP:0000118"));
-		IS_TRUE(hpo_ids.contains("HP:0012823"));
-		IS_TRUE(hpo_ids.contains("HP:0040279"));
+		IS_TRUE(hpo_ids.contains(Phenotype("HP:0000005","Mode of inheritance")));
+		IS_TRUE(hpo_ids.contains(Phenotype("HP:0000118","Phenotypic abnormality")));
+		IS_TRUE(hpo_ids.contains(Phenotype("HP:0012823","Clinical modifier")));
+		IS_TRUE(hpo_ids.contains(Phenotype("HP:0040279","Frequency")));
 		//inner node
-		hpo_ids = db.phenotypesChildIds("Mode of inheritance", true);
+		hpo_ids = db.phenotypeChildTems(Phenotype("HP:0000005", "Mode of inheritance"), true);
 		I_EQUAL(hpo_ids.count(), 6);
-		IS_TRUE(hpo_ids.contains("HP:0001419"));
-		hpo_ids = db.phenotypesChildIds("Mode of inheritance", false);
+		IS_TRUE(hpo_ids.contains(Phenotype("HP:0001419","X-linked recessive inheritance")));
+		hpo_ids = db.phenotypeChildTems(Phenotype("HP:0000005", "Mode of inheritance"), false);
 		I_EQUAL(hpo_ids.count(), 4);
-		IS_FALSE(hpo_ids.contains("HP:0001419"));
+		IS_FALSE(hpo_ids.contains(Phenotype("HP:0001419","X-linked recessive inheritance")));
 		//leaf
-		hpo_ids = db.phenotypesChildIds("Mitochondrial inheritance", true);
+		hpo_ids = db.phenotypeChildTems(Phenotype("HP:0001427", "Mitochondrial inheritance"), true);
 		I_EQUAL(hpo_ids.count(), 0);
-		hpo_ids = db.phenotypesChildIds("Mitochondrial inheritance", false);
+		hpo_ids = db.phenotypeChildTems(Phenotype("HP:0001427", "Mitochondrial inheritance"), false);
 		I_EQUAL(hpo_ids.count(), 0);
 
 	}

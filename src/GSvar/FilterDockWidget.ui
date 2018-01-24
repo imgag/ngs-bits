@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>287</width>
-    <height>563</height>
+    <height>662</height>
    </rect>
   </property>
   <property name="features">
@@ -86,7 +86,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="GSvar.qrc">
+            <iconset>
              <normaloff>:/Icons/AddTemporary.png</normaloff>:/Icons/AddTemporary.png</iconset>
            </property>
           </widget>
@@ -107,7 +107,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="GSvar.qrc">
+            <iconset>
              <normaloff>:/Icons/Add.png</normaloff>:/Icons/Add.png</iconset>
            </property>
           </widget>
@@ -121,7 +121,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="GSvar.qrc">
+            <iconset>
              <normaloff>:/Icons/Remove.png</normaloff>:/Icons/Remove.png</iconset>
            </property>
           </widget>
@@ -163,7 +163,7 @@
             <string/>
            </property>
            <property name="pixmap">
-            <pixmap resource="GSvar.qrc">:/Icons/Attention.png</pixmap>
+            <pixmap>:/Icons/Attention.png</pixmap>
            </property>
            <property name="scaledContents">
             <bool>true</bool>
@@ -179,7 +179,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="GSvar.qrc">
+            <iconset>
              <normaloff>:/Icons/Info.png</normaloff>:/Icons/Info.png</iconset>
            </property>
           </widget>
@@ -209,6 +209,19 @@
          </property>
          <property name="clearButtonEnabled">
           <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="ClickableLineEdit" name="hpo_terms">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+         <property name="placeholderText">
+          <string>Phenotypes</string>
+         </property>
+         <property name="clearButtonEnabled">
+          <bool>false</bool>
          </property>
         </widget>
        </item>
@@ -656,7 +669,7 @@
             <x>0</x>
             <y>0</y>
             <width>273</width>
-            <height>69</height>
+            <height>146</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -743,7 +756,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="GSvar.qrc">
+            <iconset>
              <normaloff>:/Icons/Add.png</normaloff>:/Icons/Add.png</iconset>
            </property>
           </widget>
@@ -757,7 +770,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="GSvar.qrc">
+            <iconset>
              <normaloff>:/Icons/Remove.png</normaloff>:/Icons/Remove.png</iconset>
            </property>
           </widget>
@@ -783,8 +796,13 @@
    </layout>
   </widget>
  </widget>
- <resources>
-  <include location="GSvar.qrc"/>
- </resources>
+ <customwidgets>
+  <customwidget>
+   <class>ClickableLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>ClickableLineEdit.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
  <connections/>
 </ui>

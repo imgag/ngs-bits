@@ -10,7 +10,7 @@ class CPPNGSSHARED_EXPORT Phenotype
 public:
 	Phenotype(QByteArray accession="", QByteArray name="");
 
-	QByteArray accession() const
+	const QByteArray& accession() const
 	{
 		return accession_;
 	}
@@ -19,7 +19,7 @@ public:
 		accession_ = accession;
 	}
 
-	QByteArray name() const
+	const QByteArray& name() const
 	{
 		return name_;
 	}
@@ -33,9 +33,20 @@ public:
 		return accession_==rhs.accession_;
 	}
 
+	QByteArray toString() const
+	{
+		return accession_ + " - " + name_;
+	}
+
 protected:
 	QByteArray accession_;
 	QByteArray name_;
 };
+
+//Required to make Chromosome hashable by Qt, e.g. to use it in QSet or QHash
+inline uint qHash(const Phenotype& pheno)
+{
+	return qHash(pheno.accession());
+}
 
 #endif // PHENOTYPE_H

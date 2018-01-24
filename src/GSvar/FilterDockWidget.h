@@ -5,6 +5,7 @@
 #include "ui_FilterDockWidget.h"
 #include "BedFile.h"
 #include "GeneSet.h"
+#include "Phenotype.h"
 
 ///Filter manager dock widget
 class FilterDockWidget
@@ -82,6 +83,12 @@ public:
 	/// Sets the single target region filter, or an empty string if unset.
 	void setRegion(QString region);
 
+
+	///Returns selected phenotype terms.
+	const QList<Phenotype>& phenotypes() const;
+	///Sets selected phenotype terms.
+	void setPhenotypes(const QList<Phenotype>& phenotypes);
+
 	/// Returns the reference sample name or an empty string if unset.
 	QString referenceSample() const;
 
@@ -122,9 +129,11 @@ protected slots:
 	void referenceSampleChanged(int index);
 	void geneChanged();
 	void regionChanged();
+	void phenotypesChanged();
 	void filterColumnStateChanged();
 	void showTargetRegionDetails();
 	void updateGeneWarning();
+	void editPhenotypes();
 
 private:
 	/// Loads the reference file list of IGV
@@ -134,7 +143,9 @@ private:
 	void resetSignalsUnblocked(bool clear_roi, bool clear_off_target);
 
 	Ui::FilterDockWidget ui_;
+	bool ngsd_enabled;
 	GeneSet last_genes_;
+	QList<Phenotype> phenotypes_;
 };
 
 #endif // FILTERDOCKWIDGET_H

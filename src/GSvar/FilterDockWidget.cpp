@@ -11,10 +11,13 @@
 #include <QInputDialog>
 #include <QLabel>
 #include <QCompleter>
+#include "PhenotypeSelectionWidget.h"
+#include "GUIHelper.h"
 
 FilterDockWidget::FilterDockWidget(QWidget *parent)
 	: QDockWidget(parent)
 	, ui_()
+	, ngsd_enabled(Settings::boolean("NGSD_enabled", true))
 {
 	ui_.setupUi(this);
 
@@ -56,6 +59,15 @@ FilterDockWidget::FilterDockWidget(QWidget *parent)
 
 	connect(ui_.gene, SIGNAL(editingFinished()), this, SLOT(geneChanged()));
 	connect(ui_.region, SIGNAL(editingFinished()), this, SLOT(regionChanged()));
+
+	if (ngsd_enabled)
+	{
+		connect(ui_.hpo_terms, SIGNAL(clicked(QPoint)), this, SLOT(editPhenotypes()));
+	}
+	else
+	{
+		ui_.hpo_terms->setEnabled(false);
+	}
 
 	loadTargetRegions();
 	loadReferenceFiles();
@@ -227,7 +239,11 @@ void FilterDockWidget::resetSignalsUnblocked(bool clear_roi, bool clear_off_targ
     //gene
     last_genes_.clear();
     ui_.gene->clear();
-    ui_.region->clear();
+	ui_.region->clear();
+
+	//phenotype
+	phenotypes_.clear();
+	phenotypesChanged();
 
     //refs
     ui_.refs->setCurrentIndex(0);
@@ -647,6 +663,16 @@ void FilterDockWidget::setRegion(QString region)
 	regionChanged();
 }
 
+const QList<Phenotype>& FilterDockWidget::phenotypes() const
+{
+	return phenotypes_;
+}
+
+void FilterDockWidget::setPhenotypes(const QList<Phenotype>& phenotypes)
+{
+	phenotypes_ = phenotypes;
+}
+
 QString FilterDockWidget::referenceSample() const
 {
 	return ui_.refs->toolTip();
@@ -771,6 +797,21 @@ void FilterDockWidget::regionChanged()
 	emit filtersChanged();
 }
 
+void FilterDockWidget::phenotypesChanged()
+{
+	//update GUI
+	QByteArrayList tmp;
+	foreach(const Phenotype& pheno, phenotypes_)
+	{
+		tmp << pheno.name();
+	}
+
+	ui_.hpo_terms->setText(tmp.join("; "));
+	ui_.hpo_terms->setToolTip("<nobr>"+tmp.join("</nobr><br><nobr>")+"</nobr>");
+
+	emit filtersChanged();
+}
+
 void FilterDockWidget::filterColumnStateChanged()
 {
 	emit filtersChanged();
@@ -831,6 +872,21 @@ void FilterDockWidget::updateGeneWarning()
 	}
 
 	ui_.gene_warning->setHidden(!show_warning);
+}
+
+void FilterDockWidget::editPhenotypes()
+{
+	//edit
+	PhenotypeSelectionWidget* selector = new PhenotypeSelectionWidget(this);
+	selector->setPhenotypes(phenotypes_);
+	auto dlg = GUIHelper::showWidgetAsDialog(selector, "Select HPO terms", true);
+
+	//update
+	if (dlg->result()==QDialog::Accepted)
+	{
+		phenotypes_ = selector->selectedPhenotypes();
+		phenotypesChanged();
+	}
 }
 
 void FilterDockWidget::addRef()

@@ -38,29 +38,17 @@ class CPPNGSSHARED_EXPORT GeneSet
 			}
 		}
 
-		///Inserts a gene list
-		void insert(const QByteArrayList& genes)
-		{
-			foreach(const QByteArray& gene, genes)
-			{
-				insert(gene);
-			}
-		}
-
-		///Inserts a gene set
-		void insert(const QSet<QByteArray>& genes)
-		{
-			foreach(const QByteArray& gene, genes)
-			{
-				insert(gene);
-			}
-		}
-
-
 		///Inserts a gene
 		GeneSet& operator<<(const QByteArray& gene)
 		{
 			insert(gene);
+			return *this;
+		}
+
+		///Inserts a gene set
+		GeneSet& operator<<(const GeneSet& genes)
+		{
+			insert(genes);
 			return *this;
 		}
 
@@ -87,7 +75,7 @@ class CPPNGSSHARED_EXPORT GeneSet
 
 		///Load gene list from file
 		static GeneSet createFromFile(QString filename);
-		///Load gene list from text array
+		///Create gene list from text
 		static GeneSet createFromText(const QByteArray& text, char seperator = '\n');
 		///Stores the gene set to a file
 		void store(QString filename) const;

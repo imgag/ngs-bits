@@ -42,10 +42,10 @@ void PhenotypeSelector::search(QString text)
 	if (text.isEmpty()) return;
 
 	//add search terms
-	QStringList phenos = db_.phenotypes(text.split(" "));
-	foreach(QString pheno, phenos)
+	QList<Phenotype> phenos = db_.phenotypes(text.split(" "));
+	foreach(const Phenotype& pheno, phenos)
 	{
-		ui->list->addItem(pheno);
+		ui->list->addItem(pheno.name());
 	}
 }
 

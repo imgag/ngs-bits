@@ -82,14 +82,11 @@ void RohList::load(QString filename)
 		QByteArrayList parts = file.readLine();
 		if (parts.count()<6) THROW(FileParseException, "Invalid RohHunter file line: " + parts.join('\t'));
 
-		QString line = parts.join('\t');
-
-
 		//genes (optional)
 		GeneSet genes;
 		if (i_genes!=-1)
 		{
-			genes.insert(parts[i_genes].split(','));
+			genes << GeneSet::createFromText(parts[i_genes], ',');
 		}
 
 		//parse annotation headers

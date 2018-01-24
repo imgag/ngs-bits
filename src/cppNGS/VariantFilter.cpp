@@ -246,7 +246,7 @@ void VariantFilter::flagByGenes(const GeneSet& genes)
 	{
 		if (!pass[i]) continue;
 
-		pass[i] = GeneSet::createFromText(variants[i].annotations()[i_gene], ',').intersectsWith(genes);
+		pass[i] = genes.intersectsWith(GeneSet::createFromText(variants[i].annotations()[i_gene], ','));
 	}
 }
 

@@ -63,7 +63,7 @@ void PhenoToGenesDialog::tabChanged(int num)
 		QList<Phenotype> phenos = ui.pheno_selector->selectedPhenotypes();
 		for (int i=0; i<phenos.count(); ++i)
 		{
-			GeneSet genes = db.phenotypeToGenes(phenos[i].name(), true);
+			GeneSet genes = db.phenotypeToGenes(phenos[i], true);
 			foreach(QByteArray gene, genes)
 			{
 				gene2pheno[gene].append(phenos[i].name());

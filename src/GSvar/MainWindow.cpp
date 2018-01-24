@@ -1441,8 +1441,7 @@ void MainWindow::uploadtoLovd(int variant_index, int variant_index2)
 			QByteArray pheno_id = query.value(i).toByteArray();
 			try
 			{
-				QByteArray pheno_name = db.phenotypeIdToName(pheno_id);
-				Phenotype pheno = Phenotype(pheno_id, pheno_name);
+				Phenotype pheno = Phenotype(pheno_id, db.phenotypeAccessionToName(pheno_id));
 				if (!data.phenos.contains(pheno))
 				{
 					data.phenos.append(pheno);
@@ -2271,7 +2270,7 @@ void MainWindow::filtersChanged()
         Log::perf("Applying annotation filter took ", timer);
         timer.start();
 
-		//roi changed
+		//roi file name changed => update ROI
 		QString roi = filter_widget_->targetRegion();
 		if (roi!=last_roi_filename_)
 		{
@@ -2284,6 +2283,9 @@ void MainWindow::filtersChanged()
 				last_roi_.merge();
 				last_roi_filename_ = roi;
 			}
+
+			Log::perf("Updating target region filter took ", timer);
+			timer.start();
 		}
 
 		//roi filter
@@ -2309,6 +2311,36 @@ void MainWindow::filtersChanged()
 		{
 			filter.flagByRegion(region);
 			Log::perf("Applying region filter took ", timer);
+			timer.start();
+		}
+
+		//phenotype selection changed => update ROI
+		const QList<Phenotype>& phenos = filter_widget_->phenotypes();
+		if (phenos!=last_phenos_)
+		{
+			last_phenos_ = phenos;
+
+			//convert phenotypes to genes
+			NGSD db;
+			GeneSet pheno_genes;
+			foreach(const Phenotype& pheno, phenos)
+			{
+				pheno_genes << db.phenotypeToGenes(pheno, true);
+			}
+
+			//convert genes to ROI
+			last_phenos_roi_ = db.genesToRegions(pheno_genes, Transcript::ENSEMBL, "gene", true);
+			last_phenos_roi_.extend(100);
+			last_phenos_roi_.merge();
+			Log::perf("Updating phenotype filter took ", timer);
+			timer.start();
+		}
+
+		//phenotype filter
+		if (!last_phenos_.isEmpty())
+		{
+			filter.flagByRegions(last_phenos_roi_);
+			Log::perf("Applying phenotype filter took ", timer);
 			timer.start();
 		}
 
