@@ -393,6 +393,26 @@ private slots:
 		I_EQUAL(filter.countPassing(), 6);
 	}
 
+	void flagByGenePLI()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+
+		VariantFilter filter(vl);
+
+		filter.flagByGenePLI(0.0);
+		I_EQUAL(filter.countPassing(), 143);
+
+		filter.flagByGenePLI(0.5);
+		I_EQUAL(filter.countPassing(), 12);
+
+		filter.flagByGenePLI(0.95);
+		I_EQUAL(filter.countPassing(), 4);
+
+		filter.flagByGenePLI(1.00);
+		I_EQUAL(filter.countPassing(), 0);
+	}
+
 	void flagByGenotype_multiSample()
 	{
 		VariantList vl;
@@ -453,4 +473,5 @@ private slots:
 		filter.flagCompoundHeterozygous(QStringList() << "Affected1" << "Affected2", true);
 		I_EQUAL(filter.countPassing(), 3);
 	}
+
 };

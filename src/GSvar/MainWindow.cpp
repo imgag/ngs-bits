@@ -2187,6 +2187,10 @@ void MainWindow::filtersChanged()
 			QStringList geno_cols = (filter_widget_->ihdbIgnoreGenotype() ? QStringList() : sample_data.sampleColumns(true));
 			filter.flagByIHDB(filter_widget_->ihdb(), geno_cols);
 		}
+		if (filter_widget_->applyPLI())
+		{
+			filter.flagByGenePLI(filter_widget_->pli());
+		}
 		QStringList remove = filter_widget_->filterColumnsRemove();
 		if (remove.count()>0)
 		{

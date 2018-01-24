@@ -9,7 +9,6 @@ libs:
 
 GSvar:
 - Add genotype equal for affected
-*** Allow filtering of inheritance mode and pLI score
 - Make default filters configurable in INI file
 ** No longer use external tools, but use the algorithms instead
 

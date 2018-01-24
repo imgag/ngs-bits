@@ -51,6 +51,9 @@ class CPPNGSSHARED_EXPORT VariantFilter
 		///Flags variants by region filter.
 		void flagByRegion(const BedLine& region);
 
+		///Flags variants by region filter.
+		void flagByGenePLI(double min_pli);
+
 		///Generic filtering.
 		void flagGeneric(QString criteria);
 

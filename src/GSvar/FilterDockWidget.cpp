@@ -46,6 +46,9 @@ FilterDockWidget::FilterDockWidget(QWidget *parent)
 	connect(ui_.keep_class_ge, SIGNAL(currentTextChanged(QString)), this, SIGNAL(filtersChanged()));
 	connect(ui_.keep_class_m, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
 
+	connect(ui_.gene_pli, SIGNAL(valueChanged(double)), this, SIGNAL(filtersChanged()));
+	connect(ui_.gene_pli_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
+
 	connect(ui_.roi_add, SIGNAL(clicked()), this, SLOT(addRoi()));
 	connect(ui_.roi_add_temp, SIGNAL(clicked()), this, SLOT(addRoiTemp()));
 	connect(ui_.roi_remove, SIGNAL(clicked()), this, SLOT(removeRoi()));
@@ -206,6 +209,8 @@ void FilterDockWidget::resetSignalsUnblocked(bool clear_roi, bool clear_off_targ
     ui_.keep_class_ge_enabled->setChecked(false);
     ui_.keep_class_ge->setCurrentText("3");
 	ui_.keep_class_m->setChecked(false);
+	ui_.gene_pli_enabled->setChecked(false);
+	ui_.gene_pli->setValue(0.9);
 
     //filter cols
     QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
@@ -585,6 +590,16 @@ bool FilterDockWidget::keepClassM() const
 	return ui_.keep_class_m->isChecked();
 }
 
+bool FilterDockWidget::applyPLI() const
+{
+	return ui_.gene_pli_enabled->isChecked();
+}
+
+double FilterDockWidget::pli() const
+{
+	return ui_.gene_pli->value();
+}
+
 QStringList FilterDockWidget::filterColumnsKeep() const
 {
 	QStringList output;
@@ -807,7 +822,17 @@ void FilterDockWidget::phenotypesChanged()
 	}
 
 	ui_.hpo_terms->setText(tmp.join("; "));
-	ui_.hpo_terms->setToolTip("<nobr>"+tmp.join("</nobr><br><nobr>")+"</nobr>");
+
+	QString tooltip = "Phenotype/inheritance filter based on HPO terms.";
+	if (!phenotypes_.isEmpty())
+	{
+		tooltip += "<br><br><nobr>Currently selected HPO terms:</nobr>";
+		foreach(const Phenotype& pheno, phenotypes_)
+		{
+			tooltip += "<br><nobr>" + pheno.toString() + "</nobr>";
+		}
+	}
+	ui_.hpo_terms->setToolTip(tooltip);
 
 	emit filtersChanged();
 }
