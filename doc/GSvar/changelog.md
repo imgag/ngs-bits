@@ -1,6 +1,14 @@
+### 0.1-995-g7714e35 (24.01.2018)
+- Filters: added phenotype-based filters (includes inheritance modes as provided by HPO).
+- Filters: added filter for ExAC pLI score.
+- Report: added ExAC and gnomAD allele frequency to variants in report.
+- Gap dialog: the longest coding transcript is now used to determine exonic/splicing regions (to make it consistent with gaps shown in the report).
+- Gap dialog: the generated text report now shows unclosed gaps as an own category.
+- Variant details: fixed dbSNP links (were broken when several RS numbers were listed).
+
 ### 0.1-980-g9addffe (15.01.2018)
 - Fixed LOVD upload: protein change of second variant in hompound-heterozygous mode was wrong.
-- Fixed gap dialog: gaps of exoninc/splicing regions are sometimes too large.
+- Fixed gap dialog: gaps of exonic/splicing regions were sometimes too large.
 - General: added warning for genes that are non-coding in GRCH37 Ensembl, but coding for GRCh38.
 
 ### 0.1-975-g18c7992 (12.01.2018)
@@ -144,6 +152,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 
