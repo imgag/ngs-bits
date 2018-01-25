@@ -69,7 +69,7 @@ The database backend of the NGSD is a MySQL database. To set it up, follow these
 * Create the NGSD database:
 
 		mysql> create database ngsd;
-		mysql> grant all on ngsd.* to 'ngsduser' identified by '[mysql-password]';
+		mysql> grant all on ngsd.* to 'ngsduser'@'%' identified by '[mysql-password]';
 		mysql> exit
 
 * In order to optimize the performance of MySQL for the NGSD, adapt/add the following settings in the `/etc/mysql/my.cnf` file:
@@ -210,6 +210,7 @@ For more information on GSvar, open the help within GSvar (F1) or use this [link
 ## Next steps
 
 Now you can run your first data analysis based on these [instructions](running_an_analysis.md).
+
 
 
 

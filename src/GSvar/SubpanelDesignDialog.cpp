@@ -96,7 +96,20 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 
 	//check gene names
 	NGSD db;
-	genes = GeneSet::createFromText(ui->genes->toPlainText().toLatin1());
+	genes.clear();
+	QByteArrayList lines = ui->genes->toPlainText().toLatin1().split('\n');
+	foreach(QByteArray line, lines)
+	{
+		int tab_idx = line.indexOf("\t");
+		if (tab_idx==-1)
+		{
+			genes.insert(line);
+		}
+		else
+		{
+			genes.insert(line.left(tab_idx));
+		}
+	}
 	if (genes.count()==0)
 	{
 		showMessage("Genes are not set!", true);
