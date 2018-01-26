@@ -112,7 +112,7 @@ QString ReportWorker::formatCodingSplicing(QByteArray text)
 		}
 		QByteArray gene = parts[0].trimmed();
 		QByteArray trans = parts[1].trimmed();
-		QByteArray output = gene + ":" + trans + ":" + parts[5].trimmed() + ":" + parts[6].trimmed();
+		QByteArray output = trans + ":" + parts[5].trimmed() + ":" + parts[6].trimmed();
 
 		if (preferred_transcripts_.value(gene).contains(trans))
 		{
@@ -532,7 +532,7 @@ void ReportWorker::writeHTML()
 	stream << "<p><b>Liste relevanter Varianten</b>" << endl;
 	stream << "</p>" << endl;
 	stream << "<table>" << endl;
-	stream << "<tr><td><b>Gen</b></td><td><b>chr</b></td><td><b>start</b></td><td><b>end</b></td><td><b>ref</b></td><td><b>obs</b></td><td><b>" << (tumor ? "Allelfrequenz" : "Genotyp") << "</b></td><td><b>Details</b></td><td><b>Klasse</b></td><td><b>Vererbung</b></td><td><b>ExAC AF</b></td><td><b>gnomAD AF</b></td></tr>" << endl;
+	stream << "<tr><td><b>Gen</b></td><td><b>Variante</b></td><td><b>" << (tumor ? "Allelfrequenz" : "Genotyp") << "</b></td><td><b>Details</b></td><td><b>Klasse</b></td><td><b>Vererbung</b></td><td><b>ExAC</b></td><td><b>gnomAD</b></td></tr>" << endl;
 	for (int i=0; i<variants_selected_.count(); ++i)
 	{
 		const Variant& variant = variants_[variants_selected_[i]];
@@ -540,7 +540,7 @@ void ReportWorker::writeHTML()
 		stream << "<tr>" << endl;
 		stream << "<td>" << genes << "</td>" << endl;
 		stream << "<td>" << endl;
-		stream  << variant.chr().str() << "</td><td>" << variant.start() << "</td><td>" << variant.end() << "</td><td>" << variant.ref() << "</td><td>" << variant.obs() << "</td>";
+		stream  << variant.chr().str() << ":" << variant.start() << "&nbsp;" << variant.ref() << "&nbsp;&gt;&nbsp;" << variant.obs() << "</td>";
 		stream << "<td>" << (tumor ? variant.annotations().at(i_tumor_af) : variant.annotations().at(i_genotype)) << "</td>" << endl;
 		stream << "<td>" << formatCodingSplicing(variant.annotations().at(i_co_sp)).replace(", ", "<br />") << "</td>" << endl;
 		stream << "<td>" << variant.annotations().at(i_class) << "</td>" << endl;
@@ -567,7 +567,7 @@ void ReportWorker::writeHTML()
 
 				parts << omim;
 			}
-			stream << "<tr><td colspan=\"10\">" << parts.join("<br />") << "</td></tr>" << endl;
+			stream << "<tr><td colspan=\"8\">" << parts.join("<br />") << "</td></tr>" << endl;
 		}
 	}
 	stream << "</table>" << endl;
