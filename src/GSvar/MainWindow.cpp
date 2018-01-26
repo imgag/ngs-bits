@@ -56,6 +56,7 @@
 #include "LovdUploadDialog.h"
 #include "OntologyTermCollection.h"
 #include "ReportHelper.h"
+#include "GenLabDB.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -111,6 +112,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(&filewatcher_, SIGNAL(fileChanged()), this, SLOT(handleInputFileChange()));
 	connect(ui_.vars, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(variantDoubleClicked(QTableWidgetItem*)));
 	connect(ui_.actionDesignSubpanel, SIGNAL(triggered()), this, SLOT(openSubpanelDesignDialog()));
+	connect(filter_widget_, SIGNAL(phenotypeDataImportRequested()), this, SLOT(importPhenotypesFromGenLab()));
 
 	//misc initialization
 	filewatcher_.setDelayInSeconds(10);
@@ -192,8 +194,7 @@ void MainWindow::on_actionGeneSelector_triggered()
 
 	//show dialog
 	QString sample_folder = QFileInfo(filename_).absolutePath();
-	QString sample_name = QFileInfo(filename_).baseName();
-	GeneSelectorDialog dlg(sample_folder, sample_name, this);
+	GeneSelectorDialog dlg(sample_folder, processedSampleName(), this);
 	connect(&dlg, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
 	if (dlg.exec())
 	{
@@ -479,6 +480,25 @@ int MainWindow::guiColumnIndex(QString column) const
 	return -1;
 }
 
+QString MainWindow::processedSampleName()
+{
+	QString filename = QFileInfo(filename_).baseName();
+
+	VariantListType type = getType();
+	if (type==SOMATIC_PAIR)
+	{
+		return filename.split("-")[0];
+	}
+
+	return filename;
+}
+
+QString MainWindow::sampleName()
+{
+	QString ps_name = processedSampleName();
+	return (ps_name + "_").split('_')[0];
+}
+
 void MainWindow::addModelessDialog(QSharedPointer<QDialog> ptr)
 {
 	modeless_dialogs_.append(ptr);
@@ -497,6 +517,11 @@ void MainWindow::cleanUpModelessDialogs()
 			modeless_dialogs_.removeAt(i);
 		}
 	}
+}
+
+void MainWindow::importPhenotypesFromGenLab()
+{
+	filter_widget_->setPhenotypes(GenLabDB().phenotypes(sampleName()));
 }
 
 QStringList MainWindow::geneInheritanceMissing(QBitArray selected)
@@ -767,7 +792,7 @@ void MainWindow::generateReport()
 	if (!dialog.exec()) return;
 
 	//get export file name
-	QString base_name = QFileInfo(filename_).baseName();
+	QString base_name = processedSampleName();
 	QString file_rep = QFileDialog::getSaveFileName(this, "Export report file", last_report_path_ + "/" + base_name + targetFileName() + "_report_" + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
 	if (file_rep=="") return;
 	last_report_path_ = QFileInfo(file_rep).absolutePath();
@@ -1413,46 +1438,14 @@ void MainWindow::uploadtoLovd(int variant_index, int variant_index2)
 	LovdUploadData data;
 
 	//sample name
-	data.processed_sample = QFileInfo(filename_).baseName();
+	data.processed_sample = processedSampleName();
 
 	//gender
 	NGSD db;
 	data.gender = db.sampleGender(data.processed_sample);
 
 	//phenotype(s) from GenLab
-	QSharedPointer<QSqlDatabase> db2(new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL", "GENLAB_" + Helper::randomString(20))));
-	db2->setHostName(Settings::string("genlab_host"));
-	db2->setPort(Settings::integer("genlab_port"));
-	db2->setDatabaseName(Settings::string("genlab_name"));
-	db2->setUserName(Settings::string("genlab_user"));
-	db2->setPassword(Settings::string("genlab_pass"));
-	if (!db2->open())
-	{
-		THROW(DatabaseException, "Could not connect to the GenLab database:!");
-	}
-	QString sample_name = data.processed_sample.left(data.processed_sample.length()-3);
-	QSqlQuery query = db2->exec("SELECT HPOTERM1,HPOTERM2,HPOTERM3,HPOTERM4 FROM v_ngs_sap WHERE labornummer='"+sample_name+"'");
-	while(query.next())
-	{
-		for (int i=0; i<4; ++i)
-		{
-			if (query.value(i).toString().trimmed().isEmpty()) continue;
-
-			QByteArray pheno_id = query.value(i).toByteArray();
-			try
-			{
-				Phenotype pheno = Phenotype(pheno_id, db.phenotypeAccessionToName(pheno_id));
-				if (!data.phenos.contains(pheno))
-				{
-					data.phenos.append(pheno);
-				}
-			}
-			catch(DatabaseException e)
-			{
-				Log::error("Invalid HPO term ID '" + pheno_id + "' found in GenLab:" + e.message());
-			}
-		}
-	}
+	data.phenos = GenLabDB().phenotypes(sampleName());
 
 	//data 1st variant
 	const Variant& variant = variants_[variant_index];

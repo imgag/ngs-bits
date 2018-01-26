@@ -214,6 +214,9 @@
        </item>
        <item>
         <widget class="ClickableLineEdit" name="hpo_terms">
+         <property name="contextMenuPolicy">
+          <enum>Qt::CustomContextMenu</enum>
+         </property>
          <property name="readOnly">
           <bool>true</bool>
          </property>

@@ -11,6 +11,7 @@
 #include <QInputDialog>
 #include <QLabel>
 #include <QCompleter>
+#include <QMenu>
 #include "PhenotypeSelectionWidget.h"
 #include "GUIHelper.h"
 
@@ -66,6 +67,7 @@ FilterDockWidget::FilterDockWidget(QWidget *parent)
 	if (ngsd_enabled)
 	{
 		connect(ui_.hpo_terms, SIGNAL(clicked(QPoint)), this, SLOT(editPhenotypes()));
+		connect(ui_.hpo_terms, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showPhenotypeContextMenu(QPoint)));
 	}
 	else
 	{
@@ -686,6 +688,7 @@ const QList<Phenotype>& FilterDockWidget::phenotypes() const
 void FilterDockWidget::setPhenotypes(const QList<Phenotype>& phenotypes)
 {
 	phenotypes_ = phenotypes;
+	phenotypesChanged();
 }
 
 QString FilterDockWidget::referenceSample() const
@@ -911,6 +914,31 @@ void FilterDockWidget::editPhenotypes()
 	{
 		phenotypes_ = selector->selectedPhenotypes();
 		phenotypesChanged();
+	}
+}
+
+void FilterDockWidget::showPhenotypeContextMenu(QPoint pos)
+{
+	//set up
+	QMenu menu;
+	menu.addAction("import from GenLab");
+	menu.addSeparator();
+	menu.addAction("clear");
+
+	//exec
+	QAction* action = menu.exec(ui_.hpo_terms->mapToGlobal(pos));
+	if (action==nullptr)
+	{
+		return;
+	}
+	else if (action->text()=="clear")
+	{
+		phenotypes_.clear();
+		phenotypesChanged();
+	}
+	else if (action->text()=="import from GenLab")
+	{
+		emit phenotypeDataImportRequested();
 	}
 }
 

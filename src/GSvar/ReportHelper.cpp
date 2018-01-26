@@ -3,6 +3,7 @@
 #include "OntologyTermCollection.h"
 #include "VariantFilter.h"
 #include "Helper.h"
+#include "GenLabDB.h"
 #include <QFileInfo>
 #include <QDir>
 #include <QMessageBox>
@@ -785,28 +786,10 @@ void ReportHelper::writeRtf(QString out_file)
 	stream << "{\\pard\\sa45\\fs24\\b Allgemeine Informationen:\\par}" << endl;
 
 	//get histological tumor proportion and diagnosis from GenLab
-	//connect to GenLab database
-	QSharedPointer<QSqlDatabase> db_genlab(new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL", "GENLAB_" + Helper::randomString(20))));
-	db_genlab->setHostName(Settings::string("genlab_host"));
-	db_genlab->setPort(Settings::integer("genlab_port"));
-	db_genlab->setDatabaseName(Settings::string("genlab_name"));
-	db_genlab->setUserName(Settings::string("genlab_user"));
-	db_genlab->setPassword(Settings::string("genlab_pass"));
-	//FIXME:  this ->open() always returns true, this is a bug in Qt and solved in Qt 5.5.1
-	if (!db_genlab->open())
-	{
-		THROW(DatabaseException, "Could not connect to the GenLab database:!");
-	}
+	QString tumor_sample_name = tumor_id_.split('_')[0];
+	GenLabDB db_genlab;
 
-	//tumor ID without _xx
-	QString tumor_laboratory_name = tumor_id_.split('_')[0];
-	QSqlQuery query = db_genlab->exec("SELECT TUMORANTEIL, ICD10DIAGNOSE FROM v_ngs_sap WHERE labornummer='"+tumor_laboratory_name+"'");
-	query.next();
-
-	QString tumor_histological_proportion = query.value(0).toString();
-	QString diagnosis_icd10 = query.value(1).toString();
 	double tumor_molecular_proportion = qcml_data_.value("QC:2000054",true).toString().toDouble();
-
 	if(tumor_molecular_proportion > 100.)
 		tumor_molecular_proportion = 100.;
 
@@ -817,10 +800,10 @@ void ReportHelper::writeRtf(QString out_file)
 	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
 	stream << begin_table_cell << "Proben-ID (Keimbahn):\\cell" << begin_table_cell << normal_id_ << "\\cell\\row}" << endl;
 	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "Tumoranteil histol./molekular:\\cell" << begin_table_cell << tumor_histological_proportion << "\%";
+	stream << begin_table_cell << "Tumoranteil histol./molekular:\\cell" << begin_table_cell << db_genlab.tumorFraction(tumor_sample_name) << "\%";
 	stream << " / "<< tumor_molecular_proportion <<"\%\\cell\\row}" << endl;
 	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "Diagnose:\\cell" << begin_table_cell << diagnosis_icd10 <<" {\\cf2 TODO}" << "\\cell\\row}" << endl;
+	stream << begin_table_cell << "Diagnose:\\cell" << begin_table_cell << db_genlab.diagnosis(tumor_sample_name) <<" {\\cf2 TODO}" << "\\cell\\row}" << endl;
 
 	stream << "\\line" << endl;
 

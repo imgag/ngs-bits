@@ -8,7 +8,6 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-** Allow import of HPO terms from Genlab
 ** Add more info to report outcome:
   - causal variant: gene, comment, inheritance mode (dominant, recessive, comp-het, de-novo, x-linked), is candidate gene
   - secondary finding in ACMG genes (gene list)

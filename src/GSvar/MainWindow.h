@@ -59,6 +59,10 @@ public:
 	QString targetFileName() const;
 	///Returns the index of a colum in the GUI (or -1 if the column does not exist)
 	int guiColumnIndex(QString column) const;
+	///Returns the processed sample name (in case of a somatic variant list, the tumor is returned).
+	QString processedSampleName();
+	///Returns the sample name (in case of a somatic variant list, the tumor is returned).
+	QString sampleName();
 
 public slots:
 	///Open dialog
@@ -183,6 +187,8 @@ public slots:
 	///Removes all modeless dialogs that have been closed
 	void cleanUpModelessDialogs();
 
+	///Imports phenotype data from GenLab
+	void importPhenotypesFromGenLab();
 	///Variant default filters
     void clearFilters();
 
