@@ -37,12 +37,12 @@
      <item>
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>Tool:</string>
+        <string/>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="tool_name">
+      <widget class="QLabel" name="type">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
          <horstretch>0</horstretch>

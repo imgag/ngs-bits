@@ -13,7 +13,6 @@ GSvar:
   - secondary finding in ACMG genes (gene list)
 - Add genotype equal for affected
 - Make default filters configurable in INI file
-** No longer use external tools, but use the algorithms instead
 
 Tools:
 - Remove UMI tools that are no longer used: BamDeduplicateByBarcode, FastqExtractBarcode?

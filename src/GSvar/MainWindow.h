@@ -89,8 +89,6 @@ public slots:
 	void on_actionGenderSRY_triggered();
 	///File information BED
 	void on_actionStatisticsBED_triggered();
-	///File information FASTA
-	void on_actionStatisticsFastA_triggered();
 	///Copy to clipboard
 	void on_actionCopy_triggered();
 	///Copy to clipboard and split quality column
@@ -99,8 +97,6 @@ public slots:
 	void on_actionSampleCorrelationBAM_triggered();
 	///Sample correlation TSV
 	void on_actionSampleCorrelationTSV_triggered();
-	///Sample difference
-	void on_actionSampleDiff_triggered();
 	///Trio analysis
 	void on_actionTrio_triggered();
 	///Multi-sample analysis

@@ -899,49 +899,37 @@ void MainWindow::on_actionSampleInformation_triggered()
 
 void MainWindow::on_actionGenderXY_triggered()
 {
-	ExternalToolDialog dialog("SampleGender", "-method xy", this);
+	ExternalToolDialog dialog("Determine gender", "xy", this);
 	dialog.exec();
 }
 
 void MainWindow::on_actionGenderHet_triggered()
 {
-	ExternalToolDialog dialog("SampleGender", "-method hetx", this);
+	ExternalToolDialog dialog("Determine gender", "hetx", this);
 	dialog.exec();
 }
 
 void MainWindow::on_actionGenderSRY_triggered()
 {
-	ExternalToolDialog dialog("SampleGender", "-method sry", this);
+	ExternalToolDialog dialog("Determine gender", "sry", this);
 	dialog.exec();
 }
 
 void MainWindow::on_actionStatisticsBED_triggered()
 {
-	ExternalToolDialog dialog("BedInfo", "", this);
-	dialog.exec();
-}
-
-void MainWindow::on_actionStatisticsFastA_triggered()
-{
-	ExternalToolDialog dialog("FastaInfo", "", this);
+	ExternalToolDialog dialog("BED file information", "", this);
 	dialog.exec();
 }
 
 void MainWindow::on_actionSampleCorrelationTSV_triggered()
 {
-	ExternalToolDialog dialog("SampleCorrelation", "", this);
+	ExternalToolDialog dialog("Sample correlation", "variant list", this);
 	dialog.exec();
 }
 
 void MainWindow::on_actionSampleCorrelationBAM_triggered()
 {
-	ExternalToolDialog dialog("SampleCorrelation", "-bam", this);
-	dialog.exec();
-}
-
-void MainWindow::on_actionSampleDiff_triggered()
-{
-	ExternalToolDialog dialog("SampleDiff", "", this);
+	ExternalToolDialog dialog("Sample correlation", "bam", this);
 	dialog.exec();
 }
 

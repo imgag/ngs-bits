@@ -17,7 +17,7 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../GSmix/GSmix.qrc">
+   <iconset resource="GSvar.qrc">
     <normaloff>:/Icons/Icon.png</normaloff>:/Icons/Icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -109,15 +109,14 @@
       <string>File information</string>
      </property>
      <addaction name="actionStatisticsBED"/>
-     <addaction name="actionStatisticsFastA"/>
     </widget>
     <widget class="QMenu" name="menuDetermine_gender">
      <property name="title">
       <string>Determine gender</string>
      </property>
-     <addaction name="actionGenderXY"/>
-     <addaction name="actionGenderHet"/>
      <addaction name="actionGenderSRY"/>
+     <addaction name="actionGenderHet"/>
+     <addaction name="actionGenderXY"/>
     </widget>
     <widget class="QMenu" name="menuSample_correlation">
      <property name="title">
@@ -157,7 +156,6 @@
     <addaction name="menuFileInfo"/>
     <addaction name="menuDetermine_gender"/>
     <addaction name="menuSample_correlation"/>
-    <addaction name="actionSampleDiff"/>
    </widget>
    <widget class="QMenu" name="menuIGV">
     <property name="title">
@@ -323,7 +321,7 @@
   </action>
   <action name="actionSampleCorrelationTSV">
    <property name="text">
-    <string>based on GSvar files</string>
+    <string>based on variant lists</string>
    </property>
   </action>
   <action name="actionSampleCorrelationBAM">
@@ -333,7 +331,7 @@
   </action>
   <action name="actionNGSD">
    <property name="icon">
-    <iconset resource="../GSmix/GSmix.qrc">
+    <iconset resource="GSvar.qrc">
      <normaloff>:/Icons/NGSD.png</normaloff>:/Icons/NGSD.png</iconset>
    </property>
    <property name="text">
@@ -671,7 +669,6 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="../GSmix/GSmix.qrc"/>
   <include location="GSvar.qrc"/>
  </resources>
  <connections/>

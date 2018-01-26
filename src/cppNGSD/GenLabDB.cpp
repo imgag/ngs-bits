@@ -87,6 +87,7 @@ QString GenLabDB::diagnosis(QString sample_name)
 	{
 		diags << query.value(0).toString();
 	}
+	diags.removeDuplicates();
 	return diags.join(", ");
 }
 

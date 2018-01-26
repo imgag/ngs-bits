@@ -2,18 +2,24 @@
 #include "Exceptions.h"
 #include "Settings.h"
 #include "Helper.h"
+#include "BedFile.h"
+#include "QCCollection.h"
 #include "QFileDialog"
+#include "Statistics.h"
+#include "SampleCorrelation.h"
 
-ExternalToolDialog::ExternalToolDialog(QString tool_name, QString args, QWidget *parent)
+ExternalToolDialog::ExternalToolDialog(QString tool_name, QString mode, QWidget *parent)
 	: QDialog(parent)
 	, ui_()
-	, args_(args)
-	, process_(0)
-	, timer_()
+	, tool_name_(tool_name)
+	, mode_(mode)
 {
 	ui_.setupUi(this);
-	ui_.tool_name->setText(tool_name);
-	setWindowTitle("External tool dialog");
+	setWindowTitle(tool_name);
+	if (mode!="")
+	{
+		ui_.type->setText("Mode: " + mode);
+	}
 
 	connect(ui_.browse, SIGNAL(clicked()), this, SLOT(browse()));
 }
@@ -22,53 +28,100 @@ void ExternalToolDialog::browse()
 {
 	ui_.output->clear();
 
-	QString tool = ui_.tool_name->text();
+	QApplication::setOverrideCursor(Qt::BusyCursor);
 
-	if (tool == "BedInfo")
+	QString output;
+	QTextStream stream(&output);
+
+	if (tool_name_ == "BED file information")
 	{
 		QString filename = getFileName("Select BED file", "BED files (*.bed)");
 		if (filename=="") return;
-		startTool("-in " + filename);
+
+		//process
+		BedFile file;
+		file.load(filename);
+		QCCollection stats = Statistics::region(file, true);
+
+		//output
+		stream << "Regions: " << stats.value("roi_fragments").toString() << endl;
+		stream << "Bases: " << stats.value("roi_bases").toString(0) << endl;
+		stream << "Chromosomes: " << stats.value("roi_chromosomes").toString() << endl;
+		stream << endl;
+		stream << "Is sorted: " << stats.value("roi_is_sorted").toString() << endl;
+		stream << "Is merged: " << stats.value("roi_is_merged").toString() << endl;
+		stream << endl;
+		stream << "Fragment size (min): " << stats.value("roi_fragment_min").toString() << endl;
+		stream << "Fragment size (max): " << stats.value("roi_fragment_max").toString() << endl;
+		stream << "Fragment size (mean): " << stats.value("roi_fragment_mean").toString() << endl;
+		stream << "Fragment size (stdev): " << stats.value("roi_fragment_stdev").toString() << endl;
 	}
-	else if (tool == "FastaInfo")
-	{
-		QString filename = getFileName("Select FastA file", "FastA files (*.fa *.fasta)");
-		if (filename=="") return;
-		startTool("-in " + filename);
-	}
-	else if (tool == "SampleGender")
+	else if (tool_name_ == "Determine gender")
 	{
 		QString filename = getFileName("Select BAM file", "BAM files (*.bam)");
 		if (filename=="") return;
-		startTool("-in " + filename);
-	}
-	else if (tool == "SampleCorrelation")
-	{
-		QString header = "Select variant list";
-		QString filter = "GSvar files (*.GSvar)";
-		if (args_!="")
+
+		//process
+		QString gender;
+		QStringList debug_output;
+		if (mode_=="xy")
 		{
-			header = "Select BAM file";
-			filter = "BAM files (*.bam)";
+			gender = Statistics::genderXY(filename, debug_output);
 		}
+		else if (mode_=="hetx")
+		{
+			gender = Statistics::genderHetX(filename, debug_output);
+		}
+		else if (mode_=="sry")
+		{
+			gender = Statistics::genderSRY(filename, debug_output);
+		}
+
+		//output
+		foreach(const QString& line, debug_output)
+		{
+			stream  << line << endl;
+		}
+		stream << endl;
+		stream << "gender: " << gender << endl;
+
+	}
+	else if (tool_name_ == "Sample correlation")
+	{
+		QString header = (mode_=="bam") ? "Select BAM file" : "Select variant list";
+		QString filter = (mode_=="bam") ? "BAM files (*.bam)" : "GSvar files (*.GSvar);;VCF files (*.VCF);;VCF.GZ files (*.VCF.GZ)";
 		QString filename1 = getFileName(header , filter);
 		if (filename1=="") return;
 		QString filename2 = getFileName(header , filter);
 		if (filename2=="") return;
-		startTool("-in " + filename1 + " " + filename2);
-	}
-	else if (tool == "SampleDiff")
-	{
-		QString filename1 = getFileName("Select variant list", "GSvar files (*.GSvar)");
-		if (filename1=="") return;
-		QString filename2 = getFileName("Select variant list", "GSvar files (*.GSvar)");
-		if (filename2=="") return;
-		startTool("-in1 " + filename1 + " -in2 " + filename2);
+
+		//process
+		if (mode_=="bam")
+		{
+			SampleCorrelation sc;
+			sc.calculateFromBam(filename1, filename2, 30, 500);
+
+			stream << "Variants used: " << QString::number(sc.noVariants1()) << endl;
+			stream << "Correlation: " << QString::number(sc.sampleCorrelation(), 'f', 4) << endl;
+		}
+		else
+		{
+			SampleCorrelation sc;
+			sc.calculateFromVcf(filename1, filename2, 100);
+
+			stream << "Variants file1: " << QString::number(sc.noVariants1()) << endl;
+			stream << "Variants file2: " << QString::number(sc.noVariants2()) << endl;
+			stream << "Overlap percentage: " << QString::number(sc.olPerc(), 'f', 2) << endl;
+			stream << "Correlation: " << QString::number(sc.sampleCorrelation(), 'f', 4) << endl;
+		}
 	}
 	else
 	{
-		THROW(ProgrammingException, "Unknown tool '" + tool + "' requested in ExternalToolDialog!");
+		THROW(ProgrammingException, "Unknown tool '" + tool_name_ + "' requested in ExternalToolDialog!");
 	}
+
+	ui_.output->setPlainText(output);
+	QApplication::restoreOverrideCursor();
 }
 
 QString ExternalToolDialog::getFileName(QString title, QString filters)
@@ -84,40 +137,4 @@ QString ExternalToolDialog::getFileName(QString title, QString filters)
 		ui_.output->setPlainText("canceled...");
 	}
 	return file_name;
-}
-
-void ExternalToolDialog::startTool(QString arguments)
-{
-	//init
-	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-	ui_.output->setPlainText("processing...");
-
-	//add default arguments
-	arguments = args_ + " " + arguments;
-	arguments = arguments.simplified();
-
-	//start timer
-	timer_.restart();
-
-	//execute process
-	process_ = new QProcess(this);
-	connect(process_, SIGNAL(stateChanged(QProcess::ProcessState)), this, SLOT(stateChanged(QProcess::ProcessState)));
-	process_->setProgram(ui_.tool_name->text());
-	process_->setArguments(arguments.split(" "));
-	process_->setProcessChannelMode(QProcess::MergedChannels);
-	process_->start();
-}
-
-void ExternalToolDialog::stateChanged(QProcess::ProcessState state)
-{
-	if (state!=QProcess::NotRunning) return;
-
-	//reset cursor
-	QApplication::restoreOverrideCursor();
-
-	//display output
-	QString output = ">" + ui_.tool_name->text() + " " + process_->arguments().join(" ") + "\n";
-	output += ">Processing time: " + Helper::elapsedTime(timer_) + "\n";
-	output += ">Exit code: " + QString::number(process_->exitCode()) + "\n\n" + process_->readAll();
-	ui_.output->setPlainText(output);
 }
