@@ -28,12 +28,11 @@ public:
 	bool calculateDepth() const;
 	///Returns the cutoff for low-coverage statistics
 	int minCoverage() const;
-	///Returns the report outcome.
-	QString outcome() const;
+	///Returns the disgnostic status.
+	DiagnosticStatusData diagnosticStatus() const;
 
 private slots:
 	void outcomeChanged(QString text);
-	void on_outcome_submit_clicked(bool checked);
 	void showContextMenu(QPoint pos);
 	void updateCoverageSettings(int state);
 

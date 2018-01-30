@@ -6,6 +6,7 @@
 #include <QVariantList>
 #include <QSharedPointer>
 #include <QTextStream>
+#include <QDateTime>
 
 #include "VariantList.h"
 #include "BedFile.h"
@@ -45,6 +46,23 @@ struct CPPNGSDSHARED_EXPORT ValidationInfo
 	QString status;
 	QString type;
 	QString comment;
+};
+
+
+///Diagnostic status and report outcome information
+struct CPPNGSDSHARED_EXPORT DiagnosticStatusData
+{
+	//main data
+	QString dagnostic_status;
+	QString outcome = "n/a";
+	QString genes_causal = "";
+	QString inheritance_mode = "n/a";
+	QString evidence_level = "n/a";
+	QString genes_incidental = "";
+
+	//meta data
+	QString user;
+	QDateTime date;
 };
 
 /// NGSD accessor.
@@ -142,8 +160,8 @@ public:
 	QString processedSamplePath(const QString& filename, PathType type, bool throw_if_fails = true);
 	///Returns the NGSD ID for a variant. Returns '' or throws an exception if the ID cannot be determined.
 	QString variantId(const Variant& variant, bool throw_if_fails = true);
-	///Returns the ID of the current user as a string. Throws an exception if the user is not in the NGSD user table.
-	QString userId();
+	///Returns the database ID of the user as a string. Throws an exception if the user is not in the NGSD user table.
+	QString userId(QString user_name="");
 
 	/*** Main NGSD functions ***/
 	///Returns the external sample name, or "n/a" the sample cannot be found in the database.
@@ -207,12 +225,10 @@ public:
 	///Sets the comment of a variant in the NGSD.
 	void setComment(const Variant& variant, const QString& text);
 
-	///Returns the diagnostic status of a sample (status, user, datetime, outcome), or an empty result if an error occurred.
-	QStringList getDiagnosticStatus(const QString& filename);
-	///Sets the diagnostic status.
-	void setDiagnosticStatus(const QString& filename, QString status);
-	///Sets the report outcome (use @p getDiagnosticStatus to get it).
-	void setReportOutcome(const QString& filename, QString outcome);
+	///Returns the diagnostic status of a sample. If there is no such entry, a default-constructed instance of DiagnosticStatusData is returned.
+	DiagnosticStatusData getDiagnosticStatus(const QString& filename);
+	///Sets the diagnostic status. Throws an exception, if the processed sample is not in the database. If unset, the user name is taken from the environment.
+	void setDiagnosticStatus(const QString& filename, DiagnosticStatusData status, QString user_name="");
 
 	///Returns processed sample quality
 	QString getProcessedSampleQuality(const QString& filename, bool colored);

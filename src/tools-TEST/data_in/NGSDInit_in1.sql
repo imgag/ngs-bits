@@ -1,5 +1,5 @@
 
-INSERT INTO `user`(`id`, `user_id`, `password`, `user_role`, `name`, `email`, `created`, `active`) VALUES (2, 'ahsturm1', '', 'user', 'Marc Sturm', '', '2016-07-05', 1);
+INSERT INTO `user`(`id`, `user_id`, `password`, `user_role`, `name`, `email`, `created`, `active`) VALUES (2, 'ahmustm1', '', 'user', 'Max Mustermann', '', '2016-07-05', 1);
 
 INSERT INTO `device` (`id`, `type`, `name`) VALUES (1, 'MiSeq', 'Neo');
 

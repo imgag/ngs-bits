@@ -20,14 +20,14 @@
 #include <QDesktopServices>
 #include <QApplication>
 
-ReportWorker::ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QList<int>& variants_selected, QMap<QString, QStringList> preferred_transcripts, QString outcome, QString file_roi, QString file_bam, int min_cov, QStringList log_files, QString file_rep, bool calculate_depth)
+ReportWorker::ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QList<int>& variants_selected, QMap<QString, QStringList> preferred_transcripts, DiagnosticStatusData diag_status, QString file_roi, QString file_bam, int min_cov, QStringList log_files, QString file_rep, bool calculate_depth)
 	: WorkerBase("Report generation")
 	, sample_name_(sample_name)
 	, filters_(filters)
 	, variants_(variants)
 	, variants_selected_(variants_selected)
 	, preferred_transcripts_(preferred_transcripts)
-	, outcome_(outcome)
+	, diag_status_(diag_status)
 	, file_roi_(file_roi)
 	, file_bam_(file_bam)
 	, min_cov_(min_cov)
@@ -790,7 +790,7 @@ void ReportWorker::writeXML(QString outfile_name)
 	w.writeAttribute("date", QDate::currentDate().toString("yyyy-MM-dd"));
 	w.writeAttribute("user_name", Helper::userName());
 	w.writeAttribute("software", QCoreApplication::applicationName() + " " + QCoreApplication::applicationVersion());
-	w.writeAttribute("outcome", outcome_);
+	w.writeAttribute("outcome", diag_status_.outcome);
 	w.writeEndElement();
 
 	//element Sample

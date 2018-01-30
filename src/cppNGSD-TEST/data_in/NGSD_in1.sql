@@ -1,5 +1,5 @@
 
-INSERT INTO `user`(`id`, `user_id`, `password`, `user_role`, `name`, `email`, `created`, `active`) VALUES (2, 'ahsturm1', '', 'user', 'Marc Sturm', '', '2016-07-05', 1);
+INSERT INTO `user`(`id`, `user_id`, `password`, `user_role`, `name`, `email`, `created`, `active`) VALUES (2, 'ahmustm1', '', 'user', 'Max Mustermann', '', '2016-07-05', 1);
 
 INSERT INTO `device` (`id`, `type`, `name`) VALUES (1, 'MiSeq', 'Neo');
 
@@ -17,6 +17,9 @@ INSERT INTO `processing_system` (`id`, `name_short`, `name_manufacturer`, `adapt
 INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_id`, `lane`, `processing_system_id`, `project_id`) VALUES (3999, 1, 3, 1, '1', 1, 1);
 INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_id`, `lane`, `processing_system_id`, `project_id`) VALUES (4000, 1, 4, 1, '1', 1, 1);
 INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_id`, `lane`, `processing_system_id`, `project_id`) VALUES (4001, 2, 4, 1, '1', 1, 1);
+
+INSERT INTO `diag_status`(`processed_sample_id`, `status`, `user_id`, `date`, `outcome`, `genes_causal`, `inheritance_mode`, `evidence_level`, `genes_incidental`) VALUES 
+(3999, 'done', 2, '2014-07-29 09:40:49', 'no significant findings', 'ATM', 'autosomal recessive', 'known gene', 'BRCA2');
 
 INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `type`) VALUES (1,1001, 'BRCA1','Breast cancer associated gene 1', 'protein-coding gene');
 INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `type`) VALUES (2,1002, 'BRCA2','Breast cancer associated gene 2', 'protein-coding gene');

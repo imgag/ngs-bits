@@ -309,6 +309,58 @@ private slots:
 		hpo_ids = db.phenotypeChildTems(Phenotype("HP:0001427", "Mitochondrial inheritance"), false);
 		I_EQUAL(hpo_ids.count(), 0);
 
+		//getDiagnosticStatus
+		DiagnosticStatusData diag_status = db.getDiagnosticStatus("NA12878_03");
+		S_EQUAL(diag_status.date.toString(Qt::ISODate), "2014-07-29T09:40:49");
+		S_EQUAL(diag_status.user, "Max Mustermann");
+		S_EQUAL(diag_status.dagnostic_status, "done");
+		S_EQUAL(diag_status.outcome, "no significant findings");
+		S_EQUAL(diag_status.genes_causal, "ATM");
+		S_EQUAL(diag_status.evidence_level, "known gene");
+		S_EQUAL(diag_status.inheritance_mode, "autosomal recessive");
+		S_EQUAL(diag_status.genes_incidental, "BRCA2");
+		//no entry in DB
+		diag_status = db.getDiagnosticStatus("NA12878_04");
+		S_EQUAL(diag_status.user, "");
+		IS_FALSE(diag_status.date.isValid());
+		S_EQUAL(diag_status.dagnostic_status, "");
+		S_EQUAL(diag_status.outcome, "n/a");
+		S_EQUAL(diag_status.genes_causal, "");
+		S_EQUAL(diag_status.inheritance_mode, "n/a");
+		S_EQUAL(diag_status.evidence_level, "n/a");
+		S_EQUAL(diag_status.genes_incidental, "");
+
+		//setDiagnosticStatus
+		//create new entry
+		diag_status.dagnostic_status = "done";
+		diag_status.outcome = "significant findings";
+		diag_status.genes_causal = "BRCA1";
+		diag_status.inheritance_mode = "autosomal dominant";
+		diag_status.evidence_level = "known gene";
+		diag_status.genes_incidental = "TP53";
+		db.setDiagnosticStatus("NA12878_04", diag_status, "ahmustm1");
+		diag_status = db.getDiagnosticStatus("NA12878_04");
+		S_EQUAL(diag_status.user, "Max Mustermann");
+		IS_TRUE(diag_status.date.isValid());
+		S_EQUAL(diag_status.dagnostic_status, "done");
+		S_EQUAL(diag_status.outcome, "significant findings");
+		S_EQUAL(diag_status.genes_causal, "BRCA1");
+		S_EQUAL(diag_status.inheritance_mode, "autosomal dominant");
+		S_EQUAL(diag_status.evidence_level, "known gene");
+		S_EQUAL(diag_status.genes_incidental, "TP53");
+		//update existing entry
+		diag_status = db.getDiagnosticStatus("NA12878_03");
+		diag_status.genes_incidental = "BRCA2,POLG";
+		db.setDiagnosticStatus("NA12878_03", diag_status, "ahmustm1");
+		diag_status = db.getDiagnosticStatus("NA12878_03");
+		IS_TRUE(diag_status.date.isValid());
+		S_EQUAL(diag_status.user, "Max Mustermann");
+		S_EQUAL(diag_status.dagnostic_status, "done");
+		S_EQUAL(diag_status.outcome, "no significant findings");
+		S_EQUAL(diag_status.genes_causal, "ATM");
+		S_EQUAL(diag_status.evidence_level, "known gene");
+		S_EQUAL(diag_status.inheritance_mode, "autosomal recessive");
+		S_EQUAL(diag_status.genes_incidental, "BRCA2,POLG");
 	}
 
 	//Test for debugging (without initialization because of speed)

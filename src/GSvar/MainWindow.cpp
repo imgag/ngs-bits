@@ -806,22 +806,15 @@ void MainWindow::generateReport()
 		bam_file = bams.values().first();
 	}
 
-	//flag report variants in NGSD
-	try
-	{
-		NGSD().setReportOutcome(filename_, dialog.outcome());
-	}
-	catch (DatabaseException& e)
-	{
-		QMessageBox::warning(this, "Report variants in NGSD", "Flagging report variants in NGSD failed:\n" + e.message());
-	}
-
+//update diagnostic status
+	DiagnosticStatusData diag_status = dialog.diagnosticStatus();
+	NGSD().setDiagnosticStatus(filename_, diag_status);
 	//show busy dialog
 	busy_dialog_ = new BusyDialog("Report", this);
 	busy_dialog_->init("Generating report", false);
 
 	//start worker in new thread
-	ReportWorker* worker = new ReportWorker(base_name, filter_widget_->appliedFilters(), variants_, dialog.selectedIndices(), preferred_transcripts_, dialog.outcome(), filter_widget_->targetRegion(), bam_file, dialog.minCoverage(), getLogFiles(), file_rep, dialog.calculateDepth());
+	ReportWorker* worker = new ReportWorker(base_name, filter_widget_->appliedFilters(), variants_, dialog.selectedIndices(), preferred_transcripts_, diag_status, filter_widget_->targetRegion(), bam_file, dialog.minCoverage(), getLogFiles(), file_rep, dialog.calculateDepth());
 	connect(worker, SIGNAL(finished(bool)), this, SLOT(reportGenerationFinished(bool)));
 	worker->start();
 }
@@ -893,7 +886,7 @@ void MainWindow::on_actionSampleInformation_triggered()
 {
 	if (filename_=="") return;
 
-	SampleInformationDialog dialog(this, filename_);
+	SampleInformationDialog dialog(this, processedSampleName());
 	dialog.exec();
 }
 

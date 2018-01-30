@@ -197,14 +197,6 @@ public:
 	}
 };
 
-/*
-TODO:
-- more realistic error model (high at beginning of read/index, higher for later cycles, higher for read 2)
-- model to add variants (SNVs, indels)
-- model to add N bases
-- implement test!
-*/
-
 #include "main.moc"
 
 int main(int argc, char *argv[])

@@ -622,6 +622,28 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>processed_sample</tabstop>
+  <tabstop>gender</tabstop>
+  <tabstop>chr</tabstop>
+  <tabstop>gene</tabstop>
+  <tabstop>nm_number</tabstop>
+  <tabstop>hgvs_g</tabstop>
+  <tabstop>refseq_btn</tabstop>
+  <tabstop>hgvs_c</tabstop>
+  <tabstop>hgvs_p</tabstop>
+  <tabstop>genotype</tabstop>
+  <tabstop>classification</tabstop>
+  <tabstop>hgvs_g2</tabstop>
+  <tabstop>refseq_btn2</tabstop>
+  <tabstop>hgvs_c2</tabstop>
+  <tabstop>hgvs_p2</tabstop>
+  <tabstop>genotype2</tabstop>
+  <tabstop>classification2</tabstop>
+  <tabstop>upload_btn</tabstop>
+  <tabstop>comment_upload</tabstop>
+  <tabstop>print_btn</tabstop>
+ </tabstops>
  <resources>
   <include location="GSvar.qrc"/>
  </resources>

@@ -1,6 +1,9 @@
 === TODO ===
 
 libs:
+- NGSD:
+    - use sample/processed sample ID (int) instead of filename.
+    - add processedSampleInfo() method that returns the main infos about a processed sample/sample in one struct.
 - VariantList:
     - determine file format from file header instead of file name => make more tools pipeable (MS)
     - use QSharedPointers to link VariantAnnotationHeaders with VariantAnnotationDescriptions (CS)
@@ -8,10 +11,6 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-** Add more info to report outcome:
-  - causal variant: gene, comment, inheritance mode (dominant, recessive, comp-het, de-novo, x-linked), is candidate gene
-  - secondary finding in ACMG genes (gene list)
-  - add gene name update when during HGNC import
 - Add genotype equal for affected
 - Make default filters configurable in INI file
 

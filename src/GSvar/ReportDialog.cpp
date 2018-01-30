@@ -26,29 +26,14 @@ ReportDialog::ReportDialog(QString filename, QWidget* parent)
 	ui_.vars->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(ui_.vars, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
 
-	//init outcome
-	ui_.outcome->addItems(NGSD().getEnum("diag_status", "outcome"));
+	//disable ok button when no outcome is set
 	ui_.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-	connect(ui_.outcome, SIGNAL(currentTextChanged(QString)), this, SLOT(outcomeChanged(QString)));
+	connect(ui_.diag_status, SIGNAL(outcomeChanged(QString)), this, SLOT(outcomeChanged(QString)));
 
-	//set outcome from NGSD
-	QStringList diag_status = NGSD().getDiagnosticStatus(filename_);
-	if (diag_status.count()<4)
-	{
-		Log::warn("Could not determine diagnostic status in NGSD for file '" + filename + "'!");
-	}
-	else
-	{
-		int index = ui_.outcome->findText(diag_status.at(3));
-		if (index==-1)
-		{
-			Log::warn("Could not determine outcome index of outcome '" + diag_status.at(3) + "'!");
-		}
-		else
-		{
-			ui_.outcome->setCurrentIndex(index);
-		}
-	}
+	//set diagnostic status
+	NGSD db;
+	DiagnosticStatusData diag_status = db.getDiagnosticStatus(filename_);
+	ui_.diag_status->setStatus(diag_status);
 
 	//enable/disable low-coverage settings
 	connect(ui_.details_cov, SIGNAL(stateChanged(int)), this, SLOT(updateCoverageSettings(int)));
@@ -142,19 +127,14 @@ int ReportDialog::minCoverage() const
 	return ui_.min_cov->value();
 }
 
-QString ReportDialog::outcome() const
+DiagnosticStatusData ReportDialog::diagnosticStatus() const
 {
-	return ui_.outcome->currentText();
+	return ui_.diag_status->status();
 }
 
 void ReportDialog::outcomeChanged(QString text)
 {
 	ui_.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(text!="n/a");
-}
-
-void ReportDialog::on_outcome_submit_clicked(bool)
-{
-	NGSD().setReportOutcome(filename_, outcome());
 }
 
 void ReportDialog::showContextMenu(QPoint pos)

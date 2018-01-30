@@ -1,5 +1,5 @@
 
-INSERT INTO `user`(`id`, `user_id`, `password`, `user_role`, `name`, `email`, `created`, `active`) VALUES (2, 'ahsturm1', '', 'user', 'Marc Sturm', '', '2016-07-05', 1);
+INSERT INTO `user`(`id`, `user_id`, `password`, `user_role`, `name`, `email`, `created`, `active`) VALUES (2, 'ahmustm1', '', 'user', 'Max Mustermann', '', '2016-07-05', 1);
 
 INSERT INTO `device` (`id`, `type`, `name`) VALUES (1, 'MiSeq', 'Neo');
 
@@ -51,8 +51,8 @@ INSERT INTO `gene_alias` (`gene_id`, `symbol`, `type`) VALUES
 (79279, 'FLJ23569', 'synonym');
 
 INSERT INTO `geneinfo_germline` (`symbol`, `inheritance`, `exac_pli`, `comments`) VALUES
-('BRCA1', 'AD', 0.111599, '28.04.2016 ahsturm1]\nHPO: Autosomal dominant inheritance'),
-('A1BG-AS', 'AD', 0.111599, '28.04.2016 ahsturm1]\nHPO: Autosomal dominant inheritance');
+('BRCA1', 'AD', 0.111599, '28.04.2016 ahmustm1]\nHPO: Autosomal dominant inheritance'),
+('A1BG-AS', 'AD', 0.111599, '28.04.2016 ahmustm1]\nHPO: Autosomal dominant inheritance');
 
 INSERT INTO `hpo_term` (`id`, `hpo_id`, `name`, `definition`) VALUES
 (11495, 'HP:0000003', 'Multicystic kidney dysplasia', '\"Multicystic dysplasia of the kidney is characterized by multiple cysts of varying size in the kidney and the absence of a normal pelvocaliceal system. The condition is associated with ureteral or ureteropelvic atresia, and the affected kidney is nonfunctional.');

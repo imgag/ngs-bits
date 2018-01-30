@@ -761,6 +761,10 @@ CREATE  TABLE IF NOT EXISTS `diag_status` (
   `user_id` INT(11) NOT NULL,
   `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `outcome` ENUM('n/a','no significant findings','uncertain','significant findings','significant findings - second method') NOT NULL DEFAULT 'n/a',
+  `genes_causal` TEXT NULL DEFAULT NULL,
+  `inheritance_mode` ENUM('n/a','autosomal recessive','autosomal dominant','x-linked recessive','x-linked dominant','mitochondrial','de-novo') NOT NULL DEFAULT 'n/a',
+  `evidence_level` ENUM('n/a','candidate gene','known gene') NOT NULL DEFAULT 'n/a',
+  `genes_incidental` TEXT NULL DEFAULT NULL,
   PRIMARY KEY (`processed_sample_id`),
   INDEX `user_id` (`user_id` ASC),
   CONSTRAINT `diag_status_ibfk_1`

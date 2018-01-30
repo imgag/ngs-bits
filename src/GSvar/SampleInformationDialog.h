@@ -14,15 +14,15 @@ class SampleInformationDialog
 	
 public:
 	///Constructor
-	SampleInformationDialog(QWidget* parent, QString filename);
+	SampleInformationDialog(QWidget* parent, QString processed_sample_name);
 
 private slots:
 	///Starts reanalysis of the sample.
 	void reanalyze();
 	///Refreshes reanalysis information.
 	void refreshReanalysisStatus();
-	///Sets the report status according to the sender action text.
-	void setReportStatus();
+	///Opens a dialog to view/edit the diagnostic status.
+	void editDiagnosticStatus();
 	///Sets the processed sample quality according to the sender action text.
 	void setQuality();
 
@@ -34,7 +34,7 @@ private:
 	void statisticsLabel(NGSD& db, QLabel* label, QString accession, const QCCollection& qc, int decimal_places = 2);
 
 	Ui::SampleInformationDialog ui_;
-	QString filename_;
+	QString processed_sample_name_;
 	QString reanalyze_status_;
 	QTimer timer_;
 };
