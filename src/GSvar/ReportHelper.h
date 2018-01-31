@@ -26,7 +26,7 @@ public:
 	///generates table with important SNVs including mutational burden
 	static void writeRtfTableSNV(QTextStream& stream, const QList<int>& colWidths, const VariantList& important_snvs, const VariantList& further_genes, double mutation_burden);
 	///generates table with important CNVs
-	static void writeRtfTableCNV(QTextStream& stream, const QList<int>& colWidths, const CnvList& important_cnvs, const CnvList& further_cnvs);
+	static void writeRtfTableCNV(QTextStream& stream, const QList<int>& colWidths, const CnvList& important_cnvs, QString target_region);
 };
 
 
@@ -37,21 +37,17 @@ public:
 	ReportHelper();
 	ReportHelper(QString snv_filename, GeneSet snv_germline_filter, GeneSet cnv_keep_genes_filter, QString target_region);
 	///write Rtf File
-	void writeRtf(QString out_file);
+	void writeRtf(const QString& out_file);
 
 private:
-	///Filters snv_variants_ for CGI annotation
-	VariantList filterSnvFromCgi();
-	///Filters snv_variants_ for further important SNVs. SNVs already contained in CGI are kicked out.
-	VariantList filterImportantSnv();
-	///get important germline SNVs
-	VariantList germlineSnv();
-	///Filters cnv_cariants_ for CGI annotation
-	CnvList filterCnvFromCgi();
-	/// Filter cnv_variants_ for further important genes
-	CnvList filterImportantCnv();
-	///get important germline CNVs
-	CnvList germlineCnv();
+	///Filters snv_variants_ for SNVs classified by CGI as drivers
+	VariantList filterSnvForCGIDrivers();
+	///Filters snv_variants_ for SNVs classified by CGI as passengers/non-protein-coding.
+	VariantList filterSnvForCGIPassengers();
+	///Filters cnv_cariants_, CNVs with zScors < 5 and without genes in cnv_keep_genes_filter_ will be discarded
+	///if del_genes_not_in_target_region is set, all genes which do not lie in target region will be removed
+	CnvList filterCnv();
+
 	///make gap statistics, grouped by gene as QByteArray and regions as BedFile
 	QHash<QByteArray, BedFile> gapStatistics();
 
@@ -83,14 +79,26 @@ private:
 	///Geneset with genes to be kept for CNV report
 	GeneSet cnv_keep_genes_filter_;
 
+	///Geneset with genes which appear in the technical report for reimbursement
+	GeneSet genes_for_reimbursement_;
+
+	///CGI cancer acronym (extracted from .GSVar file)
+	QString cgi_cancer_type_;
+
+	///ICD10 text diagnosis tumor
+	QString icd10_diagnosis_text_;
+
 	///indices for variant files
 	int snv_index_filter_;
-	int snv_index_cgi_drug_assoc_;
+	int snv_index_cgi_driver_statement_;
+	int snv_index_cgi_gene_role;
+	int snv_index_cgi_transcript;
 	int snv_index_variant_type_;
 	int snv_index_classification_;
 	int snv_index_gene_;
+
 	///indices for cnv files
-	int cnv_index_cgi_drug_assoc_;
+	int cnv_index_cgi_genes_;
 };
 
 #endif // REPORTHELPER_H

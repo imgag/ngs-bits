@@ -714,11 +714,18 @@ void MainWindow::generateReportSomaticRTF()
 
 	QString temp_filename = Helper::tempFileName(".rtf");
 
-	if(variants_.annotationIndexByName("CGI_drug_assoc",true,false) == -1 || variants_.annotationIndexByName("CGI_drug_assoc",true,false) == -2)
+	if(variants_.annotationIndexByName("CGI_driver_statement",true,false) == -1 || variants_.annotationIndexByName("CGI_gene_role",true,false) == -2)
 	{
 		QMessageBox::warning(this,"Somatic report", "Report cannot be created because GSVar-file does not contain CGI-data.");
 		return;
 	}
+	QString filename_cnv = QFileInfo(filename_).filePath().split('.')[0] + "_cnvs.tsv";
+	if(!QFileInfo(filename_cnv).exists())
+	{
+		QMessageBox::warning(this,"Somatic report", "Report cannot be created because file with CNV data does not exist.");
+		return;
+	}
+
 
 	ReportHelper report(filename_,snv_germline_filter,cnv_keep_genes_filter,target_region);
 	report.writeRtf(temp_filename);

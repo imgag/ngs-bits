@@ -331,7 +331,6 @@ void QCCollection::storeToQCML(QString filename, const QStringList& source_files
 		QString xml_error = XmlHelper::isValidXml(filename, "://Resources/qcML_0.0.8.xsd");
 		if (xml_error!="")
 		{
-			//qDebug() << xml_error;
 			THROW(ProgrammingException, "QCCollection::storeToQCML produced an invalid XML file: " + xml_error);
 		}
 	}
@@ -361,6 +360,7 @@ QCCollection QCCollection::fromQCML(QString filename)
 	QDomDocument doc;
 	QString error_msg;
 	int error_line, error_column;
+
 	if(!doc.setContent(&f,&error_msg,&error_line,&error_column))
 	{
 		THROW(FileParseException, "qcML file is invalid: " + error_msg + " line: " + error_line + " column: " + error_column);
