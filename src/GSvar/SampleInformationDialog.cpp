@@ -106,9 +106,10 @@ void SampleInformationDialog::reanalyze()
 void SampleInformationDialog::editDiagnosticStatus()
 {
 	NGSD db;
-	DiagnosticStatusWidget* widget = new DiagnosticStatusWidget(this);
-	widget->setStatus(db.getDiagnosticStatus(processed_sample_name_));
+	QString processed_sample_id = db.processedSampleId(processed_sample_name_);
 
+	DiagnosticStatusWidget* widget = new DiagnosticStatusWidget(this);
+	widget->setStatus(db.getDiagnosticStatus(processed_sample_id));
 	auto dlg = GUIHelper::showWidgetAsDialog(widget, "Diagnostic status of " + processed_sample_name_, true);
 	if (dlg->result()!=QDialog::Accepted) return;
 
@@ -121,7 +122,7 @@ void SampleInformationDialog::editDiagnosticStatus()
 		}
 	}
 
-	db.setDiagnosticStatus(processed_sample_name_, widget->status());
+	db.setDiagnosticStatus(processed_sample_id, widget->status());
 	refresh();
 }
 
@@ -129,7 +130,8 @@ void SampleInformationDialog::setQuality()
 {
 	QString quality = qobject_cast<QAction*>(sender())->text();
 	NGSD db;
-	db.setProcessedSampleQuality(processed_sample_name_, quality);
+	QString processed_sample_id = db.processedSampleId(processed_sample_name_);
+	db.setProcessedSampleQuality(processed_sample_id, quality);
 	refresh();
 }
 
@@ -137,61 +139,69 @@ void SampleInformationDialog::refresh()
 {
 	NGSD db;
 
-	//sample details
+	//sample data
 	ui_.name->setText(processed_sample_name_);
 	try
 	{
-		ui_.name_ext->setText(db.getExternalSampleName(processed_sample_name_));
-		ui_.tumor_ffpe->setText(db.sampleIsTumor(processed_sample_name_) + " / " + db.sampleIsFFPE(processed_sample_name_));
-		ui_.disease_group->setText(db.sampleDiseaseGroup(processed_sample_name_));
-		ui_.disease_status->setText(db.sampleDiseaseStatus(processed_sample_name_));
-		ui_.system->setText(db.getProcessingSystem(processed_sample_name_, NGSD::LONG));
+		SampleData sample_data = db.getSampleData(db.sampleId(processed_sample_name_));
+		ui_.name_ext->setText(sample_data.name_external);
+		ui_.tumor_ffpe->setText(QString(sample_data.is_tumor ? "yes" : "no") + " / " + (sample_data.is_ffpe ? "yes" : "no"));
+		ui_.disease_group->setText(sample_data.disease_group);
+		ui_.disease_status->setText(sample_data.disease_status);
 	}
 	catch(...)
 	{
 	}
 
-	//QC data
+	//processed sample data
 	try
 	{
-		QCCollection qc = db.getQCData(processed_sample_name_);
+		//QC data
+		QString processed_sample_id = db.processedSampleId(processed_sample_name_);
+		ProcessedSampleData processed_sample_data = db.getProcessedSampleData(processed_sample_id);
+		QCCollection qc = db.getQCData(processed_sample_id);
 		ui_.qc_reads->setText(qc.value("QC:2000005", true).toString(0) + " (length: " + qc.value("QC:2000006", true).toString(0) + ")");
 
-		statisticsLabel(db, ui_.qc_avg_depth, "QC:2000025", qc);
-		statisticsLabel(db, ui_.qc_perc_20x, "QC:2000027", qc);
-		statisticsLabel(db, ui_.qc_insert_size,"QC:2000023", qc);
-		statisticsLabel(db, ui_.qc_af_dev,"QC:2000051", qc, 4);
+		statisticsLabel(db, ui_.qc_avg_depth, "QC:2000025", qc, true, false);
+		statisticsLabel(db, ui_.qc_perc_20x, "QC:2000027", qc, true, false);
+		statisticsLabel(db, ui_.qc_insert_size,"QC:2000023", qc, true, true);
+		statisticsLabel(db, ui_.qc_af_dev,"QC:2000051", qc, false, true, 4);
 
 		ui_.qc_kasp->setText(qc.value("kasp").asString());
-		ui_.qc_quality->setText(db.getProcessedSampleQuality(processed_sample_name_, true));
-		ui_.comment->setText(db.getProcessedSampleComment(processed_sample_name_));
+		QString quality = processed_sample_data.quality;
+		if (quality=="bad") quality = "<font color='red'>"+quality+"</font>";
+		if (quality=="medium") quality = "<font color='orange'>"+quality+"</font>";
+		ui_.qc_quality->setText(quality);
+		ui_.comment->setText(processed_sample_data.comments);
+		ui_.system->setText(processed_sample_data.processing_system);
+
+		//diagnostic status
+		DiagnosticStatusData diag_status = db.getDiagnosticStatus(processed_sample_id);
+		ui_.diag_status->setText(diag_status.dagnostic_status);
+		ui_.diag_outcome->setText(diag_status.outcome);
+
+		//last analysis
+		QDateTime last_modified = QFileInfo(db.processedSamplePath(processed_sample_id, NGSD::BAM)).lastModified();
+		QString date_text = last_modified.toString("yyyy-MM-dd");
+		if (last_modified < QDateTime::currentDateTime().addMonths(-6))
+		{
+			date_text = " <font color='red'>" + date_text + "</font>";
+		}
+		ui_.date_bam->setText(date_text);
+
 	}
 	catch(...)
 	{
 		ui_.quality_button->setEnabled(false);
+		ui_.diag_status_button->setEnabled(false);
 	}
-
-	//diagnostic status
-	DiagnosticStatusData diag_status = db.getDiagnosticStatus(processed_sample_name_);
-	ui_.diag_status->setText(diag_status.dagnostic_status);
-	ui_.diag_outcome->setText(diag_status.outcome);
-	ui_.diag_status_button->setEnabled(diag_status.dagnostic_status!=""); //diasable if sample not present in database
-
-	//last analysis
-	QDateTime last_modified = QFileInfo(QString(processed_sample_name_).replace(".GSvar", ".bam")).lastModified();
-	QString date_text = last_modified.toString("yyyy-MM-dd");
-	if (last_modified < QDateTime::currentDateTime().addMonths(-6))
-	{
-		date_text = " <font color='red'>" + date_text + "</font>";
-	}
-	ui_.date_bam->setText(date_text);
 
 	//reanalysis status
 	refreshReanalysisStatus();
 }
 
 
-void SampleInformationDialog::statisticsLabel(NGSD& db, QLabel* label, QString accession, const QCCollection& qc, int decimal_places)
+void SampleInformationDialog::statisticsLabel(NGSD& db, QLabel* label, QString accession, const QCCollection& qc, bool label_outlier_low, bool label_outlier_high, int decimal_places)
 {
 	try
 	{
@@ -200,7 +210,7 @@ void SampleInformationDialog::statisticsLabel(NGSD& db, QLabel* label, QString a
 		label->setText(value_str);
 
 		//get QC value statistics
-		QVector<double> values = db.getQCValues(accession, processed_sample_name_);
+		QVector<double> values = db.getQCValues(accession, db.processedSampleId(processed_sample_name_));
 		std::sort(values.begin(), values.end());
 		double median = BasicStatistics::median(values, false);
 		double mad = 1.428 * BasicStatistics::mad(values, median);
@@ -209,14 +219,14 @@ void SampleInformationDialog::statisticsLabel(NGSD& db, QLabel* label, QString a
 		//mark QC value red if it is an outlier
 		bool ok = false;
 		double value = value_str.toDouble(&ok);
-		if (!ok || value < median-2*mad || value > median+2*mad)
+		if (!ok || (label_outlier_low && value < median-2*mad) || (label_outlier_high && value > median+2*mad))
 		{
-			label->setText("<font color=\"red\">"+value_str+"</font>");
+			label->setText("<font color='red'>"+value_str+"</font>");
 		}
 	}
 	catch (ArgumentException e) //in case the QC value does not exist in the DB
 	{
-		label->setText("<font color=\"red\">n/a</font>");
+		label->setText("<font color='red'>n/a</font>");
 		label->setToolTip("NGSD error: " + e.message());
 	}
 	catch (StatisticsException e) //in case the QC values statistics cannot be calculated

@@ -15,6 +15,46 @@
 #include "SqlQuery.h"
 #include "GeneSet.h"
 #include "Phenotype.h"
+#include "Helper.h"
+
+///Sample information.
+struct CPPNGSDSHARED_EXPORT SampleData
+{
+	QString name;
+	QString name_external;
+	QString gender;
+	QString quality;
+	QString comments;
+	QString disease_group;
+	QString disease_status;
+	bool is_tumor;
+	bool is_ffpe;
+};
+
+///Processed sample information.
+struct CPPNGSDSHARED_EXPORT ProcessedSampleData
+{
+	QString name;
+	QString processing_system;
+	QString quality;
+	QString comments;
+	QString project_name;
+	QString run_name;
+	QString normal_sample_name;
+};
+
+///Processing system information.
+struct CPPNGSDSHARED_EXPORT ProcessingSystemData
+{
+	QString name;
+	QString name_short;
+	QString target_file;
+	QString adapter1_p5;
+	QString adapter2_p7;
+	bool shotgun;
+	QString type;
+	QString genome;
+};
 
 /// Germline gene information.
 struct CPPNGSDSHARED_EXPORT GeneInfo
@@ -45,7 +85,14 @@ struct CPPNGSDSHARED_EXPORT ValidationInfo
 {
 	QString status;
 	QString type;
-	QString comment;
+	QString comments;
+};
+
+///Variant classification information
+struct CPPNGSDSHARED_EXPORT ClassificationInfo
+{
+	QString classification;
+	QString comments;
 };
 
 
@@ -59,6 +106,7 @@ struct CPPNGSDSHARED_EXPORT DiagnosticStatusData
 	QString inheritance_mode = "n/a";
 	QString evidence_level = "n/a";
 	QString genes_incidental = "";
+	QString comments = "";
 
 	//meta data
 	QString user;
@@ -157,44 +205,30 @@ public:
 	QString processedSampleId(const QString& filename, bool throw_if_fails = true);
 	///Returns the default folder for a processed sample from file name or processed sample name. Throws an exception if it could not be determined.
 	enum PathType {FOLDER, BAM, GSVAR, VCF};
-	QString processedSamplePath(const QString& filename, PathType type, bool throw_if_fails = true);
+	QString processedSamplePath(const QString& processed_sample_id, PathType type);
 	///Returns the NGSD ID for a variant. Returns '' or throws an exception if the ID cannot be determined.
 	QString variantId(const Variant& variant, bool throw_if_fails = true);
 	///Returns the database ID of the user as a string. Throws an exception if the user is not in the NGSD user table.
-	QString userId(QString user_name="");
+	QString userId(QString user_name=Helper::userName());
 
 	/*** Main NGSD functions ***/
-	///Returns the external sample name, or "n/a" the sample cannot be found in the database.
-	QString getExternalSampleName(const QString& filename);
-	///Returns the tumor status of a sample, or "n/a" the sample cannot be found in the database.
-	QString sampleIsTumor(const QString& filename);
-	///Returns the FFPE status of a sample, or "n/a" the sample cannot be found in the database.
-	QString sampleIsFFPE(const QString& filename);
+	///Returns sample data from the database.
+	SampleData getSampleData(const QString& sample_id);
+	///Returns processed sample data from the database.
+	ProcessedSampleData getProcessedSampleData(const QString& processed_sample_id);
 	///Returns the normal sample corresponding to a tumor sample, or "" if no normal samples is defined.
-	QString normalSample(const QString& filename);
-	///Returns the diease group associated to a sample.
-	QString sampleDiseaseGroup(const QString& filename);
-	///Sets the diease group associated to a sample.
-	void setSampleDiseaseGroup(const QString& filename, const QString& disease_group);
+	QString normalSample(const QString& processed_sample_id);
+	///Sets the diease group/status associated to a sample.
+	void setSampleDiseaseData(const QString& sample_id, const QString& disease_group, const QString& disease_status);
 
-	///Returns the diease status associated to a sample.
-	QString sampleDiseaseStatus(const QString& filename);
-	///Sets the diease status associated to a sample.
-	void setSampleDiseaseStatus(const QString& filename, const QString& disease_status);
-
-	///Returns the processing system information for the sample, or an empty string if it could not be detected.
-	enum SystemType {SHORT, LONG, BOTH, TYPE, FILE};
-	QString getProcessingSystem(const QString& filename, SystemType type);
+	///Returns the processing system information for a processed sample.
+	ProcessingSystemData getProcessingSystemData(const QString& processed_sample_id, bool windows_path);
 	///Returns all processing systems (long name) and the corresponding target regions.
 	QMap<QString, QString> getProcessingSystems(bool skip_systems_without_roi, bool windows_paths);
-	///Returns the genome build
-	QString getGenomeBuild(const QString& filename);
-	///Returns the gender of a processed sample
-	QString sampleGender(const QString& filename);
 	///Returns all QC terms of the sample
-	QCCollection getQCData(const QString& filename);
+	QCCollection getQCData(const QString& processed_sample_id);
 	///Returns all values for a QC term (from sample of the same processing system)
-	QVector<double> getQCValues(const QString& accession, const QString& filename);
+	QVector<double> getQCValues(const QString& accession, const QString& processed_sample_id);
 	///Returns the next processing ID for the given sample.
 	QString nextProcessingId(const QString& sample_id);
 
@@ -205,15 +239,15 @@ public:
 	///Annotates (or re-annotates) the variant list with current (somatic) NGSD information.
 	void annotateSomatic(VariantList& variants, QString filename);
 
-	///Returns validation status information (status, comment)
+	///Returns validation status information
 	ValidationInfo getValidationStatus(const QString& filename, const Variant& variant);
-	///Sets that validation status of a variant in the NGSD.
-	void setValidationStatus(const QString& filename, const Variant& variant, const ValidationInfo& info);
+	///Sets that validation status of a variant in the NGSD. If unset, the user name is taken from the environment.
+	void setValidationStatus(const QString& filename, const Variant& variant, const ValidationInfo& info, QString user_name=Helper::userName());
 
-	///Returns classification information (classification, comment)
-	QPair<QString, QString> getClassification(const Variant& variant);
+	///Returns classification information
+	ClassificationInfo getClassification(const Variant& variant);
 	///Sets the classification of a variant in the NGSD.
-	void setClassification(const Variant& variant, const QString& classification, const QString& comment);
+	void setClassification(const Variant& variant, ClassificationInfo info);
 
 	///Adds a variant publication
 	void addVariantPublication(QString filename, const Variant& variant, QString database, QString classification, QString details);
@@ -226,17 +260,12 @@ public:
 	void setComment(const Variant& variant, const QString& text);
 
 	///Returns the diagnostic status of a sample. If there is no such entry, a default-constructed instance of DiagnosticStatusData is returned.
-	DiagnosticStatusData getDiagnosticStatus(const QString& filename);
+	DiagnosticStatusData getDiagnosticStatus(const QString& processed_sample_id);
 	///Sets the diagnostic status. Throws an exception, if the processed sample is not in the database. If unset, the user name is taken from the environment.
-	void setDiagnosticStatus(const QString& filename, DiagnosticStatusData status, QString user_name="");
+	void setDiagnosticStatus(const QString& processed_sample_id, DiagnosticStatusData status, QString user_name=Helper::userName());
 
-	///Returns processed sample quality
-	QString getProcessedSampleQuality(const QString& filename, bool colored);
 	///Sets processed sample quality
-	void setProcessedSampleQuality(const QString& filename, QString quality);
-
-	///Returns processed sample comment
-	QString getProcessedSampleComment(const QString& filename);
+	void setProcessedSampleQuality(const QString& processed_sample_id, const QString& quality);
 
 	///Returns the germline gene information for a HGNC-approved gene symbol
 	GeneInfo geneInfo(QByteArray symbol);

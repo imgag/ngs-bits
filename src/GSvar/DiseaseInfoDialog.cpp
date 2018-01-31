@@ -1,9 +1,9 @@
 #include "DiseaseInfoDialog.h"
 
-DiseaseInfoDialog::DiseaseInfoDialog(QString ps_name, QWidget *parent)
+DiseaseInfoDialog::DiseaseInfoDialog(QString sample_id, QWidget *parent)
 	: QDialog(parent)
 	, ui_()
-	, ps_name_(ps_name)
+	, sample_id_(sample_id)
 {
 	//setup UI
 	ui_.setupUi(this);
@@ -12,20 +12,9 @@ DiseaseInfoDialog::DiseaseInfoDialog(QString ps_name, QWidget *parent)
 	connect(this, SIGNAL(accepted()), this, SLOT(updateSampleDatabaseEntry()));
 
 	//get sample data
-	if (db_.sampleId(ps_name, false)!="")
-	{
-		ui_.group->setCurrentText(db_.sampleDiseaseGroup(ps_name));
-		ui_.status->setCurrentText(db_.sampleDiseaseStatus(ps_name));
-	}
-	else
-	{
-		ps_name_ = "";
-	}
-}
-
-bool DiseaseInfoDialog::sampleNameIsValid() const
-{
-	return (ps_name_!="");
+	SampleData sample_data = db_.getSampleData(sample_id_);
+	ui_.group->setCurrentText(sample_data.disease_group);
+	ui_.status->setCurrentText(sample_data.disease_status);
 }
 
 bool DiseaseInfoDialog::diseaseInformationMissing() const
@@ -35,6 +24,5 @@ bool DiseaseInfoDialog::diseaseInformationMissing() const
 
 void DiseaseInfoDialog::updateSampleDatabaseEntry()
 {
-	db_.setSampleDiseaseGroup(ps_name_, ui_.group->currentText());
-	db_.setSampleDiseaseStatus(ps_name_, ui_.status->currentText());
+	db_.setSampleDiseaseData(sample_id_, ui_.group->currentText(), ui_.status->currentText());
 }

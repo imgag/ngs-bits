@@ -40,7 +40,8 @@ SOURCES += main.cpp\
     LovdUploadDialog.cpp \
 	RohWidget.cpp \
     ReportHelper.cpp \
-    DiagnosticStatusWidget.cpp
+    DiagnosticStatusWidget.cpp \
+    DiagnosticStatusOverviewDialog.cpp
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
@@ -75,7 +76,8 @@ HEADERS  += MainWindow.h \
     LovdUploadDialog.h \
 	RohWidget.h \
     ReportHelper.h \
-    DiagnosticStatusWidget.h
+    DiagnosticStatusWidget.h \
+    DiagnosticStatusOverviewDialog.h
 
 FORMS    += MainWindow.ui \
     FilterDockWidget.ui \
@@ -106,7 +108,8 @@ FORMS    += MainWindow.ui \
     PhenotypeSelectionWidget.ui \
     LovdUploadDialog.ui \
 	RohWidget.ui \
-    DiagnosticStatusWidget.ui
+    DiagnosticStatusWidget.ui \
+    DiagnosticStatusOverviewDialog.ui
     
 
 include("../app_gui.pri")

@@ -66,7 +66,7 @@ ValidationDialog::ValidationDialog(QWidget* parent, QString filename, const Vari
 	ValidationInfo info = NGSD().getValidationStatus(filename, variant);
 	ui_.status->setCurrentText(info.status);
 	ui_.type->setCurrentText(info.type);
-	ui_.comment->setPlainText(info.comment);
+	ui_.comment->setPlainText(info.comments);
 }
 
 ValidationInfo ValidationDialog::info() const

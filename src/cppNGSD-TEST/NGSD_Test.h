@@ -24,9 +24,31 @@ private slots:
 		I_EQUAL(enum_values.count(), 18);
 		S_EQUAL(enum_values[4], "Endocrine, nutritional or metabolic diseases");
 
-		//getProcessingSystem
-		QString sys = db.getProcessingSystem("NA12878_03", NGSD::SHORT);
-		S_EQUAL(sys, "hpHBOCv5");
+		//getProcessingSystems
+		QMap<QString, QString> systems = db.getProcessingSystems(false, false);
+		I_EQUAL(systems.size(), 2);
+		IS_TRUE(systems.contains("HaloPlex HBOC v5"))
+		IS_TRUE(systems.contains("HaloPlex HBOC v6"))
+
+		//getProcessingSystemData
+		ProcessingSystemData system_data = db.getProcessingSystemData(db.processedSampleId("NA12878_03"), false);
+		S_EQUAL(system_data.name, "HaloPlex HBOC v5");
+		S_EQUAL(system_data.name_short, "hpHBOCv5");
+		S_EQUAL(system_data.adapter1_p5, "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC");
+		S_EQUAL(system_data.adapter2_p7, "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT");
+		S_EQUAL(system_data.type, "Panel Haloplex");
+		IS_FALSE(system_data.shotgun);
+		S_EQUAL(system_data.genome, "hg19");
+
+		//normalSample
+		S_EQUAL(db.normalSample(db.processedSampleId("NA12345_01")), "NA12878_03")
+
+		//nextProcessingId
+		S_EQUAL(db.nextProcessingId(db.sampleId("NA12878")), "5");
+
+		//processedSamplePath
+		QString gsvar_path = db.processedSamplePath(db.processedSampleId("NA12878_03"), NGSD::GSVAR);
+		IS_TRUE(gsvar_path.endsWith("test/KontrollDNACoriell/Sample_NA12878_03/NA12878_03.GSvar"));
 
 		//geneToApproved
 		QByteArray gene_app = db.geneToApproved("BRCA1");
@@ -93,9 +115,47 @@ private slots:
 		I_EQUAL(genes.count(), 1);
 		S_EQUAL(genes[0], "NON-CODING");
 
-		//sampleGender
-		QString gender = db.sampleGender("NA12878_03");
-		S_EQUAL(gender, "female");
+		//getSampleData
+		QString sample_id = db.sampleId("NA12878");
+		SampleData sample_data = db.getSampleData(sample_id);
+		S_EQUAL(sample_data.name, "NA12878");
+		S_EQUAL(sample_data.name_external, "ex1");
+		S_EQUAL(sample_data.quality, "good");
+		S_EQUAL(sample_data.comments, "comment_s1");
+		S_EQUAL(sample_data.disease_group, "n/a");
+		S_EQUAL(sample_data.disease_status, "n/a");
+		IS_FALSE(sample_data.is_tumor);
+		IS_FALSE(sample_data.is_ffpe);
+		//second sample (tumor)
+		sample_id = db.sampleId("NA12345_01");
+		sample_data = db.getSampleData(sample_id);
+		S_EQUAL(sample_data.name, "NA12345");
+		S_EQUAL(sample_data.name_external, "ex3");
+		S_EQUAL(sample_data.quality, "bad");
+		S_EQUAL(sample_data.comments, "comment_s3");
+		S_EQUAL(sample_data.disease_group, "n/a");
+		S_EQUAL(sample_data.disease_status, "n/a");
+		IS_TRUE(sample_data.is_tumor);
+		IS_TRUE(sample_data.is_ffpe);
+
+		//getProcessedSampleData
+		QString processed_sample_id = db.processedSampleId("NA12878_03");
+		ProcessedSampleData processed_sample_data = db.getProcessedSampleData(processed_sample_id);
+		S_EQUAL(processed_sample_data.name, "NA12878_03");
+		S_EQUAL(processed_sample_data.quality, "medium");
+		S_EQUAL(processed_sample_data.comments, "comment_ps1");
+		S_EQUAL(processed_sample_data.project_name, "KontrollDNACoriell");
+		S_EQUAL(processed_sample_data.run_name, "#00372");
+		S_EQUAL(processed_sample_data.normal_sample_name, "");
+		//second sample (tumor)
+		processed_sample_id = db.processedSampleId("NA12345_01");
+		processed_sample_data = db.getProcessedSampleData(processed_sample_id);
+		S_EQUAL(processed_sample_data.name, "NA12345_01");
+		S_EQUAL(processed_sample_data.quality, "good");
+		S_EQUAL(processed_sample_data.comments, "comment_ps4");
+		S_EQUAL(processed_sample_data.project_name, "KontrollDNACoriell");
+		S_EQUAL(processed_sample_data.run_name, "#00372");
+		S_EQUAL(processed_sample_data.normal_sample_name, "NA12878_03");
 
 		//genesToRegions
 		QString messages;
@@ -310,7 +370,7 @@ private slots:
 		I_EQUAL(hpo_ids.count(), 0);
 
 		//getDiagnosticStatus
-		DiagnosticStatusData diag_status = db.getDiagnosticStatus("NA12878_03");
+		DiagnosticStatusData diag_status = db.getDiagnosticStatus(db.processedSampleId("NA12878_03"));
 		S_EQUAL(diag_status.date.toString(Qt::ISODate), "2014-07-29T09:40:49");
 		S_EQUAL(diag_status.user, "Max Mustermann");
 		S_EQUAL(diag_status.dagnostic_status, "done");
@@ -319,8 +379,9 @@ private slots:
 		S_EQUAL(diag_status.evidence_level, "known gene");
 		S_EQUAL(diag_status.inheritance_mode, "autosomal recessive");
 		S_EQUAL(diag_status.genes_incidental, "BRCA2");
+		S_EQUAL(diag_status.comments, "free text");
 		//no entry in DB
-		diag_status = db.getDiagnosticStatus("NA12878_04");
+		diag_status = db.getDiagnosticStatus(db.processedSampleId("NA12878_04"));
 		S_EQUAL(diag_status.user, "");
 		IS_FALSE(diag_status.date.isValid());
 		S_EQUAL(diag_status.dagnostic_status, "");
@@ -329,6 +390,7 @@ private slots:
 		S_EQUAL(diag_status.inheritance_mode, "n/a");
 		S_EQUAL(diag_status.evidence_level, "n/a");
 		S_EQUAL(diag_status.genes_incidental, "");
+		S_EQUAL(diag_status.comments, "");
 
 		//setDiagnosticStatus
 		//create new entry
@@ -338,8 +400,9 @@ private slots:
 		diag_status.inheritance_mode = "autosomal dominant";
 		diag_status.evidence_level = "known gene";
 		diag_status.genes_incidental = "TP53";
-		db.setDiagnosticStatus("NA12878_04", diag_status, "ahmustm1");
-		diag_status = db.getDiagnosticStatus("NA12878_04");
+		diag_status.comments = "comment1";
+		db.setDiagnosticStatus(db.processedSampleId("NA12878_04"), diag_status, "ahmustm1");
+		diag_status = db.getDiagnosticStatus(db.processedSampleId("NA12878_04"));
 		S_EQUAL(diag_status.user, "Max Mustermann");
 		IS_TRUE(diag_status.date.isValid());
 		S_EQUAL(diag_status.dagnostic_status, "done");
@@ -348,11 +411,13 @@ private slots:
 		S_EQUAL(diag_status.inheritance_mode, "autosomal dominant");
 		S_EQUAL(diag_status.evidence_level, "known gene");
 		S_EQUAL(diag_status.genes_incidental, "TP53");
+		S_EQUAL(diag_status.comments, "comment1");
 		//update existing entry
-		diag_status = db.getDiagnosticStatus("NA12878_03");
+		diag_status = db.getDiagnosticStatus(db.processedSampleId("NA12878_03"));
 		diag_status.genes_incidental = "BRCA2,POLG";
-		db.setDiagnosticStatus("NA12878_03", diag_status, "ahmustm1");
-		diag_status = db.getDiagnosticStatus("NA12878_03");
+		diag_status.comments = "comment2";
+		db.setDiagnosticStatus(db.processedSampleId("NA12878_03"), diag_status, "ahmustm1");
+		diag_status = db.getDiagnosticStatus(db.processedSampleId("NA12878_03"));
 		IS_TRUE(diag_status.date.isValid());
 		S_EQUAL(diag_status.user, "Max Mustermann");
 		S_EQUAL(diag_status.dagnostic_status, "done");
@@ -361,6 +426,81 @@ private slots:
 		S_EQUAL(diag_status.evidence_level, "known gene");
 		S_EQUAL(diag_status.inheritance_mode, "autosomal recessive");
 		S_EQUAL(diag_status.genes_incidental, "BRCA2,POLG");
+		S_EQUAL(diag_status.comments, "comment2");
+
+		//setSampleDiseaseData
+		sample_id = db.sampleId("NA12878");
+		db.setSampleDiseaseData(sample_id, "Neoplasms", "Affected");
+		sample_data = db.getSampleData(sample_id);
+		S_EQUAL(sample_data.disease_group, "Neoplasms");
+		S_EQUAL(sample_data.disease_status, "Affected");
+
+		//getQCData
+		QCCollection qc_data = db.getQCData(db.processedSampleId("NA12878_03"));
+		I_EQUAL(qc_data.count(), 3);
+		S_EQUAL(qc_data.value("target region 20x percentage").toString(2), "95.96");
+		S_EQUAL(qc_data.value("target region read depth").toString(2), "103.24");
+		S_EQUAL(qc_data.value("kasp").asString(), "n/a"); //special value that is not from the DB
+
+		//getQCValues
+		QVector<double> qc_values = db.getQCValues("QC:2000025", db.processedSampleId("NA12878_03"));
+		I_EQUAL(qc_values.count(), 2);
+		std::sort(qc_values.begin(), qc_values.end());
+		F_EQUAL(qc_values[0], 103.24);
+		F_EQUAL(qc_values[1], 132.24);
+
+		//comment
+		Variant variant("chr10", 43613843, 43613843, "G", "T");
+		S_EQUAL(db.comment(variant), "");
+
+		//setComment
+		db.setComment(variant, "var_comm1");
+		S_EQUAL(db.comment(variant), "var_comm1");
+
+		//getValidationStatus
+		ValidationInfo val_info = db.getValidationStatus("NA12878_03", variant);
+		S_EQUAL(val_info.status, "");
+		S_EQUAL(val_info.type, "");
+		S_EQUAL(val_info.comments, "");
+
+		//setValidationStatus
+		val_info.status = "to validate";
+		val_info.type = "diagnostics";
+		val_info.comments = "val_comm1";
+		db.setValidationStatus("NA12878_03", variant, val_info, "ahmustm1");
+		val_info = db.getValidationStatus("NA12878_03", variant);
+		S_EQUAL(val_info.status, "to validate");
+		S_EQUAL(val_info.type, "diagnostics");
+		S_EQUAL(val_info.comments, "val_comm1");
+		//update existing entry
+		val_info.status = "to segregate";
+		val_info.type = "research";
+		val_info.comments = "val_comm2";
+		db.setValidationStatus("NA12878_03", variant, val_info, "ahmustm1");
+		val_info = db.getValidationStatus("NA12878_03", variant);
+		S_EQUAL(val_info.status, "to segregate");
+		S_EQUAL(val_info.type, "research");
+		S_EQUAL(val_info.comments, "val_comm2");
+
+		//getClassification
+		ClassificationInfo class_info = db.getClassification(variant);
+		S_EQUAL(class_info.classification, "");
+		S_EQUAL(class_info.comments, "");
+
+		//setClassification
+		class_info.classification = "2";
+		class_info.comments = "class_comm1";
+		db.setClassification(variant, class_info);
+		class_info = db.getClassification(variant);
+		S_EQUAL(class_info.classification, "2");
+		S_EQUAL(class_info.comments, "class_comm1");
+		//update existing entry
+		class_info.classification = "5";
+		class_info.comments = "class_comm2";
+		db.setClassification(variant, class_info);
+		class_info = db.getClassification(variant);
+		S_EQUAL(class_info.classification, "5");
+		S_EQUAL(class_info.comments, "class_comm2");
 	}
 
 	//Test for debugging (without initialization because of speed)

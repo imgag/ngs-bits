@@ -712,7 +712,9 @@ CnvList ReportHelper::germlineCnv()
 QHash<QByteArray, BedFile> ReportHelper::gapStatistics()
 {
 	BedFile roi_inter;
-	roi_inter.load(db_.getProcessingSystem(tumor_id_, NGSD::FILE));
+	QString processed_sample_id = db_.processedSampleId(tumor_id_);
+	ProcessingSystemData system_data = db_.getProcessingSystemData(processed_sample_id, true);
+	roi_inter.load(system_data.target_file);
 	roi_inter.intersect(roi_);
 	roi_inter.merge();
 
@@ -880,9 +882,9 @@ void ReportHelper::writeRtf(QString out_file)
 	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
 	stream << begin_table_cell << "Durchschnittliche Tiefe Normal:\\cell" << begin_table_cell << qcml_data_normal.value("QC:2000025",true).toString() << "x" << "\\cell" << "\\row}" <<endl;
 	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "Prozessierungssystem Tumor:\\cell" << begin_table_cell <<  db_.getProcessingSystem(tumor_id_,NGSD::LONG) << "\\cell\\row}" << endl;
+	stream << begin_table_cell << "Prozessierungssystem Tumor:\\cell" << begin_table_cell <<  db_.getProcessingSystemData(db_.processedSampleId(tumor_id_), true).name << "\\cell\\row}" << endl;
 	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "Prozessierungssystem Normal:\\cell" << begin_table_cell << db_.getProcessingSystem(normal_id_,NGSD::LONG) << "\\cell\\row}" << endl;
+	stream << begin_table_cell << "Prozessierungssystem Normal:\\cell" << begin_table_cell << db_.getProcessingSystemData(db_.processedSampleId(normal_id_), true).name << "\\cell\\row}" << endl;
 	stream << "\\pard\\par" << endl;
 
 	//gaps

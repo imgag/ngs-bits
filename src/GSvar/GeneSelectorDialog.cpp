@@ -83,15 +83,16 @@ void GeneSelectorDialog::updateGeneTable()
 
 	//load processing system target region
 	NGSD db;
-	QString sys_file = db.getProcessingSystem(sample_name_, NGSD::FILE);
-	if (sys_file=="")
+	QString processed_sample_id = db.processedSampleId(sample_name_);
+	ProcessingSystemData system_data = db.getProcessingSystemData(processed_sample_id, true);
+	if (system_data.target_file=="")
 	{
 
 		updateError("Gene selection error", "Processing system target region BED file not found for sample '" + sample_name_ +  "'");
 		return;
 	}
 	BedFile sys_roi;
-	sys_roi.load(sys_file);
+	sys_roi.load(system_data.target_file);
 
 	//display genes
 	ui->details->setRowCount(genes.count());
@@ -215,7 +216,9 @@ QString GeneSelectorDialog::report()
 	stream << "\n";
 	stream << "Sample: " << sample_name_ << "\n";
 	NGSD db;
-	stream << "Target region: " << db.getProcessingSystem(sample_name_, NGSD::LONG) << "\n";
+	QString processed_sample_id = db.processedSampleId(sample_name_);
+	ProcessingSystemData system_data = db.getProcessingSystemData(processed_sample_id, true);
+	stream << "Target region: " << system_data.name << "\n";
 	stream << "\n";
 
 	//selected genes

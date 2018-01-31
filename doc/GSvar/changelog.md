@@ -1,3 +1,8 @@
+### 0.1-1001-g3e314b5 (30.01.2018)
+- General: Added more detailled diagnostic status (gene names, inheritance mode, evidence level, incidental finding).
+- Filters: HPO terms can now be imported from GenLab via the contect menu of the HPO term filter.
+- Report: improved formatting of variant table to make it fit to one page.
+
 ### 0.1-995-g7714e35 (24.01.2018)
 - Filters: added phenotype-based filters (includes inheritance modes as provided by HPO).
 - Filters: added filter for ExAC pLI score.
@@ -152,6 +157,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 

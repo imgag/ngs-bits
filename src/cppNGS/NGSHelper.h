@@ -14,7 +14,7 @@
 using namespace BamTools;
 
 ///Variant details struct for variants.
-struct VariantDetails
+struct CPPNGSSHARED_EXPORT VariantDetails
 {
 	VariantDetails()
 		: depth(std::numeric_limits<int>::quiet_NaN())

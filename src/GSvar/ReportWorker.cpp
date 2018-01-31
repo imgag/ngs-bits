@@ -160,7 +160,8 @@ BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file,
 	{
 		try
 		{
-			stats = db.getQCData(bam_file);
+			QString processed_sample_id = db.processedSampleId(bam_file);
+			stats = db.getQCData(processed_sample_id);
 		}
 		catch(...)
 		{
@@ -375,8 +376,9 @@ BedFile ReportWorker::precalculatedGaps(QString bam_file, const BedFile& roi, in
 	gaps.load(low_cov_file);
 
 	//For WGS there is nothing more to check
-	QString sys_type = db.getProcessingSystem(bam_file, NGSD::TYPE);
-	if (sys_type=="WGS")
+	QString processed_sample_id = db.processedSampleId(bam_file);
+	ProcessingSystemData system_data = db.getProcessingSystemData(processed_sample_id, true);
+	if (system_data.type=="WGS")
 	{
 		return gaps;
 	}
@@ -406,14 +408,13 @@ BedFile ReportWorker::precalculatedGaps(QString bam_file, const BedFile& roi, in
 	}
 
 	//compare statistics to current processing system
-	QString sys_file = db.getProcessingSystem(bam_file, NGSD::FILE);
-	if (sys_file=="")
+	if (system_data.target_file=="")
 	{
 		message = "Processing system target file not defined in NGSD!";
 		return BedFile();
 	}
 	BedFile sys;
-	sys.load(sys_file);
+	sys.load(system_data.target_file);
 	sys.merge();
 	if (sys.count()!=regions || sys.baseCount()!=bases)
 	{
@@ -435,9 +436,9 @@ BedFile ReportWorker::precalculatedGaps(QString bam_file, const BedFile& roi, in
 
 bool ReportWorker::isProcessingSystemTargetFile(QString bam_file, QString roi_file, NGSD& db)
 {
-	QString sys_file = db.getProcessingSystem(bam_file, NGSD::FILE);
+	ProcessingSystemData system_data = db.getProcessingSystemData(db.processedSampleId(bam_file), true);
 
-	return Helper::canonicalPath(sys_file) == Helper::canonicalPath(roi_file);
+	return Helper::canonicalPath(system_data.target_file) == Helper::canonicalPath(roi_file);
 }
 
 void ReportWorker::writeHtmlHeader(QTextStream& stream, QString sample_name)
@@ -489,14 +490,20 @@ void ReportWorker::writeHTML()
 	QTextStream stream(outfile.data());
 	writeHtmlHeader(stream, sample_name_);
 
+	//get data from database
+	SampleData sample_data = db_.getSampleData(db_.sampleId(sample_name_));
+	QString processed_sample_id = db_.processedSampleId(sample_name_);
+	ProcessedSampleData processed_sample_data = db_.getProcessedSampleData(processed_sample_id);
+	ProcessingSystemData system_data = db_.getProcessingSystemData(processed_sample_id, true);
+
 	stream << "<h4>Technischer Report zur bioinformatischen Analyse</h4>" << endl;
-	stream << "<p><b>Probe: " << sample_name_ << "</b> (" << db_.getExternalSampleName(sample_name_) << ")" << endl;
-	stream << "<br />Prozessierungssystem: " << db_.getProcessingSystem(sample_name_, NGSD::LONG) << endl;
-	stream << "<br />Genom-Build: " << db_.getGenomeBuild(sample_name_) << endl;
+	stream << "<p><b>Probe: " << sample_name_ << "</b> (" << sample_data.name_external << ")" << endl;
+	stream << "<br />Prozessierungssystem: " << processed_sample_data.processing_system << endl;
+	stream << "<br />Genom-Build: " << system_data.genome << endl;
 	stream << "<br />Datum: " << QDate::currentDate().toString("dd.MM.yyyy") << endl;
 	stream << "<br />User: " << Helper::userName() << endl;
 	stream << "<br />Analysesoftware: "  << QCoreApplication::applicationName() << " " << QCoreApplication::applicationVersion() << endl;	
-	stream << "<br />KASP result: " << db_.getQCData(sample_name_).value("kasp").asString() << endl;
+	stream << "<br />KASP result: " << db_.getQCData(processed_sample_id).value("kasp").asString() << endl;
 	stream << "</p>" << endl;
 
 	//get column indices
@@ -796,8 +803,11 @@ void ReportWorker::writeXML(QString outfile_name)
 	//element Sample
 	w.writeStartElement("Sample");
 	w.writeAttribute("name", sample_name_);
-	w.writeAttribute("name_external", db_.getExternalSampleName(sample_name_));
-	w.writeAttribute("processing_system", db_.getProcessingSystem(sample_name_, NGSD::LONG));
+
+	SampleData sample_data = db_.getSampleData(db_.sampleId(sample_name_));
+	w.writeAttribute("name_external", sample_data.name_external);
+	ProcessedSampleData processed_sample_data = db_.getProcessedSampleData(db_.processedSampleId(sample_name_));
+	w.writeAttribute("processing_system", processed_sample_data.processing_system);
 	w.writeEndElement();
 
 	//element TargetRegion (optional)

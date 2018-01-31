@@ -11,7 +11,7 @@ class DiseaseInfoDialog
 	Q_OBJECT
 
 public:
-	DiseaseInfoDialog(QString ps_name, QWidget *parent = 0);
+	DiseaseInfoDialog(QString sample_id, QWidget *parent = 0);
 
 	bool sampleNameIsValid() const;
 	bool diseaseInformationMissing() const;
@@ -22,7 +22,7 @@ private slots:
 private:
 	Ui::DiseaseInfoDialog ui_;
 	NGSD db_;
-	QString ps_name_;
+	QString sample_id_;
 };
 
 #endif // DISEASEINFODIALOG_H

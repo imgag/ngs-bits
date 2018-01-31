@@ -1,9 +1,6 @@
 === TODO ===
 
 libs:
-- NGSD:
-    - use sample/processed sample ID (int) instead of filename.
-    - add processedSampleInfo() method that returns the main infos about a processed sample/sample in one struct.
 - VariantList:
     - determine file format from file header instead of file name => make more tools pipeable (MS)
     - use QSharedPointers to link VariantAnnotationHeaders with VariantAnnotationDescriptions (CS)
@@ -11,13 +8,13 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
+- GeneVariantInfo: add disease_status.genes_causal as new column.
 - Add genotype equal for affected
 - Make default filters configurable in INI file
 
 Tools:
 - Remove UMI tools that are no longer used: BamDeduplicateByBarcode, FastqExtractBarcode?
 ** add new tool BedHighCoverage (wait until bamtools is replaced by HTSlib)
-- add tool NGSDExportVariants: filter genes, filter impact, filter max AF, filter max ihdb, output formats TSV/GSvar/VCF
 - SampleCorrelation: Add option to use only rare snps e.g. 0.1-10.0% AF in VCF/GSvar mode (MS)
 - SomaticQC: do not use precalculated triplet counts, count every time (CS)
 - BamClipOverlap: require sorted bam and paired-end sequencing (CS)

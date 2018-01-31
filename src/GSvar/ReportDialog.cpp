@@ -32,7 +32,8 @@ ReportDialog::ReportDialog(QString filename, QWidget* parent)
 
 	//set diagnostic status
 	NGSD db;
-	DiagnosticStatusData diag_status = db.getDiagnosticStatus(filename_);
+	QString processed_sample_id = db.processedSampleId(filename_);
+	DiagnosticStatusData diag_status = db.getDiagnosticStatus(processed_sample_id);
 	ui_.diag_status->setStatus(diag_status);
 
 	//enable/disable low-coverage settings
