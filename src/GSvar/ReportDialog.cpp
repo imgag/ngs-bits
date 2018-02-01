@@ -140,7 +140,14 @@ void ReportDialog::outcomeChanged(QString text)
 
 void ReportDialog::showContextMenu(QPoint pos)
 {
+	int row = ui_.vars->rowAt(pos.y());
+
 	QMenu menu(ui_.vars);
+	if (row!=-1)
+	{
+		menu.addAction("Copy variant to diagnostic status");
+		menu.addSeparator();
+	}
 	menu.addAction(QIcon(":/Icons/box_checked.png"), "select all");
 	menu.addAction(QIcon(":/Icons/box_unchecked.png"), "unselect all");
 
@@ -161,6 +168,13 @@ void ReportDialog::showContextMenu(QPoint pos)
 		{
 			ui_.vars->item(i, 0)->setCheckState(Qt::Unchecked);
 		}
+	}
+	if (text=="Copy variant to diagnostic status")
+	{
+		DiagnosticStatusData status = ui_.diag_status->status();
+		status.genes_causal = ui_.vars->item(row, 9)->text();
+		status.comments = ui_.vars->item(row, 10)->text();
+		ui_.diag_status->setStatus(status);
 	}
 }
 

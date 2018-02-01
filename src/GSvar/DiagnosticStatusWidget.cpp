@@ -48,6 +48,14 @@ DiagnosticStatusData DiagnosticStatusWidget::status() const
 	output.genes_incidental = ui.genes_incidental->text().trimmed();
 	output.comments = ui.comment->text().trimmed();
 
+	//set user/date only if available
+	QStringList user_date_parts = ui.user_date->text().split('/');
+	if (user_date_parts.count()==2)
+	{
+		output.user = user_date_parts[0].trimmed();
+		output.date = QDateTime::fromString(user_date_parts[1].trimmed().replace(' ', 'T'), Qt::ISODate);
+	}
+
 	return output;
 }
 
