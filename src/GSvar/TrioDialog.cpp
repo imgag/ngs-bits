@@ -53,12 +53,13 @@ void TrioDialog::addSample(QString status)
 	QString quality;
 	try
 	{
-		sys = db_.getProcessingSystem(sample, NGSD::LONG);
-		quality = db_.getProcessedSampleQuality(sample, false);
+		ProcessedSampleData processed_sample_data = db_.getProcessedSampleData(db_.processedSampleId(sample));
+		sys = processed_sample_data.processing_system;
+		quality = processed_sample_data.quality;
 	}
 	catch (Exception&)
 	{
-		QMessageBox::warning(this, "Error adding sample", "Could not determine processing system or quality of sample " + sample + " from NGSD!");
+		QMessageBox::warning(this, "Error adding sample", "Could not find processed sample '" + sample + "' in NGSD!");
 		clearSampleData();
 		return;
 	}

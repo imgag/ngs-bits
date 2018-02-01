@@ -765,6 +765,7 @@ CREATE  TABLE IF NOT EXISTS `diag_status` (
   `inheritance_mode` ENUM('n/a','autosomal recessive','autosomal dominant','x-linked recessive','x-linked dominant','mitochondrial','de-novo') NOT NULL DEFAULT 'n/a',
   `evidence_level` ENUM('n/a','candidate gene','known gene') NOT NULL DEFAULT 'n/a',
   `genes_incidental` TEXT NULL DEFAULT NULL,
+  `comment` TEXT NULL DEFAULT NULL,
   PRIMARY KEY (`processed_sample_id`),
   INDEX `user_id` (`user_id` ASC),
   CONSTRAINT `diag_status_ibfk_1`

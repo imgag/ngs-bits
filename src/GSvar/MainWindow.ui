@@ -149,9 +149,16 @@
      </property>
      <addaction name="actionPhenoToGenes"/>
     </widget>
+    <widget class="QMenu" name="menuSamples">
+     <property name="title">
+      <string>Samples</string>
+     </property>
+     <addaction name="actionDiagnosticStatusOverview"/>
+    </widget>
     <addaction name="menuGenes"/>
     <addaction name="menuPhenotypes"/>
     <addaction name="menuPanels"/>
+    <addaction name="menuSamples"/>
     <addaction name="separator"/>
     <addaction name="menuFileInfo"/>
     <addaction name="menuDetermine_gender"/>
@@ -664,6 +671,11 @@
    </property>
    <property name="toolTip">
     <string>Show runs of homozygosity (ROH).</string>
+   </property>
+  </action>
+  <action name="actionDiagnosticStatusOverview">
+   <property name="text">
+    <string>Diagnostic status overview</string>
    </property>
   </action>
  </widget>

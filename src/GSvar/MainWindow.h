@@ -63,6 +63,8 @@ public:
 	QString processedSampleName();
 	///Returns the sample name (in case of a somatic variant list, the tumor is returned).
 	QString sampleName();
+	///Opens a sample based on the sample name
+	void openProcessedSampleFromNGSD(QString processed_sample_name);
 
 public slots:
 	///Open dialog
@@ -143,6 +145,8 @@ public slots:
 	void on_actionOpenSampleQcFiles_triggered();
 	///Upload variant that is not part of the variant list to LOVD.
 	void on_actionPublishVariantInLOVD_triggered();
+	///Show diagnostic status overview
+	void on_actionDiagnosticStatusOverview_triggered();
 
 	///Generates a report (somatic) in .rtf format
 	void generateReportSomaticRTF();

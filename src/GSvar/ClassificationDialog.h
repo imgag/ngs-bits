@@ -4,6 +4,7 @@
 #include <QDialog>
 #include "ui_ClassificationDialog.h"
 #include "VariantList.h"
+#include "NGSD.h"
 
 ///Dialog for variant classification
 class ClassificationDialog
@@ -15,10 +16,8 @@ public:
 	///Constructor
 	ClassificationDialog(QWidget* parent, const Variant& variant);
 
-	///Returns the classification.
-	QString classification() const;
-	///Returns the classification comment.
-	QString comment() const;
+	///Returns the classification information.
+	ClassificationInfo classificationInfo() const;
 
 private slots:
 	///Updates the comment when the classification changes

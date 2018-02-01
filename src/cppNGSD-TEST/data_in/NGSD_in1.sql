@@ -1,55 +1,70 @@
 
-INSERT INTO `user`(`id`, `user_id`, `password`, `user_role`, `name`, `email`, `created`, `active`) VALUES (2, 'ahmustm1', '', 'user', 'Max Mustermann', '', '2016-07-05', 1);
+INSERT INTO `user`(`id`, `user_id`, `password`, `user_role`, `name`, `email`, `created`, `active`) VALUES 
+(2, 'ahmustm1', '', 'user', 'Max Mustermann', '', '2016-07-05', 1);
 
-INSERT INTO `device` (`id`, `type`, `name`) VALUES (1, 'MiSeq', 'Neo');
+INSERT INTO `device` (`id`, `type`, `name`) VALUES 
+(1, 'MiSeq', 'Neo');
 
-INSERT INTO `sender` (`id`, `name`) VALUES (1, 'Coriell');
+INSERT INTO `sender` (`id`, `name`) VALUES 
+(1, 'Coriell');
 
-INSERT INTO `project` (`id`, `name`, `type`, `internal_coordinator_id`, `analysis`) VALUES (1, 'KontrollDNACoriell', 'test', 1, 'annotation');
+INSERT INTO `project` (`id`, `name`, `type`, `internal_coordinator_id`, `analysis`) VALUES 
+(1, 'KontrollDNACoriell', 'test', 1, 'annotation');
 
-INSERT INTO `sequencing_run` (`id`, `name`, `fcid`, `device_id`, `recipe`, `status`) VALUES (1, '#00372', 'AB2J9', 1, '158+8+158', 'analysis_finished');
+INSERT INTO `sequencing_run` (`id`, `name`, `fcid`, `device_id`, `recipe`, `status`) VALUES 
+(1, '#00372', 'AB2J9', 1, '158+8+158', 'analysis_finished');
 
-INSERT INTO `sample` (`id`, `name`, `sample_type`, `species_id`, `gender`, `quality`, `tumor`, `ffpe`, `sender_id`) VALUES (1, 'NA12878', 'DNA', 1, 'female', 'good', 0 ,0, 1);
-INSERT INTO `sample` (`id`, `name`, `sample_type`, `species_id`, `gender`, `quality`, `tumor`, `ffpe`, `sender_id`) VALUES (2, 'NA12123', 'DNA', 1, 'female', 'good', 0 ,0, 1);
+INSERT INTO `sample` (`id`, `name`, `name_external`, `sample_type`, `species_id`, `gender`, `quality`, `tumor`, `ffpe`, `sender_id`, `comment`) VALUES 
+(1, 'NA12878', 'ex1', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s1'),
+(2, 'NA12123', 'ex2', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s2'),
+(3, 'NA12345', 'ex3', 'DNA', 1, 'male', 'bad', 1 ,1, 1, 'comment_s3');
 
-INSERT INTO `processing_system` (`id`, `name_short`, `name_manufacturer`, `adapter1_p5`, `adapter2_p7`, `type`, `shotgun`, `target_file`, `genome_id`) VALUES (1, 'hpHBOCv5', 'HaloPlex HBOC v5', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC ', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel HaloPlex', 0, '/mnt/share/data/enrichment/hpHBOCv5_2014_10_27.bed', 1);
+INSERT INTO `processing_system` (`id`, `name_short`, `name_manufacturer`, `adapter1_p5`, `adapter2_p7`, `type`, `shotgun`, `target_file`, `genome_id`) VALUES
+(1, 'hpHBOCv5', 'HaloPlex HBOC v5', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel Haloplex', 0, 'hpHBOCv5.bed', 1),
+(2, 'hpHBOCv6', 'HaloPlex HBOC v6', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel Haloplex', 0, 'hpHBOCv6.bed', 1);
 
-INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_id`, `lane`, `processing_system_id`, `project_id`) VALUES (3999, 1, 3, 1, '1', 1, 1);
-INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_id`, `lane`, `processing_system_id`, `project_id`) VALUES (4000, 1, 4, 1, '1', 1, 1);
-INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_id`, `lane`, `processing_system_id`, `project_id`) VALUES (4001, 2, 4, 1, '1', 1, 1);
+INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_id`, `lane`, `processing_system_id`, `project_id`, `quality`, `comment`, `normal_id`) VALUES 
+(3999, 1, 3, 1, '1', 1, 1, 'medium', 'comment_ps1', null),
+(4000, 1, 4, 1, '1', 1, 1, 'medium', 'comment_ps2', null),
+(4001, 2, 4, 1, '1', 1, 1, 'medium', 'comment_ps3', null),
+(4002, 3, 1, 1, '1', 1, 1, 'good', 'comment_ps4', 3999);
 
-INSERT INTO `diag_status`(`processed_sample_id`, `status`, `user_id`, `date`, `outcome`, `genes_causal`, `inheritance_mode`, `evidence_level`, `genes_incidental`) VALUES 
-(3999, 'done', 2, '2014-07-29 09:40:49', 'no significant findings', 'ATM', 'autosomal recessive', 'known gene', 'BRCA2');
+INSERT INTO `diag_status`(`processed_sample_id`, `status`, `user_id`, `date`, `outcome`, `genes_causal`, `inheritance_mode`, `evidence_level`, `genes_incidental`, `comment`) VALUES 
+(3999, 'done', 2, '2014-07-29 09:40:49', 'no significant findings', 'ATM', 'autosomal recessive', 'known gene', 'BRCA2', "free text");
 
-INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `type`) VALUES (1,1001, 'BRCA1','Breast cancer associated gene 1', 'protein-coding gene');
-INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `type`) VALUES (2,1002, 'BRCA2','Breast cancer associated gene 2', 'protein-coding gene');
-INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `type`) VALUES (3,1003, 'NIPA1', 'non imprinted in Prader-Willi/Angelman syndrome 1', 'protein-coding gene');
-INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `type`) VALUES (4,1004, 'NON-CODING', 'non-coding RNA', 'non-coding RNA');
+INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `type`) VALUES 
+(1,1001, 'BRCA1','Breast cancer associated gene 1', 'protein-coding gene'),
+(2,1002, 'BRCA2','Breast cancer associated gene 2', 'protein-coding gene'),
+(3,1003, 'NIPA1', 'non imprinted in Prader-Willi/Angelman syndrome 1', 'protein-coding gene'),
+(4,1004, 'NON-CODING', 'non-coding RNA', 'non-coding RNA');
 
-INSERT INTO `gene_transcript`(`id`, `gene_id`, `name`, `source`, `chromosome`, `start_coding`, `end_coding`, `strand`) VALUES (1, 1,'BRCA1_TR1','ccds','17',100,200,'+');
-INSERT INTO `gene_transcript`(`id`, `gene_id`, `name`, `source`, `chromosome`, `start_coding`, `end_coding`, `strand`) VALUES (2, 2,'BRCA2_TR1','ccds','13',100,200,'+');
-INSERT INTO `gene_transcript`(`id`, `gene_id`, `name`, `source`, `chromosome`, `start_coding`, `end_coding`, `strand`) VALUES (3, 3,'NIPA1_TR1','ensembl','15',100,400,'-');
-INSERT INTO `gene_transcript`(`id`, `gene_id`, `name`, `source`, `chromosome`, `start_coding`, `end_coding`, `strand`) VALUES (4, 3,'NIPA1_TR2','ensembl','15',150,350,'-');
-INSERT INTO `gene_transcript`(`id`, `gene_id`, `name`, `source`, `chromosome`, `start_coding`, `end_coding`, `strand`) VALUES (5, 4,'NON-CODING_TR1','ensembl','22',NULL,NULL,'-');
+INSERT INTO `gene_transcript`(`id`, `gene_id`, `name`, `source`, `chromosome`, `start_coding`, `end_coding`, `strand`) VALUES 
+(1, 1,'BRCA1_TR1','ccds','17',100,200,'+'),
+(2, 2,'BRCA2_TR1','ccds','13',100,200,'+'),
+(3, 3,'NIPA1_TR1','ensembl','15',100,400,'-'),
+(4, 3,'NIPA1_TR2','ensembl','15',150,350,'-'),
+(5, 4,'NON-CODING_TR1','ensembl','22',NULL,NULL,'-');
 
-INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (1, 100, 110);
-INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (1, 120, 130);
-INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (1, 160, 170);
-INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (1, 190, 200);
-INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (2, 100, 120);
-INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (2, 180, 200);
-INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (3, 100, 200);
-INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (3, 300, 400);
-INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (4, 80, 90);
-INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (4, 100, 200);
-INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (4, 300, 400);
-INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (4, 410, 420);
-INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (5, 100, 200);
-INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES (5, 300, 400);
+INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES 
+(1, 100, 110),
+(1, 120, 130),
+(1, 160, 170),
+(1, 190, 200),
+(2, 100, 120),
+(2, 180, 200),
+(3, 100, 200),
+(3, 300, 400),
+(4, 80, 90),
+(4, 100, 200),
+(4, 300, 400),
+(4, 410, 420),
+(5, 100, 200),
+(5, 300, 400);
 
-INSERT INTO `geneinfo_germline`(`symbol`, `inheritance`, `exac_pli`, `comments`) VALUES ('BRCA1', 'AD', 0.00, '');
-INSERT INTO `geneinfo_germline`(`symbol`, `inheritance`, `exac_pli`, `comments`) VALUES ('TP53', 'AD', 0.93, '');
-INSERT INTO `geneinfo_germline`(`symbol`, `inheritance`, `exac_pli`, `comments`) VALUES ('NIPA1', 'n/a', NULL, '');
+INSERT INTO `geneinfo_germline`(`symbol`, `inheritance`, `exac_pli`, `comments`) VALUES 
+('BRCA1', 'AD', 0.00, ''),
+('TP53', 'AD', 0.93, ''),
+('NIPA1', 'n/a', NULL, '');
 
 INSERT INTO `variant` (`id`, `chr`, `start`, `end`, `ref`, `obs`, `dbsnp`, `1000g`, `exac`, `gnomAD`, `gene`, `variant_type`, `coding`) VALUES
 (6, 'chr10', 43613843, 43613843, 'G', 'T', 'rs1800861', 0.7125, 0.742, 0.7653, 'RET', 'synonymous', 'RET:NM_020975.4:synonymous:LOW:exon13/20:c.2307G>T:p.Leu769Leu,RET:NM_020630.4:synonymous:LOW:exon13/19:c.2307G>T:p.Leu769Leu'),
@@ -358,3 +373,13 @@ INSERT INTO `hpo_parent`(`parent`, `child`) VALUES
 (2,9),
 (9,10),
 (9,11);
+
+INSERT INTO `qc_terms`(`id`, `qcml_id`, `name`, `description`) VALUES
+(31, "QC:2000027", "target region 20x percentage", "Percentage of the target region that is covered at..."),
+(47, "QC:2000025", "target region read depth", "Average sequencing depth in target region.");
+
+INSERT INTO `processed_sample_qc`(`id`, `processed_sample_id`, `qc_terms_id`, `value`) VALUES 
+(1, 3999, 31, "95.96"),
+(2, 3999, 47, "103.24"),
+(3, 4001, 47, "132.24");
+

@@ -56,6 +56,7 @@
 #include "LovdUploadDialog.h"
 #include "OntologyTermCollection.h"
 #include "ReportHelper.h"
+#include "DiagnosticStatusOverviewDialog.h"
 #include "GenLabDB.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -260,6 +261,18 @@ void MainWindow::on_actionPublishVariantInLOVD_triggered()
 	dlg.exec();
 }
 
+void MainWindow::on_actionDiagnosticStatusOverview_triggered()
+{
+	auto dlg = new DiagnosticStatusOverviewDialog(this);
+	dlg->exec();
+
+	QString processed_sample_name = dlg->processedSampleToOpen();
+	if (processed_sample_name!="")
+	{
+		openProcessedSampleFromNGSD(processed_sample_name);
+	}
+}
+
 void MainWindow::delayedInizialization()
 {
 	if (!isVisible()) return;
@@ -378,8 +391,10 @@ void MainWindow::openInIGV(QString region)
 		//amplicon file (of processing system)
 		try
 		{
-			QString ps_roi = NGSD().getProcessingSystem(filename_, NGSD::FILE);
-			QString amplicons = ps_roi.left(ps_roi.length()-4) + "_amplicons.bed";
+			NGSD db;
+			QString processed_sample_id = db.processedSampleId(filename_);
+			ProcessingSystemData system_data = db.getProcessingSystemData(processed_sample_id, true);
+			QString amplicons = system_data.target_file.left(system_data.target_file.length()-4) + "_amplicons.bed";
 			if (QFile::exists(amplicons))
 			{
 				dlg.addFile("amplicons track (of processing system)", amplicons, true);
@@ -572,17 +587,24 @@ void MainWindow::on_actionOpenNGSD_triggered()
 	QString ps_name = QInputDialog::getText(this, "Open processed sample from NGSD", "processed sample:").trimmed();
 	if (ps_name=="") return;
 
+	openProcessedSampleFromNGSD(ps_name);
+}
+
+void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name)
+{
 	//convert name to file
 	try
 	{
 		NGSD db;
-		QString file = db.processedSamplePath(ps_name, NGSD::GSVAR);
+		QString processed_sample_id = db.processedSampleId(processed_sample_name);
+		QString file = db.processedSamplePath(processed_sample_id, NGSD::GSVAR);
 
 		//check if this is a somatic tumor sample
-		QString normal_sample = db.normalSample(ps_name);
+		QString ps_id = db.processedSampleId(processed_sample_name);
+		QString normal_sample = db.normalSample(ps_id);
 		if (normal_sample!="")
 		{
-			QString gsvar_somatic = file.split("Sample_")[0]+ "/" + "Somatic_" + ps_name + "-" + normal_sample + "/" + ps_name + "-" + normal_sample + ".GSvar";
+			QString gsvar_somatic = file.split("Sample_")[0]+ "/" + "Somatic_" + processed_sample_name + "-" + normal_sample + "/" + processed_sample_name + "-" + normal_sample + ".GSvar";
 			if (QMessageBox::question(this, "Tumor sample", "The sample is the tumor sample of a tumor-normal pair.\nDo you want to open the somatic variant list?")==QMessageBox::Yes)
 			{
 				file = gsvar_somatic;
@@ -768,10 +790,14 @@ void MainWindow::generateReport()
 	//check disease information
 	if (Settings::boolean("NGSD_enabled", true))
 	{
-		DiseaseInfoDialog dlg(filename_, this);
-		if (dlg.sampleNameIsValid() && dlg.diseaseInformationMissing())
+		QString sample_id = NGSD().sampleId(filename_, false);
+		if (sample_id!="")
 		{
-			dlg.exec();
+			DiseaseInfoDialog dlg(sample_id, this);
+			if (dlg.diseaseInformationMissing())
+			{
+				dlg.exec();
+			}
 		}
 	}
 
@@ -813,9 +839,10 @@ void MainWindow::generateReport()
 		bam_file = bams.values().first();
 	}
 
-//update diagnostic status
+	//update diagnostic status
 	DiagnosticStatusData diag_status = dialog.diagnosticStatus();
-	NGSD().setDiagnosticStatus(filename_, diag_status);
+	NGSD db;
+	db.setDiagnosticStatus(db.processedSampleId(filename_), diag_status);
 	//show busy dialog
 	busy_dialog_ = new BusyDialog("Report", this);
 	busy_dialog_->init("Generating report", false);
@@ -1430,7 +1457,8 @@ void MainWindow::uploadtoLovd(int variant_index, int variant_index2)
 
 	//gender
 	NGSD db;
-	data.gender = db.sampleGender(data.processed_sample);
+	QString sample_id = db.sampleId(data.processed_sample);
+	data.gender = db.getSampleData(sample_id).gender;
 
 	//phenotype(s) from GenLab
 	data.phenos = GenLabDB().phenotypes(sampleName());
@@ -1828,13 +1856,15 @@ void MainWindow::varsContextMenu(QPoint pos)
 			if (dlg.exec())
 			{
 				//update DB
-					NGSD().setClassification(variant, dlg.classification(), dlg.comment());
+				NGSD db;
+				ClassificationInfo class_info = dlg.classificationInfo();
+				db.setClassification(variant, class_info);
 
 				//update GUI
 				int i_class = variants_.annotationIndexByName("classification", true, true);
-				variants_[item->row()].annotations()[i_class] = dlg.classification().replace("n/a", "").toLatin1();
+				variants_[item->row()].annotations()[i_class] = class_info.classification.replace("n/a", "").toLatin1();
 				int i_class_comment = variants_.annotationIndexByName("classification_comment", true, true);
-				variants_[item->row()].annotations()[i_class_comment] = dlg.comment().toLatin1();
+				variants_[item->row()].annotations()[i_class_comment] = class_info.comments.toLatin1();
 				variantListChanged();
 			}
 		}
@@ -2480,6 +2510,7 @@ void MainWindow::updateNGSDSupport()
 	ui_.actionSampleInformation->setEnabled(ngsd_enabled);
 	ui_.actionGapsRecalculate->setEnabled(ngsd_enabled);
 	ui_.actionGeneSelector->setEnabled(ngsd_enabled);
+	ui_.actionDiagnosticStatusOverview->setEnabled(ngsd_enabled);
 
 	//tools menu
 	ui_.actionOpenNGSD->setEnabled(ngsd_enabled);

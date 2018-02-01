@@ -56,7 +56,7 @@ void MultiSampleDialog::on_add_control_clicked(bool)
 
 void MultiSampleDialog::addSample(bool affected)
 {
-	QString sample = QInputDialog::getText(this, "Add sample", "processed sample:");
+	QString sample = QInputDialog::getText(this, "Add processed sample", "processed sample:");
 	if (sample=="") return;
 
 	//check processing system
@@ -64,15 +64,15 @@ void MultiSampleDialog::addSample(bool affected)
 	QString quality;
 	try
 	{
-		sys = db_.getProcessingSystem(sample, NGSD::LONG);
-		quality = db_.getProcessedSampleQuality(sample, false);
+		ProcessedSampleData processed_sample_data = db_.getProcessedSampleData(db_.processedSampleId(sample));
+		sys = processed_sample_data.processing_system;
+		quality = processed_sample_data.quality;
 	}
 	catch (Exception&)
 	{
-		QMessageBox::warning(this, "Error adding sample", "Could not determine processing system or quality of sample " + sample + " from NGSD!");
+		QMessageBox::warning(this, "Error adding sample", "Could not find processed sample '" + sample + "' in NGSD!");
 		return;
 	}
-
 
 	//fill target region combobox
 	bool contained = false;

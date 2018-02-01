@@ -61,7 +61,6 @@ QStringList SubpanelDesignDialog::subpanelList()
 
 void SubpanelDesignDialog::createSubpanelCompleter()
 {
-
 	completer = new QCompleter(subpanelList());
 	ui->name->setCompleter(completer);
 }

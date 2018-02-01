@@ -30,6 +30,7 @@ void DiagnosticStatusWidget::setStatus(DiagnosticStatusData data)
 	ui.inheritance->setCurrentText(data.inheritance_mode);
 	ui.evidence->setCurrentText(data.evidence_level);
 	ui.genes_incidental->setText(data.genes_incidental);
+	ui.comment->setText(data.comments);
 
 	//store initial status to check if sample is scheduled for re-sequencin
 	initial_status_text_ = data.dagnostic_status;
@@ -45,6 +46,15 @@ DiagnosticStatusData DiagnosticStatusWidget::status() const
 	output.inheritance_mode = ui.inheritance->currentText();
 	output.evidence_level = ui.evidence->currentText();
 	output.genes_incidental = ui.genes_incidental->text().trimmed();
+	output.comments = ui.comment->text().trimmed();
+
+	//set user/date only if available
+	QStringList user_date_parts = ui.user_date->text().split('/');
+	if (user_date_parts.count()==2)
+	{
+		output.user = user_date_parts[0].trimmed();
+		output.date = QDateTime::fromString(user_date_parts[1].trimmed().replace(' ', 'T'), Qt::ISODate);
+	}
 
 	return output;
 }

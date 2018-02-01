@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>344</width>
-    <height>151</height>
+    <width>359</width>
+    <height>183</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -64,7 +64,7 @@
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma-separated list of genes that are causal for the patient's phenotype.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="text">
-      <string>Gene(s):</string>
+      <string>Causal/candidate gene(s):</string>
      </property>
     </widget>
    </item>
@@ -91,7 +91,7 @@
    <item row="5" column="1">
     <widget class="QComboBox" name="evidence"/>
    </item>
-   <item row="6" column="0">
+   <item row="7" column="0">
     <widget class="QLabel" name="label_6">
      <property name="toolTip">
       <string>Comma-separated list of genes with incidental findings.</string>
@@ -101,7 +101,7 @@
      </property>
     </widget>
    </item>
-   <item row="6" column="1">
+   <item row="7" column="1">
     <widget class="QLineEdit" name="genes_incidental"/>
    </item>
    <item row="0" column="0">
@@ -120,6 +120,19 @@
       <string/>
      </property>
     </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="label_8">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Further explaination of the findings, e.g.:&lt;br/&gt;- variant type: SNV/InDel/CNV/SV&lt;br/&gt;- if the variant occurs as a mosaik&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="text">
+      <string>Comment:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="1">
+    <widget class="QLineEdit" name="comment"/>
    </item>
   </layout>
  </widget>
