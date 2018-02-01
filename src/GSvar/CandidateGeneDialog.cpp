@@ -151,10 +151,10 @@ void CandidateGeneDialog::updateVariants()
 			//add sample info
 			QString var_id = query.value(0).toString();
 			SqlQuery query2 = db.getQuery();
-			query2.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), dv.genotype, p.name, s.disease_group, vc.class, s.name_external FROM sample s, processed_sample ps, project p, detected_variant dv LEFT JOIN variant_classification vc ON dv.variant_id=vc.variant_id WHERE dv.processed_sample_id=ps.id AND ps.sample_id=s.id AND ps.project_id=p.id AND dv.variant_id=" + var_id);
+			query2.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), dv.genotype, p.name, s.disease_group, vc.class, s.name_external, ds.outcome, ds.genes_causal FROM sample s, processed_sample ps LEFT JOIN diag_status ds ON ps.id=ds.processed_sample_id, project p, detected_variant dv LEFT JOIN variant_classification vc ON dv.variant_id=vc.variant_id WHERE dv.processed_sample_id=ps.id AND ps.sample_id=s.id AND ps.project_id=p.id AND dv.variant_id=" + var_id);
 			while(query2.next())
 			{
-				var_data.append(QStringList() << var_base << query2.value(0).toString() << query2.value(5).toString()  << query2.value(1).toString() << query2.value(2).toString() << query2.value(3).toString() << query2.value(4).toString());
+				var_data.append(QStringList() << var_base << query2.value(0).toString() << query2.value(5).toString()  << query2.value(1).toString() << query2.value(2).toString() << query2.value(3).toString() << query2.value(4).toString() << query2.value(6).toString() << query2.value(7).toString());
 			}
 		}
 		QString comment = gene + " - variants: " + QString::number(var_data.count());
@@ -174,6 +174,8 @@ void CandidateGeneDialog::updateVariants()
 
 			comment += " - recessive hits: " + QString::number(var_data.count());
 		}
+
+		//diagnostic status information
 
 		comments.append(comment);
 		output << var_data;

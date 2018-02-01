@@ -186,6 +186,12 @@
      <property name="showDropIndicator" stdset="0">
       <bool>false</bool>
      </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::SingleSelection</enum>
+     </property>
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectRows</enum>
+     </property>
      <property name="sortingEnabled">
       <bool>true</bool>
      </property>
@@ -193,7 +199,7 @@
       <bool>false</bool>
      </property>
      <property name="columnCount">
-      <number>15</number>
+      <number>17</number>
      </property>
      <attribute name="verticalHeaderVisible">
       <bool>false</bool>
@@ -210,47 +216,47 @@
      </column>
      <column>
       <property name="text">
-       <string>ngsd_het</string>
+       <string>NGSD het</string>
       </property>
      </column>
      <column>
       <property name="text">
-       <string>ngsd_hom</string>
+       <string>NGSD hom</string>
       </property>
      </column>
      <column>
       <property name="text">
-       <string>af_gnomad</string>
+       <string>gnomAD AF</string>
       </property>
      </column>
      <column>
       <property name="text">
-       <string>af_exac</string>
+       <string>ExAC AF</string>
       </property>
      </column>
      <column>
       <property name="text">
-       <string>af_1000g</string>
+       <string>1000g AF</string>
       </property>
      </column>
      <column>
       <property name="text">
-       <string>variant_type</string>
+       <string>variant type</string>
       </property>
      </column>
      <column>
       <property name="text">
-       <string>coding_and_splicing</string>
+       <string>coding and splicing</string>
       </property>
      </column>
      <column>
       <property name="text">
-       <string>sample</string>
+       <string>processed sample</string>
       </property>
      </column>
      <column>
       <property name="text">
-       <string>sample (external name)</string>
+       <string>external sample name</string>
       </property>
      </column>
      <column>
@@ -271,6 +277,16 @@
      <column>
       <property name="text">
        <string>classification</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>diagnostic outcome</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>causal genes</string>
       </property>
      </column>
     </widget>

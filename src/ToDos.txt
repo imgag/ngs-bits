@@ -8,7 +8,6 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-- GeneVariantInfo: add disease_status.genes_causal as new column.
 - Add genotype equal for affected
 - Make default filters configurable in INI file
 

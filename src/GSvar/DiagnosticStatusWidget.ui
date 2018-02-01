@@ -64,7 +64,7 @@
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma-separated list of genes that are causal for the patient's phenotype.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="text">
-      <string>Gene(s):</string>
+      <string>Causal/candidate gene(s):</string>
      </property>
     </widget>
    </item>
