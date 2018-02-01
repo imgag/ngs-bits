@@ -17,7 +17,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Diagnostic project overview.</string>
+   <string>Diagnostic status overview</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">
@@ -189,12 +189,7 @@
      </column>
      <column>
       <property name="text">
-       <string>causal genes</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>evidence level</string>
+       <string>causal/candidate genes</string>
       </property>
      </column>
      <column>

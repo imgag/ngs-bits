@@ -1,3 +1,6 @@
+### 0.1-1004-gb363ab2 (01.02.2018)
+- General: Added diagnostic status overview to main menu ('Samples' > 'Diagnostic status overview').
+
 ### 0.1-1001-g3e314b5 (30.01.2018)
 - General: Added more detailled diagnostic status (gene names, inheritance mode, evidence level, incidental finding).
 - Filters: HPO terms can now be imported from GenLab via the contect menu of the HPO term filter.
@@ -157,6 +160,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 

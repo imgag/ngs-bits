@@ -1805,7 +1805,7 @@ DiagnosticStatusData NGSD::getDiagnosticStatus(const QString& processed_sample_i
 
 	//get status data
 	SqlQuery q = getQuery();
-	q.exec("SELECT s.status, u.name, s.date, s.outcome, s.genes_causal, s.inheritance_mode, s.evidence_level, s.genes_incidental, s.comment FROM diag_status as s, user as u WHERE s.processed_sample_id='" + processed_sample_id +  "' AND s.user_id=u.id");
+	q.exec("SELECT s.status, u.name, s.date, s.outcome, s.genes_causal, s.inheritance_mode, s.genes_incidental, s.comment FROM diag_status as s, user as u WHERE s.processed_sample_id='" + processed_sample_id +  "' AND s.user_id=u.id");
 	if (q.size()==0) return DiagnosticStatusData();
 
 	//process
@@ -1817,9 +1817,8 @@ DiagnosticStatusData NGSD::getDiagnosticStatus(const QString& processed_sample_i
 	output.outcome = q.value(3).toString();
 	output.genes_causal = q.value(4).toString();
 	output.inheritance_mode = q.value(5).toString();
-	output.evidence_level = q.value(6).toString();
-	output.genes_incidental = q.value(7).toString();
-	output.comments = q.value(8).toString();
+	output.genes_incidental = q.value(6).toString();
+	output.comments = q.value(7).toString();
 
 	return output;
 }
@@ -1835,9 +1834,9 @@ void NGSD::setDiagnosticStatus(const QString& processed_sample_id, DiagnosticSta
 	//update status
 
 	SqlQuery query = getQuery();
-	query.prepare("INSERT INTO diag_status (processed_sample_id, status, user_id, outcome, genes_causal, inheritance_mode, evidence_level, genes_incidental, comment) " \
-					"VALUES ("+processed_sample_id+",'"+status.dagnostic_status+"', "+user_id+", '"+status.outcome+"', :0, '"+status.inheritance_mode+"', '"+status.evidence_level+"', :1, :2) " \
-					"ON DUPLICATE KEY UPDATE status='"+status.dagnostic_status+"',user_id="+user_id+", outcome='"+status.outcome+"', genes_causal=:3, inheritance_mode='"+status.inheritance_mode+"', evidence_level='"+status.evidence_level+"', genes_incidental=:4, comment=:5"
+	query.prepare("INSERT INTO diag_status (processed_sample_id, status, user_id, outcome, genes_causal, inheritance_mode, genes_incidental, comment) " \
+					"VALUES ("+processed_sample_id+",'"+status.dagnostic_status+"', "+user_id+", '"+status.outcome+"', :0, '"+status.inheritance_mode+"', :1, :2) " \
+					"ON DUPLICATE KEY UPDATE status='"+status.dagnostic_status+"',user_id="+user_id+", outcome='"+status.outcome+"', genes_causal=:3, inheritance_mode='"+status.inheritance_mode+"', genes_incidental=:4, comment=:5"
 					);
 	query.bindValue(0, status.genes_causal);
 	query.bindValue(1, status.genes_incidental);
@@ -1846,36 +1845,6 @@ void NGSD::setDiagnosticStatus(const QString& processed_sample_id, DiagnosticSta
 	query.bindValue(4, status.genes_incidental);
 	query.bindValue(5, status.comments);
 	query.exec();
-
-	//add new processed sample if scheduled for repetition
-	if (status.dagnostic_status.startsWith("repeat") && !status_before.dagnostic_status.startsWith("repeat"))
-	{
-		QString s_id = getValue("SELECT sample_id FROM processed_sample WHERE id=" + processed_sample_id).toString();
-		QString next_ps_num = nextProcessingId(s_id);
-		SqlQuery query = getQuery();
-		query.exec("SELECT mid1_i7, mid2_i5, operator_id, processing_system_id, project_id, molarity FROM processed_sample WHERE id=" + processed_sample_id);
-		query.next();
-		QString mid1 = query.value(0).toString();
-		if (mid1=="0") mid1="NULL";
-		QString mid2 = query.value(1).toString();
-		if (mid2=="0") mid2="NULL";
-		QString op_id = query.value(2).toString();
-		if (op_id=="0") op_id="NULL";
-		QString sys_id = query.value(3).toString();
-		QString proj_id = query.value(4).toString();
-		QString molarity = query.value(5).toString();
-		if (molarity=="0") molarity="NULL";
-		QString user_name = getValue("SELECT name FROM user WHERE id='" + user_id + "'").toString();
-		QString comment = user_name + " requested re-sequencing (" + status.dagnostic_status + ") of sample " + processedSampleName(processed_sample_id) + " on " + Helper::dateTime("dd.MM.yyyy hh:mm:ss");
-		if (status.dagnostic_status=="repeat sequencing only")
-		{
-			getQuery().exec("INSERT INTO processed_sample (sample_id, process_id, mid1_i7, mid2_i5, operator_id, processing_system_id, comment, project_id, molarity, lane) VALUES ("+ s_id +","+ next_ps_num +","+ mid1 +","+ mid2 +","+ op_id +","+ sys_id +",'"+ comment +"',"+ proj_id +","+ molarity +",'')");
-		}
-		else if (status.dagnostic_status=="repeat library and sequencing")
-		{
-			getQuery().exec("INSERT INTO processed_sample (sample_id, process_id, operator_id, processing_system_id, comment, project_id, lane) VALUES ("+ s_id +","+ next_ps_num +","+ op_id +","+ sys_id +",'"+ comment +"',"+ proj_id +",'')");
-		}
-	}
 }
 
 void NGSD::setProcessedSampleQuality(const QString& processed_sample_id, const QString& quality)

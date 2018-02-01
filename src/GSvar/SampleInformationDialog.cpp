@@ -113,15 +113,6 @@ void SampleInformationDialog::editDiagnosticStatus()
 	auto dlg = GUIHelper::showWidgetAsDialog(widget, "Diagnostic status of " + processed_sample_name_, true);
 	if (dlg->result()!=QDialog::Accepted) return;
 
-	if (widget->resequencingRequested())
-	{
-		int result = QMessageBox::question(this, "Re-sequencing of sample?", "The sample will be scheduled for re-processing in the lab.\nAre you sure?");
-		if (result!=QMessageBox::Yes)
-		{
-			return;
-		}
-	}
-
 	db.setDiagnosticStatus(processed_sample_id, widget->status());
 	refresh();
 }

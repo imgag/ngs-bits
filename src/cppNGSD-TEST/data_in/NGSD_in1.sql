@@ -29,8 +29,8 @@ INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_
 (4001, 2, 4, 1, '1', 1, 1, 'medium', 'comment_ps3', null),
 (4002, 3, 1, 1, '1', 1, 1, 'good', 'comment_ps4', 3999);
 
-INSERT INTO `diag_status`(`processed_sample_id`, `status`, `user_id`, `date`, `outcome`, `genes_causal`, `inheritance_mode`, `evidence_level`, `genes_incidental`, `comment`) VALUES 
-(3999, 'done', 2, '2014-07-29 09:40:49', 'no significant findings', 'ATM', 'autosomal recessive', 'known gene', 'BRCA2', "free text");
+INSERT INTO `diag_status`(`processed_sample_id`, `status`, `user_id`, `date`, `outcome`, `genes_causal`, `inheritance_mode`, `genes_incidental`, `comment`) VALUES
+(3999, 'done', 2, '2014-07-29 09:40:49', 'no significant findings', 'ATM', 'autosomal recessive', 'BRCA2', "free text");
 
 INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `type`) VALUES 
 (1,1001, 'BRCA1','Breast cancer associated gene 1', 'protein-coding gene'),

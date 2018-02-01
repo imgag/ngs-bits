@@ -72,7 +72,7 @@ void DiagnosticStatusOverviewDialog::updateOverviewTable()
 		SampleData sample_data = db.getSampleData(sample_id);
 
 		//filter done
-		if (hide_done && (diag_data.dagnostic_status=="done" || diag_data.dagnostic_status=="cancelled" || diag_data.dagnostic_status.startsWith("repeat"))) continue;
+		if (hide_done && !(diag_data.dagnostic_status=="pending" || diag_data.dagnostic_status=="in progress" || diag_data.dagnostic_status=="")) continue;
 
 		//set row content
 		addItem(r, 0, sample_data.quality + " | " + processed_sample_data.quality);
@@ -103,11 +103,10 @@ void DiagnosticStatusOverviewDialog::updateOverviewTable()
 		addItem(r, 11, diag_data.dagnostic_status);
 		addItem(r, 12, diag_data.outcome);
 		addItem(r, 13, diag_data.genes_causal);
-		addItem(r, 14, diag_data.evidence_level);
-		addItem(r, 15, diag_data.inheritance_mode);
-		addItem(r, 16, diag_data.comments, true);
-		addItem(r, 17, sample_data.comments, true);
-		addItem(r, 18, processed_sample_data.comments, true);
+		addItem(r, 14, diag_data.inheritance_mode);
+		addItem(r, 15, diag_data.comments, true);
+		addItem(r, 16, sample_data.comments, true);
+		addItem(r, 17, processed_sample_data.comments, true);
 
 		++r;
 	}
