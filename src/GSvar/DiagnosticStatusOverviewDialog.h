@@ -14,7 +14,8 @@ class DiagnosticStatusOverviewDialog
 public:
 	DiagnosticStatusOverviewDialog(QWidget *parent = 0);
 
-	QString processedSampleToOpen();
+signals:
+	void openProcessedSample(QString processed_sample_name);
 
 private slots:
 	void updateOverviewTable();
@@ -24,7 +25,6 @@ private slots:
 
 private:
 	Ui::DiagnosticStatusOverviewDialog ui;
-	QString processed_sample_to_open;
 };
 
 #endif // DIAGNOSTICSTATUSOVERVIEWDIALOG_H

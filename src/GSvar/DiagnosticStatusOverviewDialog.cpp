@@ -8,29 +8,36 @@
 DiagnosticStatusOverviewDialog::DiagnosticStatusOverviewDialog(QWidget *parent)
 	: QDialog(parent)
 	, ui()
-	, processed_sample_to_open()
 {
 	ui.setupUi(this);
 	connect(ui.clipboard, SIGNAL(clicked(bool)), this, SLOT(copyTableToClipboard()));
 	connect(ui.sample_infos, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(sampleContextMenu(QPoint)));
 
+	connect(ui.project, SIGNAL(currentTextChanged(QString)), this, SLOT(updateOverviewTable()));
+	connect(ui.user, SIGNAL(currentTextChanged(QString)), this, SLOT(updateOverviewTable()));
+	connect(ui.genlab, SIGNAL(stateChanged(int)), this, SLOT(updateOverviewTable()));
+	connect(ui.hide_done, SIGNAL(stateChanged(int)), this, SLOT(updateOverviewTable()));
+
 	//init projects combo box
-	QStringList projects = NGSD().getValues("SELECT name FROM project");
+	NGSD db;
+	QStringList projects = db.getValues("SELECT name FROM project ORDER BY name ASC");
 	ui.project->addItem("[select]");
 	ui.project->addItems(projects);
 	auto completer = new QCompleter(projects);
 	completer->setCompletionMode(QCompleter::PopupCompletion);
 	completer->setCaseSensitivity(Qt::CaseInsensitive);
 	ui.project->setCompleter(completer);
-	connect(ui.project, SIGNAL(currentTextChanged(QString)), this, SLOT(updateOverviewTable()));
-	connect(ui.genlab, SIGNAL(stateChanged(int)), this, SLOT(updateOverviewTable()));
-	connect(ui.hide_done, SIGNAL(stateChanged(int)), this, SLOT(updateOverviewTable()));
-	updateOverviewTable();
-}
 
-QString DiagnosticStatusOverviewDialog::processedSampleToOpen()
-{
-	return processed_sample_to_open;
+	//init user combo box
+	QStringList users = db.getValues("SELECT u.name FROM user u WHERE EXISTS(SELECT * FROM diag_status ds WHERE ds.user_id=u.id) ORDER BY u.name ASC");
+	ui.user->addItem("[select]");
+	ui.user->addItems(users);
+	completer = new QCompleter(users);
+	completer->setCompletionMode(QCompleter::PopupCompletion);
+	completer->setCaseSensitivity(Qt::CaseInsensitive);
+	ui.user->setCompleter(completer);
+
+	updateOverviewTable();
 }
 
 void DiagnosticStatusOverviewDialog::updateOverviewTable()
@@ -73,6 +80,10 @@ void DiagnosticStatusOverviewDialog::updateOverviewTable()
 
 		//filter done
 		if (hide_done && !(diag_data.dagnostic_status=="pending" || diag_data.dagnostic_status=="in progress" || diag_data.dagnostic_status=="")) continue;
+
+		//filter user
+		QString user_filter = ui.user->currentText();
+		if (user_filter!="[select]" && diag_data.user!=user_filter) continue;
 
 		//set row content
 		addItem(r, 0, sample_data.quality + " | " + processed_sample_data.quality);
@@ -171,7 +182,7 @@ void DiagnosticStatusOverviewDialog::sampleContextMenu(QPoint pos)
 
 	if (action->text()=="Open sample")
 	{
-		processed_sample_to_open = ui.sample_infos->item(item->row(), 1)->text();
-		accept();
+		QString processed_sample_name = ui.sample_infos->item(item->row(), 1)->text();
+		emit openProcessedSample(processed_sample_name);
 	}
 }

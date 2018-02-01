@@ -9,9 +9,6 @@ libs:
 
 
 GSvar:
-** project overview
-  - Filter by user of last edit
-  - make modal, use signal to open sample in GSvar
 ** update report
 - Add genotype equal for affected
 - Make default filters configurable in INI file

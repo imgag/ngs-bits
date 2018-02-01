@@ -63,8 +63,6 @@ public:
 	QString processedSampleName();
 	///Returns the sample name (in case of a somatic variant list, the tumor is returned).
 	QString sampleName();
-	///Opens a sample based on the sample name
-	void openProcessedSampleFromNGSD(QString processed_sample_name);
 
 public slots:
 	///Open dialog
@@ -191,6 +189,9 @@ public slots:
 	void importPhenotypesFromGenLab();
 	///Variant default filters
     void clearFilters();
+
+	///Opens a sample based on the sample name
+	void openProcessedSampleFromNGSD(QString processed_sample_name);
 
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);

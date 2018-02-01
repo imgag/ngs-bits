@@ -40,17 +40,7 @@
      <property name="spacing">
       <number>3</number>
      </property>
-     <item row="0" column="0">
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Project:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QComboBox" name="project"/>
-     </item>
-     <item row="0" column="8">
+     <item row="0" column="11">
       <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -63,14 +53,7 @@
        </property>
       </spacer>
      </item>
-     <item row="0" column="6">
-      <widget class="QCheckBox" name="genlab">
-       <property name="text">
-        <string>show Genlab data (slow)</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="5">
+     <item row="0" column="8">
       <spacer name="horizontalSpacer_4">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -102,12 +85,58 @@
        </property>
       </spacer>
      </item>
-     <item row="0" column="4">
+     <item row="0" column="1">
+      <widget class="QComboBox" name="project"/>
+     </item>
+     <item row="0" column="7">
       <widget class="QCheckBox" name="hide_done">
        <property name="text">
         <string>hide done samples</string>
        </property>
       </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Project:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="9">
+      <widget class="QCheckBox" name="genlab">
+       <property name="text">
+        <string>show Genlab data (slow)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="6">
+      <spacer name="horizontalSpacer_5">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Fixed</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="0" column="4">
+      <widget class="QLabel" name="label_2">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Filter by user that last edited the diagnostic status.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="text">
+        <string>User:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="5">
+      <widget class="QComboBox" name="user"/>
      </item>
     </layout>
    </item>
@@ -134,7 +163,7 @@
      </column>
      <column>
       <property name="text">
-       <string>external name</string>
+       <string>external sample name</string>
       </property>
      </column>
      <column>
