@@ -506,11 +506,11 @@ void ReportWorker::writeHTML()
 	stream << "<h4>Technischer Report zur bioinformatischen Analyse</h4>" << endl;
 	stream << "<p><b>Probe: " << sample_name_ << "</b> (" << sample_data.name_external << ")" << endl;
 	stream << "<br />Prozessierungssystem: " << processed_sample_data.processing_system << endl;
-	stream << "<br />Genom-Build: " << system_data.genome << endl;
+	stream << "<br />Referenzgenom: " << system_data.genome << endl;
 	stream << "<br />Datum: " << QDate::currentDate().toString("dd.MM.yyyy") << endl;
-	stream << "<br />User: " << Helper::userName() << endl;
+	stream << "<br />Benutzer: " << Helper::userName() << endl;
 	stream << "<br />Analysesoftware: "  << QCoreApplication::applicationName() << " " << QCoreApplication::applicationVersion() << endl;	
-	stream << "<br />KASP result: " << db_.getQCData(processed_sample_id).value("kasp").asString() << endl;
+	stream << "<br />KASP-Ergebnis: " << db_.getQCData(processed_sample_id).value("kasp").asString() << endl;
 	stream << "</p>" << endl;
 
 	//get column indices
@@ -586,7 +586,7 @@ void ReportWorker::writeHTML()
 	}
 	stream << "</table>" << endl;
 
-	stream << "<p>F&uuml;r Informationen zur Klassifizierung von Varianten, siehe alllgemeine Zusazuinformationen." << endl;
+	stream << "<p>F&uuml;r Informationen zur Klassifizierung von Varianten, siehe allgemeine Zusatzinformationen." << endl;
 	stream << "</p>" << endl;
 
 	stream << "<p>Teilweise k&ouml;nnen bei Varianten unklarer Signifikanz (Klasse 3) -  in Abh&auml;ngigkeit von der Art der genetischen Ver&auml;nderung, der Familienanamnese und der Klinik des/der Patienten - weiterf&uuml;hrende Untersuchungen eine &Auml;nderung der Klassifizierung bewirken. Bei konkreten differentialdiagnostischen Hinweisen auf eine entsprechende Erkrankung ist eine humangenetische Mitbeurteilung erforderlich, zur Beurteilung ob erweiterte genetische Untersuchungen zielf&uuml;hrend w&auml;ren." << endl;

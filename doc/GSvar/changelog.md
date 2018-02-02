@@ -1,5 +1,6 @@
-### 0.1-1004-gb363ab2 (01.02.2018)
+### 0.1-1007-g8a14e90 (02.02.2018)
 - General: Added diagnostic status overview to main menu ('Samples' > 'Diagnostic status overview').
+- Improved main and gap report.
 
 ### 0.1-1001-g3e314b5 (30.01.2018)
 - General: Added more detailled diagnostic status (gene names, inheritance mode, evidence level, incidental finding).
@@ -160,6 +161,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 
