@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>359</width>
-    <height>183</height>
+    <height>158</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -38,6 +38,23 @@
    <property name="bottomMargin">
     <number>3</number>
    </property>
+   <item row="0" column="0">
+    <widget class="QLabel" name="label_7">
+     <property name="toolTip">
+      <string>User name and date of last edit.</string>
+     </property>
+     <property name="text">
+      <string>Last edited:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QLabel" name="user_date">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
    <item row="1" column="0">
     <widget class="QLabel" name="label">
      <property name="text">
@@ -82,46 +99,6 @@
     <widget class="QComboBox" name="inheritance"/>
    </item>
    <item row="5" column="0">
-    <widget class="QLabel" name="label_5">
-     <property name="text">
-      <string>Evidence level:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="1">
-    <widget class="QComboBox" name="evidence"/>
-   </item>
-   <item row="7" column="0">
-    <widget class="QLabel" name="label_6">
-     <property name="toolTip">
-      <string>Comma-separated list of genes with incidental findings.</string>
-     </property>
-     <property name="text">
-      <string>Incidental finding gene(s):</string>
-     </property>
-    </widget>
-   </item>
-   <item row="7" column="1">
-    <widget class="QLineEdit" name="genes_incidental"/>
-   </item>
-   <item row="0" column="0">
-    <widget class="QLabel" name="label_7">
-     <property name="toolTip">
-      <string>User name and date of last edit.</string>
-     </property>
-     <property name="text">
-      <string>Last edited:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="1">
-    <widget class="QLabel" name="user_date">
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="0">
     <widget class="QLabel" name="label_8">
      <property name="toolTip">
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Further explaination of the findings, e.g.:&lt;br/&gt;- variant type: SNV/InDel/CNV/SV&lt;br/&gt;- if the variant occurs as a mosaik&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -131,8 +108,21 @@
      </property>
     </widget>
    </item>
-   <item row="6" column="1">
+   <item row="5" column="1">
     <widget class="QLineEdit" name="comment"/>
+   </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="label_6">
+     <property name="toolTip">
+      <string>Comma-separated list of genes with incidental findings.</string>
+     </property>
+     <property name="text">
+      <string>Incidental finding gene(s):</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="1">
+    <widget class="QLineEdit" name="genes_incidental"/>
    </item>
   </layout>
  </widget>
@@ -141,7 +131,6 @@
   <tabstop>outcome</tabstop>
   <tabstop>genes_causal</tabstop>
   <tabstop>inheritance</tabstop>
-  <tabstop>evidence</tabstop>
   <tabstop>genes_incidental</tabstop>
  </tabstops>
  <resources/>

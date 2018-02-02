@@ -13,7 +13,6 @@ DiagnosticStatusWidget::DiagnosticStatusWidget(QWidget *parent)
 	ui.status->addItems(db.getEnum("diag_status", "status"));
 	ui.outcome->addItems(db.getEnum("diag_status", "outcome"));
 	ui.inheritance->addItems(db.getEnum("diag_status", "inheritance_mode"));
-	ui.evidence->addItems(db.getEnum("diag_status", "evidence_level"));
 
 	//signals+slots
 	connect(ui.outcome, SIGNAL(currentTextChanged(QString)), this, SIGNAL(outcomeChanged(QString)));
@@ -28,7 +27,6 @@ void DiagnosticStatusWidget::setStatus(DiagnosticStatusData data)
 	ui.outcome->setCurrentText(data.outcome);
 	ui.genes_causal->setText(data.genes_causal);
 	ui.inheritance->setCurrentText(data.inheritance_mode);
-	ui.evidence->setCurrentText(data.evidence_level);
 	ui.genes_incidental->setText(data.genes_incidental);
 	ui.comment->setText(data.comments);
 
@@ -44,7 +42,6 @@ DiagnosticStatusData DiagnosticStatusWidget::status() const
 	output.outcome = ui.outcome->currentText();
 	output.genes_causal = ui.genes_causal->text().trimmed();
 	output.inheritance_mode = ui.inheritance->currentText();
-	output.evidence_level = ui.evidence->currentText();
 	output.genes_incidental = ui.genes_incidental->text().trimmed();
 	output.comments = ui.comment->text().trimmed();
 
@@ -57,10 +54,5 @@ DiagnosticStatusData DiagnosticStatusWidget::status() const
 	}
 
 	return output;
-}
-
-bool DiagnosticStatusWidget::resequencingRequested() const
-{
-	return ui.status->currentText().startsWith("repeat") && !initial_status_text_.startsWith("repeat");
 }
 

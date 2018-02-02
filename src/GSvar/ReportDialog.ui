@@ -180,10 +180,37 @@
         <item>
          <widget class="QCheckBox" name="depth_calc">
           <property name="text">
-           <string>Re-calculate average depth for target region (if unchecked the value from NGSD is used).</string>
+           <string>Re-calculate average depth for target region (otherwise the value from NGSD is used).</string>
           </property>
           <property name="checked">
            <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <item>
+         <spacer name="horizontalSpacer_6">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Fixed</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>5</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="details_cov_roi">
+          <property name="text">
+           <string>Add target region coverage details (otherwise details are only shown for CCDS+-5)</string>
           </property>
          </widget>
         </item>
@@ -244,6 +271,13 @@
          </spacer>
         </item>
        </layout>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="tool_details">
+        <property name="text">
+         <string>Add tool versions/parameters</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>

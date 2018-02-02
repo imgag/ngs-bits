@@ -135,20 +135,20 @@ QString GapDialog::report() const
 	QTextStream stream(&output);
 
 	//header
-	stream << "Gap report\n";
+	stream << "Luecken-Report\n";
 	stream << "\n";
-	stream << "Sample: " << sample_name_ << "\n";
-	stream << "Target region: " << QFileInfo(roi_file_).fileName().replace(".bed", "") << "\n";
+	stream << "Probe: " << sample_name_ << "\n";
+	stream << "Zielregion: " << QFileInfo(roi_file_).fileName().replace(".bed", "") << "\n";
 	stream << "\n";
 
 	//exonic/splicing report
-	stream << "### Gaps in exonic/splicing regions (CCDS+-5) ###\n";
+	stream << "### Regionen mit eingeschraenkter diagnostischer Beurteilbarkeit (CCDS+-5) ###\n";
 	stream << "\n";
 	reportSection(stream, true);
 
 	//complete report
 	stream << "\n";
-	stream << "### Gaps in complete target regions ###\n";
+	stream << "### Regionen mit eingeschraenkter diagnostischer Beurteilbarkeit (gesamte Zielregion) ###\n";
 	stream << "\n";
 	reportSection(stream, false);
 
@@ -159,7 +159,7 @@ QString GapDialog::report() const
 
 void GapDialog::reportSection(QTextStream& stream, bool ccds_only) const
 {
-	stream << "Gaps to be closed by Sanger sequencing:\n";
+	stream << "Sequenzabschnitte, die mittels Sanger-Sequenzierung analysiert wurden:\n";
 	int closed_sanger = 0;
 	for (int row=0; row<ui->gaps->rowCount(); ++row)
 	{
@@ -175,7 +175,7 @@ void GapDialog::reportSection(QTextStream& stream, bool ccds_only) const
 	}
 	stream << "\n";
 
-	stream << "Gaps closed by manual inspection";
+	stream << "Sequenzabschnitte, die mittels visueller Inspektion analysiert wurden";
 	if (!ccds_only) stream << " (or intronic/intergenic)";
 	stream << ":\n";
 	int closed_manual = 0;
@@ -193,7 +193,7 @@ void GapDialog::reportSection(QTextStream& stream, bool ccds_only) const
 	}
 	stream << "\n";
 
-	stream << "Gaps not closed:\n";
+	stream << "Sequenzabschnitte, die nicht analysiert wurden:\n";
 	int closed_not = 0;
 	for (int row=0; row<ui->gaps->rowCount(); ++row)
 	{
@@ -209,11 +209,11 @@ void GapDialog::reportSection(QTextStream& stream, bool ccds_only) const
 	}
 	stream << "\n";
 
-	stream << "Summary:\n";
-	stream << "Gaps closed by Sanger sequencing: " << closed_sanger << " bases\n";
-	stream << "Gaps closed by manual inspection: " << closed_manual << " bases\n";
-	stream << "Gaps not closed: " << closed_not << " bases\n";
-	stream << "Sum: " << (closed_sanger+closed_manual+closed_not) << " bases\n";
+	stream << "Zusammenfassung:\n";
+	stream << "Sequenzabschnitte, die mittels Sanger-Sequenzierung analysiert wurden: " << closed_sanger << " Basen\n";
+	stream << "Sequenzabschnitte, die mittels visueller Inspektion analysiert wurden: " << closed_manual << " Basen\n";
+	stream << "Sequenzabschnitte, die nicht analysiert wurden: " << closed_not << " Basen\n";
+	stream << "Summe: " << (closed_sanger+closed_manual+closed_not) << " Basen\n";
 }
 
 void GapDialog::gapDoubleClicked(QTableWidgetItem* item)

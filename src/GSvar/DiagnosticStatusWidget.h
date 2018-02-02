@@ -16,7 +16,6 @@ public:
 
 	void setStatus(DiagnosticStatusData data);
 	DiagnosticStatusData status() const;
-	bool resequencingRequested() const;
 
 signals:
 	void outcomeChanged(QString outcome);

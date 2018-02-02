@@ -7,6 +7,7 @@ libs:
     - check vcf and tsv files if valid - columns and their descriptions (CS)
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
+
 GSvar:
 - Add genotype equal for affected
 - Make default filters configurable in INI file

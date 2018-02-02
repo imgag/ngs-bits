@@ -376,7 +376,6 @@ private slots:
 		S_EQUAL(diag_status.dagnostic_status, "done");
 		S_EQUAL(diag_status.outcome, "no significant findings");
 		S_EQUAL(diag_status.genes_causal, "ATM");
-		S_EQUAL(diag_status.evidence_level, "known gene");
 		S_EQUAL(diag_status.inheritance_mode, "autosomal recessive");
 		S_EQUAL(diag_status.genes_incidental, "BRCA2");
 		S_EQUAL(diag_status.comments, "free text");
@@ -388,7 +387,6 @@ private slots:
 		S_EQUAL(diag_status.outcome, "n/a");
 		S_EQUAL(diag_status.genes_causal, "");
 		S_EQUAL(diag_status.inheritance_mode, "n/a");
-		S_EQUAL(diag_status.evidence_level, "n/a");
 		S_EQUAL(diag_status.genes_incidental, "");
 		S_EQUAL(diag_status.comments, "");
 
@@ -398,7 +396,6 @@ private slots:
 		diag_status.outcome = "significant findings";
 		diag_status.genes_causal = "BRCA1";
 		diag_status.inheritance_mode = "autosomal dominant";
-		diag_status.evidence_level = "known gene";
 		diag_status.genes_incidental = "TP53";
 		diag_status.comments = "comment1";
 		db.setDiagnosticStatus(db.processedSampleId("NA12878_04"), diag_status, "ahmustm1");
@@ -409,7 +406,6 @@ private slots:
 		S_EQUAL(diag_status.outcome, "significant findings");
 		S_EQUAL(diag_status.genes_causal, "BRCA1");
 		S_EQUAL(diag_status.inheritance_mode, "autosomal dominant");
-		S_EQUAL(diag_status.evidence_level, "known gene");
 		S_EQUAL(diag_status.genes_incidental, "TP53");
 		S_EQUAL(diag_status.comments, "comment1");
 		//update existing entry
@@ -423,7 +419,6 @@ private slots:
 		S_EQUAL(diag_status.dagnostic_status, "done");
 		S_EQUAL(diag_status.outcome, "no significant findings");
 		S_EQUAL(diag_status.genes_causal, "ATM");
-		S_EQUAL(diag_status.evidence_level, "known gene");
 		S_EQUAL(diag_status.inheritance_mode, "autosomal recessive");
 		S_EQUAL(diag_status.genes_incidental, "BRCA2,POLG");
 		S_EQUAL(diag_status.comments, "comment2");

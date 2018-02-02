@@ -263,14 +263,10 @@ void MainWindow::on_actionPublishVariantInLOVD_triggered()
 
 void MainWindow::on_actionDiagnosticStatusOverview_triggered()
 {
-	auto dlg = new DiagnosticStatusOverviewDialog(this);
-	dlg->exec();
-
-	QString processed_sample_name = dlg->processedSampleToOpen();
-	if (processed_sample_name!="")
-	{
-		openProcessedSampleFromNGSD(processed_sample_name);
-	}
+	DiagnosticStatusOverviewDialog* dlg = new DiagnosticStatusOverviewDialog(this);
+	connect(dlg, SIGNAL(openProcessedSample(QString)), this, SLOT(openProcessedSampleFromNGSD(QString)));
+	dlg->show();
+	addModelessDialog(QSharedPointer<QDialog>(dlg));
 }
 
 void MainWindow::delayedInizialization()
@@ -848,7 +844,7 @@ void MainWindow::generateReport()
 	busy_dialog_->init("Generating report", false);
 
 	//start worker in new thread
-	ReportWorker* worker = new ReportWorker(base_name, filter_widget_->appliedFilters(), variants_, dialog.selectedIndices(), preferred_transcripts_, diag_status, filter_widget_->targetRegion(), bam_file, dialog.minCoverage(), getLogFiles(), file_rep, dialog.calculateDepth());
+	ReportWorker* worker = new ReportWorker(base_name, filter_widget_->appliedFilters(), variants_, dialog.selectedIndices(), preferred_transcripts_, diag_status, filter_widget_->targetRegion(), bam_file, dialog.minCoverage(), getLogFiles(), file_rep, dialog.detailsCoverageROI(), dialog.calculateDepth(), dialog.toolDetails());
 	connect(worker, SIGNAL(finished(bool)), this, SLOT(reportGenerationFinished(bool)));
 	worker->start();
 }

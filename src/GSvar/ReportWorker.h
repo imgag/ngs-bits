@@ -16,7 +16,7 @@ class ReportWorker
 
 public:
 	///Constructor.
-	ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QList<int>& variants_selected, QMap<QString, QStringList> preferred_transcripts, DiagnosticStatusData diag_status, QString file_roi, QString file_bam, int min_cov, QStringList log_files, QString file_rep, bool calculate_depth);
+	ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QList<int>& variants_selected, QMap<QString, QStringList> preferred_transcripts, DiagnosticStatusData diag_status, QString file_roi, QString file_bam, int min_cov, QStringList log_files, QString file_rep, bool gap_and_gene_details_for_roi, bool calculate_depth, bool tool_details);
 	virtual void process();
 
 	///Returns the file to which the HTML report was written.
@@ -26,8 +26,8 @@ public:
 	}
 
 	///writes a low-coverage report
-	static BedFile writeCoverageReport(QTextStream& stream, QString bam_file, QString roi_file, const BedFile& roi, const GeneSet& genes, int min_cov, NGSD& db, bool calculate_depth, QMap<QString, QString>* output=nullptr);
-	static void writeCoverageReportCCDS(QTextStream& stream, QString bam_file, const GeneSet& genes, int min_cov, int extend, NGSD& db, QMap<QString, QString>* output=nullptr);
+	static void writeCoverageReport(QTextStream& stream, QString bam_file, QString roi_file, const BedFile& roi, const GeneSet& genes, int min_cov, NGSD& db, bool calculate_depth, QMap<QString, QString>* output=nullptr, bool gene_and_gap_details=true);
+	static void writeCoverageReportCCDS(QTextStream& stream, QString bam_file, const GeneSet& genes, int min_cov, int extend, NGSD& db, QMap<QString, QString>* output=nullptr, bool gap_table=true, bool gene_details=true);
 
 	///Returns if the pre-calcualed gaps for the given ROI.
 	///If using the pre-calculated gaps file is not possible, @p message contains an error message.
@@ -54,7 +54,9 @@ private:
 	int min_cov_;
 	GeneSet genes_;
 	QStringList log_files_;
+	bool gap_and_gene_details_for_roi_;
 	bool calculate_depth_;
+	bool tool_details_;
 
 	//output variables
 	QString file_rep_;

@@ -106,11 +106,11 @@ public:
 	{
 		if (human_readable)
 		{
-			return chr().str() + ":" + QString::number(start()) + "-" + QString::number(end());
+			return chr().strNormalized(true) + ":" + QString::number(start()) + "-" + QString::number(end());
 		}
 		else
 		{
-			return chr().str() + "\t" + QString::number(start()) + "\t" + QString::number(end());
+			return chr().strNormalized(true) + "\t" + QString::number(start()) + "\t" + QString::number(end());
 		}
 	}
 

@@ -757,13 +757,12 @@ DEFAULT CHARACTER SET = utf8;
 -- -----------------------------------------------------
 CREATE  TABLE IF NOT EXISTS `diag_status` (
   `processed_sample_id` INT(11) NOT NULL,
-  `status` ENUM('pending','in progress','sanger validation','done','repeat library and sequencing','repeat sequencing only','cancelled') NOT NULL,
+  `status` ENUM('pending','in progress','done','done - follow up pending','cancelled','not usable because of data quality') NOT NULL,
   `user_id` INT(11) NOT NULL,
   `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `outcome` ENUM('n/a','no significant findings','uncertain','significant findings','significant findings - second method') NOT NULL DEFAULT 'n/a',
+  `outcome` ENUM('n/a','no significant findings','uncertain','significant findings','significant findings - second method', 'candidate gene') NOT NULL DEFAULT 'n/a',
   `genes_causal` TEXT NULL DEFAULT NULL,
   `inheritance_mode` ENUM('n/a','autosomal recessive','autosomal dominant','x-linked recessive','x-linked dominant','mitochondrial','de-novo') NOT NULL DEFAULT 'n/a',
-  `evidence_level` ENUM('n/a','candidate gene','known gene') NOT NULL DEFAULT 'n/a',
   `genes_incidental` TEXT NULL DEFAULT NULL,
   `comment` TEXT NULL DEFAULT NULL,
   PRIMARY KEY (`processed_sample_id`),
