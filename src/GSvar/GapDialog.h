@@ -45,8 +45,9 @@ private:
 		QString asTsv(bool ccds_only) const
 		{
 			QString output = (ccds_only ? ccds_overlap.toString(false) : line.toString(false)) + "\t";
-			output += "avg_depth=" + QString::number(avg_depth, 'f', 2);
-			if (!genes.isEmpty()) output += " gene=" + genes.join(",");
+			output += "Groesse=" + QString::number(ccds_only ? ccds_overlap.length() : line.length());
+			output += " mittlere Sequenziertiefe=" + QString::number(avg_depth, 'f', 2);
+			if (!genes.isEmpty()) output += " Gen=" + genes.join(",");
 			if (!ccds_only && isExonicSplicing()) output += " exonic/splicing";
 
 			return  output;

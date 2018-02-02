@@ -20,7 +20,7 @@
 #include <QDesktopServices>
 #include <QApplication>
 
-ReportWorker::ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QList<int>& variants_selected, QMap<QString, QStringList> preferred_transcripts, DiagnosticStatusData diag_status, QString file_roi, QString file_bam, int min_cov, QStringList log_files, QString file_rep, bool calculate_depth)
+ReportWorker::ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QList<int>& variants_selected, QMap<QString, QStringList> preferred_transcripts, DiagnosticStatusData diag_status, QString file_roi, QString file_bam, int min_cov, QStringList log_files, QString file_rep, bool gap_and_gene_details_for_roi, bool calculate_depth, bool tool_details)
 	: WorkerBase("Report generation")
 	, sample_name_(sample_name)
 	, filters_(filters)
@@ -33,7 +33,9 @@ ReportWorker::ReportWorker(QString sample_name, QMap<QString, QString> filters, 
 	, min_cov_(min_cov)
 	, genes_()
 	, log_files_(log_files)
+	, gap_and_gene_details_for_roi_(gap_and_gene_details_for_roi)
 	, calculate_depth_(calculate_depth)
+	, tool_details_(tool_details)
 	, file_rep_(file_rep)
 	, roi_()
 	, var_count_(variants_.count())
@@ -112,7 +114,7 @@ QString ReportWorker::formatCodingSplicing(QByteArray text)
 		}
 		QByteArray gene = parts[0].trimmed();
 		QByteArray trans = parts[1].trimmed();
-		QByteArray output = trans + ":" + parts[5].trimmed() + ":" + parts[6].trimmed();
+		QByteArray output = gene + ":" + trans + ":" + parts[5].trimmed() + ":" + parts[6].trimmed();
 
 		if (preferred_transcripts_.value(gene).contains(trans))
 		{
@@ -151,7 +153,7 @@ QString ReportWorker::inheritance(QString gene_info, bool color)
 	return output.join(",");
 }
 
-BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, QString roi_file, const BedFile& roi, const GeneSet& genes, int min_cov,  NGSD& db, bool calculate_depth, QMap<QString, QString>* output)
+void ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, QString roi_file, const BedFile& roi, const GeneSet& genes, int min_cov,  NGSD& db, bool calculate_depth, QMap<QString, QString>* output, bool gene_and_gap_details)
 {
 	//get target region coverages (from NGSD or calculate)
 	QString avg_cov = "";
@@ -179,101 +181,103 @@ BedFile ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file,
 	stream << "<p><b>Abdeckungsstatistik</b>" << endl;
 	stream << "<br />Durchschnittliche Sequenziertiefe: " << avg_cov << endl;
 
-	//calculate low-coverage regions
-	QString message;
-	BedFile low_cov = precalculatedGaps(bam_file, roi, min_cov, db, message);
-	if (!message.isEmpty())
+	if (gene_and_gap_details)
 	{
-		Log::warn("Low-coverage statistics needs to be calculated. Pre-calulated gap file cannot be used because: " + message);
-		low_cov = Statistics::lowCoverage(roi, bam_file, min_cov);
-	}
-
-	//annotate low-coverage regions with gene names
-	for(int i=0; i<low_cov.count(); ++i)
-	{
-		BedLine& line = low_cov[i];
-		GeneSet genes = db.genesOverlapping(line.chr(), line.start(), line.end(), 20); //extend by 20 to annotate splicing regions as well
-		line.annotations().append(genes.join(", "));
-	}
-
-	//group by gene name
-	QHash<QByteArray, BedFile> grouped;
-	for (int i=0; i<low_cov.count(); ++i)
-	{
-		QList<QByteArray> genes = low_cov[i].annotations()[0].split(',');
-		foreach(QByteArray gene, genes)
+		//calculate low-coverage regions
+		QString message;
+		BedFile low_cov = precalculatedGaps(bam_file, roi, min_cov, db, message);
+		if (!message.isEmpty())
 		{
-			gene = gene.trimmed();
-
-			//skip non-gene regions
-			// - remains of VEGA database in old HaloPlex designs
-			// - SNPs for sample identification
-			if (gene=="") continue;
-
-			grouped[gene].append(low_cov[i]);
+			Log::warn("Low-coverage statistics needs to be calculated. Pre-calulated gap file cannot be used because: " + message);
+			low_cov = Statistics::lowCoverage(roi, bam_file, min_cov);
 		}
-	}
 
-	//output
-	if (!genes.isEmpty())
-	{
-		QStringList complete_genes;
-		foreach(const QByteArray& gene, genes)
+		//annotate low-coverage regions with gene names
+		for(int i=0; i<low_cov.count(); ++i)
 		{
-			if (!grouped.contains(gene))
+			BedLine& line = low_cov[i];
+			GeneSet genes = db.genesOverlapping(line.chr(), line.start(), line.end(), 20); //extend by 20 to annotate splicing regions as well
+			line.annotations().append(genes.join(", "));
+		}
+
+		//group by gene name
+		QHash<QByteArray, BedFile> grouped;
+		for (int i=0; i<low_cov.count(); ++i)
+		{
+			QList<QByteArray> genes = low_cov[i].annotations()[0].split(',');
+			foreach(QByteArray gene, genes)
 			{
-				complete_genes << gene;
+				gene = gene.trimmed();
+
+				//skip non-gene regions
+				// - remains of VEGA database in old HaloPlex designs
+				// - SNPs for sample identification
+				if (gene=="") continue;
+
+				grouped[gene].append(low_cov[i]);
 			}
 		}
-		stream << "<br />Komplett abgedeckte Gene: " << complete_genes.join(", ") << endl;
-	}
-	QString gap_perc = QString::number(100.0*low_cov.baseCount()/roi.baseCount(), 'f', 2);
-	if (output!=nullptr) output->insert("gap_percentage", gap_perc);
-	stream << "<br />Anteil Regionen mit Tiefe &lt;" << min_cov << ": " << gap_perc << "%" << endl;
-	if (!genes.isEmpty())
-	{
-		QStringList incomplete_genes;
-		foreach(const QByteArray& gene, genes)
+
+		//output
+		if (!genes.isEmpty())
 		{
-			if (grouped.contains(gene))
+			QStringList complete_genes;
+			foreach(const QByteArray& gene, genes)
 			{
-				incomplete_genes << gene + " <span style=\"font-size: 80%;\">" + QString::number(grouped[gene].baseCount()) + "</span> ";
+				if (!grouped.contains(gene))
+				{
+					complete_genes << gene;
+				}
 			}
+			stream << "<br />Komplett abgedeckte Gene: " << complete_genes.join(", ") << endl;
 		}
-		stream << "<br />Fehlende Basen in nicht komplett abgedeckten Genen: " << incomplete_genes.join(", ") << endl;
-	}
-	stream << "</p>" << endl;
-	stream << "<p><span style=\"background-color: #FF0000\">Details Regionen mit Tiefe &lt;" << min_cov << ":</span>" << endl;
-	stream << "</p>" << endl;
-	stream << "<table>" << endl;
-	stream << "<tr><td><b>Gen</b></td><td><b>L&uuml;cken</b></td><td><b>Chromosom</b></td><td><b>Koordinaten (hg19)</b></td></tr>" << endl;
-	for (auto it=grouped.cbegin(); it!=grouped.cend(); ++it)
-	{
-		stream << "<tr>" << endl;
-		stream << "<td>" << endl;
-		const BedFile& gaps = it.value();
-		QString chr = gaps[0].chr().strNormalized(true);;
-		QStringList coords;
-		for (int i=0; i<gaps.count(); ++i)
+		QString gap_perc = QString::number(100.0*low_cov.baseCount()/roi.baseCount(), 'f', 2);
+		if (output!=nullptr) output->insert("gap_percentage", gap_perc);
+		stream << "<br />Anteil Regionen mit Tiefe &lt;" << min_cov << ": " << gap_perc << "%" << endl;
+		if (!genes.isEmpty())
 		{
-			coords << QString::number(gaps[i].start()) + "-" + QString::number(gaps[i].end());
+			QStringList incomplete_genes;
+			foreach(const QByteArray& gene, genes)
+			{
+				if (grouped.contains(gene))
+				{
+					incomplete_genes << gene + " <span style=\"font-size: 80%;\">" + QString::number(grouped[gene].baseCount()) + "</span> ";
+				}
+			}
+			stream << "<br />Fehlende Basen in nicht komplett abgedeckten Genen: " << incomplete_genes.join(", ") << endl;
 		}
-		stream << it.key() << "</td><td>" << gaps.baseCount() << "</td><td>" << chr << "</td><td>" << coords.join(", ") << endl;
 
-		stream << "</td>" << endl;
-		stream << "</tr>" << endl;
+		stream << "</p>" << endl;
+		stream << "<p>Details Regionen mit Tiefe &lt;" << min_cov << ":" << endl;
+		stream << "</p>" << endl;
+		stream << "<table>" << endl;
+		stream << "<tr><td><b>Gen</b></td><td><b>L&uuml;cken</b></td><td><b>Chromosom</b></td><td><b>Koordinaten (hg19)</b></td></tr>" << endl;
+		for (auto it=grouped.cbegin(); it!=grouped.cend(); ++it)
+		{
+			stream << "<tr>" << endl;
+			stream << "<td>" << endl;
+			const BedFile& gaps = it.value();
+			QString chr = gaps[0].chr().strNormalized(true);;
+			QStringList coords;
+			for (int i=0; i<gaps.count(); ++i)
+			{
+				coords << QString::number(gaps[i].start()) + "-" + QString::number(gaps[i].end());
+			}
+			stream << it.key() << "</td><td>" << gaps.baseCount() << "</td><td>" << chr << "</td><td>" << coords.join(", ") << endl;
+
+			stream << "</td>" << endl;
+			stream << "</tr>" << endl;
+		}
+		stream << "</table>" << endl;
 	}
-	stream << "</table>" << endl;
-
-	return low_cov;
 }
 
-void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file, const GeneSet& genes, int min_cov, int extend, NGSD& db, QMap<QString, QString>* output)
+void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file, const GeneSet& genes, int min_cov, int extend, NGSD& db, QMap<QString, QString>* output, bool gap_table, bool gene_details)
 {
 	QString ext_string = (extend==0 ? "" : " +-" + QString::number(extend) + " ");
 	stream << "<p><b>Abdeckungsstatistik f&uuml;r CCDS " << ext_string << "</b></p>" << endl;
-	stream << "<table>";
-	stream << "<tr><td><b>Gen</b></td><td><b>Transcript</b></td><td><b>Gr&ouml;&szlig;e</b></td><td><b>L&uuml;cken</b></td><td><b>Chromosom</b></td><td><b>Koordinaten (hg19)</b></td></tr>";
+	if (gap_table) stream << "<table>";
+	if (gap_table) stream << "<tr><td><b>Gen</b></td><td><b>Transcript</b></td><td><b>Gr&ouml;&szlig;e</b></td><td><b>L&uuml;cken</b></td><td><b>Chromosom</b></td><td><b>Koordinaten (hg19)</b></td></tr>";
 	QMap<QByteArray, int> gap_count;
 	long long bases_overall = 0;
 	long long bases_sequenced = 0;
@@ -314,38 +318,41 @@ void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file
 		{
 			coords << QString::number(gaps[i].start()) + "-" + QString::number(gaps[i].end());
 		}
-		stream << "<tr><td>" + symbol + "</td><td>" << transcript.name() << "</td><td>" << bases_transcipt << "</td><td>" << bases_gaps << "</td><td>" << roi[0].chr().strNormalized(true) << "</td><td>" << coords.join(", ") << "</td></tr>";
+		if (gap_table) stream << "<tr><td>" + symbol + "</td><td>" << transcript.name() << "</td><td>" << bases_transcipt << "</td><td>" << bases_gaps << "</td><td>" << roi[0].chr().strNormalized(true) << "</td><td>" << coords.join(", ") << "</td></tr>";
 		gap_count[symbol] += bases_gaps;
 		bases_overall += bases_transcipt;
 		bases_sequenced += bases_transcipt - bases_gaps;
 	}
-	stream << "</table>";
+	if (gap_table) stream << "</table>";
 
 	//overall statistics
 	stream << "<p>CCDS " << ext_string << "gesamt: " << bases_overall << endl;
-	stream << "<br />CCDS " << ext_string << "sequenziert: " << bases_sequenced << " (" << QString::number(100.0 * bases_sequenced / bases_overall, 'f', 2)<< "%)" << endl;
+	stream << "<br />CCDS " << ext_string << "mit Tiefe &ge;" << min_cov << ": " << bases_sequenced << " (" << QString::number(100.0 * bases_sequenced / bases_overall, 'f', 2)<< "%)" << endl;
 	long long gaps = bases_overall - bases_sequenced;
-	stream << "<br />CCDS " << ext_string << "Regionen mit Tiefe &lt;" << min_cov << ": " << gaps << " (" << QString::number(100.0 * gaps / bases_overall, 'f', 2)<< "%)" << endl;
+	stream << "<br />CCDS " << ext_string << "mit Tiefe &lt;" << min_cov << ": " << gaps << " (" << QString::number(100.0 * gaps / bases_overall, 'f', 2)<< "%)" << endl;
 	stream << "</p>" << endl;
 
 	//gene statistics
-	QByteArrayList genes_complete;
-	QByteArrayList genes_incomplete;
-	for (auto it = gap_count.cbegin(); it!=gap_count.cend(); ++it)
+	if (gene_details)
 	{
-		if (it.value()==0)
+		QByteArrayList genes_complete;
+		QByteArrayList genes_incomplete;
+		for (auto it = gap_count.cbegin(); it!=gap_count.cend(); ++it)
 		{
-			genes_complete << it.key();
+			if (it.value()==0)
+			{
+				genes_complete << it.key();
+			}
+			else
+			{
+				genes_incomplete << it.key() + " <span style=\"font-size: 80%;\">" + QByteArray::number(it.value()) + "</span> ";
+			}
 		}
-		else
-		{
-			genes_incomplete << it.key() + " <span style=\"font-size: 80%;\">" + QByteArray::number(it.value()) + "</span> ";
-		}
+		stream << "<p>";
+		stream << "Komplett abgedeckte Gene: " << genes_complete.join(", ") << endl;
+		stream << "<br />Fehlende Basen in nicht komplett abgedeckten Genen: " << genes_incomplete.join(", ") << endl;
+		stream << "</p>";
 	}
-	stream << "<p>";
-	stream << "<br />Komplett abgedeckte Gene: " << genes_complete.join(", ") << endl;
-	stream << "<br />Fehlende Basen in nicht komplett abgedeckten Genen: " << genes_incomplete.join(", ") << endl;
-	stream << "</p>";
 
 	if (output!=nullptr) output->insert("ccds_sequenced", QString::number(bases_sequenced));
 }
@@ -579,36 +586,18 @@ void ReportWorker::writeHTML()
 	}
 	stream << "</table>" << endl;
 
+	stream << "<p>F&uuml;r Informationen zur Klassifizierung von Varianten, siehe alllgemeine Zusazuinformationen." << endl;
+	stream << "</p>" << endl;
+
 	stream << "<p>Teilweise k&ouml;nnen bei Varianten unklarer Signifikanz (Klasse 3) -  in Abh&auml;ngigkeit von der Art der genetischen Ver&auml;nderung, der Familienanamnese und der Klinik des/der Patienten - weiterf&uuml;hrende Untersuchungen eine &Auml;nderung der Klassifizierung bewirken. Bei konkreten differentialdiagnostischen Hinweisen auf eine entsprechende Erkrankung ist eine humangenetische Mitbeurteilung erforderlich, zur Beurteilung ob erweiterte genetische Untersuchungen zielf&uuml;hrend w&auml;ren." << endl;
 	stream << "</p>" << endl;
-
-	///classification explaination
-	stream << "<p><b>Klassifikation von Varianten:</b>" << endl;
-	stream << "<br />Die Klassifikation der Varianten erfolgt in Anlehnung an die Publikation von Plon et al. (Hum Mutat 2008)" << endl;
-	stream << "<br /><b>Klasse 5: Eindeutig pathogene Ver&auml;nderung / Mutation:</b> Ver&auml;nderung, die bereits in der Fachliteratur mit ausreichender Evidenz als krankheitsverursachend bezogen auf das vorliegende Krankheitsbild beschrieben wurde sowie als pathogen zu wertende Mutationstypen (i.d.R. Frameshift- bzw. Stoppmutationen)." << endl;
-	stream << "<br /><b>Klasse 4: Wahrscheinlich pathogene Ver&auml;nderung:</b> DNA-Ver&auml;nderung, die aufgrund ihrer Eigenschaften als sehr wahrscheinlich krankheitsverursachend zu werten ist." << endl;
-	stream << "<br /><b>Klasse 3: Variante unklarer Signifikanz (VUS) - Unklare Pathogenit&auml;t:</b> Variante, bei der es unklar ist, ob eine krankheitsverursachende Wirkung besteht. Diese Varianten werden tabellarisch im technischen Report mitgeteilt." << endl;
-	stream << "<br /><b>Klasse 2: Sehr wahrscheinlich benigne Ver&auml;nderungen:</b> Aufgrund der H&auml;ufigkeit in der Allgemeinbev&ouml;lkerung oder der Lokalisation bzw. aufgrund von Angaben in der Literatur sehr wahrscheinlich benigne. Werden nicht mitgeteilt, k&ouml;nnen aber erfragt werden." << endl;
-	stream << "<br /><b>Klasse 1: Benigne Ver&auml;nderungen:</b> Werden nicht mitgeteilt, k&ouml;nnen aber erfragt werden." << endl;
-	stream << "</p>" << endl;
-
-	///CNVs
-	stream << "<p><b>Gefundene Copy-Number-Varianten</b>" << endl;
-	stream << "</p>" << endl;
-	stream << "<table>" << endl;
-	stream << "<tr><td><b>Koordinaten</b></td><td><b>Exons</b></td><td><b>CopyNumbers</b></td><td><b>Details</b></td></tr>" << endl;
-	stream << "<tr>" << endl;
-	stream << "<td colspan=\"4\"><span style=\"background-color: #FF0000\">Abschnitt fuellen wenn relevante CNV gefunden oder loeschen!</span></td>" << endl;
-	stream << "</tr>" << endl;
-	stream << "</table>" << endl;
 
 	///Target region statistics
 	if (file_roi_!="")
 	{
 		stream << "<p><b>Zielregion</b>" << endl;
+		stream << "<br /><span style=\"font-size: 80%;\">Die Zielregion umfasst mindestens die CCDS (\"consensus coding sequence\") unten genannter Gene &plusmn;20 Basen flankierender intronischer Sequenz, kann aber auch zus&auml;tzliche Exons und/oder flankierende Basen beinhalten." << endl;
 		stream << "<br />Name: " << QFileInfo(file_roi_).fileName().replace(".bed", "") << endl;
-		stream << "<br />Regionen: " << roi_.count() << endl;
-		stream << "<br />Basen: " << roi_.baseCount() << endl;
 		if (!genes_.isEmpty())
 		{
 			stream << "<br />Ausgewertete Gene (" << QString::number(genes_.count()) << "): " << genes_.join(", ") << endl;
@@ -619,86 +608,86 @@ void ReportWorker::writeHTML()
 	///low-coverage analysis
 	if (file_bam_!="")
 	{
-		BedFile low_cov = writeCoverageReport(stream, file_bam_, file_roi_, roi_, genes_, min_cov_, db_, calculate_depth_, &roi_stats_);
+		writeCoverageReport(stream, file_bam_, file_roi_, roi_, genes_, min_cov_, db_, calculate_depth_, &roi_stats_, gap_and_gene_details_for_roi_);
 
-		writeCoverageReportCCDS(stream, file_bam_, genes_, min_cov_, 0, db_, &roi_stats_);
+		writeCoverageReportCCDS(stream, file_bam_, genes_, min_cov_, 0, db_, &roi_stats_, false, false);
 
-		writeCoverageReportCCDS(stream, file_bam_, genes_, min_cov_, 5, db_);
-
-		//additionally store low-coverage BED file
-		low_cov.store(QString(file_rep_).replace(".html", "_lowcov.bed"));
+		writeCoverageReportCCDS(stream, file_bam_, genes_, min_cov_, 5, db_, nullptr, true, true);
 	}
 
 	//collect and display important tool versions
-	stream << "<p><b><span style=\"background-color: #FF0000\">Details zu Analysetools (f&uuml;r interne Zwecke)</span></b>" << endl;
-	stream << "</p>" << endl;
-	stream << "<table>" << endl;
-	stream << "<tr><td><b>tool</b></td><td><b>version</b></td><td><b>parameters</b></td></tr>";
-	QStringList whitelist;
-	whitelist << "SeqPurge" << "samblaster" << "/bwa" << "samtools" << "VcfLeftNormalize" <<  "freebayes" << "abra2" << "vcflib" << "SnpEff"; //current
-	whitelist << "varFilter" << "stampy.py" << "BamLeftAlign" << "GenomeAnalysisTK" << "VcfSplitMultiallelic" << "picard-tools"; //legacy
-	log_files_.sort();
-	foreach(QString file, log_files_)
+	if (tool_details_)
 	{
-		QStringList lines = Helper::loadTextFile(file);
-		for(int i=0; i<lines.count(); ++i)
+		stream << "<p><b>Details zu Analysetools</b>" << endl;
+		stream << "</p>" << endl;
+		stream << "<table>" << endl;
+		stream << "<tr><td><b>tool</b></td><td><b>version</b></td><td><b>parameters</b></td></tr>";
+		QStringList whitelist;
+		whitelist << "SeqPurge" << "samblaster" << "/bwa" << "samtools" << "VcfLeftNormalize" <<  "freebayes" << "abra2" << "vcflib" << "SnpEff"; //current
+		whitelist << "varFilter" << "stampy.py" << "BamLeftAlign" << "GenomeAnalysisTK" << "VcfSplitMultiallelic" << "picard-tools"; //legacy
+		log_files_.sort();
+		foreach(QString file, log_files_)
 		{
-			QString& line = lines[i];
-
-			if (line.contains("Calling external tool")
-				|| line.contains("command 1")
-				|| line.contains("command 2")
-				|| line.contains("command 3")
-				|| line.contains("command 4")
-				|| line.contains("command 5")
-				|| line.contains("command 6")
-				|| line.contains("command 7")
-				|| line.contains("command 8")
-				|| line.contains("command 9")
-				|| line.contains("command 10")
-				|| line.contains("command 11")
-				|| line.contains("command 12")
-				|| line.contains("command 13")
-				|| line.contains("command 14")
-				|| line.contains("command 15"))
+			QStringList lines = Helper::loadTextFile(file);
+			for(int i=0; i<lines.count(); ++i)
 			{
-				//check if tool is whitelisted
-				QString match = "";
-				foreach(QString entry, whitelist)
+				QString& line = lines[i];
+
+				if (line.contains("Calling external tool")
+					|| line.contains("command 1")
+					|| line.contains("command 2")
+					|| line.contains("command 3")
+					|| line.contains("command 4")
+					|| line.contains("command 5")
+					|| line.contains("command 6")
+					|| line.contains("command 7")
+					|| line.contains("command 8")
+					|| line.contains("command 9")
+					|| line.contains("command 10")
+					|| line.contains("command 11")
+					|| line.contains("command 12")
+					|| line.contains("command 13")
+					|| line.contains("command 14")
+					|| line.contains("command 15"))
 				{
-					if (line.contains(entry))
+					//check if tool is whitelisted
+					QString match = "";
+					foreach(QString entry, whitelist)
 					{
-						match = entry;
-						break;
+						if (line.contains(entry))
+						{
+							match = entry;
+							break;
+						}
 					}
-				}
-				if (match=="") continue;
+					if (match=="") continue;
 
-				//extract version and parameters
-				if (i+2>=lines.count()) continue;
-				QString tool;
-				if (line.contains("Calling external tool"))
-				{
-					tool = line.split("\t")[2].trimmed().mid(23, -1);
-				}
-				else
-				{
-					tool = line.split("\t")[2].trimmed().mid(13, -1);
-				}
-				tool.replace("/mnt/share/opt/", "[bin]/");
-				QString version = lines[i+1].split("\t")[2].trimmed().mid(13);
-				QString params = lines[i+2].split("\t")[2].trimmed().mid(13);
-				params.replace(QRegExp("/tmp/[^ ]+"), "[file]");
-                params.replace(QRegExp("\\./[^ ]+"), "[file]");
-				params.replace("/mnt/share/data/", "[data]/");
-				params.replace("//", "/");
+					//extract version and parameters
+					if (i+2>=lines.count()) continue;
+					QString tool;
+					if (line.contains("Calling external tool"))
+					{
+						tool = line.split("\t")[2].trimmed().mid(23, -1);
+					}
+					else
+					{
+						tool = line.split("\t")[2].trimmed().mid(13, -1);
+					}
+					tool.replace("/mnt/share/opt/", "[bin]/");
+					QString version = lines[i+1].split("\t")[2].trimmed().mid(13);
+					QString params = lines[i+2].split("\t")[2].trimmed().mid(13);
+					params.replace(QRegExp("/tmp/[^ ]+"), "[file]");
+					params.replace(QRegExp("\\./[^ ]+"), "[file]");
+					params.replace("/mnt/share/data/", "[data]/");
+					params.replace("//", "/");
 
-				//output
-				stream << "<tr><td>" << tool.toHtmlEscaped() << "</td><td>" << version.toHtmlEscaped() << "</td><td>" << params.toHtmlEscaped() << "</td></tr>" << endl;
+					//output
+					stream << "<tr><td>" << tool.toHtmlEscaped() << "</td><td>" << version.toHtmlEscaped() << "</td><td>" << params.toHtmlEscaped() << "</td></tr>" << endl;
+				}
 			}
 		}
+		stream << "</table>" << endl;
 	}
-	stream << "</table>" << endl;
 
 	//close stream
 	writeHtmlFooter(stream);

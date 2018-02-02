@@ -94,6 +94,7 @@ void ReportDialog::setTargetRegionSelected(bool is_selected)
 	{
 		ui_.details_cov->setChecked(false);
 		ui_.details_cov->setEnabled(false);
+		ui_.details_cov_roi->setEnabled(false);
 	}
 }
 
@@ -118,6 +119,11 @@ bool ReportDialog::detailsCoverage() const
 	return ui_.details_cov->isChecked();
 }
 
+bool ReportDialog::detailsCoverageROI() const
+{
+	return ui_.details_cov_roi->isChecked();
+}
+
 bool ReportDialog::calculateDepth() const
 {
 	return ui_.depth_calc->isChecked();
@@ -126,6 +132,11 @@ bool ReportDialog::calculateDepth() const
 int ReportDialog::minCoverage() const
 {
 	return ui_.min_cov->value();
+}
+
+bool ReportDialog::toolDetails() const
+{
+	return ui_.tool_details->isChecked();
 }
 
 DiagnosticStatusData ReportDialog::diagnosticStatus() const
@@ -180,7 +191,9 @@ void ReportDialog::showContextMenu(QPoint pos)
 
 void ReportDialog::updateCoverageSettings(int state)
 {
-	ui_.min_cov->setEnabled(state==Qt::Checked);
-	ui_.min_cov_label->setEnabled(state==Qt::Checked);
-	ui_.depth_calc->setEnabled(state==Qt::Checked);
+	bool enabled = (state==Qt::Checked);
+	ui_.min_cov->setEnabled(enabled);
+	ui_.min_cov_label->setEnabled(enabled);
+	ui_.depth_calc->setEnabled(enabled);
+	ui_.details_cov_roi->setEnabled(enabled);
 }

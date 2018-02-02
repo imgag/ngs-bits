@@ -24,10 +24,16 @@ public:
 	QList<int> selectedIndices() const;
 	///Returns if low-coverage details should be added to the report.
 	bool detailsCoverage() const;
+	///Returns if low-coverage details should be added to the report for the ROI.
+	bool detailsCoverageROI() const;
 	///If average coverage should be calculated for the target region (otherwise the processing system average depth is used).
 	bool calculateDepth() const;
 	///Returns the cutoff for low-coverage statistics
 	int minCoverage() const;
+
+	///Returns if tool details should be added to the report.
+	bool toolDetails() const;
+
 	///Returns the disgnostic status.
 	DiagnosticStatusData diagnosticStatus() const;
 
