@@ -812,6 +812,7 @@ void MainWindow::generateReport()
 	dialog.addVariants(variants_, visible);
 	dialog.setTargetRegionSelected(filter_widget_->targetRegion()!="");
 	if (!dialog.exec()) return;
+	ReportSettings settings = dialog.settings();
 
 	//get export file name
 	QString base_name = processedSampleName();
@@ -821,23 +822,19 @@ void MainWindow::generateReport()
 
 	//get BAM file name if necessary
 	QString bam_file = "";
-	if (dialog.detailsCoverage())
-	{
-		QMap<QString, QString> bams = getBamFiles();
-		if (bams.count()==0) return;
-		bam_file = bams.values().first();
-	}
+	QMap<QString, QString> bams = getBamFiles();
+	if (bams.count()==0) return;
+	bam_file = bams.values().first();
 
 	//update diagnostic status
-	DiagnosticStatusData diag_status = dialog.diagnosticStatus();
 	NGSD db;
-	db.setDiagnosticStatus(db.processedSampleId(filename_), diag_status);
+	db.setDiagnosticStatus(db.processedSampleId(filename_), settings.diag_status);
 	//show busy dialog
 	busy_dialog_ = new BusyDialog("Report", this);
 	busy_dialog_->init("Generating report", false);
 
 	//start worker in new thread
-	ReportWorker* worker = new ReportWorker(base_name, filter_widget_->appliedFilters(), variants_, dialog.selectedIndices(), preferred_transcripts_, diag_status, filter_widget_->targetRegion(), bam_file, dialog.minCoverage(), getLogFiles(), file_rep, dialog.detailsCoverageROI(), dialog.calculateDepth(), dialog.toolDetails());
+	ReportWorker* worker = new ReportWorker(base_name, bam_file, filter_widget_->targetRegion(), variants_, filter_widget_->appliedFilters(), preferred_transcripts_, dialog.settings(), getLogFiles(), file_rep);
 	connect(worker, SIGNAL(finished(bool)), this, SLOT(reportGenerationFinished(bool)));
 	worker->start();
 }

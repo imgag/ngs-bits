@@ -98,50 +98,32 @@ void ReportDialog::setTargetRegionSelected(bool is_selected)
 	}
 }
 
-QList<int> ReportDialog::selectedIndices() const
+ReportSettings ReportDialog::settings() const
 {
-	QList<int> output;
+	ReportSettings output;
 
+	//diag status
+	output.diag_status = ui_.diag_status->status();
+
+	//variant indices
 	for (int i=0; i<ui_.vars->rowCount(); ++i)
 	{
 		QTableWidgetItem* item = ui_.vars->item(i, 0);
 		if (item->checkState()==Qt::Checked)
 		{
-			output.append(item->data(Qt::UserRole).toInt());
+			output.variants_selected.append(item->data(Qt::UserRole).toInt());
 		}
 	}
 
+	//settings
+	output.show_coverage_details = ui_.details_cov->isChecked();
+	output.min_depth = ui_.min_cov->value();
+	output.roi_low_cov = ui_.details_cov_roi->isChecked();
+	output.recalculate_avg_depth = ui_.depth_calc->isChecked();
+	output.show_tool_details = ui_.tool_details->isChecked();
+	output.show_class_details = ui_.class_info->isChecked();
+
 	return output;
-}
-
-bool ReportDialog::detailsCoverage() const
-{
-	return ui_.details_cov->isChecked();
-}
-
-bool ReportDialog::detailsCoverageROI() const
-{
-	return ui_.details_cov_roi->isChecked();
-}
-
-bool ReportDialog::calculateDepth() const
-{
-	return ui_.depth_calc->isChecked();
-}
-
-int ReportDialog::minCoverage() const
-{
-	return ui_.min_cov->value();
-}
-
-bool ReportDialog::toolDetails() const
-{
-	return ui_.tool_details->isChecked();
-}
-
-DiagnosticStatusData ReportDialog::diagnosticStatus() const
-{
-	return ui_.diag_status->status();
 }
 
 void ReportDialog::outcomeChanged(QString text)

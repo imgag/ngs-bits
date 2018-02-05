@@ -7,7 +7,6 @@ libs:
     - check vcf and tsv files if valid - columns and their descriptions (CS)
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
-
 GSvar:
 - Add genotype equal for affected
 - Make default filters configurable in INI file
@@ -22,6 +21,10 @@ Tools:
     - add column prefix (CS)
     - extend test for indels (CS)
     - refactor and combine indel and snv handling (CS)
+
+External:
+** implement MultiQC support for ReadQC/MappingQC/VariantQC/SomaticQC
+** implement ngs-bits module in BioConda
 
 CnvHunter:
 ** test GC-normalization (check GS151166_01 C5orf42, DX170123_01 SEC23B del)

@@ -20,26 +20,20 @@
 #include <QDesktopServices>
 #include <QApplication>
 
-ReportWorker::ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QList<int>& variants_selected, QMap<QString, QStringList> preferred_transcripts, DiagnosticStatusData diag_status, QString file_roi, QString file_bam, int min_cov, QStringList log_files, QString file_rep, bool gap_and_gene_details_for_roi, bool calculate_depth, bool tool_details)
+
+
+ReportWorker::ReportWorker(QString sample_name, QString file_bam, QString file_roi, const VariantList& variants, QMap<QString, QString> filters, QMap<QString, QStringList> preferred_transcripts, ReportSettings settings, QStringList log_files, QString file_rep)
 	: WorkerBase("Report generation")
 	, sample_name_(sample_name)
-	, filters_(filters)
-	, variants_(variants)
-	, variants_selected_(variants_selected)
-	, preferred_transcripts_(preferred_transcripts)
-	, diag_status_(diag_status)
-	, file_roi_(file_roi)
 	, file_bam_(file_bam)
-	, min_cov_(min_cov)
-	, genes_()
+	, file_roi_(file_roi)
+	, variants_(variants)
+	, filters_(filters)
+	, preferred_transcripts_(preferred_transcripts)
+	, settings_(settings)
 	, log_files_(log_files)
-	, gap_and_gene_details_for_roi_(gap_and_gene_details_for_roi)
-	, calculate_depth_(calculate_depth)
-	, tool_details_(tool_details)
 	, file_rep_(file_rep)
-	, roi_()
 	, var_count_(variants_.count())
-	, db_()
 {
 }
 
@@ -531,7 +525,7 @@ void ReportWorker::writeHTML()
 	//output: applied filters
 	stream << "<p><b>Filterkriterien</b>" << endl;
 	stream << "<br />Gefundene Varianten in Zielregion gesamt: " << var_count_ << endl;
-	stream << "<br />Anzahl Varianten nach automatischer Filterung: " << variants_selected_.count() << endl;
+	stream << "<br />Anzahl Varianten nach automatischer Filterung: " << settings_.variants_selected.count() << endl;
 	for(auto it = filters_.cbegin(); it!=filters_.cend(); ++it)
 	{
 		QString text = filterToGermanText(it.key(), it.value());
@@ -547,9 +541,9 @@ void ReportWorker::writeHTML()
 	stream << "</p>" << endl;
 	stream << "<table>" << endl;
 	stream << "<tr><td><b>Gen</b></td><td><b>Variante</b></td><td><b>" << (tumor ? "Allelfrequenz" : "Genotyp") << "</b></td><td><b>Details</b></td><td><b>Klasse</b></td><td><b>Vererbung</b></td><td><b>ExAC</b></td><td><b>gnomAD</b></td></tr>" << endl;
-	for (int i=0; i<variants_selected_.count(); ++i)
+	for (int i=0; i<settings_.variants_selected.count(); ++i)
 	{
-		const Variant& variant = variants_[variants_selected_[i]];
+		const Variant& variant = variants_[settings_.variants_selected[i]];
 		QByteArray genes = variant.annotations()[i_gene];
 		stream << "<tr>" << endl;
 		stream << "<td>" << genes << "</td>" << endl;
@@ -592,6 +586,20 @@ void ReportWorker::writeHTML()
 	stream << "<p>Teilweise k&ouml;nnen bei Varianten unklarer Signifikanz (Klasse 3) -  in Abh&auml;ngigkeit von der Art der genetischen Ver&auml;nderung, der Familienanamnese und der Klinik des/der Patienten - weiterf&uuml;hrende Untersuchungen eine &Auml;nderung der Klassifizierung bewirken. Bei konkreten differentialdiagnostischen Hinweisen auf eine entsprechende Erkrankung ist eine humangenetische Mitbeurteilung erforderlich, zur Beurteilung ob erweiterte genetische Untersuchungen zielf&uuml;hrend w&auml;ren." << endl;
 	stream << "</p>" << endl;
 
+	///classification explaination
+	if (settings_.show_class_details)
+	{
+		stream << "<p><b>Klassifikation von Varianten:</b>" << endl;
+		stream << "<br />Die Klassifikation der Varianten erfolgt in Anlehnung an die Publikation von Plon et al. (Hum Mutat 2008)" << endl;
+		stream << "<br /><b>Klasse 5: Eindeutig pathogene Ver&auml;nderung / Mutation:</b> Ver&auml;nderung, die bereits in der Fachliteratur mit ausreichender Evidenz als krankheitsverursachend bezogen auf das vorliegende Krankheitsbild beschrieben wurde sowie als pathogen zu wertende Mutationstypen (i.d.R. Frameshift- bzw. Stoppmutationen)." << endl;
+		stream << "<br /><b>Klasse 4: Wahrscheinlich pathogene Ver&auml;nderung:</b> DNA-Ver&auml;nderung, die aufgrund ihrer Eigenschaften als sehr wahrscheinlich krankheitsverursachend zu werten ist." << endl;
+		stream << "<br /><b>Klasse 3: Variante unklarer Signifikanz (VUS) - Unklare Pathogenit&auml;t:</b> Variante, bei der es unklar ist, ob eine krankheitsverursachende Wirkung besteht. Diese Varianten werden tabellarisch im technischen Report mitgeteilt." << endl;
+		stream << "<br /><b>Klasse 2: Sehr wahrscheinlich benigne Ver&auml;nderungen:</b> Aufgrund der H&auml;ufigkeit in der Allgemeinbev&ouml;lkerung oder der Lokalisation bzw. aufgrund von Angaben in der Literatur sehr wahrscheinlich benigne. Werden nicht mitgeteilt, k&ouml;nnen aber erfragt werden." << endl;
+		stream << "<br /><b>Klasse 1: Benigne Ver&auml;nderungen:</b> Werden nicht mitgeteilt, k&ouml;nnen aber erfragt werden." << endl;
+		stream << "<p>F&uuml;r Informationen zur Klassifizierung von Varianten, siehe alllgemeine Zusazuinformationen." << endl;
+		stream << "</p>" << endl;
+	}
+
 	///Target region statistics
 	if (file_roi_!="")
 	{
@@ -606,17 +614,17 @@ void ReportWorker::writeHTML()
 	}
 
 	///low-coverage analysis
-	if (file_bam_!="")
+	if (settings_.show_coverage_details && file_bam_!="")
 	{
-		writeCoverageReport(stream, file_bam_, file_roi_, roi_, genes_, min_cov_, db_, calculate_depth_, &roi_stats_, gap_and_gene_details_for_roi_);
+		writeCoverageReport(stream, file_bam_, file_roi_, roi_, genes_, settings_.min_depth, db_, settings_.recalculate_avg_depth, &roi_stats_, settings_.roi_low_cov);
 
-		writeCoverageReportCCDS(stream, file_bam_, genes_, min_cov_, 0, db_, &roi_stats_, false, false);
+		writeCoverageReportCCDS(stream, file_bam_, genes_, settings_.min_depth, 0, db_, &roi_stats_, false, false);
 
-		writeCoverageReportCCDS(stream, file_bam_, genes_, min_cov_, 5, db_, nullptr, true, true);
+		writeCoverageReportCCDS(stream, file_bam_, genes_, settings_.min_depth, 5, db_, nullptr, true, true);
 	}
 
 	//collect and display important tool versions
-	if (tool_details_)
+	if (settings_.show_tool_details)
 	{
 		stream << "<p><b>Details zu Analysetools</b>" << endl;
 		stream << "</p>" << endl;
@@ -786,7 +794,7 @@ void ReportWorker::writeXML(QString outfile_name)
 	w.writeAttribute("date", QDate::currentDate().toString("yyyy-MM-dd"));
 	w.writeAttribute("user_name", Helper::userName());
 	w.writeAttribute("software", QCoreApplication::applicationName() + " " + QCoreApplication::applicationVersion());
-	w.writeAttribute("outcome", diag_status_.outcome);
+	w.writeAttribute("outcome", settings_.diag_status.outcome);
 	w.writeEndElement();
 
 	//element Sample
@@ -849,9 +857,9 @@ void ReportWorker::writeXML(QString outfile_name)
 	int geno_idx = variants_.annotationIndexByName("genotype", true, false);
 	int comment_idx = variants_.annotationIndexByName("comment", true, true);
 	int geneinfo_idx = variants_.annotationIndexByName("gene_info", true, false);
-	for (int i=0; i<variants_selected_.count(); ++i)
+	for (int i=0; i<settings_.variants_selected.count(); ++i)
 	{
-		const Variant& v = variants_[variants_selected_[i]];
+		const Variant& v = variants_[settings_.variants_selected[i]];
 		w.writeStartElement("Variant");
 		w.writeAttribute("chr", v.chr().str());
 		w.writeAttribute("start", QString::number(v.start()));
