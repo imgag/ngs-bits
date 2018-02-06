@@ -800,24 +800,27 @@ public:
 		}
 
 		//annotate regions (GC content)
-		QString ref_file = getInfile("ref");
-		if (ref_file=="") ref_file = Settings::string("reference_genome");
-		if (ref_file!="")
+		if (gc_window>=0)
 		{
-			FastaFileIndex reference(ref_file);
-
-			//determine GC content of exons
-			for (int e=0; e<exons.count(); ++e)
+			QString ref_file = getInfile("ref");
+			if (ref_file=="") ref_file = Settings::string("reference_genome");
+			if (ref_file!="")
 			{
-				Sequence seq = reference.seq(exons[e]->chr, exons[e]->start-gc_extend, exons[e]->end-exons[e]->start+2*gc_extend, true);
-				int gc = 0;
-				int at = 0;
-				for(int i=0; i<seq.length(); ++i)
+				FastaFileIndex reference(ref_file);
+
+				//determine GC content of exons
+				for (int e=0; e<exons.count(); ++e)
 				{
-					if (seq[i]=='G' || seq[i]=='C') ++gc;
-					else if (seq[i]=='A' || seq[i]=='T') ++at;
+					Sequence seq = reference.seq(exons[e]->chr, exons[e]->start+1-gc_extend, exons[e]->end-exons[e]->start+1+2*gc_extend, true);
+					int gc = 0;
+					int at = 0;
+					for(int i=0; i<seq.length(); ++i)
+					{
+						if (seq[i]=='G' || seq[i]=='C') ++gc;
+						else if (seq[i]=='A' || seq[i]=='T') ++at;
+					}
+					exons[e]->gc = (double)gc/(gc+at);
 				}
-				exons[e]->gc = (double)gc/(gc+at);
 			}
 		}
 

@@ -156,7 +156,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 
     //create coverage statistics data structure
     long long roi_bases = 0;
-    QHash<int, QMap<int, int> > roi_cov;
+	QHash<int, QMap<int, int> > roi_cov;
     for (int i=0; i<bed_file.count(); ++i)
     {
         const BedLine& line = bed_file[i];
@@ -267,8 +267,21 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
     }
     reader.Close();
 
-    //calculate coverage depth statistics
-	Histogram depth_dist(0, 1999, 5);
+	//calculate coverage depth statistics
+	double avg_depth = (double) bases_usable / roi_bases;
+	int hist_max = 999;
+	int hist_step = 5;
+	if (avg_depth>500)
+	{
+		hist_max += 1000;
+		hist_step += 5;
+	}
+	if (avg_depth>1000)
+	{
+		hist_max += 1000;
+		hist_step += 5;
+	}
+	Histogram depth_dist(0, hist_max, hist_step);
 	QHashIterator<int, QMap<int, int> > it(roi_cov);
     while(it.hasNext())
     {

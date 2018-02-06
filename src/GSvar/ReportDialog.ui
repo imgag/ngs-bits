@@ -273,6 +273,13 @@
        </layout>
       </item>
       <item>
+       <widget class="QCheckBox" name="class_info">
+        <property name="text">
+         <string>Add classification information</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QCheckBox" name="tool_details">
         <property name="text">
          <string>Add tool versions/parameters</string>

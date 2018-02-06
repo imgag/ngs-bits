@@ -6,6 +6,7 @@
 #include <QTextStream>
 #include "VariantList.h"
 #include "WorkerBase.h"
+#include "ReportDialog.h"
 #include "NGSD.h"
 
 ///Report generation worker.
@@ -16,7 +17,7 @@ class ReportWorker
 
 public:
 	///Constructor.
-	ReportWorker(QString sample_name, QMap<QString, QString> filters, const VariantList& variants, const QList<int>& variants_selected, QMap<QString, QStringList> preferred_transcripts, DiagnosticStatusData diag_status, QString file_roi, QString file_bam, int min_cov, QStringList log_files, QString file_rep, bool gap_and_gene_details_for_roi, bool calculate_depth, bool tool_details);
+	ReportWorker(QString sample_name, QString file_bam, QString file_roi, const VariantList& variants, QMap<QString, QString> filters, QMap<QString, QStringList> preferred_transcripts, ReportSettings settings, QStringList log_files, QString file_rep);
 	virtual void process();
 
 	///Returns the file to which the HTML report was written.
@@ -43,26 +44,19 @@ public:
 private:
 	//input variables
 	QString sample_name_;
-	QString sample_name_external_;
-	QMap<QString, QString> filters_;
-	const VariantList& variants_;
-	QList<int> variants_selected_;
-	QMap<QString, QStringList> preferred_transcripts_;
-	DiagnosticStatusData diag_status_;
-	QString file_roi_;
 	QString file_bam_;
-	int min_cov_;
-	GeneSet genes_;
+	QString file_roi_;
+	const VariantList& variants_;
+	QMap<QString, QString> filters_;
+	QMap<QString, QStringList> preferred_transcripts_;
+	ReportSettings settings_;
 	QStringList log_files_;
-	bool gap_and_gene_details_for_roi_;
-	bool calculate_depth_;
-	bool tool_details_;
-
 	//output variables
 	QString file_rep_;
 
 	//temporary variables
 	BedFile roi_;
+	GeneSet genes_;
 	int var_count_;
 	QMap<QString, QString> roi_stats_;
 

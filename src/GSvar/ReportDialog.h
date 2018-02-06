@@ -5,6 +5,21 @@
 #include "VariantList.h"
 #include "ui_ReportDialog.h"
 
+///Datastructure for report settings
+struct ReportSettings
+{
+	DiagnosticStatusData diag_status; //diagnostic status
+
+	QList<int> variants_selected; //variants indices that were selected for export.
+
+	bool show_coverage_details; //slow low-coverage details
+		int min_depth; //cutoff for low-coverage statistics
+		bool roi_low_cov; //low-coverage details for the ROI are added (not only for CCDS)
+		bool recalculate_avg_depth; //average coverage should be calculated for the target region (otherwise the processing system average depth is used)
+	bool show_tool_details; //show tool version and parameter table
+	bool show_class_details; //show classification information
+};
+
 ///Report generation dialog
 class ReportDialog
 		: public QDialog
@@ -20,22 +35,9 @@ public:
 	///Updates dialog depending on target region selection state
 	void setTargetRegionSelected(bool is_selected);
 
-	///Returns the variants indices that were selected for export (along with the flag for very important variants).
-	QList<int> selectedIndices() const;
-	///Returns if low-coverage details should be added to the report.
-	bool detailsCoverage() const;
-	///Returns if low-coverage details should be added to the report for the ROI.
-	bool detailsCoverageROI() const;
-	///If average coverage should be calculated for the target region (otherwise the processing system average depth is used).
-	bool calculateDepth() const;
-	///Returns the cutoff for low-coverage statistics
-	int minCoverage() const;
+	///Returns the report settings
+	ReportSettings settings() const;
 
-	///Returns if tool details should be added to the report.
-	bool toolDetails() const;
-
-	///Returns the disgnostic status.
-	DiagnosticStatusData diagnosticStatus() const;
 
 private slots:
 	void outcomeChanged(QString text);
