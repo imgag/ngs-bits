@@ -1933,11 +1933,18 @@ void MainWindow::varsContextMenu(QPoint pos)
 	{
 		try
 		{
-			//check comp-het
-			if (ui_.vars->selectedRanges().count()==1 && ui_.vars->selectedRanges()[0].rowCount()==2)
+			//comp-het (one selection with at least two rows)
+			if (ui_.vars->selectedRanges().count()==1 && ui_.vars->selectedRanges()[0].rowCount()>=2)
 			{
 				int index1 = ui_.vars->selectedRanges()[0].topRow();
 				int index2 = ui_.vars->selectedRanges()[0].bottomRow();
+				uploadtoLovd(index1, index2);
+			}
+			//comp-het (two selections with one row each)
+			else if (ui_.vars->selectedRanges().count()==2 && ui_.vars->selectedRanges()[0].rowCount()==1 && ui_.vars->selectedRanges()[1].rowCount()==1)
+			{
+				int index1 = ui_.vars->selectedRanges()[0].topRow();
+				int index2 = ui_.vars->selectedRanges()[1].topRow();
 				uploadtoLovd(index1, index2);
 			}
 			else
