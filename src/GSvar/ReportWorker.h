@@ -39,7 +39,7 @@ public:
 
 	static void writeHtmlHeader(QTextStream& stream, QString sample_name);
 	static void writeHtmlFooter(QTextStream& stream);
-	static void validateAndCopyReport(QString from, QString to, bool put_to_archive, bool is_rtf);
+	static bool validateAndCopyReport(QString from, QString to, bool put_to_archive, bool is_rtf);
 
 private:
 	//input variables

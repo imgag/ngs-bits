@@ -726,9 +726,6 @@ void MainWindow::generateReportSomaticRTF()
 	//List of genes which will be included in CNV-report independent on their z-scores
 	GeneSet cnv_keep_genes_filter;
 	cnv_keep_genes_filter << "MYC" << "MDM2" << "MDM4" << "CDKN2A" << "CDKN2A-AS1" << "CDK4" << "CDK6" << "PTEN" << "CCND1" << "RB1" << "CCND3" << "BRAF" << "KRAS" << "NRAS";
-	//Genes which will appear in germline report
-	GeneSet snv_germline_filter;
-	snv_germline_filter << "BRCA1" << "BRCA2" << "TP53" << "STK11" << "PTEN" << "MSH2" << "MSH6" << "MLH1" << "PMS2" << "APC" << "MUTYH" << "SMAD4" << "VHL"<< "MEN1"<< "RET"<< "RB1"<< "TSC1"<< "TSC2"<< "NF2"<< "WT1"<<"SDHB"<<"SDHD"<<"SDHC"<<"SDHAF2"<<"BMPR1A";
 
 	QString temp_filename = Helper::tempFileName(".rtf");
 
@@ -745,18 +742,19 @@ void MainWindow::generateReportSomaticRTF()
 	}
 
 
-	ReportHelper report(filename_,snv_germline_filter,cnv_keep_genes_filter,target_region);
+	ReportHelper report(filename_,cnv_keep_genes_filter,target_region);
 	report.writeRtf(temp_filename);
 
 	//validate/store
 	QString file_rep = QFileDialog::getSaveFileName(this, "Export report file", last_report_path_ + "/" + QFileInfo(filename_).baseName() + "_report_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf", "RTF files (*.rtf);;All files(*.*)");
 	if (file_rep=="") return;
-	ReportWorker::validateAndCopyReport(temp_filename, file_rep,false,true);
 
-	//show result info box
-	if (QMessageBox::question(this, "Report", "Report generated successfully!\nDo you want to open the report in your standard .RTF viewer?")==QMessageBox::Yes)
-	{
-		QDesktopServices::openUrl(file_rep);
+	if(ReportWorker::validateAndCopyReport(temp_filename, file_rep,false,true))
+	{//show result info box
+		if (QMessageBox::question(this, "Report", "Report generated successfully!\nDo you want to open the report in your standard .RTF viewer?")==QMessageBox::Yes)
+		{
+			QDesktopServices::openUrl(file_rep);
+		}
 	}
 }
 

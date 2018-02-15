@@ -1,7 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>Resources/qcML_0.0.8.xsd</file>
-        <file>Resources/so-xp_2_5_3_v2.obo</file>
         <file>Resources/GRCh37_snps.vcf</file>
+        <file>Resources/so-xp_3_0_0.obo</file>
     </qresource>
 </RCC>
