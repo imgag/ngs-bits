@@ -50,6 +50,9 @@ FilterDockWidget::FilterDockWidget(QWidget *parent)
 	connect(ui_.gene_pli, SIGNAL(valueChanged(double)), this, SIGNAL(filtersChanged()));
 	connect(ui_.gene_pli_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
 
+	connect(ui_.gene_inh, SIGNAL(currentTextChanged(QString)), this, SIGNAL(filtersChanged()));
+	connect(ui_.gene_inh_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
+
 	connect(ui_.roi_add, SIGNAL(clicked()), this, SLOT(addRoi()));
 	connect(ui_.roi_add_temp, SIGNAL(clicked()), this, SLOT(addRoiTemp()));
 	connect(ui_.roi_remove, SIGNAL(clicked()), this, SLOT(removeRoi()));
@@ -213,6 +216,8 @@ void FilterDockWidget::resetSignalsUnblocked(bool clear_roi, bool clear_off_targ
 	ui_.keep_class_m->setChecked(false);
 	ui_.gene_pli_enabled->setChecked(false);
 	ui_.gene_pli->setValue(0.9);
+	ui_.gene_inh_enabled->setChecked(false);
+	ui_.gene_inh->setCurrentText("n/a");
 
     //filter cols
     QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
@@ -600,6 +605,16 @@ bool FilterDockWidget::applyPLI() const
 double FilterDockWidget::pli() const
 {
 	return ui_.gene_pli->value();
+}
+
+bool FilterDockWidget::applyInheritance() const
+{
+	return ui_.gene_inh_enabled->isChecked();
+}
+
+QString FilterDockWidget::inheritance() const
+{
+	return ui_.gene_inh->currentText();
 }
 
 QStringList FilterDockWidget::filterColumnsKeep() const

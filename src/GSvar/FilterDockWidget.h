@@ -64,10 +64,15 @@ public:
 	/// Returns variants with a classification 'M' (modifier) should be kept.
 	bool keepClassM() const;
 
-	/// Returns ExAC pLI score filter is enabled.
+	/// Returns if ExAC pLI score filter is enabled.
 	bool applyPLI() const;
 	/// Returns the minumum ExAC pLI score.
 	double pli() const;
+
+	/// Returns if hinheritance filter is enabled.
+	bool applyInheritance() const;
+	/// Returns the inheritance filter.
+	QString inheritance() const;
 
 	///Returns the filter column terms to keep.
 	QStringList filterColumnsKeep() const;

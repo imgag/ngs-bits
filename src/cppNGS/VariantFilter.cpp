@@ -317,6 +317,39 @@ void VariantFilter::flagByGenePLI(double min_pli)
 	}
 }
 
+void VariantFilter::flagByGeneInheritance(const QByteArray& inhertitance)
+{
+	//get column indices
+	int i_geneinfo = variants.annotationIndexByName("gene_info", true, true);
+
+	//filter
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!pass[i]) continue;
+
+		//parse gene_info entry - example: AL627309.1 (inh=n/a pLI=n/a), PRPF31 (inh=AD pLI=0.97), 34P13.14 (inh=n/a pLI=n/a)
+		QByteArrayList genes = variants[i].annotations()[i_geneinfo].split(',');
+		bool any_gene_passed = false;
+		foreach(const QByteArray gene, genes)
+		{
+			int start = gene.indexOf('(');
+			QByteArrayList entries = gene.mid(start+1, gene.length()-start-2).split(' ');
+			foreach(const QByteArray& entry, entries)
+			{
+				if (entry.startsWith("inh="))
+				{
+					QByteArrayList modes =  entry.mid(4).split('+');
+					if (modes.contains(inhertitance))
+					{
+						any_gene_passed = true;
+					}
+				}
+			}
+		}
+		pass[i] = any_gene_passed;
+	}
+}
+
 void VariantFilter::flagGeneric(QString criteria)
 {
 	//check that criteria are valid

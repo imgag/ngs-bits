@@ -596,7 +596,7 @@ void ReportWorker::writeHTML()
 		stream << "<br /><b>Klasse 3: Variante unklarer Signifikanz (VUS) - Unklare Pathogenit&auml;t:</b> Variante, bei der es unklar ist, ob eine krankheitsverursachende Wirkung besteht. Diese Varianten werden tabellarisch im technischen Report mitgeteilt." << endl;
 		stream << "<br /><b>Klasse 2: Sehr wahrscheinlich benigne Ver&auml;nderungen:</b> Aufgrund der H&auml;ufigkeit in der Allgemeinbev&ouml;lkerung oder der Lokalisation bzw. aufgrund von Angaben in der Literatur sehr wahrscheinlich benigne. Werden nicht mitgeteilt, k&ouml;nnen aber erfragt werden." << endl;
 		stream << "<br /><b>Klasse 1: Benigne Ver&auml;nderungen:</b> Werden nicht mitgeteilt, k&ouml;nnen aber erfragt werden." << endl;
-		stream << "<p>F&uuml;r Informationen zur Klassifizierung von Varianten, siehe alllgemeine Zusazuinformationen." << endl;
+		stream << "<p>F&uuml;r Informationen zur Klassifizierung von Varianten, siehe alllgemeine Zusatzinformationen." << endl;
 		stream << "</p>" << endl;
 	}
 

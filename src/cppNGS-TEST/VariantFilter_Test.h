@@ -413,6 +413,24 @@ private slots:
 		I_EQUAL(filter.countPassing(), 0);
 	}
 
+	void flagByGeneInheritance()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+
+		VariantFilter filter(vl);
+		filter.flagByGeneInheritance("AD");
+		I_EQUAL(filter.countPassing(), 19);
+
+		VariantFilter filter2(vl);
+		filter2.flagByGeneInheritance("AR");
+		I_EQUAL(filter2.countPassing(), 28);
+
+		VariantFilter filter3(vl);
+		filter3.flagByGeneInheritance("n/a");
+		I_EQUAL(filter3.countPassing(), 104);
+	}
+
 	void flagByGenotype_multiSample()
 	{
 		VariantList vl;

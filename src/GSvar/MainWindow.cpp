@@ -2200,6 +2200,10 @@ void MainWindow::filtersChanged()
 		{
 			filter.flagByGenePLI(filter_widget_->pli());
 		}
+		if (filter_widget_->applyInheritance())
+		{
+			filter.flagByGeneInheritance(filter_widget_->inheritance().toLatin1());
+		}
 		QStringList remove = filter_widget_->filterColumnsRemove();
 		if (remove.count()>0)
 		{

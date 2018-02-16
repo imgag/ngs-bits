@@ -9,10 +9,9 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-* Somatic: also load CNV file of germline
-* Filter gene inheritance mode
 * Add HPO-based filter to CNV widget
-* text filter
+* Somatic: also load CNV file of germline
+* text-based filter for OMIM/ClinVar/HGMD column (ignore case)
 - Add genotype equal for affected
 - Make default filters configurable in INI file
 
