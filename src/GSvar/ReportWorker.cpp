@@ -712,7 +712,7 @@ void ReportWorker::writeHTML()
 	}
 }
 
-bool ReportWorker::validateAndCopyReport(QString from, QString to,bool put_to_archive,bool is_rtf)
+void ReportWorker::validateAndCopyReport(QString from, QString to,bool put_to_archive,bool is_rtf)
 {
 	//validate written HTML file
 	QString validation_error = XmlHelper::isValidXml(from);
@@ -725,8 +725,7 @@ bool ReportWorker::validateAndCopyReport(QString from, QString to,bool put_to_ar
 	{
 		if(is_rtf)
 		{
-			QMessageBox::warning(NULL,"Warning","Could not remove previous RTF report: " + to);
-			return false;
+			THROW(FileAccessException,"Could not remove previous RTF report: " + to);
 		}
 		else
 		{
@@ -737,8 +736,7 @@ bool ReportWorker::validateAndCopyReport(QString from, QString to,bool put_to_ar
 	{
 		if(is_rtf)
 		{
-			QMessageBox::warning(NULL,"Warning", "Could not copy RTF report from temporary file " + from + " to " + to + " !");
-			return false;
+			THROW(FileAccessException,"Could not copy RTF report from temporary file " + from + " to " + to + " !");
 		}
 		else
 		{
@@ -778,8 +776,6 @@ bool ReportWorker::validateAndCopyReport(QString from, QString to,bool put_to_ar
 			}
 		}
 	}
-
-	return true;
 }
 
 void ReportWorker::writeXML(QString outfile_name)

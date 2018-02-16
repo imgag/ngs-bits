@@ -741,20 +741,43 @@ void MainWindow::generateReportSomaticRTF()
 		return;
 	}
 
+	try
+	{
+		ReportHelper report(filename_,cnv_keep_genes_filter,target_region);
+		report.writeRtf(temp_filename);
 
-	ReportHelper report(filename_,cnv_keep_genes_filter,target_region);
-	report.writeRtf(temp_filename);
+		//Create files for QBIC upload
+		report.germlineSnvForQbic();
+		report.somaticSnvForQbic();
+		report.germlineCnvForQbic();
+		report.somaticCnvForQbic();
+		report.somaticSvForQbic();
+		report.metaDataForQbic();
+	}
+	catch(FileParseException error)
+	{
+		QMessageBox::warning(this,"File Parse Exception",error.message());
+		return;
+	}
+
 
 	//validate/store
 	QString file_rep = QFileDialog::getSaveFileName(this, "Export report file", last_report_path_ + "/" + QFileInfo(filename_).baseName() + "_report_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf", "RTF files (*.rtf);;All files(*.*)");
 	if (file_rep=="") return;
 
-	if(ReportWorker::validateAndCopyReport(temp_filename, file_rep,false,true))
-	{//show result info box
-		if (QMessageBox::question(this, "Report", "Report generated successfully!\nDo you want to open the report in your standard .RTF viewer?")==QMessageBox::Yes)
-		{
-			QDesktopServices::openUrl(file_rep);
-		}
+	try
+	{
+		ReportWorker::validateAndCopyReport(temp_filename, file_rep,false,true);
+	}
+	catch(FileAccessException error)
+	{
+		QMessageBox::warning(this,"File Access Exception",error.message());
+		return;
+	}
+
+	if (QMessageBox::question(this, "Report", "Report generated successfully!\nDo you want to open the report in your standard .RTF viewer?")==QMessageBox::Yes)
+	{
+		QDesktopServices::openUrl(file_rep);
 	}
 }
 
