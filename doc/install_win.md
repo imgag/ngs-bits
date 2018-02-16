@@ -41,7 +41,7 @@ Now, we can build the third-party libraries, and then ngs-bits:
 		</tr>
 		<tr>
 			<td>C:\Qt\Qt5.5.0\5.5\mingw492_32\bin\</td>
-			<td>Qt5Core.dll, Qt5XmlPatterns.dll, Qt5Network.dll, Qt5Sql.dll, Qt5Xml.dll, Qt5Gui.dll, Qt5Widgets.dll, libgcc_s_dw2-1.dll, libwinpthread-1.dll, libstdc++-6.dll</td>
+			<td>Qt5Core.dll, Qt5XmlPatterns.dll, Qt5PrintSupport.dll, Qt5Network.dll, Qt5Sql.dll, Qt5Xml.dll, Qt5Gui.dll, Qt5Widgets.dll, libgcc_s_dw2-1.dll, libwinpthread-1.dll, libstdc++-6.dll</td>
 		</tr>
 		<tr>
 			<td>C:\Qt\Qt5.5.0\mysql-5.7.9-win32\lib\</td>
