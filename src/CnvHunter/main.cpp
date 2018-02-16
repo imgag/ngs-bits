@@ -466,7 +466,7 @@ public:
 		QSharedPointer<QFile> file = Helper::openFileForWriting(out.left(out.size()-4) + ".seg");
 		QTextStream outstream(file.data());
 		outstream << "#type=GENE_EXPRESSION" << endl;
-		outstream << "#track graphtype=heatmap name=\"" + sample->name+ " CN z-score\" midRange=-2.5:2.5 color=0,0,255 altColor=255,0,0 viewLimits=-5:5 maxHeightPixels=80:80:80" << endl;
+		outstream << "#track graphtype=points name=\"" + sample->name+ " CN z-score\" midRange=-2.5:2.5 color=0,0,255 altColor=255,0,0 viewLimits=-5:5 maxHeightPixels=80:80:80" << endl;
 		outstream << "ID	chr	start	end	log2-ratio	copy-number	z-score" << endl;
 
 		//write valid region details
