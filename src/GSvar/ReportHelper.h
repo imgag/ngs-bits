@@ -225,6 +225,12 @@ private:
 	int snv_index_cgi_transcript_;
 	int snv_index_coding_splicing_;
 	int snv_index_cgi_gene_;
+
+	///indices for CNV files
+	int cnv_index_cgi_gene_role_;
+	int cnv_index_cnv_type_;
+	int cnv_index_cnv_genes_;
+	int cnv_index_cgi_driver_statement_;
 };
 
 #endif // REPORTHELPER_H

@@ -344,44 +344,6 @@ void ReportHelper::writeRtfTableCNV(QTextStream& stream, const QList<int>& colWi
 
 	QList<int> widths;
 
-	int i_cnv_type = -1;
-	for(int i=0;i<important_cnvs.annotationHeaders().count();i++)
-	{
-		if(important_cnvs.annotationHeaders()[i] == "cnv_type")
-		{
-			i_cnv_type = i;
-		}
-	}
-
-	//get indices of CGI_genes and CGI_driver_statement
-	// !! column CGI_genes is already filtered for target region !!
-	int i_cgi_genes = -1;
-	int i_cgi_driver_statement = -1;
-
-	for(int i=0;i<important_cnvs.annotationHeaders().count();i++)
-	{
-
-		if(important_cnvs.annotationHeaders()[i] == "CGI_genes")
-		{
-			i_cgi_genes = i;
-		}
-		if(important_cnvs.annotationHeaders()[i] == "CGI_driver_statement")
-		{
-			i_cgi_driver_statement = i;
-		}
-	}
-
-	if(i_cgi_genes == -1)
-	{
-		return;
-		THROW(FileParseException,"CNV file does not contain a CGI_genes column");
-	}
-	if(i_cgi_driver_statement == -1)
-	{
-		return;
-		THROW(FileParseException,"CNV file does not contain a CGI_driver_statement column");
-	}
-
 	//widths if cnv_type is set in input VariantLists
 	QList<int> widths_cnv_type;
 	widths_cnv_type << 4700 << 5200 << 5600 << 7900 << 8900 << max_table_width;
@@ -405,13 +367,13 @@ void ReportHelper::writeRtfTableCNV(QTextStream& stream, const QList<int>& colWi
 
 	header_columns <<"\\trhdr\\qc Gene" << "\\qc CNV" << "\\qc CN" << "\\qc Position" << "\\qc Gr\\u246;\\u223;e [kb]";
 
-	if(i_cnv_type!=-1)
+	if(cnv_index_cnv_type_!=-1)
 	{
 		header_columns << "\\qc Typ";
 	}
 
 	header_cnvs << header_columns;
-	if(i_cnv_type!=-1)
+	if(cnv_index_cnv_type_!=-1)
 	{
 		RtfTools::writeRtfWholeTable(stream,header_cnvs,widths_cnv_type,18,true,true);
 	}
@@ -435,14 +397,13 @@ void ReportHelper::writeRtfTableCNV(QTextStream& stream, const QList<int>& colWi
 
 		//gene names
 		//only print genes which which lie in target region
-		if(!variant.annotations().at(i_cgi_genes).isEmpty())
+		if(!variant.annotations().at(cnv_index_cnv_genes_).isEmpty())
 		{
 			//cgi genes
-			GeneSet cgi_genes = GeneSet::createFromText(variant.annotations().at(i_cgi_genes),',');
-			//cgi_genes.insert(variant.annotations().at(i_cgi_genes).split(','));
+			GeneSet cgi_genes = GeneSet::createFromText(variant.annotations().at(cnv_index_cnv_genes_),',');
 			cgi_genes = db_.genesToApproved(cgi_genes);
 
-			QByteArrayList cgi_driver_statements = variant.annotations().at(i_cgi_driver_statement).split(',');
+			QByteArrayList cgi_driver_statements = variant.annotations().at(cnv_index_cgi_driver_statement_).split(',');
 
 			QString genes_included = "";
 
@@ -508,15 +469,15 @@ void ReportHelper::writeRtfTableCNV(QTextStream& stream, const QList<int>& colWi
 		columns.append("\\qr " + QString::number(round((important_cnvs[i].end()-important_cnvs[i].start())/1000.)) + "\\ri20");
 
 		//
-		if(i_cnv_type!=-1)
+		if(cnv_index_cnv_type_!=-1)
 		{
-			columns.append("\\qc " + variant.annotations().at(i_cnv_type));
+			columns.append("\\qc " + variant.annotations().at(cnv_index_cnv_type_));
 		}
 
 		somatic_cnv_table.append(columns);
 	}
 	widths.clear();
-	if(i_cnv_type!=-1)
+	if(cnv_index_cnv_type_!=-1)
 	{
 		widths = widths_cnv_type;
 	}
@@ -569,11 +530,11 @@ void ReportHelper::writeRtfTableCNV(QTextStream& stream, const QList<int>& colWi
 
 		if(cn > 2.)
 		{
-			amplified_cnvs.insert(GeneSet::createFromText(variant.annotations().at(i_cgi_genes),','));
+			amplified_cnvs.insert(GeneSet::createFromText(variant.annotations().at(cnv_index_cnv_genes_),','));
 		}
 		else
 		{
-			deleted_cnvs.insert(GeneSet::createFromText(variant.annotations().at(i_cgi_genes),','));
+			deleted_cnvs.insert(GeneSet::createFromText(variant.annotations().at(cnv_index_cnv_genes_),','));
 		}
 
 	}
@@ -816,6 +777,48 @@ ReportHelper::ReportHelper(QString snv_filename, GeneSet cnv_keep_genes_filter, 
 	snv_index_cgi_gene_ = snv_variants_.annotationIndexByName("CGI_gene",true,true);
 
 
+	cnv_index_cgi_gene_role_ = -1;
+	cnv_index_cnv_type_ = -1;
+	cnv_index_cnv_genes_ = -1;
+	cnv_index_cgi_driver_statement_ = -1;
+
+	for(int i=0;i<cnv_variants_.annotationHeaders().count();i++)
+	{
+		if(cnv_variants_.annotationHeaders()[i] == "CGI_gene_role")
+		{
+			cnv_index_cgi_gene_role_ = i;
+		}
+
+		if(cnv_variants_.annotationHeaders()[i] == "cnv_type")
+		{
+			cnv_index_cnv_type_ = i;
+		}
+
+		if(cnv_variants_.annotationHeaders()[i] == "CGI_genes")
+		{
+			cnv_index_cnv_genes_ = i;
+		}
+
+		if(cnv_variants_.annotationHeaders()[i] == "CGI_driver_statement")
+		{
+			cnv_index_cgi_driver_statement_ = i;
+		}
+	}
+
+	if(cnv_index_cgi_driver_statement_ == -1)
+	{
+		THROW(FileParseException,"Could not create RTF report: CNV file does not contain CGI_driver_statement column");
+	}
+	else if(cnv_index_cgi_gene_role_ == -1 )
+	{
+		THROW(FileParseException,"Could not create RTF report: CNV file does not contain CGI_gene_role column");
+	}
+	else if(cnv_index_cnv_genes_ == -1)
+	{
+		THROW(FileParseException,"Could not create RTF report: CNV file does not contain CGI_genes column");
+	}
+
+
 	tumor_id_ = base_name.split('-')[0];
 	normal_id_ = base_name.split('-')[1].split('_')[0]+'_'+base_name.split('-')[1].split('_')[1];
 
@@ -986,8 +989,6 @@ QHash<QByteArray, BedFile> ReportHelper::gapStatistics()
 
 void ReportHelper::writeRtfCGIDrugTable(QTextStream &stream, const QList<int> &col_widths)
 {
-
-
 	int max_table_width = col_widths.last();
 	QString begin_table_cell = "\\pard\\intbl\\fs18\\fi20 ";
 	QString begin_table_cell_bold = begin_table_cell+"\\b\\fi20 ";
@@ -1233,25 +1234,6 @@ void ReportHelper::somaticCnvForQbic()
 
 	CnvList variants = filterCnv();
 
-	int i_cgi_gene_role;
-
-	int i_cnv_type = -1;
-
-	for(int i=0;i<variants.annotationHeaders().count();i++)
-	{
-
-		if(variants.annotationHeaders()[i] == "CGI_gene_role")
-		{
-			i_cgi_gene_role = i;
-		}
-
-		if(variants.annotationHeaders()[i] == "cnv_type")
-		{
-			i_cnv_type = i;
-		}
-
-	}
-
 	QString target_region_processing_system = db_.getProcessingSystemData(db_.processedSampleId(tumor_id_), true).target_file;
 	GeneSet target_genes = GeneSet::createFromFile(target_region_processing_system.left(target_region_processing_system.size()-4) + "_genes.txt");
 	NGSD db;
@@ -1263,13 +1245,13 @@ void ReportHelper::somaticCnvForQbic()
 		CopyNumberVariant variant = variants[i];
 		GeneSet genes_in_report = target_genes.intersect(variant.genes());
 
-		if(i_cnv_type < 0)
+		if(cnv_index_cnv_type_ < 0)
 		{
 			stream << "";
 		}
 		else
 		{
-			stream << variant.annotations().at(i_cnv_type);
+			stream << variant.annotations().at(cnv_index_cnv_type_);
 		}
 		stream << "\t";
 
@@ -1319,7 +1301,7 @@ void ReportHelper::somaticCnvForQbic()
 		stream << "\t";
 
 		//effect
-		QByteArrayList effects = variant.annotations().at(i_cgi_gene_role).split(',');
+		QByteArrayList effects = variant.annotations().at(cnv_index_cgi_gene_role_).split(',');
 		for(int j=0;j<effects.count();j++)
 		{
 			if(effects[j] == "LoF")
@@ -1481,13 +1463,6 @@ VariantList ReportHelper::gsvarToVcf()
 
 void ReportHelper::writeRtf(const QString& out_file)
 {
-	//Create files for QBIC upload
-	germlineSnvForQbic();
-	somaticSnvForQbic();
-	germlineCnvForQbic();
-	somaticCnvForQbic();
-	somaticSvForQbic();
-	metaDataForQbic();
 
 	QString begin_table_cell = "\\pard\\intbl\\fs18 ";
 	QString begin_table_cell_bold = begin_table_cell+"\\b ";
