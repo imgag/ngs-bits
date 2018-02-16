@@ -841,7 +841,7 @@ void FilterDockWidget::phenotypesChanged()
 
 	ui_.hpo_terms->setText(tmp.join("; "));
 
-	QString tooltip = "Phenotype/inheritance filter based on HPO terms.";
+	QString tooltip = "Phenotype/inheritance filter based on HPO terms.<br>This filter has no effect on report generation!<br><br>Note: This functionality is only available when NGSD is enabled.";
 	if (!phenotypes_.isEmpty())
 	{
 		tooltip += "<br><br><nobr>Currently selected HPO terms:</nobr>";

@@ -31,6 +31,7 @@ CnvWidget::CnvWidget(QString filename, FilterDockWidget* filter_widget, const Ge
 	connect(ui->f_cn, SIGNAL(currentIndexChanged(int)), this, SLOT(filtersChanged()));
 	connect(ui->f_roi, SIGNAL(stateChanged(int)), this, SLOT(filtersChanged()));
 	connect(ui->f_genes, SIGNAL(stateChanged(int)), this, SLOT(filtersChanged()));
+	connect(ui->f_pheno, SIGNAL(stateChanged(int)), this, SLOT(filtersChanged()));
 	connect(ui->f_comphet, SIGNAL(currentIndexChanged(int)), this, SLOT(filtersChanged()));
 	connect(ui->f_size, SIGNAL(valueChanged(double)), this, SLOT(filtersChanged()));
 	connect(ui->f_z, SIGNAL(valueChanged(double)), this, SLOT(filtersChanged()));
@@ -88,6 +89,7 @@ void CnvWidget::disableGUI()
 	ui->f_cn->setEnabled(false);
 	ui->f_genes->setEnabled(false);
 	ui->f_roi->setEnabled(false);
+	ui->f_pheno->setEnabled(false);
 	ui->f_regs->setEnabled(false);
 	ui->f_size->setEnabled(false);
 	ui->f_z->setEnabled(false);
@@ -289,6 +291,25 @@ void CnvWidget::filtersChanged()
 		}
 	}
 
+	//filter by phenotype (via genes, not genomic regions)
+	if (ui->f_pheno->isChecked())
+	{
+		//convert phenotypes to genes
+		NGSD db;
+		GeneSet pheno_genes;
+		foreach(const Phenotype& pheno, var_filters->phenotypes())
+		{
+			pheno_genes << db.phenotypeToGenes(pheno, true);
+		}
+		qDebug() << pheno_genes.count();
+		for(int r=0; r<rows; ++r)
+		{
+			if (!pass[r]) continue;
+
+			pass[r] = cnvs[r].genes().intersectsWith(pheno_genes);
+		}
+	}
+
 	//filter by generic annotation
 	if (ui->f_anno_name->currentText()!="")
 	{
@@ -399,6 +420,9 @@ void CnvWidget::variantFiltersChanged()
 
 	ui->f_roi->setEnabled(!var_filters->targetRegion().isEmpty());
 	if (!ui->f_roi->isEnabled()) ui->f_roi->setChecked(false);
+
+	ui->f_pheno->setEnabled(!var_filters->phenotypes().isEmpty() && Settings::boolean("NGSD_enabled", true));
+	if (!ui->f_pheno->isEnabled()) ui->f_roi->setChecked(false);
 
 	//re-apply filters in case the genes/target region changed
 	filtersChanged();
