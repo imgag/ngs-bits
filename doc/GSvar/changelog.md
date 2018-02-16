@@ -1,3 +1,10 @@
+# GSvar change log
+
+### ??? (??.02.2018)
+- LOVD upload: fixed problem with LOVD upload of comp-het variants.
+- Filters: Added gene inheritance filter based on annotations from HPO.
+- CNV dialog: Added option to use phenotype filter for variants.
+
 ### 0.1-1007-g8a14e90 (02.02.2018)
 - General: Added diagnostic status overview to main menu ('Samples' > 'Diagnostic status overview').
 - Improved main and gap report.
@@ -161,6 +168,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 

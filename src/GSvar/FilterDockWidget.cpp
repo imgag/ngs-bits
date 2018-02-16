@@ -299,7 +299,7 @@ void FilterDockWidget::applyDefaultFilters()
 	QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
 	foreach(FilterColumnWidget* w, fcws)
 	{
-		if (w->objectName()=="anno_high_impact" || w->objectName()=="anno_pathogenic_clinvar" || w->objectName()=="anno_pathogenic_hgmd")
+		if (w->objectName()=="anno_pathogenic_clinvar" || w->objectName()=="anno_pathogenic_hgmd")
 		{
 			w->setState(FilterColumnWidget::KEEP);
 		}

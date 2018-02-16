@@ -294,14 +294,13 @@ void CnvWidget::filtersChanged()
 	//filter by phenotype (via genes, not genomic regions)
 	if (ui->f_pheno->isChecked())
 	{
-		//convert phenotypes to genes
 		NGSD db;
 		GeneSet pheno_genes;
 		foreach(const Phenotype& pheno, var_filters->phenotypes())
 		{
 			pheno_genes << db.phenotypeToGenes(pheno, true);
 		}
-		qDebug() << pheno_genes.count();
+
 		for(int r=0; r<rows; ++r)
 		{
 			if (!pass[r]) continue;
