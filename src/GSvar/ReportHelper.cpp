@@ -397,10 +397,10 @@ void ReportHelper::writeRtfTableCNV(QTextStream& stream, const QList<int>& colWi
 
 		//gene names
 		//only print genes which which lie in target region
-		if(!variant.annotations().at(cnv_index_cnv_genes_).isEmpty())
+		if(!variant.annotations().at(cnv_index_cgi_genes_).isEmpty())
 		{
 			//cgi genes
-			GeneSet cgi_genes = GeneSet::createFromText(variant.annotations().at(cnv_index_cnv_genes_),',');
+			GeneSet cgi_genes = GeneSet::createFromText(variant.annotations().at(cnv_index_cgi_genes_),',');
 			cgi_genes = db_.genesToApproved(cgi_genes);
 
 			QByteArrayList cgi_driver_statements = variant.annotations().at(cnv_index_cgi_driver_statement_).split(',');
@@ -530,11 +530,11 @@ void ReportHelper::writeRtfTableCNV(QTextStream& stream, const QList<int>& colWi
 
 		if(cn > 2.)
 		{
-			amplified_cnvs.insert(GeneSet::createFromText(variant.annotations().at(cnv_index_cnv_genes_),','));
+			amplified_cnvs.insert(GeneSet::createFromText(variant.annotations().at(cnv_index_cgi_genes_),','));
 		}
 		else
 		{
-			deleted_cnvs.insert(GeneSet::createFromText(variant.annotations().at(cnv_index_cnv_genes_),','));
+			deleted_cnvs.insert(GeneSet::createFromText(variant.annotations().at(cnv_index_cgi_genes_),','));
 		}
 
 	}
@@ -779,7 +779,7 @@ ReportHelper::ReportHelper(QString snv_filename, GeneSet cnv_keep_genes_filter, 
 
 	cnv_index_cgi_gene_role_ = -1;
 	cnv_index_cnv_type_ = -1;
-	cnv_index_cnv_genes_ = -1;
+	cnv_index_cgi_genes_ = -1;
 	cnv_index_cgi_driver_statement_ = -1;
 
 	for(int i=0;i<cnv_variants_.annotationHeaders().count();i++)
@@ -796,7 +796,7 @@ ReportHelper::ReportHelper(QString snv_filename, GeneSet cnv_keep_genes_filter, 
 
 		if(cnv_variants_.annotationHeaders()[i] == "CGI_genes")
 		{
-			cnv_index_cnv_genes_ = i;
+			cnv_index_cgi_genes_ = i;
 		}
 
 		if(cnv_variants_.annotationHeaders()[i] == "CGI_driver_statement")
@@ -813,7 +813,7 @@ ReportHelper::ReportHelper(QString snv_filename, GeneSet cnv_keep_genes_filter, 
 	{
 		THROW(FileParseException,"Could not create RTF report: CNV file does not contain CGI_gene_role column");
 	}
-	else if(cnv_index_cnv_genes_ == -1)
+	else if(cnv_index_cgi_genes_ == -1)
 	{
 		THROW(FileParseException,"Could not create RTF report: CNV file does not contain CGI_genes column");
 	}
@@ -1175,7 +1175,7 @@ void ReportHelper::somaticSnvForQbic()
 		}
 		else if(is_driver && variant.annotations().at(snv_index_cgi_gene_role_) == "ambiguous")
 		{
-			effect = "ambigious";
+			effect = "ambiguous";
 		}
 		else if(!is_driver)
 		{
@@ -1243,7 +1243,9 @@ void ReportHelper::somaticCnvForQbic()
 	for(int i=0;i<variants.count();i++)
 	{
 		CopyNumberVariant variant = variants[i];
-		GeneSet genes_in_report = target_genes.intersect(variant.genes());
+
+		GeneSet genes_in_report = target_genes.intersect(GeneSet::createFromText(variant.annotations().at(cnv_index_cgi_genes_),','));
+
 
 		if(cnv_index_cnv_type_ < 0)
 		{
@@ -1302,25 +1304,49 @@ void ReportHelper::somaticCnvForQbic()
 
 		//effect
 		QByteArrayList effects = variant.annotations().at(cnv_index_cgi_gene_role_).split(',');
+		QByteArrayList genes = variant.annotations().at(cnv_index_cgi_genes_).split(',');
+		QByteArrayList driver_statements = variant.annotations().at(cnv_index_cgi_driver_statement_).split(',');
+		QList<bool> is_driver;
 		for(int j=0;j<effects.count();j++)
 		{
-			if(effects[j] == "LoF")
+			if(driver_statements[j].contains("known") || driver_statements[j].contains("driver"))
 			{
-				stream << "inactivating";
-			}
-			else if(effects[j] == "Act")
-			{
-				stream << "activating";
-			}
-			else if(effects[j] == "ambiguous")
-			{
-				stream << "ambiguous";
+				is_driver.append(true);
 			}
 			else
 			{
-				stream << "NA";
+				is_driver.append(false);
 			}
-			if(j<effects.count()-1) stream << ";";
+		}
+
+
+		for(int j=0;j<effects.count();j++)
+		{
+			if(effects[j].isEmpty()) continue;
+
+			QByteArray effect = "";
+
+
+			if(is_driver[j] && effects[j] == "Act")
+			{
+				effect = "activating";
+			}
+			else if(is_driver[j] && effects[j] == "LoF")
+			{
+				effect = "inactivating";
+			}
+			else if(is_driver[j] && effects[j] == "ambiguous")
+			{
+				effect = "ambiguous";
+			}
+			else if(!is_driver[j]) //do not report genes which have none of these effects
+			{
+				continue;
+			}
+
+			stream << genes[j] << ":" << effect;
+
+			if(j<effects.count()-1 && is_driver[j+1] ) stream << ";";
 		}
 
 		stream << endl;

@@ -229,7 +229,7 @@ private:
 	///indices for CNV files
 	int cnv_index_cgi_gene_role_;
 	int cnv_index_cnv_type_;
-	int cnv_index_cnv_genes_;
+	int cnv_index_cgi_genes_;
 	int cnv_index_cgi_driver_statement_;
 };
 
