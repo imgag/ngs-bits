@@ -5,6 +5,7 @@
 - Filters: removed keeping of 'anno\_high\_impact' variants from default germline filters.
 - CNV dialog: Added option to use phenotype filter for variants.
 - LOVD upload: fixed problem with LOVD upload of comp-het variants.
+- Report: New somatic report with CGI annotations.
 
 ### 0.1-1007-g8a14e90 (02.02.2018)
 - General: Added diagnostic status overview to main menu ('Samples' > 'Diagnostic status overview').
@@ -169,6 +170,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 
