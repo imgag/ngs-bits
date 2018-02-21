@@ -9,13 +9,14 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
+** Trio/Multi dialog: check that BAM file of samples exists!
+* Add literature search button
 * Somatic: also load CNV file of germline
-* text-based filter for OMIM/ClinVar/HGMD column (ignore case)
+- text-based filter for OMIM/ClinVar/HGMD column (ignore case)
 - Add genotype equal for affected
 - Make default filters configurable in INI file
 
 Tools:
-- Remove UMI tools that are no longer used: BamDeduplicateByBarcode, FastqExtractBarcode?
 ** add new tool BedHighCoverage (wait until HTSlib available)
 - SampleCorrelation: Add option to use only rare snps e.g. 0.1-10.0% AF in VCF/GSvar mode (MS)
 - SomaticQC: do not use precalculated triplet counts, count every time (CS)

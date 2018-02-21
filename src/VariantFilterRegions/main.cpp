@@ -26,7 +26,7 @@ public:
 		addInfile("reg", "Input target region in BED format.", true);
 		addString("r", "Single target region in the format chr17:41194312-41279500.", true);
 		addString("mark", "If set, instead of removing variants, they are marked with the given flag in the 'filter' column.", true);
-		addFlag("inv", "Inverts the filter, i.e. variants inside the region are removed/marked");
+		addFlag("inv", "Inverts the filter, i.e. variants inside the region are removed/marked.");
 
 		changeLog(2018, 1, 23, "Added parameter '-inv' and made parameter '-mark' a string parameter to allow custom annotations names.");
 		changeLog(2017, 1,  4, "Added parameter '-mark' for flagging variants instead of filtering them out.");
