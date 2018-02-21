@@ -21,10 +21,6 @@ Tools:
 - SampleCorrelation: Add option to use only rare snps e.g. 0.1-10.0% AF in VCF/GSvar mode (MS)
 - SomaticQC: do not use precalculated triplet counts, count every time (CS)
 - BamClipOverlap: require sorted bam and paired-end sequencing (CS)
-- VariantAnnotateStrand:
-    - add column prefix (CS)
-    - extend test for indels (CS)
-    - refactor and combine indel and snv handling (CS)
 
 External:
 ** implement MultiQC support for ReadQC/MappingQC/VariantQC/SomaticQC

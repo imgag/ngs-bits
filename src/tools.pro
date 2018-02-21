@@ -269,10 +269,6 @@ SUBDIRS += NGSDImportGeneInfo
 tools-TEST.depends += NGSDImportGeneInfo
 NGSDImportGeneInfo.depends = cppNGSD
 
-SUBDIRS += VariantAnnotateStrand
-tools-TEST.depends += VariantAnnotateStrand
-VariantAnnotateStrand.depends = cppNGS
-
 SUBDIRS += VcfAnnotateFromBed
 tools-TEST.depends += VcfAnnotateFromBed
 VcfAnnotateFromBed.depends = cppNGS

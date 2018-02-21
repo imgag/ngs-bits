@@ -86,7 +86,6 @@ HEADERS += \
     NGSDInit_Test.h \
     SomaticQC_Test.h \
     NGSDImportGeneInfo_Test.h \	
-    VariantAnnotateStrand_Test.h \	
     VcfAnnotateFromBed_Test.h \
     NGSDMaintain_Test.h \
     TsvMerge_Test.h \
