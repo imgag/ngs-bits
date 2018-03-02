@@ -40,5 +40,6 @@
         <file>Icons/GeneCards.png</file>
         <file>Icons/Import.png</file>
         <file>Icons/WebService.png</file>
+        <file>Resources/cancer_types.tsv</file>
     </qresource>
 </RCC>
