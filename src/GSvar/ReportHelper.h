@@ -133,6 +133,9 @@ public:
 		return drug_list_.count();
 	}
 
+	//returns a list with cancer acronyms appearing in the given evidence level
+	const QList<QByteArray> getAcronyms(int evid_level) const;
+
 private:
 	QMultiMap <int,CGIDrugReportLine> drug_list_;
 };
@@ -167,7 +170,7 @@ private:
 	void writeRtfCGIDrugTable(QTextStream& stream, const QList<int>& col_widths);
 
 	///generates table with important SNVs including mutational burden
-	void writeRtfTableSNV(QTextStream& stream, const QList<int>& colWidths, bool display_germline_hint = true, double mutation_burden = -1.);
+	void writeRtfTableSNV(QTextStream& stream, const QList<int>& colWidths, bool display_germline_hint = true);
 
 	///generates table with important CNVs
 	void writeRtfTableCNV(QTextStream& stream, const QList<int>& colWidths);
