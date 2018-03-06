@@ -2083,13 +2083,7 @@ QMap<QString, QString> MainWindow::getBamFiles()
 	SampleHeaderInfo data = NGSHelper::getSampleHeader(variants_, filename_);
 	foreach(QString sample, data.keys())
 	{
-		//special handling for trio data (as long as it is not handled like multi-sample data in megSAP)
 		QString sample_name = sample;
-		if (sample=="genotype" && getType()==GERMLINE_TRIO)
-		{
-			sample_name = data[sample].properties["SampleName"];
-		}
-
 		QString bam1 = sample_folder + "/" + sample_name + ".bam";
 		QString bam2 = project_folder + "/Sample_" + sample_name + "/" + sample_name + ".bam";
 		if (QFile::exists(bam1))

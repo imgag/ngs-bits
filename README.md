@@ -80,7 +80,6 @@ The default output format of the quality control tools is [qcML](https://github.
 ### BAM tools
 
 * [BamClipOverlap](doc/tools/BamClipOverlap.md) - (Soft-)Clips paired-end reads that overlap.
-* [BamDeduplicateByBarcode](doc/tools/BamDeduplicateByBarcode.md) - Deduplicate a BAM file based on given molecular barcodes.
 * [BamDownsample](doc/tools/BamDownsample.md) - Downsamples a BAM file to the given percentage of reads.
 * [BamLeftAlign](doc/tools/BamLeftAlign.md) - Left-aligns indels in repeat regions.
 * [BamToFastq](doc/tools/BamToFastq.md) - Converts a BAM file to FASTQ files (paired-end only).

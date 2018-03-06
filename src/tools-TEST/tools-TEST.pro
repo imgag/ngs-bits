@@ -64,7 +64,6 @@ HEADERS += \
     BedChunk_Test.h \
     VcfSort_Test.h \
     NGSDExportSamples_Test.h \
-    TrioAnnotation_Test.h \
     TsvInfo_Test.h \
     TsvSlice_Test.h \
     TsvFilter_Test.h \

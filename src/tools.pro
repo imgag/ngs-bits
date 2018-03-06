@@ -105,10 +105,6 @@ SUBDIRS += VariantAnnotateFrequency
 tools-TEST.depends += VariantAnnotateFrequency
 VariantAnnotateFrequency.depends = cppNGS
 
-SUBDIRS += TrioAnnotation
-tools-TEST.depends += TrioAnnotation
-TrioAnnotation.depends = cppNGS
-
 SUBDIRS += MappingQC
 tools-TEST.depends += MappingQC
 MappingQC.depends = cppNGS
