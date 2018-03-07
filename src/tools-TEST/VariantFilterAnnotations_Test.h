@@ -47,6 +47,12 @@ private slots:
 		COMPARE_FILES("out/VariantFilterAnnotations_out7.tsv", TESTDATA("data_out/VariantFilterAnnotations_out7.tsv"));
 	}
 
+	void multisample_notWT()
+	{
+		EXECUTE("VariantFilterAnnotations", "-in " + TESTDATA("data_in/VariantFilterAnnotations_in_multi.GSvar") + " -geno_affected not_wt -geno_control not_wt -out out/VariantFilterAnnotations_out8.tsv");
+		COMPARE_FILES("out/VariantFilterAnnotations_out8.tsv", TESTDATA("data_out/VariantFilterAnnotations_out8.tsv"));
+	}
+
 };
 
 
