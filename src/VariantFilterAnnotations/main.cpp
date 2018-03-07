@@ -31,8 +31,8 @@ public:
 		addFlag("max_ihdb_ignore_genotype", "If set, variant genotype is ignored. Otherwise, only homozygous database entries are counted for homozygous variants, and all entries are count for heterozygous variants.");
 		addInt("min_class", "Minimum classification of *classified* variants.", true, -1);
 		addString("filters", "Comma-separated list of filter column entries to remove.", true, "");
-		addEnum("geno_affected", "If set, only variants with the specified genotype in affected samples pass. Performed after all other filters!", true, QStringList() << "hom" << "het" << "comphet" << "comphet+hom" << "any", "any");
-		addEnum("geno_control", "If set, only variants with the specified genotype in control samples pass. Performed after all other filters!", true, QStringList() << "hom" << "het" << "wt" << "not_hom" << "any", "any");
+		addEnum("geno_affected", "If set, only variants with the specified genotype in affected samples pass. Performed after all other filters!", true, QStringList() << "hom" << "het" << "comphet" << "comphet+hom" << "not_wt" << "any", "any");
+		addEnum("geno_control", "If set, only variants with the specified genotype in control samples pass. Performed after all other filters!", true, QStringList() << "hom" << "het" << "wt" << "not_hom" << "not_wt" << "any", "any");
 
 		changeLog(2017, 6, 14, "Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.");
 		changeLog(2017, 6, 14, "Added sub-population allele frequency filter.");
@@ -103,7 +103,13 @@ public:
 		}
 		else if (geno_affected!="any")
 		{
-			filter.flagByGenotype(geno_affected, samples_affected);
+			bool invert = false;
+			if (geno_affected.startsWith("not_"))
+			{
+				geno_affected = geno_affected.mid(4);
+				invert = true;
+			}
+			filter.flagByGenotype(geno_affected, samples_affected, invert);
 		}
 
 		//filter genotype (control)
