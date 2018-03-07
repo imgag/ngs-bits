@@ -105,6 +105,9 @@ void ReportHelper::writeRtfTableSNV(QTextStream& stream, const QList<int>& colWi
 	widths.clear();
 	widths << max_table_width;
 
+	//list with cancer acronyms that occur in SNV table
+	QByteArrayList cancer_acronyms;
+
 	//construct 2D QStringList to create RTF table
 	QList< QList<QString> > somatic_snv_table_unordered;
 	for(int i=0;i<important_snvs.count();i++)
@@ -219,6 +222,16 @@ void ReportHelper::writeRtfTableSNV(QTextStream& stream, const QList<int>& colWi
 		{
 			if(driver_statement.contains("known"))
 			{
+				QByteArrayList temp_cancer_acronyms = driver_statement.split(':')[1].split(';');
+
+				for(int j=0;j<temp_cancer_acronyms.count();j++)
+				{
+					if(!cancer_acronyms.contains(temp_cancer_acronyms[j]))
+					{
+						cancer_acronyms.append(temp_cancer_acronyms[j].trimmed());
+					}
+				}
+
 				driver_statement.replace("known","known driver");
 				driver_statement.replace(";",", ");
 			}
@@ -316,8 +329,18 @@ void ReportHelper::writeRtfTableSNV(QTextStream& stream, const QList<int>& colWi
 		widths.clear();
 		widths << max_table_width;
 		RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-		stream << begin_table_cell << "\\sb20\\qj\\fs16\\qj\\b " << "Keimbahnvarianten:\\b0 ";
-		stream << "{\\highlight3  Siehe Zusatzbefund / Keine pathogenen Keimbahnvarianten}" << endl;
+		stream << begin_table_cell << "\\sb20\\qj\\fs18\\qj\\b " << "Keimbahnvarianten:\\b0 ";
+		stream << "{\\highlight3  Siehe Zusatzbefund / Es wurden keine pathogenen Keimbahnvarianten in den untersuchten Genen ";
+		for(int i=0;i<genes_checked_for_germline_variants_.count();i++)
+		{
+			stream << genes_checked_for_germline_variants_[i];
+			if(i<genes_checked_for_germline_variants_.count()-1)
+			{
+				stream << ", ";
+			}
+		}
+		stream << " gefunden}" << endl;
+
 		stream << "\\cell\\row}" << endl;
 	}
 
@@ -326,8 +349,33 @@ void ReportHelper::writeRtfTableSNV(QTextStream& stream, const QList<int>& colWi
 
 	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
 	stream << begin_table_cell << "\\fs18\\sb20 "<<endl;
-	stream <<"\\qj\\fs16\\qj\\b Abk\\u252;rzungen:\\b0  " << "cDNA: cDNA Position und Auswirkung auf Peptid; F/T Tumor: Allelfrequenz/Tiefe der Tumorprobe; ";
-	stream << "Funktion: Funktionelle Einsch\\u228;tzung der Variante aus CancerGenomeInterpreter.org; Effekt: Auswirkung der Mutation auf das Gen.";
+	stream <<"\\qj\\fs16\\qj\\b Abk\\u252;rzungen:\\b0  " << "{\\i cDNA:} cDNA Position und Auswirkung auf Peptid; {\\i F/T Tumor:} Allelfrequenz/Tiefe der Tumorprobe; ";
+	stream << "{\\i Funktion:} Funktionelle Einsch\\u228;tzung der Variante aus CancerGenomeInterpreter.org. \"Known driver\" bedeutet, dass die Ver\\u228;nderung in bestimmten Tumortypen bekannt ist. \"Predicted driver\" bedeutet, dass die Variante mittels probabilistischer Methoden als Tumortreiber vorhergesagt wurde. \"NA\" bedeutet, dass keine Einsch\\u228;ng vorliegt. ";
+	stream << "{\\i Effekt:} Auswirkung der Mutation auf das Gen. Activating: aktivierende Wirkung auf ein Onkogen, Inactivating: Funktionsverlust eines Tumorsuppressorgens, Ambiguous: zweideutige Wirkung auf das Gen, NA: keine Einsch\\u228;tzung verf\\u252;gbar.";
+	stream << "\\line {\\i Akronyme:} ";
+
+	QHash<QByteArray,QByteArray> acronyms_to_german;
+
+	TSVFileStream acronym_translations("://Resources/cancer_types.tsv");
+	int i_cgi_acronym = acronym_translations.colIndex("ID",true);
+	int i_german_translation = acronym_translations.colIndex("NAME_GERMAN",true);
+	while(!acronym_translations.atEnd())
+	{
+		QByteArrayList current_line = acronym_translations.readLine();
+		acronyms_to_german.insert(current_line.at(i_cgi_acronym),current_line.at(i_german_translation));
+	}
+
+	std::sort(cancer_acronyms.begin(),cancer_acronyms.end());
+	for(int i=0;i<cancer_acronyms.count();i++)
+	{
+		stream << cancer_acronyms[i] << "-" << acronyms_to_german.value(cancer_acronyms[i]);
+		if(i<cancer_acronyms.count()-1)
+		{
+			stream << ", ";
+		}
+	}
+
+
 	stream << "\\cell" << "\\row}" << endl;
 }
 
@@ -482,19 +530,28 @@ void ReportHelper::writeRtfTableCNV(QTextStream& stream, const QList<int>& colWi
 	//Germline
 	widths.clear();
 	widths << max_table_width;
-
-	widths.clear();
-	widths << max_table_width;
 	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "\\sb20\\qj\\fs16\\qj\\b " << "Keimbahnvarianten:\\b0 ";
-	stream << "{\\highlight3  Siehe Zusatzbefund / Keine pathogenen Keimbahnvarianten}" << endl;
+	stream << begin_table_cell << "\\sb20\\qj\\fs18\\qj\\b " << "Keimbahnvarianten:\\b0 ";
+	stream << "{\\highlight3  Siehe Zusatzbefund / Es wurden keine pathogenen Keimbahnvarianten in den Genen ";
+	for(int i=0;i<genes_checked_for_germline_variants_.count();i++)
+	{
+		stream << genes_checked_for_germline_variants_[i];
+		if(i<genes_checked_for_germline_variants_.count()-1)
+		{
+			stream << ", ";
+		}
+	}
+	stream << " gefunden.}" << endl;
+
+
 	stream << "\\cell\\row}" << endl;
 
 	widths.clear();
 	widths << max_table_width;
 	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
 
-	stream << begin_table_cell << "\\sb20\\fs16\\qj\\b Abk\\u252;rzungen:\\b0  " << "Gene: Gene aus der Zielregion. Tumortreiber sind fett gedruckt und Passenger normal; CNV: Amplifikation (AMP) oder Deletion (DEL); CN: Copy Number; Position: Chromosomale Position (GRCh37); Gr\\u0246;\\u0223;e: Ausdehnung der CNV in Kilobasen [kb]. "  << "\\cell\\row}" << endl;
+	stream << begin_table_cell << "\\sb20\\fs16\\qj\\b Abk\\u252;rzungen:\\b0  " << "Gene: Gene aus der Zielregion. Tumortreiber sind fett gedruckt und Passenger normal; CNV: Amplifikation (AMP) oder Deletion (DEL); CN: Copy Number; Position: Chromosomale Position (GRCh37); Gr\\u0246;\\u0223;e: Ausdehnung der CNV in Kilobasen [kb]." ;
+	stream << "\\cell\\row}" << endl;
 
 	stream << "{\\par\\pard}" << endl;
 
@@ -869,6 +926,7 @@ ReportHelper::ReportHelper(QString snv_filename, GeneSet cnv_keep_genes_filter, 
 
 	mutation_burden_ = qcml_data_.value("QC:2000053",true).asString().split(' ')[1].remove('(').toDouble();
 
+	genes_checked_for_germline_variants_ = GeneSet::createFromFile(db_.getTargetFilePath(true,true) + "ACMG_25Onkogene_20_genes.txt");
 }
 
 VariantList ReportHelper::filterSnvForCGIAnnotation(bool filter_for_target_region)
@@ -885,8 +943,8 @@ VariantList ReportHelper::filterSnvForCGIAnnotation(bool filter_for_target_regio
 
 		//skip variants which do not lie in target region
 		if(filter_for_target_region && !genes_in_target_region_.contains(cgi_gene)) continue;
-		//Skip variants that are filtered in variant file
-		if(!variant.annotations().at(snv_index_filter_).isEmpty()) continue;
+		//Skip variants that are filtered in variant file (the ones which have an entry in the filtering column except freq-tum)
+		if(!variant.annotations().at(snv_index_filter_).isEmpty() && variant.annotations().at(snv_index_filter_) != "freq-tum") continue;
 		//Skip variants which have no CGI annotation
 		if(variant.annotations().at(snv_index_cgi_driver_statement_).isEmpty()) continue;
 

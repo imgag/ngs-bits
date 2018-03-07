@@ -205,6 +205,9 @@ private:
 	///genes that are included in the target region
 	GeneSet genes_in_target_region_;
 
+	///genes that are checked for germline variants (those appear later in the explanation of the RTF report)
+	GeneSet genes_checked_for_germline_variants_;
+
 	QCCollection qcml_data_;
 
 	///Geneset with genes to be kept for CNV report

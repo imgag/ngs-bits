@@ -217,7 +217,7 @@ public:
 	ProcessedSampleData getProcessedSampleData(const QString& processed_sample_id);
 	///Returns the normal sample corresponding to a tumor sample, or "" if no normal samples is defined.
 	QString normalSample(const QString& processed_sample_id);
-	///Sets the diease group/status associated to a sample.
+	///Sets the disease group/status associated to a sample.
 	void setSampleDiseaseData(const QString& sample_id, const QString& disease_group, const QString& disease_status);
 
 	///Returns the processing system information for a processed sample.
