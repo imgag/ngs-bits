@@ -9,8 +9,7 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-** Trio/Multi dialog: check that BAM file of samples exists!
-** HPO filter: add context menu entry to generate subpanel from selected phenotypes
+** Trio/Multi dialog: check that BAM file of samples exists > test** HPO filter: add context menu entry to generate subpanel from selected phenotypes
 ** Add literature search button (Google/Pubmed, gene/variant)
   - "LAMP2" ("586A>T" | "586A—>T" | "586A-->T" | "586A/T" | "Thr1965er" | "T1965" | rs138991195)
   - "LAMP2" ("mutation" / "cardiomyopathy" / "arrhythmia")
@@ -30,7 +29,7 @@ External:
 ** implement ngs-bits module in BioConda
 
 CnvHunter:
-** Add z-score of #CNVs as QC parameter
+** Add z-score of #CNVs as QC parameter (megSAP!?)
 * test sqrt-normalization
 - test GC-normalization (check GS151166_01 C5orf42, DX170123_01 SEC23B del)
     - test effect of including different flanking regions

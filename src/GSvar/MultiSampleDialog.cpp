@@ -74,6 +74,14 @@ void MultiSampleDialog::addSample(bool affected)
 		return;
 	}
 
+	//check BAM file exists
+	QString bam = db_.processedSamplePath(sample, NGSD::BAM);
+	if (!QFile::exists(bam))
+	{
+		QMessageBox::warning(this, "Error adding sample", "Sample BAM file does not exist: '" + bam);
+		return;
+	}
+
 	//fill target region combobox
 	bool contained = false;
 	for (int i=0; i<ui_.target_region->count(); ++i)

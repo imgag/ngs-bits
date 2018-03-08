@@ -64,6 +64,15 @@ void TrioDialog::addSample(QString status)
 		return;
 	}
 
+	//check BAM file exists
+	QString bam = db_.processedSamplePath(sample, NGSD::BAM);
+	if (!QFile::exists(bam))
+	{
+		QMessageBox::warning(this, "Error adding sample", "Sample BAM file does not exist: '" + bam);
+		clearSampleData();
+		return;
+	}
+
 	//add sample
 	samples_.append(SampleInfo {sample, sys, status, quality});
 	updateSampleTable();
