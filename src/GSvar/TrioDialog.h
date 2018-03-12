@@ -34,7 +34,7 @@ private:
 	};
 	QList<SampleInfo> samples_;
 
-	void addSample(QString status);
+	bool addSample(QString status);
 	void clearSampleData();
 	void updateSampleTable();
 };

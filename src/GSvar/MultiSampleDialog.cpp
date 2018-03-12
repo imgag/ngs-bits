@@ -75,7 +75,7 @@ void MultiSampleDialog::addSample(bool affected)
 	}
 
 	//check BAM file exists
-	QString bam = db_.processedSamplePath(sample, NGSD::BAM);
+	QString bam = db_.processedSamplePath(db_.processedSampleId(sample), NGSD::BAM);
 	if (!QFile::exists(bam))
 	{
 		QMessageBox::warning(this, "Error adding sample", "Sample BAM file does not exist: '" + bam);

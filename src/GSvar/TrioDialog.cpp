@@ -34,18 +34,17 @@ void TrioDialog::on_add_samples_clicked(bool)
 {
 	clearSampleData();
 
-	addSample("child (index)");
-	addSample("father");
-	addSample("mother");
+	bool ok = addSample("child (index)");
+	if (ok) ok = addSample("father");
+	if (ok) ok = addSample("mother");
 }
 
-void TrioDialog::addSample(QString status)
+bool TrioDialog::addSample(QString status)
 {
 	QString sample = QInputDialog::getText(this, "Add processed sample", status + ":");
 	if (sample=="")
 	{
-		clearSampleData();
-		return;
+		return false;
 	}
 
 	//check processing system
@@ -61,21 +60,23 @@ void TrioDialog::addSample(QString status)
 	{
 		QMessageBox::warning(this, "Error adding sample", "Could not find processed sample '" + sample + "' in NGSD!");
 		clearSampleData();
-		return;
+		return false;
 	}
 
 	//check BAM file exists
-	QString bam = db_.processedSamplePath(sample, NGSD::BAM);
+	QString bam = db_.processedSamplePath(db_.processedSampleId(sample), NGSD::BAM);
 	if (!QFile::exists(bam))
 	{
 		QMessageBox::warning(this, "Error adding sample", "Sample BAM file does not exist: '" + bam);
 		clearSampleData();
-		return;
+		return false;
 	}
 
 	//add sample
 	samples_.append(SampleInfo {sample, sys, status, quality});
 	updateSampleTable();
+
+	return true;
 }
 
 void TrioDialog::clearSampleData()
