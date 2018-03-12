@@ -218,13 +218,6 @@
 ##FORMAT=<ID=CU,Number=2,Type=Integer,Description="Number of 'C' alleles used in tiers 1,2">
 ##FORMAT=<ID=GU,Number=2,Type=Integer,Description="Number of 'G' alleles used in tiers 1,2">
 ##FORMAT=<ID=TU,Number=2,Type=Integer,Description="Number of 'T' alleles used in tiers 1,2">
-##FORMAT=<ID=DP2,Number=1,Type=Integer,Description="Read depth for tier2">
-##FORMAT=<ID=DP50,Number=1,Type=Float,Description="Average tier1 read depth within 50 bases">
-##FORMAT=<ID=FDP50,Number=1,Type=Float,Description="Average tier1 number of basecalls filtered from original read depth within 50 bases">
-##FORMAT=<ID=SUBDP50,Number=1,Type=Float,Description="Average number of reads below tier1 mapping quality threshold aligned across sites within 50 bases">
-##FORMAT=<ID=TAR,Number=2,Type=Integer,Description="Reads strongly supporting alternate allele for tiers 1,2">
-##FORMAT=<ID=TIR,Number=2,Type=Integer,Description="Reads strongly supporting indel allele for tiers 1,2">
-##FORMAT=<ID=TOR,Number=2,Type=Integer,Description="Other reads (weak support or insufficient indel breakpoint overlap) for tiers 1,2">
 ##PEDIGREE=<Tumor=sample2,Normal=sample1>
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample1	sample2
 chr6	12292548	.	C	T	0.0	fv.not_cod_spli;fv.off_target	NT=ref;OMIM=131240_[EDN1_(confirmed)_Auriculocondylar_syndrome_3|Question_mark_ears,isolated|High_density_lipoprotein_cholesterol_level_QTL_7];QSS=336;QSS_NT=177;SGT=CC->CT;TQSS=1;TQSS_NT=1;SOMATIC;ANN=T|intron_variant|MODIFIER|EDN1|EDN1|transcript|NM_001955.4|protein_coding|1/4|c.65-26C>T||||||,T|intron_variant|MODIFIER|EDN1|EDN1|transcript|NM_001168319.1|protein_coding|1/4|c.65-29C>T||||||	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	235:0:0:0:0,0:235,242:0,0:0,0	225:0:0:0:0,0:134,136:0,0:91,91

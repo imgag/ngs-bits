@@ -406,17 +406,18 @@ void VariantList::removeAnnotationByName(QString name, bool exact_match, bool er
 
 QStringList VariantList::sampleNames() const
 {
-	QStringList sample_names;
-	if (annotations().count()>0)
+	QStringList output;
+	foreach(const VariantAnnotationHeader& act_anno, annotations())
 	{
-		foreach(const VariantAnnotationHeader& act_anno, annotations())
+		const QString& sample_id = act_anno.sampleID();
+		if (sample_id.isEmpty()) continue;
+		if (!output.contains(sample_id))
 		{
-			if (act_anno.sampleID().isEmpty())	continue;
-			sample_names.append(act_anno.sampleID());
+			output.append(sample_id);
 		}
 	}
 
-	return sample_names;
+	return output;
 }
 
 VariantList::Format VariantList::load(QString filename, VariantList::Format format, const BedFile* roi, bool invert)
@@ -1024,17 +1025,19 @@ void VariantList::storeToVCF(QString filename)
 	QTextStream stream(file.data());
 
 	//write ##fileformat and other metainformation
-	QStringListIterator i(comments());
-	while (i.hasNext())
+	foreach(const QString& comment, comments())
 	{
-		stream << i.next() <<"\n";
+		stream << comment << "\n";
 	}
 
 	//write annotations information (##INFO and ##FORMAT lines)
 	for (int j=3; j<annotationDescriptions().count(); ++j) //why 3: skip ID Quality Filter
 	{
-		VariantAnnotationDescription anno_description = annotationDescriptions()[j];
-		if(!anno_description.print())	continue;
+		const VariantAnnotationDescription& anno_description = annotationDescriptions()[j];
+		if(!anno_description.print())
+		{
+			continue;
+		}
 
 		stream << "##" << (anno_description.sampleSpecific() ? "FORMAT" : "INFO") << "=";
 		stream << "<ID=" << anno_description.name();
@@ -1054,95 +1057,69 @@ void VariantList::storeToVCF(QString filename)
 	}
 
 	//write header line
-	QStringList samples;
-	for (int j=3; j<annotations().count(); ++j) //why 3: skip ID Quality Filter
-	{
-		VariantAnnotationHeader& vah = annotations()[j];
-		if(!vah.sampleID().isEmpty() && !samples.contains(vah.sampleID()))
-		{
-			samples.append(vah.sampleID());
-		}
-	}
 	stream << "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT";
-	if(samples.count()>0)	stream << "\t" + samples.join("\t");
+	QStringList samples = sampleNames();
+	foreach(const QString& sample, samples)
+	{
+		stream << "\t" << sample;
+	}
 	stream << "\n";
-
 
 	//write variants
 	foreach(const Variant& v, variants_)
 	{
-		QString ID = v.annotations()[0];//will only work correctly if source was a vcf-file
-		QString quality = v.annotations()[1];//will only work correctly if source was a vcf-file
-		QString filter = v.annotations()[2];//will only work correctly if source was a vcf-file
-		QString info_field="\t";
-		QString format_field="\t";
-		QHash <QString, QStringList> genotype_fields;
+		QString ID = v.annotations()[0];//will only work correctly if source was a  VCF file
+		QString quality = v.annotations()[1];//will only work correctly if source was a VCF file
+		QString filter = v.annotations()[2];//will only work correctly if source was a VCF file
+		QStringList info_entries;
+		QStringList format_entries;
+		QHash <QString, QStringList> sample_entries_by_sample;
 		QString sample;
-		QList<QString> samples;
-
 
 		for (int i=3; i<v.annotations().count(); ++i) //why 3: skip ID Quality Filter
 		{
-			const VariantAnnotationHeader anno_header = annotations()[i];
-			const VariantAnnotationDescription anno_desc = annotationDescriptionByName(anno_header.name(), !anno_header.sampleID().isEmpty());
-
+			const VariantAnnotationHeader& anno_header = annotations()[i];
+			const VariantAnnotationDescription& anno_desc = annotationDescriptionByName(anno_header.name(), !anno_header.sampleID().isEmpty());
 			QByteArray anno_val = v.annotations()[i];
-			if (anno_val!="")//don't write annotations without values and not set flags
+
+			if (anno_desc.sampleSpecific())
 			{
-				if (anno_desc.sampleSpecific())
+				if (anno_val!="" || samples.count()>1)
 				{
-					if(sample.isEmpty())	sample = anno_header.sampleID();
-					if(sample==anno_header.sampleID())
+					if (sample.isEmpty()) sample = anno_header.sampleID();
+					if (sample==anno_header.sampleID())
 					{
-						format_field+=anno_desc.name();
-						format_field+=":";
+						format_entries << anno_desc.name();
 					}
-					if(!samples.contains(anno_header.sampleID()))	samples.append(anno_header.sampleID());
-					genotype_fields[anno_header.sampleID()].append(anno_val);
+
+					if (anno_val=="") anno_val = ".";
+					sample_entries_by_sample[anno_header.sampleID()].append(anno_val);
 				}
-				else
+			}
+			else
+			{
+				if (anno_val!="")
 				{
-					info_field+=anno_desc.name();
-					if (anno_desc.type()!=VariantAnnotationDescription::FLAG)//Flags should not have values in VCF
+					if (anno_desc.type()==VariantAnnotationDescription::FLAG) //Flags should not have values in VCF
 					{
-						info_field+="=";
-						info_field+=anno_val;
+						info_entries << anno_desc.name();
 					}
-					info_field+=";";
+					else
+					{
+						info_entries << anno_desc.name() + "=" + anno_val;
+					}
 				}
 			}
 		}
 
-		QString sample_fields="\t";
-		for (int j=0; j<samples.count(); ++j)
+		stream << v.chr().str() << "\t" << v.start() << "\t" << ID << "\t" << v.ref() << "\t"  << v.obs() << "\t" << quality << "\t" << filter;
+		stream << "\t" << (info_entries.isEmpty() ? "." : info_entries.join(";"));
+		stream << "\t" << (format_entries.isEmpty() ? "." : format_entries.join(":"));
+		foreach(const QString& sample, samples)
 		{
-			foreach(const QString& value, genotype_fields[samples[j]])
-			{
-				sample_fields+=value;
-				sample_fields+=":";
-			}
-			sample_fields.chop(1);//remove superfluous seperator at end of field
-			sample_fields+="\t";
+			const QStringList& sample_entries = sample_entries_by_sample[sample];
+			stream << "\t" << (sample_entries.isEmpty() ? "." : sample_entries.join(":"));
 		}
-
-		info_field.chop(1);//remove superfluous seperator at end of field
-		format_field.chop(1);//remove superfluous seperator at end of field
-		sample_fields.chop(1);//remove superfluous seperator at end of field
-		if (info_field=="")//if no sample independent annotation values exists
-		{
-			info_field="\t.";
-		}
-		if (format_field==""||format_field=="\t.")//if no sample dependent annotation values exists
-		{
-			format_field="\t.";
-		}
-		if (sample_fields=="")//if no sample dependent information exists
-		{
-			sample_fields="\t.";
-		}
-
-		stream << v.chr().str() << "\t" << v.start() << "\t" <<ID << "\t" << v.ref() << "\t"  << v.obs() << "\t" << quality << "\t" << filter;
-		stream << info_field << format_field << sample_fields;
 		stream << endl;
 	}
 }

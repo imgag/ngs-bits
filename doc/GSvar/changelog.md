@@ -1,5 +1,9 @@
 # GSvar change log
 
+### 0.1-1039-g40dee96 (12.03.2018)
+- Report: Improved somatic report with CGI annotations.
+- General: Trio and multi-sample dialog now check that sample BAM files exist.
+
 ### 0.1-1025-ga2c2a1d (16.02.2018)
 - Filters: Added gene inheritance filter based on annotations from HPO.
 - Filters: removed keeping of 'anno\_high\_impact' variants from default germline filters.
@@ -170,6 +174,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 

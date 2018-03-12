@@ -46,6 +46,12 @@ private slots:
 		EXECUTE("VariantFilterRegions", "-in " + TESTDATA("data_in/VariantFilterRegions_in.tsv") + " -reg " + TESTDATA("data_in/VariantFilterRegions_in.bed") + " -out out/VariantFilterRegions_out7.tsv -mark off-target -inv");
 		COMPARE_FILES("out/VariantFilterRegions_out7.tsv", TESTDATA("data_out/VariantFilterRegions_out7.tsv"));
 	}
+
+	void byString_VCF_multisample()
+	{
+		EXECUTE("VariantFilterRegions", "-in " + TESTDATA("data_in/VariantFilterRegions_in3.vcf") + " -r chr1:156341000-156351795 -out out/VariantFilterRegions_out8.vcf");
+		COMPARE_FILES("out/VariantFilterRegions_out8.vcf", TESTDATA("data_out/VariantFilterRegions_out8.vcf"));
+	}
 };
 
 
