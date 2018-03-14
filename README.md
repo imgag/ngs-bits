@@ -4,10 +4,12 @@
 
 ## Obtaining ngs-bits
 
-There are no binary releases yet.  
-Please use git to download the most recent development version:
+Please use git to download the most recent release:
 
     git clone --recursive https://github.com/imgag/ngs-bits.git
+	cd ngs-bits
+	git checkout 2018_03
+	git submodule update --recursive --init
 
 ### Resolving proxy issues with git
 
@@ -122,6 +124,7 @@ The default output format of the quality control tools is [qcML](https://github.
 
 
   
+
 
 
 
