@@ -55,7 +55,8 @@ HEADERS += \
         QCCollection_Test.h \
         StatisticsReads_Test.h \
 		GeneSet_Test.h \
-    OntologyTermCollection_Test.h
+    OntologyTermCollection_Test.h \
+    SvList_Test.h
 
 SOURCES += \
         main.cpp

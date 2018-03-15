@@ -229,6 +229,7 @@
    <addaction name="actionGapsRecalculate"/>
    <addaction name="actionCNV"/>
    <addaction name="actionROH"/>
+   <addaction name="actionSV"/>
    <addaction name="actionGeneSelector"/>
   </widget>
   <action name="actionOpen">
@@ -676,6 +677,18 @@
   <action name="actionDiagnosticStatusOverview">
    <property name="text">
     <string>Diagnostic status overview</string>
+   </property>
+  </action>
+  <action name="actionSV">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/StructuralVariant.png</normaloff>:/Icons/StructuralVariant.png</iconset>
+   </property>
+   <property name="text">
+    <string>Show Structural Variants</string>
+   </property>
+   <property name="toolTip">
+    <string>Show Structural Variants</string>
    </property>
   </action>
  </widget>

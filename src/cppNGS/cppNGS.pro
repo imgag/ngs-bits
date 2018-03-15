@@ -54,6 +54,7 @@ SOURCES += BedFile.cpp \
     GeneSet.cpp \
 	RohList.cpp \
     OntologyTermCollection.cpp \
+    SvList.cpp
 
 HEADERS += BedFile.h \
 	Chromosome.h \
@@ -78,6 +79,7 @@ HEADERS += BedFile.h \
     GeneSet.h \
 	RohList.h \
     OntologyTermCollection.h \
+    SvList.h
 
 
 RESOURCES += \

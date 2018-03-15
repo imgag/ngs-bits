@@ -58,6 +58,7 @@
 #include "ReportHelper.h"
 #include "DiagnosticStatusOverviewDialog.h"
 #include "GenLabDB.h"
+#include "SvWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -138,6 +139,26 @@ void MainWindow::on_actionClose_triggered()
 void MainWindow::on_actionIgvInit_triggered()
 {
 	igv_initialized_ = false;
+}
+
+void MainWindow::on_actionSV_triggered()
+{
+	if(filename_ == "") return;
+
+	try
+	{
+		SvWidget* list = new SvWidget(filename_);
+		auto dlg = GUIHelper::showWidgetAsDialog(list, "Structure variants", false, false);
+		addModelessDialog(dlg);
+	}
+	catch(FileParseException error)
+	{
+		QMessageBox::warning(this,"File Parse Exception",error.message());
+	}
+	catch(FileAccessException error)
+	{
+		QMessageBox::warning(this,"SV file not found",error.message());
+	}
 }
 
 void MainWindow::on_actionCNV_triggered()

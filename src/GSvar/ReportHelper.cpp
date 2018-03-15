@@ -231,9 +231,15 @@ void ReportHelper::writeRtfTableSNV(QTextStream& stream, const QList<int>& colWi
 						cancer_acronyms.append(temp_cancer_acronyms[j].trimmed());
 					}
 				}
-
-				driver_statement.replace("known","known driver");
-				driver_statement.replace(";",", ");
+				if(display_germline_hint)
+				{
+					driver_statement.replace("known","known driver");
+					driver_statement.replace(";",", ");
+				}
+				else
+				{
+					driver_statement = "known driver";
+				}
 			}
 			if(driver_statement.contains("predicted"))
 			{
@@ -330,7 +336,7 @@ void ReportHelper::writeRtfTableSNV(QTextStream& stream, const QList<int>& colWi
 		widths << max_table_width;
 		RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
 		stream << begin_table_cell << "\\sb20\\qj\\fs18\\qj\\b " << "Keimbahnvarianten:\\b0 ";
-		stream << "{\\highlight3  Siehe Zusatzbefund / Es wurden keine pathogenen Keimbahnvarianten in den untersuchten Genen ";
+		stream << "{\\highlight3  Siehe Zusatzbefund / Es wurden {\\b\\ul keine} pathogenen Keimbahnvarianten in den untersuchten Genen ";
 		for(int i=0;i<genes_checked_for_germline_variants_.count();i++)
 		{
 			stream << genes_checked_for_germline_variants_[i];
@@ -344,39 +350,39 @@ void ReportHelper::writeRtfTableSNV(QTextStream& stream, const QList<int>& colWi
 		stream << "\\cell\\row}" << endl;
 	}
 
-	widths.clear();
-	widths << max_table_width;
-
-	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "\\fs18\\sb20 "<<endl;
-	stream <<"\\qj\\fs16\\qj\\b Abk\\u252;rzungen:\\b0  " << "{\\i cDNA:} cDNA Position und Auswirkung auf Peptid; {\\i F/T Tumor:} Allelfrequenz/Tiefe der Tumorprobe; ";
-	stream << "{\\i Funktion:} Funktionelle Einsch\\u228;tzung der Variante aus CancerGenomeInterpreter.org. \"Known driver\" bedeutet, dass die Ver\\u228;nderung in bestimmten Tumortypen bekannt ist. \"Predicted driver\" bedeutet, dass die Variante mittels probabilistischer Methoden als Tumortreiber vorhergesagt wurde. \"NA\" bedeutet, dass keine Einsch\\u228;ng vorliegt. ";
-	stream << "{\\i Effekt:} Auswirkung der Mutation auf das Gen. Activating: aktivierende Wirkung auf ein Onkogen, Inactivating: Funktionsverlust eines Tumorsuppressorgens, Ambiguous: zweideutige Wirkung auf das Gen, NA: keine Einsch\\u228;tzung verf\\u252;gbar.";
-	stream << "\\line {\\i Akronyme:} ";
-
-	QHash<QByteArray,QByteArray> acronyms_to_german;
-
-	TSVFileStream acronym_translations("://Resources/cancer_types.tsv");
-	int i_cgi_acronym = acronym_translations.colIndex("ID",true);
-	int i_german_translation = acronym_translations.colIndex("NAME_GERMAN",true);
-	while(!acronym_translations.atEnd())
+	if(display_germline_hint)
 	{
-		QByteArrayList current_line = acronym_translations.readLine();
-		acronyms_to_german.insert(current_line.at(i_cgi_acronym),current_line.at(i_german_translation));
-	}
+		widths.clear();
+		widths << max_table_width;
+		RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
+		stream << begin_table_cell << "\\fs18\\sb20 "<<endl;
+		stream <<"\\qj\\fs16\\qj\\b Abk\\u252;rzungen:\\b0  " << "{\\i cDNA:} cDNA Position und Auswirkung auf Peptid; {\\i F/T Tumor:} Allelfrequenz/Tiefe der Tumorprobe; ";
+		stream << "{\\i Funktion:} Funktionelle Einsch\\u228;tzung der Variante aus CancerGenomeInterpreter.org. \"Known driver\" bedeutet, dass die Ver\\u228;nderung in bestimmten Tumortypen bekannt ist. \"Predicted driver\" bedeutet, dass die Variante mittels probabilistischer Methoden als Tumortreiber vorhergesagt wurde. \"NA\" bedeutet, dass keine Einsch\\u228;ng vorliegt. ";
+		stream << "{\\i Effekt:} Auswirkung der Mutation auf das Gen. Activating: aktivierende Wirkung auf ein Onkogen, Inactivating: Funktionsverlust eines Tumorsuppressorgens, Ambiguous: zweideutige Wirkung auf das Gen, NA: keine Einsch\\u228;tzung verf\\u252;gbar.";
+		stream << "\\line {\\i Akronyme:} ";
 
-	std::sort(cancer_acronyms.begin(),cancer_acronyms.end());
-	for(int i=0;i<cancer_acronyms.count();i++)
-	{
-		stream << cancer_acronyms[i] << "-" << acronyms_to_german.value(cancer_acronyms[i]);
-		if(i<cancer_acronyms.count()-1)
+		QHash<QByteArray,QByteArray> acronyms_to_german;
+
+		TSVFileStream acronym_translations("://Resources/cancer_types.tsv");
+		int i_cgi_acronym = acronym_translations.colIndex("ID",true);
+		int i_german_translation = acronym_translations.colIndex("NAME_GERMAN",true);
+		while(!acronym_translations.atEnd())
 		{
-			stream << ", ";
+			QByteArrayList current_line = acronym_translations.readLine();
+			acronyms_to_german.insert(current_line.at(i_cgi_acronym),current_line.at(i_german_translation));
 		}
+
+		std::sort(cancer_acronyms.begin(),cancer_acronyms.end());
+		for(int i=0;i<cancer_acronyms.count();i++)
+		{
+			stream << cancer_acronyms[i] << " - " << acronyms_to_german.value(cancer_acronyms[i]);
+			if(i<cancer_acronyms.count()-1)
+			{
+				stream << ", ";
+			}
+		}
+		stream << "\\cell" << "\\row}" << endl;
 	}
-
-
-	stream << "\\cell" << "\\row}" << endl;
 }
 
 void ReportHelper::writeRtfTableCNV(QTextStream& stream, const QList<int>& colWidths)
@@ -392,7 +398,7 @@ void ReportHelper::writeRtfTableCNV(QTextStream& stream, const QList<int>& colWi
 
 	//widths if cnv_type is set in input VariantLists
 	QList<int> widths_cnv_type;
-	widths_cnv_type << 4700 << 5200 << 5600 << 7900 << 8900 << max_table_width;
+	widths_cnv_type << 4500 << 5000 << 5400 << 7700 << 8700 << max_table_width;
 	//CNVs
 	widths << max_table_width;
 	stream << "{\\pard\\sa45\\sb45\\fs18\\b Kopienzahlvarianten (CNVs)\\b0\\par}" << endl;
@@ -532,18 +538,7 @@ void ReportHelper::writeRtfTableCNV(QTextStream& stream, const QList<int>& colWi
 	widths << max_table_width;
 	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
 	stream << begin_table_cell << "\\sb20\\qj\\fs18\\qj\\b " << "Keimbahnvarianten:\\b0 ";
-	stream << "{\\highlight3  Siehe Zusatzbefund / Es wurden keine pathogenen Keimbahnvarianten in den Genen ";
-	for(int i=0;i<genes_checked_for_germline_variants_.count();i++)
-	{
-		stream << genes_checked_for_germline_variants_[i];
-		if(i<genes_checked_for_germline_variants_.count()-1)
-		{
-			stream << ", ";
-		}
-	}
-	stream << " gefunden.}" << endl;
-
-
+	stream << "{\\highlight3  Siehe Zusatzbefund / Es wurden keine pathogenen Keimbahnvarianten gefunden.}" << endl;
 	stream << "\\cell\\row}" << endl;
 
 	widths.clear();
@@ -1087,16 +1082,6 @@ void ReportHelper::writeRtfCGIDrugTable(QTextStream &stream, const QList<int> &c
 	//				     alt.typ  tum.typ medic.  eff.   evid.    source
 	widths_drug_table << 1500 << 2700 << 5000 << 6000 << 7000 << max_table_width;
 
-	if(cgi_cancer_type_ == "CANCER")
-	{
-		widths.clear();
-		widths << max_table_width;
-		RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-		stream << begin_table_cell << "{\\highlight3 CGI-Analyse f\\u252;r Tumortyp CANCER nicht m\\u246;glich. Tumortyp muss f\\u252;r Medikationsvorschl\\u228;ge konkretisiert werden.}";
-		stream << "\\cell\\row}" << endl;
-		return;
-	}
-
 	widths = widths_drug_table;
 
 	RtfTools::writeRtfTableSingleRowSpec(stream,widths,true);
@@ -1628,7 +1613,7 @@ void ReportHelper::writeRtf(const QString& out_file)
 
 	//create SNV table with driver mutations only
 	//        Gene    cDNA    type    F/T     func	   eff
-	widths << 1250 << 3000 << 5000 << 6000 << 8900  << max_table_width;
+	widths << 1250 << 4000 << 5400 << 6500 << 8950  << max_table_width;
 
 	writeRtfTableSNV(stream,widths,false);
 
