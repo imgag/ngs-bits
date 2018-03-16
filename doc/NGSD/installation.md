@@ -19,7 +19,7 @@ For Ubuntu 14.04 install these packages:
 
 For Ubuntu 16.04 install these packages:
 
-	> apt-get install subversion git php7.0-cli php7.0-mysql php7.0-xml php7.0-gd g++ maven libncurses5-dev qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql cmake python python-matplotlib tabix
+	> apt-get install subversion git php7.0-cli php7.0-mysql php7.0-xml php7.0-gd g++ maven libncurses5-dev qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql cmake python python-matplotlib tabix unzip libbz2-dev libzma-dev
 
 ## (1) Setup of the analysis pipeline
 
