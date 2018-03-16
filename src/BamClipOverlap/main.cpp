@@ -16,6 +16,7 @@
 
 using namespace BamTools;
 
+// @todo use higher base quality in overlap
 
 class ConcreteTool
 		: public ToolBase
@@ -31,8 +32,9 @@ public:
 	virtual void setup()
 	{
 		setDescription("Softclipping of overlapping reads.");
-		setExtendedDescription(QStringList()	<< "Overlapping reads will be soft-clipped from start to end. "
-												<< "If mismatches are found in the overlap of both reads, the mapping quality of both reads will be set to zero."
+		setExtendedDescription(QStringList()	<<	"Overlapping reads will be soft-clipped from start to end. " \
+													"There are several parameters available for handling of mismatches in overlapping reads. " \
+													"Within the overlap the higher base quality will be kept for each basepair."
 							   );
 		addInfile("in", "Input bam file. Needs to be sorted by name.", false);
 		addOutfile("out", "Output bam file.", false);
@@ -40,9 +42,12 @@ public:
 		addFlag("overlap_mismatch_mapq", "Set mapping quality of pair to 0 if mismatch is found in overlapping reads.");
 		addFlag("overlap_mismatch_remove", "Remove pair if mismatch is found in overlapping reads.");
 		addFlag("overlap_mismatch_baseq", "Reduce base quality if mismatch is found in overlapping reads.");
+		addFlag("overlap_mismatch_basen", "Set base to N if mismatch is found in overlapping reads.");
+		addFlag("ignore_indels","Turn off indel detection in overlap.");
 		addFlag("v", "Verbose mode.");
 
 		//changelog
+		changeLog(2018,01,11,"Updated base quality handling within overlap.");
 		changeLog(2017,01,16,"Added overlap mismatch filter.");
 	}
 
@@ -57,6 +62,7 @@ public:
 		quint64 bases_clipped = 0;
 		QTextStream out(stderr);
 		bool verbose = getFlag("v");
+		bool ignore_indels = getFlag("ignore_indels");
 		BamReader reader;
 		NGSHelper::openBAM(reader, getInfile("in"));
 		BamWriter writer;
@@ -116,13 +122,13 @@ public:
 						reverse_read = tmp_read;
 					}
 				}
+
+				//check if reads overlap
+				bool soft_clip = false;
 				int s1 = forward_read.Position+1;
 				int e1 = forward_read.GetEndPosition();
 				int s2 = reverse_read.Position+1;
 				int e2 = reverse_read.GetEndPosition();
-
-				//check if reads overlap
-				bool soft_clip = false;
 				if(forward_read.RefID==reverse_read.RefID)	// same chromosome
 				{
 					if(s1>=s2 && s1<=e2)	soft_clip = true;	// start read1 within read2
@@ -224,28 +230,32 @@ public:
 						QList<int> genome_pos;
 						QList<int> read_pos;
 						QList<QString> base;
+						QList<QString> quality;
 						QList<QString> cigar;
 
-						void overlap(QString base, QString cigar, int genome_pos, int read_pos)
+						void overlap(QString base, QString cigar, QString quality, int genome_pos, int read_pos)
 						{
 							this->base.append(base);
 							this->cigar.append(cigar);
+							this->cigar.append(quality);
 							this->genome_pos.append(genome_pos);
 							this->read_pos.append(read_pos);
 						}
 
-						void append(QString base, QString cigar, int genome_pos, int read_pos)
+						void append(QString base, QString cigar, QString quality, int genome_pos, int read_pos)
 						{
 							this->base.append(base);
 							this->cigar.append(cigar);
+							this->quality.append(quality);
 							this->genome_pos.append(genome_pos);
 							this->read_pos.append(read_pos);
 						}
 
-						void insert(int at, QString base, QString cigar, int genome_pos, int read_pos)
+						void insert(int at, QString base, QString cigar, QString quality, int genome_pos, int read_pos)
 						{
 							this->base.insert(at,base);
 							this->cigar.insert(at,cigar);
+							this->quality.insert(at,quality);
 							this->genome_pos.insert(at,genome_pos);
 							this->read_pos.insert(at,read_pos);
 						}
@@ -270,6 +280,16 @@ public:
 							return string;
 						}
 
+						QString getQualities()
+						{
+							QString string;
+							for(int i=0; i<quality.length(); ++i)
+							{
+								string += quality[i];
+							}
+							return string;
+						}
+
 						int length()
 						{
 							if(read_pos.length()!=cigar.length())	THROW(Exception,"Lengths differ.");
@@ -277,24 +297,37 @@ public:
 						}
 					};
 
-
 					//check if bases in overlap match
-					int start = overlap_start;
-					int end = overlap_end;
-					if(verbose)	out << "  overlap found from " << QString::number(start) << " to " << QString::number(end) << endl;
+					if(verbose)	out << "  overlap found from " << QString::number(overlap_start) << " to " << QString::number(overlap_end) << endl;
+
+					//
+					bool has_indel = false; //INDEL ist around the clipping position
+					int surrounding_nuc = 5;
+
 
 					int genome_pos = forward_read.Position;
 					int read_pos = 0;
+					int clip_position = forward_read.GetEndPosition() - clip_forward_read;
 					Overlap forward_overlap;
 					QString forward_bases = QString::fromStdString(forward_read.QueryBases);
+					QString forward_qualities = QString::fromStdString(forward_read.Qualities);
 					QString forward_cigar = NGSHelper::Cigar2QString(forward_read.CigarData,true);
 					for(int i = 0;i<forward_cigar.length();++i)
 					{
-						if(genome_pos>=start && genome_pos<end && forward_cigar[i]!='H' && forward_cigar[i]!='S')
+						if(genome_pos>=overlap_start && genome_pos<overlap_end && forward_cigar[i]!='H' && forward_cigar[i]!='S')
 						{
 							QChar current_base = forward_bases[read_pos];
+							QChar current_quality = forward_qualities[read_pos];
 							if(forward_cigar[i]=='D')	current_base = '-';
-							forward_overlap.append(QString(current_base), QString(forward_cigar[i]), genome_pos, read_pos);
+							forward_overlap.append(QString(current_base), QString(forward_cigar[i]), QString(current_quality), genome_pos, read_pos);
+						}
+
+						if(!ignore_indels && genome_pos>(clip_position-surrounding_nuc) && genome_pos<(clip_position+surrounding_nuc))
+						{
+							if(forward_cigar[i]=='I' || forward_cigar[i]=='D')
+							{
+								has_indel = true;
+							}
 						}
 
 						if(forward_cigar[i]=='H')	continue;
@@ -320,16 +353,27 @@ public:
 
 					genome_pos = reverse_read.Position;
 					read_pos = 0;
+					clip_position = reverse_read.Position + clip_reverse_read;
 					Overlap reverse_overlap;
 					QString reverse_bases = QString::fromStdString(reverse_read.QueryBases);
+					QString reverse_qualities = QString::fromStdString(reverse_read.Qualities);
 					QString reverse_cigar = NGSHelper::Cigar2QString(reverse_read.CigarData,true);
 					for(int i=0; i<reverse_cigar.length();++i)
 					{
-						if(genome_pos>=start && genome_pos<end && reverse_cigar[i]!='H' && reverse_cigar[i]!='S')
+						if(genome_pos>=overlap_start && genome_pos<overlap_end && reverse_cigar[i]!='H' && reverse_cigar[i]!='S')
 						{
 							QChar current_base = reverse_bases[read_pos];
+							QChar current_quality = reverse_qualities[read_pos];
 							if(reverse_cigar[i]=='D')	current_base = '-';
-							reverse_overlap.append(QString(current_base), QString(reverse_cigar[i]), genome_pos, read_pos);
+							reverse_overlap.append(QString(current_base), QString(reverse_cigar[i]), QString(current_quality), genome_pos, read_pos);
+						}
+
+						if(!ignore_indels && genome_pos>(clip_position-surrounding_nuc) && genome_pos<(clip_position+surrounding_nuc))
+						{
+							if(reverse_cigar[i]=='I' || reverse_cigar[i]=='D')
+							{
+								has_indel = true;
+							}
 						}
 
 						if(reverse_cigar[i]=='H')	continue;
@@ -357,12 +401,12 @@ public:
 					{
 						if(forward_overlap.cigar[i]!=reverse_overlap.cigar[i] && forward_overlap.cigar[i]=="I" && forward_overlap.base[i]!="+")
 						{
-							reverse_overlap.insert(i,"+","I",reverse_overlap.genome_pos[i],reverse_overlap.read_pos[i]);
+							reverse_overlap.insert(i,"+","I","0",reverse_overlap.genome_pos[i],reverse_overlap.read_pos[i]);
 						}
 						
 						if(forward_overlap.cigar[i]!=reverse_overlap.cigar[i] && reverse_overlap.cigar[i]=="I" && reverse_overlap.base[i]!="+")
 						{
-							forward_overlap.insert(i,"+","I",forward_overlap.genome_pos[i],forward_overlap.read_pos[i]);
+							forward_overlap.insert(i,"+","I","0",forward_overlap.genome_pos[i],forward_overlap.read_pos[i]);
 						}
 					}
 					if(verbose)	out << "  finished indel correction forward bases " << forward_overlap.getBases() << endl;
@@ -371,7 +415,7 @@ public:
 					if(verbose)	out << "  finished indel correction reverse cigar " << reverse_overlap.getCigar() << endl;
 					if(forward_overlap.length()!=reverse_overlap.length())	THROW(Exception, "Length mismatch.");	//both cigar and base string should now be equally long
 
-					//detect mismtaches (read pos for, read pos rev)
+					//detect mismtaches(read pos for, read pos rev)
 					QList<QPair<int,int>> mm_pos;
 					for(int i=0;i<forward_overlap.length();++i)
 					{
@@ -389,7 +433,8 @@ public:
 					bool map = getFlag("overlap_mismatch_mapq");
 					bool rem = getFlag("overlap_mismatch_remove");
 					bool base = getFlag("overlap_mismatch_baseq");
-					if(base || rem || map)
+					bool basen = getFlag("overlap_mismatch_basen");
+					if(base || rem || map || basen)
 					{
 						if(!mm_pos.isEmpty() && map)
 						{
@@ -406,7 +451,6 @@ public:
 						}
 						else if(!mm_pos.isEmpty() && base)
 						{
-
 							reads_mismatch += 2;
 							QString orig_for = QString::fromStdString(forward_read.Qualities);
 							QString orig_rev = QString::fromStdString(reverse_read.Qualities);
@@ -424,10 +468,44 @@ public:
 							if(verbose) out << "   changed forward base qualities from " << orig_for << " to " << QString::fromStdString(forward_read.Qualities) << endl;
 							if(verbose) out << "   changed reverse base qualities from " << orig_rev << " to " << QString::fromStdString(reverse_read.Qualities) << endl;
 						}
+						else if(!mm_pos.isEmpty() && basen)
+						{
+							reads_mismatch += 2;
+							QString orig_for = QString::fromStdString(forward_read.QueryBases);
+							QString orig_rev = QString::fromStdString(reverse_read.QueryBases);
+							QString new_for = orig_for;
+							QString new_rev = orig_rev;
+
+							//set Ns for mismatch bases
+							for(int i=0;i<mm_pos.length();++i)
+							{
+								if(mm_pos[i].first>=0)	new_for[mm_pos[i].first] = 'N';
+								if(mm_pos[i].second>=0)	new_rev[mm_pos[i].second] = 'N';
+							}
+							forward_read.QueryBases = new_for.toStdString();
+							reverse_read.QueryBases = new_rev.toStdString();
+							if(verbose) out << "   changed forward sequences from " << orig_for << " to " << QString::fromStdString(forward_read.QueryBases) << endl;
+							if(verbose) out << "   changed reverse sequences from " << orig_rev << " to " << QString::fromStdString(reverse_read.QueryBases) << endl;
+						}
 						else
 						{
 							if(verbose)	out << "  no overlap mismatch for read pair " << QString::fromStdString(forward_read.Name) << endl;
 
+						}
+					}
+
+					//try to avoid soft-clipping indels in overlap
+					if(has_indel)
+					{
+						if(reads_clipped%4==0)
+						{
+							clip_forward_read = 0;
+							clip_reverse_read = overlap;
+						}
+						else
+						{
+							clip_forward_read = overlap;
+							clip_reverse_read = 0;
 						}
 					}
 
