@@ -29,6 +29,13 @@ SvWidget::SvWidget(QString file_name, QWidget *parent)
 	connect(ui->filter_tumor_depth_single_reads,SIGNAL(valueChanged(int)),this,SLOT(filtersChanged()));
 
 
+	connect(ui->filter_normal_frequency_paired_reads,SIGNAL(valueChanged(double)),this,SLOT(filtersChanged()));
+	connect(ui->filter_normal_frequency_single_reads,SIGNAL(valueChanged(double)),this,SLOT(filtersChanged()));
+
+	connect(ui->filter_normal_depth_paired_reads,SIGNAL(valueChanged(int)),this,SLOT(filtersChanged()));
+	connect(ui->filter_normal_depth_single_reads,SIGNAL(valueChanged(int)),this,SLOT(filtersChanged()));
+
+
 	QString path = QFileInfo(file_name).absolutePath();
 	QStringList sv_files = Helper::findFiles(path, "*_var_structural.tsv", false);
 
@@ -48,6 +55,18 @@ SvWidget::SvWidget(QString file_name, QWidget *parent)
 
 	ui->filter_tumor_depth_single_reads->setVisible(false);
 	ui->label_tumor_depth_single_reads->setVisible(false);
+
+	ui->filter_normal_frequency_paired_reads->setVisible(false);
+	ui->label_normal_frequency_paired_reads->setVisible(false);
+
+	ui->filter_normal_frequency_single_reads->setVisible(false);
+	ui->label_normal_frequency_single_reads->setVisible(false);
+
+	ui->filter_normal_depth_paired_reads->setVisible(false);
+	ui->label_normal_depth_paired_reads->setVisible(false);
+
+	ui->filter_normal_depth_single_reads->setVisible(false);
+	ui->label_normal_depth_single_reads->setVisible(false);
 
 	loadSVs(sv_files[0]);
 }
@@ -87,6 +106,22 @@ void SvWidget::filtersChanged()
 
 		pass[row] = (svs_[row].size() >= size_filter);
 	}
+
+	//qual filter - filtering
+	if(ui->qual_filter->currentText() != "n/a")
+	{
+		QByteArray chosen_qual_filter = ui->qual_filter->currentText().toLatin1();
+		for(int row=0;row<row_count;row++)
+		{
+			//skip entries that are already hidden
+			if(!pass[row]) continue;
+
+			pass[row] = (svs_[row].getFilter() == chosen_qual_filter);
+		}
+	}
+
+
+	//filtering of annotation columns
 
 	//tumor paired reads frequency filter
 	if(ui->filter_tumor_frequency_paired_reads->isVisible())
@@ -133,19 +168,66 @@ void SvWidget::filtersChanged()
 		}
 	}
 
-	//qual filter - filtering
-	if(ui->qual_filter->currentText() != "n/a")
+
+
+	//normal paired read frequency
+	if(ui->filter_normal_frequency_paired_reads->isVisible())
 	{
-		QByteArray chosen_qual_filter = ui->qual_filter->currentText().toLatin1();
+		double filter_value = ui->filter_normal_frequency_paired_reads->value();
 		for(int row=0;row<row_count;row++)
 		{
-			//skip entries that are already hidden
 			if(!pass[row]) continue;
-
-			pass[row] = (svs_[row].getFilter() == chosen_qual_filter);
+			pass[row] = svs_[row].annotations().at(svs_.annotationIndexByName("normal_PR_freq")).toDouble() >= filter_value;
 		}
 	}
 
+	//normal single read frequency
+	if(ui->filter_normal_frequency_single_reads->isVisible())
+	{
+		double filter_value = ui->filter_normal_frequency_single_reads->value();
+		for(int row=0;row<row_count;row++)
+		{
+			bool entry_is_number;
+			double entry_as_number = svs_[row].annotations().at(svs_.annotationIndexByName("normal_SR_freq")).toDouble(&entry_is_number);
+
+			if(!entry_is_number) continue;
+			if(!pass[row]) continue;
+
+			pass[row] = entry_as_number >= filter_value;
+		}
+	}
+
+	//normal paired read depth
+	if(ui->filter_normal_depth_paired_reads->isVisible())
+	{
+		int filter_value = ui->filter_normal_depth_paired_reads->value();
+		for(int row=0;row<row_count;row++)
+		{
+			bool entry_is_number;
+			int entry_as_number = svs_[row].annotations().at(svs_.annotationIndexByName("normal_PR_depth")).toInt(&entry_is_number);
+
+			if(!entry_is_number) continue;
+			if(!pass[row]) continue;
+
+			pass[row] = entry_as_number >= filter_value;
+		}
+	}
+
+	//normal single read depth
+	if(ui->filter_normal_depth_single_reads->isVisible())
+	{
+		double filter_value = ui->filter_normal_depth_single_reads->value();
+		for(int row=0;row<row_count;row++)
+		{
+			bool entry_is_number;
+			int entry_as_number = svs_[row].annotations().at(svs_.annotationIndexByName("normal_SR_depth")).toInt(&entry_is_number);
+
+			if(!entry_is_number) continue;
+			if(!pass[row]) continue;
+
+			pass[row] = entry_as_number >= filter_value;
+		}
+	}
 
 
 	for(int row=0;row<row_count;row++)
@@ -299,6 +381,26 @@ void SvWidget::loadSVs(QString file_name)
 	{
 		ui->filter_tumor_depth_single_reads->setVisible(true);
 		ui->label_tumor_depth_single_reads->setVisible(true);
+	}
+	if(svs_.annotationIndexByName("normal_PR_freq"))
+	{
+		ui->filter_normal_frequency_paired_reads->setVisible(true);
+		ui->label_normal_frequency_paired_reads->setVisible(true);
+	}
+	if(svs_.annotationIndexByName("normal_SR_freq"))
+	{
+		ui->filter_normal_frequency_single_reads->setVisible(true);
+		ui->label_normal_frequency_single_reads->setVisible(true);
+	}
+	if(svs_.annotationIndexByName("normal_PR_depth"))
+	{
+		ui->filter_normal_depth_paired_reads->setVisible(true);
+		ui->label_normal_depth_paired_reads->setVisible(true);
+	}
+	if(svs_.annotationIndexByName("normal_SR_depth"))
+	{
+		ui->filter_normal_depth_single_reads->setVisible(true);
+		ui->label_normal_depth_single_reads->setVisible(true);
 	}
 }
 
