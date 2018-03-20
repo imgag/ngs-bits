@@ -35,7 +35,6 @@ SvWidget::SvWidget(QString file_name, QWidget *parent)
 	connect(ui->filter_normal_depth_paired_reads,SIGNAL(valueChanged(int)),this,SLOT(filtersChanged()));
 	connect(ui->filter_normal_depth_single_reads,SIGNAL(valueChanged(int)),this,SLOT(filtersChanged()));
 
-
 	QString path = QFileInfo(file_name).absolutePath();
 	QStringList sv_files = Helper::findFiles(path, "*_var_structural.tsv", false);
 
@@ -69,13 +68,21 @@ SvWidget::SvWidget(QString file_name, QWidget *parent)
 	ui->label_normal_depth_single_reads->setVisible(false);
 
 	loadSVs(sv_files[0]);
+
+
+	ui->svs->setSelectionBehavior(QAbstractItemView::SelectRows);
+
+	//filter rows according default filter values
+	QMetaObject::invokeMethod(this,"filtersChanged");
+
+
+	ui->svs->setSortingEnabled(true);
 }
 
 void SvWidget::addInfoLine(QString text)
 {
 	ui->info_box->layout()->addWidget(new QLabel(text));
 }
-
 
 void SvWidget::filtersChanged()
 {
@@ -85,7 +92,7 @@ void SvWidget::filtersChanged()
 	pass.fill(true,row_count);
 
 
-	///"type" filter
+	//"type" filter
 	if(ui->filter_type->currentText() != "n/a")
 	{
 		QByteArray chosen_type = ui->filter_type->currentText().toLatin1();
@@ -168,8 +175,6 @@ void SvWidget::filtersChanged()
 		}
 	}
 
-
-
 	//normal paired read frequency
 	if(ui->filter_normal_frequency_paired_reads->isVisible())
 	{
@@ -229,7 +234,6 @@ void SvWidget::filtersChanged()
 		}
 	}
 
-
 	for(int row=0;row<row_count;row++)
 	{
 		ui->svs->setRowHidden(row,!pass[row]);
@@ -265,7 +269,6 @@ void SvWidget::copyToClipboard()
 
 	QApplication::clipboard()->setText(output);
 }
-
 
 void SvWidget::loadSVs(QString file_name)
 {
@@ -343,7 +346,6 @@ void SvWidget::loadSVs(QString file_name)
 
 		foreach(int index, annotation_indices)
 		{
-
 			bool is_number;
 			svs_[row].annotations()[index].toFloat(&is_number);
 			QTableWidgetItem* item;
@@ -361,7 +363,7 @@ void SvWidget::loadSVs(QString file_name)
 		}
 	}
 
-	//check annotation header whether columns for allele frequencies and sequencing depthts, remove certain buttons if not existing
+	//check annotation header whether columns for allele frequencies and sequencing depthts exist, remove certain buttons if not
 	if(svs_.annotationIndexByName("tumor_PR_freq",false) >= 0)
 	{
 		ui->filter_tumor_frequency_paired_reads->setVisible(true);

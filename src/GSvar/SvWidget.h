@@ -8,7 +8,7 @@ namespace Ui {
 	class SvWidget;
 }
 
-
+///Widget for visualization and filtering of Structural Variants.
 class SvWidget : public QWidget
 {
 	Q_OBJECT
@@ -25,12 +25,8 @@ private:
 
 	void loadSVs(QString file_name);
 
-signals:
-	close();
-
-public slots:
-
 private slots:
+	///copy filtered SV table to clipboard
 	void copyToClipboard();
 
 	///update SV table if filter for types was changed
