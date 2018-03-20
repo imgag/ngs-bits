@@ -1,5 +1,10 @@
 # GSvar change log
 
+## 2018_03-8-g334fe3f
+- Trio/Multisample: Dialog now checks that BAM files exist.
+- Report: Improved somatic report.
+- Structural variants: Added dialog for structural variants.
+
 ### 0.1-1039-g40dee96 (12.03.2018)
 - Report: Improved somatic report with CGI annotations.
 - General: Trio and multi-sample dialog now check that sample BAM files exist.
@@ -174,6 +179,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 

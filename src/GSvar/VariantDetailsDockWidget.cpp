@@ -163,7 +163,10 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			QStringList rs_numbers = anno.replace("rs", "").split(';');
 			foreach(QString rs_number, rs_numbers)
 			{
-				text += formatLink("rs"+rs_number, "http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?rs=" + rs_number) + " ";
+				if (!rs_number.trimmed().isEmpty())
+				{
+					text += formatLink("rs"+rs_number, "http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?rs=" + rs_number) + " ";
+				}
 			}
 		}
 		else if(name=="OMIM")

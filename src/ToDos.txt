@@ -9,12 +9,13 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 
 GSvar:
-* GenLab XML report: male => change 'hom' variants outside PAR region on chrX/chrY to 'hemi' (when GenLab import is updated)
+** Add pLI score (megSAP) and filter for pLI (GSvar)
 ** HPO filter: add context menu entry to generate subpanel from selected phenotypes
 ** Add literature search button (Google/Pubmed, gene/variant)
   - "LAMP2" ("586A>T" | "586A—>T" | "586A-->T" | "586A/T" | "Thr1965er" | "T1965" | rs138991195)
   - "LAMP2" ("mutation" / "cardiomyopathy" / "arrhythmia")
 * Somatic: also load CNV file of germline
+* GenLab XML report: male => change 'hom' variants outside PAR region on chrX/chrY to 'hemi' (when GenLab import is updated)
 - text-based filter for OMIM/ClinVar/HGMD column (ignore case)
 - Add genotype equal for affected
 - Make default filters configurable in INI file
