@@ -275,6 +275,7 @@ void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file
 	QMap<QByteArray, int> gap_count;
 	long long bases_overall = 0;
 	long long bases_sequenced = 0;
+	GeneSet genes_noncoding;
 	foreach(const QByteArray& gene, genes)
 	{
 		int gene_id = db.geneToApprovedID(gene);
@@ -286,8 +287,8 @@ void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file
 		Transcript transcript = db.longestCodingTranscript(gene_id, Transcript::CCDS, true);
 		if (!transcript.isValid())
 		{
-			stream << "<br>Warning:Low-coverage statistics for gene " + symbol + " cannot be calculated: No coding transcript found in CCDS/Ensembl!";
-			continue;
+			genes_noncoding.insert(gene);
+			transcript = db.longestCodingTranscript(gene_id, Transcript::CCDS, true, true);
 		}
 
 		//gaps
@@ -318,6 +319,12 @@ void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file
 		bases_sequenced += bases_transcipt - bases_gaps;
 	}
 	if (gap_table) stream << "</table>";
+
+	//show warning if non-coding transcripts had to be used
+	if (!genes_noncoding.isEmpty())
+	{
+		stream << "<br>Warning: Using the longest *non-coding* transcript for the genes " << genes_noncoding.join(", ") << " since no coding transcripts for GRCh37 is defined!";
+	}
 
 	//overall statistics
 	stream << "<p>CCDS " << ext_string << "gesamt: " << bases_overall << endl;
@@ -537,7 +544,7 @@ void ReportWorker::writeHTML()
 	stream << "</p>" << endl;
 
 	//output: all rare variants
-	stream << "<p><b>Liste relevanter Varianten</b>" << endl;
+	stream << "<p><b>Liste priorisierter Varianten</b>" << endl;
 	stream << "</p>" << endl;
 	stream << "<table>" << endl;
 	stream << "<tr><td><b>Gen</b></td><td><b>Variante</b></td><td><b>" << (tumor ? "Allelfrequenz" : "Genotyp") << "</b></td><td><b>Details</b></td><td><b>Klasse</b></td><td><b>Vererbung</b></td><td><b>ExAC</b></td><td><b>gnomAD</b></td></tr>" << endl;

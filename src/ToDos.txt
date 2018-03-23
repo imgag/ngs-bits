@@ -22,6 +22,7 @@ GSvar:
 
 Tools:
 ** add new tool BedHighCoverage (wait until HTSlib available)
+- BedAdd: make 'in' a input file list and remove 'in2'
 - SampleCorrelation: Add option to use only rare snps e.g. 0.1-10.0% AF in VCF/GSvar mode (MS)
 - SomaticQC: do not use precalculated triplet counts, count every time (CS)
 - BamClipOverlap: require sorted bam and paired-end sequencing (CS)
