@@ -22,7 +22,7 @@ Thus, we need to use a different driver:
 ## Building ngs-bits
 Now, we can build the third-party libraries, and then ngs-bits:
 
-* Build the [htslib](https://github.com/samtools/htslib) DLL by executing `ngs-bits\htslib\build_win.bat`.
+* Unzip the [htslib](https://github.com/samtools/htslib) headers and DLL from `ngs-bits\htslib\build_win.zip`.
 * Build the ngs-bits tools using the QtCreator project file `src\tools.pro`.  
 * Then, build GSvar and other GUI tools using the QtCreator project file `src\tools_gui.pro`.  
 * Finally, you have to copy some DLLs to the `bin`folder before you can execute the ngs-bits tools:
@@ -46,6 +46,7 @@ Now, we can build the third-party libraries, and then ngs-bits:
 		</tr>
 	</table>
 	
+
 
 
 

@@ -12,7 +12,9 @@ For Linux, the the htslib shared library is built on the fly in the folder `ngs-
 
 ## Windows
 
-For Windows, a pre-built DLL is present in the *ngs-bits* repository.  
+For Windows, a pre-built DLL only needs to be unpacked from `ngs-bits/htslib/htslib_win.zip`.
+
+	> 
 
 ### Building the DLL
 
@@ -48,6 +50,7 @@ This is the updated version for *htslib 1.7*:
 
 			> build_win.bat
 	
+
 
 
 
