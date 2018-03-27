@@ -714,7 +714,7 @@ void VariantList::loadFromVCFGZ(QString filename, ChromosomalIndex<BedFile>* roi
 		processVcfLine(header_fields, line_number, QByteArray(gzgets(file, buffer, 131072)), roi_idx, invert);
 	}
 	gzclose(file);
-	delete buffer;
+	delete[] buffer;
 }
 
 void VariantList::processVcfLine(QList<QByteArray>& header_fields, int& line_number, QByteArray line, ChromosomalIndex<BedFile>* roi_idx, bool invert)

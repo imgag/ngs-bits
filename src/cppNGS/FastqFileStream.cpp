@@ -127,7 +127,7 @@ FastqFileStream::FastqFileStream(QString filename, bool auto_validate)
 FastqFileStream::~FastqFileStream()
 {
     gzclose(gzfile_);
-	delete buffer_;
+	delete[] buffer_;
 }
 
 void FastqFileStream::readEntry(FastqEntry& entry)

@@ -36,7 +36,7 @@ QList<CigarOp> BamAlignment::cigarData() const
 	const auto cigar = bam_get_cigar(aln_);
 	for (uint32_t i = 0; i<aln_->core.n_cigar; ++i)
 	{
-		output << CigarOp { bam_cigar_op(cigar[i]), bam_cigar_oplen(cigar[i]) };
+		output << CigarOp { (int)bam_cigar_op(cigar[i]), (int)bam_cigar_oplen(cigar[i]) };
 	}
 
 	return output;
@@ -72,7 +72,7 @@ void BamAlignment::setCigarData(const QList<CigarOp>& cigar)
 	}
 
 	//delete datastructure
-	delete cigar2;
+	delete[] cigar2;
 }
 
 QByteArray BamAlignment::cigarDataAsString(bool expand) const
