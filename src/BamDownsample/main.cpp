@@ -1,13 +1,9 @@
 #include "ToolBase.h"
-#include "api/BamReader.h"
-#include "api/BamWriter.h"
-#include "api/BamAlgorithms.h"
 #include "NGSHelper.h"
 #include "Helper.h"
+#include "BasicStatistics.h"
+#include "BamWriter.h"
 #include <QTime>
-#include <QString>
-
-using namespace BamTools;
 
 class ConcreteTool
 		: public ToolBase
@@ -24,102 +20,82 @@ public:
 	{
 		setDescription("Downsamples a BAM file to the given percentage of reads.");
 		addInfile("in", "Input BAM file.", false, true);
-		addInt("percentage", "Percentage of reads from the input to the output file.", false, true);
+		addInt("percentage", "Percentage of reads to keep.", false);
 		addOutfile("out", "Output BAM file.", false, true);
-		addFlag("test", "fixed seed for random and text output");
-	}
-
-	void write_statistics(QString filename, int reads_count, QStringList downsampled_read_names)
-	{
-		QStringList output;
-		output << "read count:\t"<<QString::number(reads_count);
-		output << "downsampled reads:\t"<<QString::number(downsampled_read_names.size());
-		foreach(QString read_name,downsampled_read_names)
-		{
-			output << read_name;
-		}
-
-		Helper::storeTextFile(Helper::openFileForWriting(filename, true,false), output);
+		//optional
+		addFlag("test", "Test mode: fix random number generator seed and write kept read names to STDOUT.");
 	}
 
 	virtual void main()
 	{
-		//step 1: init
-		bool test =getFlag("test");
-		if (test)
-		{
-			qsrand(1);
-		}
-		else
-		{
-			qsrand(QTime::currentTime().msec());
-		}
-		QTextStream out(stderr);
-		BamReader reader;
-		NGSHelper::openBAM(reader, getInfile("in"));
-		BamWriter writer;
-		writer.Open(getOutfile("out").toStdString(), reader.GetConstSamHeader(), reader.GetReferenceData());
-		int reads_count=0;
-		QStringList downsampled_read_names;
+		//init
+		QTextStream out(stdout);
+		bool test = getFlag("test");
+		srand(test ? 1 : QTime::currentTime().msec());
+		double percentage = BasicStatistics::bound(getInt("percentage"), 0, 100);
 
-		//step 2: iterate through reads, write specified percentage of reads (+mate) to output bam
+		BamReader reader(getInfile("in"));
+
+		BamWriter writer(getOutfile("out"));
+		writer.writeHeader(reader);
+
+		//process alignments
+		int c_se = 0;
+		int c_se_pass = 0;
+		int c_pe = 0;
+		int c_pe_pass = 0;
+
 		BamAlignment al;
-		QHash<QString, BamAlignment> al_map;
-		while (reader.GetNextAlignment(al))
+		QHash<QByteArray, BamAlignment> al_cache;
+		while (reader.getNextAlignment(al))
 		{
 			//skip secondary alinments
-			if(!al.IsPrimaryAlignment()) continue;
+			if(al.isSecondaryAlignment()) continue;
 
-			reads_count++;
-			if((!al.IsPaired())&&(qrand()%100)<getInt("percentage"))//if single end and should be saved
+			if(!al.isPaired()) //single-end reads
 			{
-				writer.SaveAlignment(al);
-				if (test)
+				++c_se;
+				if (Helper::randomNumber(0, 100)<percentage)
 				{
-					downsampled_read_names.append(QString::fromStdString(al.Name));
+					++c_se_pass;
+					writer.writeAlignment(reader, al);
+					if (test) out << "KEPT SE: " << al.name() << endl;
 				}
-				continue;
 			}
-			if((al_map.contains(QString::fromStdString(al.Name))))//if paired end and mate has been seen already
+			else //paired-end reads
 			{
-				if((qrand()%100)<getInt("percentage"))//if the pair should be saved
+				QByteArray name = al.name();
+				if (!al_cache.contains(name)) //mate not seen yet => cache
 				{
-					BamAlignment mate;
-					mate = al_map.take(QString::fromStdString(al.Name));
-					writer.SaveAlignment(al);
-					writer.SaveAlignment(mate);
-					if (test)
+					al_cache.insert(name, al);
+				}
+				else //mate seen => decide if pair is written
+				{
+					++c_pe;
+					if (Helper::randomNumber(0, 100)<percentage)
 					{
-						downsampled_read_names.append(QString::fromStdString(al.Name));
-						downsampled_read_names.append(QString::fromStdString(mate.Name));
+						++c_pe_pass;
+						writer.writeAlignment(reader, al_cache.take(name));
+						writer.writeAlignment(reader, al);
+						if (test) out << "KEPT PE: " << name << endl;
 					}
-					continue;
+					else
+					{
+						al_cache.remove(name);
+					}
 				}
-				else//if the pair should not be saved
-				{
-					al_map.take(QString::fromStdString(al.Name));
-					continue;
-				}
-			}
-			else//if paired end and mate has not been seen yet
-			{
-				al_map.insert(QString::fromStdString(al.Name), al);
-				continue;
 			}
 		}
 
-		//write output text if test case
-		if (test)
-		{
-			write_statistics("out/BamDownsample_out1.txt",reads_count,downsampled_read_names);
-		}
-
-		//done
-		reader.Close();
-		writer.Close();
+		//write debug output
+		out << "SE reads                    : " << c_se << endl;
+		out << "SE reads (written)          : " << c_se_pass << endl;
+		out << "PE reads                    : " << c_pe << endl;
+		out << "PE reads (written)          : " << c_pe_pass << endl;
+		out << "PE reads unmatched (skipped): " << al_cache.size() << endl;
 	}
-
 };
+
 #include "main.moc"
 
 int main(int argc, char *argv[])

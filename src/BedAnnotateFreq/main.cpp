@@ -4,11 +4,9 @@
 #include <QFileInfo>
 
 #include "NGSHelper.h"
-#include "api/BamReader.h"
 #include <QTextStream>
 #include "Helper.h"
 #include "Exceptions.h"
-using namespace BamTools;
 
 class ConcreteTool
 		: public ToolBase
@@ -42,7 +40,14 @@ public:
 		QTextStream outstream(outfile.data());
 		outstream << "#chr\tstart\tend\tsample\tA\tC\tG\tT\ttotal\n";
 
-		//extract base counts form BAMs
+		//open BAM files
+		QList<QSharedPointer<BamReader>> bams_open;
+		foreach(QString bam, bams)
+		{
+			bams_open.append(QSharedPointer<BamReader>(new BamReader(bam)));
+		}
+
+		//extract base counts from BAMs
 		BedFile file;
 		file.load(getInfile("in"));
 		for(int i=0; i<file.count(); ++i)
@@ -52,13 +57,10 @@ public:
 				THROW(ToolFailedException, "BED file contains region with length > 1, which is not supported: " + file[i].toString(true));
 			}
 
-			foreach(QString bam, bams)
+			for(int j=0; j<bams.count(); ++j)
 			{
-				BamReader reader;
-				NGSHelper::openBAM(reader, bam);
-				Pileup pileup = NGSHelper::getPileup(reader, file[i].chr(), file[i].end());
-
-				outstream << file[i].toString(false)+"\t"+QFileInfo(bam).baseName()+"\t"+QString::number(pileup.a())+"\t"+QString::number(pileup.c())+"\t"+QString::number(pileup.g())+"\t"+QString::number(pileup.t())+"\t"+QString::number(pileup.depth(false)) + "\n";
+				Pileup pileup = NGSHelper::getPileup(*bams_open[j].data(), file[i].chr(), file[i].end());
+				outstream << file[i].toString(false)+"\t"+QFileInfo(bams[j]).baseName()+"\t"+QString::number(pileup.a())+"\t"+QString::number(pileup.c())+"\t"+QString::number(pileup.g())+"\t"+QString::number(pileup.t())+"\t"+QString::number(pileup.depth(false)) + "\n";
 			}
 		}
 	}

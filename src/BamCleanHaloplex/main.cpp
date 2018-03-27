@@ -1,10 +1,7 @@
 #include "Exceptions.h"
 #include "ToolBase.h"
 #include "NGSHelper.h"
-#include "api/BamReader.h"
-#include "api/BamWriter.h"
-
-using namespace BamTools;
+#include "BamWriter.h"
 
 class ConcreteTool
 		: public ToolBase
@@ -34,39 +31,34 @@ public:
 		int c_reads_mapped = 0;
 		int c_reads_failed = 0;
 
-		BamReader reader;
-		NGSHelper::openBAM(reader, getInfile("in"));
-		BamWriter writer;
-		writer.Open(getOutfile("out").toStdString(), reader.GetConstSamHeader(), reader.GetReferenceData());
+		BamReader reader(getInfile("in"));
+		BamWriter writer(getOutfile("out"));
+		writer.writeHeader(reader);
 
 		//process reads
 		BamAlignment al;
-		while (reader.GetNextAlignment(al))
+		while (reader.getNextAlignment(al))
 		{
 			++c_reads;
-			if (al.IsMapped() && al.IsPrimaryAlignment() && !al.IsDuplicate())
+			if (!al.isUnmapped() && !al.isSecondaryAlignment() && !al.isDuplicate())
 			{
 				++c_reads_mapped;
 				int sum_m = 0;
-				int sum_s = 0;
-				for (CigarOp& op : al.CigarData)
+				for (CigarOp& op : al.cigarData())
 				{
-					if (op.Type=='M') sum_m += op.Length;
-					if (op.Type=='S') sum_s += op.Length;
+					if (op.Type==BAM_CMATCH) sum_m += op.Length;
 				}
 				if (sum_m<min_match)
 				{
 					++c_reads_failed;
-					al.SetIsMapped(false);
-					al.SetIsPrimaryAlignment(false);
-					//qDebug() << "FAIL" << al.Name.c_str() << al.Length << sum_m << sum_s << al.QueryBases.c_str() << reader.GetReferenceData()[al.RefID].RefName.c_str() << al.Position;
+					al.setIsUnmapped(true);
+					al.setIsSecondaryAlignment(true);
+					//QTextStream(stdout) << "REMOVED: " << al.name() << " " << reader.chromosome(al.chromosomeID()).str() << ":" << al.start() << "-" << al.end() << endl;
 				}
 			}
 
-			writer.SaveAlignment(al);
+			writer.writeAlignment(reader, al);
 		}
-		reader.Close();
-		writer.Close();
 
 		//statistics output
 		QTextStream out(stdout);

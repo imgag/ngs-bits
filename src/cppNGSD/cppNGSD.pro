@@ -25,9 +25,9 @@ LIBS += -L$$PWD/../../bin -lcppCORE
 INCLUDEPATH += $$PWD/../cppNGS
 LIBS += -L$$PWD/../../bin -lcppNGS
 
-#include bamtools library
-INCLUDEPATH += $$PWD/../../bamtools/src/
-LIBS += -L$$PWD/../../bamtools/lib/ -lbamtools
+#include htslib library
+INCLUDEPATH += $$PWD/../../htslib/include/
+LIBS += -L$$PWD/../../htslib/lib/ -lhts
 
 SOURCES += \
     SqlQuery.cpp\

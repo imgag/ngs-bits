@@ -9,14 +9,8 @@
 #include <QFileInfo>
 #include <QSet>
 #include "NGSHelper.h"
-#include "api/BamReader.h"
-#include "api/BamWriter.h"
-#include "api/BamAlgorithms.h"
+#include "BamWriter.h"
 #include <QHash>
-
-using namespace BamTools;
-
-// @todo use higher base quality in overlap
 
 class ConcreteTool
 		: public ToolBase
@@ -63,59 +57,57 @@ public:
 		QTextStream out(stderr);
 		bool verbose = getFlag("v");
 		bool ignore_indels = getFlag("ignore_indels");
-		BamReader reader;
-		NGSHelper::openBAM(reader, getInfile("in"));
-		BamWriter writer;
-		writer.Open(getOutfile("out").toStdString(), reader.GetConstSamHeader(), reader.GetReferenceData());
+		BamReader reader(getInfile("in"));
+		BamWriter writer(getOutfile("out"));
+		writer.writeHeader(reader);
 
 		//step 2: get alignments and softclip if necessary
 		BamAlignment al;
-		QHash<QString, BamAlignment> al_map;
-		while (reader.GetNextAlignment(al))
+		QHash<QByteArray, BamAlignment> al_map;
+		while (reader.getNextAlignment(al))
 		{
 			++reads_count;
-			bases_count += al.Length;
+			bases_count += al.length();
 			bool skip_al = false;
 
 			//check preconditions and if unmet save read to out and continue
-			if(!al.IsPaired() || !al.IsPrimaryAlignment())
+			if(!al.isPaired() || al.isSecondaryAlignment())
 			{
-				writer.SaveAlignment(al);
+				writer.writeAlignment(reader, al);
 				++reads_saved;
 				continue;
 			}
-			if(!al.IsMapped() && !al.IsMateMapped())	// only mapped reads
+			if(al.isUnmapped() && al.isMateUnmapped())	// only mapped reads
 			{
-				writer.SaveAlignment(al);
+				writer.writeAlignment(reader, al);
 				++reads_saved;
 				continue;
 			}
-			if(al.RefID!=al.MateRefID)	// different chromosomes
+			if(al.chromosomeID()!=al.mateChrosomeID())	// different chromosomes
 			{
-				writer.SaveAlignment(al);
+				writer.writeAlignment(reader, al);
 				++reads_saved;
 				continue;
 			}
-			if(al.CigarData.empty())	// only with CIGAR data
+			if(al.cigarData().isEmpty())	// only with CIGAR data
 			{
-				writer.SaveAlignment(al);
+				writer.writeAlignment(reader, al);
 				++reads_saved;
 				continue;
 			}
 
-			if(al_map.contains(QString::fromStdString(al.Name)))
+			if(al_map.contains(al.name()))
 			{
-				BamAlignment mate;
-				mate = al_map.take(QString::fromStdString(al.Name));
+				BamAlignment mate = al_map.take(al.name());
 
 				//check if reads are on different strands
 				BamAlignment forward_read = mate;
 				BamAlignment reverse_read = al;
 				bool both_strands = false;
-				if(forward_read.IsReverseStrand()!=reverse_read.IsReverseStrand())
+				if(forward_read.isReverseStrand()!=reverse_read.isReverseStrand())
 				{
 					both_strands = true;
-					if(!reverse_read.IsReverseStrand())
+					if(!reverse_read.isReverseStrand())
 					{
 						BamAlignment tmp_read = forward_read;
 						forward_read = reverse_read;
@@ -124,12 +116,14 @@ public:
 				}
 
 				//check if reads overlap
+				int s1 = forward_read.start();
+				int e1 = forward_read.end();
+				int s2 = reverse_read.start();
+				int e2 = reverse_read.end();
+
+				//check if reads overlap
 				bool soft_clip = false;
-				int s1 = forward_read.Position+1;
-				int e1 = forward_read.GetEndPosition();
-				int s2 = reverse_read.Position+1;
-				int e2 = reverse_read.GetEndPosition();
-				if(forward_read.RefID==reverse_read.RefID)	// same chromosome
+				if(forward_read.chromosomeID()==reverse_read.chromosomeID())	// same chromosome
 				{
 					if(s1>=s2 && s1<=e2)	soft_clip = true;	// start read1 within read2
 					else if(e1>=s2 && e1<=e2)	soft_clip = true;	// end read1 within read2
@@ -147,57 +141,57 @@ public:
 
 					if(s1<=s2 && e1<=e2)	// forward read left of reverse read
 					{
-						overlap = forward_read.GetEndPosition()-reverse_read.Position;
-						overlap_start  = reverse_read.Position;
-						overlap_end = forward_read.GetEndPosition();
+						overlap = forward_read.end()-reverse_read.start()+1;
+						overlap_start  = reverse_read.start()-1;
+						overlap_end = forward_read.end();
 						clip_forward_read = static_cast<int>(overlap/2);
 						clip_reverse_read = static_cast<int>(overlap/2);
-						if(forward_read.IsFirstMate())	clip_forward_read +=  overlap%2;
+						if(forward_read.isRead1())	clip_forward_read +=  overlap%2;
 						else	clip_reverse_read +=  overlap%2;
 					}
 					else if(s1>s2 && e1>e2)	// forward read right of reverse read
 					{
-						overlap = reverse_read.GetEndPosition()-forward_read.Position;
-						overlap_start  = forward_read.Position;
-						overlap_end = reverse_read.GetEndPosition();
-						clip_forward_read = static_cast<int>(overlap/2) + (forward_read.GetEndPosition()-reverse_read.GetEndPosition());
-						clip_reverse_read = static_cast<int>(overlap/2) + (forward_read.Position-reverse_read.Position);
-						if(forward_read.IsFirstMate())	clip_forward_read +=  overlap%2;
+						overlap = reverse_read.end()-forward_read.start()+1;
+						overlap_start  = forward_read.start()-1;
+						overlap_end = reverse_read.end();
+						clip_forward_read = static_cast<int>(overlap/2) + (forward_read.end()-reverse_read.end());
+						clip_reverse_read = static_cast<int>(overlap/2) + (forward_read.start()-reverse_read.start());
+						if(forward_read.isRead1())	clip_forward_read +=  overlap%2;
 						else	clip_reverse_read +=  overlap%2;
 					}
 					else if(both_strands==true && s1>=s2 && e1<=e2)	// forward read within reverse read
 					{
-						overlap = forward_read.GetEndPosition()-forward_read.Position;
-						overlap_start  = forward_read.Position;
-						overlap_end = forward_read.GetEndPosition();
+						overlap = forward_read.end()-forward_read.start()+1;
+						overlap_start  = forward_read.start()-1;
+						overlap_end = forward_read.end();
 						clip_forward_read = static_cast<int>(overlap/2);
-						clip_reverse_read = static_cast<int>(overlap/2) + (forward_read.Position-reverse_read.Position);
-						if(forward_read.IsFirstMate())	clip_forward_read +=  overlap%2;
+						clip_reverse_read = static_cast<int>(overlap/2) + (forward_read.start()-reverse_read.start());
+						if(forward_read.isRead1())	clip_forward_read +=  overlap%2;
 						else	clip_reverse_read +=  overlap%2;
 					}
 					else if(both_strands==true && s1<=s2 && e1>=e2)	//reverse read within forward read
 					{
-						overlap = reverse_read.GetEndPosition()-reverse_read.Position;
-						overlap_start  = reverse_read.Position;
-						overlap_end = reverse_read.GetEndPosition();
-						clip_forward_read = static_cast<int>(overlap/2) + (forward_read.GetEndPosition()-reverse_read.GetEndPosition());
+						overlap = reverse_read.end()-reverse_read.start()+1;
+						overlap_start  = reverse_read.start()-1;
+						overlap_end = reverse_read.end();
+						clip_forward_read = static_cast<int>(overlap/2) + (forward_read.end()-reverse_read.end());
 						clip_reverse_read = static_cast<int>(overlap/2);
-						if(forward_read.IsFirstMate())	clip_forward_read +=  overlap%2;
+						if(forward_read.isRead1())	clip_forward_read +=  overlap%2;
 						else	clip_reverse_read +=  overlap%2;
 					}
 					else if(both_strands==false && s1>=s2 && e1<=e2)	//forward read lies completely within reverse read
 					{
-						overlap = forward_read.GetEndPosition()-forward_read.Position;
-						overlap_start  = forward_read.Position;
-						overlap_end = forward_read.GetEndPosition();
+						overlap = forward_read.end()-forward_read.start()+1;
+						overlap_start  = forward_read.start()-1;
+						overlap_end = forward_read.end();
 						clip_forward_read = overlap;
 						clip_reverse_read = 0;
 					}
 					else if(both_strands==false && s1<=s2 && e1>=e2)	//reverse read lies completely within foward read
 					{
-						overlap = reverse_read.GetEndPosition()-reverse_read.Position;
-						overlap_start  = reverse_read.Position;
-						overlap_end = reverse_read.GetEndPosition() ;
+						overlap = reverse_read.end()-reverse_read.start()+1;
+						overlap_start  = reverse_read.start()-1;
+						overlap_end = reverse_read.end() ;
 						clip_forward_read = 0;
 						clip_reverse_read = overlap;
 					}
@@ -205,44 +199,35 @@ public:
 					{
 						if(both_strands)
 						{
-							THROW(Exception, "Read orientation of forward read "+QString::fromStdString(forward_read.Name)+" (chr"+QString::number(forward_read.RefID)+":"+QString::number(forward_read.Position)+"-"+QString::number(forward_read.GetEndPosition())+") and reverse read "+QString::fromStdString(reverse_read.Name)+" (chr"+QString::number(reverse_read.RefID)+":"+QString::number(reverse_read.Position)+"-"+QString::number(reverse_read.GetEndPosition())+") was not identified.");
+							THROW(Exception, "Read orientation of forward read " + forward_read.name() + " ("+reader.chromosome(forward_read.chromosomeID()).str()+":"+QString::number(forward_read.start())+"-"+QString::number(forward_read.end())+") and reverse read "+reverse_read.name()+" ("+reader.chromosome(reverse_read.chromosomeID()).str()+":"+QString::number(reverse_read.start())+"-"+QString::number(reverse_read.end())+") was not identified.");
 						}
 						else
 						{
-							THROW(Exception, "Read orientation of read1 "+QString::fromStdString(forward_read.Name)+" (chr"+QString::number(forward_read.RefID)+":"+QString::number(forward_read.Position)+"-"+QString::number(forward_read.GetEndPosition())+") and read2 "+QString::fromStdString(reverse_read.Name)+" (chr"+QString::number(reverse_read.RefID)+":"+QString::number(reverse_read.Position)+"-"+QString::number(reverse_read.GetEndPosition())+") was not identified.");
+							THROW(Exception, "Read orientation of read1 " + forward_read.name() + " ("+reader.chromosome(forward_read.chromosomeID()).str()+":"+QString::number(forward_read.start())+"-"+QString::number(forward_read.end())+") and read2 "+reverse_read.name()+" ("+reader.chromosome(reverse_read.chromosomeID()).str()+":"+QString::number(reverse_read.start())+"-"+QString::number(reverse_read.end())+") was not identified.");
 						}
 					}
 
 					//verbose mode
-					if(verbose)	out << "forward read: name - " << QString::fromStdString(forward_read.Name) << ", region - chr" << forward_read.RefID << ":" << forward_read.Position << "-" << forward_read.GetEndPosition() << ", insert size: "  << forward_read.InsertSize << " bp; mate: " << forward_read.MatePosition << ", CIGAR " << NGSHelper::Cigar2QString(forward_read.CigarData) << ", overlap: " << overlap << " bp" << endl;
-					if(verbose)	out << "reverse read: name - " << QString::fromStdString(reverse_read.Name) << ", region - chr" << reverse_read.RefID << ":" << reverse_read.Position << "-" << reverse_read.GetEndPosition() << ", insert size: "  << reverse_read.InsertSize << " bp; mate: " << reverse_read.MatePosition << ", CIGAR " << NGSHelper::Cigar2QString(reverse_read.CigarData) << ", overlap: " << overlap << " bp" << endl;
-					if(verbose) out << "forward read bases " << QString::fromStdString(forward_read.QueryBases) << endl;
-					if(verbose) out << "forward read qualities " << QString::fromStdString(forward_read.Qualities) << endl;
-					if(verbose) out << "forward CIGAR " << NGSHelper::Cigar2QString(forward_read.CigarData,true) << endl;
-					if(verbose) out << "reverse read bases " << QString::fromStdString(reverse_read.QueryBases) << endl;
-					if(verbose) out << "reverse read qualities " << QString::fromStdString(reverse_read.Qualities) << endl;
-					if(verbose) out << "reverse CIGAR " << NGSHelper::Cigar2QString(reverse_read.CigarData,true) << endl;
-					if(verbose)	out << "  clip forward read from position " << (forward_read.GetEndPosition()-clip_forward_read+1) << " to " << forward_read.GetEndPosition() << endl;
-					if(verbose)	out << "  clip reverse read from position " << (reverse_read.Position+1) << " to " << (reverse_read.Position+clip_reverse_read) << endl;
+					if(verbose)	out << "forward read: name - " << forward_read.name() << ", region - " << reader.chromosome(forward_read.chromosomeID()).str() << ":" << (forward_read.start()-1) << "-" << forward_read.end() << ", insert size: "  << forward_read.insertSize() << " bp; mate: " << forward_read.mateStart() << ", CIGAR " << forward_read.cigarDataAsString() << ", overlap: " << overlap << " bp" << endl;
+					if(verbose)	out << "reverse read: name - " << reverse_read.name() << ", region - " << reader.chromosome(reverse_read.chromosomeID()).str() << ":" << (reverse_read.start()-1) << "-" << reverse_read.end() << ", insert size: "  << reverse_read.insertSize() << " bp; mate: " << reverse_read.mateStart() << ", CIGAR " << reverse_read.cigarDataAsString() << ", overlap: " << overlap << " bp" << endl;
+					if(verbose) out << "forward read bases " << forward_read.bases() << endl;
+					if(verbose) out << "forward read qualities " << forward_read.qualities() << endl;
+					if(verbose) out << "forward CIGAR " << forward_read.cigarDataAsString(true) << endl;
+					if(verbose) out << "reverse read bases " << reverse_read.bases() << endl;
+					if(verbose) out << "reverse read qualities " << reverse_read.qualities() << endl;
+					if(verbose) out << "reverse CIGAR " << reverse_read.cigarDataAsString(true) << endl;
+					if(verbose)	out << "  clip forward read from position " << (forward_read.end()-clip_forward_read+1) << " to " << forward_read.end() << endl;
+					if(verbose)	out << "  clip reverse read from position " << reverse_read.start() << " to " << (reverse_read.start()-1+clip_reverse_read) << endl;
 
 					struct Overlap
 					{
 						QList<int> genome_pos;
 						QList<int> read_pos;
-						QList<QString> base;
-						QList<QString> quality;
-						QList<QString> cigar;
+						QList<char> base;
+						QList<char> quality;
+						QList<char> cigar;
 
-						void overlap(QString base, QString cigar, QString quality, int genome_pos, int read_pos)
-						{
-							this->base.append(base);
-							this->cigar.append(cigar);
-							this->cigar.append(quality);
-							this->genome_pos.append(genome_pos);
-							this->read_pos.append(read_pos);
-						}
-
-						void append(QString base, QString cigar, QString quality, int genome_pos, int read_pos)
+						void append(char base, char cigar, char quality, int genome_pos, int read_pos)
 						{
 							this->base.append(base);
 							this->cigar.append(cigar);
@@ -251,48 +236,38 @@ public:
 							this->read_pos.append(read_pos);
 						}
 
-						void insert(int at, QString base, QString cigar, QString quality, int genome_pos, int read_pos)
+						void insert(int at, char base, char cigar, char quality, int genome_pos, int read_pos)
 						{
-							this->base.insert(at,base);
-							this->cigar.insert(at,cigar);
-							this->quality.insert(at,quality);
-							this->genome_pos.insert(at,genome_pos);
-							this->read_pos.insert(at,read_pos);
+							this->base.insert(at, base);
+							this->cigar.insert(at, cigar);
+							this->quality.insert(at, quality);
+							this->genome_pos.insert(at, genome_pos);
+							this->read_pos.insert(at, read_pos);
 						}
 
-						QString getBases()
+						QByteArray getBases() const
 						{
-							QString string;
+							QByteArray output;
 							for(int i=0; i<base.length(); ++i)
 							{
-								string += base[i];
+								output.append(base[i]);
 							}
-							return string;
+							return output;
 						}
 
-						QString getCigar()
+						QByteArray getCigar() const
 						{
-							QString string;
+							QByteArray output;
 							for(int i=0; i<cigar.length(); ++i)
 							{
-								string += cigar[i];
+								output.append(cigar[i]);
 							}
-							return string;
+							return output;
 						}
 
-						QString getQualities()
+						int length() const
 						{
-							QString string;
-							for(int i=0; i<quality.length(); ++i)
-							{
-								string += quality[i];
-							}
-							return string;
-						}
-
-						int length()
-						{
-							if(read_pos.length()!=cigar.length())	THROW(Exception,"Lengths differ.");
+							if(read_pos.length()!=cigar.length()) THROW(Exception,"Lengths differ.");
 							return read_pos.length();
 						}
 					};
@@ -305,21 +280,21 @@ public:
 					int surrounding_nuc = 5;
 
 
-					int genome_pos = forward_read.Position;
+					int genome_pos = forward_read.start()-1;
 					int read_pos = 0;
-					int clip_position = forward_read.GetEndPosition() - clip_forward_read;
+					int clip_position = forward_read.end() - clip_forward_read;
 					Overlap forward_overlap;
-					QString forward_bases = QString::fromStdString(forward_read.QueryBases);
-					QString forward_qualities = QString::fromStdString(forward_read.Qualities);
-					QString forward_cigar = NGSHelper::Cigar2QString(forward_read.CigarData,true);
+					QByteArray forward_bases = forward_read.bases();
+					QByteArray forward_qualities = forward_read.qualities();
+					QByteArray forward_cigar = forward_read.cigarDataAsString(true);
 					for(int i = 0;i<forward_cigar.length();++i)
 					{
 						if(genome_pos>=overlap_start && genome_pos<overlap_end && forward_cigar[i]!='H' && forward_cigar[i]!='S')
 						{
-							QChar current_base = forward_bases[read_pos];
-							QChar current_quality = forward_qualities[read_pos];
+							char current_base = forward_bases[read_pos];
+							char current_quality = forward_qualities[read_pos];
 							if(forward_cigar[i]=='D')	current_base = '-';
-							forward_overlap.append(QString(current_base), QString(forward_cigar[i]), QString(current_quality), genome_pos, read_pos);
+							forward_overlap.append(current_base, forward_cigar[i], current_quality, genome_pos, read_pos);
 						}
 
 						if(!ignore_indels && genome_pos>(clip_position-surrounding_nuc) && genome_pos<(clip_position+surrounding_nuc))
@@ -345,27 +320,29 @@ public:
 						{
 							++read_pos;
 						}
-						else	THROW(Exception, "Unknown CIGAR character '" + forward_cigar[i] + "'")
-
+						else
+						{
+							THROW(Exception, QByteArray("Unknown CIGAR character '") + forward_cigar[i] + "'")
+						}
 					}
 					if(verbose)	out << "  finished reading overlap forward bases " << forward_overlap.getBases() << endl;
 					if(verbose)	out << "  finished reading overlap forward cigar " << forward_overlap.getCigar() << endl;
 
-					genome_pos = reverse_read.Position;
+					genome_pos = reverse_read.start()-1;
 					read_pos = 0;
-					clip_position = reverse_read.Position + clip_reverse_read;
+					clip_position = reverse_read.start() -1 + clip_reverse_read;
 					Overlap reverse_overlap;
-					QString reverse_bases = QString::fromStdString(reverse_read.QueryBases);
-					QString reverse_qualities = QString::fromStdString(reverse_read.Qualities);
-					QString reverse_cigar = NGSHelper::Cigar2QString(reverse_read.CigarData,true);
+					QByteArray reverse_bases = reverse_read.bases();
+					QByteArray reverse_qualities = reverse_read.qualities();
+					QByteArray reverse_cigar = reverse_read.cigarDataAsString(true);
 					for(int i=0; i<reverse_cigar.length();++i)
 					{
 						if(genome_pos>=overlap_start && genome_pos<overlap_end && reverse_cigar[i]!='H' && reverse_cigar[i]!='S')
 						{
-							QChar current_base = reverse_bases[read_pos];
-							QChar current_quality = reverse_qualities[read_pos];
+							char current_base = reverse_bases[read_pos];
+							char current_quality = reverse_qualities[read_pos];
 							if(reverse_cigar[i]=='D')	current_base = '-';
-							reverse_overlap.append(QString(current_base), QString(reverse_cigar[i]), QString(current_quality), genome_pos, read_pos);
+							reverse_overlap.append(current_base, reverse_cigar[i], current_quality, genome_pos, read_pos);
 						}
 
 						if(!ignore_indels && genome_pos>(clip_position-surrounding_nuc) && genome_pos<(clip_position+surrounding_nuc))
@@ -391,7 +368,10 @@ public:
 						{
 							++read_pos;
 						}
-						else	THROW(Exception, "Unknown CIGAR character '" + reverse_cigar[i] + "'")
+						else
+						{
+							THROW(Exception, QByteArray("Unknown CIGAR character '") + reverse_cigar[i] + "'");
+						}
 					}
 					if(verbose)	out << "  finished reading overlap reverse bases " << reverse_overlap.getBases() << endl;
 					if(verbose)	out << "  finished reading overlap reverse cigar " << reverse_overlap.getCigar() << endl;
@@ -399,21 +379,24 @@ public:
 					//correct for insertions
 					for(int i=0;i<forward_overlap.length();++i)
 					{
-						if(forward_overlap.cigar[i]!=reverse_overlap.cigar[i] && forward_overlap.cigar[i]=="I" && forward_overlap.base[i]!="+")
+						if(forward_overlap.cigar[i]!=reverse_overlap.cigar[i] && forward_overlap.cigar[i]=='I' && forward_overlap.base[i]!='+')
 						{
-							reverse_overlap.insert(i,"+","I","0",reverse_overlap.genome_pos[i],reverse_overlap.read_pos[i]);
+							reverse_overlap.insert(i, '+', 'I', '0', reverse_overlap.genome_pos[i], reverse_overlap.read_pos[i]);
 						}
 						
-						if(forward_overlap.cigar[i]!=reverse_overlap.cigar[i] && reverse_overlap.cigar[i]=="I" && reverse_overlap.base[i]!="+")
+						if(forward_overlap.cigar[i]!=reverse_overlap.cigar[i] && reverse_overlap.cigar[i]=='I' && reverse_overlap.base[i]!='+')
 						{
-							forward_overlap.insert(i,"+","I","0",forward_overlap.genome_pos[i],forward_overlap.read_pos[i]);
+							forward_overlap.insert(i, '+', 'I', '0', forward_overlap.genome_pos[i], forward_overlap.read_pos[i]);
 						}
 					}
 					if(verbose)	out << "  finished indel correction forward bases " << forward_overlap.getBases() << endl;
 					if(verbose)	out << "  finished indel correction forward cigar " << forward_overlap.getCigar() << endl;
 					if(verbose)	out << "  finished indel correction reverse bases " << reverse_overlap.getBases() << endl;
 					if(verbose)	out << "  finished indel correction reverse cigar " << reverse_overlap.getCigar() << endl;
-					if(forward_overlap.length()!=reverse_overlap.length())	THROW(Exception, "Length mismatch.");	//both cigar and base string should now be equally long
+					if(forward_overlap.length()!=reverse_overlap.length()) //both cigar and base string should now be equally long
+					{
+						THROW(Exception, "Length mismatch between forward/reverse overlap - forward:" + QByteArray::number(forward_overlap.length()) + " reverse:" + QByteArray::number(reverse_overlap.length()) );
+					}
 
 					//detect mismtaches(read pos for, read pos rev)
 					QList<QPair<int,int>> mm_pos;
@@ -423,12 +406,16 @@ public:
 						{
 							int first = forward_overlap.read_pos[i];
 							int second = reverse_overlap.read_pos[i];
-							if(forward_overlap.base[i]=="-" || forward_overlap.base[i]=="+")	first = -1;
-							if(reverse_overlap.base[i]=="-" || reverse_overlap.base[i]=="+")	second = -1;
+							if(forward_overlap.base[i]=='-' || forward_overlap.base[i]=='+')	first = -1;
+							if(reverse_overlap.base[i]=='-' || reverse_overlap.base[i]=='+')	second = -1;
 							mm_pos.append(qMakePair(first,second));
 						}
 					}
-					if(verbose && !mm_pos.isEmpty()) out << "  overlap mismatch for read pair " << QString::fromStdString(forward_read.Name) << " - " << forward_overlap.getBases() << " != " << reverse_overlap.getBases() << "!" << endl;
+
+					if(verbose && !mm_pos.isEmpty())
+					{
+						out << "  overlap mismatch for read pair " << forward_read.name() << " - " << forward_overlap.getBases() << " != " << reverse_overlap.getBases() << "!" << endl;
+					}
 
 					bool map = getFlag("overlap_mismatch_mapq");
 					bool rem = getFlag("overlap_mismatch_remove");
@@ -438,8 +425,8 @@ public:
 					{
 						if(!mm_pos.isEmpty() && map)
 						{
-							forward_read.MapQuality = 0;
-							reverse_read.MapQuality = 0;
+							forward_read.setMappingQuality(0);
+							reverse_read.setMappingQuality(0);
 							reads_mismatch += 2;
 							if(verbose) out << "  Set mapping quality to 0." << endl;
 						}
@@ -452,10 +439,10 @@ public:
 						else if(!mm_pos.isEmpty() && base)
 						{
 							reads_mismatch += 2;
-							QString orig_for = QString::fromStdString(forward_read.Qualities);
-							QString orig_rev = QString::fromStdString(reverse_read.Qualities);
-							QString new_for = orig_for;
-							QString new_rev = orig_rev;
+							QByteArray orig_for = forward_read.qualities();
+							QByteArray orig_rev = reverse_read.qualities();
+							QByteArray new_for = orig_for;
+							QByteArray new_rev = orig_rev;
 
 							//set base quality for change qualities
 							for(int i=0;i<mm_pos.length();++i)
@@ -463,18 +450,18 @@ public:
 								if(mm_pos[i].first>=0)	new_for[mm_pos[i].first] = '!';
 								if(mm_pos[i].second>=0)	new_rev[mm_pos[i].second] = '!';
 							}
-							forward_read.Qualities = new_for.toStdString();
-							reverse_read.Qualities = new_rev.toStdString();
-							if(verbose) out << "   changed forward base qualities from " << orig_for << " to " << QString::fromStdString(forward_read.Qualities) << endl;
-							if(verbose) out << "   changed reverse base qualities from " << orig_rev << " to " << QString::fromStdString(reverse_read.Qualities) << endl;
+							forward_read.setQualities(new_for);
+							reverse_read.setQualities(new_rev);
+							if(verbose) out << "   changed forward base qualities from " << orig_for << " to " << forward_read.qualities() << endl;
+							if(verbose) out << "   changed reverse base qualities from " << orig_rev << " to " << reverse_read.qualities() << endl;
 						}
 						else if(!mm_pos.isEmpty() && basen)
 						{
 							reads_mismatch += 2;
-							QString orig_for = QString::fromStdString(forward_read.QueryBases);
-							QString orig_rev = QString::fromStdString(reverse_read.QueryBases);
-							QString new_for = orig_for;
-							QString new_rev = orig_rev;
+							QByteArray orig_for = forward_read.bases();
+							QByteArray orig_rev = reverse_read.bases();
+							QByteArray new_for = orig_for;
+							QByteArray new_rev = orig_rev;
 
 							//set Ns for mismatch bases
 							for(int i=0;i<mm_pos.length();++i)
@@ -482,15 +469,14 @@ public:
 								if(mm_pos[i].first>=0)	new_for[mm_pos[i].first] = 'N';
 								if(mm_pos[i].second>=0)	new_rev[mm_pos[i].second] = 'N';
 							}
-							forward_read.QueryBases = new_for.toStdString();
-							reverse_read.QueryBases = new_rev.toStdString();
-							if(verbose) out << "   changed forward sequences from " << orig_for << " to " << QString::fromStdString(forward_read.QueryBases) << endl;
-							if(verbose) out << "   changed reverse sequences from " << orig_rev << " to " << QString::fromStdString(reverse_read.QueryBases) << endl;
+							forward_read.setBases(new_for);
+							reverse_read.setBases(new_rev);
+							if(verbose) out << "   changed forward sequences from " << orig_for << " to " << forward_read.bases() << endl;
+							if(verbose) out << "   changed reverse sequences from " << orig_rev << " to " << reverse_read.bases() << endl;
 						}
 						else
 						{
-							if(verbose)	out << "  no overlap mismatch for read pair " << QString::fromStdString(forward_read.Name) << endl;
-
+							if(verbose)	out << "  no overlap mismatch for read pair " << forward_read.name() << endl;
 						}
 					}
 
@@ -510,17 +496,17 @@ public:
 					}
 
 					//actual soft clipping
-					if(clip_forward_read>0)	NGSHelper::softClipAlignment(forward_read,(forward_read.GetEndPosition()-clip_forward_read+1),forward_read.GetEndPosition());
-					if(clip_reverse_read>0)	NGSHelper::softClipAlignment(reverse_read,(reverse_read.Position+1),(reverse_read.Position+clip_reverse_read));
+					if(clip_forward_read>0)	NGSHelper::softClipAlignment(forward_read,(forward_read.end()-clip_forward_read+1),forward_read.end());
+					if(clip_reverse_read>0)	NGSHelper::softClipAlignment(reverse_read,reverse_read.start(),(reverse_read.start()-1+clip_reverse_read));
 
 					//set new insert size and mate position
-					forward_read.InsertSize = reverse_read.GetEndPosition()-forward_read.Position;	//positive value
-					forward_read.MatePosition = reverse_read.Position;
-					reverse_read.InsertSize = forward_read.Position-reverse_read.GetEndPosition();	//negative value
-					reverse_read.MatePosition = forward_read.Position;
+					forward_read.setInsertSize(reverse_read.end()-forward_read.start()+1);	//positive value
+					forward_read.setMateStart(reverse_read.start());
+					reverse_read.setInsertSize(forward_read.start()-reverse_read.end()-1);	//negative value
+					reverse_read.setMateStart(forward_read.start());
 
-					if(verbose)	out << "  clipped forward read: name - " << QString::fromStdString(forward_read.Name) << ", region - chr" << forward_read.RefID << ":" << forward_read.Position << "-" << forward_read.GetEndPosition() << ", insert size: "  << forward_read.InsertSize << " bp; mate: " << forward_read.MatePosition << ", CIGAR " << NGSHelper::Cigar2QString(forward_read.CigarData) << ", overlap: " << overlap << " bp" << endl;
-					if(verbose)	out << "  clipped reverse read: name - " << QString::fromStdString(reverse_read.Name) << ", region - chr" << forward_read.RefID << ":" << reverse_read.Position << "-" << reverse_read.GetEndPosition() << ", insert size: "  << reverse_read.InsertSize << " bp; mate: " << reverse_read.MatePosition << ", CIGAR " << NGSHelper::Cigar2QString(reverse_read.CigarData) << ", overlap: " << overlap << " bp" << endl;
+					if(verbose)	out << "  clipped forward read: name - " << forward_read.name() << ", region - " << reader.chromosome(forward_read.chromosomeID()).str() << ":" << (forward_read.start()-1) << "-" << forward_read.end() << ", insert size: "  << forward_read.insertSize() << " bp; mate: " << forward_read.mateStart() << ", CIGAR " << forward_read.cigarDataAsString() << ", overlap: " << overlap << " bp" << endl;
+					if(verbose)	out << "  clipped reverse read: name - " << reverse_read.name() << ", region - " << reader.chromosome(reverse_read.chromosomeID()).str()  << ":" << (reverse_read.start()-1) << "-" << reverse_read.end() << ", insert size: "  << reverse_read.insertSize() << " bp; mate: " << reverse_read.mateStart() << ", CIGAR " << reverse_read.cigarDataAsString() << ", overlap: " << overlap << " bp" << endl;
 					if(verbose)	out << endl;
 
 					//return reads
@@ -532,20 +518,19 @@ public:
 				//save reads
 				reads_saved+=2;
 				if(skip_al)	continue;
-				writer.SaveAlignment(forward_read);
-				writer.SaveAlignment(reverse_read);
+				writer.writeAlignment(reader, forward_read);
+				writer.writeAlignment(reader, reverse_read);
 			}
 			else    //keep in map
 			{
-				al_map.insert(QString::fromStdString(al.Name), al);
+				al_map.insert(al.name(), al);
 			}
 		}
 
-		//step 3: save all remaining reads in QHash
-		QHash<QString, BamAlignment>::Iterator i;
-		for(i=al_map.begin(); i!=al_map.end(); ++i)
+		//step 3: save all remaining reads
+		foreach(const BamAlignment& al, al_map)
 		{
-			writer.SaveAlignment(i.value());
+			writer.writeAlignment(reader, al);
 			++reads_saved;
 		}
 
@@ -554,10 +539,6 @@ public:
 		out << "Overlap mismatch filtering was used for " << QString::number(reads_mismatch) << " of " << QString::number(reads_count) << " reads (" << QString::number((double)reads_mismatch/(double)reads_count*100,'f',2) << " %)." << endl;
 		out << "Softclipped " << QString::number(reads_clipped) << " of " << QString::number(reads_count) << " reads (" << QString::number(((double)reads_clipped/(double)reads_count*100),'f',2) << " %)." << endl;
 		out << "Softclipped " << QString::number(bases_clipped) << " of " << QString::number(bases_count) << " basepairs (" << QString::number((double)bases_clipped/(double)bases_count*100,'f',2) << " %)." << endl;
-
-		//done
-		reader.Close();
-		writer.Close();
 	}
 
 };

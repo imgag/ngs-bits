@@ -69,12 +69,11 @@ private slots:
 		COMPARE_FILES("out/BamClipOverlap_Test_line67.log", TESTDATA("data_out/BamClipOverlap_out9.log"));
 	}
 
-	//indel in overlap
-	void test_10()
+	void indel_in_overlap()
 	{
 		EXECUTE("BamClipOverlap", "-in " + TESTDATA("data_in/BamClipOverlap_in5.bam") + " -out out/BamClipOverlap_out5.bam -v");
 		IS_TRUE(QFile::exists("out/BamClipOverlap_out4.bam"));
-		COMPARE_FILES("out/BamClipOverlap_Test_line75.log", TESTDATA("data_out/BamClipOverlap_out10.log"));
+		COMPARE_FILES("out/BamClipOverlap_Test_line74.log", TESTDATA("data_out/BamClipOverlap_out10.log"));
 	}
 };
 

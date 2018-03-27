@@ -25,17 +25,17 @@ LIBS += -L$$PWD/../../bin -lcppCORE
 INCLUDEPATH += $$PWD/../cppXML
 LIBS += -L$$PWD/../../bin -lcppXML
 
-#include bamtools library
-INCLUDEPATH += $$PWD/../../bamtools/src/
-LIBS += -L$$PWD/../../bamtools/lib/ -lbamtools
+#include htslib library
+INCLUDEPATH += $$PWD/../../htslib/include/
+LIBS += -L$$PWD/../../htslib/lib/ -lhts
 
 #include zlib library
 LIBS += -lz
 
 
 SOURCES += BedFile.cpp \
-	Chromosome.cpp \
-	VariantList.cpp \
+    Chromosome.cpp \
+    VariantList.cpp \
     VariantFilter.cpp \
     Statistics.cpp \
     ChromosomalFileIndex.cpp \
@@ -46,19 +46,21 @@ SOURCES += BedFile.cpp \
     VariantAnnotationDescription.cpp \
     QCCollection.cpp \
     StatisticsReads.cpp \
-    ChromosomeInfo.cpp \
+    BamReader.cpp \
+    BamWriter.cpp \
     SampleCorrelation.cpp \
     CnvList.cpp \
     Phenotype.cpp \
     Transcript.cpp \
     GeneSet.cpp \
-	RohList.cpp \
+    RohList.cpp \
     OntologyTermCollection.cpp \
     SvList.cpp
 
+
 HEADERS += BedFile.h \
-	Chromosome.h \
-	VariantList.h \
+    Chromosome.h \
+    VariantList.h \
     VariantFilter.h \
     ChromosomalIndex.h \
     Statistics.h \
@@ -71,13 +73,14 @@ HEADERS += BedFile.h \
     QCCollection.h \
     StatisticsReads.h \
     Sequence.h \
-    ChromosomeInfo.h \
+    BamReader.h \
+    BamWriter.h \
     SampleCorrelation.h \
     CnvList.h \
     Phenotype.h \
     Transcript.h \
     GeneSet.h \
-	RohList.h \
+    RohList.h \
     OntologyTermCollection.h \
     SvList.h
 

@@ -79,7 +79,7 @@ private slots:
 		vl2.removeDuplicates(true);
 		//after removal of duplicates (and numerical sorting of vl), vl and vl2 should be the same
 		I_EQUAL(vl.count(),vl2.count());
-		for (int i=0; i<vl.count(); i++)
+		for (int i=0; i<vl.count(); ++i)
 		{
 			S_EQUAL(vl[i].start(),vl2[i].start());
 			S_EQUAL(vl[i].obs() ,vl2[i].obs());
@@ -97,7 +97,7 @@ private slots:
 		vl2.sort();
 		//after removal of duplicates vl and vl2 should be the same
 		I_EQUAL(vl.count(),vl2.count());
-		for (int i=0; i<vl2.count(); i++)
+		for (int i=0; i<vl2.count(); ++i)
 		{
 			S_EQUAL(vl[i].start(),vl2[i].start());
 			S_EQUAL(vl[i].obs() ,vl2[i].obs());

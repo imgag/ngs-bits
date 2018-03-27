@@ -20,7 +20,7 @@ build_libs_debug:
 	cd build-libs-Linux-Debug; \
 		qmake ../src/libs.pro "CONFIG+=debug" "CONFIG-=release"; \
 		make;
-	cp bamtools/lib/libbamtools.so* bin/
+	cp htslib/lib/libhts.so* bin/
 
 build_tools_debug:
 	rm -rf build-tools-Linux-Debug;
@@ -28,7 +28,7 @@ build_tools_debug:
 	cd build-tools-Linux-Debug; \
 		qmake ../src/tools.pro "CONFIG+=debug" "CONFIG-=release"; \
 		make;
-	cp bamtools/lib/libbamtools.so* bin/
+	cp htslib/lib/libhts.so* bin/
 	
 #################################### build - RELEASE ####################################
 
@@ -38,7 +38,7 @@ build_libs_release:
 	cd build-libs-Linux-Release; \
 		qmake ../src/libs.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make;
-	cp bamtools/lib/libbamtools.so* bin/
+	cp htslib/lib/libhts.so* bin/
 
 build_tools_release:
 	rm -rf build-tools-Linux-Release;
@@ -46,7 +46,7 @@ build_tools_release:
 	cd build-tools-Linux-Release; \
 		qmake ../src/tools.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make;
-	cp bamtools/lib/libbamtools.so* bin/
+	cp htslib/lib/libhts.so* bin/
 
 build_gui_release:
 	rm -rf build-tools_gui-Linux-Release;
@@ -54,7 +54,7 @@ build_gui_release:
 	cd build-tools_gui-Linux-Release; \
 		qmake ../src/tools_gui.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make;
-	cp bamtools/lib/libbamtools.so* bin/
+	cp htslib/lib/libhts.so* bin/
 
 build_release_noclean:
 	cd build-libs-Linux-Release; \
@@ -93,7 +93,7 @@ deploy_nobuild:
 	@echo "#Deploy binaries"
 	mkdir $(DEP_PATH)
 	find bin/ -type f  -or -type l | grep -v "settings" | xargs -I{} cp {} $(DEP_PATH)
-	cp bamtools/lib/libbamtools.so* $(DEP_PATH)
+	cp htslib/lib/libhts.so* $(DEP_PATH)
 	@echo ""
 	@echo "#Update permissions"
 	chmod 775 $(DEP_PATH)*
@@ -120,8 +120,11 @@ dummy:
 #################################### 3rd party  ##################################
 
 build_3rdparty: clean_3rdparty
-	mkdir bamtools/build
-	cd bamtools/build && cmake .. && make
+	chmod 755 htslib/configure
+	cd htslib && ./configure --prefix=/
+	cd htslib && make DESTDIR=./ install
+	cd htslib && make clean
 
 clean_3rdparty:
-	cd bamtools && rm -rf bin build lib include src/toolkit/bamtools_version.h
+	cd htslib && make clean
+	rm -rf htslib/share htslib/lib htslib/include htslib/bin

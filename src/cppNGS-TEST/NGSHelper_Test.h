@@ -3,9 +3,6 @@
 #include "BasicStatistics.h"
 #include "Settings.h"
 
-#include "api/BamReader.h"
-using namespace BamTools;
-
 int countSequencesContaining(QVector<Sequence> sequences, char c)
 {
 	int output = 0;
@@ -23,8 +20,7 @@ private slots:
 
 	void getPileup()
 	{
-		BamReader reader;
-		NGSHelper::openBAM(reader, TESTDATA("data_in/panel.bam"));
+		BamReader reader(TESTDATA("data_in/panel.bam"));
 		Pileup pileup;
 		//SNP
 		pileup = NGSHelper::getPileup(reader, "chr1", 12062205, 1);
@@ -77,8 +73,7 @@ private slots:
 	//special test with RNA because it contains the CIGAR operations S and N
 	void getPileup2()
 	{
-		BamReader reader;
-		NGSHelper::openBAM(reader, TESTDATA("data_in/rna.bam"));
+		BamReader reader(TESTDATA("data_in/rna.bam"));
 		Pileup pileup;
 		//SNP
 		pileup = NGSHelper::getPileup(reader, "chr10", 90974727);
@@ -100,8 +95,7 @@ private slots:
 	void getPileups1()
 	{
 		//open BAM file
-		BamReader reader;
-		NGSHelper::openBAM(reader, TESTDATA("data_in/panel.bam"));
+		BamReader reader(TESTDATA("data_in/panel.bam"));
 		//get pileups
 		QList<Pileup> pileups;
 		NGSHelper::getPileups(pileups, reader, "chr6", 110053825, 110053825);
@@ -117,8 +111,7 @@ private slots:
 	void getPileups2()
 	{
 		//open BAM file
-		BamReader reader;
-		NGSHelper::openBAM(reader, TESTDATA("data_in/panel.bam"));
+		BamReader reader(TESTDATA("data_in/panel.bam"));
 		//get pileups
 		QList<Pileup> pileups;
 		NGSHelper::getPileups(pileups, reader, "chr6", 110053825-5, 110053825+5);
@@ -198,8 +191,7 @@ private slots:
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex reference(ref_file);
 
-		BamReader reader;
-		NGSHelper::openBAM(reader, TESTDATA("data_in/panel.bam"));
+		BamReader reader(TESTDATA("data_in/panel.bam"));
 		QVector<Sequence> indels;
 		int depth;
 		double mapq0_frac;
@@ -237,8 +229,7 @@ private slots:
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex reference(ref_file);
 
-		BamReader reader;
-		NGSHelper::openBAM(reader, TESTDATA("data_in/panel.bam"));
+		BamReader reader(TESTDATA("data_in/panel.bam"));
 
 		//inseration T (left)
 		Variant v("chr6", 110053825, 110053825, "-", "T");
@@ -271,115 +262,102 @@ private slots:
 		F_EQUAL2(output.frequency, 1.0, 0.001);
 	}
 
+	void cigarDataAsString()
+	{
+		BamReader reader(TESTDATA("data_in/panel.bam"));
+		BamAlignment al1;
+		reader.getNextAlignment(al1);
+		while(al1.isUnmapped())
+		{
+			reader.getNextAlignment(al1);
+		}
+		reader.getNextAlignment(al1);
+		while(al1.isUnmapped())
+		{
+			reader.getNextAlignment(al1);
+		}
+		S_EQUAL(al1.cigarDataAsString(), "36M2D115M");
+	}
+
 	void softClipAlignment()
 	{
+		BamReader reader(TESTDATA("data_in/panel.bam"));
 		BamAlignment al;
-		QString clipped_cigar1;
-		QString clipped_cigar2;
-
-//positions in sam format are 1-based
-
-		BamReader reader;
-		NGSHelper::openBAM(reader, TESTDATA("data_in/panel.bam"));
 
 		//first soft-clip al
-		reader.GetNextAlignment(al);
-		while(!al.IsMapped())		reader.GetNextAlignment(al);
+		reader.getNextAlignment(al);
+		while(al.isUnmapped())
+		{
+			reader.getNextAlignment(al);
+		}
 
 		NGSHelper::softClipAlignment(al,317587,317596);
-		//build CIGAR-string
-		clipped_cigar1 = "10S123M13I5M";
-		clipped_cigar2 = NGSHelper::Cigar2QString(al.CigarData);
-		S_EQUAL(clipped_cigar2, clipped_cigar1);
+		S_EQUAL(al.cigarDataAsString(), "10S123M13I5M");
 
 		//second soft-clip same al
 		NGSHelper::softClipAlignment(al,317597,317721);
-		//build CIGAR-strings
-		clipped_cigar1 = "148S3M";
-		clipped_cigar2 = NGSHelper::Cigar2QString(al.CigarData);
-		S_EQUAL(clipped_cigar2, clipped_cigar1);
+		S_EQUAL(al.cigarDataAsString(), "148S3M");
 
 		//next alignment
-		reader.GetNextAlignment(al);
-		while(!al.IsMapped())		reader.GetNextAlignment(al);
+		reader.getNextAlignment(al);
+		while(al.isUnmapped())
+		{
+			reader.getNextAlignment(al);
+		}
 
 		//third soft-clip different al1
 		NGSHelper::softClipAlignment(al,1048687,1048692);
-		//build CIGAR-strings
 		NGSHelper::softClipAlignment(al,1048540,1048576);
-		clipped_cigar1 = "36S109M6S";
-		clipped_cigar2 = NGSHelper::Cigar2QString(al.CigarData);
-		S_EQUAL(clipped_cigar2, clipped_cigar1);
-
-		NGSHelper::openBAM(reader, TESTDATA("data_in/bamclipoverlap.bam"));
-
-		//first soft-clip al
-		reader.GetNextAlignment(al);
-		reader.GetNextAlignment(al);
-		reader.GetNextAlignment(al);
-		reader.GetNextAlignment(al);
-		reader.GetNextAlignment(al);
-		reader.GetNextAlignment(al);
-		reader.GetNextAlignment(al);
-		reader.GetNextAlignment(al);
-		reader.GetNextAlignment(al);
-		reader.GetNextAlignment(al);
-		reader.GetNextAlignment(al);
-		reader.GetNextAlignment(al);
-		reader.GetNextAlignment(al);
-		reader.GetNextAlignment(al);
-		reader.GetNextAlignment(al);
-		reader.GetNextAlignment(al);
-		reader.GetNextAlignment(al);
-		reader.GetNextAlignment(al);
-		while(!al.IsMapped())		reader.GetNextAlignment(al);
-
-		S_EQUAL(QString::fromStdString(al.Name), "PC0226:55:000000000-A5CV9:1:1101:2110:14905");
-		NGSHelper::softClipAlignment(al,33038615,33038624);
-		clipped_cigar1 = "5H10S141M";
-		clipped_cigar2 = NGSHelper::Cigar2QString(al.CigarData);
-		S_EQUAL(clipped_cigar2, clipped_cigar1);
-		S_EQUAL(al.Position, 33038624);
-
-		NGSHelper::softClipAlignment(al,33038756,33038765);
-		//build CIGAR-string
-		clipped_cigar1 = "5H10S131M10S";
-		clipped_cigar2 = NGSHelper::Cigar2QString(al.CigarData);
-		S_EQUAL(clipped_cigar2, clipped_cigar1);
-
-		reader.GetNextAlignment(al);
-		reader.GetNextAlignment(al);
-
-		S_EQUAL(QString::fromStdString(al.Name), "PC0226:55:000000000-A5CV9:1:1101:2110:14905");
-		NGSHelper::softClipAlignment(al,33038659,33038668);
-		//build CIGAR-string
-		clipped_cigar1 = "10S141M5H";
-		clipped_cigar2 = NGSHelper::Cigar2QString(al.CigarData);
-		S_EQUAL(clipped_cigar2, clipped_cigar1);
-		S_EQUAL(al.Position, 33038668);
-
-		NGSHelper::softClipAlignment(al,33038800,33038809);
-		//build CIGAR-string
-		clipped_cigar1 = "10S131M10S5H";
-		clipped_cigar2 = NGSHelper::Cigar2QString(al.CigarData);
-		S_EQUAL(clipped_cigar2, clipped_cigar1);
+		S_EQUAL(al.cigarDataAsString(), "36S109M6S");
 	}
 
-	void cigar2String()
+	void softClipAlignment2()
 	{
-		BamReader reader;
-		NGSHelper::openBAM(reader, TESTDATA("data_in/panel.bam"));
-		BamAlignment al1;
-		reader.GetNextAlignment(al1);
-		while(!al1.IsMapped())		reader.GetNextAlignment(al1);
-		reader.GetNextAlignment(al1);
-		while(!al1.IsMapped())		reader.GetNextAlignment(al1);
-		QString clipped_cigar5 = "36M2D115M";
-		QString clipped_cigar6 = NGSHelper::Cigar2QString(al1.CigarData);
-		S_EQUAL(clipped_cigar5, clipped_cigar6);
-		QString clipped_cigar7 = "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMDDMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM";
-		QString clipped_cigar8 = NGSHelper::Cigar2QString(al1.CigarData, true);
-		S_EQUAL(clipped_cigar7, clipped_cigar8);
+		BamReader reader(TESTDATA("data_in/bamclipoverlap.bam"));
+		BamAlignment al;
+
+		//first soft-clip al
+		reader.getNextAlignment(al);
+		reader.getNextAlignment(al);
+		reader.getNextAlignment(al);
+		reader.getNextAlignment(al);
+		reader.getNextAlignment(al);
+		reader.getNextAlignment(al);
+		reader.getNextAlignment(al);
+		reader.getNextAlignment(al);
+		reader.getNextAlignment(al);
+		reader.getNextAlignment(al);
+		reader.getNextAlignment(al);
+		reader.getNextAlignment(al);
+		reader.getNextAlignment(al);
+		reader.getNextAlignment(al);
+		reader.getNextAlignment(al);
+		reader.getNextAlignment(al);
+		reader.getNextAlignment(al);
+		reader.getNextAlignment(al);
+		while(al.isUnmapped())
+		{
+			reader.getNextAlignment(al);
+		}
+
+		S_EQUAL(al.name(), "PC0226:55:000000000-A5CV9:1:1101:2110:14905");
+		NGSHelper::softClipAlignment(al,33038615,33038624);
+		S_EQUAL(al.cigarDataAsString(), "5H10S141M");
+		I_EQUAL(al.start(), 33038625);
+
+		NGSHelper::softClipAlignment(al,33038756,33038765);
+		S_EQUAL(al.cigarDataAsString(), "5H10S131M10S");
+
+		reader.getNextAlignment(al);
+		reader.getNextAlignment(al);
+
+		S_EQUAL(al.name(), "PC0226:55:000000000-A5CV9:1:1101:2110:14905");
+		NGSHelper::softClipAlignment(al,33038659,33038668);
+		S_EQUAL(al.cigarDataAsString(), "10S141M5H");
+		I_EQUAL(al.start(), 33038669);
+
+		NGSHelper::softClipAlignment(al,33038800,33038809);
+		S_EQUAL(al.cigarDataAsString(), "10S131M10S5H");
 	}
 
 	void getSampleHeader_singlesample_noheader()

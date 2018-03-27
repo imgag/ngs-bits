@@ -26,9 +26,9 @@ LIBS += -L$$PWD/../bin -lcppXML
 INCLUDEPATH += $$PWD/../cppNGS
 LIBS += -L$$PWD/../../bin -lcppNGS
 
-#include bamtools library
-INCLUDEPATH += $$PWD/../../bamtools/include/
-LIBS += -L$$PWD/../../bamtools/lib/ -lbamtools
+#include htslib library
+INCLUDEPATH += $$PWD/../../htslib/include/
+LIBS += -L$$PWD/../../htslib/lib/ -lhts
 
 #include cppTFW library
 INCLUDEPATH += $$PWD/../cppTFW
@@ -54,9 +54,10 @@ HEADERS += \
         FastaFileIndex_Test.h \
         QCCollection_Test.h \
         StatisticsReads_Test.h \
-		GeneSet_Test.h \
-    OntologyTermCollection_Test.h \
-    SvList_Test.h
+        GeneSet_Test.h \
+        OntologyTermCollection_Test.h \
+        SvList_Test.h \
+        BamReader_Test.h
 
 SOURCES += \
         main.cpp

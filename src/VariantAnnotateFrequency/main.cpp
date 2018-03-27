@@ -2,12 +2,9 @@
 #include "ToolBase.h"
 #include "NGSHelper.h"
 #include "BasicStatistics.h"
-#include "api/BamReader.h"
 #include "FastaFileIndex.h"
 #include "Settings.h"
 #include <cmath>
-
-using namespace BamTools;
 
 class ConcreteTool
 		: public ToolBase
@@ -44,8 +41,7 @@ public:
 		//load input
 		VariantList input;
 		input.load(getInfile("in"));
-		BamReader reader;
-		NGSHelper::openBAM(reader, getInfile("bam"));
+		BamReader reader(getInfile("bam"));
 
 		//determine frequencies and depths
 		FastaFileIndex reference(ref_file);

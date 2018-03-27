@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (0.1-728-gb6bf123)
+	VariantFilterAnnotations (2018_03-2-g208f066)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -24,10 +24,10 @@
 	                             Default value: ''
 	  -geno_affected <enum>      If set, only variants with the specified genotype in affected samples pass. Performed after all other filters!
 	                             Default value: 'any'
-	                             Valid: 'hom,het,comphet,comphet+hom,any'
+	                             Valid: 'hom,het,comphet,comphet+hom,not_wt,any'
 	  -geno_control <enum>       If set, only variants with the specified genotype in control samples pass. Performed after all other filters!
 	                             Default value: 'any'
-	                             Valid: 'hom,het,wt,not_hom,any'
+	                             Valid: 'hom,het,wt,not_hom,not_wt,any'
 	
 	Special parameters:
 	  --help                     Shows this help and exits.
@@ -36,7 +36,7 @@
 	  --tdx                      Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 0.1-728-gb6bf123
+	VariantFilterAnnotations 2018_03-2-g208f066
 	
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.
 	2017-06-14 Added sub-population allele frequency filter.

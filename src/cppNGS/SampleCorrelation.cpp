@@ -4,9 +4,6 @@
 #include "BasicStatistics.h"
 #include "NGSHelper.h"
 
-#include "api/BamReader.h"
-using namespace BamTools;
-
 void SampleCorrelation::calculateFromVcf(QString& in1, QString& in2, int window)
 {
 	//load input files
@@ -99,10 +96,8 @@ void SampleCorrelation::calculateFromBam(QString& in1, QString& in2, int min_cov
 	}
 
 	//open BAM readers
-	BamReader r1;
-	NGSHelper::openBAM(r1, in1);
-	BamReader r2;
-	NGSHelper::openBAM(r2, in2);
+	BamReader r1(in1);
+	BamReader r2(in2);
 
 	//calcualate frequencies
 	QVector<double> freq1;

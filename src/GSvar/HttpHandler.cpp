@@ -45,7 +45,6 @@ QString HttpHandler::getHttpReply(QString url)
 	connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
 	loop.exec();
 
-
 	//output
 	QString output = reply->readAll();
 	if (reply->error()!=QNetworkReply::NoError)

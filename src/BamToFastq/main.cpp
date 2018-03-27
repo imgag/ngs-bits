@@ -1,11 +1,6 @@
 #include "ToolBase.h"
-#include "api/BamReader.h"
-#include "api/BamWriter.h"
-#include "api/BamAlgorithms.h"
 #include "FastqFileStream.h"
 #include "NGSHelper.h"
-
-using namespace BamTools;
 
 class ConcreteTool
 		: public ToolBase
@@ -30,10 +25,10 @@ public:
 	{
 		//create FASTQ entry
 		FastqEntry e;
-		e.header = "@" + QByteArray::fromRawData(al.Name.data(), al.Name.size());
-		e.bases = QByteArray::fromRawData(al.QueryBases.data(), al.QueryBases.size());
+		e.header = "@" + al.name();
+		e.bases = al.bases();
 		e.header2 = "+";
-		e.qualities = QByteArray::fromRawData(al.Qualities.data(), al.Qualities.size());
+		e.qualities = al.qualities();
 
 		if (rev_comp)
 		{
@@ -48,8 +43,7 @@ public:
 	{
 		//init
 		QTextStream out(stdout);
-		BamReader reader;
-		NGSHelper::openBAM(reader, getInfile("in"));
+		BamReader reader(getInfile("in"));
 
 		FastqOutfileStream out1(getOutfile("out1"), false);
 		FastqOutfileStream out2(getOutfile("out2"), false);
@@ -61,35 +55,36 @@ public:
 		//iterate through reads
 		BamAlignment al;
 		QHash<QByteArray, BamAlignment> al_cache;
-		while (reader.GetNextAlignment(al))
+		while (reader.getNextAlignment(al))
 		{
+			//out << al.name() << " PAIRED=" << al.isPaired() << " SEC=" << al.isSecondaryAlignment() << " PROP=" << al.isProperPair() << endl;
+			
 			//skip secondary alinments
-			if(!al.IsPrimaryAlignment()) continue;
-
+			if(al.isSecondaryAlignment()) continue;
+			
 			//skip unpaired
-			if(!al.IsPaired())
+			if(!al.isPaired())
 			{
 				++c_unpaired;
 				continue;
 			}
 
-			QByteArray name = QByteArray::fromStdString(al.Name);
-
 			//store cached read when we encounter the mate
+			QByteArray name = al.name();
 			if (al_cache.contains(name))
 			{
 				BamAlignment mate = al_cache.take(name);
-				//out << name << " [AL] First: " << al.IsFirstMate() << " Reverse: " << al.IsReverseStrand() << " Seq: " << al.QueryBases.data() << endl;
-				//out << name << " [MA] First: " << mate.IsFirstMate() << " Reverse: " << mate.IsReverseStrand() << " Seq: " << mate.QueryBases.data() << endl;
-				if (al.IsFirstMate())
+				//out << name << " [AL] First: " << al.isRead1() << " Reverse: " << al.isReverseStrand() << " Seq: " << al.QueryBases.data() << endl;
+				//out << name << " [MA] First: " << mate.isRead1() << " Reverse: " << mate.isReverseStrand() << " Seq: " << mate.QueryBases.data() << endl;
+				if (al.isRead1())
 				{
-					write(out1, al, al.IsReverseStrand());
-					write(out2, mate, mate.IsReverseStrand());
+					write(out1, al, al.isReverseStrand());
+					write(out2, mate, mate.isReverseStrand());
 				}
 				else
 				{
-					write(out1, mate, mate.IsReverseStrand());
-					write(out2, al, al.IsReverseStrand());
+					write(out1, mate, mate.isReverseStrand());
+					write(out2, al, al.isReverseStrand());
 				}
 				++c_paired;
 			}
@@ -101,7 +96,6 @@ public:
 
 			max_cached = std::max(max_cached, al_cache.size());
 		}
-		reader.Close();
 		out1.close();
 		out2.close();
 

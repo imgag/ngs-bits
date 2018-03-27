@@ -8,7 +8,6 @@
 #include <QDir>
 #include "Settings.h"
 #include "Log.h"
-#include "api/BamReader.h"
 #include "NGSHelper.h"
 #include <vector>
 
@@ -22,6 +21,45 @@ public:
 	ConcreteTool(int& argc, char *argv[])
 		: ToolBase(argc, argv)
 	{
+	}
+
+	QList<QString> extractExperimentInfo(QString bam, QString tag)
+	{
+		QStringList platforms;
+		QStringList devices;
+		QStringList enrichments;
+
+		BamReader reader(bam);
+		foreach(QByteArray line, reader.headerLines())
+		{
+			if(line.startsWith("@RG"))
+			{
+				QString platform = "unknown_platform";
+				QString device = "unknown_device";
+				QString enrichment = "unknown_enrichment";
+				QByteArrayList parts = line.split('\t');
+				foreach(QByteArray part, parts)
+				{
+					if (part.startsWith("PL:"))
+					{
+						platform = part.mid(3).trimmed();
+					}
+					if (part.startsWith("PM:"))
+					{
+						device = part.mid(3).trimmed();
+					}
+					if (part.startsWith("en:"))
+					{
+						enrichment = part.mid(3).trimmed();
+					}
+				}
+				platforms << platform;
+				devices << device;
+				enrichments << enrichment;
+			}
+		}
+
+		return QList<QString>({"QC:?", "experiment", platforms.join(":") + ", " + devices.join(":") + ", " + enrichments.join(":") + " (" + tag + ")"});
 	}
 
 	virtual void setup()
@@ -62,73 +100,8 @@ public:
 		metadata += QList<QString>({"QC:1000005","source file",QFileInfo(tumor_bam).fileName() + " (tumor)"});
 		metadata += QList<QString>({"QC:1000005","source file",QFileInfo(normal_bam).fileName() + " (normal)"});
 		metadata += QList<QString>({"QC:1000005","source file",QFileInfo(somatic_vcf).fileName()});
-
-		// metadata - add information about sequencing device from bam files
-		int count;
-		QString tmp_instrument;
-		QString tmp_enrichment;
-		BamReader reader;
-		SamReadGroupDictionary read_group_dic;
-
-		count = 0;
-		tmp_instrument = "";
-		tmp_enrichment = "";
-		NGSHelper::openBAM(reader, tumor_bam);
-		read_group_dic = reader.GetHeader().ReadGroups;
-		for(SamReadGroupIterator i = read_group_dic.Begin(); i != read_group_dic.End(); ++i)
-		{
-			SamReadGroup read_group = *i;
-			if(count>0 && tmp_instrument!="")	tmp_instrument += ":";
-			if(count>0 && tmp_enrichment!="")	tmp_enrichment += ":";
-
-			if(read_group.HasSequencingTechnology())	tmp_instrument += QString::fromStdString(read_group.SequencingTechnology);
-			else tmp_instrument += "unknown_platform";
-
-			QString tmp_i = "";
-			QString tmp_e = "";
-			for(uint j = 0; j < read_group.CustomTags.size(); ++j)
-			{
-				if(read_group.CustomTags[j].TagName == "PM")	tmp_i = QString::fromStdString(read_group.CustomTags[j].TagValue);
-				if(read_group.CustomTags[j].TagName == "en")	tmp_e = QString::fromStdString(read_group.CustomTags[j].TagValue);
-			}
-			if(tmp_i == "")	tmp_i = "unknown_device";
-			if(tmp_e == "")	tmp_e = "unknown_enrichment";
-			tmp_instrument += ", " + tmp_i;
-			tmp_enrichment += tmp_e;
-
-			++count;
-		}
-		metadata += QList<QString>({"QC:?","experiment",tmp_instrument + ", " + tmp_enrichment + " (tumor)"});
-
-		count = 0;
-		tmp_instrument = "";
-		tmp_enrichment = "";
-		NGSHelper::openBAM(reader, normal_bam);
-		read_group_dic = reader.GetHeader().ReadGroups;
-		for(SamReadGroupIterator i = read_group_dic.Begin(); i != read_group_dic.End(); ++i)
-		{
-			SamReadGroup read_group = *i;
-			if(count>0 && tmp_instrument!="")	tmp_instrument += ":";
-			if(count>0 && tmp_enrichment!="")	tmp_enrichment += ":";
-
-			if(read_group.HasSequencingTechnology())	tmp_instrument += QString::fromStdString(read_group.SequencingTechnology);
-			else tmp_instrument += "unknown_platform";
-
-			QString tmp_i = "";
-			QString tmp_e = "";
-			for(uint j = 0; j < read_group.CustomTags.size(); ++j)
-			{
-				if(read_group.CustomTags[j].TagName == "PM")	tmp_i = QString::fromStdString(read_group.CustomTags[j].TagValue);
-				if(read_group.CustomTags[j].TagName == "en")	tmp_e = QString::fromStdString(read_group.CustomTags[j].TagValue);
-			}
-			if(tmp_i == "")	tmp_i = "unknown_device";
-			if(tmp_e == "")	tmp_e = "unknown_enrichment";
-			tmp_instrument += ", " + tmp_i;
-			tmp_enrichment += tmp_e;
-
-			++count;
-		}
-		metadata += QList<QString>({"QC:?","experiment",tmp_instrument + ", " + tmp_enrichment + " (normal)"});
+		metadata += extractExperimentInfo(tumor_bam, "tumor");
+		metadata += extractExperimentInfo(normal_bam, "normal");
 
 		// metadata - add linked files as relative paths
 		QDir out_dir = QFileInfo(out).absoluteDir();

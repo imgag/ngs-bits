@@ -23,9 +23,9 @@ LIBS += -L$$PWD/../bin -lcppNGS
 INCLUDEPATH += $$PWD/cppGUI
 LIBS += -L$$PWD/../bin -lcppGUI
 
-#include bamtools library
-INCLUDEPATH += $$PWD/../bamtools/include/
-LIBS += -L$$PWD/../bamtools/lib/ -lbamtools
+#include htslib library
+INCLUDEPATH += $$PWD/../htslib/include/
+LIBS += -L$$PWD/../htslib/lib/ -lhts
 
 #include zlib library
 LIBS += -lz

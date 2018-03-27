@@ -3,12 +3,9 @@
 #include "Statistics.h"
 #include <QFileInfo>
 #include <QFileInfo>
-#include "api/BamReader.h"
 #include "Exceptions.h"
 #include "Helper.h"
-#include "api/BamAlgorithms.h"
 #include "NGSHelper.h"
-#include "ChromosomeInfo.h"
 
 class ConcreteTool
 		: public ToolBase
@@ -40,9 +37,7 @@ public:
 		}
 
 		//open BAM file
-		BamReader reader;
-		NGSHelper::openBAM(reader, bam_file);
-		ChromosomeInfo chr_info(reader);
+		BamReader reader(bam_file);
 
 		//init coverage statistics data structure
 		QVector<qlonglong> read_count;
@@ -51,21 +46,18 @@ public:
 		//iterate through all alignments
 		ChromosomalIndex<BedFile> bed_idx(bed_file);
 		BamAlignment al;
-		while (reader.GetNextAlignmentCore(al))
+		while (reader.getNextAlignment(al))
 		{
-			if (al.IsDuplicate()) continue;
-			if (!al.IsPrimaryAlignment()) continue;
-			if (!al.IsMapped() || al.MapQuality<min_mapq) continue;
+			if (al.isUnmapped()) continue;
+			if (al.isSecondaryAlignment()) continue;
+			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
-			const Chromosome& chr = chr_info.chromosome(al.RefID);
-			int end_position = al.GetEndPosition();
-			QVector<int> indices = bed_idx.matchingIndices(chr, al.Position+1, end_position);
+			QVector<int> indices = bed_idx.matchingIndices(reader.chromosome(al.chromosomeID()), al.start(), al.end());
 			foreach(int index, indices)
 			{
 				read_count[index] += 1;
 			}
 		}
-		reader.Close();
 
 		//append readcounts to bed file structure
 		for (int i=0; i<bed_file.count(); ++i)

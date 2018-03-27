@@ -19,9 +19,9 @@ LIBS += -L$$PWD/../bin -lcppXML
 INCLUDEPATH += $$PWD/cppNGS
 LIBS += -L$$PWD/../bin -lcppNGS
 
-#include bamtools library
-INCLUDEPATH += $$PWD/../bamtools/include/
-LIBS += -L$$PWD/../bamtools/lib/ -lbamtools
+#include htslib library
+INCLUDEPATH += $$PWD/../htslib/include/
+LIBS += -L$$PWD/../htslib/lib/ -lhts
 
 #include zlib library
 LIBS += -lz

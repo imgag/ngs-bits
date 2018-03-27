@@ -1,7 +1,3 @@
-[submodule "bamtools"]
-	path = bamtools
-	url = https://github.com/marc-sturm/bamtools.git
-	branch = master
 [submodule "src/cppCORE"]
 	path = src/cppCORE
 	url = https://github.com/marc-sturm/cppCORE.git

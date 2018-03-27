@@ -15,3 +15,7 @@ Installing bioconda was done using these steps:
 
 	> cd [path]/bioconda-recipes
 	> conda-build recipes/ngs-bits/
+
+*Note: This no longer works, because of pinned BZIP2. Instructions how to set up a complete build environment can be found here:*  
+`https://github.com/bioconda/bioconda-recipes/issues/7233`
+

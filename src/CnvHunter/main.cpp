@@ -246,7 +246,6 @@ public:
 		}
 	}
 
-	//TODO: replace fun_* by BasicStatistics (rewrite the functions as template functions)
 	float fun_median(const QVector<float>& data)
 	{
 		if (data.count()==0)

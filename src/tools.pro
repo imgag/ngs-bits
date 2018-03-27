@@ -133,10 +133,6 @@ SUBDIRS += ReadQC
 tools-TEST.depends += ReadQC
 ReadQC.depends = cppNGS
 
-SUBDIRS += BamLeftAlign
-tools-TEST.depends += BamLeftAlign
-BamLeftAlign.depends = cppNGS
-
 SUBDIRS += BedToFasta
 tools-TEST.depends += BedToFasta
 BedToFasta.depends = cppNGS

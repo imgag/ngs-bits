@@ -1,12 +1,18 @@
 === TODO ===
 
+general:
+*** Helper: add RandomInit() method and used it in randomString()
+*** Replace i++ with ++i in for loops
+*** mark all "not implemented" or "declared away" methods as deleted
+*** move getPileup and other BAM-related methods to BamReader/BamWriter (also move tests)
+
 libs:
-*** use HTSlib instead of bamtools
 - VariantList:
     - determine file format from file header instead of file name => make more tools pipeable (MS)
     - use QSharedPointers to link VariantAnnotationHeaders with VariantAnnotationDescriptions (CS)
     - check vcf and tsv files if valid - columns and their descriptions (CS)
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
+* integration of htslib: use pileup, use VCF support, use lookup table instead of switch statement in BamReader::setBases()
 
 GSvar:
 ** Add pLI score (megSAP) and filter for pLI (GSvar)
@@ -21,11 +27,13 @@ GSvar:
 - Make default filters configurable in INI file
 
 Tools:
-** add new tool BedHighCoverage (wait until HTSlib available)
+** add new tool BedHighCoverage (similar to samtools depth)
 - BedAdd: make 'in' a input file list and remove 'in2'
 - SampleCorrelation: Add option to use only rare snps e.g. 0.1-10.0% AF in VCF/GSvar mode (MS)
 - SomaticQC: do not use precalculated triplet counts, count every time (CS)
+- SomaticQC: replace 'QC:?' by real qcML identifier (CS)
 - BamClipOverlap: require sorted bam and paired-end sequencing (CS)
+- BamClipOverlap: use higher base quality in overlap (CS)
 
 External:
 ** implement MultiQC support for ReadQC/MappingQC/VariantQC/SomaticQC > Jakob
@@ -35,6 +43,7 @@ CnvHunter:
 ** Add z-score of #CNVs as QC parameter (megSAP!?)
 ** Add support for chrY
 * test sqrt-normalization
+- replace fun_* by methods from BasicStatistics, i.e. rewrite the methods in BasicStatistics as template functions that accept both float and double
 - test GC-normalization (check GS151166_01 C5orf42, DX170123_01 SEC23B del)
     - test effect of including different flanking regions
     - alternatively, test intra-sample normalization using the most similar exons on different chromosomes

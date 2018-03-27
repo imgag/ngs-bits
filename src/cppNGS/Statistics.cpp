@@ -14,15 +14,11 @@
 #include "ScatterPlot.h"
 #include "BarPlot.h"
 #include "Helper.h"
-#include "ChromosomeInfo.h"
 #include "SampleCorrelation.h"
 #include <QFileInfo>
 #include <QPair>
 #include "Histogram.h"
 #include "VariantFilter.h"
-
-#include "api/BamReader.h"
-using namespace BamTools;
 
 QCCollection Statistics::variantList(VariantList variants, bool filter)
 {
@@ -150,9 +146,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
     ChromosomalIndex<BedFile> roi_index(bed_file);
 
     //open BAM file
-    BamReader reader;
-    NGSHelper::openBAM(reader, bam_file);
-	ChromosomeInfo chr_info(reader);
+	BamReader reader(bam_file);
 
     //create coverage statistics data structure
     long long roi_bases = 0;
@@ -190,52 +184,53 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 
     //iterate through all alignments
     BamAlignment al;
-    while (reader.GetNextAlignmentCore(al))
+	while (reader.getNextAlignment(al))
     {
 		//skip secondary alignments
-		if (!al.IsPrimaryAlignment()) continue;
+		if (al.isSecondaryAlignment()) continue;
 
         ++al_total;
-        max_length = std::max(max_length, al.Length);
+		max_length = std::max(max_length, al.length());
 
         //insert size
-		if (al.IsPaired())
+		if (al.isPaired())
         {
             paired_end = true;
 
-            if (al.IsProperPair())
+			if (al.isProperPair())
             {
                 ++al_proper_paired;
-				int insert_size = std::min(abs(al.InsertSize), 999); //cap insert size at 1000
+				int insert_size = std::min(abs(al.insertSize()), 999); //cap insert size at 1000
 				insert_size_sum += insert_size;
 				insert_dist.inc(insert_size, true);
             }
         }
 
-        if (al.IsMapped())
+		if (!al.isUnmapped())
         {
             ++al_mapped;
 
             //calculate soft/hard-clipped bases
-            const int start_pos = al.Position+1;
-            const int end_pos = al.GetEndPosition();
-            bases_mapped += al.Length;
-            for (auto it=al.CigarData.cbegin(); it!=al.CigarData.cend(); ++it)
+			const int start_pos = al.start();
+			const int end_pos = al.end();
+			bases_mapped += al.length();
+			const QList<CigarOp> cigar_data = al.cigarData();
+			foreach(const CigarOp& op, cigar_data)
             {
-                if (it->Type=='S' || it->Type=='H')
+				if (op.Type==BAM_CSOFT_CLIP || op.Type==BAM_CHARD_CLIP)
                 {
-                    bases_clipped += it->Length;
+					bases_clipped += op.Length;
                 }
             }
 
             //calculate usable bases and base-resolution coverage
-			const Chromosome& chr = chr_info.chromosome(al.RefID);
+			const Chromosome& chr = reader.chromosome(al.chromosomeID());
             QVector<int> indices = roi_index.matchingIndices(chr, start_pos, end_pos);
             if (indices.count()!=0)
             {
                 ++al_ontarget;
 
-				if (!al.IsDuplicate() && al.MapQuality>=min_mapq)
+				if (!al.isDuplicate() && al.mappingQuality()>=min_mapq)
                 {
                     foreach(int index, indices)
                     {
@@ -255,17 +250,16 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
         }
 
         //trimmed bases (this is not entirely correct if the first alignments are all trimmed, but saves the second pass through the data)
-        if (al.Length<max_length)
+		if (al.length()<max_length)
         {
-            bases_trimmed += (max_length - al.Length);
+			bases_trimmed += (max_length - al.length());
         }
 
-        if (al.IsDuplicate())
+		if (al.isDuplicate())
         {
             ++al_dup;
         }
-    }
-    reader.Close();
+	}
 
 	//calculate coverage depth statistics
 	double avg_depth = (double) bases_usable / roi_bases;
@@ -364,9 +358,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 QCCollection Statistics::mapping_rna(const QString &bam_file, int min_mapq)
 {
     //open BAM file
-    BamReader reader;
-    NGSHelper::openBAM(reader, bam_file);
-    ChromosomeInfo chr_info(reader);
+	BamReader reader(bam_file);
 
     //init counts
     int al_total = 0;
@@ -384,80 +376,73 @@ QCCollection Statistics::mapping_rna(const QString &bam_file, int min_mapq)
     bool paired_end = false;
 
     //hash a read until its paired read occurs
-    typedef QMap<QString, QPair<std::vector<CigarOp>, int>> ReadHash;
-    ReadHash read_hash;
+	QMap<QString, QPair<QList<CigarOp>, int>> read_hash;
 
-    //iterate through all alignments
-    BamAlignment al;
-
-    //current reference ID
-    int old_ref_id = 0;
-    int cur_ref_id = 0;
-    while (reader.GetNextAlignment(al))
+	//iterate through all alignments
+	int last_chr_id = -1;
+	BamAlignment al;
+	while (reader.getNextAlignment(al))
     {
         //skip secondary alignments
-        if (!al.IsPrimaryAlignment()) continue;
+		if (al.isSecondaryAlignment()) continue;
 
         //empty hash if new reference sequence (chromosome) started
-        old_ref_id = cur_ref_id;
-        cur_ref_id = al.RefID;
-        if(cur_ref_id != old_ref_id) {
-            for (auto it = read_hash.begin(); it != read_hash.end();) {
-                  it = read_hash.erase(it);
-            }
+		if (al.chromosomeID() != last_chr_id)
+		{
+			read_hash.clear();
         }
+		last_chr_id = al.chromosomeID();
 
         ++al_total;
-        max_length = std::max(max_length, al.Length);
+		max_length = std::max(max_length, al.length());
 
         //insert size
-        if (al.IsPaired())
+		if (al.isPaired())
         {
             paired_end = true;
-            if (al.IsProperPair())
+			if (al.isProperPair())
             {
                 ++al_proper_paired;
 
-                int insert_size = abs(al.InsertSize);
+				int insert_size = abs(al.insertSize());
 
                 //is the the paired read already present in the hash?
-                QString key = QString::fromStdString(al.Name);
+				QString key = al.name();
                 auto search_result = read_hash.find(key);
-                if(search_result == read_hash.end()) {
-                    read_hash.insert(key, qMakePair(al.CigarData, al.Position));
-                } else {
-                    //compute the insert size using information of both reads
-                    std::vector<CigarOp> cigar1 = search_result->first;             // Cigar string read1
-                    std::vector<CigarOp> cigar2 = al.CigarData;                     // Cigar string read2
-                    int start1 = search_result->second;                             // Start pos read1
-                    int start2 = al.Position;                                       // Start pos read2
+				if(search_result == read_hash.end())
+				{
+					read_hash.insert(key, qMakePair(al.cigarData(), al.start()-1));
+				}
+				else
+				{
+					//compute the insert size using information of both reads
+					int start1 = search_result->second;                             // Start pos read1
+					int start2 = al.start()-1;                                      // Start pos read2
                     int end1 = start1;                                              // End pos read1
                     int end2 = start2;                                              // End pos read2
 
-                    //sweep over read1 and substract the introns from the insert size
-                    std::vector<CigarOp>::const_iterator cigarIter = cigar1.begin();
-                    std::vector<CigarOp>::const_iterator cigarEnd  = cigar1.end();
-                    for ( ; cigarIter != cigarEnd; ++cigarIter ) {
-                        const CigarOp& op = (*cigarIter);
-                        end1 += op.Length;
+					//sweep over read1 and substract the introns from the insert size
+					foreach(const CigarOp& op, search_result->first)
+					{
+						end1 += op.Length;
 
                         // If the read spans an intron, decrease the insert size
-                        if(op.Type == Constants::BAM_CIGAR_REFSKIP_CHAR) {
+						if(op.Type==BAM_CREF_SKIP)
+						{
                             insert_size -= op.Length;
                         }
 
                         // Stop if read2 was reached
-                        if(end1 >= start2) {
-                            break;
-                        }
+						if(end1 >= start2) break;
                     }
+
                     //sweep over read2 and substract the introns that starts after read1's end
-                    cigarIter = cigar2.begin();
-                    cigarEnd  = cigar2.end();
-                    for ( ; cigarIter != cigarEnd; ++cigarIter ) {
-                        const CigarOp& op = (*cigarIter);
+					QList<CigarOp> cigar2 = al.cigarData();
+					foreach(const CigarOp& op, cigar2)
+					{
                         // Do not consider parts that were fully overlapped by read1
-						if(end2 + (int)op.Length < end1) {
+						if(end2 + (int)op.Length < end1)
+						{
                             end2 += op.Length;
                             continue;
                         }
@@ -465,7 +450,8 @@ QCCollection Statistics::mapping_rna(const QString &bam_file, int min_mapq)
                         end2 += op.Length;
 
                         // If the read spans an intron, decrease the insert size
-                        if(op.Type == Constants::BAM_CIGAR_REFSKIP_CHAR) {
+						if(op.Type==BAM_CREF_SKIP)
+						{
                             insert_size -= op.Length;
                         }
                     }
@@ -480,44 +466,44 @@ QCCollection Statistics::mapping_rna(const QString &bam_file, int min_mapq)
             }
         }
 
-        if (al.IsMapped())
+		if (!al.isUnmapped())
         {
             ++al_mapped;
 
             //calculate soft/hard-clipped bases
-            bases_mapped += al.Length;
-            for (auto it=al.CigarData.cbegin(); it!=al.CigarData.cend(); ++it)
+			bases_mapped += al.length();
+			const QList<CigarOp> cigar_data = al.cigarData();
+			foreach(const CigarOp& op, cigar_data)
             {
-                if (it->Type=='S' || it->Type=='H')
+				if (op.Type==BAM_CSOFT_CLIP || op.Type==BAM_CHARD_CLIP)
                 {
-                    bases_clipped += it->Length;
+					bases_clipped += op.Length;
                 }
             }
 
             //usable
-            if (chr_info.chromosome(al.RefID).isNonSpecial())
+			if (reader.chromosome(al.chromosomeID()).isNonSpecial())
             {
                 ++al_ontarget;
 
-                if (!al.IsDuplicate() && al.MapQuality>=min_mapq)
+				if (!al.isDuplicate() && al.mappingQuality()>=min_mapq)
                 {
-                    bases_usable += al.Length;
+					bases_usable += al.length();
                 }
             }
         }
 
         //trimmed bases (this is not entirely correct if the first alignments are all trimmed, but saves the second pass through the data)
-        if (al.Length<max_length)
+		if (al.length()<max_length)
         {
-            bases_trimmed += (max_length - al.Length);
+			bases_trimmed += (max_length - al.length());
         }
 
-        if (al.IsDuplicate())
+		if (al.isDuplicate())
         {
             ++al_dup;
         }
-    }
-    reader.Close();
+	}
 
     //output
     QCCollection output;
@@ -566,9 +552,7 @@ QCCollection Statistics::mapping_rna(const QString &bam_file, int min_mapq)
 QCCollection Statistics::mapping(const QString &bam_file, int min_mapq)
 {
     //open BAM file
-    BamReader reader;
-    NGSHelper::openBAM(reader, bam_file);
-	ChromosomeInfo chr_info(reader);
+	BamReader reader(bam_file);
 
     //init counts
     int al_total = 0;
@@ -587,66 +571,66 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq)
 
     //iterate through all alignments
     BamAlignment al;
-    while (reader.GetNextAlignmentCore(al))
+	while (reader.getNextAlignment(al))
 	{
 		//skip secondary alignments
-		if (!al.IsPrimaryAlignment()) continue;
+		if (al.isSecondaryAlignment()) continue;
 
         ++al_total;
-        max_length = std::max(max_length, al.Length);
+		max_length = std::max(max_length, al.length());
 
         //insert size
-		if (al.IsPaired())
+		if (al.isPaired())
         {
             paired_end = true;
 
-            if (al.IsProperPair())
+			if (al.isProperPair())
             {
 				++al_proper_paired;
-                const int insert_size = std::min(abs(al.InsertSize),  999); //cap insert size at 1000
+				const int insert_size = std::min(abs(al.insertSize()),  999); //cap insert size at 1000
 				insert_size_sum += insert_size;
 				insert_dist.inc(insert_size, true);
             }
         }
 
-        if (al.IsMapped())
+		if (!al.isUnmapped())
         {
             ++al_mapped;
 
             //calculate soft/hard-clipped bases
-            bases_mapped += al.Length;
-            for (auto it=al.CigarData.cbegin(); it!=al.CigarData.cend(); ++it)
-            {
-                if (it->Type=='S' || it->Type=='H')
-                {
-					bases_clipped += it->Length;
-                }
-            }
+			bases_mapped += al.length();
+			const QList<CigarOp> cigar_data = al.cigarData();
+			foreach(const CigarOp& op, cigar_data)
+			{
+				if (op.Type==BAM_CSOFT_CLIP || op.Type==BAM_CHARD_CLIP)
+				{
+					bases_clipped += op.Length;
+				}
+			}
 
             //usable
-			if (chr_info.chromosome(al.RefID).isNonSpecial())
+			if (reader.chromosome(al.chromosomeID()).isNonSpecial())
             {
                 ++al_ontarget;
 
-				if (!al.IsDuplicate() && al.MapQuality>=min_mapq)
+				if (!al.isDuplicate() && al.mappingQuality()>=min_mapq)
 				{
-                    bases_usable += al.Length;
+					bases_usable += al.length();
                 }
             }
         }
 
         //trimmed bases (this is not entirely correct if the first alignments are all trimmed, but saves the second pass through the data)
-        if (al.Length<max_length)
+		if (al.length()<max_length)
         {
-            bases_trimmed += (max_length - al.Length);
+			bases_trimmed += (max_length - al.length());
         }
 
-        if (al.IsDuplicate())
+		if (al.isDuplicate())
         {
             ++al_dup;
         }
-    }
-    reader.Close();
+	}
 
     //output
     QCCollection output;
@@ -673,7 +657,7 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq)
 		output.insert(QCValue("duplicate read percentage", 100.0 * al_dup / al_total, "Percentage of reads removed because they were duplicates (PCR, optical, etc).", "QC:2000024"));
     }
     output.insert(QCValue("bases usable (MB)", (double)bases_usable / 1000000.0, "Bases sequenced that are usable for variant calling (in megabases).", "QC:2000050"));
-    output.insert(QCValue("target region read depth", (double) bases_usable / chr_info.genomeSize(true), "Average sequencing depth in target region.", "QC:2000025"));
+	output.insert(QCValue("target region read depth", (double) bases_usable / reader.genomeSize(true), "Average sequencing depth in target region.", "QC:2000025"));
 
 	//add insert size distribution plot
 	if (paired_end)
@@ -850,10 +834,8 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	}
 
 	//somatic mutation load
-	BamReader reader;
-	reader.Open(tumor_bam.toStdString());
-	ChromosomeInfo chr(reader);
-	double genome_size = chr.genomeSize(true)/1000000.0;
+	BamReader reader(tumor_bam);
+	double genome_size = reader.genomeSize(true)/1000000.0;
 	double target_size = genome_size;
 	int count_tumorgenes = 0;	// somatic variants in typical tumor suppressors / oncogenes may falsify interpolation
 	if(!target_file.isEmpty())
@@ -946,10 +928,8 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	int n = 10;
 	//process variants
 	QVector<double> freqs;
-	BamReader reader_tumor;
-	NGSHelper::openBAM(reader_tumor, tumor_bam);
-	BamReader reader_normal;
-	NGSHelper::openBAM(reader_normal, normal_bam);
+	BamReader reader_tumor(tumor_bam);
+	BamReader reader_normal(normal_bam);
 	for (int i=0; i<variants.count(); ++i)
 	{
 		const Variant& v = variants[i];
@@ -1468,8 +1448,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 QCCollection Statistics::contamination(QString bam, bool debug, int min_cov, int min_snps)
 {
 	//open BAM
-	BamReader reader;
-	NGSHelper::openBAM(reader, bam);
+	BamReader reader(bam);
 
 	//calcualate frequency histogram
 	Histogram hist(0, 1, 0.05);
@@ -1523,8 +1502,7 @@ QCCollection Statistics::mapping3Exons(const QString& bam_file)
     roi_qc.append(BedLine("chr18", 19995536, 19997774));
 
     //open BAM file
-    BamReader reader;
-    NGSHelper::openBAM(reader, bam_file);
+	BamReader reader(bam_file);
 
     //iterate through target regions
     long depth_all = 0;
@@ -1591,9 +1569,7 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
     }
 
     //open BAM file
-    BamReader reader;
-    NGSHelper::openBAM(reader, bam_file);
-	ChromosomeInfo chr_info(reader);
+	BamReader reader(bam_file);
 
 	//iterate trough all regions (i.e. exons in most cases)
 	for (int i=0; i<bed_file.count(); ++i)
@@ -1606,23 +1582,18 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
         QVector<int> roi_cov(bed_line.length(), 0);
 
 		//jump to region
-		int ref_id = chr_info.refID(bed_line.chr());
-		bool jump_ok = reader.SetRegion(ref_id, bed_line.start()-100, ref_id, bed_line.end()+100);
-		//TODO There is a bug in bamtools that leads to skipping of some reads if we use the exact region borders.
-		//     Regularly check if this bug is fixed and if so, restore the original jump line (below) and remove the test and test data.
-		//     bool jump_ok = reader.SetRegion(ref_id, bed_line.start()-1, ref_id, bed_line.end());
-		if (!jump_ok) THROW(FileAccessException, QString::fromStdString(reader.GetErrorString()));
+		reader.setRegion(bed_line.chr(), bed_line.start(), bed_line.end());
 
 		//iterate through all alignments
 		BamAlignment al;
-		while (reader.GetNextAlignmentCore(al))
+		while (reader.getNextAlignment(al))
 		{
-			if (al.IsDuplicate()) continue;
-			if (!al.IsPrimaryAlignment()) continue;
-			if (!al.IsMapped() || al.MapQuality<min_mapq) continue;
+			if (al.isDuplicate()) continue;
+			if (al.isSecondaryAlignment()) continue;
+			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
-			const int ol_start = std::max(start, al.Position+1) - start;
-			const int ol_end = std::min(bed_line.end(), al.GetEndPosition()) - start;
+			const int ol_start = std::max(start, al.start()) - start;
+			const int ol_end = std::min(bed_line.end(), al.end()) - start;
 			for (int p=ol_start; p<=ol_end; ++p)
 			{
 				++roi_cov[p];
@@ -1661,35 +1632,30 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
     BedFile output;
 
     //open BAM file
-    BamReader reader;
-    NGSHelper::openBAM(reader, bam_file);
-    ChromosomeInfo chr_info(reader);
+	BamReader reader(bam_file);
 
-    //iteratore through chromosomes
-    QList<Chromosome> chrs = chr_info.chromosomes();
-    foreach(const Chromosome& chr, chrs)
+	//iteratore through chromosomes
+	foreach(const Chromosome& chr, reader.chromosomes())
     {
         if (!chr.isNonSpecial()) continue;
 
-        int chr_size = chr_info.size(chr);
+		int chr_size = reader.chromosomeSize(chr);
         //qDebug() << chr.str() << chr_size;
         QVector<int> cov(chr_size, 0);
 
-        //jump to chromosome
-        int ref_id = chr_info.refID(chr);
-        bool jump_ok = reader.SetRegion(ref_id, 0, ref_id, chr_size);
-        if (!jump_ok) THROW(FileAccessException, QString::fromStdString(reader.GetErrorString()));
+		//jump to chromosome
+		reader.setRegion(chr, 0, chr_size);
 
         //iterate through all alignments
         BamAlignment al;
-        while (reader.GetNextAlignmentCore(al))
+		while (reader.getNextAlignment(al))
         {
-            if (al.IsDuplicate()) continue;
-            if (!al.IsPrimaryAlignment()) continue;
-            if (!al.IsMapped() || al.MapQuality<min_mapq) continue;
+			if (al.isDuplicate()) continue;
+			if (al.isSecondaryAlignment()) continue;
+			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
-            const int end = al.GetEndPosition();
-            for (int p=al.Position; p<end; ++p)
+			const int end = al.end();
+			for (int p=al.start()-1; p<end; ++p)
             {
                 ++cov[p];
             }
@@ -1734,9 +1700,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
     }
 
     //open BAM file
-    BamReader reader;
-    NGSHelper::openBAM(reader, bam_file);
-	ChromosomeInfo chr_info(reader);
+	BamReader reader(bam_file);
 
 	if (panel_mode) //panel mode
 	{
@@ -1746,23 +1710,18 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 			BedLine& bed_line = bed_file[i];
 
 			//jump to region
-			int ref_id = chr_info.refID(bed_line.chr());
-			bool jump_ok = reader.SetRegion(ref_id, bed_line.start()-100, ref_id, bed_line.end()+100);
-			//TODO There is a bug in bamtools that leads to skipping of some reads if we use the exact region borders.
-			//     Regularly check if this bug is fixed and if so, restore the original jump line (below).
-			//     bool jump_ok = reader.SetRegion(ref_id, bed_line.start()-1, ref_id, bed_line.end());
-			if (!jump_ok) THROW(FileAccessException, QString::fromStdString(reader.GetErrorString()));
+			reader.setRegion(bed_line.chr(), bed_line.start(), bed_line.end());
 
 			//iterate through all alignments
 			BamAlignment al;
-			while (reader.GetNextAlignmentCore(al))
+			while (reader.getNextAlignment(al))
 			{
-				if (!include_duplicates && al.IsDuplicate()) continue;
-				if (!al.IsPrimaryAlignment()) continue;
-				if (!al.IsMapped() || al.MapQuality<min_mapq) continue;
+				if (!include_duplicates && al.isDuplicate()) continue;
+				if (al.isSecondaryAlignment()) continue;
+				if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
-				const int ol_start = std::max(bed_line.start(), al.Position+1);
-				const int ol_end = std::min(bed_line.end(), al.GetEndPosition());
+				const int ol_start = std::max(bed_line.start(), al.start());
+				const int ol_end = std::min(bed_line.end(), al.end());
 				if (ol_start<=ol_end)
 				{
 					cov += ol_end - ol_start + 1;
@@ -1780,18 +1739,18 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 		//iterate through all alignments
 		ChromosomalIndex<BedFile> bed_idx(bed_file);
 		BamAlignment al;
-		while (reader.GetNextAlignmentCore(al))
+		while (reader.getNextAlignment(al))
 		{
-			if (!include_duplicates && al.IsDuplicate()) continue;
-			if (!al.IsPrimaryAlignment()) continue;
-			if (!al.IsMapped() || al.MapQuality<min_mapq) continue;
+			if (!include_duplicates && al.isDuplicate()) continue;
+			if (al.isSecondaryAlignment()) continue;
+			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
-			const Chromosome& chr = chr_info.chromosome(al.RefID);
-			int end_position = al.GetEndPosition();
-			QVector<int> indices = bed_idx.matchingIndices(chr, al.Position+1, end_position);
+			const Chromosome& chr = reader.chromosome(al.chromosomeID());
+			int end_position = al.end();
+			QVector<int> indices = bed_idx.matchingIndices(chr, al.start(), end_position);
 			foreach(int index, indices)
 			{
-				cov[index] += std::min(bed_file[index].end(), end_position) - std::max(bed_file[index].start(), al.Position+1);
+				cov[index] += std::min(bed_file[index].end(), end_position) - std::max(bed_file[index].start(), al.start());
 			}
 		}
 
@@ -1801,39 +1760,33 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 			bed_file[i].annotations().append(QByteArray ::number((double)(cov[i]) / bed_file[i].length(), 'f', 2));
 		}
 	}
-	reader.Close();
 }
 
 QString Statistics::genderXY(const QString& bam_file, QStringList& debug_output, double max_female, double min_male)
 {
     //open BAM file
-    BamReader reader;
-    NGSHelper::openBAM(reader, bam_file);
+	BamReader reader(bam_file);
 
-    //get RefID of X and Y chromosome
-	int chrx = ChromosomeInfo::refID(reader, "chrX");
-	int chry = ChromosomeInfo::refID(reader, "chrY");
+	//get RefID of X and Y chromosome
 
-    //restrict to X and Y chromosome
-	bool jump_ok = reader.SetRegion(chrx, 0, chry, reader.GetReferenceData()[chry].RefLength);
-	if (!jump_ok) THROW(FileAccessException, QString::fromStdString(reader.GetErrorString()));
+	//count reads on chrX
+	int count_x = 0;
+	Chromosome chrx("chrX");
+	reader.setRegion(chrx, 1, reader.chromosomeSize(chrx));
+	BamAlignment al;
+	while (reader.getNextAlignment(al))
+	{
+		++count_x;
+	}
 
-    //iterate through all alignments and count
-    int count_x = 0;
-    int count_y = 0;
-    BamAlignment al;
-    while (reader.GetNextAlignmentCore(al))
-    {
-        if (al.RefID==chrx)
-        {
-            ++count_x;
-        }
-        else if (al.RefID==chry)
-        {
-            ++count_y;
-        }
-    }
-    reader.Close();
+	//count reads on chrY
+	int count_y = 0;
+	Chromosome chry("chrY");
+	reader.setRegion(chry, 1, reader.chromosomeSize(chry));
+	while (reader.getNextAlignment(al))
+	{
+		++count_y;
+	}
 
     //debug output
     double ratio_yx = (double) count_y / count_x;
@@ -1850,14 +1803,12 @@ QString Statistics::genderXY(const QString& bam_file, QStringList& debug_output,
 QString Statistics::genderHetX(const QString& bam_file, QStringList& debug_output, double max_male, double min_female)
 {
     //open BAM file
-    BamReader reader;
-    NGSHelper::openBAM(reader, bam_file);
+	BamReader reader(bam_file);
 
     //restrict to X chromosome
-	int chrx = ChromosomeInfo::refID(reader, "chrX");
-	int chrx_end_pos = reader.GetReferenceData()[chrx].RefLength;
-	bool jump_ok = reader.SetRegion(chrx, 0, chrx, chrx_end_pos);
-	if (!jump_ok) THROW(FileAccessException, QString::fromStdString(reader.GetErrorString()));
+	Chromosome chrx("chrX");
+	int chrx_end_pos = reader.chromosomeSize(chrx);
+	reader.setRegion(chrx, 1, chrx_end_pos);
 
 	//load SNPs on chrX
 	BedFile roi_chrx;
@@ -1868,34 +1819,26 @@ QString Statistics::genderHetX(const QString& bam_file, QStringList& debug_outpu
 
     //iterate through all alignments and create counts
     BamAlignment al;
-    while (reader.GetNextAlignmentCore(al))
+	while (reader.getNextAlignment(al))
     {
-        if (al.MapQuality<20) continue;
+		if (al.mappingQuality()<20) continue;
 
-        int start = al.Position + 1;
-        int end = al.GetEndPosition();
-        bool char_data_built = false;
+		int start = al.start();
+		int end = al.end();
 
 		for (int i=0; i<snps.count(); ++i)
         {
 			int pos = snps[i].start();
             if (start <= pos && end >= pos)
-            {
-                if (!char_data_built)
-                {
-                    al.BuildCharData();
-                    char_data_built = true;
-                }
-
+			{
                 QPair<char, int> base = NGSHelper::extractBaseByCIGAR(al, pos);
                 counts[i].inc(base.first);
             }
         }
-    }
-    reader.Close();
+	}
 
     //count
-    int hom_count = 0;
+	int hom_count = 0;
     int het_count = 0;
 	for (int i=0; i<snps.count(); ++i)
     {
@@ -1931,24 +1874,20 @@ QString Statistics::genderHetX(const QString& bam_file, QStringList& debug_outpu
 QString Statistics::genderSRY(const QString& bam_file, QStringList& debug_output, double min_cov)
 {
 	//open BAM file
-	BamReader reader;
-	NGSHelper::openBAM(reader, bam_file);
+	BamReader reader(bam_file);
 
 	//restrict to SRY gene
-	int chry = ChromosomeInfo::refID(reader, "chrY");
 	int start = 2655031;
 	int end = 2655641;
-	bool jump_ok = reader.SetRegion(chry, start, chry, end);
-	if (!jump_ok) THROW(FileAccessException, QString::fromStdString(reader.GetErrorString()));
+	reader.setRegion(Chromosome("chrY"), start, end);
 
 	//calcualte average coverage
 	double cov = 0.0;
 	BamAlignment al;
-	while (reader.GetNextAlignmentCore(al))
+	while (reader.getNextAlignment(al))
 	{
-		cov += al.GetEndPosition() - al.Position;
+		cov += al.length();
 	}
-	reader.Close();
 	cov /= (end-start);
 
 	//output

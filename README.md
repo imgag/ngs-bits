@@ -4,7 +4,7 @@
 
 ## Obtaining ngs-bits
 
-Please use git to download the most recent release:
+Please use git to download the most recent release (the source code packages of GitHub do not contains required sub-modules):
 
     git clone --recursive https://github.com/imgag/ngs-bits.git
 	cd ngs-bits
@@ -34,12 +34,11 @@ ngs-bits depends on the following software to be installed
 * _g++_ (4.5 or higher)
 * _qmake_ (Qt 5.5 or higher, including xmlpatterns and mysql package)
 * _git_ (to extract the version hash)
-* _cmake_ (to build the [bamtools](https://github.com/pezmaster31/bamtools) library)
 * __optional:__ python and matplotlib (for plot generation in QC tools)
 
 For example, the installation of the dependencies using Ubuntu 14.04/16.04 looks like that:
 
-	> sudo apt-get install g++ qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql git cmake python python-matplotlib
+	> sudo apt-get install make g++ qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql git python python-matplotlib libbz2-dev liblzma-dev
 
 ### Building
 
@@ -51,6 +50,10 @@ Just execute the following make commands:
 Now the executables and all required libraries can be found in the bin/ folder!
 
 **Note:** Instructions how to build *ngs-bits* unter Windows can be found [here](doc/install_win.md).
+
+## ChangeLog
+
+* 26.03.2018: Changed library used for for BAM access to htslib (was bamtools).
 
 ## Support
 
@@ -83,7 +86,6 @@ The default output format of the quality control tools is [qcML](https://github.
 
 * [BamClipOverlap](doc/tools/BamClipOverlap.md) - (Soft-)Clips paired-end reads that overlap.
 * [BamDownsample](doc/tools/BamDownsample.md) - Downsamples a BAM file to the given percentage of reads.
-* [BamLeftAlign](doc/tools/BamLeftAlign.md) - Left-aligns indels in repeat regions.
 * [BamToFastq](doc/tools/BamToFastq.md) - Converts a BAM file to FASTQ files (paired-end only).
 
 ### BED tools
@@ -124,6 +126,11 @@ The default output format of the quality control tools is [qcML](https://github.
 
 
   
+
+
+
+
+
 
 
 

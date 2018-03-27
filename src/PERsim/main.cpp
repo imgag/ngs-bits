@@ -9,9 +9,6 @@
 #include <chrono>
 #include <random>
 
-#include "api/BamReader.h"
-using namespace BamTools;
-
 class ConcreteTool
 		: public ToolBase
 {

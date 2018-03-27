@@ -9,10 +9,6 @@
 #include <QFileInfo>
 #include "NGSHelper.h"
 
-#include "api/BamReader.h"
-using namespace BamTools;
-
-
 class ConcreteTool
 		: public ToolBase
 {
