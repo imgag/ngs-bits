@@ -5,7 +5,7 @@
 #include "Helper.h"
 #include "GenLabDB.h"
 #include "TSVFileStream.h"
-
+#include <cmath>
 #include <QFileInfo>
 #include <QDir>
 #include <QMessageBox>
