@@ -63,18 +63,27 @@ More information about a copy-number variant can be found through the resources 
 
 *Double-clicking* a CNV in the dialog, opens the CNV region in IGV (see also section [IGV integration](igv_integration.md)).
 
-If the sample folder contains a SEG file, this file can be shown as CNV track in IGV. The default visualization is in heatmap style. In this style regions with a non-significant z-score between -2.5 and 2.5 and regions for which no CNV calling could be performed are shown in white. Gains (z-score>2.5) are shown in blue and losses (z-score<-2.5) are shown in red. Grey areas indicate regions that are not part of the target region (i.e. introns and intergenic regions).
+If the sample folder contains a SEG file, this file can be shown as CNV track in IGV. The default visualization is in points style. In this style gains (z-score>0) are shown in blue and losses (z-score<0) are shown in red.
 
-In addition to the z-score which is vizualized, the CNV track also contains the log2-ratio and copy-number, which are shown as a tooltip when hovering over a region (see screenshot).
-
-The scale of the heatmap can be changed using the context menu of the track. Besides the heatmap vizualization, several other visualizations (points, bars, lines) can be selected in the context menu, which might be more informative depending on the use-case.
+In addition to the z-score which is vizualized, the CNV track also contains the log2-ratio and copy-number, which are shown as a tooltip when hovering over a region. In this screenshot the first exon of the ACVRL1 gene is duplicated (z-score=4.76).
 
 
 ![alt text](cnv_visualization.png)
 
+We can adapt the IGV settings of the BAM track to visualize the breakpoints created by a copy-number variant (if they lie inside the target region):
+
+* Open perferences dialog `View > Preferences` and on the `Alignments` tab, enable `Show soft-clipped bases`.
+* Right-click on the BAM track and enable `View as pairs`.
+* Right-click on the BAM track and enable `Color alignments by > Insert size and pair orientation`. 
+
+Then, it is clear that in this case there is a tandem duplication of the region from exon 1 to exon 3.
+
+![alt text](cnv_visualization2.png)
 --
 
 [back to main page](index.md)
+
+
 
 
 

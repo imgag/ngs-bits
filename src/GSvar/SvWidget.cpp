@@ -287,7 +287,7 @@ void SvWidget::loadSVs(QString file_name)
 
 	QList<int> annotation_indices;
 
-	for(int i=0;i<svs_.annotationHeaders().count();i++)
+	for(int i=0; i<svs_.annotationHeaders().count(); ++i)
 	{
 		if(svs_.annotationHeaders()[i] == "length") continue;
 

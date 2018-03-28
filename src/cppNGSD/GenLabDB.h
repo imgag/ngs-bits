@@ -33,7 +33,7 @@ public:
 
 protected:
 	///Copy constructor "declared away".
-	GenLabDB(const GenLabDB&);
+	GenLabDB(const GenLabDB&) = delete;
 
 	///The database adapter
 	QSharedPointer<QSqlDatabase> db_;

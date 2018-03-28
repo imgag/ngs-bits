@@ -2011,6 +2011,10 @@ void MainWindow::varsContextMenu(QPoint pos)
 	}
 	else if (parent_menu && parent_menu->title()=="Alamut")
 	{
+		//documentation of the alamut API:
+		// - http://www.interactive-biosoftware.com/doc/alamut-visual/2.9/accessing.html
+		// - http://www.interactive-biosoftware.com/doc/alamut-visual/2.11/Alamut-HTTP.html
+		// - http://www.interactive-biosoftware.com/doc/alamut-visual/2.9/programmatic-access.html
 		QStringList parts = action->text().split(" ");
 		if (parts.count()>=1)
 		{

@@ -38,7 +38,7 @@ private:
 	QNetworkAccessManager nmgr_;
 
 	//declared away
-	HttpHandler();
+	HttpHandler() = delete;
 };
 
 #endif // HTTPHANDLER_H

@@ -46,7 +46,7 @@ void RtfTools::writeRtfTableSingleRowSpec(QTextStream& stream,const QList<int>& 
 void RtfTools::writeRtfWholeTable(QTextStream& stream, const QList< QList<QString> >& table, const QList<int>& col_widths, int font_size, bool border, bool bold)
 {
 	int rows = table.length();
-	for(int i=0;i<rows;i++)
+	for(int i=0; i<rows; ++i)
 	{
 		RtfTools::writeRtfRow(stream, table.at(i), col_widths, font_size, border, bold);
 	}
@@ -61,7 +61,7 @@ void RtfTools::writeRtfRow(QTextStream& stream, const QList<QString>& columns, c
 	}
 
 	RtfTools::writeRtfTableSingleRowSpec(stream,col_widths,border);
-	for(int i=0;i<columns.length();i++)
+	for(int i=0; i<columns.length(); ++i)
 	{
 		stream << begin_table_cell << columns.at(i) << "\\cell";
 	}
@@ -110,7 +110,7 @@ void ReportHelper::writeRtfTableSNV(QTextStream& stream, const QList<int>& colWi
 
 	//construct 2D QStringList to create RTF table
 	QList< QList<QString> > somatic_snv_table_unordered;
-	for(int i=0;i<important_snvs.count();i++)
+	for(int i=0; i<important_snvs.count(); ++i)
 	{
 		QList<QString> columns;
 		//gene
@@ -292,7 +292,7 @@ void ReportHelper::writeRtfTableSNV(QTextStream& stream, const QList<int>& colWi
 	{
 		bool is_driver = false;
 
-		for(int i=0;i<row.count();i++)
+		for(int i=0; i<row.count(); ++i)
 		{
 			if(row[i].contains("driver") || row[i].contains("known")) is_driver = true;
 		}
@@ -306,7 +306,7 @@ void ReportHelper::writeRtfTableSNV(QTextStream& stream, const QList<int>& colWi
 	foreach(QList<QString> row,somatic_snv_table_unordered)
 	{
 		bool is_driver =false;
-		for(int i=0;i<row.count();i++)
+		for(int i=0; i<row.count(); ++i)
 		{
 			if(row[i].contains("driver") || row[i].contains("known")) is_driver = true;
 		}
@@ -337,7 +337,7 @@ void ReportHelper::writeRtfTableSNV(QTextStream& stream, const QList<int>& colWi
 		RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
 		stream << begin_table_cell << "\\sb20\\qj\\fs18\\qj\\b " << "Keimbahnvarianten:\\b0 ";
 		stream << "{\\highlight3  Siehe Zusatzbefund / Es wurden {\\b\\ul keine} pathogenen Keimbahnvarianten in den untersuchten Genen ";
-		for(int i=0;i<genes_checked_for_germline_variants_.count();i++)
+		for(int i=0; i<genes_checked_for_germline_variants_.count(); ++i)
 		{
 			stream << genes_checked_for_germline_variants_[i];
 			if(i<genes_checked_for_germline_variants_.count()-1)
@@ -373,7 +373,7 @@ void ReportHelper::writeRtfTableSNV(QTextStream& stream, const QList<int>& colWi
 		}
 
 		std::sort(cancer_acronyms.begin(),cancer_acronyms.end());
-		for(int i=0;i<cancer_acronyms.count();i++)
+		for(int i=0; i<cancer_acronyms.count(); ++i)
 		{
 			stream << cancer_acronyms[i] << " - " << acronyms_to_german.value(cancer_acronyms[i]);
 			if(i<cancer_acronyms.count()-1)
@@ -435,7 +435,7 @@ void ReportHelper::writeRtfTableCNV(QTextStream& stream, const QList<int>& colWi
 	GeneSet target_genes = GeneSet::createFromFile(target_region.left(target_region.size()-4) + "_genes.txt");
 	target_genes = db_.genesToApproved(target_genes);
 
-	for(int i=0;i<important_cnvs.count();i++)
+	for(int i=0; i<important_cnvs.count(); ++i)
 	{
 		CopyNumberVariant variant = important_cnvs[i];
 		QList<QString> columns;
@@ -555,7 +555,7 @@ void ReportHelper::writeRtfTableCNV(QTextStream& stream, const QList<int>& colWi
 	GeneSet amplified_cnvs;
 	GeneSet deleted_cnvs;
 
-	for(int i=0;i<important_cnvs.count();i++)
+	for(int i=0; i<important_cnvs.count(); ++i)
 	{
 		CopyNumberVariant variant = important_cnvs[i];
 
@@ -588,7 +588,7 @@ void ReportHelper::writeRtfTableCNV(QTextStream& stream, const QList<int>& colWi
 	stream << begin_table_cell << "\\ql\\highlight3 " << endl;
 	stream << "\\qj ";
 
-	for(int i=0;i<amplified_cnvs.count();i++)
+	for(int i=0; i<amplified_cnvs.count(); ++i)
 	{
 		if(!target_genes.contains(amplified_cnvs[i])) continue;
 
@@ -604,7 +604,7 @@ void ReportHelper::writeRtfTableCNV(QTextStream& stream, const QList<int>& colWi
 	stream << begin_table_cell << "\\ql\\highlight3 " << "Deletierte Gene:" << "\\cell"  <<endl;
 	stream << "\\qj\\hightlight3 ";
 
-	for(int i=0;i<deleted_cnvs.count();i++)
+	for(int i=0; i<deleted_cnvs.count(); ++i)
 	{
 		if(!target_genes.contains(deleted_cnvs[i])) continue;
 
@@ -650,7 +650,7 @@ void CGIDrugTable::load(const QString &file_name)
 	{
 		QList<QByteArray> line_tmp = file.readLine();
 		QList<QString> line;
-		for(int i=0;i<line_tmp.count();i++)
+		for(int i=0; i<line_tmp.count(); ++i)
 		{
 			line.append(line_tmp.at(i));
 		}
@@ -659,7 +659,7 @@ void CGIDrugTable::load(const QString &file_name)
 	}
 
 	//parse text in "source", replace denominators
-	for(int i=0;i<all_drugs.count();i++)
+	for(int i=0; i<all_drugs.count(); ++i)
 	{
 		all_drugs[i][i_source] = all_drugs[i][i_source].replace(";",", ");
 	}
@@ -724,7 +724,7 @@ void CGIDrugTable::removeDuplicateDrugs()
 {
 	foreach(CGIDrugReportLine line_1,drug_list_.values(1))
 	{
-		for(int i=2;i<=5;i++) //remove starting at evidence level 2
+		for(int i=2; i<=5; ++i) //remove starting at evidence level 2
 		{
 			foreach(CGIDrugReportLine line_2,drug_list_.values(i))
 			{
@@ -742,7 +742,7 @@ const QList<QList<QString>> CGIDrugTable::drugsByEvidAsString(int evid_group)
 	foreach(CGIDrugReportLine line,temp_results)
 	{
 		QList<QString> result_line = line.asStringList();
-		for(int i=0;i<result_line.count();i++)
+		for(int i=0; i<result_line.count(); ++i)
 		{
 			result_line[i].prepend("\\li20 ");
 
@@ -782,7 +782,7 @@ const QList<QByteArray> CGIDrugTable::getAcronyms(int evid_level) const
 		temp_tumor_entities.replace(" ","");
 		QList<QByteArray> tumor_entities = temp_tumor_entities.split(',');
 
-		for(int i=0;i<tumor_entities.count();i++)
+		for(int i=0; i<tumor_entities.count(); ++i)
 		{
 			results.append(tumor_entities[i]);
 		}
@@ -825,7 +825,7 @@ ReportHelper::ReportHelper(QString snv_filename, GeneSet cnv_keep_genes_filter, 
 	genes_in_target_region_ = GeneSet::createFromFile(target_region_.left(target_region_.size()-4)+"_genes.txt");
 
 	//get cancer type which was used for CGI analysis and text for ICD10-diagnosis
-	for(int i=0;i<snv_variants_.comments().count();i++)
+	for(int i=0; i<snv_variants_.comments().count(); ++i)
 	{
 		if(snv_variants_.comments().at(i).contains("CGI_ICD10_TEXT"))
 		{
@@ -865,7 +865,7 @@ ReportHelper::ReportHelper(QString snv_filename, GeneSet cnv_keep_genes_filter, 
 	cnv_index_cgi_genes_ = -1;
 	cnv_index_cgi_driver_statement_ = -1;
 
-	for(int i=0;i<cnv_variants_.annotationHeaders().count();i++)
+	for(int i=0; i<cnv_variants_.annotationHeaders().count(); ++i)
 	{
 		if(cnv_variants_.annotationHeaders()[i] == "CGI_gene_role")
 		{
@@ -931,7 +931,7 @@ VariantList ReportHelper::filterSnvForCGIAnnotation(bool filter_for_target_regio
 	important_snvs.copyMetaData(snv_variants_);
 
 	//Skip unimportant SNVs: CGI, filtered, OBO type
-	for(int i=0;i<snv_variants_.count();i++)
+	for(int i=0; i<snv_variants_.count(); ++i)
 	{
 		Variant variant = snv_variants_[i];
 		QByteArray cgi_gene = variant.annotations().at(snv_index_cgi_gene_);
@@ -973,7 +973,7 @@ CnvList ReportHelper::filterCnv()
 
 	cgi_annotated_cnvs.copyMetaData(cnv_variants_);
 
-	for(int i=0;i<cnv_variants_.count();i++)
+	for(int i=0; i<cnv_variants_.count(); ++i)
 	{
 		bool skip = false;
 		CopyNumberVariant variant = cnv_variants_[i];
@@ -1128,7 +1128,7 @@ void ReportHelper::writeRtfCGIDrugTable(QTextStream &stream, const QList<int> &c
 
 	QList<QByteArray> acronyms = temp_acronyms.toList();
 	qSort(acronyms);
-	for(int i=0;i<acronyms.count();i++)
+	for(int i=0; i<acronyms.count(); ++i)
 	{
 		stream << acronyms[i] << "-" << acronyms_to_german.value(acronyms[i]);
 		if(i<acronyms.count()-1)
@@ -1189,7 +1189,7 @@ void ReportHelper::somaticSnvForQbic()
 	int i_tumor_af = variants.annotationIndexByName("tumor_af",true,true);
 	int i_tumor_depth = variants.annotationIndexByName("tumor_dp",true,true);
 
-	for(int i=0;i<variants.count();i++)
+	for(int i=0; i<variants.count(); ++i)
 	{
 		Variant variant = variants[i];
 
@@ -1351,7 +1351,7 @@ void ReportHelper::somaticCnvForQbic()
 	NGSD db;
 	target_genes = db.genesToApproved(target_genes);
 
-	for(int i=0;i<variants.count();i++)
+	for(int i=0; i<variants.count(); ++i)
 	{
 		CopyNumberVariant variant = variants[i];
 
@@ -1369,7 +1369,7 @@ void ReportHelper::somaticCnvForQbic()
 
 		//Deletion or Amplification
 		QVector<double> copy_numbers;
-		for(int i=0;i<variant.copyNumbers().count();i++)
+		for(int i=0; i<variant.copyNumbers().count(); ++i)
 		{
 			copy_numbers.append((double)variant.copyNumbers()[i]);
 		}
@@ -1553,7 +1553,7 @@ VariantList ReportHelper::gsvarToVcf()
 
 	VariantList output = snv_variants_;
 
-	for(int i=0;i<snv_variants_.count();i++)
+	for(int i=0; i<snv_variants_.count(); ++i)
 	{
 		Variant gsvar_variant = snv_variants_[i];
 		Variant vcf_variant = orig_vcf[i];

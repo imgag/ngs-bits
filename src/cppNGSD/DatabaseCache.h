@@ -49,7 +49,7 @@ protected:
 	QMap<QString, QSharedPointer<DatabaseTableInfo> > infos_;
 
 	DatabaseCache(); //private
-	DatabaseCache(const DatabaseCache& rhs); //not implemented
+	DatabaseCache(const DatabaseCache& rhs) = delete;
 };
 
 #endif // DATABASECACHE_H

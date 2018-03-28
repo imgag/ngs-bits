@@ -112,7 +112,7 @@ int SvList::annotationIndexByName(const QByteArray &name, bool error_on_mismatch
 
 	QList<int> matches = {};
 
-	for(int i=0;i<annotation_headers_.count();i++)
+	for(int i=0; i<annotation_headers_.count(); ++i)
 	{
 		if(annotation_headers_[i] == name)
 		{

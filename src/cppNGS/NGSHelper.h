@@ -103,7 +103,7 @@ public:
 
 private:
 	///Constructor declared away
-	NGSHelper();
+	NGSHelper() = delete;
 };
 
 #endif // NGSHELPER_H

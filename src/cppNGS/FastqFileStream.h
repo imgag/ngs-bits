@@ -72,9 +72,9 @@ protected:
 	void extractLine(QByteArray& line);
 
     //declared away methods
-    FastqFileStream(const FastqFileStream& );
-    FastqFileStream& operator=(const FastqFileStream&);
-	FastqFileStream();
+	FastqFileStream(const FastqFileStream& ) = delete;
+	FastqFileStream& operator=(const FastqFileStream&) = delete;
+	FastqFileStream() = delete;
 };
 
 
@@ -109,9 +109,9 @@ protected:
 	bool is_closed_;
 
     //declared away methods
-    FastqOutfileStream(const FastqOutfileStream& );
-    FastqOutfileStream& operator=(const FastqOutfileStream&);
-    FastqOutfileStream();
+	FastqOutfileStream(const FastqOutfileStream& ) = delete;
+	FastqOutfileStream& operator=(const FastqOutfileStream&) = delete;
+	FastqOutfileStream() = delete;
 };
 
 #endif

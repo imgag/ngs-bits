@@ -290,7 +290,7 @@ signals:
 
 protected:
 	///Copy constructor "declared away".
-	NGSD(const NGSD&);
+	NGSD(const NGSD&) = delete;
 	void fixGeneNames(QTextStream* messages, bool fix_errors, QString table, QString column);
 
 	///The database adapter

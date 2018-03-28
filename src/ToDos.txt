@@ -1,9 +1,6 @@
 === TODO ===
 
 general:
-*** Helper: add RandomInit() method and used it in randomString()
-*** Replace i++ with ++i in for loops
-*** mark all "not implemented" or "declared away" methods as deleted
 *** move getPileup and other BAM-related methods to BamReader/BamWriter (also move tests)
 
 libs:
@@ -28,7 +25,7 @@ GSvar:
 
 Tools:
 ** add new tool BedHighCoverage (similar to samtools depth)
-- BedAdd: make 'in' a input file list and remove 'in2'
+* BedAdd: make 'in' a input file list and remove 'in2'
 - SampleCorrelation: Add option to use only rare snps e.g. 0.1-10.0% AF in VCF/GSvar mode (MS)
 - SomaticQC: do not use precalculated triplet counts, count every time (CS)
 - SomaticQC: replace 'QC:?' by real qcML identifier (CS)
