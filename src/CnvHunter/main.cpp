@@ -13,7 +13,7 @@
 #include <QDir>
 #include <cmath>
 
-class SampleCorrelation;
+struct SampleCorrelation;
 
 //Sample representation
 struct SampleData
