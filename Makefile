@@ -121,8 +121,8 @@ dummy:
 
 build_3rdparty: clean_3rdparty
 	chmod 755 htslib/configure
-	cd htslib && ./configure --prefix=/
-	cd htslib && make DESTDIR=./ install
+	cd htslib && ./configure --prefix=$(PWD)/htslib/
+	cd htslib && make install
 	cd htslib && make clean
 
 clean_3rdparty:
