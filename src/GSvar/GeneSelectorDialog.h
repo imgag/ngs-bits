@@ -4,6 +4,7 @@
 #include <QDialog>
 #include "BedFile.h"
 #include <QTableWidgetItem>
+#include "GeneSet.h"
 
 namespace Ui {
 class GeneSelectorDialog;
@@ -21,7 +22,7 @@ public:
 	///Generates and returns the text report
 	QString report();
 	///Returns the selected gene list (for variants)
-	QStringList genesForVariants();
+	GeneSet genesForVariants();
 
 signals:
 	void openRegionInIGV(QString gene);

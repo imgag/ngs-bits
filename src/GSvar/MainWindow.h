@@ -179,7 +179,7 @@ public slots:
 	QStringList geneInheritanceMissing(QBitArray selected);
 
 	///Subpanel design dialog
-	void openSubpanelDesignDialog(QStringList genes = QStringList());
+	void openSubpanelDesignDialog(const GeneSet& genes = GeneSet());
 
 	///Adds a modeless dialog
 	void addModelessDialog(QSharedPointer<QDialog> ptr);
@@ -188,6 +188,8 @@ public slots:
 
 	///Imports phenotype data from GenLab
 	void importPhenotypesFromGenLab();
+	///Create sub-panel from phenotype filters
+	void createSubPanelFromPhenotypeFilter();
 	///Variant default filters
     void clearFilters();
 

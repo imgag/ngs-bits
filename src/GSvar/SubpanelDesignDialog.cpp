@@ -32,7 +32,7 @@ SubpanelDesignDialog::~SubpanelDesignDialog()
 	delete ui;
 }
 
-void SubpanelDesignDialog::setGenes(QStringList genes)
+void SubpanelDesignDialog::setGenes(const GeneSet& genes)
 {
 	ui->genes->clear();
 	ui->genes->setPlainText(genes.join("\n"));
@@ -185,7 +185,7 @@ void SubpanelDesignDialog::importFromExistingSubpanel()
 
 	//set genes
 	QString filename = NGSD::getTargetFilePath(true) + "/" + selected + "_genes.txt";
-	setGenes(Helper::loadTextFile(filename));
+	setGenes(GeneSet::createFromFile(filename));
 }
 
 QString SubpanelDesignDialog::getBedFilename()

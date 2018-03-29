@@ -115,6 +115,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.vars, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(variantDoubleClicked(QTableWidgetItem*)));
 	connect(ui_.actionDesignSubpanel, SIGNAL(triggered()), this, SLOT(openSubpanelDesignDialog()));
 	connect(filter_widget_, SIGNAL(phenotypeDataImportRequested()), this, SLOT(importPhenotypesFromGenLab()));
+	connect(filter_widget_, SIGNAL(phenotypeSubPanelRequested()), this, SLOT(createSubPanelFromPhenotypeFilter()));
 
 	//misc initialization
 	filewatcher_.setDelayInSeconds(10);
@@ -227,8 +228,7 @@ void MainWindow::on_actionGeneSelector_triggered()
 		//show message
 		if (QMessageBox::question(this, "Gene selection report", "Gene selection report was copied to clipboard.\nDo you want to open the sub-panel design dialog for selected genes?")==QMessageBox::Yes)
 		{
-			QStringList genes = dlg.genesForVariants();
-			openSubpanelDesignDialog(genes);
+			openSubpanelDesignDialog(dlg.genesForVariants());
 		}
 	}
 }
@@ -554,6 +554,22 @@ void MainWindow::cleanUpModelessDialogs()
 void MainWindow::importPhenotypesFromGenLab()
 {
 	filter_widget_->setPhenotypes(GenLabDB().phenotypes(sampleName()));
+}
+
+void MainWindow::createSubPanelFromPhenotypeFilter()
+{
+	//convert phenotypes to genes
+	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+	NGSD db;
+	GeneSet genes;
+	foreach(const Phenotype& pheno, filter_widget_->phenotypes())
+	{
+		genes << db.phenotypeToGenes(pheno, true);
+	}
+	QApplication::restoreOverrideCursor();
+
+	//open dialog
+	openSubpanelDesignDialog(genes);
 }
 
 QStringList MainWindow::geneInheritanceMissing(QBitArray selected)
@@ -1352,7 +1368,7 @@ void MainWindow::on_actionGenesToRegions_triggered()
 	dlg.exec();
 }
 
-void MainWindow::openSubpanelDesignDialog(QStringList genes)
+void MainWindow::openSubpanelDesignDialog(const GeneSet& genes)
 {
 	SubpanelDesignDialog dlg(this);
 	dlg.setGenes(genes);

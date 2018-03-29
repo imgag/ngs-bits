@@ -952,8 +952,12 @@ void FilterDockWidget::showPhenotypeContextMenu(QPoint pos)
 	//set up
 	QMenu menu;
 	menu.addAction("import from GenLab");
-	menu.addSeparator();
-	menu.addAction("clear");
+	if (!phenotypes_.isEmpty())
+	{
+		menu.addAction("create sub-panel");
+		menu.addSeparator();
+		menu.addAction("clear");
+	}
 
 	//exec
 	QAction* action = menu.exec(ui_.hpo_terms->mapToGlobal(pos));
@@ -969,6 +973,10 @@ void FilterDockWidget::showPhenotypeContextMenu(QPoint pos)
 	else if (action->text()=="import from GenLab")
 	{
 		emit phenotypeDataImportRequested();
+	}
+	else if (action->text()=="create sub-panel")
+	{
+		emit phenotypeSubPanelRequested();
 	}
 }
 

@@ -258,15 +258,15 @@ QString GeneSelectorDialog::report()
 	return  output;
 }
 
-QStringList GeneSelectorDialog::genesForVariants()
+GeneSet GeneSelectorDialog::genesForVariants()
 {
-	QStringList output;
+	GeneSet output;
 
 	for (int r=0; r<ui->details->rowCount(); ++r)
 	{
 		if (ui->details->item(r, 0)->checkState() == Qt::Checked)
 		{
-			output << ui->details->item(r, 0)->text();
+			output << ui->details->item(r, 0)->text().toLatin1();
 		}
 	}
 

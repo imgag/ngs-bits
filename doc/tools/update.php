@@ -53,23 +53,21 @@ foreach($tools as $tool)
 		$first_difference = true;
 		for($i=0;$i<count($original);++$i)
 		{
+			//skip matching lines
+			if($output[$i]==$original[$i]) continue;
+			
 			//skip verison lines
-			if(preg_match("/\d\.\d-\d{3}-.{8}/", $original[$i]) != 0)
+			if(preg_match("/\d[0-9_\.]+\d-\d{1,4}-g[a-z0-9]{7}/", $original[$i])!=0) continue;
+			
+			//print differences
+			if ($first_difference)
 			{
-				continue;
+				print "Found differences for tool $tool:\n";
+				$first_difference = false;
 			}
-
-			if($output[$i]!=$original[$i])
-			{
-				if ($first_difference)
-				{
-					print "Found differences for tool $tool:\n";
-					$first_difference = false;
-				}
-				print "-\t'".$original[$i]."'\n";
-				print "+\t'".$output[$i]."'\n";
-				$save_to_disk = true;
-			}
+			print "-\t'".$original[$i]."'\n";
+			print "+\t'".$output[$i]."'\n";
+			$save_to_disk = true;
 		}
 	}
 	
