@@ -26,7 +26,7 @@ INCLUDEPATH += $$PWD/../cppXML
 LIBS += -L$$PWD/../../bin -lcppXML
 
 #include htslib library
-INCLUDEPATH += $$PWD/../../htslib/include/
+INCLUDEPATH += $$PWD/../../htslib/include/htslib/
 LIBS += -L$$PWD/../../htslib/lib/ -lhts
 
 #include zlib library

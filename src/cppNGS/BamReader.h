@@ -6,7 +6,7 @@
 
 #include "QHash"
 
-#include <htslib/sam.h>
+#include <sam.h>
 
 //Representation of a CIGAR operation
 struct CPPNGSSHARED_EXPORT CigarOp

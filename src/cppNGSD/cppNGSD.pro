@@ -26,7 +26,7 @@ INCLUDEPATH += $$PWD/../cppNGS
 LIBS += -L$$PWD/../../bin -lcppNGS
 
 #include htslib library
-INCLUDEPATH += $$PWD/../../htslib/include/
+INCLUDEPATH += $$PWD/../../htslib/include/htslib/
 LIBS += -L$$PWD/../../htslib/lib/ -lhts
 
 SOURCES += \

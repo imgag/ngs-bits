@@ -24,7 +24,7 @@ INCLUDEPATH += $$PWD/cppGUI
 LIBS += -L$$PWD/../bin -lcppGUI
 
 #include htslib library
-INCLUDEPATH += $$PWD/../htslib/include/
+INCLUDEPATH += $$PWD/../htslib/include/htslib/
 LIBS += -L$$PWD/../htslib/lib/ -lhts
 
 #include zlib library

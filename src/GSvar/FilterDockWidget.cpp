@@ -894,7 +894,7 @@ void FilterDockWidget::showTargetRegionDetails()
 
 void FilterDockWidget::updateGeneWarning()
 {
-	bool show_warning = false;
+	QStringList warnings;
 
 	QString roi = targetRegion();
 	if (roi!="")
@@ -903,18 +903,33 @@ void FilterDockWidget::updateGeneWarning()
 		if (QFile::exists(genes_file))
 		{
 			GeneSet roi_genes = GeneSet::createFromFile(genes_file);
-			GeneSet non_coding;
-			non_coding << "PADI6" << "SRD5A2" << "SYN2" << "NEFL" << "ABO" << "NR2E3" << "TTC25";
-			GeneSet inter = roi_genes.intersect(non_coding);
-			if (!inter.isEmpty())
+
+			//check non-coding in GRCh37
 			{
-				show_warning = true;
-				ui_.gene_warning->setToolTip("Some genes (" + inter.join(", ") + ") of the target region are non-coding in the Ensembl annotation of GRCh37, but coding for GRCh38.\nVariants in non-coding genes have LOW/MODIFIER impact. Make sure to check these variants too!");
+				GeneSet non_coding;
+				non_coding << "PADI6" << "SRD5A2" << "SYN2" << "NEFL" << "ABO" << "NR2E3" << "TTC25";
+				GeneSet inter = roi_genes.intersect(non_coding);
+				if (!inter.isEmpty())
+				{
+					warnings.append("Some genes (" + inter.join(", ") + ") of the target region are non-coding in the Ensembl annotation of GRCh37, but coding for GRCh38.\nVariants in non-coding genes have LOW/MODIFIER impact. Make sure to check these variants too!");
+				}
+			}
+
+			//check "indikationsspezifische Abrechnung"
+			{
+				GeneSet billing;
+				billing << "ACTA2" << "COL3A1" << "FBN1" << "MYH11" << "MYLK" << "SMAD3" << "TGFB2" << "TGFBR1" << "TGFBR2" << "MLH1" << "MSH2" << "MSH6" << "PMS2" << "GJB2" << "GJB6" << "SMN1" << "SMN2" << "F8" << "CNBP" << "DMPK" << "HTT" << "PTPN11" << "FMR1" << "SOS1" << "RAF1" << "RIT1" << "BRAF" << "KRAS" << "CFTR" << "DMD";
+				GeneSet inter = roi_genes.intersect(billing);
+				if (!inter.isEmpty())
+				{
+					warnings.append("Some genes (" + inter.join(", ") + ") of the target region require 'indikationsspezifische Abrechnung'!");
+				}
 			}
 		}
 	}
 
-	ui_.gene_warning->setHidden(!show_warning);
+	ui_.gene_warning->setToolTip(warnings.join("\n\n"));
+	ui_.gene_warning->setHidden(warnings.isEmpty());
 }
 
 void FilterDockWidget::editPhenotypes()
