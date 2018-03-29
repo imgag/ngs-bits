@@ -59,7 +59,7 @@ public:
 
 			for(int j=0; j<bams.count(); ++j)
 			{
-				Pileup pileup = NGSHelper::getPileup(*bams_open[j].data(), file[i].chr(), file[i].end());
+				Pileup pileup = bams_open[j]->getPileup(file[i].chr(), file[i].end());
 				outstream << file[i].toString(false)+"\t"+QFileInfo(bams[j]).baseName()+"\t"+QString::number(pileup.a())+"\t"+QString::number(pileup.c())+"\t"+QString::number(pileup.g())+"\t"+QString::number(pileup.t())+"\t"+QString::number(pileup.depth(false)) + "\n";
 			}
 		}

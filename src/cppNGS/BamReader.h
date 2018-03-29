@@ -3,6 +3,9 @@
 
 #include "cppNGS_global.h"
 #include "Chromosome.h"
+#include "Pileup.h"
+#include "VariantList.h"
+#include "FastaFileIndex.h"
 
 #include "QHash"
 
@@ -216,12 +219,41 @@ class CPPNGSSHARED_EXPORT BamAlignment
 			return aln_->core.flag & BAM_FMUNMAP;
 		}
 
+
+		/**
+		  @brief Returns the base and quality at a chromosomal position (1-based).
+		  @note If the base is deleted, '-' with quality 255 is returned. If the base is skipped/soft-clipped, '~' with quality -1 is returned.
+		*/
+		QPair<char, int> extractBaseByCIGAR(int pos);
+
+		/**
+		  @brief Returns the indels at a chromosomal position (1-based) or a range when using the @p indel_window parameter.
+		  @note Insertions: The string starts with '+' and then contains the bases (e.g. '+TT'). The position is the base @em before which insersion is located.
+		  @note Deletions: the string starts with '-' and then contains the number of bases (e.g. '-2'). The position is the first deleted base.
+		*/
+		QList<Sequence> extractIndelsByCIGAR(int pos, int indel_window=0);
+
 	protected:
 		bam1_t* aln_;
 
 		//friends
 		friend class BamReader;
 		friend class BamWriter;
+};
+
+//Variant details struct.
+struct CPPNGSSHARED_EXPORT VariantDetails
+{
+	VariantDetails()
+		: depth(std::numeric_limits<int>::quiet_NaN())
+		, frequency(std::numeric_limits<double>::quiet_NaN())
+		, mapq0_frac(std::numeric_limits<double>::quiet_NaN())
+	{
+	}
+
+	int depth;
+	double frequency;
+	double mapq0_frac;
 };
 
 //C++ wrapper for htslib BAM file access
@@ -253,6 +285,21 @@ class CPPNGSSHARED_EXPORT BamReader
 
 		//Returns the size sum of all chromosomes stored in the BAM header.
 		double genomeSize(bool nonspecial_only) const;
+
+		/**
+		  @brief Returns the pileup at the given chromosomal position (1-based).
+		  @param indel_window The value controls how far up- and down-stream of the given postion, indels are considered to compensate for alignment differences. Indels are not reported when this parameter is set to -1.
+		*/
+		Pileup getPileup(const Chromosome& chr, int pos, int indel_window = -1, int min_mapq = 1, bool anom = false, int min_baseq = 13);
+
+		//Returns the depth/frequency for a variant (start, ref, obs in TSV style). If the depth is 0, quiet_NaN is returned as frequency.
+		VariantDetails getVariantDetails(const FastaFileIndex& reference, const Variant& variant);
+
+		/**
+		  @brief Returns indels for a chromosomal range (1-based) and the depth of the region.
+		  @note Insertions are prefixed with '+', deletions with '-'.
+		*/
+		void getIndels(const FastaFileIndex& reference, const Chromosome& chr, int start, int end, QVector<Sequence>& indels, int& depth, double& mapq0_frac);
 
 	protected:
 		QString bam_file_;

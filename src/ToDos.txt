@@ -1,8 +1,5 @@
 === TODO ===
 
-general:
-*** move getPileup and other BAM-related methods to BamReader/BamWriter (also move tests)
-
 libs:
 - VariantList:
     - determine file format from file header instead of file name => make more tools pipeable (MS)
@@ -12,7 +9,7 @@ libs:
 * integration of htslib: use pileup, use VCF support, use lookup table instead of switch statement in BamReader::setBases()
 
 GSvar:
-** Add pLI score (megSAP) and filter for pLI (GSvar)
+** Add pLI score (megSAP) and filter for pLI (GSvar) to CNVs
 ** HPO filter: add context menu entry to generate subpanel from selected phenotypes
 ** Add literature search button (Google/Pubmed, gene/variant)
   - "LAMP2" ("586A>T" | "586A—>T" | "586A-->T" | "586A/T" | "Thr1965er" | "T1965" | rs138991195)

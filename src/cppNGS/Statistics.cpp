@@ -938,9 +938,9 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 		if (!v.chr().isAutosome()) continue;
 		if(!variants[i].filters().empty())	continue;	//skip non-somatic variants
 
-		Pileup pileup_tu = NGSHelper::getPileup(reader_tumor, v.chr(), v.start());
+		Pileup pileup_tu = reader_tumor.getPileup(v.chr(), v.start());
 		if (pileup_tu.depth(true) < min_depth) continue;
-		Pileup pileup_no = NGSHelper::getPileup(reader_normal, v.chr(), v.start());
+		Pileup pileup_no = reader_normal.getPileup(v.chr(), v.start());
 		if (pileup_no.depth(true) < min_depth) continue;
 
 		double no_freq = pileup_no.frequency(v.ref()[0], v.obs()[0]);
@@ -1457,7 +1457,7 @@ QCCollection Statistics::contamination(QString bam, bool debug, int min_cov, int
 	VariantList snps = NGSHelper::getKnownVariants(true, 0.2, 0.8);
 	for(int i=0; i<snps.count(); ++i)
 	{
-		Pileup pileup = NGSHelper::getPileup(reader, snps[i].chr(), snps[i].start());
+		Pileup pileup = reader.getPileup(snps[i].chr(), snps[i].start());
 		int depth = pileup.depth(false);
 		if (depth<min_cov) continue;
 
@@ -1491,71 +1491,6 @@ QCCollection Statistics::contamination(QString bam, bool debug, int min_cov, int
 	QString value = (passed < min_snps) ? "n/a" : QString::number(off, 'f', 2);
 	output.insert(QCValue("SNV allele frequency deviation", value, "Percentage of common SNPs that deviate from the expected allele frequency (i.e. 0.0, 0.5 or 1.0 for diploid organisms)", "QC:2000051"));
 	return output;
-}
-
-QCCollection Statistics::mapping3Exons(const QString& bam_file)
-{
-    //roi
-    BedFile roi_qc;
-    roi_qc.append(BedLine("chr1", 152057442, 152060019));
-    roi_qc.append(BedLine("chr9", 5919683, 5923309));
-    roi_qc.append(BedLine("chr18", 19995536, 19997774));
-
-    //open BAM file
-	BamReader reader(bam_file);
-
-    //iterate through target regions
-    long depth_all = 0;
-    long depth_highcov = 0;
-    long c_n = 0;
-    long c_indel = 0;
-    long c_snv = 0;
-    for (int i=0; i<roi_qc.count(); ++i)
-    {
-        const BedLine& line = roi_qc[i];
-        QList<Pileup> pileups;
-		NGSHelper::getPileups(pileups, reader, line.chr(), line.start(), line.end());
-        foreach(const Pileup& pileup, pileups)
-        {
-            int depth = pileup.depth(false);
-            depth_all += depth;
-            c_n += pileup.n();
-
-            if (depth>=20)
-            {
-                depth_highcov += depth;
-                int indel_count = pileup.indels().count();
-                if (indel_count<0.25*depth)
-                {
-                    c_indel += indel_count;
-                }
-                int snv_count = depth - pileup.max();
-                if (snv_count<0.25*depth)
-                {
-                    c_snv += snv_count;
-                }
-            }
-        }
-    }
-
-    //generate output
-    QCCollection output;
-    double avg_depth = (double)depth_all/roi_qc.baseCount();
-	output.insert(QCValue("error estimation read depth", avg_depth, "Average read depth on the special target region used for error estimation after mapping: chr1:152057442-152060019, chr9:5919683-5923309, chr18:19995536-19997774.", "QC:2000033"));
-    if (avg_depth<10)
-    {
-		output.insert(QCValue("error estimation N percentage", "n/a (average depth too low)", "No base call (N) percentage determined on special target region after mapping.", "QC:2000034"));
-		output.insert(QCValue("error estimation SNV percentage", "n/a (average depth too low)", "SNV error percentage determined on special target region after mapping.", "QC:2000035"));
-		output.insert(QCValue("error estimation indel percentage", "n/a (average depth too low)", "INDEL error percentage determined on special target region after mapping.", "QC:2000036"));
-    }
-    else
-    {
-		output.insert(QCValue("error estimation N percentage", 100.0*c_n/depth_all, "No base call (N) percentage determined on special target region after mapping.", "QC:2000034"));
-		output.insert(QCValue("error estimation SNV percentage", 100.0*c_snv/depth_highcov, "SNV error percentage determined on special target region after mapping.", "QC:2000035"));
-		output.insert(QCValue("error estimation indel percentage", 100.0*c_indel/depth_highcov, "INDEL error percentage determined on special target region after mapping.", "QC:2000036"));
-    }
-
-    return output;
 }
 
 BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq)
@@ -1831,7 +1766,7 @@ QString Statistics::genderHetX(const QString& bam_file, QStringList& debug_outpu
 			int pos = snps[i].start();
             if (start <= pos && end >= pos)
 			{
-                QPair<char, int> base = NGSHelper::extractBaseByCIGAR(al, pos);
+				QPair<char, int> base = al.extractBaseByCIGAR(pos);
                 counts[i].inc(base.first);
             }
         }

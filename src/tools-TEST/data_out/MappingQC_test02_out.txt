@@ -16,8 +16,3 @@ target region 200x percentage: 0.00
 target region 500x percentage: 0.00
 
 SNV allele frequency deviation: n/a
-
-error estimation read depth: 79.98
-error estimation N percentage: 0.0007
-error estimation SNV percentage: 0.0390
-error estimation indel percentage: 0.0004

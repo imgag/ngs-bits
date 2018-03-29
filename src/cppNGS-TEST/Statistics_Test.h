@@ -260,27 +260,6 @@ private slots:
         I_EQUAL(stats.count(), 10);
 	}
 
-	void mapping3exons()
-	{
-		QCCollection stats = Statistics::mapping3Exons(TESTDATA("../tools-TEST/data_in/MappingQC_in2.bam"));
-        S_EQUAL(stats[0].name(), QString("error estimation read depth"));
-        S_EQUAL(stats[0].toString(), QString("79.98"));
-        S_EQUAL(stats[1].name(), QString("error estimation N percentage"));
-        S_EQUAL(stats[1].toString(4), QString("0.0007"));
-        S_EQUAL(stats[2].name(), QString("error estimation SNV percentage"));
-        S_EQUAL(stats[2].toString(4), QString("0.0390"));
-        S_EQUAL(stats[3].name(), QString("error estimation indel percentage"));
-        S_EQUAL(stats[3].toString(4), QString("0.0004"));
-		I_EQUAL(stats.count(), 4);
-
-		//check that there is a description for each term
-		for (int i=0; i<stats.count(); ++i)
-		{
-			IS_TRUE(stats[i].description()!="");
-			IS_TRUE(stats[i].accession()!="");
-		}
-	}
-
 	void region1()
 	{
 		BedFile bed_file;

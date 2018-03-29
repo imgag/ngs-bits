@@ -106,10 +106,10 @@ void SampleCorrelation::calculateFromBam(QString& in1, QString& in2, int min_cov
 	freq2.reserve(max_snps);
 	for(int i=0; i<snps.count(); ++i)
 	{
-		Pileup p1 = NGSHelper::getPileup(r1, snps[i].chr(), snps[i].start());
+		Pileup p1 = r1.getPileup(snps[i].chr(), snps[i].start());
 		if (p1.depth(false)<min_cov) continue;
 
-		Pileup p2 = NGSHelper::getPileup(r2, snps[i].chr(), snps[i].start());
+		Pileup p2 = r2.getPileup(snps[i].chr(), snps[i].start());
 		if (p2.depth(false)<min_cov) continue;
 
 		QChar ref = snps[i].ref()[0];

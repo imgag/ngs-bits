@@ -27,11 +27,11 @@ public:
         addFlag("rna", "RNA mode without target region. Genome information is taken from the BAM file.");
 		addFlag("txt", "Writes TXT format instead of qcML.");
 		addInt("min_mapq", "Minmum mapping quality to consider a read mapped.", true, 1);
-		addFlag("3exons", "Adds special QC terms estimating the sequencing error on reads from three exons.");
 		addFlag("no_cont", "Disables sample contamination calculation, e.g. for tumor or non-human samples.");
 		addFlag("debug", "Enables verbose debug outout.");
 
 		//changelog
+		changeLog(2018, 03, 29, "Removed '3exons' flag.");
 		changeLog(2016, 12, 20, "Added support for spliced RNA reads (relevant e.g. for insert size)");
 	}
 
@@ -93,14 +93,6 @@ public:
 		precision_overwrite.insert("error estimation N percentage", 4);
 		precision_overwrite.insert("error estimation SNV percentage", 4);
 		precision_overwrite.insert("error estimation indel percentage", 4);
-		QCCollection metrics_3exons;
-		if (getFlag("3exons"))
-		{
-			metrics_3exons = Statistics::mapping3Exons(in);
-
-			//parameters
-			parameters << "-3exons";
-		}
 
 		//store output
 		QString out = getOutfile("out");
@@ -110,14 +102,11 @@ public:
 			metrics.appendToStringList(output);
 			output << "";
 			metrics_cont.appendToStringList(output);
-			output << "";
-			metrics_3exons.appendToStringList(output, precision_overwrite);
 			Helper::storeTextFile(Helper::openFileForWriting(out, true), output);
 		}
 		else
 		{
 			metrics.insert(metrics_cont);
-			metrics.insert(metrics_3exons);
 			metrics.storeToQCML(out, QStringList() << in, parameters.join(" "), precision_overwrite);
 		}
 	}

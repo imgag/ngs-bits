@@ -48,7 +48,7 @@ public:
 		for (int i=0; i<input.count(); ++i)
 		{
 			Variant& variant = input[i];
-			VariantDetails tmp = NGSHelper::getVariantDetails(reader, reference, variant);
+			VariantDetails tmp = reader.getVariantDetails(reference, variant);
 
 			//annotate variant
 			if (tmp.depth==0 || !BasicStatistics::isValidFloat(tmp.frequency))
