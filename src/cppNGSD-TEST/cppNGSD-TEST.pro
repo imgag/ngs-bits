@@ -33,7 +33,7 @@ INCLUDEPATH += $$PWD/../cppNGSD
 LIBS += -L$$PWD/../../bin -lcppNGSD
 
 #include htslib library
-INCLUDEPATH += $$PWD/../../htslib/include/htslib/
+INCLUDEPATH += $$PWD/../../htslib/include/
 LIBS += -L$$PWD/../../htslib/lib/ -lhts
 
 #include cppTFW library

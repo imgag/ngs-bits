@@ -69,7 +69,7 @@ build_release_noclean:
 clean:
 	find src -name "*.user" | xargs rm -rf
 	rm -rf build-* bin/out
-	find bin -type f | grep -v ".ini" | xargs -l1 rm -rf
+	find bin -type f | grep -v ".ini" | grep -v "libhts" | xargs -l1 rm -rf
 
 test_lib:
 	cd bin && ./cppCORE-TEST && ./cppNGS-TEST && ./cppNGSD-TEST
@@ -123,4 +123,4 @@ build_3rdparty: clean_3rdparty
 
 clean_3rdparty:
 	cd htslib && make clean
-	rm -rf htslib/share htslib/lib htslib/include htslib/bin
+	rm -rf htslib/share htslib/lib htslib/include htslib/bin bin/libhts*
