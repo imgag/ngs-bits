@@ -20,7 +20,6 @@ build_libs_debug:
 	cd build-libs-Linux-Debug; \
 		qmake ../src/libs.pro "CONFIG+=debug" "CONFIG-=release"; \
 		make;
-	cp htslib/lib/libhts.* bin/
 
 build_tools_debug:
 	rm -rf build-tools-Linux-Debug;
@@ -28,7 +27,6 @@ build_tools_debug:
 	cd build-tools-Linux-Debug; \
 		qmake ../src/tools.pro "CONFIG+=debug" "CONFIG-=release"; \
 		make;
-	cp htslib/lib/libhts.* bin/
 	
 #################################### build - RELEASE ####################################
 
@@ -38,7 +36,6 @@ build_libs_release:
 	cd build-libs-Linux-Release; \
 		qmake ../src/libs.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make;
-	cp htslib/lib/libhts.* bin/
 
 build_tools_release:
 	rm -rf build-tools-Linux-Release;
@@ -46,7 +43,6 @@ build_tools_release:
 	cd build-tools-Linux-Release; \
 		qmake ../src/tools.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make;
-	cp htslib/lib/libhts.* bin/
 
 build_gui_release:
 	rm -rf build-tools_gui-Linux-Release;
@@ -54,7 +50,6 @@ build_gui_release:
 	cd build-tools_gui-Linux-Release; \
 		qmake ../src/tools_gui.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make;
-	cp htslib/lib/libhts.* bin/
 
 build_release_noclean:
 	cd build-libs-Linux-Release; \
@@ -124,6 +119,7 @@ build_3rdparty: clean_3rdparty
 	cd htslib && ./configure --prefix=$(PWD)/htslib/
 	cd htslib && make install
 	cd htslib && make clean
+	cp htslib/lib/libhts.* bin/
 
 clean_3rdparty:
 	cd htslib && make clean
