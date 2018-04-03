@@ -14,26 +14,30 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Adds the regions in two BED files.");
-		addInfile("in2", "Second input BED file.", false);
+		setDescription("Merges regions from several BED files.");
+		addInfileList("in", "Input BED files.", false);
 		//optional
-		addInfile("in", "Input BED file. If unset, reads from STDIN.", true);
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
+
+		changeLog(2018, 04, 03, "Removed 'in2' argument and made 'in' a file list.");
 	}
 
 	virtual void main()
 	{
-		//load
-		BedFile in;
-		in.load(getInfile("in"));
+		//init
+		BedFile out;
 
 		//merge
-		BedFile in2;
-		in2.load(getInfile("in2"));
-		in.add(in2);
+		QStringList bed_files = getInfileList("in");
+		foreach(QString bed_file, bed_files)
+		{
+			BedFile in;
+			in.load(bed_file);
+			out.add(in);
+		}
 
 		//store
-		in.store(getOutfile("out"));
+		out.store(getOutfile("out"));
 	}
 };
 

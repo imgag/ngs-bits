@@ -2,7 +2,7 @@
 
 libs:
 - VariantList:
-    - determine file format from file header instead of file name => make more tools pipeable (MS)
+    - determine file format from file header instead of file name => make more tools pipeable
     - use QSharedPointers to link VariantAnnotationHeaders with VariantAnnotationDescriptions (CS)
     - check vcf and tsv files if valid - columns and their descriptions (CS)
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
@@ -21,8 +21,7 @@ GSvar:
 
 Tools:
 ** add new tool BedHighCoverage (similar to samtools depth)
-* BedAdd: make 'in' a input file list and remove 'in2'
-- SampleCorrelation: Add option to use only rare snps e.g. 0.1-10.0% AF in VCF/GSvar mode (MS)
+- SampleCorrelation: Add option to use only rare snps e.g. 0.1-10.0% AF in VCF/GSvar mode
 - SomaticQC: do not use precalculated triplet counts, count every time (CS)
 - SomaticQC: replace 'QC:?' by real qcML identifier (CS)
 - BamClipOverlap: require sorted bam and paired-end sequencing (CS)
@@ -30,7 +29,7 @@ Tools:
 
 External:
 ** implement MultiQC support for ReadQC/MappingQC/VariantQC/SomaticQC > Jakob
-** implement ngs-bits module in BioConda
+** implement ngs-bits recipe in BioConda > deploy > link to Docker container > commit updated build instructions.
 
 CnvHunter:
 ** Add z-score of #CNVs as QC parameter (megSAP!?)

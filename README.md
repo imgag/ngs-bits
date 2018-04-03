@@ -90,7 +90,7 @@ The default output format of the quality control tools is [qcML](https://github.
 
 ### BED tools
 
-* [BedAdd](doc/tools/BedAdd.md) - Adds the regions in two BED files.
+* [BedAdd](doc/tools/BedAdd.md) - Merges regions from several BED files.
 * [BedAnnotateGC](doc/tools/BedAnnotateGC.md) - Annnotates the regions in a BED file with GC content.
 * [BedChunk](doc/tools/BedChunk.md) - Splits regions in a BED file to chunks of a desired size.
 * [BedCoverage](doc/tools/BedCoverage.md) - Annotates the regions in a BED file with the average coverage in one or several BAM files.
@@ -126,6 +126,7 @@ The default output format of the quality control tools is [qcML](https://github.
 
 
   
+
 
 
 

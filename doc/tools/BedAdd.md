@@ -1,24 +1,23 @@
 ### BedAdd tool help
-	BedAdd (0.1-420-g3536bb0)
+	BedAdd (2018_04)
 	
-	Adds the regions in two BED files.
+	Merges regions from several BED files.
 	
 	Mandatory parameters:
-	  -in2 <file>  Second input BED file.
+	  -in <filelist> Input BED files.
 	
 	Optional parameters:
-	  -in <file>   Input BED file. If unset, reads from STDIN.
-	               Default value: ''
-	  -out <file>  Output BED file. If unset, writes to STDOUT.
-	               Default value: ''
+	  -out <file>    Output BED file. If unset, writes to STDOUT.
+	                 Default value: ''
 	
 	Special parameters:
-	  --help       Shows this help and exits.
-	  --version    Prints version and exits.
-	  --changelog  Prints changeloge and exits.
-	  --tdx        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --help         Shows this help and exits.
+	  --version      Prints version and exits.
+	  --changelog    Prints changeloge and exits.
+	  --tdx          Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BedAdd changelog
-	BedAdd 0.1-420-g3536bb0
+	BedAdd 2018_04
 	
+	2018-04-03 Removed 'in2' argument and made 'in' a file list.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
