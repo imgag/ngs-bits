@@ -124,36 +124,33 @@ void BamAlignment::setBases(const QByteArray& bases)
 		THROW(Exception, "BamAlignment::setBases: Setting bases with different length is not implemented!");
 	}
 
-	uint8_t* s = bam_get_seq(aln_);
+	//lookup table to convert char to index (revert seq_nt16_str[]="=ACMGRSVTWYHKDBN")
+	static int char_to_base_index[256] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+										  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+										  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+										  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+										  -1,  1, -1,  2, -1, -1, -1,  4, -1, -1, -1, -1, -1, -1, 15, -1,
+										  -1, -1, -1, -1,  8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+										  -1,  1, -1,  2, -1, -1, -1,  4, -1, -1, -1, -1, -1, -1, 15, -1,
+										  -1, -1, -1, -1,  8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+										  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+										  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+										  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+										  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+										  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+										  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+										  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+										  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
 
+	//process bases
+	uint8_t* s = bam_get_seq(aln_);
 	for(int i=0; i<bases.count(); ++i)
 	{
-		//determine base index (revert seq_nt16_str[]="=ACMGRSVTWYHKDBN")
-		int base_index = -1;
-		switch(bases[i])
+		//determine base index
+		int base_index = char_to_base_index[(int)(bases[i])];
+		if (base_index==-1)
 		{
-			case 'A':
-			case 'a':
-				base_index = 1;
-				break;
-			case 'C':
-			case 'c':
-				base_index = 2;
-				break;
-			case 'G':
-			case 'g':
-				base_index = 4;
-				break;
-			case 'T':
-			case 't':
-				base_index = 8;
-				break;
-			case 'N':
-			case 'n':
-				base_index = 15;
-				break;
-			default:
-				THROW(ProgrammingException, QByteArray("Cannot store character '") + bases[i] + "' in BAM file. Only A,C,G,T,N are allowed!");
+			THROW(ProgrammingException, QByteArray("Cannot store character '") + bases[i] + "' in BAM file. Only A,C,G,T,N are allowed!");
 		}
 
 		//std::cout << "  base=" << bases[i] << " base_index=" << "(" << std::bitset<8>(base_index)  << ")" << std::endl;
