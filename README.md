@@ -4,56 +4,18 @@
 
 ## Obtaining ngs-bits
 
-Please use git to download the most recent release (the source code packages of GitHub do not contains required sub-modules):
+Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can be built from sources:
 
-    git clone --recursive https://github.com/imgag/ngs-bits.git
-	cd ngs-bits
-	git checkout 2018_03
-	git submodule update --recursive --init
+* **Binaries** for [Linux/macOS](doc/install_bioconda.md)
+* From **sources** for [Linux/macOS](doc/install_unix.md)
+* From **sources** for [Windows](doc/install_win.md)
 
-### Resolving proxy issues with git
-
-If you are behind a proxy that block the standard git port, you see something like this:
-
-    $ git clone --recursive https://github.com/imgag/ngs-bits.git
-    Cloning into 'ngs-bits'...
-    fatal: Unable to look up github.com (port 9418) (Name or service not known)
-
-Then you have to adapt your ~/.gitconfig file like that:
-
-    [http]
-    proxy = http://[user]:[password]@[host]:[port]
-
-
-## Building ngs-bits
-
-### Dependencies
-
-ngs-bits depends on the following software to be installed
-
-* _g++_ (4.5 or higher)
-* _qmake_ (Qt 5.5 or higher, including xmlpatterns and mysql package)
-* _git_ (to extract the version hash)
-* __optional:__ python and matplotlib (for plot generation in QC tools)
-
-For example, the installation of the dependencies using Ubuntu 14.04/16.04 looks like that:
-
-	> sudo apt-get install make g++ qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql git python python-matplotlib libbz2-dev liblzma-dev
-
-### Building
-
-Just execute the following make commands:
-
-    make build_3rdparty
-	make build_tools_release
-
-Now the executables and all required libraries can be found in the bin/ folder!
-
-**Note:** Instructions how to build *ngs-bits* unter Windows can be found [here](doc/install_win.md).
 
 ## ChangeLog
 
-* 26.03.2018: Changed library used for for BAM access to htslib (was bamtools).
+Release 2018_04:
+
+* Changed library used for BAM access to htslib (was bamtools).
 
 ## Support
 
@@ -123,39 +85,5 @@ The default output format of the quality control tools is [qcML](https://github.
 * [VcfLeftNormalize](doc/tools/VcfLeftNormalize.md) - Normalizes all variants and shifts indels to the left in a VCF file.
 * [VcfSort](doc/tools/VcfSort.md) - Sorts variant lists according to chromosomal position.
 * [VcfStreamSort](doc/tools/VcfStreamSort.md) - Sorts entries of a VCF file according to genomic position using a stream.
-
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

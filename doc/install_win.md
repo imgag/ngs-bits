@@ -1,5 +1,5 @@
 
-# ngs-bits installation for Windows
+# Building ngs-bits from sources (Windows)
 
 ## Dependencies
 
@@ -10,7 +10,7 @@ First, we need to install some software:
   It is needed to extract the repository version during the build process.  
 * **Optional:** To create plots in qcML files, install [WinPython](http://winpython.github.io/) and add the python directory to the PATH (it is inside the WinPython directory).
 
-## Different MySQL driver
+### MySQL driver
 
 The Qt distribution contains an old MySQL driver that does not support binding as it should.  
 Thus, we need to use a different driver:
@@ -18,14 +18,22 @@ Thus, we need to use a different driver:
 * Download the [MySQL Community Server 5.7.9 ZIP file (32-bit)](http://downloads.mysql.com/archives/community/) and extract it to C:\Qt\Qt5.5.0\mysql-5.7.9-win32\.  
 * Copy C:\Qt\Qt5.5.0\mysql-5.7.9-win32\lib\libmysql.dll to C:\Windows\
 
+## Download
 
-## Building ngs-bits
-Now, we can build the third-party libraries, and then ngs-bits:
+Open a *Git CMD* and clone the most recent release (the source code package of GitHub does not contains required sub-modules):
+
+    git clone --recursive https://github.com/imgag/ngs-bits.git
+	cd ngs-bits
+	git checkout 2018_04
+	git submodule update --recursive --init
+
+## Build
+Now, we can build ngs-bits:
 
 * Unzip the [htslib](https://github.com/samtools/htslib) headers and DLL from `ngs-bits\htslib\build_win.zip`.
 * Build the ngs-bits tools using the QtCreator project file `src\tools.pro`.  
-* Then, build GSvar and other GUI tools using the QtCreator project file `src\tools_gui.pro`.  
-* Finally, you have to copy some DLLs to the `bin`folder before you can execute the ngs-bits tools:
+* Then, build GSvar and other GUI tools using the *QtCreator* project file `src\tools_gui.pro`.  
+* Finally, you have to copy some DLLs to the `bin`folder:
 
 	<table>
 		<tr>
@@ -45,12 +53,8 @@ Now, we can build the third-party libraries, and then ngs-bits:
 			<td>libmysql.dll</td>
 		</tr>
 	</table>
-	
 
+## Executing
 
-
-
-
-
-
+Now the executables and all required libraries can be found in the `bin` folder.
 
