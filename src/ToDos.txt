@@ -9,12 +9,14 @@ libs:
 - integration of htslib: use pileup, use VCF support
 
 GSvar:
+** Too many genes in "gene inheritance info" dialog => show only top 100?
 ** Start trio/multi: add busy cursor when processing
 ** Add pLI score (megSAP) and filter for pLI (GSvar) to CNVs
 ** Add literature search button (Google/Pubmed, gene/variant)
   - "LAMP2" ("586A>T" | "586A—>T" | "586A-->T" | "586A/T" | "Thr1965er" | "T1965" | rs138991195)
   - "LAMP2" ("mutation" / "cardiomyopathy" / "arrhythmia")
 * Somatic: also load CNV file of germline
+* Somatic: warning CNVs 'gene or genotype missing'
 * GenLab XML report: male => change 'hom' variants outside PAR region on chrX/chrY to 'hemi' (when GenLab import is updated)
 - text-based filter for OMIM/ClinVar/HGMD column (ignore case)
 - Add genotype equal for affected
@@ -22,7 +24,7 @@ GSvar:
 
 Tools:
 ** add new tool BedHighCoverage (similar to samtools depth)
-- SampleCorrelation: Add option to use only rare snps e.g. 0.1-10.0% AF in VCF/GSvar mode
+- SampleCorrelation: Test/add option to use only rare snps e.g. 0.1-10.0% AF in VCF/GSvar mode
 - SomaticQC: do not use precalculated triplet counts, count every time (CS)
 - SomaticQC: replace 'QC:?' by real qcML identifier (CS)
 - BamClipOverlap: require sorted bam and paired-end sequencing (CS)
@@ -30,7 +32,7 @@ Tools:
 
 External:
 ** implement MultiQC support for ReadQC/MappingQC/VariantQC/SomaticQC > Jakob
-** implement ngs-bits recipe in BioConda > deploy > link to Docker container > commit updated build instructions.
+** BioConda link to Docker container.
 
 CnvHunter:
 ** Add z-score of #CNVs as QC parameter (megSAP!?)

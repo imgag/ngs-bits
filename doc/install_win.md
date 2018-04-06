@@ -28,33 +28,40 @@ Open a *Git CMD* and clone the most recent release (the source code package of G
 	git submodule update --recursive --init
 
 ## Build
-Now, we can build ngs-bits:
+
+We can now build ngs-bits:
 
 * Unzip the [htslib](https://github.com/samtools/htslib) headers and DLL from `ngs-bits\htslib\build_win.zip`.
 * Build the ngs-bits tools using the QtCreator project file `src\tools.pro`.  
-* Then, build GSvar and other GUI tools using the *QtCreator* project file `src\tools_gui.pro`.  
-* Finally, you have to copy some DLLs to the `bin`folder:
+* Then, build GSvar and other GUI tools using the *QtCreator* project file `src\tools_gui.pro`.
 
-	<table>
-		<tr>
-			<td>from path</td>
-			<td>copy DLLs</td>
-		</tr>
-		<tr>
-			<td>ngs-bits\htslib\lib\</td>
-			<td>hts-2.dll, hts.dll.a</td>
-		</tr>
-		<tr>
-			<td>C:\Qt\Qt5.5.0\5.5\mingw492_32\bin\</td>
-			<td>Qt5Core.dll, Qt5XmlPatterns.dll, Qt5PrintSupport.dll, Qt5Network.dll, Qt5Sql.dll, Qt5Xml.dll, Qt5Gui.dll, Qt5Widgets.dll, libgcc_s_dw2-1.dll, libwinpthread-1.dll, libstdc++-6.dll</td>
-		</tr>
-		<tr>
-			<td>C:\Qt\Qt5.5.0\mysql-5.7.9-win32\lib\</td>
-			<td>libmysql.dll</td>
-		</tr>
-	</table>
 
-## Executing
+Now the executables can be found in the `bin` folder and can be executed from *QtCreator*.
 
-Now the executables and all required libraries can be found in the `bin` folder.
+## Making the ngs-bits tools portable
+
+To make the tools executable outside *QtCreator* and portable, you have to copy some files/folders into the `bin` folder:
+
+<table>
+	<tr>
+		<td><b>from path</b></td>
+		<td><b>copy</b></td>
+	</tr>
+	<tr>
+		<td>ngs-bits\htslib\lib\</td>
+		<td>hts-2.dll, hts.dll.a</td>
+	</tr>
+	<tr>
+		<td>C:\Qt\Qt5.5.0\5.5\mingw492_32\bin\</td>
+		<td>Qt5Core.dll, Qt5XmlPatterns.dll, Qt5PrintSupport.dll, Qt5Network.dll, Qt5Sql.dll, Qt5Xml.dll, Qt5Gui.dll, Qt5Widgets.dll, libgcc_s_dw2-1.dll, libwinpthread-1.dll, libstdc++-6.dll</td>
+	</tr>
+	<tr>
+		<td>C:\Qt\Qt5.5.0\5.5\mingw492_32\plugins\</td>
+		<td>platforms, sqldrivers</td>
+	</tr>
+	<tr>
+		<td>C:\Qt\Qt5.5.0\mysql-5.7.9-win32\lib\</td>
+		<td>libmysql.dll</td>
+	</tr>
+</table>
 
