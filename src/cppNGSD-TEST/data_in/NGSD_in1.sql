@@ -383,3 +383,14 @@ INSERT INTO `processed_sample_qc`(`id`, `processed_sample_id`, `qc_terms_id`, `v
 (2, 3999, 47, "103.24"),
 (3, 4001, 47, "132.24");
 
+INSERT INTO `analysis_job`(`type`, `args`, `sge_id`, `sge_queue`) VALUES
+('single sample','','4711','default_srv018');
+
+INSERT INTO `analysis_job_sample`(`analysis_job_id`, `processed_sample_id`, `info`) VALUES
+(1, 3999, '');
+
+INSERT INTO `analysis_job_history`(`analysis_job_id`, `time`, `user_id`, `status`, `output`) VALUES
+(1, '2018-02-12T10:20:00', 2, 'queued', ''),
+(1, '2018-02-12T10:20:45', null, 'started', ''),
+(1, '2018-02-12T10:34:09', null, 'finished', 'warning: bla bla bla');
+

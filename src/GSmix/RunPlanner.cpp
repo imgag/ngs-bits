@@ -262,7 +262,7 @@ void RunPlanner::importNewSamplesToNGSD()
 				}
 				ps.set("operator_id", DatabaseCache::inst().ngsd().userId());
 
-				GDBODialog dlg(this, ps, QStringList() << "process_id" << "last_analysis");
+				GDBODialog dlg(this, ps, QStringList() << "process_id");
 				dlg.setWindowTitle("Add processed sample to NGSD");
 				if (dlg.exec())
 				{

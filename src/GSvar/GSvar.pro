@@ -42,7 +42,9 @@ SOURCES += main.cpp\
     ReportHelper.cpp \
     DiagnosticStatusWidget.cpp \
     DiagnosticStatusOverviewDialog.cpp \
-    SvWidget.cpp
+    SvWidget.cpp \
+    AnalysisStatusDialog.cpp \
+    SingleSampleAnalysisDialog.cpp
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
@@ -79,7 +81,9 @@ HEADERS  += MainWindow.h \
     ReportHelper.h \
     DiagnosticStatusWidget.h \
     DiagnosticStatusOverviewDialog.h \
-    SvWidget.h
+    SvWidget.h \
+    AnalysisStatusDialog.h \
+    SingleSampleAnalysisDialog.h
 
 FORMS    += MainWindow.ui \
     FilterDockWidget.ui \
@@ -112,7 +116,9 @@ FORMS    += MainWindow.ui \
 	RohWidget.ui \
     DiagnosticStatusWidget.ui \
     DiagnosticStatusOverviewDialog.ui \
-    SvWidget.ui
+    SvWidget.ui \
+    AnalysisStatusDialog.ui \
+    SingleSampleAnalysisDialog.ui
     
 
 include("../app_gui.pri")

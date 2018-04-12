@@ -125,7 +125,6 @@ public:
 		fields << "s.tumor";
 		fields << "s.ffpe";
 		fields << "ps.quality";
-		fields << "ps.last_analysis";
 		fields << "sys.name_short";
 		fields << "p.name";
 		fields << "p.type";
@@ -146,6 +145,7 @@ public:
 		{
 			line += (i==1 ? "" : "\t") + fields[i];
 		}
+		line += "\tlast_analysis";
 		if (check_path) line += "\tcheck_path";
 		if (qc)
 		{
@@ -160,10 +160,18 @@ public:
 		while(result.next())
 		{
 			QStringList tokens;
+
+			//main data
 			for (int i=0; i<result.record().count(); ++i)
 			{
 				tokens << result.value(i).toString();
 			}
+
+			//last analysis
+			AnalysisJob analysis_job = db.analysisInfo(db.lastAnalysisOf(result.value(0).toString()));
+			tokens << (analysis_job.history.count() ? analysis_job.history.last().timeAsString() : "n/a");
+
+			//check path
 			if (check_path)
 			{
 				QString project_type = tokens[fields.indexOf("p.type")];
@@ -201,6 +209,8 @@ public:
 					}
 				}
 			}
+
+			//QC values
 			if (qc)
 			{
 				SqlQuery qc_res = db.getQuery();
@@ -215,6 +225,8 @@ public:
 					tokens << qc_map.value(qc_col, "n/a");
 				}
 			}
+
+			//write output
 			for (int i=1; i<tokens.count(); ++i)
 			{
 				output->write((i==1 ? "" : "\t") + tokens[i].toLatin1());

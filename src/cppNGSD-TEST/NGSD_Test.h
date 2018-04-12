@@ -496,6 +496,63 @@ private slots:
 		class_info = db.getClassification(variant);
 		S_EQUAL(class_info.classification, "5");
 		S_EQUAL(class_info.comments, "class_comm2");
+
+		//analysisInfo
+		AnalysisJob analysis_job = db.analysisInfo(-1);
+		S_EQUAL(analysis_job.type, "");
+
+		analysis_job = db.analysisInfo(1);
+		S_EQUAL(analysis_job.type, "single sample");
+		S_EQUAL(analysis_job.args, "");
+		S_EQUAL(analysis_job.sge_id, "4711");
+		S_EQUAL(analysis_job.sge_queue, "default_srv018");
+		I_EQUAL(analysis_job.samples.count(), 1);
+		S_EQUAL(analysis_job.samples[0].name, "NA12878_03");
+		S_EQUAL(analysis_job.samples[0].info, "");
+		I_EQUAL(analysis_job.history.count(), 3);
+		S_EQUAL(analysis_job.history[0].status, "queued");
+		S_EQUAL(analysis_job.history[0].user, "ahmustm1");
+		S_EQUAL(analysis_job.history[0].timeAsString(), "2018-02-12 10:20:00");
+		S_EQUAL(analysis_job.history[0].output.join("\n"), "");
+		S_EQUAL(analysis_job.history[1].status, "started");
+		S_EQUAL(analysis_job.history[1].user, "");
+		S_EQUAL(analysis_job.history[1].timeAsString(), "2018-02-12 10:20:45");
+		S_EQUAL(analysis_job.history[1].output.join("\n"), "");
+		S_EQUAL(analysis_job.history[2].status, "finished");
+		S_EQUAL(analysis_job.history[2].user, "");
+		S_EQUAL(analysis_job.history[2].timeAsString(), "2018-02-12 10:34:09");
+		S_EQUAL(analysis_job.history[2].output.join("\n"), "warning: bla bla bla");
+
+		//queueAnalysis
+		db.queueAnalysis("single sample", QStringList() << "-steps ma,vc,an" << "-high_priority", QList<AnalysisJobSample>() << AnalysisJobSample { "NA12878_03", "index" }, "ahmustm1");
+		analysis_job = db.analysisInfo(2);
+		S_EQUAL(analysis_job.type, "single sample");
+		S_EQUAL(analysis_job.args, "-steps ma,vc,an -high_priority");
+		S_EQUAL(analysis_job.sge_id, "");
+		S_EQUAL(analysis_job.sge_queue, "");
+		I_EQUAL(analysis_job.samples.count(), 1);
+		S_EQUAL(analysis_job.samples[0].name, "NA12878_03");
+		S_EQUAL(analysis_job.samples[0].info, "index");
+		I_EQUAL(analysis_job.history.count(), 1);
+		S_EQUAL(analysis_job.history[0].status, "queued");
+		S_EQUAL(analysis_job.history[0].user, "ahmustm1");
+		IS_TRUE(analysis_job.history[0].timeAsString().startsWith(QDate::currentDate().toString(Qt::ISODate)));
+		S_EQUAL(analysis_job.history[0].output.join("\n"), "");
+
+		//cancelAnalysis
+		db.cancelAnalysis(2, "ahmustm1");
+		analysis_job = db.analysisInfo(2);
+		I_EQUAL(analysis_job.history.count(), 2);
+		S_EQUAL(analysis_job.history[0].status, "queued");
+		S_EQUAL(analysis_job.history[0].user, "ahmustm1");
+		S_EQUAL(analysis_job.history[1].status, "canceled");
+		S_EQUAL(analysis_job.history[1].user, "ahmustm1");
+		IS_TRUE(analysis_job.history[1].timeAsString().startsWith(QDate::currentDate().toString(Qt::ISODate)));
+		S_EQUAL(analysis_job.history[1].output.join("\n"), "");
+
+		//lastAnalysisOf
+		int job_id = db.lastAnalysisOf(db.processedSampleId("NA12878_03"));
+		I_EQUAL(job_id, 2);
 	}
 
 	//Test for debugging (without initialization because of speed)

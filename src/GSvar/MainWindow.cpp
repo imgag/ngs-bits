@@ -28,7 +28,7 @@
 #include "DBAnnotationWorker.h"
 #include "SampleInformationDialog.h"
 #include "ScrollableTextDialog.h"
-#include "TrioDialog.h"
+#include "AnalysisStatusDialog.h"
 #include "HttpHandler.h"
 #include "ValidationDialog.h"
 #include "ClassificationDialog.h"
@@ -48,7 +48,6 @@
 #include "NGSHelper.h"
 #include "XmlHelper.h"
 #include "QCCollection.h"
-#include "MultiSampleDialog.h"
 #include "NGSDReannotationDialog.h"
 #include "DiseaseInfoDialog.h"
 #include "CandidateGeneDialog.h"
@@ -81,9 +80,9 @@ MainWindow::MainWindow(QWidget *parent)
 	var_widget_->raise();
 	connect(var_widget_, SIGNAL(jumbToRegion(QString)), this, SLOT(openInIGV(QString)));
 
-    //filter menu button
-    auto filter_btn = new QToolButton();
-    filter_btn->setIcon(QIcon(":/Icons/Filter.png"));
+	//filter menu button
+	auto filter_btn = new QToolButton();
+	filter_btn->setIcon(QIcon(":/Icons/Filter.png"));
 	filter_btn->setToolTip("Apply default variant filters.");
 	filter_btn->setMenu(new QMenu());
 	filter_btn->menu()->addAction(ui_.actionFiltersGermline);
@@ -94,7 +93,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.actionFiltersTrio, SIGNAL(triggered(bool)), filter_widget_, SLOT(applyDefaultFiltersTrio()));
 	filter_btn->menu()->addAction(ui_.actionFiltersMultiSample);
 	connect(ui_.actionFiltersMultiSample, SIGNAL(triggered(bool)), filter_widget_, SLOT(applyDefaultFiltersMultiSample()));
-    filter_btn->menu()->addAction(ui_.actionFiltersSomatic);
+	filter_btn->menu()->addAction(ui_.actionFiltersSomatic);
 	connect(ui_.actionFiltersSomatic, SIGNAL(triggered(bool)), filter_widget_, SLOT(applyDefaultFiltersSomatic()));
 	filter_btn->menu()->addSeparator();
 	filter_btn->menu()->addAction(ui_.actionFiltersCarrier);
@@ -102,8 +101,8 @@ MainWindow::MainWindow(QWidget *parent)
 	filter_btn->menu()->addSeparator();
 	filter_btn->menu()->addAction(ui_.actionFiltersClear);
     connect(ui_.actionFiltersClear, SIGNAL(triggered(bool)), this, SLOT(clearFilters()));
-    filter_btn->setPopupMode(QToolButton::InstantPopup);
-    ui_.tools->insertWidget(ui_.actionReport, filter_btn);
+	filter_btn->setPopupMode(QToolButton::InstantPopup);
+	ui_.tools->insertWidget(ui_.actionReport, filter_btn);
 
 	//signals and slots
 	connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(close()));
@@ -1011,39 +1010,10 @@ void MainWindow::on_actionSampleCorrelationBAM_triggered()
 	dialog.exec();
 }
 
-void MainWindow::on_actionTrio_triggered()
+void MainWindow::on_actionAnalysisStatus_triggered()
 {
-	TrioDialog dlg(this);
-	if (dlg.exec()==QDialog::Accepted)
-	{
-		QStringList samples = dlg.samples();
-		QString reply = HttpHandler(HttpHandler::NONE).getHttpReply(Settings::string("SampleStatus")+"restart.php?type=trio&high_priority&user=" + Helper::userName() + "&c=" + samples[0] + "&f=" + samples[1] + "&m=" + samples[2]);
-		if (!reply.startsWith("Restart successful"))
-		{
-			QMessageBox::warning(this, "Trio analysis", "Queueing analysis failed:\n" + reply);
-		}
-		else
-		{
-			QMessageBox::information(this, "Trio analysis", "Queueing analysis successful!");
-		}
-	}
-}
-
-void MainWindow::on_actionMultiSample_triggered()
-{
-	MultiSampleDialog dlg(this);
-	if (dlg.exec()==QDialog::Accepted)
-	{
-		QString reply = HttpHandler(HttpHandler::NONE).getHttpReply(Settings::string("SampleStatus")+"restart.php?type=multi&high_priority&user="+Helper::userName()+"&samples=" + dlg.samples().join(',')+"&status=" + dlg.status().join(','));
-		if (!reply.startsWith("Restart successful"))
-		{
-			QMessageBox::warning(this, "Multi-sample analysis", "Queueing analysis failed:\n" + reply);
-		}
-		else
-		{
-			QMessageBox::information(this, "Multi-sample analysis", "Queueing analysis successful!");
-		}
-	}
+	AnalysisStatusDialog dlg(this);
+	dlg.exec();
 }
 
 void MainWindow::on_actionGapsLookup_triggered()
@@ -2565,8 +2535,7 @@ void MainWindow::updateNGSDSupport()
 	ui_.actionReport->setEnabled(ngsd_enabled);
 	ui_.actionNGSD->setEnabled(ngsd_enabled);
 	ui_.actionNGSDAnnotation->setEnabled(ngsd_enabled);
-	ui_.actionTrio->setEnabled(ngsd_enabled);
-	ui_.actionMultiSample->setEnabled(ngsd_enabled);
+	ui_.actionAnalysisStatus->setEnabled(ngsd_enabled);
 	ui_.actionSampleInformation->setEnabled(ngsd_enabled);
 	ui_.actionGapsRecalculate->setEnabled(ngsd_enabled);
 	ui_.actionGeneSelector->setEnabled(ngsd_enabled);

@@ -17,6 +17,60 @@
 #include "Phenotype.h"
 #include "Helper.h"
 
+///Analysis job sample.
+struct CPPNGSDSHARED_EXPORT AnalysisJobSample
+{
+	QString name;
+	QString info;
+
+	bool operator==(const AnalysisJobSample& rhs)
+	{
+		return name==rhs.name && info==rhs.info;
+	}
+};
+
+///Analysis job sample.
+struct CPPNGSDSHARED_EXPORT AnalysisJobHistoryEntry
+{
+	QDateTime time;
+	QString user;
+	QString status;
+	QStringList output;
+
+	QString timeAsString() const
+	{
+		return time.toString(Qt::ISODate).replace('T', ' ');
+	}
+};
+
+///Analysis job information.
+struct CPPNGSDSHARED_EXPORT AnalysisJob
+{
+	QString type;
+	QString args;
+	QString sge_id;
+	QString sge_queue;
+
+	QList<AnalysisJobSample> samples;
+	QList<AnalysisJobHistoryEntry> history;
+
+	//Returns the last status
+	QString finalStatus()
+	{
+		return history.count()==0 ? "n/a" : history.last().status;
+	}
+
+	//Returns if the job is still running
+	bool isRunning()
+	{
+		return finalStatus()=="queued" || finalStatus()=="started";
+	}
+
+	//Returns the run time in human-readable format (so far if still running)
+	QString runTimeAsString() const;
+};
+
+
 ///Sample information.
 struct CPPNGSDSHARED_EXPORT SampleData
 {
@@ -277,6 +331,15 @@ public:
 	QString url(const QString& filename);
 	///Returns the NGSD seach URL including the search term.
 	QString urlSearch(const QString& search_term);
+
+	///Returns the job id of the last single sample analysis or -1 if no analysis was performed.
+	int lastAnalysisOf(QString processed_sample_id);
+	///Returns information about an analysis job
+	AnalysisJob analysisInfo(int job_id);
+	///Queues an analysis.
+	void queueAnalysis(QString type, QStringList args, QList<AnalysisJobSample> samples, QString user_name=Helper::userName());
+	///Canceles an analysis.
+	void cancelAnalysis(int job_id, QString user_name=Helper::userName());
 
 	///Returns the target file path (or sub-panel folder)
 	static QString getTargetFilePath(bool subpanels = false, bool windows = true);

@@ -3,9 +3,9 @@
 
 #include <QDialog>
 #include "ui_MultiSampleDialog.h"
-#include "NGSD.h"
+#include "SingleSampleAnalysisDialog.h"
 
-//Dialog used to start a multi-sample analysis.
+//Dialog for starting a multi-sample analysis.
 class MultiSampleDialog
 	: public QDialog
 {
@@ -13,32 +13,27 @@ class MultiSampleDialog
 
 public:
 	MultiSampleDialog(QWidget* parent = 0);
+	//Fills table with given processed samples
+	void setSamples(QList<AnalysisJobSample> samples);
 
-	//Returns the sample name list (the first sample defines the target region to use for the multi-sample analysis, if they are not the same)
-	QStringList samples();
-	//Rreturns the sample status list (affected/control)
-	QStringList status();
+	//Returns the processed sample list.
+	QList<AnalysisJobSample> samples() const;
+	//Returns the command line arguments.
+	QStringList arguments() const;
 
-protected slots:
+private slots:
 	void on_add_control_clicked(bool);
 	void on_add_affected_clicked(bool);
+	void on_clear_clicked(bool);
 	void updateStartButton();
-	void startAnalysis();
 
 private:
 	Ui::MultiSampleDialog ui_;
 	NGSD db_;
-	struct SampleInfo
-	{
-		QString name;
-		QString system;
-		bool affected;
-		QString quality;
-	};
-	QList<SampleInfo> samples_;
+	QList<SampleDetails> samples_;
+	QList<AnalysisStep> steps_;
 
-	void addSample(bool affected);
-	QString formatAffected(bool affected);
+	void addSample(QString status, QString sample="");
 	void updateSampleTable();
 };
 

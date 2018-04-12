@@ -42,5 +42,9 @@
         <file>Icons/WebService.png</file>
         <file>Resources/cancer_types.tsv</file>
         <file>Icons/StructuralVariant.png</file>
+        <file>Icons/Server.png</file>
+        <file>Icons/SingleSample.png</file>
+        <file>Icons/Refresh.png</file>
+        <file>Icons/Folder.png</file>
     </qresource>
 </RCC>

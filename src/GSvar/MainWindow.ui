@@ -222,8 +222,7 @@
    <addaction name="actionNGSD"/>
    <addaction name="actionSampleInformation"/>
    <addaction name="separator"/>
-   <addaction name="actionTrio"/>
-   <addaction name="actionMultiSample"/>
+   <addaction name="actionAnalysisStatus"/>
    <addaction name="separator"/>
    <addaction name="actionGapsLookup"/>
    <addaction name="actionGapsRecalculate"/>
@@ -372,18 +371,6 @@
   <action name="actionChangeLog">
    <property name="text">
     <string>ChangeLog</string>
-   </property>
-  </action>
-  <action name="actionTrio">
-   <property name="icon">
-    <iconset resource="GSvar.qrc">
-     <normaloff>:/Icons/Trio.png</normaloff>:/Icons/Trio.png</iconset>
-   </property>
-   <property name="text">
-    <string>Trigger trio analysis (child is the index).</string>
-   </property>
-   <property name="toolTip">
-    <string>Trigger trio analysis (child is the index).</string>
    </property>
   </action>
   <action name="actionGapsLookup">
@@ -597,21 +584,6 @@
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
-  <action name="actionMultiSample">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="GSvar.qrc">
-     <normaloff>:/Icons/MultiSample.png</normaloff>:/Icons/MultiSample.png</iconset>
-   </property>
-   <property name="text">
-    <string>actionMultiSample</string>
-   </property>
-   <property name="toolTip">
-    <string>Trigger multi-sample analysis (affected vs. unaffected).</string>
-   </property>
-  </action>
   <action name="actionGenderSRY">
    <property name="text">
     <string>Based on SRY gene</string>
@@ -689,6 +661,18 @@
    </property>
    <property name="toolTip">
     <string>Show Structural Variants</string>
+   </property>
+  </action>
+  <action name="actionAnalysisStatus">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/Server.png</normaloff>:/Icons/Server.png</iconset>
+   </property>
+   <property name="text">
+    <string>actionSampleAnalysisStatus</string>
+   </property>
+   <property name="toolTip">
+    <string>Sample analysis status and queuing.</string>
    </property>
   </action>
  </widget>

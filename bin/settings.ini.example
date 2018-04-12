@@ -38,7 +38,6 @@ target_file_folder_linux = ""
 
 #webservice URLs
 NGSD = ""
-SampleStatus = ""
 PrimerDesign = ""
 Alamut = ""
 VariantInfoRefSeq = ""

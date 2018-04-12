@@ -3,20 +3,23 @@
 
 #include <QDialog>
 #include "ui_TrioDialog.h"
-#include "NGSD.h"
+#include "SingleSampleAnalysisDialog.h"
 
-///Dialog for selecting a trio.
+//Dialog for starting a trio analysis.
 class TrioDialog
 		: public QDialog
 {
 	Q_OBJECT
 
 public:
-	///Constructor
 	explicit TrioDialog(QWidget* parent = 0);
+	//Fills table with given processed samples
+	void setSamples(QList<AnalysisJobSample> samples);
 
-	///Returns the processed sample list (child, father, mother)
-	QStringList samples();
+	//Returns the processed sample list.
+	QList<AnalysisJobSample> samples() const;
+	//Returns the command line arguments.
+	QStringList arguments() const;
 
 private slots:
 	void on_add_samples_clicked(bool);
@@ -25,17 +28,10 @@ private slots:
 private:
 	Ui::TrioDialog ui_;
 	NGSD db_;
-	struct SampleInfo
-	{
-		QString name;
-		QString system;
-		QString status;
-		QString quality;
-	};
-	QList<SampleInfo> samples_;
+	QList<SampleDetails> samples_;
+	QList<AnalysisStep> steps_;
 
-	bool addSample(QString status);
-	void clearSampleData();
+	void addSample(QString status, QString sample="");
 	void updateSampleTable();
 };
 

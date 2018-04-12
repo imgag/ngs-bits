@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>TrioDialog</class>
- <widget class="QDialog" name="TrioDialog">
+ <class>SingleSampleAnalysisDialog</class>
+ <widget class="QDialog" name="SingleSampleAnalysisDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -17,7 +17,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Start trio analysis</string>
+   <string>Start sample analysis</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">
@@ -38,7 +38,7 @@
    <item>
     <widget class="QLabel" name="label_7">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to start a trio analysis. Enter processed sample names (e.g. GS110998_01).&lt;/p&gt;&lt;p&gt;If not all samples are processed with the same processing system, the processing system of the child (index) is used.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to start a single sample analysis, or a batch of single sample analyses. Enter processed sample names (e.g. GS110998_01).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
@@ -78,13 +78,24 @@
       <number>3</number>
      </property>
      <item>
-      <widget class="QPushButton" name="add_samples">
+      <widget class="QPushButton" name="add_sample">
        <property name="text">
-        <string>add samples</string>
+        <string>Add sample</string>
        </property>
        <property name="icon">
         <iconset resource="GSvar.qrc">
-         <normaloff>:/Icons/Add_green.png</normaloff>:/Icons/Add_green.png</iconset>
+         <normaloff>:/Icons/Add.png</normaloff>:/Icons/Add.png</iconset>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="add_batch">
+       <property name="text">
+        <string>Add sample batch</string>
+       </property>
+       <property name="icon">
+        <iconset resource="GSvar.qrc">
+         <normaloff>:/Icons/AddTemporary.png</normaloff>:/Icons/AddTemporary.png</iconset>
        </property>
       </widget>
      </item>
@@ -100,6 +111,17 @@
         </size>
        </property>
       </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="clear">
+       <property name="text">
+        <string>Clear</string>
+       </property>
+       <property name="icon">
+        <iconset resource="GSvar.qrc">
+         <normaloff>:/Icons/Remove.png</normaloff>:/Icons/Remove.png</iconset>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -146,13 +168,6 @@
       <property name="bottomMargin">
        <number>3</number>
       </property>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>high priority:</string>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="1">
        <widget class="QCheckBox" name="high_priority">
         <property name="text">
@@ -163,15 +178,22 @@
         </property>
        </widget>
       </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="custom_args"/>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>high priority:</string>
+        </property>
+       </widget>
+      </item>
       <item row="1" column="0">
        <widget class="QLabel" name="label_2">
         <property name="text">
          <string>custom arguments:</string>
         </property>
        </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QLineEdit" name="custom_args"/>
       </item>
      </layout>
     </widget>
@@ -216,7 +238,7 @@
         <bool>false</bool>
        </property>
        <property name="text">
-        <string>add samples</string>
+        <string>Queue analysis</string>
        </property>
       </widget>
      </item>
@@ -224,9 +246,6 @@
    </item>
   </layout>
  </widget>
- <tabstops>
-  <tabstop>start_button</tabstop>
- </tabstops>
  <resources>
   <include location="GSvar.qrc"/>
  </resources>
@@ -234,16 +253,16 @@
   <connection>
    <sender>start_button</sender>
    <signal>clicked()</signal>
-   <receiver>TrioDialog</receiver>
+   <receiver>SingleSampleAnalysisDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>220</x>
-     <y>118</y>
+     <x>519</x>
+     <y>251</y>
     </hint>
     <hint type="destinationlabel">
-     <x>174</x>
-     <y>69</y>
+     <x>281</x>
+     <y>133</y>
     </hint>
    </hints>
   </connection>

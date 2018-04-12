@@ -375,6 +375,7 @@ CREATE  TABLE IF NOT EXISTS `project` (
   `internal_coordinator_id` INT(11) NOT NULL,
   `comment` TEXT NULL DEFAULT NULL,
   `analysis` ENUM('fastq','mapping','variant calling','annotation') NOT NULL DEFAULT 'annotation',
+  `email_notification` varchar(200) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`name` ASC),
   INDEX `internal_coordinator_id` (`internal_coordinator_id` ASC),
@@ -406,7 +407,6 @@ CREATE  TABLE IF NOT EXISTS `processed_sample` (
   `molarity` FLOAT NULL DEFAULT NULL,
   `normal_id` INT(11) NULL DEFAULT NULL,
   `quality` ENUM('n/a','good','medium','bad') NOT NULL DEFAULT 'n/a',
-  `last_analysis` DATE NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `sample_psid_unique` (`sample_id` ASC, `process_id` ASC),
   INDEX `fk_processed_sample_samples1` (`sample_id` ASC),
@@ -843,6 +843,49 @@ CREATE TABLE IF NOT EXISTS `hpo_parent` (
     REFERENCES `hpo_term` (`id`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `analysis_job`
+-- -----------------------------------------------------
+
+CREATE TABLE `analysis_job` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `type` enum('single sample','multi sample','trio','somatic') NOT NULL,
+  `args` text NOT NULL,
+  `sge_id` varchar(10) DEFAULT NULL,
+  `sge_queue` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+-- -----------------------------------------------------
+-- Table `analysis_job_sample`
+-- -----------------------------------------------------
+
+CREATE TABLE `analysis_job_sample` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `analysis_job_id` int(11) NOT NULL,
+  `processed_sample_id` int(11) NOT NULL,
+  `info` text NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+-- -----------------------------------------------------
+-- Table `analysis_job_history`
+-- -----------------------------------------------------
+
+CREATE TABLE `analysis_job_history` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `analysis_job_id` int(11) NOT NULL,
+  `time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `user_id` int(11) DEFAULT NULL,
+  `status` enum('queued','started','finished','canceled','error') NOT NULL,
+  `output` text NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 
 -- ----------------------------------------------------------------------------------------------------------
 --                                                 INITIAL DATA

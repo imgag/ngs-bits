@@ -97,10 +97,8 @@ public slots:
 	void on_actionSampleCorrelationBAM_triggered();
 	///Sample correlation TSV
 	void on_actionSampleCorrelationTSV_triggered();
-	///Trio analysis
-	void on_actionTrio_triggered();
-	///Multi-sample analysis
-	void on_actionMultiSample_triggered();
+	///Sample analysis status
+	void on_actionAnalysisStatus_triggered();
 	///Lookup gaps in low-coverage BED file
 	void on_actionGapsLookup_triggered();
 	///Calculate gaps based on current target region

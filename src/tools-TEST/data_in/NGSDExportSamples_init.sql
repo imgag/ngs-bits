@@ -25,7 +25,7 @@ INSERT INTO sample (id, name, sample_type, species_id, gender, tumor, ffpe, send
 INSERT INTO sample (id, name, sample_type, species_id, gender, tumor, ffpe, sender_id, quality) VALUES (2, 'NA12880', 'DNA', 1, 'female', '0', '0', 1, 'good');
 
 -- processed_sample
-INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane, operator_id, processing_system_id, project_id, last_analysis, quality) VALUES (1, 1, 1, 1, 1, 2, 1, 1, '2015-10-30', 'bad');
+INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane, operator_id, processing_system_id, project_id, quality) VALUES (1, 1, 1, 1, 1, 2, 1, 1, 'bad');
 INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane, operator_id, processing_system_id, project_id) VALUES (2, 1, 2, 2, 1, 2, 2, 2);
 INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane, operator_id, processing_system_id, project_id) VALUES (3, 2, 1, 2, 1, 2, 2, 2);
 
@@ -44,3 +44,16 @@ INSERT INTO `processed_sample_qc` (`processed_sample_id`, `qc_terms_id`, `value`
 (1, 31, '97.45'),
 (2, 4, '32.34'),
 (2, 47, '100.28');
+
+-- analysis job
+INSERT INTO `analysis_job`(`type`, `args`, `sge_id`, `sge_queue`) VALUES
+('single sample','','','');
+
+INSERT INTO `analysis_job_sample`(`analysis_job_id`, `processed_sample_id`, `info`) VALUES
+(1, 1, '');
+
+INSERT INTO `analysis_job_history`(`analysis_job_id`, `time`, `user_id`, `status`, `output`) VALUES
+(1, '2015-10-30T23:59:00', 2, 'queued', ''),
+(1, '2015-11-01T00:00:10', null, 'started', ''),
+(1, '2015-11-01T04:13:32', null, 'finished', '');
+

@@ -249,6 +249,9 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	else if (type==VCF) output += ps_name + "_var_annotated.vcf.gz";
 	else if (type!=FOLDER) THROW(ProgrammingException, "Unknown PathType '" + QString::number(type) + "'!");
 
+	//convert to canonical path
+	output = QFileInfo(output).absoluteFilePath();
+
 	return output;
 }
 
@@ -860,6 +863,74 @@ QString NGSD::url(const QString& filename)
 QString NGSD::urlSearch(const QString& search_term)
 {
 	return Settings::string("NGSD")+"/search/processSearch/search_term=" + search_term;
+}
+
+int NGSD::lastAnalysisOf(QString processed_sample_id)
+{
+	SqlQuery query = getQuery();
+	query.exec("SELECT j.id FROM analysis_job j, analysis_job_sample js WHERE js.analysis_job_id=j.id AND js.processed_sample_id=" + processed_sample_id + " AND j.type='single sample' ORDER BY j.id DESC LIMIT 1");
+	if (query.next())
+	{
+		return query.value(0).toInt();
+	}
+
+	return -1;
+}
+
+AnalysisJob NGSD::analysisInfo(int job_id)
+{
+	AnalysisJob output;
+
+	SqlQuery query = getQuery();
+	query.exec("SELECT * FROM analysis_job WHERE id=" + QString::number(job_id));
+	if (query.next())
+	{
+		output.type = query.value("type").toString();
+		output.args = query.value("args").toString();
+		output.sge_id = query.value("sge_id").toString();
+		output.sge_queue = query.value("sge_queue").toString();
+
+		//extract samples
+		SqlQuery query2 = getQuery();
+		query2.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), js.info FROM analysis_job_sample js, processed_sample ps, sample s WHERE js.analysis_job_id=" + QString::number(job_id) + " AND js.processed_sample_id=ps.id AND ps.sample_id=s.id ORDER by js.id ASC");
+		while(query2.next())
+		{
+			output.samples << AnalysisJobSample { query2.value(0).toString(), query2.value(1).toString() };
+		}
+
+		//extract status
+		query2.exec("SELECT js.time, u.user_id, js.status, js.output FROM analysis_job_history js LEFT JOIN user u ON js.user_id=u.id  WHERE js.analysis_job_id=" + QString::number(job_id) + " ORDER BY js.id ASC");
+		while(query2.next())
+		{
+			output.history << AnalysisJobHistoryEntry { query2.value(0).toDateTime(), query2.value(1).toString(), query2.value(2).toString(), query2.value(3).toString().split('\n') };
+		}
+	}
+
+	return output;
+}
+
+void NGSD::queueAnalysis(QString type, QStringList args, QList<AnalysisJobSample> samples, QString user_name)
+{
+	SqlQuery query = getQuery();
+
+	//insert job
+	query.exec("INSERT INTO `analysis_job`(`type`, `args`) VALUES ('" + type + "','" + args.join(" ") +  "')");
+	QString job_id = query.lastInsertId().toString();
+
+	//insert samples
+	foreach(const AnalysisJobSample& sample, samples)
+	{
+		query.exec("INSERT INTO `analysis_job_sample`(`analysis_job_id`, `processed_sample_id`, `info`) VALUES (" + job_id + ",'" + processedSampleId(sample.name) + "','" + sample.info + "')");
+	}
+
+	//insert status
+	query.exec("INSERT INTO `analysis_job_history`(`analysis_job_id`, `time`, `user_id`, `status`, `output`) VALUES (" + job_id + ",'" + Helper::dateTime("") + "'," + userId(user_name) + ",'queued', '')");
+}
+
+void NGSD::cancelAnalysis(int job_id, QString user_name)
+{
+	SqlQuery query = getQuery();
+	query.exec("INSERT INTO `analysis_job_history`(`analysis_job_id`, `time`, `user_id`, `status`, `output`) VALUES (" + QString::number(job_id) + ",'" + Helper::dateTime("") + "'," + userId(user_name) + ",'canceled', '')");
 }
 
 QString NGSD::getTargetFilePath(bool subpanels, bool windows)
@@ -1905,4 +1976,44 @@ void NGSD::setGeneInfo(GeneInfo info)
 	query.bindValue(3, info.inheritance);
 	query.bindValue(4, info.comments);
 	query.exec();
+}
+
+
+QString AnalysisJob::runTimeAsString() const
+{
+	//determine start time
+	QDateTime start;
+	QDateTime end = QDateTime::currentDateTime();
+	foreach(const AnalysisJobHistoryEntry& entry, history)
+	{
+		if (entry.status=="started")
+		{
+			start = entry.time;
+		}
+		if (entry.status=="error" || entry.status=="finished" || entry.status=="canceled")
+		{
+			end = entry.time;
+		}
+	}
+
+	//not started
+	if (!start.isValid())
+	{
+		return "not started yet";
+	}
+
+
+	//calculate sec, min, hour
+	double s = start.secsTo(end);
+	double m = floor(s/60.0);
+	s -= 60.0 * m;
+	double h = floor(m/60.0);
+	m -= 60.0 * h;
+
+	QStringList parts;
+	if (h>0) parts << QString::number(h, 'f', 0) + "h";
+	if (h>0 || m>0) parts << QString::number(m, 'f', 0) + "m";
+	parts << QString::number(s, 'f', 0) + "s";
+
+	return parts.join(" ");
 }
