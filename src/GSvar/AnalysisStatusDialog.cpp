@@ -197,9 +197,6 @@ void AnalysisStatusDialog::refreshStatus()
 	GUIHelper::resizeTableCells(ui_.analyses, 400);
 }
 
-//TODO
-// - update docu (CNV, changelog)
-
 void AnalysisStatusDialog::showContextMenu(QPoint pos)
 {
 	//extract selected rows

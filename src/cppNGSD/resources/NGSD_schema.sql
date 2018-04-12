@@ -868,7 +868,17 @@ CREATE TABLE `analysis_job_sample` (
   `analysis_job_id` int(11) NOT NULL,
   `processed_sample_id` int(11) NOT NULL,
   `info` text NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_analysis_job_id`
+    FOREIGN KEY (`analysis_job_id` )
+    REFERENCES `analysis_job` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_processed_sample_id`
+    FOREIGN KEY (`processed_sample_id` )
+    REFERENCES `processed_sample` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
@@ -883,7 +893,17 @@ CREATE TABLE `analysis_job_history` (
   `user_id` int(11) DEFAULT NULL,
   `status` enum('queued','started','finished','canceled','error') NOT NULL,
   `output` text NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_analysis_job_id2`
+    FOREIGN KEY (`analysis_job_id` )
+    REFERENCES `analysis_job` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_user_id2`
+    FOREIGN KEY (`user_id` )
+    REFERENCES `user` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 

@@ -22,7 +22,7 @@ GSvar:
 - Make default filters configurable in INI file
 
 Tools:
-** add new tool BedHighCoverage (similar to samtools depth)
+** add new tool BamHighCoverage (similar to samtools depth)
 - SampleCorrelation: Test/add option to use only rare snps e.g. 0.1-10.0% AF in VCF/GSvar mode
 - SomaticQC: do not use precalculated triplet counts, count every time (CS)
 - SomaticQC: replace 'QC:?' by real qcML identifier (CS)
@@ -30,7 +30,7 @@ Tools:
 - BamClipOverlap: use higher base quality in overlap (CS)
 
 External:
-** implement MultiQC support for ReadQC/MappingQC/VariantQC/SomaticQC > Jakob
+** implement MultiQC support for ReadQC/MappingQC/VariantQC/SomaticQC (>JM)
 
 CnvHunter:
 ** Add z-score of #CNVs as QC parameter (megSAP!?)
