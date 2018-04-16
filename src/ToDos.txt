@@ -9,6 +9,9 @@ libs:
 - integration of htslib: use pileup, use VCF support
 
 GSvar:
+**** Check current status of analysis before restarting/canceling
+**** Add analysis dialog for tumor/normal
+**** Trio analysis dialog: show gender from NGSD and allow checking genders
 ** Too many genes in "gene inheritance info" dialog => show only top 100?
 ** Add pLI score (megSAP) and filter for pLI (GSvar) to CNVs
 ** Add literature search button (Google/Pubmed, gene/variant)
@@ -33,8 +36,8 @@ External:
 ** implement MultiQC support for ReadQC/MappingQC/VariantQC/SomaticQC (>JM)
 
 CnvHunter:
-** Add z-score of #CNVs as QC parameter (megSAP!?)
-** Add support for chrY
+* Add z-score of #CNVs as QC parameter (megSAP!?)
+* Add support for chrY
 * test sqrt-normalization
 - replace fun_* by methods from BasicStatistics, i.e. rewrite the methods in BasicStatistics as template functions that accept both float and double
 - test GC-normalization (check GS151166_01 C5orf42, DX170123_01 SEC23B del)

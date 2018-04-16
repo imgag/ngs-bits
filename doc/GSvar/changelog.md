@@ -1,5 +1,10 @@
 # GSvar change log
 
+### 2018_04-7-ge3ea80e (??.04.2018)
+- General: Added analysis status/queuing.
+- General: Added warning for genes with "indikationsspezifische Abrechnung"
+- Filters: Added context menu entry to create sub-panel from phenotype filters.
+
 ### 2018_03-8-g334fe3f (11.04.2018)
 - Trio/Multisample: Dialog now checks that BAM files exist.
 - Report: Improved somatic report.
@@ -179,6 +184,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 

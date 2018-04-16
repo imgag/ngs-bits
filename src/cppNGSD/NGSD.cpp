@@ -1986,7 +1986,7 @@ QString AnalysisJob::runTimeAsString() const
 	QDateTime end = QDateTime::currentDateTime();
 	foreach(const AnalysisJobHistoryEntry& entry, history)
 	{
-		if (entry.status=="started")
+		if (entry.status=="queued")
 		{
 			start = entry.time;
 		}
@@ -1995,13 +1995,6 @@ QString AnalysisJob::runTimeAsString() const
 			end = entry.time;
 		}
 	}
-
-	//not started
-	if (!start.isValid())
-	{
-		return "not started yet";
-	}
-
 
 	//calculate sec, min, hour
 	double s = start.secsTo(end);
