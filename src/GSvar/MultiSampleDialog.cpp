@@ -32,6 +32,11 @@ QStringList MultiSampleDialog::arguments() const
 	return SingleSampleAnalysisDialog::arguments(this);
 }
 
+bool MultiSampleDialog::highPriority() const
+{
+	return ui_.high_priority->isChecked();
+}
+
 void MultiSampleDialog::on_add_affected_clicked(bool)
 {
 	addSample("affected");

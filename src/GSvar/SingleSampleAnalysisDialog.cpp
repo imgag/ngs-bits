@@ -36,6 +36,11 @@ QStringList SingleSampleAnalysisDialog::arguments() const
 	return arguments(this);
 }
 
+bool SingleSampleAnalysisDialog::highPriority() const
+{
+	return ui_.high_priority->isChecked();
+}
+
 void SingleSampleAnalysisDialog::addSample(NGSD& db, QString status, QList<SampleDetails>& samples, QString sample)
 {
 	status = status.trimmed();
@@ -128,12 +133,6 @@ void SingleSampleAnalysisDialog::addStepsToParameters(QList<AnalysisStep> steps,
 QStringList SingleSampleAnalysisDialog::arguments(const QWidget* widget)
 {
 	QStringList output;
-
-	QCheckBox* prio = widget->findChild<QCheckBox*>("high_priority");
-	if (prio->isChecked())
-	{
-		output << "-high_priority";
-	}
 
 	QLineEdit* custom = widget->findChild<QLineEdit*>("custom_args");
 	if (!custom->text().isEmpty())

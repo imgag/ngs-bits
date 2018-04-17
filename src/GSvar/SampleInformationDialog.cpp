@@ -46,7 +46,7 @@ void SampleInformationDialog::reanalyze()
 	dlg.setSamples(QList<AnalysisJobSample>() << AnalysisJobSample {processed_sample_name_, ""});
 	if (dlg.exec()==QDialog::Accepted)
 	{
-		db_.queueAnalysis("single sample", dlg.arguments(), dlg.samples());
+		db_.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), dlg.samples());
 		refresh();
 	}
 }

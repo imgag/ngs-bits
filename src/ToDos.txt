@@ -12,13 +12,13 @@ GSvar:
 **** Check current status of analysis before restarting/canceling
 **** Add analysis dialog for tumor/normal
 **** Trio analysis dialog: show gender from NGSD and allow checking genders
-** Too many genes in "gene inheritance info" dialog => show only top 100?
+*** Somatic: also load CNV file of germline
+*** Somatic: warning CNVs 'gene or genotype missing'
+*** Too many genes in "gene inheritance info" dialog => show only top 100?
 ** Add pLI score (megSAP) and filter for pLI (GSvar) to CNVs
 ** Add literature search button (Google/Pubmed, gene/variant)
   - "LAMP2" ("586A>T" | "586A—>T" | "586A-->T" | "586A/T" | "Thr1965er" | "T1965" | rs138991195)
   - "LAMP2" ("mutation" / "cardiomyopathy" / "arrhythmia")
-* Somatic: also load CNV file of germline
-* Somatic: warning CNVs 'gene or genotype missing'
 * GenLab XML report: male => change 'hom' variants outside PAR region on chrX/chrY to 'hemi' (when GenLab import is updated)
 - text-based filter for OMIM/ClinVar/HGMD column (ignore case)
 - Add genotype equal for affected

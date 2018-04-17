@@ -34,6 +34,8 @@ public:
 	QList<AnalysisJobSample> samples() const;
 	//Returns the command line arguments.
 	QStringList arguments() const;
+	//Returns if the analysis is to be performed with high priority
+	bool highPriority() const;
 
 	static void addSample(NGSD& db, QString status, QList<SampleDetails>& samples, QString sample="");
 	static void updateSampleTable(const QList<SampleDetails>& samples, QTableWidget* samples_table);

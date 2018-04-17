@@ -32,6 +32,11 @@ QStringList TrioDialog::arguments() const
 	return SingleSampleAnalysisDialog::arguments(this);
 }
 
+bool TrioDialog::highPriority() const
+{
+	return ui_.high_priority->isChecked();
+}
+
 void TrioDialog::on_add_samples_clicked(bool)
 {
 	//clear old data

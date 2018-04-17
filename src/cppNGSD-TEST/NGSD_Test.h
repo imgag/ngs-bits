@@ -503,6 +503,7 @@ private slots:
 
 		analysis_job = db.analysisInfo(1);
 		S_EQUAL(analysis_job.type, "single sample");
+		I_EQUAL(analysis_job.high_priority, false);
 		S_EQUAL(analysis_job.args, "");
 		S_EQUAL(analysis_job.sge_id, "4711");
 		S_EQUAL(analysis_job.sge_queue, "default_srv018");
@@ -524,10 +525,11 @@ private slots:
 		S_EQUAL(analysis_job.history[2].output.join("\n"), "warning: bla bla bla");
 
 		//queueAnalysis
-		db.queueAnalysis("single sample", QStringList() << "-steps ma,vc,an" << "-high_priority", QList<AnalysisJobSample>() << AnalysisJobSample { "NA12878_03", "index" }, "ahmustm1");
+		db.queueAnalysis("single sample", true, QStringList() << "-steps ma,vc,an", QList<AnalysisJobSample>() << AnalysisJobSample { "NA12878_03", "index" }, "ahmustm1");
 		analysis_job = db.analysisInfo(2);
 		S_EQUAL(analysis_job.type, "single sample");
-		S_EQUAL(analysis_job.args, "-steps ma,vc,an -high_priority");
+		I_EQUAL(analysis_job.high_priority, true);
+		S_EQUAL(analysis_job.args, "-steps ma,vc,an");
 		S_EQUAL(analysis_job.sge_id, "");
 		S_EQUAL(analysis_job.sge_queue, "");
 		I_EQUAL(analysis_job.samples.count(), 1);

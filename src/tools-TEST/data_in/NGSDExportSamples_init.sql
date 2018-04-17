@@ -46,8 +46,8 @@ INSERT INTO `processed_sample_qc` (`processed_sample_id`, `qc_terms_id`, `value`
 (2, 47, '100.28');
 
 -- analysis job
-INSERT INTO `analysis_job`(`type`, `args`, `sge_id`, `sge_queue`) VALUES
-('single sample','','','');
+INSERT INTO `analysis_job`(`type`, `high_priority`, `args`, `sge_id`, `sge_queue`) VALUES
+('single sample',1,'','','');
 
 INSERT INTO `analysis_job_sample`(`analysis_job_id`, `processed_sample_id`, `info`) VALUES
 (1, 1, '');

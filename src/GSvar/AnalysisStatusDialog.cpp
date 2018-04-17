@@ -37,7 +37,7 @@ void AnalysisStatusDialog::analyzeSingleSamples(QList<AnalysisJobSample> samples
 	{
 		foreach(AnalysisJobSample sample,  dlg.samples())
 		{
-			db_.queueAnalysis("single sample", dlg.arguments(), QList<AnalysisJobSample>() << sample);
+			db_.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
 		}
 	}
 
@@ -50,7 +50,7 @@ void AnalysisStatusDialog::analyzeTrio(QList<AnalysisJobSample> samples)
 	dlg.setSamples(samples);
 	if (dlg.exec()==QDialog::Accepted)
 	{
-		db_.queueAnalysis("trio", dlg.arguments(), dlg.samples());
+		db_.queueAnalysis("trio", dlg.highPriority(), dlg.arguments(), dlg.samples());
 	}
 
 	refreshStatus();
@@ -62,7 +62,7 @@ void AnalysisStatusDialog::analyzeMultiSample(QList<AnalysisJobSample> samples)
 	dlg.setSamples(samples);
 	if (dlg.exec()==QDialog::Accepted)
 	{
-		db_.queueAnalysis("multi sample", dlg.arguments(), dlg.samples());
+		db_.queueAnalysis("multi sample", dlg.highPriority(), dlg.arguments(), dlg.samples());
 	}
 
 	refreshStatus();
@@ -341,15 +341,17 @@ void AnalysisStatusDialog::updateDetails()
 	const AnalysisJob& job = jobs_[selection_row].job_data;
 
 	//properties
-	ui_.properties->setRowCount(4);
-	addItem(ui_.properties, 0, 0, "arguments");
-	addItem(ui_.properties, 0, 1, job.args);
-	addItem(ui_.properties, 1, 0, "SGE id");
-	addItem(ui_.properties, 1, 1, job.sge_id);
-	addItem(ui_.properties, 2, 0, "SGE queue");
-	addItem(ui_.properties, 2, 1, job.sge_queue);
-	addItem(ui_.properties, 3, 0, "run time");
-	addItem(ui_.properties, 3, 1, job.runTimeAsString());
+	ui_.properties->setRowCount(5);
+	addItem(ui_.properties, 0, 0, "high_priority");
+	addItem(ui_.properties, 0, 1, job.high_priority ? "yes" : "no");
+	addItem(ui_.properties, 1, 0, "arguments");
+	addItem(ui_.properties, 1, 1, job.args);
+	addItem(ui_.properties, 2, 0, "SGE id");
+	addItem(ui_.properties, 2, 1, job.sge_id);
+	addItem(ui_.properties, 3, 0, "SGE queue");
+	addItem(ui_.properties, 3, 1, job.sge_queue);
+	addItem(ui_.properties, 4, 0, "run time");
+	addItem(ui_.properties, 4, 1, job.runTimeAsString());
 	GUIHelper::resizeTableCells(ui_.properties);
 
 	//samples

@@ -852,6 +852,7 @@ DEFAULT CHARACTER SET = utf8;
 CREATE TABLE `analysis_job` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `type` enum('single sample','multi sample','trio','somatic') NOT NULL,
+  `high_priority` TINYINT(1) NOT NULL,
   `args` text NOT NULL,
   `sge_id` varchar(10) DEFAULT NULL,
   `sge_queue` varchar(50) DEFAULT NULL,

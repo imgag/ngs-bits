@@ -886,6 +886,7 @@ AnalysisJob NGSD::analysisInfo(int job_id)
 	if (query.next())
 	{
 		output.type = query.value("type").toString();
+		output.high_priority = query.value("high_priority").toBool();
 		output.args = query.value("args").toString();
 		output.sge_id = query.value("sge_id").toString();
 		output.sge_queue = query.value("sge_queue").toString();
@@ -909,12 +910,12 @@ AnalysisJob NGSD::analysisInfo(int job_id)
 	return output;
 }
 
-void NGSD::queueAnalysis(QString type, QStringList args, QList<AnalysisJobSample> samples, QString user_name)
+void NGSD::queueAnalysis(QString type, bool high_priority, QStringList args, QList<AnalysisJobSample> samples, QString user_name)
 {
 	SqlQuery query = getQuery();
 
 	//insert job
-	query.exec("INSERT INTO `analysis_job`(`type`, `args`) VALUES ('" + type + "','" + args.join(" ") +  "')");
+	query.exec("INSERT INTO `analysis_job`(`type`, `high_priority`, `args`) VALUES ('" + type + "','" + (high_priority ? "1" : "0") + "','" + args.join(" ") +  "')");
 	QString job_id = query.lastInsertId().toString();
 
 	//insert samples

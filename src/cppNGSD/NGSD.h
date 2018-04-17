@@ -47,6 +47,7 @@ struct CPPNGSDSHARED_EXPORT AnalysisJobHistoryEntry
 struct CPPNGSDSHARED_EXPORT AnalysisJob
 {
 	QString type;
+	bool high_priority;
 	QString args;
 	QString sge_id;
 	QString sge_queue;
@@ -337,7 +338,7 @@ public:
 	///Returns information about an analysis job
 	AnalysisJob analysisInfo(int job_id);
 	///Queues an analysis.
-	void queueAnalysis(QString type, QStringList args, QList<AnalysisJobSample> samples, QString user_name=Helper::userName());
+	void queueAnalysis(QString type, bool high_priority, QStringList args, QList<AnalysisJobSample> samples, QString user_name=Helper::userName());
 	///Canceles an analysis.
 	void cancelAnalysis(int job_id, QString user_name=Helper::userName());
 

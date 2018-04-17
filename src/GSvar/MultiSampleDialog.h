@@ -20,6 +20,8 @@ public:
 	QList<AnalysisJobSample> samples() const;
 	//Returns the command line arguments.
 	QStringList arguments() const;
+	//Returns if the analysis is to be performed with high priority
+	bool highPriority() const;
 
 private slots:
 	void on_add_control_clicked(bool);
