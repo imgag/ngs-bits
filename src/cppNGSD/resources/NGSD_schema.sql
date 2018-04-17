@@ -892,7 +892,7 @@ CREATE TABLE `analysis_job_history` (
   `analysis_job_id` int(11) NOT NULL,
   `time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `user_id` int(11) DEFAULT NULL,
-  `status` enum('queued','started','finished','canceled','error') NOT NULL,
+  `status` enum('queued','started','finished','cancel','canceled','error') NOT NULL,
   `output` text NOT NULL,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_analysis_job_id2`

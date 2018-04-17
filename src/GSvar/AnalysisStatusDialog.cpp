@@ -414,6 +414,7 @@ QColor AnalysisStatusDialog::statusToColor(QString status)
 	QColor output = Qt::transparent;
 	if (status=="started") output = QColor("#90EE90");
 	if (status=="finished") output = QColor("#44BB44");
+	if (status=="cancel") output = QColor("#FFC45E");
 	if (status=="canceled") output = QColor("#FFC45E");
 	if (status=="error") output = QColor("#FF0000");
 	return output;

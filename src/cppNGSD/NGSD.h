@@ -64,7 +64,7 @@ struct CPPNGSDSHARED_EXPORT AnalysisJob
 	//Returns if the job is still running
 	bool isRunning()
 	{
-		return finalStatus()=="queued" || finalStatus()=="started";
+		return finalStatus()=="queued" || finalStatus()=="started" || finalStatus()=="cancel";
 	}
 
 	//Returns the run time in human-readable format (so far if still running)

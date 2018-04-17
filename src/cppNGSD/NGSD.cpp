@@ -931,7 +931,7 @@ void NGSD::queueAnalysis(QString type, bool high_priority, QStringList args, QLi
 void NGSD::cancelAnalysis(int job_id, QString user_name)
 {
 	SqlQuery query = getQuery();
-	query.exec("INSERT INTO `analysis_job_history`(`analysis_job_id`, `time`, `user_id`, `status`, `output`) VALUES (" + QString::number(job_id) + ",'" + Helper::dateTime("") + "'," + userId(user_name) + ",'canceled', '')");
+	query.exec("INSERT INTO `analysis_job_history`(`analysis_job_id`, `time`, `user_id`, `status`, `output`) VALUES (" + QString::number(job_id) + ",'" + Helper::dateTime("") + "'," + userId(user_name) + ",'cancel', '')");
 }
 
 QString NGSD::getTargetFilePath(bool subpanels, bool windows)
@@ -1979,7 +1979,6 @@ void NGSD::setGeneInfo(GeneInfo info)
 	query.exec();
 }
 
-
 QString AnalysisJob::runTimeAsString() const
 {
 	//determine start time
@@ -1991,7 +1990,7 @@ QString AnalysisJob::runTimeAsString() const
 		{
 			start = entry.time;
 		}
-		if (entry.status=="error" || entry.status=="finished" || entry.status=="canceled")
+		if (entry.status=="error" || entry.status=="finished" || entry.status=="cancel" || entry.status=="canceled")
 		{
 			end = entry.time;
 		}
