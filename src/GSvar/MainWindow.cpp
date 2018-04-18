@@ -183,7 +183,7 @@ void MainWindow::on_actionCNV_triggered()
 			}
 		}
 	}
-	else
+	else if (getType()!=SOMATIC_PAIR)
 	{
 		QMessageBox::information(this, "Invalid variant list", "Column 'genotype' or 'gene' not found in variant list. Cannot apply compound-heterozygous filter based on variants!");
 	}
@@ -866,7 +866,13 @@ void MainWindow::generateReport()
 
 	//check if inheritance information is set for all genes in NGSD
 	QStringList missing = geneInheritanceMissing(visible);
-	if (!missing.empty() && QMessageBox::question(this, "Report", "Gene inheritance information is missing for these genes:\n" + missing.join(", ")+"\nDo you want to continue?")==QMessageBox::No)
+	int max_shown = 50;
+	QString missing_text = missing.mid(0, max_shown).join(", ");
+	if (missing.count()>max_shown)
+	{
+		missing_text += ", ... (" + QString::number(missing.count()) + " genes overall)";
+	}
+	if (!missing.empty() && QMessageBox::question(this, "Report", "Gene inheritance information is missing for these genes:\n\n" + missing_text + "\n\nDo you want to continue?")==QMessageBox::No)
 	{
 		return;
 	}
@@ -2122,9 +2128,21 @@ QMap<QString, QString> MainWindow::getSegFilesCnv()
 
 	if (getType()==SOMATIC_PAIR)
 	{
+		//tumor-normal SEG file
 		QString seg = filename_.left(filename_.length()-6) + "_cnvs.seg";
 		QString pair = QFileInfo(filename_).baseName();
 		output[pair] = seg;
+
+		//germline SEG file
+		QString basename = QFileInfo(filename_).baseName().left(filename_.length()-6);
+		if (basename.contains("-"))
+		{
+			QString tumor_ps_name = basename.split("-")[1];
+			QString pair_folder = QFileInfo(filename_).path();
+			QString project_folder = QFileInfo(pair_folder).path();
+			seg = project_folder + "/Sample_" + tumor_ps_name + "/" + tumor_ps_name + "_cnvs.seg";
+			output[tumor_ps_name] = seg;
+		}
 	}
 	else
 	{
