@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MultiSampleDialog</class>
- <widget class="QDialog" name="MultiSampleDialog">
+ <class>SomaticDialog</class>
+ <widget class="QDialog" name="SomaticDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -17,7 +17,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Start multi-sample analysis</string>
+   <string>Start somatic analysis</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">
@@ -36,9 +36,12 @@
     <number>3</number>
    </property>
    <item>
-    <widget class="QLabel" name="label">
+    <widget class="QLabel" name="label_7">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to trigger a multi-sample analysis, comparing a group of affected to unaffected samples. &lt;/p&gt;&lt;p&gt;If not all samples are processed with the same processing system, the processing system of the first sample is used.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to start a somatic tumor-normal pair analysis. &lt;/p&gt;&lt;p&gt;If not all samples are processed with the same processing system, the processing system of the tumor sample is used.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
@@ -80,20 +83,9 @@
       <number>3</number>
      </property>
      <item>
-      <widget class="QPushButton" name="add_affected">
+      <widget class="QPushButton" name="add_samples">
        <property name="text">
-        <string>Add affected</string>
-       </property>
-       <property name="icon">
-        <iconset resource="GSvar.qrc">
-         <normaloff>:/Icons/Add_red.png</normaloff>:/Icons/Add_red.png</iconset>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="add_control">
-       <property name="text">
-        <string>Add control</string>
+        <string>add samples</string>
        </property>
        <property name="icon">
         <iconset resource="GSvar.qrc">
@@ -113,17 +105,6 @@
         </size>
        </property>
       </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="clear">
-       <property name="text">
-        <string>Clear</string>
-       </property>
-       <property name="icon">
-        <iconset resource="GSvar.qrc">
-         <normaloff>:/Icons/Remove.png</normaloff>:/Icons/Remove.png</iconset>
-       </property>
-      </widget>
      </item>
     </layout>
    </item>
@@ -171,7 +152,7 @@
        <number>3</number>
       </property>
       <item row="0" column="0">
-       <widget class="QLabel" name="label_3">
+       <widget class="QLabel" name="label">
         <property name="text">
          <string>high priority:</string>
         </property>
@@ -248,6 +229,9 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>start_button</tabstop>
+ </tabstops>
  <resources>
   <include location="GSvar.qrc"/>
  </resources>
@@ -255,16 +239,16 @@
   <connection>
    <sender>start_button</sender>
    <signal>clicked()</signal>
-   <receiver>MultiSampleDialog</receiver>
+   <receiver>SomaticDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>530</x>
-     <y>348</y>
+     <x>220</x>
+     <y>118</y>
     </hint>
     <hint type="destinationlabel">
-     <x>287</x>
-     <y>181</y>
+     <x>174</x>
+     <y>69</y>
     </hint>
    </hints>
   </connection>

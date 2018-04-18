@@ -38,7 +38,7 @@
    <item>
     <widget class="QLabel" name="label_7">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to start a single sample analysis, or a batch of single sample analyses. Enter processed sample names (e.g. GS110998_01).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to start a single sample analysis, or a batch of single sample analyses.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
@@ -68,6 +68,11 @@
      <column>
       <property name="text">
        <string>Quality</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Gender</string>
       </property>
      </column>
     </widget>

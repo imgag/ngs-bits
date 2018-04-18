@@ -1,6 +1,7 @@
 #include "AnalysisStatusDialog.h"
 #include "MultiSampleDialog.h"
 #include "TrioDialog.h"
+#include "SomaticDialog.h"
 #include "SingleSampleAnalysisDialog.h"
 #include "GUIHelper.h"
 #include <QMenu>
@@ -24,6 +25,7 @@ AnalysisStatusDialog::AnalysisStatusDialog(QWidget *parent)
 	connect(ui_.analysisSingle, SIGNAL(clicked(bool)), this, SLOT(analyzeSingleSamples()));
 	connect(ui_.analysisTrio, SIGNAL(clicked(bool)), this, SLOT(analyzeTrio()));
 	connect(ui_.analysisMulti, SIGNAL(clicked(bool)), this, SLOT(analyzeMultiSample()));
+	connect(ui_.analysisSomatic, SIGNAL(clicked(bool)), this, SLOT(analyzeSomatic()));
 
 	//misc
 	refreshStatus();
@@ -63,6 +65,18 @@ void AnalysisStatusDialog::analyzeMultiSample(QList<AnalysisJobSample> samples)
 	if (dlg.exec()==QDialog::Accepted)
 	{
 		db_.queueAnalysis("multi sample", dlg.highPriority(), dlg.arguments(), dlg.samples());
+	}
+
+	refreshStatus();
+}
+
+void AnalysisStatusDialog::analyzeSomatic(QList<AnalysisJobSample> samples)
+{
+	SomaticDialog dlg(this);
+	dlg.setSamples(samples);
+	if (dlg.exec()==QDialog::Accepted)
+	{
+		db_.queueAnalysis("somatic", dlg.highPriority(), dlg.arguments(), dlg.samples());
 	}
 
 	refreshStatus();
@@ -266,6 +280,10 @@ void AnalysisStatusDialog::showContextMenu(QPoint pos)
 		{
 			menu.addAction(QIcon(":/Icons/Refresh.png"), "Restart trio analysis");
 		}
+		else if (type=="somatic" && job_ids.count()==1)
+		{
+			menu.addAction(QIcon(":/Icons/Refresh.png"), "Restart somatic analysis");
+		}
 	}
 
 	//show menu
@@ -309,6 +327,11 @@ void AnalysisStatusDialog::showContextMenu(QPoint pos)
 	if (text=="Restart trio analysis")
 	{
 		analyzeTrio(samples);
+		refreshStatus();
+	}
+	if (text=="Restart somatic analysis")
+	{
+		analyzeSomatic(samples);
 		refreshStatus();
 	}
 }

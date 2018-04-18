@@ -46,5 +46,6 @@
         <file>Icons/SingleSample.png</file>
         <file>Icons/Refresh.png</file>
         <file>Icons/Folder.png</file>
+        <file>Icons/Somatic.png</file>
     </qresource>
 </RCC>

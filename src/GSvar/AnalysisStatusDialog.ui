@@ -175,7 +175,7 @@
      <item>
       <widget class="QToolButton" name="analysisSingle">
        <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Start single sample analysis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Start a single sample analysis - DNA or RNA.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="text">
         <string>...</string>
@@ -198,7 +198,7 @@
      <item>
       <widget class="QToolButton" name="analysisTrio">
        <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Start trio analysis (child is the index).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Start a trio analysis (child is the index).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="text">
         <string>...</string>
@@ -221,7 +221,7 @@
      <item>
       <widget class="QToolButton" name="analysisMulti">
        <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Start multi-sample analysis (affected vs. unaffected).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Start a multi-sample analysis (affected vs. unaffected).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="text">
         <string>...</string>
@@ -229,6 +229,29 @@
        <property name="icon">
         <iconset resource="GSvar.qrc">
          <normaloff>:/Icons/MultiSample.png</normaloff>:/Icons/MultiSample.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
+       </property>
+       <property name="autoRaise">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="analysisSomatic">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Start a somatic tumor-normal pair analysis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="text">
+        <string>...</string>
+       </property>
+       <property name="icon">
+        <iconset resource="GSvar.qrc">
+         <normaloff>:/Icons/Somatic.png</normaloff>:/Icons/Somatic.png</iconset>
        </property>
        <property name="iconSize">
         <size>

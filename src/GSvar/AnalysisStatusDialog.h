@@ -19,6 +19,7 @@ protected slots:
 	void analyzeSingleSamples(QList<AnalysisJobSample> samples=QList<AnalysisJobSample>());
 	void analyzeTrio(QList<AnalysisJobSample> samples=QList<AnalysisJobSample>());
 	void analyzeMultiSample(QList<AnalysisJobSample> samples=QList<AnalysisJobSample>());
+	void analyzeSomatic(QList<AnalysisJobSample> samples=QList<AnalysisJobSample>());
 	void refreshStatus();
 	void showContextMenu(QPoint pos);
 	void clearDetails();

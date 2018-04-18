@@ -92,6 +92,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleData
 	QString name;
 	QString processing_system;
 	QString quality;
+	QString gender;
 	QString comments;
 	QString project_name;
 	QString run_name;
@@ -339,8 +340,8 @@ public:
 	AnalysisJob analysisInfo(int job_id);
 	///Queues an analysis.
 	void queueAnalysis(QString type, bool high_priority, QStringList args, QList<AnalysisJobSample> samples, QString user_name=Helper::userName());
-	///Canceles an analysis.
-	void cancelAnalysis(int job_id, QString user_name=Helper::userName());
+	///Canceles an analysis. Returns 'true' if it was canceled and 'false' if it was not running anymore.
+	bool cancelAnalysis(int job_id, QString user_name=Helper::userName());
 
 	///Returns the target file path (or sub-panel folder)
 	static QString getTargetFilePath(bool subpanels = false, bool windows = true);

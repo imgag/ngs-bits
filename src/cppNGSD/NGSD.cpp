@@ -68,7 +68,7 @@ ProcessedSampleData NGSD::getProcessedSampleData(const QString& processed_sample
 {
 	//execute query
 	SqlQuery query = getQuery();
-	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, sys.name_manufacturer as sys_name, ps.quality, ps.comment, p.name as p_name, r.name as r_name, ps.normal_id FROM sample s, project p, processing_system sys, processed_sample ps LEFT JOIN sequencing_run r ON ps.sequencing_run_id=r.id WHERE ps.sample_id=s.id AND ps.project_id=p.id AND ps.processing_system_id=sys.id AND ps.id=" + processed_sample_id);
+	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, sys.name_manufacturer as sys_name, ps.quality, ps.comment, p.name as p_name, r.name as r_name, ps.normal_id, s.gender FROM sample s, project p, processing_system sys, processed_sample ps LEFT JOIN sequencing_run r ON ps.sequencing_run_id=r.id WHERE ps.sample_id=s.id AND ps.project_id=p.id AND ps.processing_system_id=sys.id AND ps.id=" + processed_sample_id);
 	if (query.size()==0)
 	{
 		THROW(ProgrammingException, "Invalid 'id' for table 'processed_sample' given: '" + processed_sample_id + "'");
@@ -80,6 +80,7 @@ ProcessedSampleData NGSD::getProcessedSampleData(const QString& processed_sample
 	output.name = query.value(0).toByteArray().trimmed();
 	output.processing_system = query.value(1).toByteArray().trimmed();
 	output.quality = query.value(2).toByteArray();
+	output.gender = query.value(7).toByteArray();
 	output.comments = query.value(3).toByteArray().trimmed();
 	output.project_name = query.value(4).toByteArray();
 	output.run_name = query.value(5).toByteArray();
@@ -928,10 +929,16 @@ void NGSD::queueAnalysis(QString type, bool high_priority, QStringList args, QLi
 	query.exec("INSERT INTO `analysis_job_history`(`analysis_job_id`, `time`, `user_id`, `status`, `output`) VALUES (" + job_id + ",'" + Helper::dateTime("") + "'," + userId(user_name) + ",'queued', '')");
 }
 
-void NGSD::cancelAnalysis(int job_id, QString user_name)
+bool NGSD::cancelAnalysis(int job_id, QString user_name)
 {
+	//check if running or already canceled
+	AnalysisJob job = analysisInfo(job_id);
+	if (!job.isRunning() || job.finalStatus()=="cancel") return false;
+
 	SqlQuery query = getQuery();
 	query.exec("INSERT INTO `analysis_job_history`(`analysis_job_id`, `time`, `user_id`, `status`, `output`) VALUES (" + QString::number(job_id) + ",'" + Helper::dateTime("") + "'," + userId(user_name) + ",'cancel', '')");
+
+	return true;
 }
 
 QString NGSD::getTargetFilePath(bool subpanels, bool windows)

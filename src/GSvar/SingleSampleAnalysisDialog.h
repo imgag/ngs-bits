@@ -11,6 +11,7 @@ struct SampleDetails
 	QString system;
 	QString status;
 	QString quality;
+	QString gender;
 };
 
 struct AnalysisStep

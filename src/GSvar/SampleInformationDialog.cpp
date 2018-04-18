@@ -110,6 +110,7 @@ void SampleInformationDialog::refresh()
 		ui_.qc_quality->setText(quality);
 		ui_.comment->setText(processed_sample_data.comments);
 		ui_.system->setText(processed_sample_data.processing_system);
+		ui_.gender->setText(processed_sample_data.gender);
 
 		//diagnostic status
 		DiagnosticStatusData diag_status = db_.getDiagnosticStatus(processed_sample_id);

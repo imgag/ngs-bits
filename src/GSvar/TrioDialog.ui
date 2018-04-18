@@ -38,7 +38,7 @@
    <item>
     <widget class="QLabel" name="label_7">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to start a trio analysis. Enter processed sample names (e.g. GS110998_01).&lt;/p&gt;&lt;p&gt;If not all samples are processed with the same processing system, the processing system of the child (index) is used.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to start a trio analysis with an index child.&lt;/p&gt;&lt;p&gt;If not all samples are processed with the same processing system, the processing system of the child (index) is used.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
@@ -68,6 +68,11 @@
      <column>
       <property name="text">
        <string>Quality</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Gender</string>
       </property>
      </column>
     </widget>
@@ -216,7 +221,7 @@
         <bool>false</bool>
        </property>
        <property name="text">
-        <string>add samples</string>
+        <string>Queue analysis</string>
        </property>
       </widget>
      </item>

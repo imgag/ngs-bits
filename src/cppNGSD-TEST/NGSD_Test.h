@@ -143,6 +143,7 @@ private slots:
 		ProcessedSampleData processed_sample_data = db.getProcessedSampleData(processed_sample_id);
 		S_EQUAL(processed_sample_data.name, "NA12878_03");
 		S_EQUAL(processed_sample_data.quality, "medium");
+		S_EQUAL(processed_sample_data.gender, "female");
 		S_EQUAL(processed_sample_data.comments, "comment_ps1");
 		S_EQUAL(processed_sample_data.project_name, "KontrollDNACoriell");
 		S_EQUAL(processed_sample_data.run_name, "#00372");
@@ -152,6 +153,7 @@ private slots:
 		processed_sample_data = db.getProcessedSampleData(processed_sample_id);
 		S_EQUAL(processed_sample_data.name, "NA12345_01");
 		S_EQUAL(processed_sample_data.quality, "good");
+		S_EQUAL(processed_sample_data.gender, "male");
 		S_EQUAL(processed_sample_data.comments, "comment_ps4");
 		S_EQUAL(processed_sample_data.project_name, "KontrollDNACoriell");
 		S_EQUAL(processed_sample_data.run_name, "#00372");
@@ -542,15 +544,19 @@ private slots:
 		S_EQUAL(analysis_job.history[0].output.join("\n"), "");
 
 		//cancelAnalysis
-		db.cancelAnalysis(2, "ahmustm1");
+		bool canceled = db.cancelAnalysis(2, "ahmustm1");
+		I_EQUAL(canceled, true);
 		analysis_job = db.analysisInfo(2);
 		I_EQUAL(analysis_job.history.count(), 2);
 		S_EQUAL(analysis_job.history[0].status, "queued");
 		S_EQUAL(analysis_job.history[0].user, "ahmustm1");
-		S_EQUAL(analysis_job.history[1].status, "canceled");
+		S_EQUAL(analysis_job.history[1].status, "cancel");
 		S_EQUAL(analysis_job.history[1].user, "ahmustm1");
 		IS_TRUE(analysis_job.history[1].timeAsString().startsWith(QDate::currentDate().toString(Qt::ISODate)));
 		S_EQUAL(analysis_job.history[1].output.join("\n"), "");
+
+		canceled = db.cancelAnalysis(2, "ahmustm1");
+		I_EQUAL(canceled, false);
 
 		//lastAnalysisOf
 		int job_id = db.lastAnalysisOf(db.processedSampleId("NA12878_03"));

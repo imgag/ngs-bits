@@ -65,7 +65,7 @@ void SingleSampleAnalysisDialog::addSample(NGSD& db, QString status, QList<Sampl
 
 	//add sample
 	ProcessedSampleData processed_sample_data = db.getProcessedSampleData(ps_id);
-	samples.append(SampleDetails {sample, processed_sample_data.processing_system, status, processed_sample_data.quality});
+	samples.append(SampleDetails {sample, processed_sample_data.processing_system, status, processed_sample_data.quality, processed_sample_data.gender});
 }
 
 void SingleSampleAnalysisDialog::updateSampleTable(const QList<SampleDetails>& samples, QTableWidget* samples_table)
@@ -78,6 +78,7 @@ void SingleSampleAnalysisDialog::updateSampleTable(const QList<SampleDetails>& s
 		samples_table->setItem(i, 1, new QTableWidgetItem(samples[i].system));
 		samples_table->setItem(i, 2, new QTableWidgetItem(samples[i].status));
 		samples_table->setItem(i, 3, new QTableWidgetItem(samples[i].quality));
+		samples_table->setItem(i, 4, new QTableWidgetItem(samples[i].gender));
 	}
 
 	GUIHelper::resizeTableCells(samples_table);
