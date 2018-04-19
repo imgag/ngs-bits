@@ -199,6 +199,10 @@ void AnalysisStatusDialog::refreshStatus()
 		//status
 		QString status = job.finalStatus();
 		QColor bg = statusToColor(status);
+		if (job.sge_queue!="")
+		{
+			status += " (" + job.sge_queue + ")";
+		}
 		if (repeated)
 		{
 			bg = QColor("#D3D3D3");

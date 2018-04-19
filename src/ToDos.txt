@@ -9,6 +9,8 @@ libs:
 - integration of htslib: use pileup, use VCF support
 
 GSvar:
+** Gap report: avg depth for all/CCDS+-5 separately?
+** VariantInfoDialog: range => genotype, samples, disease group/status, diagnostic outcome
 ** Add pLI score (megSAP) and filter for pLI (GSvar) to CNVs
 ** Add literature search button (Google/Pubmed, gene/variant)
   - "LAMP2" ("586A>T" | "586A—>T" | "586A-->T" | "586A/T" | "Thr1965er" | "T1965" | rs138991195)

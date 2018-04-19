@@ -509,15 +509,9 @@ void NGSD::annotate(VariantList& variants, QString filename, BedFile roi, double
 
 	//get sample ids
 	QString s_id = sampleId(filename, false);
-	QString ps_id = processedSampleId(filename, false);
-	QString sys_id = getValue("SELECT processing_system_id FROM processed_sample WHERE id='" + processedSampleId(filename, false) + "'").toString();
-
-	//check if we could determine the sample
-	bool found_in_db = true;
-	if (s_id=="" || ps_id=="" || sys_id=="")
+	if (s_id=="")
 	{
-		Log::warn("Could not find processed sample in NGSD by name '" + filename + "'. Annotation will be incomplete because processing system could not be determined!");
-		found_in_db = false;
+		Log::warn("Could not find sample in NGSD by name '" + filename + "'. Annotation will be incomplete because processing system could not be determined!");
 	}
 
 	//load target region (if given)
@@ -616,7 +610,7 @@ void NGSD::annotate(VariantList& variants, QString filename, BedFile roi, double
 		if (benchmark) timer.restart();
 		int vv_id = -1;
 		QByteArray val_status = "";
-		if (found_in_db)
+		if (s_id=="")
 		{
 			query.exec("SELECT id, status FROM variant_validation WHERE sample_id='" + s_id + "' AND variant_id='" + v_id + "'");
 			if (query.size()==1)
@@ -705,12 +699,10 @@ void NGSD::annotateSomatic(VariantList& variants, QString filename)
 {
 	//get sample ids
 	QStringList samples = filename.split('-');
-	QString ts_id = sampleId(samples[0], false);
-
-	//check if we could determine the sample
-	if (ts_id=="")
+	QString s_id = sampleId(samples[0], false);
+	if (s_id=="")
 	{
-		Log::warn("Could not find processed sample in NGSD from name '" + QFileInfo(filename).baseName() + "'. Annotation will be incomplete because processing system could not be determined!");
+		Log::warn("Could not find sample in NGSD from name '" + QFileInfo(filename).baseName() + "',  Annotation will be incomplete because processing system could not be determined!");
 	}
 
 	//get required column indices
@@ -740,7 +732,7 @@ void NGSD::annotateSomatic(VariantList& variants, QString filename)
 			processed_ps_ids.insert(current_ps_id);
 
 			//skip the current sample for general statistics
-			if (current_sample==ts_id) continue;
+			if (current_sample==s_id) continue;
 
 			//skip already seen samples for general statistics (there could be several processings of the same sample because of different processing systems or because of experment repeats due to quality issues)
 			if (processed_s_ids.contains(current_sample)) continue;
@@ -933,7 +925,7 @@ bool NGSD::cancelAnalysis(int job_id, QString user_name)
 {
 	//check if running or already canceled
 	AnalysisJob job = analysisInfo(job_id);
-	if (!job.isRunning() || job.finalStatus()=="cancel") return false;
+	if (!job.isRunning()) return false;
 
 	SqlQuery query = getQuery();
 	query.exec("INSERT INTO `analysis_job_history`(`analysis_job_id`, `time`, `user_id`, `status`, `output`) VALUES (" + QString::number(job_id) + ",'" + Helper::dateTime("") + "'," + userId(user_name) + ",'cancel', '')");
