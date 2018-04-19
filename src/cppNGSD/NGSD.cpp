@@ -610,7 +610,7 @@ void NGSD::annotate(VariantList& variants, QString filename, BedFile roi, double
 		if (benchmark) timer.restart();
 		int vv_id = -1;
 		QByteArray val_status = "";
-		if (s_id=="")
+		if (s_id!="")
 		{
 			query.exec("SELECT id, status FROM variant_validation WHERE sample_id='" + s_id + "' AND variant_id='" + v_id + "'");
 			if (query.size()==1)
