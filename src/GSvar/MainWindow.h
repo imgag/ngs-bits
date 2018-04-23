@@ -7,6 +7,7 @@
 #include "VariantList.h"
 #include "FilterDockWidget.h"
 #include "VariantDetailsDockWidget.h"
+#include "SampleDetailsDockWidget.h"
 #include "VariantFilter.h"
 #include "BedFile.h"
 #include "NGSD.h"
@@ -79,8 +80,6 @@ public slots:
 	void on_actionReport_triggered();
     ///NGSD link
 	void on_actionNGSD_triggered();
-	///Sample information
-	void on_actionSampleInformation_triggered();
 	///Gender determination
 	void on_actionGenderXY_triggered();
 	///Gender determination
@@ -203,6 +202,7 @@ private:
 	Ui::MainWindow ui_;
 	FilterDockWidget* filter_widget_;
 	int var_last_;
+	SampleDetailsDockWidget* sample_widget_;
 	VariantDetailsDockWidget* var_widget_;
 	BusyDialog* busy_dialog_;
 

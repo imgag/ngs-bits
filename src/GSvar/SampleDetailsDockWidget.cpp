@@ -1,85 +1,88 @@
-#include "SampleInformationDialog.h"
-
-#include <QMenu>
-#include <QFileInfo>
+#include "SampleDetailsDockWidget.h"
+#include "SingleSampleAnalysisDialog.h"
+#include "DiagnosticStatusWidget.h"
 #include "GUIHelper.h"
 #include "BasicStatistics.h"
-#include "DiagnosticStatusWidget.h"
-#include "SingleSampleAnalysisDialog.h"
+#include "Settings.h"
+#include <QMenu>
+#include <QStringList>
+#include <QFileInfo>
 
-SampleInformationDialog::SampleInformationDialog(QWidget* parent, QString processed_sample_name)
-	: QDialog(parent)
+SampleDetailsDockWidget::SampleDetailsDockWidget(QWidget *parent)
+	: QDockWidget(parent)
 	, ui_()
+	, processed_sample_name_()
 	, db_()
-	, processed_sample_name_(processed_sample_name)
 {
-	//set busy cursor
-	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-
-	//setup of UI
 	ui_.setupUi(this);
 
 	//diagnostic status button
 	connect(ui_.diag_status_button, SIGNAL(clicked(bool)), this, SLOT(editDiagnosticStatus()));
 	connect(ui_.restart_button, SIGNAL(clicked(bool)), this, SLOT(reanalyze()));
 
-	//setup quality button
-	QMenu* menu = new QMenu();
-	QStringList quality = db_.getEnum("processed_sample", "quality");
-	foreach(QString q, quality)
+	if (Settings::boolean("NGSD_enabled", true))
 	{
-		menu->addAction(q, this, SLOT(setQuality()));
+		db_ = QSharedPointer<NGSD>(new NGSD());
+
+		//setup quality button
+		QMenu* menu = new QMenu();
+		QStringList quality = db_->getEnum("processed_sample", "quality");
+		foreach(QString q, quality)
+		{
+			menu->addAction(q, this, SLOT(setQuality()));
+		}
+		ui_.quality_button->setMenu(menu);
 	}
-	ui_.quality_button->setMenu(menu);
 
-	//refresh
-	refresh();
-
-	//reset busy cursor
-	QApplication::restoreOverrideCursor();
+	clear();
 }
 
-void SampleInformationDialog::reanalyze()
+
+void SampleDetailsDockWidget::reanalyze()
 {
 	SingleSampleAnalysisDialog dlg(this);
 
 	dlg.setSamples(QList<AnalysisJobSample>() << AnalysisJobSample {processed_sample_name_, ""});
 	if (dlg.exec()==QDialog::Accepted)
 	{
-		db_.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), dlg.samples());
-		refresh();
+		db_->queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), dlg.samples());
 	}
 }
 
-void SampleInformationDialog::editDiagnosticStatus()
+void SampleDetailsDockWidget::editDiagnosticStatus()
 {
-	QString processed_sample_id = db_.processedSampleId(processed_sample_name_);
+	QString processed_sample_id = db_->processedSampleId(processed_sample_name_);
 
 	DiagnosticStatusWidget* widget = new DiagnosticStatusWidget(this);
-	widget->setStatus(db_.getDiagnosticStatus(processed_sample_id));
+	widget->setStatus(db_->getDiagnosticStatus(processed_sample_id));
 	auto dlg = GUIHelper::showWidgetAsDialog(widget, "Diagnostic status of " + processed_sample_name_, true);
 	if (dlg->result()!=QDialog::Accepted) return;
 
-	db_.setDiagnosticStatus(processed_sample_id, widget->status());
-	refresh();
+	db_->setDiagnosticStatus(processed_sample_id, widget->status());
+
+	refresh(processed_sample_name_);
 }
 
-void SampleInformationDialog::setQuality()
+void SampleDetailsDockWidget::setQuality()
 {
 	QString quality = qobject_cast<QAction*>(sender())->text();
-	QString processed_sample_id = db_.processedSampleId(processed_sample_name_);
-	db_.setProcessedSampleQuality(processed_sample_id, quality);
+	QString processed_sample_id = db_->processedSampleId(processed_sample_name_);
+	db_->setProcessedSampleQuality(processed_sample_id, quality);
 
-	refresh();
+	refresh(processed_sample_name_);
 }
 
-void SampleInformationDialog::refresh()
+void SampleDetailsDockWidget::refresh(QString processed_sample_name)
 {
-	//sample data
+	processed_sample_name_ = processed_sample_name;
 	ui_.name->setText(processed_sample_name_);
+
+	if (db_.isNull()) return;
+
+	//sample data from NGSD
 	try
 	{
-		SampleData sample_data = db_.getSampleData(db_.sampleId(processed_sample_name_));
+		SampleData sample_data = db_->getSampleData(db_->sampleId(processed_sample_name_));
 		ui_.name_ext->setText(sample_data.name_external);
 		ui_.tumor_ffpe->setText(QString(sample_data.is_tumor ? "yes" : "no") + " / " + (sample_data.is_ffpe ? "yes" : "no"));
 		ui_.disease_group->setText(sample_data.disease_group);
@@ -89,13 +92,13 @@ void SampleInformationDialog::refresh()
 	{
 	}
 
-	//processed sample data
+	//processed sample data from NGSD
 	try
 	{
 		//QC data
-		QString processed_sample_id = db_.processedSampleId(processed_sample_name_);
-		ProcessedSampleData processed_sample_data = db_.getProcessedSampleData(processed_sample_id);
-		QCCollection qc = db_.getQCData(processed_sample_id);
+		QString processed_sample_id = db_->processedSampleId(processed_sample_name_);
+		ProcessedSampleData processed_sample_data = db_->getProcessedSampleData(processed_sample_id);
+		QCCollection qc = db_->getQCData(processed_sample_id);
 		ui_.qc_reads->setText(qc.value("QC:2000005", true).toString(0) + " (length: " + qc.value("QC:2000006", true).toString(0) + ")");
 
 		statisticsLabel(ui_.qc_avg_depth, "QC:2000025", qc, true, false);
@@ -113,12 +116,12 @@ void SampleInformationDialog::refresh()
 		ui_.gender->setText(processed_sample_data.gender);
 
 		//diagnostic status
-		DiagnosticStatusData diag_status = db_.getDiagnosticStatus(processed_sample_id);
+		DiagnosticStatusData diag_status = db_->getDiagnosticStatus(processed_sample_id);
 		ui_.diag_status->setText(diag_status.dagnostic_status);
 		ui_.diag_outcome->setText(diag_status.outcome);
 
 		//last analysis (BAM file date)
-		QDateTime last_modified = QFileInfo(db_.processedSamplePath(processed_sample_id, NGSD::BAM)).lastModified();
+		QDateTime last_modified = QFileInfo(db_->processedSamplePath(processed_sample_id, NGSD::BAM)).lastModified();
 		QString date_text = last_modified.toString("yyyy-MM-dd");
 		if (last_modified < QDateTime::currentDateTime().addMonths(-6))
 		{
@@ -126,16 +129,48 @@ void SampleInformationDialog::refresh()
 		}
 		ui_.date_bam->setText(date_text);
 
+		ui_.quality_button->setEnabled(true);
+		ui_.diag_status_button->setEnabled(true);
+		ui_.restart_button->setEnabled(true);
+
 	}
 	catch(...)
 	{
 		ui_.quality_button->setEnabled(false);
 		ui_.diag_status_button->setEnabled(false);
+		ui_.restart_button->setEnabled(false);
 	}
 }
 
+void SampleDetailsDockWidget::clear()
+{
+	//labels
+	ui_.name->clear();
+	ui_.name_ext->clear();
+	ui_.tumor_ffpe->clear();
+	ui_.disease_group->clear();
+	ui_.disease_status->clear();
+	ui_.qc_reads->clear();
+	ui_.qc_kasp->clear();
+	ui_.qc_quality->clear();
+	ui_.qc_avg_depth->clear();
+	ui_.qc_perc_20x->clear();
+	ui_.qc_insert_size->clear();
+	ui_.qc_af_dev->clear();
+	ui_.comment->clear();
+	ui_.system->clear();
+	ui_.gender->clear();
+	ui_.diag_status->clear();
+	ui_.diag_outcome->clear();
+	ui_.date_bam->clear();
 
-void SampleInformationDialog::statisticsLabel(QLabel* label, QString accession, const QCCollection& qc, bool label_outlier_low, bool label_outlier_high, int decimal_places)
+	//buttons
+	ui_.restart_button->setEnabled(false);
+	ui_.diag_status_button->setEnabled(false);
+	ui_.quality_button->setEnabled(false);
+}
+
+void SampleDetailsDockWidget::statisticsLabel(QLabel* label, QString accession, const QCCollection& qc, bool label_outlier_low, bool label_outlier_high, int decimal_places)
 {
 	try
 	{
@@ -144,7 +179,7 @@ void SampleInformationDialog::statisticsLabel(QLabel* label, QString accession, 
 		label->setText(value_str);
 
 		//get QC value statistics
-		QVector<double> values = db_.getQCValues(accession, db_.processedSampleId(processed_sample_name_));
+		QVector<double> values = db_->getQCValues(accession, db_->processedSampleId(processed_sample_name_));
 		std::sort(values.begin(), values.end());
 		double median = BasicStatistics::median(values, false);
 		double mad = 1.428 * BasicStatistics::mad(values, median);

@@ -12,7 +12,7 @@ SOURCES += main.cpp\
     ExternalToolDialog.cpp \
     ReportDialog.cpp \
     ReportWorker.cpp \
-    SampleInformationDialog.cpp \
+    SampleDetailsDockWidget.cpp \
     TrioDialog.cpp \
     HttpHandler.cpp \
     ValidationDialog.cpp \
@@ -38,7 +38,7 @@ SOURCES += main.cpp\
     CandidateGeneDialog.cpp \
     PhenotypeSelectionWidget.cpp \
     LovdUploadDialog.cpp \
-	RohWidget.cpp \
+    RohWidget.cpp \
     ReportHelper.cpp \
     DiagnosticStatusWidget.cpp \
     DiagnosticStatusOverviewDialog.cpp \
@@ -52,7 +52,7 @@ HEADERS  += MainWindow.h \
     ExternalToolDialog.h \
     ReportDialog.h \
     ReportWorker.h \
-    SampleInformationDialog.h \
+    SampleDetailsDockWidget.h \
     TrioDialog.h \
     HttpHandler.h \
     ValidationDialog.h \
@@ -78,7 +78,7 @@ HEADERS  += MainWindow.h \
     CandidateGeneDialog.h \
     PhenotypeSelectionWidget.h \
     LovdUploadDialog.h \
-	RohWidget.h \
+    RohWidget.h \
     ReportHelper.h \
     DiagnosticStatusWidget.h \
     DiagnosticStatusOverviewDialog.h \
@@ -91,7 +91,7 @@ FORMS    += MainWindow.ui \
     FilterDockWidget.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
-    SampleInformationDialog.ui \
+    SampleDetailsDockWidget.ui \
     TrioDialog.ui \
     ClassificationDialog.ui \
     ValidationDialog.ui \
@@ -115,7 +115,7 @@ FORMS    += MainWindow.ui \
     CandidateGeneDialog.ui \
     PhenotypeSelectionWidget.ui \
     LovdUploadDialog.ui \
-	RohWidget.ui \
+    RohWidget.ui \
     DiagnosticStatusWidget.ui \
     DiagnosticStatusOverviewDialog.ui \
     SvWidget.ui \

@@ -26,7 +26,6 @@
 #include <QSqlError>
 #include "ReportWorker.h"
 #include "DBAnnotationWorker.h"
-#include "SampleInformationDialog.h"
 #include "ScrollableTextDialog.h"
 #include "AnalysisStatusDialog.h"
 #include "HttpHandler.h"
@@ -64,6 +63,7 @@ MainWindow::MainWindow(QWidget *parent)
 	, ui_()
 	, filter_widget_(new FilterDockWidget(this))
 	, var_last_(-1)
+	, sample_widget_(new SampleDetailsDockWidget(this))
 	, var_widget_(new VariantDetailsDockWidget(this))
 	, busy_dialog_(nullptr)
 	, filename_()
@@ -75,9 +75,9 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.setupUi(this);
 	setWindowTitle(QCoreApplication::applicationName());
 	addDockWidget(Qt::RightDockWidgetArea, filter_widget_);
-	filter_widget_->raise();
+	addDockWidget(Qt::RightDockWidgetArea, sample_widget_);
+	tabifyDockWidget(filter_widget_, sample_widget_);
 	addDockWidget(Qt::BottomDockWidgetArea, var_widget_);
-	var_widget_->raise();
 	connect(var_widget_, SIGNAL(jumbToRegion(QString)), this, SLOT(openInIGV(QString)));
 
 	//filter menu button
@@ -108,6 +108,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(close()));
 	connect(ui_.vars, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(varsContextMenu(QPoint)));
 	connect(filter_widget_, SIGNAL(filtersChanged()), this, SLOT(filtersChanged()));
+	connect(filter_widget_, SIGNAL(filtersChanged()), filter_widget_, SLOT(raise()));
 	connect(filter_widget_, SIGNAL(targetRegionChanged()), this, SLOT(resetAnnotationStatus()));
 	connect(ui_.vars, SIGNAL(itemSelectionChanged()), this, SLOT(updateVariantDetails()));
 	connect(&filewatcher_, SIGNAL(fileChanged()), this, SLOT(handleInputFileChange()));
@@ -674,7 +675,11 @@ void MainWindow::loadFile(QString filename)
 	ui_.vars->setRowCount(0);
 	ui_.vars->setColumnCount(0);
 
-	if (filename=="") return;
+	if (filename=="")
+	{
+		sample_widget_->clear();
+		return;
+	}
 
 	//update recent files (before try block to remove non-existing files from the recent files menu)
 	addToRecentFiles(filename);
@@ -703,6 +708,10 @@ void MainWindow::loadFile(QString filename)
 		QApplication::restoreOverrideCursor();
 		QMessageBox::warning(this, "Error", "Loading the file '" + filename + "' or displaying the contained variants failed!\nError message:\n" + e.message());
 	}
+
+	//update sample info dialog
+	sample_widget_->refresh(processedSampleName());
+	sample_widget_->raise();
 
 	//warn if no 'filter' column is present
 	if (variants_.annotationIndexByName("filter", true, false)==-1)
@@ -970,14 +979,6 @@ void MainWindow::on_actionNGSD_triggered()
 		GUIHelper::showMessage("NGSD error", "The processed sample database ID could not be determined!\nDoes the file name '"  + filename_ + "' start with the processed sample ID?\nError message: " + e.message());
 		return;
 	}
-}
-
-void MainWindow::on_actionSampleInformation_triggered()
-{
-	if (filename_=="") return;
-
-	SampleInformationDialog dialog(this, processedSampleName());
-	dialog.exec();
 }
 
 void MainWindow::on_actionGenderXY_triggered()

@@ -14,8 +14,7 @@
 
 VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget *parent) :
 	QDockWidget(parent),
-	ui(new Ui::VariantDetailsDockWidget),
-	ngsd_enabled(Settings::boolean("NGSD_enabled", true))
+	ui(new Ui::VariantDetailsDockWidget)
 {
 	ui->setupUi(this);
 

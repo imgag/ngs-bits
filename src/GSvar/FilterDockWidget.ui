@@ -648,7 +648,7 @@
        <item row="12" column="0">
         <widget class="QCheckBox" name="gene_inh_enabled">
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Inheritance mode filter based on ineritance annotations to genes from NGSD.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Inheritance mode filter based on inheritance annotations to genes from NGSD.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
           <string>inheritance</string>
