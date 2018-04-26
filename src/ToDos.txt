@@ -8,8 +8,12 @@ libs:
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 - integration of htslib: use pileup, use VCF support
 
+NGSD:
+** model sample relation: same sample, parent-child, tumor-normal, siblings
+** annotate counts with same/different disease group/status separately
+
 GSvar:
-** VariantInfoDialog: base infos, classification, comment, genotype + validation (for current sample), other samples (incl. project, disease group/status, diagnostic outcome)
+** VariantInfoDialog: base infos, classification, comment, genotype + validation (for current sample), other samples (incl. project, disease group/status, diagnostic outcome), show variant overlap for all sample pairs
 ** Add literature search button (Google/Pubmed, gene/variant)
   - "LAMP2" ("586A>T" | "586A—>T" | "586A-->T" | "586A/T" | "Thr1965er" | "T1965" | rs138991195)
   - "LAMP2" ("mutation" / "cardiomyopathy" / "arrhythmia")
