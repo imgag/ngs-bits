@@ -38,6 +38,9 @@ public:
 
 signals:
 	void jumbToRegion(QString region);
+	void editVariantClassification();
+	void editVariantValidation();
+	void editVariantComment();
 
 private slots:
 	void nextTanscript();
@@ -45,6 +48,9 @@ private slots:
 	void variantClicked(QString link);
     void exacClicked(QString link);
 	void gnomadClicked(QString link);
+	void editClassification();
+	void editValidation();
+	void editComment();
 
 private:
 	enum Color

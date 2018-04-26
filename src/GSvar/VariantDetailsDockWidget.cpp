@@ -7,6 +7,7 @@
 #include <QMessageBox>
 #include <QDesktopServices>
 #include <QUrl>
+#include <QMenu>
 #include "Settings.h"
 #include "NGSD.h"
 #include "Log.h"
@@ -39,6 +40,14 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget *parent) :
 		label->setMinimumWidth(width);
 		label->setWordWrap(true);
 	}
+
+	//set up NGSD edit button
+	QMenu* menu = new QMenu();
+	menu->addAction("Classification", this, SLOT(editClassification()));
+	menu->addAction("Validation", this, SLOT(editValidation()));
+	menu->addAction("Comment", this, SLOT(editComment()));
+	ui->ngsd_edit->setMenu(menu);
+	ui->ngsd_edit->setEnabled(Settings::boolean("NGSD_enabled", true));
 
 	//reset
 	clear();
@@ -121,6 +130,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->ngsd_het, vl, index, "ihdb_allsys_het");
 	setAnnotation(ui->ngsd_comment, vl, index, "comment");
 	setAnnotation(ui->ngsd_validation, vl, index, "validated");
+	ui->ngsd_edit->setEnabled(Settings::boolean("NGSD_enabled", true));
 }
 
 void VariantDetailsDockWidget::clear()
@@ -142,6 +152,9 @@ void VariantDetailsDockWidget::clear()
 	ui->trans->setText("<span style=\"font-weight:600; color:#222222;\">&nbsp;<span>"); //bold => higher
 	ui->trans_prev->setEnabled(false);
 	ui->trans_next->setEnabled(false);
+
+	//edit button
+	ui->ngsd_edit->setEnabled(false);
 }
 
 void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& vl, int index, QString name)
@@ -568,4 +581,19 @@ void VariantDetailsDockWidget::gnomadClicked(QString link)
 		url =  chr.strNormalized(false) + "-" + start + "-" + ref + "-" + obs;
 	}
 	QDesktopServices::openUrl(QUrl("http://gnomad.broadinstitute.org/variant/" + url));
+}
+
+void VariantDetailsDockWidget::editClassification()
+{
+	emit editVariantClassification();
+}
+
+void VariantDetailsDockWidget::editValidation()
+{
+	emit editVariantValidation();
+}
+
+void VariantDetailsDockWidget::editComment()
+{
+	emit editVariantComment();
 }

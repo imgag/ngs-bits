@@ -64,6 +64,8 @@ public:
 	QString processedSampleName();
 	///Returns the sample name (in case of a somatic variant list, the tumor is returned).
 	QString sampleName();
+	///Returns the current variant index, or -1 if no/several variants are selected.
+	int currentVariantIndex();
 
 public slots:
 	///Open dialog
@@ -171,6 +173,12 @@ public slots:
 	void variantDoubleClicked(QTableWidgetItem* item);
 	///Open region in IGV
 	void openInIGV(QString region);
+	///Edit classification of current variant
+	void editVariantClassification();
+	///Edit validation status of current variant
+	void editVariantValidation();
+	///Edit comment of current variant
+	void editVariantComment();
 
 	///Returns a gene list where the inheritance information is not set (selected variants only)
 	QStringList geneInheritanceMissing(QBitArray selected);

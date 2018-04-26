@@ -13,12 +13,12 @@ NGSD:
 ** annotate counts with same/different disease group/status separately
 
 GSvar:
-** VariantInfoDialog: base infos, classification, comment, genotype + validation (for current sample), other samples (incl. project, disease group/status, diagnostic outcome), show variant overlap for all sample pairs
+** VariantInfoDialog: sample, external name, genotype, project, disease group/status, diagnostic outcome > show variant overlap for all sample pairs
 ** Add literature search button (Google/Pubmed, gene/variant)
   - "LAMP2" ("586A>T" | "586A—>T" | "586A-->T" | "586A/T" | "Thr1965er" | "T1965" | rs138991195)
   - "LAMP2" ("mutation" / "cardiomyopathy" / "arrhythmia")
-** Add pLI score (megSAP) and filter for pLI (GSvar) to CNVs
-** Gap report: avg depth for all/CCDS+-5 separately?
+* Gap report: avg depth for all/CCDS+-5 separately?
+* Add pLI score (megSAP) and filter for pLI (GSvar) to CNVs
 * GenLab XML report: male => change 'hom' variants outside PAR region on chrX/chrY to 'hemi' (when GenLab import is updated)
 - text-based filter for OMIM/ClinVar/HGMD column (ignore case)
 - Add genotype equal for affected

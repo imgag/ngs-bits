@@ -79,6 +79,9 @@ MainWindow::MainWindow(QWidget *parent)
 	tabifyDockWidget(filter_widget_, sample_widget_);
 	addDockWidget(Qt::BottomDockWidgetArea, var_widget_);
 	connect(var_widget_, SIGNAL(jumbToRegion(QString)), this, SLOT(openInIGV(QString)));
+	connect(var_widget_, SIGNAL(editVariantClassification()), this, SLOT(editVariantClassification()));
+	connect(var_widget_, SIGNAL(editVariantValidation()), this, SLOT(editVariantValidation()));
+	connect(var_widget_, SIGNAL(editVariantComment()), this, SLOT(editVariantComment()));
 
 	//filter menu button
 	auto filter_btn = new QToolButton();
@@ -489,6 +492,123 @@ void MainWindow::openInIGV(QString region)
 	QApplication::restoreOverrideCursor();
 }
 
+void MainWindow::editVariantClassification()
+{
+	int var_curr = currentVariantIndex();
+	if (var_curr==-1) return;
+
+	Variant& variant = variants_[var_curr];
+
+	try
+	{
+		ClassificationDialog dlg(this, variant);
+
+		if (dlg.exec())
+		{
+			//update DB
+			NGSD db;
+			ClassificationInfo class_info = dlg.classificationInfo();
+			db.setClassification(variant, class_info);
+
+			//update variant table
+			int i_class = variants_.annotationIndexByName("classification", true, true);
+			variant.annotations()[i_class] = class_info.classification.replace("n/a", "").toLatin1();
+			int i_class_comment = variants_.annotationIndexByName("classification_comment", true, true);
+			variant.annotations()[i_class_comment] = class_info.comments.toLatin1();
+
+			//update details widget and filtering
+			var_widget_->updateVariant(variants_, var_curr);
+			variantListChanged();
+		}
+	}
+	catch (DatabaseException& e)
+	{
+		GUIHelper::showMessage("NGSD error", e.message());
+		return;
+	}
+}
+
+void MainWindow::editVariantValidation()
+{
+	int var_curr = currentVariantIndex();
+	if (var_curr==-1) return;
+
+	Variant& variant = variants_[var_curr];
+
+	try
+	{
+		int i_quality = variants_.annotationIndexByName("quality", true, true);
+		ValidationDialog dlg(this, filename_, variant, i_quality);
+
+		if (dlg.exec()) //update DB
+		{
+			NGSD().setValidationStatus(filename_, variant, dlg.info());
+
+			//update variant table
+			QByteArray status = dlg.info().status.toLatin1();
+			if (status=="true positive") status = "TP";
+			if (status=="false positive") status = "FP";
+			int i_validated = variants_.annotationIndexByName("validated", true, true);
+			variant.annotations()[i_validated] = status;
+
+			//update details widget and filtering
+			var_widget_->updateVariant(variants_, var_curr);
+			variantListChanged();
+		}
+	}
+	catch (DatabaseException& e)
+	{
+		GUIHelper::showMessage("NGSD error", e.message());
+		return;
+	}
+}
+
+void MainWindow::editVariantComment()
+{
+	int var_curr = currentVariantIndex();
+	if (var_curr==-1) return;
+
+	Variant& variant = variants_[var_curr];
+
+	try
+	{
+		bool ok = true;
+		QByteArray text = QInputDialog::getMultiLineText(this, "Variant comment", "Text: ", NGSD().comment(variant), &ok).toLatin1();
+
+		if (ok)
+		{
+			//update DB
+			NGSD().setComment(variant, text);
+
+			//get annotation text (from NGSD to get comments of other samples as well)
+			VariantList tmp;
+			tmp.append(variant);
+			NGSD().annotate(tmp, filename_);
+			text = tmp[0].annotations()[tmp.annotationIndexByName("comment", true, true)];
+
+			//update datastructure (if comment column is present)
+			int col_index = variants_.annotationIndexByName("comment", true, false);
+			if (col_index!=-1)
+			{
+				variant.annotations()[col_index] = text;
+			}
+
+			//update GUI (if column is present)
+			int gui_index = guiColumnIndex("comment");
+			if (gui_index!=-1)
+			{
+				ui_.vars->item(var_curr, gui_index)->setText(text);
+				var_widget_->updateVariant(variants_, var_curr);
+			}
+		}
+	}
+	catch (DatabaseException& e)
+	{
+		GUIHelper::showMessage("NGSD error", e.message());
+		return;
+	}
+}
+
 QString MainWindow::targetFileName() const
 {
 	if (filter_widget_->targetRegion()=="") return "";
@@ -529,6 +649,17 @@ QString MainWindow::sampleName()
 {
 	QString ps_name = processedSampleName();
 	return (ps_name + "_").split('_')[0];
+}
+
+int MainWindow::currentVariantIndex()
+{
+	auto ranges = ui_.vars->selectedRanges();
+	if (ranges.count()!=1 || ranges[0].rowCount()!=1)
+	{
+		return -1;
+	}
+
+	return ranges[0].topRow();
 }
 
 void MainWindow::addModelessDialog(QSharedPointer<QDialog> ptr)
@@ -1739,17 +1870,10 @@ void MainWindow::varsContextMenu(QPoint pos)
 
 	//create contect menu
 	QMenu menu(ui_.vars);
-	QMenu* sub_menu = menu.addMenu(QIcon("://Icons/NGSD.png"), "Variant");
-	sub_menu->setEnabled(ngsd_enabled);
-	sub_menu->addAction("Open variant in NGSD");
-	sub_menu->addAction("Search for position in NGSD");
-	sub_menu->addSeparator();
-	sub_menu->addAction("Set validation status");
-	sub_menu->addAction("Set classification");
-	sub_menu->addAction("Edit comment");
+	QMenu* sub_menu = nullptr;
 	if (!genes.isEmpty())
 	{
-		sub_menu = menu.addMenu(QIcon("://Icons/NGSD.png"), "Gene info");
+		sub_menu = menu.addMenu("Gene info");
 		foreach(QString g, genes)
 		{
 			sub_menu->addAction(g);
@@ -1831,119 +1955,8 @@ void MainWindow::varsContextMenu(QPoint pos)
 	QMenu* parent_menu = qobject_cast<QMenu*>(action->parent());
 
 	QByteArray text = action->text().toLatin1();
-	if (text=="Open variant in NGSD")
-	{
-		try
-		{
-			QString url = NGSD().url(filename_, variant);
-			QDesktopServices::openUrl(QUrl(url));
-		}
-		catch (DatabaseException& e)
-		{
-			GUIHelper::showMessage("NGSD error", "The variant database ID could not be determined!\nDoes the file name '"  + filename_ + "' start with the prcessed sample ID?\nError message: " + e.message());
-			return;
-		}
-	}
-	else if (text=="Search for position in NGSD")
-	{
-		QString url = NGSD().urlSearch(variant.chr().str() + ":" + QString::number(variant.start()) + "-" + QString::number(variant.end()));
-		QDesktopServices::openUrl(QUrl(url));
-	}
-	else if (text=="Set validation status")
-	{
-		try
-		{
-			int i_quality = variants_.annotationIndexByName("quality", true, true);
-			ValidationDialog dlg(this, filename_, variant, i_quality);
 
-			if (dlg.exec()) //update DB
-			{
-				NGSD().setValidationStatus(filename_, variant, dlg.info());
-
-				//update GUI
-				QByteArray status = dlg.info().status.toLatin1();
-				if (status=="true positive") status = "TP";
-				if (status=="false positive") status = "FP";
-				int i_validated = variants_.annotationIndexByName("validated", true, true);
-				variants_[item->row()].annotations()[i_validated] = status;
-				variantListChanged();
-			}
-		}
-		catch (DatabaseException& e)
-		{
-			GUIHelper::showMessage("NGSD error", e.message());
-			return;
-		}
-	}
-	else if (text=="Set classification")
-	{
-		try
-		{
-			ClassificationDialog dlg(this, variant);
-
-			if (dlg.exec())
-			{
-				//update DB
-				NGSD db;
-				ClassificationInfo class_info = dlg.classificationInfo();
-				db.setClassification(variant, class_info);
-
-				//update GUI
-				int i_class = variants_.annotationIndexByName("classification", true, true);
-				variants_[item->row()].annotations()[i_class] = class_info.classification.replace("n/a", "").toLatin1();
-				int i_class_comment = variants_.annotationIndexByName("classification_comment", true, true);
-				variants_[item->row()].annotations()[i_class_comment] = class_info.comments.toLatin1();
-				variantListChanged();
-			}
-		}
-		catch (DatabaseException& e)
-		{
-			GUIHelper::showMessage("NGSD error", e.message());
-			return;
-		}
-	}
-	else if (text=="Edit comment")
-	{
-		try
-		{
-			bool ok = true;
-			QByteArray text = QInputDialog::getMultiLineText(this, "Variant comment", "Text: ", NGSD().comment(variant), &ok).toLatin1();
-
-			if (ok)
-			{
-				//update DB
-				int row = item->row();
-				NGSD().setComment(variants_[row], text);
-
-				//get annotation text (from NGSD to get comments of other samples as well)
-				VariantList tmp;
-				tmp.append(variants_[row]);
-				NGSD().annotate(tmp, filename_);
-				text = tmp[0].annotations()[tmp.annotationIndexByName("comment", true, true)];
-
-				//update datastructure (if comment column is present)
-				int col_index = variants_.annotationIndexByName("comment", true, false);
-				if (col_index!=-1)
-				{
-					variants_[row].annotations()[col_index] = text;
-				}
-
-				//update GUI (if column is present)
-				int gui_index = guiColumnIndex("comment");
-				if (gui_index!=-1)
-				{
-					ui_.vars->item(item->row(), gui_index)->setText(text);
-					var_widget_->updateVariant(variants_, row);
-				}
-			}
-		}
-		catch (DatabaseException& e)
-		{
-			GUIHelper::showMessage("NGSD error", e.message());
-			return;
-		}
-	}
-	else if (text=="PrimerDesign")
+	if (text=="PrimerDesign")
 	{
 		try
 		{
@@ -2033,24 +2046,17 @@ void MainWindow::varsContextMenu(QPoint pos)
 
 void MainWindow::updateVariantDetails()
 {
-	if (!var_widget_->isVisible()) return;
-
-	//determine variant (first in first range)
-	auto ranges = ui_.vars->selectedRanges();
-	if (ranges.count()!=1 || ranges[0].rowCount()!=1)
+	int var_current = currentVariantIndex();
+	if (var_current==-1) //no several variant => clear
 	{
-		var_last_ = -1;
 		var_widget_->clear();
-		return;
+	}
+	else if (var_current!=var_last_) //update variant details (if changed)
+	{
+		var_widget_->updateVariant(variants_, var_current);
 	}
 
-	//display variant details
-	int row = ranges[0].topRow();
-	if (row!=var_last_)
-	{
-		var_widget_->updateVariant(variants_, row);
-		var_last_ = row;
-	}
+	var_last_ = var_current;
 }
 
 void MainWindow::executeIGVCommand(QString command)
