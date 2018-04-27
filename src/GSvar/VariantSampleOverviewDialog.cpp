@@ -8,6 +8,7 @@ VariantSampleOverviewDialog::VariantSampleOverviewDialog(const Variant& variant,
 	, ui_()
 {
 	ui_.setupUi(this);
+	connect(ui_.similarity, SIGNAL(clicked(bool)), this, SLOT(calculateSimilarity()));
 
 	//get variant id
 	NGSD db;
@@ -67,4 +68,55 @@ void VariantSampleOverviewDialog::copyToClipboard()
 	GUIHelper::copyToClipboard(ui_.table);
 }
 
-//TODO: matrix overlap
+void VariantSampleOverviewDialog::calculateSimilarity()
+{
+	NGSD db;
+	SqlQuery query = db.getQuery();
+
+	//get sample names and variant lists
+	QStringList ps_names;
+	QList<QSet<QString>> ps_vars;
+	for(int i=0; i<ui_.table->rowCount(); ++i)
+	{
+		QString ps = ui_.table->item(i, 0)->text();
+		ps_names << ps;
+
+		QString ps_id = db.processedSampleId(ps);
+		ps_vars << db.getValues("SELECT variant_id FROM detected_variant WHERE processed_sample_id=" + ps_id).toSet();
+	}
+
+	//calcualte and show overlap
+	QTableWidget* table = new QTableWidget(this);
+	table->setMinimumSize(700, 550);
+	table->setEditTriggers(QTableWidget::NoEditTriggers);
+	table->setSortingEnabled(true);
+	table->setColumnCount(6);
+	table->setHorizontalHeaderLabels(QStringList() << "s1" << "#variants s1" << "s2" << "#variants s2" << "variant overlap" << "variant overlap %");
+	int row = 0;
+	for (int i=0; i<ps_vars.count(); ++i)
+	{
+		for (int j=i+1; j<ps_vars.count(); ++j)
+		{
+			table->setRowCount(table->rowCount()+1);
+			table->setItem(row, 0, new QTableWidgetItem(ps_names[i]));
+			int c_s1 = ps_vars[i].count();
+			table->setItem(row, 1, new QTableWidgetItem(QString::number(c_s1)));
+			table->setItem(row, 2, new QTableWidgetItem(ps_names[j]));
+			int c_s2 = ps_vars[j].count();
+			table->setItem(row, 3, new QTableWidgetItem(QString::number(c_s2)));
+			int overlap = QSet<QString>(ps_vars[i]).intersect(ps_vars[j]).count();
+			table->setItem(row, 4, new QTableWidgetItem(QString::number(overlap)));
+			double overlap_perc = 100.0 * overlap / (double)std::min(c_s1, c_s2);
+			auto item = new QTableWidgetItem();
+			item->setData(Qt::DisplayRole, overlap_perc);
+			table->setItem(row, 5, item);
+
+			++row;
+		}
+	}
+
+	table->sortByColumn(5, Qt::DescendingOrder);
+
+	//show results
+	GUIHelper::showWidgetAsDialog(table, "Sample correlation based on rare variants from NGSD", false);
+}

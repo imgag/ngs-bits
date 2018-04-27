@@ -46,7 +46,7 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget *parent) :
 	menu->addAction("Edit validation", this, SLOT(editValidation()));
 	menu->addAction("Edit comment", this, SLOT(editComment()));
 	menu->addSeparator();
-	menu->addAction("Show sample overview for samples", this, SLOT(variantSampleOverview()));
+	menu->addAction("Show sample overview for variant", this, SLOT(variantSampleOverview()));
 	ui->ngsd_edit->setMenu(menu);
 
 	//reset

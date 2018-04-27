@@ -17,6 +17,7 @@ public:
 
 private slots:
 	void copyToClipboard();
+	void calculateSimilarity();
 
 private:
 	Ui::VariantSampleOverviewDialog ui_;
