@@ -12,8 +12,6 @@ class CandidateGeneDialog
 public:
 	CandidateGeneDialog(QWidget *parent = 0);
 
-	void keyPressEvent(QKeyEvent* e);
-
 private slots:
 	void updateVariants();
 	void copyToClipboard();

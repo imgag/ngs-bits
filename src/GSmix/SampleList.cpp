@@ -1,6 +1,5 @@
 #include "SampleList.h"
 #include <QKeyEvent>
-#include <QDebug>
 #include <QClipboard>
 #include <QMessageBox>
 

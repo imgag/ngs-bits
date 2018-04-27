@@ -6,8 +6,7 @@
 #include "SvWidget.h"
 #include "ui_SvWidget.h"
 #include "Helper.h"
-
-#include <QDebug>
+#include "GUIHelper.h"
 
 SvWidget::SvWidget(QString file_name, QWidget *parent)
 	: QWidget(parent)
@@ -242,32 +241,7 @@ void SvWidget::filtersChanged()
 
 void SvWidget::copyToClipboard()
 {
-	QString output ="";
-
-	//header
-	output += "#";
-	for(int col=0;col<ui->svs->columnCount();col++)
-	{
-		if(col!=0) output += "\t";
-		output +=ui->svs->horizontalHeaderItem(col)->text();
-	}
-	output += "\n";
-
-	for(int row=0;row<ui->svs->rowCount();row++)
-	{
-		//skip hidden lines
-		if(ui->svs->isRowHidden(row)) continue;
-
-		for(int col=0;col<ui->svs->columnCount();col++)
-		{
-			if(col!=0) output += "\t";
-			output +=ui->svs->item(row,col)->text();
-		}
-
-		output += "\n";
-	}
-
-	QApplication::clipboard()->setText(output);
+	GUIHelper::copyToClipboard(ui->svs);
 }
 
 void SvWidget::loadSVs(QString file_name)

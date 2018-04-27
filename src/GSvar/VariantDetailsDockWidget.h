@@ -41,6 +41,7 @@ signals:
 	void editVariantClassification();
 	void editVariantValidation();
 	void editVariantComment();
+	void showVariantSampleOverview();
 
 private slots:
 	void nextTanscript();
@@ -51,6 +52,7 @@ private slots:
 	void editClassification();
 	void editValidation();
 	void editComment();
+	void variantSampleOverview();
 
 private:
 	enum Color
@@ -63,6 +65,8 @@ private:
 
 	//Returns the annotation.
 	void setAnnotation(QLabel* label, const VariantList& vl, int index, QString name);
+	//Returns the maximum allele frequency of the variant.
+	double maxAalleleFrequency(const VariantList& vl, int index) const;
 	//Convert color to string.
 	static QString colorToString(Color color);
 	//Format clickable link for a label.

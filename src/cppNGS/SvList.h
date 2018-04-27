@@ -4,7 +4,6 @@
 #include "Chromosome.h"
 #include <QList>
 #include <QByteArrayList>
-#include <QDebug>
 
 
 ///structural variant as reported by MANTA

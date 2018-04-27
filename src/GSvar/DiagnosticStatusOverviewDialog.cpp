@@ -132,27 +132,7 @@ void DiagnosticStatusOverviewDialog::updateOverviewTable()
 
 void DiagnosticStatusOverviewDialog::copyTableToClipboard()
 {
-	//header
-	QString output = "#";
-	for (int col=0; col<ui.sample_infos->columnCount(); ++col)
-	{
-		if (col!=0) output += "\t";
-		output += ui.sample_infos->horizontalHeaderItem(col)->text();
-	}
-	output += "\n";
-
-	//rows
-	for (int row=0; row<ui.sample_infos->rowCount(); ++row)
-	{
-		for (int col=0; col<ui.sample_infos->columnCount(); ++col)
-		{
-			if (col!=0) output += "\t";
-			output += ui.sample_infos->item(row, col)->text();
-		}
-		output += "\n";
-	}
-
-	QApplication::clipboard()->setText(output);
+	GUIHelper::copyToClipboard(ui.sample_infos);
 }
 
 void DiagnosticStatusOverviewDialog::addItem(int r, int c, QString text, bool text_as_tooltip)

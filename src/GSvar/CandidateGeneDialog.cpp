@@ -1,7 +1,6 @@
 #include "CandidateGeneDialog.h"
 #include "NGSD.h"
 #include "GUIHelper.h"
-#include <QDebug>
 #include <QApplication>
 #include <QClipboard>
 #include <QMessageBox>
@@ -14,15 +13,7 @@ CandidateGeneDialog::CandidateGeneDialog(QWidget *parent)
 	ui_.setupUi(this);
 
 	connect(ui_.update_btn, SIGNAL(clicked(bool)), this, SLOT(updateVariants()));
-}
-
-void CandidateGeneDialog::keyPressEvent(QKeyEvent* e)
-{
-	if(e->key() == Qt::Key_C && e->modifiers() & Qt::ControlModifier)
-	{
-		copyToClipboard();
-		e->accept();
-	}
+	connect(ui_.copy_btn, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
 }
 
 void CandidateGeneDialog::updateVariants()
@@ -204,27 +195,6 @@ void CandidateGeneDialog::updateVariants()
 
 void CandidateGeneDialog::copyToClipboard()
 {
-	//header
-	QString output = "#";
-	for (int col=0; col<ui_.variants->columnCount(); ++col)
-	{
-		if (col!=0) output += "\t";
-		output += ui_.variants->horizontalHeaderItem(col)->text();
-	}
-	output += "\n";
-
-	//rows
-	for (int row=0; row<ui_.variants->rowCount(); ++row)
-	{
-		if (ui_.variants->isRowHidden(row)) continue;
-
-		for (int col=0; col<ui_.variants->columnCount(); ++col)
-		{
-			if (col!=0) output += "\t";
-			output += ui_.variants->item(row, col)->text();
-		}
-		output += "\n";
-	}
-
-	QApplication::clipboard()->setText(output);
+	qDebug() << "TEST";
+	GUIHelper::copyToClipboard(ui_.variants);
 }

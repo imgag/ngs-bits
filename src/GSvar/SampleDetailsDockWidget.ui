@@ -536,9 +536,7 @@
      </spacer>
     </item>
    </layout>
-   <zorder>label_6</zorder>
    <zorder>groupBox_3</zorder>
-   <zorder>verticalSpacer</zorder>
    <zorder>groupBox</zorder>
    <zorder>groupBox_2</zorder>
   </widget>

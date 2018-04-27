@@ -6,7 +6,6 @@
 #include "Helper.h"
 #include "GDBODialog.h"
 #include <QTimer>
-#include <QDebug>
 #include <QSqlError>
 #include <QPair>
 #include <QMessageBox>

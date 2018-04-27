@@ -4,7 +4,6 @@
 #include "NGSHelper.h"
 #include "Log.h"
 #include <QFile>
-#include <QDebug>
 #include <QList>
 #include <QDir>
 

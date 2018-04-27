@@ -1,6 +1,5 @@
 #include "MainWindow.h"
 #include "GUIHelper.h"
-#include <QDebug>
 #include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent)

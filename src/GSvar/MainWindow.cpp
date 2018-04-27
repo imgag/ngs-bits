@@ -57,6 +57,7 @@
 #include "DiagnosticStatusOverviewDialog.h"
 #include "GenLabDB.h"
 #include "SvWidget.h"
+#include "VariantSampleOverviewDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -82,6 +83,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(var_widget_, SIGNAL(editVariantClassification()), this, SLOT(editVariantClassification()));
 	connect(var_widget_, SIGNAL(editVariantValidation()), this, SLOT(editVariantValidation()));
 	connect(var_widget_, SIGNAL(editVariantComment()), this, SLOT(editVariantComment()));
+	connect(var_widget_, SIGNAL(showVariantSampleOverview()), this, SLOT(showVariantSampleOverview()));
 
 	//filter menu button
 	auto filter_btn = new QToolButton();
@@ -601,6 +603,23 @@ void MainWindow::editVariantComment()
 				var_widget_->updateVariant(variants_, var_curr);
 			}
 		}
+	}
+	catch (DatabaseException& e)
+	{
+		GUIHelper::showMessage("NGSD error", e.message());
+		return;
+	}
+}
+
+void MainWindow::showVariantSampleOverview()
+{
+	int var_curr = currentVariantIndex();
+	if (var_curr==-1) return;
+
+	try
+	{
+		VariantSampleOverviewDialog dlg(variants_[var_curr], this);
+		dlg.exec();
 	}
 	catch (DatabaseException& e)
 	{

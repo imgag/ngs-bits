@@ -7,7 +7,6 @@
 
 #include <QTextStream>
 #include <QFileInfo>
-#include <QDebug>
 #include <cmath>
 
 class ConcreteTool

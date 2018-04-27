@@ -29,57 +29,6 @@
    <property name="spacing">
     <number>3</number>
    </property>
-   <item row="4" column="1">
-    <widget class="QCheckBox" name="filter_recessive">
-     <property name="text">
-      <string>recessive (only hom/compound-het variants)</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="0">
-    <widget class="QLabel" name="label_3">
-     <property name="toolTip">
-      <string>Maximum allele frequency in ExAC/gnomAD/1000G.</string>
-     </property>
-     <property name="text">
-      <string>Frequency:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="0">
-    <widget class="QPushButton" name="update_btn">
-     <property name="text">
-      <string>Update</string>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="0">
-    <widget class="QLabel" name="label_2">
-     <property name="toolTip">
-      <string>Variant impact on protein.</string>
-     </property>
-     <property name="text">
-      <string>Impact:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="label">
-     <property name="toolTip">
-      <string>Comma-separted list of genes.</string>
-     </property>
-     <property name="text">
-      <string>Gene(s):</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="1">
-    <widget class="QLineEdit" name="genes">
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-   </item>
    <item row="3" column="1">
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
@@ -131,10 +80,10 @@
      </item>
     </layout>
    </item>
-   <item row="0" column="0" colspan="2">
-    <widget class="QLabel" name="label_4">
+   <item row="1" column="1">
+    <widget class="QLineEdit" name="genes">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to search for rare variants of one or several genes in the NGSD. &lt;br/&gt;The output can be copied to the clipboard and used in Excel or similar programs.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string/>
      </property>
     </widget>
    </item>
@@ -175,6 +124,57 @@
     <widget class="QLabel" name="label_5">
      <property name="text">
       <string>Inheritance:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="label_3">
+     <property name="toolTip">
+      <string>Maximum allele frequency in ExAC/gnomAD/1000G.</string>
+     </property>
+     <property name="text">
+      <string>Frequency:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label">
+     <property name="toolTip">
+      <string>Comma-separted list of genes.</string>
+     </property>
+     <property name="text">
+      <string>Gene(s):</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1">
+    <widget class="QCheckBox" name="filter_recessive">
+     <property name="text">
+      <string>recessive (only hom/compound-het variants)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0" colspan="2">
+    <widget class="QLabel" name="label_4">
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to search for rare variants of one or several genes in the NGSD. &lt;br/&gt;The output can be copied to the clipboard and used in Excel or similar programs.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QPushButton" name="update_btn">
+     <property name="text">
+      <string>Update</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="toolTip">
+      <string>Variant impact on protein.</string>
+     </property>
+     <property name="text">
+      <string>Impact:</string>
      </property>
     </widget>
    </item>
@@ -291,8 +291,44 @@
      </column>
     </widget>
    </item>
+   <item row="7" column="0" colspan="2">
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <spacer name="horizontalSpacer_3">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="copy_btn">
+       <property name="toolTip">
+        <string>Copy to clipboard.</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="GSvar.qrc">
+         <normaloff>:/Icons/CopyClipboard.png</normaloff>:/Icons/CopyClipboard.png</iconset>
+       </property>
+       <property name="shortcut">
+        <string>Ctrl+C</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="GSvar.qrc"/>
+ </resources>
  <connections/>
 </ui>

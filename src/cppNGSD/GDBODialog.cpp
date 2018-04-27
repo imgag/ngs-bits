@@ -10,7 +10,6 @@
 #include <QDateEdit>
 #include <QDoubleSpinBox>
 #include <QCheckBox>
-#include <QDebug>
 
 GDBODialog::GDBODialog(QWidget *parent, GDBO& gdbo, QStringList hidden)
 	: QDialog(parent)

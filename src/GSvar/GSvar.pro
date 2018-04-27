@@ -45,7 +45,8 @@ SOURCES += main.cpp\
     SvWidget.cpp \
     AnalysisStatusDialog.cpp \
     SingleSampleAnalysisDialog.cpp \
-    SomaticDialog.cpp
+    SomaticDialog.cpp \
+    VariantSampleOverviewDialog.cpp
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
@@ -85,7 +86,8 @@ HEADERS  += MainWindow.h \
     SvWidget.h \
     AnalysisStatusDialog.h \
     SingleSampleAnalysisDialog.h \
-    SomaticDialog.h
+    SomaticDialog.h \
+    VariantSampleOverviewDialog.h
 
 FORMS    += MainWindow.ui \
     FilterDockWidget.ui \
@@ -121,7 +123,8 @@ FORMS    += MainWindow.ui \
     SvWidget.ui \
     AnalysisStatusDialog.ui \
     SingleSampleAnalysisDialog.ui \
-    SomaticDialog.ui
+    SomaticDialog.ui \
+    VariantSampleOverviewDialog.ui
     
 
 include("../app_gui.pri")

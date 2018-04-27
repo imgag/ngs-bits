@@ -6,7 +6,6 @@
 #include "Log.h"
 #include "Helper.h"
 #include "GUIHelper.h"
-#include <QDebug>
 #include <QComboBox>
 #include <QFileInfo>
 #include <QMessageBox>

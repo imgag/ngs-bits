@@ -2,7 +2,6 @@
 #include "NGSD.h"
 #include "Exceptions.h"
 #include "Helper.h"
-#include <QDebug>
 
 class ConcreteTool
 		: public ToolBase

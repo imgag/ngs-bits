@@ -271,29 +271,7 @@ void RohWidget::variantFiltersChanged()
 
 void RohWidget::copyToClipboard()
 {
-	//header
-	QString output = "#";
-	for (int col=0; col<ui->rohs->columnCount(); ++col)
-	{
-		if (col!=0) output += "\t";
-		output += ui->rohs->horizontalHeaderItem(col)->text();
-	}
-	output += "\n";
-
-	//rows
-	for (int row=0; row<ui->rohs->rowCount(); ++row)
-	{
-		if (ui->rohs->isRowHidden(row)) continue;
-
-		for (int col=0; col<ui->rohs->columnCount(); ++col)
-		{
-			if (col!=0) output += "\t";
-			output += ui->rohs->item(row, col)->text();
-		}
-		output += "\n";
-	}
-
-	QApplication::clipboard()->setText(output);
+	GUIHelper::copyToClipboard(ui->rohs);
 }
 
 void RohWidget::annotationFilterColumnChanged()

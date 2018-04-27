@@ -1,6 +1,5 @@
 #include "GBDOFKEdit.h"
 #include "DatabaseCache.h"
-#include <QDebug>
 #include <QStringListModel>
 
 GBDOFKEdit::GBDOFKEdit(QString table, QString field, QWidget* parent)

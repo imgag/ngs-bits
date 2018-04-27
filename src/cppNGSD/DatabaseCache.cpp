@@ -1,5 +1,4 @@
 #include "DatabaseCache.h"
-#include <QDebug>
 #include <QSqlError>
 #include "NGSD.h"
 #include "Exceptions.h"

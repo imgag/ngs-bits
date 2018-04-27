@@ -1,6 +1,5 @@
 #include "FilterColumnWidget.h"
 #include "ui_FilterColumnWidget.h"
-#include <QDebug>
 
 FilterColumnWidget::FilterColumnWidget(QString name, QString tooltip) :
 	QWidget(),

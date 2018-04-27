@@ -5,7 +5,6 @@
 #include "Exceptions.h"
 #include "Helper.h"
 #include "NGSHelper.h"
-#include <QDebug>
 #include <QPushButton>
 #include <QFileInfo>
 #include <QMessageBox>

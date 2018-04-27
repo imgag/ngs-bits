@@ -1,6 +1,5 @@
 #include "PhenoToGenesDialog.h"
 #include "Helper.h"
-#include <QDebug>
 #include <QClipboard>
 #include <QFileDialog>
 #include <QMenu>

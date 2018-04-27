@@ -179,6 +179,8 @@ public slots:
 	void editVariantValidation();
 	///Edit comment of current variant
 	void editVariantComment();
+	///Shows a sample overview for the current variant;
+	void showVariantSampleOverview();
 
 	///Returns a gene list where the inheritance information is not set (selected variants only)
 	QStringList geneInheritanceMissing(QBitArray selected);

@@ -2,7 +2,6 @@
 #include "ui_VariantDetailsDockWidget.h"
 #include "Exceptions.h"
 #include "Helper.h"
-#include <QDebug>
 #include <QPixmap>
 #include <QMessageBox>
 #include <QDesktopServices>
@@ -43,11 +42,12 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget *parent) :
 
 	//set up NGSD edit button
 	QMenu* menu = new QMenu();
-	menu->addAction("Classification", this, SLOT(editClassification()));
-	menu->addAction("Validation", this, SLOT(editValidation()));
-	menu->addAction("Comment", this, SLOT(editComment()));
+	menu->addAction("Edit classification", this, SLOT(editClassification()));
+	menu->addAction("Edit validation", this, SLOT(editValidation()));
+	menu->addAction("Edit comment", this, SLOT(editComment()));
+	menu->addSeparator();
+	menu->addAction("Show sample overview for samples", this, SLOT(variantSampleOverview()));
 	ui->ngsd_edit->setMenu(menu);
-	ui->ngsd_edit->setEnabled(Settings::boolean("NGSD_enabled", true));
 
 	//reset
 	clear();
@@ -130,7 +130,9 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->ngsd_het, vl, index, "ihdb_allsys_het");
 	setAnnotation(ui->ngsd_comment, vl, index, "comment");
 	setAnnotation(ui->ngsd_validation, vl, index, "validated");
-	ui->ngsd_edit->setEnabled(Settings::boolean("NGSD_enabled", true));
+
+	//update NGSD button
+	ui->ngsd_edit->setEnabled(maxAalleleFrequency(vl, index)<0.05 && Settings::boolean("NGSD_enabled", true));
 }
 
 void VariantDetailsDockWidget::clear()
@@ -362,6 +364,46 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 	//set text/tooltip
 	label->setText(text);
 	label->setToolTip(tooltip);
+}
+
+double VariantDetailsDockWidget::maxAalleleFrequency(const VariantList& vl, int index) const
+{
+	double output = 0.0;
+
+	bool ok;
+	double value;
+
+	int idx = vl.annotationIndexByName("1000g", true, false);
+	if (idx!=-1)
+	{
+		value = vl[index].annotations()[idx].toDouble(&ok);
+		if (ok)
+		{
+			output = std::max(output, value);
+		}
+	}
+
+	idx = vl.annotationIndexByName("ExAC", true, false);
+	if (idx!=-1)
+	{
+		value = vl[index].annotations()[idx].toDouble(&ok);
+		if (ok)
+		{
+			output = std::max(output, value);
+		}
+	}
+
+	idx = vl.annotationIndexByName("gnomAD", true, false);
+	if (idx!=-1)
+	{
+		value = vl[index].annotations()[idx].toDouble(&ok);
+		if (ok)
+		{
+			output = std::max(output, value);
+		}
+	}
+
+	return output;
 }
 
 QString VariantDetailsDockWidget::colorToString(VariantDetailsDockWidget::Color color)
@@ -596,4 +638,9 @@ void VariantDetailsDockWidget::editValidation()
 void VariantDetailsDockWidget::editComment()
 {
 	emit editVariantComment();
+}
+
+void VariantDetailsDockWidget::variantSampleOverview()
+{
+	emit showVariantSampleOverview();
 }

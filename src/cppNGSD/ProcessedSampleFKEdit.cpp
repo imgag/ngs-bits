@@ -1,6 +1,5 @@
 #include "ProcessedSampleFKEdit.h"
 #include "DatabaseCache.h"
-#include <QDebug>
 #include <QStringListModel>
 
 ProcessedSampleFKEdit::ProcessedSampleFKEdit(QWidget* parent)

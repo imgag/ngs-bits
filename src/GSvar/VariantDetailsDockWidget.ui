@@ -1008,8 +1008,11 @@
           </property>
           <item>
            <widget class="QPushButton" name="ngsd_edit">
+            <property name="toolTip">
+             <string>Enabled only for variants in the NGSD, i.e. AF&lt;5%</string>
+            </property>
             <property name="text">
-             <string>Edit</string>
+             <string>NGSD</string>
             </property>
            </widget>
           </item>
