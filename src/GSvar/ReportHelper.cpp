@@ -938,8 +938,8 @@ VariantList ReportHelper::filterSnvForCGIAnnotation(bool filter_for_target_regio
 
 		//skip variants which do not lie in target region
 		if(filter_for_target_region && !genes_in_target_region_.contains(cgi_gene)) continue;
-		//Skip variants that are filtered in variant file (the ones which have an entry in the filtering column except freq-tum)
-		if(!variant.annotations().at(snv_index_filter_).isEmpty() && variant.annotations().at(snv_index_filter_) != "freq-tum") continue;
+		//Skip variants that are filtered in variant file
+		if(!variant.annotations().at(snv_index_filter_).isEmpty()) continue;
 		//Skip variants which have no CGI annotation
 		if(variant.annotations().at(snv_index_cgi_driver_statement_).isEmpty()) continue;
 
