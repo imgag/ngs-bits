@@ -23,6 +23,8 @@ private slots:
 		//check
 		int count = db.getValue("SELECT count(*) FROM hpo_term").toInt();
 		I_EQUAL(count, 14)
+		count = db.getValue("SELECT count(*) FROM hpo_term WHERE synonyms!=''").toInt();
+		I_EQUAL(count, 3)
 		count = db.getValue("SELECT count(*) FROM hpo_parent").toInt();
 		I_EQUAL(count, 11)
 		count = db.getValue("SELECT count(*) FROM hpo_genes").toInt();

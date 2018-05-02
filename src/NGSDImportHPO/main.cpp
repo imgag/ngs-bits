@@ -48,7 +48,7 @@ public:
 		}
 	}
 
-	QHash<QByteArray, int> addTerm(SqlQuery& query, QByteArray& id, QByteArray& name, QByteArray& def)
+	QHash<QByteArray, int> addTerm(SqlQuery& query, QByteArray& id, QByteArray& name, QByteArray& def, QByteArrayList& synonyms)
 	{
 		static QHash<QByteArray, int> id2ngsd;
 
@@ -58,6 +58,7 @@ public:
 			query.bindValue(0, id);
 			query.bindValue(1, name);
 			query.bindValue(2, def);
+			query.bindValue(3, synonyms.count()==0 ? "" : synonyms.join('\n'));
 			query.exec();
 
 			id2ngsd.insert(id, query.lastInsertId().toInt());
@@ -67,6 +68,7 @@ public:
 		id.clear();
 		name.clear();
 		def = "";
+		synonyms.clear();
 
 		return id2ngsd;
 	}
@@ -100,7 +102,7 @@ public:
 
 		//prepare SQL queries
 		SqlQuery qi_term = db.getQuery();
-		qi_term.prepare("INSERT INTO hpo_term (hpo_id, name, definition) VALUES (:0, :1, :2);");
+		qi_term.prepare("INSERT INTO hpo_term (hpo_id, name, definition, synonyms) VALUES (:0, :1, :2, :3);");
 		SqlQuery qi_parent = db.getQuery();
 		qi_parent.prepare("INSERT INTO hpo_parent (parent, child) VALUES (:0, :1);");
 		SqlQuery qi_gene = db.getQuery();
@@ -108,6 +110,7 @@ public:
 
 		//parse OBO and insert terms
 		QByteArray id, name, def = "";
+		QByteArrayList synonyms;
 		QHash<QByteArray, QByteArrayList > child_parents;
 		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("obo"));
 		while(!fp->atEnd())
@@ -117,7 +120,7 @@ public:
 
 			if (line=="[Term]")
 			{
-				addTerm(qi_term, id, name, def);
+				addTerm(qi_term, id, name, def, synonyms);
 			}
 			else if (line=="is_obsolete: true")
 			{
@@ -135,6 +138,14 @@ public:
 			{
 				def = line.mid(5, line.lastIndexOf('"')-5);
 			}
+			else if (line.startsWith("synonym: ") && line.contains("EXACT"))
+			{
+				int start = line.indexOf('"');
+				int end = line.indexOf('"', start+1);
+				QByteArray syn = line.mid(start+1, end-start-1).trimmed();
+				qDebug() << syn;
+				synonyms << syn;
+			}
 			else if (line.startsWith("is_a: HP:"))
 			{
 				if (!child_parents.contains(id)) child_parents[id] = QByteArrayList();
@@ -143,7 +154,7 @@ public:
 		}
 		fp->close();
 
-		QHash<QByteArray, int> id2ngsd = addTerm(qi_term, id, name, def);
+		QHash<QByteArray, int> id2ngsd = addTerm(qi_term, id, name, def, synonyms);
 		out << "Imported " << db.getValue("SELECT COUNT(*) FROM hpo_term").toInt() << " non-obsolete HPO terms." << endl;
 
 		//insert parent-child relations between (valid) terms

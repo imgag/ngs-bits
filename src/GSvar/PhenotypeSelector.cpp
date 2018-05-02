@@ -101,7 +101,7 @@ QString PhenotypeSelector::selectedItemDetails(bool show_name, bool shown_genes)
 
 	//get id/definition
 	SqlQuery query = db_.getQuery();
-	query.prepare("SELECT id, hpo_id, name, definition FROM hpo_term WHERE name=:0");
+	query.prepare("SELECT id, hpo_id, name, definition, synonyms FROM hpo_term WHERE name=:0");
 	query.bindValue(0, item->text());
 	query.exec();
 	query.next();
@@ -112,6 +112,8 @@ QString PhenotypeSelector::selectedItemDetails(bool show_name, bool shown_genes)
 		output = "<b>" + query.value(2).toString() + " (" + query.value(1).toString() +")</b><br><br>";
 	}
 	output += "<b>Definition:</b><br>" + query.value(3).toString();
+
+	output += "<br><br><b>Synonyms:</b><br>" + query.value(4).toString().replace('\n', ',');
 
 	//get parent items
 	QStringList parents = db_.getValues("SELECT t.name FROM hpo_term t, hpo_parent p WHERE t.id=p.parent AND p.child=" + id);

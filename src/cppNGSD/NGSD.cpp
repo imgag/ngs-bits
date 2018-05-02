@@ -1429,11 +1429,12 @@ QList<Phenotype> NGSD::phenotypes(QStringList search_terms)
 		bool first = true;
 		QSet<Phenotype> set;
 		SqlQuery query = getQuery();
-		query.prepare("SELECT hpo_id, name FROM hpo_term WHERE name LIKE :0 OR hpo_id LIKE :1");
+		query.prepare("SELECT hpo_id, name FROM hpo_term WHERE name LIKE :0 OR hpo_id LIKE :1 OR synonyms LIKE :2");
 		foreach(const QString& term, search_terms)
 		{
 			query.bindValue(0, "%" + term + "%");
 			query.bindValue(1, "%" + term + "%");
+			query.bindValue(2, "%" + term + "%");
 			query.exec();
 			QSet<Phenotype> tmp;
 			while(query.next())

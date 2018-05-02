@@ -806,9 +806,11 @@ CREATE TABLE IF NOT EXISTS `hpo_term` (
   `hpo_id` VARCHAR(10) NOT NULL,
   `name` TEXT NOT NULL,
   `definition` TEXT NOT NULL,
+  `synonyms` TEXT NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `hpo_id` (`hpo_id` ASC),
-  INDEX `name` (`name`(100) ASC))
+  INDEX `name` (`name`(100) ASC),
+  INDEX `synonyms` (`synonyms`(100) ASC))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
