@@ -19,7 +19,7 @@ For Ubuntu 14.04 install these packages:
 
 For Ubuntu 16.04 install these packages:
 
-	> apt-get install subversion git php7.0-cli php7.0-mysql php7.0-xml php7.0-gd g++ maven libncurses5-dev qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql cmake python python-matplotlib tabix unzip libbz2-dev libzma-dev
+	> apt-get install subversion git php7.0-cli php7.0-mysql php7.0-xml php7.0-gd g++ maven libncurses5-dev qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql cmake python python-matplotlib tabix unzip libbz2-dev liblzma-dev
 
 ## (1) Setup of the analysis pipeline
 
@@ -210,6 +210,7 @@ For more information on GSvar, open the help within GSvar (F1) or use this [link
 ## Next steps
 
 Now you can run your first data analysis based on these [instructions](running_an_analysis.md).
+
 
 
 
