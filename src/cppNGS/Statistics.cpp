@@ -1577,7 +1577,8 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
         if (!chr.isNonSpecial()) continue;
 
 		int chr_size = reader.chromosomeSize(chr);
-		cov.fill(0, chr_size);
+		cov.clear();
+		cov.resize(chr_size);
 
 		//jump to chromosome
 		reader.setRegion(chr, 0, chr_size);
@@ -1712,7 +1713,8 @@ BedFile Statistics::highCoverage(const QString& bam_file, int cutoff, int min_ma
 
 		const int chr_size = reader.chromosomeSize(chr);
 		//qDebug() << Helper::dateTime() << "starting" << chr.str() << chr_size << cov.capacity() << output.count();
-		cov.fill(0, chr_size);
+		cov.clear();
+		cov.resize(chr_size);
 
 		//jump to chromosome
 		reader.setRegion(chr, 0, chr_size);
