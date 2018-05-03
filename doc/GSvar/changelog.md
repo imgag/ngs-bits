@@ -1,5 +1,10 @@
 # GSvar change log
 
+### 2018_04-27 (03.05.2018)
+- Variant details: Added sample overview for a specific variant including sample similarity search.
+- Sample infos: Moved sample detaisl into right dock area.
+- General: HPO terms can now be searched by synonyms as well.
+
 ### 2018_04-13 (18.04.2018)
 - General: Added analysis status/queuing.
 - General: Added warning for genes with "indikationsspezifische Abrechnung"
@@ -184,4 +189,6 @@
 --
 
 [back to main page](index.md)
+
+
 

@@ -113,7 +113,7 @@ QString PhenotypeSelector::selectedItemDetails(bool show_name, bool shown_genes)
 	}
 	output += "<b>Definition:</b><br>" + query.value(3).toString();
 
-	output += "<br><br><b>Synonyms:</b><br>" + query.value(4).toString().replace('\n', ',');
+	output += "<br><br><b>Synonyms:</b><br>" + query.value(4).toString().replace("\n", ", ");
 
 	//get parent items
 	QStringList parents = db_.getValues("SELECT t.name FROM hpo_term t, hpo_parent p WHERE t.id=p.parent AND p.child=" + id);
