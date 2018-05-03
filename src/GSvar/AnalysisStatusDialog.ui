@@ -42,33 +42,16 @@
      </property>
      <item>
       <widget class="QLabel" name="label_2">
+       <property name="toolTip">
+        <string>Text search over all columns.</string>
+       </property>
        <property name="text">
-        <string>sample:</string>
+        <string>text search:</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="f_sample">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="clearButtonEnabled">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_3">
-       <property name="text">
-        <string>user:</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="f_user">
+      <widget class="QLineEdit" name="f_text">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -149,6 +132,20 @@
        </property>
        <property name="popupMode">
         <enum>QToolButton::DelayedPopup</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="copy_btn">
+       <property name="toolTip">
+        <string>Copy analysis data to clipboard.</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="GSvar.qrc">
+         <normaloff>:/Icons/CopyClipboard.png</normaloff>:/Icons/CopyClipboard.png</iconset>
        </property>
       </widget>
      </item>
@@ -474,29 +471,13 @@
  </resources>
  <connections>
   <connection>
-   <sender>f_sample</sender>
+   <sender>f_text</sender>
    <signal>editingFinished()</signal>
    <receiver>refresh</receiver>
    <slot>animateClick()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>110</x>
-     <y>14</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>466</x>
-     <y>14</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>f_user</sender>
-   <signal>editingFinished()</signal>
-   <receiver>refresh</receiver>
-   <slot>animateClick()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>274</x>
      <y>14</y>
     </hint>
     <hint type="destinationlabel">

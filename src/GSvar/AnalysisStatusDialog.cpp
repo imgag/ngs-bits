@@ -26,6 +26,7 @@ AnalysisStatusDialog::AnalysisStatusDialog(QWidget *parent)
 	connect(ui_.analysisTrio, SIGNAL(clicked(bool)), this, SLOT(analyzeTrio()));
 	connect(ui_.analysisMulti, SIGNAL(clicked(bool)), this, SLOT(analyzeMultiSample()));
 	connect(ui_.analysisSomatic, SIGNAL(clicked(bool)), this, SLOT(analyzeSomatic()));
+	connect(ui_.copy_btn, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
 
 	//misc
 	refreshStatus();
@@ -117,32 +118,44 @@ void AnalysisStatusDialog::refreshStatus()
 		//filter repeated
 		if (repeated && !ui_.f_repeated->isChecked()) continue;
 
-		//filter sample
-		QString f_sample = ui_.f_sample->text().trimmed();
-		if (!f_sample.isEmpty())
-		{
-			bool skip = true;
-			foreach(const AnalysisJobSample& sample, job.samples)
-			{
-				if (sample.name.contains(f_sample)) skip = false;
-			}
-			if (skip) continue;
-		}
-
-		//filter user
-		QString f_user = ui_.f_user->text().trimmed();
-		if (!f_user.isEmpty())
-		{
-			bool skip = true;
-			if (job.history.count()>0 && job.history[0].user.contains(f_user)) skip = false;
-			if (skip) continue;
-		}
-
 		//filter date
 		QDateTime f_date = QDateTime(ui_.f_date->date());
 		bool skip = true;
 		if (job.history.count()>0 && job.history[0].time>=f_date) skip = false;
 		if (skip) break; //jobs are ordered by date => no newer jobs can come => skip the rest
+
+		//get sample data
+		QList<ProcessedSampleData> ps_data;
+		foreach(const AnalysisJobSample& sample, job.samples)
+		{
+			ps_data << db_.getProcessedSampleData(db_.processedSampleId(sample.name));
+		}
+
+		//filter text
+		QString f_text = ui_.f_text->text().trimmed();
+		if (!f_text.isEmpty())
+		{
+			QStringList text;
+			if (job.history.count()>0)
+			{
+				text << job.history[0].timeAsString();
+				text << job.history[0].user;
+			}
+			text << job.type;
+			foreach(const AnalysisJobSample& sample, job.samples)
+			{
+				text << sample.name;
+			}
+			foreach(const ProcessedSampleData& data, ps_data)
+			{
+				text << data.processing_system;
+				text << data.run_name;
+				text << data.project_name;
+			}
+			text << job.finalStatus();
+			text << job.sge_queue;
+			if (!text.join("\t").contains(f_text, Qt::CaseInsensitive)) continue;
+		}
 
 		//not filtered => add row
 		++row;
@@ -160,12 +173,10 @@ void AnalysisStatusDialog::refreshStatus()
 		addItem(ui_.analyses, row, 2, job.type);
 
 		//sample(s)
-		QList<ProcessedSampleData> ps_data;
 		QStringList parts;
 		foreach(const AnalysisJobSample& sample, job.samples)
 		{
 			parts << sample.name;
-			ps_data << db_.getProcessedSampleData(db_.processedSampleId(sample.name));
 		}
 		addItem(ui_.analyses, row, 3, parts.join(" "));
 
@@ -426,6 +437,11 @@ void AnalysisStatusDialog::showOutputDetails(QTableWidgetItem* item)
 	if (output.empty()) return;
 
 	QMessageBox::information(this, "Output", output.join("\n"));
+}
+
+void AnalysisStatusDialog::copyToClipboard()
+{
+	GUIHelper::copyToClipboard(ui_.analyses);
 }
 
 void AnalysisStatusDialog::addItem(QTableWidget* table, int row, int col, QString text, QColor bg_color)

@@ -25,6 +25,7 @@ protected slots:
 	void clearDetails();
 	void updateDetails();
 	void showOutputDetails(QTableWidgetItem* item);
+	void copyToClipboard();
 
 private:
 	Ui::AnalysisStatusDialog ui_;

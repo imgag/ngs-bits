@@ -1169,8 +1169,10 @@ void MainWindow::on_actionSampleCorrelationBAM_triggered()
 
 void MainWindow::on_actionAnalysisStatus_triggered()
 {
-	AnalysisStatusDialog dlg(this);
-	dlg.exec();
+	auto dlg = new AnalysisStatusDialog(this);
+	dlg->setWindowFlags(Qt::Window);
+	dlg->show();
+	addModelessDialog(QSharedPointer<QDialog>(dlg));
 }
 
 void MainWindow::on_actionGapsLookup_triggered()
