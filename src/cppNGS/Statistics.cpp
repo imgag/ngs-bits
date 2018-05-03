@@ -1564,12 +1564,14 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 
 BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_mapq)
 {
+	if (cutoff>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
+
     BedFile output;
 
     //open BAM file
 	BamReader reader(bam_file);
 
-	QVector<int> cov;
+	QVector<unsigned char> cov;
 
 	//iteratore through chromosomes
 	foreach(const Chromosome& chr, reader.chromosomes())
@@ -1577,8 +1579,7 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
         if (!chr.isNonSpecial()) continue;
 
 		int chr_size = reader.chromosomeSize(chr);
-		cov.clear();
-		cov.resize(chr_size);
+		cov.fill(0, chr_size);
 
 		//jump to chromosome
 		reader.setRegion(chr, 0, chr_size);
@@ -1594,7 +1595,7 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
 			const int end = al.end();
 			for (int p=al.start()-1; p<end; ++p)
             {
-				++cov[p];
+				if (cov[p]<254) ++cov[p];
             }
         }
 
@@ -1699,12 +1700,14 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 
 BedFile Statistics::highCoverage(const QString& bam_file, int cutoff, int min_mapq)
 {
+	if (cutoff>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
+
 	BedFile output;
 
 	//open BAM file
 	BamReader reader(bam_file);
 
-	QVector<int> cov;
+	QVector<unsigned char> cov;
 
 	//iteratore through chromosomes
 	foreach(const Chromosome& chr, reader.chromosomes())
@@ -1713,8 +1716,7 @@ BedFile Statistics::highCoverage(const QString& bam_file, int cutoff, int min_ma
 
 		const int chr_size = reader.chromosomeSize(chr);
 		//qDebug() << Helper::dateTime() << "starting" << chr.str() << chr_size << cov.capacity() << output.count();
-		cov.clear();
-		cov.resize(chr_size);
+		cov.fill(0, chr_size);
 
 		//jump to chromosome
 		reader.setRegion(chr, 0, chr_size);
@@ -1735,7 +1737,7 @@ BedFile Statistics::highCoverage(const QString& bam_file, int cutoff, int min_ma
 			const int end = al.end();
 			for (int p=al.start()-1; p<end; ++p)
 			{
-				++cov[p];
+				if (cov[p]<254) ++cov[p];
 
 				if (!seg_has_high_af && cov[p]>=cutoff) seg_has_high_af = true;
 			}
