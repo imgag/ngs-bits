@@ -407,7 +407,6 @@ private slots:
 	void highCoverage_mapq20()
 	{
 		BedFile high_cov = Statistics::highCoverage(TESTDATA("data_in/panel.bam"), 20, 20);
-		high_cov.store("panel_mapq20_highCov.bed"); //TODO
 		I_EQUAL(high_cov.count(), 1781);
 		I_EQUAL(high_cov.baseCount(), 578708);
 	}
