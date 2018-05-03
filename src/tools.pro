@@ -13,6 +13,10 @@ cppNGSD.depends = cppNGS
 SUBDIRS += tools-TEST
 tools-TEST.depends = cppNGSD
 
+SUBDIRS += BamHighCoverage
+tools-TEST.depends += BamHighCoverage
+BamHighCoverage.depends = cppNGSD
+
 SUBDIRS += NGSDExportGenes
 tools-TEST.depends += NGSDExportGenes
 NGSDExportGenes.depends = cppNGSD

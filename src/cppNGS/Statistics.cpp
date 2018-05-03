@@ -1569,19 +1569,20 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
     //open BAM file
 	BamReader reader(bam_file);
 
+	QVector<int> cov;
+
 	//iteratore through chromosomes
 	foreach(const Chromosome& chr, reader.chromosomes())
     {
         if (!chr.isNonSpecial()) continue;
 
 		int chr_size = reader.chromosomeSize(chr);
-        //qDebug() << chr.str() << chr_size;
-        QVector<int> cov(chr_size, 0);
+		cov.fill(0, chr_size);
 
 		//jump to chromosome
 		reader.setRegion(chr, 0, chr_size);
 
-        //iterate through all alignments
+		//iterate through all alignments
         BamAlignment al;
 		while (reader.getNextAlignment(al))
         {
@@ -1592,37 +1593,35 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
 			const int end = al.end();
 			for (int p=al.start()-1; p<end; ++p)
             {
-                ++cov[p];
+				++cov[p];
             }
         }
 
-        //create low-coverage regions file
-        bool reg_open = false;
-        int reg_start = -1;
-        for (int p=0; p<cov.count(); ++p)
-        {
-            bool low_cov = cov[p]<cutoff;
-            if (reg_open && !low_cov)
-            {
-                //qDebug() << chr.str() << reg_start+1 << p;
-                output.append(BedLine(chr, reg_start+1, p));
-                reg_open = false;
-                reg_start = -1;
-            }
-            if (!reg_open && low_cov)
-            {
-                reg_open = true;
-                reg_start = p;
-            }
-        }
-        if (reg_open)
-        {
-            //qDebug() << chr.str() << reg_start+1 << chr_size;
-            output.append(BedLine(chr, reg_start+1, chr_size));
-        }
-    }
+		//create low-coverage regions file
+		bool reg_open = false;
+		int reg_start = -1;
+		for (int p=0; p<chr_size; ++p)
+		{
+			bool low_cov = cov[p]<cutoff;
+			if (reg_open && !low_cov)
+			{
+				output.append(BedLine(chr, reg_start+1, p));
+				reg_open = false;
+				reg_start = -1;
+			}
+			if (!reg_open && low_cov)
+			{
+				reg_open = true;
+				reg_start = p;
+			}
+		}
+		if (reg_open)
+		{
+			output.append(BedLine(chr, reg_start+1, chr_size));
+		}
+	}
 
-    output.merge();
+	output.merge();
     return output;
 }
 
@@ -1695,6 +1694,101 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 			bed_file[i].annotations().append(QByteArray ::number((double)(cov[i]) / bed_file[i].length(), 'f', 2));
 		}
 	}
+}
+
+BedFile Statistics::highCoverage(const QString& bam_file, int cutoff, int min_mapq)
+{
+	BedFile output;
+
+	//open BAM file
+	BamReader reader(bam_file);
+
+	QVector<int> cov;
+
+	//iteratore through chromosomes
+	foreach(const Chromosome& chr, reader.chromosomes())
+	{
+		if (!chr.isNonSpecial()) continue;
+
+		const int chr_size = reader.chromosomeSize(chr);
+		//qDebug() << Helper::dateTime() << "starting" << chr.str() << chr_size << cov.capacity() << output.count();
+		cov.fill(0, chr_size);
+
+		//jump to chromosome
+		reader.setRegion(chr, 0, chr_size);
+
+		//iterate through all alignments
+		int seg_start = 0;
+		int seg_end = -1;
+		bool seg_has_high_af = false;
+		BamAlignment al;
+		while (reader.getNextAlignment(al))
+		{
+			//skip unusable data
+			if (al.isDuplicate()) continue;
+			if (al.isSecondaryAlignment()) continue;
+			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
+
+			//increase counts
+			const int end = al.end();
+			for (int p=al.start()-1; p<end; ++p)
+			{
+				++cov[p];
+
+				if (!seg_has_high_af && cov[p]>=cutoff) seg_has_high_af = true;
+			}
+
+			//gap between segments => check last coverated segment for high-coverage data
+			if (seg_end < al.start())
+			{
+				//qDebug() << "SEG" << seg_start << seg_end << seg_has_high_af;
+				if (seg_has_high_af)
+				{
+					for (int p=seg_start-1; p<seg_end; ++p)
+					{
+						if (cov[p]>=cutoff)
+						{
+							const int start = p + 1;
+							while(p<seg_end && cov[p]>=cutoff)
+							{
+								++p;
+							}
+							//qDebug() << "  LINE" << chr.str() << start << p;
+							output.append(BedLine(chr, start, p));
+						}
+					}
+				}
+
+				seg_start = al.start();
+				seg_has_high_af = false;
+			}
+
+			//update last end
+			seg_end = std::max(seg_end, end);
+		}
+
+		//qDebug() << "SEG" << seg_start << seg_end << seg_has_high_af;
+		if (seg_has_high_af)
+		{
+			for (int p=seg_start-1; p<seg_end; ++p)
+			{
+				if (cov[p]>=cutoff)
+				{
+					const int start = p + 1;
+					while(p<seg_end && cov[p]>=cutoff)
+					{
+						++p;
+					}
+					//qDebug() << "  LINE" << chr.str() << start << p;
+					output.append(BedLine(chr, start, p));
+				}
+			}
+		}
+
+	}
+
+	output.merge();
+	return output;
 }
 
 QString Statistics::genderXY(const QString& bam_file, QStringList& debug_output, double max_female, double min_male)
