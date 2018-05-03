@@ -34,7 +34,7 @@ private:
 	QSharedPointer<NGSD> db_;
 
 	///Formats a statistics label (outliers are colored red).
-	void statisticsLabel(QLabel* label, QString accession, const QCCollection& qc, bool label_outlier_low, bool label_outlier_high, int decimal_places = 2);
+	void statisticsLabel(QLabel* label, QString accession, const QCCollection& qc, bool label_outlier_low, bool label_outlier_high, int decimal_places = 2, QString suffix="");
 
 };
 

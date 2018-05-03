@@ -102,9 +102,11 @@ void SampleDetailsDockWidget::refresh(QString processed_sample_name)
 		ui_.qc_reads->setText(qc.value("QC:2000005", true).toString(0) + " (length: " + qc.value("QC:2000006", true).toString(0) + ")");
 
 		statisticsLabel(ui_.qc_avg_depth, "QC:2000025", qc, true, false);
-		statisticsLabel(ui_.qc_perc_20x, "QC:2000027", qc, true, false);
+		statisticsLabel(ui_.qc_perc_20x, "QC:2000027", qc, true, false, 2, "%");
 		statisticsLabel(ui_.qc_insert_size,"QC:2000023", qc, true, true);
-		statisticsLabel(ui_.qc_af_dev,"QC:2000051", qc, false, true, 4);
+		statisticsLabel(ui_.qc_vars,"QC:2000013", qc, true, true, 0);
+		statisticsLabel(ui_.qc_vars_known,"QC:2000014", qc, true, false, 2, "%");
+		statisticsLabel(ui_.qc_af_dev,"QC:2000051", qc, false, true, 4, "%");
 
 		ui_.qc_kasp->setText(qc.value("kasp").asString());
 		QString quality = processed_sample_data.quality;
@@ -119,6 +121,9 @@ void SampleDetailsDockWidget::refresh(QString processed_sample_name)
 		DiagnosticStatusData diag_status = db_->getDiagnosticStatus(processed_sample_id);
 		ui_.diag_status->setText(diag_status.dagnostic_status);
 		ui_.diag_outcome->setText(diag_status.outcome);
+		ui_.diag_genes->setText(diag_status.genes_causal);
+		ui_.diag_inheritance->setText(diag_status.inheritance_mode);
+		ui_.diag_comments->setText(diag_status.comments);
 
 		//last analysis (BAM file date)
 		QDateTime last_modified = QFileInfo(db_->processedSamplePath(processed_sample_id, NGSD::BAM)).lastModified();
@@ -153,15 +158,20 @@ void SampleDetailsDockWidget::clear()
 	ui_.qc_reads->clear();
 	ui_.qc_kasp->clear();
 	ui_.qc_quality->clear();
+	ui_.qc_insert_size->clear();
 	ui_.qc_avg_depth->clear();
 	ui_.qc_perc_20x->clear();
-	ui_.qc_insert_size->clear();
+	ui_.qc_vars->clear();
+	ui_.qc_vars_known->clear();
 	ui_.qc_af_dev->clear();
 	ui_.comment->clear();
 	ui_.system->clear();
 	ui_.gender->clear();
 	ui_.diag_status->clear();
 	ui_.diag_outcome->clear();
+	ui_.diag_genes->clear();
+	ui_.diag_inheritance->clear();
+	ui_.diag_comments->clear();
 	ui_.date_bam->clear();
 
 	//buttons
@@ -170,13 +180,13 @@ void SampleDetailsDockWidget::clear()
 	ui_.quality_button->setEnabled(false);
 }
 
-void SampleDetailsDockWidget::statisticsLabel(QLabel* label, QString accession, const QCCollection& qc, bool label_outlier_low, bool label_outlier_high, int decimal_places)
+void SampleDetailsDockWidget::statisticsLabel(QLabel* label, QString accession, const QCCollection& qc, bool label_outlier_low, bool label_outlier_high, int decimal_places, QString suffix)
 {
 	try
 	{
 		//get QC value
 		QString value_str = qc.value(accession, true).toString();
-		label->setText(value_str);
+		label->setText(value_str + suffix);
 
 		//get QC value statistics
 		QVector<double> values = db_->getQCValues(accession, db_->processedSampleId(processed_sample_name_));
@@ -190,7 +200,7 @@ void SampleDetailsDockWidget::statisticsLabel(QLabel* label, QString accession, 
 		double value = value_str.toDouble(&ok);
 		if (!ok || (label_outlier_low && value < median-2*mad) || (label_outlier_high && value > median+2*mad))
 		{
-			label->setText("<font color='red'>"+value_str+"</font>");
+			label->setText("<font color='red'>" + value_str + suffix + "</font>");
 		}
 	}
 	catch (ArgumentException e) //in case the QC value does not exist in the DB
