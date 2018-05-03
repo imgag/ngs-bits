@@ -13,6 +13,10 @@ cppNGSD.depends = cppNGS
 SUBDIRS += tools-TEST
 tools-TEST.depends = cppNGSD
 
+SUBDIRS += NGSDExportGenes
+tools-TEST.depends += NGSDExportGenes
+NGSDExportGenes.depends = cppNGSD
+
 SUBDIRS += NGSDExportSamples
 tools-TEST.depends += NGSDExportSamples
 NGSDExportSamples.depends = cppNGSD

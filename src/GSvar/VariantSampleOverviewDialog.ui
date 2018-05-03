@@ -118,12 +118,12 @@
      </column>
      <column>
       <property name="text">
-       <string>outcome_genes</string>
+       <string>outcome_status</string>
       </property>
      </column>
      <column>
       <property name="text">
-       <string>outcome_status</string>
+       <string>outcome_genes</string>
       </property>
      </column>
      <column>
