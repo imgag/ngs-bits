@@ -49,6 +49,7 @@ The default output format of the quality control tools is [qcML](https://github.
 
 * [BamClipOverlap](doc/tools/BamClipOverlap.md) - (Soft-)Clips paired-end reads that overlap.
 * [BamDownsample](doc/tools/BamDownsample.md) - Downsamples a BAM file to the given percentage of reads.
+* [BamHighCoverage](doc/tools/BamHighCoverage.md) - Determines high-coverage regions in a BAM file.
 * [BamToFastq](doc/tools/BamToFastq.md) - Converts a BAM file to FASTQ files (paired-end only).
 
 ### BED tools
@@ -86,5 +87,6 @@ The default output format of the quality control tools is [qcML](https://github.
 * [VcfLeftNormalize](doc/tools/VcfLeftNormalize.md) - Normalizes all variants and shifts indels to the left in a VCF file.
 * [VcfSort](doc/tools/VcfSort.md) - Sorts variant lists according to chromosomal position.
 * [VcfStreamSort](doc/tools/VcfStreamSort.md) - Sorts entries of a VCF file according to genomic position using a stream.
+
 
 

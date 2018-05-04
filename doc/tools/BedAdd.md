@@ -1,5 +1,5 @@
 ### BedAdd tool help
-	BedAdd (2018_04)
+	BedAdd (2018_04-32-g853eeef)
 	
 	Merges regions from several BED files.
 	
@@ -17,7 +17,7 @@
 	  --tdx          Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BedAdd changelog
-	BedAdd 2018_04
+	BedAdd 2018_04-32-g853eeef
 	
 	2018-04-03 Removed 'in2' argument and made 'in' a file list.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
