@@ -503,12 +503,18 @@ void MainWindow::editVariantClassification()
 
 	try
 	{
-		ClassificationDialog dlg(this, variant);
+		//add variant if missing
+		NGSD db;
+		if (db.variantId(variant, false)=="")
+		{
+			db.addVariant(variant, variants_);
+		}
 
+		//execute dialog
+		ClassificationDialog dlg(this, variant);
 		if (dlg.exec())
 		{
 			//update DB
-			NGSD db;
 			ClassificationInfo class_info = dlg.classificationInfo();
 			db.setClassification(variant, class_info);
 
@@ -574,18 +580,25 @@ void MainWindow::editVariantComment()
 
 	try
 	{
+		//add variant if missing
+		NGSD db;
+		if (db.variantId(variant, false)=="")
+		{
+			db.addVariant(variant, variants_);
+		}
+
 		bool ok = true;
-		QByteArray text = QInputDialog::getMultiLineText(this, "Variant comment", "Text: ", NGSD().comment(variant), &ok).toLatin1();
+		QByteArray text = QInputDialog::getMultiLineText(this, "Variant comment", "Text: ", db.comment(variant), &ok).toLatin1();
 
 		if (ok)
 		{
 			//update DB
-			NGSD().setComment(variant, text);
+			db.setComment(variant, text);
 
 			//get annotation text (from NGSD to get comments of other samples as well)
 			VariantList tmp;
 			tmp.append(variant);
-			NGSD().annotate(tmp, filename_);
+			db.annotate(tmp, filename_);
 			text = tmp[0].annotations()[tmp.annotationIndexByName("comment", true, true)];
 
 			//update datastructure (if comment column is present)

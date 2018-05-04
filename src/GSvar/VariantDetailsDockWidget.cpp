@@ -131,8 +131,15 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->ngsd_comment, vl, index, "comment");
 	setAnnotation(ui->ngsd_validation, vl, index, "validated");
 
-	//update NGSD button
-	ui->ngsd_edit->setEnabled(maxAalleleFrequency(vl, index)<0.05 && Settings::boolean("NGSD_enabled", true));
+	//update NGSD button (and actions depending on AF)
+	ui->ngsd_edit->setEnabled(Settings::boolean("NGSD_enabled", true));
+	bool af_lt_5_perc = maxAalleleFrequency(vl, index)<0.05;
+	foreach(QAction* action, ui->ngsd_edit->menu()->actions())
+	{
+		if (action->text()=="Edit classification" || action->text()=="Edit comment") continue;
+
+		action->setEnabled(af_lt_5_perc);
+	}
 }
 
 void VariantDetailsDockWidget::clear()

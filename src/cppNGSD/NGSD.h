@@ -261,6 +261,8 @@ public:
 	///Returns the default folder for a processed sample from file name or processed sample name. Throws an exception if it could not be determined.
 	enum PathType {FOLDER, BAM, GSVAR, VCF};
 	QString processedSamplePath(const QString& processed_sample_id, PathType type);
+	///Adds a variant to the NGSD, if not already present. Returns the variant ID.
+	QString addVariant(const Variant& variant, const VariantList& vl);
 	///Returns the NGSD ID for a variant. Returns '' or throws an exception if the ID cannot be determined.
 	QString variantId(const Variant& variant, bool throw_if_fails = true);
 	///Returns the database ID of the user as a string. Throws an exception if the user is not in the NGSD user table.

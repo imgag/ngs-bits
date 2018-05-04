@@ -256,6 +256,34 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	return output;
 }
 
+QString NGSD::addVariant(const Variant& variant, const VariantList& vl)
+{
+	SqlQuery query = getQuery(); //use binding (user input)
+	query.prepare("INSERT INTO variant (chr, start, end, ref, obs, dbsnp, 1000g, exac, gnomad, gene, variant_type, coding) VALUES (:0,:1,:2,:3,:4,:5,:6,:7,:8,:9,:10,:11)");
+	query.bindValue(0, variant.chr().strNormalized(true));
+	query.bindValue(1, variant.start());
+	query.bindValue(2, variant.end());
+	query.bindValue(3, variant.ref());
+	query.bindValue(4, variant.obs());
+	int idx = vl.annotationIndexByName("dbsnp");
+	query.bindValue(5, variant.annotations()[idx]);
+	idx = vl.annotationIndexByName("1000g");
+	query.bindValue(6, variant.annotations()[idx]);
+	idx = vl.annotationIndexByName("ExAC");
+	query.bindValue(7, variant.annotations()[idx]);
+	idx = vl.annotationIndexByName("gnomAD");
+	query.bindValue(8, variant.annotations()[idx]);
+	idx = vl.annotationIndexByName("gene");
+	query.bindValue(9, variant.annotations()[idx]);
+	idx = vl.annotationIndexByName("variant_type");
+	query.bindValue(10, variant.annotations()[idx]);
+	idx = vl.annotationIndexByName("coding_and_splicing");
+	query.bindValue(11, variant.annotations()[idx]);
+	query.exec();
+
+	return query.lastInsertId().toString();
+}
+
 QString NGSD::variantId(const Variant& variant, bool throw_if_fails)
 {
 	SqlQuery query = getQuery(); //use binding user input (safety)
