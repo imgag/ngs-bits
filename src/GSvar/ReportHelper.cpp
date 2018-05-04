@@ -625,7 +625,7 @@ CGIDrugTable::CGIDrugTable()
 {
 }
 
-void CGIDrugTable::load(const QString &file_name)
+void CGIDrugTable::load(const QString &file_name,GeneSet keep_cnv_genes)
 {
 	TSVFileStream file(file_name);
 
@@ -679,12 +679,14 @@ void CGIDrugTable::load(const QString &file_name)
 
 		if(!line.at(i_sample_alteration).contains("amp") && !line.at(i_sample_alteration).contains("del"))
 		{
-			row.gene_ = line.at(i_sample_alteration).split(' ')[0];
+			row.gene_ = line.at(i_sample_alteration).split(' ')[0].toUtf8();
 			row.alteration_type_ = line.at(i_sample_alteration);//.split(' ')[1];
 		}
 		else
 		{
-			row.gene_ = line.at(i_sample_alteration).split(':')[0];
+			QByteArray gene = line.at(i_sample_alteration).split(':')[0].toUtf8();
+			if(!keep_cnv_genes.contains(gene)) continue;
+			row.gene_ = gene;
 			row.alteration_type_ = line.at(i_sample_alteration);//.split(' ')[0].split(':')[1].toUpper();
 		}
 		row.drug_ = line.at(i_drug);
@@ -980,7 +982,7 @@ CnvList ReportHelper::filterCnv()
 
 		//Prepare array with z-scores
 		QList<double> zscores = variant.zScores();
-		for(int j=0;j<zscores.count();j++)
+		for(int j=0;j<zscores.count();++j)
 		{
 			zscores[j] = fabs(zscores[j]);
 		}
@@ -1092,9 +1094,18 @@ void ReportHelper::writeRtfCGIDrugTable(QTextStream &stream, const QList<int> &c
 	stream << begin_table_cell_bold << "\\fi20 Quelle\\cell" << "\\row}" << endl;
 
 	CGIDrugTable drugs;
-	drugs.load(cgi_drugs_path_);
-	drugs.removeDuplicateDrugs();
 
+	//Make list of copy number altered genes which shall be kept
+	CnvList cnvs = filterCnv();
+	GeneSet keep_cnv_genes;
+	for(int i=0;i<cnvs.count();++i)
+	{
+		keep_cnv_genes << cnvs[i].genes();
+
+	}
+
+	drugs.load(cgi_drugs_path_,keep_cnv_genes);
+	drugs.removeDuplicateDrugs();
 
 	RtfTools::writeRtfWholeTable(stream,drugs.drugsByEvidAsString(1),widths,18,true,false);
 	RtfTools::writeRtfWholeTable(stream,drugs.drugsByEvidAsString(2),widths,18,true,false);

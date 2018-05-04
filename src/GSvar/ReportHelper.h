@@ -117,8 +117,8 @@ public:
 	///return drugs by evidence as string list
 	const QList< QList<QString> > drugsByEvidAsString(int evid_group);
 
-	///Get CGI drug report from file
-	void load(const QString& file_name);
+	///Get CGI drug report from file, cnv alterations which do occur in keep_cnv_genes will be discharged
+	void load(const QString& file_name, GeneSet keep_cnv_genes);
 
 	///Remove drugs if they already occured in evid level 1
 	void removeDuplicateDrugs();
