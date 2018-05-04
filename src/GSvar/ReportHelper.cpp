@@ -625,7 +625,7 @@ CGIDrugTable::CGIDrugTable()
 {
 }
 
-void CGIDrugTable::load(const QString &file_name,GeneSet keep_cnv_genes)
+void CGIDrugTable::load(const QString &file_name,const GeneSet& keep_cnv_genes)
 {
 	TSVFileStream file(file_name);
 
@@ -679,12 +679,12 @@ void CGIDrugTable::load(const QString &file_name,GeneSet keep_cnv_genes)
 
 		if(!line.at(i_sample_alteration).contains("amp") && !line.at(i_sample_alteration).contains("del"))
 		{
-			row.gene_ = line.at(i_sample_alteration).split(' ')[0].toUtf8();
+			row.gene_ = line.at(i_sample_alteration).split(' ')[0].toLatin1();
 			row.alteration_type_ = line.at(i_sample_alteration);//.split(' ')[1];
 		}
 		else
 		{
-			QByteArray gene = line.at(i_sample_alteration).split(':')[0].toUtf8();
+			QByteArray gene = line.at(i_sample_alteration).split(':')[0].toLatin1();
 			if(!keep_cnv_genes.contains(gene)) continue;
 			row.gene_ = gene;
 			row.alteration_type_ = line.at(i_sample_alteration);//.split(' ')[0].split(':')[1].toUpper();
@@ -780,7 +780,7 @@ const QList<QByteArray> CGIDrugTable::getAcronyms(int evid_level) const
 
 	foreach(CGIDrugReportLine drug,drugs)
 	{
-		QByteArray temp_tumor_entities = drug.entity().toUtf8();
+		QByteArray temp_tumor_entities = drug.entity().toLatin1();
 		temp_tumor_entities.replace(" ","");
 		QList<QByteArray> tumor_entities = temp_tumor_entities.split(',');
 
