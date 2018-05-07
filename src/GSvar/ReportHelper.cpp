@@ -1093,6 +1093,12 @@ QHash<QByteArray, BedFile> ReportHelper::gapStatistics()
 
 void ReportHelper::writeRtfCGIDrugTable(QTextStream &stream, const QList<int> &col_widths)
 {
+	if(cgi_cancer_type_ == "CANCER" || cgi_cancer_type_ == "")
+	{
+		stream << "{\\fs18 Cannot create drug table because CGI tumor type is set to " << cgi_cancer_type_ << "." << endl;
+		stream << "Please restart CGI analysis with a properly selected cancer type.}" << endl;
+		return;
+	}
 	int max_table_width = col_widths.last();
 	QString begin_table_cell = "\\pard\\intbl\\fs18\\fi20 ";
 	QString begin_table_cell_bold = begin_table_cell+"\\b\\fi20 ";
