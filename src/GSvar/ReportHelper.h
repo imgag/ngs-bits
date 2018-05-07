@@ -39,6 +39,14 @@ public:
 		if(this->drug() != rhs.drug()) return false;
 		return true;
 	}
+
+	/// entitites are compared according gene name
+	bool operator<(const CGIDrugReportLine& rhs)
+	{
+		if(QString::compare(gene_,rhs.gene(),Qt::CaseInsensitive) < 0) return true;
+		return false;
+	}
+
 	const QString& gene() const
 	{
 		return gene_;
@@ -117,6 +125,8 @@ public:
 	///return drugs by evidence as string list
 	const QList< QList<QString> > drugsByEvidAsString(int evid_group);
 
+	const QList<CGIDrugReportLine> drugsSortedPerGeneName() const;
+
 	///Get CGI drug report from file, cnv alterations which do occur in keep_cnv_genes will be discharged
 	void load(const QString& file_name, const GeneSet& keep_cnv_genes);
 
@@ -133,7 +143,7 @@ public:
 		return drug_list_.count();
 	}
 
-	//returns a list with cancer acronyms appearing in the given evidence level
+	///returns a list with cancer acronyms appearing in the given evidence level
 	const QList<QByteArray> getAcronyms(int evid_level) const;
 
 private:

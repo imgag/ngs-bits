@@ -114,45 +114,45 @@ void ReportHelper::writeRtfTableSNV(QTextStream& stream, const QList<int>& colWi
 	{
 		QList<QString> columns;
 		//gene
-		columns.append("\\ql\\li20 "+ important_snvs[i].annotations().at(snv_index_cgi_gene_));
+		columns.append("\\ql\\li20\\i "+ important_snvs[i].annotations().at(snv_index_cgi_gene_) + "\\i0");
 
 		//cDNA
 		//Only print one transcript: that one from CGI, otherwise the first transcript in the columns
 		QByteArrayList hgvs_terms = important_snvs[i].annotations().at(snv_index_coding_splicing_).split(',');
-		QStringList tmp_ensemble_names;
 
 		QString cgi_transcript = important_snvs[i].annotations().at(snv_index_cgi_transcript_);
 		cgi_transcript = cgi_transcript.remove(',');
 		cgi_transcript = cgi_transcript.trimmed();
 
-		//keep first transcript in colum if there is no cgi ensemble name
+		//take that transcript which has the same ENS-ID as in CGI column
+		//that transcript must be coding or splicing
 		int number_keep = 0;
-
-		for(int j=0;j<hgvs_terms.length();j++)
+		bool is_coding_splicing = false;
+		for(int j=0;j<hgvs_terms.count();++j)
 		{
-			tmp_ensemble_names.append(hgvs_terms[j].split(':')[1]);
-		}
+			QByteArray ensemble_id = hgvs_terms[j].split(':')[1];
 
-		for(int j=0;j<tmp_ensemble_names.length();j++)
-		{
-			if(tmp_ensemble_names[j] == cgi_transcript)
+			if(ensemble_id != cgi_transcript) continue;
+
+			QByteArrayList variant_types = hgvs_terms[j].split(':')[2].split('&');
+			foreach(QByteArray variant_type,variant_types)
+			{
+				if(obo_terms_coding_splicing_.containsByName(variant_type))
+				{
+					is_coding_splicing = true;
+					break;
+				}
+			}
+
+			if(is_coding_splicing)
 			{
 				number_keep = j;
-			}
-		}
-
-		//check whether chosen transcript is coding or splicing (in rare cases CGI effect prediction differs from SnpEff)
-		QByteArrayList transcripts = important_snvs[i].annotations().at(snv_index_coding_splicing_).split(',');
-		QByteArrayList variant_types = transcripts[number_keep].split(':')[2].split('&');
-		bool is_coding_splicing = false;
-		foreach(QByteArray variant_type,variant_types)
-		{
-			if(obo_terms_coding_splicing_.containsByName(variant_type))
-			{
-				is_coding_splicing = true;
 				break;
 			}
 		}
+
+
+		QByteArrayList transcripts = important_snvs[i].annotations().at(snv_index_coding_splicing_).split(',');
 
 		//if CGI transcript is not coding/splicing, take first coding/splicing transcript from our own annotation
 		if(!is_coding_splicing)
@@ -172,17 +172,6 @@ void ReportHelper::writeRtfTableSNV(QTextStream& stream, const QList<int>& colWi
 				}
 				if(transcript_found) break;
 			}
-
-		}
-
-		bool is_cgi_transcript;
-		if(cgi_transcript == transcripts[number_keep].split(':')[1])
-		{
-			is_cgi_transcript = true;
-		}
-		else
-		{
-			is_cgi_transcript = false;
 		}
 
 
@@ -217,6 +206,16 @@ void ReportHelper::writeRtfTableSNV(QTextStream& stream, const QList<int>& colWi
 
 		//Parse driver statement
 		QByteArray driver_statement = important_snvs[i].annotations().at(snv_index_cgi_driver_statement_);
+		QByteArrayList variant_types = transcripts[number_keep].split(':')[2].split('&');
+		bool is_cgi_transcript;
+		if(cgi_transcript == transcripts[number_keep].split(':')[1])
+		{
+			is_cgi_transcript = true;
+		}
+		else
+		{
+			is_cgi_transcript = false;
+		}
 
 		if(is_cgi_transcript && variant_types.count() == 1 )
 		{
@@ -339,7 +338,7 @@ void ReportHelper::writeRtfTableSNV(QTextStream& stream, const QList<int>& colWi
 		stream << "{\\highlight3  Siehe Zusatzbefund / Es wurden {\\b\\ul keine} pathogenen Keimbahnvarianten in den untersuchten Genen ";
 		for(int i=0; i<genes_checked_for_germline_variants_.count(); ++i)
 		{
-			stream << genes_checked_for_germline_variants_[i];
+			stream << "\\i " << genes_checked_for_germline_variants_[i] << "\\i0 ";
 			if(i<genes_checked_for_germline_variants_.count()-1)
 			{
 				stream << ", ";
@@ -452,7 +451,7 @@ void ReportHelper::writeRtfTableCNV(QTextStream& stream, const QList<int>& colWi
 
 			QString genes_included = "";
 
-			for(int j=0;j<cgi_genes.count();j++)
+			for(int j=0;j<cgi_genes.count();++j)
 			{
 				//skip if gene is not contained in target region
 				if(!target_genes.contains(cgi_genes[j]) && !cnv_keep_genes_filter_.contains(cgi_genes[j]))
@@ -463,11 +462,11 @@ void ReportHelper::writeRtfTableCNV(QTextStream& stream, const QList<int>& colWi
 				//driver gene is printed bold
 				if(cgi_driver_statements[j].contains("driver") || cgi_driver_statements[j].contains("known"))
 				{
-					genes_included.append("\\b " + cgi_genes[j] +"\\b0 ");
+					genes_included.append("\\b\\i " + cgi_genes[j] +"\\b0\\i0 ");
 				}
 				else
 				{
-					genes_included.append(cgi_genes[j]);
+					genes_included.append("\\i " + cgi_genes[j] + "\\i0");
 				}
 
 				if(j < cgi_genes.count()-1)
@@ -670,6 +669,7 @@ void CGIDrugTable::load(const QString &file_name,const GeneSet& keep_cnv_genes)
 	//3: same tumor and evidence according Late trials
 	//4: other tumor and evidence according Late trials of other tumor entity
 	//5: same tumor and evidence according Pre-clinical, Early Trials or Case report
+	//6: other tumor and evidence according Pre-clinical, Early Trials or Case report
 	foreach(QList<QString> line, all_drugs)
 	{
 		//skip all entries which differ in mutation
@@ -718,6 +718,13 @@ void CGIDrugTable::load(const QString &file_name,const GeneSet& keep_cnv_genes)
 		{
 			evidence_level = 5;
 		}
+
+		if(line.at(i_tumor_match) == "0" &&
+		   (line.at(i_evidence).contains("Early trials") || line.at(i_evidence).contains("Pre-clinical") || line.at(i_evidence).contains("Case report")))
+		{
+			evidence_level = 6;
+		}
+
 		drug_list_.insert(evidence_level,row);
 	}
 }
@@ -770,6 +777,17 @@ const QList<QList<QString>> CGIDrugTable::drugsByEvidAsString(int evid_group)
 		results.append(result_line);
 	}
 	return results;
+}
+
+const QList<CGIDrugReportLine> CGIDrugTable::drugsSortedPerGeneName() const
+{
+	QList<CGIDrugReportLine> drugs;
+	foreach(CGIDrugReportLine drug,drug_list_)
+	{
+		drugs.append(drug);
+	}
+	std::sort(drugs.begin(),drugs.end());
+	return drugs;
 }
 
 const QList<QByteArray> CGIDrugTable::getAcronyms(int evid_level) const
@@ -948,7 +966,7 @@ VariantList ReportHelper::filterSnvForCGIAnnotation(bool filter_for_target_regio
 		//Skip variant types which are non-coding or non-splicing by comparison with MISO terms
 		QByteArrayList tmp_variant_types = variant.annotations().at(snv_index_coding_splicing_).split(',');
 		bool skip = true;
-		for(int j=0;j<tmp_variant_types.length();j++)
+		for(int j=0;j<tmp_variant_types.length();++j)
 		{
 			QByteArrayList tmp_single_variant_types =tmp_variant_types[j].split(':')[2].split('&');
 			for(int k=0;k<tmp_single_variant_types.length();k++)
@@ -1107,11 +1125,55 @@ void ReportHelper::writeRtfCGIDrugTable(QTextStream &stream, const QList<int> &c
 	drugs.load(cgi_drugs_path_,keep_cnv_genes);
 	drugs.removeDuplicateDrugs();
 
-	RtfTools::writeRtfWholeTable(stream,drugs.drugsByEvidAsString(1),widths,18,true,false);
-	RtfTools::writeRtfWholeTable(stream,drugs.drugsByEvidAsString(2),widths,18,true,false);
-	RtfTools::writeRtfWholeTable(stream,drugs.drugsByEvidAsString(3),widths,18,true,false);
-	RtfTools::writeRtfWholeTable(stream,drugs.drugsByEvidAsString(4),widths,18,true,false);
-	RtfTools::writeRtfWholeTable(stream,drugs.drugsByEvidAsString(5),widths,18,true,false);
+	QList<CGIDrugReportLine> drugs_sorted = drugs.drugsSortedPerGeneName();
+
+	QList< QList<QString > > drugs_as_string;
+
+	foreach(CGIDrugReportLine drug,drugs_sorted)
+	{
+		QList<QString> result_line = drug.asStringList();
+		for(int i=0; i<result_line.count(); ++i)
+		{
+			result_line[i].prepend("\\li20 ");
+
+			//format alteration type
+
+			if(result_line[i].contains("MUT ("))
+			{
+				result_line[i].replace(" MUT (",":");
+				result_line[i].replace(")","");
+			}
+			if(result_line[i].contains("MUT* ("))
+			{
+				result_line[i].replace(" MUT* (",":");
+				result_line[i].replace(")","");
+			}
+
+			if(result_line[i].contains(":del"))
+			{
+				result_line[i].replace(" CNA","");
+				result_line[i].replace("del","DEL");
+			}
+			if(result_line[i].contains(":amp"))
+			{
+				result_line[i].replace(" CNA","");
+				result_line[i].replace("amp","AMP");
+			}
+		}
+		result_line.removeFirst();
+
+		//gene names should be printed italic
+		result_line[0].prepend("\\i ");
+		result_line[0].replace(":","\\i0 :");
+		result_line[0].replace(",",",\\i ");
+		result_line[0].append("\\i0 ");
+
+		drugs_as_string.append(result_line);
+	}
+
+
+
+	RtfTools::writeRtfWholeTable(stream,drugs_as_string,widths,18,true,false);
 
 	widths.clear();
 	widths << max_table_width;
@@ -1225,7 +1287,7 @@ void ReportHelper::somaticSnvForQbic()
 				if(transcript_ens_id == cgi_transcript )
 				{
 					take_transcript = j;
-					cgi_transcript_exits =true;
+					cgi_transcript_exits = true;
 					break;
 				}
 			}
@@ -1246,7 +1308,7 @@ void ReportHelper::somaticSnvForQbic()
 		//if not coding/splicing take first transcript that is coding and splicing
 		if(!is_coding_splicing)
 		{
-			for(int j=0;j<transcripts.count();j++)
+			for(int j=0;j<transcripts.count();++j)
 			{
 				bool take_this_transcript = false;
 				QByteArrayList effects = transcripts[j].split(':')[2].split('&');
