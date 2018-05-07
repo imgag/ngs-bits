@@ -180,6 +180,9 @@ void SingleSampleAnalysisDialog::on_add_batch_clicked(bool)
 			addSample("", sample);
 		}
 		ui_.high_priority->setChecked(false);
+
+		updateSampleTable();
+		updateStartButton();
 	}
 }
 
