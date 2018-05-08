@@ -2000,6 +2000,13 @@ void MainWindow::varsContextMenu(QPoint pos)
 		menu.addAction(QIcon("://Icons/MitoMap.png"), "Open in MitoMap");
 	}
 
+	//SysID
+	sub_menu = menu.addMenu(QIcon(":/Icons/SysID.png"), "SysID");
+	foreach(QString g, genes)
+	{
+		sub_menu->addAction(g);
+	}
+
 	//Execute menu
 	action = menu.exec(ui_.vars->viewport()->mapToGlobal(pos));
 	if (!action) return;
@@ -2134,6 +2141,10 @@ void MainWindow::varsContextMenu(QPoint pos)
 		}
 
 		QDesktopServices::openUrl(QUrl("https://www.google.com/search?q=" + query.replace("+", "%2B").replace(' ', '+')));
+	}
+	else if (parent_menu && parent_menu->title()=="SysID")
+	{
+		QDesktopServices::openUrl(QUrl("https://sysid.cmbi.umcn.nl/search?search=" + text));
 	}
 }
 
