@@ -946,17 +946,17 @@ VariantList ReportHelper::filterSnvForCGIAnnotation(bool filter_for_target_regio
 		if(variant.annotations().at(snv_index_cgi_driver_statement_).isEmpty()) continue;
 
 		//Skip variant types which are non-coding or non-splicing by comparison with MISO terms
-		QByteArrayList tmp_variant_types = variant.annotations().at(snv_index_coding_splicing_).split(',');
 		bool skip = true;
-		for(int j=0;j<tmp_variant_types.length();j++)
+		foreach(const VariantTranscript& trans, variant.transcriptAnnotations(snv_index_coding_splicing_))
 		{
-			QByteArrayList tmp_single_variant_types =tmp_variant_types[j].split(':')[2].split('&');
-			for(int k=0;k<tmp_single_variant_types.length();k++)
+			QByteArrayList types = trans.type.split('&');
+			foreach(const QByteArray& type, types)
 			{
 				//check whether variant type is in OBO terms
-				if(obo_terms_coding_splicing_.containsByName(tmp_single_variant_types[k]) || obo_terms_coding_splicing_.containsByName(tmp_single_variant_types[k]+"_variant"))
+				if(obo_terms_coding_splicing_.containsByName(type) || obo_terms_coding_splicing_.containsByName(type+"_variant"))
 				{
 					skip = false;
+					break;
 				}
 			}
 		}

@@ -12,6 +12,20 @@
 #include <QtAlgorithms>
 #include <QVectorIterator>
 
+///Transcript annotations e.g. from SnpEff.
+struct CPPNGSSHARED_EXPORT VariantTranscript
+{
+	QByteArray gene;
+	QByteArray id;
+	QByteArray type;
+	QByteArray impact;
+	QByteArray exon;
+	QByteArray hgvs_c;
+	QByteArray hgvs_p;
+
+	QByteArray toString(char sep) const;
+};
+
 ///Genetic variant or mutation (1-based).
 class CPPNGSSHARED_EXPORT Variant
 {
@@ -146,6 +160,9 @@ public:
 	///@note Returns the original start/end position if the variant is a SNV, a complex index or not in a repeat region.
 	///@note Expects 1-based closed intervals are positions (insertions are after given position).
 	static QPair<int, int> indelRegion(const Chromosome& chr, int start, int end, Sequence ref, Sequence obs, const FastaFileIndex& reference);
+
+	///Returns transcript information from the given column name.
+	QList<VariantTranscript> transcriptAnnotations(int column_index) const;
 
 protected:
     Chromosome chr_;

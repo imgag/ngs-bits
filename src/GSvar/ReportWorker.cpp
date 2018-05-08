@@ -91,38 +91,30 @@ QString ReportWorker::filterToGermanText(QString name, QString value)
 	return output.trimmed();
 }
 
-QString ReportWorker::formatCodingSplicing(QByteArray text)
+QString ReportWorker::formatCodingSplicing(const QList<VariantTranscript>& transcripts)
 {
-	QList<QByteArray> out_all;
-	QList<QByteArray> out_pt;
+	QList<QByteArray> output;
+	QList<QByteArray> output_pt;
 
-	QList<QByteArray> transcripts = text.split(',');
-	for (int i=0; i<transcripts.count(); ++i)
+	foreach(const VariantTranscript& trans, transcripts)
 	{
-		QByteArray transcript = transcripts[i].trimmed();
-		if (transcript.isEmpty()) continue;
-		QList<QByteArray> parts = transcript.split(':');
-		if (parts.count()<7)
-		{
-			THROW(ProgrammingException, "Could not split 'coding_and_splicing' transcript information to 7 parts: " + transcript);
-		}
-		QByteArray gene = parts[0].trimmed();
-		QByteArray trans = parts[1].trimmed();
-		QByteArray output = gene + ":" + trans + ":" + parts[5].trimmed() + ":" + parts[6].trimmed();
+		QByteArray line = trans.gene + ":" + trans.id + ":" + trans.hgvs_c + ":" + trans.hgvs_p;
 
-		if (preferred_transcripts_.value(gene).contains(trans))
+		output.append(line);
+
+		if (preferred_transcripts_.value(trans.gene).contains(trans.id))
 		{
-			out_pt.append(output);
+			output_pt.append(line);
 		}
-		out_all.append(output);
 	}
 
 	//return only preferred transcripts if present
-	if (out_pt.count()>0)
+	if (output_pt.count()>0)
 	{
-		return out_pt.join(", ");
+		output = output_pt;
 	}
-	return out_all.join(", ");
+
+	return output.join("<br />");
 }
 
 QString ReportWorker::inheritance(QString gene_info, bool color)
@@ -557,7 +549,7 @@ void ReportWorker::writeHTML()
 		stream << "<td>" << endl;
 		stream  << variant.chr().str() << ":" << variant.start() << "&nbsp;" << variant.ref() << "&nbsp;&gt;&nbsp;" << variant.obs() << "</td>";
 		stream << "<td>" << (tumor ? variant.annotations().at(i_tumor_af) : variant.annotations().at(i_genotype)) << "</td>" << endl;
-		stream << "<td>" << formatCodingSplicing(variant.annotations().at(i_co_sp)).replace(", ", "<br />") << "</td>" << endl;
+		stream << "<td>" << formatCodingSplicing(variant.transcriptAnnotations(i_co_sp)) << "</td>" << endl;
 		stream << "<td>" << variant.annotations().at(i_class) << "</td>" << endl;
 		stream << "<td>" << inheritance(variant.annotations()[i_geneinfo]) << "</td>" << endl;
 		stream << "<td>" << variant.annotations().at(i_exac) << "</td>" << endl;
@@ -897,15 +889,13 @@ void ReportWorker::writeXML(QString outfile_name)
 		int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, false);
 		if (i_co_sp!=-1)
 		{
-			QList<QByteArray> transcripts = v.annotations()[i_co_sp].split(',');
-			foreach(QByteArray transcript, transcripts)
+			foreach(const VariantTranscript& trans, v.transcriptAnnotations(i_co_sp))
 			{
 				w.writeStartElement("TranscriptInformation");
-				QList<QByteArray> parts = transcript.split(':');
-				w.writeAttribute("gene", parts[0]);
-				w.writeAttribute("transcript_id", parts[1]);
-				w.writeAttribute("hgvs_c", parts[5]);
-				w.writeAttribute("hgvs_p", parts[6]);
+				w.writeAttribute("gene", trans.gene);
+				w.writeAttribute("transcript_id", trans.id);
+				w.writeAttribute("hgvs_c", trans.hgvs_c);
+				w.writeAttribute("hgvs_p", trans.hgvs_p);
 				w.writeEndElement();
 			}
 		}

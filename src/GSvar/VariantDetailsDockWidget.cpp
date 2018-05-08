@@ -445,26 +445,16 @@ void VariantDetailsDockWidget::initTranscriptDetails(const VariantList& vl, int 
 	if(a_index==-1) return;
 
 	//parse transcript data
+	trans_data = vl[index].transcriptAnnotations(a_index);
+
+	//determine index of first high-impact variant
 	int high_impact = -1;
-	QList<QByteArray> transcripts = vl[index].annotations()[a_index].split(',');
-	foreach(QByteArray t, transcripts)
+	for (int i=0; i<trans_data.count(); ++i)
 	{
-		if (t.trimmed().isEmpty()) continue;
-
-		QStringList parts = QString(t).split(':');
-
-		//check number of parts
-		if (parts.count()!=7)
+		if (trans_data[i].impact=="HIGH")
 		{
-			THROW(ProgrammingException, "coding_and_splicing annotation contains " + QString::number(parts.count()) + " parts (7 expected)!\nTo fix this error, please re-annotate the variant list using the sample information dialog!");
-		}
-
-		trans_data.append(parts);
-
-		//store first high-impact variant
-		if (high_impact==-1 && parts[3].contains("HIGH"))
-		{
-			high_impact = trans_data.count()-1;
+			high_impact = i;
+			break;
 		}
 	}
 
@@ -475,47 +465,43 @@ void VariantDetailsDockWidget::initTranscriptDetails(const VariantList& vl, int 
 	}
 
 	//tooltip if more than one transcript
-	if (trans_data.count()>1)
+	QString tooltip;
+	foreach(const VariantTranscript& trans, trans_data)
 	{
-		QString tooltip;
-		for(int i=0; i<trans_data.count(); ++i)
-		{
-			//highlight preferred transcripts
-			bool is_pt = preferred_transcripts.value(trans_data[i][0]).contains(trans_data[i][1]);
-			tooltip += nobr() + (is_pt ? "<b>" : "") + transcripts[i] + (is_pt ? "</b>" : "");
-		}
-		ui->trans->setToolTip(tooltip);
+		//highlight preferred transcripts
+		bool is_pt = preferred_transcripts.value(trans.gene).contains(trans.id);
+		tooltip += nobr() + (is_pt ? "<b>" : "") + trans.toString(' ') + (is_pt ? "</b>" : "");
 	}
+	ui->trans->setToolTip(tooltip);
 }
 
 void VariantDetailsDockWidget::setTranscript(int index)
 {
 	trans_curr = index;
+	const VariantTranscript& trans = trans_data[index];
 
 	//set transcript label
-	QString text = trans_data[trans_curr][0] + " " + formatLink(trans_data[trans_curr][1], "http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?t=" + trans_data[trans_curr][1]);
+	QString text = trans.gene + " " + formatLink(trans.id, "http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?t=" + trans.id);
 	if (trans_data.count()>1)
 	{
-		text += " (" + QString::number(trans_curr+1) + "/" + QString::number(trans_data.count()) + ")";
+		text += " (" + QString::number(index+1) + "/" + QString::number(trans_data.count()) + ")";
 	}
 	ui->trans->setText("<span style=\"font-weight:600; color:#222222;\">" + text + "<span>");
 
 	//set detail labels
-	QStringList parts = trans_data[index];
-	bool high_impact = parts[3].contains("HIGH");
-	if (high_impact)
+	if (trans.impact=="HIGH")
 	{
-		ui->detail_type->setText(formatText(parts[2], RED));
-		ui->detail_impact->setText(formatText(parts[3], RED));
+		ui->detail_type->setText(formatText(trans.type, RED));
+		ui->detail_impact->setText(formatText(trans.impact, RED));
 	}
 	else
 	{
-		ui->detail_type->setText(parts[2]);
-		ui->detail_impact->setText(parts[3]);
+		ui->detail_type->setText(trans.type);
+		ui->detail_impact->setText(trans.impact);
 	}
-	ui->detail_exon->setText(parts[4].mid(4));
-	ui->detail_cdna->setText(parts[5]);
-	ui->detail_protein->setText(parts[6]);
+	ui->detail_exon->setText(trans.exon.mid(4));
+	ui->detail_cdna->setText(trans.hgvs_c);
+	ui->detail_protein->setText(trans.hgvs_p);
 
 	//enable next button if more than one transcript
 	ui->trans_prev->setEnabled(trans_data.count()>1 && index>0);

@@ -1901,6 +1901,9 @@ void MainWindow::varsContextMenu(QPoint pos)
 	const Variant& variant = variants_[item->row()];
 	int i_gene = variants_.annotationIndexByName("gene", true, true);
 	QStringList genes = QString(variant.annotations()[i_gene]).split(',', QString::SkipEmptyParts);
+	int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, true);
+	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(i_co_sp);
+	int i_dbsnp = variants_.annotationIndexByName("dbSNP", true, true);
 
 	//create contect menu
 	QMenu menu(ui_.vars);
@@ -1920,6 +1923,23 @@ void MainWindow::varsContextMenu(QPoint pos)
 	foreach(QString g, genes)
 	{
 		sub_menu->addAction(g);
+	}
+
+	//Google
+	sub_menu = menu.addMenu(QIcon("://Icons/Google.png"), "Google");
+	foreach(QString g, genes)
+	{
+		sub_menu->addAction("gene: " + g);
+	}
+	foreach(const VariantTranscript& trans, transcripts)
+	{
+		QAction* action = sub_menu->addAction("variant: " + trans.gene + " " + trans.id + " " + trans.hgvs_c + " " + trans.hgvs_p);
+		if (preferred_transcripts_.value(trans.gene).contains(trans.id))
+		{
+			QFont font = action->font();
+			font.setBold(true);
+			action->setFont(font);
+		}
 	}
 
 	//PrimerDesign
@@ -1948,27 +1968,18 @@ void MainWindow::varsContextMenu(QPoint pos)
 		sub_menu->addSeparator();
 
 		//transcripts
-		int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, true);
-		QList<QByteArray> transcripts = variant.annotations()[i_co_sp].split(',');
-		foreach(QByteArray transcript, transcripts)
+		foreach(const VariantTranscript& transcript, transcripts)
 		{
-			QList<QByteArray> parts = transcript.split(':');
-			if (parts.count()>5)
+			if  (transcript.id!="" && transcript.hgvs_c!="")
 			{
-				QString gene = parts[0].trimmed();
-				QString trans_id = parts[1].trimmed();
-				QString cdna_change = parts[5].trimmed();
-				if  (trans_id!="" && cdna_change!="")
-				{
-					QAction* action = sub_menu->addAction(trans_id + ":" + cdna_change + " (" + gene + ")");
+				QAction* action = sub_menu->addAction(transcript.id + ":" + transcript.hgvs_c + " (" + transcript.gene + ")");
 
-					//highlight preferred transcripts
-					if (preferred_transcripts_.value(gene).contains(trans_id))
-					{
-						QFont font = action->font();
-						font.setBold(true);
-						action->setFont(font);
-					}
+				//highlight preferred transcripts
+				if (preferred_transcripts_.value(transcript.gene).contains(transcript.id))
+				{
+					QFont font = action->font();
+					font.setBold(true);
+					action->setFont(font);
 				}
 			}
 		}
@@ -1982,6 +1993,12 @@ void MainWindow::varsContextMenu(QPoint pos)
 	sub_menu->addAction("Find in LOVD");
 	action = sub_menu->addAction("Publish in LOVD");
 	action->setEnabled(ngsd_enabled);
+
+	//MitoMap
+	if (variant.chr().isM())
+	{
+		menu.addAction(QIcon("://Icons/MitoMap.png"), "Open in MitoMap");
+	}
 
 	//Execute menu
 	action = menu.exec(ui_.vars->viewport()->mapToGlobal(pos));
@@ -2010,6 +2027,10 @@ void MainWindow::varsContextMenu(QPoint pos)
 	else if (text=="Find in LOVD")
 	{
 		QDesktopServices::openUrl(QUrl("https://databases.lovd.nl/shared/variants#search_chromosome=" + variant.chr().strNormalized(false)+"&search_VariantOnGenome/DNA=g." + QString::number(variant.start())));
+	}
+	else if (text=="Open in MitoMap")
+	{
+		QDesktopServices::openUrl(QUrl("https://www.mitomap.org/cgi-bin/search_allele?starting="+QString::number(variant.start())+"&ending="+QString::number(variant.end())));
 	}
 	else if (text=="Publish in LOVD")
 	{
@@ -2075,6 +2096,44 @@ void MainWindow::varsContextMenu(QPoint pos)
 				QMessageBox::warning(this, "Communication with Alamut failed!", e.message());
 			}
 		}
+	}
+	else if (parent_menu && parent_menu->title()=="Google")
+	{
+		QByteArray query;
+		QByteArrayList parts = text.split(' ');
+		QByteArray type = parts[0].trimmed();
+		QByteArray gene = parts[1].trimmed();
+
+		//gene + phenotype query
+		if (type == "gene:")
+		{
+			query = gene + " AND (mutation";
+			foreach(const Phenotype& pheno, filter_widget_->phenotypes())
+			{
+				query += " OR \"" + pheno.name() + "\"";
+			}
+			query += ")";
+		}
+
+		//variant query
+		if (type == "variant:")
+		{
+			QByteArray hgvs_c = parts[3].trimmed();
+			QByteArray hgvs_p = parts[4].trimmed();
+			query = gene + " AND (\"" + hgvs_c.mid(2) + "\" OR \"" + hgvs_c.mid(2).replace(">", "->") + "\" OR \"" + hgvs_c.mid(2).replace(">", "-->") + "\" OR \"" + hgvs_c.mid(2).replace(">", "/") + "\"";
+			if (hgvs_p!="")
+			{
+				query += " OR \"" + hgvs_p.mid(2) + "\"";
+			}
+			QByteArray dbsnp = variant.annotations()[i_dbsnp].trimmed();
+			if (dbsnp!="")
+			{
+				query += " OR \"" + dbsnp + "\"";
+			}
+			query += ")";
+		}
+
+		QDesktopServices::openUrl(QUrl("https://www.google.com/search?q=" + query.replace("+", "%2B").replace(' ', '+')));
 	}
 }
 

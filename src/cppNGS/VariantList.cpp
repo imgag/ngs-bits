@@ -1514,8 +1514,44 @@ QPair<int, int> Variant::indelRegion(const Chromosome& chr, int start, int end, 
 	return qMakePair(start_orig, end_orig);
 }
 
+QList<VariantTranscript> Variant::transcriptAnnotations(int column_index) const
+{
+	QList<VariantTranscript> output;
+
+	foreach(QByteArray transcript, annotations()[column_index].split(','))
+	{
+		transcript = transcript.trimmed();
+		if (transcript.isEmpty()) continue;
+
+		QList<QByteArray> parts = transcript.split(':');
+		if (parts.count()<7)
+		{
+			THROW(ProgrammingException, "Could not split transcript information from 'coding_and_splicing' column to 7 parts: " + transcript);
+		}
+
+		VariantTranscript trans;
+		trans.gene = parts[0].trimmed();
+		trans.id = parts[1].trimmed();
+		trans.type = parts[2].trimmed();
+		trans.impact = parts[3].trimmed();
+		trans.exon = parts[4].trimmed();
+		trans.hgvs_c = parts[5].trimmed();
+		trans.hgvs_p = parts[6].trimmed();
+
+		output << trans;
+	}
+
+	return output;
+}
+
 QDebug operator<<(QDebug d, const Variant& v)
 {
 	d.nospace() << v.chr().str() << ":" << v.start() << "-" << v.end() << " " << v.ref() << "=>" << v.obs();
 	return d.space();
+}
+
+
+QByteArray VariantTranscript::toString(char sep) const
+{
+	return gene + sep + id + sep + type + sep + impact + sep + exon + sep + hgvs_c + sep + hgvs_p;
 }

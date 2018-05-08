@@ -64,7 +64,7 @@ private:
 	NGSD db_;
 
 	QString filterToGermanText(QString name, QString value);
-	QString formatCodingSplicing(QByteArray text);
+	QString formatCodingSplicing(const QList<VariantTranscript>& transcripts);
 	QString inheritance(QString gene_info, bool color=true);
 	int annotationIndexOrException(const QString& name, bool exact_match) const;
 	void writeHTML();

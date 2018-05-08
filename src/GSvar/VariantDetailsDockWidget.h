@@ -84,7 +84,7 @@ private:
 	//current transcript
 	int trans_curr;
 	//Transcript data
-	QList<QStringList> trans_data;
+	QList<VariantTranscript> trans_data;
 
 	//GUI
 	Ui::VariantDetailsDockWidget *ui;

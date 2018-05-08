@@ -47,5 +47,7 @@
         <file>Icons/Refresh.png</file>
         <file>Icons/Folder.png</file>
         <file>Icons/Somatic.png</file>
+        <file>Icons/MitoMap.png</file>
+        <file>Icons/Google.png</file>
     </qresource>
 </RCC>
