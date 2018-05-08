@@ -18,53 +18,57 @@ INSERT INTO project (id, name, type, internal_coordinator_id, analysis) VALUES (
 
 -- processing_system
 INSERT INTO processing_system (id, name_manufacturer, shotgun, name_short, genome_id) VALUES (1, 'HaloPlex System', '1', 'hpSYSv1', 1);
-INSERT INTO processing_system (id, name_manufacturer, shotgun, name_short, genome_id) VALUES (2, 'SureSelect Human All Exon v5', '1', 'ssHAEv5', 1);
+INSERT INTO processing_system (id, name_manufacturer, shotgun, name_short, genome_id) VALUES 
+(2, 'SureSelect Human All Exon v5', '1', 'ssHAEv5', 1);
 
 -- sample
-INSERT INTO sample (id, name, sample_type, species_id, gender, tumor, ffpe, sender_id, quality) VALUES (1, 'NA12878', 'DNA', 1, 'female', '0', '0', 1, 'good');
-INSERT INTO sample (id, name, sample_type, species_id, gender, tumor, ffpe, sender_id, quality) VALUES (2, 'NA12879', 'DNA', 1, 'male', '0', '0', 1, 'good');
-INSERT INTO sample (id, name, sample_type, species_id, gender, tumor, ffpe, sender_id, quality) VALUES (3, 'NA12880', 'DNA', 1, 'female', '0', '0', 1, 'good');
-INSERT INTO sample (id, name, sample_type, species_id, gender, tumor, ffpe, sender_id, quality) VALUES (4, 'DUMMY', 'DNA', 1, 'male', '0', '0', 1, 'good');
+INSERT INTO sample (id, name, sample_type, species_id, gender, tumor, ffpe, sender_id, quality) VALUES
+(1, 'NA12878', 'DNA', 1, 'female', '0', '0', 1, 'good'),
+(2, 'NA12879', 'DNA', 1, 'male', '0', '0', 1, 'good'),
+(3, 'NA12880', 'DNA', 1, 'female', '0', '0', 1, 'good'),
+(4, 'DUMMY', 'DNA', 1, 'male', '0', '0', 1, 'good');
 
 -- processed_sample
-INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane, operator_id, processing_system_id, project_id) VALUES (1, 1, 1, 1, 1, 2, 1, 1);
-INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane, operator_id, processing_system_id, project_id) VALUES (2, 2, 2, 2, 1, 2, 2, 2);
-INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane, operator_id, processing_system_id, project_id) VALUES (3, 3, 3, 2, 1, 2, 2, 2);
-INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane, operator_id, processing_system_id, project_id) VALUES (4, 4, 1, 2, 1, 2, 2, 2);
+INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane, operator_id, processing_system_id, project_id) VALUES
+(1, 1, 1, 1, 1, 2, 1, 1),
+(2, 2, 2, 2, 1, 2, 2, 2),
+(3, 3, 3, 2, 1, 2, 2, 2),
+(4, 4, 1, 2, 1, 2, 2, 2);
 
 --variant
-INSERT INTO variant (id, chr, start, end, ref, obs, comment) VALUES (1, 'chr1', 62713224, 62713224, 'C', 'G', 'from NA12880');
-INSERT INTO variant (id, chr, start, end, ref, obs) VALUES (2, 'chr1', 62713246, 62713246, 'G', 'A');
-INSERT INTO variant (id, chr, start, end, ref, obs) VALUES (3, 'chr1', 62728784, 62728784, 'A', 'G');
-INSERT INTO variant (id, chr, start, end, ref, obs, comment) VALUES (4, 'chr1', 62728838, 62728838, 'T', 'C', 'from DUMMY');
-INSERT INTO variant (id, chr, start, end, ref, obs) VALUES (5, 'chr1', 120539331, 120539331, 'C', 'T');
-INSERT INTO variant (id, chr, start, end, ref, obs) VALUES (6, 'chr1', 120611964, 120611964, 'G', 'A');
-INSERT INTO variant (id, chr, start, end, ref, obs) VALUES (7, 'chr1', 120612034, 120612034, 'T', 'G');
-INSERT INTO variant (id, chr, start, end, ref, obs) VALUES (8, 'chr1', 120612040, 120612040, '-', 'CCTCCTCCG');
+INSERT INTO variant (id, chr, start, end, ref, obs, comment) VALUES 
+(1, 'chr1', 62713224, 62713224, 'C', 'G', 'from NA12880'),
+(2, 'chr1', 62713246, 62713246, 'G', 'A', ''),
+(3, 'chr1', 62728784, 62728784, 'A', 'G', ''),
+(4, 'chr1', 62728838, 62728838, 'T', 'C', 'from DUMMY'),
+(5, 'chr1', 120539331, 120539331, 'C', 'T', ''),
+(6, 'chr1', 120611964, 120611964, 'G', 'A', ''),
+(7, 'chr1', 120612034, 120612034, 'T', 'G', ''),
+(8, 'chr1', 120612040, 120612040, '-', 'CCTCCTCCG', ''),
+(9, 'chr5', 131925483, 131925483, 'G', 'C', '');
 
 --variant_classification
-INSERT INTO variant_classification (id, variant_id, class, comment) VALUES (1, 2, '5', 'pathogenic');
-INSERT INTO variant_classification (id, variant_id, class) VALUES (2, 8, '1');
+INSERT INTO variant_classification (id, variant_id, class, comment) VALUES
+(1, 2, '5', 'pathogenic'),
+(2, 8, '1', '');
 
---detected variant NA12878
-INSERT INTO detected_variant (processed_sample_id, variant_id, genotype) VALUES (1, 1, 'het');
-INSERT INTO detected_variant (processed_sample_id, variant_id, genotype) VALUES (1, 8, 'hom');
+--detected_variant
+INSERT INTO detected_variant (processed_sample_id, variant_id, genotype) VALUES 
+(1, 1, 'het'),
+(1, 8, 'hom'),
+(2, 1, 'het'),
+(2, 3, 'het'),
+(2, 4, 'het'),
+(3, 1, 'hom'),
+(3, 4, 'het'),
+(4, 1, 'hom'),
+(4, 4, 'het');
 
---detected variant NA12879
-INSERT INTO detected_variant (processed_sample_id, variant_id, genotype) VALUES (2, 1, 'het');
-INSERT INTO detected_variant (processed_sample_id, variant_id, genotype) VALUES (2, 3, 'het');
-INSERT INTO detected_variant (processed_sample_id, variant_id, genotype) VALUES (2, 4, 'het');
+--variant validation 
+INSERT INTO variant_validation (id, user_id, sample_id, variant_id, genotype, status, comment) VALUES
+(1, 2, 1, 8, 'hom', 'false positive', 'val com1'),
+(2, 2, 4, 4, 'hom', 'true positive', 'val com2');
 
---detected variant NA12880
-INSERT INTO detected_variant (processed_sample_id, variant_id, genotype) VALUES (3, 1, 'hom');
-INSERT INTO detected_variant (processed_sample_id, variant_id, genotype) VALUES (3, 4, 'het');
-
---detected variant DUMMY
-INSERT INTO detected_variant (processed_sample_id, variant_id, genotype) VALUES (4, 1, 'hom');
-INSERT INTO detected_variant (processed_sample_id, variant_id, genotype) VALUES (4, 4, 'het');
-
---variant validation NA12878
-INSERT INTO variant_validation (id, user_id, sample_id, variant_id, genotype, status, comment) VALUES (1, 2, 1, 8, 'hom', 'false positive', 'val com1');
-
---variant validation DUMMY
-INSERT INTO variant_validation (id, user_id, sample_id, variant_id, genotype, status, comment) VALUES (2, 2, 4, 4, 'hom', 'true positive', 'val com2');
+--detected_variant_counts
+INSERT INTO detected_variant_counts (variant_id, count_het, count_hom) VALUES 
+(9, 47, 11);

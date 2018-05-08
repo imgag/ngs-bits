@@ -570,6 +570,10 @@ void NGSD::annotate(VariantList& variants, QString filename, BedFile roi, double
 	int comment_idx = variants.addAnnotationIfMissing("comment", "Variant comments from the NGSD.");
 	int geneinfo_idx = variants.addAnnotationIfMissing("gene_info", "Gene information from NGSD (inheritance mode, ExAC pLI score).");
 	int gene_idx = variants.annotationIndexByName("gene", true, false);
+	QList<int> af_cols;
+	af_cols << variants.annotationIndexByName("1000g", true, false);
+	af_cols << variants.annotationIndexByName("ExAC", true, false);
+	af_cols << variants.annotationIndexByName("gnomAD", true, false);
 
 	/*
 	//Timing benchmarks
@@ -670,34 +674,39 @@ void NGSD::annotate(VariantList& variants, QString filename, BedFile roi, double
 
 		//genotype counts
 		if (benchmark) timer.restart();
-		int allsys_hom_count = 0;
-		int allsys_het_count = 0;
-		query.exec("SELECT count_hom, count_het FROM detected_variant_counts WHERE variant_id='"+v_id+"'");
-		if (query.size()==1) // use counts from cache
+		QByteArray allsys_hom_count = "n/a (AF>5%)";
+		QByteArray allsys_het_count = "n/a (AF>5%)";
+		if (maxAalleleFrequency(v, af_cols)<0.05)
 		{
-			query.next();
-			allsys_hom_count = query.value(0).toInt();
-			allsys_het_count = query.value(1).toInt();
-		}
-		else // no cache value => count
-		{
-			query.exec("SELECT COUNT(DISTINCT ps.sample_id), dv.genotype FROM detected_variant dv, processed_sample ps WHERE dv.variant_id='"+v_id+"' AND dv.processed_sample_id=ps.id GROUP BY dv.genotype");
-			while(query.next())
+			query.exec("SELECT count_hom, count_het FROM detected_variant_counts WHERE variant_id='"+v_id+"'");
+			if (query.size()==1) // use counts from cache
 			{
-				if (query.value(1).toByteArray()=="hom")
+				query.next();
+				allsys_hom_count = query.value(0).toByteArray();
+				allsys_het_count = query.value(1).toByteArray();
+			}
+			else // no cache value => count
+			{
+				query.exec("SELECT COUNT(DISTINCT ps.sample_id), dv.genotype FROM detected_variant dv, processed_sample ps WHERE dv.variant_id='"+v_id+"' AND dv.processed_sample_id=ps.id GROUP BY dv.genotype");
+				allsys_hom_count = "0";
+				allsys_het_count = "0";
+				while(query.next())
 				{
-					 allsys_hom_count = query.value(0).toInt();
-				}
-				else
-				{
-					allsys_het_count = query.value(0).toInt();
+					if (query.value(1).toByteArray()=="hom")
+					{
+						 allsys_hom_count = query.value(0).toByteArray();
+					}
+					else
+					{
+						allsys_het_count = query.value(0).toByteArray();
+					}
 				}
 			}
 		}
 		//qDebug() << (v.isSNV() ? "S" : "I") << allsys_hom_count << allsys_het_count << timer.elapsed();
 
-		v.annotations()[ihdb_all_hom_idx] = QByteArray::number(allsys_hom_count);
-		v.annotations()[ihdb_all_het_idx] = QByteArray::number(allsys_het_count);
+		v.annotations()[ihdb_all_hom_idx] = allsys_hom_count;
+		v.annotations()[ihdb_all_het_idx] = allsys_het_count;
 		v.annotations()[comment_idx] = comment.replace("\n", " ").replace("\t", " ");
 		v.annotations()[valid_idx] = val_status;
 		if (benchmark) time_gt += timer.elapsed();
@@ -999,6 +1008,24 @@ void NGSD::fixGeneNames(QTextStream* messages, bool fix_errors, QString table, Q
 			}
 		}
 	}
+}
+
+double NGSD::maxAalleleFrequency(const Variant& v, QList<int> af_column_index)
+{
+	double output = 0.0;
+
+	foreach(int idx, af_column_index)
+	{
+		if (idx==-1) continue;
+		bool ok;
+		double value = v.annotations()[idx].toDouble(&ok);
+		if (ok)
+		{
+			output = std::max(output, value);
+		}
+	}
+
+	return output;
 }
 
 void NGSD::maintain(QTextStream* messages, bool fix_errors)

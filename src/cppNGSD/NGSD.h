@@ -360,6 +360,9 @@ protected:
 	NGSD(const NGSD&) = delete;
 	void fixGeneNames(QTextStream* messages, bool fix_errors, QString table, QString column);
 
+	///Returns the maxiumn allele frequency of a variant.
+	static double maxAalleleFrequency(const Variant& v, QList<int> af_column_index);
+
 	///The database adapter
 	QSharedPointer<QSqlDatabase> db_;
 	bool test_db_;
