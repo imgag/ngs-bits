@@ -165,7 +165,7 @@ public:
     virtual void setup()
     {
 		setDescription("CNV detection from targeted resequencing data using non-matched control samples.");
-        addInfileList("in", "Input TSV files (one per sample) containing coverage data (chr, start, end, avg_depth).", false, true);
+		addInfileList("in", "Input TSV files (one per sample) containing coverage data (chr, start, end, avg_depth). If only one file is given, each line in this file is interpreted as an input file path.", false, true);
         addOutfile("out", "Output TSV file containing the detected CNVs.", false, true);
 		//optional
 		addInt("n", "The number of most similar samples to use for reference construction.", true, 30);
@@ -187,6 +187,7 @@ public:
 		addInt("gc_extend", "Moving median GC-content normalization extension around target region.", true, 0);
 		addInfile("ref", "Reference genome FASTA file. If unset, 'reference_genome' from the 'settings.ini' file is used.", true, false);
 
+		changeLog(2018, 5,  14, "Added option to specify input files in single input file.");
 		changeLog(2017, 9,   4, "Added GC normalization.");
 		changeLog(2017, 8,  29, "Updated default values of parameters 'n' and 'reg_max_cv' based on latest benchmarks.");
 		changeLog(2017, 8,  28, "Added generic annotation mechanism for annotation from BED files.");
@@ -690,6 +691,10 @@ public:
 		QString debug = getString("debug");
 		QString seg = getString("seg");
 		QStringList in = getInfileList("in");
+		if (in.count()==1)
+		{
+			in = Helper::loadTextFile(in[0], true, '#', true);
+		}
 		QString out = getOutfile("out");
 		if (!out.endsWith(".tsv")) THROW(ArgumentException, "Output file name has to end with '.tsv'!");
         QTextStream outstream(stdout);
