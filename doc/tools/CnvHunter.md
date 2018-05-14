@@ -1,10 +1,10 @@
 ### CnvHunter tool help
-	CnvHunter (0.1-928-g55f9a87)
+	CnvHunter (2018_04-46-g08ec931)
 	
 	CNV detection from targeted resequencing data using non-matched control samples.
 	
 	Mandatory parameters:
-	  -in <filelist>         Input TSV files (one per sample) containing coverage data (chr, start, end, avg_depth).
+	  -in <filelist>         Input TSV files (one per sample) containing coverage data (chr, start, end, avg_depth). If only one file is given, each line in this file is interpreted as an input file path.
 	  -out <file>            Output TSV file containing the detected CNVs.
 	
 	Optional parameters:
@@ -52,8 +52,9 @@
 	  --tdx                  Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### CnvHunter changelog
-	CnvHunter 0.1-928-g55f9a87
+	CnvHunter 2018_04-46-g08ec931
 	
+	2018-05-14 Added option to specify input files in single input file.
 	2017-09-04 Added GC normalization.
 	2017-08-29 Updated default values of parameters 'n' and 'reg_max_cv' based on latest benchmarks.
 	2017-08-28 Added generic annotation mechanism for annotation from BED files.
