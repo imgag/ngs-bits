@@ -35,6 +35,11 @@ Make sure the the field 'Labornummer' is filled in for your assay in GenLab. Oth
 Make sure that all information is present in the NGSD *before* opening the LOVD upload dialog.  
 Classification data is taked from the variant list. Thus, make sure it is up-to-date using the re-annotation button in the main tool bar of GSvar.
 
+### LOVD upload fails with the error `None of the given transcripts for this variant are configured in LOVD.`
+
+LOVD does not supported all RefSeq transcripts.  
+A full list of supported transcripts for each gene can be found in the [LOVD documentation](https://databases.lovd.nl/shared/transcripts).
+
 
 --
 

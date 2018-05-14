@@ -2181,7 +2181,7 @@ void MainWindow::executeIGVCommand(QString command)
 	QString answer = socket.readAll();
 	if (answer.trimmed()!="OK")
 	{
-		THROW(Exception, "Could not not execute IGV command '" + command + "'.\nAnswer: " + answer);
+		THROW(Exception, "Could not execute IGV command '" + command + "'.\nAnswer: " + answer);
 	}
 
 	//disconnect

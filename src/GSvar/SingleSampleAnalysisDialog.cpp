@@ -41,7 +41,7 @@ bool SingleSampleAnalysisDialog::highPriority() const
 	return ui_.high_priority->isChecked();
 }
 
-void SingleSampleAnalysisDialog::addSample(NGSD& db, QString status, QList<SampleDetails>& samples, QString sample)
+void SingleSampleAnalysisDialog::addSample(NGSD& db, QString status, QList<SampleDetails>& samples, QString sample, bool throw_if_bam_missing)
 {
 	status = status.trimmed();
 
@@ -57,10 +57,13 @@ void SingleSampleAnalysisDialog::addSample(NGSD& db, QString status, QList<Sampl
 	QString ps_id = db.processedSampleId(sample);
 
 	//check BAM file exists
-	QString bam = db.processedSamplePath(ps_id, NGSD::BAM);
-	if (!QFile::exists(bam))
+	if (throw_if_bam_missing)
 	{
-		THROW(FileAccessException, "Sample BAM file does not exist: '" + bam);
+		QString bam = db.processedSamplePath(ps_id, NGSD::BAM);
+		if (!QFile::exists(bam))
+		{
+			THROW(FileAccessException, "Sample BAM file does not exist: '" + bam);
+		}
 	}
 
 	//add sample
@@ -202,7 +205,7 @@ void SingleSampleAnalysisDialog::addSample(QString status, QString sample)
 {
 	try
 	{
-		addSample(db_, status, samples_, sample);
+		addSample(db_, status, samples_, sample, false);
 	}
 	catch(const Exception& e)
 	{
