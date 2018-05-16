@@ -14,6 +14,7 @@ NGSD:
 * annotate counts with same/different disease group/status separately
 
 GSvar:
+** Sample info dock widget: no permanent NGSD connection!
 ** Report in english:
 * Gap report: avg depth for all/CCDS+-5 separately?
 * Add pLI score (megSAP) and filter for pLI (GSvar) to CNVs

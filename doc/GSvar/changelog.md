@@ -1,8 +1,12 @@
 # GSvar change log
 
-### 2018_04-27 (03.05.2018)
+### 2018_04-49 (15.05.2018)
+- Variants: Added MitoMap/Google/SysID search to context menu.
+- Variants: in-house variant counts of high-AF variants is now shown as `n/a`.
+
+### 2018_04-37 (03.05.2018)
 - Variant details: Added sample overview for a specific variant including sample similarity search.
-- Sample infos: Moved sample detaisl into right dock area.
+- Sample infos: Moved sample details into right dock area.
 - General: HPO terms can now be searched by synonyms as well.
 
 ### 2018_04-13 (18.04.2018)
@@ -189,6 +193,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 
