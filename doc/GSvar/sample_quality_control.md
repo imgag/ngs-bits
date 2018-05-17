@@ -2,12 +2,14 @@
 
 ### Acessing quality by NGS QC metrics
 
-The sample information dialog shows the main quality metrics from the NGSD:
+The sample details dock widget shows the main quality metrics from the NGSD:
 
 * number of reads
+* average insert size
 * average depth on the target region
 * percentage of target region covered at least 20x
-* average insert size
+* number of variants
+* percentage of known variants
 * average deviation from expected allele frequency (0.0, 0.5 or 1.0)
 * KASP result (sample identity check)
 * quality annotation from the NGSD (processed sample)
@@ -57,6 +59,8 @@ Example data for exome data (Agilent SureSelect Human All Exon V6) are shown her
 --
 
 [back to main page](index.md)
+
+
 
 
 

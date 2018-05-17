@@ -8,7 +8,7 @@ CnvHunter is designed for targeted NGS sequencing, where exon target regions alt
 
 Copy-number variant calling is based on a virtual reference sample, which is constructed of the 20 most similar samples with the same processing system. Thus, at least 20 samples of the sample processing system are needed to perform the CNV analysis. The more samples there are, the more accurate the CNV analysis will be.
 
-Thus, re-analyzing copy-number variants when more reference samples are sequenced is a common task. It can be performed using the sample information dialog:
+Thus, re-analyzing copy-number variants when more reference samples are sequenced is a common task. It can be performed using the sample details dock widget:
 
 ![alt text](cnv_reanalyze.png)
 
@@ -82,6 +82,8 @@ Then, it is clear that in this case there is a tandem duplication of the region 
 --
 
 [back to main page](index.md)
+
+
 
 
 
