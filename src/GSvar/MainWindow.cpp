@@ -449,7 +449,7 @@ void MainWindow::openInIGV(QString region)
 			{
 				if (!file.endsWith(".bam"))
 				{
-					init_commands.append("load \"" + file + "\"");
+					init_commands.append("load \"" + QDir::toNativeSeparators(file) + "\"");
 				}
 			}
 
@@ -461,7 +461,7 @@ void MainWindow::openInIGV(QString region)
 			{
 				if (file.endsWith(".bam"))
 				{
-					init_commands.append("load \"" + file + "\"");
+					init_commands.append("load \"" + QDir::toNativeSeparators(file) + "\"");
 				}
 			}
 
@@ -1958,7 +1958,10 @@ void MainWindow::varsContextMenu(QPoint pos)
 		}
 
 		//genomic location
-		sub_menu->addAction(variant.chr().str() + ":" + QByteArray::number(variant.start()));
+		QString loc = variant.chr().str() + ":" + QByteArray::number(variant.start());
+		loc.replace("chrMT", "chrM");
+		sub_menu->addAction(loc);
+		sub_menu->addAction(loc + variant.ref() + ">" + variant.obs());
 
 		//genes
 		foreach(QString g, genes)

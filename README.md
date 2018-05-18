@@ -25,7 +25,7 @@ tracker](https://github.com/imgag/ngs-bits/issues).
 
 ## Tools list
 
-_ngs-bits_ contains a lot of tools that we use for NGS short-read data analysis in our [institute](http://www.uni-tuebingen.de/Klinische_Genetik/start.html). Not all of these tools are mature enough for public use. Thus, here we will list tools that can be safely used:
+_ngs-bits_ contains a lot of tools that are used for NGS-based diagnostics in our [institute](http://www.uni-tuebingen.de/Klinische_Genetik/start.html):
 
 ### Main tools
 
@@ -87,6 +87,7 @@ The default output format of the quality control tools is [qcML](https://github.
 * [VcfLeftNormalize](doc/tools/VcfLeftNormalize.md) - Normalizes all variants and shifts indels to the left in a VCF file.
 * [VcfSort](doc/tools/VcfSort.md) - Sorts variant lists according to chromosomal position.
 * [VcfStreamSort](doc/tools/VcfStreamSort.md) - Sorts entries of a VCF file according to genomic position using a stream.
+
 
 
 

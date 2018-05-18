@@ -12,6 +12,7 @@ NGSD:
 ** model sample relation: same sample, parent-child, tumor-normal, siblings
   - use 'same sample' when counting variant frequencies
 * annotate counts with same/different disease group/status separately
+* add CNVs and allow classification
 
 GSvar:
 ** Sample info dock widget: no permanent NGSD connection!
@@ -19,6 +20,7 @@ GSvar:
 * Gap report: avg depth for all/CCDS+-5 separately?
 * Add pLI score (megSAP) and filter for pLI (GSvar) to CNVs
 * GenLab XML report: male => change 'hom' variants outside PAR region on chrX/chrY to 'hemi' (when GenLab import is updated)
+- NGSD track in IGV
 - text-based filter for OMIM/ClinVar/HGMD column (ignore case)
 - Add genotype equal for affected
 - Make default filters configurable in INI file
