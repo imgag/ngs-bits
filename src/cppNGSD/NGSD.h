@@ -348,6 +348,9 @@ public:
 	///Returns the target file path (or sub-panel folder)
 	static QString getTargetFilePath(bool subpanels = false, bool windows = true);
 
+	///Parses OBO file and updates QC term data
+	void updateQC(QString obo_file, bool debug=false);
+
 	///Checks for errors/inconsistencies and fixes them if @p fix_errors is set.
 	void maintain(QTextStream* messages, bool fix_errors);
 

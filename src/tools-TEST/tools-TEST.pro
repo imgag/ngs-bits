@@ -23,6 +23,7 @@ INCLUDEPATH += $$PWD/../cppNGSD
 LIBS += -L$$PWD/../../bin -lcppNGSD
 
 HEADERS += \
+    NGSDImportQC_Test.h \
     BamHighCoverage_Test.h \
     NGSDExportGenes_Test.h \
     SampleOverview_Test.h \

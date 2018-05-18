@@ -30,10 +30,10 @@ INSERT INTO `detected_variant` (`processed_sample_id`, `variant_id`, `genotype`)
 (3, 6, 'het');
 
 
-INSERT INTO `qc_terms` (`id`, `qcml_id`, `name`, `description`) VALUES
-(4, 'QC:2000023', 'insert size', 'Average insert size (for paired-end reads only).'),
-(5, 'QC:2000020', 'mapped read percentage', 'Percentage of reads that could be mapped to the reference genome.'),
-(16, 'QC:2000005', 'read count', 'Total number of reads (one cluster in a paired-end experiment generates two reads).');
+INSERT INTO `qc_terms` (`id`, `qcml_id`, `name`, `description`, `type`, `obsolete`) VALUES
+(4, 'QC:2000023', 'insert size', 'Average insert size (for paired-end reads only).', 'float', 0),
+(5, 'QC:2000020', 'mapped read percentage', 'Percentage of reads that could be mapped to the reference genome.', 'float', 0),
+(16, 'QC:2000005', 'read count', 'Total number of reads (one cluster in a paired-end experiment generates two reads).', 'float', 0);
 
 INSERT INTO `processed_sample_qc` (`id`, `processed_sample_id`, `qc_terms_id`, `value`) VALUES
 (991747, 1, 4, '176.57'),

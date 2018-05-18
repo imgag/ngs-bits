@@ -571,6 +571,15 @@ private slots:
 		//lastAnalysisOf
 		int job_id = db.lastAnalysisOf(db.processedSampleId("NA12878_03"));
 		I_EQUAL(job_id, 2);
+
+		//updateQC
+		db.updateQC(TESTDATA("data_in/qcml.obo"), false);
+		I_EQUAL(db.getValue("SELECT count(*) FROM qc_terms").toInt(), 43);
+		I_EQUAL(db.getValue("SELECT count(*) FROM qc_terms WHERE obsolete=0").toInt(), 39);
+		//second import to test update functionality
+		db.updateQC(TESTDATA("data_in/qcml.obo"), false);
+		I_EQUAL(db.getValue("SELECT count(*) FROM qc_terms").toInt(), 43);
+		I_EQUAL(db.getValue("SELECT count(*) FROM qc_terms WHERE obsolete=0").toInt(), 39);
 	}
 
 	//Test for debugging (without initialization because of speed)

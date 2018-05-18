@@ -374,9 +374,9 @@ INSERT INTO `hpo_parent`(`parent`, `child`) VALUES
 (9,10),
 (9,11);
 
-INSERT INTO `qc_terms`(`id`, `qcml_id`, `name`, `description`) VALUES
-(31, "QC:2000027", "target region 20x percentage", "Percentage of the target region that is covered at..."),
-(47, "QC:2000025", "target region read depth", "Average sequencing depth in target region.");
+INSERT INTO `qc_terms`(`id`, `qcml_id`, `name`, `description`, `type`, `obsolete`) VALUES
+(31, "QC:2000027", "target region 20x percentage", "Percentage of the target region that is covered at...", 'float', 0),
+(47, "QC:2000025", "target region read depth", "Average sequencing depth in target region.", 'float', 0);
 
 INSERT INTO `processed_sample_qc`(`id`, `processed_sample_id`, `qc_terms_id`, `value`) VALUES 
 (1, 3999, 31, "95.96"),

@@ -20,12 +20,13 @@ The main parameters of SeqPurge are:
 
 SeqPurge was published as a [full paper](http://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-016-1069-7) in BMC Bioinformatics.
 
-Additionally, there is a [poster presented at ECCB 2017](SeqPurge_poster.pdf) availiable, which contains the latest benchmarks.
+Additionally, there is a [poster presented at ECCB 2016](SeqPurge_poster.pdf) availiable, which contains the latest benchmarks.
 
 ## Help and ChangeLog
 
 The SeqPurge command-line help and changelog can be found [here](../tools/SeqPurge.md).
 
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
+
 
 

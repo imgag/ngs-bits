@@ -13,6 +13,10 @@ cppNGSD.depends = cppNGS
 SUBDIRS += tools-TEST
 tools-TEST.depends = cppNGSD
 
+SUBDIRS += NGSDImportQC
+tools-TEST.depends += NGSDImportQC
+NGSDImportQC.depends = cppNGSD
+
 SUBDIRS += BamHighCoverage
 tools-TEST.depends += BamHighCoverage
 BamHighCoverage.depends = cppNGSD

@@ -30,11 +30,11 @@ INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane
 INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane, operator_id, processing_system_id, project_id) VALUES (3, 2, 1, 2, 1, 2, 2, 2);
 
 -- qc_terms
-INSERT INTO `qc_terms` (`id`, `qcml_id`, `name`, `description`) VALUES
-(4, 'QC:2000023', 'insert size', 'Average insert size (for paired-end reads only).'),
-(47, 'QC:2000025', 'target region read depth', 'Average sequencing depth in target region.'),
-(19, 'QC:2000026', 'target region 10x percentage', 'Percentage the target region that is covered at least 10-fold.'),
-(31, 'QC:2000027', 'target region 20x percentage', 'Percentage the target region that is covered at least 20-fold.');
+INSERT INTO `qc_terms` (`id`, `qcml_id`, `name`, `description`, `type`, `obsolete`) VALUES
+(4, 'QC:2000023', 'insert size', 'Average insert size (for paired-end reads only).', 'float', 0),
+(47, 'QC:2000025', 'target region read depth', 'Average sequencing depth in target region.', 'float', 0),
+(19, 'QC:2000026', 'target region 10x percentage', 'Percentage the target region that is covered at least 10-fold.', 'float', 0),
+(31, 'QC:2000027', 'target region 20x percentage', 'Percentage the target region that is covered at least 20-fold.', 'float', 0);
 
 -- processed_sample_qc
 INSERT INTO `processed_sample_qc` (`processed_sample_id`, `qc_terms_id`, `value`) VALUES

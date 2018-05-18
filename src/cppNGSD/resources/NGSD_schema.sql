@@ -640,6 +640,8 @@ CREATE  TABLE IF NOT EXISTS `qc_terms` (
   `qcml_id` VARCHAR(10) NULL DEFAULT NULL,
   `name` VARCHAR(45) NOT NULL,
   `description` TEXT NOT NULL,
+  `type` ENUM('float', 'int', 'string') NOT NULL,
+  `obsolete` TINYINT(1) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`name` ASC),
   UNIQUE INDEX `qcml_id_UNIQUE` (`qcml_id` ASC))

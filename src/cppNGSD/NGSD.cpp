@@ -474,7 +474,7 @@ QCCollection NGSD::getQCData(const QString& processed_sample_id)
 {
 	//get QC data
 	SqlQuery q = getQuery();
-	q.exec("SELECT n.name, nm.value, n.description, n.qcml_id FROM processed_sample_qc as nm, qc_terms as n WHERE nm.processed_sample_id='" + processed_sample_id + "' AND nm.qc_terms_id=n.id");
+	q.exec("SELECT n.name, nm.value, n.description, n.qcml_id FROM processed_sample_qc as nm, qc_terms as n WHERE nm.processed_sample_id='" + processed_sample_id + "' AND nm.qc_terms_id=n.id AND n.obsolete=0");
 	QCCollection output;
 	while(q.next())
 	{
@@ -985,6 +985,91 @@ QString NGSD::getTargetFilePath(bool subpanels, bool windows)
 	}
 
 	return output;
+}
+
+void NGSD::updateQC(QString obo_file, bool debug)
+{
+	struct QCTerm
+	{
+		QString id;
+		QString name;
+		QString description;
+		QString type;
+		bool obsolete = false;
+	};
+	QList<QCTerm> terms;
+
+	QStringList valid_types = getEnum("qc_terms", "type");
+
+	QStringList lines = Helper::loadTextFile(obo_file, true, '#', true);
+	QCTerm current;
+	foreach(QString line, lines)
+	{
+		if (line=="[Term]")
+		{
+			terms << current;
+			current = QCTerm();
+		}
+		else if (line.startsWith("id:"))
+		{
+			current.id = line.mid(3).trimmed();
+		}
+		else if (line.startsWith("name:"))
+		{
+			current.name = line.mid(5).trimmed();
+		}
+		else if (line.startsWith("def:"))
+		{
+			QStringList parts = line.split('"');
+			current.description = parts[1].trimmed();
+		}
+		else if (line.startsWith("xref: value-type:xsd\\:"))
+		{
+			QStringList parts = line.replace('"', ':').split(':');
+			current.type = parts[3].trimmed();
+		}
+		else if (line=="is_obsolete: true")
+		{
+			current.obsolete = true;
+		}
+	}
+	terms << current;
+	if (debug) qDebug() << "Terms parsed: " << terms.count();
+
+	//remove terms not for NGS
+	auto it = std::remove_if(terms.begin(), terms.end(), [](const QCTerm& term){return !term.id.startsWith("QC:2");});
+	terms.erase(it, terms.end());
+	if (debug) qDebug() << "Terms for NGS: " << terms.count();
+
+	//remove QC terms of invalid types
+	it = std::remove_if(terms.begin(), terms.end(), [valid_types](const QCTerm& term){return !valid_types.contains(term.type);});
+	terms.erase(it, terms.end());
+	if (debug) qDebug() << "Terms with valid types ("+valid_types.join(", ")+"): " << terms.count();
+
+	//update NGSD
+
+
+	// database connection
+	db_->transaction();
+	QSqlQuery query = getQuery();
+	query.prepare("INSERT INTO qc_terms (qcml_id, name, description, type, obsolete) VALUES (:0, :1, :2, :3, :4) ON DUPLICATE KEY UPDATE name=:5, description=:6, type=:7, obsolete=:8");
+
+	foreach(const QCTerm& term, terms)
+	{
+		if (debug) qDebug() << "IMPORTING:" << term.id  << term.name  << term.type  << term.obsolete  << term.description;
+		query.bindValue(0, term.id);
+		query.bindValue(1, term.name);
+		query.bindValue(2, term.description);
+		query.bindValue(3, term.type);
+		query.bindValue(4, term.obsolete);
+		query.bindValue(5, term.name);
+		query.bindValue(6, term.description);
+		query.bindValue(7, term.type);
+		query.bindValue(8, term.obsolete);
+		query.exec();
+		if (debug) qDebug() << "  ID:" << query.lastInsertId();
+	}
+	db_->commit();
 }
 
 void NGSD::fixGeneNames(QTextStream* messages, bool fix_errors, QString table, QString column)
