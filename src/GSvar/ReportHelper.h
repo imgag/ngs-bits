@@ -11,6 +11,7 @@
 #include "OntologyTermCollection.h"
 #include <QDialog>
 #include <QMultiMap>
+#include <QDir>
 
 ///provides methods for generating rtf file
 class RtfTools
@@ -20,10 +21,15 @@ public:
 	static void writeRtfHeader(QTextStream& stream);
 	///generates the header of a single Rtf row
 	static void writeRtfTableSingleRowSpec(QTextStream& stream,const QList<int>& col_widths, bool border);
+	///generater the header of a single Rtf row, QList borders specifies the border widths for each cell beginning from top,right,bottom,left
+	static void writeRtfTableSingleRowSpec(QTextStream &stream, const QList<int> &col_widths, QList<int> borders);
 	///generates a RTF table
 	static void writeRtfWholeTable(QTextStream& stream, const QList< QList<QString> >& table, const QList<int>& col_widths, int font_size, bool border, bool bold);
 	///generates a single row for an RTF table
 	static void writeRtfRow(QTextStream& stream, const QList<QString>& columns, const QList<int>& col_widths, int font_size, bool border, bool bold);
+	///generates a single row for an RTF table, QList borders specifies the border widths for each cell beginning from top,right,bottom,left
+	static void writeRtfRow(QTextStream& stream, const QList<QString>& columns, const QList<int>& col_widths,int font_size, QList<int> borders,bool bold);
+
 };
 
 ///representation of CGI information of a drug reported by CGI
@@ -33,10 +39,10 @@ class CGIDrugReportLine
 public:
 	CGIDrugReportLine();
 
-	///two CGI lines are equal if the drug is equal
+	///two CGI lines are equal if the gene, drug, tumor entity and effect are equal
 	bool operator==(const CGIDrugReportLine& rhs)
 	{
-		if(this->drug() != rhs.drug()) return false;
+		if(this->drug() != rhs.drug() && this->entity() != rhs.entity() && this->effect() != rhs.effect() && this->gene() != rhs.gene()) return false;
 		return true;
 	}
 
@@ -56,7 +62,6 @@ public:
 	{
 		return alteration_type_;
 	}
-
 
 	const QString& drug() const
 	{
@@ -95,6 +100,25 @@ public:
 		return result;
 	}
 
+	void setEvidence(QString evid)
+	{
+		evidence_ = evid;
+	}
+
+	void setSource(QString source)
+	{
+		source_ = source;
+	}
+
+	void setEntity(QString entity)
+	{
+		entity_ = entity;
+	}
+
+	///returns amino acid change in 3-letters-code if nomenclature in alteration_type was recognized.
+	///returns "AMP" and "DEL" in case of CNVs
+	static const QString proteinChange(QString aa_change);
+
 private:
 	///gene in which alteration was observed
 	QString gene_;
@@ -128,10 +152,13 @@ public:
 	const QList<CGIDrugReportLine> drugsSortedPerGeneName() const;
 
 	///Get CGI drug report from file, cnv alterations which do occur in keep_cnv_genes will be discharged
-	void load(const QString& file_name, const GeneSet& keep_cnv_genes);
+	void load(const QString& file_name);
 
-	///Remove drugs if they already occured in evid level 1
+	///Remove drugs if they already occured in evidence level 1
 	void removeDuplicateDrugs();
+
+	///Merges duplicates which occur in the same evidence level
+	void mergeDuplicates(int evid_level);
 
 	const QList<CGIDrugReportLine> values() const
 	{
@@ -155,7 +182,7 @@ class ReportHelper
 {
 public:
 	ReportHelper();
-	ReportHelper(QString snv_filename, GeneSet cnv_keep_genes_filter, QString target_region);
+	ReportHelper(QString snv_filename, GeneSet cnv_keep_genes_filter, QString target_region, QList<QString> keep, QList<QString> remove, QList<QString> filter);
 	///write Rtf File
 	void writeRtf(const QString& out_file);
 
@@ -167,14 +194,22 @@ public:
 	void somaticSvForQbic();
 	void metaDataForQbic();
 
+
+
 private:
 	///Filters snv_variants_ for SNVs with annotation from CancerGenomeInterpreter.org
 	VariantList filterSnvForCGIAnnotation(bool filter_for_target_region=false);
+	///Filter germline SNVs
+	VariantList filterSnVForGermline();
+
 	///Filters cnv_cariants_, CNVs with zScors < 5 and without genes in cnv_keep_genes_filter_ will be discarded
 	CnvList filterCnv();
 
 	///transforms GSVar coordinates of Variants to vcf standard
 	VariantList gsvarToVcf();
+
+	///returns correct coding/splicing CGI transcript, if not available first co/sp transcript, if not co/sp first transcript
+	VariantTranscript selectSomaticTranscript(const Variant& variant);
 
 	///writes table with drug annotation
 	void writeRtfCGIDrugTable(QTextStream& stream, const QList<int>& col_widths);
@@ -182,17 +217,31 @@ private:
 	///generates table with important SNVs including mutational burden
 	void writeRtfTableSNV(QTextStream& stream, const QList<int>& colWidths, bool display_germline_hint = true);
 
+	///generates table with deleterious germline SNVs
+	void writeRtfTableGermlineSNV(QTextStream& stream, const QList<int>& colWidths);
+
 	///generates table with important CNVs
 	void writeRtfTableCNV(QTextStream& stream, const QList<int>& colWidths);
 
+	void writeGapStatistics(QTextStream& stream, const QString& target_file);
+
 	///make gap statistics, grouped by gene as QByteArray and regions as BedFile
-	QHash<QByteArray, BedFile> gapStatistics();
+	QHash<QByteArray, BedFile> gapStatistics(const BedFile region_of_interest);
 
 	///Somatic filenames
 	QString snv_filename_;
 	QString cnv_filename_;
+
+	///Germline filenames;
+	QString germline_snv_filename_;
+
 	///path to CGI drug annotation file
 	QString cgi_drugs_path_;
+	///path to germline SNV file
+	QDir germline_snv_path_;
+
+	///path to MANTIS file (microsatellite instabilities)
+	QString mantis_msi_path_;
 
 	///Sequence ontology that contains the SO IDs of coding and splicing transcripts
 	OntologyTermCollection obo_terms_coding_splicing_;
@@ -206,6 +255,9 @@ private:
 	CnvList cnv_variants_;
 	VariantList snv_variants_;
 
+	///VariantList for relevant germline SNVs
+	VariantList snv_germline_;
+
 	NGSD db_;
 
 	///Target region
@@ -216,12 +268,21 @@ private:
 	GeneSet genes_in_target_region_;
 
 	///genes that are checked for germline variants (those appear later in the explanation of the RTF report)
-	GeneSet genes_checked_for_germline_variants_;
+	GeneSet germline_genes_in_acmg_;
 
 	QCCollection qcml_data_;
 
 	///Geneset with genes to be kept for CNV report
 	GeneSet cnv_keep_genes_filter_;
+
+	///Processing system data
+	ProcessingSystemData processing_system_data;
+
+
+	///Somatic filters
+	QList<QString> filter_keep_;
+	QList<QString> filter_remove_;
+	QList<QString> filter_filter_;
 
 	///CGI cancer acronym (extracted from .GSVar file)
 	QString cgi_cancer_type_;
@@ -234,15 +295,16 @@ private:
 
 	double mutation_burden_;
 
-	///indices for variant files
+	///indices for somatic variant file
 	int snv_index_filter_;
 	int snv_index_cgi_driver_statement_;
 	int snv_index_cgi_gene_role_;
 	int snv_index_cgi_transcript_;
 	int snv_index_coding_splicing_;
 	int snv_index_cgi_gene_;
+	int snv_index_gene_;
 
-	///indices for CNV files
+	///indices for somatic CNV file
 	int cnv_index_cgi_gene_role_;
 	int cnv_index_cnv_type_;
 	int cnv_index_cgi_genes_;

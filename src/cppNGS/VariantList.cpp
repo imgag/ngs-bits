@@ -1555,3 +1555,17 @@ QByteArray VariantTranscript::toString(char sep) const
 {
 	return gene + sep + id + sep + type + sep + impact + sep + exon + sep + hgvs_c + sep + hgvs_p;
 }
+
+bool VariantTranscript::isPartOntologyTerms(const OntologyTermCollection& obo_terms) const
+{
+	bool is_in_obo_terms = false;
+	foreach(QByteArray type,this->type.split('&'))
+	{
+		if(obo_terms.containsByName(type))
+		{
+			is_in_obo_terms = true;
+			break;
+		}
+	}
+	return is_in_obo_terms;
+}

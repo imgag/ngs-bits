@@ -951,7 +951,7 @@ void MainWindow::generateReportSomaticRTF()
 
 	try
 	{
-		ReportHelper report(filename_,cnv_keep_genes_filter,target_region);
+		ReportHelper report(filename_,cnv_keep_genes_filter,target_region,filter_widget_->filterColumnsKeep(),filter_widget_->filterColumnsRemove(),filter_widget_->filterColumnsFilter());
 		report.writeRtf(temp_filename);
 
 		//Create files for QBIC upload
@@ -967,7 +967,11 @@ void MainWindow::generateReportSomaticRTF()
 		QMessageBox::warning(this,"File Parse Exception",error.message());
 		return;
 	}
-
+	catch(FileAccessException error)
+	{
+		QMessageBox::warning(this,"File Access Exception",error.message());
+		return;
+	}
 
 	//validate/store
 	QString file_rep = QFileDialog::getSaveFileName(this, "Export report file", last_report_path_ + "/" + QFileInfo(filename_).baseName() + "_report_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf", "RTF files (*.rtf);;All files(*.*)");

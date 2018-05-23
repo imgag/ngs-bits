@@ -6,11 +6,13 @@
 #include "FastaFileIndex.h"
 #include "BedFile.h"
 #include "ChromosomalIndex.h"
+#include "OntologyTermCollection.h"
 
 #include <QVector>
 #include <QStringList>
 #include <QtAlgorithms>
 #include <QVectorIterator>
+
 
 ///Transcript annotations e.g. from SnpEff.
 struct CPPNGSSHARED_EXPORT VariantTranscript
@@ -24,6 +26,8 @@ struct CPPNGSSHARED_EXPORT VariantTranscript
 	QByteArray hgvs_p;
 
 	QByteArray toString(char sep) const;
+	///returns true if one the variant types is part of Ontolgy terms
+	bool isPartOntologyTerms(const OntologyTermCollection& obo_terms) const;
 };
 
 ///Genetic variant or mutation (1-based).

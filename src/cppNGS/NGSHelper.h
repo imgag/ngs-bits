@@ -46,6 +46,10 @@ public:
 	///Parses and returns sample data from variant list header. The @p filename argument is needed to support old germline variant lists without sample header.
 	static SampleHeaderInfo getSampleHeader(const VariantList& vl, QString gsvar_file);
 
+	///Expands a Amino acid notation with 1 letter to 3 letters
+	static QByteArray expandAminoAcidAbbreviation(QChar amino_acid_change_in);
+
+
 private:
 	///Constructor declared away
 	NGSHelper() = delete;

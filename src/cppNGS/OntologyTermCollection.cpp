@@ -106,15 +106,28 @@ bool OntologyTermCollection::containsByID(const QByteArray& id)
 	return false;
 }
 
-bool OntologyTermCollection::containsByName(const QByteArray& name)
+bool OntologyTermCollection::containsByName(const QByteArray& name) const
 {
+	//some variant files use shortened and altered variant_type names: correct to SO nomenclature
+	QByteArray utr_name;
+	try
+	{
+		utr_name = utr_name.replace("'","_prime_variant");
+	}
+	catch(...)
+	{
+		utr_name = name;
+	}
+
+	QByteArray var_name = name + "_variant";
 	foreach(const OntologyTerm& term, ontology_terms_)
 	{
-		if(term.name() == name)
+		if(term.name() == name || term.name() == utr_name || term.name() == var_name)
 		{
 			return true;
 		}
 	}
+
 	return false;
 }
 

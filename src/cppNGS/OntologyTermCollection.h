@@ -86,7 +86,7 @@ public:
 	///check whether Collection contains term with given id
 	bool containsByID(const QByteArray& id);
 	///check whether Collection contains term with given name
-	bool containsByName(const QByteArray& name);
+	bool containsByName(const QByteArray& name) const;
 	///Returns the child IDs of the given term, if recursive is true all descendants are included
 	QList<QByteArray> childIDs(const QByteArray& term_id, bool recursive);
 
