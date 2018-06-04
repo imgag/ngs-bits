@@ -54,7 +54,6 @@ HEADERS += \
     FastqFormat_Test.h \
     ReadQC_Test.h \
     BedToFasta_Test.h \
-    VcfLeftAlign_Test.h \
     VariantAnnotateNGSD_Test.h \
     VariantFilterRegions_Test.h \
     FastqMidParser_Test.h \

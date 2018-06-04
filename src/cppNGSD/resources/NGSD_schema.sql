@@ -894,7 +894,7 @@ CREATE TABLE `analysis_job_sample` (
 CREATE TABLE `analysis_job_history` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `analysis_job_id` int(11) NOT NULL,
-  `time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `user_id` int(11) DEFAULT NULL,
   `status` enum('queued','started','finished','cancel','canceled','error') NOT NULL,
   `output` text DEFAULT NULL,

@@ -88,6 +88,18 @@ The default output format of the quality control tools is [qcML](https://github.
 * [VcfSort](doc/tools/VcfSort.md) - Sorts variant lists according to chromosomal position.
 * [VcfStreamSort](doc/tools/VcfStreamSort.md) - Sorts entries of a VCF file according to genomic position using a stream.
 
+### NGSD-based tools
 
+Some of the tools need the NGSD, a MySQL database that contains for example gene, transcript and exon data.  
+Installation instructions for the NGSD can be found [here](doc/install_ngsd.md).
 
+* [BedAnnotateFromBed](doc/tools/BedAnnotateFromBed.md) - Annotates BED file regions with information from a second BED file.
+* [BedAnnotateGenes](doc/tools/BedAnnotateGenes.md) - Annotates BED file regions with gene names.
+* [BedGeneOverlap](doc/tools/BedGeneOverlap.md) - Calculates how much of each overlapping gene is covered.
+* [GenesToApproved](doc/tools/GenesToApproved.md) - Replaces gene symbols by approved symbols using the HGNC database.
+* [GenesToBed](doc/tools/GenesToBed.md) - Converts a text file with gene names to a BED file.
+
+### Other tools
+
+* [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file.
 

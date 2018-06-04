@@ -92,6 +92,7 @@ public:
 		QString target_bed = getInfile("target_bed");
 		QString ref_fasta = getInfile("ref_fasta");
 		if(ref_fasta.isEmpty())	ref_fasta = Settings::string("reference_genome");
+		if (ref_fasta=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
 		QStringList links = getInfileList("links");
 		bool skip_plots = getFlag("skip_plots");
 

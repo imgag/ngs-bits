@@ -149,10 +149,6 @@ SUBDIRS += BedToFasta
 tools-TEST.depends += BedToFasta
 BedToFasta.depends = cppNGS
 
-SUBDIRS += VcfLeftAlign
-tools-TEST.depends += VcfLeftAlign
-VcfLeftAlign.depends = cppNGS
-
 SUBDIRS += FastqMidParser
 tools-TEST.depends += FastqMidParser
 FastqMidParser.depends = cppNGS

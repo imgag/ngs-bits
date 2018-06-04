@@ -4,6 +4,7 @@
 #include "BasicStatistics.h"
 #include "FastaFileIndex.h"
 #include "Settings.h"
+#include "Exceptions.h"
 #include <cmath>
 
 class ConcreteTool
@@ -37,6 +38,7 @@ public:
 		bool mapq0 = getFlag("mapq0");
 		QString ref_file = getInfile("ref");
 		if (ref_file=="") ref_file = Settings::string("reference_genome");
+		if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
 
 		//load input
 		VariantList input;
