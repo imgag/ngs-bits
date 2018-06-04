@@ -55,6 +55,7 @@ The default output format of the quality control tools is [qcML](https://github.
 ### BED tools
 
 * [BedAdd](doc/tools/BedAdd.md) - Merges regions from several BED files.
+* [BedAnnotateFromBed](doc/tools/BedAnnotateFromBed.md) - Annotates BED file regions with information from a second BED file.
 * [BedAnnotateGC](doc/tools/BedAnnotateGC.md) - Annnotates the regions in a BED file with GC content.
 * [BedChunk](doc/tools/BedChunk.md) - Splits regions in a BED file to chunks of a desired size.
 * [BedCoverage](doc/tools/BedCoverage.md) - Annotates the regions in a BED file with the average coverage in one or several BAM files.
@@ -93,7 +94,6 @@ The default output format of the quality control tools is [qcML](https://github.
 Some of the tools need the NGSD, a MySQL database that contains for example gene, transcript and exon data.  
 Installation instructions for the NGSD can be found [here](doc/install_ngsd.md).
 
-* [BedAnnotateFromBed](doc/tools/BedAnnotateFromBed.md) - Annotates BED file regions with information from a second BED file.
 * [BedAnnotateGenes](doc/tools/BedAnnotateGenes.md) - Annotates BED file regions with gene names.
 * [BedGeneOverlap](doc/tools/BedGeneOverlap.md) - Calculates how much of each overlapping gene is covered.
 * [GenesToApproved](doc/tools/GenesToApproved.md) - Replaces gene symbols by approved symbols using the HGNC database.
@@ -102,4 +102,5 @@ Installation instructions for the NGSD can be found [here](doc/install_ngsd.md).
 ### Other tools
 
 * [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file.
+
 
