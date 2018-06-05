@@ -10,7 +10,7 @@
 	Optional parameters:
 	  -omim <file>    OMIM 'morbidmap.txt' file for additional disease-gene information, from 'https://omim.org/downloads/'.
 	                  Default value: ''
-	  -clinvar <file> ClinVar VCF file for additional disease-gene information, from 'ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2018/clinvar_20171203.vcf.gz'.
+	  -clinvar <file> ClinVar VCF file for additional disease-gene information, from 'ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2018/clinvar_20171231.vcf.gz'.
 	                  Default value: ''
 	  -test           Uses the test database instead of on the production database.
 	                  Default value: 'false'
