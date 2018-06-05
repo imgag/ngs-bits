@@ -24,7 +24,7 @@ Additionally, there is a [poster presented at ECCB 2016](SeqPurge_poster.pdf) av
 
 ## Help and ChangeLog
 
-The SeqPurge command-line help and changelog can be found [here](../tools/SeqPurge.md).
+The SeqPurge command-line help and changelog can be found [here](../SeqPurge.md).
 
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
 

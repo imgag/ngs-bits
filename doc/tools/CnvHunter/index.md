@@ -55,7 +55,7 @@ Please also have a look at the [poster presented at ESHG 2017](CnvHunter_poster.
 
 ## Help and ChangeLog
 
-The CnvHunter command-line help and changelog can be found [here](../tools/CnvHunter.md).
+The CnvHunter command-line help and changelog can be found [here](../CnvHunter.md).
 
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
 

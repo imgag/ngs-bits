@@ -112,7 +112,7 @@ doc_update:
 	
 doc_missing:
 	ls doc/tools/ | grep .md | cut -f1 -d. | sort > /tmp/tools.txt
-	grep "doc/" README.md | tr "]" "[" | cut -f2 -d[ | sort > /tmp/tools_linked.txt
+	grep "doc/tools/" README.md | tr "]" "[" | cut -f2 -d[ | sort > /tmp/tools_linked.txt
 	diff /tmp/tools.txt /tmp/tools_linked.txt | grep "<" | cut -f2 -d' '
 
 dummy:

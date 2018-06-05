@@ -11,7 +11,7 @@ Example data for exome data (Agilent SureSelect Human All Exon V6) are shown her
 
 ## Help and ChangeLog
 
-The CnvHunter command-line help and changelog can be found [here](../tools/SampleCorrelation.md).
+The CnvHunter command-line help and changelog can be found [here](../SampleCorrelation.md).
 
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
 
