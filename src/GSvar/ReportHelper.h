@@ -151,7 +151,7 @@ public:
 
 	const QList<CGIDrugReportLine> drugsSortedPerGeneName() const;
 
-	///Get CGI drug report from file, cnv alterations which do occur in keep_cnv_genes will be discharged
+	///Get CGI drug report from file
 	void load(const QString& file_name);
 
 	///Remove drugs if they already occured in evidence level 1
@@ -182,7 +182,7 @@ class ReportHelper
 {
 public:
 	ReportHelper();
-	ReportHelper(QString snv_filename, GeneSet cnv_keep_genes_filter, QString target_region, QList<QString> keep, QList<QString> remove, QList<QString> filter);
+	ReportHelper(QString snv_filename, const CnvList& filtered_cnvs, QString target_region, const QList<QString>& keep, const QList<QString>& remove, const QList<QString>& filter);
 	///write Rtf File
 	void writeRtf(const QString& out_file);
 
@@ -201,9 +201,6 @@ private:
 	VariantList filterSnvForCGIAnnotation(bool filter_for_target_region=false);
 	///Filter germline SNVs
 	VariantList filterSnVForGermline();
-
-	///Filters cnv_cariants_, CNVs with zScors < 5 and without genes in cnv_keep_genes_filter_ will be discarded
-	CnvList filterCnv();
 
 	///transforms GSVar coordinates of Variants to vcf standard
 	VariantList gsvarToVcf();
@@ -228,9 +225,8 @@ private:
 	///make gap statistics, grouped by gene as QByteArray and regions as BedFile
 	QHash<QByteArray, BedFile> gapStatistics(const BedFile region_of_interest);
 
-	///Somatic filenames
+	///SNV file
 	QString snv_filename_;
-	QString cnv_filename_;
 
 	///Germline filenames;
 	QString germline_snv_filename_;
@@ -251,12 +247,14 @@ private:
 	///normal ID
 	QString normal_id_;
 
-	///Input CnvList and VariantList
-	CnvList cnv_variants_;
+	///Input VariantList
 	VariantList snv_variants_;
 
 	///VariantList for relevant germline SNVs
 	VariantList snv_germline_;
+
+	///CNVList for input (filtered) variants
+	CnvList cnvs_filtered_;
 
 	NGSD db_;
 
@@ -272,12 +270,8 @@ private:
 
 	QCCollection qcml_data_;
 
-	///Geneset with genes to be kept for CNV report
-	GeneSet cnv_keep_genes_filter_;
-
 	///Processing system data
 	ProcessingSystemData processing_system_data;
-
 
 	///Somatic filters
 	QList<QString> filter_keep_;

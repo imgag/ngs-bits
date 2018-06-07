@@ -154,15 +154,21 @@ void ReportHelper::writeRtfTableSNV(QTextStream& stream, const QList<int>& colWi
 		//MSI status
 		stream << begin_table_cell << "MSI-Status:" << "\\cell" <<begin_table_cell;
 		RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-		QByteArray msi_status;
+		QByteArray msi_status = "";
 
 		try
 		{
 			TSVFileStream msi_file(mantis_msi_path_);
 			//Use step wise difference (-> stored in the first line of MSI status file) for MSI status
-			QByteArrayList step_wise_differences = msi_file.readLine();
-			if(step_wise_differences[3] == "Stable") msi_status = "stabil";
-			else if(step_wise_differences[3] == "Unstable") msi_status = "instabil";
+			QByteArrayList data = msi_file.readLine();
+
+			QByteArray step_wise_diff = data[1];
+
+			msi_status += step_wise_diff;
+
+			if(data[3] == "Stable") msi_status += " (stabil)";
+			else if(data[3] == "Unstable") msi_status += " (instabil)";
+
 		}
 		catch(...)
 		{
@@ -429,7 +435,7 @@ void ReportHelper::writeRtfTableSNV(QTextStream& stream, const QList<int>& colWi
 				stream << ", ";
 			}
 		}
-		stream << " gefunden}" << endl;
+		stream << " gefunden.}" << endl;
 
 		stream << "\\cell\\row}" << endl;
 	}
@@ -437,8 +443,6 @@ void ReportHelper::writeRtfTableSNV(QTextStream& stream, const QList<int>& colWi
 
 void ReportHelper::writeRtfTableCNV(QTextStream& stream, const QList<int>& colWidths)
 {
-	CnvList important_cnvs = filterCnv();
-
 	int max_table_width = colWidths.last();
 
 	//beginning of rtf cells
@@ -474,9 +478,9 @@ void ReportHelper::writeRtfTableCNV(QTextStream& stream, const QList<int>& colWi
 	GeneSet target_genes = GeneSet::createFromFile(target_region.left(target_region.size()-4) + "_genes.txt");
 	target_genes = db_.genesToApproved(target_genes);
 
-	for(int i=0; i<important_cnvs.count(); ++i)
+	for(int i=0; i<cnvs_filtered_.count(); ++i)
 	{
-		CopyNumberVariant variant = important_cnvs[i];
+		CopyNumberVariant variant = cnvs_filtered_[i];
 		QList<QString> columns;
 
 		//gene names
@@ -494,7 +498,7 @@ void ReportHelper::writeRtfTableCNV(QTextStream& stream, const QList<int>& colWi
 			for(int j=0;j<cgi_genes.count();++j)
 			{
 				//skip if gene is not contained in target region
-				if(!target_genes.contains(cgi_genes[j]) && !cnv_keep_genes_filter_.contains(cgi_genes[j]))
+				if(!target_genes.contains(cgi_genes[j]))
 				{
 					continue;
 				}
@@ -555,7 +559,7 @@ void ReportHelper::writeRtfTableCNV(QTextStream& stream, const QList<int>& colWi
 		}
 
 		//size
-		columns.append("\\qr " + QString::number(round((important_cnvs[i].end()-important_cnvs[i].start())/1000.)) + "\\ri20");
+		columns.append("\\qr " + QString::number(round((cnvs_filtered_[i].end()-cnvs_filtered_[i].start())/1000.)) + "\\ri20");
 
 
 		somatic_cnv_table.append(columns);
@@ -585,9 +589,9 @@ void ReportHelper::writeRtfTableCNV(QTextStream& stream, const QList<int>& colWi
 	GeneSet amplified_cnvs;
 	GeneSet deleted_cnvs;
 
-	for(int i=0; i<important_cnvs.count(); ++i)
+	for(int i=0; i<cnvs_filtered_.count(); ++i)
 	{
-		CopyNumberVariant variant = important_cnvs[i];
+		CopyNumberVariant variant = cnvs_filtered_[i];
 
 		QVector<double> copy_numbers;
 		foreach(int cn, variant.copyNumbers())
@@ -755,6 +759,24 @@ const QString CGIDrugReportLine::proteinChange(QString aa_change)
 		formatted_string.remove(formatted_string.count()-1,1);
 		formatted_string.prepend(ref_aa);
 		formatted_string.append("fs");
+		return formatted_string;
+	}
+	else if(aa_change.contains("ins") && !aa_change.contains("del")) //parse pure(!) insertions
+	{
+		QString formatted_string = "";
+
+		QString start_aa =aa_change.split("_")[0];
+		start_aa.replace(0,1,NGSHelper::expandAminoAcidAbbreviation(start_aa[0]));
+		QString end_aa = aa_change.split("ins")[0].split("_")[1];
+		end_aa.replace(0,1,NGSHelper::expandAminoAcidAbbreviation(end_aa[0]));
+
+		QString inserted_aa_old = aa_change.split("ins")[1];
+		QString inserted_aa_new = "";
+		for(int i=0;i<inserted_aa_old.count();++i)
+		{
+			inserted_aa_new.append(NGSHelper::expandAminoAcidAbbreviation(inserted_aa_old.at(i)));
+		}
+		formatted_string = start_aa + "_" + end_aa + "ins" + inserted_aa_new;
 		return formatted_string;
 	}
 
@@ -1057,15 +1079,17 @@ ReportHelper::ReportHelper()
 {
 }
 
-ReportHelper::ReportHelper(QString snv_filename, GeneSet cnv_keep_genes_filter, QString target_region, QList<QString> keep, QList<QString> remove, QList<QString> filter)
+ReportHelper::ReportHelper(QString snv_filename, const CnvList& filtered_cnvs, QString target_region, const QList<QString>& keep, const QList<QString>& remove, const QList<QString>& filter)
 	: snv_filename_(snv_filename)
 	, snv_germline_()
+	, cnvs_filtered_(filtered_cnvs)
 	, db_()
 	, target_region_(target_region)
 	, filter_keep_(keep)
 	, filter_remove_(remove)
 	, filter_filter_(filter)
 {
+
 	snv_variants_.load(snv_filename_);
 
 	QString base_name = QFileInfo(snv_filename_).baseName();
@@ -1073,9 +1097,6 @@ ReportHelper::ReportHelper(QString snv_filename, GeneSet cnv_keep_genes_filter, 
 	tumor_id_ = base_name.split('-')[0];
 	normal_id_ = base_name.split('-')[1].split('_')[0]+'_'+base_name.split('-')[1].split('_')[1];
 
-	//filename for CNV file
-	cnv_filename_ = base_name + "_cnvs.tsv";
-	cnv_variants_.load(QFileInfo(snv_filename_).absolutePath().append("/").append(cnv_filename_));
 	cgi_drugs_path_ = QFileInfo(snv_filename_).absolutePath() + "/" + base_name + "_cgi_drug_prescription.tsv";
 
 	//filename MANTIS output
@@ -1134,9 +1155,6 @@ ReportHelper::ReportHelper(QString snv_filename, GeneSet cnv_keep_genes_filter, 
 		icd10_diagnosis_text_ = "empty";
 	}
 
-
-	cnv_keep_genes_filter_ = cnv_keep_genes_filter;
-
 	//assign columns indices for SNV file
 	snv_index_filter_ = snv_variants_.annotationIndexByName("filter",true,true);
 	snv_index_coding_splicing_ = snv_variants_.annotationIndexByName("coding_and_splicing",true,true);
@@ -1153,24 +1171,24 @@ ReportHelper::ReportHelper(QString snv_filename, GeneSet cnv_keep_genes_filter, 
 	cnv_index_cgi_genes_ = -1;
 	cnv_index_cgi_driver_statement_ = -1;
 
-	for(int i=0; i<cnv_variants_.annotationHeaders().count(); ++i)
+	for(int i=0; i<cnvs_filtered_.annotationHeaders().count(); ++i)
 	{
-		if(cnv_variants_.annotationHeaders()[i] == "CGI_gene_role")
+		if(cnvs_filtered_.annotationHeaders()[i] == "CGI_gene_role")
 		{
 			cnv_index_cgi_gene_role_ = i;
 		}
 
-		if(cnv_variants_.annotationHeaders()[i] == "cnv_type")
+		if(cnvs_filtered_.annotationHeaders()[i] == "cnv_type")
 		{
 			cnv_index_cnv_type_ = i;
 		}
 
-		if(cnv_variants_.annotationHeaders()[i] == "CGI_genes")
+		if(cnvs_filtered_.annotationHeaders()[i] == "CGI_genes")
 		{
 			cnv_index_cgi_genes_ = i;
 		}
 
-		if(cnv_variants_.annotationHeaders()[i] == "CGI_driver_statement")
+		if(cnvs_filtered_.annotationHeaders()[i] == "CGI_driver_statement")
 		{
 			cnv_index_cgi_driver_statement_ = i;
 		}
@@ -1196,14 +1214,21 @@ ReportHelper::ReportHelper(QString snv_filename, GeneSet cnv_keep_genes_filter, 
 	qcml_data_ = QCCollection::fromQCML(qcml_file_absolute_path);
 	roi_.load(target_region);
 
-
 	processing_system_data = db_.getProcessingSystemData(db_.processedSampleId(tumor_id_), true);
 
 	//load metadata from GenLab
 	//get histological tumor proportion and diagnosis from GenLab
 	GenLabDB db_genlab;
 	icd10_diagnosis_code_ = db_genlab.diagnosis(tumor_id_.split('_')[0]);
+	if(icd10_diagnosis_code_.isEmpty() || icd10_diagnosis_code_ == "n/a") //try to resolve diagnosis with full tumor ID
+	{
+		icd10_diagnosis_code_ = db_genlab.diagnosis(tumor_id_);
+	}
 	histol_tumor_fraction_ = db_genlab.tumorFraction(tumor_id_.split('_')[0]);
+	if(histol_tumor_fraction_.isEmpty() || histol_tumor_fraction_ == "n/a") //try to resolve tumor fraction with full tumor ID
+	{
+		histol_tumor_fraction_ = db_genlab.tumorFraction(tumor_id_);
+	}
 
 	try
 	{
@@ -1213,9 +1238,7 @@ ReportHelper::ReportHelper(QString snv_filename, GeneSet cnv_keep_genes_filter, 
 	{
 		mutation_burden_ = std::numeric_limits<double>::quiet_NaN();
 	}
-
 	germline_genes_in_acmg_ = GeneSet::createFromFile(db_.getTargetFilePath(true,true) + "ACMG_25Onkogene_20_genes.txt");
-
 }
 
 VariantList ReportHelper::filterSnvForCGIAnnotation(bool filter_for_target_region)
@@ -1312,52 +1335,6 @@ VariantList ReportHelper::filterSnVForGermline()
 		result_list.append(snv);
 	}
 	return result_list;
-}
-
-CnvList ReportHelper::filterCnv()
-{
-	//cgi annotated cnvs
-	CnvList cgi_annotated_cnvs;
-
-	cgi_annotated_cnvs.copyMetaData(cnv_variants_);
-
-	for(int i=0; i<cnv_variants_.count(); ++i)
-	{
-		bool skip = false;
-		CopyNumberVariant variant = cnv_variants_[i];
-
-		//Prepare array with z-scores
-		QList<double> zscores = variant.zScores();
-		for(int j=0;j<zscores.count();++j)
-		{
-			zscores[j] = fabs(zscores[j]);
-		}
-		//only keep genes with high enough z-scores
-		if(*std::max_element(zscores.begin(),zscores.end()) < 5.)
-		{
-			skip = true;
-		}
-		if(zscores.length()< 10.)
-		{
-			skip = true;
-		}
-
-		foreach (QByteArray gene, variant.genes())
-		{
-
-			if(cnv_keep_genes_filter_.contains(gene) && fabs(*std::max_element(zscores.begin(),zscores.end()))>=5.)
-			{
-				skip = false;
-			}
-		}
-
-		if(skip) continue;
-
-		cgi_annotated_cnvs.append(variant);
-
-	}
-
-	return cgi_annotated_cnvs;
 }
 
 QHash<QByteArray, BedFile> ReportHelper::gapStatistics(const BedFile region_of_interest)
@@ -1457,8 +1434,8 @@ void ReportHelper::writeRtfCGIDrugTable(QTextStream &stream, const QList<int> &c
 	drugs.mergeDuplicates(5);
 	drugs.mergeDuplicates(6);
 
-	//Make list of copy number altered genes which shall be kept
-	CnvList cnvs = filterCnv();
+	//Make list of copy number altered genes which shall be kept in drug list
+	CnvList cnvs = cnvs_filtered_;
 	GeneSet keep_cnv_genes;
 	for(int i=0;i<cnvs.count();++i)
 	{
@@ -1484,20 +1461,22 @@ void ReportHelper::writeRtfCGIDrugTable(QTextStream &stream, const QList<int> &c
 	{
 		//filter genes which do not appear in SNV and CNV mutation list
 		QStringList genes = drug.gene().split(',');
-		bool gene_is_in_list = true;
+		bool gene_is_in_cnv_list = true;
+		bool gene_is_in_snv_list = true;
 		foreach(QString gene,genes)
 		{
 			if((drug.alterationType().contains("AMP") || drug.alterationType().contains("DEL"))
 				&& !keep_cnv_genes.contains(gene.toLatin1()))
 			{
-				gene_is_in_list = false;
+				gene_is_in_cnv_list = false;
 			}
 			if(drug.alterationType().contains("MUT") && !keep_snv_genes.contains(gene.toLatin1()))
 			{
-				gene_is_in_list = false;
+				gene_is_in_snv_list = false;
 			}
 		}
-		if(!gene_is_in_list) continue;
+		if(!gene_is_in_cnv_list) continue;
+		if(!gene_is_in_snv_list) continue;
 
 		//extend list of cancer acronyms that shall appear in explanation
 		acronyms.append(drug.entity().split(','));
@@ -1530,7 +1509,11 @@ void ReportHelper::writeRtfCGIDrugTable(QTextStream &stream, const QList<int> &c
 			if(aa_change_in_variant_list) break;
 		}
 
-		if(!aa_change_in_variant_list && drug.alterationType().contains("MUT")) result_line[0].prepend("\\highlight3 ");
+		//highlight AA changes which could not be identified in SNV list
+		if(!aa_change_in_variant_list && !drug.alterationType().contains("DEL") && !drug.alterationType().contains("AMP"))
+		{
+			result_line[0].prepend("\\highlight3 ");
+		}
 
 		for(int i=0; i<result_line.count(); ++i)
 		{
@@ -1734,7 +1717,7 @@ void ReportHelper::somaticCnvForQbic()
 	stream << "size" << "\t" << "type" << "\t" << "copy_number" << "\t" << "gene" << "\t" << "exons" << "\t";
 	stream << "transcript" << "\t" << "chr" << "\t" << "start" << "\t" << "end" << "\t" << "effect" << endl;
 
-	CnvList variants = filterCnv();
+	CnvList variants = cnvs_filtered_;
 
 	QString target_region_processing_system = db_.getProcessingSystemData(db_.processedSampleId(tumor_id_), true).target_file;
 	GeneSet target_genes = GeneSet::createFromFile(target_region_processing_system.left(target_region_processing_system.size()-4) + "_genes.txt");
@@ -2216,12 +2199,6 @@ void ReportHelper::writeRtf(const QString& out_file)
 	//Make rtf report, filter genes for processing system target region
 	ReportHelper::writeRtfTableCNV(stream,widths);
 	stream << endl << "\\pard\\par" << endl;
-
-	widths.clear();
-	widths << 1000 << 1500 << 2700 << 5000 << 6000 << 7000 << max_table_width;
-	stream << "{\\pard\\sa45\\sb45\\fs18\\b Medikamente mit CGI-Annotation\\par}" << endl;
-
-	ReportHelper::writeRtfCGIDrugTable(stream,widths);
 	stream << "\\page" << endl;
 
 	/****************
@@ -2271,10 +2248,20 @@ void ReportHelper::writeRtf(const QString& out_file)
 	stream << begin_table_cell << "\\fs18 MSI-Status: " << "\\cell";
 	stream << begin_table_cell << "\\fs18\\qj" << endl;
 	stream << "Die Abk\\u252;rzung MSI steht f\\u252;r Mikrosatelliteninstabilit\\u228;t. Der MSI-Status wurde mit dem NGS-Tool ";
-	stream << "MANTIS (DOI:10.18632/oncotarget.13918) ermittelt. Dabei verwenden wir einen Wert der schrittweisen Differenz von 0.4 als Schwelle. " << endl;
-	stream << "Als MSI stabil gelten Werte von unter 0.4 und als MSI instabil gelten Werte von \\u252;ber 0.4. " << endl;
+	stream << "MANTIS (DOI:10.18632/oncotarget.13918) ermittelt. Der Zahlenwert bezieht sich auf die gemittelte schrittweise Differenz der L\\u228;ngen der Tumor-Reads und Normal-Reads aller im Panel enthaltenen MS-Loci. ";
+	stream << "Dabei verwenden wir einen Wert von 0.4 als Schwelle, um zwischen MS stabilen- und instabilen Tumoren zu unterscheiden. ";
 	stream << "Zur Validierung des MSI-Status empfehlen wir eine weitere, pathologische Untersuchung des Tumorgewebes." << endl;
 	stream << "\\cell\\row}" << endl;
+
+	stream << "\\page" << endl;
+
+
+	widths.clear();
+	widths << 1000 << 1500 << 2700 << 5000 << 6000 << 7000 << max_table_width;
+	stream << "{\\pard\\sa45\\sb45\\fs18\\b Medikamente mit CGI-Annotation\\par}" << endl;
+
+	ReportHelper::writeRtfCGIDrugTable(stream,widths);
+
 
 	stream << "\\page" << endl;
 	stream << "{\\pard\\b\\sa45\\sb45\\ Liste der im Panel enthaltenen Gene\\par}" << endl;
