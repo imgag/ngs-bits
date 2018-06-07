@@ -3,8 +3,6 @@
 #include "NGSHelper.h"
 #include "BasicStatistics.h"
 
-QVector<double> AnalysisWorker::fak_cache = QVector<double>();
-
 AnalysisWorker::AnalysisWorker(QSharedPointer<FastqEntry> e1, QSharedPointer<FastqEntry> e2, TrimmingParameters& params, TrimmingStatistics& stats, ErrorCorrectionStatistics& ecstats, TrimmingData& data)
     : QRunnable()
 	, e1_(e1)
@@ -18,60 +16,6 @@ AnalysisWorker::AnalysisWorker(QSharedPointer<FastqEntry> e1, QSharedPointer<Fas
 
 AnalysisWorker::~AnalysisWorker()
 {
-}
-
-void AnalysisWorker::precalculateFactorials()
-{
-	if (!fak_cache.isEmpty()) return;
-
-	//calculate faktorials until double overflow happens
-	int i = 0;
-	double value = 1.0;
-	while(BasicStatistics::isValidFloat(value))
-	{
-		fak_cache.append(value);
-		++i;
-		value *= i;
-	}
-}
-
-double AnalysisWorker::fak(int n)
-{
-	//not in cache (i.e. double overflow) => NAN
-	if (fak_cache.count()<n+1)
-	{
-		return std::numeric_limits<double>::quiet_NaN();
-	}
-
-	return fak_cache[n];
-}
-
-double AnalysisWorker::matchProbability(int matches, int mismatches)
-{
-	//handle double overflow of factorial (approximately at 160)
-	int count = matches + mismatches;
-	while(!BasicStatistics::isValidFloat(fak(count)))
-	{
-		matches /= 2;
-		mismatches /=2;
-		count = matches + mismatches;
-	}
-
-	//calculate probability
-	double p = 0.0;
-	for (int i=matches; i<=count; ++i)
-	{
-		double q = std::pow(0.75, count-i) * std::pow(0.25, i) * fak(count) / fak(i) / fak(count-i);
-		p += q;
-	}
-
-	//check that result is valid
-	if (!BasicStatistics::isValidFloat(p))
-	{
-		THROW(ProgrammingException, "Calculated probabilty for " + QString::number(matches) + " matches and " + QString::number(mismatches) + " mismatches is not a valid float!");
-	}
-
-	return p;
 }
 
 void AnalysisWorker::checkHeaders(const QByteArray& h1, const QByteArray& h2)
@@ -237,7 +181,7 @@ void AnalysisWorker::run()
 		}
 
 		//calculate the probability of seeing n or more matches at random
-		double p = matchProbability(matches, mismatches);
+		double p = BasicStatistics::matchProbability(0.25, matches, matches+mismatches);
 		if (p>params_.mep) continue;
 		if (params_.debug) debug_out << "  mep: " << p << endl;
 
@@ -307,8 +251,8 @@ void AnalysisWorker::run()
 		}
 		else //when the adapter fragment is short => require non-random adapter sequence hit
 		{
-			double p1 = matchProbability(a1_matches, a1_mismatches);
-			double p2 = matchProbability(a2_matches, a2_mismatches);
+			double p1 = BasicStatistics::matchProbability(0.25, a1_matches, a1_matches+a1_mismatches);
+			double p2 = BasicStatistics::matchProbability(0.25, a2_matches, a2_matches+a2_mismatches);
 			if (p1*p2>params_.mep)
 			{
 				if (params_.debug) debug_out << "  adapter overlap failed! mep1:" << p1 << " mep2:" << p2 << endl;
@@ -395,7 +339,7 @@ void AnalysisWorker::run()
 				}
 			}
 			if (100.0*matches/(matches+mismatches) < params_.match_perc) continue;
-			double p = matchProbability(matches, mismatches);
+			double p = BasicStatistics::matchProbability(0.25, matches, matches+mismatches);
 			if (p>params_.mep) continue;
 
 			//debug output
@@ -447,7 +391,7 @@ void AnalysisWorker::run()
 			}
 
 			if (100.0*matches/(matches+mismatches) < params_.match_perc) continue;
-			double p = matchProbability(matches, mismatches);
+			double p = BasicStatistics::matchProbability(0.25, matches, matches+mismatches);
 			if (p>params_.mep) continue;
 
 			//debug output

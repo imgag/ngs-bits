@@ -2,6 +2,7 @@
 #include "Auxilary.h"
 #include "AnalysisWorker.h"
 #include "Helper.h"
+#include "BasicStatistics.h"
 #include <QThreadPool>
 #include <QTime>
 
@@ -105,8 +106,8 @@ public:
 		QTime timer;
 		if (progress) timer.start();
 
-		//init pre-calculation of faktorials
-		AnalysisWorker::precalculateFactorials();
+		//init pre-calculation of factorials
+		BasicStatistics::precalculateFactorials();
 
 		//process
 		for (int i=0; i<in1_files.count(); ++i)

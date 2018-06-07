@@ -143,4 +143,23 @@ private slots:
 		IS_TRUE(BasicStatistics::isValidFloat("1e-4"))
 	}
 
+	void factorial()
+	{
+		BasicStatistics::precalculateFactorials();
+		F_EQUAL(BasicStatistics::factorial(0), 1.0);
+		F_EQUAL(BasicStatistics::factorial(1), 1.0);
+		F_EQUAL(BasicStatistics::factorial(2), 2.0);
+		F_EQUAL(BasicStatistics::factorial(3), 6.0);
+		F_EQUAL(BasicStatistics::factorial(4), 24.0);
+	}
+
+	void matchProbability()
+	{
+		BasicStatistics::precalculateFactorials();
+		F_EQUAL(BasicStatistics::matchProbability(0.1, 1, 1), 0.100);
+		F_EQUAL(BasicStatistics::matchProbability(0.1, 1, 2), 0.190);
+		F_EQUAL(BasicStatistics::matchProbability(0.1, 1, 3), 0.271);
+		F_EQUAL(BasicStatistics::matchProbability(0.1, 1, 5), 0.40951);
+		F_EQUAL(BasicStatistics::matchProbability(0.1, 5, 5), 0.00001);
+	}
 };

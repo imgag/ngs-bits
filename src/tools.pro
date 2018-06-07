@@ -13,6 +13,10 @@ cppNGSD.depends = cppNGS
 SUBDIRS += tools-TEST
 tools-TEST.depends = cppNGSD
 
+SUBDIRS += UpdHunter
+tools-TEST.depends += UpdHunter
+UpdHunter.depends = cppNGS
+
 SUBDIRS += NGSDImportQC
 tools-TEST.depends += NGSDImportQC
 NGSDImportQC.depends = cppNGSD
