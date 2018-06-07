@@ -58,6 +58,7 @@
 #include "GenLabDB.h"
 #include "SvWidget.h"
 #include "VariantSampleOverviewDialog.h"
+#include "SomaticReportConfiguration.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -201,6 +202,7 @@ void MainWindow::on_actionCNV_triggered()
 	}
 
 	CnvWidget* list = new CnvWidget(filename_, filter_widget_, het_hit_genes);
+
 	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
 	auto dlg = GUIHelper::showWidgetAsDialog(list, "Copy-number variants", false, false);
 	addModelessDialog(dlg);
@@ -949,9 +951,25 @@ void MainWindow::generateReportSomaticRTF()
 		return;
 	}
 
+	CnvList cnvs;
 	try
 	{
-		ReportHelper report(filename_,cnv_keep_genes_filter,target_region,filter_widget_->filterColumnsKeep(),filter_widget_->filterColumnsRemove(),filter_widget_->filterColumnsFilter());
+		cnvs.load(filename_cnv);
+	}
+	catch(FileParseException error)
+	{
+		QMessageBox::warning(this,"File Access Exception",error.message());
+	}
+
+	SomaticReportConfiguration configReport(cnvs,cnv_keep_genes_filter,this);
+
+	if(!configReport.exec()) return;
+
+
+	try
+	{
+		ReportHelper report(filename_,configReport.getFilteredVariants(),target_region,filter_widget_->filterColumnsKeep(),filter_widget_->filterColumnsRemove(),filter_widget_->filterColumnsFilter());
+
 		report.writeRtf(temp_filename);
 
 		//Create files for QBIC upload
@@ -970,6 +988,10 @@ void MainWindow::generateReportSomaticRTF()
 	catch(FileAccessException error)
 	{
 		QMessageBox::warning(this,"File Access Exception",error.message());
+		return;
+	}
+	catch(...)
+	{
 		return;
 	}
 
