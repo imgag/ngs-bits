@@ -307,6 +307,12 @@ int VariantList::annotationIndexByName(const QString& name, bool exact_match, bo
 
 int VariantList::annotationIndexByName(const QString& name, QString sample_id, bool exact_match, bool error_on_mismatch) const
 {
+	//check sample name
+	if (!sample_id.isEmpty() && !sampleExists(sample_id))
+	{
+		THROW(ArgumentException, "Could not find column '" + name + "' for invalid sample " + sample_id + ". Valid sample names are: " + sampleNames().join(", "));
+	}
+
 	//find matches
 	QList<int> matches;
 	for(int i=0; i<annotations().count(); ++i)
@@ -323,7 +329,7 @@ int VariantList::annotationIndexByName(const QString& name, QString sample_id, b
 	{
 		if (error_on_mismatch)
 		{
-			THROW(ArgumentException, "Could not find column '" + name + "' " + (!sample_id.isEmpty() ? QString("for patient '" + sample_id + "' ") : QString("")) + "in variant list!");
+			THROW(ArgumentException, "Could not find column '" + name + "' " + (!sample_id.isEmpty() ? QString("for sample '" + sample_id + "' ") : QString("")) + "in variant list!");
 		}
 		else
 		{
@@ -335,11 +341,11 @@ int VariantList::annotationIndexByName(const QString& name, QString sample_id, b
 	{
 		if (error_on_mismatch)
 		{
-			THROW(ArgumentException, "Found multiple columns for '" + name + "' " + (!sample_id.isEmpty() ? QString("for patient '" + sample_id + "' ") : QString("")) + " in variant list!");
+			THROW(ArgumentException, "Found multiple columns for '" + name + "' " + (!sample_id.isEmpty() ? QString("for sample '" + sample_id + "' ") : QString("")) + " in variant list!");
 		}
 		else
 		{
-			Log::warn("Found multiple columns for '" + name + "' " + (!sample_id.isEmpty() ? QString("for patient '" + sample_id + "' ") : QString("")) + " in variant list!");
+			Log::warn("Found multiple columns for '" + name + "' " + (!sample_id.isEmpty() ? QString("for sample '" + sample_id + "' ") : QString("")) + " in variant list!");
 			return -2;
 		}
 	}
@@ -418,6 +424,16 @@ QStringList VariantList::sampleNames() const
 	}
 
 	return output;
+}
+
+bool VariantList::sampleExists(const QString& sample) const
+{
+	foreach(const VariantAnnotationHeader& act_anno, annotations())
+	{
+		if (act_anno.sampleID()==sample) return true;
+	}
+
+	return false;
 }
 
 VariantList::Format VariantList::load(QString filename, VariantList::Format format, const BedFile* roi, bool invert)

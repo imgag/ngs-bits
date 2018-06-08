@@ -975,8 +975,8 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	QString normal_id = QFileInfo(normal_bam).baseName();
 	QStringList nuc = QStringList{"A","C","G","T"};
 
-	if(!variants.sampleNames().contains(tumor_id))	Log::error("Tumor sample " + tumor_id + " was not found in variant file " + somatic_vcf);
-	if(!variants.sampleNames().contains(normal_id))	Log::error("Normal sample " + normal_id + " was not found in variant file " + somatic_vcf);
+	if(!variants.sampleExists(tumor_id))	Log::error("Tumor sample " + tumor_id + " was not found in variant file " + somatic_vcf);
+	if(!variants.sampleExists(normal_id))	Log::error("Normal sample " + normal_id + " was not found in variant file " + somatic_vcf);
 
 	//plot0: histogram allele frequencies somatic mutations
 	Histogram hist_filtered(0,1,0.0125);

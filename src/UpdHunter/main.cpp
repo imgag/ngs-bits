@@ -5,8 +5,9 @@
 #include "BasicStatistics.h"
 #include <QTextStream>
 
-//TODO: remove MHC region? (chr6:28,477,797-33,448,354)
-//TODO: also support chrX
+//TODO: implement UPD type detection
+//TODO: add optional visualization SEG file
+//TODO: also support chrX?
 
 class ConcreteTool
         : public ToolBase
@@ -31,9 +32,14 @@ public:
 		addInfile("exclude", "BED file with regions to exclude, e.g. copy-number variant regions.", true);
 		addInt("var_min_dp", "Minimum depth (DP) of a variant (in all three samples).", true, 20);
 		addFloat("var_min_q", "Minimum quality (QUAL) of a variant.", true, 30);
-		addFlag("use_indels", "Also use InDels. The default is to use SNVs only.");
+		addFlag("var_use_indels", "Also use InDels. The default is to use SNVs only.");
+		addFloat("ext_marker_perc", "Percentage of markers that can be spanned when merging adjacent regions .", true, 1.0);
+		addFloat("ext_size_perc", "Percentage of base size that can be spanned when merging adjacent regions.", true, 20.0);
 		addFloat("reg_min_kb", "Mimimum size in kilo-bases required for a UPD region.",  true, 100.0);
 		addInt("reg_min_markers", "Mimimum number of UPD markers required in a region.",  true, 5);
+		addFloat("reg_min_q", "Mimimum Q-score required for a UPD region.",  true, 20.0);
+
+		addFlag("debug", "Enable verbose debug output.");
 
 		changeLog(2018,  6,  6, "Initial import.");
 	}
@@ -137,7 +143,7 @@ public:
 
 		int sizeBases() const
 		{
-			return (end-1)->end-start->start;
+			return (end-1)->end-start->start+1;
 		}
 
 		int countType(UpdType type) const
@@ -150,28 +156,24 @@ public:
 			return c;
 		}
 
-		double qScore(double p_biparental, double p_upd, QTextStream& stream) const
+		double qScore(double p_biparental, double p_upd) const
 		{
-			stream << "RANGE " << sizeMarkers() << endl;
 			int c_upd = countType(ISO) + countType(ISO_OR_HET);
-			stream << "  c_upd=" << c_upd << endl;
 
 			//likelyhood to find n variants without seeing any biparental inheritance
 			int markers = sizeMarkers();
 			double p_no_bip = std::pow(1-p_biparental, markers);
-			stream << "  p_no_bip=" << p_no_bip << endl;
 
 			//likelyhood to find n-1 UPD variants
 			double p_n_upd = c_upd<2 ? 1.0 : BasicStatistics::matchProbability(p_upd, c_upd-1, markers-1);
-			stream << "  p_n_upd=" << p_n_upd << endl;
 
 			//calculate overall likelyhood
-			double p = p_no_bip * p_n_upd;
-			stream << "  p=" << p << endl;
+			return -10.0 * std::log10(p_no_bip * p_n_upd);
+		}
 
-			double q_score = -10.0 * std::log10(p);
-
-			return q_score;
+		QByteArray toString() const
+		{
+			return start->chr.str() + ":" + QByteArray::number(start->start) + "-" + QByteArray::number((end-1)->end) + " bases=" + QByteArray::number(sizeBases()) + " markers=" + QByteArray::number(sizeMarkers())+ " upd_markers=" + QByteArray::number(countType(ISO)+countType(ISO_OR_HET));
 		}
 	};
 
@@ -206,24 +208,19 @@ public:
 		THROW(ArgumentException, "Invalid UPD type for conversion to string!");
 	}
 
-    virtual void main()
-    {
-		//init
+	QList<VariantData> loadVariants(QTextStream& stream)
+	{
+		QList<VariantData> output;
+
 		QString c = getString("c");
 		QString f = getString("f");
 		QString m = getString("m");
-		QString out = getOutfile("out");
-		if (!out.endsWith(".tsv")) THROW(ArgumentException, "Output file name has to end with '.tsv'!");
-		QString exclude = getInfile("exclude");
 		int var_min_dp = getInt("var_min_dp");
 		double var_min_q = getFloat("var_min_q");
-		bool use_indels = getFlag("use_indels");
-		int reg_min_markers = getInt("reg_min_markers");
-		double reg_min_bases = 1000.0 * getFloat("reg_min_kb");
-		BasicStatistics::precalculateFactorials();
-		QTextStream stream(stdout);
+		bool var_use_indels = getFlag("var_use_indels");
 
 		//load BED file to exclude
+		QString exclude = getInfile("exclude");
 		BedFile exclude_regions;
 		if (exclude!="")
 		{
@@ -231,9 +228,6 @@ public:
 		}
 		ChromosomalIndex<BedFile> exclude_idx(exclude_regions);
 
-		//load genotype data
-		stream << "### Loading variant/genotype data ###" << endl;
-		QList<VariantData> data;
 		VariantList variants;
 		variants.load(getInfile("in"));
 		variants.sort();
@@ -271,12 +265,15 @@ public:
 			}
 
 			//filter by depth
-			int dp1 = v.annotations()[i_dp_c].toInt(&ok);
-			if (!ok) THROW(ArgumentException, "Depth '" + v.annotations()[i_dp_c] + "' is no integer - variant " + v.toString());
-			int dp2 = v.annotations()[i_dp_f].toInt(&ok);
-			if (!ok) THROW(ArgumentException, "Depth '" + v.annotations()[i_dp_f] + "' is no integer - variant " + v.toString());
-			int dp3 = v.annotations()[i_dp_m].toInt(&ok);
-			if (!ok) THROW(ArgumentException, "Depth '" + v.annotations()[i_dp_m] + "' is no integer - variant " + v.toString());
+			QByteArray tmp = v.annotations()[i_dp_c];
+			int dp1 = (tmp.isEmpty()) ? 0 : tmp.toInt(&ok);
+			if (!ok && !tmp.isEmpty()) THROW(ArgumentException, "Depth of child '" + tmp + "' is no integer - variant " + v.toString());
+			tmp = v.annotations()[i_dp_f];
+			int dp2 = (tmp.isEmpty()) ? 0 : tmp.toInt(&ok);
+			if (!ok && !tmp.isEmpty()) THROW(ArgumentException, "Depth of father  '" + tmp + "' is no integer - variant " + v.toString());
+			tmp = v.annotations()[i_dp_m];
+			int dp3 = (tmp.isEmpty()) ? 0 : tmp.toInt(&ok);
+			if (!ok && !tmp.isEmpty()) THROW(ArgumentException, "Depth of mother  '" + tmp + "' is no integer - variant " + v.toString());
 			if (dp1<var_min_dp || dp2<var_min_dp || dp3<var_min_dp)
 			{
 				++skip_dp;
@@ -284,46 +281,47 @@ public:
 			}
 
 			//filter indels
-			if (!use_indels && !v.isSNV())
+			if (!var_use_indels && !v.isSNV())
 			{
 				++skip_indel;
 				continue;
 			}
 
-			VariantData var;
-			var.chr = v.chr();
-			var.start = v.start();
-			var.end = v.end();
-			var.ref = v.ref();
-			var.obs = v.obs();
-			var.c = str2geno(v.annotations()[i_gt_c]);
-			var.f = str2geno(v.annotations()[i_gt_f]);
-			var.m = str2geno(v.annotations()[i_gt_m]);
+			VariantData entry;
+			entry.chr = v.chr();
+			entry.start = v.start();
+			entry.end = v.end();
+			entry.ref = v.ref();
+			entry.obs = v.obs();
+			entry.c = str2geno(v.annotations()[i_gt_c]);
+			entry.f = str2geno(v.annotations()[i_gt_f]);
+			entry.m = str2geno(v.annotations()[i_gt_m]);
 
 			//filter by exclude regions
 			if (exclude_regions.count() && exclude_idx.matchingIndex(v.chr(), v.start(), v.end())!=-1)
 			{
-				var.type = EXCLUDED;
-				var.source = NONE;
+				entry.type = EXCLUDED;
+				entry.source = NONE;
 				++c_excluded;
 			}
 			else
 			{
-				var.determineType();
+				entry.determineType();
 			}
-			data << var;
+			output << entry;
 		}
-		stream << "Loaded " << data.count() << " of " << variants.count() << " variants" << endl;
-		variants.clear();
+		stream << "Loaded " << output.count() << " of " << variants.count() << " variants" << endl;
 		stream << "Skipped " << skip_chr << " variants not on autosomes" << endl;
 		stream << "Skipped " << skip_qual << " variants because of low quality (<" << var_min_q << ")" << endl;
 		stream << "Skipped " << skip_dp << " variants because of low depth (<" << var_min_dp << ")" << endl;
 		stream << "Skipped " << skip_indel << " indels" << endl;
 		stream << "Excluded " << c_excluded << " variants" << endl;
-		stream << endl;
 
-		//check medelian errors
-		stream << "### Checking for mendelian errors ###" << endl;
+		return output;
+	}
+
+	void checkMendelianErrors(const QList<VariantData> data, QTextStream& stream)
+	{
 		int err_f = 0;
 		int err_m = 0;
 		int err_fm = 0;
@@ -338,8 +336,169 @@ public:
 		stream << "Found " << err_f << " (" << QByteArray::number(100.0*err_f/data.count(), 'f', 2) << "%) mendelian errors for mother-child pair" << endl;
 		stream << "Found " << err_m << " (" << QByteArray::number(100.0*err_m/data.count(), 'f', 2) << "%) mendelian errors for father-child pair" << endl;
 		stream << "Found " << err_fm << " (" << QByteArray::number(100.0*err_fm/data.count(), 'f', 2) << "%) mendelian errors for father-mother pair (expected to be high)" << endl;
+		if (err_f>err_fm || err_m>err_fm)
+		{
+			stream << "Error: Mendelian error rates suggest a sample swap!" << endl;
+			THROW(ArgumentException, "Mendelian error rates suggest a sample swap!");
+		}
+	}
+
+	QList<UpdRange> detectRanges(QList<VariantData>& data, QTextStream& stream)
+	{
+		double debug = getFlag("debug");
+
+		QList<UpdRange> output;
+
+		bool in_range = false;
+		UpdRange current_range;
+		for (auto it=data.begin(); it!=data.end(); ++it)
+		{
+
+			if (in_range)
+			{
+				if (it->type==BIPARENTAL || it->type==EXCLUDED || it->chr!=current_range.start->chr || it+1==data.end())
+				{
+					output.append(current_range);
+					in_range = false;
+				}
+				else if (it->type==ISO || it->type==ISO_OR_HET)
+				{
+					if (it->source==current_range.start->source)
+					{
+						current_range.end = it + 1;
+					}
+					else //different source
+					{
+						output.append(current_range);
+						in_range = false;
+					}
+				}
+			}
+
+			if (!in_range) //not else because the because 'in_range' can change in the if-clause above
+			{
+				if (it->type==ISO || it->type==ISO_OR_HET)
+				{
+					current_range.start = it;
+					current_range.end = it + 1;
+					in_range = true;
+				}
+			}
+		}
+
+		stream << "Detected " << output.count() << " raw ranges" << endl;
+		if (debug)
+		{
+			foreach(const UpdRange& range, output)
+			{
+				stream << "  Range: " << range.toString() << endl;
+			}
+		}
+
+		return output;
+	}
+
+	void mergeRanges(QList<UpdRange>& ranges, QTextStream& stream)
+	{
+		double ext_marker_perc = getFloat("ext_marker_perc");
+		double ext_size_perc = getFloat("ext_size_perc");
+		double debug = getFlag("debug");
+
+		bool merged = true;
+		while(merged)
+		{
+			merged = false;
+			for (int i=0; i<ranges.count()-1; ++i)
+			{
+				//same chr and source
+				if (ranges[i].start->chr!=ranges[i+1].start->chr) continue;
+				if (ranges[i].start->source!=ranges[i+1].start->source) continue;
+
+
+				double marker_diff = ranges[i+1].start - ranges[i].end;
+				double marker_cutoff = ext_marker_perc / 100.0 * (ranges[i].sizeMarkers() + ranges[i+1].sizeMarkers());
+
+				double base_diff = ranges[i+1].start->start - (ranges[i].end-1)->end;
+				double base_cutoff = ext_size_perc / 100.0 * (ranges[i].sizeBases() + ranges[i+1].sizeBases());
+
+				//merge
+				if (marker_diff<marker_cutoff || base_diff<base_cutoff)
+				{
+					if (debug)
+					{
+						stream << "Merging ranges:" << endl;
+						stream << "  " << ranges[i].toString() << endl;
+						stream << "  " << ranges[i+1].toString() << endl;
+						stream << "  base_diff=" << base_diff << " marker_diff=" << marker_diff  << endl;
+					}
+
+					ranges[i].end = ranges[i+1].end;
+					ranges.removeAt(i+1);
+					i-=1;
+					merged = true;
+				}
+			}
+		}
+
+		stream << "Merged adjacent raw regions resulting in " << ranges.count() << " region(s)" << endl;
+	}
+
+	void writeOutput(QList<UpdRange>& ranges, double p_biparental, double p_upd, QTextStream& stream)
+	{
+		QString out = getOutfile("out");
+		if (!out.endsWith(".tsv")) THROW(ArgumentException, "Output file name has to end with '.tsv'!");
+		int reg_min_markers = getInt("reg_min_markers");
+		double reg_min_bases = 1000.0 * getFloat("reg_min_kb");
+		double reg_min_q = getFloat("reg_min_q");
+		bool debug = getFlag("debug");
+
+		QSharedPointer<QFile> output = Helper::openFileForWriting(out);
+		output->write("#chr\tstart\tend\tsize_kb\tsize_markers\tupd_markers\tsource\ttype\tq-score\n");
+		int c_passing  = 0;
+		foreach(const UpdRange& range, ranges)
+		{
+			if (range.sizeBases()<reg_min_bases) continue;
+			int upd_markers = range.countType(ISO)+range.countType(ISO_OR_HET);
+			if (upd_markers<reg_min_markers) continue;
+			double q_score = range.qScore(p_biparental, p_upd);
+			if (q_score<reg_min_q) continue;
+
+			output->write(range.start->chr.str() + "\t" + QByteArray::number(range.start->start) + "\t" + QByteArray::number((range.end-1)->end)
+						  + "\t" + QByteArray::number(range.sizeBases()/1000.0, 'f', 3)
+						  + "\t" + QByteArray::number(range.sizeMarkers())
+						  + "\t" + QByteArray::number(upd_markers)
+						  + "\t" + range.sourceAsString()
+						  + "\t" + range.typeAsString()
+						  + "\t" + QByteArray::number(q_score, 'f', 2)
+						  + "\n");
+
+			++c_passing;
+
+			if (debug)
+			{
+				stream << "  Range: " << range.toString() << endl;
+			}
+		}
+		stream << "Written " << c_passing << " ranges that pass the filters" << endl;
+	}
+
+    virtual void main()
+    {
+		//init
+		BasicStatistics::precalculateFactorials();
+		QTextStream stream(stdout);
+
+		//load genotype data
+		stream << "### Loading variant/genotype data ###" << endl;
+		QList<VariantData> data = loadVariants(stream);
 		stream << endl;
 
+		//check medelian errors
+		stream << "### Checking for mendelian errors ###" << endl;
+		checkMendelianErrors(data, stream);
+		stream << endl;
+
+		//statistics
 		stream << "### Performing statistics ###" << endl;
 		int biparental = 0;
 		int upd = 0;
@@ -368,86 +527,31 @@ public:
 		stream << "UPD variants: " << (upd-max) <<  " (" << QByteArray::number(100.0*p_upd, 'f', 3) << "%) - excluded chromosome " << max_chr << " containing " << max <<  " (" << QByteArray::number(100.0*max/chr_var[max_chr], 'f', 3) << "%)" << endl;
 		stream << endl;
 
+		//detection
 		stream << "### Detecting UPDs ###" << endl;
-		bool in_range = false;
-		QList<UpdRange> ranges;
-		UpdRange current_range;
-		for (auto it=data.begin(); it!=data.end(); ++it)
-		{
-
-			if (in_range)
-			{
-				if (it->type==BIPARENTAL || it->type==EXCLUDED || it->chr!=current_range.start->chr || it+1==data.end())
-				{
-					ranges.append(current_range);
-					in_range = false;
-				}
-				else if (it->type==ISO || it->type==ISO_OR_HET)
-				{
-					if (it->source == current_range.start->source)
-					{
-						current_range.end = it + 1;
-					}
-					else //different source
-					{
-						ranges.append(current_range);
-						in_range = false;
-					}
-				}
-			}
-
-			if (!in_range) //not else because the because 'in_range' can change in the if-clause above
-			{
-				if (it->type==ISO || it->type==ISO_OR_HET)
-				{
-					current_range.start = it;
-					current_range.end = it + 1;
-					in_range = true;
-				}
-			}
-		}
-		stream << "Detected " << ranges.count() << " raw ranges" << endl;
+		QList<UpdRange> ranges = detectRanges(data, stream);
+		mergeRanges(ranges, stream);
 
 		//perform sanity checks
 		foreach(const UpdRange& range, ranges)
 		{
-			//check same chr
-			if (range.start->chr!=range.end->chr)
-			{
-				THROW(ProgrammingException, "Range spans chromosome border")
-			}
-			//check same source
 			for (auto it=range.start; it<range.end; ++it)
 			{
+				//check same source
 				if (it->source!=NONE && it->source!=range.start->source)
 				{
 					THROW(ProgrammingException, "Range with mixed UPD source (father/mother)!")
+				}
+				//check same chr
+				if (it->chr!=range.start->chr)
+				{
+					THROW(ProgrammingException, "Range spans chromosome border: " + range.start->chr.str() + " - " + it->chr.str());
 				}
 			}
 		}
 
 		//write output
-		int c_passing  = 0;
-		QSharedPointer<QFile> output = Helper::openFileForWriting(out);
-		output->write("#chr\tstart\tend\tsize_kb\tsize_markers\tupd_markers\tsource\ttype\tq-score\n");
-		foreach(const UpdRange& range, ranges)
-		{
-			if (range.sizeBases()<reg_min_bases) continue;
-			int upd_markers = range.countType(ISO)+range.countType(ISO_OR_HET);
-			if (upd_markers<reg_min_markers) continue;
-
-			output->write(range.start->chr.str() + "\t" + QByteArray::number(range.start->start) + "\t" + QByteArray::number((range.end-1)->end)
-						  + "\t" + QByteArray::number(range.sizeBases()/1000.0, 'f', 3)
-						  + "\t" + QByteArray::number(range.sizeMarkers())
-						  + "\t" + QByteArray::number(upd_markers)
-						  + "\t" + range.sourceAsString()
-						  + "\t" + range.typeAsString()
-						  + "\t" + QByteArray::number(range.qScore(p_biparental, p_upd, stream), 'f', 2)
-						  + "\n");
-
-			++c_passing;
-		}
-		stream << "Written " << c_passing << " ranges that passes the filters" << endl;
+		writeOutput(ranges, p_biparental, p_upd, stream);
 	}
 };
 
