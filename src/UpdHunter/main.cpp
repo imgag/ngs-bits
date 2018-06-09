@@ -5,8 +5,6 @@
 #include "BasicStatistics.h"
 #include <QTextStream>
 
-//TODO: implement UPD type detection
-//TODO: add optional visualization SEG file
 //TODO: also support chrX?
 
 class ConcreteTool
@@ -125,15 +123,15 @@ public:
 			THROW(ArgumentException, "Invalid source NONE!");
 		}
 
-		QByteArray typeAsString() const
+		double hetMarkerPercentage() const
 		{
-			int c_iso = 0;
+			int c_het = 0;
 			for (auto it=start; it<end; ++it)
 			{
-				if (it->type==ISO) ++c_iso;
+					bool het = it->c==HET;
+					c_het += het;
 			}
-
-			return c_iso>0 ? "ISO" : "ISO_OR_HET";
+			return 100.0 * c_het / sizeMarkers();
 		}
 
 		int sizeMarkers() const
@@ -186,26 +184,6 @@ public:
 		if (str=="0/0") return WT;
 
 		THROW(ArgumentException, "Invalid string '" + str + "' for conversion to genotype!");
-	}
-
-	static QByteArray geno2str(Genotype geno)
-	{
-		if (geno==HOM) return "HOM";
-		if (geno==HET) return "HET";
-		if (geno==WT) return "WT";
-
-		THROW(ArgumentException, "Invalid genotype for conversion to string!");
-	}
-
-	static QByteArray type2str(UpdType type)
-	{
-		if (type==EXCLUDED) return "EXCLUDED";
-		if (type==BIPARENTAL) return "BIPARENTAL";
-		if (type==UNINFORMATIVE) return "UNINFORMATIVE";
-		if (type==ISO) return "ISO";
-		if (type==ISO_OR_HET) return "ISO_OR_HET";
-
-		THROW(ArgumentException, "Invalid UPD type for conversion to string!");
 	}
 
 	QList<VariantData> loadVariants(QTextStream& stream)
@@ -453,7 +431,7 @@ public:
 		bool debug = getFlag("debug");
 
 		QSharedPointer<QFile> output = Helper::openFileForWriting(out);
-		output->write("#chr\tstart\tend\tsize_kb\tsize_markers\tupd_markers\tsource\ttype\tq-score\n");
+		output->write("#chr\tstart\tend\tsize_kb\tsize_markers\tupd_markers\tsource\thet_percentage\tq-score\n");
 		int c_passing  = 0;
 		foreach(const UpdRange& range, ranges)
 		{
@@ -468,7 +446,7 @@ public:
 						  + "\t" + QByteArray::number(range.sizeMarkers())
 						  + "\t" + QByteArray::number(upd_markers)
 						  + "\t" + range.sourceAsString()
-						  + "\t" + range.typeAsString()
+						  + "\t" + QByteArray::number(range.hetMarkerPercentage(), 'f', 2)
 						  + "\t" + QByteArray::number(q_score, 'f', 2)
 						  + "\n");
 
