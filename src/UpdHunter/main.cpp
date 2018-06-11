@@ -20,7 +20,7 @@ public:
 
     virtual void setup()
     {
-		setDescription("UPD detection for trio variant data.");
+		setDescription("UPD detection from trio variant data.");
 		addInfile("in", "Input VCF file of trio.", false, true);
 		addString("c", "Header name of child.", false);
 		addString("f", "Header name of father.", false);
@@ -33,13 +33,12 @@ public:
 		addFlag("var_use_indels", "Also use InDels. The default is to use SNVs only.");
 		addFloat("ext_marker_perc", "Percentage of markers that can be spanned when merging adjacent regions .", true, 1.0);
 		addFloat("ext_size_perc", "Percentage of base size that can be spanned when merging adjacent regions.", true, 20.0);
-		addFloat("reg_min_kb", "Mimimum size in kilo-bases required for a UPD region.",  true, 100.0);
-		addInt("reg_min_markers", "Mimimum number of UPD markers required in a region.",  true, 5);
+		addFloat("reg_min_kb", "Mimimum size in kilo-bases required for a UPD region.",  true, 1000.0);
+		addInt("reg_min_markers", "Mimimum number of UPD markers required in a region.",  true, 15);
 		addFloat("reg_min_q", "Mimimum Q-score required for a UPD region.",  true, 20.0);
-
 		addFlag("debug", "Enable verbose debug output.");
 
-		changeLog(2018,  6,  6, "Initial import.");
+		changeLog(2018,  6,  11, "First working version.");
 	}
 
 	enum Genotype
