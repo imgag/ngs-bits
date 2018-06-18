@@ -12,11 +12,12 @@ NGSD:
 ** model sample relation: same sample, parent-child, tumor-normal, siblings
   - use 'same sample' when counting variant frequencies
 ** annotate counts with same/different disease group/status separately
-** add CNVs and allow classification
+* add CNVs and allow classification
 
 GSvar:
-** Restart sample(s): Use steps/high_prio/etc from
-** Order of somatic SEG files: tumor, normal
+** Add notice if UPD was detected for trio
+** Restart sample(s): Use steps/high_prio/etc from previous analysis
+** Always use the same order for IGV files: tumor/normal (somatic) child/father/mother (trio)
 ** Sample info dock widget: no permanent NGSD connection!
 ** Report in english:
 * Gap report: avg depth for all/CCDS+-5 separately?
@@ -28,7 +29,7 @@ GSvar:
 - Make default filters configurable in INI file
 
 Tools:
-* SampleCorrelation: also implement IBD0, IDB2 and mendelian error scores (see Peddy paper) > use in trio pipeline?
+** SampleCorrelation: also implement IBD0, IDB2 and mendelian error scores (see Peddy paper) - exclude gonosomes by default
 * NGSDImportHPO: check that the genes listed for a variant are really affected - e.g. RIF1 is not affected by this variant but listed: clinvar_20171203.vcf:2  152346522       194453  G       A       .       .       AF_ESP=0.0020;AF_EXAC=0.00176;AF_TGP=0.0014;ALLELEID=191616;CLNDISDB=Human_Phenotype_Ontology:HP:0001324,MedGen:C0151786|Human_Phenotype_Ontology:HP:0003741,MedGen:CN003380|MedGen:CN169374|MedGen:CN239479;CLNDN=Muscle_weakness|Congenital_muscular_dystrophy|not_specified|Nemaline_Myopathy,_Recessive;CLNHGVS=NC_000002.11:g.152346522G>A;CLNREVSTAT=criteria_provided,_conflicting_interpretations;CLNSIG=Conflicting_interpretations_of_pathogenicity;CLNVC=single_nucleotide_variant;CLNVCSO=SO:0001483;CLNVI=Centre_for_Mendelian_Genomics,University_Medical_Centre_Ljubljana:CMGVARID00336,Illumina_Clinical_Services_Laboratory,Illumina:101100;GENEINFO=NEB:4703|RIF1:55183;MC=SO:0001583|missense_variant;ORIGIN=1;RS=78592085
 - SomaticQC: do not use precalculated triplet counts, count every time (CS)
 - SomaticQC: replace 'QC:?' by real qcML identifier (CS)
@@ -39,7 +40,8 @@ External:
 ** implement MultiQC support for ReadQC/MappingQC/VariantQC/SomaticQC (>JM)
 
 CnvHunter:
-* add optional parameter with pre-calculated correlation file (skip precalcualted pairs > avoid downsampling)
+** implement second pass to improve calling for samples with massive CN changes
+** add optional parameter with pre-calculated correlation file (skip precalcualted pairs > avoid downsampling)
 * Add z-score of #CNVs as QC parameter (megSAP!?)
 * Add support for chrY
 * test sqrt-normalization

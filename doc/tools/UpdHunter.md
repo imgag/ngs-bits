@@ -1,7 +1,7 @@
 ### UpdHunter tool help
 	UpdHunter (2018_04-66-g063753d)
 	
-	UPD detection for trio variant data.
+	UPD detection from trio variant data.
 	
 	Mandatory parameters:
 	  -in <file>               Input VCF file of trio.
