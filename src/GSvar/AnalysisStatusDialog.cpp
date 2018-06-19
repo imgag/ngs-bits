@@ -9,6 +9,7 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include <QMessageBox>
+#include <QMetaMethod>
 
 AnalysisStatusDialog::AnalysisStatusDialog(QWidget *parent)
 	: QDialog(parent)
@@ -27,9 +28,6 @@ AnalysisStatusDialog::AnalysisStatusDialog(QWidget *parent)
 	connect(ui_.analysisMulti, SIGNAL(clicked(bool)), this, SLOT(analyzeMultiSample()));
 	connect(ui_.analysisSomatic, SIGNAL(clicked(bool)), this, SLOT(analyzeSomatic()));
 	connect(ui_.copy_btn, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
-
-	//misc
-	refreshStatus();
 }
 
 void AnalysisStatusDialog::analyzeSingleSamples(QList<AnalysisJobSample> samples)
@@ -85,6 +83,8 @@ void AnalysisStatusDialog::analyzeSomatic(QList<AnalysisJobSample> samples)
 
 void AnalysisStatusDialog::refreshStatus()
 {
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+
 	//query job IDs
 	SqlQuery query = db_.getQuery();
 	query.exec("SELECT id FROM analysis_job ORDER BY ID DESC");
@@ -120,9 +120,13 @@ void AnalysisStatusDialog::refreshStatus()
 
 		//filter date
 		QDateTime f_date = QDateTime(ui_.f_date->date());
-		bool skip = true;
-		if (job.history.count()>0 && job.history[0].time>=f_date) skip = false;
-		if (skip) break; //jobs are ordered by date => no newer jobs can come => skip the rest
+		if (job.history.count()==0)
+		{
+			qDebug() << "No history for job " << job_id;
+			continue;
+		}
+
+		if (job.history[0].time<f_date) break; //jobs are ordered by date => no newer jobs can come => skip the rest
 
 		//get sample data
 		QList<ProcessedSampleData> ps_data;
@@ -224,6 +228,7 @@ void AnalysisStatusDialog::refreshStatus()
 	}
 
 	GUIHelper::resizeTableCells(ui_.analyses, 400);
+	QApplication::restoreOverrideCursor();
 }
 
 void AnalysisStatusDialog::showContextMenu(QPoint pos)
@@ -332,22 +337,18 @@ void AnalysisStatusDialog::showContextMenu(QPoint pos)
 	if (text=="Restart single sample analysis")
 	{
 		analyzeSingleSamples(samples);
-		refreshStatus();
 	}
 	if (text=="Restart multi-sample analysis")
 	{
 		analyzeMultiSample(samples);
-		refreshStatus();
 	}
 	if (text=="Restart trio analysis")
 	{
 		analyzeTrio(samples);
-		refreshStatus();
 	}
 	if (text=="Restart somatic analysis")
 	{
 		analyzeSomatic(samples);
-		refreshStatus();
 	}
 }
 

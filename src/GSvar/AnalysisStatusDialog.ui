@@ -95,43 +95,16 @@
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="refresh">
+      <widget class="QPushButton" name="refresh">
        <property name="toolTip">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Refresh analysis status taking filter options into account.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="text">
-        <string>...</string>
+        <string/>
        </property>
        <property name="icon">
         <iconset resource="GSvar.qrc">
          <normaloff>:/Icons/Refresh.png</normaloff>:/Icons/Refresh.png</iconset>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>16</width>
-         <height>16</height>
-        </size>
-       </property>
-       <property name="shortcut">
-        <string>F5</string>
-       </property>
-       <property name="checkable">
-        <bool>false</bool>
-       </property>
-       <property name="checked">
-        <bool>false</bool>
-       </property>
-       <property name="autoRepeat">
-        <bool>false</bool>
-       </property>
-       <property name="autoRepeatDelay">
-        <number>1</number>
-       </property>
-       <property name="autoRepeatInterval">
-        <number>10000</number>
-       </property>
-       <property name="popupMode">
-        <enum>QToolButton::DelayedPopup</enum>
        </property>
       </widget>
      </item>
@@ -472,7 +445,7 @@
  <connections>
   <connection>
    <sender>f_text</sender>
-   <signal>editingFinished()</signal>
+   <signal>returnPressed()</signal>
    <receiver>refresh</receiver>
    <slot>animateClick()</slot>
    <hints>
@@ -481,8 +454,8 @@
      <y>14</y>
     </hint>
     <hint type="destinationlabel">
-     <x>466</x>
-     <y>14</y>
+     <x>451</x>
+     <y>18</y>
     </hint>
    </hints>
   </connection>
@@ -493,12 +466,12 @@
    <slot>animateClick()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>439</x>
-     <y>14</y>
+     <x>299</x>
+     <y>21</y>
     </hint>
     <hint type="destinationlabel">
-     <x>581</x>
-     <y>14</y>
+     <x>451</x>
+     <y>18</y>
     </hint>
    </hints>
   </connection>
@@ -509,12 +482,12 @@
    <slot>animateClick()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>524</x>
-     <y>14</y>
+     <x>418</x>
+     <y>20</y>
     </hint>
     <hint type="destinationlabel">
-     <x>581</x>
-     <y>14</y>
+     <x>451</x>
+     <y>18</y>
     </hint>
    </hints>
   </connection>

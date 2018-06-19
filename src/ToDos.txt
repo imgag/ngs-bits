@@ -18,7 +18,7 @@ GSvar:
 ** Add notice if UPD was detected for trio
 ** Restart sample(s): Use steps/high_prio/etc from previous analysis
 ** Always use the same order for IGV files: tumor/normal (somatic) child/father/mother (trio)
-** Sample info dock widget: no permanent NGSD connection!
+** Sample info dock widget, analysis job window: no permanent NGSD connection!
 ** Report in english:
 * Gap report: avg depth for all/CCDS+-5 separately?
 * Add pLI score (megSAP) and filter for pLI (GSvar) to CNVs
