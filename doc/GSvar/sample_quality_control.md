@@ -1,6 +1,6 @@
 ## Sample quality control
 
-### Acessing quality by NGS QC metrics
+### Assessing quality by NGS QC metrics
 
 The sample details dock widget shows the main quality metrics from the NGSD:
 
@@ -34,14 +34,14 @@ The sample gender can be easily checked from GSvar:
 For exomes and panels that contain the SRY gene, please use the method based on the SRY gene.  
 If you are not sure if your panel contains the SRY gene, you can check the target region using IGV.  
 
-### Checking sample correlation
+### Checking sample similarity
 
 If you have related samples and want to check how similar they are, you can do this from GSvar as well:
 
 ![alt text](qc_sample_correlation1.png)
 
 The method based on the GSvar file is faster and should be used for most cases.  
-SampleCorrelation calculates two metrics that express how related two samples are:
+SampleSimilarity calculates several metrics that measure how similar two samples are:
 
  * overlap: Percentage of variants that occur in both samples (not considering the genotype).
  * correlation: Correlation of the genotypes based on overlapping variants.

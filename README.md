@@ -30,7 +30,7 @@ _ngs-bits_ contains a lot of tools that are used for NGS-based diagnostics in ou
 ### Main tools
 
 * [SeqPurge](doc/tools/SeqPurge/index.md) - A highly-sensitive adapter trimmer for paired-end short-read data.
-* [SampleCorrelation](doc/tools/SampleCorrelation/index.md) - Calculates the variant overlap and correlation of two VCF/BAM files.
+* [SampleSimilarity](doc/tools/SampleSimilarity/index.md) - Calculates pairwise sample similarity metrics from VCF/BAM files.
 * [SampleGender](doc/tools/SampleGender.md) - Determines sample gender based on a BAM file.
 * [CnvHunter](doc/tools/CnvHunter/index.md) - CNV detection from targeted resequencing data using non-matched control samples.
 * [RohHunter](doc/tools/RohHunter.md) - ROH detection based on a variant list annotated with AF values.
@@ -103,6 +103,7 @@ Installation instructions for the NGSD can be found [here](doc/install_ngsd.md).
 
 * [PERsim](doc/tools/PERsim.md) - Paired-end read simulator for Illumina reads.
 * [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file.
+
 
 
 

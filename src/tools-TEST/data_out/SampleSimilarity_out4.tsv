@@ -1,0 +1,2 @@
+#file1	file2	overlap_percent	correlation	ibs2_percent	count1	count2	comments
+SampleSimilarity_in6.vcf.gz	SampleSimilarity_in7.vcf.gz	91.19	0.9860	38.36	329	159	

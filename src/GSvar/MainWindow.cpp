@@ -1194,15 +1194,15 @@ void MainWindow::on_actionStatisticsBED_triggered()
 	dialog.exec();
 }
 
-void MainWindow::on_actionSampleCorrelationTSV_triggered()
+void MainWindow::on_actionSampleSimilarityTSV_triggered()
 {
-	ExternalToolDialog dialog("Sample correlation", "variant list", this);
+	ExternalToolDialog dialog("Sample similarity", "variant list", this);
 	dialog.exec();
 }
 
-void MainWindow::on_actionSampleCorrelationBAM_triggered()
+void MainWindow::on_actionSampleSimilarityBAM_triggered()
 {
-	ExternalToolDialog dialog("Sample correlation", "bam", this);
+	ExternalToolDialog dialog("Sample similarity", "bam", this);
 	dialog.exec();
 }
 

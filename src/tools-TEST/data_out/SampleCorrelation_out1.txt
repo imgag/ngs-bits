@@ -1,4 +1,0 @@
-#file1	file2	overlap_percent	overlap_correlation	count1	count2	comments
-SampleCorrelation_in1.tsv	SampleCorrelation_in2.tsv	95.90	0.9892	4346	4361	
-SampleCorrelation_in1.tsv	SampleCorrelation_in3.tsv	65.28	0.4097	4346	4553	
-SampleCorrelation_in2.tsv	SampleCorrelation_in3.tsv	64.99	0.4062	4361	4553	

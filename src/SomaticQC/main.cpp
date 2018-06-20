@@ -3,7 +3,6 @@
 #include "Helper.h"
 #include "Statistics.h"
 #include "Exceptions.h"
-#include "SampleCorrelation.h"
 #include <QFileInfo>
 #include <QDir>
 #include "Settings.h"

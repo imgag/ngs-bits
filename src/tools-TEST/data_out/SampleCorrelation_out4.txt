@@ -1,2 +1,0 @@
-#file1	file2	overlap_percent	overlap_correlation	count1	count2	comments
-SampleCorrelation_in6.vcf.gz	SampleCorrelation_in7.vcf.gz	91.19	0.9860	329	159	

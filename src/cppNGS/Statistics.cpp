@@ -14,7 +14,7 @@
 #include "ScatterPlot.h"
 #include "BarPlot.h"
 #include "Helper.h"
-#include "SampleCorrelation.h"
+#include "SampleSimilarity.h"
 #include <QFileInfo>
 #include <QPair>
 #include "Histogram.h"
@@ -743,9 +743,9 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	QCCollection output;
 
 	//sample correlation
-	SampleCorrelation sc;
-	sc.calculateFromBam(tumor_bam,normal_bam, 30, 500, target_file);
-	output.insert(QCValue("sample correlation", ( sc.totalVariants()==0 ? "n/a (too few variants)" : QString::number(sc.sampleCorrelation(),'f',2) ), "SNP-based sample correlation of tumor / normal.", "QC:2000040"));
+	SampleSimilarity sc;
+	sc.calculateFromBam(tumor_bam, normal_bam, 30, 500, true, target_file);
+	output.insert(QCValue("sample correlation", ( sc.noVariants1()==0 ? "n/a (too few variants)" : QString::number(sc.sampleCorrelation(),'f',2) ), "SNP-based sample correlation of tumor / normal.", "QC:2000040"));
 
 	//variants
 	VariantList variants;

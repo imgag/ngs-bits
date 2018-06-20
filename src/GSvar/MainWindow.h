@@ -95,9 +95,9 @@ public slots:
 	///Copy to clipboard and split quality column
 	void on_actionCopySplit_triggered();
 	///Sample correlation BAM
-	void on_actionSampleCorrelationBAM_triggered();
+	void on_actionSampleSimilarityBAM_triggered();
 	///Sample correlation TSV
-	void on_actionSampleCorrelationTSV_triggered();
+	void on_actionSampleSimilarityTSV_triggered();
 	///Sample analysis status
 	void on_actionAnalysisStatus_triggered();
 	///Lookup gaps in low-coverage BED file

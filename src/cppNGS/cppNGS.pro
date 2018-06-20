@@ -48,7 +48,7 @@ SOURCES += BedFile.cpp \
     StatisticsReads.cpp \
     BamReader.cpp \
     BamWriter.cpp \
-    SampleCorrelation.cpp \
+    SampleSimilarity.cpp \
     CnvList.cpp \
     Phenotype.cpp \
     Transcript.cpp \
@@ -75,7 +75,7 @@ HEADERS += BedFile.h \
     Sequence.h \
     BamReader.h \
     BamWriter.h \
-    SampleCorrelation.h \
+    SampleSimilarity.h \
     CnvList.h \
     Phenotype.h \
     Transcript.h \

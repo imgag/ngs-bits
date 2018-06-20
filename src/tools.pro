@@ -89,9 +89,9 @@ SUBDIRS += FastaInfo
 tools-TEST.depends += FastaInfo
 FastaInfo.depends = cppNGS
 
-SUBDIRS += SampleCorrelation
-tools-TEST.depends += SampleCorrelation
-SampleCorrelation.depends = cppNGS
+SUBDIRS += SampleSimilarity
+tools-TEST.depends += SampleSimilarity
+SampleSimilarity.depends = cppNGS
 
 SUBDIRS += SampleDiff
 tools-TEST.depends += SampleDiff

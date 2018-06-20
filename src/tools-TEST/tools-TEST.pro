@@ -42,7 +42,7 @@ HEADERS += \
     SampleGender_Test.h \
     FastaInfo_Test.h \
     BedIntersect_Test.h \
-    SampleCorrelation_Test.h \
+    SampleSimilarity_Test.h \
     SampleDiff_Test.h \
     GenesToApproved_Test.h \
     BedAnnotateFreq_Test.h \

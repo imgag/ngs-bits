@@ -1,0 +1,4 @@
+#file1	file2	overlap_percent	correlation	ibs2_percent	count1	count2	comments
+SampleSimilarity_in1.GSvar	SampleSimilarity_in2.GSvar	95.90	0.9892	40.13	4346	4361	
+SampleSimilarity_in1.GSvar	SampleSimilarity_in3.GSvar	65.28	0.4097	25.68	4346	4565	
+SampleSimilarity_in2.GSvar	SampleSimilarity_in3.GSvar	64.99	0.4062	25.52	4361	4565	

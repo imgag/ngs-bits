@@ -17,7 +17,7 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="GSvar.qrc">
+   <iconset resource="../GSmix/GSmix.qrc">
     <normaloff>:/Icons/Icon.png</normaloff>:/Icons/Icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -120,10 +120,10 @@
     </widget>
     <widget class="QMenu" name="menuSample_correlation">
      <property name="title">
-      <string>Sample correlation</string>
+      <string>Sample similarity</string>
      </property>
-     <addaction name="actionSampleCorrelationTSV"/>
-     <addaction name="actionSampleCorrelationBAM"/>
+     <addaction name="actionSampleSimilarityTSV"/>
+     <addaction name="actionSampleSimilarityBAM"/>
     </widget>
     <widget class="QMenu" name="menuGenes">
      <property name="title">
@@ -325,19 +325,19 @@
     <string>Sample difference</string>
    </property>
   </action>
-  <action name="actionSampleCorrelationTSV">
+  <action name="actionSampleSimilarityTSV">
    <property name="text">
     <string>based on variant lists</string>
    </property>
   </action>
-  <action name="actionSampleCorrelationBAM">
+  <action name="actionSampleSimilarityBAM">
    <property name="text">
     <string>based on BAM files</string>
    </property>
   </action>
   <action name="actionNGSD">
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset resource="../GSmix/GSmix.qrc">
      <normaloff>:/Icons/NGSD.png</normaloff>:/Icons/NGSD.png</iconset>
    </property>
    <property name="text">
@@ -677,6 +677,7 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
+  <include location="../GSmix/GSmix.qrc"/>
   <include location="GSvar.qrc"/>
  </resources>
  <connections/>

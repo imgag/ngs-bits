@@ -6,7 +6,7 @@
 #include "QCCollection.h"
 #include "QFileDialog"
 #include "Statistics.h"
-#include "SampleCorrelation.h"
+#include "SampleSimilarity.h"
 
 ExternalToolDialog::ExternalToolDialog(QString tool_name, QString mode, QWidget *parent)
 	: QDialog(parent)
@@ -28,7 +28,6 @@ void ExternalToolDialog::browse()
 {
 	ui_.output->clear();
 
-	QApplication::setOverrideCursor(Qt::BusyCursor);
 
 	QString output;
 	QTextStream stream(&output);
@@ -39,9 +38,11 @@ void ExternalToolDialog::browse()
 		if (filename=="") return;
 
 		//process
+		QApplication::setOverrideCursor(Qt::BusyCursor);
 		BedFile file;
 		file.load(filename);
 		QCCollection stats = Statistics::region(file, true);
+		QApplication::restoreOverrideCursor();
 
 		//output
 		stream << "Regions: " << stats.value("roi_fragments").toString() << endl;
@@ -62,6 +63,8 @@ void ExternalToolDialog::browse()
 		if (filename=="") return;
 
 		//process
+		QApplication::setOverrideCursor(Qt::BusyCursor);
+
 		QString gender;
 		QStringList debug_output;
 		if (mode_=="xy")
@@ -76,6 +79,7 @@ void ExternalToolDialog::browse()
 		{
 			gender = Statistics::genderSRY(filename, debug_output);
 		}
+		QApplication::restoreOverrideCursor();
 
 		//output
 		foreach(const QString& line, debug_output)
@@ -86,7 +90,7 @@ void ExternalToolDialog::browse()
 		stream << "gender: " << gender << endl;
 
 	}
-	else if (tool_name_ == "Sample correlation")
+	else if (tool_name_ == "Sample similarity")
 	{
 		QString header = (mode_=="bam") ? "Select BAM file" : "Select variant list";
 		QString filter = (mode_=="bam") ? "BAM files (*.bam)" : "GSvar files (*.GSvar);;VCF files (*.VCF);;VCF.GZ files (*.VCF.GZ)";
@@ -96,24 +100,26 @@ void ExternalToolDialog::browse()
 		if (filename2=="") return;
 
 		//process
+		QApplication::setOverrideCursor(Qt::BusyCursor);
 		if (mode_=="bam")
 		{
-			SampleCorrelation sc;
-			sc.calculateFromBam(filename1, filename2, 30, 500);
+			SampleSimilarity sc;
+			sc.calculateFromBam(filename1, filename2, 30, 500, false);
 
 			stream << "Variants used: " << QString::number(sc.noVariants1()) << endl;
 			stream << "Correlation: " << QString::number(sc.sampleCorrelation(), 'f', 4) << endl;
 		}
 		else
 		{
-			SampleCorrelation sc;
-			sc.calculateFromVcf(filename1, filename2, 100);
+			SampleSimilarity sc;
+			sc.calculateFromVcf(filename1, filename2, 100, false);
 
 			stream << "Variants file1: " << QString::number(sc.noVariants1()) << endl;
 			stream << "Variants file2: " << QString::number(sc.noVariants2()) << endl;
 			stream << "Overlap percentage: " << QString::number(sc.olPerc(), 'f', 2) << endl;
 			stream << "Correlation: " << QString::number(sc.sampleCorrelation(), 'f', 4) << endl;
 		}
+		QApplication::restoreOverrideCursor();
 	}
 	else
 	{
@@ -121,7 +127,6 @@ void ExternalToolDialog::browse()
 	}
 
 	ui_.output->setPlainText(output);
-	QApplication::restoreOverrideCursor();
 }
 
 QString ExternalToolDialog::getFileName(QString title, QString filters)
