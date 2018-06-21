@@ -118,6 +118,9 @@ doc_find_missing_tools:
 	grep "doc/tools/" README.md | tr "]" "[" | cut -f2 -d[ | sort > /tmp/tools_linked.txt
 	diff /tmp/tools.txt /tmp/tools_linked.txt | grep "<" | cut -f2 -d' '
 
+find_text:
+	find src/ doc/ tools/ -name "*.md" -or -name "*.cpp" -or -name "*.h" -or -name "*.sql" -or -name "*.pro" -or -name "*.pri" | xargs -l100000 grep $(T) 
+	
 dummy:
 
 #################################### 3rd party  ##################################

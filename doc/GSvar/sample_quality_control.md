@@ -43,10 +43,12 @@ If you have related samples and want to check how similar they are, you can do t
 The method based on the GSvar file is faster and should be used for most cases.  
 SampleSimilarity calculates several metrics that measure how similar two samples are:
 
- * overlap: Percentage of variants that occur in both samples (not considering the genotype).
- * correlation: Correlation of the genotypes based on overlapping variants.
+ * overlap: Percentage of variants that occur in both samples - not considering the genotype (only in VCF mode).
+ * correlation: Correlation of variant genotypes.
+ * ibd0: Percentage of variants with zero IBD, e.g. AA and CC (only in BAM mode).
+ * ibd2: Percentage of variants with complete IBD, e.g. AA and AA.
 
-Absolute cutoffs values for for same sample, parent-child pairs etc. do not exist, since they depend on the enrichment kit that was used.  
+Absolute cutoffs values for for same sample, parent-child pairs etc. do not exist, since they depend on ehtnicity, enrichment kit, etc.   
 Example data for exome data (Agilent SureSelect Human All Exon V6) are shown here:
 
 ![alt text](qc_sample_correlation_ssHAEv6.png)
@@ -59,6 +61,7 @@ Example data for exome data (Agilent SureSelect Human All Exon V6) are shown her
 --
 
 [back to main page](index.md)
+
 
 
 
