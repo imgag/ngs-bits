@@ -14,6 +14,12 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 ## ChangeLog
 
+Release 2018_06:
+
+* SampleCorrelation: added new metrics and renamed to SampleSimilarity.
+* Added tools: UpdHunter, NGSDExportGenes, BamHighCoverage.
+* Removed tool: VcfLeftAlign.
+
 Release 2018_04:
 
 * Changed library used for BAM access to htslib (was bamtools).
@@ -98,6 +104,7 @@ Installation instructions for the NGSD can be found [here](doc/install_ngsd.md).
 * [BedGeneOverlap](doc/tools/BedGeneOverlap.md) - Calculates how much of each overlapping gene is covered.
 * [GenesToApproved](doc/tools/GenesToApproved.md) - Replaces gene symbols by approved symbols using the HGNC database.
 * [GenesToBed](doc/tools/GenesToBed.md) - Converts a text file with gene names to a BED file.
+* [NGSDExportGenes](doc/tools/NGSDExportGenes.md) - Lists genes from NGSD.
 
 ### Other tools
 

@@ -46,7 +46,7 @@ For each CNV the following properties are shown (3):
 * region count
 * copy-number state (one per region)
 * z-score (one per region)
-* frequency (one per region)
+* frequency in the analyzed dataset independent of the copy-number state (one per region)
 
 Additionally, generic annotation columns can be added (4), e.g.:
 
@@ -82,6 +82,7 @@ Then, it is clear that in this case there is a tandem duplication of the region 
 --
 
 [back to main page](index.md)
+
 
 
 
