@@ -107,6 +107,9 @@ void CnvWidget::loadCNVs(QString filename)
 		addInfoLine(comment);
 	}
 
+	//disable line breaks
+	ui->cnvs->setWordWrap(false);
+
 	//add generic annotations
 	QVector<int> annotation_indices;
 	for(int i=0; i<cnvs.annotationHeaders().count(); ++i)

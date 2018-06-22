@@ -1135,10 +1135,6 @@ ReportHelper::ReportHelper(QString snv_filename, const CnvList& filtered_cnvs, Q
 	//get cancer type which was used for CGI analysis and text for ICD10-diagnosis
 	for(int i=0; i<snv_variants_.comments().count(); ++i)
 	{
-		if(snv_variants_.comments().at(i).contains("CGI_ICD10_TEXT"))
-		{
-			icd10_diagnosis_text_ = snv_variants_.comments().at(i).split('=')[1];
-		}
 		if(snv_variants_.comments().at(i).contains("CGI_CANCER_TYPE"))
 		{
 			cgi_cancer_type_ = snv_variants_.comments().at(i).split('=')[1];
@@ -1148,11 +1144,6 @@ ReportHelper::ReportHelper(QString snv_filename, const CnvList& filtered_cnvs, Q
 	if(cgi_cancer_type_.isEmpty())
 	{
 		cgi_cancer_type_ = "empty";
-	}
-
-	if(icd10_diagnosis_text_.isEmpty())
-	{
-		icd10_diagnosis_text_ = "empty";
 	}
 
 	//assign columns indices for SNV file
@@ -2168,8 +2159,6 @@ void ReportHelper::writeRtf(const QString& out_file)
 	stream << begin_table_cell << "Tumoranteil histol./molekular:\\cell" << begin_table_cell << histol_tumor_fraction_ << "\%";
 	stream << " / "<< tumor_molecular_proportion <<"\%\\cell\\row}" << endl;
 
-	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "Diagnose:\\cell" << begin_table_cell << icd10_diagnosis_text_ << " (ICD10: "<< icd10_diagnosis_code_ << ")" << "\\cell\\row}" << endl;
 	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
 	stream << begin_table_cell << "CGI-Tumortyp:\\cell" << begin_table_cell << cgi_cancer_type_ << "\\cell\\row}" << endl;
 	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
