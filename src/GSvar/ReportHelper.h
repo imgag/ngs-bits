@@ -282,7 +282,6 @@ private:
 	QString cgi_cancer_type_;
 
 	///ICD10 text diagnosis tumor
-	QString icd10_diagnosis_text_;
 	QString icd10_diagnosis_code_;
 	///tumor fraction according genlab
 	QString histol_tumor_fraction_;
