@@ -4,6 +4,7 @@
 #include "VariantList.h"
 #include "BasicStatistics.h"
 #include <QTextStream>
+#include <cmath>
 
 //TODO: also support chrX?
 
@@ -165,7 +166,7 @@ public:
 			double p_n_upd = c_upd<2 ? 1.0 : BasicStatistics::matchProbability(p_upd, c_upd-1, markers-1);
 
 			//calculate overall likelyhood
-			return -10.0 * std::log10(p_no_bip * p_n_upd);
+			return -10.0 * log10(p_no_bip * p_n_upd);
 		}
 
 		QByteArray toString() const

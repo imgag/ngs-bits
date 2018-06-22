@@ -14,15 +14,13 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 ## ChangeLog
 
-Release 2018_06:
+Changes in release 2018_06:
 
 * SampleCorrelation: added new metrics and renamed to SampleSimilarity.
 * Added tools: UpdHunter, NGSDExportGenes, BamHighCoverage.
 * Removed tool: VcfLeftAlign.
 
-Release 2018_04:
-
-* Changed library used for BAM access to htslib (was bamtools).
+For older releases see the [releases page](https://github.com/imgag/ngs-bits/releases).
 
 ## Support
 
@@ -110,6 +108,7 @@ Installation instructions for the NGSD can be found [here](doc/install_ngsd.md).
 
 * [PERsim](doc/tools/PERsim.md) - Paired-end read simulator for Illumina reads.
 * [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file.
+
 
 
 

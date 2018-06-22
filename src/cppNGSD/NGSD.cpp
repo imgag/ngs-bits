@@ -8,6 +8,7 @@
 #include "VariantFilter.h"
 #include <QFileInfo>
 #include <QPair>
+#include "cmath"
 
 NGSD::NGSD(bool test_db)
 	: test_db_(test_db)
