@@ -3,6 +3,7 @@
 #include "GUIHelper.h"
 #include <QDebug>
 #include <QMenu>
+#include "cmath"
 
 SomaticReportConfiguration::SomaticReportConfiguration(const CnvList& cnv_input,GeneSet keep_genes,QWidget *parent) :
 	QDialog(parent)

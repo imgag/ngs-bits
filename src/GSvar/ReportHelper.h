@@ -40,14 +40,14 @@ public:
 	CGIDrugReportLine();
 
 	///two CGI lines are equal if the gene, drug, tumor entity and effect are equal
-	bool operator==(const CGIDrugReportLine& rhs)
+	bool operator==(const CGIDrugReportLine& rhs) const
 	{
 		if(this->drug() != rhs.drug() && this->entity() != rhs.entity() && this->effect() != rhs.effect() && this->gene() != rhs.gene()) return false;
 		return true;
 	}
 
 	/// entitites are compared according gene name
-	bool operator<(const CGIDrugReportLine& rhs)
+	bool operator<(const CGIDrugReportLine& rhs) const
 	{
 		if(QString::compare(gene_,rhs.gene(),Qt::CaseInsensitive) < 0) return true;
 		return false;
