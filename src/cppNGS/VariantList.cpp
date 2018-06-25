@@ -727,7 +727,21 @@ void VariantList::loadFromVCFGZ(QString filename, ChromosomalIndex<BedFile>* roi
 	char* buffer = new char[131072];
 	while(!gzeof(file))
 	{
-		processVcfLine(header_fields, line_number, QByteArray(gzgets(file, buffer, 131072)), roi_idx, invert);
+
+		char* read_line = gzgets(file, buffer, 131072);
+
+		//handle errors like truncated GZ file
+		if (read_line==nullptr)
+		{
+			int error_no = Z_OK;
+			QByteArray error_message = gzerror(file, &error_no);
+			if (error_no!=Z_OK && error_no!=Z_STREAM_END)
+			{
+				THROW(FileParseException, "Error while reading file '" + filename + "': " + error_message);
+			}
+		}
+
+		processVcfLine(header_fields, line_number, QByteArray(read_line), roi_idx, invert);
 	}
 	gzclose(file);
 	delete[] buffer;

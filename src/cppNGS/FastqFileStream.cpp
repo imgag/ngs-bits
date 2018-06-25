@@ -119,7 +119,7 @@ FastqFileStream::FastqFileStream(QString filename, bool auto_validate)
     gzfile_ = gzopen(filename.toLatin1().data(), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
     if (gzfile_ == NULL)
     {
-        THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
+		THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
     }
 	buffer_ = new char[1024];
 }
@@ -138,11 +138,22 @@ void FastqFileStream::readEntry(FastqEntry& entry)
 		last_output_ = gzgets(gzfile_, buffer_, 1024);
         is_first_entry_ = false;
     }
-    if (last_output_==NULL)
-    {
-		entry.clear();
-		return;
-    }
+
+	//handle errors like truncated GZ file
+	if (last_output_==nullptr)
+	{
+		int error_no = Z_OK;
+		QByteArray error_message = gzerror(gzfile_, &error_no);
+		if (error_no==Z_OK || error_no==Z_STREAM_END)
+		{
+			entry.clear();
+			return;
+		}
+		else
+		{
+			THROW(FileParseException, "Error while reading file '" + filename_ + "': " + error_message);
+		}
+	}
 
 	//read data
 	extractLine(entry.header);

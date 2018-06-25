@@ -63,6 +63,7 @@ public:
     }
 
 protected:
+	QString filename_;
 	gzFile gzfile_;
 	char* buffer_;
     bool is_first_entry_;
