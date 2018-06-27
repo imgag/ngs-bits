@@ -2190,6 +2190,15 @@ void ReportHelper::writeRtf(const QString& out_file)
 	stream << endl << "\\pard\\par" << endl;
 	stream << "\\page" << endl;
 
+
+	widths.clear();
+	widths << 1000 << 1500 << 2700 << 5000 << 6000 << 7000 << max_table_width;
+	stream << "{\\pard\\sa45\\sb45\\fs18\\b Medikamente mit CGI-Annotation\\par}" << endl;
+
+	ReportHelper::writeRtfCGIDrugTable(stream,widths);
+
+	stream << "\\page" << endl;
+
 	/****************
 	 * EXPLANATIONS *
 	 ***************/
@@ -2197,7 +2206,7 @@ void ReportHelper::writeRtf(const QString& out_file)
 	widths << 1500 << max_table_width;
 
 	stream << "{\\pard\\par}" << endl;
-	stream << "{\\pard\\b\\sa45\\sb45\\ Erl\\u228;uterungen zu den Varianten-Tabellen\\par}" << endl;
+	stream << "{\\pard\\b\\sa45\\sb45\\ Erl\\u228;uterungen zu den Tabellen\\par}" << endl;
 
 	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
 	stream << begin_table_cell << "\\fs18 SNV-Tabelle:" << "\\cell";
@@ -2244,15 +2253,6 @@ void ReportHelper::writeRtf(const QString& out_file)
 
 	stream << "\\page" << endl;
 
-
-	widths.clear();
-	widths << 1000 << 1500 << 2700 << 5000 << 6000 << 7000 << max_table_width;
-	stream << "{\\pard\\sa45\\sb45\\fs18\\b Medikamente mit CGI-Annotation\\par}" << endl;
-
-	ReportHelper::writeRtfCGIDrugTable(stream,widths);
-
-
-	stream << "\\page" << endl;
 	stream << "{\\pard\\b\\sa45\\sb45\\ Liste der im Panel enthaltenen Gene\\par}" << endl;
 
 	QString target_bed_file = db_.getProcessingSystemData(db_.processedSampleId(tumor_id_),true).target_file;
