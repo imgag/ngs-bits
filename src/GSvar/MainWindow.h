@@ -98,6 +98,8 @@ public slots:
 	void on_actionSampleSimilarityBAM_triggered();
 	///Sample correlation TSV
 	void on_actionSampleSimilarityTSV_triggered();
+	///Sample ancestry
+	void on_actionSampleAncestry_triggered();
 	///Sample analysis status
 	void on_actionAnalysisStatus_triggered();
 	///Lookup gaps in low-coverage BED file

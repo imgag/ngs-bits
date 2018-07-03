@@ -550,6 +550,9 @@
         <property name="gridStyle">
          <enum>Qt::SolidLine</enum>
         </property>
+        <property name="wordWrap">
+         <bool>false</bool>
+        </property>
         <attribute name="verticalHeaderVisible">
          <bool>false</bool>
         </attribute>

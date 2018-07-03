@@ -1206,6 +1206,12 @@ void MainWindow::on_actionSampleSimilarityBAM_triggered()
 	dialog.exec();
 }
 
+void MainWindow::on_actionSampleAncestry_triggered()
+{
+	ExternalToolDialog dialog("Sample ancestry", "", this);
+	dialog.exec();
+}
+
 void MainWindow::on_actionAnalysisStatus_triggered()
 {
 	auto dlg = new AnalysisStatusDialog(this);

@@ -12,7 +12,7 @@
 	                           Default value: ''
 	  -var_min_dp <int>        Minimum variant depth ('DP'). Variants with lower depth are excluded from the analysis.
 	                           Default value: '20'
-	  -var_min_q <float>       Minimum variant quality. Variants with lower depth are excluded from the analysis.
+	  -var_min_q <float>       Minimum variant quality. Variants with lower quality are excluded from the analysis.
 	                           Default value: '30'
 	  -var_af_keys <string>    Annotation keys of allele frequency values (comma-separated).
 	                           Default value: 'GNOMAD_AF,T1000GP_AF,EXAC_AF'

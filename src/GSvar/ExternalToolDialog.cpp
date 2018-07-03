@@ -93,7 +93,7 @@ void ExternalToolDialog::browse()
 	else if (tool_name_ == "Sample similarity")
 	{
 		QString header = (mode_=="bam") ? "Select BAM file" : "Select variant list";
-		QString filter = (mode_=="bam") ? "BAM files (*.bam)" : "GSvar files (*.GSvar);;VCF files (*.VCF);;VCF.GZ files (*.VCF.GZ)";
+		QString filter = (mode_=="bam") ? "BAM files (*.bam)" : "GSvar files (*.GSvar);;VCF files (*.VCF *.VCF.GZ)";
 		QString filename1 = getFileName(header , filter);
 		if (filename1=="") return;
 		QString filename2 = getFileName(header , filter);
@@ -119,6 +119,27 @@ void ExternalToolDialog::browse()
 			stream << "Overlap percentage: " << QString::number(sc.olPerc(), 'f', 2) << endl;
 			stream << "Correlation: " << QString::number(sc.sampleCorrelation(), 'f', 4) << endl;
 		}
+		QApplication::restoreOverrideCursor();
+	}
+	else if (tool_name_ == "Sample ancestry")
+	{
+		QString filename = getFileName("Select VCF file" , "VCF files (*.VCF *.VCF.GZ)");
+		if (filename=="") return;
+
+		//process
+		QApplication::setOverrideCursor(Qt::BusyCursor);
+		VariantList vl;
+		vl.load(filename);
+		SampleAncestry ancestry = Statistics::ancestry(vl);
+
+		stream << "Informative SNPs: " << QString::number(ancestry.snps) << endl;
+		stream << endl;
+		stream << "Correlation AFR: " << QString::number(ancestry.afr, 'f', 4) << endl;
+		stream << "Correlation EUR: " << QString::number(ancestry.eur, 'f', 4) << endl;
+		stream << "Correlation SAS: " << QString::number(ancestry.sas, 'f', 4) << endl;
+		stream << "Correlation EAS: " << QString::number(ancestry.eas, 'f', 4) << endl;
+		stream << endl;
+		stream << "Population: " << ancestry.population << endl;
 		QApplication::restoreOverrideCursor();
 	}
 	else

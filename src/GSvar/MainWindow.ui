@@ -17,7 +17,7 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../GSmix/GSmix.qrc">
+   <iconset resource="GSvar.qrc">
     <normaloff>:/Icons/Icon.png</normaloff>:/Icons/Icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -163,6 +163,7 @@
     <addaction name="menuFileInfo"/>
     <addaction name="menuDetermine_gender"/>
     <addaction name="menuSample_correlation"/>
+    <addaction name="actionSampleAncestry"/>
    </widget>
    <widget class="QMenu" name="menuIGV">
     <property name="title">
@@ -337,7 +338,7 @@
   </action>
   <action name="actionNGSD">
    <property name="icon">
-    <iconset resource="../GSmix/GSmix.qrc">
+    <iconset resource="GSvar.qrc">
      <normaloff>:/Icons/NGSD.png</normaloff>:/Icons/NGSD.png</iconset>
    </property>
    <property name="text">
@@ -674,10 +675,14 @@
     <string>Sample analysis status and queuing.</string>
    </property>
   </action>
+  <action name="actionSampleAncestry">
+   <property name="text">
+    <string>Sample ancestry</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="../GSmix/GSmix.qrc"/>
   <include location="GSvar.qrc"/>
  </resources>
  <connections/>

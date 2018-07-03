@@ -10,7 +10,7 @@ ngs-bits depends on the following software to be installed
 * _git_ (to extract the version hash)
 * __optional:__ python and matplotlib (for plot generation in QC tools)
 
-For example, the installation of the dependencies using Ubuntu 14.04/16.04 looks like that:
+For example, the installation of the dependencies using Ubuntu 16.04/18.04 looks like that:
 
 	> sudo apt-get install make g++ qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql git python python-matplotlib libbz2-dev liblzma-dev
 
@@ -47,4 +47,5 @@ Just execute the following make commands:
 ## Executing
 
 Now the executables and all required libraries can be found in the `bin` folder.
+
 

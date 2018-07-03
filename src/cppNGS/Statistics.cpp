@@ -1493,6 +1493,85 @@ QCCollection Statistics::contamination(QString bam, bool debug, int min_cov, int
 	return output;
 }
 
+SampleAncestry Statistics::ancestry(const VariantList& vl, int min_snp, double min_pop_dist)
+{
+	//determine required annotation indices
+	int i_gt = vl.annotationIndexByName("GT");
+
+	//load ancestry-informative SNP list
+	VariantList af;
+	af.load(":/Resources/GRCh37_ancestry.vcf", VariantList::VCF);
+	ChromosomalIndex<VariantList> af_idx(af);
+	int i2_afr = af.annotationIndexByName("AF_AFR");
+	int i2_eur = af.annotationIndexByName("AF_EUR");
+	int i2_sas = af.annotationIndexByName("AF_SAS");
+	int i2_eas = af.annotationIndexByName("AF_EAS");
+
+	//process variants
+	QVector<double> geno_sample;
+	QVector<double> af_afr;
+	QVector<double> af_eur;
+	QVector<double> af_sas;
+	QVector<double> af_eas;
+	for(int i=0; i<vl.count(); ++i)
+	{
+		const Variant& v = vl[i];
+
+		//skip non-informative SNPs
+		int index = af_idx.matchingIndex(v.chr(), v.start(), v.end());
+		if (index==-1) continue;
+		const Variant& v2 = af[index];
+		if (v.ref()!=v2.ref() || v.obs()!=v2.obs()) continue;
+
+		//genotype sample
+		geno_sample << vl[i].annotations().at(i_gt).count('1');
+
+		//population AFs
+		af_afr << v2.annotations().at(i2_afr).toDouble();
+		af_eur << v2.annotations().at(i2_eur).toDouble();
+		af_sas << v2.annotations().at(i2_sas).toDouble();
+		af_eas << v2.annotations().at(i2_eas).toDouble();
+	}
+
+	//not enough informative SNPs
+	SampleAncestry output;
+	output.snps = geno_sample.count();
+	if (geno_sample.count()<min_snp)
+	{
+		output.afr = std::numeric_limits<double>::quiet_NaN();
+		output.eur = std::numeric_limits<double>::quiet_NaN();
+		output.sas = std::numeric_limits<double>::quiet_NaN();
+		output.eas = std::numeric_limits<double>::quiet_NaN();
+		output.population = "NOT_ENOUGH_SNPS";
+		return output;
+	}
+
+	//compose output
+	output.afr = BasicStatistics::correlation(geno_sample, af_afr);
+	if (output.afr<0) output.afr = 0.0;
+	output.eur = BasicStatistics::correlation(geno_sample, af_eur);
+	if (output.eur<0) output.eur = 0.0;
+	output.sas = BasicStatistics::correlation(geno_sample, af_sas);
+	if (output.sas<0) output.sas = 0.0;
+	output.eas = BasicStatistics::correlation(geno_sample, af_eas);
+	if (output.eas<0) output.eas = 0.0;
+
+	//determine population
+	QList<QPair<QString, double>> sorted;
+	sorted << QPair<QString, double>("AFR", output.afr);
+	sorted << QPair<QString, double>("EUR", output.eur);
+	sorted << QPair<QString, double>("SAS", output.sas);
+	sorted << QPair<QString, double>("EAS", output.eas);
+	std::sort(sorted.begin(), sorted.end(), [](const QPair<QString, double>& a, const QPair<QString, double>& b){ return a.second > b.second ;});
+	output.population = sorted[0].first;
+	if (sorted[1].second/sorted[0].second>1.0-min_pop_dist)
+	{
+		output.population = "ADMIXED/UNKNOWN";
+	}
+
+	return output;
+}
+
 BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq)
 {
 	BedFile output;

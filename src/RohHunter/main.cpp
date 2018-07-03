@@ -28,7 +28,7 @@ public:
 		//optional
 		addInfileList("annotate", "List of BED files used for annotation. Each file adds a column to the output file. The base filename is used as colum name and 4th column of the BED file is used as annotation value.", true);
 		addInt("var_min_dp", "Minimum variant depth ('DP'). Variants with lower depth are excluded from the analysis.", true, 20);
-		addFloat("var_min_q", "Minimum variant quality. Variants with lower depth are excluded from the analysis.", true, 30);
+		addFloat("var_min_q", "Minimum variant quality. Variants with lower quality are excluded from the analysis.", true, 30);
 		addString("var_af_keys", "Annotation keys of allele frequency values (comma-separated).", true, "GNOMAD_AF,T1000GP_AF,EXAC_AF");
 		addFloat("roh_min_q", "Minimum Q score of ROH regions.", true, 30.0);
 		addInt("roh_min_markers", "Minimum marker count of ROH regions.", true, 20);
