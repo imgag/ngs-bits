@@ -305,6 +305,10 @@ SUBDIRS += FastqExtractUMI
 tools-TEST.depends += FastqExtractUMI
 FastqExtractUMI.depends = cppNGS
 
+SUBDIRS += FastqAddBarcode
+tools-TEST.depends += FastqAddBarcode
+FastqAddBarcode.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt
 
