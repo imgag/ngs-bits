@@ -93,6 +93,7 @@ HEADERS += \
     TsvMerge_Test.h \
     BedAnnotateFromBed_Test.h \
     RohHunter_Test.h \
+    FastqExtractUMI_Test.h \
 
 SOURCES += \
     main.cpp \
