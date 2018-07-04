@@ -21,14 +21,14 @@ public:
     virtual void setup()
     {
 		setDescription("Estimates the ancestry of a sample based on variants.");
-		setExtendedDescription(QStringList() << "The ancestry estimation is based on a simple correlation to the most informative SNPs for each population."
-											 << "It is ");
+		setExtendedDescription(QStringList() << "The ancestry estimation is based on a simple correlation to the most informative exonic SNPs for each population."
+											 << "A test against the PCA-based method implemented in Peddy (https://github.com/brentp/peddy) showed 95% overlap of estimates.");
 
 		addInfileList("in", "Input variant list(s) in VCF format.", false);
 		//optional
 		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
-		addInt("min_snps", "Minimum number of informative SNPs for population determination. If less SNPs are found, 'UNKNOWN' is returned.", true, 1000);
-		addFloat("pop_dist", "Minimum relative distance between first/second population score. If below this score 'ADMIXED/UNKNOWN' is called.", true, 0.20);
+		addInt("min_snps", "Minimum number of informative SNPs for population determination. If less SNPs are found, 'NOT_ENOUGH_SNPS' is returned.", true, 1000);
+		addFloat("pop_dist", "Minimum relative distance between first/second population score. If below this score 'ADMIXED/UNKNOWN' is called.", true, 0.15);
 
 		changeLog(2018, 07, 03, "First version.");
 	}
@@ -43,7 +43,7 @@ public:
 		double pop_dist = getFloat("pop_dist");
 
 		//process
-		out << "#sample\tsnps\tAFR\tEUR\tSAS\tEAS" << endl;
+		out << "#sample\tsnps\tAFR\tEUR\tSAS\tEAS\tpopulation" << endl;
 		foreach(QString filename, in)
 		{
 
