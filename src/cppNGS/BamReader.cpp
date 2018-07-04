@@ -225,6 +225,17 @@ QByteArray BamAlignment::tag(const QByteArray& tag) const
 	return QByteArray(data);
 }
 
+int BamAlignment::tagi(const QByteArray& tag) const
+{
+	uint8_t* data_raw = bam_aux_get(aln_, tag);
+	if (data_raw==nullptr)
+	{
+		return 0;
+	}
+	int64_t i = bam_aux2i(bam_aux_get(aln_, tag));
+	return i;
+}
+
 void BamAlignment::addTag(const QByteArray& tag, char type, const QByteArray& value)
 {
 	if (bam_aux_append(aln_, tag, type, value.length()+1, reinterpret_cast<const unsigned char*>(value.data()))==-1)

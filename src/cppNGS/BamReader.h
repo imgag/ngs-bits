@@ -191,6 +191,8 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		QByteArray tag(const QByteArray& tag) const;
 		//Adds a tag to the alignment.
 		void addTag(const QByteArray& tag, char type, const QByteArray& data);
+		//Returns the integer data of a tag with type 'i'.
+		int tagi(const QByteArray&) const;
 
 		/**************************** MATE functions ****************************/
 
