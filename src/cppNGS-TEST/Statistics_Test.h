@@ -496,25 +496,25 @@ private slots:
 
 		//default
 		SampleAncestry ancestry = Statistics::ancestry(vl);
-		I_EQUAL(ancestry.snps, 2293);
-		F_EQUAL2(ancestry.afr, 0.0000, 0.001);
+		I_EQUAL(ancestry.snps, 3096);
+		F_EQUAL2(ancestry.afr, 0.0114, 0.001);
 		F_EQUAL2(ancestry.eur, 0.3088, 0.001);
-		F_EQUAL2(ancestry.sas, 0.1349, 0.001);
-		F_EQUAL2(ancestry.eas, 0.0060, 0.001);
+		F_EQUAL2(ancestry.sas, 0.1636, 0.001);
+		F_EQUAL2(ancestry.eas, 0.0572, 0.001);
 		S_EQUAL(ancestry.population, "EUR");
 
 		//not enough SNPs
 		ancestry = Statistics::ancestry(vl, 10000);
-		I_EQUAL(ancestry.snps, 2293);
+		I_EQUAL(ancestry.snps, 3096);
 		S_EQUAL(ancestry.population, "NOT_ENOUGH_SNPS");
 
 		//not enough popultation distance
 		ancestry = Statistics::ancestry(vl, 1000, 0.7);
-		I_EQUAL(ancestry.snps, 2293);
-		F_EQUAL2(ancestry.afr, 0.0000, 0.001);
+		I_EQUAL(ancestry.snps, 3096);
+		F_EQUAL2(ancestry.afr, 0.0114, 0.001);
 		F_EQUAL2(ancestry.eur, 0.3088, 0.001);
-		F_EQUAL2(ancestry.sas, 0.1349, 0.001);
-		F_EQUAL2(ancestry.eas, 0.0060, 0.001);
+		F_EQUAL2(ancestry.sas, 0.1636, 0.001);
+		F_EQUAL2(ancestry.eas, 0.0572, 0.001);
 		S_EQUAL(ancestry.population, "ADMIXED/UNKNOWN");
 	}
 };

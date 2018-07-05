@@ -3,8 +3,9 @@
 	
 	Estimates the ancestry of a sample based on variants.
 	
-	The ancestry estimation is based on a simple correlation to the most informative exonic SNPs for each population.
-	A test against the PCA-based method implemented in Peddy (https://github.com/brentp/peddy) showed 95% overlap of estimates.
+	The ancestry estimation is based on correlating the sample variants with population-specific SNPs.
+	For each population (AFR,EUR,SAS,EAS) the 1000 most informative exonic SNPs were selected.  
+	A benchmark on the 1000 Genomes variant data assigned 99.9% of the samples to the right population (2155 of 2157).
 	
 	Mandatory parameters:
 	  -in <filelist>    Input variant list(s) in VCF format.
@@ -28,5 +29,6 @@
 	
 	2018-07-03 First version.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
+
 
 
