@@ -3,6 +3,7 @@
 #include "Exceptions.h"
 #include "VariantList.h"
 #include "GeneSet.h"
+#include <QRegExp>
 
 VariantFilter::VariantFilter(VariantList& vl)
 	: variants(vl)
@@ -241,12 +242,35 @@ void VariantFilter::flagByGenes(const GeneSet& genes)
 	//get column indices
 	int i_gene = variants.annotationIndexByName("gene", true, true);
 
-	//filter
-	for(int i=0; i<variants.count(); ++i)
+	//filter (text-based)
+	if (!genes.join('|').contains("*"))
 	{
-		if (!pass[i]) continue;
+		for(int i=0; i<variants.count(); ++i)
+		{
+			if (!pass[i]) continue;
 
-		pass[i] = genes.intersectsWith(GeneSet::createFromText(variants[i].annotations()[i_gene], ','));
+			pass[i] = genes.intersectsWith(GeneSet::createFromText(variants[i].annotations()[i_gene], ','));
+		}
+	}
+	else //filter (regexp)
+	{
+		QRegExp reg(genes.join('|').replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
+		for(int i=0; i<variants.count(); ++i)
+		{
+			if (!pass[i]) continue;
+
+			GeneSet var_genes = GeneSet::createFromText(variants[i].annotations()[i_gene], ',');
+			bool match_found = false;
+			foreach(const QByteArray& var_gene, var_genes)
+			{
+				if (reg.exactMatch(var_gene))
+				{
+					match_found = true;
+					break;
+				}
+			}
+			pass[i] = match_found;
+		}
 	}
 }
 

@@ -15,18 +15,15 @@ NGSD:
 * add CNVs and allow classification (wait for ClinCNV)
 
 GSvar:
-** Gene search: add wildcard *
-** Allow filtering for imprinting genes using father/mother information
-** Show mouse-over for first 6 columns
-** NGSD annotation: subtract the current/variant/genotype (if fast enough)
-*** Add notice if UPD was detected for trio
 *** Always use the same order for IGV files: tumor/normal (somatic) child/father/mother (trio)
 ** Sample info dock widget, analysis job window: no permanent NGSD connection!
 * Add pLI score (megSAP) and filter for pLI (GSvar) to CNVs (wait for ClinCNV)
 * GenLab XML report: male => change 'hom' variants outside PAR region on chrX/chrY to 'hemi' (when GenLab import is updated)
-- text-based filter for OMIM/ClinVar/HGMD column (ignore case)
-- Add genotype equal for affected
-- Make default filters configurable in INI file
+** reimplementation filters
+    - make default filters configurable in INI file
+    - text-based filter for OMIM/ClinVar/HGMD column (ignore case)
+    - Trio: Allow filtering for imprinting genes using father/mother information
+    - Trio/Multi: Add genotype 'equal' filter for affected
 
 Tools:
 *** Implement GRCh38 support for the tools that use built-in SNPs, etc. (SampleSimilarity-BAM, SampleGender-HetX, MappingQC-contatamination, SampleAncestry)

@@ -643,7 +643,7 @@
     <string>ROH</string>
    </property>
    <property name="toolTip">
-    <string>Show runs of homozygosity (ROH).</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show runs of homozygosity (ROH).&lt;br/&gt;&lt;br/&gt;For trios, ROHs of the child (index) are shown.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="actionDiagnosticStatusOverview">

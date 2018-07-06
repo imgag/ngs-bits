@@ -189,7 +189,7 @@
        <item>
         <widget class="QLineEdit" name="gene">
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma-separated list of gene names.&lt;br/&gt;This filter has no effect on report generation!&lt;/p&gt;&lt;p&gt;Press return to finish entering text!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma-separated list of gene names.&lt;br/&gt;Press return to finish entering text.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;Notes:&lt;br/&gt;- This filter has no effect on report generation.&lt;br/&gt;- You can use '*' as a wildcard. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="placeholderText">
           <string>Gene</string>

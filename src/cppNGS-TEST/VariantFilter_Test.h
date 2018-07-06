@@ -315,18 +315,36 @@ private slots:
 
 		VariantFilter filter(vl);
 
-		//first filter
+		//filter one gene
+		filter.clear();
 		filter.flagByGenes(GeneSet() << "TP53");
-
 		I_EQUAL(vl.count(), 143);
 		I_EQUAL(filter.countPassing(), 1);
 
-		//second filter
+		//filter two genes
 		filter.clear();
 		filter.flagByGenes(GeneSet() << "TP53" << "BRCA1");
-
 		I_EQUAL(vl.count(), 143);
 		I_EQUAL(filter.countPassing(), 8);
+
+
+		//filter one gene (wildcard)
+		filter.clear();
+		filter.flagByGenes(GeneSet() << "BRCA*");
+		I_EQUAL(vl.count(), 143);
+		I_EQUAL(filter.countPassing(), 12);
+
+		//filter one gene (wildcard with minus char)
+		filter.clear();
+		filter.flagByGenes(GeneSet() << "*-*");
+		I_EQUAL(vl.count(), 143);
+		I_EQUAL(filter.countPassing(), 8);
+
+		//filter two genes (wildcard)
+		filter.clear();
+		filter.flagByGenes(GeneSet() << "BRCA*" << "TP*");
+		I_EQUAL(vl.count(), 143);
+		I_EQUAL(filter.countPassing(), 19);
 	}
 
 	void flagByGenotype()

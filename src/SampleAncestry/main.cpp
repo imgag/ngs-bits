@@ -21,9 +21,6 @@ public:
     virtual void setup()
     {
 		setDescription("Estimates the ancestry of a sample based on variants.");
-		setExtendedDescription(QStringList() << "The ancestry estimation is based on correlating the sample variants with population-specific SNPs."
-											 << "For each population (AFR,EUR,SAS,EAS) the 1000 most informative exonic SNPs were selected."
-											 << "A benchmark on the 1000 Genomes variant data assigned 99.9% of the samples to the right population (2155 of 2157).");
 
 		addInfileList("in", "Input variant list(s) in VCF format.", false);
 		//optional

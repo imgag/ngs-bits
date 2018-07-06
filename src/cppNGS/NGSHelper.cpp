@@ -270,17 +270,22 @@ SampleHeaderInfo NGSHelper::getSampleHeader(const VariantList& vl, QString gsvar
 
 		if (line.startsWith("##SAMPLE=<"))
 		{
-			auto parts = line.mid(10, line.length()-11).split(',');
+			//split into key=value pairs
+			QStringList parts = line.mid(10, line.length()-11).split(',');
+			for (int i=1; i<parts.count(); ++i)
+			{
+				if (!parts[i].contains("="))
+				{
+					parts[i-1] += "," + parts[i];
+					parts.removeAt(i);
+					--i;
+				}
+			}
+
 			QString name;
 			foreach(const QString& part, parts)
 			{
 				int sep_idx = part.indexOf('=');
-				if (sep_idx==-1)
-				{
-					qDebug() << "Invalid sample header entry " << part << " in " << line;
-					continue;
-				}
-
 				QString key = part.left(sep_idx);
 				QString value = part.mid(sep_idx+1);
 				if (key=="ID")

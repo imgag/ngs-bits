@@ -210,9 +210,50 @@ void MainWindow::on_actionCNV_triggered()
 
 void MainWindow::on_actionROH_triggered()
 {
-	if (filename_=="") return;
+	if (filename_=="" || getType()==GERMLINE_MULTISAMPLE) return;
 
-	RohWidget* list = new RohWidget(filename_, filter_widget_);
+	//trios special handling
+	QString filename = filename_;
+	if (getType()==GERMLINE_TRIO)
+	{
+		//show ROHs of child (index)
+		SampleHeaderInfo data = NGSHelper::getSampleHeader(variants_, filename_);
+		QString child = data.sampleColumns(true)[0];
+		QString trio_folder = QFileInfo(filename_).path();
+		QString project_folder = QFileInfo(trio_folder).path();
+		filename = project_folder + "/Sample_" + child + "/" + child + ".GSvar";
+
+		//UPDs
+		QString upd_file = trio_folder + "/trio_upd.tsv";
+		if (!QFile::exists(upd_file))
+		{
+			QMessageBox::warning(this, "UPD detection", "The UPD file is missing!\n" + upd_file);
+		}
+		else
+		{
+			QStringList upd_data = Helper::loadTextFile(upd_file, false, QChar::Null, true);
+			if (upd_data.count()>1)
+			{
+				QPlainTextEdit* text_edit = new QPlainTextEdit(this);
+				text_edit->setReadOnly(true);
+				QStringList headers = upd_data[0].split("\t");
+				for (int r=1; r<upd_data.count(); ++r)
+				{
+					QStringList parts = upd_data[r].split("\t");
+					QString line = parts[0] + ":" + parts[1] + "-" + parts[2];
+					for(int c=3 ; c<parts.count(); ++c)
+					{
+						line += " " + headers[c] + "=" + parts[c];
+					}
+					text_edit->appendPlainText(line);
+				}
+				text_edit->setMinimumSize(800, 100);
+				GUIHelper::showWidgetAsDialog(text_edit, "UPD(s) detected!", false);
+			}
+		}
+	}
+
+	RohWidget* list = new RohWidget(filename, filter_widget_);
 	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
 	auto dlg = GUIHelper::showWidgetAsDialog(list, "Runs of homozygosity", false, false);
 	addModelessDialog(dlg);
@@ -1751,10 +1792,15 @@ void MainWindow::variantListChanged()
 
 	//header
 	ui_.vars->setHorizontalHeaderItem(0, new QTableWidgetItem("chr"));
+	ui_.vars->horizontalHeaderItem(0)->setToolTip("Chromosome of variant");
 	ui_.vars->setHorizontalHeaderItem(1, new QTableWidgetItem("start"));
+	ui_.vars->horizontalHeaderItem(1)->setToolTip("Genomic start position of variant");
 	ui_.vars->setHorizontalHeaderItem(2, new QTableWidgetItem("end"));
+	ui_.vars->horizontalHeaderItem(2)->setToolTip("Genomic end position of variant");
 	ui_.vars->setHorizontalHeaderItem(3, new QTableWidgetItem("ref"));
+	ui_.vars->horizontalHeaderItem(3)->setToolTip("Reference genome sequence");
 	ui_.vars->setHorizontalHeaderItem(4, new QTableWidgetItem("obs"));
+	ui_.vars->horizontalHeaderItem(4)->setToolTip("Sequence observed in the sample");
 	for (int i=0; i<variants_.annotations().count(); ++i)
 	{
 		QString anno = variants_.annotations()[i].name();
