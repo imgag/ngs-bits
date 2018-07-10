@@ -70,7 +70,7 @@ public:
 		}
 
 		//filter IHDB
-		QStringList samples_affected = NGSHelper::getSampleHeader(variants, in).sampleColumns(true);
+		QStringList samples_affected = variants.getSampleHeader().sampleColumns(true);
 		int max_ihdb = getInt("max_ihdb");
 		if (max_ihdb>0)
 		{
@@ -116,7 +116,7 @@ public:
 		QString geno_control = getEnum("geno_control");
 		if (geno_control!="any")
 		{
-			QStringList samples_control = NGSHelper::getSampleHeader(variants, in).sampleColumns(false);
+			QStringList samples_control = variants.getSampleHeader().sampleColumns(false);
 			bool invert = false;
 			if (geno_control.startsWith("not_"))
 			{

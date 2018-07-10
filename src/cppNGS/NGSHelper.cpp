@@ -260,70 +260,6 @@ void NGSHelper::createSampleOverview(QStringList in, QString out, int indel_wind
 	vl_merged.store(out, VariantList::TSV);
 }
 
-SampleHeaderInfo NGSHelper::getSampleHeader(const VariantList& vl, QString gsvar_file)
-{
-	SampleHeaderInfo output;
-
-	foreach(QString line, vl.comments())
-	{
-		line = line.trimmed();
-
-		if (line.startsWith("##SAMPLE=<"))
-		{
-			//split into key=value pairs
-			QStringList parts = line.mid(10, line.length()-11).split(',');
-			for (int i=1; i<parts.count(); ++i)
-			{
-				if (!parts[i].contains("="))
-				{
-					parts[i-1] += "," + parts[i];
-					parts.removeAt(i);
-					--i;
-				}
-			}
-
-			QString name;
-			foreach(const QString& part, parts)
-			{
-				int sep_idx = part.indexOf('=');
-				QString key = part.left(sep_idx);
-				QString value = part.mid(sep_idx+1);
-				if (key=="ID")
-				{
-					name = value;
-					output[name].column_name = value;
-				}
-				else
-				{
-					output[name].properties[key] = value;
-				}
-			}
-		}
-	}
-
-	//special handling of single-sample analysis
-	for (int i=0; i<vl.annotations().count(); ++i)
-	{
-		if (vl.annotations()[i].name()=="genotype")
-		{
-			if (output.count()==0) //old single-sample analysis without '#SAMPLE header'. Old trio/somatic variant lists are no longer supported.
-			{
-				QString name = QFileInfo(gsvar_file).baseName();
-				output[name].properties["Status"] = "Affected";
-			}
-
-			if (output.count()==1)
-			{
-				output.first().column_name = "genotype";
-			}
-		}
-		break;
-	}
-
-	return output;
-}
-
-
 QByteArray NGSHelper::expandAminoAcidAbbreviation(QChar amino_acid_change_in)
 {
 	const static QHash<QChar,QByteArray> dictionary = {{'A',"Ala"},{'R',"Arg"},{'N',"Asn"},{'D',"Asp"},{'C',"Cys"},{'E',"Glu"},
@@ -565,6 +501,19 @@ bool SampleInfo::isAffected() const
 	return false;
 }
 
+
+const SampleInfo& SampleHeaderInfo::infoBySample(const QString& id) const
+{
+	foreach(const SampleInfo& info, *this)
+	{
+		if (info.id==id)
+		{
+			return info;
+		}
+	}
+
+	THROW(ProgrammingException, "No sample with ID/name '" + id + "' found in sample info header!");
+}
 
 QStringList SampleHeaderInfo::sampleColumns() const
 {

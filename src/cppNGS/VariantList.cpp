@@ -1440,6 +1440,62 @@ void VariantList::checkValid() const
 	}
 }
 
+SampleHeaderInfo VariantList::getSampleHeader(bool error_if_missing)
+{
+	SampleHeaderInfo output;
+
+	foreach(QString line, comments())
+	{
+		line = line.trimmed();
+
+		if (line.startsWith("##SAMPLE=<"))
+		{
+			//split into key=value pairs
+			QStringList parts = line.mid(10, line.length()-11).split(',');
+			for (int i=1; i<parts.count(); ++i)
+			{
+				if (!parts[i].contains("="))
+				{
+					parts[i-1] += "," + parts[i];
+					parts.removeAt(i);
+					--i;
+				}
+			}
+
+			foreach(const QString& part, parts)
+			{
+				int sep_idx = part.indexOf('=');
+				QString key = part.left(sep_idx);
+				QString value = part.mid(sep_idx+1);
+				if (key=="ID")
+				{
+					SampleInfo tmp;
+					tmp.id = value;
+					tmp.column_name = value;
+					output << tmp;
+				}
+				else
+				{
+					output.last().properties[key] = value;
+				}
+			}
+		}
+	}
+
+	//special handling of single-sample analysis
+	if (output.count()==1 && annotationIndexByName("genotype", true, false)!=-1)
+	{
+		output.first().column_name = "genotype";
+	}
+
+	if (output.count()==0 && error_if_missing)
+	{
+		THROW(ProgrammingException, "Could not find any sample information in the variant list header!");
+	}
+
+	return output;
+}
+
 void Variant::normalize(int& start, Sequence& ref, Sequence& obs)
 {
 	//remove common first base

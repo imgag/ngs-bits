@@ -1,3 +1,4 @@
+##SAMPLE=<ID=NA12878_03,Gender=female,IsTumor=no,IsFFPE=no,DiseaseGroup=n/a,DiseaseStatus=affected>
 #chr	start	end	ref	obs	genotype	filter	quality	gene	variant_type	coding_and_splicing	RepeatMasker	dbSNP	1000g	ExAC	ExAC_sub	gnomAD	phyloP	MetaLR	Sift	PP2_HVAR	PP2_HDIV	OMIM	ClinVar	HGMD	COSMIC	GPD_gene	GPD_var	ihdb_hom	ihdb_het	ihdb_wt	ihdb_allsys_hom	ihdb_allsys_het	classification	classification_comment	validated	comment
 chr1	62713224	62713224	C	G	hom		QUAL=1166;DP=37;AF=1.00;MQM=60	KANK4	missense	KANK4:NM_181712.4:missense:MODERATE:exon9/10:c.2803G>C:p.Val935Leu		rs2941679	0.9862	0.974	0.974	0.9598	0.6980	T	T,T,T,T	B,B	B,B					12227		0.9307	0.0594	0.0099	946	87				
 chr1	62713246	62713246	G	A	het		QUAL=1649;DP=117;AF=0.44;MQM=60	KANK4	synonymous	KANK4:NM_181712.4:synonymous:LOW:exon9/10:c.2781C>T:p.His927His		rs10889315	0.3189	0.389	0.389	0.4209									COSM426544	12227		0.2772	0.4158	0.3069	189	491				

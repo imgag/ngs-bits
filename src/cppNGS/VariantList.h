@@ -30,6 +30,30 @@ struct CPPNGSSHARED_EXPORT VariantTranscript
 	bool isPartOntologyTerms(const OntologyTermCollection& obo_terms) const;
 };
 
+///Sample header struct for samples in variant lists.
+struct CPPNGSSHARED_EXPORT SampleInfo
+{
+	QString id; //sample name/identifier
+	QString column_name; //sample column in VCF/GSvar format
+	QMap<QString, QString> properties;
+
+	///Returns if the sample has state 'affected'.
+	bool isAffected() const;
+};
+
+///Sample header information.
+class CPPNGSSHARED_EXPORT SampleHeaderInfo
+	: public QList<SampleInfo>
+{
+	public:
+		///Returns the sample info by sample id
+		const SampleInfo& infoBySample(const QString& id) const;
+		///Returns all sample genotype column names of all samples.
+		QStringList sampleColumns() const;
+		///Returns all sample genotype column names of affected/unaffected samples.
+		QStringList sampleColumns(bool affected) const;
+};
+
 ///Genetic variant or mutation (1-based).
 class CPPNGSSHARED_EXPORT Variant
 {
@@ -330,6 +354,9 @@ public:
 
 	///Checks if the variants are valid. Throws ArgumentException if not.
 	void checkValid() const;
+
+	///Parses and returns sample data from variant list header (only for GSvar).
+	SampleHeaderInfo getSampleHeader(bool error_if_missing=true);
 
 protected:
     QStringList comments_;

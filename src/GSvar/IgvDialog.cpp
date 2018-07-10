@@ -10,6 +10,7 @@ IgvDialog::IgvDialog(QWidget *parent)
 	, skip_session_(false)
 {
 	ui->setupUi(this);
+	connect(ui->tree, SIGNAL(itemChanged(QTreeWidgetItem*,int)), this, SLOT(treeItemChanged(QTreeWidgetItem*)));
 }
 
 IgvDialog::~IgvDialog()
@@ -17,21 +18,48 @@ IgvDialog::~IgvDialog()
 	delete ui;
 }
 
-void IgvDialog::addFile(QString label, QString filename, bool checked)
+void IgvDialog::addFile(QString label, QString type, QString filename, bool checked)
 {
-	bool missing = !QFile::exists(filename);
+	//determine group
+	QTreeWidgetItem* group = nullptr;
+	for(int i=0; i<ui->tree->topLevelItemCount(); ++i)
+	{
+		if (ui->tree->topLevelItem(i)->text(0)==type)
+		{
+			group = ui->tree->topLevelItem(i);
+		}
+	}
 
-	QCheckBox* box = new QCheckBox();
-	box->setText(label + (missing ? " (missing)" : ""));
-	box->setToolTip(filename);
-	box->setChecked(checked);
-	box->setEnabled(!missing);
-	ui->layout->addWidget(box);
-}
+	//add group if missing
+	if (group==nullptr)
+	{
+		group = new QTreeWidgetItem(QStringList() << type);
+		group->setFlags(Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
+		group->setCheckState(0, Qt::Checked);
+		if (type=="VCF") group->setToolTip(0, "Variant list(s)");
+		if (type=="BAM") group->setToolTip(0, "Sequencing read file(s)");
+		if (type=="BAF") group->setToolTip(0, "b-allele frequency file(s)");
+		if (type=="BED") group->setToolTip(0, "regions file(s)");
+		if (type=="custom track") group->setToolTip(0, "Custom tracks");
+		ui->tree->addTopLevelItem(group);
+	}
 
-void IgvDialog::addSeparator()
-{
-	ui->layout->addWidget(GUIHelper::horizontalLine());
+	//add file
+	QTreeWidgetItem* item = new QTreeWidgetItem(QStringList() << label);
+	item->setToolTip(0, filename);
+	if (QFile::exists(filename))
+	{
+		item->setFlags(Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
+		item->setCheckState(0, checked ? Qt::Checked : Qt::Unchecked);
+	}
+	else
+	{
+		item->setText(0, label + " (missing)");
+		item->setFlags(Qt::ItemIsUserCheckable);
+		item->setCheckState(0, Qt::Unchecked);
+	}
+	group->addChild(item);
+	ui->tree->expandAll();
 }
 
 bool IgvDialog::skipForSession() const
@@ -42,13 +70,18 @@ bool IgvDialog::skipForSession() const
 QStringList IgvDialog::filesToLoad()
 {
 	QStringList output;
-	QList<QCheckBox*> boxes = findChildren<QCheckBox*>();
-	foreach(QCheckBox* box, boxes)
+
+	for(int i=0; i<ui->tree->topLevelItemCount(); ++i)
 	{
-		if (box->isEnabled() && box->isChecked())
+		QTreeWidgetItem* group = ui->tree->topLevelItem(i);
+		for(int j=0; j<group->childCount(); ++j)
 		{
-			output.append(box->toolTip());
+			if (group->child(j)->checkState(0)==Qt::Checked)
+			{
+				output << group->child(j)->toolTip(0);
+			}
 		}
+
 	}
 
 	return output;
@@ -58,4 +91,12 @@ void IgvDialog::on_skip_session_clicked()
 {
 	skip_session_ = true;
 	reject();
+}
+
+void IgvDialog::treeItemChanged(QTreeWidgetItem* item)
+{
+	for (int i=0; i<item->childCount(); ++i)
+	{
+		item->child(i)->setCheckState(0, item->checkState(0));
+	}
 }

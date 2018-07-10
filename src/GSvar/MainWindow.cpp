@@ -217,8 +217,7 @@ void MainWindow::on_actionROH_triggered()
 	if (getType()==GERMLINE_TRIO)
 	{
 		//show ROHs of child (index)
-		SampleHeaderInfo data = NGSHelper::getSampleHeader(variants_, filename_);
-		QString child = data.sampleColumns(true)[0];
+		QString child = variants_.getSampleHeader().sampleColumns(true)[0];
 		QString trio_folder = QFileInfo(filename_).path();
 		QString project_folder = QFileInfo(trio_folder).path();
 		filename = project_folder + "/Sample_" + child + "/" + child + ".GSvar";
@@ -404,53 +403,54 @@ void MainWindow::openInIGV(QString region)
 
 		//sample VCF
         QString folder = QFileInfo(filename_).absolutePath();
-        QStringList files = Helper::findFiles(folder,"*_var_annotated.vcf.gz", false);
+		QStringList files = Helper::findFiles(folder, "*_var_annotated.vcf.gz", false);
         if (files.count()==1)
         {
-			dlg.addFile("variants (VCF)", files[0], ui_.actionIgvSample->isChecked());
+			QString name = QFileInfo(files[0]).baseName().replace("_var_annotated", "");
+			dlg.addFile(name, "VCF", files[0], ui_.actionIgvSample->isChecked());
         }
 
 		//sample BAM file(s)
-		QMap<QString, QString> bams = getBamFiles();
+		QList<IgvFile> bams = getBamFiles();
 		if (bams.empty()) return;
-		for (auto it = bams.cbegin(); it!=bams.cend(); ++it)
+		foreach(const IgvFile& file, bams)
 		{
-			dlg.addFile(it.key() + " (BAM)", it.value(), true);
+			dlg.addFile(file.id, file.type, file.filename, true);
 		}
 
 		//reference BAM
 		QString ref = filter_widget_->referenceSample();
 		if (ref!="")
 		{
-			dlg.addFile("reads reference (BAM)", ref, true);
+			dlg.addFile("reference sample", "BAM", ref, true);
 		}
 
 		//sample CNV file(s)
-		QMap<QString, QString> segs = getSegFilesCnv();
-		for (auto it = segs.cbegin(); it!=segs.cend(); ++it)
+		QList<IgvFile> segs = getSegFilesCnv();
+		foreach(const IgvFile& file, segs)
 		{
-			dlg.addFile(it.key() + " (CNVs)", it.value(), true);
+			dlg.addFile(file.id, file.type, file.filename, true);
 		}
 
 		//sample BAF file(s)
-		QMap<QString, QString> bafs = getIgvFilesBaf();
-		for (auto it = bafs.cbegin(); it!=bafs.cend(); ++it)
+		QList<IgvFile> bafs = getIgvFilesBaf();
+		foreach(const IgvFile& file, bafs)
 		{
-			dlg.addFile(it.key() + " (BAFs)", it.value(), true);
+			dlg.addFile(file.id, file.type, file.filename, true);
 		}
 
 		//target region
 		QString roi = filter_widget_->targetRegion();
 		if (roi!="")
 		{
-			dlg.addFile("target region track", roi, true);
+			dlg.addFile("target region track", "BED", roi, true);
 		}
 
 		//sample low-coverage
-        files = Helper::findFiles(folder,"*_lowcov.bed", false);
+		files = Helper::findFiles(folder, "*_lowcov.bed", false);
         if (files.count()==1)
         {
-			dlg.addFile("low-coverage regions track", files[0], ui_.actionIgvLowcov->isChecked());
+			dlg.addFile("low-coverage regions track", "BED", files[0], ui_.actionIgvLowcov->isChecked());
 		}
 
 		//amplicon file (of processing system)
@@ -462,7 +462,7 @@ void MainWindow::openInIGV(QString region)
 			QString amplicons = system_data.target_file.left(system_data.target_file.length()-4) + "_amplicons.bed";
 			if (QFile::exists(amplicons))
 			{
-				dlg.addFile("amplicons track (of processing system)", amplicons, true);
+				dlg.addFile("amplicons track (of processing system)", "BED", amplicons, true);
 			}
 		}
 		catch(...)
@@ -471,13 +471,12 @@ void MainWindow::openInIGV(QString region)
 		}
 
 		//custom tracks
-		dlg.addSeparator();
 		QList<QAction*> igv_actions = ui_.menuTracks->findChildren<QAction*>();
 		foreach(QAction* action, igv_actions)
 		{
 			QString text = action->text();
 			if (!text.startsWith("custom track:")) continue;
-			dlg.addFile(text, action->toolTip(), action->isChecked());
+			dlg.addFile(text, "custom track", action->toolTip().replace("custom track:", "").trimmed(), action->isChecked());
 		}
 
 		//execute dialog
@@ -887,14 +886,12 @@ void MainWindow::loadFile(QString filename)
 		return;
 	}
 
-	//update recent files (before try block to remove non-existing files from the recent files menu)
-	addToRecentFiles(filename);
-
 	//load data
 	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 	try
 	{
 		variants_.load(filename);
+
 		filter_widget_->setFilterColumns(variants_.filters());
 
 		//update data structures
@@ -913,17 +910,32 @@ void MainWindow::loadFile(QString filename)
 	{
 		QApplication::restoreOverrideCursor();
 		QMessageBox::warning(this, "Error", "Loading the file '" + filename + "' or displaying the contained variants failed!\nError message:\n" + e.message());
+		loadFile("");
+		return;
+	}
+
+	//update recent files (before try block to remove non-existing files from the recent files menu)
+	addToRecentFiles(filename);
+
+
+	//warn if no 'filter' column is present
+	QStringList errors;
+	if (variants_.annotationIndexByName("filter", true, false)==-1)
+	{
+		errors << "column 'filter' missing";
+	}
+	if (variants_.getSampleHeader(false).empty())
+	{
+		errors << "sample header missing";
+	}
+	if (!errors.empty())
+	{
+		QMessageBox::warning(this, "Outdated GSvar file", "The GSvar file contains the following error(s):\n  -" + errors.join("\n  -") + "\n\nTo ensure that GSvar works as expected, re-run the analysis starting from annotation!");
 	}
 
 	//update sample info dialog
 	sample_widget_->refresh(processedSampleName());
 	sample_widget_->raise();
-
-	//warn if no 'filter' column is present
-	if (variants_.annotationIndexByName("filter", true, false)==-1)
-	{
-		QMessageBox::warning(this, "Error: 'filter' column missing", "GSvar file does not contains the required 'filter' column.\nRun reanalysis starting from annotation using the sample information dialog!");
-	}
 }
 
 void MainWindow::on_actionAbout_triggered()
@@ -1131,9 +1143,9 @@ void MainWindow::generateReport()
 
 	//get BAM file name if necessary
 	QString bam_file = "";
-	QMap<QString, QString> bams = getBamFiles();
-	if (bams.count()==0) return;
-	bam_file = bams.values().first();
+	QList<IgvFile> bams = getBamFiles();
+	if (bams.empty()) return;
+	bam_file = bams.first().filename;
 
 	//update diagnostic status
 	NGSD db;
@@ -1330,9 +1342,9 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	roi.merge();
 
 	//check for BAM file
-	QMap<QString, QString> bams = getBamFiles();
+	QList<IgvFile> bams = getBamFiles();
 	if (bams.empty()) return;
-	QString bam_file = bams.values().first();
+	QString bam_file = bams.first().filename;
 
 	//load genes list file
 	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
@@ -1784,7 +1796,6 @@ void MainWindow::variantListChanged()
 
 	//update variant details widget
 	var_last_ = -1;
-	SampleHeaderInfo sample_data = NGSHelper::getSampleHeader(variants_, filename_);
 
 	//resize
 	ui_.vars->setRowCount(variants_.count());
@@ -1819,6 +1830,7 @@ void MainWindow::variantListChanged()
 		}
 
 		//additional descriptions and color for genotype columns
+		SampleHeaderInfo sample_data = variants_.getSampleHeader(false);
 		foreach(const SampleInfo& info, sample_data)
 		{
 			if (info.column_name==anno)
@@ -1826,7 +1838,7 @@ void MainWindow::variantListChanged()
 				auto it = info.properties.cbegin();
 				while(it != info.properties.cend())
 				{
-					add_desc += "\n - "+it.key() + ": " + it.value();
+					add_desc += "\n - " + it.key() + ": " + it.value();
 
 					if (info.isAffected())
 					{
@@ -2170,9 +2182,9 @@ void MainWindow::varsContextMenu(QPoint pos)
 			QString value = parts[0];
 			if (value=="BAM")
 			{
-				QMap<QString, QString> bams = getBamFiles();
+				QList<IgvFile> bams = getBamFiles();
 				if (bams.empty()) return;
-				value = "BAM<" + bams.values().first();
+				value = "BAM<" + bams.first().filename;
 			}
 
 			try
@@ -2282,26 +2294,25 @@ QStringList MainWindow::getLogFiles()
 	return output;
 }
 
-QMap<QString, QString> MainWindow::getBamFiles()
+QList<IgvFile> MainWindow::getBamFiles()
 {
-    QMap<QString, QString> output;
+	QList<IgvFile> output;
 
 	QString sample_folder = QFileInfo(filename_).path();
 	QString project_folder = QFileInfo(sample_folder).path();
 
-	SampleHeaderInfo data = NGSHelper::getSampleHeader(variants_, filename_);
-	foreach(QString sample, data.keys())
+	SampleHeaderInfo data = variants_.getSampleHeader();
+	foreach(const SampleInfo& info, data)
 	{
-		QString sample_name = sample;
-		QString bam1 = sample_folder + "/" + sample_name + ".bam";
-		QString bam2 = project_folder + "/Sample_" + sample_name + "/" + sample_name + ".bam";
+		QString bam1 = sample_folder + "/" + info.id + ".bam";
+		QString bam2 = project_folder + "/Sample_" + info.id + "/" + info.id + ".bam";
 		if (QFile::exists(bam1))
 		{
-			output[sample] = bam1;
+			output << IgvFile{info.id, "BAM" , bam1};
 		}
 		else if (QFile::exists(bam2))
 		{
-			output[sample] = bam2;
+			output << IgvFile{info.id, "BAM" , bam2};
 		}
 		else
 		{
@@ -2314,16 +2325,16 @@ QMap<QString, QString> MainWindow::getBamFiles()
 	return output;
 }
 
-QMap<QString, QString> MainWindow::getSegFilesCnv()
+QList<IgvFile> MainWindow::getSegFilesCnv()
 {
-	QMap<QString, QString> output;
+	QList<IgvFile> output;
 
 	if (getType()==SOMATIC_PAIR)
 	{
 		//tumor-normal SEG file
-		QString seg = filename_.left(filename_.length()-6) + "_cnvs.seg";
+		QString segfile = filename_.left(filename_.length()-6) + "_cnvs.seg";
 		QString pair = QFileInfo(filename_).baseName();
-		output[pair] = seg;
+		output << IgvFile{pair, "CNV" , segfile};
 
 		//germline SEG file
 		QString basename = QFileInfo(filename_).baseName().left(filename_.length()-6);
@@ -2332,20 +2343,19 @@ QMap<QString, QString> MainWindow::getSegFilesCnv()
 			QString tumor_ps_name = basename.split("-")[1];
 			QString pair_folder = QFileInfo(filename_).path();
 			QString project_folder = QFileInfo(pair_folder).path();
-			seg = project_folder + "/Sample_" + tumor_ps_name + "/" + tumor_ps_name + "_cnvs.seg";
-			output[tumor_ps_name] = seg;
+			segfile = project_folder + "/Sample_" + tumor_ps_name + "/" + tumor_ps_name + "_cnvs.seg";
+			output << IgvFile{tumor_ps_name, "CNV" , segfile};
 		}
 	}
 	else
 	{
-		QMap<QString, QString> tmp = getBamFiles();
-
-		for(auto it = tmp.begin();it!=tmp.end(); ++it)
+		QList<IgvFile> tmp = getBamFiles();
+		foreach(const IgvFile& file, tmp)
 		{
-			QString segfile = it.value().left(it.value().length()-4) + "_cnvs.seg";
+			QString segfile = file.filename.left(file.filename.length()-4) + "_cnvs.seg";
 			if (QFile::exists(segfile))
 			{
-				output[it.key()] = segfile;
+				output << IgvFile{file.id, "CNV" , segfile};
 			}
 		}
 	}
@@ -2353,26 +2363,25 @@ QMap<QString, QString> MainWindow::getSegFilesCnv()
 	return output;
 }
 
-QMap<QString, QString> MainWindow::getIgvFilesBaf()
+QList<IgvFile> MainWindow::getIgvFilesBaf()
 {
-	QMap<QString, QString> output;
+	QList<IgvFile> output;
 
 	if (getType()==SOMATIC_PAIR)
 	{
-		QString seg = filename_.left(filename_.length()-6) + "_bafs.igv";
+		QString segfile = filename_.left(filename_.length()-6) + "_bafs.igv";
 		QString pair = QFileInfo(filename_).baseName();
-		output[pair] = seg;
+		output << IgvFile{pair, "BAF" , segfile};
 	}
 	else
 	{
-		QMap<QString, QString> tmp = getBamFiles();
-
-		for(auto it = tmp.begin();it!=tmp.end(); ++it)
+		QList<IgvFile> tmp = getBamFiles();
+		foreach(const IgvFile& file, tmp)
 		{
-			QString segfile = it.value().left(it.value().length()-4) + "_bafs.igv";
+			QString segfile = file.filename.left(file.filename.length()-4) + "_bafs.igv";
 			if (QFile::exists(segfile))
 			{
-				output[it.key()] = segfile;
+				output << IgvFile{file.id, "BAF" , segfile};
 			}
 		}
 	}
@@ -2402,6 +2411,8 @@ MainWindow::VariantListType MainWindow::getType()
 
 void MainWindow::filtersChanged()
 {
+	if (filename_=="") return;
+
 	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
 	try
@@ -2411,7 +2422,7 @@ void MainWindow::filtersChanged()
 		timer.start();
 
 		//get sample info
-		SampleHeaderInfo sample_data = NGSHelper::getSampleHeader(variants_, filename_);
+		SampleHeaderInfo sample_data = variants_.getSampleHeader(false);
 
 		//main filters
 		VariantFilter filter(variants_);

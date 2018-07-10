@@ -1,5 +1,13 @@
 # GSvar change log
 
+###2018_06-?? (??.07.2018)
+- General: Added ancestry estimation.
+- Filters: The gene name filter now support using '*' as wildcard.
+- ROH dialog: Child ROHs are shown for trios.
+- ROH dialog: A notice is shown if UPDs are detected for trios.
+- Report: Overhaul of somatic report.
+- IGV: sample order from GSvar header now also defines order in IGV (somatic/trio/multi analyses)
+
 ### 2018_04-49 (15.05.2018)
 - Variants: Added MitoMap/Google/SysID search to context menu.
 - Variants: in-house variant counts of high-AF variants is now shown as `n/a`.
@@ -193,6 +201,9 @@
 --
 
 [back to main page](index.md)
+
+
+
 
 
 

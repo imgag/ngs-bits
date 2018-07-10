@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>353</width>
-    <height>274</height>
+    <width>442</width>
+    <height>423</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -40,24 +40,22 @@
     </widget>
    </item>
    <item>
-    <layout class="QVBoxLayout" name="layout">
-     <property name="spacing">
-      <number>3</number>
+    <widget class="QTreeWidget" name="tree">
+     <property name="rootIsDecorated">
+      <bool>true</bool>
      </property>
-    </layout>
-   </item>
-   <item>
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
+     <property name="uniformRowHeights">
+      <bool>true</bool>
      </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
+     <attribute name="headerVisible">
+      <bool>false</bool>
+     </attribute>
+     <column>
+      <property name="text">
+       <string>1</string>
+      </property>
+     </column>
+    </widget>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -90,7 +88,7 @@
      <item>
       <widget class="QPushButton" name="skip">
        <property name="text">
-        <string>Skip</string>
+        <string>Skip (once)</string>
        </property>
       </widget>
      </item>

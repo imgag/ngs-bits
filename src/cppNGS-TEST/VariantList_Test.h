@@ -796,4 +796,35 @@ private slots:
 		I_EQUAL(vl[1].annotations().count(), 0);
 	}
 
+	void getSampleHeader_singlesample()
+	{
+		QString input = TESTDATA("data_in/VariantFilter_in.GSvar");
+		VariantList vl;
+		vl.load(input);
+		SampleHeaderInfo info = vl.getSampleHeader();
+		I_EQUAL(info.count(), 1);
+		I_EQUAL(info.sampleColumns().count(), 1);
+		S_EQUAL(info.sampleColumns()[0], "genotype");
+		I_EQUAL(info.sampleColumns(true).count(), 1);
+		S_EQUAL(info.sampleColumns(true)[0], "genotype");
+		I_EQUAL(info.sampleColumns(false).count(), 0);
+	}
+
+	void getSampleHeader_multisample()
+	{
+		QString input = TESTDATA("data_in/VariantFilter_in_multi.GSvar");
+		VariantList vl;
+		vl.load(input);
+		SampleHeaderInfo info = vl.getSampleHeader();
+		I_EQUAL(info.count(), 3);
+		I_EQUAL(info.sampleColumns().count(), 3);
+		S_EQUAL(info.sampleColumns()[0], "Affected1");
+		S_EQUAL(info.sampleColumns()[1], "Control");
+		S_EQUAL(info.sampleColumns()[2], "Affected2");
+		I_EQUAL(info.sampleColumns(true).count(), 2);
+		S_EQUAL(info.sampleColumns(true)[0], "Affected1");
+		S_EQUAL(info.sampleColumns(true)[1], "Affected2");
+		I_EQUAL(info.sampleColumns(false).count(), 1);
+		S_EQUAL(info.sampleColumns(false)[0], "Control");
+	}
 };
