@@ -15,7 +15,6 @@ NGSD:
 * add CNVs and allow classification (wait for ClinCNV)
 
 GSvar:
-** Sample info dock widget, analysis job window: no permanent NGSD connection!
 * Add pLI score (megSAP) and filter for pLI (GSvar) to CNVs (wait for ClinCNV)
 * GenLab XML report: male => change 'hom' variants outside PAR region on chrX/chrY to 'hemi' (when GenLab import is updated)
 ** reimplementation filters

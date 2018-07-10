@@ -4,7 +4,6 @@
 #include <QDockWidget>
 #include "ui_SampleDetailsDockWidget.h"
 #include "QCCollection.h"
-#include "NGSD.h"
 
 class SampleDetailsDockWidget
 	: public QDockWidget
@@ -31,7 +30,6 @@ private slots:
 private:
 	Ui::SampleDetailsDockWidget ui_;
 	QString processed_sample_name_;
-	QSharedPointer<NGSD> db_;
 
 	///Formats a statistics label (outliers are colored red).
 	void statisticsLabel(QLabel* label, QString accession, const QCCollection& qc, bool label_outlier_low, bool label_outlier_high, int decimal_places = 2, QString suffix="");

@@ -29,7 +29,6 @@ protected slots:
 
 private:
 	Ui::AnalysisStatusDialog ui_;
-	NGSD db_;
 	struct JobData
 	{
 		int ngsd_id;

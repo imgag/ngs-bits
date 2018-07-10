@@ -14,7 +14,6 @@
 AnalysisStatusDialog::AnalysisStatusDialog(QWidget *parent)
 	: QDialog(parent)
 	, ui_()
-	, db_()
 {
 	//setup UI
 	ui_.setupUi(this);
@@ -36,9 +35,10 @@ void AnalysisStatusDialog::analyzeSingleSamples(QList<AnalysisJobSample> samples
 	dlg.setSamples(samples);
 	if (dlg.exec()==QDialog::Accepted)
 	{
+		NGSD db;
 		foreach(AnalysisJobSample sample,  dlg.samples())
 		{
-			db_.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
+			db.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
 		}
 	}
 
@@ -51,7 +51,7 @@ void AnalysisStatusDialog::analyzeTrio(QList<AnalysisJobSample> samples)
 	dlg.setSamples(samples);
 	if (dlg.exec()==QDialog::Accepted)
 	{
-		db_.queueAnalysis("trio", dlg.highPriority(), dlg.arguments(), dlg.samples());
+		NGSD().queueAnalysis("trio", dlg.highPriority(), dlg.arguments(), dlg.samples());
 	}
 
 	refreshStatus();
@@ -63,7 +63,7 @@ void AnalysisStatusDialog::analyzeMultiSample(QList<AnalysisJobSample> samples)
 	dlg.setSamples(samples);
 	if (dlg.exec()==QDialog::Accepted)
 	{
-		db_.queueAnalysis("multi sample", dlg.highPriority(), dlg.arguments(), dlg.samples());
+		NGSD().queueAnalysis("multi sample", dlg.highPriority(), dlg.arguments(), dlg.samples());
 	}
 
 	refreshStatus();
@@ -75,7 +75,7 @@ void AnalysisStatusDialog::analyzeSomatic(QList<AnalysisJobSample> samples)
 	dlg.setSamples(samples);
 	if (dlg.exec()==QDialog::Accepted)
 	{
-		db_.queueAnalysis("somatic", dlg.highPriority(), dlg.arguments(), dlg.samples());
+		NGSD().queueAnalysis("somatic", dlg.highPriority(), dlg.arguments(), dlg.samples());
 	}
 
 	refreshStatus();
@@ -86,7 +86,8 @@ void AnalysisStatusDialog::refreshStatus()
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
 	//query job IDs
-	SqlQuery query = db_.getQuery();
+	NGSD db;
+	SqlQuery query = db.getQuery();
 	query.exec("SELECT id FROM analysis_job ORDER BY ID DESC");
 
 	//clear contents
@@ -101,7 +102,7 @@ void AnalysisStatusDialog::refreshStatus()
 	{
 		//get job infos
 		int job_id = query.value(0).toInt();
-		AnalysisJob job = db_.analysisInfo(job_id);
+		AnalysisJob job = db.analysisInfo(job_id);
 
 		//check if job was already seen (i.e. it was repeated)
 		QStringList tag_parts;
@@ -132,7 +133,7 @@ void AnalysisStatusDialog::refreshStatus()
 		QList<ProcessedSampleData> ps_data;
 		foreach(const AnalysisJobSample& sample, job.samples)
 		{
-			ps_data << db_.getProcessedSampleData(db_.processedSampleId(sample.name));
+			ps_data << db.getProcessedSampleData(db.processedSampleId(sample.name));
 		}
 
 		//filter text
@@ -316,21 +317,22 @@ void AnalysisStatusDialog::showContextMenu(QPoint pos)
 	{
 		foreach(AnalysisJobSample sample, samples)
 		{
-			QDesktopServices::openUrl(QUrl(db_.url(sample.name)));
+			QDesktopServices::openUrl(QUrl(NGSD().url(sample.name)));
 		}
 	}
 	if (text=="Open sample folder")
 	{
 		foreach(AnalysisJobSample sample, samples)
 		{
-			QDesktopServices::openUrl(db_.processedSamplePath(db_.processedSampleId(sample.name), NGSD::FOLDER));
+			NGSD db;
+			QDesktopServices::openUrl(db.processedSamplePath(db.processedSampleId(sample.name), NGSD::FOLDER));
 		}
 	}
 	if (text=="Cancel")
 	{
 		foreach(int id, job_ids)
 		{
-			db_.cancelAnalysis(id);
+			NGSD().cancelAnalysis(id);
 		}
 		refreshStatus();
 	}
