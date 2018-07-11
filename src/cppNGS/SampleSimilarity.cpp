@@ -116,18 +116,18 @@ void SampleSimilarity::calculateFromVcf(QString& in1, QString& in2, int window, 
 	}
 }
 
-void SampleSimilarity::calculateFromBam(QString& in1, QString& in2, int min_cov, int max_snps, bool include_gonosomes, QString roi_file)
+void SampleSimilarity::calculateFromBam(QString build, QString& in1, QString& in2, int min_cov, int max_snps, bool include_gonosomes, QString roi_file)
 {
 	VariantList snps;
 	if (!roi_file.trimmed().isEmpty())
 	{
 		BedFile roi;
 		roi.load(roi_file);
-		snps = NGSHelper::getKnownVariants(true, 0.2, 0.8, &roi);
+		snps = NGSHelper::getKnownVariants(build, true, 0.2, 0.8, &roi);
 	}
 	else
 	{
-		snps = NGSHelper::getKnownVariants(true, 0.2, 0.8);
+		snps = NGSHelper::getKnownVariants(build, true, 0.2, 0.8);
 	}
 
 	//open BAM readers

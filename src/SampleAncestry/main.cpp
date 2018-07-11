@@ -27,7 +27,10 @@ public:
 		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
 		addInt("min_snps", "Minimum number of informative SNPs for population determination. If less SNPs are found, 'NOT_ENOUGH_SNPS' is returned.", true, 1000);
 		addFloat("pop_dist", "Minimum relative distance between first/second population score. If below this score 'ADMIXED/UNKNOWN' is called.", true, 0.15);
+		addEnum("build", "Genome build used to generate the input.", true, QStringList() << "hg19" << "hg38", "hg19");
 
+		//changelog
+		changeLog(2018,  7, 11, "Added build switch for hg38 support.");
 		changeLog(2018, 07, 03, "First version.");
 	}
 
@@ -38,7 +41,8 @@ public:
 		QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream out(outfile.data());
 		int min_snps = getInt("min_snps");
-		double pop_dist = getFloat("pop_dist");
+		int pop_dist = getFloat("pop_dist");
+		QString build = getEnum("build");
 
 		//process
 		out << "#sample\tsnps\tAFR\tEUR\tSAS\tEAS\tpopulation" << endl;
@@ -49,7 +53,7 @@ public:
 			VariantList vl;
 			vl.load(filename);
 
-			SampleAncestry ancestry = Statistics::ancestry(vl, min_snps, pop_dist);
+			SampleAncestry ancestry = Statistics::ancestry(build, vl, min_snps, pop_dist);
 			out << QFileInfo(filename).fileName()
 				<< "\t" << ancestry.snps
 				<< "\t" << QString::number(ancestry.afr, 'f', 4)

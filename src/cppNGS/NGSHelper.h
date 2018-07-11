@@ -8,8 +8,8 @@
 class CPPNGSSHARED_EXPORT NGSHelper
 {
 public:
-	///Returns known SNV and indels of the GRCh37 genome (AF>=1%).
-	static VariantList getKnownVariants(bool only_snvs, double min_af=0.0, double max_af=1.0, const BedFile* roi=nullptr);
+	///Returns known SNPs and indels from gnomAD (AF>=1%, AN>=5000).
+	static VariantList getKnownVariants(QString build, bool only_snvs, double min_af=0.0, double max_af=1.0, const BedFile* roi=nullptr);
 
 	///Returns the complement of a base
 	static char complement(char base);
@@ -24,7 +24,6 @@ public:
 
 	///Expands a Amino acid notation with 1 letter to 3 letters
 	static QByteArray expandAminoAcidAbbreviation(QChar amino_acid_change_in);
-
 
 private:
 	///Constructor declared away

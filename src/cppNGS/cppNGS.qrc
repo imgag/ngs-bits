@@ -1,8 +1,10 @@
 <RCC>
     <qresource prefix="/">
         <file>Resources/qcML_0.0.8.xsd</file>
-        <file>Resources/GRCh37_snps.vcf</file>
         <file>Resources/so-xp_3_0_0.obo</file>
-        <file>Resources/GRCh37_ancestry.vcf</file>
+        <file>Resources/hg19_snps.vcf</file>
+        <file>Resources/hg19_ancestry.vcf</file>
+        <file>Resources/hg38_snps.vcf</file>
+        <file>Resources/hg38_ancestry.vcf</file>
     </qresource>
 </RCC>

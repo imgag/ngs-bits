@@ -738,13 +738,13 @@ QCCollection Statistics::region(const BedFile& bed_file, bool merge)
     return output;
 }
 
-QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, QString target_file, bool skip_plots)
+QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, QString target_file, bool skip_plots)
 {
 	QCCollection output;
 
 	//sample correlation
 	SampleSimilarity sc;
-	sc.calculateFromBam(tumor_bam, normal_bam, 30, 500, true, target_file);
+	sc.calculateFromBam(build, tumor_bam, normal_bam, 30, 500, true, target_file);
 	output.insert(QCValue("sample correlation", ( sc.noVariants1()==0 ? "n/a (too few variants)" : QString::number(sc.sampleCorrelation(),'f',2) ), "SNP-based sample correlation of tumor / normal.", "QC:2000040"));
 
 	//variants
@@ -1445,7 +1445,7 @@ QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QStrin
 	return output;
 }
 
-QCCollection Statistics::contamination(QString bam, bool debug, int min_cov, int min_snps)
+QCCollection Statistics::contamination(QString build, QString bam, bool debug, int min_cov, int min_snps)
 {
 	//open BAM
 	BamReader reader(bam);
@@ -1454,7 +1454,7 @@ QCCollection Statistics::contamination(QString bam, bool debug, int min_cov, int
 	Histogram hist(0, 1, 0.05);
 	int passed = 0;
 	double passed_depth_sum = 0.0;
-	VariantList snps = NGSHelper::getKnownVariants(true, 0.2, 0.8);
+	VariantList snps = NGSHelper::getKnownVariants(build, true, 0.2, 0.8);
 	for(int i=0; i<snps.count(); ++i)
 	{
 		Pileup pileup = reader.getPileup(snps[i].chr(), snps[i].start());
@@ -1493,14 +1493,16 @@ QCCollection Statistics::contamination(QString bam, bool debug, int min_cov, int
 	return output;
 }
 
-SampleAncestry Statistics::ancestry(const VariantList& vl, int min_snp, double min_pop_dist)
+SampleAncestry Statistics::ancestry(QString build, const VariantList& vl, int min_snp, double min_pop_dist)
 {
 	//determine required annotation indices
 	int i_gt = vl.annotationIndexByName("GT");
 
 	//load ancestry-informative SNP list
+	QString snp_file = ":/Resources/" + build + "_ancestry.vcf";
+	if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + build + "'!");
 	VariantList af;
-	af.load(":/Resources/GRCh37_ancestry.vcf", VariantList::VCF);
+	af.load(snp_file, VariantList::VCF);
 	ChromosomalIndex<VariantList> af_idx(af);
 	int i2_afr = af.annotationIndexByName("AF_AFR");
 	int i2_eur = af.annotationIndexByName("AF_EUR");
@@ -1912,7 +1914,7 @@ QString Statistics::genderXY(const QString& bam_file, QStringList& debug_output,
     return "unknown (ratio in gray area)";
 }
 
-QString Statistics::genderHetX(const QString& bam_file, QStringList& debug_output, double max_male, double min_female)
+QString Statistics::genderHetX(QString build, const QString& bam_file, QStringList& debug_output, double max_male, double min_female)
 {
     //open BAM file
 	BamReader reader(bam_file);
@@ -1925,7 +1927,7 @@ QString Statistics::genderHetX(const QString& bam_file, QStringList& debug_outpu
 	//load SNPs on chrX
 	BedFile roi_chrx;
 	roi_chrx.append(BedLine("chrX", 1, chrx_end_pos));
-	VariantList snps = NGSHelper::getKnownVariants(true, 0.2, 0.8, &roi_chrx);
+	VariantList snps = NGSHelper::getKnownVariants(build, true, 0.2, 0.8, &roi_chrx);
     QVector<Pileup> counts;
 	counts.fill(Pileup(), snps.count());
 

@@ -10,30 +10,42 @@ private slots:
 
 	void getKnownVariants()
 	{
-		VariantList list = NGSHelper::getKnownVariants(false);
+		VariantList list = NGSHelper::getKnownVariants("hg19", false);
 		I_EQUAL(list.count(), 102467);
 
 		//only SNPs
-		list = NGSHelper::getKnownVariants(true);
+		list = NGSHelper::getKnownVariants("hg19", true);
 		I_EQUAL(list.count(), 97469);
 
 		//only SNPs, AF<80%
-		list = NGSHelper::getKnownVariants(true, 0.0, 0.8);
+		list = NGSHelper::getKnownVariants("hg19", true, 0.0, 0.8);
 		I_EQUAL(list.count(), 91185);
 
 		//only SNPs, AF>20%
-		list = NGSHelper::getKnownVariants(true, 0.2);
+		list = NGSHelper::getKnownVariants("hg19", true, 0.2);
 		I_EQUAL(list.count(), 36022);
 
 		//only SNPs, AF>20%, AF<80%
-		list = NGSHelper::getKnownVariants(true, 0.2, 0.8);
+		list = NGSHelper::getKnownVariants("hg19", true, 0.2, 0.8);
 		I_EQUAL(list.count(), 29738);
 
 		//only SNPs on chrX
 		BedFile roi_chrx;
 		roi_chrx.append(BedLine("chrX", 1, 155270560));
-		list = NGSHelper::getKnownVariants(true, 0.0, 1.0, &roi_chrx);
+		list = NGSHelper::getKnownVariants("hg19", true, 0.0, 1.0, &roi_chrx);
 		I_EQUAL(list.count(), 1948);
+	}
+
+	void getKnownVariants_hg38()
+	{
+		VariantList list = NGSHelper::getKnownVariants("hg38", false);
+		I_EQUAL(list.count(), 100779);
+
+		//only SNPs, AF<50% on chrX
+		BedFile roi_chrx;
+		roi_chrx.append(BedLine("chrX", 1, 155270560));
+		list = NGSHelper::getKnownVariants("hg38", true,  0.0, 0.5, &roi_chrx);
+		I_EQUAL(list.count(), 1548);
 	}
 
 	void changeSeq()

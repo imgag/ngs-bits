@@ -25,27 +25,31 @@ public:
 		QStringList methods;
 		methods << "xy" << "hetx" << "sry";
 		addEnum("method", "Method selection: Read distribution on X and Y chromosome (xy), fraction of heterocygous variants on X chromosome (hetx), or coverage of SRY gene (sry).", false, methods);
-		addFloat("max_female","Maximum Y/X ratio for female (method xy).", true, 0.06);
-		addFloat("min_male","Minimum Y/X ratio for male (method xy).", true, 0.09);
-		addFloat("min_female","Minimum heterocygous SNP fraction for female (method hetx).", true, 0.24);
-		addFloat("max_male","Maximum heterocygous SNP fraction for male (method hetx).", true, 0.15);
-		addFloat("sry_cov","Minimum average coverage of SRY gene for males (method sry).", true, 20.0);
+		addFloat("max_female", "Maximum Y/X ratio for female (method xy).", true, 0.06);
+		addFloat("min_male", "Minimum Y/X ratio for male (method xy).", true, 0.09);
+		addFloat("min_female", "Minimum heterocygous SNP fraction for female (method hetx).", true, 0.24);
+		addFloat("max_male", "Maximum heterocygous SNP fraction for male (method hetx).", true, 0.15);
+		addEnum("build", "Genome build used to generate the input (method hetx).", true, QStringList() << "hg19" << "hg38", "hg19");
+		addFloat("sry_cov", "Minimum average coverage of SRY gene for males (method sry).", true, 20.0);
+
+		//changelog
+		changeLog(2018,  7, 11, "Added build switch for hg38 support.");
 	}
 
 	virtual void main()
 	{
 		QStringList debug_output;
 		QString gender;
+		QString method = getEnum("method");
 
 		//process
-		QString method = getEnum("method");
 		if (method=="xy")
 		{
 			gender = Statistics::genderXY(getInfile("in"), debug_output, getFloat("max_female"), getFloat("min_male"));
 		}
 		else if (method=="hetx")
 		{
-			gender = Statistics::genderHetX(getInfile("in"), debug_output, getFloat("max_male"), getFloat("min_female") );
+			gender = Statistics::genderHetX(getEnum("build"), getInfile("in"), debug_output, getFloat("max_male"), getFloat("min_female") );
 		}
 		else if (method=="sry")
 		{

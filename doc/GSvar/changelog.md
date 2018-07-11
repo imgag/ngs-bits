@@ -58,7 +58,7 @@
 ### 0.1-980 (15.01.2018)
 - Fixed LOVD upload: protein change of second variant in hompound-heterozygous mode was wrong.
 - Fixed gap dialog: gaps of exonic/splicing regions were sometimes too large.
-- General: added warning for genes that are non-coding in GRCH37 Ensembl, but coding for GRCh38.
+- General: added warning for genes that are non-coding in GRCh37 Ensembl, but coding for GRCh38.
 
 ### 0.1-975 (12.01.2018)
 - General: using IGV files instead of SEG files to visualize BAFs.

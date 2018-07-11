@@ -10,10 +10,13 @@
 #include <QDateTime>
 #include <cmath>
 
-VariantList NGSHelper::getKnownVariants(bool only_snvs, double min_af, double max_af, const BedFile* roi)
+VariantList NGSHelper::getKnownVariants(QString build, bool only_snvs, double min_af, double max_af, const BedFile* roi)
 {
 	VariantList output;
-	output.load(":/Resources/GRCh37_snps.vcf", VariantList::VCF, roi);
+
+	QString snp_file = ":/Resources/" + build + "_snps.vcf";
+	if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + build + "'!");
+	output.load(snp_file, VariantList::VCF, roi);
 
 	//only SNVs
 	if (only_snvs)

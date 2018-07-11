@@ -13,7 +13,7 @@ private slots:
 		QString tumor_bam = TESTDATA("data_in/tumor.bam");
 		QString normal_bam = TESTDATA("data_in/normal.bam");
 		QString somatic_vcf = TESTDATA("data_in/somatic.vcf");
-		QCCollection stats = Statistics::somatic(tumor_bam, normal_bam, somatic_vcf, QString(), QString(), true);
+		QCCollection stats = Statistics::somatic("hg19", tumor_bam, normal_bam, somatic_vcf, QString(), QString(), true);
 
         S_EQUAL(stats[0].name(), QString("sample correlation"));
         S_EQUAL(stats[0].accession(), QString("QC:2000040"));
@@ -182,7 +182,7 @@ private slots:
 
 	void contamination()
 	{
-		QCCollection stats = Statistics::contamination(TESTDATA("data_in/panel.bam"));
+		QCCollection stats = Statistics::contamination("hg19", TESTDATA("data_in/panel.bam"));
 		S_EQUAL(stats[0].name(), QString("SNV allele frequency deviation"));
 		S_EQUAL(stats[0].toString(), QString("1.57"));
 		I_EQUAL(stats.count(), 1);
@@ -474,7 +474,7 @@ private slots:
 	void genderHetX()
 	{
 		QStringList debug;
-		QString gender = Statistics::genderHetX(TESTDATA("data_in/panel.bam"), debug);
+		QString gender = Statistics::genderHetX("hg19", TESTDATA("data_in/panel.bam"), debug);
 		S_EQUAL(gender, QString("unknown (too few SNPs)"));
 	}
 
@@ -495,7 +495,7 @@ private slots:
 		vl.load(TESTDATA("data_in/ancestry.vcf.gz"));
 
 		//default
-		SampleAncestry ancestry = Statistics::ancestry(vl);
+		SampleAncestry ancestry = Statistics::ancestry("hg19", vl);
 		I_EQUAL(ancestry.snps, 3096);
 		F_EQUAL2(ancestry.afr, 0.0114, 0.001);
 		F_EQUAL2(ancestry.eur, 0.3088, 0.001);
@@ -504,18 +504,34 @@ private slots:
 		S_EQUAL(ancestry.population, "EUR");
 
 		//not enough SNPs
-		ancestry = Statistics::ancestry(vl, 10000);
+		ancestry = Statistics::ancestry("hg19", vl, 10000);
 		I_EQUAL(ancestry.snps, 3096);
 		S_EQUAL(ancestry.population, "NOT_ENOUGH_SNPS");
 
 		//not enough popultation distance
-		ancestry = Statistics::ancestry(vl, 1000, 0.7);
+		ancestry = Statistics::ancestry("hg19", vl, 1000, 0.7);
 		I_EQUAL(ancestry.snps, 3096);
 		F_EQUAL2(ancestry.afr, 0.0114, 0.001);
 		F_EQUAL2(ancestry.eur, 0.3088, 0.001);
 		F_EQUAL2(ancestry.sas, 0.1636, 0.001);
 		F_EQUAL2(ancestry.eas, 0.0572, 0.001);
 		S_EQUAL(ancestry.population, "ADMIXED/UNKNOWN");
+	}
+
+	void ancestry_hg38()
+	{
+
+		VariantList vl;
+		vl.load(TESTDATA("data_in/ancestry_hg38.vcf.gz"));
+
+		//default
+		SampleAncestry ancestry = Statistics::ancestry("hg38", vl);
+		I_EQUAL(ancestry.snps, 2122);
+		F_EQUAL2(ancestry.afr, 0.4984, 0.001);
+		F_EQUAL2(ancestry.eur, 0.0241, 0.001);
+		F_EQUAL2(ancestry.sas, 0.1046, 0.001);
+		F_EQUAL2(ancestry.eas, 0.0742, 0.001);
+		S_EQUAL(ancestry.population, "AFR");
 	}
 };
 

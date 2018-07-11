@@ -28,7 +28,10 @@ public:
 		addInt("min_cov",  "Minimum coverage to consider a SNP for the analysis (BAM mode).",  true,  30);
 		addInt("max_snps",  "The maximum number of high-coverage SNPs to analyze. 0 means unlimited (BAM mode).",  true,  500);
 		addInfile("roi", "Target region used to speed up calculations e.g. for panel data (BAM mode).", true);
+		addEnum("build", "Genome build used to generate the input (BAM mode).", true, QStringList() << "hg19" << "hg38", "hg19");
 
+		//changelog
+		changeLog(2018,  7, 11, "Added build switch for hg38 support.");
 		changeLog(2018,  6, 20, "Added IBS0 and IBS2 metrics and renamed tool to SampleSimilarity (was SampleCorrelation).");
 		changeLog(2018,  1,  5, "Added multi-sample support and VCF input file support.");
 		changeLog(2017,  7, 22, "Added 'roi' parameter.");
@@ -46,6 +49,7 @@ public:
 		int max_snps = getInt("max_snps");
 		QString roi = getInfile("roi");
 		bool include_gonosomes = getFlag("include_gonosomes");
+		QString build = getEnum("build");
 
 		//write header
 		if (mode=="vcf")
@@ -83,7 +87,7 @@ public:
 				}
 				else if (mode=="bam")
 				{
-					sc.calculateFromBam(in[i], in[j], min_cov, max_snps, include_gonosomes, roi);
+					sc.calculateFromBam(build, in[i], in[j], min_cov, max_snps, include_gonosomes, roi);
 
 					cols << QString::number(sc.noVariants1());
 					cols << QString::number(sc.sampleCorrelation(), 'f', 4);

@@ -29,8 +29,10 @@ public:
 		addInt("min_mapq", "Minmum mapping quality to consider a read mapped.", true, 1);
 		addFlag("no_cont", "Disables sample contamination calculation, e.g. for tumor or non-human samples.");
 		addFlag("debug", "Enables verbose debug outout.");
+		addEnum("build", "Genome build used to generate the input (needed for contamination only).", true, QStringList() << "hg19" << "hg38", "hg19");
 
 		//changelog
+		changeLog(2018,  7, 11, "Added build switch for hg38 support.");
 		changeLog(2018, 03, 29, "Removed '3exons' flag.");
 		changeLog(2016, 12, 20, "Added support for spliced RNA reads (relevant e.g. for insert size)");
 	}
@@ -44,6 +46,7 @@ public:
 		QString in = getInfile("in");
 		int min_maqp = getInt("min_mapq");
 		bool debug = getFlag("debug");
+		QString build = getEnum("build");
         // check that just one of roi_file, wgs, rna is set
         int parameters_set =  (roi_file!="" ? 1 : 0) +  wgs + rna;
         if (parameters_set!=1)
@@ -85,7 +88,7 @@ public:
 		QCCollection metrics_cont;
 		if (!getFlag("no_cont"))
 		{
-			metrics_cont = Statistics::contamination(in, debug);
+			metrics_cont = Statistics::contamination(build, in, debug);
 		}
 
 		//special QC for 3 exons

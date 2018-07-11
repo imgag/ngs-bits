@@ -55,7 +55,7 @@ public:
 	void calculateFromVcf(QString& in1, QString& in2, int window, bool include_gonosomes);
 
 	//Calculation from BAM
-	void calculateFromBam(QString& in1, QString& in2, int min_cov, int max_snps, bool include_gonosomes, QString roi_file = "");
+	void calculateFromBam(QString build, QString& in1, QString& in2, int min_cov, int max_snps, bool include_gonosomes, QString roi_file = "");
 
 private:
 	double genoToDouble(const QString& geno);

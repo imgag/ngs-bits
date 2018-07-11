@@ -73,7 +73,7 @@ void ExternalToolDialog::browse()
 		}
 		else if (mode_=="hetx")
 		{
-			gender = Statistics::genderHetX(filename, debug_output);
+			gender = Statistics::genderHetX("hg19", filename, debug_output);
 		}
 		else if (mode_=="sry")
 		{
@@ -104,7 +104,7 @@ void ExternalToolDialog::browse()
 		if (mode_=="bam")
 		{
 			SampleSimilarity sc;
-			sc.calculateFromBam(filename1, filename2, 30, 500, false);
+			sc.calculateFromBam("hg19", filename1, filename2, 30, 500, false);
 
 			stream << "Variants used: " << QString::number(sc.noVariants1()) << endl;
 			stream << "Correlation: " << QString::number(sc.sampleCorrelation(), 'f', 4) << endl;
@@ -130,7 +130,7 @@ void ExternalToolDialog::browse()
 		QApplication::setOverrideCursor(Qt::BusyCursor);
 		VariantList vl;
 		vl.load(filename);
-		SampleAncestry ancestry = Statistics::ancestry(vl);
+		SampleAncestry ancestry = Statistics::ancestry("hg19", vl);
 
 		stream << "Informative SNPs: " << QString::number(ancestry.snps) << endl;
 		stream << endl;

@@ -73,12 +73,14 @@ public:
 		addInfile("target_bed", "Target file used for tumor and normal experiment.", true);
 		addInfile("ref_fasta", "Reference fasta file. If unset the reference file from the settings file will be used.", true);
 		addFlag("skip_plots", "Skip plots (intended to increase speed of automated tests).");
-		setExtendedDescription(QStringList() << "SomaticQC integrates the output of the other QC tools and adds several metrics specific for tumor-normal pairs. The genome build form the settings file will be used during calcuation of QC metrics. All tools produce qcML, a generic XML format for QC of -omics experiments, which we adapted for NGS.");
+		setExtendedDescription(QStringList() << "SomaticQC integrates the output of the other QC tools and adds several metrics specific for tumor-normal pairs." << "All tools produce qcML, a generic XML format for QC of -omics experiments, which we adapted for NGS.");
+		addEnum("build", "Genome build used to generate the input.", true, QStringList() << "hg19" << "hg38", "hg19");
 
 		//changelog
-		changeLog(2017, 7, 28, "Added somatic allele frequency histogram and tumor estimate.");
-		changeLog(2017, 1, 16, "Increased speed for mutation profile, removed genome build switch.");
-		changeLog(2016, 8, 25, "Version used in the application note.");
+		changeLog(2018,  7, 11, "Added build switch for hg38 support.");
+		changeLog(2017,  7, 28, "Added somatic allele frequency histogram and tumor estimate.");
+		changeLog(2017,  1, 16, "Increased speed for mutation profile, removed genome build switch.");
+		changeLog(2016,  8, 25, "Version used in the application note.");
 	}
 
 	virtual void main()
@@ -94,6 +96,7 @@ public:
 		if (ref_fasta=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
 		QStringList links = getInfileList("links");
 		bool skip_plots = getFlag("skip_plots");
+		QString build = getEnum("build");
 
 		// metadata
 		QList<QList<QString>> metadata;
@@ -119,7 +122,7 @@ public:
 
 		// calculate somatic QC metrics
 		QCCollection metrics;
-		metrics = Statistics::somatic(tumor_bam, normal_bam, somatic_vcf, ref_fasta, target_bed, skip_plots);
+		metrics = Statistics::somatic(build, tumor_bam, normal_bam, somatic_vcf, ref_fasta, target_bed, skip_plots);
 
 		//store output
 		QString parameters = "";
