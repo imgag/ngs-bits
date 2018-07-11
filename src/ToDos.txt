@@ -19,7 +19,7 @@ GSvar:
 * GenLab XML report: male => change 'hom' variants outside PAR region on chrX/chrY to 'hemi' (when GenLab import is updated)
 ** reimplementation filters
     - make default filters configurable in INI file
-    - text-based filter for OMIM/ClinVar/HGMD column (ignore case)
+    - text-based filter for OMIM/ClinVar/HGMD/NGSD diseases column (ignore case)
     - Trio: Allow filtering for imprinting genes using father/mother information
     - Trio/Multi: Add genotype 'equal' filter for affected
 

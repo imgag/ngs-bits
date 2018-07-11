@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>344</width>
-    <height>531</height>
+    <height>590</height>
    </rect>
   </property>
   <property name="maximumSize">
@@ -71,51 +71,37 @@
          <property name="spacing">
           <number>3</number>
          </property>
-         <item row="3" column="1">
-          <widget class="QLabel" name="tumor_ffpe">
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_19">
+           <property name="text">
+            <string>Name (external):</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_3">
+           <property name="text">
+            <string>Gender:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLabel" name="gender">
            <property name="text">
             <string/>
            </property>
           </widget>
          </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="label_20">
-           <property name="text">
-            <string>Tumor / FFPE:</string>
+         <item row="6" column="1">
+          <widget class="QLabel" name="system">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
            </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QLabel" name="name">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="8" column="0">
-          <widget class="QLabel" name="label_2">
-           <property name="text">
-            <string>Last analysis:</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="1">
-          <widget class="QLabel" name="disease_status">
            <property name="text">
             <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="7" column="1">
-          <widget class="QLabel" name="comment">
-           <property name="text">
-            <string/>
-           </property>
-           <property name="wordWrap">
-            <bool>true</bool>
            </property>
           </widget>
          </item>
@@ -162,6 +148,20 @@
            </item>
           </layout>
          </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>Name:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="label_23">
+           <property name="text">
+            <string>Disease status:</string>
+           </property>
+          </widget>
+         </item>
          <item row="7" column="0">
           <widget class="QLabel" name="label_24">
            <property name="toolTip">
@@ -175,13 +175,6 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="1">
-          <widget class="QLabel" name="name_ext">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
          <item row="6" column="0">
           <widget class="QLabel" name="label_8">
            <property name="text">
@@ -189,35 +182,56 @@
            </property>
           </widget>
          </item>
-         <item row="5" column="0">
-          <widget class="QLabel" name="label_23">
+         <item row="7" column="1">
+          <widget class="QLabel" name="comment">
            <property name="text">
-            <string>Disease status:</string>
+            <string/>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>Name:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="1">
-          <widget class="QLabel" name="system">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
+         <item row="5" column="1">
+          <widget class="QLabel" name="disease_status">
            <property name="text">
             <string/>
            </property>
           </widget>
          </item>
-         <item row="4" column="1">
-          <widget class="QLabel" name="disease_group">
+         <item row="8" column="0">
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>Last analysis:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="name_ext">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="name">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_20">
+           <property name="text">
+            <string>Tumor / FFPE:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QLabel" name="tumor_ffpe">
            <property name="text">
             <string/>
            </property>
@@ -230,26 +244,39 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_19">
-           <property name="text">
-            <string>Name (external):</string>
+         <item row="4" column="1">
+          <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <property name="spacing">
+            <number>0</number>
            </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_3">
-           <property name="text">
-            <string>Gender:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QLabel" name="gender">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
+           <item>
+            <widget class="QLabel" name="disease_group">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QToolButton" name="disease_button">
+             <property name="minimumSize">
+              <size>
+               <width>16</width>
+               <height>16</height>
+              </size>
+             </property>
+             <property name="toolTip">
+              <string>Restart analysis.</string>
+             </property>
+             <property name="text">
+              <string>...</string>
+             </property>
+             <property name="icon">
+              <iconset resource="GSvar.qrc">
+               <normaloff>:/Icons/Edit.png</normaloff>:/Icons/Edit.png</iconset>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
         </layout>
        </item>

@@ -4,6 +4,7 @@
 #include "GUIHelper.h"
 #include "BasicStatistics.h"
 #include "Settings.h"
+#include "DiseaseInfoDialog.h"
 #include <QMenu>
 #include <QStringList>
 #include <QFileInfo>
@@ -18,6 +19,7 @@ SampleDetailsDockWidget::SampleDetailsDockWidget(QWidget *parent)
 	//diagnostic status button
 	connect(ui_.diag_status_button, SIGNAL(clicked(bool)), this, SLOT(editDiagnosticStatus()));
 	connect(ui_.restart_button, SIGNAL(clicked(bool)), this, SLOT(reanalyze()));
+	connect(ui_.disease_button, SIGNAL(clicked(bool)), this, SLOT(editDiseaseData()));
 
 	if (Settings::boolean("NGSD_enabled", true))
 	{
@@ -59,6 +61,17 @@ void SampleDetailsDockWidget::editDiagnosticStatus()
 	db.setDiagnosticStatus(processed_sample_id, widget->status());
 
 	refresh(processed_sample_name_);
+}
+
+void SampleDetailsDockWidget::editDiseaseData()
+{
+	QString sample_id = NGSD().sampleId(processed_sample_name_);
+	DiseaseInfoDialog dlg(sample_id, this);
+
+	if (dlg.exec()==QDialog::Accepted)
+	{
+		refresh(processed_sample_name_);
+	}
 }
 
 void SampleDetailsDockWidget::setQuality()
@@ -137,6 +150,7 @@ void SampleDetailsDockWidget::refresh(QString processed_sample_name)
 		ui_.quality_button->setEnabled(true);
 		ui_.diag_status_button->setEnabled(true);
 		ui_.restart_button->setEnabled(true);
+		ui_.disease_button->setEnabled(true);
 
 	}
 	catch(...)
@@ -144,6 +158,7 @@ void SampleDetailsDockWidget::refresh(QString processed_sample_name)
 		ui_.quality_button->setEnabled(false);
 		ui_.diag_status_button->setEnabled(false);
 		ui_.restart_button->setEnabled(false);
+		ui_.disease_button->setEnabled(false);
 	}
 }
 
@@ -176,6 +191,7 @@ void SampleDetailsDockWidget::clear()
 
 	//buttons
 	ui_.restart_button->setEnabled(false);
+	ui_.disease_button->setEnabled(false);
 	ui_.diag_status_button->setEnabled(false);
 	ui_.quality_button->setEnabled(false);
 }
