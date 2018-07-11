@@ -76,7 +76,7 @@ void SampleDetailsDockWidget::refresh(QString processed_sample_name)
 	processed_sample_name_ = processed_sample_name;
 	ui_.name->setText(processed_sample_name_);
 
-	if (Settings::boolean("NGSD_enabled", true)) return;
+	if (!Settings::boolean("NGSD_enabled", true)) return;
 	NGSD db;
 
 	//sample data from NGSD

@@ -1,9 +1,10 @@
 ### SomaticQC tool help
-	SomaticQC (0.1-782-ge325449)
+	SomaticQC (2018_06-13-ge04b5e6)
 	
 	Calculates QC metrics based on tumor-normal pairs.
 	
-	SomaticQC integrates the output of the other QC tools and adds several metrics specific for tumor-normal pairs. The genome build form the settings file will be used during calcuation of QC metrics. All tools produce qcML, a generic XML format for QC of -omics experiments, which we adapted for NGS.
+	SomaticQC integrates the output of the other QC tools and adds several metrics specific for tumor-normal pairs.
+	All tools produce qcML, a generic XML format for QC of -omics experiments, which we adapted for NGS.
 	
 	Mandatory parameters:
 	  -tumor_bam <file>   Input tumor bam file.
@@ -20,6 +21,9 @@
 	                      Default value: ''
 	  -skip_plots         Skip plots (intended to increase speed of automated tests).
 	                      Default value: 'false'
+	  -build <enum>       Genome build used to generate the input.
+	                      Default value: 'hg19'
+	                      Valid: 'hg19,hg38'
 	
 	Special parameters:
 	  --help              Shows this help and exits.
@@ -28,8 +32,9 @@
 	  --tdx               Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SomaticQC changelog
-	SomaticQC 0.1-782-ge325449
+	SomaticQC 2018_06-13-ge04b5e6
 	
+	2018-07-11 Added build switch for hg38 support.
 	2017-07-28 Added somatic allele frequency histogram and tumor estimate.
 	2017-01-16 Increased speed for mutation profile, removed genome build switch.
 	2016-08-25 Version used in the application note.

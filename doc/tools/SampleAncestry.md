@@ -1,8 +1,8 @@
 ### SampleAncestry tool help
-	SampleAncestry (2018_06-3-g45da761)
+	SampleAncestry (2018_06-13-ge04b5e6)
 	
 	Estimates the ancestry of a sample based on variants.
-
+	
 	Mandatory parameters:
 	  -in <filelist>    Input variant list(s) in VCF format.
 	
@@ -12,7 +12,10 @@
 	  -min_snps <int>   Minimum number of informative SNPs for population determination. If less SNPs are found, 'NOT_ENOUGH_SNPS' is returned.
 	                    Default value: '1000'
 	  -pop_dist <float> Minimum relative distance between first/second population score. If below this score 'ADMIXED/UNKNOWN' is called.
-	                    Default value: '0.15'
+	                    Default value: '0.14999999999999999'
+	  -build <enum>     Genome build used to generate the input.
+	                    Default value: 'hg19'
+	                    Valid: 'hg19,hg38'
 	
 	Special parameters:
 	  --help            Shows this help and exits.
@@ -21,10 +24,8 @@
 	  --tdx             Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SampleAncestry changelog
-	SampleAncestry 2018_06-3-g45da761
+	SampleAncestry 2018_06-13-ge04b5e6
 	
+	2018-07-11 Added build switch for hg38 support.
 	2018-07-03 First version.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
-
-
-

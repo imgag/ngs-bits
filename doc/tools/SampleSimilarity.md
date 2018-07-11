@@ -1,5 +1,5 @@
 ### SampleSimilarity tool help
-	SampleSimilarity (2018_04-70-g8c7b125)
+	SampleSimilarity (2018_06-13-ge04b5e6)
 	
 	Calculates pairwise sample similarity metrics from VCF/BAM files.
 	
@@ -22,6 +22,9 @@
 	                      Default value: '500'
 	  -roi <file>         Target region used to speed up calculations e.g. for panel data (BAM mode).
 	                      Default value: ''
+	  -build <enum>       Genome build used to generate the input (BAM mode).
+	                      Default value: 'hg19'
+	                      Valid: 'hg19,hg38'
 	
 	Special parameters:
 	  --help              Shows this help and exits.
@@ -30,8 +33,9 @@
 	  --tdx               Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SampleSimilarity changelog
-	SampleSimilarity 2018_04-70-g8c7b125
+	SampleSimilarity 2018_06-13-ge04b5e6
 	
+	2018-07-11 Added build switch for hg38 support.
 	2018-06-20 Added IBS0 and IBS2 metrics and renamed tool to SampleSimilarity (was SampleCorrelation).
 	2018-01-05 Added multi-sample support and VCF input file support.
 	2017-07-22 Added 'roi' parameter.

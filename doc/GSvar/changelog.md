@@ -1,6 +1,6 @@
 # GSvar change log
 
-###2018_06-?? (??.07.2018)
+###2018_06-18 (11.07.2018)
 - General: Added ancestry estimation.
 - Filters: The gene name filter now support using '*' as wildcard.
 - ROH dialog: Child ROHs are shown for trios.
@@ -201,6 +201,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 

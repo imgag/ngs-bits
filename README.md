@@ -14,6 +14,11 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 ## ChangeLog
 
+Changes already implemented for next release:
+
+* Added GRCh38 support (MappingQC, SomaticQC, SampleGender, SampleSimilarity).
+* Added tools: SampleAncestry.
+
 Changes in release 2018_06:
 
 * SampleCorrelation: added new metrics and renamed to SampleSimilarity.
@@ -109,6 +114,7 @@ Installation instructions for the NGSD can be found [here](doc/install_ngsd.md).
 
 * [PERsim](doc/tools/PERsim.md) - Paired-end read simulator for Illumina reads.
 * [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file.
+
 
 
 
