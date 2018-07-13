@@ -309,6 +309,10 @@ SUBDIRS += FastqAddBarcode
 tools-TEST.depends += FastqAddBarcode
 FastqAddBarcode.depends = cppNGS
 
+SUBDIRS += BamFilter
+tools-TEST.depends += BamFilter
+BamFilter.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt
 

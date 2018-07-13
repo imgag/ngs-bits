@@ -59,6 +59,7 @@ The default output format of the quality control tools is [qcML](https://github.
 
 * [BamClipOverlap](doc/tools/BamClipOverlap.md) - (Soft-)Clips paired-end reads that overlap.
 * [BamDownsample](doc/tools/BamDownsample.md) - Downsamples a BAM file to the given percentage of reads.
+* [BamFilter](doc/tools/BamFilter.md) - Filters a BAM file by multiple criteria.
 * [BamHighCoverage](doc/tools/BamHighCoverage.md) - Determines high-coverage regions in a BAM file.
 * [BamToFastq](doc/tools/BamToFastq.md) - Converts a BAM file to FASTQ files (paired-end only).
 
@@ -82,9 +83,11 @@ The default output format of the quality control tools is [qcML](https://github.
 
 ### FASTQ tools
 
+* [FastqAddBarcode](doc/tools/FastqAddBarcode.md) - Adds sequences from separate FASTQ as barcodes to read IDs.
 * [FastqConvert](doc/tools/FastqConvert.md) - Converts the quality scores from Illumina 1.5 offset to Sanger/Illumina 1.8 offset. 
 * [FastqExtract](doc/tools/FastqExtract.md) - Extracts reads from a FASTQ file according to an ID list.
 * [FastqExtractBarcode](doc/tools/FastqExtractBarcode.md) - Moves molecular barcodes of reads to a separate file.
+* [FastqExtractUMI](doc/tools/FastqExtractUMI.md) - Moves unique moleculare identifier from read sequence to read ID.
 * [FastqFormat](doc/tools/FastqFormat.md) - Determines the quality score offset of a FASTQ file.
 * [FastqList](doc/tools/FastqList.md) - Lists read IDs and base counts.
 * [FastqMidParser](doc/tools/FastqMidParser.md) - Counts the number of occurances of each MID/index/barcode in a FASTQ file.
