@@ -7,21 +7,20 @@ private slots:
 	
 	void method_xy()
 	{
-		EXECUTE("SampleGender", "-in " + TESTDATA("../cppNGS-TEST/data_in/panel.bam") + " -method xy -out out/SampleGender_test01_out.txt");
-		COMPARE_FILES("out/SampleGender_test01_out.txt", TESTDATA("data_out/SampleGender_test01_out.txt"));
+		EXECUTE("SampleGender", "-in " + TESTDATA("../cppNGS-TEST/data_in/panel.bam") + " -method xy -out out/SampleGender_test01_out.tsv");
+		COMPARE_FILES("out/SampleGender_test01_out.tsv", TESTDATA("data_out/SampleGender_test01_out.tsv"));
 	}
 
 	void method_hetx()
 	{
-		EXECUTE("SampleGender", "-in " + TESTDATA("../cppNGS-TEST/data_in/panel.bam") + " -method hetx -out out/SampleGender_test02_out.txt");
-		COMPARE_FILES("out/SampleGender_test02_out.txt", TESTDATA("data_out/SampleGender_test02_out.txt"));
+		EXECUTE("SampleGender", "-in " + TESTDATA("../cppNGS-TEST/data_in/panel.bam") + " -method hetx -out out/SampleGender_test02_out.tsv");
+		COMPARE_FILES("out/SampleGender_test02_out.tsv", TESTDATA("data_out/SampleGender_test02_out.tsv"));
 	}
 
-	void method_sry()
+	void method_sry_batch()
 	{
-		EXECUTE("SampleGender", "-in " + TESTDATA("../cppNGS-TEST/data_in/panel.bam") + " -method sry -out out/SampleGender_test03_out.txt");
-		COMPARE_FILES("out/SampleGender_test03_out.txt", TESTDATA("data_out/SampleGender_test03_out.txt"));
+		EXECUTE("SampleGender", "-in " + TESTDATA("../cppNGS-TEST/data_in/panel.bam") + " " + TESTDATA("../cppNGS-TEST/data_in/sry.bam") + " -method sry -out out/SampleGender_test03_out.tsv");
+		COMPARE_FILES("out/SampleGender_test03_out.tsv", TESTDATA("data_out/SampleGender_test03_out.tsv"));
 	}
-
 };
 

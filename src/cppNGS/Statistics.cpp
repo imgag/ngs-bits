@@ -1493,7 +1493,7 @@ QCCollection Statistics::contamination(QString build, QString bam, bool debug, i
 	return output;
 }
 
-SampleAncestry Statistics::ancestry(QString build, const VariantList& vl, int min_snp, double min_pop_dist)
+AncestryEstimates Statistics::ancestry(QString build, const VariantList& vl, int min_snp, double min_pop_dist)
 {
 	//determine required annotation indices
 	int i_gt = vl.annotationIndexByName("GT");
@@ -1536,7 +1536,7 @@ SampleAncestry Statistics::ancestry(QString build, const VariantList& vl, int mi
 	}
 
 	//not enough informative SNPs
-	SampleAncestry output;
+	AncestryEstimates output;
 	output.snps = geno_sample.count();
 	if (geno_sample.count()<min_snp)
 	{
@@ -1876,7 +1876,7 @@ BedFile Statistics::highCoverage(const QString& bam_file, int cutoff, int min_ma
 	return output;
 }
 
-QString Statistics::genderXY(const QString& bam_file, QStringList& debug_output, double max_female, double min_male)
+GenderEstimate Statistics::genderXY(QString bam_file, double max_female, double min_male)
 {
     //open BAM file
 	BamReader reader(bam_file);
@@ -1901,20 +1901,23 @@ QString Statistics::genderXY(const QString& bam_file, QStringList& debug_output,
 	{
 		++count_y;
 	}
+	double ratio_yx = (double) count_y / count_x;
 
-    //debug output
-    double ratio_yx = (double) count_y / count_x;
-    debug_output << "read count chrX: " + QString::number(count_x);
-    debug_output << "read count chrY: " + QString::number(count_y);
-    debug_output << "ratio chrY/chrX: " + QString::number(ratio_yx, 'f', 4);
+	//output
+	GenderEstimate output;
+	output.add_info << qMakePair(QString("reads_chry"), QString::number(count_y));
+	output.add_info << qMakePair(QString("reads_chrx"), QString::number(count_x));
+	output.add_info << qMakePair(QString("ratio_chry_chrx"), QString::number(ratio_yx, 'f', 4));
 
     //output
-    if (ratio_yx<=max_female) return "female";
-    if (ratio_yx>=min_male) return "male";
-    return "unknown (ratio in gray area)";
+	if (ratio_yx<=max_female) output.gender = "female";
+	else if (ratio_yx>=min_male) output.gender = "male";
+	else output.gender = "unknown (ratio in gray area)";
+
+	return output;
 }
 
-QString Statistics::genderHetX(QString build, const QString& bam_file, QStringList& debug_output, double max_male, double min_female)
+GenderEstimate Statistics::genderHetX(QString bam_file, QString build, double max_male, double min_female)
 {
     //open BAM file
 	BamReader reader(bam_file);
@@ -1970,22 +1973,24 @@ QString Statistics::genderHetX(QString build, const QString& bam_file, QStringLi
             }
         }
     }
+	double het_frac = (double) het_count / (het_count + hom_count);
 
-    //debug output
-    double het_frac = (double) het_count / (het_count + hom_count);
-	debug_output << "SNPs with coverage 30 or more: " +  QString::number(hom_count + het_count) + " of " + QString::number(snps.count());
-    debug_output << "hom count: " + QString::number(hom_count);
-    debug_output << "het count: " + QString::number(het_count);
-    debug_output << "het fraction: " + QString::number(het_frac, 'f', 4);
+	//output
+	GenderEstimate output;
+	output.add_info << qMakePair(QString("snps_usable"), QString::number(hom_count + het_count) + " of " + QString::number(snps.count()));
+	output.add_info << qMakePair(QString("hom_count"), QString::number(hom_count));
+	output.add_info << qMakePair(QString("het_count"), QString::number(het_count));
+	output.add_info << qMakePair(QString("het_fraction"), QString::number(het_frac, 'f', 4));
 
-    //output
-    if (hom_count + het_count < 20) return "unknown (too few SNPs)";
-    if (het_frac<=max_male) return "male";
-    if (het_frac>=min_female) return "female";
-	return "unknown (fraction in gray area)";
+	if (hom_count + het_count < 20) output.gender = "unknown (too few SNPs)";
+	else if (het_frac<=max_male) output.gender = "male";
+	else if (het_frac>=min_female) output.gender = "female";
+	else output.gender = "unknown (fraction in gray area)";
+
+	return output;
 }
 
-QString Statistics::genderSRY(const QString& bam_file, QStringList& debug_output, double min_cov)
+GenderEstimate Statistics::genderSRY(QString bam_file, QString build, double min_cov)
 {
 	//open BAM file
 	BamReader reader(bam_file);
@@ -1993,6 +1998,15 @@ QString Statistics::genderSRY(const QString& bam_file, QStringList& debug_output
 	//restrict to SRY gene
 	int start = 2655031;
 	int end = 2655641;
+	if (build=="hg38")
+	{
+		start = 2786989;
+		end = 2787603;
+	}
+	else if (build!="hg19")
+	{
+		THROW(ProgrammingException, "Unsupported genome build '" + build + "'!");
+	}
 	reader.setRegion(Chromosome("chrY"), start, end);
 
 	//calcualte average coverage
@@ -2005,7 +2019,8 @@ QString Statistics::genderSRY(const QString& bam_file, QStringList& debug_output
 	cov /= (end-start);
 
 	//output
-	debug_output << "coverge SRY: " + QString::number(cov, 'f', 2);
-	if (cov>=min_cov) return "male";
-	return "female";
+	GenderEstimate output;
+	output.add_info << qMakePair(QString("coverage_sry"), QString::number(cov, 'f', 2));
+	output.gender = cov>=min_cov ? "male" : "female";
+	return output;
 }

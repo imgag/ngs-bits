@@ -8,8 +8,17 @@
 #include <QMap>
 
 
+
+///Helper class for gender estimates
+struct CPPNGSSHARED_EXPORT GenderEstimate
+{
+	QString gender;
+	QList<QPair<QString, QString>> add_info; //key-value pairs of additional information
+};
+
+
 ///Helper class for ancestry estimates
-struct CPPNGSSHARED_EXPORT SampleAncestry
+struct CPPNGSSHARED_EXPORT AncestryEstimates
 {
 	int snps;
 	double afr;
@@ -38,7 +47,7 @@ public:
 	///Calculates the percentage of common SNPs that lie outside the expected allele frequency range for diploid organisms.
 	static QCCollection contamination(QString build, QString bam, bool debug = false, int min_cov = 20, int min_snps = 50);
 	///Returns ancestry estimates for a variant list.
-	static SampleAncestry ancestry(QString build, const VariantList& variants, int min_snp=100, double min_pop_dist = 0.15);
+	static AncestryEstimates ancestry(QString build, const VariantList& variants, int min_snp=100, double min_pop_dist = 0.15);
 
 	///Calculates the part of the target region that has a lower coverage than the given cutoff. The input BED file must be merged and sorted!
 	static BedFile lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq=1);
@@ -50,11 +59,11 @@ public:
 	static BedFile highCoverage(const QString& bam_file, int cutoff, int min_mapq=1);
 
 	///Determines the gender based on the read ratio between X and Y chromosome.
-	static QString genderXY(const QString& bam_file, QStringList& debug_output, double max_female=0.06, double min_male=0.09);
+	static GenderEstimate genderXY(QString bam_file, double max_female=0.06, double min_male=0.09);
 	///Determines the gender based on the fraction of heterocygous SNPs on chromosome X.
-	static QString genderHetX(QString build, const QString& bam_file, QStringList& debug_output, double max_male=0.15, double min_female=0.24);
+	static GenderEstimate genderHetX(QString bam_file, QString build, double max_male=0.15, double min_female=0.24);
 	///Determines the gender based on the coverge of the SRY gene on chrY.
-	static QString genderSRY(const QString& bam_file, QStringList& debug_output, double min_cov=20.0);
+	static GenderEstimate genderSRY(QString bam_file, QString build, double min_cov=20.0);
 
 protected:
 	///No default constructor

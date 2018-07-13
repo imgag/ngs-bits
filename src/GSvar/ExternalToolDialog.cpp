@@ -65,30 +65,28 @@ void ExternalToolDialog::browse()
 		//process
 		QApplication::setOverrideCursor(Qt::BusyCursor);
 
-		QString gender;
-		QStringList debug_output;
+		GenderEstimate estimate;
 		if (mode_=="xy")
 		{
-			gender = Statistics::genderXY(filename, debug_output);
+			estimate = Statistics::genderXY(filename);
 		}
 		else if (mode_=="hetx")
 		{
-			gender = Statistics::genderHetX("hg19", filename, debug_output);
+			estimate = Statistics::genderHetX(filename, "hg19");
 		}
 		else if (mode_=="sry")
 		{
-			gender = Statistics::genderSRY(filename, debug_output);
+			estimate = Statistics::genderSRY(filename, "hg19");
 		}
 		QApplication::restoreOverrideCursor();
 
 		//output
-		foreach(const QString& line, debug_output)
+		foreach(auto info, estimate.add_info)
 		{
-			stream  << line << endl;
+			stream  << info.first << ": " << info.second << endl;
 		}
 		stream << endl;
-		stream << "gender: " << gender << endl;
-
+		stream << "gender: " << estimate.gender << endl;
 	}
 	else if (tool_name_ == "Sample similarity")
 	{
@@ -130,7 +128,7 @@ void ExternalToolDialog::browse()
 		QApplication::setOverrideCursor(Qt::BusyCursor);
 		VariantList vl;
 		vl.load(filename);
-		SampleAncestry ancestry = Statistics::ancestry("hg19", vl);
+		AncestryEstimates ancestry = Statistics::ancestry("hg19", vl);
 
 		stream << "Informative SNPs: " << QString::number(ancestry.snps) << endl;
 		stream << endl;

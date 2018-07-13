@@ -1,4 +1,0 @@
-read count chrX: 30540
-read count chrY: 47
-ratio chrY/chrX: 0.0015
-gender: female

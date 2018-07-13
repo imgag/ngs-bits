@@ -57,6 +57,9 @@ public:
 	//Calculation from BAM
 	void calculateFromBam(QString build, QString& in1, QString& in2, int min_cov, int max_snps, bool include_gonosomes, QString roi_file = "");
 
+	//Reset
+	void clear();
+
 private:
 	double genoToDouble(const QString& geno);
 	int no_variants1_;

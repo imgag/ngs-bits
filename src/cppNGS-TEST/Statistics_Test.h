@@ -466,26 +466,23 @@ private slots:
 
 	void genderXY()
 	{
-		QStringList debug;
-		QString gender = Statistics::genderXY(TESTDATA("data_in/panel.bam"), debug);
-		S_EQUAL(gender, QString("female"));
+		GenderEstimate estimate = Statistics::genderXY(TESTDATA("data_in/panel.bam"));
+		S_EQUAL(estimate.gender, "female");
 	}
 
 	void genderHetX()
 	{
-		QStringList debug;
-		QString gender = Statistics::genderHetX("hg19", TESTDATA("data_in/panel.bam"), debug);
-		S_EQUAL(gender, QString("unknown (too few SNPs)"));
+		GenderEstimate estimate = Statistics::genderHetX(TESTDATA("data_in/panel.bam"), "hg19");
+		S_EQUAL(estimate.gender, QString("unknown (too few SNPs)"));
 	}
 
 	void genderSRY()
 	{
-		QStringList debug;
-		QString gender = Statistics::genderSRY(TESTDATA("data_in/panel.bam"), debug);
-		S_EQUAL(gender, QString("female"));
+		GenderEstimate estimate = Statistics::genderSRY(TESTDATA("data_in/panel.bam"), "hg19");
+		S_EQUAL(estimate.gender, "female");
 
-		gender = Statistics::genderSRY(TESTDATA("data_in/sry.bam"), debug);
-		S_EQUAL(gender, QString("male"));
+		estimate = Statistics::genderSRY(TESTDATA("data_in/sry.bam"), "hg19");
+		S_EQUAL(estimate.gender, "male");
 	}
 
 	void ancestry()
@@ -495,7 +492,7 @@ private slots:
 		vl.load(TESTDATA("data_in/ancestry.vcf.gz"));
 
 		//default
-		SampleAncestry ancestry = Statistics::ancestry("hg19", vl);
+		AncestryEstimates ancestry = Statistics::ancestry("hg19", vl);
 		I_EQUAL(ancestry.snps, 3096);
 		F_EQUAL2(ancestry.afr, 0.0114, 0.001);
 		F_EQUAL2(ancestry.eur, 0.3088, 0.001);
@@ -525,7 +522,7 @@ private slots:
 		vl.load(TESTDATA("data_in/ancestry_hg38.vcf.gz"));
 
 		//default
-		SampleAncestry ancestry = Statistics::ancestry("hg38", vl);
+		AncestryEstimates ancestry = Statistics::ancestry("hg38", vl);
 		I_EQUAL(ancestry.snps, 2122);
 		F_EQUAL2(ancestry.afr, 0.4984, 0.001);
 		F_EQUAL2(ancestry.eur, 0.0241, 0.001);

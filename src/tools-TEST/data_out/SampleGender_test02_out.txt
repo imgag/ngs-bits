@@ -1,5 +1,0 @@
-SNPs with coverage 30 or more: 3 of 525
-hom count: 2
-het count: 1
-het fraction: 0.3333
-gender: unknown (too few SNPs)

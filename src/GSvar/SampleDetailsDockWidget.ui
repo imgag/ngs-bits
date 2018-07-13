@@ -265,7 +265,7 @@
               </size>
              </property>
              <property name="toolTip">
-              <string>Restart analysis.</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Edit disease information.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>...</string>

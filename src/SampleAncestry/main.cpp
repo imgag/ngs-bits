@@ -53,7 +53,7 @@ public:
 			VariantList vl;
 			vl.load(filename);
 
-			SampleAncestry ancestry = Statistics::ancestry(build, vl, min_snps, pop_dist);
+			AncestryEstimates ancestry = Statistics::ancestry(build, vl, min_snps, pop_dist);
 			out << QFileInfo(filename).fileName()
 				<< "\t" << ancestry.snps
 				<< "\t" << QString::number(ancestry.afr, 'f', 4)

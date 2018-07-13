@@ -6,6 +6,8 @@
 
 void SampleSimilarity::calculateFromVcf(QString& in1, QString& in2, int window, bool include_gonosomes)
 {
+	clear();
+
 	//load input files
 	VariantList file1;
 	file1.load(in1);
@@ -71,7 +73,7 @@ void SampleSimilarity::calculateFromVcf(QString& in1, QString& in2, int window, 
 	//abort if no overlap
 	if (geno1.count()==0 || geno2.count()==0)
 	{
-		THROW(ArgumentException, "Zero overlap between variant lists!")
+		messages_.append("Zero overlap between variant lists!");
 	}
 
 	//count overall number of variants
@@ -100,7 +102,6 @@ void SampleSimilarity::calculateFromVcf(QString& in1, QString& in2, int window, 
 	int max_count = std::min(no_variants1_, no_variants2_);
 	ol_perc_ = 100.0 * c_ol / max_count;
 	sample_correlation_ = BasicStatistics::correlation(geno1, geno2);
-	ibs0_perc_ = std::numeric_limits<double>::quiet_NaN();
 	ibs2_perc_ = 100.0 * c_ibs2 / max_count;
 
 	//calulate percentage with same genotype if correlation is not calculatable
@@ -118,6 +119,8 @@ void SampleSimilarity::calculateFromVcf(QString& in1, QString& in2, int window, 
 
 void SampleSimilarity::calculateFromBam(QString build, QString& in1, QString& in2, int min_cov, int max_snps, bool include_gonosomes, QString roi_file)
 {
+	clear();
+
 	VariantList snps;
 	if (!roi_file.trimmed().isEmpty())
 	{
@@ -171,24 +174,28 @@ void SampleSimilarity::calculateFromBam(QString build, QString& in1, QString& in
 	//abort if no overlap
 	if (freq1.count()==0)
 	{
-		no_variants1_ = 0;
-		no_variants2_ = 0;
-		ol_perc_ = std::numeric_limits<double>::quiet_NaN();
-		sample_correlation_ = std::numeric_limits<double>::quiet_NaN();
-		ibs0_perc_ = std::numeric_limits<double>::quiet_NaN();
-		ibs2_perc_ = std::numeric_limits<double>::quiet_NaN();
-
 		messages_.append("Could not calulate genotype correlation!");
 	}
 	else
 	{
 		no_variants1_ = freq1.count();
 		no_variants2_ = freq2.count();
-		ol_perc_ = std::numeric_limits<double>::quiet_NaN();
 		ibs0_perc_ = 100.0 * c_ibs0 / freq1.count();
 		ibs2_perc_ = 100.0 * c_ibs2 / freq1.count();
 		sample_correlation_ = BasicStatistics::correlation(freq1, freq2);
 	}
+}
+
+void SampleSimilarity::clear()
+{
+	no_variants1_ = 0;
+	no_variants2_ = 0;
+	total_variants_ = 0;
+	sample_correlation_ = std::numeric_limits<double>::quiet_NaN();
+	ol_perc_ = std::numeric_limits<double>::quiet_NaN();
+	ibs0_perc_ = std::numeric_limits<double>::quiet_NaN();
+	ibs2_perc_ = std::numeric_limits<double>::quiet_NaN();
+	messages_.clear();
 }
 
 double SampleSimilarity::genoToDouble(const QString& geno)
