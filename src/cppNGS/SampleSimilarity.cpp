@@ -74,6 +74,7 @@ void SampleSimilarity::calculateFromVcf(QString& in1, QString& in2, int window, 
 	if (geno1.count()==0 || geno2.count()==0)
 	{
 		messages_.append("Zero overlap between variant lists!");
+		return;
 	}
 
 	//count overall number of variants
