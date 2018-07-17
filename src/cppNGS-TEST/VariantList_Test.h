@@ -827,4 +827,16 @@ private slots:
 		I_EQUAL(info.sampleColumns(false).count(), 1);
 		S_EQUAL(info.sampleColumns(false)[0], "Control");
 	}
+
+
+	void getPipeline()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+		S_EQUAL(vl.getPipeline(), "megSAP 0.1-742-ged8ba02");
+
+		//header not set
+		vl.load(TESTDATA("data_in/VariantFilter_in_multi.GSvar"));
+		S_EQUAL(vl.getPipeline(), "n/a");
+	}
 };

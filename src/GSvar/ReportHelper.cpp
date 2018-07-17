@@ -2076,26 +2076,12 @@ void ReportHelper::writeRtf(const QString& out_file)
 
 	//quality parameters
 	QDir directory = QFileInfo(snv_filename_).dir();
-	//logfile
-	directory.setNameFilters(QStringList()<< "*.log");
-
-	//Sort entries, eldest .log file is last element
-	QStringList log_files = directory.entryList(QDir::Files,QDir::Time);
-	QString log_file = log_files.last();
-
-
-	//paths for qcML files of single sample
 	directory.cdUp();
 	QString qcml_file_tumor_stats_map_absolute_path = directory.absolutePath() + "/" + "Sample_" + tumor_id_ + "/" + tumor_id_ + "_stats_map.qcML";
 	QString qcml_file_normal_stats_map_absolute_path = directory.absolutePath() + "/" + "Sample_" + normal_id_ + "/" + normal_id_ + "_stats_map.qcML";
 
 	QCCollection qcml_data_tumor = QCCollection::fromQCML(qcml_file_tumor_stats_map_absolute_path);
 	QCCollection qcml_data_normal = QCCollection::fromQCML(qcml_file_normal_stats_map_absolute_path);
-
-	QSharedPointer<QFile> lf = Helper::openFileForReading(QFileInfo(snv_filename_).absolutePath().append("/").append(log_file));
-	//extract analysis pipeline version
-	QByteArray pipeline_version = lf->readLine().split('\t').at(2).trimmed();
-	pipeline_version.remove(0,6);
 
 	/**********************
 	 * QUALITY PARAMETERS *
@@ -2104,7 +2090,9 @@ void ReportHelper::writeRtf(const QString& out_file)
 	widths << 3000 << max_table_width;
 	stream << "{\\pard\\sa45\\sb45\\fs18\\b Qualit\\u228;tsparameter:\\par}" << endl;
 	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "Revision der Analysepipeline: " << "\\cell " << pipeline_version << "\\cell" << "\\row}" <<endl;
+	stream << begin_table_cell << "Analysepipeline: " << "\\cell " << snv_variants_.getPipeline() << "\\cell" << "\\row}" <<endl;
+	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
+	stream << begin_table_cell << "Auswertungssoftware: " << "\\cell " << QCoreApplication::applicationName() << " " << QCoreApplication::applicationVersion() << "\\cell" << "\\row}" <<endl;
 	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
 	stream << begin_table_cell << "Coverage Tumor 100x:\\cell"<< begin_table_cell << qcml_data_tumor.value("QC:2000030",true).toString()  << "\%"<< "\\cell" << "\\row}" <<endl;
 	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);

@@ -358,6 +358,9 @@ public:
 	///Parses and returns sample data from variant list header (only for GSvar).
 	SampleHeaderInfo getSampleHeader(bool error_if_missing=true);
 
+	///Parse analysis pipeline version from comments
+	QString getPipeline() const;
+
 protected:
     QStringList comments_;
 	QList<VariantAnnotationDescription> annotation_descriptions_;

@@ -1496,6 +1496,19 @@ SampleHeaderInfo VariantList::getSampleHeader(bool error_if_missing)
 	return output;
 }
 
+QString VariantList::getPipeline() const
+{
+	foreach(QString line, comments_)
+	{
+		if (line.startsWith("##PIPELINE="))
+		{
+			return line.mid(11).trimmed();
+		}
+	}
+
+	return "n/a";
+}
+
 void Variant::normalize(int& start, Sequence& ref, Sequence& obs)
 {
 	//remove common first base

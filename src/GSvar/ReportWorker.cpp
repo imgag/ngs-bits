@@ -502,7 +502,8 @@ void ReportWorker::writeHTML()
 	stream << "<br />Referenzgenom: " << system_data.genome << endl;
 	stream << "<br />Datum: " << QDate::currentDate().toString("dd.MM.yyyy") << endl;
 	stream << "<br />Benutzer: " << Helper::userName() << endl;
-	stream << "<br />Analysesoftware: "  << QCoreApplication::applicationName() << " " << QCoreApplication::applicationVersion() << endl;	
+	stream << "<br />Analysepipeline: "  << variants_.getPipeline() << endl;
+	stream << "<br />Auswertungssoftware: "  << QCoreApplication::applicationName() << " " << QCoreApplication::applicationVersion() << endl;
 	stream << "<br />KASP-Ergebnis: " << db_.getQCData(processed_sample_id).value("kasp").asString() << endl;
 	stream << "</p>" << endl;
 
