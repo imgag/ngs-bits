@@ -37,8 +37,8 @@ Install like that:
 * Check out the NGSD source code like that (contact us for credentials):
 	
 		> cd /var/www/html/
-		> svn co http://saas1305xh.saas-secure.com/svn/DB/http --username [user] --password [password]
-		> mv http DB
+		> git clone https://www.medizin.uni-tuebingen.de/gitmgen/r/DB.git
+
 
 * Now we need to configure the NGSD:
 
@@ -152,6 +152,7 @@ In order to import variants and QC values of a sample into the NGSD, you have to
 Now, you can import the variant and QC data of the sample `NA12878_01`into the NGSD using the following command:
 
 	php php/src/Pipelines/analyze.php -folder Sample_NA12878_01 -name NA12878_01 -system hpHBOCv5.ini -steps db
+
 
 
 
