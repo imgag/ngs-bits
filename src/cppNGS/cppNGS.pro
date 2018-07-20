@@ -38,7 +38,6 @@ SOURCES += BedFile.cpp \
     VariantList.cpp \
     VariantFilter.cpp \
     Statistics.cpp \
-    ChromosomalFileIndex.cpp \
     Pileup.cpp \
     NGSHelper.cpp \
     FastqFileStream.cpp \
@@ -64,7 +63,6 @@ HEADERS += BedFile.h \
     VariantFilter.h \
     ChromosomalIndex.h \
     Statistics.h \
-    ChromosomalFileIndex.h \
     Pileup.h \
     NGSHelper.h \
     FastqFileStream.h \

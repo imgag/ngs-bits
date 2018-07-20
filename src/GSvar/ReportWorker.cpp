@@ -537,7 +537,7 @@ void ReportWorker::writeHTML()
 	stream << "</p>" << endl;
 
 	//output: all rare variants
-	stream << "<p><b>Liste priorisierter Varianten</b>" << endl;
+	stream << "<p><b>Varianten nach klinischer Interpretation im Kontext der Fragestellung</b>" << endl;
 	stream << "</p>" << endl;
 	stream << "<table>" << endl;
 	stream << "<tr><td><b>Gen</b></td><td><b>Variante</b></td><td><b>" << (tumor ? "Allelfrequenz" : "Genotyp") << "</b></td><td><b>Details</b></td><td><b>Klasse</b></td><td><b>Vererbung</b></td><td><b>ExAC</b></td><td><b>gnomAD</b></td></tr>" << endl;

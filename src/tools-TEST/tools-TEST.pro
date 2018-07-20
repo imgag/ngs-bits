@@ -39,7 +39,6 @@ HEADERS += \
     BedSort_Test.h \
     BedSubtract_Test.h \
     BedShrink_Test.h \
-    Cidx_Test.h \
     SampleGender_Test.h \
     FastaInfo_Test.h \
     BedIntersect_Test.h \

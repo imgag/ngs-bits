@@ -48,7 +48,6 @@ HEADERS += \
         ChromosomalIndex_Test.h \
         Statistics_Test.h \
         Variant_Test.h \
-        ChromosomalFileIndex_Test.h \
         NGSHelper_Test.h \
         FastqFileStream_Test.h \
         FastaFileIndex_Test.h \

@@ -85,10 +85,6 @@ SUBDIRS += BedSubtract
 tools-TEST.depends += BedSubtract
 BedSubtract.depends = cppNGS
 
-SUBDIRS += Cidx
-tools-TEST.depends += Cidx
-Cidx.depends = cppNGS
-
 SUBDIRS += FastaInfo
 tools-TEST.depends += FastaInfo
 FastaInfo.depends = cppNGS
