@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>287</width>
-    <height>662</height>
+    <width>297</width>
+    <height>525</height>
    </rect>
   </property>
   <property name="features">
@@ -22,24 +22,238 @@
   <widget class="QWidget" name="main_widget">
    <layout class="QVBoxLayout" name="verticalLayout_3">
     <property name="spacing">
-     <number>2</number>
+     <number>3</number>
     </property>
     <property name="leftMargin">
      <number>3</number>
     </property>
     <property name="topMargin">
-     <number>2</number>
+     <number>3</number>
     </property>
     <property name="rightMargin">
      <number>3</number>
     </property>
     <property name="bottomMargin">
-     <number>2</number>
+     <number>3</number>
     </property>
+    <item>
+     <widget class="QGroupBox" name="groupBox">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="toolTip">
+       <string/>
+      </property>
+      <property name="title">
+       <string>Main filters</string>
+      </property>
+      <property name="flat">
+       <bool>true</bool>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <property name="spacing">
+        <number>3</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QListWidget" name="filters_entries">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Main filter steps listed in the order that they are applied.&lt;br/&gt;&lt;br/&gt;Notes:&lt;br/&gt;- Target-region filters are applied after the main filters and override them!&lt;br/&gt;- Failed filter steps are marked orange and errors are shown in the tooltip.&lt;br/&gt;&lt;br/&gt;Filter action description:&lt;br/&gt;- REMOVE: Remove variants, if they match the filter.&lt;br/&gt;- FILTER: Remove variants, if they do not match the filter.&lt;br/&gt;- KEEP: Force variants to be kept, even if filtered out by previous filter steps.&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="dragDropMode">
+          <enum>QAbstractItemView::NoDragDrop</enum>
+         </property>
+         <property name="defaultDropAction">
+          <enum>Qt::TargetMoveAction</enum>
+         </property>
+         <property name="selectionMode">
+          <enum>QAbstractItemView::SingleSelection</enum>
+         </property>
+         <property name="movement">
+          <enum>QListView::Snap</enum>
+         </property>
+         <property name="viewMode">
+          <enum>QListView::ListMode</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout">
+         <property name="spacing">
+          <number>3</number>
+         </property>
+         <item>
+          <widget class="QPushButton" name="filter_add">
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add filter step.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="GSvar.qrc">
+             <normaloff>:/Icons/Add.png</normaloff>:/Icons/Add.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="filter_edit">
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Edit selected filter step.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="GSvar.qrc">
+             <normaloff>:/Icons/Edit.png</normaloff>:/Icons/Edit.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="verticalSpacer_4">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Preferred</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>10</width>
+             <height>10</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="filter_up">
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Move selected filter step up.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="GSvar.qrc">
+             <normaloff>:/Icons/Arrow_up.png</normaloff>:/Icons/Arrow_up.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="filter_down">
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Move selected filter step down.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="GSvar.qrc">
+             <normaloff>:/Icons/Arrow_down.png</normaloff>:/Icons/Arrow_down.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="verticalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Preferred</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>10</width>
+             <height>10</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="filter_delete">
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove selected filter step.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="GSvar.qrc">
+             <normaloff>:/Icons/Remove.png</normaloff>:/Icons/Remove.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="verticalSpacer">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <spacer name="verticalSpacer_1">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Fixed</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>5</width>
+        <height>5</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
     <item>
      <widget class="QGroupBox" name="groupBox_2">
       <property name="title">
        <string>Target region filter</string>
+      </property>
+      <property name="flat">
+       <bool>true</bool>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <property name="spacing">
@@ -189,7 +403,7 @@
        <item>
         <widget class="QLineEdit" name="gene">
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma-separated list of gene names.&lt;br/&gt;Press return to finish entering text.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;Notes:&lt;br/&gt;- This filter has no effect on report generation.&lt;br/&gt;- You can use '*' as a wildcard. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma-separated list of gene names.&lt;br/&gt;&lt;br/&gt;Notes:&lt;br/&gt;- This filter has no effect on report generation.&lt;br/&gt;- You can use '*' as a wildcard. &lt;br/&gt;- Press return to finish entering text.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="placeholderText">
           <string>Gene</string>
@@ -202,7 +416,7 @@
        <item>
         <widget class="QLineEdit" name="region">
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Single target region e.g. chr1:120611985-120612025&lt;br/&gt;This filter has no effect on report generation!&lt;/p&gt;&lt;p&gt;Press return to finish entering text!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Single target region e.g. chr1:120611985-120612025&lt;br/&gt;&lt;br/&gt;Notes:&lt;br/&gt;- This filter has no effect on report generation!&lt;br/&gt;- Press return to finish entering text!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="placeholderText">
           <string>Region</string>
@@ -251,556 +465,15 @@
      </spacer>
     </item>
     <item>
-     <widget class="QGroupBox" name="groupBox">
-      <property name="toolTip">
-       <string/>
-      </property>
-      <property name="title">
-       <string>Main filters</string>
-      </property>
-      <layout class="QGridLayout" name="gridLayout" columnstretch="0,0">
-       <property name="leftMargin">
-        <number>3</number>
-       </property>
-       <property name="topMargin">
-        <number>2</number>
-       </property>
-       <property name="rightMargin">
-        <number>3</number>
-       </property>
-       <property name="bottomMargin">
-        <number>2</number>
-       </property>
-       <property name="horizontalSpacing">
-        <number>3</number>
-       </property>
-       <property name="verticalSpacing">
-        <number>2</number>
-       </property>
-       <item row="8" column="1">
-        <widget class="QComboBox" name="keep_class_ge">
-         <item>
-          <property name="text">
-           <string>1</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>2</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>3</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>4</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>5</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="8" column="0">
-        <widget class="QCheckBox" name="keep_class_ge_enabled">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Overwrites the filters:&lt;br/&gt;- MAF&lt;br/&gt;- impact&lt;br/&gt;- ihdb&lt;br/&gt;- genotype&lt;br/&gt;- filter columns&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>keep classification ≥</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QCheckBox" name="impact_enabled">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Impact filter of variant in coding_and_splicing column.&lt;br/&gt;&lt;br/&gt;Details about impact can be found here:&lt;br/&gt;http://snpeff.sourceforge.net/SnpEff_manual.html#eff&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>impact</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QCheckBox" name="ihdb_ignore_gt">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;By default, only homozygous database entries are counted for homzygous variants and all database entries are counted for heterozygous variants.&lt;/p&gt;&lt;p&gt;If the genotyp is ignored, all database entries are counted independent of the variant genotype.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>ignore genotype</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QComboBox" name="impact">
-         <property name="currentText">
-          <string>HIGH,MODERATE,LOW</string>
-         </property>
-         <item>
-          <property name="text">
-           <string>HIGH,MODERATE,LOW</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>HIGH,MODERATE</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>HIGH</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>MODERATE</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>LOW</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>MODIFIER</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QSpinBox" name="ihdb">
-         <property name="maximum">
-          <number>100000</number>
-         </property>
-         <property name="singleStep">
-          <number>5</number>
-         </property>
-         <property name="value">
-          <number>20</number>
-         </property>
-        </widget>
-       </item>
-       <item row="16" column="1">
-        <widget class="QComboBox" name="geno_control">
-         <property name="currentIndex">
-          <number>0</number>
-         </property>
-         <item>
-          <property name="text">
-           <string>not hom</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>hom</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>het</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>wt</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QDoubleSpinBox" name="maf_sub">
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="toolTip">
-          <string>Sub-population allle frequency cutoff.</string>
-         </property>
-         <property name="suffix">
-          <string>%</string>
-         </property>
-         <property name="maximum">
-          <double>100.000000000000000</double>
-         </property>
-         <property name="singleStep">
-          <double>0.100000000000000</double>
-         </property>
-         <property name="value">
-          <double>0.000000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QCheckBox" name="ihdb_enabled">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum occurences in the in-house database (e.g. NGSD).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>ihdb</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="0">
-        <spacer name="verticalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Fixed</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>5</width>
-           <height>5</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="15" column="1">
-        <widget class="QComboBox" name="geno_affected">
-         <item>
-          <property name="text">
-           <string>hom</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>compound-het</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>compound-het or hom</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>het</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="13" column="0" colspan="2">
-        <widget class="Line" name="line">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-       </item>
-       <item row="11" column="0">
-        <widget class="QCheckBox" name="gene_pli_enabled">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Filter based on the ExAC pLI score of a gene.&lt;/p&gt;&lt;p&gt;For details see: http://exac.broadinstitute.org/faq&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>pLI</string>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="0">
-        <widget class="QCheckBox" name="classification_enabled">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Overwrites the filters:&lt;br/&gt;- AF&lt;br/&gt;- impact&lt;br/&gt;- ihdb&lt;br/&gt;- genotype&lt;br/&gt;- filter columns&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>remove classification &lt;</string>
-         </property>
-        </widget>
-       </item>
-       <item row="16" column="0">
-        <widget class="QCheckBox" name="geno_control_enabled">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Genotype filter for control samples (non-affected).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>genotype (controls)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="9" column="0" colspan="2">
-        <widget class="QCheckBox" name="keep_class_m">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Overwrites the filters:&lt;br/&gt;- MAF&lt;br/&gt;- impact&lt;br/&gt;- ihdb&lt;br/&gt;- genotype&lt;br/&gt;- filter columns&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>keep classification M (modifier)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QCheckBox" name="maf_sub_enabled">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum allele frequency in any of the ExAC sub-populations.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>AF (sub-population)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="15" column="0">
-        <widget class="QCheckBox" name="geno_affected_enabled">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Genotype filter for affected samples.&lt;/p&gt;&lt;p&gt;Applied after all other filters.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>genotype (affected)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="1">
-        <widget class="QComboBox" name="classification">
-         <property name="currentText">
-          <string>5</string>
-         </property>
-         <item>
-          <property name="text">
-           <string>5</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>4</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>3</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>2</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>1</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QCheckBox" name="maf_enabled">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum overall allele frequency in any of the databases 1000g, ExAC and gnomAD.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>AF (overall)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QDoubleSpinBox" name="maf">
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="toolTip">
-          <string>Overall allele frequency cutoff.</string>
-         </property>
-         <property name="suffix">
-          <string>%</string>
-         </property>
-         <property name="maximum">
-          <double>100.000000000000000</double>
-         </property>
-         <property name="singleStep">
-          <double>0.100000000000000</double>
-         </property>
-         <property name="value">
-          <double>0.000000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="10" column="0" colspan="2">
-        <widget class="Line" name="line_3">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-       </item>
-       <item row="11" column="1">
-        <widget class="QDoubleSpinBox" name="gene_pli">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Minumum ExAC pLi score.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="maximum">
-          <double>1.000000000000000</double>
-         </property>
-         <property name="singleStep">
-          <double>0.050000000000000</double>
-         </property>
-         <property name="value">
-          <double>0.900000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="12" column="0">
-        <widget class="QCheckBox" name="gene_inh_enabled">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Inheritance mode filter based on inheritance annotations to genes from NGSD.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>inheritance</string>
-         </property>
-        </widget>
-       </item>
-       <item row="12" column="1">
-        <widget class="QComboBox" name="gene_inh">
-         <item>
-          <property name="text">
-           <string>n/a</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>AR</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>AD</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>XLR</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>XLD</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>MT</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </item>
-    <item>
-     <spacer name="verticalSpacer_4">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <property name="sizeType">
-       <enum>QSizePolicy::Fixed</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>5</width>
-        <height>5</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item>
-     <widget class="QGroupBox" name="groupBox_5">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="toolTip">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;'Keep' overwrites the filters:&lt;br/&gt;- MAF&lt;br/&gt;- impact&lt;br/&gt;- ihdb&lt;br/&gt;- genotype&lt;/p&gt;&lt;p&gt;'Remove' overwrites 'Keep'&lt;/p&gt;&lt;p&gt;'Filter' shows only the variants with conain any of the checked filter terms after all other filters were applied (also 'Remove' filter above).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-      </property>
-      <property name="title">
-       <string>Filter columns</string>
-      </property>
-      <layout class="QVBoxLayout" name="verticalLayout">
-       <property name="spacing">
-        <number>3</number>
-       </property>
-       <property name="leftMargin">
-        <number>3</number>
-       </property>
-       <property name="topMargin">
-        <number>2</number>
-       </property>
-       <property name="rightMargin">
-        <number>3</number>
-       </property>
-       <property name="bottomMargin">
-        <number>2</number>
-       </property>
-       <item>
-        <widget class="QScrollArea" name="qscrollarea">
-         <property name="frameShape">
-          <enum>QFrame::NoFrame</enum>
-         </property>
-         <property name="widgetResizable">
-          <bool>true</bool>
-         </property>
-         <widget class="QWidget" name="filter_col">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>0</y>
-            <width>273</width>
-            <height>97</height>
-           </rect>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout_5">
-           <property name="spacing">
-            <number>2</number>
-           </property>
-           <property name="leftMargin">
-            <number>0</number>
-           </property>
-           <property name="topMargin">
-            <number>0</number>
-           </property>
-           <property name="rightMargin">
-            <number>0</number>
-           </property>
-           <property name="bottomMargin">
-            <number>0</number>
-           </property>
-          </layout>
-         </widget>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </item>
-    <item>
-     <spacer name="verticalSpacer_1">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <property name="sizeType">
-       <enum>QSizePolicy::Fixed</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>5</width>
-        <height>5</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item>
      <widget class="QGroupBox" name="groupBox_3">
       <property name="toolTip">
        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reference sample that is loaded into IGV in addition to the currently active sample.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="title">
        <string>IGV reference sample</string>
+      </property>
+      <property name="flat">
+       <bool>true</bool>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <property name="spacing">

@@ -18,7 +18,7 @@
 #include <QFileInfo>
 #include <QPair>
 #include "Histogram.h"
-#include "VariantFilter.h"
+#include "FilterCascade.h"
 
 QCCollection Statistics::variantList(VariantList variants, bool filter)
 {
@@ -27,11 +27,11 @@ QCCollection Statistics::variantList(VariantList variants, bool filter)
 	//filter variants
 	if (filter)
 	{
-		VariantFilter filter(variants);
-		filter.flagByFilterColumn();
-		filter.removeFlagged();
+		FilterResult filter_result(variants.count());
+		FilterFilterColumnEmpty filter;
+		filter.apply(variants, filter_result);
+		filter_result.removeFlagged(variants);
 	}
-
 
     //var_total
 	output.insert(QCValue("variant count", variants.count(), "Total number of variants in the target region.", "QC:2000013"));
@@ -1928,8 +1928,7 @@ GenderEstimate Statistics::genderHetX(QString bam_file, QString build, double ma
 	reader.setRegion(chrx, 1, chrx_end_pos);
 
 	//load SNPs on chrX
-	BedFile roi_chrx;
-	roi_chrx.append(BedLine("chrX", 1, chrx_end_pos));
+	BedFile roi_chrx("chrX", 1, chrx_end_pos);
 	VariantList snps = NGSHelper::getKnownVariants(build, true, 0.2, 0.8, &roi_chrx);
     QVector<Pileup> counts;
 	counts.fill(Pileup(), snps.count());

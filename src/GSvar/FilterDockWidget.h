@@ -6,8 +6,9 @@
 #include "BedFile.h"
 #include "GeneSet.h"
 #include "Phenotype.h"
+#include "FilterCascade.h"
 
-///Filter manager dock widget
+//Filter manager dock widget
 class FilterDockWidget
 	: public QDockWidget
 {
@@ -16,70 +17,18 @@ class FilterDockWidget
 public:
 	/// Default constructor
 	FilterDockWidget(QWidget *parent = 0);
+	/// Set entries of the 'filter' column valid in the open file
+	void setValidFilterEntries(const QStringList& filter_entries);
 
 	/// Resets to initial state (uncheck boxes, no ROI)
-	void reset(bool clear_roi, bool clear_off_target);
-	/// Sets filter columns present in the open file
-	void setFilterColumns(const QMap<QString, QString>& filter_cols);
+	void reset(bool clear_roi);
 
-	/// Returns if the MAF filter is enabled.
-	bool applyMaf() const;
-	/// Returns the maximum MAF percentage filter value.
-	double mafPerc() const;
-
-	/// Returns if the MAF filter for sub-populations is enabled.
-	bool applyMafSub() const;
-	/// Returns the maximum MAF percentage filter value for sub-populations.
-	double mafSubPerc() const;
-
-	/// Returns if the impact filter is enabled.
-	bool applyImpact() const;
-	/// Returns valid impact.
-	QStringList impact() const;
-
-	/// Returns if the classification filter is enabled.
-	bool applyClassification() const;
-	/// Returns the minimum classification.
-	int classification() const;
-
-	/// Returns if the genotype filter is enabled (affected samples).
-	bool applyGenotypeAffected() const;
-	/// Returns the requested genotype (affected samples).
-	QString genotypeAffected() const;
-
-	/// Returns if the genotype filter is enabled (control samples).
-	bool applyGenotypeControl() const;
-	/// Returns the requested genotype (control samples).
-	QString genotypeControl() const;
-
-	/// Returns if the IHDB filter is enabled.
-	bool applyIhdb() const;
-	/// Returns the maximum IHDB filter value.
-	int ihdb() const;
-	/// Returns the if the genotype should be ignored for the IHDB filter.
-	int ihdbIgnoreGenotype() const;
-
-	/// Returns variants with a classification >= X should be kept (returns -1 if unset).
-	int keepClassGreaterEqual() const;
-	/// Returns variants with a classification 'M' (modifier) should be kept.
-	bool keepClassM() const;
-
-	/// Returns if ExAC pLI score filter is enabled.
-	bool applyPLI() const;
-	/// Returns the minumum ExAC pLI score.
-	double pli() const;
-
-	/// Returns if hinheritance filter is enabled.
-	bool applyInheritance() const;
-	/// Returns the inheritance filter.
-	QString inheritance() const;
-
-	///Returns the filter column terms to keep.
-	QStringList filterColumnsKeep() const;
-	///Returns the filter column terms to remove.
-	QStringList filterColumnsRemove() const;
-    ///Returns the filter column terms to filter.
-	QStringList filterColumnsFilter() const;
+	/// Returns the used filters
+	const FilterCascade& filters() const;
+	/// Applies a filter set
+	void setFilters(const FilterCascade& filter);
+	/// Visually marks filters that failed.
+	void markFailedFilters();
 
 	///Returns the target region BED file name or an empty string if unset.
 	QString targetRegion() const;
@@ -93,7 +42,6 @@ public:
 	/// Sets the single target region filter, or an empty string if unset.
 	void setRegion(QString region);
 
-
 	///Returns selected phenotype terms.
 	const QList<Phenotype>& phenotypes() const;
 	///Sets selected phenotype terms.
@@ -102,26 +50,11 @@ public:
 	/// Returns the reference sample name or an empty string if unset.
 	QString referenceSample() const;
 
-	/// Returns a string representations of the applied filters
-	QMap<QString, QString> appliedFilters() const;
-
 	/// Loads filter target regions (Processing systems from NGSD, Sub-panels from file system and additional target regions from INI file)
 	void loadTargetRegions();
 
-public slots:
-
-	/// Applies predefined default filters (germline).
-	void applyDefaultFilters();
-	/// Applies predefined default filters (germline - recessive).
-	void applyDefaultFiltersRecessive();
-	/// Applies predefined default filters (trio).
-	void applyDefaultFiltersTrio();
-	/// Applies predefined default filters (multi-sample).
-	void applyDefaultFiltersMultiSample();
-	/// Applies predefined default filters (somatic).
-	void applyDefaultFiltersSomatic();
-	/// Applies predefined default filters (carrier).
-	void applyDefaultFiltersCarrier();
+	/// Returns the row index of the currently selected filter, or -1 if none is selected;
+	int currentFilterIndex() const;
 
 signals:
 	/// Signal that is emitted when an annotation filter changes its checkbox state, or if the ROI changes, or if the gene changes
@@ -149,18 +82,31 @@ protected slots:
 	void updateGeneWarning();
 	void editPhenotypes();
 	void showPhenotypeContextMenu(QPoint pos);
+	void updateGUI();
+	void filterSelectionChanged();
+
+	void addFilter();
+	void editSelectedFilter();
+	void deleteSelectedFilter();
+	void moveUpSelectedFilter();
+	void moveDownSelectedFilter();
+	void toggleSelectedFilter(QListWidgetItem* item);
 
 private:
-	/// Loads the reference file list of IGV
+	//Loads the reference file list of IGV
 	void loadReferenceFiles();
 
-    /// Resets the filters without blocking signals.
-	void resetSignalsUnblocked(bool clear_roi, bool clear_off_target);
+	//Resets the filters without blocking signals.
+	void resetSignalsUnblocked(bool clear_roi);
+
+	//Sets the focus to the given indes (and handles border cases)
+	void focusFilter(int index);
 
 	Ui::FilterDockWidget ui_;
-	bool ngsd_enabled;
 	GeneSet last_genes_;
+	FilterCascade filters_;
 	QList<Phenotype> phenotypes_;
+	QStringList valid_filter_entries_;
 };
 
 #endif // FILTERDOCKWIDGET_H

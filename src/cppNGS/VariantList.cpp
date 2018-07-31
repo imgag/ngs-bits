@@ -1440,7 +1440,7 @@ void VariantList::checkValid() const
 	}
 }
 
-SampleHeaderInfo VariantList::getSampleHeader(bool error_if_missing)
+SampleHeaderInfo VariantList::getSampleHeader(bool error_if_missing) const
 {
 	SampleHeaderInfo output;
 

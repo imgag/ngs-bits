@@ -18,7 +18,6 @@ SOURCES += main.cpp\
     ValidationDialog.cpp \
     ClassificationDialog.cpp \
     DBAnnotationWorker.cpp \
-    FilterColumnWidget.cpp \
     ApprovedGenesDialog.cpp \
     GeneInfoDialog.cpp \
     PhenoToGenesDialog.cpp \
@@ -47,7 +46,8 @@ SOURCES += main.cpp\
     SingleSampleAnalysisDialog.cpp \
     SomaticDialog.cpp \
     VariantSampleOverviewDialog.cpp \
-    SomaticReportConfiguration.cpp
+    SomaticReportConfiguration.cpp \
+    FilterEditDialog.cpp
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
@@ -60,7 +60,6 @@ HEADERS  += MainWindow.h \
     ValidationDialog.h \
     ClassificationDialog.h \
     DBAnnotationWorker.h \
-    FilterColumnWidget.h \
     ApprovedGenesDialog.h \
     GeneInfoDialog.h \
     PhenoToGenesDialog.h \
@@ -89,7 +88,8 @@ HEADERS  += MainWindow.h \
     SingleSampleAnalysisDialog.h \
     SomaticDialog.h \
     VariantSampleOverviewDialog.h \
-    SomaticReportConfiguration.h
+    SomaticReportConfiguration.h \
+    FilterEditDialog.h
 
 FORMS    += MainWindow.ui \
     FilterDockWidget.ui \
@@ -99,7 +99,6 @@ FORMS    += MainWindow.ui \
     TrioDialog.ui \
     ClassificationDialog.ui \
     ValidationDialog.ui \
-    FilterColumnWidget.ui \
     ApprovedGenesDialog.ui \
     GeneInfoDialog.ui \
     PhenoToGenesDialog.ui \
@@ -127,7 +126,8 @@ FORMS    += MainWindow.ui \
     SingleSampleAnalysisDialog.ui \
     SomaticDialog.ui \
     VariantSampleOverviewDialog.ui \
-    SomaticReportConfiguration.ui
+    SomaticReportConfiguration.ui \
+    FilterEditDialog.ui
     
 
 include("../app_gui.pri")

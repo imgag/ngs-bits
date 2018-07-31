@@ -1,6 +1,5 @@
 #include "ToolBase.h"
 #include "VariantList.h"
-#include "VariantFilter.h"
 #include "Helper.h"
 #include "NGSHelper.h"
 #include "BasicStatistics.h"

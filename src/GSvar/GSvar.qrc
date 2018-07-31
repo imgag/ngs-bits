@@ -21,8 +21,10 @@
         <file>Icons/Filter_gray.png</file>
         <file>Icons/CopyClipboard.png</file>
         <file>Icons/Download.png</file>
-        <file>Icons/Next.png</file>
-        <file>Icons/Previous.png</file>
+        <file>Icons/Arrow_left.png</file>
+        <file>Icons/Arrow_right.png</file>
+        <file>Icons/Arrow_down.png</file>
+        <file>Icons/Arrow_up.png</file>
         <file>Icons/Attention.png</file>
         <file>Icons/Question.png</file>
         <file>Icons/CopyNumber.png</file>

@@ -106,6 +106,9 @@
         <iconset resource="GSvar.qrc">
          <normaloff>:/Icons/Refresh.png</normaloff>:/Icons/Refresh.png</iconset>
        </property>
+       <property name="shortcut">
+        <string>F5</string>
+       </property>
       </widget>
      </item>
      <item>

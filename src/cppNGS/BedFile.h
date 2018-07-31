@@ -130,6 +130,8 @@ class CPPNGSSHARED_EXPORT BedFile
 public:
     ///Default constructor
     BedFile();
+	///Convenience constructor that constructs a file with a single-region.
+	BedFile(const Chromosome& chr, int start, int end);
     ///Adds a line. Throws ArgumentException.
     void append(const BedLine& line);
     ///Read-only accessor to a single line.

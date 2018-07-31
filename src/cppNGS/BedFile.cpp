@@ -58,6 +58,11 @@ BedFile::BedFile()
 {
 }
 
+BedFile::BedFile(const Chromosome& chr, int start, int end)
+{
+	append(BedLine(chr, start, end));
+}
+
 void BedFile::append(const BedLine& line)
 {
 	//check input data

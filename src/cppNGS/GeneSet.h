@@ -79,6 +79,11 @@ class CPPNGSSHARED_EXPORT GeneSet
 		static GeneSet createFromText(const QByteArray& text, char seperator = '\n');
 		///Stores the gene set to a file
 		void store(QString filename) const;
+
+		///Create gene list from string list
+		static GeneSet createFromStringList(const QStringList& list);
+		///Converts a gene set to a string list
+		QStringList toStringList() const;
 };
 
 #endif // GENESET_H

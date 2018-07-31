@@ -356,7 +356,7 @@ public:
 	void checkValid() const;
 
 	///Parses and returns sample data from variant list header (only for GSvar).
-	SampleHeaderInfo getSampleHeader(bool error_if_missing=true);
+	SampleHeaderInfo getSampleHeader(bool error_if_missing=true) const;
 
 	///Parse analysis pipeline version from comments
 	QString getPipeline() const;

@@ -1,9 +1,9 @@
 #include "NGSHelper.h"
 #include "Exceptions.h"
 #include "Helper.h"
-#include "VariantFilter.h"
 #include "BasicStatistics.h"
 #include "BamReader.h"
+#include "FilterCascade.h"
 
 #include <QTextStream>
 #include <QFileInfo>
@@ -14,22 +14,13 @@ VariantList NGSHelper::getKnownVariants(QString build, bool only_snvs, double mi
 {
 	VariantList output;
 
+	//load variant list
 	QString snp_file = ":/Resources/" + build + "_snps.vcf";
 	if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + build + "'!");
 	output.load(snp_file, VariantList::VCF, roi);
 
-	//only SNVs
-	if (only_snvs)
-	{
-		VariantFilter filter(output);
-		for (int i=0; i<output.count(); ++i)
-		{
-			filter.flags()[i] = output[i].isSNV();
-		}
-		filter.removeFlagged();
-	}
-
-	//filter my min AF
+	//filter by AF
+	FilterResult filter_result(output.count());
 	if (min_af<0.0 || min_af>1.0)
 	{
 		THROW(ArgumentException, "Minumum allele frequency out of range (0.0-1.0): " + QByteArray::number(min_af));
@@ -42,15 +33,25 @@ VariantList NGSHelper::getKnownVariants(QString build, bool only_snvs, double mi
 	bool max_set = max_af<1.0;
 	if (min_set || max_set)
 	{
-		VariantFilter filter(output);
 		int i_af = output.annotationIndexByName("AF");
 		for (int i=0; i<output.count(); ++i)
 		{
+			if (!filter_result.flags()[i]) continue;
+
 			double af = output[i].annotations()[i_af].toDouble();
-			filter.flags()[i] = (!min_set || af>min_af) && (!max_set || af<max_af);
+			filter_result.flags()[i] = (!min_set || af>min_af) && (!max_set || af<max_af);
 		}
-		filter.removeFlagged();
 	}
+
+	//filter only SNVs
+	if (only_snvs)
+	{
+		FilterVariantIsSNP filter;
+		filter.apply(output, filter_result);
+	}
+
+	//apply filters
+	filter_result.removeFlagged(output);
 
 	return output;
 }

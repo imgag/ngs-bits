@@ -8,8 +8,8 @@
 #include "ChromosomalIndex.h"
 #include "VariantList.h"
 #include "XmlHelper.h"
-#include "VariantFilter.h"
 #include "NGSHelper.h"
+#include "FilterCascade.h"
 
 #include <QFile>
 #include <QTextStream>
@@ -22,7 +22,7 @@
 
 
 
-ReportWorker::ReportWorker(QString sample_name, QString file_bam, QString file_roi, const VariantList& variants, QMap<QString, QString> filters, QMap<QString, QStringList> preferred_transcripts, ReportSettings settings, QStringList log_files, QString file_rep)
+ReportWorker::ReportWorker(QString sample_name, QString file_bam, QString file_roi, const VariantList& variants, const FilterCascade& filters, QMap<QString, QStringList> preferred_transcripts, ReportSettings settings, QStringList log_files, QString file_rep)
 	: WorkerBase("Report generation")
 	, sample_name_(sample_name)
 	, file_bam_(file_bam)
@@ -46,9 +46,9 @@ void ReportWorker::process()
 		roi_.merge();
 
 		//determine variant count (inside target region)
-		VariantFilter filter(const_cast<VariantList&>(variants_));
-		filter.flagByRegions(roi_);
-		var_count_ = filter.countPassing();
+		FilterResult filter_result(variants_.count());
+		FilterRegions::apply(variants_, roi_, filter_result);
+		var_count_ = filter_result.countPassing();
 
 		//load gene list file
 		genes_ = GeneSet::createFromFile(file_roi_.left(file_roi_.size()-4) + "_genes.txt");
@@ -56,39 +56,6 @@ void ReportWorker::process()
 
 	roi_stats_.clear();
 	writeHTML();
-}
-
-QString ReportWorker::filterToGermanText(QString name, QString value)
-{
-	QString output;
-
-	if (name=="classification")
-	{
-		output = "Keine Varianten mit Klasse &lt;" + value + " (siehe unten)";
-	}
-	else if (name=="maf")
-	{
-		output = "Keine Varianten mit einer Allelfrequenz &gt;" + value + " in &ouml;ffentlichen Datenbanken";
-	}
-	else if (name=="ihdb")
-	{
-		output = "Keine Varianten die intern h&auml;ufiger als " + value + "x mit dem selben Genotyp beobachtet wurden";
-	}
-	else if (name=="impact")
-	{
-		output = "Frameshift-, Nonsense-, Missense- und Splicingvarianten und synonyme Varianten (Impact: " + value + ")";
-	}
-	else if (name=="genotype")
-	{
-		output = "Varianten mit Genotyp: " + value;
-	}
-	else if (name!="keep_class_ge" && name!="keep_class_m")
-	{
-		output = "Filter: " + name + " Wert: " + value;
-		Log::warn("Unknown filter name '" + name + "'. Using fallback format!");
-	}
-
-	return output.trimmed();
 }
 
 QString ReportWorker::formatCodingSplicing(const QList<VariantTranscript>& transcripts)
@@ -526,13 +493,9 @@ void ReportWorker::writeHTML()
 	stream << "<p><b>Filterkriterien</b>" << endl;
 	stream << "<br />Gefundene Varianten in Zielregion gesamt: " << var_count_ << endl;
 	stream << "<br />Anzahl Varianten nach automatischer Filterung: " << settings_.variants_selected.count() << endl;
-	for(auto it = filters_.cbegin(); it!=filters_.cend(); ++it)
+	for(int i=0; i<filters_.count(); ++i)
 	{
-		QString text = filterToGermanText(it.key(), it.value());
-		if (text!="")
-		{
-			stream << "<br />&nbsp;&nbsp;&nbsp;&nbsp;- " << text << endl;
-		}
+		stream << "<br />&nbsp;&nbsp;&nbsp;&nbsp;- " << filters_[i]->toText() << endl;
 	}
 	stream << "</p>" << endl;
 
@@ -847,10 +810,10 @@ void ReportWorker::writeXML(QString outfile_name)
 	w.writeAttribute("genome_build", "hg19");
 
 	//element AppliedFilter
-	for(auto it = filters_.cbegin(); it!=filters_.cend(); ++it)
+	for(int i=0; i<filters_.count(); ++i)
 	{
 		w.writeStartElement("AppliedFilter");
-		w.writeAttribute("name", it.key() + ":" + it.value());
+		w.writeAttribute("name", filters_[i]->toText());
 		w.writeEndElement();
 	}
 

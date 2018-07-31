@@ -153,9 +153,7 @@ public:
 					{
 						int trans_id_ccds = addTranscript(q_trans, t_data.ngsd_gene_id, t_data.name_ccds , "ccds", t_data);
 						//add exons (only coding part)
-						BedFile coding_part;
-						coding_part.append(BedLine(t_data.exons[0].chr() ,t_data.start_coding, t_data.end_coding));
-						t_data.exons.intersect(coding_part);
+						t_data.exons.intersect(BedFile(t_data.exons[0].chr() ,t_data.start_coding, t_data.end_coding));
 						addExons(q_exon, trans_id_ccds, t_data.exons);
 
 						ccds_transcripts_added.insert(t_data.name_ccds);

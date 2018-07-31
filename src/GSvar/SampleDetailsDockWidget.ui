@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>344</width>
-    <height>590</height>
+    <width>335</width>
+    <height>550</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>139</width>
+    <height>550</height>
+   </size>
   </property>
   <property name="maximumSize">
    <size>
@@ -130,8 +136,8 @@
             <widget class="QToolButton" name="restart_button">
              <property name="minimumSize">
               <size>
-               <width>16</width>
-               <height>16</height>
+               <width>20</width>
+               <height>20</height>
               </size>
              </property>
              <property name="toolTip">
@@ -260,8 +266,8 @@
             <widget class="QToolButton" name="disease_button">
              <property name="minimumSize">
               <size>
-               <width>16</width>
-               <height>16</height>
+               <width>20</width>
+               <height>20</height>
               </size>
              </property>
              <property name="toolTip">
@@ -319,6 +325,12 @@
            </property>
            <item>
             <widget class="QPushButton" name="quality_button">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>20</height>
+              </size>
+             </property>
              <property name="text">
               <string>Edit quality</string>
              </property>
@@ -527,6 +539,12 @@
            </property>
            <item>
             <widget class="QPushButton" name="diag_status_button">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>20</height>
+              </size>
+             </property>
              <property name="text">
               <string>View/edit details</string>
              </property>

@@ -1,7 +1,6 @@
 #include "ReportHelper.h"
 #include "BasicStatistics.h"
 #include "OntologyTermCollection.h"
-#include "VariantFilter.h"
 #include "Helper.h"
 #include "GenLabDB.h"
 #include "TSVFileStream.h"
@@ -1079,15 +1078,13 @@ ReportHelper::ReportHelper()
 {
 }
 
-ReportHelper::ReportHelper(QString snv_filename, const CnvList& filtered_cnvs, QString target_region, const QList<QString>& keep, const QList<QString>& remove, const QList<QString>& filter)
+ReportHelper::ReportHelper(QString snv_filename, const CnvList& filtered_cnvs, QString target_region, const FilterCascade& filters)
 	: snv_filename_(snv_filename)
 	, snv_germline_()
 	, cnvs_filtered_(filtered_cnvs)
 	, db_()
 	, target_region_(target_region)
-	, filter_keep_(keep)
-	, filter_remove_(remove)
-	, filter_filter_(filter)
+	, filters_(filters)
 {
 
 	snv_variants_.load(snv_filename_);

@@ -44,7 +44,7 @@ HEADERS += \
         BedLine_Test.h \
         BedFile_Test.h \
         VariantList_Test.h \
-        VariantFilter_Test.h \
+        FilterCascade_Test.h \
         ChromosomalIndex_Test.h \
         Statistics_Test.h \
         Variant_Test.h \

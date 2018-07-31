@@ -15,7 +15,7 @@
 ##DESCRIPTION=1000g=Allele frequency in all populations of 1000g project.
 ##DESCRIPTION=ExAC=Allele frequency in all populations of ExAC project.
 ##DESCRIPTION=ExAC_hom=Homoyzgous counts for populations ALL, NFE and AFR of ExAC project.
-##DESCRIPTION=Kaviar=Allele frequency in Kaviar database.
+##DESCRIPTION=gnomAD=Allele frequency in gnomAD database.
 ##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.
 ##DESCRIPTION=Sift=Sift effect prediction: D=damaging, T=tolerated.
 ##DESCRIPTION=MetaLR=MetaLR effect prediction: D=damaging, T=tolerated.
@@ -41,6 +41,6 @@
 ##FILTER=low_MQM=Mean mapping quality of alternate allele less than Q50.
 ##FILTER=low_QUAL=Variant quality less than Q30.
 ##FILTER=pred_pathogenic=Variant predicted to be pathogenic by one or more tools (conservation or effect prediction).
-#chr	start	end	ref	obs	Affected1	Control	Affected2	filter	quality	gene	variant_type	coding_and_splicing	RepeatMasker	dbSNP	1000g	ExAC	ExAC_hom	Kaviar	phyloP	Sift	MetaLR	PolyPhen2	FATHMM	CADD	OMIM	ClinVar	HGMD	COSMIC	ihdb_allsys_hom	ihdb_allsys_het	classification	classification_comment	validated	comment	gene_info
+#chr	start	end	ref	obs	Affected1	Control	Affected2	filter	quality	gene	variant_type	coding_and_splicing	RepeatMasker	dbSNP	1000g	ExAC	ExAC_hom	gnomAD	phyloP	Sift	MetaLR	PolyPhen2	FATHMM	CADD	OMIM	ClinVar	HGMD	COSMIC	ihdb_allsys_hom	ihdb_allsys_het	classification	classification_comment	validated	comment	gene_info
 chr1	1310821	1310821	C	T	het	wt	het		QUAL=937;DP=163,133,86;MQM=60	AURKAIP1-CCNL2	intergenic_region	AURKAIP1-CCNL2:AURKAIP1-CCNL2:intergenic_region:MODIFIER::n.1310821C>T:		rs139341512	0.0040	0.0000	0/0/0	0.0056											0	3					AURKAIP1-CCNL2 (inh=n/a pLI=n/a)
 chr1	1310824	1310824	G	C	het	wt	het		QUAL=937;DP=163,133,86;MQM=60	AURKAIP1-CCNL2	intergenic_region	AURKAIP1-CCNL2:AURKAIP1-CCNL2:intergenic_region:MODIFIER::n.1310824G>C:		rs150041542	0.0042	0.0000	0/0/0	0.0056											0	3					AURKAIP1-CCNL2 (inh=n/a pLI=n/a)

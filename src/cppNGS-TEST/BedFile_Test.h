@@ -7,6 +7,13 @@ TEST_CLASS(BedFile_Test)
 Q_OBJECT
 private slots:
 
+	void convenience_constructor()
+	{
+		BedFile file("chr1", 1, 100);
+		I_EQUAL(file.count(), 1);
+		I_EQUAL(file.baseCount(), 100);
+	}
+
 	void isSorted()
 	{
 		BedFile file;

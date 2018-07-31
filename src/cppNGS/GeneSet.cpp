@@ -98,3 +98,27 @@ GeneSet GeneSet::createFromText(const QByteArray& text, char seperator)
 	return output;
 }
 
+GeneSet GeneSet::createFromStringList(const QStringList& list)
+{
+	GeneSet output;
+
+	foreach(const QString& line, list)
+	{
+		output.insert(line.toLatin1());
+	}
+
+	return output;
+}
+
+QStringList GeneSet::toStringList() const
+{
+	QStringList output;
+
+	foreach(const QByteArray& gene, *this)
+	{
+		output.append(gene);
+	}
+
+	return output;
+}
+

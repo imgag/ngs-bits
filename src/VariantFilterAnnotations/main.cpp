@@ -1,10 +1,9 @@
 #include "Exceptions.h"
 #include "ToolBase.h"
 #include "ChromosomalIndex.h"
-#include "VariantList.h"
+#include "FilterCascade.h"
 #include "BedFile.h"
 #include "Helper.h"
-#include "VariantFilter.h"
 #include "NGSHelper.h"
 
 class ConcreteTool
@@ -23,20 +22,52 @@ public:
 		setDescription("Filter a variant list in GSvar format based on variant annotations.");
 		addInfile("in", "Input variant list in GSvar format.", false);
 		addOutfile("out", "Output variant list. If unset, writes to STDOUT.", false);
-		//optional
-		addFloat("max_af", "Maximum overall allele frequency in public databases. '0.01' means 1% allele frequency!", true, -1.0);
-		addFloat("max_af_sub", "Maximum sub-population allele frequency in public databases. '0.01' means 1% allele frequency!", true, -1.0);
-		addString("impact", "Comma-separated list of SnpEff impacts that pass.", "");
-		addInt("max_ihdb", "Maximum in-house database count.", true, -1);
-		addFlag("max_ihdb_ignore_genotype", "If set, variant genotype is ignored. Otherwise, only homozygous database entries are counted for homozygous variants, and all entries are count for heterozygous variants.");
-		addInt("min_class", "Minimum classification of *classified* variants.", true, -1);
-		addString("filters", "Comma-separated list of filter column entries to remove.", true, "");
-		addEnum("geno_affected", "If set, only variants with the specified genotype in affected samples pass. Performed after all other filters!", true, QStringList() << "hom" << "het" << "comphet" << "comphet+hom" << "not_wt" << "any", "any");
-		addEnum("geno_control", "If set, only variants with the specified genotype in control samples pass. Performed after all other filters!", true, QStringList() << "hom" << "het" << "wt" << "not_hom" << "not_wt" << "any", "any");
+		addInfile("filters", "Filter definition file.", false);
 
+		setExtendedDescription(extendedDescription());
+
+		changeLog(2018, 7, 30, "Replaced command-line parameters by INI file and added many new filters.");
 		changeLog(2017, 6, 14, "Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.");
 		changeLog(2017, 6, 14, "Added sub-population allele frequency filter.");
 		changeLog(2016, 6, 11, "Initial commit.");
+	}
+
+	QStringList extendedDescription()
+	{
+		QStringList output;
+
+		//file format
+		output << "The filter definition file list one filter per line using the following syntax:";
+		output << "name[tab]param1=value[tab]param2=value...";
+		output << "";
+
+		//filters
+		output << "The following filters are supported:";
+		QStringList filter_names = FilterFactory::filterNames();
+		//determine maximum filter name length for intentation
+		int max_len = 0;
+		foreach (QString name, filter_names)
+		{
+			max_len = std::max(max_len, name.length());
+		}
+		//add filters
+		foreach (QString name, filter_names)
+		{
+			QStringList filter_description = FilterFactory::create(name)->description(true);
+			for(int i=0; i<filter_description.count(); ++i)
+			{
+				if (i==0)
+				{
+					output << name.leftJustified(max_len) + " " + filter_description[0];
+				}
+				else
+				{
+					output << QString(max_len+3, ' ') + filter_description[i];
+				}
+			}
+		}
+
+		return output;
 	}
 
 	virtual void main()
@@ -46,88 +77,21 @@ public:
 		VariantList variants;
 		variants.load(in);
 
-		VariantFilter filter(variants);
-
-		//filter AF
-		double max_af = getFloat("max_af");
-		if (max_af>=0)
+		//create filter cascade
+		FilterCascade filter_cascade;
+		QStringList filters_file = Helper::loadTextFile(getInfile("filters"), true, '#', true);
+		foreach(QString filter_line, filters_file)
 		{
-			filter.flagByAlleleFrequency(max_af);
+			QStringList parts = filter_line.split("\t");
+			QString name = parts[0];
+			filter_cascade.add(FilterFactory::create(name, parts.mid(1)));
 		}
 
-		//filter AF sub-populations
-		double max_af_sub = getFloat("max_af_sub");
-		if (max_af_sub>=0)
-		{
-			filter.flagBySubPopulationAlleleFrequency(max_af_sub);
-		}
+		//apply filters
+		FilterResult result = filter_cascade.apply(variants);
+		result.removeFlagged(variants);
 
-		//filter impact
-		QString impact = getString("impact");
-		if (!impact.isEmpty())
-		{
-			filter.flagByImpact(impact.split(","));
-		}
-
-		//filter IHDB
-		QStringList samples_affected = variants.getSampleHeader().sampleColumns(true);
-		int max_ihdb = getInt("max_ihdb");
-		if (max_ihdb>0)
-		{
-			filter.flagByIHDB(max_ihdb, getFlag("max_ihdb_ignore_genotype") ? QStringList() : samples_affected);
-		}
-
-		//filter classification
-		int min_class = getInt("min_class");
-		if (min_class!=-1)
-		{
-			filter.flagByClassification(min_class);
-		}
-
-		//filter filter column
-		QString filters = getString("filters");
-		if (!filters.isEmpty())
-		{
-			filter.flagByFilterColumnMatching(filters.split(","));
-		}
-
-		//filter genotype (affected)
-		QString geno_affected = getEnum("geno_affected");
-		if (geno_affected=="comphet")
-		{
-			filter.flagCompoundHeterozygous(samples_affected);
-		}
-		else if (geno_affected=="comphet+hom")
-		{
-			filter.flagCompoundHeterozygous(samples_affected, true);
-		}
-		else if (geno_affected!="any")
-		{
-			bool invert = false;
-			if (geno_affected.startsWith("not_"))
-			{
-				geno_affected = geno_affected.mid(4);
-				invert = true;
-			}
-			filter.flagByGenotype(geno_affected, samples_affected, invert);
-		}
-
-		//filter genotype (control)
-		QString geno_control = getEnum("geno_control");
-		if (geno_control!="any")
-		{
-			QStringList samples_control = variants.getSampleHeader().sampleColumns(false);
-			bool invert = false;
-			if (geno_control.startsWith("not_"))
-			{
-				geno_control = geno_control.mid(4);
-				invert = true;
-			}
-			filter.flagByGenotype(geno_control, samples_control, invert);
-		}
-
-		//store variants
-		filter.removeFlagged();
+		//store result
 		variants.store(getOutfile("out"));
 	}
 };

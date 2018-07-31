@@ -1,11 +1,17 @@
 ## Variant filtering
 
+GSvar provides default filters, for the most common filter operations.  
+These filters can be further modified according to user needs.
+
+Additionally, powerful custom filters can be created by combining several filter steps.  
+A documentation of available filter steps and their parameters can be found [here](https://github.com/imgag/ngs-bits/blob/master/doc/tools/VariantFilterAnnotations.md).
+
 ### Single-sample analysis
 
 To perform a trio analysis, follow those steps:
 
 1. Open the analysis status dialog from the main tool bar ![alt text](analysis_status.png) and trigger the analysis using the single sample button ![alt text](single_sample.png).
-2. When the analysis is finishe, open the GSvar variant list.
+2. When the analysis is finished, open the GSvar variant list.
 3. For filtering the trio variant list, use one of the default filters `germline` or `germline - recessive`.
 4. Further filtering is done using the filter toolbar on the right.
 
@@ -34,6 +40,7 @@ Open the GSvar variant list from the trio folder.
 --
 
 [back to main page](index.md)
+
 
 
 

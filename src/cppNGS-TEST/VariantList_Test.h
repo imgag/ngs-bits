@@ -816,16 +816,18 @@ private slots:
 		VariantList vl;
 		vl.load(input);
 		SampleHeaderInfo info = vl.getSampleHeader();
-		I_EQUAL(info.count(), 3);
-		I_EQUAL(info.sampleColumns().count(), 3);
+		I_EQUAL(info.count(), 4);
+		I_EQUAL(info.sampleColumns().count(), 4);
 		S_EQUAL(info.sampleColumns()[0], "Affected1");
-		S_EQUAL(info.sampleColumns()[1], "Control");
-		S_EQUAL(info.sampleColumns()[2], "Affected2");
+		S_EQUAL(info.sampleColumns()[1], "Affected2");
+		S_EQUAL(info.sampleColumns()[2], "Control1");
+		S_EQUAL(info.sampleColumns()[3], "Control2");
 		I_EQUAL(info.sampleColumns(true).count(), 2);
 		S_EQUAL(info.sampleColumns(true)[0], "Affected1");
 		S_EQUAL(info.sampleColumns(true)[1], "Affected2");
-		I_EQUAL(info.sampleColumns(false).count(), 1);
-		S_EQUAL(info.sampleColumns(false)[0], "Control");
+		I_EQUAL(info.sampleColumns(false).count(), 2);
+		S_EQUAL(info.sampleColumns(false)[0], "Control1");
+		S_EQUAL(info.sampleColumns(false)[1], "Control2");
 	}
 
 

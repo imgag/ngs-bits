@@ -16,7 +16,7 @@ public:
 	virtual void setup()
 	{
 		setDescription("Calculates QC metrics on variant lists.");
-		addInfile("in", "Input VCF variant list. If a specific column ", false, false);
+		addInfile("in", "Input variant list in VCF format.", false, false);
 		//optional
 		addFlag("ignore_filter", "Ignore filter entries, i.e. consider variants that did not pass filters.");
 		addOutfile("out", "Output qcML file. If unset, writes to STDOUT.", true);

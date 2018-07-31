@@ -278,7 +278,7 @@
             </property>
             <property name="icon">
              <iconset resource="GSvar.qrc">
-              <normaloff>:/Icons/Previous.png</normaloff>:/Icons/Previous.png</iconset>
+              <normaloff>:/Icons/Arrow_left.png</normaloff>:/Icons/Arrow_left.png</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -319,7 +319,7 @@
             </property>
             <property name="icon">
              <iconset resource="GSvar.qrc">
-              <normaloff>:/Icons/Next.png</normaloff>:/Icons/Next.png</iconset>
+              <normaloff>:/Icons/Arrow_right.png</normaloff>:/Icons/Arrow_right.png</iconset>
             </property>
             <property name="iconSize">
              <size>

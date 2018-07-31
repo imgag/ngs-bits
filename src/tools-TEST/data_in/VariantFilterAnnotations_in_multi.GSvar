@@ -15,7 +15,7 @@
 ##DESCRIPTION=1000g=Allele frequency in all populations of 1000g project.
 ##DESCRIPTION=ExAC=Allele frequency in all populations of ExAC project.
 ##DESCRIPTION=ExAC_hom=Homoyzgous counts for populations ALL, NFE and AFR of ExAC project.
-##DESCRIPTION=Kaviar=Allele frequency in Kaviar database.
+##DESCRIPTION=gnomAD=Allele frequency in gnomAD database.
 ##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.
 ##DESCRIPTION=Sift=Sift effect prediction: D=damaging, T=tolerated.
 ##DESCRIPTION=MetaLR=MetaLR effect prediction: D=damaging, T=tolerated.
@@ -41,7 +41,7 @@
 ##FILTER=low_MQM=Mean mapping quality of alternate allele less than Q50.
 ##FILTER=low_QUAL=Variant quality less than Q30.
 ##FILTER=pred_pathogenic=Variant predicted to be pathogenic by one or more tools (conservation or effect prediction).
-#chr	start	end	ref	obs	Affected1	Control	Affected2	filter	quality	gene	variant_type	coding_and_splicing	RepeatMasker	dbSNP	1000g	ExAC	ExAC_hom	Kaviar	phyloP	Sift	MetaLR	PolyPhen2	FATHMM	CADD	OMIM	ClinVar	HGMD	COSMIC	ihdb_allsys_hom	ihdb_allsys_het	classification	classification_comment	validated	comment	gene_info
+#chr	start	end	ref	obs	Affected1	Control	Affected2	filter	quality	gene	variant_type	coding_and_splicing	RepeatMasker	dbSNP	1000g	ExAC	ExAC_hom	gnomAD	phyloP	Sift	MetaLR	PolyPhen2	FATHMM	CADD	OMIM	ClinVar	HGMD	COSMIC	ihdb_allsys_hom	ihdb_allsys_het	classification	classification_comment	validated	comment	gene_info
 chr1	14653	14653	C	T	het	het	het	low_MQM;gene_blacklist	QUAL=1030;DP=73,132,30;MQM=32	WASH7P	non_coding_transcript_exon	WASH7P:NR_024540.1:non_coding_transcript_exon:MODIFIER:exon11/11:n.1478G>A:		rs62635297	0.0000	0.0000	0/0/0	0.0011											4	21					WASH7P (inh=n/a pLI=n/a)
 chr1	16977	16977	G	A	het	wt	het	low_DP;low_MQM;gene_blacklist	QUAL=67;DP=28,11,7;MQM=23	WASH7P	non_coding_transcript_exon	WASH7P:NR_024540.1:non_coding_transcript_exon:MODIFIER:exon7/11:n.802C>T:		rs879121945	0.0000	0.0000	0/0/0	0.0377											1	23					WASH7P (inh=n/a pLI=n/a)
 chr1	69511	69511	A	G	hom	hom	wt	low_DP;low_MQM;gene_blacklist	QUAL=1393;DP=4,46,7;MQM=39	OR4F5	missense	OR4F5:NM_001005484.1:missense:MODERATE:exon1/1:c.421A>G:p.Thr141Ala		rs2691305	0.0000	0.9394	35477/18635/1681	0.5337	-0.2700	.,T	T	B	T	0.05				COSM4144171	607	19					OR4F5 (inh=n/a pLI=0.18)

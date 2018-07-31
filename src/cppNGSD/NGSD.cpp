@@ -5,7 +5,7 @@
 #include "Settings.h"
 #include "ChromosomalIndex.h"
 #include "NGSHelper.h"
-#include "VariantFilter.h"
+#include "FilterCascade.h"
 #include <QFileInfo>
 #include <QPair>
 #include "cmath"
@@ -556,10 +556,12 @@ void NGSD::annotate(VariantList& variants, QString filename, BedFile roi, double
 	}
 
 	//apply AF filter (if given)
-	VariantFilter filter(variants);
+	FilterResult filter_result(variants.count());
 	if (max_af>0)
 	{
-		filter.flagByAlleleFrequency(max_af);
+		FilterAlleleFrequency filter;
+		filter.setDouble("max_af", max_af);
+		filter.apply(variants, filter_result);
 	}
 
 	//get required column indices
@@ -599,10 +601,7 @@ void NGSD::annotate(VariantList& variants, QString filename, BedFile roi, double
 		Variant& v = variants[i];
 
 		//skip variants with too high allele frequency
-		if(max_af>0.0)
-		{
-			if (!filter.flags()[i]) continue;
-		}
+		if (!filter_result.flags()[i]) continue;
 
 		//skip variant outside the target region
 		if (!roi_index.isNull())

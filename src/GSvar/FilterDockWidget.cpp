@@ -1,7 +1,6 @@
 #include "FilterDockWidget.h"
 #include "Settings.h"
 #include "Helper.h"
-#include "FilterColumnWidget.h"
 #include "NGSD.h"
 #include "Log.h"
 #include "ScrollableTextDialog.h"
@@ -14,44 +13,13 @@
 #include <QMenu>
 #include "PhenotypeSelectionWidget.h"
 #include "GUIHelper.h"
+#include "FilterEditDialog.h"
 
 FilterDockWidget::FilterDockWidget(QWidget *parent)
 	: QDockWidget(parent)
 	, ui_()
-	, ngsd_enabled(Settings::boolean("NGSD_enabled", true))
 {
 	ui_.setupUi(this);
-
-	connect(ui_.maf, SIGNAL(valueChanged(double)), this, SIGNAL(filtersChanged()));
-	connect(ui_.maf_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
-
-	connect(ui_.maf_sub, SIGNAL(valueChanged(double)), this, SIGNAL(filtersChanged()));
-	connect(ui_.maf_sub_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
-
-	connect(ui_.impact, SIGNAL(currentIndexChanged(int)), this, SIGNAL(filtersChanged()));
-	connect(ui_.impact_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
-
-	connect(ui_.ihdb, SIGNAL(valueChanged(int)), this, SIGNAL(filtersChanged()));
-	connect(ui_.ihdb_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
-	connect(ui_.ihdb_ignore_gt, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
-
-	connect(ui_.classification, SIGNAL(currentIndexChanged(int)), this, SIGNAL(filtersChanged()));
-	connect(ui_.classification_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
-
-	connect(ui_.geno_affected, SIGNAL(currentIndexChanged(int)), this, SIGNAL(filtersChanged()));
-	connect(ui_.geno_affected_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
-	connect(ui_.geno_control, SIGNAL(currentIndexChanged(int)), this, SIGNAL(filtersChanged()));
-	connect(ui_.geno_control_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
-
-	connect(ui_.keep_class_ge_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
-	connect(ui_.keep_class_ge, SIGNAL(currentTextChanged(QString)), this, SIGNAL(filtersChanged()));
-	connect(ui_.keep_class_m, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
-
-	connect(ui_.gene_pli, SIGNAL(valueChanged(double)), this, SIGNAL(filtersChanged()));
-	connect(ui_.gene_pli_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
-
-	connect(ui_.gene_inh, SIGNAL(currentTextChanged(QString)), this, SIGNAL(filtersChanged()));
-	connect(ui_.gene_inh_enabled, SIGNAL(toggled(bool)), this, SIGNAL(filtersChanged()));
 
 	connect(ui_.roi_add, SIGNAL(clicked()), this, SLOT(addRoi()));
 	connect(ui_.roi_add_temp, SIGNAL(clicked()), this, SLOT(addRoiTemp()));
@@ -67,7 +35,16 @@ FilterDockWidget::FilterDockWidget(QWidget *parent)
 	connect(ui_.gene, SIGNAL(editingFinished()), this, SLOT(geneChanged()));
 	connect(ui_.region, SIGNAL(editingFinished()), this, SLOT(regionChanged()));
 
-	if (ngsd_enabled)
+	connect(ui_.filters_entries, SIGNAL(itemSelectionChanged()), this, SLOT(filterSelectionChanged()));
+	connect(ui_.filters_entries, SIGNAL(itemActivated(QListWidgetItem*)), this, SLOT(editSelectedFilter()));
+	connect(ui_.filters_entries, SIGNAL(itemChanged(QListWidgetItem*)), this, SLOT(toggleSelectedFilter(QListWidgetItem*)));
+	connect(ui_.filter_delete, SIGNAL(pressed()), this, SLOT(deleteSelectedFilter()));
+	connect(ui_.filter_edit, SIGNAL(pressed()), this, SLOT(editSelectedFilter()));
+	connect(ui_.filter_add, SIGNAL(pressed()), this, SLOT(addFilter()));
+	connect(ui_.filter_up, SIGNAL(pressed()), this, SLOT(moveUpSelectedFilter()));
+	connect(ui_.filter_down, SIGNAL(pressed()), this, SLOT(moveDownSelectedFilter()));
+
+	if (Settings::boolean("NGSD_enabled", true))
 	{
 		connect(ui_.hpo_terms, SIGNAL(clicked(QPoint)), this, SLOT(editPhenotypes()));
 		connect(ui_.hpo_terms, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showPhenotypeContextMenu(QPoint)));
@@ -80,30 +57,49 @@ FilterDockWidget::FilterDockWidget(QWidget *parent)
 	loadTargetRegions();
 	loadReferenceFiles();
 
-	reset(true, true);
+	reset(true);
 }
 
-void FilterDockWidget::setFilterColumns(const QMap<QString, QString>& filter_cols)
+void FilterDockWidget::setValidFilterEntries(const QStringList& filter_entries)
 {
-	//remove old widgets
-	QLayoutItem* item;
-	while ((item = ui_.filter_col->layout()->takeAt(0)) != nullptr)
+	valid_filter_entries_ = filter_entries;
+}
+
+void FilterDockWidget::setFilters(const FilterCascade& filters)
+{
+	filters_ = filters;
+
+	//overwrite valid entries of 'filter' column
+	for(int i=0; i<filters_.count(); ++i)
 	{
-		delete item->widget();
-		delete item;
+		if (filters_[i]->name()=="Filter columns")
+		{
+			filters_[i]->overrideConstraint("entries", "valid", valid_filter_entries_.join(','));
+		}
 	}
 
-	//add new widgets
-	auto it = filter_cols.cbegin();
-	while(it!=filter_cols.cend())
-	{
-		auto w = new FilterColumnWidget(it.key(), it.value());
-		connect(w, SIGNAL(stateChanged()), this, SLOT(filterColumnStateChanged()));
-		ui_.filter_col->layout()->addWidget(w);
+	updateGUI();
 
-		++it;
+	emit filtersChanged();
+}
+
+void FilterDockWidget::markFailedFilters()
+{
+	for(int i=0; i<ui_.filters_entries->count(); ++i)
+	{
+		QListWidgetItem* item = ui_.filters_entries->item(i);
+
+		QStringList errors = filters_.errors(i);
+		if (errors.isEmpty())
+		{
+			item->setBackground(QBrush());
+		}
+		else
+		{
+			item->setToolTip(filters_[i]->description().join("\n") + "\n\nErrors:\n" + errors.join("\n"));
+			item->setBackgroundColor(QColor(255,160,110));
+		}
 	}
-	ui_.filter_col->layout()->addItem(new QSpacerItem(1,1, QSizePolicy::Minimum, QSizePolicy::MinimumExpanding));
 }
 
 void FilterDockWidget::loadTargetRegions()
@@ -171,6 +167,14 @@ void FilterDockWidget::loadTargetRegions()
 	ui_.rois->blockSignals(false);
 }
 
+int FilterDockWidget::currentFilterIndex() const
+{
+	auto selection = ui_.filters_entries->selectedItems();
+	if (selection.count()!=1) return -1;
+
+	return ui_.filters_entries->row(selection[0]);
+}
+
 void FilterDockWidget::loadReferenceFiles()
 {
 	//store old selection
@@ -193,52 +197,11 @@ void FilterDockWidget::loadReferenceFiles()
     ui_.refs->setCurrentIndex(current_index);
 }
 
-void FilterDockWidget::resetSignalsUnblocked(bool clear_roi, bool clear_off_target)
+void FilterDockWidget::resetSignalsUnblocked(bool clear_roi)
 {
-    //annotations
-    ui_.maf_enabled->setChecked(false);
-    ui_.maf->setValue(1.0);
-	ui_.maf_sub_enabled->setChecked(false);
-	ui_.maf_sub->setValue(1.0);
-    ui_.impact_enabled->setChecked(false);
-    ui_.impact->setCurrentText("HIGH,MODERATE,LOW");
-    ui_.ihdb_enabled->setChecked(false);
-	ui_.ihdb->setValue(20);
-	ui_.ihdb_ignore_gt->setChecked(false);
-	ui_.classification_enabled->setChecked(false);
-    ui_.classification->setCurrentText("3");
-	ui_.geno_affected_enabled->setChecked(false);
-	ui_.geno_affected->setCurrentText("hom");
-	ui_.geno_control_enabled->setChecked(false);
-	ui_.geno_control->setCurrentText("wt");
-    ui_.keep_class_ge_enabled->setChecked(false);
-    ui_.keep_class_ge->setCurrentText("3");
-	ui_.keep_class_m->setChecked(false);
-	ui_.gene_pli_enabled->setChecked(false);
-	ui_.gene_pli->setValue(0.9);
-	ui_.gene_inh_enabled->setChecked(false);
-	ui_.gene_inh->setCurrentText("n/a");
-
-    //filter cols
-    QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
-    foreach(FilterColumnWidget* w, fcws)
-    {
-        w->setState(FilterColumnWidget::NONE);
-        w->setFilter(false);
-
-		//disable off-target by default
-		if (w->objectName()=="off-target")
-		{
-			if (clear_off_target)
-			{
-				w->setState(FilterColumnWidget::NONE);
-			}
-			else
-			{
-				w->setState(FilterColumnWidget::REMOVE);
-			}
-		}
-    }
+	//filter cols
+	filters_.clear();
+	updateGUI();
 
     //rois
 	if (clear_roi)
@@ -259,404 +222,37 @@ void FilterDockWidget::resetSignalsUnblocked(bool clear_roi, bool clear_off_targ
 
     //refs
     ui_.refs->setCurrentIndex(0);
-    ui_.refs->setToolTip("");
+	ui_.refs->setToolTip("");
 }
 
-void FilterDockWidget::reset(bool clear_roi, bool clear_off_target)
+void FilterDockWidget::focusFilter(int index)
+{
+	//no entries > return
+	int filter_count = ui_.filters_entries->count();
+	if (filter_count==0) return;
+
+	if (index<0) //index too small > focus first item
+	{
+		ui_.filters_entries->item(0)->setSelected(true);
+	}
+	else if (index>=filter_count) //index too big > focus last item
+	{
+		ui_.filters_entries->item(filter_count-1)->setSelected(true);
+	}
+	else //index ok > focus selected item
+	{
+		ui_.filters_entries->item(index)->setSelected(true);
+	}
+}
+
+void FilterDockWidget::reset(bool clear_roi)
 {
 	blockSignals(true);
-	resetSignalsUnblocked(clear_roi, clear_off_target);
+	resetSignalsUnblocked(clear_roi);
 	blockSignals(false);
 
     emit filtersChanged();
 	if (clear_roi) emit targetRegionChanged();
-}
-
-void FilterDockWidget::applyDefaultFilters()
-{
-	//block signals to avoid 10 updates of GUI
-	blockSignals(true);
-
-	resetSignalsUnblocked(false, true);
-
-	//enable default filters
-	ui_.maf_enabled->setChecked(true);
-	ui_.maf->setValue(1.0);
-	ui_.maf_sub_enabled->setChecked(true);
-	ui_.maf_sub->setValue(1.0);
-	ui_.impact_enabled->setChecked(true);
-	ui_.impact->setCurrentText("HIGH,MODERATE,LOW");
-	ui_.ihdb_enabled->setChecked(true);
-	ui_.ihdb->setValue(20);
-	ui_.ihdb_ignore_gt->setChecked(false);
-	ui_.classification_enabled->setChecked(true);
-	ui_.classification->setCurrentText("3");
-    ui_.keep_class_ge_enabled->setChecked(true);
-	ui_.keep_class_ge->setCurrentText("3");
-	ui_.keep_class_m->setChecked(true);
-
-	//filter cols
-	QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
-	foreach(FilterColumnWidget* w, fcws)
-	{
-		if (w->objectName()=="anno_pathogenic_clinvar" || w->objectName()=="anno_pathogenic_hgmd")
-		{
-			w->setState(FilterColumnWidget::KEEP);
-		}
-		else if (w->objectName()=="off-target")
-		{
-			w->setState(FilterColumnWidget::REMOVE);
-		}
-	}
-
-	//re-enable signals
-	blockSignals(false);
-
-	//emit signal to update GUI
-	emit filtersChanged();
-}
-
-void FilterDockWidget::applyDefaultFiltersRecessive()
-{
-	//block signals to avoid 10 updates of GUI
-	blockSignals(true);
-
-	resetSignalsUnblocked(false, true);
-
-	//enable default filters
-	ui_.maf_enabled->setChecked(true);
-	ui_.maf->setValue(1.0);
-	ui_.maf_sub_enabled->setChecked(true);
-	ui_.maf_sub->setValue(1.0);
-	ui_.impact_enabled->setChecked(true);
-	ui_.impact->setCurrentText("HIGH,MODERATE,LOW");
-	ui_.ihdb_enabled->setChecked(true);
-	ui_.ihdb->setValue(15);
-	ui_.ihdb_ignore_gt->setChecked(true);
-	ui_.classification_enabled->setChecked(false);
-	ui_.classification->setCurrentText("3");
-	ui_.keep_class_ge_enabled->setChecked(true);
-	ui_.keep_class_ge->setCurrentText("4");
-	ui_.keep_class_m->setChecked(false);
-	ui_.geno_affected_enabled->setChecked(true);
-	ui_.geno_affected->setCurrentText("compound-het or hom");
-
-	//filter cols
-	QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
-	foreach(FilterColumnWidget* w, fcws)
-	{
-		if (w->objectName()=="gene_blacklist")
-		{
-			w->setState(FilterColumnWidget::REMOVE);
-		}
-	}
-
-	//re-enable signals
-	blockSignals(false);
-
-	//emit signal to update GUI
-	emit filtersChanged();
-}
-
-void FilterDockWidget::applyDefaultFiltersTrio()
-{
-	//block signals to avoid 10 updates of GUI
-	blockSignals(true);
-
-	resetSignalsUnblocked(false, true);
-
-	//enable default filters
-	ui_.maf_enabled->setChecked(true);
-	ui_.maf->setValue(1.0);
-	ui_.maf_sub_enabled->setChecked(true);
-	ui_.maf_sub->setValue(1.0);
-	ui_.impact_enabled->setChecked(true);
-	ui_.impact->setCurrentText("HIGH,MODERATE,LOW");
-	ui_.ihdb_enabled->setChecked(true);
-	ui_.ihdb->setValue(20);
-	ui_.ihdb_ignore_gt->setChecked(false);
-	ui_.keep_class_ge_enabled->setChecked(true);
-	ui_.keep_class_ge->setCurrentText("4");
-
-	//filter cols
-	QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
-	foreach(FilterColumnWidget* w, fcws)
-	{
-		if (w->objectName().startsWith("trio_"))
-		{
-			w->setState(FilterColumnWidget::KEEP);
-			w->setFilter(true);
-		}
-	}
-
-	//re-enable signals
-	blockSignals(false);
-
-	//emit signal to update GUI
-	emit filtersChanged();
-}
-
-void FilterDockWidget::applyDefaultFiltersMultiSample()
-{
-	//block signals to avoid 10 updates of GUI
-	blockSignals(true);
-
-	resetSignalsUnblocked(false, true);
-
-	//enable default filters
-	ui_.maf_enabled->setChecked(true);
-	ui_.maf->setValue(1.0);
-	ui_.maf_sub_enabled->setChecked(true);
-	ui_.maf_sub->setValue(1.0);
-	ui_.impact_enabled->setChecked(true);
-	ui_.impact->setCurrentText("HIGH,MODERATE,LOW");
-	ui_.ihdb_enabled->setChecked(true);
-	ui_.ihdb->setValue(20);
-	ui_.ihdb_ignore_gt->setChecked(false);
-	ui_.classification_enabled->setChecked(true);
-	ui_.classification->setCurrentText("3");
-	ui_.keep_class_ge_enabled->setChecked(true);
-	ui_.keep_class_ge->setCurrentText("3");
-	ui_.keep_class_m->setChecked(true);
-
-	//filter cols
-	QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
-	foreach(FilterColumnWidget* w, fcws)
-	{
-		if (w->objectName()=="anno_pathogenic_clinvar" || w->objectName()=="anno_pathogenic_hgmd")
-		{
-			w->setState(FilterColumnWidget::KEEP);
-		}
-		else if (w->objectName()=="off-target")
-		{
-			w->setState(FilterColumnWidget::REMOVE);
-		}
-	}
-
-	//re-enable signals
-	blockSignals(false);
-
-	//emit signal to update GUI
-	emit filtersChanged();
-}
-
-void FilterDockWidget::applyDefaultFiltersSomatic()
-{
-    //block signals to avoid 10 updates of GUI
-    blockSignals(true);
-
-	resetSignalsUnblocked(false, true);
-
-    //enable default filters
-	ui_.maf_enabled->setChecked(false);
-    ui_.maf->setValue(1.0);
-	ui_.maf_sub_enabled->setChecked(false);
-	ui_.maf_sub->setValue(1.0);
-
-    //filter cols
-    QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
-    foreach(FilterColumnWidget* w, fcws)
-	{
-		w->setState(FilterColumnWidget::REMOVE);
-	}
-
-    //re-enable signals
-    blockSignals(false);
-
-    //emit signal to update GUI
-    emit filtersChanged();
-}
-
-void FilterDockWidget::applyDefaultFiltersCarrier()
-{
-	//block signals to avoid 10 updates of GUI
-	blockSignals(true);
-
-	resetSignalsUnblocked(false, true);
-
-	//enable default filters
-	ui_.maf_enabled->setChecked(true);
-	ui_.maf->setValue(1.0);
-	ui_.maf_sub_enabled->setChecked(true);
-	ui_.maf_sub->setValue(1.0);
-	ui_.impact_enabled->setChecked(true);
-	ui_.impact->setCurrentText("HIGH");
-	ui_.ihdb_enabled->setChecked(true);
-	ui_.ihdb->setValue(50);
-	ui_.ihdb_ignore_gt->setChecked(false);
-	ui_.classification_enabled->setChecked(true);
-	ui_.classification->setCurrentText("4");
-	ui_.keep_class_ge_enabled->setChecked(true);
-	ui_.keep_class_ge->setCurrentText("4");
-	ui_.keep_class_m->setChecked(false);
-
-	//filter cols
-	QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
-	foreach(FilterColumnWidget* w, fcws)
-	{
-		if (w->objectName()=="anno_omim")
-		{
-			w->setFilter(true);
-		}
-		if (w->objectName()=="anno_pathogenic_clinvar" || w->objectName()=="anno_pathogenic_hgmd")
-		{
-			w->setState(FilterColumnWidget::KEEP);
-		}
-	}
-
-	//re-enable signals
-	blockSignals(false);
-
-	//emit signal to update GUI
-	emit filtersChanged();
-}
-
-bool FilterDockWidget::applyMaf() const
-{
-	return ui_.maf_enabled->isChecked();
-}
-
-double FilterDockWidget::mafPerc() const
-{
-	return ui_.maf->value();
-}
-
-bool FilterDockWidget::applyMafSub() const
-{
-	return ui_.maf_sub_enabled->isChecked();
-}
-
-double FilterDockWidget::mafSubPerc() const
-{
-	return ui_.maf_sub->value();
-}
-
-bool FilterDockWidget::applyImpact() const
-{
-	return ui_.impact_enabled->isChecked();
-}
-
-QStringList FilterDockWidget::impact() const
-{
-	return ui_.impact->currentText().split(",");
-}
-
-bool FilterDockWidget::applyClassification() const
-{
-	return ui_.classification_enabled->isChecked();
-}
-
-int FilterDockWidget::classification() const
-{
-	return ui_.classification->currentText().toInt();
-}
-
-bool FilterDockWidget::applyGenotypeAffected() const
-{
-	return ui_.geno_affected_enabled->isChecked();
-}
-
-QString FilterDockWidget::genotypeAffected() const
-{
-	return ui_.geno_affected->currentText();
-}
-
-bool FilterDockWidget::applyGenotypeControl() const
-{
-	return ui_.geno_control_enabled->isChecked();
-}
-
-QString FilterDockWidget::genotypeControl() const
-{
-	return ui_.geno_control->currentText();
-}
-
-bool FilterDockWidget::applyIhdb() const
-{
-	return ui_.ihdb_enabled->isChecked();
-}
-
-int FilterDockWidget::ihdb() const
-{
-	return ui_.ihdb->value();
-}
-
-int FilterDockWidget::ihdbIgnoreGenotype() const
-{
-	return ui_.ihdb_ignore_gt->isChecked();
-}
-
-int FilterDockWidget::keepClassGreaterEqual() const
-{
-	if (!ui_.keep_class_ge_enabled->isChecked()) return -1;
-	return ui_.keep_class_ge->currentText().toInt();
-}
-
-bool FilterDockWidget::keepClassM() const
-{
-	return ui_.keep_class_m->isChecked();
-}
-
-bool FilterDockWidget::applyPLI() const
-{
-	return ui_.gene_pli_enabled->isChecked();
-}
-
-double FilterDockWidget::pli() const
-{
-	return ui_.gene_pli->value();
-}
-
-bool FilterDockWidget::applyInheritance() const
-{
-	return ui_.gene_inh_enabled->isChecked();
-}
-
-QString FilterDockWidget::inheritance() const
-{
-	return ui_.gene_inh->currentText();
-}
-
-QStringList FilterDockWidget::filterColumnsKeep() const
-{
-	QStringList output;
-	QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
-	foreach(FilterColumnWidget* w, fcws)
-	{
-		if (w->state()==FilterColumnWidget::KEEP)
-		{
-			output.append(w->objectName());
-		}
-	}
-	return output;
-}
-
-QStringList FilterDockWidget::filterColumnsRemove() const
-{
-	QStringList output;
-	QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
-	foreach(FilterColumnWidget* w, fcws)
-	{
-		if (w->state()==FilterColumnWidget::REMOVE)
-		{
-			output.append(w->objectName());
-		}
-	}
-    return output;
-}
-
-QStringList FilterDockWidget::filterColumnsFilter() const
-{
-	QStringList output;
-    QList<FilterColumnWidget*> fcws = ui_.filter_col->findChildren<FilterColumnWidget*>();
-    foreach(FilterColumnWidget* w, fcws)
-    {
-        if (w->filter())
-        {
-			output.append(w->objectName());
-        }
-    }
-    return output;
 }
 
 QString FilterDockWidget::targetRegion() const
@@ -711,19 +307,9 @@ QString FilterDockWidget::referenceSample() const
 	return ui_.refs->toolTip();
 }
 
-QMap<QString, QString> FilterDockWidget::appliedFilters() const
+const FilterCascade& FilterDockWidget::filters() const
 {
-	QMap<QString, QString> output;
-	if (applyMaf()) output.insert("maf", QString::number(mafPerc(), 'f', 2) + "%");
-	if (applyImpact()) output.insert("impact", impact().join(","));
-	if (applyIhdb()) output.insert("ihdb", QString::number(ihdb()));
-	if (applyClassification()) output.insert("classification", QString::number(classification()));
-	if (applyGenotypeAffected()) output.insert("genotype (affected)" , genotypeAffected());
-	if (applyGenotypeControl()) output.insert("genotype (control)" , genotypeControl());
-	if (keepClassM()) output.insert("keep_class_m", "");
-	if (keepClassGreaterEqual()!=-1) output.insert("keep_class_ge", QString::number(keepClassGreaterEqual()));
-
-	return output;
+	return filters_;
 }
 
 void FilterDockWidget::addRoi()
@@ -807,7 +393,6 @@ void FilterDockWidget::roiSelectionChanged(int index)
 		emit filtersChanged();
 		emit targetRegionChanged();
 	}
-	//qDebug() << __LINE__ << ui_.rois->completer() << ui_.rois->itemData(index).toString();
 }
 
 
@@ -841,7 +426,7 @@ void FilterDockWidget::phenotypesChanged()
 
 	ui_.hpo_terms->setText(tmp.join("; "));
 
-	QString tooltip = "Phenotype/inheritance filter based on HPO terms.<br>This filter has no effect on report generation!<br><br>Note: This functionality is only available when NGSD is enabled.";
+	QString tooltip = "Phenotype/inheritance filter based on HPO terms.<br><br>Notes:<br>- This filter has no effect on report generation!<br>- This functionality is only available when NGSD is enabled.";
 	if (!phenotypes_.isEmpty())
 	{
 		tooltip += "<br><br><nobr>Currently selected HPO terms:</nobr>";
@@ -977,6 +562,135 @@ void FilterDockWidget::showPhenotypeContextMenu(QPoint pos)
 	else if (action->text()=="create sub-panel")
 	{
 		emit phenotypeSubPanelRequested();
+	}
+}
+
+void FilterDockWidget::updateGUI()
+{
+	ui_.filters_entries->clear();
+	for(int i=0; i<filters_.count(); ++i)
+	{
+		QListWidgetItem* item = new QListWidgetItem(filters_[i]->toText());
+		item->setCheckState(filters_[i]->enabled() ? Qt::Checked : Qt::Unchecked);
+		item->setToolTip(filters_[i]->description().join("\n"));
+		ui_.filters_entries->addItem(item);
+	}
+	filterSelectionChanged();
+}
+
+void FilterDockWidget::filterSelectionChanged()
+{
+	int index = currentFilterIndex();
+	ui_.filter_delete->setEnabled(index!=-1);
+	ui_.filter_edit->setEnabled(index!=-1 && filters_[index]->parameters().count()>0);
+	ui_.filter_up->setEnabled(index>0);
+	ui_.filter_down->setEnabled(index!=-1 && index!=ui_.filters_entries->count()-1);
+}
+
+void FilterDockWidget::addFilter()
+{
+	//show filter menu
+	QMenu menu;
+	foreach(QString filter_name, FilterFactory::filterNames())
+	{
+		menu.addAction(filter_name);
+	}
+	QAction* action = menu.exec(QCursor::pos());
+	if(action==nullptr) return;
+
+	//create filter
+	QSharedPointer<FilterBase> filter = FilterFactory::create(action->text());
+	if (filter->name()=="Filter columns")
+	{
+		filter->overrideConstraint("entries", "valid", valid_filter_entries_.join(','));
+	}
+
+	//determine if filter should be added
+	bool add_filter = false;
+	if (filter->parameters().count()>0)
+	{
+		FilterEditDialog dlg(filter, this);
+		add_filter = dlg.exec()==QDialog::Accepted;
+	}
+	else
+	{
+		add_filter = true;
+	}
+
+	//add filter
+	if (add_filter)
+	{
+		filters_.add(filter);
+		updateGUI();
+		focusFilter(filters_.count()-1);
+		emit filtersChanged();
+	}
+}
+
+void FilterDockWidget::editSelectedFilter()
+{
+	int index = currentFilterIndex();
+	if (index==-1) return;
+
+	//no paramters => no edit dialog
+	if (filters_[index]->parameters().count()==0) return;
+
+	FilterEditDialog dlg(filters_[index], this);
+	if (dlg.exec()==QDialog::Accepted)
+	{
+		updateGUI();
+		focusFilter(index);
+		emit filtersChanged();
+	}
+}
+
+void FilterDockWidget::deleteSelectedFilter()
+{
+	int index = currentFilterIndex();
+	if (index==-1) return;
+
+	filters_.removeAt(index);
+	updateGUI();
+	focusFilter(index);
+
+	emit filtersChanged();
+}
+
+void FilterDockWidget::moveUpSelectedFilter()
+{
+	int index = currentFilterIndex();
+	if (index==-1) return;
+
+	filters_.moveUp(index);
+	updateGUI();
+	focusFilter(index-1);
+
+	emit filtersChanged();
+}
+
+void FilterDockWidget::moveDownSelectedFilter()
+{
+	int index = currentFilterIndex();
+	if (index==-1) return;
+
+	filters_.moveDown(index);
+	updateGUI();
+	focusFilter(index+1);
+
+	emit filtersChanged();
+}
+
+void FilterDockWidget::toggleSelectedFilter(QListWidgetItem* item)
+{
+	//determine item index
+	int index = ui_.filters_entries->row(item);
+	if (index==-1) return;
+
+	//check that check state changed (this slot is called for every change of an item)
+	if ( (item->checkState()==Qt::Checked && !filters_[index]->enabled()) || (item->checkState()==Qt::Unchecked && filters_[index]->enabled()))
+	{
+		filters_[index]->toggleEnabled();
+		emit filtersChanged();
 	}
 }
 

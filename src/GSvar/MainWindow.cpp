@@ -36,7 +36,6 @@
 #include "GeneInfoDialog.h"
 #include "PhenoToGenesDialog.h"
 #include "GenesToRegionsDialog.h"
-#include "VariantFilter.h"
 #include "SubpanelDesignDialog.h"
 #include "SubpanelArchiveDialog.h"
 #include "IgvDialog.h"
@@ -91,23 +90,14 @@ MainWindow::MainWindow(QWidget *parent)
 	filter_btn->setIcon(QIcon(":/Icons/Filter.png"));
 	filter_btn->setToolTip("Apply default variant filters.");
 	filter_btn->setMenu(new QMenu());
-	filter_btn->menu()->addAction(ui_.actionFiltersGermline);
-	connect(ui_.actionFiltersGermline, SIGNAL(triggered(bool)), filter_widget_, SLOT(applyDefaultFilters()));
-	filter_btn->menu()->addAction(ui_.actionFiltersGermlineRecessive);
-	connect(ui_.actionFiltersGermlineRecessive, SIGNAL(triggered(bool)), filter_widget_, SLOT(applyDefaultFiltersRecessive()));
-	filter_btn->menu()->addAction(ui_.actionFiltersTrio);
-	connect(ui_.actionFiltersTrio, SIGNAL(triggered(bool)), filter_widget_, SLOT(applyDefaultFiltersTrio()));
-	filter_btn->menu()->addAction(ui_.actionFiltersMultiSample);
-	connect(ui_.actionFiltersMultiSample, SIGNAL(triggered(bool)), filter_widget_, SLOT(applyDefaultFiltersMultiSample()));
-	filter_btn->menu()->addAction(ui_.actionFiltersSomatic);
-	connect(ui_.actionFiltersSomatic, SIGNAL(triggered(bool)), filter_widget_, SLOT(applyDefaultFiltersSomatic()));
-	filter_btn->menu()->addSeparator();
-	filter_btn->menu()->addAction(ui_.actionFiltersCarrier);
-	connect(ui_.actionFiltersCarrier, SIGNAL(triggered(bool)), filter_widget_, SLOT(applyDefaultFiltersCarrier()));
+	filter_btn->setPopupMode(QToolButton::InstantPopup);
+	connect(filter_btn, SIGNAL(triggered(QAction*)), this, SLOT(applyFilter(QAction*)));
+	foreach(QString filter_name, loadFilterNames())
+	{
+		filter_btn->menu()->addAction(filter_name);
+	}
 	filter_btn->menu()->addSeparator();
 	filter_btn->menu()->addAction(ui_.actionFiltersClear);
-    connect(ui_.actionFiltersClear, SIGNAL(triggered(bool)), this, SLOT(clearFilters()));
-	filter_btn->setPopupMode(QToolButton::InstantPopup);
 	ui_.tools->insertWidget(ui_.actionReport, filter_btn);
 
 	//signals and slots
@@ -736,6 +726,48 @@ int MainWindow::currentVariantIndex()
 	return ranges[0].topRow();
 }
 
+QStringList MainWindow::loadFilterNames() const
+{
+	QStringList output;
+
+	QString filename = QCoreApplication::applicationDirPath() + QDir::separator() + QCoreApplication::applicationName().replace(".exe","") + "_filters.ini";
+	foreach(QString line, Helper::loadTextFile(filename, true, QChar::Null, true))
+	{
+		if (line.startsWith("#"))
+		{
+			output << line.mid(1);
+		}
+	}
+
+	return output;
+}
+
+FilterCascade MainWindow::loadFilter(QString name) const
+{
+	FilterCascade output;
+
+
+	QString filename = QCoreApplication::applicationDirPath() + QDir::separator() + QCoreApplication::applicationName().replace(".exe","") + "_filters.ini";
+	QStringList filter_file = Helper::loadTextFile(filename, true, QChar::Null, true);
+
+	bool in_filter = false;
+	foreach(QString line, filter_file)
+	{
+		if (line.startsWith("#"))
+		{
+			in_filter = (line == "#"+name);
+		}
+		else if (in_filter)
+		{
+			QStringList parts = line.trimmed().split('\t');
+			QString name = parts[0];
+			output.add(FilterFactory::create(name, parts.mid(1)));
+		}
+	}
+
+	return output;
+}
+
 void MainWindow::addModelessDialog(QSharedPointer<QDialog> ptr)
 {
 	modeless_dialogs_.append(ptr);
@@ -872,7 +904,7 @@ void MainWindow::loadFile(QString filename)
 {
 	//reset GUI and data structures
 	setWindowTitle(QCoreApplication::applicationName());
-	filter_widget_->reset(true, false);
+	filter_widget_->reset(true);
 	filename_ = "";
 	filewatcher_.clearFile();
 	db_annos_updated_ = NO;
@@ -892,7 +924,7 @@ void MainWindow::loadFile(QString filename)
 	{
 		variants_.load(filename);
 
-		filter_widget_->setFilterColumns(variants_.filters());
+		filter_widget_->setValidFilterEntries(variants_.filters().keys());
 
 		//update data structures
 		Settings::setPath("path_variantlists", filename);
@@ -916,7 +948,6 @@ void MainWindow::loadFile(QString filename)
 
 	//update recent files (before try block to remove non-existing files from the recent files menu)
 	addToRecentFiles(filename);
-
 
 	//warn if no 'filter' column is present
 	QStringList errors;
@@ -947,7 +978,21 @@ void MainWindow::on_actionResize_triggered()
 {
 	GUIHelper::resizeTableCells(ui_.vars, 200);
 
-	//restrict REF/ALT column with
+	//set mimumn width of chr, start, end
+	if (ui_.vars->columnWidth(0)<42)
+	{
+		ui_.vars->setColumnWidth(0, 42);
+	}
+	if (ui_.vars->columnWidth(1)<62)
+	{
+		ui_.vars->setColumnWidth(1, 62);
+	}
+	if (ui_.vars->columnWidth(2)<62)
+	{
+		ui_.vars->setColumnWidth(2, 62);
+	}
+
+	//restrict REF/ALT column width
 	for (int i=3; i<=4; ++i)
 	{
 		if (ui_.vars->columnWidth(i)>80)
@@ -1021,10 +1066,8 @@ void MainWindow::generateReportSomaticRTF()
 
 	try
 	{
-		ReportHelper report(filename_,configReport.getFilteredVariants(),target_region,filter_widget_->filterColumnsKeep(),filter_widget_->filterColumnsRemove(),filter_widget_->filterColumnsFilter());
-
+		ReportHelper report(filename_,configReport.getFilteredVariants(),target_region, filter_widget_->filters());
 		report.writeRtf(temp_filename);
-
 		//Create files for QBIC upload
 		report.germlineSnvForQbic();
 		report.somaticSnvForQbic();
@@ -1155,7 +1198,7 @@ void MainWindow::generateReport()
 	busy_dialog_->init("Generating report", false);
 
 	//start worker in new thread
-	ReportWorker* worker = new ReportWorker(base_name, bam_file, filter_widget_->targetRegion(), variants_, filter_widget_->appliedFilters(), preferred_transcripts_, dialog.settings(), getLogFiles(), file_rep);
+	ReportWorker* worker = new ReportWorker(base_name, bam_file, filter_widget_->targetRegion(), variants_, filter_widget_->filters(), preferred_transcripts_, dialog.settings(), getLogFiles(), file_rep);
 	connect(worker, SIGNAL(finished(bool)), this, SLOT(reportGenerationFinished(bool)));
 	worker->start();
 }
@@ -1200,11 +1243,6 @@ void MainWindow::databaseAnnotationFinished(bool success)
 
 	//clean
 	worker->deleteLater();
-}
-
-void MainWindow::clearFilters()
-{
-	filter_widget_->reset(false, true);
 }
 
 void MainWindow::on_actionNGSD_triggered()
@@ -2256,6 +2294,21 @@ void MainWindow::updateVariantDetails()
 	var_last_ = var_current;
 }
 
+void MainWindow::applyFilter(QAction* action)
+{
+	if (action==nullptr) return;
+
+	QString text = action->text();
+	if (text=="Clear filters")
+	{
+		filter_widget_->reset(false);
+	}
+	else
+	{
+		filter_widget_->setFilters(loadFilter(text));
+	}
+}
+
 void MainWindow::executeIGVCommand(QString command)
 {
 	//connect
@@ -2417,124 +2470,16 @@ void MainWindow::filtersChanged()
 
 	try
 	{
-		//apply annotation filters
+		//apply main filter
 		QTime timer;
 		timer.start();
 
-		//get sample info
-		SampleHeaderInfo sample_data = variants_.getSampleHeader(false);
+		const FilterCascade& filter_cascade = filter_widget_->filters();
+		FilterResult filter_result = filter_cascade.apply(variants_, false);
+		filter_widget_->markFailedFilters();
 
-		//main filters
-		VariantFilter filter(variants_);
-		if (filter_widget_->applyMaf())
-		{
-			double max_af = filter_widget_->mafPerc() / 100.0;
-			filter.flagByAlleleFrequency(max_af);
-		}
-		if (filter_widget_->applyMafSub())
-		{
-			double max_af = filter_widget_->mafSubPerc() / 100.0;
-			filter.flagBySubPopulationAlleleFrequency(max_af);
-		}
-		if (filter_widget_->applyImpact())
-		{
-			filter.flagByImpact(filter_widget_->impact());
-		}
-		if (filter_widget_->applyIhdb())
-		{
-			QStringList geno_cols = (filter_widget_->ihdbIgnoreGenotype() ? QStringList() : sample_data.sampleColumns(true));
-			filter.flagByIHDB(filter_widget_->ihdb(), geno_cols);
-		}
-		if (filter_widget_->applyPLI())
-		{
-			filter.flagByGenePLI(filter_widget_->pli());
-		}
-		if (filter_widget_->applyInheritance())
-		{
-			filter.flagByGeneInheritance(filter_widget_->inheritance().toLatin1());
-		}
-		QStringList remove = filter_widget_->filterColumnsRemove();
-		if (remove.count()>0)
-		{
-			filter.flagByFilterColumnMatching(remove);
-		}
-
-		//filter columns (keep)
-		QStringList keep = filter_widget_->filterColumnsKeep();
-		if (keep.count()>0)
-        {
-			for(int i=0; i<variants_.count(); ++i)
-			{
-				if (filter.flags()[i]) continue;
-
-				foreach(const QByteArray& f, variants_[i].filters())
-				{
-					if (keep.contains(f)) filter.flags()[i] = true;
-				}
-			}
-		}
-
-		//remove variants with low classification
-		if (filter_widget_->applyClassification())
-		{
-			filter.flagByClassification(filter_widget_->classification());
-		}
-
-		//prevent class>=X variants from beeing filtered out by any filter (except region/gene filters)
-		if (filter_widget_->keepClassGreaterEqual()!=-1)
-		{
-			int i_class = variants_.annotationIndexByName("classification", true, true);
-			int min_class = filter_widget_->keepClassGreaterEqual();
-			for(int i=0; i<variants_.count(); ++i)
-			{
-				if (filter.flags()[i]) continue;
-
-				bool ok = false;
-				int classification_value = variants_[i].annotations()[i_class].toInt(&ok);
-				if (!ok) continue;
-
-				filter.flags()[i] = (classification_value>=min_class);
-			}
-		}
-
-		//prevent class M variants from beeing filtered out by any filter (except region/gene filters)
-		if (filter_widget_->keepClassM())
-		{
-			int i_class = variants_.annotationIndexByName("classification", true, true);
-			for(int i=0; i<variants_.count(); ++i)
-			{
-				if (filter.flags()[i]) continue;
-
-				filter.flags()[i] = (variants_[i].annotations()[i_class]=="M");
-			}
-        }
-
-        //filter columns (filter)
-		QStringList filter_cols = filter_widget_->filterColumnsFilter();
-		if (filter_cols.count()>0)
-        {
-            for(int i=0; i<variants_.count(); ++i)
-            {
-				if (!filter.flags()[i]) continue;
-
-                const QList<QByteArray>& filters = variants_[i].filters();
-                if(filters.isEmpty())
-                {
-					filter.flags()[i] = false;
-                    continue;
-                }
-
-                bool keep = false;
-                foreach(const QByteArray& f, filters)
-                {
-					if (filter_cols.contains(f)) keep = true;
-                }
-				filter.flags()[i] = keep;
-            }
-        }
-
-        Log::perf("Applying annotation filter took ", timer);
-        timer.start();
+		Log::perf("Applying annotation filter took ", timer);
+		timer.start();
 
 		//roi file name changed => update ROI
 		QString roi = filter_widget_->targetRegion();
@@ -2557,7 +2502,7 @@ void MainWindow::filtersChanged()
 		//roi filter
 		if (roi!="")
 		{
-			filter.flagByRegions(last_roi_);
+			FilterRegions::apply(variants_, last_roi_, filter_result);
 			Log::perf("Applying target region filter took ", timer);
 			timer.start();
 		}
@@ -2566,7 +2511,9 @@ void MainWindow::filtersChanged()
 		GeneSet genes_filter = filter_widget_->genes();
 		if (!genes_filter.isEmpty())
 		{
-			filter.flagByGenes(genes_filter);
+			FilterGenes filter;
+			filter.setStringList("genes", genes_filter.toStringList());
+			filter.apply(variants_, filter_result);
 			Log::perf("Applying gene filter took ", timer);
 			timer.start();
 		}
@@ -2575,7 +2522,9 @@ void MainWindow::filtersChanged()
 		BedLine region = BedLine::fromString(filter_widget_->region());
 		if (region.isValid())
 		{
-			filter.flagByRegion(region);
+			BedFile tmp;
+			tmp.append(region);
+			FilterRegions::apply(variants_, tmp, filter_result);
 			Log::perf("Applying region filter took ", timer);
 			timer.start();
 		}
@@ -2605,42 +2554,9 @@ void MainWindow::filtersChanged()
 		//phenotype filter
 		if (!last_phenos_.isEmpty())
 		{
-			filter.flagByRegions(last_phenos_roi_);
+			FilterRegions::apply(variants_, last_phenos_roi_, filter_result);
 			Log::perf("Applying phenotype filter took ", timer);
 			timer.start();
-		}
-
-		//genotype filter (control)
-		if (filter_widget_->applyGenotypeControl())
-		{
-			QString geno = filter_widget_->genotypeControl();
-			bool invert = false;
-			if (geno.startsWith("not "))
-			{
-				geno = geno.mid(4);
-				invert = true;
-			}
-			filter.flagByGenotype(geno, sample_data.sampleColumns(false), invert);
-			Log::perf("Applying genotype filter (control) took ", timer);
-		}
-
-		//genotype filter (affected)
-		if (filter_widget_->applyGenotypeAffected())
-		{
-			QString geno = filter_widget_->genotypeAffected();
-			if (geno == "compound-het")
-			{
-				filter.flagCompoundHeterozygous(sample_data.sampleColumns(true));
-			}
-			else if (geno == "compound-het or hom")
-			{
-				filter.flagCompoundHeterozygous(sample_data.sampleColumns(true), true);
-			}
-			else
-			{
-				filter.flagByGenotype(filter_widget_->genotypeAffected(), sample_data.sampleColumns(true));
-			}
-			Log::perf("Applying genotype filter (affected) took ", timer);
 		}
 
 		//update GUI
@@ -2648,7 +2564,7 @@ void MainWindow::filtersChanged()
 		ui_.vars->setUpdatesEnabled(false);
 		for(int i=0; i<variants_.count(); ++i)
 		{
-			if (filter.flags()[i])
+			if (filter_result.flags()[i])
 			{
 				ui_.vars->showRow(i);
 			}
@@ -2661,7 +2577,7 @@ void MainWindow::filtersChanged()
 		Log::perf("Applying filter results to GUI took ", timer);
 
 		//update status bar
-		QString status = QString::number(filter.countPassing()) + " of " + QString::number(variants_.count()) + " variants passed filters.";
+		QString status = QString::number(filter_result.countPassing()) + " of " + QString::number(variants_.count()) + " variants passed filters.";
 		ui_.statusBar->showMessage(status);
 	}
 	catch(Exception& e)

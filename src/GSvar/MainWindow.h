@@ -8,11 +8,11 @@
 #include "FilterDockWidget.h"
 #include "VariantDetailsDockWidget.h"
 #include "SampleDetailsDockWidget.h"
-#include "VariantFilter.h"
 #include "BedFile.h"
 #include "NGSD.h"
 #include "FileWatcher.h"
 #include "BusyDialog.h"
+#include "FilterCascade.h"
 
 struct IgvFile
 {
@@ -45,7 +45,7 @@ public:
 	///Returns BAF SEG files for the analysis.
 	QList<IgvFile> getIgvFilesBaf();
 	enum VariantListType {GERMLINE_SINGLESAMPLE, GERMLINE_TRIO, GERMLINE_MULTISAMPLE, SOMATIC_SINGLESAMPLE, SOMATIC_PAIR};
-	///Retruns the type of the current variant list
+	///Returns the type of the current variant list
 	VariantListType getType();
 	///Adds a file to the recent file list
 	void addToRecentFiles(QString filename);
@@ -73,6 +73,10 @@ public:
 	QString sampleName();
 	///Returns the current variant index, or -1 if no/several variants are selected.
 	int currentVariantIndex();
+	///Returns all filters defined in the filters INI file
+	QStringList loadFilterNames() const;
+	///Returns all filters defined in the filters INI file
+	FilterCascade loadFilter(QString name) const;
 
 public slots:
 	///Open dialog
@@ -168,6 +172,8 @@ public slots:
 	void varsContextMenu(QPoint pos);
 	///Updated the variant context menu
 	void updateVariantDetails();
+	///Apply filter from filter menu
+	void applyFilter(QAction* action);
 	///Updates the visible rows after filters have changed
 	void filtersChanged();
 	///Resets the annotation status
@@ -204,10 +210,8 @@ public slots:
 
 	///Imports phenotype data from GenLab
 	void importPhenotypesFromGenLab();
-	///Create sub-panel from phenotype filters
+	///Create sub-panel from phenotype
 	void createSubPanelFromPhenotypeFilter();
-	///Variant default filters
-    void clearFilters();
 
 	///Opens a sample based on the sample name
 	void openProcessedSampleFromNGSD(QString processed_sample_name);

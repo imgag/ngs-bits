@@ -36,7 +36,6 @@ LIBS += -lz
 SOURCES += BedFile.cpp \
     Chromosome.cpp \
     VariantList.cpp \
-    VariantFilter.cpp \
     Statistics.cpp \
     Pileup.cpp \
     NGSHelper.cpp \
@@ -54,13 +53,13 @@ SOURCES += BedFile.cpp \
     GeneSet.cpp \
     RohList.cpp \
     OntologyTermCollection.cpp \
-    SvList.cpp
+    SvList.cpp \
+    FilterCascade.cpp
 
 
 HEADERS += BedFile.h \
     Chromosome.h \
     VariantList.h \
-    VariantFilter.h \
     ChromosomalIndex.h \
     Statistics.h \
     Pileup.h \
@@ -80,7 +79,8 @@ HEADERS += BedFile.h \
     GeneSet.h \
     RohList.h \
     OntologyTermCollection.h \
-    SvList.h
+    SvList.h \
+    FilterCascade.h \
 
 
 RESOURCES += \

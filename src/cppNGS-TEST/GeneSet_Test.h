@@ -217,6 +217,7 @@ private slots:
 		S_EQUAL(set[1], "B");
 		S_EQUAL(set[2], "C");
 	}
+
 	void store()
 	{
 		GeneSet set;
@@ -231,5 +232,27 @@ private slots:
 		S_EQUAL(file[0], "A");
 		S_EQUAL(file[1], "B");
 		S_EQUAL(file[2], "C");
+	}
+
+
+	void createFromStringList()
+	{
+		GeneSet set = GeneSet::createFromStringList(QStringList() << "A" << "C" << "B");
+
+		I_EQUAL(set.count(), 3);
+		S_EQUAL(set[0], "A");
+		S_EQUAL(set[1], "B");
+		S_EQUAL(set[2], "C");
+	}
+
+	void toStringList()
+	{
+		GeneSet set = GeneSet::createFromText("#bla,A,C,B", ',');
+		QStringList list = set.toStringList();
+
+		I_EQUAL(list.count(), 3);
+		S_EQUAL(list[0], "A");
+		S_EQUAL(list[1], "B");
+		S_EQUAL(list[2], "C");
 	}
 };

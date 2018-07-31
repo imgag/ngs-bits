@@ -1,5 +1,4 @@
 #include "TestFramework.h"
-#include "VariantFilter.h"
 #include "VariantList.h"
 #include "Settings.h"
 

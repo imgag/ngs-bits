@@ -1,0 +1,3 @@
+Allele frequency	max_af=1.0
+Genotype affected	genotypes=hom,comp-het
+Genotype control	genotypes=wt,het

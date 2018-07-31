@@ -1,0 +1,2 @@
+Genotype affected	genotypes=het,hom
+Genotype control	genotypes=het,hom

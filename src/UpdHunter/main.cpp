@@ -6,8 +6,6 @@
 #include <QTextStream>
 #include <cmath>
 
-//TODO: also support chrX?
-
 class ConcreteTool
         : public ToolBase
 {

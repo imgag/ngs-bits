@@ -9,6 +9,7 @@
 #include "Settings.h"
 #include "QCCollection.h"
 #include "OntologyTermCollection.h"
+#include "FilterCascade.h"
 #include <QDialog>
 #include <QMultiMap>
 #include <QDir>
@@ -182,7 +183,7 @@ class ReportHelper
 {
 public:
 	ReportHelper();
-	ReportHelper(QString snv_filename, const CnvList& filtered_cnvs, QString target_region, const QList<QString>& keep, const QList<QString>& remove, const QList<QString>& filter);
+	ReportHelper(QString snv_filename, const CnvList& filtered_cnvs, QString target_region, const FilterCascade& filters);
 	///write Rtf File
 	void writeRtf(const QString& out_file);
 
@@ -302,6 +303,10 @@ private:
 	int cnv_index_cnv_type_;
 	int cnv_index_cgi_genes_;
 	int cnv_index_cgi_driver_statement_;
+
+	///Filter list
+	FilterCascade filters_;
+
 };
 
 #endif // REPORTHELPER_H

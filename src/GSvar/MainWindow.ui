@@ -17,7 +17,7 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="GSvar.qrc">
+   <iconset resource="../GSmix/GSmix.qrc">
     <normaloff>:/Icons/Icon.png</normaloff>:/Icons/Icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -338,7 +338,7 @@
   </action>
   <action name="actionNGSD">
    <property name="icon">
-    <iconset resource="GSvar.qrc">
+    <iconset resource="../GSmix/GSmix.qrc">
      <normaloff>:/Icons/NGSD.png</normaloff>:/Icons/NGSD.png</iconset>
    </property>
    <property name="text">
@@ -346,14 +346,6 @@
    </property>
    <property name="toolTip">
     <string>Open processed sample in NGSD.</string>
-   </property>
-  </action>
-  <action name="actionFiltersGermline">
-   <property name="text">
-    <string>Default filters (germline)</string>
-   </property>
-   <property name="toolTip">
-    <string>Apply default diagnostic filters.</string>
    </property>
   </action>
   <action name="actionSampleInformation">
@@ -450,14 +442,6 @@
     <string>Create a new low-coverage report for the current target region.</string>
    </property>
   </action>
-  <action name="actionFiltersSomatic">
-   <property name="text">
-    <string>Default filters (somatic)</string>
-   </property>
-   <property name="toolTip">
-    <string>Apply default diagnostic filters.</string>
-   </property>
-  </action>
   <action name="actionFiltersClear">
    <property name="text">
     <string>Clear filters</string>
@@ -474,14 +458,6 @@
   <action name="actionConvertHgnc">
    <property name="text">
     <string>Genes &gt; Approved symbols (HGNC)</string>
-   </property>
-  </action>
-  <action name="actionFiltersTrio">
-   <property name="text">
-    <string>Default filters (germline, trio)</string>
-   </property>
-   <property name="toolTip">
-    <string>Apply default trio filters.</string>
    </property>
   </action>
   <action name="actionExportGSvar">
@@ -565,14 +541,6 @@
     <string>Select genes for variant/CNV analysis based on coverage and copy-number.</string>
    </property>
   </action>
-  <action name="actionFiltersMultiSample">
-   <property name="text">
-    <string>Default filters (germline, multi-sample)</string>
-   </property>
-   <property name="toolTip">
-    <string>Apply default multi-sample filters.</string>
-   </property>
-  </action>
   <action name="actionDatabaseROI">
    <property name="text">
     <string>Target region only</string>
@@ -602,22 +570,6 @@
   <action name="actionOpenSampleQcFiles">
    <property name="text">
     <string>Open sample qcML files</string>
-   </property>
-  </action>
-  <action name="actionFiltersCarrier">
-   <property name="text">
-    <string>Default filter (carrier)</string>
-   </property>
-   <property name="toolTip">
-    <string>Apply default filter for carrier variants.</string>
-   </property>
-  </action>
-  <action name="actionFiltersGermlineRecessive">
-   <property name="text">
-    <string>Default filters (germline - recessive)</string>
-   </property>
-   <property name="toolTip">
-    <string>Apply default diagnostic filters - recessive.</string>
    </property>
   </action>
   <action name="actionPreferredTranscripts">
@@ -683,6 +635,7 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
+  <include location="../GSmix/GSmix.qrc"/>
   <include location="GSvar.qrc"/>
  </resources>
  <connections/>

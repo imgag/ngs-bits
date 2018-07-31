@@ -1,0 +1,1 @@
+Allele frequency	max_af=1.0

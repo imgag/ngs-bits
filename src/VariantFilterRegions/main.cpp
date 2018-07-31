@@ -4,7 +4,7 @@
 #include "VariantList.h"
 #include "BedFile.h"
 #include "Helper.h"
-#include "VariantFilter.h"
+#include "FilterCascade.h"
 
 class ConcreteTool
 		: public ToolBase
@@ -60,10 +60,10 @@ public:
 		if (mark!="")
 		{
 			variants.load(getInfile("in"));
-			VariantFilter filter(variants);
-			filter.flagByRegions(roi);
-			if (inv) filter.invert();
-			filter.tagNonPassing(mark, "Variant marked as '" + mark + "'.");
+			FilterResult filter_result(variants.count());
+			FilterRegions::apply(variants, roi, filter_result);
+			if (inv) filter_result.invert();
+			filter_result.tagNonPassing(variants, mark, "Variant marked as '" + mark + "'.");
 		}
 		else
 		{
