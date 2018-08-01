@@ -40,6 +40,13 @@ public:
 		output << "The filter definition file list one filter per line using the following syntax:";
 		output << "name[tab]param1=value[tab]param2=value...";
 		output << "";
+		output << "The order in the filter definition file defines the order in which the filters are applied.";
+		output << "";
+		output << "Several of the filters offer more than one action:";
+		output << "  FILTER - Remove variants if they do not match the filter.";
+		output << "  REMOVE - Remove variants if they match the filter.";
+		output << "  KEEP - Force variants to be kept, even if filtered out by previous filter steps.";
+		output << "";
 
 		//filters
 		output << "The following filters are supported:";
@@ -62,7 +69,7 @@ public:
 				}
 				else
 				{
-					output << QString(max_len+3, ' ') + filter_description[i];
+					output << QString(max_len+1, ' ') + filter_description[i];
 				}
 			}
 		}

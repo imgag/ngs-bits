@@ -15,6 +15,9 @@ class FilterEditDialog
 public:
 	FilterEditDialog(QSharedPointer<FilterBase> filter, QWidget *parent = 0);
 
+private slots:
+	void toggleDocumentation(bool visible);
+
 private:
 	Ui::FilterEditDialog ui_;
 	QSharedPointer<FilterBase> filter_;

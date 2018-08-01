@@ -1,10 +1,10 @@
 ### VariantQC tool help
-	VariantQC (0.1-563-g5bbcca6)
+	VariantQC (2018_06-27-gb6bdb9c)
 	
 	Calculates QC metrics on variant lists.
 	
 	Mandatory parameters:
-	  -in <file>      Input VCF variant list. If a specific column
+	  -in <file>      Input variant list in VCF format.
 	
 	Optional parameters:
 	  -ignore_filter  Ignore filter entries, i.e. consider variants that did not pass filters.
@@ -21,7 +21,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantQC changelog
-	VariantQC 0.1-563-g5bbcca6
+	VariantQC 2018_06-27-gb6bdb9c
 	
 	2017-01-05 Added 'ignore_filter' flag.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

@@ -7,7 +7,6 @@ libs:
     - check vcf and tsv files if valid - columns and their descriptions (CS)
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 - integration of htslib: use pileup, use VCF support
-- FilterBase: restrict by analysis type?
 
 NGSD:
 ** model sample relation: same sample, parent-child, tumor-normal, siblings
@@ -20,10 +19,10 @@ GSvar:
 * Add pLI score (megSAP) and filter for pLI (GSvar) to CNVs (wait for ClinCNV)
 * GenLab XML report: male => change 'hom' variants outside PAR region on chrX/chrY to 'hemi' (when GenLab import is updated)
 ** reimplementation filters
-    ** FilterEditDialog: add button to show descriptions.
     ** Define default filters (Tobias/SOP)
+    ** Allow finer differentiation of variant types, e.g. not synonymous, but splice region (27-30 types) or use FilterRegexp: ":HIGH:|:MODERATE:|splice_region" > Tobias fragen
     - Implement FilterTrio, that allows selecting inheritance modes including  imprinting genes using father/mother information
-    - Allow finer differentiation of variant types, e.g. not synonymous, but splice region (27-30 types) or use FilterRegexp: ":HIGH:|:MODERATE:|splice_region" > Tobias fragen
+    - restrict special filters to analysis type: Trio, Multi, ...
     > megSAP WGS filter update
 
 Tools:

@@ -119,39 +119,35 @@ QStringList FilterBase::description(bool add_parameter_description) const
 
 		foreach(const FilterParameter& p, params_)
 		{
-			QString text = p.name;
+			QString text = p.name + " - " + p.description;
 			QString default_value = p.value.toString().trimmed();
 			if (default_value!="")
 			{
-				text += " default=" + default_value;
+				text += " [default=" + default_value + "]";
 			}
 			if (p.type==INT || p.type==DOUBLE)
 			{
 				if (p.constraints.contains("min"))
 				{
-					text += " min=" + p.constraints["min"];
+					text += " [min=" + p.constraints["min"] + "]";
 				}
 				if (p.constraints.contains("max"))
 				{
-					text += " max=" + p.constraints["max"];
+					text += " [max=" + p.constraints["max"] + "]";
 				}
 			}
 			else if (p.type==STRING || p.type==STRINGLIST)
 			{
 				if (p.constraints.contains("valid"))
 				{
-					text += " valid=" + p.constraints["valid"];
+					text += " [valid=" + p.constraints["valid"] + "]";
 				}
 				if (p.constraints.contains("not_empty"))
 				{
-					text += " non-empty";
+					text += " [non-empty]";
 				}
 			}
-			if (p.description!="")
-			{
-				text += " description=" + p.description;
-			}
-			output << text;
+			output << "  " + text;
 		}
 	}
 	return output;
@@ -794,7 +790,7 @@ FilterVariantCountNGSD::FilterVariantCountNGSD()
 	description_ = QStringList() << "Filter based on the hom/het occurances of a variant in the NGSD.";
 	params_ << FilterParameter("max_count", INT, 20, "Maximum NGSD count");
 	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("ignore_genotype", BOOL, false, "If set, all NGSD entries are counted independent of the variant genotype. Otherwise, for only homzygous variants only homozygous NGSD entries are counted and for heterozygous variants all NGSD entries are counted.");
+	params_ << FilterParameter("ignore_genotype", BOOL, false, "If set, all NGSD entries are counted independent of the variant genotype. Otherwise, for homozygous variants only homozygous NGSD entries are counted and for heterozygous variants all NGSD entries are counted.");
 
 	checkIsRegistered();
 }

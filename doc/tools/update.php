@@ -3,7 +3,59 @@
 $dir = dirname(__FILE__);
 
 //get tools list
-exec("grep SUBDIRS {$dir}/../../src/tools.pro | grep -v cpp | grep -v TEST | cut -f3 -d' '", $tools);
+$tools = array();
+$file = file("{$dir}/../../src/tools.pro");
+foreach($file as $line)
+{
+	if (strpos($line, "SUBDIRS")!==FALSE)
+	{
+		if (strpos($line, "cpp")!==FALSE || strpos($line, "TEST")!==FALSE) continue;
+		
+		list(, , $tools[]) = explode(" ", trim($line));
+	}
+}
+
+//copy DLLs to bin folder under Windows;
+if (PHP_OS=="WINNT")
+{
+	$dlls = array(
+				"{$dir}/../../htslib/lib/hts-2.dll",
+				"{$dir}/../../htslib/lib/hts.dll.a",
+				"C:/Qt/Qt5.5.0/5.5/mingw492_32/bin/Qt5Core.dll",
+				"C:/Qt/Qt5.5.0/5.5/mingw492_32/bin/Qt5XmlPatterns.dll",
+				"C:/Qt/Qt5.5.0/5.5/mingw492_32/bin/Qt5PrintSupport.dll",
+				"C:/Qt/Qt5.5.0/5.5/mingw492_32/bin/Qt5Network.dll",
+				"C:/Qt/Qt5.5.0/5.5/mingw492_32/bin/Qt5Sql.dll",
+				"C:/Qt/Qt5.5.0/5.5/mingw492_32/bin/Qt5Xml.dll",
+				"C:/Qt/Qt5.5.0/5.5/mingw492_32/bin/Qt5Gui.dll",
+				"C:/Qt/Qt5.5.0/5.5/mingw492_32/bin/Qt5Widgets.dll",
+				"C:/Qt/Qt5.5.0/5.5/mingw492_32/bin/libgcc_s_dw2-1.dll",
+				"C:/Qt/Qt5.5.0/5.5/mingw492_32/bin/libwinpthread-1.dll",
+				"C:/Qt/Qt5.5.0/5.5/mingw492_32/bin/libstdc++-6.dll",
+				"C:/Qt/Qt5.5.0/5.5/mingw492_32/plugins/platforms/qwindows.dll",
+				"C:/Qt/Qt5.5.0/5.5/mingw492_32/plugins/sqldrivers/qsqlmysql.dll",
+				"C:/Qt/Qt5.5.0/5.5/mingw492_32/plugins/printsupport/windowsprintersupport.dll",
+				"C:/Qt/Qt5.5.0/mysql-5.7.9-win32/lib/libmysql.dll",
+				);
+				
+	foreach($dlls as $source)
+	{
+		if (!file_exists($source))
+		{
+			trigger_error("Source file does not exist: {$source}", E_USER_ERROR);
+		}
+		
+		$dest = "{$dir}/../../bin/".basename($source);
+		if (!file_exists($dest))
+		{
+			print "copy $source\n";
+			if (!copy($source, $dest))
+			{
+				trigger_error("Could not copy file: {$source}", E_USER_ERROR);
+			}
+		}
+	}
+}
 
 //get tool list
 $tools_done = array();
