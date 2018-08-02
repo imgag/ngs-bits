@@ -14,19 +14,20 @@
 	  KEEP - Force variants to be kept, even if filtered out by previous filter steps.
 	
 	The following filters are supported:
-	Allele frequency                   Filter based on overall allele frequency of given by 1000 Genomes, ExAC and gnomAD.
+	Allele frequency                   Filter based on overall allele frequency given by 1000 Genomes, ExAC and gnomAD.
 	                                   Parameters:
 	                                     max_af - Maximum allele frequency in % [default=1] [min=0.0] [max=100.0]
-	Allele frequency (sub-populations) Filter based on sub-population allele frequency of given by ExAC.
+	Allele frequency (sub-populations) Filter based on sub-population allele frequency given by ExAC.
 	                                   Parameters:
 	                                     max_af - Maximum allele frequency in % [default=1] [min=0.0] [max=100.0]
-	Annotated pathogenic               Filter that matches variants annotated to be (likely) pathogenic by ClinVar or HGMD.
+	Annotated pathogenic               Filter that matches variants annotated to be pathogenic by ClinVar or HGMD.
 	                                   Parameters:
-	                                     sources - Sources of pathogenicity to use [valid=ClinVar,HGMD] [non-empty]
+	                                     sources - Sources of pathogenicity to use [default=ClinVar,HGMD] [valid=ClinVar,HGMD] [non-empty]
+	                                     also_likely_pathogenic - Also consider likely pathogenic variants [default=false]
 	                                     action - Action to perform [default=KEEP] [valid=KEEP,FILTER]
 	Classification NGSD                Filter for variant classification from NGSD.
 	                                   Parameters:
-	                                     classes - NGSD classes [valid=1,2,3,4,5,M] [non-empty]
+	                                     classes - NGSD classes [default=4,5] [valid=1,2,3,4,5,M] [non-empty]
 	                                     action - Action to perform [default=KEEP] [valid=KEEP,FILTER,REMOVE]
 	Column match                       Filter that matches the content of a column against a perl-compatible regular expression.
 	                                   For details about regular expressions, see http://perldoc.perl.org/perlretut.html
@@ -64,7 +65,7 @@
 	Impact                             Filter based on the variant impact given by SnpEff.
 	                                   For more details see: http://snpeff.sourceforge.net/SnpEff_manual.html#eff
 	                                   Parameters:
-	                                     impact - Valid impacts [valid=HIGH,MODERATE,LOW,MODIFIER] [non-empty]
+	                                     impact - Valid impacts [default=HIGH,MODERATE,LOW] [valid=HIGH,MODERATE,LOW,MODIFIER] [non-empty]
 	Predicted pathogenic               Filter for variants predicted to be pathogenic.
 	                                   Prediction scores included are: phyloP=1.6, Sift=D, MetaLR=D, PolyPhen2=D, FATHMM=D and CADD=20.
 	                                   Parameters:
@@ -76,6 +77,18 @@
 	                                   Parameters:
 	                                     term - Search term [non-empty]
 	                                     action - Action to perform [default=FILTER] [valid=FILTER,KEEP,REMOVE]
+	Variant quality                    Filter for variant quality
+	                                   Parameters:
+	                                     qual - Minimum variant quality score (Phred) [default=30] [min=0]
+	                                     depth - Minimum depth [default=20] [min=0]
+	                                     mapq - Minimum mapping quality of alternate allele (Phred) [default=55] [min=0]
+	Variant type                       Filter for variant types as defined by sequence ontology.
+	                                   For details see http://www.sequenceontology.org/browser/obob.cgi
+	                                   Parameters:
+	                                     HIGH - High impact variant types [default=exon_loss,frameshift,splice_acceptor,splice_donor,start_lost,stop_gained,stop_lost] [valid=exon_loss,frameshift,splice_acceptor,splice_donor,start_lost,stop_gained,stop_lost]
+	                                     MODERATE - Moderate impact variant types [default=3'UTR_truncation,5'UTR_truncation,conservative_inframe_deletion,conservative_inframe_insertion,disruptive_inframe_deletion,disruptive_inframe_insertion,missense] [valid=3'UTR_truncation,5'UTR_truncation,conservative_inframe_deletion,conservative_inframe_insertion,disruptive_inframe_deletion,disruptive_inframe_insertion,missense]
+	                                     LOW - Low impact variant types [default=splice_region] [valid=5'UTR_premature_start_codon_gain,initiator_codon,splice_region,stop_retained,synonymous]
+	                                     MODIFIER - Lowest impact variant types [valid=3'UTR,5'UTR,downstream_gene,intergenic_region,intron,non_coding_transcript,non_coding_transcript_exon,upstream_gene]
 	
 	Mandatory parameters:
 	  -in <file>      Input variant list in GSvar format.

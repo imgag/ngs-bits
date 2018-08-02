@@ -483,5 +483,15 @@ class CPPNGSSHARED_EXPORT FilterAnnotationText
 		mutable QByteArray term;
 };
 
+//Variant QC filter
+class CPPNGSSHARED_EXPORT FilterVariantQC
+	: public FilterBase
+{
+	public:
+		FilterVariantQC();
+		QString toText() const override;
+		void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
 
 #endif // FILTERCASCADE_H

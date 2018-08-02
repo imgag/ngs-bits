@@ -646,4 +646,47 @@ private slots:
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 77);
 	}
+
+	void FilterVariantQC_apply()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//qual
+		FilterVariantQC filter;
+		filter.setInteger("qual", 200);
+		filter.setInteger("depth", 0);
+		filter.setInteger("mapq", 0);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 138);
+
+		//depth
+		result.reset();
+		filter.setInteger("qual", 0);
+		filter.setInteger("depth", 20);
+		filter.setInteger("mapq", 0);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 136);
+
+		//mapq
+		result.reset();
+		filter.setInteger("qual", 0);
+		filter.setInteger("depth", 0);
+		filter.setInteger("mapq", 55);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 131);
+
+		//combined
+		result.reset();
+		filter.setInteger("qual", 500);
+		filter.setInteger("depth", 20);
+		filter.setInteger("mapq", 55);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 115);
+	}
+
+
+
 };

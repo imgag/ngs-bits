@@ -18,10 +18,7 @@ NGSD:
 GSvar:
 * Add pLI score (megSAP) and filter for pLI (GSvar) to CNVs (wait for ClinCNV)
 * GenLab XML report: male => change 'hom' variants outside PAR region on chrX/chrY to 'hemi' (when GenLab import is updated)
-** reimplementation filters
-    ** Define default filters (Tobias/SOP)
-    - Implement FilterTrio, that allows selecting inheritance modes including  imprinting genes using father/mother information
-    - restrict special filters to analysis type: Trio, Multi, ...?
+** Implement FilterTrio in GSvar instead of megSAP - including imprinting genes using father/mother information
 
 Tools:
 * VariantQC: insertion/deletion ratio?

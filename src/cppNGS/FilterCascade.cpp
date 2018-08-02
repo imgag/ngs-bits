@@ -120,7 +120,7 @@ QStringList FilterBase::description(bool add_parameter_description) const
 		foreach(const FilterParameter& p, params_)
 		{
 			QString text = p.name + " - " + p.description;
-			QString default_value = p.value.toString().trimmed();
+			QString default_value = p.type==STRINGLIST ? p.value.toStringList().join(",").trimmed() : p.value.toString().trimmed();
 			if (default_value!="")
 			{
 				text += " [default=" + default_value + "]";
@@ -512,6 +512,8 @@ QMap<QString, FilterBase*(*)()> FilterFactory::getRegistry()
 		output["Predicted pathogenic"] = &createInstance<FilterPredictionPathogenic>;
 		output["Text search"] = &createInstance<FilterAnnotationText>;
 		output["Variant type"] = &createInstance<FilterVariantType>;
+		output["Variant quality"] = &createInstance<FilterVariantQC>;
+
 	}
 
 	return output;
@@ -926,7 +928,7 @@ FilterClassificationNGSD::FilterClassificationNGSD()
 	name_ = "Classification NGSD";
 	description_ = QStringList() << "Filter for variant classification from NGSD.";
 
-	params_ << FilterParameter("classes", STRINGLIST, QStringList() << "3" << "4" << "5" << "M", "NGSD classes");
+	params_ << FilterParameter("classes", STRINGLIST, QStringList() << "4" << "5", "NGSD classes");
 	params_.last().constraints["valid"] = "1,2,3,4,5,M";
 	params_.last().constraints["not_empty"] = "";
 	params_ << FilterParameter("action", STRING, "KEEP", "Action to perform");
@@ -1651,5 +1653,66 @@ void FilterVariantType::apply(const VariantList& variants, FilterResult& result)
 			}
 		}
 		result.flags()[i] = match_found;
+	}
+}
+
+
+FilterVariantQC::FilterVariantQC()
+{
+
+	name_ = "Variant quality";
+	description_ = QStringList() << "Filter for variant quality";
+	params_ << FilterParameter("qual", INT, 30, "Minimum variant quality score (Phred)");
+	params_.last().constraints["min"] = "0";
+	params_ << FilterParameter("depth", INT, 20, "Minimum depth");
+	params_.last().constraints["min"] = "0";
+	params_ << FilterParameter("mapq", INT, 55, "Minimum mapping quality of alternate allele (Phred)");
+	params_.last().constraints["min"] = "0";
+
+	checkIsRegistered();
+}
+
+QString FilterVariantQC::toText() const
+{
+	return name() + " qual≥" + QString::number(getInt("qual", false)) + " depth≥" + QString::number(getInt("depth", false)) + " mapq≥" + QString::number(getInt("mapq", false));
+}
+
+void FilterVariantQC::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	int index = annotationColumn(variants, "quality");
+	int qual = getInt("qual");
+	int depth = getInt("depth");
+	int mapq = getInt("mapq");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+		QByteArrayList parts = variants[i].annotations()[index].split(';');
+		foreach(const QByteArray& part, parts)
+		{
+			if (part.startsWith("QUAL="))
+			{
+				if (part.mid(5).toInt()<qual)
+				{
+					result.flags()[i] = false;
+				}
+			}
+			else if (part.startsWith("DP="))
+			{
+				if (part.mid(3).toInt()<depth)
+				{
+					result.flags()[i] = false;
+				}
+			}
+			else if (part.startsWith("MQM="))
+			{
+				if (part.mid(4).toInt()<mapq)
+				{
+					result.flags()[i] = false;
+				}
+			}
+		}
 	}
 }
