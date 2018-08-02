@@ -511,7 +511,7 @@ QMap<QString, FilterBase*(*)()> FilterFactory::getRegistry()
 		output["Annotated pathogenic"] = &createInstance<FilterAnnotationPathogenic>;
 		output["Predicted pathogenic"] = &createInstance<FilterPredictionPathogenic>;
 		output["Text search"] = &createInstance<FilterAnnotationText>;
-
+		output["Variant type"] = &createInstance<FilterVariantType>;
 	}
 
 	return output;
@@ -522,7 +522,7 @@ QMap<QString, FilterBase*(*)()> FilterFactory::getRegistry()
 FilterAlleleFrequency::FilterAlleleFrequency()
 {
 	name_ = "Allele frequency";
-	description_ = QStringList() << "Filter based on overall allele frequency of given by 1000 Genomes, ExAC and gnomAD.";
+	description_ = QStringList() << "Filter based on overall allele frequency given by 1000 Genomes, ExAC and gnomAD.";
 	params_ << FilterParameter("max_af", DOUBLE, 1.0, "Maximum allele frequency in %");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "100.0";
@@ -700,7 +700,7 @@ void FilterVariantIsSNP::apply(const VariantList& variants, FilterResult& result
 FilterSubpopulationAlleleFrequency::FilterSubpopulationAlleleFrequency()
 {
 	name_ = "Allele frequency (sub-populations)";
-	description_ = QStringList() << "Filter based on sub-population allele frequency of given by ExAC.";
+	description_ = QStringList() << "Filter based on sub-population allele frequency given by ExAC.";
 	params_ << FilterParameter("max_af", DOUBLE, 1.0, "Maximum allele frequency in %");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "100.0";
@@ -1353,11 +1353,12 @@ bool FilterColumnMatchRegexp::match(const Variant& v) const
 FilterAnnotationPathogenic::FilterAnnotationPathogenic()
 {
 	name_ = "Annotated pathogenic";
-	description_ = QStringList() << "Filter that matches variants annotated to be (likely) pathogenic by ClinVar or HGMD.";
+	description_ = QStringList() << "Filter that matches variants annotated to be pathogenic by ClinVar or HGMD.";
 
 	params_ << FilterParameter("sources", STRINGLIST, QStringList() << "ClinVar" << "HGMD", "Sources of pathogenicity to use");
 	params_.last().constraints["valid"] = "ClinVar,HGMD";
 	params_.last().constraints["not_empty"] = "";
+	params_ << FilterParameter("also_likely_pathogenic", BOOL, false, "Also consider likely pathogenic variants");
 	params_ << FilterParameter("action", STRING, "KEEP", "Action to perform");
 	params_.last().constraints["valid"] = "KEEP,FILTER";
 
@@ -1366,7 +1367,7 @@ FilterAnnotationPathogenic::FilterAnnotationPathogenic()
 
 QString FilterAnnotationPathogenic::toText() const
 {
-	return name() + " " + getString("action", false) + ": " + getStringList("sources", false).join(",");
+	return name() + " " + getString("action", false) + ": " + getStringList("sources", false).join(",") + " " + (getBool("also_likely_pathogenic") ? " (also likely pathogenic)" : "");
 }
 
 void FilterAnnotationPathogenic::apply(const VariantList& variants, FilterResult& result) const
@@ -1374,6 +1375,7 @@ void FilterAnnotationPathogenic::apply(const VariantList& variants, FilterResult
 	if (!enabled_) return;
 
 	QStringList sources = getStringList("sources");
+	also_likely_pathogenic = getBool("also_likely_pathogenic");
 	i_clinvar = sources.contains("ClinVar") ? annotationColumn(variants, "ClinVar") : -1;
 	i_hgmd = sources.contains("HGMD") ? annotationColumn(variants, "HGMD", false) : -1;
 
@@ -1406,7 +1408,14 @@ bool FilterAnnotationPathogenic::annotatedPathogenic(const Variant& v) const
 		const QByteArray& clinvar = v.annotations()[i_clinvar];
 		if (clinvar.contains("pathogenic") && !clinvar.contains("conflicting")) //matches "pathogenic" and "likely pathogenic"
 		{
-			return true;
+			if (also_likely_pathogenic)
+			{
+				return true;
+			}
+			else if (!clinvar.contains("likely pathogenic"))
+			{
+				return true;
+			}
 		}
 	}
 
@@ -1416,7 +1425,14 @@ bool FilterAnnotationPathogenic::annotatedPathogenic(const Variant& v) const
 		const QByteArray& hgmd = v.annotations()[i_hgmd];
 		if (hgmd.contains("CLASS=DM")) //matches both "DM" and "DM?"
 		{
-			return true;
+			if (also_likely_pathogenic)
+			{
+				return true;
+			}
+			else if (!hgmd.contains("CLASS=DM?"))
+			{
+				return true;
+			}
 		}
 	}
 
@@ -1521,6 +1537,8 @@ QString FilterAnnotationText::toText() const
 
 void FilterAnnotationText::apply(const VariantList& variants, FilterResult& result) const
 {
+	if (!enabled_) return;
+
 	term = getString("term").toLatin1().trimmed().toLower();
 
 	QString action = getString("action");
@@ -1564,4 +1582,74 @@ bool FilterAnnotationText::match(const Variant& v) const
 	}
 
 	return false;
+}
+
+
+FilterVariantType::FilterVariantType()
+{
+	name_ = "Variant type";
+	description_ = QStringList() << "Filter for variant types as defined by sequence ontology." << "For details see http://www.sequenceontology.org/browser/obob.cgi";
+	params_ << FilterParameter("HIGH", STRINGLIST, QStringList() << "exon_loss" << "frameshift" << "splice_acceptor" << "splice_donor" << "start_lost" << "stop_gained" << "stop_lost", "High impact variant types");
+	params_.last().constraints["valid"] = "exon_loss,frameshift,splice_acceptor,splice_donor,start_lost,stop_gained,stop_lost";
+	params_ << FilterParameter("MODERATE", STRINGLIST, QStringList() << "3'UTR_truncation" << "5'UTR_truncation" << "conservative_inframe_deletion" << "conservative_inframe_insertion" << "disruptive_inframe_deletion" << "disruptive_inframe_insertion" << "missense", "Moderate impact variant types");
+	params_.last().constraints["valid"] = "3'UTR_truncation,5'UTR_truncation,conservative_inframe_deletion,conservative_inframe_insertion,disruptive_inframe_deletion,disruptive_inframe_insertion,missense";
+	params_ << FilterParameter("LOW", STRINGLIST, QStringList() << "splice_region", "Low impact variant types");
+	params_.last().constraints["valid"] = "5'UTR_premature_start_codon_gain,initiator_codon,splice_region,stop_retained,synonymous";
+	params_ << FilterParameter("MODIFIER", STRINGLIST, QStringList(), "Lowest impact variant types");
+	params_.last().constraints["valid"] = "3'UTR,5'UTR,downstream_gene,intergenic_region,intron,non_coding_transcript,non_coding_transcript_exon,upstream_gene";
+
+	checkIsRegistered();
+}
+
+
+QString FilterVariantType::toText() const
+{
+	QStringList selected;
+	selected << getStringList("HIGH", false);
+	selected << getStringList("MODERATE", false);
+	selected << getStringList("LOW", false);
+	selected << getStringList("MODIFIER", false);
+
+	return name() + " " + selected.join(",");
+}
+
+void FilterVariantType::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	QByteArrayList types;
+	foreach(QString type, getStringList("HIGH"))
+	{
+		types.append(type.trimmed().toLatin1());
+	}
+	foreach(QString type, getStringList("MODERATE"))
+	{
+		types.append(type.trimmed().toLatin1());
+	}
+	foreach(QString type, getStringList("LOW"))
+	{
+		types.append(type.trimmed().toLatin1());
+	}
+	foreach(QString type, getStringList("MODIFIER"))
+	{
+		types.append(type.trimmed().toLatin1());
+	}
+
+	int index = annotationColumn(variants, "coding_and_splicing");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		bool match_found = false;
+		foreach(const QByteArray& type, types)
+		{
+			if (variants[i].annotations()[index].contains(type))
+			{
+				match_found = true;
+				break;
+			}
+		}
+		result.flags()[i] = match_found;
+	}
 }

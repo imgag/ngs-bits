@@ -33,6 +33,7 @@ FilterDockWidget::FilterDockWidget(QWidget *parent)
 	connect(ui_.refs, SIGNAL(currentIndexChanged(int)), this, SLOT(referenceSampleChanged(int)));
 
 	connect(ui_.gene, SIGNAL(editingFinished()), this, SLOT(geneChanged()));
+	connect(ui_.text, SIGNAL(editingFinished()), this, SLOT(textChanged()));
 	connect(ui_.region, SIGNAL(editingFinished()), this, SLOT(regionChanged()));
 
 	connect(ui_.filters_entries, SIGNAL(itemSelectionChanged()), this, SLOT(filterSelectionChanged()));
@@ -214,6 +215,7 @@ void FilterDockWidget::resetSignalsUnblocked(bool clear_roi)
     //gene
     last_genes_.clear();
     ui_.gene->clear();
+	ui_.text->clear();
 	ui_.region->clear();
 
 	//phenotype
@@ -278,6 +280,11 @@ void FilterDockWidget::setTargetRegion(QString roi_file)
 GeneSet FilterDockWidget::genes() const
 {
 	return GeneSet::createFromText(ui_.gene->text().toLatin1(), ',');
+}
+
+QByteArray FilterDockWidget::text() const
+{
+	return ui_.text->text().trimmed().toLatin1();
 }
 
 QString FilterDockWidget::region() const
@@ -410,6 +417,11 @@ void FilterDockWidget::geneChanged()
 	}
 }
 
+void FilterDockWidget::textChanged()
+{
+	emit filtersChanged();
+}
+
 void FilterDockWidget::regionChanged()
 {
 	emit filtersChanged();
@@ -426,7 +438,7 @@ void FilterDockWidget::phenotypesChanged()
 
 	ui_.hpo_terms->setText(tmp.join("; "));
 
-	QString tooltip = "Phenotype/inheritance filter based on HPO terms.<br><br>Notes:<br>- This filter has no effect on report generation!<br>- This functionality is only available when NGSD is enabled.";
+	QString tooltip = "Phenotype/inheritance filter based on HPO terms.<br><br>Notes:<br>- This functionality is only available when NGSD is enabled.";
 	if (!phenotypes_.isEmpty())
 	{
 		tooltip += "<br><br><nobr>Currently selected HPO terms:</nobr>";

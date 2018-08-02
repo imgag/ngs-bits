@@ -330,6 +330,18 @@ class CPPNGSSHARED_EXPORT FilterVariantImpact
 		void apply(const VariantList& variants, FilterResult& result) const override;
 };
 
+
+//Variant type filter
+class CPPNGSSHARED_EXPORT FilterVariantType
+	: public FilterBase
+{
+	public:
+		FilterVariantType();
+		QString toText() const override;
+		void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
+
 //NGSD variant count filter
 class CPPNGSSHARED_EXPORT FilterVariantCountNGSD
 	: public FilterBase
@@ -431,6 +443,7 @@ class CPPNGSSHARED_EXPORT FilterAnnotationPathogenic
 		//Returns of the variant is annotated to be pathogenic
 		bool annotatedPathogenic(const Variant& v) const;
 
+		mutable bool also_likely_pathogenic;
 		mutable int i_clinvar;
 		mutable int i_hgmd;
 };

@@ -20,10 +20,8 @@ GSvar:
 * GenLab XML report: male => change 'hom' variants outside PAR region on chrX/chrY to 'hemi' (when GenLab import is updated)
 ** reimplementation filters
     ** Define default filters (Tobias/SOP)
-    ** Allow finer differentiation of variant types, e.g. not synonymous, but splice region (27-30 types) or use FilterRegexp: ":HIGH:|:MODERATE:|splice_region" > Tobias fragen
     - Implement FilterTrio, that allows selecting inheritance modes including  imprinting genes using father/mother information
-    - restrict special filters to analysis type: Trio, Multi, ...
-    > megSAP WGS filter update
+    - restrict special filters to analysis type: Trio, Multi, ...?
 
 Tools:
 * VariantQC: insertion/deletion ratio?

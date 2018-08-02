@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>297</width>
-    <height>525</height>
+    <height>518</height>
    </rect>
   </property>
   <property name="features">
@@ -61,21 +61,21 @@
         <number>0</number>
        </property>
        <property name="topMargin">
-        <number>0</number>
+        <number>3</number>
        </property>
        <property name="rightMargin">
         <number>0</number>
        </property>
        <property name="bottomMargin">
-        <number>0</number>
+        <number>5</number>
        </property>
        <item>
         <widget class="QListWidget" name="filters_entries">
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Main filter steps listed in the order that they are applied.&lt;br/&gt;&lt;br/&gt;Notes:&lt;br/&gt;- Target-region filters are applied after the main filters and override them!&lt;br/&gt;- Failed filter steps are marked orange and errors are shown in the tooltip.&lt;br/&gt;&lt;br/&gt;Filter action description:&lt;br/&gt;- REMOVE: Remove variants, if they match the filter.&lt;br/&gt;- FILTER: Remove variants, if they do not match the filter.&lt;br/&gt;- KEEP: Force variants to be kept, even if filtered out by previous filter steps.&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Main filter steps listed in the order that they are applied.&lt;br/&gt;&lt;br/&gt;Notes:&lt;br/&gt;- Target region and text filters are applied after the main filters and override them!&lt;br/&gt;- Failed filter steps are marked orange and errors are shown in the tooltip.&lt;br/&gt;&lt;br/&gt;Filter action description:&lt;br/&gt;- REMOVE: Remove variants, if they match the filter.&lt;br/&gt;- FILTER: Remove variants, if they do not match the filter.&lt;br/&gt;- KEEP: Force variants to be kept, even if filtered out by previous filter steps.&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="dragDropMode">
-          <enum>QAbstractItemView::NoDragDrop</enum>
+          <enum>QAbstractItemView::DragOnly</enum>
          </property>
          <property name="defaultDropAction">
           <enum>Qt::TargetMoveAction</enum>
@@ -232,44 +232,28 @@
      </widget>
     </item>
     <item>
-     <spacer name="verticalSpacer_1">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <property name="sizeType">
-       <enum>QSizePolicy::Fixed</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>5</width>
-        <height>5</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item>
      <widget class="QGroupBox" name="groupBox_2">
       <property name="title">
-       <string>Target region filter</string>
+       <string>Target region filters</string>
       </property>
       <property name="flat">
        <bool>true</bool>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <property name="spacing">
-        <number>2</number>
+        <number>3</number>
        </property>
        <property name="leftMargin">
-        <number>3</number>
+        <number>0</number>
        </property>
        <property name="topMargin">
-        <number>2</number>
-       </property>
-       <property name="rightMargin">
         <number>3</number>
        </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
        <property name="bottomMargin">
-        <number>2</number>
+        <number>5</number>
        </property>
        <item>
         <widget class="QComboBox" name="rois">
@@ -401,22 +385,9 @@
         </layout>
        </item>
        <item>
-        <widget class="QLineEdit" name="gene">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma-separated list of gene names.&lt;br/&gt;&lt;br/&gt;Notes:&lt;br/&gt;- This filter has no effect on report generation.&lt;br/&gt;- You can use '*' as a wildcard. &lt;br/&gt;- Press return to finish entering text.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="placeholderText">
-          <string>Gene</string>
-         </property>
-         <property name="clearButtonEnabled">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QLineEdit" name="region">
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Single target region e.g. chr1:120611985-120612025&lt;br/&gt;&lt;br/&gt;Notes:&lt;br/&gt;- This filter has no effect on report generation!&lt;br/&gt;- Press return to finish entering text!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Single target region e.g. chr1:120611985-120612025&lt;br/&gt;&lt;br/&gt;Notes:&lt;br/&gt;- Press return to finish entering text!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="placeholderText">
           <string>Region</string>
@@ -449,20 +420,60 @@
      </widget>
     </item>
     <item>
-     <spacer name="verticalSpacer_3">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
+     <widget class="QGroupBox" name="groupBox_4">
+      <property name="title">
+       <string>Text filters</string>
       </property>
-      <property name="sizeType">
-       <enum>QSizePolicy::Fixed</enum>
+      <property name="flat">
+       <bool>true</bool>
       </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>5</width>
-        <height>5</height>
-       </size>
-      </property>
-     </spacer>
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <property name="spacing">
+        <number>3</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>3</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>8</number>
+       </property>
+       <item>
+        <widget class="QLineEdit" name="gene">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma-separated list of gene names.&lt;br/&gt;&lt;br/&gt;Notes:&lt;br/&gt;- You can use '*' as a wildcard. &lt;br/&gt;- Press return to finish entering text.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="placeholderText">
+          <string>Gene</string>
+         </property>
+         <property name="clearButtonEnabled">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="text">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Text filter using all annotation columns (case-insensitive).&lt;br/&gt;&lt;br/&gt;Notes:&lt;br/&gt;- Press return to finish entering text.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="placeholderText">
+          <string>Text</string>
+         </property>
+         <property name="clearButtonEnabled">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </item>
     <item>
      <widget class="QGroupBox" name="groupBox_3">
@@ -480,16 +491,16 @@
         <number>3</number>
        </property>
        <property name="leftMargin">
-        <number>3</number>
+        <number>0</number>
        </property>
        <property name="topMargin">
-        <number>2</number>
-       </property>
-       <property name="rightMargin">
         <number>3</number>
        </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
        <property name="bottomMargin">
-        <number>2</number>
+        <number>3</number>
        </property>
        <item>
         <widget class="QComboBox" name="refs">

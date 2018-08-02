@@ -518,19 +518,54 @@ private slots:
 		//FILTER
 		FilterAnnotationPathogenic filter;
 		filter.setStringList("sources", QStringList() << "HGMD" << "ClinVar");
+		filter.setBool("also_likely_pathogenic", true);
 		filter.setString("action", "FILTER");
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 5);
 
+		result.reset();
+		filter.setStringList("sources", QStringList() << "HGMD" << "ClinVar");
+		filter.setBool("also_likely_pathogenic", false);
+		filter.setString("action", "FILTER");
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 2);
+
 		//KEEP
 		result.reset(false);
 		filter.setStringList("sources", QStringList() << "HGMD" << "ClinVar");
+		filter.setBool("also_likely_pathogenic", true);
 		filter.setString("action", "KEEP");
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 5);
 
 		result.reset(false);
+		filter.setStringList("sources", QStringList() << "HGMD" << "ClinVar");
+		filter.setBool("also_likely_pathogenic", false);
+		filter.setString("action", "KEEP");
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 2);
+
+		result.reset(false);
 		filter.setStringList("sources", QStringList() << "ClinVar");
+		filter.setBool("also_likely_pathogenic", true);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 1);
+
+		result.reset(false);
+		filter.setStringList("sources", QStringList() << "ClinVar");
+		filter.setBool("also_likely_pathogenic", false);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 1);
+
+		result.reset(false);
+		filter.setStringList("sources", QStringList() << "HGMD");
+		filter.setBool("also_likely_pathogenic", true);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 4);
+
+		result.reset(false);
+		filter.setStringList("sources", QStringList() << "HGMD");
+		filter.setBool("also_likely_pathogenic", false);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 1);
 	}
@@ -597,5 +632,18 @@ private slots:
 		filter.setString("term", "ataXIA");
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 139);
+	}
+
+	void FilterVariantType_apply()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//default (HIGH:all MODERATE:all LOW:splice_region)
+		FilterVariantType filter;
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 77);
 	}
 };

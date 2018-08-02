@@ -37,6 +37,8 @@ public:
 
 	/// Returns the gene names filter.
 	GeneSet genes() const;
+	/// Returns the text filter.
+	QByteArray text() const;
 	/// Returns the single target region filter, or an empty string if unset.
 	QString region() const;
 	/// Sets the single target region filter, or an empty string if unset.
@@ -75,6 +77,7 @@ protected slots:
 	void removeRef();
 	void referenceSampleChanged(int index);
 	void geneChanged();
+	void textChanged();
 	void regionChanged();
 	void phenotypesChanged();
 	void filterColumnStateChanged();

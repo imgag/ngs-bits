@@ -94,7 +94,14 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(filter_btn, SIGNAL(triggered(QAction*)), this, SLOT(applyFilter(QAction*)));
 	foreach(QString filter_name, loadFilterNames())
 	{
-		filter_btn->menu()->addAction(filter_name);
+		if (filter_name=="---")
+		{
+			filter_btn->menu()->addSeparator();
+		}
+		else
+		{
+			filter_btn->menu()->addAction(filter_name);
+		}
 	}
 	filter_btn->menu()->addSeparator();
 	filter_btn->menu()->addAction(ui_.actionFiltersClear);
@@ -2515,6 +2522,18 @@ void MainWindow::filtersChanged()
 			filter.setStringList("genes", genes_filter.toStringList());
 			filter.apply(variants_, filter_result);
 			Log::perf("Applying gene filter took ", timer);
+			timer.start();
+		}
+
+		//text filter
+		QByteArray text = filter_widget_->text();
+		if (!text.isEmpty())
+		{
+			FilterAnnotationText filter;
+			filter.setString("term", text);
+			filter.setString("action", "FILTER");
+			filter.apply(variants_, filter_result);
+			Log::perf("Applying text filter took ", timer);
 			timer.start();
 		}
 
