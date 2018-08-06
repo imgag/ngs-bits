@@ -214,7 +214,7 @@ void MainWindow::on_actionROH_triggered()
 	if (getType()==GERMLINE_TRIO)
 	{
 		//show ROHs of child (index)
-		QString child = variants_.getSampleHeader().sampleColumns(true)[0];
+		QString child = variants_.getSampleHeader().infoByStatus(true).column_name;
 		QString trio_folder = QFileInfo(filename_).path();
 		QString project_folder = QFileInfo(trio_folder).path();
 		filename = project_folder + "/Sample_" + child + "/" + child + ".GSvar";

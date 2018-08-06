@@ -687,6 +687,55 @@ private slots:
 		I_EQUAL(result.countPassing(), 115);
 	}
 
+	void FilterVariantQC_apply_multiSample()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in_multi.GSvar"));
 
+		FilterResult result(vl.count());
 
+		FilterVariantQC filter;
+		filter.setInteger("qual", 20);
+		filter.setInteger("depth", 20);
+		filter.setInteger("mapq", 60);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 125);
+	}
+
+	void FilterTrio_apply()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in_trio.GSvar")); //pre-filtered: AF:1%, AF(sub):1%, NGSD count:20, QUAL:30, DP:10, MQM:30
+
+		FilterResult result(vl.count());
+
+		//default (all filters)
+		FilterTrio filter;
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 6);
+
+		//de-novo
+		result.reset();
+		filter.setStringList("types", QStringList() << "de-novo");
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 1);
+
+		//recessive
+		result.reset();
+		filter.setStringList("types", QStringList() << "recessive");
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 2);
+
+		//comp-het
+		result.reset();
+		filter.setStringList("types", QStringList() << "comp-het");
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 2);
+
+		//comp-het
+		result.reset();
+		filter.setStringList("types", QStringList() << "LOH");
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 1);
+	}
 };

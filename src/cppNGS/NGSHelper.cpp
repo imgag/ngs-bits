@@ -505,8 +505,24 @@ bool SampleInfo::isAffected() const
 	return false;
 }
 
+QString SampleInfo::gender() const
+{
+	auto it = properties.cbegin();
+	while(it != properties.cend())
+	{
+		if (it.key().toLower()=="gender")
+		{
+			return it.value().toLower();
+		}
 
-const SampleInfo& SampleHeaderInfo::infoBySample(const QString& id) const
+		++it;
+	}
+
+	return "n/a";
+}
+
+
+const SampleInfo& SampleHeaderInfo::infoByID(const QString& id) const
 {
 	foreach(const SampleInfo& info, *this)
 	{
@@ -516,28 +532,41 @@ const SampleInfo& SampleHeaderInfo::infoBySample(const QString& id) const
 		}
 	}
 
-	THROW(ProgrammingException, "No sample with ID/name '" + id + "' found in sample info header!");
+	THROW(ProgrammingException, "No sample with ID '" + id + "' found in sample info header!");
 }
 
-QStringList SampleHeaderInfo::sampleColumns() const
+const SampleInfo& SampleHeaderInfo::infoByStatus(bool affected, QString gender) const
 {
-	QStringList output;
-	foreach(const SampleInfo& info, *this)
+	QList<int> matches;
+	for(int i=0; i<count(); ++i)
 	{
-		output << info.column_name;
+		if (at(i).isAffected()==affected && (gender=="n/a" || at(i).gender()==gender))
+		{
+			matches << i;
+		}
 	}
 
-	return output;
+	if (matches.count()==0)
+	{
+		THROW(ProgrammingException, "No sample found found in sample info header!");
+	}
+
+	if (matches.count()>1)
+	{
+		THROW(ProgrammingException, "More than one sample found in sample info header!");
+	}
+
+	return at(matches[0]);
 }
 
-QStringList SampleHeaderInfo::sampleColumns(bool affected) const
+QList<int> SampleHeaderInfo::sampleColumns(bool affected) const
 {
-	QStringList output;
+	QList<int>  output;
 	foreach(const SampleInfo& info, *this)
 	{
 		if (affected==info.isAffected())
 		{
-			output << info.column_name;
+			output << info.column_index;
 		}
 	}
 

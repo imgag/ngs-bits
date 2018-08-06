@@ -1493,6 +1493,12 @@ SampleHeaderInfo VariantList::getSampleHeader(bool error_if_missing) const
 		THROW(ProgrammingException, "Could not find any sample information in the variant list header!");
 	}
 
+	//determine column index
+	for (int i=0; i<output.count(); ++i)
+	{
+		output[i].column_index = annotationIndexByName(output[i].column_name);
+	}
+
 	return output;
 }
 

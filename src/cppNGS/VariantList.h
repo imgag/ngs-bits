@@ -35,10 +35,14 @@ struct CPPNGSSHARED_EXPORT SampleInfo
 {
 	QString id; //sample name/identifier
 	QString column_name; //sample column in VCF/GSvar format
+	int column_index;
 	QMap<QString, QString> properties;
 
 	///Returns if the sample has state 'affected'.
 	bool isAffected() const;
+
+	///Returns the gender of the sample, or 'n/a' if unknown.
+	QString gender() const;
 };
 
 ///Sample header information.
@@ -46,12 +50,12 @@ class CPPNGSSHARED_EXPORT SampleHeaderInfo
 	: public QList<SampleInfo>
 {
 	public:
-		///Returns the sample info by sample id
-		const SampleInfo& infoBySample(const QString& id) const;
-		///Returns all sample genotype column names of all samples.
-		QStringList sampleColumns() const;
-		///Returns all sample genotype column names of affected/unaffected samples.
-		QStringList sampleColumns(bool affected) const;
+		///Returns the sample info by sample id.
+		const SampleInfo& infoByID(const QString& id) const;
+		///Returns the sample info matching the given sample properties. Throws an error if there more/less than one columns that match.
+		const SampleInfo& infoByStatus(bool affected, QString gender = "n/a") const;
+		///Returns sample genotype column idices of affected/unaffected samples.
+		QList<int> sampleColumns(bool affected) const;
 };
 
 ///Genetic variant or mutation (1-based).

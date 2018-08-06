@@ -513,6 +513,7 @@ QMap<QString, FilterBase*(*)()> FilterFactory::getRegistry()
 		output["Text search"] = &createInstance<FilterAnnotationText>;
 		output["Variant type"] = &createInstance<FilterVariantType>;
 		output["Variant quality"] = &createInstance<FilterVariantQC>;
+		output["Trio"] = &createInstance<FilterTrio>;
 
 	}
 
@@ -823,11 +824,7 @@ void FilterVariantCountNGSD::apply(const VariantList& variants, FilterResult& re
 	else
 	{
 		//get affected column indices
-		QList<int> geno_indices;
-		foreach(const QString& column, variants.getSampleHeader(true).sampleColumns(true))
-		{
-			geno_indices << annotationColumn(variants, column);
-		}
+		QList<int> geno_indices = variants.getSampleHeader().sampleColumns(true);
 		if (geno_indices.isEmpty()) THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list without affected samples!");
 
 		for(int i=0; i<variants.count(); ++i)
@@ -1126,11 +1123,7 @@ void FilterGenotypeControl::apply(const VariantList& variants, FilterResult& res
 	bool same_genotype = getBool("same_genotype");
 
 	//get control column indices
-	QList<int> geno_indices;
-	foreach(const QString& column, variants.getSampleHeader(true).sampleColumns(false))
-	{
-		geno_indices << annotationColumn(variants, column);
-	}
+	QList<int> geno_indices = variants.getSampleHeader().sampleColumns(false);
 	if (geno_indices.isEmpty()) THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list without control samples!");
 
 	//filter
@@ -1198,11 +1191,7 @@ void FilterGenotypeAffected::apply(const VariantList& variants, FilterResult& re
 	QStringList genotypes = getStringList("genotypes");
 
 	//get affected column indices
-	QList<int> geno_indices;
-	foreach(const QString& column, variants.getSampleHeader(true).sampleColumns(true))
-	{
-		geno_indices << annotationColumn(variants, column);
-	}
+	QList<int> geno_indices = variants.getSampleHeader().sampleColumns(true);
 	if (geno_indices.isEmpty()) THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list without affected samples!");
 
 
@@ -1659,7 +1648,6 @@ void FilterVariantType::apply(const VariantList& variants, FilterResult& result)
 
 FilterVariantQC::FilterVariantQC()
 {
-
 	name_ = "Variant quality";
 	description_ = QStringList() << "Filter for variant quality";
 	params_ << FilterParameter("qual", INT, 30, "Minimum variant quality score (Phred)");
@@ -1701,9 +1689,23 @@ void FilterVariantQC::apply(const VariantList& variants, FilterResult& result) c
 			}
 			else if (part.startsWith("DP="))
 			{
-				if (part.mid(3).toInt()<depth)
+				if (!part.contains(',')) //single-sample analysis
 				{
-					result.flags()[i] = false;
+					if (part.mid(3).toInt()<depth)
+					{
+						result.flags()[i] = false;
+					}
+				}
+				else //multi-sample analysis (comma-separed depth values)
+				{
+					QByteArrayList dps = part.mid(3).split(',');
+					foreach(const QByteArray& dp, dps)
+					{
+						if (dp.toInt()<depth)
+						{
+							result.flags()[i] = false;
+						}
+					}
 				}
 			}
 			else if (part.startsWith("MQM="))
@@ -1716,3 +1718,182 @@ void FilterVariantQC::apply(const VariantList& variants, FilterResult& result) c
 		}
 	}
 }
+
+
+FilterTrio::FilterTrio()
+{
+	name_ = "Trio";
+	description_ = QStringList() << "Filter trio variants";
+	params_ << FilterParameter("types", STRINGLIST, QStringList() << "de-novo" << "recessive" << "comp-het" << "LOH", "Variant types");
+	params_.last().constraints["valid"] = "de-novo,recessive,comp-het,LOH";
+	params_.last().constraints["non-empty"] = "";
+
+	params_ << FilterParameter("gender_child", STRING, "n/a", "Gender of the child - if 'n/a', the gender from the GSvar file header is taken");
+	params_.last().constraints["valid"] = "male,female,n/a";
+
+	checkIsRegistered();
+}
+
+QString FilterTrio::toText() const
+{
+	return name() + " " + getStringList("types", false).join(',');
+}
+
+void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	//determine child gender
+	QString gender_child = getString("gender_child");
+
+	//determine column indices
+	i_quality = annotationColumn(variants, "quality");
+	int i_gene = annotationColumn(variants, "gene");
+	SampleHeaderInfo sample_headers = variants.getSampleHeader();
+	i_c = sample_headers.infoByStatus(true).column_index;
+	i_f = sample_headers.infoByStatus(false, "male").column_index;
+	i_m = sample_headers.infoByStatus(false, "female").column_index;
+
+	//determine AF indices
+	QList<int> tmp;
+	tmp << i_c << i_f << i_m;
+	std::sort(tmp.begin(), tmp.end());
+	i_af_c = tmp.indexOf(i_c);
+	i_af_f = tmp.indexOf(i_f);
+	i_af_m = tmp.indexOf(i_m);
+
+	//pre-calculate genes with heterozygous variants
+	QStringList types = getStringList("types");
+	GeneSet genes_comphet;
+	if (types.contains("comp-het"))
+	{
+		GeneSet het_father;
+		GeneSet het_mother;
+
+		for(int i=0; i<variants.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			const Variant& v = variants[i];
+
+			bool diplod_chromosome = v.chr().isAutosome() || (v.chr().isX() && gender_child=="female");
+			if (diplod_chromosome)
+			{
+				QByteArray geno_c, geno_f, geno_m;
+				correctedGenotypes(v, geno_c, geno_f, geno_m);
+
+				if (geno_c=="het" && geno_f=="het" && geno_m=="wt")
+				{
+					het_mother << GeneSet::createFromText(v.annotations()[i_gene], ',');
+				}
+				if (geno_c=="het" && geno_f=="wt" && geno_m=="het")
+				{
+					het_father << GeneSet::createFromText(v.annotations()[i_gene], ',');
+				}
+			}
+		}
+		genes_comphet = het_mother.intersect(het_father);
+	}
+
+	//apply
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		const Variant& v = variants[i];
+
+		//get genotypes
+		QByteArray geno_c, geno_f, geno_m;
+		correctedGenotypes(v, geno_c, geno_f, geno_m);
+		if (geno_c=="wt")
+		{
+			result.flags()[i] = false;
+			continue;
+		}
+
+		bool diplod_chromosome = v.chr().isAutosome() || (v.chr().isX() && gender_child=="female");
+
+		//filter
+		bool match = false;
+		if (types.contains("de-novo"))
+		{
+			if (geno_f=="wt" && geno_m=="wt")
+			{
+				match = true;
+			}
+		}
+		if (types.contains("recessive"))
+		{
+			if (diplod_chromosome)
+			{
+				if (geno_c=="hom" && geno_f=="het" && geno_m=="het")
+				{
+					match = true;
+				}
+			}
+		}
+		if (types.contains("LOH"))
+		{
+			if (diplod_chromosome)
+			{
+				if ((geno_c=="hom" && geno_f=="het" && geno_m=="wt") || (geno_c=="hom" && geno_f=="wt" && geno_m=="het"))
+				{
+					match = true;
+				}
+			}
+		}
+		if (types.contains("comp-het"))
+		{
+			if (diplod_chromosome)
+			{
+				if (GeneSet::createFromText(v.annotations()[i_gene], ',').intersectsWith(genes_comphet))
+				{
+					if (geno_c=="het" && geno_f=="het" && geno_m=="wt")
+					{
+						match = true;
+					}
+					if (geno_c=="het" && geno_f=="wt" && geno_m=="het")
+					{
+						match = true;
+					}
+				}
+			}
+		}
+
+		result.flags()[i] = match;
+	}
+}
+
+void FilterTrio::correctedGenotypes(const Variant& v, QByteArray& geno_c, QByteArray& geno_f, QByteArray& geno_m) const
+{
+	geno_c = v.annotations()[i_c];
+	geno_f = v.annotations()[i_f];
+	geno_m = v.annotations()[i_m];
+
+	//correct genotypes based on AF
+	QByteArrayList q_parts = v.annotations()[i_quality].split(';');
+	foreach(const QByteArray& part, q_parts)
+	{
+		if (part.startsWith("AF="))
+		{
+			QByteArrayList af_parts = part.mid(3).split(',');
+
+			if (geno_f=="wt" && af_parts[i_af_f].toDouble()>=0.05)
+			{
+				geno_f = "het";
+			}
+			if (geno_m=="wt" && af_parts[i_af_m].toDouble()>=0.05)
+			{
+				geno_m = "het";
+			}
+			if (geno_c=="het" && af_parts[i_af_c].toDouble()<0.1)
+			{
+				geno_c = "wt";
+			}
+		}
+	}
+
+
+}
+
+

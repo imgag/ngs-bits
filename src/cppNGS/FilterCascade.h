@@ -493,5 +493,27 @@ class CPPNGSSHARED_EXPORT FilterVariantQC
 		void apply(const VariantList& variants, FilterResult& result) const override;
 };
 
+//Trio filter
+class CPPNGSSHARED_EXPORT FilterTrio
+	: public FilterBase
+{
+	public:
+		FilterTrio();
+		QString toText() const override;
+		void apply(const VariantList& variants, FilterResult& result) const override;
+
+		//returns genotypes corrected by allele frequency
+		void correctedGenotypes(const Variant& v, QByteArray& geno_c, QByteArray& geno_f, QByteArray& geno_m) const;
+
+		mutable int i_quality;
+		mutable int i_c;
+		mutable int i_f;
+		mutable int i_m;
+		mutable int i_af_c;
+		mutable int i_af_f;
+		mutable int i_af_m;
+
+};
+
 
 #endif // FILTERCASCADE_H

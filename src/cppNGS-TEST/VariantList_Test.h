@@ -803,10 +803,8 @@ private slots:
 		vl.load(input);
 		SampleHeaderInfo info = vl.getSampleHeader();
 		I_EQUAL(info.count(), 1);
-		I_EQUAL(info.sampleColumns().count(), 1);
-		S_EQUAL(info.sampleColumns()[0], "genotype");
 		I_EQUAL(info.sampleColumns(true).count(), 1);
-		S_EQUAL(info.sampleColumns(true)[0], "genotype");
+		I_EQUAL(info.sampleColumns(true)[0], 0);
 		I_EQUAL(info.sampleColumns(false).count(), 0);
 	}
 
@@ -817,19 +815,13 @@ private slots:
 		vl.load(input);
 		SampleHeaderInfo info = vl.getSampleHeader();
 		I_EQUAL(info.count(), 4);
-		I_EQUAL(info.sampleColumns().count(), 4);
-		S_EQUAL(info.sampleColumns()[0], "Affected1");
-		S_EQUAL(info.sampleColumns()[1], "Affected2");
-		S_EQUAL(info.sampleColumns()[2], "Control1");
-		S_EQUAL(info.sampleColumns()[3], "Control2");
 		I_EQUAL(info.sampleColumns(true).count(), 2);
-		S_EQUAL(info.sampleColumns(true)[0], "Affected1");
-		S_EQUAL(info.sampleColumns(true)[1], "Affected2");
+		I_EQUAL(info.sampleColumns(true)[0], 0);
+		I_EQUAL(info.sampleColumns(true)[1], 3);
 		I_EQUAL(info.sampleColumns(false).count(), 2);
-		S_EQUAL(info.sampleColumns(false)[0], "Control1");
-		S_EQUAL(info.sampleColumns(false)[1], "Control2");
+		I_EQUAL(info.sampleColumns(false)[0], 1);
+		I_EQUAL(info.sampleColumns(false)[1], 2);
 	}
-
 
 	void getPipeline()
 	{
