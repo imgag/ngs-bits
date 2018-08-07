@@ -1496,7 +1496,8 @@ SampleHeaderInfo VariantList::getSampleHeader(bool error_if_missing) const
 	//determine column index
 	for (int i=0; i<output.count(); ++i)
 	{
-		output[i].column_index = annotationIndexByName(output[i].column_name);
+		//TODO suppress errors only for somatic, throw error form germline
+		output[i].column_index = annotationIndexByName(output[i].column_name, true, false);
 	}
 
 	return output;

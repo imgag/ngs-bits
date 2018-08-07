@@ -35,6 +35,9 @@
 	                                     pattern - Pattern to match to column [non-empty]
 	                                     column - Column to filter [non-empty]
 	                                     action - Action to perform [default=KEEP] [valid=KEEP,FILTER,REMOVE]
+	Conservedness                      Filter for conserved bases
+	                                   Parameters:
+	                                     min_score - Minimum phlyoP score. [default=1.6000000000000001]
 	Count NGSD                         Filter based on the hom/het occurances of a variant in the NGSD.
 	                                   Parameters:
 	                                     max_count - Maximum NGSD count [default=20] [min=0]
@@ -66,6 +69,7 @@
 	                                   For more details see: http://snpeff.sourceforge.net/SnpEff_manual.html#eff
 	                                   Parameters:
 	                                     impact - Valid impacts [default=HIGH,MODERATE,LOW] [valid=HIGH,MODERATE,LOW,MODIFIER] [non-empty]
+	OMIM genes                         Filter for OMIM genes i.e. the 'OMIM' column is not empty.
 	Predicted pathogenic               Filter for variants predicted to be pathogenic.
 	                                   Prediction scores included are: phyloP=1.6, Sift=D, MetaLR=D, PolyPhen2=D, FATHMM=D and CADD=20.
 	                                   Parameters:
@@ -77,6 +81,10 @@
 	                                   Parameters:
 	                                     term - Search term [non-empty]
 	                                     action - Action to perform [default=FILTER] [valid=FILTER,KEEP,REMOVE]
+	Trio                               Filter trio variants
+	                                   Parameters:
+	                                     types - Variant types [default=de-novo,recessive,comp-het,LOH] [valid=de-novo,recessive,comp-het,LOH]
+	                                     gender_child - Gender of the child - if 'n/a', the gender from the GSvar file header is taken [default=n/a] [valid=male,female,n/a]
 	Variant quality                    Filter for variant quality
 	                                   Parameters:
 	                                     qual - Minimum variant quality score (Phred) [default=30] [min=0]

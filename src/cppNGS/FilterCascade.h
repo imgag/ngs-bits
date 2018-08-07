@@ -515,5 +515,24 @@ class CPPNGSSHARED_EXPORT FilterTrio
 
 };
 
+//OMIM filter
+class CPPNGSSHARED_EXPORT FilterOMIM
+	: public FilterBase
+{
+	public:
+		FilterOMIM();
+		QString toText() const override;
+		void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
+//Conservedness filter
+class CPPNGSSHARED_EXPORT FilterConservedness
+	: public FilterBase
+{
+	public:
+		FilterConservedness();
+		QString toText() const override;
+		void apply(const VariantList& variants, FilterResult& result) const override;
+};
 
 #endif // FILTERCASCADE_H

@@ -514,7 +514,8 @@ QMap<QString, FilterBase*(*)()> FilterFactory::getRegistry()
 		output["Variant type"] = &createInstance<FilterVariantType>;
 		output["Variant quality"] = &createInstance<FilterVariantQC>;
 		output["Trio"] = &createInstance<FilterTrio>;
-
+		output["OMIM genes"] = &createInstance<FilterOMIM>;
+		output["Conservedness"] = &createInstance<FilterConservedness>;
 	}
 
 	return output;
@@ -1896,4 +1897,65 @@ void FilterTrio::correctedGenotypes(const Variant& v, QByteArray& geno_c, QByteA
 
 }
 
+FilterOMIM::FilterOMIM()
+{
+	name_ = "OMIM genes";
+	description_ = QStringList() << "Filter for OMIM genes i.e. the 'OMIM' column is not empty.";
+	checkIsRegistered();
+}
 
+QString FilterOMIM::toText() const
+{
+	return name();
+}
+
+void FilterOMIM::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	int index = annotationColumn(variants, "OMIM");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		if (variants[i].annotations()[index].trimmed().isEmpty())
+		{
+			result.flags()[i] = false;
+		}
+	}
+}
+
+FilterConservedness::FilterConservedness()
+{
+	name_ = "Conservedness";
+	description_ = QStringList() << "Filter for conserved bases";
+	params_ << FilterParameter("min_score", DOUBLE, 1.6, "Minimum phlyoP score.");
+
+	checkIsRegistered();
+}
+
+QString FilterConservedness::toText() const
+{
+	return name() + " phyloP≥" + QString::number(getDouble("min_score", false));
+}
+
+void FilterConservedness::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	int i_phylop = annotationColumn(variants, "phyloP");
+	double min_score = getDouble("min_score");
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		bool ok;
+		double value = variants[i].annotations()[i_phylop].toDouble(&ok);
+		if (!ok || value<min_score)
+		{
+			result.flags()[i] = false;
+		}
+	}
+}

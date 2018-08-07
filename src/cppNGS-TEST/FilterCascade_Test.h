@@ -738,4 +738,31 @@ private slots:
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 1);
 	}
+
+	void FilterOMIM_apply()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//default
+		FilterOMIM filter;
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 108);
+	}
+
+	void FilterConservedness_apply()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//default
+		FilterConservedness filter;
+		filter.setDouble("min_score", 2.0);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 16);
+	}
 };
