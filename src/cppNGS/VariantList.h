@@ -210,20 +210,30 @@ protected:
 ///Debug output operator for Variant.
 QDebug operator<<(QDebug d, const Variant& v);
 
+
+///Supported file formats.
+enum VariantListFormat
+{
+	VCF,    ///< VCF file. Note: only single-sample files are currently supported.
+	VCF_GZ, ///< gzipped VCF file. Note: only single-sample files are currently supported.
+	TSV,    ///< Tab-separated file that contains at least the following columns: chr, start (1-based), end (1-based), ref, obs.
+	AUTO    ///< Format is automatically determined from the file name extension.
+};
+
+///Supported analysis types
+enum AnalysisType
+{
+	GERMLINE_SINGLESAMPLE,
+	GERMLINE_TRIO,
+	GERMLINE_MULTISAMPLE,
+	SOMATIC_SINGLESAMPLE,
+	SOMATIC_PAIR
+};
+
 ///A list of genetic variants
 class CPPNGSSHARED_EXPORT VariantList
 {
 public:
-
-    ///Supported file formats.
-    enum Format
-    {
-		VCF,    ///< VCF file. Note: only single-sample files are currently supported.
-		VCF_GZ, ///< gzipped VCF file. Note: only single-sample files are currently supported.
-		TSV,    ///< Tab-separated file that contains at least the following columns: chr, start (1-based), end (1-based), ref, obs.
-		AUTO    ///< Format is automatically determined from the file name extension.
-    };
-
     ///Default constructor
     VariantList();
 
@@ -335,9 +345,9 @@ public:
     ///Loads a single-sample variant list from a file. Returns the format of the file.
 	///If @p roi is given, only variants that fall into the target regions are loaded.
 	///If @p invert is given, only variants that fall outside the target regions are loaded.
-	Format load(QString filename, Format format=AUTO, const BedFile* roi=nullptr, bool invert=false);
+	VariantListFormat load(QString filename, VariantListFormat format=AUTO, const BedFile* roi=nullptr, bool invert=false);
     ///Stores the variant list to a file.
-	void store(QString filename, Format format=AUTO);
+	void store(QString filename, VariantListFormat format=AUTO);
 
     ///Sorts the variants. The order is chromosome (numeric), position, ref, obs, quality (if desired).
     void sort(bool use_quality = false);
@@ -364,6 +374,9 @@ public:
 
 	///Parse analysis pipeline version from comments
 	QString getPipeline() const;
+
+	///Returns analysis type.
+	AnalysisType type(bool allow_fallback_germline_single_sample = true) const;
 
 protected:
     QStringList comments_;

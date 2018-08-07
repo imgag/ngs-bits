@@ -17,7 +17,7 @@ VariantList NGSHelper::getKnownVariants(QString build, bool only_snvs, double mi
 	//load variant list
 	QString snp_file = ":/Resources/" + build + "_snps.vcf";
 	if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + build + "'!");
-	output.load(snp_file, VariantList::VCF, roi);
+	output.load(snp_file, VCF, roi);
 
 	//filter by AF
 	FilterResult filter_result(output.count());
@@ -113,7 +113,7 @@ void NGSHelper::createSampleOverview(QStringList in, QString out, int indel_wind
 	foreach(QString filename, in)
 	{
 		VariantList vl;
-		vl.load(filename, VariantList::TSV);
+		vl.load(filename, TSV);
 
 		//check the all required fields are present in the input file
 		QVector<int> anno_indices;
@@ -261,7 +261,7 @@ void NGSHelper::createSampleOverview(QStringList in, QString out, int indel_wind
 		}
 	}
 
-	vl_merged.store(out, VariantList::TSV);
+	vl_merged.store(out, TSV);
 }
 
 QByteArray NGSHelper::expandAminoAcidAbbreviation(QChar amino_acid_change_in)

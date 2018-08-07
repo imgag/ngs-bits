@@ -7,6 +7,14 @@ TEST_CLASS(VariantList_Test)
 Q_OBJECT
 private slots:
 
+	void type()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/panel.vcf"));
+
+		I_EQUAL(vl.type(false), GERMLINE_SINGLESAMPLE);
+	}
+
 	void leftAlign()
 	{
 		QString ref_file = Settings::string("reference_genome");
@@ -117,7 +125,7 @@ private slots:
 		vl.load(TESTDATA("data_in/panel.vcf"));
 		vl.checkValid();
 		I_EQUAL(vl.count(), 14);
-		I_EQUAL(vl.comments().count(), 2);
+		I_EQUAL(vl.comments().count(), 3);
 		S_EQUAL(vl.sampleNames()[0], QString("./Sample_GS120297A3/GS120297A3.bam"));
 		I_EQUAL(vl.annotations().count(), 27);
 
@@ -181,7 +189,7 @@ private slots:
 		vl.checkValid();
 		I_EQUAL(vl.count(), 14);
 		I_EQUAL(vl.annotations().count(), 27);
-		I_EQUAL(vl.comments().count(), 2);
+		I_EQUAL(vl.comments().count(), 3);
 		S_EQUAL(vl.sampleNames()[0], QString("./Sample_GS120297A3/GS120297A3.bam"));
 	}
 
@@ -192,10 +200,10 @@ private slots:
 		roi.append(BedLine("chr18", 67904549, 67904670));
 
 		VariantList vl;
-		vl.load(TESTDATA("data_in/panel.vcf"), VariantList::VCF, &roi);
+		vl.load(TESTDATA("data_in/panel.vcf"), VCF, &roi);
 		vl.checkValid();
 		I_EQUAL(vl.count(), 4);
-		I_EQUAL(vl.comments().count(), 2);
+		I_EQUAL(vl.comments().count(), 3);
 		S_EQUAL(vl.sampleNames()[0], QString("./Sample_GS120297A3/GS120297A3.bam"));
 		I_EQUAL(vl.annotations().count(), 27);
 
@@ -278,7 +286,7 @@ private slots:
 		vl.load("out/VariantList_store_01.vcf");
 		vl.checkValid();
 		I_EQUAL(vl.count(), 14);
-		I_EQUAL(vl.comments().count(), 2);
+		I_EQUAL(vl.comments().count(), 3);
 		S_EQUAL(vl.sampleNames()[0], QString("./Sample_GS120297A3/GS120297A3.bam"));
 
 		I_EQUAL(vl.annotations().count(), 27);
@@ -390,7 +398,7 @@ private slots:
 		roi.append(BedLine("chr19", 7607441, 7607564));
 
 		VariantList vl;
-		vl.load(TESTDATA("data_in/panel.tsv"), VariantList::TSV, &roi);
+		vl.load(TESTDATA("data_in/panel.tsv"), TSV, &roi);
 		I_EQUAL(vl.count(), 4);
 		I_EQUAL(vl.annotations().count(), 27);
 		S_EQUAL(vl.annotations()[0].name(), QString("genotype"));
@@ -472,7 +480,7 @@ private slots:
 		vl.checkValid();
 		I_EQUAL(vl.count(), 14);
 		I_EQUAL(vl.annotations().count(), 27);
-		I_EQUAL(vl.comments().count(), 1);
+		I_EQUAL(vl.comments().count(), 2);
 		S_EQUAL(vl.annotations()[0].name(), QString("ID"));
 		S_EQUAL(vl.annotationDescriptionByName("ID").description(), QString("ID of the variant, often dbSNP rsnumber"));
 		S_EQUAL(vl.annotationDescriptionByName("INDEL").name(), QString("INDEL"));
@@ -533,9 +541,9 @@ private slots:
 	void loadFromVCF_GZ()
 	{
 		VariantList vl;
-		VariantList::Format format = vl.load(TESTDATA("data_in/VariantList_load_zipped.vcf.gz"));
+		VariantListFormat format = vl.load(TESTDATA("data_in/VariantList_load_zipped.vcf.gz"));
 		vl.checkValid();
-		I_EQUAL(format, VariantList::VCF_GZ);
+		I_EQUAL(format, VCF_GZ);
 		I_EQUAL(vl.count(), 157);
 		I_EQUAL(vl.annotations().count(), 75);
 		S_EQUAL(vl.annotations()[0].name(), "ID");

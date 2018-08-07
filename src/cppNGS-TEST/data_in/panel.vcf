@@ -26,6 +26,7 @@
 ##FORMAT=<ID=PL,Number=G,Type=Integer,Description="List of Phred-scaled genotype likelihoods">
 ##FILTER=<ID=q10,Description="Quality below 10">
 ##FILTER=<ID=s50,Description="Less than 50% of samples have data">
+##ANALYSISTYPE=GERMLINE_SINGLESAMPLE
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	./Sample_GS120297A3/GS120297A3.bam
 chr17	72196817	.	G	GA	217	.	INDEL;DP=31;VDB=0.0000;AF1=0.5;AC1=1;DP4=4,3,11,11;MQ=42;FQ=88.5;PV4=1,1,0.17,0.28	GT:PL:GQ	0/1:255,0,123:99
 chr17	72196887	.	G	C	222	.	DP=30;VDB=0.0000;AF1=1;AC1=2;DP4=0,0,14,14;MQ=41;FQ=-111	GT:PL:GQ	1/1:255,84,0:99

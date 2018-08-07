@@ -187,7 +187,7 @@ void MainWindow::on_actionCNV_triggered()
 			}
 		}
 	}
-	else if (getType()!=SOMATIC_PAIR)
+	else if (variants_.type()!=SOMATIC_PAIR)
 	{
 		QMessageBox::information(this, "Invalid variant list", "Column 'genotype' or 'gene' not found in variant list. Cannot apply compound-heterozygous filter based on variants!");
 	}
@@ -207,11 +207,11 @@ void MainWindow::on_actionCNV_triggered()
 
 void MainWindow::on_actionROH_triggered()
 {
-	if (filename_=="" || getType()==GERMLINE_MULTISAMPLE) return;
+	if (filename_=="" || variants_.type()==GERMLINE_MULTISAMPLE) return;
 
 	//trios special handling
 	QString filename = filename_;
-	if (getType()==GERMLINE_TRIO)
+	if (variants_.type()==GERMLINE_TRIO)
 	{
 		//show ROHs of child (index)
 		QString child = variants_.getSampleHeader().infoByStatus(true).column_name;
@@ -707,8 +707,7 @@ QString MainWindow::processedSampleName()
 {
 	QString filename = QFileInfo(filename_).baseName();
 
-	VariantListType type = getType();
-	if (type==SOMATIC_PAIR)
+	if (variants_.type()==SOMATIC_PAIR)
 	{
 		return filename.split("-")[0];
 	}
@@ -1014,7 +1013,7 @@ void MainWindow::on_actionReport_triggered()
 	if (variants_.count()==0) return;
 
 	//check if this is a germline or somatic
-	VariantListType type = getType();
+	AnalysisType type = variants_.type();
 	if (type==SOMATIC_PAIR)
 	{
 		generateReportSomaticRTF();
@@ -1443,7 +1442,7 @@ void MainWindow::on_actionExportVCF_triggered()
 		return;
 	}
 	VariantList orig_vcf;
-	orig_vcf.load(orig_name, VariantList::VCF_GZ, &roi);
+	orig_vcf.load(orig_name, VCF_GZ, &roi);
 	ChromosomalIndex<VariantList> orig_idx(orig_vcf);
 
 	//create new VCF
@@ -1503,7 +1502,7 @@ void MainWindow::on_actionExportVCF_triggered()
 	file_name = QFileDialog::getSaveFileName(this, "Export VCF", file_name, "VCF (*.vcf);;All files (*.*)");
 	if (file_name!="")
 	{
-		output.store(file_name, VariantList::VCF);
+		output.store(file_name, VCF);
 	}
 }
 
@@ -1526,7 +1525,7 @@ void MainWindow::on_actionExportGSvar_triggered()
 	file_name = QFileDialog::getSaveFileName(this, "Export GSvar", file_name, "GSvar (*.gsvar);;All files (*.*)");
 	if (file_name!="")
 	{
-		output.store(file_name, VariantList::TSV);
+		output.store(file_name, TSV);
 	}
 }
 
@@ -2087,7 +2086,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 		sub_menu = menu.addMenu(QIcon("://Icons/Alamut.png"), "Alamut");
 
 		//BAM
-		if (getType()==GERMLINE_SINGLESAMPLE)
+		if (variants_.type()==GERMLINE_SINGLESAMPLE)
 		{
 			sub_menu->addAction("BAM");
 		}
@@ -2389,7 +2388,7 @@ QList<IgvFile> MainWindow::getSegFilesCnv()
 {
 	QList<IgvFile> output;
 
-	if (getType()==SOMATIC_PAIR)
+	if (variants_.type()==SOMATIC_PAIR)
 	{
 		//tumor-normal SEG file
 		QString segfile = filename_.left(filename_.length()-6) + "_cnvs.seg";
@@ -2427,7 +2426,7 @@ QList<IgvFile> MainWindow::getIgvFilesBaf()
 {
 	QList<IgvFile> output;
 
-	if (getType()==SOMATIC_PAIR)
+	if (variants_.type()==SOMATIC_PAIR)
 	{
 		QString segfile = filename_.left(filename_.length()-6) + "_bafs.igv";
 		QString pair = QFileInfo(filename_).baseName();
@@ -2447,26 +2446,6 @@ QList<IgvFile> MainWindow::getIgvFilesBaf()
 	}
 
 	return output;
-}
-
-MainWindow::VariantListType MainWindow::getType()
-{
-	foreach(QString line, variants_.comments())
-	{
-		line = line.trimmed();
-		if (line.startsWith("##ANALYSISTYPE="))
-		{
-			QString type = line.mid(15);
-			if (type=="GERMLINE_SINGLESAMPLE") return GERMLINE_SINGLESAMPLE;
-			else if (type=="GERMLINE_TRIO") return GERMLINE_TRIO;
-			else if (type=="GERMLINE_MULTISAMPLE") return GERMLINE_MULTISAMPLE;
-			else if (type=="SOMATIC_SINGLESAMPLE") return SOMATIC_SINGLESAMPLE;
-			else if (type=="SOMATIC_PAIR") return SOMATIC_PAIR;
-			else THROW(FileParseException, "Invalid analysis type '" + type + "' in GSvar file!");
-		}
-	}
-
-	return GERMLINE_SINGLESAMPLE; //fallback for old files without ANALYSISTYPE header
 }
 
 void MainWindow::filtersChanged()

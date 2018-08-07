@@ -6,5 +6,6 @@
         <file>Resources/hg19_ancestry.vcf</file>
         <file>Resources/hg38_snps.vcf</file>
         <file>Resources/hg38_ancestry.vcf</file>
+        <file>Resources/imprinting_genes.tsv</file>
     </qresource>
 </RCC>

@@ -436,7 +436,7 @@ bool VariantList::sampleExists(const QString& sample) const
 	return false;
 }
 
-VariantList::Format VariantList::load(QString filename, VariantList::Format format, const BedFile* roi, bool invert)
+VariantListFormat VariantList::load(QString filename, VariantListFormat format, const BedFile* roi, bool invert)
 {
 	//determine format
 	if (format==AUTO)
@@ -480,21 +480,21 @@ VariantList::Format VariantList::load(QString filename, VariantList::Format form
 	if (format==VCF)
 	{
 		loadFromVCF(filename, roi_idx.data(), invert);
-		return VariantList::VCF;
+		return VCF;
 	}
 	else if (format==VCF_GZ)
 	{
 		loadFromVCFGZ(filename, roi_idx.data(), invert);
-		return VariantList::VCF_GZ;
+		return VCF_GZ;
 	}
 	else
 	{
 		loadFromTSV(filename, roi_idx.data(), invert);
-		return VariantList::TSV;
+		return TSV;
 	}
 }
 
-void VariantList::store(QString filename, VariantList::Format format)
+void VariantList::store(QString filename, VariantListFormat format)
 {
 	//determine format
 	if (format==AUTO)
@@ -1494,10 +1494,10 @@ SampleHeaderInfo VariantList::getSampleHeader(bool error_if_missing) const
 	}
 
 	//determine column index
+	AnalysisType analysis_type = type();
 	for (int i=0; i<output.count(); ++i)
 	{
-		//TODO suppress errors only for somatic, throw error form germline
-		output[i].column_index = annotationIndexByName(output[i].column_name, true, false);
+		output[i].column_index = annotationIndexByName(output[i].column_name, true, analysis_type!=SOMATIC_SINGLESAMPLE && analysis_type!=SOMATIC_PAIR);
 	}
 
 	return output;
@@ -1514,6 +1514,32 @@ QString VariantList::getPipeline() const
 	}
 
 	return "n/a";
+}
+
+AnalysisType VariantList::type(bool allow_fallback_germline_single_sample) const
+{
+	foreach(const QString& line, comments_)
+	{
+		if (line.startsWith("##ANALYSISTYPE="))
+		{
+			QString type = line.trimmed().mid(15);
+			if (type=="GERMLINE_SINGLESAMPLE") return GERMLINE_SINGLESAMPLE;
+			else if (type=="GERMLINE_TRIO") return GERMLINE_TRIO;
+			else if (type=="GERMLINE_MULTISAMPLE") return GERMLINE_MULTISAMPLE;
+			else if (type=="SOMATIC_SINGLESAMPLE") return SOMATIC_SINGLESAMPLE;
+			else if (type=="SOMATIC_PAIR") return SOMATIC_PAIR;
+			else THROW(FileParseException, "Invalid analysis type '" + type + "' found in variant list!");
+		}
+	}
+
+	if (allow_fallback_germline_single_sample)
+	{
+		return GERMLINE_SINGLESAMPLE; //fallback for old files without ANALYSISTYPE header
+	}
+	else
+	{
+		THROW(FileParseException, "No analysis type found in variant list!");
+	}
 }
 
 void Variant::normalize(int& start, Sequence& ref, Sequence& obs)

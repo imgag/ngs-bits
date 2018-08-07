@@ -712,7 +712,7 @@ private slots:
 		//default (all filters)
 		FilterTrio filter;
 		filter.apply(vl, result);
-		I_EQUAL(result.countPassing(), 6);
+		I_EQUAL(result.countPassing(), 12);
 
 		//de-novo
 		result.reset();
@@ -737,6 +737,18 @@ private slots:
 		filter.setStringList("types", QStringList() << "LOH");
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 1);
+
+		//x-linked
+		result.reset();
+		filter.setStringList("types", QStringList() << "x-linked");
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 6);
+
+		//imprinting
+		result.reset();
+		filter.setStringList("types", QStringList() << "imprinting");
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 2);
 	}
 
 	void FilterOMIM_apply()

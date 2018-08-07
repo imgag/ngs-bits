@@ -1900,7 +1900,7 @@ VariantList ReportHelper::gsvarToVcf()
 		QMessageBox::warning(NULL, "Original vcf data", message);
 	}
 	VariantList orig_vcf;
-	orig_vcf.load(orig_name, VariantList::VCF_GZ);
+	orig_vcf.load(orig_name, VCF_GZ);
 
 	if(orig_vcf.count() != snv_variants_.count())
 	{

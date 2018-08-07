@@ -34,7 +34,7 @@ public:
 
 		//load
 		VariantList vl;
-		vl.load(getInfile("in"), VariantList::VCF);
+		vl.load(getInfile("in"), VCF);
 
 		//split multi-allelic variant
 		for (int i=0; i<vl.count(); ++i)
@@ -70,7 +70,7 @@ public:
 		vl.sort(true);
 
 		//store
-		vl.store(getOutfile("out"), VariantList::TSV);
+		vl.store(getOutfile("out"), TSV);
     }
 };
 

@@ -44,9 +44,6 @@ public:
 	QList<IgvFile> getSegFilesCnv();
 	///Returns BAF SEG files for the analysis.
 	QList<IgvFile> getIgvFilesBaf();
-	enum VariantListType {GERMLINE_SINGLESAMPLE, GERMLINE_TRIO, GERMLINE_MULTISAMPLE, SOMATIC_SINGLESAMPLE, SOMATIC_PAIR};
-	///Returns the type of the current variant list
-	VariantListType getType();
 	///Adds a file to the recent file list
 	void addToRecentFiles(QString filename);
 	///Updates recent files menu

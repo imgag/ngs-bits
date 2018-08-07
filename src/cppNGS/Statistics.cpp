@@ -1502,7 +1502,7 @@ AncestryEstimates Statistics::ancestry(QString build, const VariantList& vl, int
 	QString snp_file = ":/Resources/" + build + "_ancestry.vcf";
 	if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + build + "'!");
 	VariantList af;
-	af.load(snp_file, VariantList::VCF);
+	af.load(snp_file, VCF);
 	ChromosomalIndex<VariantList> af_idx(af);
 	int i2_afr = af.annotationIndexByName("AF_AFR");
 	int i2_eur = af.annotationIndexByName("AF_EUR");

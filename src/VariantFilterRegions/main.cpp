@@ -67,7 +67,7 @@ public:
 		}
 		else
 		{
-			variants.load(getInfile("in"), VariantList::AUTO, &roi, inv);
+			variants.load(getInfile("in"), AUTO, &roi, inv);
 		}
 		variants.store(getOutfile("out"));
 	}

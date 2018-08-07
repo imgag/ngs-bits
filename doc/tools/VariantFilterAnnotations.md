@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2018_06-27-gb6bdb9c)
+	VariantFilterAnnotations (2018_06-34-g9e7c1ae)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -83,7 +83,7 @@
 	                                     action - Action to perform [default=FILTER] [valid=FILTER,KEEP,REMOVE]
 	Trio                               Filter trio variants
 	                                   Parameters:
-	                                     types - Variant types [default=de-novo,recessive,comp-het,LOH] [valid=de-novo,recessive,comp-het,LOH]
+	                                     types - Variant types [default=de-novo,recessive,comp-het,LOH,x-linked] [valid=de-novo,recessive,comp-het,LOH,x-linked,imprinting]
 	                                     gender_child - Gender of the child - if 'n/a', the gender from the GSvar file header is taken [default=n/a] [valid=male,female,n/a]
 	Variant quality                    Filter for variant quality
 	                                   Parameters:
@@ -110,7 +110,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2018_06-27-gb6bdb9c
+	VariantFilterAnnotations 2018_06-34-g9e7c1ae
 	
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.

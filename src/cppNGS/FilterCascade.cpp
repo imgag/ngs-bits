@@ -1,6 +1,7 @@
 #include "FilterCascade.h"
 #include "Exceptions.h"
 #include "GeneSet.h"
+#include "Helper.h"
 
 /*************************************************** FilterParameter ***************************************************/
 
@@ -1725,8 +1726,8 @@ FilterTrio::FilterTrio()
 {
 	name_ = "Trio";
 	description_ = QStringList() << "Filter trio variants";
-	params_ << FilterParameter("types", STRINGLIST, QStringList() << "de-novo" << "recessive" << "comp-het" << "LOH", "Variant types");
-	params_.last().constraints["valid"] = "de-novo,recessive,comp-het,LOH";
+	params_ << FilterParameter("types", STRINGLIST, QStringList() << "de-novo" << "recessive" << "comp-het" << "LOH" << "x-linked", "Variant types");
+	params_.last().constraints["valid"] = "de-novo,recessive,comp-het,LOH,x-linked,imprinting";
 	params_.last().constraints["non-empty"] = "";
 
 	params_ << FilterParameter("gender_child", STRING, "n/a", "Gender of the child - if 'n/a', the gender from the GSvar file header is taken");
@@ -1746,6 +1747,14 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 
 	//determine child gender
 	QString gender_child = getString("gender_child");
+	if (gender_child=="n/a")
+	{
+		gender_child = variants.getSampleHeader(true).infoByStatus(true).gender();
+	}
+	if (gender_child=="n/a")
+	{
+		THROW(ArgumentException, "Could not determine gender of child, please set it!");
+	}
 
 	//determine column indices
 	i_quality = annotationColumn(variants, "quality");
@@ -1794,6 +1803,21 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 			}
 		}
 		genes_comphet = het_mother.intersect(het_father);
+	}
+
+	//load imprinting gene list
+	QMap<QByteArray, QByteArray> imprinting;
+	if (types.contains("imprinting"))
+	{
+		QStringList lines = Helper::loadTextFile(":/Resources/imprinting_genes.tsv", true, '#', true);
+		foreach(QString line, lines)
+		{
+			QStringList parts = line.split("\t");
+			if (parts.count()==2)
+			{
+				imprinting[parts[0].toLatin1()] = parts[1].toLatin1();
+			}
+		}
 	}
 
 	//apply
@@ -1854,6 +1878,38 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 						match = true;
 					}
 					if (geno_c=="het" && geno_f=="wt" && geno_m=="het")
+					{
+						match = true;
+					}
+				}
+			}
+		}
+		if (types.contains("x-linked") && v.chr().isX() && gender_child=="male")
+		{
+			if (geno_c=="hom" && geno_f=="wt" && geno_m=="het")
+			{
+				match = true;
+			}
+		}
+		if (types.contains("imprinting"))
+		{
+			if (geno_c=="het" && geno_f=="het" && geno_m=="wt")
+			{
+				GeneSet genes = GeneSet::createFromText(v.annotations()[i_gene], ',');
+				foreach(const QByteArray& gene, genes)
+				{
+					if (imprinting.contains(gene) && (imprinting[gene]=="paternal" || imprinting[gene]=="both"))
+					{
+						match = true;
+					}
+				}
+			}
+			if (geno_c=="het" && geno_f=="wt" && geno_m=="het")
+			{
+				GeneSet genes = GeneSet::createFromText(v.annotations()[i_gene], ',');
+				foreach(const QByteArray& gene, genes)
+				{
+					if (imprinting.contains(gene) && (imprinting[gene]=="maternal" || imprinting[gene]=="both"))
 					{
 						match = true;
 					}
