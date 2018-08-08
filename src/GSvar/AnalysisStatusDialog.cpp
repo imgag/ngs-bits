@@ -4,6 +4,7 @@
 #include "SomaticDialog.h"
 #include "SingleSampleAnalysisDialog.h"
 #include "GUIHelper.h"
+#include "ScrollableTextDialog.h"
 #include <QMenu>
 #include <QFileInfo>
 #include <QDesktopServices>
@@ -18,6 +19,7 @@ AnalysisStatusDialog::AnalysisStatusDialog(QWidget *parent)
 	//setup UI
 	ui_.setupUi(this);
 	connect(ui_.analyses, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
+	connect(ui_.analyses, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(showOutputDetails(QTableWidgetItem*)));
 	connect(ui_.analyses->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(updateDetails()));
 	connect(ui_.history, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(showOutputDetails(QTableWidgetItem*)));
 	connect(ui_.refresh, SIGNAL(clicked(bool)), this, SLOT(refreshStatus()));
@@ -375,10 +377,8 @@ void AnalysisStatusDialog::updateDetails()
 	clearDetails();
 
 	//determine row
-	auto ranges = ui_.analyses->selectedRanges();
-	if (ranges.count()!=1 || ranges[0].rowCount()!=1) return;
-
-	int selection_row = ranges[0].topRow();
+	int selection_row = selectedRow();
+	if (selection_row==-1) return;
 	const AnalysisJob& job = jobs_[selection_row].job_data;
 
 	//properties
@@ -415,17 +415,13 @@ void AnalysisStatusDialog::updateDetails()
 		addItem(ui_.history, r, 1, entry.user);
 		addItem(ui_.history, r, 2, entry.status, statusToColor(entry.status));
 		QString output = entry.output.join("\n").trimmed();
-		QColor bg = Qt::transparent;
-		if (output.contains("warning", Qt::CaseInsensitive)) bg =  QColor("#FFC45E");
-		if (output.contains("error", Qt::CaseInsensitive)) bg =  QColor("#FF0000");
 		if (entry.output.count()>1)
 		{
-			addItem(ui_.history, r, 3, "double-click for details", bg);
-			ui_.history->item(r, 3)->setData(Qt::UserRole, output);
+			addItem(ui_.history, r, 3, "double-click for details");
 		}
 		else
 		{
-			addItem(ui_.history, r, 3, output, bg);
+			addItem(ui_.history, r, 3, output);
 		}
 		++r;
 	}
@@ -436,10 +432,29 @@ void AnalysisStatusDialog::showOutputDetails(QTableWidgetItem* item)
 {
 	if (item==nullptr) return;
 
-	QStringList output = item->data(Qt::UserRole).toStringList();
-	if (output.empty()) return;
+	int selection_row = selectedRow();
+	if (selection_row==-1) return;
 
-	QMessageBox::information(this, "Output", output.join("\n"));
+	//determine output to show
+	QStringList output;
+	if (item->tableWidget()==ui_.history) //history clicked => show text of item
+	{
+		output = jobs_[selection_row].job_data.history[item->row()].output;
+	}
+	else //main table clicked => show output of last entry
+	{
+		output = jobs_[selection_row].job_data.history.last().output;
+	}
+
+	//trim and join
+	std::for_each(output.begin(), output.end(), [](QString& line){ line = line.trimmed(); });
+	QString text = output.join("\n").trimmed();
+	if (text.isEmpty()) return;
+
+	ScrollableTextDialog dlg(this);
+	dlg.setWindowTitle("Output");
+	dlg.setText(text);
+	dlg.exec();
 }
 
 void AnalysisStatusDialog::copyToClipboard()
@@ -464,4 +479,12 @@ QColor AnalysisStatusDialog::statusToColor(QString status)
 	if (status=="canceled") output = QColor("#FFC45E");
 	if (status=="error") output = QColor("#FF0000");
 	return output;
+}
+
+int AnalysisStatusDialog::selectedRow() const
+{
+	auto ranges = ui_.analyses->selectedRanges();
+	if (ranges.count()!=1 || ranges[0].rowCount()!=1) return -1;
+
+	return ranges[0].topRow();
 }

@@ -13,10 +13,11 @@ NGSD:
   - use 'same sample' when counting variant frequencies
   - set relations after somatic/trio pipeline is through
 ** annotate counts with same/different disease group/status separately
-* add CNVs and allow classification (wait for ClinCNV)
+* add CNVs to NGSD and allow classification (wait for ClinCNV)
 
 GSvar:
-* Add pLI score (megSAP) and filter for pLI (GSvar) to CNVs (wait for ClinCNV)
+** CNV window: show all columns in original case and ignore case during search
+* Add ExAC pLI / ExAC CNV / inheritance (megSAP) and filter for CNVs (GSvar) (wait for ClinCNV)
 * GenLab XML report: male => change 'hom' variants outside PAR region on chrX/chrY to 'hemi' (when GenLab import is updated)
 ** Report variant selection
     - allow marking variants for report inclusion (report_pathogenic, report_acmg, report_scientific, no_report_artefact, no_report_no_disease_association)

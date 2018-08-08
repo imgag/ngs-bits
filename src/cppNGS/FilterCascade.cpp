@@ -1251,13 +1251,17 @@ void FilterGenotypeAffected::apply(const VariantList& variants, FilterResult& re
 
 			//check for comp-het
 			bool pass = false;
-			QList<QByteArray> genes = variants[i].annotations()[i_gene].toUpper().split(',');
-			foreach(const QByteArray& gene, genes)
+			QByteArray geno_all = checkSameGenotype(geno_indices, variants[i]);
+			if (geno_all=="het")
 			{
-				if (gene_to_het[gene.trimmed()]>=2)
+				QList<QByteArray> genes = variants[i].annotations()[i_gene].toUpper().split(',');
+				foreach(const QByteArray& gene, genes)
 				{
-					pass = true;
-					break;
+					if (gene_to_het[gene.trimmed()]>=2)
+					{
+						pass = true;
+						break;
+					}
 				}
 			}
 			result.flags()[i] = pass;

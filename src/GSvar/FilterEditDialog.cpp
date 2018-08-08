@@ -17,19 +17,9 @@ FilterEditDialog::FilterEditDialog(QSharedPointer<FilterBase> filter, QWidget* p
 {
 	ui_.setupUi(this);
 	setWindowTitle("Filter '" + filter_->name() + "'");
-	connect(ui_.show_doc, SIGNAL(toggled(bool)), this, SLOT(toggleDocumentation(bool)));
 
 	ui_.description->setText(filter_->description().join("\n"));
 	setupForm();
-}
-
-void FilterEditDialog::toggleDocumentation(bool visible)
-{
-	QList<QLabel*> labels = findChildren<QLabel*>(QRegularExpression("DOC_.*"));
-	foreach(QLabel* label, labels)
-	{
-		label->setVisible(visible);
-	}
 }
 
 void FilterEditDialog::setupForm()
@@ -176,6 +166,7 @@ void FilterEditDialog::setupForm()
 			{
 				label = new QLabel();
 				label->setText(p.name + ":");
+				label->setToolTip(p.description);
 			}
 
 			//add widget
@@ -189,13 +180,6 @@ void FilterEditDialog::setupForm()
 				first_parameter = false;
 			}
 		}
-
-		//add documentation
-		QLabel* doc_label = new QLabel("Description: " + p.description);
-		doc_label->setObjectName("DOC_" + p.name);
-		doc_label->setTextInteractionFlags(Qt::TextSelectableByMouse);
-		ui_.form_layout->addRow(nullptr, doc_label);
-		doc_label->setVisible(false);
 	}
 }
 

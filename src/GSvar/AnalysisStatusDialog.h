@@ -39,6 +39,7 @@ private:
 
 	static void addItem(QTableWidget* table, int row, int col, QString text, QColor bg_color = Qt::transparent);
 	static QColor statusToColor(QString status);
+	int selectedRow() const;
 };
 
 #endif // ANALYSISSTATUSDIALOG_H
