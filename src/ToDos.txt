@@ -7,6 +7,7 @@ libs:
     - check vcf and tsv files if valid - columns and their descriptions (CS)
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 - integration of htslib: use pileup, use VCF support
+- FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 
 NGSD:
 ** model sample relation: same sample, parent-child, tumor-normal, siblings

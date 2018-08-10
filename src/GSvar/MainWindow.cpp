@@ -1311,7 +1311,7 @@ void MainWindow::on_actionSampleAncestry_triggered()
 
 void MainWindow::on_actionAnalysisStatus_triggered()
 {
-	auto dlg = new AnalysisStatusDialog(this);
+	auto dlg = new AnalysisStatusDialog(0);
 	dlg->setWindowFlags(Qt::Window);
 	dlg->show();
 	addModelessDialog(QSharedPointer<QDialog>(dlg));
