@@ -1,10 +1,14 @@
 # GSvar change log
 
-###2018_06-34 (07.08.2018)
+### 2018_06-XXX (13.08.18)
+- General: made 'analysis status' dialog an independent window
+- Filters: added 'x-linked' and 'imprinting' to trio filter
+
+### 2018_06-34 (07.08.2018)
 - Filters: re-implemented filter concept
 - Report: add analyis pipeline version to report
 
-###2018_06-18 (11.07.2018)
+### 2018_06-18 (11.07.2018)
 - General: Added ancestry estimation.
 - Filters: The gene name filter now support using '*' as wildcard.
 - ROH dialog: Child ROHs are shown for trios.
@@ -205,6 +209,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 

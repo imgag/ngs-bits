@@ -230,7 +230,7 @@ void AnalysisStatusDialog::refreshStatus()
 		addItem(ui_.analyses, row, 7, status, bg);
 	}
 
-	GUIHelper::resizeTableCells(ui_.analyses, 400);
+	GUIHelper::resizeTableCells(ui_.analyses, 300);
 	QApplication::restoreOverrideCursor();
 }
 

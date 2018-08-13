@@ -548,12 +548,12 @@ const SampleInfo& SampleHeaderInfo::infoByStatus(bool affected, QString gender) 
 
 	if (matches.count()==0)
 	{
-		THROW(ProgrammingException, "No sample found found in sample info header!");
+		THROW(ProgrammingException, "No sample found in header!");
 	}
 
 	if (matches.count()>1)
 	{
-		THROW(ProgrammingException, "More than one sample found in sample info header!");
+		THROW(ProgrammingException, "More than one sample found in header!");
 	}
 
 	return at(matches[0]);
