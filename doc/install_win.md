@@ -60,6 +60,10 @@ To make the tools executable outside *QtCreator* and portable, you have to copy 
 		<td>platforms, sqldrivers</td>
 	</tr>
 	<tr>
+		<td>C:\Qt\Qt5.5.0\5.5\mingw492_32\opt\bin\</td>
+		<td>ssleay32.dll, libeay32.dll</td>
+	</tr>
+	<tr>
 		<td>C:\Qt\Qt5.5.0\mysql-5.7.9-win32\lib\</td>
 		<td>libmysql.dll</td>
 	</tr>

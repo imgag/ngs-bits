@@ -1,6 +1,6 @@
 # GSvar change log
 
-### 2018_06-XXX (13.08.18)
+### 2018_06-38 (13.08.18)
 - General: made 'analysis status' dialog an independent window
 - Filters: added 'x-linked' and 'imprinting' to trio filter
 
@@ -209,6 +209,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 
