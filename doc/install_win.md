@@ -57,10 +57,10 @@ To make the tools executable outside *QtCreator* and portable, you have to copy 
 	</tr>
 	<tr>
 		<td>C:\Qt\Qt5.5.0\5.5\mingw492_32\plugins\</td>
-		<td>platforms, sqldrivers</td>
+		<td>platforms, sqldrivers, printsupport</td>
 	</tr>
 	<tr>
-		<td>C:\Qt\Qt5.5.0\5.5\mingw492_32\opt\bin\</td>
+		<td>C:\Qt\Qt5.5.0\Tools\mingw492_32\opt\bin\</td>
 		<td>ssleay32.dll, libeay32.dll</td>
 	</tr>
 	<tr>
