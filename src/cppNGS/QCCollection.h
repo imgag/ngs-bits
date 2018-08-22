@@ -14,6 +14,8 @@ public:
 	QCValue();
 	///Integer constructor.
 	QCValue(const QString& name, int value, const QString& description="", const QString& accession="NONE");
+	///Long long constructor.
+	QCValue(const QString& name, long long value, const QString& description="", const QString& accession="NONE");
 	///Float constructor.
 	QCValue(const QString& name, double value, const QString& description="", const QString& accession="NONE");
 	///String constructor.
@@ -33,6 +35,8 @@ public:
 
 	///Returns the integer value - or throws a TypeConversionException if the QC value has a different type.
 	int asInt() const;
+	///Returns the long long value - or throws a TypeConversionException if the QC value has a different type.
+	long long asLongLong() const;
 	///Returns the integer value - or throws a TypeConversionException if the QC value has a different type.
 	double asDouble() const;
 	///Returns the integer value - or throws a TypeConversionException if the QC value has a different type.

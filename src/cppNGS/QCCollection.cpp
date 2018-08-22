@@ -24,6 +24,14 @@ QCValue::QCValue(const QString& name, int value, const QString& description, con
 {
 }
 
+QCValue::QCValue(const QString& name, long long value, const QString& description, const QString& accession)
+	: name_(name)
+	, value_(value)
+	, description_(description)
+	, accession_(accession)
+{
+}
+
 QCValue::QCValue(const QString& name, double value, const QString& description, const QString& accession)
 	: name_(name)
 	, value_(value)
@@ -87,6 +95,13 @@ int QCValue::asInt() const
 	if (value_.type()!=QVariant::Int) THROW(TypeConversionException, "QCValue '" + name_ + "' requested as integer, but has different type!");
 
 	return value_.toInt();
+}
+
+long long QCValue::asLongLong() const
+{
+	if (value_.type()!=QVariant::LongLong) THROW(TypeConversionException, "QCValue '" + name_ + "' requested as long long, but has different type!");
+
+	return value_.toULongLong();
 }
 
 double QCValue::asDouble() const

@@ -70,10 +70,10 @@ QCCollection StatisticsReads::getResult()
 	//create output values
 	QCCollection output;
 
-	int total_reads = c_forward_ + c_reverse_;
-	double c_base_n = 0.0;
-	double c_base_gc = 0.0;
-	double bases_total = 0.0;
+	long long total_reads = c_forward_ + c_reverse_;
+	long long c_base_n = 0;
+	long long c_base_gc = 0;
+	long long bases_total = 0;
 	foreach(const Pileup& pileup, pileups_)
 	{
 		c_base_n += pileup.n();
