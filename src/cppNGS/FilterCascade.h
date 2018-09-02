@@ -463,8 +463,7 @@ class CPPNGSSHARED_EXPORT FilterPredictionPathogenic
 		mutable int min;
 		mutable int i_phylop;
 		mutable int i_sift;
-		mutable int i_metalr;
-		mutable int i_pp2;
+		mutable int i_polyphen;
 		mutable int i_fathmm;
 		mutable int i_cadd;
 };

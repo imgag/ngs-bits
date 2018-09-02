@@ -1439,7 +1439,7 @@ bool FilterAnnotationPathogenic::annotatedPathogenic(const Variant& v) const
 FilterPredictionPathogenic::FilterPredictionPathogenic()
 {
 	name_ = "Predicted pathogenic";
-	description_ = QStringList() << "Filter for variants predicted to be pathogenic." << "Prediction scores included are: phyloP≥1.6, Sift=D, MetaLR=D, PolyPhen2=D, FATHMM=D and CADD≥20.";
+	description_ = QStringList() << "Filter for variants predicted to be pathogenic." << "Prediction scores included are: phyloP≥1.6, Sift=D, MetaLR=D, PolyPhen=D, fathmm-MKL=≥0.5 and CADD≥20.";
 	params_ << FilterParameter("min", INT, 1, "Minimum number of pathogenic predictions");
 	params_.last().constraints["min"] = "1";
 	params_ << FilterParameter("action", STRING, "FILTER", "Action to perform");
@@ -1460,9 +1460,8 @@ void FilterPredictionPathogenic::apply(const VariantList& variants, FilterResult
 	min = getInt("min");
 	i_phylop = annotationColumn(variants, "phyloP", false);
 	i_sift = annotationColumn(variants, "Sift", false);
-	i_metalr = annotationColumn(variants, "MetaLR", false);
-	i_pp2 = annotationColumn(variants, "PolyPhen2", false);
-	i_fathmm = annotationColumn(variants, "FATHMM", false);
+	i_polyphen = annotationColumn(variants, "PolyPhen", false);
+	i_fathmm = annotationColumn(variants, "fathmm-MKL", false);
 	i_cadd = annotationColumn(variants, "CADD", false);
 
 	if (getString("action")=="FILTER")
@@ -1491,11 +1490,25 @@ bool FilterPredictionPathogenic::predictedPathogenic(const Variant& v) const
 
 	if (i_sift!=-1 && v.annotations()[i_sift].contains("D")) ++count;
 
-	if (i_metalr!=-1 && v.annotations()[i_metalr].contains("D")) ++count;
+	if (i_polyphen!=-1 && v.annotations()[i_polyphen].contains("D"))
+	{
+		++count;
+	}
 
-	if (i_pp2!=-1 && v.annotations()[i_pp2].contains("D")) ++count;
-
-	if (i_fathmm!=-1 && v.annotations()[i_fathmm].contains("D")) ++count;
+	if (i_fathmm!=-1 && v.annotations()[i_fathmm].contains(","))
+	{
+		QByteArrayList parts = v.annotations()[i_fathmm].split(',');
+		foreach(const QByteArray& part, parts)
+		{
+			bool ok = true;
+			double value = part.toDouble(&ok);
+			if (ok && value>=0.5)
+			{
+				++count;
+				break;
+			}
+		}
+	}
 
 	if (i_phylop!=-1)
 	{

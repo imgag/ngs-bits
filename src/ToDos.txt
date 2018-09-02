@@ -17,6 +17,7 @@ NGSD:
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
 
 GSvar:
+### ExAC link (via gene)
 ** CNV window: show all columns in original case and ignore case during search
 * Add ExAC pLI / ExAC CNV / inheritance (megSAP) and filter for CNVs (GSvar) (wait for ClinCNV)
 * GenLab XML report: male => change 'hom' variants outside PAR region on chrX/chrY to 'hemi' (when GenLab import is updated)
