@@ -555,11 +555,11 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq)
 	BamReader reader(bam_file);
 
     //init counts
-    int al_total = 0;
-    int al_mapped = 0;
-    int al_ontarget = 0;
-    int al_dup = 0;
-    int al_proper_paired = 0;
+    long long al_total = 0;
+    long long al_mapped = 0;
+    long long al_ontarget = 0;
+    long long al_dup = 0;
+    long long al_proper_paired = 0;
     double bases_trimmed = 0;
     double bases_mapped = 0;
     double bases_clipped = 0;

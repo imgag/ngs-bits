@@ -14,7 +14,7 @@ Pileup::Pileup()
 {
 }
 
-void Pileup::inc(char base, int inc)
+void Pileup::inc(char base, long long inc)
 {
 	if (base=='A') a_ += inc;
 	else if (base=='C') c_ += inc;
@@ -41,9 +41,9 @@ void Pileup::clear()
 	indels_.clear();
 }
 
-int Pileup::depth(bool count_del, bool count_n) const
+long long Pileup::depth(bool count_del, bool count_n) const
 {
-	int output = a_ + c_ + g_ + t_;
+	long long output = a_ + c_ + g_ + t_;
 	if (count_del) output += del_;
 	if (count_n) output += n_;
 	return output;
@@ -80,7 +80,7 @@ double Pileup::frequency(QChar wt, QChar mut) const
 	return m / (w + m);
 }
 
-int Pileup::countOf(QChar base) const
+long long Pileup::countOf(QChar base) const
 {
 	if (base=='A') return a_;
 	else if (base=='C') return c_;

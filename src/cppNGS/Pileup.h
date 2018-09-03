@@ -14,45 +14,45 @@ public:
     Pileup();
 
     ///Returns the count of 'A'.
-    int a() const
+    long long a() const
     {
         return a_;
     }
     ///Returns the count of 'C'
-    int c() const
+    long long c() const
     {
         return c_;
     }
     ///Returns the count of 'G'
-    int g() const
+    long long g() const
     {
         return g_;
     }
     ///Returns the count of 'T'
-    int t() const
+    long long t() const
     {
         return t_;
     }
     ///Returns the count of 'N'
-    int n() const
+    long long n() const
     {
         return n_;
     }
     ///Returns the base allele frequency in relation to the overall depth (but ignorning 'N').
-    int countOf(QChar base) const;
+    long long countOf(QChar base) const;
     /**
       @brief Increases the base count of base @p base by @p inc.
       @note Valid bases are 'A','C','T','G','N' both upper-case and lower-case and '-' for deletions.
     */
-    void inc(char base, int inc=1);
+    void inc(char base, long long inc=1);
 
 	///Clears all counts and indels.
     void clear();
     ///Returns the overall depth of the based 'A','C','G' and 'T'. 'N' and '-' are only included on demand.
-    int depth(bool count_del, bool count_n=false) const;
+    long long depth(bool count_del, bool count_n=false) const;
 
     ///Returns the maximum base count of the bases 'A','C','G' and 'T'.
-    int max() const
+    long long max() const
     {
         return std::max( std::max(a_, c_), std::max(g_, t_));
     }
@@ -91,12 +91,12 @@ public:
 	}
 
 protected:
-    int a_;
-    int c_;
-    int g_;
-    int t_;
-    int n_;
-    int del_;
+    long long a_;
+    long long c_;
+    long long g_;
+    long long t_;
+    long long n_;
+    long long del_;
 	QList<QByteArray> indels_;
 	double mapq0_frac_;
 };
