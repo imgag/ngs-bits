@@ -22,7 +22,6 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget *parent) :
 	connect(ui->trans_prev, SIGNAL(clicked(bool)), this, SLOT(previousTanscript()));
 	connect(ui->trans_next, SIGNAL(clicked(bool)), this, SLOT(nextTanscript()));
 	connect(ui->variant, SIGNAL(linkActivated(QString)), this, SLOT(variantClicked(QString)));
-    connect(ui->exac, SIGNAL(linkActivated(QString)), this, SLOT(exacClicked(QString)));
 	connect(ui->gnomad, SIGNAL(linkActivated(QString)), this, SLOT(gnomadClicked(QString)));
 
 	//set up transcript buttons
@@ -61,6 +60,41 @@ VariantDetailsDockWidget::~VariantDetailsDockWidget()
 void VariantDetailsDockWidget::setPreferredTranscripts(QMap<QString, QStringList> data)
 {
 	preferred_transcripts = data;
+}
+
+void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
+{
+	//general
+	ui->label_quality->setToolTip(vl.annotationDescriptionByName("quality").description());
+	ui->label_filter->setToolTip(vl.annotationDescriptionByName("filter").description());
+
+	//DBs
+	ui->label_dbsnp->setToolTip(vl.annotationDescriptionByName("dbSNP").description());
+	ui->label_clinvar->setToolTip(vl.annotationDescriptionByName("ClinVar").description());
+	ui->label_hgmd->setToolTip(vl.annotationDescriptionByName("HGMD", false, false).description()); //optional
+	ui->label_omim->setToolTip(vl.annotationDescriptionByName("OMIM", false, false).description()); //optional
+	ui->label_cosmic->setToolTip(vl.annotationDescriptionByName("COSMIC").description());
+
+	//AFs
+	ui->label_tg->setToolTip(vl.annotationDescriptionByName("1000g").description());
+	ui->label_gnomad->setToolTip(vl.annotationDescriptionByName("gnomAD").description());
+	ui->label_gnomad_sub->setToolTip(vl.annotationDescriptionByName("gnomAD_sub").description());
+	ui->label_esp_sub->setToolTip(vl.annotationDescriptionByName("ESP_sub").description());
+
+	//pathogenicity predictions
+	ui->label_phylop->setToolTip(vl.annotationDescriptionByName("phyloP").description());
+	ui->label_sift->setToolTip(vl.annotationDescriptionByName("Sift").description());
+	ui->label_polyphen->setToolTip(vl.annotationDescriptionByName("PolyPhen").description());
+	ui->label_cadd->setToolTip(vl.annotationDescriptionByName("CADD").description());
+	ui->label_fathmm->setToolTip(vl.annotationDescriptionByName("fathmm-MKL").description());
+	ui->label_revel->setToolTip(vl.annotationDescriptionByName("REVEL").description());
+
+	//NGSD
+	ui->label_ngsd_class->setToolTip(vl.annotationDescriptionByName("classification", false, false).description());
+	ui->label_ngsd_hom->setToolTip(vl.annotationDescriptionByName("NGSD_hom", false, false).description());
+	ui->label_ngsd_het->setToolTip(vl.annotationDescriptionByName("NGSD_het", false, false).description());
+	ui->label_ngsd_comment->setToolTip(vl.annotationDescriptionByName("comment", false, false).description());
+	ui->label_ngsd_validation->setToolTip(vl.annotationDescriptionByName("validation", false, false).description());
 }
 
 void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
@@ -111,18 +145,17 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 
 	//public allel frequencies
 	setAnnotation(ui->tg, vl, index, "1000g");
-	setAnnotation(ui->exac, vl, index, "ExAC");
-	setAnnotation(ui->exac_hom, vl, index, "ExAC_hom");
-	setAnnotation(ui->exac_sub, vl, index, "ExAC_sub");
 	setAnnotation(ui->gnomad, vl, index, "gnomAD");
+	setAnnotation(ui->gnomad_sub, vl, index, "gnomAD_sub");
+	setAnnotation(ui->esp_sub, vl, index, "ESP_sub");
 
 	//pathogenity predictions
 	setAnnotation(ui->phylop, vl, index, "phyloP");
 	setAnnotation(ui->sift, vl, index, "Sift");
-	setAnnotation(ui->metalr, vl, index, "MetaLR");
-	setAnnotation(ui->pp2, vl, index, "PolyPhen2");
-	setAnnotation(ui->fathmm, vl, index, "FATHMM");
+	setAnnotation(ui->polyphen, vl, index, "PolyPhen");
 	setAnnotation(ui->cadd, vl, index, "CADD");
+	setAnnotation(ui->fathmm, vl, index, "fathmm-MKL");
+	setAnnotation(ui->revel, vl, index, "REVEL");
 
 	//NGSD
 	setAnnotation(ui->ngsd_class, vl, index, "classification");
@@ -140,6 +173,8 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 
 		action->setEnabled(af_lt_5_perc);
 	}
+
+	//update tooltips
 }
 
 void VariantDetailsDockWidget::clear()
@@ -181,7 +216,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 		//special handling of fields
 		if (name=="dbSNP")
 		{
-			QStringList rs_numbers = anno.replace("rs", "").split(';');
+			QStringList rs_numbers = anno.replace("rs", "").split(',');
 			foreach(QString rs_number, rs_numbers)
 			{
 				if (!rs_number.trimmed().isEmpty())
@@ -234,7 +269,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 		}
 		else if(name=="COSMIC")
 		{
-			QStringList ids = anno.split(", ");
+			QStringList ids = anno.split(",");
 			foreach(QString id, ids)
 			{
 				id = id.mid(4).trimmed();
@@ -281,9 +316,50 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				text = anno;
 			}
 		}
-		else if(name=="MetaLR" || name=="Sift" || name=="PolyPhen2" || name=="FATHMM")
+		else if(name=="Sift" || name=="PolyPhen")
 		{
 			text = anno.replace("D", formatText("D", RED)).replace("P", formatText("P", ORANGE));
+		}
+		else if(name=="fathmm-MKL")
+		{
+			double max = 0.0;
+			QStringList parts = anno.split(",");
+			foreach(QString part, parts)
+			{
+				bool ok = true;
+				double value = part.toDouble(&ok);
+				if (ok) max = std::max(value, max);
+			}
+
+			if (max>=0.9)
+			{
+				text = formatText(anno, RED);
+			}
+			else if (max>=0.5)
+			{
+				text = formatText(anno, ORANGE);
+			}
+			else
+			{
+				text = anno;
+			}
+		}
+		else if(name=="REVEL")
+		{
+			bool ok = true;
+			double value = anno.toDouble(&ok);
+			if (ok && value>=0.9)
+			{
+				text = formatText(anno, RED);
+			}
+			else if (ok && value>=0.5)
+			{
+				text = formatText(anno, ORANGE);
+			}
+			else
+			{
+				text = anno;
+			}
 		}
 		else if(name=="ihdb_allsys_hom" || name=="ihdb_allsys_het")
 		{
@@ -338,24 +414,46 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				tooltip = vl[index].annotations()[c_index];
 			}
 		}
-		else if(name=="1000g" || name=="ExAC" || name=="gnomAD")
+		else if(name=="1000g" || name=="gnomAD")
 		{
-			bool ok = true;
-			double value = anno.toDouble(&ok);
-			if (ok && value>=0.05)
+			if (anno=="")
 			{
-				text = formatText(anno, GREEN);
+				text = "n/a";
 			}
 			else
 			{
-				text = anno;
+				bool ok = true;
+				double value = anno.toDouble(&ok);
+				text = (ok && value>=0.05) ? formatText(anno, GREEN) : anno;
 			}
 
-            //make ExAC value clickable (custom handling)
-			if(name=="ExAC" || name=="gnomAD")
-            {
-                text = formatLink(text, vl[index].toString(true));
-            }
+			//make gnomAD value clickable
+			if(name=="gnomAD")
+			{
+				text = formatLink(text, vl[index].toString(true));
+			}
+		}
+		else if (name=="gnomAD_sub" || name=="ESP_sub")
+		{
+			if (anno=="")
+			{
+				text = "n/a";
+			}
+			else
+			{
+				bool high_af = false;
+				QStringList parts = anno.split(",");
+				foreach(QString part, parts)
+				{
+					bool ok = true;
+					double value = part.toDouble(&ok);
+					if (ok && value>=0.05)
+					{
+						high_af = true;
+					}
+				}
+				text = high_af ? formatText(anno, GREEN) : anno;
+			}
 		}
 		else if(name=="comment")
 		{
@@ -463,6 +561,15 @@ void VariantDetailsDockWidget::initTranscriptDetails(const VariantList& vl, int 
 	{
 		setTranscript(high_impact==-1 ? 0 : high_impact);
 	}
+	else
+	{
+		ui->detail_type->clear();
+		ui->detail_impact->clear();
+		ui->detail_exon->clear();
+		ui->detail_cdna->clear();
+		ui->detail_protein->clear();
+		ui->detail_domain->clear();
+	}
 
 	//tooltip if more than one transcript
 	QString tooltip;
@@ -502,6 +609,7 @@ void VariantDetailsDockWidget::setTranscript(int index)
 	ui->detail_exon->setText(trans.exon.mid(4));
 	ui->detail_cdna->setText(trans.hgvs_c);
 	ui->detail_protein->setText(trans.hgvs_p);
+	ui->detail_domain->setText(trans.domain);
 
 	//enable next button if more than one transcript
 	ui->trans_prev->setEnabled(trans_data.count()>1 && index>0);

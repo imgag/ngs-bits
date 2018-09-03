@@ -22,6 +22,9 @@ public:
 	//Sets preferred transcripts
 	void setPreferredTranscripts(QMap<QString, QStringList> data);
 
+	//Sets tooltips of labels
+	void setLabelTooltips(const VariantList& vl);
+
 	//Updates the widget to a new variant.
 	void updateVariant(const VariantList& vl, int index);
 	//Clears the widget (no variant selected).
