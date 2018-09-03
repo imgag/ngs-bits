@@ -309,10 +309,6 @@ SUBDIRS += BamFilter
 tools-TEST.depends += BamFilter
 BamFilter.depends = cppNGS
 
-SUBDIRS += VcfCheck
-tools-TEST.depends += VcfCheck
-VcfCheck.depends = cppNGS
-
 #other stuff
 OTHER_FILES += ToDos.txt
 

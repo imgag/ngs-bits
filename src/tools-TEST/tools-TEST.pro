@@ -94,8 +94,7 @@ HEADERS += \
     RohHunter_Test.h \
     FastqExtractUMI_Test.h \
     FastqAddBarcode_Test.h \
-    BamFilter_Test.h \
-    VcfCheck_Test.h
+    BamFilter_Test.h
 
 SOURCES += \
     main.cpp \

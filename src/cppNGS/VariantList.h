@@ -24,7 +24,6 @@ struct CPPNGSSHARED_EXPORT VariantTranscript
 	QByteArray exon;
 	QByteArray hgvs_c;
 	QByteArray hgvs_p;
-	QByteArray domain;
 
 	QByteArray toString(char sep) const;
 	///returns true if one the variant types is part of Ontolgy terms
@@ -310,8 +309,8 @@ public:
 		return annotation_descriptions_;
 	}
 
-	///get annotation header by name
-	VariantAnnotationDescription annotationDescriptionByName(const QString& description_name, bool sample_specific = false, bool error_not_found = true) const;
+	///get Annotation description by name
+	VariantAnnotationDescription annotationDescriptionByName(const QString& description_name, bool sample_specific = false, bool error_not_found = true);
 
 	///Get names of samples in this variant list
 	QStringList sampleNames() const;
