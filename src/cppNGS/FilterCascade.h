@@ -466,6 +466,7 @@ class CPPNGSSHARED_EXPORT FilterPredictionPathogenic
 		mutable int i_polyphen;
 		mutable int i_fathmm;
 		mutable int i_cadd;
+		mutable int i_revel;
 };
 
 //Annotation text filter

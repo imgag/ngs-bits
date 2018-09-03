@@ -344,6 +344,23 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				text = anno;
 			}
 		}
+		else if(name=="REVEL")
+		{
+			bool ok = true;
+			double value = anno.toDouble(&ok);
+			if (ok && value>=0.9)
+			{
+				text = formatText(anno, RED);
+			}
+			else if (ok && value>=0.5)
+			{
+				text = formatText(anno, ORANGE);
+			}
+			else
+			{
+				text = anno;
+			}
+		}
 		else if(name=="ihdb_allsys_hom" || name=="ihdb_allsys_het")
 		{
 			bool ok = true;
