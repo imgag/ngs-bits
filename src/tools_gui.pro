@@ -21,7 +21,3 @@ GSmix.depends = cppGUI cppNGSD
 
 #other stuff
 OTHER_FILES += ToDos.txt
-
-RESOURCES += \
-    GSvar/resources.qrc
-
