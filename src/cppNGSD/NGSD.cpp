@@ -560,7 +560,7 @@ void NGSD::annotate(VariantList& variants, QString filename, BedFile roi, double
 	if (max_af>0)
 	{
 		FilterAlleleFrequency filter;
-		filter.setDouble("max_af", max_af);
+		filter.setDouble("max_af", 100.0*max_af);
 		filter.apply(variants, filter_result);
 	}
 
