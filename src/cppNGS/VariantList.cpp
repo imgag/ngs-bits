@@ -275,7 +275,7 @@ void VariantList::copyMetaData(const VariantList& rhs)
 	filters_ = rhs.filters_;
 }
 
-VariantAnnotationDescription VariantList::annotationDescriptionByName(const QString& description_name, bool sample_specific, bool error_not_found) const
+VariantAnnotationDescription VariantList::annotationDescriptionByName(const QString& description_name, bool sample_specific, bool error_not_found)
 {
 	bool found_multiple = false;
 
@@ -1656,9 +1656,9 @@ QList<VariantTranscript> Variant::transcriptAnnotations(int column_index) const
 		if (transcript.isEmpty()) continue;
 
 		QList<QByteArray> parts = transcript.split(':');
-		if (parts.count()<8)
+		if (parts.count()<7)
 		{
-			THROW(ProgrammingException, "Could not split transcript information from 'coding_and_splicing' column to 8 parts: " + transcript);
+			THROW(ProgrammingException, "Could not split transcript information from 'coding_and_splicing' column to 7 parts: " + transcript);
 		}
 
 		VariantTranscript trans;
@@ -1669,7 +1669,6 @@ QList<VariantTranscript> Variant::transcriptAnnotations(int column_index) const
 		trans.exon = parts[4].trimmed();
 		trans.hgvs_c = parts[5].trimmed();
 		trans.hgvs_p = parts[6].trimmed();
-		trans.domain = parts[7].trimmed();
 
 		output << trans;
 	}
@@ -1686,7 +1685,7 @@ QDebug operator<<(QDebug d, const Variant& v)
 
 QByteArray VariantTranscript::toString(char sep) const
 {
-	return gene + sep + id + sep + type + sep + impact + sep + exon + sep + hgvs_c + sep + hgvs_p + sep + domain;
+	return gene + sep + id + sep + type + sep + impact + sep + exon + sep + hgvs_c + sep + hgvs_p;
 }
 
 bool VariantTranscript::isPartOntologyTerms(const OntologyTermCollection& obo_terms) const

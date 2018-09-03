@@ -973,16 +973,6 @@ void MainWindow::loadFile(QString filename)
 	//update sample info dialog
 	sample_widget_->refresh(processedSampleName());
 	sample_widget_->raise();
-
-	//update variant details widget
-	try
-	{
-		var_widget_->setLabelTooltips(variants_);
-	}
-	catch(Exception& e)
-	{
-		QMessageBox::warning(this, "Outdated GSvar file", "The GSvar file contains the following error:\n" + e.message() + "\n\nTo ensure that GSvar works as expected, re-run the analysis starting from annotation!");
-	}
 }
 
 void MainWindow::on_actionAbout_triggered()
@@ -1904,7 +1894,10 @@ void MainWindow::variantListChanged()
 			}
 		}
 
-		QString header_desc = variants_.annotationDescriptionByName(anno, false, false).description();
+		QString header_desc = "";
+		VariantAnnotationDescription vad = variants_.annotationDescriptionByName(anno, false, false);
+		if(!vad.description().isNull())	header_desc = vad.description();
+
 		header->setToolTip(header_desc + add_desc);
 		ui_.vars->setHorizontalHeaderItem(i+5, header);
 	}

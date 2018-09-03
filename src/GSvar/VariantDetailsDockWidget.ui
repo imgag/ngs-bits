@@ -133,9 +133,9 @@
        <number>3</number>
       </property>
       <item>
-       <widget class="QLabel" name="label_gene">
+       <widget class="QLabel" name="label_3">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Gene names (inheritance and ExAC pLI in brackets).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>Gene names (inheritance from NGSD in brackets).</string>
         </property>
         <property name="text">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#222222;&quot;&gt;Gene(s):&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -165,7 +165,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="label_quality">
+       <widget class="QLabel" name="label_31">
         <property name="text">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#222222;&quot;&gt;Quality:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
@@ -194,7 +194,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="label_filter">
+       <widget class="QLabel" name="label_2">
         <property name="text">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Filter:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
@@ -335,10 +335,7 @@
          </layout>
         </item>
         <item row="1" column="0">
-         <widget class="QLabel" name="label_details_type">
-          <property name="toolTip">
-           <string>Variant effect.</string>
-          </property>
+         <widget class="QLabel" name="label_26">
           <property name="text">
            <string>Type:</string>
           </property>
@@ -361,10 +358,7 @@
          </widget>
         </item>
         <item row="2" column="0">
-         <widget class="QLabel" name="label_details_impact">
-          <property name="toolTip">
-           <string>Variant impact.</string>
-          </property>
+         <widget class="QLabel" name="label_27">
           <property name="text">
            <string>Impact:</string>
           </property>
@@ -381,10 +375,7 @@
          </widget>
         </item>
         <item row="3" column="0">
-         <widget class="QLabel" name="label_details_exon">
-          <property name="toolTip">
-           <string>Variant exon/intron number.</string>
-          </property>
+         <widget class="QLabel" name="label_28">
           <property name="text">
            <string>Exon:</string>
           </property>
@@ -401,10 +392,7 @@
          </widget>
         </item>
         <item row="4" column="0">
-         <widget class="QLabel" name="label_details_cdna">
-          <property name="toolTip">
-           <string>cDNA change of the variant.</string>
-          </property>
+         <widget class="QLabel" name="label_29">
           <property name="text">
            <string>cDNA:</string>
           </property>
@@ -421,10 +409,7 @@
          </widget>
         </item>
         <item row="5" column="0">
-         <widget class="QLabel" name="label_details_protein">
-          <property name="toolTip">
-           <string>Protein change of the variant.</string>
-          </property>
+         <widget class="QLabel" name="label_30">
           <property name="text">
            <string>Protein:</string>
           </property>
@@ -437,23 +422,6 @@
           </property>
           <property name="textInteractionFlags">
            <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="0">
-         <widget class="QLabel" name="label_details_domain">
-          <property name="toolTip">
-           <string>Pfam protein domain of the variant.</string>
-          </property>
-          <property name="text">
-           <string>Domain:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="1">
-         <widget class="QLabel" name="detail_domain">
-          <property name="text">
-           <string/>
           </property>
          </widget>
         </item>
@@ -482,7 +450,7 @@
          </widget>
         </item>
         <item row="1" column="0">
-         <widget class="QLabel" name="label_dbsnp">
+         <widget class="QLabel" name="label_7">
           <property name="text">
            <string>dbSNP:</string>
           </property>
@@ -508,7 +476,7 @@
          </widget>
         </item>
         <item row="2" column="0">
-         <widget class="QLabel" name="label_clinvar">
+         <widget class="QLabel" name="label_8">
           <property name="text">
            <string>ClinVar:</string>
           </property>
@@ -534,7 +502,7 @@
          </widget>
         </item>
         <item row="3" column="0">
-         <widget class="QLabel" name="label_hgmd">
+         <widget class="QLabel" name="label_9">
           <property name="text">
            <string>HGMD:</string>
           </property>
@@ -560,7 +528,7 @@
          </widget>
         </item>
         <item row="4" column="0">
-         <widget class="QLabel" name="label_omim">
+         <widget class="QLabel" name="label_10">
           <property name="text">
            <string>OMIM:</string>
           </property>
@@ -586,7 +554,7 @@
          </widget>
         </item>
         <item row="5" column="0">
-         <widget class="QLabel" name="label_cosmic">
+         <widget class="QLabel" name="label_32">
           <property name="text">
            <string>COSMIC:</string>
           </property>
@@ -633,7 +601,7 @@
          </widget>
         </item>
         <item row="1" column="0">
-         <widget class="QLabel" name="label_tg">
+         <widget class="QLabel" name="label_6">
           <property name="text">
            <string>1000g:</string>
           </property>
@@ -656,7 +624,7 @@
          </widget>
         </item>
         <item row="2" column="0">
-         <widget class="QLabel" name="label_gnomad">
+         <widget class="QLabel" name="label_12">
           <property name="text">
            <string>gnomAD:</string>
           </property>
@@ -679,14 +647,14 @@
          </widget>
         </item>
         <item row="3" column="0">
-         <widget class="QLabel" name="label_gnomad_sub">
+         <widget class="QLabel" name="label_11">
           <property name="text">
-           <string>gnomAD (sub):</string>
+           <string>ExAC:</string>
           </property>
          </widget>
         </item>
         <item row="3" column="1">
-         <widget class="QLabel" name="gnomad_sub">
+         <widget class="QLabel" name="exac">
           <property name="minimumSize">
            <size>
             <width>100</width>
@@ -702,16 +670,42 @@
          </widget>
         </item>
         <item row="4" column="0">
-         <widget class="QLabel" name="label_esp_sub">
+         <widget class="QLabel" name="label_4711">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Homozygous sample counts from ExAC in the order ALL,NFE,AFR&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
           <property name="text">
-           <string>ESP (sub):</string>
+           <string>ExAC (hom):</string>
           </property>
          </widget>
         </item>
         <item row="4" column="1">
-         <widget class="QLabel" name="esp_sub">
+         <widget class="QLabel" name="exac_hom">
           <property name="text">
            <string/>
+          </property>
+          <property name="textInteractionFlags">
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="label_14">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Subpopulation allele frequencies from ExAC in the order AFR,AMR,EAS,NFE,SAS&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>ExAC (sub):</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="QLabel" name="exac_sub">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="textInteractionFlags">
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>
@@ -746,7 +740,7 @@
          </widget>
         </item>
         <item row="1" column="0">
-         <widget class="QLabel" name="label_phylop">
+         <widget class="QLabel" name="label_16">
           <property name="text">
            <string>phyloP:</string>
           </property>
@@ -769,9 +763,32 @@
          </widget>
         </item>
         <item row="2" column="0">
-         <widget class="QLabel" name="label_sift">
+         <widget class="QLabel" name="label_18">
           <property name="text">
            <string>Sift:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_17">
+          <property name="text">
+           <string>MetaLR:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QLabel" name="metalr">
+          <property name="minimumSize">
+           <size>
+            <width>100</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="textInteractionFlags">
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>
@@ -791,15 +808,8 @@
           </property>
          </widget>
         </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label_polyphen">
-          <property name="text">
-           <string>PolyPhen:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <widget class="QLabel" name="polyphen">
+        <item row="4" column="1">
+         <widget class="QLabel" name="pp2">
           <property name="minimumSize">
            <size>
             <width>100</width>
@@ -815,26 +825,16 @@
          </widget>
         </item>
         <item row="4" column="0">
-         <widget class="QLabel" name="label_cadd">
+         <widget class="QLabel" name="label_19">
           <property name="text">
-           <string>CADD:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="1">
-         <widget class="QLabel" name="cadd">
-          <property name="text">
-           <string/>
-          </property>
-          <property name="textInteractionFlags">
-           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+           <string>PolyPhen2:</string>
           </property>
          </widget>
         </item>
         <item row="5" column="0">
-         <widget class="QLabel" name="label_fathmm">
+         <widget class="QLabel" name="label_20">
           <property name="text">
-           <string>fathmm-MKL:</string>
+           <string>FATHMM:</string>
           </property>
          </widget>
         </item>
@@ -855,16 +855,19 @@
          </widget>
         </item>
         <item row="6" column="0">
-         <widget class="QLabel" name="label_revel">
+         <widget class="QLabel" name="label_4">
           <property name="text">
-           <string>REVEL:</string>
+           <string>CADD:</string>
           </property>
          </widget>
         </item>
         <item row="6" column="1">
-         <widget class="QLabel" name="revel">
+         <widget class="QLabel" name="cadd">
           <property name="text">
            <string/>
+          </property>
+          <property name="textInteractionFlags">
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
           </property>
          </widget>
         </item>
@@ -896,7 +899,7 @@
          </widget>
         </item>
         <item row="1" column="0">
-         <widget class="QLabel" name="label_ngsd_class">
+         <widget class="QLabel" name="label_21">
           <property name="text">
            <string>Classification:</string>
           </property>
@@ -919,7 +922,7 @@
          </widget>
         </item>
         <item row="2" column="0">
-         <widget class="QLabel" name="label_ngsd_hom">
+         <widget class="QLabel" name="label_23">
           <property name="text">
            <string>count (hom):</string>
           </property>
@@ -942,7 +945,7 @@
          </widget>
         </item>
         <item row="3" column="0">
-         <widget class="QLabel" name="label_ngsd_het">
+         <widget class="QLabel" name="label_24">
           <property name="text">
            <string>count (het):</string>
           </property>
@@ -965,7 +968,7 @@
          </widget>
         </item>
         <item row="4" column="0">
-         <widget class="QLabel" name="label_ngsd_comment">
+         <widget class="QLabel" name="label_13">
           <property name="text">
            <string>comment:</string>
           </property>
@@ -982,7 +985,7 @@
          </widget>
         </item>
         <item row="5" column="0">
-         <widget class="QLabel" name="label_ngsd_validation">
+         <widget class="QLabel" name="label_25">
           <property name="text">
            <string>validation:</string>
           </property>
