@@ -632,6 +632,14 @@
     <string>Sample ancestry</string>
    </property>
   </action>
+  <action name="actionFiltersClearWithROI">
+   <property name="text">
+    <string>Clear filters and target region</string>
+   </property>
+   <property name="toolTip">
+    <string>Clear filters and target region</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>

@@ -456,7 +456,6 @@ void CnvWidget::showContextMenu(QPoint p)
 	int row = ui->cnvs->indexAt(p).row();
 	if (row==-1) return;
 
-
 	//create menu
 	QMenu menu;
 	menu.addAction(QIcon("://Icons/DGV.png"), "Open in DGV");

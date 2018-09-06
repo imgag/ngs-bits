@@ -26,7 +26,7 @@ public:
 	/// Returns the used filters
 	const FilterCascade& filters() const;
 	/// Applies a filter set
-	void setFilters(const FilterCascade& filter);
+	void setFilters(const QString& name, const FilterCascade& filter);
 	/// Visually marks filters that failed.
 	void markFailedFilters();
 
@@ -59,8 +59,10 @@ public:
 	int currentFilterIndex() const;
 
 signals:
-	/// Signal that is emitted when an annotation filter changes its checkbox state, or if the ROI changes, or if the gene changes
+	/// Signal that is emitted when a filter changes (filter cascade, gene, text, region, phenotype)
 	void filtersChanged();
+	/// Signal that is emitted when the filter cascade changed. Note: triggers a filtersChanged() signal as well!
+	void filterCascadeChanged();
 	/// Signal is emitted when the target region changes
 	void targetRegionChanged();
 	/// Signal that an import of phenotype data from GenLab was requested (this cannot be done inside the widget, because it knows nothing about the sample)
@@ -80,7 +82,7 @@ protected slots:
 	void textChanged();
 	void regionChanged();
 	void phenotypesChanged();
-	void filterColumnStateChanged();
+	void onFilterCascadeChange(bool update_name);
 	void showTargetRegionDetails();
 	void updateGeneWarning();
 	void editPhenotypes();

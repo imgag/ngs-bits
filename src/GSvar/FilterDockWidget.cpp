@@ -66,8 +66,10 @@ void FilterDockWidget::setValidFilterEntries(const QStringList& filter_entries)
 	valid_filter_entries_ = filter_entries;
 }
 
-void FilterDockWidget::setFilters(const FilterCascade& filters)
+void FilterDockWidget::setFilters(const QString& name, const FilterCascade& filters)
 {
+	ui_.filter_name->setText(name);
+
 	filters_ = filters;
 
 	//overwrite valid entries of 'filter' column
@@ -80,8 +82,7 @@ void FilterDockWidget::setFilters(const FilterCascade& filters)
 	}
 
 	updateGUI();
-
-	emit filtersChanged();
+	onFilterCascadeChange(false);
 }
 
 void FilterDockWidget::markFailedFilters()
@@ -249,11 +250,13 @@ void FilterDockWidget::focusFilter(int index)
 
 void FilterDockWidget::reset(bool clear_roi)
 {
+	ui_.filter_name->setText("[none]");
+
 	blockSignals(true);
 	resetSignalsUnblocked(clear_roi);
 	blockSignals(false);
 
-    emit filtersChanged();
+	onFilterCascadeChange(true);
 	if (clear_roi) emit targetRegionChanged();
 }
 
@@ -452,8 +455,18 @@ void FilterDockWidget::phenotypesChanged()
 	emit filtersChanged();
 }
 
-void FilterDockWidget::filterColumnStateChanged()
+void FilterDockWidget::onFilterCascadeChange(bool update_name)
 {
+	if (update_name)
+	{
+		QString name = ui_.filter_name->text();
+		if (name!="[none]" && !name.endsWith(" [modified]"))
+		{
+			ui_.filter_name->setText(name + " [modified]");
+		}
+	}
+	
+	emit filterCascadeChanged();
 	emit filtersChanged();
 }
 
@@ -635,7 +648,7 @@ void FilterDockWidget::addFilter()
 		filters_.add(filter);
 		updateGUI();
 		focusFilter(filters_.count()-1);
-		emit filtersChanged();
+		onFilterCascadeChange(true);
 	}
 }
 
@@ -652,7 +665,7 @@ void FilterDockWidget::editSelectedFilter()
 	{
 		updateGUI();
 		focusFilter(index);
-		emit filtersChanged();
+		onFilterCascadeChange(true);
 	}
 }
 
@@ -665,7 +678,7 @@ void FilterDockWidget::deleteSelectedFilter()
 	updateGUI();
 	focusFilter(index);
 
-	emit filtersChanged();
+	onFilterCascadeChange(true);
 }
 
 void FilterDockWidget::moveUpSelectedFilter()
@@ -677,7 +690,7 @@ void FilterDockWidget::moveUpSelectedFilter()
 	updateGUI();
 	focusFilter(index-1);
 
-	emit filtersChanged();
+	onFilterCascadeChange(true);
 }
 
 void FilterDockWidget::moveDownSelectedFilter()
@@ -689,7 +702,7 @@ void FilterDockWidget::moveDownSelectedFilter()
 	updateGUI();
 	focusFilter(index+1);
 
-	emit filtersChanged();
+	onFilterCascadeChange(true);
 }
 
 void FilterDockWidget::toggleSelectedFilter(QListWidgetItem* item)
@@ -702,7 +715,8 @@ void FilterDockWidget::toggleSelectedFilter(QListWidgetItem* item)
 	if ( (item->checkState()==Qt::Checked && !filters_[index]->enabled()) || (item->checkState()==Qt::Unchecked && filters_[index]->enabled()))
 	{
 		filters_[index]->toggleEnabled();
-		emit filtersChanged();
+
+		onFilterCascadeChange(true);
 	}
 }
 

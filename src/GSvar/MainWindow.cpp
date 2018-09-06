@@ -105,6 +105,7 @@ MainWindow::MainWindow(QWidget *parent)
 	}
 	filter_btn->menu()->addSeparator();
 	filter_btn->menu()->addAction(ui_.actionFiltersClear);
+	filter_btn->menu()->addAction(ui_.actionFiltersClearWithROI);
 	ui_.tools->insertWidget(ui_.actionReport, filter_btn);
 
 	//signals and slots
@@ -2309,9 +2310,13 @@ void MainWindow::applyFilter(QAction* action)
 	{
 		filter_widget_->reset(false);
 	}
+	else if (text=="Clear filters and target region")
+	{
+		filter_widget_->reset(true);
+	}
 	else
 	{
-		filter_widget_->setFilters(loadFilter(text));
+		filter_widget_->setFilters(text, loadFilter(text));
 	}
 }
 

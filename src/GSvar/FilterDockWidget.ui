@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>297</width>
-    <height>518</height>
+    <width>299</width>
+    <height>534</height>
    </rect>
   </property>
   <property name="features">
@@ -53,23 +53,23 @@
       <property name="flat">
        <bool>true</bool>
       </property>
-      <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <layout class="QGridLayout" name="gridLayout">
+       <property name="leftMargin">
+        <number>1</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>1</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <property name="spacing">
         <number>3</number>
        </property>
-       <property name="leftMargin">
-        <number>0</number>
-       </property>
-       <property name="topMargin">
-        <number>3</number>
-       </property>
-       <property name="rightMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
-        <number>5</number>
-       </property>
-       <item>
+       <item row="3" column="0">
         <widget class="QListWidget" name="filters_entries">
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Main filter steps listed in the order that they are applied.&lt;br/&gt;&lt;br/&gt;Notes:&lt;br/&gt;- Target region and text filters are applied after the main filters and override them!&lt;br/&gt;- Failed filter steps are marked orange and errors are shown in the tooltip.&lt;br/&gt;&lt;br/&gt;Filter action description:&lt;br/&gt;- REMOVE: Remove variants, if they match the filter.&lt;br/&gt;- FILTER: Remove variants, if they do not match the filter.&lt;br/&gt;- KEEP: Force variants to be kept, even if filtered out by previous filter steps.&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -91,7 +91,7 @@
          </property>
         </widget>
        </item>
-       <item>
+       <item row="3" column="1">
         <layout class="QVBoxLayout" name="verticalLayout">
          <property name="spacing">
           <number>3</number>
@@ -225,6 +225,33 @@
             </size>
            </property>
           </spacer>
+         </item>
+        </layout>
+       </item>
+       <item row="0" column="0" colspan="2">
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <property name="spacing">
+          <number>3</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>Filter name:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="filter_name">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
