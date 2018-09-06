@@ -322,13 +322,6 @@ public:
 		return true;
 	}
 
-	float fun_bound(float value, float lower_bound, float upper_bound)
-	{
-		if (value<lower_bound) return lower_bound;
-		if (value>upper_bound) return upper_bound;
-		return value;
-	}
-
 	void storeSampleInfo(QString out, const QVector<QSharedPointer<SampleData>>& samples, const QVector<QSharedPointer<SampleData>>& samples_removed, const QHash<QSharedPointer<SampleData>, int>& cnvs_sample, const QVector<ResultData>& results)
     {
         //init
@@ -540,15 +533,18 @@ public:
 			//annotation
 			for (int i=0; i<annotate.count(); ++i)
 			{
-				GeneSet values;
+				QSet<QByteArray> set;
 				for (int j=range.start; j<=range.end; ++j)
 				{
 					foreach(const QByteArray& anno, results[j].exon->annotations[i])
 					{
-						values.insert(anno);
+						set << anno.trimmed();
 					}
 				}
-				outstream << "\t" << values.join(",");
+
+				QList<QByteArray> list = set.toList();
+				std::sort(list.begin(), list.end());
+				outstream << "\t" << list.join(",");
 			}
 
 			//end of line
@@ -563,7 +559,7 @@ public:
 			return std::numeric_limits<float>::quiet_NaN();
         }
 
-		return fun_bound((sample->doc[e]-sample->ref[e]) / sample->ref_stdev[e], -10.0f, 10.0f);
+		return BasicStatistics::bound((sample->doc[e]-sample->ref[e]) / sample->ref_stdev[e], -10.0f, 10.0f);
     }
 
 	short calculateCopies(const QSharedPointer<SampleData>& s, const QSharedPointer<ExonData>& e)

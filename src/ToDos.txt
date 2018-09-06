@@ -17,7 +17,14 @@ NGSD:
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
 
 GSvar:
-** CNV window: show all columns in original case and ignore case during search
+**** CNV-Widget, right click => Crash
+** pli raus aus filtern (außer dom-str)
+** KEEP pathogenic + filter REMOVE AF<3%
+** Filter dom-relax+roi: Also add MODIFIERS
+** Clear filters (+ clear filters and ROI)
+** Highlight chrX, chrM, imprinting genes
+** Filter widget: Show base filter name (and if it was modified)
+* Add multi-gene Google/PubMed search: https://www.ncbi.nlm.nih.gov/pubmed/?term=CASP8+AND+(%22Breast+cancer%22+OR+%22Breast+carcinoma%22)+AND+2018 (SWAL)
 * Add ExAC pLI / ExAC CNV / inheritance (megSAP) and filter for CNVs (GSvar) (wait for ClinCNV)
 * GenLab XML report: male => change 'hom' variants outside PAR region on chrX/chrY to 'hemi' (when GenLab import is updated)
 ** Report variant selection
@@ -25,7 +32,8 @@ GSvar:
     - store marked variants in NGSD when writing the report (who, when, comment, applied default filter)
     - load marked variants from NGSD after loading the case again
     - add filter to show marked variants only
-    - add flag to XML report
+    - also flag which variants are exported to GenLab8 via the XML report
+    - print sheet with flagged variants
 
 Tools:
 - VariantFilterAnnotations: support VCF as well
