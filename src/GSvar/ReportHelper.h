@@ -3,6 +3,7 @@
 
 #include "VariantList.h"
 #include "GeneSet.h"
+#include "ClinCnvList.h"
 #include "CnvList.h"
 #include "BedFile.h"
 #include "NGSD.h"
@@ -183,7 +184,7 @@ class ReportHelper
 {
 public:
 	ReportHelper();
-	ReportHelper(QString snv_filename, const CnvList& filtered_cnvs, QString target_region, const FilterCascade& filters);
+	ReportHelper(QString snv_filename, const ClinCnvList& filtered_cnvs, QString target_region, const FilterCascade& filters);
 	///write Rtf File
 	void writeRtf(const QString& out_file);
 
@@ -255,7 +256,7 @@ private:
 	VariantList snv_germline_;
 
 	///CNVList for input (filtered) variants
-	CnvList cnvs_filtered_;
+	ClinCnvList cnvs_filtered_;
 
 	NGSD db_;
 

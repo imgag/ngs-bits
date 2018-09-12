@@ -205,7 +205,7 @@ class CPPNGSSHARED_EXPORT FilterCascade
 			return filters_[index];
 		}
 
-		//Remoce all filters;
+		//Remove all filters;
 		void clear()
 		{
 			filters_.clear();

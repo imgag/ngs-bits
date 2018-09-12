@@ -194,7 +194,7 @@ public:
 	static QPair<int, int> indelRegion(const Chromosome& chr, int start, int end, Sequence ref, Sequence obs, const FastaFileIndex& reference);
 
 	///Returns transcript information from the given column name.
-	QList<VariantTranscript> transcriptAnnotations(int column_index) const;
+	const QList<VariantTranscript> transcriptAnnotations(int column_index) const;
 
 protected:
     Chromosome chr_;

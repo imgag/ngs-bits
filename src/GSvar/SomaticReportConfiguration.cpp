@@ -1,11 +1,10 @@
 #include "SomaticReportConfiguration.h"
 #include "ui_SomaticReportConfiguration.h"
 #include "GUIHelper.h"
-#include <QDebug>
 #include <QMenu>
 #include "cmath"
 
-SomaticReportConfiguration::SomaticReportConfiguration(const CnvList& cnv_input,GeneSet keep_genes,QWidget *parent) :
+SomaticReportConfiguration::SomaticReportConfiguration(const ClinCnvList& cnv_input,GeneSet keep_genes,QWidget *parent) :
 	QDialog(parent)
 	, ui_(new Ui::SomaticReportConfiguration)
 	, cnvs_(cnv_input)
@@ -14,13 +13,12 @@ SomaticReportConfiguration::SomaticReportConfiguration(const CnvList& cnv_input,
 	ui_->setupUi(this);
 	QStringList col_names;
 
-	col_names << "" <<  "chr" << "start" << "end" << "region count" <<  "region copy numbers" << "region zscores" << "genes";
+	col_names << "" <<  "chr" << "start" << "end" << "Copy Number" <<  "Logarithmic Likelihood" << "genes";
 	ui_->cnvs->setColumnCount(col_names.count());
 	ui_->cnvs->setColumnWidth(0,27); //checkbox
 	ui_->cnvs->setColumnWidth(1,60); //chr
-	ui_->cnvs->setColumnWidth(4,80); //region count
-	ui_->cnvs->setColumnWidth(5,200); //regioncopy numbers
-	ui_->cnvs->setColumnWidth(6,200); //zscores
+	ui_->cnvs->setColumnWidth(4,80); //copy number
+	ui_->cnvs->setColumnWidth(5,200); //logarithmic likelihood
 
 	ui_->cnvs->setHorizontalHeaderLabels(col_names);
 
@@ -35,44 +33,21 @@ SomaticReportConfiguration::SomaticReportConfiguration(const CnvList& cnv_input,
 	//load data into QTableWidget cnvs
 	for(int row=0;row<cnvs_.count();++row)
 	{
-		CopyNumberVariant cnv = cnvs_[row];
+		ClinCopyNumberVariant cnv = cnvs_[row];
 
 		ui_->cnvs->setItem(row, 0, new QTableWidgetItem(""));
 
 		ui_->cnvs->item(row, 0)->setFlags(Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
 		ui_->cnvs->item(row,0)->setTextAlignment(Qt::AlignCenter);
-		if(preselectVariant(cnv))
-		{
-			ui_->cnvs->item(row, 0)->setCheckState(Qt::Checked);
-		}
-		else
-		{
-			ui_->cnvs->item(row, 0)->setCheckState(Qt::Unchecked);
-		}
+
+
+		ui_->cnvs->item(row, 0)->setCheckState(Qt::Checked);
 
 		ui_->cnvs->setItem(row, 1, new QTableWidgetItem(QString(cnv.chr().str())));
 		ui_->cnvs->setItem(row, 2, new QTableWidgetItem(QString::number(cnv.start())));
 		ui_->cnvs->setItem(row, 3, new QTableWidgetItem(QString::number(cnv.end())));
-		ui_->cnvs->setItem(row, 4, new QTableWidgetItem(QString::number(cnv.regionCount())));
-
-		//region copy numbers
-		QList<int> cn_list = cnv.copyNumbers();
-		QString cn = "";
-		for(int i=0;i<cn_list.count();++i)
-		{
-			cn += QString::number(cn_list[i]);
-			if(i<cn_list.count()-1) cn += ", ";
-		}
-		ui_->cnvs->setItem(row, 5, new QTableWidgetItem(cn));
-		//z scores
-		QList<double> zscores = cnv.zScores();
-		QString zs = "";
-		for(int i=0;i<zscores.count();++i)
-		{
-			zs += QString::number(zscores[i]);
-			if(i<zscores.count()-1) zs += ", ";
-		}
-		ui_->cnvs->setItem(row,6,new QTableWidgetItem(zs));
+		ui_->cnvs->setItem(row, 4, new QTableWidgetItem(QString::number(cnv.copyNumber())));
+		ui_->cnvs->setItem(row, 5, new QTableWidgetItem(QString::number(cnv.likelihood())));
 
 		QString genes = "";
 		GeneSet gene_list = cnv.genes();
@@ -81,7 +56,7 @@ SomaticReportConfiguration::SomaticReportConfiguration(const CnvList& cnv_input,
 			genes += gene_list[i];
 			if(i<gene_list.count()-1) genes += ", ";
 		}
-		ui_->cnvs->setItem(row,7,new QTableWidgetItem(genes));
+		ui_->cnvs->setItem(row,6,new QTableWidgetItem(genes));
 	}
 
 	ui_->cnvs->resizeColumnToContents(7);
@@ -98,9 +73,9 @@ SomaticReportConfiguration::~SomaticReportConfiguration()
 	delete ui_;
 }
 
-CnvList SomaticReportConfiguration::getFilteredVariants()
+ClinCnvList SomaticReportConfiguration::getFilteredVariants()
 {
-	CnvList filtered_cnvs;
+	ClinCnvList filtered_cnvs;
 
 	filtered_cnvs.copyMetaData(cnvs_);
 
@@ -112,37 +87,6 @@ CnvList SomaticReportConfiguration::getFilteredVariants()
 		}
 	}
 	return filtered_cnvs;
-}
-
-bool SomaticReportConfiguration::preselectVariant(const CopyNumberVariant& variant)
-{
-	bool preselect = true;
-
-	//Prepare array with z-scores
-	QList<double> zscores = variant.zScores();
-	for(int j=0;j<zscores.count();++j)
-	{
-		zscores[j] = fabs(zscores[j]);
-	}
-	//only keep genes with high enough z-scores
-	if(*std::max_element(zscores.begin(),zscores.end()) < 5.)
-	{
-		preselect = false;
-	}
-	if(zscores.length()< 10.)
-	{
-		preselect = false;
-	}
-
-	foreach (QByteArray gene, variant.genes())
-	{
-		if(keep_genes_cnv_.contains(gene) && fabs(*std::max_element(zscores.begin(),zscores.end()))>=5.)
-		{
-			preselect = true;
-		}
-	}
-	if(preselect) return true;
-	return false;
 }
 
 void SomaticReportConfiguration::showContextMenu(QPoint pos)

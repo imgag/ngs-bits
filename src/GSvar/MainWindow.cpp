@@ -58,6 +58,7 @@
 #include "SvWidget.h"
 #include "VariantSampleOverviewDialog.h"
 #include "SomaticReportConfiguration.h"
+#include "ClinCnvList.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -1049,14 +1050,14 @@ void MainWindow::generateReportSomaticRTF()
 		QMessageBox::warning(this,"Somatic report", "Report cannot be created because GSVar-file does not contain CGI-data.");
 		return;
 	}
-	QString filename_cnv = QFileInfo(filename_).filePath().split('.')[0] + "_cnvs.tsv";
+	QString filename_cnv = QFileInfo(filename_).filePath().split('.')[0] + "_clincnv.tsv";
 	if(!QFileInfo(filename_cnv).exists())
 	{
-		QMessageBox::warning(this,"Somatic report", "Report cannot be created because file with CNV data does not exist.");
+		QMessageBox::warning(this,"Somatic report", "Report cannot be created because file with ClinCNV data does not exist.");
 		return;
 	}
 
-	CnvList cnvs;
+	ClinCnvList cnvs;
 	try
 	{
 		cnvs.load(filename_cnv);
@@ -1068,12 +1069,15 @@ void MainWindow::generateReportSomaticRTF()
 
 	SomaticReportConfiguration configReport(cnvs,cnv_keep_genes_filter,this);
 
-	if(!configReport.exec()) return;
 
+	if(!configReport.exec()) return;
 
 	try
 	{
-		ReportHelper report(filename_,configReport.getFilteredVariants(),target_region, filter_widget_->filters());
+		//ReportHelper report(filename_,configReport.getFilteredVariants(),target_region,filter_widget_->filterColumnsKeep(),filter_widget_->filterColumnsRemove(),filter_widget_->filterColumnsFilter());
+		const FilterCascade& test = filter_widget_->filters();
+		ReportHelper report(filename_,configReport.getFilteredVariants(),target_region,test);
+
 		report.writeRtf(temp_filename);
 		//Create files for QBIC upload
 		report.germlineSnvForQbic();
@@ -1092,6 +1096,10 @@ void MainWindow::generateReportSomaticRTF()
 	{
 		QMessageBox::warning(this,"File Access Exception",error.message());
 		return;
+	}
+	catch(ArgumentException error)
+	{
+		QMessageBox::warning(this,"Argument Exception",error.message());
 	}
 	catch(...)
 	{

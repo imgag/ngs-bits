@@ -1646,7 +1646,7 @@ QPair<int, int> Variant::indelRegion(const Chromosome& chr, int start, int end, 
 	return qMakePair(start_orig, end_orig);
 }
 
-QList<VariantTranscript> Variant::transcriptAnnotations(int column_index) const
+const QList<VariantTranscript> Variant::transcriptAnnotations(int column_index) const
 {
 	QList<VariantTranscript> output;
 

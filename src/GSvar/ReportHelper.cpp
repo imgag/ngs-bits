@@ -479,7 +479,7 @@ void ReportHelper::writeRtfTableCNV(QTextStream& stream, const QList<int>& colWi
 
 	for(int i=0; i<cnvs_filtered_.count(); ++i)
 	{
-		CopyNumberVariant variant = cnvs_filtered_[i];
+		ClinCopyNumberVariant variant = cnvs_filtered_[i];
 		QList<QString> columns;
 
 		//gene names
@@ -526,19 +526,12 @@ void ReportHelper::writeRtfTableCNV(QTextStream& stream, const QList<int>& colWi
 
 
 		//AMP/DEL
-		QVector<double> copy_numbers;
-		foreach(int cn, variant.copyNumbers())
-		{
-			copy_numbers.append((double)cn);
-		}
-		std::sort(copy_numbers.begin(),copy_numbers.end());
-		//median Copy Number
-		double cn = BasicStatistics::median(copy_numbers);
-		if(cn > 2.)
+		double copy_number = variant.copyNumber();
+		if(copy_number > 2.)
 		{
 			columns.append("\\qc AMP");
 		}
-		else if(cn < 2.)
+		else if(copy_number < 2.)
 		{
 			columns.append("\\qc DEL");
 		}
@@ -548,7 +541,7 @@ void ReportHelper::writeRtfTableCNV(QTextStream& stream, const QList<int>& colWi
 		}
 
 		//copy numbers
-		columns.append("\\qc " + QString::number(cn));
+		columns.append("\\qc " + QString::number(copy_number));
 
 		//coordinates
 		columns.append("\\fi20 " +variant.chr().str());
@@ -590,22 +583,13 @@ void ReportHelper::writeRtfTableCNV(QTextStream& stream, const QList<int>& colWi
 
 	for(int i=0; i<cnvs_filtered_.count(); ++i)
 	{
-		CopyNumberVariant variant = cnvs_filtered_[i];
+		ClinCopyNumberVariant variant = cnvs_filtered_[i];
 
-		QVector<double> copy_numbers;
-		foreach(int cn, variant.copyNumbers())
-		{
-			copy_numbers.append((double)cn);
-		}
-		std::sort(copy_numbers.begin(),copy_numbers.end());
-		//median Copy Number
-		double cn = BasicStatistics::median(copy_numbers);
-
-		if(cn > 2.)
+		if(variant.copyNumber() > 2.)
 		{
 			amplified_cnvs.insert(GeneSet::createFromText(variant.annotations().at(cnv_index_cgi_genes_),','));
 		}
-		else
+		else if(variant.copyNumber() < 2.)
 		{
 			deleted_cnvs.insert(GeneSet::createFromText(variant.annotations().at(cnv_index_cgi_genes_),','));
 		}
@@ -683,12 +667,10 @@ void ReportHelper::writeGapStatistics(QTextStream &stream, const QString& target
 	BedFile low_cov;
 	low_cov.load(low_cov_file);
 	low_cov.intersect(region_of_interest);
-
 	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
 	stream << begin_table_cell <<"L\\u252;cken Regionen:\\cell"<< begin_table_cell << low_cov.count() << "\\cell" << "\\row}" <<endl;
 	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
 	stream << begin_table_cell << "L\\u252;cken Basen:\\cell" << begin_table_cell << low_cov.baseCount() << " (" << QString::number(100.0 * low_cov.baseCount()/roi_.baseCount(), 'f', 2) << "%)"<< "\\sa20\\cell" << "\\row}" <<endl;
-
 	QHash<QByteArray, BedFile> grouped = gapStatistics(region_of_interest);
 
 	//write gap statistics for each gene only if there are few genes
@@ -1078,15 +1060,14 @@ ReportHelper::ReportHelper()
 {
 }
 
-ReportHelper::ReportHelper(QString snv_filename, const CnvList& filtered_cnvs, QString target_region, const FilterCascade& filters)
+ReportHelper::ReportHelper(QString snv_filename, const ClinCnvList& filtered_cnvs, QString target_region, const FilterCascade& filters)
 	: snv_filename_(snv_filename)
 	, snv_germline_()
 	, cnvs_filtered_(filtered_cnvs)
 	, db_()
 	, target_region_(target_region)
 	, filters_(filters)
-{
-
+{	
 	snv_variants_.load(snv_filename_);
 
 	QString base_name = QFileInfo(snv_filename_).baseName();
@@ -1235,53 +1216,17 @@ VariantList ReportHelper::filterSnvForCGIAnnotation(bool filter_for_target_regio
 	VariantList important_snvs;
 	important_snvs.copyMetaData(snv_variants_);
 
+	QBitArray filter_mask = filters_.apply(snv_variants_,true).flags();
+
 	//Skip unimportant SNVs: CGI, filtered, OBO type
 	for(int i=0; i<snv_variants_.count(); ++i)
 	{
 		Variant variant = snv_variants_[i];
 		QByteArray cgi_gene = variant.annotations().at(snv_index_cgi_gene_);
-
 		//skip variants which do not lie in target region
 		if(filter_for_target_region && !genes_in_target_region_.contains(cgi_gene)) continue;
-
-		//apply filters: keep variants
-		bool keep = false;
-
-		QList<QString> filter_entries = QString::fromUtf8(variant.annotations().at(snv_index_filter_)).split(';');
-
-		foreach(QString filter,filter_keep_)
-		{
-			if(filter_entries.contains(filter))
-			{
-				keep = true;
-				break;
-			}
-		}
-		bool remove = false;
-		foreach(QString filter,filter_remove_)
-		{
-			if(filter_entries.contains(filter))
-			{
-				remove = true;
-				break;
-			}
-		}
-
-		if(!keep)
-		{
-			if(remove) continue;
-		}
-
-
-		bool filtering = false;
-		foreach(QString filter,filter_filter_)
-		{
-			if(!filter_entries.contains(filter))
-			{
-				filtering = true;
-			}
-		}
-		if(filtering) continue;
+		//skip filtered variants
+		if(filter_mask[i] == false) continue;
 		important_snvs.append(variant);
 	}
 
@@ -1423,7 +1368,7 @@ void ReportHelper::writeRtfCGIDrugTable(QTextStream &stream, const QList<int> &c
 	drugs.mergeDuplicates(6);
 
 	//Make list of copy number altered genes which shall be kept in drug list
-	CnvList cnvs = cnvs_filtered_;
+	ClinCnvList cnvs = cnvs_filtered_;
 	GeneSet keep_cnv_genes;
 	for(int i=0;i<cnvs.count();++i)
 	{
@@ -1475,30 +1420,62 @@ void ReportHelper::writeRtfCGIDrugTable(QTextStream &stream, const QList<int> &c
 		//remove first column because gene name is included in alteration type already
 		result_line.removeAt(0);
 
-		//Parse for RTF table
-		bool aa_change_in_variant_list = false;
 
-		//check whether there are variants which correspond to the same aa change in SNV list
+		/***********************************************
+		 * CHECK WHETHER ALTERATIONS OCCUR IN SNV LIST *
+		 ***********************************************/
+
+		//check whether all genes that appear in drug report line are included in SNV list
+		QList<QString> drug_alterations_from_cgi = result_line[0].split(',');
+		QBitArray genes_included; //one bit for each gene of drug report line
+		genes_included.fill(false,drug_alterations_from_cgi.size());
+		QBitArray aa_included; // one bit for each aminoacid change of drug report line
+		aa_included.fill(false,drug_alterations_from_cgi.size());
+
 		for(int j=0;j<snvs.count();++j)
 		{
 			Variant snv = snvs[j];
-
-			if(result_line[0].split(':')[0] != snv.annotations().at(snv_index_cgi_gene_)) continue;
-
-			foreach(VariantTranscript trans, snv.transcriptAnnotations(snv_index_coding_splicing_))
+			for(int i=0;i<drug_alterations_from_cgi.count();++i)
 			{
-				if(trans.hgvs_p.contains(result_line[0].split(':')[1].toLatin1())
-				   || trans.type.contains(result_line[0].split(':')[1].toLatin1()))
+				QString gene = drug_alterations_from_cgi[i].split(':')[0];
+				if(gene == snv.annotations().at(snv_index_cgi_gene_))
 				{
-					aa_change_in_variant_list = true;
-					break;
+					genes_included.setBit(i);
 				}
+
+				//check whether AA change is included (in any of the SNV transcripts)
+				QByteArray protein_change = drug_alterations_from_cgi[i].split(':')[1].toLatin1();
+
+				QList<VariantTranscript> transcripts = snv.transcriptAnnotations(snv_index_coding_splicing_);
+
+				foreach(const VariantTranscript& trans, transcripts)
+				{
+					if(trans.hgvs_p.contains(protein_change))
+					{
+						aa_included.setBit(i);
+					}
+				}
+
 			}
-			if(aa_change_in_variant_list) break;
+		}
+
+		bool all_alterations_included = true;
+		for(int i=0;i<drug_alterations_from_cgi.count();++i)
+		{
+			if(genes_included.testBit(i) == false)
+			{
+				all_alterations_included = false;
+				break;
+			}
+			if(aa_included.testBit(i) == false)
+			{
+				all_alterations_included = false;
+				break;
+			}
 		}
 
 		//highlight AA changes which could not be identified in SNV list
-		if(!aa_change_in_variant_list && !drug.alterationType().contains("DEL") && !drug.alterationType().contains("AMP"))
+		if(!all_alterations_included && !drug.alterationType().contains("DEL") && !drug.alterationType().contains("AMP"))
 		{
 			result_line[0].prepend("\\highlight3 ");
 		}
@@ -1705,7 +1682,7 @@ void ReportHelper::somaticCnvForQbic()
 	stream << "size" << "\t" << "type" << "\t" << "copy_number" << "\t" << "gene" << "\t" << "exons" << "\t";
 	stream << "transcript" << "\t" << "chr" << "\t" << "start" << "\t" << "end" << "\t" << "effect" << endl;
 
-	CnvList variants = cnvs_filtered_;
+	ClinCnvList variants = cnvs_filtered_;
 
 	QString target_region_processing_system = db_.getProcessingSystemData(db_.processedSampleId(tumor_id_), true).target_file;
 	GeneSet target_genes = GeneSet::createFromFile(target_region_processing_system.left(target_region_processing_system.size()-4) + "_genes.txt");
@@ -1714,7 +1691,7 @@ void ReportHelper::somaticCnvForQbic()
 
 	for(int i=0; i<variants.count(); ++i)
 	{
-		CopyNumberVariant variant = variants[i];
+		ClinCopyNumberVariant variant = variants[i];
 
 		GeneSet genes_in_report = target_genes.intersect(GeneSet::createFromText(variant.annotations().at(cnv_index_cgi_genes_),','));
 
@@ -1728,15 +1705,9 @@ void ReportHelper::somaticCnvForQbic()
 		}
 		stream << "\t";
 
-		//Deletion or Amplification
-		QVector<double> copy_numbers;
-		for(int i=0; i<variant.copyNumbers().count(); ++i)
-		{
-			copy_numbers.append((double)variant.copyNumbers()[i]);
-		}
+		//take copy number twice (-> total number of copys instead normalized to diploid chormosomes)
+		double copy_number = variant.copyNumber();
 
-		std::sort(copy_numbers.begin(),copy_numbers.end());
-		int copy_number = BasicStatistics::median(copy_numbers,true);
 		if(copy_number > 2)
 		{
 			stream << "amp";
@@ -1745,6 +1716,7 @@ void ReportHelper::somaticCnvForQbic()
 		{
 			stream << "del";
 		}
+
 		stream << "\t";
 		stream << copy_number << "\t";
 
@@ -1966,16 +1938,14 @@ VariantTranscript ReportHelper::selectSomaticTranscript(const Variant& variant)
 
 	foreach(const VariantTranscript& trans, transcripts)
 	{
-		if(trans.id != cgi_transcript) continue;
-
-		if(trans.isPartOntologyTerms(obo_terms_coding_splicing_))
+		if(trans.id == cgi_transcript)
 		{
 			use_transcript = trans;
 			break;
 		}
 	}
 
-	//take first co/sp transcript if CGI transcript was not found or not coding/splicing
+	//take first transcript which is coding splicing if CGI transcript was not found
 	if(use_transcript.id.isEmpty())
 	{
 		foreach(const VariantTranscript& trans,transcripts)
@@ -2178,7 +2148,7 @@ void ReportHelper::writeRtf(const QString& out_file)
 
 	widths.clear();
 	widths << 1000 << 1500 << 2700 << 5000 << 6000 << 7000 << max_table_width;
-	stream << "{\\pard\\sa45\\sb45\\fs18\\b Medikamente mit CGI-Annotation\\par}" << endl;
+	stream << "{\\pard\\sa45\\sb45\\fs18\\b Gene mit CGI-Medikamenten-Annotation\\par}" << endl;
 
 	ReportHelper::writeRtfCGIDrugTable(stream,widths);
 
@@ -2205,7 +2175,7 @@ void ReportHelper::writeRtf(const QString& out_file)
 	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
 	stream << begin_table_cell << "\\fs18 CNV-Tabelle:" << "\\cell";
 	stream << begin_table_cell << "\\fs18 " << "\\qj ";
-	stream << "Die Tabelle mit Kopienzahlvarianten (CNVs) zeigt das Ergebnis der CNV-Analysen, die mit CNVHunter (www.github.com/imgag/ngs-bits) durchgef\\u252;hrt wurden. " << endl;
+	stream << "Die Tabelle mit Kopienzahlvarianten (CNVs) zeigt das Ergebnis der CNV-Analysen, die mit ClinCNV (www.github.com/imgag/ClinCNV) durchgef\\u252;hrt wurden. " << endl;
 	stream << "Zur Validierung relevanter Ver\\u228;nderungen empfehlen wir eine zweite, unabh\\u228;ngige Methode. " <<endl;
 	stream << "Zu jeder CNV werden die amplifizierten/deletierten Gene aus der Zielregion des Prozessierungssystems angegeben. Wenn ein Gen fett gedruckt ist, wurde dieses von CGI als Tumortreiber beurteilt. " << endl;
 	stream << "Die restlichen Gene wurden von CGI als Passenger klassifiziert. " << endl;
@@ -2231,7 +2201,7 @@ void ReportHelper::writeRtf(const QString& out_file)
 	stream << begin_table_cell << "\\fs18 MSI-Status: " << "\\cell";
 	stream << begin_table_cell << "\\fs18\\qj" << endl;
 	stream << "Die Abk\\u252;rzung MSI steht f\\u252;r Mikrosatelliteninstabilit\\u228;t. Der MSI-Status wurde mit dem NGS-Tool ";
-	stream << "MANTIS (DOI:10.18632/oncotarget.13918) ermittelt. Der Zahlenwert bezieht sich auf die gemittelte schrittweise Differenz der L\\u228;ngen der Tumor-Reads und Normal-Reads aller im Panel enthaltenen MS-Loci. ";
+	stream << "MANTIS (DOI:10.18632/oncotarget.13918) ermittelt. Der Zahlenwert bezieht sich auf die gemittelte schrittweise Differenz der L\\u228;ngen der Tumor-Reads und Normal-Reads aller im Panel enthaltenen verwertbaren MS-Loci. ";
 	stream << "Dabei verwenden wir einen Wert von 0.4 als Schwelle, um zwischen MS stabilen- und instabilen Tumoren zu unterscheiden. ";
 	stream << "Zur Validierung des MSI-Status empfehlen wir eine weitere, pathologische Untersuchung des Tumorgewebes." << endl;
 	stream << "\\cell\\row}" << endl;

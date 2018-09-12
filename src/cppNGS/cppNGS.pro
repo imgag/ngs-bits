@@ -54,6 +54,7 @@ SOURCES += BedFile.cpp \
     RohList.cpp \
     OntologyTermCollection.cpp \
     SvList.cpp \
+    ClinCnvList.cpp \
     FilterCascade.cpp
 
 
@@ -80,7 +81,8 @@ HEADERS += BedFile.h \
     RohList.h \
     OntologyTermCollection.h \
     SvList.h \
-    FilterCascade.h \
+    ClinCnvList.h \
+    FilterCascade.h
 
 
 RESOURCES += \
