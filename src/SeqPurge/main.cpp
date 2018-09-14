@@ -59,6 +59,22 @@ public:
 		return data_.reads_queued - stats_.read_num;
 	}
 
+	//check that headers match
+	void checkHeaders(const QByteArray& h1, const QByteArray& h2)
+	{
+		QByteArray tmp1 = h1.split(' ').at(0);
+		QByteArray tmp2 = h2.split(' ').at(0);
+		if (tmp1.endsWith("/1") && tmp2.endsWith("/2"))
+		{
+			tmp1.chop(2);
+			tmp2.chop(2);
+		}
+		if (tmp1!=tmp2)
+		{
+			THROW(Exception, "Headers of reads do not match:\n" + tmp1 + "\n" + tmp2);
+		}
+	}
+
 	virtual void main()
 	{
 		//init
@@ -141,6 +157,8 @@ public:
 				in1.readEntry(*e1);
 				QSharedPointer<FastqEntry> e2(new FastqEntry());
 				in2.readEntry(*e2);
+
+				checkHeaders(e1->header, e2->header);
 
 				data_.analysis_pool.start(new AnalysisWorker(e1, e2, params_, stats_, ecstats_, data_));
 			}

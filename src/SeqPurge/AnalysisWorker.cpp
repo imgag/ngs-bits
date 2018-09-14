@@ -18,21 +18,6 @@ AnalysisWorker::~AnalysisWorker()
 {
 }
 
-void AnalysisWorker::checkHeaders(const QByteArray& h1, const QByteArray& h2)
-{
-	QByteArray tmp1 = h1.split(' ').at(0);
-	QByteArray tmp2 = h2.split(' ').at(0);
-	if (tmp1.endsWith("/1") && tmp2.endsWith("/2"))
-	{
-		tmp1.chop(2);
-		tmp2.chop(2);
-	}
-	if (tmp1!=tmp2)
-	{
-		THROW(Exception, "Headers of reads do not match:\n" + tmp1 + "\n" + tmp2);
-	}
-}
-
 void AnalysisWorker::correctErrors(QTextStream& debug_out)
 {
 	int mm_count = 0;
@@ -96,9 +81,6 @@ void AnalysisWorker::correctErrors(QTextStream& debug_out)
 void AnalysisWorker::run()
 {	
 	QTextStream debug_out(stdout);
-
-	//check that headers match
-	checkHeaders(e1_->header, e2_->header);
 
 	if (params_.debug)
 	{
