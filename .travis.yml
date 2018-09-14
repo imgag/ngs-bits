@@ -1,26 +1,25 @@
 language: cpp
 sudo: required
 
-os:
-  - osx
-  - linux
+services:
+  - docker
 
-compiler:
-  - gcc
-  - clang
-
-install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update                  ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt lzlib        ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew link qt --force         ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update -y -qq ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y -qq qt5-default qttools5-dev-tools libqt5xmlpatterns5-dev libqt5sql5-mysql libbz2-dev liblzma-dev ; fi
-  - sudo pip install matplotlib
+matrix:
+  include:
+    - env: COMPILER=clang
+      os: linux
+      compiler: clang
+    - env: COMPILER=gcc
+      os: linux
+      compiler: gcc
+    - env: COMPILER=clang
+      os: osx
+      compiler: clang
 
 before_script:
   - qmake -v
 
 script:
-  - make pull
-  - make build_3rdparty build_libs_release build_tools_release build_gui_release -j$(nproc)
-  - make test_lib test_tools -k -j$(nproc)
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then /bin/bash ./tools/TravisCI/run_osx.sh ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" && "$COMPILER" == "clang" ]]; then docker run --privileged -v $TRAVIS_BUILD_DIR:/root/ngs-bits -w /root/ngs-bits/ ubuntu:16.04 /bin/bash /bin/bash ./tools/TravisCI/run_linux_clang.sh ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" && "$COMPILER" == "gcc" ]]; then docker run --privileged -v $TRAVIS_BUILD_DIR:/root/ngs-bits -w /root/ngs-bits/ ubuntu:16.04 /bin/bash /bin/bash ./tools/TravisCI/run_linux_gcc.sh     ; fi
