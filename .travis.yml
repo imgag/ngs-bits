@@ -1,23 +1,21 @@
 language: cpp
 sudo: required
 
+os:
+  - osx
+  - linux
+
 compiler:
   - gcc
   - clang
 
-matrix:
-  include:
-    - os: linux
-      install:
-        - sudo apt-get update -y -qq
-        - sudo apt-get -y -qq install python-matplotlib qt5-default qttools5-dev-tools libqt5xmlpatterns5-dev libqt5sql5-mysql libbz2-dev liblzma-dev
-  include:
-    - os: osx
-      install:
-        - brew update
-        - brew install qt lzlib
-        - brew link qt --force
-        - pip install matplotlib
+install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update                  ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt lzlib        ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew link qt --force         ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update -y -qq ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y -qq qt5-default qttools5-dev-tools libqt5xmlpatterns5-dev libqt5sql5-mysql libbz2-dev liblzma-dev ; fi
+  - sudo pip install matplotlib
 
 before_script:
   - qmake -v
