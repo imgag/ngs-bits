@@ -16,9 +16,6 @@ matrix:
       os: osx
       compiler: clang
 
-before_script:
-  - qmake -v
-
 script:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then /bin/bash ./tools/TravisCI/run_osx.sh ; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" && "$COMPILER" == "clang" ]]; then docker run --privileged -v $TRAVIS_BUILD_DIR:/root/ngs-bits -w /root/ngs-bits/ ubuntu:16.04 /bin/bash /bin/bash ./tools/TravisCI/run_linux_clang.sh ; fi
