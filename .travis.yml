@@ -1,28 +1,26 @@
 language: cpp
-compiler:
- - gcc
- - clang
-
-sudo: required
 
 matrix:
   include:
     - os: linux
+      compiler:
+        - gcc
       sudo: required
-      before_install:
+      install:
         - apt-get update
         - apt-get -y install python-matplotlib qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql libbz2-dev liblzma-dev
   include:
     - os: osx
+      compiler:
+        - clang
       sudo: required
-      before_install:
+      install:
         - brew update
         - brew install qt lzlib
+        - brew link qt
         - pip install matplotlib
 
-git:
-  depth: 3
-
 script:
+  - make pull
   - make build_3rdparty build_libs_release build_tools_release build_gui_release
   - make -k test_lib test_tools
