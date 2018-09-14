@@ -1,12 +1,28 @@
 language: cpp
-os: linux
 compiler:
  - gcc
  - clang
+
 sudo: required
-services: docker
+
+matrix:
+  include:
+    - os: linux
+      sudo: required
+      before_install:
+        - apt-get update
+        - apt-get -y install python-matplotlib qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql libbz2-dev liblzma-dev
+  include:
+    - os: osx
+      sudo: required
+      before_install:
+        - brew update
+        - brew install qt lzlib
+        - pip install matplotlib
 
 git:
   depth: 3
 
-script: docker run --privileged -v $TRAVIS_BUILD_DIR:/root/ngs-bits -w /root/ngs-bits/ ubuntu:16.04 /bin/bash ./tools/TravisCI/run.sh
+script:
+  - make build_3rdparty build_libs_release build_tools_release build_gui_release
+  - make -k test_lib test_tools
