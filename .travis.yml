@@ -10,7 +10,7 @@ matrix:
     - os: linux
       install:
         - apt-get update
-        - apt-get -y install python-matplotlib qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql libbz2-dev liblzma-dev
+        - apt-get -y install python-matplotlib qt5-default qttools5-dev-tools libqt5xmlpatterns5-dev libqt5sql5-mysql libbz2-dev liblzma-dev
   include:
     - os: osx
       install:
@@ -19,7 +19,10 @@ matrix:
         - brew link qt --force
         - pip install matplotlib
 
+before_script:
+  - qmake -v
+
 script:
   - make pull
-  - make build_3rdparty build_libs_release build_tools_release build_gui_release
-  - make -k test_lib test_tools
+  - make build_3rdparty build_libs_release build_tools_release build_gui_release -j$(nproc)
+  - make test_lib test_tools -k -j$(nproc)
