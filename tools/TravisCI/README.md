@@ -5,18 +5,20 @@
 Files for TravisCI are
 
 * `ngs-bits/.travis.yml`
-* `ngs-bits/tools/TravisCI/run.sh`
+* `ngs-bits/tools/TravisCI/run_osx.sh` runs the OSX test with default clang (currently not enabled)
+* `ngs-bits/tools/TravisCI/run_linux_clang.sh` runs Ubuntu:16.04 clang 
+* `ngs-bits/tools/TravisCI/run.sh` runs Ubuntu:16:04 gcc
 
 ## Description
 
-The YML file sets up testing using a Ubuntu docker image with several compilers, currently:
+The YML file sets up testing using several configurations
 
- * GCC
- * Clang
+ * Ubuntu 16.04 gcc
+ * Ubuntu 16.04 clang
+ * OSX clang
 
-The SH file contains the commands for:
+The SH files contain the commands for:
 
 * dependencies installation
 * build
 * tests
-
