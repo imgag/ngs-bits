@@ -217,18 +217,13 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 		{
 			foreach(const DBEntry& entry, parseDB(anno))
 			{
-				//determine gene (needed for URL)
-				QStringList gene_parts = entry.details.split("GENE=");
-				if (gene_parts.count()<2) THROW(ProgrammingException, "No gene information found in HGMD entry: " + entry.id + " / " + entry.details);
-				QString gene = gene_parts[1].left(gene_parts[1].length());
-
 				//determine color
 				Color color = NONE;
 				if (entry.details.contains("CLASS=DM?")) color = ORANGE;
 				else if (entry.details.contains("CLASS=DM")) color = RED;
 				else if (entry.details.contains("CLASS=DP") || entry.details.contains("CLASS=DFP")) color = ORANGE;
 
-				text += formatLink(entry.id, "http://www.hgmd.cf.ac.uk/ac/gene.php?gene=" + gene + "&accession=" + entry.id, color) + " ";
+				text += formatLink(entry.id, "https://portal.biobase-international.com/hgmd/pro/mut.php?acc=" + entry.id, color) + " ";
 				tooltip += nobr() + entry.id + ": " + entry.details;
 			}
 		}
