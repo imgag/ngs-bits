@@ -36,13 +36,21 @@ In order to force initialization, select `IGV > Reset initialization status` fro
 **Note:** Custom tracks can be added by your administrator through the GSvar INI file.
 
 
-
 ## FAQ
 
 ### Why are reads colored sometimes
 
 Colored reads normally mean that the insert size of the read lies outside the expected insert size interval.  
 More information can be found at in the [IGV documentation](https://software.broadinstitute.org/software/igv/interpreting_insert_size).
+
+### IGV cannot locate the genome
+
+Sometimes GSvar cannot execute the command `genome 1kg_v37` and IGV gives the error `ERROR Could not locate genome: 1kg_v37`.  
+Then you have to add the genome to IGV manually:
+
+![alt text](igv_load_genome.png)
+
+If the genome download fails, the proxy settings are probably wrong (see the question `IGV cannot load genomes`).
 
 ### IGV does not open
 Follow these instructions, if only the black console window of IGV but not the actual application opens.
@@ -65,6 +73,7 @@ Finally, you have to restart IGV.
 --
 
 [back to main page](index.md)
+
 
 
 
