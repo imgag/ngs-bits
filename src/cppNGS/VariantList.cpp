@@ -1190,7 +1190,9 @@ void VariantList::sort(bool use_quality)
 		//VCF
 		quality_index = annotationIndexByName("QUAL", true, false);
 		//TSV
-		if (quality_index==-1) quality_index = annotationIndexByName("quality", true, false);
+        if (quality_index == -1) {
+            throw std::logic_error("Sorting by quality is not supported for TSV");
+        }
 	}
 
 	std::sort(variants_.begin(), variants_.end(), LessComparator(quality_index));
