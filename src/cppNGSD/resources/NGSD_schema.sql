@@ -107,7 +107,7 @@ COMMENT='Transcript exons';
 
 CREATE TABLE IF NOT EXISTS `geneinfo_germline` (
 `symbol` VARCHAR(40) NOT NULL,
-`inheritance` ENUM('AR','AD','AR+AD','XLR','XLD','XLR+XLD','MT','n/a') NOT NULL,
+`inheritance` ENUM('AR','AD','AR+AD','XLR','XLD','XLR+XLD','MT','MU','n/a') NOT NULL,
 `exac_pli` FLOAT NULL,
 `comments` text NOT NULL,
 PRIMARY KEY `symbol` (`symbol`)
