@@ -42,6 +42,7 @@ private slots:
 
 	void leftAlign03()
 	{
+        SKIP('Alignment is currently not supported for TSV because sorting by quality is disabled');
 		QString ref_file = Settings::string("reference_genome");
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
