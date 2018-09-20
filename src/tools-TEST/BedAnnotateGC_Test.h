@@ -18,10 +18,10 @@ private slots:
 	void clear_extend20()
 	{
 		QString ref_file = Settings::string("reference_genome");
-		if (ref_file=="") SKIP("Test needs the reference genome!");
+        if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		EXECUTE("BedAnnotateGC", "-clear -extend 20 -in " + TESTDATA("data_in/BedAnnotateGC_in2.bed") + " -out out/BedAnnotateGC_out2.bed -ref " + ref_file);
-		COMPARE_FILES("out/BedAnnotateGC_out2.bed", TESTDATA("data_out/BedAnnotateGC_out2.bed"));
+        COMPARE_FILES_DELTA("out/BedAnnotateGC_out2.bed", TESTDATA("data_out/BedAnnotateGC_out2.bed"), 1);
 	}
 
 };
