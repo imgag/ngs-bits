@@ -99,7 +99,7 @@ private slots:
 		VariantList vl,vl2;
 		vl.load(TESTDATA("data_in/variantList_removeDuplicates_in.tsv"));
 		vl.checkValid();
-		vl.removeDuplicates(true);
+        vl.removeDuplicates(false);
 		vl2.load(TESTDATA("data_out/variantList_removeDuplicates_out.tsv"));
 		vl2.checkValid();
 		vl2.sort();
@@ -649,7 +649,7 @@ private slots:
 		VariantList vl;
 		vl.load(TESTDATA("data_in/sort_in_qual.tsv"));
 		vl.checkValid();
-		vl.sort(true);
+        vl.sort(false);
 		vl.store("out/sort_out_qual.tsv");
 		COMPARE_FILES("out/sort_out_qual.tsv",TESTDATA("data_out/sort_out_qual.tsv"));
 	}
