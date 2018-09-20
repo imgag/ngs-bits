@@ -183,7 +183,7 @@ void NGSHelper::createSampleOverview(QStringList in, QString out, int indel_wind
 	}
 
 	//remove duplicates from variant list
-	vl_merged.removeDuplicates(true);
+    vl_merged.removeDuplicates(false);
 
 	//append sample columns
 	for (int i=0; i<vls.count(); ++i)

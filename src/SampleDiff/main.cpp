@@ -86,7 +86,7 @@ public:
 		vl.annotationDescriptions().append(VariantAnnotationDescription("genotype", "Genotype (if available)."));
 		int c1 = appendStrippedVariants(vl, in1, "in1");
 		int c2 = appendStrippedVariants(vl, in2, "in2");
-		vl.sort(true);
+        vl.sort(false);
 
 		//flag matches
 		ChromosomalIndex<VariantList> file_idx(vl);
