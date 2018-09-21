@@ -618,6 +618,9 @@
            <property name="text">
             <string>Comments:</string>
            </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+           </property>
           </widget>
          </item>
          <item row="2" column="1">
@@ -641,6 +644,9 @@
           <widget class="QLabel" name="diag_comments">
            <property name="text">
             <string/>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
            </property>
           </widget>
          </item>

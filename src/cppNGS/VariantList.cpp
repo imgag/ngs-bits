@@ -1187,20 +1187,19 @@ void VariantList::sort(bool use_quality)
 	int quality_index = -1;
 	if (use_quality)
 	{
-		//VCF
 		quality_index = annotationIndexByName("QUAL", true, false);
-		//TSV
-        if (quality_index == -1) {
-            throw std::logic_error("Sorting by quality is not supported for TSV");
+		if (quality_index == -1)
+		{
+			THROW(ArgumentException, "Variant list does not contain 'QUAL' column (sorting by quality is supported for VCF only!");
         }
 	}
 
-	std::sort(variants_.begin(), variants_.end(), LessComparator(quality_index));
+	sortCustom(LessComparator(quality_index));
 }
 
 void VariantList::sortByFile(QString filename)
 {
-	std::sort(variants_.begin(), variants_.end(), LessComparatorByFile(filename));
+	sortCustom(LessComparatorByFile(filename));
 }
 
 void VariantList::removeDuplicates(bool sort_by_quality)
@@ -1250,7 +1249,7 @@ void VariantList::clearVariants()
 	variants_.clear();
 }
 
-void VariantList::leftAlign(QString ref_file)
+void VariantList::leftAlign(QString ref_file, bool sort_by_quality)
 {
 	//open refererence genome file
 	FastaFileIndex reference(ref_file);
@@ -1409,7 +1408,7 @@ void VariantList::leftAlign(QString ref_file)
 	}
 
 	//by shifting all indels to the left, we might have produced duplicates - remove them
-	removeDuplicates(true);
+	removeDuplicates(sort_by_quality);
 }
 
 void VariantList::checkValid() const

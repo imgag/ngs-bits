@@ -349,10 +349,16 @@ public:
     ///Stores the variant list to a file.
 	void store(QString filename, VariantListFormat format=AUTO);
 
-    ///Sorts the variants. The order is chromosome (numeric), position, ref, obs, quality (if desired).
-    void sort(bool use_quality = false);
-    ///Sorts the lines accoring to FASTA index file. The order is chromosome (as given in the file), position, ref, obs, quality (if desired).
+	///Default sorting of variants. The order is chromosome (numeric), position, ref, obs, quality (if desired - only for VCF).
+	void sort(bool use_quality = false);
+	///Sorts the lines accoring to FASTA index file. The order is chromosome (as given in the file), position, ref, obs.
     void sortByFile(QString file_name);
+	///Costum sorting of variants.
+	template <typename T>
+	void sortCustom(const T& comarator)
+	{
+		std::sort(variants_.begin(), variants_.end(), comarator);
+	}
 
     ///Remove duplicate variants.
 	void removeDuplicates(bool sort_by_quality);
@@ -363,8 +369,8 @@ public:
 	///Removes all variants.
 	void clearVariants();
 
-    ///Shifts each non complex insert or deletion to the left as far as possible. Then, removes duplicates.
-    void leftAlign(QString ref_file);
+	///Shifts each non complex insert or deletion to the left as far as possible. Then, removes duplicates (@p sort_by_quality is only supported for VCF format).
+	void leftAlign(QString ref_file, bool sort_by_quality);
 
 	///Checks if the variants are valid. Throws ArgumentException if not.
 	void checkValid() const;

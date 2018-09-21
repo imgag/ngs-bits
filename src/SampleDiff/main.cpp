@@ -86,7 +86,23 @@ public:
 		vl.annotationDescriptions().append(VariantAnnotationDescription("genotype", "Genotype (if available)."));
 		int c1 = appendStrippedVariants(vl, in1, "in1");
 		int c2 = appendStrippedVariants(vl, in2, "in2");
-        vl.sort(false);
+
+		//sort by chr/start/end/ref/obs/source
+		vl.sortCustom([](const Variant& a, const Variant& b)
+						{
+							if (a.chr()<b.chr()) return true;
+							if (a.chr()>b.chr()) return false;
+							if (a.start()<b.start()) return true;
+							if (a.start()>b.start()) return false;
+							if (a.end()<b.end()) return true;
+							if (a.end()>b.end()) return false;
+							if (a.ref()<b.ref()) return true;
+							if (a.ref()>b.ref()) return false;
+							if (a.obs()<b.obs()) return true;
+							if (a.obs()>b.obs()) return false;
+							return a.annotations()[0] < b.annotations()[0];
+						}
+					);
 
 		//flag matches
 		ChromosomalIndex<VariantList> file_idx(vl);

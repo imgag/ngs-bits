@@ -22,7 +22,7 @@ private slots:
 
 		VariantList vl;
 		vl.load(TESTDATA("data_in/LeftAlign_in1.vcf"));
-		vl.leftAlign(ref_file);
+		vl.leftAlign(ref_file, true);
 		vl.store("out/LeftAlign_out1.vcf");
 		COMPARE_FILES("out/LeftAlign_out1.vcf", TESTDATA("data_out/LeftAlign_out1.vcf"));
 	}
@@ -35,21 +35,20 @@ private slots:
 		VariantList vl;
 		vl.load(TESTDATA("data_in/LeftAlign_in2.vcf"));
 		vl.checkValid();
-		vl.leftAlign(ref_file);
+		vl.leftAlign(ref_file, true);
 		vl.store("out/LeftAlign_out2.vcf");
 		COMPARE_FILES("out/LeftAlign_out2.vcf", TESTDATA("data_out/LeftAlign_out2.vcf"));
 	}
 
 	void leftAlign03()
 	{
-        SKIP('Alignment is currently not supported for TSV because sorting by quality is disabled');
 		QString ref_file = Settings::string("reference_genome");
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		VariantList vl;
 		vl.load(TESTDATA("data_in/LeftAlign_in.tsv"));
 		vl.checkValid();
-		vl.leftAlign(ref_file);
+		vl.leftAlign(ref_file, false);
 		vl.store("out/LeftAlign_out.tsv");
 		COMPARE_FILES("out/LeftAlign_out.tsv", TESTDATA("data_out/LeftAlign_out.tsv"));
 	}
@@ -62,7 +61,7 @@ private slots:
 		VariantList vl;
 		vl.load(TESTDATA("data_in/LeftAlign_in4.vcf"));
 		vl.checkValid();
-		vl.leftAlign(ref_file);
+		vl.leftAlign(ref_file, true);
 		vl.store("out/LeftAlign_out4.vcf");
 		COMPARE_FILES("out/LeftAlign_out4.vcf", TESTDATA("data_out/LeftAlign_out4.vcf"));
 	}
@@ -74,7 +73,7 @@ private slots:
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		VariantList vl;
-		vl.leftAlign(ref_file);
+		vl.leftAlign(ref_file, true);
 	}
 
 	void removeDuplicates_VCF()
@@ -612,7 +611,7 @@ private slots:
 
 	}
 
-	//test sort function for VCF files
+	//test sort function for VCF files (with quality)
 	void sort3()
 	{
 		VariantList vl;
@@ -642,17 +641,6 @@ private slots:
 		I_EQUAL(vl[12].start(),67904672);
 		X_EQUAL(vl[13].chr(), Chromosome("chr19"));
 		I_EQUAL(vl[13].start(),14466629);
-	}
-
-	//test sort function for TSV files (with quality)
-	void sort4()
-	{
-		VariantList vl;
-		vl.load(TESTDATA("data_in/sort_in_qual.tsv"));
-		vl.checkValid();
-        vl.sort(false);
-		vl.store("out/sort_out_qual.tsv");
-		COMPARE_FILES("out/sort_out_qual.tsv",TESTDATA("data_out/sort_out_qual.tsv"));
 	}
 
 	//test sortByFile function for *.vcf-files
@@ -697,6 +685,34 @@ private slots:
 		vl.store("out/sortByFile_out.tsv");
 		COMPARE_FILES("out/sortByFile_out.tsv",TESTDATA("data_out/sortByFile_out.tsv"));
 	}
+
+	void sortCustom()
+	{
+		VariantList vl;
+		vl.checkValid();
+		vl.load(TESTDATA("data_in/sort_in.vcf"));
+		vl.sortCustom([](const Variant& a, const Variant& b) {return a.start() < b.start(); });
+
+		I_EQUAL(vl.count(), 2344);
+		X_EQUAL(vl[0].chr(),Chromosome("chr4"));
+		I_EQUAL(vl[0].start(),85995);
+		X_EQUAL(vl[1].chr(),Chromosome("chr4"));
+		I_EQUAL(vl[1].start(),85997);
+		X_EQUAL(vl[2].chr(),Chromosome("chr4"));
+		I_EQUAL(vl[2].start(),86101);
+		X_EQUAL(vl[3].chr(),Chromosome("chr4"));
+		I_EQUAL(vl[3].start(),86102);
+		X_EQUAL(vl[4].chr(),Chromosome("chr4"));
+		I_EQUAL(vl[4].start(),87313);
+		X_EQUAL(vl[5].chr(),Chromosome("chr20"));
+		I_EQUAL(vl[5].start(),126309);
+		X_EQUAL(vl[6].chr(),Chromosome("chr20"));
+		I_EQUAL(vl[6].start(),126310);
+		//...
+		X_EQUAL(vl[2343].chr(),Chromosome("chr1"));
+		I_EQUAL(vl[2343].start(),248802249);
+	}
+
 
 	void removeAnnotation()
 	{

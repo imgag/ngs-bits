@@ -31,7 +31,6 @@ private slots:
 		Helper::storeTextFile("out/CnvHunter_infiles2.tsv", in);
 
 		EXECUTE("CnvHunter", "-in out/CnvHunter_infiles2.tsv -out out/CnvHunter_out2.tsv -sam_min_corr 0.8 -reg_max_cv 0.5 -sam_corr_regs 250000 -cnp_file " +  TESTDATA("data_in/CnvHunter_cnp_file.bed"));
-		REMOVE_LINES("out/CnvHunter_out2.tsv", QRegExp("chr8\\s39079108\\s39089674\\sDX160123_01")); //Skip a line where the rounding is different under Windows/Linux
-		COMPARE_FILES("out/CnvHunter_out2.tsv", TESTDATA("data_out/CnvHunter_out2.tsv"));
+		COMPARE_FILES_DELTA("out/CnvHunter_out2.tsv", TESTDATA("data_out/CnvHunter_out2.tsv"), 1); //delta because of rounding differences between Linux/Windows
 	}
 };
