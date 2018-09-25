@@ -8,7 +8,7 @@
   <runQuality ID="rq0001">
     <metaDataParameter ID="md0004" name="source file" value="VariantQC_in1.vcf" cvRef="QC" accession="QC:1000005"/>
     <qualityParameter ID="qp0001" name="variant count" description="Total number of variants in the target region." value="148" cvRef="QC" accession="QC:2000013"/>
-    <qualityParameter ID="qp0002" name="known variants percentage" description="Percentage of variants that are known polymorphisms in the dbSNP database." value="97.30" cvRef="QC" accession="QC:2000014"/>
+    <qualityParameter ID="qp0002" name="known variants percentage" description="Percentage of variants that are known polymorphisms in the dbSNP database." value="0.68" cvRef="QC" accession="QC:2000014"/>
     <qualityParameter ID="qp0003" name="high-impact variants percentage" description="Percentage of variants with high impact on the protein, i.e. stop-gain, stop-loss, frameshift, splice-acceptor or splice-donor variants." value="1.35" cvRef="QC" accession="QC:2000015"/>
     <qualityParameter ID="qp0004" name="homozygous variants percentage" description="Percentage of variants that are called as homozygous." value="38.51" cvRef="QC" accession="QC:2000016"/>
     <qualityParameter ID="qp0005" name="indel variants percentage" description="Percentage of variants that are insertions/deletions." value="4.73" cvRef="QC" accession="QC:2000017"/>

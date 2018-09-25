@@ -36,43 +36,39 @@ QCCollection Statistics::variantList(VariantList variants, bool filter)
     //var_total
 	output.insert(QCValue("variant count", variants.count(), "Total number of variants in the target region.", "QC:2000013"));
 
-    //var_perc_dbsnp
-    const int i_id = variants.annotationIndexByName("ID", true, false);
-    if (variants.count()!=0 && i_id!=-1)
-    {
-        double dbsnp_count = 0;
-        for(int i=0; i<variants.count(); ++i)
-		{
-            if (variants[i].annotations().at(i_id).startsWith("rs"))
-            {
-                ++dbsnp_count;
-            }
-        }
-		output.insert(QCValue("known variants percentage", 100.0*dbsnp_count/variants.count(), "Percentage of variants that are known polymorphisms in the dbSNP database.", "QC:2000014"));
-    }
-    else
+	//var_perc_dbsnp and high-impact variants
+	if (variants.count()==0)
     {
 		output.insert(QCValue("known variants percentage", "n/a (no variants)", "Percentage of variants that are known polymorphisms in the dbSNP database.", "QC:2000014"));
-    }
-
-	//high-impact variants
-    const int i_ann = variants.annotationIndexByName("ANN", true, false);
-    if (variants.count()!=0 && i_ann!=-1)
-    {
-		double high_impact_count = 0;
-        for(int i=0; i<variants.count(); ++i)
+		output.insert(QCValue("high-impact variants percentage", "n/a (no variants)", "Percentage of variants with high impact on the protein, i.e. stop-gain, stop-loss, frameshift, splice-acceptor or splice-donor variants.", "QC:2000015"));
+	}
+	else
+	{
+		int i_csq = variants.annotationIndexByName("CSQ", true, false);
+		if (i_csq==-1)
 		{
-            if (variants[i].annotations().at(i_ann).contains("|HIGH|"))
-            {
-				++high_impact_count;
-            }
-        }
-		output.insert(QCValue("high-impact variants percentage", 100.0*high_impact_count/variants.count(), "Percentage of variants with high impact on the protein, i.e. stop-gain, stop-loss, frameshift, splice-acceptor or splice-donor variants.", "QC:2000015"));
-    }
-    else
-    {
-		output.insert(QCValue("high-impact variants percentage", "n/a (SnpEff ANN annotation not found, or no variants)", "Percentage of variants with high impact on the protein, i.e. stop-gain, stop-loss, frameshift, splice-acceptor or splice-donor variants.", "QC:2000015"));
-    }
+			output.insert(QCValue("known variants percentage", "n/a (CSQ info field missing)", "Percentage of variants that are known polymorphisms in the dbSNP database.", "QC:2000014"));
+			output.insert(QCValue("high-impact variants percentage", "n/a (CSQ info field missing)", "Percentage of variants with high impact on the protein, i.e. stop-gain, stop-loss, frameshift, splice-acceptor or splice-donor variants.", "QC:2000015"));
+		}
+		else
+		{
+			double dbsnp_count = 0;
+			double high_impact_count = 0;
+			for(int i=0; i<variants.count(); ++i)
+			{
+				if (variants[i].annotations().at(i_csq).contains("|rs")) //works without splitting by transcript
+				{
+					++dbsnp_count;
+				}
+				if (variants[i].annotations().at(i_csq).contains("|HIGH|")) //works without splitting by transcript
+				{
+					++high_impact_count;
+				}
+			}
+			output.insert(QCValue("known variants percentage", 100.0*dbsnp_count/variants.count(), "Percentage of variants that are known polymorphisms in the dbSNP database.", "QC:2000014"));
+			output.insert(QCValue("high-impact variants percentage", 100.0*high_impact_count/variants.count(), "Percentage of variants with high impact on the protein, i.e. stop-gain, stop-loss, frameshift, splice-acceptor or splice-donor variants.", "QC:2000015"));
+		}
+	}
 
 	//homozygous variants
     const int i_gt = variants.annotationIndexByName("GT", true, false);
@@ -764,33 +760,43 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 	}
 	output.insert(QCValue("somatic variant count", somatic_count, "Total number of somatic variants in the target region.", "QC:2000041"));
 
-	//percentage known variants - either dbSNP or if available EXAC
-	int i_exac = variants.annotationIndexByName("EXAC_AF", true, false);
+	//percentage known variants
 	double known_count = 0;
-	if(i_exac >= 0)	//use EXAC AF information if available
+	int i_csq_gnomad = variants.vepIndexByName("gnomAD_AF", false);
+	if(i_csq_gnomad!=-1)
 	{
 		if (variants.count()!=0)
 		{
+			int i_csq = variants.annotationIndexByName("CSQ");
 			for(int i=0; i<variants.count(); ++i)
 			{
-
 				if (!variants[i].filters().empty())	continue;
 
-				if (variants[i].annotations().at(i_exac).toDouble() > 0.01)
+				bool is_known = false;
+				QByteArrayList annos = variants[i].vepAnnotations(i_csq, i_csq_gnomad);
+				foreach (const QByteArray& anno, annos)
+				{
+					if (anno.toDouble()>0.01)
+					{
+						is_known = true;
+						break;
+					}
+				}
+				if (is_known)
 				{
 					++known_count;
 				}
-				output.insert(QCValue("known somatic variants percentage", 100.0*known_count/somatic_count, "Percentage of somatic variants that are listed as germline variants in public datbases (e.g. AF>1% in ExAC).", "QC:2000045"));
 			}
+			output.insert(QCValue("known somatic variants percentage", 100.0*known_count/somatic_count, "Percentage of somatic variants that are listed as germline variants in public datbases (e.g. AF>1% in ExAC).", "QC:2000045"));
 		}
 		else
 		{
 			output.insert(QCValue("known somatic variants percentage", "n/a (no somatic variants)", "Percentage of somatic variants that are listed as germline variants in public datbases (e.g. AF>1% in ExAC).", "QC:2000045"));
 		}
 	}
-	else	//without EXAC information use dbSNP
+	else
 	{
-		output.insert(QCValue("known somatic variants percentage", "n/a (no EXAC annotation)", "Percentage of somatic variants that are listed as germline variants in public datbases (e.g. AF>1% in ExAC).", "QC:2000045"));
+		output.insert(QCValue("known somatic variants percentage", "n/a (no gnomAD_AF annotation in CSQ info field)", "Percentage of somatic variants that are listed as germline variants in public datbases (e.g. AF>1% in ExAC).", "QC:2000045"));
 	}
 	
 
@@ -878,36 +884,45 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 		  << "STK11" << "LKB1" << "PJS" << "SUSD6" << "DRAGO" << "KIAA0247" << "TXNIP" << "VDUP1" << "TSC1" << "KIAA0243" << "TSC" << "TSC2" << "TSC4" << "UFL1" << "KIAA0776" << "NLBP" << "RCAD";
 
 	// identify truncating mutations located in typical tumor suppressors and oncogenes; these mutations may falsify calculation of somatic mutation rates in targeted sequencing
-	int i_ann = variants.annotationIndexByName("ANN", true, false);
-	if(i_ann >= 0)	// annotation information availble
+	int i_csq = variants.annotationIndexByName("CSQ", true, false);
+	if(i_csq!=-1)
 	{
+		int i_csq_gnomad = variants.vepIndexByName("gnomAD_AF", false);
 		for(int i=0; i<variants.count(); ++i)
 		{
 			if (!variants[i].filters().empty())	continue;
 
 			//skip common variants with AF greater than 1%
-			if(i_exac >= 0)	//use EXAC AF information if available
+			if(i_csq_gnomad!=-1)
 			{
-				if (variants[i].annotations().at(i_exac).toDouble() > 0.01)
+				bool high_af = false;
+				QByteArrayList annos = variants[i].vepAnnotations(i_csq, i_csq_gnomad);
+				foreach(const QByteArray& anno, annos)
 				{
-					continue;
+					if (anno.toDouble()>0.01)
+					{
+						high_af = true;
+						break;
+					}
 				}
+				if (high_af) continue;
 			}
 
-			QByteArray annotation = variants[i].annotations()[i_ann];
+			const QByteArray& csq_field = variants[i].annotations()[i_csq];
 			bool truncating = false;
 			foreach(const QByteArray& effect, truncating_effects)
 			{
-				if(annotation.contains(effect)) truncating = true;
+				if(csq_field.contains(effect)) truncating = true;
 			}
 			if (!truncating) continue;
 
 			bool cancergene = false;
 			foreach(const QByteArray& gene, genes)
 			{
-				if(annotation.contains("|"+gene+"|")) cancergene = true;
+				if(csq_field.contains("|"+gene+"|")) cancergene = true;
 			}
 			if (!cancergene) continue;
+
 
 			++count_tumorgenes;
 		}
@@ -918,7 +933,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 	QString value = "";
 	if(variant_rate > 23.1)	value = "high";
 	else if(variant_rate >= 3.3)	value = "intermediate";
-	else	value = "low";
+	else value = "low";
 	value += " ("+ QString::number(variant_rate,'f',2) +" var/Mb)";
 	output.insert(QCValue("somatic variant rate", value, "Categorized somatic variant rate (high/intermediate/low) followed by the somatic variant rate [variants/Mb] normalized for the target region and corrected for truncating variant(s) in tumor suppressors / oncogenes.", "QC:2000053"));
 

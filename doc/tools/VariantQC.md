@@ -1,5 +1,5 @@
 ### VariantQC tool help
-	VariantQC (2018_06-27-gb6bdb9c)
+	VariantQC (2018_06-35-ga1d5548)
 	
 	Calculates QC metrics on variant lists.
 	
@@ -21,7 +21,8 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantQC changelog
-	VariantQC 2018_06-27-gb6bdb9c
+	VariantQC 2018_06-35-ga1d5548
 	
+	2018-09-12 Now supports VEP CSQ annotations (no longer support SnpEff ANN annotations).
 	2017-01-05 Added 'ignore_filter' flag.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

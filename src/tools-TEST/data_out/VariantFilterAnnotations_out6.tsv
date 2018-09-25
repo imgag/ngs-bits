@@ -41,6 +41,7 @@
 ##FILTER=low_MQM=Mean mapping quality of alternate allele less than Q50.
 ##FILTER=low_QUAL=Variant quality less than Q30.
 ##FILTER=pred_pathogenic=Variant predicted to be pathogenic by one or more tools (conservation or effect prediction).
-#chr	start	end	ref	obs	Affected1	Control	Affected2	filter	quality	gene	variant_type	coding_and_splicing	RepeatMasker	dbSNP	1000g	ExAC	ExAC_hom	gnomAD	phyloP	Sift	MetaLR	PolyPhen2	FATHMM	CADD	OMIM	ClinVar	HGMD	COSMIC	ihdb_allsys_hom	ihdb_allsys_het	classification	classification_comment	validated	comment	gene_info
+#chr	start	end	ref	obs	Affected1	Control	Affected2	filter	quality	gene	variant_type	coding_and_splicing	RepeatMasker	dbSNP	1000g	ExAC	ExAC_hom	gnomAD	phyloP	Sift	MetaLR	PolyPhen2	fathmm-MKL	CADD	OMIM	ClinVar	HGMD	COSMIC	ihdb_allsys_hom	ihdb_allsys_het	classification	classification_comment	validated	comment	gene_info
 chr1	1310821	1310821	C	T	het	wt	het		QUAL=937;DP=163,133,86;MQM=60	AURKAIP1-CCNL2	intergenic_region	AURKAIP1-CCNL2:AURKAIP1-CCNL2:intergenic_region:MODIFIER::n.1310821C>T:		rs139341512	0.0040	0.0000	0/0/0	0.0056											0	3					AURKAIP1-CCNL2 (inh=n/a pLI=n/a)
 chr1	1310824	1310824	G	C	het	wt	het		QUAL=937;DP=163,133,86;MQM=60	AURKAIP1-CCNL2	intergenic_region	AURKAIP1-CCNL2:AURKAIP1-CCNL2:intergenic_region:MODIFIER::n.1310824G>C:		rs150041542	0.0042	0.0000	0/0/0	0.0056											0	3					AURKAIP1-CCNL2 (inh=n/a pLI=n/a)
+chr1	1374961	1374961	C	T	het	wt	het	low_DP;pred_pathogenic	QUAL=162;DP=127,10,11;MQM=60	VWA1	missense,3'UTR	VWA1:NM_022834.4:missense:MODERATE:exon3/3:c.1132C>T:p.Arg378Trp,VWA1:NM_199121.2:3'UTR:MODIFIER:exon3/3:c.*542C>T:		rs758041400	0.0000	0.0253	4/0/0	0.0012	0.4980	T,T	T	P	T,T	23.40					0	11					VWA1 (inh=n/a pLI=0.03)

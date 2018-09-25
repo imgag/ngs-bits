@@ -1,3 +1,4 @@
+Allele frequency	max_af=40.0
 Classification NGSD	action=REMOVE	classes=1,2
 Filter columns	action=REMOVE	entries=low_DP,low_MQM,low_QUAL
 Genotype affected	genotypes=hom,comp-het

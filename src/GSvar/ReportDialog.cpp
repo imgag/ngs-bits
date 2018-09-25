@@ -18,7 +18,7 @@ ReportDialog::ReportDialog(QString filename, QWidget* parent)
 	ui_.setupUi(this);
 
 	//variant header
-	labels_ << "" << "chr" << "start" << "end" << "ref" << "obs" << "ihdb_allsys_hom" << "ihdb_allsys_het" << "genotype" << "gene" << "variant_type" << "coding_and_splicing";
+	labels_ << "" << "chr" << "start" << "end" << "ref" << "obs" << "NGSD_hom" << "NGSD_het" << "genotype" << "gene" << "variant_type" << "coding_and_splicing";
 	ui_.vars->setColumnCount(labels_.count());
 	ui_.vars->setHorizontalHeaderLabels(labels_);
 

@@ -23,7 +23,8 @@ public:
 		addFlag("txt", "Writes TXT format instead of qcML.");
 
 		//changelog
-		changeLog(2017, 1, 05, "Added 'ignore_filter' flag.");
+		changeLog(2018,  9, 12, "Now supports VEP CSQ annotations (no longer support SnpEff ANN annotations).");
+		changeLog(2017,  1,  5, "Added 'ignore_filter' flag.");
 	}
 
 	virtual void main()

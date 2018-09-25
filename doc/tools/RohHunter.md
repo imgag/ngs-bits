@@ -1,5 +1,5 @@
 ### RohHunter tool help
-	RohHunter (0.1-936-g9573691)
+	RohHunter (2018_06-35-ga1d5548)
 	
 	ROH detection based on a variant list annotated with AF values.
 	
@@ -14,8 +14,8 @@
 	                           Default value: '20'
 	  -var_min_q <float>       Minimum variant quality. Variants with lower quality are excluded from the analysis.
 	                           Default value: '30'
-	  -var_af_keys <string>    Annotation keys of allele frequency values (comma-separated).
-	                           Default value: 'GNOMAD_AF,T1000GP_AF,EXAC_AF'
+	  -var_af_keys <string>    Field names of allele frequency values in VEP-based CSQ annotation (comma-separated).
+	                           Default value: 'GNOMAD_AF,AF'
 	  -roh_min_q <float>       Minimum Q score of ROH regions.
 	                           Default value: '30'
 	  -roh_min_markers <int>   Minimum marker count of ROH regions.
@@ -36,8 +36,9 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### RohHunter changelog
-	RohHunter 0.1-936-g9573691
+	RohHunter 2018_06-35-ga1d5548
 	
+	2018-09-12 Now supports VEP CSQ annotations (no longer support SnpEff ANN annotations).
 	2017-12-07 Added generic annotation feature.
 	2017-11-29 Added 'inc_chrx' flag.
 	2017-11-21 First version.

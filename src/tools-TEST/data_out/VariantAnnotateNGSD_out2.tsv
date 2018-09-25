@@ -1,11 +1,11 @@
-##DESCRIPTION=ihdb_allsys_hom=Homozygous variant counts in NGSD independent of the processing system.
-##DESCRIPTION=ihdb_allsys_het=Heterozygous variant counts in NGSD independent of the processing system.
+##DESCRIPTION=NGSD_hom=Homozygous variant counts in NGSD independent of the processing system.
+##DESCRIPTION=NGSD_het=Heterozygous variant counts in NGSD independent of the processing system.
 ##DESCRIPTION=classification=Classification from the NGSD.
 ##DESCRIPTION=classification_comment=Classification comment from the NGSD.
-##DESCRIPTION=validated=Validation information from the NGSD. Validation results of other samples are listed in brackets!
+##DESCRIPTION=validation=Validation information from the NGSD. Validation results of other samples are listed in brackets!
 ##DESCRIPTION=comment=Variant comments from the NGSD.
 ##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, ExAC pLI score).
-#chr	start	end	ref	obs	genotype	snp_q	depth	map_q	variant	variant_frequency	region	gene	variant_details	coding_and_splicing_details	1000g	dbSNP_137	ljb2_phylop	ljb2_mt	ljb2_sift	ljb2_pp2hvar	ljb2_pp2hdiv	ExAC	cosmic64	RepeatMasker	OMIM	ClinVar	ihdb_allsys_hom	ihdb_allsys_het	classification	classification_comment	validated	comment	gene_info
+#chr	start	end	ref	obs	genotype	snp_q	depth	map_q	variant	variant_frequency	region	gene	variant_details	coding_and_splicing_details	1000g	dbSNP_137	ljb2_phylop	ljb2_mt	ljb2_sift	ljb2_pp2hvar	ljb2_pp2hdiv	ExAC	cosmic64	RepeatMasker	OMIM	ClinVar	NGSD_hom	NGSD_het	classification	classification_comment	validation	comment	gene_info
 1	62713224	62713224	C	G	hom	222	116	60	SNV	1	exonic	KANK4	nonsynonymous SNV	KANK4:NM_181712:exon9:c.G2803C:p.V935L,	0.02	rs2941679 [];	0.5600	0.0000	0.3000	0.0010	0.0000	0.01					2	2				from NA12880	KANK4 (inh=n/a pLI=n/a)
 1	62713246	62713246	G	A	het	225	228	59	SNV	0.4693	exonic	KANK4	synonymous SNV	KANK4:NM_181712:exon9:c.C2781T:p.H927H,	0.02	rs10889315 [];						0.01					0	0	5	pathogenic			KANK4 (inh=n/a pLI=n/a)
 1	62728784	62728784	A	G	hom	222	386	60	SNV	1	exonic	KANK4	nonsynonymous SNV	KANK4:NM_181712:exon7:c.T2519C:p.V840A,	0.02	rs2666472 [];	-0.8140	0.0038	0.2200	0.0600	0.0680	0.01					0	1					KANK4 (inh=n/a pLI=n/a)

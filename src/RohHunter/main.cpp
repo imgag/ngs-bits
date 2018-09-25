@@ -28,7 +28,7 @@ public:
 		addInfileList("annotate", "List of BED files used for annotation. Each file adds a column to the output file. The base filename is used as colum name and 4th column of the BED file is used as annotation value.", true);
 		addInt("var_min_dp", "Minimum variant depth ('DP'). Variants with lower depth are excluded from the analysis.", true, 20);
 		addFloat("var_min_q", "Minimum variant quality. Variants with lower quality are excluded from the analysis.", true, 30);
-		addString("var_af_keys", "Annotation keys of allele frequency values (comma-separated).", true, "GNOMAD_AF,T1000GP_AF,EXAC_AF");
+		addString("var_af_keys", "Comma-separated field names of allele frequency values in VEP-based CSQ annotation.", true, "GNOMAD_AF,AF");
 		addFloat("roh_min_q", "Minimum Q score of ROH regions.", true, 30.0);
 		addInt("roh_min_markers", "Minimum marker count of ROH regions.", true, 20);
 		addFloat("roh_min_size", "Minimum size in Kb of ROH regions.", true, 20.0);
@@ -36,6 +36,7 @@ public:
 		addFloat("ext_size_perc", "Percentage of ROH size that can be spanned when merging ROH regions.", true, 50.0);
 		addFlag("inc_chrx", "Include chrX into the analysis. Excluded by default.");
 
+		changeLog(2018,  9, 12, "Now supports VEP CSQ annotations (no longer support SnpEff ANN annotations).");
 		changeLog(2017, 12, 07, "Added generic annotation feature.");
 		changeLog(2017, 11, 29, "Added 'inc_chrx' flag.");
 		changeLog(2017, 11, 21, "First version.");
@@ -200,10 +201,10 @@ public:
 		}
 		if (idx_dp==-1) THROW(ArgumentException, "Could not find 'DP' annotation in variant list!");
 		QStringList var_af_keys = getString("var_af_keys").split(",", QString::SkipEmptyParts);
-		QVector<int> var_af_indices;
+		QVector<int> csq_af_indices;
 		foreach(QString key, var_af_keys)
 		{
-			var_af_indices << vl.annotationIndexByName(key);
+			csq_af_indices << vl.vepIndexByName(key);
 		}
 
 		//convert variant list to data structure
@@ -211,6 +212,7 @@ public:
 		float var_min_q = getFloat("var_min_q");
 		int vars_hom = 0;
 		int vars_known = 0;
+		int i_csq = vl.annotationIndexByName("CSQ");
 		int i_gt = vl.annotationIndexByName("GT");
 		QList<VariantInfo> var_info;
 		for(int i=0; i<vl.count(); ++i)
@@ -238,12 +240,15 @@ public:
 			//determine database AF
 			bool var_known = false;
 			float af = 0.01;
-			foreach(int index, var_af_indices)
+			foreach(int index, csq_af_indices)
 			{
-				float af_new = v.annotations()[index].toFloat(&ok);
-				if (!ok) continue;
-				af = std::max(af, af_new);
-				if (af_new>0.0) var_known = true;
+				QByteArrayList annos = vl[i].vepAnnotations(i_csq, index);
+				foreach(const QByteArray& anno, annos)
+				{
+					float af_new = anno.toFloat();
+					af = std::max(af, af_new);
+					if (af_new>0.0) var_known = true;
+				}
 			}
 			if (var_known) ++vars_known;
 
@@ -252,7 +257,7 @@ public:
 		out << "Variants passing QC filters: " << var_info.count() << endl;
 		double hom_perc = 100.0*vars_hom/var_info.count();
 		out << "Variants homozygous: " << QByteArray::number(hom_perc, 'f', 2) << "%" << endl;
-		out << "Variants with AF annoation: " << QByteArray::number(100.0*vars_known/var_info.count(), 'f', 2) << "%" << endl;
+		out << "Variants with AF annoation greater zero: " << QByteArray::number(100.0*vars_known/var_info.count(), 'f', 2) << "%" << endl;
 		out << endl;
 
 		//detect raw ROHs

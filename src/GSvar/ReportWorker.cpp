@@ -482,7 +482,7 @@ void ReportWorker::writeHTML()
 	int i_omim = variants_.annotationIndexByName("OMIM", true, true);
 	int i_class = variants_.annotationIndexByName("classification", true, true);
 	int i_comment = variants_.annotationIndexByName("comment", true, true);
-	int i_exac = variants_.annotationIndexByName("ExAC", true, true);
+	int i_kg = variants_.annotationIndexByName("1000G", true, true);
 	int i_gnomad = variants_.annotationIndexByName("gnomAD", true, true);
 
 	//get tumor specific column indices
@@ -503,7 +503,7 @@ void ReportWorker::writeHTML()
 	stream << "<p><b>Varianten nach klinischer Interpretation im Kontext der Fragestellung</b>" << endl;
 	stream << "</p>" << endl;
 	stream << "<table>" << endl;
-	stream << "<tr><td><b>Gen</b></td><td><b>Variante</b></td><td><b>" << (tumor ? "Allelfrequenz" : "Genotyp") << "</b></td><td><b>Details</b></td><td><b>Klasse</b></td><td><b>Vererbung</b></td><td><b>ExAC</b></td><td><b>gnomAD</b></td></tr>" << endl;
+	stream << "<tr><td><b>Gen</b></td><td><b>Variante</b></td><td><b>" << (tumor ? "Allelfrequenz" : "Genotyp") << "</b></td><td><b>Details</b></td><td><b>Klasse</b></td><td><b>Vererbung</b></td><td><b>1000g</b></td><td><b>gnomAD</b></td></tr>" << endl;
 	for (int i=0; i<settings_.variants_selected.count(); ++i)
 	{
 		const Variant& variant = variants_[settings_.variants_selected[i]];
@@ -516,7 +516,7 @@ void ReportWorker::writeHTML()
 		stream << "<td>" << formatCodingSplicing(variant.transcriptAnnotations(i_co_sp)) << "</td>" << endl;
 		stream << "<td>" << variant.annotations().at(i_class) << "</td>" << endl;
 		stream << "<td>" << inheritance(variant.annotations()[i_geneinfo]) << "</td>" << endl;
-		stream << "<td>" << variant.annotations().at(i_exac) << "</td>" << endl;
+		stream << "<td>" << variant.annotations().at(i_kg) << "</td>" << endl;
 		stream << "<td>" << variant.annotations().at(i_gnomad) << "</td>" << endl;
 		stream << "</tr>" << endl;
 
@@ -594,8 +594,7 @@ void ReportWorker::writeHTML()
 		stream << "<table>" << endl;
 		stream << "<tr><td><b>tool</b></td><td><b>version</b></td><td><b>parameters</b></td></tr>";
 		QStringList whitelist;
-		whitelist << "SeqPurge" << "samblaster" << "/bwa" << "samtools" << "VcfLeftNormalize" <<  "freebayes" << "abra2" << "vcflib" << "SnpEff"; //current
-		whitelist << "varFilter" << "stampy.py" << "BamLeftAlign" << "GenomeAnalysisTK" << "VcfSplitMultiallelic" << "picard-tools"; //legacy
+		whitelist << "SeqPurge" << "samblaster" << "/bwa" << "samtools" << "VcfLeftNormalize" <<  "freebayes" << "abra2" << "vcflib" << "ensembl-vep"; //current
 		log_files_.sort();
 		foreach(QString file, log_files_)
 		{

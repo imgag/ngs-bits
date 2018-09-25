@@ -14,10 +14,10 @@ private slots:
 
 		FilterResult result(vl.count());
 		FilterAlleleFrequency filter;
-		filter.setDouble("max_af", 0.1);
+		filter.setDouble("max_af", 1.0);
 		filter.apply(vl, result);
 
-		I_EQUAL(result.countPassing(), 4);
+		I_EQUAL(result.countPassing(), 22);
 		IS_TRUE(result.flags()[70]);
 		IS_TRUE(result.flags()[74]);
 		IS_TRUE(result.flags()[101]);
@@ -481,7 +481,7 @@ private slots:
 		FilterAlleleFrequency filter1;
 		filter1.setDouble("max_af", 1.0);
 		filter1.apply(vl, result);
-		I_EQUAL(result.countPassing(), 36);
+		I_EQUAL(result.countPassing(), 39);
 
 		FilterGenotypeAffected filter2;
 		filter2.setStringList("genotypes", QStringList() << "comp-het");
@@ -500,7 +500,7 @@ private slots:
 		FilterAlleleFrequency filter1;
 		filter1.setDouble("max_af", 1.0);
 		filter1.apply(vl, result);
-		I_EQUAL(result.countPassing(), 36);
+		I_EQUAL(result.countPassing(), 39);
 
 		FilterGenotypeAffected filter2;
 		filter2.setStringList("genotypes", QStringList() << "comp-het" << "hom");

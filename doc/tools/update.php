@@ -35,7 +35,6 @@ if (PHP_OS=="WINNT")
 				"C:/Qt/Qt5.5.0/5.5/mingw492_32/plugins/platforms/qwindows.dll",
 				"C:/Qt/Qt5.5.0/5.5/mingw492_32/plugins/sqldrivers/qsqlmysql.dll",
 				"C:/Qt/Qt5.5.0/5.5/mingw492_32/plugins/printsupport/windowsprintersupport.dll",
-				"C:/Qt/Qt5.5.0/mysql-5.7.9-win32/lib/libmysql.dll",
 				);
 				
 	foreach($dlls as $source)

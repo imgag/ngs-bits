@@ -16,8 +16,9 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 Changes already implemented for next release:
 
+* Expecting VEP instead of SnpEff annotations in VCFs now (VariantQC, SomaticQC, RohHunter).
 * Added GRCh38 support (MappingQC, SomaticQC, SampleGender, SampleSimilarity).
-* Added tools: SampleAncestry.
+* Added tools: SampleAncestry, VcfCheck.
 
 Changes in release 2018_06:
 
@@ -51,7 +52,7 @@ _ngs-bits_ contains a lot of tools that are used for NGS-based diagnostics in ou
 * [SampleAncestry](doc/tools/SampleAncestry/index.md) - Estimates the ancestry of a sample based on variants.
 * [CnvHunter](doc/tools/CnvHunter/index.md) - CNV detection from targeted resequencing data using non-matched control samples.
 * [RohHunter](doc/tools/RohHunter.md) - ROH detection based on a variant list annotated with AF values.
-* [UpdHunter](doc/tools/UpdHunter.md) - UPD detection from trio variant data..
+* [UpdHunter](doc/tools/UpdHunter.md) - UPD detection from trio variant data.
 
 ### QC tools
 
@@ -104,6 +105,7 @@ The default output format of the quality control tools is [qcML](https://github.
 ### VCF tools
 
 * [VcfAnnotateFromBed](doc/tools/VcfAnnotateFromBed.md) - Annotates the INFO column of a VCF with data from a BED file.
+* [VcfCheck](doc/tools/VcfCheck.md) - Checks a VCF file for errors.
 * [VariantFilterRegions](doc/tools/VariantFilterRegions.md) - Filter a variant list based on a target region.
 * [VcfLeftNormalize](doc/tools/VcfLeftNormalize.md) - Normalizes all variants and shifts indels to the left in a VCF file.
 * [VcfSort](doc/tools/VcfSort.md) - Sorts variant lists according to chromosomal position.

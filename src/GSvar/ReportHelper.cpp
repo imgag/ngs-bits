@@ -1236,7 +1236,6 @@ VariantList ReportHelper::filterSnvForCGIAnnotation(bool filter_for_target_regio
 VariantList ReportHelper::filterSnVForGermline()
 {
 	int i_1000g = snv_germline_.annotationIndexByName("1000g",true,true);
-	int i_exac = snv_germline_.annotationIndexByName("ExAC",true,true);
 	int i_gnomAD = snv_germline_.annotationIndexByName("gnomAD",true,true);
 	int i_cgi_driver_statement = snv_germline_.annotationIndexByName("CGI_driver_statement",true,true);
 	int i_gene = snv_germline_.annotationIndexByName("gene",true,true);
@@ -1248,7 +1247,7 @@ VariantList ReportHelper::filterSnVForGermline()
 	{
 		Variant snv = snv_germline_[i];
 
-		bool is_polymorphism = snv.annotations().at(i_1000g).toDouble() > 0.01 || snv.annotations().at(i_exac).toDouble() > 0.01 || snv.annotations().at(i_gnomAD).toDouble() > 0.01;
+		bool is_polymorphism = snv.annotations().at(i_1000g).toDouble() > 0.01 || snv.annotations().at(i_gnomAD).toDouble() > 0.01;
 		bool is_driver = snv.annotations().at(i_cgi_driver_statement).contains("known") || snv.annotations().at(i_cgi_driver_statement).contains("driver");
 
 		if(is_polymorphism && !is_driver) continue;
@@ -1628,7 +1627,7 @@ void ReportHelper::somaticSnvForQbic()
 			effect = "NA";
 		}
 
-		bool is_coding_splicing = transcript.isPartOntologyTerms(obo_terms_coding_splicing_);
+		bool is_coding_splicing = transcript.typeMatchesTerms(obo_terms_coding_splicing_);
 		bool cgi_transcript_exists = true;
 		if(transcript.id != variant.annotations().at(snv_index_cgi_transcript_)) cgi_transcript_exists = true;
 
@@ -1938,7 +1937,9 @@ VariantTranscript ReportHelper::selectSomaticTranscript(const Variant& variant)
 
 	foreach(const VariantTranscript& trans, transcripts)
 	{
-		if(trans.id == cgi_transcript)
+		if(trans.id != cgi_transcript) continue;
+
+		if(trans.typeMatchesTerms(obo_terms_coding_splicing_))
 		{
 			use_transcript = trans;
 			break;
@@ -1950,7 +1951,7 @@ VariantTranscript ReportHelper::selectSomaticTranscript(const Variant& variant)
 	{
 		foreach(const VariantTranscript& trans,transcripts)
 		{
-			if(trans.isPartOntologyTerms(obo_terms_coding_splicing_))
+			if(trans.typeMatchesTerms(obo_terms_coding_splicing_))
 			{
 				use_transcript = trans;
 				break;
@@ -1968,7 +1969,6 @@ void ReportHelper::writeRtfTableGermlineSNV(QTextStream &stream, const QList<int
 {
 
 	//Column indices in germline SNV file
-	int i_ExAC = snv_germline_.annotationIndexByName("ExAC",true,true);
 	int i_1000g = snv_germline_.annotationIndexByName("1000g",true,true);
 	int i_gnomAD = snv_germline_.annotationIndexByName("gnomAD",true,true);
 	int i_cgi_driver_statement;
@@ -2003,7 +2003,6 @@ void ReportHelper::writeRtfTableGermlineSNV(QTextStream &stream, const QList<int
 		row.append(variant.obs());
 
 		row.append(variant.annotations().at(i_genotype));
-		row.append(variant.annotations().at(i_ExAC));
 		row.append(variant.annotations().at(i_1000g));
 		row.append(variant.annotations().at(i_gnomAD));
 

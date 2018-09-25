@@ -26,7 +26,7 @@ private slots:
         S_EQUAL(stats[2].toString(), QString("2"));
 		S_EQUAL(stats[3].name(), QString("known somatic variants percentage"));
         S_EQUAL(stats[3].accession(), QString("QC:2000045"));
-		S_EQUAL(stats[3].toString(), QString("n/a (no EXAC annotation)"));
+		S_EQUAL(stats[3].toString(), QString("n/a (no gnomAD_AF annotation in CSQ info field)"));
         S_EQUAL(stats[4].name(), QString("somatic indel percentage"));
         S_EQUAL(stats[4].accession(), QString("QC:2000042"));
         S_EQUAL(stats[4].toString(), QString("50.00"));
@@ -50,15 +50,15 @@ private slots:
 	void variantList_panel_filter()
 	{
 		VariantList vl;
-		vl.load(TESTDATA("data_in/Statistics_variantList.vcf"));
+		vl.load(TESTDATA("data_in/panel_vep.vcf"));
 
 		QCCollection stats = Statistics::variantList(vl, true);
         S_EQUAL(stats[0].name(), QString("variant count"));
-		S_EQUAL(stats[0].toString(), QString("151"));
+		S_EQUAL(stats[0].toString(), QString("153"));
         S_EQUAL(stats[0].accession(), QString("QC:2000013"));
         S_EQUAL(stats[1].name(), QString("known variants percentage"));
         S_EQUAL(stats[1].accession(), QString("QC:2000014"));
-		S_EQUAL(stats[1].toString(), QString("97.35"));
+		S_EQUAL(stats[1].toString(), QString("100.00"));
 		I_EQUAL(stats.count(), 6);
 
 		//check that there is a description for each term
@@ -72,24 +72,24 @@ private slots:
 	void variantList_panel_nofilter()
 	{
 		VariantList vl;
-		vl.load(TESTDATA("data_in/Statistics_variantList.vcf"));
+		vl.load(TESTDATA("data_in/panel_vep.vcf"));
 
 		QCCollection stats = Statistics::variantList(vl, false);
 		S_EQUAL(stats[0].name(), QString("variant count"));
-		S_EQUAL(stats[0].toString(), QString("157"));
+		S_EQUAL(stats[0].toString(), QString("329"));
 		S_EQUAL(stats[0].accession(), QString("QC:2000013"));
 		S_EQUAL(stats[1].name(), QString("known variants percentage"));
 		S_EQUAL(stats[1].accession(), QString("QC:2000014"));
-		S_EQUAL(stats[1].toString(), QString("97.45"));
+		S_EQUAL(stats[1].toString(), QString("99.70"));
 		S_EQUAL(stats[2].name(), QString("high-impact variants percentage"));
 		S_EQUAL(stats[2].accession(), QString("QC:2000015"));
-		S_EQUAL(stats[2].toString(), QString("1.27"));
+		S_EQUAL(stats[2].toString(), QString("0.61"));
 		S_EQUAL(stats[3].name(), QString("homozygous variants percentage"));
-		S_EQUAL(stats[3].toString(), QString("39.49"));
+		S_EQUAL(stats[3].toString(), QString("34.65"));
 		S_EQUAL(stats[4].name(), QString("indel variants percentage"));
-		S_EQUAL(stats[4].toString(), QString("4.46"));
+		S_EQUAL(stats[4].toString(), QString("13.68"));
 		S_EQUAL(stats[5].name(), QString("transition/transversion ratio"));
-		S_EQUAL(stats[5].toString(), QString("3.29"));
+		S_EQUAL(stats[5].toString(), QString("2.12"));
 		I_EQUAL(stats.count(), 6);
 
 		//check that there is a description for each term

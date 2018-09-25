@@ -1,5 +1,5 @@
 variant count: 157
-known variants percentage: 97.45
+known variants percentage: 1.91
 high-impact variants percentage: 1.27
 homozygous variants percentage: 39.49
 indel variants percentage: 4.46

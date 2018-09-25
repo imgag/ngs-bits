@@ -597,8 +597,8 @@ void MainWindow::editVariantValidation()
 			QByteArray status = dlg.info().status.toLatin1();
 			if (status=="true positive") status = "TP";
 			if (status=="false positive") status = "FP";
-			int i_validated = variants_.annotationIndexByName("validated", true, true);
-			variant.annotations()[i_validated] = status;
+			int i_validation = variants_.annotationIndexByName("validation", true, true);
+			variant.annotations()[i_validation] = status;
 
 			//update details widget and filtering
 			var_widget_->updateVariant(variants_, var_curr);
@@ -975,6 +975,16 @@ void MainWindow::loadFile(QString filename)
 	//update sample info dialog
 	sample_widget_->refresh(processedSampleName());
 	sample_widget_->raise();
+
+	//update variant details widget
+	try
+	{
+		var_widget_->setLabelTooltips(variants_);
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::warning(this, "Outdated GSvar file", "The GSvar file contains the following error:\n" + e.message() + "\n\nTo ensure that GSvar works as expected, re-run the analysis starting from annotation!");
+	}
 }
 
 void MainWindow::on_actionAbout_triggered()
@@ -1130,8 +1140,8 @@ void MainWindow::generateReport()
 {
 	//check if required NGSD annotations are present
 	if (variants_.annotationIndexByName("classification", true, false)==-1
-	 || variants_.annotationIndexByName("ihdb_allsys_hom", true, false)==-1
-	 || variants_.annotationIndexByName("ihdb_allsys_het", true, false)==-1
+	 || variants_.annotationIndexByName("NGSD_hom", true, false)==-1
+	 || variants_.annotationIndexByName("NGSD_het", true, false)==-1
 	 || variants_.annotationIndexByName("comment", true, false)==-1
 	 || variants_.annotationIndexByName("gene_info", true, false)==-1)
 	{
@@ -1903,21 +1913,18 @@ void MainWindow::variantListChanged()
 			}
 		}
 
-		QString header_desc = "";
-		VariantAnnotationDescription vad = variants_.annotationDescriptionByName(anno, false, false);
-		if(!vad.description().isNull())	header_desc = vad.description();
-
+		QString header_desc = variants_.annotationDescriptionByName(anno, false, false).description();
 		header->setToolTip(header_desc + add_desc);
 		ui_.vars->setHorizontalHeaderItem(i+5, header);
 	}
 
 	//content
 	int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, false);
-	int i_validated = variants_.annotationIndexByName("validated", true, false);
+	int i_validation = variants_.annotationIndexByName("validation", true, false);
 	int i_classification = variants_.annotationIndexByName("classification", true, false);
 	int i_comment = variants_.annotationIndexByName("comment", true, false);
-	int i_ihdb_hom = variants_.annotationIndexByName("ihdb_allsys_hom", true, false);
-	int i_ihdb_het = variants_.annotationIndexByName("ihdb_allsys_het", true, false);
+	int i_ihdb_hom = variants_.annotationIndexByName("NGSD_hom", true, false);
+	int i_ihdb_het = variants_.annotationIndexByName("NGSD_het", true, false);
 	int i_clinvar = variants_.annotationIndexByName("ClinVar", true, false);
 	int i_hgmd = variants_.annotationIndexByName("HGMD", true, false);
 	for (int i=0; i<variants_.count(); ++i)
@@ -1971,7 +1978,7 @@ void MainWindow::variantListChanged()
 			}
 
 			//highlighed
-			if (j==i_validated && anno.contains("TP"))
+			if (j==i_validation && anno.contains("TP"))
 			{
 				item->setBackgroundColor(Qt::yellow);
 			}

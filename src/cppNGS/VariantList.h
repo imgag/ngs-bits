@@ -14,7 +14,7 @@
 #include <QVectorIterator>
 
 
-///Transcript annotations e.g. from SnpEff.
+///Transcript annotations e.g. from SnpEff/VEP.
 struct CPPNGSSHARED_EXPORT VariantTranscript
 {
 	QByteArray gene;
@@ -24,10 +24,12 @@ struct CPPNGSSHARED_EXPORT VariantTranscript
 	QByteArray exon;
 	QByteArray hgvs_c;
 	QByteArray hgvs_p;
+	QByteArray domain;
 
 	QByteArray toString(char sep) const;
-	///returns true if one the variant types is part of Ontolgy terms
-	bool isPartOntologyTerms(const OntologyTermCollection& obo_terms) const;
+
+	///Returns true if one the variant type matches the given terms
+	bool typeMatchesTerms(const OntologyTermCollection& terms) const;
 };
 
 ///Sample header struct for samples in variant lists.
@@ -135,6 +137,9 @@ public:
     {
         return annotations_;
     }
+
+	///Returns the VEP annotations for an certain annotation field (one for each transcript)
+	QByteArrayList vepAnnotations(int csq_index, int field_index) const;
 
 	///Adds the given tag to the filter column.
 	void addFilter(QByteArray tag, int filter_column_index);
@@ -309,8 +314,8 @@ public:
 		return annotation_descriptions_;
 	}
 
-	///get Annotation description by name
-	VariantAnnotationDescription annotationDescriptionByName(const QString& description_name, bool sample_specific = false, bool error_not_found = true);
+	///get annotation header by name
+	VariantAnnotationDescription annotationDescriptionByName(const QString& description_name, bool sample_specific = false, bool error_not_found = true) const;
 
 	///Get names of samples in this variant list
 	QStringList sampleNames() const;
@@ -320,6 +325,8 @@ public:
 	///Looks up annotation header index by name. If no or several annotations match, -1 is returned (or an error is thrown if @p error_on_mismatch is set).
 	int annotationIndexByName(const QString& name, bool exact_match = true, bool error_on_mismatch = true) const;
 	int annotationIndexByName(const QString& name, QString sample_id, bool exact_match = true, bool error_on_mismatch = true) const;
+	///Looks up the index of an annotation in the VEP header (CSQ info field). Keep in mind the that CSQ field of variants conains comma-sparated entries for each transcript!
+	int vepIndexByName(const QString& name, bool error_if_not_found = true) const;
 
 	///Adds an annotation column and returns the index of the new column.
 	int addAnnotation(QString name, QString description, QByteArray default_value="");

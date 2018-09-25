@@ -64,9 +64,9 @@ public:
 	virtual void setup()
 	{
 		setDescription("Calculates QC metrics based on tumor-normal pairs.");
-		addInfile("tumor_bam", "Input tumor bam file.", false, true);
-		addInfile("normal_bam", "Input normal bam file.", false, true);
-		addInfile("somatic_vcf", "Input somatic vcf file.", false, true);
+		addInfile("tumor_bam", "Input tumor BAM file.", false, true);
+		addInfile("normal_bam", "Input normal BAM file.", false, true);
+		addInfile("somatic_vcf", "Input somatic VCF file.", false, true);
 		addOutfile("out", "Output qcML file. If unset, writes to STDOUT.", false, true);
 		//optional
 		addInfileList("links","Files that appear in the link part of the qcML file.",true);

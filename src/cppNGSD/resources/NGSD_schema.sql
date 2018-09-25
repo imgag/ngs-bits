@@ -478,7 +478,6 @@ CREATE  TABLE IF NOT EXISTS `variant` (
   `obs` TEXT NOT NULL,
   `dbsnp` TEXT NULL DEFAULT NULL,
   `1000g` FLOAT NULL DEFAULT NULL,
-  `exac` FLOAT NULL DEFAULT NULL,
   `gnomad` FLOAT NULL DEFAULT NULL,
   `gene` TEXT NULL DEFAULT NULL,
   `variant_type` TEXT NULL DEFAULT NULL,
@@ -493,7 +492,6 @@ CREATE  TABLE IF NOT EXISTS `variant` (
   INDEX `obs` (`obs`(255) ASC),
   INDEX `gene` (`gene`(50) ASC),
   INDEX `1000g` (`1000g` ASC),
-  INDEX `exac` (`exac` ASC),
   INDEX `gnomad` (`gnomad` ASC),
   INDEX `comment` (`comment`(50) ASC)
 )

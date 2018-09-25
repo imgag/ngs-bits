@@ -48,6 +48,20 @@ Variant::Variant(const Chromosome& chr, int start, int end, const Sequence& ref,
 	}
 }
 
+QByteArrayList Variant::vepAnnotations(int csq_index, int field_index) const
+{
+	QByteArrayList output;
+
+	QByteArrayList transcripts = annotations()[csq_index].split(',');
+	foreach(const QByteArray& transcript, transcripts)
+	{
+		QByteArrayList csq_fields = transcript.split('|');
+		output << csq_fields[field_index];
+	}
+
+	return output;
+}
+
 void Variant::addFilter(QByteArray tag, int filter_column_index)
 {
 	tag = tag.trimmed();
@@ -275,7 +289,7 @@ void VariantList::copyMetaData(const VariantList& rhs)
 	filters_ = rhs.filters_;
 }
 
-VariantAnnotationDescription VariantList::annotationDescriptionByName(const QString& description_name, bool sample_specific, bool error_not_found)
+VariantAnnotationDescription VariantList::annotationDescriptionByName(const QString& description_name, bool sample_specific, bool error_not_found) const
 {
 	bool found_multiple = false;
 
@@ -352,6 +366,32 @@ int VariantList::annotationIndexByName(const QString& name, QString sample_id, b
 
 	//return result
 	return matches.at(0);
+}
+
+int VariantList::vepIndexByName(const QString& name, bool error_if_not_found) const
+{
+	VariantAnnotationDescription anno_desc = annotationDescriptionByName("CSQ", false, false);
+	if (anno_desc.name().isEmpty())
+	{
+		if (error_if_not_found)
+		{
+			THROW(ArgumentException, "Info field 'CSQ' containing VEP annotation not found!");
+		}
+		else
+		{
+			return -1;
+		}
+	}
+
+	QStringList parts = anno_desc.description().trimmed().split("|");
+	parts[0] = "Allele";
+	int i_field = parts.indexOf(name);
+	if (i_field==-1 && error_if_not_found)
+	{
+		THROW(ArgumentException, "Field '" + name + "' not found in VEP CSQ field!");
+	}
+
+	return i_field;
 }
 
 int VariantList::addAnnotation(QString name, QString description, QByteArray default_value)
@@ -1657,9 +1697,9 @@ const QList<VariantTranscript> Variant::transcriptAnnotations(int column_index) 
 		if (transcript.isEmpty()) continue;
 
 		QList<QByteArray> parts = transcript.split(':');
-		if (parts.count()<7)
+		if (parts.count()<8)
 		{
-			THROW(ProgrammingException, "Could not split transcript information from 'coding_and_splicing' column to 7 parts: " + transcript);
+			THROW(ProgrammingException, "Could not split transcript information from 'coding_and_splicing' column to 8 parts: " + transcript);
 		}
 
 		VariantTranscript trans;
@@ -1670,6 +1710,7 @@ const QList<VariantTranscript> Variant::transcriptAnnotations(int column_index) 
 		trans.exon = parts[4].trimmed();
 		trans.hgvs_c = parts[5].trimmed();
 		trans.hgvs_p = parts[6].trimmed();
+		trans.domain = parts[7].trimmed();
 
 		output << trans;
 	}
@@ -1686,19 +1727,17 @@ QDebug operator<<(QDebug d, const Variant& v)
 
 QByteArray VariantTranscript::toString(char sep) const
 {
-	return gene + sep + id + sep + type + sep + impact + sep + exon + sep + hgvs_c + sep + hgvs_p;
+	return gene + sep + id + sep + type + sep + impact + sep + exon + sep + hgvs_c + sep + hgvs_p + sep + domain;
 }
 
-bool VariantTranscript::isPartOntologyTerms(const OntologyTermCollection& obo_terms) const
+bool VariantTranscript::typeMatchesTerms(const OntologyTermCollection& terms) const
 {
-	bool is_in_obo_terms = false;
-	foreach(QByteArray type,this->type.split('&'))
+	foreach(QByteArray type, type.split('&'))
 	{
-		if(obo_terms.containsByName(type))
+		if(terms.containsByName(type.trimmed()))
 		{
-			is_in_obo_terms = true;
-			break;
+			return true;
 		}
 	}
-	return is_in_obo_terms;
+	return false;
 }

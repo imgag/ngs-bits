@@ -22,6 +22,9 @@ public:
 	//Sets preferred transcripts
 	void setPreferredTranscripts(QMap<QString, QStringList> data);
 
+	//Sets tooltips of labels
+	void setLabelTooltips(const VariantList& vl);
+
 	//Updates the widget to a new variant.
 	void updateVariant(const VariantList& vl, int index);
 	//Clears the widget (no variant selected).
@@ -66,7 +69,7 @@ private:
 	//Returns the annotation.
 	void setAnnotation(QLabel* label, const VariantList& vl, int index, QString name);
 	//Returns the maximum allele frequency of the variant.
-	double maxAalleleFrequency(const VariantList& vl, int index) const;
+	double maxAlleleFrequency(const VariantList& vl, int index) const;
 	//Convert color to string.
 	static QString colorToString(Color color);
 	//Format clickable link for a label.

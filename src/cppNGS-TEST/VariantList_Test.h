@@ -10,7 +10,7 @@ private slots:
 	void type()
 	{
 		VariantList vl;
-		vl.load(TESTDATA("data_in/panel.vcf"));
+		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
 
 		I_EQUAL(vl.type(false), GERMLINE_SINGLESAMPLE);
 	}
@@ -79,7 +79,7 @@ private slots:
 	void removeDuplicates_VCF()
 	{
 		VariantList vl,vl2;
-		vl.load(TESTDATA("data_in/panel.vcf"));
+		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
 		vl.checkValid();
 		vl.sort();
 		vl2.load(TESTDATA("data_in/variantList_removeDuplicates.vcf"));
@@ -122,7 +122,7 @@ private slots:
 	void loadFromVCF()
 	{
 		VariantList vl;
-		vl.load(TESTDATA("data_in/panel.vcf"));
+		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
 		vl.checkValid();
 		I_EQUAL(vl.count(), 14);
 		I_EQUAL(vl.comments().count(), 3);
@@ -185,7 +185,7 @@ private slots:
 		I_EQUAL(vl[12].filters().count(), 0);
 
 		//load a second time to check initialization
-		vl.load(TESTDATA("data_in/panel.vcf"));
+		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
 		vl.checkValid();
 		I_EQUAL(vl.count(), 14);
 		I_EQUAL(vl.annotations().count(), 27);
@@ -200,7 +200,7 @@ private slots:
 		roi.append(BedLine("chr18", 67904549, 67904670));
 
 		VariantList vl;
-		vl.load(TESTDATA("data_in/panel.vcf"), VCF, &roi);
+		vl.load(TESTDATA("data_in/panel_snpeff.vcf"), VCF, &roi);
 		vl.checkValid();
 		I_EQUAL(vl.count(), 4);
 		I_EQUAL(vl.comments().count(), 3);
@@ -277,7 +277,7 @@ private slots:
 	{
 		//store loaded file
 		VariantList vl;
-		vl.load(TESTDATA("data_in/panel.vcf"));
+		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
 		vl.checkValid();
 		vl.store("out/VariantList_store_01.vcf");
 		vl.clear();
@@ -345,84 +345,74 @@ private slots:
 	void loadFromTSV()
 	{
 		VariantList vl;
-		vl.load(TESTDATA("data_in/panel.tsv"));
+		vl.load(TESTDATA("data_in/panel_vep.GSvar"));
 		vl.checkValid();
-		I_EQUAL(vl.count(), 75);
-		I_EQUAL(vl.annotations().count(), 27);
+		I_EQUAL(vl.count(), 329);
+		I_EQUAL(vl.annotations().count(), 30);
 		S_EQUAL(vl.annotations()[0].name(), QString("genotype"));
-		S_EQUAL(vl.annotations()[26].name(), QString("validated"));
-		I_EQUAL(vl.filters().count(), 3);
-		S_EQUAL(vl.filters()["low_DP"], QString("Depth less than 20 at variant location."));
-		S_EQUAL(vl.filters()["low_MQM"], QString("Mean mapping quality of alternate allele less than Q50."));
-		S_EQUAL(vl.filters()["low_QUAL"], QString("Variant quality less than Q30."));
+		S_EQUAL(vl.annotations()[27].name(), QString("validation"));
+		I_EQUAL(vl.filters().count(), 2);
+		S_EQUAL(vl.filters()["gene_blacklist"], QString("The gene(s) are contained on the blacklist of unreliable genes."));
+		S_EQUAL(vl.filters()["off-target"], QString("Variant marked as 'off-target'."));
 
 		X_EQUAL(vl[0].chr(), Chromosome("chr1"));
-		I_EQUAL(vl[0].start(), 155205047);
-		I_EQUAL(vl[0].end(), 155205047);
-		S_EQUAL(vl[0].ref(), Sequence("C"));
-		S_EQUAL(vl[0].obs(), Sequence("T"));
+		I_EQUAL(vl[0].start(), 27682481);
+		I_EQUAL(vl[0].end(), 27682481);
+		S_EQUAL(vl[0].ref(), Sequence("G"));
+		S_EQUAL(vl[0].obs(), Sequence("A"));
 		S_EQUAL(vl[0].annotations().at(0), QByteArray("het"));
-		S_EQUAL(vl[0].annotations().at(5), QByteArray("0.5084"));
-		S_EQUAL(vl[0].annotations().at(26), QByteArray(""));
-		I_EQUAL(vl[0].filters().count(), 0);
+		S_EQUAL(vl[0].annotations().at(7), QByteArray("rs12569127"));
+		S_EQUAL(vl[0].annotations().at(9), QByteArray("0.2659"));
+		I_EQUAL(vl[0].filters().count(), 1);
 
-		I_EQUAL(vl[13].filters().count(), 1);
-		S_EQUAL(vl[13].filters().at(0), QByteArray("low_QUAL"));
-
-		I_EQUAL(vl[72].filters().count(), 2);
-		S_EQUAL(vl[72].filters().at(0), QByteArray("low_QUAL"));
-		S_EQUAL(vl[72].filters().at(1), QByteArray("low_MQM"));
-
-		X_EQUAL(vl[74].chr(), Chromosome("chrX"));
-		I_EQUAL(vl[74].start(), 153009197);
-		I_EQUAL(vl[74].end(), 153009197);
-		S_EQUAL(vl[74].ref(), Sequence("G"));
-		S_EQUAL(vl[74].obs(), Sequence("C"));
-		S_EQUAL(vl[74].annotations().at(0), QByteArray("het"));
-		S_EQUAL(vl[74].annotations().at(5), QByteArray("0.5368"));
-		S_EQUAL(vl[74].annotations().at(25), QByteArray(""));
-		I_EQUAL(vl[74].filters().count(), 0);
-
+		X_EQUAL(vl[328].chr(), Chromosome("chr20"));
+		I_EQUAL(vl[328].start(), 48301146);
+		I_EQUAL(vl[328].end(), 48301146);
+		S_EQUAL(vl[328].ref(), Sequence("G"));
+		S_EQUAL(vl[328].obs(), Sequence("A"));
+		S_EQUAL(vl[328].annotations().at(0), QByteArray("hom"));
+		S_EQUAL(vl[328].annotations().at(7), QByteArray("rs6512586"));
+		S_EQUAL(vl[328].annotations().at(9), QByteArray("0.5178"));
+		I_EQUAL(vl[328].filters().count(), 0);
 
 		//load a second time to check initialization
-		vl.load(TESTDATA("data_in/panel.tsv"));
+		vl.load(TESTDATA("data_in/panel_vep.GSvar"));
 		vl.checkValid();
-		I_EQUAL(vl.count(), 75);
-		I_EQUAL(vl.annotations().count(), 27);
+		I_EQUAL(vl.count(), 329);
+		I_EQUAL(vl.annotations().count(), 30);
 	}
 
 	void loadFromTSV_withROI()
 	{
 		BedFile roi;
-		roi.append(BedLine("chr16", 74750405, 74808425));
-		roi.append(BedLine("chr19", 7607441, 7607564));
+		roi.append(BedLine("chr16", 89805260, 89805978));
+		roi.append(BedLine("chr19", 17379550, 17382510));
 
 		VariantList vl;
-		vl.load(TESTDATA("data_in/panel.tsv"), TSV, &roi);
+		vl.load(TESTDATA("data_in/panel_vep.GSvar"), TSV, &roi);
 		I_EQUAL(vl.count(), 4);
-		I_EQUAL(vl.annotations().count(), 27);
+		I_EQUAL(vl.annotations().count(), 30);
 		S_EQUAL(vl.annotations()[0].name(), QString("genotype"));
-		S_EQUAL(vl.annotations()[26].name(), QString("validated"));
-		I_EQUAL(vl.filters().count(), 3);
-		S_EQUAL(vl.filters()["low_DP"], QString("Depth less than 20 at variant location."));
-		S_EQUAL(vl.filters()["low_MQM"], QString("Mean mapping quality of alternate allele less than Q50."));
-		S_EQUAL(vl.filters()["low_QUAL"], QString("Variant quality less than Q30."));
+		S_EQUAL(vl.annotations()[27].name(), QString("validation"));
+		I_EQUAL(vl.filters().count(), 2);
+		S_EQUAL(vl.filters()["gene_blacklist"], QString("The gene(s) are contained on the blacklist of unreliable genes."));
+		S_EQUAL(vl.filters()["off-target"], QString("Variant marked as 'off-target'."));
 
 		X_EQUAL(vl[0].chr(), Chromosome("chr16"));
-		I_EQUAL(vl[0].start(), 74750405);
+		I_EQUAL(vl[0].start(), 89805261);
 		X_EQUAL(vl[1].chr(), Chromosome("chr16"));
-		I_EQUAL(vl[1].start(), 74808425);
+		I_EQUAL(vl[1].start(), 89805977);
 		X_EQUAL(vl[2].chr(), Chromosome("chr19"));
-		I_EQUAL(vl[2].start(), 7607441);
+		I_EQUAL(vl[2].start(), 17379558);
 		X_EQUAL(vl[3].chr(), Chromosome("chr19"));
-		I_EQUAL(vl[3].start(), 7607564);
+		I_EQUAL(vl[3].start(), 17382505);
 	}
 
 	void storeToTSV()
 	{
 		//store loaded tsv file
 		VariantList vl;
-		vl.load(TESTDATA("data_in/panel.tsv"));
+		vl.load(TESTDATA("data_in/panel_vep.GSvar"));
 		vl.checkValid();
 		vl.store("out/VariantList_store_01.tsv");
 		vl.clear();
@@ -430,47 +420,46 @@ private slots:
 		//reload and check that everything stayed the same
 		vl.load("out/VariantList_store_01.tsv");
 		vl.checkValid();
-		I_EQUAL(vl.count(), 75);
+		I_EQUAL(vl.count(), 329);
 
-		I_EQUAL(vl.annotations().count(), 27);
+		I_EQUAL(vl.annotations().count(), 30);
 		S_EQUAL(vl.annotations()[0].name(), QString("genotype"));
-		S_EQUAL(vl.annotations()[26].name(), QString("validated"));
+		S_EQUAL(vl.annotations()[27].name(), QString("validation"));
 
-		I_EQUAL(vl.filters().count(), 3);
-		S_EQUAL(vl.filters()["low_DP"], QString("Depth less than 20 at variant location."));
-		S_EQUAL(vl.filters()["low_MQM"], QString("Mean mapping quality of alternate allele less than Q50."));
-		S_EQUAL(vl.filters()["low_QUAL"], QString("Variant quality less than Q30."));
+		I_EQUAL(vl.filters().count(), 2);
+		S_EQUAL(vl.filters()["gene_blacklist"], QString("The gene(s) are contained on the blacklist of unreliable genes."));
+		S_EQUAL(vl.filters()["off-target"], QString("Variant marked as 'off-target'."));
 
 		X_EQUAL(vl[0].chr(), Chromosome("chr1"));
-		I_EQUAL(vl[0].start(), 155205047);
-		I_EQUAL(vl[0].end(), 155205047);
-		S_EQUAL(vl[0].ref(), Sequence("C"));
-		S_EQUAL(vl[0].obs(), Sequence("T"));
+		I_EQUAL(vl[0].start(), 27682481);
+		I_EQUAL(vl[0].end(), 27682481);
+		S_EQUAL(vl[0].ref(), Sequence("G"));
+		S_EQUAL(vl[0].obs(), Sequence("A"));
 		S_EQUAL(vl[0].annotations().at(0), QByteArray("het"));
-		S_EQUAL(vl[0].annotations().at(5), QByteArray("0.5084"));
-		S_EQUAL(vl[0].annotations().at(26), QByteArray(""));
+		S_EQUAL(vl[0].annotations().at(7), QByteArray("rs12569127"));
+		S_EQUAL(vl[0].annotations().at(9), QByteArray("0.2659"));
 
-		X_EQUAL(vl[74].chr(), Chromosome("chrX"));
-		I_EQUAL(vl[74].start(), 153009197);
-		I_EQUAL(vl[74].end(), 153009197);
-		S_EQUAL(vl[74].ref(), Sequence("G"));
-		S_EQUAL(vl[74].obs(), Sequence("C"));
-		S_EQUAL(vl[74].annotations().at(0), QByteArray("het"));
-		S_EQUAL(vl[74].annotations().at(5), QByteArray("0.5368"));
-		S_EQUAL(vl[74].annotations().at(25), QByteArray(""));
+		X_EQUAL(vl[328].chr(), Chromosome("chr20"));
+		I_EQUAL(vl[328].start(), 48301146);
+		I_EQUAL(vl[328].end(), 48301146);
+		S_EQUAL(vl[328].ref(), Sequence("G"));
+		S_EQUAL(vl[328].obs(), Sequence("A"));
+		S_EQUAL(vl[328].annotations().at(0), QByteArray("hom"));
+		S_EQUAL(vl[328].annotations().at(7), QByteArray("rs6512586"));
+		S_EQUAL(vl[328].annotations().at(9), QByteArray("0.5178"));
 
 		//load a second time to check initialization
-		vl.load(TESTDATA("data_in/panel.tsv"));
+		vl.load(TESTDATA("data_in/panel_vep.GSvar"));
 		vl.checkValid();
-		I_EQUAL(vl.count(), 75);
-		I_EQUAL(vl.annotations().count(), 27);
+		I_EQUAL(vl.count(), 329);
+		I_EQUAL(vl.annotations().count(), 30);
 	}
 
 	void convertVCFtoTSV()
 	{
 		//store loaded vcf file
 		VariantList vl;
-		vl.load(TESTDATA("data_in/panel.vcf"));
+		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
 		vl.checkValid();
 		vl.store("out/VariantList_convertVCFtoTSV.tsv");
 		vl.clear();
@@ -578,14 +567,25 @@ private slots:
 	void annotationIndexByName()
 	{
 		VariantList vl;
-		vl.load(TESTDATA("data_in/panel.tsv"));
+		vl.load(TESTDATA("data_in/panel_vep.GSvar"));
 		vl.checkValid();
 		I_EQUAL(vl.annotationIndexByName("genotype", true, false), 0);
 		I_EQUAL(vl.annotationIndexByName("genotype", false, false), 0);
-		I_EQUAL(vl.annotationIndexByName("validated", true, false), 26);
-		I_EQUAL(vl.annotationIndexByName("validated", false, false), 26);
-		I_EQUAL(vl.annotationIndexByName("1000g_", false, false), 10);
-		I_EQUAL(vl.annotationIndexByName("dbSNP_", false, false), 11);
+		I_EQUAL(vl.annotationIndexByName("validation", true, false), 27);
+		I_EQUAL(vl.annotationIndexByName("validation", false, false), 27);
+		I_EQUAL(vl.annotationIndexByName("ESP_", false, false), 12);
+		I_EQUAL(vl.annotationIndexByName("fathmm-", false, false), 16);
+	}
+
+	void vepIndexByName()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/panel_vep.vcf"));
+		I_EQUAL(vl.vepIndexByName("Allele", false), 0);
+		I_EQUAL(vl.vepIndexByName("Consequence", false), 1);
+		I_EQUAL(vl.vepIndexByName("IMPACT", false), 2);
+		I_EQUAL(vl.vepIndexByName("HGMD_PHEN", false), 59);
+		I_EQUAL(vl.vepIndexByName("Oranguta-Klaus", false), -1);
 	}
 
 	//test sort function for VCF files
@@ -615,7 +615,7 @@ private slots:
 	void sort3()
 	{
 		VariantList vl;
-		vl.load(TESTDATA("data_in/panel.vcf"));
+		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
 		vl.checkValid();
 		vl.sort(true);
 		//entries should be sorted numerically
@@ -647,7 +647,7 @@ private slots:
 	void sortByFile()
 	{
 		VariantList vl;
-		vl.load(TESTDATA("data_in/panel.vcf"));
+		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
 		vl.checkValid();
 		vl.sortByFile(TESTDATA("data_in/variantList_sortbyFile.fai"));
 		vl.store("out/sortByFile.vcf");
@@ -717,25 +717,25 @@ private slots:
 	void removeAnnotation()
 	{
 		VariantList vl;
-		vl.load(TESTDATA("data_in/panel.tsv"));
+		vl.load(TESTDATA("data_in/panel_vep.GSvar"));
 		vl.checkValid();
-		int index = vl.annotationIndexByName("depth", true, false);
+		int index = vl.annotationIndexByName("1000g", true, false);
 
-		I_EQUAL(vl.annotations().count(), 27);
-		I_EQUAL(vl.count(), 75);
-		I_EQUAL(vl[0].annotations().count(), 27);
-		S_EQUAL(vl[0].annotations()[index-1], QByteArray("225"));
-		S_EQUAL(vl[0].annotations()[index], QByteArray("728"));
-		S_EQUAL(vl[0].annotations()[index+1], QByteArray("37"));
+		I_EQUAL(vl.annotations().count(), 30);
+		I_EQUAL(vl.count(), 329);
+		I_EQUAL(vl[0].annotations().count(), 30);
+		S_EQUAL(vl[0].annotations()[index-1], QByteArray("rs12569127"));
+		S_EQUAL(vl[0].annotations()[index], QByteArray("0.1903"));
+		S_EQUAL(vl[0].annotations()[index+1], QByteArray("0.2659"));
 
 		vl.removeAnnotation(index);
 
-		I_EQUAL(vl.annotations().count(), 26);
-		I_EQUAL(vl.count(), 75);
-		I_EQUAL(vl[0].annotations().count(), 26);
-		S_EQUAL(vl[0].annotations()[index-1], QByteArray("225"));
-		S_EQUAL(vl[0].annotations()[index], QByteArray("37"));
-		S_EQUAL(vl[0].annotations()[index+1], QByteArray("SNV"));
+		I_EQUAL(vl.annotations().count(), 29);
+		I_EQUAL(vl.count(), 329);
+		I_EQUAL(vl[0].annotations().count(), 29);
+		S_EQUAL(vl[0].annotations()[index-1], QByteArray("rs12569127"));
+		S_EQUAL(vl[0].annotations()[index], QByteArray("0.2659"));
+		S_EQUAL(vl[0].annotations()[index+1], QByteArray(""));
 	}
 
 	//bug (number of variants was used to checked if index is out of range)
@@ -823,7 +823,7 @@ private slots:
 
 	void getSampleHeader_singlesample()
 	{
-		QString input = TESTDATA("data_in/VariantFilter_in.GSvar");
+		QString input = TESTDATA("data_in/panel_vep.GSvar");
 		VariantList vl;
 		vl.load(input);
 		SampleHeaderInfo info = vl.getSampleHeader();
@@ -851,7 +851,7 @@ private slots:
 	void getPipeline()
 	{
 		VariantList vl;
-		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+		vl.load(TESTDATA("data_in/panel_vep.GSvar"));
 		S_EQUAL(vl.getPipeline(), "megSAP 0.1-742-ged8ba02");
 
 		//header not set

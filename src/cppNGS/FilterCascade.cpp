@@ -549,16 +549,14 @@ void FilterAlleleFrequency::apply(const VariantList& variants, FilterResult& res
 
 	//get column indices
 	int i_1000g = annotationColumn(variants, "1000g");
-	int i_exac = annotationColumn(variants, "ExAC");
 	int i_gnomad = annotationColumn(variants, "gnomAD");
 
 	//filter
 	for(int i=0; i<variants.count(); ++i)
 	{
 		result.flags()[i] = result.flags()[i]
-				&& variants[i].annotations()[i_1000g].toDouble()<=max_af
-				&& variants[i].annotations()[i_exac].toDouble()<=max_af
-				&& variants[i].annotations()[i_gnomad].toDouble()<=max_af;
+			&& variants[i].annotations()[i_1000g].toDouble()<=max_af
+			&& variants[i].annotations()[i_gnomad].toDouble()<=max_af;
 	}
 }
 
@@ -726,12 +724,25 @@ void FilterSubpopulationAlleleFrequency::apply(const VariantList& variants, Filt
 	double max_af = getDouble("max_af")/100.0;
 
 	//filter
-	int index = annotationColumn(variants, "ExAC_sub");
+	int i_gnomad = annotationColumn(variants, "gnomAD_sub");
+	int i_esp = annotationColumn(variants, "ESP_sub");
 	for(int i=0; i<variants.count(); ++i)
 	{
 		if (!result.flags()[i]) continue;
 
-		QByteArrayList parts = variants[i].annotations()[index].split(',');
+		QByteArrayList parts = variants[i].annotations()[i_gnomad].split(',');
+		foreach(const QByteArray& part, parts)
+		{
+			if (part.toDouble()>max_af)
+			{
+				result.flags()[i] = false;
+				break;
+			}
+		}
+
+		if (!result.flags()[i]) continue;
+
+		parts = variants[i].annotations()[i_esp].split(',');
 		foreach(const QByteArray& part, parts)
 		{
 			if (part.toDouble()>max_af)
@@ -746,7 +757,7 @@ void FilterSubpopulationAlleleFrequency::apply(const VariantList& variants, Filt
 FilterVariantImpact::FilterVariantImpact()
 {
 	name_ = "Impact";
-	description_ = QStringList() << "Filter based on the variant impact given by SnpEff." << "For more details see: http://snpeff.sourceforge.net/SnpEff_manual.html#eff";
+	description_ = QStringList() << "Filter based on the variant impact given by VEP." << "For more details see: https://www.ensembl.org/info/genome/variation/prediction/predicted_data.html";
 
 	params_ << FilterParameter("impact", STRINGLIST, QStringList() << "HIGH" << "MODERATE" << "LOW", "Valid impacts");
 	params_.last().constraints["valid"] = "HIGH,MODERATE,LOW,MODIFIER";
@@ -811,8 +822,8 @@ void FilterVariantCountNGSD::apply(const VariantList& variants, FilterResult& re
 
 	int max_count = getInt("max_count");
 
-	int i_ihdb_hom = annotationColumn(variants, "ihdb_allsys_hom");
-	int i_ihdb_het = annotationColumn(variants, "ihdb_allsys_het");
+	int i_ihdb_hom = annotationColumn(variants, "NGSD_hom");
+	int i_ihdb_het = annotationColumn(variants, "NGSD_het");
 
 	if (getBool("ignore_genotype"))
 	{
@@ -1439,7 +1450,7 @@ bool FilterAnnotationPathogenic::annotatedPathogenic(const Variant& v) const
 FilterPredictionPathogenic::FilterPredictionPathogenic()
 {
 	name_ = "Predicted pathogenic";
-	description_ = QStringList() << "Filter for variants predicted to be pathogenic." << "Prediction scores included are: phyloP≥1.6, Sift=D, MetaLR=D, PolyPhen2=D, FATHMM=D and CADD≥20.";
+	description_ = QStringList() << "Filter for variants predicted to be pathogenic." << "Prediction scores included are: phyloP≥1.6, Sift=D, PolyPhen=D, fathmm-MKL≥0.5, CADD≥20 and REVEL≥0.5.";
 	params_ << FilterParameter("min", INT, 1, "Minimum number of pathogenic predictions");
 	params_.last().constraints["min"] = "1";
 	params_ << FilterParameter("action", STRING, "FILTER", "Action to perform");
@@ -1458,12 +1469,12 @@ void FilterPredictionPathogenic::apply(const VariantList& variants, FilterResult
 	if (!enabled_) return;
 
 	min = getInt("min");
-	i_phylop = annotationColumn(variants, "phyloP", false);
-	i_sift = annotationColumn(variants, "Sift", false);
-	i_metalr = annotationColumn(variants, "MetaLR", false);
-	i_pp2 = annotationColumn(variants, "PolyPhen2", false);
-	i_fathmm = annotationColumn(variants, "FATHMM", false);
-	i_cadd = annotationColumn(variants, "CADD", false);
+	i_phylop = annotationColumn(variants, "phyloP");
+	i_sift = annotationColumn(variants, "Sift");
+	i_polyphen = annotationColumn(variants, "PolyPhen");
+	i_fathmm = annotationColumn(variants, "fathmm-MKL");
+	i_cadd = annotationColumn(variants, "CADD");
+	i_revel = annotationColumn(variants, "REVEL");
 
 	if (getString("action")=="FILTER")
 	{
@@ -1489,27 +1500,42 @@ bool FilterPredictionPathogenic::predictedPathogenic(const Variant& v) const
 {
 	int count = 0;
 
-	if (i_sift!=-1 && v.annotations()[i_sift].contains("D")) ++count;
-
-	if (i_metalr!=-1 && v.annotations()[i_metalr].contains("D")) ++count;
-
-	if (i_pp2!=-1 && v.annotations()[i_pp2].contains("D")) ++count;
-
-	if (i_fathmm!=-1 && v.annotations()[i_fathmm].contains("D")) ++count;
-
-	if (i_phylop!=-1)
+	if (v.annotations()[i_sift].contains("D"))
 	{
-		bool ok;
-		double value = v.annotations()[i_phylop].toDouble(&ok);
-		if (ok && value>=1.6) ++count;
+		++count;
 	}
 
-	if (i_cadd!=-1)
+	if ( v.annotations()[i_polyphen].contains("D"))
 	{
-		bool ok;
-		double value = v.annotations()[i_cadd].toDouble(&ok);
-		if (ok && value>=20.0) ++count;
+		++count;
 	}
+
+	if (v.annotations()[i_fathmm].contains(","))
+	{
+		QByteArrayList parts = v.annotations()[i_fathmm].split(',');
+		foreach(const QByteArray& part, parts)
+		{
+			bool ok = true;
+			double value = part.toDouble(&ok);
+			if (ok && value>=0.5)
+			{
+				++count;
+				break;
+			}
+		}
+	}
+
+	bool ok;
+	double value = v.annotations()[i_phylop].toDouble(&ok);
+	if (ok && value>=1.6) ++count;
+
+
+	value = v.annotations()[i_cadd].toDouble(&ok);
+	if (ok && value>=20.0) ++count;
+
+
+	value = v.annotations()[i_revel].toDouble(&ok);
+	if (ok && value>=0.5) ++count;
 
 	return count>=min;
 }
@@ -1581,23 +1607,24 @@ bool FilterAnnotationText::match(const Variant& v) const
 	return false;
 }
 
-
 FilterVariantType::FilterVariantType()
 {
 	name_ = "Variant type";
 	description_ = QStringList() << "Filter for variant types as defined by sequence ontology." << "For details see http://www.sequenceontology.org/browser/obob.cgi";
-	params_ << FilterParameter("HIGH", STRINGLIST, QStringList() << "exon_loss" << "frameshift" << "splice_acceptor" << "splice_donor" << "start_lost" << "stop_gained" << "stop_lost", "High impact variant types");
-	params_.last().constraints["valid"] = "exon_loss,frameshift,splice_acceptor,splice_donor,start_lost,stop_gained,stop_lost";
-	params_ << FilterParameter("MODERATE", STRINGLIST, QStringList() << "3'UTR_truncation" << "5'UTR_truncation" << "conservative_inframe_deletion" << "conservative_inframe_insertion" << "disruptive_inframe_deletion" << "disruptive_inframe_insertion" << "missense", "Moderate impact variant types");
-	params_.last().constraints["valid"] = "3'UTR_truncation,5'UTR_truncation,conservative_inframe_deletion,conservative_inframe_insertion,disruptive_inframe_deletion,disruptive_inframe_insertion,missense";
-	params_ << FilterParameter("LOW", STRINGLIST, QStringList() << "splice_region", "Low impact variant types");
-	params_.last().constraints["valid"] = "5'UTR_premature_start_codon_gain,initiator_codon,splice_region,stop_retained,synonymous";
+	params_ << FilterParameter("HIGH", STRINGLIST, QStringList() << "frameshift_variant" << "splice_acceptor_variant" << "splice_donor_variant" << "start_lost" << "start_retained_variant" << "stop_gained" << "stop_lost", "High impact variant types");
+	params_.last().constraints["valid"] = "frameshift_variant,splice_acceptor_variant,splice_donor_variant,start_lost,start_retained_variant,stop_gained,stop_lost";
+
+	params_ << FilterParameter("MODERATE", STRINGLIST, QStringList() << "inframe_deletion" << "inframe_insertion" << "missense_variant", "Moderate impact variant types");
+	params_.last().constraints["valid"] = "inframe_deletion,inframe_insertion,missense_variant";
+
+	params_ << FilterParameter("LOW", STRINGLIST, QStringList() << "splice_region_variant", "Low impact variant types");
+	params_.last().constraints["valid"] = "splice_region_variant,stop_retained_variant,synonymous_variant";
+
 	params_ << FilterParameter("MODIFIER", STRINGLIST, QStringList(), "Lowest impact variant types");
-	params_.last().constraints["valid"] = "3'UTR,5'UTR,downstream_gene,intergenic_region,intron,non_coding_transcript,non_coding_transcript_exon,upstream_gene";
+	params_.last().constraints["valid"] = "3_prime_UTR_variant,5_prime_UTR_variant,NMD_transcript_variant,downstream_gene_variant,intergenic_variant,intron_variant,mature_miRNA_variant,non_coding_transcript_exon_variant,non_coding_transcript_variant,upstream_gene_variant";
 
 	checkIsRegistered();
 }
-
 
 QString FilterVariantType::toText() const
 {

@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2018_06-34-g9e7c1ae)
+	VariantFilterAnnotations (2018_06-35-ga1d5548)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -65,13 +65,13 @@
 	                                   Parameters:
 	                                     genotypes - Genotype(s) [valid=wt,het,hom] [non-empty]
 	                                     same_genotype - Also check that all 'control' samples have the same genotype. [default=false]
-	Impact                             Filter based on the variant impact given by SnpEff.
-	                                   For more details see: http://snpeff.sourceforge.net/SnpEff_manual.html#eff
+	Impact                             Filter based on the variant impact given by VEP.
+	                                   For more details see: https://www.ensembl.org/info/genome/variation/prediction/predicted_data.html
 	                                   Parameters:
 	                                     impact - Valid impacts [default=HIGH,MODERATE,LOW] [valid=HIGH,MODERATE,LOW,MODIFIER] [non-empty]
 	OMIM genes                         Filter for OMIM genes i.e. the 'OMIM' column is not empty.
 	Predicted pathogenic               Filter for variants predicted to be pathogenic.
-	                                   Prediction scores included are: phyloP=1.6, Sift=D, MetaLR=D, PolyPhen2=D, FATHMM=D and CADD=20.
+	                                   Prediction scores included are: phyloP=1.6, Sift=D, PolyPhen=D, fathmm-MKL=0.5, CADD=20 and REVEL=0.5.
 	                                   Parameters:
 	                                     min - Minimum number of pathogenic predictions [default=1] [min=1]
 	                                     action - Action to perform [default=FILTER] [valid=KEEP,FILTER]
@@ -93,10 +93,10 @@
 	Variant type                       Filter for variant types as defined by sequence ontology.
 	                                   For details see http://www.sequenceontology.org/browser/obob.cgi
 	                                   Parameters:
-	                                     HIGH - High impact variant types [default=exon_loss,frameshift,splice_acceptor,splice_donor,start_lost,stop_gained,stop_lost] [valid=exon_loss,frameshift,splice_acceptor,splice_donor,start_lost,stop_gained,stop_lost]
-	                                     MODERATE - Moderate impact variant types [default=3'UTR_truncation,5'UTR_truncation,conservative_inframe_deletion,conservative_inframe_insertion,disruptive_inframe_deletion,disruptive_inframe_insertion,missense] [valid=3'UTR_truncation,5'UTR_truncation,conservative_inframe_deletion,conservative_inframe_insertion,disruptive_inframe_deletion,disruptive_inframe_insertion,missense]
-	                                     LOW - Low impact variant types [default=splice_region] [valid=5'UTR_premature_start_codon_gain,initiator_codon,splice_region,stop_retained,synonymous]
-	                                     MODIFIER - Lowest impact variant types [valid=3'UTR,5'UTR,downstream_gene,intergenic_region,intron,non_coding_transcript,non_coding_transcript_exon,upstream_gene]
+	                                     HIGH - High impact variant types [default=frameshift_variant,splice_acceptor_variant,splice_donor_variant,start_lost,start_retained_variant,stop_gained,stop_lost] [valid=frameshift_variant,splice_acceptor_variant,splice_donor_variant,start_lost,start_retained_variant,stop_gained,stop_lost]
+	                                     MODERATE - Moderate impact variant types [default=inframe_deletion,inframe_insertion,missense_variant] [valid=inframe_deletion,inframe_insertion,missense_variant]
+	                                     LOW - Low impact variant types [default=splice_region_variant] [valid=splice_region_variant,stop_retained_variant,synonymous_variant]
+	                                     MODIFIER - Lowest impact variant types [valid=3_prime_UTR_variant,5_prime_UTR_variant,NMD_transcript_variant,downstream_gene_variant,intergenic_variant,intron_variant,mature_miRNA_variant,non_coding_transcript_exon_variant,non_coding_transcript_variant,upstream_gene_variant]
 	
 	Mandatory parameters:
 	  -in <file>      Input variant list in GSvar format.
@@ -110,7 +110,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2018_06-34-g9e7c1ae
+	VariantFilterAnnotations 2018_06-35-ga1d5548
 	
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.

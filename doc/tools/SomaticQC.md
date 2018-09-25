@@ -1,5 +1,5 @@
 ### SomaticQC tool help
-	SomaticQC (2018_06-13-ge04b5e6)
+	SomaticQC (2018_06-35-ga1d5548)
 	
 	Calculates QC metrics based on tumor-normal pairs.
 	
@@ -7,9 +7,9 @@
 	All tools produce qcML, a generic XML format for QC of -omics experiments, which we adapted for NGS.
 	
 	Mandatory parameters:
-	  -tumor_bam <file>   Input tumor bam file.
-	  -normal_bam <file>  Input normal bam file.
-	  -somatic_vcf <file> Input somatic vcf file.
+	  -tumor_bam <file>   Input tumor BAM file.
+	  -normal_bam <file>  Input normal BAM file.
+	  -somatic_vcf <file> Input somatic VCF file.
 	  -out <file>         Output qcML file. If unset, writes to STDOUT.
 	
 	Optional parameters:
@@ -32,7 +32,7 @@
 	  --tdx               Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SomaticQC changelog
-	SomaticQC 2018_06-13-ge04b5e6
+	SomaticQC 2018_06-35-ga1d5548
 	
 	2018-07-11 Added build switch for hg38 support.
 	2017-07-28 Added somatic allele frequency histogram and tumor estimate.

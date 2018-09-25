@@ -565,17 +565,16 @@ void NGSD::annotate(VariantList& variants, QString filename, BedFile roi, double
 	}
 
 	//get required column indices
-	int ihdb_all_hom_idx = variants.addAnnotationIfMissing("ihdb_allsys_hom", "Homozygous variant counts in NGSD independent of the processing system.");
-	int ihdb_all_het_idx =  variants.addAnnotationIfMissing("ihdb_allsys_het", "Heterozygous variant counts in NGSD independent of the processing system.");
+	int ngsd_hom_idx = variants.addAnnotationIfMissing("NGSD_hom", "Homozygous variant counts in NGSD independent of the processing system.");
+	int ngsd_het_idx =  variants.addAnnotationIfMissing("NGSD_het", "Heterozygous variant counts in NGSD independent of the processing system.");
 	int class_idx = variants.addAnnotationIfMissing("classification", "Classification from the NGSD.");
 	int clacom_idx = variants.addAnnotationIfMissing("classification_comment", "Classification comment from the NGSD.");
-	int valid_idx = variants.addAnnotationIfMissing("validated", "Validation information from the NGSD. Validation results of other samples are listed in brackets!");
+	int validation_idx = variants.addAnnotationIfMissing("validation", "Validation information from the NGSD. Validation results of other samples are listed in brackets!");
 	int comment_idx = variants.addAnnotationIfMissing("comment", "Variant comments from the NGSD.");
 	int geneinfo_idx = variants.addAnnotationIfMissing("gene_info", "Gene information from NGSD (inheritance mode, ExAC pLI score).");
 	int gene_idx = variants.annotationIndexByName("gene", true, false);
 	QList<int> af_cols;
 	af_cols << variants.annotationIndexByName("1000g", true, false);
-	af_cols << variants.annotationIndexByName("ExAC", true, false);
 	af_cols << variants.annotationIndexByName("gnomAD", true, false);
 
 	/*
@@ -674,41 +673,41 @@ void NGSD::annotate(VariantList& variants, QString filename, BedFile roi, double
 
 		//genotype counts
 		if (benchmark) timer.restart();
-		QByteArray allsys_hom_count = "n/a (AF>5%)";
-		QByteArray allsys_het_count = "n/a (AF>5%)";
+		QByteArray hom_count = "n/a (AF>5%)";
+		QByteArray het_count = "n/a (AF>5%)";
 		if (maxAalleleFrequency(v, af_cols)<0.05)
 		{
 			query.exec("SELECT count_hom, count_het FROM detected_variant_counts WHERE variant_id='"+v_id+"'");
 			if (query.size()==1) // use counts from cache
 			{
 				query.next();
-				allsys_hom_count = query.value(0).toByteArray();
-				allsys_het_count = query.value(1).toByteArray();
+				hom_count = query.value(0).toByteArray();
+				het_count = query.value(1).toByteArray();
 			}
 			else // no cache value => count
 			{
 				query.exec("SELECT COUNT(DISTINCT ps.sample_id), dv.genotype FROM detected_variant dv, processed_sample ps WHERE dv.variant_id='"+v_id+"' AND dv.processed_sample_id=ps.id GROUP BY dv.genotype");
-				allsys_hom_count = "0";
-				allsys_het_count = "0";
+				hom_count = "0";
+				het_count = "0";
 				while(query.next())
 				{
 					if (query.value(1).toByteArray()=="hom")
 					{
-						 allsys_hom_count = query.value(0).toByteArray();
+						 hom_count = query.value(0).toByteArray();
 					}
 					else
 					{
-						allsys_het_count = query.value(0).toByteArray();
+						het_count = query.value(0).toByteArray();
 					}
 				}
 			}
 		}
-		//qDebug() << (v.isSNV() ? "S" : "I") << allsys_hom_count << allsys_het_count << timer.elapsed();
+		//qDebug() << (v.isSNV() ? "S" : "I") << hom_count << het_count << timer.elapsed();
 
-		v.annotations()[ihdb_all_hom_idx] = allsys_hom_count;
-		v.annotations()[ihdb_all_het_idx] = allsys_het_count;
+		v.annotations()[ngsd_hom_idx] = hom_count;
+		v.annotations()[ngsd_het_idx] = het_count;
 		v.annotations()[comment_idx] = comment.replace("\n", " ").replace("\t", " ");
-		v.annotations()[valid_idx] = val_status;
+		v.annotations()[validation_idx] = val_status;
 		if (benchmark) time_gt += timer.elapsed();
 
 		//gene info
