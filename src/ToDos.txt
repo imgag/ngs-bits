@@ -17,7 +17,6 @@ NGSD:
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
 
 GSvar:
-### ExAC link (via gene?)
 ** Highlight chrX, chrM, imprinting genes
 * Add multi-gene Google/PubMed search: https://www.ncbi.nlm.nih.gov/pubmed/?term=CASP8+AND+(%22Breast+cancer%22+OR+%22Breast+carcinoma%22)+AND+2018 (SWAL)
 * Add ExAC pLI / ExAC CNV / inheritance (megSAP) and filter for CNVs (GSvar) (wait for ClinCNV)

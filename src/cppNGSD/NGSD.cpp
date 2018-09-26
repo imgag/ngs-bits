@@ -201,7 +201,7 @@ QString NGSD::sampleId(const QString& filename, bool throw_if_fails)
 
 QString NGSD::processedSampleId(const QString& filename, bool throw_if_fails)
 {
-	QStringList parts = QFileInfo(filename).baseName().append('_').split('_');
+	QStringList parts = QFileInfo(filename.trimmed()).baseName().append('_').split('_');
 	QString sample = parts[0];
 	QString ps_num = parts[1];
 	if (ps_num.size()>2) ps_num = ps_num.left(2);

@@ -35,7 +35,6 @@ void IgvDialog::addFile(QString label, QString type, QString filename, bool chec
 	{
 		group = new QTreeWidgetItem(QStringList() << type);
 		group->setFlags(Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
-		group->setCheckState(0, Qt::Checked);
 		if (type=="VCF") group->setToolTip(0, "Variant list(s)");
 		if (type=="BAM") group->setToolTip(0, "Sequencing read file(s)");
 		if (type=="BAF") group->setToolTip(0, "b-allele frequency file(s)");
@@ -59,7 +58,20 @@ void IgvDialog::addFile(QString label, QString type, QString filename, bool chec
 		item->setCheckState(0, Qt::Unchecked);
 	}
 	group->addChild(item);
+
+	//expand all items
 	ui->tree->expandAll();
+
+	//set group check stat according to items
+	bool group_checked = false;
+	for(int j=0; j<group->childCount(); ++j)
+	{
+		if (group->child(j)->checkState(0)==Qt::Checked)
+		{
+			group_checked = true;
+		}
+	}
+	group->setCheckState(0, group_checked ? Qt::Checked : Qt::Unchecked);
 }
 
 bool IgvDialog::skipForSession() const

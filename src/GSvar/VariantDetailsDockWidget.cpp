@@ -78,6 +78,7 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	//AFs
 	ui->label_tg->setToolTip(vl.annotationDescriptionByName("1000g").description());
 	ui->label_gnomad->setToolTip(vl.annotationDescriptionByName("gnomAD").description());
+	ui->label_gnomad_hom_hemi->setToolTip(vl.annotationDescriptionByName("gnomAD_hom_hemi").description());
 	ui->label_gnomad_sub->setToolTip(vl.annotationDescriptionByName("gnomAD_sub").description());
 	ui->label_esp_sub->setToolTip(vl.annotationDescriptionByName("ESP_sub").description());
 
@@ -146,6 +147,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	//public allel frequencies
 	setAnnotation(ui->tg, vl, index, "1000g");
 	setAnnotation(ui->gnomad, vl, index, "gnomAD");
+	setAnnotation(ui->gnomad_hom_hemi, vl, index, "gnomAD_hom_hemi");
 	setAnnotation(ui->gnomad_sub, vl, index, "gnomAD_sub");
 	setAnnotation(ui->esp_sub, vl, index, "ESP_sub");
 
@@ -573,7 +575,7 @@ void VariantDetailsDockWidget::setTranscript(int index)
 	const VariantTranscript& trans = trans_data[index];
 
 	//set transcript label
-	QString text = trans.gene + " " + formatLink(trans.id, "http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?t=" + trans.id);
+	QString text = formatLink(trans.gene, "http://exac.broadinstitute.org/awesome?query=" + trans.gene) + " " + formatLink(trans.id, "http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?t=" + trans.id);
 	if (trans_data.count()>1)
 	{
 		text += " (" + QString::number(index+1) + "/" + QString::number(trans_data.count()) + ")";
@@ -594,7 +596,12 @@ void VariantDetailsDockWidget::setTranscript(int index)
 	ui->detail_exon->setText(trans.exon.mid(4));
 	ui->detail_cdna->setText(trans.hgvs_c);
 	ui->detail_protein->setText(trans.hgvs_p);
-	ui->detail_domain->setText(trans.domain);
+	text = trans.domain;
+	if (text!="")
+	{
+		text = formatLink(text, "https://pfam.xfam.org/family/" + text);
+	}
+	ui->detail_domain->setText(text);
 
 	//enable next button if more than one transcript
 	ui->trans_prev->setEnabled(trans_data.count()>1 && index>0);

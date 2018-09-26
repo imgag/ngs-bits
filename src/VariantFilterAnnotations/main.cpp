@@ -37,7 +37,7 @@ public:
 		QStringList output;
 
 		//file format
-		output << "The filter definition file list one filter per line using the following syntax:";
+		output << "The filter definition file lists one filter per line using the following syntax:";
 		output << "name[tab]param1=value[tab]param2=value...";
 		output << "";
 		output << "The order in the filter definition file defines the order in which the filters are applied.";
