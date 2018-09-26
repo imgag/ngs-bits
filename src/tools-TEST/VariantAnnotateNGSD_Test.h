@@ -69,9 +69,9 @@ private slots:
 		output.load("out/VariantAnnotateNGSD_out3.tsv");
 
 		//check that the new columns are present
-		int val_i1 = output.annotationIndexByName("som_ihdb_c", true, false);
+		int val_i1 = output.annotationIndexByName("NGSD_som_c", true, false);
 		I_EQUAL(val_i1, 22);
-		int val_i2 = output.annotationIndexByName("som_ihdb_p", true, false);
+		int val_i2 = output.annotationIndexByName("NGSD_som_p", true, false);
 		I_EQUAL(val_i2, 23);
 		I_EQUAL(output.annotations().count(), 24);
 

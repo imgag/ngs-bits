@@ -742,8 +742,8 @@ void NGSD::annotateSomatic(VariantList& variants, QString filename)
 	}
 
 	//get required column indices
-	int som_ihdb_c_idx = variants.addAnnotationIfMissing("som_ihdb_c", "Somatic variant count within NGSD.");
-	int som_ihdb_p_idx = variants.addAnnotationIfMissing("som_ihdb_p", "Projects with somatic variant in NGSD.");
+	int som_ihdb_c_idx = variants.addAnnotationIfMissing("NGSD_som_c", "Somatic variant count in the NGSD.");
+	int som_ihdb_p_idx = variants.addAnnotationIfMissing("NGSD_som_p", "Project names of project containing this somatic variant in the NGSD.");
 
 	//(re-)annotate the variants
 	for (int i=0; i<variants.count(); ++i)
@@ -775,21 +775,19 @@ void NGSD::annotateSomatic(VariantList& variants, QString filename)
 			processed_s_ids.insert(current_sample);
 
 			// count
-			if(!project_map.contains(current_project))	project_map.insert(current_project,0);
+			if(!project_map.contains(current_project)) project_map.insert(current_project,0);
 			++project_map[current_project];
 		}
 
-		QByteArray somatic_projects;
 		int somatic_count = 0;
-		QMap<QByteArray, int>::const_iterator j = project_map.constBegin();
-		while(j!=project_map.constEnd())
+		QList<QByteArray> somatic_projects;
+		for(auto it=project_map.cbegin(); it!=project_map.cend(); ++it)
 		{
-			somatic_count += j.value();
-			somatic_projects += j.key() + ",";
-			++j;
+			somatic_count += it.value();
+			somatic_projects << it.key();
 		}
 		v.annotations()[som_ihdb_c_idx] = QByteArray::number(somatic_count);
-		v.annotations()[som_ihdb_p_idx] = somatic_projects;
+		v.annotations()[som_ihdb_p_idx] = somatic_projects.join(",");
 	}
 }
 
