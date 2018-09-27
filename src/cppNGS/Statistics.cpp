@@ -1723,7 +1723,7 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
     return output;
 }
 
-void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq, bool include_duplicates, bool panel_mode)
+void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq, bool include_duplicates, bool panel_mode, int decimals)
 {
     //check target region is merged/sorted and create index
     if (!bed_file.isMergedAndSorted())
@@ -1759,7 +1759,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 					cov += ol_end - ol_start + 1;
 				}
 			}
-			bed_line.annotations().append(QByteArray::number((double)cov / bed_line.length(), 'f', 2));
+			bed_line.annotations().append(QByteArray::number((double)cov / bed_line.length(), 'f', decimals));
 		}
 	}
 	else //default mode
@@ -1789,7 +1789,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 		//calculate output
 		for (int i=0; i<bed_file.count(); ++i)
 		{
-			bed_file[i].annotations().append(QByteArray ::number((double)(cov[i]) / bed_file[i].length(), 'f', 2));
+			bed_file[i].annotations().append(QByteArray ::number((double)(cov[i]) / bed_file[i].length(), 'f', decimals));
 		}
 	}
 }

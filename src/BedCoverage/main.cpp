@@ -23,6 +23,7 @@ public:
 		addFlag("dup", "Include reads marked as duplicates.");
 		addInfile("in", "Input BED file (note that overlapping regions will be merged before processing). If unset, reads from STDIN.", true);
 		addEnum("mode", "Mode to optimize run time. Use 'panel' mode if only a small part of the data in the BAM file is accessed, e.g. a sub-panel of an exome.", true, QStringList() << "default" << "panel", "default");
+		addInt("decimals", "Number of decimals used in output", true, 2);
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
 
 		changeLog(2017,  6,  2, "Added 'dup' parameter.");
@@ -40,7 +41,7 @@ public:
 		QStringList bams = getInfileList("bam");
 		foreach(QString bam, bams)
 		{
-			Statistics::avgCoverage(file, bam, getInt("min_mapq"), getFlag("dup"), getEnum("mode")=="panel");
+			Statistics::avgCoverage(file, bam, getInt("min_mapq"), getFlag("dup"), getEnum("mode")=="panel", getInt("decimals"));
 			header += "\t" + QFileInfo(bam).baseName();
 		}
 

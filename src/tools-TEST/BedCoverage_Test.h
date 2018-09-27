@@ -17,9 +17,9 @@ private slots:
 		COMPARE_FILES_DELTA("out/BedCoverage_test02_out.tsv", TESTDATA("data_out/BedCoverage_test02_out.tsv"), 1); //delta because of macOS rounding problem
 	}
 
-	void min_mapq0_panelMode()
+	void min_mapq0_panelMode_1decimal()
 	{
-		EXECUTE("BedCoverage", "-in " + TESTDATA("../cppNGS-TEST/data_in/panel.bed") + " -bam " + TESTDATA("../cppNGS-TEST/data_in/panel.bam") + " -out out/BedCoverage_test03_out.tsv -min_mapq 0 -mode panel");
+		EXECUTE("BedCoverage", "-in " + TESTDATA("../cppNGS-TEST/data_in/panel.bed") + " -bam " + TESTDATA("../cppNGS-TEST/data_in/panel.bam") + " -out out/BedCoverage_test03_out.tsv -min_mapq 0 -mode panel -decimals 1");
 		COMPARE_FILES_DELTA("out/BedCoverage_test03_out.tsv", TESTDATA("data_out/BedCoverage_test03_out.tsv"), 1); //delta because of macOS rounding problem
 	}
 	
