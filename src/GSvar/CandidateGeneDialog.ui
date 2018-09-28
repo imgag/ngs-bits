@@ -130,7 +130,7 @@
    <item row="2" column="0">
     <widget class="QLabel" name="label_3">
      <property name="toolTip">
-      <string>Maximum allele frequency in ExAC/gnomAD/1000G.</string>
+      <string>Maximum allele frequency in 1000G/gnomAD.</string>
      </property>
      <property name="text">
       <string>Frequency:</string>
@@ -199,7 +199,7 @@
       <bool>false</bool>
      </property>
      <property name="columnCount">
-      <number>17</number>
+      <number>16</number>
      </property>
      <attribute name="verticalHeaderVisible">
       <bool>false</bool>
@@ -227,11 +227,6 @@
      <column>
       <property name="text">
        <string>gnomAD AF</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>ExAC AF</string>
       </property>
      </column>
      <column>

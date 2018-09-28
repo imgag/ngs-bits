@@ -37,7 +37,7 @@ public:
 	}
 
 	///Returns the log likelihood
-	double likelihood()
+	double likelihood() const
 	{
 		return log_likelihood_;
 	}

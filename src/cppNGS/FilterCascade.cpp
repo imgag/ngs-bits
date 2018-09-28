@@ -527,7 +527,7 @@ QMap<QString, FilterBase*(*)()> FilterFactory::getRegistry()
 FilterAlleleFrequency::FilterAlleleFrequency()
 {
 	name_ = "Allele frequency";
-	description_ = QStringList() << "Filter based on overall allele frequency given by 1000 Genomes, ExAC and gnomAD.";
+	description_ = QStringList() << "Filter based on overall allele frequency given by 1000 Genomes and gnomAD.";
 	params_ << FilterParameter("max_af", DOUBLE, 1.0, "Maximum allele frequency in %");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "100.0";
@@ -703,7 +703,7 @@ void FilterVariantIsSNP::apply(const VariantList& variants, FilterResult& result
 FilterSubpopulationAlleleFrequency::FilterSubpopulationAlleleFrequency()
 {
 	name_ = "Allele frequency (sub-populations)";
-	description_ = QStringList() << "Filter based on sub-population allele frequency given by ExAC.";
+	description_ = QStringList() << "Filter based on sub-population allele frequency given by ESP and gnomAD.";
 	params_ << FilterParameter("max_af", DOUBLE, 1.0, "Maximum allele frequency in %");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "100.0";

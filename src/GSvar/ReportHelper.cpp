@@ -1073,7 +1073,7 @@ ReportHelper::ReportHelper(QString snv_filename, const ClinCnvList& filtered_cnv
 	QString base_name = QFileInfo(snv_filename_).baseName();
 
 	tumor_id_ = base_name.split('-')[0];
-	normal_id_ = base_name.split('-')[1].split('_')[0]+'_'+base_name.split('-')[1].split('_')[1];
+	normal_id_ = base_name.split('-')[1];
 
 	cgi_drugs_path_ = QFileInfo(snv_filename_).absolutePath() + "/" + base_name + "_cgi_drug_prescription.tsv";
 
@@ -1927,42 +1927,38 @@ VariantList ReportHelper::gsvarToVcf()
 
 VariantTranscript ReportHelper::selectSomaticTranscript(const Variant& variant)
 {
+	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(snv_index_coding_splicing_);
+
+	//first coding/splicing transcript which has the same Ensemble ID as in CGI annotation
 	QString cgi_transcript = variant.annotations().at(snv_index_cgi_transcript_); //Ensemble-ID of CGI transcript
 	cgi_transcript = cgi_transcript.remove(',');
 	cgi_transcript = cgi_transcript.trimmed();
-	VariantTranscript use_transcript; //transcript to be used
-
-	//choose transcript which has the same Ensemble ID as CGI and is coding splicing
-	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(snv_index_coding_splicing_);
-
 	foreach(const VariantTranscript& trans, transcripts)
 	{
 		if(trans.id != cgi_transcript) continue;
 
 		if(trans.typeMatchesTerms(obo_terms_coding_splicing_))
 		{
-			use_transcript = trans;
-			break;
+			return trans;
 		}
 	}
 
-	//take first transcript which is coding splicing if CGI transcript was not found
-	if(use_transcript.id.isEmpty())
+	//first coding/splicing transcript
+	foreach(const VariantTranscript& trans, transcripts)
 	{
-		foreach(const VariantTranscript& trans,transcripts)
+		if(trans.typeMatchesTerms(obo_terms_coding_splicing_))
 		{
-			if(trans.typeMatchesTerms(obo_terms_coding_splicing_))
-			{
-				use_transcript = trans;
-				break;
-			}
+			return trans;
 		}
 	}
 
-	//take first transcript if no coding/splicing transcript was found
-	if(use_transcript.id.isEmpty()) use_transcript = transcripts[0];
+	//first transcript
+	if(transcripts.count()>0)
+	{
+		return transcripts[0];
+	}
 
-	return use_transcript;
+	return VariantTranscript();
 }
 
 void ReportHelper::writeRtfTableGermlineSNV(QTextStream &stream, const QList<int> &colWidths)

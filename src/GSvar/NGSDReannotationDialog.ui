@@ -54,7 +54,7 @@
      <item>
       <widget class="QCheckBox" name="filter_af">
        <property name="text">
-        <string>skip variants with 1000g/ExAC/gnomAD allele frequency &gt;</string>
+        <string>skip variants with 1000g/gnomAD allele frequency &gt;</string>
        </property>
       </widget>
      </item>

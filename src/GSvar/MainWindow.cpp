@@ -1042,6 +1042,7 @@ void MainWindow::on_actionReport_triggered()
 
 void MainWindow::generateReportSomaticRTF()
 {
+	//check ROI is set
 	QString target_region = filter_widget_->targetRegion();
 	if (target_region == "")
 	{
@@ -1049,88 +1050,73 @@ void MainWindow::generateReportSomaticRTF()
 		return;
 	}
 
-	//List of genes which will be included in CNV-report independent on their z-scores
-	GeneSet cnv_keep_genes_filter;
-	cnv_keep_genes_filter << "MYC" << "MDM2" << "MDM4" << "CDKN2A" << "CDKN2A-AS1" << "CDK4" << "CDK6" << "PTEN" << "CCND1" << "RB1" << "CCND3" << "BRAF" << "KRAS" << "NRAS";
-
-	QString temp_filename = Helper::tempFileName(".rtf");
-
-	if(variants_.annotationIndexByName("CGI_driver_statement",true,false) == -1 || variants_.annotationIndexByName("CGI_gene_role",true,false) == -2)
+	//check CGI columns are present
+	if(variants_.annotationIndexByName("CGI_driver_statement", true, false)<0 || variants_.annotationIndexByName("CGI_gene_role", true, false)<0)
 	{
 		QMessageBox::warning(this,"Somatic report", "Report cannot be created because GSVar-file does not contain CGI-data.");
 		return;
 	}
-	QString filename_cnv = QFileInfo(filename_).filePath().split('.')[0] + "_clincnv.tsv";
-	if(!QFileInfo(filename_cnv).exists())
-	{
-		QMessageBox::warning(this,"Somatic report", "Report cannot be created because file with ClinCNV data does not exist.");
-		return;
-	}
 
+	//load CNVs
 	ClinCnvList cnvs;
 	try
 	{
+		QString filename_cnv = QFileInfo(filename_).filePath().split('.')[0] + "_clincnv.tsv";
 		cnvs.load(filename_cnv);
 	}
-	catch(FileParseException error)
+	catch(Exception& error)
 	{
-		QMessageBox::warning(this,"File Access Exception",error.message());
+		QMessageBox::warning(this, "Error loading CNV file", error.message()+"\n\nContinuing without CNVs!");
+		cnvs.clear();
 	}
 
-	SomaticReportConfiguration configReport(cnvs,cnv_keep_genes_filter,this);
-
-
+	//configure report
+	GeneSet cnv_keep_genes_filter; //list of genes which will be included in CNV-report independent on their z-scores
+	cnv_keep_genes_filter << "MYC" << "MDM2" << "MDM4" << "CDKN2A" << "CDKN2A-AS1" << "CDK4" << "CDK6" << "PTEN" << "CCND1" << "RB1" << "CCND3" << "BRAF" << "KRAS" << "NRAS";
+	SomaticReportConfiguration configReport(cnvs, cnv_keep_genes_filter, this);
 	if(!configReport.exec()) return;
 
+	//get RTF file name
+	QString file_rep = QFileDialog::getSaveFileName(this, "Store report file", last_report_path_ + "/" + QFileInfo(filename_).baseName() + "_report_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf", "RTF files (*.rtf);;All files(*.*)");
+	if (file_rep=="") return;
+
+	//generate report
 	try
 	{
-		//ReportHelper report(filename_,configReport.getFilteredVariants(),target_region,filter_widget_->filterColumnsKeep(),filter_widget_->filterColumnsRemove(),filter_widget_->filterColumnsFilter());
-		const FilterCascade& test = filter_widget_->filters();
-		ReportHelper report(filename_,configReport.getFilteredVariants(),target_region,test);
+		QApplication::setOverrideCursor(Qt::BusyCursor);
 
+		//RTF
+		QString temp_filename = Helper::tempFileName(".rtf");
+		ReportHelper report(filename_, configReport.getSelectedCNVs(), target_region, filter_widget_->filters());
 		report.writeRtf(temp_filename);
-		//Create files for QBIC upload
+		ReportWorker::validateAndCopyReport(temp_filename, file_rep, false, true);
+
+
+		//files for QBIC upload
 		report.germlineSnvForQbic();
 		report.somaticSnvForQbic();
 		report.germlineCnvForQbic();
 		report.somaticCnvForQbic();
 		report.somaticSvForQbic();
 		report.metaDataForQbic();
+
+		QApplication::restoreOverrideCursor();
 	}
-	catch(FileParseException error)
+	catch(Exception& error)
 	{
-		QMessageBox::warning(this,"File Parse Exception",error.message());
+		QApplication::restoreOverrideCursor();
+		QMessageBox::warning(this, "Error while creating report", error.message());
 		return;
-	}
-	catch(FileAccessException error)
-	{
-		QMessageBox::warning(this,"File Access Exception",error.message());
-		return;
-	}
-	catch(ArgumentException error)
-	{
-		QMessageBox::warning(this,"Argument Exception",error.message());
 	}
 	catch(...)
 	{
+		QApplication::restoreOverrideCursor();
+		QMessageBox::warning(this, "Error while creating report", "No error message!");
 		return;
 	}
 
-	//validate/store
-	QString file_rep = QFileDialog::getSaveFileName(this, "Export report file", last_report_path_ + "/" + QFileInfo(filename_).baseName() + "_report_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf", "RTF files (*.rtf);;All files(*.*)");
-	if (file_rep=="") return;
-
-	try
-	{
-		ReportWorker::validateAndCopyReport(temp_filename, file_rep,false,true);
-	}
-	catch(FileAccessException error)
-	{
-		QMessageBox::warning(this,"File Access Exception",error.message());
-		return;
-	}
-
-	if (QMessageBox::question(this, "Report", "Report generated successfully!\nDo you want to open the report in your standard .RTF viewer?")==QMessageBox::Yes)
+	//open report
+	if (QMessageBox::question(this, "Report", "Report generated successfully!\nDo you want to open the report in your default RTF viewer?")==QMessageBox::Yes)
 	{
 		QDesktopServices::openUrl(file_rep);
 	}

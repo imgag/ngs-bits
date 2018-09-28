@@ -580,6 +580,13 @@ private slots:
 		db.updateQC(TESTDATA("data_in/qcml.obo"), false);
 		I_EQUAL(db.getValue("SELECT count(*) FROM qc_terms").toInt(), 43);
 		I_EQUAL(db.getValue("SELECT count(*) FROM qc_terms WHERE obsolete=0").toInt(), 39);
+
+
+		//addVariant
+		VariantList vl;
+		vl.load(TESTDATA("../cppNGS-TEST/data_in/panel_vep.GSvar"));
+		I_EQUAL(vl.count(), 329);
+		db.addVariant(vl[0], vl);
 	}
 
 	//Test for debugging (without initialization because of speed)

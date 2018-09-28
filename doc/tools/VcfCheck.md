@@ -1,7 +1,7 @@
 ### VcfCheck tool help
-	VcfCheck (2018_06-35-ga1d5548)
+	VcfCheck (2018_06-59-g24102d3)
 	
-	Checks a VCF file for errors
+	Checks a VCF file for errors.
 	
 	Checks the input VCF file with SNVs and small InDels for errors and warnings.
 	If the VEP-based CSQ annotation is present, it also checks that the Miso terms in the consequence field are valid.
@@ -25,7 +25,7 @@
 	  --tdx        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VcfCheck changelog
-	VcfCheck 2018_06-35-ga1d5548
+	VcfCheck 2018_06-59-g24102d3
 	
 	2018-12-03 Initial implementation.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

@@ -207,7 +207,7 @@ private:
 	///transforms GSVar coordinates of Variants to vcf standard
 	VariantList gsvarToVcf();
 
-	///returns correct coding/splicing CGI transcript, if not available first co/sp transcript, if not co/sp first transcript
+	///returns best matching transcript - or an empty transcript
 	VariantTranscript selectSomaticTranscript(const Variant& variant);
 
 	///writes table with drug annotation
