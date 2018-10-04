@@ -1,32 +1,25 @@
 #include "IgvDialog.h"
-#include "ui_IgvDialog.h"
 #include "GUIHelper.h"
 #include <QCheckBox>
 #include <QFileInfo>
 
 IgvDialog::IgvDialog(QWidget *parent)
 	: QDialog(parent)
-	, ui(new Ui::IgvDialog)
-	, skip_session_(false)
+	, init_action_(IgvDialog::INIT)
 {
-	ui->setupUi(this);
-	connect(ui->tree, SIGNAL(itemChanged(QTreeWidgetItem*,int)), this, SLOT(treeItemChanged(QTreeWidgetItem*)));
-}
-
-IgvDialog::~IgvDialog()
-{
-	delete ui;
+	ui_.setupUi(this);
+	connect(ui_.tree, SIGNAL(itemChanged(QTreeWidgetItem*,int)), this, SLOT(treeItemChanged(QTreeWidgetItem*)));
 }
 
 void IgvDialog::addFile(QString label, QString type, QString filename, bool checked)
 {
 	//determine group
 	QTreeWidgetItem* group = nullptr;
-	for(int i=0; i<ui->tree->topLevelItemCount(); ++i)
+	for(int i=0; i<ui_.tree->topLevelItemCount(); ++i)
 	{
-		if (ui->tree->topLevelItem(i)->text(0)==type)
+		if (ui_.tree->topLevelItem(i)->text(0)==type)
 		{
-			group = ui->tree->topLevelItem(i);
+			group = ui_.tree->topLevelItem(i);
 		}
 	}
 
@@ -40,7 +33,7 @@ void IgvDialog::addFile(QString label, QString type, QString filename, bool chec
 		if (type=="BAF") group->setToolTip(0, "b-allele frequency file(s)");
 		if (type=="BED") group->setToolTip(0, "regions file(s)");
 		if (type=="custom track") group->setToolTip(0, "Custom tracks");
-		ui->tree->addTopLevelItem(group);
+		ui_.tree->addTopLevelItem(group);
 	}
 
 	//add file
@@ -60,7 +53,7 @@ void IgvDialog::addFile(QString label, QString type, QString filename, bool chec
 	group->addChild(item);
 
 	//expand all items
-	ui->tree->expandAll();
+	ui_.tree->expandAll();
 
 	//set group check stat according to items
 	bool group_checked = false;
@@ -74,18 +67,18 @@ void IgvDialog::addFile(QString label, QString type, QString filename, bool chec
 	group->setCheckState(0, group_checked ? Qt::Checked : Qt::Unchecked);
 }
 
-bool IgvDialog::skipForSession() const
+IgvDialog::InitAction IgvDialog::initializationAction() const
 {
-	return skip_session_;
+	return init_action_;
 }
 
 QStringList IgvDialog::filesToLoad()
 {
 	QStringList output;
 
-	for(int i=0; i<ui->tree->topLevelItemCount(); ++i)
+	for(int i=0; i<ui_.tree->topLevelItemCount(); ++i)
 	{
-		QTreeWidgetItem* group = ui->tree->topLevelItem(i);
+		QTreeWidgetItem* group = ui_.tree->topLevelItem(i);
 		for(int j=0; j<group->childCount(); ++j)
 		{
 			if (group->child(j)->checkState(0)==Qt::Checked)
@@ -99,10 +92,16 @@ QStringList IgvDialog::filesToLoad()
 	return output;
 }
 
+void IgvDialog::on_skip_once_clicked()
+{
+	init_action_ = SKIP_ONCE;
+	accept();
+}
+
 void IgvDialog::on_skip_session_clicked()
 {
-	skip_session_ = true;
-	reject();
+	init_action_ = SKIP_SESSION;
+	accept();
 }
 
 void IgvDialog::treeItemChanged(QTreeWidgetItem* item)

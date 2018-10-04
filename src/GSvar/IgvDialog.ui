@@ -86,7 +86,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="skip">
+      <widget class="QPushButton" name="skip_once">
        <property name="text">
         <string>Skip (once)</string>
        </property>
@@ -116,22 +116,6 @@
    <hints>
     <hint type="sourcelabel">
      <x>178</x>
-     <y>258</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>196</x>
-     <y>136</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>skip</sender>
-   <signal>clicked()</signal>
-   <receiver>IgvDialog</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>274</x>
      <y>258</y>
     </hint>
     <hint type="destinationlabel">

@@ -3,31 +3,40 @@
 
 #include <QDialog>
 #include <QTreeWidgetItem>
+#include "ui_IgvDialog.h"
 
-namespace Ui {
-class IgvDialog;
-}
-
-class IgvDialog : public QDialog
+class IgvDialog
+		: public QDialog
 {
 	Q_OBJECT
 
 public:
-	explicit IgvDialog(QWidget *parent = 0);
-	~IgvDialog();
+	//Constructor
+	IgvDialog(QWidget* parent = 0);
 
+	//Add a file
 	void addFile(QString label, QString type, QString filename, bool checked);
 
-	bool skipForSession() const;
+	enum InitAction
+	{
+		INIT,
+		SKIP_ONCE,
+		SKIP_SESSION
+	};
+	//Returns the initialiation action
+	InitAction initializationAction() const;
+
+	//Returns the files to load
 	QStringList filesToLoad();
 
 protected slots:
+	void on_skip_once_clicked();
 	void on_skip_session_clicked();
 	void treeItemChanged(QTreeWidgetItem* item);
 
 private:
-	Ui::IgvDialog *ui;
-	bool skip_session_;
+	Ui::IgvDialog ui_;
+	InitAction init_action_;
 };
 
 #endif // IGVDIALOG_H

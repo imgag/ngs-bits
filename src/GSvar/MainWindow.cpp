@@ -479,7 +479,9 @@ void MainWindow::openInIGV(QString region)
 		}
 
 		//execute dialog
-		if (dlg.exec())
+		if (!dlg.exec()) return;
+
+		if (dlg.initializationAction()==IgvDialog::INIT)
 		{
 			QStringList files_to_load = dlg.filesToLoad();
 			init_commands.append("new");
@@ -508,9 +510,13 @@ void MainWindow::openInIGV(QString region)
 
 			igv_initialized_ = true;
 		}
-		else //skipped
+		else if (dlg.initializationAction()==IgvDialog::SKIP_SESSION)
 		{
-			if (dlg.skipForSession()) igv_initialized_ = true;
+			igv_initialized_ = true;
+		}
+		else if (dlg.initializationAction()==IgvDialog::SKIP_ONCE)
+		{
+			//nothing to do there
 		}
 	}
 
