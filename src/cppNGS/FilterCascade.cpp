@@ -1988,6 +1988,8 @@ FilterOMIM::FilterOMIM()
 {
 	name_ = "OMIM genes";
 	description_ = QStringList() << "Filter for OMIM genes i.e. the 'OMIM' column is not empty.";
+	params_ << FilterParameter("action", STRING, "FILTER", "Action to perform");
+	params_.last().constraints["valid"] = "REMOVE,FILTER";
 	checkIsRegistered();
 }
 
@@ -2002,13 +2004,29 @@ void FilterOMIM::apply(const VariantList& variants, FilterResult& result) const
 
 	int index = annotationColumn(variants, "OMIM");
 
-	for(int i=0; i<variants.count(); ++i)
+	QString action = getString("action");
+	if (action=="FILTER")
 	{
-		if (!result.flags()[i]) continue;
-
-		if (variants[i].annotations()[index].trimmed().isEmpty())
+		for(int i=0; i<variants.count(); ++i)
 		{
-			result.flags()[i] = false;
+			if (!result.flags()[i]) continue;
+
+			if (variants[i].annotations()[index].trimmed().isEmpty())
+			{
+				result.flags()[i] = false;
+			}
+		}
+	}
+	else //REMOVE
+	{
+		for(int i=0; i<variants.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			if (!variants[i].annotations()[index].trimmed().isEmpty())
+			{
+				result.flags()[i] = false;
+			}
 		}
 	}
 }

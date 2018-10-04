@@ -70,6 +70,8 @@
 	                                   Parameters:
 	                                     impact - Valid impacts [default=HIGH,MODERATE,LOW] [valid=HIGH,MODERATE,LOW,MODIFIER] [non-empty]
 	OMIM genes                         Filter for OMIM genes i.e. the 'OMIM' column is not empty.
+	                                   Parameters:
+	                                     action - Action to perform [default=FILTER] [valid=REMOVE,FILTER]
 	Predicted pathogenic               Filter for variants predicted to be pathogenic.
 	                                   Prediction scores included are: phyloP=1.6, Sift=D, PolyPhen=D, fathmm-MKL=0.5, CADD=20 and REVEL=0.5.
 	                                   Parameters:
