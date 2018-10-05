@@ -1450,7 +1450,7 @@ bool FilterAnnotationPathogenic::annotatedPathogenic(const Variant& v) const
 FilterPredictionPathogenic::FilterPredictionPathogenic()
 {
 	name_ = "Predicted pathogenic";
-	description_ = QStringList() << "Filter for variants predicted to be pathogenic." << "Prediction scores included are: phyloP≥1.6, Sift=D, PolyPhen=D, fathmm-MKL≥0.5, CADD≥20 and REVEL≥0.5.";
+	description_ = QStringList() << "Filter for variants predicted to be pathogenic." << "Prediction scores included are: phyloP>=1.6, Sift=D, PolyPhen=D, fathmm-MKL>=0.5, CADD>=20 and REVEL>=0.5.";
 	params_ << FilterParameter("min", INT, 1, "Minimum number of pathogenic predictions");
 	params_.last().constraints["min"] = "1";
 	params_ << FilterParameter("action", STRING, "FILTER", "Action to perform");

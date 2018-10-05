@@ -14,7 +14,7 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 ## ChangeLog
 
-Changes already implemented for next release:
+Changes in release 2018_10:
 
 * Expecting VEP instead of SnpEff annotations in VCFs now (VariantQC, SomaticQC, RohHunter).
 * Added GRCh38 support (MappingQC, SomaticQC, SampleGender, SampleSimilarity).
@@ -126,6 +126,7 @@ Installation instructions for the NGSD can be found [here](doc/install_ngsd.md).
 
 * [PERsim](doc/tools/PERsim.md) - Paired-end read simulator for Illumina reads.
 * [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file.
+
 
 
 

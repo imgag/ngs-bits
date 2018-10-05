@@ -24,7 +24,7 @@ Open a *Git CMD* and clone the most recent release (the source code package of G
 
     git clone --recursive https://github.com/imgag/ngs-bits.git
 	cd ngs-bits
-	git checkout 2018_06
+	git checkout 2018_10
 	git submodule update --recursive --init
 
 ## Build
@@ -68,4 +68,5 @@ To make the tools executable outside *QtCreator* and portable, you have to copy 
 		<td>libmysql.dll</td>
 	</tr>
 </table>
+
 

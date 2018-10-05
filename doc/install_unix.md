@@ -20,7 +20,7 @@ Use git to clone the most recent release (the source code package of GitHub does
 
     git clone --recursive https://github.com/imgag/ngs-bits.git
 	cd ngs-bits
-	git checkout 2018_06
+	git checkout 2018_10
 	git submodule update --recursive --init
 
 ### Resolving proxy issues with git
@@ -47,5 +47,6 @@ Just execute the following make commands:
 ## Executing
 
 Now the executables and all required libraries can be found in the `bin` folder.
+
 
 
