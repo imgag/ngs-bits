@@ -32,6 +32,8 @@ LIBS += -L$$PWD/../../htslib/lib/ -lhts
 #include zlib library
 LIBS += -lz
 
+#make the executable search for .so-files in the same folder under linux
+QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
 SOURCES += BedFile.cpp \
     Chromosome.cpp \
