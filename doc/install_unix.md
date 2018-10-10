@@ -18,16 +18,16 @@ For example, the installation of the dependencies using Ubuntu 16.04/18.04 looks
 
 Use git to clone the most recent release (the source code package of GitHub does not contains required sub-modules):
 
-    git clone --recursive https://github.com/imgag/ngs-bits.git
-	cd ngs-bits
-	git checkout 2018_10
-	git submodule update --recursive --init
+    > git clone --recursive https://github.com/imgag/ngs-bits.git
+	> cd ngs-bits
+	> git checkout 2018_10
+	> git submodule update --recursive --init
 
 ### Resolving proxy issues with git
 
-If you are behind a proxy that block the standard git port, you see something like this:
+If you are behind a proxy that blocks the standard git port, you see something like this:
 
-    $ git clone --recursive https://github.com/imgag/ngs-bits.git
+    > git clone --recursive https://github.com/imgag/ngs-bits.git
     Cloning into 'ngs-bits'...
     fatal: Unable to look up github.com (port 9418) (Name or service not known)
 
@@ -41,12 +41,13 @@ Then you have to adapt your ~/.gitconfig file like that:
 
 Just execute the following make commands:
 
-    make build_3rdparty
-	make build_tools_release
+    > make build_3rdparty
+	> make build_tools_release
 
 ## Executing
 
 Now the executables and all required libraries can be found in the `bin` folder.
+
 
 
 

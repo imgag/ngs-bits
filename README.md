@@ -20,12 +20,6 @@ Changes in release 2018_10:
 * Added GRCh38 support (MappingQC, SomaticQC, SampleGender, SampleSimilarity).
 * Added tools: SampleAncestry, VcfCheck.
 
-Changes in release 2018_06:
-
-* SampleCorrelation: added new metrics and renamed to SampleSimilarity.
-* Added tools: UpdHunter, NGSDExportGenes, BamHighCoverage.
-* Removed tool: VcfLeftAlign.
-
 For older releases see the [releases page](https://github.com/imgag/ngs-bits/releases).
 
 ## Support
@@ -126,6 +120,7 @@ Installation instructions for the NGSD can be found [here](doc/install_ngsd.md).
 
 * [PERsim](doc/tools/PERsim.md) - Paired-end read simulator for Illumina reads.
 * [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file.
+
 
 
 

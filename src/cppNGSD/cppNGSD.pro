@@ -29,6 +29,9 @@ LIBS += -L$$PWD/../../bin -lcppNGS
 INCLUDEPATH += $$PWD/../../htslib/include/
 LIBS += -L$$PWD/../../htslib/lib/ -lhts
 
+#make the executable search for .so-files in the same folder under linux
+QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
+
 SOURCES += \
     SqlQuery.cpp\
     NGSD.cpp \
