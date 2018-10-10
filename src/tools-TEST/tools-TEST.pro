@@ -95,7 +95,8 @@ HEADERS += \
     FastqExtractUMI_Test.h \
     FastqAddBarcode_Test.h \
     BamFilter_Test.h \
-    VcfCheck_Test.h
+    VcfCheck_Test.h \
+    VcfMultiBreak_Test.h
 
 SOURCES += \
     main.cpp \
