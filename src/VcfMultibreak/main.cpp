@@ -52,11 +52,68 @@ public:
             QList<QByteArray> parts = line.split('\t');
             if (parts.count()<5) THROW(FileParseException, "VCF with too few columns: " + line);
 
-            if (!parts[4].contains(',')) { // ignore because no allele
+            if (!parts[4].contains(',')) // ignore because no allele
+            {
                 out_p->write(line);
-            } else {
+            } else
+            {
                 QList<QByteArray> alt = parts[4].split(',');
                 QList<QByteArray> info = parts[7].split(';');
+
+                QList<QList<QByteArray>> infoPerAllele; // handles the information per allele
+                for (int allel = 0; allel < alt.size(); ++allel) {
+                    QList<QByteArray> allelInfo;
+                    for (int i = 0; i < info.size(); ++i) {
+                        QByteArray empty;
+                        allelInfo.append(empty);
+                    }
+                    infoPerAllele.append(allelInfo);
+                }
+
+                QByteArray concreteInfo;
+                QList<QByteArray> rows;
+                QList<QByteArray> derivedInformations;
+                for (int i = 0; i < info.length(); ++i)
+                {
+                    concreteInfo = info[i];
+
+                    if (concreteInfo.contains(','))
+                    {
+                        rows = concreteInfo.split('='); // split HEADER=VALUE
+                        derivedInformations = rows[1].split(',');
+                        if (derivedInformations.size() != alt.size()) THROW(FileParseException, "VCF contains missmatch of info columns with multiple alleles: " + line);
+
+                        for (int l = 0; l < alt.size(); l++) {
+                            infoPerAllele[l][i].append(derivedInformations[l].prepend(rows[0] + "=")); // include header
+                        }
+                    } else
+                    {
+                        for(int j = 0; j < alt.size(); ++j)
+                        {
+                            infoPerAllele[j][i].append(concreteInfo);
+                        }
+                    }
+                }
+
+                char tab = '\t';
+                for (int allel = 0; allel < alt.size(); ++allel) {
+                    for (int part = 0; part < parts.size(); ++part) {
+                        if (part == 4) {
+                            out_p->write(alt[allel]);
+                        } else if (part == 5) {
+                            for (int i = 0; i < infoPerAllele[allel].size(); ++i) {
+                                out_p->write(infoPerAllele[allel][i]);
+                            }
+                        } else {
+                            out_p->write(parts[part]);
+                        }
+
+                        if (part != parts.size() - 1) {
+                            out_p->write(&tab, 1);
+                        }
+                    }
+                }
+
             }
         }
     }
