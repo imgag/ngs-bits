@@ -14,7 +14,7 @@ public:
 
     virtual void setup()
     {
-        setDescription("If multiple alleles are specified in a single record, break the record into multiple lines, preserving allele-specific INFO fields.");
+		setDescription("Breaks multi-allelic variants in several lines, preserving allele-specific INFO/SAMPLE fields.");
         //optional
         addInfile("in", "Input VCF file. If unset, reads from STDIN.", true, true);
         addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
@@ -49,21 +49,24 @@ public:
             }
 
             //split line and extract variant infos
-            QList<QByteArray> parts = line.split('\t');
-            if (parts.count()<5) THROW(FileParseException, "VCF with too few columns: " + line);
+			QByteArrayList parts = line.split('\t');
+			if (parts.count()<8) THROW(FileParseException, "VCF with too few columns: " + line);
 
             if (!parts[4].contains(',')) // ignore because no allele
             {
                 out_p->write(line);
-            } else
+			}
+			else
             {
-                QList<QByteArray> alt = parts[4].split(',');
-                QList<QByteArray> info = parts[7].split(';');
+				QByteArrayList alt = parts[4].split(',');
+				QByteArrayList info = parts[7].split(';');
 
-                QList<QList<QByteArray>> infoPerAllele; // handles the information per allele
-                for (int allel = 0; allel < alt.size(); ++allel) {
-                    QList<QByteArray> allelInfo;
-                    for (int i = 0; i < info.size(); ++i) {
+				QList<QByteArrayList> infoPerAllele; // handles the information per allele
+				for (int allel = 0; allel < alt.size(); ++allel)
+				{
+					QByteArrayList allelInfo;
+					for (int i = 0; i < info.size(); ++i)
+					{
                         QByteArray empty;
                         allelInfo.append(empty);
                     }
@@ -71,8 +74,8 @@ public:
                 }
 
                 QByteArray concreteInfo;
-                QList<QByteArray> rows;
-                QList<QByteArray> derivedInformations;
+				QByteArrayList rows;
+				QByteArrayList derivedInformations;
                 for (int i = 0; i < info.length(); ++i)
                 {
                     concreteInfo = info[i];

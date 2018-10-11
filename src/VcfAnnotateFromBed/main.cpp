@@ -81,7 +81,7 @@ public:
 
 			//split line and extract variant infos
 			QList<QByteArray> parts = line.split('\t');
-			if (parts.count()<5) THROW(FileParseException, "VCF with too few columns: " + line);
+			if (parts.count()<8) THROW(FileParseException, "VCF with too few columns: " + line);
 			Chromosome chr = parts[0];
 			bool ok = false;
 			int start = parts[1].toInt(&ok);
