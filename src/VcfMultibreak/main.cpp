@@ -1,10 +1,22 @@
 #include "ToolBase.h"
 #include "Exceptions.h"
 #include "Helper.h"
+#include "VcfFile.h"
 #include <QFile>
 
 class ConcreteTool: public ToolBase {
     Q_OBJECT
+
+private:
+    QByteArray getId(QByteArray *header) {
+        auto start = header->indexOf("ID=") + 3;
+        auto end = header->indexOf(',', start);
+        QByteArray id;
+        for (int i = start; i < end; ++i) {
+            id.append(header->at(i));
+        }
+        return id;
+    }
 
 public:
     ConcreteTool(int& argc, char *argv[])
@@ -33,6 +45,8 @@ public:
         }
         QSharedPointer<QFile> in_p = Helper::openFileForReading(in, true);
         QSharedPointer<QFile> out_p = Helper::openFileForWriting(out, true);
+        // TODO: When QT fixes its shit we can use std::map, see https://bugreports.qt.io/browse/QTCREATORBUG-18536
+        QMap<QByteArray, std::string> informations; // which ID will be REF or ALT
 
         while(!in_p->atEnd())
         {
@@ -45,78 +59,122 @@ public:
             if (line.startsWith('#'))
             {
                 out_p->write(line);
+                if ((line.contains("Number=R") || line.contains("Number=A")) && line.startsWith("##INFO"))
+                {
+                    auto id = getId(&line);
+                    informations[id] = (line.contains("Number=R")) ? "R" : "A";
+                }
                 continue;
             }
 
             //split line and extract variant infos
-			QByteArrayList parts = line.split('\t');
-			if (parts.count()<8) THROW(FileParseException, "VCF with too few columns: " + line);
+            QByteArrayList parts = line.split('\t');
+            if (parts.count()<static_cast<int>(MANDATORY_ROWS::LENGTH)) THROW(FileParseException, "VCF with too few columns: " + line);
 
-            if (!parts[4].contains(',')) // ignore because no allele
+            if (!parts[static_cast<int>(MANDATORY_ROWS::ALT)].contains(',')) // ignore because no allele
             {
                 out_p->write(line);
 			}
 			else
             {
-				QByteArrayList alt = parts[4].split(',');
-				QByteArrayList info = parts[7].split(';');
+                QByteArrayList alt = parts[static_cast<int>(MANDATORY_ROWS::ALT)].split(',');
+                QByteArrayList info = parts[static_cast<int>(MANDATORY_ROWS::INFO)].split(';');
 
-				QList<QByteArrayList> infoPerAllele; // handles the information per allele
-				for (int allel = 0; allel < alt.size(); ++allel)
-				{
-					QByteArrayList allelInfo;
-					for (int i = 0; i < info.size(); ++i)
-					{
-                        QByteArray empty;
-                        allelInfo.append(empty);
+                // Checks wether or not any ALT or REF is contained in this line
+                std::vector<bool> infoTypes;
+                auto containsREF = false;
+                auto containsALT = false;
+
+                for (int i = 0; i < info.length(); ++i) {
+                    auto rows = info[i].split('=');
+                    auto containsId = informations.find(rows[0]);
+                    if (containsId != informations.end())
+                    {
+                        auto infoType = informations[rows[0]];
+                        if (infoType == "R")
+                        {
+                            containsREF = true;
+                        }
+                        else
+                        {
+                            containsALT = true;
+                        }
+                        infoTypes.push_back(true);
                     }
-                    infoPerAllele.append(allelInfo);
+                    else
+                    {
+                        infoTypes.push_back(false);
+                    }
                 }
 
-                QByteArray concreteInfo;
-				QByteArrayList rows;
-				QByteArrayList derivedInformations;
+                // Skips line if no ALT or REF could be found
+                if (!containsREF && !containsALT)
+                {
+                    out_p->write(line);
+                    continue;
+                }
+
+                // Creates needed lines
+                // n (allele) for ALT or n+1 for REF
+                std::vector<QByteArray> lines;
+
+                if (containsREF)
+                {
+                    lines.push_back(line); // include the original line for reference
+                }
+
+
+                // For each allele construct a separate info block
+                QByteArrayList constructedInfos;
+                for (int i = 0; i < alt.length(); ++i) {
+                    QByteArray empty;
+                    constructedInfos.append(empty);
+                }
+
                 for (int i = 0; i < info.length(); ++i)
                 {
-                    concreteInfo = info[i];
-
-                    if (concreteInfo.contains(','))
+                    // If type is ALT OR REF split by HEADER / VALUE and assign every line a different value (starting by 0-index)
+                    if (infoTypes[i])
                     {
-                        rows = concreteInfo.split('='); // split HEADER=VALUE
-                        derivedInformations = rows[1].split(',');
-                        if (derivedInformations.size() != alt.size()) THROW(FileParseException, "VCF contains missmatch of info columns with multiple alleles: " + line);
+                        auto rows = info[i].split('='); // split HEADER=VALUE
+                        auto infoPerAllele = rows[1].split(',');
 
-                        for (int l = 0; l < alt.size(); l++) {
-                            infoPerAllele[l][i].append(derivedInformations[l].prepend(rows[0] + "=")); // include header
-                        }
-                    } else
-                    {
-                        for(int j = 0; j < alt.size(); ++j)
-                        {
-                            infoPerAllele[j][i].append(concreteInfo);
-                        }
-                    }
-                }
+                        if (infoPerAllele.size() != alt.size()) THROW(FileParseException, "VCF contains missmatch of info columns with multiple alleles: " + line);
 
-                char tab = '\t';
-                for (int allel = 0; allel < alt.size(); ++allel) {
-                    for (int part = 0; part < parts.size(); ++part) {
-                        if (part == 4) {
-                            out_p->write(alt[allel]);
-                        } else if (part == 5) {
-                            for (int i = 0; i < infoPerAllele[allel].size(); ++i) {
-                                out_p->write(infoPerAllele[allel][i]);
+                        for (int j = 0; j < constructedInfos.size(); ++j) {
+                            // appends a HEADER=VALUE; (with semicolon)
+                            auto constructedInfo = infoPerAllele[j].prepend(rows[0] + "=");
+                            if (j != (constructedInfos.size() - 1)) {
+                                constructedInfo.append(';');
                             }
-                        } else {
-                            out_p->write(parts[part]);
+
+                            constructedInfos[j].push_back(constructedInfo);
                         }
 
-                        if (part != parts.size() - 1) {
-                            out_p->write(&tab, 1);
+                    }
+                    else
+                    {
+
+                        for (int j = 0; j < constructedInfos.size(); ++j)
+                        {
+                            constructedInfos[j].push_back(info[i]);
                         }
                     }
                 }
 
+                // Iterate through alleles and construct a new QByteArrayList from the parts and designated constructedInfos
+                // Then join to a QByteArray and write
+                for (int allel = 0; allel < alt.size(); ++allel)
+                {
+                    QByteArrayList lineParts = parts;
+                    lineParts[static_cast<int>(MANDATORY_ROWS::ALT)] = alt[allel];
+                    lineParts[static_cast<int>(MANDATORY_ROWS::INFO)] = constructedInfos[allel];
+                    lines.push_back(lineParts.join('\t'));
+                }
+
+                for (int l = 0; l < lines.size(); ++l) {
+                    out_p->write(lines[l]);
+                }
             }
         }
     }

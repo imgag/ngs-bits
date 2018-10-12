@@ -84,7 +84,8 @@ HEADERS += BedFile.h \
     OntologyTermCollection.h \
     SvList.h \
     ClinCnvList.h \
-    FilterCascade.h
+    FilterCascade.h \
+    VcfFile.h
 
 
 RESOURCES += \

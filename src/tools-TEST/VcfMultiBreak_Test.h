@@ -7,7 +7,7 @@ Q_OBJECT
 private slots:
     void test_multi_allele() {
         EXECUTE("VcfMultibreak", "-in " + TESTDATA("data_in/VcfMultibreak_in1.vcf") + " -out out/VcfMultibreak_out1.vcf");
-        COMPARE_FILES("out/VcfMultiBreak_out1.vcf", TESTDATA("data_out/VcfMultiBreak_out1.vcf"));
+        COMPARE_FILES("out/VcfMultibreak_out1.vcf", TESTDATA("data_out/VcfMultibreak_out1.vcf"));
     }
 
     void test_no_allele() {
