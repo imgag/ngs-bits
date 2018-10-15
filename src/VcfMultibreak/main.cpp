@@ -47,6 +47,7 @@ public:
         QSharedPointer<QFile> out_p = Helper::openFileForWriting(out, true);
         // TODO: When QT fixes its shit we can use std::map, see https://bugreports.qt.io/browse/QTCREATORBUG-18536
         QMap<QByteArray, std::string> informations; // which ID will be REF or ALT
+        QMap<QByteArray, std::string> formats;
 
         while(!in_p->atEnd())
         {
@@ -64,6 +65,11 @@ public:
                     auto id = getId(&line);
                     informations[id] = (line.contains("Number=R")) ? "R" : "A";
                 }
+                else if ((line.contains("Number=R") || line.contains("Number=A")) && line.startsWith("##FORMATS"))
+                {
+                    auto id = getId(&line);
+                    formats[id] = (line.contains("Number=R")) ? "R" : "A";
+                }
                 continue;
             }
 
@@ -79,72 +85,50 @@ public:
             {
                 QByteArrayList alt = parts[static_cast<int>(MANDATORY_ROWS::ALT)].split(',');
                 QByteArrayList info = parts[static_cast<int>(MANDATORY_ROWS::INFO)].split(';');
+                QByteArrayList format = parts[static_cast<int>(MANDATORY_ROWS::LENGTH)].split(':');
 
                 // Checks wether or not any ALT or REF is contained in this line
-                std::vector<bool> infoTypes;
-                auto containsREF = false;
-                auto containsALT = false;
+                std::vector<std::string> infoTypes;
+                bool containsREForALT = false;
 
                 for (int i = 0; i < info.length(); ++i) {
                     auto rows = info[i].split('=');
-                    auto containsId = informations.find(rows[0]);
-                    if (containsId != informations.end())
-                    {
-                        auto infoType = informations[rows[0]];
-                        if (infoType == "R")
-                        {
-                            containsREF = true;
-                        }
-                        else
-                        {
-                            containsALT = true;
-                        }
-                        infoTypes.push_back(true);
+                    auto containsInfo = informations.find(rows[0]);
+
+                    if (containsInfo != informations.end()) {
+                        infoTypes.push_back(containsInfo.value());
+                        containsREForALT = true;
                     }
                     else
                     {
-                        infoTypes.push_back(false);
+                        infoTypes.push_back("");
                     }
                 }
 
-                // Skips line if no ALT or REF could be found
-                if (!containsREF && !containsALT)
-                {
+                if (!containsREForALT) {
+                    // this also needs to respect format
                     out_p->write(line);
                     continue;
                 }
 
-                // Creates needed lines
-                // n (allele) for ALT or n+1 for REF
-                std::vector<QByteArray> lines;
-
-                if (containsREF)
-                {
-                    lines.push_back(line); // include the original line for reference
-                }
-
-
                 // For each allele construct a separate info block
-                QByteArrayList constructedInfos;
-                for (int i = 0; i < alt.length(); ++i) {
-                    QByteArray empty;
-                    constructedInfos.append(empty);
-                }
+                std::vector<QByteArray> constructedInfos(alt.length());
 
                 for (int i = 0; i < info.length(); ++i)
                 {
                     // If type is ALT OR REF split by HEADER / VALUE and assign every line a different value (starting by 0-index)
-                    if (infoTypes[i])
+                    if (infoTypes.at(i) == "A" || infoTypes.at(i) == "R")
                     {
                         auto rows = info[i].split('='); // split HEADER=VALUE
                         auto infoPerAllele = rows[1].split(',');
 
-                        if (infoPerAllele.size() != alt.size()) THROW(FileParseException, "VCF contains missmatch of info columns with multiple alleles: " + line);
+                        auto mandatorySize = (infoTypes.at(i) == "R") ? alt.size() + 1 : alt.size();
+                        if (infoPerAllele.size() != mandatorySize) THROW(FileParseException, "VCF contains missmatch of info columns with multiple alleles: " + line);
 
                         for (int j = 0; j < constructedInfos.size(); ++j) {
                             // appends a HEADER=VALUE; (with semicolon)
                             auto constructedInfo = infoPerAllele[j].prepend(rows[0] + "=");
-                            if (j != (constructedInfos.size() - 1)) {
+                            if (i != (info.length() - 1)) {
                                 constructedInfo.append(';');
                             }
 
@@ -157,13 +141,18 @@ public:
 
                         for (int j = 0; j < constructedInfos.size(); ++j)
                         {
-                            constructedInfos[j].push_back(info[i]);
+                            auto constructedInfo = info[i];
+                            if (i != (info.length() - 1)) {
+                                constructedInfo.append(';');
+                            }
+                            constructedInfos[j].push_back(constructedInfo);
                         }
                     }
                 }
 
                 // Iterate through alleles and construct a new QByteArrayList from the parts and designated constructedInfos
                 // Then join to a QByteArray and write
+                std::vector<QByteArray> lines;
                 for (int allel = 0; allel < alt.size(); ++allel)
                 {
                     QByteArrayList lineParts = parts;
