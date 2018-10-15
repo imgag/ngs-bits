@@ -45,7 +45,7 @@ public:
 	void printError(QSharedPointer<QFile> out, QByteArray message, int l, const QByteArray& line)
 	{
 		out->write("ERROR: " + message.trimmed() + " - in line " + QByteArray::number(l+1) + ":\n" + line + "\n");
-		exit(1);
+		THROW(ToolFailedException, "VCF check failed - see 'out' file for details!");
 	}
 
 	struct DefinitionLine
@@ -132,7 +132,12 @@ public:
 				printError(out, def_type+" definition cannot have a 'Number' entry!", l, line);
 			}
 
-			if (output.number!="." && output.number!="G" && output.number!="A" && output.number!="R" && output.number.toInt()<=0)
+			if (output.type=="Flag" && output.number!="0")
+			{
+				printError(out, def_type+" definition has 'Number' value other than '0'", l, line);
+			}
+
+			if (output.type!="Flag" && output.number!="." && output.number!="G" && output.number!="A" && output.number!="R" && output.number.toInt()<1)
 			{
 				printError(out, def_type+" definition has invalid 'Number' field ", l, line);
 			}

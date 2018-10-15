@@ -53,7 +53,7 @@ INFO: ID=RUN (108x used) Type=Integer Number=A Description="Run length: the numb
 INFO: ID=SAF (108x used) Type=Integer Number=A Description="Number of alternate observations on the forward strand"
 INFO: ID=SAP (108x used) Type=Float Number=A Description="Strand balance probability for the alternate allele: Phred-scaled upper-bounds estimate of the probability of observing the deviation between SAF and SAR given E(SAF/SAR) ~ 0.5 derived using Hoeffding's inequality"
 INFO: ID=SAR (108x used) Type=Integer Number=A Description="Number of alternate observations on the reverse strand"
-INFO: ID=SOMATIC (1x used) Type=Flag Number=1 Description="If the variant is somatic."
+INFO: ID=SOMATIC (1x used) Type=Flag Number=0 Description="If the variant is somatic."
 INFO: ID=SRF (108x used) Type=Integer Number=1 Description="Number of reference observations on the forward strand"
 INFO: ID=SRP (108x used) Type=Float Number=1 Description="Strand balance probability for the reference allele: Phred-scaled upper-bounds estimate of the probability of observing the deviation between SRF and SRR given E(SRF/SRR) ~ 0.5 derived using Hoeffding's inequality"
 INFO: ID=SRR (108x used) Type=Integer Number=1 Description="Number of reference observations on the reverse strand"
