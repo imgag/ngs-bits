@@ -127,7 +127,16 @@ public:
 
                         for (int j = 0; j < constructedInfos.size(); ++j) {
                             // appends a HEADER=VALUE; (with semicolon)
-                            auto constructedInfo = infoPerAllele[j].prepend(rows[0] + "=");
+                            QByteArray constructedInfo;
+                            if (infoTypes.at(i) == "R") {
+                                // if REF then use INFO0 (ref), ALLELE (count)
+                                constructedInfo = infoPerAllele[0].prepend(rows[0] + "=").append(',');
+                                constructedInfo.append(infoPerAllele[j+1]);
+                            } else {
+                                // else use ALLELE (count)
+                                constructedInfo = infoPerAllele[j].prepend(rows[0] + "=");
+                            }
+
                             if (i != (info.length() - 1)) {
                                 constructedInfo.append(';');
                             }
