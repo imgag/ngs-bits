@@ -74,18 +74,15 @@ void CandidateGeneDialog::updateVariants()
 		//get variants in chromosomal range
 		QList<QStringList> var_data;
 		QString af = QString::number(ui_.filter_af->value()/100.0);
-		query.exec("SELECT v.*, dvc.count_het, dvc.count_hom FROM variant v, detected_variant_counts dvc WHERE v.id=dvc.variant_id AND chr='" + chr.strNormalized(true) + "' AND start>='" + start + "' AND end<'" + end + "' AND (1000g IS NULL OR 1000g<=" + af + ") AND (exac IS NULL OR exac<=" + af + ") AND (gnomad IS NULL OR gnomad<=" + af + ") ORDER BY start");
+
+		query.exec("SELECT v.*, dvc.count_het, dvc.count_hom FROM variant v LEFT JOIN detected_variant_counts dvc ON v.id=dvc.variant_id WHERE chr='" + chr.strNormalized(true) + "' AND start>='" + start + "' AND end<'" + end + "' AND (1000g IS NULL OR 1000g<=" + af + ") AND (gnomad IS NULL OR gnomad<=" + af + ") ORDER BY start");
 		while(query.next())
 		{
 			QString var = query.value("chr").toString() + ":" + query.value("start").toString() + "-" + query.value("end").toString() + " " + query.value("ref").toString() + " > " + query.value("obs").toString();
 			QString het = query.value("count_het").toString();
 			QString hom = query.value("count_hom").toString();
 			QString gnomad = QString::number(query.value("gnomad").toDouble(), 'f', 4);
-			QString exac = QString::number(query.value("exac").toDouble(), 'f', 4);
 			QString tg = QString::number(query.value("1000g").toDouble(), 'f', 4);
-
-			//exclude somatic variants
-			if (het.toInt()+hom.toInt()==0) continue;
 
 			//filter by impact
 			QStringList parts = query.value("coding").toString().split(",");
@@ -137,7 +134,7 @@ void CandidateGeneDialog::updateVariants()
 			QString coding = parts_match.join(", ");
 
 			//add variant line to output
-			QStringList var_base = QStringList() << gene << var << het << hom << gnomad << exac << tg << type << coding;
+			QStringList var_base = QStringList() << gene << var << het << hom << gnomad << tg << type << coding;
 
 			//add sample info
 			QString var_id = query.value(0).toString();
@@ -195,6 +192,5 @@ void CandidateGeneDialog::updateVariants()
 
 void CandidateGeneDialog::copyToClipboard()
 {
-	qDebug() << "TEST";
 	GUIHelper::copyToClipboard(ui_.variants);
 }
