@@ -31,10 +31,14 @@ private:
             {
                 ++columns_seen;
             }
-            else if (columns_seen == (column - 1) && text[i] == seperator) //if seperator is seen at least once than we can simply return
+
+            if (columns_seen == column)
             {
-                ++seperator_count;
-                break;
+                if (text[i] == seperator)
+                {
+                    ++seperator_count; //if seperator is seen at least once than we can simply return
+                    break;
+                }
             }
         }
 
@@ -105,7 +109,7 @@ public:
 					auto id = getId(line);
 					info2type[id] = line.contains("Number=R") ? R : A;
                 }
-				else if (line.startsWith("##FORMATS") && (line.contains("Number=R") || line.contains("Number=A")))
+                else if (line.startsWith("##FORMAT") && (line.contains("Number=R") || line.contains("Number=A")))
                 {
 					auto id = getId(line);
 					format2type[id] = line.contains("Number=R") ? R : A;
@@ -115,21 +119,23 @@ public:
 
             if (countColumns(line) < static_cast<int>(MANDATORY_ROWS::LENGTH)) THROW(FileParseException, "VCF with too few columns: " + line);
 
-            if (includesSeperator(line, ',', static_cast<int>(MANDATORY_ROWS::INFO))) // ignore because no allele
+            if (!includesSeperator(line, ',', static_cast<int>(MANDATORY_ROWS::ALT))) // ignore because no allele
             {
                 out_p->write(line);
 			}
 			else
             {
                 //split line and extract variant infos
-                QByteArrayList parts = line.split(TAB);
+                QByteArrayList parts = line.trimmed().split(TAB);
                 QByteArrayList alt = parts[static_cast<int>(MANDATORY_ROWS::ALT)].split(',');
                 QByteArrayList info = parts[static_cast<int>(MANDATORY_ROWS::INFO)].split(';');
                 QByteArrayList format = parts[static_cast<int>(MANDATORY_ROWS::LENGTH)].split(':');
 
                 // Checks wether or not any ALT or REF is contained in this line
 				std::vector<AnnotationType> info_types;
+                std::vector<AnnotationType> format_types;
 				bool contains_multiallelic_info = false;
+                bool format_contains_multiallelic_info = false;
 
 				for (int i = 0; i < info.length(); ++i)
 				{
@@ -145,7 +151,20 @@ public:
                     }
                 }
 
-				if (!contains_multiallelic_info)  // this also needs to respect format
+                for (int i = 0; i < format.length(); ++i) {
+                    if (format2type.contains(format[i]))
+                    {
+                        format_types.push_back(format2type[format[i]]);
+                        contains_multiallelic_info = true;
+                        format_contains_multiallelic_info = true;
+                    }
+                    else
+                    {
+                        format_types.push_back(OTHER);
+                    }
+                }
+
+                if (!contains_multiallelic_info)
 				{
                     out_p->write(line);
                     continue;
@@ -189,13 +208,109 @@ public:
                     }
                 }
 
+                // For each sample in the line construct a new sample according to the format for every allele
+                std::vector<std::vector<QByteArray>> new_samples_per_allele;
+
+                if (format_contains_multiallelic_info)
+                {
+                    // initialize SAMPLE_COUNT new QByteArrays for every allele
+                    auto samples_count = parts.length() - 1 - static_cast<int>(MANDATORY_ROWS::LENGTH);
+                    for (int i = 0; i < alt.length(); ++i)
+                    {
+                        new_samples_per_allele.push_back(std::vector<QByteArray>(samples_count));
+                    }
+
+                    // for every sample part in the specific sample process REF or ALT
+                    // then append to new_samples_per_allele[ALLEL][SAMPLE_INDEX]
+                    for (int i = 0; i < samples_count; ++i)
+                    {
+                        auto sample_column = static_cast<int>(MANDATORY_ROWS::LENGTH) + i + 1;
+                        QByteArrayList sample_values = parts[sample_column].split(':');
+
+                        for (int j = 0; j < sample_values.length(); ++j)
+                        {
+                            if (format_types.at(j) == R || format_types.at(j) == A)
+                            {
+                                QByteArray seperator = "";
+                                if (sample_values[j].contains('/'))
+                                {
+                                    seperator = "/";
+                                }
+                                else if (sample_values[j].contains('|'))
+                                {
+                                    seperator = "|";
+                                }
+                                else if (sample_values[j].contains(','))
+                                {
+                                    seperator = ",";
+                                }
+
+                                if (seperator != "")
+                                {
+                                    auto sample_value_parts = sample_values[j].split(seperator.at(0)); // this is a bit retarded but thanks QByteArray
+
+                                    for (int a = 0; a < alt.length(); ++a)
+                                    {
+                                        if (!new_samples_per_allele[a][i].isEmpty()) new_samples_per_allele[a][i] += ":";
+
+                                        if (sample_value_parts.size() <  alt.size() + (format_types.at(j)==R)) // fill missing values with .
+                                        {
+                                            for (int k = 0; k < alt.size() + (format_types.at(j)==R); ++k)
+                                            {
+                                                sample_value_parts.push_back(".");
+                                            }
+                                        }
+
+                                        // appends a VALUE: (with seperator)
+                                        if (format_types[j] == R)
+                                        {
+                                            new_samples_per_allele[a][i] += sample_value_parts[0];
+                                            new_samples_per_allele[a][i] += seperator;
+                                            new_samples_per_allele[a][i] += sample_value_parts[a+1];
+                                        }
+                                        else
+                                        {
+                                            new_samples_per_allele[a][i] += sample_value_parts[a];
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    for (int a = 0; a < alt.length(); ++a) {
+                                        if (!new_samples_per_allele[a][i].isEmpty()) new_samples_per_allele[a][i] += ":";
+                                        new_samples_per_allele[a][i] += sample_values[j];
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                for (int a = 0; a < alt.length(); ++a)
+                                {
+                                    if (!new_samples_per_allele[a][i].isEmpty()) new_samples_per_allele[a][i] += ":";
+                                    new_samples_per_allele[a][i] += sample_values[j];
+                                }
+                            }
+
+
+                        }
+                    }
+                }
+
                 // Iterate through alleles and construct a new QByteArrayList from the parts and designated constructedInfos
 				// Then join to a QByteArray and write
                 for (int allel = 0; allel < alt.size(); ++allel)
                 {
 					parts[static_cast<int>(MANDATORY_ROWS::ALT)] = alt[allel];
 					parts[static_cast<int>(MANDATORY_ROWS::INFO)] = new_infos_per_allele[allel];
-                    out_p->write(parts.join(TAB));
+                    if (format_contains_multiallelic_info)
+                    {
+                        for (unsigned int i = 0; i < new_samples_per_allele[allel].size(); ++i)
+                        {
+                            auto part_index = static_cast<int>(MANDATORY_ROWS::LENGTH) + 1 + i;
+                            parts[part_index] = new_samples_per_allele[allel][i];
+                        }
+                    }
+                    out_p->write(parts.join(TAB).append('\n'));
 				}
             }
         }
