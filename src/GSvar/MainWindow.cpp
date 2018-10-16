@@ -1072,14 +1072,15 @@ void MainWindow::generateReportSomaticRTF()
 	}
 	catch(Exception& error)
 	{
+		qDebug() << error.line() << " " << error.file() << endl;
 		QMessageBox::warning(this, "Error loading CNV file", error.message()+"\n\nContinuing without CNVs!");
 		cnvs.clear();
 	}
 
 	//configure report
-	GeneSet cnv_keep_genes_filter; //list of genes which will be included in CNV-report independent on their z-scores
-	cnv_keep_genes_filter << "MYC" << "MDM2" << "MDM4" << "CDKN2A" << "CDKN2A-AS1" << "CDK4" << "CDK6" << "PTEN" << "CCND1" << "RB1" << "CCND3" << "BRAF" << "KRAS" << "NRAS";
-	SomaticReportConfiguration configReport(cnvs, cnv_keep_genes_filter, this);
+	SomaticReportConfiguration configReport(cnvs, this);
+	configReport.setWindowFlags(Qt::Window);
+	connect(&configReport, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
 	if(!configReport.exec()) return;
 
 	//get RTF file name
@@ -2405,7 +2406,10 @@ QList<IgvFile> MainWindow::getSegFilesCnv()
 		//tumor-normal SEG file
 		QString segfile = filename_.left(filename_.length()-6) + "_cnvs.seg";
 		QString pair = QFileInfo(filename_).baseName();
-		output << IgvFile{pair, "CNV" , segfile};
+		output << IgvFile{pair + " (copy number)", "CNV" , segfile};
+
+		QString covfile = filename_.left(filename_.length()-6) + "_cov.seg";
+		output << IgvFile{pair + " (coverage)","CNV",covfile};
 
 		//germline SEG file
 		QString basename = QFileInfo(filename_).baseName().left(filename_.length()-6);

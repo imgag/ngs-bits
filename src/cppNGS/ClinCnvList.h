@@ -104,6 +104,10 @@ public:
 	{
 		return annotation_headers_;
 	}
+
+	///Returns annotation index by name
+	int annotationIndexByName(const QByteArray& name, bool error_on_mismatch = true) const;
+
 	///Appends copy number variant
 	void append(const ClinCopyNumberVariant& add)
 	{
