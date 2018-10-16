@@ -5,6 +5,7 @@
 #include <QFile>
 
 class ConcreteTool: public ToolBase {
+    const char TAB = '\t';
     Q_OBJECT
 
 private:
@@ -13,6 +14,47 @@ private:
 		auto start = header.indexOf("ID=") + 3;
 		auto end = header.indexOf(',', start);
 		return header.mid(start, end-start);
+    }
+
+    /*!
+     * \brief Searches a string for seperator before column n
+     * \param text - the text to search for
+     * \param seperator - the seperator to look for: usually ,
+     * \param colum - the column to look in e.g start looking for in the 4th colum
+     */
+    bool includesSeperator(const QByteArray& text, const char& seperator, int column) {
+        auto columns_seen = 0;
+        auto seperator_count = 0;
+        for (int i = 0; i < text.length(); ++i)
+        {
+            if (text[i] == TAB)
+            {
+                ++columns_seen;
+            }
+            else if (columns_seen == (column - 1) && text[i] == seperator) //if seperator is seen at least once than we can simply return
+            {
+                ++seperator_count;
+                break;
+            }
+        }
+
+        return seperator_count > 0;
+    }
+
+    /*!
+     * \brief Returns the column count for text
+     */
+    int countColumns(const QByteArray& text)
+    {
+        auto columns_count = 0;
+        for (int i = 0; i < text.length(); i++)
+        {
+            if (text[i] == TAB)
+            {
+                ++columns_count;
+            }
+        }
+        return columns_count;
     }
 
 public:
@@ -71,16 +113,16 @@ public:
                 continue;
             }
 
-            //split line and extract variant infos
-            QByteArrayList parts = line.split('\t');
-			if (parts.count()<static_cast<int>(MANDATORY_ROWS::LENGTH)) THROW(FileParseException, "VCF with too few columns: " + line); //TODO const int
+            if (countColumns(line) < static_cast<int>(MANDATORY_ROWS::LENGTH)) THROW(FileParseException, "VCF with too few columns: " + line);
 
-			if (!parts[static_cast<int>(MANDATORY_ROWS::ALT)].contains(',')) // ignore because no allele //TODO use method with O(1) complexity
+            if (includesSeperator(line, ',', static_cast<int>(MANDATORY_ROWS::INFO))) // ignore because no allele
             {
                 out_p->write(line);
 			}
 			else
             {
+                //split line and extract variant infos
+                QByteArrayList parts = line.split(TAB);
                 QByteArrayList alt = parts[static_cast<int>(MANDATORY_ROWS::ALT)].split(',');
                 QByteArrayList info = parts[static_cast<int>(MANDATORY_ROWS::INFO)].split(';');
                 QByteArrayList format = parts[static_cast<int>(MANDATORY_ROWS::LENGTH)].split(':');
@@ -153,7 +195,7 @@ public:
                 {
 					parts[static_cast<int>(MANDATORY_ROWS::ALT)] = alt[allel];
 					parts[static_cast<int>(MANDATORY_ROWS::INFO)] = new_infos_per_allele[allel];
-					out_p->write(parts.join('\t'));
+                    out_p->write(parts.join(TAB));
 				}
             }
         }
