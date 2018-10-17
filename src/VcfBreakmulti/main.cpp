@@ -102,7 +102,7 @@ public:
                 continue;
             }
 
-			if (!includesSeperator(line, ',', static_cast<int>(MANDATORY_ROWS::ALT))) // ignore because no allele  //TODO use const int
+            if (!includesSeperator(line, ',', VcfFile::ALT)) // ignore because no allele  //TODO use const int
 			{
                 out_p->write(line);
 			}
@@ -110,11 +110,11 @@ public:
             {
                 //split line and extract variant infos
 				QByteArrayList parts = line.trimmed().split('\t');
-				if (parts.length() < static_cast<int>(MANDATORY_ROWS::LENGTH)) THROW(FileParseException, "VCF with too few columns: " + line);
+                if (parts.length() < VcfFile::REQUIRED_LENGTH) THROW(FileParseException, "VCF with too few columns: " + line);
 
-                QByteArrayList alt = parts[static_cast<int>(MANDATORY_ROWS::ALT)].split(',');
-                QByteArrayList info = parts[static_cast<int>(MANDATORY_ROWS::INFO)].split(';');
-                QByteArrayList format = parts[static_cast<int>(MANDATORY_ROWS::LENGTH)].split(':');
+                QByteArrayList alt = parts[VcfFile::ALT].split(',');
+                QByteArrayList info = parts[VcfFile::INFO].split(';');
+                QByteArrayList format = parts[VcfFile::FORMAT].split(':');
 
                 // Checks wether or not any ALT or REF is contained in this line
 				std::vector<AnnotationType> info_types;
@@ -201,7 +201,7 @@ public:
 				if (contains_multiallelic_format)
                 {
                     // initialize SAMPLE_COUNT new QByteArrays for every allele
-                    auto samples_count = parts.length() - 1 - static_cast<int>(MANDATORY_ROWS::LENGTH);
+                    auto samples_count = parts.length() - 1 - VcfFile::REQUIRED_LENGTH;
                     for (int i = 0; i < alt.length(); ++i)
                     {
                         new_samples_per_allele.push_back(std::vector<QByteArray>(samples_count));
@@ -211,7 +211,7 @@ public:
                     // then append to new_samples_per_allele[ALLEL][SAMPLE_INDEX]
                     for (int i = 0; i < samples_count; ++i)
                     {
-                        auto sample_column = static_cast<int>(MANDATORY_ROWS::LENGTH) + i + 1;
+                        auto sample_column = VcfFile::REQUIRED_LENGTH + i + 1;
                         QByteArrayList sample_values = parts[sample_column].split(':');
 
                         for (int j = 0; j < sample_values.length(); ++j)
@@ -256,13 +256,13 @@ public:
 				// Then join to a QByteArray and write
                 for (int allel = 0; allel < alt.size(); ++allel)
                 {
-					parts[static_cast<int>(MANDATORY_ROWS::ALT)] = alt[allel];
-					parts[static_cast<int>(MANDATORY_ROWS::INFO)] = new_infos_per_allele[allel];
+                    parts[VcfFile::ALT] = alt[allel];
+                    parts[VcfFile::INFO] = new_infos_per_allele[allel];
 					if (contains_multiallelic_format)
                     {
                         for (unsigned int i = 0; i < new_samples_per_allele[allel].size(); ++i)
                         {
-                            auto part_index = static_cast<int>(MANDATORY_ROWS::LENGTH) + 1 + i;
+                            auto part_index = VcfFile::REQUIRED_LENGTH + 1 + i;
                             parts[part_index] = new_samples_per_allele[allel][i];
                         }
                     }
