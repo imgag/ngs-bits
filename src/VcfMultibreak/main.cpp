@@ -4,8 +4,8 @@
 #include "VcfFile.h"
 #include <QFile>
 
-class ConcreteTool: public ToolBase {
-    const char TAB = '\t';
+class ConcreteTool: public ToolBase
+{
     Q_OBJECT
 
 private:
@@ -22,43 +22,28 @@ private:
      * \param seperator - the seperator to look for: usually ,
      * \param colum - the column to look in e.g start looking for in the 4th colum
      */
-    bool includesSeperator(const QByteArray& text, const char& seperator, int column) {
-        auto columns_seen = 0;
-        auto seperator_count = 0;
+	bool includesSeperator(const QByteArray& text, const char& seperator, int column)
+	{
+		auto current_col = 0;
         for (int i = 0; i < text.length(); ++i)
         {
-            if (text[i] == TAB)
+			if (text[i] == '\t')
             {
-                ++columns_seen;
+				++current_col;
             }
 
-            if (columns_seen == column)
+			if (current_col == column)
             {
                 if (text[i] == seperator)
                 {
-                    ++seperator_count; //if seperator is seen at least once than we can simply return
-                    break;
+					return true;
                 }
             }
+
+			if (current_col > column) break;
         }
 
-        return seperator_count > 0;
-    }
-
-    /*!
-     * \brief Returns the column count for text
-     */
-    int countColumns(const QByteArray& text)
-    {
-        auto columns_count = 0;
-        for (int i = 0; i < text.length(); i++)
-        {
-            if (text[i] == TAB)
-            {
-                ++columns_count;
-            }
-        }
-        return columns_count;
+		return false;
     }
 
 public:
@@ -117,16 +102,16 @@ public:
                 continue;
             }
 
-            if (countColumns(line) < static_cast<int>(MANDATORY_ROWS::LENGTH)) THROW(FileParseException, "VCF with too few columns: " + line);
-
-            if (!includesSeperator(line, ',', static_cast<int>(MANDATORY_ROWS::ALT))) // ignore because no allele
-            {
+			if (!includesSeperator(line, ',', static_cast<int>(MANDATORY_ROWS::ALT))) // ignore because no allele  //TODO use const int
+			{
                 out_p->write(line);
 			}
 			else
             {
                 //split line and extract variant infos
-                QByteArrayList parts = line.trimmed().split(TAB);
+				QByteArrayList parts = line.trimmed().split('\t');
+				if (parts.length() < static_cast<int>(MANDATORY_ROWS::LENGTH)) THROW(FileParseException, "VCF with too few columns: " + line);
+
                 QByteArrayList alt = parts[static_cast<int>(MANDATORY_ROWS::ALT)].split(',');
                 QByteArrayList info = parts[static_cast<int>(MANDATORY_ROWS::INFO)].split(';');
                 QByteArrayList format = parts[static_cast<int>(MANDATORY_ROWS::LENGTH)].split(':');
@@ -135,7 +120,7 @@ public:
 				std::vector<AnnotationType> info_types;
                 std::vector<AnnotationType> format_types;
 				bool contains_multiallelic_info = false;
-                bool format_contains_multiallelic_info = false;
+				bool contains_multiallelic_format = false;
 
 				for (int i = 0; i < info.length(); ++i)
 				{
@@ -151,12 +136,13 @@ public:
                     }
                 }
 
-                for (int i = 0; i < format.length(); ++i) {
+				for (int i = 0; i < format.length(); ++i)
+				{
                     if (format2type.contains(format[i]))
                     {
                         format_types.push_back(format2type[format[i]]);
                         contains_multiallelic_info = true;
-                        format_contains_multiallelic_info = true;
+						contains_multiallelic_format = true;
                     }
                     else
                     {
@@ -181,7 +167,8 @@ public:
 						auto info_parts = info[i].split('='); // split HEADER=VALUE
 						auto info_value_per_allele = info_parts[1].split(',');
 
-						if (info_value_per_allele.size() != alt.size() + (info_types.at(i)==R)) THROW(FileParseException, "VCF contains missmatch of info columns with multiple alleles: " + line);
+						int parts_expected = alt.size() + (info_types.at(i)==R);
+						if (info_value_per_allele.size() != parts_expected) THROW(FileParseException, "VCF contains missmatch of info columns with multiple alleles (expected " + QByteArray::number(parts_expected) + ", got " + QByteArray::number(info_value_per_allele.size()) + "): " + line);
 
 						for (unsigned int j = 0; j < new_infos_per_allele.size(); ++j)
 						{
@@ -211,7 +198,7 @@ public:
                 // For each sample in the line construct a new sample according to the format for every allele
                 std::vector<std::vector<QByteArray>> new_samples_per_allele;
 
-                if (format_contains_multiallelic_info)
+				if (contains_multiallelic_format)
                 {
                     // initialize SAMPLE_COUNT new QByteArrays for every allele
                     auto samples_count = parts.length() - 1 - static_cast<int>(MANDATORY_ROWS::LENGTH);
@@ -230,57 +217,28 @@ public:
                         for (int j = 0; j < sample_values.length(); ++j)
                         {
                             if (format_types.at(j) == R || format_types.at(j) == A)
-                            {
-                                QByteArray seperator = "";
-                                if (sample_values[j].contains('/'))
-                                {
-                                    seperator = "/";
-                                }
-                                else if (sample_values[j].contains('|'))
-                                {
-                                    seperator = "|";
-                                }
-                                else if (sample_values[j].contains(','))
-                                {
-                                    seperator = ",";
-                                }
+							{
+								auto sample_value_parts = sample_values[j].split(',');
 
-                                if (seperator != "")
-                                {
-                                    auto sample_value_parts = sample_values[j].split(seperator.at(0)); // this is a bit retarded but thanks QByteArray
+								int parts_expected = alt.size() + (format_types.at(j)==R);
+								if (sample_value_parts.size() != parts_expected) THROW(FileParseException, "VCF contains invalid element count in format entry " + QByteArray::number(j+1) + " of sample " + QByteArray::number(i+1) + " (expected " + QByteArray::number(parts_expected) + ", got " + QByteArray::number(sample_value_parts.size()) + "): " + line);
 
-                                    for (int a = 0; a < alt.length(); ++a)
-                                    {
-                                        if (!new_samples_per_allele[a][i].isEmpty()) new_samples_per_allele[a][i] += ":";
+								for (int a = 0; a < alt.length(); ++a)
+								{
+									if (!new_samples_per_allele[a][i].isEmpty()) new_samples_per_allele[a][i] += ":";
 
-                                        if (sample_value_parts.size() <  alt.size() + (format_types.at(j)==R)) // fill missing values with .
-                                        {
-                                            for (int k = 0; k < alt.size() + (format_types.at(j)==R); ++k)
-                                            {
-                                                sample_value_parts.push_back(".");
-                                            }
-                                        }
-
-                                        // appends a VALUE: (with seperator)
-                                        if (format_types[j] == R)
-                                        {
-                                            new_samples_per_allele[a][i] += sample_value_parts[0];
-                                            new_samples_per_allele[a][i] += seperator;
-                                            new_samples_per_allele[a][i] += sample_value_parts[a+1];
-                                        }
-                                        else
-                                        {
-                                            new_samples_per_allele[a][i] += sample_value_parts[a];
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    for (int a = 0; a < alt.length(); ++a) {
-                                        if (!new_samples_per_allele[a][i].isEmpty()) new_samples_per_allele[a][i] += ":";
-                                        new_samples_per_allele[a][i] += sample_values[j];
-                                    }
-                                }
+									// appends a VALUE: (with seperator)
+									if (format_types[j] == R)
+									{
+										new_samples_per_allele[a][i] += sample_value_parts[0];
+										new_samples_per_allele[a][i] += ',';
+										new_samples_per_allele[a][i] += sample_value_parts[a+1];
+									}
+									else
+									{
+										new_samples_per_allele[a][i] += sample_value_parts[a];
+									}
+								}
                             }
                             else
                             {
@@ -290,8 +248,6 @@ public:
                                     new_samples_per_allele[a][i] += sample_values[j];
                                 }
                             }
-
-
                         }
                     }
                 }
@@ -302,7 +258,7 @@ public:
                 {
 					parts[static_cast<int>(MANDATORY_ROWS::ALT)] = alt[allel];
 					parts[static_cast<int>(MANDATORY_ROWS::INFO)] = new_infos_per_allele[allel];
-                    if (format_contains_multiallelic_info)
+					if (contains_multiallelic_format)
                     {
                         for (unsigned int i = 0; i < new_samples_per_allele[allel].size(); ++i)
                         {
@@ -310,7 +266,7 @@ public:
                             parts[part_index] = new_samples_per_allele[allel][i];
                         }
                     }
-                    out_p->write(parts.join(TAB).append('\n'));
+					out_p->write(parts.join('\t').append('\n'));
 				}
             }
         }
