@@ -313,9 +313,9 @@ SUBDIRS += VcfCheck
 tools-TEST.depends += VcfCheck
 VcfCheck.depends = cppNGS
 
-SUBDIRS += VcfMultibreak
-tools-TEST.depends += VcfMultibreak
-VcfMultibreak.depends = cppNGS
+SUBDIRS += VcfBreakmulti
+tools-TEST.depends += VcfBreakmulti
+VcfBreakmulti.depends = cppNGS
 
 #other stuff
 OTHER_FILES += ToDos.txt
