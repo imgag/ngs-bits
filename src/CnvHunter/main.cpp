@@ -322,7 +322,7 @@ public:
 		return true;
 	}
 
-	void storeSampleInfo(QString out, const QVector<QSharedPointer<SampleData>>& samples, const QVector<QSharedPointer<SampleData>>& samples_removed, const QHash<QSharedPointer<SampleData>, int>& cnvs_sample, const QVector<ResultData>& results)
+	void storeSampleInfo(QString out, const QVector<QSharedPointer<SampleData>>& samples, const QVector<QSharedPointer<SampleData>>& samples_removed, const QHash<QSharedPointer<SampleData>, int>& cnvs_sample, const QList<ResultData>& results)
     {
         //init
         QSharedPointer<QFile> file = Helper::openFileForWriting(out.left(out.size()-4) + "_samples.tsv");
@@ -386,7 +386,7 @@ public:
         }
     }
 
-	void storeDebugInfo(QSharedPointer<SampleData> debug_sample, QString out, const QVector<QSharedPointer<SampleData>>& samples, const QVector<ResultData>& results)
+	void storeDebugInfo(QSharedPointer<SampleData> debug_sample, QString out, const QVector<QSharedPointer<SampleData>>& samples, const QList<ResultData>& results)
     {
 		//write header
 		QSharedPointer<QFile> file = Helper::openFileForWriting(out.left(out.size()-4) + "_debug.tsv");
@@ -453,7 +453,7 @@ public:
 		THROW(CommandLineParsingException, "Given sample name '" + name + "' is invalid. Valid names are: " + sample_names.join(", "));
 	}
 
-	void storeSegFile(QSharedPointer<SampleData> sample, QString out, const QVector<ResultData>& results, const QVector<QSharedPointer<ExonData>>& exons_removed)
+	void storeSegFile(QSharedPointer<SampleData> sample, QString out, const QList<ResultData>& results, const QVector<QSharedPointer<ExonData>>& exons_removed)
 	{
 		//write header
 		QSharedPointer<QFile> file = Helper::openFileForWriting(out.left(out.size()-4) + ".seg");
@@ -481,7 +481,7 @@ public:
 		}
 	}
 
-	void storeResultAsTSV(const QList<Range>& ranges, const QVector<ResultData>& results, QString filename, QStringList annotate, const QHash<QSharedPointer<ExonData>, int>& cnvs_exon, int sample_count, int& regions_overlapping_cnp_regions)
+	void storeResultAsTSV(const QList<Range>& ranges, const QList<ResultData>& results, QString filename, QStringList annotate, const QHash<QSharedPointer<ExonData>, int>& cnvs_exon, int sample_count, int& regions_overlapping_cnp_regions)
     {
 		QSharedPointer<QFile> out = Helper::openFileForWriting(filename);
 		QTextStream outstream(out.data());
@@ -596,7 +596,7 @@ public:
 		return qMakePair(size_sum_auto==0.0 ? 0.0 : wsum_auto/size_sum_auto, size_sum_chrx==0.0 ? 0.0 : wsum_chrx/size_sum_chrx);
     }
 
-	bool previousExists(const QVector<ResultData>& results, int i)
+	bool previousExists(const QList<ResultData>& results, int i)
     {
         //no previous result
         if (i==0) return false;
@@ -657,7 +657,7 @@ public:
 		outstream << endl;
 	}
 
-	void printZScoreDistribution(const QVector<ResultData>& results, QTextStream& outstream)
+	void printZScoreDistribution(const QList<ResultData>& results, QTextStream& outstream)
 	{
 		outstream << "Overall z-score histogram:" << endl;
 		Histogram hist(-6, 6, 1.0);
@@ -1205,8 +1205,8 @@ public:
 		outstream << "=== CNV seed detection ===" << endl;
 		int index = 0;
 		QList<Range> ranges;
-		QVector<ResultData> results;
-		results.reserve(exons.count());
+		QList<ResultData> results;
+		results.reserve(exons.count() * samples.count());
 		for (int s=0; s<samples.count(); ++s)
         {
             for (int e=0; e<exons.count(); ++e)
