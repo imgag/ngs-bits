@@ -530,7 +530,14 @@ void VariantDetailsDockWidget::initTranscriptDetails(const VariantList& vl, int 
 	if(a_index==-1) return;
 
 	//parse transcript data
-	trans_data = vl[index].transcriptAnnotations(a_index);
+	try
+	{
+		trans_data = vl[index].transcriptAnnotations(a_index);
+	}
+	catch(ProgrammingException)
+	{
+		trans_data.clear();
+	}
 
 	//determine index of first high-impact variant
 	int high_impact = -1;
