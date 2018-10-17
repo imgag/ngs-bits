@@ -1206,7 +1206,7 @@ public:
 		int index = 0;
 		QList<Range> ranges;
 		QVector<ResultData> results;
-		results.reserve(exons.count() * samples.count());
+		results.reserve(exons.count());
 		for (int s=0; s<samples.count(); ++s)
         {
             for (int e=0; e<exons.count(); ++e)
