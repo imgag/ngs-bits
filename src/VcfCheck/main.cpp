@@ -48,7 +48,10 @@ public:
 		if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
 
 		//check
-		exit(!VcfFile::isValid(in, ref_file, out_stream, info, lines));
+		if (!VcfFile::isValid(in, ref_file, out_stream, info, lines))
+		{
+			THROW(ToolFailedException, "VCF check failed - see 'out' file for details!");
+		}
     }
 };
 

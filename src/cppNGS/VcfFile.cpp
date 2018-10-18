@@ -407,7 +407,11 @@ VcfFile::DefinitionLine VcfFile::parseDefinitionLine(QTextStream& out, int l, QB
 			printError(out, def_type+" definition cannot have a 'Number' entry!", l, line);
 		}
 
-		if (output.number!="." && output.number!="G" && output.number!="A" && output.number!="R" && output.number.toInt()<=0)
+		if (output.type=="Flag" && output.number!="0")
+		{
+			printError(out, def_type+" definition of 'Flag' has 'Number' value other than '0'", l, line);
+		}
+		if (output.type!="Flag" && output.number!="." && output.number!="G" && output.number!="A" && output.number!="R" && output.number.toInt()<1)
 		{
 			printError(out, def_type+" definition has invalid 'Number' field ", l, line);
 		}
