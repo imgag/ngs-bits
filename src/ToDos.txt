@@ -17,8 +17,9 @@ NGSD:
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
 
 GSvar:
-*** Analysis status implement 'open folder' for multi/trio analysis
-*** Add 'restart analysis' for trio/multi
+*** Avoid overwriting preferred transcripts when multiple instances of GSvar are open
+*** Analysis status implement 'open folder' for multi/trio/somatic analysis
+*** Add 'restart analysis' for trio/multi/somatic
 *** Add splicing support
 *** OMIM g/p in Report
 ** CNV window: add text filter checkbox, add support for wildcards in genes
