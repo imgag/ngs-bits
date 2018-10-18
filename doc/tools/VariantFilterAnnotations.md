@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2018_06-72-g8648290)
+	VariantFilterAnnotations (2018_06-59-g24102d3)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -73,7 +73,7 @@
 	                                   Parameters:
 	                                     action - Action to perform [default=FILTER] [valid=REMOVE,FILTER]
 	Predicted pathogenic               Filter for variants predicted to be pathogenic.
-	                                   Prediction scores included are: phyloP>=1.6, Sift=D, PolyPhen=D, fathmm-MKL>=0.5, CADD?20 and REVEL>=0.5.
+	                                   Prediction scores included are: phyloP>=1.6, Sift=D, PolyPhen=D, fathmm-MKL>=0.5, CADD>=20 and REVEL>=0.5.
 	                                   Parameters:
 	                                     min - Minimum number of pathogenic predictions [default=1] [min=1]
 	                                     action - Action to perform [default=FILTER] [valid=KEEP,FILTER]
@@ -112,7 +112,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2018_06-72-g8648290
+	VariantFilterAnnotations 2018_06-59-g24102d3
 	
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.

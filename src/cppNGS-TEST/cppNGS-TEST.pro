@@ -56,7 +56,8 @@ HEADERS += \
         GeneSet_Test.h \
         OntologyTermCollection_Test.h \
         SvList_Test.h \
-        BamReader_Test.h
+        BamReader_Test.h \
+        VcfFile_Test.h
 
 SOURCES += \
         main.cpp

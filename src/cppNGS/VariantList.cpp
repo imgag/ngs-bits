@@ -5,6 +5,7 @@
 #include "Log.h"
 #include "ChromosomalIndex.h"
 #include "NGSHelper.h"
+#include "VcfFile.h"
 
 #include <QFile>
 #include <QTextStream>
@@ -920,7 +921,7 @@ void VariantList::processVcfLine(QList<QByteArray>& header_fields, int& line_num
 	{
 		header_fields = line.mid(1).split('\t');
 
-		if (header_fields.count()<8)//8 are mandatory
+		if (header_fields.count()<VcfFile::MIN_COLS)//8 are mandatory
 		{
 			THROW(FileParseException, "VCF file header line with less than 8 fields found: '" + line.trimmed() + "'");
 		}
@@ -983,7 +984,7 @@ void VariantList::processVcfLine(QList<QByteArray>& header_fields, int& line_num
 
 	//variant line
 	QList<QByteArray> line_parts = line.split('\t');
-	if (line_parts.count()<7)
+	if (line_parts.count()<VcfFile::MIN_COLS)
 	{
 		THROW(FileParseException, "VCF data line needs at least 7 tab-separated columns! Found " + QString::number(line_parts.count()) + " column(s) in line number " + QString::number(line_number) + ": " + line);
 	}
