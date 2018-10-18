@@ -1,5 +1,8 @@
 # GSvar change log
 
+### 2018_10-4 (12.10.18)
+- Added support for VEP annotations (removed support for SnpEff annotations)
+
 ### 2018_06-38 (13.08.18)
 - General: made 'analysis status' dialog an independent window
 - Filters: added 'x-linked' and 'imprinting' to trio filter
@@ -209,6 +212,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 

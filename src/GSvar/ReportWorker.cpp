@@ -516,8 +516,10 @@ void ReportWorker::writeHTML()
 		stream << "<td>" << formatCodingSplicing(variant.transcriptAnnotations(i_co_sp)) << "</td>" << endl;
 		stream << "<td>" << variant.annotations().at(i_class) << "</td>" << endl;
 		stream << "<td>" << inheritance(variant.annotations()[i_geneinfo]) << "</td>" << endl;
-		stream << "<td>" << variant.annotations().at(i_kg) << "</td>" << endl;
-		stream << "<td>" << variant.annotations().at(i_gnomad) << "</td>" << endl;
+		QByteArray freq = variant.annotations().at(i_kg).trimmed();
+		stream << "<td>" << (freq.isEmpty() ? "n/a" : freq) << "</td>" << endl;
+		freq = variant.annotations().at(i_gnomad).trimmed();
+		stream << "<td>" << (freq.isEmpty() ? "n/a" : freq) << "</td>" << endl;
 		stream << "</tr>" << endl;
 
 		//OMIM and comment line

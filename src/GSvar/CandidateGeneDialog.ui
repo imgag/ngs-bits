@@ -34,7 +34,7 @@
      <item>
       <widget class="QComboBox" name="filter_impact">
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <item>
         <property name="text">
@@ -53,7 +53,7 @@
        </item>
        <item>
         <property name="text">
-         <string>HIGH,MODERATE,LOW, MODIFIER</string>
+         <string>HIGH,MODERATE,LOW,MODIFIER</string>
         </property>
        </item>
       </widget>

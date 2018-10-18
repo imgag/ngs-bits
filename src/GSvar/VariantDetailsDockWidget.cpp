@@ -530,7 +530,14 @@ void VariantDetailsDockWidget::initTranscriptDetails(const VariantList& vl, int 
 	if(a_index==-1) return;
 
 	//parse transcript data
-	trans_data = vl[index].transcriptAnnotations(a_index);
+	try
+	{
+		trans_data = vl[index].transcriptAnnotations(a_index);
+	}
+	catch(ProgrammingException)
+	{
+		trans_data.clear();
+	}
 
 	//determine index of first high-impact variant
 	int high_impact = -1;
@@ -656,36 +663,6 @@ QList<VariantDetailsDockWidget::DBEntry> VariantDetailsDockWidget::parseDB(QStri
 QString VariantDetailsDockWidget::nobr()
 {
 	return "<p style='white-space:pre; margin:0; padding:0;'>";
-}
-
-void VariantDetailsDockWidget::exacClicked(QString link)
-{
-    QStringList parts = link.split(' ');
-    Chromosome chr(parts[0]);
-    QString start = parts[1];
-    QString ref = parts[3];
-    QString obs = parts[4];
-
-    QString url;
-    if (obs=="-") //deletion
-    {
-        int pos = start.toInt()-1;
-		FastaFileIndex idx(Settings::string("reference_genome"));
-		QString base = idx.seq(chr, pos, 1);
-		url = chr.strNormalized(false) + "-" + QString::number(pos) + "-" + base + ref + "-" + base;
-    }
-    else if (ref=="-") //insertion
-    {
-        int pos = start.toInt();
-		FastaFileIndex idx(Settings::string("reference_genome"));
-		QString base = idx.seq(chr, pos, 1);
-        url = chr.strNormalized(false) + "-" + start + "-" + base + "-" + base + obs;
-    }
-    else //snv
-    {
-        url =  chr.strNormalized(false) + "-" + start + "-" + ref + "-" + obs;
-    }
-	QDesktopServices::openUrl(QUrl("http://exac.broadinstitute.org/variant/" + url));
 }
 
 void VariantDetailsDockWidget::gnomadClicked(QString link)

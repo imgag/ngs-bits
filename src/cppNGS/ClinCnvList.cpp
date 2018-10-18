@@ -71,6 +71,7 @@ void ClinCnvList::load(QString filename)
 	//parse annotation headers
 	foreach(int index, annotation_indices)
 	{
+		if(file.header()[index] == "size") continue; //Skip size annotations (is calculated in GSvar already)
 		annotation_headers_ << file.header()[index];
 	}
 
@@ -79,6 +80,7 @@ void ClinCnvList::load(QString filename)
 	while (!file.atEnd())
 	{
 		QByteArrayList parts = file.readLine();
+		//if(parts.empty()) continue;
 		if (parts.count()<7) THROW(FileParseException, "Invalid ClinCNV file line: " + parts.join('\t'));
 
 		//sample
@@ -99,10 +101,51 @@ void ClinCnvList::load(QString filename)
 		QByteArrayList annos;
 		foreach(int index, annotation_indices)
 		{
+			if(file.header()[index] == "size") continue;
 			annos << parts[index];
 		}
 		variants_.append(ClinCopyNumberVariant(parts[i_chr], parts[i_start].toInt(), parts[i_end].toInt(), parts[i_copy_number].toDouble(), parts[i_log_likelihood].toDouble(), genes, annos));
 	}
+}
+
+int ClinCnvList::annotationIndexByName(const QByteArray& name, bool error_on_mismatch) const
+{
+	QList<int> matches;
+	for(int i=0; i<annotation_headers_.count(); ++i)
+	{
+		if (annotation_headers_[i] == name )
+		{
+			matches.append(i);
+		}
+	}
+
+	//Error handling
+	if (matches.count()<1)
+	{
+		if (error_on_mismatch)
+		{
+			THROW(ArgumentException, "Could not find annotation column '" + name + "' in ClinCNV list!");
+		}
+		else
+		{
+			return -1;
+		}
+	}
+
+	if (matches.count()>1)
+	{
+		if (error_on_mismatch)
+		{
+			THROW(ArgumentException, "Found multiple annotation columns for '" + name + "' in ClinCNV list!");
+		}
+		else
+		{
+			return -2;
+		}
+	}
+
+	return matches.at(0);
+
 }
 
 void ClinCnvList::copyMetaData(const ClinCnvList& rhs)

@@ -192,9 +192,9 @@ public:
 		//determine required annotation indices
 		int idx_qual = vl.annotationIndexByName("QUAL");
 		int idx_dp = -1;
-		for(int i=0; i<vl.annotationDescriptions().count(); ++i)
+		for(int i=0; i<vl.annotations().count(); ++i)
 		{
-			if(vl.annotationDescriptions()[i].sampleSpecific() && vl.annotationDescriptions()[i].name()=="DP")
+			if(!vl.annotations()[i].sampleID().isEmpty() && vl.annotations()[i].name()=="DP")
 			{
 				idx_dp = i;
 			}
@@ -227,10 +227,12 @@ public:
 
 			//skip low quality variants
 			bool ok = true;
-			if (vl[i].annotations().at(idx_dp).toInt(&ok) < var_min_dp) continue;
+			int dp_value = vl[i].annotations().at(idx_dp).toInt(&ok);
 			if (!ok) THROW(ArgumentException, "Could not convert 'DP' value of variant " + v.toString() + " to integer.");
-			if (vl[i].annotations().at(idx_qual).toDouble(&ok) < var_min_q) continue;
+			if (dp_value < var_min_dp) continue;
+			int qual_value = vl[i].annotations().at(idx_qual).toDouble(&ok);
 			if (!ok) THROW(ArgumentException, "Could not convert 'QUAL' value of variant " + v.toString() + " to double.");
+			if (qual_value < var_min_q) continue;
 
 			//determine if homozygous
 			QByteArray genotype = vl[i].annotations().at(i_gt);

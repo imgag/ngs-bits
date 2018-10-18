@@ -50,7 +50,6 @@ private slots:
 	void nextTanscript();
 	void previousTanscript();
 	void variantClicked(QString link);
-    void exacClicked(QString link);
 	void gnomadClicked(QString link);
 	void editClassification();
 	void editValidation();
