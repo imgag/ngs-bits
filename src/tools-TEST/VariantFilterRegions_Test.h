@@ -1,4 +1,5 @@
 #include "TestFramework.h"
+#include "TestFrameworkNGS.h"
 
 TEST_CLASS(VariantFilterRegions_Test)
 {
@@ -15,6 +16,7 @@ private slots:
 	{
 		EXECUTE("VariantFilterRegions", "-in " + TESTDATA("data_in/VariantFilterRegions_in2.vcf") + " -reg " + TESTDATA("data_in/VariantFilterRegions_in.bed") + " -out out/VariantFilterRegions_out2.vcf");
 		COMPARE_FILES("out/VariantFilterRegions_out2.vcf", TESTDATA("data_out/VariantFilterRegions_out2.vcf"));
+		VCF_IS_VALID("out/VariantFilterRegions_out2.vcf")
 	}
 
 	void byBED_TSV_invert()
@@ -39,6 +41,7 @@ private slots:
 	{
 		EXECUTE("VariantFilterRegions", "-in " + TESTDATA("data_in/VariantFilterRegions_in2.vcf") + " -reg " + TESTDATA("data_in/VariantFilterRegions_in.bed") + " -out out/VariantFilterRegions_out6.vcf -mark off-target");
 		COMPARE_FILES("out/VariantFilterRegions_out6.vcf", TESTDATA("data_out/VariantFilterRegions_out6.vcf"));
+		VCF_IS_VALID("out/VariantFilterRegions_out6.vcf")
 	}
 
 	void byBED_TSV_mark_invert()
@@ -51,6 +54,7 @@ private slots:
 	{
 		EXECUTE("VariantFilterRegions", "-in " + TESTDATA("data_in/VariantFilterRegions_in3.vcf") + " -r chr1:156341000-156351795 -out out/VariantFilterRegions_out8.vcf");
 		COMPARE_FILES("out/VariantFilterRegions_out8.vcf", TESTDATA("data_out/VariantFilterRegions_out8.vcf"));
+		VCF_IS_VALID("out/VariantFilterRegions_out8.vcf")
 	}
 };
 

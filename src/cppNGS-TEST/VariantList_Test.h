@@ -1,4 +1,5 @@
 #include "TestFramework.h"
+#include "TestFrameworkNGS.h"
 #include "VariantList.h"
 #include "Settings.h"
 
@@ -25,6 +26,8 @@ private slots:
 		vl.leftAlign(ref_file, true);
 		vl.store("out/LeftAlign_out1.vcf");
 		COMPARE_FILES("out/LeftAlign_out1.vcf", TESTDATA("data_out/LeftAlign_out1.vcf"));
+
+		VCF_IS_VALID("out/LeftAlign_out1.vcf")
 	}
 
 	void leftAlign02()
@@ -38,6 +41,8 @@ private slots:
 		vl.leftAlign(ref_file, true);
 		vl.store("out/LeftAlign_out2.vcf");
 		COMPARE_FILES("out/LeftAlign_out2.vcf", TESTDATA("data_out/LeftAlign_out2.vcf"));
+
+		VCF_IS_VALID("out/LeftAlign_out2.vcf")
 	}
 
 	void leftAlign03()
@@ -280,6 +285,7 @@ private slots:
 		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
 		vl.checkValid();
 		vl.store("out/VariantList_store_01.vcf");
+		VCF_IS_VALID("out/VariantList_store_01.vcf")
 		vl.clear();
 
 		//reload and check that everything stayed the same
@@ -506,6 +512,7 @@ private slots:
 		vl.load(TESTDATA("data_in/VariantList_emptyDescriptions.vcf"));
 		vl.checkValid();
 		vl.store("out/VariantList_emptyDescriptions_fixed.vcf");
+		VCF_IS_VALID("out/VariantList_emptyDescriptions_fixed.vcf")
 		vl.clear();
 
 		VariantList vl2;
@@ -597,6 +604,7 @@ private slots:
 		vl.sort();
 		vl.store("out/sort_out.vcf");
 		COMPARE_FILES("out/sort_out.vcf",TESTDATA("data_out/sort_out.vcf"));
+		VCF_IS_VALID("out/sort_out.vcf")
 	}
 
 	//test sort function for TSV files
@@ -652,6 +660,7 @@ private slots:
 		vl.sortByFile(TESTDATA("data_in/variantList_sortbyFile.fai"));
 		vl.store("out/sortByFile.vcf");
 		//entries should be sorted by variantList_sortbyFile.fai, which is reverse-numeric concerning chromosomes
+		VCF_IS_VALID("out/sortByFile.vcf")
 		X_EQUAL(vl[0].chr(),Chromosome("chr19"));
 		I_EQUAL(vl[0].start(),14466629);
 		X_EQUAL(vl[1].chr(),Chromosome("chr18"));

@@ -57,7 +57,8 @@ SOURCES += BedFile.cpp \
     OntologyTermCollection.cpp \
     SvList.cpp \
     ClinCnvList.cpp \
-    FilterCascade.cpp
+    FilterCascade.cpp \
+    VcfFile.cpp
 
 
 HEADERS += BedFile.h \
