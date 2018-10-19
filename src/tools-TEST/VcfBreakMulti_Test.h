@@ -10,7 +10,7 @@ private slots:
 	{
 		EXECUTE("VcfBreakMulti", "-in " + TESTDATA("data_in/VcfBreakMulti_in1.vcf") + " -out out/VcfBreakMulti_out1.vcf");
 		COMPARE_FILES("out/VcfBreakMulti_out1.vcf", TESTDATA("data_out/VcfBreakMulti_out1.vcf"));
-		VCF_IS_VALID("out/VcfBreakMulti_out2.vcf")
+		VCF_IS_VALID("out/VcfBreakMulti_out1.vcf")
     }
 
 	//TODO add test data for multi-sample VCF

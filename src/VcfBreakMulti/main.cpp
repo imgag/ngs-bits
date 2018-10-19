@@ -194,7 +194,7 @@ public:
 
 						for (int a = 0; a < alt.length(); ++a)
 						{
-							new_samples_per_allele[a][i] = QByteArray(".") + sample_values[j][1] + QByteArray::number(a+1); //TODO this will not work for multi-sample VCFs
+							new_samples_per_allele[a][i] = QByteArray(".") + sample_values[j][1] + "1"; //TODO this will not work for multi-sample VCFs
 						}
 					}
 					else if (format_types.at(j) == R || format_types.at(j) == A) //special handling A/R entries

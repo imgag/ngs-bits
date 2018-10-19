@@ -304,12 +304,28 @@ bool VcfFile::isValid(QString vcf_file, QString ref_file, QTextStream& out_strea
 				}
 
 				//check values (number, type)
-
 				for (int i=0; i<format_names.count(); ++i)
 				{
-					const DefinitionLine& current_format = defined_formats[format_names[i]];
+					const QByteArray& name = format_names[i];
+					const DefinitionLine& current_format = defined_formats[name];
 					QByteArrayList values = sample_data[i].split(',');
 					checkValues(current_format, values, alts.count(), defined_samples[s], out_stream, l, line);
+
+					//special handling of GT column
+					if (name=="GT")
+					{
+						QByteArrayList gt_entries = values[0].replace('/', '|').split('|');
+						foreach(const QByteArray& gt_entry, gt_entries)
+						{
+							bool ok;
+							int allele_number = gt_entry.toInt(&ok);
+							if((gt_entry!="." && !ok) || (ok && allele_number>alts.count()))
+							{
+								printError(out_stream, "Sample " + defined_samples[s] + " has invalid GT entry '" + values[0] + "'!", l, line);
+								return false;
+							}
+						}
+					}
 				}
 			}
 		}
