@@ -317,5 +317,9 @@ SUBDIRS += VcfBreakMulti
 tools-TEST.depends += VcfBreakMulti
 VcfBreakMulti.depends = cppNGS
 
+SUBDIRS += VcfFilter
+tools-TEST.depends += VcfFilter
+VcfFilter.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt
