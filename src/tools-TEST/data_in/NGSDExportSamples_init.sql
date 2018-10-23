@@ -57,3 +57,5 @@ INSERT INTO `analysis_job_history`(`analysis_job_id`, `time`, `user_id`, `status
 (1, '2015-11-01T00:00:10', null, 'started', ''),
 (1, '2015-11-01T04:13:32', null, 'finished', '');
 
+INSERT INTO `diag_status`(`processed_sample_id`, `status`, `user_id`, `date`, `outcome`, `genes_causal`, `inheritance_mode`, `genes_incidental`, `comment`) VALUES 
+(3, 'done', 2, '2018-10-23 14:09:21', 'significant findings', 'BRCA1', 'autosomal dominant', NULL, 'comment line1\ncomment\tline2');
