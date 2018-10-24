@@ -128,7 +128,7 @@ public:
         addFlag("filter_empty", "Removes all empty filters");
         addString("filter", "Filters the VCF entries by filter regex", true);
         addString("id", "Filters the VCF entries by ID regex", true);
-        addEnum("variant_type", "Filters by variant type", true, variant_types);
+        addEnum("variant_type", "Filters by variant type", true, variant_types, "snp");
         addString("info_filter", "Filters info with operators, e.g. 'depth > 17'.\nValid operations are '" + operations.join("','") + "'.", true);
         addString("sample_filters", "Filters samples with operators, e.g. 'depth > 17'.\nValid operations are '" + operations.join("','") + "'.", true);
 
@@ -146,7 +146,7 @@ public:
 
     virtual void main()
     {
-		//init
+        //init roi
 		QString reg = getInfile("reg");
 
 		//load target region
@@ -172,105 +172,137 @@ public:
         QSharedPointer<QFile> in_p = Helper::openFileForReading(in, true);
         QSharedPointer<QFile> out_p = Helper::openFileForWriting(out, true);
 
+        //init parameters
+        double quality = getFloat("qual");
+        bool filter_empty = getFlag("filter_empty");
+        QString filter_regex = getString("filter");
+        QString id_regex = getString("id");
+        QString variant_type = getString("variant_type");
+        QString info_filter = getString("info_filter");
+        QString sample_filter = getString("sample_filter");
+
+        // Prepare static filter regexes
+        QRegExp filter_re(filter_regex);
+        if (!filter_re.isValid())
+        {
+            THROW(ArgumentException, filter_regex + " is not a valid regular expression!");
+        }
+
+        QRegExp info_re(id_regex);
+        if (info_re.isValid())
+        {
+            THROW(ArgumentException, id_regex + "is not a valid regular expression!");
+        }
+
+        // Set up filter lists for info
+        //QStringList info_filters;
+        std::vector<QStringList> info_filters;
+        if (variant_type != "" || info_filter != "")
+        {
+            if (variant_type != "")
+            {
+                QString variant_filter = "TYPE = " + variant_type;
+                info_filters.push_back(variant_filter.split(' '));
+            }
+
+            if (info_filter != "")
+            {
+                auto info_filter_split = info_filter.split(';');
+                for (int i = 0; i < info_filter_split.length(); ++i)
+                {
+                    info_filters.push_back(info_filter_split[i].split(' '));
+                }
+            }
+        }
+
+        // Set up filter lists and additional info for samples
+        auto column_index = VcfFile::MIN_COLS + 1;
+        auto column_count = 0;
+        std::vector<QStringList> sample_filters;
+        auto sample_filter_split = sample_filter.split(';');
+        for (int i = 0; i < sample_filter_split.length(); ++i)
+        {
+            sample_filters.push_back(sample_filter_split[i].split(' '));
+        }
+
         // Read input
-        QByteArrayList lines;
-        QByteArrayList headers;
         while (!in_p->atEnd())
         {
-            lines.push_back(in_p->readLine());
-        }
-        in_p->close();
+            auto line = in_p->readLine();
 
-        ///Remove our headers
-        std::remove_copy_if(lines.begin(), lines.end(), lines.begin(), [](QByteArray line) { return line.startsWith('#'); });
-
-        ///Filter by region. First return CHROM and POS and then remove all lines that do not satisfy the check
-        if (reg != "")
-        {
-            std::remove_if(lines.begin(), lines.end(), [&](QByteArray line)
+            if (line.startsWith("#CHROM"))
             {
-               auto chr = getPartByColumn(line, VcfFile::CHROM);
-               auto start = getPartByColumn(line, VcfFile::POS);
-               auto ref = getPartByColumn(line, VcfFile::REF);
+                column_count = countColumns(line);
+            }
+            if (line.startsWith('#'))
+            {
+                out_p->write(line);
+                continue;
+            }
 
-               return roi_index.matchingIndex(chr, start.toInt(), start.toInt() + ref.length());
-            });
-        }
+            ///Filter by region. First return CHROM and POS and then remove all lines that do not satisfy the check
+            if (reg != "")
+            {
+                auto chr = getPartByColumn(line, VcfFile::CHROM);
+                auto start = getPartByColumn(line, VcfFile::POS);
+                auto ref = getPartByColumn(line, VcfFile::REF);
 
-        ///Filter by QUALITY. Return QUAL and then remove all lines that do not satisfy the check
-        double quality = getFloat("qual");
-        if (quality != 0.0)
-        {
-            std::remove_if(lines.begin(), lines.end(), [&](QByteArray line)
+                if (!roi_index.matchingIndex(chr, start.toInt(), start.toInt() + ref.length()))
+                {
+                    continue;
+                }
+            }
+
+            ///Filter by QUALITY. Return QUAL and then remove all lines that do not satisfy the check
+            if (quality != 0.0)
             {
                 auto qual = getPartByColumn(line, VcfFile::QUAL);
 
-                return qual.toDouble() < quality;
-            });
-        }
+                if (qual.toDouble() < quality)
+                {
+                    continue;
+                }
+            }
 
-        ///Filter by empty filters (will remove empty filters).
-        bool filter_empty = getFlag("filter_empty");
-        if (filter_empty)
-        {
-            std::remove_if(lines.begin(), lines.end(), [&](QByteArray line)
+            ///Filter by empty filters (will remove empty filters).
+            if (filter_empty)
             {
                 auto filter = getPartByColumn(line, VcfFile::FILTER);
 
-                return filter == "." || filter == "," || filter == "PASS";
-            });
-        }
-
-        ///Filter FILTER column via regex
-        QString filter_regex = getString("filter");
-        if (filter_regex != "")
-        {
-            QRegExp re(filter_regex);
-            if (!re.isValid())
-            {
-                THROW(ArgumentException, filter_regex + " is not a valid regular expression!");
+                if (filter == "." || filter == "," || filter == "PASS")
+                {
+                    continue;
+                }
             }
 
-            std::remove_if(lines.begin(), lines.end(), [&](QByteArray line)
+            ///Filter FILTER column via regex
+            if (filter_regex != "")
             {
-                return !re.indexIn(line);
-            });
-        }
-
-        ///Filter ID column via regex
-        QString id_regex = getString("id");
-        if (id_regex != "")
-        {
-            QRegExp re(id_regex);
-            if (re.isValid())
-            {
-                THROW(ArgumentException, id_regex + "is not a valid regular expression!");
+                if (!filter_re.indexIn(line))
+                {
+                    continue;
+                }
             }
 
-            std::remove_if(lines.begin(), lines.end(), [&](QByteArray line)
+            ///Filter ID column via regex
+            if (id_regex != "")
             {
-                return !re.indexIn(line);
-            });
-        }
+                if (!info_re.indexIn(line))
+                {
+                    continue;
+                }
+            }
 
-        ///Filter by type and or info operators in INFO column
-        QString variant_type = getString("variant_type");
-        QString info_filter = getString("info_filter");
-        if (variant_type != "" || info_filter != "")
-        {
-            QStringList filters;
-            if (variant_type != "") filters.append("TYPE =" + variant_type);
-            if (info_filter != "") filters + info_filter.split(';');
-
-            std::remove_if(lines.begin(), lines.end(), [&](QByteArray line)
+            ///Filter by type and or info operators in INFO column
+            if (info_filters.size())
             {
                 auto info_parts = getPartByColumn(line, VcfFile::INFO).split(';');
                 bool passes_filters = true;
 
-                for (int i = 0; i < filters.size(); ++i)
+                for (unsigned int i = 0; i < info_filters.size(); ++i)
                 {
                     if (!passes_filters) break; // We already failed previously
-                    auto filter_parts = filters[i].split(' ');
+                    auto filter_parts = info_filters[i];
 
                     for (int j = 0; j < info_parts.length(); ++j)
                     {
@@ -288,23 +320,17 @@ public:
                     }
                 }
 
-                return passes_filters;
-            });
+                if (!passes_filters)
+                {
+                    continue;
+                }
+            }
 
-        }
-
-        ///Filter by sample operators in the SAMPLE column
-        QString sample_filter = getString("sample_filter");
-        if (sample_filter != "")
-        {
-            QStringList filters = sample_filter.split(';');
-            auto column_index = VcfFile::MIN_COLS + 1;
-            auto column_count = countColumns(headers[headers.length() - 1]); // it might happen that lines is already empty, so better make sure to count the format line
-
-            std::remove_if(lines.begin(), lines.end(), [&](QByteArray line)
+            ///Filter by sample operators in the SAMPLE column
+            if (sample_filters.size())
             {
                 auto format_ids = getPartByColumn(line, VcfFile::FORMAT).split(':');
-                std::vector<QByteArrayList> sample_parts; // create a list of qbytearray for every sample in this line
+                std::vector<QByteArrayList> sample_parts; // create a list of QByteArray for every sample in this line
                 for (int i = column_index; i < column_count; ++i)
                 {
                     auto sample = getPartByColumn(line, i);
@@ -312,10 +338,10 @@ public:
                 }
 
                 bool passes_filters = true;
-                for (int i = 0; i < filters.length(); ++i) // for every filter check every id
+                for (unsigned int i = 0; i < sample_filters.size(); ++i) // for every filter check every id
                 {
                     if (!passes_filters) break;
-                    auto filter_parts = filters[i].split(' ');
+                    auto filter_parts = sample_filters[i];
 
                     int index = format_ids.indexOf(filter_parts[0].toUtf8());
                     if (index >= -1) // if ID is contained check in all samples that the filter passes
@@ -332,20 +358,19 @@ public:
                     }
                 }
 
-                return passes_filters;
-            });
+                if (!passes_filters)
+                {
+                    continue;
+                }
+            }
+
+            out_p->write(line);
+
         }
 
-        // Always write the headers unchanged
-        for (int i = 0; i < headers.length(); ++i)
-        {
-            out_p->write(headers[i]);
-        }
-        // Write the remaining lines
-        for (int i = 0; i < lines.length(); ++i)
-        {
-            out_p->write(lines[i]);
-        }
+        // Close streams
+        in_p->close();
+        out_p->close();
     }
 };
 
