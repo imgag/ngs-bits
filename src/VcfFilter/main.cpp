@@ -136,7 +136,7 @@ public:
         addFlag("filter_empty", "Removes all empty filters");
         addString("filter", "Filters the VCF entries by filter regex", true);
         addString("id", "Filters the VCF entries by ID regex", true);
-        addEnum("variant_type", "Filters by variant type", true, variant_types);
+        addEnum("variant_type", "Filters by variant type", true, variant_types, "snp");
         addString("info_filter", "Filters info with operators, e.g. 'depth > 17'.\nValid operations are '" + operations.join("','") + "'.", true);
         addString("sample_filters", "Filters samples with operators, e.g. 'depth > 17'.\nValid operations are '" + operations.join("','") + "'.", true);
 
@@ -165,6 +165,8 @@ public:
 		}
 		else //parse comma-separated regions
 		{
+            auto regions = reg.split(',');
+
 			//TODO
 		}
 		roi.merge();
