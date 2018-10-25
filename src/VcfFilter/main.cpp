@@ -133,7 +133,7 @@ public:
 		addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
 
 		addString("reg", "Region of interest in BED format, or comma-separated list of region, e.g. 'chr1:454540-454678,chr2:473457-4734990'.", true);
-		addEnum("variant_type", "Filters by variant type", true, variant_types, "snp");
+        addString("variant_type", "Filters by variant type. Possible types are: " + variant_types.join("','"), true);
 		addString("id", "Filters the VCF entries by ID regex", true);
         addFloat("qual", "Filters the VCF entries by minimum quality", true);
         addFlag("filter_empty", "Removes all empty filters");
@@ -183,7 +183,7 @@ public:
         bool filter_empty = getFlag("filter_empty");
         QString filter_regex = getString("filter");
         QString id_regex = getString("id");
-        QString variant_type = getEnum("variant_type");
+        QString variant_type = getString("variant_type");
         QString info_filter = getString("info_filter");
         QString sample_filter = getString("sample_filter");
 
@@ -204,38 +204,30 @@ public:
 			id_re.setPattern(id_regex);
 			if (id_re.isValid())
             {
-				THROW(ArgumentException, "ID regexp '" + id_re + "' is not a valid regular expression!");
+                THROW(ArgumentException, "ID regexp '" + id_regex + "' is not a valid regular expression!");
             }
         }
 
+        QRegExp operator_regex("(\\w*)\\s(>|>=|=|!=|<=|<|is|not|contains)\\s(\\w*)");
         // Set up filter lists for info
         //QStringList info_filters;
         std::vector<QStringList> info_filters;
-        if (variant_type != "" || info_filter != "")
+        if (info_filter != "")
         {
-            if (variant_type != "")
-            {
-				//TODO len(ref)==1&&len(alt)==1 > SNP, '<' > OTHER, len(ref)>1||len(alt)>1 > INDEL
-				if (variant_type == "OTHER")
-                {
-                    QString filter;
-                    filter = "TYPE not snp";
-                    info_filters.push_back(filter.split(' '));
-                    filter = "TYPE not complex";
-                    info_filters.push_back(filter.split(' '));
-                }
-                else
-                {
-                    info_filters.push_back(("TYPE is " + variant_type).split(' '));
-                }
-            }
-
             if (info_filter != "")
             {
                 auto info_filter_split = info_filter.split(';');
                 for (int i = 0; i < info_filter_split.length(); ++i)
                 {
-					info_filters.push_back(info_filter_split[i].split(' '));  //TODO check 3 parts, operator valid
+                    if (!operator_regex.indexIn(info_filter_split[i]))
+                    {
+                        QStringList matches = operator_regex.capturedTexts();
+                        info_filters.push_back(matches.mid(1, matches.length()));
+                    }
+                    else
+                    {
+                        THROW(ArgumentException, "Operation '" + info_filter_split[i] + "' is invalid!");
+                    }
                 }
             }
         }
@@ -247,7 +239,15 @@ public:
         auto sample_filter_split = sample_filter.split(';');
         for (int i = 0; i < sample_filter_split.length(); ++i)
         {
-			sample_filters.push_back(sample_filter_split[i].split(' ')); //TODO check 3 parts, operator valid
+            if (!operator_regex.indexIn(sample_filter_split[i]))
+            {
+                QStringList matches = operator_regex.capturedTexts();
+                sample_filters.push_back(matches.mid(1, matches.length()));
+            }
+            else
+            {
+                THROW(ArgumentException, "Operation '" + sample_filter_split[i] + "' is invalid!");
+            }
         }
 
         // Read input
@@ -278,13 +278,50 @@ public:
                 }
             }
 
+            ///Filter by variant_type.
+            if (variant_type != "")
+            {
+                // NOTE: This is calculated with
+                // len(ref)==1&&len(alt)==1 > SNP
+                // len(ref)>1||len(alt)>1 > INDEL
+                // '<' > OTHER,
+                auto ref = getPartByColumn(line, VcfFile::REF);
+                auto alt = getPartByColumn(line, VcfFile::ALT);
+
+                QString type;
+                if (ref.length() == 1 && alt.length() == 1)
+                {
+                    type = "snp";
+                }
+                else if (ref.length() > 1 || alt.length() > 1)
+                {
+                    type = "complex";
+                }
+                else if (alt.startsWith('<'))
+                {
+                    type = "other";
+                }
+                else
+                {
+                    THROW(ProgrammingException, "Unsupported variant type '" + alt + "' in line " + line);
+                }
+
+                if (type != variant_type)
+                {
+                    continue;
+                }
+
+            }
+
             ///Filter by QUALITY. Return QUAL and then remove all lines that do not satisfy the check
             if (quality != 0.0)
             {
                 auto qual = getPartByColumn(line, VcfFile::QUAL);
+                bool is_convertable;
 
-				if (qual.toDouble() < quality) //TODO '.' !ok > Exception
+                if (qual.toDouble(&is_convertable) < quality)
                 {
+                    if (!is_convertable && qual != ".") THROW(ProgrammingException, "'" + qual + "' is an unsupported quality value in line: " + line);
                     continue;
                 }
             }
