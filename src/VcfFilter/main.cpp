@@ -77,6 +77,10 @@ class ConcreteTool: public ToolBase
         {
             pass_filter = filter_val.toDouble() >= value.toDouble();
         }
+        else if (filter_op == "!=")
+        {
+            pass_filter = filter_val.toDouble() != value.toDouble();
+        }
         else if (filter_op == '=')
         {
             pass_filter = filter_val.toDouble() == value.toDouble();
@@ -110,7 +114,7 @@ public:
         : ToolBase(argc, argv)
 
     {
-        operations << ">" << ">=" << "=" << "<=" << "<" << "is" << "contains";
+        operations << ">" << ">=" << "=" << "!=" << "<=" << "<" << "is" << "contains";
         variant_types << "snp" << "complex" << "other";
     }
 
@@ -128,7 +132,7 @@ public:
         addFlag("filter_empty", "Removes all empty filters");
         addString("filter", "Filters the VCF entries by filter regex", true);
         addString("id", "Filters the VCF entries by ID regex", true);
-        addEnum("variant_type", "Filters by variant type", true, variant_types, "snp");
+        addEnum("variant_type", "Filters by variant type", true, variant_types);
         addString("info_filter", "Filters info with operators, e.g. 'depth > 17'.\nValid operations are '" + operations.join("','") + "'.", true);
         addString("sample_filters", "Filters samples with operators, e.g. 'depth > 17'.\nValid operations are '" + operations.join("','") + "'.", true);
 
@@ -201,8 +205,18 @@ public:
         {
             if (variant_type != "")
             {
-                QString variant_filter = "TYPE = " + variant_type;
-                info_filters.push_back(variant_filter.split(' '));
+                if (variant_type == "OTHER")
+                {
+                    QString filter;
+                    filter = "TYPE != snp";
+                    info_filters.push_back(filter.split(' '));
+                    filter = "TYPE != complex";
+                    info_filters.push_back(filter.split(' '));
+                }
+                else
+                {
+                    info_filters.push_back(("TYPE = " + variant_type).split(' '));
+                }
             }
 
             if (info_filter != "")
