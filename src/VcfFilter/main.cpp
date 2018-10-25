@@ -118,7 +118,7 @@ public:
         : ToolBase(argc, argv)
 
     {
-        operations << ">" << ">=" << "=" << "!=" << "<=" << "<" << "is" << "contains";
+        operations << ">" << ">=" << "=" << "!=" << "<=" << "<" << "is" << "not" << "contains";
         variant_types << "snp" << "complex" << "other";
     }
 
@@ -138,7 +138,7 @@ public:
         addString("id", "Filters the VCF entries by ID regex", true);
         addEnum("variant_type", "Filters by variant type", true, variant_types, "snp");
         addString("info_filter", "Filters info with operators, e.g. 'depth > 17'.\nValid operations are '" + operations.join("','") + "'.", true);
-        addString("sample_filters", "Filters samples with operators, e.g. 'depth > 17'.\nValid operations are '" + operations.join("','") + "'.", true);
+        addString("sample_filter", "Filters samples with operators, e.g. 'depth > 17'.\nValid operations are '" + operations.join("','") + "'.", true);
 
 		//TODO reg: BED/comma-separated regions
         //quality:min
@@ -155,7 +155,7 @@ public:
     virtual void main()
     {
         //init roi
-		QString reg = getInfile("reg");
+        QString reg = getString("reg");
 
 		//load target region
 		BedFile roi;
@@ -187,21 +187,29 @@ public:
         bool filter_empty = getFlag("filter_empty");
         QString filter_regex = getString("filter");
         QString id_regex = getString("id");
-        QString variant_type = getString("variant_type");
+        QString variant_type = getEnum("variant_type");
         QString info_filter = getString("info_filter");
         QString sample_filter = getString("sample_filter");
 
-        // Prepare static filter regexes
-        QRegExp filter_re(filter_regex);
-        if (!filter_re.isValid())
+        QRegExp filter_re;
+        if (filter_regex != "")
         {
-            THROW(ArgumentException, filter_regex + " is not a valid regular expression!");
+            // Prepare static filter regexes
+            filter_re.setPattern(filter_regex);
+            if (!filter_re.isValid())
+            {
+                THROW(ArgumentException, filter_regex + " is not a valid regular expression!");
+            }
         }
 
-        QRegExp info_re(id_regex);
-        if (info_re.isValid())
+        QRegExp info_re;
+        if (id_regex != "")
         {
-            THROW(ArgumentException, id_regex + "is not a valid regular expression!");
+            info_re.setPattern(id_regex);
+            if (info_re.isValid())
+            {
+                THROW(ArgumentException, id_regex + "is not a valid regular expression!");
+            }
         }
 
         // Set up filter lists for info
