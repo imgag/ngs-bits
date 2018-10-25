@@ -69,7 +69,7 @@ class ConcreteTool: public ToolBase
     bool satisfiesFilter(const QString value, const QString filter_op, const QString filter_val)
     {
         bool pass_filter = false;
-        if (filter_op == '>')
+        if (filter_op == ">")
         {
             pass_filter = filter_val.toDouble() > value.toDouble();
         }
@@ -81,7 +81,7 @@ class ConcreteTool: public ToolBase
         {
             pass_filter = filter_val.toDouble() != value.toDouble();
         }
-        else if (filter_op == '=')
+        else if (filter_op == "=")
         {
             pass_filter = filter_val.toDouble() == value.toDouble();
         }
@@ -89,13 +89,17 @@ class ConcreteTool: public ToolBase
         {
             pass_filter = filter_val.toDouble() <= value.toDouble();
         }
-        else if (filter_op == '<')
+        else if (filter_op == "<")
         {
             pass_filter = filter_val.toDouble() < value.toDouble();
         }
         else if (filter_op == "is")
         {
             pass_filter = filter_val == value;
+        }
+        else if (filter_op == "not")
+        {
+            pass_filter = filter_val != value;
         }
         else if (filter_op == "contains")
         {
@@ -208,14 +212,14 @@ public:
                 if (variant_type == "OTHER")
                 {
                     QString filter;
-                    filter = "TYPE != snp";
+                    filter = "TYPE not snp";
                     info_filters.push_back(filter.split(' '));
-                    filter = "TYPE != complex";
+                    filter = "TYPE not complex";
                     info_filters.push_back(filter.split(' '));
                 }
                 else
                 {
-                    info_filters.push_back(("TYPE = " + variant_type).split(' '));
+                    info_filters.push_back(("TYPE is " + variant_type).split(' '));
                 }
             }
 
