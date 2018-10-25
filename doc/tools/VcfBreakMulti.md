@@ -1,7 +1,7 @@
 ### VcfBreakMulti tool help
 	VcfBreakMulti (2018_06-59-g24102d3)
 	
-	Breaks multi-allelic variants in several lines, preserving allele-specific INFO/SAMPLE fields.
+	Breaks multi-allelic variants into several lines, making sure that allele-specific INFO/SAMPLE fields are still valid.
 	
 	Optional parameters:
 	  -in <file>   Input VCF file. If unset, reads from STDIN.

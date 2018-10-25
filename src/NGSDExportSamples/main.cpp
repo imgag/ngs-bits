@@ -29,9 +29,12 @@ public:
 		addEnum("quality", "Minimum processed sample/sample/run quality filter.", true, QStringList() << "bad" << "medium" << "good", "bad");
 		addFlag("no_tumor", "If set, tumor samples are excluded.");
 		addFlag("no_ffpe", "If set, FFPE samples are excluded.");
-		addFlag("qc", "If set, QC values are appended.");
+		addFlag("qc", "If set, QC colums are added to output.");
+		addFlag("outcome", "If set, diagnostic outcome colums are added to output.");
 		addFlag("check_path", "Checks if the sample folder is present at the defaults location in the 'projects_folder' (as defined in the 'settings.ini' file).");
 		addFlag("test", "Uses the test database instead of on the production database.");
+
+		changeLog(2018, 10, 23, "Added 'outcome' flag.");
 	}
 
 	virtual void main()
@@ -51,6 +54,7 @@ public:
 		conditions << "p.id=ps.project_id";
 		conditions << "sys.id=ps.processing_system_id";
 		bool qc = getFlag("qc");
+		bool outcome = getFlag("outcome");
 		QStringList qc_cols = db.getValues("SELECT name FROM qc_terms WHERE obsolete=0 ORDER BY qcml_id");
 
 		//filter project
@@ -154,6 +158,13 @@ public:
 				line += "\tqc." + qc_col.replace(' ', '_');
 			}
 		}
+		if (outcome)
+		{
+			line += "\toutcome";
+			line += "\toutcome_causal_genes";
+			line += "\toutcome_inheritance_mode";
+			line += "\toutcome_comment";
+		}
 		output->write(line.toLatin1() + "\n");
 
 		//write content lines
@@ -167,8 +178,10 @@ public:
 				tokens << result.value(i).toString();
 			}
 
+
 			//last analysis
-			AnalysisJob analysis_job = db.analysisInfo(db.lastAnalysisOf(result.value(0).toString()));
+			QString ps_id = result.value(0).toString();
+			AnalysisJob analysis_job = db.analysisInfo(db.lastAnalysisOf(ps_id));
 			tokens << (analysis_job.history.count() ? analysis_job.history.last().timeAsString() : "n/a");
 
 			//check path
@@ -214,7 +227,7 @@ public:
 			if (qc)
 			{
 				SqlQuery qc_res = db.getQuery();
-				qc_res.exec("SELECT n.name, nm.value FROM qc_terms n, processed_sample_qc nm WHERE nm.qc_terms_id=n.id AND nm.processed_sample_id='" + result.value(0).toString() + "' AND n.obsolete=0 ORDER BY n.qcml_id");
+				qc_res.exec("SELECT n.name, nm.value FROM qc_terms n, processed_sample_qc nm WHERE nm.qc_terms_id=n.id AND nm.processed_sample_id='" + ps_id + "' AND n.obsolete=0 ORDER BY n.qcml_id");
 				QMap<QString, QString> qc_map;
 				while(qc_res.next())
 				{
@@ -224,6 +237,16 @@ public:
 				{
 					tokens << qc_map.value(qc_col, "n/a");
 				}
+			}
+
+			//diagnostic outcome
+			if (outcome)
+			{
+				DiagnosticStatusData diag = db.getDiagnosticStatus(ps_id);
+				tokens << diag.outcome;
+				tokens << diag.genes_causal.replace("\t", " ").replace("\n", " ");
+				tokens << diag.inheritance_mode;
+				tokens << diag.comments.replace("\t", " ").replace("\n", " ");
 			}
 
 			//write output

@@ -1,4 +1,4 @@
-#ps.name	s.name_external	s.gender	s.quality	s.tumor	s.ffpe	ps.quality	sys.name_short	p.name	p.type	r.name	r.fcid	r.recipe	r.quality	s.disease_group	s.disease_status	last_analysis	qc.insert_size	qc.target_region_read_depth	qc.target_region_10x_percentage	qc.target_region_20x_percentage
-NA12878_01		female	good	0	0	bad	hpSYSv1	First project	research	run1	ABC	100+8+8+100	good	Neoplasms	Affected	2015-11-01 04:13:32	157.34	456.33	98.98	97.45
-NA12878_02		female	good	0	0	n/a	ssHAEv5	Second project	diagnostic	run2	XYZ	100+8+100	good	Neoplasms	Affected	n/a	32.34	100.28	n/a	n/a
-NA12880_01		female	good	0	0	n/a	ssHAEv5	Second project	diagnostic	run2	XYZ	100+8+100	good	n/a	n/a	n/a	n/a	n/a	n/a	n/a
+#ps.name	s.name_external	s.gender	s.quality	s.tumor	s.ffpe	ps.quality	sys.name_short	p.name	p.type	r.name	r.fcid	r.recipe	r.quality	s.disease_group	s.disease_status	last_analysis	qc.insert_size	qc.target_region_read_depth	qc.target_region_10x_percentage	qc.target_region_20x_percentage	outcome	outcome_causal_genes	outcome_inheritance_mode	outcome_comment
+NA12878_01		female	good	0	0	bad	hpSYSv1	First project	research	run1	ABC	100+8+8+100	good	Neoplasms	Affected	2015-11-01 04:13:32	157.34	456.33	98.98	97.45	n/a		n/a	
+NA12878_02		female	good	0	0	n/a	ssHAEv5	Second project	diagnostic	run2	XYZ	100+8+100	good	Neoplasms	Affected	n/a	32.34	100.28	n/a	n/a	n/a		n/a	
+NA12880_01		female	good	0	0	n/a	ssHAEv5	Second project	diagnostic	run2	XYZ	100+8+100	good	n/a	n/a	n/a	n/a	n/a	n/a	n/a	significant findings	BRCA1	autosomal dominant	comment line1 comment line2
