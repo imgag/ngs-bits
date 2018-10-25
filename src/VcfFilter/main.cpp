@@ -149,23 +149,26 @@ public:
         //init roi
         QString reg = getString("reg");
 
-		//load target region
-		BedFile roi;
-		if (QFile::exists(reg))
-		{
-			roi.load(reg);
-		}
-		else //parse comma-separated regions
-		{
-            auto regions = reg.split(',');
-			foreach(QString region, regions)
-			{
-				BedLine line = BedLine::fromString(region);
-				if (!line.isValid()) THROW(ArgumentException, "Invalid region '" + region + "' given in parameter 'reg'!");
-				roi.append(line);
-			}
-		}
-		roi.merge();
+        //load target region
+        BedFile roi;
+        if (reg != "")
+        {
+            if (QFile::exists(reg))
+            {
+                roi.load(reg);
+            }
+            else //parse comma-separated regions
+            {
+                auto regions = reg.split(',');
+                foreach(QString region, regions)
+                {
+                    BedLine line = BedLine::fromString(region);
+                    if (!line.isValid()) THROW(ArgumentException, "Invalid region '" + region + "' given in parameter 'reg'!");
+                    roi.append(line);
+                }
+            }
+        }
+        roi.merge();
         ChromosomalIndex<BedFile> roi_index(roi);
 
         //open input/output streams
