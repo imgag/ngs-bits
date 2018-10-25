@@ -130,24 +130,16 @@ public:
 		setDescription("Filters a VCF based on the given criteria.");
         //optional
         addInfile("in", "Input VCF file. If unset, reads from STDIN.", true, true);
-        addString("reg", "Region of interest in BED format, or comma-separated list of region, e.g. 'chr1:454540-454678,chr2:473457-4734990'.", true);
-        addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
+		addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
+
+		addString("reg", "Region of interest in BED format, or comma-separated list of region, e.g. 'chr1:454540-454678,chr2:473457-4734990'.", true);
+		addEnum("variant_type", "Filters by variant type", true, variant_types, "snp");
+		addString("id", "Filters the VCF entries by ID regex", true);
         addFloat("qual", "Filters the VCF entries by minimum quality", true);
         addFlag("filter_empty", "Removes all empty filters");
-        addString("filter", "Filters the VCF entries by filter regex", true);
-        addString("id", "Filters the VCF entries by ID regex", true);
-        addEnum("variant_type", "Filters by variant type", true, variant_types, "snp");
-        addString("info_filter", "Filters info with operators, e.g. 'depth > 17'.\nValid operations are '" + operations.join("','") + "'.", true);
-        addString("sample_filter", "Filters samples with operators, e.g. 'depth > 17'.\nValid operations are '" + operations.join("','") + "'.", true);
-
-		//TODO reg: BED/comma-separated regions
-        //quality:min
-        //filter_empty ('PASS', '', '.')
-        //filter:regexp
-        //id:regexp
-        //variant_type: SNV,INDEL,OTHER > addEnum();
-        //info:complex e.g. 'AO > 2;DP > 10' (==,>=,<=,<,>,!=, contains,is)
-		//TODO sample: complex
+		addString("filter", "Filters the VCF entries by filter regex", true);
+		addString("info_filter", "Filters info with operators - use ';' as separator for several filters. E.g. 'DP > 5;AO > 2'.\nValid operations are '" + operations.join("','") + "'.", true);
+		addString("sample_filter", "Filters samples with operators - use ';' as separator for several filters. E e.g. 'GT is 1/1'.\nValid operations are '" + operations.join("','") + "'.", true);
 
 		changeLog(2018, 10, 31, "Initial implementation.");
     }
@@ -166,8 +158,12 @@ public:
 		else //parse comma-separated regions
 		{
             auto regions = reg.split(',');
-
-			//TODO
+			foreach(QString region, regions)
+			{
+				BedLine line = BedLine::fromString(region);
+				if (!line.isValid()) THROW(ArgumentException, "Invalid region '" + region + "' given in parameter 'reg'!");
+				roi.append(line);
+			}
 		}
 		roi.merge();
         ChromosomalIndex<BedFile> roi_index(roi);
@@ -198,17 +194,17 @@ public:
             filter_re.setPattern(filter_regex);
             if (!filter_re.isValid())
             {
-                THROW(ArgumentException, filter_regex + " is not a valid regular expression!");
+				THROW(ArgumentException, "Filter regexp '" + filter_regex + "' is not a valid regular expression!");
             }
         }
 
-        QRegExp info_re;
+		QRegExp id_re;
         if (id_regex != "")
         {
-            info_re.setPattern(id_regex);
-            if (info_re.isValid())
+			id_re.setPattern(id_regex);
+			if (id_re.isValid())
             {
-                THROW(ArgumentException, id_regex + "is not a valid regular expression!");
+				THROW(ArgumentException, "ID regexp '" + id_re + "' is not a valid regular expression!");
             }
         }
 
@@ -219,7 +215,8 @@ public:
         {
             if (variant_type != "")
             {
-                if (variant_type == "OTHER")
+				//TODO len(ref)==1&&len(alt)==1 > SNP, '<' > OTHER, len(ref)>1||len(alt)>1 > INDEL
+				if (variant_type == "OTHER")
                 {
                     QString filter;
                     filter = "TYPE not snp";
@@ -238,7 +235,7 @@ public:
                 auto info_filter_split = info_filter.split(';');
                 for (int i = 0; i < info_filter_split.length(); ++i)
                 {
-                    info_filters.push_back(info_filter_split[i].split(' '));
+					info_filters.push_back(info_filter_split[i].split(' '));  //TODO check 3 parts, operator valid
                 }
             }
         }
@@ -250,7 +247,7 @@ public:
         auto sample_filter_split = sample_filter.split(';');
         for (int i = 0; i < sample_filter_split.length(); ++i)
         {
-            sample_filters.push_back(sample_filter_split[i].split(' '));
+			sample_filters.push_back(sample_filter_split[i].split(' ')); //TODO check 3 parts, operator valid
         }
 
         // Read input
@@ -286,7 +283,7 @@ public:
             {
                 auto qual = getPartByColumn(line, VcfFile::QUAL);
 
-                if (qual.toDouble() < quality)
+				if (qual.toDouble() < quality) //TODO '.' !ok > Exception
                 {
                     continue;
                 }
@@ -297,7 +294,7 @@ public:
             {
                 auto filter = getPartByColumn(line, VcfFile::FILTER);
 
-                if (filter == "." || filter == "," || filter == "PASS")
+				if (filter == "." || filter == "" || filter == "PASS")
                 {
                     continue;
                 }
@@ -315,7 +312,7 @@ public:
             ///Filter ID column via regex
             if (id_regex != "")
             {
-                if (!info_re.indexIn(line))
+				if (!id_re.indexIn(line))
                 {
                     continue;
                 }
