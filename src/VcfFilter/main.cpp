@@ -236,17 +236,20 @@ public:
         auto column_index = VcfFile::MIN_COLS + 1;
         auto column_count = 0;
         std::vector<QStringList> sample_filters;
-        auto sample_filter_split = sample_filter.split(';');
-        for (int i = 0; i < sample_filter_split.length(); ++i)
+        if (sample_filter != "")
         {
-            if (!operator_regex.indexIn(sample_filter_split[i]))
+            auto sample_filter_split = sample_filter.split(';');
+            for (int i = 0; i < sample_filter_split.length(); ++i)
             {
-                QStringList matches = operator_regex.capturedTexts();
-                sample_filters.push_back(matches.mid(1, matches.length()));
-            }
-            else
-            {
-                THROW(ArgumentException, "Operation '" + sample_filter_split[i] + "' is invalid!");
+                if (!operator_regex.indexIn(sample_filter_split[i]))
+                {
+                    QStringList matches = operator_regex.capturedTexts();
+                    sample_filters.push_back(matches.mid(1, matches.length()));
+                }
+                else
+                {
+                    THROW(ArgumentException, "Operation '" + sample_filter_split[i] + "' is invalid!");
+                }
             }
         }
 
