@@ -20,6 +20,7 @@ public:
         //optional
         addInfile("in", "Input VCF file. If unset, reads from STDIN.", true, true);
         addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
+		addFlag("no_errors", "Ignore VCF format errors is possible.");
 
 		changeLog(2018, 10, 18, "Initial implementation.");
     }
@@ -67,6 +68,7 @@ public:
         //open input/output streams
         QString in = getInfile("in");
         QString out = getOutfile("out");
+		bool no_errors = getFlag("no_errors");
         if(in!="" && in==out)
         {
             THROW(ArgumentException, "Input and output files must be different when streaming!");
@@ -131,19 +133,36 @@ public:
 					QByteArrayList info_value_per_allele = info_parts[1].split(',');
 
 					int parts_expected = alt.size() + (type==R);
-					if (info_value_per_allele.size() != parts_expected) THROW(FileParseException, "VCF INFO field '" + info_name + "' has wrong number of elements (expected " + QByteArray::number(parts_expected) + ", got " + QByteArray::number(info_value_per_allele.size()) + "): " + line);
-
-					for (int j = 0; j < new_infos_per_allele.size(); ++j)
+					if (info_value_per_allele.size() != parts_expected)
 					{
-						// appends a HEADER=VALUE; (with semicolon)
-						if (!new_infos_per_allele[j].isEmpty()) new_infos_per_allele[j] += ";";
-						if (type==R) // use INFO (ref), ALLELE (count)
+						if (no_errors)
 						{
-							new_infos_per_allele[j] += info_name + '=' + info_value_per_allele[0] + ',' + info_value_per_allele[j+1];
+							for (int j = 0; j < new_infos_per_allele.size(); ++j)
+							{
+								if (!new_infos_per_allele[j].isEmpty()) new_infos_per_allele[j] += ";";
+								new_infos_per_allele[j] += info_parts[1];
+							}
+
 						}
-						else // use ALLELE (count)
+						else
 						{
-							new_infos_per_allele[j] += info_name + '=' + info_value_per_allele[j];
+							THROW(FileParseException, "VCF INFO field '" + info_name + "' has wrong number of elements (expected " + QByteArray::number(parts_expected) + ", got " + QByteArray::number(info_value_per_allele.size()) + "): " + line);
+						}
+					}
+					else
+					{
+						for (int j = 0; j < new_infos_per_allele.size(); ++j)
+						{
+							// appends a HEADER=VALUE; (with semicolon)
+							if (!new_infos_per_allele[j].isEmpty()) new_infos_per_allele[j] += ";";
+							if (type==R) // use INFO (ref), ALLELE (count)
+							{
+								new_infos_per_allele[j] += info_name + '=' + info_value_per_allele[0] + ',' + info_value_per_allele[j+1];
+							}
+							else // use ALLELE (count)
+							{
+								new_infos_per_allele[j] += info_name + '=' + info_value_per_allele[j];
+							}
 						}
 					}
 
@@ -229,22 +248,38 @@ public:
 							QByteArrayList sample_value_parts = sample_values[j].split(',');
 
 							int parts_expected = alt.size() + (format_types.at(j)==R);
-							if (sample_value_parts.size() != parts_expected) THROW(FileParseException, "VCF contains invalid element count in format entry " + format[j] + " for sample #" + QByteArray::number(i+1) + " (expected " + QByteArray::number(parts_expected) + ", got " + QByteArray::number(sample_value_parts.size()) + "): " + line);
-
-							for (int a = 0; a < alt.length(); ++a)
+							if (sample_value_parts.size() != parts_expected)
 							{
-								if (!new_samples_per_allele[a][i].isEmpty()) new_samples_per_allele[a][i] += ":";
-
-								// appends a VALUE: (with seperator)
-								if (format_types[j] == R)
+								if (no_errors)
 								{
-									new_samples_per_allele[a][i] += sample_value_parts[0];
-									new_samples_per_allele[a][i] += ',';
-									new_samples_per_allele[a][i] += sample_value_parts[a+1];
+									for (int a = 0; a < alt.length(); ++a)
+									{
+										if (!new_samples_per_allele[a][i].isEmpty()) new_samples_per_allele[a][i] += ":";
+										new_samples_per_allele[a][i] += sample_values[j];
+									}
 								}
 								else
 								{
-									new_samples_per_allele[a][i] += sample_value_parts[a];
+									THROW(FileParseException, "VCF contains invalid element count in format entry " + format[j] + " for sample #" + QByteArray::number(i+1) + " (expected " + QByteArray::number(parts_expected) + ", got " + QByteArray::number(sample_value_parts.size()) + "): " + line);
+								}
+							}
+							else
+							{
+								for (int a = 0; a < alt.length(); ++a)
+								{
+									if (!new_samples_per_allele[a][i].isEmpty()) new_samples_per_allele[a][i] += ":";
+
+									// appends a VALUE: (with seperator)
+									if (format_types[j] == R)
+									{
+										new_samples_per_allele[a][i] += sample_value_parts[0];
+										new_samples_per_allele[a][i] += ',';
+										new_samples_per_allele[a][i] += sample_value_parts[a+1];
+									}
+									else
+									{
+										new_samples_per_allele[a][i] += sample_value_parts[a];
+									}
 								}
 							}
 						}
