@@ -72,11 +72,10 @@ public:
             THROW(ArgumentException, "Input and output files must be different when streaming!");
         }
         QSharedPointer<QFile> in_p = Helper::openFileForReading(in, true);
-        QSharedPointer<QFile> out_p = Helper::openFileForWriting(out, true);
-        // TODO: When QT fixes its shit we can use std::map, see https://bugreports.qt.io/browse/QTCREATORBUG-18536
+		QSharedPointer<QFile> out_p = Helper::openFileForWriting(out, true);
 		enum AnnotationType {R, A, OTHER};
-		QMap<QByteArray, AnnotationType> info2type; //TODO QHash?
-		QMap<QByteArray, AnnotationType> format2type;
+		QHash<QByteArray, AnnotationType> info2type;
+		QHash<QByteArray, AnnotationType> format2type;
 
         while(!in_p->atEnd())
         {
@@ -117,7 +116,7 @@ public:
 			QByteArrayList format = parts[VcfFile::FORMAT].split(':');
 
 			// For each allele construct a separate info block
-			std::vector<QByteArray> new_infos_per_allele(alt.length());
+			QVector<QByteArray> new_infos_per_allele(alt.length());
 			for (int i = 0; i < info.length(); ++i)
 			{
 				QByteArrayList info_parts = info[i].split('='); // split HEADER=VALUE
@@ -132,7 +131,7 @@ public:
 					int parts_expected = alt.size() + (type==R);
 					if (info_value_per_allele.size() != parts_expected) THROW(FileParseException, "VCF INFO field '" + info_name + "' has wrong number of elements (expected " + QByteArray::number(parts_expected) + ", got " + QByteArray::number(info_value_per_allele.size()) + "): " + line);
 
-					for (unsigned int j = 0; j < new_infos_per_allele.size(); ++j)
+					for (int j = 0; j < new_infos_per_allele.size(); ++j)
 					{
 						// appends a HEADER=VALUE; (with semicolon)
 						if (!new_infos_per_allele[j].isEmpty()) new_infos_per_allele[j] += ";";
@@ -149,7 +148,7 @@ public:
 				}
 				else
 				{
-					for (unsigned int j = 0; j < new_infos_per_allele.size(); ++j)
+					for (int j = 0; j < new_infos_per_allele.size(); ++j)
 					{
 						if (!new_infos_per_allele[j].isEmpty()) new_infos_per_allele[j] += ";";
 						new_infos_per_allele[j] += info[i];
@@ -158,7 +157,7 @@ public:
 			}
 
 
-			std::vector<AnnotationType> format_types; //TODO QVector?
+			QVector<AnnotationType> format_types;
 			for (int i = 0; i < format.length(); ++i)
 			{
 				if (format2type.contains(format[i]))
@@ -172,11 +171,11 @@ public:
 			}
 
 			// For each sample, construct a new sample according to the format for every allele
-			std::vector<std::vector<QByteArray>> new_samples_per_allele;
+			QVector<QVector<QByteArray>> new_samples_per_allele;
 			int samples_count = parts.length() - VcfFile::FORMAT - 1;
 			for (int i = 0; i < alt.length(); ++i)
 			{
-				new_samples_per_allele.push_back(std::vector<QByteArray>(samples_count));
+				new_samples_per_allele.push_back(QVector<QByteArray>(samples_count));
 			}
 
 			// for every sample part in the specific sample process REF or ALT
@@ -194,7 +193,19 @@ public:
 
 						for (int a = 0; a < alt.length(); ++a)
 						{
-							new_samples_per_allele[a][i] = QByteArray(".") + sample_values[j][1] + "1"; //TODO this will not work for multi-sample VCFs
+							int allele_count = sample_values[j].count(QByteArray::number(a+1));
+							if (allele_count==0)
+							{
+								new_samples_per_allele[a][i] = "./.";
+							}
+							else if (allele_count==1)
+							{
+								new_samples_per_allele[a][i] = "./1";
+							}
+							else
+							{
+								new_samples_per_allele[a][i] = "1/1";
+							}
 						}
 					}
 					else if (format_types.at(j) == R || format_types.at(j) == A) //special handling A/R entries
@@ -238,7 +249,7 @@ public:
 			{
 				parts[VcfFile::ALT] = alt[a];
 				parts[VcfFile::INFO] = new_infos_per_allele[a];
-				for (unsigned int i = 0; i < new_samples_per_allele[a].size(); ++i)
+				for (int i = 0; i < new_samples_per_allele[a].size(); ++i)
 				{
 					int part_index = VcfFile::FORMAT + 1 + i;
 					parts[part_index] = new_samples_per_allele[a][i];

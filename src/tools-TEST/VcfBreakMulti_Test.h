@@ -15,8 +15,8 @@ private slots:
 
 	void multi_sample()
 	{
-		//TODO EXECUTE("VcfBreakMulti", "-in " + TESTDATA("data_in/VcfBreakMulti_in2.vcf") + " -out out/VcfBreakMulti_out2.vcf");
-		//TODO COMPARE_FILES("out/VcfBreakMulti_out2.vcf", TESTDATA("data_out/VcfBreakMulti_out2.vcf"));
-		//TODO VCF_IS_VALID("out/VcfBreakMulti_out2.vcf")
+		EXECUTE("VcfBreakMulti", "-in " + TESTDATA("data_in/VcfBreakMulti_in2.vcf") + " -out out/VcfBreakMulti_out2.vcf");
+		COMPARE_FILES("out/VcfBreakMulti_out2.vcf", TESTDATA("data_out/VcfBreakMulti_out2.vcf"));
+		VCF_IS_VALID("out/VcfBreakMulti_out2.vcf")
 	}
 };
