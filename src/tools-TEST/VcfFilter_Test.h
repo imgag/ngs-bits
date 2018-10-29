@@ -15,7 +15,7 @@ private slots:
 
     void region_string()
     {
-        EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in01.vcf") + " -out out/VcfFilter_out02.vcf" + " -reg chr1:27687466-62739198");
+		EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in01.vcf") + " -out out/VcfFilter_out02.vcf" + " -reg chr1:27687466-62728838,chr1:62728861-62739198");
         COMPARE_FILES("out/VcfFilter_out02.vcf", TESTDATA("data_out/VcfFilter_out02.vcf"));
         VCF_IS_VALID("out/VcfFilter_out02.vcf");
     }
@@ -27,7 +27,7 @@ private slots:
         VCF_IS_VALID("out/VcfFilter_out03.vcf");
     }
 
-    void id_regex()
+	void id()
     {
         EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in01.vcf") + " -out out/VcfFilter_out04.vcf" + " -id rs2");
         COMPARE_FILES("out/VcfFilter_out04.vcf", TESTDATA("data_out/VcfFilter_out04.vcf"));
@@ -48,24 +48,31 @@ private slots:
         VCF_IS_VALID("out/VcfFilter_out06.vcf");
     }
 
-    void filter_regex()
+	void filter()
     {
         EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in01.vcf") + " -out out/VcfFilter_out07.vcf" + " -filter off-target");
         COMPARE_FILES("out/VcfFilter_out07.vcf", TESTDATA("data_out/VcfFilter_out07.vcf"));
         VCF_IS_VALID("out/VcfFilter_out07.vcf");
     }
 
-    void info_complex()
+	void info()
     {
-        /*EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in01.vcf") + " -out out/VcfFilter_out08.vcf" + " -info_filter \"DP > 100;AO > 5\"");
+		EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in01.vcf") + " -out out/VcfFilter_out08.vcf" + " -info DP%20>%20100;AO%20>%205");
         COMPARE_FILES("out/VcfFilter_out08.vcf", TESTDATA("data_out/VcfFilter_out08.vcf"));
-        VCF_IS_VALID("out/VcfFilter_out08.vcf");*/
+		VCF_IS_VALID("out/VcfFilter_out08.vcf");
     }
 
-    void sample_complex()
+	void sample()
     {
-        /*EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in01.vcf") + " -out out/VcfFilter_out09.vcf" + " -info_filter \"GL >= -200\"");
+		EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in01.vcf") + " -out out/VcfFilter_out09.vcf" + " -sample GT%20is%201|1;DP%20>%20200");
         COMPARE_FILES("out/VcfFilter_out09.vcf", TESTDATA("data_out/VcfFilter_out09.vcf"));
-        VCF_IS_VALID("out/VcfFilter_out09.vcf");*/
+		VCF_IS_VALID("out/VcfFilter_out09.vcf");
     }
+
+	void sample_multi()
+	{
+		EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in02.vcf") + " -out out/VcfFilter_out10.vcf" + " -sample GT%20is%201|1;DP%20>%20200");
+		COMPARE_FILES("out/VcfFilter_out10.vcf", TESTDATA("data_out/VcfFilter_out10.vcf"));
+		VCF_IS_VALID("out/VcfFilter_out10.vcf");
+	}
 };
