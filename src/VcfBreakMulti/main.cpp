@@ -194,15 +194,28 @@ public:
 						for (int a = 0; a < alt.length(); ++a)
 						{
 							int allele_count = sample_values[j].count(QByteArray::number(a+1));
-							if (allele_count==0)
+							int wt_count = sample_values[j].count('0');
+							if (allele_count==0 && wt_count==2)
+							{
+								new_samples_per_allele[a][i] = "0/0";
+							}
+							else if (allele_count==0 && wt_count==1)
+							{
+								new_samples_per_allele[a][i] = "./0";
+							}
+							else if (allele_count==0 && wt_count==0)
 							{
 								new_samples_per_allele[a][i] = "./.";
 							}
-							else if (allele_count==1)
+							else if (allele_count==1 && wt_count==1)
+							{
+								new_samples_per_allele[a][i] = "0/1";
+							}
+							else if (allele_count==1 && wt_count==0)
 							{
 								new_samples_per_allele[a][i] = "./1";
 							}
-							else
+							else //allele_count==2 && wt_count==0
 							{
 								new_samples_per_allele[a][i] = "1/1";
 							}
