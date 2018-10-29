@@ -113,7 +113,9 @@ public:
 
 			QByteArrayList alt = parts[VcfFile::ALT].split(',');
 			QByteArrayList info = parts[VcfFile::INFO].split(';');
-			QByteArrayList format = parts[VcfFile::FORMAT].split(':');
+			bool has_samples = parts.count()> VcfFile::MIN_COLS;
+			QByteArrayList format;
+			if (has_samples) format = parts[VcfFile::FORMAT].split(':');
 
 			// For each allele construct a separate info block
 			QVector<QByteArray> new_infos_per_allele(alt.length());
@@ -156,101 +158,103 @@ public:
 				}
 			}
 
-
-			QVector<AnnotationType> format_types;
-			for (int i = 0; i < format.length(); ++i)
-			{
-				if (format2type.contains(format[i]))
-				{
-					format_types.push_back(format2type[format[i]]);
-				}
-				else
-				{
-					format_types.push_back(OTHER);
-				}
-			}
-
-			// For each sample, construct a new sample according to the format for every allele
 			QVector<QVector<QByteArray>> new_samples_per_allele;
-			int samples_count = parts.length() - VcfFile::FORMAT - 1;
-			for (int i = 0; i < alt.length(); ++i)
+			if (has_samples)
 			{
-				new_samples_per_allele.push_back(QVector<QByteArray>(samples_count));
-			}
-
-			// for every sample part in the specific sample process REF or ALT
-			// then append to new_samples_per_allele[ALLEL][SAMPLE_INDEX]
-			for (int i = 0; i < samples_count; ++i)
-			{
-				int sample_column = VcfFile::FORMAT + i + 1;
-				QByteArrayList sample_values = parts[sample_column].split(':');
-
-				for (int j = 0; j < sample_values.length(); ++j)
+				QVector<AnnotationType> format_types;
+				for (int i = 0; i < format.length(); ++i)
 				{
-					if (j==0 && format[j]=="GT") //special handling GT entry (must be first entry if present!)
+					if (format2type.contains(format[i]))
 					{
-						if (sample_values[j].contains(',') || sample_values[j].count()!=3) THROW(FileParseException, "VCF contains invalid GT entry for sample #" + QByteArray::number(i+1) + " (expected 1): " + line);
+						format_types.push_back(format2type[format[i]]);
+					}
+					else
+					{
+						format_types.push_back(OTHER);
+					}
+				}
 
-						for (int a = 0; a < alt.length(); ++a)
+				// For each sample, construct a new sample according to the format for every allele
+				int samples_count = parts.length() - VcfFile::FORMAT - 1;
+				for (int i = 0; i < alt.length(); ++i)
+				{
+					new_samples_per_allele.push_back(QVector<QByteArray>(samples_count));
+				}
+
+				// for every sample part in the specific sample process REF or ALT
+				// then append to new_samples_per_allele[ALLEL][SAMPLE_INDEX]
+				for (int i = 0; i < samples_count; ++i)
+				{
+					int sample_column = VcfFile::FORMAT + i + 1;
+					QByteArrayList sample_values = parts[sample_column].split(':');
+
+					for (int j = 0; j < sample_values.length(); ++j)
+					{
+						if (j==0 && format[j]=="GT") //special handling GT entry (must be first entry if present!)
 						{
-							int allele_count = sample_values[j].count(QByteArray::number(a+1));
-							int wt_count = sample_values[j].count('0');
-							if (allele_count==0 && wt_count==2)
+							if (sample_values[j].contains(',') || sample_values[j].count()!=3) THROW(FileParseException, "VCF contains invalid GT entry for sample #" + QByteArray::number(i+1) + " (expected 1): " + line);
+
+							for (int a = 0; a < alt.length(); ++a)
 							{
-								new_samples_per_allele[a][i] = "0/0";
-							}
-							else if (allele_count==0 && wt_count==1)
-							{
-								new_samples_per_allele[a][i] = "./0";
-							}
-							else if (allele_count==0 && wt_count==0)
-							{
-								new_samples_per_allele[a][i] = "./.";
-							}
-							else if (allele_count==1 && wt_count==1)
-							{
-								new_samples_per_allele[a][i] = "0/1";
-							}
-							else if (allele_count==1 && wt_count==0)
-							{
-								new_samples_per_allele[a][i] = "./1";
-							}
-							else //allele_count==2 && wt_count==0
-							{
-								new_samples_per_allele[a][i] = "1/1";
+								int allele_count = sample_values[j].count(QByteArray::number(a+1));
+								int wt_count = sample_values[j].count('0');
+								if (allele_count==0 && wt_count==2)
+								{
+									new_samples_per_allele[a][i] = "0/0";
+								}
+								else if (allele_count==0 && wt_count==1)
+								{
+									new_samples_per_allele[a][i] = "./0";
+								}
+								else if (allele_count==0 && wt_count==0)
+								{
+									new_samples_per_allele[a][i] = "./.";
+								}
+								else if (allele_count==1 && wt_count==1)
+								{
+									new_samples_per_allele[a][i] = "0/1";
+								}
+								else if (allele_count==1 && wt_count==0)
+								{
+									new_samples_per_allele[a][i] = "./1";
+								}
+								else //allele_count==2 && wt_count==0
+								{
+									new_samples_per_allele[a][i] = "1/1";
+								}
 							}
 						}
-					}
-					else if (format_types.at(j) == R || format_types.at(j) == A) //special handling A/R entries
-					{
-						QByteArrayList sample_value_parts = sample_values[j].split(',');
-
-						int parts_expected = alt.size() + (format_types.at(j)==R);
-						if (sample_value_parts.size() != parts_expected) THROW(FileParseException, "VCF contains invalid element count in format entry " + format[j] + " for sample #" + QByteArray::number(i+1) + " (expected " + QByteArray::number(parts_expected) + ", got " + QByteArray::number(sample_value_parts.size()) + "): " + line);
-
-						for (int a = 0; a < alt.length(); ++a)
+						else if (format_types.at(j) == R || format_types.at(j) == A) //special handling A/R entries
 						{
-							if (!new_samples_per_allele[a][i].isEmpty()) new_samples_per_allele[a][i] += ":";
+							QByteArrayList sample_value_parts = sample_values[j].split(',');
 
-							// appends a VALUE: (with seperator)
-							if (format_types[j] == R)
+							int parts_expected = alt.size() + (format_types.at(j)==R);
+							if (sample_value_parts.size() != parts_expected) THROW(FileParseException, "VCF contains invalid element count in format entry " + format[j] + " for sample #" + QByteArray::number(i+1) + " (expected " + QByteArray::number(parts_expected) + ", got " + QByteArray::number(sample_value_parts.size()) + "): " + line);
+
+							for (int a = 0; a < alt.length(); ++a)
 							{
-								new_samples_per_allele[a][i] += sample_value_parts[0];
-								new_samples_per_allele[a][i] += ',';
-								new_samples_per_allele[a][i] += sample_value_parts[a+1];
-							}
-							else
-							{
-								new_samples_per_allele[a][i] += sample_value_parts[a];
+								if (!new_samples_per_allele[a][i].isEmpty()) new_samples_per_allele[a][i] += ":";
+
+								// appends a VALUE: (with seperator)
+								if (format_types[j] == R)
+								{
+									new_samples_per_allele[a][i] += sample_value_parts[0];
+									new_samples_per_allele[a][i] += ',';
+									new_samples_per_allele[a][i] += sample_value_parts[a+1];
+								}
+								else
+								{
+									new_samples_per_allele[a][i] += sample_value_parts[a];
+								}
 							}
 						}
-					}
-					else //other entries > write out unchanged
-					{
-						for (int a = 0; a < alt.length(); ++a)
+						else //other entries > write out unchanged
 						{
-							if (!new_samples_per_allele[a][i].isEmpty()) new_samples_per_allele[a][i] += ":";
-							new_samples_per_allele[a][i] += sample_values[j];
+							for (int a = 0; a < alt.length(); ++a)
+							{
+								if (!new_samples_per_allele[a][i].isEmpty()) new_samples_per_allele[a][i] += ":";
+								new_samples_per_allele[a][i] += sample_values[j];
+							}
 						}
 					}
 				}
@@ -262,10 +266,13 @@ public:
 			{
 				parts[VcfFile::ALT] = alt[a];
 				parts[VcfFile::INFO] = new_infos_per_allele[a];
-				for (int i = 0; i < new_samples_per_allele[a].size(); ++i)
+				if (has_samples)
 				{
-					int part_index = VcfFile::FORMAT + 1 + i;
-					parts[part_index] = new_samples_per_allele[a][i];
+					for (int i = 0; i < new_samples_per_allele[a].size(); ++i)
+					{
+						int part_index = VcfFile::FORMAT + 1 + i;
+						parts[part_index] = new_samples_per_allele[a][i];
+					}
 				}
 				out_p->write(parts.join('\t').append('\n'));
 			}
