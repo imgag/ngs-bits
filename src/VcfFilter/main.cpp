@@ -5,6 +5,7 @@
 #include "ChromosomalIndex.h"
 #include "Helper.h"
 #include <QFile>
+#include <QRegularExpression>
 
 class ConcreteTool: public ToolBase
 {
@@ -190,24 +191,32 @@ public:
         QString info_filter = getString("info_filter");
         QString sample_filter = getString("sample_filter");
 
-        QRegExp filter_re;
+        if (variant_type != "")
+        {
+            if (!variant_types.contains(variant_type))
+            {
+                THROW(ArgumentException, "Variant type " + variant_type + " is not a supported variant type!");
+            }
+        }
+
+        QRegularExpression filter_re;
         if (filter_regex != "")
         {
             // Prepare static filter regexes
             filter_re.setPattern(filter_regex);
             if (!filter_re.isValid())
             {
-				THROW(ArgumentException, "Filter regexp '" + filter_regex + "' is not a valid regular expression!");
+                THROW(ArgumentException, "Filter regexp '" + filter_regex + "' is not a valid regular expression! ( + " + filter_re.errorString() + " )");
             }
         }
 
-		QRegExp id_re;
+        QRegularExpression id_re;
         if (id_regex != "")
         {
-			id_re.setPattern(id_regex);
-			if (id_re.isValid())
+            id_re.setPattern(id_regex);
+            if (!id_re.isValid())
             {
-                THROW(ArgumentException, "ID regexp '" + id_regex + "' is not a valid regular expression!");
+                THROW(ArgumentException, "ID regexp '" + id_regex + "' is not a valid regular expression! ( " + id_re.errorString() + " )");
             }
         }
 
@@ -291,8 +300,8 @@ public:
                 // len(ref)==1&&len(alt)==1 > SNP
                 // len(ref)>1||len(alt)>1 > INDEL
                 // '<' > OTHER,
-                auto ref = getPartByColumn(line, VcfFile::REF);
-                auto alt = getPartByColumn(line, VcfFile::ALT);
+                auto ref = getPartByColumn(line, VcfFile::REF).trimmed();
+                auto alt = getPartByColumn(line, VcfFile::ALT).trimmed();
 
                 QString type;
                 if (ref.length() == 1 && alt.length() == 1)
@@ -322,7 +331,7 @@ public:
             ///Filter by QUALITY. Return QUAL and then remove all lines that do not satisfy the check
             if (quality != 0.0)
             {
-                auto qual = getPartByColumn(line, VcfFile::QUAL);
+                auto qual = getPartByColumn(line, VcfFile::QUAL).trimmed();
                 bool is_convertable;
 
                 if (qual.toDouble(&is_convertable) < quality)
@@ -346,7 +355,9 @@ public:
             ///Filter FILTER column via regex
             if (filter_regex != "")
             {
-                if (!filter_re.indexIn(line))
+                auto filter = getPartByColumn(line, VcfFile::FILTER);
+                auto match = filter_re.match(filter);
+                if (!match.hasMatch())
                 {
                     continue;
                 }
@@ -355,7 +366,9 @@ public:
             ///Filter ID column via regex
             if (id_regex != "")
             {
-				if (!id_re.indexIn(line))
+                auto id = getPartByColumn(line, VcfFile::ID);
+                auto match = id_re.match(id);
+                if (!match.hasMatch())
                 {
                     continue;
                 }
@@ -364,7 +377,7 @@ public:
             ///Filter by type and or info operators in INFO column
             if (info_filters.size())
             {
-                auto info_parts = getPartByColumn(line, VcfFile::INFO).split(';');
+                auto info_parts = getPartByColumn(line, VcfFile::INFO).trimmed().split(';');
                 bool passes_filters = true;
 
                 for (unsigned int i = 0; i < info_filters.size(); ++i)
@@ -397,7 +410,7 @@ public:
             ///Filter by sample operators in the SAMPLE column
             if (sample_filters.size())
             {
-                auto format_ids = getPartByColumn(line, VcfFile::FORMAT).split(':');
+                auto format_ids = getPartByColumn(line, VcfFile::FORMAT).trimmed().split(':');
                 std::vector<QByteArrayList> sample_parts; // create a list of QByteArray for every sample in this line
                 for (int i = column_index; i < column_count; ++i)
                 {
