@@ -17,12 +17,11 @@ NGSD:
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
 
 GSvar:
+** Highlight chrX, chrM, imprinting genes, info, sample,
 *** Avoid overwriting preferred transcripts when multiple instances of GSvar are open
 *** Analysis status implement 'open folder' for multi/trio/somatic analysis
 *** Add 'restart analysis' for trio/multi/somatic
-*** Add splicing support
 *** OMIM g/p in Report
-** Highlight chrX, chrM, imprinting genes, info, sample,
 * Add multi-gene Google/PubMed search: https://www.ncbi.nlm.nih.gov/pubmed/?term=CASP8+AND+(%22Breast+cancer%22+OR+%22Breast+carcinoma%22)+AND+2018 (SWAL)
 * Add ExAC pLI / ExAC CNV / inheritance (megSAP) and filter for CNVs (GSvar) (wait for ClinCNV)
 * GenLab XML report: male => change 'hom' variants outside PAR region on chrX/chrY to 'hemi' (when GenLab import is updated)
