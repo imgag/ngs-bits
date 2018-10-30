@@ -1,5 +1,5 @@
 ### NGSDImportHPO tool help
-	NGSDImportHPO (0.1-983-gfeaa1f3)
+	NGSDImportHPO (2018_10-35-ga98b962)
 	
 	Imports HPO terms and gene-phenotype relations into the NGSD.
 	
@@ -10,7 +10,7 @@
 	Optional parameters:
 	  -omim <file>    OMIM 'morbidmap.txt' file for additional disease-gene information, from 'https://omim.org/downloads/'.
 	                  Default value: ''
-	  -clinvar <file> ClinVar VCF file for additional disease-gene information, from 'ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2018/clinvar_20171231.vcf.gz'.
+	  -clinvar <file> ClinVar VCF file for additional disease-gene information, from 'ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2018/clinvar_20180805.vcf.gz'.
 	                  Default value: ''
 	  -test           Uses the test database instead of on the production database.
 	                  Default value: 'false'
@@ -26,6 +26,6 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDImportHPO changelog
-	NGSDImportHPO 0.1-983-gfeaa1f3
+	NGSDImportHPO 2018_10-35-ga98b962
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

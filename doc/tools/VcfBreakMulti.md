@@ -1,5 +1,5 @@
 ### VcfBreakMulti tool help
-	VcfBreakMulti (2018_06-59-g24102d3)
+	VcfBreakMulti (2018_10-35-ga98b962)
 	
 	Breaks multi-allelic variants into several lines, making sure that allele-specific INFO/SAMPLE fields are still valid.
 	
@@ -8,6 +8,8 @@
 	               Default value: ''
 	  -out <file>  Output VCF list. If unset, writes to STDOUT.
 	               Default value: ''
+	  -no_errors   Ignore VCF format errors is possible.
+	               Default value: 'false'
 	
 	Special parameters:
 	  --help       Shows this help and exits.
@@ -16,7 +18,7 @@
 	  --tdx        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VcfBreakMulti changelog
-	VcfBreakMulti 2018_06-59-g24102d3
+	VcfBreakMulti 2018_10-35-ga98b962
 	
 	2018-10-18 Initial implementation.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

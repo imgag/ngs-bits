@@ -53,11 +53,16 @@ QByteArrayList Variant::vepAnnotations(int csq_index, int field_index) const
 {
 	QByteArrayList output;
 
-	QByteArrayList transcripts = annotations()[csq_index].split(',');
-	foreach(const QByteArray& transcript, transcripts)
+	QByteArray csq = annotations()[csq_index].trimmed();
+	if (csq.count()>0)
 	{
-		QByteArrayList csq_fields = transcript.split('|');
-		output << csq_fields[field_index];
+		QByteArrayList transcripts = csq.split(',');
+
+		foreach(const QByteArray& transcript, transcripts)
+		{
+			QByteArrayList csq_fields = transcript.split('|');
+			output << csq_fields[field_index];
+		}
 	}
 
 	return output;
