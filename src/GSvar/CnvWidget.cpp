@@ -32,6 +32,7 @@ CnvWidget::CnvWidget(QString filename, FilterDockWidget* filter_widget, const Ge
 	connect(ui->f_roi, SIGNAL(stateChanged(int)), this, SLOT(filtersChanged()));
 	connect(ui->f_genes, SIGNAL(stateChanged(int)), this, SLOT(filtersChanged()));
 	connect(ui->f_pheno, SIGNAL(stateChanged(int)), this, SLOT(filtersChanged()));
+	connect(ui->f_text, SIGNAL(stateChanged(int)), this, SLOT(filtersChanged()));
 	connect(ui->f_comphet, SIGNAL(currentIndexChanged(int)), this, SLOT(filtersChanged()));
 	connect(ui->f_size, SIGNAL(valueChanged(double)), this, SLOT(filtersChanged()));
 	connect(ui->f_z, SIGNAL(valueChanged(double)), this, SLOT(filtersChanged()));
@@ -90,6 +91,7 @@ void CnvWidget::disableGUI()
 	ui->f_genes->setEnabled(false);
 	ui->f_roi->setEnabled(false);
 	ui->f_pheno->setEnabled(false);
+	ui->f_text->setEnabled(false);
 	ui->f_regs->setEnabled(false);
 	ui->f_size->setEnabled(false);
 	ui->f_z->setEnabled(false);
@@ -270,11 +272,36 @@ void CnvWidget::filtersChanged()
 	//filter by genes
 	if (ui->f_genes->isChecked())
 	{
-		for(int r=0; r<rows; ++r)
-		{
-			if (!pass[r]) continue;
+		GeneSet genes = var_filters->genes();
+		QByteArray genes_joined = genes.join('|');
 
-			pass[r] = cnvs[r].genes().intersectsWith(var_filters->genes());
+		if (genes_joined.contains("*")) //with wildcards
+		{
+			QRegExp reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
+			for(int r=0; r<rows; ++r)
+			{
+				if (!pass[r]) continue;
+
+				bool match_found = false;
+				foreach(const QByteArray& cnv_gene, cnvs[r].genes())
+				{
+					if (reg.exactMatch(cnv_gene))
+					{
+						match_found = true;
+						break;
+					}
+				}
+				pass[r] = match_found;
+			}
+		}
+		else //without wildcards
+		{
+			for(int r=0; r<rows; ++r)
+			{
+				if (!pass[r]) continue;
+
+				pass[r] = cnvs[r].genes().intersectsWith(genes);
+			}
 		}
 	}
 
@@ -306,6 +333,28 @@ void CnvWidget::filtersChanged()
 			if (!pass[r]) continue;
 
 			pass[r] = cnvs[r].genes().intersectsWith(pheno_genes);
+		}
+	}
+
+	//filter annotations by text
+	if (ui->f_text->isChecked())
+	{
+		QByteArray text = var_filters->text().trimmed().toLower();
+
+		for(int r=0; r<rows; ++r)
+		{
+			if (!pass[r]) continue;
+
+			bool match = false;
+			foreach(const QByteArray& anno, cnvs[r].annotations())
+			{
+				if (anno.toLower().contains(text))
+				{
+					match = true;
+					break;
+				}
+			}
+			pass[r] = match;
 		}
 	}
 
@@ -422,6 +471,9 @@ void CnvWidget::variantFiltersChanged()
 
 	ui->f_pheno->setEnabled(!var_filters->phenotypes().isEmpty() && Settings::boolean("NGSD_enabled", true));
 	if (!ui->f_pheno->isEnabled()) ui->f_roi->setChecked(false);
+
+	ui->f_text->setEnabled(!var_filters->text().isEmpty());
+	if (!ui->f_text->isEnabled()) ui->f_text->setChecked(false);
 
 	//re-apply filters in case the genes/target region changed
 	filtersChanged();

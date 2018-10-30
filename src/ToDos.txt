@@ -22,7 +22,6 @@ GSvar:
 *** Add 'restart analysis' for trio/multi/somatic
 *** Add splicing support
 *** OMIM g/p in Report
-** CNV window: add text filter checkbox, add support for wildcards in genes
 ** Highlight chrX, chrM, imprinting genes, info, sample,
 * Add multi-gene Google/PubMed search: https://www.ncbi.nlm.nih.gov/pubmed/?term=CASP8+AND+(%22Breast+cancer%22+OR+%22Breast+carcinoma%22)+AND+2018 (SWAL)
 * Add ExAC pLI / ExAC CNV / inheritance (megSAP) and filter for CNVs (GSvar) (wait for ClinCNV)
