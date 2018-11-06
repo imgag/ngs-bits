@@ -49,19 +49,22 @@
 						<xs:documentation>Information about the sample</xs:documentation>
 					</xs:annotation>
 					<xs:complexType>
-						<xs:attribute name="name" type="xs:string" use="required">
+						<xs:attribute name="name" use="required">
 							<xs:annotation>
 								<xs:documentation>sample name</xs:documentation>
 							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:minLength value="1"/>
+								</xs:restriction>
+							</xs:simpleType>
 						</xs:attribute>
 						<xs:attribute name="name_external">
 							<xs:annotation>
 								<xs:documentation>external sample name</xs:documentation>
 							</xs:annotation>
 							<xs:simpleType>
-								<xs:restriction base="xs:string">
-									<xs:minLength value="1"/>
-								</xs:restriction>
+								<xs:restriction base="xs:string"/>
 							</xs:simpleType>
 						</xs:attribute>
 						<xs:attribute name="processing_system" type="xs:string" use="required">
