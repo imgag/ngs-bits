@@ -283,6 +283,9 @@ public:
         {
 			QByteArray line = in_p->readLine();
 
+			//skip empty lines
+			if (line.trimmed().isEmpty()) continue;
+
             if (line.startsWith("#CHROM"))
             {
 				column_count = line.count('\t') + 1;
