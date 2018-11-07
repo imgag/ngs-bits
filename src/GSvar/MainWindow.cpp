@@ -1444,6 +1444,7 @@ void MainWindow::on_actionExportVCF_triggered()
 		if (ui_.vars->isRowHidden(i)) continue;
 		roi.append(BedLine(variants_[i].chr(), variants_[i].start()-15, variants_[i].end()+15));
 	}
+	roi.merge();
 
 	//load original VCF
 	QString orig_name = filename_;
