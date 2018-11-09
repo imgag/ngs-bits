@@ -136,7 +136,7 @@ dummy:
 
 build_htslib:
 	chmod 755 htslib/configure
-	cd htslib && ./configure --prefix=$(PWD)/htslib/
+	cd htslib && ./configure --prefix=$(PWD)/htslib/ --disable-libcurl
 	cd htslib && make install
 	cd htslib && make clean
 	cp htslib/lib/libhts.* bin/
