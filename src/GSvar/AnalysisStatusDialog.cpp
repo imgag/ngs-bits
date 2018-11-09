@@ -23,7 +23,7 @@ AnalysisStatusDialog::AnalysisStatusDialog(QWidget *parent)
 	connect(ui_.analyses->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(updateDetails()));
 	connect(ui_.history, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(showOutputDetails(QTableWidgetItem*)));
 	connect(ui_.refresh, SIGNAL(clicked(bool)), this, SLOT(refreshStatus()));
-	ui_.f_date->setDate(QDate::currentDate().addMonths(-1));
+	ui_.f_date->setDate(QDate::currentDate().addDays(-14));
 	connect(ui_.analysisSingle, SIGNAL(clicked(bool)), this, SLOT(analyzeSingleSamples()));
 	connect(ui_.analysisTrio, SIGNAL(clicked(bool)), this, SLOT(analyzeTrio()));
 	connect(ui_.analysisMulti, SIGNAL(clicked(bool)), this, SLOT(analyzeMultiSample()));
@@ -38,13 +38,12 @@ void AnalysisStatusDialog::analyzeSingleSamples(QList<AnalysisJobSample> samples
 	if (dlg.exec()==QDialog::Accepted)
 	{
 		NGSD db;
-		foreach(AnalysisJobSample sample,  dlg.samples())
+		foreach(const AnalysisJobSample& sample,  dlg.samples())
 		{
 			db.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
 		}
+		refreshStatus();
 	}
-
-	refreshStatus();
 }
 
 void AnalysisStatusDialog::analyzeTrio(QList<AnalysisJobSample> samples)
@@ -54,9 +53,8 @@ void AnalysisStatusDialog::analyzeTrio(QList<AnalysisJobSample> samples)
 	if (dlg.exec()==QDialog::Accepted)
 	{
 		NGSD().queueAnalysis("trio", dlg.highPriority(), dlg.arguments(), dlg.samples());
+		refreshStatus();
 	}
-
-	refreshStatus();
 }
 
 void AnalysisStatusDialog::analyzeMultiSample(QList<AnalysisJobSample> samples)
@@ -66,9 +64,8 @@ void AnalysisStatusDialog::analyzeMultiSample(QList<AnalysisJobSample> samples)
 	if (dlg.exec()==QDialog::Accepted)
 	{
 		NGSD().queueAnalysis("multi sample", dlg.highPriority(), dlg.arguments(), dlg.samples());
+		refreshStatus();
 	}
-
-	refreshStatus();
 }
 
 void AnalysisStatusDialog::analyzeSomatic(QList<AnalysisJobSample> samples)
@@ -78,9 +75,8 @@ void AnalysisStatusDialog::analyzeSomatic(QList<AnalysisJobSample> samples)
 	if (dlg.exec()==QDialog::Accepted)
 	{
 		NGSD().queueAnalysis("somatic", dlg.highPriority(), dlg.arguments(), dlg.samples());
+		refreshStatus();
 	}
-
-	refreshStatus();
 }
 
 void AnalysisStatusDialog::refreshStatus()
@@ -283,7 +279,11 @@ void AnalysisStatusDialog::showContextMenu(QPoint pos)
 	//set up menu
 	QMenu menu;
 	menu.addAction(QIcon(":/Icons/NGSD.png"), "Open sample in NGSD");
-	menu.addAction(QIcon(":/Icons/Folder.png"), "Open sample folder");
+	if (rows.count()==1 && types.values()[0]!="single sample")
+	{
+		menu.addAction(QIcon(":/Icons/Folder.png"), "Open trio/multi/somatic folder");
+	}
+	menu.addAction(QIcon(":/Icons/Folder.png"), "Open sample folder(s)");
 	if (all_running)
 	{
 		menu.addAction(QIcon(":/Icons/Remove.png"), "Cancel");
@@ -317,17 +317,61 @@ void AnalysisStatusDialog::showContextMenu(QPoint pos)
 	QString text = action->text();
 	if (text=="Open sample in NGSD")
 	{
-		foreach(AnalysisJobSample sample, samples)
+		foreach(const AnalysisJobSample& sample, samples)
 		{
 			QDesktopServices::openUrl(QUrl(NGSD().url(sample.name)));
 		}
 	}
-	if (text=="Open sample folder")
+	if (text=="Open sample folder(s)")
 	{
-		foreach(AnalysisJobSample sample, samples)
+		foreach(const AnalysisJobSample& sample, samples)
 		{
 			NGSD db;
-			QDesktopServices::openUrl(db.processedSamplePath(db.processedSampleId(sample.name), NGSD::FOLDER));
+			QDesktopServices::openUrl(db.processedSamplePath(db.processedSampleId(sample.name), NGSD::SAMPLE_FOLDER));
+		}
+	}
+	if (text=="Open trio/multi/somatic folder")
+	{
+		NGSD db;
+		QString folder = db.processedSamplePath(db.processedSampleId(samples[0].name), NGSD::PROJECT_FOLDER);
+
+		//prefix
+		QString type = types.values()[0];
+		QString sample_sep = "_";
+		if (type=="multi sample")
+		{
+			folder += "Multi_";
+		}
+		else if (type=="trio")
+		{
+			folder += "Trio_";
+		}
+		else if (type=="somatic")
+		{
+			folder += "Somatic_";
+			sample_sep = "-";
+		}
+		else
+		{
+			THROW(ProgrammingException, "Unknown analysis type '" + type + "'!");
+		}
+
+		//samples
+		bool first = true;
+		foreach(const AnalysisJobSample& sample, samples)
+		{
+			if (!first)
+			{
+				folder += sample_sep;
+			}
+			folder += sample.name;
+			first = false;
+		}
+		folder += "/";
+
+		if (!QDesktopServices::openUrl(folder))
+		{
+			QMessageBox::warning(this, "Error opening folder", "Folder could not be opened - it probably does not exist (yet):\n" + folder);
 		}
 	}
 	if (text=="Cancel")

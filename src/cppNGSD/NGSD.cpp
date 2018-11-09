@@ -238,18 +238,21 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 
 	//create sample folder
 	QString output = Settings::string("projects_folder") + "/";
+	QString ps_name = query.value(0).toString();
 	QString p_type = query.value(1).toString();
 	output += p_type;
 	QString p_name = query.value(2).toString();
 	output += "/" + p_name + "/";
-	QString ps_name = query.value(0).toString();
-	output += "Sample_" + ps_name + "/";
+	if (type!=PROJECT_FOLDER)
+	{
+		output += "Sample_" + ps_name + "/";
+	}
 
 	//append file name if requested
 	if (type==BAM) output += ps_name + ".bam";
 	else if (type==GSVAR) output += ps_name + ".GSvar";
 	else if (type==VCF) output += ps_name + "_var_annotated.vcf.gz";
-	else if (type!=FOLDER) THROW(ProgrammingException, "Unknown PathType '" + QString::number(type) + "'!");
+	else if (type!=SAMPLE_FOLDER && type!=PROJECT_FOLDER) THROW(ProgrammingException, "Unknown PathType '" + QString::number(type) + "'!");
 
 	//convert to canonical path
 	output = QFileInfo(output).absoluteFilePath();
