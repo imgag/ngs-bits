@@ -138,6 +138,11 @@ public:
         return annotations_;
     }
 
+	void setAnnotations(const QList<QByteArray>& annotations)
+	{
+		annotations_ = annotations;
+	}
+
 	///Returns the VEP annotations for an certain annotation field (one for each transcript)
 	QByteArrayList vepAnnotations(int csq_index, int field_index) const;
 

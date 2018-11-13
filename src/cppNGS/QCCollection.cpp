@@ -378,7 +378,7 @@ QCCollection QCCollection::fromQCML(QString filename)
 
 	if(!doc.setContent(&f, &error_msg, &error_line, &error_column))
 	{
-		THROW(FileParseException, "qcML file is invalid: " + error_msg + " line: " + QString::number(error_line) + " column: " +  QString::number(error_column));
+		THROW(FileParseException, "qcML file " + filename + " is invalid: " + error_msg + " line: " + QString::number(error_line) + " column: " +  QString::number(error_column));
 	}
 	
 	//make list of all elements in doc

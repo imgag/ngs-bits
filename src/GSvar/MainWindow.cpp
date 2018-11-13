@@ -1059,14 +1059,6 @@ void MainWindow::on_actionReport_triggered()
 
 void MainWindow::generateReportSomaticRTF()
 {
-	//check ROI is set
-	QString target_region = filter_widget_->targetRegion();
-	if (target_region == "")
-	{
-		QMessageBox::warning(this, "Somatic report", "Report cannot be created because target region is not set.");
-		return;
-	}
-
 	//check CGI columns are present
 	if(variants_.annotationIndexByName("CGI_driver_statement", true, false)<0 || variants_.annotationIndexByName("CGI_gene_role", true, false)<0)
 	{
@@ -1083,34 +1075,35 @@ void MainWindow::generateReportSomaticRTF()
 	}
 	catch(Exception& error)
 	{
-		qDebug() << error.line() << " " << error.file() << endl;
 		QMessageBox::warning(this, "Error loading CNV file", error.message()+"\n\nContinuing without CNVs!");
 		cnvs.clear();
 	}
 
-	//configure report
-	SomaticReportConfiguration configReport(cnvs, this);
-	configReport.setWindowFlags(Qt::Window);
-	connect(&configReport, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
-	if(!configReport.exec()) return;
+	//Configure report (CNVs)
+	if(!cnvs.isEmpty())
+	{
+		SomaticReportConfiguration configReport(cnvs, this);
+		configReport.setWindowFlags(Qt::Window);
+		connect(&configReport, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
+		if(!configReport.exec()) return;
+		cnvs = configReport.getSelectedCNVs();
+	}
 
 	//get RTF file name
 	QString file_rep = QFileDialog::getSaveFileName(this, "Store report file", last_report_path_ + "/" + QFileInfo(filename_).baseName() + "_report_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf", "RTF files (*.rtf);;All files(*.*)");
 	if (file_rep=="") return;
-
 	//generate report
 	try
 	{
 		QApplication::setOverrideCursor(Qt::BusyCursor);
+		ReportHelper report(filename_, cnvs, filter_widget_->filters(),filter_widget_->targetRegion());
 
-		//RTF
+		//Generate RTF
 		QString temp_filename = Helper::tempFileName(".rtf");
-		ReportHelper report(filename_, configReport.getSelectedCNVs(), target_region, filter_widget_->filters());
 		report.writeRtf(temp_filename);
 		ReportWorker::validateAndCopyReport(temp_filename, file_rep, false, true);
 
-
-		//files for QBIC upload
+		//Generate files for QBIC upload
 		report.germlineSnvForQbic();
 		report.somaticSnvForQbic();
 		report.germlineCnvForQbic();
