@@ -1,7 +1,12 @@
 # GSvar change log
 
-### 2018_10_36 (13.11.18)
-- Added additional somatic report for the Hochschulambulanz
+### 2018_10-43 (13.11.18)
+- Report somatic: added additional somatic report for the Hochschulambulanz
+- LOVD upload: fixed LOVD upload of variants on chrMT
+- Variants: added highlighting of chrX, chrX, chrMT and imprinting genes
+- Subpanel design: added special regions support (e.g. for POLR3A)
+- CNV window: add text filter checkbox
+- CNV window: add support for wildcard symbol in genes filter
 
 ### 2018_10-4 (12.10.18)
 - Added support for VEP annotations (removed support for SnpEff annotations)
@@ -215,6 +220,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 
