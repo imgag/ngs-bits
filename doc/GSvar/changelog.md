@@ -1,5 +1,8 @@
 # GSvar change log
 
+### 2018_10_36 (13.11.18)
+- Added additional somatic report for the Hochschulambulanz
+
 ### 2018_10-4 (12.10.18)
 - Added support for VEP annotations (removed support for SnpEff annotations)
 
