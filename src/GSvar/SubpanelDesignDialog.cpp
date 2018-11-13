@@ -146,13 +146,40 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 		showMessage(messages, true);
 		return;
 	}
+
+	//add flanking regions
 	int flanking  = ui->flanking->currentText().toInt();
 	if (flanking>0)
 	{
 		regions.extend(flanking);
 	}
+
+	//add special regions (gene symbol, region1, region2, ...)
+	QStringList genes_special;
+	QStringList special_regions = Settings::stringList("subpanel_special_regions");
+	foreach(QString line, special_regions)
+	{
+		line = line.trimmed();
+		QByteArrayList parts = line.toLatin1().split('\t');
+		QByteArray gene_symbol = parts[0];
+		if (genes.contains(gene_symbol))
+		{
+			genes_special << gene_symbol;
+			for (int i=1; i<parts.count(); ++i)
+			{
+				regions.append(BedLine::fromString(parts[i]));
+			}
+		}
+	}
 	regions.merge();
-	showMessage("Sub-panel with " + QString::number(genes.count()) + " genes of size " + QString::number(regions.baseCount()) + " bp (exons plus " + ui->flanking->currentText() + " flanking bases) designed. You can store it now!", false);
+
+	//show message
+	QString message = "Sub-panel with " + QString::number(genes.count()) + " genes of size " + QString::number(regions.baseCount()) + " bp (exons plus " + ui->flanking->currentText() + " flanking bases) designed. You can store it now!";
+	if (!genes_special.isEmpty())
+	{
+		message += "\nAdded special regions for gene(s): " + genes_special.join(", ");
+	}
+	showMessage(message, false);
 
 	ui->store->setEnabled(true);
 }
