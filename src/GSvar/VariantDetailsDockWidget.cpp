@@ -90,10 +90,11 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	ui->label_fathmm->setToolTip(vl.annotationDescriptionByName("fathmm-MKL").description());
 	ui->label_revel->setToolTip(vl.annotationDescriptionByName("REVEL").description());
 
-	//splicing
+	//splicing/regulatory
 	ui->label_maxentscan->setToolTip(vl.annotationDescriptionByName("MaxEntScan").description());
 	ui->label_genesplicer->setToolTip(vl.annotationDescriptionByName("GeneSplicer").description());
 	ui->label_dbscsnv->setToolTip(vl.annotationDescriptionByName("dbscSNV").description());
+	ui->label_regulatory->setToolTip(vl.annotationDescriptionByName("regulatory").description());
 
 	//NGSD
 	ui->label_ngsd_class->setToolTip(vl.annotationDescriptionByName("classification", false, false).description());
@@ -164,10 +165,11 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->fathmm, vl, index, "fathmm-MKL");
 	setAnnotation(ui->revel, vl, index, "REVEL");
 
-	//splicing
+	//splicing/regulatory
 	setAnnotation(ui->maxentscan, vl, index, "MaxEntScan");
 	setAnnotation(ui->genesplicer, vl, index, "GeneSplicer");
 	setAnnotation(ui->dbscsnv, vl, index, "dbscSNV");
+	setAnnotation(ui->regulatory, vl, index, "regulatory");
 
 	//NGSD
 	setAnnotation(ui->ngsd_class, vl, index, "classification");
