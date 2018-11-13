@@ -1,5 +1,5 @@
 ### VcfFilter tool help
-	VcfFilter (2018_10-35-ga98b962)
+	VcfFilter (2018_10-35-g8d0245d)
 	
 	Filters a VCF based on the given criteria.
 	
@@ -26,6 +26,8 @@
 	  -sample <string>       Filter by sample-specific entries - use ';' as separator for several filters, e.g. 'GT is 1/1' (spaces are important).
 	Valid operations are '>','>=','=','!=','<=','<','is','not','contains'.
 	                         Default value: ''
+	  -sample_one_match      If sample_one_match is active samples are in OR mode. They will pass a filter once one or more of the sample passes the filters.
+	                         Default value: 'false'
 	
 	Special parameters:
 	  --help                 Shows this help and exits.
@@ -34,7 +36,7 @@
 	  --tdx                  Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VcfFilter changelog
-	VcfFilter 2018_10-35-ga98b962
+	VcfFilter 2018_10-35-g8d0245d
 	
 	2018-10-31 Initial implementation.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

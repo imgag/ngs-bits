@@ -55,7 +55,9 @@ void LovdUploadDialog::setData(LovdUploadData data)
 
 	//variant data
 	variant1 = data.variant;
-	ui_.chr->setCurrentText(data.variant.chr().str());
+	QByteArray chr = data.variant.chr().str();
+	if (chr=="chrMT") chr = "chrM";
+	ui_.chr->setCurrentText(chr);
 	ui_.gene->setText(data.gene);
 	ui_.nm_number->setText(data.nm_number);
 	ui_.hgvs_g->setText(data.hgvs_g);
@@ -313,8 +315,8 @@ void LovdUploadDialog::updatePrintButton()
 void LovdUploadDialog::queryRefSeqWebservice()
 {
 	QString url = Settings::string("VariantInfoRefSeq");
-	if (sender()==qobject_cast<QObject*>(ui_.refseq_btn) && variant1.isValid()) url += "?variant_data=" + variant1.toString(true).replace(" ", "\t");
-	if (sender()==qobject_cast<QObject*>(ui_.refseq_btn2) && variant2.isValid()) url += "?variant_data=" + variant2.toString(true).replace(" ", "\t");
+	if (sender()==qobject_cast<QObject*>(ui_.refseq_btn) && variant1.isValid()) url += "?variant_data=" + variant1.toString(true).replace(" ", "\t").replace("chrMT", "chrM");
+	if (sender()==qobject_cast<QObject*>(ui_.refseq_btn2) && variant2.isValid()) url += "?variant_data=" + variant2.toString(true).replace(" ", "\t").replace("chrMT", "chrM");
 	QDesktopServices::openUrl(QUrl(url));
 }
 
