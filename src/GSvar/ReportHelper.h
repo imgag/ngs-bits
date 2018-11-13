@@ -22,7 +22,7 @@ public:
 	///specifies the header of an RTF file
 	static void writeRtfHeader(QTextStream& stream);
 	///generates the header of a single Rtf row
-	static void writeRtfTableSingleRowSpec(QTextStream& stream,const QList<int>& col_widths, bool border);
+	static void writeRtfTableSingleRowSpec(QTextStream& stream,const QList<int>& col_widths, bool border,bool shaded = false);
 	///generater the header of a single Rtf row, QList borders specifies the border widths for each cell beginning from top,right,bottom,left
 	static void writeRtfTableSingleRowSpec(QTextStream &stream, const QList<int> &col_widths, QList<int> borders);
 	///generates a RTF table
@@ -172,9 +172,6 @@ public:
 		return drug_list_.count();
 	}
 
-	///returns a list with cancer acronyms appearing in the given evidence level
-	const QList<QByteArray> getAcronyms(int evid_level) const;
-
 private:
 	QMultiMap <int,CGIDrugReportLine> drug_list_;
 };
@@ -184,7 +181,7 @@ class ReportHelper
 {
 public:
 	ReportHelper();
-	ReportHelper(QString snv_filename, const ClinCnvList& filtered_cnvs, QString target_region, const FilterCascade& filters);
+	ReportHelper(QString snv_filename, const ClinCnvList& filtered_cnvs, const FilterCascade& filters, const QString& target_region="");
 	///write Rtf File
 	void writeRtf(const QString& out_file);
 
@@ -196,39 +193,31 @@ public:
 	void somaticSvForQbic();
 	void metaDataForQbic();
 
-
-
 private:
-	///Filters snv_variants_ for SNVs with annotation from CancerGenomeInterpreter.org
-	VariantList filterSnvForCGIAnnotation(bool filter_for_target_region=false);
-	///Filter germline SNVs
-	VariantList filterSnVForGermline();
-
-	///transforms GSVar coordinates of Variants to vcf standard
-	VariantList gsvarToVcf();
+	///transforms GSVar coordinates of Variants to VCF INDEL-standard
+	VariantList gsvarToVcf(const VariantList& gsvar_list, const QString& orig_name);
 
 	///returns best matching transcript - or an empty transcript
 	VariantTranscript selectSomaticTranscript(const Variant& variant);
 
+	void writeGapStatistics(QTextStream &stream, const QString& target_file);
+	QHash<QByteArray, BedFile> gapStatistics(const BedFile& region_of_interest);
+
+	///Writes Rtf table containing given snvs
+	void writeSnvList(QTextStream& stream, const QList<int>& col_widths, const VariantList& snvs);
+	///Writes Rtf table containing CNVs per gene
+	void writeCnvGeneList(QTextStream& stream, const QList<int>& col_widths, const GeneSet& target_genes);
+	///generates table with CNVs
+	void writeCnvList(QTextStream& stream, const QList<int>& colWidths);
+
 	///writes table with drug annotation
 	void writeRtfCGIDrugTable(QTextStream& stream, const QList<int>& col_widths);
 
-	///generates table with important SNVs including mutational burden
-	void writeRtfTableSNV(QTextStream& stream, const QList<int>& colWidths, bool display_germline_hint = true);
-
-	///generates table with deleterious germline SNVs
-	void writeRtfTableGermlineSNV(QTextStream& stream, const QList<int>& colWidths);
-
-	///generates table with important CNVs
-	void writeRtfTableCNV(QTextStream& stream, const QList<int>& colWidths);
-
-	void writeGapStatistics(QTextStream& stream, const QString& target_file);
-
-	///make gap statistics, grouped by gene as QByteArray and regions as BedFile
-	QHash<QByteArray, BedFile> gapStatistics(const BedFile region_of_interest);
-
 	///SNV file
 	QString snv_filename_;
+
+	///target region
+	QString target_region_ = "";
 
 	///Germline filenames;
 	QString germline_snv_filename_;
@@ -240,6 +229,7 @@ private:
 
 	///path to MANTIS file (microsatellite instabilities)
 	QString mantis_msi_path_;
+	double mantis_msi_swd_value_;
 
 	///Sequence ontology that contains the SO IDs of coding and splicing transcripts
 	OntologyTermCollection obo_terms_coding_splicing_;
@@ -260,25 +250,10 @@ private:
 
 	NGSD db_;
 
-	///Target region
-	BedFile roi_;
-	///filename that contains the target region
-	QString target_region_;
-	///genes that are included in the target region
-	GeneSet genes_in_target_region_;
-
-	///genes that are checked for germline variants (those appear later in the explanation of the RTF report)
-	GeneSet germline_genes_in_acmg_;
-
 	QCCollection qcml_data_;
 
 	///Processing system data
 	ProcessingSystemData processing_system_data;
-
-	///Somatic filters
-	QList<QString> filter_keep_;
-	QList<QString> filter_remove_;
-	QList<QString> filter_filter_;
 
 	///CGI cancer acronym (extracted from .GSVar file)
 	QString cgi_cancer_type_;
@@ -291,13 +266,11 @@ private:
 	double mutation_burden_;
 
 	///indices for somatic variant file
-	int snv_index_filter_;
 	int snv_index_cgi_driver_statement_;
 	int snv_index_cgi_gene_role_;
 	int snv_index_cgi_transcript_;
 	int snv_index_coding_splicing_;
 	int snv_index_cgi_gene_;
-	int snv_index_gene_;
 
 	///indices for somatic CNV file
 	int cnv_index_cgi_gene_role_;
@@ -307,7 +280,6 @@ private:
 
 	///Filter list
 	FilterCascade filters_;
-
 };
 
 #endif // REPORTHELPER_H

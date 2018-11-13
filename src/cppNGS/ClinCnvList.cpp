@@ -145,7 +145,6 @@ int ClinCnvList::annotationIndexByName(const QByteArray& name, bool error_on_mis
 	}
 
 	return matches.at(0);
-
 }
 
 void ClinCnvList::copyMetaData(const ClinCnvList& rhs)

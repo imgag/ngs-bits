@@ -94,6 +94,13 @@ public:
 	{
 		return variants_.count();
 	}
+
+	bool isEmpty() const
+	{
+		if(variants_.count() == 0) return true;
+		else return false;
+	}
+
 	///Returns a variant by index.
 	const ClinCopyNumberVariant& operator[](int index) const
 	{
