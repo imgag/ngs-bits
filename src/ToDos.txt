@@ -10,6 +10,9 @@ libs:
 - FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 
 NGSD:
+*** add OMIM/ICD10 annotation for samples (annotation, type, date, source)
+    - update from GenLab in NGSDMaintainance
+    - allow triggering import from GenLab manually
 ** model sample relation: same sample, parent-child, tumor-normal, siblings
   - use 'same sample' when counting variant frequencies
   - set relations after somatic/trio pipeline is through
@@ -17,25 +20,15 @@ NGSD:
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
 
 GSvar:
-**** Variant details dock: add 'regulatory' (optional)
-**** Subpanel design: POLR3A => include pathpogenic splice variant > Dialog
-**** Documentation CNVs:
-    - Vorfilter: dominant relaxed
-    - 1.compound heterozygous: CNV/SNP und CNV/CNV
-    - 2.copy number = 0s
-    - 3.Microdeletionssyndrome: min region auf 10 (?) setzen
-    - 4.target region und/oder Phenotypes (HPO-term Liste)
-    - 5.ACMG-target-region
-*** Annotate Somatic data => select GSvar > 2 columns (small variants, CNVS) with AF, DP etc.
-** Highlight chrX, chrM, imprinting genes, info, sample,
-*** Avoid overwriting preferred transcripts when multiple instances of GSvar are open
 *** Add 'restart analysis' for trio/multi/somatic (move to main menu bar)
+** Annotate Somatic data => select GSvar > 2 columns (small variants, CNVS) with AF, DP etc.
 *** OMIM g/p in Report
+* Avoid overwriting preferred transcripts when multiple instances of GSvar are open
 * Subpanel design: allow target regions gene-wide
 * Add multi-gene Google/PubMed search: https://www.ncbi.nlm.nih.gov/pubmed/?term=CASP8+AND+(%22Breast+cancer%22+OR+%22Breast+carcinoma%22)+AND+2018 (SWAL)
 * Add ExAC pLI / ExAC CNV / inheritance (megSAP) and filter for CNVs (GSvar) (wait for ClinCNV)
 * GenLab XML report: male => change 'hom' variants outside PAR region on chrX/chrY to 'hemi' (when GenLab import is updated)
-** Report variant selection
+*** Report variant selection
     - allow marking variants for report inclusion (report_pathogenic, report_possibly_pathogenic, report_incidental_finding (ACMG), report_scientific, no_report_artefact, no_report_no_disease_association)
     - store marked variants in NGSD when writing the report (who, when, comment, applied default filter)
     - load marked variants from NGSD after loading the case again

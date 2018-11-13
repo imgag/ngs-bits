@@ -241,6 +241,7 @@ private:
 	BedFile last_phenos_roi_;
 	QMap<QString, QStringList> preferred_transcripts_;
 	QList<QSharedPointer<QDialog>> modeless_dialogs_;
+	GeneSet imprinting_genes_;
 
 	//SPECIAL
 	///Timer to delay some initialization, e.g. load CLI argument after the main window is visible (otherwise the sample info dialog is shown before the main window)

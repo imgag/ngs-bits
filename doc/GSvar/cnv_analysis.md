@@ -4,13 +4,19 @@ Copy-number variant (CNV) calling is performed using the [CnvHunter](https://git
 
 CnvHunter is designed for targeted NGS sequencing, where exon target regions alternate with non-target intron regions. Thus, a single copy-number variant can consist of several subsequent regions (i.e. exons). For each region, the copy-number state and the [z-score](https://en.wikipedia.org/wiki/Standard_score) indicating the significance are listed (see screenshot in the 'CNV filtering' section).
 
-### Re-analyzing a sample
+### General CNV analysis strategy
 
-Copy-number variant calling is based on a virtual reference sample, which is constructed of the 20 most similar samples with the same processing system. Thus, at least 20 samples of the sample processing system are needed to perform the CNV analysis. The more samples there are, the more accurate the CNV analysis will be.
+The analysis strategy for CNVs depends on inheritance mode and other factors.  
+These are examples of ananlysis steps that are commonly performed:
 
-Thus, re-analyzing copy-number variants when more reference samples are sequenced is a common task. It can be performed using the sample details dock widget:
+1. Check for **compound heterozygous** variants: CNV/CNV und CNV/SNV
+	
+	**Note:** For the analysis of compound heterozygous CNV and SNVs, the filtering of the small variants is relevent: use the `dominant_relaxed` filter.
 
-![alt text](cnv_reanalyze.png)
+1. Check for **homozygous deletions** using the `copy number=0` filter
+1. Check for **microdeletion syndromes** using `min regions=10` filter
+1. Check for CNVs matching the **patient phenotype** (`target region` and/or `phenotypes` filter)
+1. Check for CNVS in **ACMG** target-region
 
 ### CNV analysis quality
 
@@ -36,6 +42,8 @@ Above the CNV list, there are several options for filtering CNVs (2):
 * frequency (in-house CNV frequency) 
 * target region (if set in the main filter panel for variants)
 * genes (if set in the main filter panel for variants)
+* phenotypes (if set in the main filter panel for variants)
+* text (if set in the main filter panel for variants)
 * generic annotation columns
 
 For each CNV the following properties are shown (3):
@@ -79,9 +87,21 @@ We can adapt the IGV settings of the BAM track to visualize the breakpoints crea
 Then, it is clear that in this case there is a tandem duplication of the region from exon 1 to exon 3.
 
 ![alt text](cnv_visualization2.png)
+
+## FAQ
+
+### How do I re-start the CNV analysis of a sample
+
+Copy-number variant calling is based on a virtual reference sample, which is constructed of the 20 most similar samples with the same processing system. Thus, at least 20 samples of the sample processing system are needed to perform the CNV analysis. The more samples there are, the more accurate the CNV analysis will be.
+
+Thus, re-analyzing copy-number variants when more reference samples are sequenced is a common task. It can be performed using the sample details dock widget:
+
+![alt text](cnv_reanalyze.png)
+
 --
 
 [back to main page](index.md)
+
 
 
 

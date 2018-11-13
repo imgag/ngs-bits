@@ -373,6 +373,17 @@ void MainWindow::delayedInizialization()
 	updatePreferredTranscripts();
 	updateNGSDSupport();
 
+	//load imprinting gene list
+	QStringList lines = Helper::loadTextFile(":/Resources/imprinting_genes.tsv", true, '#', true);
+	foreach(const QString& line, lines)
+	{
+		QStringList parts = line.split("\t");
+		if (parts.count()==2)
+		{
+			imprinting_genes_ << parts[0].toLatin1();
+		}
+	}
+
 	//load command line argument
 	if (QApplication::arguments().count()>=2)
 	{
@@ -1913,6 +1924,7 @@ void MainWindow::variantListChanged()
 	}
 
 	//content
+	int i_genes = variants_.annotationIndexByName("gene", true, false);
 	int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, false);
 	int i_validation = variants_.annotationIndexByName("validation", true, false);
 	int i_classification = variants_.annotationIndexByName("classification", true, false);
@@ -1925,6 +1937,11 @@ void MainWindow::variantListChanged()
 	{
 		const Variant& row = variants_[i];
 		ui_.vars->setItem(i, 0, new QTableWidgetItem(QString(row.chr().str())));
+		if (!row.chr().isAutosome())
+		{
+			ui_.vars->item(i,0)->setBackgroundColor(Qt::yellow);
+			ui_.vars->item(i,0)->setToolTip("Not autosome");
+		}
 		ui_.vars->setItem(i, 1, new QTableWidgetItem(QString::number(row.start())));
 		ui_.vars->setItem(i, 2, new QTableWidgetItem(QString::number(row.end())));
 		ui_.vars->setItem(i, 3, new QTableWidgetItem(row.ref(), 0));
@@ -1934,8 +1951,8 @@ void MainWindow::variantListChanged()
 		bool is_ok_line = false;
 		for (int j=0; j<row.annotations().count(); ++j)
 		{
-			QString anno = row.annotations().at(j);
-			QTableWidgetItem* item = new QTableWidgetItem(anno);
+			const QByteArray& anno = row.annotations().at(j);
+			QTableWidgetItem* item = new QTableWidgetItem(anno, QTableWidgetItem::Type);
 
 			//warning
 			if (j==i_co_sp && anno.contains(":HIGH:"))
@@ -1992,7 +2009,23 @@ void MainWindow::variantListChanged()
 			{
 				item->setBackgroundColor(Qt::yellow);
 			}
-
+			else if (j==i_genes)
+			{
+				bool hit = false;
+				if (anno.contains(','))
+				{
+					 hit = imprinting_genes_.intersectsWith(GeneSet::createFromText(anno, ','));
+				}
+				else
+				{
+					hit = imprinting_genes_.contains(anno);
+				}
+				if (hit)
+				{
+					item->setBackgroundColor(Qt::yellow);
+					item->setToolTip("Imprinting gene");
+				}
+			}
 
 			ui_.vars->setItem(i, 5+j, item);
 		}
