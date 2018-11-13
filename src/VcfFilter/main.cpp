@@ -150,6 +150,7 @@ public:
 		addFlag("filter_empty", "Removes entries with non-empty FILTER column.");
 		addString("info", "Filter by INFO column entries - use ';' as separator for several filters, e.g. 'DP > 5;AO > 2' (spaces are important).\nValid operations are '" + op_numeric.join("','") + "','" + op_string.join("','") + "'.", true);
 		addString("sample", "Filter by sample-specific entries - use ';' as separator for several filters, e.g. 'GT is 1/1' (spaces are important).\nValid operations are '" + op_numeric.join("','") + "','" + op_string.join("','") + "'.", true);
+        addFlag("sample_one_match", "If sample_one_match is active samples are in OR mode. They will pass a filter once one or more of the sample passes the filters.");
 
 		changeLog(2018, 10, 31, "Initial implementation.");
     }
@@ -194,6 +195,7 @@ public:
         //init parameters
         double quality = getFloat("qual");
         bool filter_empty = getFlag("filter_empty");
+        bool sample_one_match = getFlag("sample_one_match");
 		QString filter = getString("filter");
 		QString id = getString("id");
         QString variant_type = getString("variant_type");
@@ -430,6 +432,7 @@ public:
 					sample_parts.push_back(getPartByColumn(line, i).split(':'));
                 }
 
+                bool passed_filter_once = false;
 				bool passes_filters = true;
 				for (int i=0; i<format_ids.count(); ++i)
 				{
@@ -442,15 +445,20 @@ public:
 							if (!satisfiesFilter(sample_part[i], format_ids[i], filter_def, line))
 							{
 								passes_filters = false;
-								break;
-							}
+                                if (!sample_one_match) break;
+                            }
+                            else if (sample_one_match)
+                            {
+                                passed_filter_once = true;
+                                break;
+                            }
 						}
 					}
 
-					if (!passes_filters) break;
+                    if ((!passes_filters && !sample_one_match) || (passed_filter_once && sample_one_match)) break;
 				}
 
-                if (!passes_filters)
+                if ((!passed_filter_once && sample_one_match) || (!passes_filters && !sample_one_match))
                 {
                     continue;
                 }
