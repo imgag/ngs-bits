@@ -138,9 +138,10 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 	}
 
 	//create target region
+	QString mode = ui->mode->currentText();
 	QString messages;
 	QTextStream stream(&messages);
-	regions = db.genesToRegions(genes, Transcript::CCDS, "exon", ui->fallback->isChecked(), false, &stream);
+	regions = db.genesToRegions(genes, Transcript::CCDS, mode, ui->fallback->isChecked(), false, &stream);
 	if (messages!="")
 	{
 		showMessage(messages, true);
@@ -174,7 +175,7 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 	regions.merge();
 
 	//show message
-	QString message = "Sub-panel with " + QString::number(genes.count()) + " genes of size " + QString::number(regions.baseCount()) + " bp (exons plus " + ui->flanking->currentText() + " flanking bases) designed. You can store it now!";
+	QString message = "Sub-panel with " + QString::number(genes.count()) + " genes of size " + QString::number(regions.baseCount()) + " bp (" + mode + " plus " + ui->flanking->currentText() + " flanking bases) designed. You can store it now!";
 	if (!genes_special.isEmpty())
 	{
 		message += "\nAdded special regions for gene(s): " + genes_special.join(", ");
