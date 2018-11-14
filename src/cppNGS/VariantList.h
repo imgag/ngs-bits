@@ -43,6 +43,9 @@ struct CPPNGSSHARED_EXPORT SampleInfo
 	///Returns if the sample has state 'affected'.
 	bool isAffected() const;
 
+	///Returns if the sample is a tumor sample.
+	bool isTumor() const;
+
 	///Returns the gender of the sample, or 'n/a' if unknown.
 	QString gender() const;
 };

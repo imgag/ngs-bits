@@ -505,6 +505,22 @@ bool SampleInfo::isAffected() const
 	return false;
 }
 
+bool SampleInfo::isTumor() const
+{
+	auto it = properties.cbegin();
+	while(it != properties.cend())
+	{
+		if (it.key().toLower()=="istumor" && it.value().toLower()=="yes")
+		{
+			return true;
+		}
+
+		++it;
+	}
+
+	return false;
+}
+
 QString SampleInfo::gender() const
 {
 	auto it = properties.cbegin();

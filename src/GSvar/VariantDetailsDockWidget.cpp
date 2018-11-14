@@ -94,7 +94,7 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	ui->label_maxentscan->setToolTip(vl.annotationDescriptionByName("MaxEntScan").description());
 	ui->label_genesplicer->setToolTip(vl.annotationDescriptionByName("GeneSplicer").description());
 	ui->label_dbscsnv->setToolTip(vl.annotationDescriptionByName("dbscSNV").description());
-	ui->label_regulatory->setToolTip(vl.annotationDescriptionByName("regulatory").description());
+	ui->label_regulatory->setToolTip(vl.annotationDescriptionByName("regulatory", false, false).description());
 
 	//NGSD
 	ui->label_ngsd_class->setToolTip(vl.annotationDescriptionByName("classification", false, false).description());

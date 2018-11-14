@@ -1,5 +1,4 @@
 #include "SampleDetailsDockWidget.h"
-#include "SingleSampleAnalysisDialog.h"
 #include "DiagnosticStatusWidget.h"
 #include "GUIHelper.h"
 #include "BasicStatistics.h"
@@ -18,7 +17,6 @@ SampleDetailsDockWidget::SampleDetailsDockWidget(QWidget *parent)
 
 	//diagnostic status button
 	connect(ui_.diag_status_button, SIGNAL(clicked(bool)), this, SLOT(editDiagnosticStatus()));
-	connect(ui_.restart_button, SIGNAL(clicked(bool)), this, SLOT(reanalyze()));
 	connect(ui_.disease_button, SIGNAL(clicked(bool)), this, SLOT(editDiseaseData()));
 
 	if (Settings::boolean("NGSD_enabled", true))
@@ -34,18 +32,6 @@ SampleDetailsDockWidget::SampleDetailsDockWidget(QWidget *parent)
 	}
 
 	clear();
-}
-
-
-void SampleDetailsDockWidget::reanalyze()
-{
-	SingleSampleAnalysisDialog dlg(this);
-
-	dlg.setSamples(QList<AnalysisJobSample>() << AnalysisJobSample {processed_sample_name_, ""});
-	if (dlg.exec()==QDialog::Accepted)
-	{
-		NGSD().queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), dlg.samples());
-	}
 }
 
 void SampleDetailsDockWidget::editDiagnosticStatus()
@@ -149,7 +135,6 @@ void SampleDetailsDockWidget::refresh(QString processed_sample_name)
 
 		ui_.quality_button->setEnabled(true);
 		ui_.diag_status_button->setEnabled(true);
-		ui_.restart_button->setEnabled(true);
 		ui_.disease_button->setEnabled(true);
 
 	}
@@ -157,7 +142,6 @@ void SampleDetailsDockWidget::refresh(QString processed_sample_name)
 	{
 		ui_.quality_button->setEnabled(false);
 		ui_.diag_status_button->setEnabled(false);
-		ui_.restart_button->setEnabled(false);
 		ui_.disease_button->setEnabled(false);
 	}
 }
@@ -190,7 +174,6 @@ void SampleDetailsDockWidget::clear()
 	ui_.date_bam->clear();
 
 	//buttons
-	ui_.restart_button->setEnabled(false);
 	ui_.disease_button->setEnabled(false);
 	ui_.diag_status_button->setEnabled(false);
 	ui_.quality_button->setEnabled(false);

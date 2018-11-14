@@ -155,6 +155,8 @@ public slots:
 	void on_actionPublishVariantInLOVD_triggered();
 	///Show diagnostic status overview
 	void on_actionDiagnosticStatusOverview_triggered();
+	///Re-analyze current sample/case
+	void on_actionReanalyze_triggered();
 
 	///Generates a report (somatic) in .rtf format
 	void generateReportSomaticRTF();

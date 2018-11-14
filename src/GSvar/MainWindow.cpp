@@ -59,6 +59,10 @@
 #include "VariantSampleOverviewDialog.h"
 #include "SomaticReportConfiguration.h"
 #include "ClinCnvList.h"
+#include "SingleSampleAnalysisDialog.h"
+#include "MultiSampleDialog.h"
+#include "TrioDialog.h"
+#include "SomaticDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -334,6 +338,73 @@ void MainWindow::on_actionDiagnosticStatusOverview_triggered()
 	connect(dlg, SIGNAL(openProcessedSample(QString)), this, SLOT(openProcessedSampleFromNGSD(QString)));
 	dlg->show();
 	addModelessDialog(QSharedPointer<QDialog>(dlg));
+}
+
+void MainWindow::on_actionReanalyze_triggered()
+{
+	SampleHeaderInfo header_info = variants_.getSampleHeader();
+	foreach(const SampleInfo& info, header_info)
+	{
+		qDebug() << info.id << info.isAffected() << info.isTumor() << info.gender();
+	}
+
+	QList<AnalysisJobSample> samples;
+	if (variants_.type()==GERMLINE_SINGLESAMPLE)
+	{
+		SingleSampleAnalysisDialog dlg(this);
+		samples << AnalysisJobSample {header_info[0].id, ""};
+		dlg.setSamples(samples);
+		if (dlg.exec()==QDialog::Accepted)
+		{
+			NGSD().queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), dlg.samples());
+		}
+	}
+	else if (variants_.type()==GERMLINE_MULTISAMPLE)
+	{
+		MultiSampleDialog dlg(this);
+		foreach(const SampleInfo& info, header_info)
+		{
+			samples << AnalysisJobSample {info.id, info.isAffected() ? "affected" : "control"};
+		}
+		dlg.setSamples(samples);
+		if (dlg.exec()==QDialog::Accepted)
+		{
+			NGSD().queueAnalysis("multi sample", dlg.highPriority(), dlg.arguments(), dlg.samples());
+		}
+	}
+	else if (variants_.type()==GERMLINE_TRIO)
+	{
+		TrioDialog dlg(this);
+		foreach(const SampleInfo& info, header_info)
+		{
+			if(info.isAffected())
+			{
+				samples << AnalysisJobSample {info.id, "child"};
+			}
+			else
+			{
+				samples << AnalysisJobSample {info.id, info.gender()=="male" ? "father" : "mother"};
+			}
+		}
+		dlg.setSamples(samples);
+		if (dlg.exec()==QDialog::Accepted)
+		{
+			NGSD().queueAnalysis("trio", dlg.highPriority(), dlg.arguments(), dlg.samples());
+		}
+	}
+	else if (variants_.type()==SOMATIC_PAIR)
+	{
+		SomaticDialog dlg(this);
+		foreach(const SampleInfo& info, header_info)
+		{
+			samples << AnalysisJobSample {info.id, info.isTumor() ? "tumor" : "normal"};
+		}
+		dlg.setSamples(samples);
+		if (dlg.exec()==QDialog::Accepted)
+		{
+			NGSD().queueAnalysis("somatic", dlg.highPriority(), dlg.arguments(), dlg.samples());
+		}
+	}
 }
 
 void MainWindow::delayedInizialization()
@@ -2714,6 +2785,7 @@ void MainWindow::updateNGSDSupport()
 	ui_.actionNGSD->setEnabled(ngsd_enabled);
 	ui_.actionNGSDAnnotation->setEnabled(ngsd_enabled);
 	ui_.actionAnalysisStatus->setEnabled(ngsd_enabled);
+	ui_.actionReanalyze->setEnabled(ngsd_enabled);
 	ui_.actionSampleInformation->setEnabled(ngsd_enabled);
 	ui_.actionGapsRecalculate->setEnabled(ngsd_enabled);
 	ui_.actionGeneSelector->setEnabled(ngsd_enabled);

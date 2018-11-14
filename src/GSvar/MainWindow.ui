@@ -223,6 +223,7 @@
    <addaction name="actionNGSD"/>
    <addaction name="separator"/>
    <addaction name="actionAnalysisStatus"/>
+   <addaction name="actionReanalyze"/>
    <addaction name="separator"/>
    <addaction name="actionGapsLookup"/>
    <addaction name="actionGapsRecalculate"/>
@@ -638,6 +639,18 @@
    </property>
    <property name="toolTip">
     <string>Clear filters and target region</string>
+   </property>
+  </action>
+  <action name="actionReanalyze">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/Refresh.png</normaloff>:/Icons/Refresh.png</iconset>
+   </property>
+   <property name="text">
+    <string>Reanalyze</string>
+   </property>
+   <property name="toolTip">
+    <string>Queue re-analysis of data (single-sample, multi-sample, trio, somatic).</string>
    </property>
   </action>
  </widget>

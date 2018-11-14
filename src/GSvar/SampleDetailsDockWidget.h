@@ -20,8 +20,6 @@ public:
 	void clear();
 
 private slots:
-	///Starts reanalysis of the sample.
-	void reanalyze();
 	///Opens a dialog to view/edit the diagnostic status.
 	void editDiagnosticStatus();
 	///Opens a dialog to view/edit the disease data.
