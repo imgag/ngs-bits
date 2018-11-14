@@ -16,11 +16,8 @@ class VariantDetailsDockWidget
 	Q_OBJECT
 
 public:
-	explicit VariantDetailsDockWidget(QWidget* parent = 0);
+	explicit VariantDetailsDockWidget(QWidget* parent, const QMap<QString, QStringList>& pt);
 	~VariantDetailsDockWidget();
-
-	//Sets preferred transcripts
-	void setPreferredTranscripts(QMap<QString, QStringList> data);
 
 	//Sets tooltips of labels
 	void setLabelTooltips(const VariantList& vl);
@@ -91,7 +88,7 @@ private:
 	//GUI
 	Ui::VariantDetailsDockWidget *ui;
 	//Preferred transcript list per gene
-	QMap<QString, QStringList> preferred_transcripts;
+	const QMap<QString, QStringList>& preferred_transcripts;
 };
 
 #endif // VARIANTDETAILSDOCKWIDGET_H

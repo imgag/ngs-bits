@@ -18,7 +18,7 @@ class ReportWorker
 
 public:
 	///Constructor.
-	ReportWorker(QString sample_name, QString file_bam, QString file_roi, const VariantList& variants, const FilterCascade& filters, QMap<QString, QStringList> preferred_transcripts, ReportSettings settings, QStringList log_files, QString file_rep);
+	ReportWorker(QString sample_name, QString file_bam, QString file_roi, const VariantList& variants, const FilterCascade& filters, const QMap<QString, QStringList>& preferred_transcripts, ReportSettings settings, QStringList log_files, QString file_rep);
 	virtual void process();
 
 	///Returns the file to which the HTML report was written.
@@ -49,7 +49,7 @@ private:
 	QString file_roi_;
 	const VariantList& variants_;
 	FilterCascade filters_;
-	QMap<QString, QStringList> preferred_transcripts_;
+	const QMap<QString, QStringList>& preferred_transcripts_;
 	ReportSettings settings_;
 	QStringList log_files_;
 	//output variables

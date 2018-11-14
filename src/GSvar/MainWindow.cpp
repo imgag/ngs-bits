@@ -70,7 +70,7 @@ MainWindow::MainWindow(QWidget *parent)
 	, filter_widget_(new FilterDockWidget(this))
 	, var_last_(-1)
 	, sample_widget_(new SampleDetailsDockWidget(this))
-	, var_widget_(new VariantDetailsDockWidget(this))
+	, var_widget_(new VariantDetailsDockWidget(this, preferred_transcripts_))
 	, busy_dialog_(nullptr)
 	, filename_()
 	, db_annos_updated_(NO)
@@ -441,8 +441,10 @@ void MainWindow::delayedInizialization()
 
 	updateRecentFilesMenu();
 	updateIGVMenu();
-	updatePreferredTranscripts();
 	updateNGSDSupport();
+
+	//preferred transcripts
+	preferred_transcripts_ = loadPreferredTranscripts();
 
 	//load imprinting gene list
 	QStringList lines = Helper::loadTextFile(":/Resources/imprinting_genes.tsv", true, '#', true);
@@ -1619,6 +1621,10 @@ void MainWindow::on_actionExportGSvar_triggered()
 
 void MainWindow::on_actionPreferredTranscripts_triggered()
 {
+	//update from settings INI
+	QDateTime preferred_transcripts_last_modified = QFileInfo(Settings::fileName()).lastModified();
+	preferred_transcripts_ = loadPreferredTranscripts();
+
 	//show dialog
 	QString text = "<pre>";
 	for (auto it=preferred_transcripts_.cbegin(); it!=preferred_transcripts_.cend(); ++it)
@@ -1631,61 +1637,67 @@ void MainWindow::on_actionPreferredTranscripts_triggered()
 	edit->setMinimumWidth(500);
 	QSharedPointer<QDialog> dlg = GUIHelper::showWidgetAsDialog(edit, "Preferred transcripts list", true);
 
-	//update data
-	if (dlg->result()==QDialog::Accepted)
+	//abort on cancel
+	if (dlg->result()!=QDialog::Accepted) return;
+
+	//parse file
+	QMap<QString, QStringList> preferred_transcripts_new;
+	QStringList lines = edit->toPlainText().split("\n");
+	foreach(QString line, lines)
 	{
-		//parse file
-		QMap<QString, QStringList> preferred_transcripts;
-		QStringList lines = edit->toPlainText().split("\n");
-		foreach(QString line, lines)
+		line = line.trimmed();
+		if (line.isEmpty() || line.startsWith("#")) continue;
+
+		QStringList parts = line.trimmed().split('\t');
+		if (parts.count()!=2)
 		{
-			line = line.trimmed();
-			if (line.isEmpty() || line.startsWith("#")) continue;
-
-			QStringList parts = line.trimmed().split('\t');
-			if (parts.count()!=2)
-			{
-				QMessageBox::warning(this, "Invalid preferred transcript line", "Found line that does not contain two tab-separated colmnns:\n" + line + "\n\nAborting!");
-				return;
-			}
-
-			//check gene
-			QByteArray gene = parts[0].toLatin1().trimmed();
-			NGSD db;
-			int gene_id = db.geneToApprovedID(gene);
-			if(gene_id==-1)
-			{
-				QMessageBox::warning(this, "Invalid preferred transcript line", "Gene name '" + gene + "' is not a HGNC-approved name!\n\nAborting!");
-				return;
-			}
-			gene = db.geneSymbol(gene_id);
-
-			//remove version number if present (NM_000543.3 => NM_000543.)
-			QStringList transcripts = parts[1].split(",");
-			foreach(QString transcript, transcripts)
-			{
-				transcript = transcript.trimmed();
-				if (transcript.isEmpty()) continue;
-				if (transcript.contains("."))
-				{
-					transcript = transcript.left(transcript.lastIndexOf('.'));
-				}
-
-				preferred_transcripts[gene].append(transcript);
-			}
+			QMessageBox::warning(this, "Invalid preferred transcript line", "Found line that does not contain two tab-separated colmnns:\n" + line + "\n\nAborting!");
+			return;
 		}
 
-		//store in INI file
-		QMap<QString, QVariant> tmp;
-		for(auto it=preferred_transcripts.cbegin(); it!=preferred_transcripts.cend(); ++it)
+		//check gene
+		QByteArray gene = parts[0].toLatin1().trimmed();
+		NGSD db;
+		int gene_id = db.geneToApprovedID(gene);
+		if(gene_id==-1)
 		{
-			tmp.insert(it.key(), it.value());
+			QMessageBox::warning(this, "Invalid preferred transcript line", "Gene name '" + gene + "' is not a HGNC-approved name!\n\nAborting!");
+			return;
 		}
-		Settings::setMap("preferred_transcripts", tmp);
+		gene = db.geneSymbol(gene_id);
 
-		//update in-memory copy of preferred transcripts
-		updatePreferredTranscripts();
+		//remove version number if present (NM_000543.3 => NM_000543.)
+		QStringList transcripts = parts[1].split(",");
+		foreach(QString transcript, transcripts)
+		{
+			transcript = transcript.trimmed();
+			if (transcript.isEmpty()) continue;
+			if (transcript.contains("."))
+			{
+				transcript = transcript.left(transcript.lastIndexOf('.'));
+			}
+
+			preferred_transcripts_new[gene].append(transcript);
+		}
 	}
+
+	//prevent writing if the INI file changed while showing the dialog
+	if (preferred_transcripts_last_modified!=QFileInfo(Settings::fileName()).lastModified())
+	{
+		QMessageBox::warning(this, "Cannot write preferred transcripts", "Perferred transcripts were changed by another GSvar instance.\nPlease re-do your changes!");
+		return;
+	}
+
+	//store in INI file
+	QMap<QString, QVariant> tmp;
+	for(auto it=preferred_transcripts_new.cbegin(); it!=preferred_transcripts_new.cend(); ++it)
+	{
+		tmp.insert(it.key(), it.value());
+	}
+	Settings::setMap("preferred_transcripts", tmp);
+
+	//update in-memory copy of preferred transcripts
+	preferred_transcripts_ = preferred_transcripts_new;
 }
 
 void MainWindow::on_actionOpenDocumentation_triggered()
@@ -2761,18 +2773,17 @@ void MainWindow::updateIGVMenu()
 	}
 }
 
-void MainWindow::updatePreferredTranscripts()
+QMap<QString, QStringList> MainWindow::loadPreferredTranscripts() const
 {
-	preferred_transcripts_.clear();
+	QMap<QString, QStringList> output;
 
 	QMap<QString, QVariant> tmp = Settings::map("preferred_transcripts");
 	for(auto it=tmp.cbegin(); it!=tmp.cend(); ++it)
 	{
-		preferred_transcripts_[it.key()] = it.value().toStringList();
+		output[it.key()] = it.value().toStringList();
 	}
 
-	//update variant details widget
-	var_widget_->setPreferredTranscripts(preferred_transcripts_);
+	return output;
 }
 
 void MainWindow::updateNGSDSupport()

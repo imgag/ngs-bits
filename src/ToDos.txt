@@ -21,7 +21,6 @@ NGSD:
 
 GSvar:
 ** Annotate Somatic data => select GSvar > 2 columns (small variants, CNVS) with AF, DP etc.
-* Avoid overwriting preferred transcripts when multiple instances of GSvar are open
 *** OMIM g/p in Report
 * Subpanel design: allow target regions gene-wide
 * Add multi-gene Google/PubMed search: https://www.ncbi.nlm.nih.gov/pubmed/?term=CASP8+AND+(%22Breast+cancer%22+OR+%22Breast+carcinoma%22)+AND+2018 (SWAL)

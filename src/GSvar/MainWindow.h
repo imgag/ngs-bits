@@ -50,8 +50,8 @@ public:
 	void updateRecentFilesMenu();
 	///Updates IGV menu
 	void updateIGVMenu();
-	///Updates preferred transcripts from settings.ini
-	void updatePreferredTranscripts();
+	///Loads preferred transcripts from settings.ini
+	QMap<QString, QStringList> loadPreferredTranscripts() const;
 	///Updates menu and toolbar according to NGSD-support
 	void updateNGSDSupport();
 	///Copy selected variants to clipboard
