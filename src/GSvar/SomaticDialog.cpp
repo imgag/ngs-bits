@@ -22,6 +22,12 @@ void SomaticDialog::setSamples(QList<AnalysisJobSample> samples)
 	updateStartButton();
 }
 
+void SomaticDialog::setCustomArguments(const QString& args)
+{
+	ui_.custom_args->setText(args);
+}
+
+
 QList<AnalysisJobSample> SomaticDialog::samples() const
 {
 	return SingleSampleAnalysisDialog::samples(samples_);
