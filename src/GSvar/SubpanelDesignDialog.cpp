@@ -71,10 +71,10 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 	ui->messages->clear();
 
 	//name check name
-	QString name = ui->name->text().trimmed();
-	if (!QRegExp("[0-9a-zA-Z_\\.]+").exactMatch(name))
+	QString basename = ui->name->text().trimmed();
+	if (basename.isEmpty() || !QRegExp("[0-9a-zA-Z_\\.]+").exactMatch(basename))
 	{
-		showMessage("Name '" + name + "' is empty or contains invalid characters!", true);
+		showMessage("Name '" + basename + "' is empty or contains invalid characters!", true);
 		return;
 	}
 
@@ -190,7 +190,7 @@ void SubpanelDesignDialog::storePanel()
 	regions.store(roi_file);
 	genes.store(gene_file);
 
-	showMessage("Sub-panel '" + ui->name->text().trimmed() +"' written successfully!", false);
+	showMessage("Sub-panel '" + QFileInfo(roi_file).baseName() + "' written successfully!", false);
 	ui->store->setEnabled(false);
 
 	last_created_subpanel = roi_file;
@@ -207,22 +207,42 @@ void SubpanelDesignDialog::importFromExistingSubpanel()
 	QString selected = QInputDialog::getItem(this, "Import data from existing sub-panel", "source sub-panel:", subpanelList(), 0, false, &ok);
 	if (!ok) return;
 
-	//set name
-	ui->name->setText(selected);
+	//set base name (remove auto-suffix when present)
+	QString basename = selected;
+	if (basename.count('_')>=3)
+	{
+		QStringList parts = selected.split('_');
+		QString first_suffix_part = parts[parts.count()-3];
+		for (int i=0; i<ui->mode->count(); ++i)
+		{
+			if (QRegExp(ui->mode->itemText(i) + "[0-9]+").exactMatch(first_suffix_part))
+			{
+				basename = parts.mid(0, parts.count()-3).join("_");
+				break;
+			}
+		}
+	}
+
+	ui->name->setText(basename);
 
 	//set genes
 	QString filename = NGSD::getTargetFilePath(true) + "/" + selected + "_genes.txt";
 	setGenes(GeneSet::createFromFile(filename));
 }
 
-QString SubpanelDesignDialog::getBedFilename()
+QString SubpanelDesignDialog::getBedFilename() const
 {
-	return NGSD::getTargetFilePath(true) + ui->name->text() + ".bed";
+	return NGSD::getTargetFilePath(true) + ui->name->text() + getBedSuffix();
 }
 
-QString SubpanelDesignDialog::getBedFilenameArchive()
+QString SubpanelDesignDialog::getBedFilenameArchive() const
 {
-	return NGSD::getTargetFilePath(true) + "/archive/" + ui->name->text() + ".bed";
+	return NGSD::getTargetFilePath(true) + "/archive/" + ui->name->text() + getBedSuffix();
+}
+
+QString SubpanelDesignDialog::getBedSuffix() const
+{
+	return 	"_" + ui->mode->currentText() + ui->flanking->currentText() + "_" + Helper::userName() + "_" + QDate::currentDate().toString("yyyyMMdd") + ".bed";
 }
 
 void SubpanelDesignDialog::showMessage(QString message, bool error)

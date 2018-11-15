@@ -10,7 +10,7 @@ libs:
 - FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 
 NGSD:
-*** add HPO/ICD10/CGI annotation for samples (annotation, type, date, source)
+** add HPO/ICD10/CGI annotation for samples (annotation, type, date, source)
     - update from GenLab in NGSDMaintainance
     - allow triggering import from GenLab manually
 ** model sample relation: same sample, parent-child, tumor-normal, siblings
@@ -20,6 +20,7 @@ NGSD:
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
 
 GSvar:
+* Phenotype-based filter: whole gene +-5000 bases
 ** Annotate Somatic data => select GSvar > 2 columns (small variants, CNVS) with AF, DP etc.
 *** OMIM g/p in Report
 * Add multi-gene Google/PubMed search: https://www.ncbi.nlm.nih.gov/pubmed/?term=CASP8+AND+(%22Breast+cancer%22+OR+%22Breast+carcinoma%22)+AND+2018 (SWAL)

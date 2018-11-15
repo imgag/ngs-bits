@@ -34,8 +34,9 @@ protected slots:
 private:
 	QStringList subpanelList();
 	void createSubpanelCompleter();
-	QString getBedFilename();
-	QString getBedFilenameArchive();
+	QString getBedFilename() const;
+	QString getBedFilenameArchive() const;
+	QString getBedSuffix() const;
 	void showMessage(QString message, bool error);
 
 	Ui::SubpanelDesignDialog *ui;

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>715</width>
-    <height>323</height>
+    <width>680</width>
+    <height>366</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -145,7 +145,7 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to design a sub-panel. The created target region constist of the exon/gene regions plus the &lt;span style=&quot; font-style:italic;&quot;&gt;x&lt;/span&gt; flanking bases.&lt;/p&gt;&lt;p&gt;Sub-panels that are specific for a sample/patient should start with the following information by convention:&lt;br/&gt;[base panel]_individual_[sample identifier]&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to design a sub-panel. The created target region constist of the exon/gene regions plus the &lt;span style=&quot; font-style:italic;&quot;&gt;x&lt;/span&gt; flanking bases.&lt;/p&gt;&lt;p&gt;The base file name given in this dialog is automatically suffixed by _[regions][flanking]_[user]_[date].&lt;/p&gt;&lt;p&gt;Sub-panels that are specific for a sample/patient should contain _individual[sample identifier] in the base file name.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="scaledContents">
       <bool>false</bool>
@@ -158,7 +158,7 @@
    <item row="1" column="0">
     <widget class="QLabel" name="label_3">
      <property name="text">
-      <string>File name:</string>
+      <string>Base file name:</string>
      </property>
     </widget>
    </item>
