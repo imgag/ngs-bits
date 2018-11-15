@@ -134,6 +134,8 @@ void ReportHelper::writeSnvList(QTextStream& stream, const QList<int>& col_width
 		stream << begin_table_cell << snv.annotations().at(snv_index_cgi_gene_role_) << "\\cell" << endl;
 		stream << "\\row}" << endl;
 	}
+	RtfTools::writeRtfTableSingleRowSpec(stream,{col_widths.last()},false);
+	stream << begin_table_cell << "\\fs14 Erkl\\u228;rungen siehe Abk\\u252;rzungsverzeichnis Anlage 1." << "\\cell\\row}" << endl;
 }
 
 void ReportHelper::writeCnvGeneList(QTextStream& stream, const QList<int>& col_widths,const GeneSet& target_genes)
@@ -228,6 +230,8 @@ void ReportHelper::writeCnvGeneList(QTextStream& stream, const QList<int>& col_w
 
 		stream << "\\row}" << endl;
 	}
+	RtfTools::writeRtfTableSingleRowSpec(stream,{col_widths.last()},false);
+	stream << begin_table_cell << "\\fs14 Erkl\\u228;rungen siehe Abk\\u252;rzungsverzeichnis Anlage 1." << "\\cell\\row}" << endl;
 }
 
 
@@ -350,6 +354,8 @@ void ReportHelper::writeCnvList(QTextStream& stream, const QList<int>& col_width
 	}
 
 	RtfTools::writeRtfWholeTable(stream,somatic_cnv_table,col_widths,18,true,false);
+	RtfTools::writeRtfTableSingleRowSpec(stream,{col_widths.last()},false);
+	stream << begin_table_cell << "\\fs14 Erkl\\u228;rungen siehe Abk\\u252;rzungsverzeichnis Anlage 1." << "\\cell\\row}" << endl;
 }
 
 
@@ -1152,6 +1158,8 @@ void ReportHelper::writeRtfCGIDrugTable(QTextStream &stream, const QList<int> &c
 		drugs_as_string.append(result_line);
 	}
 	RtfTools::writeRtfWholeTable(stream,drugs_as_string,col_widths,18,true,false);
+	RtfTools::writeRtfTableSingleRowSpec(stream,{col_widths.last()},false);
+	stream << begin_table_cell << "\\fs14 Erkl\\u228;rungen siehe Abk\\u252;rzungsverzeichnis Anlage 1." << "\\cell\\row}" << endl;
 }
 
 void ReportHelper::germlineSnvForQbic()
@@ -1697,6 +1705,8 @@ void ReportHelper::writeRtf(const QString& out_file)
 		RtfTools::writeRtfTableSingleRowSpec(stream,{widths.last()},true,false);
 		stream << begin_table_cell << (fusions.atEnd() ? "Keine Fusionen gefunden" : "\\highlight3 Fusionen gefunden. Bitte "+fusions_file+" pr\\u252;fen.") << "\\cell\\row}" << endl;
 	}
+	RtfTools::writeRtfTableSingleRowSpec(stream,{widths.last()},false);
+	stream << begin_table_cell << "\\fs14 Erkl\\u228;rungen siehe Abk\\u252;rzungsverzeichnis Anlage 1." << "\\cell\\row}" << endl;
 	stream << "\\page" << endl;
 	widths.clear();
 	widths << 3000 << max_table_width;

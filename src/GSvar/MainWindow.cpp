@@ -342,6 +342,7 @@ void MainWindow::on_actionDiagnosticStatusOverview_triggered()
 
 void MainWindow::on_actionReanalyze_triggered()
 {
+	if (filename_=="") return;
 	SampleHeaderInfo header_info = variants_.getSampleHeader();
 	foreach(const SampleInfo& info, header_info)
 	{
