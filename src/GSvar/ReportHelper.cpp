@@ -115,6 +115,11 @@ void ReportHelper::writeSnvList(QTextStream& stream, const QList<int>& col_width
 
 	for(int i=0;i<snvs.count();++i)
 	{
+		cgi_acronyms_.append(parse_cgi_cancer_acronyms(snvs[i].annotations().at(snv_index_cgi_driver_statement_)));
+	}
+
+	for(int i=0;i<snvs.count();++i)
+	{
 		RtfTools::writeRtfTableSingleRowSpec(stream,col_widths,true);
 
 		Variant snv = snvs[i];
@@ -202,6 +207,12 @@ void ReportHelper::writeCnvGeneList(QTextStream& stream, const QList<int>& col_w
 				gene_per_cnv.append({genes[index],cnv.chr().str(),size,QByteArray::number(cnv.copyNumber()),statements[index],effects[index]});
 			}
 		}
+	}
+
+	//Add CGI cancer acronyms to global list
+	foreach(QList<QByteArray> data,gene_per_cnv)
+	{
+		cgi_acronyms_.append(parse_cgi_cancer_acronyms(data[4]));
 	}
 
 	foreach(QByteArrayList gene,gene_per_cnv)
@@ -752,20 +763,8 @@ ReportHelper::ReportHelper(QString snv_filename, const ClinCnvList& filtered_cnv
 		obo_terms_coding_splicing_.add(obo_terms.findByID(id));
 	}
 
-
-	//get cancer type which was used for CGI analysis and text for ICD10-diagnosis
-	for(int i=0; i<snv_variants_.comments().count(); ++i)
-	{
-		if(snv_variants_.comments().at(i).contains("CGI_CANCER_TYPE"))
-		{
-			cgi_cancer_type_ = snv_variants_.comments().at(i).split('=')[1];
-		}
-	}
-
-	if(cgi_cancer_type_.isEmpty())
-	{
-		cgi_cancer_type_ = "empty";
-	}
+	//get cancer type which was used for CGI analysis
+	cgi_cancer_type_ = cgiCancertype(snv_variants_);
 
 	//assign columns indices for SNV file
 	snv_index_coding_splicing_ = snv_variants_.annotationIndexByName("coding_and_splicing",true,true);
@@ -812,6 +811,35 @@ ReportHelper::ReportHelper(QString snv_filename, const ClinCnvList& filtered_cnv
 	{
 		mutation_burden_ = std::numeric_limits<double>::quiet_NaN();
 	}
+}
+
+QByteArray ReportHelper::cgiCancertype(const VariantList &variants)
+{
+	QStringList comments = variants.comments();
+	foreach(QString comment,comments)
+	{
+		if(comment.startsWith("##CGI_CANCER_TYPE="))
+		{
+			QByteArray cancer_type = comment.mid(18).trimmed().toUtf8();
+			if(!cancer_type.isEmpty()) return cancer_type;
+			else return "n/a";
+		}
+	}
+	return "n/a";
+}
+
+QList<QByteArray> ReportHelper::parse_cgi_cancer_acronyms(QByteArray text)
+{
+	QList<QByteArray> cgi_acronyms = {};
+
+	if(text.contains("known"))
+	{
+		text.replace("known in:","");
+		text.replace(" ","");
+		cgi_acronyms.append( text.split(';') );
+		return cgi_acronyms;
+	}
+	return cgi_acronyms;
 }
 
 QHash<QByteArray, BedFile> ReportHelper::gapStatistics(const BedFile& region_of_interest)
@@ -936,6 +964,34 @@ void ReportHelper::writeGapStatistics(QTextStream &stream, const QString& target
 		}
 	}
 }
+
+void ReportHelper::writeQualityParams(QTextStream &stream, const QList<int> &widths)
+{
+	QString begin_table_cell = "\\pard\\intbl\\fs18 ";
+
+	QDir directory = QFileInfo(snv_filename_).dir();
+	directory.cdUp();
+	QString qcml_file_tumor_stats_map_absolute_path = directory.absolutePath() + "/" + "Sample_" + tumor_id_ + "/" + tumor_id_ + "_stats_map.qcML";
+	QString qcml_file_normal_stats_map_absolute_path = directory.absolutePath() + "/" + "Sample_" + normal_id_ + "/" + normal_id_ + "_stats_map.qcML";
+
+	QCCollection qcml_data_tumor = QCCollection::fromQCML(qcml_file_tumor_stats_map_absolute_path);
+	QCCollection qcml_data_normal = QCCollection::fromQCML(qcml_file_normal_stats_map_absolute_path);
+
+	stream << "{\\pard\\sa45\\sb45\\fs18\\b Qualit\\u228;tsparameter:\\par}" << endl;
+	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
+	stream << begin_table_cell << "Analysepipeline: " << "\\cell " << snv_variants_.getPipeline() << "\\cell" << "\\row}" <<endl;
+	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
+	stream << begin_table_cell << "Auswertungssoftware: " << "\\cell " << QCoreApplication::applicationName() << " " << QCoreApplication::applicationVersion() << "\\cell" << "\\row}" <<endl;
+	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
+	stream << begin_table_cell << "Coverage Tumor 100x:\\cell"<< begin_table_cell << qcml_data_tumor.value("QC:2000030",true).toString()  << "\%"<< "\\cell" << "\\row}" <<endl;
+	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
+	stream << begin_table_cell << "Durchschnittliche Tiefe Tumor:\\cell" << begin_table_cell << qcml_data_tumor.value("QC:2000025",true).toString() << "x" << "\\cell" << "\\row}" << endl;
+	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
+	stream << begin_table_cell << "Coverage Normal 100x:\\cell"<< begin_table_cell << qcml_data_normal.value("QC:2000030",true).toString() << "\%" << "\\cell" << "\\row}" <<endl;
+	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
+	stream << begin_table_cell << "Durchschnittliche Tiefe Normal:\\cell" << begin_table_cell << qcml_data_normal.value("QC:2000025",true).toString() << "x" << "\\cell" << "\\row}" <<endl;
+}
+
 
 void ReportHelper::writeRtfCGIDrugTable(QTextStream &stream, const QList<int> &col_widths)
 {
@@ -1076,6 +1132,9 @@ void ReportHelper::writeRtfCGIDrugTable(QTextStream &stream, const QList<int> &c
 			result_line[0].prepend("\\highlight3 ");
 		}
 
+		//add cancer acronyms to global list
+		cgi_acronyms_.append(result_line[1].toUtf8().split(','));
+
 		for(int i=0; i<result_line.count(); ++i)
 		{
 			result_line[i].prepend("\\li20 ");
@@ -1092,7 +1151,6 @@ void ReportHelper::writeRtfCGIDrugTable(QTextStream &stream, const QList<int> &c
 
 		drugs_as_string.append(result_line);
 	}
-
 	RtfTools::writeRtfWholeTable(stream,drugs_as_string,col_widths,18,true,false);
 }
 
@@ -1564,8 +1622,6 @@ void ReportHelper::writeRtf(const QString& out_file)
 	widths << 1800 << 4000 << 5400 << 6500 << 8950  << max_table_width;
 
 	QString begin_table_cell_head = begin_table_cell +"\\b\\qc " ;
-	RtfTools::writeRtfTableSingleRowSpec(stream,{widths.last()},false);
-	stream << begin_table_cell << "\\b\\ql Somatische Ver\\u228;nderungen:\\b0"<<"\\cell\\row}" << endl;
 
 	/**********************************
 	 * MUTATION BURDEN AND MSI STATUS *
@@ -1644,7 +1700,6 @@ void ReportHelper::writeRtf(const QString& out_file)
 	stream << "\\page" << endl;
 	widths.clear();
 	widths << 3000 << max_table_width;
-	stream << "{\\pard\\b Weiterf\\u252;hrender Bericht\\par}" << endl;
 
 	/***********************
 	 * GENERAL INFORMATION *
@@ -1682,6 +1737,9 @@ void ReportHelper::writeRtf(const QString& out_file)
 	stream << " (" << gene_set.count() << " Gene" << ")";
 	stream << "\\cell\\row}" << endl;
 
+	//write QC params here in case of HSA report
+	if(target_region_.isEmpty()) writeQualityParams(stream,widths);
+
 
 	widths.clear();
 	/*********************
@@ -1705,48 +1763,42 @@ void ReportHelper::writeRtf(const QString& out_file)
 	writeRtfCGIDrugTable(stream,widths);
 	stream << endl << "\\page" << endl;
 
-	/********************
-	 * TECHNICAL REPORT *
-	 ********************/
-	stream << "{\\pard\\sa45\\sb45\\b Technischer Report\\b0\\par}" << endl;
-	stream << "{\\pard\\par}" << endl;
 
-	//quality parameters
-	QDir directory = QFileInfo(snv_filename_).dir();
-	directory.cdUp();
-	QString qcml_file_tumor_stats_map_absolute_path = directory.absolutePath() + "/" + "Sample_" + tumor_id_ + "/" + tumor_id_ + "_stats_map.qcML";
-	QString qcml_file_normal_stats_map_absolute_path = directory.absolutePath() + "/" + "Sample_" + normal_id_ + "/" + normal_id_ + "_stats_map.qcML";
+	stream <<"{\\pard\\b\\sa45\\sb45\\fs18 Abk\\u252;rzungsverzeichnis:\\par}" << endl;
+	stream << "\\pard\\fs18 ";
 
-	QCCollection qcml_data_tumor = QCCollection::fromQCML(qcml_file_tumor_stats_map_absolute_path);
-	QCCollection qcml_data_normal = QCCollection::fromQCML(qcml_file_normal_stats_map_absolute_path);
+	TSVFileStream acronym_translations("://Resources/cancer_types.tsv");
+	int i_cgi_acronym = acronym_translations.colIndex("ID",true);
+	int i_german_translation = acronym_translations.colIndex("NAME_GERMAN",true);
+	QByteArrayList cgi_acronym_explanation;
+
+	while(!acronym_translations.atEnd())
+	{
+		QByteArrayList current_line = acronym_translations.readLine();
+
+		if(cgi_acronyms_.contains(current_line.at(i_cgi_acronym)))
+		{
+			cgi_acronym_explanation << current_line.at(i_cgi_acronym) + ": " + current_line.at(i_german_translation);
+		}
+	}
+	for(int i=0;i<cgi_acronym_explanation.count();++i)
+	{
+		stream << cgi_acronym_explanation.at(i);
+		if(i<cgi_acronym_explanation.count()-1) stream << ", ";
+	}
+
+	stream << "\\par" << endl;
 
 
-	/**********************
-	 * QUALITY PARAMETERS *
-	 *********************/
-	widths.clear();
-	widths << 3000 << max_table_width;
-	stream << "{\\pard\\sa45\\sb45\\fs18\\b Qualit\\u228;tsparameter:\\par}" << endl;
-	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "Analysepipeline: " << "\\cell " << snv_variants_.getPipeline() << "\\cell" << "\\row}" <<endl;
-	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "Auswertungssoftware: " << "\\cell " << QCoreApplication::applicationName() << " " << QCoreApplication::applicationVersion() << "\\cell" << "\\row}" <<endl;
-	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "Coverage Tumor 100x:\\cell"<< begin_table_cell << qcml_data_tumor.value("QC:2000030",true).toString()  << "\%"<< "\\cell" << "\\row}" <<endl;
-	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "Durchschnittliche Tiefe Tumor:\\cell" << begin_table_cell << qcml_data_tumor.value("QC:2000025",true).toString() << "x" << "\\cell" << "\\row}" << endl;
-	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "Coverage Normal 100x:\\cell"<< begin_table_cell << qcml_data_normal.value("QC:2000030",true).toString() << "\%" << "\\cell" << "\\row}" <<endl;
-	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "Durchschnittliche Tiefe Normal:\\cell" << begin_table_cell << qcml_data_normal.value("QC:2000025",true).toString() << "x" << "\\cell" << "\\row}" <<endl;
-	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "Prozessierungssystem Tumor:\\cell" << begin_table_cell <<  db_.getProcessingSystemData(db_.processedSampleId(tumor_id_), true).name << "\\cell\\row}" << endl;
-	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "Prozessierungssystem Normal:\\cell" << begin_table_cell << db_.getProcessingSystemData(db_.processedSampleId(normal_id_), true).name << "\\cell\\row}" << endl;
-
-	//Write Gap statistics in case target region is set (EBM report)
+	/***************************************
+	 * QUALITY PARAMETERS / GAP STATISTICS *
+	 ***************************************/
 	if(!target_region_.isEmpty())
 	{
+		widths.clear();
+		widths << 3000 << max_table_width;
+		stream << "{\\pard\\par}" << endl;
+		writeQualityParams(stream,widths);
 		stream << "{\\pard\\par}" << endl;
 		writeGapStatistics(stream,target_region_);
 	}

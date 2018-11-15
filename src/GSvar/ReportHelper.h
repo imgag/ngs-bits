@@ -193,6 +193,9 @@ public:
 	void somaticSvForQbic();
 	void metaDataForQbic();
 
+	///returns CGI cancertype if available from VariantList
+	static QByteArray cgiCancertype(const VariantList& variants);
+
 private:
 	///transforms GSVar coordinates of Variants to VCF INDEL-standard
 	VariantList gsvarToVcf(const VariantList& gsvar_list, const QString& orig_name);
@@ -210,8 +213,14 @@ private:
 	///generates table with CNVs
 	void writeCnvList(QTextStream& stream, const QList<int>& colWidths);
 
-	///writes table with drug annotation
+	///Writes table with drug annotation
 	void writeRtfCGIDrugTable(QTextStream& stream, const QList<int>& col_widths);
+
+	///Writers basic QC params to RTF report
+	void writeQualityParams(QTextStream& stream, const QList<int>& widths);
+
+	///Parse raw text containing CGI cancer acronyms in the form "known in:
+	QList<QByteArray> parse_cgi_cancer_acronyms(QByteArray text);
 
 	///SNV file
 	QString snv_filename_;
@@ -277,6 +286,9 @@ private:
 	int cnv_index_cnv_type_;
 	int cnv_index_cgi_genes_;
 	int cnv_index_cgi_driver_statement_;
+
+	///List of CGI cancer abbreviations
+	QByteArrayList cgi_acronyms_;
 
 	///Filter list
 	FilterCascade filters_;

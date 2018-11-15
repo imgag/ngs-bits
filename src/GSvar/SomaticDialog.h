@@ -16,6 +16,9 @@ public:
 	//Fills table with given processed samples
 	void setSamples(QList<AnalysisJobSample> samples);
 
+	///sets custom arguments to given QByteArray
+	void setCustomArguments(const QString& args);
+
 	//Returns the processed sample list.
 	QList<AnalysisJobSample> samples() const;
 	//Returns the command line arguments.
