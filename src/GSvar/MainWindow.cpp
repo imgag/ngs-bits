@@ -343,11 +343,8 @@ void MainWindow::on_actionDiagnosticStatusOverview_triggered()
 void MainWindow::on_actionReanalyze_triggered()
 {
 	if (filename_=="") return;
+
 	SampleHeaderInfo header_info = variants_.getSampleHeader();
-	foreach(const SampleInfo& info, header_info)
-	{
-		qDebug() << info.id << info.isAffected() << info.isTumor() << info.gender();
-	}
 
 	QList<AnalysisJobSample> samples;
 	if (variants_.type()==GERMLINE_SINGLESAMPLE)
@@ -2674,7 +2671,7 @@ void MainWindow::filtersChanged()
 
 			//convert genes to ROI
 			last_phenos_roi_ = db.genesToRegions(pheno_genes, Transcript::ENSEMBL, "gene", true);
-			last_phenos_roi_.extend(100);
+			last_phenos_roi_.extend(5000);
 			last_phenos_roi_.merge();
 			Log::perf("Updating phenotype filter took ", timer);
 			timer.start();

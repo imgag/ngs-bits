@@ -441,7 +441,7 @@ void FilterDockWidget::phenotypesChanged()
 
 	ui_.hpo_terms->setText(tmp.join("; "));
 
-	QString tooltip = "Phenotype/inheritance filter based on HPO terms.<br><br>Notes:<br>- This functionality is only available when NGSD is enabled.";
+	QString tooltip = "Phenotype/inheritance filter based on HPO terms.<br><br>Notes:<br>- This functionality is only available when NGSD is enabled.<br>- Filters based on the phenotype-associated gene loci including 5000 flanking bases.";
 	if (!phenotypes_.isEmpty())
 	{
 		tooltip += "<br><br><nobr>Currently selected HPO terms:</nobr>";

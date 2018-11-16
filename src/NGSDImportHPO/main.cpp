@@ -143,7 +143,6 @@ public:
 				int start = line.indexOf('"');
 				int end = line.indexOf('"', start+1);
 				QByteArray syn = line.mid(start+1, end-start-1).trimmed();
-				qDebug() << syn;
 				synonyms << syn;
 			}
 			else if (line.startsWith("is_a: HP:"))
