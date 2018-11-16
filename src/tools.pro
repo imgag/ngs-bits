@@ -249,6 +249,10 @@ SUBDIRS += NGSDImportHPO
 tools-TEST.depends += NGSDImportHPO
 NGSDImportHPO.depends = cppNGSD
 
+SUBDIRS += NGSDImportOMIM
+tools-TEST.depends += NGSDImportOMIM
+NGSDImportOMIM.depends = cppNGSD
+
 SUBDIRS += FastqExtractBarcode
 tools-TEST.depends += FastqExtractBarcode
 FastqExtractBarcode.depends = cppNGSD

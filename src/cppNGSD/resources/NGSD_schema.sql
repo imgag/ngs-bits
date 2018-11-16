@@ -913,6 +913,37 @@ CREATE TABLE `analysis_job_history` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
+-- -----------------------------------------------------
+-- Table `omim_gene`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `omim_gene`
+(
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `gene` VARCHAR(40) CHARACTER SET 'utf8' NOT NULL,
+  `mim` VARCHAR(10) CHARACTER SET 'utf8' NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `gene_unique` (`gene`),
+  UNIQUE KEY `mim_unique` (`mim`)
+)
+ENGINE = InnoDB DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `omim_phenotype`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `omim_phenotype`
+(
+  `omim_gene_id` INT(11) UNSIGNED NOT NULL,
+  `phenotype` VARCHAR(255) CHARACTER SET 'utf8' NOT NULL,
+  PRIMARY KEY (`omim_gene_id`, `phenotype`),
+  CONSTRAINT `omim_gene_id_FK`
+    FOREIGN KEY (`omim_gene_id` )
+    REFERENCES `omim_gene` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB DEFAULT CHARACTER SET = utf8;
+
 -- ----------------------------------------------------------------------------------------------------------
 --                                                 INITIAL DATA
 -- ----------------------------------------------------------------------------------------------------------

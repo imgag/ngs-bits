@@ -1,0 +1,10 @@
+# Copyright (c) 1966-2018 Johns Hopkins University. Use of this file adheres to the terms specified at https://omim.org/help/agreement.
+# Generated: 2018-10-09
+# See end of file for additional documentation on specific fields
+# Phenotype	Gene Symbols	MIM Number	Cyto Location
+Pheno 1, 111111 (1)	ACAT2	100678	6q25.3
+Pheno 2, 222222 (3)	ALDH2	100650	12q24.12
+Pheno 3, (3)	ALDH2	100650	12q24.12
+Pheno 4, 444444 (3)	ALDH2	100650	12q24.12
+Pheno 5, (3)	ALDH2	100650	12q24.12
+Pheno 6, 666666 (3)	ALDH2	123456	12q24.12

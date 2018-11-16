@@ -97,7 +97,8 @@ HEADERS += \
     BamFilter_Test.h \
     VcfCheck_Test.h \
     VcfBreakMulti_Test.h \
-    VcfFilter_Test.h
+    VcfFilter_Test.h \
+    NGSDImportOMIM_Test.h
 
 SOURCES += \
     main.cpp \
