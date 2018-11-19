@@ -17,16 +17,16 @@ class CPPNGSSHARED_EXPORT BamWriter
 		//Write a BAM header from another BAM file
 		void writeHeader(const BamReader& reader)
 		{
-			if (sam_hdr_write(fp_, reader.header_)==-1)
+			if (bam_hdr_write(fp_->fp.bgzf, reader.header_)==-1)
 			{
 				THROW(FileAccessException, "Could not write header to BAM file " + bam_file_);
 			}
 		}
 
 		//Write an alignment from another BAM file
-		void writeAlignment(const BamReader& reader, const BamAlignment& al)
+		void writeAlignment(const BamAlignment& al)
 		{
-			if(sam_write1(fp_, reader.header_, al.aln_)==-1)
+			if(bam_write1(fp_->fp.bgzf, al.aln_)==-1)
 			{
 				THROW(FileAccessException, "Could not write alignment " + al.name() + " to BAM file " + bam_file_);
 			}

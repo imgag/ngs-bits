@@ -73,25 +73,25 @@ public:
 			//check preconditions and if unmet save read to out and continue
 			if(!al.isPaired() || al.isSecondaryAlignment())
 			{
-				writer.writeAlignment(reader, al);
+				writer.writeAlignment(al);
 				++reads_saved;
 				continue;
 			}
 			if(al.isUnmapped() && al.isMateUnmapped())	// only mapped reads
 			{
-				writer.writeAlignment(reader, al);
+				writer.writeAlignment(al);
 				++reads_saved;
 				continue;
 			}
 			if(al.chromosomeID()!=al.mateChrosomeID())	// different chromosomes
 			{
-				writer.writeAlignment(reader, al);
+				writer.writeAlignment(al);
 				++reads_saved;
 				continue;
 			}
 			if(al.cigarData().isEmpty())	// only with CIGAR data
 			{
-				writer.writeAlignment(reader, al);
+				writer.writeAlignment(al);
 				++reads_saved;
 				continue;
 			}
@@ -518,8 +518,8 @@ public:
 				//save reads
 				reads_saved+=2;
 				if(skip_al)	continue;
-				writer.writeAlignment(reader, forward_read);
-				writer.writeAlignment(reader, reverse_read);
+				writer.writeAlignment(forward_read);
+				writer.writeAlignment(reverse_read);
 			}
 			else    //keep in map
 			{
@@ -530,7 +530,7 @@ public:
 		//step 3: save all remaining reads
 		foreach(const BamAlignment& al, al_map)
 		{
-			writer.writeAlignment(reader, al);
+			writer.writeAlignment(al);
 			++reads_saved;
 		}
 

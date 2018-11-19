@@ -58,7 +58,7 @@ public:
 				if (Helper::randomNumber(0, 100)<percentage)
 				{
 					++c_se_pass;
-					writer.writeAlignment(reader, al);
+					writer.writeAlignment(al);
 					if (test) out << "KEPT SE: " << al.name() << endl;
 				}
 			}
@@ -75,8 +75,8 @@ public:
 					if (Helper::randomNumber(0, 100)<percentage)
 					{
 						++c_pe_pass;
-						writer.writeAlignment(reader, al_cache.take(name));
-						writer.writeAlignment(reader, al);
+						writer.writeAlignment(al_cache.take(name));
+						writer.writeAlignment(al);
 						if (test) out << "KEPT PE: " << name << endl;
 					}
 					else

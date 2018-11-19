@@ -98,8 +98,8 @@ public:
 				if (cache_pass.value(name) && alignment_pass(al))
 				{
 					//mate passed, this alignment passes, keep alignments
-					writer.writeAlignment(reader, cache.take(name));
-					writer.writeAlignment(reader, al);
+					writer.writeAlignment(cache.take(name));
+					writer.writeAlignment(al);
 					cache_pass.remove(name);
 					++count_pass;
 				}

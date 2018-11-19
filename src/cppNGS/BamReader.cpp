@@ -375,7 +375,7 @@ BamReader::BamReader(const QString& bam_file)
 	}
 
 	//read header
-	header_ = sam_hdr_read(fp_);
+	header_ = bam_hdr_read(fp_->fp.bgzf);
 	if (header_==nullptr)
 	{
 		THROW(FileAccessException, "Could not read header from BAM file " + bam_file);
@@ -393,9 +393,9 @@ BamReader::BamReader(const QString& bam_file)
 BamReader::~BamReader()
 {
 	clearIterator();
-	free(index_);
+	hts_idx_destroy(index_);
 	bam_hdr_destroy(header_);
-	sam_close(fp_);
+	hts_close(fp_);
 }
 
 QByteArrayList BamReader::headerLines() const
@@ -416,7 +416,7 @@ void BamReader::setRegion(const Chromosome& chr, int start, int end)
 	//load index if not done already
 	if (index_==nullptr)
 	{
-		index_ = sam_index_load(fp_, bam_file_.toLatin1().data());
+		index_ = bam_index_load(bam_file_.toLatin1().data());
 		if (index_==nullptr)
 		{
 			THROW(FileAccessException, "Could not load index of BAM file " + bam_file_);
@@ -431,7 +431,7 @@ void BamReader::setRegion(const Chromosome& chr, int start, int end)
 	}
 
 	//create iterator for region
-	iter_ = sam_itr_queryi(index_, chr_index, start-1, end);
+	iter_ = bam_itr_queryi(index_, chr_index, start-1, end);
 	if (iter_==nullptr)
 	{
 		QByteArray region_str = chrs_[chr_index].str() + ":" + QByteArray::number(start) + "-" + QByteArray::number(end);
@@ -446,7 +446,7 @@ void BamReader::setRegion(const Chromosome& chr, int start, int end)
 
 bool BamReader::getNextAlignment(BamAlignment& al)
 {
-	int res = (iter_!=nullptr) ? sam_itr_next(fp_, iter_, al.aln_) : sam_read1(fp_, header_, al.aln_);
+	int res = (iter_!=nullptr) ? bam_itr_next(fp_, iter_, al.aln_) : bam_read1(fp_->fp.bgzf, al.aln_);
 
 	if (res<-1)
 	{
@@ -490,7 +490,7 @@ double BamReader::genomeSize(bool nonspecial_only) const
 
 void BamReader::clearIterator()
 {
-	hts_itr_destroy(iter_);
+	bam_itr_destroy(iter_);
 
 	iter_ = nullptr;
 }

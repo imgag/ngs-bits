@@ -57,7 +57,7 @@ public:
 				}
 			}
 
-			writer.writeAlignment(reader, al);
+			writer.writeAlignment(al);
 		}
 
 		//statistics output
