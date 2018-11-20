@@ -294,7 +294,7 @@ bool VcfFile::isValid(QString vcf_file, QString ref_file, QTextStream& out_strea
 			//samples
 			for (int s=0; s<defined_samples.count(); ++s)
 			{
-				if (parts[9+s] == ".") { // ignore missing sample
+                if (parts[9+s] == ".") { // ignore MISSING sample
 					continue;
 				}
 
@@ -310,6 +310,9 @@ bool VcfFile::isValid(QString vcf_file, QString ref_file, QTextStream& out_strea
 				//check values (number, type)
 				for (int i=0; i<format_names.count(); ++i)
 				{
+                    if (sample_data[i] == ".") { // ignore MISSING sample
+                        continue;
+                    }
 					const QByteArray& name = format_names[i];
 					const DefinitionLine& current_format = defined_formats[name];
 					QByteArrayList values = sample_data[i].split(',');
