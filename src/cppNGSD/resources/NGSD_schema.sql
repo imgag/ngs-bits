@@ -922,7 +922,6 @@ CREATE TABLE IF NOT EXISTS `omim_gene`
   `gene` VARCHAR(40) CHARACTER SET 'utf8' NOT NULL,
   `mim` VARCHAR(10) CHARACTER SET 'utf8' NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `gene_unique` (`gene`),
   UNIQUE KEY `mim_unique` (`mim`)
 )
 ENGINE = InnoDB DEFAULT CHARACTER SET = utf8;

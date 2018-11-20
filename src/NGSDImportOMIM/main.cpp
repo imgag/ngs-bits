@@ -65,6 +65,7 @@ public:
 			if (line.isEmpty() || line[0]=='#') continue;
 
 			QByteArrayList parts = line.split('\t'); //mim, type, NCBI ID, HGNC symbol, Ensembl ID
+			if (parts.count()<4) continue;
 
 			//check type "gene"
 			QByteArray type = parts[1].trimmed();
@@ -93,7 +94,13 @@ public:
 		}
 		fp->close();
 
+		//output
+		int c_genes = db.getValues("SELECT gene FROM omim_gene").count();
+		int c_genes_distinct = db.getValues("SELECT DISTINCT gene FROM omim_gene").count();
+		out << "Imported " << c_genes << " genes (" << (c_genes-c_genes_distinct) << " duplicate genes)" << endl;
+
 		//import gene-phenotype relations
+		out << endl;
 		out << "Importing OMIM gene-phenotype relations..." << endl;
 		fp = Helper::openFileForReading(getInfile("morbid"));
 		while(!fp->atEnd())
@@ -102,6 +109,7 @@ public:
 			if (line.isEmpty() || line[0]=='#') continue;
 
 			QByteArrayList parts = line.split('\t'); //phenotype, gene symbols, gene MIM, cyto location
+			if (parts.count()<3) continue;
 
 			//check phenotype
 			QByteArray phenotype = parts[0].trimmed();
@@ -118,6 +126,12 @@ public:
 			qi_pheno.exec();
 		}
 		fp->close();
+
+
+		//output
+		out << "Imported " << db.getValue("SELECT COUNT(*) FROM omim_phenotype").toInt() << " phenotypes" << endl;
+		int c_genes_pheno = db.getValues("SELECT DISTINCT omim_gene_id FROM omim_phenotype").count();
+		out << c_genes_pheno << " out of the " << c_genes << " genes have phenotype information" << endl;
 	}
 };
 
