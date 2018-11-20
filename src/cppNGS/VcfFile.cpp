@@ -145,24 +145,24 @@ bool VcfFile::isValid(QString vcf_file, QString ref_file, QTextStream& out_strea
 			}
 
 			//chromosome
-			Chromosome chr(parts[0]);
+            Chromosome chr(parts[VcfFile::CHROM]);
 			if (chr.str().contains(":"))
 			{
-				printError(out_stream, "Chromosome '" + parts[0] + "' is not valid!", l, line);
+                printError(out_stream, "Chromosome '" + parts[VcfFile::CHROM] + "' is not valid!", l, line);
 				return false;
 			}
 
 			//position
 			bool pos_is_valid;
-			int pos = parts[1].toInt(&pos_is_valid);
+            int pos = parts[VcfFile::POS].toInt(&pos_is_valid);
 			if(!pos_is_valid)
 			{
-				printError(out_stream, "Chromosomal position '" + parts[1] + "' is not a number!", l, line);
+                printError(out_stream, "Chromosomal position '" + parts[VcfFile::POS] + "' is not a number!", l, line);
 				return false;
 			}
 
 			//reference base
-			QByteArray ref = parts[3].toUpper();
+            QByteArray ref = parts[VcfFile::REF].toUpper();
 			if (pos_is_valid)
 			{
 				Sequence ref_exp = reference.seq(chr, pos, ref.length());
@@ -173,10 +173,10 @@ bool VcfFile::isValid(QString vcf_file, QString ref_file, QTextStream& out_strea
 			}
 
 			//alternate base(s)
-			QByteArrayList alts = parts[4].split(',');
+            QByteArrayList alts = parts[VcfFile::ALT].split(',');
 
 			//quality
-			const QByteArray& qual = parts[5];
+            const QByteArray& qual = parts[VcfFile::QUAL];
 			if (qual!=".")
 			{
 				bool ok = false;
@@ -189,7 +189,7 @@ bool VcfFile::isValid(QString vcf_file, QString ref_file, QTextStream& out_strea
 			}
 
 			//filter
-			const QByteArray& filter = parts[6];
+            const QByteArray& filter = parts[VcfFile::FILTER];
 			if (filter!="." && filter!="PASS")
 			{
 				QByteArrayList filters = filter.split(';');
@@ -207,7 +207,7 @@ bool VcfFile::isValid(QString vcf_file, QString ref_file, QTextStream& out_strea
 			}
 
 			//info
-			QByteArrayList info = parts[7].split(';');
+            QByteArrayList info = parts[VcfFile::INFO].split(';');
 			foreach(const QByteArray& entry, info)
 			{
 				int sep = entry.indexOf('=');
@@ -278,7 +278,7 @@ bool VcfFile::isValid(QString vcf_file, QString ref_file, QTextStream& out_strea
 
 			//format
 			if (parts.count()==8) continue;
-			QByteArrayList format_names = parts[8].split(':');
+            QByteArrayList format_names = parts[VcfFile::FORMAT].split(':');
 			foreach(const QByteArray& name, format_names)
 			{
 				if (!defined_formats.contains(name))
@@ -294,6 +294,10 @@ bool VcfFile::isValid(QString vcf_file, QString ref_file, QTextStream& out_strea
 			//samples
 			for (int s=0; s<defined_samples.count(); ++s)
 			{
+                if (parts[9+s] == ".") { // ignore MISSING sample
+					continue;
+				}
+
 				QByteArrayList sample_data = parts[9+s].split(':');
 
 				//check the number of entries
@@ -306,6 +310,9 @@ bool VcfFile::isValid(QString vcf_file, QString ref_file, QTextStream& out_strea
 				//check values (number, type)
 				for (int i=0; i<format_names.count(); ++i)
 				{
+                    if (sample_data[i] == ".") { // ignore MISSING sample
+                        continue;
+                    }
 					const QByteArray& name = format_names[i];
 					const DefinitionLine& current_format = defined_formats[name];
 					QByteArrayList values = sample_data[i].split(',');

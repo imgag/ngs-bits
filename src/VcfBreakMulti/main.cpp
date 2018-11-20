@@ -205,6 +205,10 @@ public:
 				for (int i = 0; i < samples_count; ++i)
 				{
 					int sample_column = VcfFile::FORMAT + i + 1;
+                    if (parts[sample_column] == ".") {
+                        continue; // Skip MISSING sample
+                    }
+
 					QByteArrayList sample_values = parts[sample_column].split(':');
 
 					for (int j = 0; j < sample_values.length(); ++j)
