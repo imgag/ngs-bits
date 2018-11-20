@@ -517,6 +517,7 @@ QMap<QString, FilterBase*(*)()> FilterFactory::getRegistry()
 		output["Trio"] = &createInstance<FilterTrio>;
 		output["OMIM genes"] = &createInstance<FilterOMIM>;
 		output["Conservedness"] = &createInstance<FilterConservedness>;
+		output["Regulatory"] = &createInstance<FilterRegulatory>;
 	}
 
 	return output;
@@ -2034,7 +2035,7 @@ void FilterOMIM::apply(const VariantList& variants, FilterResult& result) const
 FilterConservedness::FilterConservedness()
 {
 	name_ = "Conservedness";
-	description_ = QStringList() << "Filter for conserved bases";
+	description_ = QStringList() << "Filter for variants that affect conserved bases";
 	params_ << FilterParameter("min_score", DOUBLE, 1.6, "Minimum phlyoP score.");
 
 	checkIsRegistered();
@@ -2061,6 +2062,53 @@ void FilterConservedness::apply(const VariantList& variants, FilterResult& resul
 		if (!ok || value<min_score)
 		{
 			result.flags()[i] = false;
+		}
+	}
+}
+
+
+FilterRegulatory::FilterRegulatory()
+{
+	name_ = "Regulatory";
+	description_ = QStringList() << "Filter for regulatory variants, i.e. the 'regulatory' column is not empty.";
+	params_ << FilterParameter("action", STRING, "FILTER", "Action to perform");
+	params_.last().constraints["valid"] = "REMOVE,FILTER";
+}
+
+QString FilterRegulatory::toText() const
+{
+	return name() + " " + getString("action", false);
+}
+
+void FilterRegulatory::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	int index = annotationColumn(variants, "regulatory");
+
+	QString action = getString("action");
+	if (action=="FILTER")
+	{
+		for(int i=0; i<variants.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			if (variants[i].annotations()[index].trimmed().isEmpty())
+			{
+				result.flags()[i] = false;
+			}
+		}
+	}
+	else //REMOVE
+	{
+		for(int i=0; i<variants.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			if (!variants[i].annotations()[index].trimmed().isEmpty())
+			{
+				result.flags()[i] = false;
+			}
 		}
 	}
 }

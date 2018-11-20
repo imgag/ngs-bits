@@ -599,7 +599,7 @@ void ReportWorker::writeHTML()
 		stream << "<p><b>OMIM Gene und Phenotypen</b>" << endl;
 		stream << "</p>" << endl;
 		stream << "<table>" << endl;
-		stream << "<tr><td><b>gene</b></td><td><b>OMIM gene MIM</b></td><td><b>OMIM phenotypes</b></td></tr>";
+		stream << "<tr><td><b>gene</b></td><td><b>OMIM Gen MIM</b></td><td><b>OMIM Phenotypen</b></td></tr>";
 		foreach(QByteArray gene, genes_)
 		{
 			//approved gene symbol

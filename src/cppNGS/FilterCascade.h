@@ -535,4 +535,15 @@ class CPPNGSSHARED_EXPORT FilterConservedness
 		void apply(const VariantList& variants, FilterResult& result) const override;
 };
 
+//Filter for reglatory variants
+class CPPNGSSHARED_EXPORT FilterRegulatory
+	: public FilterBase
+{
+	public:
+		FilterRegulatory();
+		QString toText() const override;
+		void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
+
 #endif // FILTERCASCADE_H

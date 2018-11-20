@@ -1,5 +1,12 @@
 # GSvar change log
 
+### 2018_10-55 (20.11.18)
+- Re-analysis: button moved to main menu bar - it works for multi/trio/somatic as well now
+- Germline report: added OMIM table
+- HPO-based filter: increased flanking based used around gene loci from 100 to 5000
+- Subpanel design: sub-panels can now be designed gene-wise in addition to exon-wise, added auto-generated suffix
+- General: preferred transcripts can no longer be edited by two instances of GSvar in parallel
+
 ### 2018_10-43 (13.11.18)
 - Report somatic: added additional somatic report for the Hochschulambulanz
 - LOVD upload: fixed LOVD upload of variants on chrMT
@@ -220,6 +227,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 

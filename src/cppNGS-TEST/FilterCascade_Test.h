@@ -777,4 +777,18 @@ private slots:
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 16);
 	}
+
+	void FilterRegulatory_apply()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//default
+		FilterRegulatory filter;
+		filter.setString("action", "FILTER");
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 2);
+	}
 };
