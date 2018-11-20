@@ -16,13 +16,13 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 Changes already implemented in HEAD for next release:
 
-* Added tools: VcfBreakMulti.
 
-Changes in release 2018_10:
+Changes in release 2018_11:
 
-* Expecting VEP instead of SnpEff annotations in VCFs now (VariantQC, SomaticQC, RohHunter).
-* Added GRCh38 support (MappingQC, SomaticQC, SampleGender, SampleSimilarity).
-* Added tools: SampleAncestry, VcfCheck.
+* Added tools: VcfBreakMulti, VcfFilter.
+* VcfCheck: several bigfixes (GT handling, missing values, missing samples, ...)
+* RohHunter: Fixed crash when a variant is not annotated with CSQ from VEP.
+* cppNGS: Fixed memory leak in BAM file handling.
 
 For older releases see the [releases page](https://github.com/imgag/ngs-bits/releases).
 
@@ -126,6 +126,7 @@ Installation instructions for the NGSD can be found [here](doc/install_ngsd.md).
 
 * [PERsim](doc/tools/PERsim.md) - Paired-end read simulator for Illumina reads.
 * [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file.
+
 
 
 
