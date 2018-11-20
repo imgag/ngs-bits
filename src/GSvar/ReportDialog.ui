@@ -273,9 +273,19 @@
        </layout>
       </item>
       <item>
+       <widget class="QCheckBox" name="omim_table">
+        <property name="text">
+         <string>Add OMIM gene/phenotype table</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QCheckBox" name="class_info">
         <property name="text">
-         <string>Add classification information</string>
+         <string>Add explaination of variant classification</string>
         </property>
        </widget>
       </item>

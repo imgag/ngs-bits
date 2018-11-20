@@ -94,7 +94,12 @@ void ReportDialog::setTargetRegionSelected(bool is_selected)
 	{
 		ui_.details_cov->setChecked(false);
 		ui_.details_cov->setEnabled(false);
+
+		ui_.details_cov_roi->setChecked(false);
 		ui_.details_cov_roi->setEnabled(false);
+
+		ui_.omim_table->setChecked(false);
+		ui_.omim_table->setEnabled(false);
 	}
 }
 
@@ -121,6 +126,7 @@ ReportSettings ReportDialog::settings() const
 	output.roi_low_cov = ui_.details_cov_roi->isChecked();
 	output.recalculate_avg_depth = ui_.depth_calc->isChecked();
 	output.show_tool_details = ui_.tool_details->isChecked();
+	output.show_omim_table = ui_.omim_table->isChecked();
 	output.show_class_details = ui_.class_info->isChecked();
 
 	return output;

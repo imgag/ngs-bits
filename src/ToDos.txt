@@ -20,8 +20,8 @@ NGSD:
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
 
 GSvar:
+** Filter 'Regulatory' (FILTER, KEEP, REMOVE)
 ** Annotate Somatic to germline data => select GSvar > 2 columns (small variants, CNVS) with AF, DP etc.
-*** OMIM g/p in Report
 * Add multi-gene Google/PubMed search: https://www.ncbi.nlm.nih.gov/pubmed/?term=CASP8+AND+(%22Breast+cancer%22+OR+%22Breast+carcinoma%22)+AND+2018 (SWAL)
 * Add ExAC pLI / ExAC CNV / inheritance (megSAP) and filter for CNVs (GSvar) (wait for ClinCNV)
 * GenLab XML report: male => change 'hom' variants outside PAR region on chrX/chrY to 'hemi' (when GenLab import is updated)

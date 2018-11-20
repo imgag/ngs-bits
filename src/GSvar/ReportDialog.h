@@ -13,10 +13,11 @@ struct ReportSettings
 	QList<int> variants_selected; //variants indices that were selected for export.
 
 	bool show_coverage_details; //slow low-coverage details
-		int min_depth; //cutoff for low-coverage statistics
-		bool roi_low_cov; //low-coverage details for the ROI are added (not only for CCDS)
-		bool recalculate_avg_depth; //average coverage should be calculated for the target region (otherwise the processing system average depth is used)
+	int min_depth; //cutoff for low-coverage statistics
+	bool roi_low_cov; //low-coverage details for the ROI are added (not only for CCDS)
+	bool recalculate_avg_depth; //average coverage should be calculated for the target region (otherwise the processing system average depth is used)
 	bool show_tool_details; //show tool version and parameter table
+	bool show_omim_table; //show OMIM table
 	bool show_class_details; //show classification information
 };
 

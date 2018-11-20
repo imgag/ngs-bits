@@ -588,6 +588,37 @@ void ReportWorker::writeHTML()
 		writeCoverageReportCCDS(stream, file_bam_, genes_, settings_.min_depth, 5, db_, nullptr, true, true);
 	}
 
+	//OMIM table
+	if (settings_.show_omim_table)
+	{
+		//prepare queries
+		SqlQuery q_genes = db_.getQuery();
+		q_genes.prepare("SELECT id, mim FROM omim_gene WHERE gene=:1");
+		q_genes.prepare("SELECT id, mim FROM omim_gene WHERE gene=:1");
+
+		stream << "<p><b>OMIM Gene und Phenotypen</b>" << endl;
+		stream << "</p>" << endl;
+		stream << "<table>" << endl;
+		stream << "<tr><td><b>gene</b></td><td><b>OMIM gene MIM</b></td><td><b>OMIM phenotypes</b></td></tr>";
+		foreach(QByteArray gene, genes_)
+		{
+			//approved gene symbol
+			QByteArray gene_approved = db_.geneToApproved(gene, true);
+
+			//generate table rows
+			q_genes.bindValue(0, gene_approved);
+			q_genes.exec();
+			while (q_genes.next())
+			{
+				QString gene_id = q_genes.value(0).toByteArray();
+				QString gene_mim = q_genes.value(1).toByteArray();
+
+				stream << "<tr><td>" << gene << "</td><td>" << gene_mim << "</td><td>" << db_.getValues("SELECT phenotype FROM omim_phenotype WHERE omim_gene_id=" + gene_id).join("<br>")<< "</tr>";
+			}
+		}
+		stream << "</table>" << endl;
+	}
+
 	//collect and display important tool versions
 	if (settings_.show_tool_details)
 	{
