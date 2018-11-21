@@ -1,5 +1,9 @@
 # GSvar change log
 
+### 2018_11-4 (21.11.18)
+- Somatic Report: Small changes
+- MainWindow: Now it is possible to copy columns that do not form a block to clipboard
+
 ### 2018_10-55 (20.11.18)
 - Re-analysis: button moved to main menu bar - it works for multi/trio/somatic as well now
 - Germline report: added OMIM table
