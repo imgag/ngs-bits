@@ -20,12 +20,16 @@ public:
 	void clear();
 
 private slots:
-	///Opens a dialog to view/edit the diagnostic status.
+	///Opens a dialog to edit the diagnostic status.
 	void editDiagnosticStatus();
-	///Opens a dialog to view/edit the disease data.
-	void editDiseaseData();
+	///Opens a dialog to edit the disease data.
+	void editDiseaseGroupAndInfo();
+	///Opens a dialog to edit the disease data.
+	void editDiseaseDetails();
 	///Sets the processed sample quality according to the sender action text.
 	void setQuality();
+	///Clears the disease details
+	QGridLayout* clearDiseaseDetails();
 
 private:
 	Ui::SampleDetailsDockWidget ui_;

@@ -298,7 +298,7 @@ CREATE  TABLE IF NOT EXISTS `user` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `user_id` VARCHAR(45) NOT NULL,
   `password` VARCHAR(64) NOT NULL,
-  `user_role` ENUM('user','admin') NOT NULL,
+  `user_role` ENUM('user','admin','special') NOT NULL,
   `name` VARCHAR(45) NOT NULL,
   `email` VARCHAR(45) NOT NULL,
   `created` DATE NOT NULL,
@@ -365,6 +365,32 @@ ENGINE = InnoDB
 AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8;
 
+-- -----------------------------------------------------
+-- Table `sample_disease_info`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `sample_disease_info`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `sample_id` INT(11) NOT NULL,
+  `disease_info` VARCHAR(255) NOT NULL,
+  `type` ENUM('HPO term id', 'ICD10 code', 'CGI cancer type', 'tumor fraction') NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_sample_id`
+    FOREIGN KEY (`sample_id`)
+    REFERENCES `sample` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_user`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `user` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+AUTO_INCREMENT = 1
+DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
 -- Table `project`
@@ -951,7 +977,8 @@ ENGINE = InnoDB DEFAULT CHARACTER SET = utf8;
 -- -----------------------------------------------------
 -- Table `user`
 -- -----------------------------------------------------
-INSERT INTO user VALUES (NULL, 'admin', 'dd94709528bb1c83d08f3088d4043f4742891f4f', 'admin', 'Admin','no_valid@email.de', CURDATE(), NULL, TRUE);
+INSERT INTO user VALUES (NULL, 'admin', 'dd94709528bb1c83d08f3088d4043f4742891f4f', 'admin', 'Admin','no_valid@email.de', CURDATE(), NULL, 1);
+INSERT INTO user VALUES (NULL, 'genlab_import', '', 'special', 'GenLab import','no_valid@email2.de', CURDATE(), NULL, 1);
 
 
 -- -----------------------------------------------------

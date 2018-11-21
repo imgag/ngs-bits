@@ -47,7 +47,8 @@ SOURCES += main.cpp\
     SomaticDialog.cpp \
     VariantSampleOverviewDialog.cpp \
     SomaticReportConfiguration.cpp \
-    FilterEditDialog.cpp
+    FilterEditDialog.cpp \
+    SampleDiseaseInfoWidget.cpp
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
@@ -89,7 +90,8 @@ HEADERS  += MainWindow.h \
     SomaticDialog.h \
     VariantSampleOverviewDialog.h \
     SomaticReportConfiguration.h \
-    FilterEditDialog.h
+    FilterEditDialog.h \
+    SampleDiseaseInfoWidget.h
 
 FORMS    += MainWindow.ui \
     FilterDockWidget.ui \
@@ -127,7 +129,8 @@ FORMS    += MainWindow.ui \
     SomaticDialog.ui \
     VariantSampleOverviewDialog.ui \
     SomaticReportConfiguration.ui \
-    FilterEditDialog.ui
+    FilterEditDialog.ui \
+    SampleDiseaseInfoWidget.ui
     
 
 include("../app_gui.pri")

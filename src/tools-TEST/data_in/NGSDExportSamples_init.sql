@@ -7,7 +7,7 @@ INSERT INTO sequencing_run (id, name, fcid, device_id, recipe, quality) VALUES (
 INSERT INTO sequencing_run (id, name, fcid, device_id, recipe, quality) VALUES (2, 'run2', 'XYZ', 1, '100+8+100', 'good');
 
 -- user
-INSERT INTO user (id, user_id, password, user_role, name, email, created, active) VALUES (2, 'ahuser', 's2d12kjg234hla0830t6hp9h3tt3t3tsdfg', 'user', 'The user', 'u@s.er', CURDATE(), '1');
+INSERT INTO user (id, user_id, password, user_role, name, email, created, active) VALUES (99, 'ahuser', 's2d12kjg234hla0830t6hp9h3tt3t3tsdfg', 'user', 'The user', 'u@s.er', CURDATE(), '1');
 
 -- sender
 INSERT INTO sender (id, name) VALUES (1, 'sender');
@@ -53,9 +53,9 @@ INSERT INTO `analysis_job_sample`(`analysis_job_id`, `processed_sample_id`, `inf
 (1, 1, '');
 
 INSERT INTO `analysis_job_history`(`analysis_job_id`, `time`, `user_id`, `status`, `output`) VALUES
-(1, '2015-10-30T23:59:00', 2, 'queued', ''),
+(1, '2015-10-30T23:59:00', 99, 'queued', ''),
 (1, '2015-11-01T00:00:10', null, 'started', ''),
 (1, '2015-11-01T04:13:32', null, 'finished', '');
 
 INSERT INTO `diag_status`(`processed_sample_id`, `status`, `user_id`, `date`, `outcome`, `genes_causal`, `inheritance_mode`, `genes_incidental`, `comment`) VALUES 
-(3, 'done', 2, '2018-10-23 14:09:21', 'significant findings', 'BRCA1', 'autosomal dominant', NULL, 'comment line1\ncomment\tline2');
+(3, 'done', 99, '2018-10-23 14:09:21', 'significant findings', 'BRCA1', 'autosomal dominant', NULL, 'comment line1\ncomment\tline2');

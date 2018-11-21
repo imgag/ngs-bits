@@ -54,7 +54,6 @@
 #include "OntologyTermCollection.h"
 #include "ReportHelper.h"
 #include "DiagnosticStatusOverviewDialog.h"
-#include "GenLabDB.h"
 #include "SvWidget.h"
 #include "VariantSampleOverviewDialog.h"
 #include "SomaticReportConfiguration.h"
@@ -123,7 +122,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(&filewatcher_, SIGNAL(fileChanged()), this, SLOT(handleInputFileChange()));
 	connect(ui_.vars, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(variantDoubleClicked(QTableWidgetItem*)));
 	connect(ui_.actionDesignSubpanel, SIGNAL(triggered()), this, SLOT(openSubpanelDesignDialog()));
-	connect(filter_widget_, SIGNAL(phenotypeDataImportRequested()), this, SLOT(importPhenotypesFromGenLab()));
+	connect(filter_widget_, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
 	connect(filter_widget_, SIGNAL(phenotypeSubPanelRequested()), this, SLOT(createSubPanelFromPhenotypeFilter()));
 
 	//misc initialization
@@ -888,9 +887,26 @@ void MainWindow::cleanUpModelessDialogs()
 	}
 }
 
-void MainWindow::importPhenotypesFromGenLab()
+void MainWindow::importPhenotypesFromNGSD()
 {
-	filter_widget_->setPhenotypes(GenLabDB().phenotypes(sampleName()));
+	QList<Phenotype> phenotypes;
+
+	//load from NGSD
+	NGSD db;
+	QList<SampleDiseaseInfo> disease_info = db.getSampleDiseaseInfo(db.sampleId(filename_), "HPO term id");
+	foreach(const SampleDiseaseInfo& entry, disease_info)
+	{
+		try
+		{
+			phenotypes << db.phenotypeByAccession(entry.disease_info.toLatin1());
+		}
+		catch(Exception& e)
+		{
+			qDebug() << e.message();
+		}
+	}
+
+	filter_widget_->setPhenotypes(phenotypes);
 }
 
 void MainWindow::createSubPanelFromPhenotypeFilter()
@@ -1884,8 +1900,12 @@ void MainWindow::uploadtoLovd(int variant_index, int variant_index2)
 	QString sample_id = db.sampleId(data.processed_sample);
 	data.gender = db.getSampleData(sample_id).gender;
 
-	//phenotype(s) from GenLab
-	data.phenos = GenLabDB().phenotypes(sampleName());
+	//phenotype(s)
+	QList<SampleDiseaseInfo> disease_info = db.getSampleDiseaseInfo(sample_id, "HPO term id");
+	foreach(const SampleDiseaseInfo& entry, disease_info)
+	{
+		data.phenos << db.phenotypeByAccession(entry.disease_info.toLatin1(), false);
+	}
 
 	//data 1st variant
 	const Variant& variant = variants_[variant_index];

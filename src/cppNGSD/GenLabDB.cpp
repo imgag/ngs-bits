@@ -42,6 +42,12 @@ bool GenLabDB::isOpen() const
 	return is_open;
 }
 
+int GenLabDB::entriesForSample(QString sample_name)
+{
+	QSqlQuery query = db_->exec("SELECT * FROM v_ngs_sap WHERE labornummer='" + sample_name + "'");
+	return query.size();
+}
+
 QList<Phenotype> GenLabDB::phenotypes(QString sample_name)
 {
 	NGSD ngsd;
@@ -57,10 +63,10 @@ QList<Phenotype> GenLabDB::phenotypes(QString sample_name)
 			QByteArray pheno_id = query.value(i).toByteArray();
 			try
 			{
-				Phenotype pheno = Phenotype(pheno_id, ngsd.phenotypeAccessionToName(pheno_id));
-				if (!output.contains(pheno))
+				Phenotype pheno = ngsd.phenotypeByAccession(pheno_id, false);
+				if (!pheno.name().isEmpty() && !output.contains(pheno))
 				{
-					output.append(pheno);
+					output << pheno;
 				}
 			}
 			catch(DatabaseException e)
@@ -73,43 +79,32 @@ QList<Phenotype> GenLabDB::phenotypes(QString sample_name)
 	return output;
 }
 
-QString GenLabDB::diagnosis(QString sample_name)
+QStringList GenLabDB::diagnosis(QString sample_name)
 {
 	QSqlQuery query = db_->exec("SELECT ICD10DIAGNOSE FROM v_ngs_sap WHERE labornummer='" + sample_name + "'");
-	if (query.size()==0)
-	{
-		return "n/a";
-	}
 
-	//if several diagnosis are available, return them all
-	QStringList diags;
+	QStringList output;
 	while(query.next())
 	{
-		diags << query.value(0).toString();
+		output << query.value(0).toString();
 	}
-	diags.removeDuplicates();
-	return diags.join(", ");
+	output.removeDuplicates();
+
+	return output;
 }
 
-QString GenLabDB::tumorFraction(QString sample_name)
+QStringList GenLabDB::tumorFraction(QString sample_name)
 {
 	QSqlQuery query = db_->exec("SELECT TUMORANTEIL FROM v_ngs_sap WHERE labornummer='" + sample_name + "'");
-	if (query.size()==0)
-	{
-		return "n/a";
-	}
 
-	//if several tumor fractions are available, return the maximum
-	double fraction = 0.0;
+
+	QStringList output;
 	while(query.next())
 	{
-		bool ok;
-		double tmp = query.value(0).toDouble(&ok);
-		if (ok && tmp>fraction)
-		{
-			fraction = tmp;
-		}
+		output << query.value(0).toString();
 	}
-	return QString::number(fraction, 'f', 2);
+	output.removeDuplicates();
+
+	return output;
 }
 

@@ -2,7 +2,6 @@
 #include "BasicStatistics.h"
 #include "OntologyTermCollection.h"
 #include "Helper.h"
-#include "GenLabDB.h"
 #include "TSVFileStream.h"
 #include "NGSHelper.h"
 
@@ -795,19 +794,24 @@ ReportHelper::ReportHelper(QString snv_filename, const ClinCnvList& filtered_cnv
 
 	processing_system_data = db_.getProcessingSystemData(db_.processedSampleId(tumor_id_), true);
 
-	//load metadata from GenLab
-	//get histological tumor proportion and diagnosis from GenLab
-	GenLabDB db_genlab;
-	icd10_diagnosis_code_ = db_genlab.diagnosis(tumor_id_.split('_')[0]);
-	if(icd10_diagnosis_code_.isEmpty() || icd10_diagnosis_code_ == "n/a") //try to resolve diagnosis with full tumor ID
+	//load metadata from NGSD
+	NGSD db;
+	QString sample_id = db.sampleId(tumor_id_);
+	QStringList tmp;
+	QList<SampleDiseaseInfo> disease_info = db.getSampleDiseaseInfo(sample_id, "ICD10 code");
+	foreach(const SampleDiseaseInfo& entry, disease_info)
 	{
-		icd10_diagnosis_code_ = db_genlab.diagnosis(tumor_id_);
+		tmp.append(entry.disease_info);
 	}
-	histol_tumor_fraction_ = db_genlab.tumorFraction(tumor_id_.split('_')[0]);
-	if(histol_tumor_fraction_.isEmpty() || histol_tumor_fraction_ == "n/a") //try to resolve tumor fraction with full tumor ID
+	icd10_diagnosis_code_ = tmp.join(", ");
+
+	tmp.clear();
+	disease_info = db.getSampleDiseaseInfo(sample_id, "tumor fraction");
+	foreach(const SampleDiseaseInfo& entry, disease_info)
 	{
-		histol_tumor_fraction_ = db_genlab.tumorFraction(tumor_id_);
+		tmp.append(entry.disease_info);
 	}
+	histol_tumor_fraction_ = tmp.join(", ");
 
 	try
 	{

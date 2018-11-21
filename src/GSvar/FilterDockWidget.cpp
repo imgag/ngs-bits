@@ -561,7 +561,10 @@ void FilterDockWidget::showPhenotypeContextMenu(QPoint pos)
 {
 	//set up
 	QMenu menu;
-	menu.addAction("import from GenLab");
+	if (Settings::boolean("NGSD_enabled", true))
+	{
+		menu.addAction("load from NGSD");
+	}
 	if (!phenotypes_.isEmpty())
 	{
 		menu.addAction("create sub-panel");
@@ -580,9 +583,9 @@ void FilterDockWidget::showPhenotypeContextMenu(QPoint pos)
 		phenotypes_.clear();
 		phenotypesChanged();
 	}
-	else if (action->text()=="import from GenLab")
+	else if (action->text()=="load from NGSD")
 	{
-		emit phenotypeDataImportRequested();
+		emit phenotypeImportNGSDRequested();
 	}
 	else if (action->text()=="create sub-panel")
 	{

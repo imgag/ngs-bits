@@ -86,6 +86,15 @@ struct CPPNGSDSHARED_EXPORT SampleData
 	bool is_ffpe;
 };
 
+///Sample disease information.
+struct CPPNGSDSHARED_EXPORT SampleDiseaseInfo
+{
+	QString disease_info;
+	QString type;
+	QString user;
+	QDateTime date;
+};
+
 ///Processed sample information.
 struct CPPNGSDSHARED_EXPORT ProcessedSampleData
 {
@@ -238,6 +247,8 @@ public:
 	const GeneSet& approvedGeneNames();
 
 	/*** phenotype handling (HPO) ***/
+	///Returns the phenotype for a given HPO accession.
+	Phenotype phenotypeByAccession(const QByteArray& accession, bool throw_on_error=true);
 	///Returns the phenotypes of a gene
 	QList<Phenotype> phenotypes(const QByteArray& symbol);
 	///Returns all phenotypes matching the given search terms (or all terms if no search term is given)
@@ -246,8 +257,6 @@ public:
 	GeneSet phenotypeToGenes(const Phenotype& phenotype, bool recursive);
 	///Returns all child terms of the given phenotype
 	QList<Phenotype> phenotypeChildTems(const Phenotype& phenotype, bool recursive);
-	///Returns the phenotype name for an phenotype ID. Throws an exception if the ID is not valid.
-	QByteArray phenotypeAccessionToName(const QByteArray& accession);
 
 	/*** Base functionality for file/variant processing ***/
 	///Returns the sample name for a file name, e.g. 'GS120159' for '/some/path/GS120159_01.bam'. Throws an exception if the file name does not start with a valid name.
@@ -275,7 +284,12 @@ public:
 	ProcessedSampleData getProcessedSampleData(const QString& processed_sample_id);
 	///Returns the normal sample corresponding to a tumor sample, or "" if no normal samples is defined.
 	QString normalSample(const QString& processed_sample_id);
-	///Sets the disease group/status associated to a sample.
+
+	///Returns sample disease details from the database.
+	QList<SampleDiseaseInfo> getSampleDiseaseInfo(const QString& sample_id, QString only_type="");
+	///Sets the disease details of a sample.
+	void setSampleDiseaseInfo(const QString& sample_id, const QList<SampleDiseaseInfo>& disease_info);
+	///Sets the disease group/status of a sample.
 	void setSampleDiseaseData(const QString& sample_id, const QString& disease_group, const QString& disease_status);
 
 	///Returns the processing system information for a processed sample.

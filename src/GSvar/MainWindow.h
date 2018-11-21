@@ -207,8 +207,8 @@ public slots:
 	///Removes all modeless dialogs that have been closed
 	void cleanUpModelessDialogs();
 
-	///Imports phenotype data from GenLab
-	void importPhenotypesFromGenLab();
+	///Imports phenotype data from NGSD
+	void importPhenotypesFromNGSD();
 	///Create sub-panel from phenotype
 	void createSubPanelFromPhenotypeFilter();
 

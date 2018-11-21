@@ -8,7 +8,7 @@
 class CPPNGSSHARED_EXPORT Phenotype
 {
 public:
-	Phenotype(QByteArray accession="", QByteArray name="");
+	Phenotype(const QByteArray& accession="", const QByteArray& name="");
 
 	const QByteArray& accession() const
 	{

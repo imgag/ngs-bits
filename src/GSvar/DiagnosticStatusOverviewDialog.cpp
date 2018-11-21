@@ -1,6 +1,5 @@
 #include "DiagnosticStatusOverviewDialog.h"
 #include "GUIHelper.h"
-#include "GenLabDB.h"
 #include <QCompleter>
 #include <QClipboard>
 #include <QMenu>
@@ -15,7 +14,6 @@ DiagnosticStatusOverviewDialog::DiagnosticStatusOverviewDialog(QWidget *parent)
 
 	connect(ui.project, SIGNAL(currentTextChanged(QString)), this, SLOT(updateOverviewTable()));
 	connect(ui.user, SIGNAL(currentTextChanged(QString)), this, SLOT(updateOverviewTable()));
-	connect(ui.genlab, SIGNAL(stateChanged(int)), this, SLOT(updateOverviewTable()));
 	connect(ui.hide_done, SIGNAL(stateChanged(int)), this, SLOT(updateOverviewTable()));
 
 	//init projects combo box
@@ -44,8 +42,6 @@ void DiagnosticStatusOverviewDialog::updateOverviewTable()
 {
 	//init
 	NGSD db;
-	GenLabDB db_genlab;
-	bool genlab = ui.genlab->isChecked();
 	bool hide_done = ui.hide_done->isChecked();
 
 	//abort if no project selected
@@ -91,22 +87,21 @@ void DiagnosticStatusOverviewDialog::updateOverviewTable()
 		addItem(r, 2, sample_data.name_external);
 		addItem(r, 3, QString(sample_data.is_tumor ? "yes" : "no") + " | " + (sample_data.is_ffpe ? "yes" : "no"));
 		addItem(r, 4, sample_data.disease_group + " | " + sample_data.disease_status);
-		if (genlab)
+		QStringList tmp;
+		QList<SampleDiseaseInfo> disease_info = db.getSampleDiseaseInfo(sample_id, "ICD10 code");
+		foreach(const SampleDiseaseInfo& entry, disease_info)
 		{
-			addItem(r, 5, db_genlab.diagnosis(sample_data.name));
-			QList<Phenotype> phenos = db_genlab.phenotypes(sample_data.name);
-			QStringList tmp;
-			foreach(const Phenotype& pheno, phenos)
-			{
-				tmp << pheno.name();
-			}
-			addItem(r, 6, tmp.join(", "));
+			tmp.append(entry.disease_info);
 		}
-		else
+		addItem(r, 5, tmp.join(", "));
+		tmp.clear();
+		disease_info = db.getSampleDiseaseInfo(sample_id, "HPO term id");
+		foreach(const SampleDiseaseInfo& entry, disease_info)
 		{
-			addItem(r, 5, "");
-			addItem(r, 6, "");
+			Phenotype pheno = db.phenotypeByAccession(entry.disease_info.toLatin1(), false);
+			tmp.append(pheno.name());
 		}
+		addItem(r, 6, tmp.join(", "));
 		addItem(r, 7, processed_sample_data.run_name);
 		addItem(r, 8, processed_sample_data.processing_system);
 		addItem(r, 9, processed_sample_data.project_name);

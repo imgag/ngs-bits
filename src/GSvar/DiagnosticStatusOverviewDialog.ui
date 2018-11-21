@@ -40,7 +40,7 @@
      <property name="spacing">
       <number>3</number>
      </property>
-     <item row="0" column="11">
+     <item row="0" column="9">
       <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -53,21 +53,19 @@
        </property>
       </spacer>
      </item>
-     <item row="0" column="8">
-      <spacer name="horizontalSpacer_4">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Project:</string>
        </property>
-       <property name="sizeType">
-        <enum>QSizePolicy::Fixed</enum>
+      </widget>
+     </item>
+     <item row="0" column="7">
+      <widget class="QCheckBox" name="hide_done">
+       <property name="text">
+        <string>hide done samples</string>
        </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>20</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
+      </widget>
      </item>
      <item row="0" column="3">
       <spacer name="horizontalSpacer_3">
@@ -88,26 +86,18 @@
      <item row="0" column="1">
       <widget class="QComboBox" name="project"/>
      </item>
-     <item row="0" column="7">
-      <widget class="QCheckBox" name="hide_done">
+     <item row="0" column="4">
+      <widget class="QLabel" name="label_2">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Filter by user that last edited the diagnostic status.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
        <property name="text">
-        <string>hide done samples</string>
+        <string>User:</string>
        </property>
       </widget>
      </item>
-     <item row="0" column="0">
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Project:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="9">
-      <widget class="QCheckBox" name="genlab">
-       <property name="text">
-        <string>show Genlab data (slow)</string>
-       </property>
-      </widget>
+     <item row="0" column="5">
+      <widget class="QComboBox" name="user"/>
      </item>
      <item row="0" column="6">
       <spacer name="horizontalSpacer_5">
@@ -124,19 +114,6 @@
         </size>
        </property>
       </spacer>
-     </item>
-     <item row="0" column="4">
-      <widget class="QLabel" name="label_2">
-       <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Filter by user that last edited the diagnostic status.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-       <property name="text">
-        <string>User:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="5">
-      <widget class="QComboBox" name="user"/>
      </item>
     </layout>
    </item>
@@ -178,12 +155,12 @@
      </column>
      <column>
       <property name="text">
-       <string>ICD10 (GenLab)</string>
+       <string>ICD10</string>
       </property>
      </column>
      <column>
       <property name="text">
-       <string>HPO (GenLab)</string>
+       <string>HPO</string>
       </property>
      </column>
      <column>

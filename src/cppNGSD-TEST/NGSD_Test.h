@@ -587,6 +587,25 @@ private slots:
 		vl.load(TESTDATA("../cppNGS-TEST/data_in/panel_vep.GSvar"));
 		I_EQUAL(vl.count(), 329);
 		db.addVariant(vl[0], vl);
+
+		//getSampleDiseaseInfo
+		sample_id = db.sampleId("NA12878");
+		QList<SampleDiseaseInfo> disease_info = db.getSampleDiseaseInfo(sample_id);
+		I_EQUAL(disease_info.count(), 0);
+
+		//setSampleDiseaseInfo
+		disease_info << SampleDiseaseInfo{"HP:0001251", "HPO term id", "ahmustm1", QDateTime::currentDateTime()};
+		disease_info << SampleDiseaseInfo{"G11.9", "ICD10 code", "ahmustm1", QDateTime::currentDateTime()};
+		db.setSampleDiseaseInfo(sample_id, disease_info);
+		QList<SampleDiseaseInfo> disease_info2 = db.getSampleDiseaseInfo(sample_id);
+		I_EQUAL(disease_info2.count(), 2);
+		S_EQUAL(disease_info2[0].disease_info, "HP:0001251");
+		S_EQUAL(disease_info2[0].type, "HPO term id");
+		QList<SampleDiseaseInfo> disease_info3 = db.getSampleDiseaseInfo(sample_id, "ICD10 code");
+		I_EQUAL(disease_info3.count(), 1);
+		S_EQUAL(disease_info3[0].disease_info, "G11.9");
+		S_EQUAL(disease_info3[0].type, "ICD10 code");
+
 	}
 
 	//Test for debugging (without initialization because of speed)
