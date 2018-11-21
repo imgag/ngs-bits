@@ -23,15 +23,10 @@ public:
 	static void writeRtfHeader(QTextStream& stream);
 	///generates the header of a single Rtf row
 	static void writeRtfTableSingleRowSpec(QTextStream& stream,const QList<int>& col_widths, bool border,bool shaded = false);
-	///generater the header of a single Rtf row, QList borders specifies the border widths for each cell beginning from top,right,bottom,left
-	static void writeRtfTableSingleRowSpec(QTextStream &stream, const QList<int> &col_widths, QList<int> borders);
 	///generates a RTF table
 	static void writeRtfWholeTable(QTextStream& stream, const QList< QList<QString> >& table, const QList<int>& col_widths, int font_size, bool border, bool bold);
 	///generates a single row for an RTF table
 	static void writeRtfRow(QTextStream& stream, const QList<QString>& columns, const QList<int>& col_widths, int font_size, bool border, bool bold);
-	///generates a single row for an RTF table, QList borders specifies the border widths for each cell beginning from top,right,bottom,left
-	static void writeRtfRow(QTextStream& stream, const QList<QString>& columns, const QList<int>& col_widths,int font_size, QList<int> borders,bool bold);
-
 };
 
 ///representation of CGI information of a drug reported by CGI
@@ -53,6 +48,11 @@ public:
 	{
 		if(QString::compare(gene_,rhs.gene(),Qt::CaseInsensitive) < 0) return true;
 		return false;
+	}
+
+	const QString& id() const
+	{
+		return id_;
 	}
 
 	const QString& gene() const
@@ -122,6 +122,8 @@ public:
 	static const QString proteinChange(QString aa_change);
 
 private:
+	///unique ID which refers to SNP
+	QString id_;
 	///gene in which alteration was observed
 	QString gene_;
 	///type of the alteration
@@ -180,7 +182,7 @@ private:
 class ReportHelper
 {
 public:
-	ReportHelper();
+	///Constructor loads data into class
 	ReportHelper(QString snv_filename, const ClinCnvList& filtered_cnvs, const FilterCascade& filters, const QString& target_region="");
 	///write Rtf File
 	void writeRtf(const QString& out_file);
@@ -203,7 +205,7 @@ private:
 	///returns best matching transcript - or an empty transcript
 	VariantTranscript selectSomaticTranscript(const Variant& variant);
 
-	void writeGapStatistics(QTextStream &stream, const QString& target_file);
+	void writeGapStatistics(QTextStream &stream, const QString& target_file, const QList<int>& col_widths);
 	QHash<QByteArray, BedFile> gapStatistics(const BedFile& region_of_interest);
 
 	///Writes Rtf table containing given snvs

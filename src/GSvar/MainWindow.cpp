@@ -1800,8 +1800,76 @@ void MainWindow::on_actionCopySplit_triggered()
 
 void MainWindow::copyToClipboard(bool split_quality)
 {
-	//no selection
-	if (ui_.vars->selectedRanges().count()!=1) return;
+	// Data to be copied is not selected en bloc
+	if (ui_.vars->selectedRanges().count()!=1 && !split_quality)
+	{
+		//Create 2d list with empty QStrings (size equal to QTable in Main Window)
+		QList< QList<QString> > data;
+		for(int r=0;r<ui_.vars->rowCount();++r)
+		{
+			QList<QString> line;
+			for(int c=0;c<ui_.vars->columnCount();++c)
+			{
+				line.append("");
+			}
+			data.append(line);
+		}
+
+		//Fill data with non-empty entries from QTable in Main Window
+		QBitArray empty_columns;
+		empty_columns.fill(true,ui_.vars->columnCount());
+		QList<QTableWidgetItem*> all_items = ui_.vars->selectedItems();
+		foreach(QTableWidgetItem* item,all_items)
+		{
+			if(!item->text().isEmpty())
+			{
+				data[item->row()][item->column()] = item->text();
+				empty_columns[item->column()] = false;
+			}
+		}
+
+		//Remove empty columns
+		for(int c=ui_.vars->columnCount()-1;c>=0;--c)
+		{
+			if(empty_columns[c])
+			{
+				for(int r=0;r<ui_.vars->rowCount();++r)
+				{
+					data[r].removeAt(c);
+				}
+			}
+		}
+
+		//Remove empty rows
+		for(int r=ui_.vars->rowCount()-1;r>=0;--r)
+		{
+			bool row_is_empty = true;
+			for(int c=0;c<data[r].count();++c)
+			{
+				if(!data[r][c].isEmpty())
+				{
+					row_is_empty = false;
+					break;
+				}
+			}
+			if(row_is_empty) data.removeAt(r);
+		}
+
+		QString text = "";
+		for(int r=0;r<data.count();++r)
+		{
+			for(int c=0;c<data[r].count();++c)
+			{
+				text.append(data[r][c]);
+				if(c<data[r].count()-1) text.append("\t");
+			}
+			text.append("\n");
+		}
+		QApplication::clipboard()->setText(text);
+
+		return;
+	}
+
 	QTableWidgetSelectionRange range = ui_.vars->selectedRanges()[0];
 
 	//check quality column is present
