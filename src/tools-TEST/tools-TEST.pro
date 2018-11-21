@@ -98,7 +98,8 @@ HEADERS += \
     VcfCheck_Test.h \
     VcfBreakMulti_Test.h \
     VcfFilter_Test.h \
-    NGSDImportOMIM_Test.h
+    NGSDImportOMIM_Test.h \
+    VcfBreakComplexVariants_Test.h
 
 SOURCES += \
     main.cpp \
