@@ -28,29 +28,9 @@ void RtfTools::writeRtfTableSingleRowSpec(QTextStream& stream, const QList<int>&
 	//Generate cells with widths out of colWidths
 	for(int column=0;column<col_numbers;++column)
 	{
-		if(border) stream << "\\clbrdrt\\brdrw15\\brdrs\\clbrdrl\\brdrw15\\brdrs\\clbrdrb\\brdrw15\\brdrs\\clbrdrr\\brdrw15\\brdrs";
+		if(border) stream << "\\clbrdrt\\brdrw5\\brdrs\\clbrdrl\\brdrw5\\brdrs\\clbrdrb\\brdrw5\\brdrs\\clbrdrr\\brdrw5\\brdrs";
 		if(shaded) stream << "\\clcbpat4";
 		stream << "\\cellx" << col_widths[column];
-	}
-	stream << endl;
-}
-
-void RtfTools::writeRtfTableSingleRowSpec(QTextStream &stream, const QList<int> &col_widths, QList<int> borders)
-{
-	int col_numbers = col_widths.size();
-
-	if(borders.size() != 4) return;
-	int b_top = borders[0];
-	int b_right = borders[1];
-	int b_bottom = borders[2];
-	int b_left = borders[3];
-
-	stream << "{\\trowd\\trql";
-
-	for(int column=0;column<col_numbers;++column)
-	{
-		stream << "\\clbrdrt\\brdrw" << b_top << "\\brdrs\\clbrdrl\\brdrw" << b_left;
-		stream << "\\brdrs\\clbrdrb\\brdrw" << b_bottom << "\\brdrs\\clbrdrr\\brdrw" << b_right << "\\brdrs\\cellx" << col_widths[column];
 	}
 	stream << endl;
 }
@@ -64,25 +44,9 @@ void RtfTools::writeRtfWholeTable(QTextStream& stream, const QList< QList<QStrin
 	}
 }
 
-void RtfTools::writeRtfRow(QTextStream& stream, const QList<QString>& columns, const QList<int>& col_widths,int font_size, QList<int> borders,bool bold)
-{
-	QString begin_table_cell = "\\pard\\intbl\\fs" + QString::number(font_size) + " ";
-	if(bold)
-	{
-		begin_table_cell = begin_table_cell + "\\b ";
-	}
-
-	RtfTools::writeRtfTableSingleRowSpec(stream,col_widths,borders);
-	for(int i=0; i<columns.length(); ++i)
-	{
-		stream << begin_table_cell << columns.at(i) << "\\cell";
-	}
-	stream << "\\row}" << endl;
-}
-
 void RtfTools::writeRtfRow(QTextStream& stream, const QList<QString>& columns, const QList<int>& col_widths, int font_size, bool border, bool bold)
 {
-	QString begin_table_cell = "\\pard\\intbl\\fs" + QString::number(font_size) + " ";
+	QString begin_table_cell = "\\pard\\intbl\\li20\\fs" + QString::number(font_size) + " ";
 	if(bold)
 	{
 		begin_table_cell = begin_table_cell + "\\b ";
@@ -249,7 +213,7 @@ void ReportHelper::writeCnvList(QTextStream& stream, const QList<int>& col_width
 	QList< QList<QString> > header_cnvs;
 	QList<QString> header_columns;
 
-	header_columns <<"\\trhdr\\qc Gene" << "\\qc CNV" << "\\qc CN" << "\\qc Position (Typ)";
+	header_columns <<"\\trhdr\\qc Position (Typ)" << "\\qc CNV" << "\\qc CN" << "\\qc Gene";
 	header_cnvs << header_columns;
 
 	RtfTools::writeRtfWholeTable(stream,header_cnvs,col_widths,18,true,true);
@@ -280,6 +244,31 @@ void ReportHelper::writeCnvList(QTextStream& stream, const QList<int>& col_width
 	{
 		ClinCopyNumberVariant variant = cnvs_filtered_[i];
 		QList<QString> columns;
+
+		//coordinates
+		columns.append("\\qc " +variant.chr().str() + ":" + QString::number(variant.start()) +"-" + QString::number(variant.end()));
+		if(cnv_index_cnv_type_!=-1)
+		{
+			columns.last().append("\\line (" + variant.annotations().at(cnv_index_cnv_type_) +")" );
+		}
+
+		//AMP/DEL
+		double copy_number = variant.copyNumber();
+		if(copy_number > 2.)
+		{
+			columns.append("\\qc AMP");
+		}
+		else if(copy_number < 2.)
+		{
+			columns.append("\\qc DEL");
+		}
+		else
+		{
+			columns.append("\\qc{\\highlight3 NA} ");
+		}
+
+		//copy numbers
+		columns.append("\\qc " + QString::number(copy_number));
 
 		//gene names
 		//only print genes which which lie in target region
@@ -321,33 +310,6 @@ void ReportHelper::writeCnvList(QTextStream& stream, const QList<int>& col_width
 		else
 		{
 			columns.append("");
-		}
-
-
-		//AMP/DEL
-		double copy_number = variant.copyNumber();
-		if(copy_number > 2.)
-		{
-			columns.append("\\qc AMP");
-		}
-		else if(copy_number < 2.)
-		{
-			columns.append("\\qc DEL");
-		}
-		else
-		{
-			columns.append("\\qc{\\highlight3 NA} ");
-		}
-
-		//copy numbers
-		columns.append("\\qc " + QString::number(copy_number));
-
-		//coordinates
-		columns.append("\\qc " +variant.chr().str() + ":" + QString::number(variant.start()) +"-" + QString::number(variant.end()));
-
-		if(cnv_index_cnv_type_!=-1)
-		{
-			columns.last().append("\\line (" + variant.annotations().at(cnv_index_cnv_type_) +")" );
 		}
 
 		somatic_cnv_table.append(columns);
@@ -445,6 +407,8 @@ void CGIDrugTable::load(const QString &file_name)
 
 	int i_tumor_entity = file.colIndex("TESTED_TUMOR",true);
 
+	int i_variant_id = file.colIndex("SAMPLE",true);
+
 
 	//group drugs into different groups
 
@@ -493,6 +457,8 @@ void CGIDrugTable::load(const QString &file_name)
 		if(line.at(i_alteration_match) != "complete") continue;
 
 		CGIDrugReportLine row;
+
+		row.id_ = line.at(i_variant_id);
 
 		//Read in genes
 		QStringList sample_alterations = line.at(i_sample_alteration).split(',');
@@ -696,10 +662,6 @@ const QList<CGIDrugReportLine> CGIDrugTable::drugsSortedPerGeneName() const
 	return drugs;
 }
 
-ReportHelper::ReportHelper()
-{
-}
-
 ReportHelper::ReportHelper(QString snv_filename, const ClinCnvList& filtered_cnvs, const FilterCascade& filters, const QString& target_region)
 	: snv_filename_(snv_filename)
 	, target_region_(target_region)
@@ -771,15 +733,14 @@ ReportHelper::ReportHelper(QString snv_filename, const ClinCnvList& filtered_cnv
 
 	//get cancer type which was used for CGI analysis
 	cgi_cancer_type_ = cgiCancertype(snv_variants_);
+	cgi_acronyms_.append(cgi_cancer_type_.toLatin1());
 
 	//assign columns indices for SNV file
 	snv_index_coding_splicing_ = snv_variants_.annotationIndexByName("coding_and_splicing",true,true);
-
 	snv_index_cgi_driver_statement_ = snv_variants_.annotationIndexByName("CGI_driver_statement",true,true);
 	snv_index_cgi_gene_role_ = snv_variants_.annotationIndexByName("CGI_gene_role",true,true);
 	snv_index_cgi_transcript_ = snv_variants_.annotationIndexByName("CGI_transcript",true,true);
 	snv_index_cgi_gene_ = snv_variants_.annotationIndexByName("CGI_gene",true,true);
-
 
 	cnv_index_cgi_gene_role_ = cnvs_filtered_.annotationIndexByName("CGI_gene_role",false);
 	cnv_index_cnv_type_ = cnvs_filtered_.annotationIndexByName("cnv_type",false);
@@ -906,22 +867,19 @@ QHash<QByteArray, BedFile> ReportHelper::gapStatistics(const BedFile& region_of_
 	return grouped;
 }
 
-void ReportHelper::writeGapStatistics(QTextStream &stream, const QString& target_file)
+void ReportHelper::writeGapStatistics(QTextStream &stream, const QString& target_file, const QList<int>& col_widths)
 {
 	QString begin_table_cell = "\\pard\\intbl\\fs18 ";
 	QString begin_table_cell_bold = begin_table_cell+"\\b ";
-	int max_table_width = 10000;
+	int max_table_width = col_widths.last();
 
 	BedFile region_of_interest;
 	region_of_interest.load(target_file);
 
 	GeneSet genes_in_target_region = GeneSet::createFromFile(target_file.left(target_file.size()-4)+"_genes.txt");
 
-
 	stream <<"{\\pard\\b\\sa45\\sb45\\fs18 L\\u252;ckenstatistik:\\par}" << endl;
-
-	QList<int> widths = { 2200 , 10000 };
-
+	QList<int> widths = col_widths;
 	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
 	stream << begin_table_cell << "Zielregion:\\cell" << begin_table_cell << QFileInfo(target_file).fileName()<<"\\cell" << "\\row}" << endl;
 
@@ -1003,23 +961,10 @@ void ReportHelper::writeRtfCGIDrugTable(QTextStream &stream, const QList<int> &c
 {
 	if(cgi_cancer_type_ == "CANCER" || cgi_cancer_type_ == "")
 	{
-		stream << "{\\fs18 Cannot create drug table because CGI tumor type is set to " << cgi_cancer_type_ << "." << endl;
+		stream << "{\\fs18\\highlight3 Cannot create drug table because CGI tumor type is set to " << cgi_cancer_type_ << "." << endl;
 		stream << "Please restart CGI analysis with a properly selected cancer type.}" << endl;
 		return;
 	}
-	QString begin_table_cell = "\\pard\\intbl\\fs18\\fi20 ";
-	QString begin_table_cell_bold = begin_table_cell+"\\b\\fi20 ";
-	RtfTools::writeRtfTableSingleRowSpec(stream,{col_widths.last()},true,true);
-	stream << begin_table_cell_bold<<"\\qc Somatische Ver\\u228;nderungen mit CGI-Medikamenten-Annotation";
-	stream << "\\cell" << endl;
-	stream << "\\row}" << endl;
-
-	RtfTools::writeRtfTableSingleRowSpec(stream,col_widths,true);
-	stream << "\\trhdr ";
-	stream << begin_table_cell_bold << "\\fi20 Gen\\cell";
-	stream << begin_table_cell_bold << "\\fi20 Tumortyp\\cell" << begin_table_cell_bold << "\\fi20 Medikament\\cell";
-	stream << begin_table_cell_bold << "\\fi20 Effekt\\cell" << begin_table_cell_bold << "\\fi20 Evidenz\\cell";
-	stream << begin_table_cell_bold << "\\fi20 Quelle\\cell" << "\\row}" << endl;
 
 	CGIDrugTable drugs;
 	drugs.load(cgi_drugs_path_);
@@ -1040,37 +985,68 @@ void ReportHelper::writeRtfCGIDrugTable(QTextStream &stream, const QList<int> &c
 		keep_cnv_genes << cnvs_filtered_[i].genes();
 	}
 
-	//Make list of SNPs genes which shall be kept. A complete match control is not possible because CGI does not deliver base change or transcript
-	//IDs in the drug annotation file
-	GeneSet keep_snv_genes;
+	//Get SNPs CGI IDs
+	int i_snvs_variant_ids = snv_variants_.annotationIndexByName("CGI_id",true,false);
+	if(i_snvs_variant_ids == -1)
+	{
+		stream << "{\\fs18\\highlight3 Cannot create drug table because CGI annotation is too old (there is no \"CGI_id\" column in GSVar file). " << endl;
+		stream << "Please restart CGI analysis with the latest megSAP version.}" << endl;
+		return;
+	}
+	QList<QString> variant_ids;
 	for(int i=0;i<snv_variants_.count();++i)
 	{
-		keep_snv_genes << snv_variants_[i].annotations().at(snv_index_cgi_gene_);
+		variant_ids.append(snv_variants_[i].annotations().at(i_snvs_variant_ids));
 	}
+
+	QString begin_table_cell = "\\pard\\intbl\\fs18\\fi20 ";
+	QString begin_table_cell_bold = begin_table_cell+"\\b\\fi20 ";
+	RtfTools::writeRtfTableSingleRowSpec(stream,{col_widths.last()},true,true);
+	stream << begin_table_cell_bold<<"\\qc Somatische Ver\\u228;nderungen mit CGI-Medikamenten-Annotation";
+	stream << "\\cell" << endl;
+	stream << "\\row}" << endl;
+
+	RtfTools::writeRtfTableSingleRowSpec(stream,col_widths,true);
+	stream << "\\trhdr ";
+	stream << begin_table_cell_bold << "\\fi20 Gen\\cell";
+	stream << begin_table_cell_bold << "\\fi20 Tumortyp\\cell" << begin_table_cell_bold << "\\fi20 Medikament\\cell";
+	stream << begin_table_cell_bold << "\\fi20 Effekt\\cell" << begin_table_cell_bold << "\\fi20 Evidenz\\cell";
+	stream << begin_table_cell_bold << "\\fi20 Quelle\\cell" << "\\row}" << endl;
 
 	QList< QList<QString > > drugs_as_string;
 	QList<CGIDrugReportLine> drugs_sorted = drugs.drugsSortedPerGeneName();
 
 	foreach(CGIDrugReportLine drug,drugs_sorted)
 	{
-		//filter genes which do not appear in SNV and CNV mutation list
-		QStringList genes = drug.gene().split(',');
-		bool gene_is_in_cnv_list = true;
-		bool gene_is_in_snv_list = true;
-		foreach(QString gene,genes)
+		bool is_cnv = false;
+		if(drug.alterationType().contains("AMP") || drug.alterationType().contains("DEL")) is_cnv = true;
+
+		//Only include drugs that refer to an alteration in SNV/CNV report
+		bool alt_found = false;
+		if(is_cnv)
 		{
-			if((drug.alterationType().contains("AMP") || drug.alterationType().contains("DEL"))
-				&& !keep_cnv_genes.contains(gene.toLatin1()))
+			QStringList genes = drug.gene().split(',');
+			foreach(QString gene,genes)
 			{
-				gene_is_in_cnv_list = false;
-			}
-			if(drug.alterationType().contains("MUT") && !keep_snv_genes.contains(gene.toLatin1()))
-			{
-				gene_is_in_snv_list = false;
+				if(keep_cnv_genes.contains(gene.toLatin1()))
+				{
+					alt_found = true;
+					break;
+				}
 			}
 		}
-		if(!gene_is_in_cnv_list) continue;
-		if(!gene_is_in_snv_list) continue;
+		else
+		{
+			foreach(QString snv_id,variant_ids)
+			{
+				if(snv_id == drug.id())
+				{
+					alt_found = true;
+					break;
+				}
+			}
+		}
+		if(!alt_found) continue;
 
 		//Alteration type / tumor type / drug / effect / evidence /source
 		QList<QString> result_line = drug.asStringList();
@@ -1078,85 +1054,23 @@ void ReportHelper::writeRtfCGIDrugTable(QTextStream &stream, const QList<int> &c
 		//remove first column because gene name is included in alteration type already
 		result_line.removeAt(0);
 
-
-		/***********************************************
-		 * CHECK WHETHER ALTERATIONS OCCUR IN SNV LIST *
-		 ***********************************************/
-
-		//check whether all genes that appear in drug report line are included in SNV list
-		QList<QString> drug_alterations_from_cgi = result_line[0].split(',');
-		QBitArray genes_included; //one bit for each gene of drug report line
-		genes_included.fill(false,drug_alterations_from_cgi.size());
-		QBitArray aa_included; // one bit for each aminoacid change of drug report line
-		aa_included.fill(false,drug_alterations_from_cgi.size());
-
-		for(int j=0;j<snv_variants_.count();++j)
-		{
-			Variant snv = snv_variants_[j];
-			for(int i=0;i<drug_alterations_from_cgi.count();++i)
-			{
-				QString gene = drug_alterations_from_cgi[i].split(':')[0];
-				if(gene == snv.annotations().at(snv_index_cgi_gene_))
-				{
-					genes_included.setBit(i);
-				}
-
-				//check whether AA change is included (in any of the SNV transcripts)
-				QByteArray protein_change = drug_alterations_from_cgi[i].split(':')[1].toLatin1();
-
-				QList<VariantTranscript> transcripts = snv.transcriptAnnotations(snv_index_coding_splicing_);
-
-				foreach(const VariantTranscript& trans, transcripts)
-				{
-					if(trans.hgvs_p.contains(protein_change))
-					{
-						aa_included.setBit(i);
-					}
-				}
-
-			}
-		}
-
-		bool all_alterations_included = true;
-		for(int i=0;i<drug_alterations_from_cgi.count();++i)
-		{
-			if(genes_included.testBit(i) == false)
-			{
-				all_alterations_included = false;
-				break;
-			}
-			if(aa_included.testBit(i) == false)
-			{
-				all_alterations_included = false;
-				break;
-			}
-		}
-
-		//highlight AA changes which could not be identified in SNV list
-		if(!all_alterations_included && !drug.alterationType().contains("DEL") && !drug.alterationType().contains("AMP"))
-		{
-			result_line[0].prepend("\\highlight3 ");
-		}
-
-		//add cancer acronyms to global list
-		cgi_acronyms_.append(result_line[1].toUtf8().split(','));
-
-		for(int i=0; i<result_line.count(); ++i)
-		{
-			result_line[i].prepend("\\li20 ");
-		}
-
 		//gene names should be printed italic
 		result_line[0].prepend("\\i ");
 		result_line[0].replace(":","\\i0 :");
 		result_line[0].replace(",",",\\i ");
 		result_line[0].append("\\i0 ");
 
-		//several tumor types
+		//tumor type: add space in case of multiple entities
 		result_line[1].replace(",",", ");
 
 		drugs_as_string.append(result_line);
+
+		//Update cancer acronym list
+		QString tmp_cancer_acronyms = drug.entity();
+		QByteArrayList cancer_acronyms = tmp_cancer_acronyms.replace(" ","").toLatin1().split(',');
+		foreach(QByteArray acronym,cancer_acronyms) cgi_acronyms_.append(acronym);
 	}
+
 	RtfTools::writeRtfWholeTable(stream,drugs_as_string,col_widths,18,true,false);
 	RtfTools::writeRtfTableSingleRowSpec(stream,{col_widths.last()},false);
 	stream << begin_table_cell << "\\fs14 Erkl\\u228;rungen siehe Abk\\u252;rzungsverzeichnis Anlage 1." << "\\cell\\row}" << endl;
@@ -1619,7 +1533,7 @@ void ReportHelper::writeRtf(const QString& out_file)
 	QString begin_table_cell = "\\pard\\intbl\\fs18 ";
 
 	//max table widths in rtf file
-	int max_table_width = 9921;
+	int max_table_width = 9638;
 	QList<int> widths;
 	QSharedPointer<QFile> outfile = Helper::openFileForWriting(out_file);
 	QTextStream stream(outfile.data());
@@ -1750,7 +1664,6 @@ void ReportHelper::writeRtf(const QString& out_file)
 	//write QC params here in case of HSA report
 	if(target_region_.isEmpty()) writeQualityParams(stream,widths);
 
-
 	widths.clear();
 	/*********************
 	 * ADDITIONAL REPORT *
@@ -1761,7 +1674,8 @@ void ReportHelper::writeRtf(const QString& out_file)
 	writeSnvList(stream,widths,snv_variants_);
 	stream << "{\\pard\\par}" << endl;
 	widths.clear();
-	widths<< 6300 << 6800 << 7200 << max_table_width;
+	widths << 2438 << 2938 << 3338 << max_table_width;
+
 	//Make rtf report, filter genes for processing system target region
 	writeCnvList(stream,widths);
 	stream << "{\\pard\\par}" << endl;
@@ -1773,9 +1687,11 @@ void ReportHelper::writeRtf(const QString& out_file)
 	writeRtfCGIDrugTable(stream,widths);
 	stream << endl << "\\page" << endl;
 
-
-	stream <<"{\\pard\\b\\sa45\\sb45\\fs18 Abk\\u252;rzungsverzeichnis:\\par}" << endl;
-	stream << "\\pard\\fs18 ";
+	stream << "{\\pard\\par}" << endl;
+	RtfTools::writeRtfTableSingleRowSpec(stream,{max_table_width},false);
+	stream << begin_table_cell <<"\\b\\sa45\\sb45\\fs18 Abk\\u252;rzungsverzeichnis:" << "\\cell\\row}" << endl;
+	RtfTools::writeRtfTableSingleRowSpec(stream,{max_table_width},false);
+	stream << begin_table_cell << "\\fs18 ";
 
 	TSVFileStream acronym_translations("://Resources/cancer_types.tsv");
 	int i_cgi_acronym = acronym_translations.colIndex("ID",true);
@@ -1797,20 +1713,21 @@ void ReportHelper::writeRtf(const QString& out_file)
 		if(i<cgi_acronym_explanation.count()-1) stream << ", ";
 	}
 
-	stream << "\\par" << endl;
-
+	stream << "\\cell\\row}" << endl;
 
 	/***************************************
 	 * QUALITY PARAMETERS / GAP STATISTICS *
 	 ***************************************/
-	if(!target_region_.isEmpty())
+	if(!target_region_.isEmpty()) //For EBM report only
 	{
 		widths.clear();
 		widths << 3000 << max_table_width;
 		stream << "{\\pard\\par}" << endl;
 		writeQualityParams(stream,widths);
 		stream << "{\\pard\\par}" << endl;
-		writeGapStatistics(stream,target_region_);
+		widths.clear();
+		widths << 2200 << max_table_width;
+		writeGapStatistics(stream,target_region_,widths);
 	}
 
 	//close stream
