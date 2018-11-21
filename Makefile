@@ -14,19 +14,27 @@ help:
 
 ##################################### build - DEBUG #####################################
 
-build_libs_debug:
-	rm -rf build-libs-Linux-Debug;
+build_libs_debug_noclean:
 	mkdir -p build-libs-Linux-Debug;
 	cd build-libs-Linux-Debug; \
 		qmake ../src/libs.pro "CONFIG+=debug" "CONFIG-=release"; \
 		make;
 
-build_tools_debug:
-	rm -rf build-tools-Linux-Debug;
+clean_libs_debug:
+	rm -rf build-libs-Linux-Debug;
+
+build_libs_debug: clean_libs_debug build_libs_debug_noclean
+
+build_tools_debug_noclean:
 	mkdir -p build-tools-Linux-Debug;
 	cd build-tools-Linux-Debug; \
 		qmake ../src/tools.pro "CONFIG+=debug" "CONFIG-=release"; \
 		make;
+
+clean_tools_debug:
+	rm -rf build-tools-Linux-Debug;
+
+build_tools_debug: clean_tools_debug build_tools_debug_noclean
 	
 #################################### build - RELEASE ####################################
 

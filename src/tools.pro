@@ -325,5 +325,9 @@ SUBDIRS += VcfFilter
 tools-TEST.depends += VcfFilter
 VcfFilter.depends = cppNGS
 
+SUBDIRS += VcfBreakComplexVariants
+tools-TEST.depends += VcfBreakComplexVariants
+VcfBreakComplexVariants.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt
