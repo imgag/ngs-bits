@@ -398,9 +398,6 @@ void MainWindow::on_actionReanalyze_triggered()
 		}
 		dlg.setSamples(samples);
 
-		QByteArray cgi_cancer_type = ReportHelper::cgiCancertype(variants_);
-		if(cgi_cancer_type != "n/a") dlg.setCustomArguments("-cancer_type " + cgi_cancer_type);
-		else dlg.setCustomArguments("-cancer_type CANCER");
 		if (dlg.exec()==QDialog::Accepted)
 		{
 			NGSD().queueAnalysis("somatic", dlg.highPriority(), dlg.arguments(), dlg.samples());

@@ -1626,8 +1626,29 @@ void ReportHelper::writeRtf(const QString& out_file)
 	RtfTools::writeRtfTableSingleRowSpec(stream,{widths.last()},false);
 	stream << begin_table_cell << "\\fs14 Erkl\\u228;rungen siehe Abk\\u252;rzungsverzeichnis Anlage 1." << "\\cell\\row}" << endl;
 	stream << "\\page" << endl;
+
 	widths.clear();
-	widths << 3000 << max_table_width;
+	/*********************
+	 * ADDITIONAL REPORT *
+	 *********************/
+	stream << "{\\pard\\par}" << endl;
+	stream << "{\\pard\\sa45\\fs18\\b Alle nachgewiesenen somatischen Ver\\u228;nderungen:\\par}" << endl;
+	widths << 1800 << 4000 << 5400 << 6500 << 8950  << max_table_width;
+	writeSnvList(stream,widths,snv_variants_);
+	stream << "{\\pard\\par}" << endl;
+	widths.clear();
+	widths << 2438 << 2938 << 3338 << max_table_width;
+
+	//Make rtf report, filter genes for processing system target region
+	writeCnvList(stream,widths);
+	stream << "{\\pard\\par}" << endl;
+	/**************
+	 * DRUG TABLE *
+	 **************/
+	widths.clear();
+	widths << 1500 << 2700 << 5000 << 6000 << 7000 << max_table_width;
+	writeRtfCGIDrugTable(stream,widths);
+	stream << endl << "\\page" << endl;
 
 	/***********************
 	 * GENERAL INFORMATION *
@@ -1646,6 +1667,9 @@ void ReportHelper::writeRtf(const QString& out_file)
 	}
 	if(tumor_molecular_proportion > 100.)	tumor_molecular_proportion = 100.;
 
+	widths.clear();
+	widths << 2500 << max_table_width;
+
 	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
 	stream << begin_table_cell << "Datum:\\cell" << begin_table_cell <<QDate::currentDate().toString("dd.MM.yyyy") << "\\cell\\row}" << endl;
 	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
@@ -1654,7 +1678,7 @@ void ReportHelper::writeRtf(const QString& out_file)
 	stream << begin_table_cell << "Proben-ID (Keimbahn):\\cell" << begin_table_cell << normal_id_ << "\\cell\\row}" << endl;
 	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
 	stream << begin_table_cell << "Tumoranteil histol./molekular:\\cell" << begin_table_cell << histol_tumor_fraction_ << "\%";
-	stream << " / "<< tumor_molecular_proportion <<"\%\\cell\\row}" << endl;
+	stream << " / \\highlight3 "<< tumor_molecular_proportion <<"\%\\cell\\row}" << endl;
 
 	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
 	stream << begin_table_cell << "CGI-Tumortyp:\\cell" << begin_table_cell << cgi_cancer_type_ << "\\cell\\row}" << endl;
@@ -1665,32 +1689,26 @@ void ReportHelper::writeRtf(const QString& out_file)
 	stream << " (" << gene_set.count() << " Gene" << ")";
 	stream << "\\cell\\row}" << endl;
 
+	/***************************************
+	 * QUALITY PARAMETERS / GAP STATISTICS *
+	 ***************************************/
 	//write QC params here in case of HSA report
-	if(target_region_.isEmpty()) writeQualityParams(stream,widths);
-
 	widths.clear();
+	widths << 3000 << max_table_width;
+	stream << "{\\pard\\par}" << endl;
+	writeQualityParams(stream,widths);
+
+	if(!target_region_.isEmpty()) //For EBM report only: gap statistics
+	{
+		stream << "{\\pard\\par}" << endl;
+		widths.clear();
+		widths << 2200 << max_table_width;
+		writeGapStatistics(stream,target_region_,widths);
+	}
+
 	/*********************
-	 * ADDITIONAL REPORT *
+	 * CGI ACRONYMS LIST *
 	 *********************/
-	stream << "{\\pard\\par}" << endl;
-	stream << "{\\pard\\sa45\\fs18\\b Alle somatischen Ver\\u228;nderungen:\\par}" << endl;
-	widths << 1800 << 4000 << 5400 << 6500 << 8950  << max_table_width;
-	writeSnvList(stream,widths,snv_variants_);
-	stream << "{\\pard\\par}" << endl;
-	widths.clear();
-	widths << 2438 << 2938 << 3338 << max_table_width;
-
-	//Make rtf report, filter genes for processing system target region
-	writeCnvList(stream,widths);
-	stream << "{\\pard\\par}" << endl;
-	/**************
-	 * DRUG TABLE *
-	 **************/
-	widths.clear();
-	widths << 1500 << 2700 << 5000 << 6000 << 7000 << max_table_width;
-	writeRtfCGIDrugTable(stream,widths);
-	stream << endl << "\\page" << endl;
-
 	stream << "{\\pard\\par}" << endl;
 	RtfTools::writeRtfTableSingleRowSpec(stream,{max_table_width},false);
 	stream << begin_table_cell <<"\\b\\sa45\\sb45\\fs18 Abk\\u252;rzungsverzeichnis:" << "\\cell\\row}" << endl;
@@ -1718,21 +1736,6 @@ void ReportHelper::writeRtf(const QString& out_file)
 	}
 
 	stream << "\\cell\\row}" << endl;
-
-	/***************************************
-	 * QUALITY PARAMETERS / GAP STATISTICS *
-	 ***************************************/
-	if(!target_region_.isEmpty()) //For EBM report only
-	{
-		widths.clear();
-		widths << 3000 << max_table_width;
-		stream << "{\\pard\\par}" << endl;
-		writeQualityParams(stream,widths);
-		stream << "{\\pard\\par}" << endl;
-		widths.clear();
-		widths << 2200 << max_table_width;
-		writeGapStatistics(stream,target_region_,widths);
-	}
 
 	//close stream
 	stream << "}";
