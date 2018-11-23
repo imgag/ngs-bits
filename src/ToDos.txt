@@ -19,7 +19,6 @@ NGSD:
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
 
 GSvar:
-*** Gene variant info dialog: update header, recessive P2RX7 why 'het'?
 *** force filtering of variant list before showing it for WGS? benchmark loading vs rendering!
 *** Add highlighting of imprinting genes to CNVs, ROHs and UPDs
 ** Annotate Somatic to germline data => select GSvar > 2 columns (small variants, CNVS) with AF, DP etc.
