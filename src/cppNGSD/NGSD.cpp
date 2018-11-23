@@ -100,6 +100,11 @@ QList<SampleDiseaseInfo> NGSD::getSampleDiseaseInfo(const QString& sample_id, QS
 	QString type_constraint;
 	if (!only_type.isEmpty())
 	{
+		QStringList valid_types = getEnum("sample_disease_info", "type");
+		if (!valid_types.contains(only_type))
+		{
+			THROW(ProgrammingException, "Type '" + only_type + "' is not valid for table 'sample_disease_info'!");
+		}
 		type_constraint = " AND sdi.type='" + only_type + "'";
 	}
 
