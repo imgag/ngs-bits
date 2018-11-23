@@ -20,7 +20,7 @@ public:
         //optional
         addInfile("in", "Input VCF file. If unset, reads from STDIN.", true, true);
         addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
-		addFlag("no_errors", "Ignore VCF format errors is possible.");
+		addFlag("no_errors", "Ignore VCF format errors if possible.");
 
 		changeLog(2018, 10, 18, "Initial implementation.");
     }

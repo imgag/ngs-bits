@@ -208,7 +208,7 @@ double SampleSimilarity::genoToDouble(const QString& geno)
 	//VCF format
 	if (geno=="1/1" || geno=="1|1") return 1.0;
 	if (geno=="0/1" || geno=="0|1" || geno=="./1" || geno==".|1" || geno=="1/0" || geno=="1|0" || geno=="1/." || geno=="1|.") return 0.5;
-	if (geno=="0/0" || geno=="0|0") return 0.0;
+	if (geno=="0/0" || geno=="0|0" || geno=="./0" || geno==".|0" || geno=="0/." || geno=="0|." || geno==".|.") return 0.0;
 
 	THROW(ArgumentException, "Invalid genotype '" + geno + "' in input file.");
 }

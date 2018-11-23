@@ -1,7 +1,10 @@
 ### SampleSimilarity tool help
-	SampleSimilarity (2018_06-13-ge04b5e6)
+	SampleSimilarity (2018_11-7-g60f117b)
 	
 	Calculates pairwise sample similarity metrics from VCF/BAM files.
+	
+	In VCF mode, multi-allelic variants are not supported. Use VcfBreakMulti to split multi-allelic variants into several lines.
+	Multi-sample VCFs are not accepted as input. Split them to one VCF per sample.
 	
 	Mandatory parameters:
 	  -in <filelist>      Input variant lists in VCF format (two or more).
@@ -33,7 +36,7 @@
 	  --tdx               Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SampleSimilarity changelog
-	SampleSimilarity 2018_06-13-ge04b5e6
+	SampleSimilarity 2018_11-7-g60f117b
 	
 	2018-07-11 Added build switch for hg38 support.
 	2018-06-20 Added IBS0 and IBS2 metrics and renamed tool to SampleSimilarity (was SampleCorrelation).
