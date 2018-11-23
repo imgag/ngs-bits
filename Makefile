@@ -106,6 +106,7 @@ test_release:
 pull:
 	git pull --recurse-submodules
 	git submodule update --recursive
+	git status
 
 doc_update:
 	php doc/tools/update.php
