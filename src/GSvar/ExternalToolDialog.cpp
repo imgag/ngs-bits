@@ -110,7 +110,7 @@ void ExternalToolDialog::browse()
 		else
 		{
 			SampleSimilarity sc;
-			sc.calculateFromVcf(filename1, filename2, 100, false);
+			sc.calculateFromVcf(filename1, filename2, 100, false, true);
 
 			stream << "Variants file1: " << QString::number(sc.noVariants1()) << endl;
 			stream << "Variants file2: " << QString::number(sc.noVariants2()) << endl;

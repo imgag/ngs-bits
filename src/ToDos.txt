@@ -34,7 +34,6 @@ GSvar:
     - print sheet with flagged variants
 
 Tools:
-**** SampleSimilarity: add flag to ignore multi-allelic sites (test data is 10K_E264766.vcf)
 ** VcfExtractSamples: implement > update SampleSimilarity extended documentation.
 *** SeqPurge: make multi-threaded processing scale better for WGS - add writer thread
 - VariantQC: insertion/deletion ratio?

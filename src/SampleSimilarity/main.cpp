@@ -26,13 +26,16 @@ public:
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
 		addEnum("mode", "Input file format overwrite.", true, QStringList() << "vcf" << "bam", "vcf");
 		addFlag("include_gonosomes", "Includes gonosomes into calculation (by default only variants on autosomes are considered).");
+		addFlag("skip_multi", "Skip multi-allelic variants instead of throwing an error (VCF mode).");
 		addInt("window", "Window to consider around indel positions to compensate for differing alignments (VCF mode).", true, 100);
 		addInt("min_cov",  "Minimum coverage to consider a SNP for the analysis (BAM mode).",  true,  30);
 		addInt("max_snps",  "The maximum number of high-coverage SNPs to analyze. 0 means unlimited (BAM mode).",  true,  500);
 		addInfile("roi", "Target region used to speed up calculations e.g. for panel data (BAM mode).", true);
 		addEnum("build", "Genome build used to generate the input (BAM mode).", true, QStringList() << "hg19" << "hg38", "hg19");
 
+
 		//changelog
+		changeLog(2018, 11, 26, "Add flag 'skip_multi' to ignore multi-allelic sites.");
 		changeLog(2018,  7, 11, "Added build switch for hg38 support.");
 		changeLog(2018,  6, 20, "Added IBS0 and IBS2 metrics and renamed tool to SampleSimilarity (was SampleCorrelation).");
 		changeLog(2018,  1,  5, "Added multi-sample support and VCF input file support.");
@@ -52,6 +55,7 @@ public:
 		QString roi = getInfile("roi");
 		bool include_gonosomes = getFlag("include_gonosomes");
 		QString build = getEnum("build");
+		bool skip_multi = getFlag("skip_multi");
 
 		//write header
 		if (mode=="vcf")
@@ -79,7 +83,7 @@ public:
 				cols << QFileInfo(in[j]).fileName();
 				if (mode=="vcf")
 				{
-					sc.calculateFromVcf(in[i], in[j], window, include_gonosomes);
+					sc.calculateFromVcf(in[i], in[j], window, include_gonosomes, skip_multi);
 
 					cols << QString::number(sc.olPerc(), 'f', 2);
 					cols << QString::number(sc.sampleCorrelation(), 'f', 4);

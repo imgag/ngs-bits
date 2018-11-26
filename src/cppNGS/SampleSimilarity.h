@@ -52,7 +52,7 @@ public:
 	}
 
 	//Calculation from VCF
-	void calculateFromVcf(QString& in1, QString& in2, int window, bool include_gonosomes);
+	void calculateFromVcf(QString& in1, QString& in2, int window, bool include_gonosomes, bool skip_multi);
 
 	//Calculation from BAM
 	void calculateFromBam(QString build, QString& in1, QString& in2, int min_cov, int max_snps, bool include_gonosomes, QString roi_file = "");

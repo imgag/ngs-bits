@@ -4,7 +4,7 @@
 #include "BasicStatistics.h"
 #include "NGSHelper.h"
 
-void SampleSimilarity::calculateFromVcf(QString& in1, QString& in2, int window, bool include_gonosomes)
+void SampleSimilarity::calculateFromVcf(QString& in1, QString& in2, int window, bool include_gonosomes, bool skip_multi)
 {
 	clear();
 
@@ -40,6 +40,8 @@ void SampleSimilarity::calculateFromVcf(QString& in1, QString& in2, int window, 
 		//skip variants not on autosomes
 		if(!v1.chr().isAutosome() && !include_gonosomes) continue;
 
+		//skip multi-allelic variants
+		if (v1.obs().contains(',') && skip_multi) continue;
 		int start = v1.start();
 		int end = v1.end();
 
