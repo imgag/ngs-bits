@@ -69,15 +69,16 @@ private slots:
 		VCF_IS_VALID("out/VcfFilter_out09.vcf");
     }
 
-	void sample_multi()
+	void multisample_sample()
 	{
 		EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in02.vcf") + " -out out/VcfFilter_out10.vcf" + " -sample GT%20is%201|1;DP%20>%20200");
 		COMPARE_FILES("out/VcfFilter_out10.vcf", TESTDATA("data_out/VcfFilter_out10.vcf"));
 		VCF_IS_VALID("out/VcfFilter_out10.vcf");
 	}
 
-    void sample_one_match() {
-        EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in01.vcf") + " -out out/VcfFilter_out11.vcf" + " -sample_one_match -sample GT%20is%201|1;DP%20>%20200");
+	void multisample_sample_onematch()
+	{
+		EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in02.vcf") + " -out out/VcfFilter_out11.vcf" + " -sample GT%20is%201|1;DP%20>%20200 -sample_one_match");
         COMPARE_FILES("out/VcfFilter_out11.vcf", TESTDATA("data_out/VcfFilter_out11.vcf"));
         VCF_IS_VALID("out/VcfFilter_out11.vcf");
     }

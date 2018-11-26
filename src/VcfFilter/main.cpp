@@ -9,8 +9,16 @@
 
 struct FilterDefinition
 {
+	QByteArray field;
 	QByteArray op;
 	QByteArray value;
+
+	FilterDefinition(const QString& f, const QString& o, const QString& v)
+		: field(f.toLatin1())
+		, op(o.toLatin1())
+		, value(v.toLatin1())
+	{
+	}
 
 	bool isValid(const QByteArrayList& op_numeric, const QByteArrayList& op_string)
 	{
@@ -70,31 +78,31 @@ class ConcreteTool: public ToolBase
     }
 
 	// Checks if a filter is satisified
-	static bool satisfiesFilter(const QByteArray& value, const QByteArray& filter_name, const FilterDefinition& filter_def, const QByteArray& line)
+	static bool satisfiesFilter(const QByteArray& value, const FilterDefinition& filter_def, const QByteArray& line)
     {
 		if (filter_def.op == ">")
         {
-			return toDouble(value, filter_name, line) > filter_def.value.toDouble();
+			return toDouble(value, filter_def.field, line) > filter_def.value.toDouble();
         }
 		else if (filter_def.op == ">=")
         {
-			return toDouble(value, filter_name, line) >= filter_def.value.toDouble();
+			return toDouble(value, filter_def.field, line) >= filter_def.value.toDouble();
         }
 		else if (filter_def.op == "!=")
         {
-			return toDouble(value, filter_name, line) != filter_def.value.toDouble();
+			return toDouble(value, filter_def.field, line) != filter_def.value.toDouble();
         }
 		else if (filter_def.op == "=")
         {
-			return toDouble(value, filter_name, line) == filter_def.value.toDouble();
+			return toDouble(value, filter_def.field, line) == filter_def.value.toDouble();
         }
 		else if (filter_def.op == "<=")
         {
-			return toDouble(value, filter_name, line) <= filter_def.value.toDouble();
+			return toDouble(value, filter_def.field, line) <= filter_def.value.toDouble();
         }
 		else if (filter_def.op == "<")
         {
-			return toDouble(value, filter_name, line) < filter_def.value.toDouble();
+			return toDouble(value, filter_def.field, line) < filter_def.value.toDouble();
         }
 		else if (filter_def.op == "is")
         {
@@ -138,20 +146,22 @@ public:
     virtual void setup()
     {
 		setDescription("Filters a VCF based on the given criteria.");
+		setExtendedDescription(QStringList() << "Missing annotation in the SAMPLE filter are treated as passing the filter."
+											 << "INFO flags (i.e. entries without value) are ignored, i.e. they cannot be filtered."
+							   );
         //optional
         addInfile("in", "Input VCF file. If unset, reads from STDIN.", true, true);
 		addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
 
 		addString("reg", "Region of interest in BED format, or comma-separated list of region, e.g. 'chr1:454540-454678,chr2:473457-4734990'.", true);
-		addString("variant_type", "Filters by variant type. Possible types are: " + variant_types.join("','") + ".", true);
+		addString("variant_type", "Filters by variant type. Possible types are: '" + variant_types.join("','") + "'.", true);
 		addString("id", "Filter by ID column (regular expression).", true);
 		addFloat("qual", "Filter by QUAL column (minimum).", true);
 		addString("filter", "Filter by FILTER column (regular expression).", true);
 		addFlag("filter_empty", "Removes entries with non-empty FILTER column.");
 		addString("info", "Filter by INFO column entries - use ';' as separator for several filters, e.g. 'DP > 5;AO > 2' (spaces are important).\nValid operations are '" + op_numeric.join("','") + "','" + op_string.join("','") + "'.", true);
 		addString("sample", "Filter by sample-specific entries - use ';' as separator for several filters, e.g. 'GT is 1/1' (spaces are important).\nValid operations are '" + op_numeric.join("','") + "','" + op_string.join("','") + "'.", true);
-        addFlag("sample_one_match", "If sample_one_match is active samples are in OR mode. They will pass a filter once one or more of the sample passes the filters.");
-
+		addFlag("sample_one_match", "If set, a line will pass if one sample passes all filters (default behaviour is that all samples have to pass all filters).");
 		changeLog(2018, 10, 31, "Initial implementation.");
     }
 
@@ -230,54 +240,44 @@ public:
 
 		//parse INFO filters
 		QRegExp operator_regex("(\\S+)\\s+(\\S+)\\s+(\\S+)");
-		QHash<QByteArray, FilterDefinition> info_filters;
-		if (info != "")
+		QList<FilterDefinition> info_filters;
+		foreach(QString info_filter, info.split(';'))
 		{
-			foreach(QString info_filter, info.split(';'))
-			{
-				info_filter = info_filter.trimmed();
+			info_filter = info_filter.trimmed();
+			if (info_filter.isEmpty()) continue;
 
-				if (operator_regex.exactMatch(info_filter))
-				{
-					QStringList matches = operator_regex.capturedTexts();
-					QByteArray field = matches[1].toLatin1();
-					QByteArray op = matches[2].toLatin1();
-					QByteArray value = matches[3].toLatin1();
-					FilterDefinition filter_def{op, value};
-					if (!filter_def.isValid(op_numeric, op_string)) THROW(ArgumentException, "Invalid filter definition '" + info_filter + "'.");
-					info_filters[field] = filter_def;
-				}
-				else
-				{
-					THROW(ArgumentException, "Invalid filter definition '" + info_filter + "'");
-				}
+			if (operator_regex.exactMatch(info_filter))
+			{
+				QStringList matches = operator_regex.capturedTexts();
+				FilterDefinition filter(matches[1], matches[2], matches[3]);
+				if (!filter.isValid(op_numeric, op_string)) THROW(ArgumentException, "Invalid filter definition '" + info_filter + "'.");
+				info_filters << filter;
+			}
+			else
+			{
+				THROW(ArgumentException, "Invalid filter definition '" + info_filter + "'");
 			}
 		}
 
 		//parse sample filters
-		QHash<QByteArray, FilterDefinition> sample_filters;
-		if (sample != "")
-        {
-			foreach(QString sample_filter, sample.split(';'))
-			{
-				sample_filter = sample_filter.trimmed();
+		QList<FilterDefinition> sample_filters;
+		foreach(QString sample_filter, sample.split(';'))
+		{
+			sample_filter = sample_filter.trimmed();
+			if (sample_filter.isEmpty()) continue;
 
-				if (operator_regex.exactMatch(sample_filter))
-                {
-                    QStringList matches = operator_regex.capturedTexts();
-					QByteArray field = matches[1].toLatin1();
-					QByteArray op = matches[2].toLatin1();
-					QByteArray value = matches[3].toLatin1();
-					FilterDefinition filter_def{op, value};
-					if (!filter_def.isValid(op_numeric, op_string)) THROW(ArgumentException, "Invalid filter definition '" + sample_filter + "'.");
-					sample_filters[field] = filter_def;
-                }
-                else
-                {
-					THROW(ArgumentException, "Operation '" + sample_filter + "' is invalid!");
-                }
-            }
-        }
+			if (operator_regex.exactMatch(sample_filter))
+			{
+				QStringList matches = operator_regex.capturedTexts();
+				FilterDefinition filter(matches[1], matches[2], matches[3]);
+				if (!filter.isValid(op_numeric, op_string)) THROW(ArgumentException, "Invalid filter definition '" + sample_filter + "'.");
+				sample_filters << filter;
+			}
+			else
+			{
+				THROW(ArgumentException, "Operation '" + sample_filter + "' is invalid!");
+			}
+		}
 
         // Read input
 		int column_count = 0;
@@ -392,8 +392,8 @@ public:
                 }
             }
 
-            ///Filter by type and or info operators in INFO column
-			if (info_filters.size()!=0)
+			///Filter by info operators in INFO column
+			if (!info_filters.isEmpty())
             {
 				QByteArrayList info_parts = getPartByColumn(line, VcfFile::INFO).trimmed().split(';');
 
@@ -401,18 +401,20 @@ public:
 				foreach(const QByteArray& info_part, info_parts)
 				{
 					int sep_index = info_part.indexOf('=');
-					if (sep_index!=-1)
+					if (sep_index==-1) continue; //skip flags without value
+
+					QByteArray name = info_part.left(sep_index);
+					foreach(const FilterDefinition& filter, info_filters)
 					{
-						QByteArray name = info_part.left(sep_index);
-						if (info_filters.contains(name))
+						if (filter.field==name)
 						{
-							if (!satisfiesFilter(info_part.mid(sep_index+1), name, info_filters[name], line))
+							if (!satisfiesFilter(info_part.mid(sep_index+1), filter, line))
 							{
 								passes_filters = false;
-								break;
 							}
 						}
 					}
+					if (!passes_filters) break;
 				}
 
                 if (!passes_filters)
@@ -422,46 +424,41 @@ public:
             }
 
             ///Filter by sample operators in the SAMPLE column
-			if (sample_filters.size()!=0)
+			if (!sample_filters.isEmpty())
             {
-				QByteArrayList format_ids = getPartByColumn(line, VcfFile::FORMAT).trimmed().split(':');
+				QByteArrayList format_entries = getPartByColumn(line, VcfFile::FORMAT).trimmed().split(':');
 
-				QList<QByteArrayList> sample_parts;
+				int samples_passing = 0;
+				int samples_failing = 0;
 				for (int i = VcfFile::MIN_COLS + 1; i < column_count; ++i)
 				{
-					sample_parts.push_back(getPartByColumn(line, i).split(':'));
-                }
+					QByteArrayList sample_parts = getPartByColumn(line, i).split(':');
 
-                bool passed_filter_once = false;
-				bool passes_filters = true;
-				for (int i=0; i<format_ids.count(); ++i)
-				{
-					if (sample_filters.contains(format_ids[i]))
+					bool current_sample_passes = true;
+					foreach(const FilterDefinition& filter, sample_filters)
 					{
-						const FilterDefinition& filter_def = sample_filters[format_ids[i]];
+						int index = format_entries.indexOf(filter.field);
+						if (index==-1) continue;
 
-						foreach (const QByteArrayList& sample_part, sample_parts)
+						if (!satisfiesFilter(sample_parts[index], filter, line))
 						{
-							if (!satisfiesFilter(sample_part[i], format_ids[i], filter_def, line))
-							{
-								passes_filters = false;
-                                if (!sample_one_match) break;
-                            }
-                            else if (sample_one_match)
-                            {
-                                passed_filter_once = true;
-                                break;
-                            }
+							current_sample_passes = false;
+							break;
 						}
 					}
-
-                    if ((!passes_filters && !sample_one_match) || (passed_filter_once && sample_one_match)) break;
-				}
-
-                if ((!passed_filter_once && sample_one_match) || (!passes_filters && !sample_one_match))
-                {
-                    continue;
+					if(current_sample_passes)
+					{
+						++samples_passing;
+						if (sample_one_match) break;
+					}
+					else
+					{
+						++samples_failing;
+						if (!sample_one_match) break;
+					}
                 }
+
+				if ((sample_one_match && samples_passing==0) || (!sample_one_match && samples_failing!=0)) continue;
             }
 
             out_p->write(line);

@@ -10,8 +10,8 @@ libs:
 - FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 
 NGSD:
-** NGSDMaintain: check/fix omim_gene entries, check HPO entries in sample_disease_info (invalid/obsolete)
-** sample_disease_info: perform batch import from GenLab (use 'genelab_import' user)
+**** NGSDMaintain: check/fix omim_gene entries, check HPO entries in sample_disease_info (invalid/obsolete)
+**** sample_disease_info: perform batch import from GenLab (use 'genelab_import' user)
 ** model sample relation: same sample, parent-child, tumor-normal, siblings
   - use 'same sample' when counting variant frequencies
   - set relations after somatic/trio pipeline is through
@@ -34,7 +34,7 @@ GSvar:
     - print sheet with flagged variants
 
 Tools:
-** SampleSimilarity: add flag to ignore multi-allelic sites (test data is 10K_E264766.vcf)
+**** SampleSimilarity: add flag to ignore multi-allelic sites (test data is 10K_E264766.vcf)
 ** VcfExtractSamples: implement > update SampleSimilarity extended documentation.
 *** SeqPurge: make multi-threaded processing scale better for WGS - add writer thread
 - VariantQC: insertion/deletion ratio?
