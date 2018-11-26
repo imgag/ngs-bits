@@ -5,6 +5,7 @@ TEST_CLASS(VcfFilter_TEST)
 {
 Q_OBJECT
 private slots:
+
     void region_file()
     {
         // there are no overlapping regions
@@ -82,4 +83,13 @@ private slots:
         COMPARE_FILES("out/VcfFilter_out11.vcf", TESTDATA("data_out/VcfFilter_out11.vcf"));
         VCF_IS_VALID("out/VcfFilter_out11.vcf");
     }
+
+/************************************ BUGS ************************************/
+
+	void bugfix_tab_before_column_returned()
+	{
+		EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_bug01.vcf") + " -out out/VcfFilter_bug01.vcf" + " -sample GT%20not%20./0");
+		COMPARE_FILES("out/VcfFilter_bug01.vcf", TESTDATA("data_out/VcfFilter_bug01.vcf"));
+		VCF_IS_VALID("out/VcfFilter_bug01.vcf");
+	}
 };

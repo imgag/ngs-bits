@@ -58,7 +58,7 @@ class ConcreteTool: public ToolBase
                 ++columns_seen;
 				if (columns_seen == index)
                 {
-                    column_start = i;
+                    column_start = i + 1;
 					column_end = line.length() -1; // for last column that is not followed by a tab
 				}
 				else if (columns_seen == index + 1)
@@ -373,7 +373,7 @@ public:
             ///Filter FILTER column via regex
 			if (filter != "")
             {
-				QByteArray filter = getPartByColumn(line, VcfFile::FILTER);
+				QByteArray filter = getPartByColumn(line, VcfFile::FILTER).trimmed();
                 auto match = filter_re.match(filter);
                 if (!match.hasMatch())
                 {
@@ -384,7 +384,7 @@ public:
             ///Filter ID column via regex
 			if (id != "")
             {
-				QByteArray id = getPartByColumn(line, VcfFile::ID);
+				QByteArray id = getPartByColumn(line, VcfFile::ID).trimmed();
                 auto match = id_re.match(id);
                 if (!match.hasMatch())
                 {
