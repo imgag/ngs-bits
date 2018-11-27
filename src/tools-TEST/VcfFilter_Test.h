@@ -9,7 +9,7 @@ private slots:
     void region_file()
     {
         // there are no overlapping regions
-        EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in01.vcf") + " -out out/VcfFilter_out01.vcf" + " -reg " + TESTDATA("data_in/SampleSimilarity_roi.bed"));
+		EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in01.vcf") + " -out out/VcfFilter_out01.vcf" + " -reg " + TESTDATA("data_in/VcfFilter_roi.bed"));
         COMPARE_FILES("out/VcfFilter_out01.vcf", TESTDATA("data_out/VcfFilter_out01.vcf"));
         VCF_IS_VALID("out/VcfFilter_out01.vcf");
     }
