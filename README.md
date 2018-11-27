@@ -105,11 +105,13 @@ The default output format of the quality control tools is [qcML](https://github.
 * [VcfAnnotateFromBed](doc/tools/VcfAnnotateFromBed.md) - Annotates the INFO column of a VCF with data from a BED file.
 * [VcfBreakMulti](doc/tools/VcfBreakMulti.md) - Breaks multi-allelic variants into several lines, making sure that allele-specific INFO/SAMPLE fields are still valid.
 * [VcfCheck](doc/tools/VcfCheck.md) - Checks a VCF file for errors.
+* [VcfExtractSamples](doc/tools/VcfFilter.md) - Extract one or several samples from a VCF file.
 * [VcfFilter](doc/tools/VcfFilter.md) - Filters a VCF based on the given criteria.
-* [VariantFilterRegions](doc/tools/VariantFilterRegions.md) - Filter a variant list based on a target region.
 * [VcfLeftNormalize](doc/tools/VcfLeftNormalize.md) - Normalizes all variants and shifts indels to the left in a VCF file.
 * [VcfSort](doc/tools/VcfSort.md) - Sorts variant lists according to chromosomal position.
 * [VcfStreamSort](doc/tools/VcfStreamSort.md) - Sorts entries of a VCF file according to genomic position using a stream.
+
+
 
 ### NGSD-based tools
 

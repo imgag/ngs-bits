@@ -20,7 +20,7 @@ public:
 	{
 		setDescription("Calculates pairwise sample similarity metrics from VCF/BAM files.");
 		setExtendedDescription(QStringList() << "In VCF mode, multi-allelic variants are not supported. Use VcfBreakMulti to split multi-allelic variants into several lines."
-											 << "Multi-sample VCFs are not accepted as input. Split them to one VCF per sample.");
+											 << "Multi-sample VCFs are not accepted as input. Use VcfExtractSamples to split them to one VCF per sample.");
 		addInfileList("in", "Input variant lists in VCF format (two or more).", false, true);
 		//optional
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);

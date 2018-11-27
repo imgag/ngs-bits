@@ -325,5 +325,9 @@ SUBDIRS += VcfFilter
 tools-TEST.depends += VcfFilter
 VcfFilter.depends = cppNGS
 
+SUBDIRS += VcfExtractSamples
+tools-TEST.depends += VcfExtractSamples
+VcfExtractSamples.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt
