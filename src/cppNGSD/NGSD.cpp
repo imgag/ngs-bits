@@ -728,7 +728,7 @@ void NGSD::annotate(VariantList& variants, QString filename, BedFile roi, double
 		if (benchmark) timer.restart();
 		QByteArray hom_count = "n/a (AF>5%)";
 		QByteArray het_count = "n/a (AF>5%)";
-		if (maxAalleleFrequency(v, af_cols)<0.05)
+		if (maxAlleleFrequency(v, af_cols)<0.05)
 		{
 			query.exec("SELECT count_hom, count_het FROM detected_variant_counts WHERE variant_id='"+v_id+"'");
 			if (query.size()==1) // use counts from cache
@@ -1145,7 +1145,7 @@ void NGSD::fixGeneNames(QTextStream* messages, bool fix_errors, QString table, Q
 	}
 }
 
-double NGSD::maxAalleleFrequency(const Variant& v, QList<int> af_column_index)
+double NGSD::maxAlleleFrequency(const Variant& v, QList<int> af_column_index)
 {
 	double output = 0.0;
 
@@ -1182,6 +1182,7 @@ void NGSD::maintain(QTextStream* messages, bool fix_errors)
 	// (2) outdated gene names
 	fixGeneNames(messages, fix_errors, "geneinfo_germline", "symbol");
 	fixGeneNames(messages, fix_errors,"hpo_genes", "gene");
+	fixGeneNames(messages, fix_errors,"omim_gene", "gene");
 
 	// (3) variants/qc-data/KASP present for merged processed samples
 	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), p.type, p.name, s.id, ps.id FROM sample s, processed_sample ps, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id");
@@ -1271,6 +1272,27 @@ void NGSD::maintain(QTextStream* messages, bool fix_errors)
 				getQuery().exec("DELETE FROM detected_variant WHERE processed_sample_id='" + ps_id + "'");
 			}
 		}
+	}
+
+	//(5) invalid HPO entries in sample_disease_info
+	int hpo_terms_imported = getValue("SELECT COUNT(*) FROM hpo_term").toInt();
+	if (hpo_terms_imported>0)
+	{
+		query.exec("SELECT DISTINCT id, disease_info FROM sample_disease_info WHERE type='HPO term id' AND disease_info NOT IN (SELECT hpo_id FROM hpo_term)");
+		while(query.next())
+		{
+			QString hpo_id = query.value(1).toString();
+			*messages << "Invalid/obsolete HPO identifier '" << hpo_id << "' in table 'sample_disease_info'!" << endl;
+
+			if (fix_errors)
+			{
+				getQuery().exec("DELETE FROM sample_disease_info WHERE id='" + query.value(0).toString() + "'");
+			}
+		}
+	}
+	else
+	{
+		*messages << "Warning: Cannot perform check for invalid HPO identifierts because not HPO terms were imported into the NGSD!" << endl;
 	}
 }
 

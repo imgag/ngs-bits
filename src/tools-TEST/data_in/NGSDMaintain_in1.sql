@@ -60,3 +60,14 @@ INSERT INTO `hpo_term` (`id`, `hpo_id`, `name`, `definition`, `synonyms`) VALUES
 INSERT INTO `hpo_genes` (`hpo_term_id`, `gene`) VALUES
 (11495, 'BRCA1'),
 (11495, 'A1BG-AS');
+
+INSERT INTO `omim_gene` (`id`, `gene`, `mim`) VALUES
+(95435, 'BRCA1', '113705'),
+(99999, 'A1BG-AS', '999999');
+
+INSERT INTO `sample_disease_info` (`id`, `sample_id`, `disease_info`, `type`, `user_id`, `date`) VALUES
+(12, 1, 'HP:0000003', 'HPO term id', 99, '2018-11-21 18:26:26'),
+(13, 1, 'C34.9', 'ICD10 code', 99, '2018-11-21 18:26:26'),
+(14, 1, '60', 'tumor fraction', 99, '2018-11-21 18:26:26'),
+(15, 2, 'G11.9', 'ICD10 code', 99, '2018-11-21 18:35:57'),
+(16, 2, 'HP:0001272', 'HPO term id', 99, '2018-11-21 18:35:57');

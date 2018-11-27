@@ -19,24 +19,17 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDMaintain_in1.sql"));
 
 		//test, no fix
-		QString messages;
-		QTextStream stream(&messages);
-		db.maintain(&stream, false);
-		//qDebug() << messages;
+		EXECUTE("NGSDMaintain", "-test -out out/NGSDMaintain_out1.log");
+		COMPARE_FILES("out/NGSDMaintain_out1.log", TESTDATA("data_out/NGSDMaintain_out1.log"));
 
 		//test, fix
-		QString messages2;
-		QTextStream stream2(&messages2);
-		db.maintain(&stream2, true);
-		S_EQUAL(messages2, messages);
-		//qDebug() << messages2;
+		EXECUTE("NGSDMaintain", "-test -fix -out out/NGSDMaintain_out2.log");
+		COMPARE_FILES("out/NGSDMaintain_out2.log", TESTDATA("data_out/NGSDMaintain_out2.log"));
 
 		//test, nothing to fix
-		QString messages3;
-		QTextStream stream3(&messages3);
-		db.maintain(&stream3, true);
-		S_EQUAL(messages3, "");
-		//qDebug() << messages3;
+		EXECUTE("NGSDMaintain", "-test -fix -out out/NGSDMaintain_out3.log");
+		COMPARE_FILES("out/NGSDMaintain_out3.log", TESTDATA("data_out/NGSDMaintain_out3.log"));
+
 	}
 };
 
