@@ -245,7 +245,7 @@ void ReportHelper::writeCnvList(QTextStream& stream, const QList<int>& col_width
 		QList<QString> columns;
 
 		//coordinates
-		columns.append("\\qc " +variant.chr().str() + ":" + QString::number(variant.start()) +"-" + QString::number(variant.end()));
+		columns.append("\\ql " +variant.chr().str() + ":" + QString::number(variant.start() == 0 ? 1 : variant.start()) +"-" + QString::number(variant.end()));
 		if(cnv_index_cnv_type_!=-1)
 		{
 			columns.last().append("\\line (" + variant.annotations().at(cnv_index_cnv_type_) +")" );
@@ -1061,7 +1061,7 @@ void ReportHelper::writeRtfCGIDrugTable(QTextStream &stream, const QList<int> &c
 		//gene names should be printed italic
 		result_line[0].prepend("\\i ");
 		result_line[0].replace(":","\\i0 :");
-		result_line[0].replace(",",",\\i ");
+		result_line[0].replace(",",",\\i  ");
 		result_line[0].append("\\i0 ");
 
 		//tumor type: add space in case of multiple entities
