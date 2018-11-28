@@ -23,7 +23,7 @@ private slots:
 		COMPARE_FILES("out/NGSDExportSamples_out1.tsv", TESTDATA("data_out/NGSDExportSamples_out1.tsv"));
 	}
 
-	void with_qc_and_outcome_flag()
+	void with_disease_details_and_qc_and_outcome_flags()
 	{
 		QString host = Settings::string("ngsd_test_host");
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
@@ -34,7 +34,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDExportSamples_init.sql"));
 
 		//test
-		EXECUTE("NGSDExportSamples", "-test -qc -outcome -out out/NGSDExportSamples_out2.tsv");
+		EXECUTE("NGSDExportSamples", "-test -disease_details -outcome -qc -out out/NGSDExportSamples_out2.tsv");
 		COMPARE_FILES("out/NGSDExportSamples_out2.tsv", TESTDATA("data_out/NGSDExportSamples_out2.tsv"));
 	}
 

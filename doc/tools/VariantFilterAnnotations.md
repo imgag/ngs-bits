@@ -105,7 +105,7 @@
 	
 	Mandatory parameters:
 	  -in <file>      Input variant list in GSvar format.
-	  -out <file>     Output variant list. If unset, writes to STDOUT.
+	  -out <file>     Output variant list in GSvar format.
 	  -filters <file> Filter definition file.
 	
 	Special parameters:

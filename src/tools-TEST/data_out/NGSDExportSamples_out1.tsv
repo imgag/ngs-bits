@@ -1,4 +1,4 @@
 #ps.name	s.name_external	s.gender	s.quality	s.tumor	s.ffpe	ps.quality	sys.name_short	p.name	p.type	r.name	r.fcid	r.recipe	r.quality	s.disease_group	s.disease_status	last_analysis
 NA12878_01		female	good	0	0	bad	hpSYSv1	First project	research	run1	ABC	100+8+8+100	good	Neoplasms	Affected	2015-11-01 04:13:32
 NA12878_02		female	good	0	0	n/a	ssHAEv5	Second project	diagnostic	run2	XYZ	100+8+100	good	Neoplasms	Affected	n/a
-NA12880_01		female	good	0	0	n/a	ssHAEv5	Second project	diagnostic	run2	XYZ	100+8+100	good	n/a	n/a	n/a
+NA12880_01		female	good	1	0	n/a	ssHAEv5	Second project	diagnostic	run2	XYZ	100+8+100	good	n/a	n/a	n/a
