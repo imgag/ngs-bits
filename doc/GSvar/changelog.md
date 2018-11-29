@@ -1,5 +1,10 @@
 # GSvar change log
 
+### 2018_11_24 (29.11.18)
+- Somatic report: Bugfix for QBIC CNV report
+- Somatic report: Changed numbering of CNV positions to 1-base
+- Germline report: Added disease info
+
 ### 2018_11-7 (22.11.18)
 - Somatic Report: Small changes
 - Variant list: Copying non-adjacent columns to clipboard now works
