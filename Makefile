@@ -140,22 +140,10 @@ build_htslib:
 	cd htslib && make clean
 	cp htslib/lib/libhts.* bin/
 
-configure_edlib:
-	cd edlib && cmake -D CMAKE_BUILD_TYPE=Release .
-
-build_edlib:
-	cd edlib && cmake -D CMAKE_BUILD_TYPE=Release .
-	cd edlib && make
-	cp edlib/lib/libedlib* bin/
-
 clean_htslib:
 	cd htslib && make clean
 	rm -rf htslib/share htslib/lib htslib/include htslib/bin bin/libhts*
 
-clean_edlib:
-	cd edlib && make clean
-	rm -rf bin/libedlib* edlib/bin edlib/lib
+clean_3rdparty: clean_htslib
 
-clean_3rdparty: clean_htslib clean_edlib
-
-build_3rdparty: configure_edlib clean_3rdparty build_htslib build_edlib
+build_3rdparty: clean_3rdparty build_htslib

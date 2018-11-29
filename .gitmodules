@@ -14,6 +14,3 @@
 	path = src/cppTFW
 	url = https://github.com/marc-sturm/cppTFW.git
 	branch = master
-[submodule "edlib"]
-	path = edlib
-	url = https://github.com/Martinsos/edlib.git
