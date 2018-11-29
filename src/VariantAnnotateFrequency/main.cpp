@@ -21,7 +21,7 @@ public:
 	virtual void setup()
 	{
 		setDescription("Annotates a variant list with variant frequencies from a BAM file.");
-		addInfile("in", "Input variant list to annotate in TSV format.", false, true);
+		addInfile("in", "Input variant list to annotate in TSV format (chr, start, end, ref, obs).", false, true);
 		addInfile("bam", "Input BAM file.", false, true);
 		addOutfile("out", "Output TSV file.", false, true);
 		//optional

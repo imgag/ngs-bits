@@ -17,7 +17,6 @@ NGSD:
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
 
 GSvar:
-**** HGMD gene links in variant context menu: https://portal.biobase-international.com/hgmd/pro/gene.php?gene=BRCA1
 *** Annotate Somatic to germline data => select GSvar > 2 columns (small variants, CNVS) with AF, DP etc.
 * Add highlighting of imprinting genes to CNVs, ROHs and UPDs
 * Add multi-gene Google/PubMed search: https://www.ncbi.nlm.nih.gov/pubmed/?term=CASP8+AND+(%22Breast+cancer%22+OR+%22Breast+carcinoma%22)+AND+2018 (SWAL)

@@ -2258,6 +2258,13 @@ void MainWindow::varsContextMenu(QPoint pos)
 		sub_menu->setEnabled(ngsd_enabled);
 	}
 
+	//HGMD
+	sub_menu = menu.addMenu(QIcon("://Icons/HGMD.png"), "HGMD");
+	foreach(QString g, genes)
+	{
+		sub_menu->addAction(g);
+	}
+
 	//GeneCards
 	sub_menu = menu.addMenu(QIcon("://Icons/GeneCards.png"), "GeneCards");
 	foreach(QString g, genes)
@@ -2415,6 +2422,10 @@ void MainWindow::varsContextMenu(QPoint pos)
 	{
 		GeneInfoDialog dlg(text, this);
 		dlg.exec();
+	}
+	else if (parent_menu && parent_menu->title()=="HGMD")
+	{
+		QDesktopServices::openUrl(QUrl("https://portal.biobase-international.com/hgmd/pro/gene.php?gene=" + text));
 	}
 	else if (parent_menu && parent_menu->title()=="GeneCards")
 	{
