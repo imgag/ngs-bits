@@ -1316,12 +1316,12 @@ void ReportHelper::somaticCnvForQbic()
 			}
 		}
 
+		bool is_any_effect_reported = false;
 		for(int j=0;j<effects.count();++j)
 		{
 			if(effects[j].isEmpty()) continue;
 
 			QByteArray effect = "";
-
 
 			if(is_driver[j] && effects[j] == "Act")
 			{
@@ -1340,10 +1340,12 @@ void ReportHelper::somaticCnvForQbic()
 				continue;
 			}
 
+			is_any_effect_reported = true;
 			stream << genes[j] << ":" << effect;
 
 			if(j<effects.count()-1 && is_driver[j+1] ) stream << ";";
 		}
+		if(!is_any_effect_reported) stream << "NA";
 
 		stream << endl;
 	}
