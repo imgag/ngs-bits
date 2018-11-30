@@ -159,6 +159,7 @@ void MainWindow::on_actionSV_triggered()
 		SvWidget* list = new SvWidget(filename_);
 		auto dlg = GUIHelper::showWidgetAsDialog(list, "Structure variants", false, false);
 		addModelessDialog(dlg);
+		connect(list,SIGNAL(openSvInIGV(QString)),this,SLOT(openInIGV(QString)));
 	}
 	catch(FileParseException error)
 	{

@@ -2,6 +2,7 @@
 #define SVWIDGET_H
 
 #include <QWidget>
+#include <QTableWidgetItem>
 #include "SvList.h"
 
 namespace Ui {
@@ -25,12 +26,19 @@ private:
 
 	void loadSVs(QString file_name);
 
+	void filterAnnotationsForNumber(QByteArray anno_name, double filter_thresh, QBitArray &pass);
+
+signals:
+	openSvInIGV(QString coords);
+
 private slots:
 	///copy filtered SV table to clipboard
 	void copyToClipboard();
 
 	///update SV table if filter for types was changed
 	void filtersChanged();
+
+	void SvDoubleClicked(QTableWidgetItem* item);
 };
 
 #endif // SVWIDGET_H
