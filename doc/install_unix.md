@@ -49,5 +49,18 @@ Just execute the following make commands:
 Now the executables and all required libraries can be found in the `bin` folder.
 
 
+### Adding reference genome to the settings
+
+Some of the *ngs-bits* tools need a reference genome in FASTA format.  
+You can set the reference genome on the command line, e.g. the `-ref` parameter of the `VcfLeftNormalize` tool.
+
+To avoid having to set the reference genome for each call, you can set up a settings file.  
+Copy the template:
+
+	> cp bin/settings.ini.example bin/settings.ini
+
+and then set the `reference_genome` parameter in the `bin/settings.ini` file.  
+
+
 
 

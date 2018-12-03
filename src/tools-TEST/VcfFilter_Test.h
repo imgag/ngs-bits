@@ -5,10 +5,11 @@ TEST_CLASS(VcfFilter_TEST)
 {
 Q_OBJECT
 private slots:
+
     void region_file()
     {
         // there are no overlapping regions
-        EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in01.vcf") + " -out out/VcfFilter_out01.vcf" + " -reg " + TESTDATA("data_in/SampleSimilarity_roi.bed"));
+		EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in01.vcf") + " -out out/VcfFilter_out01.vcf" + " -reg " + TESTDATA("data_in/VcfFilter_roi.bed"));
         COMPARE_FILES("out/VcfFilter_out01.vcf", TESTDATA("data_out/VcfFilter_out01.vcf"));
         VCF_IS_VALID("out/VcfFilter_out01.vcf");
     }
@@ -69,16 +70,26 @@ private slots:
 		VCF_IS_VALID("out/VcfFilter_out09.vcf");
     }
 
-	void sample_multi()
+	void multisample_sample()
 	{
 		EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in02.vcf") + " -out out/VcfFilter_out10.vcf" + " -sample GT%20is%201|1;DP%20>%20200");
 		COMPARE_FILES("out/VcfFilter_out10.vcf", TESTDATA("data_out/VcfFilter_out10.vcf"));
 		VCF_IS_VALID("out/VcfFilter_out10.vcf");
 	}
 
-    void sample_one_match() {
-        EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in01.vcf") + " -out out/VcfFilter_out11.vcf" + " -sample_one_match -sample GT%20is%201|1;DP%20>%20200");
+	void multisample_sample_onematch()
+	{
+		EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_in02.vcf") + " -out out/VcfFilter_out11.vcf" + " -sample GT%20is%201|1;DP%20>%20200 -sample_one_match");
         COMPARE_FILES("out/VcfFilter_out11.vcf", TESTDATA("data_out/VcfFilter_out11.vcf"));
         VCF_IS_VALID("out/VcfFilter_out11.vcf");
     }
+
+/************************************ BUGS ************************************/
+
+	void bugfix_tab_before_column_returned()
+	{
+		EXECUTE("VcfFilter", "-in " + TESTDATA("data_in/VcfFilter_bug01.vcf") + " -out out/VcfFilter_bug01.vcf" + " -sample GT%20not%20./0");
+		COMPARE_FILES("out/VcfFilter_bug01.vcf", TESTDATA("data_out/VcfFilter_bug01.vcf"));
+		VCF_IS_VALID("out/VcfFilter_bug01.vcf");
+	}
 };

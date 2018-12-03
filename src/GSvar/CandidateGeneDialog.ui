@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Gene variant check dialog</string>
+   <string>Gene variant info</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <property name="leftMargin">

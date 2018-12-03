@@ -21,7 +21,7 @@ public:
 	{
 		setDescription("Filter a variant list in GSvar format based on variant annotations.");
 		addInfile("in", "Input variant list in GSvar format.", false);
-		addOutfile("out", "Output variant list. If unset, writes to STDOUT.", false);
+		addOutfile("out", "Output variant list in GSvar format.", false);
 		addInfile("filters", "Filter definition file.", false);
 
 		setExtendedDescription(extendedDescription());

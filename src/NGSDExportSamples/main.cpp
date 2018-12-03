@@ -21,7 +21,7 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Lists processed samples from NGSD.");
+		setDescription("Lists processed samples from the NGSD.");
 		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
 		addString("project", "Project name filter.", true, "");
 		addString("sys", "Processing system short name filter.", true, "");
@@ -29,8 +29,9 @@ public:
 		addEnum("quality", "Minimum processed sample/sample/run quality filter.", true, QStringList() << "bad" << "medium" << "good", "bad");
 		addFlag("no_tumor", "If set, tumor samples are excluded.");
 		addFlag("no_ffpe", "If set, FFPE samples are excluded.");
-		addFlag("qc", "If set, QC colums are added to output.");
-		addFlag("outcome", "If set, diagnostic outcome colums are added to output.");
+		addFlag("qc", "If set, QC columns are added to output.");
+		addFlag("outcome", "If set, diagnostic outcome columns are added to output.");
+		addFlag("disease_details", "If set, disease details columns are added to output.");
 		addFlag("check_path", "Checks if the sample folder is present at the defaults location in the 'projects_folder' (as defined in the 'settings.ini' file).");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
@@ -55,6 +56,7 @@ public:
 		conditions << "sys.id=ps.processing_system_id";
 		bool qc = getFlag("qc");
 		bool outcome = getFlag("outcome");
+		bool disease_details = getFlag("disease_details");
 		QStringList qc_cols = db.getValues("SELECT name FROM qc_terms WHERE obsolete=0 ORDER BY qcml_id");
 
 		//filter project
@@ -150,12 +152,14 @@ public:
 			line += (i==1 ? "" : "\t") + fields[i];
 		}
 		line += "\tlast_analysis";
-		if (check_path) line += "\tcheck_path";
-		if (qc)
+		QStringList disease_details_types;
+		if (disease_details)
 		{
-			foreach(QString qc_col, qc_cols)
+			disease_details_types = db.getEnum("sample_disease_info", "type");
+			disease_details_types.sort();
+			foreach(QString type, disease_details_types)
 			{
-				line += "\tqc." + qc_col.replace(' ', '_');
+				line += "\tdisease_details_" + type.replace(" ", "_");
 			}
 		}
 		if (outcome)
@@ -164,6 +168,14 @@ public:
 			line += "\toutcome_causal_genes";
 			line += "\toutcome_inheritance_mode";
 			line += "\toutcome_comment";
+		}
+		if (check_path) line += "\tcheck_path";
+		if (qc)
+		{
+			foreach(QString qc_col, qc_cols)
+			{
+				line += "\tqc." + qc_col.replace(' ', '_');
+			}
 		}
 		output->write(line.toLatin1() + "\n");
 
@@ -223,6 +235,39 @@ public:
 				}
 			}
 
+			//disease details
+			if (disease_details)
+			{
+				QString sample_id = db.getValue("SELECT sample_id FROM processed_sample WHERE id='" + ps_id + "'").toString();
+				foreach(QString type, disease_details_types)
+				{
+					QStringList tmp;
+					QList<SampleDiseaseInfo> disease_info = db.getSampleDiseaseInfo(sample_id, type);
+					foreach(const SampleDiseaseInfo& entry, disease_info)
+					{
+						if (type=="HPO term id")
+						{
+							tmp << entry.disease_info + " (" + db.phenotypeByAccession(entry.disease_info.toLatin1(), false).name() + ")";
+						}
+						else
+						{
+							tmp << entry.disease_info;
+						}
+					}
+					tokens << tmp.join("; ");
+				}
+			}
+
+			//diagnostic outcome
+			if (outcome)
+			{
+				DiagnosticStatusData diag = db.getDiagnosticStatus(ps_id);
+				tokens << diag.outcome;
+				tokens << diag.genes_causal.replace("\t", " ").replace("\n", " ");
+				tokens << diag.inheritance_mode;
+				tokens << diag.comments.replace("\t", " ").replace("\n", " ");
+			}
+
 			//QC values
 			if (qc)
 			{
@@ -237,16 +282,6 @@ public:
 				{
 					tokens << qc_map.value(qc_col, "n/a");
 				}
-			}
-
-			//diagnostic outcome
-			if (outcome)
-			{
-				DiagnosticStatusData diag = db.getDiagnosticStatus(ps_id);
-				tokens << diag.outcome;
-				tokens << diag.genes_causal.replace("\t", " ").replace("\n", " ");
-				tokens << diag.inheritance_mode;
-				tokens << diag.comments.replace("\t", " ").replace("\n", " ");
 			}
 
 			//write output

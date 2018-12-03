@@ -54,7 +54,6 @@
 #include "OntologyTermCollection.h"
 #include "ReportHelper.h"
 #include "DiagnosticStatusOverviewDialog.h"
-#include "GenLabDB.h"
 #include "SvWidget.h"
 #include "VariantSampleOverviewDialog.h"
 #include "SomaticReportConfiguration.h"
@@ -123,7 +122,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(&filewatcher_, SIGNAL(fileChanged()), this, SLOT(handleInputFileChange()));
 	connect(ui_.vars, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(variantDoubleClicked(QTableWidgetItem*)));
 	connect(ui_.actionDesignSubpanel, SIGNAL(triggered()), this, SLOT(openSubpanelDesignDialog()));
-	connect(filter_widget_, SIGNAL(phenotypeDataImportRequested()), this, SLOT(importPhenotypesFromGenLab()));
+	connect(filter_widget_, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
 	connect(filter_widget_, SIGNAL(phenotypeSubPanelRequested()), this, SLOT(createSubPanelFromPhenotypeFilter()));
 
 	//misc initialization
@@ -160,6 +159,7 @@ void MainWindow::on_actionSV_triggered()
 		SvWidget* list = new SvWidget(filename_);
 		auto dlg = GUIHelper::showWidgetAsDialog(list, "Structure variants", false, false);
 		addModelessDialog(dlg);
+		connect(list,SIGNAL(openSvInIGV(QString)),this,SLOT(openInIGV(QString)));
 	}
 	catch(FileParseException error)
 	{
@@ -399,9 +399,6 @@ void MainWindow::on_actionReanalyze_triggered()
 		}
 		dlg.setSamples(samples);
 
-		QByteArray cgi_cancer_type = ReportHelper::cgiCancertype(variants_);
-		if(cgi_cancer_type != "n/a") dlg.setCustomArguments("-cancer_type " + cgi_cancer_type);
-		else dlg.setCustomArguments("-cancer_type CANCER");
 		if (dlg.exec()==QDialog::Accepted)
 		{
 			NGSD().queueAnalysis("somatic", dlg.highPriority(), dlg.arguments(), dlg.samples());
@@ -888,9 +885,26 @@ void MainWindow::cleanUpModelessDialogs()
 	}
 }
 
-void MainWindow::importPhenotypesFromGenLab()
+void MainWindow::importPhenotypesFromNGSD()
 {
-	filter_widget_->setPhenotypes(GenLabDB().phenotypes(sampleName()));
+	QList<Phenotype> phenotypes;
+
+	//load from NGSD
+	NGSD db;
+	QList<SampleDiseaseInfo> disease_info = db.getSampleDiseaseInfo(db.sampleId(filename_), "HPO term id");
+	foreach(const SampleDiseaseInfo& entry, disease_info)
+	{
+		try
+		{
+			phenotypes << db.phenotypeByAccession(entry.disease_info.toLatin1());
+		}
+		catch(Exception& e)
+		{
+			qDebug() << e.message();
+		}
+	}
+
+	filter_widget_->setPhenotypes(phenotypes);
 }
 
 void MainWindow::createSubPanelFromPhenotypeFilter()
@@ -1952,8 +1966,12 @@ void MainWindow::uploadtoLovd(int variant_index, int variant_index2)
 	QString sample_id = db.sampleId(data.processed_sample);
 	data.gender = db.getSampleData(sample_id).gender;
 
-	//phenotype(s) from GenLab
-	data.phenos = GenLabDB().phenotypes(sampleName());
+	//phenotype(s)
+	QList<SampleDiseaseInfo> disease_info = db.getSampleDiseaseInfo(sample_id, "HPO term id");
+	foreach(const SampleDiseaseInfo& entry, disease_info)
+	{
+		data.phenos << db.phenotypeByAccession(entry.disease_info.toLatin1(), false);
+	}
 
 	//data 1st variant
 	const Variant& variant = variants_[variant_index];
@@ -2241,6 +2259,13 @@ void MainWindow::varsContextMenu(QPoint pos)
 		sub_menu->setEnabled(ngsd_enabled);
 	}
 
+	//HGMD
+	sub_menu = menu.addMenu(QIcon("://Icons/HGMD.png"), "HGMD");
+	foreach(QString g, genes)
+	{
+		sub_menu->addAction(g);
+	}
+
 	//GeneCards
 	sub_menu = menu.addMenu(QIcon("://Icons/GeneCards.png"), "GeneCards");
 	foreach(QString g, genes)
@@ -2398,6 +2423,10 @@ void MainWindow::varsContextMenu(QPoint pos)
 	{
 		GeneInfoDialog dlg(text, this);
 		dlg.exec();
+	}
+	else if (parent_menu && parent_menu->title()=="HGMD")
+	{
+		QDesktopServices::openUrl(QUrl("https://portal.biobase-international.com/hgmd/pro/gene.php?gene=" + text));
 	}
 	else if (parent_menu && parent_menu->title()=="GeneCards")
 	{

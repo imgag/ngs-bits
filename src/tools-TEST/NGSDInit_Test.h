@@ -12,10 +12,8 @@ private slots:
 		QString host = Settings::string("ngsd_test_host");
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
-		//init
-		NGSD db(true);
-		db.init();
-		db.executeQueriesFromFile(TESTDATA("data_in/NGSDInit_in1.sql"));
+		//test
+		EXECUTE("NGSDInit", "-test -add " + TESTDATA("data_in/NGSDInit_in1.sql"));
 	}
 };
 

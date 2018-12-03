@@ -17,6 +17,7 @@ public:
 	{
 		setDescription("Checks for and corrects errors/inconstistencies in the NGSD database.");
 		//optional
+		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
 		addFlag("fix", "Correct found errors/inconstistencies.");
 		addFlag("test", "Uses the test database instead of on the production database.");
 	}
@@ -25,8 +26,10 @@ public:
 	{
 		//init
 		NGSD db(getFlag("test"));
-		QTextStream stream (stdout);
-		db.maintain(&stream, getFlag("fix"));
+		bool fix  = getFlag("fix");
+		QSharedPointer<QFile> out = Helper::openFileForWriting(getOutfile("out"), true);
+		QTextStream stream(out.data());
+		db.maintain(&stream, fix);
 	}
 };
 

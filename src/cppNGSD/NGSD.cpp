@@ -53,15 +53,15 @@ SampleData NGSD::getSampleData(const QString& sample_id)
 
 	//create output
 	SampleData output;
-	output.name = query.value(0).toByteArray().trimmed();
-	output.name_external = query.value(1).toByteArray().trimmed();
-	output.gender = query.value(2).toByteArray();
-	output.quality = query.value(3).toByteArray();
-	output.comments = query.value(4).toByteArray().trimmed();
-	output.disease_group = query.value(5).toByteArray();
-	output.disease_status = query.value(6).toByteArray();
-	output.is_tumor = query.value(7).toByteArray()=="1";
-	output.is_ffpe = query.value(8).toByteArray()=="1";
+	output.name = query.value(0).toString().trimmed();
+	output.name_external = query.value(1).toString().trimmed();
+	output.gender = query.value(2).toString();
+	output.quality = query.value(3).toString();
+	output.comments = query.value(4).toString().trimmed();
+	output.disease_group = query.value(5).toString().trimmed();
+	output.disease_status = query.value(6).toString().trimmed();
+	output.is_tumor = query.value(7).toString()=="1";
+	output.is_ffpe = query.value(8).toString()=="1";
 	return output;
 }
 
@@ -78,14 +78,14 @@ ProcessedSampleData NGSD::getProcessedSampleData(const QString& processed_sample
 
 	//create output
 	ProcessedSampleData output;
-	output.name = query.value(0).toByteArray().trimmed();
-	output.processing_system = query.value(1).toByteArray().trimmed();
-	output.quality = query.value(2).toByteArray();
-	output.gender = query.value(7).toByteArray();
-	output.comments = query.value(3).toByteArray().trimmed();
-	output.project_name = query.value(4).toByteArray();
-	output.run_name = query.value(5).toByteArray();
-	output.normal_sample_name = query.value(6).toByteArray().trimmed();
+	output.name = query.value(0).toString().trimmed();
+	output.processing_system = query.value(1).toString().trimmed();
+	output.quality = query.value(2).toString().trimmed();
+	output.gender = query.value(7).toString().trimmed();
+	output.comments = query.value(3).toString().trimmed();
+	output.project_name = query.value(4).toString().trimmed();
+	output.run_name = query.value(5).toString().trimmed();
+	output.normal_sample_name = query.value(6).toString().trimmed();
 	if (output.normal_sample_name!="")
 	{
 		output.normal_sample_name = normalSample(processed_sample_id);
@@ -93,6 +93,58 @@ ProcessedSampleData NGSD::getProcessedSampleData(const QString& processed_sample
 	return output;
 
 }
+
+QList<SampleDiseaseInfo> NGSD::getSampleDiseaseInfo(const QString& sample_id, QString only_type)
+{
+	//set up type filter
+	QString type_constraint;
+	if (!only_type.isEmpty())
+	{
+		QStringList valid_types = getEnum("sample_disease_info", "type");
+		if (!valid_types.contains(only_type))
+		{
+			THROW(ProgrammingException, "Type '" + only_type + "' is not valid for table 'sample_disease_info'!");
+		}
+		type_constraint = " AND sdi.type='" + only_type + "'";
+	}
+
+	//execute query
+	SqlQuery query = getQuery();
+	query.exec("SELECT sdi.disease_info, sdi.type, u.user_id, sdi.date FROM sample_disease_info sdi, user u WHERE sdi.user_id=u.id AND sdi.sample_id=" + sample_id + " " + type_constraint + " ORDER by sdi.type ASC, sdi.disease_info ASC");
+
+	//create output
+	QList<SampleDiseaseInfo> output;
+	while(query.next())
+	{
+		SampleDiseaseInfo tmp;
+		tmp.disease_info = query.value(0).toByteArray().trimmed();
+		tmp.type = query.value(1).toByteArray().trimmed();
+		tmp.user = query.value(2).toByteArray().trimmed();
+		tmp.date = query.value(3).toDateTime();
+		output << tmp;
+	}
+	return output;
+}
+
+void NGSD::setSampleDiseaseInfo(const QString& sample_id, const QList<SampleDiseaseInfo>& disease_info)
+{
+	//remove old entries
+	SqlQuery query = getQuery();
+	query.exec("DELETE FROM sample_disease_info WHERE sample_id=" + sample_id);
+
+	//insert new entries
+	SqlQuery query_insert = getQuery();
+	query_insert.prepare("INSERT INTO sample_disease_info (`sample_id`, `disease_info`, `type`, `user_id`, `date`) VALUES (" + sample_id + ", :0, :1, :2, :3)");
+	foreach(const SampleDiseaseInfo& entry, disease_info)
+	{
+		query_insert.bindValue(0, entry.disease_info);
+		query_insert.bindValue(1, entry.type);
+		query_insert.bindValue(2, userId(entry.user));
+		query_insert.bindValue(3, entry.date.toString(Qt::ISODate));
+		query_insert.exec();
+	}
+}
+
 
 QString NGSD::sampleName(const QString& filename, bool throw_if_fails)
 {
@@ -676,7 +728,7 @@ void NGSD::annotate(VariantList& variants, QString filename, BedFile roi, double
 		if (benchmark) timer.restart();
 		QByteArray hom_count = "n/a (AF>5%)";
 		QByteArray het_count = "n/a (AF>5%)";
-		if (maxAalleleFrequency(v, af_cols)<0.05)
+		if (maxAlleleFrequency(v, af_cols)<0.05)
 		{
 			query.exec("SELECT count_hom, count_het FROM detected_variant_counts WHERE variant_id='"+v_id+"'");
 			if (query.size()==1) // use counts from cache
@@ -1093,7 +1145,7 @@ void NGSD::fixGeneNames(QTextStream* messages, bool fix_errors, QString table, Q
 	}
 }
 
-double NGSD::maxAalleleFrequency(const Variant& v, QList<int> af_column_index)
+double NGSD::maxAlleleFrequency(const Variant& v, QList<int> af_column_index)
 {
 	double output = 0.0;
 
@@ -1130,6 +1182,7 @@ void NGSD::maintain(QTextStream* messages, bool fix_errors)
 	// (2) outdated gene names
 	fixGeneNames(messages, fix_errors, "geneinfo_germline", "symbol");
 	fixGeneNames(messages, fix_errors,"hpo_genes", "gene");
+	fixGeneNames(messages, fix_errors,"omim_gene", "gene");
 
 	// (3) variants/qc-data/KASP present for merged processed samples
 	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), p.type, p.name, s.id, ps.id FROM sample s, processed_sample ps, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id");
@@ -1219,6 +1272,27 @@ void NGSD::maintain(QTextStream* messages, bool fix_errors)
 				getQuery().exec("DELETE FROM detected_variant WHERE processed_sample_id='" + ps_id + "'");
 			}
 		}
+	}
+
+	//(5) invalid HPO entries in sample_disease_info
+	int hpo_terms_imported = getValue("SELECT COUNT(*) FROM hpo_term").toInt();
+	if (hpo_terms_imported>0)
+	{
+		query.exec("SELECT DISTINCT id, disease_info FROM sample_disease_info WHERE type='HPO term id' AND disease_info NOT IN (SELECT hpo_id FROM hpo_term)");
+		while(query.next())
+		{
+			QString hpo_id = query.value(1).toString();
+			*messages << "Invalid/obsolete HPO identifier '" << hpo_id << "' in table 'sample_disease_info'!" << endl;
+
+			if (fix_errors)
+			{
+				getQuery().exec("DELETE FROM sample_disease_info WHERE id='" + query.value(0).toString() + "'");
+			}
+		}
+	}
+	else
+	{
+		*messages << "Warning: Cannot perform check for invalid HPO identifierts because not HPO terms were imported into the NGSD!" << endl;
 	}
 }
 
@@ -1678,9 +1752,14 @@ QList<Phenotype> NGSD::phenotypeChildTems(const Phenotype& phenotype, bool recur
 	return terms;
 }
 
-QByteArray NGSD::phenotypeAccessionToName(const QByteArray& accession)
+Phenotype NGSD::phenotypeByAccession(const QByteArray& accession, bool throw_on_error)
 {
-	return getValue("SELECT name FROM hpo_term WHERE hpo_id='" + accession + "'", false).toByteArray();
+	QByteArray name = getValue("SELECT name FROM hpo_term WHERE hpo_id='" + accession + "'", true).toByteArray();
+	if (name.isEmpty() && throw_on_error)
+	{
+		THROW(ArgumentException, "Cannot find HPO phenotype with accession '" + accession + "' in NGSD!");
+	}
+	return Phenotype(accession, name);
 }
 
 const GeneSet& NGSD::approvedGeneNames()
@@ -2038,11 +2117,7 @@ void NGSD::setDiagnosticStatus(const QString& processed_sample_id, DiagnosticSta
 	//get current user ID
 	QString user_id = userId(user_name);
 
-	//get previous status
-	DiagnosticStatusData status_before = getDiagnosticStatus(processed_sample_id);
-
 	//update status
-
 	SqlQuery query = getQuery();
 	query.prepare("INSERT INTO diag_status (processed_sample_id, status, user_id, outcome, genes_causal, inheritance_mode, genes_incidental, comment) " \
 					"VALUES ("+processed_sample_id+",'"+status.dagnostic_status+"', "+user_id+", '"+status.outcome+"', :0, '"+status.inheritance_mode+"', :1, :2) " \

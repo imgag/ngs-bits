@@ -53,5 +53,7 @@
         <file>Icons/Google.png</file>
         <file>Icons/SysID.png</file>
         <file>Icons/Edit.png</file>
+        <file>Icons/GenLab.png</file>
+        <file>Icons/HGMD.png</file>
     </qresource>
 </RCC>

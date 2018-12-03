@@ -13,6 +13,7 @@ public:
 		SqlQuery(QSqlDatabase db);
 		SqlQuery(const SqlQuery& query);
 		void exec(const QString& query);
+		void prepare(const QString& query);
 		void exec();
 };
 

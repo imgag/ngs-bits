@@ -7,6 +7,9 @@
 #include <QMenu>
 #include <QStringList>
 #include <QFileInfo>
+#include <QInputDialog>
+#include <Log.h>
+#include "SampleDiseaseInfoWidget.h"
 
 SampleDetailsDockWidget::SampleDetailsDockWidget(QWidget *parent)
 	: QDockWidget(parent)
@@ -15,20 +18,17 @@ SampleDetailsDockWidget::SampleDetailsDockWidget(QWidget *parent)
 {
 	ui_.setupUi(this);
 
-	//diagnostic status button
-	connect(ui_.diag_status_button, SIGNAL(clicked(bool)), this, SLOT(editDiagnosticStatus()));
-	connect(ui_.disease_button, SIGNAL(clicked(bool)), this, SLOT(editDiseaseData()));
 
-	if (Settings::boolean("NGSD_enabled", true))
+	//set up NGSD edit button
+	QMenu* menu = new QMenu();
+	menu->addAction("Edit disease group/status", this, SLOT(editDiseaseGroupAndInfo()));
+	menu->addAction("Edit disease details", this, SLOT(editDiseaseDetails()));
+	menu->addAction("Edit quality", this, SLOT(setQuality()));
+	menu->addAction("Edit diagnostic status", this, SLOT(editDiagnosticStatus()));
+	ui_.ngsd_edit->setMenu(menu);
+	if (!Settings::boolean("NGSD_enabled", true))
 	{
-		//setup quality button
-		QMenu* menu = new QMenu();
-		QStringList quality = NGSD().getEnum("processed_sample", "quality");
-		foreach(QString q, quality)
-		{
-			menu->addAction(q, this, SLOT(setQuality()));
-		}
-		ui_.quality_button->setMenu(menu);
+		ui_.ngsd_edit->setEnabled(false);
 	}
 
 	clear();
@@ -49,7 +49,7 @@ void SampleDetailsDockWidget::editDiagnosticStatus()
 	refresh(processed_sample_name_);
 }
 
-void SampleDetailsDockWidget::editDiseaseData()
+void SampleDetailsDockWidget::editDiseaseGroupAndInfo()
 {
 	QString sample_id = NGSD().sampleId(processed_sample_name_);
 	DiseaseInfoDialog dlg(sample_id, this);
@@ -60,14 +60,48 @@ void SampleDetailsDockWidget::editDiseaseData()
 	}
 }
 
-void SampleDetailsDockWidget::setQuality()
+void SampleDetailsDockWidget::editDiseaseDetails()
 {
 	NGSD db;
-	QString quality = qobject_cast<QAction*>(sender())->text();
+	QString sample_id = db.sampleId(processed_sample_name_);
+
+	SampleDiseaseInfoWidget* widget = new SampleDiseaseInfoWidget(processed_sample_name_, this);
+	widget->setDiseaseInfo(db.getSampleDiseaseInfo(sample_id));
+	auto dlg = GUIHelper::showWidgetAsDialog(widget, "Sample disease details", true);
+	if (dlg->result() == QDialog::Accepted)
+	{
+		db.setSampleDiseaseInfo(sample_id, widget->diseaseInfo());
+		refresh(processed_sample_name_);
+	}
+}
+
+void SampleDetailsDockWidget::setQuality()
+{
+	QStringList qualities = NGSD().getEnum("processed_sample", "quality");
+
+	bool ok;
+	QString quality = QInputDialog::getItem(this, "Select processed sample quality", "quality:", qualities, qualities.indexOf(ui_.qc_quality->text()), false, &ok);
+	if (!ok) return;
+
+	NGSD db;
 	QString processed_sample_id = db.processedSampleId(processed_sample_name_);
 	db.setProcessedSampleQuality(processed_sample_id, quality);
 
 	refresh(processed_sample_name_);
+}
+
+QGridLayout* SampleDetailsDockWidget::clearDiseaseDetails()
+{
+	QGridLayout* layout = qobject_cast<QGridLayout*>(ui_.disease_info_group->findChild<QGridLayout*>());
+
+	QLayoutItem *child;
+	while (layout->rowCount()>0 && ((child = layout->takeAt(0)) != 0))
+	{
+		delete child->widget();
+		delete child;
+	}
+
+	return layout;
 }
 
 void SampleDetailsDockWidget::refresh(QString processed_sample_name)
@@ -78,24 +112,50 @@ void SampleDetailsDockWidget::refresh(QString processed_sample_name)
 	if (!Settings::boolean("NGSD_enabled", true)) return;
 	NGSD db;
 
-	//sample data from NGSD
+	//data from NGSD
 	try
 	{
-		SampleData sample_data = db.getSampleData(db.sampleId(processed_sample_name_));
+		//**** part 1: sample data
+		QString sample_id = db.sampleId(processed_sample_name_);
+
+		SampleData sample_data = db.getSampleData(sample_id);
 		ui_.name_ext->setText(sample_data.name_external);
 		ui_.tumor_ffpe->setText(QString(sample_data.is_tumor ? "yes" : "no") + " / " + (sample_data.is_ffpe ? "yes" : "no"));
-		ui_.disease_group->setText(sample_data.disease_group);
-		ui_.disease_status->setText(sample_data.disease_status);
-	}
-	catch(...)
-	{
-	}
+		QString group = sample_data.disease_group.trimmed();
+		if (group=="n/a") group = "<font color='red'>"+group+"</font>";
+		ui_.disease_group->setText(group);
+		QString status = sample_data.disease_status.trimmed();
+		if (status=="n/a") status = "<font color='red'>"+status+"</font>";
+		ui_.disease_status->setText(status);
 
-	//processed sample data from NGSD
-	try
-	{
-		//QC data
+		//disease details
+		QGridLayout* disease_layout = clearDiseaseDetails();
+		QList<SampleDiseaseInfo> disease_info = db.getSampleDiseaseInfo(sample_id);
+		if (disease_info.isEmpty())
+		{
+			disease_layout->addWidget(new QLabel("<font color='red'>n/a</font>"), 0, 0);
+		}
+		else
+		{
+			foreach(const SampleDiseaseInfo& entry, disease_info)
+			{
+				int row = disease_layout->rowCount();
+
+				//special handling of HPO (show term name)
+				QString disease_info = entry.disease_info;
+				if (entry.type=="HPO term id")
+				{
+					Phenotype pheno = db.phenotypeByAccession(disease_info.toLatin1(), false);
+					disease_info +=  " (" + (pheno.name().isEmpty() ? "invalid" : pheno.name()) + ")";
+				}
+				disease_layout->addWidget(new QLabel(entry.type + ": " + disease_info), row, 0);
+			}
+		}
+
+		//**** part 2: processed sample data
 		QString processed_sample_id = db.processedSampleId(processed_sample_name_);
+
+		//QC data
 		ProcessedSampleData processed_sample_data = db.getProcessedSampleData(processed_sample_id);
 		QCCollection qc = db.getQCData(processed_sample_id);
 		ui_.qc_reads->setText(qc.value("QC:2000005", true).toString(0) + " (length: " + qc.value("QC:2000006", true).toString(0) + ")");
@@ -133,16 +193,13 @@ void SampleDetailsDockWidget::refresh(QString processed_sample_name)
 		}
 		ui_.date_bam->setText(date_text);
 
-		ui_.quality_button->setEnabled(true);
-		ui_.diag_status_button->setEnabled(true);
-		ui_.disease_button->setEnabled(true);
+		ui_.ngsd_edit->setEnabled(true);
 
 	}
-	catch(...)
+	catch(Exception& e)
 	{
-		ui_.quality_button->setEnabled(false);
-		ui_.diag_status_button->setEnabled(false);
-		ui_.disease_button->setEnabled(false);
+		Log::warn("Error getting sample information from NGSD: " + e.message());
+		ui_.ngsd_edit->setEnabled(false);
 	}
 }
 
@@ -154,6 +211,7 @@ void SampleDetailsDockWidget::clear()
 	ui_.tumor_ffpe->clear();
 	ui_.disease_group->clear();
 	ui_.disease_status->clear();
+	clearDiseaseDetails();
 	ui_.qc_reads->clear();
 	ui_.qc_kasp->clear();
 	ui_.qc_quality->clear();
@@ -174,9 +232,7 @@ void SampleDetailsDockWidget::clear()
 	ui_.date_bam->clear();
 
 	//buttons
-	ui_.disease_button->setEnabled(false);
-	ui_.diag_status_button->setEnabled(false);
-	ui_.quality_button->setEnabled(false);
+	ui_.ngsd_edit->setEnabled(false);
 }
 
 void SampleDetailsDockWidget::statisticsLabel(QLabel* label, QString accession, const QCCollection& qc, bool label_outlier_low, bool label_outlier_high, int decimal_places, QString suffix)

@@ -1,15 +1,14 @@
 ### VcfToTsv tool help
-	VcfToTsv (0.1-420-g3536bb0)
+	VcfToTsv (2018_11-7-g60f117b)
 	
-	Shifts indels in a variant list as far to the left as possible. Complex indels and multi-allelic deletions are not shifted!
+	Converts a VCF file to a tab-separated text file.
+	
+	Multi-allelic variants are not supported. Use VcfBreakMulti to split multi-allelic variants into several lines.
+	Multi-sample VCFs are not supported. Use VcfExtractSamples to split them to one VCF per sample.
 	
 	Mandatory parameters:
 	  -in <file>   Input variant list in VCF format.
 	  -out <file>  Output variant list in TSV format.
-	
-	Optional parameters:
-	  -split       Split multi-allelic variants.
-	               Default value: 'false'
 	
 	Special parameters:
 	  --help       Shows this help and exits.
@@ -18,6 +17,6 @@
 	  --tdx        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VcfToTsv changelog
-	VcfToTsv 0.1-420-g3536bb0
+	VcfToTsv 2018_11-7-g60f117b
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

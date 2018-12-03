@@ -1,8 +1,21 @@
 # GSvar change log
 
+### 2018_11_24 (29.11.18)
+- Somatic report: Bugfix for QBIC CNV report
+- Somatic report: Changed numbering of CNV positions to 1-base
+- Germline report: Added disease info
+
+### 2018_11-7 (22.11.18)
+- Somatic Report: Small changes
+- Variant list: Copying non-adjacent columns to clipboard now works
+- Added filter `Regulatory`
+- Sample details: Added sample disease details (ICD10, HPO, CGI cancer type, tumor fraction)
+	* Import from GenLab via `Sample details > NGSD >  Edit disease details`  
+	* disease details are now taken from NGSD instead of GenLab (phenotype filter, somatic report, diagnostic status overview)
+
 ### 2018_10-55 (20.11.18)
 - Re-analysis: button moved to main menu bar - it works for multi/trio/somatic as well now
-- Germline report: added OMIM table
+- Germline report: added OMIM table based on panel genes
 - HPO-based filter: increased flanking based used around gene loci from 100 to 5000
 - Subpanel design: sub-panels can now be designed gene-wise in addition to exon-wise, added auto-generated suffix
 - General: preferred transcripts can no longer be edited by two instances of GSvar in parallel
@@ -227,6 +240,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 

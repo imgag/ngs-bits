@@ -2,7 +2,6 @@
 #include "BasicStatistics.h"
 #include "OntologyTermCollection.h"
 #include "Helper.h"
-#include "GenLabDB.h"
 #include "TSVFileStream.h"
 #include "NGSHelper.h"
 
@@ -246,7 +245,7 @@ void ReportHelper::writeCnvList(QTextStream& stream, const QList<int>& col_width
 		QList<QString> columns;
 
 		//coordinates
-		columns.append("\\qc " +variant.chr().str() + ":" + QString::number(variant.start()) +"-" + QString::number(variant.end()));
+		columns.append("\\ql " +variant.chr().str() + ":" + QString::number(variant.start() == 0 ? 1 : variant.start()) +"-" + QString::number(variant.end()));
 		if(cnv_index_cnv_type_!=-1)
 		{
 			columns.last().append("\\line (" + variant.annotations().at(cnv_index_cnv_type_) +")" );
@@ -756,19 +755,24 @@ ReportHelper::ReportHelper(QString snv_filename, const ClinCnvList& filtered_cnv
 
 	processing_system_data = db_.getProcessingSystemData(db_.processedSampleId(tumor_id_), true);
 
-	//load metadata from GenLab
-	//get histological tumor proportion and diagnosis from GenLab
-	GenLabDB db_genlab;
-	icd10_diagnosis_code_ = db_genlab.diagnosis(tumor_id_.split('_')[0]);
-	if(icd10_diagnosis_code_.isEmpty() || icd10_diagnosis_code_ == "n/a") //try to resolve diagnosis with full tumor ID
+	//load metadata from NGSD
+	NGSD db;
+	QString sample_id = db.sampleId(tumor_id_);
+	QStringList tmp;
+	QList<SampleDiseaseInfo> disease_info = db.getSampleDiseaseInfo(sample_id, "ICD10 code");
+	foreach(const SampleDiseaseInfo& entry, disease_info)
 	{
-		icd10_diagnosis_code_ = db_genlab.diagnosis(tumor_id_);
+		tmp.append(entry.disease_info);
 	}
-	histol_tumor_fraction_ = db_genlab.tumorFraction(tumor_id_.split('_')[0]);
-	if(histol_tumor_fraction_.isEmpty() || histol_tumor_fraction_ == "n/a") //try to resolve tumor fraction with full tumor ID
+	icd10_diagnosis_code_ = tmp.join(", ");
+
+	tmp.clear();
+	disease_info = db.getSampleDiseaseInfo(sample_id, "tumor fraction");
+	foreach(const SampleDiseaseInfo& entry, disease_info)
 	{
-		histol_tumor_fraction_ = db_genlab.tumorFraction(tumor_id_);
+		tmp.append(entry.disease_info);
 	}
+	histol_tumor_fraction_ = tmp.join(", ");
 
 	try
 	{
@@ -1057,7 +1061,7 @@ void ReportHelper::writeRtfCGIDrugTable(QTextStream &stream, const QList<int> &c
 		//gene names should be printed italic
 		result_line[0].prepend("\\i ");
 		result_line[0].replace(":","\\i0 :");
-		result_line[0].replace(",",",\\i ");
+		result_line[0].replace(",",",\\i  ");
 		result_line[0].append("\\i0 ");
 
 		//tumor type: add space in case of multiple entities
@@ -1312,12 +1316,12 @@ void ReportHelper::somaticCnvForQbic()
 			}
 		}
 
+		bool is_any_effect_reported = false;
 		for(int j=0;j<effects.count();++j)
 		{
 			if(effects[j].isEmpty()) continue;
 
 			QByteArray effect = "";
-
 
 			if(is_driver[j] && effects[j] == "Act")
 			{
@@ -1336,10 +1340,12 @@ void ReportHelper::somaticCnvForQbic()
 				continue;
 			}
 
+			is_any_effect_reported = true;
 			stream << genes[j] << ":" << effect;
 
 			if(j<effects.count()-1 && is_driver[j+1] ) stream << ";";
 		}
+		if(!is_any_effect_reported) stream << "NA";
 
 		stream << endl;
 	}
@@ -1622,8 +1628,29 @@ void ReportHelper::writeRtf(const QString& out_file)
 	RtfTools::writeRtfTableSingleRowSpec(stream,{widths.last()},false);
 	stream << begin_table_cell << "\\fs14 Erkl\\u228;rungen siehe Abk\\u252;rzungsverzeichnis Anlage 1." << "\\cell\\row}" << endl;
 	stream << "\\page" << endl;
+
 	widths.clear();
-	widths << 3000 << max_table_width;
+	/*********************
+	 * ADDITIONAL REPORT *
+	 *********************/
+	stream << "{\\pard\\par}" << endl;
+	stream << "{\\pard\\sa45\\fs18\\b Alle nachgewiesenen somatischen Ver\\u228;nderungen:\\par}" << endl;
+	widths << 1800 << 4000 << 5400 << 6500 << 8950  << max_table_width;
+	writeSnvList(stream,widths,snv_variants_);
+	stream << "{\\pard\\par}" << endl;
+	widths.clear();
+	widths << 2438 << 2938 << 3338 << max_table_width;
+
+	//Make rtf report, filter genes for processing system target region
+	writeCnvList(stream,widths);
+	stream << "{\\pard\\par}" << endl;
+	/**************
+	 * DRUG TABLE *
+	 **************/
+	widths.clear();
+	widths << 1500 << 2700 << 5000 << 6000 << 7000 << max_table_width;
+	writeRtfCGIDrugTable(stream,widths);
+	stream << endl << "\\page" << endl;
 
 	/***********************
 	 * GENERAL INFORMATION *
@@ -1642,6 +1669,9 @@ void ReportHelper::writeRtf(const QString& out_file)
 	}
 	if(tumor_molecular_proportion > 100.)	tumor_molecular_proportion = 100.;
 
+	widths.clear();
+	widths << 2500 << max_table_width;
+
 	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
 	stream << begin_table_cell << "Datum:\\cell" << begin_table_cell <<QDate::currentDate().toString("dd.MM.yyyy") << "\\cell\\row}" << endl;
 	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
@@ -1650,7 +1680,7 @@ void ReportHelper::writeRtf(const QString& out_file)
 	stream << begin_table_cell << "Proben-ID (Keimbahn):\\cell" << begin_table_cell << normal_id_ << "\\cell\\row}" << endl;
 	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
 	stream << begin_table_cell << "Tumoranteil histol./molekular:\\cell" << begin_table_cell << histol_tumor_fraction_ << "\%";
-	stream << " / "<< tumor_molecular_proportion <<"\%\\cell\\row}" << endl;
+	stream << " / \\highlight3 "<< tumor_molecular_proportion <<"\%\\cell\\row}" << endl;
 
 	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
 	stream << begin_table_cell << "CGI-Tumortyp:\\cell" << begin_table_cell << cgi_cancer_type_ << "\\cell\\row}" << endl;
@@ -1661,32 +1691,26 @@ void ReportHelper::writeRtf(const QString& out_file)
 	stream << " (" << gene_set.count() << " Gene" << ")";
 	stream << "\\cell\\row}" << endl;
 
+	/***************************************
+	 * QUALITY PARAMETERS / GAP STATISTICS *
+	 ***************************************/
 	//write QC params here in case of HSA report
-	if(target_region_.isEmpty()) writeQualityParams(stream,widths);
-
 	widths.clear();
+	widths << 3000 << max_table_width;
+	stream << "{\\pard\\par}" << endl;
+	writeQualityParams(stream,widths);
+
+	if(!target_region_.isEmpty()) //For EBM report only: gap statistics
+	{
+		stream << "{\\pard\\par}" << endl;
+		widths.clear();
+		widths << 2200 << max_table_width;
+		writeGapStatistics(stream,target_region_,widths);
+	}
+
 	/*********************
-	 * ADDITIONAL REPORT *
+	 * CGI ACRONYMS LIST *
 	 *********************/
-	stream << "{\\pard\\par}" << endl;
-	stream << "{\\pard\\sa45\\fs18\\b Alle somatischen Ver\\u228;nderungen:\\par}" << endl;
-	widths << 1800 << 4000 << 5400 << 6500 << 8950  << max_table_width;
-	writeSnvList(stream,widths,snv_variants_);
-	stream << "{\\pard\\par}" << endl;
-	widths.clear();
-	widths << 2438 << 2938 << 3338 << max_table_width;
-
-	//Make rtf report, filter genes for processing system target region
-	writeCnvList(stream,widths);
-	stream << "{\\pard\\par}" << endl;
-	/**************
-	 * DRUG TABLE *
-	 **************/
-	widths.clear();
-	widths << 1500 << 2700 << 5000 << 6000 << 7000 << max_table_width;
-	writeRtfCGIDrugTable(stream,widths);
-	stream << endl << "\\page" << endl;
-
 	stream << "{\\pard\\par}" << endl;
 	RtfTools::writeRtfTableSingleRowSpec(stream,{max_table_width},false);
 	stream << begin_table_cell <<"\\b\\sa45\\sb45\\fs18 Abk\\u252;rzungsverzeichnis:" << "\\cell\\row}" << endl;
@@ -1714,21 +1738,6 @@ void ReportHelper::writeRtf(const QString& out_file)
 	}
 
 	stream << "\\cell\\row}" << endl;
-
-	/***************************************
-	 * QUALITY PARAMETERS / GAP STATISTICS *
-	 ***************************************/
-	if(!target_region_.isEmpty()) //For EBM report only
-	{
-		widths.clear();
-		widths << 3000 << max_table_width;
-		stream << "{\\pard\\par}" << endl;
-		writeQualityParams(stream,widths);
-		stream << "{\\pard\\par}" << endl;
-		widths.clear();
-		widths << 2200 << max_table_width;
-		writeGapStatistics(stream,target_region_,widths);
-	}
 
 	//close stream
 	stream << "}";

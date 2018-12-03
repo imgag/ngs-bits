@@ -100,6 +100,7 @@ HEADERS += \
     VcfFilter_Test.h \
     NGSDImportOMIM_Test.h \
     VcfBreakComplexVariants_Test.h
+    VcfExtractSamples_Test.h
 
 SOURCES += \
     main.cpp \

@@ -67,8 +67,8 @@ public:
 		addInfile("tumor_bam", "Input tumor BAM file.", false, true);
 		addInfile("normal_bam", "Input normal BAM file.", false, true);
 		addInfile("somatic_vcf", "Input somatic VCF file.", false, true);
-		addOutfile("out", "Output qcML file. If unset, writes to STDOUT.", false, true);
 		//optional
+		addOutfile("out", "Output qcML file. If unset, writes to STDOUT.", true, true);
 		addInfileList("links","Files that appear in the link part of the qcML file.",true);
 		addInfile("target_bed", "Target file used for tumor and normal experiment.", true);
 		addInfile("ref_fasta", "Reference fasta file. If unset the reference file from the settings file will be used.", true);

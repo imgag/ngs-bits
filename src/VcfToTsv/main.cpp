@@ -19,40 +19,18 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Shifts indels in a variant list as far to the left as possible. Complex indels and multi-allelic deletions are not shifted!");
+		setDescription("Converts a VCF file to a tab-separated text file.");
+		setExtendedDescription(QStringList() << "Multi-allelic variants are not supported. Use VcfBreakMulti to split multi-allelic variants into several lines."
+											 << "Multi-sample VCFs are not supported. Use VcfExtractSamples to split them to one VCF per sample.");
 		addInfile("in", "Input variant list in VCF format.", false, true);
 		addOutfile("out", "Output variant list in TSV format.", false, true);
-		//optional
-		addFlag("split", "Split multi-allelic variants.");
-		//probably useful features for the future: skip comments, skip annotation descriptions
 	}
 
 	virtual void main()
 	{
-		//init
-		bool split = getFlag("split");
-
 		//load
 		VariantList vl;
 		vl.load(getInfile("in"), VCF);
-
-		//split multi-allelic variant
-		for (int i=0; i<vl.count(); ++i)
-		{
-			Variant& v = vl[i];
-			if (!v.obs().contains(',')) continue;
-
-			if (!split) THROW(FileParseException, "Input file contains multi-allelic variants. You can split variants using the -split option.\nVariant: " + vl[i].toString());
-
-			QList<Sequence> obss = vl[i].obs().split(',');
-			v.setObs(obss.takeFirst());
-			foreach(const Sequence& obs, obss)
-			{
-				Variant v2 = vl[i]; //here we cannot use 'v' because the list might have been re-allocated due to the append statement below
-				v2.setObs(obs);
-				vl.append(v2);
-			}
-		}
 
 		//change start/end/ref/obs as needed in TSV
 		for (int i=0; i<vl.count(); ++i)
@@ -65,9 +43,6 @@ public:
 				v.setEnd(v.end()-1);
 			}
 		}
-
-		//sort because we appended variants and positions have changed
-		vl.sort(true);
 
 		//store
 		vl.store(getOutfile("out"), TSV);

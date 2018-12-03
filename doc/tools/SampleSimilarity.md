@@ -1,7 +1,10 @@
 ### SampleSimilarity tool help
-	SampleSimilarity (2018_06-13-ge04b5e6)
+	SampleSimilarity (2018_11-7-g60f117b)
 	
 	Calculates pairwise sample similarity metrics from VCF/BAM files.
+	
+	In VCF mode, multi-allelic variants are not supported. Use VcfBreakMulti to split multi-allelic variants into several lines.
+	Multi-sample VCFs are not supported. Use VcfExtractSamples to split them to one VCF per sample.
 	
 	Mandatory parameters:
 	  -in <filelist>      Input variant lists in VCF format (two or more).
@@ -13,6 +16,8 @@
 	                      Default value: 'vcf'
 	                      Valid: 'vcf,bam'
 	  -include_gonosomes  Includes gonosomes into calculation (by default only variants on autosomes are considered).
+	                      Default value: 'false'
+	  -skip_multi         Skip multi-allelic variants instead of throwing an error (VCF mode).
 	                      Default value: 'false'
 	  -window <int>       Window to consider around indel positions to compensate for differing alignments (VCF mode).
 	                      Default value: '100'
@@ -33,8 +38,9 @@
 	  --tdx               Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SampleSimilarity changelog
-	SampleSimilarity 2018_06-13-ge04b5e6
+	SampleSimilarity 2018_11-7-g60f117b
 	
+	2018-11-26 Add flag 'skip_multi' to ignore multi-allelic sites.
 	2018-07-11 Added build switch for hg38 support.
 	2018-06-20 Added IBS0 and IBS2 metrics and renamed tool to SampleSimilarity (was SampleCorrelation).
 	2018-01-05 Added multi-sample support and VCF input file support.

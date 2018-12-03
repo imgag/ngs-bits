@@ -188,12 +188,12 @@
           </property>
           <item>
            <property name="text">
-            <string>PASS</string>
+            <string>n/a</string>
            </property>
           </item>
           <item>
            <property name="text">
-            <string>n/a</string>
+            <string>PASS</string>
            </property>
           </item>
           <item>

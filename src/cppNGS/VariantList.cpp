@@ -620,7 +620,7 @@ void VariantList::loadFromTSV(QString filename, ChromosomalIndex<BedFile>* roi_i
 			continue;
 		}
 
-        //error when special colums are not present
+		//error when special columns are not present
         QList<QByteArray> fields = line.split('\t');
         if (fields.count()<special_cols)
 		{

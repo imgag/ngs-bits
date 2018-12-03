@@ -458,12 +458,14 @@ void ReportWorker::writeHTML()
 	writeHtmlHeader(stream, sample_name_);
 
 	//get data from database
-	SampleData sample_data = db_.getSampleData(db_.sampleId(sample_name_));
+	QString sample_id = db_.sampleId(sample_name_);
+	SampleData sample_data = db_.getSampleData(sample_id);
 	QString processed_sample_id = db_.processedSampleId(sample_name_);
 	ProcessedSampleData processed_sample_data = db_.getProcessedSampleData(processed_sample_id);
 	ProcessingSystemData system_data = db_.getProcessingSystemData(processed_sample_id, true);
 
 	stream << "<h4>Technischer Report zur bioinformatischen Analyse</h4>" << endl;
+
 	stream << "<p><b>Probe: " << sample_name_ << "</b> (" << sample_data.name_external << ")" << endl;
 	stream << "<br />Prozessierungssystem: " << processed_sample_data.processing_system << endl;
 	stream << "<br />Referenzgenom: " << system_data.genome << endl;
@@ -472,6 +474,19 @@ void ReportWorker::writeHTML()
 	stream << "<br />Analysepipeline: "  << variants_.getPipeline() << endl;
 	stream << "<br />Auswertungssoftware: "  << QCoreApplication::applicationName() << " " << QCoreApplication::applicationVersion() << endl;
 	stream << "<br />KASP-Ergebnis: " << db_.getQCData(processed_sample_id).value("kasp").asString() << endl;
+	stream << "</p>" << endl;
+
+	stream << "<p><b>Ph&auml;notyp</b>" << endl;
+	QList<SampleDiseaseInfo> info = db_.getSampleDiseaseInfo(sample_id, "ICD10 code");
+	foreach(const SampleDiseaseInfo& entry, info)
+	{
+		stream << "<br />ICD10: " << entry.disease_info << endl;
+	}
+	info = db_.getSampleDiseaseInfo(sample_id, "HPO term id");
+	foreach(const SampleDiseaseInfo& entry, info)
+	{
+		stream << "<br />HPO: " << entry.disease_info << " (" << db_.phenotypeByAccession(entry.disease_info.toLatin1(), false).name() << ")" << endl;
+	}
 	stream << "</p>" << endl;
 
 	//get column indices

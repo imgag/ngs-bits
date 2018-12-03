@@ -1,10 +1,10 @@
 ### VariantAnnotateFrequency tool help
-	VariantAnnotateFrequency (2018_06-59-g24102d3)
+	VariantAnnotateFrequency (2018_11-7-g60f117b)
 	
 	Annotates a variant list with variant frequencies from a BAM file.
 	
 	Mandatory parameters:
-	  -in <file>     Input variant list to annotate in TSV format.
+	  -in <file>     Input variant list to annotate in TSV format (chr, start, end, ref, obs).
 	  -bam <file>    Input BAM file.
 	  -out <file>    Output TSV file.
 	
@@ -25,6 +25,6 @@
 	  --tdx          Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantAnnotateFrequency changelog
-	VariantAnnotateFrequency 2018_06-59-g24102d3
+	VariantAnnotateFrequency 2018_11-7-g60f117b
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

@@ -25,7 +25,7 @@ private slots:
 
 	void test_vcf()
 	{
-		EXECUTE("SampleSimilarity", "-in " + TESTDATA("data_in/SampleSimilarity_in6.vcf.gz") + " " + TESTDATA("data_in/SampleSimilarity_in7.vcf.gz") + " -mode vcf -out out/SampleSimilarity_out4.tsv");
+		EXECUTE("SampleSimilarity", "-in " + TESTDATA("data_in/SampleSimilarity_in6.vcf.gz") + " " + TESTDATA("data_in/SampleSimilarity_in7.vcf.gz") + " -mode vcf -skip_multi -out out/SampleSimilarity_out4.tsv");
 		COMPARE_FILES("out/SampleSimilarity_out4.tsv", TESTDATA("data_out/SampleSimilarity_out4.tsv"));
 	}
 

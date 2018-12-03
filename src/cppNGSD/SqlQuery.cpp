@@ -21,6 +21,15 @@ void SqlQuery::exec(const QString& query)
 	}
 }
 
+void SqlQuery::prepare(const QString& query)
+{
+	bool success = QSqlQuery::prepare(query);
+	if (!success)
+	{
+		THROW(DatabaseException, lastError().text() + "\nQuery: " + lastQuery());
+	}
+}
+
 void SqlQuery::exec()
 {
 	bool success = QSqlQuery::exec();

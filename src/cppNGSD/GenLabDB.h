@@ -21,14 +21,17 @@ public:
 	///Returns if the database connection is open
 	bool isOpen() const;
 
+	///Returns the number of entries with the given sample name
+	int entriesForSample(QString sample_name);
+
 	///Returns the phenotypes of an NGSD sample (not processed sample)
 	QList<Phenotype> phenotypes(QString sample_name);
 
 	///Returns the ICD10 diagnosis of an NGSD sample (not processed sample)
-	QString diagnosis(QString sample_name);
+	QStringList diagnosis(QString sample_name);
 
 	///Returns tumor content of an NGSD sample (not processed sample)
-	QString tumorFraction(QString sample_name);
+	QStringList tumorFraction(QString sample_name);
 
 
 protected:

@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2018_06-59-g24102d3)
+	VariantFilterAnnotations (2018_11-7-g60f117b)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -35,7 +35,7 @@
 	                                     pattern - Pattern to match to column [non-empty]
 	                                     column - Column to filter [non-empty]
 	                                     action - Action to perform [default=KEEP] [valid=KEEP,FILTER,REMOVE]
-	Conservedness                      Filter for conserved bases
+	Conservedness                      Filter for variants that affect conserved bases
 	                                   Parameters:
 	                                     min_score - Minimum phlyoP score. [default=1.6000000000000001]
 	Count NGSD                         Filter based on the hom/het occurances of a variant in the NGSD.
@@ -77,6 +77,9 @@
 	                                   Parameters:
 	                                     min - Minimum number of pathogenic predictions [default=1] [min=1]
 	                                     action - Action to perform [default=FILTER] [valid=KEEP,FILTER]
+	Regulatory                         Filter for regulatory variants, i.e. the 'regulatory' column is not empty.
+	                                   Parameters:
+	                                     action - Action to perform [default=FILTER] [valid=REMOVE,FILTER]
 	SNPs only                          Filter that preserves SNPs and removes all other variant types.
 	Text search                        Filter for text match in variant annotations.
 	                                   The text comparison ignores the case.
@@ -102,7 +105,7 @@
 	
 	Mandatory parameters:
 	  -in <file>      Input variant list in GSvar format.
-	  -out <file>     Output variant list. If unset, writes to STDOUT.
+	  -out <file>     Output variant list in GSvar format.
 	  -filters <file> Filter definition file.
 	
 	Special parameters:
@@ -112,7 +115,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2018_06-59-g24102d3
+	VariantFilterAnnotations 2018_11-7-g60f117b
 	
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.

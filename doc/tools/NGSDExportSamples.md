@@ -1,7 +1,7 @@
 ### NGSDExportSamples tool help
-	NGSDExportSamples (2018_06-59-g24102d3)
+	NGSDExportSamples (2018_11-7-g60f117b)
 	
-	Lists processed samples from NGSD.
+	Lists processed samples from the NGSD.
 	
 	Optional parameters:
 	  -out <file>       Output TSV file. If unset, writes to STDOUT.
@@ -19,9 +19,11 @@
 	                    Default value: 'false'
 	  -no_ffpe          If set, FFPE samples are excluded.
 	                    Default value: 'false'
-	  -qc               If set, QC colums are added to output.
+	  -qc               If set, QC columns are added to output.
 	                    Default value: 'false'
-	  -outcome          If set, diagnostic outcome colums are added to output.
+	  -outcome          If set, diagnostic outcome columns are added to output.
+	                    Default value: 'false'
+	  -disease_details  If set, disease details columns are added to output.
 	                    Default value: 'false'
 	  -check_path       Checks if the sample folder is present at the defaults location in the 'projects_folder' (as defined in the 'settings.ini' file).
 	                    Default value: 'false'
@@ -35,7 +37,7 @@
 	  --tdx             Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDExportSamples changelog
-	NGSDExportSamples 2018_06-59-g24102d3
+	NGSDExportSamples 2018_11-7-g60f117b
 	
 	2018-10-23 Added 'outcome' flag.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

@@ -65,8 +65,8 @@ signals:
 	void filterCascadeChanged();
 	/// Signal is emitted when the target region changes
 	void targetRegionChanged();
-	/// Signal that an import of phenotype data from GenLab was requested (this cannot be done inside the widget, because it knows nothing about the sample)
-	void phenotypeDataImportRequested();
+	/// Signal that loading phenotype data from NGSD was requested (this cannot be done inside the widget, because it knows nothing about the sample)
+	void phenotypeImportNGSDRequested();
 	/// Signal that a sub-panel should be created using the phenotypes
 	void phenotypeSubPanelRequested();
 

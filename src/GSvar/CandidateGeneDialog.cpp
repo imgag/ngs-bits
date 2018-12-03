@@ -139,7 +139,6 @@ void CandidateGeneDialog::updateVariants()
 			QString coding = parts_match.join(", ");
 
 			//add variant line to output
-			QStringList var_base = QStringList() << gene << var << het << hom << gnomad << tg << type << coding;
 
 			//add sample info
 			QString var_id = query.value(0).toString();
@@ -147,7 +146,7 @@ void CandidateGeneDialog::updateVariants()
 			query2.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), dv.genotype, p.name, s.disease_group, vc.class, s.name_external, ds.outcome, ds.genes_causal FROM sample s, processed_sample ps LEFT JOIN diag_status ds ON ps.id=ds.processed_sample_id, project p, detected_variant dv LEFT JOIN variant_classification vc ON dv.variant_id=vc.variant_id WHERE dv.processed_sample_id=ps.id AND ps.sample_id=s.id AND ps.project_id=p.id AND dv.variant_id=" + var_id);
 			while(query2.next())
 			{
-				var_data.append(QStringList() << var_base << query2.value(0).toString() << query2.value(5).toString()  << query2.value(1).toString() << query2.value(2).toString() << query2.value(3).toString() << query2.value(4).toString() << query2.value(6).toString() << query2.value(7).toString());
+				var_data.append(QStringList() << gene << var << het << hom << gnomad << tg << type << coding << query2.value(0).toString() << query2.value(5).toString()  << query2.value(1).toString() << query2.value(2).toString() << query2.value(3).toString() << query2.value(4).toString() << query2.value(6).toString() << query2.value(7).toString());
 			}
 		}
 		QString comment = gene + " - variants: " + QString::number(var_data.count());
@@ -155,15 +154,22 @@ void CandidateGeneDialog::updateVariants()
 		//only samples that fit recessive inheritance mode
 		if (ui_.filter_recessive->isChecked())
 		{
-			//count hits per sample
-			QMap<QString, int> hits;
+			int i_ps = 8;
+			int i_geno = 10;
+
+			//count heterozygous hits per sample
+			QMap<QString, int> het_hits;
 			foreach(const QStringList& line, var_data)
 			{
-				hits[line[9]] += line[10]=="hom" ? 2 : 1;
+				if (line[i_geno]=="het")
+				{
+					het_hits[line[i_ps]] += 1;
+				}
 			}
+			//qDebug() << het_hits;
 
 			//remove samples with less than two hits
-			var_data.erase(std::remove_if(var_data.begin(), var_data.end(), [hits](const QStringList& line){return hits[line[9]]<2;}), var_data.end());
+			var_data.erase(std::remove_if(var_data.begin(), var_data.end(), [het_hits, i_ps, i_geno](const QStringList& line){return !(line[i_geno]=="hom" || het_hits[line[i_ps]]>=2);}), var_data.end());
 
 			comment += " - recessive hits: " + QString::number(var_data.count());
 		}

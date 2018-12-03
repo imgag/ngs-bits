@@ -329,5 +329,9 @@ SUBDIRS += VcfBreakComplexVariants
 tools-TEST.depends += VcfBreakComplexVariants
 VcfBreakComplexVariants.depends = cppNGS
 
+SUBDIRS += VcfExtractSamples
+tools-TEST.depends += VcfExtractSamples
+VcfExtractSamples.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt

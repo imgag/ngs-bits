@@ -4,7 +4,7 @@
 #include "BasicStatistics.h"
 #include "NGSHelper.h"
 
-void SampleSimilarity::calculateFromVcf(QString& in1, QString& in2, int window, bool include_gonosomes)
+void SampleSimilarity::calculateFromVcf(QString& in1, QString& in2, int window, bool include_gonosomes, bool skip_multi)
 {
 	clear();
 
@@ -40,6 +40,8 @@ void SampleSimilarity::calculateFromVcf(QString& in1, QString& in2, int window, 
 		//skip variants not on autosomes
 		if(!v1.chr().isAutosome() && !include_gonosomes) continue;
 
+		//skip multi-allelic variants
+		if (v1.obs().contains(',') && skip_multi) continue;
 		int start = v1.start();
 		int end = v1.end();
 
@@ -208,7 +210,7 @@ double SampleSimilarity::genoToDouble(const QString& geno)
 	//VCF format
 	if (geno=="1/1" || geno=="1|1") return 1.0;
 	if (geno=="0/1" || geno=="0|1" || geno=="./1" || geno==".|1" || geno=="1/0" || geno=="1|0" || geno=="1/." || geno=="1|.") return 0.5;
-	if (geno=="0/0" || geno=="0|0") return 0.0;
+	if (geno=="0/0" || geno=="0|0" || geno=="./0" || geno==".|0" || geno=="0/." || geno=="0|." || geno==".|.") return 0.0;
 
 	THROW(ArgumentException, "Invalid genotype '" + geno + "' in input file.");
 }
