@@ -1,10 +1,12 @@
-#include "edlib.h"
+#include <algorithm>
+#include <string>
+#include <vector>
+#include <QFile>
 #include "ToolBase.h"
 #include "Exceptions.h"
 #include "Helper.h"
 #include "VcfFile.h"
-#include <QFile>
-#include <algorithm>
+#include "../../needleman-wunsch/NeedlemanWunsch.hpp" // TODO: This does seem like an odd import path
 
 using namespace std;
 
@@ -36,24 +38,46 @@ public:
 		if (length == 0)
 		{
 			if (ref.length() == 1 && ref != alt) return SNP;
-			EdlibAlignResult result = edlibAlign(const_cast<char*> (ref.data()), ref.length(), const_cast<char*> (alt.data()), alt.length(), edlibDefaultAlignConfig());
-			if (result.status == EDLIB_STATUS_OK)
-			{
-				auto variant_type = (min(ref.length(), alt.length()) == result.editDistance) ? MNP : CLUMPED;
-				edlibFreeAlignResult(result);
-				return variant_type;
-			}
-			else
-			{
-				// This should NEVER occur. You're drunk if it does.
-				edlibFreeAlignResult(result);
-				THROW(ProgrammingException, "Edit distance of " + alt + " and " + ref + " could not be calculated");
-			}
+			auto distance = static_cast<const int> (editDistance(ref, alt));
+			return (min(ref.length(), alt.length()) == distance) ? MNP : CLUMPED;
 		}
 		else
 		{
 			return INDEL;
 		}
+	}
+
+	/**
+	 * @brief editDistance
+	 * Returns the levensthein distance for two sequences
+	 * @param a
+	 * @param b
+	 * @return
+	 */
+	static unsigned int editDistance(const QByteArray& a, const QByteArray& b)
+	{
+		// Implementation from https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#C++
+		size_t len_a = static_cast<size_t> (a.size()),  len_b = static_cast<size_t> (b.size());
+		vector<vector<unsigned int>> d(len_a + 1, vector<unsigned int>(len_b + 1));
+
+		d[0][0] = 0;
+
+		for (unsigned int i = 1; i < len_a; ++i) d[i][0] = i;
+		for (unsigned int i = 1; i < len_b; ++i) d[0][1] = i;
+
+		for (unsigned int i = 1; i < len_a; ++i)
+		{
+			for (unsigned int j = 1; j < len_b; ++j)
+			{
+				d[i][j] = min({
+					d[i - 1][j] + 1,
+					d[i][j -1 ] + 1,
+					d[i - 1][j - 1] + (a[i - 1] == b[j - 1] ? 0 : 1)
+				});
+			}
+		}
+
+		return d[len_a][len_b];
 	}
 
 	//Returns the content of a column by index (tab-separated line)
@@ -124,7 +148,11 @@ public:
 		QSharedPointer<QFile> in_p = Helper::openFileForReading(in, true);
 		QSharedPointer<QFile> out_p = Helper::openFileForWriting(out, true);
 		QSharedPointer<QFile> err_p = Helper::openFileForWriting(err, true);
-		EdlibAlignConfig config = edlibNewAlignConfig(-1, EDLIB_MODE_NW, EDLIB_TASK_PATH, nullptr, 0);
+
+		AligmentConfig config = {
+			1,
+			-1
+		};
 
 		// Statistics
 		int number_of_additional_snps = 0;
@@ -149,35 +177,11 @@ public:
 			VariantType variant_type = classifyVariant(ref, alt);
 			++number_of_variants;
 
-			if (variant_type == MNP) // Align MNP with Needleman-Wunsch alignment as returned by edlib
+			if (variant_type != SNP) // Align with Needleman-Wunsch
 			{
-				EdlibAlignResult result = edlibAlign(const_cast<char*> (ref.data()), ref.length(), const_cast<char*> (alt.data()), alt.length(), config);
-				if (result.status == EDLIB_STATUS_OK)
-				{
-					vector<QByteArray> variants;
-					edlibFreeAlignResult(result);
-					// Break up into multiple variants
-
-					for (unsigned int i = 0; i < variants.size(); ++i) // Add those variants
-					{
-						out_p->write(variants[i]);
-					}
-				}
-				else // Something is messed up badly
-				{
-					edlibFreeAlignResult(result);
-					THROW(ProgrammingException, "Cannot calculate local aligment for ALT: " + alt + " and REF: " + ref + " in line: " + line);
-				}
+				auto result = NeedlemanWunsch::aligment<string>(static_cast<string> (ref.data()), static_cast<string> (alt.data()), config);
 			}
-			else if (variant_type == INDEL)
-			{
-
-			}
-			/*else if (variant_type == CLUMPED)
-			{
-
-			}*/
-			else // We don't look at SNP's (obviously)
+			else // We don't look at SNP's
 			{
 				out_p->write(line);
 			}

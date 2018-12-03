@@ -14,3 +14,6 @@
 	path = src/cppTFW
 	url = https://github.com/marc-sturm/cppTFW.git
 	branch = master
+[submodule "needleman-wunsch"]
+	path = needleman-wunsch
+	url = https://github.com/imgag/needleman-wunsch.git
