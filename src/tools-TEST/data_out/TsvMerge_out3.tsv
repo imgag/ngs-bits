@@ -1,0 +1,13 @@
+##Comment File1
+##Comment File4
+##Comment File5
+#chr	start	end	File1_Col1	File4_Col1	File5_Col1	File5_Col2
+chr1	100	200	1.1	4.1	5.1	A
+chr1	200	300	1.2	4.2	5.2	B
+chr2	100	200	1.3	4.3	5.3	C
+chr3	100	200	1.4	4.4	5.4	D
+chr4	100	200	1.5	4.5	5.5	E
+chr5	100	200	1.6	4.6	5.6	F
+chr6	100	200	1.7	4.7	5.7	G
+chr7	100	200	1.8	4.8	5.8	H
+chr8	100	200	1.9	4.9	5.9	I

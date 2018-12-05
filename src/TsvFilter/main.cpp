@@ -57,7 +57,7 @@ public:
 		}
 
 		//check column
-		QVector<int> cols = instream.checkColumns(parts[0], getFlag("numeric"));
+		QVector<int> cols = instream.checkColumns(parts[0].toLatin1().split(','), getFlag("numeric"));
 		if (cols.count()!=1)
 		{
 			THROW(CommandLineParsingException, "Could not determine column name/index '" + parts[0] + "'!");
