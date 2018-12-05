@@ -121,21 +121,24 @@ void SampleDiseaseInfoWidget::removeDiseaseInfo()
 
 void SampleDiseaseInfoWidget::importDiseaseInfoFromGenLab()
 {
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+
 	GenLabDB genlab_db;
 
 	//find the correct sample name in GenLab
 	QString name = sample_name_;
-	int entries = genlab_db.entriesForSample(name);
-	while (entries==0 && name.contains("_"))
+
+	bool entries_exist = genlab_db.entriesExistForSample(name);
+	while (!entries_exist && name.contains("_"))
 	{
 		QStringList parts = name.split("_");
 		parts = parts.mid(0, parts.count()-1);
 		name = parts.join("_");
-		entries = genlab_db.entriesForSample(name);
-
+		entries_exist = genlab_db.entriesExistForSample(name);
 	}
-	if (entries==0)
+	if (!entries_exist)
 	{
+		QApplication::restoreOverrideCursor();
 		QMessageBox::warning(this, "GenLab import error", "Could not find sample '" + sample_name_ + "' in GenLab database!");
 		return;
 	}
@@ -180,4 +183,5 @@ void SampleDiseaseInfoWidget::importDiseaseInfoFromGenLab()
 
 	//update GUI
 	updateDiseaseInfoTable();
+	QApplication::restoreOverrideCursor();
 }

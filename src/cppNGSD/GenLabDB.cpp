@@ -17,7 +17,7 @@ GenLabDB::GenLabDB()
 	db_->setPassword(Settings::string("genlab_pass"));
 	if (!db_->open())
 	{
-		THROW(DatabaseException, "Could not connect to the GenLab database:!");
+		THROW(DatabaseException, "Could not connect to the GenLab database!");
 	}
 }
 
@@ -42,10 +42,19 @@ bool GenLabDB::isOpen() const
 	return is_open;
 }
 
-int GenLabDB::entriesForSample(QString sample_name)
+bool GenLabDB::entriesExistForSample(QString sample_name)
 {
-	QSqlQuery query = db_->exec("SELECT * FROM v_ngs_sap WHERE labornummer='" + sample_name + "'");
-	return query.size();
+	QStringList tables;
+	tables << "v_ngs_einsender" << "v_ngs_geschlecht" << "v_ngs_icd10" << "v_ngs_hpo"  << "v_ngs_tumoranteil";
+	foreach(QString table, tables)
+	{
+		QSqlQuery query = db_->exec("SELECT COUNT(*) FROM " + table + " WHERE labornummer='" + sample_name + "'");
+		query.next();
+		int count = query.value(0).toInt();
+		if (count>0) return true;
+	}
+
+	return false;
 }
 
 QList<Phenotype> GenLabDB::phenotypes(QString sample_name)
@@ -53,26 +62,23 @@ QList<Phenotype> GenLabDB::phenotypes(QString sample_name)
 	NGSD ngsd;
 	QList<Phenotype> output;
 
-	QSqlQuery query = db_->exec("SELECT HPOTERM1,HPOTERM2,HPOTERM3,HPOTERM4 FROM v_ngs_sap WHERE labornummer='" + sample_name + "'");
+	QSqlQuery query = db_->exec("SELECT code FROM v_ngs_hpo WHERE labornummer='" + sample_name + "' AND code IS NOT NULL");
 	while(query.next())
 	{
-		for (int i=0; i<4; ++i)
-		{
-			if (query.value(i).toString().trimmed().isEmpty()) continue;
+		if (query.value(0).toString().trimmed().isEmpty()) continue;
 
-			QByteArray pheno_id = query.value(i).toByteArray();
-			try
+		QByteArray pheno_id = query.value(0).toByteArray();
+		try
+		{
+			Phenotype pheno = ngsd.phenotypeByAccession(pheno_id, false);
+			if (!pheno.name().isEmpty() && !output.contains(pheno))
 			{
-				Phenotype pheno = ngsd.phenotypeByAccession(pheno_id, false);
-				if (!pheno.name().isEmpty() && !output.contains(pheno))
-				{
-					output << pheno;
-				}
+				output << pheno;
 			}
-			catch(DatabaseException e)
-			{
-				Log::error("Invalid HPO term ID '" + pheno_id + "' found in GenLab: " + e.message());
-			}
+		}
+		catch(DatabaseException e)
+		{
+			Log::error("Invalid HPO term ID '" + pheno_id + "' found in GenLab: " + e.message());
 		}
 	}
 
@@ -81,11 +87,13 @@ QList<Phenotype> GenLabDB::phenotypes(QString sample_name)
 
 QStringList GenLabDB::diagnosis(QString sample_name)
 {
-	QSqlQuery query = db_->exec("SELECT ICD10DIAGNOSE FROM v_ngs_sap WHERE labornummer='" + sample_name + "'");
+	QSqlQuery query = db_->exec("SELECT code FROM v_ngs_icd10 WHERE labornummer='" + sample_name + "' AND code IS NOT NULL");
 
 	QStringList output;
 	while(query.next())
 	{
+		if (query.value(0).toString().trimmed().isEmpty()) continue;
+
 		output << query.value(0).toString();
 	}
 	output.removeDuplicates();
@@ -95,12 +103,14 @@ QStringList GenLabDB::diagnosis(QString sample_name)
 
 QStringList GenLabDB::tumorFraction(QString sample_name)
 {
-	QSqlQuery query = db_->exec("SELECT TUMORANTEIL FROM v_ngs_sap WHERE labornummer='" + sample_name + "'");
+	QSqlQuery query = db_->exec("SELECT TUMORANTEIL FROM v_ngs_tumoranteil WHERE labornummer='" + sample_name + "' AND TUMORANTEIL IS NOT NULL");
 
 
 	QStringList output;
 	while(query.next())
 	{
+		if (query.value(0).toString().trimmed().isEmpty()) continue;
+
 		output << query.value(0).toString();
 	}
 	output.removeDuplicates();

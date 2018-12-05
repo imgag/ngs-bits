@@ -22,7 +22,7 @@ public:
 	bool isOpen() const;
 
 	///Returns the number of entries with the given sample name
-	int entriesForSample(QString sample_name);
+	bool entriesExistForSample(QString sample_name);
 
 	///Returns the phenotypes of an NGSD sample (not processed sample)
 	QList<Phenotype> phenotypes(QString sample_name);
