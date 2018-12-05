@@ -91,7 +91,7 @@ public:
 				QByteArrayList content_cols;
 				for (int s=0; s<in_streams.count(); ++s)
 				{
-					QSharedPointer<TSVFileStream> stream = in_streams[s];
+					QSharedPointer<TSVFileStream>& stream = in_streams[s];
 					if (stream->atEnd())
 					{
 						at_end = true;
@@ -126,7 +126,10 @@ public:
 						content_cols << parts[p];
 					}
 				}
-				outstream->write(content_cols.join('\t') + '\n');
+				if (!at_end)
+				{
+					outstream->write(content_cols.join('\t') + '\n');
+				}
 			}
 
 			//check all files have the same line count
