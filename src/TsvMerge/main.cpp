@@ -67,18 +67,18 @@ public:
 			for (int s=0; s<in_streams.count(); ++s)
 			{
 				QSharedPointer<TSVFileStream> stream = in_streams[s];
-				const QVector<int>& cols = in_cols[s];
+				const QVector<int>& col_indices = in_cols[s];
 
 				if (s==0)
 				{
-					foreach(int c, cols)
+					foreach(int c, col_indices)
 					{
 						header_cols << stream->header()[c];
 					}
 				}
 				for(int c=0; c<stream->header().count(); ++c)
 				{
-					if (cols.contains(c)) continue;
+					if (col_indices.contains(c)) continue;
 					header_cols << stream->header()[c];
 				}
 			}
@@ -98,20 +98,32 @@ public:
 						break;
 					}
 
-					const QVector<int>& cols = in_cols[s];
+					const QVector<int>& col_indices = in_cols[s];
 					QByteArrayList parts = stream->readLine();
 
 					if (s==0)
 					{
-						foreach(int c, cols)
+						foreach(int c, col_indices)
 						{
 							content_cols << parts[c];
 						}
 					}
-					for(int c=0; c<parts.count(); ++c)
+					else
 					{
-						if (cols.contains(c)) continue;
-						content_cols << parts[c];
+						int i=0;
+						foreach(int c, col_indices)
+						{
+							if (parts[c]!=content_cols[i])
+							{
+								THROW(FileParseException, "Mismatch of colum '" + cols[i] + "' in file '" + in[s] + "'. Expected '" + content_cols[i] + "', but found '" + parts[c] + "'!");
+							}
+							++i;
+						}
+					}
+					for(int p=0; p<parts.count(); ++p)
+					{
+						if (col_indices.contains(p)) continue;
+						content_cols << parts[p];
 					}
 				}
 				outstream->write(content_cols.join('\t') + '\n');
