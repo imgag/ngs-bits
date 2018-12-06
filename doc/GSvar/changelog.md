@@ -1,9 +1,15 @@
 # GSvar change log
 
-### 2018_11_24 (29.11.18)
+### 2018_11-31 (05.12.18)
+- Structural variant window: Added possibility to jump to SVs in IGV
+- Sample disease info: Added support for new GenLab database schema
+
+### 2018_11-24 (29.11.18)
 - Somatic report: Bugfix for QBIC CNV report
 - Somatic report: Changed numbering of CNV positions to 1-base
 - Germline report: Added disease info
+- Variant list: Added HGMD entry to variant context menu (search for gene).
+- Gene variant info: fixed bug in 'recessive' filter
 
 ### 2018_11-7 (22.11.18)
 - Somatic Report: Small changes
@@ -240,6 +246,8 @@
 --
 
 [back to main page](index.md)
+
+
 
 
 

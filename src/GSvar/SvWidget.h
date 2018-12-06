@@ -29,7 +29,7 @@ private:
 	void filterAnnotationsForNumber(QByteArray anno_name, double filter_thresh, QBitArray &pass);
 
 signals:
-	openSvInIGV(QString coords);
+	void openSvInIGV(QString coords);
 
 private slots:
 	///copy filtered SV table to clipboard

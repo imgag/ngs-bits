@@ -215,18 +215,11 @@ void SvWidget::copyToClipboard()
 void SvWidget::SvDoubleClicked(QTableWidgetItem *item)
 {
 	if (item==nullptr) return;
-	StructuralVariant tmp = svs_[item->row()];
+	int row = item->row();
 
-	QString coords;
+	QString coords = ui->svs->item(row,0)->text() + ":" + ui->svs->item(row,1)->text() + "-" + ui->svs->item(row,2)->text();
+	coords.replace("-.","-" + QString::number(ui->svs->item(row,1)->text().toInt()+1));
 
-	if(tmp.end() == -1)
-	{
-		coords = tmp.chr().str() + ":" + QString::number(tmp.start()) + "-" + QString::number(tmp.start()+1);
-	}
-	else
-	{
-		coords = tmp.chr().str() + ":" + QString::number(tmp.start()) + "-" + QString::number(tmp.end());
-	}
 	emit openSvInIGV(coords);
 }
 
