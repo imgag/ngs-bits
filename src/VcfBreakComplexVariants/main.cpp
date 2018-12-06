@@ -89,7 +89,7 @@ public:
 
 		for (int i = 0; i < line.length(); ++i)
 		{
-			if (line[i]=='\t')
+			if (line[i] == '\t')
 			{
 				++columns_seen;
 				if (columns_seen == index)
@@ -150,6 +150,7 @@ public:
 		QSharedPointer<QFile> err_p = Helper::openFileForWriting(err, true);
 
 		// Statistics
+		bool inserted_info = false;
 		int number_of_additional_snps = 0;
 		int number_of_biallelic_block_substitutions = 0;
 		int number_of_new_variants = 0;
@@ -162,6 +163,11 @@ public:
 			if (line.trimmed().isEmpty() || line.startsWith("#"))
 			{
 				out_p->write(line);
+				if (!inserted_info) // insert right after format line
+				{
+					out_p->write("##INFO=<ID=OLD_CLUMPED,Number=1,Type=String,Description=\"Original chr:pos:ref|alt encoding\">\n");
+					inserted_info = true;
+				}
 				continue;
 			}
 
@@ -174,17 +180,52 @@ public:
 
 			if (variant_type != SNP) // Align with Needleman-Wunsch
 			{
-				auto alt_ = string(alt.data()), ref_ = string(ref.data());
-				auto matrix = NeedlemanWunsch<string>::populateMatrix(ref_, alt_);
-				auto aligments = NeedlemanWunsch<string>::aligment(get<MATRIX_TRACEBACK>(matrix), ref_, alt_);
+				auto matrix = NeedlemanWunsch<QByteArray>::populateMatrix(ref, alt);
+				auto aligment = NeedlemanWunsch<QByteArray>::aligment(get<MATRIX_TRACEBACK>(matrix), ref, alt);
+				auto reference = get<ALIGMENT_REFERENCE>(aligment), query = get<ALIGMENT_QUERY>(aligment);
 
-				// After obtaining the aligments we will have a look at both optimal aligments
-				// If the aligment contains any GAP (marked as -) we will split the sequences into chunks
-				// The remaining chunks will be normalized (check which sequences are identical and remove them)
-				// After this the sequences are written with a reference to the original sequences
-				vector<string> sequences;
+				// Iterate through the reference and compare it with the query
+				using AligmentPairs = pair<QByteArray, QByteArray>;
+				vector<AligmentPairs> aligments;
+				for (auto i = 0; i < query.size(); ++i)
+				{
+					if (query.at(i) != reference.at(i)) // transition from REF -> ALT, SNP
+					{
+						auto aligment_pair = AligmentPairs(query.mid(i, 1), reference.mid(i, 1));
+						aligments.push_back(aligment_pair);
+						++i;
+						++number_of_additional_snps; // add a new SNP to the stats
+					}
+					else if (i + 1 < query.size() && query.at(i + 1) == '-') // transition from REF GAP(n) to ALT, MNP
+					{
+						int gap_start = static_cast<int> (i + 1);
+						int gap_end = gap_start;
+						while ((i + 1) < query.size() && query.at(i + 1) == '-')
+						{
+							++i;
+							gap_end++;
+						}
+						auto aligment_pair = AligmentPairs(query.mid(gap_start - 1, 1), reference.mid(gap_start - 1, gap_end));
+						aligments.push_back(aligment_pair);
+						++number_of_biallelic_block_substitutions; // new biallelic block substitution
+					}
+				}
 
+				for (size_t i = 0; i < aligments.size(); ++i) // write out the new sequences
+				{
+					++number_of_new_variants;
+					auto parts = line.split('\t');
+					// Append INFO entry in format OLD_CLUMPED=chr:pos:ref:alt
+					parts[VcfFile::INFO] = parts[VcfFile::INFO].trimmed() + ";OLD_CLUMPED=" + parts[VcfFile::CHROM] + ":" + parts[VcfFile::POS] + ":" + parts[VcfFile::REF] + "|" + parts[VcfFile::ALT];
 
+					// Modify alt and ref with new aligments
+					parts[VcfFile::REF] = aligments[i].first;
+					parts[VcfFile::ALT] = aligments[i].second;
+
+					// Write to output
+					out_p->write(parts.join("\t"));
+
+				}
 			}
 			else // We don't look at SNP's
 			{
@@ -193,12 +234,12 @@ public:
 		}
 
 		// After processing print statistics to error stream
+		/*float new_variants_in_percent = (number_of_new_variants > 0) ? number_of_new_variants / (number_of_variants / 100) : 0;
+		float additional_snps_in_percent = (number_of_additional_snps > 0) ? number_of_additional_snps / (number_of_new_variants / 100) : 0;
+		float biallelic_substitutions_in_percent = (number_of_biallelic_block_substitutions > 0) ? number_of_biallelic_block_substitutions / (number_of_new_variants / 100) : 0;
 		QByteArray buffer;
-		float new_variants_in_percent = number_of_new_variants / (number_of_variants / 100);
-		float additional_snps_in_percent = number_of_additional_snps / (number_of_new_variants / 100);
-		float biallelic_substitutions_in_percent = number_of_biallelic_block_substitutions / (number_of_new_variants / 100);
 		err_p->write("Processed " + buffer.setNum(number_of_variants) + " variants of which " + buffer.setNum(number_of_new_variants) + " (" + buffer.setNum(new_variants_in_percent) + ")% are new.");
-		err_p->write(buffer.setNum(number_of_additional_snps) + "( " + buffer.setNum(additional_snps_in_percent) + "%) are additional SNP's while " + buffer.setNum(number_of_biallelic_block_substitutions) + "(" + buffer.setNum(biallelic_substitutions_in_percent) + "%) are biallelic substitutions.");
+		err_p->write(buffer.setNum(number_of_additional_snps) + "( " + buffer.setNum(additional_snps_in_percent) + "%) are additional SNP's while " + buffer.setNum(number_of_biallelic_block_substitutions) + "(" + buffer.setNum(biallelic_substitutions_in_percent) + "%) are biallelic substitutions.");*/
 	}
 };
 
