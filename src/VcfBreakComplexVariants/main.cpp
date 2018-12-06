@@ -1,6 +1,6 @@
 #include <algorithm>
-#include <string>
 #include <vector>
+#include <string>
 #include <QFile>
 #include "ToolBase.h"
 #include "Exceptions.h"
@@ -149,11 +149,6 @@ public:
 		QSharedPointer<QFile> out_p = Helper::openFileForWriting(out, true);
 		QSharedPointer<QFile> err_p = Helper::openFileForWriting(err, true);
 
-		AligmentConfig config = {
-			1,
-			-1
-		};
-
 		// Statistics
 		int number_of_additional_snps = 0;
 		int number_of_biallelic_block_substitutions = 0;
@@ -179,7 +174,17 @@ public:
 
 			if (variant_type != SNP) // Align with Needleman-Wunsch
 			{
-				auto result = NeedlemanWunsch::aligment<string>(static_cast<string> (ref.data()), static_cast<string> (alt.data()), config);
+				auto alt_ = string(alt.data()), ref_ = string(ref.data());
+				auto matrix = NeedlemanWunsch<string>::populateMatrix(ref_, alt_);
+				auto aligments = NeedlemanWunsch<string>::aligment(get<MATRIX_TRACEBACK>(matrix), ref_, alt_);
+
+				// After obtaining the aligments we will have a look at both optimal aligments
+				// If the aligment contains any GAP (marked as -) we will split the sequences into chunks
+				// The remaining chunks will be normalized (check which sequences are identical and remove them)
+				// After this the sequences are written with a reference to the original sequences
+				vector<string> sequences;
+
+
 			}
 			else // We don't look at SNP's
 			{
