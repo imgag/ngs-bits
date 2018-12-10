@@ -535,8 +535,8 @@ QByteArray VcfFile::getPartByColumn(const QByteArray& line, int index)
 			++columns_seen;
 			if (columns_seen == index)
 			{
-				column_start = i;
-				column_end = line.length() -1; // for last column that is not followed by a tab
+				column_start = i + 1;
+				column_end = line.length() - 1; // for last column that is not followed by a tab
 			}
 			else if (columns_seen == index + 1)
 			{
