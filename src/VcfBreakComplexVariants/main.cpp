@@ -7,7 +7,7 @@
 #include "Exceptions.h"
 #include "Helper.h"
 #include "VcfFile.h"
-#include "../../needleman-wunsch/NeedlemanWunsch.hpp" // TODO: This does seem like an odd import path
+#include "NeedlemanWunsch.hpp"
 
 using namespace std;
 

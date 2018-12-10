@@ -9,7 +9,7 @@ QT       -= gui
 CONFIG   += console
 CONFIG   -= app_bundle
 
-HEADERS += ../../needleman-wunsch/NeedlemanWunsch.hpp
+INCLUDEPATH += $$PWD/../../needleman-wunsch
 
 SOURCES += main.cpp
 
