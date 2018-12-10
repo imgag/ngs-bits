@@ -44,39 +44,6 @@ class ConcreteTool: public ToolBase
 {
     Q_OBJECT
 
-	//Returns the content of a column by index (tab-separated line)
-	static QByteArray getPartByColumn(const QByteArray& line, int index)
-    {
-        int columns_seen = 0;
-		int column_start = 0;
-		int column_end = -1;
-
-        for (int i = 0; i < line.length(); ++i)
-		{
-			if (line[i]=='\t')
-            {
-                ++columns_seen;
-				if (columns_seen == index)
-                {
-                    column_start = i + 1;
-					column_end = line.length() -1; // for last column that is not followed by a tab
-				}
-				else if (columns_seen == index + 1)
-                {
-                    column_end = i;
-					break;
-                }
-			}
-        }
-
-		if (column_end==-1)
-		{
-			THROW(ProgrammingException, "Cannot find column " + QByteArray::number(index) + " in line: " + line);
-		}
-
-        return line.mid(column_start, column_end - column_start);
-    }
-
 	// Checks if a filter is satisified
 	static bool satisfiesFilter(const QByteArray& value, const FilterDefinition& filter_def, const QByteArray& line)
     {
@@ -301,9 +268,9 @@ public:
             ///Filter by region. First return CHROM and POS and then remove all lines that do not satisfy the check
             if (reg != "")
             {
-				QByteArray chr = getPartByColumn(line, VcfFile::CHROM);
-				QByteArray start = getPartByColumn(line, VcfFile::POS);
-				QByteArray ref = getPartByColumn(line, VcfFile::REF);
+				QByteArray chr = VcfFile::getPartByColumn(line, VcfFile::CHROM);
+				QByteArray start = VcfFile::getPartByColumn(line, VcfFile::POS);
+				QByteArray ref = VcfFile::getPartByColumn(line, VcfFile::REF);
 
 				if (roi_index.matchingIndex(chr, start.toInt(), start.toInt() + ref.length())==-1)
                 {
@@ -314,8 +281,8 @@ public:
             ///Filter by variant_type.
             if (variant_type != "")
 			{
-				QByteArray ref = getPartByColumn(line, VcfFile::REF).trimmed();
-				QByteArray alt = getPartByColumn(line, VcfFile::ALT).trimmed();
+				QByteArray ref = VcfFile::getPartByColumn(line, VcfFile::REF).trimmed();
+				QByteArray alt = VcfFile::getPartByColumn(line, VcfFile::ALT).trimmed();
 
                 QString type;
                 if (ref.length() == 1 && alt.length() == 1)
@@ -349,7 +316,7 @@ public:
             ///Filter by QUALITY. Return QUAL and then remove all lines that do not satisfy the check
             if (quality != 0.0)
             {
-				QByteArray qual = getPartByColumn(line, VcfFile::QUAL).trimmed();
+				QByteArray qual = VcfFile::getPartByColumn(line, VcfFile::QUAL).trimmed();
 				bool ok;
 				double qual_value = qual.toDouble(&ok);
 				if (!ok && qual!=".") THROW(ProgrammingException, "Quality '" + qual + "' cannot be converted to a number in line: " + line);
@@ -362,7 +329,7 @@ public:
             ///Filter by empty filters (will remove empty filters).
             if (filter_empty)
             {
-				QByteArray filter = getPartByColumn(line, VcfFile::FILTER).trimmed();
+				QByteArray filter = VcfFile::getPartByColumn(line, VcfFile::FILTER).trimmed();
 
 				if (filter!="." && filter!="" && filter!="PASS")
                 {
@@ -373,7 +340,7 @@ public:
             ///Filter FILTER column via regex
 			if (filter != "")
             {
-				QByteArray filter = getPartByColumn(line, VcfFile::FILTER).trimmed();
+				QByteArray filter = VcfFile::getPartByColumn(line, VcfFile::FILTER).trimmed();
                 auto match = filter_re.match(filter);
                 if (!match.hasMatch())
                 {
@@ -384,7 +351,7 @@ public:
             ///Filter ID column via regex
 			if (id != "")
             {
-				QByteArray id = getPartByColumn(line, VcfFile::ID).trimmed();
+				QByteArray id = VcfFile::getPartByColumn(line, VcfFile::ID).trimmed();
                 auto match = id_re.match(id);
                 if (!match.hasMatch())
                 {
@@ -395,7 +362,7 @@ public:
 			///Filter by info operators in INFO column
 			if (!info_filters.isEmpty())
             {
-				QByteArrayList info_parts = getPartByColumn(line, VcfFile::INFO).trimmed().split(';');
+				QByteArrayList info_parts = VcfFile::getPartByColumn(line, VcfFile::INFO).trimmed().split(';');
 
 				bool passes_filters = true;
 				foreach(const QByteArray& info_part, info_parts)
@@ -426,13 +393,13 @@ public:
             ///Filter by sample operators in the SAMPLE column
 			if (!sample_filters.isEmpty())
             {
-				QByteArrayList format_entries = getPartByColumn(line, VcfFile::FORMAT).trimmed().split(':');
+				QByteArrayList format_entries = VcfFile::getPartByColumn(line, VcfFile::FORMAT).trimmed().split(':');
 
 				int samples_passing = 0;
 				int samples_failing = 0;
 				for (int i = VcfFile::MIN_COLS + 1; i < column_count; ++i)
 				{
-					QByteArrayList sample_parts = getPartByColumn(line, i).split(':');
+					QByteArrayList sample_parts = VcfFile::getPartByColumn(line, i).split(':');
 
 					bool current_sample_passes = true;
 					foreach(const FilterDefinition& filter, sample_filters)

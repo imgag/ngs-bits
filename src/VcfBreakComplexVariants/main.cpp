@@ -11,8 +11,6 @@
 
 using namespace std;
 
-enum VariantType {SNP, MNP, INDEL, CLUMPED, SV};
-
 class ConcreteTool: public ToolBase
 {
 	Q_OBJECT
@@ -23,101 +21,11 @@ public:
 	{
 	}
 
-	/**
-	 * @brief classifyVariant
-	 * Classifies variants according to https://genome.sph.umich.edu/wiki/Variant_classification
-	 * Assumes that both REF and ALT are already trimmed (no whitespaces, tabs)
-	 *
-	 * @param ref - the reference sequence
-	 * @param alt - the alternating sequence
-	 * @return VariantType
-	 */
-	VariantType classifyVariant(const QByteArray& ref, const QByteArray& alt)
-	{
-		int length = alt.length() - ref.length();
-
-		if (length == 0)
-		{
-			if (ref.length() == 1 && ref != alt) return SNP;
-			auto distance = static_cast<const int> (editDistance(ref, alt));
-			return (min(ref.length(), alt.length()) == distance) ? MNP : CLUMPED;
-		}
-		else
-		{
-			return INDEL;
-		}
-	}
-
-	/**
-	 * @brief editDistance
-	 * Returns the levensthein distance for two sequences
-	 * @param a
-	 * @param b
-	 * @return
-	 */
-	static unsigned int editDistance(const QByteArray& a, const QByteArray& b)
-	{
-		// Implementation from https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#C++
-		size_t len_a = static_cast<size_t> (a.size()),  len_b = static_cast<size_t> (b.size());
-		vector<vector<unsigned int>> d(len_a + 1, vector<unsigned int>(len_b + 1));
-
-		d[0][0] = 0;
-
-		for (unsigned int i = 1; i < len_a; ++i) d[i][0] = i;
-		for (unsigned int i = 1; i < len_b; ++i) d[0][1] = i;
-
-		for (unsigned int i = 1; i < len_a; ++i)
-		{
-			for (unsigned int j = 1; j < len_b; ++j)
-			{
-				d[i][j] = min({
-					d[i - 1][j] + 1,
-					d[i][j -1 ] + 1,
-					d[i - 1][j - 1] + (a[i - 1] == b[j - 1] ? 0 : 1)
-				});
-			}
-		}
-
-		return d[len_a][len_b];
-	}
-
-	//Returns the content of a column by index (tab-separated line)
-	static QByteArray getPartByColumn(const QByteArray& line, int index)
-	{
-		int columns_seen = 0;
-		int column_start = 0;
-		int column_end = -1;
-
-		for (int i = 0; i < line.length(); ++i)
-		{
-			if (line[i] == '\t')
-			{
-				++columns_seen;
-				if (columns_seen == index)
-				{
-					column_start = i;
-					column_end = line.length() -1; // for last column that is not followed by a tab
-				}
-				else if (columns_seen == index + 1)
-				{
-					column_end = i;
-					break;
-				}
-			}
-		}
-
-		if (column_end==-1)
-		{
-			THROW(ProgrammingException, "Cannot find column " + QByteArray::number(index) + " in line: " + line);
-		}
-
-		return line.mid(column_start, column_end - column_start);
-	}
-
 	virtual void setup()
 	{
 		setDescription("Breaks complex variants into several lines preserving INFO/SAMPLE fields. This does not handle multi-allelic or structural variants.");
-		//optional
+		setExtendedDescription(QStringList()	<<	"We assume that multi-allelic variants have already been processed, thus variants which are multi-allelic will be ignored. " \
+													"This tool will add a before break-complex (BBC) entry to the header as well as the info lines of the respective variants. " );
 		addInfile("in", "Input VCF file. If unset, reads from STDIN.", true, true);
 		addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
 		addOutfile("err", "Ouptuts statistics. If unset, writes to STDERR.", true, true);
@@ -166,7 +74,7 @@ public:
 				out_p->write(line);
 				if (!inserted_info) // Insert right after version line
 				{
-					out_p->write("##INFO=<ID=OLD_CLUMPED,Number=1,Type=String,Description=\"Original chr:pos:ref|alt encoding\">\n");
+					out_p->write("##INFO=<ID=BBC,Number=1,Type=String,Description=\"Original chr:pos:ref|alt encoding\">\n");
 					inserted_info = true;
 				}
 				continue;
@@ -176,8 +84,8 @@ public:
 			// Not a header line so increment the variant
 			++number_of_variants;
 
-			QByteArray ref = getPartByColumn(line, VcfFile::REF).trimmed();
-			QByteArray alt = getPartByColumn(line, VcfFile::ALT).trimmed();
+			QByteArray ref = VcfFile::getPartByColumn(line, VcfFile::REF).trimmed();
+			QByteArray alt = VcfFile::getPartByColumn(line, VcfFile::ALT).trimmed();
 
 			// Skip alternating allele pairs
 			if (alt.contains(","))
@@ -186,7 +94,7 @@ public:
 				continue;
 			}
 
-			VariantType variant_type = classifyVariant(ref, alt);
+			VariantType variant_type = VcfFile::classifyVariant(ref, alt);
 
 			if (variant_type != SNP) // Align with Needleman-Wunsch
 			{
@@ -225,8 +133,8 @@ public:
 				{
 					if (i > 0) ++number_of_new_variants;
 					auto parts = line.split('\t');
-					// Append INFO entry in format OLD_CLUMPED=chr:pos:ref:alt
-					parts[VcfFile::INFO] = parts[VcfFile::INFO].trimmed() + ";OLD_CLUMPED=" + parts[VcfFile::CHROM] + ":" + parts[VcfFile::POS] + ":" + parts[VcfFile::REF] + "|" + parts[VcfFile::ALT];
+					// Append INFO entry in format BBC=chr:pos:ref:alt
+					parts[VcfFile::INFO] = parts[VcfFile::INFO].trimmed() + ";BBC=" + parts[VcfFile::CHROM] + ":" + parts[VcfFile::POS] + ":" + parts[VcfFile::REF] + "|" + parts[VcfFile::ALT];
 
 					// Modify alt and ref with new aligments
 					parts[VcfFile::REF] = aligments[i].first;

@@ -4,6 +4,7 @@
 #include "Sequence.h"
 #include "FastaFileIndex.h"
 #include "Helper.h"
+#include "NGSHelper.h"
 
 bool VcfFile::isValid(QString vcf_file, QString ref_file, QTextStream& out_stream, bool print_general_information, int max_lines)
 {
@@ -519,3 +520,62 @@ void VcfFile::checkValues(const VcfFile::DefinitionLine& def, const QByteArrayLi
 		}
 	}
 }
+
+//Returns the content of a column by index (tab-separated line)
+QByteArray VcfFile::getPartByColumn(const QByteArray& line, int index)
+{
+	int columns_seen = 0;
+	int column_start = 0;
+	int column_end = -1;
+
+	for (int i = 0; i < line.length(); ++i)
+	{
+		if (line[i] == '\t')
+		{
+			++columns_seen;
+			if (columns_seen == index)
+			{
+				column_start = i;
+				column_end = line.length() -1; // for last column that is not followed by a tab
+			}
+			else if (columns_seen == index + 1)
+			{
+				column_end = i;
+				break;
+			}
+		}
+	}
+
+	if (column_end==-1)
+	{
+		THROW(ProgrammingException, "Cannot find column " + QByteArray::number(index) + " in line: " + line);
+	}
+
+	return line.mid(column_start, column_end - column_start);
+}
+
+/**
+ * @brief classifyVariant
+ * Classifies variants according to https://genome.sph.umich.edu/wiki/Variant_classification
+ * Assumes that both REF and ALT are already trimmed (no whitespaces, tabs)
+ *
+ * @param ref - the reference sequence
+ * @param alt - the alternating sequence
+ * @return VariantType
+ */
+VariantType VcfFile::classifyVariant(const QByteArray& ref, const QByteArray& alt)
+{
+	int length = alt.length() - ref.length();
+
+	if (length == 0)
+	{
+		if (ref.length() == 1 && ref != alt) return SNP;
+		auto distance = static_cast<const int> (NGSHelper::levensthein(ref, alt));
+		return (length == distance) ? MNP : COMPLEX;
+	}
+	else
+	{
+		return INDEL;
+	}
+}
+
