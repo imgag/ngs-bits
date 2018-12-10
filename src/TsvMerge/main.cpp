@@ -19,7 +19,7 @@ public:
 	virtual void setup()
 	{
 		setDescription("Merges TSV file based on a list of columns.");
-		addInfileList("in", "Input TSV files that are merged.", false);
+		addInfileList("in", "Input TSV files that are merged. If only one file is provided, the lines of the file are interpreted as file names.", false);
 		addString("cols", "Comma-separated list of column names used as key for merging.", false);
 		//optional
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
@@ -34,6 +34,10 @@ public:
 	{
 		//(1) init
 		QStringList in = getInfileList("in");
+		if (in.count()==1)
+		{
+			in = Helper::loadTextFile(in[0], true, '#', true);
+		}
 		QByteArrayList cols = getString("cols").toLatin1().split(',');
 		bool numeric = getFlag("numeric");
 		bool simple = getFlag("simple");
