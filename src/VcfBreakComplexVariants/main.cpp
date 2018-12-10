@@ -159,11 +159,11 @@ public:
 		while(!in_p->atEnd())
 		{
 			QByteArray line = in_p->readLine();
-			//skip empty lines and headers
+			// Skip empty lines and headers
 			if (line.trimmed().isEmpty() || line.startsWith("#"))
 			{
 				out_p->write(line);
-				if (!inserted_info) // insert right after format line
+				if (!inserted_info) // Insert right after version line
 				{
 					out_p->write("##INFO=<ID=OLD_CLUMPED,Number=1,Type=String,Description=\"Original chr:pos:ref|alt encoding\">\n");
 					inserted_info = true;
@@ -174,6 +174,13 @@ public:
 
 			QByteArray ref = getPartByColumn(line, VcfFile::REF).trimmed();
 			QByteArray alt = getPartByColumn(line, VcfFile::ALT).trimmed();
+
+			// Skip alternating allele pairs
+			if (alt.contains(","))
+			{
+				out_p->write(line);
+				continue;
+			}
 
 			VariantType variant_type = classifyVariant(ref, alt);
 			++number_of_variants;
