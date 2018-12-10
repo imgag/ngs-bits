@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cmath>
 #include <vector>
 #include <string>
 #include <QFile>
@@ -151,10 +152,10 @@ public:
 
 		// Statistics
 		bool inserted_info = false;
-		int number_of_additional_snps = 0;
-		int number_of_biallelic_block_substitutions = 0;
-		int number_of_new_variants = 0;
-		int number_of_variants = 0;
+		unsigned int number_of_additional_snps = 0;
+		unsigned int number_of_biallelic_block_substitutions = 0;
+		unsigned int number_of_new_variants = 0;
+		unsigned int number_of_variants = 0;
 
 		while(!in_p->atEnd())
 		{
@@ -172,6 +173,9 @@ public:
 			}
 
 
+			// Not a header line so increment the variant
+			++number_of_variants;
+
 			QByteArray ref = getPartByColumn(line, VcfFile::REF).trimmed();
 			QByteArray alt = getPartByColumn(line, VcfFile::ALT).trimmed();
 
@@ -183,7 +187,6 @@ public:
 			}
 
 			VariantType variant_type = classifyVariant(ref, alt);
-			++number_of_variants;
 
 			if (variant_type != SNP) // Align with Needleman-Wunsch
 			{
@@ -220,7 +223,7 @@ public:
 
 				for (size_t i = 0; i < aligments.size(); ++i) // write out the new sequences
 				{
-					++number_of_new_variants;
+					if (i > 0) ++number_of_new_variants;
 					auto parts = line.split('\t');
 					// Append INFO entry in format OLD_CLUMPED=chr:pos:ref:alt
 					parts[VcfFile::INFO] = parts[VcfFile::INFO].trimmed() + ";OLD_CLUMPED=" + parts[VcfFile::CHROM] + ":" + parts[VcfFile::POS] + ":" + parts[VcfFile::REF] + "|" + parts[VcfFile::ALT];
@@ -241,12 +244,13 @@ public:
 		}
 
 		// After processing print statistics to error stream
-		/*float new_variants_in_percent = (number_of_new_variants > 0) ? number_of_new_variants / (number_of_variants / 100) : 0;
-		float additional_snps_in_percent = (number_of_additional_snps > 0) ? number_of_additional_snps / (number_of_new_variants / 100) : 0;
-		float biallelic_substitutions_in_percent = (number_of_biallelic_block_substitutions > 0) ? number_of_biallelic_block_substitutions / (number_of_new_variants / 100) : 0;
-		QByteArray buffer;
-		err_p->write("Processed " + buffer.setNum(number_of_variants) + " variants of which " + buffer.setNum(number_of_new_variants) + " (" + buffer.setNum(new_variants_in_percent) + ")% are new.");
-		err_p->write(buffer.setNum(number_of_additional_snps) + "( " + buffer.setNum(additional_snps_in_percent) + "%) are additional SNP's while " + buffer.setNum(number_of_biallelic_block_substitutions) + "(" + buffer.setNum(biallelic_substitutions_in_percent) + "%) are biallelic substitutions.");*/
+		double one_percent = (number_of_variants) ? static_cast<double>(number_of_variants) / 100.0 : 0.0;
+		double new_variants_in_percent = (number_of_new_variants) ? static_cast<double>(number_of_new_variants) / one_percent : 0.0;
+
+		string variant_count_info = "Processed " + to_string(number_of_variants) + " variant(s) of which " + to_string(number_of_new_variants) + " (" + to_string(new_variants_in_percent) + ")% are new";
+		string variant_types_info = to_string(number_of_additional_snps - number_of_new_variants) + " of these are additional SNPs and " + to_string(number_of_biallelic_block_substitutions - number_of_variants) + " of these are biallelic substitutions";
+		err_p->write(QByteArray(variant_count_info.c_str(), static_cast<int>(variant_count_info.length())));
+		err_p->write(QByteArray(variant_types_info.c_str(), static_cast<int>(variant_types_info.length())));
 	}
 };
 
