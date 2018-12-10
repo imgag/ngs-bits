@@ -1,5 +1,5 @@
 ### SampleAncestry tool help
-	SampleAncestry (2018_06-13-ge04b5e6)
+	SampleAncestry (2018_11-32-g7dd08f0)
 	
 	Estimates the ancestry of a sample based on variants.
 	
@@ -24,8 +24,9 @@
 	  --tdx             Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SampleAncestry changelog
-	SampleAncestry 2018_06-13-ge04b5e6
+	SampleAncestry 2018_11-32-g7dd08f0
 	
+	2018-12-10 Fixed bug in handling of 'pop_dist' parameter.
 	2018-07-11 Added build switch for hg38 support.
 	2018-07-03 First version.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

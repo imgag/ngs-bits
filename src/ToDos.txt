@@ -17,6 +17,7 @@ NGSD:
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
 
 GSvar:
+**** Check for memory leak in GSvar loading code => make it more memory-efficient
 *** Annotate Somatic to germline data => select GSvar > 2 columns (small variants, CNVS) with AF, DP etc.
 * Add highlighting of imprinting genes to CNVs, ROHs and UPDs
 * Add multi-gene Google/PubMed search: https://www.ncbi.nlm.nih.gov/pubmed/?term=CASP8+AND+(%22Breast+cancer%22+OR+%22Breast+carcinoma%22)+AND+2018 (SWAL)
@@ -41,7 +42,7 @@ Tools:
 - BamClipOverlap: use higher base quality in overlap (CS)
 
 External:
-** implement MultiQC support for ReadQC/MappingQC/VariantQC/SomaticQC (>JM) ReadQC instead of SeqPurge, define default columns of tables, define plot columns
+** implement MultiQC support for ReadQC/MappingQC/VariantQC/SomaticQC (>JM): /mnt/SRV018/users/ahmattj1/dev/MultiQC/venv3/bin/multiqc -m readqc -m mappingqc -m variantqc .
 
 RohHunter:
 - optimize quality cutoffs based on variants that are het on chrX for males (AF, DP, MQM, blacklist, InDels, no AF annotation, homopolymer region,...)

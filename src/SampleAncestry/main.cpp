@@ -30,8 +30,9 @@ public:
 		addEnum("build", "Genome build used to generate the input.", true, QStringList() << "hg19" << "hg38", "hg19");
 
 		//changelog
+		changeLog(2018, 12, 10, "Fixed bug in handling of 'pop_dist' parameter.");
 		changeLog(2018,  7, 11, "Added build switch for hg38 support.");
-		changeLog(2018, 07, 03, "First version.");
+		changeLog(2018,  7, 03, "First version.");
 	}
 
 	virtual void main()
@@ -41,7 +42,7 @@ public:
 		QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream out(outfile.data());
 		int min_snps = getInt("min_snps");
-		int pop_dist = getFloat("pop_dist");
+		double pop_dist = getFloat("pop_dist");
 		QString build = getEnum("build");
 
 		//process
