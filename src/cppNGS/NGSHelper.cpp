@@ -9,6 +9,7 @@
 #include <QFileInfo>
 #include <QDateTime>
 #include <cmath>
+#include <vector>
 
 VariantList NGSHelper::getKnownVariants(QString build, bool only_snvs, double min_af, double max_af, const BedFile* roi)
 {
@@ -588,3 +589,31 @@ QList<int> SampleHeaderInfo::sampleColumns(bool affected) const
 
 	return output;
 }
+
+//TODO: Use template T to make this generic
+unsigned int NGSHelper::levensthein(const QByteArray& a, const QByteArray& b)
+{
+	// Implementation from https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#C++
+	size_t len_a = static_cast<size_t> (a.size()),  len_b = static_cast<size_t> (b.size());
+	std::vector<std::vector<unsigned int>> d(len_a + 1, std::vector<unsigned int>(len_b + 1));
+
+	d[0][0] = 0;
+
+	for (unsigned int i = 1; i < len_a; ++i) d[i][0] = i;
+	for (unsigned int i = 1; i < len_b; ++i) d[0][1] = i;
+
+	for (unsigned int i = 1; i < len_a; ++i)
+	{
+		for (unsigned int j = 1; j < len_b; ++j)
+		{
+			d[i][j] = std::min({
+				d[i - 1][j] + 1,
+				d[i][j -1 ] + 1,
+				d[i - 1][j - 1] + (a.at(static_cast<int>(i) - 1) == b.at(static_cast<int>(j) - 1) ? 0 : 1)
+			});
+		}
+	}
+
+	return d[len_a][len_b];
+}
+

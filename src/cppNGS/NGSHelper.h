@@ -25,6 +25,12 @@ public:
 	///Expands a Amino acid notation with 1 letter to 3 letters
 	static QByteArray expandAminoAcidAbbreviation(QChar amino_acid_change_in);
 
+	/**
+	 * @brief editDistance
+	 * Returns the levensthein distance for two sequences
+	 */
+	static unsigned int levensthein(const QByteArray& a, const QByteArray& b);
+
 private:
 	///Constructor declared away
 	NGSHelper() = delete;
