@@ -19,9 +19,9 @@ struct SampleMIDs
 	QString mid2;
 };
 
-RunPlanner::RunPlanner(QWidget *parent) :
-	QWidget(parent),
-	ui(new Ui::RunPlanner)
+RunPlanner::RunPlanner(QWidget *parent)
+	: QWidget(parent)
+	, ui(new Ui::RunPlanner)
 {
 	ui->setupUi(this);
 
@@ -43,7 +43,7 @@ RunPlanner::~RunPlanner()
 
 void RunPlanner::loadRunsFromNGSD()
 {
-	SqlQuery q = DatabaseCache::inst().ngsd().getQuery();
+	SqlQuery q = db.getQuery();
 	q.exec("SELECT id, name, fcid FROM sequencing_run ORDER BY name DESC");
 	while(q.next())
 	{
@@ -259,13 +259,13 @@ void RunPlanner::importNewSamplesToNGSD()
 				{
 					ps.setFK("mid2_i5", mid2);
 				}
-				ps.set("operator_id", DatabaseCache::inst().ngsd().userId());
+				ps.set("operator_id", db.userId());
 
 				GDBODialog dlg(this, ps, QStringList() << "process_id");
 				dlg.setWindowTitle("Add processed sample to NGSD");
 				if (dlg.exec())
 				{
-					ps.set("process_id", DatabaseCache::inst().ngsd().nextProcessingId(ps.get("sample_id")));
+					ps.set("process_id", db.nextProcessingId(ps.get("sample_id")));
 					ps.store();
 
 					ui->samples->item(r, 0)->setFlags(Qt::ItemIsSelectable|Qt::ItemIsDragEnabled);
