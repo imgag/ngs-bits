@@ -98,8 +98,10 @@ public:
 
 			if (variant_type != SNP) // Align with Needleman-Wunsch
 			{
-				auto matrix = NeedlemanWunsch<QByteArray>::populateMatrix(ref, alt);
-				auto aligment = NeedlemanWunsch<QByteArray>::aligment(get<MATRIX_TRACEBACK>(matrix), ref, alt);
+				auto nw = NeedlemanWunsch<QByteArray>(ref, alt);
+				nw.compute_matrix();
+				nw.trace_back();
+				auto aligment = nw.get_aligments();
 				auto reference = get<ALIGMENT_REFERENCE>(aligment), query = get<ALIGMENT_QUERY>(aligment);
 
 				// Iterate through the reference and compare it with the query
