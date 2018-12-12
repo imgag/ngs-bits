@@ -129,9 +129,10 @@ MainWindow::MainWindow(QWidget *parent)
 	filewatcher_.setDelayInSeconds(10);
 
 	//if at home, use Patientenserver
-	if (QDir("Q:\\TRANSFER\\Auf-Patientenserver\\").exists())
+	QString gsvar_report_folder = Settings::string("gsvar_report_folder");
+	if (gsvar_report_folder!="" && QDir(gsvar_report_folder).exists())
 	{
-		last_report_path_ = "Q:\\TRANSFER\\Auf-Patientenserver\\";
+		last_report_path_ = gsvar_report_folder;
 	}
 
 	//delayed initialization

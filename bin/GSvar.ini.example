@@ -2,10 +2,10 @@
 path_regions=
 path_variantlists=
 recent_files=
-ngsd_name=
-kgxref=
 target_regions=@Invalid()
 reference_files=@Invalid()
+
+#IGV settings
 igv_menu=@Invalid()
 igv_host=127.0.0.1
 igv_port=60151
@@ -16,10 +16,6 @@ preferred_transcripts=@Variant(\0\0\0\b\0\0\0\0)
 
 #Enable NGSD-based functionality
 NGSD_enabled=true
-
-#NGSD processing system target file folder (for converting Linux to/from Windows paths)
-target_file_folder_windows = ""
-target_file_folder_linux = ""
 
 #LODV credentials for variant upload
 lovd_lab=
@@ -32,4 +28,7 @@ lovd_user_auth_token=
 analysis_steps_single_sample=ma - mapping, vc - variant calling, an - annotation, db - database import, cn - copy number calling
 analysis_steps_multi_sample=vc - variant calling, an - annotation, cn - copy number calling
 analysis_steps_trio=vc - variant calling, an - annotation, cn - copy number calling
-analysis_steps_somatic=vc - variant calling, an - annotation, ci - CGI annotation, msi - microsatellite instabilty, db - database import
+analysis_steps_somatic=vc - variant calling, cn - copy number calling, an - annotation, ci - CGI annotation, msi - microsatellite instabilty, db - database import
+
+#Special regions used during sub-panel design
+subpanel_special_regions=POLR3A\tchr10:79769265-79769285

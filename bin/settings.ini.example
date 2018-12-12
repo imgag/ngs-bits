@@ -47,6 +47,7 @@ proxy_host = ""
 proxy_port = 
 
 #special folders for GSvar
+gsvar_report_folder = ""
 gsvar_report_archive = ""
 gsvar_gap_transfer = ""
 gsvar_variant_transfer = ""

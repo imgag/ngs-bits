@@ -18,6 +18,8 @@ NGSD:
 
 GSvar:
 **** Check for memory leak in GSvar loading code => make it more memory-efficient
+**** Put DB passwords encrypted in INI file - use compiled-in master password to decrypt them
+*** Implement OMIM search via API - example: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1
 *** Annotate Somatic to germline data => select GSvar > 2 columns (small variants, CNVS) with AF, DP etc.
 * Add highlighting of imprinting genes to CNVs, ROHs and UPDs
 * Add multi-gene Google/PubMed search: https://www.ncbi.nlm.nih.gov/pubmed/?term=CASP8+AND+(%22Breast+cancer%22+OR+%22Breast+carcinoma%22)+AND+2018 (SWAL)
