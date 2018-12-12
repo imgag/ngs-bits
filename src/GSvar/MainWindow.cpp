@@ -355,7 +355,10 @@ void MainWindow::on_actionReanalyze_triggered()
 		dlg.setSamples(samples);
 		if (dlg.exec()==QDialog::Accepted)
 		{
-			NGSD().queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), dlg.samples());
+			foreach(const AnalysisJobSample& sample,  dlg.samples())
+			{
+				NGSD().queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
+			}
 		}
 	}
 	else if (variants_.type()==GERMLINE_MULTISAMPLE)
