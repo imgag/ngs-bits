@@ -1,7 +1,6 @@
 #include <algorithm>
 #include <cmath>
 #include <vector>
-#include <string>
 #include <QFile>
 #include <QRegularExpression>
 #include "ToolBase.h"
@@ -24,15 +23,19 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Breaks complex variants into several lines preserving INFO/SAMPLE fields. This does not handle multi-allelic or structural variants.");
-		setExtendedDescription(QStringList()	<<	"We assume that multi-allelic variants have already been processed, thus variants which are multi-allelic will be ignored. " \
-													"This tool will add a before break-complex (BBC) entry to the header as well as the info lines of the respective variants. " );
+		setDescription("Breaks complex variants into primitives preserving INFO/SAMPLE fields.");
+		setExtendedDescription(QStringList() << "Multi-allelic variants are ignored, since we assume they have already been split, e.g. with VcfBreakMulti."
+											 << "Complex variants that are decomposed, are flagged BBC (before break-complex) info entry.");
 		addInfile("in", "Input VCF file. If unset, reads from STDIN.", true, true);
 		addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
-		addOutfile("err", "Ouptuts statistics. If unset, writes to STDERR.", true, true);
+		addOutfile("stats", "Ouptuts statistics. If unset, writes to STDERR.", true, true);
+		addFlag("keep_mnps", "Write out MNPs unchanged.");
+		addFlag("no_tag", "Skip annotation of decomposed variants with BBC in INFO field.");
 
 		changeLog(2018, 11, 30, "Initial implementation.");
 	}
+
+	//TODO rename VcfBreakComplex
 
 	/**
 	 * @brief main
@@ -45,19 +48,20 @@ public:
 	{
 		QString in = getInfile("in");
 		QString out = getOutfile("out");
-		QString err = getOutfile("err");
+		QString stats = getOutfile("stats");
+		bool keep_mnps = getFlag("keep_mnps");  //TODO + test
+		bool no_tag = getFlag("no_tag"); //TODO + test
 		if(in!="" && in==out)
 		{
 			THROW(ArgumentException, "Input and output files must be different when streaming!");
 		}
-		if(err!="" && err==out)
+		if(stats!="" && stats==out)
 		{
 			THROW(ArgumentException, "Error and output files must be different when streaming!");
 		}
 
 		QSharedPointer<QFile> in_p = Helper::openFileForReading(in, true);
 		QSharedPointer<QFile> out_p = Helper::openFileForWriting(out, true);
-		QSharedPointer<QFile> err_p = Helper::openFileForWriting(err, true);
 
 		// Statistics
 		bool inserted_info = false;
@@ -162,13 +166,11 @@ public:
 		}
 
 		// After processing print statistics to error stream
-		double one_percent = (number_of_variants) ? static_cast<double>(number_of_variants) / 100.0 : 0.0;
-		double new_variants_in_percent = (number_of_new_variants) ? static_cast<double>(number_of_new_variants) / one_percent : 0.0;
-
-		string variant_count_info = "Processed " + to_string(number_of_variants) + " variant(s) of which " + to_string(number_of_new_variants) + " (" + to_string(new_variants_in_percent) + ")% are new";
-		string variant_types_info = to_string(number_of_additional_snps - number_of_new_variants) + " of these are additional SNPs and " + to_string(number_of_biallelic_block_substitutions - number_of_variants) + " of these are biallelic substitutions";
-		err_p->write(QByteArray(variant_count_info.c_str(), static_cast<int>(variant_count_info.length())));
-		err_p->write(QByteArray(variant_types_info.c_str(), static_cast<int>(variant_types_info.length())));
+		QSharedPointer<QFile> stats_p = QSharedPointer<QFile>(new QFile(stats));
+		stats_p->open(stderr, QFile::WriteOnly | QIODevice::Text);
+		double new_variants_in_percent = (number_of_variants>0) ? 100.0 * number_of_new_variants / number_of_variants : 0.0;
+		stats_p->write(QByteArray("Processed ") + QByteArray::number(number_of_variants) + " variant(s) of which " + QByteArray::number(number_of_new_variants) + " (" + QByteArray::number(new_variants_in_percent, 'f', 2) + "%) were decomposed.\n");
+		stats_p->write(QByteArray::number(number_of_additional_snps - number_of_new_variants) + " of these are additional SNPs and " + QByteArray::number(number_of_biallelic_block_substitutions - number_of_variants) + " of these are biallelic substitutions.\n");
 	}
 };
 
