@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <QFile>
+#include <QRegularExpression>
 #include "ToolBase.h"
 #include "Exceptions.h"
 #include "Helper.h"
@@ -105,29 +106,36 @@ public:
 				auto reference = get<ALIGMENT_REFERENCE>(aligment), query = get<ALIGMENT_QUERY>(aligment);
 
 				// Iterate through the reference and compare it with the query
-				using AligmentPairs = pair<QByteArray, QByteArray>;
-				vector<AligmentPairs> aligments;
-				for (auto i = 0; i < query.size(); ++i)
+				using AligmentPair = pair<QByteArray, QByteArray>;
+				vector<AligmentPair> aligments;
+
+				if (ref.length() == 1 || alt.length() == 1) // SNP
 				{
-					if (query.at(i) != reference.at(i)) // transition from REF -> ALT, SNP
+					aligments.push_back(AligmentPair(query.replace("-", ""), reference.replace("-", "")));
+					++number_of_additional_snps;
+				}
+				else // MNP or COMPLEX
+				{
+					for (auto i = 0; i < query.size(); ++i)
 					{
-						auto aligment_pair = AligmentPairs(query.mid(i, 1), reference.mid(i, 1));
-						aligments.push_back(aligment_pair);
-						++i;
-						++number_of_additional_snps; // add a new SNP to the stats
-					}
-					else if (i + 1 < query.size() && query.at(i + 1) == '-') // transition from REF GAP(n) to ALT, MNP
-					{
-						int gap_start = static_cast<int> (i + 1);
-						int gap_end = gap_start;
-						while ((i + 1) < query.size() && query.at(i + 1) == '-')
+						if (query.at(i) != reference.at(i)) // transition from REF -> ALT
 						{
+							aligments.push_back(AligmentPair(query.mid(i, 1), reference.mid(i, 1)));
 							++i;
-							gap_end++;
+							++number_of_additional_snps;
 						}
-						auto aligment_pair = AligmentPairs(query.mid(gap_start - 1, 1), reference.mid(gap_start - 1, gap_end));
-						aligments.push_back(aligment_pair);
-						++number_of_biallelic_block_substitutions; // new biallelic block substitution
+						else if (i + 1 < query.size() && query.at(i + 1) == '-') // transition from REF,- to ALT
+						{
+							int gap_start = static_cast<int> (i + 1);
+							int gap_end = gap_start;
+							while ((i + 1) < query.size() && query.at(i + 1) == '-')
+							{
+								++i;
+								gap_end++;
+							}
+							aligments.push_back(AligmentPair(query.mid(gap_start - 1, 1), reference.mid(gap_start - 1, gap_end)));
+							++number_of_biallelic_block_substitutions; // new biallelic block substitutios
+						}
 					}
 				}
 
