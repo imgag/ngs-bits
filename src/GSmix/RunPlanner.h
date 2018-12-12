@@ -4,7 +4,6 @@
 #include <QWidget>
 #include <QScopedPointer>
 #include "GDBO.h"
-#include "NGSD.h"
 
 class QTableWidgetItem;
 
@@ -40,7 +39,6 @@ private:
 	static QList<int> setToSortedList(const QSet<int>& set);
 	void loadRunsFromNGSD();
 
-	NGSD db;
 	Ui::RunPlanner* ui;
 };
 

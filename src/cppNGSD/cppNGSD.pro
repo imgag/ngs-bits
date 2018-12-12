@@ -40,8 +40,7 @@ SOURCES += \
     GDBODialog.cpp \
     GBDOFKEdit.cpp \
     ProcessedSampleFKEdit.cpp \
-	GenLabDB.cpp \
-    DBTable.cpp
+	GenLabDB.cpp
 
 HEADERS += \
     SqlQuery.h \
@@ -51,8 +50,7 @@ HEADERS += \
     GDBODialog.h \
     GBDOFKEdit.h \
     ProcessedSampleFKEdit.h \
-	GenLabDB.h \
-    DBTable.h
+	GenLabDB.h
 
 FORMS += \
     GDBODialog.ui

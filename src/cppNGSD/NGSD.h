@@ -16,27 +16,6 @@
 #include "GeneSet.h"
 #include "Phenotype.h"
 #include "Helper.h"
-#include "DBTable.h"
-
-///General database field information that is shared between all objects.
-struct CPPNGSDSHARED_EXPORT TableFieldInfo
-{
-	enum Type
-	{
-		BOOL, INT, FLOAT, TEXT, VARCHAR, ENUM, DATE, FK
-	};
-
-	int index = -1;
-	QString name;
-	Type type;
-	QVariant type_restiction; //length of VARCHAR and value of ENUM
-	bool nullable;
-	QString default_value;
-	bool primary_key;
-	QString fk_table;
-	QString fk_field;
-	QString fk_label;
-};
 
 ///Analysis job sample.
 struct CPPNGSDSHARED_EXPORT AnalysisJobSample
@@ -211,16 +190,6 @@ public:
 	~NGSD();
 	///Returns if the database connection is open
 	bool isOpen() const;
-
-	///Returns the table list.
-	QStringList tables() const;
-	///Returns information about all fields of a table.
-	const QList<TableFieldInfo>& tableInfos(QString table);
-	///Returns information about a specific table field.
-	const TableFieldInfo& fieldInfos(QString table, QString field);
-
-	///Creates an instance with data from a SQL query.
-	DBTable createTable(QString table, QString fields = "*", QString conditions = "1");
 
 	///Creates database tables and imports initial data (password is required for production database if it is not empty)
 	void init(QString password="");
@@ -415,7 +384,6 @@ protected:
 	QSharedPointer<QSqlDatabase> db_;
 	bool test_db_;
 	bool is_open_;
-	static QMap<QString, QList<TableFieldInfo>> infos_;
 };
 
 
