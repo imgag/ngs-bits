@@ -22,6 +22,13 @@ private slots:
 		COMPARE_FILES("out/VcfBreakComplexVariants_out02.vcf", TESTDATA("data_out/VcfBreakComplexVariants_out02.vcf"));
 		VCF_IS_VALID("out/VcfBreakComplexVariants_out02.vcf");
 	}
+
+	void test_no_tag()
+	{
+		EXECUTE("VcfBreakComplexVariants", "-in " + TESTDATA("data_in/VcfBreakComplexVariants_in02.vcf") + " -out out/VcfBreakComplexVariants_out03.vcf -no_tag");
+		COMPARE_FILES("out/VcfBreakComplexVariants_out03.vcf", TESTDATA("data_out/VcfBreakComplexVariants_out03.vcf"));
+		VCF_IS_VALID("out/VcfBreakComplexVariants_out03.vcf");
+	}
 };
 
 

@@ -50,7 +50,7 @@ public:
 		QString out = getOutfile("out");
 		QString stats = getOutfile("stats");
 		bool keep_mnps = getFlag("keep_mnps");  //TODO + test
-		bool no_tag = getFlag("no_tag"); //TODO + test
+		bool no_tag = getFlag("no_tag");
 		if(in!="" && in==out)
 		{
 			THROW(ArgumentException, "Input and output files must be different when streaming!");
@@ -79,7 +79,7 @@ public:
 				out_p->write(line);
 				if (!inserted_info) // Insert right after version line
 				{
-					out_p->write("##INFO=<ID=BBC,Number=1,Type=String,Description=\"Original chr:pos:ref|alt encoding\">\n");
+					if (!no_tag) out_p->write("##INFO=<ID=BBC,Number=1,Type=String,Description=\"Original chr:pos:ref|alt encoding\">\n");
 					inserted_info = true;
 				}
 				continue;
@@ -148,7 +148,7 @@ public:
 					if (i > 0) ++number_of_new_variants;
 					auto parts = line.split('\t');
 					// Append INFO entry in format BBC=chr:pos:ref:alt
-					parts[VcfFile::INFO] = parts[VcfFile::INFO].trimmed() + ";BBC=" + parts[VcfFile::CHROM] + ":" + parts[VcfFile::POS] + ":" + parts[VcfFile::REF] + "|" + parts[VcfFile::ALT];
+					if (!no_tag) parts[VcfFile::INFO] = parts[VcfFile::INFO].trimmed() + ";BBC=" + parts[VcfFile::CHROM] + ":" + parts[VcfFile::POS] + ":" + parts[VcfFile::REF] + "|" + parts[VcfFile::ALT];
 
 					// Modify alt and ref with new aligments
 					parts[VcfFile::REF] = aligments[i].first;
