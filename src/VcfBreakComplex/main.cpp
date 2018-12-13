@@ -35,8 +35,6 @@ public:
 		changeLog(2018, 11, 30, "Initial implementation.");
 	}
 
-	//TODO rename VcfBreakComplex
-
 	/**
 	 * @brief main
 	 * This program breaks complex variants into several lines. It is inspired by vt's decompose_suballelic and vcflib's vcfallelicprimitives.

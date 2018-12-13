@@ -325,9 +325,9 @@ SUBDIRS += VcfFilter
 tools-TEST.depends += VcfFilter
 VcfFilter.depends = cppNGS
 
-SUBDIRS += VcfBreakComplexVariants
-tools-TEST.depends += VcfBreakComplexVariants
-VcfBreakComplexVariants.depends = cppNGS
+SUBDIRS += VcfBreakComplex
+tools-TEST.depends += VcfBreakComplex
+VcfBreakComplex.depends = cppNGS
 
 SUBDIRS += VcfExtractSamples
 tools-TEST.depends += VcfExtractSamples
