@@ -571,7 +571,7 @@ VariantType VcfFile::classifyVariant(const QByteArray& ref, const QByteArray& al
 	{
 		if (ref.length() == 1 && ref != alt) return SNP;
 		auto distance = static_cast<const int> (NGSHelper::levensthein(ref, alt));
-		return (length == distance) ? MNP : COMPLEX;
+		return (length == distance) ? MNP : CLUMPED;
 	}
 	else
 	{

@@ -8,7 +8,7 @@
 #include <QTextStream>
 #include <QByteArray>
 
-enum VariantType {SNP, MNP, INDEL, COMPLEX, SV};
+enum VariantType {SNP, MNP, INDEL, CLUMPED, SV};
 
 //Helper class for VCF file handling
 class CPPNGSSHARED_EXPORT VcfFile

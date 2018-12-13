@@ -49,7 +49,7 @@ public:
 		QString in = getInfile("in");
 		QString out = getOutfile("out");
 		QString stats = getOutfile("stats");
-		bool keep_mnps = getFlag("keep_mnps");  //TODO + test
+		bool keep_mnps = getFlag("keep_mnps");
 		bool no_tag = getFlag("no_tag");
 		if(in!="" && in==out)
 		{
@@ -120,25 +120,32 @@ public:
 				}
 				else // MNP or COMPLEX
 				{
-					for (auto i = 0; i < query.size(); ++i)
+					if (keep_mnps) // Keep more complex variants
 					{
-						if (query.at(i) != reference.at(i)) // transition from REF -> ALT
+						out_p->write(line);
+					}
+					else // Break up more complex variants
+					{
+						for (auto i = 0; i < query.size(); ++i)
 						{
-							aligments.push_back(AligmentPair(query.mid(i, 1), reference.mid(i, 1)));
-							++i;
-							++number_of_additional_snps;
-						}
-						else if (i + 1 < query.size() && query.at(i + 1) == '-') // transition from REF,- to ALT
-						{
-							int gap_start = static_cast<int> (i + 1);
-							int gap_end = gap_start;
-							while ((i + 1) < query.size() && query.at(i + 1) == '-')
+							if (query.at(i) != reference.at(i)) // transition from REF -> ALT
 							{
+								aligments.push_back(AligmentPair(query.mid(i, 1), reference.mid(i, 1)));
 								++i;
-								gap_end++;
+								++number_of_additional_snps;
 							}
-							aligments.push_back(AligmentPair(query.mid(gap_start - 1, 1), reference.mid(gap_start - 1, gap_end)));
-							++number_of_biallelic_block_substitutions; // new biallelic block substitutios
+							else if (i + 1 < query.size() && query.at(i + 1) == '-') // transition from REF,- to ALT
+							{
+								int gap_start = static_cast<int> (i + 1);
+								int gap_end = gap_start;
+								while ((i + 1) < query.size() && query.at(i + 1) == '-')
+								{
+									++i;
+									gap_end++;
+								}
+								aligments.push_back(AligmentPair(query.mid(gap_start - 1, 1), reference.mid(gap_start - 1, gap_end)));
+								++number_of_biallelic_block_substitutions; // new biallelic block substitutios
+							}
 						}
 					}
 				}
