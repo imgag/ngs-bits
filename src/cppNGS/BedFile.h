@@ -157,6 +157,10 @@ public:
 	{
 		return headers_;
 	}
+	void setHeaders(const QVector<QByteArray>& headers)
+	{
+		headers_ = headers;
+	}
 	void appendHeader(const QByteArray& header)
 	{
 		headers_.append(header);

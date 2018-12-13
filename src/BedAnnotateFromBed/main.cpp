@@ -3,6 +3,7 @@
 #include "NGSHelper.h"
 #include "Settings.h"
 #include <QTextStream>
+#include <QFileInfo>
 
 class ConcreteTool
 		: public ToolBase
@@ -30,9 +31,14 @@ public:
 
 	virtual void main()
 	{
+		//init
+		QString in = getInfile("in");
+		QString in2 = getInfile("in2");
+		QString out = getOutfile("out");
+
 		//load annoation database
 		BedFile anno_file;
-		anno_file.load(getInfile("in2"));
+		anno_file.load(in2);
 		if (getFlag("clear"))
 		{
 			anno_file.clearAnnotations();
@@ -42,7 +48,7 @@ public:
 
 		//process
 		BedFile file;
-		file.load(getInfile("in"));
+		file.load(in);
 		for(int i=0; i<file.count(); ++i)
 		{
 			BedLine& line = file[i];
@@ -64,8 +70,23 @@ public:
 			line.annotations().append(annos.join(",").toLatin1());
 		}
 
+		//special handling of TSV files (handle header line)
+		if (out.endsWith(".tsv"))
+		{
+			QVector<QByteArray> headers = file.headers();
+			for(int i=0; i<headers.count(); ++i)
+			{
+				QByteArray& line = headers[i];
+				if (line.startsWith("#") && !line.startsWith("##") && line.contains("\t"))
+				{
+					line += "\t" + QFileInfo(in2).baseName();
+				}
+			}
+			file.setHeaders(headers);
+		}
+
 		//store
-		file.store(getOutfile("out"));
+		file.store(out);
 	}
 };
 
