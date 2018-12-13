@@ -746,7 +746,12 @@ void MainWindow::editVariantComment()
 			int gui_index = guiColumnIndex("comment");
 			if (gui_index!=-1)
 			{
-				ui_.vars->item(var_curr, gui_index)->setText(text);
+				QTableWidgetItem* item = ui_.vars->item(var_curr, gui_index);
+				if (item==nullptr)
+				{
+					ui_.vars->setItem(var_curr, gui_index, createTableItem(""));
+				}
+				item->setText(text);
 				var_widget_->updateVariant(variants_, var_curr);
 			}
 		}
@@ -1011,6 +1016,22 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name)
 	{
 		QMessageBox::warning(this, "Open processed sample from NGSD", e.message());
 	}
+}
+
+QTableWidgetItem* MainWindow::createTableItem(const QByteArray& text, bool clear) const
+{
+	//no text > no item (optimization for WGS - empty items are big and take a lot of RAM)
+	if (text.isEmpty()) return nullptr;
+
+	//use cache to prevent creating the same QString over and over again.
+	//because of implicit sharing, the cache does not use much memory (QByteArrays are in VariantList and QStrings are in QTableWidget)
+	static QHash<QByteArray, QString> cache;
+	if (clear) cache.clear();
+	if (!cache.contains(text))
+	{
+		cache.insert(text, QString(text));
+	}
+	return new QTableWidgetItem(cache[text]);
 }
 
 void MainWindow::on_actionChangeLog_triggered()
@@ -1918,11 +1939,15 @@ void MainWindow::copyToClipboard(bool split_quality)
 		for (int col=range.leftColumn(); col<=range.rightColumn(); ++col)
 		{
 			if (col!=range.leftColumn()) selected_text.append("\t");
+
+			QTableWidgetItem* item = ui_.vars->item(row, col);
+			if (item==nullptr) continue;
+
 			if (split_quality && col==qual_index)
 			{
 				QStringList quality_values;
 				for(int i=0; i<quality_keys.count(); ++i) quality_values.append("");
-				QStringList entries = ui_.vars->item(row, col)->text().split(';');
+				QStringList entries = item->text().split(';');
 				foreach(const QString& entry, entries)
 				{
 					QStringList key_value = entry.split('=');
@@ -1944,7 +1969,7 @@ void MainWindow::copyToClipboard(bool split_quality)
 			}
 			else
 			{
-				selected_text.append(ui_.vars->item(row, col)->text().replace('\n',' ').replace('\r',' '));
+				selected_text.append(item->text().replace('\n',' ').replace('\r',' '));
 			}
 		}
 	}
@@ -2038,15 +2063,15 @@ void MainWindow::variantListChanged()
 	ui_.vars->setColumnCount(5 + variants_.annotations().count());
 
 	//header
-	ui_.vars->setHorizontalHeaderItem(0, new QTableWidgetItem("chr"));
+	ui_.vars->setHorizontalHeaderItem(0, createTableItem("chr", true));
 	ui_.vars->horizontalHeaderItem(0)->setToolTip("Chromosome of variant");
-	ui_.vars->setHorizontalHeaderItem(1, new QTableWidgetItem("start"));
+	ui_.vars->setHorizontalHeaderItem(1, createTableItem("start"));
 	ui_.vars->horizontalHeaderItem(1)->setToolTip("Genomic start position of variant");
-	ui_.vars->setHorizontalHeaderItem(2, new QTableWidgetItem("end"));
+	ui_.vars->setHorizontalHeaderItem(2, createTableItem("end"));
 	ui_.vars->horizontalHeaderItem(2)->setToolTip("Genomic end position of variant");
-	ui_.vars->setHorizontalHeaderItem(3, new QTableWidgetItem("ref"));
+	ui_.vars->setHorizontalHeaderItem(3, createTableItem("ref"));
 	ui_.vars->horizontalHeaderItem(3)->setToolTip("Reference genome sequence");
-	ui_.vars->setHorizontalHeaderItem(4, new QTableWidgetItem("obs"));
+	ui_.vars->setHorizontalHeaderItem(4, createTableItem("obs"));
 	ui_.vars->horizontalHeaderItem(4)->setToolTip("Sequence observed in the sample");
 	for (int i=0; i<variants_.annotations().count(); ++i)
 	{
@@ -2104,23 +2129,23 @@ void MainWindow::variantListChanged()
 	for (int i=0; i<variants_.count(); ++i)
 	{
 		const Variant& row = variants_[i];
-		ui_.vars->setItem(i, 0, new QTableWidgetItem(QString(row.chr().str())));
+		ui_.vars->setItem(i, 0, createTableItem(row.chr().str()));
 		if (!row.chr().isAutosome())
 		{
 			ui_.vars->item(i,0)->setBackgroundColor(Qt::yellow);
 			ui_.vars->item(i,0)->setToolTip("Not autosome");
 		}
-		ui_.vars->setItem(i, 1, new QTableWidgetItem(QString::number(row.start())));
-		ui_.vars->setItem(i, 2, new QTableWidgetItem(QString::number(row.end())));
-		ui_.vars->setItem(i, 3, new QTableWidgetItem(row.ref(), 0));
-		ui_.vars->setItem(i, 4, new QTableWidgetItem(row.obs(), 0));
+		ui_.vars->setItem(i, 1, createTableItem(QByteArray::number(row.start())));
+		ui_.vars->setItem(i, 2, createTableItem(QByteArray::number(row.end())));
+		ui_.vars->setItem(i, 3, createTableItem(row.ref()));
+		ui_.vars->setItem(i, 4, createTableItem(row.obs()));
 		bool is_warning_line = false;
 		bool is_notice_line = false;
 		bool is_ok_line = false;
 		for (int j=0; j<row.annotations().count(); ++j)
 		{
 			const QByteArray& anno = row.annotations().at(j);
-			QTableWidgetItem* item = new QTableWidgetItem(anno, QTableWidgetItem::Type);
+			QTableWidgetItem* item = createTableItem(anno);
 
 			//warning
 			if (j==i_co_sp && anno.contains(":HIGH:"))
@@ -2201,7 +2226,7 @@ void MainWindow::variantListChanged()
 		//mark vertical header - warning (red), notice (orange)
 		if (is_notice_line && !is_ok_line)
 		{
-			QTableWidgetItem* item = new QTableWidgetItem(QString::number(i+1));
+			QTableWidgetItem* item = createTableItem(QByteArray::number(i+1));
 			item->setForeground(QBrush(QColor(255, 135, 60)));
 			QFont font;
 			font.setWeight(QFont::Bold);
@@ -2210,7 +2235,7 @@ void MainWindow::variantListChanged()
 		}
 		else if (is_warning_line && !is_ok_line)
 		{
-			QTableWidgetItem* item = new QTableWidgetItem(QString::number(i+1));
+			QTableWidgetItem* item = createTableItem(QByteArray::number(i+1));
 			item->setForeground(QBrush(Qt::red));
 			QFont font;
 			font.setWeight(QFont::Bold);
