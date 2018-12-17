@@ -1,5 +1,4 @@
 #include "GBDOFKEdit.h"
-#include "DatabaseCache.h"
 #include <QStringListModel>
 
 GBDOFKEdit::GBDOFKEdit(QString table, QString field, QWidget* parent)
@@ -18,7 +17,7 @@ GBDOFKEdit::GBDOFKEdit(QString table, QString field, QWidget* parent)
 
 void GBDOFKEdit::setId(int id)
 {
-	QString text = DatabaseCache::inst().ngsd().getValue("SELECT " + field_ + " FROM " + table_ + " WHERE id=" + QString::number(id)).toString();
+	QString text = db_.getValue("SELECT " + field_ + " FROM " + table_ + " WHERE id=" + QString::number(id)).toString();
 	setText(text);
 	id_ = id;
 }
@@ -35,7 +34,7 @@ void GBDOFKEdit::search(QString text)
 	if (text=="") return;
 
 	//set ID if we find a perfect match
-	SqlQuery query = DatabaseCache::inst().ngsd().getQuery();
+	SqlQuery query = db_.getQuery();
 	query.prepare("SELECT id FROM " + table_ + " WHERE " + field_ + "=:text");
 	query.bindValue(":text", text);
 	query.exec();

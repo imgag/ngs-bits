@@ -39,7 +39,8 @@ private:
 	static QList<int> setToSortedList(const QSet<int>& set);
 	void loadRunsFromNGSD();
 
-	Ui::RunPlanner* ui;
+	Ui::RunPlanner* ui_;
+	NGSD db_;
 };
 
 #endif // RUNPLANNER_H

@@ -3,6 +3,7 @@
 
 #include <QLineEdit>
 #include <QCompleter>
+#include "NGSD.h"
 
 ///Database-aware Foreign-Key edit
 class GBDOFKEdit
@@ -25,6 +26,7 @@ protected:
 	QString table_;
 	QString field_;
 	int id_;
+	NGSD db_;
 };
 
 #endif // GBDOFKEDIT_H

@@ -21,48 +21,48 @@ struct SampleMIDs
 
 RunPlanner::RunPlanner(QWidget *parent) :
 	QWidget(parent),
-	ui(new Ui::RunPlanner)
+	ui_(new Ui::RunPlanner)
 {
-	ui->setupUi(this);
+	ui_->setupUi(this);
 
-	connect(ui->run, SIGNAL(currentIndexChanged(int)), this, SLOT(runChanged(int)));
-	connect(ui->lane, SIGNAL(valueChanged(int)), this, SLOT(laneChanged(int)));
-	connect(ui->addButton, SIGNAL(clicked(bool)), this, SLOT(addItem()));
-	connect(ui->pasteButton, SIGNAL(clicked(bool)), this, SLOT(pasteItems()));
-	connect(ui->removeButton, SIGNAL(clicked(bool)), this, SLOT(removeSelectedItems()));
-	connect(ui->checkButton, SIGNAL(clicked(bool)), this, SLOT(checkForMidCollisions()));
-	connect(ui->importButton, SIGNAL(clicked(bool)), this, SLOT(importNewSamplesToNGSD()));
+	connect(ui_->run, SIGNAL(currentIndexChanged(int)), this, SLOT(runChanged(int)));
+	connect(ui_->lane, SIGNAL(valueChanged(int)), this, SLOT(laneChanged(int)));
+	connect(ui_->addButton, SIGNAL(clicked(bool)), this, SLOT(addItem()));
+	connect(ui_->pasteButton, SIGNAL(clicked(bool)), this, SLOT(pasteItems()));
+	connect(ui_->removeButton, SIGNAL(clicked(bool)), this, SLOT(removeSelectedItems()));
+	connect(ui_->checkButton, SIGNAL(clicked(bool)), this, SLOT(checkForMidCollisions()));
+	connect(ui_->importButton, SIGNAL(clicked(bool)), this, SLOT(importNewSamplesToNGSD()));
 
 	loadRunsFromNGSD();
 }
 
 RunPlanner::~RunPlanner()
 {
-	delete ui;
+	delete ui_;
 }
 
 void RunPlanner::loadRunsFromNGSD()
 {
-	SqlQuery q = DatabaseCache::inst().ngsd().getQuery();
+	SqlQuery q = db_.getQuery();
 	q.exec("SELECT id, name, fcid FROM sequencing_run ORDER BY name DESC");
 	while(q.next())
 	{
 		QString name = q.value(1).toString();
 		QString fcid = q.value(2).toString();
-		ui->run->addItem(name + " (" + fcid + ")", q.value(0));
+		ui_->run->addItem(name + " (" + fcid + ")", q.value(0));
 	}
 }
 
 void RunPlanner::runChanged(int)
 {
-	if(ui->run->currentIndex()==0) //[none]
+	if(ui_->run->currentIndex()==0) //[none]
 	{
-		ui->lane->setEnabled(false);
+		ui_->lane->setEnabled(false);
 	}
 	else
 	{
-		ui->lane->setValue(1);
-		ui->lane->setEnabled(true);
+		ui_->lane->setValue(1);
+		ui_->lane->setEnabled(true);
 	}
 
 	updateRunData();
@@ -79,19 +79,19 @@ void RunPlanner::addItem()
 	++sample_num;
 	QString name = "sample" + QString::number(sample_num).rightJustified(3, '0');
 
-	ui->samples->appendSampleRW(name);
+	ui_->samples->appendSampleRW(name);
 }
 
 void RunPlanner::pasteItems()
 {
-	ui->samples->appendSamplesFromText(QApplication::clipboard()->text());
+	ui_->samples->appendSamplesFromText(QApplication::clipboard()->text());
 }
 
 void RunPlanner::removeSelectedItems()
 {
 	//get list of rows
 	QList<int> rows;
-	QList<QTableWidgetSelectionRange> ranges = ui->samples->selectedRanges();
+	QList<QTableWidgetSelectionRange> ranges = ui_->samples->selectedRanges();
 	foreach(QTableWidgetSelectionRange range, ranges)
 	{
 		for (int i=range.topRow(); i<=range.bottomRow(); ++i)
@@ -105,22 +105,22 @@ void RunPlanner::removeSelectedItems()
 
 	for(int i=rows.count()-1; i>=0; --i)
 	{
-		ui->samples->removeRow(rows[i]);
+		ui_->samples->removeRow(rows[i]);
 	}
 }
 
 void RunPlanner::clearVisualOutput()
 {
 	QBrush brush;
-	for(int r=0; r<ui->samples->rowCount(); ++r)
+	for(int r=0; r<ui_->samples->rowCount(); ++r)
 	{
 		for (int c=0; c<3; ++c)
 		{
-			QTableWidgetItem* item = ui->samples->item(r, c);
+			QTableWidgetItem* item = ui_->samples->item(r, c);
 			if(item==nullptr)
 			{
 				item = new QTableWidgetItem();
-				ui->samples->setItem(r, c, item);
+				ui_->samples->setItem(r, c, item);
 			}
 			item->setBackground(brush);
 			item->setToolTip("");
@@ -130,16 +130,16 @@ void RunPlanner::clearVisualOutput()
 
 void RunPlanner::checkForMidCollisions()
 {
-	if (ui->samples->rowCount()==0) return;
+	if (ui_->samples->rowCount()==0) return;
 
 	clearVisualOutput();
 
 	QStringList output;
 
 	QList<SampleMIDs> samples;
-	for(int r=0; r<ui->samples->rowCount(); ++r)
+	for(int r=0; r<ui_->samples->rowCount(); ++r)
 	{
-		QString name = ui->samples->item(r, 0)->text();
+		QString name = ui_->samples->item(r, 0)->text();
 		QString mid1 = midSequenceFromItem(r,1);
 		QString mid2 = midSequenceFromItem(r,2);
 		samples.append(SampleMIDs{name, mid1, mid2});
@@ -230,21 +230,21 @@ void RunPlanner::checkForMidCollisions()
 
 void RunPlanner::importNewSamplesToNGSD()
 {
-	if (ui->samples->rowCount()==0) return;
+	if (ui_->samples->rowCount()==0) return;
 
 	//check that run [none] is not selected
-	if (ui->run->currentIndex()==0)
+	if (ui_->run->currentIndex()==0)
 	{
 		QMessageBox::critical(this, "NGSD import", "No run selected for import!");
 		return;
 	}
-	int run_id = ui->run->currentData(Qt::UserRole).toInt();
-	int lane = ui->lane->value();
+	int run_id = ui_->run->currentData(Qt::UserRole).toInt();
+	int lane = ui_->lane->value();
 
 	//add samples to the run
-	for(int r=0; r<ui->samples->rowCount(); ++r)
+	for(int r=0; r<ui_->samples->rowCount(); ++r)
 	{
-		QTableWidgetItem* item = ui->samples->item(r, 0);
+		QTableWidgetItem* item = ui_->samples->item(r, 0);
 		if (item->flags() & Qt::ItemIsEditable)
 		{
 			try
@@ -259,18 +259,18 @@ void RunPlanner::importNewSamplesToNGSD()
 				{
 					ps.setFK("mid2_i5", mid2);
 				}
-				ps.set("operator_id", DatabaseCache::inst().ngsd().userId());
+				ps.set("operator_id", db_.userId());
 
 				GDBODialog dlg(this, ps, QStringList() << "process_id");
 				dlg.setWindowTitle("Add processed sample to NGSD");
 				if (dlg.exec())
 				{
-					ps.set("process_id", DatabaseCache::inst().ngsd().nextProcessingId(ps.get("sample_id")));
+					ps.set("process_id", db_.nextProcessingId(ps.get("sample_id")));
 					ps.store();
 
-					ui->samples->item(r, 0)->setFlags(Qt::ItemIsSelectable|Qt::ItemIsDragEnabled);
-					ui->samples->item(r, 1)->setFlags(Qt::ItemIsSelectable|Qt::ItemIsDragEnabled);
-					ui->samples->item(r, 2)->setFlags(Qt::ItemIsSelectable|Qt::ItemIsDragEnabled);
+					ui_->samples->item(r, 0)->setFlags(Qt::ItemIsSelectable|Qt::ItemIsDragEnabled);
+					ui_->samples->item(r, 1)->setFlags(Qt::ItemIsSelectable|Qt::ItemIsDragEnabled);
+					ui_->samples->item(r, 2)->setFlags(Qt::ItemIsSelectable|Qt::ItemIsDragEnabled);
 				}
 				else
 				{
@@ -291,21 +291,21 @@ void RunPlanner::importNewSamplesToNGSD()
 
 QString RunPlanner::midSequenceFromItem(int row, int col)
 {
-	QString text = ui->samples->item(row, col)->text();
+	QString text = ui_->samples->item(row, col)->text();
 	QString mid = text.mid(text.lastIndexOf(' '));
 	return mid.replace('(', ' ').replace(')',' ').trimmed();
 }
 
 QString RunPlanner::midNameFromItem(int row, int col)
 {
-	QString text = ui->samples->item(row, col)->text();
+	QString text = ui_->samples->item(row, col)->text();
 	QString mid = text.left(text.lastIndexOf(' '));
 	return mid.trimmed();
 }
 
 void RunPlanner::highlightItem(int row, int col, QString tooltip)
 {
-	QTableWidgetItem* item = ui->samples->item(row, col);
+	QTableWidgetItem* item = ui_->samples->item(row, col);
 	item->setBackgroundColor(Qt::yellow);
 
 	QString old = item->toolTip().trimmed();
@@ -315,14 +315,14 @@ void RunPlanner::highlightItem(int row, int col, QString tooltip)
 
 void RunPlanner::updateRunData()
 {
-	ui->samples->clearContents();
-	ui->samples->setRowCount(0);
+	ui_->samples->clearContents();
+	ui_->samples->setRowCount(0);
 
-	if (ui->run->currentIndex()==0) return; //[none]
+	if (ui_->run->currentIndex()==0) return; //[none]
 
 	//load samples for run
-	QString run_id = ui->run->currentData(Qt::UserRole).toString();
-	QString lane = QString::number(ui->lane->value());
+	QString run_id = ui_->run->currentData(Qt::UserRole).toString();
+	QString lane = QString::number(ui_->lane->value());
 
 	QList<GDBO> psamples = GDBO::all("processed_sample", QStringList() << "sequencing_run_id='" + run_id + "'" << "lane LIKE '%" + lane + "%'");
 	foreach(const GDBO& psample, psamples)
@@ -330,7 +330,7 @@ void RunPlanner::updateRunData()
 		QString name = psample.getFkObject("sample_id").get("name") + "_" + psample.get("process_id").rightJustified(2, '0');
 		QString mid1 = psample.get("mid1_i7")=="" ? "" : midToString(psample.getFkObject("mid1_i7"));
 		QString mid2 = psample.get("mid2_i5")=="" ? "" : midToString(psample.getFkObject("mid2_i5"));
-		ui->samples->appendSampleRO(name, mid1, mid2);
+		ui_->samples->appendSampleRO(name, mid1, mid2);
 	}
 }
 

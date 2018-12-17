@@ -6,19 +6,16 @@
 
 GDBO::GDBO(const QString& table)
 	: id_(-1)
-	, table_info_()
-	, fields_()
 {
-	table_info_ = DatabaseCache::inst().getInfos(table);
-	fields_.resize(table_info_->fields.count());
+	table_infos_ = NGSD().tableInfo(table);
 }
 
 GDBO::GDBO(const QString& table, int id)
 	: id_(id)
-	, table_info_()
-	, fields_()
+	, table_infos_()
 {
-	SqlQuery query = DatabaseCache::inst().ngsd().getQuery();
+	NGSD db;
+	SqlQuery query = db.getQuery();
 	query.exec("SELECT * FROM " + table + " WHERE id=" + QString::number(id_));
 	if (query.size()!=1)
 	{
@@ -32,8 +29,7 @@ GDBO::GDBO(const QString& table, int id)
 
 GDBO::GDBO(const QString& table, const SqlQuery& query)
 	: id_(-1)
-	, table_info_()
-	, fields_()
+	, table_infos_()
 {
 	//get ID
 	bool ok = true;
@@ -44,24 +40,23 @@ GDBO::GDBO(const QString& table, const SqlQuery& query)
 	}
 
 	//load fields
-	init(table, query);
+	 init(table, query);
 }
 
 void GDBO::init(const QString& table, const SqlQuery& query)
 {
-	table_info_ = DatabaseCache::inst().getInfos(table);
+	table_infos_ = NGSD().tableInfo(table);
 
-	for (int i=0; i<fieldNames().count(); ++i)
+	foreach(const auto& info, table_infos_.fieldInfo())
 	{
-		const QVariant& value = query.value(i+1); //Why i+1? first field is "id", which is stored in id_ already
-
-		fields_.append(value.isNull() ? "" : value.toString());
+		QVariant value = query.value(info.name);
+		fields_[info.name] = value.isNull() ? "" : value.toString();
 	}
 }
 
 GDBO GDBO::getFkObject(const QString& name) const
 {
-	QString fk_table = table_info_->field_info.value(name).fk_table;
+	QString fk_table =  table_infos_.fieldInfo(name).fk_table;
 	if (fk_table=="")
 	{
 		THROW(ProgrammingException, "Unset FK table for field '" + name + "' in table '" + table() + "'!");
@@ -77,14 +72,14 @@ GDBO GDBO::getFkObject(const QString& name) const
 
 void GDBO::setFK(const QString& name, const QVariant& value)
 {
-	QString fk_table = table_info_->field_info.value(name).fk_table;
+	QString fk_table = table_infos_.fieldInfo(name).fk_table;
 	if (fk_table=="")
 	{
 		THROW(ProgrammingException, "Unset FK table for field '" + name + "' in table '" + table() + "'!");
 	}
-	QString fk_field = table_info_->field_info.value(name).fk_field;
+	QString fk_field = table_infos_.fieldInfo(name).fk_field;
 
-	QVariant id = DatabaseCache::inst().ngsd().getValue("SELECT id FROM " + fk_table + " WHERE " + fk_field + "='" + value.toString() + "'", true);
+	QVariant id = NGSD().getValue("SELECT id FROM " + fk_table + " WHERE " + fk_field + "='" + value.toString() + "'", true);
 	if (id.isNull())
 	{
 		THROW(ProgrammingException, "FK id could not be found in table '" + fk_table + "' with field '" + fk_field + "'='" + value.toString() + "'!");
@@ -99,25 +94,24 @@ void GDBO::store()
 
 	//extract name-value pairs
 	QString set_part;
-	QMap<QString, DatabaseFieldInfo>::ConstIterator it = table_info_->field_info.begin();
-	while(it!=table_info_->field_info.end())
+	foreach(const TableFieldInfo& info, table_infos_.fieldInfo())
 	{
-		QString field = it.key();
-		QVariant value = fields_[it->index];
+		if (info.primary_key) continue;
+
+		QString value = fields_[info.name];
 		if (!set_part.isEmpty()) set_part += ", ";
-		if (it->nullable && value=="")
+		if (info.nullable && value=="")
 		{
-			set_part += field + "=" + (new_row ? "DEFAULT" : "null");
+			set_part += info.name + "=" + (new_row ? "DEFAULT" : "null");
 		}
 		else
 		{
-			set_part += field + "='" + value.toString() + "'";
+			set_part += info.name + "='" + value + "'";
 		}
-
-		++it;
 	}
 
-	SqlQuery query = DatabaseCache::inst().ngsd().getQuery();
+	NGSD db;
+	SqlQuery query = db.getQuery();
 	if (new_row)
 	{
 		QString query_text = "INSERT INTO " + table() + " SET " + set_part;
@@ -140,7 +134,8 @@ void GDBO::store()
 
 QList<GDBO> GDBO::all(QString table, QStringList conditions)
 {
-	SqlQuery query = DatabaseCache::inst().ngsd().getQuery();
+	NGSD db;
+	SqlQuery query = db.getQuery();
 	QString cond = conditions.isEmpty() ? "" : " WHERE " + conditions.join(" AND ");
 	query.exec("SELECT * FROM " + table + cond);
 
@@ -152,14 +147,4 @@ QList<GDBO> GDBO::all(QString table, QStringList conditions)
 	}
 
 	return output;
-}
-
-int GDBO::indexOf(const QString& name) const
-{
-	int index = table_info_->field_info.value(name).index;
-	if (index==-1)
-	{
-		THROW(ProgrammingException, "Unknown field '" + name + "' requested in table '" + table() + "'!");
-	}
-	return index;
 }

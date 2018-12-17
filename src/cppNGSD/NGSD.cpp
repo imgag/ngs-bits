@@ -8,7 +8,12 @@
 #include "FilterCascade.h"
 #include <QFileInfo>
 #include <QPair>
+#include <QSqlDriver>
+#include <QSqlIndex>
+#include <QSqlField>
 #include "cmath"
+
+QMap<QString, TableInfo> NGSD::infos_;
 
 NGSD::NGSD(bool test_db)
 	: test_db_(test_db)
@@ -447,6 +452,153 @@ bool NGSD::isOpen() const
 	}
 
 	return is_open;
+}
+
+QStringList NGSD::tables() const
+{
+	return db_->driver()->tables(QSql::Tables);
+}
+
+const TableInfo& NGSD::tableInfo(QString table) const
+{
+	if (!tables().contains(table))
+	{
+		THROW(DatabaseException, "Table '" + table + "' not found in NDSD!");
+	}
+
+	if (!infos_.contains(table))
+	{
+		TableInfo output;
+		output.setTable(table);
+
+		//get PK info
+		QSqlIndex index = db_->driver()->primaryIndex(table);
+
+		//get FK info
+		SqlQuery query_fk = getQuery();
+		query_fk.exec("SELECT k.COLUMN_NAME, k.REFERENCED_TABLE_NAME, k.REFERENCED_COLUMN_NAME FROM information_schema.TABLE_CONSTRAINTS i LEFT JOIN information_schema.KEY_COLUMN_USAGE k ON i.CONSTRAINT_NAME = k.CONSTRAINT_NAME "
+					"WHERE i.CONSTRAINT_TYPE = 'FOREIGN KEY' AND i.TABLE_SCHEMA = DATABASE() AND i.TABLE_NAME='" + table + "'");
+
+		QList<TableFieldInfo> infos;
+		SqlQuery query = getQuery();
+		query.exec("DESCRIBE " + table);
+		while(query.next())
+		{
+			TableFieldInfo info;
+
+			//name
+			info.name = query.value(0).toString();
+
+			//index
+			info.index = output.fieldCount();
+
+			//type
+			QString type = query.value(1).toString();
+			if(type=="text") info.type = TableFieldInfo::TEXT;
+			else if(type=="float") info.type = TableFieldInfo::FLOAT;
+			else if(type=="date") info.type = TableFieldInfo::DATE;
+			else if(type=="tinyint(1)") info.type = TableFieldInfo::BOOL;
+			else if(type.startsWith("int(") || type.startsWith("tinyint(")) info.type = TableFieldInfo::INT;
+			else if(type.startsWith("enum("))
+			{
+				info.type = TableFieldInfo::ENUM;
+				info.type_restiction = type.mid(6, type.length()-8).split("','");
+			}
+			else if(type.startsWith("varchar("))
+			{
+				info.type = TableFieldInfo::VARCHAR;
+				info.type_restiction = type.mid(8, type.length()-9);
+			}
+
+			//nullable
+			info.nullable = query.value(2).toString()=="YES";
+
+			//PK
+			info.primary_key = index.contains(info.name);
+
+			//FK
+			query_fk.seek(-1);
+			while (query_fk.next())
+			{
+				if (query_fk.value(0)==info.name)
+				{
+					info.fk_table = query_fk.value(1).toString();
+					info.fk_field = query_fk.value(2).toString();
+					qDebug() << table << info.name << info.fk_table << info.fk_field;
+				}
+			}
+
+			infos.append(info);
+		}
+		output.setFieldInfo(infos);
+		infos_.insert(table, output);
+	}
+
+	return infos_[table];
+}
+
+DBTable NGSD::createTable(QString table, QString fields, QString conditions)
+{
+	SqlQuery query = getQuery();
+	query.exec("SELECT " + fields + " FROM " + table + " WHERE " + conditions);
+
+	DBTable output;
+	output.setTableName(table);
+
+	//primary key
+	QList<TableFieldInfo> table_infos = tableInfo(table).fieldInfo();
+	Helper::removeIf(table_infos, [](const TableFieldInfo& info){ return !info.primary_key;});
+	if (table_infos.count()!=1)
+	{
+		THROW(DatabaseException, "Invalid table '" + table + "' for NGSD::createTable. It has 2 or more primary key columns, must have 1!");
+	}
+
+	int pk_col_index = -1;
+	QSqlRecord record = query.record();
+	for (int c=0; c<record.count(); ++c)
+	{
+		if (table_infos[0].name == record.field(c).name())
+		{
+			pk_col_index = c;
+		}
+	}
+	if (pk_col_index==-1)
+	{
+		THROW(DatabaseException, "Fields '" + fields + "' of table '" + table + "' do not contain primary key '" + table_infos[0].name + "' in NGSD::createTable!");
+	}
+
+	//headers
+	QStringList headers;
+	for (int c=0; c<record.count(); ++c)
+	{
+		if (c==pk_col_index) continue;
+
+		headers << record.field(c).name();
+	}
+	output.setHeaders(headers);
+
+	//content
+	while (query.next())
+	{
+		DBRow row;
+		QStringList row_data;
+		for (int c=0; c<query.record().count(); ++c)
+		{
+			QString value = query.value(c).toString();
+			if (c==pk_col_index)
+			{
+				row.setId(value);
+			}
+			else
+			{
+				row_data << value;
+			}
+		}
+		row.setValues(row_data);
+		output.append(row);
+	}
+
+	return output;
 }
 
 void NGSD::init(QString password)

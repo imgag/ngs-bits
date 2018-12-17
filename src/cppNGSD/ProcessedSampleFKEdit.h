@@ -2,6 +2,7 @@
 #define PROCESSEDSAMPLEFKEDIT_H
 
 #include "GBDOFKEdit.h"
+#include "NGSD.h"
 
 ///Database-aware Foreign-Key edit for NGSD processed samples
 class ProcessedSampleFKEdit
@@ -14,6 +15,9 @@ public:
 
 protected slots:
 	void search(QString text);
+
+protected:
+	NGSD db_;
 
 };
 

@@ -1,5 +1,4 @@
 #include "ProcessedSampleFKEdit.h"
-#include "DatabaseCache.h"
 #include <QStringListModel>
 
 ProcessedSampleFKEdit::ProcessedSampleFKEdit(QWidget* parent)
@@ -19,7 +18,7 @@ void ProcessedSampleFKEdit::search(QString text)
 	QString psnum = parts.count()>1 ? parts[1] : "";
 
 	//set ID if we find a perfect match
-	SqlQuery query = DatabaseCache::inst().ngsd().getQuery();
+	SqlQuery query = db_.getQuery();
 	query.prepare("SELECT ps.id FROM processed_sample ps, sample s WHERE s.name=:sample AND ps.sample_id=s.id AND ps.process_id=:psnum");
 	query.bindValue(":sample", sample);
 	query.bindValue(":psnum", psnum);
