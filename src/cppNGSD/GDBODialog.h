@@ -6,7 +6,6 @@
 #include <QSet>
 #include <QLabel>
 #include "GDBO.h"
-#include "NGSD.h"
 
 namespace Ui {
 class GDBODialog;
@@ -30,8 +29,7 @@ private:
 		bool valid;
 		QLabel* label;
 	};
-	QMap<QString, ValidationInfo> validation_;
-	NGSD db_;
+	QMap<QString, ValidationInfo> validation;
 
 private slots:
 	void init();

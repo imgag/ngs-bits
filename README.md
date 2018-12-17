@@ -16,7 +16,7 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 Changes already implemented in Git master for next release:
 
-* Added tools: VcfExtractSamples
+* Added tools: VcfExtractSamples, VcfBreakComplex
 * SampleSimilarity: add flag to ignore multi-allelic sites
 * VcfFilter: bug fixes
 
@@ -106,6 +106,7 @@ The default output format of the quality control tools is [qcML](https://github.
 ### VCF tools
 
 * [VcfAnnotateFromBed](doc/tools/VcfAnnotateFromBed.md) - Annotates the INFO column of a VCF with data from a BED file.
+* [VcfBreakComplex](doc/tools/VcfBreakMulti.md) - Breaks complex variants into primitives preserving INFO/SAMPLE fields.
 * [VcfBreakMulti](doc/tools/VcfBreakMulti.md) - Breaks multi-allelic variants into several lines, making sure that allele-specific INFO/SAMPLE fields are still valid.
 * [VcfCheck](doc/tools/VcfCheck.md) - Checks a VCF file for errors.
 * [VcfExtractSamples](doc/tools/VcfExtractSamples.md) - Extract one or several samples from a VCF file.
@@ -132,6 +133,7 @@ Installation instructions for the NGSD can be found [here](doc/install_ngsd.md).
 
 * [PERsim](doc/tools/PERsim.md) - Paired-end read simulator for Illumina reads.
 * [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file.
+
 
 
 

@@ -36,6 +36,7 @@ SOURCES += \
     SqlQuery.cpp\
     NGSD.cpp \
     GDBO.cpp \
+    DatabaseCache.cpp \
     GDBODialog.cpp \
     GBDOFKEdit.cpp \
     ProcessedSampleFKEdit.cpp \
@@ -45,6 +46,7 @@ HEADERS += \
     SqlQuery.h \
     NGSD.h \
     GDBO.h \
+    DatabaseCache.h \
     GDBODialog.h \
     GBDOFKEdit.h \
     ProcessedSampleFKEdit.h \

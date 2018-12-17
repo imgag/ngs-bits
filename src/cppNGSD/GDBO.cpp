@@ -6,6 +6,7 @@
 
 GDBO::GDBO(const QString& table)
 	: id_(-1)
+	, table_info_()
 	, fields_()
 {
 	table_info_ = DatabaseCache::inst().getInfos(table);
@@ -17,7 +18,7 @@ GDBO::GDBO(const QString& table, int id)
 	, table_info_()
 	, fields_()
 {
-	SqlQuery query = db_.getQuery();
+	SqlQuery query = DatabaseCache::inst().ngsd().getQuery();
 	query.exec("SELECT * FROM " + table + " WHERE id=" + QString::number(id_));
 	if (query.size()!=1)
 	{
@@ -43,12 +44,12 @@ GDBO::GDBO(const QString& table, const SqlQuery& query)
 	}
 
 	//load fields
-	 init(table, query);
+	init(table, query);
 }
 
 void GDBO::init(const QString& table, const SqlQuery& query)
 {
-	table_info_ = db_.tableInfos(table);
+	table_info_ = DatabaseCache::inst().getInfos(table);
 
 	for (int i=0; i<fieldNames().count(); ++i)
 	{
@@ -83,7 +84,7 @@ void GDBO::setFK(const QString& name, const QVariant& value)
 	}
 	QString fk_field = table_info_->field_info.value(name).fk_field;
 
-	QVariant id = db_.getValue("SELECT id FROM " + fk_table + " WHERE " + fk_field + "='" + value.toString() + "'", true);
+	QVariant id = DatabaseCache::inst().ngsd().getValue("SELECT id FROM " + fk_table + " WHERE " + fk_field + "='" + value.toString() + "'", true);
 	if (id.isNull())
 	{
 		THROW(ProgrammingException, "FK id could not be found in table '" + fk_table + "' with field '" + fk_field + "'='" + value.toString() + "'!");
@@ -98,7 +99,7 @@ void GDBO::store()
 
 	//extract name-value pairs
 	QString set_part;
-	QMap<QString, TableFieldInfo>::ConstIterator it = table_info_->field_info.begin();
+	QMap<QString, DatabaseFieldInfo>::ConstIterator it = table_info_->field_info.begin();
 	while(it!=table_info_->field_info.end())
 	{
 		QString field = it.key();
@@ -116,7 +117,7 @@ void GDBO::store()
 		++it;
 	}
 
-	SqlQuery query = db_.getQuery();
+	SqlQuery query = DatabaseCache::inst().ngsd().getQuery();
 	if (new_row)
 	{
 		QString query_text = "INSERT INTO " + table() + " SET " + set_part;
@@ -139,7 +140,7 @@ void GDBO::store()
 
 QList<GDBO> GDBO::all(QString table, QStringList conditions)
 {
-	SqlQuery query = db_.getQuery();
+	SqlQuery query = DatabaseCache::inst().ngsd().getQuery();
 	QString cond = conditions.isEmpty() ? "" : " WHERE " + conditions.join(" AND ");
 	query.exec("SELECT * FROM " + table + cond);
 

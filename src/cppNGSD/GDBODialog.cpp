@@ -25,18 +25,17 @@ GDBODialog::GDBODialog(QWidget *parent, GDBO& gdbo, QStringList hidden)
 void GDBODialog::init()
 {
 	QFormLayout* layout = ui->formLayout;
-	foreach(const QString& field, db_.fieldNames(gdbo_.table()))
+	foreach(const QString& field, gdbo_.fieldNames())
 	{
-
 		if (hidden_.contains(field)) continue;
-		const TableFieldInfo& field_info = gdbo_.fieldInfo(field);
+		const DatabaseFieldInfo& field_info = gdbo_.fieldInfo(field);
 
 		QString label = field;
 		QString value = gdbo_.get(field);
 		QWidget* edit = nullptr;
 		switch(field_info.type)
 		{
-			case TableFieldInfo::FK:
+			case DatabaseFieldInfo::FK:
 			{
 				label = field_info.fk_label;
 
@@ -55,7 +54,7 @@ void GDBODialog::init()
 				edit = ptr;
 				break;
 			}
-			case TableFieldInfo::BOOL:
+			case DatabaseFieldInfo::BOOL:
 			{
 				auto ptr = new QCheckBox();
 				ptr->setChecked(value=="1");
@@ -63,7 +62,7 @@ void GDBODialog::init()
 				edit = ptr;
 				break;
 			}
-			case TableFieldInfo::INT:
+			case DatabaseFieldInfo::INT:
 			{
 				auto ptr = new QLineEdit();
 				ptr->setValidator(new QIntValidator());
@@ -72,7 +71,7 @@ void GDBODialog::init()
 				edit = ptr;
 				break;
 			}
-			case TableFieldInfo::FLOAT:
+			case DatabaseFieldInfo::FLOAT:
 			{
 				auto ptr = new QLineEdit();
 				ptr->setValidator(new QDoubleValidator());
@@ -81,7 +80,7 @@ void GDBODialog::init()
 				edit = ptr;
 				break;
 			}
-			case TableFieldInfo::TEXT:
+			case DatabaseFieldInfo::TEXT:
 			{
 				auto ptr = new QTextEdit();
 				ptr->setText(value);
@@ -89,7 +88,7 @@ void GDBODialog::init()
 				edit = ptr;
 				break;
 			}
-			case TableFieldInfo::VARCHAR:
+			case DatabaseFieldInfo::VARCHAR:
 			{
 				auto ptr = new QLineEdit();
 				bool ok;
@@ -100,7 +99,7 @@ void GDBODialog::init()
 				edit = ptr;
 				break;
 			}
-			case TableFieldInfo::ENUM:
+			case DatabaseFieldInfo::ENUM:
 			{
 				auto ptr = new QComboBox();
 				if (field_info.nullable) ptr->addItem("");
@@ -110,7 +109,7 @@ void GDBODialog::init()
 				edit = ptr;
 				break;
 			}
-			case TableFieldInfo::DATE:
+			case DatabaseFieldInfo::DATE:
 			{
 				auto ptr = new QLineEdit();
 				ptr->setText(value);
@@ -152,10 +151,10 @@ void GDBODialog::validate(QWidget* w)
 	//validate
 	bool valid = false;
 	QString value = "<unset>";
-	const TableFieldInfo& field_info = gdbo_.fieldInfo(field);
+	const DatabaseFieldInfo& field_info = gdbo_.fieldInfo(field);
 	switch(field_info.type)
 	{
-		case TableFieldInfo::FK:
+		case DatabaseFieldInfo::FK:
 		{
 			auto edit = qobject_cast<GBDOFKEdit*>(w);
 			if (edit->id()!=-1)
@@ -170,14 +169,14 @@ void GDBODialog::validate(QWidget* w)
 			}
 			break;
 		}
-		case TableFieldInfo::BOOL:
+		case DatabaseFieldInfo::BOOL:
 		{
 			auto edit = qobject_cast<QCheckBox*>(w);
 			value = (edit->isChecked() ? "1" : "0");
 			valid = true;
 			break;
 		}
-		case TableFieldInfo::INT:
+		case DatabaseFieldInfo::INT:
 		{
 			auto edit = qobject_cast<QLineEdit*>(w);
 			value = edit->text();
@@ -185,7 +184,7 @@ void GDBODialog::validate(QWidget* w)
 			else if (field_info.nullable && value=="") valid = true;
 			break;
 		}
-		case TableFieldInfo::FLOAT:
+		case DatabaseFieldInfo::FLOAT:
 		{
 			auto edit = qobject_cast<QLineEdit*>(w);
 			value = edit->text();
@@ -193,28 +192,28 @@ void GDBODialog::validate(QWidget* w)
 			else if (field_info.nullable && value=="") valid = true;
 			break;
 		}
-		case TableFieldInfo::TEXT:
+		case DatabaseFieldInfo::TEXT:
 		{
 			auto edit = new QTextEdit();
 			value = edit->toPlainText();
 			valid = true; //nothing to check here
 			break;
 		}
-		case TableFieldInfo::VARCHAR:
+		case DatabaseFieldInfo::VARCHAR:
 		{
 			auto edit = qobject_cast<QLineEdit*>(w);
 			value = edit->text();
 			valid = true; //nothing to check here
 			break;
 		}
-		case TableFieldInfo::ENUM:
+		case DatabaseFieldInfo::ENUM:
 		{
 			auto edit = qobject_cast<QComboBox*>(w);
 			value = edit->currentText();
 			valid = true; //nothing to check here
 			break;
 		}
-		case TableFieldInfo::DATE:
+		case DatabaseFieldInfo::DATE:
 		{
 			auto edit = qobject_cast<QLineEdit*>(w);
 			value = edit->text();
