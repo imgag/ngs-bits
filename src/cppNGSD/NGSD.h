@@ -191,6 +191,18 @@ public:
 	///Returns if the database connection is open
 	bool isOpen() const;
 
+	///Returns the table list.
+	QStringList tables() const;
+	///Returns information about all fields of a table.
+	const QList<TableFieldInfo>& tableInfos(QString table);
+	///Returns information about a specific table field.
+	const TableFieldInfo& fieldInfos(QString table, QString field);
+	///Returns the field names of a table;
+	QStringList fieldNames(QString table);
+
+	///Creates an instance with data from a SQL query.
+	DBTable createTable(QString table, QString fields = "*", QString conditions = "1");
+
 	///Creates database tables and imports initial data (password is required for production database if it is not empty)
 	void init(QString password="");
 

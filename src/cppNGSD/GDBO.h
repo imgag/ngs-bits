@@ -2,7 +2,7 @@
 #define GDBO_H
 
 #include "cppNGSD_global.h"
-#include "DatabaseCache.h"
+#include "NGSD.h"
 #include <QVariant>
 #include <QVector>
 
@@ -33,9 +33,9 @@ public:
 		return table_info_->fields;
 	}
 	///Returns the field information about a field
-	const DatabaseFieldInfo& fieldInfo(const QString& name) const
+	const TableFieldInfo& fieldInfo(const QString& name) const
 	{
-		return table_info_->field_info[name];
+		return db_.tableInfos(->field_info[name];
 	}
 
 	///Returns a non-null string value.
@@ -63,8 +63,9 @@ public:
 
 protected:
 	int id_;
-	QSharedPointer<DatabaseTableInfo> table_info_;
+	QSharedPointer<TableFieldInfo> table_info_;
 	QVector<QString> fields_;
+	NGSD db_;
 
 	void init(const QString& table, const SqlQuery& query);
 	int indexOf(const QString& name) const;
