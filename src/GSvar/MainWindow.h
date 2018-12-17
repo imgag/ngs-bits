@@ -215,9 +215,6 @@ public slots:
 	///Opens a sample based on the sample name
 	void openProcessedSampleFromNGSD(QString processed_sample_name);
 
-	///Creates table widget items, or nullptr if the text is empty. Uses Qt implicit sharing to avoid duplicate strings.
-	QTableWidgetItem* createTableItem(const QByteArray& text, bool clear=false) const;
-
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);
 	virtual void dropEvent(QDropEvent* e);
