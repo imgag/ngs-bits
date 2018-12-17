@@ -9,9 +9,7 @@ REM copy header to
 xcopy htslib include\htslib\ /S
 
 REM add MinGW to path
-SET QT=C:\Qt\Qt5.5.0\Tools\mingw492_32\bin\
-IF NOT EXIST "%QT%" SET QT=C:\Qt\Qt5.6.0\Tools\mingw492_32\bin\
-SET PATH=%PATH%;%QT%
+SET PATH=%PATH%;C:\Qt\Qt5.9.5\Tools\mingw530_32\bin\
 
 REM build
 %QT%mingw32-make.exe lib-shared

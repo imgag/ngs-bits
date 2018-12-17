@@ -5,7 +5,8 @@
 
 First, we need to install some software:
 
-* Download and install [Qt 5.5.0 (32bit, MinGW)](http://download.qt.io/archive/qt/5.5/5.5.0/) to the default location.
+* Download and install [Qt 5.9.5](http://download.qt.io/archive/qt/5.9/5.9.5/) to the default location.  
+  Make sure to install `MinGW 5.3.0 32 bit` and `Qt Charts` from the `Qt 5.9.5` components as well. 
 * Download and install [Git](https://git-scm.com/download/win).  
   It is needed to extract the repository version during the build process.  
 * **Optional:** To create plots in qcML files, install [WinPython](http://winpython.github.io/) and add the python directory to the PATH (it is inside the WinPython directory).
@@ -52,15 +53,15 @@ To make the tools executable outside *QtCreator* and portable, you have to copy 
 		<td>hts-2.dll, hts.dll.a</td>
 	</tr>
 	<tr>
-		<td>C:\Qt\Qt5.5.0\5.5\mingw492_32\bin\</td>
+		<td>C:\Qt\Qt5.9.5\5.9.5\mingw53_32\bin\</td>
 		<td>Qt5Core.dll, Qt5XmlPatterns.dll, Qt5PrintSupport.dll, Qt5Network.dll, Qt5Sql.dll, Qt5Xml.dll, Qt5Gui.dll, Qt5Widgets.dll, libgcc_s_dw2-1.dll, libwinpthread-1.dll, libstdc++-6.dll</td>
 	</tr>
 	<tr>
-		<td>C:\Qt\Qt5.5.0\5.5\mingw492_32\plugins\</td>
+		<td>C:\Qt\Qt5.9.5\5.9.5\mingw53_32\plugins\</td>
 		<td>platforms, sqldrivers, printsupport</td>
 	</tr>
 	<tr>
-		<td>C:\Qt\Qt5.5.0\Tools\mingw492_32\opt\bin\</td>
+		<td>C:\Qt\Qt5.9.5\5.9.5\mingw53_32\opt\bin\</td>
 		<td>ssleay32.dll, libeay32.dll</td>
 	</tr>
 	<tr>
