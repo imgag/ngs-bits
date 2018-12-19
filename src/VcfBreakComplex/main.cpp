@@ -116,23 +116,17 @@ public:
 					aligments.push_back(AligmentPair(query.replace("-", ""), reference.replace("-", "")));
 					++number_of_additional_snps;
 				}
-				else // MNP or COMPLEX
+				else // MNP or CLUMPED
 				{
 					if (keep_mnps) // Keep more complex variants
 					{
 						out_p->write(line);
 					}
-					else // Break up more complex variants
+					else // Break up clumped variants
 					{
 						for (auto i = 0; i < query.size(); ++i)
 						{
-							if (query.at(i) != reference.at(i)) // transition from REF -> ALT
-							{
-								aligments.push_back(AligmentPair(query.mid(i, 1), reference.mid(i, 1)));
-								++i;
-								++number_of_additional_snps;
-							}
-							else if (i + 1 < query.size() && query.at(i + 1) == '-') // transition from REF,- to ALT
+							if (i + 1 < query.size() && query.at(i + 1) == '-') // transition from REF,- to ALT
 							{
 								int gap_start = static_cast<int> (i + 1);
 								int gap_end = gap_start;
@@ -143,6 +137,24 @@ public:
 								}
 								aligments.push_back(AligmentPair(query.mid(gap_start - 1, 1), reference.mid(gap_start - 1, gap_end)));
 								++number_of_biallelic_block_substitutions; // new biallelic block substitutios
+							}
+							else if (i + 1 < reference.size() && reference.at(i + 1) == '-') // do the same for the reference
+							{
+								int gap_start = static_cast<int> (i +1);
+								int gap_end = gap_start;
+								while ((i + 1) < reference.size() && reference.at(i + 1) == '-')
+								{
+									++i;
+									++gap_end;
+								}
+								aligments.push_back(AligmentPair(query.mid(gap_start - 1, 1), reference.mid(gap_start - 1, gap_end)));
+								++number_of_biallelic_block_substitutions; // new biallelic block substitutios
+							}
+							else if (query.at(i) != reference.at(i)) // transition from REF -> ALT
+							{
+								aligments.push_back(AligmentPair(query.mid(i, 1), reference.mid(i, 1)));
+								++i;
+								++number_of_additional_snps;
 							}
 						}
 					}
