@@ -28,6 +28,8 @@ private slots:
 	void editDiseaseDetails();
 	///Sets the processed sample quality according to the sender action text.
 	void setQuality();
+	///Show sample widget.
+	void showSample();
 	///Clears the disease details
 	QGridLayout* clearDiseaseDetails();
 

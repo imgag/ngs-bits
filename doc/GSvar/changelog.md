@@ -1,5 +1,8 @@
 # GSvar change log
 
+### 2018_11-55 (19.12.18)
+- General: improved variant list loading and display (45% less memory, 10% faster)
+
 ### 2018_11-31 (05.12.18)
 - Structural variant window: Added possibility to jump to SVs in IGV
 - Sample disease info: Added support for new GenLab database schema
@@ -246,6 +249,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 

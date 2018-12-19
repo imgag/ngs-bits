@@ -16,12 +16,12 @@ First, we need to install some software:
 The Qt distribution contains an old MySQL driver that does not support binding as it should.  
 Thus, we need to use a different driver:
 
-* Download the [MySQL Community Server 5.7.9 ZIP file (32-bit)](http://downloads.mysql.com/archives/community/) and extract it to C:\Qt\Qt5.5.0\mysql-5.7.9-win32\.  
-* Copy C:\Qt\Qt5.5.0\mysql-5.7.9-win32\lib\libmysql.dll to C:\Windows\
+* Download the [MySQL Community Server 5.7.9 ZIP file (32-bit)](http://downloads.mysql.com/archives/community/) and extract it to C:\Qt\Qt5.9.5\mysql-5.7.9-win32\.  
+* Copy C:\Qt\Qt5.9.5\mysql-5.7.9-win32\lib\libmysql.dll to C:\Windows\
 
 ## Download
 
-Open a *Git CMD* and clone the most recent release (the source code package of GitHub does not contains required sub-modules):
+Open a *Git CMD* and clone the most recent release (the source code package of GitHub does not contain required sub-modules):
 
     git clone --recursive https://github.com/imgag/ngs-bits.git
 	cd ngs-bits
@@ -61,13 +61,14 @@ To make the tools executable outside *QtCreator* and portable, you have to copy 
 		<td>platforms, sqldrivers, printsupport</td>
 	</tr>
 	<tr>
-		<td>C:\Qt\Qt5.9.5\5.9.5\mingw53_32\opt\bin\</td>
+		<td>C:\Qt\Qt5.9.5\Tools\mingw530_32\opt\bin\</td>
 		<td>ssleay32.dll, libeay32.dll</td>
 	</tr>
 	<tr>
-		<td>C:\Qt\Qt5.5.0\mysql-5.7.9-win32\lib\</td>
+		<td>C:\Qt\Qt5.9.5\mysql-5.7.9-win32\lib\</td>
 		<td>libmysql.dll</td>
 	</tr>
 </table>
+
 
 

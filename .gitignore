@@ -1,4 +1,4 @@
 bin/*
 build-*
-src/*.pro.user
+src/*.pro.user*
 t.log

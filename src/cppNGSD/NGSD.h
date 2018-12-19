@@ -276,7 +276,7 @@ public:
 	const TableInfo& tableInfo(QString table) const;
 
 	///Creates an table with data from an SQL query.
-	DBTable createTable(QString table, QString fields = "*", QString conditions = "1");
+	DBTable createTable(QString table, QString query, int pk_col_index=0);
 
 	///Creates database tables and imports initial data (password is required for production database if it is not empty)
 	void init(QString password="");

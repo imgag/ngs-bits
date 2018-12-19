@@ -524,7 +524,6 @@ const TableInfo& NGSD::tableInfo(QString table) const
 				{
 					info.fk_table = query_fk.value(1).toString();
 					info.fk_field = query_fk.value(2).toString();
-					qDebug() << table << info.name << info.fk_table << info.fk_field;
 				}
 			}
 
@@ -537,37 +536,16 @@ const TableInfo& NGSD::tableInfo(QString table) const
 	return infos_[table];
 }
 
-DBTable NGSD::createTable(QString table, QString fields, QString conditions)
+DBTable NGSD::createTable(QString table, QString query, int pk_col_index)
 {
-	SqlQuery query = getQuery();
-	query.exec("SELECT " + fields + " FROM " + table + " WHERE " + conditions);
+	SqlQuery query_result = getQuery();
+	query_result.exec(query);
 
 	DBTable output;
 	output.setTableName(table);
 
-	//primary key
-	QList<TableFieldInfo> table_infos = tableInfo(table).fieldInfo();
-	Helper::removeIf(table_infos, [](const TableFieldInfo& info){ return !info.primary_key;});
-	if (table_infos.count()!=1)
-	{
-		THROW(DatabaseException, "Invalid table '" + table + "' for NGSD::createTable. It has 2 or more primary key columns, must have 1!");
-	}
-
-	int pk_col_index = -1;
-	QSqlRecord record = query.record();
-	for (int c=0; c<record.count(); ++c)
-	{
-		if (table_infos[0].name == record.field(c).name())
-		{
-			pk_col_index = c;
-		}
-	}
-	if (pk_col_index==-1)
-	{
-		THROW(DatabaseException, "Fields '" + fields + "' of table '" + table + "' do not contain primary key '" + table_infos[0].name + "' in NGSD::createTable!");
-	}
-
 	//headers
+	QSqlRecord record = query_result.record();
 	QStringList headers;
 	for (int c=0; c<record.count(); ++c)
 	{
@@ -578,24 +556,27 @@ DBTable NGSD::createTable(QString table, QString fields, QString conditions)
 	output.setHeaders(headers);
 
 	//content
-	while (query.next())
+	while (query_result.next())
 	{
 		DBRow row;
-		QStringList row_data;
-		for (int c=0; c<query.record().count(); ++c)
+		for (int c=0; c<query_result.record().count(); ++c)
 		{
-			QString value = query.value(c).toString();
+			QVariant value = query_result.value(c);
+			QString value_as_string = value.toString();
+			if (value.type()==QVariant::DateTime)
+			{
+				value_as_string = value_as_string.replace("T", " ");
+			}
 			if (c==pk_col_index)
 			{
-				row.setId(value);
+				row.setId(value_as_string);
 			}
 			else
 			{
-				row_data << value;
+				row.addValue(value_as_string);
 			}
 		}
-		row.setValues(row_data);
-		output.append(row);
+		output.addRow(row);
 	}
 
 	return output;

@@ -25,6 +25,10 @@ LIBS += -L$$PWD/../../bin -lcppCORE
 INCLUDEPATH += $$PWD/../cppNGS
 LIBS += -L$$PWD/../../bin -lcppNGS
 
+#include cppGUI library
+INCLUDEPATH += $$PWD/../cppGUI
+LIBS += -L$$PWD/../../bin -lcppGUI
+
 #include htslib library
 INCLUDEPATH += $$PWD/../../htslib/include/
 LIBS += -L$$PWD/../../htslib/lib/ -lhts
@@ -40,7 +44,9 @@ SOURCES += \
     GBDOFKEdit.cpp \
     ProcessedSampleFKEdit.cpp \
 	GenLabDB.cpp \
-    DBTable.cpp
+    DBTable.cpp \
+    DBTableWidget.cpp \
+    ProcessedSampleWidget.cpp
 
 HEADERS += \
     SqlQuery.h \
@@ -50,10 +56,13 @@ HEADERS += \
     GBDOFKEdit.h \
     ProcessedSampleFKEdit.h \
 	GenLabDB.h \
-    DBTable.h
+    DBTable.h \
+    DBTableWidget.h \
+    ProcessedSampleWidget.h
 
 FORMS += \
-    GDBODialog.ui
+    GDBODialog.ui \
+    ProcessedSampleWidget.ui
 
 RESOURCES += \
     cppNGSD.qrc

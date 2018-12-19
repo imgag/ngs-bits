@@ -4,12 +4,14 @@
 #include "BasicStatistics.h"
 #include "Settings.h"
 #include "DiseaseInfoDialog.h"
+#include "SampleDiseaseInfoWidget.h"
+#include "ProcessedSampleWidget.h"
+
 #include <QMenu>
 #include <QStringList>
 #include <QFileInfo>
 #include <QInputDialog>
 #include <Log.h>
-#include "SampleDiseaseInfoWidget.h"
 
 SampleDetailsDockWidget::SampleDetailsDockWidget(QWidget *parent)
 	: QDockWidget(parent)
@@ -25,6 +27,7 @@ SampleDetailsDockWidget::SampleDetailsDockWidget(QWidget *parent)
 	menu->addAction("Edit disease details", this, SLOT(editDiseaseDetails()));
 	menu->addAction("Edit quality", this, SLOT(setQuality()));
 	menu->addAction("Edit diagnostic status", this, SLOT(editDiagnosticStatus()));
+	menu->addAction("Show sample (beta)", this, SLOT(showSample()));
 	ui_.ngsd_edit->setMenu(menu);
 	if (!Settings::boolean("NGSD_enabled", true))
 	{
@@ -88,6 +91,26 @@ void SampleDetailsDockWidget::setQuality()
 	db.setProcessedSampleQuality(processed_sample_id, quality);
 
 	refresh(processed_sample_name_);
+}
+
+void SampleDetailsDockWidget::showSample()
+{
+	NGSD db;
+
+	//processed sample ID
+	QString ps_id;
+	try
+	{
+		ps_id = db.processedSampleId(processed_sample_name_);
+	}
+	catch (DatabaseException e)
+	{
+		GUIHelper::showMessage("NGSD error", "The processed sample database ID could not be determined for '"  + processed_sample_name_ + "'!\nError message: " + e.message());
+		return;
+	}
+
+	ProcessedSampleWidget* widget = new ProcessedSampleWidget(this, ps_id);
+	GUIHelper::showWidgetAsDialog(widget, processed_sample_name_, false);
 }
 
 QGridLayout* SampleDetailsDockWidget::clearDiseaseDetails()
