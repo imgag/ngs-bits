@@ -1,5 +1,4 @@
 #include "DBTableWidget.h"
-#include "GUIHelper.h"
 #include "Exceptions.h"
 
 #include <QHeaderView>
@@ -46,7 +45,7 @@ void DBTableWidget::setData(const DBTable& table)
 	}
 
 	//fomatting
-	GUIHelper::resizeTableCells(this, 200);
+	resizeTableCells(200);
 }
 
 void DBTableWidget::setColumnTooltips(int c, const QStringList& tooltips)
@@ -82,5 +81,44 @@ QTableWidgetItem* DBTableWidget::createItem(const QString& text, int alignment)
 
 void DBTableWidget::copyToClipboard()
 {
-	qDebug() << __LINE__;
+	qDebug() << __LINE__; //TODO
+}
+
+void DBTableWidget::resizeTableCells(int max_col_width)
+{
+	//resize columns width
+	resizeColumnsToContents();
+
+	//restrict width
+	if (max_col_width>0)
+	{
+		for (int i=0; i<columnCount(); ++i)
+		{
+			if (columnWidth(i)>max_col_width)
+			{
+				setColumnWidth(i, max_col_width);
+			}
+		}
+	}
+
+	//determine row height
+	int height = -1;
+	for (int i=0; i<rowCount(); ++i)
+	{
+		if (!isRowHidden(i))
+		{
+			resizeRowToContents(i);
+			height = rowHeight(i);
+			break;
+		}
+	}
+
+	//set row height
+	if (height!=-1)
+	{
+		for (int i=0; i<rowCount(); ++i)
+		{
+			setRowHeight(i, height);
+		}
+	}
 }

@@ -25,10 +25,6 @@ LIBS += -L$$PWD/../../bin -lcppCORE
 INCLUDEPATH += $$PWD/../cppNGS
 LIBS += -L$$PWD/../../bin -lcppNGS
 
-#include cppGUI library
-INCLUDEPATH += $$PWD/../cppGUI
-LIBS += -L$$PWD/../../bin -lcppGUI
-
 #include htslib library
 INCLUDEPATH += $$PWD/../../htslib/include/
 LIBS += -L$$PWD/../../htslib/lib/ -lhts

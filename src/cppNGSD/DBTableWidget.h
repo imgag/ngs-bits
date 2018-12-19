@@ -22,6 +22,7 @@ protected:
 
 protected slots:
 	void copyToClipboard();
+	void resizeTableCells(int max_col_width=-1);
 
 };
 
