@@ -5,6 +5,7 @@
 #include <QAction>
 #include <QApplication>
 #include <QClipboard>
+#include <QKeyEvent>
 
 DBTableWidget::DBTableWidget(QWidget* parent)
 	: QTableWidget(parent)

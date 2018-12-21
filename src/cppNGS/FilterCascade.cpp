@@ -538,7 +538,7 @@ FilterAlleleFrequency::FilterAlleleFrequency()
 
 QString FilterAlleleFrequency::toText() const
 {
-	return name() + " ≤ " + QString::number(getDouble("max_af", false), 'f', 2) + '%';
+	return name() + " &le; " + QString::number(getDouble("max_af", false), 'f', 2) + '%';
 }
 
 void FilterAlleleFrequency::apply(const VariantList& variants, FilterResult& result) const
@@ -714,7 +714,7 @@ FilterSubpopulationAlleleFrequency::FilterSubpopulationAlleleFrequency()
 
 QString FilterSubpopulationAlleleFrequency::toText() const
 {
-	return name() + " ≤ " + QString::number(getDouble("max_af", false), 'f', 2) + '%';
+	return name() + " &le; " + QString::number(getDouble("max_af", false), 'f', 2) + '%';
 }
 
 void FilterSubpopulationAlleleFrequency::apply(const VariantList& variants, FilterResult& result) const
@@ -814,7 +814,7 @@ FilterVariantCountNGSD::FilterVariantCountNGSD()
 
 QString FilterVariantCountNGSD::toText() const
 {
-	return name() + " ≤ " + QString::number(getInt("max_count", false)) + (getBool("ignore_genotype") ? " (ignore genotype)" : "");
+	return name() + " &le; " + QString::number(getInt("max_count", false)) + (getBool("ignore_genotype") ? " (ignore genotype)" : "");
 }
 
 void FilterVariantCountNGSD::apply(const VariantList& variants, FilterResult& result) const
