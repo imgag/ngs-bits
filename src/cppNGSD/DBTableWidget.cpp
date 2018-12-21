@@ -3,6 +3,8 @@
 
 #include <QHeaderView>
 #include <QAction>
+#include <QApplication>
+#include <QClipBoard>
 
 DBTableWidget::DBTableWidget(QWidget* parent)
 	: QTableWidget(parent)
@@ -79,9 +81,57 @@ QTableWidgetItem* DBTableWidget::createItem(const QString& text, int alignment)
 	return item;
 }
 
+void DBTableWidget::keyPressEvent(QKeyEvent* event)
+{
+	if(event->matches(QKeySequence::Copy))
+	{
+		copyToClipboard();
+		event->accept();
+		return;
+	}
+
+	QTableWidget::keyPressEvent(event);
+}
+
 void DBTableWidget::copyToClipboard()
 {
-	qDebug() << __LINE__; //TODO
+	//header
+	QString output = "#";
+	for (int col=0; col<columnCount(); ++col)
+	{
+		if (col!=0) output += "\t";
+		output += horizontalHeaderItem(col)->text();
+	}
+	output += "\n";
+
+	//determine selected rows
+	QSet<int> selected_rows;
+	foreach(const QTableWidgetSelectionRange& range, selectedRanges())
+	{
+		for (int row=range.topRow(); row<=range.bottomRow(); ++row)
+		{
+			selected_rows << row;
+		}
+	}
+
+	//rows
+	for (int row=0; row<rowCount(); ++row)
+	{
+		//skip hidden
+		if (isRowHidden(row)) continue;
+
+		//skip unselected
+		if (selected_rows.count()>0 && !selected_rows.contains(row)) continue;
+
+		for (int col=0; col<columnCount(); ++col)
+		{
+			if (col!=0) output += "\t";
+			output += item(row, col)->text();
+		}
+		output += "\n";
+	}
+
+	QApplication::clipboard()->setText(output);
 }
 
 void DBTableWidget::resizeTableCells(int max_col_width)

@@ -17,6 +17,13 @@ ProcessedSampleWidget::~ProcessedSampleWidget()
 
 void ProcessedSampleWidget::updateGUI()
 {
+	//#### processed sample details ####
+	ProcessedSampleData ps_data = db_.getProcessedSampleData(id_);
+	ui_->name->setText(ps_data.name);
+
+	//#### sample details ####
+	SampleData s_data = db_.getSampleData(db_.getValue("SELECT sample_id FROM processed_sample WHERE id='" + id_ + "'").toString());
+
 	//#### disease details ####
 	DBTable dd_table = db_.createTable("sample_disease_info", "SELECT sdi.id, sdi.type, sdi.disease_info, u.name, sdi.date, t.name as hpo_name FROM user u, processed_sample ps, sample_disease_info sdi LEFT JOIN hpo_term t ON sdi.disease_info=t.hpo_id WHERE sdi.sample_id=ps.sample_id AND sdi.user_id=u.id AND ps.id='" + id_ + "' ORDER BY sdi.date ASC");
 	//append merge HPO id and name

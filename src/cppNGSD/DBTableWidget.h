@@ -10,6 +10,8 @@
 class CPPNGSDSHARED_EXPORT DBTableWidget
 	: public QTableWidget
 {
+	Q_OBJECT
+
 public:
 	DBTableWidget(QWidget* parent);
 
@@ -18,7 +20,8 @@ public:
 	void setColumnTooltips(int c, const QStringList& tooltips);
 
 protected:
-	QTableWidgetItem* createItem(const QString& text, int alignment = Qt::AlignVCenter|Qt::AlignLeft);
+	QTableWidgetItem* createItem(const QString& text, int alignment = Qt::AlignVCenter|Qt::AlignLeft);	
+	void keyPressEvent(QKeyEvent* event) override;
 
 protected slots:
 	void copyToClipboard();

@@ -6,7 +6,7 @@
 #include <QSqlField>
 #include <QDebug>
 
-const DBRow&DBTable::row(int r) const
+const DBRow& DBTable::row(int r) const
 {
 	checkRowIndex(r);
 
