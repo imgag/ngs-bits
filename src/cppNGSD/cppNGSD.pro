@@ -35,11 +35,8 @@ QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 SOURCES += \
     SqlQuery.cpp\
     NGSD.cpp \
+    GenLabDB.cpp \
     GDBO.cpp \
-    GDBODialog.cpp \
-    GBDOFKEdit.cpp \
-    ProcessedSampleFKEdit.cpp \
-	GenLabDB.cpp \
     DBTable.cpp \
     DBTableWidget.cpp \
     ProcessedSampleWidget.cpp
@@ -47,17 +44,13 @@ SOURCES += \
 HEADERS += \
     SqlQuery.h \
     NGSD.h \
+    GenLabDB.h \
     GDBO.h \
-    GDBODialog.h \
-    GBDOFKEdit.h \
-    ProcessedSampleFKEdit.h \
-	GenLabDB.h \
     DBTable.h \
     DBTableWidget.h \
     ProcessedSampleWidget.h
 
 FORMS += \
-    GDBODialog.ui \
     ProcessedSampleWidget.ui
 
 RESOURCES += \

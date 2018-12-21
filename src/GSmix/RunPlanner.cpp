@@ -4,7 +4,6 @@
 #include "GDBO.h"
 #include "Exceptions.h"
 #include "Helper.h"
-#include "GDBODialog.h"
 #include <QTimer>
 #include <QSqlError>
 #include <QPair>
@@ -31,7 +30,6 @@ RunPlanner::RunPlanner(QWidget *parent) :
 	connect(ui_->pasteButton, SIGNAL(clicked(bool)), this, SLOT(pasteItems()));
 	connect(ui_->removeButton, SIGNAL(clicked(bool)), this, SLOT(removeSelectedItems()));
 	connect(ui_->checkButton, SIGNAL(clicked(bool)), this, SLOT(checkForMidCollisions()));
-	connect(ui_->importButton, SIGNAL(clicked(bool)), this, SLOT(importNewSamplesToNGSD()));
 
 	loadRunsFromNGSD();
 }
@@ -226,67 +224,6 @@ void RunPlanner::checkForMidCollisions()
 	{
 		QMessageBox::information(this, "MID collision check", "No MID clashes detected!\n\n" + output.join("\n"));
 	}
-}
-
-void RunPlanner::importNewSamplesToNGSD()
-{
-	if (ui_->samples->rowCount()==0) return;
-
-	//check that run [none] is not selected
-	if (ui_->run->currentIndex()==0)
-	{
-		QMessageBox::critical(this, "NGSD import", "No run selected for import!");
-		return;
-	}
-	int run_id = ui_->run->currentData(Qt::UserRole).toInt();
-	int lane = ui_->lane->value();
-
-	//add samples to the run
-	for(int r=0; r<ui_->samples->rowCount(); ++r)
-	{
-		QTableWidgetItem* item = ui_->samples->item(r, 0);
-		if (item->flags() & Qt::ItemIsEditable)
-		{
-			try
-			{
-				GDBO ps("processed_sample");
-				ps.setFK("sample_id", item->text());
-				ps.set("sequencing_run_id", QString::number(run_id));
-				ps.set("lane", QString::number(lane));
-				ps.setFK("mid1_i7", midNameFromItem(r, 1));
-				QString mid2 = midNameFromItem(r, 2);
-				if (mid2!="")
-				{
-					ps.setFK("mid2_i5", mid2);
-				}
-				ps.set("operator_id", db_.userId());
-
-				GDBODialog dlg(this, ps, QStringList() << "process_id");
-				dlg.setWindowTitle("Add processed sample to NGSD");
-				if (dlg.exec())
-				{
-					ps.set("process_id", db_.nextProcessingId(ps.get("sample_id")));
-					ps.store();
-
-					ui_->samples->item(r, 0)->setFlags(Qt::ItemIsSelectable|Qt::ItemIsDragEnabled);
-					ui_->samples->item(r, 1)->setFlags(Qt::ItemIsSelectable|Qt::ItemIsDragEnabled);
-					ui_->samples->item(r, 2)->setFlags(Qt::ItemIsSelectable|Qt::ItemIsDragEnabled);
-				}
-				else
-				{
-					return;
-				}
-			}
-			catch(Exception& e)
-			{
-				QMessageBox::critical(this, "NGSD import error", e.message());
-				return;
-			}
-		}
-	}
-
-	//to update sample names (missing processing id)
-	updateRunData();
 }
 
 QString RunPlanner::midSequenceFromItem(int row, int col)

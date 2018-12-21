@@ -28,7 +28,6 @@ private slots:
 	void removeSelectedItems();
 	void clearVisualOutput();
 	void checkForMidCollisions();
-	void importNewSamplesToNGSD();
 
 private:
 	QString midSequenceFromItem(int row, int col);
