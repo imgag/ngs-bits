@@ -24,6 +24,12 @@
 #include <QToolButton>
 #include <QMimeData>
 #include <QSqlError>
+#include <QBarSet>
+#include <QBarSeries>
+#include <QChart>
+#include <QChartView>
+#include <QBarCategoryAxis>
+
 #include "ReportWorker.h"
 #include "DBAnnotationWorker.h"
 #include "ScrollableTextDialog.h"
@@ -62,6 +68,9 @@
 #include "MultiSampleDialog.h"
 #include "TrioDialog.h"
 #include "SomaticDialog.h"
+#include "Histogram.h"
+
+QT_CHARTS_USE_NAMESPACE
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -82,6 +91,7 @@ MainWindow::MainWindow(QWidget *parent)
 	addDockWidget(Qt::RightDockWidgetArea, filter_widget_);
 	addDockWidget(Qt::RightDockWidgetArea, sample_widget_);
 	tabifyDockWidget(filter_widget_, sample_widget_);
+	connect(sample_widget_, SIGNAL(showAlleleFrequencyHistogram()), this, SLOT(showAlleleFrequencyHistogram()));
 	addDockWidget(Qt::BottomDockWidgetArea, var_widget_);
 	connect(var_widget_, SIGNAL(jumbToRegion(QString)), this, SLOT(openInIGV(QString)));
 	connect(var_widget_, SIGNAL(editVariantClassification()), this, SLOT(editVariantClassification()));
@@ -778,6 +788,61 @@ void MainWindow::showVariantSampleOverview()
 		GUIHelper::showMessage("NGSD error", e.message());
 		return;
 	}
+}
+
+void MainWindow::showAlleleFrequencyHistogram()
+{
+	//create histogram
+	Histogram hist(0.0, 1.0, 0.05);
+	int col = guiColumnIndex("quality");
+	for (int row=0; row<=ui_.vars->rowCount(); ++row)
+	{
+		QTableWidgetItem* item = ui_.vars->item(row, col);
+		if (item==nullptr) continue;
+
+		QStringList parts = item->text().split(';');
+		foreach(const QString& part, parts)
+		{
+			if (part.startsWith("AF="))
+			{
+				bool ok;
+				double value = part.mid(3).toDouble(&ok);
+				if (ok)
+				{
+					hist.inc(value, true);
+				}
+			}
+		}
+	}
+
+	//create chart
+	QBarSet* set = new QBarSet("Allele frequency");
+	for(int bin=0; bin<hist.binCount(); ++bin)
+	{
+		set->append(hist.binValue(bin, true));
+	}
+	QBarSeries* series = new QBarSeries();
+	series->append(set);
+	QChart* chart = new QChart();
+	chart->addSeries(series);
+	chart->legend()->setVisible(false);
+	chart->createDefaultAxes();
+	chart->axisY()->setTitleText("%");
+	QBarCategoryAxis* x_axis = new QBarCategoryAxis();
+	for(int bin=0; bin<hist.binCount(); ++bin)
+	{
+		double start = hist.startOfBin(bin);
+		x_axis->append(QString::number(start, 'f', 2) + "-" + QString::number(start+hist.binSize(), 'f', 2));
+	}
+	x_axis->setTitleText("Allele frequency");
+	x_axis->setLabelsAngle(90);
+	chart->setAxisX(x_axis);
+
+	//show chart
+	QChartView* view = new QChartView(chart);
+	view->setRenderHint(QPainter::Antialiasing);
+	view->setMinimumSize(800, 600);
+	GUIHelper::showWidgetAsDialog(view, "Allele frequency histogram", false);
 }
 
 QString MainWindow::targetFileName() const

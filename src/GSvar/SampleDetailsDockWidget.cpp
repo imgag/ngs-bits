@@ -19,7 +19,7 @@ SampleDetailsDockWidget::SampleDetailsDockWidget(QWidget *parent)
 	, processed_sample_name_()
 {
 	ui_.setupUi(this);
-
+	connect(ui_.qc_af_dev_btn, SIGNAL(clicked(QPoint)), this, SLOT(showAlleleFrequencyDeviationMenu(QPoint)));
 
 	//set up NGSD edit button
 	QMenu* menu = new QMenu();
@@ -125,6 +125,13 @@ QGridLayout* SampleDetailsDockWidget::clearDiseaseDetails()
 	}
 
 	return layout;
+}
+
+void SampleDetailsDockWidget::showAlleleFrequencyDeviationMenu(QPoint pos)
+{
+	QMenu* menu = new QMenu(this);
+	menu->addAction("Show AF histogram", this, SIGNAL(showAlleleFrequencyHistogram()));
+	menu->exec(pos);
 }
 
 void SampleDetailsDockWidget::refresh(QString processed_sample_name)

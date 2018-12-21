@@ -32,6 +32,12 @@ private slots:
 	void showSample();
 	///Clears the disease details
 	QGridLayout* clearDiseaseDetails();
+	///Shows AF deviation menu
+	void showAlleleFrequencyDeviationMenu(QPoint pos);
+
+signals:
+	///Shows the AF histogram
+	void showAlleleFrequencyHistogram();
 
 private:
 	Ui::SampleDetailsDockWidget ui_;

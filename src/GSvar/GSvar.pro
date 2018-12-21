@@ -1,5 +1,5 @@
 
-QT       += gui widgets network sql xml xmlpatterns printsupport
+QT       += gui widgets network sql xml xmlpatterns printsupport charts
 QTPLUGIN += QSQLMYSQL
 
 TARGET = GSvar
