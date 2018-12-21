@@ -4,7 +4,7 @@
 #include <QHeaderView>
 #include <QAction>
 #include <QApplication>
-#include <QClipBoard>
+#include <QClipboard>
 
 DBTableWidget::DBTableWidget(QWidget* parent)
 	: QTableWidget(parent)
