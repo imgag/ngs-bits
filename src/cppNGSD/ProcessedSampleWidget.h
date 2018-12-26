@@ -20,8 +20,9 @@ public:
 	ProcessedSampleWidget(QWidget* parent, QString ps_id);
 	~ProcessedSampleWidget();
 
-protected:
+protected slots:
 	void updateGUI();
+	void showPlot();
 
 private:
 	Ui::ProcessedSampleWidget* ui_;

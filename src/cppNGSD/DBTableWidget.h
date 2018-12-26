@@ -15,9 +15,11 @@ class CPPNGSDSHARED_EXPORT DBTableWidget
 public:
 	DBTableWidget(QWidget* parent);
 
-	void setData(const DBTable& table);
-
+	void setData(const DBTable& tableName);
 	void setColumnTooltips(int c, const QStringList& tooltips);
+	QSet<int> selectedRows() const;
+	const QString& getId(int r) const;
+	const QString& tableName();
 
 protected:
 	QTableWidgetItem* createItem(const QString& text, int alignment = Qt::AlignVCenter|Qt::AlignLeft);	
@@ -25,7 +27,10 @@ protected:
 
 protected slots:
 	void copyToClipboard();
-	void resizeTableCells(int max_col_width=-1);
+
+protected:
+	QString table_;
+	QStringList ids_;
 
 };
 

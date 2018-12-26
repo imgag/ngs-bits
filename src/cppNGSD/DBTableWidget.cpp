@@ -1,5 +1,6 @@
 #include "DBTableWidget.h"
 #include "Exceptions.h"
+#include "GUIHelper.h"
 
 #include <QHeaderView>
 #include <QAction>
@@ -27,6 +28,9 @@ void DBTableWidget::setData(const DBTable& table)
 {
 	QStringList headers = table.headers();
 
+	//table
+	table_ = table.tableName();
+
 	//resize
 	clearContents();
 	setRowCount(table.rowCount());
@@ -41,14 +45,16 @@ void DBTableWidget::setData(const DBTable& table)
 	//content
 	for(int r=0; r<table.rowCount(); ++r)
 	{
+		const DBRow& row = table.row(r);
+		ids_ <<row.id();
 		for(int c=0; c<headers.count(); ++c)
 		{
-			setItem(r, c, createItem(table.row(r).value(c)));
+			setItem(r, c, createItem(row.value(c)));
 		}
 	}
 
 	//fomatting
-	resizeTableCells(200);
+	GUIHelper::resizeTableCells(this, 200);
 }
 
 void DBTableWidget::setColumnTooltips(int c, const QStringList& tooltips)
@@ -68,6 +74,36 @@ void DBTableWidget::setColumnTooltips(int c, const QStringList& tooltips)
 		if (table_item==nullptr) continue;
 		table_item->setToolTip(tooltips[r]);
 	}
+}
+
+QSet<int> DBTableWidget::selectedRows() const
+{
+	QSet<int> output;
+
+	foreach(const QTableWidgetSelectionRange& range, selectedRanges())
+	{
+		for (int row=range.topRow(); row<=range.bottomRow(); ++row)
+		{
+			output << row;
+		}
+	}
+
+	return output;
+}
+
+const QString& DBTableWidget::getId(int r) const
+{
+	if (r<0 || r>=rowCount())
+	{
+		THROW(ArgumentException, "Invalid row index '" + QString::number(r) + "' in DBTableWidget::getId!");
+	}
+
+	return ids_[r];
+}
+
+const QString&DBTableWidget::tableName()
+{
+	return table_;
 }
 
 QTableWidgetItem* DBTableWidget::createItem(const QString& text, int alignment)
@@ -105,17 +141,8 @@ void DBTableWidget::copyToClipboard()
 	}
 	output += "\n";
 
-	//determine selected rows
-	QSet<int> selected_rows;
-	foreach(const QTableWidgetSelectionRange& range, selectedRanges())
-	{
-		for (int row=range.topRow(); row<=range.bottomRow(); ++row)
-		{
-			selected_rows << row;
-		}
-	}
-
 	//rows
+	QSet<int> selected_rows = selectedRows();
 	for (int row=0; row<rowCount(); ++row)
 	{
 		//skip hidden
@@ -133,43 +160,4 @@ void DBTableWidget::copyToClipboard()
 	}
 
 	QApplication::clipboard()->setText(output);
-}
-
-void DBTableWidget::resizeTableCells(int max_col_width)
-{
-	//resize columns width
-	resizeColumnsToContents();
-
-	//restrict width
-	if (max_col_width>0)
-	{
-		for (int i=0; i<columnCount(); ++i)
-		{
-			if (columnWidth(i)>max_col_width)
-			{
-				setColumnWidth(i, max_col_width);
-			}
-		}
-	}
-
-	//determine row height
-	int height = -1;
-	for (int i=0; i<rowCount(); ++i)
-	{
-		if (!isRowHidden(i))
-		{
-			resizeRowToContents(i);
-			height = rowHeight(i);
-			break;
-		}
-	}
-
-	//set row height
-	if (height!=-1)
-	{
-		for (int i=0; i<rowCount(); ++i)
-		{
-			setRowHeight(i, height);
-		}
-	}
 }

@@ -1,5 +1,9 @@
 #include "ProcessedSampleWidget.h"
 #include "ui_ProcessedSampleWidget.h"
+#include "DBQCWidget.h"
+#include "GUIHelper.h"
+
+#include <QMessageBox>
 
 ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	: QWidget(parent)
@@ -7,6 +11,11 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	, id_(ps_id)
 {
 	ui_->setupUi(this);
+
+	QAction* action = new QAction("Plot", this);
+	ui_->qc_table->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(showPlot()));
+
 	updateGUI();
 }
 
@@ -56,5 +65,26 @@ void ProcessedSampleWidget::updateGUI()
 	QStringList descriptions = qc_table.takeColumn(qc_table.columnIndex("description"));
 	ui_->qc_table->setData(qc_table);
 	ui_->qc_table->setColumnTooltips(qc_table.columnIndex("name"), descriptions);
+}
+
+void ProcessedSampleWidget::showPlot()
+{
+	QSet<int> selected_rows = ui_->qc_table->selectedRows();
+	if (selected_rows.count()!=1)
+	{
+		QMessageBox::information(this, "Plot error", "Please select <b>one</b> quality metric for plotting!");
+		return;
+	}
+
+	//get database IDs
+	int r = *(selected_rows.begin());
+	QString qc_term_id = db_.getValue("SELECT qc_terms_id FROM processed_sample_qc WHERE id='" + ui_->qc_table->getId(r) + "'").toString();
+	QString sys_id = db_.getValue("SELECT ps.processing_system_id FROM processed_sample_qc qc, processed_sample ps WHERE qc.processed_sample_id=ps.id AND qc.id='" + ui_->qc_table->getId(r) + "'").toString();
+
+	//show widget
+	DBQCWidget* qc_widget = new DBQCWidget(this);
+	qc_widget->setSystemId(sys_id);
+	qc_widget->setTermId(qc_term_id);
+	GUIHelper::showWidgetAsDialog(qc_widget, "QC plot", false);
 }
 

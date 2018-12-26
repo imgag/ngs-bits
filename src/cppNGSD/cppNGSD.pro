@@ -25,6 +25,10 @@ LIBS += -L$$PWD/../../bin -lcppCORE
 INCLUDEPATH += $$PWD/../cppNGS
 LIBS += -L$$PWD/../../bin -lcppNGS
 
+#include cppNGS library
+INCLUDEPATH += $$PWD/../cppGUI
+LIBS += -L$$PWD/../../bin -lcppGUI
+
 #include htslib library
 INCLUDEPATH += $$PWD/../../htslib/include/
 LIBS += -L$$PWD/../../htslib/lib/ -lhts
@@ -39,7 +43,8 @@ SOURCES += \
     GDBO.cpp \
     DBTable.cpp \
     DBTableWidget.cpp \
-    ProcessedSampleWidget.cpp
+    ProcessedSampleWidget.cpp \
+    DBQCWidget.cpp
 
 HEADERS += \
     SqlQuery.h \
@@ -48,10 +53,12 @@ HEADERS += \
     GDBO.h \
     DBTable.h \
     DBTableWidget.h \
-    ProcessedSampleWidget.h
+    ProcessedSampleWidget.h \
+    DBQCWidget.h
 
 FORMS += \
-    ProcessedSampleWidget.ui
+    ProcessedSampleWidget.ui \
+    DBQCWidget.ui
 
 RESOURCES += \
     cppNGSD.qrc
