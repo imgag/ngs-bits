@@ -3,11 +3,10 @@
 
 #include <QTableWidget>
 
-#include "cppNGSD_global.h"
 #include "DBTable.h"
 
 //Visualization of a database table.
-class CPPNGSDSHARED_EXPORT DBTableWidget
+class DBTableWidget
 	: public QTableWidget
 {
 	Q_OBJECT

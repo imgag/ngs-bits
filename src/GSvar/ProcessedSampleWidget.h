@@ -1,7 +1,6 @@
 #ifndef PROCESSEDSAMPLEWIDGET_H
 #define PROCESSEDSAMPLEWIDGET_H
 
-#include "cppNGSD_global.h"
 #include "NGSD.h"
 
 #include <QWidget>
@@ -10,7 +9,7 @@ namespace Ui {
 class ProcessedSampleWidget;
 }
 
-class CPPNGSDSHARED_EXPORT ProcessedSampleWidget
+class ProcessedSampleWidget
 	: public QWidget
 {
 	Q_OBJECT

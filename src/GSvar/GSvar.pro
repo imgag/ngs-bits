@@ -48,7 +48,10 @@ SOURCES += main.cpp\
     VariantSampleOverviewDialog.cpp \
     SomaticReportConfiguration.cpp \
     FilterEditDialog.cpp \
-    SampleDiseaseInfoWidget.cpp
+    SampleDiseaseInfoWidget.cpp \
+    DBTableWidget.cpp \
+    ProcessedSampleWidget.cpp \
+    DBQCWidget.cpp
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
@@ -91,7 +94,10 @@ HEADERS  += MainWindow.h \
     VariantSampleOverviewDialog.h \
     SomaticReportConfiguration.h \
     FilterEditDialog.h \
-    SampleDiseaseInfoWidget.h
+    SampleDiseaseInfoWidget.h \
+    DBTableWidget.h \
+    ProcessedSampleWidget.h \
+    DBQCWidget.h
 
 FORMS    += MainWindow.ui \
     FilterDockWidget.ui \
@@ -130,8 +136,9 @@ FORMS    += MainWindow.ui \
     VariantSampleOverviewDialog.ui \
     SomaticReportConfiguration.ui \
     FilterEditDialog.ui \
-    SampleDiseaseInfoWidget.ui
-    
+    SampleDiseaseInfoWidget.ui \
+    ProcessedSampleWidget.ui \
+    DBQCWidget.ui
 
 include("../app_gui.pri")
 

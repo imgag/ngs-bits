@@ -1,7 +1,6 @@
 #ifndef DBQCWIDGET_H
 #define DBQCWIDGET_H
 
-#include "cppNGSD_global.h"
 #include "ui_DBQCWidget.h"
 #include "NGSD.h"
 
@@ -9,7 +8,7 @@
 
 
 ///Quality statistics widget.
-class CPPNGSDSHARED_EXPORT DBQCWidget
+class DBQCWidget
 	: public QWidget
 {
 	Q_OBJECT
