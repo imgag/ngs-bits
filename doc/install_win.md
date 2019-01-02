@@ -54,7 +54,7 @@ To make the tools executable outside *QtCreator* and portable, you have to copy 
 	</tr>
 	<tr>
 		<td>C:\Qt\Qt5.9.5\5.9.5\mingw53_32\bin\</td>
-		<td>Qt5Core.dll, Qt5XmlPatterns.dll, Qt5PrintSupport.dll, Qt5Network.dll, Qt5Sql.dll, Qt5Xml.dll, Qt5Gui.dll, Qt5Widgets.dll, libgcc_s_dw2-1.dll, libwinpthread-1.dll, libstdc++-6.dll</td>
+		<td>Qt5Core.dll, Qt5XmlPatterns.dll, Qt5PrintSupport.dll, Qt5Network.dll, Qt5Sql.dll, Qt5Xml.dll, Qt5Gui.dll, Qt5Widgets.dll, Qt5Charts.dll, libgcc_s_dw2-1.dll, libwinpthread-1.dll, libstdc++-6.dll</td>
 	</tr>
 	<tr>
 		<td>C:\Qt\Qt5.9.5\5.9.5\mingw53_32\plugins\</td>
@@ -69,6 +69,7 @@ To make the tools executable outside *QtCreator* and portable, you have to copy 
 		<td>libmysql.dll</td>
 	</tr>
 </table>
+
 
 
 

@@ -35,6 +35,7 @@ void ProcessedSampleWidget::updateGUI()
 	QString quality = ps_data.quality;
 	if (quality=="bad") quality = "<font color=red>bad</font>";
 	ui_->quality->setText(quality);
+	ui_->run->setText(ps_data.run_name);
 
 	//#### sample details ####
 	SampleData s_data = db_.getSampleData(db_.getValue("SELECT sample_id FROM processed_sample WHERE id='" + id_ + "'").toString());
@@ -88,3 +89,7 @@ void ProcessedSampleWidget::showPlot()
 	GUIHelper::showWidgetAsDialog(qc_widget, "QC plot", false);
 }
 
+
+//TODO: highlight QC:2000005, QC:2000007, QC:2000008, QC:2000009, QC:2000010, QC:2000013, QC:2000014, QC:2000015, QC:2000016, QC:2000017, QC:2000018, QC:2000019, QC:2000020, QC:2000021, QC:2000022, QC:2000023, QC:2000024, QC:2000025, QC:2000027, QC:2000049, QC:2000051
+//TODO: zoom into charts and reset
+//TODO: highlight current sample

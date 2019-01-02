@@ -24,13 +24,14 @@ class DBQCWidget
 
 	protected slots:
 
+		//Updates the statistics and plot
 		void updateGUI();
 
 	private:
 		Ui::DBQCWidget ui_;
 		NGSD db_;
-		QString id_term_;
-		QString id_sys_;
+
+		QScatterSeries* getSeries(QColor color);
 };
 
 #endif // DBQCWIDGET_H

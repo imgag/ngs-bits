@@ -51,7 +51,8 @@ SOURCES += main.cpp\
     SampleDiseaseInfoWidget.cpp \
     DBTableWidget.cpp \
     ProcessedSampleWidget.cpp \
-    DBQCWidget.cpp
+    DBQCWidget.cpp \
+    DBComboBox.cpp
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
@@ -97,7 +98,8 @@ HEADERS  += MainWindow.h \
     SampleDiseaseInfoWidget.h \
     DBTableWidget.h \
     ProcessedSampleWidget.h \
-    DBQCWidget.h
+    DBQCWidget.h \
+    DBComboBox.h
 
 FORMS    += MainWindow.ui \
     FilterDockWidget.ui \
