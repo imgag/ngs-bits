@@ -55,5 +55,6 @@
         <file>Icons/Edit.png</file>
         <file>Icons/GenLab.png</file>
         <file>Icons/HGMD.png</file>
+        <file>Icons/Zoom_reset.png</file>
     </qresource>
 </RCC>

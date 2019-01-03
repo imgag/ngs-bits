@@ -44,7 +44,7 @@
       <property name="orientation">
        <enum>Qt::Vertical</enum>
       </property>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <layout class="QFormLayout" name="formLayout">
         <property name="horizontalSpacing">
          <number>3</number>
@@ -211,7 +211,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget1">
        <layout class="QVBoxLayout" name="verticalLayout">
         <property name="spacing">
          <number>3</number>
@@ -242,11 +242,28 @@
         <number>3</number>
        </property>
        <item>
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>Quality metrics:</string>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,0">
+         <item>
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>Quality metrics:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="qc_all">
+           <property name="toolTip">
+            <string>Show all instead of most important QC metrics.</string>
+           </property>
+           <property name="layoutDirection">
+            <enum>Qt::RightToLeft</enum>
+           </property>
+           <property name="text">
+            <string>all</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <widget class="DBTableWidget" name="qc_table"/>

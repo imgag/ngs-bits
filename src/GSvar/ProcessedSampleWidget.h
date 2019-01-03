@@ -21,6 +21,7 @@ public:
 
 protected slots:
 	void updateGUI();
+	void updateQCMetrics();
 	void showPlot();
 
 private:

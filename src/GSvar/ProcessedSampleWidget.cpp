@@ -15,6 +15,7 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	QAction* action = new QAction("Plot", this);
 	ui_->qc_table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(showPlot()));
+	connect(ui_->qc_all, SIGNAL(stateChanged(int)), this, SLOT(updateQCMetrics()));
 
 	updateGUI();
 }
@@ -61,7 +62,18 @@ void ProcessedSampleWidget::updateGUI()
 	ui_->disease_details->setData(dd_table);
 
 	//#### QC ####
-	DBTable qc_table = db_.createTable("processed_sample_qc", "SELECT qc.id, t.qcml_id, t.name, qc.value, t.description FROM processed_sample_qc qc, qc_terms t WHERE qc.qc_terms_id=t.id AND t.obsolete=0 AND qc.processed_sample_id='" + id_ + "' ORDER BY t.qcml_id ASC");
+	updateQCMetrics();
+}
+
+void ProcessedSampleWidget::updateQCMetrics()
+{
+	QString conditions;
+	if (!ui_->qc_all->isChecked())
+	{
+		conditions = "AND (t.qcml_id='QC:2000007' OR 'QC:2000008' OR t.qcml_id='QC:2000010' OR t.qcml_id='QC:2000013' OR t.qcml_id='QC:2000014' OR t.qcml_id='QC:2000015' OR t.qcml_id='QC:2000016' OR t.qcml_id='QC:2000017' OR t.qcml_id='QC:2000018' OR t.qcml_id='QC:2000020' OR t.qcml_id='QC:2000021' OR t.qcml_id='QC:2000022' OR t.qcml_id='QC:2000023' OR t.qcml_id='QC:2000024' OR t.qcml_id='QC:2000025' OR t.qcml_id='QC:2000027' OR t.qcml_id='QC:2000049' OR t.qcml_id='QC:2000050' OR t.qcml_id='QC:2000051')";
+	}
+
+	DBTable qc_table = db_.createTable("processed_sample_qc", "SELECT qc.id, t.qcml_id, t.name, qc.value, t.description FROM processed_sample_qc qc, qc_terms t WHERE qc.qc_terms_id=t.id AND t.obsolete=0 AND qc.processed_sample_id='" + id_ + "' " + conditions + " ORDER BY t.qcml_id ASC");
 	//use descriptions as tooltip
 	QStringList descriptions = qc_table.takeColumn(qc_table.columnIndex("description"));
 	ui_->qc_table->setData(qc_table);
@@ -84,12 +96,9 @@ void ProcessedSampleWidget::showPlot()
 
 	//show widget
 	DBQCWidget* qc_widget = new DBQCWidget(this);
+	qc_widget->addHighLightProcessedSampleId(id_);
 	qc_widget->setSystemId(sys_id);
 	qc_widget->setTermId(qc_term_id);
 	GUIHelper::showWidgetAsDialog(qc_widget, "QC plot", false);
 }
 
-
-//TODO: highlight QC:2000005, QC:2000007, QC:2000008, QC:2000009, QC:2000010, QC:2000013, QC:2000014, QC:2000015, QC:2000016, QC:2000017, QC:2000018, QC:2000019, QC:2000020, QC:2000021, QC:2000022, QC:2000023, QC:2000024, QC:2000025, QC:2000027, QC:2000049, QC:2000051
-//TODO: zoom into charts and reset
-//TODO: highlight current sample

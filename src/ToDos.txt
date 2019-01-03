@@ -17,7 +17,10 @@ NGSD:
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
 
 GSvar:
-**** Support WGS CNV files
+**** Support QC checks in GSvar:
+    - allow scatter-plot
+    - deploy + update documentation
+**** Support WGS CNV files (after entire CNV calling in megSAP is done with ClinCNV)
 *** Implement OMIM search via API - example: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1
 *** Annotate Somatic to germline data => select GSvar > 2 columns (small variants, CNVS) with AF, DP etc.
 ** Put NGSD/GL8/LOVD passwords encrypted in INI file - use compiled-in master password to decrypt them

@@ -5,6 +5,7 @@
 #include "NGSD.h"
 
 #include <QWidget>
+#include <QChart>
 
 
 ///Quality statistics widget.
@@ -22,16 +23,27 @@ class DBQCWidget
 		//Set processing system database ID (optional filter)
 		void setSystemId(QString id);
 
+		//Adds a processed sample ID to be highlighted (black)
+		void addHighLightProcessedSampleId(QString id);
+
 	protected slots:
+
+		//Update highlighted samples (convert to IDs)
+		void updateHighlightedSamples();
 
 		//Updates the statistics and plot
 		void updateGUI();
 
+		//Reset zoom
+		void resetZoom();
+
 	private:
 		Ui::DBQCWidget ui_;
 		NGSD db_;
+		QSet<QString> highlight_;
 
-		QScatterSeries* getSeries(QColor color);
+		static QScatterSeries* getSeries(QString name, QColor color, bool square = false);
+		static void addSeries(QChart* chart, QAbstractAxis* x_axis, QAbstractAxis* y_axis, QAbstractSeries* series);
 };
 
 #endif // DBQCWIDGET_H
