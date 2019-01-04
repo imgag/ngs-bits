@@ -23,6 +23,7 @@ protected slots:
 	void updateGUI();
 	void updateQCMetrics();
 	void showPlot();
+	void openSampleInNGSD();
 
 private:
 	Ui::ProcessedSampleWidget* ui_;

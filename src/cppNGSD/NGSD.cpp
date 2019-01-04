@@ -556,6 +556,7 @@ DBTable NGSD::createTable(QString table, QString query, int pk_col_index)
 	output.setHeaders(headers);
 
 	//content
+	output.reserve(query_result.size());
 	while (query_result.next())
 	{
 		DBRow row;

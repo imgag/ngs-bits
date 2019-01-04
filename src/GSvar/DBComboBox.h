@@ -5,7 +5,7 @@
 
 #include <QComboBox>
 
-///Selector for database entries (using DB ID).
+///Combobox-style selector for database entries (using DB ID).
 class DBComboBox
 	: public QComboBox
 {
@@ -15,9 +15,9 @@ public:
 	DBComboBox(QWidget* parent = 0);
 
 	///Fills the list from a database table
-	void fill(const DBTable table, bool prepend_empty = true);
+	void fill(const DBTable& table, bool prepend_empty = true);
 
-	///Returns the current database ID as string (or an empty string if no entry is selected)
+	///Returns the current database ID as string (or "" if no entry is selected)
 	QString getCurrentId() const;
 	///Sets the current database ID.
 	void setCurrentId(QString id);

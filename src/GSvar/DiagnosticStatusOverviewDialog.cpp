@@ -21,19 +21,11 @@ DiagnosticStatusOverviewDialog::DiagnosticStatusOverviewDialog(QWidget *parent)
 	QStringList projects = db.getValues("SELECT name FROM project ORDER BY name ASC");
 	ui.project->addItem("[select]");
 	ui.project->addItems(projects);
-	auto completer = new QCompleter(projects);
-	completer->setCompletionMode(QCompleter::PopupCompletion);
-	completer->setCaseSensitivity(Qt::CaseInsensitive);
-	ui.project->setCompleter(completer);
 
 	//init user combo box
 	QStringList users = db.getValues("SELECT u.name FROM user u WHERE EXISTS(SELECT * FROM diag_status ds WHERE ds.user_id=u.id) ORDER BY u.name ASC");
 	ui.user->addItem("[select]");
 	ui.user->addItems(users);
-	completer = new QCompleter(users);
-	completer->setCompletionMode(QCompleter::PopupCompletion);
-	completer->setCaseSensitivity(Qt::CaseInsensitive);
-	ui.user->setCompleter(completer);
 
 	updateOverviewTable();
 }

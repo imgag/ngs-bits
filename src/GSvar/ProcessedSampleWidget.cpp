@@ -11,6 +11,9 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	, id_(ps_id)
 {
 	ui_->setupUi(this);
+	GUIHelper::styleSplitter(ui_->splitter);
+	GUIHelper::styleSplitter(ui_->splitter_2);
+	connect(ui_->ngsd_btn, SIGNAL(clicked(bool)), this, SLOT(openSampleInNGSD()));
 
 	QAction* action = new QAction("Plot", this);
 	ui_->qc_table->addAction(action);
@@ -82,23 +85,42 @@ void ProcessedSampleWidget::updateQCMetrics()
 
 void ProcessedSampleWidget::showPlot()
 {
-	QSet<int> selected_rows = ui_->qc_table->selectedRows();
-	if (selected_rows.count()!=1)
+	QList<int> selected_rows = ui_->qc_table->selectedRows().toList();
+	if (selected_rows.count()>2)
 	{
-		QMessageBox::information(this, "Plot error", "Please select <b>one</b> quality metric for plotting!");
+		QMessageBox::information(this, "Plot error", "Please select <b>one or two</b> quality metric for plotting!");
 		return;
 	}
 
 	//get database IDs
-	int r = *(selected_rows.begin());
-	QString qc_term_id = db_.getValue("SELECT qc_terms_id FROM processed_sample_qc WHERE id='" + ui_->qc_table->getId(r) + "'").toString();
-	QString sys_id = db_.getValue("SELECT ps.processing_system_id FROM processed_sample_qc qc, processed_sample ps WHERE qc.processed_sample_id=ps.id AND qc.id='" + ui_->qc_table->getId(r) + "'").toString();
+	QString qc_term_id = db_.getValue("SELECT qc_terms_id FROM processed_sample_qc WHERE id='" + ui_->qc_table->getId(selected_rows[0]) + "'").toString();
+	QString sys_id = db_.getValue("SELECT ps.processing_system_id FROM processed_sample_qc qc, processed_sample ps WHERE qc.processed_sample_id=ps.id AND qc.id='" + ui_->qc_table->getId(selected_rows[0]) + "'").toString();
+
 
 	//show widget
 	DBQCWidget* qc_widget = new DBQCWidget(this);
-	qc_widget->addHighLightProcessedSampleId(id_);
+	qc_widget->addHighlightedProcessedSampleById(id_);
 	qc_widget->setSystemId(sys_id);
 	qc_widget->setTermId(qc_term_id);
+	if (selected_rows.count()==2)
+	{
+		QString qc_term_id2 = db_.getValue("SELECT qc_terms_id FROM processed_sample_qc WHERE id='" + ui_->qc_table->getId(selected_rows[1]) + "'").toString();
+		qc_widget->setSecondTermId(qc_term_id2);
+	}
 	GUIHelper::showWidgetAsDialog(qc_widget, "QC plot", false);
+}
+
+void ProcessedSampleWidget::openSampleInNGSD()
+{
+	try
+	{
+		QString url = NGSD().url(ui_->name->text());
+		QDesktopServices::openUrl(QUrl(url));
+	}
+	catch (DatabaseException e)
+	{
+		GUIHelper::showMessage("NGSD error", "Error message: " + e.message());
+		return;
+	}
 }
 

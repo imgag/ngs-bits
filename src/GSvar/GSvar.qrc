@@ -56,5 +56,7 @@
         <file>Icons/GenLab.png</file>
         <file>Icons/HGMD.png</file>
         <file>Icons/Zoom_reset.png</file>
+        <file>Icons/Exchange.png</file>
+        <file>Icons/NGSD_sample.png</file>
     </qresource>
 </RCC>

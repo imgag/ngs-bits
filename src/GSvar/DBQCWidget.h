@@ -20,22 +20,33 @@ class DBQCWidget
 		//Set QC term database ID (required)
 		void setTermId(QString id);
 
+		//Set QC term database ID (optional - for scatterplot of two QC metrics)
+		void setSecondTermId(QString id);
+
 		//Set processing system database ID (optional filter)
 		void setSystemId(QString id);
 
-		//Adds a processed sample ID to be highlighted (black)
-		void addHighLightProcessedSampleId(QString id);
+		//Adds a processed sample to be highlighted (black). If no name is given, it is looked up in the database.
+		void addHighlightedProcessedSampleById(QString id, QString name=QString(), bool update_plot=true);
 
 	protected slots:
 
 		//Update highlighted samples (convert to IDs)
-		void updateHighlightedSamples();
+		void checkHighlightedSamples();
 
 		//Updates the statistics and plot
-		void updateGUI();
+		void updatePlot();
 
 		//Reset zoom
 		void resetZoom();
+
+		//Swap metrics
+		void swapMetrics();
+
+		void clearHighlighting();
+		void addHighlightSample();
+		void addHighlightRun();
+		void addHighlightProject();
 
 	private:
 		Ui::DBQCWidget ui_;

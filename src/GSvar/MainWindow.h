@@ -88,8 +88,8 @@ public slots:
 	void on_actionResize_triggered();
 	///Report dialog
 	void on_actionReport_triggered();
-    ///NGSD link
-	void on_actionNGSD_triggered();
+	///Open sample dialog
+	void on_actionOpenSample_triggered();
 	///Gender determination
 	void on_actionGenderXY_triggered();
 	///Gender determination

@@ -52,7 +52,8 @@ SOURCES += main.cpp\
     DBTableWidget.cpp \
     ProcessedSampleWidget.cpp \
     DBQCWidget.cpp \
-    DBComboBox.cpp
+    DBComboBox.cpp \
+    DBSelector.cpp
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
@@ -99,7 +100,8 @@ HEADERS  += MainWindow.h \
     DBTableWidget.h \
     ProcessedSampleWidget.h \
     DBQCWidget.h \
-    DBComboBox.h
+    DBComboBox.h \
+    DBSelector.h
 
 FORMS    += MainWindow.ui \
     FilterDockWidget.ui \

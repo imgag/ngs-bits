@@ -8,7 +8,7 @@ DBComboBox::DBComboBox(QWidget* parent)
 	setMaxVisibleItems(20);
 }
 
-void DBComboBox::fill(const DBTable table, bool prepend_empty)
+void DBComboBox::fill(const DBTable& table, bool prepend_empty)
 {
 	if (table.columnCount()!=1)
 	{

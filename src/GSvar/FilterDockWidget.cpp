@@ -373,7 +373,7 @@ void FilterDockWidget::roiSelectionChanged(int index)
 {
 	//delete old completer
 	QCompleter* completer_old = ui_.rois->completer();
-	if ((void*)completer_old!=0)
+	if (completer_old!=nullptr)
 	{
 		completer_old->deleteLater();
 	}

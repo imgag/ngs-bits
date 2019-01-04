@@ -49,7 +49,6 @@ class CPPNGSDSHARED_EXPORT DBTable
 		{
 		}
 
-
 		QString tableName() const
 		{
 			return table_name_;
@@ -79,6 +78,10 @@ class CPPNGSDSHARED_EXPORT DBTable
 		const DBRow& row(int r) const;
 		void setRow(int r, const DBRow& row);
 		void addRow(const DBRow& row);
+		void reserve(int alloc)
+		{
+			rows_.reserve(alloc);
+		}
 
 		///Returns the index of the column with the given name. Throws an error if not found.
 		int columnIndex(const QString& name) const;

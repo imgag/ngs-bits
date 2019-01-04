@@ -69,6 +69,7 @@
 #include "TrioDialog.h"
 #include "SomaticDialog.h"
 #include "Histogram.h"
+#include "ProcessedSampleWidget.h"
 
 QT_CHARTS_USE_NAMESPACE
 
@@ -1446,20 +1447,24 @@ void MainWindow::databaseAnnotationFinished(bool success)
 	worker->deleteLater();
 }
 
-void MainWindow::on_actionNGSD_triggered()
+void MainWindow::on_actionOpenSample_triggered()
 {
-	if (filename_=="") return;
+	NGSD db;
 
+	//processed sample ID
+	QString ps_id;
 	try
 	{
-		QString url = NGSD().url(filename_);
-		QDesktopServices::openUrl(QUrl(url));
+		ps_id = db.processedSampleId(filename_);
 	}
 	catch (DatabaseException e)
 	{
-		GUIHelper::showMessage("NGSD error", "The processed sample database ID could not be determined!\nDoes the file name '"  + filename_ + "' start with the processed sample ID?\nError message: " + e.message());
+		GUIHelper::showMessage("NGSD error", "The processed sample database ID could not be determined for '"  + processedSampleName() + "'!\nError message: " + e.message());
 		return;
 	}
+
+	ProcessedSampleWidget* widget = new ProcessedSampleWidget(this, ps_id);
+	GUIHelper::showWidgetAsDialog(widget, processedSampleName(), false);
 }
 
 void MainWindow::on_actionGenderXY_triggered()
@@ -2986,7 +2991,7 @@ void MainWindow::updateNGSDSupport()
 
 	//toolbar
 	ui_.actionReport->setEnabled(ngsd_enabled);
-	ui_.actionNGSD->setEnabled(ngsd_enabled);
+	ui_.actionOpenSample->setEnabled(ngsd_enabled);
 	ui_.actionNGSDAnnotation->setEnabled(ngsd_enabled);
 	ui_.actionAnalysisStatus->setEnabled(ngsd_enabled);
 	ui_.actionReanalyze->setEnabled(ngsd_enabled);

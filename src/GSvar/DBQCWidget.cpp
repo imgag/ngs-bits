@@ -1,5 +1,7 @@
 #include "DBQCWidget.h"
 #include "BasicStatistics.h"
+#include "DBSelector.h"
+#include "GUIHelper.h"
 
 #include <QDebug>
 
@@ -10,13 +12,23 @@ DBQCWidget::DBQCWidget(QWidget *parent)
 	ui_.setupUi(this);
 	ui_.plot->setRubberBand(QChartView::RectangleRubberBand);
 	connect(ui_.reset_zoom, SIGNAL(clicked(bool)), this, SLOT(resetZoom()));
+	connect(ui_.swap_metrics, SIGNAL(clicked(bool)), this, SLOT(swapMetrics()));
+	QMenu* menu = new QMenu(this);
+	menu->addAction("Add sample", this, SLOT(addHighlightSample()));
+	menu->addAction("Add run", this, SLOT(addHighlightRun()));
+	menu->addAction("Add project", this, SLOT(addHighlightProject()));
+	menu->addSeparator();
+	menu->addAction("Clear", this, SLOT(clearHighlighting()));
+	ui_.highlight_btn->setMenu(menu);
 
 	//fill compo boxes
 	ui_.term->fill(db_.createTable("qc_terms", "SELECT id, name FROM qc_terms WHERE obsolete=0 ORDER BY qcml_id ASC"));
-	connect(ui_.term, SIGNAL(currentTextChanged(QString)), this, SLOT(updateGUI()));
+	connect(ui_.term, SIGNAL(currentTextChanged(QString)), this, SLOT(updatePlot()));
+	ui_.term2->fill(db_.createTable("qc_terms", "SELECT id, name FROM qc_terms WHERE obsolete=0 ORDER BY qcml_id ASC"));
+	connect(ui_.term2, SIGNAL(currentTextChanged(QString)), this, SLOT(updatePlot()));
 	ui_.system->fill(db_.createTable("processing_system", "SELECT id, name_manufacturer FROM processing_system ORDER BY name_manufacturer ASC"));
-	connect(ui_.system, SIGNAL(currentTextChanged(QString)), this, SLOT(updateGUI()));
-	connect(ui_.highlight, SIGNAL(editingFinished()), this, SLOT(updateHighlightedSamples()));
+	connect(ui_.system, SIGNAL(currentTextChanged(QString)), this, SLOT(updatePlot()));
+	connect(ui_.highlight, SIGNAL(editingFinished()), this, SLOT(checkHighlightedSamples()));
 }
 
 void DBQCWidget::setSystemId(QString id)
@@ -24,17 +36,103 @@ void DBQCWidget::setSystemId(QString id)
 	ui_.system->setCurrentId(id);
 }
 
-void DBQCWidget::addHighLightProcessedSampleId(QString id)
+void DBQCWidget::addHighlightedProcessedSampleById(QString id, QString name, bool update_plot)
 {
+	//add ID to set
+	highlight_ << id;
+
+	//add name to GUI
 	QString text = ui_.highlight->text().trimmed();
 	if (!text.isEmpty()) text += " ";
-	text += db_.getValue("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.id='" + id + "'").toString();
+	if (name.isEmpty())
+	{
+		text += db_.getValue("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.id='" + id + "'").toString();
+	}
+	else
+	{
+		text += name.trimmed();
+	}
 	ui_.highlight->setText(text);
 
-	updateHighlightedSamples();
+	//update plot
+	if (update_plot)
+	{
+		updatePlot();
+	}
 }
 
-void DBQCWidget::updateHighlightedSamples()
+void DBQCWidget::clearHighlighting()
+{
+	ui_.highlight->clear();
+	ui_.highlight->setStyleSheet("QLineEdit {}");
+	ui_.highlight->setToolTip("");
+
+	highlight_.clear();
+
+	updatePlot();
+}
+
+void DBQCWidget::addHighlightSample()
+{
+	//create
+	DBSelector* selector = new DBSelector(this);
+	selector->fill(db_.createTable("processed_sample", "SELECT ps.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps, sample s WHERE ps.sample_id=s.id"), true);
+
+	//execute
+	QSharedPointer<QDialog> dialog = GUIHelper::showWidgetAsDialog(selector, "Select processed sample", true);
+	if (dialog->result()==QDialog::Accepted && selector->isValidSelection())
+	{
+		addHighlightedProcessedSampleById(selector->getId(), selector->text());
+	}
+}
+
+void DBQCWidget::addHighlightRun()
+{
+	//create
+	DBSelector* selector = new DBSelector(this);
+	selector->fill(db_.createTable("sequencing_run", "SELECT id, name FROM sequencing_run"), true);
+
+	//execute
+	QSharedPointer<QDialog> dialog = GUIHelper::showWidgetAsDialog(selector, "Select sequencing run", true);
+	if (dialog->result()==QDialog::Accepted && selector->isValidSelection())
+	{
+		SqlQuery query = db_.getQuery();
+		query.exec("SELECT ps.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.sequencing_run_id=" + selector->getId());
+		while (query.next())
+		{
+			addHighlightedProcessedSampleById(query.value(0).toString(), query.value(1).toString(), false);
+		}
+	}
+
+	//update plot
+	updatePlot();
+}
+
+void DBQCWidget::addHighlightProject()
+{
+	//create
+	DBSelector* selector = new DBSelector(this);
+	selector->fill(db_.createTable("project", "SELECT id, name FROM project"), true);
+
+	//execute
+	QSharedPointer<QDialog> dialog = GUIHelper::showWidgetAsDialog(selector, "Select project", true);
+	if (dialog->result()==QDialog::Accepted && selector->isValidSelection())
+	{
+		SqlQuery query = db_.getQuery();
+		query.exec("SELECT ps.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.project_id=" + selector->getId());
+		while (query.next())
+		{
+			addHighlightedProcessedSampleById(query.value(0).toString(), query.value(1).toString(), false);
+		}
+	}
+
+	//update plot
+	updatePlot();
+
+	TODO check what happens when HBOC project is added
+}
+
+void DBQCWidget::checkHighlightedSamples()
 {
 	highlight_.clear();
 
@@ -66,7 +164,7 @@ void DBQCWidget::updateHighlightedSamples()
 		ui_.highlight->setToolTip("");
 	}
 
-	updateGUI();
+	updatePlot();
 }
 
 void DBQCWidget::setTermId(QString id)
@@ -74,23 +172,44 @@ void DBQCWidget::setTermId(QString id)
 	ui_.term->setCurrentId(id);
 }
 
-void DBQCWidget::updateGUI()
+void DBQCWidget::setSecondTermId(QString id)
 {
+	ui_.term2->setCurrentId(id);
+}
+
+void DBQCWidget::updatePlot()
+{
+
 	//clear (necessary because settings the chart, releases the ownership of the previous chart)
 	QChart* chart_old = ui_.plot->chart();
 	ui_.plot->setChart(new QChart());
 	delete chart_old;
 
+	//check that at least one quality metric is given
 	QString term_id = ui_.term->getCurrentId();
 	if (term_id.isEmpty())
 	{
 		return;
 	}
 
+	qDebug() << __FUNCTION__;
+
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
+	//determine plot type
+	bool scatterplot = !ui_.term2->currentText().isEmpty();
+
 	//create query
-	QString query_string = "SELECT qc.value, ps.quality, r.end_date, ps.id FROM processed_sample_qc qc, processed_sample ps, sequencing_run r WHERE qc.processed_sample_id=ps.id AND ps.sequencing_run_id=r.id AND qc.qc_terms_id='" + term_id + "'";
+	QString query_string;
+	if (scatterplot)
+	{
+		QString term_id2 = ui_.term2->getCurrentId();
+		query_string = "SELECT qc.value, ps.quality, qc2.value, ps.id FROM processed_sample_qc qc, processed_sample_qc qc2, processed_sample ps WHERE qc.processed_sample_id=ps.id AND qc2.processed_sample_id=ps.id AND qc.qc_terms_id='" + term_id + "' AND qc2.qc_terms_id='" + term_id2 + "'";
+	}
+	else
+	{
+		query_string = "SELECT qc.value, ps.quality, r.end_date, ps.id FROM processed_sample_qc qc, processed_sample ps, sequencing_run r WHERE qc.processed_sample_id=ps.id AND ps.sequencing_run_id=r.id AND qc.qc_terms_id='" + term_id + "'";
+	}
 	QString sys_id = ui_.system->getCurrentId();
 	if (!sys_id.isEmpty())
 	{
@@ -102,6 +221,7 @@ void DBQCWidget::updateGUI()
 	query.exec(query_string);
 
 	//perform statistics
+	ui_.count->setText("n/a");
 	QVector<double> values;
 	values.reserve(query.size());
 	while(query.next())
@@ -137,8 +257,8 @@ void DBQCWidget::updateGUI()
 	series.insert("highlight", getSeries("highlight", Qt::black, true));
 	double value_min = std::numeric_limits<double>::max();
 	double value_max = -std::numeric_limits<double>::max();
-	double date_min = std::numeric_limits<double>::max();
-	double date_max = -std::numeric_limits<double>::max();
+	double value2_min = std::numeric_limits<double>::max();
+	double value2_max = -std::numeric_limits<double>::max();
 	query.seek(-1);
 	while(query.next())
 	{
@@ -148,10 +268,20 @@ void DBQCWidget::updateGUI()
 		if (value<value_min) value_min = value;
 		if (value>value_max) value_max = value;
 
-		if (query.value(2).isNull()) continue; //date null
-		double date = query.value(2).toDateTime().toMSecsSinceEpoch();
-		if (date<date_min) date_min = date;
-		if (date>date_max) date_max = date;
+		double value2;
+		if (scatterplot)
+		{
+			value2 = query.value(2).toDouble(&ok);
+			if (!ok) continue; //value not a number
+		}
+		else
+		{
+			QDateTime datetime = query.value(2).toDateTime();
+			if (!datetime.isValid()) continue; //date can be null
+			value2 = datetime.toMSecsSinceEpoch();
+		}
+		if (value2<value2_min) value2_min = value2;
+		if (value2>value2_max) value2_max = value2;
 
 		QString quality = query.value(1).toString();
 		QString ps_id = query.value(3).toString();
@@ -165,7 +295,7 @@ void DBQCWidget::updateGUI()
 		}
 
 
-		series[quality]->append(date, value);
+		series[quality]->append(value2, value);
 	}
 
 	//create chart
@@ -174,9 +304,21 @@ void DBQCWidget::updateGUI()
 	chart->legend()->setAlignment(Qt::AlignBottom);
 
 	//add axes
-	QDateTimeAxis* x_axis = new QDateTimeAxis();
-	x_axis->setFormat("dd.MM.yyyy");
-	x_axis->setTitleText("Date");
+	QAbstractAxis* x_axis;
+	if (scatterplot)
+	{
+		QValueAxis* axis = new QValueAxis();
+		axis->setTitleText(ui_.term2->currentText());
+		axis->setTickCount(8);
+		x_axis = axis;
+	}
+	else
+	{
+		QDateTimeAxis* axis = new QDateTimeAxis();
+		axis->setFormat("dd.MM.yyyy");
+		axis->setTitleText("Date");
+		x_axis = axis;
+	}
 	chart->setAxisX(x_axis);
 
 	QValueAxis* y_axis = new QValueAxis();
@@ -193,11 +335,19 @@ void DBQCWidget::updateGUI()
 
 	//add 1% margin to prevent clipping of data point icons
 	double y_margin = 0.01*(value_max-value_min);
-	double x_margin = 0.01*(date_max-date_min);
+	double x_margin = 0.01*(value2_max-value2_min);
 	if (x_margin>0 && y_margin>0)
 	{
-		x_axis->setMin(QDateTime::fromMSecsSinceEpoch(date_min-x_margin));
-		x_axis->setMax(QDateTime::fromMSecsSinceEpoch(date_max+x_margin));
+		if (scatterplot)
+		{
+			x_axis->setMin(value2_min-x_margin);
+			x_axis->setMax(value2_max+x_margin);
+		}
+		else
+		{
+			x_axis->setMin(QDateTime::fromMSecsSinceEpoch(value2_min-x_margin));
+			x_axis->setMax(QDateTime::fromMSecsSinceEpoch(value2_max+x_margin));
+		}
 		y_axis->setMin(value_min-y_margin);
 		y_axis->setMax(value_max+y_margin);
 	}
@@ -216,6 +366,20 @@ void DBQCWidget::resetZoom()
 	if (chart==nullptr) return;
 
 	chart->zoomReset();
+}
+
+void DBQCWidget::swapMetrics()
+{
+	//check that two metrics are given
+	QString term1 = ui_.term->currentText();
+	QString term2 = ui_.term2->currentText();
+	if (term1.isEmpty() || term2.isEmpty()) return;
+
+	//update - avoid updating the GUI twice by blocking the first signal
+	ui_.term->blockSignals(true);
+	ui_.term->setCurrentText(term2);
+	ui_.term->blockSignals(false);
+	ui_.term2->setCurrentText(term1);
 }
 
 QScatterSeries* DBQCWidget::getSeries(QString name, QColor color, bool square)

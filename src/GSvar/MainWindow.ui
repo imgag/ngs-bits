@@ -220,7 +220,7 @@
    <addaction name="actionNGSDAnnotation"/>
    <addaction name="actionReport"/>
    <addaction name="separator"/>
-   <addaction name="actionNGSD"/>
+   <addaction name="actionOpenSample"/>
    <addaction name="separator"/>
    <addaction name="actionAnalysisStatus"/>
    <addaction name="actionReanalyze"/>
@@ -337,16 +337,16 @@
     <string>based on BAM files</string>
    </property>
   </action>
-  <action name="actionNGSD">
+  <action name="actionOpenSample">
    <property name="icon">
-    <iconset resource="../GSmix/GSmix.qrc">
-     <normaloff>:/Icons/NGSD.png</normaloff>:/Icons/NGSD.png</iconset>
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/NGSD_sample.png</normaloff>:/Icons/NGSD_sample.png</iconset>
    </property>
    <property name="text">
-    <string>Open sample in NGSD</string>
+    <string>Open sample dialog</string>
    </property>
    <property name="toolTip">
-    <string>Open processed sample in NGSD.</string>
+    <string>Open processed sample.</string>
    </property>
   </action>
   <action name="actionSampleInformation">
