@@ -118,5 +118,6 @@ void VariantSampleOverviewDialog::calculateSimilarity()
 	table->sortByColumn(5, Qt::DescendingOrder);
 
 	//show results
-	GUIHelper::showWidgetAsDialog(table, "Sample correlation based on rare variants from NGSD", false);
+	auto dlg = GUIHelper::createDialog(table, "Sample correlation based on rare variants from NGSD");
+	dlg->exec();
 }

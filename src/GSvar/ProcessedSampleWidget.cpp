@@ -107,7 +107,8 @@ void ProcessedSampleWidget::showPlot()
 		QString qc_term_id2 = db_.getValue("SELECT qc_terms_id FROM processed_sample_qc WHERE id='" + ui_->qc_table->getId(selected_rows[1]) + "'").toString();
 		qc_widget->setSecondTermId(qc_term_id2);
 	}
-	GUIHelper::showWidgetAsDialog(qc_widget, "QC plot", false);
+	auto dlg = GUIHelper::createDialog(qc_widget, "QC plot");
+	dlg->exec();
 }
 
 void ProcessedSampleWidget::openSampleInNGSD()

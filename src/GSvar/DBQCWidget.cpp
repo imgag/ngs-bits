@@ -79,8 +79,8 @@ void DBQCWidget::addHighlightSample()
 	selector->fill(db_.createTable("processed_sample", "SELECT ps.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps, sample s WHERE ps.sample_id=s.id"), true);
 
 	//execute
-	QSharedPointer<QDialog> dialog = GUIHelper::showWidgetAsDialog(selector, "Select processed sample", true);
-	if (dialog->result()==QDialog::Accepted && selector->isValidSelection())
+	QSharedPointer<QDialog> dialog = GUIHelper::createDialog(selector, "Select processed sample", "Processed sample:", true);
+	if (dialog->exec()==QDialog::Accepted && selector->isValidSelection())
 	{
 		addHighlightedProcessedSampleById(selector->getId(), selector->text());
 	}
@@ -93,8 +93,8 @@ void DBQCWidget::addHighlightRun()
 	selector->fill(db_.createTable("sequencing_run", "SELECT id, name FROM sequencing_run"), true);
 
 	//execute
-	QSharedPointer<QDialog> dialog = GUIHelper::showWidgetAsDialog(selector, "Select sequencing run", true);
-	if (dialog->result()==QDialog::Accepted && selector->isValidSelection())
+	QSharedPointer<QDialog> dialog = GUIHelper::createDialog(selector, "Select sequencing run", "Sequencing run:", true);
+	if (dialog->exec()==QDialog::Accepted && selector->isValidSelection())
 	{
 		SqlQuery query = db_.getQuery();
 		query.exec("SELECT ps.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.sequencing_run_id=" + selector->getId());
@@ -115,11 +115,17 @@ void DBQCWidget::addHighlightProject()
 	selector->fill(db_.createTable("project", "SELECT id, name FROM project"), true);
 
 	//execute
-	QSharedPointer<QDialog> dialog = GUIHelper::showWidgetAsDialog(selector, "Select project", true);
-	if (dialog->result()==QDialog::Accepted && selector->isValidSelection())
+	QSharedPointer<QDialog> dialog = GUIHelper::createDialog(selector, "Select project", "Project:", true);
+	if (dialog->exec()==QDialog::Accepted && selector->isValidSelection())
 	{
+		QString query_string = "SELECT ps.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.project_id=" + selector->getId();
+		QString sys_id = ui_.system->getCurrentId();
+		if (!sys_id.isEmpty())
+		{
+			query_string += " AND ps.processing_system_id='" + sys_id + "'";
+		}
 		SqlQuery query = db_.getQuery();
-		query.exec("SELECT ps.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.project_id=" + selector->getId());
+		query.exec(query_string);
 		while (query.next())
 		{
 			addHighlightedProcessedSampleById(query.value(0).toString(), query.value(1).toString(), false);
@@ -128,8 +134,6 @@ void DBQCWidget::addHighlightProject()
 
 	//update plot
 	updatePlot();
-
-	TODO check what happens when HBOC project is added
 }
 
 void DBQCWidget::checkHighlightedSamples()
@@ -191,8 +195,6 @@ void DBQCWidget::updatePlot()
 	{
 		return;
 	}
-
-	qDebug() << __FUNCTION__;
 
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 

@@ -204,8 +204,8 @@ public slots:
 	///Subpanel design dialog
 	void openSubpanelDesignDialog(const GeneSet& genes = GeneSet());
 
-	///Adds a modeless dialog
-	void addModelessDialog(QSharedPointer<QDialog> ptr);
+	///Adds and shows a modeless dialog
+	void addModelessDialog(QSharedPointer<QDialog> dlg);
 	///Removes all modeless dialogs that have been closed
 	void cleanUpModelessDialogs();
 

@@ -83,8 +83,8 @@ void SampleDiseaseInfoWidget::addDiseaseInfo()
 	if (type=="HPO term id")
 	{
 		PhenotypeSelectionWidget* selector = new PhenotypeSelectionWidget(this);
-		auto dlg = GUIHelper::showWidgetAsDialog(selector, "Select HPO term(s)", true);
-		if (dlg->result()!=QDialog::Accepted) return;
+		auto dlg = GUIHelper::createDialog(selector, "Select HPO term(s)", "", true);
+		if (dlg->exec()!=QDialog::Accepted) return;
 
 		foreach(const Phenotype& pheno, selector->selectedPhenotypes())
 		{

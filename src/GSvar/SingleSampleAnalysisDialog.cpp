@@ -172,8 +172,8 @@ void SingleSampleAnalysisDialog::on_add_batch_clicked(bool)
 {
 	//edit
 	QPlainTextEdit* edit = new QPlainTextEdit(this);
-	auto dlg = GUIHelper::showWidgetAsDialog(edit, "Enter processed samples (one per line).", true);
-	if (dlg->result()==QDialog::Accepted)
+	auto dlg = GUIHelper::createDialog(edit, "Enter processed samples (one per line).", "", true);
+	if (dlg->exec()==QDialog::Accepted)
 	{
 		QStringList samples = edit->toPlainText().split('\n');
 		foreach(QString sample, samples)

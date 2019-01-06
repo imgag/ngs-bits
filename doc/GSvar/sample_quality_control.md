@@ -2,7 +2,7 @@
 
 ### Assessing quality by NGS QC metrics
 
-The sample details dock widget shows the main quality metrics from the NGSD:
+The sample details dock widget (1) shows the most important quality metrics from the NGSD:
 
 * number of reads
 * average insert size
@@ -10,20 +10,46 @@ The sample details dock widget shows the main quality metrics from the NGSD:
 * percentage of target region covered at least 20x
 * number of variants
 * percentage of known variants
-* average deviation from expected allele frequency (0.0, 0.5 or 1.0)
+* average deviation from expected allele frequency
 * KASP result (sample identity check)
 * quality annotation from the NGSD (processed sample)
 
-The tooltip of the numberic metrics conains mean and standard deviation of the metrics for the used processing system.   
-Values more than 2 standard deviations from the mean are colored red.  
+The tooltip of the numberic metrics conains mean and standard deviation of the metrics for the used processing system (2).   
+Values more than 2 standard deviations from the mean are colored red.
 
 ![alt text](qc1.png)
 
-A low 20x coverage is normally caused by a low read cound and, thus, a low averge depth.
-The normal ratio between read count / average depth and 20x coverage can be best seen in an NGSD quality management scatter plot.  
-Here an example:
+### Plotting quality scores
 
-![alt text](qc2.png)
+The sample details dock widget only shows a selection of QC metrics.  
+All QC metrics can be shown using the `processed sample dialog` in the main tool bar.  
+It contains sample meta data and QC data and allows plotting the metrics:
+
+
+![alt text](qc_plot_metrics.png)
+
+If one metric is selected for plotting, a timeline plot of of all samples of the sample processing system is shown.
+
+If two metrics are selected, a scatter plot of the two metris is shown.  
+For example, a low 20x coverage is normally caused by a low sequencing depth.
+The normal ratio between average depth and 20x coverage can be best seen in this plot:
+Here an example: 
+
+
+![alt text](qc_plot_metrics2.png)
+
+
+
+
+### Checking sample contamination
+
+The `AF deviation` score indicates sample contamination, by looking at the percentage of SNVs that fall outside the exected allele frequency windows around 0.0, 0.5 or 1.0. This score should not be used for tumor samples.
+
+A histogram of the allele frequency can be shown using the button on the right of the score.  
+This example shows how it should look like for a high quality exome. 
+
+
+![alt text](qc_af_deviation.png)
 
 ### Checking sample gender
 
@@ -61,6 +87,7 @@ Example data for exome data (Agilent SureSelect Human All Exon V6) are shown her
 --
 
 [back to main page](index.md)
+
 
 
 

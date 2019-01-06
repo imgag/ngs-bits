@@ -169,7 +169,7 @@ void MainWindow::on_actionSV_triggered()
 	try
 	{
 		SvWidget* list = new SvWidget(filename_);
-		auto dlg = GUIHelper::showWidgetAsDialog(list, "Structure variants", false, false);
+		auto dlg = GUIHelper::createDialog(list, "Structure variants");
 		addModelessDialog(dlg);
 		connect(list,SIGNAL(openSvInIGV(QString)),this,SLOT(openInIGV(QString)));
 	}
@@ -219,7 +219,7 @@ void MainWindow::on_actionCNV_triggered()
 	CnvWidget* list = new CnvWidget(filename_, filter_widget_, het_hit_genes);
 
 	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
-	auto dlg = GUIHelper::showWidgetAsDialog(list, "Copy-number variants", false, false);
+	auto dlg = GUIHelper::createDialog(list, "Copy-number variants");
 	addModelessDialog(dlg);
 }
 
@@ -262,14 +262,15 @@ void MainWindow::on_actionROH_triggered()
 					text_edit->appendPlainText(line);
 				}
 				text_edit->setMinimumSize(800, 100);
-				GUIHelper::showWidgetAsDialog(text_edit, "UPD(s) detected!", false);
+				auto dlg = GUIHelper::createDialog(text_edit, "UPD(s) detected!");
+				dlg->exec();
 			}
 		}
 	}
 
 	RohWidget* list = new RohWidget(filename, filter_widget_);
 	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
-	auto dlg = GUIHelper::showWidgetAsDialog(list, "Runs of homozygosity", false, false);
+	auto dlg = GUIHelper::createDialog(list, "Runs of homozygosity");
 	addModelessDialog(dlg);
 }
 
@@ -348,7 +349,6 @@ void MainWindow::on_actionDiagnosticStatusOverview_triggered()
 {
 	DiagnosticStatusOverviewDialog* dlg = new DiagnosticStatusOverviewDialog(this);
 	connect(dlg, SIGNAL(openProcessedSample(QString)), this, SLOT(openProcessedSampleFromNGSD(QString)));
-	dlg->show();
 	addModelessDialog(QSharedPointer<QDialog>(dlg));
 }
 
@@ -843,7 +843,8 @@ void MainWindow::showAlleleFrequencyHistogram()
 	QChartView* view = new QChartView(chart);
 	view->setRenderHint(QPainter::Antialiasing);
 	view->setMinimumSize(800, 600);
-	GUIHelper::showWidgetAsDialog(view, "Allele frequency histogram", false);
+	auto dlg = GUIHelper::createDialog(view, "Allele frequency histogram");
+	dlg->exec();
 }
 
 QString MainWindow::targetFileName() const
@@ -940,9 +941,10 @@ FilterCascade MainWindow::loadFilter(QString name) const
 	return output;
 }
 
-void MainWindow::addModelessDialog(QSharedPointer<QDialog> ptr)
+void MainWindow::addModelessDialog(QSharedPointer<QDialog> dlg)
 {
-	modeless_dialogs_.append(ptr);
+	dlg->show();
+	modeless_dialogs_.append(dlg);
 
 	//we always clean up when we add another dialog.
 	//Like that, only one dialog can be closed and not destroyed at the same time.
@@ -1464,7 +1466,9 @@ void MainWindow::on_actionOpenSample_triggered()
 	}
 
 	ProcessedSampleWidget* widget = new ProcessedSampleWidget(this, ps_id);
-	GUIHelper::showWidgetAsDialog(widget, processedSampleName(), false);
+	auto dlg = GUIHelper::createDialog(widget, processedSampleName());
+	dlg->setWindowIcon(QIcon(":/Icons/NGSD_sample.png"));
+	dlg->exec();
 }
 
 void MainWindow::on_actionGenderXY_triggered()
@@ -1513,7 +1517,6 @@ void MainWindow::on_actionAnalysisStatus_triggered()
 {
 	auto dlg = new AnalysisStatusDialog(0);
 	dlg->setWindowFlags(Qt::Window);
-	dlg->show();
 	addModelessDialog(QSharedPointer<QDialog>(dlg));
 }
 
@@ -1567,7 +1570,8 @@ void MainWindow::on_actionGapsLookup_triggered()
 	edit->setMinimumWidth(500);
 	edit->setWordWrapMode(QTextOption::NoWrap);
 	edit->setReadOnly(true);
-	GUIHelper::showWidgetAsDialog(edit, "Gaps of gene '" + gene + "' from low-coverage BED file '" + report + "':", false);
+	auto dlg = GUIHelper::createDialog(edit, "Gaps of gene '" + gene + "' from low-coverage BED file '" + report + "':");
+	dlg->exec();
 }
 
 void MainWindow::on_actionGapsRecalculate_triggered()
@@ -1746,10 +1750,10 @@ void MainWindow::on_actionPreferredTranscripts_triggered()
 	QTextEdit* edit = new QTextEdit(text);
 	edit->setMinimumHeight(600);
 	edit->setMinimumWidth(500);
-	QSharedPointer<QDialog> dlg = GUIHelper::showWidgetAsDialog(edit, "Preferred transcripts list", true);
+	QSharedPointer<QDialog> dlg = GUIHelper::createDialog(edit, "Preferred transcripts list", "", true);
 
 	//abort on cancel
-	if (dlg->result()!=QDialog::Accepted) return;
+	if (dlg->exec()!=QDialog::Accepted) return;
 
 	//parse file
 	QMap<QString, QStringList> preferred_transcripts_new;

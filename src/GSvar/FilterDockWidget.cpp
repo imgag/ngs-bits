@@ -547,10 +547,10 @@ void FilterDockWidget::editPhenotypes()
 	//edit
 	PhenotypeSelectionWidget* selector = new PhenotypeSelectionWidget(this);
 	selector->setPhenotypes(phenotypes_);
-	auto dlg = GUIHelper::showWidgetAsDialog(selector, "Select HPO terms", true);
+	auto dlg = GUIHelper::createDialog(selector, "Select HPO terms", "", true);
 
 	//update
-	if (dlg->result()==QDialog::Accepted)
+	if (dlg->exec()==QDialog::Accepted)
 	{
 		phenotypes_ = selector->selectedPhenotypes();
 		phenotypesChanged();

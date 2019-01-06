@@ -42,8 +42,8 @@ void SampleDetailsDockWidget::editDiagnosticStatus()
 
 	DiagnosticStatusWidget* widget = new DiagnosticStatusWidget(this);
 	widget->setStatus(db.getDiagnosticStatus(processed_sample_id));
-	auto dlg = GUIHelper::showWidgetAsDialog(widget, "Diagnostic status of " + processed_sample_name_, true);
-	if (dlg->result()!=QDialog::Accepted) return;
+	auto dlg = GUIHelper::createDialog(widget, "Diagnostic status of " + processed_sample_name_, "", true);
+	if (dlg->exec()!=QDialog::Accepted) return;
 
 	db.setDiagnosticStatus(processed_sample_id, widget->status());
 
@@ -68,8 +68,8 @@ void SampleDetailsDockWidget::editDiseaseDetails()
 
 	SampleDiseaseInfoWidget* widget = new SampleDiseaseInfoWidget(processed_sample_name_, this);
 	widget->setDiseaseInfo(db.getSampleDiseaseInfo(sample_id));
-	auto dlg = GUIHelper::showWidgetAsDialog(widget, "Sample disease details", true);
-	if (dlg->result() == QDialog::Accepted)
+	auto dlg = GUIHelper::createDialog(widget, "Sample disease details", "", true);
+	if (dlg->exec() == QDialog::Accepted)
 	{
 		db.setSampleDiseaseInfo(sample_id, widget->diseaseInfo());
 		refresh(processed_sample_name_);

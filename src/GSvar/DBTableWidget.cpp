@@ -43,6 +43,7 @@ void DBTableWidget::setData(const DBTable& table)
 	}
 
 	//content
+	ids_.clear();
 	for(int r=0; r<table.rowCount(); ++r)
 	{
 		const DBRow& row = table.row(r);
