@@ -2336,13 +2336,13 @@ void MainWindow::variantListChanged()
 
 void MainWindow::varsContextMenu(QPoint pos)
 {
-	//get item
-	QTableWidgetItem* item = ui_.vars->itemAt(pos);
-	if (!item) return;
+	QList<QTableWidgetSelectionRange> ranges = ui_.vars->selectedRanges();
+	if (ranges.count()!=1 || ranges[0].rowCount()!=1) return;
+	int row = ranges[0].topRow();
 
 	//init
 	bool ngsd_enabled = Settings::boolean("NGSD_enabled", true);
-	const Variant& variant = variants_[item->row()];
+	const Variant& variant = variants_[row];
 	int i_gene = variants_.annotationIndexByName("gene", true, true);
 	QStringList genes = QString(variant.annotations()[i_gene]).split(',', QString::SkipEmptyParts);
 	int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, true);
@@ -2513,7 +2513,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 			}
 			else
 			{
-				uploadtoLovd(item->row());
+				uploadtoLovd(row);
 			}
 		}
 		catch (Exception& e)
