@@ -124,6 +124,11 @@ public:
 					}
 					else // Break up clumped variants
 					{
+						while (query.startsWith("-")) // Kill leading gaps
+						{
+							query = query.remove(0, 1);
+						}
+
 						for (auto i = 0; i < query.size(); ++i)
 						{
 							if (i + 1 < query.size() && query.at(i + 1) == '-') // transition from REF,- to ALT
