@@ -15,18 +15,20 @@ class SvWidget : public QWidget
 	Q_OBJECT
 
 public:
-	explicit SvWidget(QString file_name, QWidget *parent = 0);
+	explicit SvWidget(const QString& file_name, QWidget *parent = 0);
 
 private:
 	Ui::SvWidget *ui;
 
 	SvList svs_;
 
-	void addInfoLine(QString text);
+	void addInfoLine(const QString text);
 
-	void loadSVs(QString file_name);
+	void loadSVs(const QString& file_name);
 
 	void filterAnnotationsForNumber(QByteArray anno_name, double filter_thresh, QBitArray &pass);
+
+	void disableGui(const QString& message);
 
 signals:
 	void openSvInIGV(QString coords);

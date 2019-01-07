@@ -263,7 +263,10 @@ void ReportHelper::writeCnvList(QTextStream& stream, const QList<int>& col_width
 		}
 		else
 		{
-			columns.append("\\qc{\\highlight3 NA} ");
+			//check whether information about loss of heterocigosity is available
+			int i_cnv_state = cnvs_filtered_.annotationIndexByName("state",false);
+			if(i_cnv_state != -1 && variant.annotations().at(i_cnv_state) == "LOH") columns.append("\\qc LOH");
+			else columns.append("\\qc{\\highlight3 NA} ");
 		}
 
 		//copy numbers
