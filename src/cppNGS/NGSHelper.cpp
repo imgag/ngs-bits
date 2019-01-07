@@ -461,7 +461,7 @@ QByteArray NGSHelper::changeSeq(const QByteArray& seq, bool rev, bool comp)
 					output[i] = 'N';
 					break;
 				default:
-					THROW(ProgrammingException, "Could not convert base " + QString(seq.at(i)) + " to complement!");
+					THROW(ProgrammingException, "Could not convert base " + QString(output.at(i)) + " to complement!");
 			}
 		}
 	}
