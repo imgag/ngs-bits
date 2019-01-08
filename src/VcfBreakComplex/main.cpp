@@ -124,6 +124,11 @@ public:
 					}
 					else // Break up clumped variants
 					{
+						while (query.startsWith("-")) // Kill leading gaps
+						{
+							query = query.remove(0, 1);
+						}
+
 						for (auto i = 0; i < query.size(); ++i)
 						{
 							if (i + 1 < query.size() && query.at(i + 1) == '-') // transition from REF,- to ALT
@@ -147,7 +152,8 @@ public:
 									++i;
 									++gap_end;
 								}
-								aligments.push_back(AligmentPair(query.mid(gap_start - 1, 1), reference.mid(gap_start - 1, gap_end)));
+								// Copy the original reference AND strip the remaining -'s from the alternating sequence
+								aligments.push_back(AligmentPair(query.mid(gap_start - 1, 2), reference.mid(gap_start - 1, gap_end).replace("-", "")));
 								++number_of_biallelic_block_substitutions; // new biallelic block substitutios
 							}
 							else if (query.at(i) != reference.at(i)) // transition from REF -> ALT

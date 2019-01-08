@@ -8,7 +8,7 @@
 #include "Helper.h"
 #include "GUIHelper.h"
 
-SvWidget::SvWidget(QString file_name, QWidget *parent)
+SvWidget::SvWidget(const QString& file_name, QWidget *parent)
 	: QWidget(parent)
 	, ui(new Ui::SvWidget)
 {
@@ -39,36 +39,20 @@ SvWidget::SvWidget(QString file_name, QWidget *parent)
 	QString path = QFileInfo(file_name).absolutePath();
 	QStringList sv_files = Helper::findFiles(path, "*_var_structural.tsv", false);
 
+	qDebug() << sv_files;
+
 	if(sv_files.isEmpty())
 	{
-		THROW(FileAccessException, "Could not find file with structural variants in " + path);
+		disableGui("No SV data file found in directory " + path );
 	}
-
-	ui->filter_tumor_frequency_paired_reads->setVisible(false);
-	ui->label_tumor_frequency_paired_reads->setVisible(false);
-
-	ui->filter_tumor_frequency_single_reads->setVisible(false);
-	ui->label_tumor_frequency_single_reads->setVisible(false);
-
-	ui->filter_tumor_depth_paired_reads->setVisible(false);
-	ui->label_tumor_depth_paired_reads->setVisible(false);
-
-	ui->filter_tumor_depth_single_reads->setVisible(false);
-	ui->label_tumor_depth_single_reads->setVisible(false);
-
-	ui->filter_normal_frequency_paired_reads->setVisible(false);
-	ui->label_normal_frequency_paired_reads->setVisible(false);
-
-	ui->filter_normal_frequency_single_reads->setVisible(false);
-	ui->label_normal_frequency_single_reads->setVisible(false);
-
-	ui->filter_normal_depth_paired_reads->setVisible(false);
-	ui->label_normal_depth_paired_reads->setVisible(false);
-
-	ui->filter_normal_depth_single_reads->setVisible(false);
-	ui->label_normal_depth_single_reads->setVisible(false);
-
-	loadSVs(sv_files[0]);
+	else if(sv_files.count()>1)
+	{
+		disableGui("More than 1 SV data file found in directory " + path);
+	}
+	else
+	{
+		loadSVs(sv_files[0]);
+	}
 
 
 	ui->svs->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -224,13 +208,14 @@ void SvWidget::SvDoubleClicked(QTableWidgetItem *item)
 }
 
 
-void SvWidget::loadSVs(QString file_name)
+void SvWidget::loadSVs(const QString& file_name)
 {
 	svs_.load(file_name);
 
 	if(svs_.count() == 0)
 	{
-		THROW(FileParseException,"Warning: File for structural variants does not contain any data");
+		disableGui("There are no SVs in data file " + file_name);
+		return;
 	}
 
 	//print comments into SV calling info_box
@@ -318,45 +303,57 @@ void SvWidget::loadSVs(QString file_name)
 	}
 
 	//check annotation header whether columns for allele frequencies and sequencing depths exist, remove certain buttons if not
-	if(svs_.annotationIndexByName("tumor_PR_freq",false) >= 0)
+	if(svs_.annotationIndexByName("tumor_PR_freq",false) < 0)
 	{
-		ui->filter_tumor_frequency_paired_reads->setVisible(true);
-		ui->label_tumor_frequency_paired_reads->setVisible(true);
+		ui->filter_tumor_frequency_paired_reads->setEnabled(false);
 	}
-	if(svs_.annotationIndexByName("tumor_SR_freq",false) >= 0)
+	if(svs_.annotationIndexByName("tumor_SR_freq",false) < 0)
 	{
-		ui->filter_tumor_frequency_single_reads->setVisible(true);
-		ui->label_tumor_frequency_single_reads->setVisible(true);
+		ui->filter_tumor_frequency_single_reads->setEnabled(false);
 	}
-	if(svs_.annotationIndexByName("tumor_PR_depth",false) >= 0)
+	if(svs_.annotationIndexByName("tumor_PR_depth",false) < 0)
 	{
-		ui->filter_tumor_depth_paired_reads->setVisible(true);
-		ui->label_tumor_depth_paired_reads->setVisible(true);
+		ui->filter_tumor_depth_paired_reads->setEnabled(false);
 	}
-	if(svs_.annotationIndexByName("tumor_SR_depth",false) >= 0)
+	if(svs_.annotationIndexByName("tumor_SR_depth",false) < 0)
 	{
-		ui->filter_tumor_depth_single_reads->setVisible(true);
-		ui->label_tumor_depth_single_reads->setVisible(true);
+		ui->filter_tumor_depth_single_reads->setEnabled(false);
 	}
-	if(svs_.annotationIndexByName("normal_PR_freq",false) >= 0)
+	if(svs_.annotationIndexByName("normal_PR_freq",false) < 0)
 	{
-		ui->filter_normal_frequency_paired_reads->setVisible(true);
-		ui->label_normal_frequency_paired_reads->setVisible(true);
+		ui->filter_normal_frequency_paired_reads->setEnabled(false);
 	}
-	if(svs_.annotationIndexByName("normal_SR_freq",false) >= 0)
+	if(svs_.annotationIndexByName("normal_SR_freq",false) < 0)
 	{
-		ui->filter_normal_frequency_single_reads->setVisible(true);
-		ui->label_normal_frequency_single_reads->setVisible(true);
+		ui->filter_normal_frequency_single_reads->setEnabled(false);
 	}
-	if(svs_.annotationIndexByName("normal_PR_depth",false) >= 0)
+	if(svs_.annotationIndexByName("normal_PR_depth",false) < 0)
 	{
-		ui->filter_normal_depth_paired_reads->setVisible(true);
-		ui->label_normal_depth_paired_reads->setVisible(true);
+		ui->filter_normal_depth_paired_reads->setEnabled(false);
 	}
-	if(svs_.annotationIndexByName("normal_SR_depth",false) >= 0)
+	if(svs_.annotationIndexByName("normal_SR_depth",false) < 0)
 	{
-		ui->filter_normal_depth_single_reads->setVisible(true);
-		ui->label_normal_depth_single_reads->setVisible(true);
+		ui->filter_normal_depth_single_reads->setEnabled(false);
 	}
+}
+
+void SvWidget::disableGui(const QString& message)
+{
+	ui->filter_normal_depth_paired_reads->setEnabled(false);
+	ui->filter_normal_depth_single_reads->setEnabled(false);
+	ui->filter_normal_frequency_paired_reads->setEnabled(false);
+	ui->filter_normal_frequency_single_reads->setEnabled(false);
+	ui->filter_size->setEnabled(false);
+	ui->filter_tumor_depth_paired_reads->setEnabled(false);
+	ui->filter_tumor_depth_single_reads->setEnabled(false);
+	ui->filter_tumor_frequency_paired_reads->setEnabled(false);
+	ui->filter_tumor_frequency_single_reads->setEnabled(false);
+	ui->filter_type->setEnabled(false);
+
+	ui->qual_filter->setEnabled(false);
+	ui->copy_to_clipboard->setEnabled(false);
+	ui->svs->setEnabled(false);
+
+	addInfoLine("<font color='red'>" + message + "</font>");
 }
 
