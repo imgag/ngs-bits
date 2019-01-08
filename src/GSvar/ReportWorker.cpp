@@ -235,6 +235,7 @@ void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file
 	long long bases_overall = 0;
 	long long bases_sequenced = 0;
 	GeneSet genes_noncoding;
+	GeneSet genes_notranscript;
 	foreach(const QByteArray& gene, genes)
 	{
 		int gene_id = db.geneToApprovedID(gene);
@@ -246,8 +247,17 @@ void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file
 		Transcript transcript = db.longestCodingTranscript(gene_id, Transcript::CCDS, true);
 		if (!transcript.isValid())
 		{
-			genes_noncoding.insert(gene);
 			transcript = db.longestCodingTranscript(gene_id, Transcript::CCDS, true, true);
+			if (!transcript.isValid() || transcript.regions().baseCount()==0)
+			{
+				genes_notranscript.insert(gene);
+				if (gap_table) stream << "<tr><td>" + symbol + "</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td></tr>";
+				continue;
+			}
+			else
+			{
+				genes_noncoding.insert(gene);
+			}
 		}
 
 		//gaps
@@ -282,7 +292,11 @@ void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file
 	//show warning if non-coding transcripts had to be used
 	if (!genes_noncoding.isEmpty())
 	{
-		stream << "<br>Warning: Using the longest *non-coding* transcript for the genes " << genes_noncoding.join(", ") << " since no coding transcripts for GRCh37 is defined!";
+		stream << "<br>Warning: Using the longest *non-coding* transcript for genes " << genes_noncoding.join(", ") << " (no coding transcripts for GRCh37 defined)";
+	}
+	if (!genes_notranscript.isEmpty())
+	{
+		stream << "<br>Warning: No transcript defined for genes " << genes_notranscript.join(", ");
 	}
 
 	//overall statistics
