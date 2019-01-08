@@ -1,5 +1,5 @@
 ### SampleAncestry tool help
-	SampleAncestry (2018_11-32-g7dd08f0)
+	SampleAncestry (2018_11-55-g768b41c)
 	
 	Estimates the ancestry of a sample based on variants.
 	
@@ -12,7 +12,7 @@
 	  -min_snps <int>   Minimum number of informative SNPs for population determination. If less SNPs are found, 'NOT_ENOUGH_SNPS' is returned.
 	                    Default value: '1000'
 	  -pop_dist <float> Minimum relative distance between first/second population score. If below this score 'ADMIXED/UNKNOWN' is called.
-	                    Default value: '0.14999999999999999'
+	                    Default value: '0.15'
 	  -build <enum>     Genome build used to generate the input.
 	                    Default value: 'hg19'
 	                    Valid: 'hg19,hg38'
@@ -24,7 +24,7 @@
 	  --tdx             Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SampleAncestry changelog
-	SampleAncestry 2018_11-32-g7dd08f0
+	SampleAncestry 2018_11-55-g768b41c
 	
 	2018-12-10 Fixed bug in handling of 'pop_dist' parameter.
 	2018-07-11 Added build switch for hg38 support.

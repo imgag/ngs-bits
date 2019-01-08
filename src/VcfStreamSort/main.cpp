@@ -3,6 +3,8 @@
 #include "Exceptions.h"
 #include "VariantList.h"
 #include "Settings.h"
+#include "VcfFile.h"
+
 #include <QFile>
 #include <QTextStream>
 #include <QList>
@@ -26,13 +28,46 @@ public:
 		addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
 		addInt("n", "Number of variants to cache for sorting.", true, 10000);
 
-		changeLog(2016, 06, 27, "Initial implementation.");
+		changeLog(2019,  1,  8, "Added ALT and INFO fields to sorting to obtain defined output order in most real-world cases.");
+		changeLog(2016,  6, 27, "Initial implementation.");
+	}
+
+	//Datastructure for VCF lines
+	struct VcfCoords
+	{
+		int pos;
+		QByteArray alt;
+		QByteArray info;
+
+		bool operator<(const VcfCoords& rhs) const
+		{
+			if (pos<rhs.pos) return true;
+			if (pos>rhs.pos) return false;
+			if (alt<rhs.alt) return true;
+			if (alt>rhs.alt) return false;
+			return info<rhs.info;
+		}
+	};
+
+	//Write all lines and clear datastructure.
+	static void flush(QMap<VcfCoords, QByteArray>& lines, QSharedPointer<QFile>& out_p)
+	{
+		auto it = lines.begin();
+		while (it!=lines.end())
+		{
+			out_p->write(it.value());
+			++it;
+		}
+
+		lines.clear();
 	}
 
 	virtual void main()
 	{
+		QTextStream todo(stdout);
+
 		//init
-		QMap<int, QByteArray> lines;
+		QMap<VcfCoords, QByteArray> lines;
 		int n = getInt("n");
 
 		QByteArray last_chr;
@@ -64,20 +99,22 @@ public:
 				continue;
 			}
 
-			int tab1 = line.indexOf('\t');
-			int tab2 = line.indexOf('\t', tab1+1);
+			QByteArrayList parts = line.split('\t');
+			if (parts.count()<VcfFile::MIN_COLS)
+			{
+				THROW(FileParseException, "VCF line with less than 8 fields found: '" + line.trimmed() + "'");
+			}
 
-			QByteArray chr = line.left(tab1);
-			int pos = Helper::toInt(line.mid(tab1, tab2-tab1), "chromosomal position");
+			QByteArray chr = parts[0];
+			int pos = Helper::toInt(parts[1], "chromosomal position");
 
 			//handle new chromosome
 			if (chr!=last_chr)
 			{
 				//flush lines
-				while (!lines.isEmpty())
-				{
-					out_p->write(lines.take(lines.firstKey()));
-				}
+				flush(lines, out_p);
+
+				//reset pos
 				last_pos_written = -1;
 
 				//check chromosome done
@@ -100,23 +137,20 @@ public:
 			}
 
 			//insert line
-			lines.insertMulti(pos, line);
+			lines.insertMulti(VcfCoords{pos, parts[4], parts[7]}, line);
 
 			//write overflow lines
 			if (lines.count()>n)
 			{
-				int key = lines.firstKey();
-				out_p->write(lines.take(key));
-				last_pos_written = key;
+				auto it = lines.begin();
+				out_p->write(it.value());
+				last_pos_written = it.key().pos;
+				lines.erase(it);
 			}
 		}
 
 		//flush lines
-		while (!lines.isEmpty())
-		{
-			out_p->write(lines.take(lines.firstKey()));
-		}
-
+		flush(lines, out_p);
     }
 };
 

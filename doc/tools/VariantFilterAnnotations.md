@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2018_11-7-g60f117b)
+	VariantFilterAnnotations (2018_11-55-g768b41c)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -37,7 +37,7 @@
 	                                     action - Action to perform [default=KEEP] [valid=KEEP,FILTER,REMOVE]
 	Conservedness                      Filter for variants that affect conserved bases
 	                                   Parameters:
-	                                     min_score - Minimum phlyoP score. [default=1.6000000000000001]
+	                                     min_score - Minimum phlyoP score. [default=1.6]
 	Count NGSD                         Filter based on the hom/het occurances of a variant in the NGSD.
 	                                   Parameters:
 	                                     max_count - Maximum NGSD count [default=20] [min=0]
@@ -53,7 +53,7 @@
 	Gene pLI                           Filter based on the ExAC pLI score of genes.
 	                                   Note that pLI score is most helpful for early-onset severe diseases.
 	                                   Parameters:
-	                                     min_score - Minumum score [default=0.90000000000000002] [min=0.0] [max=1.0]
+	                                     min_score - Minumum score [default=0.9] [min=0.0] [max=1.0]
 	Genes                              Filter for that preserves a gene set.
 	                                   Parameters:
 	                                     genes - Gene set [non-empty]
@@ -115,7 +115,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2018_11-7-g60f117b
+	VariantFilterAnnotations 2018_11-55-g768b41c
 	
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.

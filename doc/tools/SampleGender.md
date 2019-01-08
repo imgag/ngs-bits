@@ -1,5 +1,5 @@
 ### SampleGender tool help
-	SampleGender (2018_06-19-g2ccdd3a)
+	SampleGender (2018_11-55-g768b41c)
 	
 	Determines the gender of a sample from the BAM file.
 	
@@ -12,13 +12,13 @@
 	  -out <file>         Output TSV file - one line per input BAM file. If unset, writes to STDOUT.
 	                      Default value: ''
 	  -max_female <float> Maximum Y/X ratio for female (method xy).
-	                      Default value: '0.059999999999999998'
+	                      Default value: '0.06'
 	  -min_male <float>   Minimum Y/X ratio for male (method xy).
-	                      Default value: '0.089999999999999997'
+	                      Default value: '0.09'
 	  -min_female <float> Minimum heterocygous SNP fraction for female (method hetx).
-	                      Default value: '0.23999999999999999'
+	                      Default value: '0.24'
 	  -max_male <float>   Maximum heterocygous SNP fraction for male (method hetx).
-	                      Default value: '0.14999999999999999'
+	                      Default value: '0.15'
 	  -sry_cov <float>    Minimum average coverage of SRY gene for males (method sry).
 	                      Default value: '20'
 	  -build <enum>       Genome build used to generate the input (methods hetx and sry).
@@ -32,7 +32,7 @@
 	  --tdx               Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SampleGender changelog
-	SampleGender 2018_06-19-g2ccdd3a
+	SampleGender 2018_11-55-g768b41c
 	
 	2018-07-13 Change of output to TSV format for batch support.
 	2018-07-11 Added build switch for hg38 support.

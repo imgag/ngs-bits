@@ -1,5 +1,5 @@
 ### CnvHunter tool help
-	CnvHunter (2018_04-46-g08ec931)
+	CnvHunter (2018_11-55-g768b41c)
 	
 	CNV detection from targeted resequencing data using non-matched control samples.
 	
@@ -19,7 +19,7 @@
 	  -sam_min_depth <float> QC: Minimum average depth of a sample.
 	                         Default value: '40'
 	  -sam_min_corr <float>  QC: Minimum correlation of sample to constructed reference sample.
-	                         Default value: '0.94999999999999996'
+	                         Default value: '0.95'
 	  -sam_corr_regs <int>   Maximum number of regions used for sample correlation calculation (to speed up comparisons for exoms etc.).
 	                         Default value: '20000'
 	  -reg_min_cov <float>   QC: Minimum (average) absolute depth of a target region.
@@ -27,7 +27,7 @@
 	  -reg_min_ncov <float>  QC: Minimum (average) normalized depth of a target region.
 	                         Default value: '0.01'
 	  -reg_max_cv <float>    QC: Maximum coefficient of variation (median/mad) of target region.
-	                         Default value: '0.40000000000000002'
+	                         Default value: '0.4'
 	  -debug <string>        Writes debug information for the sample matching the given name (or for all samples if 'ALL' is given).
 	                         Default value: ''
 	  -seg <string>          Writes a SEG file for the sample matching the given name (used for visualization in IGV).
@@ -52,7 +52,7 @@
 	  --tdx                  Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### CnvHunter changelog
-	CnvHunter 2018_04-46-g08ec931
+	CnvHunter 2018_11-55-g768b41c
 	
 	2018-05-14 Added option to specify input files in single input file.
 	2017-09-04 Added GC normalization.

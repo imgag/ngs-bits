@@ -1,5 +1,5 @@
 ### SeqPurge tool help
-	SeqPurge (0.1-852-g5a7f2d2)
+	SeqPurge (2018_11-55-g768b41c)
 	
 	Removes adapter sequences from paired-end sequencing data.
 	
@@ -17,7 +17,7 @@
 	  -match_perc <float> Minimum percentage of matching bases for sequence/adapter matches.
 	                      Default value: '80'
 	  -mep <float>        Maximum error probability of insert and adapter matches.
-	                      Default value: '9.9999999999999995e-07'
+	                      Default value: '1e-6'
 	  -qcut <int>         Quality trimming cutoff for trimming from the end of reads using a sliding window approach. Set to 0 to disable.
 	                      Default value: '15'
 	  -qwin <int>         Quality trimming window size.
@@ -52,7 +52,7 @@
 	  --tdx               Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SeqPurge changelog
-	SeqPurge 0.1-852-g5a7f2d2
+	SeqPurge 2018_11-55-g768b41c
 	
 	2017-06-15 Changed default value of 'min_len' parameter from 15 to 30.
 	2016-08-10 Fixed bug in binomial calculation (issue #1).
