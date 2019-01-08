@@ -140,7 +140,7 @@ public:
 									++i;
 									gap_end++;
 								}
-								aligments.push_back(AligmentPair(query.mid(gap_start - 1, 1), reference.mid(gap_start - 1, gap_end)));
+								aligments.push_back(AligmentPair(query.mid(gap_start - 1, 1), reference.mid(gap_start - 1, gap_end).replace("-", "")));
 								++number_of_biallelic_block_substitutions; // new biallelic block substitutios
 							}
 							else if (i + 1 < reference.size() && reference.at(i + 1) == '-') // do the same for the reference
@@ -152,9 +152,19 @@ public:
 									++i;
 									++gap_end;
 								}
-								// Copy the original reference AND strip the remaining -'s from the alternating sequence
 								aligments.push_back(AligmentPair(query.mid(gap_start - 1, 2), reference.mid(gap_start - 1, gap_end).replace("-", "")));
 								++number_of_biallelic_block_substitutions; // new biallelic block substitutios
+							}
+							else if (reference.at(i) == '-') {
+								int gap_start = static_cast<int> (i);
+								int gap_end = gap_start;
+								while ((i + 1) < reference.size() && reference.at(i) == '-')
+								{
+									++i;
+									++gap_end;
+								}
+								aligments.push_back(AligmentPair(query.mid(gap_start, gap_end - gap_start), reference.mid(gap_end, 1)));
+								++number_of_biallelic_block_substitutions;
 							}
 							else if (query.at(i) != reference.at(i)) // transition from REF -> ALT
 							{
