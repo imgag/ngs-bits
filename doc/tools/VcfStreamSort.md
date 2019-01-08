@@ -20,6 +20,6 @@
 ### VcfStreamSort changelog
 	VcfStreamSort 2018_11-55-g768b41c
 	
-	2019-01-08 Added ALT and INFO fields to sorting to obtain defined output order in most real-world cases.
+	2019-01-08 Added REF, ALT and INFO fields to sorting for a defined output order.
 	2016-06-27 Initial implementation.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

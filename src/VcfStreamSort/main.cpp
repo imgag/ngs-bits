@@ -28,7 +28,7 @@ public:
 		addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
 		addInt("n", "Number of variants to cache for sorting.", true, 10000);
 
-		changeLog(2019,  1,  8, "Added ALT and INFO fields to sorting to obtain defined output order in most real-world cases.");
+		changeLog(2019,  1,  8, "Added REF, ALT and INFO fields to sorting for a defined output order.");
 		changeLog(2016,  6, 27, "Initial implementation.");
 	}
 
@@ -36,6 +36,7 @@ public:
 	struct VcfCoords
 	{
 		int pos;
+		QByteArray ref;
 		QByteArray alt;
 		QByteArray info;
 
@@ -43,6 +44,8 @@ public:
 		{
 			if (pos<rhs.pos) return true;
 			if (pos>rhs.pos) return false;
+			if (ref<rhs.ref) return true;
+			if (ref>rhs.ref) return false;
 			if (alt<rhs.alt) return true;
 			if (alt>rhs.alt) return false;
 			return info<rhs.info;
@@ -137,7 +140,7 @@ public:
 			}
 
 			//insert line
-			lines.insertMulti(VcfCoords{pos, parts[4], parts[7]}, line);
+			lines.insertMulti(VcfCoords{pos, parts[3], parts[4], parts[7]}, line);
 
 			//write overflow lines
 			if (lines.count()>n)
