@@ -89,6 +89,7 @@ public:
 
 			QByteArray ref = VcfFile::getPartByColumn(line, VcfFile::REF).trimmed();
 			QByteArray alt = VcfFile::getPartByColumn(line, VcfFile::ALT).trimmed();
+			int pos = VcfFile::getPartByColumn(line, VcfFile::POS).trimmed().toInt();
 
 			// Skip alternating allele pairs
 			if (alt.contains(","))
@@ -109,11 +110,11 @@ public:
 
 				// Iterate through the reference and compare it with the query
 				using AligmentPair = pair<QByteArray, QByteArray>;
-				vector<AligmentPair> aligments;
+				vector<Aligment> aligments;
 
 				if (ref.length() == 1 || alt.length() == 1) // SNP
 				{
-					aligments.push_back(AligmentPair(query.replace("-", ""), reference.replace("-", "")));
+					aligments.push_back(Aligment(query.replace("-", ""), reference.replace("-", ""), 0));
 					++number_of_additional_snps;
 				}
 				else // MNP or CLUMPED
@@ -140,7 +141,7 @@ public:
 									++i;
 									gap_end++;
 								}
-								aligments.push_back(AligmentPair(query.mid(gap_start - 1, 1), reference.mid(gap_start - 1, gap_end).replace("-", "")));
+								aligments.push_back(Aligment(query.mid(gap_start - 1, 1), reference.mid(gap_start - 1, gap_end).replace("-", ""), gap_start));
 								++number_of_biallelic_block_substitutions; // new biallelic block substitutios
 							}
 							else if (i + 1 < reference.size() && reference.at(i + 1) == '-') // do the same for the reference
@@ -152,7 +153,7 @@ public:
 									++i;
 									++gap_end;
 								}
-								aligments.push_back(AligmentPair(query.mid(gap_start - 1, 2), reference.mid(gap_start - 1, gap_end).replace("-", "")));
+								aligments.push_back(Aligment(query.mid(gap_start - 1, 2), reference.mid(gap_start - 1, gap_end).replace("-", ""), gap_start));
 								++number_of_biallelic_block_substitutions; // new biallelic block substitutios
 							}
 							else if (reference.at(i) == '-') {
@@ -163,12 +164,12 @@ public:
 									++i;
 									++gap_end;
 								}
-								aligments.push_back(AligmentPair(query.mid(gap_start, gap_end - gap_start), reference.mid(gap_end, 1)));
+								aligments.push_back(Aligment(query.mid(gap_start, gap_end - gap_start), reference.mid(gap_end, 1), gap_start));
 								++number_of_biallelic_block_substitutions;
 							}
 							else if (query.at(i) != reference.at(i)) // transition from REF -> ALT
 							{
-								aligments.push_back(AligmentPair(query.mid(i, 1), reference.mid(i, 1)));
+								aligments.push_back(Aligment(query.mid(i, 1), reference.mid(i, 1), i));
 								++i;
 								++number_of_additional_snps;
 							}
@@ -184,8 +185,9 @@ public:
 					if (!no_tag) parts[VcfFile::INFO] = parts[VcfFile::INFO].trimmed() + ";BBC=" + parts[VcfFile::CHROM] + ":" + parts[VcfFile::POS] + ":" + parts[VcfFile::REF] + "|" + parts[VcfFile::ALT];
 
 					// Modify alt and ref with new aligments
-					parts[VcfFile::REF] = aligments[i].first;
-					parts[VcfFile::ALT] = aligments[i].second;
+					parts[VcfFile::REF] = get<0>(aligments[i]);
+					parts[VcfFile::ALT] = get<1>(aligments[i]);
+					parts[VcfFile::POS] = QByteArray::number(pos + get<2>(aligments[i]));
 
 					// Write to output
 					out_p->write(parts.join("\t"));
