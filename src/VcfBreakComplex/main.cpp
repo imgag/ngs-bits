@@ -111,7 +111,6 @@ public:
 				auto reference = get<ALIGMENT_REFERENCE>(aligment), query = get<ALIGMENT_QUERY>(aligment);
 
 				// Iterate through the reference and compare it with the query
-				using AligmentPair = pair<QByteArray, QByteArray>;
 				vector<Aligment> aligments;
 
 				if (ref.length() == 1 || alt.length() == 1) // SNP
