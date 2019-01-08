@@ -68,6 +68,8 @@ public:
 		unsigned int number_of_new_variants = 0;
 		unsigned int number_of_variants = 0;
 
+		using Aligment = tuple<QByteArray, QByteArray, int>; // Describes an aligment of REF, ALT, OFFSET
+
 		while(!in_p->atEnd())
 		{
 			QByteArray line = in_p->readLine();
