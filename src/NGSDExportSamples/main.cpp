@@ -26,6 +26,7 @@ public:
 		addString("project", "Project name filter.", true, "");
 		addString("sys", "Processing system short name filter.", true, "");
 		addString("run", "Sequencing run name filter.", true, "");
+		addString("species", "Species filter.", true, "");
 		addEnum("quality", "Minimum processed sample/sample/run quality filter.", true, QStringList() << "bad" << "medium" << "good", "bad");
 		addFlag("no_tumor", "If set, tumor samples are excluded.");
 		addFlag("no_ffpe", "If set, FFPE samples are excluded.");
@@ -35,6 +36,7 @@ public:
 		addFlag("check_path", "Checks if the sample folder is present at the defaults location in the 'projects_folder' (as defined in the 'settings.ini' file).");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
+		changeLog(2019,  1, 10, "Added 'species' filter.");
 		changeLog(2018, 10, 23, "Added 'outcome' flag.");
 	}
 
@@ -64,10 +66,10 @@ public:
 		if (project!="")
 		{
 			//check that name is valid
-			QVariant tmp = db.getValue("SELECT id FROM project WHERE name='"+project+"'", true).toString();
+			QVariant tmp = db.getValue("SELECT id FROM project WHERE name='"+project+"'", true);
 			if (tmp.isNull())
 			{
-				THROW(DatabaseException, "Invalid project name '" + project + ".\nValid names are: " + db.getValues("SELECT name FROM project").join(", "));
+				THROW(DatabaseException, "Invalid project name '" + project + ".\nValid names are: " + db.getValues("SELECT name FROM project ORDER BY name ASC").join(", "));
 			}
 			conditions << "p.name='"+project+"'";
 		}
@@ -80,7 +82,7 @@ public:
 			QVariant tmp = db.getValue("SELECT id FROM processing_system WHERE name_short='"+sys+ "'", true).toString();
 			if (tmp.isNull())
 			{
-				THROW(DatabaseException, "Invalid processing system short name '"+sys+".\nValid names are: " + db.getValues("SELECT name_short FROM processing_system").join(", "));
+				THROW(DatabaseException, "Invalid processing system short name '"+sys+".\nValid names are: " + db.getValues("SELECT name_short FROM processing_system ORDER BY name_short ASC").join(", "));
 			}
 			conditions << "sys.name_short='"+sys+"'";
 		}
@@ -90,12 +92,25 @@ public:
 		if (run!="")
 		{
 			//check that name is valid
-			QVariant tmp = db.getValue("SELECT id FROM sequencing_run WHERE name='"+run+ "'", true).toString();
+			QVariant tmp = db.getValue("SELECT id FROM sequencing_run WHERE name='"+run+ "'", true);
 			if (tmp.isNull())
 			{
-				THROW(DatabaseException, "Invalid sequencing run name '"+run+".\nValid names are: " + db.getValues("SELECT name FROM sequencing_run").join(", "));
+				THROW(DatabaseException, "Invalid sequencing run name '"+run+".\nValid names are: " + db.getValues("SELECT name FROM sequencing_run ORDER BY name ASC").join(", "));
 			}
 			conditions << "r.name='"+run+"'";
+		}
+
+		//filter species
+		QString species = escape(getString("species"));
+		if (species!="")
+		{
+			//check that name is valid
+			QString tmp = db.getValue("SELECT id FROM species WHERE name='"+species+ "'", true).toString();
+			if (tmp.isNull())
+			{
+				THROW(DatabaseException, "Invalid species name '"+species+".\nValid names are: " + db.getValues("SELECT name FROM species ORDER BY name ASC").join(", "));
+			}
+			conditions << "s.species_id='"+tmp+"'";
 		}
 
 		//filter quality

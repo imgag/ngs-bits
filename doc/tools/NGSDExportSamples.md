@@ -1,5 +1,5 @@
 ### NGSDExportSamples tool help
-	NGSDExportSamples (2018_11-7-g60f117b)
+	NGSDExportSamples (2018_11-79-gf0e9db8)
 	
 	Lists processed samples from the NGSD.
 	
@@ -11,6 +11,8 @@
 	  -sys <string>     Processing system short name filter.
 	                    Default value: ''
 	  -run <string>     Sequencing run name filter.
+	                    Default value: ''
+	  -species <string> Species filter.
 	                    Default value: ''
 	  -quality <enum>   Minimum processed sample/sample/run quality filter.
 	                    Default value: 'bad'
@@ -37,7 +39,8 @@
 	  --tdx             Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDExportSamples changelog
-	NGSDExportSamples 2018_11-7-g60f117b
+	NGSDExportSamples 2018_11-79-gf0e9db8
 	
+	2019-01-10 Added 'species' filter.
 	2018-10-23 Added 'outcome' flag.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

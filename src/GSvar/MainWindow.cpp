@@ -1451,13 +1451,13 @@ void MainWindow::databaseAnnotationFinished(bool success)
 
 void MainWindow::on_actionOpenSample_triggered()
 {
-	NGSD db;
+	if (filename_=="") return;
 
 	//processed sample ID
 	QString ps_id;
 	try
 	{
-		ps_id = db.processedSampleId(filename_);
+		ps_id = NGSD().processedSampleId(filename_);
 	}
 	catch (DatabaseException e)
 	{

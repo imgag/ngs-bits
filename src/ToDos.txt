@@ -37,7 +37,6 @@ GSvar:
     - print sheet with flagged variants
 
 Tools:
-**** NGSDExportSamples: add species filter
 ** VcfToTsv: add support for CSQ field from VEP
 * SeqPurge: make multi-threaded processing scale better for WGS - add writer thread
 - VariantQC: insertion/deletion ratio?
