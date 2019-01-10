@@ -19,7 +19,6 @@ NGSD:
 GSvar:
 **** Support WGS CNV files (after entire CNV calling in megSAP is done with ClinCNV)
 *** Implement OMIM search via API - example: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1
-*** Annotate Somatic to germline data => select GSvar > 2 columns (small variants, CNVS) with AF, DP etc.
 ** Put NGSD/GL8/LOVD passwords encrypted in INI file - use compiled-in master password to decrypt them
     - https://www.codeproject.com/Articles/21877/Applied-Crypto-Block-Ciphers
     - http://www.cplusplus.com/forum/beginner/60604/
@@ -38,6 +37,7 @@ GSvar:
     - print sheet with flagged variants
 
 Tools:
+**** NGSDExportSamples: add species filter
 ** VcfToTsv: add support for CSQ field from VEP
 * SeqPurge: make multi-threaded processing scale better for WGS - add writer thread
 - VariantQC: insertion/deletion ratio?

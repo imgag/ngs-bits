@@ -1,5 +1,9 @@
 # GSvar change log
 
+### 2018_11-79 (09.01.19)
+- General: added "processed sample" dialog and plotting of quality metrics.
+- Sample details: added button to show histogram of allele frequencies.
+
 ### 2018_11-55 (19.12.18)
 - General: improved variant list loading and display (45% less memory, 10% faster)
 
@@ -249,6 +253,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 
