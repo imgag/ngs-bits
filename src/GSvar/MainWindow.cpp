@@ -190,7 +190,8 @@ void MainWindow::on_actionCNV_triggered()
 	//create list of genes with heterozygous variant hits
 	GeneSet het_hit_genes;
 	int i_genes = variants_.annotationIndexByName("gene", true, false);
-	int i_genotype = variants_.annotationIndexByName("genotype", true, false);
+	QString geno_column = variants_.type()==GERMLINE_TRIO ? processedSampleName() : "genotype";
+	int i_genotype = variants_.annotationIndexByName(geno_column, true, false);
 	if (i_genes!=-1 && i_genotype!=-1)
 	{
 		for (int i=0; i<variants_.count(); ++i)
@@ -793,6 +794,13 @@ void MainWindow::showVariantSampleOverview()
 
 void MainWindow::showAlleleFrequencyHistogram()
 {
+	AnalysisType type = variants_.type();
+	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO)
+	{
+		QMessageBox::information(this, "Allele frequency histogram", "This functionality is only available for germline single sample and germline trio analysis.");
+		return;
+	}
+
 	//create histogram
 	Histogram hist(0.0, 1.0, 0.05);
 	int col = guiColumnIndex("quality");
@@ -807,7 +815,9 @@ void MainWindow::showAlleleFrequencyHistogram()
 			if (part.startsWith("AF="))
 			{
 				bool ok;
-				double value = part.mid(3).toDouble(&ok);
+				QString value_str = part.mid(3);
+				if (type==GERMLINE_TRIO) value_str = value_str.split(',')[0];
+				double value = value_str.toDouble(&ok);
 				if (ok)
 				{
 					hist.inc(value, true);
@@ -874,9 +884,15 @@ QString MainWindow::processedSampleName()
 {
 	QString filename = QFileInfo(filename_).baseName();
 
+
 	if (variants_.type()==SOMATIC_PAIR)
 	{
 		return filename.split("-")[0];
+	}
+	else if (variants_.type()==GERMLINE_TRIO)
+	{
+
+		return variants_.getSampleHeader().infoByStatus(true).column_name;
 	}
 
 	return filename;
@@ -1457,7 +1473,7 @@ void MainWindow::on_actionOpenSample_triggered()
 	QString ps_id;
 	try
 	{
-		ps_id = NGSD().processedSampleId(filename_);
+		ps_id = NGSD().processedSampleId(processedSampleName());
 	}
 	catch (DatabaseException e)
 	{

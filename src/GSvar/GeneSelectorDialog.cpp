@@ -18,6 +18,7 @@ GeneSelectorDialog::GeneSelectorDialog(QString sample_folder, QString sample_nam
 	ui->setupUi(this);
 	ui->splitter->setStretchFactor(0, 1);
 	ui->splitter->setStretchFactor(1, 3);
+	GUIHelper::styleSplitter(ui->splitter);
 
 	connect(ui->update_btn, SIGNAL(pressed()), this, SLOT(updateGeneTable()));
 	connect(ui->details, SIGNAL(cellChanged(int,int)), this, SLOT(geneTableItemChanged(int, int)));

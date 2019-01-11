@@ -5,6 +5,7 @@
 #include "SingleSampleAnalysisDialog.h"
 #include "GUIHelper.h"
 #include "ScrollableTextDialog.h"
+#include "ProcessedSampleWidget.h"
 #include <QMenu>
 #include <QFileInfo>
 #include <QDesktopServices>
@@ -278,6 +279,7 @@ void AnalysisStatusDialog::showContextMenu(QPoint pos)
 
 	//set up menu
 	QMenu menu;
+	menu.addAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample");
 	menu.addAction(QIcon(":/Icons/NGSD.png"), "Open sample in NGSD");
 	if (rows.count()==1 && types.values()[0]!="single sample")
 	{
@@ -315,6 +317,17 @@ void AnalysisStatusDialog::showContextMenu(QPoint pos)
 
 	//execute
 	QString text = action->text();
+	if (text=="Open processed sample")
+	{
+		NGSD db;
+		foreach(const AnalysisJobSample& sample, samples)
+		{
+			ProcessedSampleWidget* widget = new ProcessedSampleWidget(this, db.processedSampleId(sample.name));
+			auto dlg = GUIHelper::createDialog(widget, sample.name, "", false);
+			dlg->setWindowIcon(QIcon(":/Icons/NGSD_sample.png"));
+			dlg->exec();
+		}
+	}
 	if (text=="Open sample in NGSD")
 	{
 		foreach(const AnalysisJobSample& sample, samples)
@@ -324,9 +337,9 @@ void AnalysisStatusDialog::showContextMenu(QPoint pos)
 	}
 	if (text=="Open sample folder(s)")
 	{
+		NGSD db;
 		foreach(const AnalysisJobSample& sample, samples)
 		{
-			NGSD db;
 			QDesktopServices::openUrl(db.processedSamplePath(db.processedSampleId(sample.name), NGSD::SAMPLE_FOLDER));
 		}
 	}

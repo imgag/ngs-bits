@@ -13,17 +13,23 @@ NGSD:
 ** model sample relation: same sample, parent-child, tumor-normal, siblings
   - use 'same sample' when counting variant frequencies
   - set relations after somatic/trio pipeline is through
+  - show relations in processed sample widget > draw family graph?
 ** annotate counts with same/different disease group/status separately
+  - only if disease group is set > for when re-annotating in GSvar
+  - affected: affected with same disease group
+  - controls: controls, or affected with different disease group (not 'n/a')
+  - pre-calculate in NGSD: disease_group, affected hom/het/count, controls hom/het/count
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
 
 GSvar:
 **** Support WGS CNV files (after entire CNV calling in megSAP is done with ClinCNV)
-*** Implement OMIM search via API - example: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1
+*** Implement OMIM search via API - example: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1 (wait for API access)
 ** Put NGSD/GL8/LOVD passwords encrypted in INI file - use compiled-in master password to decrypt them
     - https://www.codeproject.com/Articles/21877/Applied-Crypto-Block-Ciphers
     - http://www.cplusplus.com/forum/beginner/60604/
     - https://codereview.stackexchange.com/questions/63566/encryption-with-many-algorithms-using-crypto
     - https://www.cryptopp.com/wiki/ARIA
+* Add special report for trios
 * Add highlighting of imprinting genes to CNVs, ROHs and UPDs
 * Add multi-gene Google/PubMed search: https://www.ncbi.nlm.nih.gov/pubmed/?term=CASP8+AND+(%22Breast+cancer%22+OR+%22Breast+carcinoma%22)+AND+2018 (SWAL)
 * Add ExAC pLI / ExAC CNV / inheritance (megSAP) and filter for CNVs (GSvar) (wait for ClinCNV)
@@ -35,6 +41,7 @@ GSvar:
     - add filter to show marked variants only
     - also flag which variants are exported to GenLab8 via the XML report
     - print sheet with flagged variants
+- Store/restore session
 
 Tools:
 ** VcfToTsv: add support for CSQ field from VEP
