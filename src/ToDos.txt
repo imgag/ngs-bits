@@ -10,10 +10,11 @@ libs:
 - FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 
 NGSD:
-** model sample relation: same sample, parent-child, tumor-normal, siblings
+** model sample relation
   - use 'same sample' when counting variant frequencies
-  - set relations after somatic/trio pipeline is through
-  - show relations in processed sample widget > draw family graph?
+  - set relations after somatic pipeline is through
+  - show relations in processed sample widget
+  - allow adding/editing sample relations
 ** annotate counts with same/different disease group/status separately
   - only if disease group is set > for when re-annotating in GSvar
   - affected: affected with same disease group
