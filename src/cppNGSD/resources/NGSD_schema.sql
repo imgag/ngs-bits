@@ -393,6 +393,32 @@ AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
+-- Table `sample_relations`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `sample_relations`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `sample1_id` INT(11) NOT NULL,
+  `relation` ENUM('parent-child', 'tumor-normal', 'siblings', 'same sample') NOT NULL,
+  `sample2_id` INT(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `relation_unique` (`sample1_id` ASC, `relation` ASC, `sample2_id` ASC),
+  CONSTRAINT `fk_sample1_id`
+    FOREIGN KEY (`sample1_id`)
+    REFERENCES `sample` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_sample2_id`
+    FOREIGN KEY (`sample2_id`)
+    REFERENCES `sample` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+AUTO_INCREMENT = 1
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
 -- Table `project`
 -- -----------------------------------------------------
 CREATE  TABLE IF NOT EXISTS `project` (

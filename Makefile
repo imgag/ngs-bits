@@ -77,7 +77,7 @@ build_release_noclean:
 clean:
 	find src -name "*.user" | xargs rm -rf
 	rm -rf build-* bin/out
-	find bin -type f | grep -v ".ini" | grep -v "libhts" | xargs -l1 rm -rf
+	find bin -type f -or -type l | grep -v ".ini" | grep -v "libhts" | xargs -l1 rm -rf
 
 test_lib:
 	cd bin && ./cppCORE-TEST && ./cppNGS-TEST && ./cppNGSD-TEST
@@ -101,6 +101,10 @@ deploy_nobuild:
 	@echo "#Update permissions"
 	chmod 775 $(DEP_PATH)*
 	@echo ""
+	@echo "#Activating"
+	@echo "You can active the new build using the command:"
+	@echo "rm /mnt/share/opt/ngs-bits-current && ln -s $(DEP_PATH) /mnt/share/opt/ngs-bits-current"
+	@echo ""
 	@echo "#Deploy settings"
 	cp /mnt/share/opt/ngs-bits-settings/settings.ini $(DEP_PATH)settings.ini
 	diff bin/settings.ini $(DEP_PATH)settings.ini
@@ -109,6 +113,10 @@ test_debug: clean build_libs_debug build_tools_debug test_lib test_tools
 
 test_release:
 	make clean build_libs_release build_tools_release build_gui_release test_lib test_tools > t.log 2>&1
+	egrep "FAILED|SKIPPED" t.log
+
+test_release_nogui:
+	make clean build_libs_release build_tools_release test_lib test_tools > t.log 2>&1
 	egrep "FAILED|SKIPPED" t.log
 
 pull:

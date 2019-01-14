@@ -27,7 +27,7 @@ lovd_user_auth_token=
 #Analysis steps for queuing
 analysis_steps_single_sample=ma - mapping, vc - variant calling, an - annotation, db - database import, cn - copy number calling
 analysis_steps_multi_sample=vc - variant calling, an - annotation, cn - copy number calling
-analysis_steps_trio=vc - variant calling, an - annotation, cn - copy number calling
+analysis_steps_trio=vc - variant calling, an - annotation, cn - copy number calling, db - database import
 analysis_steps_somatic=vc - variant calling, cn - copy number calling, an - annotation, ci - CGI annotation, msi - microsatellite instabilty, db - database import
 
 #Special regions used during sub-panel design
