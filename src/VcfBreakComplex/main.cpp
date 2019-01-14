@@ -69,6 +69,7 @@ public:
 		unsigned int number_of_variants = 0;
 
 		using Aligment = tuple<QByteArray, QByteArray, int>; // Describes an aligment of REF, ALT, OFFSET
+		enum ClumpType { MNP, DELETION, INSERTION };
 
 		while(!in_p->atEnd())
 		{
@@ -89,9 +90,8 @@ public:
 			// Not a header line so increment the variant
 			++number_of_variants;
 
-			QByteArray ref = VcfFile::getPartByColumn(line, VcfFile::REF).trimmed();
+			// Save a little bit of memory on multi-records
 			QByteArray alt = VcfFile::getPartByColumn(line, VcfFile::ALT).trimmed();
-			int pos = VcfFile::getPartByColumn(line, VcfFile::POS).trimmed().toInt();
 
 			// Skip alternating allele pairs
 			if (alt.contains(","))
@@ -99,6 +99,9 @@ public:
 				out_p->write(line);
 				continue;
 			}
+
+			QByteArray ref = VcfFile::getPartByColumn(line, VcfFile::REF).trimmed();
+			int pos = VcfFile::getPartByColumn(line, VcfFile::POS).trimmed().toInt();
 
 			VariantType variant_type = VcfFile::classifyVariant(ref, alt);
 
@@ -115,7 +118,7 @@ public:
 
 				if (ref.length() == 1 || alt.length() == 1) // SNP
 				{
-					aligments.push_back(Aligment(query.replace("-", ""), reference.replace("-", ""), 0));
+					aligments.push_back(Aligment(reference.replace("-", ""), query.replace("-", ""), 0));
 					++number_of_additional_snps;
 				}
 				else // MNP or CLUMPED
@@ -124,55 +127,62 @@ public:
 					{
 						out_p->write(line);
 					}
-					else // Break up clumped variants
+					else
 					{
-						while (query.startsWith("-")) // Kill leading gaps
+						// Break up clumped variants
+						ClumpType variant_clump = MNP;
+						if (query.size() - query.count("-") == reference.size() - reference.count("-")) // TODO: We might not need aligment for cases where |REF|==|ALT|
 						{
-							query = query.remove(0, 1);
+							variant_clump = MNP;
+							query.replace("-", "");
+							reference.replace("-", "");
+						}
+						else if (reference.size() > query.size() - query.count("-"))
+						{
+							variant_clump = DELETION;
+						}
+						else if (query.size() > reference.size() - reference.count())
+						{
+							variant_clump = INSERTION;
 						}
 
-						for (auto i = 0; i < query.size(); ++i)
+						int i = 0;
+						while (i < reference.length())
 						{
-							if (i + 1 < query.size() && query.at(i + 1) == '-') // transition from REF,- to ALT
+							if (variant_clump == DELETION && query.at(i) == '-') // Deletion event
 							{
-								int gap_start = static_cast<int> (i + 1);
-								int gap_end = gap_start;
-								while ((i + 1) < query.size() && query.at(i + 1) == '-')
-								{
-									++i;
-									gap_end++;
-								}
-								aligments.push_back(Aligment(query.mid(gap_start - 1, 1), reference.mid(gap_start - 1, gap_end).replace("-", ""), gap_start));
-								++number_of_biallelic_block_substitutions; // new biallelic block substitutios
-							}
-							else if (i + 1 < reference.size() && reference.at(i + 1) == '-') // do the same for the reference
-							{
-								int gap_start = static_cast<int> (i +1);
-								int gap_end = gap_start;
-								while ((i + 1) < reference.size() && reference.at(i + 1) == '-')
-								{
-									++i;
-									++gap_end;
-								}
-								aligments.push_back(Aligment(query.mid(gap_start - 1, 2), reference.mid(gap_start - 1, gap_end).replace("-", ""), gap_start));
-								++number_of_biallelic_block_substitutions; // new biallelic block substitutios
-							}
-							else if (reference.at(i) == '-') {
-								int gap_start = static_cast<int> (i);
-								int gap_end = gap_start;
-								while ((i + 1) < reference.size() && reference.at(i) == '-')
-								{
-									++i;
-									++gap_end;
-								}
-								aligments.push_back(Aligment(query.mid(gap_start, gap_end - gap_start), reference.mid(gap_end, 1), gap_start));
+								int gap_start = i;
+								while (i < reference.length() && query.at(i) == '-') ++i; // Search for first character that is not a GAP
+
+								// We distinguish two cases
+								// CTT / CT- -> CTT / CT
+								// CTT / --T -> CTT / T
+								int deletion_start = (query.at(max(gap_start - 1, 0)) == '-') ? max(gap_start - 1, 0) : gap_start;
+
+								aligments.push_back(Aligment(reference.mid(deletion_start, (i + 1) - deletion_start), query.mid(i, 1), deletion_start));
 								++number_of_biallelic_block_substitutions;
 							}
-							else if (query.at(i) != reference.at(i)) // transition from REF -> ALT
+							else if (variant_clump == INSERTION && reference.at(i) == '-') // Insertion event
 							{
-								aligments.push_back(Aligment(query.mid(i, 1), reference.mid(i, 1), i));
+								int gap_start = i;
+								while (i < reference.length() && reference.at(i) == '-') ++i; // Search for first character that is not a GAP
+
+								// We handle one case
+								// C-- / CTT -> C / CTT
+								int insertion_start = max(gap_start - 1, 0); // Anything else cannot be valid VCF since the reference must always be given for an insertion
+
+								aligments.push_back(Aligment(reference.mid(insertion_start, 1), query.mid(insertion_start, i - insertion_start), insertion_start));
+								++number_of_biallelic_block_substitutions;
+							}
+							else if (reference.at(i) != query.at(i)) // SNP
+							{
+								aligments.push_back(Aligment(reference.mid(i, 1), query.mid(i, 1), i));
 								++i;
 								++number_of_additional_snps;
+							}
+							else // Simply ignore identical bases
+							{
+								++i;
 							}
 						}
 					}
@@ -206,7 +216,7 @@ public:
 		stats_p->open(stderr, QFile::WriteOnly | QIODevice::Text);
 		double new_variants_in_percent = (number_of_variants>0) ? 100.0 * number_of_new_variants / number_of_variants : 0.0;
 		stats_p->write(QByteArray("Processed ") + QByteArray::number(number_of_variants) + " variant(s) of which " + QByteArray::number(number_of_new_variants) + " (" + QByteArray::number(new_variants_in_percent, 'f', 2) + "%) were decomposed.\n");
-		stats_p->write(QByteArray::number(number_of_additional_snps - number_of_new_variants) + " of these are additional SNPs and " + QByteArray::number(number_of_biallelic_block_substitutions - number_of_variants) + " of these are biallelic substitutions.\n");
+		//stats_p->write(QByteArray::number(number_of_additional_snps - number_of_new_variants) + " of these are additional SNPs and " + QByteArray::number(number_of_biallelic_block_substitutions - number_of_variants) + " of these are biallelic substitutions.\n");
 	}
 };
 
