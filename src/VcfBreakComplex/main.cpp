@@ -141,9 +141,35 @@ public:
 						{
 							variant_clump = DELETION;
 						}
-						else if (query.size() > reference.size() - reference.count())
+						else if (query.size() > reference.size() - reference.count("-"))
 						{
 							variant_clump = INSERTION;
+						}
+
+						if (variant_clump == INSERTION && reference.at(0) == '-') // Leading gap
+						{
+							int i = 0;
+							while (i < ref.length() - 1)
+							{
+								if (ref.at(i) == alt.at(i)) i++;
+								if (ref.at(i) == alt.at(i))
+								{
+									++i;
+								}
+								else
+								{
+									break;
+								}
+							}
+
+							// Re-calculate shorter aligment
+							nw = NeedlemanWunsch<QByteArray>(ref.mid(i - 1), alt.mid(i - 1));
+							nw.compute_matrix();
+							nw.trace_back();
+
+							aligment = nw.get_aligments();
+							reference = get<ALIGMENT_REFERENCE>(aligment);
+							query = get<ALIGMENT_QUERY>(aligment);
 						}
 
 						int i = 0;
@@ -167,11 +193,13 @@ public:
 								int gap_start = i;
 								while (i < reference.length() && reference.at(i) == '-') ++i; // Search for first character that is not a GAP
 
-								// We handle one case
+								// We handle two cases
 								// C-- / CTT -> C / CTT
-								int insertion_start = max(gap_start - 1, 0); // Anything else cannot be valid VCF since the reference must always be given for an insertion
+								// --C / CTT -> C / CTT
+								int ref_start = (reference.at(max(gap_start - 1, 0))  == '-') ? i : max(gap_start - 1, 0);
+								int insertion_start = max(gap_start - 1, 0);
 
-								aligments.push_back(Aligment(reference.mid(insertion_start, 1), query.mid(insertion_start, i - insertion_start), insertion_start));
+								aligments.push_back(Aligment(reference.mid(ref_start, 1), query.mid(insertion_start, i - insertion_start), insertion_start));
 								++number_of_biallelic_block_substitutions;
 							}
 							else if (reference.at(i) != query.at(i)) // SNP
