@@ -1118,6 +1118,54 @@ QTableWidgetItem* MainWindow::createTableItem(const QByteArray& text, bool clear
 	return new QTableWidgetItem(cache[text]);
 }
 
+void MainWindow::checkMendelianErrorRate(double cutoff_perc)
+{
+	QString output = "";
+	try
+	{
+		SampleHeaderInfo infos = variants_.getSampleHeader();
+		int col_c = infos.infoByStatus(true).column_index;
+
+		foreach(const SampleInfo& info, infos)
+		{
+			if (info.isAffected()) continue;
+
+			int errors = 0;
+			int autosomal = 0;
+
+			int col_p = info.column_index;
+
+			for (int i=0; i<variants_.count(); ++i)
+			{
+				const Variant& v = variants_[i];
+				if (!v.chr().isAutosome()) continue;
+				++autosomal;
+
+				QString geno_c = v.annotations()[col_c];
+				QString geno_p = v.annotations()[col_p];
+
+				if ((geno_p=="hom" && geno_c=="wt") || (geno_p=="wt" && geno_c=="hom")) ++errors;
+			}
+
+			double percentage = 100.0 * errors / autosomal;
+			if (percentage>cutoff_perc)
+			{
+				output = "Amount of variants with mendelian error between " + infos.infoByStatus(true).column_name + " and " + info.column_name + " too high:\n" + QString::number(errors) + "/" + QString::number(autosomal) + " ~ " + QString::number(percentage, 'f', 2) + "%";
+				break;
+			}
+		}
+	}
+	catch (Exception& e)
+	{
+		output = "Mendelian error rate calulation not possible:\n" + e.message();
+	}
+
+	if (!output.isEmpty())
+	{
+		QMessageBox::warning(this, "Medelian error rate", output);
+	}
+}
+
 void MainWindow::on_actionChangeLog_triggered()
 {
 	QDesktopServices::openUrl(QUrl("https://github.com/imgag/ngs-bits/tree/master/doc/GSvar/changelog.md"));
@@ -1199,6 +1247,11 @@ void MainWindow::loadFile(QString filename)
 	catch(Exception& e)
 	{
 		QMessageBox::warning(this, "Outdated GSvar file", "The GSvar file contains the following error:\n" + e.message() + "\n\nTo ensure that GSvar works as expected, re-run the analysis starting from annotation!");
+	}
+
+	if (variants_.type()==GERMLINE_TRIO)
+	{
+		checkMendelianErrorRate();
 	}
 }
 

@@ -10,11 +10,14 @@ libs:
 - FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 
 NGSD:
+#### Fix &le; etc in filter
+#### AnalysisStatus: Add 4th window with output in bottom
+#### Add OMIM search link e.g. https://omim.org/search/?search=MUTYH if no OMIM entry available
 ** model sample relation
-  - use 'same sample' when counting variant frequencies
-  - set relations after somatic pipeline is through
+  - trio reanalysis: auto-complete father/mother if sample with same processing system is in NGSD
   - show relations in processed sample widget
   - allow adding/editing sample relations
+  - use 'same sample' when counting variant frequencies
 ** annotate counts with same/different disease group/status separately
   - only if disease group is set > for when re-annotating in GSvar
   - affected: affected with same disease group

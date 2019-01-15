@@ -220,6 +220,9 @@ public slots:
 	///Creates table widget items, or nullptr if the text is empty. Uses Qt implicit sharing to avoid duplicate strings.
 	QTableWidgetItem* createTableItem(const QByteArray& text, bool clear=false) const;
 
+	///Check mendelian error rate of trio.
+	void checkMendelianErrorRate(double cutoff_perc=5.0);
+
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);
 	virtual void dropEvent(QDropEvent* e);
