@@ -58,5 +58,7 @@
         <file>Icons/Zoom_reset.png</file>
         <file>Icons/Exchange.png</file>
         <file>Icons/NGSD_sample.png</file>
+        <file>Icons/OMIM.png</file>
+        <file>Icons/VarSome.png</file>
     </qresource>
 </RCC>

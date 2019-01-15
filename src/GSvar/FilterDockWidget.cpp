@@ -598,7 +598,12 @@ void FilterDockWidget::updateGUI()
 	ui_.filters_entries->clear();
 	for(int i=0; i<filters_.count(); ++i)
 	{
-		QListWidgetItem* item = new QListWidgetItem(filters_[i]->toText());
+		//remove HTML special characters for GUI
+		QTextDocument converter;
+		converter.setHtml(filters_[i]->toText());
+		QString text = converter.toPlainText();
+
+		QListWidgetItem* item = new QListWidgetItem(text);
 		item->setCheckState(filters_[i]->enabled() ? Qt::Checked : Qt::Unchecked);
 		item->setToolTip(filters_[i]->description().join("\n"));
 		ui_.filters_entries->addItem(item);

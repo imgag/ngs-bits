@@ -2438,6 +2438,13 @@ void MainWindow::varsContextMenu(QPoint pos)
 		sub_menu->addAction(g);
 	}
 
+	//OMIM
+	sub_menu = menu.addMenu(QIcon("://Icons/OMIM.png"), "OMIM");
+	foreach(QString g, genes)
+	{
+		sub_menu->addAction(g);
+	}
+
 	//GeneCards
 	sub_menu = menu.addMenu(QIcon("://Icons/GeneCards.png"), "GeneCards");
 	foreach(QString g, genes)
@@ -2530,6 +2537,9 @@ void MainWindow::varsContextMenu(QPoint pos)
 		sub_menu->addAction(g);
 	}
 
+	//varsome
+	menu.addAction(QIcon("://Icons/VarSome.png"), "VarSome");
+
 	//Execute menu
 	action = menu.exec(ui_.vars->viewport()->mapToGlobal(pos));
 	if (!action) return;
@@ -2599,6 +2609,10 @@ void MainWindow::varsContextMenu(QPoint pos)
 	else if (parent_menu && parent_menu->title()=="HGMD")
 	{
 		QDesktopServices::openUrl(QUrl("https://portal.biobase-international.com/hgmd/pro/gene.php?gene=" + text));
+	}
+	else if (parent_menu && parent_menu->title()=="OMIM")
+	{
+		QDesktopServices::openUrl(QUrl("https://omim.org/search/?search=" + text));
 	}
 	else if (parent_menu && parent_menu->title()=="GeneCards")
 	{
@@ -2672,6 +2686,16 @@ void MainWindow::varsContextMenu(QPoint pos)
 	else if (parent_menu && parent_menu->title()=="SysID")
 	{
 		QDesktopServices::openUrl(QUrl("https://sysid.cmbi.umcn.nl/search?search=" + text));
+	}
+	else if (text=="VarSome")
+	{
+		QString ref = variant.ref();
+		ref.replace("-", "");
+		QString obs = variant.obs();
+		obs.replace("-", "");
+		QString var = variant.chr().str() + "-" + QString::number(variant.start()) + "-" +  ref + "-" + obs;
+		QString genome = variant.chr().isM() ? "hg38" : "hg19";
+		QDesktopServices::openUrl(QUrl("https://varsome.com/variant/" + genome + "/" + var));
 	}
 }
 

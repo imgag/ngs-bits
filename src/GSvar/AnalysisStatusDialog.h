@@ -24,7 +24,6 @@ protected slots:
 	void showContextMenu(QPoint pos);
 	void clearDetails();
 	void updateDetails();
-	void showOutputDetails(QTableWidgetItem* item);
 	void copyToClipboard();
 
 private:

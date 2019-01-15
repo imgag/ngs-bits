@@ -19,10 +19,10 @@ AnalysisStatusDialog::AnalysisStatusDialog(QWidget *parent)
 {
 	//setup UI
 	ui_.setupUi(this);
+	GUIHelper::styleSplitter(ui_.splitter);
+	GUIHelper::styleSplitter(ui_.splitter_2);
 	connect(ui_.analyses, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
-	connect(ui_.analyses, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(showOutputDetails(QTableWidgetItem*)));
 	connect(ui_.analyses->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(updateDetails()));
-	connect(ui_.history, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(showOutputDetails(QTableWidgetItem*)));
 	connect(ui_.refresh, SIGNAL(clicked(bool)), this, SLOT(refreshStatus()));
 	ui_.f_date->setDate(QDate::currentDate().addDays(-14));
 	connect(ui_.analysisSingle, SIGNAL(clicked(bool)), this, SLOT(analyzeSingleSamples()));
@@ -472,46 +472,18 @@ void AnalysisStatusDialog::updateDetails()
 		addItem(ui_.history, r, 1, entry.user);
 		addItem(ui_.history, r, 2, entry.status, statusToColor(entry.status));
 		QString output = entry.output.join("\n").trimmed();
-		if (entry.output.count()>1)
+		if (output.count()>50)
 		{
-			addItem(ui_.history, r, 3, "double-click for details");
+			output.resize(50);
+			output += "...";
 		}
-		else
-		{
-			addItem(ui_.history, r, 3, output);
-		}
+		addItem(ui_.history, r, 3, output);
 		++r;
 	}
 	GUIHelper::resizeTableCells(ui_.history);
-}
 
-void AnalysisStatusDialog::showOutputDetails(QTableWidgetItem* item)
-{
-	if (item==nullptr) return;
-
-	int selection_row = selectedRow();
-	if (selection_row==-1) return;
-
-	//determine output to show
-	QStringList output;
-	if (item->tableWidget()==ui_.history) //history clicked => show text of item
-	{
-		output = jobs_[selection_row].job_data.history[item->row()].output;
-	}
-	else //main table clicked => show output of last entry
-	{
-		output = jobs_[selection_row].job_data.history.last().output;
-	}
-
-	//trim and join
-	std::for_each(output.begin(), output.end(), [](QString& line){ line = line.trimmed(); });
-	QString text = output.join("\n").trimmed();
-	if (text.isEmpty()) return;
-
-	ScrollableTextDialog dlg(this);
-	dlg.setWindowTitle("Output");
-	dlg.setText(text);
-	dlg.exec();
+	//output
+	ui_.output->setText(job.history.last().output.join("\n"));
 }
 
 void AnalysisStatusDialog::copyToClipboard()
