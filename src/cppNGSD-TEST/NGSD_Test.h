@@ -30,6 +30,10 @@ private slots:
 		IS_TRUE(systems.contains("HaloPlex HBOC v5"))
 		IS_TRUE(systems.contains("HaloPlex HBOC v6"))
 
+		//processedSampleName
+		QString ps_name = db.processedSampleName(db.processedSampleId("NA12878_03"), false);
+		S_EQUAL(ps_name, "NA12878_03");
+
 		//getProcessingSystemData
 		ProcessingSystemData system_data = db.getProcessingSystemData(db.processedSampleId("NA12878_03"), false);
 		S_EQUAL(system_data.name, "HaloPlex HBOC v5");

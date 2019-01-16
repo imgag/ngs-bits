@@ -38,7 +38,8 @@ public:
 	//Returns if the analysis is to be performed with high priority
 	bool highPriority() const;
 
-	static void addSample(NGSD& db, QString status, QList<SampleDetails>& samples, QString sample="", bool throw_if_bam_missing=true);
+	//Adds a sample and returns the processed sample ID (or empty string if canelled)
+	static QString addSample(NGSD& db, QString status, QList<SampleDetails>& samples, QString sample="", bool throw_if_bam_missing=true, bool force_showing_dialog=false);
 	static void updateSampleTable(const QList<SampleDetails>& samples, QTableWidget* samples_table);
 	static QList<AnalysisJobSample> samples(const QList<SampleDetails>& samples);
 	static QList<AnalysisStep> loadSteps(QString ini_name);

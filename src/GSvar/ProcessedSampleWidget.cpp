@@ -12,7 +12,6 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 {
 	ui_->setupUi(this);
 	GUIHelper::styleSplitter(ui_->splitter);
-	GUIHelper::styleSplitter(ui_->splitter_2);
 	connect(ui_->ngsd_btn, SIGNAL(clicked(bool)), this, SLOT(openSampleInNGSD()));
 
 	QAction* action = new QAction("Plot", this);
@@ -42,7 +41,8 @@ void ProcessedSampleWidget::updateGUI()
 	ui_->run->setText(ps_data.run_name);
 
 	//#### sample details ####
-	SampleData s_data = db_.getSampleData(db_.getValue("SELECT sample_id FROM processed_sample WHERE id='" + id_ + "'").toString());
+	QString s_id = db_.getValue("SELECT sample_id FROM processed_sample WHERE id='" + id_ + "'").toString();
+	SampleData s_data = db_.getSampleData(s_id);
 	ui_->name_external->setText(s_data.name_external);
 	ui_->gender->setText(s_data.gender);
 	ui_->tumor_ffpe->setText(QString(s_data.is_tumor ? "<font color=red>yes</font>" : "no") + " / " + (s_data.is_ffpe ? "<font color=red>yes</font>" : "no"));
@@ -63,6 +63,12 @@ void ProcessedSampleWidget::updateGUI()
 	}
 	dd_table.setColumn(dd_table.columnIndex("disease_info"), info_entries);
 	ui_->disease_details->setData(dd_table);
+
+
+	//#### sample relations ####
+	DBTable rel_table = db_.createTable("sample_relations", "SELECT id, (SELECT name FROM sample WHERE id=sample1_id), relation, (SELECT name FROM sample WHERE id=sample2_id) FROM sample_relations WHERE sample1_id='" + s_id + "' OR sample2_id='" + s_id + "'");
+	rel_table.setHeaders(QStringList() << "sample1" << "relation" << "sample2");
+	ui_->sample_relations->setData(rel_table);
 
 	//#### QC ####
 	updateQCMetrics();

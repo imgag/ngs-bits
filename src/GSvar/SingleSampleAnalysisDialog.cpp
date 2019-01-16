@@ -41,17 +41,17 @@ bool SingleSampleAnalysisDialog::highPriority() const
 	return ui_.high_priority->isChecked();
 }
 
-void SingleSampleAnalysisDialog::addSample(NGSD& db, QString status, QList<SampleDetails>& samples, QString sample, bool throw_if_bam_missing)
+QString SingleSampleAnalysisDialog::addSample(NGSD& db, QString status, QList<SampleDetails>& samples, QString sample, bool throw_if_bam_missing, bool force_showing_dialog)
 {
 	status = status.trimmed();
 
 	//get sample name if unset
-	if (sample.isEmpty())
+	if (force_showing_dialog || sample.isEmpty())
 	{
 		QString label = status.isEmpty() ? "sample:" : status + ":";
-		sample = QInputDialog::getText(QApplication::activeWindow(), "Add processed sample", label);
+		sample = QInputDialog::getText(QApplication::activeWindow(), "Add processed sample", label, QLineEdit::Normal, sample);
 	}
-	if (sample.isEmpty()) return;
+	if (sample.isEmpty()) return "";
 
 	//check NGSD data
 	QString ps_id = db.processedSampleId(sample);
@@ -69,6 +69,8 @@ void SingleSampleAnalysisDialog::addSample(NGSD& db, QString status, QList<Sampl
 	//add sample
 	ProcessedSampleData processed_sample_data = db.getProcessedSampleData(ps_id);
 	samples.append(SampleDetails {sample, processed_sample_data.processing_system, status, processed_sample_data.quality, processed_sample_data.gender});
+
+	return ps_id;
 }
 
 void SingleSampleAnalysisDialog::updateSampleTable(const QList<SampleDetails>& samples, QTableWidget* samples_table)

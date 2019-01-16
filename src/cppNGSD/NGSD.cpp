@@ -150,33 +150,12 @@ void NGSD::setSampleDiseaseInfo(const QString& sample_id, const QList<SampleDise
 	}
 }
 
-
-QString NGSD::sampleName(const QString& filename, bool throw_if_fails)
-{
-	QString basename = QFileInfo(filename).baseName();
-	QStringList parts = basename.append('_').split('_');
-
-	if (parts[0]=="")
-	{
-		if (throw_if_fails)
-		{
-			THROW(ArgumentException, "File name '" + basename + "' does not start with a valid NGSD sample name!");
-		}
-		else
-		{
-			return "";
-		}
-	}
-
-	return parts[0];
-}
-
 QString NGSD::normalSample(const QString& processed_sample_id)
 {
 	QVariant value = getValue("SELECT normal_id FROM processed_sample WHERE id=" + processed_sample_id, true);
 	if (value.isNull()) return "";
 
-	return getValue("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.id=" + value.toString()).toString();
+	return processedSampleName(value.toString());
 }
 
 void NGSD::setSampleDiseaseData(const QString& sample_id, const QString& disease_group, const QString& disease_status)
@@ -210,26 +189,25 @@ ProcessingSystemData NGSD::getProcessingSystemData(const QString& processed_samp
 	return output;
 }
 
-QString NGSD::processedSampleName(const QString& filename, bool throw_if_fails)
+QString NGSD::processedSampleName(const QString& ps_id, bool throw_if_fails)
 {
-	QString basename = QFileInfo(filename).baseName();
-	QStringList parts = basename.append('_').split('_');
-
-	bool ok = false;
-	parts[1].toInt(&ok);
-	if (parts[0]=="" || !ok)
+	SqlQuery query = getQuery();
+	query.prepare("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.id=:0");
+	query.bindValue(0, ps_id);
+	query.exec();
+	if (query.size()==0)
 	{
-		if (throw_if_fails)
+		if(throw_if_fails)
 		{
-			THROW(ArgumentException, "File name '" + basename + "' does not start with a valid NGSD processed sample name!");
+			THROW(DatabaseException, "Processed sample with ID '" + ps_id + "' not found in NGSD!");
 		}
 		else
 		{
 			return "";
 		}
 	}
-
-	return parts[0] + "_" + parts[1];
+	query.next();
+	return query.value(0).toString();
 }
 
 QString NGSD::sampleId(const QString& filename, bool throw_if_fails)

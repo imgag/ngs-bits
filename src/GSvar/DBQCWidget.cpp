@@ -46,7 +46,7 @@ void DBQCWidget::addHighlightedProcessedSampleById(QString id, QString name, boo
 	if (!text.isEmpty()) text += " ";
 	if (name.isEmpty())
 	{
-		text += db_.getValue("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.id='" + id + "'").toString();
+		text += db_.processedSampleName(id);
 	}
 	else
 	{

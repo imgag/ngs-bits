@@ -46,11 +46,37 @@ void TrioDialog::on_add_samples_clicked(bool)
 	//add samples
 	try
 	{
-		addSample("child");
+		QString c_id = addSample("child");
+		QString c_sys_id = db_.getValue("SELECT processing_system_id FROM processed_sample WHERE id='" + c_id + "'").toString();
+		QString c_s_id = db_.getValue("SELECT sample_id FROM processed_sample WHERE id='" + c_id + "'").toString();
 		updateSampleTable();
-		addSample("father");
+
+		//try to find father (male, parent relation, same processing system)
+		QStringList f_ps_ids = db_.getValues("SELECT ps.id FROM processed_sample ps, sample s, sample_relations sr WHERE ps.sample_id=s.id AND s.id=sr.sample1_id AND sr.relation='parent-child' AND s.gender='male' AND ps.processing_system_id='" + c_sys_id + "' AND sr.sample2_id='" + c_s_id + "'");
+		if (f_ps_ids.count()==1)
+		{
+			addSample("father",  db_.processedSampleName(f_ps_ids[0]), true);
+		}
+		else
+		{
+			addSample("father");
+		}
 		updateSampleTable();
-		addSample("mother");
+
+		//try to find mother (female, parent relation, same processing system)
+		QStringList m_ps_ids = db_.getValues("SELECT ps.id FROM processed_sample ps, sample s, sample_relations sr WHERE ps.sample_id=s.id AND s.id=sr.sample1_id AND sr.relation='parent-child' AND s.gender='female' AND ps.processing_system_id='" + c_sys_id + "' AND sr.sample2_id='" + c_s_id + "'");
+		if (m_ps_ids.count()==1)
+		{
+			addSample("mother", db_.processedSampleName(m_ps_ids[0]), true);
+		}
+		else
+		{
+			addSample("mother");
+		}
+	}
+	catch(const AbortByUserException& e)
+	{
+		samples_.clear();
 	}
 	catch(const Exception& e)
 	{
@@ -68,9 +94,11 @@ void TrioDialog::updateStartButton()
 	ui_.start_button->setEnabled(samples_.count()==3);
 }
 
-void TrioDialog::addSample(QString status, QString sample)
+QString TrioDialog::addSample(QString status, QString sample, bool force_showing_dialog)
 {
-	SingleSampleAnalysisDialog::addSample(db_, status, samples_, sample);
+	QString ps_id = SingleSampleAnalysisDialog::addSample(db_, status, samples_, sample, true, force_showing_dialog);
+	if (ps_id.isEmpty()) THROW(AbortByUserException, "");
+	return ps_id;
 }
 
 void TrioDialog::updateSampleTable()

@@ -20,7 +20,6 @@ AnalysisStatusDialog::AnalysisStatusDialog(QWidget *parent)
 	//setup UI
 	ui_.setupUi(this);
 	GUIHelper::styleSplitter(ui_.splitter);
-	GUIHelper::styleSplitter(ui_.splitter_2);
 	connect(ui_.analyses, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
 	connect(ui_.analyses->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(updateDetails()));
 	connect(ui_.refresh, SIGNAL(clicked(bool)), this, SLOT(refreshStatus()));

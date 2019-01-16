@@ -346,10 +346,8 @@ public:
 	QList<Phenotype> phenotypeChildTems(const Phenotype& phenotype, bool recursive);
 
 	/*** Base functionality for file/variant processing ***/
-	///Returns the sample name for a file name, e.g. 'GS120159' for '/some/path/GS120159_01.bam'. Throws an exception if the file name does not start with a valid name.
-	static QString sampleName(const QString& filename, bool throw_if_fails = true);
-	///Returns the processed sample name for a file name, e.g. 'GS120159_01' for '/some/path/GS120159_01.bam'. Throws an exception if the file name does not start with a valid name.
-	static QString processedSampleName(const QString& filename, bool throw_if_fails = true);
+	///Returns the processed sample name for an ID.
+	QString processedSampleName(const QString& ps_id, bool throw_if_fails = true);
 	///Returns the NGSD sample ID file name. Throws an exception if it could not be determined.
 	QString sampleId(const QString& filename, bool throw_if_fails = true);
 	///Returns the NGSD processed sample ID from a file name or processed sample name. Throws an exception if it could not be determined.
@@ -369,7 +367,7 @@ public:
 	SampleData getSampleData(const QString& sample_id);
 	///Returns processed sample data from the database.
 	ProcessedSampleData getProcessedSampleData(const QString& processed_sample_id);
-	///Returns the normal sample corresponding to a tumor sample, or "" if no normal samples is defined.
+	///Returns the normal processed sample corresponding to a tumor processed sample, or "" if no normal samples is defined.
 	QString normalSample(const QString& processed_sample_id);
 
 	///Returns sample disease details from the database.

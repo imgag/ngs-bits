@@ -36,7 +36,7 @@ private:
 	QList<SampleDetails> samples_;
 	QList<AnalysisStep> steps_;
 
-	void addSample(QString status, QString sample="");
+	QString addSample(QString status, QString sample="", bool force_showing_dialog=false);
 	void updateSampleTable();
 };
 

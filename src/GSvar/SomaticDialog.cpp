@@ -52,9 +52,13 @@ void SomaticDialog::on_add_samples_clicked(bool)
 	//add samples
 	try
 	{
-		addSample("tumor");
+		QString t_id = addSample("tumor");
 		updateSampleTable();
-		addSample("normal");
+		addSample("normal", db_.normalSample(t_id), true);
+	}
+	catch(const AbortByUserException& e)
+	{
+		samples_.clear();
 	}
 	catch(const Exception& e)
 	{
@@ -72,9 +76,12 @@ void SomaticDialog::updateStartButton()
 	ui_.start_button->setEnabled(samples_.count()==2);
 }
 
-void SomaticDialog::addSample(QString status, QString sample)
+
+QString SomaticDialog::addSample(QString status, QString sample, bool force_showing_dialog)
 {
-	SingleSampleAnalysisDialog::addSample(db_, status, samples_, sample);
+	QString ps_id = SingleSampleAnalysisDialog::addSample(db_, status, samples_, sample, true, force_showing_dialog);
+	if (ps_id.isEmpty()) THROW(AbortByUserException, "");
+	return ps_id;
 }
 
 void SomaticDialog::updateSampleTable()

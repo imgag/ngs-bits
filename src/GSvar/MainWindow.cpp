@@ -2551,7 +2551,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 	{
 		try
 		{
-			QString url = Settings::string("PrimerDesign")+"/index.php?user="+Helper::userName()+"&sample="+NGSD::sampleName(filename_)+"&chr="+variant.chr().str()+"&start="+QString::number(variant.start())+"&end="+QString::number(variant.end())+"";
+			QString url = Settings::string("PrimerDesign")+"/index.php?user="+Helper::userName()+"&sample="+sampleName()+"&chr="+variant.chr().str()+"&start="+QString::number(variant.start())+"&end="+QString::number(variant.end())+"";
 			QDesktopServices::openUrl(QUrl(url));
 		}
 		catch (Exception& e)
