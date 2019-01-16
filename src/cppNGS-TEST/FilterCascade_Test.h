@@ -712,19 +712,19 @@ private slots:
 		//default (all filters)
 		FilterTrio filter;
 		filter.apply(vl, result);
-		I_EQUAL(result.countPassing(), 12);
+		I_EQUAL(result.countPassing(), 13);
 
 		//de-novo
 		result.reset();
 		filter.setStringList("types", QStringList() << "de-novo");
 		filter.apply(vl, result);
-		I_EQUAL(result.countPassing(), 1);
+		I_EQUAL(result.countPassing(), 2);
 
 		//recessive
 		result.reset();
 		filter.setStringList("types", QStringList() << "recessive");
 		filter.apply(vl, result);
-		I_EQUAL(result.countPassing(), 2);
+		I_EQUAL(result.countPassing(), 1);
 
 		//comp-het
 		result.reset();
@@ -736,7 +736,7 @@ private slots:
 		result.reset();
 		filter.setStringList("types", QStringList() << "LOH");
 		filter.apply(vl, result);
-		I_EQUAL(result.countPassing(), 1);
+		I_EQUAL(result.countPassing(), 2);
 
 		//x-linked
 		result.reset();

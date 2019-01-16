@@ -1967,11 +1967,11 @@ void FilterTrio::correctedGenotypes(const Variant& v, QByteArray& geno_c, QByteA
 		{
 			QByteArrayList af_parts = part.mid(3).split(',');
 
-			if (geno_f=="wt" && af_parts[i_af_f].toDouble()>=0.05)
+			if (geno_f=="wt" && af_parts[i_af_f].toDouble()>=0.05 && af_parts[i_af_f].toDouble()<=0.3)
 			{
 				geno_f = "het";
 			}
-			if (geno_m=="wt" && af_parts[i_af_m].toDouble()>=0.05)
+			if (geno_m=="wt" && af_parts[i_af_m].toDouble()>=0.05 && af_parts[i_af_m].toDouble()<=0.3)
 			{
 				geno_m = "het";
 			}
