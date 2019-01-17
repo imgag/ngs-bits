@@ -25,6 +25,7 @@ protected slots:
 	void clearDetails();
 	void updateDetails();
 	void copyToClipboard();
+	void applyTextFilter();
 
 private:
 	Ui::AnalysisStatusDialog ui_;
@@ -38,7 +39,7 @@ private:
 
 	static void addItem(QTableWidget* table, int row, int col, QString text, QColor bg_color = Qt::transparent);
 	static QColor statusToColor(QString status);
-	int selectedRow() const;
+	QList<int> selectedRows() const;
 };
 
 #endif // ANALYSISSTATUSDIALOG_H

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1207</width>
-    <height>800</height>
+    <width>1640</width>
+    <height>768</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -47,7 +47,7 @@
      <property name="childrenCollapsible">
       <bool>false</bool>
      </property>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <layout class="QGridLayout" name="gridLayout" columnstretch="2,2,3">
        <property name="spacing">
         <number>3</number>
@@ -113,6 +113,9 @@
          </item>
          <item>
           <widget class="QPushButton" name="refresh">
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
            <property name="toolTip">
             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Refresh analysis status taking filter options into account.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
@@ -130,6 +133,9 @@
          </item>
          <item>
           <widget class="QPushButton" name="copy_btn">
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
            <property name="toolTip">
             <string>Copy analysis data to clipboard.</string>
            </property>
@@ -283,7 +289,7 @@
           <bool>false</bool>
          </property>
          <attribute name="verticalHeaderVisible">
-          <bool>false</bool>
+          <bool>true</bool>
          </attribute>
          <column>
           <property name="text">
@@ -471,7 +477,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <property name="spacing">
         <number>3</number>
@@ -504,22 +510,6 @@
   <include location="GSvar.qrc"/>
  </resources>
  <connections>
-  <connection>
-   <sender>f_text</sender>
-   <signal>returnPressed()</signal>
-   <receiver>refresh</receiver>
-   <slot>animateClick()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>110</x>
-     <y>14</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>451</x>
-     <y>18</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>f_repeated</sender>
    <signal>stateChanged(int)</signal>

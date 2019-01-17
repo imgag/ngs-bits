@@ -29,6 +29,7 @@ AnalysisStatusDialog::AnalysisStatusDialog(QWidget *parent)
 	connect(ui_.analysisMulti, SIGNAL(clicked(bool)), this, SLOT(analyzeMultiSample()));
 	connect(ui_.analysisSomatic, SIGNAL(clicked(bool)), this, SLOT(analyzeSomatic()));
 	connect(ui_.copy_btn, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
+	connect(ui_.f_text, SIGNAL(returnPressed()), this, SLOT(applyTextFilter()));
 }
 
 void AnalysisStatusDialog::analyzeSingleSamples(QList<AnalysisJobSample> samples)
@@ -134,32 +135,6 @@ void AnalysisStatusDialog::refreshStatus()
 			ps_data << db.getProcessedSampleData(db.processedSampleId(sample.name));
 		}
 
-		//filter text
-		QString f_text = ui_.f_text->text().trimmed();
-		if (!f_text.isEmpty())
-		{
-			QStringList text;
-			if (job.history.count()>0)
-			{
-				text << job.history[0].timeAsString();
-				text << job.history[0].user;
-			}
-			text << job.type;
-			foreach(const AnalysisJobSample& sample, job.samples)
-			{
-				text << sample.name;
-			}
-			foreach(const ProcessedSampleData& data, ps_data)
-			{
-				text << data.processing_system;
-				text << data.run_name;
-				text << data.project_name;
-			}
-			text << job.finalStatus();
-			text << job.sge_queue;
-			if (!text.join("\t").contains(f_text, Qt::CaseInsensitive)) continue;
-		}
-
 		//not filtered => add row
 		++row;
 		ui_.analyses->setRowCount(ui_.analyses->rowCount()+1);
@@ -226,6 +201,9 @@ void AnalysisStatusDialog::refreshStatus()
 		addItem(ui_.analyses, row, 7, status, bg);
 	}
 
+	//apply text filter
+	applyTextFilter();
+
 	GUIHelper::resizeTableCells(ui_.analyses, 300);
 	QApplication::restoreOverrideCursor();
 }
@@ -233,16 +211,7 @@ void AnalysisStatusDialog::refreshStatus()
 void AnalysisStatusDialog::showContextMenu(QPoint pos)
 {
 	//extract selected rows
-	QList<int> rows;
-	auto ranges = ui_.analyses->selectedRanges();
-	foreach(auto range, ranges)
-	{
-		for (int i=range.topRow(); i<=range.bottomRow(); ++i)
-		{
-			rows << i;
-		}
-	}
-	std::sort(rows.begin(), rows.end());
+	QList<int> rows = selectedRows();
 
 	//nothing selected => skip
 	if (rows.isEmpty()) return;
@@ -308,6 +277,11 @@ void AnalysisStatusDialog::showContextMenu(QPoint pos)
 		{
 			menu.addAction(QIcon(":/Icons/Refresh.png"), "Restart somatic analysis");
 		}
+	}
+	if (all_finished)
+	{
+		menu.addSeparator();
+		menu.addAction(QIcon(":/Icons/Trash.png"), "Delete");
 	}
 
 	//show menu
@@ -410,6 +384,15 @@ void AnalysisStatusDialog::showContextMenu(QPoint pos)
 	{
 		analyzeSomatic(samples);
 	}
+	if (text=="Delete")
+	{
+		NGSD db;
+		foreach(int id, job_ids)
+		{
+			db.deleteAnalysis(id);
+		}
+		refreshStatus();
+	}
 }
 
 void AnalysisStatusDialog::clearDetails()
@@ -429,13 +412,13 @@ void AnalysisStatusDialog::clearDetails()
 
 void AnalysisStatusDialog::updateDetails()
 {
-	//clear selection
 	clearDetails();
 
 	//determine row
-	int selection_row = selectedRow();
-	if (selection_row==-1) return;
-	const AnalysisJob& job = jobs_[selection_row].job_data;
+	QList<int> selected_rows = selectedRows();
+
+	if (selected_rows.count()!=1) return;
+	const AnalysisJob& job = jobs_[selected_rows[0]].job_data;
 
 	//properties
 	ui_.properties->setRowCount(5);
@@ -490,6 +473,41 @@ void AnalysisStatusDialog::copyToClipboard()
 	GUIHelper::copyToClipboard(ui_.analyses);
 }
 
+void AnalysisStatusDialog::applyTextFilter()
+{
+	QString f_text = ui_.f_text->text().trimmed();
+
+	//no search string => show all
+	if (f_text.isEmpty())
+	{
+
+		for (int r=0; r<ui_.analyses->rowCount(); ++r)
+		{
+			ui_.analyses->setRowHidden(r, false);
+		}
+		return;
+	}
+
+	//search
+	for (int r=0; r<ui_.analyses->rowCount(); ++r)
+	{
+		bool match = false;
+		for (int c=0; c<ui_.analyses->columnCount(); ++c)
+		{
+			QTableWidgetItem* item = ui_.analyses->item(r, c);
+			if (item==nullptr) continue;
+
+			if (item->text().contains(f_text, Qt::CaseInsensitive))
+			{
+				match = true;
+				break;
+			}
+		}
+
+		ui_.analyses->setRowHidden(r, !match);
+	}
+}
+
 void AnalysisStatusDialog::addItem(QTableWidget* table, int row, int col, QString text, QColor bg_color)
 {
 	auto item = new QTableWidgetItem(text);
@@ -509,10 +527,21 @@ QColor AnalysisStatusDialog::statusToColor(QString status)
 	return output;
 }
 
-int AnalysisStatusDialog::selectedRow() const
+QList<int> AnalysisStatusDialog::selectedRows() const
 {
-	auto ranges = ui_.analyses->selectedRanges();
-	if (ranges.count()!=1 || ranges[0].rowCount()!=1) return -1;
+	QList<int> output;
 
-	return ranges[0].topRow();
+	QList<QTableWidgetSelectionRange> ranges = ui_.analyses->selectedRanges();
+	foreach(const QTableWidgetSelectionRange& range, ranges)
+	{
+		for (int r=range.topRow(); r<=range.bottomRow(); ++r)
+		{
+			if (ui_.analyses->isRowHidden(r)) continue;
+			output << r;
+		}
+	}
+
+	std::sort(output.begin(), output.end());
+
+	return output;
 }

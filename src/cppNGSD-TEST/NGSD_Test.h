@@ -576,6 +576,14 @@ private slots:
 		int job_id = db.lastAnalysisOf(db.processedSampleId("NA12878_03"));
 		I_EQUAL(job_id, 2);
 
+		//deleteAnalysis
+		bool deleted = db.deleteAnalysis(2);
+		I_EQUAL(deleted, true);
+		analysis_job = db.analysisInfo(2);
+		S_EQUAL(analysis_job.type, "");
+		deleted = db.deleteAnalysis(2);
+		I_EQUAL(deleted, false);
+
 		//updateQC
 		db.updateQC(TESTDATA("data_in/qcml.obo"), false);
 		I_EQUAL(db.getValue("SELECT count(*) FROM qc_terms").toInt(), 43);

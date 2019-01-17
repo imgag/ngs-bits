@@ -1,5 +1,10 @@
 # GSvar change log
 
+### 2018_11-100 (16.01.19)
+- General: added sample relations to "processed sample" dialog.
+- Variants list: added OMIM and VarSome links to variant context menu.
+- Trio: added check for mendelian error rate between child/parents and warning if it is too high.
+
 ### 2018_11-79 (09.01.19)
 - General: added "processed sample" dialog and plotting of quality metrics.
 - Sample details: added button to show histogram of allele frequencies.
@@ -253,6 +258,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 

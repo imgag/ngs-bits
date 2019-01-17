@@ -443,6 +443,8 @@ public:
 	void queueAnalysis(QString type, bool high_priority, QStringList args, QList<AnalysisJobSample> samples, QString user_name=Helper::userName());
 	///Canceles an analysis. Returns 'true' if it was canceled and 'false' if it was not running anymore.
 	bool cancelAnalysis(int job_id, QString user_name=Helper::userName());
+	///Deletes the analysis job record. Returns 'true' if a job was deleted, i.e. a job with the given ID existed.
+	bool deleteAnalysis(int job_id);
 
 	///Returns the target file path (or sub-panel folder)
 	static QString getTargetFilePath(bool subpanels = false, bool windows = true);

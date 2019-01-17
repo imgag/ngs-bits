@@ -60,5 +60,6 @@
         <file>Icons/NGSD_sample.png</file>
         <file>Icons/OMIM.png</file>
         <file>Icons/VarSome.png</file>
+        <file>Icons/Trash.png</file>
     </qresource>
 </RCC>

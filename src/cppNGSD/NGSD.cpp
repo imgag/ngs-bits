@@ -1132,6 +1132,17 @@ bool NGSD::cancelAnalysis(int job_id, QString user_name)
 	return true;
 }
 
+bool NGSD::deleteAnalysis(int job_id)
+{
+	QString job_id_str = QString::number(job_id);
+	SqlQuery query = getQuery();
+	query.exec("DELETE FROM analysis_job_sample WHERE analysis_job_id='" + job_id_str + "'");
+	query.exec("DELETE FROM analysis_job_history WHERE analysis_job_id='" + job_id_str + "'");
+	query.exec("DELETE FROM analysis_job WHERE id='" + job_id_str + "'");
+
+	return query.numRowsAffected()>0;
+}
+
 QString NGSD::getTargetFilePath(bool subpanels, bool windows)
 {
 	QString key = windows ? "target_file_folder_windows" : "target_file_folder_linux";
