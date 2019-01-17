@@ -131,8 +131,8 @@ void ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, QS
 	{
 		if (stats[i].accession()=="QC:2000025") avg_cov = stats[i].toString();
 	}
-	stream << "<p><b>Abdeckungsstatistik</b>" << endl;
-	stream << "<br />Durchschnittliche Sequenziertiefe: " << avg_cov << endl;
+	stream << "<p><b>" << trans("Abdeckungsstatistik") << "</b>" << endl;
+	stream << "<br />" << trans("Durchschnittliche Sequenziertiefe") << ": " << avg_cov << endl;
 
 	if (gene_and_gap_details)
 	{
@@ -182,11 +182,11 @@ void ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, QS
 					complete_genes << gene;
 				}
 			}
-			stream << "<br />Komplett abgedeckte Gene: " << complete_genes.join(", ") << endl;
+			stream << "<br />" << trans("Komplett abgedeckte Gene") << ": " << complete_genes.join(", ") << endl;
 		}
 		QString gap_perc = QString::number(100.0*low_cov.baseCount()/roi.baseCount(), 'f', 2);
 		if (output!=nullptr) output->insert("gap_percentage", gap_perc);
-		stream << "<br />Anteil Regionen mit Tiefe &lt;" << min_cov << ": " << gap_perc << "%" << endl;
+		stream << "<br />" << trans("Anteil Regionen mit Tiefe &lt;") << min_cov << ": " << gap_perc << "%" << endl;
 		if (!genes.isEmpty())
 		{
 			QStringList incomplete_genes;
@@ -197,14 +197,14 @@ void ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, QS
 					incomplete_genes << gene + " <span style=\"font-size: 80%;\">" + QString::number(grouped[gene].baseCount()) + "</span> ";
 				}
 			}
-			stream << "<br />Fehlende Basen in nicht komplett abgedeckten Genen: " << incomplete_genes.join(", ") << endl;
+			stream << "<br />" << trans("Fehlende Basen in nicht komplett abgedeckten Genen") << ": " << incomplete_genes.join(", ") << endl;
 		}
 
 		stream << "</p>" << endl;
-		stream << "<p>Details Regionen mit Tiefe &lt;" << min_cov << ":" << endl;
+		stream << "<p>" << trans("Details Regionen mit Tiefe &lt;") << min_cov << ":" << endl;
 		stream << "</p>" << endl;
 		stream << "<table>" << endl;
-		stream << "<tr><td><b>Gen</b></td><td><b>L&uuml;cken</b></td><td><b>Chromosom</b></td><td><b>Koordinaten (hg19)</b></td></tr>" << endl;
+		stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("L&uuml;cken") << "</b></td><td><b>" << trans("Chromosom") << "</b></td><td><b>" << trans("Koordinaten (hg19)") << "</b></td></tr>" << endl;
 		for (auto it=grouped.cbegin(); it!=grouped.cend(); ++it)
 		{
 			stream << "<tr>" << endl;
@@ -228,9 +228,9 @@ void ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, QS
 void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file, const GeneSet& genes, int min_cov, int extend, NGSD& db, QMap<QString, QString>* output, bool gap_table, bool gene_details)
 {
 	QString ext_string = (extend==0 ? "" : " +-" + QString::number(extend) + " ");
-	stream << "<p><b>Abdeckungsstatistik f&uuml;r CCDS " << ext_string << "</b></p>" << endl;
+	stream << "<p><b>" << trans("Abdeckungsstatistik f&uuml;r CCDS") << " " << ext_string << "</b></p>" << endl;
 	if (gap_table) stream << "<table>";
-	if (gap_table) stream << "<tr><td><b>Gen</b></td><td><b>Transcript</b></td><td><b>Gr&ouml;&szlig;e</b></td><td><b>L&uuml;cken</b></td><td><b>Chromosom</b></td><td><b>Koordinaten (hg19)</b></td></tr>";
+	if (gap_table) stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Transcript") << "</b></td><td><b>" << trans("Gr&ouml;&szlig;e") << "</b></td><td><b>" << trans("L&uuml;cken") << "</b></td><td><b>" << trans("Chromosom") << "</b></td><td><b>" << trans("Koordinaten (hg19)") << "</b></td></tr>";
 	QMap<QByteArray, int> gap_count;
 	long long bases_overall = 0;
 	long long bases_sequenced = 0;
@@ -300,10 +300,10 @@ void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file
 	}
 
 	//overall statistics
-	stream << "<p>CCDS " << ext_string << "gesamt: " << bases_overall << endl;
-	stream << "<br />CCDS " << ext_string << "mit Tiefe &ge;" << min_cov << ": " << bases_sequenced << " (" << QString::number(100.0 * bases_sequenced / bases_overall, 'f', 2)<< "%)" << endl;
+	stream << "<p>CCDS " << ext_string << trans("gesamt") << ": " << bases_overall << endl;
+	stream << "<br />CCDS " << ext_string << trans("mit Tiefe") << " &ge;" << min_cov << ": " << bases_sequenced << " (" << QString::number(100.0 * bases_sequenced / bases_overall, 'f', 2)<< "%)" << endl;
 	long long gaps = bases_overall - bases_sequenced;
-	stream << "<br />CCDS " << ext_string << "mit Tiefe &lt;" << min_cov << ": " << gaps << " (" << QString::number(100.0 * gaps / bases_overall, 'f', 2)<< "%)" << endl;
+	stream << "<br />CCDS " << ext_string << trans("mit Tiefe") << " &lt;" << min_cov << ": " << gaps << " (" << QString::number(100.0 * gaps / bases_overall, 'f', 2)<< "%)" << endl;
 	stream << "</p>" << endl;
 
 	//gene statistics
@@ -323,8 +323,8 @@ void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file
 			}
 		}
 		stream << "<p>";
-		stream << "Komplett abgedeckte Gene: " << genes_complete.join(", ") << endl;
-		stream << "<br />Fehlende Basen in nicht komplett abgedeckten Genen: " << genes_incomplete.join(", ") << endl;
+		stream << trans("Komplett abgedeckte Gene") << ": " << genes_complete.join(", ") << endl;
+		stream << "<br />" << trans("Fehlende Basen in nicht komplett abgedeckten Genen") << ": " << genes_incomplete.join(", ") << endl;
 		stream << "</p>";
 	}
 
@@ -478,19 +478,19 @@ void ReportWorker::writeHTML()
 	ProcessedSampleData processed_sample_data = db_.getProcessedSampleData(processed_sample_id);
 	ProcessingSystemData system_data = db_.getProcessingSystemData(processed_sample_id, true);
 
-	stream << "<h4>Technischer Report zur bioinformatischen Analyse</h4>" << endl;
+	stream << "<h4>" << trans("Technischer Report zur bioinformatischen Analyse") << "</h4>" << endl;
 
-	stream << "<p><b>Probe: " << sample_name_ << "</b> (" << sample_data.name_external << ")" << endl;
-	stream << "<br />Prozessierungssystem: " << processed_sample_data.processing_system << endl;
-	stream << "<br />Referenzgenom: " << system_data.genome << endl;
-	stream << "<br />Datum: " << QDate::currentDate().toString("dd.MM.yyyy") << endl;
-	stream << "<br />Benutzer: " << Helper::userName() << endl;
-	stream << "<br />Analysepipeline: "  << variants_.getPipeline() << endl;
-	stream << "<br />Auswertungssoftware: "  << QCoreApplication::applicationName() << " " << QCoreApplication::applicationVersion() << endl;
-	stream << "<br />KASP-Ergebnis: " << db_.getQCData(processed_sample_id).value("kasp").asString() << endl;
+	stream << "<p><b>" << trans("Probe") << ": " << sample_name_ << "</b> (" << sample_data.name_external << ")" << endl;
+	stream << "<br />" << trans("Prozessierungssystem") << ": " << processed_sample_data.processing_system << endl;
+	stream << "<br />" << trans("Referenzgenom") << ": " << system_data.genome << endl;
+	stream << "<br />" << trans("Datum") << ": " << QDate::currentDate().toString("dd.MM.yyyy") << endl;
+	stream << "<br />" << trans("Benutzer") << ": " << Helper::userName() << endl;
+	stream << "<br />" << trans("Analysepipeline") << ": "  << variants_.getPipeline() << endl;
+	stream << "<br />" << trans("Auswertungssoftware") << ": "  << QCoreApplication::applicationName() << " " << QCoreApplication::applicationVersion() << endl;
+	stream << "<br />" << trans("KASP-Ergebnis") << ": " << db_.getQCData(processed_sample_id).value("kasp").asString() << endl;
 	stream << "</p>" << endl;
 
-	stream << "<p><b>Ph&auml;notyp</b>" << endl;
+	stream << "<p><b>" << trans("Ph&auml;notyp") << "</b>" << endl;
 	QList<SampleDiseaseInfo> info = db_.getSampleDiseaseInfo(sample_id, "ICD10 code");
 	foreach(const SampleDiseaseInfo& entry, info)
 	{
@@ -519,9 +519,9 @@ void ReportWorker::writeHTML()
 	int i_tumor_af = std::max(variants_.annotationIndexByName("tumor_maf", true, false), variants_.annotationIndexByName("tumor_af", true, false));
 
 	//output: applied filters
-	stream << "<p><b>Filterkriterien</b>" << endl;
-	stream << "<br />Gefundene Varianten in Zielregion gesamt: " << var_count_ << endl;
-	stream << "<br />Anzahl Varianten nach automatischer Filterung: " << settings_.variants_selected.count() << endl;
+	stream << "<p><b>" << trans("Filterkriterien") << " " << "</b>" << endl;
+	stream << "<br />" << trans("Gefundene Varianten in Zielregion gesamt") << ": " << var_count_ << endl;
+	stream << "<br />" << trans("Anzahl Varianten nach automatischer Filterung") << ": " << settings_.variants_selected.count() << endl;
 	for(int i=0; i<filters_.count(); ++i)
 	{
 		stream << "<br />&nbsp;&nbsp;&nbsp;&nbsp;- " << filters_[i]->toText() << endl;
@@ -529,10 +529,10 @@ void ReportWorker::writeHTML()
 	stream << "</p>" << endl;
 
 	//output: all rare variants
-	stream << "<p><b>Varianten nach klinischer Interpretation im Kontext der Fragestellung</b>" << endl;
+	stream << "<p><b>" << trans("Varianten nach klinischer Interpretation im Kontext der Fragestellung") << "</b>" << endl;
 	stream << "</p>" << endl;
 	stream << "<table>" << endl;
-	stream << "<tr><td><b>Gen</b></td><td><b>Variante</b></td><td><b>" << (tumor ? "Allelfrequenz" : "Genotyp") << "</b></td><td><b>Details</b></td><td><b>Klasse</b></td><td><b>Vererbung</b></td><td><b>1000g</b></td><td><b>gnomAD</b></td></tr>" << endl;
+	stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Variante") << "</b></td><td><b>" << trans(tumor ? "Allelfrequenz" : "Genotyp") << "</b></td><td><b>" << trans("Details") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td><td><b>1000g</b></td><td><b>gnomAD</b></td></tr>" << endl;
 	for (int i=0; i<settings_.variants_selected.count(); ++i)
 	{
 		const Variant& variant = variants_[settings_.variants_selected[i]];
@@ -574,35 +574,34 @@ void ReportWorker::writeHTML()
 	}
 	stream << "</table>" << endl;
 
-	stream << "<p>F&uuml;r Informationen zur Klassifizierung von Varianten, siehe allgemeine Zusatzinformationen." << endl;
+	stream << "<p>" << trans("F&uuml;r Informationen zur Klassifizierung von Varianten, siehe allgemeine Zusatzinformationen.") << endl;
 	stream << "</p>" << endl;
 
-	stream << "<p>Teilweise k&ouml;nnen bei Varianten unklarer Signifikanz (Klasse 3) -  in Abh&auml;ngigkeit von der Art der genetischen Ver&auml;nderung, der Familienanamnese und der Klinik des/der Patienten - weiterf&uuml;hrende Untersuchungen eine &Auml;nderung der Klassifizierung bewirken. Bei konkreten differentialdiagnostischen Hinweisen auf eine entsprechende Erkrankung ist eine humangenetische Mitbeurteilung erforderlich, zur Beurteilung ob erweiterte genetische Untersuchungen zielf&uuml;hrend w&auml;ren." << endl;
+	stream << "<p>" << trans("Teilweise k&ouml;nnen bei Varianten unklarer Signifikanz (Klasse 3) -  in Abh&auml;ngigkeit von der Art der genetischen Ver&auml;nderung, der Familienanamnese und der Klinik des/der Patienten - weiterf&uuml;hrende Untersuchungen eine &Auml;nderung der Klassifizierung bewirken. Bei konkreten differentialdiagnostischen Hinweisen auf eine entsprechende Erkrankung ist eine humangenetische Mitbeurteilung erforderlich, zur Beurteilung ob erweiterte genetische Untersuchungen zielf&uuml;hrend w&auml;ren.") << endl;
 	stream << "</p>" << endl;
 
 	///classification explaination
 	if (settings_.show_class_details)
 	{
-		stream << "<p><b>Klassifikation von Varianten:</b>" << endl;
-		stream << "<br />Die Klassifikation der Varianten erfolgt in Anlehnung an die Publikation von Plon et al. (Hum Mutat 2008)" << endl;
-		stream << "<br /><b>Klasse 5: Eindeutig pathogene Ver&auml;nderung / Mutation:</b> Ver&auml;nderung, die bereits in der Fachliteratur mit ausreichender Evidenz als krankheitsverursachend bezogen auf das vorliegende Krankheitsbild beschrieben wurde sowie als pathogen zu wertende Mutationstypen (i.d.R. Frameshift- bzw. Stoppmutationen)." << endl;
-		stream << "<br /><b>Klasse 4: Wahrscheinlich pathogene Ver&auml;nderung:</b> DNA-Ver&auml;nderung, die aufgrund ihrer Eigenschaften als sehr wahrscheinlich krankheitsverursachend zu werten ist." << endl;
-		stream << "<br /><b>Klasse 3: Variante unklarer Signifikanz (VUS) - Unklare Pathogenit&auml;t:</b> Variante, bei der es unklar ist, ob eine krankheitsverursachende Wirkung besteht. Diese Varianten werden tabellarisch im technischen Report mitgeteilt." << endl;
-		stream << "<br /><b>Klasse 2: Sehr wahrscheinlich benigne Ver&auml;nderungen:</b> Aufgrund der H&auml;ufigkeit in der Allgemeinbev&ouml;lkerung oder der Lokalisation bzw. aufgrund von Angaben in der Literatur sehr wahrscheinlich benigne. Werden nicht mitgeteilt, k&ouml;nnen aber erfragt werden." << endl;
-		stream << "<br /><b>Klasse 1: Benigne Ver&auml;nderungen:</b> Werden nicht mitgeteilt, k&ouml;nnen aber erfragt werden." << endl;
-		stream << "<p>F&uuml;r Informationen zur Klassifizierung von Varianten, siehe alllgemeine Zusatzinformationen." << endl;
+		stream << "<p><b>" << trans("Klassifikation von Varianten") << ":</b>" << endl;
+		stream << "<br />" << trans("Die Klassifikation der Varianten erfolgt in Anlehnung an die Publikation von Plon et al. (Hum Mutat 2008)") << endl;
+		stream << "<br /><b>" << trans("Klasse 5: Eindeutig pathogene Ver&auml;nderung / Mutation") << ":</b> " << trans("Ver&auml;nderung, die bereits in der Fachliteratur mit ausreichender Evidenz als krankheitsverursachend bezogen auf das vorliegende Krankheitsbild beschrieben wurde sowie als pathogen zu wertende Mutationstypen (i.d.R. Frameshift- bzw. Stoppmutationen).") << endl;
+		stream << "<br /><b>" << trans("Klasse 4: Wahrscheinlich pathogene Ver&auml;nderung") << ":</b> " << trans("DNA-Ver&auml;nderung, die aufgrund ihrer Eigenschaften als sehr wahrscheinlich krankheitsverursachend zu werten ist.") << endl;
+		stream << "<br /><b>" << trans("Klasse 3: Variante unklarer Signifikanz (VUS) - Unklare Pathogenit&auml;t") << ":</b> " << trans("Variante, bei der es unklar ist, ob eine krankheitsverursachende Wirkung besteht. Diese Varianten werden tabellarisch im technischen Report mitgeteilt.") << endl;
+		stream << "<br /><b>" << trans("Klasse 2: Sehr wahrscheinlich benigne Ver&auml;nderungen") << ":</b> " << trans("Aufgrund der H&auml;ufigkeit in der Allgemeinbev&ouml;lkerung oder der Lokalisation bzw. aufgrund von Angaben in der Literatur sehr wahrscheinlich benigne. Werden nicht mitgeteilt, k&ouml;nnen aber erfragt werden.") << endl;
+		stream << "<br /><b>" << trans("Klasse 1: Benigne Ver&auml;nderungen") << ":</b> " << trans("Werden nicht mitgeteilt, k&ouml;nnen aber erfragt werden.") << endl;
 		stream << "</p>" << endl;
 	}
 
 	///Target region statistics
 	if (file_roi_!="")
 	{
-		stream << "<p><b>Zielregion</b>" << endl;
-		stream << "<br /><span style=\"font-size: 80%;\">Die Zielregion umfasst mindestens die CCDS (\"consensus coding sequence\") unten genannter Gene &plusmn;20 Basen flankierender intronischer Sequenz, kann aber auch zus&auml;tzliche Exons und/oder flankierende Basen beinhalten." << endl;
-		stream << "<br />Name: " << QFileInfo(file_roi_).fileName().replace(".bed", "") << endl;
+		stream << "<p><b>" << trans("Zielregion") << "</b>" << endl;
+		stream << "<br /><span style=\"font-size: 80%;\">" << trans("Die Zielregion umfasst mindestens die CCDS (\"consensus coding sequence\") unten genannter Gene &plusmn;20 Basen flankierender intronischer Sequenz, kann aber auch zus&auml;tzliche Exons und/oder flankierende Basen beinhalten.") << endl;
+		stream << "<br />" << trans("Name") << ": " << QFileInfo(file_roi_).fileName().replace(".bed", "") << endl;
 		if (!genes_.isEmpty())
 		{
-			stream << "<br />Ausgewertete Gene (" << QString::number(genes_.count()) << "): " << genes_.join(", ") << endl;
+			stream << "<br />" << trans("Ausgewertete Gene") << " (" << QString::number(genes_.count()) << "): " << genes_.join(", ") << endl;
 		}
 		stream << "</p>" << endl;
 	}
@@ -625,10 +624,10 @@ void ReportWorker::writeHTML()
 		q_genes.prepare("SELECT id, mim FROM omim_gene WHERE gene=:1");
 		q_genes.prepare("SELECT id, mim FROM omim_gene WHERE gene=:1");
 
-		stream << "<p><b>OMIM Gene und Phenotypen</b>" << endl;
+		stream << "<p><b>" << trans("OMIM Gene und Phenotypen") << "</b>" << endl;
 		stream << "</p>" << endl;
 		stream << "<table>" << endl;
-		stream << "<tr><td><b>gene</b></td><td><b>OMIM Gen MIM</b></td><td><b>OMIM Phenotypen</b></td></tr>";
+		stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("OMIM Gen MIM") << "</b></td><td><b>" << trans("OMIM Phenotypen") << "</b></td></tr>";
 		foreach(QByteArray gene, genes_)
 		{
 			//approved gene symbol
@@ -651,10 +650,10 @@ void ReportWorker::writeHTML()
 	//collect and display important tool versions
 	if (settings_.show_tool_details)
 	{
-		stream << "<p><b>Details zu Analysetools</b>" << endl;
+		stream << "<p><b>" << trans("Details zu Programmen der Analysepipeline") << "</b>" << endl;
 		stream << "</p>" << endl;
 		stream << "<table>" << endl;
-		stream << "<tr><td><b>tool</b></td><td><b>version</b></td><td><b>parameters</b></td></tr>";
+		stream << "<tr><td><b>" << trans("Tool") << "</b></td><td><b>" << trans("Version") << "</b></td><td><b>" << trans("Parameter") << "</b></td></tr>";
 		QStringList whitelist;
 		whitelist << "SeqPurge" << "samblaster" << "/bwa" << "samtools" << "VcfLeftNormalize" <<  "freebayes" << "abra2" << "vcflib" << "ensembl-vep"; //current
 		log_files_.sort();
@@ -800,6 +799,87 @@ void ReportWorker::validateAndCopyReport(QString from, QString to,bool put_to_ar
 			}
 		}
 	}
+}
+
+QString ReportWorker::trans(const QString& text) const
+{
+	if (settings_.language=="german")
+	{
+		return text;
+	}
+	else if (settings_.language=="english")
+	{
+		QHash<QString, QString> de2en;
+		de2en["Technischer Report zur bioinformatischen Analyse"] = "Technical Report for Bioinformatic Analysis";
+		de2en["Probe"] = "Sample";
+		de2en["Prozessierungssystem"] = "Processing system";
+		de2en["Referenzgenom"] = "Reference genome";
+		de2en["Datum"] = "Date";
+		de2en["Benutzer"] = "User";
+		de2en["Analysepipeline"] = "Analysis pipeline";
+		de2en["Auswertungssoftware"] = "Analysis software";
+		de2en["KASP-Ergebnis"] = " KASP result";
+		de2en["Ph&auml;notyp"] = "Phenotype information";
+		de2en["Filterkriterien"] = "Criteria for variant filtering";
+		de2en["Gefundene Varianten in Zielregion gesamt"] = "Variants in target region";
+		de2en["Anzahl Varianten nach automatischer Filterung"] = "Variants after automated filters";
+		de2en["Varianten nach klinischer Interpretation im Kontext der Fragestellung"] = "List of prioritized variants";
+		de2en["Vererbung"] = "Inheritance";
+		de2en["Klasse"] = "Class";
+		de2en["Details"] = "Details";
+		de2en["Genotyp"] = "Genotype";
+		de2en["Variante"] = "Variant";
+		de2en["Gen"] = "Gene";
+		de2en["F&uuml;r Informationen zur Klassifizierung von Varianten, siehe allgemeine Zusatzinformationen."] = "For further information regarding the classification see Additional Information.";
+		de2en["Teilweise k&ouml;nnen bei Varianten unklarer Signifikanz (Klasse 3) -  in Abh&auml;ngigkeit von der Art der genetischen Ver&auml;nderung, der Familienanamnese und der Klinik des/der Patienten - weiterf&uuml;hrende Untersuchungen eine &Auml;nderung der Klassifizierung bewirken. Bei konkreten differentialdiagnostischen Hinweisen auf eine entsprechende Erkrankung ist eine humangenetische Mitbeurteilung erforderlich, zur Beurteilung ob erweiterte genetische Untersuchungen zielf&uuml;hrend w&auml;ren."] = "TODO";
+		de2en["Klassifikation von Varianten"] = "Classification of variants";
+		de2en["Die Klassifikation der Varianten erfolgt in Anlehnung an die Publikation von Plon et al. (Hum Mutat 2008)"] = "Classification and interpretation of variants: The classification of variants is based on the criteria of Plon et al. (PMID: 18951446). A short description of each class can be found in the following";
+		de2en["Klasse 5: Eindeutig pathogene Ver&auml;nderung / Mutation"] = "Class 5, pathogenic variant";
+		de2en["Ver&auml;nderung, die bereits in der Fachliteratur mit ausreichender Evidenz als krankheitsverursachend bezogen auf das vorliegende Krankheitsbild beschrieben wurde sowie als pathogen zu wertende Mutationstypen (i.d.R. Frameshift- bzw. Stoppmutationen)."] = "The variant is considered to be the cause of the patient's disease.";
+		de2en["Klasse 4: Wahrscheinlich pathogene Ver&auml;nderung"] = "Class 4, probably pathogenic variants";
+		de2en["DNA-Ver&auml;nderung, die aufgrund ihrer Eigenschaften als sehr wahrscheinlich krankheitsverursachend zu werten ist."] = "The identified variant is considered to be the probable cause of the patient's disease. This information should be used cautiously for clinical decision-making, as there is still a degree of uncertainty.";
+		de2en["Klasse 3: Variante unklarer Signifikanz (VUS) - Unklare Pathogenit&auml;t"] = "Class 3, variant of unclear significance (VUS)";
+		de2en["Variante, bei der es unklar ist, ob eine krankheitsverursachende Wirkung besteht. Diese Varianten werden tabellarisch im technischen Report mitgeteilt."] = "The variant has characteristics of being an independent disease-causing mutation, but insufficient or conflicting evidence exists.";
+		de2en["Klasse 2: Sehr wahrscheinlich benigne Ver&auml;nderungen"] = "Class 2, most likely benign variants";
+		de2en["Aufgrund der H&auml;ufigkeit in der Allgemeinbev&ouml;lkerung oder der Lokalisation bzw. aufgrund von Angaben in der Literatur sehr wahrscheinlich benigne. Werden nicht mitgeteilt, k&ouml;nnen aber erfragt werden."] = "The variant is not likely to be the cause of the tested disease. Class 2 variants are not reported, but can be provided upon request.";
+		de2en["Klasse 1: Benigne Ver&auml;nderungen"] = "Class 1, benign variants";
+		de2en["Werden nicht mitgeteilt, k&ouml;nnen aber erfragt werden."] = "The variant is not considered to be the cause of the tested disease. Class 1 variants are not reported, but can be provided upon request.";
+		de2en["Zielregion"] = "Target region";
+		de2en["Die Zielregion umfasst mindestens die CCDS (\"consensus coding sequence\") unten genannter Gene &plusmn;20 Basen flankierender intronischer Sequenz, kann aber auch zus&auml;tzliche Exons und/oder flankierende Basen beinhalten."] = "The target region includes CCDS (\"consensus coding sequence\") of the genes listed below &plusmn;20 flanking bases of the intronic sequence. It may comprise additional exons and/or flanking bases.";
+		de2en["Name"] = "Name";
+		de2en["Ausgewertete Gene"] = "Genes analyzed";
+		de2en["OMIM Gene und Phenotypen"] = "OMIM gene and phenotypes";
+		de2en["OMIM Phenotypen"] = "OMIM phenotypes";
+		de2en["OMIM Gen MIM"] = "OMIM gene MIM";
+		de2en["Gen"] = "Gene";
+		de2en["Details zu Programmen der Analysepipeline"] = "Analysis pipeline tool details";
+		de2en["Parameter"] = "Parameters";
+		de2en["Version"] = "Version";
+		de2en["Tool"] = "Tool";
+		de2en["Abdeckungsstatistik"] = "Coverage statistics";
+		de2en["Durchschnittliche Sequenziertiefe"] = "Average sequencing depth";
+		de2en["Komplett abgedeckte Gene"] = "Genes without gaps";
+		de2en["Anteil Regionen mit Tiefe &lt;"] = "Percentage of regions with depth &lt;";
+		de2en["Fehlende Basen in nicht komplett abgedeckten Genen"] = "Number of missing bases for genes with gaps";
+		de2en["Details Regionen mit Tiefe &lt;"] = "Details regions with depth &lt;";
+		de2en["Koordinaten (hg19)"] = "Coordinates (hg19)";
+		de2en["Chromosom"] = "Chromosome";
+		de2en["L&uuml;cken"] = "Gaps";
+		de2en["Abdeckungsstatistik f&uuml;r CCDS"] = "Coverage statistics for CCDS";
+		de2en["Gr&ouml;&szlig;e"] = "Size";
+		de2en["Transcript"] = "Transcript";
+		de2en["gesamt"] = "overall";
+		de2en["mit Tiefe"] = "with depth";
+
+		if (!de2en.contains(text))
+		{
+			Log::warn("Could not translate to " + settings_.language + ": '" + text + "'");
+		}
+
+		return de2en[text];
+	}
+
+	THROW(ProgrammingException, "Unsupported language '" + settings_.language + "'!");
 }
 
 void ReportWorker::writeXML(QString outfile_name)

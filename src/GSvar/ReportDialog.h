@@ -19,6 +19,7 @@ struct ReportSettings
 	bool show_tool_details; //show tool version and parameter table
 	bool show_omim_table; //show OMIM table
 	bool show_class_details; //show classification information
+	QString language;
 };
 
 ///Report generation dialog

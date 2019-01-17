@@ -128,6 +128,7 @@ ReportSettings ReportDialog::settings() const
 	output.show_tool_details = ui_.tool_details->isChecked();
 	output.show_omim_table = ui_.omim_table->isChecked();
 	output.show_class_details = ui_.class_info->isChecked();
+	output.language = ui_.language->currentText();
 
 	return output;
 }
