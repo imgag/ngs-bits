@@ -25,7 +25,11 @@ void CandidateGeneDialog::updateVariants()
 
 	//init
 	NGSD db;
-	QStringList impacts = ui_.filter_impact->currentText().split(",");
+	QStringList impacts;
+	if (ui_.filter_impact_high->isChecked()) impacts << "HIGH";
+	if (ui_.filter_impact_moderate->isChecked()) impacts << "MODERATE";
+	if (ui_.filter_impact_low->isChecked()) impacts << "LOW";
+	if (ui_.filter_impact_modifier->isChecked()) impacts << "MODIFIER";
 	bool only_basic_transcripts = ui_.filter_gencode_basic->isChecked();
 
 	//process
