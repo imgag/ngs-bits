@@ -12,9 +12,6 @@ libs:
 NGSD:
 ** annotate counts with same/different disease group/status separately
   - only if disease group is set > force when re-annotating in GSvar
-  - affected: affected with same disease group
-  - controls: controls, or affected with different disease group (not 'n/a')
-  - pre-calculate in NGSD: disease_group, affected hom/het/count, controls hom/het/count
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
 
 GSvar:

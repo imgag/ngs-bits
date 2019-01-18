@@ -998,11 +998,9 @@ ClassificationInfo NGSD::getClassification(const Variant& variant)
 void NGSD::setClassification(const Variant& variant, ClassificationInfo info)
 {
 	SqlQuery query = getQuery(); //use binding (user input)
-	query.prepare("INSERT INTO variant_classification (variant_id, class, comment) VALUES (" + variantId(variant) + ",:0,:1) ON DUPLICATE KEY UPDATE class=:2, comment=:3");
+	query.prepare("INSERT INTO variant_classification (variant_id, class, comment) VALUES (" + variantId(variant) + ",:0,:1) ON DUPLICATE KEY UPDATE class=VALUES(class), comment=VALUES(comment)");
 	query.bindValue(0, info.classification);
 	query.bindValue(1, info.comments);
-	query.bindValue(2, info.classification);
-	query.bindValue(3, info.comments);
 	query.exec();
 }
 
@@ -1225,7 +1223,7 @@ void NGSD::updateQC(QString obo_file, bool debug)
 	// database connection
 	db_->transaction();
 	QSqlQuery query = getQuery();
-	query.prepare("INSERT INTO qc_terms (qcml_id, name, description, type, obsolete) VALUES (:0, :1, :2, :3, :4) ON DUPLICATE KEY UPDATE name=:5, description=:6, type=:7, obsolete=:8");
+	query.prepare("INSERT INTO qc_terms (qcml_id, name, description, type, obsolete) VALUES (:0, :1, :2, :3, :4) ON DUPLICATE KEY UPDATE name=VALUES(name), description=VALUES(description), type=VALUES(type), obsolete=VALUES(obsolete)");
 
 	foreach(const QCTerm& term, terms)
 	{
@@ -1235,10 +1233,6 @@ void NGSD::updateQC(QString obo_file, bool debug)
 		query.bindValue(2, term.description);
 		query.bindValue(3, term.type);
 		query.bindValue(4, term.obsolete);
-		query.bindValue(5, term.name);
-		query.bindValue(6, term.description);
-		query.bindValue(7, term.type);
-		query.bindValue(8, term.obsolete);
 		query.exec();
 		if (debug) qDebug() << "  ID:" << query.lastInsertId();
 	}
@@ -1440,6 +1434,15 @@ void NGSD::precalculateGenotypeCounts(QTextStream* messages, int progress_interv
 	QTime timer_overall;
 	timer_overall.start();
 	int deleted = 0;
+	QStringList disease_groups = getEnum("sample", "disease_group");
+
+	//prepare heavily used queries
+	SqlQuery query_vars = getQuery();
+	query_vars.prepare("SELECT s.id, s.disease_status, s.disease_group, dv.genotype FROM detected_variant dv, processed_sample ps, sample s WHERE dv.variant_id=:0 AND ps.sample_id=s.id AND dv.processed_sample_id=ps.id");
+	SqlQuery query_counts = getQuery();
+	query_counts.prepare("INSERT INTO detected_variant_counts (variant_id, count_het, count_hom) VALUES (:0,:1,:2) ON DUPLICATE KEY UPDATE count_het=VALUES(count_het),count_hom=VALUES(count_hom)");
+	SqlQuery query_counts_by_group = getQuery();
+	query_counts_by_group.prepare("INSERT INTO detected_variant_counts_by_group (variant_id, disease_group, count_hom, count_het) VALUES (:0,:1,:2,:3)");
 
 	//get variant IDs
 	SqlQuery query = getQuery();
@@ -1450,19 +1453,77 @@ void NGSD::precalculateGenotypeCounts(QTextStream* messages, int progress_interv
 		(*messages) << Helper::dateTime() << "\tstarting processing of " << variant_count << " variants" << endl;
 	}
 
+	//process
 	QTime timer;
 	timer.start();
 	int i = 0;
 	while(query.next())
 	{
-		//update counts
-		QByteArray var_id = query.value(0).toByteArray();
-		QByteArray count_het = getValue("SELECT COUNT(DISTINCT ps.sample_id) FROM detected_variant dv, processed_sample ps WHERE dv.variant_id='"+var_id+"' AND dv.processed_sample_id=ps.id AND dv.genotype='het'").toByteArray();
-		QByteArray count_hom = getValue("SELECT COUNT(DISTINCT ps.sample_id) FROM detected_variant dv, processed_sample ps WHERE dv.variant_id='"+var_id+"' AND dv.processed_sample_id=ps.id AND dv.genotype='hom'").toByteArray();
-		getQuery().exec("INSERT INTO detected_variant_counts (variant_id, count_het, count_hom) VALUES ("+var_id+",'"+count_het+"', "+count_hom+") ON DUPLICATE KEY UPDATE count_het='"+count_het+"',count_hom='"+count_hom+"'");
+		QString var_id = query.value(0).toByteArray();
+
+		//count variants
+		int count_het = 0;
+		int count_hom = 0;
+		//counts per group/status
+		QHash<QString, int> hom_per_group;
+		QHash<QString, int> het_per_group;
+		QSet<int> samples_done_het;
+		QSet<int> samples_done_hom;
+		query_vars.bindValue(0, var_id);
+		query_vars.exec();
+		while(query_vars.next())
+		{
+			//use sample ID to prevent counting variants several times if a sample was sequenced more than once.
+			int sample_id = query_vars.value(0).toInt();
+
+			if (query_vars.value(3)=="het" && !samples_done_het.contains(sample_id))
+			{
+				++count_het;
+				samples_done_het << sample_id;
+
+				if (query_vars.value(1)=="Affected")
+				{
+					het_per_group[query_vars.value(2).toString()] += 1;
+				}
+			}
+			if (query_vars.value(3)=="hom" && !samples_done_hom.contains(sample_id))
+			{
+				++count_hom;
+				samples_done_hom << sample_id;
+
+				if (query_vars.value(1)=="Affected")
+				{
+					hom_per_group[query_vars.value(2).toString()] += 1;
+				}
+			}
+		}
+
+		//update counts table
+		query_counts.bindValue(0, var_id);
+		query_counts.bindValue(1, count_het);
+		query_counts.bindValue(2, count_hom);
+		query_counts.exec();
+
+		//update counts by group table
+		getQuery().exec("DELETE FROM `detected_variant_counts_by_group` WHERE variant_id=" + var_id);
+		foreach(const QString& group, disease_groups)
+		{
+			if (group=="n/a") continue;
+
+			int hom_group = hom_per_group.value(group, 0);
+			int het_group = het_per_group.value(group, 0);
+			if (hom_group!=0 || het_group!=0)
+			{
+				query_counts_by_group.bindValue(0, var_id);
+				query_counts_by_group.bindValue(1, group);
+				query_counts_by_group.bindValue(2, hom_group);
+				query_counts_by_group.bindValue(3, het_group);
+				query_counts_by_group.exec();
+			}
+		}
 
 		//delete variants that are not used
-		if (count_het=="0" && count_hom=="0")
+		if (count_het==0 && count_hom==0)
 		{
 			int used = getValue("SELECT COUNT(*) FROM detected_somatic_variant WHERE variant_id='" + var_id + "'").toInt();
 			if (used==0) used += getValue("SELECT COUNT(*) FROM variant_validation WHERE variant_id='" + var_id + "'").toInt();
@@ -1486,6 +1547,8 @@ void NGSD::precalculateGenotypeCounts(QTextStream* messages, int progress_interv
 			}
 		}
 	}
+
+	//final message
 	if (messages)
 	{
 		(*messages) << Helper::dateTime() << "\tfinished processing " << variant_count << " variants" << endl;
@@ -2244,14 +2307,11 @@ void NGSD::setDiagnosticStatus(const QString& processed_sample_id, DiagnosticSta
 	SqlQuery query = getQuery();
 	query.prepare("INSERT INTO diag_status (processed_sample_id, status, user_id, outcome, genes_causal, inheritance_mode, genes_incidental, comment) " \
 					"VALUES ("+processed_sample_id+",'"+status.dagnostic_status+"', "+user_id+", '"+status.outcome+"', :0, '"+status.inheritance_mode+"', :1, :2) " \
-					"ON DUPLICATE KEY UPDATE status='"+status.dagnostic_status+"',user_id="+user_id+", outcome='"+status.outcome+"', genes_causal=:3, inheritance_mode='"+status.inheritance_mode+"', genes_incidental=:4, comment=:5"
+					"ON DUPLICATE KEY UPDATE status=VALUES(status), user_id=VALUES(user_id), outcome=VALUES(outcome), genes_causal=VALUES(genes_causal), inheritance_mode=VALUES(inheritance_mode), genes_incidental=VALUES(genes_incidental), comment=VALUES(comment)"
 					);
 	query.bindValue(0, status.genes_causal);
 	query.bindValue(1, status.genes_incidental);
 	query.bindValue(2, status.comments);
-	query.bindValue(3, status.genes_causal);
-	query.bindValue(4, status.genes_incidental);
-	query.bindValue(5, status.comments);
 	query.exec();
 }
 
@@ -2306,12 +2366,10 @@ GeneInfo NGSD::geneInfo(QByteArray symbol)
 void NGSD::setGeneInfo(GeneInfo info)
 {
 	SqlQuery query = getQuery();
-	query.prepare("INSERT INTO geneinfo_germline (symbol, inheritance, exac_pli, comments) VALUES (:0, :1, NULL, :2) ON DUPLICATE KEY UPDATE inheritance=:3, comments=:4");
+	query.prepare("INSERT INTO geneinfo_germline (symbol, inheritance, exac_pli, comments) VALUES (:0, :1, NULL, :2) ON DUPLICATE KEY UPDATE inheritance=VALUES(inheritance), comments=VALUES(comments)");
 	query.bindValue(0, info.symbol);
 	query.bindValue(1, info.inheritance);
 	query.bindValue(2, info.comments);
-	query.bindValue(3, info.inheritance);
-	query.bindValue(4, info.comments);
 	query.exec();
 }
 

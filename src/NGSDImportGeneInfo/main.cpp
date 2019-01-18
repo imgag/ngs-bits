@@ -52,7 +52,7 @@ public:
 		out << "Importing ExAC pLI scores..." << endl;
 		{
 			SqlQuery update_query = db.getQuery();
-			update_query.prepare("INSERT INTO geneinfo_germline (symbol, inheritance, exac_pli, comments) VALUES (:0, 'n/a', :1, '') ON DUPLICATE KEY UPDATE exac_pli=:2");
+			update_query.prepare("INSERT INTO geneinfo_germline (symbol, inheritance, exac_pli, comments) VALUES (:0, 'n/a', :1, '') ON DUPLICATE KEY UPDATE exac_pli=VALUES(exac_pli)");
 
 			auto file = Helper::openFileForReading(getInfile("constraint"));
 			while(!file->atEnd())
@@ -77,7 +77,6 @@ public:
 				//pLI
 				QString pLI = QString::number(Helper::toDouble(parts[19], "ExAC pLI score"), 'f', 4);
 				update_query.bindValue(1, pLI);
-				update_query.bindValue(2, pLI);
 				update_query.exec();
 			}
 			out << endl;
@@ -89,7 +88,7 @@ public:
 		{
 
 			SqlQuery update_query = db.getQuery();
-			update_query.prepare("INSERT INTO geneinfo_germline (symbol, inheritance, exac_pli, comments) VALUES (:0, :1, null, '') ON DUPLICATE KEY UPDATE inheritance=:2");
+			update_query.prepare("INSERT INTO geneinfo_germline (symbol, inheritance, exac_pli, comments) VALUES (:0, :1, null, '') ON DUPLICATE KEY UPDATE inheritance=VALUES(inheritance)");
 
 			int c_noinfo = 0;
 			int c_unchanged = 0;
@@ -185,7 +184,6 @@ public:
 				{
 					update_query.bindValue(0, gene);
 					update_query.bindValue(1, inh_new);
-					update_query.bindValue(2, inh_new);
 					update_query.exec();
 					++c_update;
 				}

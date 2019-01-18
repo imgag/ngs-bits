@@ -126,8 +126,8 @@ private slots:
 		S_EQUAL(sample_data.name_external, "ex1");
 		S_EQUAL(sample_data.quality, "good");
 		S_EQUAL(sample_data.comments, "comment_s1");
-		S_EQUAL(sample_data.disease_group, "n/a");
-		S_EQUAL(sample_data.disease_status, "n/a");
+		S_EQUAL(sample_data.disease_group, "Diseases of the blood or blood-forming organs");
+		S_EQUAL(sample_data.disease_status, "Unaffected");
 		IS_FALSE(sample_data.is_tumor);
 		IS_FALSE(sample_data.is_ffpe);
 		//second sample (tumor)
@@ -137,8 +137,8 @@ private slots:
 		S_EQUAL(sample_data.name_external, "ex3");
 		S_EQUAL(sample_data.quality, "bad");
 		S_EQUAL(sample_data.comments, "comment_s3");
-		S_EQUAL(sample_data.disease_group, "n/a");
-		S_EQUAL(sample_data.disease_status, "n/a");
+		S_EQUAL(sample_data.disease_group, "Diseases of the immune system");
+		S_EQUAL(sample_data.disease_status, "Affected");
 		IS_TRUE(sample_data.is_tumor);
 		IS_TRUE(sample_data.is_ffpe);
 
@@ -341,13 +341,23 @@ private slots:
 		//precalculateGenotypeCounts
 		messages.clear();
 		db.precalculateGenotypeCounts(&stream, 50);
-		//qDebug() << messages.split("\n");
 		I_EQUAL(db.getValue("SELECT count_hom FROM detected_variant_counts WHERE variant_id=2336993").toInt(), 0);
 		I_EQUAL(db.getValue("SELECT count_het FROM detected_variant_counts WHERE variant_id=2336993").toInt(), 1);
 		I_EQUAL(db.getValue("SELECT count_hom FROM detected_variant_counts WHERE variant_id=2346586").toInt(), 2);
 		I_EQUAL(db.getValue("SELECT count_het FROM detected_variant_counts WHERE variant_id=2346586").toInt(), 1);
 		I_EQUAL(db.getValue("SELECT count_hom FROM detected_variant_counts WHERE variant_id=2407544").toInt(), 0);
 		I_EQUAL(db.getValue("SELECT count_het FROM detected_variant_counts WHERE variant_id=2407544").toInt(), 2);
+		//by group
+		I_EQUAL(db.getValue("SELECT COUNT(*) FROM detected_variant_counts_by_group").toInt(), 2);
+		I_EQUAL(db.getValue("SELECT count_hom FROM detected_variant_counts_by_group WHERE variant_id=2346586 AND disease_group='Neoplasms'").toInt(), 1);
+		I_EQUAL(db.getValue("SELECT count_het FROM detected_variant_counts_by_group WHERE variant_id=2346586 AND disease_group='Neoplasms'").toInt(), 0);
+		I_EQUAL(db.getValue("SELECT count_hom FROM detected_variant_counts_by_group WHERE variant_id=2407544 AND disease_group='Neoplasms'").toInt(), 0);
+		I_EQUAL(db.getValue("SELECT count_het FROM detected_variant_counts_by_group WHERE variant_id=2407544 AND disease_group='Neoplasms'").toInt(), 1);
+		//messages
+		foreach(QString message,  messages.split("\n"))
+		{
+			//qDebug() << message;
+		}
 
 		//approvedGeneNames
 		GeneSet approved = db.approvedGeneNames();
