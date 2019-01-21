@@ -146,15 +146,14 @@ public:
 							variant_clump = INSERTION;
 						}
 
-						if (variant_clump == INSERTION && reference.at(0) == '-') // Leading gap
+						int offset_leading_gap = 0; // kill leading gap aligment
+						if (variant_clump == DELETION && query.at(0) == '-')
 						{
-							int i = 0;
-							while (i < ref.length() - 1)
+							while (offset_leading_gap < alt.length() - 1)
 							{
-								if (ref.at(i) == alt.at(i)) i++;
-								if (ref.at(i) == alt.at(i))
+								if (ref.at(offset_leading_gap) == alt.at(offset_leading_gap))
 								{
-									++i;
+									++offset_leading_gap;
 								}
 								else
 								{
@@ -163,7 +162,30 @@ public:
 							}
 
 							// Re-calculate shorter aligment
-							nw = NeedlemanWunsch<QByteArray>(ref.mid(i - 1), alt.mid(i - 1));
+							nw = NeedlemanWunsch<QByteArray>(ref.mid(offset_leading_gap), alt.mid(offset_leading_gap));
+							nw.compute_matrix();
+							nw.trace_back();
+
+							aligment = nw.get_aligments();
+							reference = get<ALIGMENT_REFERENCE>(aligment);
+							query = get<ALIGMENT_QUERY>(aligment);
+						}
+						else if (variant_clump == INSERTION && reference.at(0) == '-') // same as above
+						{
+							while (offset_leading_gap < ref.length() - 1)
+							{
+								if (ref.at(offset_leading_gap) == alt.at(offset_leading_gap))
+								{
+									++offset_leading_gap;
+								}
+								else
+								{
+									break;
+								}
+							}
+
+							// Re-calculate shorter aligment
+							nw = NeedlemanWunsch<QByteArray>(ref.mid(offset_leading_gap), alt.mid(offset_leading_gap));
 							nw.compute_matrix();
 							nw.trace_back();
 
@@ -185,7 +207,7 @@ public:
 								// CTT / --T -> CTT / T
 								int deletion_start = (query.at(max(gap_start - 1, 0)) == '-') ? max(gap_start - 1, 0) : gap_start;
 
-								aligments.push_back(Aligment(reference.mid(deletion_start, (i + 1) - deletion_start), query.mid(i, 1), deletion_start));
+								aligments.push_back(Aligment(reference.mid(deletion_start, (i + 1) - deletion_start), query.mid(i, 1), deletion_start + offset_leading_gap));
 								++number_of_biallelic_block_substitutions;
 							}
 							else if (variant_clump == INSERTION && reference.at(i) == '-') // Insertion event
@@ -199,12 +221,12 @@ public:
 								int ref_start = (reference.at(max(gap_start - 1, 0))  == '-') ? i : max(gap_start - 1, 0);
 								int insertion_start = max(gap_start - 1, 0);
 
-								aligments.push_back(Aligment(reference.mid(ref_start, 1), query.mid(insertion_start, i - insertion_start), insertion_start));
+								aligments.push_back(Aligment(reference.mid(ref_start, 1), query.mid(insertion_start, (i + 1)- insertion_start), insertion_start + offset_leading_gap));
 								++number_of_biallelic_block_substitutions;
 							}
 							else if (reference.at(i) != query.at(i)) // SNP
 							{
-								aligments.push_back(Aligment(reference.mid(i, 1), query.mid(i, 1), i));
+								aligments.push_back(Aligment(reference.mid(i, 1), query.mid(i, 1), i + offset_leading_gap));
 								++i;
 								++number_of_additional_snps;
 							}
