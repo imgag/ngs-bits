@@ -13,12 +13,10 @@ NGSD:
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
 
 GSvar:
-######### Analysis status show maximized
-######### Double click empty field > IGV
 #### New default widths: OMIM (big) - genotype, gene, variant_type, filter, ClinVar, HGMD, NGSD, classification, gene_info (medium) - rest (small)
 **** Support WGS CNV files (after entire CNV calling in megSAP is done with ClinCNV)
 *** Implement OMIM search via API - example: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1 (wait for API access)
-*** Allow opending processed sample dialogs by search (> tab-based interface)
+** Allow opending processed sample dialogs by search (> tab-based interface)
 ** Allow adding/editing data in NGSD (sample relations, ...)
 ** Put NGSD/GL8/LOVD passwords encrypted in INI file - use compiled-in master password to decrypt them
     - https://www.codeproject.com/Articles/21877/Applied-Crypto-Block-Ciphers

@@ -184,7 +184,7 @@ public slots:
 	///Handles the re-loading the variant list when the file changes.
 	void handleInputFileChange();
 	///A variant has been double-clicked > open in IGV
-	void variantDoubleClicked(QTableWidgetItem* item);
+	void variantCellDoubleClicked(int row, int col);
 	///Open region in IGV
 	void openInIGV(QString region);
 	///Edit classification of current variant
@@ -205,7 +205,7 @@ public slots:
 	void openSubpanelDesignDialog(const GeneSet& genes = GeneSet());
 
 	///Adds and shows a modeless dialog
-	void addModelessDialog(QSharedPointer<QDialog> dlg);
+	void addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize=false);
 	///Removes all modeless dialogs that have been closed
 	void cleanUpModelessDialogs();
 

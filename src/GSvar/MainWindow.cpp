@@ -131,7 +131,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(filter_widget_, SIGNAL(targetRegionChanged()), this, SLOT(resetAnnotationStatus()));
 	connect(ui_.vars, SIGNAL(itemSelectionChanged()), this, SLOT(updateVariantDetails()));
 	connect(&filewatcher_, SIGNAL(fileChanged()), this, SLOT(handleInputFileChange()));
-	connect(ui_.vars, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(variantDoubleClicked(QTableWidgetItem*)));
+	connect(ui_.vars, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(variantCellDoubleClicked(int, int)));
 	connect(ui_.actionDesignSubpanel, SIGNAL(triggered()), this, SLOT(openSubpanelDesignDialog()));
 	connect(filter_widget_, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
 	connect(filter_widget_, SIGNAL(phenotypeSubPanelRequested()), this, SLOT(createSubPanelFromPhenotypeFilter()));
@@ -498,11 +498,9 @@ void MainWindow::handleInputFileChange()
 	loadFile(filename_);
 }
 
-void MainWindow::variantDoubleClicked(QTableWidgetItem* item)
+void MainWindow::variantCellDoubleClicked(int row, int col)
 {
-	if (item==nullptr) return;
-
-	openInIGV(variants_[item->row()].toString());
+	openInIGV(variants_[row].toString());
 }
 
 void MainWindow::openInIGV(QString region)
@@ -970,9 +968,16 @@ FilterCascade MainWindow::loadFilter(QString name) const
 	return output;
 }
 
-void MainWindow::addModelessDialog(QSharedPointer<QDialog> dlg)
+void MainWindow::addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize)
 {
-	dlg->show();
+	if (maximize)
+	{
+		dlg->showMaximized();
+	}
+	else
+	{
+		dlg->show();
+	}
 	modeless_dialogs_.append(dlg);
 
 	//we always clean up when we add another dialog.
@@ -1611,7 +1616,7 @@ void MainWindow::on_actionAnalysisStatus_triggered()
 {
 	auto dlg = new AnalysisStatusDialog(0);
 	dlg->setWindowFlags(Qt::Window);
-	addModelessDialog(QSharedPointer<QDialog>(dlg));
+	addModelessDialog(QSharedPointer<QDialog>(dlg), true);
 }
 
 void MainWindow::on_actionGapsLookup_triggered()
