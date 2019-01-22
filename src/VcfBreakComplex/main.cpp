@@ -207,7 +207,7 @@ public:
 								// CTT / --T -> CTT / T
 								int deletion_start = (query.at(max(gap_start - 1, 0)) == '-') ? max(gap_start - 1, 0) : gap_start;
 
-								if (query.at(i) != reference.at(deletion_start)) // Do not break more complex events
+								if (query.at(gap_start) != reference.at(deletion_start)) // Do not break more complex events
 								{
 									variant_clump = COMPLEX;
 									break;
