@@ -69,7 +69,7 @@ public:
 		unsigned int number_of_variants = 0;
 
 		using Aligment = tuple<QByteArray, QByteArray, int>; // Describes an aligment of REF, ALT, OFFSET
-		enum ClumpType { MNP, DELETION, INSERTION };
+		enum ClumpType { MNP, DELETION, INSERTION, COMPLEX };
 
 		while(!in_p->atEnd())
 		{
@@ -207,6 +207,12 @@ public:
 								// CTT / --T -> CTT / T
 								int deletion_start = (query.at(max(gap_start - 1, 0)) == '-') ? max(gap_start - 1, 0) : gap_start;
 
+								if (query.at(i) != reference.at(deletion_start)) // Do not break more complex events
+								{
+									variant_clump = COMPLEX;
+									break;
+								}
+
 								aligments.push_back(Aligment(reference.mid(deletion_start, (i + 1) - deletion_start), query.mid(i, 1), deletion_start + offset_leading_gap));
 								++number_of_biallelic_block_substitutions;
 							}
@@ -220,6 +226,12 @@ public:
 								// --C / CTT -> C / CTT
 								int ref_start = (reference.at(max(gap_start - 1, 0))  == '-') ? i : max(gap_start - 1, 0);
 								int insertion_start = max(gap_start - 1, 0);
+
+								if (reference.at(ref_start) != query.at(insertion_start)) // Do not break more complex events
+								{
+									variant_clump = COMPLEX;
+									break;
+								}
 
 								aligments.push_back(Aligment(reference.mid(ref_start, 1), query.mid(insertion_start, (i + 1)- insertion_start), insertion_start + offset_leading_gap));
 								++number_of_biallelic_block_substitutions;
@@ -235,6 +247,13 @@ public:
 								++i;
 							}
 						}
+
+						if (variant_clump == COMPLEX) // Write COMPLEX events as they are
+						{
+							out_p->write(line);
+							continue;
+						}
+
 					}
 				}
 
