@@ -421,6 +421,10 @@ int VariantList::addAnnotationIfMissing(QString name, QString description, QByte
 	{
 		index = addAnnotation(name, description, default_value);
 	}
+	else
+	{
+		annotationDescriptions()[index].setDescription(description);
+	}
 
 	return index;
 }

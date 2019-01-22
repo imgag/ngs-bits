@@ -92,10 +92,10 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	ui->label_dbscsnv->setToolTip(vl.annotationDescriptionByName("dbscSNV").description());
 	ui->label_regulatory->setToolTip(vl.annotationDescriptionByName("regulatory", false, false).description());
 
-	//NGSD
+	//NGSD (all optional)
 	ui->label_ngsd_class->setToolTip(vl.annotationDescriptionByName("classification", false, false).description());
-	ui->label_ngsd_hom->setToolTip(vl.annotationDescriptionByName("NGSD_hom", false, false).description());
-	ui->label_ngsd_het->setToolTip(vl.annotationDescriptionByName("NGSD_het", false, false).description());
+	ui->label_ngsd_count->setToolTip("Homozygous / heterozygous variant count in NGSD.");
+	ui->label_ngsd_group->setToolTip(vl.annotationDescriptionByName("NGSD_group", false, false).description());
 	ui->label_ngsd_comment->setToolTip(vl.annotationDescriptionByName("comment", false, false).description());
 	ui->label_ngsd_validation->setToolTip(vl.annotationDescriptionByName("validation", false, false).description());
 }
@@ -169,8 +169,24 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 
 	//NGSD
 	setAnnotation(ui->ngsd_class, vl, index, "classification");
-	setAnnotation(ui->ngsd_hom, vl, index, "NGSD_hom");
-	setAnnotation(ui->ngsd_het, vl, index, "NGSD_het");
+	QString ngsd_count = "";
+	int hom_index = vl.annotationIndexByName("NGSD_hom", true, false);
+	int het_index = vl.annotationIndexByName("NGSD_het", true, false);
+	if(hom_index!=-1 && het_index!=-1)
+	{
+		QString hom = vl[index].annotations()[hom_index];
+		QString het = vl[index].annotations()[het_index];
+		if (hom.startsWith("n/a") && het.startsWith("n/a"))
+		{
+			ngsd_count = hom;
+		}
+		else
+		{
+			ngsd_count = hom + " / " + het;
+		}
+	}
+	ui->ngsd_count->setText(ngsd_count);
+	setAnnotation(ui->ngsd_group, vl, index, "NGSD_group");
 	setAnnotation(ui->ngsd_comment, vl, index, "comment");
 	setAnnotation(ui->ngsd_validation, vl, index, "validation");
 
@@ -360,19 +376,6 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			else if (ok && value>=0.5)
 			{
 				text = formatText(anno, ORANGE);
-			}
-			else
-			{
-				text = anno;
-			}
-		}
-		else if(name=="NGSD_hom" || name=="NGSD_het")
-		{
-			bool ok = true;
-			int value = anno.toInt(&ok);
-			if (ok && value>50)
-			{
-				text = formatText(anno, GREEN);
 			}
 			else
 			{

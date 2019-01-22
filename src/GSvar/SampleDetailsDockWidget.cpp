@@ -3,7 +3,7 @@
 #include "GUIHelper.h"
 #include "BasicStatistics.h"
 #include "Settings.h"
-#include "DiseaseInfoDialog.h"
+#include "DiseaseInfoWidget.h"
 #include "SampleDiseaseInfoWidget.h"
 
 #include <QMenu>
@@ -52,11 +52,13 @@ void SampleDetailsDockWidget::editDiagnosticStatus()
 
 void SampleDetailsDockWidget::editDiseaseGroupAndInfo()
 {
-	QString sample_id = NGSD().sampleId(processed_sample_name_);
-	DiseaseInfoDialog dlg(sample_id, this);
-
-	if (dlg.exec()==QDialog::Accepted)
+	NGSD db;
+	QString sample_id = db.sampleId(processed_sample_name_);
+	DiseaseInfoWidget* widget = new DiseaseInfoWidget(sample_id, this);
+	auto dlg = GUIHelper::createDialog(widget, "Disease information", "", true);
+	if (dlg->exec()==QDialog::Accepted)
 	{
+		db.setSampleDiseaseData(sample_id, widget->diseaseGroup(), widget->diseaseStatus());
 		refresh(processed_sample_name_);
 	}
 }

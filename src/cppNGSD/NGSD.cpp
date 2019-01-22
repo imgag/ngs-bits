@@ -697,15 +697,20 @@ QVector<double> NGSD::getQCValues(const QString& accession, const QString& proce
 	return output;
 }
 
-void NGSD::annotate(VariantList& variants, QString filename, BedFile roi, double max_af)
+void NGSD::annotate(VariantList& variants, QString ps_name, BedFile roi, double max_af)
 {
 	initProgress("NGSD annotation", true);
 
-	//get sample ids
-	QString s_id = sampleId(filename, false);
+	//get sample date
+	QString s_id = sampleId(ps_name, false);
+	QString disease_group = "n/a";
 	if (s_id=="")
 	{
-		Log::warn("Could not find sample in NGSD by name '" + filename + "'. Annotation will be incomplete because processing system could not be determined!");
+		Log::warn("Could not find sample in NGSD by name '" + ps_name + "'. Annotations 'validation' and 'NGSD_group' will be incomplete!");
+	}
+	else
+	{
+		disease_group = getSampleData(s_id).disease_group;
 	}
 
 	//load target region (if given)
@@ -730,8 +735,9 @@ void NGSD::annotate(VariantList& variants, QString filename, BedFile roi, double
 	}
 
 	//get required column indices
-	int ngsd_hom_idx = variants.addAnnotationIfMissing("NGSD_hom", "Homozygous variant counts in NGSD independent of the processing system.");
-	int ngsd_het_idx =  variants.addAnnotationIfMissing("NGSD_het", "Heterozygous variant counts in NGSD independent of the processing system.");
+	int ngsd_hom_idx = variants.addAnnotationIfMissing("NGSD_hom", "Homozygous variant count in NGSD.");
+	int ngsd_het_idx =  variants.addAnnotationIfMissing("NGSD_het", "Heterozygous variant count in NGSD.");
+	int ngsd_grp_idx = variants.addAnnotationIfMissing("NGSD_group", "Homozygous / heterozygous variant count in NGSD with the same disease group (" + QString(disease_group=="n/a" ? "empty because group is " : "") + disease_group + ").");
 	int class_idx = variants.addAnnotationIfMissing("classification", "Classification from the NGSD.");
 	int clacom_idx = variants.addAnnotationIfMissing("classification_comment", "Classification comment from the NGSD.");
 	int validation_idx = variants.addAnnotationIfMissing("validation", "Validation information from the NGSD. Validation results of other samples are listed in brackets!");
@@ -836,41 +842,48 @@ void NGSD::annotate(VariantList& variants, QString filename, BedFile roi, double
 		}
 		if (benchmark) time_vvo += timer.elapsed();
 
-		//genotype counts
+		//variant counts
 		if (benchmark) timer.restart();
-		QByteArray hom_count = "n/a (AF>5%)";
-		QByteArray het_count = "n/a (AF>5%)";
+		QByteArray hom_count = "0";
+		QByteArray het_count = "0";
+		QByteArray grp_count = "0 / 0";
 		if (maxAlleleFrequency(v, af_cols)<0.05)
 		{
+			//overall counts
 			query.exec("SELECT count_hom, count_het FROM detected_variant_counts WHERE variant_id='"+v_id+"'");
-			if (query.size()==1) // use counts from cache
+			if (query.size()==1) //cached value available
 			{
 				query.next();
 				hom_count = query.value(0).toByteArray();
 				het_count = query.value(1).toByteArray();
 			}
-			else // no cache value => count
+
+			//counts by group
+			if (disease_group!="n/a")
 			{
-				query.exec("SELECT COUNT(DISTINCT ps.sample_id), dv.genotype FROM detected_variant dv, processed_sample ps WHERE dv.variant_id='"+v_id+"' AND dv.processed_sample_id=ps.id GROUP BY dv.genotype");
-				hom_count = "0";
-				het_count = "0";
-				while(query.next())
+				query.exec("SELECT count_hom, count_het FROM detected_variant_counts_by_group WHERE variant_id='"+v_id+"' AND disease_group='" + disease_group + "'");
+				if (query.size()==1) // use counts from cache
 				{
-					if (query.value(1).toByteArray()=="hom")
-					{
-						 hom_count = query.value(0).toByteArray();
-					}
-					else
-					{
-						het_count = query.value(0).toByteArray();
-					}
+					query.next();
+					grp_count = query.value(0).toByteArray() + " / " + query.value(1).toByteArray();
 				}
 			}
+			else
+			{
+				grp_count = "";
+			}
+		}
+		else
+		{
+			hom_count = "n/a (AF>5%)";
+			het_count = "n/a (AF>5%)";
+			grp_count = "n/a (AF>5%)";
 		}
 		//qDebug() << (v.isSNV() ? "S" : "I") << hom_count << het_count << timer.elapsed();
 
 		v.annotations()[ngsd_hom_idx] = hom_count;
 		v.annotations()[ngsd_het_idx] = het_count;
+		v.annotations()[ngsd_grp_idx] = grp_count;
 		v.annotations()[comment_idx] = comment.replace("\n", " ").replace("\t", " ");
 		v.annotations()[validation_idx] = val_status;
 		if (benchmark) time_gt += timer.elapsed();

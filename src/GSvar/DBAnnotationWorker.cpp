@@ -2,9 +2,9 @@
 #include "Exceptions.h"
 #include "Log.h"
 
-DBAnnotationWorker::DBAnnotationWorker(QString filename, VariantList& variants, BusyDialog* busy, QString roi_file, double max_af)
+DBAnnotationWorker::DBAnnotationWorker(QString ps_name, VariantList& variants, BusyDialog* busy, QString roi_file, double max_af)
 	: WorkerBase("Database annotation")
-	, filename_(filename)
+	, ps_name_(ps_name)
 	, variants_(variants)
 	, roi_file_(roi_file)
 	, max_af_(max_af)
@@ -23,7 +23,7 @@ void DBAnnotationWorker::process()
 		{
 			roi.load(roi_file_);
 		}
-		ngsd_.annotate(variants_, filename_, roi, max_af_);
+		ngsd_.annotate(variants_, ps_name_, roi, max_af_);
 	}
 	catch (Exception& e)
 	{

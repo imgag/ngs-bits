@@ -14,13 +14,13 @@ class DBAnnotationWorker
 	Q_OBJECT
 
 public:
-	DBAnnotationWorker(QString filename, VariantList& variants, BusyDialog* busy, QString roi_file="", double max_af=0.0);
+	DBAnnotationWorker(QString ps_name, VariantList& variants, BusyDialog* busy, QString roi_file="", double max_af=0.0);
 	virtual void process();
 	bool targetRegionOnly();
 
 private:
 	//input variables
-	QString filename_;
+	QString ps_name_;
 	VariantList& variants_;
 	QString roi_file_;
 	double max_af_;

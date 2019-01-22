@@ -1,5 +1,6 @@
-##DESCRIPTION=NGSD_hom=Homozygous variant counts in NGSD independent of the processing system.
-##DESCRIPTION=NGSD_het=Heterozygous variant counts in NGSD independent of the processing system.
+##DESCRIPTION=NGSD_hom=Homozygous variant count in NGSD.
+##DESCRIPTION=NGSD_het=Heterozygous variant count in NGSD.
+##DESCRIPTION=NGSD_group=Homozygous / heterozygous variant count in NGSD with the same disease group (empty because group is n/a).
 ##DESCRIPTION=classification=Classification from the NGSD.
 ##DESCRIPTION=classification_comment=Classification comment from the NGSD.
 ##DESCRIPTION=validation=Validation information from the NGSD. Validation results of other samples are listed in brackets!
@@ -15,4 +16,4 @@
 ##FILTER=pred_pathogenic_2=Variant predicted pathogenic by two of the prediction tools.
 ##FILTER=pred_pathogenic_3=Variant predicted pathogenic by three of the prediction tools.
 ##FILTER=pred_pathogenic_4=Variant predicted pathogenic by four of the prediction tools.
-#chr	start	end	ref	obs	NGSD_hom	NGSD_het	classification	classification_comment	validation	comment	gene_info
+#chr	start	end	ref	obs	NGSD_hom	NGSD_het	NGSD_group	classification	classification_comment	validation	comment	gene_info

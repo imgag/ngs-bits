@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1366</width>
-    <height>202</height>
+    <width>1584</width>
+    <height>631</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,8 +18,8 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>1360</width>
-    <height>202</height>
+    <width>1381</width>
+    <height>220</height>
    </size>
   </property>
   <property name="features">
@@ -1047,14 +1047,14 @@
          </widget>
         </item>
         <item row="2" column="0">
-         <widget class="QLabel" name="label_ngsd_hom">
+         <widget class="QLabel" name="label_ngsd_count">
           <property name="text">
-           <string>count (hom):</string>
+           <string>count:</string>
           </property>
          </widget>
         </item>
         <item row="2" column="1">
-         <widget class="QLabel" name="ngsd_hom">
+         <widget class="QLabel" name="ngsd_count">
           <property name="minimumSize">
            <size>
             <width>100</width>
@@ -1070,14 +1070,14 @@
          </widget>
         </item>
         <item row="3" column="0">
-         <widget class="QLabel" name="label_ngsd_het">
+         <widget class="QLabel" name="label_ngsd_group">
           <property name="text">
-           <string>count (het):</string>
+           <string>count (group):</string>
           </property>
          </widget>
         </item>
         <item row="3" column="1">
-         <widget class="QLabel" name="ngsd_het">
+         <widget class="QLabel" name="ngsd_group">
           <property name="minimumSize">
            <size>
             <width>100</width>

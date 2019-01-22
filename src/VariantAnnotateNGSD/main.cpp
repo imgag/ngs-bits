@@ -34,21 +34,22 @@ public:
 		//init
 		QString psname = getString("psname");
 		if (psname=="") psname = getInfile("in");
+		bool test = getFlag("test");
+		NGSD db(test);
 
 		//load
 		VariantList variants;
 		variants.load(getInfile("in"));
 
 		//annotate
-		bool test = getFlag("test");
 		QString mode = getEnum("mode");
 		if(mode=="germline")
 		{
-			NGSD(test).annotate(variants, psname);
+			db.annotate(variants, psname);
 		}
 		else if(mode=="somatic")
 		{
-			NGSD(test).annotateSomatic(variants, psname);
+			db.annotateSomatic(variants, psname);
 		}
 
 		//store

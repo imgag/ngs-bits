@@ -53,7 +53,7 @@
 #include "XmlHelper.h"
 #include "QCCollection.h"
 #include "NGSDReannotationDialog.h"
-#include "DiseaseInfoDialog.h"
+#include "DiseaseInfoWidget.h"
 #include "CandidateGeneDialog.h"
 #include "TSVFileStream.h"
 #include "LovdUploadDialog.h"
@@ -301,6 +301,19 @@ void MainWindow::on_actionNGSDAnnotation_triggered()
 {
 	if (variants_.count()==0) return;
 
+	//check disease information present
+	NGSD db;
+	QString sample_id = db.sampleId(processedSampleName(), false);
+	if (sample_id!="")
+	{
+		DiseaseInfoWidget* widget = new DiseaseInfoWidget(sample_id, this);
+		auto dlg = GUIHelper::createDialog(widget, "Disease information", "", true);
+		if (widget->diseaseInformationMissing() && dlg->exec()==QDialog::Accepted)
+		{
+			db.setSampleDiseaseData(sample_id, widget->diseaseGroup(), widget->diseaseStatus());
+		}
+	}
+
 	//show NGSD annotation dialog
 	NGSDReannotationDialog dlg(filter_widget_->targetRegion(), this);
 	if (!dlg.exec()) return;
@@ -309,7 +322,7 @@ void MainWindow::on_actionNGSDAnnotation_triggered()
 	busy_dialog_ = new BusyDialog("Database annotation", this);
 
 	//start worker
-	DBAnnotationWorker* worker = new DBAnnotationWorker(filename_, variants_, busy_dialog_, dlg.roiFile(), dlg.maxAlleleFrequency());
+	DBAnnotationWorker* worker = new DBAnnotationWorker(processedSampleName(), variants_, busy_dialog_, dlg.roiFile(), dlg.maxAlleleFrequency());
 	connect(worker, SIGNAL(finished(bool)), this, SLOT(databaseAnnotationFinished(bool)));
 	worker->start();
 }
@@ -744,7 +757,7 @@ void MainWindow::editVariantComment()
 			//get annotation text (from NGSD to get comments of other samples as well)
 			VariantList tmp;
 			tmp.append(variant);
-			db.annotate(tmp, filename_);
+			db.annotate(tmp, processedSampleName());
 			text = tmp[0].annotations()[tmp.annotationIndexByName("comment", true, true)];
 
 			//update datastructure (if comment column is present)
@@ -1399,9 +1412,9 @@ void MainWindow::generateReport()
 
 	//check if NGSD annotations are up-to-date
 	QDateTime mod_date = QFileInfo(filename_).lastModified();
-	if (db_annos_updated_==NO && mod_date < QDateTime::currentDateTime().addDays(-14))
+	if (db_annos_updated_==NO && mod_date < QDateTime::currentDateTime().addDays(-42))
 	{
-		if (QMessageBox::question(this, "NGSD annotations outdated", "NGSD annotation data is older than two weeks!\nDo you want to continue with annotations from " + mod_date.toString("yyyy-MM-dd") + "?")==QMessageBox::No)
+		if (QMessageBox::question(this, "NGSD annotations outdated", "NGSD annotation data is older than six weeks!\nDo you want to continue with annotations from " + mod_date.toString("yyyy-MM-dd") + "?")==QMessageBox::No)
 		{
 			return;
 		}
@@ -1410,13 +1423,15 @@ void MainWindow::generateReport()
 	//check disease information
 	if (Settings::boolean("NGSD_enabled", true))
 	{
+		NGSD db;
 		QString sample_id = NGSD().sampleId(filename_, false);
 		if (sample_id!="")
 		{
-			DiseaseInfoDialog dlg(sample_id, this);
-			if (dlg.diseaseInformationMissing())
+			DiseaseInfoWidget* widget = new DiseaseInfoWidget(sample_id, this);
+			auto dlg = GUIHelper::createDialog(widget, "Disease information", "", true);
+			if (widget->diseaseInformationMissing() && dlg->exec()==QDialog::Accepted)
 			{
-				dlg.exec();
+				db.setSampleDiseaseData(sample_id, widget->diseaseGroup(), widget->diseaseStatus());
 			}
 		}
 	}
@@ -1512,6 +1527,16 @@ void MainWindow::databaseAnnotationFinished(bool success)
 	else
 	{
 		QMessageBox::warning(this, "Error", "Database annotation failed:\n" + worker->errorMessage());
+	}
+
+	//update variant details widget
+	try
+	{
+		var_widget_->setLabelTooltips(variants_);
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::warning(this, "Outdated GSvar file", "The GSvar file contains the following error:\n" + e.message() + "\n\nTo ensure that GSvar works as expected, re-run the analysis starting from annotation!");
 	}
 
 	//clean

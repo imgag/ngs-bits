@@ -33,7 +33,6 @@ SOURCES += main.cpp\
     GeneSelectorDialog.cpp \
     MultiSampleDialog.cpp \
     NGSDReannotationDialog.cpp \
-    DiseaseInfoDialog.cpp \
     CandidateGeneDialog.cpp \
     PhenotypeSelectionWidget.cpp \
     LovdUploadDialog.cpp \
@@ -53,7 +52,8 @@ SOURCES += main.cpp\
     ProcessedSampleWidget.cpp \
     DBQCWidget.cpp \
     DBComboBox.cpp \
-    DBSelector.cpp
+    DBSelector.cpp \
+    DiseaseInfoWidget.cpp
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
@@ -81,7 +81,6 @@ HEADERS  += MainWindow.h \
     GeneSelectorDialog.h \
     MultiSampleDialog.h \
     NGSDReannotationDialog.h \
-    DiseaseInfoDialog.h \
     CandidateGeneDialog.h \
     PhenotypeSelectionWidget.h \
     LovdUploadDialog.h \
@@ -101,7 +100,8 @@ HEADERS  += MainWindow.h \
     ProcessedSampleWidget.h \
     DBQCWidget.h \
     DBComboBox.h \
-    DBSelector.h
+    DBSelector.h \
+    DiseaseInfoWidget.h
 
 FORMS    += MainWindow.ui \
     FilterDockWidget.ui \
@@ -126,7 +126,6 @@ FORMS    += MainWindow.ui \
     GeneSelectorDialog.ui \
     MultiSampleDialog.ui \
     NGSDReannotationDialog.ui \
-    DiseaseInfoDialog.ui \
     CandidateGeneDialog.ui \
     PhenotypeSelectionWidget.ui \
     LovdUploadDialog.ui \
@@ -142,7 +141,8 @@ FORMS    += MainWindow.ui \
     FilterEditDialog.ui \
     SampleDiseaseInfoWidget.ui \
     ProcessedSampleWidget.ui \
-    DBQCWidget.ui
+    DBQCWidget.ui \
+    DiseaseInfoWidget.ui
 
 include("../app_gui.pri")
 

@@ -22,11 +22,11 @@ INSERT INTO processing_system (id, name_manufacturer, shotgun, name_short, genom
 (2, 'SureSelect Human All Exon v5', '1', 'ssHAEv5', 1);
 
 -- sample
-INSERT INTO sample (id, name, sample_type, species_id, gender, tumor, ffpe, sender_id, quality) VALUES
-(1, 'NA12878', 'DNA', 1, 'female', '0', '0', 1, 'good'),
-(2, 'NA12879', 'DNA', 1, 'male', '0', '0', 1, 'good'),
-(3, 'NA12880', 'DNA', 1, 'female', '0', '0', 1, 'good'),
-(4, 'DUMMY', 'DNA', 1, 'male', '0', '0', 1, 'good');
+INSERT INTO sample (id, name, sample_type, species_id, gender, tumor, ffpe, sender_id, quality, disease_group) VALUES
+(1, 'NA12878', 'DNA', 1, 'female', '0', '0', 1, 'good', 'n/a'),
+(2, 'NA12879', 'DNA', 1, 'male', '0', '0', 1, 'good', 'n/a'),
+(3, 'NA12880', 'DNA', 1, 'female', '0', '0', 1, 'good', 'n/a'),
+(4, 'DUMMY', 'DNA', 1, 'male', '0', '0', 1, 'good', 'Neoplasms');
 
 -- processed_sample
 INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane, operator_id, processing_system_id, project_id) VALUES
@@ -70,5 +70,10 @@ INSERT INTO variant_validation (id, user_id, sample_id, variant_id, genotype, st
 (2, 2, 4, 4, 'hom', 'true positive', 'val com2');
 
 --detected_variant_counts
-INSERT INTO detected_variant_counts (variant_id, count_het, count_hom) VALUES 
-(9, 47, 11);
+INSERT INTO detected_variant_counts (variant_id, count_hom, count_het) VALUES 
+(9, 11, 47);
+
+--detected_variant_counts
+INSERT INTO detected_variant_counts_by_group (variant_id, disease_group, count_hom, count_het) VALUES 
+(8, 'Diseases of the nervous system', 47, 11),
+(9, 'Neoplasms', 1, 99);
