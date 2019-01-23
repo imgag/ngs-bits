@@ -181,17 +181,8 @@ public:
 		return obs_.length()==1 && ref_.length()==1 && obs_!="-" && ref_!="-";
     }
     ///Returns the coordinates and base exchange as a string e.g. "chr1:3435345-3435345 A>G"
-    QString toString(bool space_separated=false) const
-    {
-        if (space_separated)
-        {
-            return chr_.str() + " " + QString::number(start_) + " " + QString::number(end_) + " " + ref_ + " " + obs_;
-        }
-        else
-        {
-            return chr_.str() + ":" + QString::number(start_) + "-" + QString::number(end_) + " " + ref_ + ">" + obs_;
-        }
-    }
+	QString toString(bool space_separated=false, int max_sequence_length=-1) const;
+
     /// Removes the common prefix/suffix from indels, adapts the start/end position and replaces empty sequences with a custom string.
 	void normalize(const Sequence& empty_seq="");
 	/// Returns HGVS g. notation of the variant

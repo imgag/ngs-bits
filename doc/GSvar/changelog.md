@@ -1,12 +1,12 @@
 # GSvar change log
 
-### 2018_11-110-2e6747a (22.01.19)
+### 2018_11-110-g2e6747a (22.01.19)
 - Added NGSD variant counts of the same disease group as `NGSD_group` column.
 - Gene variant info: improved impact selection.
 - Analysis status dialog: speed-up of text search and added option to delete analyses.
 - Report: first version of english report.
 
-### 2018_11-100-g0355d6 (16.01.19)
+### 2018_11-100-g0355d26 (16.01.19)
 - General: added sample relations to "processed sample" dialog.
 - Variants list: added OMIM and VarSome links to variant context menu.
 - Trio: added check for mendelian error rate between child/parents and warning if it is too high.
@@ -264,6 +264,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 

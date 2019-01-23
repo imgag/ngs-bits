@@ -102,6 +102,31 @@ bool Variant::operator<(const Variant& rhs) const
 	return false;
 }
 
+QString Variant::toString(bool space_separated, int max_sequence_length) const
+{
+	QByteArray ref = ref_;
+	QByteArray obs = obs_;
+	if (max_sequence_length>0)
+	{
+		if (ref.length()>max_sequence_length)
+		{
+			ref = ref.left(max_sequence_length) + "...[" + QByteArray::number(ref.length()) + " bases]";
+		}
+		if (obs.length()>max_sequence_length)
+		{
+			obs = obs.left(max_sequence_length) + "...[" + QByteArray::number(obs.length()) + " bases]";
+		}
+	}
+	if (space_separated)
+	{
+		return chr_.str() + " " + QString::number(start_) + " " + QString::number(end_) + " " + ref + " " + obs;
+	}
+	else
+	{
+		return chr_.str() + ":" + QString::number(start_) + "-" + QString::number(end_) + " " + ref + ">" + obs;
+	}
+}
+
 void Variant::normalize(const Sequence& empty_seq)
 {
 	Variant::normalize(start_, ref_, obs_);

@@ -103,7 +103,7 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 {
 	//variant
-	QString variant = vl[index].toString();
+	QString variant = vl[index].toString(false, 10);
 	int geno_i = vl.annotationIndexByName("genotype", true, false);
 	if(geno_i!=-1)
 	{
