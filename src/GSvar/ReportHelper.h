@@ -9,6 +9,7 @@
 #include "NGSD.h"
 #include "Settings.h"
 #include "QCCollection.h"
+#include "TSVFileStream.h"
 #include "OntologyTermCollection.h"
 #include "FilterCascade.h"
 #include <QDialog>
@@ -178,6 +179,82 @@ private:
 	QMultiMap <int,CGIDrugReportLine> drug_list_;
 };
 
+
+struct cgi_info
+{
+	QByteArray acronym;
+	QByteArray parent;
+	QByteArray def_english;
+	QByteArray def_german;
+
+	//create whole list from file
+	static QList<cgi_info> load(const QByteArray& file_name)
+	{
+		TSVFileStream acronym_translations(file_name);
+		int i_cgi_acronym = acronym_translations.colIndex("ID",true);
+		int i_def_english = acronym_translations.colIndex("NAME",true);
+		int i_def_german = acronym_translations.colIndex("NAME_GERMAN",true);
+
+		QList<cgi_info> out;
+
+		while(!acronym_translations.atEnd())
+		{
+			QByteArrayList current_line = acronym_translations.readLine();
+			cgi_info temp;
+			temp.acronym = current_line.at(i_cgi_acronym);
+			temp.def_english = current_line.at(i_def_english);
+			temp.def_german = current_line.at(i_def_german);
+			out << temp;
+		}
+		return out;
+	}
+	bool operator==(const cgi_info& rhs) const
+	{
+		if(this->acronym != rhs.acronym) return false;
+		return true;
+	}
+};
+
+//struct holding reference data for tumor mutation burden (DOI:10.1186/s13073-017-0424-2)
+struct tmb_info
+{
+	QByteArray hpoterm;
+	int cohort_count;
+	double tmb_median;
+	double tmb_max;
+	QByteArray tumor_entity;
+
+	static QList<tmb_info> load(const QByteArray& file_name)
+	{
+		TSVFileStream in(file_name);
+
+		int i_hpoterms = in.colIndex("HPO_TERMS",true);
+		int i_count = in.colIndex("COUNT",true);
+		int i_tmb_median = in.colIndex("TMB_MEDIAN",true);
+		int i_tmb_max = in.colIndex("TMB_MAXIMUM",true);
+		int i_tumor_entity = in.colIndex("TUMOR_ENTITY",true);
+
+		QList<tmb_info> out;
+		while(!in.atEnd())
+		{
+			QByteArrayList current_line = in.readLine();
+			tmb_info tmp;
+			tmp.hpoterm = current_line.at(i_hpoterms);
+			tmp.cohort_count = current_line.at(i_count).toInt();
+			tmp.tmb_median = current_line.at(i_tmb_median).toDouble();
+			tmp.tmb_max = current_line.at(i_tmb_max).toDouble();
+			tmp.tumor_entity = current_line.at(i_tumor_entity);
+			out << tmp;
+		}
+		return out;
+	}
+	bool operator==(const tmb_info& rhs) const
+	{
+		if(this->hpoterm == rhs.hpoterm) return true;
+		return true;
+	}
+};
+
 ///creates a somatic RTF report
 class ReportHelper
 {
@@ -196,7 +273,7 @@ public:
 	void metaDataForQbic();
 
 	///returns CGI cancertype if available from VariantList
-	static QByteArray cgiCancertype(const VariantList& variants);
+	static QByteArray cgiCancerTypeFromVariantList(const VariantList& variants);
 
 private:
 	///transforms GSVar coordinates of Variants to VCF INDEL-standard
@@ -269,10 +346,16 @@ private:
 	///CGI cancer acronym (extracted from .GSVar file)
 	QString cgi_cancer_type_;
 
+	///List containing cgi acronyms, full text (english and german) and tumor mutation burden for several cancer types (source: doi:10.1186/s13073-017-0424-2)
+	QList<cgi_info> cgi_dictionary_;
+
 	///ICD10 text diagnosis tumor
 	QString icd10_diagnosis_code_;
 	///tumor fraction according genlab
 	QString histol_tumor_fraction_;
+
+	///HPO term listed in NGSD
+	QString hpo_term_;
 
 	double mutation_burden_;
 
@@ -289,7 +372,7 @@ private:
 	int cnv_index_cgi_genes_;
 	int cnv_index_cgi_driver_statement_;
 
-	///List of CGI cancer abbreviations
+	///List of CGI cancer abbreviations that occur ANYWHERE in the report
 	QByteArrayList cgi_acronyms_;
 
 	///Filter list

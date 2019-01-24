@@ -1,0 +1,168 @@
+#HPO_TERMS	COUNT	TMB_MEDIAN	TMB_MAXIMUM	TUMOR_ENTITY
+HP:0006744	204	2.7	82	adrenal gland cortical carcinoma
+HP:0100684	184	1.8	7.6	salivary gland adenoid cystic carcinoma
+HP:0003006	122	1.7	12.6	adrenal gland neuroblastoma
+HP:0004812	204	1.7	32.5	bone marrow leukemia b cell acute (b-all)
+HP:0006721	155	1.7	64.3	bone marrow leukemia lymphocytic acute (all)
+HP:0004808	888	1.7	15	bone marrow leukemia non-lymphocytic acute myelocytic (aml)
+HP:0200059	157	3.3	157.7	soft tissue angiosarcoma
+HP:0002888	108	1.8	37.8	brain ependymoma
+HP:0100706	321	2.7	807.2	brain oligodendroglioma
+HP:0002671	92	47.3	215.3	skin basal cell carcinoma
+HP:0012191	88	6.3	37.6	lymph node lymphoma b-cell (nos)
+HP:0002862	80	4.5	36.9	bladder adenocarcinoma
+HP:0006740	77	8.1	36.9	bladder carcinoma (nos)
+HP:0003002	142	2.7	39.6	breast metaplastic carcinoma
+HP:0030075	4297	3.6	261.3	breast invasive ductal carcinoma (idc)
+HP:0030076	520	2.7	76.6	breast invasive lobular carcinoma (ilc)
+HP:0100574	227	2.5	39.1	bile duct adenocarcinoma
+HP:0100575	511	3.6	418.6	gallbladder adenocarcinoma
+HP:0030079	195	3.6	60.4	cervix adenocarcinoma
+HP:0031522	284	5.4	73	cervix squamous cell carcinoma (scc)
+HP:0030153	1456	2.5	122.5	liver cholangiocarcinoma
+HP:0005550	176	1.7	15.9	bone marrow leukemia lymphocytic chronic (cll)
+HP:0002861	1324	12.6	469.4	unknown primary melanoma
+HP:0012056	879	14.4	632.4	skin melanoma
+HP:0009592	396	1.8	191	brain anaplastic astrocytoma
+HP:0009592	351	1.8	87.4	brain astrocytoma
+HP:0009592	73	1.8	85.6	brain oligoastrocytoma
+n.n.	51	3.6	157.7	brain gliosarcoma
+HP:0003002	4722	3.8	135.1	breast carcinoma (nos)
+HP:0040276	7758	4.5	752.3	colon adenocarcinoma (crc)
+HP:0030442	52	5.9	33.3	rectum squamous cell carcinoma (scc)
+HP:0030439	1318	3.6	851.4	rectum adenocarcinoma (crc)
+HP:0006765	93	1.7	69.3	bone chondrosarcoma
+HP:0006765	124	1.7	49.2	soft tissue chondrosarcoma
+HP:0012190	91	3.3	145.2	lymph node lymphoma t-cell (nos)
+HP:0006771	249	3.6	126.1	duodenum adenocarcinoma
+HP:0012193	348	10	251.2	lymph node lymphoma diffuse large b cell
+HP:0100242	65	1.7	10.8	soft tissue desmoplastic small round cell tumor
+HP:0031499	106	1.8	51.7	appendix mucinous neoplasm (nos)
+n.n.	400	2.5	64.9	appendix adenocarcinoma
+HP:0100634	140	3.7	63.1	colon neuroendocrine carcinoma
+HP:0100751	1498	5	865.8	gastroesophageal junction adenocarcinoma
+HP:0030127	459	4.5	615.3	uterus endometrial adenocarcinoma endometrioid
+HP:0012114	743	4.5	636	uterus endometrial adenocarcinoma (nos)
+HP:0100574	594	2.7	54.1	pancreatobiliary carcinoma (nos)
+HP:0100751	67	5	38.7	esophagus carcinoma (nos)
+HP:0012182	219	5	53.2	esophagus squamous cell carcinoma (scc)
+HP:0012254	191	1.7	23.4	soft tissue ewing sarcoma
+HP:0100244	68	1.7	105.2	soft tissue fibrosarcoma
+ORPHA:545	107	8.3	26.7	lymph node lymphoma follicular lymphoma
+HP:0030406	194	2.5	12.6	peritoneum serous carcinoma
+HP:0030394	188	3.6	17.1	fallopian tube serous carcinoma
+HP:0030417	72	5.2	41.6	vulva squamous cell carcinoma (scc)
+HP:0012174	220	1.8	314.4	brain glioma (nos)
+HP:0012174	2729	2.7	660.4	brain glioblastoma (gbm)
+HP:0100723	163	1.8	9.9	stomach gist
+HP:0100723	132	2.5	10.8	unknown primary gist
+HP:0001402	602	3.6	65.6	liver hepatocellular carcinoma (hcc)
+HP:0012288	231	1.8	10.8	head and neck adenoid cystic carcinoma
+HP:0012288	69	3.8	95.8	head and neck carcinoma (nos)
+HP:0002860	1184	5	334.2	head and neck squamous cell carcinoma (hnscc)
+HP:0010959	57	1.3	171.2	lung adenoid cystic carcinoma
+HP:0030445	83	1.8	180.2	lung atypical carcinoid
+HP:0030359	154	5.4	73	lung adenosquamous carcinoma
+n.n.	130	7.2	165.2	lung sarcomatoid carcinoma
+HP:0030360	288	9.9	98.2	lung large cell neuroendocrine carcinoma
+HP:0100243	567	2.5	53.4	soft tissue leiomyosarcoma
+HP:0012034	451	1.7	26.7	soft tissue liposarcoma
+HP:0030078	11855	6.3	755	lung adenocarcinoma
+HP:0030359	2102	9	521.6	lung squamous cell carcinoma (scc)
+HP:0007129	118	1.8	12.6	brain medulloblastoma
+ORPHA:52416	75	3.3	14.2	lymph node lymphoma mantle cell
+HP:0002863	513	0.8	10	bone marrow myelodysplastic syndrome (mds)
+n.n.	138	0.8	7.5	bone marrow myeloproliferative neoplasm (mpn)
+n.n.	57	0.8	25.9	bone marrow myeloproliferative disorder (mpd)
+HP:0100009	326	1.8	152.6	brain meningioma
+HP:0030447	206	4.3	228.8	skin merkel cell carcinoma
+HP:0100003	135	1.8	167.6	peritoneum mesothelioma
+HP:0100244	58	2.2	145.2	soft tissue myxofibrosarcoma
+HP:0006775	1580	3.3	60.9	bone marrow multiple myeloma
+n.n.	55	1.7	6.7	bone marrow leukemia non-lymphocytic myelomonocytic (mml)
+n.n.	134	2.5	141.2	soft tissue malignant peripheral nerve sheath tumor (mpnst)
+HP:0012125	99	3.6	370.3	prostate neuroendocrine carcinoma
+HP:0012125	91	3.6	83.8	prostate undifferentiated carcinoma
+HP:0010762	110	1.3	16.2	bone chordoma
+HP:0003006	265	2.7	56.8	soft tissue neuroblastoma
+HP:0030358	2636	8.1	173.9	lung non-small cell lung carcinoma (nos)
+HP:0030360	74	12.2	56.8	lung large cell carcinoma
+HP:0100630	105	2.7	31.5	nasopharynx and paranasal sinuses undifferentiated carcinoma
+HP:0012182	67	4.5	48.6	nasopharynx and paranasal sinuses squamous cell carcinoma (scc)
+HP:0002669	283	2.5	26.7	bone osteosarcoma
+HP:0100615	236	2.7	105.4	ovary clear cell carcinoma
+HP:0031494	57	2.7	20.7	ovary mucinous carcinoma
+HP:0100615	134	3.6	650.5	ovary carcinosarcoma
+HP:0100615	105	3.6	69.4	ovary endometrioid adenocarcinoma
+HP:0100615	823	3.6	308.1	ovary epithelial carcinoma (nos)
+HP:0100615	144	1.8	9.9	ovary granulosa cell tumor
+HP:0100615	2100	2.7	511.9	ovary serous carcinoma
+HP:0100615	348	3.6	12.6	ovary high grade serous carcinoma
+HP:0002894	653	2.5	136.2	pancreas carcinoma (nos)
+HP:0002894	65	2.7	14.4	pancreas acinar cell carcinoma
+HP:0002894	2483	1.8	318	pancreas ductal adenocarcinoma
+HP:0002894	233	2.7	559.5	pancreas neuroendocrine carcinoma
+HP:0002668	53	1.7	316.5	soft tissue paraganglioma
+HP:0009592	95	0.9	508.1	brain astrocytoma pilocytic
+HP:0100002	414	1.8	30.6	pleura mesothelioma
+HP:0012125	1448	2.7	1241.5	prostate acinar adenocarcinoma
+HP:0009726	59	2.7	29.7	kidney carcinoma (nos)
+HP:0005584	543	2.7	20.7	kidney renal cell carcinoma (nos)
+HP:0006770	70	2.7	46.6	kidney sarcomatoid carcinoma
+HP:0005584	537	2.7	29.7	kidney clear cell carcinoma
+HP:0030440	232	5.4	55.9	anus squamous cell carcinoma (scc)
+HP:0006779	61	1.7	7.5	soft tissue rhabdomyosarcoma alveolar
+HP:0006743	54	2.5	8.3	soft tissue rhabdomyosarcoma embryonal
+HP:0006766	89	2.5	55.1	soft tissue rhabdomyosarcoma (nos)
+HP:0006766	152	2.7	13.5	kidney renal papillary carcinoma
+HP:0012316	86	1.7	28.4	soft tissue solitary fibrous tumor
+n.n.	260	2.5	401.4	soft tissue sarcoma undifferentiated
+HP:0100850	60	4.5	36.6	penis squamous cell carcinoma (scc)
+HP:0006739	266	45.2	409	skin squamous cell carcinoma (scc)
+HP:0030357	913	9.9	227.9	lung small cell undifferentiated carcinoma
+HP:0100684	81	1.8	668.5	salivary gland acinic cell tumor
+HP:0100684	160	3.6	218	salivary gland carcinoma (nos)
+HP:0100684	139	2.7	152.3	salivary gland adenocarcinoma
+HP:0100684	55	2.7	159.5	salivary gland mucoepidermoid carcinoma
+HP:0100833	50	0.9	5.4	small intestine carcinoid
+HP:0100833	114	1.8	8.8	small intestine gist
+HP:0040274	277	4.5	278.4	small intestine adenocarcinoma
+HP:0012842	74	3.6	238.3	skin adnexal carcinoma
+HP:0012288	59	6.3	170.3	head and neck melanoma
+n.n.	76	1.5	55	unknown primary adenoid cystic carcinoma
+HP:0100570	70	1.8	25.2	unknown primary carcinoid
+n.n.	674	2.7	401.8	unknown primary undifferentiated neuroendocrine carcinoma
+n.n.	64	3.2	24.3	unknown primary serous carcinoma
+n.n.	2751	3.6	418.6	unknown primary adenocarcinoma
+n.n.	491	3.8	607.2	unknown primary malignant neoplasm (nos)
+n.n.	1405	4.5	445.9	unknown primary carcinoma (nos)
+n.n.	64	5.4	123.6	unknown primary sarcomatoid carcinoma
+n.n.	117	6.3	56.8	unknown primary undifferentiated small cell carcinoma
+n.n.	188	7.2	107.2	unknown primary urothelial carcinoma
+n.n.	606	7.6	344.1	unknown primary squamous cell carcinoma (scc)
+HP:0012126	230	2.7	159.5	stomach adenocarcinoma diffuse type
+HP:0012126	962	3.6	131.5	stomach adenocarcinoma (nos)
+HP:0012126	58	5	82	stomach adenocarcinoma intestinal type
+HP:0001067	104	0.9	8.3	soft tissue fibromatosis
+HP:0030448	636	2.5	167.6	soft tissue sarcoma (nos)
+HP:0012570	208	1.7	24.2	soft tissue synovial sarcoma
+HP:0100616	71	2.7	15.3	testis germ cell tumor (non-seminoma)
+HP:0005517	75	2.5	11.7	bone marrow leukemia t cell acute (t-all)
+HP:0011779	147	2.5	100.9	thyroid anaplastic carcinoma
+HP:0002890	123	1.8	20.7	thyroid carcinoma (nos)
+HP:0006731	68	1.8	18.9	thyroid follicular carcinoma
+HP:0002865	96	1.8	26.5	thyroid medullary carcinoma
+HP:0002895	350	1.8	15.3	thyroid papillary carcinoma
+HP:0100522	108	1.3	13.4	thymus thymoma (nos)
+HP:0100521	168	2.5	30.6	thymus carcinoma (nos)
+HP:0012114	85	1.7	40.1	uterus endometrial stromal sarcoma
+HP:0012114	395	2.7	484.1	uterus endometrial adenocarcinoma papillary serous
+HP:0031521	62	3.6	72.1	uterus endometrial adenocarcinoma clear cell
+HP:0010784	54	2.6	10.8	uterus sarcoma (nos)
+HP:0010784	245	3.6	311.7	uterus carcinosarcoma
+HP:0002891	349	2.5	63	uterus leiomyosarcoma
+HP:0100516	224	5.4	499.1	kidney urothelial carcinoma
+HP:0030409	1218	7.2	119.8	bladder urothelial (transitional cell) carcinoma
+HP:0100516	88	5.4	45.9	ureter urothelial carcinoma
+HP:0007716	113	1.3	21.4	eye intraocular melanoma
+HP:0002667	62	2.5	16.2	kidney wilms tumor
