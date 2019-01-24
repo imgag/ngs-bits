@@ -1457,8 +1457,20 @@ void NGSD::precalculateGenotypeCounts(QTextStream* messages, int progress_interv
 	SqlQuery query_counts_by_group = getQuery();
 	query_counts_by_group.prepare("INSERT INTO detected_variant_counts_by_group (variant_id, disease_group, count_hom, count_het) VALUES (:0,:1,:2,:3)");
 
-	//get variant IDs
+	//get same sample information
+	QHash<int, QList<int>> same_samples;
 	SqlQuery query = getQuery();
+	query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation='same sample'");
+	while (query.next())
+	{
+		int sample1_id = query.value(0).toInt();
+		int sample2_id = query.value(1).toInt();
+		same_samples[sample1_id] << sample2_id;
+		same_samples[sample2_id] << sample1_id;
+	}
+
+	//get variant IDs
+	query = getQuery();
 	query.exec("SELECT id FROM variant");
 	int variant_count = query.size();
 	if (messages)
@@ -1494,6 +1506,12 @@ void NGSD::precalculateGenotypeCounts(QTextStream* messages, int progress_interv
 				++count_het;
 				samples_done_het << sample_id;
 
+				QList<int> tmp = same_samples.value(sample_id, QList<int>());
+				foreach(int same_sample_id, tmp)
+				{
+					samples_done_het << same_sample_id;
+				}
+
 				if (query_vars.value(1)=="Affected")
 				{
 					het_per_group[query_vars.value(2).toString()] += 1;
@@ -1503,6 +1521,12 @@ void NGSD::precalculateGenotypeCounts(QTextStream* messages, int progress_interv
 			{
 				++count_hom;
 				samples_done_hom << sample_id;
+
+				QList<int> tmp = same_samples.value(sample_id, QList<int>());
+				foreach(int same_sample_id, tmp)
+				{
+					samples_done_hom << same_sample_id;
+				}
 
 				if (query_vars.value(1)=="Affected")
 				{

@@ -17,7 +17,8 @@ INSERT INTO `sequencing_run` (`id`, `name`, `fcid`, `device_id`, `recipe`, `stat
 INSERT INTO `sample` (`id`, `name`, `name_external`, `sample_type`, `species_id`, `gender`, `quality`, `tumor`, `ffpe`, `sender_id`, `comment`, `disease_group`, `disease_status`) VALUES 
 (1, 'NA12878', 'ex1', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s1', 'Diseases of the blood or blood-forming organs', 'Unaffected'),
 (2, 'NA12123', 'ex2', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s2', 'Neoplasms', 'Affected'),
-(3, 'NA12345', 'ex3', 'DNA', 1, 'male', 'bad', 1 ,1, 1, 'comment_s3', 'Diseases of the immune system', 'Affected');
+(3, 'NA12345', 'ex3', 'DNA', 1, 'male', 'bad', 1 ,1, 1, 'comment_s3', 'Diseases of the immune system', 'Affected'),
+(4, 'NA12123repeat', 'ex4', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s4', 'Neoplasms', 'Affected');
 
 INSERT INTO `processing_system` (`id`, `name_short`, `name_manufacturer`, `adapter1_p5`, `adapter2_p7`, `type`, `shotgun`, `target_file`, `genome_id`) VALUES
 (1, 'hpHBOCv5', 'HaloPlex HBOC v5', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel Haloplex', 0, 'hpHBOCv5.bed', 1),
@@ -27,7 +28,8 @@ INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_
 (3999, 1, 3, 1, '1', 1, 1, 'medium', 'comment_ps1', null),
 (4000, 1, 4, 1, '1', 1, 1, 'medium', 'comment_ps2', null),
 (4001, 2, 4, 1, '1', 1, 1, 'medium', 'comment_ps3', null),
-(4002, 3, 1, 1, '1', 1, 1, 'good', 'comment_ps4', 3999);
+(4002, 3, 1, 1, '1', 1, 1, 'good', 'comment_ps4', 3999),
+(4003, 4, 1, 1, '1', 1, 1, 'good', 'comment_ps4', null);
 
 INSERT INTO `diag_status`(`processed_sample_id`, `status`, `user_id`, `date`, `outcome`, `genes_causal`, `inheritance_mode`, `genes_incidental`, `comment`) VALUES
 (3999, 'done', 99, '2014-07-29 09:40:49', 'no significant findings', 'ATM', 'autosomal recessive', 'BRCA2', "free text");
@@ -347,7 +349,9 @@ INSERT INTO `detected_variant` (`processed_sample_id`, `variant_id`, `genotype`)
 (4000, 2346586, 'hom'),
 (4000, 2407544, 'het'),
 (4001, 2346586, 'hom'),
-(4001, 2407544, 'het');
+(4001, 2407544, 'het'),
+(4003, 2346586, 'hom'),
+(4003, 2407544, 'het');
 
 INSERT INTO `hpo_term`(`id`, `hpo_id`, `name`, `definition`, `synonyms`) VALUES 
 (1,'HP:0000001','All','def',''),
@@ -393,4 +397,7 @@ INSERT INTO `analysis_job_history`(`analysis_job_id`, `time`, `user_id`, `status
 (1, '2018-02-12T10:20:00', 99, 'queued', ''),
 (1, '2018-02-12T10:20:45', null, 'started', ''),
 (1, '2018-02-12T10:34:09', null, 'finished', 'warning: bla bla bla');
+
+INSERT INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES
+(2, 'same sample', 4);
 
