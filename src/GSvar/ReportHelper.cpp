@@ -73,6 +73,14 @@ void ReportHelper::writeSnvList(QTextStream& stream, const QList<int>& col_width
 	stream << begin_table_cell_head << "F/T Tumor\\cell" << begin_table_cell_head << "Funktion\\cell" << begin_table_cell_head << "Effekt\\cell";
 	stream << "\\row}" << endl;
 
+	if(snvs.count() == 0)
+	{
+		RtfTools::writeRtfTableSingleRowSpec(stream,{col_widths.last()},true);
+		stream << begin_table_cell << "Es wurden keine SNVs und INDELs gefunden."<< "\\cell\\row}" << endl;
+		return;
+	}
+
+
 	int i_tum_af = snvs.annotationIndexByName("tumor_af",true,true);
 	int i_tum_dp = snvs.annotationIndexByName("tumor_dp",true,true);
 
@@ -97,8 +105,6 @@ void ReportHelper::writeSnvList(QTextStream& stream, const QList<int>& col_width
 		stream << begin_table_cell << snv.annotations().at(snv_index_cgi_gene_role_) << "\\cell" << endl;
 		stream << "\\row}" << endl;
 	}
-	RtfTools::writeRtfTableSingleRowSpec(stream,{col_widths.last()},false);
-	stream << begin_table_cell << "\\fs14 Erkl\\u228;rungen siehe Abk\\u252;rzungsverzeichnis Anlage 1." << "\\cell\\row}" << endl;
 }
 
 void ReportHelper::writeCnvGeneList(QTextStream& stream, const QList<int>& col_widths,const GeneSet& target_genes)
@@ -116,7 +122,7 @@ void ReportHelper::writeCnvGeneList(QTextStream& stream, const QList<int>& col_w
 	if(cnvs_filtered_.isEmpty())
 	{
 		RtfTools::writeRtfTableSingleRowSpec(stream,{col_widths.last()},true);
-		stream << begin_table_cell << "Es wurden keine CNVs durch ClinCNV gefunden.\\cell\\row}" << endl;
+		stream << begin_table_cell << "Es wurden keine CNVs gefunden.\\cell\\row}" << endl;
 		return;
 	}
 	if(cnv_index_cgi_gene_role_ < 0 || cnv_index_cgi_genes_ < 0 || cnv_index_cgi_driver_statement_ < 0 )
@@ -193,8 +199,6 @@ void ReportHelper::writeCnvGeneList(QTextStream& stream, const QList<int>& col_w
 
 		stream << "\\row}" << endl;
 	}
-	RtfTools::writeRtfTableSingleRowSpec(stream,{col_widths.last()},false);
-	stream << begin_table_cell << "\\fs14 Erkl\\u228;rungen siehe Abk\\u252;rzungsverzeichnis Anlage 1." << "\\cell\\row}" << endl;
 }
 
 
@@ -219,7 +223,7 @@ void ReportHelper::writeCnvList(QTextStream& stream, const QList<int>& col_width
 	if(cnvs_filtered_.isEmpty())
 	{
 		RtfTools::writeRtfTableSingleRowSpec(stream,{col_widths.last()},true);
-		stream << begin_table_cell << "Es wurden keine CNVs durch ClinCNV gefunden.\\cell\\row}" << endl;
+		stream << begin_table_cell << "Es wurden keine CNVs gefunden.\\cell\\row}" << endl;
 		return;
 	}
 
@@ -318,8 +322,6 @@ void ReportHelper::writeCnvList(QTextStream& stream, const QList<int>& col_width
 	}
 
 	RtfTools::writeRtfWholeTable(stream,somatic_cnv_table,col_widths,18,true,false);
-	RtfTools::writeRtfTableSingleRowSpec(stream,{col_widths.last()},false);
-	stream << begin_table_cell << "\\fs14 Erkl\\u228;rungen siehe Abk\\u252;rzungsverzeichnis Anlage 1." << "\\cell\\row}" << endl;
 }
 
 
@@ -733,10 +735,6 @@ ReportHelper::ReportHelper(QString snv_filename, const ClinCnvList& filtered_cnv
 		obo_terms_coding_splicing_.add(obo_terms.findByID(id));
 	}
 
-	//get cancer type which was used for CGI analysis
-	cgi_cancer_type_ = cgiCancertype(snv_variants_);
-	cgi_acronyms_.append(cgi_cancer_type_.toLatin1());
-
 	//assign columns indices for SNV file
 	snv_index_coding_splicing_ = snv_variants_.annotationIndexByName("coding_and_splicing",true,true);
 	snv_index_cgi_driver_statement_ = snv_variants_.annotationIndexByName("CGI_driver_statement",true,true);
@@ -762,20 +760,46 @@ ReportHelper::ReportHelper(QString snv_filename, const ClinCnvList& filtered_cnv
 	NGSD db;
 	QString sample_id = db.sampleId(tumor_id_);
 	QStringList tmp;
-	QList<SampleDiseaseInfo> disease_info = db.getSampleDiseaseInfo(sample_id, "ICD10 code");
+	QList<SampleDiseaseInfo> disease_info = db.getSampleDiseaseInfo(sample_id);
+
 	foreach(const SampleDiseaseInfo& entry, disease_info)
 	{
-		tmp.append(entry.disease_info);
+		if(entry.type == "ICD10 code") tmp.append(entry.disease_info);
 	}
 	icd10_diagnosis_code_ = tmp.join(", ");
 
 	tmp.clear();
-	disease_info = db.getSampleDiseaseInfo(sample_id, "tumor fraction");
 	foreach(const SampleDiseaseInfo& entry, disease_info)
 	{
-		tmp.append(entry.disease_info);
+		if(entry.type == "tumor fraction") tmp.append(entry.disease_info);
 	}
 	histol_tumor_fraction_ = tmp.join(", ");
+
+	tmp.clear();
+	foreach(const SampleDiseaseInfo& entry,disease_info)
+	{
+		if(entry.type == "CGI cancer type") tmp.append(entry.disease_info);
+	}
+	if(tmp.count() == 1) cgi_cancer_type_ = tmp.first();
+	else cgi_cancer_type_ = "";
+
+	//Check whether GSVar CGI-annotation has the same cancer type as in NGSD
+	if(cgi_cancer_type_ != cgiCancerTypeFromVariantList(snv_variants_))
+	{
+		THROW(DatabaseException,"CGI cancer type in .GSvar file is different from CGI cancer type stored in NGSD. Please correct either of them.");
+	}
+
+	//Add cgi cancer type to list of all CGI acronyms that occur in report
+	cgi_acronyms_.append(cgi_cancer_type_.toLatin1());
+
+	tmp.clear();
+	foreach(const SampleDiseaseInfo& entry, disease_info)
+	{
+		if(entry.type == "HPO term id") tmp.append(entry.disease_info);
+	}
+	if(tmp.count() == 1) hpo_term_ = tmp.first();
+	else hpo_term_ = "";
+
 
 	try
 	{
@@ -785,9 +809,14 @@ ReportHelper::ReportHelper(QString snv_filename, const ClinCnvList& filtered_cnv
 	{
 		mutation_burden_ = std::numeric_limits<double>::quiet_NaN();
 	}
+
+	//load list with CGI acronyms, CGI explanation and TMB
+	cgi_dictionary_ = cgi_info::load("://Resources/cancer_types.tsv");
+
+
 }
 
-QByteArray ReportHelper::cgiCancertype(const VariantList &variants)
+QByteArray ReportHelper::cgiCancerTypeFromVariantList(const VariantList &variants)
 {
 	QStringList comments = variants.comments();
 	foreach(QString comment,comments)
@@ -1077,10 +1106,13 @@ void ReportHelper::writeRtfCGIDrugTable(QTextStream &stream, const QList<int> &c
 		QByteArrayList cancer_acronyms = tmp_cancer_acronyms.replace(" ","").toLatin1().split(',');
 		foreach(QByteArray acronym,cancer_acronyms) cgi_acronyms_.append(acronym);
 	}
-
+	if(drugs_as_string.isEmpty())
+	{
+		RtfTools::writeRtfTableSingleRowSpec(stream,{col_widths.last()},true);
+		stream << begin_table_cell << "Es wurden keine Medikamente durch CGI annotiert." << "\\cell\\row}";
+		return;
+	}
 	RtfTools::writeRtfWholeTable(stream,drugs_as_string,col_widths,18,true,false);
-	RtfTools::writeRtfTableSingleRowSpec(stream,{col_widths.last()},false);
-	stream << begin_table_cell << "\\fs14 Erkl\\u228;rungen siehe Abk\\u252;rzungsverzeichnis Anlage 1." << "\\cell\\row}" << endl;
 }
 
 void ReportHelper::germlineSnvForQbic()
@@ -1564,11 +1596,43 @@ void ReportHelper::writeRtf(const QString& out_file)
 	if(mutation_burden_ <= 23.1 && mutation_burden_ >= 3.3) stream << "mittel";
 	if(mutation_burden_ > 23.1) stream << "hoch";
 	stream << ")" << "\\cell\\row}" << endl;
+
+	//Parse reference data from publication
+	QList<tmb_info> hpo_tmbs = tmb_info::load("://Resources/hpoterms_tmb.tsv");
+	int entries_count = 0;
+	foreach(tmb_info data,hpo_tmbs)
+	{
+		if(data.hpoterm == hpo_term_) ++entries_count;
+	}
+
+	if(entries_count == 0)
+	{
+		RtfTools::writeRtfTableSingleRowSpec(stream,{widths.last()},false);
+		stream << begin_table_cell;
+		if(!hpo_term_.isEmpty()) stream << "Es sind keine Vergleichsdaten zu dieser Tumorentit\\u228;t erfasst. (PMID: 28420421)";
+		else stream << "{\\highlight3 Es wurde kein (eindeutiger) HPO-Term in NGSD hinterlegt.}";
+		stream << "\\cell\\row}" << endl;
+	}
+	else
+	{
+		foreach(tmb_info data,hpo_tmbs)
+		{
+			if(data.hpoterm == hpo_term_)
+			{
+				RtfTools::writeRtfTableSingleRowSpec(stream,{widths.last()},false);
+				stream << begin_table_cell << "\\li200 ";
+				stream << "Vergleichswerte: ";
+				stream << "Median: " << data.tmb_median << " Var/Mbp, Maximum: " << data.tmb_max << " Var/Mbp, Probenanzahl: " << data.cohort_count << " (PMID: 28420421) ";
+				stream << "{\\highlight3 " << data.tumor_entity << "}";
+				stream << "\\cell\\row}" << endl;
+			}
+		}
+	}
+
 	RtfTools::writeRtfTableSingleRowSpec(stream,{widths.last()},false);
 	stream << begin_table_cell << "MSI-Status: " << QByteArray::number(mantis_msi_swd_value_,'f',3);
 	stream << " (" << (mantis_msi_swd_value_ < 0.4 ? "stabil" : "instabil") << ")"; //MSI values larger than 0.4 are considered unstable
 	stream << "\\cell\\row}" << endl;
-
 
 
 	//Filter SNVs for first part of the report
@@ -1600,6 +1664,7 @@ void ReportHelper::writeRtf(const QString& out_file)
 	{
 		if(pass[i]) snvs_to_be_printed.append(snv_variants_[i]);
 	}
+	stream << "{\\pard \\par}" << endl;
 	writeSnvList(stream,widths,snvs_to_be_printed);
 	stream << "{\\pard \\par}" << endl;
 
@@ -1626,10 +1691,8 @@ void ReportHelper::writeRtf(const QString& out_file)
 	{
 		TSVFileStream fusions(fusions_file);
 		RtfTools::writeRtfTableSingleRowSpec(stream,{widths.last()},true,false);
-		stream << begin_table_cell << (fusions.atEnd() ? "Keine Fusionen gefunden" : "\\highlight3 Fusionen gefunden. Bitte "+fusions_file+" pr\\u252;fen.") << "\\cell\\row}" << endl;
+		stream << begin_table_cell << (fusions.atEnd() ? "Es wurden keine Fusionen gefunden" : "\\highlight3 Fusionen gefunden. Bitte "+fusions_file+" pr\\u252;fen.") << "\\cell\\row}" << endl;
 	}
-	RtfTools::writeRtfTableSingleRowSpec(stream,{widths.last()},false);
-	stream << begin_table_cell << "\\fs14 Erkl\\u228;rungen siehe Abk\\u252;rzungsverzeichnis Anlage 1." << "\\cell\\row}" << endl;
 	stream << "\\page" << endl;
 
 	widths.clear();
@@ -1720,19 +1783,10 @@ void ReportHelper::writeRtf(const QString& out_file)
 	RtfTools::writeRtfTableSingleRowSpec(stream,{max_table_width},false);
 	stream << begin_table_cell << "\\fs18 ";
 
-	TSVFileStream acronym_translations("://Resources/cancer_types.tsv");
-	int i_cgi_acronym = acronym_translations.colIndex("ID",true);
-	int i_german_translation = acronym_translations.colIndex("NAME_GERMAN",true);
 	QByteArrayList cgi_acronym_explanation;
-
-	while(!acronym_translations.atEnd())
+	foreach(cgi_info data,cgi_dictionary_)
 	{
-		QByteArrayList current_line = acronym_translations.readLine();
-
-		if(cgi_acronyms_.contains(current_line.at(i_cgi_acronym)))
-		{
-			cgi_acronym_explanation << current_line.at(i_cgi_acronym) + ": " + current_line.at(i_german_translation);
-		}
+		if(cgi_acronyms_.contains(data.acronym)) cgi_acronym_explanation << data.acronym + ": " + data.def_german;
 	}
 	for(int i=0;i<cgi_acronym_explanation.count();++i)
 	{

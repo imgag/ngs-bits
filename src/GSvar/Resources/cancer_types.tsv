@@ -1,12 +1,13 @@
 #ID	PARENTS	NAME	EXCLUDED_FROM_WEB_TREE	NAME_GERMAN
 AA	AG	Adrenal adenoma		Nebennierenadenom
 ABC	MSKV	Aneurysmal bone cyst		Aneurysmatische Knochenzyste
-AC	AG	Adrenal cortex		Nebennierenrinde
+AC	AG	Adrenal cortex		Nebennierenrindentumor
 ACA	AC	Adrenal cortex adenoma		Nebennierenrindenadenom
 ACC	AC	Adrenal cortex carcinoma		Nebennierenrindenkarzinom
 ACML	CML	Atypical chronic myeloid leukemia		Atypische chronisch myeloische Leukämie
+ADCC	SG	Adenoid cystic carcinoma		Adenoid-zystisches Karzinom
 AEL	LK	Acute erythroid leukemia		Akute erythroide Leukämie
-AG	ES	Adrenal gland		Nebenniere
+AG	ES	Adrenal gland		Nebennierentumor
 ALCL	LY	Anaplastic large cell lymphoma		Anaplastisch-großzelliges Lymphom
 ALL	LL	Acute lymphoblastic leukemia		Akute lymphoblastische Leukämie
 ALM	SK	Acral lentigious melanoma		Akrolentiginöses Melanom
@@ -14,32 +15,32 @@ AML	LK	Acute myeloid leukemia		Akute myeloische Leukämie
 AML-PR	LK	Acute myeloid leukemia predisposition		Akute myeloische Leukämie Prädisposition
 APML	LK	Acute promyelocytic leukemia		Akute promyelozytäre Leukämie
 AS	S	Angiosarcoma		Angiosarkom
-B	CNS	Brain		Gehirn
+B	CNS	Brain		Gehirntumor
 BCC	SK	Basal cell carcinoma		Basalzellkarzinom
 BCL	LY	B cell lymphoma		B-Zell-Lymphom
-BLCA	US	Bladder		Harnblase
+BLCA	US	Bladder		Harnblasentumor
 BLTC	BLCA	Bladder transitional cell		Harnblasen-Übergangszellen
 BLY	LY	Burkitt lymphoma		Burkitt-Lymphom
 BRCA	TX	Breast adenocarcinoma		Brust-Adenokarzinom
-BRCA-PR	BRCA	Brest predisposition	TRUE	Brust Prädisposition
-BRCAL	BRCA	Breast lobular		Brust lobulär
-BRCADC	BRCA	Breast ductal		Brust duktal
-BRCAMDLC	BRCA	Breast mixed ductal and lobular		Brust, duktal und lobulär
-BT	LVB	Billiary tract		Gallenwege
+BRCA-PR	BRCA	Brest predisposition	TRUE	Brustkrebs Prädisposition
+BRCAL	BRCA	Breast lobular		Brustkrebs lobulär
+BRCADC	BRCA	Breast ductal		Brustkrebs duktal
+BRCAMDLC	BRCA	Breast mixed ductal and lobular		Brustkrebs gemischt duktal und lobulär
+BT	LVB	Billiary tract		Gallenwegstumor
 CANCER		Any cancer type		Jeder Tumortyp
 CANCER-PR	CANCER	Cancer predisposition	TRUE	Krebsprädisposition
 CCS	S	Clear cell sarcoma		Klarzellsarkom
-CER	FRS	Cervix		Gebärmutterhals
-CESC	CER	Cervix squamous cell		Gebärmutterhals-Plattenepithel
+CER	FRS	Cervix		Gebärmutterhalstumor
+CESC	CER	Cervix squamous cell		Gebärmutterhals-Plattenepithelkarzinom
 CH	LVB	Cholangiocarcinoma		Gallengangskarzinom
 IHCH	CH	Intrahepatic cholangiocarcinoma		Intrahepatisches Gallengangskarzinom
-CLL	LK	Chronic lymphocytic leukemia		Chronisch lymphatische Leukämie
+CLL	LK	Chronic lymphocytic leukemia		Chronische lymphatische Leukämie
 CM	SK	Cutaneous melanoma		Kutanes Melanom
 CM-PR	CM	Cutaneous melanoma predisposition	TRUE	Kutanes Melanom Prädisposition
 CML	CMP,LK	Chronic myeloid leukemia		Chronisch myeloische Leukämie
 CMP	HEMATO	Chronic myeloproliferitve neoplasm		Chronisch myeloproliferative Neoplasie
 CNL	LK	Chronic neutrophilic leukemia		Chronische Neutrophilenleukämie
-CNS	NS	Central nervous system		Zentralnervensystem
+CNS	NS	Central nervous system		Tumor des Zentralnervensystems
 CNSLY	CNS,LY	Central nervous system lymphoma		Lymphom des zentralen Nervensystems
 COC	DT	Colon carcinoma		Kolonkarzinom
 COC-PR	COC	Colon carcinoma predisposition	TRUE	Kolonkarzinom Prädisposition
@@ -53,28 +54,28 @@ DEST	MSKV	Desmoid tumor		Desmoid-Tumor
 DFS	SK,S	Dermatofibrosarcoma		Dermatofibrosarkom
 DLBCL	LBCL	Difuse large B Cell lymphoma		Diffuses großzelliges B-Zell-Lymphom
 DNT	CNS	Dysembryoplastic neuroepithelial tumour		Dysembryoplastischer neuroepithelialer Tumor
-DS	SOLID	Digestive system		Verdauungssystem
-DSRCT	S	Desmoplastic small round cell tumor		Desmoplastischer kleinzelliger Rundzellentumor
-DT	DS	Digestive tract		Verdauungstrakt
-DT-PR	DT	Digestive tract predisposition	TRUE	Verdauungstrakt Prädisposition
+DS	SOLID	Digestive system		Tumor des Verdauungssystems
+DSRCT	S	Desmoplastic small round cell tumor		Desmoplastischer kleinzelliger Rundzelltumor
+DT	DS	Digestive tract		Tumor des Verdauungstraktes
+DT-PR	DT	Digestive tract predisposition	TRUE	Tumor des Verdauungstrakts Prädisposition
 ECL	CMP,EOS,LK	Eosinophilic chronic leukemia		Chronische eosinohile Leukämie
-ED	U	Endometrium		Endometrium
+ED	U	Endometrium		Endometriumkrebs
 EDA	ED	Endometrial adenocarcinoma		Endometriumkarzinom
-EDS	ED	Endometrial stromal		Endometrial Stroma
+EDS	ED	Endometrial stromal		Endometriumstromatumor
 EOS	HEMATO	Eosinophilia		Eosinohilie
-ES	SOLID	Endocrine System		Endokrines System
-ESCA	DT	Esophagous		Ösophagus
+ES	SOLID	Endocrine System		Tumor des endokrinen Systems
+ESCA	DT	Esophagous		Ösophaguskrebs
 ESA	ESCA	Esophagous adenocarcinoma		Speiseröhren-Adenokarzinom
-ESSC	ESCA	Esophagous squamous cell		Speiseröhren-Plattenepithel
+ESSC	ESCA	Esophagous squamous cell		Speiseröhren-Plattenepithelkarzinom
 EWS	S	Ewing sarcoma		Ewing-Sarkom
-EY	SS	Eye		Auge
+EY	SS	Eye		Augentumor
 FAP	DT	Familial adeno poliposis	TRUE_BENIGN	Familiäre adenomatöse Polyposis
 FGCT	OV	Female germ cell tumor		Weiblicher Keimzelltumor
 FH	HIS	Fibrous histiocytoma		Fibröses Histiozytom
 FIBS	S	Fibrosarcoma		Fibrosarkom
 FIBS-PR	S	Fibrosarcoma predisposition	TRUE	Fibrosarkom Prädisposition
 FL	LY	Follicular lymphoma		Follikuläres Lymphom
-FRS	SOLID	Female reproductory system		Weibliches Reproduktionssystem
+FRS	SOLID	Female reproductory system		Tumor des weiblichen Reproduktionssystems
 G	CNS	Glioma		Gliom
 GB	G	Glioblastoma		Glioblastom
 GBM	GB	Glioblastoma multiforme		Glioblastoma multiforme
@@ -82,7 +83,7 @@ GCA	MA	Giant cell astrocytoma	TRUE_BENIGN	Riesenzellastrozytom
 GEJA	ST	Gastroesophageal junction adenocarcinoma		Adenokarzinom des ösophagogastralen Übergangs
 GIST	DT	Gastrointestinal stromal		Gastrointestinaler Stromatumor
 GIST-PR	GIST	Gastrointestinal stromal predisposition	TRUE	Gastrointestinaler Stromatumor Prädisposition
-H	LVB	Hepatic		Hepatisch
+H	LVB	Hepatic		Leberkrebs
 HA	H	Hepatic adenoma		Hapatozelluläres Adenom
 HB	H	Hepatic blastoma		Hepatozelluläres Blastom
 HC	H	Hepatic carcinoma		Hapatozelluläres Karzinom
@@ -96,10 +97,10 @@ HIS	S	Histiocytoma		Histiozytom
 HISEC	HIS	Erdheim-Chester histiocytosis		Erdheim-Chester-Histiozytose
 HISLC	HIS	Lagerhans cell histiocytosis		Langerhans-Zell-Histiozytose
 HLY	LY	Hodking lymhpoma		Hodgkin-Lymphom
-HNC	SOLID	Head an neck		Kopf und Hals
-HNSC	HNC	Head an neck squamous		Kopf- und Hals-Plattenepithel
+HNC	SOLID	Head an neck		Kopf- und Halskrebs
+HNSC	HNC	Head an neck squamous		Kopf- und Hals-Plattenepithelkarzinom
 IM	MY	Inflammatory myofibroblastic		Entzündlich Myofibroblast-
-L	TX	Lung		Lunge
+L	TX	Lung		Lungenkrebs
 LAM	L	Lymphangioleiomyomatosis	TRUE_BENIGN	Lymphangioleiomyomatose
 LBCL	BCL	Large B-Cell lymphoma		Großzelliges B-Zell-Lymphom
 LEIS	S	Leiomyosarcoma		Leiomyosarkom
@@ -112,8 +113,8 @@ LK	HEMATO	Leukemia		Leukämie
 LL	LK	Lymphoblastic leukemia		Lymphoblastische Leukämie
 LPL	BCL	Lymphoblastic lymphoma		Lymphoblastisches Lymphom
 LUAD	NSCLC	Lung adenocarcinoma		Adenokarzinom der Lunge
-LUSC	NSCLC	Lung squamous cell		Plattenepithel der Lunge
-LVB	DS	Liver & billiary tract		Leber und Gallengang
+LUSC	NSCLC	Lung squamous cell		Plattenepithelkarzinom der Lunge
+LVB	DS	Liver & billiary tract		Krebs der leber und Gallenwege
 LY	HEMATO	Lymphoma		Lymphom
 MA	G	Malignant astrocytoma		Malignes Astrozytom
 MALT	NHLY	MALT lymphoma		MALT-Lymphom
@@ -136,7 +137,7 @@ MPN	PNS	Malignant peripheral nerve sheat tumor		Maligner peripherer Nervenscheid
 MRS	SOLID	Male reproductory system		Männliches Reproduktionssystem
 MRT	S	Malignant rhabdoid tumor		Maligner Rhabdoidtumor
 MRT-PR	MRT	Malignant rhabdoid tumor predisposition	TRUE	Maligner Rhabdoidtumor Prädisposition
-MSKV	SOLID	Musculoskeletal & vascular systems		Bewegungsapparat und Gefäßsystem
+MSKV	SOLID	Musculoskeletal & vascular systems		Tumor des Bewegungsapparates und des Gefäßsystems
 MUCLY	LY	Mucosa-associated lymphoma		Mukosa-assoziiertes Lymphom
 MUCM	SK	Mucosal melanoma		Schleimhautmelanom
 MY	CMP	Myelofibrosis		Myelofibrose
@@ -144,104 +145,103 @@ MYEP	SG	Myoepithelioma		Myoepitheliom
 MYMA	HEMATO	Myeloma		Myelom
 MYX	MSKV	Myxoma		Myxom
 NB	PNS	Neuroblastoma		Neuroblastom
-NEU	SOLID	Neuroendocrine		Neuroendokrin
+NEU	SOLID	Neuroendocrine		Neuroendokriner Tumor
 NF	PNS	Neurofibroma	TRUE_BENIGN	Neurofibrom
 NHLY	LY	Non-hodking lymphoma		Non-Hodgkin-Lymphom
 NMC	MSKV	NUT midline carcinoma		NUT-Karzinom
-NS	SOLID	Nervous system		Nervensystem
+NS	SOLID	Nervous system		Tumor des Nervensystems
 NSCLC	L	Non-small cell lung		nichtkleinzelliges Lungenkarzinom
-NSMGCT	MGCT	Non-seminomatous germ cell tumor		Nichtseminom
-NSPH	DS	Nasopharyngeal		Nasopharyngeal
-OC	DT,HNC	Oral cavity		Mundhöhle
-OCSC	OC	Oral cavity squamous cell		Mundhöhlen-Plattenepithel
-OPH	DT	Ororpharynx squamous cell		Oropharynx-Plattenepithel
+NSMGCT	MGCT	Non-seminomatous germ cell tumor		Nichtseminom-Keimzelltumor
+NSPH	DS	Nasopharyngeal		Nasopharyngealtumor
+OC	DT,HNC	Oral cavity		Mundhöhlenkrebs
+OCSC	OC	Oral cavity squamous cell		Mundhöhlen-Plattenepithelkarzinom
+OPH	DT	Ororpharynx squamous cell		Oropharynx-Plattenepithelkarzinom
 OS	S	Osteosarcoma		Osteosarkom
-OV	FRS	Ovary		Eierstock
-OV-PR	OV	Ovary predisposition	TRUE	Eierstock Prädisposition
-OVCC	OV	Ovary clear cell		Eierstock-Klarzellen
-OVE	OV	Ovary epithelial cell		Eierstock-Epithelzellen
+OV	FRS	Ovary		Eierstockkrebs
+OV-PR	OV	Ovary predisposition	TRUE	Eierstockkrebs Prädisposition
+OVCC	OV	Ovary clear cell		Klarzelliger Eierstockkrebs
+OVE	OV	Ovary epithelial cell		Epithelialer Eierstockkebs
 OVG	OV	Ovary granulosa cell		Eierstock-Granulosazellen
-OVRT	OV,MRT	Ovary rhabdoid tumor		Eierstock-Rhabdoidtumor
-OVSC	OV	Ovary small cell		Eierstock-Kleinzell
-OVSE	OV	Ovary serous		Eierstock serös
-PA	ES	Pancreas		Pankreas
-PAAC	PAAD	Pancreas acinar		Pankreas Azinus
+OVRT	OV,MRT	Ovary rhabdoid tumor		Rhabdoidtumor des Eierstocks
+OVSC	OV	Ovary small cell		Kleinzelliger Tumor des Eierstocks
+OVSE	OV	Ovary serous		seröser Tumor des Eierstocks
+PA	ES	Pancreas		Pankreastumor
+PAAC	PAAD	Pancreas acinar		Azinuszellkarzinom des Pankreas
 PAAD	PA	Pancreas adenocarcinoma		Pankreasadenokarzinom
-PAIS	PA,NEU	Pancreas neuroendocrine		Pakreas neuroendokrin
+PAIS	PA,NEU	Pancreas neuroendocrine		neuroendokriner Tumor des Pankreas
 PAMP	DT	Periampullary adenoma		Periampulläres Adenom
 PARG	ES	Paraganglioma		Paragangliom
 PATH	ES	Parathyroid adenoma		Nebenschilddrüsenadenom
 PCPG	PHEO	Pheochromocytoma and paraganglioma		Phäochromozytom und Paragangliom
-PEC	SK	Perivascular epithelioid cell		Perivaskuläre Epitheloidzell
+PEC	SK	Perivascular epithelioid cell		Perivaskulärer Epitheloidzelltumor
 PG	G	Pediatric glioma		pädiatrisches Gliom
 PHEO	AG	Pheochromocytoma		Phäochromozytom
 PIA	MA	Pilocityc astrocytoma		Pilozytisches Astrozytom
 APA	MA	Anaplastic astrocytoma		Anaplastisches Astrozytom
 AG	G	Anaplastic oligodendroglioma		Anaplastisches Oligodendrogliom
 PIGA	ES	Pituitary gland adenoma		Hypophysenadenom
-PL	TX	Pleura		Pleura
+PL	TX	Pleura		Pleuratumor
 PLEN	PNS	Plexiform neurofibroma	TRUE_BENIGN	Plexiformes Neurofibrom
-PNS	NS	Peripheral nervous system		Peripheres Nervensystem
+PNS	NS	Peripheral nervous system		Tumor des peripheren Nervensystems
 PPB	PL,L	Pleuropulmonary blastoma		Pleuropulmonales Blastom
 PRAD	MRS	Prostate adenocarcinoma		Prostataadenokarzinom
 PTCL	NHLY	Perypheral T-cell lymphoma		Peripheres T-Zell-Lymphom
 NKTL	NHLY	Extranodal natural killer/T-cell lymphoma		Extranodales NK-/T-Zell-Lymphom
 PV	CMP	Polycitemia vera		Polycythaemia vera
-R	US	Renal		Renal
-R-PR	R	Renal predisposition	TRUE	Renale Prädisposition
+R	US	Renal		Nierenkrebs
+R-PR	R	Renal predisposition	TRUE	Nierenkrebs Prädisposition
 RA	R	Renal angiomyolipoma	TRUE	Renales Angiomyolipom
 RB	EY	Retinoblastoma		Retinoblastom
-RCCC	R	Renal clear cell		renal-klarzell
-RCH	R	Renal chromophobe cell		renale chromophore Zellen
+RCCC	R	Renal clear cell		Klarzellkarzinom der Niere
+RCH	R	Renal chromophobe cell		Tumor der chromophoben Nierenzellen
 REC	DT	Rectal carcinoma		Rektales Karzinom
 RHBDS	S,MRT	Rhabdomyosarcoma		Rhabdomyosarkom
-RPC	R	Renal papillary cell		Nierenpapillenzelle
+RPC	R	Renal papillary cell		Tumor der Nierenpapillenzellen
 S	MSKV	Sarcoma		Sarkom
 SCC	SK	Squamous cell carcinoma		Plattenepithelkarzinom
 SCC-PR	SCC	Squamous cell carcinoma predisposition	TRUE	Plattenepithelkarzinom-Prädisposition
 SCGS	OV,T	Sex-cord gonadal stromal		Gonadenstrang-Stroma
 SCHW	PNS	Schwannoma	TRUE_BENIGN	Schwannom
-SCLC	L	Small cell lung		Kleinzelliges Lungen-
-SG	OC	Salivary glands		Speicheldrüse
+SCLC	L	Small cell lung		Kleinzelliges Lungenkarzinom
+SG	OC	Salivary glands		Speicheldrüsenkrebs
 SGA	SG	Salivary glands adenoma		Speicheldrüsenadenom
-SGM	SG	Salivary glands mucoepidermoid		Speichedrüsen Mucoepidermoid
-ADCC	SG	Adenoid cystic carcinoma		Adenoid-zystisches Karzinom
-SIN	DT	Small intestine		Dünndarm
-SINNE	SIN,NEU	Small intestine neuroendocrine		Dünndarm neuroendokrin
-SK	SOLID	Skin		Haut
-SK-PR	SK	Skin predisposition	TRUE	Haut Prädisposition
+SGM	SG	Salivary glands mucoepidermoid		Mukoepidermoidtumor der Speicheldrüse
+SIN	DT	Small intestine		Dünndarmkrebs
+SINNE	SIN,NEU	Small intestine neuroendocrine		Neuroendokriner Tumor des Dünndarms
+SK	SOLID	Skin		Hautkrebs
+SK-PR	SK	Skin predisposition	TRUE	Hautkrebs Prädisposition
 SLL	NHLY	Small lymphocytic lymphoma		Chronische lymphatische Leukämie
 SM	MAS	Systemic mastocytosis		Systemische Mastozytose
 SMGCT	MGCT	Seminomatous germ cell tumor		Seminom
 MMGCT	MGCT	Mixed germ cell tumor		Gemischter Keimzelltumor
-SOLID	CANCER	Solid tumors		Feste Tumoren
+SOLID	CANCER	Solid tumors		Solide Tumore
 SOLID-PR	SOLID	Solid tumors predisposition	TRUE	Feste Tumoren Prädisposition
-SS	NS	Sensory system		Sinnessystem
-ST	DT	Stomach		Magen
-ST-PR	ST	Stomach predisposition	TRUE	Magen Prädisposition
+SS	NS	Sensory system		Tumor des Sinnessystems
+ST	DT	Stomach		Magenkrebs
+ST-PR	ST	Stomach predisposition	TRUE	Magenkrebs Prädisposition
 STAD	ST	Stomach adenocarcinoma		Magen-Adenokarzinom
 STS	S	Soft tissue sarcoma		Weichteilsarkom
 SYNS	S	Synovial sarcoma		Synoviales Sarkom
-T	MRS	Testis		Hoden
+T	MRS	Testis		Hodenkrebs
 TCALL	ALL	T-cell acute lymphoblastic leukemia		Akute lymphoblastische T-Zell-Leukämie
 TCPL	LK	T-cell prolymphocytic leukemia		T-Zell-Prolymphozyten-Leukämie
 TER	NSMGCT	Teratoma		Teratom
-TH	ES	Thyroid		Schilddrüse
+TH	ES	Thyroid		Schilddrüsenkrebs
 THA	TH	Thyroid adenoma		Schilddrüsenadenom
 THCA	TH	Thyroid carcinoma		Schilddrüsenkarzinom
-THF	THCA	Thyroid follicular		Schilddrüse follikulär
-THM	THF	Thyroid medullary		Schilddrüse medullär
-THP	TH	Thyroid papillary		Schilddrüse papillär
-THYM	LY	Thymic		Thymus
-TOSC	OC	Tongue squamous cell		Zunge Plattenepithel
-TX	SOLID	Torax		Thorax
-U	FRS	Uterus		Uterus
+THF	THCA	Thyroid follicular		follikuläres Karzinom der Schilddrüse
+THM	THF	Thyroid medullary		medulläres Karzinom der Schilddrüse
+THP	TH	Thyroid papillary		papilläres Karzinom der Schilddrüse
+THYM	LY	Thymic		Thymom
+TOSC	OC	Tongue squamous cell		Plattenepithelkarzinom der Zunge
+TX	SOLID	Torax		Thoraxtumor
+U	FRS	Uterus		Tumor des Uterus
 UCEC	ED	Uterine corpus endometroid carcinoma		Uterines Endometriumkarzinom
 UCS	U	Uterine carcinosarcoma		Uterines Karzinosarkom
 ULMS	U,LEIS	Uterine leiomyosarcoma		Uterines Leiomyosarkom
-US	SOLID	Urinary system		Harnsystem
+US	SOLID	Urinary system		Tumor des Harnsystems
 UTC	US	Urinary tract carcinoma		Harntraktkarzinom
-UTH	US	Urothelial		Urothel
+UTH	US	Urothelial		Urothelkarzinom
 UTUC	UTH	Upper tract urothelial carcinoma		Urothelkarzinom des oberen Harntrakts
 UVM	EY	Uveal melanoma		Aderhautmelanom
 WM	LPL	Waldenström macroglobulinemia		Morbus Waldenström
