@@ -99,6 +99,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(var_widget_, SIGNAL(editVariantValidation()), this, SLOT(editVariantValidation()));
 	connect(var_widget_, SIGNAL(editVariantComment()), this, SLOT(editVariantComment()));
 	connect(var_widget_, SIGNAL(showVariantSampleOverview()), this, SLOT(showVariantSampleOverview()));
+	connect(ui_.tabs, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 
 	//filter menu button
 	auto filter_btn = new QToolButton();
@@ -498,7 +499,7 @@ void MainWindow::handleInputFileChange()
 	loadFile(filename_);
 }
 
-void MainWindow::variantCellDoubleClicked(int row, int col)
+void MainWindow::variantCellDoubleClicked(int row, int /*col*/)
 {
 	openInIGV(variants_[row].toString());
 }
@@ -1184,6 +1185,43 @@ void MainWindow::checkMendelianErrorRate(double cutoff_perc)
 	}
 }
 
+void MainWindow::openProcessedSampleTab(QString ps_name)
+{
+	QString ps_id;
+	try
+	{
+		ps_id = NGSD().processedSampleId(ps_name);
+	}
+	catch (DatabaseException e)
+	{
+		GUIHelper::showMessage("NGSD error", "The processed sample database ID could not be determined for '"  + ps_name + "'!\nError message: " + e.message());
+		return;
+	}
+
+	ProcessedSampleWidget* widget = new ProcessedSampleWidget(this, ps_id);
+	int index = ui_.tabs->addTab(widget, QIcon(":/Icons/NGSD_sample.png"), ps_name);
+	ui_.tabs->setCurrentIndex(index);
+	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
+}
+
+void MainWindow::closeTab(int index)
+{
+	if (index==0)
+	{
+		int res = QMessageBox::question(this, "Close file?", "Do you want to close the current sample?", QMessageBox::Yes, QMessageBox::No);
+		if (res==QMessageBox::Yes)
+		{
+			loadFile("");
+		}
+	}
+	else
+	{
+		QWidget* widget = ui_.tabs->widget(index);
+		ui_.tabs->removeTab(index);
+		widget->deleteLater();
+	}
+}
+
 void MainWindow::on_actionChangeLog_triggered()
 {
 	QDesktopServices::openUrl(QUrl("https://github.com/imgag/ngs-bits/tree/master/doc/GSvar/changelog.md"));
@@ -1200,6 +1238,12 @@ void MainWindow::loadFile(QString filename)
 	igv_initialized_ = false;
 	ui_.vars->setRowCount(0);
 	ui_.vars->setColumnCount(0);
+
+	ui_.tabs->setCurrentIndex(0);
+	while (ui_.tabs->count()>1)
+	{
+		closeTab(ui_.tabs->count()-1);
+	}
 
 	if (filename=="")
 	{
@@ -1548,26 +1592,22 @@ void MainWindow::databaseAnnotationFinished(bool success)
 	worker->deleteLater();
 }
 
-void MainWindow::on_actionOpenSample_triggered()
+void MainWindow::on_actionOpenProcessedSampleTabs_triggered()
 {
 	if (filename_=="") return;
 
-	//processed sample ID
-	QString ps_id;
-	try
+	if (variants_.type()==GERMLINE_SINGLESAMPLE)
 	{
-		ps_id = NGSD().processedSampleId(processedSampleName());
+		openProcessedSampleTab(processedSampleName());
 	}
-	catch (DatabaseException e)
+	else
 	{
-		GUIHelper::showMessage("NGSD error", "The processed sample database ID could not be determined for '"  + processedSampleName() + "'!\nError message: " + e.message());
-		return;
+		SampleHeaderInfo infos = variants_.getSampleHeader();
+		foreach(const SampleInfo& info, infos)
+		{
+			openProcessedSampleTab(info.column_name);
+		}
 	}
-
-	ProcessedSampleWidget* widget = new ProcessedSampleWidget(this, ps_id);
-	auto dlg = GUIHelper::createDialog(widget, processedSampleName());
-	dlg->setWindowIcon(QIcon(":/Icons/NGSD_sample.png"));
-	dlg->exec();
 }
 
 void MainWindow::on_actionGenderXY_triggered()
@@ -3118,7 +3158,7 @@ void MainWindow::updateNGSDSupport()
 
 	//toolbar
 	ui_.actionReport->setEnabled(ngsd_enabled);
-	ui_.actionOpenSample->setEnabled(ngsd_enabled);
+	ui_.actionOpenProcessedSampleTabs->setEnabled(ngsd_enabled);
 	ui_.actionNGSDAnnotation->setEnabled(ngsd_enabled);
 	ui_.actionAnalysisStatus->setEnabled(ngsd_enabled);
 	ui_.actionReanalyze->setEnabled(ngsd_enabled);

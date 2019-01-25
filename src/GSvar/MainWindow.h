@@ -88,8 +88,8 @@ public slots:
 	void on_actionResize_triggered();
 	///Report dialog
 	void on_actionReport_triggered();
-	///Open sample dialog
-	void on_actionOpenSample_triggered();
+	///Open processed sample tabs
+	void on_actionOpenProcessedSampleTabs_triggered();
 	///Gender determination
 	void on_actionGenderXY_triggered();
 	///Gender determination
@@ -222,6 +222,11 @@ public slots:
 
 	///Check mendelian error rate of trio.
 	void checkMendelianErrorRate(double cutoff_perc=5.0);
+
+	///Open processed sample widget
+	void openProcessedSampleTab(QString ps_name);
+	///Process a tab close request
+	void closeTab(int index);
 
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);
