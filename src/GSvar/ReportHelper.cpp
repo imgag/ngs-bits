@@ -105,8 +105,6 @@ void ReportHelper::writeSnvList(QTextStream& stream, const QList<int>& col_width
 		stream << begin_table_cell << snv.annotations().at(snv_index_cgi_gene_role_) << "\\cell" << endl;
 		stream << "\\row}" << endl;
 	}
-	RtfTools::writeRtfTableSingleRowSpec(stream,{col_widths.last()},false);
-	stream << begin_table_cell << "\\fs14 Erkl\\u228;rungen siehe Abk\\u252;rzungsverzeichnis Anlage 1." << "\\cell\\row}" << endl;
 }
 
 void ReportHelper::writeCnvGeneList(QTextStream& stream, const QList<int>& col_widths,const GeneSet& target_genes)
@@ -201,8 +199,6 @@ void ReportHelper::writeCnvGeneList(QTextStream& stream, const QList<int>& col_w
 
 		stream << "\\row}" << endl;
 	}
-	RtfTools::writeRtfTableSingleRowSpec(stream,{col_widths.last()},false);
-	stream << begin_table_cell << "\\fs14 Erkl\\u228;rungen siehe Abk\\u252;rzungsverzeichnis Anlage 1." << "\\cell\\row}" << endl;
 }
 
 
@@ -326,8 +322,6 @@ void ReportHelper::writeCnvList(QTextStream& stream, const QList<int>& col_width
 	}
 
 	RtfTools::writeRtfWholeTable(stream,somatic_cnv_table,col_widths,18,true,false);
-	RtfTools::writeRtfTableSingleRowSpec(stream,{col_widths.last()},false);
-	stream << begin_table_cell << "\\fs14 Erkl\\u228;rungen siehe Abk\\u252;rzungsverzeichnis Anlage 1." << "\\cell\\row}" << endl;
 }
 
 
@@ -1119,8 +1113,6 @@ void ReportHelper::writeRtfCGIDrugTable(QTextStream &stream, const QList<int> &c
 		return;
 	}
 	RtfTools::writeRtfWholeTable(stream,drugs_as_string,col_widths,18,true,false);
-	RtfTools::writeRtfTableSingleRowSpec(stream,{col_widths.last()},false);
-	stream << begin_table_cell << "\\fs14 Erkl\\u228;rungen siehe Abk\\u252;rzungsverzeichnis Anlage 1." << "\\cell\\row}" << endl;
 }
 
 void ReportHelper::germlineSnvForQbic()
@@ -1617,7 +1609,7 @@ void ReportHelper::writeRtf(const QString& out_file)
 	{
 		RtfTools::writeRtfTableSingleRowSpec(stream,{widths.last()},false);
 		stream << begin_table_cell;
-		if(!hpo_term_.isEmpty()) stream << "Es sind keine Vergleichsdaten zu dieser Tumorentit\\u228;t erfasst. (DOI:10.1186/s13073-017-0424-2)";
+		if(!hpo_term_.isEmpty()) stream << "Es sind keine Vergleichsdaten zu dieser Tumorentit\\u228;t erfasst. (PMID: 28420421)";
 		else stream << "{\\highlight3 Es wurde kein (eindeutiger) HPO-Term in NGSD hinterlegt.}";
 		stream << "\\cell\\row}" << endl;
 	}
@@ -1628,13 +1620,10 @@ void ReportHelper::writeRtf(const QString& out_file)
 			if(data.hpoterm == hpo_term_)
 			{
 				RtfTools::writeRtfTableSingleRowSpec(stream,{widths.last()},false);
-				stream << begin_table_cell;
+				stream << begin_table_cell << "\\li200 ";
 				stream << "Vergleichswerte: ";
-				stream << "Median: " << data.tmb_median << " Var/Mbp, Maximum: " << data.tmb_max << " Var/Mbp, Kohorte: " << data.cohort_count << " (DOI:10.1186/s13073-017-0424-2) ";
-				if(entries_count > 1) //in case of multiple entries print each tumor entity
-				{
-					stream << "{\\highlight3 " << data.tumor_entity << "}";
-				}
+				stream << "Median: " << data.tmb_median << " Var/Mbp, Maximum: " << data.tmb_max << " Var/Mbp, Probenanzahl: " << data.cohort_count << " (PMID: 28420421) ";
+				stream << "{\\highlight3 " << data.tumor_entity << "}";
 				stream << "\\cell\\row}" << endl;
 			}
 		}
@@ -1704,8 +1693,6 @@ void ReportHelper::writeRtf(const QString& out_file)
 		RtfTools::writeRtfTableSingleRowSpec(stream,{widths.last()},true,false);
 		stream << begin_table_cell << (fusions.atEnd() ? "Es wurden keine Fusionen gefunden" : "\\highlight3 Fusionen gefunden. Bitte "+fusions_file+" pr\\u252;fen.") << "\\cell\\row}" << endl;
 	}
-	RtfTools::writeRtfTableSingleRowSpec(stream,{widths.last()},false);
-	stream << begin_table_cell << "\\fs14 Erkl\\u228;rungen siehe Abk\\u252;rzungsverzeichnis Anlage 1." << "\\cell\\row}" << endl;
 	stream << "\\page" << endl;
 
 	widths.clear();
