@@ -89,7 +89,7 @@
            <bool>false</bool>
           </property>
           <attribute name="verticalHeaderVisible">
-           <bool>true</bool>
+           <bool>false</bool>
           </attribute>
          </widget>
         </item>
@@ -224,6 +224,7 @@
     <addaction name="actionCopySplit"/>
     <addaction name="separator"/>
     <addaction name="actionResize"/>
+    <addaction name="actionResizeCustom"/>
    </widget>
    <widget class="QMenu" name="menuVariants">
     <property name="title">
@@ -702,6 +703,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+S</string>
+   </property>
+  </action>
+  <action name="actionResizeCustom">
+   <property name="text">
+    <string>Resize columns to content (custom)</string>
+   </property>
+   <property name="toolTip">
+    <string>Resize columns to content (custom)</string>
    </property>
   </action>
  </widget>

@@ -88,6 +88,8 @@ public slots:
 	void on_actionAbout_triggered();
 	///Resizes columns accoding to content
 	void on_actionResize_triggered();
+	///Resizes columns accoding to content
+	void on_actionResizeCustom_triggered();
 	///Report dialog
 	void on_actionReport_triggered();
 	///Open processed sample tabs

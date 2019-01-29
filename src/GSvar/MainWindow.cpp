@@ -1363,6 +1363,55 @@ void MainWindow::on_actionResize_triggered()
 	}
 }
 
+void MainWindow::on_actionResizeCustom_triggered()
+{
+	GUIHelper::resizeTableCells(ui_.vars, 50);
+
+	//set mimumn width of chr, start, end
+	if (ui_.vars->columnWidth(0)<42)
+	{
+		ui_.vars->setColumnWidth(0, 42);
+	}
+	if (ui_.vars->columnWidth(1)<62)
+	{
+		ui_.vars->setColumnWidth(1, 62);
+	}
+	if (ui_.vars->columnWidth(2)<62)
+	{
+		ui_.vars->setColumnWidth(2, 62);
+	}
+
+	//big
+	int size_big = 400;
+	int index = guiColumnIndex("OMIM");
+	if (index!=-1) ui_.vars->setColumnWidth(index, size_big);
+
+	//medium
+	int size_med = 100;
+	index = guiColumnIndex("genotype");
+	if (index!=-1) ui_.vars->setColumnWidth(index, size_med);
+	index = guiColumnIndex("gene");
+	if (index!=-1) ui_.vars->setColumnWidth(index, size_med);
+	index = guiColumnIndex("variant_type");
+	if (index!=-1) ui_.vars->setColumnWidth(index, size_med);
+	index = guiColumnIndex("filter");
+	if (index!=-1) ui_.vars->setColumnWidth(index, size_med);
+	index = guiColumnIndex("ClinVar");
+	if (index!=-1) ui_.vars->setColumnWidth(index, size_med);
+	index = guiColumnIndex("HGMD");
+	if (index!=-1) ui_.vars->setColumnWidth(index, size_med);
+	index = guiColumnIndex("NGSD_hom");
+	if (index!=-1) ui_.vars->setColumnWidth(index, size_med);
+	index = guiColumnIndex("NGSD_het");
+	if (index!=-1) ui_.vars->setColumnWidth(index, size_med);
+	index = guiColumnIndex("NGSD_group");
+	if (index!=-1) ui_.vars->setColumnWidth(index, size_med);
+	index = guiColumnIndex("classification");
+	if (index!=-1) ui_.vars->setColumnWidth(index, size_med);
+	index = guiColumnIndex("gene_info");
+	if (index!=-1) ui_.vars->setColumnWidth(index, size_med);
+}
+
 void MainWindow::on_actionReport_triggered()
 {
 	if (variants_.count()==0) return;
