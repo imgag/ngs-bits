@@ -113,7 +113,7 @@
      <string>File</string>
     </property>
     <addaction name="actionOpen"/>
-    <addaction name="actionOpenNGSD"/>
+    <addaction name="actionOpenByName"/>
     <addaction name="actionRecent"/>
     <addaction name="separator"/>
     <addaction name="actionExportVCF"/>
@@ -256,6 +256,7 @@
    <addaction name="actionReport"/>
    <addaction name="separator"/>
    <addaction name="actionOpenProcessedSampleTabs"/>
+   <addaction name="actionOpenProcessedSampleTabByName"/>
    <addaction name="separator"/>
    <addaction name="actionAnalysisStatus"/>
    <addaction name="actionReanalyze"/>
@@ -269,7 +270,7 @@
   </widget>
   <action name="actionOpen">
    <property name="text">
-    <string>Open file</string>
+    <string>Open</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -381,7 +382,7 @@
     <string>Open sample dialog</string>
    </property>
    <property name="toolTip">
-    <string>Open processed sample.</string>
+    <string>Open sample details tab(s) for samples contained in variant list.</string>
    </property>
   </action>
   <action name="actionSampleInformation">
@@ -519,9 +520,9 @@
     <string>Genes &gt; Regions</string>
    </property>
   </action>
-  <action name="actionOpenNGSD">
+  <action name="actionOpenByName">
    <property name="text">
-    <string>Open sample from NGSD</string>
+    <string>Open by name</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+O</string>
@@ -686,6 +687,21 @@
    </property>
    <property name="toolTip">
     <string>Queue re-analysis of data (single-sample, multi-sample, trio, somatic).</string>
+   </property>
+  </action>
+  <action name="actionOpenProcessedSampleTabByName">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/NGSD_sample_select.png</normaloff>:/Icons/NGSD_sample_select.png</iconset>
+   </property>
+   <property name="text">
+    <string>Open sample by name dialog</string>
+   </property>
+   <property name="toolTip">
+    <string>Open sample details tab for any sample from NGSD.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
    </property>
   </action>
  </widget>

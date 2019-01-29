@@ -70,6 +70,7 @@
 #include "SomaticDialog.h"
 #include "Histogram.h"
 #include "ProcessedSampleWidget.h"
+#include "DBSelector.h"
 
 QT_CHARTS_USE_NAMESPACE
 
@@ -452,13 +453,13 @@ void MainWindow::delayedInizialization()
 	Log::setFileEnabled(true);
 	Log::appInfo();
 
-	//load from INI file
-	if (Settings::allKeys().count()<5)
+	//load from INI file (if a valid INI file - otherwise restore INI file)
+	if (Settings::string("igv_genome").trimmed().isEmpty())
 	{
 		Settings::restoreBackup();
-		if (Settings::allKeys().count()<5)
+		if (Settings::string("igv_genome").trimmed().isEmpty())
 		{
-			QMessageBox::warning(this, "GSvar ini file empty", "The ini file '" + Settings::fileName() + "' is empty.\nPlease inform your administrator!");
+			QMessageBox::warning(this, "GSvar INI file empty", "The ini file '" + Settings::fileName() + "' is empty.\nPlease inform your administrator!");
 			close();
 			return;
 		}
@@ -969,6 +970,20 @@ FilterCascade MainWindow::loadFilter(QString name) const
 	return output;
 }
 
+QString MainWindow::processedSampleUserInput()
+{
+	//create
+	DBSelector* selector = new DBSelector(this);
+	NGSD db;
+	selector->fill(db.createTable("processed_sample", "SELECT ps.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM sample s, processed_sample ps WHERE ps.sample_id=s.id"));
+
+	//show
+	auto dlg = GUIHelper::createDialog(selector, "Select processed sample", "processed sample:", true);
+	if (dlg->exec()==QDialog::Rejected) return "";
+
+	return db.processedSampleName(selector->getId());
+}
+
 void MainWindow::addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize)
 {
 	if (maximize)
@@ -1077,12 +1092,10 @@ void MainWindow::on_actionOpen_triggered()
 	loadFile(filename);
 }
 
-void MainWindow::on_actionOpenNGSD_triggered()
+void MainWindow::on_actionOpenByName_triggered()
 {
-	//get processed sample name
-	QString ps_name = QInputDialog::getText(this, "Open processed sample from NGSD", "processed sample:").trimmed();
-	if (ps_name=="") return;
-
+	QString ps_name = processedSampleUserInput();
+	if (ps_name.isEmpty()) return;
 	openProcessedSampleFromNGSD(ps_name);
 }
 
@@ -1608,6 +1621,14 @@ void MainWindow::on_actionOpenProcessedSampleTabs_triggered()
 			openProcessedSampleTab(info.column_name);
 		}
 	}
+}
+
+void MainWindow::on_actionOpenProcessedSampleTabByName_triggered()
+{
+	QString ps_name = processedSampleUserInput();
+	if (ps_name.isEmpty()) return;
+
+	openProcessedSampleTab(ps_name);
 }
 
 void MainWindow::on_actionGenderXY_triggered()
@@ -3159,6 +3180,7 @@ void MainWindow::updateNGSDSupport()
 	//toolbar
 	ui_.actionReport->setEnabled(ngsd_enabled);
 	ui_.actionOpenProcessedSampleTabs->setEnabled(ngsd_enabled);
+	ui_.actionOpenProcessedSampleTabByName->setEnabled(ngsd_enabled);
 	ui_.actionNGSDAnnotation->setEnabled(ngsd_enabled);
 	ui_.actionAnalysisStatus->setEnabled(ngsd_enabled);
 	ui_.actionReanalyze->setEnabled(ngsd_enabled);
@@ -3168,7 +3190,7 @@ void MainWindow::updateNGSDSupport()
 	ui_.actionDiagnosticStatusOverview->setEnabled(ngsd_enabled);
 
 	//tools menu
-	ui_.actionOpenNGSD->setEnabled(ngsd_enabled);
+	ui_.actionOpenByName->setEnabled(ngsd_enabled);
 	ui_.actionGeneInfo->setEnabled(ngsd_enabled);
 	ui_.actionGenesToRegions->setEnabled(ngsd_enabled);
 	ui_.actionGeneVariantInfo->setEnabled(ngsd_enabled);

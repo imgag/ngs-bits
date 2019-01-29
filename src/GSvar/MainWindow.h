@@ -74,12 +74,14 @@ public:
 	QStringList loadFilterNames() const;
 	///Returns all filters defined in the filters INI file
 	FilterCascade loadFilter(QString name) const;
+	///Gets a processed sample name from the user - or "" if cancelled.
+	QString processedSampleUserInput();
 
 public slots:
 	///Open dialog
 	void on_actionOpen_triggered();
-	///Open dialog for NGSD
-	void on_actionOpenNGSD_triggered();
+	///Open dialog by name (using NGSD)
+	void on_actionOpenByName_triggered();
 	///ChangeLog action
 	void on_actionChangeLog_triggered();
 	///About dialog
@@ -90,6 +92,8 @@ public slots:
 	void on_actionReport_triggered();
 	///Open processed sample tabs
 	void on_actionOpenProcessedSampleTabs_triggered();
+	///Open processed sample tab by name
+	void on_actionOpenProcessedSampleTabByName_triggered();
 	///Gender determination
 	void on_actionGenderXY_triggered();
 	///Gender determination
@@ -259,7 +263,7 @@ private:
 	GeneSet imprinting_genes_;
 
 	//SPECIAL
-	///Timer to delay some initialization, e.g. load CLI argument after the main window is visible (otherwise the sample info dialog is shown before the main window)
+	///Timer to delay some initialization, e.g. load CLI argument after the main window is visible
 	QTimer delayed_init_timer_;
 };
 

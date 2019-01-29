@@ -62,5 +62,6 @@
         <file>Icons/VarSome.png</file>
         <file>Icons/Trash.png</file>
         <file>Resources/hpoterms_tmb.tsv</file>
+        <file>Icons/NGSD_sample_select.png</file>
     </qresource>
 </RCC>

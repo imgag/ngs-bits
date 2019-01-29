@@ -18,7 +18,7 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	ui_->qc_table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(showPlot()));
 
-	action = new QAction("Open sample details", this);
+	action = new QAction("Open processed sample tab", this);
 	ui_->sample_relations->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openSampleTab()));
 
