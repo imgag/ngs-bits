@@ -1,5 +1,12 @@
 # GSvar change log
 
+### 2018_11-119-gdce1647 (30.01.19)
+- Variant details: improved visualization of large variants.
+- Somatic report: Added reference values for tumor mutation burden according to DOI:10.1186/s13073-017-0424-2. 
+- General: Added tab-based interface for processed sample infos.
+- General: Opening processed sample tabs for arbitrary samples now possible (new icon in tool bar).
+- General: Added custom column withs to main menu: `Edit -> Resize columns to content (custom)`.
+
 ### 2018_11-110-g2e6747a (22.01.19)
 - Added NGSD variant counts of the same disease group as `NGSD_group` column.
 - Gene variant info: improved impact selection.
@@ -264,6 +271,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 
