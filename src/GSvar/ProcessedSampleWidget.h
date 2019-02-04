@@ -21,6 +21,7 @@ public:
 
 signals:
 	void openProcessedSampleTab(QString ps_name);
+	void openRunTab(QString run_name);
 
 protected slots:
 	void updateGUI();

@@ -96,6 +96,8 @@ public slots:
 	void on_actionOpenProcessedSampleTabs_triggered();
 	///Open processed sample tab by name
 	void on_actionOpenProcessedSampleTabByName_triggered();
+	///Open sequencing run tab by name
+	void on_actionOpenSequencingRunTabByName_triggered();
 	///Gender determination
 	void on_actionGenderXY_triggered();
 	///Gender determination
@@ -229,8 +231,10 @@ public slots:
 	///Check mendelian error rate of trio.
 	void checkMendelianErrorRate(double cutoff_perc=5.0);
 
-	///Open processed sample widget
+	///Open processed sample tab
 	void openProcessedSampleTab(QString ps_name);
+	///Open run tab
+	void openRunTab(QString run_name);
 	///Process a tab close request
 	void closeTab(int index);
 

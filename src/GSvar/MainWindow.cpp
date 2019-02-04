@@ -71,6 +71,7 @@
 #include "Histogram.h"
 #include "ProcessedSampleWidget.h"
 #include "DBSelector.h"
+#include "SequencingRunWidget.h"
 
 QT_CHARTS_USE_NAMESPACE
 
@@ -124,6 +125,17 @@ MainWindow::MainWindow(QWidget *parent)
 	filter_btn->menu()->addAction(ui_.actionFiltersClear);
 	filter_btn->menu()->addAction(ui_.actionFiltersClearWithROI);
 	ui_.tools->insertWidget(ui_.actionReport, filter_btn);
+
+	//NGSD menu button
+	auto ngsd_btn = new QToolButton();
+	ngsd_btn->setIcon(QIcon(":/Icons/NGSD_search.png"));
+	ngsd_btn->setToolTip("Open NGSD item as tab.");
+	ngsd_btn->setMenu(new QMenu());
+	ngsd_btn->menu()->addAction(ui_.actionOpenProcessedSampleTabByName );
+	ngsd_btn->menu()->addAction(ui_.actionOpenSequencingRunTabByName);
+	ngsd_btn->setPopupMode(QToolButton::InstantPopup);
+	connect(ngsd_btn, SIGNAL(triggered(QAction*)), this, SLOT(applyFilter(QAction*)));
+	ui_.tools->insertWidget(ui_.actionOpenProcessedSampleTabs, ngsd_btn);
 
 	//signals and slots
 	connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(close()));
@@ -981,7 +993,11 @@ QString MainWindow::processedSampleUserInput()
 	auto dlg = GUIHelper::createDialog(selector, "Select processed sample", "processed sample:", true);
 	if (dlg->exec()==QDialog::Rejected) return "";
 
-	return db.processedSampleName(selector->getId());
+	//handle invalid name
+	QString ps_id = selector->getId();
+	if (ps_id=="") return "";
+
+	return db.processedSampleName(ps_id);
 }
 
 void MainWindow::addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize)
@@ -1215,6 +1231,25 @@ void MainWindow::openProcessedSampleTab(QString ps_name)
 	int index = ui_.tabs->addTab(widget, QIcon(":/Icons/NGSD_sample.png"), ps_name);
 	ui_.tabs->setCurrentIndex(index);
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
+	connect(widget, SIGNAL(openRunTab(QString)), this, SLOT(openRunTab(QString)));
+}
+
+void MainWindow::openRunTab(QString run_name)
+{
+	QString ps_id;
+	try
+	{
+		ps_id = NGSD().getValue("SELECT id FROM sequencing_run WHERE name='" + run_name + "'").toString();
+	}
+	catch (DatabaseException e)
+	{
+		GUIHelper::showMessage("NGSD error", "The run database ID could not be determined for '"  + run_name + "'!\nError message: " + e.message());
+		return;
+	}
+
+	SequencingRunWidget* widget = new SequencingRunWidget(this, ps_id);
+	int index = ui_.tabs->addTab(widget, QIcon(":/Icons/NGSD_run.png"), run_name);
+	ui_.tabs->setCurrentIndex(index);
 }
 
 void MainWindow::closeTab(int index)
@@ -1678,6 +1713,23 @@ void MainWindow::on_actionOpenProcessedSampleTabByName_triggered()
 	if (ps_name.isEmpty()) return;
 
 	openProcessedSampleTab(ps_name);
+}
+
+void MainWindow::on_actionOpenSequencingRunTabByName_triggered()
+{
+	//create
+	DBSelector* selector = new DBSelector(this);
+	NGSD db;
+	selector->fill(db.createTable("sequencing_run", "SELECT id, name FROM sequencing_run"));
+
+	//show
+	auto dlg = GUIHelper::createDialog(selector, "Select sequencing run", "run:", true);
+	if (dlg->exec()==QDialog::Rejected) return ;
+
+	//handle invalid name
+	if (selector->getId()=="") return;
+
+	openRunTab(selector->text());
 }
 
 void MainWindow::on_actionGenderXY_triggered()
@@ -3229,7 +3281,6 @@ void MainWindow::updateNGSDSupport()
 	//toolbar
 	ui_.actionReport->setEnabled(ngsd_enabled);
 	ui_.actionOpenProcessedSampleTabs->setEnabled(ngsd_enabled);
-	ui_.actionOpenProcessedSampleTabByName->setEnabled(ngsd_enabled);
 	ui_.actionNGSDAnnotation->setEnabled(ngsd_enabled);
 	ui_.actionAnalysisStatus->setEnabled(ngsd_enabled);
 	ui_.actionReanalyze->setEnabled(ngsd_enabled);

@@ -257,7 +257,6 @@
    <addaction name="actionReport"/>
    <addaction name="separator"/>
    <addaction name="actionOpenProcessedSampleTabs"/>
-   <addaction name="actionOpenProcessedSampleTabByName"/>
    <addaction name="separator"/>
    <addaction name="actionAnalysisStatus"/>
    <addaction name="actionReanalyze"/>
@@ -691,18 +690,11 @@
    </property>
   </action>
   <action name="actionOpenProcessedSampleTabByName">
-   <property name="icon">
-    <iconset resource="GSvar.qrc">
-     <normaloff>:/Icons/NGSD_sample_select.png</normaloff>:/Icons/NGSD_sample_select.png</iconset>
-   </property>
    <property name="text">
-    <string>Open sample by name dialog</string>
+    <string>Processed sample</string>
    </property>
    <property name="toolTip">
-    <string>Open sample details tab for any sample from NGSD.</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Shift+S</string>
+    <string>Open processed sample tab from NGSD.</string>
    </property>
   </action>
   <action name="actionResizeCustom">
@@ -711,6 +703,14 @@
    </property>
    <property name="toolTip">
     <string>Resize columns to content (custom)</string>
+   </property>
+  </action>
+  <action name="actionOpenSequencingRunTabByName">
+   <property name="text">
+    <string>Sequencing run</string>
+   </property>
+   <property name="toolTip">
+    <string>Open sequencing run tab from NGSD.</string>
    </property>
   </action>
  </widget>

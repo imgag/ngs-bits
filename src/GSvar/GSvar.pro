@@ -53,7 +53,8 @@ SOURCES += main.cpp\
     DBQCWidget.cpp \
     DBComboBox.cpp \
     DBSelector.cpp \
-    DiseaseInfoWidget.cpp
+    DiseaseInfoWidget.cpp \
+    SequencingRunWidget.cpp
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
@@ -101,7 +102,8 @@ HEADERS  += MainWindow.h \
     DBQCWidget.h \
     DBComboBox.h \
     DBSelector.h \
-    DiseaseInfoWidget.h
+    DiseaseInfoWidget.h \
+    SequencingRunWidget.h
 
 FORMS    += MainWindow.ui \
     FilterDockWidget.ui \
@@ -142,7 +144,8 @@ FORMS    += MainWindow.ui \
     SampleDiseaseInfoWidget.ui \
     ProcessedSampleWidget.ui \
     DBQCWidget.ui \
-    DiseaseInfoWidget.ui
+    DiseaseInfoWidget.ui \
+    SequencingRunWidget.ui
 
 include("../app_gui.pri")
 

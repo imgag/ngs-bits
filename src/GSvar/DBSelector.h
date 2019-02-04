@@ -21,7 +21,7 @@ public:
 	///Returns if a non-empty and valid entry was selected
 	bool isValidSelection() const;
 
-	///Returns the database ID as a string (or "" if no entry is selected)
+	///Returns the database ID as a string ("" if no entry or an invalid entry is selected)
 	QString getId() const;
 
 protected:

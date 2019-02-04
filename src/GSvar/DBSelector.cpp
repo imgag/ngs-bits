@@ -46,5 +46,10 @@ bool DBSelector::isValidSelection() const
 
 QString DBSelector::getId() const
 {
+	if (!text2id_.contains(text()))
+	{
+		return "";
+	}
+
 	return text2id_[text()];
 }
