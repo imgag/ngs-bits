@@ -204,7 +204,7 @@ public slots:
 	///Shows a sample overview for the current variant;
 	void showVariantSampleOverview();
 	///Show allele frequency histogram
-	void showAlleleFrequencyHistogram();
+	void on_actionShowAfHistogram_triggered();
 
 	///Returns a gene list where the inheritance information is not set (selected variants only)
 	QStringList geneInheritanceMissing(QBitArray selected);

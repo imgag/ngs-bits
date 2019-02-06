@@ -51,12 +51,13 @@ void ProcessedSampleWidget::updateGUI()
 	//#### processed sample details ####
 	ProcessedSampleData ps_data = db_.getProcessedSampleData(ps_id_);
 	ui_->name->setText(ps_data.name);
-	ui_->comments->setText(ps_data.comments);
+	ui_->comments_processed_sample->setText(ps_data.comments);
 	ui_->system->setText(ps_data.processing_system);
 	ui_->project->setText(ps_data.project_name);
 	styleQualityLabel(ui_->quality, ps_data.quality);
 	QString run = ps_data.run_name;
 	ui_->run->setText("<a href=\"" + run + "\">"+run+"</a>");
+	ui_->kasp->setText(db_.getQCData(ps_id_).value("kasp").asString());
 
 	//#### sample details ####
 	QString s_id = db_.getValue("SELECT sample_id FROM processed_sample WHERE id='" + ps_id_ + "'").toString();
@@ -66,9 +67,17 @@ void ProcessedSampleWidget::updateGUI()
 	ui_->tumor_ffpe->setText(QString(s_data.is_tumor ? "<font color=red>yes</font>" : "no") + " / " + (s_data.is_ffpe ? "<font color=red>yes</font>" : "no"));
 	ui_->disease_group->setText(s_data.disease_group);
 	ui_->disease_status->setText(s_data.disease_status);
-	ui_->s_comments->setText(s_data.comments);
+	ui_->comments_sample->setText(s_data.comments);
 	ui_->s_name->setText(s_data.name);
 	styleQualityLabel(ui_->s_quality, s_data.quality);
+
+	//#### diagnostic status ####
+	DiagnosticStatusData diag = db_.getDiagnosticStatus(ps_id_);
+	ui_->status->setText(diag.dagnostic_status);
+	ui_->outcome->setText(diag.outcome);
+	ui_->causal_genes->setText(diag.genes_causal);
+	ui_->inheritance_mode->setText(diag.inheritance_mode);
+	ui_->comments_diag->setText(diag.comments);
 
 	//#### disease details ####
 	DBTable dd_table = db_.createTable("sample_disease_info", "SELECT sdi.id, sdi.type, sdi.disease_info, u.name, sdi.date, t.name as hpo_name FROM user u, processed_sample ps, sample_disease_info sdi LEFT JOIN hpo_term t ON sdi.disease_info=t.hpo_id WHERE sdi.sample_id=ps.sample_id AND sdi.user_id=u.id AND ps.id='" + ps_id_ + "' ORDER BY sdi.date ASC");
@@ -103,17 +112,57 @@ void ProcessedSampleWidget::updateQCMetrics()
 		conditions = "AND (t.qcml_id='QC:2000007' OR 'QC:2000008' OR t.qcml_id='QC:2000010' OR t.qcml_id='QC:2000013' OR t.qcml_id='QC:2000014' OR t.qcml_id='QC:2000015' OR t.qcml_id='QC:2000016' OR t.qcml_id='QC:2000017' OR t.qcml_id='QC:2000018' OR t.qcml_id='QC:2000020' OR t.qcml_id='QC:2000021' OR t.qcml_id='QC:2000022' OR t.qcml_id='QC:2000023' OR t.qcml_id='QC:2000024' OR t.qcml_id='QC:2000025' OR t.qcml_id='QC:2000027' OR t.qcml_id='QC:2000049' OR t.qcml_id='QC:2000050' OR t.qcml_id='QC:2000051')";
 	}
 
+	//create table
 	DBTable qc_table = db_.createTable("processed_sample_qc", "SELECT qc.id, t.qcml_id, t.name, qc.value, t.description FROM processed_sample_qc qc, qc_terms t WHERE qc.qc_terms_id=t.id AND t.obsolete=0 AND qc.processed_sample_id='" + ps_id_ + "' " + conditions + " ORDER BY t.qcml_id ASC");
+
 	//use descriptions as tooltip
 	QStringList descriptions = qc_table.takeColumn(qc_table.columnIndex("description"));
 	ui_->qc_table->setData(qc_table);
 	ui_->qc_table->setColumnTooltips("name", descriptions);
+
+	//colors
+	QColor orange = QColor(255,150,0,125);
+	QColor red = QColor(255,0,0,125);
+	QList<QColor> colors;
+	for (int r=0; r<qc_table.rowCount(); ++r)
+	{
+		QColor color;
+		bool ok;
+		double value = qc_table.row(r).value(2).toDouble(&ok);
+		if (ok)
+		{
+			QString accession = qc_table.row(r).value(0);
+			if (accession=="QC:2000014") //known variants %
+			{
+				if (value<95) color = orange;
+				if (value<90) color = red;
+			}
+			else if (accession=="QC:2000025") //avg depth
+			{
+				if (value<80) color = orange;
+				if (value<30) color = red;
+			}
+			else if (accession=="QC:2000027") //cov 20x
+			{
+				if (value<95) color = orange;
+				if (value<90) color = red;
+			}
+			else if (accession=="QC:2000051") //AF deviation
+			{
+				if (value>3) color = orange;
+				if (value>6) color = red;
+			}
+		}
+
+		colors << color;
+	}
+	ui_->qc_table->setColumnColors("value", colors);
 }
 
 void ProcessedSampleWidget::showPlot()
 {
 	QList<int> selected_rows = ui_->qc_table->selectedRows().toList();
-	if (selected_rows.count()>2)
+	if (selected_rows.count()<1 || selected_rows.count()>2)
 	{
 		QMessageBox::information(this, "Plot error", "Please select <b>one or two</b> quality metric for plotting!");
 		return;

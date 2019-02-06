@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>909</width>
-    <height>755</height>
+    <width>1193</width>
+    <height>746</height>
    </rect>
   </property>
   <property name="acceptDrops">
@@ -104,7 +104,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>909</width>
+     <width>1193</width>
      <height>21</height>
     </rect>
    </property>
@@ -255,6 +255,8 @@
    </attribute>
    <addaction name="actionNGSDAnnotation"/>
    <addaction name="actionReport"/>
+   <addaction name="separator"/>
+   <addaction name="actionShowAfHistogram"/>
    <addaction name="separator"/>
    <addaction name="actionOpenProcessedSampleTabs"/>
    <addaction name="separator"/>
@@ -719,6 +721,18 @@
    </property>
    <property name="toolTip">
     <string>Open sequencing run tab from NGSD.</string>
+   </property>
+  </action>
+  <action name="actionShowAfHistogram">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/AF_histogram.png</normaloff>:/Icons/AF_histogram.png</iconset>
+   </property>
+   <property name="text">
+    <string>Show AF histogram</string>
+   </property>
+   <property name="toolTip">
+    <string>Show allele frequency histogram of variants.</string>
    </property>
   </action>
  </widget>

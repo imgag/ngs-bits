@@ -16,8 +16,12 @@ public:
 	SequencingRunWidget(QWidget* parent, QString run_id);
 	~SequencingRunWidget();
 
+signals:
+	void openProcessedSampleTab(QString ps_name);
+
 protected slots:
 	void updateGUI();
+	void openSelectedSamples();
 
 private:
 	Ui::SequencingRunWidget* ui_;

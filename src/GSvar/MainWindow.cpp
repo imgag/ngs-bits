@@ -94,7 +94,7 @@ MainWindow::MainWindow(QWidget *parent)
 	addDockWidget(Qt::RightDockWidgetArea, filter_widget_);
 	addDockWidget(Qt::RightDockWidgetArea, sample_widget_);
 	tabifyDockWidget(filter_widget_, sample_widget_);
-	connect(sample_widget_, SIGNAL(showAlleleFrequencyHistogram()), this, SLOT(showAlleleFrequencyHistogram()));
+	connect(sample_widget_, SIGNAL(showAlleleFrequencyHistogram()), this, SLOT(on_actionShowAfHistogram_triggered()));
 	addDockWidget(Qt::BottomDockWidgetArea, var_widget_);
 	connect(var_widget_, SIGNAL(jumbToRegion(QString)), this, SLOT(openInIGV(QString)));
 	connect(var_widget_, SIGNAL(editVariantClassification()), this, SLOT(editVariantClassification()));
@@ -817,7 +817,7 @@ void MainWindow::showVariantSampleOverview()
 	}
 }
 
-void MainWindow::showAlleleFrequencyHistogram()
+void MainWindow::on_actionShowAfHistogram_triggered()
 {
 	AnalysisType type = variants_.type();
 	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO)
@@ -1250,6 +1250,7 @@ void MainWindow::openRunTab(QString run_name)
 	SequencingRunWidget* widget = new SequencingRunWidget(this, ps_id);
 	int index = ui_.tabs->addTab(widget, QIcon(":/Icons/NGSD_run.png"), run_name);
 	ui_.tabs->setCurrentIndex(index);
+	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
 }
 
 void MainWindow::closeTab(int index)

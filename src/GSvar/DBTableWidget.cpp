@@ -87,6 +87,26 @@ void DBTableWidget::setColumnTooltips(const QString& column_header, const QStrin
 	}
 }
 
+void DBTableWidget::setColumnColors(const QString& column_header, const QList<QColor>& colors)
+{
+	if (colors.count()!=rowCount())
+	{
+		THROW(ArgumentException, "Invalid color count '" + QString::number(colors.count()) + "' in DBTableWidget::setColumnColors - expected '" + QString::number(rowCount()) + "'!");
+	}
+
+	int c = columnIndex(column_header);
+	for (int r=0; r<rowCount(); ++r)
+	{
+		const QColor& color = colors[r];
+		if (!color.isValid()) continue;
+
+		QTableWidgetItem* table_item = item(r, c);
+		if (table_item==nullptr) continue;
+
+		table_item->setBackgroundColor(color);
+	}
+}
+
 void DBTableWidget::setBackgroundColorIfEqual(const QString& column_header, const QColor& color, const QString& text)
 {
 	setBackgroundColorIf(column_header, color, [text](const QString& str) { return str==text; });

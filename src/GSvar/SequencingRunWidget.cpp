@@ -10,6 +10,11 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, QString run_id)
 	ui_->setupUi(this);
 	connect(ui_->show_qc, SIGNAL(toggled(bool)), this, SLOT(updateGUI()));
 
+
+	QAction* action = new QAction("Open processed sample tab", this);
+	ui_->samples->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(openSelectedSamples()));
+
 	updateGUI();
 }
 
@@ -102,7 +107,7 @@ void SequencingRunWidget::updateGUI()
 			if (accession=="QC:2000025") //avg depth
 			{
 				ui_->samples->setBackgroundColorIfLt(header, orange, 80);
-				ui_->samples->setBackgroundColorIfLt(header, red, 40);
+				ui_->samples->setBackgroundColorIfLt(header, red, 30);
 			}
 			if (accession=="QC:2000027") //cov 20x
 			{
@@ -131,4 +136,17 @@ void SequencingRunWidget::updateGUI()
 	QStringList imported_qc = db_.getValues("SELECT ps.id FROM processed_sample ps WHERE ps.sequencing_run_id='" + run_id_ + "' AND EXISTS(SELECT id FROM processed_sample_qc WHERE processed_sample_id=ps.id)");
 	QStringList imported_vars = db_.getValues("SELECT ps.id FROM processed_sample ps WHERE ps.sequencing_run_id='" + run_id_ + "' AND EXISTS(SELECT variant_id FROM detected_variant WHERE processed_sample_id=ps.id)");
 	ui_->sample_count->setText(QString::number(samples.rowCount()) + " samples (" + QString::number(imported_qc.count()) + " with QC, " + QString::number(imported_vars.count()) + " with variants)");
+}
+
+void SequencingRunWidget::openSelectedSamples()
+{
+	int col = ui_->samples->columnIndex("sample");
+	QList<int> selected_rows = ui_->samples->selectedRows().toList();
+	foreach (int row, selected_rows)
+	{
+		QTableWidgetItem* item = ui_->samples->item(row, col);
+		qDebug() << item << item->text();
+
+		emit(openProcessedSampleTab(item->text()));
+	}
 }
