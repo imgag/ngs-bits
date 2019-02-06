@@ -58,23 +58,48 @@ void DBTableWidget::setData(const DBTable& table)
 	GUIHelper::resizeTableCells(this, 200);
 }
 
-void DBTableWidget::setColumnTooltips(int c, const QStringList& tooltips)
+int DBTableWidget::columnIndex(const QString& column_header) const
 {
-	if (c<0 || c>=columnCount())
+	for (int c=0; c<columnCount(); ++c)
 	{
-		THROW(ArgumentException, "Invalid column index '" + QString::number(c) + "' in DBTableWidget::setColumnTooltips!");
+		if (horizontalHeaderItem(c)->text()==column_header)
+		{
+			return c;
+		}
 	}
+
+	THROW(ArgumentException, "Could not find column with header '" + column_header + "'");
+}
+
+void DBTableWidget::setColumnTooltips(const QString& column_header, const QStringList& tooltips)
+{
 	if (tooltips.count()!=rowCount())
 	{
 		THROW(ArgumentException, "Invalid tooltip count '" + QString::number(tooltips.count()) + "' in DBTableWidget::setColumnTooltips - expected '" + QString::number(rowCount()) + "'!");
 	}
 
+	int c = columnIndex(column_header);
 	for(int r=0; r<rowCount(); ++r)
 	{
 		QTableWidgetItem* table_item = item(r, c);
 		if (table_item==nullptr) continue;
 		table_item->setToolTip(tooltips[r]);
 	}
+}
+
+void DBTableWidget::setBackgroundColorIfEqual(const QString& column_header, const QColor& color, const QString& text)
+{
+	setBackgroundColorIf(column_header, color, [text](const QString& str) { return str==text; });
+}
+
+void DBTableWidget::setBackgroundColorIfLt(const QString& column_header, const QColor& color, double cutoff)
+{
+	setBackgroundColorIf(column_header, color, [cutoff](const QString& str) { bool ok; double value = str.toDouble(&ok); if (!ok) return false; return value<cutoff; });
+}
+
+void DBTableWidget::setBackgroundColorIfGt(const QString& column_header, const QColor& color, double cutoff)
+{
+	setBackgroundColorIf(column_header, color, [cutoff](const QString& str) { bool ok; double value = str.toDouble(&ok); if (!ok) return false; return value>cutoff; });
 }
 
 QSet<int> DBTableWidget::selectedRows() const

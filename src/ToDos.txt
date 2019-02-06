@@ -11,8 +11,15 @@ libs:
 
 NGSD:
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
+*** replace pLI by oe
+    - NGSD schema add oe (3x)
+    - NGSD import
+    - implement alternative handling for GUI/filter in GSvar
+    - annotation (deploy megSAP)
+    - remove old columns
 
 GSvar:
+- Subpanel design: allow creating sub-panels with error (acute encephalopathy)
 **** Support WGS CNV files (after entire CNV calling in megSAP is done with ClinCNV)
 *** Implement OMIM search via API - example: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1 (wait for API access)
 ** Allow adding/editing data in NGSD (sample relations, ...)
@@ -24,7 +31,7 @@ GSvar:
 * Add special report for trios
 * Add highlighting of imprinting genes to CNVs, ROHs and UPDs
 * Add multi-gene Google/PubMed search: https://www.ncbi.nlm.nih.gov/pubmed/?term=CASP8+AND+(%22Breast+cancer%22+OR+%22Breast+carcinoma%22)+AND+2018 (SWAL)
-* Add ExAC pLI / ExAC CNV / inheritance (megSAP) and filter for CNVs (GSvar) (wait for ClinCNV)
+* Add gnomAD oe score / ExAC CNV / inheritance (megSAP) and filter for CNVs (GSvar) (wait for ClinCNV)
 * GenLab XML report: male => change 'hom' variants outside PAR region on chrX/chrY to 'hemi' (when GenLab import is updated)
 *** Report variant selection
     - allow marking variants for report inclusion (report_pathogenic, report_possibly_pathogenic, report_incidental_finding (ACMG), report_scientific, no_report_artefact, no_report_no_disease_association)
@@ -36,6 +43,7 @@ GSvar:
 - Visualize tracking of variants when from split complex variant (wait for VcfBreakComplex)
 
 Tools:
+*** SampleSimilarity: Cache variant lists for VCF/GSvar mode to speed up calculations.
 * VcfToTsv: add support for CSQ field from VEP
 ** SeqPurge: make multi-threaded processing scale better for WGS - add writer thread - improve error handling
 - NGSDPrecalculate:

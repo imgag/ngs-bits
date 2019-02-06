@@ -64,5 +64,9 @@
         <file>Resources/hpoterms_tmb.tsv</file>
         <file>Icons/NGSD_run.png</file>
         <file>Icons/NGSD_search.png</file>
+        <file>Icons/quality_bad.png</file>
+        <file>Icons/quality_good.png</file>
+        <file>Icons/quality_medium.png</file>
+        <file>Icons/quality_unset.png</file>
     </qresource>
 </RCC>

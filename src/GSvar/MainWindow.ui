@@ -690,6 +690,10 @@
    </property>
   </action>
   <action name="actionOpenProcessedSampleTabByName">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/NGSD_sample.png</normaloff>:/Icons/NGSD_sample.png</iconset>
+   </property>
    <property name="text">
     <string>Processed sample</string>
    </property>
@@ -706,6 +710,10 @@
    </property>
   </action>
   <action name="actionOpenSequencingRunTabByName">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/NGSD_run.png</normaloff>:/Icons/NGSD_run.png</iconset>
+   </property>
    <property name="text">
     <string>Sequencing run</string>
    </property>

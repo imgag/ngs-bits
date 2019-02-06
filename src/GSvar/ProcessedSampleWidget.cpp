@@ -33,6 +33,19 @@ ProcessedSampleWidget::~ProcessedSampleWidget()
 	delete ui_;
 }
 
+void ProcessedSampleWidget::styleQualityLabel(QLabel* label, const QString& quality)
+{
+	//icon
+	QString filename = ":/Icons/quality_unset.png";
+	if (quality=="good") filename = ":/Icons/quality_good.png";
+	else if (quality=="medium") filename = ":/Icons/quality_medium.png";
+	else if (quality=="bad") filename = ":/Icons/quality_bad.png";
+	label->setPixmap(QPixmap(filename));
+
+	//tooltip
+	label->setToolTip(quality);
+}
+
 void ProcessedSampleWidget::updateGUI()
 {
 	//#### processed sample details ####
@@ -41,9 +54,7 @@ void ProcessedSampleWidget::updateGUI()
 	ui_->comments->setText(ps_data.comments);
 	ui_->system->setText(ps_data.processing_system);
 	ui_->project->setText(ps_data.project_name);
-	QString quality = ps_data.quality;
-	if (quality=="bad") quality = "<font color=red>bad</font>";
-	ui_->quality->setText(quality);
+	styleQualityLabel(ui_->quality, ps_data.quality);
 	QString run = ps_data.run_name;
 	ui_->run->setText("<a href=\"" + run + "\">"+run+"</a>");
 
@@ -57,9 +68,7 @@ void ProcessedSampleWidget::updateGUI()
 	ui_->disease_status->setText(s_data.disease_status);
 	ui_->s_comments->setText(s_data.comments);
 	ui_->s_name->setText(s_data.name);
-	quality = s_data.quality;
-	if (quality=="bad") quality = "<font color=red>bad</font>";
-	ui_->s_quality->setText(quality);
+	styleQualityLabel(ui_->s_quality, s_data.quality);
 
 	//#### disease details ####
 	DBTable dd_table = db_.createTable("sample_disease_info", "SELECT sdi.id, sdi.type, sdi.disease_info, u.name, sdi.date, t.name as hpo_name FROM user u, processed_sample ps, sample_disease_info sdi LEFT JOIN hpo_term t ON sdi.disease_info=t.hpo_id WHERE sdi.sample_id=ps.sample_id AND sdi.user_id=u.id AND ps.id='" + ps_id_ + "' ORDER BY sdi.date ASC");
@@ -98,7 +107,7 @@ void ProcessedSampleWidget::updateQCMetrics()
 	//use descriptions as tooltip
 	QStringList descriptions = qc_table.takeColumn(qc_table.columnIndex("description"));
 	ui_->qc_table->setData(qc_table);
-	ui_->qc_table->setColumnTooltips(qc_table.columnIndex("name"), descriptions);
+	ui_->qc_table->setColumnTooltips("name", descriptions);
 }
 
 void ProcessedSampleWidget::showPlot()

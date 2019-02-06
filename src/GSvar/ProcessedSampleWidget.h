@@ -4,6 +4,7 @@
 #include "NGSD.h"
 
 #include <QWidget>
+#include <QLabel>
 
 namespace Ui {
 class ProcessedSampleWidget;
@@ -18,6 +19,8 @@ class ProcessedSampleWidget
 public:
 	ProcessedSampleWidget(QWidget* parent, QString ps_id);
 	~ProcessedSampleWidget();
+
+	static void styleQualityLabel(QLabel* label, const QString& quality);
 
 signals:
 	void openProcessedSampleTab(QString ps_name);

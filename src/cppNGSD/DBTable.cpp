@@ -54,6 +54,26 @@ int DBTable::columnIndex(const QString& name) const
 	return output[0];
 }
 
+int DBTable::addColumn(const QStringList& values, const QString& header)
+{
+	//check
+	if (values.count()!=rowCount())
+	{
+		THROW(ArgumentException, "Invalid value count '" + QString::number(values.count()) + "' in DB table for '" + table_name_ + "'. Expected " + QString::number(rowCount()) + "!");
+	}
+
+	//header
+	headers_ << header;
+
+	//content
+	for (int r=0; r<rowCount(); ++r)
+	{
+		rows_[r].addValue(values[r]);
+	}
+
+	return columnCount() - 1;
+}
+
 QStringList DBTable::takeColumn(int c)
 {
 	checkColumnIndex(c);

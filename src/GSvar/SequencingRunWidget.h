@@ -13,7 +13,7 @@ class SequencingRunWidget : public QWidget
 	Q_OBJECT
 
 public:
-	explicit SequencingRunWidget(QWidget* parent, QString run_id);
+	SequencingRunWidget(QWidget* parent, QString run_id);
 	~SequencingRunWidget();
 
 protected slots:

@@ -85,6 +85,8 @@ class CPPNGSDSHARED_EXPORT DBTable
 
 		///Returns the index of the column with the given name. Throws an error if not found.
 		int columnIndex(const QString& name) const;
+		///Adds a new column, returns the index of the new column.
+		int addColumn(const QStringList& values, const QString& header);
 		///Removes a column and returns the all values.
 		QStringList takeColumn(int c);
 		///Sets a the values and optionally the header of a column.
