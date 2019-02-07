@@ -1,5 +1,10 @@
 # GSvar change log
 
+### 2018_11-127-gbd77909 (07.02.19)
+- General: Added sequencing run tabs.
+- Somatic report: wording changes.
+- Minor other improvements.
+
 ### 2018_11-119-gdce1647 (30.01.19)
 - Variant details: improved visualization of large variants.
 - Somatic report: Added reference values for tumor mutation burden according to DOI:10.1186/s13073-017-0424-2. 
@@ -271,6 +276,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 
