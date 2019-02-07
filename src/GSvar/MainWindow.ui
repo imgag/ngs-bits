@@ -125,12 +125,6 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>0</height>
-             </size>
-            </property>
            </widget>
           </widget>
           <widget class="VariantDetailsDockWidget" name="variant_details" native="true">
@@ -139,12 +133,6 @@
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>0</height>
-            </size>
            </property>
           </widget>
          </widget>
