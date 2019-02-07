@@ -70,7 +70,7 @@ void ReportHelper::writeSnvList(QTextStream& stream, const QList<int>& col_width
 	stream << begin_table_cell_head << "Punktmutationen (SNVs) und kleine Insertionen/Deletionen (INDELs)" << "\\cell\\row}" << endl;
 	RtfTools::writeRtfTableSingleRowSpec(stream,col_widths,true);
 	stream << begin_table_cell_head << "Gen\\cell" << begin_table_cell_head << "Position\\cell" << begin_table_cell_head <<"Typ\\cell" ;
-	stream << begin_table_cell_head << "F/T Tumor\\cell" << begin_table_cell_head << "Funktion\\cell" << begin_table_cell_head << "Effekt\\cell";
+	stream << begin_table_cell_head << "F/T Tumor\\cell" << begin_table_cell_head << "Funktion\\cell" << begin_table_cell_head << "Genfunktion\\cell";
 	stream << "\\row}" << endl;
 
 	if(snvs.count() == 0)
@@ -96,13 +96,19 @@ void ReportHelper::writeSnvList(QTextStream& stream, const QList<int>& col_width
 		Variant snv = snvs[i];
 		VariantTranscript transcript = selectSomaticTranscript(snv);
 		transcript.type = transcript.type.replace("_variant","");
+		transcript.type.replace("&",", ");
 
-		stream << begin_table_cell << "\\i " << transcript.gene <<  "\\i0" << "\\line (" + transcript.id + ")" << "\\cell" <<  endl;
+		stream << begin_table_cell << "\\i " << transcript.gene <<  "\\i0" << "\\line{\\fs16(" + transcript.id + ")" << "}\\cell" <<  endl;
 		stream << begin_table_cell << transcript.hgvs_c + ":" + transcript.hgvs_p  << "\\cell" << endl;
 		stream << begin_table_cell << transcript.type << "\\cell" << endl;
 		stream << begin_table_cell << QString::number(snv.annotations().at(i_tum_af).toDouble(),'f',3) + " / " + snv.annotations().at(i_tum_dp)<< "\\cell" << endl;
 		stream << begin_table_cell <<  snv.annotations()[snv_index_cgi_driver_statement_].replace(";",", ") << "\\cell" << endl;
-		stream << begin_table_cell << snv.annotations().at(snv_index_cgi_gene_role_) << "\\cell" << endl;
+		stream << begin_table_cell;
+		if(snv.annotations().at(snv_index_cgi_gene_role_) == "Act") stream << "Onkogen";
+		else if(snv.annotations().at(snv_index_cgi_gene_role_) == "LoF") stream << "TSG";
+		else if(snv.annotations().at(snv_index_cgi_gene_role_) == "ambiguous") stream << "unklar";
+		else stream << ".";
+		stream << "\\cell" << endl;
 		stream << "\\row}" << endl;
 	}
 }
@@ -116,7 +122,7 @@ void ReportHelper::writeCnvGeneList(QTextStream& stream, const QList<int>& col_w
 	RtfTools::writeRtfTableSingleRowSpec(stream,col_widths,true);
 	stream << begin_table_cell_head << "Gen\\cell" << begin_table_cell_head << "Position (Gr\\u246;\\u223;e CNV)\\cell";
 	stream << begin_table_cell_head << "Typ\\cell" << begin_table_cell_head << "CN\\cell";
-	stream << begin_table_cell_head << "Funktion\\cell" << begin_table_cell_head << "Effekt\\cell";
+	stream << begin_table_cell_head << "Funktion\\cell" << begin_table_cell_head << "Genfunktion\\cell";
 	stream << "\\row}" << endl;
 
 	if(cnvs_filtered_.isEmpty())
@@ -170,6 +176,7 @@ void ReportHelper::writeCnvGeneList(QTextStream& stream, const QList<int>& col_w
 		if(!i_genes_to_be_printed.isEmpty())
 		{
 			QList<QByteArray> effects = cnv.annotations().at(cnv_index_cgi_gene_role_).split(',');
+
 			QByteArray size = cnv.annotations().at(i_cnv_type);
 			foreach(int index,i_genes_to_be_printed)
 			{
@@ -195,7 +202,14 @@ void ReportHelper::writeCnvGeneList(QTextStream& stream, const QList<int>& col_w
 		stream << begin_table_cell << (gene.at(3).toDouble() > 2. ? "AMP" : "DEL") << "\\cell";
 		stream << begin_table_cell << gene.at(3) << "\\cell";
 		stream << begin_table_cell << gene[4].replace(";",", ") << "\\cell";
-		stream << begin_table_cell << gene.at(5) << "\\cell";
+
+		//gene role
+		stream << begin_table_cell;
+		if(gene.at(5) == "Act") stream <<"Onkogen";
+		else if(gene.at(5) == "LoF") stream << "TSG";
+		else if(gene.at(5) == "ambiguous") stream << "unklar";
+		else stream << ".";
+		stream << "\\cell";
 
 		stream << "\\row}" << endl;
 	}
@@ -1582,7 +1596,7 @@ void ReportHelper::writeRtf(const QString& out_file)
 
 	//create SNV table with selected SNVs only
 	//        Gene    cDNA    type    F/T     func	   eff
-	widths << 1800 << 4000 << 5400 << 6500 << 8950  << max_table_width;
+	widths << 1570 << 3700 << 5100 << 6200 << 8450  << max_table_width;
 
 	QString begin_table_cell_head = begin_table_cell +"\\b\\qc " ;
 
@@ -1701,7 +1715,7 @@ void ReportHelper::writeRtf(const QString& out_file)
 	 *********************/
 	stream << "{\\pard\\par}" << endl;
 	stream << "{\\pard\\sa45\\fs18\\b Alle nachgewiesenen somatischen Ver\\u228;nderungen:\\par}" << endl;
-	widths << 1800 << 4000 << 5400 << 6500 << 8950  << max_table_width;
+	widths << 1570 << 3700 << 5100 << 6200 << 8450  << max_table_width;
 	writeSnvList(stream,widths,snv_variants_);
 	stream << "{\\pard\\par}" << endl;
 	widths.clear();
