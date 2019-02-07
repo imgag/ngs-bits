@@ -1,7 +1,7 @@
 #ifndef FILTERDOCKWIDGET_H
 #define FILTERDOCKWIDGET_H
 
-#include <QDockWidget>
+#include <QWidget>
 #include "ui_FilterDockWidget.h"
 #include "BedFile.h"
 #include "GeneSet.h"
@@ -10,7 +10,7 @@
 
 //Filter manager dock widget
 class FilterDockWidget
-	: public QDockWidget
+	: public QWidget
 {
 	Q_OBJECT
 	

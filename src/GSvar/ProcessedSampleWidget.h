@@ -33,10 +33,21 @@ protected slots:
 	void openSampleInNGSD();
 	void openSampleTab();
 
+	///Opens a dialog to edit the diagnostic status.
+	void editDiagnosticStatus();
+	///Opens a dialog to edit the disease group/info.
+	void editDiseaseGroupAndInfo();
+	///Opens a dialog to edit the disease details.
+	void editDiseaseDetails();
+	///Sets the processed sample quality.
+	void setQuality();
+
 private:
 	Ui::ProcessedSampleWidget* ui_;
 	QString ps_id_;
 	NGSD db_;
+
+	QString processedSampleName() const;
 };
 
 #endif // PROCESSEDSAMPLEWIDGET_H

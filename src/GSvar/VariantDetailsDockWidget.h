@@ -1,7 +1,7 @@
 #ifndef VARIANTDETAILSDOCKWIDGET_H
 #define VARIANTDETAILSDOCKWIDGET_H
 
-#include <QDockWidget>
+#include <QWidget>
 #include <QLabel>
 #include "VariantList.h"
 
@@ -11,13 +11,16 @@ class VariantDetailsDockWidget;
 
 //Variant details widget
 class VariantDetailsDockWidget
-	: public QDockWidget
+	: public QWidget
 {
 	Q_OBJECT
 
 public:
-	explicit VariantDetailsDockWidget(QWidget* parent, const QMap<QString, QStringList>& pt);
+	explicit VariantDetailsDockWidget(QWidget* parent);
 	~VariantDetailsDockWidget();
+
+	//Set preferred transcripts for highlighting
+	void setPreferredTranscripts(const QMap<QString, QStringList>& pt);
 
 	//Sets tooltips of labels
 	void setLabelTooltips(const VariantList& vl);
@@ -88,7 +91,7 @@ private:
 	//GUI
 	Ui::VariantDetailsDockWidget *ui;
 	//Preferred transcript list per gene
-	const QMap<QString, QStringList>& preferred_transcripts;
+	QMap<QString, QStringList> preferred_transcripts;
 };
 
 #endif // VARIANTDETAILSDOCKWIDGET_H

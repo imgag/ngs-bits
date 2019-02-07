@@ -5,9 +5,6 @@
 #include <QTimer>
 #include "ui_MainWindow.h"
 #include "VariantList.h"
-#include "FilterDockWidget.h"
-#include "VariantDetailsDockWidget.h"
-#include "SampleDetailsDockWidget.h"
 #include "BedFile.h"
 #include "NGSD.h"
 #include "FileWatcher.h"
@@ -245,10 +242,7 @@ protected:
 private:
 	//GUI
 	Ui::MainWindow ui_;
-	FilterDockWidget* filter_widget_;
 	int var_last_;
-	SampleDetailsDockWidget* sample_widget_;
-	VariantDetailsDockWidget* var_widget_;
 	BusyDialog* busy_dialog_;
 
 	//DATA

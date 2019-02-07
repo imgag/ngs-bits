@@ -16,7 +16,7 @@
 #include "FilterEditDialog.h"
 
 FilterDockWidget::FilterDockWidget(QWidget *parent)
-	: QDockWidget(parent)
+	: QWidget(parent)
 	, ui_()
 {
 	ui_.setupUi(this);

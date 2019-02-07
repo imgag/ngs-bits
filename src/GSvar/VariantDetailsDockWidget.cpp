@@ -12,10 +12,9 @@
 #include "Log.h"
 #include "HttpHandler.h"
 
-VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent, const QMap<QString, QStringList>& pt)
-	: QDockWidget(parent)
+VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
+	: QWidget(parent)
 	, ui(new Ui::VariantDetailsDockWidget)
-	, preferred_transcripts(pt)
 {
 	ui->setupUi(this);
 
@@ -56,6 +55,11 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent, const QMap<Q
 VariantDetailsDockWidget::~VariantDetailsDockWidget()
 {
 	delete ui;
+}
+
+void VariantDetailsDockWidget::setPreferredTranscripts(const QMap<QString, QStringList>& pt)
+{
+	preferred_transcripts = pt;
 }
 
 void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)

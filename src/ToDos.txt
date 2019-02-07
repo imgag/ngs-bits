@@ -28,7 +28,7 @@ GSvar:
     - http://www.cplusplus.com/forum/beginner/60604/
     - https://codereview.stackexchange.com/questions/63566/encryption-with-many-algorithms-using-crypto
     - https://www.cryptopp.com/wiki/ARIA
-* Add special report for trios
+* Add special report for trios/multi-sample with genotype overview
 * Add highlighting of imprinting genes to CNVs, ROHs and UPDs
 * Add multi-gene Google/PubMed search: https://www.ncbi.nlm.nih.gov/pubmed/?term=CASP8+AND+(%22Breast+cancer%22+OR+%22Breast+carcinoma%22)+AND+2018 (SWAL)
 * Add gnomAD oe score / ExAC CNV / inheritance (megSAP) and filter for CNVs (GSvar) (wait for ClinCNV)

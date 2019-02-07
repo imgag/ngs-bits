@@ -12,7 +12,6 @@ SOURCES += main.cpp\
     ExternalToolDialog.cpp \
     ReportDialog.cpp \
     ReportWorker.cpp \
-    SampleDetailsDockWidget.cpp \
     TrioDialog.cpp \
     HttpHandler.cpp \
     ValidationDialog.cpp \
@@ -61,7 +60,6 @@ HEADERS  += MainWindow.h \
     ExternalToolDialog.h \
     ReportDialog.h \
     ReportWorker.h \
-    SampleDetailsDockWidget.h \
     TrioDialog.h \
     HttpHandler.h \
     ValidationDialog.h \
@@ -109,7 +107,6 @@ FORMS    += MainWindow.ui \
     FilterDockWidget.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
-    SampleDetailsDockWidget.ui \
     TrioDialog.ui \
     ClassificationDialog.ui \
     ValidationDialog.ui \

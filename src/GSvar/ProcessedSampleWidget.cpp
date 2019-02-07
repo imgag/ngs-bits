@@ -2,6 +2,9 @@
 #include "ui_ProcessedSampleWidget.h"
 #include "DBQCWidget.h"
 #include "GUIHelper.h"
+#include "DiagnosticStatusWidget.h"
+#include "DiseaseInfoWidget.h"
+#include "SampleDiseaseInfoWidget.h"
 
 #include <QMessageBox>
 
@@ -14,16 +17,25 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	GUIHelper::styleSplitter(ui_->splitter);
 	connect(ui_->ngsd_btn, SIGNAL(clicked(bool)), this, SLOT(openSampleInNGSD()));
 	connect(ui_->run, SIGNAL(linkActivated(QString)), this, SIGNAL(openRunTab(QString)));
+	connect(ui_->qc_all, SIGNAL(stateChanged(int)), this, SLOT(updateQCMetrics()));
 
+	//QC value > plot
 	QAction* action = new QAction("Plot", this);
 	ui_->qc_table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(showPlot()));
 
+	//sample realtions > open sample
 	action = new QAction("Open processed sample tab", this);
 	ui_->sample_relations->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openSampleTab()));
 
-	connect(ui_->qc_all, SIGNAL(stateChanged(int)), this, SLOT(updateQCMetrics()));
+	//edit button
+	QMenu* menu = new QMenu();
+	menu->addAction("Edit disease group/status", this, SLOT(editDiseaseGroupAndInfo()));
+	menu->addAction("Edit disease details", this, SLOT(editDiseaseDetails()));
+	menu->addAction("Edit quality", this, SLOT(setQuality()));
+	menu->addAction("Edit diagnostic status", this, SLOT(editDiagnosticStatus()));
+	ui_->edit_btn->setMenu(menu);
 
 	updateGUI();
 }
@@ -239,5 +251,58 @@ void ProcessedSampleWidget::openSampleTab()
 			emit openProcessedSampleTab(ps);
 		}
 	}
+}
+
+void ProcessedSampleWidget::editDiagnosticStatus()
+{
+	DiagnosticStatusWidget* widget = new DiagnosticStatusWidget(this);
+	widget->setStatus(db_.getDiagnosticStatus(ps_id_));
+	auto dlg = GUIHelper::createDialog(widget, "Diagnostic status of " + processedSampleName(), "", true);
+	if (dlg->exec()!=QDialog::Accepted) return;
+
+	db_.setDiagnosticStatus(ps_id_, widget->status());
+	updateGUI();
+}
+
+void ProcessedSampleWidget::editDiseaseGroupAndInfo()
+{
+	QString sample_id = db_.sampleId(processedSampleName());
+
+	DiseaseInfoWidget* widget = new DiseaseInfoWidget(sample_id, this);
+	auto dlg = GUIHelper::createDialog(widget, "Disease information", "", true);
+	if (dlg->exec() != QDialog::Accepted) return;
+
+	db_.setSampleDiseaseData(sample_id, widget->diseaseGroup(), widget->diseaseStatus());
+	updateGUI();
+}
+
+void ProcessedSampleWidget::editDiseaseDetails()
+{
+	QString sample_id = db_.sampleId(processedSampleName());
+
+	SampleDiseaseInfoWidget* widget = new SampleDiseaseInfoWidget(processedSampleName(), this);
+	widget->setDiseaseInfo(db_.getSampleDiseaseInfo(sample_id));
+	auto dlg = GUIHelper::createDialog(widget, "Sample disease details", "", true);
+	if (dlg->exec() != QDialog::Accepted) return;
+
+	db_.setSampleDiseaseInfo(sample_id, widget->diseaseInfo());
+	updateGUI();
+}
+
+void ProcessedSampleWidget::setQuality()
+{
+	QStringList qualities = NGSD().getEnum("processed_sample", "quality");
+
+	bool ok;
+	QString quality = QInputDialog::getItem(this, "Select processed sample quality", "quality:", qualities, qualities.indexOf(ui_->quality->toolTip()), false, &ok);
+	if (!ok) return;
+
+	db_.setProcessedSampleQuality(ps_id_, quality);
+	updateGUI();
+}
+
+QString ProcessedSampleWidget::processedSampleName() const
+{
+	return ui_->name->text();
 }
 

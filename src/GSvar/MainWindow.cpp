@@ -78,10 +78,7 @@ QT_CHARTS_USE_NAMESPACE
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
-	, filter_widget_(new FilterDockWidget(this))
 	, var_last_(-1)
-	, sample_widget_(new SampleDetailsDockWidget(this))
-	, var_widget_(new VariantDetailsDockWidget(this, preferred_transcripts_))
 	, busy_dialog_(nullptr)
 	, filename_()
 	, db_annos_updated_(NO)
@@ -91,16 +88,17 @@ MainWindow::MainWindow(QWidget *parent)
 	//setup GUI
 	ui_.setupUi(this);
 	setWindowTitle(QCoreApplication::applicationName());
-	addDockWidget(Qt::RightDockWidgetArea, filter_widget_);
-	addDockWidget(Qt::RightDockWidgetArea, sample_widget_);
-	tabifyDockWidget(filter_widget_, sample_widget_);
-	connect(sample_widget_, SIGNAL(showAlleleFrequencyHistogram()), this, SLOT(on_actionShowAfHistogram_triggered()));
-	addDockWidget(Qt::BottomDockWidgetArea, var_widget_);
-	connect(var_widget_, SIGNAL(jumbToRegion(QString)), this, SLOT(openInIGV(QString)));
-	connect(var_widget_, SIGNAL(editVariantClassification()), this, SLOT(editVariantClassification()));
-	connect(var_widget_, SIGNAL(editVariantValidation()), this, SLOT(editVariantValidation()));
-	connect(var_widget_, SIGNAL(editVariantComment()), this, SLOT(editVariantComment()));
-	connect(var_widget_, SIGNAL(showVariantSampleOverview()), this, SLOT(showVariantSampleOverview()));
+	GUIHelper::styleSplitter(ui_.splitter);
+	ui_.splitter->setStretchFactor(0, 10);
+	ui_.splitter->setStretchFactor(1, 1);
+	GUIHelper::styleSplitter(ui_.splitter_2);
+	ui_.splitter_2->setStretchFactor(0, 10);
+	ui_.splitter_2->setStretchFactor(1, 1);
+	connect(ui_.variant_details, SIGNAL(jumbToRegion(QString)), this, SLOT(openInIGV(QString)));
+	connect(ui_.variant_details, SIGNAL(editVariantClassification()), this, SLOT(editVariantClassification()));
+	connect(ui_.variant_details, SIGNAL(editVariantValidation()), this, SLOT(editVariantValidation()));
+	connect(ui_.variant_details, SIGNAL(editVariantComment()), this, SLOT(editVariantComment()));
+	connect(ui_.variant_details, SIGNAL(showVariantSampleOverview()), this, SLOT(showVariantSampleOverview()));
 	connect(ui_.tabs, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 
 	//filter menu button
@@ -140,15 +138,14 @@ MainWindow::MainWindow(QWidget *parent)
 	//signals and slots
 	connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(close()));
 	connect(ui_.vars, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(varsContextMenu(QPoint)));
-	connect(filter_widget_, SIGNAL(filtersChanged()), this, SLOT(filtersChanged()));
-	connect(filter_widget_, SIGNAL(filtersChanged()), filter_widget_, SLOT(raise()));
-	connect(filter_widget_, SIGNAL(targetRegionChanged()), this, SLOT(resetAnnotationStatus()));
+	connect(ui_.filters, SIGNAL(filtersChanged()), this, SLOT(filtersChanged()));
+	connect(ui_.filters, SIGNAL(targetRegionChanged()), this, SLOT(resetAnnotationStatus()));
 	connect(ui_.vars, SIGNAL(itemSelectionChanged()), this, SLOT(updateVariantDetails()));
 	connect(&filewatcher_, SIGNAL(fileChanged()), this, SLOT(handleInputFileChange()));
 	connect(ui_.vars, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(variantCellDoubleClicked(int, int)));
 	connect(ui_.actionDesignSubpanel, SIGNAL(triggered()), this, SLOT(openSubpanelDesignDialog()));
-	connect(filter_widget_, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
-	connect(filter_widget_, SIGNAL(phenotypeSubPanelRequested()), this, SLOT(createSubPanelFromPhenotypeFilter()));
+	connect(ui_.filters, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
+	connect(ui_.filters, SIGNAL(phenotypeSubPanelRequested()), this, SLOT(createSubPanelFromPhenotypeFilter()));
 
 	//misc initialization
 	filewatcher_.setDelayInSeconds(10);
@@ -231,7 +228,7 @@ void MainWindow::on_actionCNV_triggered()
 		het_hit_genes = db.genesToApproved(het_hit_genes);
 	}
 
-	CnvWidget* list = new CnvWidget(filename_, filter_widget_, het_hit_genes);
+	CnvWidget* list = new CnvWidget(filename_, ui_.filters, het_hit_genes);
 
 	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
 	auto dlg = GUIHelper::createDialog(list, "Copy-number variants");
@@ -283,7 +280,7 @@ void MainWindow::on_actionROH_triggered()
 		}
 	}
 
-	RohWidget* list = new RohWidget(filename, filter_widget_);
+	RohWidget* list = new RohWidget(filename, ui_.filters);
 	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
 	auto dlg = GUIHelper::createDialog(list, "Runs of homozygosity");
 	addModelessDialog(dlg);
@@ -329,7 +326,7 @@ void MainWindow::on_actionNGSDAnnotation_triggered()
 	}
 
 	//show NGSD annotation dialog
-	NGSDReannotationDialog dlg(filter_widget_->targetRegion(), this);
+	NGSDReannotationDialog dlg(ui_.filters->targetRegion(), this);
 	if (!dlg.exec()) return;
 
 	//show busy dialog
@@ -487,6 +484,7 @@ void MainWindow::delayedInizialization()
 
 	//preferred transcripts
 	preferred_transcripts_ = loadPreferredTranscripts();
+	ui_.variant_details->setPreferredTranscripts(preferred_transcripts_);
 
 	//load imprinting gene list
 	QStringList lines = Helper::loadTextFile(":/Resources/imprinting_genes.tsv", true, '#', true);
@@ -542,7 +540,7 @@ void MainWindow::openInIGV(QString region)
 		}
 
 		//reference BAM
-		QString ref = filter_widget_->referenceSample();
+		QString ref = ui_.filters->referenceSample();
 		if (ref!="")
 		{
 			dlg.addFile("reference sample", "BAM", ref, true);
@@ -563,7 +561,7 @@ void MainWindow::openInIGV(QString region)
 		}
 
 		//target region
-		QString roi = filter_widget_->targetRegion();
+		QString roi = ui_.filters->targetRegion();
 		if (roi!="")
 		{
 			dlg.addFile("target region track", "BED", roi, true);
@@ -696,7 +694,7 @@ void MainWindow::editVariantClassification()
 			variant.annotations()[i_class_comment] = class_info.comments.toLatin1();
 
 			//update details widget and filtering
-			var_widget_->updateVariant(variants_, var_curr);
+			ui_.variant_details->updateVariant(variants_, var_curr);
 			variantListChanged();
 		}
 	}
@@ -731,7 +729,7 @@ void MainWindow::editVariantValidation()
 			variant.annotations()[i_validation] = status;
 
 			//update details widget and filtering
-			var_widget_->updateVariant(variants_, var_curr);
+			ui_.variant_details->updateVariant(variants_, var_curr);
 			variantListChanged();
 		}
 	}
@@ -789,7 +787,7 @@ void MainWindow::editVariantComment()
 					ui_.vars->setItem(var_curr, gui_index, createTableItem(""));
 				}
 				item->setText(text);
-				var_widget_->updateVariant(variants_, var_curr);
+				ui_.variant_details->updateVariant(variants_, var_curr);
 			}
 		}
 	}
@@ -884,9 +882,9 @@ void MainWindow::on_actionShowAfHistogram_triggered()
 
 QString MainWindow::targetFileName() const
 {
-	if (filter_widget_->targetRegion()=="") return "";
+	if (ui_.filters->targetRegion()=="") return "";
 
-	QString output = "_" + QFileInfo(filter_widget_->targetRegion()).fileName();
+	QString output = "_" + QFileInfo(ui_.filters->targetRegion()).fileName();
 	output.remove(".bed");
 	output.remove(QRegExp("_[0-9_]{4}_[0-9_]{2}_[0-9_]{2}"));
 	return output;
@@ -1047,7 +1045,7 @@ void MainWindow::importPhenotypesFromNGSD()
 		}
 	}
 
-	filter_widget_->setPhenotypes(phenotypes);
+	ui_.filters->setPhenotypes(phenotypes);
 }
 
 void MainWindow::createSubPanelFromPhenotypeFilter()
@@ -1056,7 +1054,7 @@ void MainWindow::createSubPanelFromPhenotypeFilter()
 	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 	NGSD db;
 	GeneSet genes;
-	foreach(const Phenotype& pheno, filter_widget_->phenotypes())
+	foreach(const Phenotype& pheno, ui_.filters->phenotypes())
 	{
 		genes << db.phenotypeToGenes(pheno, true);
 	}
@@ -1280,7 +1278,7 @@ void MainWindow::loadFile(QString filename)
 {
 	//reset GUI and data structures
 	setWindowTitle(QCoreApplication::applicationName());
-	filter_widget_->reset(true);
+	ui_.filters->reset(true);
 	filename_ = "";
 	filewatcher_.clearFile();
 	db_annos_updated_ = NO;
@@ -1294,11 +1292,7 @@ void MainWindow::loadFile(QString filename)
 		closeTab(ui_.tabs->count()-1);
 	}
 
-	if (filename=="")
-	{
-		sample_widget_->clear();
-		return;
-	}
+	if (filename=="") return;
 
 	//load data
 	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
@@ -1306,7 +1300,7 @@ void MainWindow::loadFile(QString filename)
 	{
 		variants_.load(filename);
 
-		filter_widget_->setValidFilterEntries(variants_.filters().keys());
+		ui_.filters->setValidFilterEntries(variants_.filters().keys());
 
 		//update data structures
 		Settings::setPath("path_variantlists", filename);
@@ -1346,14 +1340,10 @@ void MainWindow::loadFile(QString filename)
 		QMessageBox::warning(this, "Outdated GSvar file", "The GSvar file contains the following error(s):\n  -" + errors.join("\n  -") + "\n\nTo ensure that GSvar works as expected, re-run the analysis starting from annotation!");
 	}
 
-	//update sample info dialog
-	sample_widget_->refresh(processedSampleName());
-	sample_widget_->raise();
-
 	//update variant details widget
 	try
 	{
-		var_widget_->setLabelTooltips(variants_);
+		ui_.variant_details->setLabelTooltips(variants_);
 	}
 	catch(Exception& e)
 	{
@@ -1507,7 +1497,7 @@ void MainWindow::generateReportSomaticRTF()
 	try
 	{
 		QApplication::setOverrideCursor(Qt::BusyCursor);
-		ReportHelper report(filename_, cnvs, filter_widget_->filters(),filter_widget_->targetRegion());
+		ReportHelper report(filename_, cnvs, ui_.filters->filters(),ui_.filters->targetRegion());
 
 		//Generate RTF
 		QString temp_filename = Helper::tempFileName(".rtf");
@@ -1609,7 +1599,7 @@ void MainWindow::generateReport()
 	//show report dialog
 	ReportDialog dialog(filename_, this);
 	dialog.addVariants(variants_, visible);
-	dialog.setTargetRegionSelected(filter_widget_->targetRegion()!="");
+	dialog.setTargetRegionSelected(ui_.filters->targetRegion()!="");
 	if (!dialog.exec()) return;
 	ReportSettings settings = dialog.settings();
 
@@ -1633,7 +1623,7 @@ void MainWindow::generateReport()
 	busy_dialog_->init("Generating report", false);
 
 	//start worker in new thread
-	ReportWorker* worker = new ReportWorker(base_name, bam_file, filter_widget_->targetRegion(), variants_, filter_widget_->filters(), preferred_transcripts_, dialog.settings(), getLogFiles(), file_rep);
+	ReportWorker* worker = new ReportWorker(base_name, bam_file, ui_.filters->targetRegion(), variants_, ui_.filters->filters(), preferred_transcripts_, dialog.settings(), getLogFiles(), file_rep);
 	connect(worker, SIGNAL(finished(bool)), this, SLOT(reportGenerationFinished(bool)));
 	worker->start();
 }
@@ -1679,7 +1669,7 @@ void MainWindow::databaseAnnotationFinished(bool success)
 	//update variant details widget
 	try
 	{
-		var_widget_->setLabelTooltips(variants_);
+		ui_.variant_details->setLabelTooltips(variants_);
 	}
 	catch(Exception& e)
 	{
@@ -1841,7 +1831,7 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	if (filename_=="") return;
 
 	//check for ROI file
-	QString roi_file = filter_widget_->targetRegion();
+	QString roi_file = ui_.filters->targetRegion();
 	if (roi_file=="")
 	{
 		QMessageBox::warning(this, "Gaps error", "No target region filter set!");
@@ -2075,6 +2065,7 @@ void MainWindow::on_actionPreferredTranscripts_triggered()
 
 	//update in-memory copy of preferred transcripts
 	preferred_transcripts_ = preferred_transcripts_new;
+	ui_.variant_details->setPreferredTranscripts(preferred_transcripts_);
 }
 
 void MainWindow::on_actionOpenDocumentation_triggered()
@@ -2126,12 +2117,12 @@ void MainWindow::openSubpanelDesignDialog(const GeneSet& genes)
 	if (dlg.lastCreatedSubPanel()!="")
 	{
 		//update target region list
-		filter_widget_->loadTargetRegions();
+		ui_.filters->loadTargetRegions();
 
 		//optinally use sub-panel as target regions
 		if (QMessageBox::question(this, "Use sub-panel?", "Do you want to set the sub-panel as target region?")==QMessageBox::Yes)
 		{
-			filter_widget_->setTargetRegion(dlg.lastCreatedSubPanel());
+			ui_.filters->setTargetRegion(dlg.lastCreatedSubPanel());
 		}
 	}
 
@@ -2143,7 +2134,7 @@ void MainWindow::on_actionArchiveSubpanel_triggered()
 	dlg.exec();
 	if (dlg.changedSubpanels())
 	{
-		filter_widget_->loadTargetRegions();
+		ui_.filters->loadTargetRegions();
 	}
 }
 
@@ -2849,7 +2840,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 		if (type == "gene:")
 		{
 			query = gene + " AND (mutation";
-			foreach(const Phenotype& pheno, filter_widget_->phenotypes())
+			foreach(const Phenotype& pheno, ui_.filters->phenotypes())
 			{
 				query += " OR \"" + pheno.name() + "\"";
 			}
@@ -2897,11 +2888,11 @@ void MainWindow::updateVariantDetails()
 	int var_current = currentVariantIndex();
 	if (var_current==-1) //no several variant => clear
 	{
-		var_widget_->clear();
+		ui_.variant_details->clear();
 	}
 	else if (var_current!=var_last_) //update variant details (if changed)
 	{
-		var_widget_->updateVariant(variants_, var_current);
+		ui_.variant_details->updateVariant(variants_, var_current);
 	}
 
 	var_last_ = var_current;
@@ -2914,15 +2905,15 @@ void MainWindow::applyFilter(QAction* action)
 	QString text = action->text();
 	if (text=="Clear filters")
 	{
-		filter_widget_->reset(false);
+		ui_.filters->reset(false);
 	}
 	else if (text=="Clear filters and target region")
 	{
-		filter_widget_->reset(true);
+		ui_.filters->reset(true);
 	}
 	else
 	{
-		filter_widget_->setFilters(text, loadFilter(text));
+		ui_.filters->setFilters(text, loadFilter(text));
 	}
 }
 
@@ -3074,15 +3065,15 @@ void MainWindow::filtersChanged()
 		QTime timer;
 		timer.start();
 
-		const FilterCascade& filter_cascade = filter_widget_->filters();
+		const FilterCascade& filter_cascade = ui_.filters->filters();
 		FilterResult filter_result = filter_cascade.apply(variants_, false);
-		filter_widget_->markFailedFilters();
+		ui_.filters->markFailedFilters();
 
 		Log::perf("Applying annotation filter took ", timer);
 		timer.start();
 
 		//roi file name changed => update ROI
-		QString roi = filter_widget_->targetRegion();
+		QString roi = ui_.filters->targetRegion();
 		if (roi!=last_roi_filename_)
 		{
 			last_roi_filename_ = "";
@@ -3108,7 +3099,7 @@ void MainWindow::filtersChanged()
 		}
 
 		//gene filter
-		GeneSet genes_filter = filter_widget_->genes();
+		GeneSet genes_filter = ui_.filters->genes();
 		if (!genes_filter.isEmpty())
 		{
 			FilterGenes filter;
@@ -3119,7 +3110,7 @@ void MainWindow::filtersChanged()
 		}
 
 		//text filter
-		QByteArray text = filter_widget_->text();
+		QByteArray text = ui_.filters->text();
 		if (!text.isEmpty())
 		{
 			FilterAnnotationText filter;
@@ -3131,7 +3122,7 @@ void MainWindow::filtersChanged()
 		}
 
 		//target region filter
-		BedLine region = BedLine::fromString(filter_widget_->region());
+		BedLine region = BedLine::fromString(ui_.filters->region());
 		if (region.isValid())
 		{
 			BedFile tmp;
@@ -3142,7 +3133,7 @@ void MainWindow::filtersChanged()
 		}
 
 		//phenotype selection changed => update ROI
-		const QList<Phenotype>& phenos = filter_widget_->phenotypes();
+		const QList<Phenotype>& phenos = ui_.filters->phenotypes();
 		if (phenos!=last_phenos_)
 		{
 			last_phenos_ = phenos;

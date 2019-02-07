@@ -84,6 +84,20 @@
            </property>
           </widget>
          </item>
+         <item>
+          <widget class="QToolButton" name="edit_btn">
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="GSvar.qrc">
+             <normaloff>:/Icons/Edit.png</normaloff>:/Icons/Edit.png</iconset>
+           </property>
+           <property name="popupMode">
+            <enum>QToolButton::InstantPopup</enum>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
        <item>
@@ -686,6 +700,7 @@
  </customwidgets>
  <resources>
   <include location="../GSmix/GSmix.qrc"/>
+  <include location="GSvar.qrc"/>
  </resources>
  <connections/>
 </ui>
