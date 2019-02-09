@@ -4,72 +4,108 @@
 #include "BasicStatistics.h"
 #include "NGSHelper.h"
 
-void SampleSimilarity::calculateFromVcf(QString& in1, QString& in2, int window, bool include_gonosomes, bool skip_multi)
+SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromVcf(QString filename, bool include_gonosomes, bool skip_multi)
+{
+	VariantList variants;
+	VariantListFormat format = variants.load(filename);
+
+	int geno_col;
+	if (format==TSV)
+	{
+		geno_col = variants.annotationIndexByName("genotype", true, false);
+	}
+	else //VCF or VCF.GZ
+	{
+		geno_col = variants.annotationIndexByName("GT", true, false);
+	}
+	if (geno_col==-1)
+	{
+		THROW(FileParseException, "Could not determine genotype column for variant list " + filename);
+	}
+
+	VariantGenotypes output;
+	for (int i=0; i<variants.count(); ++i)
+	{
+		Variant& variant = variants[i];
+
+		//skip variants not on autosomes
+		if(!variant.chr().isAutosome() && !include_gonosomes) continue;
+
+		//skip multi-allelic variants
+		if (skip_multi && format!=TSV && variant.obs().contains(',')) continue;
+
+		output[variant.toString()] = genoToDouble(variant.annotations()[geno_col]);
+	}
+
+	return output;
+}
+
+SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(QString build, QString filename, int min_cov, int max_snps, bool include_gonosomes, QString roi_file)
+{
+	//get known SNP list
+	VariantList snps;
+	if (!roi_file.trimmed().isEmpty())
+	{
+		BedFile roi;
+		roi.load(roi_file);
+		snps = NGSHelper::getKnownVariants(build, true, 0.2, 0.8, &roi);
+	}
+	else
+	{
+		snps = NGSHelper::getKnownVariants(build, true, 0.2, 0.8);
+	}
+
+	//open BAM
+	BamReader reader(filename);
+
+	VariantGenotypes output;
+	for(int i=0; i<snps.count(); ++i)
+	{
+		const Chromosome& chr = snps[i].chr();
+		int pos = snps[i].start();
+
+		if (!chr.isAutosome() && !include_gonosomes) continue;
+
+		Pileup pileup = reader.getPileup(chr, pos);
+		if (pileup.depth(false)<min_cov) continue;
+
+		QChar ref = snps[i].ref()[0];
+		QChar obs = snps[i].obs()[0];
+		double frequency = pileup.frequency(ref, obs);
+
+		//skip non-informative snps
+		if (!BasicStatistics::isValidFloat(frequency)) continue;
+
+		output[chr.strNormalized(false) + ":" + QString::number(pos) + " " + ref + ">" + obs] = frequency;
+
+		if (output.count()>=max_snps) break;
+	}
+
+	return output;
+}
+
+void SampleSimilarity::calculateSimilarity(const VariantGenotypes& in1, const VariantGenotypes& in2)
 {
 	clear();
-
-	//load input files
-	VariantList file1;
-	file1.load(in1);
-	VariantList file2;
-	file2.load(in2);
-
-	//get genotype column indices
-	int col_geno1 = file1.annotationIndexByName("genotype", true, false);
-	int col_geno2 = file2.annotationIndexByName("genotype", true, false);
-	if (col_geno1==-1 || col_geno2==-1) //VCF format
-	{
-		col_geno1 = file1.annotationIndexByName("GT", true, false);
-		col_geno2 = file2.annotationIndexByName("GT", true, false);
-	}
-	if (col_geno1==-1 || col_geno2==-1)
-	{
-		THROW(FileParseException, "Could not determine genotype column ('genotype' for GSvar, 'GT' for VCF).");
-	}
 
 	//calculate overlap / correlation
 	int c_ol = 0;
 	int c_ibs2 = 0;
+	int c_ibs0 = 0;
 	QVector<double> geno1;
 	QVector<double> geno2;
-	ChromosomalIndex<VariantList> file2_idx(file2);
-	for (int i=0; i<file1.count(); ++i)
+	for (auto it=in1.cbegin(); it!=in1.cend(); ++it)
 	{
-		Variant& v1 = file1[i];
+		double freq1 = it.value();
+		double freq2 = in2.value(it.key(), -1.0);
+		if (freq2==-1.0) continue;
+		++c_ol;
 
-		//skip variants not on autosomes
-		if(!v1.chr().isAutosome() && !include_gonosomes) continue;
+		geno1.append(freq1);
+		geno2.append(freq2);
 
-		//skip multi-allelic variants
-		if (v1.obs().contains(',') && skip_multi) continue;
-		int start = v1.start();
-		int end = v1.end();
-
-		//indel => fuzzy position search
-		if (!v1.isSNV())
-		{
-			start -= window;
-			end += window;
-		}
-
-		QVector<int> matches = file2_idx.matchingIndices(v1.chr(), start, end);
-		foreach(int index, matches)
-		{
-			Variant& v2 = file2[index];
-			if (v1.ref()==v2.ref() && v1.obs()==v2.obs())
-			{
-				++c_ol;
-
-				double freq1 = genoToDouble(v1.annotations()[col_geno1]);
-				geno1.append(freq1);
-				double freq2 = genoToDouble(v2.annotations()[col_geno2]);
-				geno2.append(freq2);
-
-				if (freq1==1.0 && freq2==1.0) ++c_ibs2;
-
-				break;
-			}
-		}
+		if ((freq1>0.9 && freq2>0.9) || (freq1<0.1 && freq2<0.1)) ++c_ibs2;
+		if ((freq1>0.9 && freq2<0.1) || (freq1<0.1 && freq2>0.9)) ++c_ibs0;
 	}
 
 	//abort if no overlap
@@ -80,32 +116,14 @@ void SampleSimilarity::calculateFromVcf(QString& in1, QString& in2, int window, 
 	}
 
 	//count overall number of variants
-	if (include_gonosomes)
-	{
-		no_variants1_ = file1.count();
-		no_variants2_ = file2.count();
-	}
-	else
-	{
-		int tmp1 = 0;
-		for (int i=0; i<file1.count(); ++i)
-		{
-			tmp1 += file1[i].chr().isAutosome();
-		}
-		no_variants1_ = tmp1;
-
-		int tmp2 = 0;
-		for (int i=0; i<file2.count(); ++i)
-		{
-			tmp2 += file2[i].chr().isAutosome();
-		}
-		no_variants2_ = tmp2;
-
-	}
+	no_variants1_ = in1.count();
+	no_variants2_ = in2.count();
 	int max_count = std::min(no_variants1_, no_variants2_);
 	ol_perc_ = 100.0 * c_ol / max_count;
+	ol_count_ = c_ol;
 	sample_correlation_ = BasicStatistics::correlation(geno1, geno2);
 	ibs2_perc_ = 100.0 * c_ibs2 / max_count;
+	ibs0_perc_ = 100.0 * c_ibs0 / max_count;
 
 	//calulate percentage with same genotype if correlation is not calculatable
 	if (!BasicStatistics::isValidFloat(sample_correlation_))
@@ -120,82 +138,13 @@ void SampleSimilarity::calculateFromVcf(QString& in1, QString& in2, int window, 
 	}
 }
 
-void SampleSimilarity::calculateFromBam(QString build, QString& in1, QString& in2, int min_cov, int max_snps, bool include_gonosomes, QString roi_file)
-{
-	clear();
-
-	VariantList snps;
-	if (!roi_file.trimmed().isEmpty())
-	{
-		BedFile roi;
-		roi.load(roi_file);
-		snps = NGSHelper::getKnownVariants(build, true, 0.2, 0.8, &roi);
-	}
-	else
-	{
-		snps = NGSHelper::getKnownVariants(build, true, 0.2, 0.8);
-	}
-
-	//open BAM readers
-	BamReader r1(in1);
-	BamReader r2(in2);
-
-	//calcualate frequencies
-	QVector<double> freq1;
-	freq1.reserve(max_snps);
-	QVector<double> freq2;
-	freq2.reserve(max_snps);
-	int c_ibs0 = 0;
-	int c_ibs2 = 0;
-	for(int i=0; i<snps.count(); ++i)
-	{
-		if (!snps[i].chr().isAutosome() && !include_gonosomes) continue;
-
-		Pileup p1 = r1.getPileup(snps[i].chr(), snps[i].start());
-		if (p1.depth(false)<min_cov) continue;
-
-		Pileup p2 = r2.getPileup(snps[i].chr(), snps[i].start());
-		if (p2.depth(false)<min_cov) continue;
-
-		QChar ref = snps[i].ref()[0];
-		QChar obs = snps[i].obs()[0];
-		double p1_freq = p1.frequency(ref, obs);
-		double p2_freq = p2.frequency(ref, obs);
-
-		//skip non-informative snps
-		if (!BasicStatistics::isValidFloat(p1_freq) || !BasicStatistics::isValidFloat(p2_freq)) continue;
-
-		freq1.append(p1_freq);
-		freq2.append(p2_freq);
-
-		if ((p1_freq>0.9 && p2_freq>0.9) || (p1_freq<0.1 && p2_freq<0.1)) ++c_ibs2;
-		if ((p1_freq>0.9 && p2_freq<0.1) || (p1_freq<0.1 && p2_freq>0.9)) ++c_ibs0;
-
-		if (freq1.count()==max_snps) break;
-	}
-
-	//abort if no overlap
-	if (freq1.count()==0)
-	{
-		messages_.append("Could not calulate genotype correlation!");
-	}
-	else
-	{
-		no_variants1_ = freq1.count();
-		no_variants2_ = freq2.count();
-		ibs0_perc_ = 100.0 * c_ibs0 / freq1.count();
-		ibs2_perc_ = 100.0 * c_ibs2 / freq1.count();
-		sample_correlation_ = BasicStatistics::correlation(freq1, freq2);
-	}
-}
-
 void SampleSimilarity::clear()
 {
 	no_variants1_ = 0;
 	no_variants2_ = 0;
-	total_variants_ = 0;
 	sample_correlation_ = std::numeric_limits<double>::quiet_NaN();
 	ol_perc_ = std::numeric_limits<double>::quiet_NaN();
+	ol_count_ = 0;
 	ibs0_perc_ = std::numeric_limits<double>::quiet_NaN();
 	ibs2_perc_ = std::numeric_limits<double>::quiet_NaN();
 	messages_.clear();

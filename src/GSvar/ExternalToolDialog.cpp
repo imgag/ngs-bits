@@ -101,20 +101,26 @@ void ExternalToolDialog::browse()
 		QApplication::setOverrideCursor(Qt::BusyCursor);
 		if (mode_=="bam")
 		{
-			SampleSimilarity sc;
-			sc.calculateFromBam("hg19", filename1, filename2, 30, 500, false);
+			auto geno1 = SampleSimilarity::genotypesFromBam("hg19", filename1, 30, 500, false);
+			auto geno2 = SampleSimilarity::genotypesFromBam("hg19", filename2, 30, 500, false);
 
-			stream << "Variants used: " << QString::number(sc.noVariants1()) << endl;
+			SampleSimilarity sc;
+			sc.calculateSimilarity(geno1, geno2);
+
+			stream << "Variants overlapping: " << QString::number(sc.olCount()) << endl;
 			stream << "Correlation: " << QString::number(sc.sampleCorrelation(), 'f', 4) << endl;
 		}
 		else
 		{
+			auto geno1 = SampleSimilarity::genotypesFromVcf(filename1, false, true);
+			auto geno2 = SampleSimilarity::genotypesFromVcf(filename2, false, true);
+
 			SampleSimilarity sc;
-			sc.calculateFromVcf(filename1, filename2, 100, false, true);
+			sc.calculateSimilarity(geno1, geno2);
 
 			stream << "Variants file1: " << QString::number(sc.noVariants1()) << endl;
 			stream << "Variants file2: " << QString::number(sc.noVariants2()) << endl;
-			stream << "Overlap percentage: " << QString::number(sc.olPerc(), 'f', 2) << endl;
+			stream << "Variants overlapping: " << QString::number(sc.olCount()) << endl;
 			stream << "Correlation: " << QString::number(sc.sampleCorrelation(), 'f', 4) << endl;
 		}
 		QApplication::restoreOverrideCursor();

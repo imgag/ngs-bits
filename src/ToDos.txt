@@ -19,6 +19,7 @@ NGSD:
     - remove old columns
 
 GSvar:
+- Phenotype selection: when hitting return, select perfect match if available.
 - Subpanel design: allow creating sub-panels with error (acute encephalopathy)
 **** Support WGS CNV files (after entire CNV calling in megSAP is done with ClinCNV)
 *** Implement OMIM search via API - example: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1 (wait for API access)
@@ -43,7 +44,6 @@ GSvar:
 - Visualize tracking of variants when from split complex variant (wait for VcfBreakComplex)
 
 Tools:
-*** SampleSimilarity: Cache variant lists for VCF/GSvar mode to speed up calculations.
 * VcfToTsv: add support for CSQ field from VEP
 ** SeqPurge: make multi-threaded processing scale better for WGS - add writer thread - improve error handling
 - NGSDPrecalculate:

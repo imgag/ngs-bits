@@ -9,6 +9,18 @@ class CPPNGSSHARED_EXPORT SampleSimilarity
 {
 public:
 
+	//Variant representation.
+	typedef QHash<QString, double> VariantGenotypes;
+
+	//Extract genotypes from VCF/GSvar file (no WT genotype).
+	static VariantGenotypes genotypesFromVcf(QString filename, bool include_gonosomes, bool skip_multi);
+
+	//Extract genotypes from BAM
+	static VariantGenotypes genotypesFromBam(QString build, QString filename, int min_cov, int max_snps, bool include_gonosomes, QString roi_file = "");
+
+	//Calculation of similarity
+	void calculateSimilarity(const VariantGenotypes& in1, const VariantGenotypes& in2);
+
 	// Number of variants in first sample
 	int noVariants1()
 	{
@@ -21,10 +33,16 @@ public:
 		return no_variants2_;
 	}
 
-	// Percentage of overlapping variants - only for VCF-based calculation
+	// Percentage of overlapping variants
 	double olPerc()
 	{
 		return ol_perc_;
+	}
+
+	// Number of overlapping variants
+	double olCount()
+	{
+		return ol_count_;
 	}
 
 	// Correlation
@@ -33,7 +51,7 @@ public:
 		return sample_correlation_;
 	}
 
-	//Percentage of variants with IDS zero (e.g. AA and GG) - only for BAM-based calculation
+	//Percentage of variants with IDS zero (e.g. AA and GG) - only meaningful for BAM-based calculation
 	double ibs0Perc()
 	{
 		return ibs0_perc_;
@@ -51,22 +69,16 @@ public:
 		return messages_;
 	}
 
-	//Calculation from VCF
-	void calculateFromVcf(QString& in1, QString& in2, int window, bool include_gonosomes, bool skip_multi);
-
-	//Calculation from BAM
-	void calculateFromBam(QString build, QString& in1, QString& in2, int min_cov, int max_snps, bool include_gonosomes, QString roi_file = "");
-
 	//Reset
 	void clear();
 
 private:
-	double genoToDouble(const QString& geno);
+	static double genoToDouble(const QString& geno);
 	int no_variants1_;
 	int no_variants2_;
-	int total_variants_;
 	double sample_correlation_;
 	double ol_perc_;
+	int ol_count_;
 	double ibs0_perc_;
 	double ibs2_perc_;
 	QStringList messages_;
