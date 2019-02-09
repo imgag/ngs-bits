@@ -739,8 +739,11 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 	QCCollection output;
 
 	//sample correlation
-	auto tumor_genotypes = SampleSimilarity::genotypesFromBam(build, tumor_bam, 30, 500, true, target_file);
-	auto normal_genotypes = SampleSimilarity::genotypesFromBam(build, tumor_bam, 30, 500, true, target_file);
+	bool use_roi = !target_file.isEmpty();
+	BedFile roi_reg;
+	if (use_roi) roi_reg.load(target_file);
+	auto tumor_genotypes = SampleSimilarity::genotypesFromBam(build, tumor_bam, 30, 500, true, use_roi ? & roi_reg : nullptr);
+	auto normal_genotypes = SampleSimilarity::genotypesFromBam(build, tumor_bam, 30, 500, true, use_roi ? & roi_reg : nullptr);
 	SampleSimilarity sc;
 	sc.calculateSimilarity(tumor_genotypes, normal_genotypes);
 	output.insert(QCValue("sample correlation", ( sc.olCount()<100 ? "n/a (too few variants)" : QString::number(sc.sampleCorrelation(),'f',2) ), "SNP-based sample correlation of tumor / normal.", "QC:2000040"));

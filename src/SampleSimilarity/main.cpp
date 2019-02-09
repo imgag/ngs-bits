@@ -1,4 +1,5 @@
 #include "SampleSimilarity.h"
+#include "BedFile.h"
 #include "ToolBase.h"
 #include <QFile>
 #include <QTextStream>
@@ -26,11 +27,11 @@ public:
 		//optional
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
 		addEnum("mode", "Mode (input format).", true, QStringList() << "vcf" << "bam", "vcf");
+		addInfile("roi", "Restrict similarity calculation to variants in target region.", true);
 		addFlag("include_gonosomes", "Includes gonosomes into calculation (by default only variants on autosomes are considered).");
 		addFlag("skip_multi", "Skip multi-allelic variants instead of throwing an error (VCF mode).");
 		addInt("min_cov",  "Minimum coverage to consider a SNP for the analysis (BAM mode).",  true,  30);
-		addInt("max_snps",  "The maximum number of high-coverage SNPs to analyze. 0 means unlimited (BAM mode).",  true, 2000);
-		addInfile("roi", "Target region used to speed up calculations e.g. for panel data (BAM mode).", true);
+		addInt("max_snps",  "The maximum number of high-coverage SNPs to extract from BAM. 0 means unlimited (BAM mode).",  true, 2000);
 		addEnum("build", "Genome build used to generate the input (BAM mode).", true, QStringList() << "hg19" << "hg38", "hg19");
 
 		//changelog
@@ -72,15 +73,18 @@ public:
 
 		//load genotype data
 		QList<SampleSimilarity::VariantGenotypes> genotype_data;
+		bool use_roi = !roi.isEmpty();
+		BedFile roi_reg;
+		if (use_roi) roi_reg.load(roi);
 		foreach(QString filename, in)
 		{
 			if (mode=="vcf")
 			{
-				genotype_data << SampleSimilarity::genotypesFromVcf(filename, include_gonosomes, skip_multi);
+				genotype_data << SampleSimilarity::genotypesFromVcf(filename, include_gonosomes, skip_multi, use_roi ? &roi_reg : nullptr);
 			}
 			else
 			{
-				genotype_data << SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes, roi);
+				genotype_data << SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes, use_roi ? &roi_reg : nullptr);
 			}
 		}
 

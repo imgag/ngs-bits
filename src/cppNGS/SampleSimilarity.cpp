@@ -4,10 +4,10 @@
 #include "BasicStatistics.h"
 #include "NGSHelper.h"
 
-SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromVcf(QString filename, bool include_gonosomes, bool skip_multi)
+SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromVcf(QString filename, bool include_gonosomes, bool skip_multi, const BedFile* roi)
 {
 	VariantList variants;
-	VariantListFormat format = variants.load(filename);
+	VariantListFormat format = variants.load(filename, AUTO, roi);
 
 	int geno_col;
 	if (format==TSV)
@@ -34,26 +34,16 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromVcf(QString fi
 		//skip multi-allelic variants
 		if (skip_multi && format!=TSV && variant.obs().contains(',')) continue;
 
-		output[variant.toString()] = genoToDouble(variant.annotations()[geno_col]);
+		output[strToPointer(variant.toString())] = genoToDouble(variant.annotations()[geno_col]);
 	}
 
 	return output;
 }
 
-SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(QString build, QString filename, int min_cov, int max_snps, bool include_gonosomes, QString roi_file)
+SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(QString build, QString filename, int min_cov, int max_snps, bool include_gonosomes, const BedFile* roi)
 {
 	//get known SNP list
-	VariantList snps;
-	if (!roi_file.trimmed().isEmpty())
-	{
-		BedFile roi;
-		roi.load(roi_file);
-		snps = NGSHelper::getKnownVariants(build, true, 0.2, 0.8, &roi);
-	}
-	else
-	{
-		snps = NGSHelper::getKnownVariants(build, true, 0.2, 0.8);
-	}
+	VariantList snps = NGSHelper::getKnownVariants(build, true, 0.2, 0.8, roi);
 
 	//open BAM
 	BamReader reader(filename);
@@ -76,7 +66,7 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(QString bu
 		//skip non-informative snps
 		if (!BasicStatistics::isValidFloat(frequency)) continue;
 
-		output[chr.strNormalized(false) + ":" + QString::number(pos) + " " + ref + ">" + obs] = frequency;
+		output[strToPointer(chr.strNormalized(false) + ":" + QString::number(pos) + " " + ref + ">" + obs)] = frequency;
 
 		if (output.count()>=max_snps) break;
 	}
@@ -118,12 +108,12 @@ void SampleSimilarity::calculateSimilarity(const VariantGenotypes& in1, const Va
 	//count overall number of variants
 	no_variants1_ = in1.count();
 	no_variants2_ = in2.count();
-	int max_count = std::min(no_variants1_, no_variants2_);
-	ol_perc_ = 100.0 * c_ol / max_count;
+	int min_count = std::min(no_variants1_, no_variants2_);
+	ol_perc_ = 100.0 * c_ol / min_count;
 	ol_count_ = c_ol;
 	sample_correlation_ = BasicStatistics::correlation(geno1, geno2);
-	ibs2_perc_ = 100.0 * c_ibs2 / max_count;
-	ibs0_perc_ = 100.0 * c_ibs0 / max_count;
+	ibs2_perc_ = 100.0 * c_ibs2 / min_count;
+	ibs0_perc_ = 100.0 * c_ibs0 / min_count;
 
 	//calulate percentage with same genotype if correlation is not calculatable
 	if (!BasicStatistics::isValidFloat(sample_correlation_))
@@ -162,4 +152,17 @@ double SampleSimilarity::genoToDouble(const QString& geno)
 	if (geno=="0/0" || geno=="0|0" || geno=="./0" || geno==".|0" || geno=="0/." || geno=="0|." || geno==".|.") return 0.0;
 
 	THROW(ArgumentException, "Invalid genotype '" + geno + "' in input file.");
+}
+
+const QChar* SampleSimilarity::strToPointer(const QString& str)
+{
+	static QSet<QString> uniq;
+
+	auto it = uniq.find(str);
+	if (it==uniq.cend())
+	{
+		it = uniq.insert(str);
+	}
+
+	return it->data();
 }

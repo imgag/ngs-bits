@@ -16,16 +16,16 @@
 	  -mode <enum>        Mode (input format).
 	                      Default value: 'vcf'
 	                      Valid: 'vcf,bam'
+	  -roi <file>         Restrict similarity calculation to variants in target region.
+	                      Default value: ''
 	  -include_gonosomes  Includes gonosomes into calculation (by default only variants on autosomes are considered).
 	                      Default value: 'false'
 	  -skip_multi         Skip multi-allelic variants instead of throwing an error (VCF mode).
 	                      Default value: 'false'
 	  -min_cov <int>      Minimum coverage to consider a SNP for the analysis (BAM mode).
 	                      Default value: '30'
-	  -max_snps <int>     The maximum number of high-coverage SNPs to analyze. 0 means unlimited (BAM mode).
+	  -max_snps <int>     The maximum number of high-coverage SNPs to extract from BAM. 0 means unlimited (BAM mode).
 	                      Default value: '2000'
-	  -roi <file>         Target region used to speed up calculations e.g. for panel data (BAM mode).
-	                      Default value: ''
 	  -build <enum>       Genome build used to generate the input (BAM mode).
 	                      Default value: 'hg19'
 	                      Valid: 'hg19,hg38'
