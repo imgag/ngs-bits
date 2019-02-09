@@ -3,6 +3,7 @@
 
 #include "cppNGS_global.h"
 #include <QStringList>
+#include <QHash>
 
 // Sample similarity calculator
 class CPPNGSSHARED_EXPORT SampleSimilarity
