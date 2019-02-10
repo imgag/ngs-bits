@@ -4,45 +4,48 @@
 #include "FastqFileStream.h"
 #include <QThreadPool>
 #include <Pileup.h>
+#include <QSharedPointer>
 #include "StatisticsReads.h"
 
 
 const int MAXLEN = 1000;
 
-///Output stream datastructure
-struct TrimmingData
+///Analysis status
+enum AnalysisStatus
 {
-	TrimmingData()
-	: analysis_pool()
-	, reads_queued(0)
-	, out1_out2_mutex()
-	, out1(nullptr)
-	, out2(nullptr)
-	, out3(nullptr)
-	, out4(nullptr)
+	TO_BE_ANALYZED,
+	TO_BE_WRITTEN,
+	ERROR,
+	DONE
+};
+
+///Analysis data for worker.
+struct AnalysisJob
+{
+	FastqEntry e1;
+	FastqEntry e2;
+	AnalysisStatus status = DONE;
+	QString error_message;
+
+	//statistics stuff
+	int length_s1_orig = -1;
+	int length_s2_orig = -1;
+	int reads_trimmed_insert = 0;
+	int reads_trimmed_adapter = 0;
+	int reads_trimmed_q = 0;
+	int reads_trimmed_n = 0;
+
+	void clear()
 	{
-	}
+		status = DONE;
+		error_message.clear();
 
-	//analysis datastructures
-	QThreadPool analysis_pool;
-	long reads_queued;
-
-	//output streams
-	QMutex out1_out2_mutex; ///< Mutex to ensure the order of reads in forward/reverse read file matches
-	FastqOutfileStream* out1;
-	FastqOutfileStream* out2;
-	FastqOutfileStream* out3;
-	FastqOutfileStream* out4;
-
-	///Wait until analysis is finished and close output streams (to flush data).
-	void closeOutStreams()
-	{
-		analysis_pool.waitForDone();
-
-		out1->close();
-		out2->close();
-		if (out3) out3->close();
-		if (out4) out4->close();
+		length_s1_orig = -1;
+		length_s2_orig = -1;
+		reads_trimmed_insert = 0;
+		reads_trimmed_adapter = 0;
+		reads_trimmed_q = 0;
+		reads_trimmed_n = 0;
 	}
 };
 
@@ -75,8 +78,7 @@ struct TrimmingParameters
 struct TrimmingStatistics
 {
 	TrimmingStatistics()
-	: mutex()
-	, read_num(0)
+	: read_num(0)
 	, bases_remaining(MAXLEN, 0) //fixed size - reallocation prevents parallel access
 	, acons1(40)
 	, acons2(40)
@@ -90,7 +92,6 @@ struct TrimmingStatistics
 	{
 	}
 
-	QMutex mutex; //Mutex for thread-safe access
 	long read_num;
 	QVector<double> bases_remaining;
 	QVector<Pileup> acons1;

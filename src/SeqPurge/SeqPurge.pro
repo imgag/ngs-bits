@@ -10,7 +10,8 @@ CONFIG   += console
 CONFIG   -= app_bundle
 
 SOURCES += main.cpp \
-    AnalysisWorker.cpp
+    AnalysisWorker.cpp \
+    OutputWorker.cpp
 
 include("../app_cli.pri")
 
@@ -19,5 +20,6 @@ LIBS += -lz
 
 HEADERS += \
     AnalysisWorker.h \
-    Auxilary.h
+    Auxilary.h \
+    OutputWorker.h
 

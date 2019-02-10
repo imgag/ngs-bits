@@ -3,70 +3,64 @@
 #include "NGSHelper.h"
 #include "BasicStatistics.h"
 
-AnalysisWorker::AnalysisWorker(QSharedPointer<FastqEntry> e1, QSharedPointer<FastqEntry> e2, TrimmingParameters& params, TrimmingStatistics& stats, ErrorCorrectionStatistics& ecstats, TrimmingData& data)
+AnalysisWorker::AnalysisWorker(AnalysisJob& job, TrimmingParameters& params, TrimmingStatistics& stats, ErrorCorrectionStatistics& ecstats)
     : QRunnable()
-	, e1_(e1)
-	, e2_(e2)
+	, job_(job)
 	, params_(params)
 	, stats_(stats)
 	, ecstats_(ecstats)
-	, data_(data)
-{
-}
-
-AnalysisWorker::~AnalysisWorker()
 {
 }
 
 void AnalysisWorker::correctErrors(QTextStream& debug_out)
 {
 	int mm_count = 0;
-	const int count = std::min(e1_->bases.count(), e2_->bases.count());
+	const int count = std::min(job_.e1.bases.count(), job_.e2.bases.count());
 	for (int i=0; i<count; ++i)
 	{
 		const int i2 = count-i-1;
 
 		//error detected
-		if (e1_->bases[i]!=NGSHelper::complement(e2_->bases[i2]))
+		if (job_.e1.bases[i]!=NGSHelper::complement(job_.e2.bases[i2]))
 		{
 			++mm_count;
-			int q1 = e1_->quality(i, params_.qoff);
-			int q2 = e2_->quality(i2, params_.qoff);
+			int q1 = job_.e1.quality(i, params_.qoff);
+			int q2 = job_.e2.quality(i2, params_.qoff);
 
 			//debug output
 			if (params_.debug)
 			{
 				if (mm_count!=0)
 				{
-					debug_out << "R1: " << e1_->bases << endl;
-					debug_out << "Q1: "<< e1_->qualities << endl;
-					debug_out << "R2: "<< e2_->bases << endl;
-					debug_out << "Q2: "<< e2_->qualities << endl;
+					debug_out << "R1: " << job_.e1.bases << endl;
+					debug_out << "Q1: "<< job_.e1.qualities << endl;
+					debug_out << "R2: "<< job_.e2.bases << endl;
+					debug_out << "Q2: "<< job_.e2.qualities << endl;
 				}
-				debug_out << "  MISMATCH index=" << i << " R1=" << e1_->bases[i] << "/" << q1 << " R2=" << e2_->bases[i2]<< "/" << q2 << endl;
+				debug_out << "  MISMATCH index=" << i << " R1=" << job_.e1.bases[i] << "/" << q1 << " R2=" << job_.e2.bases[i2]<< "/" << q2 << endl;
 			}
 
 			//correct error
 			if (q1>q2)
 			{
-				char replacement = NGSHelper::complement(e1_->bases[i]);
+				char replacement = NGSHelper::complement(job_.e1.bases[i]);
 				if (params_.debug)
 				{
-					debug_out << "    CORRECTED R2: " << e2_->bases[i2] << " => " << replacement << endl;
+					debug_out << "    CORRECTED R2: " << job_.e2.bases[i2] << " => " << replacement << endl;
 				}
-				e2_->bases[i2] = replacement;
-				e2_->qualities[i2] = e1_->qualities[i];
+				job_.e2.bases[i2] = replacement;
+				job_.e2.qualities[i2] = job_.e1.qualities[i];
 				++ecstats_.mismatch_r2[i2];
 			}
 			else if(q1<q2)
 			{
-				char replacement = NGSHelper::complement(e2_->bases[i2]);
+				char replacement = NGSHelper::complement(job_.e2.bases[i2]);
 				if (params_.debug)
 				{
-					debug_out << "    CORRECTED R1: " << e1_->bases[i] << " => " << replacement << endl;
+					debug_out << "    CORRECTED R1: " << job_.e1.bases[i] << " => " << replacement << endl;
 				}
-				e1_->bases[i] = replacement;
-				e1_->qualities[i] = e2_->qualities[i2];
+				job_.e1.bases[i] = replacement;
+				job_.e1.qualities[i] = job_.e2.qualities[i2];
 				++ecstats_.mismatch_r1[i];
 			}
 		}
@@ -85,40 +79,50 @@ void AnalysisWorker::run()
 	if (params_.debug)
 	{
 		debug_out << "#############################################################################" << endl;
-		debug_out << "Header:     " << e1_->header << endl;
-		debug_out << "Read 1 in:  " << e1_->bases << endl;
-		debug_out << "Read 2 in:  " << e2_->bases << endl;
-		debug_out << "Quality 1:  " << e1_->qualities << endl;
-		debug_out << "Quality 2:  " << e2_->qualities << endl;
+		debug_out << "Header:     " << job_.e1.header << endl;
+		debug_out << "Read 1 in:  " << job_.e1.bases << endl;
+		debug_out << "Read 2 in:  " << job_.e2.bases << endl;
+		debug_out << "Quality 1:  " << job_.e1.qualities << endl;
+		debug_out << "Quality 2:  " << job_.e2.qualities << endl;
+	}
+
+	//check that headers match
+	QByteArray tmp1 = job_.e1.header.split(' ').at(0);
+	QByteArray tmp2 = job_.e2.header.split(' ').at(0);
+	if (tmp1.endsWith("/1") && tmp2.endsWith("/2"))
+	{
+		tmp1.chop(2);
+		tmp2.chop(2);
+	}
+	if (tmp1!=tmp2)
+	{
+		job_.status = ERROR;
+		job_.error_message = "Headers of reads do not match:\n" + tmp1 + "\n" + tmp2;
+		return;
 	}
 
 	//make sure the sequences have the same length
-	QByteArray seq1 = e1_->bases;
-	QByteArray seq2 = NGSHelper::changeSeq(e2_->bases, true, true);
-	int length_s1_orig = seq1.count();
-	int length_s2_orig = seq2.count();
-	int min_length = std::min(length_s1_orig, length_s2_orig);
-	int max_length = std::max(length_s1_orig, length_s2_orig);
+	QByteArray seq1 = job_.e1.bases;
+	QByteArray seq2 = NGSHelper::changeSeq(job_.e2.bases, true, true);
+	job_.length_s1_orig = seq1.count();
+	job_.length_s2_orig = seq2.count();
+	int min_length = std::min(job_.length_s1_orig, job_.length_s2_orig);
+	int max_length = std::max(job_.length_s1_orig, job_.length_s2_orig);
 	
 	//check length
 	if (max_length>=MAXLEN)
 	{
-		THROW(ProgrammingException, "Read length unsupported! A maximum read length of " + QString::number(MAXLEN) + " is supported!");
+		job_.status = ERROR;
+		job_.error_message = "Read length unsupported! A maximum read length of " + QString::number(MAXLEN) + " is supported!";
+		return;
 	}
 
-	//update QC statistics (has to be done before trimming)
+	//update QC statistics (has to be done before trimming)  //TODO do in main thread?
 	if (!params_.qc.isEmpty())
 	{
-		stats_.qc.update(*e1_, StatisticsReads::FORWARD);
-		stats_.qc.update(*e2_, StatisticsReads::REVERSE);
+		stats_.qc.update(job_.e1, StatisticsReads::FORWARD);
+		stats_.qc.update(job_.e2, StatisticsReads::REVERSE);
 	}
-
-	//init statistics
-	int reads_trimmed_insert = 0;
-	int reads_trimmed_adapter = 0;
-	int reads_trimmed_q = 0;
-	int reads_trimmed_n = 0;
-	int reads_removed = 0;
 
 	//step 1: trim by insert match
 	int best_offset = -1;
@@ -168,7 +172,7 @@ void AnalysisWorker::run()
 		if (params_.debug) debug_out << "  mep: " << p << endl;
 
 		//check that at least on one side the adapter is present - if not continue
-		QByteArray adapter1 = seq1.mid(length_s2_orig-offset, params_.adapter_overlap);
+		QByteArray adapter1 = seq1.mid(job_.length_s2_orig-offset, params_.adapter_overlap);
 		int a1_matches = 0;
 		int a1_mismatches = 0;
 		int a1_invalid = 0;
@@ -257,11 +261,11 @@ void AnalysisWorker::run()
 	if (best_offset!=-1)
 	{
 		//update sequence data
-		int new_length = length_s2_orig-best_offset;
-		e1_->bases.truncate(new_length);
-		e1_->qualities.truncate(new_length);
-		e2_->bases.truncate(new_length);
-		e2_->qualities.truncate(new_length);
+		int new_length = job_.length_s2_orig-best_offset;
+		job_.e1.bases.truncate(new_length);
+		job_.e1.qualities.truncate(new_length);
+		job_.e2.bases.truncate(new_length);
+		job_.e2.qualities.truncate(new_length);
 
 		//update consensus adapter sequence
 		QByteArray adapter1 = seq1.mid(new_length);
@@ -278,7 +282,7 @@ void AnalysisWorker::run()
 		}
 
 		//update statistics
-		reads_trimmed_insert += 2.0;
+		job_.reads_trimmed_insert += 2.0;
 
 		if (params_.debug)
 		{
@@ -294,14 +298,14 @@ void AnalysisWorker::run()
 	{
 		int offset_forward = -1;
 		const char* a1_data = params_.a1.constData();
-		for (int offset=0; offset<length_s1_orig; ++offset)
+		for (int offset=0; offset<job_.length_s1_orig; ++offset)
 		{
 			int matches = 0;
 			int mismatches = 0;
 			int invalid = 0;
 			for (int i=0; i<params_.a_size; ++i)
 			{
-				if (offset+i>=length_s1_orig) break;
+				if (offset+i>=job_.length_s1_orig) break;
 
 				//forward
 				char b1 = seq1_data[offset+i];
@@ -327,14 +331,14 @@ void AnalysisWorker::run()
 			//debug output
 			if (params_.debug)
 			{
-				QByteArray adapter = e1_->bases.right(length_s1_orig-offset);
+				QByteArray adapter = job_.e1.bases.right(job_.length_s1_orig-offset);
 				adapter.truncate(20);
 				debug_out << "###Adapter 1 hit - offset=" << offset << " prob=" << p << " matches=" << matches << " mismatches=" << mismatches << " invalid=" << invalid << " adapter=" << adapter << endl;
 			}
 
 			//trim read
-			e1_->bases.truncate(offset);
-			e1_->qualities.truncate(offset);
+			job_.e1.bases.truncate(offset);
+			job_.e1.qualities.truncate(offset);
 			offset_forward = offset;
 
 			break;
@@ -342,17 +346,17 @@ void AnalysisWorker::run()
 
 		//step 3: trim by adapter match - reverse read
 		int offset_reverse = -1;
-		seq2 = e2_->bases;
+		seq2 = job_.e2.bases;
 		seq2_data = seq2.constData();
 		const char* a2_data = params_.a2.constData();
-		for (int offset=0; offset<length_s2_orig; ++offset)
+		for (int offset=0; offset<job_.length_s2_orig; ++offset)
 		{
 			int matches = 0;
 			int mismatches = 0;
 			int invalid = 0;
 			for (int i=0; i<params_.a_size; ++i)
 			{
-				if (offset+i>=length_s2_orig) break;
+				if (offset+i>=job_.length_s2_orig) break;
 
 				//forward
 				char b1 = seq2_data[offset+i];
@@ -379,14 +383,14 @@ void AnalysisWorker::run()
 			//debug output
 			if (params_.debug)
 			{
-				QByteArray adapter = e2_->bases.right(length_s2_orig-offset);
+				QByteArray adapter = job_.e2.bases.right(job_.length_s2_orig-offset);
 				adapter.truncate(20);
 				debug_out << "###Adapter 2 hit - offset=" << offset << " prob=" << p << " matches=" << matches << " mismatches=" << mismatches << " invalid=" << invalid << " adapter=" << adapter << endl;
 			}
 
 			//trim read
-			e2_->bases.truncate(offset);
-			e2_->qualities.truncate(offset);
+			job_.e2.bases.truncate(offset);
+			job_.e2.qualities.truncate(offset);
 
 			//update statistics
 			offset_reverse = offset;
@@ -398,18 +402,18 @@ void AnalysisWorker::run()
 		if (offset_forward!=-1 || offset_reverse!=-1)
 		{
 			//update statistics
-			reads_trimmed_adapter += 2;
+			job_.reads_trimmed_adapter += 2;
 
 			//if only one adapter has been trimmed => trim the other read as well
 			if (offset_forward==-1)
 			{
-				e1_->bases.truncate(offset_reverse);
-				e1_->qualities.truncate(offset_reverse);
+				job_.e1.bases.truncate(offset_reverse);
+				job_.e1.qualities.truncate(offset_reverse);
 			}
 			if (offset_reverse==-1)
 			{
-				e2_->bases.truncate(offset_forward);
-				e2_->qualities.truncate(offset_forward);
+				job_.e2.bases.truncate(offset_forward);
+				job_.e2.qualities.truncate(offset_forward);
 			}
 		}
 	}
@@ -417,63 +421,22 @@ void AnalysisWorker::run()
 	//quality trimming
 	if (params_.qcut>0)
 	{
-		if (e1_->trimQuality(params_.qcut, params_.qwin, params_.qoff)>0) ++reads_trimmed_q;
-		if (e2_->trimQuality(params_.qcut, params_.qwin, params_.qoff)>0) ++reads_trimmed_q;
+		if (job_.e1.trimQuality(params_.qcut, params_.qwin, params_.qoff)>0) ++job_.reads_trimmed_q;
+		if (job_.e2.trimQuality(params_.qcut, params_.qwin, params_.qoff)>0) ++job_.reads_trimmed_q;
 	}
 
 	//N trimming
 	if (params_.ncut>0)
 	{
-		if (e1_->trimN(params_.ncut)>0) ++reads_trimmed_n;
-		if (e2_->trimN(params_.ncut)>0) ++reads_trimmed_n;
+		if (job_.e1.trimN(params_.ncut)>0) ++job_.reads_trimmed_n;
+		if (job_.e2.trimN(params_.ncut)>0) ++job_.reads_trimmed_n;
 	}
 
 	if (params_.debug)
 	{
-		debug_out << "Read 1 out: " << e1_->bases << endl;
-		debug_out << "Read 2 out: " << e2_->bases << endl;
+		debug_out << "Read 1 out: " << job_.e1.bases << endl;
+		debug_out << "Read 2 out: " << job_.e2.bases << endl;
 	}
 
-	//write output
-	if (e1_->bases.count()>=params_.min_len && e2_->bases.count()>=params_.min_len)
-	{
-		data_.out1_out2_mutex.lock();
-		data_.out1->write(*e1_);
-		data_.out2->write(*e2_);
-		data_.out1_out2_mutex.unlock();
-	}
-	else if (data_.out3!=nullptr && e1_->bases.count()>=params_.min_len)
-	{
-		reads_removed += 1;
-		data_.out3->write(*e1_);
-	}
-	else if (data_.out4!=nullptr && e2_->bases.count()>=params_.min_len)
-	{
-		reads_removed += 1;
-		data_.out4->write(*e2_);
-	}
-	else
-	{
-		reads_removed += 2;
-	}
-
-	//update statistics (mutex to make it thread-safe)
-	stats_.mutex.lock();
-	stats_.read_num += 2;
-	stats_.reads_trimmed_insert += reads_trimmed_insert;
-	stats_.reads_trimmed_adapter += reads_trimmed_adapter;
-	stats_.reads_trimmed_n += reads_trimmed_n;
-	stats_.reads_trimmed_q += reads_trimmed_q;
-	stats_.reads_removed += reads_removed;
-	stats_.bases_remaining[e1_->bases.length()] += 1;
-	stats_.bases_remaining[e2_->bases.length()] += 1;
-	if (length_s1_orig>0)
-	{
-		stats_.bases_perc_trim_sum += (double)(length_s1_orig - e1_->bases.count()) / length_s1_orig;
-	}
-	if (length_s2_orig>0)
-	{
-		stats_.bases_perc_trim_sum += (double)(length_s2_orig - e2_->bases.count()) / length_s2_orig;
-	}
-	stats_.mutex.unlock();
+	job_.status = TO_BE_WRITTEN;
 }
