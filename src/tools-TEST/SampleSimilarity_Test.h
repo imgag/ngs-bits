@@ -29,9 +29,11 @@ private slots:
 		COMPARE_FILES("out/SampleSimilarity_out4.tsv", TESTDATA("data_out/SampleSimilarity_out4.tsv"));
 	}
 
-	void test_vcf_roi()
+	void test_vcf_roi_one_input_file()
 	{
-		EXECUTE("SampleSimilarity", "-in " + TESTDATA("data_in/SampleSimilarity_in6.vcf.gz") + " " + TESTDATA("data_in/SampleSimilarity_in7.vcf.gz") + " -mode vcf -skip_multi -out out/SampleSimilarity_out5.tsv -roi " + TESTDATA("data_in/SampleSimilarity_roi.bed"));
+		QString tmp = Helper::tempFileName("_samples.txt");
+		Helper::storeTextFile(tmp, QStringList() << TESTDATA("data_in/SampleSimilarity_in6.vcf.gz") << TESTDATA("data_in/SampleSimilarity_in7.vcf.gz"));
+		EXECUTE("SampleSimilarity", "-in " + tmp + " -mode vcf -skip_multi -out out/SampleSimilarity_out5.tsv -roi " + TESTDATA("data_in/SampleSimilarity_roi.bed"));
 		COMPARE_FILES("out/SampleSimilarity_out5.tsv", TESTDATA("data_out/SampleSimilarity_out5.tsv"));
 	}
 
