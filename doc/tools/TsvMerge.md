@@ -1,10 +1,10 @@
 ### TsvMerge tool help
-	TsvMerge (2018_11-39-g5d6be46)
+	TsvMerge (2018_11-127-gbd77909)
 	
 	Merges TSV file based on a list of columns.
 	
 	Mandatory parameters:
-	  -in <filelist> Input TSV files that are merged. If only one file is provided, the lines of the file are interpreted as file names.
+	  -in <filelist> Input TSV files that are merged. If only one file is given, each line in this file is interpreted as an input file path.
 	  -cols <string> Comma-separated list of column names used as key for merging.
 	
 	Optional parameters:
@@ -24,7 +24,7 @@
 	  --tdx          Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### TsvMerge changelog
-	TsvMerge 2018_11-39-g5d6be46
+	TsvMerge 2018_11-127-gbd77909
 	
 	2018-12-05 Added 'simple' mode.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

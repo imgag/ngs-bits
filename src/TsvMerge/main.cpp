@@ -19,7 +19,7 @@ public:
 	virtual void setup()
 	{
 		setDescription("Merges TSV file based on a list of columns.");
-		addInfileList("in", "Input TSV files that are merged. If only one file is provided, the lines of the file are interpreted as file names.", false);
+		addInfileList("in", "Input TSV files that are merged. If only one file is given, each line in this file is interpreted as an input file path.", false);
 		addString("cols", "Comma-separated list of column names used as key for merging.", false);
 		//optional
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);

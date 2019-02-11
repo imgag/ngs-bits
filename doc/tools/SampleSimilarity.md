@@ -1,5 +1,5 @@
 ### SampleSimilarity tool help
-	SampleSimilarity (2018_11-128-g98cda3a)
+	SampleSimilarity (2018_11-127-gbd77909)
 	
 	Calculates pairwise sample similarity metrics from VCF/BAM files.
 	
@@ -8,7 +8,7 @@
 	In VCF mode, it is assumed that variant lists are left-normalized, e.g. with VcfLeftNormalize.
 	
 	Mandatory parameters:
-	  -in <filelist>      Input variant lists in VCF format (two or more).
+	  -in <filelist>      Input variant lists in VCF format (two or more). If only one file is given, each line in this file is interpreted as an input file path.
 	
 	Optional parameters:
 	  -out <file>         Output file. If unset, writes to STDOUT.
@@ -37,7 +37,7 @@
 	  --tdx               Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SampleSimilarity changelog
-	SampleSimilarity 2018_11-128-g98cda3a
+	SampleSimilarity 2018_11-127-gbd77909
 	
 	2019-02-08 Massive speed-up by caching of variants/genotypes instead of loading them again for each comparison.
 	2018-11-26 Add flag 'skip_multi' to ignore multi-allelic sites.
