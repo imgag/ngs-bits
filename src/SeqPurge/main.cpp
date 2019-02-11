@@ -40,12 +40,13 @@ public:
 		addOutfile("out3", "Name prefix of singleton read output files (if only one read of a pair is discarded).", true, false);
 		addOutfile("summary", "Write summary/progress to this file instead of STDOUT.", true, true);
 		addOutfile("qc", "If set, a read QC file in qcML format is created (just like ReadQC).", true, true);
-		addInt("prefetch", "Maximum number of reads that may be pre-fetched to speed up trimming", true, 1000);
+		addInt("prefetch", "Maximum number of reads that may be pre-fetched into memory to speed up trimming.", true, 1000);
 		addFlag("ec", "Enable error-correction of adapter-trimmed reads (only those with insert match).");
 		addFlag("debug", "Enables debug output (use only with one thread).");
-		addInt("progress", "Enables progress output at the given interval in milliseconds.", true, -1);
+		addInt("progress", "Enables progress output at the given interval in milliseconds (disabled by default).", true, -1);
 
 		//changelog
+		changeLog(2019, 2, 11, "Added writer thread to make SeqPurge scale better when using many threads.");
 		changeLog(2017, 6, 15, "Changed default value of 'min_len' parameter from 15 to 30.");
 		changeLog(2016, 8, 10, "Fixed bug in binomial calculation (issue #1).");
 		changeLog(2016, 4, 15, "Removed large part of the overtrimming described in the paper (~75% of reads overtrimmed, ~50% of bases overtrimmed).");
@@ -133,10 +134,18 @@ public:
 							break;
 						case DONE:
 							++done;
+							//init data
 							job.clear();
 							in1.readEntry(job.e1);
 							in2.readEntry(job.e2);
 							job.status = TO_BE_ANALYZED;
+							//update QC statistics
+							if (!params_.qc.isEmpty())
+							{
+								stats_.qc.update(job.e1, StatisticsReads::FORWARD);
+								stats_.qc.update(job.e2, StatisticsReads::REVERSE);
+							}
+							//start job
 							analysis_pool.start(new AnalysisWorker(job, params_, stats_, ecstats_));
 							break;
 						case ERROR: //handle errors during analayis (must be thrown in the main thread)

@@ -32,7 +32,6 @@ public:
 	QCCollection getResult();
 
 private:
-	QMutex mutex_;
 	long long c_forward_;
 	long long c_reverse_;
 	QSet<int> read_lengths_;

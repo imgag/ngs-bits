@@ -36,8 +36,8 @@ public:
 		int cut = getInt("cut");
 		FastqFileStream input_stream(in, false);
 
-		FastqOutfileStream outstream_main(out_main, false);
-		FastqOutfileStream outsrtream_index(out_index, false);
+		FastqOutfileStream outstream_main(out_main);
+		FastqOutfileStream outsrtream_index(out_index);
 
 		while (!input_stream.atEnd())//foreach input read
 		{

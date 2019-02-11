@@ -117,13 +117,6 @@ void AnalysisWorker::run()
 		return;
 	}
 
-	//update QC statistics (has to be done before trimming)  //TODO do in main thread?
-	if (!params_.qc.isEmpty())
-	{
-		stats_.qc.update(job_.e1, StatisticsReads::FORWARD);
-		stats_.qc.update(job_.e2, StatisticsReads::REVERSE);
-	}
-
 	//step 1: trim by insert match
 	int best_offset = -1;
 	double best_p = 1.0;

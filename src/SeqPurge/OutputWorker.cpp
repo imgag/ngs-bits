@@ -4,8 +4,8 @@ OutputWorker::OutputWorker(QList<AnalysisJob>& job_pool, QString out1, QString o
 	: QRunnable()
 	, terminate_(false)
 	, job_pool_(job_pool)
-	, ostream1(new FastqOutfileStream(out1, false))
-	, ostream2(new FastqOutfileStream(out2, false))
+	, ostream1(new FastqOutfileStream(out1))
+	, ostream2(new FastqOutfileStream(out2))
 	, ostream3()
 	, ostream4()
 	, params_(params)
@@ -13,8 +13,8 @@ OutputWorker::OutputWorker(QList<AnalysisJob>& job_pool, QString out1, QString o
 {
 	if (out3_base.trimmed()!="")
 	{
-		ostream3.reset(new FastqOutfileStream(out3_base + "_R1.fastq.gz", true));
-		ostream4.reset(new FastqOutfileStream(out3_base + "_R2.fastq.gz", true));
+		ostream3.reset(new FastqOutfileStream(out3_base + "_R1.fastq.gz"));
+		ostream4.reset(new FastqOutfileStream(out3_base + "_R2.fastq.gz"));
 	}
 }
 

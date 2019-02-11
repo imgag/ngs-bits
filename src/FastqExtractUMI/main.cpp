@@ -38,8 +38,8 @@ public:
 		FastqFileStream input_stream1(in1, false);
 		FastqFileStream input_stream2(in2, false);
 
-		FastqOutfileStream outstream1(out1, false);
-		FastqOutfileStream outstream2(out2, false);
+		FastqOutfileStream outstream1(out1);
+		FastqOutfileStream outstream2(out2);
 
 		while (!input_stream1.atEnd() && !input_stream2.atEnd())
 		{
