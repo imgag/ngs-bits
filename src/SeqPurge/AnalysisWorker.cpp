@@ -117,6 +117,15 @@ void AnalysisWorker::run()
 		return;
 	}
 
+	//update raw data statistics (before trimming)
+	if (!params_.qc.isEmpty())
+	{
+		stats_.qc_mutex.lock();
+		stats_.qc.update(job_.e1, StatisticsReads::FORWARD);
+		stats_.qc.update(job_.e2, StatisticsReads::REVERSE);
+		stats_.qc_mutex.unlock();
+	}
+
 	//step 1: trim by insert match
 	int best_offset = -1;
 	double best_p = 1.0;

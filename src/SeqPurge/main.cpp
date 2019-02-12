@@ -100,12 +100,10 @@ public:
 
 		//create thread pools
 		QThreadPool analysis_pool;
-		analysis_pool.setMaxThreadCount(getInt("threads"));
-		QThreadPool output_pool;
-		output_pool.setMaxThreadCount(1);
+		analysis_pool.setMaxThreadCount(getInt("threads")+1);
 		OutputWorker* output_worker = new OutputWorker(job_pool, getOutfile("out1"), getOutfile("out2"), getOutfile("out3"), params_, stats_);
 		output_worker->setAutoDelete(false);
-		output_pool.start(output_worker);
+		analysis_pool.start(output_worker);
 
 		//process
 		QTime timer;
@@ -134,18 +132,10 @@ public:
 							break;
 						case DONE:
 							++done;
-							//init data
 							job.clear();
 							in1.readEntry(job.e1);
 							in2.readEntry(job.e2);
 							job.status = TO_BE_ANALYZED;
-							//update QC statistics
-							if (!params_.qc.isEmpty())
-							{
-								stats_.qc.update(job.e1, StatisticsReads::FORWARD);
-								stats_.qc.update(job.e2, StatisticsReads::REVERSE);
-							}
-							//start job
 							analysis_pool.start(new AnalysisWorker(job, params_, stats_, ecstats_));
 							break;
 						case ERROR: //handle errors during analayis (must be thrown in the main thread)

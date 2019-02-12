@@ -103,6 +103,7 @@ struct TrimmingStatistics
 	double reads_removed;
 	double bases_perc_trim_sum;
 	StatisticsReads qc;
+	QMutex qc_mutex;
 
 	void writeStatistics(QTextStream& out, const TrimmingParameters& params_)
 	{
