@@ -6,7 +6,6 @@
 #include <zlib.h>
 #include <QString>
 #include <QVector>
-#include <QMutex>
 
 ///Representation of a FASTQ entry.
 struct CPPNGSSHARED_EXPORT FastqEntry
@@ -87,7 +86,7 @@ class CPPNGSSHARED_EXPORT FastqOutfileStream
 {
 public:
     ///Constructor.
-	FastqOutfileStream(QString filename, bool thread_safe_mode, int level = Z_BEST_SPEED, int strategy = Z_DEFAULT_STRATEGY);
+	FastqOutfileStream(QString filename, int level = Z_BEST_SPEED, int strategy = Z_DEFAULT_STRATEGY);
     ///Destructor - closes the stream if not already done.
     ~FastqOutfileStream();
 
@@ -103,8 +102,6 @@ public:
 	}
 
 protected:
-	QMutex mutex_;
-	bool thread_safe_;
     QString filename_;
     gzFile gzfile_;
 	bool is_closed_;

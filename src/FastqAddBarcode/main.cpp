@@ -29,8 +29,8 @@ public:
 		//output files
 		QString out1 = getOutfile("out1");
 		QString out2 = getOutfile("out2");
-		FastqOutfileStream outstream1(out1, false);
-		FastqOutfileStream outstream2(out2, false);
+		FastqOutfileStream outstream1(out1);
+		FastqOutfileStream outstream2(out2);
 
 		//input files
 		QStringList in1 = getInfileList("in1");

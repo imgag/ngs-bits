@@ -45,8 +45,8 @@ public:
 		QTextStream out(stdout);
 		BamReader reader(getInfile("in"));
 
-		FastqOutfileStream out1(getOutfile("out1"), false);
-		FastqOutfileStream out2(getOutfile("out2"), false);
+		FastqOutfileStream out1(getOutfile("out1"));
+		FastqOutfileStream out2(getOutfile("out2"));
 
 		long long c_unpaired = 0;
 		long long c_paired = 0;

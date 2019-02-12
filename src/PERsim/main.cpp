@@ -79,8 +79,8 @@ public:
 	{
 		//init
 		QTextStream out(stdout);
-		FastqOutfileStream out1(getOutfile("out1"), false);
-		FastqOutfileStream out2(getOutfile("out2"), false);
+		FastqOutfileStream out1(getOutfile("out1"));
+		FastqOutfileStream out2(getOutfile("out2"));
 		BedFile roi;
 		roi.load(getInfile("roi"));
 		long count = getInt("count");

@@ -33,7 +33,7 @@ public:
 		const int len = getInt("len");
 
 		//process
-		FastqOutfileStream outstream(getOutfile("out"), false);
+		FastqOutfileStream outstream(getOutfile("out"));
 		FastqFileStream stream( getInfile("in"), false);
 		FastqEntry entry;
 		while (!stream.atEnd())

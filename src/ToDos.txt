@@ -45,7 +45,6 @@ GSvar:
 
 Tools:
 * VcfToTsv: add support for CSQ field from VEP
-** SeqPurge: make multi-threaded processing scale better for WGS - add writer thread - improve error handling
 - NGSDPrecalculate:
     - import relations using SampleSimilarity or GenLab e.g. GS160336, GS160192, DX186431_01
     - fix missing/different disease group/status

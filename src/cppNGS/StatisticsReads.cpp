@@ -3,8 +3,7 @@
 #include "Helper.h"
 
 StatisticsReads::StatisticsReads()
-	: mutex_()
-	, c_forward_(0)
+	: c_forward_(0)
 	, c_reverse_(0)
 	, read_lengths_()
     , bases_sequenced_(0)
@@ -18,8 +17,6 @@ StatisticsReads::StatisticsReads()
 
 void StatisticsReads::update(const FastqEntry& entry, ReadDirection direction)
 {
-	mutex_.lock();
-
 	//update read counts
 	if (direction==FORWARD)
 	{
@@ -61,8 +58,6 @@ void StatisticsReads::update(const FastqEntry& entry, ReadDirection direction)
 		}
 	}
 	if (q_sum/cycles>=20.0) ++c_read_q20_;
-
-	mutex_.unlock();
 }
 
 QCCollection StatisticsReads::getResult()
@@ -84,7 +79,7 @@ QCCollection StatisticsReads::getResult()
 	output.insert(QCValue("read count", total_reads, "Total number of reads (forward and reverse reads of paired-end sequencing count as two reads).", "QC:2000005"));
 	QString lengths = "";
 	QList<int> tmp = read_lengths_.toList(); //why? QSet is hash-based!
-	std::sort(tmp.begin(), tmp.end()); 
+	std::sort(tmp.begin(), tmp.end());
 	if (tmp.size()<4)
 	{
 		lengths = QString::number(tmp[0]);

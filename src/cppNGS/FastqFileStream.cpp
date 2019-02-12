@@ -180,10 +180,8 @@ void FastqFileStream::extractLine(QByteArray& line)
 }
 
 
-FastqOutfileStream::FastqOutfileStream(QString filename, bool thread_safe_mode, int level, int strategy)
-	: mutex_()
-	, thread_safe_(thread_safe_mode)
-	, filename_(filename)
+FastqOutfileStream::FastqOutfileStream(QString filename, int level, int strategy)
+	: filename_(filename)
     , is_closed_(false)
 {
     gzfile_ = gzopen(filename.toLatin1().data(),"wb");
@@ -201,8 +199,6 @@ FastqOutfileStream::~FastqOutfileStream()
 
 void FastqOutfileStream::write(const FastqEntry& entry)
 {
-	if (thread_safe_) mutex_.lock();
-
 	gzputs(gzfile_, entry.header.data());
 	gzwrite(gzfile_, "\n", 1);
 	gzputs(gzfile_, entry.bases.data());
@@ -215,8 +211,6 @@ void FastqOutfileStream::write(const FastqEntry& entry)
     {
         THROW(FileAccessException, "Could not write to file '" + filename_ + "'!");
     }
-
-	if (thread_safe_) mutex_.unlock();
 }
 
 void FastqOutfileStream::close()

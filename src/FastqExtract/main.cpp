@@ -47,7 +47,7 @@ public:
 		}
 
 		//open output stream
-		FastqOutfileStream outfile(getOutfile("out"), false);
+		FastqOutfileStream outfile(getOutfile("out"));
 
 		//parse input and write output
 		FastqFileStream stream(getInfile("in"));

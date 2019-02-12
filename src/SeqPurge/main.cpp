@@ -1,6 +1,6 @@
 #include "ToolBase.h"
-#include "Auxilary.h"
 #include "AnalysisWorker.h"
+#include "OutputWorker.h"
 #include "Helper.h"
 #include "BasicStatistics.h"
 #include <QThreadPool>
@@ -16,7 +16,6 @@ public:
 		: ToolBase(argc, argv)
 		, params_()
 		, stats_()
-		, data_()
 	{
 	}
 
@@ -37,42 +36,22 @@ public:
 		addInt("qoff", "Quality trimming FASTQ score offset.", true, 33);
 		addInt("ncut", "Number of subsequent Ns to trimmed using a sliding window approach from the front of reads. Set to 0 to disable.", true, 7);
 		addInt("min_len", "Minimum read length after adapter trimming. Shorter reads are discarded.", true, 30);
-		addInt("threads", "The number of threads used for trimming (an additional thread is used for reading data).", true, 1);
+		addInt("threads", "The number of threads used for trimming (two additional threads are used for reading and writing).", true, 1);
 		addOutfile("out3", "Name prefix of singleton read output files (if only one read of a pair is discarded).", true, false);
 		addOutfile("summary", "Write summary/progress to this file instead of STDOUT.", true, true);
 		addOutfile("qc", "If set, a read QC file in qcML format is created (just like ReadQC).", true, true);
-		addInt("prefetch", "Maximum number of reads that may be pre-fetched to speed up trimming", true, 1000);
+		addInt("prefetch", "Maximum number of reads that may be pre-fetched into memory to speed up trimming.", true, 1000);
 		addFlag("ec", "Enable error-correction of adapter-trimmed reads (only those with insert match).");
 		addFlag("debug", "Enables debug output (use only with one thread).");
-		addFlag("progress", "Enables progress output.");
+		addInt("progress", "Enables progress output at the given interval in milliseconds (disabled by default).", true, -1);
 
 		//changelog
+		changeLog(2019, 2, 11, "Added writer thread to make SeqPurge scale better when using many threads.");
 		changeLog(2017, 6, 15, "Changed default value of 'min_len' parameter from 15 to 30.");
 		changeLog(2016, 8, 10, "Fixed bug in binomial calculation (issue #1).");
 		changeLog(2016, 4, 15, "Removed large part of the overtrimming described in the paper (~75% of reads overtrimmed, ~50% of bases overtrimmed).");
 		changeLog(2016, 4,  6, "Added error correction (optional).");
 		changeLog(2016, 3, 16, "Version used in the SeqPurge paper: http://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-016-1069-7");
-	}
-
-	long processingReadPairs() const
-	{
-		return data_.reads_queued - stats_.read_num;
-	}
-
-	//check that headers match
-	void checkHeaders(const QByteArray& h1, const QByteArray& h2)
-	{
-		QByteArray tmp1 = h1.split(' ').at(0);
-		QByteArray tmp2 = h2.split(' ').at(0);
-		if (tmp1.endsWith("/1") && tmp2.endsWith("/2"))
-		{
-			tmp1.chop(2);
-			tmp2.chop(2);
-		}
-		if (tmp1!=tmp2)
-		{
-			THROW(Exception, "Headers of reads do not match:\n" + tmp1 + "\n" + tmp2);
-		}
 	}
 
 	virtual void main()
@@ -85,9 +64,6 @@ public:
 			THROW(CommandLineParsingException, "Input file lists 'in1' and 'in2' differ in counts!");
 		}
 
-		data_.out1 = new FastqOutfileStream(getOutfile("out1"), false);
-		data_.out2 = new FastqOutfileStream(getOutfile("out2"), false);
-
 		params_.a1 = getString("a1").trimmed().toLatin1();
 		if (params_.a1.count()<15) THROW(CommandLineParsingException, "Forward adapter " + params_.a1 + " too short!");
 		params_.a2 = getString("a2").trimmed().toLatin1();
@@ -97,70 +73,84 @@ public:
 		params_.match_perc = getFloat("match_perc");
 		params_.mep = getFloat("mep");
 		params_.min_len = getInt("min_len");
-		params_.max_reads_queued = getInt("prefetch");
+		int prefetch = getInt("prefetch");
 
 		params_.qcut = getInt("qcut");
 		params_.qwin = getInt("qwin");
 		params_.qoff = getInt("qoff");
 		params_.ncut = getInt("ncut");
 
-		QString out3_base = getOutfile("out3").trimmed();
-		if (out3_base!="")
-		{
-			data_.out3 = new FastqOutfileStream(out3_base + "_R1.fastq.gz", true);
-			data_.out4 = new FastqOutfileStream(out3_base + "_R2.fastq.gz", true);
-		}
-
 		params_.qc = getOutfile("qc");
-		data_.analysis_pool.setMaxThreadCount(getInt("threads"));
 		params_.ec = getFlag("ec");
 		params_.debug = getFlag("debug");
 
 		QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("summary"), true);
 		QTextStream out(outfile.data());
-		bool progress = getFlag("progress");
-		QTime timer;
-		if (progress) timer.start();
+		int progress = getInt("progress");
 
 		//init pre-calculation of factorials
 		BasicStatistics::precalculateFactorials();
 
+		//create analysis job pool
+		QList<AnalysisJob> job_pool;
+		while(job_pool.count() < prefetch)
+		{
+			job_pool << AnalysisJob();
+		}
+
+		//create thread pools
+		QThreadPool analysis_pool;
+		analysis_pool.setMaxThreadCount(getInt("threads")+1);
+		OutputWorker* output_worker = new OutputWorker(job_pool, getOutfile("out1"), getOutfile("out2"), getOutfile("out3"), params_, stats_);
+		output_worker->setAutoDelete(false);
+		analysis_pool.start(output_worker);
+
 		//process
+		QTime timer;
+		if (progress>0) timer.start();
 		for (int i=0; i<in1_files.count(); ++i)
 		{
-			if (progress) out << Helper::dateTime() << " starting - forward: " << in1_files[i] << " reverse: " << in2_files[i] << endl;
+			if (progress>0) out << Helper::dateTime() << " starting - forward: " << in1_files[i] << " reverse: " << in2_files[i] << endl;
 
 			FastqFileStream in1(in1_files[i], false);
 			FastqFileStream in2(in2_files[i], false);
 			while (!in1.atEnd() && !in2.atEnd())
 			{
-				//prevent caching of too many reads (waste of memory)
-				while(processingReadPairs()>=params_.max_reads_queued)
+				int to_be_analyzed = 0;
+				int to_be_written = 0;
+				int done = 0;
+				for (int j=0; j<job_pool.count(); ++j)
 				{
-					QThread::msleep(1);
-
-					if (progress && timer.elapsed()>10000)
+					AnalysisJob& job = job_pool[j];
+					switch(job.status)
 					{
-						out << Helper::dateTime() << " waiting - processing now: " << processingReadPairs() << " total processed: " << data_.reads_queued << endl;
-						timer.restart();
+						case TO_BE_ANALYZED:
+							++to_be_analyzed;
+							break;
+						case TO_BE_WRITTEN:
+							++to_be_written;
+							break;
+						case DONE:
+							++done;
+							job.clear();
+							in1.readEntry(job.e1);
+							in2.readEntry(job.e2);
+							job.status = TO_BE_ANALYZED;
+							analysis_pool.start(new AnalysisWorker(job, params_, stats_, ecstats_));
+							break;
+						case ERROR: //handle errors during analayis (must be thrown in the main thread)
+							THROW(Exception, job.error_message);
 					}
+
+					if (in1.atEnd() || in2.atEnd()) break;
 				}
 
-				if (progress && timer.elapsed()>10000)
+				//progress output
+				if (progress>0 && timer.elapsed()>progress)
 				{
-					out << Helper::dateTime() << " reading - processing now: " << processingReadPairs() << " total processed: " << data_.reads_queued << endl;
+					out << Helper::dateTime() << " progress - to_be_analyzed: " << to_be_analyzed << " to_be_written: " << to_be_written << " done: " << done << endl;
 					timer.restart();
 				}
-				data_.reads_queued += 2;
-
-				QSharedPointer<FastqEntry> e1(new FastqEntry());
-				in1.readEntry(*e1);
-				QSharedPointer<FastqEntry> e2(new FastqEntry());
-				in2.readEntry(*e2);
-
-				checkHeaders(e1->header, e2->header);
-
-				data_.analysis_pool.start(new AnalysisWorker(e1, e2, params_, stats_, ecstats_, data_));
 			}
 
 			//check that forward and reverse read file are both at the end
@@ -174,13 +164,41 @@ public:
 			}
 		}
 
-		//close streams
-		if (progress) out << Helper::dateTime() << " closing - processing now: " << processingReadPairs() << " total processed: " << data_.reads_queued << endl;
-		data_.closeOutStreams();
-		if (progress) out << Helper::dateTime() << " closed - processing now: " << processingReadPairs() << " total processed: " << data_.reads_queued << endl;
+		//close workers and streams
+		if (progress>0) out << Helper::dateTime() << " input data read completely - waiting for analysis to finish" << endl;
+		int done = 0;
+		while(done < job_pool.count())
+		{
+			done = 0;
+			for (int j=0; j<job_pool.count(); ++j)
+			{
+				AnalysisJob& job = job_pool[j];
+				switch(job.status)
+				{
+					case DONE:
+						++done;
+						break;
+					case ERROR: //handle errors during analayis (must be thrown in the main thread)
+						THROW(Exception, job.error_message);
+						break;
+					default:
+						break;
+				}
+			}
+
+			//progress output
+			if (progress>0 && timer.elapsed()>progress)
+			{
+				out << Helper::dateTime() << " progress - done: " << done << endl;
+				timer.restart();
+			}
+		}
+		if (progress>0) out << Helper::dateTime() << " analysis finished" << endl;
+		output_worker->terminate();
+		delete output_worker;
 
 		//print trimming statistics
-		if (progress) out << Helper::dateTime() << " writing statistics summary" << endl;
+		if (progress>0) out << Helper::dateTime() << " writing statistics summary" << endl;
 		stats_.writeStatistics(out, params_);
 
 		//write qc output file
@@ -192,7 +210,7 @@ public:
 		//print error correction statistics
 		if (params_.ec)
 		{
-			if (progress) out << Helper::dateTime() << " writing error corrections summary" << endl;
+			if (progress>0) out << Helper::dateTime() << " writing error corrections summary" << endl;
 			ecstats_.writeStatistics(out);
 		}
 	}
@@ -201,7 +219,6 @@ private:
 	TrimmingParameters params_;
 	TrimmingStatistics stats_;
 	ErrorCorrectionStatistics ecstats_;
-	TrimmingData data_;
 };
 
 #include "main.moc"
