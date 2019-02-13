@@ -70,7 +70,7 @@ void ReportHelper::writeSnvList(QTextStream& stream, const QList<int>& col_width
 	stream << begin_table_cell_head << "Punktmutationen (SNVs) und kleine Insertionen/Deletionen (INDELs)" << "\\cell\\row}" << endl;
 	RtfTools::writeRtfTableSingleRowSpec(stream,col_widths,true);
 	stream << begin_table_cell_head << "Gen\\cell" << begin_table_cell_head << "Position\\cell" << begin_table_cell_head <<"Typ\\cell" ;
-	stream << begin_table_cell_head << "F/T Tumor\\cell" << begin_table_cell_head << "Funktion\\cell" << begin_table_cell_head << "Genfunktion\\cell";
+	stream << begin_table_cell_head << "F/T Tumor\\cell" << begin_table_cell_head << "Bedeutung der Variante\\cell" << begin_table_cell_head << "Bedeutung des Gens\\cell";
 	stream << "\\row}" << endl;
 
 	if(snvs.count() == 0)
@@ -122,7 +122,7 @@ void ReportHelper::writeCnvGeneList(QTextStream& stream, const QList<int>& col_w
 	RtfTools::writeRtfTableSingleRowSpec(stream,col_widths,true);
 	stream << begin_table_cell_head << "Gen\\cell" << begin_table_cell_head << "Position (Gr\\u246;\\u223;e CNV)\\cell";
 	stream << begin_table_cell_head << "Typ\\cell" << begin_table_cell_head << "CN\\cell";
-	stream << begin_table_cell_head << "Funktion\\cell" << begin_table_cell_head << "Genfunktion\\cell";
+	stream << begin_table_cell_head << "Bedeutung der Variante\\cell" << begin_table_cell_head << "Bedeutung des Gens\\cell";
 	stream << "\\row}" << endl;
 
 	if(cnvs_filtered_.isEmpty())
