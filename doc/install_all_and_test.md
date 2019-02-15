@@ -112,7 +112,7 @@ For more information on GSvar, open the help within GSvar (F1) or use this [link
 ### Downloading test data
 
 For the first data anlysis you first some test data.  
-You can download an example dataset of the NIST reference sample NA12878 [here](https://medgen.medizin.uni-tuebingen.de/NGS-downloads/NA12878_01.zip).
+You can download an example dataset of the NIST reference sample NA12878 [here](https://download.imgag.de/NA12878_01.zip).
 
 ### Running an analysis
 

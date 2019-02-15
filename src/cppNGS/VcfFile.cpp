@@ -18,6 +18,9 @@ bool VcfFile::isValid(QString vcf_file, QString ref_file, QTextStream& out_strea
 	//load MISO terms
 	OntologyTermCollection obo_terms("://Resources/so-xp_3_0_0.obo", true);
 
+	//ALT allele regexp
+	QRegExp alt_regexp("[ACGTN]+");
+
 	//perform checks
 	QMap<QByteArray, DefinitionLine> defined_filters;
 	QMap<QByteArray, DefinitionLine> defined_formats;
@@ -175,6 +178,15 @@ bool VcfFile::isValid(QString vcf_file, QString ref_file, QTextStream& out_strea
 
 			//alternate base(s)
             QByteArrayList alts = parts[VcfFile::ALT].split(',');
+			foreach(const QByteArray& alt, alts)
+			{
+				if (alt.startsWith('<') && alt.endsWith('>')) continue; //special case for structural variant
+				if (alt=="*") continue; //special case for missing allele due to downstream deletion
+				if (alt.isEmpty() || !alt_regexp.exactMatch(alt))
+				{
+					printError(out_stream, "Invalid alternative allele '" + alt + "'!", l, line);
+				}
+			}
 
 			//quality
             const QByteArray& qual = parts[VcfFile::QUAL];
