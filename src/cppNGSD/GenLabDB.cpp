@@ -1,4 +1,5 @@
 #include <QSqlQuery>
+#include <QSqlError>
 #include "GenLabDB.h"
 #include "Helper.h"
 #include "Settings.h"
@@ -17,7 +18,7 @@ GenLabDB::GenLabDB()
 	db_->setPassword(Settings::string("genlab_pass"));
 	if (!db_->open())
 	{
-		THROW(DatabaseException, "Could not connect to the GenLab database!");
+		THROW(DatabaseException, "Could not connect to the GenLab database: " + db_->lastError().text());
 	}
 }
 

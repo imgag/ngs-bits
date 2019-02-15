@@ -11,7 +11,7 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, QString run_id)
 	connect(ui_->show_qc, SIGNAL(toggled(bool)), this, SLOT(updateGUI()));
 
 
-	QAction* action = new QAction("Open processed sample tab", this);
+	QAction* action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
 	ui_->samples->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openSelectedSamples()));
 

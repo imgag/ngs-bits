@@ -25,7 +25,7 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(showPlot()));
 
 	//sample realtions > open sample
-	action = new QAction("Open processed sample tab", this);
+	action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
 	ui_->sample_relations->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openSampleTab()));
 

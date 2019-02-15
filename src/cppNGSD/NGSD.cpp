@@ -11,6 +11,7 @@
 #include <QSqlDriver>
 #include <QSqlIndex>
 #include <QSqlField>
+#include <QSqlError>
 #include "cmath"
 
 QMap<QString, TableInfo> NGSD::infos_;
@@ -30,7 +31,7 @@ NGSD::NGSD(bool test_db)
 	db_->setPassword(Settings::string(prefix + "_pass"));
 	if (!db_->open())
 	{
-		THROW(DatabaseException, "Could not connect to the NGSD database: '" + prefix + "'");
+		THROW(DatabaseException, "Could not connect to NGSD database '" + prefix + "': " + db_->lastError().text());
 	}
 }
 

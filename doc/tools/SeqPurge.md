@@ -1,5 +1,5 @@
 ### SeqPurge tool help
-	SeqPurge (2018_11-55-g768b41c)
+	SeqPurge (2018_11-127-gbd77909)
 	
 	Removes adapter sequences from paired-end sequencing data.
 	
@@ -28,7 +28,7 @@
 	                      Default value: '7'
 	  -min_len <int>      Minimum read length after adapter trimming. Shorter reads are discarded.
 	                      Default value: '30'
-	  -threads <int>      The number of threads used for trimming (an additional thread is used for reading data).
+	  -threads <int>      The number of threads used for trimming (two additional threads are used for reading and writing).
 	                      Default value: '1'
 	  -out3 <file>        Name prefix of singleton read output files (if only one read of a pair is discarded).
 	                      Default value: ''
@@ -36,14 +36,14 @@
 	                      Default value: ''
 	  -qc <file>          If set, a read QC file in qcML format is created (just like ReadQC).
 	                      Default value: ''
-	  -prefetch <int>     Maximum number of reads that may be pre-fetched to speed up trimming
+	  -prefetch <int>     Maximum number of reads that may be pre-fetched into memory to speed up trimming.
 	                      Default value: '1000'
 	  -ec                 Enable error-correction of adapter-trimmed reads (only those with insert match).
 	                      Default value: 'false'
 	  -debug              Enables debug output (use only with one thread).
 	                      Default value: 'false'
-	  -progress           Enables progress output.
-	                      Default value: 'false'
+	  -progress <int>     Enables progress output at the given interval in milliseconds (disabled by default).
+	                      Default value: '-1'
 	
 	Special parameters:
 	  --help              Shows this help and exits.
@@ -52,8 +52,9 @@
 	  --tdx               Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SeqPurge changelog
-	SeqPurge 2018_11-55-g768b41c
+	SeqPurge 2018_11-127-gbd77909
 	
+	2019-02-11 Added writer thread to make SeqPurge scale better when using many threads.
 	2017-06-15 Changed default value of 'min_len' parameter from 15 to 30.
 	2016-08-10 Fixed bug in binomial calculation (issue #1).
 	2016-04-15 Removed large part of the overtrimming described in the paper (~75% of reads overtrimmed, ~50% of bases overtrimmed).
