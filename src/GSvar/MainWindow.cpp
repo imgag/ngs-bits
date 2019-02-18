@@ -539,13 +539,6 @@ void MainWindow::openInIGV(QString region)
 			dlg.addFile(file.id, file.type, file.filename, true);
 		}
 
-		//reference BAM
-		QString ref = ui_.filters->referenceSample();
-		if (ref!="")
-		{
-			dlg.addFile("reference sample", "BAM", ref, true);
-		}
-
 		//sample CNV file(s)
 		QList<IgvFile> segs = getSegFilesCnv();
 		foreach(const IgvFile& file, segs)

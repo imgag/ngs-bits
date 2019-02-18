@@ -7,13 +7,13 @@
     <x>0</x>
     <y>0</y>
     <width>350</width>
-    <height>600</height>
+    <height>500</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>350</width>
-    <height>600</height>
+    <height>500</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -500,94 +500,6 @@
          <bool>true</bool>
         </property>
        </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox_3">
-     <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reference sample that is loaded into IGV in addition to the currently active sample.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="title">
-      <string>IGV reference sample</string>
-     </property>
-     <property name="flat">
-      <bool>true</bool>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_4">
-      <property name="spacing">
-       <number>3</number>
-      </property>
-      <property name="leftMargin">
-       <number>0</number>
-      </property>
-      <property name="topMargin">
-       <number>3</number>
-      </property>
-      <property name="rightMargin">
-       <number>0</number>
-      </property>
-      <property name="bottomMargin">
-       <number>3</number>
-      </property>
-      <item>
-       <widget class="QComboBox" name="refs">
-        <property name="maxVisibleItems">
-         <number>30</number>
-        </property>
-        <property name="sizeAdjustPolicy">
-         <enum>QComboBox::AdjustToMinimumContentsLength</enum>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_2">
-        <property name="spacing">
-         <number>2</number>
-        </property>
-        <item>
-         <widget class="QPushButton" name="ref_add">
-          <property name="toolTip">
-           <string>Add reference sample permanently</string>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-          <property name="icon">
-           <iconset resource="GSvar.qrc">
-            <normaloff>:/Icons/Add.png</normaloff>:/Icons/Add.png</iconset>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="ref_remove">
-          <property name="toolTip">
-           <string>Remove current reference sample permanently</string>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-          <property name="icon">
-           <iconset resource="GSvar.qrc">
-            <normaloff>:/Icons/Remove.png</normaloff>:/Icons/Remove.png</iconset>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer name="horizontalSpacer_3">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>5</width>
-            <height>5</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-       </layout>
       </item>
      </layout>
     </widget>

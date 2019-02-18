@@ -3,7 +3,6 @@ path_regions=
 path_variantlists=
 recent_files=
 target_regions=@Invalid()
-reference_files=@Invalid()
 
 #IGV settings
 igv_menu=@Invalid()

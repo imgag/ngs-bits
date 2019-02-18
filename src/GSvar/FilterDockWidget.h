@@ -49,9 +49,6 @@ public:
 	///Sets selected phenotype terms.
 	void setPhenotypes(const QList<Phenotype>& phenotypes);
 
-	/// Returns the reference sample name or an empty string if unset.
-	QString referenceSample() const;
-
 	/// Loads filter target regions (Processing systems from NGSD, Sub-panels from file system and additional target regions from INI file)
 	void loadTargetRegions();
 
@@ -75,9 +72,6 @@ protected slots:
 	void addRoiTemp();
 	void removeRoi();
 	void roiSelectionChanged(int index);
-	void addRef();
-	void removeRef();
-	void referenceSampleChanged(int index);
 	void geneChanged();
 	void textChanged();
 	void regionChanged();
@@ -98,8 +92,6 @@ protected slots:
 	void toggleSelectedFilter(QListWidgetItem* item);
 
 private:
-	//Loads the reference file list of IGV
-	void loadReferenceFiles();
 
 	//Resets the filters without blocking signals.
 	void resetSignalsUnblocked(bool clear_roi);

@@ -19,7 +19,7 @@ NGSD:
     - remove old columns
 
 GSvar:
-#### remove IGV ref samples (also from INI)
+#### analysis status window: open run - how? Open Analysis status in tab?
 ### Document LOVD upload of CNVs, SVs, etc.
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 ## Phenotype selection: when hitting return, select perfect match if available.

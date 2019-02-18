@@ -28,10 +28,6 @@ FilterDockWidget::FilterDockWidget(QWidget *parent)
 	connect(ui_.roi_details, SIGNAL(clicked(bool)), this, SLOT(showTargetRegionDetails()));
 	connect(this, SIGNAL(targetRegionChanged()), this, SLOT(updateGeneWarning()));
 
-	connect(ui_.ref_add, SIGNAL(clicked()), this, SLOT(addRef()));
-	connect(ui_.ref_remove, SIGNAL(clicked()), this, SLOT(removeRef()));
-	connect(ui_.refs, SIGNAL(currentIndexChanged(int)), this, SLOT(referenceSampleChanged(int)));
-
 	connect(ui_.gene, SIGNAL(editingFinished()), this, SLOT(geneChanged()));
 	connect(ui_.text, SIGNAL(editingFinished()), this, SLOT(textChanged()));
 	connect(ui_.region, SIGNAL(editingFinished()), this, SLOT(regionChanged()));
@@ -56,8 +52,6 @@ FilterDockWidget::FilterDockWidget(QWidget *parent)
 	}
 
 	loadTargetRegions();
-	loadReferenceFiles();
-
 	reset(true);
 }
 
@@ -177,28 +171,6 @@ int FilterDockWidget::currentFilterIndex() const
 	return ui_.filters_entries->row(selection[0]);
 }
 
-void FilterDockWidget::loadReferenceFiles()
-{
-	//store old selection
-	QString current = ui_.refs->currentText();
-
-	//load from settings
-	ui_.refs->clear();
-	ui_.refs->addItem("none", "");
-	QStringList refs = Settings::stringList("reference_files");
-	foreach(const QString& roi_file, refs)
-	{
-		QStringList parts = roi_file.trimmed().split("\t");
-		if (parts.count()!=2) continue;
-		ui_.refs->addItem(parts[0], Helper::canonicalPath(parts[1]));
-	}
-
-	//restore old selection
-	int current_index = ui_.refs->findText(current);
-	if (current_index==-1) current_index = 0;
-    ui_.refs->setCurrentIndex(current_index);
-}
-
 void FilterDockWidget::resetSignalsUnblocked(bool clear_roi)
 {
 	//filter cols
@@ -222,10 +194,6 @@ void FilterDockWidget::resetSignalsUnblocked(bool clear_roi)
 	//phenotype
 	phenotypes_.clear();
 	phenotypesChanged();
-
-    //refs
-    ui_.refs->setCurrentIndex(0);
-	ui_.refs->setToolTip("");
 }
 
 void FilterDockWidget::focusFilter(int index)
@@ -310,11 +278,6 @@ void FilterDockWidget::setPhenotypes(const QList<Phenotype>& phenotypes)
 {
 	phenotypes_ = phenotypes;
 	phenotypesChanged();
-}
-
-QString FilterDockWidget::referenceSample() const
-{
-	return ui_.refs->toolTip();
 }
 
 const FilterCascade& FilterDockWidget::filters() const
@@ -403,12 +366,6 @@ void FilterDockWidget::roiSelectionChanged(int index)
 		emit filtersChanged();
 		emit targetRegionChanged();
 	}
-}
-
-
-void FilterDockWidget::referenceSampleChanged(int index)
-{
-	ui_.refs->setToolTip(ui_.refs->itemData(index).toString());
 }
 
 void FilterDockWidget::geneChanged()
@@ -726,41 +683,4 @@ void FilterDockWidget::toggleSelectedFilter(QListWidgetItem* item)
 
 		onFilterCascadeChange(true);
 	}
-}
-
-void FilterDockWidget::addRef()
-{
-	//get file to open
-	QString path = Settings::path("path_variantlists");
-	QString filename = QFileDialog::getOpenFileName(this, "Select reference file", path, "BAM files (*.bam);;All files (*.*)");
-	if (filename=="") return;
-
-	//get name
-	QString name = QInputDialog::getText(this, "Reference file name", "Display name:");
-	if (name=="") return;
-
-	//update settings
-	QStringList refs = Settings::stringList("reference_files");
-	refs.append(name + "\t" + filename);
-	refs.sort(Qt::CaseInsensitive);
-	refs.removeDuplicates();
-	Settings::setStringList("reference_files", refs);
-
-	//update GUI
-	loadReferenceFiles();
-}
-
-void FilterDockWidget::removeRef()
-{
-	QString name = ui_.refs->itemText(ui_.refs->currentIndex());
-	QString filename = ui_.refs->itemData(ui_.refs->currentIndex()).toString();
-	if (filename=="") return;
-
-	//update settings
-	QStringList refs = Settings::stringList("reference_files");
-	refs.removeOne(name + "\t" + filename);
-	Settings::setStringList("reference_files", refs);
-
-	//update GUI
-	loadReferenceFiles();
 }
