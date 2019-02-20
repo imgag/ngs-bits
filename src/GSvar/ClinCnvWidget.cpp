@@ -72,7 +72,7 @@ ClinCnvWidget::ClinCnvWidget(QString filename, FilterDockWidget* filter_widget, 
 	{
 		//ui->f_cn->setEnabled(false);
 		ui->f_cn->clear();
-		ui->f_cn->addItems({"n/a","0-1","1-2","2-3","3+"});
+		ui->f_cn->addItems({"n/a","[0,1[","[1,2[","[2,3[","3+"});
 		ui->f_cn->setCurrentText("n/a");
 
 		ui->f_af->setEnabled(false);
@@ -241,13 +241,15 @@ void ClinCnvWidget::filtersChanged()
 	}
 
 	QString f_som_cn = ui->f_cn->currentText();
+	f_som_cn = f_som_cn.replace("[","");
+	f_som_cn = f_som_cn.replace("]","");
 	if (is_somatic_ && f_som_cn != "n/a")
 	{
 		double min;
 		double max;
 		if(f_som_cn != "3+")
 		{
-			QList<QString> interval = f_som_cn.split("-");
+			QList<QString> interval = f_som_cn.split(",");
 			min = interval.at(0).toDouble();
 			max = interval.at(1).toDouble();
 		}
