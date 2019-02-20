@@ -19,7 +19,7 @@ DBTableWidget::DBTableWidget(QWidget* parent)
 
 	//context menu
 	setContextMenuPolicy(Qt::ActionsContextMenu);
-	QAction* copy_action = new QAction("Copy", this);
+	QAction* copy_action = new QAction(QIcon(":/Icons/CopyClipboard.png"), "Copy", this);
 	addAction(copy_action);
 	connect(copy_action, SIGNAL(triggered(bool)), this, SLOT(copyToClipboard()));
 }

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>680</width>
-    <height>366</height>
+    <width>751</width>
+    <height>574</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,6 +29,26 @@
    <property name="spacing">
     <number>3</number>
    </property>
+   <item row="3" column="1">
+    <widget class="QPlainTextEdit" name="genes">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>2</horstretch>
+       <verstretch>2</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="placeholderText">
+      <string>Gene list (one gene per line, or before first tab)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="label_7">
+     <property name="text">
+      <string>Options:</string>
+     </property>
+    </widget>
+   </item>
    <item row="5" column="0">
     <widget class="QLabel" name="label_6">
      <property name="text">
@@ -36,20 +56,27 @@
      </property>
     </widget>
    </item>
-   <item row="6" column="0">
-    <widget class="QLabel" name="label_7">
-     <property name="text">
-      <string>DB fallback:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="8" column="0" colspan="2">
-    <layout class="QHBoxLayout" name="horizontalLayout">
+   <item row="4" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout_5">
      <property name="spacing">
-      <number>0</number>
+      <number>3</number>
      </property>
      <item>
-      <spacer name="horizontalSpacer">
+      <widget class="QComboBox" name="mode">
+       <item>
+        <property name="text">
+         <string>exon</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>gene</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_4">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -61,117 +88,15 @@
        </property>
       </spacer>
      </item>
-     <item>
-      <widget class="QPushButton" name="check">
-       <property name="text">
-        <string>check</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="store">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="text">
-        <string>store</string>
-       </property>
-      </widget>
-     </item>
     </layout>
    </item>
-   <item row="7" column="0">
-    <widget class="QLabel" name="label_4">
-     <property name="text">
-      <string>Message(s):</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="1">
-    <layout class="QHBoxLayout" name="horizontalLayout_4">
-     <property name="spacing">
-      <number>0</number>
-     </property>
-     <item>
-      <widget class="QLineEdit" name="name"/>
-     </item>
-     <item>
-      <widget class="QPushButton" name="import_btn">
-       <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Import name and gene list from existing sub-panel.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="icon">
-        <iconset resource="GSvar.qrc">
-         <normaloff>:/Icons/Import.png</normaloff>:/Icons/Import.png</iconset>
-       </property>
-       <property name="flat">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item row="7" column="1">
-    <widget class="QLabel" name="messages">
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>0</height>
-      </size>
+   <item row="4" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Base region of the subpanel:&lt;/p&gt;&lt;p&gt;exon - all exons of a gene&lt;/p&gt;&lt;p&gt;gene - the whole gene locus, i.e. exons and introns&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="text">
-      <string/>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="0" colspan="2">
-    <widget class="QLabel" name="label_5">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to design a sub-panel. The created target region constist of the exon/gene regions plus the &lt;span style=&quot; font-style:italic;&quot;&gt;x&lt;/span&gt; flanking bases.&lt;/p&gt;&lt;p&gt;The base file name given in this dialog is automatically suffixed by _[regions][flanking]_[user]_[date].&lt;/p&gt;&lt;p&gt;Sub-panels that are specific for a sample/patient should contain _individual[sample identifier] in the base file name.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="scaledContents">
-      <bool>false</bool>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="label_3">
-     <property name="text">
-      <string>Base file name:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="1">
-    <widget class="QPlainTextEdit" name="genes">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-       <horstretch>1</horstretch>
-       <verstretch>1</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="placeholderText">
-      <string>Gene list (one gene per line, or before first tab)</string>
+      <string>Regions:</string>
      </property>
     </widget>
    </item>
@@ -247,6 +172,59 @@
      </item>
     </layout>
    </item>
+   <item row="0" column="0" colspan="2">
+    <widget class="QLabel" name="label_5">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to design a sub-panel. The created target region constist of the exon/gene regions plus the &lt;span style=&quot; font-style:italic;&quot;&gt;x&lt;/span&gt; flanking bases.&lt;/p&gt;&lt;p&gt;The base file name given in this dialog is automatically suffixed by _[regions][flanking]_[user]_[date].&lt;/p&gt;&lt;p&gt;Sub-panels that are specific for a sample/patient should contain _individual[sample identifier] in the base file name.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="scaledContents">
+      <bool>false</bool>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="QLineEdit" name="name"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="import_btn">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Import name and gene list from existing sub-panel.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="GSvar.qrc">
+         <normaloff>:/Icons/Import.png</normaloff>:/Icons/Import.png</iconset>
+       </property>
+       <property name="flat">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label_3">
+     <property name="text">
+      <string>Base file name:</string>
+     </property>
+    </widget>
+   </item>
    <item row="3" column="0">
     <widget class="QLabel" name="label">
      <property name="text">
@@ -257,20 +235,23 @@
      </property>
     </widget>
    </item>
-   <item row="6" column="1">
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
+   <item row="9" column="0">
+    <widget class="QLabel" name="label_4">
+     <property name="text">
+      <string>Message(s):</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="0" colspan="2">
+    <layout class="QHBoxLayout" name="horizontalLayout">
      <property name="spacing">
       <number>0</number>
      </property>
      <item>
-      <widget class="QCheckBox" name="fallback">
-       <property name="text">
-        <string>allow fallback to Ensembl database, if no CCDS transcript is defined.</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer_3">
+      <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -282,51 +263,51 @@
        </property>
       </spacer>
      </item>
+     <item>
+      <widget class="QPushButton" name="check">
+       <property name="text">
+        <string>check</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="store">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>store</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
-   <item row="4" column="0">
-    <widget class="QLabel" name="label_2">
-     <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Base region of the subpanel:&lt;/p&gt;&lt;p&gt;exon - all exons of a gene&lt;/p&gt;&lt;p&gt;gene - the whole gene locus, i.e. exons and introns&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
+   <item row="6" column="1">
+    <widget class="QCheckBox" name="fallback">
      <property name="text">
-      <string>Regions:</string>
+      <string>allow fallback to Ensembl database, if no CCDS transcript is defined.</string>
      </property>
     </widget>
    </item>
-   <item row="4" column="1">
-    <layout class="QHBoxLayout" name="horizontalLayout_5">
-     <property name="spacing">
-      <number>3</number>
+   <item row="7" column="1">
+    <widget class="QCheckBox" name="ignore_gene_errors">
+     <property name="text">
+      <string>ignore unknown gene names and genes without transcript</string>
      </property>
-     <item>
-      <widget class="QComboBox" name="mode">
-       <item>
-        <property name="text">
-         <string>exon</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>gene</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer_4">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-    </layout>
+    </widget>
+   </item>
+   <item row="9" column="1">
+    <widget class="QTextEdit" name="messages">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>1</horstretch>
+       <verstretch>1</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="textInteractionFlags">
+      <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>
