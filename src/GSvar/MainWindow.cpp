@@ -33,7 +33,7 @@
 #include "ReportWorker.h"
 #include "DBAnnotationWorker.h"
 #include "ScrollableTextDialog.h"
-#include "AnalysisStatusDialog.h"
+#include "AnalysisStatusWidget.h"
 #include "HttpHandler.h"
 #include "ValidationDialog.h"
 #include "ClassificationDialog.h"
@@ -1280,9 +1280,10 @@ void MainWindow::loadFile(QString filename)
 	ui_.vars->setColumnCount(0);
 
 	ui_.tabs->setCurrentIndex(0);
-	while (ui_.tabs->count()>1)
+	for (int t=ui_.tabs->count()-1; t>0; --t)
 	{
-		closeTab(ui_.tabs->count()-1);
+		if (ui_.tabs->tabText(t)=="Analysis status") continue;
+		closeTab(t);
 	}
 
 	if (filename=="") return;
@@ -1760,9 +1761,10 @@ void MainWindow::on_actionSampleAncestry_triggered()
 
 void MainWindow::on_actionAnalysisStatus_triggered()
 {
-	auto dlg = new AnalysisStatusDialog(0);
-	dlg->setWindowFlags(Qt::Window);
-	addModelessDialog(QSharedPointer<QDialog>(dlg), true);
+	AnalysisStatusWidget* widget = new AnalysisStatusWidget(this);
+	int index = ui_.tabs->addTab(widget, QIcon(":/Icons/Server.png"), "Analysis status");
+	ui_.tabs->setCurrentIndex(index);
+	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
 }
 
 void MainWindow::on_actionGapsLookup_triggered()

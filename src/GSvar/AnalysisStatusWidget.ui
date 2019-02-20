@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>AnalysisStatusDialog</class>
- <widget class="QDialog" name="AnalysisStatusDialog">
+ <class>AnalysisStatusWidget</class>
+ <widget class="QWidget" name="AnalysisStatusWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -15,13 +15,6 @@
     <width>1000</width>
     <height>600</height>
    </size>
-  </property>
-  <property name="windowTitle">
-   <string>GSvar - Analysis status</string>
-  </property>
-  <property name="windowIcon">
-   <iconset resource="../GSmix/GSmix.qrc">
-    <normaloff>:/Icons/Icon.png</normaloff>:/Icons/Icon.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">

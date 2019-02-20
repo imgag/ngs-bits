@@ -40,7 +40,6 @@ SOURCES += main.cpp\
     DiagnosticStatusWidget.cpp \
     DiagnosticStatusOverviewDialog.cpp \
     SvWidget.cpp \
-    AnalysisStatusDialog.cpp \
     SingleSampleAnalysisDialog.cpp \
     SomaticDialog.cpp \
     VariantSampleOverviewDialog.cpp \
@@ -53,7 +52,8 @@ SOURCES += main.cpp\
     DBComboBox.cpp \
     DBSelector.cpp \
     DiseaseInfoWidget.cpp \
-    SequencingRunWidget.cpp
+    SequencingRunWidget.cpp \
+    AnalysisStatusWidget.cpp
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
@@ -88,7 +88,6 @@ HEADERS  += MainWindow.h \
     DiagnosticStatusWidget.h \
     DiagnosticStatusOverviewDialog.h \
     SvWidget.h \
-    AnalysisStatusDialog.h \
     SingleSampleAnalysisDialog.h \
     SomaticDialog.h \
     VariantSampleOverviewDialog.h \
@@ -101,7 +100,8 @@ HEADERS  += MainWindow.h \
     DBComboBox.h \
     DBSelector.h \
     DiseaseInfoWidget.h \
-    SequencingRunWidget.h
+    SequencingRunWidget.h \
+    AnalysisStatusWidget.h
 
 FORMS    += MainWindow.ui \
     FilterDockWidget.ui \
@@ -132,7 +132,6 @@ FORMS    += MainWindow.ui \
     DiagnosticStatusWidget.ui \
     DiagnosticStatusOverviewDialog.ui \
     SvWidget.ui \
-    AnalysisStatusDialog.ui \
     SingleSampleAnalysisDialog.ui \
     SomaticDialog.ui \
     VariantSampleOverviewDialog.ui \
@@ -142,7 +141,8 @@ FORMS    += MainWindow.ui \
     ProcessedSampleWidget.ui \
     DBQCWidget.ui \
     DiseaseInfoWidget.ui \
-    SequencingRunWidget.ui
+    SequencingRunWidget.ui \
+    AnalysisStatusWidget.ui
 
 include("../app_gui.pri")
 

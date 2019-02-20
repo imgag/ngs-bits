@@ -1,11 +1,10 @@
-#include "AnalysisStatusDialog.h"
+#include "AnalysisStatusWidget.h"
 #include "MultiSampleDialog.h"
 #include "TrioDialog.h"
 #include "SomaticDialog.h"
 #include "SingleSampleAnalysisDialog.h"
 #include "GUIHelper.h"
 #include "ScrollableTextDialog.h"
-#include "ProcessedSampleWidget.h"
 #include <QMenu>
 #include <QFileInfo>
 #include <QDesktopServices>
@@ -13,8 +12,8 @@
 #include <QMessageBox>
 #include <QMetaMethod>
 
-AnalysisStatusDialog::AnalysisStatusDialog(QWidget *parent)
-	: QDialog(parent)
+AnalysisStatusWidget::AnalysisStatusWidget(QWidget* parent)
+	: QWidget(parent)
 	, ui_()
 {
 	//setup UI
@@ -32,7 +31,7 @@ AnalysisStatusDialog::AnalysisStatusDialog(QWidget *parent)
 	connect(ui_.f_text, SIGNAL(returnPressed()), this, SLOT(applyTextFilter()));
 }
 
-void AnalysisStatusDialog::analyzeSingleSamples(QList<AnalysisJobSample> samples)
+void AnalysisStatusWidget::analyzeSingleSamples(QList<AnalysisJobSample> samples)
 {
 	SingleSampleAnalysisDialog dlg(this);
 	dlg.setSamples(samples);
@@ -47,7 +46,7 @@ void AnalysisStatusDialog::analyzeSingleSamples(QList<AnalysisJobSample> samples
 	}
 }
 
-void AnalysisStatusDialog::analyzeTrio(QList<AnalysisJobSample> samples)
+void AnalysisStatusWidget::analyzeTrio(QList<AnalysisJobSample> samples)
 {
 	TrioDialog dlg(this);
 	dlg.setSamples(samples);
@@ -58,7 +57,7 @@ void AnalysisStatusDialog::analyzeTrio(QList<AnalysisJobSample> samples)
 	}
 }
 
-void AnalysisStatusDialog::analyzeMultiSample(QList<AnalysisJobSample> samples)
+void AnalysisStatusWidget::analyzeMultiSample(QList<AnalysisJobSample> samples)
 {
 	MultiSampleDialog dlg(this);
 	dlg.setSamples(samples);
@@ -69,7 +68,7 @@ void AnalysisStatusDialog::analyzeMultiSample(QList<AnalysisJobSample> samples)
 	}
 }
 
-void AnalysisStatusDialog::analyzeSomatic(QList<AnalysisJobSample> samples)
+void AnalysisStatusWidget::analyzeSomatic(QList<AnalysisJobSample> samples)
 {
 	SomaticDialog dlg(this);
 	dlg.setSamples(samples);
@@ -80,7 +79,7 @@ void AnalysisStatusDialog::analyzeSomatic(QList<AnalysisJobSample> samples)
 	}
 }
 
-void AnalysisStatusDialog::refreshStatus()
+void AnalysisStatusWidget::refreshStatus()
 {
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
@@ -208,7 +207,7 @@ void AnalysisStatusDialog::refreshStatus()
 	QApplication::restoreOverrideCursor();
 }
 
-void AnalysisStatusDialog::showContextMenu(QPoint pos)
+void AnalysisStatusWidget::showContextMenu(QPoint pos)
 {
 	//extract selected rows
 	QList<int> rows = selectedRows();
@@ -248,7 +247,6 @@ void AnalysisStatusDialog::showContextMenu(QPoint pos)
 	//set up menu
 	QMenu menu;
 	menu.addAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample");
-	menu.addAction(QIcon(":/Icons/NGSD.png"), "Open sample in NGSD");
 	if (rows.count()==1 && types.values()[0]!="single sample")
 	{
 		menu.addAction(QIcon(":/Icons/Folder.png"), "Open trio/multi/somatic folder");
@@ -292,20 +290,9 @@ void AnalysisStatusDialog::showContextMenu(QPoint pos)
 	QString text = action->text();
 	if (text=="Open processed sample")
 	{
-		NGSD db;
 		foreach(const AnalysisJobSample& sample, samples)
 		{
-			ProcessedSampleWidget* widget = new ProcessedSampleWidget(this, db.processedSampleId(sample.name));
-			auto dlg = GUIHelper::createDialog(widget, sample.name, "", false);
-			dlg->setWindowIcon(QIcon(":/Icons/NGSD_sample.png"));
-			dlg->exec();
-		}
-	}
-	if (text=="Open sample in NGSD")
-	{
-		foreach(const AnalysisJobSample& sample, samples)
-		{
-			QDesktopServices::openUrl(QUrl(NGSD().url(sample.name)));
+			emit openProcessedSampleTab(sample.name);
 		}
 	}
 	if (text=="Open sample folder(s)")
@@ -395,7 +382,7 @@ void AnalysisStatusDialog::showContextMenu(QPoint pos)
 	}
 }
 
-void AnalysisStatusDialog::clearDetails()
+void AnalysisStatusWidget::clearDetails()
 {
 	//details
 	ui_.properties->clearContents();
@@ -410,7 +397,7 @@ void AnalysisStatusDialog::clearDetails()
 	ui_.history->setRowCount(0);
 }
 
-void AnalysisStatusDialog::updateDetails()
+void AnalysisStatusWidget::updateDetails()
 {
 	clearDetails();
 
@@ -468,12 +455,12 @@ void AnalysisStatusDialog::updateDetails()
 	ui_.output->setText(job.history.last().output.join("\n"));
 }
 
-void AnalysisStatusDialog::copyToClipboard()
+void AnalysisStatusWidget::copyToClipboard()
 {
 	GUIHelper::copyToClipboard(ui_.analyses);
 }
 
-void AnalysisStatusDialog::applyTextFilter()
+void AnalysisStatusWidget::applyTextFilter()
 {
 	QString f_text = ui_.f_text->text().trimmed();
 
@@ -508,7 +495,7 @@ void AnalysisStatusDialog::applyTextFilter()
 	}
 }
 
-void AnalysisStatusDialog::addItem(QTableWidget* table, int row, int col, QString text, QColor bg_color)
+void AnalysisStatusWidget::addItem(QTableWidget* table, int row, int col, QString text, QColor bg_color)
 {
 	auto item = new QTableWidgetItem(text);
 	item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
@@ -516,7 +503,7 @@ void AnalysisStatusDialog::addItem(QTableWidget* table, int row, int col, QStrin
 	table->setItem(row, col, item);
 }
 
-QColor AnalysisStatusDialog::statusToColor(QString status)
+QColor AnalysisStatusWidget::statusToColor(QString status)
 {
 	QColor output = Qt::transparent;
 	if (status=="started") output = QColor("#90EE90");
@@ -527,7 +514,7 @@ QColor AnalysisStatusDialog::statusToColor(QString status)
 	return output;
 }
 
-QList<int> AnalysisStatusDialog::selectedRows() const
+QList<int> AnalysisStatusWidget::selectedRows() const
 {
 	QList<int> output;
 

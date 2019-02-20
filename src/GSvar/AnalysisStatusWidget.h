@@ -1,19 +1,22 @@
-#ifndef ANALYSISSTATUSDIALOG_H
-#define ANALYSISSTATUSDIALOG_H
+#ifndef AnalysisStatusWidget_H
+#define AnalysisStatusWidget_H
 
-#include <QDialog>
+#include <QWidget>
 #include <QTimer>
 #include "NGSD.h"
-#include "ui_AnalysisStatusDialog.h"
+#include "ui_AnalysisStatusWidget.h"
 
 //Dialog the shows the analysis status of all samples in SGE.
-class AnalysisStatusDialog
-	: public QDialog
+class AnalysisStatusWidget
+	: public QWidget
 {
 	Q_OBJECT
 
 public:
-	AnalysisStatusDialog(QWidget *parent = 0);
+	AnalysisStatusWidget(QWidget *parent = 0);
+
+signals:
+	void openProcessedSampleTab(QString ps_name);
 
 protected slots:
 	void analyzeSingleSamples(QList<AnalysisJobSample> samples=QList<AnalysisJobSample>());
@@ -28,7 +31,7 @@ protected slots:
 	void applyTextFilter();
 
 private:
-	Ui::AnalysisStatusDialog ui_;
+	Ui::AnalysisStatusWidget ui_;
 	struct JobData
 	{
 		int ngsd_id;
@@ -42,4 +45,4 @@ private:
 	QList<int> selectedRows() const;
 };
 
-#endif // ANALYSISSTATUSDIALOG_H
+#endif // AnalysisStatusWidget_H
