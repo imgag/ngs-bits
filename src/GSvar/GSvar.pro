@@ -53,7 +53,8 @@ SOURCES += main.cpp\
     DBSelector.cpp \
     DiseaseInfoWidget.cpp \
     SequencingRunWidget.cpp \
-    AnalysisStatusWidget.cpp
+    AnalysisStatusWidget.cpp \
+    ClinCnvWidget.cpp
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
@@ -101,8 +102,8 @@ HEADERS  += MainWindow.h \
     DBSelector.h \
     DiseaseInfoWidget.h \
     SequencingRunWidget.h \
-    AnalysisStatusWidget.h
-
+    AnalysisStatusWidget.h \
+    ClinCnvWidget.h
 FORMS    += MainWindow.ui \
     FilterDockWidget.ui \
     ExternalToolDialog.ui \
@@ -142,7 +143,8 @@ FORMS    += MainWindow.ui \
     DBQCWidget.ui \
     DiseaseInfoWidget.ui \
     SequencingRunWidget.ui \
-    AnalysisStatusWidget.ui
+    AnalysisStatusWidget.ui \
+    ClinCnvWidget.ui
 
 include("../app_gui.pri")
 

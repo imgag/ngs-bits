@@ -59,7 +59,7 @@ void ClinCnvList::load(QString filename)
 	annotation_indices.removeAll(i_start);
 	int i_end = file.colIndex("end", true);
 	annotation_indices.removeAll(i_end);
-	int i_sample = file.colIndex("sample", true);
+	int i_sample = file.colIndex("sample", false);
 	annotation_indices.removeAll(i_sample);
 	int i_copy_number = file.colIndex("CN_change",true);
 	annotation_indices.removeAll(i_copy_number);
@@ -81,14 +81,17 @@ void ClinCnvList::load(QString filename)
 	{
 		QByteArrayList parts = file.readLine();
 		//if(parts.empty()) continue;
-		if (parts.count()<7) THROW(FileParseException, "Invalid ClinCNV file line: " + parts.join('\t'));
+		if(i_sample != -1 &&parts.count()<7)
+		{
+			THROW(FileParseException, "Invalid ClinCNV file line: " + parts.join('\t'));
+		}
+		else if(i_sample == -1 && parts.count()<6) THROW(FileParseException,"Invalid ClinCNV file line: " + parts.join('\t'));
 
 		//sample
-		if (!sample.isEmpty() && sample!=parts[i_sample])
+		if (i_sample != -1 && !sample.isEmpty() && sample!=parts[i_sample])
 		{
 			THROW(FileParseException, "Multi-sample CNV files are currently not supported! Found data for " + sample + "'  and '" + parts[i_sample] + "'!");
 		}
-		sample = parts[i_sample];
 
 		//genes (optional)
 		GeneSet genes;
