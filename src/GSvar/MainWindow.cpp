@@ -47,6 +47,7 @@
 #include "IgvDialog.h"
 #include "GapDialog.h"
 #include "CnvWidget.h"
+#include "ClinCnvWidget.h"
 #include "RohWidget.h"
 #include "GeneSelectorDialog.h"
 #include "NGSHelper.h"
@@ -228,11 +229,20 @@ void MainWindow::on_actionCNV_triggered()
 		het_hit_genes = db.genesToApproved(het_hit_genes);
 	}
 
-	CnvWidget* list = new CnvWidget(filename_, ui_.filters, het_hit_genes);
-
-	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
-	auto dlg = GUIHelper::createDialog(list, "Copy-number variants");
-	addModelessDialog(dlg);
+	if(Helper::findFiles(QFileInfo(filename_).absolutePath(), "*_clincnv.tsv", false).count() > 0)
+	{
+		ClinCnvWidget* list = new ClinCnvWidget(filename_,ui_.filters,het_hit_genes);
+		connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
+		auto dlg = GUIHelper::createDialog(list, "ClinCNV Copy-number variants");
+		addModelessDialog(dlg);
+	}
+	else
+	{
+		CnvWidget* list = new CnvWidget(filename_, ui_.filters, het_hit_genes);
+		connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
+		auto dlg = GUIHelper::createDialog(list, "CNVHunter Copy-number variants");
+		addModelessDialog(dlg);
+	}
 }
 
 void MainWindow::on_actionROH_triggered()
