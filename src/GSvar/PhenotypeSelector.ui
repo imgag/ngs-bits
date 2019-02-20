@@ -31,6 +31,9 @@
    </property>
    <item>
     <widget class="QLineEdit" name="search">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Search for HPO term using name, accession and synonyms.&lt;br/&gt;&lt;br/&gt;If return is pressed and the search term matches a term name, the term is selected.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
      <property name="placeholderText">
       <string>phenotype search</string>
      </property>

@@ -8,7 +8,7 @@ PhenotypeSelectionWidget::PhenotypeSelectionWidget(QWidget *parent)
 	ui_.setupUi(this);
 
 	ui_.pheno_sel->setDetailsWidget(ui_.pheno_details);
-	connect(ui_.pheno_sel, SIGNAL(phenotypeActivated(QString)), this, SLOT(copyPhenotype()));
+	connect(ui_.pheno_sel, SIGNAL(phenotypeActivated(QString)), this, SLOT(copyPhenotype(QString)));
 	connect(ui_.pheno_list, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(deletePhenotype(QListWidgetItem*)));
 }
 
@@ -19,9 +19,9 @@ void PhenotypeSelectionWidget::setPhenotypes(const QList<Phenotype>& phenos)
 	updateSelectedPhenotypeList();
 }
 
-void PhenotypeSelectionWidget::copyPhenotype()
+void PhenotypeSelectionWidget::copyPhenotype(QString name)
 {
-	const Phenotype& phenotype = ui_.pheno_sel->selectedPhenotype();
+	Phenotype phenotype = ui_.pheno_sel->nameToPhenotype(name.toLatin1());
 	if (!phenos_.contains(phenotype))
 	{
 		phenos_.append(phenotype);

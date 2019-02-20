@@ -335,6 +335,8 @@ public:
 
 	/*** phenotype handling (HPO) ***/
 	///Returns the phenotype for a given HPO accession.
+	Phenotype phenotypeByName(const QByteArray& name, bool throw_on_error=true);
+	///Returns the phenotype for a given HPO accession.
 	Phenotype phenotypeByAccession(const QByteArray& accession, bool throw_on_error=true);
 	///Returns the phenotypes of a gene
 	QList<Phenotype> phenotypes(const QByteArray& symbol);

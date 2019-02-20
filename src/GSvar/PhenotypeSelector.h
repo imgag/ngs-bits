@@ -28,7 +28,10 @@ public:
 	void init();
 
 	///Returns the selected phenotype
-	Phenotype selectedPhenotype() const;
+	Phenotype nameToPhenotype(QByteArray name) const;
+
+	///React on enter key
+	void keyPressEvent(QKeyEvent *event) override;
 
 signals:
 	///Signal that a new item was clicked (mainly to update details).
@@ -47,7 +50,7 @@ private:
 
 	Ui::PhenotypeSelector *ui;
 	QTextEdit* details_;
-	NGSD db_;
+	mutable NGSD db_;
 };
 
 #endif // PHENOTYPESELECTOR_H

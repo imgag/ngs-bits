@@ -1976,6 +1976,18 @@ QList<Phenotype> NGSD::phenotypeChildTems(const Phenotype& phenotype, bool recur
 	return terms;
 }
 
+
+Phenotype NGSD::phenotypeByName(const QByteArray& name, bool throw_on_error)
+{
+	QByteArray accession = getValue("SELECT hpo_id FROM hpo_term WHERE name='" + name + "'", true).toByteArray();
+	if (accession.isEmpty() && throw_on_error)
+	{
+		THROW(ArgumentException, "Cannot find HPO phenotype with name '" + name + "' in NGSD!");
+	}
+	return Phenotype(accession, name);
+}
+
+
 Phenotype NGSD::phenotypeByAccession(const QByteArray& accession, bool throw_on_error)
 {
 	QByteArray name = getValue("SELECT name FROM hpo_term WHERE hpo_id='" + accession + "'", true).toByteArray();

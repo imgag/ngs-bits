@@ -20,7 +20,6 @@ NGSD:
 
 GSvar:
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
-## Phenotype selection: when hitting return, select perfect match if available.
 *** Implement OMIM search via API - example: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1 (wait for API access)
 ** Allow adding/editing data in NGSD (sample relations, ...)
 ** Put NGSD/GL8/LOVD passwords encrypted in INI file - use compiled-in master password to decrypt them

@@ -23,7 +23,7 @@ signals:
 	void phenotypeSelectionChanged();
 
 private slots:
-	void copyPhenotype();
+	void copyPhenotype(QString name);
 	void deletePhenotype(QListWidgetItem* item);
 	void updateSelectedPhenotypeList();
 

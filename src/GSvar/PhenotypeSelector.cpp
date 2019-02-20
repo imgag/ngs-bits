@@ -49,24 +49,30 @@ void PhenotypeSelector::search(QString text)
 	}
 }
 
-Phenotype PhenotypeSelector::selectedPhenotype() const
+Phenotype PhenotypeSelector::nameToPhenotype(QByteArray name) const
 {
-	Phenotype pheno;
-	QListWidgetItem* item = ui->list->currentItem();
-	if (item==nullptr) return pheno;
+	return db_.phenotypeByName(name, true);
+}
 
-	//name
-	pheno.setName(item->text().toLatin1());
-
-	//accession
-	SqlQuery query = db_.getQuery();
-	query.prepare("SELECT hpo_id FROM hpo_term WHERE name=:0");
-	query.bindValue(0, pheno.name());
-	query.exec();
-	query.next();
-	pheno.setAccession(query.value(0).toByteArray());
-
-	return pheno;
+void PhenotypeSelector::keyPressEvent(QKeyEvent* event)
+{
+	if (event->key()==Qt::Key_Return)
+	{
+		QString term_name = ui->search->text().trimmed();
+		for (int i=0; i<ui->list->count(); ++i)
+		{
+			QListWidgetItem* item = ui->list->item(i);
+			if (item!=nullptr && item->text().compare(term_name, Qt::CaseInsensitive)==0)
+			{
+				emit phenotypeActivated(item->text());
+				return;
+			}
+		}
+	}
+	else
+	{
+		QWidget::keyPressEvent(event);
+	}
 }
 
 void PhenotypeSelector::itemChanged(QListWidgetItem* item)
