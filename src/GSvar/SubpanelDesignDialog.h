@@ -37,8 +37,17 @@ private:
 	QString getBedFilename() const;
 	QString getBedFilenameArchive() const;
 	QString getBedSuffix() const;
-	void showMessage(QString message, bool error);
 
+	void clearMessages();
+	void addMessage(QString text, bool is_error, bool update_gui);
+	bool errorMessagesPresent();
+
+	struct Message
+	{
+		QString text;
+		bool is_error;
+	};
+	QList<Message> messages;
 	Ui::SubpanelDesignDialog *ui;
 	QCompleter* completer;
 	GeneSet genes;
@@ -46,7 +55,6 @@ private:
 	QString roi_file;
 	QString gene_file;
 	QString last_created_subpanel;
-
 };
 
 #endif // SUBPANELDESIGNDIALOG_H

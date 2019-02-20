@@ -2,8 +2,10 @@
 
 Novel pathogenic variant should be uploaded to one of the public variant databases.  
 Currenlty only [LOVD](http://www.lovd.nl/3.0/home) is supported - [ClinVar](https://www.ncbi.nlm.nih.gov/clinvar/) support is planned.
- 
-Database upload is triggered from the context menu of variants in the main window.  
+
+### Submitting SNVs/InDels
+
+Database upload for SNVs and InDels is triggered from the context menu of variants in the main window.  
 The following example shows how a two heterozygous variants can be selected and uploaded as compound-heterozygous:
 
 ![alt](variant_publication_context_menu.png)
@@ -18,6 +20,13 @@ The submission dialog then allows easy upload using these steps:
 
 ![alt](variant_publication_dialog.png)
 
+### Submitting CNVs, SVs, etc.
+
+For variants other than SNVs/InDels, use the main menu LOVD entry:
+
+![alt](variant_publication_main_menu.png)
+
+In this dialog, all sample and variant information has to be filled in by hand.
 
 ## FAQ
 
@@ -44,6 +53,7 @@ A full list of supported transcripts for each gene can be found in the [LOVD doc
 --
 
 [back to main page](index.md)
+
 
 
 

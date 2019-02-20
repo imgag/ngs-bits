@@ -67,14 +67,14 @@ void SubpanelDesignDialog::createSubpanelCompleter()
 void SubpanelDesignDialog::checkAndCreatePanel()
 {
 	//clear
-	ui->store->setEnabled(false);
-	ui->messages->clear();
+	disableStoreButton();
+	clearMessages();
 
 	//name check name
 	QString basename = ui->name->text().trimmed();
 	if (basename.isEmpty() || !QRegExp("[0-9a-zA-Z_\\.]+").exactMatch(basename))
 	{
-		showMessage("Name '" + basename + "' is empty or contains invalid characters!", true);
+		addMessage("Name '" + basename + "' is empty or contains invalid characters!", true, true);
 		return;
 	}
 
@@ -82,13 +82,13 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 	QString bed_file = getBedFilename();
 	if (QFile::exists(bed_file))
 	{
-		showMessage("Output file '" + bed_file + "' already exists!", true);
+		addMessage("Output file '" + bed_file + "' already exists!", true, true);
 		return;
 	}
 	QString bed_file_archive = getBedFilenameArchive();
 	if (QFile::exists(bed_file_archive))
 	{
-		showMessage("Output file '" + bed_file_archive + "' already exists!", true);
+		addMessage("Output file '" + bed_file_archive + "' already exists!", true, true);
 		return;
 	}
 
@@ -110,16 +110,16 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 	}
 	if (genes.count()==0)
 	{
-		showMessage("Genes are not set!", true);
+		addMessage("Genes are not set!", true, true);
 		return;
 	}
+	bool ignore_gene_errors = ui->ignore_gene_errors->isChecked();
 	foreach(QString gene, genes)
 	{
 		QPair<QString, QString> geneinfo = db.geneToApprovedWithMessage(gene);
 		if (geneinfo.first!=gene || geneinfo.second.startsWith("ERROR"))
 		{
-			showMessage("Gene " + geneinfo.first + ": " + geneinfo.second, true);
-			return;
+			addMessage("Gene " + geneinfo.first + ": " + geneinfo.second, !ignore_gene_errors, false);
 		}
 	}
 
@@ -127,13 +127,13 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 	roi_file = getBedFilename();
 	if (!Helper::isWritable(roi_file))
 	{
-		showMessage("Region file '" + roi_file + "' is not writable!", true);
+		addMessage("Region file '" + roi_file + "' is not writable!", true, true);
 		return;
 	}
 	gene_file = roi_file.left(roi_file.size()-4) + "_genes.txt";
 	if (!Helper::isWritable(gene_file))
 	{
-		showMessage("Genes file '" + gene_file + "' is not writable!", true);
+		addMessage("Genes file '" + gene_file + "' is not writable!", true, true);
 		return;
 	}
 
@@ -144,8 +144,10 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 	regions = db.genesToRegions(genes, Transcript::CCDS, mode, ui->fallback->isChecked(), false, &stream);
 	if (messages!="")
 	{
-		showMessage(messages, true);
-		return;
+		foreach(QString message, messages.split('\n'))
+		{
+			addMessage(message.trimmed(), !ignore_gene_errors, false);
+		}
 	}
 
 	//add flanking regions
@@ -175,14 +177,13 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 	regions.merge();
 
 	//show message
-	QString message = "Sub-panel with " + QString::number(genes.count()) + " genes of size " + QString::number(regions.baseCount()) + " bp (" + mode + " plus " + ui->flanking->currentText() + " flanking bases) designed. You can store it now!";
+	addMessage("Sub-panel with " + QString::number(genes.count()) + " genes of size " + QString::number(regions.baseCount()) + " bp (" + mode + " plus " + ui->flanking->currentText() + " flanking bases) designed. You can store it now!", false, true);
 	if (!genes_special.isEmpty())
 	{
-		message += "\nAdded special regions for gene(s): " + genes_special.join(", ");
+		addMessage("Added special regions for gene(s): " + genes_special.join(", "), false, true);
 	}
-	showMessage(message, false);
 
-	ui->store->setEnabled(true);
+	ui->store->setEnabled(!errorMessagesPresent());
 }
 
 void SubpanelDesignDialog::storePanel()
@@ -190,8 +191,9 @@ void SubpanelDesignDialog::storePanel()
 	regions.store(roi_file);
 	genes.store(gene_file);
 
-	showMessage("Sub-panel '" + QFileInfo(roi_file).baseName() + "' written successfully!", false);
-	ui->store->setEnabled(false);
+	clearMessages();
+	addMessage("Sub-panel '" + QFileInfo(roi_file).baseName() + "' written successfully!", false, true);
+	disableStoreButton();
 
 	last_created_subpanel = roi_file;
 }
@@ -245,12 +247,34 @@ QString SubpanelDesignDialog::getBedSuffix() const
 	return 	"_" + ui->mode->currentText() + ui->flanking->currentText() + "_" + Helper::userName() + "_" + QDate::currentDate().toString("yyyyMMdd") + ".bed";
 }
 
-void SubpanelDesignDialog::showMessage(QString message, bool error)
+void SubpanelDesignDialog::clearMessages()
 {
-	if (error)
+	messages.clear();
+	ui->messages->clear();
+}
+
+void SubpanelDesignDialog::addMessage(QString text, bool is_error, bool update_gui)
+{
+	messages << Message{text, is_error};
+
+	if (update_gui)
 	{
-		message = "<font color='red'>" + message + "</font>";
+		QString text;
+		foreach(const Message& m, messages)
+		{
+			if (!text.isEmpty()) text += "<br>";
+			text += m.is_error ? "<font color='red'>" + m.text + "</font>" : m.text;
+		}
+		ui->messages->setHtml(text);
+	}
+}
+
+bool SubpanelDesignDialog::errorMessagesPresent()
+{
+	foreach(const Message& m, messages)
+	{
+		if (m.is_error) return true;
 	}
 
-	ui->messages->setText(message);
+	return false;
 }
