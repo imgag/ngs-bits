@@ -7,13 +7,23 @@
 #include <QList>
 #include <QByteArrayList>
 
+///Supported analysis types
+enum ClinCnvAnalysisType
+{
+	CLINCNV_TUMOR_NORMAL_PAIR,
+	CLINCNV_GERMLINE_SINGLE,
+	CLINCNV_GERMLINE_TRIO,
+	CLINCNV_GERMLINE_MULTI
+};
+
+
 class CPPNGSSHARED_EXPORT ClinCopyNumberVariant
 {
 public:
 	///Default constructor.
 	ClinCopyNumberVariant();
 	///Main constructor.
-	ClinCopyNumberVariant(const Chromosome& chr, int start, int end, double copy_number, double log_likelihood, GeneSet genes, QByteArrayList annotations);
+	ClinCopyNumberVariant(const Chromosome& chr, int start, int end, double copy_number, const QList<double>& log_likelihoods, GeneSet genes, QByteArrayList annotations);
 
 	///Returns the chromosome.
 	const Chromosome& chr() const
@@ -36,8 +46,14 @@ public:
 		return copy_number_;
 	}
 
-	///Returns the log likelihood
+	///Returns the first loglikelihood (single samples)
 	double likelihood() const
+	{
+		return log_likelihood_[0];
+	}
+
+	///Returns all likelihoods (multiple samples/trios) as list, contains only 1 value in case of single samples
+	const QList<double>& likelihoods() const
 	{
 		return log_likelihood_;
 	}
@@ -64,12 +80,12 @@ public:
 		return annotations_;
 	}
 
-protected:
+private:
 	Chromosome chr_;
 	int start_;
 	int end_;
 	double copy_number_;
-	double log_likelihood_;
+	QList<double> log_likelihood_;
 	GeneSet genes_;
 	QByteArrayList annotations_;
 };
@@ -122,6 +138,8 @@ public:
 	}
 	///Copies Annotation Header and Comments
 	void copyMetaData(const ClinCnvList& rhs);
+
+	ClinCnvAnalysisType type() const;
 
 protected:
 	QByteArrayList comments_;

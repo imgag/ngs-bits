@@ -16,12 +16,12 @@ ClinCopyNumberVariant::ClinCopyNumberVariant()
 {
 }
 
-ClinCopyNumberVariant::ClinCopyNumberVariant(const Chromosome& chr, int start, int end, double copy_number, double log_likelihood, GeneSet genes, QByteArrayList annotations)
+ClinCopyNumberVariant::ClinCopyNumberVariant(const Chromosome& chr, int start, int end, double copy_number, const QList<double>& log_likelihoods, GeneSet genes, QByteArrayList annotations)
 	: chr_(chr)
 	, start_(start)
 	, end_(end)
 	, copy_number_(copy_number)
-	, log_likelihood_(log_likelihood)
+	, log_likelihood_(log_likelihoods)
 	, genes_(genes)
 	, annotations_(annotations)
 {
@@ -107,7 +107,14 @@ void ClinCnvList::load(QString filename)
 			if(file.header()[index] == "size") continue;
 			annos << parts[index];
 		}
-		variants_.append(ClinCopyNumberVariant(parts[i_chr], parts[i_start].toInt(), parts[i_end].toInt(), parts[i_copy_number].toDouble(), parts[i_log_likelihood].toDouble(), genes, annos));
+
+		QList<double> loglikelihoods;
+		foreach(QByteArray part,parts[i_log_likelihood].split(','))
+		{
+			loglikelihoods << part.trimmed().toDouble();
+		}
+
+		variants_.append(ClinCopyNumberVariant(parts[i_chr], parts[i_start].toInt(), parts[i_end].toInt(), parts[i_copy_number].toDouble(), loglikelihoods, genes, annos));
 	}
 }
 
@@ -156,3 +163,37 @@ void ClinCnvList::copyMetaData(const ClinCnvList& rhs)
 	comments_ = rhs.comments_;
 }
 
+ClinCnvAnalysisType ClinCnvList::type() const
+{
+
+	foreach(QByteArray comment,comments_)
+	{
+		if(comment.startsWith("##ANALYSISTYPE="))
+		{
+			QByteArray type = comment.trimmed().mid(15);
+
+			if(type == "CLINCNV_GERMLINE_MULTI") return CLINCNV_GERMLINE_MULTI;
+			else if(type == "CLINCNV_TUMOR_NORMAL_PAIR") return CLINCNV_TUMOR_NORMAL_PAIR;
+			else if(type == "CLINCNV_GERMLINE_SINGLE") return CLINCNV_GERMLINE_SINGLE;
+			else if(type == "CLINCNV_GERMLINE_TRIO") return CLINCNV_GERMLINE_TRIO;
+		}
+	}
+
+	//old files do not contain sample header, try to determine type on columns
+	foreach(QByteArray annotation_header,annotation_headers_)
+	{
+		if(annotation_header.contains("tumor_CN_change")) return CLINCNV_TUMOR_NORMAL_PAIR;
+	}
+	int i_sample = annotationIndexByName("sample",false);
+	if(i_sample != -1)
+	{
+		foreach(ClinCopyNumberVariant v,variants_)
+		{
+			if(v.annotations().at(i_sample).contains("multi")) return CLINCNV_GERMLINE_MULTI;
+		}
+	}
+
+	//Fallback to CLINCNV_GERMLINE_SINGLE if could not be determined
+	return CLINCNV_GERMLINE_SINGLE;
+
+}

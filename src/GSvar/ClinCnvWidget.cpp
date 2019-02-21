@@ -128,8 +128,23 @@ void ClinCnvWidget::loadCNVs(QString filename)
 		ui->cnvs->setItem(r, 2, new QTableWidgetItem(QString::number(cnvs[r].size()/1000.0, 'f', 3)));
 		ui->cnvs->setItem(r, 3, new QTableWidgetItem(QString::number(cnvs[r].copyNumber())));
 
-		ui->cnvs->setItem(r, 4, new QTableWidgetItem(QString::number(cnvs[r].likelihood())));
+		//loglikelihood
+		if(cnvs.type() == CLINCNV_TUMOR_NORMAL_PAIR || cnvs.type() == CLINCNV_GERMLINE_SINGLE)
+		{
+			ui->cnvs->setItem(r, 4, new QTableWidgetItem(QString::number(cnvs[r].likelihood())));
+		}
+		else //samples with multiple values for likelihood
+		{
+			QString tmp_likelihoods = "";
+			foreach(double likelihood,cnvs[r].likelihoods())
+			{
+				tmp_likelihoods += ", " + QString::number(likelihood);
+			}
+			tmp_likelihoods = tmp_likelihoods.mid(2);
+			ui->cnvs->setItem(r, 4, new QTableWidgetItem(tmp_likelihoods));
+		}
 
+		//annotations
 		int c = 5;
 		foreach(int index, annotation_indices)
 		{
@@ -267,15 +282,25 @@ void ClinCnvWidget::filtersChanged()
 
 	//filter by loglikelihood
 	const double f_likeli = ui->f_likeli->value();
-
 	if(f_likeli > 0.0)
 	{
 		for(int r=0;r<rows;++r)
 		{
 			if(!pass[r]) continue;
 
-			if(cnvs[r].likelihood() >= f_likeli) pass[r] = true;
-			else pass[r] = false;
+			//take highest value of all available log likelihoods in case of multi samples
+			bool tmp_pass = true;
+			foreach(double likelihood,cnvs[r].likelihoods())
+			{
+				//if one of all values passes filter: keep
+				if(likelihood >= f_likeli)
+				{
+					tmp_pass = true;
+					break;
+				}
+				else tmp_pass = false;
+			}
+			pass[r] = tmp_pass;
 		}
 	}
 
