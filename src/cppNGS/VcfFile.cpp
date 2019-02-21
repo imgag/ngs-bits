@@ -172,7 +172,10 @@ bool VcfFile::isValid(QString vcf_file, QString ref_file, QTextStream& out_strea
 				Sequence ref_exp = reference.seq(chr, pos, ref.length());
 				if (ref!=ref_exp)
 				{
-					printError(out_stream, "Reference base(s) not correct. Is '" + ref + "', should be '" + ref_exp + "'!", l, line);
+					if (ref_exp=="N" || ref_exp=="A" || ref_exp=="C" || ref_exp=="G" || ref_exp=="T") //ignore ambigous bases, e.g. M or R.
+					{
+						printError(out_stream, "Reference base(s) not correct. Is '" + ref + "', should be '" + ref_exp + "'!", l, line);
+					}
 				}
 			}
 

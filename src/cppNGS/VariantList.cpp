@@ -806,11 +806,11 @@ void VariantList::loadFromVCFGZ(QString filename, ChromosomalIndex<BedFile>* roi
 		THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
 	}
 
-	char* buffer = new char[131072];
+	char* buffer = new char[1048576]; //1MB buffer
 	while(!gzeof(file))
 	{
 
-		char* read_line = gzgets(file, buffer, 131072);
+		char* read_line = gzgets(file, buffer, 1048576);
 
 		//handle errors like truncated GZ file
 		if (read_line==nullptr)
