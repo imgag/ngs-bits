@@ -257,6 +257,8 @@ void ReportHelper::writeCnvList(QTextStream& stream, const QList<int>& col_width
 	GeneSet target_genes = GeneSet::createFromFile(target_region.left(target_region.size()-4) + "_genes.txt");
 	target_genes = db_.genesToApproved(target_genes);
 
+	int i_cnv_state = cnvs_filtered_.annotationIndexByName("state",false);
+
 	for(int i=0; i<cnvs_filtered_.count(); ++i)
 	{
 		ClinCopyNumberVariant variant = cnvs_filtered_[i];
@@ -282,7 +284,6 @@ void ReportHelper::writeCnvList(QTextStream& stream, const QList<int>& col_width
 		else
 		{
 			//check whether information about loss of heterocigosity is available
-			int i_cnv_state = cnvs_filtered_.annotationIndexByName("state",false);
 			if(i_cnv_state != -1 && variant.annotations().at(i_cnv_state) == "LOH") columns.append("\\qc LOH");
 			else columns.append("\\qc{\\highlight3 NA} ");
 		}
@@ -329,7 +330,22 @@ void ReportHelper::writeCnvList(QTextStream& stream, const QList<int>& col_width
 		}
 		else
 		{
-			columns.append("");
+			if(i_cnv_state != -1 && variant.annotations().at(i_cnv_state) == "LOH")
+			{
+				GeneSet all_genes_loh = variant.genes().intersect(target_genes);
+
+				QString tmp_entry = "";
+				foreach(QByteArray gene,all_genes_loh)
+				{
+					tmp_entry.append(", " + gene);
+				}
+				tmp_entry = tmp_entry.mid(2);
+				columns.append(tmp_entry);
+			}
+			else
+			{
+				columns.append("");
+			}
 		}
 
 		somatic_cnv_table.append(columns);
