@@ -1,5 +1,11 @@
 # GSvar change log
 
+### 2018_11-146-gf2429c0 (22.02.19)
+- General: removed reference samples for IGV.
+- Analysis status: moved from window into tab.
+- Subpanel design is now possible with gene/transcript errors (new check box)
+- CNVs: Added widget for viewing somatic and germline ClinCNV files.
+
 ### 2018_11-127-gbd77909 (07.02.19)
 - General: Added sequencing run tabs.
 - Somatic report: wording changes.
@@ -276,6 +282,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 
