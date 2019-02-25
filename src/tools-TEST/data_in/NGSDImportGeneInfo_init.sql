@@ -8,9 +8,9 @@ INSERT INTO `gene_transcript` (`id`, `gene_id`, `name`, `source`, `chromosome`, 
 (1, 3, 'ENST00000335137', 'ensembl', '1', 69091, 70008, '+'),
 (2, 3, 'CCDS30547.1', 'ccds', '1', 69091, 70008, '+');
 
-INSERT INTO `geneinfo_germline`(`symbol`, `inheritance`, `exac_pli`, `comments`) VALUES
-('BRCA1', 'AD', 0.00, ''),
-('BRCA2', 'AD', NULL, '');
+INSERT INTO `geneinfo_germline`(`symbol`, `inheritance`, `gnomad_oe_mis`, `gnomad_oe_syn`, `gnomad_oe_lof`, `comments`) VALUES
+('BRCA1', 'AD', 0.00, 0.00, 0.00, ''),
+('BRCA2', 'AD', NULL, NULL, NULL, '');
 
 INSERT INTO `hpo_term` (`id`, `hpo_id`, `name`, `definition`, `synonyms`) VALUES
 (1, 'HP:0000007', 'Autosomal recessive inheritance', '\"A mode of inheritance that is observed for traits related to a gene encoded on one of the autosomes (i.e., the human chromosomes 1-22) in which a trait manifests in homozygotes. In the context of medical genetics, autosomal recessive disorders manifest in homozygotes (with two copies of the mutant allele) or compound heterozygotes (whereby each copy of a gene has a distinct mutant allele).', ''),

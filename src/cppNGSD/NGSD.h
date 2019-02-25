@@ -209,8 +209,12 @@ struct CPPNGSDSHARED_EXPORT GeneInfo
 	QString name;
 	//gene inheritance mode
 	QString inheritance;
-	//ExAC pLI score (default is NULL)
-	QString exac_pli;
+	//genomAD o/e score for synonymous variants (default is NULL).
+	QString oe_syn;
+	//genomAD o/e score for missense variants (default is NULL).
+	QString oe_mis;
+	//genomAD o/e score for loss-of-function variants (default is NULL).
+	QString oe_lof;
 	//comments
 	QString comments;
 
@@ -220,7 +224,7 @@ struct CPPNGSDSHARED_EXPORT GeneInfo
 	//returns the main gene information as a string
 	QString toString()
 	{
-		return symbol + " (inh=" + inheritance + " pLI=" + exac_pli + ")";
+		return symbol + " (inh=" + inheritance + " oe_syn=" + oe_syn + " oe_mis=" + oe_mis + " oe_lof=" + oe_lof + ")";
 	}
 };
 

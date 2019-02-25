@@ -12,13 +12,11 @@ libs:
 NGSD:
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
 *** replace pLI by oe
-    - NGSD schema add oe (3x)
-    - NGSD import
-    - implement alternative handling for GUI/filter in GSvar
-    - annotation (deploy megSAP)
-    - remove old columns
+    - implement alternative handling for GUI/filter in GSvar (o/e cutoff 0.35) > update default filders of GSvar
+    - deploy megSAP and update NGSD
 
 GSvar:
+##### Create 64bit build for Windows.
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 *** Implement OMIM search via API - example: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1 (wait for API access)
 ** Allow adding/editing data in NGSD (sample relations, ...)

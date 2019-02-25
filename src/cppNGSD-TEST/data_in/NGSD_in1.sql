@@ -63,10 +63,10 @@ INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES
 (5, 100, 200),
 (5, 300, 400);
 
-INSERT INTO `geneinfo_germline`(`symbol`, `inheritance`, `exac_pli`, `comments`) VALUES 
-('BRCA1', 'AD', 0.00, ''),
-('TP53', 'AD', 0.93, ''),
-('NIPA1', 'n/a', NULL, '');
+INSERT INTO `geneinfo_germline`(`symbol`, `inheritance`, `gnomad_oe_syn`, `gnomad_oe_mis`, `gnomad_oe_lof`, `comments`) VALUES 
+('BRCA1', 'AD', 0.77, 0.88, 0.99, ''),
+('TP53', 'AD', 0.93, 0.92, 0.91, ''),
+('NIPA1', 'n/a', NULL, NULL, NULL, '');
 
 INSERT INTO `variant` (`id`, `chr`, `start`, `end`, `ref`, `obs`, `dbsnp`, `1000g`, `gnomAD`, `gene`, `variant_type`, `coding`) VALUES
 (6, 'chr10', 43613843, 43613843, 'G', 'T', 'rs1800861', 0.7125, 0.7653, 'RET', 'synonymous', 'RET:NM_020975.4:synonymous:LOW:exon13/20:c.2307G>T:p.Leu769Leu,RET:NM_020630.4:synonymous:LOW:exon13/19:c.2307G>T:p.Leu769Leu'),

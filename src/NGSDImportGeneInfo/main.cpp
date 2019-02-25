@@ -16,7 +16,7 @@ public:
 	virtual void setup()
 	{
 		setDescription("Imports gene-specific information into NGSD.");
-		addInfile("constraint", "ExAC gene contraint file (download ftp://ftp.broadinstitute.org/pub/ExAC_release/current/functional_gene_constraint/fordist_cleaned_exac_nonTCGA_z_pli_rec_null_data.txt).", false);
+		addInfile("constraint", "gnomAD gene contraint file (download and unzip https://storage.googleapis.com/gnomad-public/release/2.1/ht/constraint/constraint.txt.bgz).", false);
 		//optional
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");
@@ -48,23 +48,44 @@ public:
 			out << endl;
 		}
 
-		//import ExAC pLI scores
-		out << "Importing ExAC pLI scores..." << endl;
+		//import genomAD o/e scores
+		out << "Importing genomAD constraints..." << endl;
 		{
 			SqlQuery update_query = db.getQuery();
-			update_query.prepare("INSERT INTO geneinfo_germline (symbol, inheritance, exac_pli, comments) VALUES (:0, 'n/a', :1, '') ON DUPLICATE KEY UPDATE exac_pli=VALUES(exac_pli)");
+			update_query.prepare("INSERT INTO geneinfo_germline (symbol, inheritance, gnomad_oe_syn, gnomad_oe_mis, gnomad_oe_lof, comments) VALUES (:0, 'n/a', :1, :2, :3, '') ON DUPLICATE KEY UPDATE gnomad_oe_syn=VALUES(gnomad_oe_syn), gnomad_oe_mis=VALUES(gnomad_oe_mis), gnomad_oe_lof=VALUES(gnomad_oe_lof)");
+			int i_syn = -1;
+			int i_mis = -1;
+			int i_lof = -1;
 
 			auto file = Helper::openFileForReading(getInfile("constraint"));
 			while(!file->atEnd())
 			{
 				QString line = file->readLine().trimmed();
-				if (line.isEmpty() || line.startsWith("transcript\t")) continue;
+				if (line.isEmpty()) continue;
 
 				QStringList parts = line.split('\t');
-				if (parts.count()<22) continue;
+				if (parts.count()<25) continue;
+
+				//header
+				if (parts[0]=="gene")
+				{
+					i_syn = parts.indexOf("oe_syn");
+					i_mis = parts.indexOf("oe_mis");
+					i_lof = parts.indexOf("oe_lof");
+					continue;
+				}
+
+				//canonical transcripts
+				if  (parts[2].trimmed()!="true") continue;
+
+				//check that headers are ok
+				if (i_syn==-1 || i_mis==-1 || i_lof==-1)
+				{
+					THROW(FileParseException, "Could not determine column indices for o/e columns in header line!");
+				}
 
 				//gene
-				QString gene = parts[1];
+				QString gene = parts[0];
 				auto approved = db.geneToApprovedWithMessage(gene);
 				if (approved.second.startsWith("ERROR:"))
 				{
@@ -75,8 +96,14 @@ public:
 				update_query.bindValue(0, gene);
 
 				//pLI
-				QString pLI = QString::number(Helper::toDouble(parts[19], "ExAC pLI score"), 'f', 4);
-				update_query.bindValue(1, pLI);
+				QString syn = QString::number(Helper::toDouble(parts[i_syn], "gnomad o/e (syn)"), 'f', 2);
+				update_query.bindValue(1, syn);
+				QString mis = QString::number(Helper::toDouble(parts[i_mis], "gnomad o/e (mis)"), 'f', 2);
+				update_query.bindValue(2, mis);
+				QString lof = QString::number(Helper::toDouble(parts[i_lof], "gnomad o/e (lof)"), 'f', 2);
+				update_query.bindValue(3, lof);
+
+				out << syn << " " << mis << " " << lof << endl;
 				update_query.exec();
 			}
 			out << endl;
@@ -88,7 +115,7 @@ public:
 		{
 
 			SqlQuery update_query = db.getQuery();
-			update_query.prepare("INSERT INTO geneinfo_germline (symbol, inheritance, exac_pli, comments) VALUES (:0, :1, null, '') ON DUPLICATE KEY UPDATE inheritance=VALUES(inheritance)");
+			update_query.prepare("INSERT INTO geneinfo_germline (symbol, inheritance, gnomad_oe_syn, gnomad_oe_mis, gnomad_oe_lof, comments) VALUES (:0, :1, NULL, NULL, NULL, '') ON DUPLICATE KEY UPDATE inheritance=VALUES(inheritance)");
 
 			int c_noinfo = 0;
 			int c_unchanged = 0;
