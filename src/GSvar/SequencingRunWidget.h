@@ -2,6 +2,7 @@
 #define SEQUENCINGRUNWIDGET_H
 
 #include <QWidget>
+#include <QAction>
 #include "NGSD.h"
 
 namespace Ui {
