@@ -49,7 +49,7 @@ Just execute the following make commands:
 Now the executables and all required libraries can be found in the `bin` folder.
 
 
-### Adding reference genome to the settings
+### Setting the reference genome
 
 Some of the *ngs-bits* tools need a reference genome in FASTA format.  
 You can set the reference genome on the command line, e.g. the `-ref` parameter of the `VcfLeftNormalize` tool.
@@ -60,6 +60,12 @@ Copy the template:
 	> cp bin/settings.ini.example bin/settings.ini
 
 and then set the `reference_genome` parameter in the `bin/settings.ini` file.  
+
+### Setting up the NGSD
+
+Some of the tools need the NGSD, a MySQL database that contains for example gene, transcript and exon data.  
+Installation instructions for the NGSD can be found [here](install_ngsd.md).
+
 
 
 

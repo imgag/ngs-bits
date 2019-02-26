@@ -743,7 +743,7 @@ void NGSD::annotate(VariantList& variants, QString ps_name, BedFile roi, double 
 	int clacom_idx = variants.addAnnotationIfMissing("classification_comment", "Classification comment from the NGSD.");
 	int validation_idx = variants.addAnnotationIfMissing("validation", "Validation information from the NGSD. Validation results of other samples are listed in brackets!");
 	int comment_idx = variants.addAnnotationIfMissing("comment", "Variant comments from the NGSD.");
-	int geneinfo_idx = variants.addAnnotationIfMissing("gene_info", "Gene information from NGSD (inheritance mode, ExAC pLI score).");
+	int geneinfo_idx = variants.addAnnotationIfMissing("gene_info", "Gene information from NGSD (inheritance mode, gnomAD o/e scores).");
 	int gene_idx = variants.annotationIndexByName("gene", true, false);
 	QList<int> af_cols;
 	af_cols << variants.annotationIndexByName("1000g", true, false);

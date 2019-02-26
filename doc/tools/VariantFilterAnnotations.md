@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2018_11-55-g768b41c)
+	VariantFilterAnnotations (2018_11-146-gf2429c0)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -47,13 +47,15 @@
 	                                   Parameters:
 	                                     entries - Filter column entries [non-empty]
 	                                     action - Action to perform [default=REMOVE] [valid=KEEP,REMOVE,FILTER]
+	Gene constraint                    Filter based on gene constraint (ExAC pLI or gnomAD o/e).
+	                                   Note that gene constraint is most helpful for early-onset severe diseases.
+	                                   Details on gnomAD o/e can be found at https://macarthurlab.org/2018/10/17/gnomad-v2-1/
+	                                   Parameters:
+	                                     max_oe_lof - Maximum gnomAD o/e score for LoF variants [default=0.35] [min=0.0] [max=1.0]
+	                                     min_pli - Minumum ExAC pLI score (deprecated, only for downward compatibility) [default=0.9] [min=0.0] [max=1.0]
 	Gene inheritance                   Filter based on gene inheritance.
 	                                   Parameters:
 	                                     modes - Inheritance mode(s) [valid=AR,AD,XLR,XLD,MT] [non-empty]
-	Gene pLI                           Filter based on the ExAC pLI score of genes.
-	                                   Note that pLI score is most helpful for early-onset severe diseases.
-	                                   Parameters:
-	                                     min_score - Minumum score [default=0.9] [min=0.0] [max=1.0]
 	Genes                              Filter for that preserves a gene set.
 	                                   Parameters:
 	                                     genes - Gene set [non-empty]
@@ -115,7 +117,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2018_11-55-g768b41c
+	VariantFilterAnnotations 2018_11-146-gf2429c0
 	
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.

@@ -431,7 +431,7 @@ public:
 
 	///Returns the germline gene information for a HGNC-approved gene symbol
 	GeneInfo geneInfo(QByteArray symbol);
-	///Sets the germline gene information for a HGNC-approved gene symbol (not ExAC pLI score, because it is read-only)
+	///Sets the germline gene information for a HGNC-approved gene symbol (not gnomAD o/e scores, because it is read-only)
 	void setGeneInfo(GeneInfo info);
 
 	///Returns the NGSD URL corresponding to a variant. Or an empty string if the variant/sample is not in the DB.

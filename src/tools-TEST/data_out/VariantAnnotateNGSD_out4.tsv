@@ -5,7 +5,7 @@
 ##DESCRIPTION=classification_comment=Classification comment from the NGSD.
 ##DESCRIPTION=validation=Validation information from the NGSD. Validation results of other samples are listed in brackets!
 ##DESCRIPTION=comment=Variant comments from the NGSD.
-##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, ExAC pLI score).
+##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, gnomAD o/e scores).
 ##FILTER=anno_high_impact=Variant annotated to have high impact by SnpEff.
 ##FILTER=anno_pathogenic_clinvar=Variant annotated to be pathogenic by ClinVar.
 ##FILTER=anno_pathogenic_hgmd=Variant annotated to be pathogenic by HGMD.

@@ -95,7 +95,7 @@ public:
 				gene = approved.first;
 				update_query.bindValue(0, gene);
 
-				//pLI
+				//gnomAD o/e
 				QString syn = QString::number(Helper::toDouble(parts[i_syn], "gnomad o/e (syn)"), 'f', 2);
 				update_query.bindValue(1, syn);
 				QString mis = QString::number(Helper::toDouble(parts[i_mis], "gnomad o/e (mis)"), 'f', 2);

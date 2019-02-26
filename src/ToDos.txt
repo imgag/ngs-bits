@@ -12,7 +12,7 @@ libs:
 NGSD:
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
 *** replace pLI by oe
-    - implement alternative handling for GUI/filter in GSvar (o/e cutoff 0.35) > update default filders of GSvar
+    - implement alternative handling for GUI/filter in GSvar (o/e cutoff 0.35) > update VariantFilterAnnotation docu
     - deploy megSAP and update NGSD
 
 GSvar:
