@@ -142,7 +142,7 @@ In order to import variants and QC values of a sample into the NGSD, you have to
   * Select 'DNA' as sample type.
   * Select 'human' as species.
  * Create a `processing system`:
-  * For this stop, use the information from the `hpHBOC.ini` file download above.
+  * For this step, use the information from the `hpHBOC.ini` file download above.
  * Create a `processed sample`:
   * Use 'NA12878' as sample.
   * Use the 'project' you created above.
@@ -152,6 +152,7 @@ In order to import variants and QC values of a sample into the NGSD, you have to
 Now, you can import the variant and QC data of the sample `NA12878_01`into the NGSD using the following command:
 
 	php php/src/Pipelines/analyze.php -folder Sample_NA12878_01 -name NA12878_01 -system hpHBOCv5.ini -steps db
+
 
 
 

@@ -209,8 +209,12 @@ struct CPPNGSDSHARED_EXPORT GeneInfo
 	QString name;
 	//gene inheritance mode
 	QString inheritance;
-	//ExAC pLI score (default is NULL)
-	QString exac_pli;
+	//genomAD o/e score for synonymous variants (default is NULL).
+	QString oe_syn;
+	//genomAD o/e score for missense variants (default is NULL).
+	QString oe_mis;
+	//genomAD o/e score for loss-of-function variants (default is NULL).
+	QString oe_lof;
 	//comments
 	QString comments;
 
@@ -220,7 +224,7 @@ struct CPPNGSDSHARED_EXPORT GeneInfo
 	//returns the main gene information as a string
 	QString toString()
 	{
-		return symbol + " (inh=" + inheritance + " pLI=" + exac_pli + ")";
+		return symbol + " (inh=" + inheritance + " oe_syn=" + oe_syn + " oe_mis=" + oe_mis + " oe_lof=" + oe_lof + ")";
 	}
 };
 
@@ -427,7 +431,7 @@ public:
 
 	///Returns the germline gene information for a HGNC-approved gene symbol
 	GeneInfo geneInfo(QByteArray symbol);
-	///Sets the germline gene information for a HGNC-approved gene symbol (not ExAC pLI score, because it is read-only)
+	///Sets the germline gene information for a HGNC-approved gene symbol (not gnomAD o/e scores, because it is read-only)
 	void setGeneInfo(GeneInfo info);
 
 	///Returns the NGSD URL corresponding to a variant. Or an empty string if the variant/sample is not in the DB.

@@ -50,9 +50,9 @@ INSERT INTO `gene_alias` (`gene_id`, `symbol`, `type`) VALUES
 (79279, 'A1BG-AS', 'previous'),
 (79279, 'FLJ23569', 'synonym');
 
-INSERT INTO `geneinfo_germline` (`symbol`, `inheritance`, `exac_pli`, `comments`) VALUES
-('BRCA1', 'AD', 0.111599, '28.04.2016 ahmustm1]\nHPO: Autosomal dominant inheritance'),
-('A1BG-AS', 'AD', 0.111599, '28.04.2016 ahmustm1]\nHPO: Autosomal dominant inheritance');
+INSERT INTO `geneinfo_germline` (`symbol`, `inheritance`, `gnomad_oe_mis`, `gnomad_oe_syn`, `gnomad_oe_lof`, `comments`) VALUES
+('BRCA1', 'AD', 0.11, 0.22, 0.33, '28.04.2016 ahmustm1]\nHPO: Autosomal dominant inheritance'),
+('A1BG-AS', 'AD', 0.11, 0.22, 0.33, '28.04.2016 ahmustm1]\nHPO: Autosomal dominant inheritance');
 
 INSERT INTO `hpo_term` (`id`, `hpo_id`, `name`, `definition`, `synonyms`) VALUES
 (11495, 'HP:0000003', 'Multicystic kidney dysplasia', '\"Multicystic dysplasia of the kidney is characterized by multiple cysts of varying size in the kidney and the absence of a normal pelvocaliceal system. The condition is associated with ureteral or ureteropelvic atresia, and the affected kidney is nonfunctional.', '');

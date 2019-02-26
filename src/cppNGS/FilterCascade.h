@@ -380,12 +380,12 @@ class CPPNGSSHARED_EXPORT FilterGeneInheritance
 };
 
 
-//Gene pLI filter
-class CPPNGSSHARED_EXPORT FilterGenePLI
+//Gene coinstraint filter
+class CPPNGSSHARED_EXPORT FilterGeneConstraint
 	: public FilterBase
 {
 	public:
-		FilterGenePLI();
+		FilterGeneConstraint();
 		QString toText() const override;
 		void apply(const VariantList& variants, FilterResult& result) const override;
 };

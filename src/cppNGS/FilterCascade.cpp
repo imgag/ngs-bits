@@ -505,7 +505,7 @@ QMap<QString, FilterBase*(*)()> FilterFactory::getRegistry()
 		output["Count NGSD"] = &createInstance<FilterVariantCountNGSD>;
 		output["Classification NGSD"] = &createInstance<FilterClassificationNGSD>;
 		output["Gene inheritance"] = &createInstance<FilterGeneInheritance>;
-		output["Gene pLI"] = &createInstance<FilterGenePLI>;
+		output["Gene constraint"] = &createInstance<FilterGeneConstraint>;
 		output["Genotype control"] = &createInstance<FilterGenotypeControl>;
 		output["Genotype affected"] = &createInstance<FilterGenotypeAffected>;
 		output["Column match"] = &createInstance<FilterColumnMatchRegexp>;
@@ -1055,37 +1055,42 @@ void FilterGeneInheritance::apply(const VariantList& variants, FilterResult& res
 	}
 }
 
-FilterGenePLI::FilterGenePLI()
+FilterGeneConstraint::FilterGeneConstraint()
 {
-	name_ = "Gene pLI";
-	description_ = QStringList() << "Filter based on the ExAC pLI score of genes." << "Note that pLI score is most helpful for early-onset severe diseases.";
+	name_ = "Gene constraint";
+	description_ = QStringList() << "Filter based on gene constraint (gnomAD o/e score for LOF variants)." << "Note that gene constraint is most helpful for early-onset severe diseases." << "For details on gnomAD o/e, see https://macarthurlab.org/2018/10/17/gnomad-v2-1/" << "Note: ExAC pLI is deprected and support for downward compatibility with old GSvar files.";
 
-	params_ << FilterParameter("min_score", DOUBLE, 0.9, "Minumum score");
+	params_ << FilterParameter("max_oe_lof", DOUBLE, 0.35, "Maximum gnomAD o/e score for LoF variants");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
+
+	params_ << FilterParameter("min_pli", DOUBLE, 0.9, "Minumum ExAC pLI score");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "1.0";
 
 	checkIsRegistered();
 }
 
-QString FilterGenePLI::toText() const
+QString FilterGeneConstraint::toText() const
 {
-	return name() + " ≥ " + QString::number(getDouble("min_score", false), 'f', 2);
+	return name() + " o/e&le;" + QString::number(getDouble("max_oe_lof", false), 'f', 2) + " (pLI&ge;" + QString::number(getDouble("min_pli", false), 'f', 2) + ")";
 }
 
-void FilterGenePLI::apply(const VariantList& variants, FilterResult& result) const
+void FilterGeneConstraint::apply(const VariantList& variants, FilterResult& result) const
 {
 	if (!enabled_) return;
 
 	//get column indices
 	int i_geneinfo = annotationColumn(variants, "gene_info");
-	double min_score = getDouble("min_score");
+	double min_pli = getDouble("min_pli");
+	double max_oe_lof = getDouble("max_oe_lof");
 
 	//filter
 	for(int i=0; i<variants.count(); ++i)
 	{
 		if (!result.flags()[i]) continue;
 
-		//parse gene_info entry - example: AL627309.1 (inh=n/a pLI=n/a), PRPF31 (inh=AD pLI=0.97), 34P13.14 (inh=n/a pLI=n/a)
+		//parse gene_info entry - example: AL627309.1 (inh=n/a pLI=n/a), PRPF31 (inh=AD pLI=0.97), 34P13.14 (inh=n/a pLI=n/a oe_lof=)
 		QByteArrayList genes = variants[i].annotations()[i_geneinfo].split(',');
 		bool any_gene_passed = false;
 		foreach(const QByteArray gene, genes)
@@ -1098,8 +1103,18 @@ void FilterGenePLI::apply(const VariantList& variants, FilterResult& result) con
 				{
 					bool ok;
 					double pli = entry.mid(4).toDouble(&ok);
-					if (!ok) pli = 0.0;
-					if (pli>=min_score)
+					if (!ok) pli = 0.0; // value 'n/a' > pass
+					if (pli>=min_pli)
+					{
+						any_gene_passed = true;
+					}
+				}
+				if (entry.startsWith("oe_lof="))
+				{
+					bool ok;
+					double oe = entry.mid(7).toDouble(&ok);
+					if (!ok) oe = 1.0; // value 'n/a' > pass
+					if (oe<=max_oe_lof)
 					{
 						any_gene_passed = true;
 					}
@@ -1462,7 +1477,7 @@ FilterPredictionPathogenic::FilterPredictionPathogenic()
 
 QString FilterPredictionPathogenic::toText() const
 {
-	return name() + " " + getString("action", false) + " ≥ " + QString::number(getInt("min", false));
+	return name() + " " + getString("action", false) + " &ge; " + QString::number(getInt("min", false));
 }
 
 void FilterPredictionPathogenic::apply(const VariantList& variants, FilterResult& result) const
@@ -1696,7 +1711,7 @@ FilterVariantQC::FilterVariantQC()
 
 QString FilterVariantQC::toText() const
 {
-	return name() + " qual≥" + QString::number(getInt("qual", false)) + " depth≥" + QString::number(getInt("depth", false)) + " mapq≥" + QString::number(getInt("mapq", false));
+	return name() + " qual&ge;" + QString::number(getInt("qual", false)) + " depth&ge;" + QString::number(getInt("depth", false)) + " mapq&ge;" + QString::number(getInt("mapq", false));
 }
 
 void FilterVariantQC::apply(const VariantList& variants, FilterResult& result) const
@@ -2043,7 +2058,7 @@ FilterConservedness::FilterConservedness()
 
 QString FilterConservedness::toText() const
 {
-	return name() + " phyloP≥" + QString::number(getDouble("min_score", false));
+	return name() + " phyloP&ge;" + QString::number(getDouble("min_score", false));
 }
 
 void FilterConservedness::apply(const VariantList& variants, FilterResult& result) const

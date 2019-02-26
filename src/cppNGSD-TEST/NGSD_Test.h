@@ -307,34 +307,50 @@ private slots:
 		GeneInfo ginfo = db.geneInfo("BRCA1");
 		S_EQUAL(ginfo.symbol, "BRCA1");
 		S_EQUAL(ginfo.name, "Breast cancer associated gene 1");
-		S_EQUAL(ginfo.exac_pli, "0.00");
+		S_EQUAL(ginfo.oe_syn, "0.77");
+		S_EQUAL(ginfo.oe_mis, "0.88");
+		S_EQUAL(ginfo.oe_lof, "0.99");
 		S_EQUAL(ginfo.inheritance, "AD");
 		S_EQUAL(ginfo.comments, "");
 
 		ginfo = db.geneInfo("NIPA1");
 		S_EQUAL(ginfo.symbol, "NIPA1");
-		S_EQUAL(ginfo.exac_pli, "n/a");
+		S_EQUAL(ginfo.oe_syn, "n/a");
+		S_EQUAL(ginfo.oe_mis, "n/a");
+		S_EQUAL(ginfo.oe_lof, "n/a");
 		S_EQUAL(ginfo.inheritance, "n/a");
 		S_EQUAL(ginfo.comments, "");
 
 		//setGeneInfo (existing gene)
 		S_EQUAL(ginfo.symbol, "NIPA1");
-		ginfo.exac_pli = "1.23";
+		S_EQUAL(ginfo.oe_syn, "n/a");
+		S_EQUAL(ginfo.oe_mis, "n/a");
+		S_EQUAL(ginfo.oe_lof, "n/a");
 		ginfo.inheritance = "AD";
 		ginfo.comments = "comment";
+		ginfo.oe_syn = 0.11;
+		ginfo.oe_mis = 0.22;
+		ginfo.oe_lof = 0.33;
 		db.setGeneInfo(ginfo);
 		ginfo = db.geneInfo("NIPA1");
 		S_EQUAL(ginfo.symbol, "NIPA1");
-		S_EQUAL(ginfo.exac_pli, "n/a");
+		S_EQUAL(ginfo.oe_syn, "n/a");
+		S_EQUAL(ginfo.oe_mis, "n/a");
+		S_EQUAL(ginfo.oe_lof, "n/a");
 		S_EQUAL(ginfo.inheritance, "AD");
 		S_EQUAL(ginfo.comments, "comment");
 
 		//setGeneInfo (new gene)
 		ginfo.symbol = "NEWGENE";
+		ginfo.oe_syn = 0.11;
+		ginfo.oe_mis = 0.22;
+		ginfo.oe_lof = 0.33;
 		db.setGeneInfo(ginfo);
 		ginfo = db.geneInfo("NEWGENE");
 		S_EQUAL(ginfo.symbol, "NEWGENE");
-		S_EQUAL(ginfo.exac_pli, "n/a");
+		S_EQUAL(ginfo.oe_syn, "n/a");
+		S_EQUAL(ginfo.oe_mis, "n/a");
+		S_EQUAL(ginfo.oe_lof, "n/a");
 		S_EQUAL(ginfo.inheritance, "AD");
 		S_EQUAL(ginfo.comments, "comment");
 

@@ -28,8 +28,10 @@ GeneInfoDialog::GeneInfoDialog(QByteArray symbol, QWidget *parent)
 	tmp.replace("\n", "<br>");
 	ui->comments_->setHtml(tmp);
 
-	//show ExAC pLI score
-	ui->exac_pli->setText(info.exac_pli);
+	//show gnomAD o/e score
+	ui->oe_mis->setText(info.oe_mis);
+	ui->oe_syn->setText(info.oe_syn);
+	ui->oe_lof->setText(info.oe_lof);
 
 	//show notice if necessary
 	if (!info.notice.startsWith("KEPT:"))
@@ -73,7 +75,9 @@ void GeneInfoDialog::storeGeneInfo()
 	GeneInfo tmp;
 	tmp.symbol = ui->gene_->text();
 	tmp.inheritance = ui->inheritance_->currentText();
-	tmp.exac_pli = ui->exac_pli->text();
+	tmp.oe_syn = ui->oe_syn->text();
+	tmp.oe_mis = ui->oe_mis->text();
+	tmp.oe_lof = ui->oe_lof->text();
 	tmp.comments = ui->comments_->toPlainText();
 
 	NGSD db;
