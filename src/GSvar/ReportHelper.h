@@ -371,6 +371,8 @@ private:
 	int cnv_index_cnv_type_;
 	int cnv_index_cgi_genes_;
 	int cnv_index_cgi_driver_statement_;
+	int cnv_index_tumor_clonality_;
+	int cnv_index_tumor_cn_change_;
 
 	///List of CGI cancer abbreviations that occur ANYWHERE in the report
 	QByteArrayList cgi_acronyms_;

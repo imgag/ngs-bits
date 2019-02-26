@@ -122,6 +122,7 @@ void ReportHelper::writeCnvGeneList(QTextStream& stream, const QList<int>& col_w
 	RtfTools::writeRtfTableSingleRowSpec(stream,col_widths,true);
 	stream << begin_table_cell_head << "Gen\\cell" << begin_table_cell_head << "Position (Gr\\u246;\\u223;e CNV)\\cell";
 	stream << begin_table_cell_head << "Typ\\cell" << begin_table_cell_head << "CN\\cell";
+	stream << begin_table_cell_head << "Anteil Probe" << "\\cell";
 	stream << begin_table_cell_head << "Bedeutung der Variante\\cell" << begin_table_cell_head << "Bedeutung des Gens\\cell";
 	stream << "\\row}" << endl;
 
@@ -137,9 +138,16 @@ void ReportHelper::writeCnvGeneList(QTextStream& stream, const QList<int>& col_w
 		stream << begin_table_cell << "\\highlight3 Fehlerhafte CGI statements in ClinCNV-Datei.\\cell\\row}" << endl;
 		return;
 	}
+	if(cnv_index_tumor_clonality_ < 0 || cnv_index_tumor_cn_change_ < 0)
+	{
+		RtfTools::writeRtfTableSingleRowSpec(stream,{col_widths.last()},true);
+		stream << begin_table_cell << "\\highlight3 Die ClinCNV-Datei enth\\u228;lt keine Tumor Clonality. Bitte mit einer aktuelleren Version von ClinCNV neu berechnen.\\cell\\row}" << endl;
+		return;
+	}
 
 	//Make list of CNV drivers
 	QList< QList<QByteArray> > gene_per_cnv;
+
 	int i_cnv_type = cnvs_filtered_.annotationIndexByName("cnv_type",true);
 	for(int i=0;i<cnvs_filtered_.count();++i)
 	{
@@ -182,7 +190,11 @@ void ReportHelper::writeCnvGeneList(QTextStream& stream, const QList<int>& col_w
 			{
 				//Filter out genes that do not lie in target region
 				genes[index] = db_.geneToApproved(genes[index],true);
-				gene_per_cnv.append({genes[index],cnv.chr().str(),size,QByteArray::number(cnv.copyNumber()),statements[index],effects[index]});
+
+				QByteArray tumor_cn = cnv.annotations().at(cnv_index_tumor_cn_change_);
+				QByteArray tumor_clonality = cnv.annotations().at(cnv_index_tumor_clonality_);
+
+				gene_per_cnv.append({genes[index],cnv.chr().str(),size,tumor_cn,tumor_clonality,statements[index],effects[index]});
 			}
 		}
 	}
@@ -197,17 +209,27 @@ void ReportHelper::writeCnvGeneList(QTextStream& stream, const QList<int>& col_w
 	{
 		RtfTools::writeRtfTableSingleRowSpec(stream,col_widths,true);
 
+		//gene symbol
 		stream << begin_table_cell << "\\i "<<gene.at(0) << "\\i0\\cell";
+		//cnv position / size
 		stream << begin_table_cell << gene.at(1) << " (" << gene.at(2) <<")"  << "\\cell";
-		stream << begin_table_cell << (gene.at(3).toDouble() > 2. ? "AMP" : "DEL") << "\\cell";
-		stream << begin_table_cell << gene.at(3) << "\\cell";
-		stream << begin_table_cell << gene[4].replace(";",", ") << "\\cell";
+
+		//cnv type
+		stream << begin_table_cell << (gene.at(3).toDouble() > 2. ? "AMP" : "DEL");
+		if(gene.at(3).toDouble() == 0) stream << " (hom)";
+		else if(gene.at(3).toDouble() == 1) stream << " (het)";
+		stream << "\\cell";
+
+
+		stream << begin_table_cell << (gene.at(3).toDouble() <= 6 ? gene.at(3) : ">6") << "\\cell"; //tumor CN change
+		stream << begin_table_cell << gene.at(4) << "\\cell"; //tumor clonality
+		stream << begin_table_cell << gene[5].replace(";",", ") << "\\cell";
 
 		//gene role
 		stream << begin_table_cell;
-		if(gene.at(5) == "Act") stream <<"Onkogen";
-		else if(gene.at(5) == "LoF") stream << "TSG";
-		else if(gene.at(5) == "ambiguous") stream << "unklar";
+		if(gene.at(6) == "Act") stream <<"Onkogen";
+		else if(gene.at(6) == "LoF") stream << "TSG";
+		else if(gene.at(6) == "ambiguous") stream << "unklar";
 		else stream << ".";
 		stream << "\\cell";
 
@@ -230,7 +252,7 @@ void ReportHelper::writeCnvList(QTextStream& stream, const QList<int>& col_width
 	QList< QList<QString> > header_cnvs;
 	QList<QString> header_columns;
 
-	header_columns <<"\\trhdr\\qc Position (Typ)" << "\\qc CNV" << "\\qc CN" << "\\qc Gene";
+	header_columns <<"\\trhdr\\qc Position (Typ)" << "\\qc CNV" << "\\qc CN" << "\\qc Anteil Probe"<< "\\qc Gene";
 	header_cnvs << header_columns;
 
 	RtfTools::writeRtfWholeTable(stream,header_cnvs,col_widths,18,true,true);
@@ -245,6 +267,13 @@ void ReportHelper::writeCnvList(QTextStream& stream, const QList<int>& col_width
 	{
 		RtfTools::writeRtfTableSingleRowSpec(stream,{max_table_width},true);
 		stream << begin_table_cell << "\\highlight3 Fehlerhafte CGI statements in ClinCNV-Datei.\\cell\\row}" << endl;
+		return;
+	}
+
+	if(cnv_index_tumor_cn_change_ < 0 || cnv_index_tumor_clonality_ < 0)
+	{
+		RtfTools::writeRtfTableSingleRowSpec(stream,{max_table_width}, true);
+		stream << begin_table_cell << "\\highlight3 Die ClinCNV-Datei enth\\u228;lt keine Tumor Clonality. Bitte mit einer aktuelleren Version von ClinCNV neu berechnen.\\cell\\row}" << endl;
 		return;
 	}
 
@@ -272,14 +301,17 @@ void ReportHelper::writeCnvList(QTextStream& stream, const QList<int>& col_width
 		}
 
 		//AMP/DEL
-		double copy_number = variant.copyNumber();
-		if(copy_number > 2.)
+		double tumor_copy_number_change = variant.annotations().at(cnv_index_tumor_cn_change_).toDouble();
+		if(tumor_copy_number_change > 2.)
 		{
 			columns.append("\\qc AMP");
 		}
-		else if(copy_number < 2.)
+		else if(tumor_copy_number_change < 2.)
 		{
-			columns.append("\\qc DEL");
+			QByteArray del_text = "\\qc DEL";
+			if(tumor_copy_number_change == 0.) del_text += " (hom)";
+			else if(tumor_copy_number_change == 1.) del_text += " (het)";
+			columns.append(del_text);
 		}
 		else
 		{
@@ -289,7 +321,17 @@ void ReportHelper::writeCnvList(QTextStream& stream, const QList<int>& col_width
 		}
 
 		//copy numbers
-		columns.append("\\qc " + QString::number(copy_number));
+		if(variant.annotations().at(cnv_index_tumor_cn_change_).toDouble() <= 6)
+		{
+			columns.append("\\qc " + variant.annotations().at(cnv_index_tumor_cn_change_));
+		}
+		else
+		{
+			columns.append("\\qc >6");
+		}
+
+		//tumor clonality
+		columns.append(variant.annotations().at(cnv_index_tumor_clonality_));
 
 		//gene names
 		//only print genes which which lie in target region
@@ -776,6 +818,8 @@ ReportHelper::ReportHelper(QString snv_filename, const ClinCnvList& filtered_cnv
 	cnv_index_cnv_type_ = cnvs_filtered_.annotationIndexByName("cnv_type",false);
 	cnv_index_cgi_genes_ = cnvs_filtered_.annotationIndexByName("CGI_genes",false);
 	cnv_index_cgi_driver_statement_ = cnvs_filtered_.annotationIndexByName("CGI_driver_statement",false);
+	cnv_index_tumor_clonality_ = cnvs_filtered_.annotationIndexByName("tumor_clonality",false);
+	cnv_index_tumor_cn_change_ = cnvs_filtered_.annotationIndexByName("tumor_CN_change",false);
 
 
 	//load qcml data
@@ -1706,7 +1750,7 @@ void ReportHelper::writeRtf(const QString& out_file)
 		 target_genes = db_.genesToApproved(target_genes,true);
 	}
 
-	writeCnvGeneList(stream,widths,target_genes);
+	writeCnvGeneList(stream,{1200,3300,4300,5250,6200,8450,widths.last()},target_genes);
 
 	stream << "{\\pard \\par}" << endl;
 	/***********
@@ -1735,7 +1779,7 @@ void ReportHelper::writeRtf(const QString& out_file)
 	writeSnvList(stream,widths,snv_variants_);
 	stream << "{\\pard\\par}" << endl;
 	widths.clear();
-	widths << 2438 << 2938 << 3338 << max_table_width;
+	widths << 2438 << 3400 << 3800 << 4500 <<  max_table_width;
 
 	//Make rtf report, filter genes for processing system target region
 	writeCnvList(stream,widths);
