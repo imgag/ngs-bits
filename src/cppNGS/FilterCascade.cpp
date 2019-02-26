@@ -1103,7 +1103,7 @@ void FilterGeneConstraint::apply(const VariantList& variants, FilterResult& resu
 				{
 					bool ok;
 					double pli = entry.mid(4).toDouble(&ok);
-					if (!ok) pli = 0.0;
+					if (!ok) pli = 0.0; // value 'n/a' > pass
 					if (pli>=min_pli)
 					{
 						any_gene_passed = true;
@@ -1113,7 +1113,7 @@ void FilterGeneConstraint::apply(const VariantList& variants, FilterResult& resu
 				{
 					bool ok;
 					double oe = entry.mid(7).toDouble(&ok);
-					if (!ok) oe = 1.0;
+					if (!ok) oe = 1.0; // value 'n/a' > pass
 					if (oe<=max_oe_lof)
 					{
 						any_gene_passed = true;

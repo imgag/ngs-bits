@@ -47,12 +47,13 @@
 	                                   Parameters:
 	                                     entries - Filter column entries [non-empty]
 	                                     action - Action to perform [default=REMOVE] [valid=KEEP,REMOVE,FILTER]
-	Gene constraint                    Filter based on gene constraint (ExAC pLI or gnomAD o/e).
+	Gene constraint                    Filter based on gene constraint (gnomAD o/e score for LOF variants).
 	                                   Note that gene constraint is most helpful for early-onset severe diseases.
-	                                   Details on gnomAD o/e can be found at https://macarthurlab.org/2018/10/17/gnomad-v2-1/
+	                                   For details on gnomAD o/e, see https://macarthurlab.org/2018/10/17/gnomad-v2-1/
+	                                   Note: ExAC pLI is deprected and support for downward compatibility with old GSvar files.
 	                                   Parameters:
 	                                     max_oe_lof - Maximum gnomAD o/e score for LoF variants [default=0.35] [min=0.0] [max=1.0]
-	                                     min_pli - Minumum ExAC pLI score (deprecated, only for downward compatibility) [default=0.9] [min=0.0] [max=1.0]
+	                                     min_pli - Minumum ExAC pLI score [default=0.9] [min=0.0] [max=1.0]
 	Gene inheritance                   Filter based on gene inheritance.
 	                                   Parameters:
 	                                     modes - Inheritance mode(s) [valid=AR,AD,XLR,XLD,MT] [non-empty]

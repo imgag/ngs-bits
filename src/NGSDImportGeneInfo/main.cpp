@@ -96,14 +96,32 @@ public:
 				update_query.bindValue(0, gene);
 
 				//gnomAD o/e
-				QString syn = QString::number(Helper::toDouble(parts[i_syn], "gnomad o/e (syn)"), 'f', 2);
-				update_query.bindValue(1, syn);
-				QString mis = QString::number(Helper::toDouble(parts[i_mis], "gnomad o/e (mis)"), 'f', 2);
-				update_query.bindValue(2, mis);
-				QString lof = QString::number(Helper::toDouble(parts[i_lof], "gnomad o/e (lof)"), 'f', 2);
-				update_query.bindValue(3, lof);
+				if (parts[i_syn]=="NA")
+				{
+					update_query.bindValue(1,  QVariant(QVariant::Double));
+				}
+				else
+				{
+					update_query.bindValue(1, QString::number(Helper::toDouble(parts[i_syn], "gnomad o/e (syn)"), 'f', 2));
+				}
 
-				out << syn << " " << mis << " " << lof << endl;
+				if (parts[i_mis]=="NA")
+				{
+					update_query.bindValue(2,  QVariant(QVariant::Double));
+				}
+				else
+				{
+					update_query.bindValue(2, QString::number(Helper::toDouble(parts[i_mis], "gnomad o/e (mis)"), 'f', 2));
+				}
+
+				if (parts[i_lof]=="NA")
+				{
+					update_query.bindValue(3,  QVariant(QVariant::Double));
+				}
+				else
+				{
+					update_query.bindValue(3, QString::number(Helper::toDouble(parts[i_lof], "gnomad o/e (lof)"), 'f', 2));
+				}
 				update_query.exec();
 			}
 			out << endl;

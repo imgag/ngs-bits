@@ -2,7 +2,8 @@
 INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `type`) VALUES 
 (1,1001, 'BRCA1','Breast cancer associated gene 1', 'protein-coding gene'),
 (2,1002, 'BRCA2','Breast cancer associated gene 2', 'protein-coding gene'),
-(3,1003, 'OR4F5', 'olfactory receptor family 4 subfamily F member 5', 'protein-coding gene');
+(3,1003, 'OR4F5', 'olfactory receptor family 4 subfamily F member 5', 'protein-coding gene'),
+(4,1004, 'DIRC1', 'disrupted in renal carcinoma 1', 'protein-coding gene');
 
 INSERT INTO `gene_transcript` (`id`, `gene_id`, `name`, `source`, `chromosome`, `start_coding`, `end_coding`, `strand`) VALUES
 (1, 3, 'ENST00000335137', 'ensembl', '1', 69091, 70008, '+'),
