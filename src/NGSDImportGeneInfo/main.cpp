@@ -96,7 +96,7 @@ public:
 				update_query.bindValue(0, gene);
 
 				//gnomAD o/e
-				if (parts[i_syn]=="NA")
+				if (parts[i_syn]=="NA" || parts[i_syn]=="NaN")
 				{
 					update_query.bindValue(1,  QVariant(QVariant::Double));
 				}
@@ -105,7 +105,7 @@ public:
 					update_query.bindValue(1, QString::number(Helper::toDouble(parts[i_syn], "gnomad o/e (syn)"), 'f', 2));
 				}
 
-				if (parts[i_mis]=="NA")
+				if (parts[i_mis]=="NA" || parts[i_mis]=="NaN")
 				{
 					update_query.bindValue(2,  QVariant(QVariant::Double));
 				}
@@ -114,7 +114,7 @@ public:
 					update_query.bindValue(2, QString::number(Helper::toDouble(parts[i_mis], "gnomad o/e (mis)"), 'f', 2));
 				}
 
-				if (parts[i_lof]=="NA")
+				if (parts[i_lof]=="NA" || parts[i_lof]=="NaN")
 				{
 					update_query.bindValue(3,  QVariant(QVariant::Double));
 				}
