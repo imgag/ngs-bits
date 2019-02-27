@@ -10,13 +10,14 @@ libs:
 - FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 
 NGSD:
+** model merged samples
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
 *** replace pLI by oe
-    - implement alternative handling for GUI/filter in GSvar (o/e cutoff 0.35) > update VariantFilterAnnotation docu
-    - deploy megSAP and update NGSD
+    - update NGSD (scheme+import), deploy megSAP, deploy GSvar
 
 GSvar:
-##### Create 64bit build for Windows.
+#### Added details to processed sample - diagnostic status: user + date/time
+#### display filtered variants only (using definable cutoff e.g. 10.000)
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 *** Implement OMIM search via API - example: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1 (wait for API access)
 ** Allow adding/editing data in NGSD (sample relations, ...)
@@ -25,7 +26,8 @@ GSvar:
     - http://www.cplusplus.com/forum/beginner/60604/
     - https://codereview.stackexchange.com/questions/63566/encryption-with-many-algorithms-using-crypto
     - https://www.cryptopp.com/wiki/ARIA
-* Add special report for trios/multi-sample with genotype overview
+* allow LOVD upload from trio/multi OR document that it has to be done from single sample
+* Add special report for trios/multi-sample with genotype overview > change format to RTF first (AG)
 * Add highlighting of imprinting genes to CNVs, ROHs and UPDs
 * Add multi-gene Google/PubMed search: https://www.ncbi.nlm.nih.gov/pubmed/?term=CASP8+AND+(%22Breast+cancer%22+OR+%22Breast+carcinoma%22)+AND+2018 (SWAL)
 * Add gnomAD oe score / ExAC CNV / inheritance (megSAP) and filter for CNVs (GSvar) (wait for ClinCNV)
