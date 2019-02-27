@@ -1,5 +1,8 @@
 # GSvar change log
 
+### 2018_11-150-g2d2210b (26.02.19)
+-  Switch from ExAC pLI to gnomAD o/e score
+
 ### 2018_11-146-gf2429c0 (22.02.19)
 - General: removed reference samples for IGV.
 - Analysis status: moved from window into tab.
@@ -282,6 +285,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 
