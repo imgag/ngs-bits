@@ -533,13 +533,13 @@ void MainWindow::openInIGV(QString region)
 		IgvDialog dlg(this);
 
 		//sample VCF
-        QString folder = QFileInfo(filename_).absolutePath();
+		QString folder = QFileInfo(filename_).absolutePath();
 		QStringList files = Helper::findFiles(folder, "*_var_annotated.vcf.gz", false);
-        if (files.count()==1)
-        {
+		if (files.count()==1)
+		{
 			QString name = QFileInfo(files[0]).baseName().replace("_var_annotated", "");
 			dlg.addFile(name, "VCF", files[0], ui_.actionIgvSample->isChecked());
-        }
+		}
 
 		//sample BAM file(s)
 		QList<IgvFile> bams = getBamFiles();
@@ -572,8 +572,8 @@ void MainWindow::openInIGV(QString region)
 
 		//sample low-coverage
 		files = Helper::findFiles(folder, "*_lowcov.bed", false);
-        if (files.count()==1)
-        {
+		if (files.count()==1)
+		{
 			dlg.addFile("low-coverage regions track", "BED", files[0], ui_.actionIgvLowcov->isChecked());
 		}
 
@@ -1315,6 +1315,20 @@ void MainWindow::loadFile(QString filename)
 		setWindowTitle(QCoreApplication::applicationName() + " - " + filename);
 		ui_.statusBar->showMessage("Loaded variant list with " + QString::number(variants_.count()) + " variants.");
 
+		//Show or Hide button for annotation germline file with somatic variants.
+		int button_pos_in_menu;
+		for(int i=0;i<ui_.tools->actions().count();++i)
+		{
+			qDebug() << ui_.tools->actions().at(i)->objectName() << endl;
+			if(ui_.tools->actions().at(i)->objectName() == "actionAnnotateSomaticVariants")
+			{
+				button_pos_in_menu = i;
+				break;
+			}
+		}
+		if(variants_.type() == AnalysisType::GERMLINE_SINGLESAMPLE) ui_.tools->actions().at(button_pos_in_menu)->setVisible(true);
+		else ui_.tools->actions().at(button_pos_in_menu)->setVisible(false);
+
 		variantListChanged();
 		QApplication::restoreOverrideCursor();
 	}
@@ -1393,6 +1407,38 @@ void MainWindow::on_actionResize_triggered()
 	}
 }
 
+void MainWindow::on_actionAnnotateSomaticVariants_triggered()
+{
+	//Only germline files shall be annotated
+	if(variants_.type() != AnalysisType::GERMLINE_SINGLESAMPLE) return;
+
+	//Load somatic .GSvar file
+	QString path = Settings::path("path_variantlists");
+	QString filename = QFileDialog::getOpenFileName(this, "Select somatic variant list for annotation", path, "GSvar files (*.GSvar);;All files (*.*)");
+	if(filename == "") return;
+
+	QApplication::setOverrideCursor(Qt::WaitCursor);
+
+
+	VariantList somatic_variants;
+	somatic_variants.load(filename);
+
+	if(somatic_variants.type() != AnalysisType::SOMATIC_PAIR)
+	{
+		QApplication::restoreOverrideCursor();
+		QMessageBox::warning(this,"Could not annotate somatic variants", "Could not annotate variants because " + filename + " is no tumor-normal variant file.");
+		return;
+	}
+
+	NGSD db;
+	//Annotate somatic file, use basename of that file as column prefix
+	NGSHelper::annotateGermlineWithSomatic(variants_,somatic_variants,QFileInfo(filename).baseName().toUtf8(),db);
+	variants_.store(filename_);
+
+	QMessageBox::information(this,"Success","Somatic variants from " + filename + " were annotated successfully.");
+	loadFile(filename_);
+	QApplication::restoreOverrideCursor();
+}
 void MainWindow::on_actionResizeCustom_triggered()
 {
 	GUIHelper::resizeTableCells(ui_.vars, 50);
@@ -1440,9 +1486,7 @@ void MainWindow::on_actionResizeCustom_triggered()
 	if (index!=-1) ui_.vars->setColumnWidth(index, size_med);
 	index = guiColumnIndex("gene_info");
 	if (index!=-1) ui_.vars->setColumnWidth(index, size_med);
-}
-
-void MainWindow::on_actionReport_triggered()
+}void MainWindow::on_actionReport_triggered()
 {
 	if (variants_.count()==0) return;
 
@@ -2240,7 +2284,7 @@ void MainWindow::copyToClipboard(bool split_quality)
 			return;
 		}
 	}
-	
+
 
 	//copy header
 	QString selected_text = "";

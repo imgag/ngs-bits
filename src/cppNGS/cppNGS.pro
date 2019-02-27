@@ -3,7 +3,7 @@ CONFIG += c++11
 
 #base settings
 QT       -= gui
-QT       += xml xmlpatterns
+QT       += xml xmlpatterns sql
 TEMPLATE = lib
 TARGET = cppNGS
 DEFINES += CPPNGS_LIBRARY
@@ -31,6 +31,10 @@ LIBS += -L$$PWD/../../htslib/lib/ -lhts
 
 #include zlib library
 LIBS += -lz
+
+#include NGSD library
+INCLUDEPATH += $$PWD/../cppNGSD
+LIBS += -L$$PWD/../bin -lcppNGSD
 
 #make the executable search for .so-files in the same folder under linux
 QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"

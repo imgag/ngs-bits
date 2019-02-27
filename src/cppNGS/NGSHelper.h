@@ -3,6 +3,8 @@
 
 #include "cppNGS_global.h"
 #include "BamReader.h"
+#include "NGSD.h"
+
 
 ///Helper class for NGS-specific stuff.
 class CPPNGSSHARED_EXPORT NGSHelper
@@ -30,6 +32,9 @@ public:
 	 * Returns the levensthein distance for two sequences
 	 */
 	static unsigned int levensthein(const QByteArray& a, const QByteArray& b);
+
+	///Adds somatic SNPs/CNVs to germline_snvs as an annotation
+	static void annotateGermlineWithSomatic(VariantList& germline_snvs, const VariantList& somatic_snvs, const QByteArray& somatic_prefix, NGSD& db);
 
 private:
 	///Constructor declared away

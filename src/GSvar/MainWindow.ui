@@ -149,7 +149,7 @@
      <x>0</x>
      <y>0</y>
      <width>1364</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -298,6 +298,7 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionNGSDAnnotation"/>
+   <addaction name="actionAnnotateSomaticVariants"/>
    <addaction name="actionReport"/>
    <addaction name="separator"/>
    <addaction name="actionShowAfHistogram"/>
@@ -777,6 +778,21 @@
    </property>
    <property name="toolTip">
     <string>Show allele frequency histogram of variants.</string>
+   </property>
+  </action>
+  <action name="actionAnnotateSomaticVariants">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/Annotate_germline_somatic.png</normaloff>:/Icons/Annotate_germline_somatic.png</iconset>
+   </property>
+   <property name="text">
+    <string>AnnotateSomaticVariants</string>
+   </property>
+   <property name="toolTip">
+    <string>Annotate File with variants from somatic GSvar file</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
    </property>
   </action>
  </widget>

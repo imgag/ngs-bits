@@ -47,6 +47,10 @@ private slots:
 	void deselectXY();
 	///Emits signal openRegionInIGV if double click on CNV
 	void cnvDoubleClicked(QTableWidgetItem* item);
+	///Copies selected rows from cnvs-widget to clipboard
+	void copyToClipboard();
+
+
 signals:
 	void openRegionInIGV(QString region);
 };

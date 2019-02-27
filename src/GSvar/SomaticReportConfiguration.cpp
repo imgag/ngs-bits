@@ -3,6 +3,9 @@
 #include "GUIHelper.h"
 #include <QMenu>
 #include <QBitArray>
+#include <QApplication>
+#include <QClipboard>
+#include <QShortcut>
 #include "cmath"
 
 SomaticReportConfiguration::SomaticReportConfiguration(const ClinCnvList& cnv_input, QWidget *parent)
@@ -88,9 +91,13 @@ SomaticReportConfiguration::SomaticReportConfiguration(const ClinCnvList& cnv_in
 		ui_->filter_for_cgi_drivers->hide();
 	}
 
+
+
 	/*********************
 	 * SLOTS AND SIGNALS *
 	 *********************/
+	//create shortcut (copy data to clipboard)
+	new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_C),this,SLOT(copyToClipboard()));
 	//buttons
 	connect(ui_->buttonBox,SIGNAL(accepted()),this,SLOT(accept()));
 	connect(ui_->buttonBox,SIGNAL(rejected()),this,SLOT(reject()));
@@ -256,4 +263,36 @@ void SomaticReportConfiguration::cnvDoubleClicked(QTableWidgetItem* item)
 	if (item==nullptr) return;
 
 	emit openRegionInIGV(cnvs_[item->row()].toString());
+}
+
+void SomaticReportConfiguration::copyToClipboard()
+{
+	QTableWidgetSelectionRange range = ui_->cnvs->selectedRanges()[0];
+	//copy header
+	QString selected_text = "";
+	if (range.rowCount()!=1)
+	{
+		selected_text += "#";
+		for (int col=range.leftColumn(); col<=range.rightColumn(); ++col)
+		{
+			if (col!=range.leftColumn()) selected_text.append("\t");
+			selected_text.append(ui_->cnvs->horizontalHeaderItem(col)->text());
+		}
+	}
+
+	//copy rows
+	for (int row=range.topRow(); row<=range.bottomRow(); ++row)
+	{
+		//skip filtered-out rows
+		if (ui_->cnvs->isRowHidden(row)) continue;
+		if (selected_text!="") selected_text.append("\n");
+		for (int col=range.leftColumn(); col<=range.rightColumn(); ++col)
+		{
+			if (col!=range.leftColumn()) selected_text.append("\t");
+			QTableWidgetItem* item = ui_->cnvs->item(row, col);
+			if (item==nullptr) continue;
+			selected_text.append(item->text().replace('\n',' ').replace('\r',' '));
+		}
+	}
+	QApplication::clipboard()->setText(selected_text);
 }
