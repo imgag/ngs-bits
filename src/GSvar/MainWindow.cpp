@@ -1279,6 +1279,9 @@ void MainWindow::on_actionChangeLog_triggered()
 
 void MainWindow::loadFile(QString filename)
 {
+	QTime timer;
+	timer.start();
+
 	//reset GUI and data structures
 	setWindowTitle(QCoreApplication::applicationName());
 	ui_.filters->reset(true);
@@ -1296,13 +1299,17 @@ void MainWindow::loadFile(QString filename)
 		closeTab(t);
 	}
 
+	Log::perf("Clearing variant GUI took ", timer);
+
 	if (filename=="") return;
 
 	//load data
 	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 	try
 	{
+		timer.restart();
 		variants_.load(filename);
+		Log::perf("Loading variant list took ", timer);
 
 		ui_.filters->setValidFilterEntries(variants_.filters().keys());
 
@@ -2435,8 +2442,16 @@ void MainWindow::variantListChanged()
 	var_last_ = -1;
 
 	//resize
-	ui_.vars->setRowCount(variants_.count());
-	ui_.vars->setColumnCount(5 + variants_.annotations().count());
+	int col_count_new = 5 + variants_.annotations().count();
+	if (ui_.vars->rowCount()!=variants_.count() || ui_.vars->columnCount()!=col_count_new)
+	{
+		//completely clear items (is faster then resizing)
+		ui_.vars->setRowCount(0);
+		ui_.vars->setColumnCount(0);
+		//set new size
+		ui_.vars->setRowCount(variants_.count());
+		ui_.vars->setColumnCount(col_count_new);
+	}
 
 	//header
 	ui_.vars->setHorizontalHeaderItem(0, createTableItem("chr", true));
@@ -2630,7 +2645,7 @@ void MainWindow::variantListChanged()
 
 	QApplication::restoreOverrideCursor();
 
-	Log::perf("Initializing variant table took ", timer);
+	Log::perf("Initializing variant GUI took ", timer);
 
 	//re-filter in case some relevant columns changed
 	filtersChanged();

@@ -193,7 +193,7 @@ R-PR	R	Renal predisposition	TRUE	Nierenkrebs Prädisposition
 RA	R	Renal angiomyolipoma	TRUE	Renales Angiomyolipom
 RB	EY	Retinoblastoma		Retinoblastom
 RCCC	R	Renal clear cell		Klarzellkarzinom der Niere
-RCH	R	Renal chromophobe cell		Tumor der chromophoben Nierenzellen
+RCH	R	Renal chromophobe cell		Chromophobes Nierenzellkarzinom
 REC	DT	Rectal carcinoma		Rektales Karzinom
 RHBDS	S,MRT	Rhabdomyosarcoma		Rhabdomyosarkom
 RPC	R	Renal papillary cell		Tumor der Nierenpapillenzellen
@@ -232,7 +232,7 @@ THCA	TH	Thyroid carcinoma		Schilddrüsenkarzinom
 THF	THCA	Thyroid follicular		follikuläres Karzinom der Schilddrüse
 THM	THF	Thyroid medullary		medulläres Karzinom der Schilddrüse
 THP	TH	Thyroid papillary		papilläres Karzinom der Schilddrüse
-THYM	LY	Thymic		Thymom
+THYM	LY	Thymic		Tumor des Thymus
 TOSC	OC	Tongue squamous cell		Plattenepithelkarzinom der Zunge
 TX	SOLID	Torax		Thoraxtumor
 U	FRS	Uterus		Tumor des Uterus
