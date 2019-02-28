@@ -1,22 +1,16 @@
 === TODO ===
 
 libs:
-- VariantList:
-    - determine file format from file header instead of file name => make more tools pipeable
-    - use QSharedPointers to link VariantAnnotationHeaders with VariantAnnotationDescriptions (CS)
-    - check vcf and tsv files if valid - columns and their descriptions (CS)
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
-- integration of htslib: use pileup, use VCF support
+- integration of htslib: use pileup, use VCF support, use tabix support
 - FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 
 NGSD:
+*** support orphanet codes (wait until GenLab example is available, extend schema, add GenLab view > import)
 ** model merged samples
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
-*** replace pLI by oe
-    - update NGSD (scheme+import), deploy megSAP, deploy GSvar
 
 GSvar:
-#### Added details to processed sample - diagnostic status: user + date/time
 #### display filtered variants only (using definable cutoff e.g. 10.000)
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 *** Implement OMIM search via API - example: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1 (wait for API access)
@@ -26,10 +20,8 @@ GSvar:
     - http://www.cplusplus.com/forum/beginner/60604/
     - https://codereview.stackexchange.com/questions/63566/encryption-with-many-algorithms-using-crypto
     - https://www.cryptopp.com/wiki/ARIA
-* allow LOVD upload from trio/multi OR document that it has to be done from single sample
 * Add special report for trios/multi-sample with genotype overview > change format to RTF first (AG)
 * Add highlighting of imprinting genes to CNVs, ROHs and UPDs
-* Add multi-gene Google/PubMed search: https://www.ncbi.nlm.nih.gov/pubmed/?term=CASP8+AND+(%22Breast+cancer%22+OR+%22Breast+carcinoma%22)+AND+2018 (SWAL)
 * Add gnomAD oe score / ExAC CNV / inheritance (megSAP) and filter for CNVs (GSvar) (wait for ClinCNV)
 * GenLab XML report: male => change 'hom' variants outside PAR region on chrX/chrY to 'hemi' (when GenLab import is updated)
 *** Report variant selection
@@ -42,8 +34,7 @@ GSvar:
 - Visualize tracking of variants when from split complex variant (wait for VcfBreakComplex)
 
 Tools:
-* NGSDExportSamples: Add sample gender + move to cppNGSD for re-use in GSvar
-* VcfToTsv: add support for CSQ field from VEP
+** NGSDExportSamples: Add sample gender + move to cppNGSD for re-use in GSvar
 - NGSDPrecalculate: fix missing/different disease group/status for sample with relation "same sample"
 * NGSDImportHPO: check that the genes listed for a variant are really affected - e.g. RIF1 is not affected by this variant but listed: clinvar_20171203.vcf:2  152346522       194453  G       A       .       .       AF_ESP=0.0020;AF_EXAC=0.00176;AF_TGP=0.0014;ALLELEID=191616;CLNDISDB=Human_Phenotype_Ontology:HP:0001324,MedGen:C0151786|Human_Phenotype_Ontology:HP:0003741,MedGen:CN003380|MedGen:CN169374|MedGen:CN239479;CLNDN=Muscle_weakness|Congenital_muscular_dystrophy|not_specified|Nemaline_Myopathy,_Recessive;CLNHGVS=NC_000002.11:g.152346522G>A;CLNREVSTAT=criteria_provided,_conflicting_interpretations;CLNSIG=Conflicting_interpretations_of_pathogenicity;CLNVC=single_nucleotide_variant;CLNVCSO=SO:0001483;CLNVI=Centre_for_Mendelian_Genomics,University_Medical_Centre_Ljubljana:CMGVARID00336,Illumina_Clinical_Services_Laboratory,Illumina:101100;GENEINFO=NEB:4703|RIF1:55183;MC=SO:0001583|missense_variant;ORIGIN=1;RS=78592085
 - UPDHunter: also support chrX?

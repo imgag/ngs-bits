@@ -732,7 +732,7 @@
     <string>Reanalyze</string>
    </property>
    <property name="toolTip">
-    <string>Queue re-analysis of data (single-sample, multi-sample, trio, somatic).</string>
+    <string>Queue re-analysis of current variant list (single-sample, multi-sample, trio, somatic).</string>
    </property>
   </action>
   <action name="actionOpenProcessedSampleTabByName">
