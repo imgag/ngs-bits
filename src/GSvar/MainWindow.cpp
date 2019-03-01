@@ -2597,10 +2597,19 @@ QList<IgvFile> MainWindow::getSegFilesCnv()
 		QList<IgvFile> tmp = getBamFiles();
 		foreach(const IgvFile& file, tmp)
 		{
-			QString segfile = file.filename.left(file.filename.length()-4) + "_cnvs.seg";
+			QString base_name = file.filename.left(file.filename.length()-4);
+			QString segfile = base_name + "_cnvs_clincnv.seg";
 			if (QFile::exists(segfile))
 			{
 				output << IgvFile{file.id, "CNV" , segfile};
+			}
+			else
+			{
+				segfile = base_name + "_cnvs.seg";
+				if (QFile::exists(segfile))
+				{
+					output << IgvFile{file.id, "CNV" , segfile};
+				}
 			}
 		}
 	}
@@ -2643,7 +2652,7 @@ void MainWindow::applyFilters(bool debug_time)
 		timer.start();
 
 		const FilterCascade& filter_cascade = ui_.filters->filters();
-		filter_result_ = filter_cascade.apply(variants_, false);
+		filter_result_ = filter_cascade.apply(variants_, false, debug_time);
 		ui_.filters->markFailedFilters();
 
 		if (debug_time)

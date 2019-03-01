@@ -2,6 +2,7 @@
 #include "Exceptions.h"
 #include "GeneSet.h"
 #include "Helper.h"
+#include "Log.h"
 
 /*************************************************** FilterParameter ***************************************************/
 
@@ -425,18 +426,33 @@ void FilterCascade::moveDown(int index)
 	errors_.clear();
 }
 
-FilterResult FilterCascade::apply(const VariantList& variants, bool throw_errors) const
+FilterResult FilterCascade::apply(const VariantList& variants, bool throw_errors, bool debug_time) const
 {
+	QTime timer;
+	timer.start();
+
 	FilterResult result(variants.count());
 
 	//reset errors
 	errors_.fill(QStringList(), filters_.count());
+
+	if (debug_time)
+	{
+		Log::perf("FilterCascade: Initializing took ", timer);
+		timer.start();
+	}
 
 	for(int i=0; i<filters_.count(); ++i)
 	{
 		try
 		{
 			filters_[i]->apply(variants, result);
+
+			if (debug_time)
+			{
+				Log::perf("FilterCascade: Filter " + filters_[i]->name() + " took ", timer);
+				timer.start();
+			}
 		}
 		catch(const Exception& e)
 		{
@@ -1825,7 +1841,7 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 
 	//pre-calculate genes with heterozygous variants
 	QStringList types = getStringList("types");
-	GeneSet genes_comphet;
+	QSet<QByteArray> genes_comphet;
 	if (types.contains("comp-het"))
 	{
 		GeneSet het_father;
@@ -1853,7 +1869,7 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 				}
 			}
 		}
-		genes_comphet = het_mother.intersect(het_father);
+		genes_comphet = het_mother.intersect(het_father).toSet();
 	}
 
 	//load imprinting gene list
@@ -1922,15 +1938,14 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 		{
 			if (diplod_chromosome)
 			{
-				if (GeneSet::createFromText(v.annotations()[i_gene], ',').intersectsWith(genes_comphet))
+				if ((geno_c=="het" && geno_f=="het" && geno_m=="wt")
+					||
+					(geno_c=="het" && geno_f=="wt" && geno_m=="het"))
 				{
-					if (geno_c=="het" && geno_f=="het" && geno_m=="wt")
+					GeneSet genes = GeneSet::createFromText(v.annotations()[i_gene]);
+					foreach(const QByteArray& gene, genes)
 					{
-						match = true;
-					}
-					if (geno_c=="het" && geno_f=="wt" && geno_m=="het")
-					{
-						match = true;
+						if (genes_comphet.contains(gene)) match = true;
 					}
 				}
 			}

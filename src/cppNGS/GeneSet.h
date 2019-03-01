@@ -25,6 +25,7 @@ class CPPNGSSHARED_EXPORT GeneSet
 		using QList<QByteArray>::end;
 		using QList<QByteArray>::cbegin;
 		using QList<QByteArray>::cend;
+		using QList<QByteArray>::toSet;
 
 		///Inserts a gene
 		void insert(const QByteArray& gene);

@@ -231,7 +231,7 @@ class CPPNGSSHARED_EXPORT FilterCascade
 		void moveDown(int index);
 
 		//Applies the filter cascade.
-		FilterResult apply(const VariantList& variants, bool throw_errors = true) const;
+		FilterResult apply(const VariantList& variants, bool throw_errors = true, bool debug_time = false) const;
 
 		//Returns errors occured during filter application.
 		QStringList errors(int index) const;
