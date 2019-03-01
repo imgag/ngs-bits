@@ -1942,7 +1942,7 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 					||
 					(geno_c=="het" && geno_f=="wt" && geno_m=="het"))
 				{
-					GeneSet genes = GeneSet::createFromText(v.annotations()[i_gene]);
+					GeneSet genes = GeneSet::createFromText(v.annotations()[i_gene], ',');
 					foreach(const QByteArray& gene, genes)
 					{
 						if (genes_comphet.contains(gene)) match = true;
