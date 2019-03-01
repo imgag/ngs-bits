@@ -41,13 +41,21 @@ struct CPPNGSSHARED_EXPORT FilterParameter
 class CPPNGSSHARED_EXPORT FilterResult
 {
 	public:
-		// Constructor
-		FilterResult(int variant_count);
+		///Default constructor
+		FilterResult();
+		///Constructor that pre-fills the datastructure.
+		FilterResult(int variant_count, bool value=true);
 
-		///Direct access to flags array.
-		QBitArray& flags()
+		///Returns if the variant at @p index passed the filter.
+		bool passing(int index) const
 		{
-			return pass;
+			return pass[index];
+		}
+
+		///Returns the number of passing variants.
+		int countPassing() const
+		{
+			return pass.count(true);
 		}
 
 		///Inverts the flags.
@@ -62,10 +70,16 @@ class CPPNGSSHARED_EXPORT FilterResult
 			pass.fill(value);
 		}
 
-		///Returns the number of passing variants.
-		int countPassing() const
+		///Read-write access to flags array.
+		QBitArray& flags()
 		{
-			return pass.count(true);
+			return pass;
+		}
+
+		///Read-only access to flags array.
+		const QBitArray& flags() const
+		{
+			return pass;
 		}
 
 		///Remove variants that did not pass the filter (with 'false' flag).
@@ -76,8 +90,6 @@ class CPPNGSSHARED_EXPORT FilterResult
 
 	private:
 		QBitArray pass;
-
-		FilterResult() = delete;
 };
 
 //Base class for all filters

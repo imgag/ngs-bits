@@ -89,7 +89,7 @@
            <property name="childrenCollapsible">
             <bool>false</bool>
            </property>
-           <widget class="QTableWidget" name="vars">
+           <widget class="VariantTable" name="vars">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
               <horstretch>10</horstretch>
@@ -108,6 +108,9 @@
             <property name="selectionMode">
              <enum>QAbstractItemView::ExtendedSelection</enum>
             </property>
+            <property name="selectionBehavior">
+             <enum>QAbstractItemView::SelectItems</enum>
+            </property>
             <property name="sortingEnabled">
              <bool>false</bool>
             </property>
@@ -115,7 +118,7 @@
              <bool>false</bool>
             </property>
             <attribute name="verticalHeaderVisible">
-             <bool>false</bool>
+             <bool>true</bool>
             </attribute>
            </widget>
            <widget class="FilterDockWidget" name="filters" native="true">
@@ -793,6 +796,11 @@
    <extends>QWidget</extends>
    <header>FilterDockWidget.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>VariantTable</class>
+   <extends>QTableWidget</extends>
+   <header>VariantTable.h</header>
   </customwidget>
  </customwidgets>
  <resources>

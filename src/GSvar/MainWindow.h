@@ -29,8 +29,8 @@ public:
 	MainWindow(QWidget* parent = 0);
 	///Loads a variant list
 	void loadFile(QString filename);
-	///Updates the GUI after the variant list changed
-	void variantListChanged();
+	///Returns the result of applying filters to the variant list
+	void applyFilters(bool debug_time);
 	///Sends a command to IGV through the default socket
 	void executeIGVCommand(QString command);
 	///Returns the LOG files corresponding to the variant list.
@@ -51,28 +51,27 @@ public:
 	QMap<QString, QStringList> loadPreferredTranscripts() const;
 	///Updates menu and toolbar according to NGSD-support
 	void updateNGSDSupport();
-	///Copy selected variants to clipboard
-	void copyToClipboard(bool split_quality);
 	///Returns 'nobr' paragraph start for Qt tooltips
 	static QString nobr();
 	///Upload variant to LOVD
 	void uploadtoLovd(int variant_index, int variant_index2 = -1);
 	///Returns the target file name without extension and date part prefixed with '_', or an empty string if no target file is set
 	QString targetFileName() const;
-	///Returns the index of a colum in the GUI (or -1 if the column does not exist)
-	int guiColumnIndex(QString column) const;
 	///Returns the processed sample name (in case of a somatic variant list, the tumor is returned).
 	QString processedSampleName();
 	///Returns the sample name (in case of a somatic variant list, the tumor is returned).
 	QString sampleName();
-	///Returns the current variant index, or -1 if no/several variants are selected.
-	int currentVariantIndex();
 	///Returns all filters defined in the filters INI file
 	QStringList loadFilterNames() const;
 	///Returns all filters defined in the filters INI file
 	FilterCascade loadFilter(QString name) const;
 	///Gets a processed sample name from the user - or "" if cancelled.
 	QString processedSampleUserInput();
+
+	///Context menu for single variant
+	void contextMenuSingleVariant(QPoint pos, int index);
+	///Context menu for two variants
+	void contextMenuTwoVariants(QPoint pos, int index1, int index2);
 
 public slots:
 	///Open dialog
@@ -178,8 +177,8 @@ public slots:
 	void updateVariantDetails();
 	///Apply filter from filter menu
 	void applyFilter(QAction* action);
-	///Updates the visible rows after filters have changed
-	void filtersChanged();
+	///Updates the variant table once the variant list changed
+	void refreshVariantTable();	
 	///Resets the annotation status
 	void resetAnnotationStatus();
 	///Opens the recent file defined by the sender action text
@@ -222,9 +221,6 @@ public slots:
 	///Opens a sample based on the sample name
 	void openProcessedSampleFromNGSD(QString processed_sample_name);
 
-	///Creates table widget items, or nullptr if the text is empty. Uses Qt implicit sharing to avoid duplicate strings.
-	QTableWidgetItem* createTableItem(const QByteArray& text, bool clear=false) const;
-
 	///Check mendelian error rate of trio.
 	void checkMendelianErrorRate(double cutoff_perc=5.0);
 
@@ -251,6 +247,7 @@ private:
 	enum {YES, NO, ROI} db_annos_updated_;
 	bool igv_initialized_;
 	VariantList variants_;
+	FilterResult filter_result_;
 	QMap<QString, QString> link_columns_;
 	QSet<int> link_indices_;
 	QString last_roi_filename_;

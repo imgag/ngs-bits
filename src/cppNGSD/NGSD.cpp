@@ -772,7 +772,7 @@ void NGSD::annotate(VariantList& variants, QString ps_name, BedFile roi, double 
 		Variant& v = variants[i];
 
 		//skip variants with too high allele frequency
-		if (!filter_result.flags()[i]) continue;
+		if (!filter_result.passing(i)) continue;
 
 		//skip variant outside the target region
 		if (!roi_index.isNull())
