@@ -139,7 +139,7 @@ MainWindow::MainWindow(QWidget *parent)
 	//signals and slots
 	connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(close()));
 	connect(ui_.vars, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(varsContextMenu(QPoint)));
-	connect(ui_.filters, SIGNAL(filtersChanged()), this, SLOT(filtersChanged()));
+	connect(ui_.filters, SIGNAL(filtersChanged()), this, SLOT(refreshVariantTable()));
 	connect(ui_.filters, SIGNAL(targetRegionChanged()), this, SLOT(resetAnnotationStatus()));
 	connect(ui_.vars, SIGNAL(itemSelectionChanged()), this, SLOT(updateVariantDetails()));
 	connect(&filewatcher_, SIGNAL(fileChanged()), this, SLOT(handleInputFileChange()));
@@ -208,7 +208,7 @@ void MainWindow::on_actionCNV_triggered()
 	{
 		for (int i=0; i<variants_.count(); ++i)
 		{
-			if (ui_.vars->isRowHidden(i)) continue;
+			if (!filter_result_.passing(i)) continue;
 			if (variants_[i].annotations()[i_genotype]!="het") continue;
 
 			GeneSet genes = GeneSet::createFromText(variants_[i].annotations()[i_genes], ',');
@@ -668,7 +668,7 @@ void MainWindow::openInIGV(QString region)
 
 void MainWindow::editVariantClassification()
 {
-	int var_curr = currentVariantIndex();
+	int var_curr = ui_.vars->selectedVariantIndex();
 	if (var_curr==-1) return;
 
 	Variant& variant = variants_[var_curr];
@@ -698,7 +698,7 @@ void MainWindow::editVariantClassification()
 
 			//update details widget and filtering
 			ui_.variant_details->updateVariant(variants_, var_curr);
-			variantListChanged();
+			refreshVariantTable();
 		}
 	}
 	catch (DatabaseException& e)
@@ -710,7 +710,7 @@ void MainWindow::editVariantClassification()
 
 void MainWindow::editVariantValidation()
 {
-	int var_curr = currentVariantIndex();
+	int var_curr = ui_.vars->selectedVariantIndex();
 	if (var_curr==-1) return;
 
 	Variant& variant = variants_[var_curr];
@@ -733,7 +733,7 @@ void MainWindow::editVariantValidation()
 
 			//update details widget and filtering
 			ui_.variant_details->updateVariant(variants_, var_curr);
-			variantListChanged();
+			refreshVariantTable();
 		}
 	}
 	catch (DatabaseException& e)
@@ -745,7 +745,7 @@ void MainWindow::editVariantValidation()
 
 void MainWindow::editVariantComment()
 {
-	int var_curr = currentVariantIndex();
+	int var_curr = ui_.vars->selectedVariantIndex();
 	if (var_curr==-1) return;
 
 	Variant& variant = variants_[var_curr];
@@ -781,13 +781,13 @@ void MainWindow::editVariantComment()
 			}
 
 			//update GUI (if column is present)
-			int gui_index = guiColumnIndex("comment");
+			int gui_index = ui_.vars->columnIndex("comment");
 			if (gui_index!=-1)
 			{
 				QTableWidgetItem* item = ui_.vars->item(var_curr, gui_index);
 				if (item==nullptr)
 				{
-					ui_.vars->setItem(var_curr, gui_index, createTableItem(""));
+					ui_.vars->setItem(var_curr, gui_index, new QTableWidgetItem(""));
 				}
 				item->setText(text);
 				ui_.variant_details->updateVariant(variants_, var_curr);
@@ -803,7 +803,7 @@ void MainWindow::editVariantComment()
 
 void MainWindow::showVariantSampleOverview()
 {
-	int var_curr = currentVariantIndex();
+	int var_curr = ui_.vars->selectedVariantIndex();
 	if (var_curr==-1) return;
 
 	try
@@ -829,7 +829,7 @@ void MainWindow::on_actionShowAfHistogram_triggered()
 
 	//create histogram
 	Histogram hist(0.0, 1.0, 0.05);
-	int col = guiColumnIndex("quality");
+	int col = ui_.vars->columnIndex("quality");
 	for (int row=0; row<=ui_.vars->rowCount(); ++row)
 	{
 		QTableWidgetItem* item = ui_.vars->item(row, col);
@@ -893,19 +893,6 @@ QString MainWindow::targetFileName() const
 	return output;
 }
 
-int MainWindow::guiColumnIndex(QString column) const
-{
-	for(int i=0; i<ui_.vars->columnCount(); ++i)
-	{
-		if (ui_.vars->horizontalHeaderItem(i)->text()==column)
-		{
-			return i;
-		}
-	}
-
-	return -1;
-}
-
 QString MainWindow::processedSampleName()
 {
 	QString filename = QFileInfo(filename_).baseName();
@@ -928,17 +915,6 @@ QString MainWindow::sampleName()
 {
 	QString ps_name = processedSampleName();
 	return (ps_name + "_").split('_')[0];
-}
-
-int MainWindow::currentVariantIndex()
-{
-	auto ranges = ui_.vars->selectedRanges();
-	if (ranges.count()!=1 || ranges[0].rowCount()!=1)
-	{
-		return -1;
-	}
-
-	return ranges[0].topRow();
 }
 
 QStringList MainWindow::loadFilterNames() const
@@ -1151,22 +1127,6 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name)
 	}
 }
 
-QTableWidgetItem* MainWindow::createTableItem(const QByteArray& text, bool clear) const
-{
-	//no text > no item (optimization for WGS - empty items are big and take a lot of RAM)
-	if (text.isEmpty()) return nullptr;
-
-	//use cache to prevent creating the same QString over and over again.
-	//because of implicit sharing, the cache does not use much memory (QByteArrays are in VariantList and QStrings are in QTableWidget)
-	static QHash<QByteArray, QString> cache;
-	if (clear) cache.clear();
-	if (!cache.contains(text))
-	{
-		cache.insert(text, QString(text));
-	}
-	return new QTableWidgetItem(cache[text]);
-}
-
 void MainWindow::checkMendelianErrorRate(double cutoff_perc)
 {
 	QString output = "";
@@ -1286,11 +1246,11 @@ void MainWindow::loadFile(QString filename)
 	setWindowTitle(QCoreApplication::applicationName());
 	ui_.filters->reset(true);
 	filename_ = "";
+	variants_.clear();
 	filewatcher_.clearFile();
 	db_annos_updated_ = NO;
 	igv_initialized_ = false;
-	ui_.vars->setRowCount(0);
-	ui_.vars->setColumnCount(0);
+	ui_.vars->clearContents();
 
 	ui_.tabs->setCurrentIndex(0);
 	for (int t=ui_.tabs->count()-1; t>0; --t)
@@ -1299,7 +1259,7 @@ void MainWindow::loadFile(QString filename)
 		closeTab(t);
 	}
 
-	Log::perf("Clearing variant GUI took ", timer);
+	Log::perf("Clearing variant table took ", timer);
 
 	if (filename=="") return;
 
@@ -1322,6 +1282,7 @@ void MainWindow::loadFile(QString filename)
 		setWindowTitle(QCoreApplication::applicationName() + " - " + filename);
 		ui_.statusBar->showMessage("Loaded variant list with " + QString::number(variants_.count()) + " variants.");
 
+		refreshVariantTable();
 		//Show or Hide button for annotation germline file with somatic variants.
 		int button_pos_in_menu;
 		for(int i=0;i<ui_.tools->actions().count();++i)
@@ -1336,7 +1297,6 @@ void MainWindow::loadFile(QString filename)
 		if(variants_.type() == AnalysisType::GERMLINE_SINGLESAMPLE) ui_.tools->actions().at(button_pos_in_menu)->setVisible(true);
 		else ui_.tools->actions().at(button_pos_in_menu)->setVisible(false);
 
-		variantListChanged();
 		QApplication::restoreOverrideCursor();
 	}
 	catch(Exception& e)
@@ -1388,30 +1348,7 @@ void MainWindow::on_actionAbout_triggered()
 
 void MainWindow::on_actionResize_triggered()
 {
-	GUIHelper::resizeTableCells(ui_.vars, 200);
-
-	//set mimumn width of chr, start, end
-	if (ui_.vars->columnWidth(0)<42)
-	{
-		ui_.vars->setColumnWidth(0, 42);
-	}
-	if (ui_.vars->columnWidth(1)<62)
-	{
-		ui_.vars->setColumnWidth(1, 62);
-	}
-	if (ui_.vars->columnWidth(2)<62)
-	{
-		ui_.vars->setColumnWidth(2, 62);
-	}
-
-	//restrict REF/ALT column width
-	for (int i=3; i<=4; ++i)
-	{
-		if (ui_.vars->columnWidth(i)>80)
-		{
-			ui_.vars->setColumnWidth(i, 80);
-		}
-	}
+	ui_.vars->resizeCells();
 }
 
 void MainWindow::on_actionAnnotateSomaticVariants_triggered()
@@ -1448,51 +1385,7 @@ void MainWindow::on_actionAnnotateSomaticVariants_triggered()
 }
 void MainWindow::on_actionResizeCustom_triggered()
 {
-	GUIHelper::resizeTableCells(ui_.vars, 50);
-
-	//set mimumn width of chr, start, end
-	if (ui_.vars->columnWidth(0)<42)
-	{
-		ui_.vars->setColumnWidth(0, 42);
-	}
-	if (ui_.vars->columnWidth(1)<62)
-	{
-		ui_.vars->setColumnWidth(1, 62);
-	}
-	if (ui_.vars->columnWidth(2)<62)
-	{
-		ui_.vars->setColumnWidth(2, 62);
-	}
-
-	//big
-	int size_big = 400;
-	int index = guiColumnIndex("OMIM");
-	if (index!=-1) ui_.vars->setColumnWidth(index, size_big);
-
-	//medium
-	int size_med = 100;
-	index = guiColumnIndex("genotype");
-	if (index!=-1) ui_.vars->setColumnWidth(index, size_med);
-	index = guiColumnIndex("gene");
-	if (index!=-1) ui_.vars->setColumnWidth(index, size_med);
-	index = guiColumnIndex("variant_type");
-	if (index!=-1) ui_.vars->setColumnWidth(index, size_med);
-	index = guiColumnIndex("filter");
-	if (index!=-1) ui_.vars->setColumnWidth(index, size_med);
-	index = guiColumnIndex("ClinVar");
-	if (index!=-1) ui_.vars->setColumnWidth(index, size_med);
-	index = guiColumnIndex("HGMD");
-	if (index!=-1) ui_.vars->setColumnWidth(index, size_med);
-	index = guiColumnIndex("NGSD_hom");
-	if (index!=-1) ui_.vars->setColumnWidth(index, size_med);
-	index = guiColumnIndex("NGSD_het");
-	if (index!=-1) ui_.vars->setColumnWidth(index, size_med);
-	index = guiColumnIndex("NGSD_group");
-	if (index!=-1) ui_.vars->setColumnWidth(index, size_med);
-	index = guiColumnIndex("classification");
-	if (index!=-1) ui_.vars->setColumnWidth(index, size_med);
-	index = guiColumnIndex("gene_info");
-	if (index!=-1) ui_.vars->setColumnWidth(index, size_med);
+	ui_.vars->resizeCellsCustom();
 }void MainWindow::on_actionReport_triggered()
 {
 	if (variants_.count()==0) return;
@@ -1628,17 +1521,8 @@ void MainWindow::generateReport()
 		}
 	}
 
-	//determine visible variants
-	QBitArray visible(variants_.count(), true);
-	for (int i=0; i<variants_.count(); ++i)
-	{
-		if(ui_.vars->isRowHidden(i))
-		{
-			visible.setBit(i, false);
-		}
-	}
-
 	//check if inheritance information is set for all genes in NGSD
+	QBitArray visible = filter_result_.flags();
 	QStringList missing = geneInheritanceMissing(visible);
 	int max_shown = 50;
 	QString missing_text = missing.mid(0, max_shown).join(", ");
@@ -1714,7 +1598,7 @@ void MainWindow::databaseAnnotationFinished(bool success)
 	if (success)
 	{
 		db_annos_updated_ = worker->targetRegionOnly() ? ROI : YES;
-		variantListChanged();
+		refreshVariantTable();
 	}
 	else
 	{
@@ -1941,7 +1825,6 @@ void MainWindow::on_actionExportVCF_triggered()
 	BedFile roi;
 	for(int i=0; i<variants_.count(); ++i)
 	{
-		if (ui_.vars->isRowHidden(i)) continue;
 		roi.append(BedLine(variants_[i].chr(), variants_[i].start()-15, variants_[i].end()+15));
 	}
 	roi.merge();
@@ -1963,7 +1846,8 @@ void MainWindow::on_actionExportVCF_triggered()
 	output.copyMetaData(orig_vcf);
 	for(int i=0; i<variants_.count(); ++i)
 	{
-		if (ui_.vars->isRowHidden(i)) continue;
+		if (!filter_result_.passing(i)) continue;
+
 		int hit_count = 0;
 		const Variant& v = variants_[i];
 		QVector<int> matches = orig_idx.matchingIndices(v.chr(), v.start()-10, v.end()+10);
@@ -2026,7 +1910,7 @@ void MainWindow::on_actionExportGSvar_triggered()
 	output.copyMetaData(variants_);
 	for(int i=0; i<variants_.count(); ++i)
 	{
-		if (!ui_.vars->isRowHidden(i))
+		if (filter_result_.passing(i))
 		{
 			output.append(variants_[i]);
 		}
@@ -2196,168 +2080,12 @@ void MainWindow::on_actionArchiveSubpanel_triggered()
 
 void MainWindow::on_actionCopy_triggered()
 {
-	copyToClipboard(false);
+	ui_.vars->copyToClipboard(false);
 }
 
 void MainWindow::on_actionCopySplit_triggered()
 {
-	copyToClipboard(true);
-}
-
-void MainWindow::copyToClipboard(bool split_quality)
-{
-	// Data to be copied is not selected en bloc
-	if (ui_.vars->selectedRanges().count()!=1 && !split_quality)
-	{
-		//Create 2d list with empty QStrings (size equal to QTable in Main Window)
-		QList< QList<QString> > data;
-		for(int r=0;r<ui_.vars->rowCount();++r)
-		{
-			QList<QString> line;
-			for(int c=0;c<ui_.vars->columnCount();++c)
-			{
-				line.append("");
-			}
-			data.append(line);
-		}
-
-		//Fill data with non-empty entries from QTable in Main Window
-		QBitArray empty_columns;
-		empty_columns.fill(true,ui_.vars->columnCount());
-		QList<QTableWidgetItem*> all_items = ui_.vars->selectedItems();
-		foreach(QTableWidgetItem* item,all_items)
-		{
-			if(!item->text().isEmpty())
-			{
-				data[item->row()][item->column()] = item->text();
-				empty_columns[item->column()] = false;
-			}
-		}
-
-		//Remove empty columns
-		for(int c=ui_.vars->columnCount()-1;c>=0;--c)
-		{
-			if(empty_columns[c])
-			{
-				for(int r=0;r<ui_.vars->rowCount();++r)
-				{
-					data[r].removeAt(c);
-				}
-			}
-		}
-
-		//Remove empty rows
-		for(int r=ui_.vars->rowCount()-1;r>=0;--r)
-		{
-			bool row_is_empty = true;
-			for(int c=0;c<data[r].count();++c)
-			{
-				if(!data[r][c].isEmpty())
-				{
-					row_is_empty = false;
-					break;
-				}
-			}
-			if(row_is_empty) data.removeAt(r);
-		}
-
-		QString text = "";
-		for(int r=0;r<data.count();++r)
-		{
-			for(int c=0;c<data[r].count();++c)
-			{
-				text.append(data[r][c]);
-				if(c<data[r].count()-1) text.append("\t");
-			}
-			text.append("\n");
-		}
-		QApplication::clipboard()->setText(text);
-
-		return;
-	}
-
-	QTableWidgetSelectionRange range = ui_.vars->selectedRanges()[0];
-
-	//check quality column is present
-	QStringList quality_keys;
-	quality_keys << "QUAL" << "DP" << "AF" << "MQM" << "TRIO"; //if modified, also modify quality_values!!!
-	int qual_index = -1;
-	if (split_quality)
-	{
-		qual_index = guiColumnIndex("quality");
-		if (qual_index==-1)
-		{
-			QMessageBox::warning(this, "Copy to clipboard", "Column with index 6 has other name than quality. Aborting!");
-			return;
-		}
-	}
-
-
-	//copy header
-	QString selected_text = "";
-	if (range.rowCount()!=1)
-	{
-		selected_text += "#";
-		for (int col=range.leftColumn(); col<=range.rightColumn(); ++col)
-		{
-			if (col!=range.leftColumn()) selected_text.append("\t");
-			if (split_quality && col==qual_index)
-			{
-				selected_text.append(quality_keys.join('\t'));
-			}
-			else
-			{
-				selected_text.append(ui_.vars->horizontalHeaderItem(col)->text());
-			}
-		}
-	}
-
-	//copy rows
-	for (int row=range.topRow(); row<=range.bottomRow(); ++row)
-	{
-		//skip filtered-out rows
-		if (ui_.vars->isRowHidden(row)) continue;
-
-		if (selected_text!="") selected_text.append("\n");
-		for (int col=range.leftColumn(); col<=range.rightColumn(); ++col)
-		{
-			if (col!=range.leftColumn()) selected_text.append("\t");
-
-			QTableWidgetItem* item = ui_.vars->item(row, col);
-			if (item==nullptr) continue;
-
-			if (split_quality && col==qual_index)
-			{
-				QStringList quality_values;
-				for(int i=0; i<quality_keys.count(); ++i) quality_values.append("");
-				QStringList entries = item->text().split(';');
-				foreach(const QString& entry, entries)
-				{
-					QStringList key_value = entry.split('=');
-					if (key_value.count()!=2)
-					{
-						QMessageBox::warning(this, "Copy to clipboard", "Cannot split quality entry '" + entry + "' into key and value. Aborting!");
-						return;
-					}
-					int index = quality_keys.indexOf(key_value[0]);
-					if (index==-1)
-					{
-						QMessageBox::warning(this, "Copy to clipboard", "Unknown quality entry '" + key_value[0] + "'. Aborting!");
-						return;
-					}
-
-					quality_values[index] = key_value[1];
-				}
-				selected_text.append(quality_values.join('\t'));
-			}
-			else
-			{
-				selected_text.append(item->text().replace('\n',' ').replace('\r',' '));
-			}
-		}
-	}
-
-	QApplication::clipboard()->setText(selected_text);
+	ui_.vars->copyToClipboard(true);
 }
 
 QString MainWindow::nobr()
@@ -2431,235 +2159,59 @@ void MainWindow::dropEvent(QDropEvent* e)
 	e->accept();
 }
 
-void MainWindow::variantListChanged()
+void MainWindow::refreshVariantTable()
 {
 	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
 	QTime timer;
 	timer.start();
 
-	//update variant details widget
+	//apply filters
+	applyFilters(false);
+	int passing_variants = filter_result_.countPassing();
+	QString status = QString::number(passing_variants) + " of " + QString::number(variants_.count()) + " variants passed filters.";
+	int max_variants = 10000;
+	if (passing_variants>max_variants)
+	{
+		status += " Displaying " + QString::number(max_variants) + " variants only!";
+	}
+	ui_.statusBar->showMessage(status);
+
+	Log::perf("Applying all filters took ", timer);
+	timer.start();
+
+	//force update of variant details widget
 	var_last_ = -1;
 
-	//resize
-	int col_count_new = 5 + variants_.annotations().count();
-	if (ui_.vars->rowCount()!=variants_.count() || ui_.vars->columnCount()!=col_count_new)
-	{
-		//completely clear items (is faster then resizing)
-		ui_.vars->setRowCount(0);
-		ui_.vars->setColumnCount(0);
-		//set new size
-		ui_.vars->setRowCount(variants_.count());
-		ui_.vars->setColumnCount(col_count_new);
-	}
-
-	//header
-	ui_.vars->setHorizontalHeaderItem(0, createTableItem("chr", true));
-	ui_.vars->horizontalHeaderItem(0)->setToolTip("Chromosome of variant");
-	ui_.vars->setHorizontalHeaderItem(1, createTableItem("start"));
-	ui_.vars->horizontalHeaderItem(1)->setToolTip("Genomic start position of variant");
-	ui_.vars->setHorizontalHeaderItem(2, createTableItem("end"));
-	ui_.vars->horizontalHeaderItem(2)->setToolTip("Genomic end position of variant");
-	ui_.vars->setHorizontalHeaderItem(3, createTableItem("ref"));
-	ui_.vars->horizontalHeaderItem(3)->setToolTip("Reference genome sequence");
-	ui_.vars->setHorizontalHeaderItem(4, createTableItem("obs"));
-	ui_.vars->horizontalHeaderItem(4)->setToolTip("Sequence observed in the sample");
-	for (int i=0; i<variants_.annotations().count(); ++i)
-	{
-		QString anno = variants_.annotations()[i].name();
-		QTableWidgetItem* header = new QTableWidgetItem(anno);
-
-		//additional descriptions for filter column
-		QString add_desc = "";
-		if (anno=="filter")
-		{
-			auto it = variants_.filters().cbegin();
-			while (it!=variants_.filters().cend())
-			{
-				add_desc += "\n - "+it.key() + ": " + it.value();
-				++it;
-			}
-		}
-
-		//additional descriptions and color for genotype columns
-		SampleHeaderInfo sample_data = variants_.getSampleHeader(false);
-		foreach(const SampleInfo& info, sample_data)
-		{
-			if (info.column_name==anno)
-			{
-				auto it = info.properties.cbegin();
-				while(it != info.properties.cend())
-				{
-					add_desc += "\n - " + it.key() + ": " + it.value();
-
-					if (info.isAffected())
-					{
-						header->setForeground(QBrush(Qt::darkRed));
-					}
-
-					++it;
-				}
-			}
-		}
-
-		QString header_desc = variants_.annotationDescriptionByName(anno, false, false).description();
-		header->setToolTip(header_desc + add_desc);
-		ui_.vars->setHorizontalHeaderItem(i+5, header);
-	}
-
-	//content
-	int i_genes = variants_.annotationIndexByName("gene", true, false);
-	int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, false);
-	int i_validation = variants_.annotationIndexByName("validation", true, false);
-	int i_classification = variants_.annotationIndexByName("classification", true, false);
-	int i_comment = variants_.annotationIndexByName("comment", true, false);
-	int i_ihdb_hom = variants_.annotationIndexByName("NGSD_hom", true, false);
-	int i_ihdb_het = variants_.annotationIndexByName("NGSD_het", true, false);
-	int i_clinvar = variants_.annotationIndexByName("ClinVar", true, false);
-	int i_hgmd = variants_.annotationIndexByName("HGMD", true, false);
-	for (int i=0; i<variants_.count(); ++i)
-	{
-		const Variant& row = variants_[i];
-		ui_.vars->setItem(i, 0, createTableItem(row.chr().str()));
-		if (!row.chr().isAutosome())
-		{
-			ui_.vars->item(i,0)->setBackgroundColor(Qt::yellow);
-			ui_.vars->item(i,0)->setToolTip("Not autosome");
-		}
-		ui_.vars->setItem(i, 1, createTableItem(QByteArray::number(row.start())));
-		ui_.vars->setItem(i, 2, createTableItem(QByteArray::number(row.end())));
-		ui_.vars->setItem(i, 3, createTableItem(row.ref()));
-		ui_.vars->setItem(i, 4, createTableItem(row.obs()));
-		bool is_warning_line = false;
-		bool is_notice_line = false;
-		bool is_ok_line = false;
-		for (int j=0; j<row.annotations().count(); ++j)
-		{
-			const QByteArray& anno = row.annotations().at(j);
-			QTableWidgetItem* item = createTableItem(anno);
-
-			//warning
-			if (j==i_co_sp && anno.contains(":HIGH:"))
-			{
-				item->setBackgroundColor(Qt::red);
-				is_warning_line = true;
-			}
-			else if (j==i_classification && (anno=="3" || anno=="M"))
-			{
-				item->setBackgroundColor(QColor(255, 135, 60)); //orange
-				is_notice_line = true;
-			}
-			else if (j==i_classification && (anno=="4" || anno=="5"))
-			{
-				item->setBackgroundColor(Qt::red);
-				is_warning_line = true;
-			}
-			else if (j==i_clinvar && anno.contains("pathogenic")) //matches "pathogenic" and "likely pathogenic"
-			{
-				item->setBackgroundColor(Qt::red);
-				is_warning_line = true;
-			}
-			else if (j==i_hgmd && anno.contains("CLASS=DM")) //matches both "DM" and "DM?"
-			{
-				item->setBackgroundColor(Qt::red);
-				is_warning_line = true;
-			}
-
-			//non-pathogenic
-			if (j==i_classification && (anno=="0" || anno=="1" || anno=="2"))
-			{
-				item->setBackgroundColor(Qt::green);
-				is_ok_line = true;
-			}
-
-			//highlighed
-			if (j==i_validation && anno.contains("TP"))
-			{
-				item->setBackgroundColor(Qt::yellow);
-			}
-			else if (j==i_comment && anno!="")
-			{
-				item->setBackgroundColor(Qt::yellow);
-			}
-			else if (j==i_ihdb_hom && anno=="0")
-			{
-				item->setBackgroundColor(Qt::yellow);
-			}
-			else if (j==i_ihdb_het && anno=="0")
-			{
-				item->setBackgroundColor(Qt::yellow);
-			}
-			else if (j==i_clinvar && anno.contains("(confirmed)"))
-			{
-				item->setBackgroundColor(Qt::yellow);
-			}
-			else if (j==i_genes)
-			{
-				bool hit = false;
-				if (anno.contains(','))
-				{
-					 hit = imprinting_genes_.intersectsWith(GeneSet::createFromText(anno, ','));
-				}
-				else
-				{
-					hit = imprinting_genes_.contains(anno);
-				}
-				if (hit)
-				{
-					item->setBackgroundColor(Qt::yellow);
-					item->setToolTip("Imprinting gene");
-				}
-			}
-
-			ui_.vars->setItem(i, 5+j, item);
-		}
-
-		//mark vertical header - warning (red), notice (orange)
-		if (is_notice_line && !is_ok_line)
-		{
-			QTableWidgetItem* item = createTableItem(QByteArray::number(i+1));
-			item->setForeground(QBrush(QColor(255, 135, 60)));
-			QFont font;
-			font.setWeight(QFont::Bold);
-			item->setFont(font);
-			ui_.vars->setVerticalHeaderItem(i, item);
-		}
-		else if (is_warning_line && !is_ok_line)
-		{
-			QTableWidgetItem* item = createTableItem(QByteArray::number(i+1));
-			item->setForeground(QBrush(Qt::red));
-			QFont font;
-			font.setWeight(QFont::Bold);
-			item->setFont(font);
-			ui_.vars->setVerticalHeaderItem(i, item);
-		}
-		else
-		{
-			QTableWidgetItem* item = ui_.vars->takeVerticalHeaderItem(i);
-			if (item) delete(item);
-		}
-	}
-
-	//resize cells
-	on_actionResize_triggered();
+	//update variant table
+	ui_.vars->update(variants_, filter_result_, imprinting_genes_, max_variants);
+	ui_.vars->resizeCells();
 
 	QApplication::restoreOverrideCursor();
 
-	Log::perf("Initializing variant GUI took ", timer);
-
-	//re-filter in case some relevant columns changed
-	filtersChanged();
+	Log::perf("Updating variant table took ", timer);
 }
 
 void MainWindow::varsContextMenu(QPoint pos)
 {
-	QList<QTableWidgetSelectionRange> ranges = ui_.vars->selectedRanges();
-	if (ranges.count()!=1 || ranges[0].rowCount()!=1) return;
-	int row = ranges[0].topRow();
+	pos = ui_.vars->viewport()->mapToGlobal(pos);
 
+	QList<int> indices = ui_.vars->selectedVariantsIndices();
+	if (indices.count()==1)
+	{
+		contextMenuSingleVariant(pos, indices[0]);
+	}
+	else if (indices.count()==2)
+	{
+		contextMenuTwoVariants(pos, indices[0], indices[1]);
+	}
+}
+
+void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
+{
 	//init
 	bool ngsd_enabled = Settings::boolean("NGSD_enabled", true);
-	const Variant& variant = variants_[row];
+	const Variant& variant = variants_[index];
 	int i_gene = variants_.annotationIndexByName("gene", true, true);
 	QStringList genes = QString(variant.annotations()[i_gene]).split(',', QString::SkipEmptyParts);
 	int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, true);
@@ -2789,7 +2341,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 	menu.addAction(QIcon("://Icons/VarSome.png"), "VarSome");
 
 	//Execute menu
-	action = menu.exec(ui_.vars->viewport()->mapToGlobal(pos));
+	action = menu.exec(pos);
 	if (!action) return;
 	QMenu* parent_menu = qobject_cast<QMenu*>(action->parent());
 
@@ -2824,24 +2376,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 	{
 		try
 		{
-			//comp-het (one selection with at least two rows)
-			if (ui_.vars->selectedRanges().count()==1 && ui_.vars->selectedRanges()[0].rowCount()>=2)
-			{
-				int index1 = ui_.vars->selectedRanges()[0].topRow();
-				int index2 = ui_.vars->selectedRanges()[0].bottomRow();
-				uploadtoLovd(index1, index2);
-			}
-			//comp-het (two selections with one row each)
-			else if (ui_.vars->selectedRanges().count()==2 && ui_.vars->selectedRanges()[0].rowCount()==1 && ui_.vars->selectedRanges()[1].rowCount()==1)
-			{
-				int index1 = ui_.vars->selectedRanges()[0].topRow();
-				int index2 = ui_.vars->selectedRanges()[1].topRow();
-				uploadtoLovd(index1, index2);
-			}
-			else
-			{
-				uploadtoLovd(row);
-			}
+			uploadtoLovd(index);
 		}
 		catch (Exception& e)
 		{
@@ -2947,9 +2482,35 @@ void MainWindow::varsContextMenu(QPoint pos)
 	}
 }
 
+void MainWindow::contextMenuTwoVariants(QPoint pos, int index1, int index2)
+{
+	//create contect menu
+	QMenu menu(ui_.vars);
+	menu.addAction(QIcon("://Icons/LOVD.png"), "Publish in LOVD (comp-het)");
+
+	//execute
+	QAction* action = menu.exec(pos);
+	if (!action) return;
+
+	//react
+	QByteArray text = action->text().toLatin1();
+	if (text=="Publish in LOVD (comp-het)")
+	{
+		try
+		{
+			uploadtoLovd(index1, index2);
+		}
+		catch (Exception& e)
+		{
+			GUIHelper::showMessage("LOVD upload error", "Error while uploading variant to LOVD: " + e.message());
+			return;
+		}
+	}
+}
+
 void MainWindow::updateVariantDetails()
 {
-	int var_current = currentVariantIndex();
+	int var_current = ui_.vars->selectedVariantIndex();
 	if (var_current==-1) //no several variant => clear
 	{
 		ui_.variant_details->clear();
@@ -3117,12 +2678,8 @@ QList<IgvFile> MainWindow::getIgvFilesBaf()
 	return output;
 }
 
-void MainWindow::filtersChanged()
+void MainWindow::applyFilters(bool debug_time)
 {
-	if (filename_=="") return;
-
-	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-
 	try
 	{
 		//apply main filter
@@ -3130,11 +2687,14 @@ void MainWindow::filtersChanged()
 		timer.start();
 
 		const FilterCascade& filter_cascade = ui_.filters->filters();
-		FilterResult filter_result = filter_cascade.apply(variants_, false);
+		filter_result_ = filter_cascade.apply(variants_, false);
 		ui_.filters->markFailedFilters();
 
-		Log::perf("Applying annotation filter took ", timer);
-		timer.start();
+		if (debug_time)
+		{
+			Log::perf("Applying annotation filters took ", timer);
+			timer.start();
+		}
 
 		//roi file name changed => update ROI
 		QString roi = ui_.filters->targetRegion();
@@ -3150,16 +2710,23 @@ void MainWindow::filtersChanged()
 				last_roi_filename_ = roi;
 			}
 
-			Log::perf("Updating target region filter took ", timer);
-			timer.start();
+			if (debug_time)
+			{
+				Log::perf("Updating target region filter took ", timer);
+				timer.start();
+			}
 		}
 
 		//roi filter
 		if (roi!="")
 		{
-			FilterRegions::apply(variants_, last_roi_, filter_result);
-			Log::perf("Applying target region filter took ", timer);
-			timer.start();
+			FilterRegions::apply(variants_, last_roi_, filter_result_);
+
+			if (debug_time)
+			{
+				Log::perf("Applying target region filter took ", timer);
+				timer.start();
+			}
 		}
 
 		//gene filter
@@ -3168,9 +2735,13 @@ void MainWindow::filtersChanged()
 		{
 			FilterGenes filter;
 			filter.setStringList("genes", genes_filter.toStringList());
-			filter.apply(variants_, filter_result);
-			Log::perf("Applying gene filter took ", timer);
-			timer.start();
+			filter.apply(variants_, filter_result_);
+
+			if (debug_time)
+			{
+				Log::perf("Applying gene filter took ", timer);
+				timer.start();
+			}
 		}
 
 		//text filter
@@ -3180,9 +2751,14 @@ void MainWindow::filtersChanged()
 			FilterAnnotationText filter;
 			filter.setString("term", text);
 			filter.setString("action", "FILTER");
-			filter.apply(variants_, filter_result);
-			Log::perf("Applying text filter took ", timer);
-			timer.start();
+			filter.apply(variants_, filter_result_);
+
+			if (debug_time)
+			{
+
+				Log::perf("Applying text filter took ", timer);
+				timer.start();
+			}
 		}
 
 		//target region filter
@@ -3191,9 +2767,13 @@ void MainWindow::filtersChanged()
 		{
 			BedFile tmp;
 			tmp.append(region);
-			FilterRegions::apply(variants_, tmp, filter_result);
-			Log::perf("Applying region filter took ", timer);
-			timer.start();
+			FilterRegions::apply(variants_, tmp, filter_result_);
+
+			if (debug_time)
+			{
+				Log::perf("Applying region filter took ", timer);
+				timer.start();
+			}
 		}
 
 		//phenotype selection changed => update ROI
@@ -3214,45 +2794,33 @@ void MainWindow::filtersChanged()
 			last_phenos_roi_ = db.genesToRegions(pheno_genes, Transcript::ENSEMBL, "gene", true);
 			last_phenos_roi_.extend(5000);
 			last_phenos_roi_.merge();
-			Log::perf("Updating phenotype filter took ", timer);
-			timer.start();
+
+			if (debug_time)
+			{
+				Log::perf("Updating phenotype filter took ", timer);
+				timer.start();
+			}
 		}
 
 		//phenotype filter
 		if (!last_phenos_.isEmpty())
 		{
-			FilterRegions::apply(variants_, last_phenos_roi_, filter_result);
-			Log::perf("Applying phenotype filter took ", timer);
-			timer.start();
-		}
+			FilterRegions::apply(variants_, last_phenos_roi_, filter_result_);
 
-		//update GUI
-		timer.start();
-		ui_.vars->setUpdatesEnabled(false);
-		for(int i=0; i<variants_.count(); ++i)
-		{
-			if (filter_result.flags()[i])
+			if (debug_time)
 			{
-				ui_.vars->showRow(i);
-			}
-			else
-			{
-				ui_.vars->hideRow(i);
+				Log::perf("Applying phenotype filter took ", timer);
+				timer.start();
 			}
 		}
-		ui_.vars->setUpdatesEnabled(true);
-		Log::perf("Applying filter results to GUI took ", timer);
 
-		//update status bar
-		QString status = QString::number(filter_result.countPassing()) + " of " + QString::number(variants_.count()) + " variants passed filters.";
-		ui_.statusBar->showMessage(status);
 	}
 	catch(Exception& e)
 	{
 		QMessageBox::warning(this, "Filtering error", e.message() + "\nA possible reason for this error is an outdated variant list.\nTry re-annotating the NGSD columns.\n If re-annotation does not help, please re-analyze the sample (starting from annotation) in the sample information dialog !");
-	}
 
-	QApplication::restoreOverrideCursor();
+		filter_result_ = FilterResult(variants_.count(), false);
+	}
 }
 
 void MainWindow::resetAnnotationStatus()

@@ -45,9 +45,13 @@ QString FilterParameter::typeAsString(FilterParameterType type)
 
 /*************************************************** FilterResult ***************************************************/
 
-FilterResult::FilterResult(int variant_count)
+FilterResult::FilterResult()
 {
-	pass = QBitArray(variant_count, true);
+}
+
+FilterResult::FilterResult(int variant_count, bool value)
+{
+	pass = QBitArray(variant_count, value);
 }
 
 void FilterResult::removeFlagged(VariantList& variants)

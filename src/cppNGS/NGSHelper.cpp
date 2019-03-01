@@ -38,7 +38,7 @@ VariantList NGSHelper::getKnownVariants(QString build, bool only_snvs, double mi
 		int i_af = output.annotationIndexByName("AF");
 		for (int i=0; i<output.count(); ++i)
 		{
-			if (!filter_result.flags()[i]) continue;
+			if (!filter_result.passing(i)) continue;
 
 			double af = output[i].annotations()[i_af].toDouble();
 			filter_result.flags()[i] = (!min_set || af>min_af) && (!max_set || af<max_af);

@@ -5,7 +5,7 @@ Currenlty only [LOVD](http://www.lovd.nl/3.0/home) is supported - [ClinVar](http
 
 ### Submitting SNVs/InDels
 
-Database upload for SNVs and InDels is triggered from the context menu of variants in the main window.  
+Database upload for SNVs and InDels is triggered from the context menu of variants in the main window of a **single sample** variant list.  
 The following example shows how a two heterozygous variants can be selected and uploaded as compound-heterozygous:
 
 ![alt](variant_publication_context_menu.png)
@@ -53,6 +53,7 @@ A full list of supported transcripts for each gene can be found in the [LOVD doc
 --
 
 [back to main page](index.md)
+
 
 
 
