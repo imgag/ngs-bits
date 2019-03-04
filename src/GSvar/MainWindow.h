@@ -178,7 +178,7 @@ public slots:
 	///Apply filter from filter menu
 	void applyFilter(QAction* action);
 	///Updates the variant table once the variant list changed
-	void refreshVariantTable();	
+	void refreshVariantTable(bool keep_widths = true);
 	///Resets the annotation status
 	void resetAnnotationStatus();
 	///Opens the recent file defined by the sender action text

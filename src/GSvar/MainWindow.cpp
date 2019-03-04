@@ -1283,7 +1283,9 @@ void MainWindow::loadFile(QString filename)
 		setWindowTitle(QCoreApplication::applicationName() + " - " + filename);
 		ui_.statusBar->showMessage("Loaded variant list with " + QString::number(variants_.count()) + " variants.");
 
-		refreshVariantTable();
+		refreshVariantTable(false);
+		ui_.vars->adaptColumnWidths();
+
 		QApplication::restoreOverrideCursor();
 	}
 	catch(Exception& e)
@@ -1335,12 +1337,12 @@ void MainWindow::on_actionAbout_triggered()
 
 void MainWindow::on_actionResize_triggered()
 {
-	ui_.vars->resizeCells();
+	ui_.vars->adaptColumnWidths();
 }
 
 void MainWindow::on_actionResizeCustom_triggered()
 {
-	ui_.vars->resizeCellsCustom();
+	ui_.vars->adaptColumnWidthsCustom();
 }
 
 void MainWindow::on_actionReport_triggered()
@@ -2116,7 +2118,7 @@ void MainWindow::dropEvent(QDropEvent* e)
 	e->accept();
 }
 
-void MainWindow::refreshVariantTable()
+void MainWindow::refreshVariantTable(bool keep_widths)
 {
 	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
@@ -2141,9 +2143,17 @@ void MainWindow::refreshVariantTable()
 	var_last_ = -1;
 
 	//update variant table
+	QList<int> col_widths = ui_.vars->columnWidths();
 	ui_.vars->update(variants_, filter_result_, imprinting_genes_, max_variants);
-	ui_.vars->resizeCells();
-
+	ui_.vars->adaptRowHeights();
+	if (keep_widths)
+	{
+		ui_.vars->setColumnWidths(col_widths);
+	}
+	else
+	{
+		ui_.vars->adaptColumnWidths();
+	}
 	QApplication::restoreOverrideCursor();
 
 	Log::perf("Updating variant table took ", timer);

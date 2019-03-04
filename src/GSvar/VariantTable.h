@@ -38,16 +38,25 @@ public:
 		return new QTableWidgetItem(text);
 	}
 
+	///Returns the current column widths.
+	QList<int> columnWidths() const;
+
+	///Sets column widths.
+	void setColumnWidths(const QList<int>& widths);
+
 public slots:
 
 	///Clear contents
 	void clearContents();
 
+	///Set the row heights
+	void adaptRowHeights();
+
 	///Resize table cells for better readability.
-	void resizeCells();
+	void adaptColumnWidths();
 
 	///Resize table cells for better readability (custom).
-	void resizeCellsCustom();
+	void adaptColumnWidthsCustom();
 
 	///Copy table to clipboard
 	void copyToClipboard(bool split_quality);

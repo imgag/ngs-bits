@@ -267,15 +267,60 @@ int VariantTable::rowToVariantIndex(int row) const
 	return variant_index;
 }
 
+QList<int> VariantTable::columnWidths() const
+{
+	QList<int> output;
+
+	for (int c=0; c<columnCount(); ++c)
+	{
+		output << columnWidth(c);
+	}
+
+	return output;
+}
+
+void VariantTable::setColumnWidths(const QList<int>& widths)
+{
+	int col_count = std::min(widths.count(), columnCount());
+	for (int c=0; c<col_count; ++c)
+	{
+		setColumnWidth(c, widths[c]);
+	}
+}
+
+void VariantTable::adaptRowHeights()
+{
+	if (rowCount()<1) return;
+
+	resizeRowToContents(0);
+	int height = rowHeight(0);
+
+	for (int i=0; i<rowCount(); ++i)
+	{
+		setRowHeight(i, height);
+	}
+}
+
 void VariantTable::clearContents()
 {
 	setRowCount(0);
 	setColumnCount(0);
 }
 
-void VariantTable::resizeCells()
+void VariantTable::adaptColumnWidths()
 {
-	GUIHelper::resizeTableCells(this, 200);
+	//resize columns width
+	resizeColumnsToContents();
+
+	//restrict width
+	int max_col_width = 200;
+	for (int i=0; i<columnCount(); ++i)
+	{
+		if (columnWidth(i)>max_col_width)
+		{
+			setColumnWidth(i, max_col_width);
+		}
+	}
 
 	//set mimumn width of chr, start, end
 	if (columnWidth(0)<42)
@@ -301,9 +346,20 @@ void VariantTable::resizeCells()
 	}
 }
 
-void VariantTable::resizeCellsCustom()
+void VariantTable::adaptColumnWidthsCustom()
 {
-	GUIHelper::resizeTableCells(this, 50);
+	//resize columns width
+	resizeColumnsToContents();
+
+	//restrict width
+	int max_col_width = 50;
+	for (int i=0; i<columnCount(); ++i)
+	{
+		if (columnWidth(i)>max_col_width)
+		{
+			setColumnWidth(i, max_col_width);
+		}
+	}
 
 	//set mimumn width of chr, start, end
 	if (columnWidth(0)<42)
