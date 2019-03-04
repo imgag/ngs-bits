@@ -1,6 +1,6 @@
 # GSvar change log
 
-### 2018_11-157-g3beb080 (01.03.19)
+### 2018_11-159-g6779e90 (04.03.19)
 - General: reduced memory consumption by not showing more than 10000 variants at a time (for WGS).
 - Filters: massive speed-up of trio comp-het filter (for WGS).
 - IGV integration: added automatic opening of ClinCNV seg files in IGV.
@@ -290,6 +290,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 

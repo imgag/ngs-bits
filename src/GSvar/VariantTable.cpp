@@ -244,18 +244,27 @@ QList<int> VariantTable::selectedVariantsIndices() const
 	{
 		for(int row=range.topRow(); row<=range.bottomRow(); ++row)
 		{
-			//get header (variant index is stored in user data)
-			QTableWidgetItem* header = verticalHeaderItem(row);
-			if (header==nullptr) THROW(ProgrammingException, "Variant table row header not set!");
-			bool ok;
-			output << header->data(Qt::UserRole).toInt(&ok);
-			if (!ok) THROW(ProgrammingException, "Variant table row header user data '" + header->data(Qt::UserRole).toString() + "' not an integer!");
+			output << rowToVariantIndex(row);
 		}
 	}
 
 	std::sort(output.begin(), output.end());
 
 	return output;
+}
+
+int VariantTable::rowToVariantIndex(int row) const
+{
+	//get header (variant index is stored in user data)
+	QTableWidgetItem* header = verticalHeaderItem(row);
+	if (header==nullptr) THROW(ProgrammingException, "Variant table row header not set!");
+
+	//convert header text to integer
+	bool ok;
+	int variant_index = header->data(Qt::UserRole).toInt(&ok);
+	if (!ok) THROW(ProgrammingException, "Variant table row header user data '" + header->data(Qt::UserRole).toString() + "' not an integer!");
+
+	return variant_index;
 }
 
 void VariantTable::clearContents()

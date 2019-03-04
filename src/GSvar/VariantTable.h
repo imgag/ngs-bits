@@ -26,6 +26,9 @@ public:
 	///Returns a sorted list of selected variants indices
 	QList<int> selectedVariantsIndices() const;
 
+	///Convert table row to variant index.
+	int rowToVariantIndex(int row) const;
+
 	///Creates table widget items, or nullptr if the text is empty. Uses Qt implicit sharing to avoid duplicate strings.
 	QTableWidgetItem* createTableItem(const QString& text) const
 	{

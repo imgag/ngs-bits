@@ -522,7 +522,8 @@ void MainWindow::handleInputFileChange()
 
 void MainWindow::variantCellDoubleClicked(int row, int /*col*/)
 {
-	openInIGV(variants_[row].toString());
+	int var_index = ui_.vars->rowToVariantIndex(row);
+	openInIGV(variants_[var_index].toString());
 }
 
 void MainWindow::openInIGV(QString region)
