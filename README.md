@@ -16,17 +16,15 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 Changes already implemented in Git master for next release:
 
+* nothing to far
+
+Changes in release 2019_03:
+
+
 * SeqPurge: massive speed-up by adding writer thread.
 * SampleSimilarity: add flag to ignore multi-allelic sites, massive speed-up by caching of variants in RAM.
 * VcfFilter: minor bug fixes (reference allele checks).
 * Added tools: VcfExtractSamples, VcfBreakComplex (beta)
-
-Changes in release 2018_11:
-
-* Added tools: VcfBreakMulti, VcfFilter
-* VcfCheck: several big fixes (GT handling, missing values, missing samples, ...).
-* RohHunter: Fixed crash when a variant is not annotated with CSQ from VEP.
-* cppNGS: Fixed memory leak in BAM file handling.
 
 For older releases see the [releases page](https://github.com/imgag/ngs-bits/releases).
 
@@ -134,6 +132,7 @@ Installation instructions for the NGSD can be found [here](doc/install_ngsd.md).
 
 * [PERsim](doc/tools/PERsim.md) - Paired-end read simulator for Illumina reads.
 * [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file.
+
 
 
 
