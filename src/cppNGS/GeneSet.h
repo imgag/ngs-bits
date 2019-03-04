@@ -15,7 +15,6 @@ class CPPNGSSHARED_EXPORT GeneSet
 		//Default contstructor
 		GeneSet();
 
-		using QList<QByteArray>::clear;
 		using QList<QByteArray>::count;
 		using QList<QByteArray>::operator[];
 		using QList<QByteArray>::join;
@@ -25,7 +24,6 @@ class CPPNGSSHARED_EXPORT GeneSet
 		using QList<QByteArray>::end;
 		using QList<QByteArray>::cbegin;
 		using QList<QByteArray>::cend;
-		using QList<QByteArray>::toSet;
 
 		///Inserts a gene
 		void insert(const QByteArray& gene);
@@ -53,6 +51,13 @@ class CPPNGSSHARED_EXPORT GeneSet
 			return *this;
 		}
 
+		///Clears the gene set
+		void clear()
+		{
+			QList<QByteArray>::clear();
+			set_.clear();
+		}
+
 		///Equality check
 		bool operator==(const GeneSet& rhs)
 		{
@@ -66,13 +71,20 @@ class CPPNGSSHARED_EXPORT GeneSet
 		}
 
 		///Checks if the gene is contained
-		bool contains(const QByteArray& gene) const;
+		bool contains(const QByteArray& gene) const
+		{
+			QByteArray tmp = gene.trimmed().toUpper();
+			return set_.contains(tmp);
+		}
 		///Checks if the gene is contained
 		bool containsAll(const GeneSet& genes) const;
 		///Returns the intersection of two gene sets
 		GeneSet intersect(const GeneSet& genes) const;
 		///Checks if any gene is contained
-		bool intersectsWith(const GeneSet& genes) const;
+		bool intersectsWith(const GeneSet& genes) const
+		{
+			return set_.intersects(genes.set_);
+		}
 
 		///Load gene list from file
 		static GeneSet createFromFile(QString filename);
@@ -83,8 +95,16 @@ class CPPNGSSHARED_EXPORT GeneSet
 
 		///Create gene list from string list
 		static GeneSet createFromStringList(const QStringList& list);
-		///Converts a gene set to a string list
+		///Converts the datastructure to a string list
 		QStringList toStringList() const;
+		///Converts the datastructure to a set
+		const QSet<QByteArray>& toSet() const
+		{
+			return set_;
+		}
+
+	protected:
+		QSet<QByteArray> set_;
 };
 
 #endif // GENESET_H

@@ -1840,8 +1840,8 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 	i_af_m = tmp.indexOf(i_m);
 
 	//pre-calculate genes with heterozygous variants
-	QStringList types = getStringList("types");
-	QSet<QByteArray> genes_comphet;
+	QSet<QString> types = getStringList("types").toSet();
+	GeneSet genes_comphet;
 	if (types.contains("comp-het"))
 	{
 		GeneSet het_father;
@@ -1869,7 +1869,7 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 				}
 			}
 		}
-		genes_comphet = het_mother.intersect(het_father).toSet();
+		genes_comphet = het_mother.intersect(het_father);
 	}
 
 	//load imprinting gene list
@@ -1942,10 +1942,9 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 					||
 					(geno_c=="het" && geno_f=="wt" && geno_m=="het"))
 				{
-					GeneSet genes = GeneSet::createFromText(v.annotations()[i_gene], ',');
-					foreach(const QByteArray& gene, genes)
+					if (genes_comphet.intersectsWith(GeneSet::createFromText(v.annotations()[i_gene], ',')))
 					{
-						if (genes_comphet.contains(gene)) match = true;
+						match = true;
 					}
 				}
 			}
