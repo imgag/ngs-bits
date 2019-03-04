@@ -20,7 +20,7 @@ Use git to clone the most recent release (the source code package of GitHub does
 
     > git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
-	> git checkout 2018_11
+	> git checkout 2019_03
 	> git submodule update --recursive --init
 
 ### Resolving proxy issues with git
