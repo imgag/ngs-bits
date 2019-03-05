@@ -907,16 +907,16 @@ public:
 				THROW(ProgrammingException, "Mean depth of coverage (DOC) is invalid for sample '" + samples[s]->name + "': " + QByteArray::number(samples[s]->doc_mean));
 			}
 
-            //flag low-depth samples
+			//flag low-depth samples
 			if (samples[s]->doc_mean < sam_min_depth)
             {
 				samples[s]->qc += "avg_depth=" + QByteArray::number(samples[s]->doc_mean) + " ";
             }
-			if (c_chrx>0 && mean_chrx<5)
+			if (c_chrx>0 && mean_chrx < sam_min_depth)
 			{
 				samples[s]->qc += "avg_depth_chrx=" + QByteArray::number(mean_chrx) + " ";
 			}
-			if (c_auto>0 && mean_auto<5)
+			if (c_auto>0 && mean_auto < sam_min_depth)
 			{
 				samples[s]->qc += "avg_depth_autosomes=" + QByteArray::number(mean_auto) + " ";
 			}
@@ -924,6 +924,22 @@ public:
 
 		timings.append("loading input: " + Helper::elapsedTime(timer));
 		timer.restart();
+
+		//check that we have enough high-quality samples
+		int high_quality_samples = 0;
+		for (int s=0; s<samples.count(); ++s)
+		{
+			high_quality_samples += samples[s]->qc.isEmpty();
+		}
+		if (high_quality_samples==0)
+		{
+			QStringList tmp;
+			for (int s=0; s<samples.count(); ++s)
+			{
+				tmp << samples[s]->name + ": " + samples[s]->qc;
+			}
+			THROW(ArgumentException, "All samples have failed QC:\n" + tmp.join("\n"));
+		}
 
 		//normalize DOC by GC content
 		if (gc_window>0)
@@ -1008,7 +1024,7 @@ public:
 					}
 					tmp.append(samples[s]->doc[e]);
                 }
-            }
+			}
             std::sort(tmp.begin(), tmp.end());
 			float median = fun_median(tmp);
 			float mad = 1.428f * fun_mad(tmp, median);
