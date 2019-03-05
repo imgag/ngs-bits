@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2018_11-146-gf2429c0)
+	VariantFilterAnnotations (2018_11-159-gcaa7694)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -50,7 +50,7 @@
 	Gene constraint                    Filter based on gene constraint (gnomAD o/e score for LOF variants).
 	                                   Note that gene constraint is most helpful for early-onset severe diseases.
 	                                   For details on gnomAD o/e, see https://macarthurlab.org/2018/10/17/gnomad-v2-1/
-	                                   Note: ExAC pLI is deprected and support for downward compatibility with old GSvar files.
+	                                   Note: ExAC pLI is deprected and support for backward compatibility with old GSvar files.
 	                                   Parameters:
 	                                     max_oe_lof - Maximum gnomAD o/e score for LoF variants [default=0.35] [min=0.0] [max=1.0]
 	                                     min_pli - Minumum ExAC pLI score [default=0.9] [min=0.0] [max=1.0]
@@ -118,7 +118,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2018_11-146-gf2429c0
+	VariantFilterAnnotations 2018_11-159-gcaa7694
 	
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.

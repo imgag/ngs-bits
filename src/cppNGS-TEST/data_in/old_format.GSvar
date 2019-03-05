@@ -1,0 +1,4 @@
+##SAMPLE=<ID=NA12878_03,Status=affected>
+##PIPELINE=megSAP 0.1-742-ged8ba02
+#chr	start	end	ref	obs	genotype	filter	quality	gene	variant_type	coding_and_splicing	regulatory	dbSNP	1000g	gnomAD_sub	ESP_sub	gnomAD	phyloP	PolyPhen	Sift	OMIM	fathmm-MKL	CADD	REVEL	ClinVar	HGMD	COSMIC	NGSD_hom	NGSD_het	classification	classification_comment	validation	gene_info
+chr1	62713224	62713224	C	G	hom		QUAL=1166;DP=37;AF=1.00;MQM=60	KANK4	missense_variant	KANK4:NM_181712.4:missense_variant:MODERATE:exon9/10:c.2803G>C:p.Val935Leu		rs2941679	0.9862	0.974	0.974	0.9598	0.6980	T	T,T,T,T								946	87				AL627309.1 (inh=n/a pLI=n/a)

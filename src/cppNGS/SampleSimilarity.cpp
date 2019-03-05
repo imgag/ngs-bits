@@ -9,10 +9,14 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromVcf(QString fi
 	VariantList variants;
 	VariantListFormat format = variants.load(filename, AUTO, roi);
 
-	int geno_col;
+	int geno_col = -1;
 	if (format==TSV)
 	{
-		geno_col = variants.annotationIndexByName("genotype", true, false);
+		QList<int> affected_cols = variants.getSampleHeader().sampleColumns(true);
+		if (affected_cols.count()==1)
+		{
+			geno_col = affected_cols[0];
+		}
 	}
 	else //VCF or VCF.GZ
 	{

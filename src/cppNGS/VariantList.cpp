@@ -1565,7 +1565,7 @@ SampleHeaderInfo VariantList::getSampleHeader(bool error_if_missing) const
 		}
 	}
 
-	//special handling of single-sample analysis
+	//special handling of old single-sample analysis (no longer required, but kept for backward-compatibility)
 	if (output.count()==1 && annotationIndexByName("genotype", true, false)!=-1)
 	{
 		output.first().column_name = "genotype";

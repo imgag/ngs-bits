@@ -23,8 +23,8 @@ public:
 	virtual void setup()
 	{
 		setDescription("Calculates the differences/overlap between variant lists.");
-		addInfile("in1", "Input variant list in TSV format.", false, true);
-		addInfile("in2", "Input variant list in TSV format.", false, true);
+		addInfile("in1", "Input variant list in GSvar format.", false, true);
+		addInfile("in2", "Input variant list in GSvar format.", false, true);
 		//optional
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
 		addInt("window", "Window to consider around indel positions to compensate for differing alignments.", true, 100);
@@ -37,7 +37,8 @@ public:
 		VariantList tmp;
 		tmp.load(filename);
 		int idx_q = tmp.annotationIndexByName("quality", true, false);
-		int idx_g = tmp.annotationIndexByName("genotype", true, false);
+		QList<int> affected_cols = tmp.getSampleHeader().sampleColumns(true);
+		int idx_g = affected_cols.count()!=1 ? -1 : affected_cols[0];
 		for (int i=0; i<tmp.count(); ++i)
 		{
 			Variant v = tmp[i];
@@ -46,7 +47,7 @@ public:
 			v.annotations().append("");
 			if (idx_q==-1)
 			{
-				v.annotations().append("na");
+				v.annotations().append("n/a");
 			}
 			else
 			{
@@ -54,7 +55,7 @@ public:
 			}
 			if (idx_g==-1)
 			{
-				v.annotations().append("na");
+				v.annotations().append("n/a");
 			}
 			else
 			{

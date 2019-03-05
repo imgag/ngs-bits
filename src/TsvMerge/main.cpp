@@ -24,7 +24,7 @@ public:
 		//optional
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
 		addFlag("numeric", "If set, column names are interpreted as 1-based column numbers.");
-		addFlag("simple", "Fast and memty-efficient mode for merging files that are ordered in the same way and have no missing lines.");
+		addFlag("simple", "Fast and memory-efficient mode for merging files that are ordered in the same way and have no missing lines.");
 		addString("mv", "Missing value, i.e. value that is inserted when key is missing in a file.", true, "");
 
 		changeLog(2018, 12 ,  5, "Added 'simple' mode.");

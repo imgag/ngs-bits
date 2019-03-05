@@ -1,7 +1,7 @@
 ##ANALYSISTYPE=GERMLINE_SINGLESAMPLE
 ##PIPELINE=megSAP 0.1-742-ged8ba02
 ##SAMPLE=<ID=NA12878_03,Gender=n/a,ExternalSampleName=Coriell-DNA,IsTumor=no,IsFFPE=no,DiseaseGroup=Other diseases,DiseaseStatus=affected>
-##DESCRIPTION=genotype=Genotype of variant in sample.
+##DESCRIPTION=NA12878_03=Genotype of variant in sample.
 ##DESCRIPTION=filter=Annotations for filtering and ranking variants.
 ##DESCRIPTION=quality=Quality parameters - SNP quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM).
 ##DESCRIPTION=gene=Affected gene list (comma-separated).
@@ -33,7 +33,7 @@
 ##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, gnomAD o/e scores).
 ##FILTER=gene_blacklist=The gene(s) are contained on the blacklist of unreliable genes.
 ##FILTER=off-target=Variant marked as 'off-target'.
-#chr	start	end	ref	obs	genotype	filter	quality	gene	variant_type	coding_and_splicing	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom	gnomAD_sub	ESP_sub	phyloP	Sift	PolyPhen	fathmm-MKL	CADD	REVEL	OMIM	ClinVar	HGMD	COSMIC	NGSD_hom	NGSD_het	classification	classification_comment	validation	comment	gene_info
+#chr	start	end	ref	obs	NA12878_03	filter	quality	gene	variant_type	coding_and_splicing	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom	gnomAD_sub	ESP_sub	phyloP	Sift	PolyPhen	fathmm-MKL	CADD	REVEL	OMIM	ClinVar	HGMD	COSMIC	NGSD_hom	NGSD_het	classification	classification_comment	validation	comment	gene_info
 chr1	27682481	27682481	G	A	het	off-target	QUAL=2181;DP=169;AF=0.51;MQM=60	MAP3K6	intron	MAP3K6:ENST00000357582:intron_variant:MODIFIER:exon27/28:c.3711+36C>T::,MAP3K6:ENST00000374040:intron_variant:MODIFIER:exon26/27:c.3687+36C>T::,MAP3K6:ENST00000493901:intron_variant:MODIFIER:exon28/29:c.3711+36C>T::		rs12569127	0.1903	0.2659		0.2162,0.2015,0.1154,0.3242,0.1645	0.3297,0.2274	-0.5000			0.06,0.19	0.09						n/a (AF>5%)	n/a (AF>5%)					MAP3K6 (inh=n/a pLI=0.00)
 chr1	27686063	27686063	G	C	hom	off-target	QUAL=6115;DP=198;AF=1.00;MQM=60	MAP3K6	intron	MAP3K6:ENST00000357582:intron_variant:MODIFIER:exon17/28:c.2320-50C>G::,MAP3K6:ENST00000374040:intron_variant:MODIFIER:exon16/27:c.2296-50C>G::,MAP3K6:ENST00000493901:intron_variant:MODIFIER:exon18/29:c.2320-50C>G::		rs7521552		0.9944		0.9658,0.9966,1.0000,0.9953,0.9965	0.9960,0.9648	-0.3520			0.00,0.11	0.01						n/a (AF>5%)	n/a (AF>5%)					MAP3K6 (inh=n/a pLI=0.00)
 chr1	27687466	27687466	G	T	het		QUAL=9743;DP=738;AF=0.52;MQM=60	MAP3K6	missense	MAP3K6:ENST00000357582:missense_variant:MODERATE:exon14/29:c.1866C>A:p.Asn622Lys:,MAP3K6:ENST00000374040:missense_variant:MODERATE:exon13/28:c.1842C>A:p.Asn614Lys:,MAP3K6:ENST00000493901:missense_variant:MODERATE:exon15/30:c.1866C>A:p.Asn622Lys:		rs35659744	0.1220	0.2263		0.0485,0.1393,0.0934,0.3034,0.1509	0.2959,0.0572	0.0290	T,T,T	B,B,B	0.03,0.20	1.09	0.04		403071 [benign DISEASE=not specified];		COSM1559294,COSM1559295	n/a (AF>5%)	n/a (AF>5%)					MAP3K6 (inh=n/a pLI=0.00)

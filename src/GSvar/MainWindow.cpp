@@ -202,7 +202,7 @@ void MainWindow::on_actionCNV_triggered()
 	//create list of genes with heterozygous variant hits
 	GeneSet het_hit_genes;
 	int i_genes = variants_.annotationIndexByName("gene", true, false);
-	QString geno_column = variants_.type()==GERMLINE_TRIO ? processedSampleName() : "genotype";
+	QString geno_column = variants_.getSampleHeader().infoByStatus(true).column_name;
 	int i_genotype = variants_.annotationIndexByName(geno_column, true, false);
 	if (i_genes!=-1 && i_genotype!=-1)
 	{
@@ -2075,7 +2075,8 @@ void MainWindow::uploadtoLovd(int variant_index, int variant_index2)
 	//data 1st variant
 	const Variant& variant = variants_[variant_index];
 	data.variant = variant;
-	int genotype_index = variants_.annotationIndexByName("genotype");
+	//TODO check if it works for single/trio
+	int genotype_index = variants_.getSampleHeader().infoByStatus(true).column_index;
 	data.genotype = variant.annotations()[genotype_index];
 	FastaFileIndex idx(Settings::string("reference_genome"));
 	data.hgvs_g = variant.toHGVS(idx);

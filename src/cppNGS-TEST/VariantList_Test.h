@@ -355,7 +355,7 @@ private slots:
 		vl.checkValid();
 		I_EQUAL(vl.count(), 329);
 		I_EQUAL(vl.annotations().count(), 30);
-		S_EQUAL(vl.annotations()[0].name(), QString("genotype"));
+		S_EQUAL(vl.annotations()[0].name(), QString("NA12878_03"));
 		S_EQUAL(vl.annotations()[27].name(), QString("validation"));
 		I_EQUAL(vl.filters().count(), 2);
 		S_EQUAL(vl.filters()["gene_blacklist"], QString("The gene(s) are contained on the blacklist of unreliable genes."));
@@ -388,6 +388,26 @@ private slots:
 		I_EQUAL(vl.annotations().count(), 30);
 	}
 
+	void test_backward_compatabilty_genotype_column()
+	{
+		//new format
+		VariantList vl;
+		vl.load(TESTDATA("data_in/panel_vep.GSvar"));
+		vl.checkValid();
+		SampleInfo info = vl.getSampleHeader().infoByStatus(true);
+		S_EQUAL(info.id, "NA12878_03");
+		S_EQUAL(info.column_name, "NA12878_03");
+		I_EQUAL(info.column_index, 0);
+
+
+		//old format
+		vl.load(TESTDATA("data_in/old_format.GSvar"));
+		vl.checkValid();
+		info = vl.getSampleHeader().infoByStatus(true);
+		S_EQUAL(info.id, "NA12878_03");
+		S_EQUAL(info.column_name, "genotype");
+		I_EQUAL(info.column_index, 0);
+	}
 	void loadFromTSV_withROI()
 	{
 		BedFile roi;
@@ -398,7 +418,7 @@ private slots:
 		vl.load(TESTDATA("data_in/panel_vep.GSvar"), TSV, &roi);
 		I_EQUAL(vl.count(), 4);
 		I_EQUAL(vl.annotations().count(), 30);
-		S_EQUAL(vl.annotations()[0].name(), QString("genotype"));
+		S_EQUAL(vl.annotations()[0].name(), QString("NA12878_03"));
 		S_EQUAL(vl.annotations()[27].name(), QString("validation"));
 		I_EQUAL(vl.filters().count(), 2);
 		S_EQUAL(vl.filters()["gene_blacklist"], QString("The gene(s) are contained on the blacklist of unreliable genes."));
@@ -429,7 +449,7 @@ private slots:
 		I_EQUAL(vl.count(), 329);
 
 		I_EQUAL(vl.annotations().count(), 30);
-		S_EQUAL(vl.annotations()[0].name(), QString("genotype"));
+		S_EQUAL(vl.annotations()[0].name(), QString("NA12878_03"));
 		S_EQUAL(vl.annotations()[27].name(), QString("validation"));
 
 		I_EQUAL(vl.filters().count(), 2);
@@ -576,8 +596,8 @@ private slots:
 		VariantList vl;
 		vl.load(TESTDATA("data_in/panel_vep.GSvar"));
 		vl.checkValid();
-		I_EQUAL(vl.annotationIndexByName("genotype", true, false), 0);
-		I_EQUAL(vl.annotationIndexByName("genotype", false, false), 0);
+		I_EQUAL(vl.annotationIndexByName("NA12878_03", true, false), 0);
+		I_EQUAL(vl.annotationIndexByName("NA12878_03", false, false), 0);
 		I_EQUAL(vl.annotationIndexByName("validation", true, false), 27);
 		I_EQUAL(vl.annotationIndexByName("validation", false, false), 27);
 		I_EQUAL(vl.annotationIndexByName("ESP_", false, false), 12);

@@ -1,5 +1,5 @@
 ### TsvMerge tool help
-	TsvMerge (2018_11-127-gbd77909)
+	TsvMerge (2018_11-159-gcaa7694)
 	
 	Merges TSV file based on a list of columns.
 	
@@ -12,7 +12,7 @@
 	                 Default value: ''
 	  -numeric       If set, column names are interpreted as 1-based column numbers.
 	                 Default value: 'false'
-	  -simple        Fast and memty-efficient mode for merging files that are ordered in the same way and have no missing lines.
+	  -simple        Fast and memory-efficient mode for merging files that are ordered in the same way and have no missing lines.
 	                 Default value: 'false'
 	  -mv <string>   Missing value, i.e. value that is inserted when key is missing in a file.
 	                 Default value: ''
@@ -24,7 +24,7 @@
 	  --tdx          Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### TsvMerge changelog
-	TsvMerge 2018_11-127-gbd77909
+	TsvMerge 2018_11-159-gcaa7694
 	
 	2018-12-05 Added 'simple' mode.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

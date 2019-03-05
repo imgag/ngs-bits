@@ -382,8 +382,12 @@ void VariantTable::adaptColumnWidthsCustom()
 
 	//medium
 	int size_med = 100;
-	index = columnIndex("genotype");
-	if (index!=-1) setColumnWidth(index, size_med);
+	SampleHeaderInfo header_info;
+	foreach(const SampleInfo& info, header_info)
+	{
+		index = columnIndex(info.column_name);
+		if (index!=-1) setColumnWidth(index, size_med);
+	}
 	index = columnIndex("gene");
 	if (index!=-1) setColumnWidth(index, size_med);
 	index = columnIndex("variant_type");

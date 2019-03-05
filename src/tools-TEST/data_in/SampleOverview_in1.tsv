@@ -34,7 +34,8 @@
 ##FILTER=pred_pathogenic_2=Variant predicted pathogenic by two of the prediction tools.
 ##FILTER=pred_pathogenic_3=Variant predicted pathogenic by three of the prediction tools.
 ##FILTER=pred_pathogenic_4=Variant predicted pathogenic by four of the prediction tools.
-#chr	start	end	ref	obs	genotype	snp_q	depth	map_q	variant	variant_frequency	variant_type	gene	variant_details	coding_and_splicing	snp_1000g2011may_all	snp_snp132	ljb_phylop	ljb_mt	esp6500si_ea	quality_filter	ihdb_hom_34	ihdb_het_34	ihdb_wt_34	ihdb_allsys
+##SAMPLE=<ID=SAMPLE1,Status=affected>
+#chr	start	end	ref	obs	SAMPLE1	snp_q	depth	map_q	variant	variant_frequency	variant_type	gene	variant_details	coding_and_splicing	snp_1000g2011may_all	snp_snp132	ljb_phylop	ljb_mt	esp6500si_ea	quality_filter	ihdb_hom_34	ihdb_het_34	ihdb_wt_34	ihdb_allsys
 chr1	153907297	153907305	CTGCTGCTG	-	het	217	44	48	INDEL	0.0476	exonic	DENND4B	nonframeshift deletion	DENND4B:NM_014856:exon18:c.2704_2712del:p.902_904del,	.	.	.	420		passed	0.6765	0	0.3235	25
 chr1	155257959	155257959	G	A	het	6.2	15	44	SNV	0.125	exonic	HCN3	nonsynonymous SNV	HCN3:NM_020897:exon8:c.G2030A:p.R677Q,	.	.	3.08	.	609973	failed	0.0294	0	0.9706	1
 chr10	101578548	101578548	G	T	het	5.46	31	47	SNV	0.16	exonic;splicing	ABCC2;ABCC2	nonsynonymous SNV	ABCC2:NM_000392:exon18:c.G2273T:p.G758V,	.	.	3.40	.	601107	failed	0.5882	0.2059	0.2059	29
