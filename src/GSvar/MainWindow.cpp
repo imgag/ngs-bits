@@ -73,6 +73,8 @@
 #include "ProcessedSampleWidget.h"
 #include "DBSelector.h"
 #include "SequencingRunWidget.h"
+#include "SimpleCrypt.h"
+#include "ToolBase.h"
 
 QT_CHARTS_USE_NAMESPACE
 
@@ -881,6 +883,32 @@ void MainWindow::on_actionShowAfHistogram_triggered()
 	view->setRenderHint(QPainter::Antialiasing);
 	view->setMinimumSize(800, 600);
 	auto dlg = GUIHelper::createDialog(view, "Allele frequency histogram");
+	dlg->exec();
+}
+
+void MainWindow::on_actionEncrypt_triggered()
+{
+	//get input
+	QString input = QInputDialog::getText(this, "Text for encryption", "text");
+	if (input.isEmpty()) return;
+
+	//decrypt
+	QStringList out_lines;
+	out_lines << ("Input text: " + input);
+	try
+	{
+		qulonglong crypt_key = ToolBase::encryptionKey("encryption helper");
+		out_lines << ("Encrypted text: " + SimpleCrypt(crypt_key).encryptToString(input));
+	}
+	catch(Exception& e)
+	{
+		out_lines << ("Error: " + e.message());
+	}
+
+	//show output
+	QTextEdit* edit = new QTextEdit(this);
+	edit->setText(out_lines.join("\n"));
+	auto dlg = GUIHelper::createDialog(edit, "Encryption output");
 	dlg->exec();
 }
 

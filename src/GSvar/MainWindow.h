@@ -201,6 +201,8 @@ public slots:
 	void showVariantSampleOverview();
 	///Show allele frequency histogram
 	void on_actionShowAfHistogram_triggered();
+	///Show encryption helper
+	void on_actionEncrypt_triggered();
 
 	///Returns a gene list where the inheritance information is not set (selected variants only)
 	QStringList geneInheritanceMissing(QBitArray selected);

@@ -40,6 +40,14 @@ Have a look at the [ECCB'2018 poster](doc/data/poster_ECCB2018.pdf).
 The documentation of individual tools is linked in the tools list below.  
 For some tools the documentation pages contain only the command-line help, for other tools they contain more information.
 
+## License
+
+*ngs-bits* is provided under the [MIT license](LICENSE) and is based on other open source software:
+
+* [htslib](https://github.com/samtools/htslib) for HTS data format support (BAM, VCF, ...)
+* [SimpleCrypt](https://wiki.qt.io/Simple_encryption_with_SimpleCrypt) for weak encryption
+
+
 ## Tools list
 
 _ngs-bits_ contains a lot of tools that are used for NGS-based diagnostics in our [institute](http://www.uni-tuebingen.de/Klinische_Genetik/start.html):
@@ -132,6 +140,7 @@ Installation instructions for the NGSD can be found [here](doc/install_ngsd.md).
 
 * [PERsim](doc/tools/PERsim.md) - Paired-end read simulator for Illumina reads.
 * [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file.
+
 
 
 

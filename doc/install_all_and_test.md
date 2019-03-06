@@ -82,8 +82,8 @@ Install like that:
 
 ## (4) GSvar setup (Windows)
 
-GSvar is a variant filtering and reporting tool for Windows that is tightly integrated with the NGSD.
-You can download the [pre-built binaries](https://medgen.medizin.uni-tuebingen.de/NGS-downloads/GSvar-current.zip), or you can build the GSvar according to the [Windows installation instructions](install_win.md).  
+GSvar is a variant filtering and reporting tool for Windows that is tightly integrated with the NGSD.  
+You can build the GSvar according to the [Windows installation instructions](install_win.md).  
 
 After building GSvar, you need to configure it:
 
@@ -103,6 +103,9 @@ After building GSvar, you need to configure it:
 		</tr>
 	</table>
  * Copy the `bin\GSvar.ini.example` to `bin\GSvar.ini`.
+
+The settings file can contain sensitive information like passwords.  
+Thus, it is possible to [encrypt information in the settings file](GSvar/encrypt_settings.md).
 
 For more information on GSvar, open the help within GSvar (F1) or use this [link](GSvar/index.md).
 
@@ -152,6 +155,7 @@ In order to import variants and QC values of a sample into the NGSD, you have to
 Now, you can import the variant and QC data of the sample `NA12878_01`into the NGSD using the following command:
 
 	php php/src/Pipelines/analyze.php -folder Sample_NA12878_01 -name NA12878_01 -system hpHBOCv5.ini -steps db
+
 
 
 
