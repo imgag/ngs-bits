@@ -244,12 +244,7 @@ QList<int> VariantTable::selectedVariantsIndices() const
 	{
 		for(int row=range.topRow(); row<=range.bottomRow(); ++row)
 		{
-			//get header (variant index is stored in user data)
-			QTableWidgetItem* header = verticalHeaderItem(row);
-			if (header==nullptr) THROW(ProgrammingException, "Variant table row header not set!");
-			bool ok;
-			output << header->data(Qt::UserRole).toInt(&ok);
-			if (!ok) THROW(ProgrammingException, "Variant table row header user data '" + header->data(Qt::UserRole).toString() + "' not an integer!");
+			output << rowToVariantIndex(row);
 		}
 	}
 
@@ -258,15 +253,74 @@ QList<int> VariantTable::selectedVariantsIndices() const
 	return output;
 }
 
+int VariantTable::rowToVariantIndex(int row) const
+{
+	//get header (variant index is stored in user data)
+	QTableWidgetItem* header = verticalHeaderItem(row);
+	if (header==nullptr) THROW(ProgrammingException, "Variant table row header not set!");
+
+	//convert header text to integer
+	bool ok;
+	int variant_index = header->data(Qt::UserRole).toInt(&ok);
+	if (!ok) THROW(ProgrammingException, "Variant table row header user data '" + header->data(Qt::UserRole).toString() + "' not an integer!");
+
+	return variant_index;
+}
+
+QList<int> VariantTable::columnWidths() const
+{
+	QList<int> output;
+
+	for (int c=0; c<columnCount(); ++c)
+	{
+		output << columnWidth(c);
+	}
+
+	return output;
+}
+
+void VariantTable::setColumnWidths(const QList<int>& widths)
+{
+	int col_count = std::min(widths.count(), columnCount());
+	for (int c=0; c<col_count; ++c)
+	{
+		setColumnWidth(c, widths[c]);
+	}
+}
+
+void VariantTable::adaptRowHeights()
+{
+	if (rowCount()<1) return;
+
+	resizeRowToContents(0);
+	int height = rowHeight(0);
+
+	for (int i=0; i<rowCount(); ++i)
+	{
+		setRowHeight(i, height);
+	}
+}
+
 void VariantTable::clearContents()
 {
 	setRowCount(0);
 	setColumnCount(0);
 }
 
-void VariantTable::resizeCells()
+void VariantTable::adaptColumnWidths()
 {
-	GUIHelper::resizeTableCells(this, 200);
+	//resize columns width
+	resizeColumnsToContents();
+
+	//restrict width
+	int max_col_width = 200;
+	for (int i=0; i<columnCount(); ++i)
+	{
+		if (columnWidth(i)>max_col_width)
+		{
+			setColumnWidth(i, max_col_width);
+		}
+	}
 
 	//set mimumn width of chr, start, end
 	if (columnWidth(0)<42)
@@ -292,9 +346,20 @@ void VariantTable::resizeCells()
 	}
 }
 
-void VariantTable::resizeCellsCustom()
+void VariantTable::adaptColumnWidthsCustom()
 {
-	GUIHelper::resizeTableCells(this, 50);
+	//resize columns width
+	resizeColumnsToContents();
+
+	//restrict width
+	int max_col_width = 50;
+	for (int i=0; i<columnCount(); ++i)
+	{
+		if (columnWidth(i)>max_col_width)
+		{
+			setColumnWidth(i, max_col_width);
+		}
+	}
 
 	//set mimumn width of chr, start, end
 	if (columnWidth(0)<42)
@@ -317,8 +382,12 @@ void VariantTable::resizeCellsCustom()
 
 	//medium
 	int size_med = 100;
-	index = columnIndex("genotype");
-	if (index!=-1) setColumnWidth(index, size_med);
+	SampleHeaderInfo header_info;
+	foreach(const SampleInfo& info, header_info)
+	{
+		index = columnIndex(info.column_name);
+		if (index!=-1) setColumnWidth(index, size_med);
+	}
 	index = columnIndex("gene");
 	if (index!=-1) setColumnWidth(index, size_med);
 	index = columnIndex("variant_type");

@@ -43,6 +43,7 @@ ReportDialog::ReportDialog(QString filename, QWidget* parent)
 void ReportDialog::addVariants(const VariantList& variants, const QBitArray& visible)
 {
 	int class_idx = variants.annotationIndexByName("classification", true, false);
+	int geno_idx = variants.getSampleHeader().infoByStatus(true).column_index;
 
 	ui_.vars->setRowCount(visible.count(true));
 	int row = 0;
@@ -67,19 +68,8 @@ void ReportDialog::addVariants(const VariantList& variants, const QBitArray& vis
 		ui_.vars->setItem(row, 5, new QTableWidgetItem(variant.obs(), 0));
 		for (int j=6; j<labels_.count(); ++j)
 		{
-			int index = variants.annotationIndexByName(labels_[j], true, false);
-			if (index==-1 && labels_[j]!="genotype")
-			{
-				THROW(ArgumentException, "Report dialog: Could not find variant annotation '" + labels_[j] + "'!");
-			}
-			else if (index==-1 && labels_[j]=="genotype")
-			{
-				ui_.vars->setItem(row, j, new QTableWidgetItem("n/a"));
-			}
-			else
-			{
-				ui_.vars->setItem(row, j, new QTableWidgetItem(variant.annotations().at(index), 0));
-			}
+			int index = labels_[j]=="genotype" ? geno_idx : variants.annotationIndexByName(labels_[j]);
+			ui_.vars->setItem(row, j, new QTableWidgetItem(variant.annotations().at(index), 0));
 		}
 
 		++row;

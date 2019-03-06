@@ -55,7 +55,8 @@ SOURCES += main.cpp\
     SequencingRunWidget.cpp \
     AnalysisStatusWidget.cpp \
     ClinCnvWidget.cpp \
-    VariantTable.cpp
+    VariantTable.cpp \
+    RtfDocument.cpp
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
@@ -105,7 +106,9 @@ HEADERS  += MainWindow.h \
     SequencingRunWidget.h \
     AnalysisStatusWidget.h \
     ClinCnvWidget.h \
-    VariantTable.h
+    VariantTable.h \
+    RtfDocument.h
+
 FORMS    += MainWindow.ui \
     FilterDockWidget.ui \
     ExternalToolDialog.ui \

@@ -6,7 +6,7 @@ libs:
 - FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 
 NGSD:
-*** support orphanet codes (wait until GenLab example is available, extend schema, add GenLab view > import)
+*** support orphanet codes (add GenLab view, extend schema by 'Orpha number', implement import)
 ** model merged samples
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
 
@@ -14,11 +14,6 @@ GSvar:
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 *** Implement OMIM search via API - example: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1 (wait for API access)
 ** Allow adding/editing data in NGSD (sample relations, ...)
-** Put NGSD/GL8/LOVD passwords encrypted in INI file - use compiled-in master password to decrypt them
-    - https://www.codeproject.com/Articles/21877/Applied-Crypto-Block-Ciphers
-    - http://www.cplusplus.com/forum/beginner/60604/
-    - https://codereview.stackexchange.com/questions/63566/encryption-with-many-algorithms-using-crypto
-    - https://www.cryptopp.com/wiki/ARIA
 * Add special report for trios/multi-sample with genotype overview > change format to RTF first (AG)
 * Add highlighting of imprinting genes to CNVs, ROHs and UPDs
 * Add gnomAD oe score / ExAC CNV / inheritance (megSAP) and filter for CNVs (GSvar) (wait for ClinCNV)

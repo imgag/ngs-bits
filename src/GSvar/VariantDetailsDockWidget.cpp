@@ -106,9 +106,16 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 
 void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 {
+	//determine genotype column index
+	int geno_i = -1;
+	AnalysisType type = vl.type();
+	if (type==GERMLINE_SINGLESAMPLE || type==GERMLINE_TRIO)
+	{
+		geno_i = vl.getSampleHeader().infoByStatus(true).column_index;
+	}
+
 	//variant
 	QString variant = vl[index].toString(false, 10);
-	int geno_i = vl.annotationIndexByName("genotype", true, false);
 	if(geno_i!=-1)
 	{
 		variant += " (" + vl[index].annotations()[geno_i] + ")";

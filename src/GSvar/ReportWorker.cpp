@@ -504,7 +504,7 @@ void ReportWorker::writeHTML()
 	stream << "</p>" << endl;
 
 	//get column indices
-	int i_genotype = variants_.annotationIndexByName("genotype", true, false); //optional because of tumor samples
+	int i_genotype = variants_.getSampleHeader().infoByStatus(true).column_index;
 	int i_geneinfo = variants_.annotationIndexByName("gene_info", true, true);
 	int i_gene = variants_.annotationIndexByName("gene", true, true);
 	int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, true);
@@ -513,10 +513,6 @@ void ReportWorker::writeHTML()
 	int i_comment = variants_.annotationIndexByName("comment", true, true);
 	int i_kg = variants_.annotationIndexByName("1000G", true, true);
 	int i_gnomad = variants_.annotationIndexByName("gnomAD", true, true);
-
-	//get tumor specific column indices
-	bool tumor = (i_genotype==-1);
-	int i_tumor_af = std::max(variants_.annotationIndexByName("tumor_maf", true, false), variants_.annotationIndexByName("tumor_af", true, false));
 
 	//output: applied filters
 	stream << "<p><b>" << trans("Filterkriterien") << " " << "</b>" << endl;
@@ -532,7 +528,7 @@ void ReportWorker::writeHTML()
 	stream << "<p><b>" << trans("Varianten nach klinischer Interpretation im Kontext der Fragestellung") << "</b>" << endl;
 	stream << "</p>" << endl;
 	stream << "<table>" << endl;
-	stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Variante") << "</b></td><td><b>" << trans(tumor ? "Allelfrequenz" : "Genotyp") << "</b></td><td><b>" << trans("Details") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td><td><b>1000g</b></td><td><b>gnomAD</b></td></tr>" << endl;
+	stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Variante") << "</b></td><td><b>" << trans("Genotyp") << "</b></td><td><b>" << trans("Details") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td><td><b>1000g</b></td><td><b>gnomAD</b></td></tr>" << endl;
 	for (int i=0; i<settings_.variants_selected.count(); ++i)
 	{
 		const Variant& variant = variants_[settings_.variants_selected[i]];
@@ -541,7 +537,7 @@ void ReportWorker::writeHTML()
 		stream << "<td>" << genes << "</td>" << endl;
 		stream << "<td>" << endl;
 		stream  << variant.chr().str() << ":" << variant.start() << "&nbsp;" << variant.ref() << "&nbsp;&gt;&nbsp;" << variant.obs() << "</td>";
-		stream << "<td>" << (tumor ? variant.annotations().at(i_tumor_af) : variant.annotations().at(i_genotype)) << "</td>" << endl;
+		stream << "<td>" << variant.annotations().at(i_genotype) << "</td>" << endl;
 		stream << "<td>" << formatCodingSplicing(variant.transcriptAnnotations(i_co_sp)) << "</td>" << endl;
 		stream << "<td>" << variant.annotations().at(i_class) << "</td>" << endl;
 		stream << "<td>" << inheritance(variant.annotations()[i_geneinfo]) << "</td>" << endl;
@@ -959,7 +955,7 @@ void ReportWorker::writeXML(QString outfile_name)
 	}
 
 	//element Variant
-	int geno_idx = variants_.annotationIndexByName("genotype", true, false);
+	int geno_idx = variants_.getSampleHeader().infoByStatus(true).column_index;
 	int comment_idx = variants_.annotationIndexByName("comment", true, true);
 	int geneinfo_idx = variants_.annotationIndexByName("gene_info", true, false);
 	for (int i=0; i<settings_.variants_selected.count(); ++i)
@@ -971,7 +967,7 @@ void ReportWorker::writeXML(QString outfile_name)
 		w.writeAttribute("end", QString::number(v.end()));
 		w.writeAttribute("ref", v.ref());
 		w.writeAttribute("obs", v.obs());
-		w.writeAttribute("genotype", (geno_idx==-1 ? "n/a" : v.annotations()[geno_idx]));
+		w.writeAttribute("genotype", v.annotations()[geno_idx]);
 		w.writeAttribute("comment", v.annotations()[comment_idx]);
 
 		//element Annotation

@@ -73,6 +73,8 @@
 #include "ProcessedSampleWidget.h"
 #include "DBSelector.h"
 #include "SequencingRunWidget.h"
+#include "SimpleCrypt.h"
+#include "ToolBase.h"
 
 QT_CHARTS_USE_NAMESPACE
 
@@ -202,7 +204,7 @@ void MainWindow::on_actionCNV_triggered()
 	//create list of genes with heterozygous variant hits
 	GeneSet het_hit_genes;
 	int i_genes = variants_.annotationIndexByName("gene", true, false);
-	QString geno_column = variants_.type()==GERMLINE_TRIO ? processedSampleName() : "genotype";
+	QString geno_column = variants_.getSampleHeader().infoByStatus(true).column_name;
 	int i_genotype = variants_.annotationIndexByName(geno_column, true, false);
 	if (i_genes!=-1 && i_genotype!=-1)
 	{
@@ -522,7 +524,8 @@ void MainWindow::handleInputFileChange()
 
 void MainWindow::variantCellDoubleClicked(int row, int /*col*/)
 {
-	openInIGV(variants_[row].toString());
+	int var_index = ui_.vars->rowToVariantIndex(row);
+	openInIGV(variants_[var_index].toString());
 }
 
 void MainWindow::openInIGV(QString region)
@@ -533,12 +536,15 @@ void MainWindow::openInIGV(QString region)
 		IgvDialog dlg(this);
 
 		//sample VCF
+
 		QString folder = QFileInfo(filename_).absolutePath();
 		QStringList files = Helper::findFiles(folder, "*_var_annotated.vcf.gz", false);
+
 		if (files.count()==1)
 		{
 			QString name = QFileInfo(files[0]).baseName().replace("_var_annotated", "");
 			dlg.addFile(name, "VCF", files[0], ui_.actionIgvSample->isChecked());
+
 		}
 
 		//sample BAM file(s)
@@ -572,6 +578,7 @@ void MainWindow::openInIGV(QString region)
 
 		//sample low-coverage
 		files = Helper::findFiles(folder, "*_lowcov.bed", false);
+
 		if (files.count()==1)
 		{
 			dlg.addFile("low-coverage regions track", "BED", files[0], ui_.actionIgvLowcov->isChecked());
@@ -880,6 +887,32 @@ void MainWindow::on_actionShowAfHistogram_triggered()
 	view->setRenderHint(QPainter::Antialiasing);
 	view->setMinimumSize(800, 600);
 	auto dlg = GUIHelper::createDialog(view, "Allele frequency histogram");
+	dlg->exec();
+}
+
+void MainWindow::on_actionEncrypt_triggered()
+{
+	//get input
+	QString input = QInputDialog::getText(this, "Text for encryption", "text");
+	if (input.isEmpty()) return;
+
+	//decrypt
+	QStringList out_lines;
+	out_lines << ("Input text: " + input);
+	try
+	{
+		qulonglong crypt_key = ToolBase::encryptionKey("encryption helper");
+		out_lines << ("Encrypted text: " + SimpleCrypt(crypt_key).encryptToString(input));
+	}
+	catch(Exception& e)
+	{
+		out_lines << ("Error: " + e.message());
+	}
+
+	//show output
+	QTextEdit* edit = new QTextEdit(this);
+	edit->setText(out_lines.join("\n"));
+	auto dlg = GUIHelper::createDialog(edit, "Encryption output");
 	dlg->exec();
 }
 
@@ -1282,7 +1315,9 @@ void MainWindow::loadFile(QString filename)
 		setWindowTitle(QCoreApplication::applicationName() + " - " + filename);
 		ui_.statusBar->showMessage("Loaded variant list with " + QString::number(variants_.count()) + " variants.");
 
-		refreshVariantTable();
+		refreshVariantTable(false);
+		ui_.vars->adaptColumnWidths();
+
 		//Show or Hide button for annotation germline file with somatic variants.
 		int button_pos_in_menu;
 		for(int i=0;i<ui_.tools->actions().count();++i)
@@ -1348,7 +1383,7 @@ void MainWindow::on_actionAbout_triggered()
 
 void MainWindow::on_actionResize_triggered()
 {
-	ui_.vars->resizeCells();
+	ui_.vars->adaptColumnWidths();
 }
 
 void MainWindow::on_actionAnnotateSomaticVariants_triggered()
@@ -1385,7 +1420,7 @@ void MainWindow::on_actionAnnotateSomaticVariants_triggered()
 }
 void MainWindow::on_actionResizeCustom_triggered()
 {
-	ui_.vars->resizeCellsCustom();
+	ui_.vars->adaptColumnWidthsCustom();
 }void MainWindow::on_actionReport_triggered()
 {
 	if (variants_.count()==0) return;
@@ -2116,7 +2151,8 @@ void MainWindow::uploadtoLovd(int variant_index, int variant_index2)
 	//data 1st variant
 	const Variant& variant = variants_[variant_index];
 	data.variant = variant;
-	int genotype_index = variants_.annotationIndexByName("genotype");
+	//TODO check if it works for single/trio
+	int genotype_index = variants_.getSampleHeader().infoByStatus(true).column_index;
 	data.genotype = variant.annotations()[genotype_index];
 	FastaFileIndex idx(Settings::string("reference_genome"));
 	data.hgvs_g = variant.toHGVS(idx);
@@ -2159,7 +2195,7 @@ void MainWindow::dropEvent(QDropEvent* e)
 	e->accept();
 }
 
-void MainWindow::refreshVariantTable()
+void MainWindow::refreshVariantTable(bool keep_widths)
 {
 	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
@@ -2184,9 +2220,17 @@ void MainWindow::refreshVariantTable()
 	var_last_ = -1;
 
 	//update variant table
+	QList<int> col_widths = ui_.vars->columnWidths();
 	ui_.vars->update(variants_, filter_result_, imprinting_genes_, max_variants);
-	ui_.vars->resizeCells();
-
+	ui_.vars->adaptRowHeights();
+	if (keep_widths)
+	{
+		ui_.vars->setColumnWidths(col_widths);
+	}
+	else
+	{
+		ui_.vars->adaptColumnWidths();
+	}
 	QApplication::restoreOverrideCursor();
 
 	Log::perf("Updating variant table took ", timer);
@@ -2641,10 +2685,19 @@ QList<IgvFile> MainWindow::getSegFilesCnv()
 		QList<IgvFile> tmp = getBamFiles();
 		foreach(const IgvFile& file, tmp)
 		{
-			QString segfile = file.filename.left(file.filename.length()-4) + "_cnvs.seg";
+			QString base_name = file.filename.left(file.filename.length()-4);
+			QString segfile = base_name + "_cnvs_clincnv.seg";
 			if (QFile::exists(segfile))
 			{
 				output << IgvFile{file.id, "CNV" , segfile};
+			}
+			else
+			{
+				segfile = base_name + "_cnvs.seg";
+				if (QFile::exists(segfile))
+				{
+					output << IgvFile{file.id, "CNV" , segfile};
+				}
 			}
 		}
 	}
@@ -2687,7 +2740,7 @@ void MainWindow::applyFilters(bool debug_time)
 		timer.start();
 
 		const FilterCascade& filter_cascade = ui_.filters->filters();
-		filter_result_ = filter_cascade.apply(variants_, false);
+		filter_result_ = filter_cascade.apply(variants_, false, debug_time);
 		ui_.filters->markFailedFilters();
 
 		if (debug_time)

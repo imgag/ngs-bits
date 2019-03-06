@@ -26,6 +26,9 @@ public:
 	///Returns a sorted list of selected variants indices
 	QList<int> selectedVariantsIndices() const;
 
+	///Convert table row to variant index.
+	int rowToVariantIndex(int row) const;
+
 	///Creates table widget items, or nullptr if the text is empty. Uses Qt implicit sharing to avoid duplicate strings.
 	QTableWidgetItem* createTableItem(const QString& text) const
 	{
@@ -35,16 +38,25 @@ public:
 		return new QTableWidgetItem(text);
 	}
 
+	///Returns the current column widths.
+	QList<int> columnWidths() const;
+
+	///Sets column widths.
+	void setColumnWidths(const QList<int>& widths);
+
 public slots:
 
 	///Clear contents
 	void clearContents();
 
+	///Set the row heights
+	void adaptRowHeights();
+
 	///Resize table cells for better readability.
-	void resizeCells();
+	void adaptColumnWidths();
 
 	///Resize table cells for better readability (custom).
-	void resizeCellsCustom();
+	void adaptColumnWidthsCustom();
 
 	///Copy table to clipboard
 	void copyToClipboard(bool split_quality);

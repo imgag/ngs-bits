@@ -1,3 +1,4 @@
+##SAMPLE=<ID=NA12878_03,Status=affected>
 #chr	start	end	ref	obs	genotype
 chr1	69511	69511	A	G	hom
 chr1	801943	801943	C	T	hom

@@ -2,6 +2,7 @@
 #include "Exceptions.h"
 #include "GeneSet.h"
 #include "Helper.h"
+#include "Log.h"
 
 /*************************************************** FilterParameter ***************************************************/
 
@@ -425,18 +426,33 @@ void FilterCascade::moveDown(int index)
 	errors_.clear();
 }
 
-FilterResult FilterCascade::apply(const VariantList& variants, bool throw_errors) const
+FilterResult FilterCascade::apply(const VariantList& variants, bool throw_errors, bool debug_time) const
 {
+	QTime timer;
+	timer.start();
+
 	FilterResult result(variants.count());
 
 	//reset errors
 	errors_.fill(QStringList(), filters_.count());
+
+	if (debug_time)
+	{
+		Log::perf("FilterCascade: Initializing took ", timer);
+		timer.start();
+	}
 
 	for(int i=0; i<filters_.count(); ++i)
 	{
 		try
 		{
 			filters_[i]->apply(variants, result);
+
+			if (debug_time)
+			{
+				Log::perf("FilterCascade: Filter " + filters_[i]->name() + " took ", timer);
+				timer.start();
+			}
 		}
 		catch(const Exception& e)
 		{
@@ -1062,7 +1078,7 @@ void FilterGeneInheritance::apply(const VariantList& variants, FilterResult& res
 FilterGeneConstraint::FilterGeneConstraint()
 {
 	name_ = "Gene constraint";
-	description_ = QStringList() << "Filter based on gene constraint (gnomAD o/e score for LOF variants)." << "Note that gene constraint is most helpful for early-onset severe diseases." << "For details on gnomAD o/e, see https://macarthurlab.org/2018/10/17/gnomad-v2-1/" << "Note: ExAC pLI is deprected and support for downward compatibility with old GSvar files.";
+	description_ = QStringList() << "Filter based on gene constraint (gnomAD o/e score for LOF variants)." << "Note that gene constraint is most helpful for early-onset severe diseases." << "For details on gnomAD o/e, see https://macarthurlab.org/2018/10/17/gnomad-v2-1/" << "Note: ExAC pLI is deprected and support for backward compatibility with old GSvar files.";
 
 	params_ << FilterParameter("max_oe_lof", DOUBLE, 0.35, "Maximum gnomAD o/e score for LoF variants");
 	params_.last().constraints["min"] = "0.0";
@@ -1824,7 +1840,7 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 	i_af_m = tmp.indexOf(i_m);
 
 	//pre-calculate genes with heterozygous variants
-	QStringList types = getStringList("types");
+	QSet<QString> types = getStringList("types").toSet();
 	GeneSet genes_comphet;
 	if (types.contains("comp-het"))
 	{
@@ -1922,13 +1938,11 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 		{
 			if (diplod_chromosome)
 			{
-				if (GeneSet::createFromText(v.annotations()[i_gene], ',').intersectsWith(genes_comphet))
+				if ((geno_c=="het" && geno_f=="het" && geno_m=="wt")
+					||
+					(geno_c=="het" && geno_f=="wt" && geno_m=="het"))
 				{
-					if (geno_c=="het" && geno_f=="het" && geno_m=="wt")
-					{
-						match = true;
-					}
-					if (geno_c=="het" && geno_f=="wt" && geno_m=="het")
+					if (genes_comphet.intersectsWith(GeneSet::createFromText(v.annotations()[i_gene], ',')))
 					{
 						match = true;
 					}

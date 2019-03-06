@@ -1,11 +1,11 @@
 ### SampleOverview tool help
-	SampleOverview (0.1-578-g311d9bf)
+	SampleOverview (2018_11-159-gcaa7694)
 	
 	Creates a variant overview table from several samples.
 	
 	Mandatory parameters:
-	  -in <filelist>     Input variant lists in TSV format.
-	  -out <file>        Output variant list file in TSV format.
+	  -in <filelist>     Input variant lists in GSvar format.
+	  -out <file>        Output variant list file in GSvar format.
 	
 	Optional parameters:
 	  -window <int>      Window to consider around indel positions to compensate for differing alignments.
@@ -20,6 +20,6 @@
 	  --tdx              Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SampleOverview changelog
-	SampleOverview 0.1-578-g311d9bf
+	SampleOverview 2018_11-159-gcaa7694
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

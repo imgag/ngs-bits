@@ -180,7 +180,7 @@ public slots:
 	///Apply filter from filter menu
 	void applyFilter(QAction* action);
 	///Updates the variant table once the variant list changed
-	void refreshVariantTable();	
+	void refreshVariantTable(bool keep_widths = true);
 	///Resets the annotation status
 	void resetAnnotationStatus();
 	///Opens the recent file defined by the sender action text
@@ -203,6 +203,8 @@ public slots:
 	void showVariantSampleOverview();
 	///Show allele frequency histogram
 	void on_actionShowAfHistogram_triggered();
+	///Show encryption helper
+	void on_actionEncrypt_triggered();
 
 	///Returns a gene list where the inheritance information is not set (selected variants only)
 	QStringList geneInheritanceMissing(QBitArray selected);

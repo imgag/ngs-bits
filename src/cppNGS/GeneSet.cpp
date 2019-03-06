@@ -9,20 +9,12 @@ GeneSet::GeneSet()
 void GeneSet::insert(const QByteArray& gene)
 {
 	QByteArray tmp = gene.trimmed().toUpper();
-	if (tmp.isEmpty()) return;
+	if (tmp.isEmpty() || set_.contains(tmp)) return;
 
 	auto it = std::lower_bound(begin(), end(), tmp);
-	if(it == end() || *it != tmp)
-	{
-		QList<QByteArray>::insert(it, tmp);
-	}
-}
+	QList<QByteArray>::insert(it, tmp);
 
-bool GeneSet::contains(const QByteArray& gene) const
-{
-	QByteArray tmp = gene.trimmed().toUpper();
-	QList<QByteArray>::const_iterator it = std::lower_bound(begin(), end(), tmp);
-	return (it != end() && *it == tmp);
+	set_.insert(tmp);
 }
 
 bool GeneSet::containsAll(const GeneSet& genes) const
@@ -39,25 +31,14 @@ GeneSet GeneSet::intersect(const GeneSet& genes) const
 {
 	GeneSet output;
 
-	foreach(const QByteArray& gene, genes)
+	QSet<QByteArray> tmp = set_;
+	tmp.intersect(genes.set_);
+	foreach(const QByteArray& gene, tmp)
 	{
-		if (contains(gene))
-		{
-			output.append(gene);
-		}
+		output.insert(gene);
 	}
 
 	return output;
-}
-
-bool GeneSet::intersectsWith(const GeneSet& genes) const
-{
-	foreach(const QByteArray& gene, genes)
-	{
-		if (contains(gene)) return true;
-	}
-
-	return false;
 }
 
 void GeneSet::store(QString filename) const

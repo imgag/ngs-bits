@@ -190,9 +190,29 @@ void NGSHelper::createSampleOverview(QStringList in, QString out, int indel_wind
 	//append sample columns
 	for (int i=0; i<vls.count(); ++i)
 	{
-		//get genotype index
-		int geno_index = vls[i].annotationIndexByName("genotype", true, false);
-		if(geno_index==-1)	geno_index = vls[i].annotationIndexByName("tumor_af", true, true);
+		//get genotype/AF index
+		int geno_index = -1;
+		AnalysisType type = vls[i].type();
+		if (type==SOMATIC_SINGLESAMPLE || type==SOMATIC_PAIR)
+		{
+			geno_index = vls[i].annotationIndexByName("tumor_af", true, true);
+		}
+		else if (type==GERMLINE_SINGLESAMPLE || type==GERMLINE_TRIO || type==GERMLINE_MULTISAMPLE)
+		{
+			QList<int> affected_cols = vls[i].getSampleHeader().sampleColumns(true);
+			if (affected_cols.count()==1)
+			{
+				geno_index = affected_cols[0];
+			}
+			else
+			{
+				THROW(ToolFailedException, "No/several affected in sample header of input file '" + in[i] + "'.");
+			}
+		}
+		else
+		{
+			THROW(ToolFailedException, "Unsupported analysis type in input file '" + in[i] + "'.");
+		}
 
 		//add column header
 		vl_merged.annotationDescriptions().append(VariantAnnotationDescription(QFileInfo(in[i]).baseName(), ""));

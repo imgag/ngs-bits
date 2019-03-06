@@ -278,7 +278,7 @@ private slots:
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 1);
 
-		//ExAC pLI (deprecated, for downward-compatibility)
+		//ExAC pLI (deprecated, for backward-compatibility)
 		result.reset(true);
 		filter.setDouble("max_oe_lof", 0.0);
 		filter.setDouble("min_pli", 0.0);

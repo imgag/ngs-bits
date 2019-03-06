@@ -15,8 +15,8 @@ public:
 	virtual void setup()
 	{
 		setDescription("Creates a variant overview table from several samples.");
-		addInfileList("in", "Input variant lists in TSV format.", false);
-		addOutfile("out", "Output variant list file in TSV format.", false);
+		addInfileList("in", "Input variant lists in GSvar format.", false);
+		addOutfile("out", "Output variant list file in GSvar format.", false);
 		//optional
 		addInt("window", "Window to consider around indel positions to compensate for differing alignments.", true, 100);
 		addString("add_cols", "Comma-separated list of input columns that shall be added to the output. By default, all columns that are present in all input files.", true, "[auto]");
