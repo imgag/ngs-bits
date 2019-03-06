@@ -1,3 +1,4 @@
+##SAMPLE=<ID=NA12878_03,Status=affected>
 #chr	start	end	ref	obs	genotype	quality	region	gene	variant_details	coding	snp_1000g2011may_all	snp_snp132	phylop	repeatmasker	omim_ids	quality_filter	ref_variant_frequency	ref_variant_depth	normal_allele
 chr1	62675664	62675693	GGAGGAAGAGCCCTCAGGGCTGGAGGAGGA	-	het	1	exonic	L1TD1	nonframeshift deletion	L1TD1:NM_001164835:exon5:c.1218_1247del:p.406_416del,L1TD1:NM_019079:exon4:c.1218_1247del:p.406_416del,	.	.	.	230		passed	0	17	GGAGGAAGAGCCCTCAGGGCTGGAGGAGGA
 chr1	110302413	110302413	C	T	het	2	exonic	EPS8L3	nonsynonymous SNV	EPS8L3:NM_139053:exon4:c.G142A:p.E48K,EPS8L3:NM_133181:exon4:c.G142A:p.E48K,EPS8L3:NM_024526:exon4:c.G142A:p.E48K,	.	.	Jan 19	.		passed	0	175	C
