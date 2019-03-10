@@ -24,5 +24,11 @@ private slots:
 		EXECUTE("RohHunter", "-in " + TESTDATA("data_in/RohHunter_in1.vcf.gz") + " -out out/RohHunter_out3.tsv -annotate " + TESTDATA("data_in/RohHunter_genes.bed"));
 		COMPARE_FILES("out/RohHunter_out3.tsv", TESTDATA("data_out/RohHunter_out3.tsv"));
 	}
-
+/*
+	void annotation_from_external_source()
+	{
+		EXECUTE("RohHunter", "-in " + TESTDATA("data_in/RohHunter_in1.vcf.gz") + " -out out/RohHunter_out4.tsv -af_source " + TESTDATA("data_in/RohHunter_afs.vcf.gz"));
+		COMPARE_FILES("out/RohHunter_out1.tsv", TESTDATA("data_out/RohHunter_out1.tsv"));
+	}
+*/
 };

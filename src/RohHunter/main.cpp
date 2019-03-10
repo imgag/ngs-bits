@@ -8,6 +8,15 @@
 #include <QFileInfo>
 #include <cmath>
 
+/*
+TODO:
+- out/ReadQC_out4.qcML > delta
+- check that AF keys are correctly used in megSAP for WGS and WES
+- implement TabixIndex class, RohHunter update, test
+- update change log in tool and update tool descriptions
+- update main page change log
+- benchmark new external annotation source and improve documentation
+*/
 class ConcreteTool
         : public ToolBase
 {
@@ -21,21 +30,25 @@ public:
 
     virtual void setup()
     {
-		setDescription("ROH detection based on a variant list annotated with AF values.");
+		setDescription("ROH detection based on a variant list.");
+		setExtendedDescription(QStringList() << "Runs of homozygosity (ROH) are detected based on the genotype annotations in the VCF file."
+												"Based on the allele frequency of the contained variants, each ROH is assigned an estimated likelyhood to be observed by chance (Q score).");
 		addInfile("in", "Input variant list in VCF or GSvar format.", false);
 		addOutfile("out", "Output TSV file with ROH regions.", false);
 		//optional
 		addInfileList("annotate", "List of BED files used for annotation. Each file adds a column to the output file. The base filename is used as colum name and 4th column of the BED file is used as annotation value.", true);
 		addInt("var_min_dp", "Minimum variant depth ('DP'). Variants with lower depth are excluded from the analysis.", true, 20);
 		addFloat("var_min_q", "Minimum variant quality. Variants with lower quality are excluded from the analysis.", true, 30);
-		addString("var_af_keys", "Comma-separated field names of allele frequency values in VEP-based CSQ annotation.", true, "gnomAD_AF,AF");
-		addFloat("roh_min_q", "Minimum Q score of ROH regions.", true, 30.0);
-		addInt("roh_min_markers", "Minimum marker count of ROH regions.", true, 20);
-		addFloat("roh_min_size", "Minimum size in Kb of ROH regions.", true, 20.0);
+		addString("var_af_keys", "Comma-separated field names of allele frequency values in input file VEP annotation or 'af_source'.", true, "gnomAD_AF,AF");
+		addInfile("af_source", "Tabix-indexed VCF file used as source for allele frequency data. If unset, it is assumed that the input variant list is annotated using Ensembl VEP.", true);
+		addFloat("roh_min_q", "Minimum Q score of output ROH regions.", true, 30.0);
+		addInt("roh_min_markers", "Minimum marker count of output ROH regions.", true, 20);
+		addFloat("roh_min_size", "Minimum size in Kb of output ROH regions.", true, 20.0);
 		addFloat("ext_marker_perc", "Percentage of ROH markers that can be spanned when merging ROH regions .", true, 1.0);
 		addFloat("ext_size_perc", "Percentage of ROH size that can be spanned when merging ROH regions.", true, 50.0);
 		addFlag("inc_chrx", "Include chrX into the analysis. Excluded by default.");
 
+		changeLog(2019,  3, 11, "TODO.");
 		changeLog(2018,  9, 12, "Now supports VEP CSQ annotations (no longer support SnpEff ANN annotations).");
 		changeLog(2017, 12, 07, "Added generic annotation feature.");
 		changeLog(2017, 11, 29, "Added 'inc_chrx' flag.");
@@ -181,6 +194,8 @@ public:
 		//init
 		QTextStream out(stdout);
 		bool inc_chrx = getFlag("inc_chrx");
+		QString af_source = getInfile("af_source");
+		bool af_from_in = af_source.isEmpty();
 
 		//load variant list
 		VariantList vl;
@@ -202,9 +217,12 @@ public:
 		if (idx_dp==-1) THROW(ArgumentException, "Could not find 'DP' annotation in variant list!");
 		QStringList var_af_keys = getString("var_af_keys").split(",", QString::SkipEmptyParts);
 		QVector<int> csq_af_indices;
-		foreach(QString key, var_af_keys)
+		if (af_from_in)
 		{
-			csq_af_indices << vl.vepIndexByName(key);
+			foreach(QString key, var_af_keys)
+			{
+				csq_af_indices << vl.vepIndexByName(key);
+			}
 		}
 
 		//convert variant list to data structure
@@ -242,15 +260,22 @@ public:
 			//determine database AF
 			bool var_known = false;
 			float af = 0.01;
-			foreach(int index, csq_af_indices)
+			if (af_from_in)
 			{
-				QByteArrayList annos = vl[i].vepAnnotations(i_csq, index);
-				foreach(const QByteArray& anno, annos)
+				foreach(int index, csq_af_indices)
 				{
-					float af_new = anno.toFloat();
-					af = std::max(af, af_new);
-					if (af_new>0.0) var_known = true;
+					QByteArrayList annos = vl[i].vepAnnotations(i_csq, index);
+					foreach(const QByteArray& anno, annos)
+					{
+						float af_new = anno.toFloat();
+						af = std::max(af, af_new);
+						if (af_new>0.0) var_known = true;
+					}
 				}
+			}
+			else
+			{
+
 			}
 			if (var_known) ++vars_known;
 
