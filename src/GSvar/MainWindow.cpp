@@ -2103,7 +2103,6 @@ void MainWindow::uploadtoLovd(int variant_index, int variant_index2)
 	//data 1st variant
 	const Variant& variant = variants_[variant_index];
 	data.variant = variant;
-	//TODO check if it works for single/trio
 	int genotype_index = variants_.getSampleHeader().infoByStatus(true).column_index;
 	data.genotype = variant.annotations()[genotype_index];
 	FastaFileIndex idx(Settings::string("reference_genome"));

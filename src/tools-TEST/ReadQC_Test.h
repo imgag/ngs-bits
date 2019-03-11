@@ -32,11 +32,7 @@ private slots:
 		EXECUTE("ReadQC", "-in1 " + TESTDATA("data_in/ReadQC_in3.fastq.gz") + " -in2 " + TESTDATA("data_in/ReadQC_in4.fastq.gz") + " -out out/ReadQC_out4.qcML");
 		REMOVE_LINES("out/ReadQC_out4.qcML", QRegExp("creation "));
 		REMOVE_LINES("out/ReadQC_out4.qcML", QRegExp("<binary>"));
-        #ifdef __APPLE__
-            SKIP("Skipping on Apple. There is a single diff on this file due to numerical calculation but for gcML is quite hard to determine that in a test.");
-        #else
-            COMPARE_FILES("out/ReadQC_out4.qcML", TESTDATA("data_out/ReadQC_out4.qcML"));
-        #endif
+		COMPARE_FILES_DELTA("out/ReadQC_out4.qcML", TESTDATA("data_out/ReadQC_out4.qcML"), 0.01, false, '"'); //absolute delta because of rounding differences between Linux/Windows
 	}
 
 	void multiple_input_files()
