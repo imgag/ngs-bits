@@ -9,19 +9,19 @@ Allele frequency information can be annotated to the variant list via [Ensembl V
 
 These are steps the RohHunter algorithm performs:
 
-1. Filter variants (markers) by quality to remove false genotype calls
- - Depth (default: &ge;20)
- - Variant Q score (default: &ge;30)
-2. Determine raw stretches of homozygous markers
-3. Assign probability to observe ROH by chance
- - based on allele frequency, e.g. using 1000g and gnomAD
-4. Remove regions with low probability (default: <Q30)
-5. Merge adjacent ROHs based on
- - distance in markers (default: &le;1 or &le;1% of ROH marker count) 
- - distance in bases (default: &le;50% of ROH base count)
-6. Filter based on 
- - Number of markers (default: &ge;20)
- - Size (default: &ge;20Kb)
+1) Filter variants (markers) by quality to remove false genotype calls:  
+   - Depth (default: &ge;20)  
+   - Variant Q score (default: &ge;30)  
+2) Determine raw stretches of homozygous markers
+3) Assign probability to observe ROH by chance
+   - based on allele frequency, e.g. using 1000g and gnomAD
+4) Remove regions with low probability (default: <Q30)
+5) Merge adjacent ROHs based on
+   - distance in markers (default: &le;1 or &le;1% of ROH marker count) 
+   - distance in bases (default: &le;50% of ROH base count)
+6) Filter based on 
+   - Number of markers (default: &ge;20)
+   - Size (default: &ge;20Kb)
 
 
 ### Example
