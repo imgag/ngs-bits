@@ -16,7 +16,7 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 Changes already implemented in Git master for next release:
 
-* nothing to far
+* RohHunter: Added support for input variant lists that are not annotated with VEP. See 'af_source' parameter.
 
 Changes in release 2019_03:
 
@@ -59,7 +59,7 @@ _ngs-bits_ contains a lot of tools that are used for NGS-based diagnostics in ou
 * [SampleGender](doc/tools/SampleGender.md) - Determines sample gender based on a BAM file.
 * [SampleAncestry](doc/tools/SampleAncestry/index.md) - Estimates the ancestry of a sample based on variants.
 * [CnvHunter](doc/tools/CnvHunter/index.md) - CNV detection from targeted resequencing data using non-matched control samples.
-* [RohHunter](doc/tools/RohHunter.md) - ROH detection based on a variant list annotated with AF values.
+* [RohHunter](doc/tools/RohHunter/index.md) - ROH detection based on a variant list annotated with AF values.
 * [UpdHunter](doc/tools/UpdHunter.md) - UPD detection from trio variant data.
 
 ### QC tools

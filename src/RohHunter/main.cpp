@@ -10,12 +10,6 @@
 #include <QFileInfo>
 #include <cmath>
 
-/*
-TODO:
-- update update tool descriptions
-- update main page change log
-- benchmark new external annotation source and document speed
-*/
 class ConcreteTool
         : public ToolBase
 {
