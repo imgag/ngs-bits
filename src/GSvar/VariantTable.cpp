@@ -562,3 +562,19 @@ void VariantTable::copyToClipboard(bool split_quality)
 
 	QApplication::clipboard()->setText(selected_text);
 }
+
+void VariantTable::keyPressEvent(QKeyEvent* event)
+{
+	if(event->matches(QKeySequence::Copy))
+	{
+		copyToClipboard();
+	}
+	else if(event->key()==Qt::Key_C && event->modifiers() == (Qt::ShiftModifier|Qt::ControlModifier))
+	{
+		copyToClipboard(true);
+	}
+	else //default key-press event
+	{
+		QTableWidget::keyPressEvent(event);
+	}
+}

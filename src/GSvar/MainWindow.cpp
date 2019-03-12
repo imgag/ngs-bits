@@ -150,6 +150,14 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.filters, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
 	connect(ui_.filters, SIGNAL(phenotypeSubPanelRequested()), this, SLOT(createSubPanelFromPhenotypeFilter()));
 
+	//variants tool bar
+	connect(ui_.vars_copy_btn, SIGNAL(clicked(bool)), ui_.vars, SLOT(copyToClipboard()));
+	connect(ui_.vars_resize_btn, SIGNAL(clicked(bool)), ui_.vars, SLOT(adaptColumnWidthsCustom()));
+	ui_.vars_export_btn->setMenu(new QMenu());
+	ui_.vars_export_btn->menu()->addAction("Export VCF", this, SLOT(exportVCF()));
+	ui_.vars_export_btn->menu()->addAction("Export GSvar", this, SLOT(exportGSvar()));
+	connect(ui_.vars_folder_btn, SIGNAL(clicked(bool)), this, SLOT(openVariantListFolder()));
+
 	//misc initialization
 	filewatcher_.setDelayInSeconds(10);
 
@@ -204,14 +212,22 @@ void MainWindow::on_actionCNV_triggered()
 	//create list of genes with heterozygous variant hits
 	GeneSet het_hit_genes;
 	int i_genes = variants_.annotationIndexByName("gene", true, false);
-	QString geno_column = variants_.getSampleHeader().infoByStatus(true).column_name;
-	int i_genotype = variants_.annotationIndexByName(geno_column, true, false);
-	if (i_genes!=-1 && i_genotype!=-1)
+	QList<int> i_genotypes = variants_.getSampleHeader().sampleColumns(true);
+	if (i_genes!=-1 && i_genotypes.count()>0)
 	{
 		for (int i=0; i<variants_.count(); ++i)
 		{
 			if (!filter_result_.passing(i)) continue;
-			if (variants_[i].annotations()[i_genotype]!="het") continue;
+
+			bool all_genos_het = true;
+			foreach(int i_genotype, i_genotypes)
+			{
+				if (variants_[i].annotations()[i_genotype]!="het")
+				{
+					all_genos_het = false;
+				}
+			}
+			if (!all_genos_het) continue;
 
 			GeneSet genes = GeneSet::createFromText(variants_[i].annotations()[i_genes], ',');
 			foreach(const QByteArray& gene, genes)
@@ -222,7 +238,7 @@ void MainWindow::on_actionCNV_triggered()
 	}
 	else if (variants_.type()!=SOMATIC_PAIR)
 	{
-		QMessageBox::information(this, "Invalid variant list", "Column 'genotype' or 'gene' not found in variant list. Cannot apply compound-heterozygous filter based on variants!");
+		QMessageBox::information(this, "Invalid variant list", "Column for genes or genotypes not found in variant list. Cannot apply compound-heterozygous filter based on variants!");
 	}
 
 	if (Settings::boolean("NGSD_enabled", true))
@@ -235,14 +251,14 @@ void MainWindow::on_actionCNV_triggered()
 	{
 		ClinCnvWidget* list = new ClinCnvWidget(filename_,ui_.filters,het_hit_genes);
 		connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
-		auto dlg = GUIHelper::createDialog(list, "ClinCNV Copy-number variants");
+		auto dlg = GUIHelper::createDialog(list, "ClinCNV copy-number variants");
 		addModelessDialog(dlg);
 	}
 	else
 	{
 		CnvWidget* list = new CnvWidget(filename_, ui_.filters, het_hit_genes);
 		connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
-		auto dlg = GUIHelper::createDialog(list, "CNVHunter Copy-number variants");
+		auto dlg = GUIHelper::createDialog(list, "CNVHunter copy-number variants");
 		addModelessDialog(dlg);
 	}
 }
@@ -357,23 +373,12 @@ void MainWindow::on_actionGeneVariantInfo_triggered()
 	dlg.exec();
 }
 
-void MainWindow::on_actionOpenSampleFolder_triggered()
+void MainWindow::openVariantListFolder()
 {
 	if (filename_=="") return;
 
 	QDesktopServices::openUrl(QFileInfo(filename_).absolutePath());
 
-}
-
-void MainWindow::on_actionOpenSampleQcFiles_triggered()
-{
-	if (filename_=="") return;
-
-	QStringList files = Helper::findFiles(QFileInfo(filename_).absolutePath(), "*.qcML", false);
-	foreach(QString file, files)
-	{
-		QDesktopServices::openUrl(file);
-	}
 }
 
 void MainWindow::on_actionPublishVariantInLOVD_triggered()
@@ -1363,16 +1368,6 @@ void MainWindow::on_actionAbout_triggered()
 	QMessageBox::about(this, "About " + QCoreApplication::applicationName(), QCoreApplication::applicationName()+ " " + QCoreApplication::applicationVersion()+ "\n\nA free viewing and filtering tool for genomic variants.\n\nInstitute of Medical Genetics and Applied Genomics\nUniversity Hospital Tübingen\nGermany\n\nMore information at:\nhttps://github.com/imgag/ngs-bits");
 }
 
-void MainWindow::on_actionResize_triggered()
-{
-	ui_.vars->adaptColumnWidths();
-}
-
-void MainWindow::on_actionResizeCustom_triggered()
-{
-	ui_.vars->adaptColumnWidthsCustom();
-}
-
 void MainWindow::on_actionReport_triggered()
 {
 	if (variants_.count()==0) return;
@@ -1806,7 +1801,7 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	}
 }
 
-void MainWindow::on_actionExportVCF_triggered()
+void MainWindow::exportVCF()
 {
 	//create BED file with 15 flanking bases around variants
 	BedFile roi;
@@ -1890,7 +1885,7 @@ void MainWindow::on_actionExportVCF_triggered()
 	}
 }
 
-void MainWindow::on_actionExportGSvar_triggered()
+void MainWindow::exportGSvar()
 {
 	//create new VCF
 	VariantList output;
@@ -2063,16 +2058,6 @@ void MainWindow::on_actionArchiveSubpanel_triggered()
 	{
 		ui_.filters->loadTargetRegions();
 	}
-}
-
-void MainWindow::on_actionCopy_triggered()
-{
-	ui_.vars->copyToClipboard(false);
-}
-
-void MainWindow::on_actionCopySplit_triggered()
-{
-	ui_.vars->copyToClipboard(true);
 }
 
 QString MainWindow::nobr()

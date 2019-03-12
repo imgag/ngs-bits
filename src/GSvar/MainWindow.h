@@ -82,10 +82,6 @@ public slots:
 	void on_actionChangeLog_triggered();
 	///About dialog
 	void on_actionAbout_triggered();
-	///Resizes columns accoding to content
-	void on_actionResize_triggered();
-	///Resizes columns accoding to content
-	void on_actionResizeCustom_triggered();
 	///Report dialog
 	void on_actionReport_triggered();
 	///Open processed sample tabs
@@ -102,10 +98,6 @@ public slots:
 	void on_actionGenderSRY_triggered();
 	///File information BED
 	void on_actionStatisticsBED_triggered();
-	///Copy to clipboard
-	void on_actionCopy_triggered();
-	///Copy to clipboard and split quality column
-	void on_actionCopySplit_triggered();
 	///Sample correlation BAM
 	void on_actionSampleSimilarityBAM_triggered();
 	///Sample correlation TSV
@@ -119,9 +111,9 @@ public slots:
 	///Calculate gaps based on current target region
 	void on_actionGapsRecalculate_triggered();
 	///VCF export
-	void on_actionExportVCF_triggered();
+	void exportVCF();
 	///GSvar export
-	void on_actionExportGSvar_triggered();
+	void exportGSvar();
 	///Preferred transcript list
 	void on_actionPreferredTranscripts_triggered();
 	///Opens online documentation
@@ -151,10 +143,8 @@ public slots:
 	void on_actionNGSDAnnotation_triggered();
 	///Open gene variant info check dialog.
 	void on_actionGeneVariantInfo_triggered();
-	///Open sample folder in explorer.
-	void on_actionOpenSampleFolder_triggered();
-	///Open sample QC files.
-	void on_actionOpenSampleQcFiles_triggered();
+	///Open folder of variant list in explorer.
+	void openVariantListFolder();
 	///Upload variant that is not part of the variant list to LOVD.
 	void on_actionPublishVariantInLOVD_triggered();
 	///Show diagnostic status overview
