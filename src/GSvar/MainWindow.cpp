@@ -229,11 +229,7 @@ void MainWindow::on_actionCNV_triggered()
 			}
 			if (!all_genos_het) continue;
 
-			GeneSet genes = GeneSet::createFromText(variants_[i].annotations()[i_genes], ',');
-			foreach(const QByteArray& gene, genes)
-			{
-				het_hit_genes.insert(gene);
-			}
+			het_hit_genes.insert(GeneSet::createFromText(variants_[i].annotations()[i_genes], ','));
 		}
 	}
 	else if (variants_.type()!=SOMATIC_PAIR)
