@@ -3,7 +3,6 @@
 
 #include "cppNGS_global.h"
 #include "BamReader.h"
-#include "NGSD.h"
 
 
 ///Helper class for NGS-specific stuff.
