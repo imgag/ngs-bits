@@ -630,7 +630,7 @@ public:
         }
 		std::sort(counts.begin(), counts.end());
 		float median = fun_median(counts);
-		float mad = 1.428f * fun_mad(counts, median);
+		float mad = 1.482f * fun_mad(counts, median);
 
         //historgam
         outstream << "CNVs per sample histogram:" << endl;
@@ -1027,7 +1027,7 @@ public:
 			}
             std::sort(tmp.begin(), tmp.end());
 			float median = fun_median(tmp);
-			float mad = 1.428f * fun_mad(tmp, median);
+			float mad = 1.482f * fun_mad(tmp, median);
 
 			if (median<reg_min_ncov) exons[e]->qc += "ncov<" + QByteArray::number(reg_min_ncov) + " ";
 			if (median*avg_abs_cov<reg_min_cov) exons[e]->qc += "cov<" + QByteArray::number(reg_min_cov) + " ";
@@ -1136,7 +1136,7 @@ public:
 					samples[s]->ref.append(median);
 					std::for_each(tmp.begin(), tmp.end(), [median](float& value){ value = fabsf(value-median); });
 					std::sort(tmp.begin(), tmp.end());
-					float stdev = 1.428f * fun_median(tmp);
+					float stdev = 1.482f * fun_median(tmp);
 					samples[s]->ref_stdev.append(std::max(stdev, 0.1f*median));
                 }
 				else

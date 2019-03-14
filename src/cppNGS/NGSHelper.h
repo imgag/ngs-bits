@@ -33,9 +33,6 @@ public:
 	 */
 	static unsigned int levensthein(const QByteArray& a, const QByteArray& b);
 
-	///Adds somatic SNPs/CNVs to germline_snvs as an annotation
-	static void annotateGermlineWithSomatic(VariantList& germline_snvs, const VariantList& somatic_snvs, const QByteArray& somatic_prefix, NGSD& db);
-
 private:
 	///Constructor declared away
 	NGSHelper() = delete;

@@ -1,5 +1,10 @@
 # GSvar change log
 
+### 2018_03-7-gc9e7564 (06.03.19)
+- General: Column widths remain the same when updating filters.
+- General: Added support for new single-sample GSvar files that use the sample name instead of 'genotype' in the header line.
+- General: Sensitive data in settings file is now encrypted.
+
 ### 2018_11-159-g6779e90 (04.03.19)
 - General: reduced memory consumption by not showing more than 10000 variants at a time (for WGS).
 - Filters: massive speed-up of trio comp-het filter (for WGS).
@@ -290,6 +295,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 

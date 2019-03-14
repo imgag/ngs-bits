@@ -20,7 +20,7 @@ To install *ngs-bits* binaries, follow these instructions:
 
 Install the *ngs-bits* package using *conda*:
 
-		> conda install ngs-bits
+	> conda install ngs-bits
 
 
 ## Executing

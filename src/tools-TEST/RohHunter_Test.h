@@ -25,4 +25,11 @@ private slots:
 		COMPARE_FILES("out/RohHunter_out3.tsv", TESTDATA("data_out/RohHunter_out3.tsv"));
 	}
 
+	void af_from_external_source()
+	{
+		//Note: 'RohHunter_in2.vcf' contains the same variants as 'RohHunter_in1.vcf', but without the VEP annotations > roughly the same ROHs should come out
+		EXECUTE("RohHunter", "-in " + TESTDATA("data_in/RohHunter_in2.vcf.gz") + " -out out/RohHunter_out4.tsv -af_source " + TESTDATA("data_in/RohHunter_afs.vcf.gz"));
+		COMPARE_FILES("out/RohHunter_out4.tsv", TESTDATA("data_out/RohHunter_out4.tsv"));
+	}
+
 };

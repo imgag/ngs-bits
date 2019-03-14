@@ -80,6 +80,13 @@ ClinCnvWidget::ClinCnvWidget(QString filename, FilterDockWidget* filter_widget, 
 		ui->f_comphet->setEnabled(false);
 	}
 
+	//Disable certain filters if i is a multi-sample CNV list
+	if (cnvs.annotationIndexByName("no_of_regions", false)==-1)
+	{
+		ui->f_regs->setEnabled(false);
+	}
+
+
 	//update variant list dependent filters (and apply filters)
 	variantFiltersChanged();
 }

@@ -191,7 +191,7 @@
            <string>Minimum z-score.</string>
           </property>
           <property name="text">
-           <string>Min loglikelihood:</string>
+           <string>Min log-likelihood:</string>
           </property>
          </widget>
         </item>

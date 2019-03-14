@@ -150,6 +150,14 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.filters, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
 	connect(ui_.filters, SIGNAL(phenotypeSubPanelRequested()), this, SLOT(createSubPanelFromPhenotypeFilter()));
 
+	//variants tool bar
+	connect(ui_.vars_copy_btn, SIGNAL(clicked(bool)), ui_.vars, SLOT(copyToClipboard()));
+	connect(ui_.vars_resize_btn, SIGNAL(clicked(bool)), ui_.vars, SLOT(adaptColumnWidthsCustom()));
+	ui_.vars_export_btn->setMenu(new QMenu());
+	ui_.vars_export_btn->menu()->addAction("Export VCF", this, SLOT(exportVCF()));
+	ui_.vars_export_btn->menu()->addAction("Export GSvar", this, SLOT(exportGSvar()));
+	connect(ui_.vars_folder_btn, SIGNAL(clicked(bool)), this, SLOT(openVariantListFolder()));
+
 	//misc initialization
 	filewatcher_.setDelayInSeconds(10);
 
@@ -204,25 +212,29 @@ void MainWindow::on_actionCNV_triggered()
 	//create list of genes with heterozygous variant hits
 	GeneSet het_hit_genes;
 	int i_genes = variants_.annotationIndexByName("gene", true, false);
-	QString geno_column = variants_.getSampleHeader().infoByStatus(true).column_name;
-	int i_genotype = variants_.annotationIndexByName(geno_column, true, false);
-	if (i_genes!=-1 && i_genotype!=-1)
+	QList<int> i_genotypes = variants_.getSampleHeader().sampleColumns(true);
+	if (i_genes!=-1 && i_genotypes.count()>0)
 	{
 		for (int i=0; i<variants_.count(); ++i)
 		{
 			if (!filter_result_.passing(i)) continue;
-			if (variants_[i].annotations()[i_genotype]!="het") continue;
 
-			GeneSet genes = GeneSet::createFromText(variants_[i].annotations()[i_genes], ',');
-			foreach(const QByteArray& gene, genes)
+			bool all_genos_het = true;
+			foreach(int i_genotype, i_genotypes)
 			{
-				het_hit_genes.insert(gene);
+				if (variants_[i].annotations()[i_genotype]!="het")
+				{
+					all_genos_het = false;
+				}
 			}
+			if (!all_genos_het) continue;
+
+			het_hit_genes.insert(GeneSet::createFromText(variants_[i].annotations()[i_genes], ','));
 		}
 	}
 	else if (variants_.type()!=SOMATIC_PAIR)
 	{
-		QMessageBox::information(this, "Invalid variant list", "Column 'genotype' or 'gene' not found in variant list. Cannot apply compound-heterozygous filter based on variants!");
+		QMessageBox::information(this, "Invalid variant list", "Column for genes or genotypes not found in variant list. Cannot apply compound-heterozygous filter based on variants!");
 	}
 
 	if (Settings::boolean("NGSD_enabled", true))
@@ -235,14 +247,14 @@ void MainWindow::on_actionCNV_triggered()
 	{
 		ClinCnvWidget* list = new ClinCnvWidget(filename_,ui_.filters,het_hit_genes);
 		connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
-		auto dlg = GUIHelper::createDialog(list, "ClinCNV Copy-number variants");
+		auto dlg = GUIHelper::createDialog(list, "ClinCNV copy-number variants");
 		addModelessDialog(dlg);
 	}
 	else
 	{
 		CnvWidget* list = new CnvWidget(filename_, ui_.filters, het_hit_genes);
 		connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
-		auto dlg = GUIHelper::createDialog(list, "CNVHunter Copy-number variants");
+		auto dlg = GUIHelper::createDialog(list, "CNVHunter copy-number variants");
 		addModelessDialog(dlg);
 	}
 }
@@ -357,23 +369,12 @@ void MainWindow::on_actionGeneVariantInfo_triggered()
 	dlg.exec();
 }
 
-void MainWindow::on_actionOpenSampleFolder_triggered()
+void MainWindow::openVariantListFolder()
 {
 	if (filename_=="") return;
 
 	QDesktopServices::openUrl(QFileInfo(filename_).absolutePath());
 
-}
-
-void MainWindow::on_actionOpenSampleQcFiles_triggered()
-{
-	if (filename_=="") return;
-
-	QStringList files = Helper::findFiles(QFileInfo(filename_).absolutePath(), "*.qcML", false);
-	foreach(QString file, files)
-	{
-		QDesktopServices::openUrl(file);
-	}
 }
 
 void MainWindow::on_actionPublishVariantInLOVD_triggered()
@@ -1318,11 +1319,10 @@ void MainWindow::loadFile(QString filename)
 		refreshVariantTable(false);
 		ui_.vars->adaptColumnWidths();
 
-		//Show or Hide button for annotation germline file with somatic variants.
+		//Show or Hide button for annotation germline file if variant file is  somatic variants.
 		int button_pos_in_menu;
 		for(int i=0;i<ui_.tools->actions().count();++i)
 		{
-			qDebug() << ui_.tools->actions().at(i)->objectName() << endl;
 			if(ui_.tools->actions().at(i)->objectName() == "actionAnnotateSomaticVariants")
 			{
 				button_pos_in_menu = i;
@@ -1381,11 +1381,6 @@ void MainWindow::on_actionAbout_triggered()
 	QMessageBox::about(this, "About " + QCoreApplication::applicationName(), QCoreApplication::applicationName()+ " " + QCoreApplication::applicationVersion()+ "\n\nA free viewing and filtering tool for genomic variants.\n\nInstitute of Medical Genetics and Applied Genomics\nUniversity Hospital Tübingen\nGermany\n\nMore information at:\nhttps://github.com/imgag/ngs-bits");
 }
 
-void MainWindow::on_actionResize_triggered()
-{
-	ui_.vars->adaptColumnWidths();
-}
-
 void MainWindow::on_actionAnnotateSomaticVariants_triggered()
 {
 	//Only germline files shall be annotated
@@ -1398,10 +1393,8 @@ void MainWindow::on_actionAnnotateSomaticVariants_triggered()
 
 	QApplication::setOverrideCursor(Qt::WaitCursor);
 
-
 	VariantList somatic_variants;
 	somatic_variants.load(filename);
-
 	if(somatic_variants.type() != AnalysisType::SOMATIC_PAIR)
 	{
 		QApplication::restoreOverrideCursor();
@@ -1409,19 +1402,82 @@ void MainWindow::on_actionAnnotateSomaticVariants_triggered()
 		return;
 	}
 
+
+	//Make sure that only germline variant files are annotated with somatic pair files
+	if(variants_.type() != AnalysisType::GERMLINE_SINGLESAMPLE) return;
+	if(somatic_variants.type() != AnalysisType::SOMATIC_PAIR) return;
+
+	//Get Indices of gene
+	int i_germline_gene = variants_.annotationIndexByName("gene",true,false);
+	int i_somatic_gene = somatic_variants.annotationIndexByName("gene",true,false);
+	//Indices of data to be annotated
+	int i_somatic_type = somatic_variants.annotationIndexByName("variant_type",true,false);
+	int i_somatic_af = somatic_variants.annotationIndexByName("tumor_af",true,false);
+	int i_somatic_dp = somatic_variants.annotationIndexByName("tumor_dp",true,false);
+	int i_somatic_cgi_driver_statement = somatic_variants.annotationIndexByName("CGI_driver_statement",true,false);
+
+	//Add empty annotation column
+	QByteArray somatic_prefix = QFileInfo(filename).baseName().toUtf8();
+	int i_germline_annot_type = variants_.addAnnotationIfMissing(somatic_prefix + "_somatic_variants","semicolon-separated SNPs in the same gene from the somatic file. genomic_alteration:variant_type:tumor_af:tumor_dp:CGI_driver_statement","");
+
+	//abort if there is a missing column
+	if(i_germline_gene == -1 || i_somatic_gene == -1 || i_somatic_type == -1 || i_somatic_af == -1 || i_somatic_dp == -1) return;
+
 	NGSD db;
-	//Annotate somatic file, use basename of that file as column prefix
-	NGSHelper::annotateGermlineWithSomatic(variants_,somatic_variants,QFileInfo(filename).baseName().toUtf8(),db);
+
+	//Annotate variants per genes
+	for(int i=0;i<variants_.count();++i)
+	{
+		//SNPs are annotated by gene: Make sure gene names are up-to-date
+		GeneSet germline_genes = db.genesToApproved(GeneSet::createFromText(variants_[i].annotations().at(i_germline_gene),','),true);
+
+		QByteArray annotation = "";
+
+		for(int j=0;j<somatic_variants.count();++j)
+		{
+			GeneSet somatic_genes = db.genesToApproved(GeneSet::createFromText(somatic_variants[j].annotations().at(i_somatic_gene),','),true);
+
+			foreach(QByteArray gene, somatic_genes)
+			{
+				if(germline_genes.contains(gene))
+				{
+					QByteArray pos = somatic_variants[j].chr().str() + "_" + QByteArray::number(somatic_variants[j].start()) + "_" + QByteArray::number(somatic_variants[j].end()) + "_" + somatic_variants[j].ref() + "_" + somatic_variants[j].obs();
+					annotation.append(pos + ":");
+
+					annotation.append(somatic_variants[j].annotations().at(i_somatic_type) + ":");
+					annotation.append(somatic_variants[j].annotations().at(i_somatic_af) + ":");
+					annotation.append(somatic_variants[j].annotations().at(i_somatic_dp));
+					if(i_somatic_cgi_driver_statement != -1)
+					{
+						annotation.append(":" + somatic_variants[j].annotations().at(i_somatic_cgi_driver_statement));
+					}
+
+					annotation.append(';');
+					break;
+				}
+			}
+		}
+
+		//Remove last ";" in annotation text
+		int i_last_char = annotation.lastIndexOf(";",-1);
+		if(i_last_char > -1 && annotation.at(i_last_char) == ';')
+		{
+			annotation.truncate(i_last_char);
+		}
+		if(annotation == "") continue;
+
+		variants_[i].annotations()[i_germline_annot_type] = annotation;
+	}
+
+
 	variants_.store(filename_);
 
 	QMessageBox::information(this,"Success","Somatic variants from " + filename + " were annotated successfully.");
 	loadFile(filename_);
 	QApplication::restoreOverrideCursor();
 }
-void MainWindow::on_actionResizeCustom_triggered()
-{
-	ui_.vars->adaptColumnWidthsCustom();
-}void MainWindow::on_actionReport_triggered()
+
+void MainWindow::on_actionReport_triggered()
 {
 	if (variants_.count()==0) return;
 
@@ -1854,7 +1910,7 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	}
 }
 
-void MainWindow::on_actionExportVCF_triggered()
+void MainWindow::exportVCF()
 {
 	//create BED file with 15 flanking bases around variants
 	BedFile roi;
@@ -1938,7 +1994,7 @@ void MainWindow::on_actionExportVCF_triggered()
 	}
 }
 
-void MainWindow::on_actionExportGSvar_triggered()
+void MainWindow::exportGSvar()
 {
 	//create new VCF
 	VariantList output;
@@ -2113,16 +2169,6 @@ void MainWindow::on_actionArchiveSubpanel_triggered()
 	}
 }
 
-void MainWindow::on_actionCopy_triggered()
-{
-	ui_.vars->copyToClipboard(false);
-}
-
-void MainWindow::on_actionCopySplit_triggered()
-{
-	ui_.vars->copyToClipboard(true);
-}
-
 QString MainWindow::nobr()
 {
 	return "<p style='white-space:pre; margin:0; padding:0;'>";
@@ -2151,7 +2197,6 @@ void MainWindow::uploadtoLovd(int variant_index, int variant_index2)
 	//data 1st variant
 	const Variant& variant = variants_[variant_index];
 	data.variant = variant;
-	//TODO check if it works for single/trio
 	int genotype_index = variants_.getSampleHeader().infoByStatus(true).column_index;
 	data.genotype = variant.annotations()[genotype_index];
 	FastaFileIndex idx(Settings::string("reference_genome"));

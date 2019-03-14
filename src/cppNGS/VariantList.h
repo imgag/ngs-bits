@@ -59,7 +59,7 @@ class CPPNGSSHARED_EXPORT SampleHeaderInfo
 		const SampleInfo& infoByID(const QString& id) const;
 		///Returns the sample info matching the given sample properties. Throws an error if there more/less than one columns that match.
 		const SampleInfo& infoByStatus(bool affected, QString gender = "n/a") const;
-		///Returns sample genotype column idices of affected/unaffected samples.
+		///Returns sample genotype column indices of affected/unaffected samples.
 		QList<int> sampleColumns(bool affected) const;
 };
 

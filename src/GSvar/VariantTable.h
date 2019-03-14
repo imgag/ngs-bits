@@ -59,7 +59,12 @@ public slots:
 	void adaptColumnWidthsCustom();
 
 	///Copy table to clipboard
-	void copyToClipboard(bool split_quality);
+	void copyToClipboard(bool split_quality=false);
+
+protected:
+
+	///Override copy command
+	void keyPressEvent(QKeyEvent* event) override;
 };
 
 #endif // VARIANTTABLE_H

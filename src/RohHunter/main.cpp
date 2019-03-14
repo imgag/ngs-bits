@@ -3,6 +3,8 @@
 #include "Helper.h"
 #include "NGSHelper.h"
 #include "BasicStatistics.h"
+#include "TabixIndexedFile.h"
+#include "VcfFile.h"
 
 #include <QTextStream>
 #include <QFileInfo>
@@ -21,21 +23,25 @@ public:
 
     virtual void setup()
     {
-		setDescription("ROH detection based on a variant list annotated with AF values.");
+		setDescription("ROH detection based on a variant list.");
+		setExtendedDescription(QStringList() << "Runs of homozygosity (ROH) are detected based on the genotype annotations in the VCF file."
+												"Based on the allele frequency of the contained variants, each ROH is assigned an estimated likelyhood to be observed by chance (Q score).");
 		addInfile("in", "Input variant list in VCF or GSvar format.", false);
 		addOutfile("out", "Output TSV file with ROH regions.", false);
 		//optional
 		addInfileList("annotate", "List of BED files used for annotation. Each file adds a column to the output file. The base filename is used as colum name and 4th column of the BED file is used as annotation value.", true);
 		addInt("var_min_dp", "Minimum variant depth ('DP'). Variants with lower depth are excluded from the analysis.", true, 20);
 		addFloat("var_min_q", "Minimum variant quality. Variants with lower quality are excluded from the analysis.", true, 30);
-		addString("var_af_keys", "Comma-separated field names of allele frequency values in VEP-based CSQ annotation.", true, "gnomAD_AF,AF");
-		addFloat("roh_min_q", "Minimum Q score of ROH regions.", true, 30.0);
-		addInt("roh_min_markers", "Minimum marker count of ROH regions.", true, 20);
-		addFloat("roh_min_size", "Minimum size in Kb of ROH regions.", true, 20.0);
+		addString("var_af_keys", "Comma-separated field names of allele frequency values in input file VEP annotation or 'af_source'.", true, "gnomAD_AF,AF");
+		addInfile("af_source", "Tabix-indexed VCF file used as source for allele frequency data. If unset, it is assumed that the input variant list is annotated using Ensembl VEP.", true);
+		addFloat("roh_min_q", "Minimum Q score of output ROH regions.", true, 30.0);
+		addInt("roh_min_markers", "Minimum marker count of output ROH regions.", true, 20);
+		addFloat("roh_min_size", "Minimum size in Kb of output ROH regions.", true, 20.0);
 		addFloat("ext_marker_perc", "Percentage of ROH markers that can be spanned when merging ROH regions .", true, 1.0);
 		addFloat("ext_size_perc", "Percentage of ROH size that can be spanned when merging ROH regions.", true, 50.0);
 		addFlag("inc_chrx", "Include chrX into the analysis. Excluded by default.");
 
+		changeLog(2019,  3, 12, "Added support for input variant lists that are not annotated with VEP. See 'af_source' parameter.");
 		changeLog(2018,  9, 12, "Now supports VEP CSQ annotations (no longer support SnpEff ANN annotations).");
 		changeLog(2017, 12, 07, "Added generic annotation feature.");
 		changeLog(2017, 11, 29, "Added 'inc_chrx' flag.");
@@ -179,8 +185,12 @@ public:
 	virtual void main()
 	{
 		//init
+		QTime timer;
+		timer.start();
 		QTextStream out(stdout);
 		bool inc_chrx = getFlag("inc_chrx");
+		QString af_source = getInfile("af_source");
+		bool af_from_in = af_source.isEmpty();
 
 		//load variant list
 		VariantList vl;
@@ -200,11 +210,19 @@ public:
 			}
 		}
 		if (idx_dp==-1) THROW(ArgumentException, "Could not find 'DP' annotation in variant list!");
-		QStringList var_af_keys = getString("var_af_keys").split(",", QString::SkipEmptyParts);
+		QByteArrayList var_af_keys = getString("var_af_keys").toLatin1().split(',');
 		QVector<int> csq_af_indices;
-		foreach(QString key, var_af_keys)
+		TabixIndexedFile af_source_tbx;
+		if (af_from_in)
 		{
-			csq_af_indices << vl.vepIndexByName(key);
+			foreach(const QByteArray& key, var_af_keys)
+			{
+				csq_af_indices << vl.vepIndexByName(key);
+			}
+		}
+		else
+		{
+			af_source_tbx.load(af_source.toLatin1());
 		}
 
 		//convert variant list to data structure
@@ -227,29 +245,63 @@ public:
 
 			//skip low quality variants
 			bool ok = true;
-			int dp_value = vl[i].annotations().at(idx_dp).toInt(&ok);
+			int dp_value = v.annotations().at(idx_dp).toInt(&ok);
 			if (!ok) THROW(ArgumentException, "Could not convert 'DP' value of variant " + v.toString() + " to integer.");
 			if (dp_value < var_min_dp) continue;
-			int qual_value = vl[i].annotations().at(idx_qual).toDouble(&ok);
+			int qual_value = v.annotations().at(idx_qual).toDouble(&ok);
 			if (!ok) THROW(ArgumentException, "Could not convert 'QUAL' value of variant " + v.toString() + " to double.");
 			if (qual_value < var_min_q) continue;
 
 			//determine if homozygous
-			QByteArray genotype = vl[i].annotations().at(i_gt);
+			QByteArray genotype = v.annotations().at(i_gt);
 			bool geno_hom = (genotype=="1/1" || genotype=="1|1");
 			if (geno_hom) ++vars_hom;
 
 			//determine database AF
 			bool var_known = false;
 			float af = 0.01;
-			foreach(int index, csq_af_indices)
+			if (af_from_in)
 			{
-				QByteArrayList annos = vl[i].vepAnnotations(i_csq, index);
-				foreach(const QByteArray& anno, annos)
+				foreach(int index, csq_af_indices)
 				{
-					float af_new = anno.toFloat();
-					af = std::max(af, af_new);
-					if (af_new>0.0) var_known = true;
+					QByteArrayList annos = v.vepAnnotations(i_csq, index);
+					foreach(const QByteArray& anno, annos)
+					{
+						float af_new = anno.toFloat();
+						af = std::max(af, af_new);
+						if (af_new>0.0) var_known = true;
+					}
+				}
+			}
+			else
+			{
+				QByteArrayList matches = af_source_tbx.getMatchingLines(v.chr(), v.start(), v.end());
+				foreach(const QByteArray& match, matches)
+				{
+					QByteArrayList parts = match.split('\t');
+					if (parts.count()<VcfFile::MIN_COLS) THROW(FileParseException, "VCF file 'af_source' has invalid column count in VCF line: " + match);
+
+					//check if same variant
+					if (parts[VcfFile::REF]!=v.ref() || parts[VcfFile::ALT]!=v.obs()) continue;
+					bool ok;
+					int pos = parts[VcfFile::POS].toInt(&ok);
+					if (!ok) THROW(FileParseException, "VCF file 'af_source' has invalid position in VCF line: " + match);
+					if (pos!=v.start()) continue;
+
+					//parse INFO annotations
+					parts = parts[VcfFile::INFO].split(';');
+					foreach(const QByteArray& part, parts)
+					{
+						foreach(const QByteArray& key, var_af_keys)
+						if (part.startsWith(key) && part.size()>key.size() && part[key.length()]=='=')
+						{
+							bool ok;
+							float af_new = part.mid(key.length()+1).toFloat(&ok);
+							if (!ok) THROW(FileParseException, "VCF file 'af_source' has non-float value of INFO field '" + key + "' in VCF line: " + match);
+							af = std::max(af, af_new);
+							if (af_new>0.0) var_known = true;
+						}
+					}
 				}
 			}
 			if (var_known) ++vars_known;
@@ -366,12 +418,21 @@ public:
 			}
 		}
 		out << "Overall ROH size sum: " << QString::number((sum_a+sum_b+sum_c)/1000000.0 ,'f', 2) << "Mb" << endl;
+		out << "Class A: <0.5 Mb" << endl;
 		out << "Class A ROH count: " << count_a << endl;
 		out << "Class A ROH size sum: " << QString::number(sum_a/1000000.0 ,'f', 2) << "Mb" << endl;
+		out << "Class B: >=0.5 Mb and <1.5 Mb" << endl;
 		out << "Class B ROH count: " << count_b << endl;
 		out << "Class B ROH size sum: " << QString::number(sum_b/1000000.0 ,'f', 2) << "Mb" << endl;
+		out << "Class A: >=1.5 Mb" << endl;
 		out << "Class C ROH count: " << count_c << endl;
 		out << "Class C ROH size sum: " << QString::number(sum_c/1000000.0 ,'f', 2) << "Mb" << endl;
+		out << endl;
+
+
+		//debug output
+		out << "=== Debug output ===" << endl;
+		out << "Time: " << Helper::elapsedTime(timer, false) << endl;
 	}
 };
 
