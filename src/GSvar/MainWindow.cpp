@@ -1440,6 +1440,7 @@ void MainWindow::on_actionAnnotateSomaticVariants_triggered()
 
 			foreach(QByteArray gene, somatic_genes)
 			{
+				//If genes match annotate info ":"-separated, ";" separated for multiple variants in the gene
 				if(germline_genes.contains(gene))
 				{
 					QByteArray pos = somatic_variants[j].chr().str() + "_" + QByteArray::number(somatic_variants[j].start()) + "_" + QByteArray::number(somatic_variants[j].end()) + "_" + somatic_variants[j].ref() + "_" + somatic_variants[j].obs();
