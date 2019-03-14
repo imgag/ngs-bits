@@ -192,7 +192,7 @@ public slots:
 	///Shows a sample overview for the current variant;
 	void showVariantSampleOverview();
 	///Show allele frequency histogram
-	void on_actionShowAfHistogram_triggered();
+	void showAfHistogram();
 	///Show encryption helper
 	void on_actionEncrypt_triggered();
 
