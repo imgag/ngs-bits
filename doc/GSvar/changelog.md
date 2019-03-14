@@ -1,5 +1,9 @@
 # GSvar change log
 
+### 2019_03-18-g1f0ce07 (13.03.19)
+- General: Moved functionality for variant list from main menu to variant list tool bar.
+- CNVs: Minor improvements to CNV window for ClinCNV.
+
 ### 2018_03-7-gc9e7564 (06.03.19)
 - General: Column widths remain the same when updating filters.
 - General: Added support for new single-sample GSvar files that use the sample name instead of 'genotype' in the header line.
@@ -295,6 +299,8 @@
 --
 
 [back to main page](index.md)
+
+
 
 
 

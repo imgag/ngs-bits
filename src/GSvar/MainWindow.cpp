@@ -157,6 +157,7 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.vars_export_btn->menu()->addAction("Export VCF", this, SLOT(exportVCF()));
 	ui_.vars_export_btn->menu()->addAction("Export GSvar", this, SLOT(exportGSvar()));
 	connect(ui_.vars_folder_btn, SIGNAL(clicked(bool)), this, SLOT(openVariantListFolder()));
+	connect(ui_.vars_af_hist, SIGNAL(clicked(bool)), this, SLOT(showAfHistogram()));
 
 	//misc initialization
 	filewatcher_.setDelayInSeconds(10);
@@ -822,7 +823,7 @@ void MainWindow::showVariantSampleOverview()
 	}
 }
 
-void MainWindow::on_actionShowAfHistogram_triggered()
+void MainWindow::showAfHistogram()
 {
 	AnalysisType type = variants_.type();
 	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO)
