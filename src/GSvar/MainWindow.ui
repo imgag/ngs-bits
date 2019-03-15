@@ -419,7 +419,6 @@
    <addaction name="actionAnnotateSomaticVariants"/>
    <addaction name="actionReport"/>
    <addaction name="separator"/>
-   <addaction name="separator"/>
    <addaction name="actionOpenProcessedSampleTabs"/>
    <addaction name="separator"/>
    <addaction name="actionAnalysisStatus"/>
