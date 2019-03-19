@@ -1803,6 +1803,7 @@ void MainWindow::on_actionAnalysisStatus_triggered()
 	int index = ui_.tabs->addTab(widget, QIcon(":/Icons/Server.png"), "Analysis status");
 	ui_.tabs->setCurrentIndex(index);
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
+	connect(widget, SIGNAL(openRunTab(QString)), this, SLOT(openRunTab(QString)));
 }
 
 void MainWindow::on_actionGapsLookup_triggered()
