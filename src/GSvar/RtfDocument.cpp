@@ -83,7 +83,35 @@ RtfSourceCode RtfDocument::escapeUmlauts(const QByteArray &text)
 	return output;
 }
 
-RtfSourceCode RtfDocument::paragraph(const QByteArray& content, const RtfReportParagraphFormat &format, bool in_cell)
+RtfSourceCode RtfDocument::text(const QByteArray &content, const RtfTextFormat &format)
+{
+	QByteArrayList output;
+
+	output << "{";
+
+	output << "\\fs" + QByteArray::number(format.font_size);
+	if(format.font_number > 0) output << "\\f" + QByteArray::number(format.font_number);
+	if(format.font_color > 0) output << "\\cf" + QByteArray::number(format.font_color);
+
+	if(format.bold) output << "\\b";
+	if(format.italic) output << "\\i";
+	if(format.highlight_color != 0) output << "\\highlight" + QByteArray::number(format.highlight_color);
+
+	output << "\\q" + format.horizontal_alignment;
+
+	output << RtfDocument::escapeUmlauts(content);
+
+	output << "}";
+
+	return output.join("\n");
+}
+
+RtfSourceCode RtfDocument::paragraph(const QByteArrayList &content, const RtfParagraphFormat &format, bool in_cell)
+{
+	return RtfDocument::paragraph(content.join("\\line\n"),format,in_cell);
+}
+
+RtfSourceCode RtfDocument::paragraph(const QByteArray& content, const RtfParagraphFormat &format, bool in_cell)
 {
 	QByteArrayList output;
 
@@ -108,10 +136,12 @@ RtfSourceCode RtfDocument::paragraph(const QByteArray& content, const RtfReportP
 	if(format.bold) output << "\\b";
 
 	if(format.font_color != 0) output << "\\cf" + QByteArray::number(format.font_color);
-	output << RtfDocument::escapeUmlauts(content);
+
+	if(!content.isEmpty()) output << RtfDocument::text(content,format);
+	else output << " ";
 
 	//Skip paragraph end line break if paragraph is part of a table cell
-	if(!in_cell) output << "\\par";
+	if(!in_cell) output << "\\par\n";
 
 	return output.join("\n");
 }
@@ -129,7 +159,7 @@ void RtfDocument::setMargins(int left, int top, int right, int bottom)
 	margin_left_ = left;
 }
 
-RtfTableCell::RtfTableCell(const QByteArray &content, int width, const RtfReportParagraphFormat &text_format)
+RtfTableCell::RtfTableCell(const QByteArray &content, int width, const RtfParagraphFormat &text_format)
 {
 	content_ = content;
 	par_format_ = text_format;
@@ -145,9 +175,13 @@ void RtfTableCell::setBorder(int left,int top,int right,int bottom, const QByteA
 	border_type_ = type;
 }
 
-void RtfTableRow::addCell(const QByteArray& cell_content, int width, RtfReportParagraphFormat par_format)
+void RtfTableRow::addCell(const QByteArray& cell_content, int width, const RtfParagraphFormat& par_format)
 {
 	cells_ << RtfTableCell(cell_content, width, par_format);
+}
+void RtfTableRow::addCell(const QByteArrayList& cell_contents,int width, const RtfParagraphFormat& par_format)
+{
+	addCell(cell_contents.join("\\line\n"),width,par_format);
 }
 
 void RtfTableRow::setBorders(int width, const QByteArray& type)
@@ -172,16 +206,23 @@ RtfTableRow::RtfTableRow()
 {
 }
 
-RtfTableRow::RtfTableRow(const QList<QByteArray>& cell_contents, const QList<int>& cell_widths)
+RtfTableRow::RtfTableRow(const QByteArray& cell_content, int width,const RtfParagraphFormat& format)
+{
+	addCell(cell_content,width,format);
+
+}
+
+RtfTableRow::RtfTableRow(const QList<QByteArray>& cell_contents, const QList<int>& cell_widths, const RtfParagraphFormat& format)
 {
 	if(cell_contents.count() != cell_widths.count()) //Create empty instance if no does not match
 	{
 		RtfTableRow();
+		return;
 	}
 
 	for(int i=0;i<cell_contents.count();++i)
 	{
-		addCell(cell_contents.at(i),cell_widths.at(i));
+		addCell(cell_contents.at(i),cell_widths.at(i),format);
 	}
 
 }
@@ -236,3 +277,47 @@ RtfSourceCode RtfTableRow::writeRow()
 
 	return output.join("\n");
 }
+
+RtfTable::RtfTable()
+{
+
+}
+
+RtfTable::RtfTable(const QList< QList<QByteArray> >& contents, const QList< QList<int> >& widths, const RtfParagraphFormat& format)
+{
+	for(int i=0;i<contents.count();++i)
+	{
+		rows_.append(RtfTableRow(contents[i],widths[i],format));
+	}
+}
+
+RtfSourceCode RtfTable::writeTable()
+{
+	QByteArrayList output;
+	for(int i=0;i<rows_.count();++i)
+	{
+		output << rows_[i].writeRow();
+	}
+
+	return output.join("\n");
+}
+
+void RtfTable::setUniqueFormat(const RtfParagraphFormat &format)
+{
+	for(int i=0;i<count();++i)
+	{
+		for(int j=0;j<rows_[i].count();++j)
+		{
+			rows_[i][j].format() = format;
+		}
+	}
+}
+
+void RtfTable::setUniqueBorder(int border, const QByteArray &border_type)
+{
+	for(int i=0;i<rows_.count();++i)
+	{
+		rows_[i].setBorders(border,border_type);
+	}
+}
+

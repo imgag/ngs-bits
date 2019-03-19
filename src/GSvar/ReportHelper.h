@@ -15,6 +15,7 @@
 #include <QDialog>
 #include <QMultiMap>
 #include <QDir>
+#include "RtfDocument.h"
 
 ///provides methods for generating rtf file
 class RtfTools
@@ -288,9 +289,9 @@ private:
 	///Writes Rtf table containing given snvs
 	void writeSnvList(QTextStream& stream, const QList<int>& col_widths, const VariantList& snvs);
 	///Writes Rtf table containing CNVs per gene
-	void writeCnvGeneList(QTextStream& stream, const QList<int>& col_widths, const GeneSet& target_genes);
+	RtfTable cnvGeneTable(const GeneSet& target_genes);
 	///generates table with CNVs
-	void writeCnvList(QTextStream& stream, const QList<int>& colWidths);
+	RtfTable cnvList();
 
 	///Writes table with drug annotation
 	void writeRtfCGIDrugTable(QTextStream& stream, const QList<int>& col_widths);

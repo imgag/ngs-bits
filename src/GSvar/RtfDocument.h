@@ -11,18 +11,31 @@ typedef QByteArray RtfSourceCode;
 /****************
  * RTF SETTINGS *
  ****************/
-///struct describing layout of a text paragraph, all values in twips
-struct RtfReportParagraphFormat
+///struct describesformat of raw RTF text (e.g. if text format shall changes within a paragraph or you need text outside a paragraph)
+struct RtfTextFormat
 {
-	RtfReportParagraphFormat()
+	RtfTextFormat()
 	{
 	}
 
 	int font_size = 18;
 	bool bold = false;
 	bool italic = false;
-
 	QByteArray horizontal_alignment = "l";
+	//font number as specified in header
+	int font_number = 0;
+	//font color as specified in header
+	int font_color = 0;
+	int highlight_color = 0;
+};
+
+
+///struct describing layout of a text paragraph, all values in twips
+struct RtfParagraphFormat : RtfTextFormat
+{
+	RtfParagraphFormat()
+	{
+	}
 
 	int space_before = 0;
 	int space_after = 0;
@@ -31,10 +44,6 @@ struct RtfReportParagraphFormat
 	int intent_block_right = 0;
 	int intent_first_line = 0;
 
-	//font number as specified in header
-	int font_number = 0;
-	//font color as specified in header
-	int font_color = 0;
 };
 
 
@@ -50,8 +59,13 @@ public:
 	///Returns footer of RTF code
 	RtfSourceCode footer();
 
+	///Returns formatted text outside \par\pard construct
+	static RtfSourceCode text(const QByteArray& content,const RtfTextFormat& format);
+
 	///Return a paragraph formatted according format
-	static RtfSourceCode paragraph(const QByteArray& content,const RtfReportParagraphFormat& format = RtfReportParagraphFormat(),bool in_cell = false);
+	static RtfSourceCode paragraph(const QByteArray& content = "",const RtfParagraphFormat& format = RtfParagraphFormat(),bool in_cell = false);
+	///Return a paragraph, each element of content will be its own line
+	static RtfSourceCode paragraph(const QByteArrayList& content,const RtfParagraphFormat& format = RtfParagraphFormat(),bool in_cell = false);
 	///Converts German special characters to unicode notation.
 	static RtfSourceCode escapeUmlauts(const QByteArray& text);
 	///Converts centimeters into RTF twip format
@@ -124,10 +138,16 @@ public:
 		content_ = content;
 	}
 
-	void setTextFormat(RtfReportParagraphFormat format)
+	const RtfParagraphFormat& format() const
 	{
-		par_format_ = format;
+		return par_format_;
 	}
+
+	RtfParagraphFormat& format()
+	{
+		return par_format_;
+	}
+
 
 	void setWidth(int width)
 	{
@@ -161,13 +181,13 @@ public:
 
 private:
 	///private constructor, only to be accessed by friend class
-	RtfTableCell(const QByteArray &content, int width, const RtfReportParagraphFormat &text_format = RtfReportParagraphFormat());
+	RtfTableCell(const QByteArray &content, int width, const RtfParagraphFormat &text_format = RtfParagraphFormat());
 
 	///returns RTF code formatting the cell, can only be called from friend classes
 	QByteArray writeCell();
 
 	QByteArray content_;
-	RtfReportParagraphFormat par_format_;
+	RtfParagraphFormat par_format_;
 
 	//Distance between left and right margin in twips
 	int width_ = 1000;
@@ -193,11 +213,16 @@ public:
 	///Default constructor creates empty instance, cells can be added later
 	RtfTableRow();
 
-	///Create a row, content and cell widths according parameter lists
-	RtfTableRow(const QList<QByteArray>& cell_contents, const QList<int>& cell_widths);
+	RtfTableRow(const QByteArray& cell_content, int width, const RtfParagraphFormat& format = RtfParagraphFormat());
+
+	///Constructor creates a row, content and cell widths according parameter lists
+	RtfTableRow(const QList<QByteArray>& cell_contents, const QList<int>& cell_widths,const RtfParagraphFormat& format = RtfParagraphFormat());
 
 	///Add cell using predefined cell format settings
-	void addCell(const QByteArray& cell_content, int width, RtfReportParagraphFormat par_format = RtfReportParagraphFormat());
+	void addCell(const QByteArray& cell_content, int width, const RtfParagraphFormat& par_format = RtfParagraphFormat());
+	///Add cellusing predefined cell format settings, each element of cell_contents will be separated by RTF new line "\line"
+	void addCell(const QByteArrayList& cell_contents, int width, const RtfParagraphFormat& par_format = RtfParagraphFormat());
+
 	///sets consistent border to all cells
 	void setBorders(int width, const QByteArray& type="brdrs");
 	///Write RTF code of a whole row
@@ -212,6 +237,16 @@ public:
 	RtfTableCell& operator[](int index)
 	{
 		return cells_[index];
+	}
+
+	const RtfTableCell& last() const
+	{
+		return cells_.last();
+	}
+
+	RtfTableCell& last()
+	{
+		return cells_.last();
 	}
 
 	int count()
@@ -229,6 +264,48 @@ private:
 
 	///write RTF code of the row header
 	RtfSourceCode writeRowHeader();
+};
+
+
+class RtfTable
+{
+public:
+	RtfTable();
+
+	///Constructor initializes table using unique format
+	RtfTable(const QList< QList<QByteArray> >& contents, const QList< QList<int> >& widths, const RtfParagraphFormat& format = RtfParagraphFormat());
+
+	void addRow(const RtfTableRow& row)
+	{
+		rows_.append(row);
+	}
+
+	RtfSourceCode writeTable();
+
+	const RtfTableRow& operator[](int index) const
+	{
+		return rows_[index];
+	}
+	RtfTableRow& operator[](int index)
+	{
+		return rows_[index];
+	}
+
+	int count()
+	{
+		return rows_.count();
+	}
+
+	///sets format for all table cells
+	void setUniqueFormat(const RtfParagraphFormat& format);
+	///sets border for all table cells
+	void setUniqueBorder(int border,const QByteArray& border_type = "brdrs");
+
+
+private:
+	QList<RtfTableRow> rows_;
+
+
 };
 
 #endif // RTFDOCUMENT_H
