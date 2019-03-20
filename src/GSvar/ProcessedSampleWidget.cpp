@@ -16,6 +16,7 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	ui_->setupUi(this);
 	GUIHelper::styleSplitter(ui_->splitter);
 	connect(ui_->ngsd_btn, SIGNAL(clicked(bool)), this, SLOT(openSampleInNGSD()));
+	connect(ui_->folder_btn, SIGNAL(clicked(bool)), this, SLOT(openSampleFolder()));
 	connect(ui_->run, SIGNAL(linkActivated(QString)), this, SIGNAL(openRunTab(QString)));
 	connect(ui_->qc_all, SIGNAL(stateChanged(int)), this, SLOT(updateQCMetrics()));
 
@@ -37,9 +38,14 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	menu->addAction("Edit diagnostic status", this, SLOT(editDiagnosticStatus()));
 	ui_->edit_btn->setMenu(menu);
 
+	//IGV button
+	menu = new QMenu();
+	menu->addAction("BAM track", this, SLOT(addBamToIgv()));
+	menu->addAction("CNV track", this, SLOT(addCnvsToIgv()));
+	ui_->igv_btn->setMenu(menu);
+
 	updateGUI();
 }
-
 ProcessedSampleWidget::~ProcessedSampleWidget()
 {
 	delete ui_;
@@ -213,6 +219,17 @@ void ProcessedSampleWidget::openSampleInNGSD()
 	}
 }
 
+void ProcessedSampleWidget::openSampleFolder()
+{
+	QString folder = NGSD().processedSamplePath(ps_id_, NGSD::SAMPLE_FOLDER);
+	if(!QFile::exists(folder))
+	{
+		QMessageBox::warning(this, "Error opening processed sample folder", "Folder does not exist:\n" + folder);
+		return;
+	}
+	QDesktopServices::openUrl(QUrl(folder));
+}
+
 void ProcessedSampleWidget::openSampleTab()
 {
 	QString s_name = db_.getValue("SELECT s.name FROM sample s, processed_sample ps WHERE ps.sample_id=s.id AND ps.id='" + ps_id_ + "'").toString();
@@ -249,6 +266,33 @@ void ProcessedSampleWidget::openSampleTab()
 		if (ok)
 		{
 			emit openProcessedSampleTab(ps);
+		}
+	}
+}
+
+void ProcessedSampleWidget::addBamToIgv()
+{
+	QString bam = db_.processedSamplePath(ps_id_, NGSD::BAM);
+
+	executeIGVCommands(QStringList() << "load \"" + QDir::toNativeSeparators(bam) + "\"");
+}
+
+void ProcessedSampleWidget::addCnvsToIgv()
+{
+	QString bam = db_.processedSamplePath(ps_id_, NGSD::BAM);
+
+	QString base_name = bam.left(bam.length()-4);
+	QString segfile = base_name + "_cnvs_clincnv.seg";
+	if (QFile::exists(segfile))
+	{
+		executeIGVCommands(QStringList() << "load \"" + QDir::toNativeSeparators(segfile) + "\"");
+	}
+	else
+	{
+		segfile = base_name + "_cnvs.seg";
+		if (QFile::exists(segfile))
+		{
+			executeIGVCommands(QStringList() << "load \"" + QDir::toNativeSeparators(segfile) + "\"");
 		}
 	}
 }

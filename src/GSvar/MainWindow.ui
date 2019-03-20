@@ -282,7 +282,7 @@
      <x>0</x>
      <y>0</y>
      <width>1103</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -385,6 +385,8 @@
      <addaction name="actionIgvLowcov"/>
      <addaction name="separator"/>
     </widget>
+    <addaction name="actionIgvClear"/>
+    <addaction name="separator"/>
     <addaction name="actionIgvInit"/>
     <addaction name="separator"/>
     <addaction name="menuTracks"/>
@@ -845,6 +847,9 @@
    </property>
   </action>
   <action name="actionAnnotateSomaticVariants">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset resource="GSvar.qrc">
      <normaloff>:/Icons/Annotate_germline_somatic.png</normaloff>:/Icons/Annotate_germline_somatic.png</iconset>
@@ -853,10 +858,15 @@
     <string>AnnotateSomaticVariants</string>
    </property>
    <property name="toolTip">
-    <string>Annotate File with variants from somatic GSvar file</string>
+    <string>Annotate variant list with information from somatic GSvar file</string>
    </property>
    <property name="visible">
-    <bool>false</bool>
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionIgvClear">
+   <property name="text">
+    <string>Clear</string>
    </property>
   </action>
  </widget>

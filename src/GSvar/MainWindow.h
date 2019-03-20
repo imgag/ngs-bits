@@ -31,8 +31,6 @@ public:
 	void loadFile(QString filename);
 	///Returns the result of applying filters to the variant list
 	void applyFilters(bool debug_time);
-	///Sends a command to IGV through the default socket
-	void executeIGVCommand(QString command);
 	///Returns the LOG files corresponding to the variant list.
 	QStringList getLogFiles();
 	///Returns the BAM files for the analysis.
@@ -132,6 +130,8 @@ public slots:
 	void on_actionClose_triggered();
 	///Force IGV initializazion
 	void on_actionIgvInit_triggered();
+	///Clear IGV
+	void on_actionIgvClear_triggered();
 	///Open CNV dialog
 	void on_actionCNV_triggered();
 	///Open ROH dialog
@@ -224,6 +224,9 @@ public slots:
 	void openRunTab(QString run_name);
 	///Process a tab close request
 	void closeTab(int index);
+
+	///Sends commands to IGV through the default socket. Returns if the commands executed successfully.
+	bool executeIGVCommands(QStringList commands);
 
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);
