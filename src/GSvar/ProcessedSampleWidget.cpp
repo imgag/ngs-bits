@@ -40,8 +40,10 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 
 	//IGV button
 	menu = new QMenu();
-	menu->addAction("BAM track", this, SLOT(addBamToIgv()));
-	menu->addAction("CNV track", this, SLOT(addCnvsToIgv()));
+	menu->addAction("Add BAM track", this, SLOT(addBamToIgv()));
+	menu->addAction("Add variant track", this, SLOT(addVariantsToIgv()));
+	menu->addAction("Add CNV track", this, SLOT(addCnvsToIgv()));
+	menu->addAction("Add BAF track", this, SLOT(addBafsToIgv()));
 	ui_->igv_btn->setMenu(menu);
 
 	updateGUI();
@@ -277,6 +279,14 @@ void ProcessedSampleWidget::addBamToIgv()
 	executeIGVCommands(QStringList() << "load \"" + QDir::toNativeSeparators(bam) + "\"");
 }
 
+void ProcessedSampleWidget::addVariantsToIgv()
+{
+	QString bam = db_.processedSamplePath(ps_id_, NGSD::BAM);
+	QString vcf = bam.left(bam.length()-4) + "_var_annotated.vcf.gz";
+
+	executeIGVCommands(QStringList() << "load \"" + QDir::toNativeSeparators(vcf) + "\"");
+}
+
 void ProcessedSampleWidget::addCnvsToIgv()
 {
 	QString bam = db_.processedSamplePath(ps_id_, NGSD::BAM);
@@ -295,6 +305,14 @@ void ProcessedSampleWidget::addCnvsToIgv()
 			executeIGVCommands(QStringList() << "load \"" + QDir::toNativeSeparators(segfile) + "\"");
 		}
 	}
+}
+
+void ProcessedSampleWidget::addBafsToIgv()
+{
+	QString bam = db_.processedSamplePath(ps_id_, NGSD::BAM);
+	QString bafs = bam.left(bam.length()-4) + "_bafs.igv";
+
+	executeIGVCommands(QStringList() << "load \"" + QDir::toNativeSeparators(bafs) + "\"");
 }
 
 void ProcessedSampleWidget::editDiagnosticStatus()

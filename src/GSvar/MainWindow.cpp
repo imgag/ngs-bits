@@ -2641,10 +2641,11 @@ bool MainWindow::executeIGVCommands(QStringList commands)
 		//execute commands
 		foreach(QString command, commands)
 		{
+
 			socket.write((command + "\n").toLatin1());
 			socket.waitForReadyRead(180000); // 3 min timeout (trios can be slow)
-			QString answer = socket.readAll();
-			if (answer.trimmed()!="OK")
+			QString answer = socket.readAll().trimmed();
+			if (answer!="OK")
 			{
 				THROW(Exception, "Could not execute IGV command '" + command + "'.\nAnswer: " + answer);
 			}
