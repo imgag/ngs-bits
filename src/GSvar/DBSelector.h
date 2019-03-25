@@ -25,6 +25,9 @@ public:
 	QString getId() const;
 
 protected:
+	///Override to paste text trimmed.
+	void keyPressEvent(QKeyEvent* e) override;
+
 	QHash<QString, QString> text2id_;
 };
 

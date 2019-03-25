@@ -187,10 +187,7 @@ void MainWindow::on_actionIgvInit_triggered()
 
 void MainWindow::on_actionIgvClear_triggered()
 {
-	QStringList commands;
-	commands << "new";
-	commands << "genome " + Settings::string("igv_genome");
-	executeIGVCommands(commands);
+	executeIGVCommands(QStringList() << "new");
 }
 
 void MainWindow::on_actionSV_triggered()
