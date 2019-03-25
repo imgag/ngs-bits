@@ -1,7 +1,6 @@
 #include "MidList.h"
-#include "GDBO.h"
-#include <QTimer>
 #include "ui_MidList.h"
+#include "NGSD.h"
 
 MidList::MidList(QWidget *parent)
 	: QWidget(parent)
@@ -20,15 +19,13 @@ MidList::~MidList()
 
 void MidList::loadMidsFromDB()
 {
-	QList<GDBO> mids = GDBO::all("mid");
-	foreach(const GDBO& mid, mids)
+	NGSD db;
+	SqlQuery query = db.getQuery();
+	query.exec("SELECT name, sequence FROM mid ORDER by name, sequence ASC");
+	while(query.next())
 	{
-		ui->mids->addItem(mid.get("name") + " (" + mid.get("sequence") + ")");
+		ui->mids->addItem(query.value(0).toString() + " (" + query.value(1).toString() + ")");
 	}
-	ui->mids->sortItems();
-
-	//delete timer object
-	qobject_cast<QTimer*>(sender())->deleteLater();
 }
 
 void MidList::filter(QString text)

@@ -3,7 +3,7 @@
 
 #include <QWidget>
 #include <QScopedPointer>
-#include "GDBO.h"
+#include "NGSD.h"
 
 class QTableWidgetItem;
 
@@ -34,7 +34,7 @@ private:
 	QString midNameFromItem(int row, int col);
 	void highlightItem(int row, int col, QString tooltip);
 	void updateRunData();
-	QString midToString(const GDBO& mid);
+	QString midToString(const QString& mid_id);
 	static QList<int> setToSortedList(const QSet<int>& set);
 	void loadRunsFromNGSD();
 

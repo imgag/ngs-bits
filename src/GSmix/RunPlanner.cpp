@@ -1,7 +1,6 @@
 #include "RunPlanner.h"
 #include "ui_RunPlanner.h"
 #include "NGSD.h"
-#include "GDBO.h"
 #include "Exceptions.h"
 #include "Helper.h"
 #include <QTimer>
@@ -261,19 +260,22 @@ void RunPlanner::updateRunData()
 	QString run_id = ui_->run->currentData(Qt::UserRole).toString();
 	QString lane = QString::number(ui_->lane->value());
 
-	QList<GDBO> psamples = GDBO::all("processed_sample", QStringList() << "sequencing_run_id='" + run_id + "'" << "lane LIKE '%" + lane + "%'");
-	foreach(const GDBO& psample, psamples)
+	SqlQuery query = db_.getQuery();
+	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), ps.mid1_i7, ps.mid2_i5 FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.sequencing_run_id='" + run_id + "' AND ps.lane LIKE '%" + lane + "%'");
+	while(query.next())
 	{
-		QString name = psample.getFkObject("sample_id").get("name") + "_" + psample.get("process_id").rightJustified(2, '0');
-		QString mid1 = psample.get("mid1_i7")=="" ? "" : midToString(psample.getFkObject("mid1_i7"));
-		QString mid2 = psample.get("mid2_i5")=="" ? "" : midToString(psample.getFkObject("mid2_i5"));
+		QString name = query.value(0).toString();
+		QString mid1 = query.value(1).isNull() ? "" : midToString(query.value(1).toString());
+		QString mid2 = query.value(2).isNull() ? "" : midToString(query.value(2).toString());
 		ui_->samples->appendSampleRO(name, mid1, mid2);
 	}
 }
 
-QString RunPlanner::midToString(const GDBO& mid)
+QString RunPlanner::midToString(const QString& mid_id)
 {
-	return mid.get("name") + " (" + mid.get("sequence") + ")";
+	QString name = db_.getValue("SELECT name FROM mid WHERE id='" + mid_id + "'").toString();
+	QString sequence = db_.getValue("SELECT sequence FROM mid WHERE id='" + mid_id + "'").toString();
+	return name + " (" + sequence + ")";
 }
 
 QList<int> RunPlanner::setToSortedList(const QSet<int>& set)
