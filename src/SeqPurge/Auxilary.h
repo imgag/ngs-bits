@@ -71,6 +71,7 @@ struct TrimmingParameters
 	int ncut;
 	bool ec;
 	bool debug;
+	int compression_level;
 	QString qc;
 };
 

@@ -44,8 +44,10 @@ public:
 		addFlag("ec", "Enable error-correction of adapter-trimmed reads (only those with insert match).");
 		addFlag("debug", "Enables debug output (use only with one thread).");
 		addInt("progress", "Enables progress output at the given interval in milliseconds (disabled by default).", true, -1);
+		addInt("compression_level", "gzip compression level from 1 (fastest) to 9 (best compression).", true, 1);
 
 		//changelog
+		changeLog(2019, 3, 26, "Added 'compression_level' parameter.");
 		changeLog(2019, 2, 11, "Added writer thread to make SeqPurge scale better when using many threads.");
 		changeLog(2017, 6, 15, "Changed default value of 'min_len' parameter from 15 to 30.");
 		changeLog(2016, 8, 10, "Fixed bug in binomial calculation (issue #1).");
@@ -83,6 +85,8 @@ public:
 		params_.qc = getOutfile("qc");
 		params_.ec = getFlag("ec");
 		params_.debug = getFlag("debug");
+		params_.compression_level = getInt("compression_level");
+		if (params_.compression_level<1 || params_.compression_level>9) THROW(CommandLineParsingException, "Invalid compression level " + QString::number(params_.compression_level) +"!");
 
 		QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("summary"), true);
 		QTextStream out(outfile.data());
