@@ -75,6 +75,7 @@
 #include "SequencingRunWidget.h"
 #include "SimpleCrypt.h"
 #include "ToolBase.h"
+#include "BedpeFile.h"
 
 QT_CHARTS_USE_NAMESPACE
 
@@ -196,7 +197,8 @@ void MainWindow::on_actionSV_triggered()
 
 	try
 	{
-		SvWidget* list = new SvWidget(filename_);
+		QStringList file_names = Helper::findFiles(QFileInfo(filename_).absolutePath(), "*var_structural.bedpe", false);
+		SvWidget* list = new SvWidget(file_names);
 		auto dlg = GUIHelper::createDialog(list, "Structure variants");
 		addModelessDialog(dlg);
 		connect(list,SIGNAL(openSvInIGV(QString)),this,SLOT(openInIGV(QString)));
