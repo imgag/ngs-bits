@@ -6,6 +6,8 @@
 #include <QByteArrayList>
 
 
+
+
 ///structural variant as reported by MANTA
 class CPPNGSSHARED_EXPORT StructuralVariant
 {
