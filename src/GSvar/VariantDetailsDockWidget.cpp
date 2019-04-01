@@ -561,23 +561,8 @@ void VariantDetailsDockWidget::initTranscriptDetails(const VariantList& vl, int 
 		trans_data.clear();
 	}
 
-	//determine index of first high-impact variant
-	int high_impact = -1;
-	for (int i=0; i<trans_data.count(); ++i)
-	{
-		if (trans_data[i].impact=="HIGH")
-		{
-			high_impact = i;
-			break;
-		}
-	}
-
-	//set first transcript (or first high-impact if any)
-	if (trans_data.count()>0)
-	{
-		setTranscript(high_impact==-1 ? 0 : high_impact);
-	}
-	else
+	//select transcript
+	if (trans_data.isEmpty())
 	{
 		ui->detail_type->clear();
 		ui->detail_impact->clear();
@@ -585,6 +570,35 @@ void VariantDetailsDockWidget::initTranscriptDetails(const VariantList& vl, int 
 		ui->detail_cdna->clear();
 		ui->detail_protein->clear();
 		ui->detail_domain->clear();
+	}
+	else
+	{
+		//use first preferred transcript
+		for (int i=0; i<trans_data.count(); ++i)
+		{
+			if (preferred_transcripts.value(trans_data[i].gene).contains(trans_data[i].id))
+			{
+				setTranscript(i);
+				break;
+			}
+		}
+		//use first high-impact transcript
+		if (trans_curr==-1)
+		{
+			for (int i=0; i<trans_data.count(); ++i)
+			{
+				if (trans_data[i].impact=="HIGH")
+				{
+					setTranscript(i);
+					break;
+				}
+			}
+		}
+		//fallback: first transcript
+		if (trans_curr==-1)
+		{
+			setTranscript(0);
+		}
 	}
 
 	//tooltip if more than one transcript

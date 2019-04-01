@@ -200,6 +200,20 @@
                  </widget>
                 </item>
                 <item>
+                 <widget class="QToolButton" name="ps_details">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open sample details tab(s) for sample(s) contained in variant list.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="text">
+                   <string>...</string>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="GSvar.qrc">
+                    <normaloff>:/Icons/NGSD_sample.png</normaloff>:/Icons/NGSD_sample.png</iconset>
+                  </property>
+                 </widget>
+                </item>
+                <item>
                  <spacer name="horizontalSpacer">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
@@ -421,8 +435,6 @@
    <addaction name="actionAnnotateSomaticVariants"/>
    <addaction name="actionReport"/>
    <addaction name="separator"/>
-   <addaction name="actionOpenProcessedSampleTabs"/>
-   <addaction name="separator"/>
    <addaction name="actionAnalysisStatus"/>
    <addaction name="actionReanalyze"/>
    <addaction name="separator"/>
@@ -525,18 +537,6 @@
   <action name="actionSampleSimilarityBAM">
    <property name="text">
     <string>based on BAM files</string>
-   </property>
-  </action>
-  <action name="actionOpenProcessedSampleTabs">
-   <property name="icon">
-    <iconset resource="GSvar.qrc">
-     <normaloff>:/Icons/NGSD_sample.png</normaloff>:/Icons/NGSD_sample.png</iconset>
-   </property>
-   <property name="text">
-    <string>Open sample dialog</string>
-   </property>
-   <property name="toolTip">
-    <string>Open sample details tab(s) for samples contained in variant list.</string>
    </property>
   </action>
   <action name="actionSampleInformation">

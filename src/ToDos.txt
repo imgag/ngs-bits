@@ -28,7 +28,7 @@ GSvar:
 - Visualize tracking of variants when from split complex variant (wait for VcfBreakComplex)
 
 Tools:
-** NGSDExportSamples: Add sample gender + move to cppNGSD for re-use in GSvar
+** NGSDExportSamples: move to cppNGSD for re-use in GSvar
 - NGSDPrecalculate: fix missing/different disease group/status for sample with relation "same sample"
 * NGSDImportHPO: check that the genes listed for a variant are really affected - e.g. RIF1 is not affected by this variant but listed: clinvar_20171203.vcf:2  152346522       194453  G       A       .       .       AF_ESP=0.0020;AF_EXAC=0.00176;AF_TGP=0.0014;ALLELEID=191616;CLNDISDB=Human_Phenotype_Ontology:HP:0001324,MedGen:C0151786|Human_Phenotype_Ontology:HP:0003741,MedGen:CN003380|MedGen:CN169374|MedGen:CN239479;CLNDN=Muscle_weakness|Congenital_muscular_dystrophy|not_specified|Nemaline_Myopathy,_Recessive;CLNHGVS=NC_000002.11:g.152346522G>A;CLNREVSTAT=criteria_provided,_conflicting_interpretations;CLNSIG=Conflicting_interpretations_of_pathogenicity;CLNVC=single_nucleotide_variant;CLNVCSO=SO:0001483;CLNVI=Centre_for_Mendelian_Genomics,University_Medical_Centre_Ljubljana:CMGVARID00336,Illumina_Clinical_Services_Laboratory,Illumina:101100;GENEINFO=NEB:4703|RIF1:55183;MC=SO:0001583|missense_variant;ORIGIN=1;RS=78592085
 - UPDHunter: also support chrX?
