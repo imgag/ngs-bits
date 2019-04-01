@@ -3,65 +3,197 @@
 #include <QMessageBox>
 #include <QClipboard>
 #include <QBitArray>
+#include <QByteArray>
+#include <QMenu>
+#include <QAction>
 #include "SvWidget.h"
 #include "ui_SvWidget.h"
 #include "Helper.h"
 #include "GUIHelper.h"
 
-SvWidget::SvWidget(const QString& file_name, QWidget *parent)
+SvWidget::SvWidget(const QStringList& bedpe_file_paths, QWidget *parent)
 	: QWidget(parent)
 	, ui(new Ui::SvWidget)
 {
 	ui->setupUi(this);
+	ui->svs->setContextMenuPolicy(Qt::CustomContextMenu);
 
 	//Setup signals and slots
 	connect(ui->copy_to_clipboard,SIGNAL(clicked()),this,SLOT(copyToClipboard()));
 
 	connect(ui->filter_type,SIGNAL(currentIndexChanged(int)),this,SLOT(filtersChanged()));
-	connect(ui->qual_filter,SIGNAL(currentIndexChanged(int)),this,SLOT(filtersChanged()));
+	connect(ui->filter_qual,SIGNAL(currentIndexChanged(int)),this,SLOT(filtersChanged()));
+	connect(ui->filter_text,SIGNAL(textEdited(QString)),this,SLOT(filtersChanged()));
+	connect(ui->filter_text_search_type,SIGNAL(currentTextChanged(QString)),this,SLOT(filtersChanged()));
+	connect(ui->filter_quality_score,SIGNAL(valueChanged(int)),this,SLOT(filtersChanged()));
+	connect(ui->ignore_special_chromosomes,SIGNAL(stateChanged(int)),this,SLOT(filtersChanged()));
 
-	connect(ui->filter_size,SIGNAL(valueChanged(double)),this,SLOT(filtersChanged()));
-
-	connect(ui->filter_tumor_frequency_paired_reads,SIGNAL(valueChanged(double)),this,SLOT(filtersChanged()));
-	connect(ui->filter_tumor_frequency_single_reads,SIGNAL(valueChanged(double)),this,SLOT(filtersChanged()));
-	connect(ui->filter_tumor_depth_paired_reads,SIGNAL(valueChanged(int)),this,SLOT(filtersChanged()));
-	connect(ui->filter_tumor_depth_single_reads,SIGNAL(valueChanged(int)),this,SLOT(filtersChanged()));
-
-
-	connect(ui->filter_normal_frequency_paired_reads,SIGNAL(valueChanged(double)),this,SLOT(filtersChanged()));
-	connect(ui->filter_normal_frequency_single_reads,SIGNAL(valueChanged(double)),this,SLOT(filtersChanged()));
-
-	connect(ui->filter_normal_depth_paired_reads,SIGNAL(valueChanged(int)),this,SLOT(filtersChanged()));
-	connect(ui->filter_normal_depth_single_reads,SIGNAL(valueChanged(int)),this,SLOT(filtersChanged()));
 
 	connect(ui->svs,SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this,SLOT(SvDoubleClicked(QTableWidgetItem*)));
 
-	QString path = QFileInfo(file_name).absolutePath();
-	QStringList sv_files = Helper::findFiles(path, "*_var_structural.tsv", false);
+	connect(ui->svs,SIGNAL(itemSelectionChanged()),this,SLOT(SvSelectionChanged()));
 
-	qDebug() << sv_files;
+	connect(ui->svs,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showContextMenu(QPoint)));
 
-	if(sv_files.isEmpty())
+	connect(ui->file_names,SIGNAL(currentTextChanged(QString)),this,SLOT(fileNameChanged()));
+
+
+	if(bedpe_file_paths.count() < 1)
 	{
-		disableGui("No SV data file found in directory " + path );
-	}
-	else if(sv_files.count()>1)
-	{
-		disableGui("More than 1 SV data file found in directory " + path);
+		disableGui("There are no SV files in sample folder.");
 	}
 	else
 	{
-		loadSVs(sv_files[0]);
+		foreach(QString path, bedpe_file_paths)
+		{
+			ui->file_names->addItem(QFileInfo(path).fileName(),QFileInfo(path).absoluteFilePath());
+		}
+
+		//Load first bedpe file found in sample dir
+		loadSVs(bedpe_file_paths[0]);
+	}
+}
+
+void SvWidget::loadSVs(const QString &file_name)
+{
+	sv_bedpe_file_.clear();
+	clearGUI();
+
+	sv_bedpe_file_.load(file_name);
+	if(sv_bedpe_file_.count() == 0)
+	{
+		disableGui("There are no SVs in data file ");
+		return;
 	}
 
 
+	//Set list of annotations to be showed, by default some annotations are filtered out
+	QByteArrayList annotation_headers = sv_bedpe_file_.annotationHeaders();
+	for(int i=0;i<annotation_headers.count();++i)
+	{
+		if(annotation_headers[i].contains("STRAND_")) continue;
+		if(annotation_headers[i].contains("NAME_")) continue;
+		if(annotation_headers[i] == "ID") continue;
+		annotations_to_show_ << annotation_headers[i];
+	}
+
+	//Add annotation headers
+	QList<int> annotation_indices;
+	for(int i=0;i<sv_bedpe_file_.annotationHeaders().count();++i)
+	{
+		QByteArray header = sv_bedpe_file_.annotationHeaders()[i];
+
+		if(!annotations_to_show_.contains(header)) continue;
+
+		ui->svs->setColumnCount(ui->svs->columnCount() + 1 );
+		ui->svs->setHorizontalHeaderItem(ui->svs->columnCount() - 1, new QTableWidgetItem(QString(header)));
+		annotation_indices << i;
+	}
+
+
+	//Fill rows
+	ui->svs->setRowCount(sv_bedpe_file_.count());
+
+	//Fill table widget with data from bedpe file
+	for(int row=0;row<sv_bedpe_file_.count();++row)
+	{
+		//Fill fixed columns
+		ui->svs->setItem(row,0,new QTableWidgetItem(QString(sv_bedpe_file_[row].chr1().str())));
+		ui->svs->setItem(row,1,new QTableWidgetItem(QString::number(sv_bedpe_file_[row].start1())));
+		ui->svs->setItem(row,2,new QTableWidgetItem(QString::number(sv_bedpe_file_[row].end1())));
+
+		ui->svs->setItem(row,3,new QTableWidgetItem(QString(sv_bedpe_file_[row].chr2().str())));
+		ui->svs->setItem(row,4,new QTableWidgetItem(QString::number(sv_bedpe_file_[row].start2())));
+		ui->svs->setItem(row,5,new QTableWidgetItem(QString::number(sv_bedpe_file_[row].end2())));
+
+		//Fill annotation columns
+		int col_in_widget = 6;
+		foreach(int anno_index,annotation_indices)
+		{
+			ui->svs->setItem(row,col_in_widget,new QTableWidgetItem(QString(sv_bedpe_file_[row].annotations().at(anno_index))));
+			++col_in_widget;
+		}
+	}
+
+	//Set entries for combobox used for filtering SV type
+	QStringList types;
+	int i_type =  sv_bedpe_file_.annotationIndexByName("TYPE",false);
+	if(i_type > -1)
+	{
+		types << "n/a";
+		for(int row=0;row<sv_bedpe_file_.count();++row)
+		{
+			if(!types.contains(sv_bedpe_file_[row].annotations().at(i_type)))
+			{
+				types << sv_bedpe_file_[row].annotations().at(i_type);
+			}
+		}
+		foreach(QString type,types)
+		{
+			ui->filter_type->addItem(type);
+		}
+	}
+	else
+	{
+		ui->filter_type->setEnabled(false);
+	}
+
+	//set entries for combobox used for filtering SV quality
+	QList<QByteArray> entries = sv_bedpe_file_.annotationDescriptionByID("FILTER").keys();
+
+	entries.prepend("PASS");
+	entries.prepend("n/a");
+
+	foreach(QByteArray entry,entries) ui->filter_qual->addItem(QString(entry));
+
+	//only whole rows can be selected, one row at a time
 	ui->svs->setSelectionBehavior(QAbstractItemView::SelectRows);
+	resizeQTableWidget(ui->svs);
 
 	//filter rows according default filter values
-	QMetaObject::invokeMethod(this,"filtersChanged");
+	filtersChanged();
+}
 
 
-	ui->svs->setSortingEnabled(true);
+void SvWidget::clearGUI()
+{
+	ui->info_a->clearContents();
+	ui->info_a->clearContents();
+	ui->info_b->clearContents();
+	ui->sv_details->clearContents();
+
+	//Clear table widget to cols / rows specified in .ui file
+	ui->svs->setRowCount(0);
+	ui->svs->setColumnCount(6);
+
+	ui->filter_type->clear();
+	ui->filter_qual->clear();
+	ui->filter_quality_score->setValue(0);
+
+	ui->ignore_special_chromosomes->setCheckState(Qt::CheckState::Unchecked);
+
+
+	ui->filter_text->clear();
+	ui->filter_text_search_type->setCurrentIndex(0);
+}
+
+void SvWidget::resizeQTableWidget(QTableWidget *table_widget)
+{
+	table_widget->resizeRowToContents(0);
+
+	int height = table_widget->rowHeight(0);
+
+	for (int i=0; i<table_widget->rowCount(); ++i)
+	{
+		table_widget->setRowHeight(i, height);
+	}
+	GUIHelper::resizeTableCells(table_widget,200);
+}
+
+void SvWidget::fileNameChanged()
+{
+	clearGUI();
+	loadSVs(ui->file_names->currentData(Qt::UserRole).toString());
 }
 
 void SvWidget::addInfoLine(QString text)
@@ -71,97 +203,104 @@ void SvWidget::addInfoLine(QString text)
 
 void SvWidget::filtersChanged()
 {
-	int row_count = svs_.count();
-
+	int row_count = ui->svs->rowCount();
 	QBitArray pass;
 	pass.fill(true,row_count);
 
-
-	//"type" filter
-	if(ui->filter_type->currentText() != "n/a")
+	//Free text filter
+	if(!ui->filter_text->text().isEmpty() && (ui->filter_text_search_type->currentText() == "contains" || ui->filter_text_search_type->currentText() == "contains not"))
 	{
-		QByteArray chosen_type = ui->filter_type->currentText().toLatin1();
-
-		for(int row=0;row<row_count;row++)
+		for(int row=0;row<row_count;++row)
 		{
-			pass[row] = (svs_[row].type() == chosen_type);
-		}
-	}
-
-	//"size" filter
-	double size_filter = ui->filter_size->value() * 1000;
-	for(int row=0;row<row_count;row++)
-	{
-		if(!pass[row]) continue;
-
-		if(svs_[row].size() < 0) continue;
-		pass[row] = (svs_[row].size() >= size_filter);
-	}
-
-
-	//qual filter - filtering
-	if(ui->qual_filter->currentText() != "n/a")
-	{
-		QByteArray chosen_qual_filter = ui->qual_filter->currentText().toLatin1();
-		for(int row=0;row<row_count;row++)
-		{
-			//skip entries that are already hidden
 			if(!pass[row]) continue;
 
-			pass[row] = (svs_[row].getFilter() == chosen_qual_filter);
+			bool in_any_item = false;
+
+			for(int c=0;c<ui->svs->columnCount();++c)
+			{
+				QString item =  ui->svs->item(row,c)->text();
+				if(item.contains(ui->filter_text->text(),Qt::CaseInsensitive))
+				{
+					in_any_item = true;
+					break;
+				}
+			}
+			if(ui->filter_text_search_type->currentText() == "contains" ) pass[row] = in_any_item;
+			else if(ui->filter_text_search_type->currentText() == "contains not")  pass[row] = !in_any_item;
+		}
+	}
+
+	//Skip special chromosomes
+	if(ui->ignore_special_chromosomes->isChecked())
+	{
+		QByteArrayList special_chrs = {"GL","HS"};
+		for(int row=0;row<row_count;++row)
+		{
+			if(!pass[row]) continue;
+
+			foreach(QByteArray special_chr,special_chrs)
+			{
+				if(ui->svs->item(row,0)->text().contains(special_chr,Qt::CaseInsensitive) || ui->svs->item(row,3)->text().contains(special_chr,Qt::CaseInsensitive))
+				{
+					pass[row] = false;
+					break;
+				}
+			}
+
 		}
 	}
 
 
-	//filtering of annotation columns
-
-	//tumor paired reads frequency filter
-	if(ui->filter_tumor_frequency_paired_reads->isVisible())
+	//SV type (e.g. DUP,DEL or INV)
+	if(ui->filter_type->currentText() != "n/a")
 	{
-		filterAnnotationsForNumber("tumor_PR_freq",ui->filter_tumor_frequency_paired_reads->value(),pass);
+		int i_type = colIndexbyName("TYPE");
+
+		if(i_type > -1)
+		{
+			for(int row=0;row<row_count;++row)
+			{
+				if(!pass[row]) continue;
+				if(ui->svs->item(row,i_type)->text() != ui->filter_type->currentText()) pass[row] = false;
+			}
+		}
 	}
 
-	//tumor single reads frequency filter
-	if(ui->filter_tumor_frequency_single_reads->isVisible())
+	//SV quality (e.g. PASS, LowFreq etc)
+	if(ui->filter_qual->currentText() != "n/a")
 	{
-		filterAnnotationsForNumber("tumor_SR_freq",ui->filter_tumor_frequency_single_reads->value(),pass);
+		int i_qual_filter = colIndexbyName("FILTER");
+		if(i_qual_filter > -1)
+		{
+			for(int row=0;row<row_count;++row)
+			{
+				if(!pass[row]) continue;
+				if(!ui->svs->item(row,i_qual_filter)->text().contains(ui->filter_qual->currentText())) pass[row] = false;
+			}
+		}
 	}
 
-	//tumor paired reads depth filter
-	if(ui->filter_tumor_depth_paired_reads->isVisible())
+	//SV quality score
+	if(ui->filter_quality_score->value() != 0)
 	{
-		filterAnnotationsForNumber("tumor_PR_depth",ui->filter_tumor_depth_paired_reads->value(),pass);
+		int i_qual_score = colIndexbyName("QUAL");
+		if(i_qual_score != -1)
+		{
+			for(int row=0;row<row_count;++row)
+			{
+				if(!pass[row]) continue;
+
+				bool is_valid_number = false;
+				double val = ui->svs->item(row,i_qual_score)->text().toDouble(&is_valid_number);
+				if(!is_valid_number) continue;
+
+				//skip values smaller than threshold
+				if(val < (double) ui->filter_quality_score->value()) pass[row] = false;
+
+			}
+		}
 	}
 
-	//tumor single reads depth filter
-	if(ui->filter_tumor_depth_single_reads->isVisible())
-	{
-		filterAnnotationsForNumber("tumor_SR_depth",ui->filter_tumor_depth_single_reads->value(),pass);
-	}
-
-	//normal paired read frequency
-	if(ui->filter_normal_frequency_paired_reads->isVisible())
-	{
-		filterAnnotationsForNumber("normal_PR_freq",ui->filter_normal_frequency_paired_reads->value(),pass);
-	}
-
-	//normal single read frequency
-	if(ui->filter_normal_frequency_single_reads->isVisible())
-	{
-		filterAnnotationsForNumber("normal_SR_freq",ui->filter_normal_frequency_single_reads->value(),pass);
-	}
-
-	//normal paired read depth
-	if(ui->filter_normal_depth_paired_reads->isVisible())
-	{
-		filterAnnotationsForNumber("normal_PR_depth",ui->filter_normal_depth_paired_reads->value(),pass);
-	}
-
-	//normal single read depth
-	if(ui->filter_normal_depth_single_reads->isVisible())
-	{
-		filterAnnotationsForNumber("normal_SR_depth",ui->filter_normal_depth_single_reads->value(),pass);
-	}
 
 	for(int row=0;row<row_count;row++)
 	{
@@ -169,26 +308,15 @@ void SvWidget::filtersChanged()
 	}
 }
 
-void SvWidget::filterAnnotationsForNumber(QByteArray anno_name, double filter_thresh, QBitArray &pass)
+int SvWidget::colIndexbyName(const QString& name)
 {
-	if(pass.count() != svs_.count()) return;
-
-	int i_anno = svs_.annotationIndexByName(anno_name,false);
-	if(i_anno == -1) return;
-
-	for(int row=0;row<pass.count();++row)
+	for(int i=0;i<ui->svs->columnCount();++i)
 	{
-		bool entry_is_number;
-		double entry_as_number = svs_[row].annotations().at(i_anno).toDouble(&entry_is_number);
-
-		//some entries are non-numeric: ignore
-		if(!entry_is_number) continue;
-		//if entry already skipped: Do not change entry
-		if(!pass[row]) continue;
-
-		pass[row] = entry_as_number >=filter_thresh;
+		if(ui->svs->horizontalHeaderItem(i)->text() == name) return i;
 	}
+	return -1;
 }
+
 
 void SvWidget::copyToClipboard()
 {
@@ -207,153 +335,123 @@ void SvWidget::SvDoubleClicked(QTableWidgetItem *item)
 	emit openSvInIGV(coords);
 }
 
-
-void SvWidget::loadSVs(const QString& file_name)
-{
-	svs_.load(file_name);
-
-	if(svs_.count() == 0)
-	{
-		disableGui("There are no SVs in data file " + file_name);
-		return;
-	}
-
-	//print comments into SV calling info_box
-	foreach(QString comment, svs_.comments())
-	{
-		addInfoLine(comment);
-	}
-
-	QList<int> annotation_indices;
-
-	for(int i=0; i<svs_.annotationHeaders().count(); ++i)
-	{
-		if(svs_.annotationHeaders()[i] == "length") continue;
-
-		QByteArray header = svs_.annotationHeaders()[i];
-		ui->svs->setColumnCount(ui->svs->columnCount() + 1);
-		ui->svs->setHorizontalHeaderItem(ui->svs->columnCount() -1, new QTableWidgetItem(QString(header)));
-
-		annotation_indices.append(i);
-	}
-	ui->svs->setRowCount(svs_.count());
-
-	for(int row=0;row<svs_.count();row++)
-	{
-		ui->svs->setItem(row,0,new QTableWidgetItem(QString::fromUtf8(svs_[row].chr().str())) );
-		ui->svs->setItem(row,1,new QTableWidgetItem(QString::number(svs_[row].start())) );
-
-		if(svs_[row].end() == -1)
-		{
-			ui->svs->setItem(row,2,new QTableWidgetItem(QString('.')));
-		}
-		else
-		{
-			ui->svs->setItem(row,2,new QTableWidgetItem(QString::number(svs_[row].end())) );
-		}
-
-		ui->svs->setItem(row,3,new QTableWidgetItem(QString::fromUtf8(svs_[row].type())) );
-
-		if(svs_[row].size() == -1)
-		{
-			ui->svs->setItem(row,4,new QTableWidgetItem(QString('.')));
-		}
-		else
-		{
-			//size in kilo bases
-			ui->svs->setItem(row,4,new QTableWidgetItem(QString::number(svs_[row].size()/1000.)) );
-		}
-
-		ui->svs->setItem(row,5,new QTableWidgetItem(QString::number(svs_[row].score())) );
-
-
-		ui->svs->setItem(row,6,new QTableWidgetItem(QString::fromUtf8(svs_[row].getFilter())) );
-
-		ui->svs->setItem(row,7,new QTableWidgetItem(QString::fromUtf8(svs_[row].mateChr().str())) );
-		if(svs_[row].matePos() == -1)
-		{
-			ui->svs->setItem(row,8,new QTableWidgetItem(QString('.')) );
-		}
-		else
-		{
-			ui->svs->setItem(row,8,new QTableWidgetItem(QString::number(svs_[row].matePos())) );
-		}
-		ui->svs->setItem(row,9,new QTableWidgetItem(QString::fromUtf8(svs_[row].getMateFilter())) );
-
-		//column number for annotations
-		int c = 10;
-
-		foreach(int index, annotation_indices)
-		{
-			bool is_number;
-			svs_[row].annotations()[index].toFloat(&is_number);
-			QTableWidgetItem* item;
-
-			if(!is_number)
-			{
-				item = new QTableWidgetItem(QString(svs_[row].annotations()[index]));
-			}
-			else //in case annotation is number: round to 3 digits
-			{
-				item = new QTableWidgetItem(QString::number(svs_[row].annotations()[index].toFloat(),'f',3 ));
-			}
-
-			ui->svs->setItem(row, c++, item);
-		}
-	}
-
-	//check annotation header whether columns for allele frequencies and sequencing depths exist, remove certain buttons if not
-	if(svs_.annotationIndexByName("tumor_PR_freq",false) < 0)
-	{
-		ui->filter_tumor_frequency_paired_reads->setEnabled(false);
-	}
-	if(svs_.annotationIndexByName("tumor_SR_freq",false) < 0)
-	{
-		ui->filter_tumor_frequency_single_reads->setEnabled(false);
-	}
-	if(svs_.annotationIndexByName("tumor_PR_depth",false) < 0)
-	{
-		ui->filter_tumor_depth_paired_reads->setEnabled(false);
-	}
-	if(svs_.annotationIndexByName("tumor_SR_depth",false) < 0)
-	{
-		ui->filter_tumor_depth_single_reads->setEnabled(false);
-	}
-	if(svs_.annotationIndexByName("normal_PR_freq",false) < 0)
-	{
-		ui->filter_normal_frequency_paired_reads->setEnabled(false);
-	}
-	if(svs_.annotationIndexByName("normal_SR_freq",false) < 0)
-	{
-		ui->filter_normal_frequency_single_reads->setEnabled(false);
-	}
-	if(svs_.annotationIndexByName("normal_PR_depth",false) < 0)
-	{
-		ui->filter_normal_depth_paired_reads->setEnabled(false);
-	}
-	if(svs_.annotationIndexByName("normal_SR_depth",false) < 0)
-	{
-		ui->filter_normal_depth_single_reads->setEnabled(false);
-	}
-}
-
 void SvWidget::disableGui(const QString& message)
 {
-	ui->filter_normal_depth_paired_reads->setEnabled(false);
-	ui->filter_normal_depth_single_reads->setEnabled(false);
-	ui->filter_normal_frequency_paired_reads->setEnabled(false);
-	ui->filter_normal_frequency_single_reads->setEnabled(false);
-	ui->filter_size->setEnabled(false);
-	ui->filter_tumor_depth_paired_reads->setEnabled(false);
-	ui->filter_tumor_depth_single_reads->setEnabled(false);
-	ui->filter_tumor_frequency_paired_reads->setEnabled(false);
-	ui->filter_tumor_frequency_single_reads->setEnabled(false);
 	ui->filter_type->setEnabled(false);
 
-	ui->qual_filter->setEnabled(false);
+	ui->filter_qual->setEnabled(false);
 	ui->copy_to_clipboard->setEnabled(false);
 	ui->svs->setEnabled(false);
 
 	addInfoLine("<font color='red'>" + message + "</font>");
+}
+
+void SvWidget::SvSelectionChanged()
+{
+	QModelIndexList rows = ui->svs->selectionModel()->selectedRows();
+	if(rows.count() != 1) return;
+
+	int row = rows.at(0).row();
+
+	int i_format = colIndexbyName("FORMAT");
+
+	int i_format_data = i_format+1;
+	//Check whether col with format data actually exists
+	if(ui->svs->columnCount()-1 < i_format_data ) return;
+
+	QStringList format = ui->svs->item(row,i_format)->text().split(":");
+	QStringList data = ui->svs->item(row,i_format_data)->text().split(":");
+	if(format.count() != data.count()) return;
+	ui->sv_details->setRowCount(format.count());
+
+	//Map with description of format field, e.g. GT <-> GENOTYPE
+	QMap<QByteArray,QByteArray> format_description = sv_bedpe_file_.annotationDescriptionByID("FORMAT");
+
+	for(int i=0;i<ui->sv_details->rowCount();++i)
+	{
+		ui->sv_details->setItem(i,0,new QTableWidgetItem(QString(format[i])));
+		ui->sv_details->setItem(i,1,new QTableWidgetItem(QString(format_description.value(format.at(i).toLatin1()))));
+		ui->sv_details->setItem(i,2,new QTableWidgetItem(QString(data[i])));
+	}
+	resizeQTableWidget(ui->sv_details);
+	ui->sv_details->scrollToTop();
+
+	setInfoWidgets("INFO_A",row,ui->info_a);
+	resizeQTableWidget(ui->info_a);
+	setInfoWidgets("INFO_B",row,ui->info_b);
+	resizeQTableWidget(ui->info_b);
+}
+
+void SvWidget::setInfoWidgets(const QByteArray &name, int row, QTableWidget* widget)
+{
+	int i_info = colIndexbyName(name);
+	if(i_info == -1)
+	{
+		QMessageBox::warning(this,"Error parsing annotation","Could not parse annotation column " + name);
+		return;
+	}
+
+	QStringList raw_data = ui->svs->item(row,i_info)->text().split(";");
+
+	if(raw_data.count() > 1) widget->setRowCount(raw_data.count());
+	else if(raw_data.count() == 1 && raw_data[0] == ".") widget->setRowCount(0);
+	else widget->setRowCount(raw_data.count());
+
+	QMap<QByteArray,QByteArray> descriptions = sv_bedpe_file_.annotationDescriptionByID("INFO");
+
+	for(int i=0;i<raw_data.count();++i)
+	{
+		QStringList tmp = raw_data[i].split("=");
+		if(tmp.count() != 2 ) continue;
+
+		widget->setItem(i,0,new QTableWidgetItem(QString(tmp[0]))); // Key
+
+		widget->setItem(i,1, new QTableWidgetItem(QString(descriptions.value(tmp[0].toUtf8())))); //Description
+		widget->setItem(i,2,new QTableWidgetItem(QString(tmp[1]))); // Value
+	}
+
+	resizeQTableWidget(widget);
+	widget->scrollToTop();
+}
+
+void SvWidget::showContextMenu(QPoint pos)
+{
+	QModelIndexList rows = ui->svs->selectionModel()->selectedRows();
+	if(rows.count() != 1) return;
+
+	int index = rows.at(0).row();
+
+	QMenu menu(ui->svs);
+
+	menu.addAction("open in IGV");
+	menu.addAction("open mate in IGV");
+	menu.addAction("open split screen in IGV");
+
+	QAction* action = menu.exec(ui->svs->viewport()->mapToGlobal(pos));
+	if(action == nullptr) return;
+
+	QString chr = ui->svs->item(index,0)->text();
+	QString start = ui->svs->item(index,1)->text();
+	QString end = ui->svs->item(index,2)->text();
+	if(action->text() == "open in IGV")
+	{
+		QString coords = chr + ":" + start + "-" + end;
+		emit(openSvInIGV(coords));
+	}
+
+	QString chr2 = ui->svs->item(index,3)->text();
+	QString start2 = ui->svs->item(index,4)->text();
+	QString end2 = ui->svs->item(index,5)->text();
+	if(action->text() == "open mate in IGV")
+	{
+		QString coords = chr2 + ":" + start2 + "-" + end2;
+		emit(openSvInIGV(coords));
+	}
+
+	if(action->text() == "open split screen in IGV")
+	{
+		QString coords = chr + ":" + start + "-" + end + " " + chr2 + ":" + start2 + "-" + end2;
+		emit(openSvInIGV(coords));
+	}
 }
 

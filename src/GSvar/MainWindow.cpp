@@ -75,6 +75,7 @@
 #include "SequencingRunWidget.h"
 #include "SimpleCrypt.h"
 #include "ToolBase.h"
+#include "BedpeFile.h"
 
 QT_CHARTS_USE_NAMESPACE
 
@@ -185,13 +186,19 @@ void MainWindow::on_actionIgvInit_triggered()
 	igv_initialized_ = false;
 }
 
+void MainWindow::on_actionIgvClear_triggered()
+{
+	executeIGVCommands(QStringList() << "new");
+}
+
 void MainWindow::on_actionSV_triggered()
 {
 	if(filename_ == "") return;
 
 	try
 	{
-		SvWidget* list = new SvWidget(filename_);
+		QStringList file_names = Helper::findFiles(QFileInfo(filename_).absolutePath(), "*var_structural.bedpe", false);
+		SvWidget* list = new SvWidget(file_names);
 		auto dlg = GUIHelper::createDialog(list, "Structure variants");
 		addModelessDialog(dlg);
 		connect(list,SIGNAL(openSvInIGV(QString)),this,SLOT(openInIGV(QString)));
@@ -654,25 +661,14 @@ void MainWindow::openInIGV(QString region)
 		}
 	}
 
-	//send commands to IGV
-	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-	try
+	//send commands to IGV - init
+	if (!executeIGVCommands(init_commands))
 	{
-		//init
-		foreach(QString command, init_commands)
-		{
-			executeIGVCommand(command);
-		}
-
-		//jump
-		executeIGVCommand("goto " + region);
-	}
-	catch(Exception& e)
-	{
-		QMessageBox::warning(this, "Error while sending command to IGV:", e.message());
 		igv_initialized_ = false;
 	}
-	QApplication::restoreOverrideCursor();
+
+	//send commands to IGV - jump
+	executeIGVCommands(QStringList() << "goto " + region);
 }
 
 void MainWindow::editVariantClassification()
@@ -1228,6 +1224,7 @@ void MainWindow::openProcessedSampleTab(QString ps_name)
 	ui_.tabs->setCurrentIndex(index);
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
 	connect(widget, SIGNAL(openRunTab(QString)), this, SLOT(openRunTab(QString)));
+	connect(widget, SIGNAL(executeIGVCommands(QStringList)), this, SLOT(executeIGVCommands(QStringList)));
 }
 
 void MainWindow::openRunTab(QString run_name)
@@ -1320,19 +1317,6 @@ void MainWindow::loadFile(QString filename)
 		refreshVariantTable(false);
 		ui_.vars->adaptColumnWidths();
 
-		//Show or Hide button for annotation germline file if variant file is  somatic variants.
-		int button_pos_in_menu;
-		for(int i=0;i<ui_.tools->actions().count();++i)
-		{
-			if(ui_.tools->actions().at(i)->objectName() == "actionAnnotateSomaticVariants")
-			{
-				button_pos_in_menu = i;
-				break;
-			}
-		}
-		if(variants_.type() == AnalysisType::GERMLINE_SINGLESAMPLE) ui_.tools->actions().at(button_pos_in_menu)->setVisible(true);
-		else ui_.tools->actions().at(button_pos_in_menu)->setVisible(false);
-
 		QApplication::restoreOverrideCursor();
 	}
 	catch(Exception& e)
@@ -1385,7 +1369,11 @@ void MainWindow::on_actionAbout_triggered()
 void MainWindow::on_actionAnnotateSomaticVariants_triggered()
 {
 	//Only germline files shall be annotated
-	if(variants_.type() != AnalysisType::GERMLINE_SINGLESAMPLE) return;
+	if(variants_.type() != AnalysisType::GERMLINE_SINGLESAMPLE)
+	{
+		QMessageBox::warning(this, "Annotation not possible", "Only single-sample germline variants lists can be annotated with data from somatic variant lists!");
+		return;
+	}
 
 	//Load somatic .GSvar file
 	QString path = Settings::path("path_variantlists");
@@ -1803,6 +1791,7 @@ void MainWindow::on_actionAnalysisStatus_triggered()
 	int index = ui_.tabs->addTab(widget, QIcon(":/Icons/Server.png"), "Analysis status");
 	ui_.tabs->setCurrentIndex(index);
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
+	connect(widget, SIGNAL(openRunTab(QString)), this, SLOT(openRunTab(QString)));
 }
 
 void MainWindow::on_actionGapsLookup_triggered()
@@ -2633,29 +2622,49 @@ void MainWindow::applyFilter(QAction* action)
 	}
 }
 
-void MainWindow::executeIGVCommand(QString command)
+bool MainWindow::executeIGVCommands(QStringList commands)
 {
-	//connect
-	QAbstractSocket socket(QAbstractSocket::UnknownSocketType, this);
-	int igv_port = Settings::integer("igv_port", 60151);
-	QString igv_host = Settings::string("igv_host", "127.0.0.1");
-	socket.connectToHost(igv_host, igv_port);
-	if (!socket.waitForConnected(1000))
+	bool success = true;
+
+	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+
+	try
 	{
-		THROW(Exception, "Could not connect to IGV at host " + igv_host + " and port " + QString::number(igv_port) + ".\nPlease start IGV and enable the remote control port:\nView => Preferences => Advanced => Enable port");
+		//connect
+		QAbstractSocket socket(QAbstractSocket::UnknownSocketType, this);
+		int igv_port = Settings::integer("igv_port", 60151);
+		QString igv_host = Settings::string("igv_host", "127.0.0.1");
+		socket.connectToHost(igv_host, igv_port);
+		if (!socket.waitForConnected(1000))
+		{
+			THROW(Exception, "Could not connect to IGV at host " + igv_host + " and port " + QString::number(igv_port) + ".\nPlease make sure  IGV is started and the remote control port is enabled:\nView => Preferences => Advanced => Enable port");
+		}
+
+		//execute commands
+		foreach(QString command, commands)
+		{
+
+			socket.write((command + "\n").toLatin1());
+			socket.waitForReadyRead(180000); // 3 min timeout (trios can be slow)
+			QString answer = socket.readAll().trimmed();
+			if (answer!="OK")
+			{
+				THROW(Exception, "Could not execute IGV command '" + command + "'.\nAnswer: " + answer);
+			}
+		}
+
+		//disconnect
+		socket.disconnectFromHost();
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::warning(this, "Error while sending command to IGV:", e.message());
+		success = false;
 	}
 
-	//execute command
-	socket.write((command + "\n").toLatin1());
-	socket.waitForReadyRead(180000); // 3 min timeout (trios can be slow)
-	QString answer = socket.readAll();
-	if (answer.trimmed()!="OK")
-	{
-		THROW(Exception, "Could not execute IGV command '" + command + "'.\nAnswer: " + answer);
-	}
+	QApplication::restoreOverrideCursor();
 
-	//disconnect
-	socket.disconnectFromHost();
+	return success;
 }
 
 QStringList MainWindow::getLogFiles()

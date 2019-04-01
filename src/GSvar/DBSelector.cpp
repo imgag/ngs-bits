@@ -2,6 +2,8 @@
 #include "Exceptions.h"
 #include <QCompleter>
 #include <QStringListModel>
+#include <QClipboard>
+#include <QApplication>
 
 DBSelector::DBSelector(QWidget* parent)
 	: QLineEdit(parent)
@@ -52,4 +54,16 @@ QString DBSelector::getId() const
 	}
 
 	return text2id_[text()];
+}
+
+void DBSelector::keyPressEvent(QKeyEvent* e)
+{
+	if (e->matches(QKeySequence::Paste))
+	{
+		setText(QApplication::clipboard()->text().trimmed());
+		e->accept();
+		return;
+	}
+
+	QLineEdit::keyPressEvent(e);
 }

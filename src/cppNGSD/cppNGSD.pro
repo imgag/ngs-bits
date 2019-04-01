@@ -36,14 +36,12 @@ SOURCES += \
     SqlQuery.cpp\
     NGSD.cpp \
     GenLabDB.cpp \
-    GDBO.cpp \
     DBTable.cpp
 
 HEADERS += \
     SqlQuery.h \
     NGSD.h \
     GenLabDB.h \
-    GDBO.h \
     DBTable.h \
 
 RESOURCES += \

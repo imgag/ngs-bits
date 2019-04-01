@@ -1,5 +1,9 @@
 # GSvar change log
 
+### 2019_03-34-g110be83 (25.03.19)
+- Analysis status: sequencing run can now be opened via the context menu of samples.
+- Processed sample tab: added buttons to open folder and load tracks in IGV.
+
 ### 2019_03-18-g1f0ce07 (13.03.19)
 - General: Moved functionality for variant list from main menu to variant list tool bar.
 - CNVs: Minor improvements to CNV window for ClinCNV.
@@ -299,6 +303,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 

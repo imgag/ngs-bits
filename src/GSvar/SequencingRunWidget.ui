@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,1">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1">
    <property name="spacing">
     <number>3</number>
    </property>
@@ -29,23 +29,6 @@
    <property name="bottomMargin">
     <number>3</number>
    </property>
-   <item>
-    <widget class="QLabel" name="name">
-     <property name="font">
-      <font>
-       <pointsize>10</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>NAME</string>
-     </property>
-     <property name="textInteractionFlags">
-      <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-     </property>
-    </widget>
-   </item>
    <item>
     <layout class="QFormLayout" name="formLayout">
      <property name="rowWrapPolicy">
@@ -69,14 +52,14 @@
      <property name="bottomMargin">
       <number>9</number>
      </property>
-     <item row="0" column="0">
+     <item row="1" column="0">
       <widget class="QLabel" name="label">
        <property name="text">
         <string>flowcell ID:</string>
        </property>
       </widget>
      </item>
-     <item row="0" column="1">
+     <item row="1" column="1">
       <widget class="QLabel" name="fcid">
        <property name="text">
         <string>TextLabel</string>
@@ -86,14 +69,14 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="0">
+     <item row="2" column="0">
       <widget class="QLabel" name="label_4">
        <property name="text">
         <string>device:</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
+     <item row="2" column="1">
       <widget class="QLabel" name="device">
        <property name="text">
         <string>TextLabel</string>
@@ -103,14 +86,14 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="0">
+     <item row="3" column="0">
       <widget class="QLabel" name="label_5">
        <property name="text">
         <string>recipe:</string>
        </property>
       </widget>
      </item>
-     <item row="2" column="1">
+     <item row="3" column="1">
       <widget class="QLabel" name="recipe">
        <property name="text">
         <string>TextLabel</string>
@@ -120,14 +103,14 @@
        </property>
       </widget>
      </item>
-     <item row="3" column="0">
+     <item row="4" column="0">
       <widget class="QLabel" name="label_2">
        <property name="text">
         <string>start date:</string>
        </property>
       </widget>
      </item>
-     <item row="3" column="1">
+     <item row="4" column="1">
       <widget class="QLabel" name="start">
        <property name="text">
         <string>TextLabel</string>
@@ -137,14 +120,14 @@
        </property>
       </widget>
      </item>
-     <item row="4" column="0">
+     <item row="5" column="0">
       <widget class="QLabel" name="label_3">
        <property name="text">
         <string>end date:</string>
        </property>
       </widget>
      </item>
-     <item row="4" column="1">
+     <item row="5" column="1">
       <widget class="QLabel" name="end">
        <property name="text">
         <string>TextLabel</string>
@@ -154,14 +137,14 @@
        </property>
       </widget>
      </item>
-     <item row="6" column="0">
+     <item row="7" column="0">
       <widget class="QLabel" name="label_8">
        <property name="text">
         <string>status</string>
        </property>
       </widget>
      </item>
-     <item row="6" column="1">
+     <item row="7" column="1">
       <widget class="QLabel" name="status">
        <property name="text">
         <string>TextLabel</string>
@@ -171,14 +154,14 @@
        </property>
       </widget>
      </item>
-     <item row="7" column="0">
+     <item row="8" column="0">
       <widget class="QLabel" name="label_7">
        <property name="text">
         <string>quality:</string>
        </property>
       </widget>
      </item>
-     <item row="7" column="1">
+     <item row="8" column="1">
       <widget class="QLabel" name="quality">
        <property name="text">
         <string>TextLabel</string>
@@ -188,14 +171,14 @@
        </property>
       </widget>
      </item>
-     <item row="8" column="0">
+     <item row="9" column="0">
       <widget class="QLabel" name="label_6">
        <property name="text">
         <string>comments:</string>
        </property>
       </widget>
      </item>
-     <item row="8" column="1">
+     <item row="9" column="1">
       <widget class="QLabel" name="comments">
        <property name="text">
         <string>TextLabel</string>
@@ -205,15 +188,32 @@
        </property>
       </widget>
      </item>
-     <item row="5" column="0">
+     <item row="6" column="0">
       <widget class="QLabel" name="label_9">
        <property name="text">
         <string>pool molarity:</string>
        </property>
       </widget>
      </item>
-     <item row="5" column="1">
+     <item row="6" column="1">
       <widget class="QLabel" name="molarity_and_method">
+       <property name="text">
+        <string>TextLabel</string>
+       </property>
+       <property name="textInteractionFlags">
+        <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_10">
+       <property name="text">
+        <string>name:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLabel" name="name">
        <property name="text">
         <string>TextLabel</string>
        </property>

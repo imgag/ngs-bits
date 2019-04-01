@@ -60,7 +60,8 @@ SOURCES += BedFile.cpp \
     ClinCnvList.cpp \
     FilterCascade.cpp \
     VcfFile.cpp \
-    TabixIndexedFile.cpp
+    TabixIndexedFile.cpp \
+    BedpeFile.cpp
 
 
 HEADERS += BedFile.h \
@@ -89,7 +90,8 @@ HEADERS += BedFile.h \
     ClinCnvList.h \
     FilterCascade.h \
     VcfFile.h \
-    TabixIndexedFile.h
+    TabixIndexedFile.h \
+    BedpeFile.h
 
 
 RESOURCES += \

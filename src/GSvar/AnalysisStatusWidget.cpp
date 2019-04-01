@@ -247,6 +247,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 	//set up menu
 	QMenu menu;
 	menu.addAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample");
+	menu.addAction(QIcon(":/Icons/NGSD_run.png"), "Open sequencing run");
 	if (rows.count()==1 && types.values()[0]!="single sample")
 	{
 		menu.addAction(QIcon(":/Icons/Folder.png"), "Open trio/multi/somatic folder");
@@ -293,6 +294,16 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 		foreach(const AnalysisJobSample& sample, samples)
 		{
 			emit openProcessedSampleTab(sample.name);
+		}
+	}
+	if (text=="Open sequencing run")
+	{
+		NGSD db;
+		foreach(const AnalysisJobSample& sample, samples)
+		{
+			QString ps_id = db.processedSampleId(sample.name);
+			ProcessedSampleData ps_data = db.getProcessedSampleData(ps_id);
+			emit openRunTab(ps_data.run_name);
 		}
 	}
 	if (text=="Open sample folder(s)")

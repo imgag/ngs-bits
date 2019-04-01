@@ -25,13 +25,20 @@ public:
 signals:
 	void openProcessedSampleTab(QString ps_name);
 	void openRunTab(QString run_name);
+	void executeIGVCommands(QStringList commands);
 
 protected slots:
 	void updateGUI();
 	void updateQCMetrics();
 	void showPlot();
 	void openSampleInNGSD();
+	void openSampleFolder();
 	void openSampleTab();
+
+	void addBamToIgv();
+	void addVariantsToIgv();
+	void addCnvsToIgv();
+	void addBafsToIgv();
 
 	///Opens a dialog to edit the diagnostic status.
 	void editDiagnosticStatus();
