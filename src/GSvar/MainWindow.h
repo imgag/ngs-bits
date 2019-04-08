@@ -83,7 +83,7 @@ public slots:
 	///Report dialog
 	void on_actionReport_triggered();
 	///Open processed sample tabs
-	void on_actionOpenProcessedSampleTabs_triggered();
+	void openProcessedSampleTabsCurrentSample();
 	///Open processed sample tab by name
 	void on_actionOpenProcessedSampleTabByName_triggered();
 	///Open sequencing run tab by name
