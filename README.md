@@ -14,21 +14,17 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 ## ChangeLog
 
-Changes already implemented in Git master for next release:
+Changes already implemented in GIT master for next release:
+
+* none so far
+
+Changes in release 2019_04:
 
 * RohHunter: Added support for input variant lists that are not annotated with VEP. See 'af_source' parameter.
 * SeqPurge: added parameter 'compression_level'.
 * CnvHunter: fixed minor bug in z-score estimation.
 * RohHunter: Added support for input variant lists that are not annotated with VEP.
 * Added tools: FastqConcat
-
-Changes in release 2019_03:
-
-
-* SeqPurge: massive speed-up by adding writer thread.
-* SampleSimilarity: add flag to ignore multi-allelic sites, massive speed-up by caching of variants in RAM.
-* VcfFilter: minor bug fixes (reference allele checks).
-* Added tools: VcfExtractSamples, VcfBreakComplex (beta)
 
 For older releases see the [releases page](https://github.com/imgag/ngs-bits/releases).
 
@@ -145,6 +141,7 @@ Installation instructions for the NGSD can be found [here](doc/install_ngsd.md).
 
 * [PERsim](doc/tools/PERsim.md) - Paired-end read simulator for Illumina reads.
 * [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file.
+
 
 
 
