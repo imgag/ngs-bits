@@ -25,6 +25,37 @@ BedpeLine::BedpeLine(const Chromosome& chr1, int start1, int end1, const Chromos
 }
 
 
+BedpeFile::SV_TYPE BedpeFile::analysisType()
+{
+	if(lines_.isEmpty()) return UNKNOWN;
+
+	int i_ID = annotationIndexByName("ID",false);
+
+	int i_info_a =annotationIndexByName("INFO_A",false);
+	int i_info_b =annotationIndexByName("INFO_B",false);
+
+	foreach(BedpeLine line, lines_)
+	{
+		//identify Manta from Read IDs
+		if(i_ID > -1)
+		{
+			if(line.annotations().at(i_ID).toUpper().contains("MANTA")) return MANTA;
+		}
+		if(i_info_a > -1)
+		{
+			if(line.annotations().at(i_info_a).toUpper().contains("DELLY")) return DELLY;
+		}
+		if(i_info_b > -1)
+		{
+			if(line.annotations().at(i_info_b).toUpper().contains("DELLY")) return DELLY;
+		}
+
+	}
+
+	return UNKNOWN;
+}
+
+
 
 BedpeFile::BedpeFile()
 {

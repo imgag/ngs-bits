@@ -43,11 +43,17 @@ private:
 	///File widgets with data from INFO_A and INFO_B column
 	void setInfoWidgets(const QByteArray& name, int row, QTableWidget* widget);
 
+	///resets all filters in widget
 	void clearGUI();
 
 	///resize widgets to cell content
 	void resizeQTableWidget(QTableWidget* table_widget);
 
+	///Returns paired read count supporting alternate Structural Variant
+	int pairedEndReadCount(int row);
+
+	///calculate AF of SV, either by paired end reads ("PR") or split reads ("SR");
+	double alleleFrequency(int row, const QByteArray& read_type = "PR");
 
 signals:
 	void openSvInIGV(QString coords);
@@ -69,6 +75,9 @@ private slots:
 
 	///Context menu that shall appear if right click on variant
 	void showContextMenu(QPoint pos);
+
+	///Extracts entry of column following to "FORMAT" column.
+	QByteArray getFormatEntryByKey(const QByteArray& key, const QByteArray& format_desc, const QByteArray& format_data);
 };
 
 #endif // SVWIDGET_H
