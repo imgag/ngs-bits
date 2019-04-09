@@ -280,12 +280,18 @@
           <property name="maximum">
            <number>1000</number>
           </property>
+          <property name="value">
+           <number>1</number>
+          </property>
          </widget>
         </item>
         <item>
          <widget class="QCheckBox" name="ignore_special_chromosomes">
           <property name="text">
            <string>ignore special chromosomes</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
           </property>
          </widget>
         </item>
@@ -318,7 +324,7 @@
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="control_panel_2" stretch="0,0">
+       <layout class="QHBoxLayout" name="control_panel_2" stretch="0,0,0,0,0,0,0,0,0,0,0,0,0,0">
         <property name="spacing">
          <number>6</number>
         </property>
@@ -361,6 +367,99 @@
          </widget>
         </item>
         <item>
+         <widget class="QLabel" name="label_12">
+          <property name="text">
+           <string>Paired Read AF:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QDoubleSpinBox" name="filter_pe_af">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show only SVs with a certain Paired Read Allele Frequency ± 10%&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="accessibleName">
+           <string comment="abcdef" extracomment="dsafadsf"/>
+          </property>
+          <property name="maximum">
+           <double>1.000000000000000</double>
+          </property>
+          <property name="singleStep">
+           <double>0.010000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_13">
+          <property name="text">
+           <string>Split Read AF:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QDoubleSpinBox" name="filter_sr_af">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show only SVs with a certain Split Read Allele Frequency ± 10%&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="maximum">
+           <double>1.000000000000000</double>
+          </property>
+          <property name="singleStep">
+           <double>0.010000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_11">
+          <property name="text">
+           <string>PE Read Depth:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="filter_pe_reads">
+          <property name="maximum">
+           <number>999</number>
+          </property>
+          <property name="value">
+           <number>10</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_9">
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Delly Filters:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_10">
+          <property name="text">
+           <string>MapQ:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="delly_mapq">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="maximum">
+           <number>999</number>
+          </property>
+          <property name="value">
+           <number>30</number>
+          </property>
+         </widget>
+        </item>
+        <item>
          <spacer name="horizontalSpacer_2">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -372,6 +471,27 @@
            </size>
           </property>
          </spacer>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_sr_af">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_pe_af">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="number_of_svs">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>

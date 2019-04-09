@@ -137,7 +137,8 @@ MainWindow::MainWindow(QWidget *parent)
 	ngsd_btn->menu()->addAction(ui_.actionOpenSequencingRunTabByName);
 	ngsd_btn->setPopupMode(QToolButton::InstantPopup);
 	connect(ngsd_btn, SIGNAL(triggered(QAction*)), this, SLOT(applyFilter(QAction*)));
-	ui_.tools->insertWidget(ui_.actionOpenProcessedSampleTabs, ngsd_btn);
+	ui_.tools->insertWidget(ui_.actionAnalysisStatus, ngsd_btn);
+	ui_.tools->insertSeparator(ui_.actionAnalysisStatus);
 
 	//signals and slots
 	connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(close()));
@@ -159,6 +160,7 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.vars_export_btn->menu()->addAction("Export GSvar", this, SLOT(exportGSvar()));
 	connect(ui_.vars_folder_btn, SIGNAL(clicked(bool)), this, SLOT(openVariantListFolder()));
 	connect(ui_.vars_af_hist, SIGNAL(clicked(bool)), this, SLOT(showAfHistogram()));
+	connect(ui_.ps_details, SIGNAL(clicked(bool)), this, SLOT(openProcessedSampleTabsCurrentSample()));
 
 	//misc initialization
 	filewatcher_.setDelayInSeconds(10);
@@ -1700,7 +1702,7 @@ void MainWindow::databaseAnnotationFinished(bool success)
 	worker->deleteLater();
 }
 
-void MainWindow::on_actionOpenProcessedSampleTabs_triggered()
+void MainWindow::openProcessedSampleTabsCurrentSample()
 {
 	if (filename_=="") return;
 
@@ -3013,7 +3015,7 @@ void MainWindow::updateNGSDSupport()
 
 	//toolbar
 	ui_.actionReport->setEnabled(ngsd_enabled);
-	ui_.actionOpenProcessedSampleTabs->setEnabled(ngsd_enabled);
+	ui_.ps_details->setEnabled(ngsd_enabled);
 	ui_.actionNGSDAnnotation->setEnabled(ngsd_enabled);
 	ui_.actionAnalysisStatus->setEnabled(ngsd_enabled);
 	ui_.actionReanalyze->setEnabled(ngsd_enabled);

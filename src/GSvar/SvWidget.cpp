@@ -27,7 +27,11 @@ SvWidget::SvWidget(const QStringList& bedpe_file_paths, QWidget *parent)
 	connect(ui->filter_text_search_type,SIGNAL(currentTextChanged(QString)),this,SLOT(filtersChanged()));
 	connect(ui->filter_quality_score,SIGNAL(valueChanged(int)),this,SLOT(filtersChanged()));
 	connect(ui->ignore_special_chromosomes,SIGNAL(stateChanged(int)),this,SLOT(filtersChanged()));
+	connect(ui->filter_pe_af,SIGNAL(valueChanged(double)),this,SLOT(filtersChanged()));
+	connect(ui->filter_sr_af,SIGNAL(valueChanged(double)),this,SLOT(filtersChanged()));
 
+	connect(ui->delly_mapq,SIGNAL(valueChanged(int)),this,SLOT(filtersChanged()));
+	connect(ui->filter_pe_reads,SIGNAL(valueChanged(int)),this,SLOT(filtersChanged()));
 
 	connect(ui->svs,SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this,SLOT(SvDoubleClicked(QTableWidgetItem*)));
 
@@ -60,6 +64,7 @@ void SvWidget::loadSVs(const QString &file_name)
 	clearGUI();
 
 	sv_bedpe_file_.load(file_name);
+
 	if(sv_bedpe_file_.count() == 0)
 	{
 		disableGui("There are no SVs in data file ");
@@ -69,6 +74,7 @@ void SvWidget::loadSVs(const QString &file_name)
 
 	//Set list of annotations to be showed, by default some annotations are filtered out
 	QByteArrayList annotation_headers = sv_bedpe_file_.annotationHeaders();
+
 	for(int i=0;i<annotation_headers.count();++i)
 	{
 		if(annotation_headers[i].contains("STRAND_")) continue;
@@ -141,14 +147,33 @@ void SvWidget::loadSVs(const QString &file_name)
 	//set entries for combobox used for filtering SV quality
 	QList<QByteArray> entries = sv_bedpe_file_.annotationDescriptionByID("FILTER").keys();
 
-	entries.prepend("PASS");
+	if(!entries.contains("PASS")) entries.prepend("PASS");
 	entries.prepend("n/a");
 
 	foreach(QByteArray entry,entries) ui->filter_qual->addItem(QString(entry));
 
+
+	//Enable/Disable caller specific filters
+	if(sv_bedpe_file_.analysisType() == BedpeFile::SV_TYPE::DELLY)
+	{
+		ui->delly_mapq->setEnabled(true);
+	}
+	else
+	{
+		ui->delly_mapq->setEnabled(false);
+	}
+
+	//use different standard threshold for total count of paired end reads
+	if(sv_bedpe_file_.analysisType() == BedpeFile::SV_TYPE::MANTA)
+	{
+		ui->filter_pe_reads->setValue(0);
+	}
+
+
 	//only whole rows can be selected, one row at a time
 	ui->svs->setSelectionBehavior(QAbstractItemView::SelectRows);
 	resizeQTableWidget(ui->svs);
+
 
 	//filter rows according default filter values
 	filtersChanged();
@@ -157,10 +182,9 @@ void SvWidget::loadSVs(const QString &file_name)
 
 void SvWidget::clearGUI()
 {
-	ui->info_a->clearContents();
-	ui->info_a->clearContents();
-	ui->info_b->clearContents();
-	ui->sv_details->clearContents();
+	ui->info_a->setRowCount(0);
+	ui->info_b->setRowCount(0);
+	ui->sv_details->setRowCount(0);
 
 	//Clear table widget to cols / rows specified in .ui file
 	ui->svs->setRowCount(0);
@@ -170,8 +194,13 @@ void SvWidget::clearGUI()
 	ui->filter_qual->clear();
 	ui->filter_quality_score->setValue(0);
 
-	ui->ignore_special_chromosomes->setCheckState(Qt::CheckState::Unchecked);
+	ui->filter_pe_af->setValue(0);
+	ui->filter_sr_af->setValue(0);
 
+	ui->label_pe_af->clear();
+	ui->label_sr_af->clear();
+
+	ui->ignore_special_chromosomes->setCheckState(Qt::CheckState::Checked);
 
 	ui->filter_text->clear();
 	ui->filter_text_search_type->setCurrentIndex(0);
@@ -301,11 +330,95 @@ void SvWidget::filtersChanged()
 		}
 	}
 
+	//Paired End Reads Allele Frequency
+	if(ui->filter_pe_af->value() != 0)
+	{
+		double upper_limit = ui->filter_pe_af->value() + 0.1;
+		double lower_limit = ui->filter_pe_af->value() - 0.1;
+
+		for(int row=0;row<row_count;++row)
+		{
+			if(!pass[row]) continue;
+			double val = alleleFrequency(row,"PR");
+			if(val > upper_limit || val < lower_limit) pass[row] = false;
+		}
+	}
+
+	//Split Reads Allele Frequency Filter
+	if(ui->filter_sr_af->value() != 0)
+	{
+		double upper_limit = ui->filter_sr_af->value() + 0.1;
+		double lower_limit = ui->filter_sr_af->value() - 0.1;
+
+		for(int row=0;row<row_count;++row)
+		{
+			if(!pass[row]) continue;
+			double val = alleleFrequency(row,"SR");
+			if(val > upper_limit || val < lower_limit) pass[row] = false;
+		}
+	}
+
+	//Total number Paired End Reads
+	if(ui->filter_pe_reads->value() != 0)
+	{
+		int pe_reads_thres = ui->filter_pe_reads->value();
+
+		for(int row=0;row<row_count;++row)
+		{
+			if(!pass[row]) continue;
+			if(pairedEndReadCount(row) < pe_reads_thres) pass[row] = false;
+		}
+	}
+
+
+	/******************************
+	 * SV CALLER SPECIFIC FILTERS *
+	 ******************************/
+	//Delly Mapping Quality
+	if(ui->delly_mapq->isEnabled() && ui->delly_mapq->value() > 0)
+	{
+		int mapq_thres = ui->delly_mapq->value();
+
+		//Mapping quality values are in annotations
+		int i_info_a = colIndexbyName("INFO_A");
+
+		for(int row=0;row<row_count;++row)
+		{
+			if(!pass[row]) continue;
+
+			//Determine Mapping Quality from INFO_A column
+			QStringList infos = ui->svs->item(row,i_info_a)->text().split(";");
+			int mapq_val = -1;
+			foreach(QString info,infos)
+			{
+				if(info.contains("MAPQ=",Qt::CaseInsensitive))
+				{
+					bool success = false;
+					mapq_val = info.replace("MAPQ=","").toInt(&success);
+					if(!success) mapq_val = -1;
+
+					break;
+				}
+			}
+
+			if(mapq_val < mapq_thres && mapq_val > -1) pass[row] = false;
+		}
+	}
+
 
 	for(int row=0;row<row_count;row++)
 	{
 		ui->svs->setRowHidden(row,!pass[row]);
 	}
+
+	//Set number of filtered / total SVs
+	int number_visible_rows = 0;
+	for(int row=0;row<row_count;++row)
+	{
+		if(!ui->svs->isRowHidden(row)) ++number_visible_rows;
+	}
+
+	ui->number_of_svs->setText(QByteArray::number(number_visible_rows) + "/" + QByteArray::number(row_count));
 }
 
 int SvWidget::colIndexbyName(const QString& name)
@@ -317,6 +430,99 @@ int SvWidget::colIndexbyName(const QString& name)
 	return -1;
 }
 
+int SvWidget::pairedEndReadCount(int row)
+{
+	if(sv_bedpe_file_.analysisType() == BedpeFile::SV_TYPE::MANTA)
+	{
+		int i_format =colIndexbyName("FORMAT");
+		if(i_format == -1) return -1;
+
+		QByteArray desc = ui->svs->item(row,i_format)->text().toUtf8();
+		QByteArray data = ui->svs->item(row,i_format+1)->text().toUtf8();
+
+		QByteArrayList infos = getFormatEntryByKey("PR",desc,data).split(',');
+		if(infos.count() != 2) return -1;
+		//return paired end read alteration count
+		bool success = false ;
+
+		int pe_reads = infos[1].trimmed().toInt(&success);
+		if(!success) return -1;
+		return pe_reads;
+	}
+
+	if(sv_bedpe_file_.analysisType() == BedpeFile::SV_TYPE::DELLY)
+	{
+		int i_info_a = colIndexbyName("INFO_A");
+		if(i_info_a == -1 ) return -1.;
+
+		QStringList infos = ui->svs->item(row,i_info_a)->text().split(";");
+
+		int pe_read_val = -1;
+		foreach(QString info,infos)
+		{
+			if(info.contains("PE=",Qt::CaseInsensitive))
+			{
+				bool success = false;
+				pe_read_val = info.replace("PE=","").toInt(&success);
+				if(!success) pe_read_val = -1;
+				break;
+			}
+		}
+
+		return pe_read_val;
+	}
+
+	return -1.;
+}
+
+
+double SvWidget::alleleFrequency(int row,const QByteArray& read_type)
+{
+	int i_format = colIndexbyName("FORMAT");
+	if(i_format == -1 ) return -1.;
+
+	if(ui->svs->columnCount() < i_format+1) return -1.;
+
+	QByteArray desc = ui->svs->item(row,i_format)->text().toUtf8();
+	QByteArray data = ui->svs->item(row,i_format+1)->text().toUtf8();
+
+	int count_ref;
+	int count_alt;
+
+
+	if(sv_bedpe_file_.analysisType() == BedpeFile::SV_TYPE::MANTA)
+	{
+		QByteArrayList pr;
+		if(read_type == "PR") pr = getFormatEntryByKey("PR",desc,data).split(',');
+		else if(read_type == "SR") pr =  getFormatEntryByKey("SR",desc,data).split(',');
+		else return -1.;
+
+		if(pr.count() != 2) return -1.;
+
+		bool success = false;
+		count_ref = pr[0].toInt(&success);
+		if(!success) return -1;
+		count_alt = pr[1].toInt(&success);
+		if(!success) return -1;
+	}
+
+	if(sv_bedpe_file_.analysisType() == BedpeFile::SV_TYPE::DELLY)
+	{
+		bool success = false;
+
+		if(read_type ==  "PR") count_ref = getFormatEntryByKey("DR",desc,data).toInt(&success);
+		else if(read_type == "SR") count_ref = getFormatEntryByKey("RR",desc,data).toInt(&success);
+		else return -1.;
+
+		if(!success) return -1.;
+		if(read_type == "PR") count_alt = getFormatEntryByKey("DV",desc,data).toInt(&success);
+		else if(read_type == "SR") count_alt = getFormatEntryByKey("RV",desc,data).toInt(&success);
+		if(!success) return -1.;
+	}
+
+	if(count_alt+count_ref != 0) return (double)count_alt / (count_alt+count_ref);
+	else return 0;
+}
 
 void SvWidget::copyToClipboard()
 {
@@ -344,6 +550,25 @@ void SvWidget::disableGui(const QString& message)
 	ui->svs->setEnabled(false);
 
 	addInfoLine("<font color='red'>" + message + "</font>");
+}
+
+QByteArray SvWidget::getFormatEntryByKey(const QByteArray& key, const QByteArray &format_desc, const QByteArray &format_data)
+{
+	QByteArray key_tmp = key.trimmed();
+
+	QByteArrayList descs = format_desc.split(':');
+	QByteArrayList datas = format_data.split(':');
+	if(descs.count() != datas.count()) return "";
+
+	for(int i=0;i<descs.count();++i)
+	{
+		if(descs[i] == key_tmp)
+		{
+			return datas[i];
+		}
+	}
+
+	return "";
 }
 
 void SvWidget::SvSelectionChanged()
@@ -380,6 +605,12 @@ void SvWidget::SvSelectionChanged()
 	resizeQTableWidget(ui->info_a);
 	setInfoWidgets("INFO_B",row,ui->info_b);
 	resizeQTableWidget(ui->info_b);
+
+	//Display Split Read AF of variant
+	ui->label_sr_af->setText("Split Read AF: " + QString::number(alleleFrequency(row,"SR"),'f',2));
+
+	//Display Paired End Read AF of variant
+	ui->label_pe_af->setText("Paired End Read AF: " + QString::number(alleleFrequency(row,"PR"),'f',2));
 }
 
 void SvWidget::setInfoWidgets(const QByteArray &name, int row, QTableWidget* widget)
@@ -394,7 +625,7 @@ void SvWidget::setInfoWidgets(const QByteArray &name, int row, QTableWidget* wid
 	QStringList raw_data = ui->svs->item(row,i_info)->text().split(";");
 
 	if(raw_data.count() > 1) widget->setRowCount(raw_data.count());
-	else if(raw_data.count() == 1 && raw_data[0] == ".") widget->setRowCount(0);
+	else if(raw_data.count() == 1 && (raw_data[0] == "." || raw_data[0] == "MISSING")) widget->setRowCount(0);
 	else widget->setRowCount(raw_data.count());
 
 	QMap<QByteArray,QByteArray> descriptions = sv_bedpe_file_.annotationDescriptionByID("INFO");

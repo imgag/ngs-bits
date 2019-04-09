@@ -490,6 +490,7 @@ void ReportWorker::writeHTML()
 	stream << "<br />" << trans("KASP-Ergebnis") << ": " << db_.getQCData(processed_sample_id).value("kasp").asString() << endl;
 	stream << "</p>" << endl;
 
+	///Phenotype information
 	stream << "<p><b>" << trans("Ph&auml;notyp") << "</b>" << endl;
 	QList<SampleDiseaseInfo> info = db_.getSampleDiseaseInfo(sample_id, "ICD10 code");
 	foreach(const SampleDiseaseInfo& entry, info)
@@ -502,6 +503,19 @@ void ReportWorker::writeHTML()
 		stream << "<br />HPO: " << entry.disease_info << " (" << db_.phenotypeByAccession(entry.disease_info.toLatin1(), false).name() << ")" << endl;
 	}
 	stream << "</p>" << endl;
+
+	///Target region statistics
+	if (file_roi_!="")
+	{
+		stream << "<p><b>" << trans("Zielregion") << "</b>" << endl;
+		stream << "<br /><span style=\"font-size: 80%;\">" << trans("Die Zielregion umfasst mindestens die CCDS (\"consensus coding sequence\") unten genannter Gene &plusmn;20 Basen flankierender intronischer Sequenz, kann aber auch zus&auml;tzliche Exons und/oder flankierende Basen beinhalten.") << endl;
+		stream << "<br />" << trans("Name") << ": " << QFileInfo(file_roi_).fileName().replace(".bed", "") << endl;
+		if (!genes_.isEmpty())
+		{
+			stream << "<br />" << trans("Ausgewertete Gene") << " (" << QString::number(genes_.count()) << "): " << genes_.join(", ") << endl;
+		}
+		stream << "</p>" << endl;
+	}
 
 	//get column indices
 	int i_genotype = variants_.getSampleHeader().infoByStatus(true).column_index;
@@ -586,19 +600,6 @@ void ReportWorker::writeHTML()
 		stream << "<br /><b>" << trans("Klasse 3: Variante unklarer Signifikanz (VUS) - Unklare Pathogenit&auml;t") << ":</b> " << trans("Variante, bei der es unklar ist, ob eine krankheitsverursachende Wirkung besteht. Diese Varianten werden tabellarisch im technischen Report mitgeteilt.") << endl;
 		stream << "<br /><b>" << trans("Klasse 2: Sehr wahrscheinlich benigne Ver&auml;nderungen") << ":</b> " << trans("Aufgrund der H&auml;ufigkeit in der Allgemeinbev&ouml;lkerung oder der Lokalisation bzw. aufgrund von Angaben in der Literatur sehr wahrscheinlich benigne. Werden nicht mitgeteilt, k&ouml;nnen aber erfragt werden.") << endl;
 		stream << "<br /><b>" << trans("Klasse 1: Benigne Ver&auml;nderungen") << ":</b> " << trans("Werden nicht mitgeteilt, k&ouml;nnen aber erfragt werden.") << endl;
-		stream << "</p>" << endl;
-	}
-
-	///Target region statistics
-	if (file_roi_!="")
-	{
-		stream << "<p><b>" << trans("Zielregion") << "</b>" << endl;
-		stream << "<br /><span style=\"font-size: 80%;\">" << trans("Die Zielregion umfasst mindestens die CCDS (\"consensus coding sequence\") unten genannter Gene &plusmn;20 Basen flankierender intronischer Sequenz, kann aber auch zus&auml;tzliche Exons und/oder flankierende Basen beinhalten.") << endl;
-		stream << "<br />" << trans("Name") << ": " << QFileInfo(file_roi_).fileName().replace(".bed", "") << endl;
-		if (!genes_.isEmpty())
-		{
-			stream << "<br />" << trans("Ausgewertete Gene") << " (" << QString::number(genes_.count()) << "): " << genes_.join(", ") << endl;
-		}
 		stream << "</p>" << endl;
 	}
 

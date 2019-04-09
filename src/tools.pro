@@ -333,5 +333,9 @@ SUBDIRS += VcfExtractSamples
 tools-TEST.depends += VcfExtractSamples
 VcfExtractSamples.depends = cppNGS
 
+SUBDIRS += FastqConcat
+tools-TEST.depends += FastqConcat
+FastqConcat.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt
