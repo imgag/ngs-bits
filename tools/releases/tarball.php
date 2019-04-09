@@ -36,7 +36,7 @@ for($i=0; $i<count($file); ++$i)
 	//set fixed version
 	if (contains($line, '$$SVN_VER'))
 	{
-		$file[$i] = "DEFINES += \"CPPCORE_VERSION={$tag}\"\n";
+		$file[$i] = "DEFINES += CPPCORE_VERSION=\\\\\\\"{$tag}\\\\\\\"\n";
 	}
 }
 file_put_contents($filename, $file);
