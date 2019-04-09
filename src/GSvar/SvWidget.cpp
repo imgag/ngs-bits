@@ -486,8 +486,8 @@ double SvWidget::alleleFrequency(int row,const QByteArray& read_type)
 	QByteArray desc = ui->svs->item(row,i_format)->text().toUtf8();
 	QByteArray data = ui->svs->item(row,i_format+1)->text().toUtf8();
 
-	int count_ref;
-	int count_alt;
+	int count_ref = 0;
+	int count_alt = 0;
 
 
 	if(sv_bedpe_file_.analysisType() == BedpeFile::SV_TYPE::MANTA)
