@@ -17,6 +17,10 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 Changes already implemented in Git master for next release:
 
 * RohHunter: Added support for input variant lists that are not annotated with VEP. See 'af_source' parameter.
+* SeqPurge: added parameter 'compression_level'.
+* CnvHunter: fixed minor bug in z-score estimation.
+* RohHunter: Added support for input variant lists that are not annotated with VEP.
+* Added tools: FastqConcat
 
 Changes in release 2019_03:
 
@@ -101,6 +105,7 @@ The default output format of the quality control tools is [qcML](https://github.
 
 * [FastqAddBarcode](doc/tools/FastqAddBarcode.md) - Adds sequences from separate FASTQ as barcodes to read IDs.
 * [FastqConvert](doc/tools/FastqConvert.md) - Converts the quality scores from Illumina 1.5 offset to Sanger/Illumina 1.8 offset. 
+* [FastqConcat](doc/tools/FastqConcat.md) - Concatinates several FASTQ files into one output FASTQ file. 
 * [FastqExtract](doc/tools/FastqExtract.md) - Extracts reads from a FASTQ file according to an ID list.
 * [FastqExtractBarcode](doc/tools/FastqExtractBarcode.md) - Moves molecular barcodes of reads to a separate file.
 * [FastqExtractUMI](doc/tools/FastqExtractUMI.md) - Moves unique moleculare identifier from read sequence to read ID.
@@ -140,6 +145,7 @@ Installation instructions for the NGSD can be found [here](doc/install_ngsd.md).
 
 * [PERsim](doc/tools/PERsim.md) - Paired-end read simulator for Illumina reads.
 * [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file.
+
 
 
 

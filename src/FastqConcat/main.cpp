@@ -18,7 +18,7 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Concatinates a list of FASTQ files in one output FASTQ file.");
+		setDescription("Concatinates several FASTQ files into one output FASTQ file.");
 		addInfileList("in", "Input (gzipped) FASTQ files.", false);
 		addOutfile("out", "Output gzipped FASTQ file.", false);
 
