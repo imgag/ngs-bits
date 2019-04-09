@@ -34,7 +34,7 @@ SomaticReportConfiguration::SomaticReportConfiguration(const ClinCnvList& cnv_in
 	ui_->cnvs->setRowCount(cnvs_.count());
 	for(int row=0;row<cnvs_.count();++row)
 	{
-		const ClinCopyNumberVariant& cnv = cnvs_[row];
+		const ClinCnvVariant& cnv = cnvs_[row];
 
 		//checkbox
 		ui_->cnvs->setItem(row, 0, new QTableWidgetItem(""));
@@ -48,7 +48,7 @@ SomaticReportConfiguration::SomaticReportConfiguration(const ClinCnvList& cnv_in
 		ui_->cnvs->setItem(row, 3, new QTableWidgetItem(QString::number(cnv.end())));
 		ui_->cnvs->setItem(row, 4, new QTableWidgetItem(QString::number(cnv.copyNumber(), 'f', 1)));
 		ui_->cnvs->item(row, 4)->setTextAlignment(Qt::AlignRight|Qt::AlignVCenter);
-		ui_->cnvs->setItem(row, 5, new QTableWidgetItem(QString::number(cnv.likelihood(), 'f', 1)));
+		ui_->cnvs->setItem(row, 5, new QTableWidgetItem(QString::number(cnv.likelihoods()[0], 'f', 1)));
 		ui_->cnvs->item(row, 5)->setTextAlignment(Qt::AlignRight|Qt::AlignVCenter);
 		ui_->cnvs->setItem(row, 6, new QTableWidgetItem(QString::number(cnv.size(),'f',0)));
 		ui_->cnvs->item(row, 6)->setTextAlignment(Qt::AlignRight|Qt::AlignVCenter);
@@ -182,7 +182,7 @@ void SomaticReportConfiguration::filtersChanged()
 	for(int r=0;r<cnvs_.count();++r)
 	{
 		if(!view_pass_filter[r]) continue;
-		view_pass_filter[r] = cnvs_[r].likelihood() >= min_loglikelihood;
+		view_pass_filter[r] = cnvs_[r].likelihoods()[0] >= min_loglikelihood;
 	}
 
 	//CNV size
