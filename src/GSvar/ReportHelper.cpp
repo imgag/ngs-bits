@@ -151,7 +151,7 @@ void ReportHelper::writeCnvGeneList(QTextStream& stream, const QList<int>& col_w
 	int i_cnv_type = cnvs_filtered_.annotationIndexByName("cnv_type",true);
 	for(int i=0;i<cnvs_filtered_.count();++i)
 	{
-		ClinCopyNumberVariant cnv = cnvs_filtered_[i];
+		const ClinCnvVariant& cnv = cnvs_filtered_[i];
 
 		QByteArrayList genes = cnv.annotations().at(cnv_index_cgi_genes_).split(',');
 
@@ -290,7 +290,7 @@ void ReportHelper::writeCnvList(QTextStream& stream, const QList<int>& col_width
 
 	for(int i=0; i<cnvs_filtered_.count(); ++i)
 	{
-		ClinCopyNumberVariant variant = cnvs_filtered_[i];
+		const ClinCnvVariant& variant = cnvs_filtered_[i];
 		QList<QString> columns;
 
 		//coordinates
@@ -1354,7 +1354,7 @@ void ReportHelper::somaticCnvForQbic()
 
 	for(int i=0; i < cnvs_filtered_.count(); ++i)
 	{
-		ClinCopyNumberVariant variant = cnvs_filtered_[i];
+		const ClinCnvVariant& variant = cnvs_filtered_[i];
 
 		GeneSet genes_in_report = target_genes.intersect(GeneSet::createFromText(variant.annotations().at(cnv_index_cgi_genes_),','));
 

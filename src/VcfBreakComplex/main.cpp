@@ -25,7 +25,8 @@ public:
 	{
 		setDescription("Breaks complex variants into primitives preserving INFO/SAMPLE fields.");
 		setExtendedDescription(QStringList() << "Multi-allelic variants are ignored, since we assume they have already been split, e.g. with VcfBreakMulti."
-											 << "Complex variants that are decomposed, are flagged with a BBC (before break-complex) info entry.");
+											 << "Complex variants that are decomposed, are flagged with a BBC (before break-complex) info entry."
+											 << "WARNING: THIS IS TOOL IS IN BETA STATE!!!");
 		addInfile("in", "Input VCF file. If unset, reads from STDIN.", true, true);
 		addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
 		addOutfile("stats", "Ouptuts statistics. If unset, writes to STDERR.", true, true);
