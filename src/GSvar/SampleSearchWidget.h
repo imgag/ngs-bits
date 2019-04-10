@@ -16,13 +16,11 @@ public:
 protected:
 
 protected slots:
-	void checkValid();
 	void search();
 
 private:
 	Ui::SampleSearchWidget ui_;
 	NGSD db_;
-	bool is_valid_;
 };
 
 #endif // SAMPLESEARCHWIDGET_H

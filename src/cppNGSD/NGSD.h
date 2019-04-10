@@ -260,6 +260,35 @@ struct CPPNGSDSHARED_EXPORT DiagnosticStatusData
 	QDateTime date;
 };
 
+///Search parameters for processed samples
+struct ProcessedSampleSearchParameters
+{
+	//filters sample
+	QString s_name;
+	QString s_species;
+	bool include_bad_quality_samples = true;
+	bool include_tumor_samples = true;
+	bool include_ffpe_samples = true;
+
+	//filters project
+	QString p_name;
+	QString p_type;
+
+	//filters processing system
+	QString sys_name;
+	QString sys_type;
+
+	//filters sequencing run
+	QString r_name;
+	bool include_bad_quality_runs = true;
+
+	//output options
+	bool add_path = false;
+	bool add_disease_details = false;
+	bool add_outcome = false;
+	bool add_qc = false;
+};
+
 /// NGSD accessor.
 class CPPNGSDSHARED_EXPORT NGSD
 		: public QObject
@@ -369,6 +398,8 @@ public:
 	QString userId(QString user_name=Helper::userName());
 
 	/*** Main NGSD functions ***/
+	///Search for processed samples
+	DBTable processedSampleSearch(const ProcessedSampleSearchParameters& params);
 	///Returns sample data from the database.
 	SampleData getSampleData(const QString& sample_id);
 	///Returns processed sample data from the database.
@@ -469,6 +500,7 @@ protected:
 	///Copy constructor "declared away".
 	NGSD(const NGSD&) = delete;
 	void fixGeneNames(QTextStream* messages, bool fix_errors, QString table, QString column);
+	static QString escapeForSql(const QString& text);
 
 	///Returns the maxiumn allele frequency of a variant.
 	static double maxAlleleFrequency(const Variant& v, QList<int> af_column_index);

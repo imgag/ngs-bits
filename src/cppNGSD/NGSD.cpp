@@ -46,6 +46,125 @@ QString NGSD::userId(QString user_name)
 	return user_id;
 }
 
+DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
+{
+	//init
+	QStringList fields;
+	fields	<< "ps.id"
+			<< "CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as name"
+			<< "s.name_external as name_external"
+			<< "s.gender as gender"
+			<< "s.tumor as is_tumor"
+			<< "s.ffpe as is_ffpe"
+			<< "ps.quality as quality"
+			<< "sys.name_manufacturer as system_name"
+			<< "sys.name_short as system_name_short"
+			<< "sys.type as system_type"
+			<< "p.name as project_name"
+			<< "p.type as project_type"
+			<< "r.name as run_name"
+			<< "r.fcid as run_fcid"
+			<< "r.recipe as run_recipe"
+			<< "r.quality as run_quality"
+			<< "s.disease_group as disease_group"
+			<< "s.disease_status as disease_status";
+
+	QStringList tables;
+	tables	<< "sample s"
+			<< "processing_system sys"
+			<< "project p"
+			<< "processed_sample ps LEFT JOIN sequencing_run r ON r.id=ps.sequencing_run_id LEFT JOIN diag_status ds ON ds.processed_sample_id=ps.id"; //sequencing_run and diag_status are optional
+
+	QStringList conditions;
+	conditions	<< "ps.sample_id=s.id"
+				<< "ps.processing_system_id=sys.id"
+				<< "ps.project_id=p.id";
+
+	//add filters (sample)
+	if (p.s_name.trimmed()!="")
+	{
+		conditions << "s.name LIKE '%" + escapeForSql(p.s_name) + "%'";
+	}
+	if (p.s_species.trimmed()!="")
+	{
+		tables	<< "species sp";
+		conditions	<< "sp.id=s.species_id"
+					<< "sp.name='" + escapeForSql(p.s_species) + "'";
+	}
+	if (!p.include_bad_quality_samples)
+	{
+		conditions << "ps.quality!='bad'";
+	}
+	if (!p.include_tumor_samples)
+	{
+		conditions << "s.tumor='0'";
+	}
+	if (!p.include_ffpe_samples)
+	{
+		conditions << "s.ffpe='0'";
+	}
+
+	//add filters (project)
+	if (p.p_name.trimmed()!="")
+	{
+		conditions << "p.name LIKE '%" + escapeForSql(p.p_name) + "%'";
+	}
+	if (p.p_type.trimmed()!="")
+	{
+		conditions << "p.type ='" + escapeForSql(p.p_type) + "'";
+	}
+
+	//add filters (system)
+	if (p.sys_name.trimmed()!="")
+	{
+		conditions << "sys.name_manufacturer LIKE '%" + escapeForSql(p.sys_name) + "%'";
+	}
+	if (p.sys_type.trimmed()!="")
+	{
+		conditions << "sys.type ='" + escapeForSql(p.sys_type) + "'";
+	}
+
+	//add filters (run)
+	if (p.r_name.trimmed()!="")
+	{
+		conditions << "r.name LIKE '%" + escapeForSql(p.r_name) + "%'";
+	}
+	if (!p.include_bad_quality_runs)
+	{
+		conditions << "r.quality!='bad'";
+	}
+
+	//additional output columns
+	if (p.add_outcome)
+	{
+		fields	<< "ds.outcome as outcome"
+				<< "ds.genes_causal as outcome_causal_genes"
+				<< "ds.inheritance_mode as outcome_inheritance_mode"
+				<< "ds.comment as outcome_comment";
+	}
+
+	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +"  WHERE " + conditions.join(" AND "));
+
+	//make tumor/ffpe colums human-readable
+	//TODO true/false
+
+	//add path
+	if(p.add_path)
+	{
+		//TODO
+	}
+	if (p.add_disease_details)
+	{
+		//TODO
+	}
+	if (p.add_qc)
+	{
+		//TODO
+	}
+
+	return output;
+}
+
 SampleData NGSD::getSampleData(const QString& sample_id)
 {
 	//execute query
@@ -1290,6 +1409,11 @@ void NGSD::fixGeneNames(QTextStream* messages, bool fix_errors, QString table, Q
 			}
 		}
 	}
+}
+
+QString NGSD::escapeForSql(const QString& text)
+{
+	return text.trimmed().replace("\"", "").replace("'", "").replace(";", "").replace("\n", "");
 }
 
 double NGSD::maxAlleleFrequency(const Variant& v, QList<int> af_column_index)
