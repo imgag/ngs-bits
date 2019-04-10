@@ -259,7 +259,7 @@
                 <bool>false</bool>
                </property>
                <attribute name="verticalHeaderVisible">
-                <bool>true</bool>
+                <bool>false</bool>
                </attribute>
               </widget>
              </item>
@@ -375,6 +375,7 @@
      <property name="title">
       <string>Samples</string>
      </property>
+     <addaction name="actionSampleSearch"/>
      <addaction name="actionDiagnosticStatusOverview"/>
     </widget>
     <addaction name="menuGenes"/>
@@ -867,6 +868,11 @@
   <action name="actionIgvClear">
    <property name="text">
     <string>Clear</string>
+   </property>
+  </action>
+  <action name="actionSampleSearch">
+   <property name="text">
+    <string>Sample search</string>
    </property>
   </action>
  </widget>

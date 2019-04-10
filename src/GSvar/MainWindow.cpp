@@ -76,6 +76,7 @@
 #include "SimpleCrypt.h"
 #include "ToolBase.h"
 #include "BedpeFile.h"
+#include "SampleSearchWidget.h"
 
 QT_CHARTS_USE_NAMESPACE
 
@@ -913,6 +914,13 @@ void MainWindow::on_actionEncrypt_triggered()
 	QTextEdit* edit = new QTextEdit(this);
 	edit->setText(out_lines.join("\n"));
 	auto dlg = GUIHelper::createDialog(edit, "Encryption output");
+	dlg->exec();
+}
+
+void MainWindow::on_actionSampleSearch_triggered()
+{
+	SampleSearchWidget* widget = new SampleSearchWidget(this);
+	auto dlg = GUIHelper::createDialog(widget, "Sample search");
 	dlg->exec();
 }
 
