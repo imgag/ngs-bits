@@ -13,10 +13,12 @@ class SampleSearchWidget
 public:
 	SampleSearchWidget(QWidget *parent = 0);
 
-protected:
+signals:
+	void openProcessedSampleTab(QString);
 
 protected slots:
 	void search();
+	void openProcessedSample();
 
 private:
 	Ui::SampleSearchWidget ui_;

@@ -145,21 +145,78 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 
 	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +"  WHERE " + conditions.join(" AND "));
 
-	//make tumor/ffpe colums human-readable
-	//TODO true/false
-
 	//add path
 	if(p.add_path)
 	{
-		//TODO
+		QString pfolder = Settings::string("projects_folder");
+		int i_psname = output.columnIndex("name");
+		int i_ptype = output.columnIndex("project_type");
+		int i_pname = output.columnIndex("project_name");
+
+		QStringList new_col;
+		for (int r=0; r<output.rowCount(); ++r)
+		{
+			const DBRow& row = output.row(r);
+			new_col << pfolder + "/" + row.value(i_ptype) + "/" + row.value(i_pname) + "/Sample_" + row.value(i_psname) + "/";
+		}
+		output.addColumn(new_col, "path");
 	}
 	if (p.add_disease_details)
 	{
-		//TODO
+		//headers
+		QStringList types = getEnum("sample_disease_info", "type");
+		types.sort();
+		QVector<QStringList> cols(types.count());
+
+		for (int r=0; r<output.rowCount(); ++r)
+		{
+			QString sample_id = getValue("SELECT sample_id FROM processed_sample WHERE id='" + output.row(r).value(0) + "'").toString();
+			for(int i=0; i<types.count(); ++i)
+			{
+				QStringList tmp = getValues("SELECT sdi.disease_info FROM sample_disease_info sdi WHERE sdi.sample_id='" + sample_id + "' AND sdi.type='" + types[i] + "' ORDER BY sdi.disease_info ASC");
+				if (types[i]=="HPO term id")
+				{
+					for (int j=0; j<tmp.count(); ++j)
+					{
+						tmp[j] += " (" + phenotypeByAccession(tmp[j].toLatin1(), false).name() + ")";
+					}
+				}
+				cols[i] << tmp.join("; ");
+			}
+		}
+
+		for(int i=0; i<types.count(); ++i)
+		{
+			output.addColumn(cols[i], "disease_details_" + types[i].replace(" ", "_"));
+		}
+
 	}
 	if (p.add_qc)
 	{
-		//TODO
+		//headers
+		QStringList qc_names = getValues("SELECT name FROM qc_terms WHERE obsolete=0 ORDER BY qcml_id");
+		QVector<QStringList> cols(qc_names.count());
+
+		for (int r=0; r<output.rowCount(); ++r)
+		{
+			//get QC values
+			SqlQuery qc_res = getQuery();
+			qc_res.exec("SELECT n.name, nm.value FROM qc_terms n, processed_sample_qc nm WHERE nm.qc_terms_id=n.id AND nm.processed_sample_id='" + output.row(r).value(0) + "' AND n.obsolete=0");
+			QHash<QString, QString> qc_hash;
+			while(qc_res.next())
+			{
+				qc_hash.insert(qc_res.value(0).toString(), qc_res.value(1).toString());
+			}
+			for(int i=0; i<qc_names.count(); ++i)
+			{
+				cols[i] << qc_hash.value(qc_names[i], "");
+			}
+		}
+		for(int i=0; i<qc_names.count(); ++i)
+		{
+			output.addColumn(cols[i], "qc_" + QString(qc_names[i]).replace(' ', '_'));
+		}
+
 	}
 
 	return output;
@@ -235,7 +292,7 @@ QList<SampleDiseaseInfo> NGSD::getSampleDiseaseInfo(const QString& sample_id, QS
 
 	//execute query
 	SqlQuery query = getQuery();
-	query.exec("SELECT sdi.disease_info, sdi.type, u.user_id, sdi.date FROM sample_disease_info sdi, user u WHERE sdi.user_id=u.id AND sdi.sample_id=" + sample_id + " " + type_constraint + " ORDER by sdi.type ASC, sdi.disease_info ASC");
+	query.exec("SELECT sdi.disease_info, sdi.type, u.user_id, sdi.date FROM sample_disease_info sdi, user u WHERE sdi.user_id=u.id AND sdi.sample_id=" + sample_id + " " + type_constraint + " ORDER BY sdi.type ASC, sdi.disease_info ASC");
 
 	//create output
 	QList<SampleDiseaseInfo> output;

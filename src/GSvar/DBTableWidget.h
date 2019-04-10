@@ -49,7 +49,7 @@ public:
 
 	//Returns selected row indices
 	QSet<int> selectedRows() const;
-	//Returns the database ID or row r
+	//Returns the database ID of row r
 	const QString& getId(int r) const;
 	//Returns the database table name
 	const QString& tableName();

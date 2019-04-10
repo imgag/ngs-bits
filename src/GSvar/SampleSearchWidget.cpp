@@ -9,6 +9,11 @@ SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 {
 	ui_.setupUi(this);
 
+	//context menu
+	QAction* action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
+	ui_.sample_table->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(openProcessedSample()));
+
 	//init search criteria
 	//sample
 	ui_.s_name->fill(db_.createTable("sample", "SELECT id, name FROM sample"), true);
@@ -75,8 +80,18 @@ void SampleSearchWidget::search()
 	QApplication::restoreOverrideCursor();
 }
 
+void SampleSearchWidget::openProcessedSample()
+{
+
+	QSet<int> rows = ui_.sample_table->selectedRows();
+	foreach(int row, rows)
+	{
+		QString ps_id = ui_.sample_table->getId(row);
+		emit openProcessedSampleTab(db_.processedSampleName(ps_id));
+	}
+}
+
 //TODO:
 //- add NGSD test
 //- use in NGSDExportSamples + adapt test
-//- allow opening Sample/Run via context menu
 

@@ -920,6 +920,7 @@ void MainWindow::on_actionEncrypt_triggered()
 void MainWindow::on_actionSampleSearch_triggered()
 {
 	SampleSearchWidget* widget = new SampleSearchWidget(this);
+	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
 	auto dlg = GUIHelper::createDialog(widget, "Sample search");
 	dlg->exec();
 }

@@ -200,7 +200,7 @@ void DBTableWidget::copyToClipboard()
 		for (int col=0; col<columnCount(); ++col)
 		{
 			if (col!=0) output += "\t";
-			output += item(row, col)->text();
+			output += item(row, col)->text().replace('\t', ' ').replace('\n', ' ');
 		}
 		output += "\n";
 	}
