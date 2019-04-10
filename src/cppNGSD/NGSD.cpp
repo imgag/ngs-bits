@@ -308,9 +308,25 @@ QString NGSD::addVariant(const Variant& variant, const VariantList& vl)
 	int idx = vl.annotationIndexByName("dbSNP");
 	query.bindValue(5, variant.annotations()[idx]);
 	idx = vl.annotationIndexByName("1000g");
-	query.bindValue(6, variant.annotations()[idx]);
+	QByteArray tg = variant.annotations()[idx].trimmed();
+	if (tg.isEmpty() || tg=="n/a")
+	{
+		query.bindValue(6, QVariant());
+	}
+	else
+	{
+		query.bindValue(6, tg);
+	}
 	idx = vl.annotationIndexByName("gnomAD");
-	query.bindValue(7, variant.annotations()[idx]);
+	QByteArray gnomad = variant.annotations()[idx].trimmed();
+	if (gnomad.isEmpty() || gnomad=="n/a")
+	{
+		query.bindValue(7, QVariant());
+	}
+	else
+	{
+		query.bindValue(7, gnomad);
+	}
 	idx = vl.annotationIndexByName("gene");
 	query.bindValue(8, variant.annotations()[idx]);
 	idx = vl.annotationIndexByName("variant_type");

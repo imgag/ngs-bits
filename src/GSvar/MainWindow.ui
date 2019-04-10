@@ -871,6 +871,9 @@
    </property>
   </action>
   <action name="actionSampleSearch">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Sample search</string>
    </property>
