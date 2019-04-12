@@ -12,68 +12,24 @@
 #include <QMainWindow>
 #include <QSqlError>
 
-void RtfTools::writeRtfHeader(QTextStream& stream)
-{
-	//Definition of color table: 1) light green, 2) red, 3) yellow, 4) grey (for cell backgr)
-	stream << "{\\rtf1\\ansi\\ansicpg1252\\deff0{\\fonttbl{\\f0 Arial;}}{\\colortbl;\\red188\\green230\\blue138;\\red255\\green0\\blue0;\\red255\\green225\\blue0;\\red217\\green217\\blue217;}" << "\n";
-	stream << "\\paperw11905\\paperh15840\\margl1134\\margr850\\margt1134\\margb1134" << "\n";
-}
-
-void RtfTools::writeRtfTableSingleRowSpec(QTextStream& stream, const QList<int>& col_widths, bool border, bool shaded)
-{
-	int col_numbers = col_widths.size();
-	stream << "{\\trowd\\trql";
-
-	//Generate cells with widths out of colWidths
-	for(int column=0;column<col_numbers;++column)
-	{
-		if(border) stream << "\\clbrdrt\\brdrw5\\brdrs\\clbrdrl\\brdrw5\\brdrs\\clbrdrb\\brdrw5\\brdrs\\clbrdrr\\brdrw5\\brdrs";
-		if(shaded) stream << "\\clcbpat4";
-		stream << "\\cellx" << col_widths[column];
-	}
-	stream << endl;
-}
-
-void RtfTools::writeRtfWholeTable(QTextStream& stream, const QList< QList<QString> >& table, const QList<int>& col_widths, int font_size, bool border, bool bold)
-{
-	int rows = table.length();
-	for(int i=0; i<rows; ++i)
-	{
-		RtfTools::writeRtfRow(stream, table.at(i), col_widths, font_size, border, bold);
-	}
-}
-
-void RtfTools::writeRtfRow(QTextStream& stream, const QList<QString>& columns, const QList<int>& col_widths, int font_size, bool border, bool bold)
-{
-	QString begin_table_cell = "\\pard\\intbl\\li20\\fs" + QString::number(font_size) + " ";
-	if(bold)
-	{
-		begin_table_cell = begin_table_cell + "\\b ";
-	}
-
-	RtfTools::writeRtfTableSingleRowSpec(stream,col_widths,border);
-	for(int i=0; i<columns.length(); ++i)
-	{
-		stream << begin_table_cell << columns.at(i) << "\\cell";
-	}
-	stream << "\\row}" << endl;
-}
-
-
-void ReportHelper::writeSnvList(QTextStream& stream, const QList<int>& col_widths, const VariantList& snvs)
+RtfTable ReportHelper::createSnvTable(const QList<int>& col_widths, const VariantList& snvs)
 {	
-	RtfParagraphFormat format_header;
-	format_header.bold = true;
-	RtfTableRow header = RtfTableRow({"Gen","Position","Typ","F/T Tumor","Bedeutung der Variante","Bedeutung des Gens"},col_widths,format_header);
+	RtfTableRow header = RtfTableRow("Punktmutationen (SNVs) und kleine Insertionen/Deletionen (INDELs)",doc_.maxWidth());
+
 	header.setBorders(5);
-	stream << header.writeRow();
+	header.setBackgroundColor(4);
+	header[0].format().setBold(true);
+	header[0].format().setHorizontalAlignment("c");
+	RtfTable snv_list;
+
+	snv_list.addRow(header);
+
 
 	if(snvs.count() == 0)
 	{
-		stream << RtfDocument::paragraph("Es wurden keine SNVs und INDELs gefunden.");
-		return;
+		snv_list.addRow(RtfTableRow("Es wurden keine SNVs und INDELs gefunden.",doc_.maxWidth()));
+		return snv_list;
 	}
-
 
 	int i_tum_af = snvs.annotationIndexByName("tumor_af",true,true);
 	int i_tum_dp = snvs.annotationIndexByName("tumor_dp",true,true);
@@ -83,6 +39,8 @@ void ReportHelper::writeSnvList(QTextStream& stream, const QList<int>& col_width
 		cgi_acronyms_.append(parse_cgi_cancer_acronyms(snvs[i].annotations().at(snv_index_cgi_driver_statement_)));
 	}
 
+	snv_list.addRow(RtfTableRow({"Gen","Position","Typ","F/T Tumor","Bedeutung der Variante","Bedeutung des Gens"},col_widths,RtfParagraph().setBold(true).setHorizontalAlignment("c")));
+
 	for(int i=0;i<snvs.count();++i)
 	{
 		Variant snv = snvs[i];
@@ -91,7 +49,8 @@ void ReportHelper::writeSnvList(QTextStream& stream, const QList<int>& col_width
 		transcript.type.replace("&",", ");
 
 		QByteArrayList cell_contents;
-		cell_contents << "\\i " +  transcript.gene + "\\i0\\line " + "{\\fs16 (" +transcript.id + ")}";
+
+		cell_contents << RtfText(transcript.gene).setItalic(true).RtfCode() + "\\line " + RtfText(transcript.id).setFontSize(16).RtfCode();
 		cell_contents << transcript.hgvs_c + ":" + transcript.hgvs_p;
 		cell_contents << transcript.type;
 		cell_contents << QByteArray::number(snv.annotations().at(i_tum_af).toDouble(),'f',3) + " / " + snv.annotations().at(i_tum_dp);
@@ -101,44 +60,43 @@ void ReportHelper::writeSnvList(QTextStream& stream, const QList<int>& col_width
 		else if(snv.annotations().at(snv_index_cgi_gene_role_) == "ambiguous") cell_contents << "unklar";
 		else cell_contents << ".";
 
-		RtfParagraphFormat format_cell;
-		format_cell.intent_block_left = 20;
+		RtfParagraph format_cell;
+		format_cell.setIndent(20,0,0);
 
 		RtfTableRow row(cell_contents,col_widths,format_cell);
 		row.setBorders(5);
-		stream << row.writeRow();
+
+		snv_list.addRow(RtfTableRow(cell_contents,col_widths,format_cell).setBorders(5));
 	}
+	snv_list.setUniqueBorder(5);
+	return snv_list;
 }
 
-RtfTable ReportHelper::cnvGeneTable(const GeneSet& target_genes)
+RtfTable ReportHelper::createCNVdriverTable(const GeneSet& target_genes)
 {
 	RtfTable cnv_table;
 
+	RtfParagraph header_format;
+	header_format.setBold(true);
+	header_format.setIndent(20,0,0);
+	header_format.setHorizontalAlignment("c");
 
-	RtfParagraphFormat header_format;
-	header_format.bold = true;
-	header_format.intent_block_left = 20;
-	header_format.horizontal_alignment = "c";
-
-	cnv_table.addRow(RtfTableRow("Kopienzahlvarianten (CNVs)",9638));
-	cnv_table.addRow(RtfTableRow({"Gen","Position (Größe CNV)","Typ","CN","Anteil Probe","Bedeutung der Variante","Bedeutung des Gens"},{1200,2100,700,1250,950,2250,1188}));
-
-	cnv_table.setUniqueFormat(header_format);
-
+	cnv_table.addRow(RtfTableRow("Kopienzahlvarianten (CNVs)",doc_.maxWidth(),header_format).setBackgroundColor(4));
+	cnv_table.addRow(RtfTableRow({"Gen","Position (Größe CNV)","Typ","CN","Anteil Probe","Bedeutung der Variante","Bedeutung des Gens"},{1200,2100,700,1250,950,2250,1188},header_format));
 
 	if(cnvs_filtered_.isEmpty())
 	{
-		cnv_table.addRow(RtfTableRow("Es wurden keine CNVs gefunden.",9638));
+		cnv_table.addRow(RtfTableRow("Es wurden keine CNVs gefunden.",doc_.maxWidth(),RtfParagraph().setIndent(0,0,20)));
 		return cnv_table;
 	}
 	if(cnv_index_cgi_gene_role_ < 0 || cnv_index_cgi_genes_ < 0 || cnv_index_cgi_driver_statement_ < 0 )
 	{
-		cnv_table.addRow(RtfTableRow("Fehlerhafte CGI statements in ClinCNV-Datei.",9638));
+		cnv_table.addRow(RtfTableRow("Fehlerhafte CGI statements in ClinCNV-Datei.",doc_.maxWidth()));
 		return cnv_table;
 	}
 	if(cnv_index_tumor_clonality_ < 0 || cnv_index_tumor_cn_change_ < 0)
 	{
-		cnv_table.addRow(RtfTableRow("Die ClinCNV-Datei enthält keine Tumor Clonality. Bitte mit einer aktuelleren Version von ClinCNV neu berechnen.",9638));
+		cnv_table.addRow(RtfTableRow("Die ClinCNV-Datei enthält keine Tumor Clonality. Bitte mit einer aktuelleren Version von ClinCNV neu berechnen.",doc_.maxWidth()));
 		return cnv_table;
 	}
 
@@ -148,7 +106,7 @@ RtfTable ReportHelper::cnvGeneTable(const GeneSet& target_genes)
 	int i_cnv_type = cnvs_filtered_.annotationIndexByName("cnv_type",true);
 	for(int i=0;i<cnvs_filtered_.count();++i)
 	{
-		ClinCopyNumberVariant cnv = cnvs_filtered_[i];
+		const ClinCnvVariant& cnv = cnvs_filtered_[i];
 
 		QByteArrayList genes = cnv.annotations().at(cnv_index_cgi_genes_).split(',');
 
@@ -207,27 +165,28 @@ RtfTable ReportHelper::cnvGeneTable(const GeneSet& target_genes)
 		RtfTableRow temp_row;
 
 		//gene symbol
-		RtfParagraphFormat format_italic;
-		format_italic.italic = true;
-		temp_row.addCell(data.at(0),1200,format_italic);
+		RtfParagraph gene_symbol(data.at(0));
+		gene_symbol.setItalic(true);
+
+		temp_row.addCell(1200, gene_symbol);
 
 		//cnv position / size
-		temp_row.addCell(data.at(1) + " (" + data.at(2) +")",2100);
+		temp_row.addCell(2100, data.at(1) + " (" + data.at(2) +")");
 
 		//cnv type
 		QByteArray temp_cnv_type = (data.at(3).toDouble() > 2. ? "AMP" : "DEL");
 		if(data.at(3).toDouble() == 0) temp_cnv_type.append(" (hom)");
 		else if(data.at(3).toDouble() == 1) temp_cnv_type.append(" (het)");
-		temp_row.addCell(temp_cnv_type,700);
+		temp_row.addCell(700,temp_cnv_type);
 
 		//tumor CN change
-		temp_row.addCell((data.at(3).toDouble() <= 6 ? data.at(3) : ">6"),1250);
+		temp_row.addCell(1250,(data.at(3).toDouble() <= 6 ? data.at(3) : ">6"));
 
 		//tumor clonality
-		temp_row.addCell(data.at(4),950);
+		temp_row.addCell(950,data.at(4));
 
 		//variant role
-		temp_row.addCell(data[5].replace(";",", "),2250);
+		temp_row.addCell(2250,data[5].replace(";",", "));
 
 		//gene role
 		QByteArray temp_gene_role = "";
@@ -235,46 +194,42 @@ RtfTable ReportHelper::cnvGeneTable(const GeneSet& target_genes)
 		else if(data.at(6) == "LoF") temp_gene_role.append("TSG");
 		else if(data.at(6) == "ambiguous") temp_gene_role.append("unklar");
 		else temp_gene_role.append(".");
-		temp_row.addCell(temp_gene_role,1188);
+		temp_row.addCell(1188,temp_gene_role);
 
 		cnv_table.addRow(temp_row);
 	}
-
-	cnv_table.setUniqueBorder(5);
 
 	return cnv_table;
 }
 
 
-RtfTable ReportHelper::cnvList()
+RtfTable ReportHelper::createCnvTable()
 {
 	RtfTable cnv_table;
 
 	//Table Header
-	cnv_table.addRow(RtfTableRow("Kopienzahlvarianten (CNVs)",9638));
-	cnv_table.addRow(RtfTableRow({"Position (Typ)","CNV","CN","Anteil Probe","Gene"},{2438,962,400,700,5138}));
+	cnv_table.addRow(RtfTableRow({"Kopienzahlvarianten (CNVs)"},doc_.maxWidth(),RtfParagraph().setHorizontalAlignment("c").setBold(true)).setBackgroundColor(4));
+	cnv_table.addRow(RtfTableRow({"Position (Typ)","CNV","CN","Anteil Probe","Gene"},{2438,962,400,700,5138},RtfParagraph().setHorizontalAlignment("c").setBold(true)));
 
-	RtfParagraphFormat header_format;
-	header_format.bold = true;
-	header_format.horizontal_alignment = "c";
-	cnv_table.setUniqueFormat(header_format);
-	cnv_table.setUniqueBorder(5);
+	RtfParagraph header_format;
+	header_format.setBold(true);
+	header_format.setHorizontalAlignment("c");
 
 	if(cnvs_filtered_.isEmpty())
 	{
-		cnv_table.addRow(RtfTableRow("Es wurden keine CNVs gefunden.",9638));
+		cnv_table.addRow(RtfTableRow("Es wurden keine CNVs gefunden.",doc_.maxWidth()));
 		return cnv_table;
 	}
 
 	if(cnv_index_cgi_genes_ < 0 || cnv_index_cgi_driver_statement_ < 0 || cnv_index_cgi_gene_role_ < 0)
 	{
-		cnv_table.addRow(RtfTableRow("Fehlerhafte CGI statements in ClinCNV-Datei.",9638));
+		cnv_table.addRow(RtfTableRow("Fehlerhafte CGI statements in ClinCNV-Datei.",doc_.maxWidth()));
 		return cnv_table;
 	}
 
 	if(cnv_index_tumor_cn_change_ < 0 || cnv_index_tumor_clonality_ < 0)
 	{
-		cnv_table.addRow(RtfTableRow("Die ClinCNV-Datei enthält keine Tumor Clonality. Bitte mit einer aktuelleren Version von ClinCNV neu berechnen.",9638));
+		cnv_table.addRow(RtfTableRow("Die ClinCNV-Datei enthält keine Tumor Clonality. Bitte mit einer aktuelleren Version von ClinCNV neu berechnen.",doc_.maxWidth()));
 		return cnv_table;
 	}
 
@@ -288,7 +243,7 @@ RtfTable ReportHelper::cnvList()
 
 	for(int i=0; i<cnvs_filtered_.count(); ++i)
 	{
-		ClinCopyNumberVariant variant = cnvs_filtered_[i];
+		const ClinCnvVariant& variant = cnvs_filtered_[i];
 
 		RtfTableRow temp_row;
 
@@ -306,43 +261,43 @@ RtfTable ReportHelper::cnvList()
 		double tumor_copy_number_change = variant.annotations().at(cnv_index_tumor_cn_change_).toDouble();
 		if(tumor_copy_number_change > 2.)
 		{
-			temp_row.addCell("AMP",962);
+			temp_row.addCell(962,"AMP");
 		}
 		else if(tumor_copy_number_change < 2.)
 		{
 			QByteArray del_text = "DEL";
 			if(tumor_copy_number_change == 0.) del_text += " (hom)";
 			else if(tumor_copy_number_change == 1.) del_text += " (het)";
-			temp_row.addCell(del_text,962);
+			temp_row.addCell(962,del_text);
 		}
 		else
 		{
 			//check whether information about loss of heterocigosity is available
 			if(i_cnv_state != -1 && variant.annotations().at(i_cnv_state) == "LOH")
 			{
-				temp_row.addCell("LOH",962);
+				temp_row.addCell(962,"LOH");
 			}
 			else
 			{
-				temp_row.addCell("NA",962);
-				temp_row.last().format().highlight_color = 3;
+				temp_row.addCell(962,"NA");
+				temp_row.last().format().highlight(3);
 			}
 		}
-		temp_row.last().format().horizontal_alignment = "c";
+		temp_row.last().format().setHorizontalAlignment("c");
 
 		//copy numbers
 		if(variant.annotations().at(cnv_index_tumor_cn_change_).toDouble() <= 6)
 		{
-			temp_row.addCell(variant.annotations().at(cnv_index_tumor_cn_change_),400);
+			temp_row.addCell(400,variant.annotations().at(cnv_index_tumor_cn_change_));
 		}
 		else
 		{
-			temp_row.addCell(">6",400);
+			temp_row.addCell(400,">6");
 		}
-		temp_row.last().format().horizontal_alignment = "c";
+		temp_row.last().format().setHorizontalAlignment("c");
 
 		//tumor clonality
-		temp_row.addCell(variant.annotations().at(cnv_index_tumor_clonality_),700);
+		temp_row.addCell(700,variant.annotations().at(cnv_index_tumor_clonality_));
 
 		//gene names
 		//only print genes which which lie in target region
@@ -366,11 +321,11 @@ RtfTable ReportHelper::cnvList()
 				//driver gene is printed bold
 				if(cgi_driver_statements[j].contains("driver") || cgi_driver_statements[j].contains("known"))
 				{
-					genes_included.append("\\b\\i " + cgi_genes[j] +"\\b0\\i0 ");
+					genes_included.append(RtfText(cgi_genes[j]).setItalic(true).setBold(true).RtfCode());
 				}
 				else
 				{
-					genes_included.append("\\i " + cgi_genes[j] + "\\i0 ");
+					genes_included.append(RtfText(cgi_genes[j]).setItalic(true).RtfCode());
 				}
 
 				if(j < cgi_genes.count()-1)
@@ -378,8 +333,8 @@ RtfTable ReportHelper::cnvList()
 					genes_included.append(", ");
 				}
 			}
-			temp_row.addCell(genes_included,5138);
-			temp_row.last().format().intent_block_left = 20;
+			temp_row.addCell(5138,genes_included);
+			temp_row.last().format().setIndent(20,0,0);
 		}
 		else
 		{
@@ -393,18 +348,17 @@ RtfTable ReportHelper::cnvList()
 					tmp_entry.append(", " + gene);
 				}
 				tmp_entry = tmp_entry.mid(2);
-				temp_row.addCell(tmp_entry,5138);
+				temp_row.addCell(5138,tmp_entry);
 			}
 			else
 			{
-				temp_row.addCell("",5138);
+				temp_row.addCell(5138,"");
 			}
-			temp_row.last().format().intent_block_left = 20;
+			temp_row.last().format().setIndent(20,0,0);
 		}
 		cnv_table.addRow(temp_row);
 	}
 
-	cnv_table.setUniqueBorder(5);
 	return cnv_table;
 }
 
@@ -899,7 +853,12 @@ ReportHelper::ReportHelper(QString snv_filename, const ClinCnvList& filtered_cnv
 	//load list with CGI acronyms, CGI explanation and TMB
 	cgi_dictionary_ = cgi_info::load("://Resources/cancer_types.tsv");
 
+	doc_.setMargins(1134,1134,1134,1134);
 
+	doc_.addColor(188,230,138);
+	doc_.addColor(255,0,0);
+	doc_.addColor(255,255,0);
+	doc_.addColor(217,217,217);
 }
 
 QByteArray ReportHelper::cgiCancerTypeFromVariantList(const VariantList &variants)
@@ -989,41 +948,39 @@ QHash<QByteArray, BedFile> ReportHelper::gapStatistics(const BedFile& region_of_
 	return grouped;
 }
 
-void ReportHelper::writeGapStatistics(QTextStream &stream, const QString& target_file, const QList<int>& col_widths)
+RtfTable ReportHelper::createGapStatisticsTable(const QList<int>& col_widths)
 {
-	QString begin_table_cell = "\\pard\\intbl\\fs18 ";
-	QString begin_table_cell_bold = begin_table_cell+"\\b ";
 	int max_table_width = col_widths.last();
 
 	BedFile region_of_interest;
-	region_of_interest.load(target_file);
+	region_of_interest.load(target_region_);
 
-	GeneSet genes_in_target_region = GeneSet::createFromFile(target_file.left(target_file.size()-4)+"_genes.txt");
+	GeneSet genes_in_target_region = GeneSet::createFromFile(target_region_.left(target_region_.size()-4)+"_genes.txt");
 
-	stream <<"{\\pard\\b\\sa45\\sb45\\fs18 L\\u252;ckenstatistik:\\par}" << endl;
 	QList<int> widths = col_widths;
-	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "Zielregion:\\cell" << begin_table_cell << QFileInfo(target_file).fileName()<<"\\cell" << "\\row}" << endl;
+
+	RtfTable table;
+
+	table.addRow(RtfTableRow({"Zielregion:",QFileInfo(target_region_).fileName().toUtf8()},col_widths));
 
 	if (!genes_in_target_region.isEmpty())
 	{
-		RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-		stream << begin_table_cell << "Zielregion Gene (" << QString::number(genes_in_target_region.count()) << "): " << "\\cell" << begin_table_cell << genes_in_target_region.join(", ") << "\\cell" << "\\row}"<< endl;
+		table.addRow(RtfTableRow({"Zielregion Gene (" + QByteArray::number(genes_in_target_region.count())+"):",genes_in_target_region.join(", ")},col_widths));
 	}
-	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "Zielregion Regionen:\\cell" << begin_table_cell << region_of_interest.count()<<"\\cell" << "\\row}" << endl;
-	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "Zielregion Basen:\\cell" << begin_table_cell << region_of_interest.baseCount() << "\\cell" << "\\row}" << endl;
+
+	table.addRow(RtfTableRow({"Zielregion Region:",QByteArray::number(region_of_interest.count())},col_widths));
+
+	table.addRow(RtfTableRow({"Zielregion Basen:",QByteArray::number(region_of_interest.baseCount())},col_widths));
 
 	QString low_cov_file = snv_filename_;
 	low_cov_file.replace(".GSvar", "_stat_lowcov.bed");
 	BedFile low_cov;
 	low_cov.load(low_cov_file);
 	low_cov.intersect(region_of_interest);
-	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell <<"L\\u252;cken Regionen:\\cell"<< begin_table_cell << low_cov.count() << "\\cell" << "\\row}" <<endl;
-	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "L\\u252;cken Basen:\\cell" << begin_table_cell << low_cov.baseCount() << " (" << QString::number(100.0 * low_cov.baseCount()/region_of_interest.baseCount(), 'f', 2) << "%)"<< "\\sa20\\cell" << "\\row}" <<endl;
+
+	table.addRow(RtfTableRow({"Lücken Regionen:",QByteArray::number(low_cov.count())},col_widths));
+	table.addRow(RtfTableRow({"Lücken Basen:",QByteArray::number(low_cov.baseCount()) + " (" +  QByteArray::number(100.0 * low_cov.baseCount()/region_of_interest.baseCount(), 'f', 2) + "%)"},col_widths));
+
 	QHash<QByteArray, BedFile> grouped = gapStatistics(region_of_interest);
 
 	//write gap statistics for each gene only if there are few genes
@@ -1031,29 +988,25 @@ void ReportHelper::writeGapStatistics(QTextStream &stream, const QString& target
 	{
 		widths.clear();
 		widths << 900 << 1600 << 2200 << max_table_width;
-		RtfTools::writeRtfTableSingleRowSpec(stream,widths,true);
-		stream << begin_table_cell_bold << "\\fi20 Gen\\cell" << begin_table_cell_bold << "\\fi20 L\\u252;cken\\cell" << begin_table_cell_bold << "\\fi20 Chr\\cell" << begin_table_cell_bold << "\\fi20 Koordinaten (GRCh37)" << "\\cell" <<"\\row}" << endl;
+		table.addRow(RtfTableRow({"Gen","Lücken","Chr","Koordinaten (GRCh37)"},widths,RtfParagraph().setIndent(0,0,20).setBold(true)));
 
 		for (auto it=grouped.cbegin(); it!=grouped.cend(); ++it)
 		{
-			RtfTools::writeRtfTableSingleRowSpec(stream,widths,true);
-			stream << begin_table_cell << endl;
 			const BedFile& gaps = it.value();
-			QString chr = gaps[0].chr().strNormalized(true);
-			QStringList coords;
+			QByteArray chr = gaps[0].chr().strNormalized(true);
+			QByteArrayList coords;
 			for (int i=0; i<gaps.count(); ++i)
 			{
-				coords << QString::number(gaps[i].start()) + "\\_" + QString::number(gaps[i].end());
+				coords << QByteArray::number(gaps[i].start()) + "\\_" + QByteArray::number(gaps[i].end());
 			}
-			stream << "\\fi20 "<< it.key() << "\\cell" << "\\hyphpar "<< begin_table_cell<< "\\fi20 " << gaps.baseCount() << "\\cell"<< begin_table_cell << "\\fi20 "<< chr << "\\cell"<< begin_table_cell << "\\li20 "<<  coords.join(", ") << "\\hyphparo " <<  endl;
-			stream << "\\cell" << "\\row}" << endl;
+			table.addRow(RtfTableRow({it.key(),QByteArray::number(gaps.baseCount()),chr,coords.join(", ")},widths));
 		}
 	}
+	return table;
 }
 
-void ReportHelper::writeQualityParams(QTextStream &stream, const QList<int> &widths)
+RtfTable ReportHelper::createQCTable(const QList<int> &widths)
 {
-	QString begin_table_cell = "\\pard\\intbl\\fs18 ";
 
 	QDir directory = QFileInfo(snv_filename_).dir();
 	directory.cdUp();
@@ -1063,29 +1016,35 @@ void ReportHelper::writeQualityParams(QTextStream &stream, const QList<int> &wid
 	QCCollection qcml_data_tumor = QCCollection::fromQCML(qcml_file_tumor_stats_map_absolute_path);
 	QCCollection qcml_data_normal = QCCollection::fromQCML(qcml_file_normal_stats_map_absolute_path);
 
-	stream << "{\\pard\\sa45\\sb45\\fs18\\b Qualit\\u228;tsparameter:\\par}" << endl;
-	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "Analysepipeline: " << "\\cell " << snv_variants_.getPipeline() << "\\cell" << "\\row}" <<endl;
-	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "Auswertungssoftware: " << "\\cell " << QCoreApplication::applicationName() << " " << QCoreApplication::applicationVersion() << "\\cell" << "\\row}" <<endl;
-	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "Coverage Tumor 100x:\\cell"<< begin_table_cell << qcml_data_tumor.value("QC:2000030",true).toString()  << "\%"<< "\\cell" << "\\row}" <<endl;
-	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "Durchschnittliche Tiefe Tumor:\\cell" << begin_table_cell << qcml_data_tumor.value("QC:2000025",true).toString() << "x" << "\\cell" << "\\row}" << endl;
-	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "Coverage Normal 100x:\\cell"<< begin_table_cell << qcml_data_normal.value("QC:2000030",true).toString() << "\%" << "\\cell" << "\\row}" <<endl;
-	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "Durchschnittliche Tiefe Normal:\\cell" << begin_table_cell << qcml_data_normal.value("QC:2000025",true).toString() << "x" << "\\cell" << "\\row}" <<endl;
+	RtfTable table;
+	table.addRow(RtfTableRow({"Analysepipeline: ", snv_variants_.getPipeline().toUtf8()},widths));
+
+	table.addRow(RtfTableRow({"Auswertungssoftware:", QCoreApplication::applicationName().toUtf8()},widths));
+	table.addRow(RtfTableRow({"Coverage Tumor 100x:",qcml_data_tumor.value("QC:2000030",true).toString().toUtf8()},widths));
+	table.addRow(RtfTableRow({"Durchschnittliche Tiefe Tumor:",qcml_data_tumor.value("QC:2000025",true).toString().toUtf8() + "x"},widths));
+	table.addRow(RtfTableRow({"Coverage Normal 100x:",qcml_data_normal.value("QC:2000030",true).toString().toUtf8()},widths));
+	table.addRow(RtfTableRow({"Durchschnittliche Tiefe Normal:",qcml_data_normal.value("QC:2000025",true).toString().toUtf8() + "x"},widths));
+
+	return table;
 }
 
 
-void ReportHelper::writeRtfCGIDrugTable(QTextStream &stream, const QList<int> &col_widths)
+RtfTable ReportHelper::createCgiDrugTable()
 {
+	RtfTable cgi_table;
+
+	RtfParagraph header_format;
+	header_format.setBold(true);
+	header_format.setIndent(20,0,0);
+	header_format.setFontSize(18);
+	cgi_table.addRow(RtfTableRow("Somatische Veränderungen mit CGI-Medikamenten-Annotation",doc_.maxWidth(),header_format).setBackgroundColor(4));
+	cgi_table.addRow(RtfTableRow({"Gen","Tumortyp","Medikament","Effekt","Evidenz","Quelle"},{1500,1200,2300,1000,1000,2638},header_format));
+
+
 	if(cgi_cancer_type_ == "CANCER" || cgi_cancer_type_ == "")
 	{
-		stream << "{\\fs18\\highlight3 Cannot create drug table because CGI tumor type is set to " << cgi_cancer_type_ << "." << endl;
-		stream << "Please restart CGI analysis with a properly selected cancer type.}" << endl;
-		return;
+		cgi_table.addRow(RtfTableRow("Cannot create drug table because CGI tumor type is set to " + cgi_cancer_type_.toUtf8() + ". Please restart CGI analysis with a properly selected cancer type",doc_.maxWidth(),RtfParagraph().highlight(3)));
+		return cgi_table;
 	}
 
 	CGIDrugTable drugs;
@@ -1111,9 +1070,8 @@ void ReportHelper::writeRtfCGIDrugTable(QTextStream &stream, const QList<int> &c
 	int i_snvs_variant_ids = snv_variants_.annotationIndexByName("CGI_id",true,false);
 	if(i_snvs_variant_ids == -1)
 	{
-		stream << "{\\fs18\\highlight3 Cannot create drug table because CGI annotation is too old (there is no \"CGI_id\" column in GSVar file). " << endl;
-		stream << "Please restart CGI analysis with the latest megSAP version.}" << endl;
-		return;
+		cgi_table.addRow(RtfTableRow("Cannot create drug table because CGI annotation is too old (there is no \"CGI_id\" column in GSVar file). Please restart CGI analysis with the latest megSAP version.",doc_.maxWidth(),RtfParagraph().highlight(3)));
+		return cgi_table;
 	}
 	QList<QString> variant_ids;
 	for(int i=0;i<snv_variants_.count();++i)
@@ -1121,21 +1079,6 @@ void ReportHelper::writeRtfCGIDrugTable(QTextStream &stream, const QList<int> &c
 		variant_ids.append(snv_variants_[i].annotations().at(i_snvs_variant_ids));
 	}
 
-	QString begin_table_cell = "\\pard\\intbl\\fs18\\fi20 ";
-	QString begin_table_cell_bold = begin_table_cell+"\\b\\fi20 ";
-	RtfTools::writeRtfTableSingleRowSpec(stream,{col_widths.last()},true,true);
-	stream << begin_table_cell_bold<<"\\qc Somatische Ver\\u228;nderungen mit CGI-Medikamenten-Annotation";
-	stream << "\\cell" << endl;
-	stream << "\\row}" << endl;
-
-	RtfTools::writeRtfTableSingleRowSpec(stream,col_widths,true);
-	stream << "\\trhdr ";
-	stream << begin_table_cell_bold << "\\fi20 Gen\\cell";
-	stream << begin_table_cell_bold << "\\fi20 Tumortyp\\cell" << begin_table_cell_bold << "\\fi20 Medikament\\cell";
-	stream << begin_table_cell_bold << "\\fi20 Effekt\\cell" << begin_table_cell_bold << "\\fi20 Evidenz\\cell";
-	stream << begin_table_cell_bold << "\\fi20 Quelle\\cell" << "\\row}" << endl;
-
-	QList< QList<QString > > drugs_as_string;
 	QList<CGIDrugReportLine> drugs_sorted = drugs.drugsSortedPerGeneName();
 
 	foreach(CGIDrugReportLine drug,drugs_sorted)
@@ -1171,7 +1114,11 @@ void ReportHelper::writeRtfCGIDrugTable(QTextStream &stream, const QList<int> &c
 		if(!alt_found) continue;
 
 		//Alteration type / tumor type / drug / effect / evidence /source
-		QList<QString> result_line = drug.asStringList();
+		QList<QByteArray> result_line;
+		for(const auto& entry : drug.asStringList())
+		{
+			result_line.append(entry.toUtf8());
+		}
 
 		//remove first column because gene name is included in alteration type already
 		result_line.removeAt(0);
@@ -1185,20 +1132,22 @@ void ReportHelper::writeRtfCGIDrugTable(QTextStream &stream, const QList<int> &c
 		//tumor type: add space in case of multiple entities
 		result_line[1].replace(",",", ");
 
-		drugs_as_string.append(result_line);
+		cgi_table.addRow(RtfTableRow(result_line,{1500,1200,2300,1000,1000,2638},RtfParagraph().setIndent(20,0,0)));
 
 		//Update cancer acronym list
 		QString tmp_cancer_acronyms = drug.entity();
 		QByteArrayList cancer_acronyms = tmp_cancer_acronyms.replace(" ","").toLatin1().split(',');
-		foreach(QByteArray acronym,cancer_acronyms) cgi_acronyms_.append(acronym);
+		foreach(QByteArray acronym,cancer_acronyms)
+		{
+			cgi_acronyms_.append(acronym);
+		}
 	}
-	if(drugs_as_string.isEmpty())
+	if(cgi_table.isEmpty())
 	{
-		RtfTools::writeRtfTableSingleRowSpec(stream,{col_widths.last()},true);
-		stream << begin_table_cell << "Es wurden keine Medikamente durch CGI annotiert." << "\\cell\\row}";
-		return;
+		cgi_table.addRow(RtfTableRow("Es wurden keine Medikamente durch CGI annotiert.",doc_.maxWidth()));
 	}
-	RtfTools::writeRtfWholeTable(stream,drugs_as_string,col_widths,18,true,false);
+
+	return cgi_table;
 }
 
 void ReportHelper::germlineSnvForQbic()
@@ -1366,7 +1315,7 @@ void ReportHelper::somaticCnvForQbic()
 
 	for(int i=0; i < cnvs_filtered_.count(); ++i)
 	{
-		ClinCopyNumberVariant variant = cnvs_filtered_[i];
+		const ClinCnvVariant& variant = cnvs_filtered_[i];
 
 		GeneSet genes_in_report = target_genes.intersect(GeneSet::createFromText(variant.annotations().at(cnv_index_cgi_genes_),','));
 
@@ -1657,29 +1606,13 @@ VariantTranscript ReportHelper::selectSomaticTranscript(const Variant& variant)
 
 void ReportHelper::writeRtf(const QString& out_file)
 {
-	QString begin_table_cell = "\\pard\\intbl\\fs18 ";
 
-	//max table widths in rtf file
-	int max_table_width = 9638;
-	QList<int> widths;
-	QSharedPointer<QFile> outfile = Helper::openFileForWriting(out_file);
-	QTextStream stream(outfile.data());
-
-	RtfDocument doc;
-
-	stream << doc.header();
-
-	//create SNV table with selected SNVs only
-	//        Gene    cDNA    type    F/T     func	   eff
-	widths << 1570 << 3700 << 5100 << 6200 << 8450  << max_table_width;
-
-	QString begin_table_cell_head = begin_table_cell +"\\b\\qc " ;
 
 	/**********************************
 	 * MUTATION BURDEN AND MSI STATUS *
 	 **********************************/
 
-	stream << doc.paragraph("Mutationslast: " + QByteArray::number(mutation_burden_) + " Var/Mbp");
+	doc_.addPart(RtfParagraph("Mutationslast: " + QByteArray::number(mutation_burden_) + " Var/Mbp").RtfCode());
 
 	//Parse reference data from publication
 	QList<tmb_info> hpo_tmbs = tmb_info::load("://Resources/hpoterms_tmb.tsv");
@@ -1691,8 +1624,8 @@ void ReportHelper::writeRtf(const QString& out_file)
 
 	if(entries_count == 0)
 	{
-		if(!hpo_term_.isEmpty()) stream << doc.paragraph("Es sind keine Vergleichsdaten zu dieser Tumorentität erfasst. (PMID: 28420421)");
-		else stream << doc.paragraph("{\\highlight3 Es wurde kein (eindeutiger) HPO-Term in NGSD hinterlegt.}");
+		if(!hpo_term_.isEmpty()) doc_.addPart(RtfParagraph("Es sind keine Vergleichsdaten zu dieser Tumorentität erfasst. (PMID: 28420421)").RtfCode());
+		else doc_.addPart(RtfParagraph("Es wurde kein (eindeutiger) HPO-Term in NGSD hinterlegt.").highlight(3).RtfCode());
 	}
 	else
 	{
@@ -1702,16 +1635,18 @@ void ReportHelper::writeRtf(const QString& out_file)
 			if(data.hpoterm == hpo_term_)
 			{
 				ref_values <<  "Vergleichswerte: Median: " + QByteArray::number(data.tmb_median) + " Var/Mbp, Maximum: " + QByteArray::number(data.tmb_max) + " Var/Mbp, Probenanzahl: " + QByteArray::number(data.cohort_count) + " (PMID: 28420421) "
-										+"{\\highlight3 " + data.tumor_entity + "}";
+										+ RtfText(data.tumor_entity).highlight(3).RtfCode();
 			}
 		}
-		RtfParagraphFormat format;
-		format.intent_block_left = 200;
-		stream << doc.paragraph(ref_values,format);
+
+		RtfParagraph par;
+		par.setIndent(200,0,0);
+		par.setContent(ref_values);
+		doc_.addPart(par.RtfCode());
 	}
 
 	//MSI statis, values larger than 0.4 are considered unstable
-	stream << doc.paragraph("MSI-Status: "+QByteArray::number(mantis_msi_swd_value_,'f',3)+" (" + (mantis_msi_swd_value_ < 0.4 ? "stabil" : "instabil")+")");
+	doc_.addPart(RtfParagraph("MSI-Status: "+QByteArray::number(mantis_msi_swd_value_,'f',3)+" (" + (mantis_msi_swd_value_ < 0.4 ? "stabil" : "instabil")+")").RtfCode());
 
 
 	//Filter SNVs for first part of the report
@@ -1745,11 +1680,13 @@ void ReportHelper::writeRtf(const QString& out_file)
 	}
 
 
-	widths = { 1570 , 2130 , 1400 , 1100 , 2250 , 1188 };
+	QList<int> widths = { 1570 , 2130 , 1400 , 1100 , 2250 , 1188 };
 
-	stream << RtfDocument::paragraph();
-	writeSnvList(stream,widths,snvs_to_be_printed);
-	stream << RtfDocument::paragraph();
+	doc_.addPart(RtfParagraph(" ").RtfCode());
+
+	doc_.addPart(createSnvTable(widths,snvs_to_be_printed).RtfCode());
+
+	doc_.addPart(RtfParagraph(" ").RtfCode());
 
 	QString target_genes_file = target_region_.left(target_region_.size()-4) + "_genes.txt";
 	GeneSet target_genes;
@@ -1759,52 +1696,66 @@ void ReportHelper::writeRtf(const QString& out_file)
 		 target_genes = db_.genesToApproved(target_genes,true);
 	}
 
-	stream << cnvGeneTable(target_genes).writeTable();
+	doc_.addPart(createCNVdriverTable(target_genes).setUniqueBorder(5).RtfCode());
 
 
-	stream << RtfDocument::paragraph();
+	doc_.addPart(RtfParagraph(" ").RtfCode());
 	/***********
 	 * FUSIONS *
 	 ***********/
-	RtfTools::writeRtfTableSingleRowSpec(stream,{widths.last()},true,true);
-	stream << begin_table_cell_head << "Fusionen" << "\\cell\\row}" << endl;
+	RtfTable fusions_table;
+
+	fusions_table.addRow(RtfTableRow("Fusionen",doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(4));
 
 	//Check whether fusions file contains data
 	QString fusions_file = snv_filename_.left(snv_filename_.size()-6) + "_var_structural.tsv";
 	if(QFile::exists(fusions_file))
 	{
 		TSVFileStream fusions(fusions_file);
-		RtfTools::writeRtfTableSingleRowSpec(stream,{widths.last()},true,false);
-		stream << begin_table_cell << (fusions.atEnd() ? "Es wurden keine Fusionen gefunden" : "\\highlight3 Fusionen gefunden. Bitte "+fusions_file+" pr\\u252;fen.") << "\\cell\\row}" << endl;
-	}
-	stream << "\\page" << endl;
 
-	widths.clear();
+		if(fusions.atEnd())
+		{
+			fusions_table.addRow(RtfTableRow("Es wurden keine Fusionen gefunden",doc_.maxWidth(),RtfParagraph().setIndent(0,0,20)));
+		}
+		else
+		{
+			fusions_table.addRow(RtfTableRow("Fusionen gefunden. Bitte "+fusions_file.toUtf8()+" prüfen.",doc_.maxWidth(),RtfParagraph().highlight(3)));
+		}
+	}
+	fusions_table.setUniqueBorder(5);
+	doc_.addPart(fusions_table.RtfCode());
+
+	doc_.newPage();
+
 	/*********************
 	 * ADDITIONAL REPORT *
 	 *********************/
-	stream << "{\\pard\\par}" << endl;
-	stream << "{\\pard\\sa45\\fs18\\b Alle nachgewiesenen somatischen Ver\\u228;nderungen:\\par}" << endl;
-	widths << 1570 << 3700 << 5100 << 6200 << 8450  << max_table_width;
-	writeSnvList(stream,widths,snv_variants_);
-	stream << "{\\pard\\par}" << endl;
+	doc_.addPart(RtfParagraph("").RtfCode());
+	doc_.addPart(RtfParagraph("Alle nachgewiesenen somatischen Veränderungen:").setBold(true).setSpaceAfter(45).setFontSize(18).RtfCode());
+
+	widths.clear();
+
+	widths << 1570 << 2130 << 1400 << 1100 << 2250 << 1188;
+	doc_.addPart(createSnvTable(widths,snv_variants_).RtfCode());
+
+	doc_.addPart(RtfParagraph(" ").RtfCode());
 
 	//Make rtf report, filter genes for processing system target region
-	stream << cnvList().writeTable();
-	stream << "{\\pard\\par}" << endl;
+	doc_.addPart(createCnvTable().setUniqueBorder(5).RtfCode());
+
+	doc_.addPart(RtfParagraph("").RtfCode());
 	/**************
 	 * DRUG TABLE *
 	 **************/
-	widths.clear();
-	widths << 1500 << 2700 << 5000 << 6000 << 7000 << max_table_width;
-	writeRtfCGIDrugTable(stream,widths);
-	stream << endl << "\\page" << endl;
+	doc_.addPart(createCgiDrugTable().setUniqueBorder(5).RtfCode());
+
+	doc_.newPage();
 
 	/***********************
 	 * GENERAL INFORMATION *
 	 **********************/
-	stream << "{\\pard\\par}" << endl;
-	stream << "{\\pard\\sa45\\fs18\\b Allgemeine Informationen:\\par}" << endl;
+	doc_.addPart(RtfParagraph(" ").RtfCode());
+	doc_.addPart(RtfParagraph("Allgemeine Informationen:").setSpaceAfter(45).setFontSize(18).setBold(true).RtfCode());
 
 	double tumor_molecular_proportion;
 	try
@@ -1817,68 +1768,56 @@ void ReportHelper::writeRtf(const QString& out_file)
 	}
 	if(tumor_molecular_proportion > 100.)	tumor_molecular_proportion = 100.;
 
-	widths.clear();
-	widths << 2500 << max_table_width;
+	RtfTable metadata;
 
-	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "Datum:\\cell" << begin_table_cell <<QDate::currentDate().toString("dd.MM.yyyy") << "\\cell\\row}" << endl;
-	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "Proben-ID (Tumor):\\cell" << begin_table_cell << tumor_id_ << "\\cell\\row}" << endl;
-	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "Proben-ID (Keimbahn):\\cell" << begin_table_cell << normal_id_ << "\\cell\\row}" << endl;
-	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "Tumoranteil histol./molekular:\\cell" << begin_table_cell << histol_tumor_fraction_ << "\%";
-	stream << " / \\highlight3 "<< tumor_molecular_proportion <<"\%\\cell\\row}" << endl;
+	metadata.addRow(RtfTableRow({"Datum",QDate::currentDate().toString("dd.MM.yyyy").toUtf8()},{2500,doc_.maxWidth()}));
+	metadata.addRow(RtfTableRow({"Proben-ID (Tumor):",tumor_id_.toUtf8()},{2500,doc_.maxWidth()}));
+	metadata.addRow(RtfTableRow({"Proben-ID (Keimbahn):",normal_id_.toUtf8()},{2500,doc_.maxWidth()}));
+	metadata.addRow(RtfTableRow({"Tumoranteil histol./molekular:",histol_tumor_fraction_.toUtf8() + "\% / " + RtfText(QByteArray::number(tumor_molecular_proportion)).highlight(3).RtfCode() + "%"},{2500,doc_.maxWidth()}));
+	metadata.addRow(RtfTableRow({"CGI-Tumortyp",cgi_cancer_type_.toUtf8()},{2500,doc_.maxWidth()}));
 
-	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-	stream << begin_table_cell << "CGI-Tumortyp:\\cell" << begin_table_cell << cgi_cancer_type_ << "\\cell\\row}" << endl;
-	RtfTools::writeRtfTableSingleRowSpec(stream,widths,false);
-
-	stream << begin_table_cell << "Prozessierungssystem:\\cell" << begin_table_cell << processing_system_data.name;
 	GeneSet gene_set = GeneSet::createFromFile(processing_system_data.target_file.left(processing_system_data.target_file.size()-4) + "_genes.txt");
-	stream << " (" << gene_set.count() << " Gene" << ")";
-	stream << "\\cell\\row}" << endl;
+	metadata.addRow(RtfTableRow({"Prozessierungssystem",processing_system_data.name.toUtf8() + " (" + QByteArray::number(gene_set.count()) + ")"},{2500,doc_.maxWidth()}));
+
+	doc_.addPart(metadata.RtfCode());
 
 	/***************************************
 	 * QUALITY PARAMETERS / GAP STATISTICS *
 	 ***************************************/
 	//write QC params here in case of HSA report
 	widths.clear();
-	widths << 3000 << max_table_width;
-	stream << "{\\pard\\par}" << endl;
-	writeQualityParams(stream,widths);
+	widths << 3000 << doc_.maxWidth();
+
+	doc_.addPart(RtfParagraph("").RtfCode());
+	doc_.addPart(RtfParagraph("Qualitätsparameter").setSpaceAfter(45).setSpaceBefore(45).setFontSize(18).setBold(true).RtfCode());
+	doc_.addPart(createQCTable(widths).RtfCode());
 
 	if(!target_region_.isEmpty()) //For EBM report only: gap statistics
 	{
-		stream << "{\\pard\\par}" << endl;
+		doc_.addPart(RtfParagraph("").RtfCode());
 		widths.clear();
-		widths << 2200 << max_table_width;
-		writeGapStatistics(stream,target_region_,widths);
+		widths << 2200 << doc_.maxWidth();
+
+		doc_.addPart(RtfParagraph("Lückenstatistik:").setBold(true).setSpaceAfter(45).setSpaceBefore(45).setFontSize(18).RtfCode());
+		createGapStatisticsTable(widths);
 	}
 
 	/*********************
 	 * CGI ACRONYMS LIST *
 	 *********************/
-	stream << "{\\pard\\par}" << endl;
-	RtfTools::writeRtfTableSingleRowSpec(stream,{max_table_width},false);
-	stream << begin_table_cell <<"\\b\\sa45\\sb45\\fs18 Abk\\u252;rzungsverzeichnis:" << "\\cell\\row}" << endl;
-	RtfTools::writeRtfTableSingleRowSpec(stream,{max_table_width},false);
-	stream << begin_table_cell << "\\fs18 ";
+	doc_.addPart(RtfParagraph("").RtfCode());
+
+	RtfTable cgi_acronyms_table;
+	cgi_acronyms_table.addRow(RtfTableRow("Abkürzungsverzeichnis",doc_.maxWidth(),RtfParagraph().setBold(0).setSpaceAfter(45).setSpaceBefore(45).setFontSize(18)));
 
 	QByteArrayList cgi_acronym_explanation;
 	foreach(cgi_info data,cgi_dictionary_)
 	{
 		if(cgi_acronyms_.contains(data.acronym)) cgi_acronym_explanation << data.acronym + ": " + data.def_german;
 	}
-	for(int i=0;i<cgi_acronym_explanation.count();++i)
-	{
-		stream << cgi_acronym_explanation.at(i);
-		if(i<cgi_acronym_explanation.count()-1) stream << ", ";
-	}
+	cgi_acronyms_table.addRow(RtfTableRow(cgi_acronym_explanation.join(", "),doc_.maxWidth()));
 
-	stream << "\\cell\\row}" << endl;
+	doc_.addPart(cgi_acronyms_table.RtfCode());
 
-	//close stream
-	stream << "}";
-	outfile->close();
+	doc_.save("C:\\Users\\ahgscha1\\Desktop\\test_report.rtf");
 }

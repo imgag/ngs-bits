@@ -38,6 +38,7 @@ ClinCnvWidget::ClinCnvWidget(QString filename, FilterDockWidget* filter_widget, 
 	connect(ui->f_comphet, SIGNAL(currentIndexChanged(int)), this, SLOT(filtersChanged()));
 	connect(ui->f_size, SIGNAL(valueChanged(double)), this, SLOT(filtersChanged()));
 	connect(ui->f_likeli, SIGNAL(valueChanged(double)), this, SLOT(filtersChanged()));
+	connect(ui->f_qvalue, SIGNAL(valueChanged(double)), this, SLOT(filtersChanged()));
 	connect(ui->f_af, SIGNAL(valueChanged(double)), this, SLOT(filtersChanged()));
 	connect(ui->f_anno_name, SIGNAL(currentIndexChanged(int)), this, SLOT(filtersChanged()));
 	connect(ui->f_anno_name, SIGNAL(currentIndexChanged(int)), this, SLOT(annotationFilterColumnChanged()));
@@ -80,12 +81,9 @@ ClinCnvWidget::ClinCnvWidget(QString filename, FilterDockWidget* filter_widget, 
 		ui->f_comphet->setEnabled(false);
 	}
 
-	//Disable certain filters if i is a multi-sample CNV list
-	if (cnvs.annotationIndexByName("no_of_regions", false)==-1)
-	{
-		ui->f_regs->setEnabled(false);
-	}
-
+	//Disable certain filters if the respective columns are missing
+	ui->f_regs->setEnabled(cnvs.annotationIndexByName("no_of_regions", false)!=-1);
+	ui->f_qvalue->setEnabled(cnvs.annotationIndexByName("qvalue", false)!=-1);
 
 	//update variant list dependent filters (and apply filters)
 	variantFiltersChanged();
@@ -136,23 +134,24 @@ void ClinCnvWidget::loadCNVs(QString filename)
 		ui->cnvs->setItem(r, 3, new QTableWidgetItem(QString::number(cnvs[r].copyNumber())));
 
 		//loglikelihood
-		if(cnvs.type() == CLINCNV_TUMOR_NORMAL_PAIR || cnvs.type() == CLINCNV_GERMLINE_SINGLE)
+		QStringList tmp;
+		foreach(double likelihood, cnvs[r].likelihoods())
 		{
-			ui->cnvs->setItem(r, 4, new QTableWidgetItem(QString::number(cnvs[r].likelihood())));
+			tmp << QString::number(likelihood);
 		}
-		else //samples with multiple values for likelihood
+		ui->cnvs->setItem(r, 4, new QTableWidgetItem(tmp.join(", ")));
+
+
+		//q-value
+		tmp.clear();
+		foreach(double qvalue, cnvs[r].qvalues())
 		{
-			QString tmp_likelihoods = "";
-			foreach(double likelihood,cnvs[r].likelihoods())
-			{
-				tmp_likelihoods += ", " + QString::number(likelihood);
-			}
-			tmp_likelihoods = tmp_likelihoods.mid(2);
-			ui->cnvs->setItem(r, 4, new QTableWidgetItem(tmp_likelihoods));
+			tmp << QString::number(qvalue, 'f', 5);
 		}
+		ui->cnvs->setItem(r, 5, new QTableWidgetItem(tmp.join(", ")));
 
 		//annotations
-		int c = 5;
+		int c = 6;
 		foreach(int index, annotation_indices)
 		{
 			QTableWidgetItem* item = new QTableWidgetItem(QString(cnvs[r].annotations()[index]));
@@ -185,6 +184,7 @@ void ClinCnvWidget::disableGUI()
 	ui->f_regs->setEnabled(false);
 	ui->f_size->setEnabled(false);
 	ui->f_likeli->setEnabled(false);
+	ui->f_qvalue->setEnabled(false);
 	ui->f_af->setEnabled(false);
 }
 void ClinCnvWidget::variantFiltersChanged()
@@ -295,8 +295,8 @@ void ClinCnvWidget::filtersChanged()
 		{
 			if(!pass[r]) continue;
 
-			//take highest value of all available log likelihoods in case of multi samples
-			bool tmp_pass = true;
+			//one sample passes => CNV passes
+			bool tmp_pass = false;
 			foreach(double likelihood,cnvs[r].likelihoods())
 			{
 				//if one of all values passes filter: keep
@@ -305,16 +305,38 @@ void ClinCnvWidget::filtersChanged()
 					tmp_pass = true;
 					break;
 				}
-				else tmp_pass = false;
+			}
+			pass[r] = tmp_pass;
+		}
+	}
+
+	//filter by q-score
+	const double f_qvalue = ui->f_qvalue->value();
+	const int i_qvalue = cnvs.annotationIndexByName("qvalue",false);
+	if(i_qvalue != -1 && f_qvalue < 1.0)
+	{
+		for(int r=0;r<rows;++r)
+		{
+			if(!pass[r]) continue;
+
+			//one sample passes => CNV passes
+			bool tmp_pass = false;
+			foreach(double qvalue, cnvs[r].qvalues())
+			{
+				if(qvalue <= f_qvalue)
+				{
+					tmp_pass = true;
+					break;
+				}
 			}
 			pass[r] = tmp_pass;
 		}
 	}
 
 	//filter by allele frequency
-	const double f_af = ui->f_af->value();
 	const int i_af = cnvs.annotationIndexByName("potential_AF",false);
-	if(i_af != -1)
+	const double f_af = ui->f_af->value();
+	if(i_af!=-1 && f_af<1.0)
 	{
 		for(int r=0; r<rows; ++r)
 		{

@@ -46,6 +46,182 @@ QString NGSD::userId(QString user_name)
 	return user_id;
 }
 
+DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
+{
+	//init
+	QStringList fields;
+	fields	<< "ps.id"
+			<< "CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as name"
+			<< "s.name_external as name_external"
+			<< "s.gender as gender"
+			<< "s.tumor as is_tumor"
+			<< "s.ffpe as is_ffpe"
+			<< "ps.quality as quality"
+			<< "sys.name_manufacturer as system_name"
+			<< "sys.name_short as system_name_short"
+			<< "sys.type as system_type"
+			<< "p.name as project_name"
+			<< "p.type as project_type"
+			<< "r.name as run_name"
+			<< "r.fcid as run_fcid"
+			<< "r.recipe as run_recipe"
+			<< "r.quality as run_quality"
+			<< "s.disease_group as disease_group"
+			<< "s.disease_status as disease_status";
+
+	QStringList tables;
+	tables	<< "sample s"
+			<< "processing_system sys"
+			<< "project p"
+			<< "processed_sample ps LEFT JOIN sequencing_run r ON r.id=ps.sequencing_run_id LEFT JOIN diag_status ds ON ds.processed_sample_id=ps.id"; //sequencing_run and diag_status are optional
+
+	QStringList conditions;
+	conditions	<< "ps.sample_id=s.id"
+				<< "ps.processing_system_id=sys.id"
+				<< "ps.project_id=p.id";
+
+	//add filters (sample)
+	if (p.s_name.trimmed()!="")
+	{
+		conditions << "s.name LIKE '%" + escapeForSql(p.s_name) + "%'";
+	}
+	if (p.s_species.trimmed()!="")
+	{
+		tables	<< "species sp";
+		conditions	<< "sp.id=s.species_id"
+					<< "sp.name='" + escapeForSql(p.s_species) + "'";
+	}
+	if (!p.include_bad_quality_samples)
+	{
+		conditions << "ps.quality!='bad'";
+	}
+	if (!p.include_tumor_samples)
+	{
+		conditions << "s.tumor='0'";
+	}
+	if (!p.include_ffpe_samples)
+	{
+		conditions << "s.ffpe='0'";
+	}
+
+	//add filters (project)
+	if (p.p_name.trimmed()!="")
+	{
+		conditions << "p.name LIKE '%" + escapeForSql(p.p_name) + "%'";
+	}
+	if (p.p_type.trimmed()!="")
+	{
+		conditions << "p.type ='" + escapeForSql(p.p_type) + "'";
+	}
+
+	//add filters (system)
+	if (p.sys_name.trimmed()!="")
+	{
+		conditions << "sys.name_manufacturer LIKE '%" + escapeForSql(p.sys_name) + "%'";
+	}
+	if (p.sys_type.trimmed()!="")
+	{
+		conditions << "sys.type ='" + escapeForSql(p.sys_type) + "'";
+	}
+
+	//add filters (run)
+	if (p.r_name.trimmed()!="")
+	{
+		conditions << "r.name LIKE '%" + escapeForSql(p.r_name) + "%'";
+	}
+	if (!p.include_bad_quality_runs)
+	{
+		conditions << "r.quality!='bad'";
+	}
+
+	//additional output columns
+	if (p.add_outcome)
+	{
+		fields	<< "ds.outcome as outcome"
+				<< "ds.genes_causal as outcome_causal_genes"
+				<< "ds.inheritance_mode as outcome_inheritance_mode"
+				<< "ds.comment as outcome_comment";
+	}
+
+	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +"  WHERE " + conditions.join(" AND "));
+
+	//add path
+	if(p.add_path)
+	{
+		QString pfolder = Settings::string("projects_folder");
+		int i_psname = output.columnIndex("name");
+		int i_ptype = output.columnIndex("project_type");
+		int i_pname = output.columnIndex("project_name");
+
+		QStringList new_col;
+		for (int r=0; r<output.rowCount(); ++r)
+		{
+			const DBRow& row = output.row(r);
+			new_col << pfolder + "/" + row.value(i_ptype) + "/" + row.value(i_pname) + "/Sample_" + row.value(i_psname) + "/";
+		}
+		output.addColumn(new_col, "path");
+	}
+	if (p.add_disease_details)
+	{
+		//headers
+		QStringList types = getEnum("sample_disease_info", "type");
+		types.sort();
+		QVector<QStringList> cols(types.count());
+
+		for (int r=0; r<output.rowCount(); ++r)
+		{
+			QString sample_id = getValue("SELECT sample_id FROM processed_sample WHERE id='" + output.row(r).value(0) + "'").toString();
+			for(int i=0; i<types.count(); ++i)
+			{
+				QStringList tmp = getValues("SELECT sdi.disease_info FROM sample_disease_info sdi WHERE sdi.sample_id='" + sample_id + "' AND sdi.type='" + types[i] + "' ORDER BY sdi.disease_info ASC");
+				if (types[i]=="HPO term id")
+				{
+					for (int j=0; j<tmp.count(); ++j)
+					{
+						tmp[j] += " (" + phenotypeByAccession(tmp[j].toLatin1(), false).name() + ")";
+					}
+				}
+				cols[i] << tmp.join("; ");
+			}
+		}
+
+		for(int i=0; i<types.count(); ++i)
+		{
+			output.addColumn(cols[i], "disease_details_" + types[i].replace(" ", "_"));
+		}
+
+	}
+	if (p.add_qc)
+	{
+		//headers
+		QStringList qc_names = getValues("SELECT name FROM qc_terms WHERE obsolete=0 ORDER BY qcml_id");
+		QVector<QStringList> cols(qc_names.count());
+
+		for (int r=0; r<output.rowCount(); ++r)
+		{
+			//get QC values
+			SqlQuery qc_res = getQuery();
+			qc_res.exec("SELECT n.name, nm.value FROM qc_terms n, processed_sample_qc nm WHERE nm.qc_terms_id=n.id AND nm.processed_sample_id='" + output.row(r).value(0) + "' AND n.obsolete=0");
+			QHash<QString, QString> qc_hash;
+			while(qc_res.next())
+			{
+				qc_hash.insert(qc_res.value(0).toString(), qc_res.value(1).toString());
+			}
+			for(int i=0; i<qc_names.count(); ++i)
+			{
+				cols[i] << qc_hash.value(qc_names[i], "");
+			}
+		}
+		for(int i=0; i<qc_names.count(); ++i)
+		{
+			output.addColumn(cols[i], "qc_" + QString(qc_names[i]).replace(' ', '_'));
+		}
+
+	}
+
+	return output;
+}
+
 SampleData NGSD::getSampleData(const QString& sample_id)
 {
 	//execute query
@@ -116,7 +292,7 @@ QList<SampleDiseaseInfo> NGSD::getSampleDiseaseInfo(const QString& sample_id, QS
 
 	//execute query
 	SqlQuery query = getQuery();
-	query.exec("SELECT sdi.disease_info, sdi.type, u.user_id, sdi.date FROM sample_disease_info sdi, user u WHERE sdi.user_id=u.id AND sdi.sample_id=" + sample_id + " " + type_constraint + " ORDER by sdi.type ASC, sdi.disease_info ASC");
+	query.exec("SELECT sdi.disease_info, sdi.type, u.user_id, sdi.date FROM sample_disease_info sdi, user u WHERE sdi.user_id=u.id AND sdi.sample_id=" + sample_id + " " + type_constraint + " ORDER BY sdi.type ASC, sdi.disease_info ASC");
 
 	//create output
 	QList<SampleDiseaseInfo> output;
@@ -308,9 +484,25 @@ QString NGSD::addVariant(const Variant& variant, const VariantList& vl)
 	int idx = vl.annotationIndexByName("dbSNP");
 	query.bindValue(5, variant.annotations()[idx]);
 	idx = vl.annotationIndexByName("1000g");
-	query.bindValue(6, variant.annotations()[idx]);
+	QByteArray tg = variant.annotations()[idx].trimmed();
+	if (tg.isEmpty() || tg=="n/a")
+	{
+		query.bindValue(6, QVariant());
+	}
+	else
+	{
+		query.bindValue(6, tg);
+	}
 	idx = vl.annotationIndexByName("gnomAD");
-	query.bindValue(7, variant.annotations()[idx]);
+	QByteArray gnomad = variant.annotations()[idx].trimmed();
+	if (gnomad.isEmpty() || gnomad=="n/a")
+	{
+		query.bindValue(7, QVariant());
+	}
+	else
+	{
+		query.bindValue(7, gnomad);
+	}
 	idx = vl.annotationIndexByName("gene");
 	query.bindValue(8, variant.annotations()[idx]);
 	idx = vl.annotationIndexByName("variant_type");
@@ -1274,6 +1466,11 @@ void NGSD::fixGeneNames(QTextStream* messages, bool fix_errors, QString table, Q
 			}
 		}
 	}
+}
+
+QString NGSD::escapeForSql(const QString& text)
+{
+	return text.trimmed().replace("\"", "").replace("'", "").replace(";", "").replace("\n", "");
 }
 
 double NGSD::maxAlleleFrequency(const Variant& v, QList<int> af_column_index)

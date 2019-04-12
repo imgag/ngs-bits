@@ -5,23 +5,25 @@
 #include "BasicStatistics.h"
 
 
-ClinCopyNumberVariant::ClinCopyNumberVariant()
+ClinCnvVariant::ClinCnvVariant()
 	: chr_()
 	, start_(0)
 	, end_(0)
 	, copy_number_()
-	, log_likelihood_()
+	, log_likelihoods_()
+	, qvalues_()
 	, genes_()
 	, annotations_()
 {
 }
 
-ClinCopyNumberVariant::ClinCopyNumberVariant(const Chromosome& chr, int start, int end, double copy_number, const QList<double>& log_likelihoods, GeneSet genes, QByteArrayList annotations)
+ClinCnvVariant::ClinCnvVariant(const Chromosome& chr, int start, int end, double copy_number, const QList<double>& log_likelihoods, const QList<double>& qvalues, GeneSet genes, QByteArrayList annotations)
 	: chr_(chr)
 	, start_(start)
 	, end_(end)
 	, copy_number_(copy_number)
-	, log_likelihood_(log_likelihoods)
+	, log_likelihoods_(log_likelihoods)
+	, qvalues_(qvalues)
 	, genes_(genes)
 	, annotations_(annotations)
 {
@@ -59,7 +61,7 @@ void ClinCnvList::load(QString filename)
 	annotation_indices.removeAll(i_start);
 	int i_end = file.colIndex("end", true);
 	annotation_indices.removeAll(i_end);
-	int i_sample = file.colIndex("sample", false);
+	int i_sample = file.colIndex("sample", false); //optional
 	annotation_indices.removeAll(i_sample);
 	int i_copy_number = file.colIndex("CN_change",true);
 	annotation_indices.removeAll(i_copy_number);
@@ -109,12 +111,21 @@ void ClinCnvList::load(QString filename)
 		}
 
 		QList<double> loglikelihoods;
-		foreach(QByteArray part,parts[i_log_likelihood].split(','))
+		foreach(QByteArray part, parts[i_log_likelihood].split(','))
 		{
 			loglikelihoods << part.trimmed().toDouble();
 		}
 
-		variants_.append(ClinCopyNumberVariant(parts[i_chr], parts[i_start].toInt(), parts[i_end].toInt(), parts[i_copy_number].toDouble(), loglikelihoods, genes, annos));
+		QList<double> qvalues;
+		int i_qvalues = file.colIndex("qvalue",true);
+		if (i_qvalues!=-1)
+		{
+			foreach(QByteArray part, parts[i_qvalues].split(','))
+			{
+				qvalues << part.trimmed().toDouble();
+			}
+		}
+		variants_.append(ClinCnvVariant(parts[i_chr], parts[i_start].toInt(), parts[i_end].toInt(), parts[i_copy_number].toDouble(), loglikelihoods, qvalues, genes, annos));
 	}
 }
 
@@ -187,7 +198,7 @@ ClinCnvAnalysisType ClinCnvList::type() const
 	int i_sample = annotationIndexByName("sample",false);
 	if(i_sample != -1)
 	{
-		foreach(ClinCopyNumberVariant v,variants_)
+		foreach(ClinCnvVariant v,variants_)
 		{
 			if(v.annotations().at(i_sample).contains("multi")) return CLINCNV_GERMLINE_MULTI;
 		}

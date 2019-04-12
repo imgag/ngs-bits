@@ -17,20 +17,6 @@
 #include <QDir>
 #include "RtfDocument.h"
 
-///provides methods for generating rtf file
-class RtfTools
-{
-public:
-	///specifies the header of an RTF file
-	static void writeRtfHeader(QTextStream& stream);
-	///generates the header of a single Rtf row
-	static void writeRtfTableSingleRowSpec(QTextStream& stream,const QList<int>& col_widths, bool border,bool shaded = false);
-	///generates a RTF table
-	static void writeRtfWholeTable(QTextStream& stream, const QList< QList<QString> >& table, const QList<int>& col_widths, int font_size, bool border, bool bold);
-	///generates a single row for an RTF table
-	static void writeRtfRow(QTextStream& stream, const QList<QString>& columns, const QList<int>& col_widths, int font_size, bool border, bool bold);
-};
-
 ///representation of CGI information of a drug reported by CGI
 class CGIDrugReportLine
 {
@@ -283,21 +269,21 @@ private:
 	///returns best matching transcript - or an empty transcript
 	VariantTranscript selectSomaticTranscript(const Variant& variant);
 
-	void writeGapStatistics(QTextStream &stream, const QString& target_file, const QList<int>& col_widths);
+	RtfTable createGapStatisticsTable(const QList<int>& col_widths);
 	QHash<QByteArray, BedFile> gapStatistics(const BedFile& region_of_interest);
 
 	///Writes Rtf table containing given snvs
-	void writeSnvList(QTextStream& stream, const QList<int>& col_widths, const VariantList& snvs);
+	RtfTable createSnvTable(const QList<int>& col_widths, const VariantList& snvs);
 	///Writes Rtf table containing CNVs per gene
-	RtfTable cnvGeneTable(const GeneSet& target_genes);
+	RtfTable createCNVdriverTable(const GeneSet& target_genes);
 	///generates table with CNVs
-	RtfTable cnvList();
+	RtfTable createCnvTable();
 
 	///Writes table with drug annotation
-	void writeRtfCGIDrugTable(QTextStream& stream, const QList<int>& col_widths);
+	RtfTable createCgiDrugTable();
 
 	///Writers basic QC params to RTF report
-	void writeQualityParams(QTextStream& stream, const QList<int>& widths);
+	RtfTable createQCTable(const QList<int>& widths);
 
 	///Parse raw text containing CGI cancer acronyms in the form "known in:
 	QList<QByteArray> parse_cgi_cancer_acronyms(QByteArray text);
@@ -380,6 +366,8 @@ private:
 
 	///Filter list
 	FilterCascade filters_;
+
+	RtfDocument doc_;
 };
 
 #endif // REPORTHELPER_H

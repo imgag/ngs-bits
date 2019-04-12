@@ -195,6 +195,8 @@ public slots:
 	void showAfHistogram();
 	///Show encryption helper
 	void on_actionEncrypt_triggered();
+	///Show sample search dialog
+	void on_actionSampleSearch_triggered();
 
 	///Returns a gene list where the inheritance information is not set (selected variants only)
 	QStringList geneInheritanceMissing(QBitArray selected);

@@ -1,5 +1,54 @@
 #include "RtfDocument.h"
+#include "Helper.h"
 
+
+RtfSourceCode RtfText::RtfCode()
+{
+	QByteArrayList output;
+	output << "{";
+
+	output << "\\fs" + QByteArray::number(font_size_);
+	if(font_number_ > 0) output << "\\f" + QByteArray::number(font_number_);
+	if(font_color_ > 0) output << "\\cf" + QByteArray::number(font_color_);
+
+	if(bold_) output << "\\b";
+	if(italic_) output << "\\i";
+	if(highlight_color_ != 0) output << "\\highlight" + QByteArray::number(highlight_color_);
+	output << "\\q" + horizontal_alignment_;
+
+	//if(!content_.isEmpty())
+	output << RtfDocument::escapeUmlauts(content_);
+	//else output << "";
+
+	output << "}";
+	return output.join("\n");
+}
+
+
+RtfSourceCode RtfParagraph::RtfCode()
+{
+	QByteArrayList output;
+
+	output << "\\pard";
+
+	if(part_of_a_cell_) output << "\\q" + horizontal_alignment_;
+
+	//Spacing
+	if(space_after_ != 0) output << "\\sa" + QByteArray::number(space_after_);
+	if(space_before_ != 0) output << "\\sb" + QByteArray::number(space_before_);
+
+	//Indenting
+	if(indent_block_left_ != 0) output << "\\li" + QByteArray::number(indent_block_left_);
+	if(indent_block_right_ != 0) output << "\\ri" + QByteArray::number(indent_block_right_);
+	if(indent_first_line_ != 0) output << "\\fi" + QByteArray::number(indent_first_line_);
+
+	output.append(RtfText::RtfCode());
+
+	//Skip paragraph end line break if paragraph is part of a table cell
+	if(!part_of_a_cell_) output << "\\par\n";
+
+	return output.join("\n");
+}
 
 RtfDocument::RtfDocument()
 	: width_(11905)
@@ -83,69 +132,6 @@ RtfSourceCode RtfDocument::escapeUmlauts(const QByteArray &text)
 	return output;
 }
 
-RtfSourceCode RtfDocument::text(const QByteArray &content, const RtfTextFormat &format)
-{
-	QByteArrayList output;
-
-	output << "{";
-
-	output << "\\fs" + QByteArray::number(format.font_size);
-	if(format.font_number > 0) output << "\\f" + QByteArray::number(format.font_number);
-	if(format.font_color > 0) output << "\\cf" + QByteArray::number(format.font_color);
-
-	if(format.bold) output << "\\b";
-	if(format.italic) output << "\\i";
-	if(format.highlight_color != 0) output << "\\highlight" + QByteArray::number(format.highlight_color);
-
-	output << "\\q" + format.horizontal_alignment;
-
-	output << RtfDocument::escapeUmlauts(content);
-
-	output << "}";
-
-	return output.join("\n");
-}
-
-RtfSourceCode RtfDocument::paragraph(const QByteArrayList &content, const RtfParagraphFormat &format, bool in_cell)
-{
-	return RtfDocument::paragraph(content.join("\\line\n"),format,in_cell);
-}
-
-RtfSourceCode RtfDocument::paragraph(const QByteArray& content, const RtfParagraphFormat &format, bool in_cell)
-{
-	QByteArrayList output;
-
-	output << "\\pard";
-
-	output << "\\fs" + QByteArray::number(format.font_size);
-	if(format.font_number != 0) output << "\\f" + QByteArray::number(format.font_number);
-
-	output << "\\q" + format.horizontal_alignment;
-
-	//Spacing
-	if(format.space_after != 0) output << "\\sa" + QByteArray::number(format.space_after);
-	if(format.space_before != 0) output << "\\sb" + QByteArray::number(format.space_before);
-
-	//Indenting
-	if(format.intent_block_left != 0) output << "\\li" + QByteArray::number(format.intent_block_left);
-	if(format.intent_block_right != 0) output << "\\ri" + QByteArray::number(format.intent_block_right);
-	if(format.intent_first_line != 0) output << "\\fi" + QByteArray::number(format.intent_first_line);
-
-	//Character format
-	if(format.italic) output << "\\i";
-	if(format.bold) output << "\\b";
-
-	if(format.font_color != 0) output << "\\cf" + QByteArray::number(format.font_color);
-
-	if(!content.isEmpty()) output << RtfDocument::text(content,format);
-	else output << " ";
-
-	//Skip paragraph end line break if paragraph is part of a table cell
-	if(!in_cell) output << "\\par\n";
-
-	return output.join("\n");
-}
-
 double RtfDocument::cm2twip(double input_cm)
 {
 	return 566.929133858264*input_cm;
@@ -159,10 +145,26 @@ void RtfDocument::setMargins(int left, int top, int right, int bottom)
 	margin_left_ = left;
 }
 
-RtfTableCell::RtfTableCell(const QByteArray &content, int width, const RtfParagraphFormat &text_format)
+void RtfDocument::save(const QByteArray &file_name)
 {
-	content_ = content;
-	par_format_ = text_format;
+	QSharedPointer<QFile> outfile = Helper::openFileForWriting(file_name);
+	QTextStream stream(outfile.data());
+
+	stream << header();
+
+	foreach(RtfSourceCode part,body_parts_)
+	{
+		stream << part << endl;
+	}
+
+	stream << footer();
+	outfile->close();
+}
+
+RtfTableCell::RtfTableCell(int width, const RtfParagraph& text_format)
+{
+	paragraph_ = text_format;
+	paragraph_.setPartOfACell(true);
 	width_ = width;
 }
 
@@ -175,30 +177,56 @@ void RtfTableCell::setBorder(int left,int top,int right,int bottom, const QByteA
 	border_type_ = type;
 }
 
-void RtfTableRow::addCell(const QByteArray& cell_content, int width, const RtfParagraphFormat& par_format)
+void RtfTableRow::addCell(int width, const RtfParagraph& paragraph)
 {
-	cells_ << RtfTableCell(cell_content, width, par_format);
-}
-void RtfTableRow::addCell(const QByteArrayList& cell_contents,int width, const RtfParagraphFormat& par_format)
-{
-	addCell(cell_contents.join("\\line\n"),width,par_format);
+	RtfParagraph temp_paragraph = paragraph;
+	temp_paragraph.setPartOfACell(true);
+	cells_ << RtfTableCell(width, paragraph);
 }
 
-void RtfTableRow::setBorders(int width, const QByteArray& type)
+void RtfTableRow::addCell(int width,const QByteArray& content)
+{
+	RtfParagraph temp_paragraph;
+	temp_paragraph.setContent(content);
+	temp_paragraph.setPartOfACell(true);
+	addCell(width,temp_paragraph);
+}
+
+void RtfTableRow::addCell(const QByteArrayList& cell_contents, int width, const RtfParagraph& par_format)
+{
+	RtfParagraph temp_par = par_format;
+	temp_par.setPartOfACell(true);
+	temp_par.setContent(cell_contents.join("\\line\n"));
+	addCell(width,temp_par);
+}
+
+RtfTableRow& RtfTableRow::setBorders(int width, const QByteArray& type)
 {
 	for(auto &cell : cells_)
 	{
 		cell.setBorder(width,width,width,width,type);
 	}
+	return *this;
+}
+
+RtfTableRow& RtfTableRow::setBackgroundColor(int color)
+{
+	for(RtfTableCell& cell : cells_)
+	{
+		cell.setBackgroundColor(color);
+	}
+	return *this;
 }
 
 QByteArray RtfTableCell::writeCell()
 {
-	QByteArray content = "{";
-	content.append(RtfDocument::paragraph("\\intbl " + content_,par_format_,true));
-	content.append("\\cell");
-	content.append("}");
-	return content;
+	QByteArray output = "{";
+
+	output.append("\\intbl " + paragraph_.RtfCode());
+
+	output.append("\\cell");
+	output.append("}");
+	return output;
 }
 
 
@@ -206,13 +234,14 @@ RtfTableRow::RtfTableRow()
 {
 }
 
-RtfTableRow::RtfTableRow(const QByteArray& cell_content, int width,const RtfParagraphFormat& format)
+RtfTableRow::RtfTableRow(const QByteArray& cell_content, int width, const RtfParagraph& format)
 {
-	addCell(cell_content,width,format);
-
+	RtfParagraph temp_par = format;
+	temp_par.setContent(cell_content);
+	addCell(width,temp_par);
 }
 
-RtfTableRow::RtfTableRow(const QList<QByteArray>& cell_contents, const QList<int>& cell_widths, const RtfParagraphFormat& format)
+RtfTableRow::RtfTableRow(const QList<QByteArray>& cell_contents, const QList<int>& cell_widths, const RtfParagraph& format)
 {
 	if(cell_contents.count() != cell_widths.count()) //Create empty instance if no does not match
 	{
@@ -222,7 +251,9 @@ RtfTableRow::RtfTableRow(const QList<QByteArray>& cell_contents, const QList<int
 
 	for(int i=0;i<cell_contents.count();++i)
 	{
-		addCell(cell_contents.at(i),cell_widths.at(i),format);
+		RtfParagraph temp_par = format;
+		temp_par.setContent(cell_contents.at(i));
+		addCell(cell_widths.at(i),temp_par);
 	}
 
 }
@@ -243,7 +274,7 @@ RtfSourceCode RtfTableRow::writeRowHeader()
 		if(cell.border_left_ != 0) output.append("\\clbrdrl\\brdrw" + QByteArray::number(cell.border_left_) + "\\" + cell.border_type_);
 		if(cell.border_right_ != 0) output.append("\\clbrdrr\\brdrw" + QByteArray::number(cell.border_right_) + "\\" + cell.border_type_);
 
-		if(cell.background_color_ != 0) output.append("\\clcbpat") + QByteArray::number(cell.background_color_);
+		if(cell.background_color_ != 0) output.append("\\clcbpat" + QByteArray::number(cell.background_color_));
 
 		//Add specific control words
 		if(cell.controlWords().count() > 0)
@@ -283,7 +314,7 @@ RtfTable::RtfTable()
 
 }
 
-RtfTable::RtfTable(const QList< QList<QByteArray> >& contents, const QList< QList<int> >& widths, const RtfParagraphFormat& format)
+RtfTable::RtfTable(const QList< QList<QByteArray> >& contents, const QList< QList<int> >& widths, const RtfParagraph& format)
 {
 	for(int i=0;i<contents.count();++i)
 	{
@@ -291,7 +322,7 @@ RtfTable::RtfTable(const QList< QList<QByteArray> >& contents, const QList< QLis
 	}
 }
 
-RtfSourceCode RtfTable::writeTable()
+RtfSourceCode RtfTable::RtfCode()
 {
 	QByteArrayList output;
 	for(int i=0;i<rows_.count();++i)
@@ -302,22 +333,12 @@ RtfSourceCode RtfTable::writeTable()
 	return output.join("\n");
 }
 
-void RtfTable::setUniqueFormat(const RtfParagraphFormat &format)
-{
-	for(int i=0;i<count();++i)
-	{
-		for(int j=0;j<rows_[i].count();++j)
-		{
-			rows_[i][j].format() = format;
-		}
-	}
-}
-
-void RtfTable::setUniqueBorder(int border, const QByteArray &border_type)
+RtfTable& RtfTable::setUniqueBorder(int border, const QByteArray &border_type)
 {
 	for(int i=0;i<rows_.count();++i)
 	{
 		rows_[i].setBorders(border,border_type);
 	}
+	return *this;
 }
 

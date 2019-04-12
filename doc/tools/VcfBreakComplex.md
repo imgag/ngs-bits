@@ -1,10 +1,11 @@
 ### VcfBreakComplex tool help
-	VcfBreakComplex (2018_11-39-g5d6be46)
+	VcfBreakComplex (2019_03-42-gfa81c47)
 	
 	Breaks complex variants into primitives preserving INFO/SAMPLE fields.
 	
 	Multi-allelic variants are ignored, since we assume they have already been split, e.g. with VcfBreakMulti.
 	Complex variants that are decomposed, are flagged with a BBC (before break-complex) info entry.
+	WARNING: THIS IS TOOL IS IN BETA STATE!!!
 	
 	Optional parameters:
 	  -in <file>    Input VCF file. If unset, reads from STDIN.
@@ -25,7 +26,7 @@
 	  --tdx         Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VcfBreakComplex changelog
-	VcfBreakComplex 2018_11-39-g5d6be46
+	VcfBreakComplex 2019_03-42-gfa81c47
 	
 	2018-11-30 Initial implementation.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

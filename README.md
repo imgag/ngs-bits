@@ -14,17 +14,17 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 ## ChangeLog
 
-Changes already implemented in Git master for next release:
+Changes already implemented in GIT master for next release:
+
+* none so far
+
+Changes in release 2019_04:
 
 * RohHunter: Added support for input variant lists that are not annotated with VEP. See 'af_source' parameter.
-
-Changes in release 2019_03:
-
-
-* SeqPurge: massive speed-up by adding writer thread.
-* SampleSimilarity: add flag to ignore multi-allelic sites, massive speed-up by caching of variants in RAM.
-* VcfFilter: minor bug fixes (reference allele checks).
-* Added tools: VcfExtractSamples, VcfBreakComplex (beta)
+* SeqPurge: added parameter 'compression_level'.
+* CnvHunter: fixed minor bug in z-score estimation.
+* RohHunter: Added support for input variant lists that are not annotated with VEP.
+* Added tools: FastqConcat
 
 For older releases see the [releases page](https://github.com/imgag/ngs-bits/releases).
 
@@ -101,6 +101,7 @@ The default output format of the quality control tools is [qcML](https://github.
 
 * [FastqAddBarcode](doc/tools/FastqAddBarcode.md) - Adds sequences from separate FASTQ as barcodes to read IDs.
 * [FastqConvert](doc/tools/FastqConvert.md) - Converts the quality scores from Illumina 1.5 offset to Sanger/Illumina 1.8 offset. 
+* [FastqConcat](doc/tools/FastqConcat.md) - Concatinates several FASTQ files into one output FASTQ file. 
 * [FastqExtract](doc/tools/FastqExtract.md) - Extracts reads from a FASTQ file according to an ID list.
 * [FastqExtractBarcode](doc/tools/FastqExtractBarcode.md) - Moves molecular barcodes of reads to a separate file.
 * [FastqExtractUMI](doc/tools/FastqExtractUMI.md) - Moves unique moleculare identifier from read sequence to read ID.
@@ -140,6 +141,8 @@ Installation instructions for the NGSD can be found [here](doc/install_ngsd.md).
 
 * [PERsim](doc/tools/PERsim.md) - Paired-end read simulator for Illumina reads.
 * [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file.
+
+
 
 
 

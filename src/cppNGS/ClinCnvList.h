@@ -17,13 +17,13 @@ enum ClinCnvAnalysisType
 };
 
 
-class CPPNGSSHARED_EXPORT ClinCopyNumberVariant
+class CPPNGSSHARED_EXPORT ClinCnvVariant
 {
 public:
 	///Default constructor.
-	ClinCopyNumberVariant();
+	ClinCnvVariant();
 	///Main constructor.
-	ClinCopyNumberVariant(const Chromosome& chr, int start, int end, double copy_number, const QList<double>& log_likelihoods, GeneSet genes, QByteArrayList annotations);
+	ClinCnvVariant(const Chromosome& chr, int start, int end, double copy_number, const QList<double>& log_likelihoods, const QList<double>& qvalues, GeneSet genes, QByteArrayList annotations);
 
 	///Returns the chromosome.
 	const Chromosome& chr() const
@@ -46,16 +46,16 @@ public:
 		return copy_number_;
 	}
 
-	///Returns the first loglikelihood (single samples)
-	double likelihood() const
-	{
-		return log_likelihood_[0];
-	}
-
 	///Returns all likelihoods (multiple samples/trios) as list, contains only 1 value in case of single samples
 	const QList<double>& likelihoods() const
 	{
-		return log_likelihood_;
+		return log_likelihoods_;
+	}
+
+	///Returns all q-scores (multiple samples/trios) as list, contains only 1 value in case of single samples
+	const QList<double>& qvalues() const
+	{
+		return qvalues_;
 	}
 
 	///Returns the annotated genes.
@@ -85,7 +85,8 @@ private:
 	int start_;
 	int end_;
 	double copy_number_;
-	QList<double> log_likelihood_;
+	QList<double> log_likelihoods_;
+	QList<double> qvalues_;
 	GeneSet genes_;
 	QByteArrayList annotations_;
 };
@@ -118,7 +119,7 @@ public:
 	}
 
 	///Returns a variant by index.
-	const ClinCopyNumberVariant& operator[](int index) const
+	const ClinCnvVariant& operator[](int index) const
 	{
 		return variants_[index];
 	}
@@ -132,7 +133,7 @@ public:
 	int annotationIndexByName(const QByteArray& name, bool error_on_mismatch = true) const;
 
 	///Appends copy number variant
-	void append(const ClinCopyNumberVariant& add)
+	void append(const ClinCnvVariant& add)
 	{
 		variants_.append(add);
 	}
@@ -143,7 +144,7 @@ public:
 
 protected:
 	QByteArrayList comments_;
-	QList<ClinCopyNumberVariant> variants_;
+	QList<ClinCnvVariant> variants_;
 	QByteArrayList annotation_headers_;
 };
 

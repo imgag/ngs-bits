@@ -56,7 +56,8 @@ SOURCES += main.cpp\
     AnalysisStatusWidget.cpp \
     ClinCnvWidget.cpp \
     VariantTable.cpp \
-    RtfDocument.cpp
+    RtfDocument.cpp \
+    SampleSearchWidget.cpp
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
@@ -107,7 +108,8 @@ HEADERS  += MainWindow.h \
     AnalysisStatusWidget.h \
     ClinCnvWidget.h \
     VariantTable.h \
-    RtfDocument.h
+    RtfDocument.h \
+    SampleSearchWidget.h
 
 FORMS    += MainWindow.ui \
     FilterDockWidget.ui \
@@ -149,7 +151,8 @@ FORMS    += MainWindow.ui \
     DiseaseInfoWidget.ui \
     SequencingRunWidget.ui \
     AnalysisStatusWidget.ui \
-    ClinCnvWidget.ui
+    ClinCnvWidget.ui \
+    SampleSearchWidget.ui
 
 include("../app_gui.pri")
 
