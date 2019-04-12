@@ -91,7 +91,3 @@ void SampleSearchWidget::openProcessedSample()
 	}
 }
 
-//TODO:
-//- add NGSD test
-//- use in NGSDExportSamples + adapt test
-

@@ -174,3 +174,27 @@ void DBRow::checkValueIndex(int i) const
 		THROW(ArgumentException, "Invalid value index '" + QString::number(i) + "' in DB row. Valid are 0-" + QString::number(values_.count()-1) + "!");
 	}
 }
+
+void DBTable::write(QTextStream& stream) const
+{
+	//header
+	stream << "#";
+	for (int c=0; c<headers_.count(); ++c)
+	{
+		if (c!=0) stream << "\t";
+		stream << headers_[c];
+	}
+	stream << "\n";
+
+	//rows
+	for (int r=0; r<rowCount(); ++r)
+	{
+		for (int c=0; c<columnCount(); ++c)
+		{
+			if (c!=0) stream << "\t";
+			stream << QString(rows_[r].value(c)).replace('\t', ' ').replace('\n', ' ');
+		}
+		stream << "\n";
+	}
+}
+

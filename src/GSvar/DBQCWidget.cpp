@@ -183,7 +183,6 @@ void DBQCWidget::setSecondTermId(QString id)
 
 void DBQCWidget::updatePlot()
 {
-
 	//clear (necessary because settings the chart, releases the ownership of the previous chart)
 	QChart* chart_old = ui_.plot->chart();
 	ui_.plot->setChart(new QChart());
