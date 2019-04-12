@@ -1,5 +1,8 @@
 # GSvar change log
 
+### 2019_04-5-ga3b3bc0 (10.04.19)
+- variant details: preferred transcripts are now automatically shown first.
+
 ### 2019_03-34-g110be83 (25.03.19)
 - Analysis status: sequencing run can now be opened via the context menu of samples.
 - Processed sample tab: added buttons to open folder and load tracks in IGV.
@@ -303,6 +306,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 

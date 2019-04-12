@@ -4,6 +4,7 @@
 #include "cppNGSD_global.h"
 #include <QString>
 #include <QList>
+#include <QTextStream>
 
 //Database row with identifier and values
 class CPPNGSDSHARED_EXPORT DBRow
@@ -93,6 +94,9 @@ class CPPNGSDSHARED_EXPORT DBTable
 		void setColumn(int c, const QStringList& values, const QString& header=QString());
 		///Creates and returns a list of values for a column.
 		QStringList extractColumn(int c) const;
+
+		///Writes contents to a stream (TSV representation)
+		void write(QTextStream& stream) const;
 
 	protected:
 		QString table_name_;

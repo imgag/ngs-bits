@@ -117,7 +117,7 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	//add filters (system)
 	if (p.sys_name.trimmed()!="")
 	{
-		conditions << "sys.name_manufacturer LIKE '%" + escapeForSql(p.sys_name) + "%'";
+		conditions << "(sys.name_manufacturer LIKE '%" + escapeForSql(p.sys_name) + "%' OR sys.name_short LIKE '%" + escapeForSql(p.sys_name) + "%')";
 	}
 	if (p.sys_type.trimmed()!="")
 	{
@@ -134,7 +134,7 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		conditions << "r.quality!='bad'";
 	}
 
-	//additional output columns
+	//add outcome
 	if (p.add_outcome)
 	{
 		fields	<< "ds.outcome as outcome"
@@ -142,7 +142,6 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 				<< "ds.inheritance_mode as outcome_inheritance_mode"
 				<< "ds.comment as outcome_comment";
 	}
-
 	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +"  WHERE " + conditions.join(" AND "));
 
 	//add path
@@ -161,6 +160,7 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		}
 		output.addColumn(new_col, "path");
 	}
+
 	if (p.add_disease_details)
 	{
 		//headers
@@ -170,17 +170,29 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 
 		for (int r=0; r<output.rowCount(); ++r)
 		{
-			QString sample_id = getValue("SELECT sample_id FROM processed_sample WHERE id='" + output.row(r).value(0) + "'").toString();
+			SqlQuery disease_query = getQuery();
+			disease_query.exec("SELECT sdi.type, sdi.disease_info FROM sample_disease_info sdi, processed_sample ps WHERE ps.sample_id=sdi.sample_id AND ps.id='" + output.row(r).id() + "' ORDER BY sdi.disease_info ASC");
 			for(int i=0; i<types.count(); ++i)
 			{
-				QStringList tmp = getValues("SELECT sdi.disease_info FROM sample_disease_info sdi WHERE sdi.sample_id='" + sample_id + "' AND sdi.type='" + types[i] + "' ORDER BY sdi.disease_info ASC");
-				if (types[i]=="HPO term id")
+				const QString& type = types[i];
+
+				QStringList tmp;
+				disease_query.seek(-1);
+				while(disease_query.next())
 				{
-					for (int j=0; j<tmp.count(); ++j)
+					if (disease_query.value(0).toString()!=type) continue;
+
+					QString entry = disease_query.value(1).toString();
+					if (type=="HPO term id")
 					{
-						tmp[j] += " (" + phenotypeByAccession(tmp[j].toLatin1(), false).name() + ")";
+						tmp << entry + " - " + getValue("SELECT name FROM hpo_term WHERE hpo_id='" + entry + "'", true).toString();
+					}
+					else
+					{
+						tmp << entry;
 					}
 				}
+
 				cols[i] << tmp.join("; ");
 			}
 		}
@@ -189,8 +201,8 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		{
 			output.addColumn(cols[i], "disease_details_" + types[i].replace(" ", "_"));
 		}
-
 	}
+
 	if (p.add_qc)
 	{
 		//headers
@@ -201,7 +213,7 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		{
 			//get QC values
 			SqlQuery qc_res = getQuery();
-			qc_res.exec("SELECT n.name, nm.value FROM qc_terms n, processed_sample_qc nm WHERE nm.qc_terms_id=n.id AND nm.processed_sample_id='" + output.row(r).value(0) + "' AND n.obsolete=0");
+			qc_res.exec("SELECT n.name, nm.value FROM qc_terms n, processed_sample_qc nm WHERE nm.qc_terms_id=n.id AND nm.processed_sample_id='" + output.row(r).id() + "' AND n.obsolete=0");
 			QHash<QString, QString> qc_hash;
 			while(qc_res.next())
 			{
@@ -216,7 +228,6 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		{
 			output.addColumn(cols[i], "qc_" + QString(qc_names[i]).replace(' ', '_'));
 		}
-
 	}
 
 	return output;

@@ -117,13 +117,17 @@ void ClinCnvList::load(QString filename)
 		}
 
 		QList<double> qvalues;
-		int i_qvalues = file.colIndex("qvalue",true);
+		int i_qvalues = file.colIndex("qvalue",false);
 		if (i_qvalues!=-1)
 		{
 			foreach(QByteArray part, parts[i_qvalues].split(','))
 			{
 				qvalues << part.trimmed().toDouble();
 			}
+		}
+		else //neccessary for backward compatibility
+		{
+			qvalues << std::numeric_limits<double>::quiet_NaN();
 		}
 		variants_.append(ClinCnvVariant(parts[i_chr], parts[i_start].toInt(), parts[i_end].toInt(), parts[i_copy_number].toDouble(), loglikelihoods, qvalues, genes, annos));
 	}

@@ -1149,7 +1149,11 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name)
 		if (normal_sample!="")
 		{
 			QString gsvar_somatic = file.split("Sample_")[0]+ "/" + "Somatic_" + processed_sample_name + "-" + normal_sample + "/" + processed_sample_name + "-" + normal_sample + ".GSvar";
-			if (QMessageBox::question(this, "Tumor sample", "The sample is the tumor sample of a tumor-normal pair.\nDo you want to open the somatic variant list?")==QMessageBox::Yes)
+			if (!QFile::exists(file))
+			{
+				file = gsvar_somatic;
+			}
+			else if (QMessageBox::question(this, "Tumor sample", "This sample is the tumor sample of a tumor-normal pair.\nDo you want to open the somatic variant list?")==QMessageBox::Yes)
 			{
 				file = gsvar_somatic;
 			}

@@ -13,8 +13,8 @@ INSERT INTO user (id, user_id, password, user_role, name, email, created, active
 INSERT INTO sender (id, name) VALUES (1, 'sender');
 
 -- project
-INSERT INTO project (id, name, type, internal_coordinator_id, analysis) VALUES (1, 'First project', 'research', 1, 'annotation');
-INSERT INTO project (id, name, type, internal_coordinator_id, analysis) VALUES (2, 'Second project', 'diagnostic', 1, 'annotation');
+INSERT INTO project (id, name, type, internal_coordinator_id, analysis) VALUES (1, 'First_project', 'research', 1, 'annotation');
+INSERT INTO project (id, name, type, internal_coordinator_id, analysis) VALUES (2, 'Second_project', 'diagnostic', 1, 'annotation');
 
 -- processing_system
 INSERT INTO processing_system (id, name_manufacturer, shotgun, name_short, genome_id) VALUES (1, 'HaloPlex System', '1', 'hpSYSv1', 1);

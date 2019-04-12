@@ -34,11 +34,11 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDExportSamples_init.sql"));
 
 		//test
-		EXECUTE("NGSDExportSamples", "-test -disease_details -outcome -qc -out out/NGSDExportSamples_out2.tsv");
+		EXECUTE("NGSDExportSamples", "-test -add_disease_details -add_outcome -add_qc -out out/NGSDExportSamples_out2.tsv");
 		COMPARE_FILES("out/NGSDExportSamples_out2.tsv", TESTDATA("data_out/NGSDExportSamples_out2.tsv"));
 	}
 
-	void with_check_path_flag()
+	void with_all_search_parameters()
 	{
 		QString host = Settings::string("ngsd_test_host");
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
@@ -49,25 +49,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDExportSamples_init.sql"));
 
 		//test
-		EXECUTE("NGSDExportSamples", "-test -check_path -out out/NGSDExportSamples_out3.tsv");
+		EXECUTE("NGSDExportSamples", "-test -sample NA12878 -species human -no_bad_samples -no_tumor -no_ffpe -project Second_project -system ssHAEv5 -run run2 -no_bad_runs -out out/NGSDExportSamples_out3.tsv");
 		COMPARE_FILES("out/NGSDExportSamples_out3.tsv", TESTDATA("data_out/NGSDExportSamples_out3.tsv"));
 	}
-
-
-	void species_filter()
-	{
-		QString host = Settings::string("ngsd_test_host");
-		if (host=="") SKIP("Test needs access to the NGSD test database!");
-
-		//init
-		NGSD db(true);
-		db.init();
-		db.executeQueriesFromFile(TESTDATA("data_in/NGSDExportSamples_init.sql"));
-
-		//test
-		EXECUTE("NGSDExportSamples", "-test -species human -out out/NGSDExportSamples_out4.tsv");
-		COMPARE_FILES("out/NGSDExportSamples_out4.tsv", TESTDATA("data_out/NGSDExportSamples_out1.tsv"));
-	}
-
 };
-

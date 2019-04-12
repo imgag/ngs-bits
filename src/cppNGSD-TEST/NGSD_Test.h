@@ -644,6 +644,46 @@ private slots:
 		S_EQUAL(disease_info3[0].disease_info, "G11.9");
 		S_EQUAL(disease_info3[0].type, "ICD10 code");
 
+		//processedSampleSearch
+		ProcessedSampleSearchParameters params;
+		DBTable ps_table = db.processedSampleSearch(params);
+		I_EQUAL(ps_table.rowCount(), 5);
+		I_EQUAL(ps_table.columnCount(), 17);
+		//add path
+		params.add_path = true;
+		ps_table = db.processedSampleSearch(params);
+		I_EQUAL(ps_table.rowCount(), 5);
+		I_EQUAL(ps_table.columnCount(), 18);
+		//add outcome
+		params.add_outcome = true;
+		ps_table = db.processedSampleSearch(params);
+		I_EQUAL(ps_table.rowCount(), 5);
+		I_EQUAL(ps_table.columnCount(), 22);
+		//add path
+		params.add_disease_details = true;
+		ps_table = db.processedSampleSearch(params);
+		I_EQUAL(ps_table.rowCount(), 5);
+		I_EQUAL(ps_table.columnCount(), 26);
+		//add QC
+		params.add_qc = true;
+		ps_table = db.processedSampleSearch(params);
+		I_EQUAL(ps_table.rowCount(), 5);
+		I_EQUAL(ps_table.columnCount(), 65);
+		//apply all search parameters
+		params.s_name = "NA12878";
+		params.s_species = "human";
+		params.include_bad_quality_samples = false;
+		params.include_tumor_samples = false;
+		params.include_ffpe_samples = false;
+		params.p_name = "KontrollDNACoriell";
+		params.p_type = "test";
+		params.sys_name = "HBOC";
+		params.sys_type = "Panel Haloplex";
+		params.r_name = "#00372";
+		params.include_bad_quality_runs = false;
+		ps_table = db.processedSampleSearch(params);
+		I_EQUAL(ps_table.rowCount(), 2);
+		I_EQUAL(ps_table.columnCount(), 65);
 	}
 
 	//Test for debugging (without initialization because of speed)
