@@ -157,7 +157,7 @@ RtfTable ReportHelper::createCNVdriverTable(const GeneSet& target_genes)
 	//Add CGI cancer acronyms to global list
 	foreach(QList<QByteArray> data,gene_per_cnv)
 	{
-		cgi_acronyms_.append(parse_cgi_cancer_acronyms(data[4]));
+		cgi_acronyms_.append(parse_cgi_cancer_acronyms(data[5]));
 	}
 
 	foreach(QByteArrayList data,gene_per_cnv)
