@@ -323,13 +323,6 @@ public:
 		return control_words_;
 	}
 
-	bool operator<(const RtfTableCell& rhs)
-	{
-		int res = QString::localeAwareCompare(format().content(),rhs.format().content());
-		if(res <= 0) return true;
-		return false;
-	}
-
 private:
 	///private constructor, only to be accessed by friend class
 	RtfTableCell(int width, const RtfParagraph &text_format = RtfParagraph());
