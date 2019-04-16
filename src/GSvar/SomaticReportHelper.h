@@ -1,5 +1,5 @@
-#ifndef REPORTHELPER_H
-#define REPORTHELPER_H
+#ifndef SomaticReportHelper_H
+#define SomaticReportHelper_H
 
 #include "VariantList.h"
 #include "GeneSet.h"
@@ -138,9 +138,6 @@ public:
 		return drug_list_.values(evid_group);
 	}
 
-	///return drugs by evidence as string list
-	const QList< QList<QString> > drugsByEvidAsString(int evid_group);
-
 	const QList<CGIDrugReportLine> drugsSortedPerGeneName() const;
 
 	///Get CGI drug report from file
@@ -243,13 +240,13 @@ struct tmb_info
 };
 
 ///creates a somatic RTF report
-class ReportHelper
+class SomaticReportHelper
 {
 public:
 	///Constructor loads data into class
-	ReportHelper(QString snv_filename, const ClinCnvList& filtered_cnvs, const FilterCascade& filters, const QString& target_region="");
+	SomaticReportHelper(QString snv_filename, const ClinCnvList& filtered_cnvs, const FilterCascade& filters, const QString& target_region="");
 	///write Rtf File
-	void writeRtf(const QString& out_file);
+	void writeRtf(const QByteArray& out_file);
 
 	///methods that create files for QBIC
 	void somaticSnvForQbic();
@@ -370,4 +367,4 @@ private:
 	RtfDocument doc_;
 };
 
-#endif // REPORTHELPER_H
+#endif // SomaticReportHelper_H

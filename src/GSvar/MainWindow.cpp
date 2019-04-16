@@ -59,7 +59,7 @@
 #include "TSVFileStream.h"
 #include "LovdUploadDialog.h"
 #include "OntologyTermCollection.h"
-#include "ReportHelper.h"
+#include "SomaticReportHelper.h"
 #include "DiagnosticStatusOverviewDialog.h"
 #include "SvWidget.h"
 #include "VariantSampleOverviewDialog.h"
@@ -1541,10 +1541,10 @@ void MainWindow::generateReportSomaticRTF()
 	try
 	{
 		QApplication::setOverrideCursor(Qt::BusyCursor);
-		ReportHelper report(filename_, cnvs, ui_.filters->filters(),ui_.filters->targetRegion());
+		SomaticReportHelper report(filename_, cnvs, ui_.filters->filters(),ui_.filters->targetRegion());
 
 		//Generate RTF
-		QString temp_filename = Helper::tempFileName(".rtf");
+		QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
 		report.writeRtf(temp_filename);
 		ReportWorker::validateAndCopyReport(temp_filename, file_rep, false, true);
 

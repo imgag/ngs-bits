@@ -342,3 +342,20 @@ RtfTable& RtfTable::setUniqueBorder(int border, const QByteArray &border_type)
 	return *this;
 }
 
+void RtfTable::sortByCol(int i_col)
+{
+	QMap<QByteArray,RtfTableRow> cell_row;
+	foreach(RtfTableRow row,rows_)
+	{
+		cell_row.insert(row[i_col].format().content(),row);
+	}
+	QList<QByteArray> keys_sorted = cell_row.keys();
+	std::sort(keys_sorted.begin(),keys_sorted.end());
+
+	QList<RtfTableRow> sorted_table;
+	foreach(QByteArray key, keys_sorted)
+	{
+		sorted_table << cell_row.value(key);
+	}
+	rows_ = sorted_table;
+}

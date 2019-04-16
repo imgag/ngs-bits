@@ -79,6 +79,11 @@ public:
 		return *this;
 	}
 
+	const QByteArray& content() const
+	{
+		return content_;
+	}
+
 	virtual RtfSourceCode RtfCode();
 private:
 	int font_size_ = 18;
@@ -318,6 +323,13 @@ public:
 		return control_words_;
 	}
 
+	bool operator<(const RtfTableCell& rhs)
+	{
+		int res = QString::localeAwareCompare(format().content(),rhs.format().content());
+		if(res <= 0) return true;
+		return false;
+	}
+
 private:
 	///private constructor, only to be accessed by friend class
 	RtfTableCell(int width, const RtfParagraph &text_format = RtfParagraph());
@@ -424,6 +436,11 @@ public:
 		rows_.append(row);
 	}
 
+	void prependRow(const RtfTableRow row)
+	{
+		rows_.prepend(row);
+	}
+
 	RtfSourceCode RtfCode();
 
 	const RtfTableRow& operator[](int index) const
@@ -445,6 +462,8 @@ public:
 		if(rows_.isEmpty()) return true;
 		return false;
 	}
+
+	void sortByCol(int i_col);
 
 	///sets border for all table cells
 	RtfTable& setUniqueBorder(int border,const QByteArray& border_type = "brdrs");

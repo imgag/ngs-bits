@@ -36,7 +36,6 @@ SOURCES += main.cpp\
     PhenotypeSelectionWidget.cpp \
     LovdUploadDialog.cpp \
     RohWidget.cpp \
-    ReportHelper.cpp \
     DiagnosticStatusWidget.cpp \
     DiagnosticStatusOverviewDialog.cpp \
     SvWidget.cpp \
@@ -57,7 +56,8 @@ SOURCES += main.cpp\
     ClinCnvWidget.cpp \
     VariantTable.cpp \
     RtfDocument.cpp \
-    SampleSearchWidget.cpp
+    SampleSearchWidget.cpp \
+    SomaticReportHelper.cpp
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
@@ -88,7 +88,6 @@ HEADERS  += MainWindow.h \
     PhenotypeSelectionWidget.h \
     LovdUploadDialog.h \
     RohWidget.h \
-    ReportHelper.h \
     DiagnosticStatusWidget.h \
     DiagnosticStatusOverviewDialog.h \
     SvWidget.h \
@@ -109,7 +108,8 @@ HEADERS  += MainWindow.h \
     ClinCnvWidget.h \
     VariantTable.h \
     RtfDocument.h \
-    SampleSearchWidget.h
+    SampleSearchWidget.h \
+    SomaticReportHelper.h
 
 FORMS    += MainWindow.ui \
     FilterDockWidget.ui \
