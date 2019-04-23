@@ -115,7 +115,7 @@ public:
 				{
 					sc.calculateSimilarity(genotype_data[i], genotype_data[j]);
 
-					cols << QString::number(sc.noVariants1());
+					cols << QString::number(sc.olCount());
 					cols << QString::number(sc.sampleCorrelation(), 'f', 4);
 					cols << QString::number(sc.ibs0Perc(), 'f', 2);
 					cols << QString::number(sc.ibs2Perc(), 'f', 2);
