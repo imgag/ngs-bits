@@ -196,14 +196,36 @@ void AnalysisStatusWidget::refreshStatus()
 			bg = QColor("#D3D3D3");
 			status += " > repeated";
 		}
-
 		addItem(ui_.analyses, row, 7, status, bg);
+
+		//last update
+		QString last_update;
+		if (job.samples.count()==1 && status.startsWith("started ("))
+		{
+			QString folder = db.processedSamplePath(db.processedSampleId(job.samples[0].name), NGSD::SAMPLE_FOLDER);
+			QStringList files = Helper::findFiles(folder, "*.log", false);
+			QString latest_file;
+			QDateTime latest_mod;
+			foreach(QString file, files)
+			{
+				QFileInfo file_info(file);
+				QDateTime mod_time = file_info.lastModified();
+				if (latest_mod.isNull() || mod_time>latest_mod)
+				{
+					latest_file = file_info.fileName();
+					latest_mod = mod_time;
+				}
+			}
+			int sec = latest_mod.secsTo(QDateTime::currentDateTime());
+			last_update = timeHumanReadable(sec) + " ago (" + latest_file + ")";
+		}
+		addItem(ui_.analyses, row, 8, last_update);
 	}
 
 	//apply text filter
 	applyTextFilter();
 
-	GUIHelper::resizeTableCells(ui_.analyses, 300);
+	GUIHelper::resizeTableCells(ui_.analyses, 350);
 	QApplication::restoreOverrideCursor();
 }
 
@@ -523,6 +545,19 @@ QColor AnalysisStatusWidget::statusToColor(QString status)
 	if (status=="canceled") output = QColor("#FFC45E");
 	if (status=="error") output = QColor("#FF0000");
 	return output;
+}
+
+QString AnalysisStatusWidget::timeHumanReadable(int sec)
+{
+	double m = sec / 60.0;
+	double h = floor(m/60.0);
+	m -= 60.0 * h;
+
+	//create strings
+	QString min = QString::number(m, 'f', 0) + "m";
+	QString hours = h==0.0 ? "" : QString::number(h, 'f', 0) + "h ";
+
+	return hours + min;
 }
 
 QList<int> AnalysisStatusWidget::selectedRows() const
