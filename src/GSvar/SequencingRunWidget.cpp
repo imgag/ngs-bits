@@ -9,7 +9,7 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, QString run_id)
 {
 	ui_->setupUi(this);
 	connect(ui_->show_qc, SIGNAL(toggled(bool)), this, SLOT(updateGUI()));
-
+	connect(ui_->update_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
 
 	QAction* action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
 	ui_->samples->addAction(action);
@@ -145,7 +145,6 @@ void SequencingRunWidget::openSelectedSamples()
 	foreach (int row, selected_rows)
 	{
 		QTableWidgetItem* item = ui_->samples->item(row, col);
-		qDebug() << item << item->text();
 
 		emit(openProcessedSampleTab(item->text()));
 	}

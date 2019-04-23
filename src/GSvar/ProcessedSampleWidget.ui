@@ -129,6 +129,20 @@
            </property>
           </spacer>
          </item>
+         <item>
+          <widget class="QToolButton" name="update_btn">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Update displayed data.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="GSvar.qrc">
+             <normaloff>:/Icons/Refresh.png</normaloff>:/Icons/Refresh.png</iconset>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
        <item>

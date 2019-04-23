@@ -19,6 +19,7 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	connect(ui_->folder_btn, SIGNAL(clicked(bool)), this, SLOT(openSampleFolder()));
 	connect(ui_->run, SIGNAL(linkActivated(QString)), this, SIGNAL(openRunTab(QString)));
 	connect(ui_->qc_all, SIGNAL(stateChanged(int)), this, SLOT(updateQCMetrics()));
+	connect(ui_->update_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
 
 	//QC value > plot
 	QAction* action = new QAction("Plot", this);
