@@ -1,5 +1,5 @@
 ### PERsim tool help
-	PERsim (0.1-420-g3536bb0)
+	PERsim (2019_04-7-g0efa492)
 	
 	Paired-end read simulator for Illumina reads.
 	
@@ -9,7 +9,7 @@
 	 - sequencing errors are modelled using a simple uniform distribution.
 	
 	Mandatory parameters:
-	  -roi <file>      Target region BED file (the corresponding reference genome is taken from the settings.ini file).
+	  -roi <file>      Target region BED file.
 	  -count <int>     Number of read pairs to generate.
 	  -out1 <file>     Forward reads output file in .FASTQ.GZ format.
 	  -out2 <file>     Reverse reads output file in .FASTQ.GZ format.
@@ -41,6 +41,6 @@
 	  --tdx            Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### PERsim changelog
-	PERsim 0.1-420-g3536bb0
+	PERsim 2019_04-7-g0efa492
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

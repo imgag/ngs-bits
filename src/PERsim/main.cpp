@@ -28,7 +28,7 @@ public:
 											 << " - read-through into the sequencing adapters is modelled."
 											 << " - sequencing errors are modelled using a simple uniform distribution."
 							   );
-		addInfile("roi", "Target region BED file (the corresponding reference genome is taken from the settings.ini file).", false);
+		addInfile("roi", "Target region BED file.", false);
 		addInt("count", "Number of read pairs to generate.", false);
 		addOutfile("out1", "Forward reads output file in .FASTQ.GZ format.", false);
 		addOutfile("out2", "Reverse reads output file in .FASTQ.GZ format.", false);
@@ -130,8 +130,8 @@ public:
 				//determine start and end position (the read should overlap with the region)
 				std::uniform_int_distribution<int> start_dist(reg.start()-is/2, reg.end()-is/2);
 				int start = start_dist(gen);
-				int end = start + is;
 				if (start<0) start=0;
+				int end = start + is;
 				if (end>reference.lengthOf(chr)) end = reference.lengthOf(chr);
 
 				//get insert sequence;
