@@ -267,7 +267,7 @@ private:
 	VariantTranscript selectSomaticTranscript(const Variant& variant);
 
 	RtfTable createGapStatisticsTable(const QList<int>& col_widths);
-	QHash<QByteArray, BedFile> gapStatistics(const BedFile& region_of_interest);
+	QMap<QByteArray, BedFile> gapStatistics(const BedFile& region_of_interest);
 
 	///Writes Rtf table containing given snvs
 	RtfTable createSnvTable(const QList<int>& col_widths, const VariantList& snvs);

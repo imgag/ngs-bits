@@ -646,9 +646,10 @@ void CGIDrugTable::mergeDuplicates(int evid_level)
 		}
 	}
 
+	QList<CGIDrugReportLine> remaining_drugs;
 
-	//fill in information from erased drugs
-	foreach(CGIDrugReportLine erased_drug,erased_drugs)
+	//fill in information from erased drugs if drugs can be merge (same tumor entity and gene)
+	foreach(const CGIDrugReportLine& erased_drug,erased_drugs)
 	{
 		for(auto it=drug_list_.begin();it!=drug_list_.end();++it)
 		{
@@ -660,8 +661,19 @@ void CGIDrugTable::mergeDuplicates(int evid_level)
 				it->setSource(it.value().source() + " / " + erased_drug.source());
 				break;
 			}
+			else
+			{
+				remaining_drugs << erased_drug;
+				break;
+			}
 		}
 	}
+
+	foreach(const CGIDrugReportLine& drug, remaining_drugs)
+	{
+		drug_list_.insert(evid_level,drug);
+	}
+
 }
 
 
@@ -865,7 +877,7 @@ QList<QByteArray> SomaticReportHelper::parse_cgi_cancer_acronyms(QByteArray text
 	return cgi_acronyms;
 }
 
-QHash<QByteArray, BedFile> SomaticReportHelper::gapStatistics(const BedFile& region_of_interest)
+QMap<QByteArray, BedFile> SomaticReportHelper::gapStatistics(const BedFile& region_of_interest)
 {
 	BedFile roi_inter;
 	QString processed_sample_id = db_.processedSampleId(tumor_id_);
@@ -905,7 +917,7 @@ QHash<QByteArray, BedFile> SomaticReportHelper::gapStatistics(const BedFile& reg
 	}
 
 	//group by gene name
-	QHash<QByteArray, BedFile> grouped;
+	QMap<QByteArray, BedFile> grouped;
 	for (int i=0; i<low_cov.count(); ++i)
 	{
 		QList<QByteArray> genes = low_cov[i].annotations()[0].split(',');
@@ -925,8 +937,6 @@ QHash<QByteArray, BedFile> SomaticReportHelper::gapStatistics(const BedFile& reg
 
 RtfTable SomaticReportHelper::createGapStatisticsTable(const QList<int>& col_widths)
 {
-	int max_table_width = col_widths.last();
-
 	BedFile region_of_interest;
 	region_of_interest.load(target_region_);
 
@@ -956,14 +966,14 @@ RtfTable SomaticReportHelper::createGapStatisticsTable(const QList<int>& col_wid
 	table.addRow(RtfTableRow({"Lücken Regionen:",QByteArray::number(low_cov.count())},col_widths));
 	table.addRow(RtfTableRow({"Lücken Basen:",QByteArray::number(low_cov.baseCount()) + " (" +  QByteArray::number(100.0 * low_cov.baseCount()/region_of_interest.baseCount(), 'f', 2) + "%)"},col_widths));
 
-	QHash<QByteArray, BedFile> grouped = gapStatistics(region_of_interest);
+	QMap<QByteArray, BedFile> grouped = gapStatistics(region_of_interest);
 
 	//write gap statistics for each gene only if there are few genes
 	if(grouped.keys().count() < 25)
 	{
 		widths.clear();
-		widths << 900 << 1600 << 2200 << max_table_width;
-		table.addRow(RtfTableRow({"Gen","Lücken","Chr","Koordinaten (GRCh37)"},widths,RtfParagraph().setIndent(0,0,20).setBold(true)));
+		widths << 900 << 1000 << 1000 << 6637;
+		table.addRow(RtfTableRow({"Gen","Lücken","Chr","Koordinaten (GRCh37)"},widths,RtfParagraph().setBold(true).setSpaceBefore(50)));
 
 		for (auto it=grouped.cbegin(); it!=grouped.cend(); ++it)
 		{
@@ -974,7 +984,7 @@ RtfTable SomaticReportHelper::createGapStatisticsTable(const QList<int>& col_wid
 			{
 				coords << QByteArray::number(gaps[i].start()) + "\\_" + QByteArray::number(gaps[i].end());
 			}
-			table.addRow(RtfTableRow({it.key(),QByteArray::number(gaps.baseCount()),chr,coords.join(", ")},widths));
+			table.addRow(RtfTableRow({RtfText(it.key()).setItalic(true).RtfCode(),QByteArray::number(gaps.baseCount()),chr,coords.join(", ")},widths,RtfParagraph()));
 		}
 	}
 	return table;
@@ -1774,9 +1784,8 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 		doc_.addPart(RtfParagraph("").RtfCode());
 		widths.clear();
 		widths << 2200 << doc_.maxWidth();
-
 		doc_.addPart(RtfParagraph("Lückenstatistik:").setBold(true).setSpaceAfter(45).setSpaceBefore(45).setFontSize(18).RtfCode());
-		createGapStatisticsTable(widths);
+		doc_.addPart(createGapStatisticsTable(widths).RtfCode());
 	}
 
 	/*********************
