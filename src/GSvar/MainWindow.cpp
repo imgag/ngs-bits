@@ -224,7 +224,8 @@ void MainWindow::on_actionCNV_triggered()
 	GeneSet het_hit_genes;
 	int i_genes = variants_.annotationIndexByName("gene", true, false);
 	QList<int> i_genotypes = variants_.getSampleHeader().sampleColumns(true);
-	if (i_genes!=-1 && i_genotypes.count()>0)
+
+	if (i_genes!=-1 && i_genotypes.count()>0 && i_genotypes[0] != -1)
 	{
 		for (int i=0; i<variants_.count(); ++i)
 		{
@@ -239,7 +240,6 @@ void MainWindow::on_actionCNV_triggered()
 				}
 			}
 			if (!all_genos_het) continue;
-
 			het_hit_genes.insert(GeneSet::createFromText(variants_[i].annotations()[i_genes], ','));
 		}
 	}
