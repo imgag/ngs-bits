@@ -83,147 +83,156 @@ void AnalysisStatusWidget::refreshStatus()
 {
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
-	//query job IDs
-	NGSD db;
-	SqlQuery query = db.getQuery();
-	query.exec("SELECT id FROM analysis_job ORDER BY ID DESC");
-
-	//clear contents
-	ui_.analyses->clearContents();
-	ui_.analyses->setRowCount(0);
-	jobs_.clear();
-
-	//add lines
-	int row = -1;
-	QSet<QString> tags_seen;
-	while(query.next())
+	try
 	{
-		//get job infos
-		int job_id = query.value(0).toInt();
-		AnalysisJob job = db.analysisInfo(job_id);
+		//query job IDs
+		NGSD db;
+		SqlQuery query = db.getQuery();
+		query.exec("SELECT id FROM analysis_job ORDER BY ID DESC");
 
-		//check if job was already seen (i.e. it was repeated)
-		QStringList tag_parts;
-		tag_parts << job.type;
-		foreach(const AnalysisJobSample& sample, job.samples)
+		//clear contents
+		ui_.analyses->clearContents();
+		ui_.analyses->setRowCount(0);
+		jobs_.clear();
+
+		//add lines
+		int row = -1;
+		QSet<QString> tags_seen;
+		while(query.next())
 		{
-			tag_parts << sample.name + "|" + sample.info;
-		}
-		std::sort(tag_parts.begin(), tag_parts.end());
-		QString tag = tag_parts.join(" ");
-		bool repeated = tags_seen.contains(tag);
-		tags_seen.insert(tag);
+			//get job infos
+			int job_id = query.value(0).toInt();
+			AnalysisJob job = db.analysisInfo(job_id);
 
-		//filter repeated
-		if (repeated && !ui_.f_repeated->isChecked()) continue;
-
-		//filter date
-		QDateTime f_date = QDateTime(ui_.f_date->date());
-		if (job.history.count()==0)
-		{
-			qDebug() << "No history for job " << job_id;
-			continue;
-		}
-
-		if (job.history[0].time<f_date) break; //jobs are ordered by date => no newer jobs can come => skip the rest
-
-		//get sample data
-		QList<ProcessedSampleData> ps_data;
-		foreach(const AnalysisJobSample& sample, job.samples)
-		{
-			ps_data << db.getProcessedSampleData(db.processedSampleId(sample.name));
-		}
-
-		//not filtered => add row
-		++row;
-		ui_.analyses->setRowCount(ui_.analyses->rowCount()+1);
-		jobs_ << JobData{job_id, job, repeated};
-
-		//queued
-		if (job.history.count()>0)
-		{
-			addItem(ui_.analyses, row, 0, job.history[0].timeAsString());
-			addItem(ui_.analyses, row, 1, job.history[0].user);
-		}
-
-		//type
-		addItem(ui_.analyses, row, 2, job.type);
-
-		//sample(s)
-		QStringList parts;
-		foreach(const AnalysisJobSample& sample, job.samples)
-		{
-			parts << sample.name;
-		}
-		addItem(ui_.analyses, row, 3, parts.join(" "));
-
-		//system(s)
-		parts.clear();
-		foreach(const ProcessedSampleData& data, ps_data)
-		{
-			parts << data.processing_system;
-		}
-		parts.removeDuplicates();
-		addItem(ui_.analyses, row, 4, parts.count()==1 ? parts[0] : "");
-
-		//run(s)
-		parts.clear();
-		foreach(const ProcessedSampleData& data, ps_data)
-		{
-			parts << data.run_name;
-		}
-		parts.removeDuplicates();
-		addItem(ui_.analyses, row, 5, parts.count()==1 ? parts[0] : "");
-
-		//project(s)
-		parts.clear();
-		foreach(const ProcessedSampleData& data, ps_data)
-		{
-			parts << data.project_name;
-		}
-		parts.removeDuplicates();
-		addItem(ui_.analyses, row, 6, parts.count()==1 ? parts[0] : "");
-
-		//status
-		QString status = job.finalStatus();
-		QColor bg = statusToColor(status);
-		if (job.sge_queue!="")
-		{
-			status += " (" + job.sge_queue + ")";
-		}
-		if (repeated)
-		{
-			bg = QColor("#D3D3D3");
-			status += " > repeated";
-		}
-		addItem(ui_.analyses, row, 7, status, bg);
-
-		//last update
-		QString last_update;
-		if (job.samples.count()==1 && status.startsWith("started ("))
-		{
-			QString folder = db.processedSamplePath(db.processedSampleId(job.samples[0].name), NGSD::SAMPLE_FOLDER);
-			QStringList files = Helper::findFiles(folder, "*.log", false);
-			QString latest_file;
-			QDateTime latest_mod;
-			foreach(QString file, files)
+			//check if job was already seen (i.e. it was repeated)
+			QStringList tag_parts;
+			tag_parts << job.type;
+			foreach(const AnalysisJobSample& sample, job.samples)
 			{
-				QFileInfo file_info(file);
-				QDateTime mod_time = file_info.lastModified();
-				if (latest_mod.isNull() || mod_time>latest_mod)
-				{
-					latest_file = file_info.fileName();
-					latest_mod = mod_time;
-				}
+				tag_parts << sample.name + "|" + sample.info;
 			}
-			int sec = latest_mod.secsTo(QDateTime::currentDateTime());
-			last_update = timeHumanReadable(sec) + " ago (" + latest_file + ")";
-		}
-		addItem(ui_.analyses, row, 8, last_update);
-	}
+			std::sort(tag_parts.begin(), tag_parts.end());
+			QString tag = tag_parts.join(" ");
+			bool repeated = tags_seen.contains(tag);
+			tags_seen.insert(tag);
 
-	//apply text filter
-	applyTextFilter();
+			//filter repeated
+			if (repeated && !ui_.f_repeated->isChecked()) continue;
+
+			//filter date
+			QDateTime f_date = QDateTime(ui_.f_date->date());
+			if (job.history.count()==0)
+			{
+				qDebug() << "No history for job " << job_id;
+				continue;
+			}
+
+			if (job.history[0].time<f_date) break; //jobs are ordered by date => no newer jobs can come => skip the rest
+
+			//get sample data
+			QList<ProcessedSampleData> ps_data;
+			foreach(const AnalysisJobSample& sample, job.samples)
+			{
+				ps_data << db.getProcessedSampleData(db.processedSampleId(sample.name));
+			}
+
+			//not filtered => add row
+			++row;
+			ui_.analyses->setRowCount(ui_.analyses->rowCount()+1);
+			jobs_ << JobData{job_id, job, repeated};
+
+			//queued
+			if (job.history.count()>0)
+			{
+				addItem(ui_.analyses, row, 0, job.history[0].timeAsString());
+				addItem(ui_.analyses, row, 1, job.history[0].user);
+			}
+
+			//type
+			addItem(ui_.analyses, row, 2, job.type);
+
+			//sample(s)
+			QStringList parts;
+			foreach(const AnalysisJobSample& sample, job.samples)
+			{
+				parts << sample.name;
+			}
+			addItem(ui_.analyses, row, 3, parts.join(" "));
+
+			//system(s)
+			parts.clear();
+			foreach(const ProcessedSampleData& data, ps_data)
+			{
+				parts << data.processing_system;
+			}
+			parts.removeDuplicates();
+			addItem(ui_.analyses, row, 4, parts.count()==1 ? parts[0] : "");
+
+			//run(s)
+			parts.clear();
+			foreach(const ProcessedSampleData& data, ps_data)
+			{
+				parts << data.run_name;
+			}
+			parts.removeDuplicates();
+			addItem(ui_.analyses, row, 5, parts.count()==1 ? parts[0] : "");
+
+			//project(s)
+			parts.clear();
+			foreach(const ProcessedSampleData& data, ps_data)
+			{
+				parts << data.project_name;
+			}
+			parts.removeDuplicates();
+			addItem(ui_.analyses, row, 6, parts.count()==1 ? parts[0] : "");
+
+			//status
+			QString status = job.finalStatus();
+			QColor bg = statusToColor(status);
+			if (job.sge_queue!="")
+			{
+				status += " (" + job.sge_queue + ")";
+			}
+			if (repeated)
+			{
+				bg = QColor("#D3D3D3");
+				status += " > repeated";
+			}
+			addItem(ui_.analyses, row, 7, status, bg);
+
+			//last update
+			QString last_update;
+			QColor bg_color = Qt::transparent;
+			if (status.startsWith("started (") || status.startsWith("canceled"))
+			{
+				QString folder = db.analysisJobFolder(job_id);
+				QStringList files = Helper::findFiles(folder, "*.log", false);
+				QString latest_file;
+				QDateTime latest_mod;
+				foreach(QString file, files)
+				{
+					QFileInfo file_info(file);
+					QDateTime mod_time = file_info.lastModified();
+					if (latest_mod.isNull() || mod_time>latest_mod)
+					{
+						latest_file = file_info.fileName();
+						latest_mod = mod_time;
+					}
+				}
+				int sec = latest_mod.secsTo(QDateTime::currentDateTime());
+				if (sec>36000) bg_color = QColor("#FFC45E"); //36000s ~ 10h
+				last_update = timeHumanReadable(sec) + " ago (" + latest_file + ")";
+			}
+			addItem(ui_.analyses, row, 8, last_update, bg_color);
+		}
+
+		//apply text filter
+		applyTextFilter();
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, "Update failed", "Could not update data:\n" + e.message());
+	}
 
 	GUIHelper::resizeTableCells(ui_.analyses, 350);
 	QApplication::restoreOverrideCursor();
@@ -270,11 +279,11 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 	QMenu menu;
 	menu.addAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample");
 	menu.addAction(QIcon(":/Icons/NGSD_run.png"), "Open sequencing run");
+	menu.addAction(QIcon(":/Icons/Folder.png"), "Open analysis folder(s)");
 	if (rows.count()==1 && types.values()[0]!="single sample")
 	{
-		menu.addAction(QIcon(":/Icons/Folder.png"), "Open trio/multi/somatic folder");
+		menu.addAction(QIcon(":/Icons/Folder.png"), "Open sample folders");
 	}
-	menu.addAction(QIcon(":/Icons/Folder.png"), "Open sample folder(s)");
 	if (all_running)
 	{
 		menu.addAction(QIcon(":/Icons/Remove.png"), "Cancel");
@@ -328,56 +337,24 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 			emit openRunTab(ps_data.run_name);
 		}
 	}
-	if (text=="Open sample folder(s)")
+	if (text=="Open analysis folder(s)")
+	{
+		NGSD db;
+		foreach(int row, rows)
+		{
+			QString folder = db.analysisJobFolder(jobs_[row].ngsd_id);
+			if (!QDesktopServices::openUrl(folder))
+			{
+				QMessageBox::warning(this, "Error opening folder", "Folder could not be opened - it probably does not exist (yet):\n" + folder);
+			}
+		}
+	}
+	if (text=="Open sample folders")
 	{
 		NGSD db;
 		foreach(const AnalysisJobSample& sample, samples)
 		{
 			QDesktopServices::openUrl(db.processedSamplePath(db.processedSampleId(sample.name), NGSD::SAMPLE_FOLDER));
-		}
-	}
-	if (text=="Open trio/multi/somatic folder")
-	{
-		NGSD db;
-		QString folder = db.processedSamplePath(db.processedSampleId(samples[0].name), NGSD::PROJECT_FOLDER);
-
-		//prefix
-		QString type = types.values()[0];
-		QString sample_sep = "_";
-		if (type=="multi sample")
-		{
-			folder += "Multi_";
-		}
-		else if (type=="trio")
-		{
-			folder += "Trio_";
-		}
-		else if (type=="somatic")
-		{
-			folder += "Somatic_";
-			sample_sep = "-";
-		}
-		else
-		{
-			THROW(ProgrammingException, "Unknown analysis type '" + type + "'!");
-		}
-
-		//samples
-		bool first = true;
-		foreach(const AnalysisJobSample& sample, samples)
-		{
-			if (!first)
-			{
-				folder += sample_sep;
-			}
-			folder += sample.name;
-			first = false;
-		}
-		folder += "/";
-
-		if (!QDesktopServices::openUrl(folder))
-		{
-			QMessageBox::warning(this, "Error opening folder", "Folder could not be opened - it probably does not exist (yet):\n" + folder);
 		}
 	}
 	if (text=="Cancel")
@@ -526,6 +503,9 @@ void AnalysisStatusWidget::applyTextFilter()
 
 		ui_.analyses->setRowHidden(r, !match);
 	}
+
+	//update column widths
+	GUIHelper::resizeTableCells(ui_.analyses, 350);
 }
 
 void AnalysisStatusWidget::addItem(QTableWidget* table, int row, int col, QString text, QColor bg_color)

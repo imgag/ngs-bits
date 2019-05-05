@@ -1284,7 +1284,7 @@ int NGSD::lastAnalysisOf(QString processed_sample_id)
 	return -1;
 }
 
-AnalysisJob NGSD::analysisInfo(int job_id)
+AnalysisJob NGSD::analysisInfo(int job_id, bool throw_if_fails)
 {
 	AnalysisJob output;
 
@@ -1313,6 +1313,10 @@ AnalysisJob NGSD::analysisInfo(int job_id)
 			output.history << AnalysisJobHistoryEntry { query2.value(0).toDateTime(), query2.value(1).toString(), query2.value(2).toString(), query2.value(3).toString().split('\n') };
 		}
 	}
+	else if (throw_if_fails)
+	{
+		THROW(DatabaseException, "Analysis job with id '" + QString::number(job_id) + "' not found in NGSD!");
+	}
 
 	return output;
 }
@@ -1338,7 +1342,7 @@ void NGSD::queueAnalysis(QString type, bool high_priority, QStringList args, QLi
 bool NGSD::cancelAnalysis(int job_id, QString user_name)
 {
 	//check if running or already canceled
-	AnalysisJob job = analysisInfo(job_id);
+	AnalysisJob job = analysisInfo(job_id, false);
 	if (!job.isRunning()) return false;
 
 	SqlQuery query = getQuery();
@@ -1356,6 +1360,55 @@ bool NGSD::deleteAnalysis(int job_id)
 	query.exec("DELETE FROM analysis_job WHERE id='" + job_id_str + "'");
 
 	return query.numRowsAffected()>0;
+}
+
+QString NGSD::analysisJobFolder(int job_id)
+{
+	AnalysisJob job = analysisInfo(job_id, true);
+
+	//project path
+	QString output = processedSamplePath(processedSampleId(job.samples[0].name), NGSD::PROJECT_FOLDER);
+
+	//type
+	QString sample_sep;
+	if (job.type=="single sample")
+	{
+		output += "Sample_";
+	}
+	else if (job.type=="multi sample")
+	{
+		output += "Multi_";
+		sample_sep = "_";
+	}
+	else if (job.type=="trio")
+	{
+		output += "Trio_";
+		sample_sep = "_";
+	}
+	else if (job.type=="somatic")
+	{
+		output += "Somatic_";
+		sample_sep = "-";
+	}
+	else
+	{
+		THROW(ProgrammingException, "Unknown analysis type '" + job.type + "'!");
+	}
+
+	//samples
+	bool first = true;
+	foreach(const AnalysisJobSample& sample, job.samples)
+	{
+		if (!first)
+		{
+			output += sample_sep;
+		}
+		output += sample.name;
+		first = false;
+	}
+	output += "/";
+
+	return output;
 }
 
 QString NGSD::getTargetFilePath(bool subpanels, bool windows)

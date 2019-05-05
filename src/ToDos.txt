@@ -11,6 +11,8 @@ NGSD:
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
 
 GSvar:
+##### QC docu: cutoff af deviation, quality plots color > PS quality - not single metric
+### Allow adding sample relations in processed sample tab
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 *** Implement OMIM search via API - example: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1 (wait for API access)
 ** Allow adding/editing data in NGSD (sample relations, ...)

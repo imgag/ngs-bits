@@ -475,13 +475,16 @@ public:
 	///Returns the job id of the last single sample analysis or -1 if no analysis was performed.
 	int lastAnalysisOf(QString processed_sample_id);
 	///Returns information about an analysis job
-	AnalysisJob analysisInfo(int job_id);
+	AnalysisJob analysisInfo(int job_id, bool throw_if_fails = true);
 	///Queues an analysis.
 	void queueAnalysis(QString type, bool high_priority, QStringList args, QList<AnalysisJobSample> samples, QString user_name=Helper::userName());
 	///Canceles an analysis. Returns 'true' if it was canceled and 'false' if it was not running anymore.
 	bool cancelAnalysis(int job_id, QString user_name=Helper::userName());
 	///Deletes the analysis job record. Returns 'true' if a job was deleted, i.e. a job with the given ID existed.
 	bool deleteAnalysis(int job_id);
+	///Returns the folder of the analysis job.
+	QString analysisJobFolder(int job_id);
+
 
 	///Returns the target file path (or sub-panel folder)
 	static QString getTargetFilePath(bool subpanels = false, bool windows = true);

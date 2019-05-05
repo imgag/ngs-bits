@@ -127,57 +127,64 @@ void ProcessedSampleWidget::updateGUI()
 
 void ProcessedSampleWidget::updateQCMetrics()
 {
-	QString conditions;
-	if (!ui_->qc_all->isChecked())
+	try
 	{
-		conditions = "AND (t.qcml_id='QC:2000007' OR 'QC:2000008' OR t.qcml_id='QC:2000010' OR t.qcml_id='QC:2000013' OR t.qcml_id='QC:2000014' OR t.qcml_id='QC:2000015' OR t.qcml_id='QC:2000016' OR t.qcml_id='QC:2000017' OR t.qcml_id='QC:2000018' OR t.qcml_id='QC:2000020' OR t.qcml_id='QC:2000021' OR t.qcml_id='QC:2000022' OR t.qcml_id='QC:2000023' OR t.qcml_id='QC:2000024' OR t.qcml_id='QC:2000025' OR t.qcml_id='QC:2000027' OR t.qcml_id='QC:2000049' OR t.qcml_id='QC:2000050' OR t.qcml_id='QC:2000051')";
-	}
-
-	//create table
-	DBTable qc_table = db_.createTable("processed_sample_qc", "SELECT qc.id, t.qcml_id, t.name, qc.value, t.description FROM processed_sample_qc qc, qc_terms t WHERE qc.qc_terms_id=t.id AND t.obsolete=0 AND qc.processed_sample_id='" + ps_id_ + "' " + conditions + " ORDER BY t.qcml_id ASC");
-
-	//use descriptions as tooltip
-	QStringList descriptions = qc_table.takeColumn(qc_table.columnIndex("description"));
-	ui_->qc_table->setData(qc_table);
-	ui_->qc_table->setColumnTooltips("name", descriptions);
-
-	//colors
-	QColor orange = QColor(255,150,0,125);
-	QColor red = QColor(255,0,0,125);
-	QList<QColor> colors;
-	for (int r=0; r<qc_table.rowCount(); ++r)
-	{
-		QColor color;
-		bool ok;
-		double value = qc_table.row(r).value(2).toDouble(&ok);
-		if (ok)
+		QString conditions;
+		if (!ui_->qc_all->isChecked())
 		{
-			QString accession = qc_table.row(r).value(0);
-			if (accession=="QC:2000014") //known variants %
-			{
-				if (value<95) color = orange;
-				if (value<90) color = red;
-			}
-			else if (accession=="QC:2000025") //avg depth
-			{
-				if (value<80) color = orange;
-				if (value<30) color = red;
-			}
-			else if (accession=="QC:2000027") //cov 20x
-			{
-				if (value<95) color = orange;
-				if (value<90) color = red;
-			}
-			else if (accession=="QC:2000051") //AF deviation
-			{
-				if (value>3) color = orange;
-				if (value>6) color = red;
-			}
+			conditions = "AND (t.qcml_id='QC:2000007' OR 'QC:2000008' OR t.qcml_id='QC:2000010' OR t.qcml_id='QC:2000013' OR t.qcml_id='QC:2000014' OR t.qcml_id='QC:2000015' OR t.qcml_id='QC:2000016' OR t.qcml_id='QC:2000017' OR t.qcml_id='QC:2000018' OR t.qcml_id='QC:2000020' OR t.qcml_id='QC:2000021' OR t.qcml_id='QC:2000022' OR t.qcml_id='QC:2000023' OR t.qcml_id='QC:2000024' OR t.qcml_id='QC:2000025' OR t.qcml_id='QC:2000027' OR t.qcml_id='QC:2000049' OR t.qcml_id='QC:2000050' OR t.qcml_id='QC:2000051')";
 		}
 
-		colors << color;
+		//create table
+		DBTable qc_table = db_.createTable("processed_sample_qc", "SELECT qc.id, t.qcml_id, t.name, qc.value, t.description FROM processed_sample_qc qc, qc_terms t WHERE qc.qc_terms_id=t.id AND t.obsolete=0 AND qc.processed_sample_id='" + ps_id_ + "' " + conditions + " ORDER BY t.qcml_id ASC");
+
+		//use descriptions as tooltip
+		QStringList descriptions = qc_table.takeColumn(qc_table.columnIndex("description"));
+		ui_->qc_table->setData(qc_table);
+		ui_->qc_table->setColumnTooltips("name", descriptions);
+
+		//colors
+		QColor orange = QColor(255,150,0,125);
+		QColor red = QColor(255,0,0,125);
+		QList<QColor> colors;
+		for (int r=0; r<qc_table.rowCount(); ++r)
+		{
+			QColor color;
+			bool ok;
+			double value = qc_table.row(r).value(2).toDouble(&ok);
+			if (ok)
+			{
+				QString accession = qc_table.row(r).value(0);
+				if (accession=="QC:2000014") //known variants %
+				{
+					if (value<95) color = orange;
+					if (value<90) color = red;
+				}
+				else if (accession=="QC:2000025") //avg depth
+				{
+					if (value<80) color = orange;
+					if (value<30) color = red;
+				}
+				else if (accession=="QC:2000027") //cov 20x
+				{
+					if (value<95) color = orange;
+					if (value<90) color = red;
+				}
+				else if (accession=="QC:2000051") //AF deviation
+				{
+					if (value>3) color = orange;
+					if (value>6) color = red;
+				}
+			}
+
+			colors << color;
+		}
+		ui_->qc_table->setColumnColors("value", colors);
 	}
-	ui_->qc_table->setColumnColors("value", colors);
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, "Update failed", "Could not update data:\n" + e.message());
+	}
 }
 
 void ProcessedSampleWidget::showPlot()

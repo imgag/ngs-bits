@@ -540,7 +540,7 @@ private slots:
 		S_EQUAL(class_info.comments, "class_comm2");
 
 		//analysisInfo
-		AnalysisJob analysis_job = db.analysisInfo(-1);
+		AnalysisJob analysis_job = db.analysisInfo(-1, false);
 		S_EQUAL(analysis_job.type, "");
 
 		analysis_job = db.analysisInfo(1);
@@ -605,10 +605,23 @@ private slots:
 		//deleteAnalysis
 		bool deleted = db.deleteAnalysis(2);
 		I_EQUAL(deleted, true);
-		analysis_job = db.analysisInfo(2);
+		analysis_job = db.analysisInfo(2, false);
 		S_EQUAL(analysis_job.type, "");
 		deleted = db.deleteAnalysis(2);
 		I_EQUAL(deleted, false);
+
+		//analysisJobFolder
+		QString folder = db.analysisJobFolder(1);
+		IS_TRUE(folder.endsWith("/test/KontrollDNACoriell/Sample_NA12878_03/"));
+		db.queueAnalysis("somatic", false, QStringList(), QList<AnalysisJobSample>() << AnalysisJobSample{"NA12345_01", "tumor"} << AnalysisJobSample{"NA12878_03", "normal"}, "ahmustm1");
+		folder = db.analysisJobFolder(3);
+		IS_TRUE(folder.endsWith("/test/KontrollDNACoriell/Somatic_NA12345_01-NA12878_03/"));
+		db.queueAnalysis("trio", false, QStringList(), QList<AnalysisJobSample>() << AnalysisJobSample{"NA12878_03", "child"} << AnalysisJobSample{"NA12123_04", "father"} << AnalysisJobSample{"NA12345_01", "mother"}, "ahmustm1");
+		folder = db.analysisJobFolder(4);
+		IS_TRUE(folder.endsWith("/test/KontrollDNACoriell/Trio_NA12878_03_NA12123_04_NA12345_01/"));
+		db.queueAnalysis("multi sample", false, QStringList(), QList<AnalysisJobSample>() << AnalysisJobSample{"NA12123_04", "affected"} << AnalysisJobSample{"NA12345_01", "affected"}, "ahmustm1");
+		folder = db.analysisJobFolder(5);
+		IS_TRUE(folder.endsWith("/test/KontrollDNACoriell/Multi_NA12123_04_NA12345_01/"));
 
 		//updateQC
 		db.updateQC(TESTDATA("data_in/qcml.obo"), false);
@@ -618,7 +631,6 @@ private slots:
 		db.updateQC(TESTDATA("data_in/qcml.obo"), false);
 		I_EQUAL(db.getValue("SELECT count(*) FROM qc_terms").toInt(), 43);
 		I_EQUAL(db.getValue("SELECT count(*) FROM qc_terms WHERE obsolete=0").toInt(), 39);
-
 
 		//addVariant
 		VariantList vl;
