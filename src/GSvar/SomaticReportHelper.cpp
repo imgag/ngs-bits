@@ -1559,8 +1559,8 @@ VariantTranscript SomaticReportHelper::selectSomaticTranscript(const Variant& va
 {
 	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(snv_index_coding_splicing_);
 
-	//first coding/splicing transcript which has the same Ensemble ID as in CGI annotation
-	QString cgi_transcript = variant.annotations().at(snv_index_cgi_transcript_); //Ensemble-ID of CGI transcript
+	//first coding/splicing transcript which has the same Ensembl ID as in CGI annotation
+	QString cgi_transcript = variant.annotations().at(snv_index_cgi_transcript_); //Ensembl-ID of CGI transcript
 	cgi_transcript = cgi_transcript.remove(',');
 	cgi_transcript = cgi_transcript.trimmed();
 	foreach(const VariantTranscript& trans, transcripts)

@@ -477,31 +477,30 @@ void AnalysisStatusWidget::applyTextFilter()
 	//no search string => show all
 	if (f_text.isEmpty())
 	{
-
 		for (int r=0; r<ui_.analyses->rowCount(); ++r)
 		{
 			ui_.analyses->setRowHidden(r, false);
 		}
-		return;
 	}
-
-	//search
-	for (int r=0; r<ui_.analyses->rowCount(); ++r)
+	else //search
 	{
-		bool match = false;
-		for (int c=0; c<ui_.analyses->columnCount(); ++c)
+		for (int r=0; r<ui_.analyses->rowCount(); ++r)
 		{
-			QTableWidgetItem* item = ui_.analyses->item(r, c);
-			if (item==nullptr) continue;
-
-			if (item->text().contains(f_text, Qt::CaseInsensitive))
+			bool match = false;
+			for (int c=0; c<ui_.analyses->columnCount(); ++c)
 			{
-				match = true;
-				break;
-			}
-		}
+				QTableWidgetItem* item = ui_.analyses->item(r, c);
+				if (item==nullptr) continue;
 
-		ui_.analyses->setRowHidden(r, !match);
+				if (item->text().contains(f_text, Qt::CaseInsensitive))
+				{
+					match = true;
+					break;
+				}
+			}
+
+			ui_.analyses->setRowHidden(r, !match);
+		}
 	}
 
 	//update column widths

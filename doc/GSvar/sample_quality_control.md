@@ -6,6 +6,8 @@ To open the processed sample tabs of the all samples contained in the variant li
 By default, it shows the most important quality metrics. All quality metrics can be shown using the `all` checkbox (2).  
 Details about the metrics can be shown in the tooltip of the metrics names (3).  
 
+![alt text](qc1.png)
+
 For some of the quality metrics, fixed default cutoffs are applied and values exceeding these scores are marked orange/red:
 
 - target region read depth
@@ -16,7 +18,16 @@ For some of the quality metrics, fixed default cutoffs are applied and values ex
 The colors do not necessarily mean that that sample is bad, because the scores depend on the processing system.  
 Make sure to have a look at the value distribution of the metric in other samples (see plotting section).
 
-![alt text](qc1.png)
+In the following table, gives additional information for some quality metrics to make them easier to interprete:
+<table>
+	<tr><th>metric</th><th>value range</th><th>interpretation</th></tr>
+	<tr><td>known variants percentage</td><td>This metric should be above 98%.</td><td></td></tr>
+	<tr><td>transition/transversion ratio</td><td>For exomes, this metric should in the range 2.6-2.7.<br>For genomes it should be between 1.0 and 2.0.</td><td></td></tr>
+	<tr><td>mapped read percentage</td><td>This metric should be above 98%.</td><td></td></tr>
+	<tr><td>properly-paired read percentage</td><td>This metric should above 95%.</td><td></td></tr>
+	<tr><td>target region 20x percentage</td><td>This metric should above 95% in most samples.</td><td>If this value is too low, the enrichment step did not work properly.</td></tr>
+	<tr><td>SNV allele frequency deviation</td><td>This value should be below 3% for most samples.</td><td>Values above 10% are nomally caused by contamination.<br>However, low coverage of a sample can also increase this metric.</td></tr>
+</table>
 
 ### Plotting quality scores
 
@@ -28,11 +39,12 @@ To show the distribution of the metric over time, use the `Plot` context menu en
 If two metrics are selected, a scatter plot of the two metris is shown.  
 For example, a low 20x coverage is normally caused by a low sequencing depth.
 The normal ratio between average depth and 20x coverage can be best seen in this plot:
-Here an example: 
 
 
 ![alt text](qc_plot_metrics2.png)
 
+
+**Note:** Each sample is colored according to the *processed sample* quality. Thus, even samples with normal values for the currently displayed metric, might be colored red for bad quality.
 
 ### Checking sample contamination
 
