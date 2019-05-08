@@ -5,6 +5,7 @@
 #include "DiagnosticStatusWidget.h"
 #include "DiseaseInfoWidget.h"
 #include "SampleDiseaseInfoWidget.h"
+#include "SampleRelationDialog.h"
 
 #include <QMessageBox>
 
@@ -30,6 +31,12 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
 	ui_->sample_relations->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openSampleTab()));
+	action = new QAction(QIcon(":/Icons/Add.png"), "Add relation", this);
+	ui_->sample_relations->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(addRelation()));
+	action = new QAction(QIcon(":/Icons/Remove.png"), "Remove relation", this);
+	ui_->sample_relations->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(removeRelation()));
 
 	//edit button
 	QMenu* menu = new QMenu();
@@ -219,7 +226,7 @@ void ProcessedSampleWidget::openSampleInNGSD()
 {
 	try
 	{
-		QString url = NGSD().url(ui_->name->text());
+		QString url = NGSD().url(processedSampleName());
 		QDesktopServices::openUrl(QUrl(url));
 	}
 	catch (DatabaseException e)
@@ -242,10 +249,17 @@ void ProcessedSampleWidget::openSampleFolder()
 
 void ProcessedSampleWidget::openSampleTab()
 {
-	QString s_name = db_.getValue("SELECT s.name FROM sample s, processed_sample ps WHERE ps.sample_id=s.id AND ps.id='" + ps_id_ + "'").toString();
-
-	QStringList ps_names;
+	//check that a relation is selected
 	QList<int> selected_rows = ui_->sample_relations->selectedRows().toList();
+	if (selected_rows.isEmpty())
+	{
+		QMessageBox::warning(this, "Sample relation - processed sample tab", "Please select at least one relation!");
+		return;
+	}
+
+	//determine processed sample names
+	QStringList ps_names;
+	QString s_name = db_.getValue("SELECT s.name FROM sample s, processed_sample ps WHERE ps.sample_id=s.id AND ps.id='" + ps_id_ + "'").toString();
 	foreach(int row, selected_rows)
 	{
 		QString s = ui_->sample_relations->item(row, 0)->text();
@@ -261,6 +275,7 @@ void ProcessedSampleWidget::openSampleTab()
 		}
 	}
 
+	//open tabs
 	if (ps_names.count()==0)
 	{
 		QMessageBox::information(this, "No sample", "No processed sample found for this sample!");
@@ -278,6 +293,47 @@ void ProcessedSampleWidget::openSampleTab()
 			emit openProcessedSampleTab(ps);
 		}
 	}
+}
+
+void ProcessedSampleWidget::addRelation()
+{
+	//show dialog
+	SampleRelationDialog* dlg = new SampleRelationDialog(this);
+	dlg->setSample1(sampleName(), false);
+	if (dlg->exec()!=QDialog::Accepted) return;
+
+	//add relation
+	db_.getQuery().exec("INSERT INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES (" + dlg->sample1Id() + ",'" + dlg->relation() + "'," + dlg->sample2Id() + ")");
+
+
+	//update GUI
+	updateGUI();
+}
+
+void ProcessedSampleWidget::removeRelation()
+{
+	//check that a relation is selected
+	QList<int> selected_rows = ui_->sample_relations->selectedRows().toList();
+	if (selected_rows.isEmpty())
+	{
+		QMessageBox::warning(this, "Sample relation - deletion", "Please select at least one relation!");
+		return;
+	}
+
+	//make sure the user did not click accidentally on the button
+	QMessageBox::StandardButton reply = QMessageBox::question(this, "Deleting sample relations", "Are you sure you want to delete the selected relation(s)?", QMessageBox::Yes|QMessageBox::No);
+	if (reply==QMessageBox::No) return;
+
+	//delete relations
+	NGSD db;
+	foreach(int row, selected_rows)
+	{
+		QString rel_id = ui_->sample_relations->getId(row);
+		db.getQuery().exec("DELETE FROM sample_relations WHERE id='" + rel_id + "'");
+	}
+
+	//update GUI
+	updateGUI();
 }
 
 void ProcessedSampleWidget::addBamToIgv()
@@ -369,6 +425,11 @@ void ProcessedSampleWidget::setQuality()
 
 	db_.setProcessedSampleQuality(ps_id_, quality);
 	updateGUI();
+}
+
+QString ProcessedSampleWidget::sampleName() const
+{
+	return ui_->s_name->text();
 }
 
 QString ProcessedSampleWidget::processedSampleName() const

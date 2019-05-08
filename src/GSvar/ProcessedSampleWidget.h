@@ -34,6 +34,8 @@ protected slots:
 	void openSampleInNGSD();
 	void openSampleFolder();
 	void openSampleTab();
+	void addRelation();
+	void removeRelation();
 
 	void addBamToIgv();
 	void addVariantsToIgv();
@@ -54,6 +56,7 @@ private:
 	QString ps_id_;
 	NGSD db_;
 
+	QString sampleName() const;
 	QString processedSampleName() const;
 };
 

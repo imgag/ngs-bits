@@ -57,7 +57,8 @@ SOURCES += main.cpp\
     VariantTable.cpp \
     RtfDocument.cpp \
     SampleSearchWidget.cpp \
-    SomaticReportHelper.cpp
+    SomaticReportHelper.cpp \
+    SampleRelationDialog.cpp
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
@@ -109,7 +110,8 @@ HEADERS  += MainWindow.h \
     VariantTable.h \
     RtfDocument.h \
     SampleSearchWidget.h \
-    SomaticReportHelper.h
+    SomaticReportHelper.h \
+    SampleRelationDialog.h
 
 FORMS    += MainWindow.ui \
     FilterDockWidget.ui \
@@ -152,7 +154,8 @@ FORMS    += MainWindow.ui \
     SequencingRunWidget.ui \
     AnalysisStatusWidget.ui \
     ClinCnvWidget.ui \
-    SampleSearchWidget.ui
+    SampleSearchWidget.ui \
+    SampleRelationDialog.ui
 
 include("../app_gui.pri")
 
