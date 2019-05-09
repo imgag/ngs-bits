@@ -1,54 +1,59 @@
 # GSvar change log
 
-### 2019_04-5-ga3b3bc0 (10.04.19)
+### 2019_04-29 (09.05.19)
+- IGV: now uses the *1000Genomes build37+decoy* genome with transcript information from Ensembl and current gene names (<https://github.com/imgag/IGV_genome_ensembl>)
+- Processed sample tab: Editing of sample relations is now possible.
+- Somatic report: several fixes and improvements.
+
+### 2019_04-5 (10.04.19)
 - variant details: preferred transcripts are now automatically shown first.
 
-### 2019_03-34-g110be83 (25.03.19)
+### 2019_03-34 (25.03.19)
 - Analysis status: sequencing run can now be opened via the context menu of samples.
 - Processed sample tab: added buttons to open folder and load tracks in IGV.
 
-### 2019_03-18-g1f0ce07 (13.03.19)
+### 2019_03-18 (13.03.19)
 - General: Moved functionality for variant list from main menu to variant list tool bar.
 - CNVs: Minor improvements to CNV window for ClinCNV.
 
-### 2018_03-7-gc9e7564 (06.03.19)
+### 2018_03-7 (06.03.19)
 - General: Column widths remain the same when updating filters.
 - General: Added support for new single-sample GSvar files that use the sample name instead of 'genotype' in the header line.
 - General: Sensitive data in settings file is now encrypted.
 
-### 2018_11-159-g6779e90 (04.03.19)
+### 2018_11-159 (04.03.19)
 - General: reduced memory consumption by not showing more than 10000 variants at a time (for WGS).
 - Filters: massive speed-up of trio comp-het filter (for WGS).
 - IGV integration: added automatic opening of ClinCNV seg files in IGV.
 
-### 2018_11-150-g2d2210b (26.02.19)
+### 2018_11-150 (26.02.19)
 -  Switch from ExAC pLI to gnomAD o/e score
 
-### 2018_11-146-gf2429c0 (22.02.19)
+### 2018_11-146 (22.02.19)
 - General: removed reference samples for IGV.
 - Analysis status: moved from window into tab.
 - Subpanel design is now possible with gene/transcript errors (new check box)
 - CNVs: Added widget for viewing somatic and germline ClinCNV files.
 
-### 2018_11-127-gbd77909 (07.02.19)
+### 2018_11-127 (07.02.19)
 - General: Added sequencing run tabs.
 - Somatic report: wording changes.
 - Minor other improvements.
 
-### 2018_11-119-gdce1647 (30.01.19)
+### 2018_11-119 (30.01.19)
 - Variant details: improved visualization of large variants.
 - Somatic report: Added reference values for tumor mutation burden according to DOI:10.1186/s13073-017-0424-2. 
 - General: Added tab-based interface for processed sample infos.
 - General: Opening processed sample tabs for arbitrary samples now possible (new icon in tool bar).
 - General: Added custom column withs to main menu: `Edit -> Resize columns to content (custom)`.
 
-### 2018_11-110-g2e6747a (22.01.19)
+### 2018_11-110 (22.01.19)
 - Added NGSD variant counts of the same disease group as `NGSD_group` column.
 - Gene variant info: improved impact selection.
 - Analysis status dialog: speed-up of text search and added option to delete analyses.
 - Report: first version of english report.
 
-### 2018_11-100-g0355d26 (16.01.19)
+### 2018_11-100 (16.01.19)
 - General: added sample relations to "processed sample" dialog.
 - Variants list: added OMIM and VarSome links to variant context menu.
 - Trio: added check for mendelian error rate between child/parents and warning if it is too high.
@@ -306,6 +311,8 @@
 --
 
 [back to main page](index.md)
+
+
 
 
 

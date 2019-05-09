@@ -492,128 +492,149 @@
          <property name="flat">
           <bool>true</bool>
          </property>
-         <layout class="QFormLayout" name="formLayout">
-          <property name="horizontalSpacing">
+         <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="1,0">
+          <property name="spacing">
            <number>3</number>
           </property>
-          <property name="verticalSpacing">
+          <property name="leftMargin">
            <number>3</number>
           </property>
           <property name="topMargin">
-           <number>6</number>
+           <number>3</number>
           </property>
           <property name="rightMargin">
            <number>3</number>
           </property>
           <property name="bottomMargin">
-           <number>6</number>
+           <number>3</number>
           </property>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_13">
-            <property name="minimumSize">
-             <size>
-              <width>100</width>
-              <height>0</height>
-             </size>
+          <item>
+           <layout class="QFormLayout" name="formLayout">
+            <property name="horizontalSpacing">
+             <number>3</number>
             </property>
-            <property name="text">
-             <string>status:</string>
+            <property name="verticalSpacing">
+             <number>3</number>
             </property>
-           </widget>
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_13">
+              <property name="minimumSize">
+               <size>
+                <width>100</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>status:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLabel" name="status">
+              <property name="text">
+               <string>TextLabel</string>
+              </property>
+              <property name="textInteractionFlags">
+               <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_17">
+              <property name="text">
+               <string>outcome:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLabel" name="outcome">
+              <property name="text">
+               <string>TextLabel</string>
+              </property>
+              <property name="textInteractionFlags">
+               <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_18">
+              <property name="text">
+               <string>causal genes:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QLabel" name="causal_genes">
+              <property name="text">
+               <string>TextLabel</string>
+              </property>
+              <property name="textInteractionFlags">
+               <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="label_19">
+              <property name="text">
+               <string>inheritance mode:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QLabel" name="inheritance_mode">
+              <property name="text">
+               <string>TextLabel</string>
+              </property>
+              <property name="textInteractionFlags">
+               <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="0">
+             <widget class="QLabel" name="label_20">
+              <property name="text">
+               <string>comments:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="1">
+             <widget class="QLabel" name="comments_diag">
+              <property name="text">
+               <string>TextLabel</string>
+              </property>
+              <property name="textInteractionFlags">
+               <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
-          <item row="0" column="1">
-           <widget class="QLabel" name="status">
-            <property name="text">
-             <string>TextLabel</string>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_6" stretch="0,0">
+            <property name="spacing">
+             <number>3</number>
             </property>
-            <property name="textInteractionFlags">
-             <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_17">
-            <property name="text">
-             <string>outcome:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_18">
-            <property name="text">
-             <string>causal genes:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_19">
-            <property name="text">
-             <string>inheritance mode:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="label_20">
-            <property name="text">
-             <string>comments:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLabel" name="outcome">
-            <property name="text">
-             <string>TextLabel</string>
-            </property>
-            <property name="textInteractionFlags">
-             <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLabel" name="causal_genes">
-            <property name="text">
-             <string>TextLabel</string>
-            </property>
-            <property name="textInteractionFlags">
-             <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QLabel" name="inheritance_mode">
-            <property name="text">
-             <string>TextLabel</string>
-            </property>
-            <property name="textInteractionFlags">
-             <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
-           <widget class="QLabel" name="comments_diag">
-            <property name="text">
-             <string>TextLabel</string>
-            </property>
-            <property name="textInteractionFlags">
-             <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-            </property>
-           </widget>
+            <item>
+             <widget class="QToolButton" name="diag_status_edit_btn">
+              <property name="toolTip">
+               <string>Edit diagnostic status.</string>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="GSvar.qrc">
+                <normaloff>:/Icons/Edit.png</normaloff>:/Icons/Edit.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QWidget" name="widget" native="true"/>
+            </item>
+           </layout>
           </item>
          </layout>
         </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
        </item>
        <item>
         <widget class="QGroupBox" name="groupBox_3">
@@ -623,18 +644,21 @@
          <property name="flat">
           <bool>true</bool>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_6">
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
           <property name="spacing">
            <number>3</number>
           </property>
+          <property name="leftMargin">
+           <number>3</number>
+          </property>
           <property name="topMargin">
-           <number>6</number>
+           <number>3</number>
           </property>
           <property name="rightMargin">
            <number>3</number>
           </property>
           <property name="bottomMargin">
-           <number>6</number>
+           <number>3</number>
           </property>
           <item>
            <widget class="DBTableWidget" name="disease_details">
@@ -653,13 +677,37 @@
             <property name="maximumSize">
              <size>
               <width>16777215</width>
-              <height>200</height>
+              <height>150</height>
              </size>
             </property>
             <property name="frameShape">
              <enum>QFrame::Box</enum>
             </property>
            </widget>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0">
+            <property name="spacing">
+             <number>3</number>
+            </property>
+            <item>
+             <widget class="QToolButton" name="disease_details_edit_btn">
+              <property name="toolTip">
+               <string>Edit disease details.</string>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="GSvar.qrc">
+                <normaloff>:/Icons/Edit.png</normaloff>:/Icons/Edit.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QWidget" name="widget_2" native="true"/>
+            </item>
+           </layout>
           </item>
          </layout>
         </widget>
@@ -672,18 +720,21 @@
          <property name="flat">
           <bool>true</bool>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_7">
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
           <property name="spacing">
            <number>3</number>
           </property>
+          <property name="leftMargin">
+           <number>3</number>
+          </property>
           <property name="topMargin">
-           <number>6</number>
+           <number>3</number>
           </property>
           <property name="rightMargin">
            <number>3</number>
           </property>
           <property name="bottomMargin">
-           <number>6</number>
+           <number>3</number>
           </property>
           <item>
            <widget class="DBTableWidget" name="sample_relations">
@@ -702,7 +753,7 @@
             <property name="maximumSize">
              <size>
               <width>16777215</width>
-              <height>200</height>
+              <height>150</height>
              </size>
             </property>
             <property name="frameShape">
@@ -710,8 +761,59 @@
             </property>
            </widget>
           </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,0">
+            <property name="spacing">
+             <number>3</number>
+            </property>
+            <item>
+             <widget class="QToolButton" name="relation_add_btn">
+              <property name="toolTip">
+               <string>Add sample relation.</string>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="GSvar.qrc">
+                <normaloff>:/Icons/Add.png</normaloff>:/Icons/Add.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="relation_delete_btn">
+              <property name="toolTip">
+               <string>Remove selected sample relation(s).</string>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="GSvar.qrc">
+                <normaloff>:/Icons/Remove.png</normaloff>:/Icons/Remove.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QWidget" name="widget_3" native="true"/>
+            </item>
+           </layout>
+          </item>
          </layout>
         </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>5</width>
+           <height>5</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>

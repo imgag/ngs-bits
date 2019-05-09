@@ -21,6 +21,10 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	connect(ui_->run, SIGNAL(linkActivated(QString)), this, SIGNAL(openRunTab(QString)));
 	connect(ui_->qc_all, SIGNAL(stateChanged(int)), this, SLOT(updateQCMetrics()));
 	connect(ui_->update_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
+	connect(ui_->diag_status_edit_btn, SIGNAL(clicked(bool)), this, SLOT(editDiagnosticStatus()));
+	connect(ui_->disease_details_edit_btn, SIGNAL(clicked(bool)), this, SLOT(editDiseaseDetails()));
+	connect(ui_->relation_add_btn, SIGNAL(clicked(bool)), this, SLOT(addRelation()));
+	connect(ui_->relation_delete_btn, SIGNAL(clicked(bool)), this, SLOT(removeRelation()));
 
 	//QC value > plot
 	QAction* action = new QAction("Plot", this);
@@ -31,19 +35,11 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
 	ui_->sample_relations->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openSampleTab()));
-	action = new QAction(QIcon(":/Icons/Add.png"), "Add relation", this);
-	ui_->sample_relations->addAction(action);
-	connect(action, SIGNAL(triggered(bool)), this, SLOT(addRelation()));
-	action = new QAction(QIcon(":/Icons/Remove.png"), "Remove relation", this);
-	ui_->sample_relations->addAction(action);
-	connect(action, SIGNAL(triggered(bool)), this, SLOT(removeRelation()));
 
-	//edit button
+	//sample edit button
 	QMenu* menu = new QMenu();
 	menu->addAction("Edit disease group/status", this, SLOT(editDiseaseGroupAndInfo()));
-	menu->addAction("Edit disease details", this, SLOT(editDiseaseDetails()));
 	menu->addAction("Edit quality", this, SLOT(setQuality()));
-	menu->addAction("Edit diagnostic status", this, SLOT(editDiagnosticStatus()));
 	ui_->edit_btn->setMenu(menu);
 
 	//IGV button
