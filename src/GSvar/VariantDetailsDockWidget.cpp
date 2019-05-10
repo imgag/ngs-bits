@@ -276,7 +276,8 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			{
 				//determine color
 				Color color = NONE;
-				if (entry.details.contains("likely pathogenic")) color = ORANGE;
+				if (entry.details.contains("conflicting interpretations of pathogenicity")) color = NONE;
+				else if (entry.details.contains("likely pathogenic")) color = ORANGE;
 				else if (entry.details.contains("pathogenic")) color = RED;
 				else if (entry.details.contains("benign")) color = GREEN;
 

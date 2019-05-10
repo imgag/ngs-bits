@@ -132,7 +132,7 @@ void VariantTable::update(const VariantList variants_, const FilterResult& filte
 				item->setBackgroundColor(Qt::red);
 				is_warning_line = true;
 			}
-			else if (j==i_clinvar && anno.contains("pathogenic")) //matches "pathogenic" and "likely pathogenic"
+			else if (j==i_clinvar && anno.contains("pathogenic") && !anno.contains("conflicting interpretations of pathogenicity")) //matches "pathogenic" and "likely pathogenic"
 			{
 				item->setBackgroundColor(Qt::red);
 				is_warning_line = true;
