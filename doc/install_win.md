@@ -25,7 +25,7 @@ Open a *Git CMD* and clone the most recent release (the source code package of G
 
     git clone --recursive https://github.com/imgag/ngs-bits.git
 	cd ngs-bits
-	git checkout 2019_04
+	git checkout 2019_05
 	git submodule update --recursive --init
 
 ## Build

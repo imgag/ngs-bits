@@ -18,13 +18,11 @@ Changes already implemented in GIT master for next release:
 
 * none so far
 
-Changes in release 2019_04:
+Changes in release 2019_05:
 
-* RohHunter: Added support for input variant lists that are not annotated with VEP. See 'af_source' parameter.
-* SeqPurge: added parameter 'compression_level'.
-* CnvHunter: fixed minor bug in z-score estimation.
-* RohHunter: Added support for input variant lists that are not annotated with VEP.
-* Added tools: FastqConcat
+* SeqPurge: Fixed bug that caused SeqPurge not to terminate if a data-related error occurred.
+* PERsim: Fixed minor bug (end coordinate below zero).
+* SampleSimilarity: Fixed minor bug (in BAM mode, overlap variant count is now correct). 
 
 For older releases see the [releases page](https://github.com/imgag/ngs-bits/releases).
 
