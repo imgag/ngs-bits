@@ -25,6 +25,7 @@ void OutputWorker::run()
 		for (int j=0; j<job_pool_.count(); ++j)
 		{
 			AnalysisJob& job = job_pool_[j];
+			if (job.status==ERROR) terminate();
 			if (job.status!=TO_BE_WRITTEN) continue;
 
 			//write output
