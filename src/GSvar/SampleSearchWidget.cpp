@@ -1,6 +1,6 @@
 #include "SampleSearchWidget.h"
 #include "NGSD.h"
-#include "QMessageBox.h"
+#include <QMessageBox>
 
 SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 	: QWidget(parent)

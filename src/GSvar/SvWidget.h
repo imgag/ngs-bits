@@ -6,7 +6,7 @@
 #include <QByteArray>
 #include <QByteArrayList>
 #include "SvList.h"
-#include "BedPeFile.h"
+#include "BedpeFile.h"
 
 namespace Ui {
 	class SvWidget;

@@ -5,6 +5,7 @@
 #include "SingleSampleAnalysisDialog.h"
 #include "GUIHelper.h"
 #include "ScrollableTextDialog.h"
+#include "cmath"
 #include <QMenu>
 #include <QFileInfo>
 #include <QDesktopServices>
