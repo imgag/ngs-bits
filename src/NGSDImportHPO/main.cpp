@@ -22,14 +22,16 @@ public:
 
 		//optional
 		addInfile("omim", "OMIM 'morbidmap.txt' file for additional disease-gene information, from 'https://omim.org/downloads/'.", true);
-		addInfile("clinvar", "ClinVar VCF file for additional disease-gene information. Download and unzip from 'ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2019/clinvar_20190123.vcf.gz'.", true);
+		addInfile("clinvar", "ClinVar VCF file for additional disease-gene information. Download and unzip from 'ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2019/clinvar_20190503.vcf.gz'.", true);
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");
 		addFlag("debug", "Enables debug output");
 	}
 
-	void importTermGeneRelations(SqlQuery& qi_gene, const QHash<int, QSet<QByteArray> >& term2diseases, const QHash<QByteArray, GeneSet>& disease2genes)
+	int importTermGeneRelations(SqlQuery& qi_gene, const QHash<int, QSet<QByteArray> >& term2diseases, const QHash<QByteArray, GeneSet>& disease2genes)
 	{
+		int c_imported = 0;
+
 		for (auto it=term2diseases.begin(); it!=term2diseases.end(); ++it)
 		{
 			int term_id = it.key();
@@ -43,9 +45,12 @@ public:
 					qi_gene.bindValue(0, term_id);
 					qi_gene.bindValue(1, gene);
 					qi_gene.exec();
+					c_imported += qi_gene.numRowsAffected();
 				}
 			}
 		}
+
+		return c_imported;
 	}
 
 	QHash<QByteArray, int> addTerm(SqlQuery& query, QByteArray& id, QByteArray& name, QByteArray& def, QByteArrayList& synonyms)
@@ -230,8 +235,8 @@ public:
 			out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!" << endl;
 		}
 
-		importTermGeneRelations(qi_gene, term2diseases, disease2genes);
-		out << "Imported term-gene relations from HPO. Overall count: " << db.getValue("SELECT COUNT(*) FROM hpo_genes").toInt() << endl;
+		int c_imported = importTermGeneRelations(qi_gene, term2diseases, disease2genes);
+		out << "Imported " << c_imported << " term-gene relations from HPO." << endl;
 
 		//parse disease-gene relations from OMIM
 		QString omim_file = getInfile("omim");
@@ -239,6 +244,7 @@ public:
 		if (omim_file!="")
 		{
 			//parse disease-gene relations
+			int c_skipped_invalid_gene = 0;
 			fp = Helper::openFileForReading(omim_file);
 			QRegExp mim_exp("([0-9]{6})");
 			while(!fp->atEnd())
@@ -255,11 +261,17 @@ public:
 					mim_number = mim_exp.cap().toLatin1();
 				}
 
-				foreach(const QByteArray& gene, genes)
+				foreach(QByteArray gene, genes)
 				{
 					//make sure the gene symbol is approved by HGNC
+					gene = gene.trimmed();
 					int approved_id = db.geneToApprovedID(gene);
-					if (approved_id==-1) continue;
+					if (approved_id==-1)
+					{
+						if (debug) out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!" << endl;
+						++c_skipped_invalid_gene;
+						continue;
+					}
 
 					if (debug) out << "DISEASE-GENE (OMIM): OMIM:" << mim_number << " - " << db.geneSymbol(approved_id) << endl;
 
@@ -268,8 +280,9 @@ public:
 			}
 			fp->close();
 
-			importTermGeneRelations(qi_gene, term2diseases, disease2genes);
-			out << "Imported term-gene relations (via disease) from OMIM. Overall count: " << db.getValue("SELECT COUNT(*) FROM hpo_genes").toInt() << endl;
+			int c_imported = importTermGeneRelations(qi_gene, term2diseases, disease2genes);
+			out << "Imported " << c_imported << " additional term-gene relations (via disease) from OMIM." << endl;
+			out << "  Skipped " << c_skipped_invalid_gene << " genes (no HGNC-approved gene name)." << endl;
 		}
 
 
@@ -280,11 +293,12 @@ public:
 		if (clinvar_file!="")
 		{
 			//parse disease-gene relations
+			int c_skipped_invalid_gene = 0;
 			fp = Helper::openFileForReading(clinvar_file);
 			while(!fp->atEnd())
 			{
 				QByteArray line = fp->readLine().trimmed();
-				if (!line.contains("Pathogenic") && !line.contains("Likely_pathogenic")) continue;
+				if (!line.contains("CLNSIG=Pathogenic") && !line.contains("CLNSIG=Likely_pathogenic")) continue;
 
 				QByteArrayList parts = line.split('\t');
 				if (parts.count()<8) continue;
@@ -332,7 +346,12 @@ public:
 				{
 					//make sure the gene symbol is approved by HGNC
 					int approved_id = db.geneToApprovedID(gene);
-					if (approved_id==-1) continue;
+					if (approved_id==-1)
+					{
+						if (debug) out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!" << endl;
+						++c_skipped_invalid_gene;
+						continue;
+					}
 					QByteArray gene_approved = db.geneSymbol(approved_id);
 
 					foreach(const QByteArray& disease, diseases)
@@ -349,10 +368,12 @@ public:
 			}
 			fp->close();
 
-			importTermGeneRelations(qi_gene, term2diseases, disease2genes);
-			out << "Imported term-gene relations (via disease) from ClinVar. Overall count: " << db.getValue("SELECT COUNT(*) FROM hpo_genes").toInt() << endl;
+			int c_imported = importTermGeneRelations(qi_gene, term2diseases, disease2genes);
+			out << "Imported " << c_imported << " additional term-gene relations (via disease) from ClinVar." << endl;
+			out << "  Skipped " << c_skipped_invalid_gene << " genes (no HGNC-approved gene name)." << endl;
 
 			//import hpo-gene regions (from ClinVar)
+			c_imported = 0;
 			for(auto it = hpo2genes.begin(); it!=hpo2genes.end(); ++it)
 			{
 				int term_db_id = id2ngsd.value(it.key(), -1);
@@ -364,11 +385,14 @@ public:
 						qi_gene.bindValue(0, term_db_id);
 						qi_gene.bindValue(1, gene);
 						qi_gene.exec();
+						++c_imported;
 					}
 				}
 			}
-			out << "Imported term-gene relations (direct) from ClinVar. Count: " << db.getValue("SELECT COUNT(*) FROM hpo_genes").toInt() << endl;
+			out << "Imported " << c_imported << " additional term-gene relations (direct) from ClinVar." << endl;
 		}
+
+		out << "Overall term-gene relations: " << db.getValue("SELECT COUNT(*) FROM hpo_genes").toInt() << endl;
 	}
 };
 
