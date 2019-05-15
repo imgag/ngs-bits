@@ -660,27 +660,27 @@ private slots:
 		ProcessedSampleSearchParameters params;
 		DBTable ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 5);
-		I_EQUAL(ps_table.columnCount(), 17);
+		I_EQUAL(ps_table.columnCount(), 18);
 		//add path
 		params.add_path = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 5);
-		I_EQUAL(ps_table.columnCount(), 18);
+		I_EQUAL(ps_table.columnCount(), 19);
 		//add outcome
 		params.add_outcome = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 5);
-		I_EQUAL(ps_table.columnCount(), 22);
+		I_EQUAL(ps_table.columnCount(), 23);
 		//add path
 		params.add_disease_details = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 5);
-		I_EQUAL(ps_table.columnCount(), 26);
+		I_EQUAL(ps_table.columnCount(), 27);
 		//add QC
 		params.add_qc = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 5);
-		I_EQUAL(ps_table.columnCount(), 65);
+		I_EQUAL(ps_table.columnCount(), 66);
 		//apply all search parameters
 		params.s_name = "NA12878";
 		params.s_species = "human";
@@ -695,7 +695,7 @@ private slots:
 		params.include_bad_quality_runs = false;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 2);
-		I_EQUAL(ps_table.columnCount(), 65);
+		I_EQUAL(ps_table.columnCount(), 66);
 	}
 
 	//Test for debugging (without initialization because of speed)

@@ -53,7 +53,7 @@ private slots:
 		count = db.getValue("SELECT count(*) FROM hpo_parent").toInt();
 		I_EQUAL(count, 11)
 		count = db.getValue("SELECT count(*) FROM hpo_genes").toInt();
-		I_EQUAL(count, 65)
+		I_EQUAL(count, 66)
 		IS_TRUE(db.phenotypeToGenes(Phenotype("HP:???????", "Breast carcinoma"), false).contains("BRCA1"))
 		IS_TRUE(db.phenotypeToGenes(Phenotype("HP:???????", "Breast carcinoma"), false).contains("BRCA2"))
 		IS_TRUE(db.phenotypeToGenes(Phenotype("HP:???????", "Autosomal dominant inheritance"), false).contains("PTEN"))

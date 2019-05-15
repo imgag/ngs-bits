@@ -34,6 +34,7 @@ void SequencingRunWidget::updateGUI()
 		query.next();
 		ui_->name->setText(query.value("name").toString());
 		ui_->fcid->setText(query.value("fcid").toString());
+		ui_->fc_type->setText(query.value("flowcell_type").toString());
 		ui_->start->setText(query.value("start_date").toString());
 		ui_->end->setText(query.value("end_date").toString());
 		ui_->recipe->setText(query.value("recipe").toString());
