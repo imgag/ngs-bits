@@ -1181,6 +1181,8 @@ void MainWindow::checkMendelianErrorRate(double cutoff_perc)
 		SampleHeaderInfo infos = variants_.getSampleHeader();
 		int col_c = infos.infoByStatus(true).column_index;
 
+		bool above_cutoff = false;
+		QStringList mers;
 		foreach(const SampleInfo& info, infos)
 		{
 			if (info.isAffected()) continue;
@@ -1203,11 +1205,13 @@ void MainWindow::checkMendelianErrorRate(double cutoff_perc)
 			}
 
 			double percentage = 100.0 * errors / autosomal;
-			if (percentage>cutoff_perc)
-			{
-				output = "Amount of variants with mendelian error between " + infos.infoByStatus(true).column_name + " and " + info.column_name + " too high:\n" + QString::number(errors) + "/" + QString::number(autosomal) + " ~ " + QString::number(percentage, 'f', 2) + "%";
-				break;
-			}
+			if (percentage>cutoff_perc) above_cutoff = true;
+			mers << infos.infoByStatus(true).column_name + " - " + info.column_name + ": " + QString::number(errors) + "/" + QString::number(autosomal) + " ~ " + QString::number(percentage, 'f', 2) + "%";
+		}
+
+		if (above_cutoff)
+		{
+			output = "Mendelian error rate too high:\n" + mers.join("\n");
 		}
 	}
 	catch (Exception& e)

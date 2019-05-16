@@ -16,6 +16,7 @@ NGSD:
 - model merged samples
 
 GSvar:
+## docu multi/trio: Also look at single sample (low coverage in one sample > missing genotypes, incomplete penetrance, ...)
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 *** Add email support for runs "run finished" and "analysis finished"
 - Implement OMIM search via API - example: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1 (wait for API access)
