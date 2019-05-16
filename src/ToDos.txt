@@ -1,15 +1,15 @@
 === TODO ===
 
 libs:
-##### replace "<< endl" because it flushes the output!
 - NGSHelper: consider soft-clipping of secondary alignments (CS)
 - integration of htslib: use pileup, use VCF support, use tabix support
-- FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
+* FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 
 NGSD:
-*** support orphanet codes (add GenLab view, extend schema by 'Orpha number', implement import)
+* support orphanet codes (add GenLab view, extend schema by 'Orpha number', implement import)
 *** Allow adding/editing data in NGSD
     - Run/processed sample/sample in general
+        - Add email support for runs "run finished" and "analysis finished"
     - Set processed sample qualities in batch (selection)
 ** Add run overview dialog/tab
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
@@ -18,7 +18,6 @@ NGSD:
 GSvar:
 ## docu multi/trio: Also look at single sample (low coverage in one sample > missing genotypes, incomplete penetrance, ...)
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
-*** Add email support for runs "run finished" and "analysis finished"
 - Implement OMIM search via API - example: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1 (wait for API access)
 * Add special report for trios/multi-sample with genotype overview > change format to RTF first (AG)
 * Add highlighting of imprinting genes to CNVs, ROHs and UPDs

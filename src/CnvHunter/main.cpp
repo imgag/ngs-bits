@@ -349,14 +349,14 @@ public:
 		z_scores[curr] = fun_mad(zs, 0);
 
         //store file
-		outstream << "#sample\tdoc_mean\tref_correl\tz_score_mad\tcnvs\tqc_info" << endl;
+		outstream << "#sample\tdoc_mean\tref_correl\tz_score_mad\tcnvs\tqc_info" << "\n";
 		foreach(const QSharedPointer<SampleData>& sample, samples)
         {
-			outstream << sample->name << "\t" << QByteArray::number(sample->doc_mean, 'f', 1) << "\t" << QByteArray::number(sample->ref_correl, 'f', 3) << "\t" << QByteArray::number(z_scores[sample], 'f', 3) << "\t" << cnvs_sample[sample] << "\t" << sample->qc << endl;
+			outstream << sample->name << "\t" << QByteArray::number(sample->doc_mean, 'f', 1) << "\t" << QByteArray::number(sample->ref_correl, 'f', 3) << "\t" << QByteArray::number(z_scores[sample], 'f', 3) << "\t" << cnvs_sample[sample] << "\t" << sample->qc << "\n";
         }
         foreach(const QSharedPointer<SampleData>& sample, samples_removed)
         {
-			outstream << sample->name << "\t" << QByteArray::number(sample->doc_mean, 'f', 1) << "\t" << QByteArray::number(sample->ref_correl, 'f', 3) << "\tnan\tnan\t" << sample->qc << endl;
+			outstream << sample->name << "\t" << QByteArray::number(sample->doc_mean, 'f', 1) << "\t" << QByteArray::number(sample->ref_correl, 'f', 3) << "\tnan\tnan\t" << sample->qc << "\n";
         }
     }
 
@@ -364,7 +364,7 @@ public:
     {
         QSharedPointer<QFile> file = Helper::openFileForWriting(out.left(out.size()-4) + "_regions.tsv");
         QTextStream outstream(file.data());
-		outstream << "#region\tsize\tgc_content\tndoc_median\tndoc_mad\tndoc_cv\tcnvs\tqc_info\toverlaps_cnp_region" << endl;
+		outstream << "#region\tsize\tgc_content\tndoc_median\tndoc_mad\tndoc_cv\tcnvs\tqc_info\toverlaps_cnp_region" << "\n";
 
         //contruct sorted array
         QVector<QSharedPointer<ExonData>> tmp;
@@ -382,7 +382,7 @@ public:
             {
 				outstream << "nan";
             }
-			outstream << "\t" << exon->qc << "\t" << (exon->is_cnp ? "yes" : "") << endl;
+			outstream << "\t" << exon->qc << "\t" << (exon->is_cnp ? "yes" : "") << "\n";
         }
     }
 
@@ -391,17 +391,17 @@ public:
 		//write header
 		QSharedPointer<QFile> file = Helper::openFileForWriting(out.left(out.size()-4) + "_debug.tsv");
         QTextStream outstream(file.data());
-		outstream << "#sample\tregion\tcopy_number\tz_score\tndoc\tref_ndoc\tref_ndoc_stdev\tlog2_ratio" << endl;
+		outstream << "#sample\tregion\tcopy_number\tz_score\tndoc\tref_ndoc\tref_ndoc_stdev\tlog2_ratio" << "\n";
 
 		//write sample correlations
 		foreach(const QSharedPointer<SampleData>& sample, samples)
 		{
 			if (sample==debug_sample)
 			{
-				outstream << "##RMSD of " << sample->name << " to other samples:" << endl;
+				outstream << "##RMSD of " << sample->name << " to other samples:" << "\n";
 				for (int i=0; i<samples.count()-1; ++i)
 				{
-					outstream << "##" << (i+1) << "\t" << sample->correl_all[i].sample->name << "\t" << sample->correl_all[i].rmsd_inv << endl;
+					outstream << "##" << (i+1) << "\t" << sample->correl_all[i].sample->name << "\t" << sample->correl_all[i].rmsd_inv << "\n";
 				}
 			}
 		}
@@ -414,7 +414,7 @@ public:
 				float ncov = r.sample->doc[r.exon->index];
 				float ncov_ref = r.sample->ref[r.exon->index];
 				float log_ratio = log2(ncov/ncov_ref);
-				outstream << r.sample->name << "\t" << r.exon->toString() << "\t" << r.copies << "\t" << QByteArray::number(r.z, 'f', 2) << "\t" << QByteArray::number(ncov, 'f', 3) << "\t" << QByteArray::number(ncov_ref, 'f', 3) << "\t" << QByteArray::number(r.sample->ref_stdev[r.exon->index], 'f', 3) << "\t" << QByteArray::number(log_ratio, 'f', 2) << endl;
+				outstream << r.sample->name << "\t" << r.exon->toString() << "\t" << r.copies << "\t" << QByteArray::number(r.z, 'f', 2) << "\t" << QByteArray::number(ncov, 'f', 3) << "\t" << QByteArray::number(ncov_ref, 'f', 3) << "\t" << QByteArray::number(r.sample->ref_stdev[r.exon->index], 'f', 3) << "\t" << QByteArray::number(log_ratio, 'f', 2) << "\n";
 			}
         }
     }
@@ -458,9 +458,9 @@ public:
 		//write header
 		QSharedPointer<QFile> file = Helper::openFileForWriting(out.left(out.size()-4) + ".seg");
 		QTextStream outstream(file.data());
-		outstream << "#type=GENE_EXPRESSION" << endl;
-		outstream << "#track graphtype=points name=\"" + sample->name+ " CN z-score\" midRange=-2.5:2.5 color=0,0,255 altColor=255,0,0 viewLimits=-5:5 maxHeightPixels=80:80:80" << endl;
-		outstream << "ID	chr	start	end	log2-ratio	copy-number	z-score" << endl;
+		outstream << "#type=GENE_EXPRESSION" << "\n";
+		outstream << "#track graphtype=points name=\"" + sample->name+ " CN z-score\" midRange=-2.5:2.5 color=0,0,255 altColor=255,0,0 viewLimits=-5:5 maxHeightPixels=80:80:80" << "\n";
+		outstream << "ID	chr	start	end	log2-ratio	copy-number	z-score" << "\n";
 
 		//write valid region details
 		foreach(const ResultData& r, results)
@@ -470,14 +470,14 @@ public:
 				float ncov = r.sample->doc[r.exon->index];
 				float ncov_ref = r.sample->ref[r.exon->index];
 				float log_ratio = log2(ncov/ncov_ref);
-				outstream << "\t" << r.exon->chr.str() << "\t" << r.exon->start << "\t" << r.exon->end << "\t" << QByteArray::number(log_ratio, 'f', 2) << "\t" << r.copies << "\t" << QByteArray::number(r.z, 'f', 2) << endl;
+				outstream << "\t" << r.exon->chr.str() << "\t" << r.exon->start << "\t" << r.exon->end << "\t" << QByteArray::number(log_ratio, 'f', 2) << "\t" << r.copies << "\t" << QByteArray::number(r.z, 'f', 2) << "\n";
 			}
 		}
 
 		//write invalid regions
 		foreach(const QSharedPointer<ExonData>& exon, exons_removed)
 		{
-			outstream << "\t" << exon->chr.str() << "\t" << exon->start << "\t" << exon->end << "\tQC failed\tQC failed\t0.0" << endl;
+			outstream << "\t" << exon->chr.str() << "\t" << exon->start << "\t" << exon->end << "\tQC failed\tQC failed\t0.0" << "\n";
 		}
 	}
 
@@ -492,7 +492,7 @@ public:
 		{
 			outstream << "\t" << QFileInfo(anno).baseName();
 		}
-		outstream << endl;
+		outstream << "\n";
 
 		//content
 		for (int r=0; r<ranges.count(); ++r)
@@ -548,7 +548,7 @@ public:
 			}
 
 			//end of line
-			outstream << endl;
+			outstream << "\n";
 		}
     }
 
@@ -633,7 +633,7 @@ public:
 		float mad = 1.482f * fun_mad(counts, median);
 
         //historgam
-        outstream << "CNVs per sample histogram:" << endl;
+		outstream << "CNVs per sample histogram:" << endl;
 		double max = median + 3.0*mad;
 		max = ceil(max / 20.0) * 20.0; //round to next highest number that can be devided by 20
 		Histogram hist(0.0, max, max/20);
@@ -642,7 +642,7 @@ public:
 			hist.inc(cnvs_sample[samples[s]], true);
         }
 		hist.print(outstream, "  ", 0, 0);
-        outstream << endl;
+		outstream << endl;
     }
 
 	void printCnvRegionCountDistribution(QList<Range> ranges, QTextStream& outstream)
@@ -678,7 +678,7 @@ public:
 			hist.inc(samples[s]->ref_correl, true);
         }
         hist.print(outstream, "  ", 2, 0, false);
-        outstream << endl;
+		outstream << endl;
     }
 
     virtual void main()

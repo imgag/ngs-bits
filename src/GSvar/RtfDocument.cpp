@@ -152,7 +152,7 @@ void RtfDocument::save(const QByteArray &file_name)
 
 	stream << header();
 
-	foreach(RtfSourceCode part,body_parts_)
+	foreach(const RtfSourceCode& part, body_parts_)
 	{
 		stream << part << endl;
 	}

@@ -695,7 +695,7 @@ void VariantList::storeToTSV(QString filename)
 		{
 			QString comment=i.next();
 			if (comment.startsWith("##fileformat=")) continue;//don't write VCF specific meta info
-			stream <<comment<<endl;
+			stream << comment << "\n";
 		}
 	}
 
@@ -716,7 +716,7 @@ void VariantList::storeToTSV(QString filename)
 			{
 				stream <<"##DESCRIPTION=" << act_anno.name() << "=" << act_anno.description();
 			}
-			stream << endl;
+			stream << "\n";
 		}
 	}
 
@@ -725,7 +725,7 @@ void VariantList::storeToTSV(QString filename)
 	while(it != filters().cend())
 	{
 
-		stream << "##FILTER=" << it.key() << "=" << it.value() << endl;
+		stream << "##FILTER=" << it.key() << "=" << it.value() << "\n";
 		++it;
 	}
 
@@ -750,7 +750,7 @@ void VariantList::storeToTSV(QString filename)
 		}
 	}
 
-	stream << endl;
+	stream << "\n";
 
 	//variants
 	foreach(const Variant& v, variants_)
@@ -762,7 +762,7 @@ void VariantList::storeToTSV(QString filename)
 			if(annotation_headers_[i].name()==".")	continue;
 			stream << "\t" << entry;
 		}
-		stream << endl;
+		stream << "\n";
 	}
 }
 
@@ -1232,7 +1232,7 @@ void VariantList::storeToVCF(QString filename)
 			const QStringList& sample_entries = sample_entries_by_sample[sample];
 			stream << "\t" << (sample_entries.isEmpty() ? "." : sample_entries.join(":"));
 		}
-		stream << endl;
+		stream << "\n";
 	}
 }
 

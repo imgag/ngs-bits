@@ -1,5 +1,9 @@
 # GSvar change log
 
+### 2019_05-7 (16.05.19)
+- Filters: added support for genotype 'n/a' in multi-sample variant lists in (genotype affected, genotype control and trio filters)
+- Bugfix: fixed crash when editing variant comment.
+
 ### 2019_04-29 (09.05.19)
 - IGV: now uses the *1000Genomes build37+decoy* genome with transcript information from Ensembl and current gene names (<https://github.com/imgag/IGV_genome_ensembl>)
 - Processed sample tab: Editing of sample relations is now possible.
@@ -311,6 +315,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 
