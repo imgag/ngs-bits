@@ -226,16 +226,16 @@ int VariantTable::columnIndex(const QString& column_name) const
 	return -1;
 }
 
-int VariantTable::selectedVariantIndex() const
+int VariantTable::selectedVariantIndex(bool gui_indices) const
 {
-	QList<int> indices = selectedVariantsIndices();
+	QList<int> indices = selectedVariantsIndices(gui_indices);
 
 	if (indices.count()!=1) return -1;
 
 	return indices[0];
 }
 
-QList<int> VariantTable::selectedVariantsIndices() const
+QList<int> VariantTable::selectedVariantsIndices(bool gui_indices) const
 {
 	QList<int> output;
 
@@ -244,7 +244,14 @@ QList<int> VariantTable::selectedVariantsIndices() const
 	{
 		for(int row=range.topRow(); row<=range.bottomRow(); ++row)
 		{
-			output << rowToVariantIndex(row);
+			if (gui_indices)
+			{
+				output << row;
+			}
+			else
+			{
+				output << rowToVariantIndex(row);
+			}
 		}
 	}
 

@@ -20,11 +20,11 @@ public:
 	///Returns the column index, or -1 if not found.
 	int columnIndex(const QString& column_name) const;
 
-	///Returns the current variant index, or -1 if no/several variants are selected.
-	int selectedVariantIndex() const;
+	///Returns the current variant index, or -1 if no/several variants are selected. If @p gui_indices is true, GUI table indices are returned instead of variant list index.
+	int selectedVariantIndex(bool gui_indices = false) const;
 
-	///Returns a sorted list of selected variants indices
-	QList<int> selectedVariantsIndices() const;
+	///Returns a sorted list of selected variants indices in the variant list. If @p gui_indices is true, GUI table indices are returned instead of variant list index.
+	QList<int> selectedVariantsIndices(bool gui_indices = false) const;
 
 	///Convert table row to variant index.
 	int rowToVariantIndex(int row) const;

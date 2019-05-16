@@ -753,10 +753,11 @@ void MainWindow::editVariantValidation()
 
 void MainWindow::editVariantComment()
 {
-	int var_curr = ui_.vars->selectedVariantIndex();
-	if (var_curr==-1) return;
+	int var_index = ui_.vars->selectedVariantIndex();
+	int var_row = ui_.vars->selectedVariantIndex(true);
+	if (var_index==-1 || var_row==-1) return;
 
-	Variant& variant = variants_[var_curr];
+	Variant& variant = variants_[var_index];
 
 	try
 	{
@@ -792,13 +793,12 @@ void MainWindow::editVariantComment()
 			int gui_index = ui_.vars->columnIndex("comment");
 			if (gui_index!=-1)
 			{
-				QTableWidgetItem* item = ui_.vars->item(var_curr, gui_index);
-				if (item==nullptr)
+				if (ui_.vars->item(var_row, gui_index)==nullptr)
 				{
-					ui_.vars->setItem(var_curr, gui_index, new QTableWidgetItem(""));
+					ui_.vars->setItem(var_row, gui_index, new QTableWidgetItem(""));
 				}
-				item->setText(text);
-				ui_.variant_details->updateVariant(variants_, var_curr);
+				ui_.vars->item(var_row, gui_index)->setText(text);
+				ui_.variant_details->updateVariant(variants_, var_row);
 			}
 		}
 	}
