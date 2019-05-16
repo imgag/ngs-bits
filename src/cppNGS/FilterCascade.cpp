@@ -1152,7 +1152,7 @@ FilterGenotypeControl::FilterGenotypeControl()
 	description_ = QStringList() << "Filter for genotype of the 'control' sample(s).";
 
 	params_ << FilterParameter("genotypes", STRINGLIST, QStringList(), "Genotype(s)");
-	params_.last().constraints["valid"] = "wt,het,hom";
+	params_.last().constraints["valid"] = "wt,het,hom,n/a";
 	params_.last().constraints["not_empty"] = "";
 	params_ << FilterParameter("same_genotype", BOOL, false, "Also check that all 'control' samples have the same genotype.");
 
@@ -1222,7 +1222,7 @@ FilterGenotypeAffected::FilterGenotypeAffected()
 	name_ = "Genotype affected";
 	description_ = QStringList() << "Filter for genotype(s) of the 'affected' sample(s)." << "Variants pass if 'affected' samples have the same genotype and the genotype is in the list selected genotype(s).";
 	params_ << FilterParameter("genotypes", STRINGLIST, QStringList(), "Genotype(s)");
-	params_.last().constraints["valid"] = "wt,het,hom,comp-het";
+	params_.last().constraints["valid"] = "wt,het,hom,n/a,comp-het";
 	params_.last().constraints["not_empty"] = "";
 
 	checkIsRegistered();
@@ -1897,7 +1897,16 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 		//get genotypes
 		QByteArray geno_c, geno_f, geno_m;
 		correctedGenotypes(v, geno_c, geno_f, geno_m);
+
+		//remove variants where index is wild-type
 		if (geno_c=="wt")
+		{
+			result.flags()[i] = false;
+			continue;
+		}
+
+		//remove variants where genotype data is missing
+		if (geno_c=="n/a" || geno_f=="n/a" || geno_m=="n/a")
 		{
 			result.flags()[i] = false;
 			continue;

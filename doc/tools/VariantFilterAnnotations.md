@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2018_11-159-gcaa7694)
+	VariantFilterAnnotations (2019_04-7-g0efa492)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -63,10 +63,10 @@
 	Genotype affected                  Filter for genotype(s) of the 'affected' sample(s).
 	                                   Variants pass if 'affected' samples have the same genotype and the genotype is in the list selected genotype(s).
 	                                   Parameters:
-	                                     genotypes - Genotype(s) [valid=wt,het,hom,comp-het] [non-empty]
+	                                     genotypes - Genotype(s) [valid=wt,het,hom,n/a,comp-het] [non-empty]
 	Genotype control                   Filter for genotype of the 'control' sample(s).
 	                                   Parameters:
-	                                     genotypes - Genotype(s) [valid=wt,het,hom] [non-empty]
+	                                     genotypes - Genotype(s) [valid=wt,het,hom,n/a] [non-empty]
 	                                     same_genotype - Also check that all 'control' samples have the same genotype. [default=false]
 	Impact                             Filter based on the variant impact given by VEP.
 	                                   For more details see: https://www.ensembl.org/info/genome/variation/prediction/predicted_data.html
@@ -118,7 +118,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2018_11-159-gcaa7694
+	VariantFilterAnnotations 2019_04-7-g0efa492
 	
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.
