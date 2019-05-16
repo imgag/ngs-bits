@@ -874,7 +874,7 @@ void FilterVariantCountNGSD::apply(const VariantList& variants, FilterResult& re
 					var_is_hom = true;
 					break;
 				}
-				else if (var_geno!="het" && var_geno!="wt")
+				else if (var_geno!="het" && var_geno!="wt" && var_geno!="n/a")
 				{
 					THROW(ProgrammingException, "Unknown genotype '" + var_geno + "'!");
 				}
