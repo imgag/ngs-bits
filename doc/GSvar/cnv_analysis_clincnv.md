@@ -27,7 +27,7 @@ Above the CNV list, there are several options for filtering CNVs (2):
 * number of regions
 * log-likelihood
 * copy-number state
-* allele frequency (estimated frequency of CNV for the region in the analyzed cohort) 
+* allele frequency (estimated frequency of CNV for the region in the analyzed cohort 
 * target region (if set in the main filter panel for variants)
 * genes (if set in the main filter panel for variants)
 * phenotypes (if set in the main filter panel for variants)
@@ -40,15 +40,15 @@ For each CNV the following properties are shown (3):
 * affected genes (if they are annotated)
 * size
 * copy-number change
-* log-likelyhood of the copy-number change (bigger is better)
+* log-likelyhood: logarighm of the ratio between likelihoods of the *no CN change model* vs the *CN equal to the reported state model* (bigger is better)
 * number of regions
-* frequency of the copy-number change in the analyzed cohort
-* q-value (p-value corrected for the number of tests performed, smaller is better)
+* potential AF: frequency of the copy-number change *in the analyzed cohort (Note: this can deviate from the population allele frequency, especially for rare CNVs)*
+* q-value: p-value corrected for the number of CNVS detected (smaller is better)
 
 Additionally, generic annotation columns can be added (4), e.g.:
 
 * overlap with copy-number polymorphism regions (as defined by [Zarrei et. al. 2015](http://www.nature.com/nrg/journal/v16/n3/abs/nrg3871.html))
-* overlap with copy-number polymorphism regions (as defined by [Demidov](TODO))
+* overlap with copy-number polymorphism regions (as defined by [Demidov (private communication)](TODO))
 * dosage-sensitive disease genes (from [Zarrei et. al. 2015](http://www.nature.com/nrg/journal/v16/n3/abs/nrg3871.html))
 * OMIM genes
 
@@ -56,6 +56,28 @@ Additionally, generic annotation columns can be added (4), e.g.:
 
 More information about a copy-number variant can be found through the resources linked in the context menu (5). 
 
+### Number of CNVs to expect
+
+To allow very sensitive CNV detection, we use a very low log-likelihood cutoff of 3 and call down to one exon/region when executing ClinCNV.  
+However, by default GSvar only shows CNVs with a more conservative log-likelyhood of 20 or higher.  
+To increase sensitivity, the user can lower the log-likelyhood cutoff.
+
+However, when lowering the cutoff, the number of CNVs increases dramatically.  
+Thus, low cutoffs should only be used when looking at specific regions of interest, e.g. a single gene that matches the phenotype of the patient.
+
+The following table shows the expected number of CNVS for exomes/genomes using different log-likelihood cutoffs:
+
+<table>
+	<tr><th>log-likelihood cutoff</th><th>exome</th><th>genome</th></tr>
+	<tr><td>3</td><td>500-2500</td><td>3000-5000</td></tr>
+	<tr><td>10</td><td>150-350</td><td>1400-2100</td></tr>
+	<tr><td>20</td><td>50-120</td><td>800-1400</td></tr>
+	<tr><td>40</td><td>20-70</td><td>500-800</td></tr>
+	<tr><td>100</td><td>&lt;40</td><td>&lt;500</td></tr>
+</table>
+
+**Note:** The CNV numbers listed above include CNVs down to one exon/region.  
+When increasing the required number of subsequent regions, e.g. to 3, the number of CNVs is reduced significantly!
 
 ### Visualizing copy-number data in IGV
 
@@ -85,6 +107,7 @@ More details on CNV calling with ClinCNV can be found in the [ClinCNV documentat
 --
 
 [back to main CNV page](cnv_analysis.md)
+
 
 
 

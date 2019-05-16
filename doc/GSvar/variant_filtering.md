@@ -25,6 +25,12 @@ Open the GSvar variant list from the trio folder.
 3. For filtering the trio variant list, use one of the default `trio` filters.
 4. Default filter can be modified and new filters created using the filter toolbar on the right.
 
+**Note:**  
+Before performing a trio analysis, always have a look at the index case as a single sample.  
+It is possible to miss the causal variant if performing multi-sample analysis only.  
+This has both technical and biological reasons (low coverage in one sample, incomplete penetrance, ...).
+
+
 ### Multi-sample analysis
 
 To perform a multi-sample analysis, follow those steps:
@@ -35,10 +41,15 @@ Open the GSvar variant list from the trio folder.
 3. For filtering the trio variant list, use the default `multi-sample` filters.
 4. Default filter can be modified and new filters created using the filter toolbar on the right.
 
+**Note:**  
+Before performing a multi-sample analysis, always have a look at the index cases as single samples.  
+It is possible to miss the causal variant if performing multi-sample analysis only.  
+This has both technical and biological reasons (low coverage in one sample, incomplete penetrance, ...).
 
 --
 
 [back to main page](index.md)
+
 
 
 

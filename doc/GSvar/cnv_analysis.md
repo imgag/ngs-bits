@@ -21,7 +21,7 @@ These are examples of ananlysis steps that are commonly performed:
 
 Two different algorihtms are used for CNV calling, depending on the sequencing strategy.  
 For exome and genome sequencing data, [ClinCNV](https://github.com/imgag/ClinCNV) is used for copy-number analysis.  
-For panel seuqencing data, [CnvHunter](https://github.com/imgag/ngs-bits/) is used.
+For panel sequencing data, [CnvHunter](https://github.com/imgag/ngs-bits/) is used.
 
 For detailled information, please have a look a the algorihtm-specific sections:
 
@@ -32,7 +32,8 @@ For detailled information, please have a look a the algorihtm-specific sections:
 
 ### How do I re-start the CNV analysis of a sample
 
-Copy-number variant calling is based on a virtual reference sample, which is constructed of the 20 most similar samples with the same processing system. Thus, at least 20 samples of the sample processing system are needed to perform the CNV analysis. The more samples there are, the more accurate the CNV analysis will be.
+Copy-number variant calling is based on a virtual reference sample, which is constructed of the most similar samples with the same processing system.  
+The more samples there are, the more accurate the CNV analysis will be.
 
 Thus, re-analyzing copy-number variants when more reference samples are sequenced is a common task. It can be performed using the sample details dock widget:
 
@@ -41,6 +42,7 @@ Thus, re-analyzing copy-number variants when more reference samples are sequence
 --
 
 [back to main page](index.md)
+
 
 
 

@@ -13,10 +13,9 @@ NGSD:
     - Set processed sample qualities in batch (selection)
 ** Add run overview dialog/tab
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
-- model merged samples
+*** model merged samples
 
 GSvar:
-## docu multi/trio: Also look at single sample (low coverage in one sample > missing genotypes, incomplete penetrance, ...)
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 - Implement OMIM search via API - example: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1 (wait for API access)
 * Add special report for trios/multi-sample with genotype overview > change format to RTF first (AG)
