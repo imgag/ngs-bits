@@ -28,7 +28,7 @@ Open the GSvar variant list from the trio folder.
 **Note:**  
 Before performing a trio analysis, always have a look at the index case as a single sample.  
 It is possible to miss the causal variant if performing multi-sample analysis only.  
-This has both technical and biological reasons (low coverage in one sample, incomplete penetrance, ...).
+This has both technical and biological reasons (low coverage in one sample, reduced penetrance, ...).
 
 
 ### Multi-sample analysis
@@ -44,11 +44,12 @@ Open the GSvar variant list from the trio folder.
 **Note:**  
 Before performing a multi-sample analysis, always have a look at the index cases as single samples.  
 It is possible to miss the causal variant if performing multi-sample analysis only.  
-This has both technical and biological reasons (low coverage in one sample, incomplete penetrance, ...).
+This has both technical and biological reasons (low coverage in one sample, reduced penetrance, ...).
 
 --
 
 [back to main page](index.md)
+
 
 
 

@@ -21,6 +21,7 @@ public:
 		addFlag("no_bad_samples", "If set, processed samples with 'bad' quality are excluded.");
 		addFlag("no_tumor", "If set, tumor samples are excluded.");
 		addFlag("no_ffpe", "If set, FFPE samples are excluded.");
+		addFlag("with_merged", "If set, processed samples that were merged into another sample are included.");
 		addString("project", "Project name filter.", true, "");
 		addString("system", "Processing system name filter.", true, "");
 		addString("run", "Sequencing run name filter.", true, "");
@@ -31,6 +32,7 @@ public:
 		addFlag("add_path", "Checks if the sample folder is present at the defaults location in the 'projects_folder' (as defined in the 'settings.ini' file).");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
+		changeLog(2019,  5, 17, "Added 'with_merged' flag.");
 		changeLog(2019,  4, 12, "Complete refactoring and interface change.");
 		changeLog(2019,  1, 10, "Added 'species' filter.");
 		changeLog(2018, 10, 23, "Added 'outcome' flag.");
@@ -48,6 +50,7 @@ public:
 		params.include_bad_quality_samples = !getFlag("no_bad_samples");
 		params.include_tumor_samples = !getFlag("no_tumor");
 		params.include_ffpe_samples = !getFlag("no_ffpe");
+		params.include_merged_samples = getFlag("with_merged");
 		params.p_name = getString("project");
 		params.sys_name = getString("system");
 		params.r_name = getString("run");

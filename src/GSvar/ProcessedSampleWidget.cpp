@@ -25,6 +25,7 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	connect(ui_->disease_details_edit_btn, SIGNAL(clicked(bool)), this, SLOT(editDiseaseDetails()));
 	connect(ui_->relation_add_btn, SIGNAL(clicked(bool)), this, SLOT(addRelation()));
 	connect(ui_->relation_delete_btn, SIGNAL(clicked(bool)), this, SLOT(removeRelation()));
+	connect(ui_->merged, SIGNAL(linkActivated(QString)), this, SIGNAL(openProcessedSampleTab(QString)));
 
 	//QC value > plot
 	QAction* action = new QAction("Plot", this);
@@ -82,6 +83,7 @@ void ProcessedSampleWidget::updateGUI()
 	QString run = ps_data.run_name;
 	ui_->run->setText("<a href=\"" + run + "\">"+run+"</a>");
 	ui_->kasp->setText(db_.getQCData(ps_id_).value("kasp").asString());
+	ui_->merged->setText(mergedSamples());
 
 	//#### sample details ####
 	QString s_id = db_.getValue("SELECT sample_id FROM processed_sample WHERE id='" + ps_id_ + "'").toString();
@@ -431,5 +433,28 @@ QString ProcessedSampleWidget::sampleName() const
 QString ProcessedSampleWidget::processedSampleName() const
 {
 	return ui_->name->text();
+}
+
+QString ProcessedSampleWidget::mergedSamples() const
+{
+	QStringList output;
+
+	//other samples merged into this sample
+	QStringList merged_ps_ids = db_.getValues("SELECT processed_sample_id FROM merged_processed_samples WHERE merged_into='" + ps_id_ + "'");
+	foreach(QString ps_id, merged_ps_ids)
+	{
+		QString ps_name = db_.processedSampleName(ps_id);
+		output << ("<a href=\"" + ps_name + "\">"+ps_name+"</a> was merged into this sample");
+	}
+
+	//this sample merged into other sample
+	QString ps_id = db_.getValue("SELECT merged_into FROM merged_processed_samples WHERE processed_sample_id='" + ps_id_ + "'").toString();
+	if (ps_id!="")
+	{
+		QString ps_name = db_.processedSampleName(ps_id);
+		output << ("<font color='red'>this sample was merged into</font> <a href=\"" + ps_name + "\">"+ps_name+"</a>");
+	}
+
+	return output.join(", ");
 }
 

@@ -104,6 +104,10 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	{
 		conditions << "s.ffpe='0'";
 	}
+	if (!p.include_merged_samples)
+	{
+		conditions << "ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples)";
+	}
 
 	//add filters (project)
 	if (p.p_name.trimmed()!="")

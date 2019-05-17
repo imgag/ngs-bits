@@ -269,6 +269,7 @@ struct ProcessedSampleSearchParameters
 	bool include_bad_quality_samples = true;
 	bool include_tumor_samples = true;
 	bool include_ffpe_samples = true;
+	bool include_merged_samples = false;
 
 	//filters project
 	QString p_name;

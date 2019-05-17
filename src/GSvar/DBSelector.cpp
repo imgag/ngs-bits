@@ -60,7 +60,7 @@ void DBSelector::keyPressEvent(QKeyEvent* e)
 {
 	if (e->matches(QKeySequence::Paste))
 	{
-		setText(QApplication::clipboard()->text().trimmed());
+		insert(QApplication::clipboard()->text().trimmed());
 		e->accept();
 		return;
 	}

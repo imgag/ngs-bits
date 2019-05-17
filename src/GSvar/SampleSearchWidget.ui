@@ -150,6 +150,20 @@
           </property>
          </widget>
         </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="label_12">
+          <property name="text">
+           <string>include merged:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="QCheckBox" name="s_merged">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </item>
@@ -400,14 +414,14 @@
  </widget>
  <customwidgets>
   <customwidget>
+   <class>DBSelector</class>
+   <extends>QLineEdit</extends>
+   <header location="global">DBSelector.h</header>
+  </customwidget>
+  <customwidget>
    <class>DBTableWidget</class>
    <extends>QTableWidget</extends>
    <header>DBTableWidget.h</header>
-  </customwidget>
-  <customwidget>
-   <class>DBSelector</class>
-   <extends>QLineEdit</extends>
-   <header>DBSelector.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

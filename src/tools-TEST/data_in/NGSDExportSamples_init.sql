@@ -1,33 +1,46 @@
 
 -- device
-INSERT INTO device (id, type, name) VALUES (1, 'HiSeq2500', 'Morpheus');
+INSERT INTO device (id, type, name) VALUES 
+(1, 'HiSeq2500', 'Morpheus');
 
 -- sequencing_run
-INSERT INTO sequencing_run (id, name, fcid, device_id, recipe, quality) VALUES (1, 'run1', 'ABC', 1, '100+8+8+100', 'good');
-INSERT INTO sequencing_run (id, name, fcid, device_id, recipe, quality) VALUES (2, 'run2', 'XYZ', 1, '100+8+100', 'good');
+INSERT INTO sequencing_run (id, name, fcid, device_id, recipe, quality) VALUES 
+(1, 'run1', 'ABC', 1, '100+8+8+100', 'good'),
+(2, 'run2', 'XYZ', 1, '100+8+100', 'good');
 
 -- user
-INSERT INTO user (id, user_id, password, user_role, name, email, created, active) VALUES (99, 'ahuser', 's2d12kjg234hla0830t6hp9h3tt3t3tsdfg', 'user', 'The user', 'u@s.er', CURDATE(), '1');
+INSERT INTO user (id, user_id, password, user_role, name, email, created, active) VALUES 
+(99, 'ahuser', 's2d12kjg234hla0830t6hp9h3tt3t3tsdfg', 'user', 'The user', 'u@s.er', CURDATE(), '1');
 
 -- sender
-INSERT INTO sender (id, name) VALUES (1, 'sender');
+INSERT INTO sender (id, name) VALUES 
+(1, 'sender');
 
 -- project
-INSERT INTO project (id, name, type, internal_coordinator_id, analysis) VALUES (1, 'First_project', 'research', 1, 'annotation');
-INSERT INTO project (id, name, type, internal_coordinator_id, analysis) VALUES (2, 'Second_project', 'diagnostic', 1, 'annotation');
+INSERT INTO project (id, name, type, internal_coordinator_id, analysis) VALUES 
+(1, 'First_project', 'research', 1, 'annotation'),
+(2, 'Second_project', 'diagnostic', 1, 'annotation'),
+(3, 'Third_project', 'diagnostic', 1, 'annotation');
 
 -- processing_system
-INSERT INTO processing_system (id, name_manufacturer, shotgun, name_short, genome_id) VALUES (1, 'HaloPlex System', '1', 'hpSYSv1', 1);
-INSERT INTO processing_system (id, name_manufacturer, shotgun, name_short, genome_id) VALUES (2, 'SureSelect Human All Exon v5', '1', 'ssHAEv5', 1);
+INSERT INTO processing_system (id, name_manufacturer, shotgun, name_short, genome_id) VALUES
+(1, 'HaloPlex System', '1', 'hpSYSv1', 1),
+(2, 'SureSelect Human All Exon v5', '1', 'ssHAEv5', 1);
 
 -- sample
-INSERT INTO sample (id, name, sample_type, species_id, gender, tumor, ffpe, sender_id, quality, disease_group, disease_status) VALUES (1, 'NA12878', 'DNA', 1, 'female', '0', '0', 1, 'good', 'Neoplasms', 'Affected');
-INSERT INTO sample (id, name, sample_type, species_id, gender, tumor, ffpe, sender_id, quality) VALUES (2, 'NA12880', 'DNA', 1, 'female', '1', '0', 1, 'good');
+INSERT INTO sample (id, name, sample_type, species_id, gender, tumor, ffpe, sender_id, quality, disease_group, disease_status) VALUES
+(1, 'NA12878', 'DNA', 1, 'female', '0', '0', 1, 'good', 'Neoplasms', 'Affected'),
+(2, 'NA12880', 'DNA', 1, 'female', '1', '0', 1, 'good', 'n/a', 'n/a');
 
 -- processed_sample
-INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane, operator_id, processing_system_id, project_id, quality) VALUES (1, 1, 1, 1, 1, 2, 1, 1, 'bad');
-INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane, operator_id, processing_system_id, project_id) VALUES (2, 1, 2, 2, 1, 2, 2, 2);
-INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane, operator_id, processing_system_id, project_id) VALUES (3, 2, 1, 2, 1, 2, 2, 2);
+INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane, operator_id, processing_system_id, project_id, quality) VALUES
+(1, 1, 1, 1, 1, 2, 1, 1, 'bad'),
+(2, 1, 2, 2, 1, 2, 2, 2, 'n/a'),
+(3, 2, 1, 2, 1, 2, 2, 2, 'n/a'),
+(4, 2, 2, 2, 1, 2, 2, 3, 'n/a');
+
+-- merged_processed_samples
+INSERT INTO merged_processed_samples (processed_sample_id, merged_into) VALUES (4, 3);
 
 -- qc_terms
 INSERT INTO `qc_terms` (`id`, `qcml_id`, `name`, `description`, `type`, `obsolete`) VALUES

@@ -1017,6 +1017,27 @@ CREATE TABLE IF NOT EXISTS `omim_phenotype`
 )
 ENGINE = InnoDB DEFAULT CHARACTER SET = utf8;
 
+-- -----------------------------------------------------
+-- Table `merged_processed_samples`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `merged_processed_samples`
+(
+  `processed_sample_id` INT(11) NOT NULL,
+  `merged_into` INT(11) NOT NULL,
+  PRIMARY KEY (`processed_sample_id`),
+  CONSTRAINT `merged_processed_samples_ps_id`
+    FOREIGN KEY (`processed_sample_id`)
+    REFERENCES `processed_sample` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `merged_processed_samples_merged_into`
+    FOREIGN KEY (`merged_into`)
+    REFERENCES `processed_sample` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB DEFAULT CHARACTER SET = utf8;
+
 -- ----------------------------------------------------------------------------------------------------------
 --                                                 INITIAL DATA
 -- ----------------------------------------------------------------------------------------------------------

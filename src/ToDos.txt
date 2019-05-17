@@ -7,13 +7,13 @@ libs:
 
 NGSD:
 * support orphanet codes (add GenLab view, extend schema by 'Orpha number', implement import)
+*** Processed sample widget: show missing infos (also check sample/run)
 *** Allow adding/editing data in NGSD
     - Run/processed sample/sample in general
         - Add email support for runs "run finished" and "analysis finished"
     - Set processed sample qualities in batch (selection)
 ** Add run overview dialog/tab
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
-*** model merged samples
 
 GSvar:
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case

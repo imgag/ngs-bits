@@ -54,10 +54,11 @@ protected slots:
 private:
 	Ui::ProcessedSampleWidget* ui_;
 	QString ps_id_;
-	NGSD db_;
+	mutable NGSD db_;
 
 	QString sampleName() const;
 	QString processedSampleName() const;
+	QString mergedSamples() const;
 };
 
 #endif // PROCESSEDSAMPLEWIDGET_H

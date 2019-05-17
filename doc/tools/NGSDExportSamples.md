@@ -1,5 +1,5 @@
 ### NGSDExportSamples tool help
-	NGSDExportSamples (2019_04-7-g0efa492)
+	NGSDExportSamples (2019_05-10-g13f3158)
 	
 	Lists processed samples from the NGSD.
 	
@@ -15,6 +15,8 @@
 	  -no_tumor             If set, tumor samples are excluded.
 	                        Default value: 'false'
 	  -no_ffpe              If set, FFPE samples are excluded.
+	                        Default value: 'false'
+	  -with_merged          If set, processed samples that were merged into another sample are included.
 	                        Default value: 'false'
 	  -project <string>     Project name filter.
 	                        Default value: ''
@@ -42,8 +44,9 @@
 	  --tdx                 Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDExportSamples changelog
-	NGSDExportSamples 2019_04-7-g0efa492
+	NGSDExportSamples 2019_05-10-g13f3158
 	
+	2019-05-17 Added 'with_merged' flag.
 	2019-04-12 Complete refactoring and interface change.
 	2019-01-10 Added 'species' filter.
 	2018-10-23 Added 'outcome' flag.

@@ -1001,12 +1001,14 @@ FilterCascade MainWindow::loadFilter(QString name) const
 	return output;
 }
 
-QString MainWindow::processedSampleUserInput()
+QString MainWindow::processedSampleUserInput(bool include_merged_samples)
 {
 	//create
 	DBSelector* selector = new DBSelector(this);
 	NGSD db;
-	selector->fill(db.createTable("processed_sample", "SELECT ps.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM sample s, processed_sample ps WHERE ps.sample_id=s.id"));
+	QString query = "SELECT ps.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM sample s, processed_sample ps WHERE ps.sample_id=s.id AND ps.id";
+	if (!include_merged_samples) query += " NOT IN (SELECT processed_sample_id FROM merged_processed_samples)";
+	selector->fill(db.createTable("processed_sample", query));
 
 	//show
 	auto dlg = GUIHelper::createDialog(selector, "Select processed sample", "processed sample:", true);
@@ -1739,7 +1741,7 @@ void MainWindow::openProcessedSampleTabsCurrentSample()
 
 void MainWindow::on_actionOpenProcessedSampleTabByName_triggered()
 {
-	QString ps_name = processedSampleUserInput();
+	QString ps_name = processedSampleUserInput(true);
 	if (ps_name.isEmpty()) return;
 
 	openProcessedSampleTab(ps_name);
