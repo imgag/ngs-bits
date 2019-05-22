@@ -5,6 +5,7 @@
 RtfSourceCode RtfText::RtfCode()
 {
 	QByteArrayList output;
+	output << "\\q" + horizontal_alignment_;
 	output << "{";
 
 	output << "\\fs" + QByteArray::number(font_size_);
@@ -14,11 +15,9 @@ RtfSourceCode RtfText::RtfCode()
 	if(bold_) output << "\\b";
 	if(italic_) output << "\\i";
 	if(highlight_color_ != 0) output << "\\highlight" + QByteArray::number(highlight_color_);
-	output << "\\q" + horizontal_alignment_;
 
-	//if(!content_.isEmpty())
+
 	output << RtfDocument::escapeUmlauts(content_);
-	//else output << "";
 
 	output << "}";
 	return output.join("\n");
@@ -177,6 +176,8 @@ void RtfTableCell::setBorder(int left,int top,int right,int bottom, const QByteA
 	border_type_ = type;
 }
 
+
+
 void RtfTableRow::addCell(int width, const RtfParagraph& paragraph)
 {
 	RtfParagraph temp_paragraph = paragraph;
@@ -190,6 +191,14 @@ void RtfTableRow::addCell(int width,const QByteArray& content)
 	temp_paragraph.setContent(content);
 	temp_paragraph.setPartOfACell(true);
 	addCell(width,temp_paragraph);
+}
+
+void RtfTableRow::addCell(int width, const QByteArray &content, const RtfParagraph& par_format)
+{
+	RtfParagraph temp_par = par_format;
+	temp_par.setContent(content);
+	temp_par.setPartOfACell(true);
+	addCell(width,temp_par);
 }
 
 void RtfTableRow::addCell(const QByteArrayList& cell_contents, int width, const RtfParagraph& par_format)
@@ -255,7 +264,6 @@ RtfTableRow::RtfTableRow(const QList<QByteArray>& cell_contents, const QList<int
 		temp_par.setContent(cell_contents.at(i));
 		addCell(cell_widths.at(i),temp_par);
 	}
-
 }
 
 RtfSourceCode RtfTableRow::writeRowHeader()
@@ -269,10 +277,15 @@ RtfSourceCode RtfTableRow::writeRowHeader()
 		right_cell_offset += cell.width();
 
 		//cell border
-		if(cell.border_top_ != 0) output.append("\\clbrdrt\\brdrw" + QByteArray::number(cell.border_top_) + "\\" + cell.border_type_);
-		if(cell.border_bottom_ != 0) output.append("\\clbrdrb\\brdrw" + QByteArray::number(cell.border_bottom_) + "\\" + cell.border_type_);
-		if(cell.border_left_ != 0) output.append("\\clbrdrl\\brdrw" + QByteArray::number(cell.border_left_) + "\\" + cell.border_type_);
-		if(cell.border_right_ != 0) output.append("\\clbrdrr\\brdrw" + QByteArray::number(cell.border_right_) + "\\" + cell.border_type_);
+		QByteArray border_statement = "\\brdrw" + QByteArray::number(cell.border_top_);
+		if(cell.border_color_ != 0) border_statement.append("\\brdrcf" + QByteArray::number(cell.border_color_));
+
+		border_statement.append("\\" + cell.border_type_);
+
+		if(cell.border_top_ != 0) output.append("\\clbrdrt" + border_statement);
+		if(cell.border_bottom_ != 0) output.append("\\clbrdrb" + border_statement);
+		if(cell.border_left_ != 0) output.append("\\clbrdrl" + border_statement);
+		if(cell.border_right_ != 0) output.append("\\clbrdrr" + border_statement);
 
 		if(cell.background_color_ != 0) output.append("\\clcbpat" + QByteArray::number(cell.background_color_));
 
@@ -333,11 +346,12 @@ RtfSourceCode RtfTable::RtfCode()
 	return output.join("\n");
 }
 
-RtfTable& RtfTable::setUniqueBorder(int border, const QByteArray &border_type)
+RtfTable& RtfTable::setUniqueBorder(int border, const QByteArray &border_type, int border_color)
 {
 	for(int i=0;i<rows_.count();++i)
 	{
 		rows_[i].setBorders(border,border_type);
+		if(border_color != 0) rows_[i].setBorderColor(border_color);
 	}
 	return *this;
 }

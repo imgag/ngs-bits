@@ -70,6 +70,8 @@ public:
 		content_ = content.join("\n\\line\n");
 	}
 
+
+
 	///Horizontal alignment c: center, l: left, r: right, j: justified
 	virtual RtfText& setHorizontalAlignment(const QByteArray& alignment)
 	{
@@ -174,11 +176,11 @@ public:
 private:
 	bool part_of_a_cell_ = false;
 
-	int space_before_ = 0;
-	int space_after_ = 0;
+	int space_before_ = 30;
+	int space_after_ = 30;
 
-	int indent_block_left_ = 0;
-	int indent_block_right_ = 0;
+	int indent_block_left_ = 30;
+	int indent_block_right_ = 30;
 	int indent_first_line_ = 0;
 };
 
@@ -307,6 +309,12 @@ public:
 		background_color_ = color;
 	}
 
+	void setBorderColor(int color_number)
+	{
+		border_color_ = color_number;
+	}
+
+
 	int width()
 	{
 		return width_;
@@ -340,6 +348,9 @@ private:
 	int border_right_ = 0;
 	int border_top_ = 0;
 	int border_bottom_ = 0;
+
+	int border_color_ = 0;
+
 	//Cell border style
 	QByteArray border_type_ = "brdrs";
 
@@ -366,11 +377,32 @@ public:
 	void addCell(int width, const RtfParagraph& paragraph);
 	///Add cell using standard paragraph format
 	void addCell(int width, const QByteArray& content);
+
+	void addCell(int width, const QByteArray &content, const RtfParagraph& par_format);
 	///Add cellusing predefined cell format settings, each element of cell_contents will be separated by RTF new line "\line"
 	void addCell(const QByteArrayList& cell_contents, int width, const RtfParagraph& par_format = RtfParagraph());
 
+	RtfTableRow& setHeader()
+	{
+		for(auto& cell : cells_)
+		{
+			cell.addHeaderControlWord("trhdr");
+		}
+		return *this;
+	}
+
 	///sets consistent border to all cells
 	RtfTableRow& setBorders(int width, const QByteArray& type="brdrs");
+	///sets border color for all cells
+	RtfTableRow& setBorderColor(int border_color)
+	{
+		for(auto& cell : cells_)
+		{
+			cell.setBorderColor(border_color);
+		}
+		return *this;
+	}
+
 	///Write RTF code of a whole row
 	RtfSourceCode writeRow();
 
@@ -445,6 +477,15 @@ public:
 		return rows_[index];
 	}
 
+	const RtfTableRow& last() const
+	{
+		return rows_.last();
+	}
+	RtfTableRow& last()
+	{
+		return rows_.last();
+	}
+
 	int count()
 	{
 		return rows_.count();
@@ -459,7 +500,7 @@ public:
 	void sortByCol(int i_col);
 
 	///sets border for all table cells
-	RtfTable& setUniqueBorder(int border,const QByteArray& border_type = "brdrs");
+	RtfTable& setUniqueBorder(int border,const QByteArray& border_type = "brdrs", int border_color = 0);
 
 private:
 	QList<RtfTableRow> rows_;

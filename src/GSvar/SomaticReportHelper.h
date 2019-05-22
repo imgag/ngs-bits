@@ -199,6 +199,44 @@ struct cgi_info
 	}
 };
 
+
+struct somatic_virus
+{
+	QByteArray chr_;
+	int start_;
+	int end_;
+	QByteArray name_;
+	int reads_;
+	double coverage_;
+	int mismatches_;
+	double idendity_;
+	double coverage_on_target_;
+	int reads_on_target_;
+
+	///Virus gene, extracted from name_ if possible
+	QByteArray virusGene() const
+	{
+		QByteArray gene_name = name_;
+		if(name_.split('_').count() > 1)
+		{
+			QByteArray reduced_name = name_.split('_').at(0) + "_";
+			gene_name = gene_name.replace(reduced_name,"");
+			return gene_name;
+		}
+		return "";
+	}
+
+	QByteArray virusName() const
+	{
+		QByteArray virus_name = "";
+		if(name_.split('_').count() > 0)
+		{
+			virus_name = name_.split('_').at(0);
+		}
+		return virus_name;
+	}
+};
+
 //struct holding reference data for tumor mutation burden (DOI:10.1186/s13073-017-0424-2)
 struct tmb_info
 {
@@ -270,11 +308,13 @@ private:
 	QMap<QByteArray, BedFile> gapStatistics(const BedFile& region_of_interest);
 
 	///Writes Rtf table containing given snvs
-	RtfTable createSnvTable(const QList<int>& col_widths, const VariantList& snvs);
+	RtfTable createSnvTable(const VariantList& snvs, const ClinCnvList& cnvs);
 	///Writes Rtf table containing CNVs per gene
 	RtfTable createCNVdriverTable(const GeneSet& target_genes);
 	///generates table with CNVs
 	RtfTable createCnvTable();
+
+	RtfTable createVirusTable();
 
 	///Writes table with drug annotation
 	RtfTable createCgiDrugTable();
@@ -284,6 +324,12 @@ private:
 
 	///Parse raw text containing CGI cancer acronyms in the form "known in:
 	QList<QByteArray> parse_cgi_cancer_acronyms(QByteArray text);
+
+	///Returns CNV type, e.g. DEL (het) according copy number
+	QByteArray getCnvType(const ClinCnvVariant& cnv);
+
+	///Returns maximum tumor clonailty in cnv file
+	double getCnvMaxTumorClonality(const ClinCnvList& cnvs);
 
 	///SNV file
 	QString snv_filename_;
@@ -308,6 +354,7 @@ private:
 
 	///tumor ID
 	QString tumor_id_;
+
 	///normal ID
 	QString normal_id_;
 
@@ -319,6 +366,9 @@ private:
 
 	///CNVList for input (filtered) variants
 	ClinCnvList cnvs_filtered_;
+
+	///Somatic viruses (original file usually in tumor dir)
+	QList<somatic_virus> viruses_;
 
 	NGSD db_;
 

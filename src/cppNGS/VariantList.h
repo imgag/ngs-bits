@@ -357,6 +357,8 @@ public:
 
 	///Default sorting of variants. The order is chromosome (numeric), position, ref, obs, quality (if desired - only for VCF).
 	void sort(bool use_quality = false);
+	///Sort list alphabetically by annotation
+	void sortByAnnotation(int annotation_index);
 	///Sorts the lines accoring to FASTA index file. The order is chromosome (as given in the file), position, ref, obs.
     void sortByFile(QString file_name);
 	///Costum sorting of variants.
@@ -396,6 +398,18 @@ protected:
 	QList<VariantAnnotationHeader> annotation_headers_;
 	QMap<QString, QString> filters_;
     QVector<Variant> variants_;
+
+	///Comparator helper class used by sortByAnnotation
+	class LessComparatorByAnnotation
+	{
+		public:
+			LessComparatorByAnnotation(int annotation_index);
+			bool operator()(const Variant &a, const Variant &b) const;
+
+		private:
+			int annotation_index_;
+
+	};
 
     ///Comparator helper class used by sortByFile.
     class LessComparatorByFile

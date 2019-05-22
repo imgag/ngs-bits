@@ -234,6 +234,17 @@ QString Variant::toHGVS(const FastaFileIndex& genome_index) const
 	THROW(ProgrammingException, "Could not convert variant " + toString(false) + " to string! This should not happen!");
 }
 
+VariantList::LessComparatorByAnnotation::LessComparatorByAnnotation(int annotation_index)
+	: annotation_index_(annotation_index)
+{
+}
+
+bool VariantList::LessComparatorByAnnotation::operator ()(const Variant& a, const Variant& b) const
+{
+	return ( a.annotations().at(annotation_index_) < b.annotations().at(annotation_index_) );
+}
+
+
 VariantList::LessComparatorByFile::LessComparatorByFile(QString filename)
 	: filename_(filename)
 {
@@ -1277,6 +1288,16 @@ void VariantList::sort(bool use_quality)
 	}
 
 	sortCustom(LessComparator(quality_index));
+}
+
+void VariantList::sortByAnnotation(int annotation_index)
+{
+	sort();
+	if(annotation_index > annotation_headers_.count())
+	{
+		THROW(ArgumentException, "Cannot sort by annotation because annotation_index is greater than ");
+	}
+	sortCustom(LessComparatorByAnnotation(annotation_index));
 }
 
 void VariantList::sortByFile(QString filename)

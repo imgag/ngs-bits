@@ -178,6 +178,16 @@ void ClinCnvList::copyMetaData(const ClinCnvList& rhs)
 	comments_ = rhs.comments_;
 }
 
+int ClinCnvList::totalCNVsize()
+{
+	int total_size = 0;
+	for(const auto& variant : variants_)
+	{
+		total_size += variant.size();
+	}
+	return total_size;
+}
+
 ClinCnvAnalysisType ClinCnvList::type() const
 {
 

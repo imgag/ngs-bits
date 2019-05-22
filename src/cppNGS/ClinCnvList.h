@@ -80,6 +80,11 @@ public:
 		return annotations_;
 	}
 
+	bool overlaps(const Chromosome& chr, int start, int end) const
+	{
+		return (chr == chr_ && start >= start_ && end <= end_);
+	}
+
 private:
 	Chromosome chr_;
 	int start_;
@@ -139,6 +144,10 @@ public:
 	}
 	///Copies Annotation Header and Comments
 	void copyMetaData(const ClinCnvList& rhs);
+
+	///Total size of all CNVs in list
+	int totalCNVsize();
+
 
 	ClinCnvAnalysisType type() const;
 
