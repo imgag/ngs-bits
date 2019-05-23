@@ -69,6 +69,8 @@ void ClinCnvList::load(QString filename)
 	annotation_indices.removeAll(i_log_likelihood);
 	int i_genes = file.colIndex("genes", false); //optional
 	annotation_indices.removeAll(i_genes);
+	int i_qvalues = file.colIndex("qvalue",false);
+	annotation_indices.removeAll(i_qvalues);
 
 	//parse annotation headers
 	foreach(int index, annotation_indices)
@@ -117,7 +119,6 @@ void ClinCnvList::load(QString filename)
 		}
 
 		QList<double> qvalues;
-		int i_qvalues = file.colIndex("qvalue",false);
 		if (i_qvalues!=-1)
 		{
 			foreach(QByteArray part, parts[i_qvalues].split(','))
