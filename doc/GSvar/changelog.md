@@ -1,5 +1,8 @@
 # GSvar change log
 
+### 2019_05-11 (21.05.19)
+- Processed samples: Merged samples are now modelled in NGSD and show in processed sample tab.
+
 ### 2019_05-7 (16.05.19)
 - Filters: added support for genotype 'n/a' in multi-sample variant lists in (genotype affected, genotype control and trio filters)
 - Bugfix: fixed crash when editing variant comment.
@@ -315,6 +318,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 

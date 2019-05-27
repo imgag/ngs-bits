@@ -86,6 +86,28 @@ QList<Phenotype> GenLabDB::phenotypes(QString sample_name)
 	return output;
 }
 
+QStringList GenLabDB::orphanet(QString sample_name)
+{
+	QSqlQuery query = db_->exec("SELECT code FROM v_ngs_orpha WHERE labornummer='" + sample_name + "' AND code IS NOT NULL");
+
+	QStringList output;
+	while(query.next())
+	{
+		QString orpha_num = query.value(0).toString().trimmed().toUpper();
+		if (orpha_num.isEmpty()) continue;
+
+		if (!orpha_num.startsWith("ORPHA:"))
+		{
+			orpha_num.prepend("ORPHA:");
+		}
+
+		output << orpha_num;
+	}
+	output.removeDuplicates();
+
+	return output;
+}
+
 QStringList GenLabDB::diagnosis(QString sample_name)
 {
 	QSqlQuery query = db_->exec("SELECT code FROM v_ngs_icd10 WHERE labornummer='" + sample_name + "' AND code IS NOT NULL");
@@ -93,9 +115,10 @@ QStringList GenLabDB::diagnosis(QString sample_name)
 	QStringList output;
 	while(query.next())
 	{
-		if (query.value(0).toString().trimmed().isEmpty()) continue;
+		QString diagnosis = query.value(0).toString().trimmed();
+		if (diagnosis.isEmpty()) continue;
 
-		output << query.value(0).toString();
+		output << diagnosis;
 	}
 	output.removeDuplicates();
 
@@ -110,9 +133,10 @@ QStringList GenLabDB::tumorFraction(QString sample_name)
 	QStringList output;
 	while(query.next())
 	{
-		if (query.value(0).toString().trimmed().isEmpty()) continue;
+		QString fraction = query.value(0).toString().trimmed();
+		if (fraction.isEmpty()) continue;
 
-		output << query.value(0).toString();
+		output << fraction;
 	}
 	output.removeDuplicates();
 

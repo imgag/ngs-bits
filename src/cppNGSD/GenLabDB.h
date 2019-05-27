@@ -24,8 +24,11 @@ public:
 	///Returns the number of entries with the given sample name
 	bool entriesExistForSample(QString sample_name);
 
-	///Returns the phenotypes of an NGSD sample (not processed sample)
+	///Returns HPO phenotypes of an NGSD sample (not processed sample)
 	QList<Phenotype> phenotypes(QString sample_name);
+
+	///Returns Oprhanet identifiers of an NGSD sample (not processed sample)
+	QStringList orphanet(QString sample_name);
 
 	///Returns the ICD10 diagnosis of an NGSD sample (not processed sample)
 	QStringList diagnosis(QString sample_name);

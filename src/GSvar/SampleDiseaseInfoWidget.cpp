@@ -97,6 +97,18 @@ void SampleDiseaseInfoWidget::addDiseaseInfo()
 		QString text = QInputDialog::getText(this, "Add disease info", type);
 		if (text.isEmpty()) return;
 
+		//check if valid
+		if (type=="OMIM disease/phenotype identifier" && !QRegExp("#\\d*").exactMatch(text))
+		{
+			QMessageBox::critical(this, "Invalid OMIM identifier", "OMIM disease/phenotype identifier invaid!\nA valid identifier is for example '#164400'.");
+			return;
+		}
+		if (type=="Orpha number" && !QRegExp("ORPHA:\\d*").exactMatch(text))
+		{
+			QMessageBox::critical(this, "Invalid Orpha number", "Orpha number invaid!\nA valid number is for example 'ORPHA:1172'.");
+			return;
+		}
+
 		tmp.disease_info = text;
 		disease_info_ <<  tmp;
 	}
@@ -157,12 +169,21 @@ void SampleDiseaseInfoWidget::importDiseaseInfoFromGenLab()
 		disease_info_ << tmp;
 	}
 
-	//phenotypes
+	//HPO
 	QList<Phenotype> phenos = genlab_db.phenotypes(name);
 	foreach(const Phenotype& pheno, phenos)
 	{
 		tmp.disease_info = pheno.accession();
 		tmp.type = "HPO term id";
+		disease_info_ << tmp;
+	}
+
+	//Orphanet
+	QStringList ids = genlab_db.orphanet(name);
+	foreach(const QString& id, ids)
+	{
+		tmp.disease_info = id;
+		tmp.type = "Orpha number";
 		disease_info_ << tmp;
 	}
 

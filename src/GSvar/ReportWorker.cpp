@@ -502,6 +502,16 @@ void ReportWorker::writeHTML()
 	{
 		stream << "<br />HPO: " << entry.disease_info << " (" << db_.phenotypeByAccession(entry.disease_info.toLatin1(), false).name() << ")" << endl;
 	}
+	info = db_.getSampleDiseaseInfo(sample_id, "OMIM disease/phenotype identifier");
+	foreach(const SampleDiseaseInfo& entry, info)
+	{
+		stream << "<br />OMIM: " << entry.disease_info << endl;
+	}
+	info = db_.getSampleDiseaseInfo(sample_id, "Orpha number");
+	foreach(const SampleDiseaseInfo& entry, info)
+	{
+		stream << "<br />Orphanet: " << entry.disease_info << endl;
+	}
 	stream << "</p>" << endl;
 
 	///Target region statistics
