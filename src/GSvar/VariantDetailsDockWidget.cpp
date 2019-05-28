@@ -619,7 +619,7 @@ void VariantDetailsDockWidget::setTranscript(int index)
 	const VariantTranscript& trans = trans_data[index];
 
 	//set transcript label
-	QString text = formatLink(trans.gene, "http://exac.broadinstitute.org/awesome?query=" + trans.gene) + " " + formatLink(trans.id, "http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?t=" + trans.id);
+	QString text = formatLink(trans.gene, "https://gnomad.broadinstitute.org/gene/" + trans.gene) + " " + formatLink(trans.id, "http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?t=" + trans.id);
 	if (trans_data.count()>1)
 	{
 		text += " (" + QString::number(index+1) + "/" + QString::number(trans_data.count()) + ")";

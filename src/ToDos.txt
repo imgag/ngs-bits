@@ -7,6 +7,7 @@ libs:
 
 NGSD:
 *** Processed sample widget: show missing infos (also check sample/run~SAVdata)
+*** NGSD annotation: export VCF, use VCF for annotation (also works on external servers)
 *** Allow adding/editing data in NGSD
     - Run/processed sample/sample in general
         - Add email support for runs "run finished" and "analysis finished"
@@ -15,6 +16,8 @@ NGSD:
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
 
 GSvar:
+### TEST: IGV region first > faster?
+*** Processed sample widget: added links to source databases for disease details entries (OMIM, HPO, Orphanet, ICD10)
 *** Processed sample selection for re-analysis with auto-completion
 *** change sub-panel design to Ensembl instead of CCDS transcripts (example CNGA1, gencode basic?)
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
