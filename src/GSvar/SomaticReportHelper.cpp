@@ -22,6 +22,7 @@ RtfTable SomaticReportHelper::createSnvTable(const VariantList& snvs, const Clin
 
 	if(snvs.count() == 0)
 	{
+		snv_list.removeRow(1); //remove description header
 		snv_list.addRow(RtfTableRow("Es wurden keine SNVs und INDELs gefunden.",doc_.maxWidth()));
 		return snv_list;
 	}
@@ -65,7 +66,7 @@ RtfTable SomaticReportHelper::createSnvTable(const VariantList& snvs, const Clin
 		int i_tum_af = snvs.annotationIndexByName("tumor_af",true,true);
 		temp_snv_row.addCell(900,QByteArray::number(snv.annotations().at(i_tum_af).toDouble(),'f',2),RtfParagraph().setHorizontalAlignment("c")); //tumor allele frequency
 
-		QByteArray gene_info = "na";
+		QByteArray gene_info = "NA";
 		if(!snv.annotations()[snv_index_cgi_driver_statement_].isEmpty())
 		{
 			gene_info = snv.annotations()[snv_index_cgi_driver_statement_];
@@ -141,7 +142,6 @@ RtfTable SomaticReportHelper::createSnvTable(const VariantList& snvs, const Clin
 		}
 	}
 
-	snv_list.setUniqueBorder(1,"brdrhair",4);
 	return snv_list;
 }
 
@@ -151,16 +151,18 @@ RtfTable SomaticReportHelper::createCNVdriverTable(const GeneSet& target_genes)
 
 	if(cnvs_filtered_.isEmpty())
 	{
+		cnv_table.addRow(RtfTableRow("Kopienzahlvarianten (CNVs)",doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(5).setHeader());
 		cnv_table.addRow(RtfTableRow("Es wurden keine CNVs gefunden.",doc_.maxWidth(),RtfParagraph().setIndent(0,0,20)));
 		return cnv_table;
 	}
 	if(cnv_index_cgi_gene_role_ < 0 || cnv_index_cgi_genes_ < 0 || cnv_index_cgi_driver_statement_ < 0 )
 	{
-		cnv_table.addRow(RtfTableRow("Fehlerhafte CGI statements in ClinCNV-Datei.",doc_.maxWidth()));
+		cnv_table.addRow(RtfTableRow("Fehlerhafte CGI statements in ClinCNV-Datei.",doc_.maxWidth(),RtfParagraph().setBold(true)));
 		return cnv_table;
 	}
 	if(cnv_index_tumor_clonality_ < 0 || cnv_index_tumor_cn_change_ < 0)
 	{
+		cnv_table.addRow(RtfTableRow("Kopienzahlvarianten (CNVs)",doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(5).setHeader());
 		cnv_table.addRow(RtfTableRow("Die ClinCNV-Datei enthält keine Tumor Clonality. Bitte mit einer aktuelleren Version von ClinCNV neu berechnen.",doc_.maxWidth()));
 		return cnv_table;
 	}
@@ -276,6 +278,7 @@ RtfTable SomaticReportHelper::createCnvTable()
 
 	if(cnvs_filtered_.isEmpty())
 	{
+		cnv_table.removeRow(1);
 		cnv_table.addRow(RtfTableRow("Es wurden keine CNVs gefunden.",doc_.maxWidth()));
 		return cnv_table;
 	}
@@ -452,7 +455,8 @@ RtfTable SomaticReportHelper::createVirusTable()
 
 	if(validated_virus_count == 0)
 	{
-		table.addRow(RtfTableRow("Es wurde keine der untersuchten Onkoviren nachgewiesen.",doc_.maxWidth()));
+		table.removeRow(1); //remove description
+		table.addRow(RtfTableRow("Es wurde keines der untersuchten Virusgene nachgewiesen.",doc_.maxWidth()));
 	}
 	table.setUniqueBorder(1,"brdrhair",4);
 
@@ -1780,9 +1784,12 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	 **********************************/
 	RtfTable general_info_table;
 
-	general_info_table.addRow(RtfTableRow("Allgemeine genetische Charakteristika",doc_.maxWidth(),RtfParagraph().setBold(true)).setBackgroundColor(5));
+	general_info_table.addRow(RtfTableRow("Allgemeine genetische Charakteristika",doc_.maxWidth(),RtfParagraph().setBold(true)).setBackgroundColor(5).setBorders(1,"brdrhair",4));
 
-	QByteArray mut_burden = "Mutationslast: " + QByteArray::number(mutation_burden_) + " Var/Mbp – ";
+	general_info_table.addRow(RtfTableRow({"Mutationslast:", QByteArray::number(mutation_burden_) + " Var/Mbp"},{2500,7137}).setBorders(1,"brdrhair",4));
+
+	general_info_table.last()[0].setBorder(1,1,1,0,"brdrhair");
+	general_info_table.last().last().setBorder(1,1,1,0,"brdrhair");
 
 	//Parse reference data from publication
 	QList<tmb_info> hpo_tmbs = tmb_info::load("://Resources/hpoterms_tmb.tsv");
@@ -1792,29 +1799,36 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 		if(data.hpoterm == hpo_term_) ++entries_count;
 	}
 
+	RtfTableRow ref_values;
+	ref_values.addCell(2500,"Vergleichswerte:",RtfParagraph().setFontSize(14));
+
 	if(entries_count == 0)
 	{
-		if(!hpo_term_.isEmpty()) mut_burden.append("Es sind keine Vergleichsdaten zu dieser Tumorentität erfasst. (PMID: 28420421)");
-		else mut_burden.append("Es wurde kein (eindeutiger) HPO-Term in NGSD hinterlegt.");
+		if(!hpo_term_.isEmpty()) ref_values.addCell(7137,"Es sind keine Vergleichsdaten zu dieser Tumorentität erfasst. (PMID: 28420421)",RtfParagraph().setFontSize(14));
+		else ref_values.addCell(7137,"Es wurde kein (eindeutiger) HPO-Term in NGSD hinterlegt.",RtfParagraph().setFontSize(14));
 	}
 	else
 	{
-		QByteArrayList ref_values;
+		QByteArrayList tmp;
 		foreach(tmb_info data,hpo_tmbs)
 		{
 			if(data.hpoterm == hpo_term_)
 			{
-				ref_values <<  "Vergleichswerte: Median: " + QByteArray::number(data.tmb_median) + " Var/Mbp, Maximum: " + QByteArray::number(data.tmb_max) + " Var/Mbp, Probenanzahl: " + QByteArray::number(data.cohort_count) + " (PMID: 28420421) "
-										+ RtfText(data.tumor_entity).highlight(3).RtfCode();
+				tmp << "Median: " + QByteArray::number(data.tmb_median) + " Var/Mbp, Maximum: " + QByteArray::number(data.tmb_max) + " Var/Mbp, Probenanzahl: " + QByteArray::number(data.cohort_count) + " (PMID: 28420421) "
+										+ RtfText(data.tumor_entity).highlight(3).setFontSize(14).RtfCode();
 			}
 		}
+		ref_values.addCell(7137,tmp.join("\n\\line\n"),RtfParagraph().setFontSize(14));
 
-		mut_burden.append(ref_values.join("\\line\n"));
+		ref_values.setBorders(1,"brdrhair",4);
+		ref_values[0].setBorder(10,0,10,10,"brdrhair");
+		ref_values.last().setBorder(10,0,10,10,"brdrhair");
 	}
-	general_info_table.addRow(RtfTableRow(mut_burden,doc_.maxWidth()));
+	general_info_table.addRow(ref_values);
+
 
 	//MSI statis, values larger than 0.4 are considered unstable
-	general_info_table.addRow(RtfTableRow("MSI-Status: "+QByteArray::number(mantis_msi_swd_value_,'f',3)+" (" + (mantis_msi_swd_value_ < 0.4 ? "stabil" : "instabil")+")",doc_.maxWidth()));
+	general_info_table.addRow(RtfTableRow({"MSI-Status:",QByteArray::number(mantis_msi_swd_value_,'f',3)+" (" + (mantis_msi_swd_value_ < 0.4 ? "stabil" : "instabil")+")"},{2500,7137}).setBorders(1,"brdrhair",4));
 
 	double tumor_molecular_proportion;
 
@@ -1831,20 +1845,18 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 
 	if(tumor_molecular_proportion > 100.)	tumor_molecular_proportion = 100.;
 
-	general_info_table.addRow(RtfTableRow("Tumoranteil (hist. / molekular SNVs / CNVs): " +histol_tumor_fraction_.toUtf8() + "\%" + " / " +QByteArray::number(tumor_molecular_proportion,'f',1) + "\%" + " / " + QByteArray::number(tumor_cnv_proportion,'f',1) + "\%",doc_.maxWidth()));
+	general_info_table.addRow(RtfTableRow({"Tumoranteil (hist. / bioinf.):", histol_tumor_fraction_.toUtf8() + "\%" + " / " +QByteArray::number(tumor_molecular_proportion,'f',1) + "\%" + " / " + QByteArray::number(tumor_cnv_proportion,'f',1) + "\%"},{2500,7137}).setBorders(1,"brdrhair",4));
 
 	//Calc percentage of CNV altered genome
 	double cnv_altered_percentage = cnvs_filtered_.totalCNVsize() / 3101788170. * 100;
 	if(cnv_altered_percentage >= 0.01)
 	{
-		general_info_table.addRow(RtfTableRow("CNV-Last: " + QByteArray::number(cnv_altered_percentage,'f',1) + "\%",doc_.maxWidth()) );
+		general_info_table.addRow(RtfTableRow({"CNV-Last:", QByteArray::number(cnv_altered_percentage,'f',1) + "\%"},{2500,7137}).setBorders(1,"brdrhair",4));
 	}
 	else
 	{
-		general_info_table.addRow(RtfTableRow("CNV-Last: Keine CNVs nachgewiesen",doc_.maxWidth(),RtfParagraph().highlight(3)));
+		general_info_table.addRow(RtfTableRow({"CNV-Last:", "Keine CNVs nachgewiesen"},{2500,7137},RtfParagraph().highlight(3)).setBorders(1,"brdrhair",4));
 	}
-
-	general_info_table.setUniqueBorder(1,"brdrhair",4);
 	doc_.addPart(general_info_table.RtfCode());
 	doc_.addPart(RtfParagraph("").RtfCode());
 	RtfParagraph text_helper("In der untersuchten Tumorprobe konnte eine Vielzahl struktureller ");
@@ -1903,7 +1915,12 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 
 	doc_.newPage();
 	doc_.addPart(RtfParagraph("Potentiell relevante somatische Veränderungen:").setBold(true).setIndent(0,0,0).RtfCode());
-	doc_.addPart(createSnvTable(snvs_to_be_printed,cnvs_filtered_).RtfCode());
+	doc_.addPart(RtfParagraph("Legende und Abkürzungen siehe Anlage 1").setFontSize(14).setIndent(0,0,0).setSpaceAfter(60).RtfCode());
+	doc_.addPart(createSnvTable(snvs_to_be_printed,cnvs_filtered_).setUniqueBorder(1,"brdrhair",4).RtfCode());
+
+	RtfSourceCode snv_expl  = RtfText("Fraction:").setBold(true).setFontSize(14).RtfCode() + " Frequenz der Variante bzw. der Probenanteil der entsprechenden Kopienzahlvariante. ";
+	snv_expl += RtfText("Description:").setFontSize(14).setBold(true).RtfCode() + " Klassifikation der Varianten durch CGI, Genname und ggf. Bewertung der Genfunktion als Onkogen bzw. Tumorsuppressorgen (TSG).";
+	doc_.addPart(RtfParagraph(snv_expl).setFontSize(14).setIndent(0,0,0).setHorizontalAlignment("j").RtfCode());
 
 	doc_.addPart(RtfParagraph(" ").RtfCode());
 
@@ -1957,7 +1974,7 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	 *********************/
 	doc_.addPart(RtfParagraph("Alle nachgewiesenen somatischen Veränderungen:").setBold(true).setSpaceAfter(45).setFontSize(18).RtfCode());
 
-	doc_.addPart(createSnvTable(snv_variants_,cnvs_filtered_).RtfCode());
+	doc_.addPart(createSnvTable(snv_variants_,cnvs_filtered_).setUniqueBorder(1,"brdrhair",4).RtfCode());
 
 	doc_.addPart(RtfParagraph(" ").RtfCode());
 

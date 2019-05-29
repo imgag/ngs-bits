@@ -218,6 +218,16 @@ RtfTableRow& RtfTableRow::setBorders(int width, const QByteArray& type)
 	return *this;
 }
 
+RtfTableRow& RtfTableRow::setBorders(int width, const QByteArray &type, int color)
+{
+	setBorders(width,type);
+	for(auto& cell : cells_)
+	{
+		cell.setBorderColor(color);
+	}
+	return *this;
+}
+
 RtfTableRow& RtfTableRow::setBackgroundColor(int color)
 {
 	for(RtfTableCell& cell : cells_)
@@ -277,15 +287,13 @@ RtfSourceCode RtfTableRow::writeRowHeader()
 		right_cell_offset += cell.width();
 
 		//cell border
-		QByteArray border_statement = "\\brdrw" + QByteArray::number(cell.border_top_);
+		QByteArray border_statement = "\\" + cell.border_type_;
 		if(cell.border_color_ != 0) border_statement.append("\\brdrcf" + QByteArray::number(cell.border_color_));
 
-		border_statement.append("\\" + cell.border_type_);
-
-		if(cell.border_top_ != 0) output.append("\\clbrdrt" + border_statement);
-		if(cell.border_bottom_ != 0) output.append("\\clbrdrb" + border_statement);
-		if(cell.border_left_ != 0) output.append("\\clbrdrl" + border_statement);
-		if(cell.border_right_ != 0) output.append("\\clbrdrr" + border_statement);
+		if(cell.border_top_ != 0) output.append("\\clbrdrt\\brdrw" + QByteArray::number(cell.border_top_) + border_statement);
+		if(cell.border_bottom_ != 0) output.append("\\clbrdrb\\brdrw" + QByteArray::number(cell.border_bottom_)  + border_statement);
+		if(cell.border_left_ != 0) output.append("\\clbrdrl\\brdrw" + QByteArray::number(cell.border_left_)  + border_statement);
+		if(cell.border_right_ != 0) output.append("\\clbrdrr\\brdrw" + QByteArray::number(cell.border_right_) + border_statement);
 
 		if(cell.background_color_ != 0) output.append("\\clcbpat" + QByteArray::number(cell.background_color_));
 
