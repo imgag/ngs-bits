@@ -146,7 +146,7 @@ public:
 	void copyMetaData(const ClinCnvList& rhs);
 
 	///Total size of all CNVs in list
-	int totalCNVsize();
+	long long totalCNVsize();
 
 
 	ClinCnvAnalysisType type() const;
