@@ -179,9 +179,9 @@ void ClinCnvList::copyMetaData(const ClinCnvList& rhs)
 	comments_ = rhs.comments_;
 }
 
-int ClinCnvList::totalCNVsize()
+long long ClinCnvList::totalCNVsize()
 {
-	int total_size = 0;
+	long long total_size = 0;
 	for(const auto& variant : variants_)
 	{
 		total_size += variant.size();
