@@ -16,6 +16,7 @@ NGSD:
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
 
 GSvar:
+### Filter: enhancer/promotor - de-novo
 ### TEST: IGV region first > faster?
 *** Processed sample widget: added links to source databases for disease details entries (OMIM, HPO, Orphanet, ICD10)
 *** Processed sample selection for re-analysis with auto-completion

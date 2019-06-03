@@ -207,22 +207,28 @@ void AnalysisStatusWidget::refreshStatus()
 			if (status.startsWith("started (") || status.startsWith("canceled"))
 			{
 				QString folder = db.analysisJobFolder(job_id);
-				QStringList files = Helper::findFiles(folder, "*.log", false);
-				QString latest_file;
-				QDateTime latest_mod;
-				foreach(QString file, files)
+				if (QFile::exists(folder))
 				{
-					QFileInfo file_info(file);
-					QDateTime mod_time = file_info.lastModified();
-					if (latest_mod.isNull() || mod_time>latest_mod)
+					QStringList files = Helper::findFiles(folder, "*.log", false);
+					if (!files.isEmpty())
 					{
-						latest_file = file_info.fileName();
-						latest_mod = mod_time;
+						QString latest_file;
+						QDateTime latest_mod;
+						foreach(QString file, files)
+						{
+							QFileInfo file_info(file);
+							QDateTime mod_time = file_info.lastModified();
+							if (latest_mod.isNull() || mod_time>latest_mod)
+							{
+								latest_file = file_info.fileName();
+								latest_mod = mod_time;
+							}
+						}
+						int sec = latest_mod.secsTo(QDateTime::currentDateTime());
+						if (sec>36000) bg_color = QColor("#FFC45E"); //36000s ~ 10h
+						last_update = timeHumanReadable(sec) + " ago (" + latest_file + ")";
 					}
 				}
-				int sec = latest_mod.secsTo(QDateTime::currentDateTime());
-				if (sec>36000) bg_color = QColor("#FFC45E"); //36000s ~ 10h
-				last_update = timeHumanReadable(sec) + " ago (" + latest_file + ")";
 			}
 			addItem(ui_.analyses, row, 8, last_update, bg_color);
 		}
