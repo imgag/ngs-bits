@@ -2,6 +2,7 @@
 #include "BasicStatistics.h"
 #include "DBSelector.h"
 #include "GUIHelper.h"
+#include "ProcessedSampleSelector.h"
 
 #include <QDebug>
 
@@ -74,15 +75,10 @@ void DBQCWidget::clearHighlighting()
 
 void DBQCWidget::addHighlightSample()
 {
-	//create
-	DBSelector* selector = new DBSelector(this);
-	selector->fill(db_.createTable("processed_sample", "SELECT ps.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps, sample s WHERE ps.sample_id=s.id"), true);
-
-	//execute
-	QSharedPointer<QDialog> dialog = GUIHelper::createDialog(selector, "Select processed sample", "Processed sample:", true);
-	if (dialog->exec()==QDialog::Accepted && selector->isValidSelection())
+	ProcessedSampleSelector dlg(this, true);
+	if (dlg.exec()==QDialog::Accepted && dlg.isValidSelection())
 	{
-		addHighlightedProcessedSampleById(selector->getId(), selector->text());
+		addHighlightedProcessedSampleById(dlg.processedSampleId(), dlg.processedSampleName());
 	}
 }
 

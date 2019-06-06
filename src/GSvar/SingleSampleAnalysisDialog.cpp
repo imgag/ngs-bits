@@ -3,6 +3,7 @@
 #include <QMessageBox>
 #include <Settings.h>
 #include <QPlainTextEdit>
+#include <ProcessedSampleSelector.h>
 #include "GUIHelper.h"
 
 SingleSampleAnalysisDialog::SingleSampleAnalysisDialog(QWidget *parent)
@@ -48,8 +49,13 @@ QString SingleSampleAnalysisDialog::addSample(NGSD& db, QString status, QList<Sa
 	//get sample name if unset
 	if (force_showing_dialog || sample.isEmpty())
 	{
-		QString label = status.isEmpty() ? "sample:" : status + ":";
-		sample = QInputDialog::getText(QApplication::activeWindow(), "Add processed sample", label, QLineEdit::Normal, sample);
+		ProcessedSampleSelector dlg(QApplication::activeWindow(), false);
+		dlg.setLabel(status.isEmpty() ? "Processed sample:" : status + ":");
+		dlg.setSelection(sample);
+		if (dlg.exec())
+		{
+			sample = dlg.processedSampleName();
+		}
 	}
 	if (sample.isEmpty()) return "";
 

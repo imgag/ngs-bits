@@ -63,8 +63,6 @@ public:
 	QStringList loadFilterNames() const;
 	///Returns all filters defined in the filters INI file
 	FilterCascade loadFilter(QString name) const;
-	///Gets a processed sample name from the user - or "" if cancelled.
-	QString processedSampleUserInput(bool include_merged_samples = false);
 
 	///Context menu for single variant
 	void contextMenuSingleVariant(QPoint pos, int index);

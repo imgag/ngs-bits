@@ -77,6 +77,7 @@
 #include "ToolBase.h"
 #include "BedpeFile.h"
 #include "SampleSearchWidget.h"
+#include "ProcessedSampleSelector.h"
 
 QT_CHARTS_USE_NAMESPACE
 
@@ -1002,26 +1003,6 @@ FilterCascade MainWindow::loadFilter(QString name) const
 	return output;
 }
 
-QString MainWindow::processedSampleUserInput(bool include_merged_samples)
-{
-	//create
-	DBSelector* selector = new DBSelector(this);
-	NGSD db;
-	QString query = "SELECT ps.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM sample s, processed_sample ps WHERE ps.sample_id=s.id AND ps.id";
-	if (!include_merged_samples) query += " NOT IN (SELECT processed_sample_id FROM merged_processed_samples)";
-	selector->fill(db.createTable("processed_sample", query));
-
-	//show
-	auto dlg = GUIHelper::createDialog(selector, "Select processed sample", "processed sample:", true);
-	if (dlg->exec()==QDialog::Rejected) return "";
-
-	//handle invalid name
-	QString ps_id = selector->getId();
-	if (ps_id=="") return "";
-
-	return db.processedSampleName(ps_id);
-}
-
 void MainWindow::addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize)
 {
 	if (maximize)
@@ -1132,7 +1113,10 @@ void MainWindow::on_actionOpen_triggered()
 
 void MainWindow::on_actionOpenByName_triggered()
 {
-	QString ps_name = processedSampleUserInput();
+	ProcessedSampleSelector dlg(this, false);
+	if (!dlg.exec()) return;
+
+	QString ps_name = dlg.processedSampleName();
 	if (ps_name.isEmpty()) return;
 	openProcessedSampleFromNGSD(ps_name);
 }
@@ -1742,7 +1726,10 @@ void MainWindow::openProcessedSampleTabsCurrentSample()
 
 void MainWindow::on_actionOpenProcessedSampleTabByName_triggered()
 {
-	QString ps_name = processedSampleUserInput(true);
+	ProcessedSampleSelector dlg(this, true);
+	if (!dlg.exec()) return;
+
+	QString ps_name = dlg.processedSampleName();
 	if (ps_name.isEmpty()) return;
 
 	openProcessedSampleTab(ps_name);

@@ -1,7 +1,6 @@
 === TODO ===
 
 libs:
-- NGSHelper: consider soft-clipping of secondary alignments (CS)
 - integration of htslib: use pileup, use VCF support, use tabix support
 * FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 
@@ -16,11 +15,9 @@ NGSD:
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
 
 GSvar:
-### Filter: enhancer/promotor - de-novo
-### TEST: IGV region first > faster?
 *** Processed sample widget: added links to source databases for disease details entries (OMIM, HPO, Orphanet, ICD10)
-*** Processed sample selection for re-analysis with auto-completion
 *** change sub-panel design to Ensembl instead of CCDS transcripts (example CNGA1, gencode basic?)
+## Filter: enhancer/promotor - de-novo
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 - Implement OMIM search via API - example: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1 (wait for API access)
 ** Allow classification of unseen variants (how do we check that the variants are valid?)
@@ -40,10 +37,7 @@ GSvar:
 Tools:
 - NGSDPrecalculate: fix missing/different disease group/status for sample with relation "same sample"
 - UPDHunter: also support chrX?
-- SomaticQC: do not use precalculated triplet counts, count every time (CS)
 - SomaticQC: replace 'QC:?' by real qcML identifier (CS)
-- BamClipOverlap: require sorted bam and paired-end sequencing (CS)
-- BamClipOverlap: use higher base quality in overlap (CS)
 
 External:
 ** implement MultiQC support for ReadQC/MappingQC/VariantQC/SomaticQC (>JM): /mnt/SRV018/users/ahmattj1/dev/MultiQC/venv3/bin/multiqc -m readqc -m mappingqc -m variantqc .
