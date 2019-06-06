@@ -307,13 +307,13 @@ private:
 	RtfTable createGapStatisticsTable(const QList<int>& col_widths);
 	QMap<QByteArray, BedFile> gapStatistics(const BedFile& region_of_interest);
 
-	///Writes Rtf table containing given snvs
-	RtfTable createSnvTable(const VariantList& snvs, const ClinCnvList& cnvs);
-	///Writes Rtf table containing CNVs per gene
-	RtfTable createCNVdriverTable(const GeneSet& target_genes);
+	///Writes Rtf table containing most relevant SNVs and CNVs
+	RtfTable somaticAlterationTable(const VariantList& snvs, const ClinCnvList& cnvs, bool include_cnvs, const GeneSet& target_genes = GeneSet());
+
 	///generates table with CNVs
 	RtfTable createCnvTable();
 
+	///creates report about oncoviruses
 	RtfTable createVirusTable();
 
 	///Writes table with drug annotation
@@ -322,7 +322,7 @@ private:
 	///Writers basic QC params to RTF report
 	RtfTable createQCTable(const QList<int>& widths);
 
-	///Parse raw text containing CGI cancer acronyms in the form "known in:
+	///Parse raw text containing CGI cancer acronyms in the form "known in:"
 	QList<QByteArray> parse_cgi_cancer_acronyms(QByteArray text);
 
 	///Returns CNV type, e.g. DEL (het) according copy number
