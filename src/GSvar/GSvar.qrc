@@ -72,5 +72,6 @@
         <file>Icons/AF_histogram.png</file>
         <file>Icons/Resize_colums.png</file>
         <file>Icons/Save.png</file>
+        <file>Icons/Link.png</file>
     </qresource>
 </RCC>

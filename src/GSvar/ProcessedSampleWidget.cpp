@@ -37,6 +37,11 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	ui_->sample_relations->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openSampleTab()));
 
+	//sample details > open external data sources
+	action = new QAction(QIcon(":/Icons/Link.png"), "Open external database (if available)", this);
+	ui_->disease_details->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(openExternalDiseaseDatabase()));
+
 	//sample edit button
 	QMenu* menu = new QMenu();
 	menu->addAction("Edit disease group/status", this, SLOT(editDiseaseGroupAndInfo()));
@@ -289,6 +294,42 @@ void ProcessedSampleWidget::openSampleTab()
 		if (ok)
 		{
 			emit openProcessedSampleTab(ps);
+		}
+	}
+}
+
+void ProcessedSampleWidget::openExternalDiseaseDatabase()
+{
+	QList<int> selected_rows = ui_->disease_details->selectedRows().toList();
+	foreach(int row, selected_rows)
+	{
+		QString type = ui_->disease_details->item(row, 0)->text();
+		QString value = ui_->disease_details->item(row, 1)->text();
+
+		QString link;
+		if (type=="ICD10 code")
+		{
+			link = "http://www.icd-code.de/suche/icd/recherche.html?sp=" + value;
+		}
+		else if (type=="HPO term id")
+		{
+			value = value.left(10); //extract identifier
+			link = "https://hpo.jax.org/app/browse/term/" + value;
+		}
+		else if (type=="OMIM disease/phenotype identifier")
+		{
+			value.replace("#", ""); //remove prefix
+			link = "http://omim.org/entry/" + value;
+		}
+		else if (type=="Orpha number")
+		{
+			value.replace("ORPHA:", ""); //remove prefix
+			link = "https://www.orpha.net/consor/cgi-bin/OC_Exp.php?lng=en&Expert=" + value;
+		}
+
+		if (!link.isEmpty())
+		{
+			QDesktopServices::openUrl(QUrl(link));
 		}
 	}
 }

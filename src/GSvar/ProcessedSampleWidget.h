@@ -34,6 +34,7 @@ protected slots:
 	void openSampleInNGSD();
 	void openSampleFolder();
 	void openSampleTab();
+	void openExternalDiseaseDatabase();
 	void addRelation();
 	void removeRelation();
 
