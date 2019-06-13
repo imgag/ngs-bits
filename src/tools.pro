@@ -337,5 +337,9 @@ SUBDIRS += FastqConcat
 tools-TEST.depends += FastqConcat
 FastqConcat.depends = cppNGS
 
+SUBDIRS += VcfToBedpe
+tools-TEST.depends += VcfToBedpe
+VcfToBedpe.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt

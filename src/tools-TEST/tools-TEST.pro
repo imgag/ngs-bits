@@ -22,6 +22,9 @@ INCLUDEPATH += $$PWD/../cppTFW
 INCLUDEPATH += $$PWD/../cppNGSD
 LIBS += -L$$PWD/../../bin -lcppNGSD
 
+INCLUDEPATH += $$PWD/../VcfToBedpe
+
+
 HEADERS += \
     SampleAncestry_Test.h \
     UpdHunter_Test.h \
@@ -101,9 +104,11 @@ HEADERS += \
     NGSDImportOMIM_Test.h \
     VcfBreakComplex_Test.h \
     VcfExtractSamples_Test.h \
-    FastqConcat_Test.h
+    FastqConcat_Test.h \
+    VcfToBedpe_Test.h
+
 
 SOURCES += \
-    main.cpp \
+    main.cpp
 
 include("../app_cli.pri")
