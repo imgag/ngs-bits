@@ -970,7 +970,7 @@ SomaticReportHelper::SomaticReportHelper(QString snv_filename, const ClinCnvList
 	doc_.addColor(188,230,138);
 	doc_.addColor(255,0,0);
 	doc_.addColor(255,255,0);
-	doc_.addColor(217,217,217);
+	doc_.addColor(161,161,161);
 	doc_.addColor(242,242,242);
 }
 
