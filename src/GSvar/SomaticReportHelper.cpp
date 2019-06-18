@@ -845,15 +845,13 @@ SomaticReportHelper::SomaticReportHelper(QString snv_filename, const ClinCnvList
 			tmp.coverage_ = parts[file.colIndex("coverage",true)].toDouble();
 			tmp.mismatches_ = parts[file.colIndex("mismatches",true)].toInt();
 			tmp.idendity_ = parts[file.colIndex("identity\%",true)].toDouble();
-			tmp.coverage_on_target_ = parts[file.colIndex("coverage_ontarget",true)].toDouble();
-			tmp.reads_on_target_ = parts[file.colIndex("reads_ontarget",true)].toInt();
 
 			viruses_ << tmp;
 		}
 	}
 	catch(...)
 	{
-		;
+		;//nothing to do here
 	}
 
 	//filename for germline SNV file
