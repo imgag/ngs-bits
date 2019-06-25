@@ -41,6 +41,9 @@
    </item>
    <item>
     <widget class="QCheckBox" name="show_merged">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Samples can be merged and analyzed together.&lt;/p&gt;&lt;p&gt;Normally, the sample that was merged into another samples is not shown.&lt;/p&gt;&lt;p&gt;Check this box, to show merged samples as well.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
      <property name="text">
       <string>also show merged samples</string>
      </property>
