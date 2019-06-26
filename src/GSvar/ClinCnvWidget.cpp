@@ -13,6 +13,7 @@
 #include <QMenu>
 #include <QDesktopServices>
 #include <QUrl>
+#include <cmath>
 
 ClinCnvWidget::ClinCnvWidget(QString filename, FilterDockWidget* filter_widget, const GeneSet& het_hit_genes, QWidget *parent)
   : QWidget(parent)
