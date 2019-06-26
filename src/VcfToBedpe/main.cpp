@@ -32,7 +32,8 @@ public:
 
 	virtual void main()
 	{
-
+		VcfToBedpe in_file(getInfile("in").toUtf8());
+		in_file.convert(getOutfile("out").toUtf8());
 	}
 
 private:
