@@ -271,7 +271,7 @@ void ProcessedSampleWidget::openSampleTab()
 			s = ui_->sample_relations->item(row, 2)->text();
 		}
 
-		QStringList tmp = db_.getValues("SELECT ps.id FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND s.name='" + s + "'");
+		QStringList tmp = db_.getValues("SELECT ps.id FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND s.name=:0", s);
 		foreach(QString ps_id, tmp)
 		{
 			ps_names << db_.processedSampleName(ps_id);

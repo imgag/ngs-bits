@@ -1238,7 +1238,7 @@ void MainWindow::openRunTab(QString run_name)
 	QString ps_id;
 	try
 	{
-		ps_id = NGSD().getValue("SELECT id FROM sequencing_run WHERE name='" + run_name + "'").toString();
+		ps_id = NGSD().getValue("SELECT id FROM sequencing_run WHERE name=:0", true, run_name).toString();
 	}
 	catch (DatabaseException e)
 	{

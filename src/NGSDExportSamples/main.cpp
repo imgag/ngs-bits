@@ -64,7 +64,7 @@ public:
 		if (params.p_name!="")
 		{
 			//check that name is valid
-			QVariant tmp = db.getValue("SELECT id FROM project WHERE name='"+params.p_name+"'", true);
+			QVariant tmp = db.getValue("SELECT id FROM project WHERE name=:0", true, params.p_name);
 			if (tmp.isNull())
 			{
 				THROW(DatabaseException, "Invalid project name '" + params.p_name + ".\nValid names are: " + db.getValues("SELECT name FROM project ORDER BY name ASC").join(", "));
@@ -74,7 +74,7 @@ public:
 		if (params.sys_name!="")
 		{
 			//check that name is valid
-			QVariant tmp = db.getValue("SELECT id FROM processing_system WHERE name_short='"+params.sys_name+ "'", true).toString();
+			QVariant tmp = db.getValue("SELECT id FROM processing_system WHERE name_short=:0", true, params.sys_name).toString();
 			if (tmp.isNull())
 			{
 				THROW(DatabaseException, "Invalid processing system short name '"+params.sys_name+".\nValid names are: " + db.getValues("SELECT name_short FROM processing_system ORDER BY name_short ASC").join(", "));
@@ -84,7 +84,7 @@ public:
 		if (params.r_name!="")
 		{
 			//check that name is valid
-			QVariant tmp = db.getValue("SELECT id FROM sequencing_run WHERE name='"+params.r_name+ "'", true);
+			QVariant tmp = db.getValue("SELECT id FROM sequencing_run WHERE name=:0", true, params.r_name);
 			if (tmp.isNull())
 			{
 				THROW(DatabaseException, "Invalid sequencing run name '"+params.r_name+".\nValid names are: " + db.getValues("SELECT name FROM sequencing_run ORDER BY name ASC").join(", "));
@@ -94,7 +94,7 @@ public:
 		if (params.s_species!="")
 		{
 			//check that name is valid
-			QString tmp = db.getValue("SELECT id FROM species WHERE name='"+params.s_species+ "'", true).toString();
+			QString tmp = db.getValue("SELECT id FROM species WHERE name=:0", true, params.s_species).toString();
 			if (tmp.isNull())
 			{
 				THROW(DatabaseException, "Invalid species name '"+params.s_species+".\nValid names are: " + db.getValues("SELECT name FROM species ORDER BY name ASC").join(", "));

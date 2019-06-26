@@ -37,7 +37,7 @@ NGSD::NGSD(bool test_db)
 
 QString NGSD::userId(QString user_name)
 {
-	QString user_id = getValue("SELECT id FROM user WHERE user_id='" + user_name + "'", true).toString();
+	QString user_id = getValue("SELECT id FROM user WHERE user_id=:0", true, user_name).toString();
 	if (user_id=="")
 	{
 		THROW(DatabaseException, "Could not determine NGSD user ID for user name '" + user_name + "! Do you have an NGSD user account?");
@@ -190,7 +190,7 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 					QString entry = disease_query.value(1).toString();
 					if (type=="HPO term id")
 					{
-						tmp << entry + " - " + getValue("SELECT name FROM hpo_term WHERE hpo_id='" + entry + "'", true).toString();
+						tmp << entry + " - " + getValue("SELECT name FROM hpo_term WHERE hpo_id=:0", true, entry).toString();
 					}
 					else
 					{
@@ -553,10 +553,20 @@ QString NGSD::variantId(const Variant& variant, bool throw_if_fails)
 	return query.value(0).toString();
 }
 
-QVariant NGSD::getValue(const QString& query, bool no_value_is_ok)
+QVariant NGSD::getValue(const QString& query, bool no_value_is_ok, QString bind_value)
 {
+	//exeucte query
 	SqlQuery q = getQuery();
-	q.exec(query);
+	if (bind_value.isNull())
+	{
+		q.exec(query);
+	}
+	else
+	{
+		q.prepare(query);
+		q.bindValue(0, bind_value);
+		q.exec();
+	}
 
 	if (q.size()==0)
 	{
@@ -578,16 +588,25 @@ QVariant NGSD::getValue(const QString& query, bool no_value_is_ok)
 	return q.value(0);
 }
 
-QStringList NGSD::getValues(const QString& query)
+QStringList NGSD::getValues(const QString& query, QString bind_value)
 {
 	SqlQuery q = getQuery();
-	q.exec(query);
+	if (bind_value.isNull())
+	{
+		q.exec(query);
+	}
+	else
+	{
+		q.prepare(query);
+		q.bindValue(0, bind_value);
+		q.exec();
+	}
 
 	QStringList output;
 	output.reserve(q.size());
 	while(q.next())
 	{
-		output.append(q.value(0).toString());
+		output << q.value(0).toString();
 	}
 	return output;
 }
@@ -888,7 +907,7 @@ QVector<double> NGSD::getQCValues(const QString& accession, const QString& proce
 	QString sys_id = getValue("SELECT processing_system_id FROM processed_sample WHERE id='" + processed_sample_id + "'").toString();
 
 	//get QC id
-	QString qc_id = getValue("SELECT id FROM qc_terms WHERE qcml_id='" + accession + "'").toString();
+	QString qc_id = getValue("SELECT id FROM qc_terms WHERE qcml_id=:0", true, accession).toString();
 
 	//get QC data
 	SqlQuery q = getQuery();
@@ -1954,7 +1973,7 @@ int NGSD::geneToApprovedID(const QByteArray& gene)
 
 QByteArray NGSD::geneSymbol(int id)
 {
-	return getValue("SELECT symbol FROM gene WHERE id='" + QString::number(id) + "'").toByteArray();
+	return getValue("SELECT symbol FROM gene WHERE id=:0", true, QString::number(id)).toByteArray();
 }
 
 QByteArray NGSD::geneToApproved(QByteArray gene, bool return_input_when_unconvertable)
@@ -2219,7 +2238,7 @@ QList<Phenotype> NGSD::phenotypeChildTems(const Phenotype& phenotype, bool recur
 	//convert phenotype to id
 	QList<int> pheno_ids;
 	bool ok;
-	pheno_ids << getValue("SELECT id FROM hpo_term WHERE name='" + phenotype.name() + "'").toInt(&ok);
+	pheno_ids << getValue("SELECT id FROM hpo_term WHERE name=:0", true, phenotype.name()).toInt(&ok);
 	if (!ok) THROW(ProgrammingException, "Unknown phenotype '" + phenotype.toString() + "'!");
 
 	QList<Phenotype> terms;
@@ -2245,7 +2264,7 @@ QList<Phenotype> NGSD::phenotypeChildTems(const Phenotype& phenotype, bool recur
 
 Phenotype NGSD::phenotypeByName(const QByteArray& name, bool throw_on_error)
 {
-	QByteArray accession = getValue("SELECT hpo_id FROM hpo_term WHERE name='" + name + "'", true).toByteArray();
+	QByteArray accession = getValue("SELECT hpo_id FROM hpo_term WHERE name=:0", true, name).toByteArray();
 	if (accession.isEmpty() && throw_on_error)
 	{
 		THROW(ArgumentException, "Cannot find HPO phenotype with name '" + name + "' in NGSD!");
@@ -2256,7 +2275,7 @@ Phenotype NGSD::phenotypeByName(const QByteArray& name, bool throw_on_error)
 
 Phenotype NGSD::phenotypeByAccession(const QByteArray& accession, bool throw_on_error)
 {
-	QByteArray name = getValue("SELECT name FROM hpo_term WHERE hpo_id='" + accession + "'", true).toByteArray();
+	QByteArray name = getValue("SELECT name FROM hpo_term WHERE hpo_id=:0", true, accession).toByteArray();
 	if (name.isEmpty() && throw_on_error)
 	{
 		THROW(ArgumentException, "Cannot find HPO phenotype with accession '" + accession + "' in NGSD!");

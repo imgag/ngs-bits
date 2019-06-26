@@ -319,9 +319,11 @@ public:
 	///Executes an SQL query and returns the single return value.
 	///If no values are returned an error thrown or a default-constructed QVariant is returned (depending on @p empty_is_ok).
 	///If more than one value is returned a DatabaseError is thrown.
-	QVariant getValue(const QString& query, bool no_value_is_ok=true);
+	///If @p bind_value is set, the placeholder ':0' in the query is replaced with it (SQL special characters are replaced).
+	QVariant getValue(const QString& query, bool no_value_is_ok=true, QString bind_value = QString());
 	///Executes an SQL query and returns the value list.
-	QStringList getValues(const QString& query);
+	///If @p bind_value is set, the placeholder ':0' in the query is replaced with it (SQL special characters are replaced). Use this if
+	QStringList getValues(const QString& query, QString bind_value = QString());
 	///Returns a SqlQuery object on the NGSD for custom queries.
 	inline SqlQuery getQuery() const
 	{

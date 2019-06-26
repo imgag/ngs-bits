@@ -76,7 +76,7 @@ void SequencingRunWidget::updateGUI()
 			}
 			for(int i=0; i<accessions.count(); ++i)
 			{
-				QString header = db_.getValue("SELECT name FROM qc_terms WHERE qcml_id='" + accessions[i] + "'").toString();
+				QString header = db_.getValue("SELECT name FROM qc_terms WHERE qcml_id=:0", true, accessions[i]).toString();
 				header.replace("percentage", "%");
 				samples.addColumn(cols[i], header);
 				headers << header;

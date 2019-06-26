@@ -143,14 +143,14 @@ public:
 			foreach(const QString& gene, genes)
 			{
 				//get info from geneinfo_germline
-				QString inh_old = db.getValue("SELECT inheritance FROM geneinfo_germline WHERE symbol='" + gene + "'", true).toString();
+				QString inh_old = db.getValue("SELECT inheritance FROM geneinfo_germline WHERE symbol=:0", true, gene).toString();
 				if (inh_old=="") inh_old="n/a";
 
-				QString chr = db.getValues("SELECT DISTINCT gt.chromosome FROM gene_transcript gt, gene g WHERE g.id=gt.gene_id AND g.symbol='" + gene + "'").join(",");
+				QString chr = db.getValues("SELECT DISTINCT gt.chromosome FROM gene_transcript gt, gene g WHERE g.id=gt.gene_id AND g.symbol=:0", gene).join(",");
 
 				//convert HPO terms to values compatible with 'geneinfo_germline' (also corrects for impossible chr-inheritance combos)
 				QStringList inh_hpo_list;
-				QStringList hpo_modes = db.getValues("SELECT ht.name FROM hpo_term ht, hpo_genes hg WHERE hg.hpo_term_id=ht.id AND hg.gene='" + gene + "' AND ht.name LIKE '%inheritance%' ORDER BY ht.name DESC");
+				QStringList hpo_modes = db.getValues("SELECT ht.name FROM hpo_term ht, hpo_genes hg WHERE hg.hpo_term_id=ht.id AND hg.gene=:0 AND ht.name LIKE '%inheritance%' ORDER BY ht.name DESC", gene);
 				QRegExp digits("\\d");
 				foreach(QString mode, hpo_modes)
 				{

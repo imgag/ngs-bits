@@ -388,6 +388,10 @@ private slots:
 		I_EQUAL(phenos.count(), 2);
 		IS_TRUE(phenos.contains(Phenotype("HP:0012823","Clinical modifier")));
 		IS_TRUE(phenos.contains(Phenotype("HP:0040279","Frequency")));
+		//phenotypeByName
+		Phenotype pheno = db.phenotypeByName("Frequency");
+		S_EQUAL(pheno.accession(), "HP:0040279");
+		S_EQUAL(pheno.name(), "Frequency");
 
 		//phenotypeChildTems
 		phenos = db.phenotypeChildTems(Phenotype("HP:0000001", "All"), true);
