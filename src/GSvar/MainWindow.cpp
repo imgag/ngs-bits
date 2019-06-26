@@ -2880,8 +2880,19 @@ void MainWindow::applyFilters(bool debug_time)
 		}
 
 		//target region filter
-		BedLine region = BedLine::fromString(ui_.filters->region());
-		if (region.isValid())
+		QString region_text = ui_.filters->region();
+		BedLine region = BedLine::fromString(region_text);
+		if (!region.isValid()) //check if valid chr
+		{
+			Chromosome chr(region_text);
+			if (chr.isNonSpecial())
+			{
+				region.setChr(chr);
+				region.setStart(1);
+				region.setEnd(999999999);
+			}
+		}
+		if (region.isValid()) //valid region (chr,start, end or only chr)
 		{
 			BedFile tmp;
 			tmp.append(region);

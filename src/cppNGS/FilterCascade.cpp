@@ -1450,16 +1450,13 @@ bool FilterAnnotationPathogenic::annotatedPathogenic(const Variant& v) const
 	if (i_clinvar!=-1)
 	{
 		const QByteArray& clinvar = v.annotations()[i_clinvar];
-		if (clinvar.contains("pathogenic") && !clinvar.contains("conflicting")) //matches "pathogenic" and "likely pathogenic"
+		if (clinvar.contains("[pathogenic"))
 		{
-			if (also_likely_pathogenic)
-			{
-				return true;
-			}
-			else if (!clinvar.contains("likely pathogenic"))
-			{
-				return true;
-			}
+			return true;
+		}
+		if (also_likely_pathogenic && clinvar.contains("[likely pathogenic"))
+		{
+			return true;
 		}
 	}
 

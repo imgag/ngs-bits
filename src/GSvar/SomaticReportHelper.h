@@ -210,8 +210,6 @@ struct somatic_virus
 	double coverage_;
 	int mismatches_;
 	double idendity_;
-	double coverage_on_target_;
-	int reads_on_target_;
 
 	///Virus gene, extracted from name_ if possible
 	QByteArray virusGene() const

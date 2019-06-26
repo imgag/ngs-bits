@@ -83,7 +83,6 @@ ClinCnvWidget::ClinCnvWidget(QString filename, FilterDockWidget* filter_widget, 
 
 	//Disable certain filters if the respective columns are missing
 	ui->f_regs->setEnabled(cnvs.annotationIndexByName("no_of_regions", false)!=-1);
-	ui->f_qvalue->setEnabled(cnvs.annotationIndexByName("qvalue", false)!=-1);
 
 	//update variant list dependent filters (and apply filters)
 	variantFiltersChanged();
@@ -312,8 +311,7 @@ void ClinCnvWidget::filtersChanged()
 
 	//filter by q-score
 	const double f_qvalue = ui->f_qvalue->value();
-	const int i_qvalue = cnvs.annotationIndexByName("qvalue",false);
-	if(i_qvalue != -1 && f_qvalue < 1.0)
+	if(f_qvalue < 1.0)
 	{
 		for(int r=0;r<rows;++r)
 		{
@@ -323,7 +321,7 @@ void ClinCnvWidget::filtersChanged()
 			bool tmp_pass = false;
 			foreach(double qvalue, cnvs[r].qvalues())
 			{
-				if(qvalue <= f_qvalue)
+				if(std::isnan(qvalue) ||  qvalue <= f_qvalue)
 				{
 					tmp_pass = true;
 					break;

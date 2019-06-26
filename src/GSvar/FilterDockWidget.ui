@@ -416,7 +416,7 @@
       <item>
        <widget class="QLineEdit" name="region">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Single target region e.g. chr1:120611985-120612025&lt;br/&gt;&lt;br/&gt;Notes:&lt;br/&gt;- Press return to finish entering text!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Single target region e.g. 'chr1:120611985-120612025' or 'chr1'&lt;br/&gt;&lt;br/&gt;Notes:&lt;br/&gt;- Press return to finish entering text!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="placeholderText">
          <string>Region</string>
