@@ -72,7 +72,7 @@ void BedFile::append(const BedLine& line)
 	}
 	if (line.start()<1 || line.end()<1 || line.start()>line.end())
 	{
-		THROW(ArgumentException, "Invalid BED line range '" + QString::number(line.start()) + " to " + QString::number(line.end()) + "'!");
+		THROW(ArgumentException, "Invalid BED line range '" + QString::number(line.start()) + "' to '" + QString::number(line.end()) + "'!");
 	}
 
 	lines_.append(line);
@@ -126,7 +126,13 @@ void BedFile::load(QString filename)
 			THROW(FileParseException, "BED file line with less than three fields found: '" + line.trimmed() + "'");
 		}
 
-		append(BedLine(fields[0], atoi(fields[1].data())+1, atoi(fields[2].data()), fields.mid(3)));
+		//check that start/end is number
+		bool ok = true;
+		int start = fields[1].toInt(&ok) + 1;
+		if (!ok) THROW(FileParseException, "BED file line with invalid starts position found: '" + line.trimmed() + "'");
+		int end = fields[2].toInt(&ok);
+		if (!ok) THROW(FileParseException, "BED file line with invalid end position found: '" + line.trimmed() + "'");
+		append(BedLine(fields[0], start, end, fields.mid(3)));
 	}
 }
 
