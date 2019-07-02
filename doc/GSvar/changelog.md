@@ -1,5 +1,10 @@
 # GSvar change log
 
+### 2019_05-32 (02.07.19)
+- Filters: region search now support single chromosomes as well.
+- Processed sample tab: Added links to disease databases.
+- Preferred transcripts: fixed bug that prevented preferred transcripts dialog to store edited data sometimes.
+
 ### 2019_05-11 (21.05.19)
 - Processed samples: Merged samples are now modelled in NGSD and show in processed sample tab.
 
@@ -318,40 +323,3 @@
 --
 
 [back to main page](index.md)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
