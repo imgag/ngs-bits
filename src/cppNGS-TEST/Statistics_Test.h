@@ -2,6 +2,7 @@
 #include "VariantList.h"
 #include "QCCollection.h"
 #include "Statistics.h"
+#include <qDebug>
 
 TEST_CLASS(Statistics_Test)
 {
@@ -13,7 +14,12 @@ private slots:
 		QString tumor_bam = TESTDATA("data_in/tumor.bam");
 		QString normal_bam = TESTDATA("data_in/normal.bam");
 		QString somatic_vcf = TESTDATA("data_in/somatic.vcf");
-		QCCollection stats = Statistics::somatic("hg19", tumor_bam, normal_bam, somatic_vcf, QString(), QString(), true);
+		BedFile target_test_file; //target region, test file is ssSCv5 intersected with exon coordinates
+		target_test_file.load(TESTDATA("data_in/Statistics_somatic_target.bed"));
+		BedFile tsg_test_file; //Tumor suppressor regions
+		tsg_test_file.load(TESTDATA("data_in/Statistics_somatic_target.bed"));
+
+		QCCollection stats = Statistics::somatic("hg19", tumor_bam, normal_bam, somatic_vcf, QString(),target_test_file, tsg_test_file, true);
 
         S_EQUAL(stats[0].name(), QString("sample correlation"));
         S_EQUAL(stats[0].accession(), QString("QC:2000040"));

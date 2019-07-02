@@ -8,6 +8,7 @@
 #include "Settings.h"
 #include "Log.h"
 #include "NGSHelper.h"
+#include "GeneSet.h"
 #include <vector>
 
 
@@ -71,6 +72,9 @@ public:
 		addOutfile("out", "Output qcML file. If unset, writes to STDOUT.", true, true);
 		addInfileList("links","Files that appear in the link part of the qcML file.",true);
 		addInfile("target_bed", "Target file used for tumor and normal experiment.", true);
+		addInfile("target_exons","Bed file containing target exons, neccessary for TMB calculation.",true);
+		addInfile("blacklist","Bed file containing regions which shall be blacklisted in TMB calculation",true);
+		addInfile("tsg_bed","Bed file containing regions of tumor suppressor genes",true);
 		addInfile("ref_fasta", "Reference fasta file. If unset the reference file from the settings file will be used.", true);
 		addFlag("skip_plots", "Skip plots (intended to increase speed of automated tests).");
 		setExtendedDescription(QStringList() << "SomaticQC integrates the output of the other QC tools and adds several metrics specific for tumor-normal pairs." << "All tools produce qcML, a generic XML format for QC of -omics experiments, which we adapted for NGS.");
@@ -91,6 +95,9 @@ public:
 		QString normal_bam = getInfile("normal_bam");
 		QString somatic_vcf = getInfile("somatic_vcf");
 		QString target_bed = getInfile("target_bed");
+		QString target_exons = getInfile("target_exons");
+		QString blacklist = getString("blacklist");
+		QString tsg_bed = getString("tsg_bed");
 		QString ref_fasta = getInfile("ref_fasta");
 		if(ref_fasta.isEmpty())	ref_fasta = Settings::string("reference_genome");
 		if (ref_fasta=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
@@ -121,8 +128,29 @@ public:
 		}
 
 		// calculate somatic QC metrics
+
+		//Construct target region for TMB calculation
+		BedFile target_bed_file;
+		target_bed_file.load(target_bed);
+
+		BedFile target_exon_file;
+		target_exon_file.load(target_exons);
+
+		target_bed_file.intersect(target_exon_file);
+
+		BedFile blacklist_file;
+		blacklist_file.load(blacklist);
+
+		target_bed_file.subtract(blacklist_file);
+
+		BedFile tsg_bed_file;
+		tsg_bed_file.load(tsg_bed);
+
+		//intersect tsg_bed file with target_bed_file. We only need those exonic regions
+		tsg_bed_file.intersect(target_bed_file);
+
 		QCCollection metrics;
-		metrics = Statistics::somatic(build, tumor_bam, normal_bam, somatic_vcf, ref_fasta, target_bed, skip_plots);
+		metrics = Statistics::somatic(build, tumor_bam, normal_bam, somatic_vcf, ref_fasta, target_bed_file, tsg_bed_file, skip_plots);
 
 		//store output
 		QString parameters = "";
