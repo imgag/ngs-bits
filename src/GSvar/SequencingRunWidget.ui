@@ -195,6 +195,9 @@
        </item>
        <item row="7" column="0">
         <widget class="QLabel" name="label_9">
+         <property name="toolTip">
+          <string>Pool molarity and quantification method.</string>
+         </property>
          <property name="text">
           <string>pool molarity:</string>
          </property>
