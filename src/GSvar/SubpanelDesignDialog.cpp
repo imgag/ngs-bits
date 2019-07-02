@@ -141,7 +141,7 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 	QString mode = ui->mode->currentText();
 	QString messages;
 	QTextStream stream(&messages);
-	regions = db.genesToRegions(genes, Transcript::CCDS, mode, ui->fallback->isChecked(), false, &stream);
+	regions = db.genesToRegions(genes, Transcript::ENSEMBL, mode, ui->fallback->isChecked(), false, &stream);
 	if (messages!="")
 	{
 		foreach(QString message, messages.split('\n'))
