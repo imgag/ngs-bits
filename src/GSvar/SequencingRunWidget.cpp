@@ -174,7 +174,7 @@ void SequencingRunWidget::updateReadQualityTable()
 
 	//clear everything
 	table->clearContents();
-
+	table->setRowCount(0);
 
 	//set header
 	QStringList headers;

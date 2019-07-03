@@ -1,5 +1,9 @@
 # GSvar change log
 
+### 2019_05-36 (03.07.19)
+- Subpanel design: is now based on Ensembl transcripts.
+- Updated processed sample and sequencing run tabs.
+
 ### 2019_05-32 (02.07.19)
 - Filters: region search now support single chromosomes as well.
 - Processed sample tab: Added links to disease databases.
