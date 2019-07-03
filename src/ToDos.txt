@@ -5,7 +5,6 @@ libs:
 * FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 
 NGSD:
-**** Sequencing run widget: show missing infos and SAV data
 ** Add sender widget (link from sample info)
 **** Allow adding/editing data in NGSD
     - Run/processed sample/sample in general
