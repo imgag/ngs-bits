@@ -734,7 +734,7 @@ QCCollection Statistics::region(const BedFile& bed_file, bool merge)
     return output;
 }
 
-QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file, const BedFile& tsg, bool skip_plots)
+QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file, const BedFile& tsg, bool skip_plots,double exome_size)
 {
 	QCCollection output;
 
@@ -841,15 +841,21 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 		output.insert(QCValue("somatic transition/transversion ratio", "n/a (no variants or transversions)", "Somatic transition/transversion ratio of SNV variants.", "QC:2000043"));
 	}
 
-	//somatic mutation load
-	double exome_size = 44982824/1000000.0;
-	double target_size = target_file.baseCount()/1000000.0;
+	//somatic mutation load (per Mega-base)
+	double target_size = target_file.baseCount() / 1000000.;
 
 	int somatic_count_for_tmb = 0;
 	for(int i=0;i<variants.count();++i)
 	{
+		if(variants[i].filters().contains("freq-nor")) continue;
+		if(variants[i].filters().contains("freq-tum")) continue;
+		if(variants[i].filters().contains("depth-nor")) continue;
+		if(variants[i].filters().contains("depth-tum")) continue;
+		if(variants[i].filters().contains("lt-3-reads")) continue;
+
 		if(target_file.overlapsWith(variants[i].chr(),variants[i].start(),variants[i].end()))
 		{
+
 			++somatic_count_for_tmb;
 		}
 	}
@@ -858,6 +864,12 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 
 	for(int i=0;i<variants.count();++i)
 	{
+		if(variants[i].filters().contains("freq-nor")) continue;
+		if(variants[i].filters().contains("freq-tum")) continue;
+		if(variants[i].filters().contains("depth-nor")) continue;
+		if(variants[i].filters().contains("depth-tum")) continue;
+		if(variants[i].filters().contains("lt-3-reads")) continue;
+
 		for(int j=0;j<tsg.count();++j)
 		{
 			if(variants[i].overlapsWith(tsg[j]))
@@ -866,7 +878,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 			}
 		}
 	}
-	double variant_rate = ( (somatic_count_for_tmb - somatic_count_in_tsg)*exome_size / target_size + somatic_count_in_tsg ) / exome_size;
+	double variant_rate = ( (somatic_count_for_tmb - somatic_count_in_tsg) * exome_size / target_size + somatic_count_in_tsg ) / exome_size;
 
 	QString value = " ("+ QString::number(variant_rate,'f',2) +" var/Mb)";
 	output.insert(QCValue("somatic variant rate", value, "Categorized somatic variant rate (high/intermediate/low) followed by the somatic variant rate [variants/Mb] normalized for the target region and corrected for truncating variant(s) in tumor suppressors / oncogenes.", "QC:2000053"));

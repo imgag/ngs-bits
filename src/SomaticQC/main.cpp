@@ -96,8 +96,8 @@ public:
 		QString somatic_vcf = getInfile("somatic_vcf");
 		QString target_bed = getInfile("target_bed");
 		QString target_exons = getInfile("target_exons");
-		QString blacklist = getString("blacklist");
-		QString tsg_bed = getString("tsg_bed");
+		QString blacklist = getInfile("blacklist");
+		QString tsg_bed = getInfile("tsg_bed");
 		QString ref_fasta = getInfile("ref_fasta");
 		if(ref_fasta.isEmpty())	ref_fasta = Settings::string("reference_genome");
 		if (ref_fasta=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
@@ -132,25 +132,37 @@ public:
 		//Construct target region for TMB calculation
 		BedFile target_bed_file;
 		target_bed_file.load(target_bed);
+		target_bed_file.sort(true);
+		target_bed_file.merge();
 
 		BedFile target_exon_file;
 		target_exon_file.load(target_exons);
+		target_exon_file.sort(true);
+		target_exon_file.merge();
 
 		target_bed_file.intersect(target_exon_file);
 
 		BedFile blacklist_file;
 		blacklist_file.load(blacklist);
+		blacklist_file.sort(true);
+		blacklist_file.merge();
 
 		target_bed_file.subtract(blacklist_file);
+		target_bed_file.sort(true);
+		target_bed_file.merge();
 
 		BedFile tsg_bed_file;
 		tsg_bed_file.load(tsg_bed);
+		tsg_bed_file.sort(true);
+		tsg_bed_file.merge();
 
 		//intersect tsg_bed file with target_bed_file. We only need those exonic regions
 		tsg_bed_file.intersect(target_bed_file);
 
+		double exome_size =target_exon_file.baseCount() / 1000000.;
+
 		QCCollection metrics;
-		metrics = Statistics::somatic(build, tumor_bam, normal_bam, somatic_vcf, ref_fasta, target_bed_file, tsg_bed_file, skip_plots);
+		metrics = Statistics::somatic(build, tumor_bam, normal_bam, somatic_vcf, ref_fasta, target_bed_file, tsg_bed_file, skip_plots,exome_size);
 
 		//store output
 		QString parameters = "";
