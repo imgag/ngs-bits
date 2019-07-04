@@ -242,7 +242,7 @@ SampleData NGSD::getSampleData(const QString& sample_id)
 {
 	//execute query
 	SqlQuery query = getQuery();
-	query.exec("SELECT s.name, s.name_external, s.gender, s.quality, s.comment, s.disease_group, s.disease_status, s.tumor, s.ffpe FROM sample s WHERE id=" + sample_id);
+	query.exec("SELECT s.name, s.name_external, s.gender, s.quality, s.comment, s.disease_group, s.disease_status, s.tumor, s.ffpe, s.sample_type, s.sender_id, s.species_id, s.received, s.receiver_id FROM sample s WHERE id=" + sample_id);
 	if (query.size()==0)
 	{
 		THROW(ProgrammingException, "Invalid 'id' for table 'sample' given: '" + sample_id + "'");
@@ -260,6 +260,29 @@ SampleData NGSD::getSampleData(const QString& sample_id)
 	output.disease_status = query.value(6).toString().trimmed();
 	output.is_tumor = query.value(7).toString()=="1";
 	output.is_ffpe = query.value(8).toString()=="1";
+	output.type = query.value(9).toString();
+	output.sender = getValue("SELECT name FROM sender WHERE id=:0", false, query.value(10).toString()).toString();
+	output.species = getValue("SELECT name FROM species WHERE id=:0", false, query.value(11).toString()).toString();
+	QVariant received_date = query.value(12);
+	if (!received_date.isNull())
+	{
+		output.received = received_date.toDate().toString("dd.MM.yyyy");
+	}
+	QVariant receiver_id = query.value(13);
+	if (!receiver_id.isNull())
+	{
+		output.received_by = getValue("SELECT name FROM user WHERE id=:0", false, receiver_id.toString()).toString();
+	}
+
+	//sample groups
+	SqlQuery group_query = getQuery();
+	group_query.exec("SELECT sg.name, sg.comment FROM sample_group sg, nm_sample_sample_group nm WHERE sg.id=nm.sample_group_id AND nm.sample_id=" + sample_id);
+	while(group_query.next())
+	{
+		output.sample_groups << SampleGroup{ group_query.value(0).toString(), group_query.value(0).toString() };
+	}
+
+
 	return output;
 }
 
@@ -267,7 +290,7 @@ ProcessedSampleData NGSD::getProcessedSampleData(const QString& processed_sample
 {
 	//execute query
 	SqlQuery query = getQuery();
-	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, sys.name_manufacturer as sys_name, ps.quality, ps.comment, p.name as p_name, r.name as r_name, ps.normal_id, s.gender FROM sample s, project p, processing_system sys, processed_sample ps LEFT JOIN sequencing_run r ON ps.sequencing_run_id=r.id WHERE ps.sample_id=s.id AND ps.project_id=p.id AND ps.processing_system_id=sys.id AND ps.id=" + processed_sample_id);
+	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, sys.name_manufacturer as sys_name, ps.quality, ps.comment, p.name as p_name, r.name as r_name, ps.normal_id, s.gender, ps.operator_id, ps.processing_input, ps.molarity FROM sample s, project p, processing_system sys, processed_sample ps LEFT JOIN sequencing_run r ON ps.sequencing_run_id=r.id WHERE ps.sample_id=s.id AND ps.project_id=p.id AND ps.processing_system_id=sys.id AND ps.id=" + processed_sample_id);
 	if (query.size()==0)
 	{
 		THROW(ProgrammingException, "Invalid 'id' for table 'processed_sample' given: '" + processed_sample_id + "'");
@@ -279,15 +302,23 @@ ProcessedSampleData NGSD::getProcessedSampleData(const QString& processed_sample
 	output.name = query.value(0).toString().trimmed();
 	output.processing_system = query.value(1).toString().trimmed();
 	output.quality = query.value(2).toString().trimmed();
-	output.gender = query.value(7).toString().trimmed();
 	output.comments = query.value(3).toString().trimmed();
 	output.project_name = query.value(4).toString().trimmed();
 	output.run_name = query.value(5).toString().trimmed();
-	output.normal_sample_name = query.value(6).toString().trimmed();
-	if (output.normal_sample_name!="")
+	QVariant normal_id = query.value(6);
+	if (!normal_id.isNull())
 	{
-		output.normal_sample_name = normalSample(processed_sample_id);
+		output.normal_sample_name = processedSampleName(normal_id.toString());
 	}
+	output.gender = query.value(7).toString().trimmed();
+	QVariant operator_id = query.value(8);
+	if (!operator_id.isNull())
+	{
+		output.lab_operator = getValue("SELECT name FROM user WHERE id=:0", false, operator_id.toString()).toString();
+	}
+	output.processing_input = query.value(9).toString().trimmed();
+	output.molarity = query.value(10).toString().trimmed();
+
 	return output;
 
 }

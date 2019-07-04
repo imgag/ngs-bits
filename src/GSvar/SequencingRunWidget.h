@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QAction>
+#include <QTableWidgetItem>
 #include "NGSD.h"
 
 namespace Ui {
@@ -23,8 +24,12 @@ signals:
 protected slots:
 	void updateGUI();
 	void openSelectedSamples();
+	void updateReadQualityTable();
+	void updateRunSampleTable();
 
 private:
+	QTableWidgetItem* createItem(const QString& text, bool highlight = false, int alignment = Qt::AlignVCenter|Qt::AlignRight);
+
 	Ui::SequencingRunWidget* ui_;
 	QString run_id_;
 	NGSD db_;
