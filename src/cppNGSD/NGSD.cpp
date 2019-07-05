@@ -147,7 +147,7 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 				<< "ds.inheritance_mode as outcome_inheritance_mode"
 				<< "ds.comment as outcome_comment";
 	}
-	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +"  WHERE " + conditions.join(" AND "));
+	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +"  WHERE " + conditions.join(" AND ") + " ORDER BY s.name ASC, ps.process_id ASC");
 
 	//add path
 	if(p.add_path)
@@ -2620,16 +2620,17 @@ QList<Transcript> NGSD::transcripts(int gene_id, Transcript::SOURCE source, bool
 	return output;
 }
 
-Transcript NGSD::longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_ensembl, bool fallback_ensembl_nocoding)
+Transcript NGSD::longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_alt_source, bool fallback_alt_source_nocoding)
 {
 	QList<Transcript> list = transcripts(gene_id, source, true);
-	if (list.isEmpty() && fallback_ensembl)
+	Transcript::SOURCE alt_source = (source==Transcript::CCDS) ? Transcript::ENSEMBL : Transcript::CCDS;
+	if (list.isEmpty() && fallback_alt_source)
 	{
-		list = transcripts(gene_id, Transcript::ENSEMBL, true);
+		list = transcripts(gene_id, alt_source, true);
 	}
-	if (list.isEmpty() && fallback_ensembl_nocoding)
+	if (list.isEmpty() && fallback_alt_source_nocoding)
 	{
-		list = transcripts(gene_id, Transcript::ENSEMBL, false);
+		list = transcripts(gene_id, alt_source, false);
 	}
 
 	if (list.isEmpty()) return Transcript();

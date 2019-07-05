@@ -60,11 +60,11 @@ void GapDialog::process(QString bam_file, const BedFile& roi, const GeneSet& gen
 		foreach(QByteArray gene, info.genes)
 		{
 			int gene_id = db.geneToApprovedID(gene);
-			Transcript transcript = db.longestCodingTranscript(gene_id, Transcript::CCDS, true);
+			Transcript transcript = db.longestCodingTranscript(gene_id, Transcript::ENSEMBL, true);
 			if (!transcript.isValid())
 			{
 				genes_noncoding.insert(gene);
-				transcript = db.longestCodingTranscript(gene_id, Transcript::CCDS, true, true);
+				transcript = db.longestCodingTranscript(gene_id, Transcript::ENSEMBL, true, true);
 			}
 			ccds_overlap.add(transcript.regions());
 		}
