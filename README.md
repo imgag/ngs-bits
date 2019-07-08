@@ -16,7 +16,8 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 Changes already implemented in GIT master for next release:
 
-* none so far
+* BedAnnotateFromBed: Updated interface which is way more configurable.
+* several minor changes and bug fixes.
 
 Changes in release 2019_05:
 
