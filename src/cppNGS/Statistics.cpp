@@ -658,16 +658,23 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq)
 	//add insert size distribution plot
 	if (paired_end)
 	{
-		LinePlot plot2;
-		plot2.setXLabel("insert size");
-		plot2.setYLabel("reads [%]");
-		plot2.setXValues(insert_dist.xCoords());
-		plot2.addLine(insert_dist.yCoords(true));
+		if (insert_dist.binSum()>0)
+		{
+			LinePlot plot2;
+			plot2.setXLabel("insert size");
+			plot2.setYLabel("reads [%]");
+			plot2.setXValues(insert_dist.xCoords());
+			plot2.addLine(insert_dist.yCoords(true));
 
-		QString plotname = Helper::tempFileName(".png");
-		plot2.store(plotname);
-		output.insert(QCValue::Image("insert size distribution plot", plotname, "Insert size distribution plot.", "QC:2000038"));
-		QFile::remove(plotname);
+			QString plotname = Helper::tempFileName(".png");
+			plot2.store(plotname);
+			output.insert(QCValue::Image("insert size distribution plot", plotname, "Insert size distribution plot.", "QC:2000038"));
+			QFile::remove(plotname);
+		}
+		else
+		{
+			Log::warn("Skipping insert size histogram - no read pairs found!");
+		}
 	}
 
     return output;
