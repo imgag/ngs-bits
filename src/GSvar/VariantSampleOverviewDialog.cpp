@@ -9,6 +9,7 @@ VariantSampleOverviewDialog::VariantSampleOverviewDialog(const Variant& variant,
 {
 	ui_.setupUi(this);
 	connect(ui_.similarity, SIGNAL(clicked(bool)), this, SLOT(calculateSimilarity()));
+	connect(ui_.copy_btn, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
 
 	//get variant id
 	NGSD db;
@@ -71,7 +72,6 @@ void VariantSampleOverviewDialog::copyToClipboard()
 void VariantSampleOverviewDialog::calculateSimilarity()
 {
 	NGSD db;
-	SqlQuery query = db.getQuery();
 
 	//get sample names and variant lists
 	QStringList ps_names;
