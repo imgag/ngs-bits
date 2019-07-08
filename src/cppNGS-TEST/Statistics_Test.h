@@ -13,11 +13,13 @@ private slots:
 	{
 		QString tumor_bam = TESTDATA("data_in/tumor.bam");
 		QString normal_bam = TESTDATA("data_in/normal.bam");
-		QString somatic_vcf = TESTDATA("data_in/somatic.vcf");
-		BedFile target_test_file; //target region, test file is ssSCv5 intersected with exon coordinates
-		target_test_file.load(TESTDATA("data_in/Statistics_somatic_target.bed"));
-		BedFile tsg_test_file; //Tumor suppressor regions
-		tsg_test_file.load(TESTDATA("data_in/Statistics_somatic_target.bed"));
+		QString somatic_vcf = TESTDATA("data_in/Statistics_somatic_tmb.GSvar");
+
+		BedFile target_test_file;
+		target_test_file.load(TESTDATA("data_in/Statistics_somatic_tmb_target.bed")); //exons of ssscv4, sorted and merged
+
+		BedFile tsg_test_file;
+		tsg_test_file.load(TESTDATA("data_in/Statistics_somatic_tmb_tsg.bed")); //exons of tsg genes
 
 		QCCollection stats = Statistics::somatic("hg19", tumor_bam, normal_bam, somatic_vcf, QString(),target_test_file, tsg_test_file, true);
 
@@ -26,21 +28,25 @@ private slots:
 		S_EQUAL(stats[0].toString(), QString("n/a (too few variants)"));
         S_EQUAL(stats[1].name(), QString("variant count"));
         S_EQUAL(stats[1].accession(), QString("QC:2000013"));
-        S_EQUAL(stats[1].toString(), QString("2"));
-        S_EQUAL(stats[2].name(), QString("somatic variant count"));
-        S_EQUAL(stats[2].accession(), QString("QC:2000041"));
-        S_EQUAL(stats[2].toString(), QString("2"));
+		S_EQUAL(stats[1].toString(), QString("77"));
+		S_EQUAL(stats[2].name(), QString("somatic variant count"));
+		S_EQUAL(stats[2].accession(), QString("QC:2000041"));
+		S_EQUAL(stats[2].toString(), QString("64"));
 		S_EQUAL(stats[3].name(), QString("known somatic variants percentage"));
         S_EQUAL(stats[3].accession(), QString("QC:2000045"));
 		S_EQUAL(stats[3].toString(), QString("n/a (no gnomAD_AF annotation in CSQ info field)"));
         S_EQUAL(stats[4].name(), QString("somatic indel percentage"));
         S_EQUAL(stats[4].accession(), QString("QC:2000042"));
-        S_EQUAL(stats[4].toString(), QString("50.00"));
+		S_EQUAL(stats[4].toString(), QString("0.00"));
         S_EQUAL(stats[5].name(), QString("somatic transition/transversion ratio"));
 		S_EQUAL(stats[5].accession(), QString("QC:2000043"));
-		S_EQUAL(stats[5].toString(), QString("n/a (no variants or transversions)"));
+		S_EQUAL(stats[5].toString(), QString("6.11"));
+
 		S_EQUAL(stats[6].accession(), QString("QC:2000053"));
-		S_EQUAL(stats[6].toString(), QString("low (0.00 var/Mb)"));
+		S_EQUAL(stats[6].toString(), QString("18.30 var/Mb"));
+
+
+
 		S_EQUAL(stats[7].accession(), QString("QC:2000054"));
 		S_EQUAL(stats[7].toString(), QString("n/a (too few variants)"));
 		I_EQUAL(stats.count(), 8);

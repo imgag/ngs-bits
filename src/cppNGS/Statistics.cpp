@@ -880,7 +880,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 	}
 	double variant_rate = ( (somatic_count_for_tmb - somatic_count_in_tsg) * exome_size / target_size + somatic_count_in_tsg ) / exome_size;
 
-	QString value = " ("+ QString::number(variant_rate,'f',2) +" var/Mb)";
+	QString value = QString::number(variant_rate,'f',2) +" var/Mb";
 	output.insert(QCValue("somatic variant rate", value, "Categorized somatic variant rate (high/intermediate/low) followed by the somatic variant rate [variants/Mb] normalized for the target region and corrected for truncating variant(s) in tumor suppressors / oncogenes.", "QC:2000053"));
 
 
