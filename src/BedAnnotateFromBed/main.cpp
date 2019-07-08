@@ -19,12 +19,16 @@ public:
 	virtual void setup()
 	{
 		setDescription("Annotates BED file regions with information from a second BED file.");
-		addInfile("in2", "BED file that is used as annotation source (4th column is used as annotation value, if not presend 'yes' is used).", false);
+		addInfile("in2", "BED file that is used as annotation source.", false);
 		//optional
 		addInfile("in", "Input BED file. If unset, reads from STDIN.", true);
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
-		addFlag("clear", "Clear all annotations present in the input file.");
+		addInt("col", "Annotation source column (if column number does not exist, 'yes' is used).", true, 4);
+		addFlag("clear", "Clear all annotations present in the 'in' file.");
+		addFlag("no_duplicates", "Remove duplicate annotations if several intervals from 'in2' overlap.");
+		addFlag("overlap", "Annotate percentage of overlap. The regular annotation is appended in brackets.");
 
+		changeLog(2019,  7,  9, "Added parameters 'col', 'overlap' and 'no_duplicates'; Fixed 'clear' parameter.");
 		changeLog(2017, 11, 28, "Added 'clear' flag.");
 		changeLog(2017, 11, 03, "Initial commit.");
 	}
@@ -35,39 +39,74 @@ public:
 		QString in = getInfile("in");
 		QString in2 = getInfile("in2");
 		QString out = getOutfile("out");
+		int col = getInt("col") - 4; //4'th column is the first annotation column
+		bool clear = getFlag("clear");
+		bool no_duplicates = getFlag("no_duplicates");
+		bool overlap = getFlag("overlap");
 
 		//load annoation database
 		BedFile anno_file;
 		anno_file.load(in2);
-		if (getFlag("clear"))
-		{
-			anno_file.clearAnnotations();
-		}
 		anno_file.sort();
 		ChromosomalIndex<BedFile> anno_index(anno_file);
 
 		//process
 		BedFile file;
 		file.load(in);
+		if (clear)
+		{
+			file.clearAnnotations();
+		}
 		for(int i=0; i<file.count(); ++i)
 		{
 			BedLine& line = file[i];
 
-			QList<QString> annos;
+			//determine annotations and overlap
+			QByteArrayList annos;
+			BedFile overlap_regions;
+
 			QVector<int> indices = anno_index.matchingIndices(line.chr(), line.start(), line.end());
 			foreach(int index, indices)
 			{
-				if (anno_file[index].annotations().isEmpty())
+				const BedLine& match = anno_file[index];
+				bool anno_exists = match.annotations().count()>col;
+				if (anno_exists)
 				{
-					annos.append("yes");
+					annos << match.annotations()[col];
 				}
-				else
+				else if (!overlap)
 				{
-					annos.append(anno_file[index].annotations()[0]);
+					annos << "yes";
+				}
+
+				if (overlap)
+				{
+					overlap_regions.append(BedLine(line.chr(), std::max(line.start(),match.start()), std::min(line.end(),match.end())));
 				}
 			}
-			annos.removeDuplicates();
-			line.annotations().append(annos.join(",").toLatin1());
+			if (no_duplicates)
+			{
+				std::sort(annos.begin(), annos.end());
+				annos.erase(std::unique(annos.begin(), annos.end()), annos.end());
+			}
+
+			//construct annotation string
+			QByteArray anno;
+			if (overlap)
+			{
+				overlap_regions.merge();
+				anno = QByteArray::number(100.0 * overlap_regions.baseCount() / line.length(), 'f', 2);
+				if (annos.count()>0)
+				{
+					anno += " (" + annos.join(",") + ")";
+				}
+			}
+			else
+			{
+				anno = annos.join(",");
+			}
+
+			line.annotations().append(anno);
 		}
 
 		//special handling of TSV files (handle header line)
