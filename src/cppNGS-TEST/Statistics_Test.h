@@ -2,7 +2,6 @@
 #include "VariantList.h"
 #include "QCCollection.h"
 #include "Statistics.h"
-#include <qDebug>
 
 TEST_CLASS(Statistics_Test)
 {
