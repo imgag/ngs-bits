@@ -43,7 +43,7 @@ public:
 	///Calculates target region statistics (term-value pairs). @p merge determines if overlapping regions are merged before calculating the statistics.
 	static QCCollection region(const BedFile& bed_file, bool merge);
 	///Calculates somatic QC metrics from BAM and vcf file
-	static QCCollection somatic(QString build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file, const BedFile& tsg, bool skip_plots = false, double exome_size =44982824. / 1000000.);
+	static QCCollection somatic(QString build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file, const BedFile& tsg = BedFile(), bool skip_plots = false, double exome_size =44982824. / 1000000.);
 	///Calculates the percentage of common SNPs that lie outside the expected allele frequency range for diploid organisms.
 	static QCCollection contamination(QString build, QString bam, bool debug = false, int min_cov = 20, int min_snps = 50);
 	///Returns ancestry estimates for a variant list.

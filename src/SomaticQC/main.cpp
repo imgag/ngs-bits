@@ -72,9 +72,9 @@ public:
 		addOutfile("out", "Output qcML file. If unset, writes to STDOUT.", true, true);
 		addInfileList("links","Files that appear in the link part of the qcML file.",true);
 		addInfile("target_bed", "Target file used for tumor and normal experiment.", true);
-		addInfile("target_exons","Bed file containing target exons, neccessary for TMB calculation.",true);
-		addInfile("blacklist","Bed file containing regions which shall be blacklisted in TMB calculation",true);
-		addInfile("tsg_bed","Bed file containing regions of tumor suppressor genes",true);
+		addInfile("target_exons","Bed file containing target exons, neccessary for TMB calculation. Please provide a file that contains the coordinates of all exons in the reference genome. If not set, algorithm assumes target file is already intersected with exonic coordinates.",true);
+		addInfile("blacklist","Bed file containing regions which shall be blacklisted in TMB calculation.",true);
+		addInfile("tsg_bed","Bed file containing regions of tumor suppressor genes.",true);
 		addInfile("ref_fasta", "Reference fasta file. If unset the reference file from the settings file will be used.", true);
 		addFlag("skip_plots", "Skip plots (intended to increase speed of automated tests).");
 		setExtendedDescription(QStringList() << "SomaticQC integrates the output of the other QC tools and adds several metrics specific for tumor-normal pairs." << "All tools produce qcML, a generic XML format for QC of -omics experiments, which we adapted for NGS.");
@@ -130,43 +130,62 @@ public:
 		// calculate somatic QC metrics
 
 		//Construct target region for TMB calculation
+
 		BedFile target_bed_file;
-		target_bed_file.load(target_bed);
-		target_bed_file.sort(true);
-		target_bed_file.merge();
+		double exome_size = 44982824. / 1000000.;
 
-		BedFile target_exon_file;
-		target_exon_file.load(target_exons);
-		target_exon_file.sort(true);
-		target_exon_file.merge();
+		if(!target_bed.isEmpty())
+		{
+			target_bed_file.load(target_bed);
+			target_bed_file.sort(true);
+			target_bed_file.merge();
 
-		target_bed_file.intersect(target_exon_file);
+			if(!target_exons.isEmpty())
+			{
+				BedFile target_exon_file;
+				target_exon_file.load(target_exons);
+				target_exon_file.sort(true);
+				target_exon_file.merge();
+				target_bed_file.intersect(target_exon_file);
+			}
 
-		BedFile blacklist_file;
-		blacklist_file.load(blacklist);
-		blacklist_file.sort(true);
-		blacklist_file.merge();
+			exome_size = target_bed_file.baseCount() / 1000000.;
+		}
 
-		target_bed_file.subtract(blacklist_file);
-		target_bed_file.sort(true);
-		target_bed_file.merge();
+		//Remove blacklisted region if available
+		if(!blacklist.isEmpty() && !target_bed_file.count() != 0)
+		{
+			BedFile blacklist_file;
+			blacklist_file.load(blacklist);
+			blacklist_file.sort(true);
+			blacklist_file.merge();
+
+			target_bed_file.subtract(blacklist_file);
+			target_bed_file.sort(true);
+			target_bed_file.merge();
+		}
 
 		BedFile tsg_bed_file;
-		tsg_bed_file.load(tsg_bed);
-		tsg_bed_file.sort(true);
-		tsg_bed_file.merge();
+		if(!tsg_bed.isEmpty())
+		{
+			tsg_bed_file.load(tsg_bed);
+			tsg_bed_file.sort(true);
+			tsg_bed_file.merge();
 
-		//intersect tsg_bed file with target_bed_file. We only need those exonic regions
-		tsg_bed_file.intersect(target_bed_file);
+			//intersect tsg_bed file with target_bed_file. We only need those exonic regions
+			tsg_bed_file.intersect(target_bed_file);
+		}
 
-		double exome_size =target_exon_file.baseCount() / 1000000.;
 
 		QCCollection metrics;
-		metrics = Statistics::somatic(build, tumor_bam, normal_bam, somatic_vcf, ref_fasta, target_bed_file, tsg_bed_file, skip_plots,exome_size);
+		metrics = Statistics::somatic(build, tumor_bam, normal_bam, somatic_vcf, ref_fasta, target_bed_file, tsg_bed_file, skip_plots, exome_size);
 
 		//store output
 		QString parameters = "";
 		if(!target_bed.isEmpty())	parameters += "-target_bed " + target_bed;	// targeted Seq
+		if(!blacklist.isEmpty())	parameters += " -blacklist" + blacklist;
+		if(!tsg_bed.isEmpty())		parameters += " -tsg_bed " + tsg_bed;
+		if(!target_exons.isEmpty()) parameters += " -target_exons" + target_exons;
 		metrics.storeToQCML(out, QStringList(), parameters, QMap< QString, int >(), metadata);
 	}
 };

@@ -867,25 +867,34 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 		}
 	}
 
-	int somatic_count_in_tsg = 0;	// somatic variants in typical tumor suppressors / oncogenes may falsify interpolation
 
-	for(int i=0;i<variants.count();++i)
+	double variant_rate = std::numeric_limits<double>::quiet_NaN();
+
+	if(tsg.count() != 0 && target_file.count() != 0)
 	{
-		if(variants[i].filters().contains("freq-nor")) continue;
-		if(variants[i].filters().contains("freq-tum")) continue;
-		if(variants[i].filters().contains("depth-nor")) continue;
-		if(variants[i].filters().contains("depth-tum")) continue;
-		if(variants[i].filters().contains("lt-3-reads")) continue;
 
-		for(int j=0;j<tsg.count();++j)
+		int somatic_count_in_tsg = 0;	// somatic variants in typical tumor suppressors / oncogenes may falsify interpolation
+		for(int i=0;i<variants.count();++i)
 		{
-			if(variants[i].overlapsWith(tsg[j]))
+			if(variants[i].filters().contains("freq-nor")) continue;
+			if(variants[i].filters().contains("freq-tum")) continue;
+			if(variants[i].filters().contains("depth-nor")) continue;
+			if(variants[i].filters().contains("depth-tum")) continue;
+			if(variants[i].filters().contains("lt-3-reads")) continue;
+
+			for(int j=0;j<tsg.count();++j)
 			{
-				++somatic_count_in_tsg;
+				if(variants[i].overlapsWith(tsg[j]))
+				{
+					++somatic_count_in_tsg;
+				}
 			}
 		}
+		variant_rate = ( (somatic_count_for_tmb - somatic_count_in_tsg) * exome_size / target_size + somatic_count_in_tsg ) / exome_size;
 	}
-	double variant_rate = ( (somatic_count_for_tmb - somatic_count_in_tsg) * exome_size / target_size + somatic_count_in_tsg ) / exome_size;
+
+
+
 
 	QString value = QString::number(variant_rate,'f',2) +" var/Mb";
 	output.insert(QCValue("somatic variant rate", value, "Categorized somatic variant rate (high/intermediate/low) followed by the somatic variant rate [variants/Mb] normalized for the target region and corrected for truncating variant(s) in tumor suppressors / oncogenes.", "QC:2000053"));
