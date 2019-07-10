@@ -17,7 +17,7 @@
 	                  Default value: 'false'
 	  -no_duplicates  Remove duplicate annotations if several intervals from 'in2' overlap.
 	                  Default value: 'false'
-	  -overlap        Annotate percentage of overlap. The regular annotation is appended in brackets.
+	  -overlap        Annotate overlap with regions in 'in2'. The regular annotation is appended in brackets.
 	                  Default value: 'false'
 	
 	Special parameters:
@@ -29,7 +29,7 @@
 ### BedAnnotateFromBed changelog
 	BedAnnotateFromBed 2019_05-36-gb3caeea
 	
-	2019-07-09 Added parameters 'col' and 'no_duplicates'; Fixed 'clear' parameter.
+	2019-07-09 Added parameters 'col', 'overlap' and 'no_duplicates'; Fixed 'clear' parameter.
 	2017-11-28 Added 'clear' flag.
 	2017-11-03 Initial commit.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

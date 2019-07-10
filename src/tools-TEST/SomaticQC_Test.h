@@ -82,6 +82,4 @@ private slots:
 		REMOVE_LINES("out/SomaticQC_out7.qcML", QRegExp("<binary>"));
 		COMPARE_FILES("out/SomaticQC_out7.qcML", TESTDATA("data_out/SomaticQC_out7.qcML"));
 	}
-
-
 };

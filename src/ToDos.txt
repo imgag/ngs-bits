@@ -32,6 +32,7 @@ GSvar:
 - Visualize tracking of variants when from split complex variant (wait for VcfBreakComplex)
 
 Tools:
+- NGSDImportHPO: Add G2P database (https://www.ebi.ac.uk/gene2phenotype)
 - NGSDPrecalculate: fix missing/different disease group/status for sample with relation "same sample"
 - UPDHunter: also support chrX?
 - SomaticQC: replace 'QC:?' by real qcML identifier (CS)

@@ -26,7 +26,7 @@ public:
 		addInt("col", "Annotation source column (if column number does not exist, 'yes' is used).", true, 4);
 		addFlag("clear", "Clear all annotations present in the 'in' file.");
 		addFlag("no_duplicates", "Remove duplicate annotations if several intervals from 'in2' overlap.");
-		addFlag("overlap", "Annotate percentage of overlap. The regular annotation is appended in brackets.");
+		addFlag("overlap", "Annotate overlap with regions in 'in2'. The regular annotation is appended in brackets.");
 
 		changeLog(2019,  7,  9, "Added parameters 'col', 'overlap' and 'no_duplicates'; Fixed 'clear' parameter.");
 		changeLog(2017, 11, 28, "Added 'clear' flag.");
@@ -95,7 +95,7 @@ public:
 			if (overlap)
 			{
 				overlap_regions.merge();
-				anno = QByteArray::number(100.0 * overlap_regions.baseCount() / line.length(), 'f', 2);
+				anno = QByteArray::number(1.0 * overlap_regions.baseCount() / line.length(), 'f', 3);
 				if (annos.count()>0)
 				{
 					anno += " (" + annos.join(",") + ")";
@@ -118,7 +118,7 @@ public:
 				QByteArray& line = headers[i];
 				if (line.startsWith("#") && !line.startsWith("##") && line.contains("\t"))
 				{
-					line += "\t" + QFileInfo(in2).baseName();
+					line += QByteArray("\t") + (overlap ? "overlap " : "") + QFileInfo(in2).baseName();
 				}
 			}
 			file.setHeaders(headers);
