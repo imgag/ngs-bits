@@ -26,6 +26,7 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	connect(ui_->relation_add_btn, SIGNAL(clicked(bool)), this, SLOT(addRelation()));
 	connect(ui_->relation_delete_btn, SIGNAL(clicked(bool)), this, SLOT(removeRelation()));
 	connect(ui_->merged, SIGNAL(linkActivated(QString)), this, SIGNAL(openProcessedSampleTab(QString)));
+	connect(ui_->normal_sample, SIGNAL(linkActivated(QString)), this, SIGNAL(openProcessedSampleTab(QString)));
 
 	//QC value > plot
 	QAction* action = new QAction("Plot", this);
@@ -73,34 +74,46 @@ void ProcessedSampleWidget::styleQualityLabel(QLabel* label, const QString& qual
 	label->setPixmap(QPixmap(filename));
 
 	//tooltip
-	label->setToolTip(quality);
+	label->setToolTip("quality: " + quality);
 }
 
 void ProcessedSampleWidget::updateGUI()
 {
 	//#### processed sample details ####
 	ProcessedSampleData ps_data = db_.getProcessedSampleData(ps_id_);
+	styleQualityLabel(ui_->quality, ps_data.quality);
 	ui_->name->setText(ps_data.name);
 	ui_->comments_processed_sample->setText(ps_data.comments);
 	ui_->system->setText(ps_data.processing_system);
 	ui_->project->setText(ps_data.project_name);
-	styleQualityLabel(ui_->quality, ps_data.quality);
 	QString run = ps_data.run_name;
 	ui_->run->setText("<a href=\"" + run + "\">"+run+"</a>");
 	ui_->kasp->setText(db_.getQCData(ps_id_).value("kasp").asString());
 	ui_->merged->setText(mergedSamples());
+	ui_->lab_operator->setText(ps_data.lab_operator);
+	ui_->processing_input->setText(ps_data.processing_input);
+	ui_->molarity->setText(ps_data.molarity);
+	QString normal_sample = ps_data.normal_sample_name;
+	ui_->normal_sample->setText("<a href=\"" + normal_sample + "\">"+normal_sample+"</a>");
 
 	//#### sample details ####
 	QString s_id = db_.getValue("SELECT sample_id FROM processed_sample WHERE id='" + ps_id_ + "'").toString();
 	SampleData s_data = db_.getSampleData(s_id);
-	ui_->name_external->setText(s_data.name_external);
-	ui_->gender->setText(s_data.gender);
-	ui_->tumor_ffpe->setText(QString(s_data.is_tumor ? "<font color=red>yes</font>" : "no") + " / " + (s_data.is_ffpe ? "<font color=red>yes</font>" : "no"));
-	ui_->disease_group->setText(s_data.disease_group);
-	ui_->disease_status->setText(s_data.disease_status);
-	ui_->comments_sample->setText(s_data.comments);
-	ui_->s_name->setText(s_data.name);
 	styleQualityLabel(ui_->s_quality, s_data.quality);
+	ui_->s_name->setText(s_data.name);
+	ui_->name_external->setText(s_data.name_external);
+	ui_->sender->setText(s_data.sender + " (received on " + s_data.received + " by " + s_data.received_by +")");
+	ui_->species_type->setText(s_data.species + " / " + s_data.type);
+	ui_->tumor_ffpe->setText(QString(s_data.is_tumor ? "<font color=red>yes</font>" : "no") + " / " + (s_data.is_ffpe ? "<font color=red>yes</font>" : "no"));
+	ui_->gender->setText(s_data.gender);
+	ui_->disease_group_status->setText(s_data.disease_group + " (" + s_data.disease_status + ")");
+	ui_->comments_sample->setText(s_data.comments);
+	QStringList groups;
+	foreach(SampleGroup group, s_data.sample_groups)
+	{
+		groups << group.name;
+	}
+	ui_->sample_groups->setText(groups.join(", "));
 
 	//#### diagnostic status ####
 	DiagnosticStatusData diag = db_.getDiagnosticStatus(ps_id_);
@@ -271,7 +284,7 @@ void ProcessedSampleWidget::openSampleTab()
 			s = ui_->sample_relations->item(row, 2)->text();
 		}
 
-		QStringList tmp = db_.getValues("SELECT ps.id FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND s.name='" + s + "'");
+		QStringList tmp = db_.getValues("SELECT ps.id FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND s.name=:0", s);
 		foreach(QString ps_id, tmp)
 		{
 			ps_names << db_.processedSampleName(ps_id);

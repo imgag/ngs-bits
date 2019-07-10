@@ -49,7 +49,7 @@ void DiagnosticStatusOverviewDialog::updateOverviewTable()
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
 	//determine project id
-	QString project_id = db.getValue("SELECT id FROM project WHERE name='" + project_name + "'").toByteArray();
+	QString project_id = db.getValue("SELECT id FROM project WHERE name=:0", true, project_name).toByteArray();
 
 	//add one row per processed sample to table
 	SqlQuery query = db.getQuery();

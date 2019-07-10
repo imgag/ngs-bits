@@ -18,11 +18,11 @@ Changes already implemented in GIT master for next release:
 
 * none so far
 
-Changes in release 2019_05:
+Changes in release 2019_07:
 
-* SeqPurge: Fixed bug that caused SeqPurge not to terminate if a data-related error occurred.
-* PERsim: Fixed minor bug (end coordinate below zero).
-* SampleSimilarity: Fixed minor bug (in BAM mode, overlap variant count is now correct). 
+* BedAnnotateFromBed: Updated interface to make the output more configurable.
+* SomaticQC: Updated tumor mutation burden calculation.
+* several minor changes and bug fixes.
 
 For older releases see the [releases page](https://github.com/imgag/ngs-bits/releases).
 
@@ -139,32 +139,3 @@ Installation instructions for the NGSD can be found [here](doc/install_ngsd.md).
 
 * [PERsim](doc/tools/PERsim.md) - Paired-end read simulator for Illumina reads.
 * [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

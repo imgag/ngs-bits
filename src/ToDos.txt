@@ -5,21 +5,19 @@ libs:
 * FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 
 NGSD:
-*** Processed sample widget: show missing infos (also check sample/run~SAVdata)
-*** NGSD annotation: export VCF, use VCF for annotation (also works on external servers)
-*** Allow adding/editing data in NGSD
+** Add sender widget (link from sample info)
+**** Allow adding/editing data in NGSD
     - Run/processed sample/sample in general
         - Add email support for runs "run finished" and "analysis finished"
     - Set processed sample qualities in batch (selection)
 ** Add run overview dialog/tab
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
+- NGSD annotation: export VCF, use VCF for annotation (also works on external servers)
 
 GSvar:
-*** change sub-panel design to Ensembl instead of CCDS transcripts (example CNGA1, gencode basic?)
 ## Filter: enhancer/promotor - de-novo
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 - Implement OMIM search via API - example: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1 (wait for API access)
-** Allow classification of unseen variants (how do we check that the variants are valid?)
 * Add special report for trios/multi-sample with genotype overview > change format to RTF first (AG)
 * Add highlighting of imprinting genes to CNVs, ROHs and UPDs
 * Add gnomAD oe score / ExAC CNV / inheritance (megSAP) and filter for CNVs (GSvar) (wait for ClinCNV)
@@ -34,6 +32,7 @@ GSvar:
 - Visualize tracking of variants when from split complex variant (wait for VcfBreakComplex)
 
 Tools:
+- NGSDImportHPO: Add G2P database (https://www.ebi.ac.uk/gene2phenotype)
 - NGSDPrecalculate: fix missing/different disease group/status for sample with relation "same sample"
 - UPDHunter: also support chrX?
 - SomaticQC: replace 'QC:?' by real qcML identifier (CS)

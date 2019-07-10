@@ -37,7 +37,7 @@ NGSD::NGSD(bool test_db)
 
 QString NGSD::userId(QString user_name)
 {
-	QString user_id = getValue("SELECT id FROM user WHERE user_id='" + user_name + "'", true).toString();
+	QString user_id = getValue("SELECT id FROM user WHERE user_id=:0", true, user_name).toString();
 	if (user_id=="")
 	{
 		THROW(DatabaseException, "Could not determine NGSD user ID for user name '" + user_name + "! Do you have an NGSD user account?");
@@ -147,7 +147,7 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 				<< "ds.inheritance_mode as outcome_inheritance_mode"
 				<< "ds.comment as outcome_comment";
 	}
-	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +"  WHERE " + conditions.join(" AND "));
+	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +"  WHERE " + conditions.join(" AND ") + " ORDER BY s.name ASC, ps.process_id ASC");
 
 	//add path
 	if(p.add_path)
@@ -190,7 +190,7 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 					QString entry = disease_query.value(1).toString();
 					if (type=="HPO term id")
 					{
-						tmp << entry + " - " + getValue("SELECT name FROM hpo_term WHERE hpo_id='" + entry + "'", true).toString();
+						tmp << entry + " - " + getValue("SELECT name FROM hpo_term WHERE hpo_id=:0", true, entry).toString();
 					}
 					else
 					{
@@ -242,7 +242,7 @@ SampleData NGSD::getSampleData(const QString& sample_id)
 {
 	//execute query
 	SqlQuery query = getQuery();
-	query.exec("SELECT s.name, s.name_external, s.gender, s.quality, s.comment, s.disease_group, s.disease_status, s.tumor, s.ffpe FROM sample s WHERE id=" + sample_id);
+	query.exec("SELECT s.name, s.name_external, s.gender, s.quality, s.comment, s.disease_group, s.disease_status, s.tumor, s.ffpe, s.sample_type, s.sender_id, s.species_id, s.received, s.receiver_id FROM sample s WHERE id=" + sample_id);
 	if (query.size()==0)
 	{
 		THROW(ProgrammingException, "Invalid 'id' for table 'sample' given: '" + sample_id + "'");
@@ -260,6 +260,29 @@ SampleData NGSD::getSampleData(const QString& sample_id)
 	output.disease_status = query.value(6).toString().trimmed();
 	output.is_tumor = query.value(7).toString()=="1";
 	output.is_ffpe = query.value(8).toString()=="1";
+	output.type = query.value(9).toString();
+	output.sender = getValue("SELECT name FROM sender WHERE id=:0", false, query.value(10).toString()).toString();
+	output.species = getValue("SELECT name FROM species WHERE id=:0", false, query.value(11).toString()).toString();
+	QVariant received_date = query.value(12);
+	if (!received_date.isNull())
+	{
+		output.received = received_date.toDate().toString("dd.MM.yyyy");
+	}
+	QVariant receiver_id = query.value(13);
+	if (!receiver_id.isNull())
+	{
+		output.received_by = getValue("SELECT name FROM user WHERE id=:0", false, receiver_id.toString()).toString();
+	}
+
+	//sample groups
+	SqlQuery group_query = getQuery();
+	group_query.exec("SELECT sg.name, sg.comment FROM sample_group sg, nm_sample_sample_group nm WHERE sg.id=nm.sample_group_id AND nm.sample_id=" + sample_id);
+	while(group_query.next())
+	{
+		output.sample_groups << SampleGroup{ group_query.value(0).toString(), group_query.value(0).toString() };
+	}
+
+
 	return output;
 }
 
@@ -267,7 +290,7 @@ ProcessedSampleData NGSD::getProcessedSampleData(const QString& processed_sample
 {
 	//execute query
 	SqlQuery query = getQuery();
-	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, sys.name_manufacturer as sys_name, ps.quality, ps.comment, p.name as p_name, r.name as r_name, ps.normal_id, s.gender FROM sample s, project p, processing_system sys, processed_sample ps LEFT JOIN sequencing_run r ON ps.sequencing_run_id=r.id WHERE ps.sample_id=s.id AND ps.project_id=p.id AND ps.processing_system_id=sys.id AND ps.id=" + processed_sample_id);
+	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, sys.name_manufacturer as sys_name, ps.quality, ps.comment, p.name as p_name, r.name as r_name, ps.normal_id, s.gender, ps.operator_id, ps.processing_input, ps.molarity FROM sample s, project p, processing_system sys, processed_sample ps LEFT JOIN sequencing_run r ON ps.sequencing_run_id=r.id WHERE ps.sample_id=s.id AND ps.project_id=p.id AND ps.processing_system_id=sys.id AND ps.id=" + processed_sample_id);
 	if (query.size()==0)
 	{
 		THROW(ProgrammingException, "Invalid 'id' for table 'processed_sample' given: '" + processed_sample_id + "'");
@@ -279,15 +302,23 @@ ProcessedSampleData NGSD::getProcessedSampleData(const QString& processed_sample
 	output.name = query.value(0).toString().trimmed();
 	output.processing_system = query.value(1).toString().trimmed();
 	output.quality = query.value(2).toString().trimmed();
-	output.gender = query.value(7).toString().trimmed();
 	output.comments = query.value(3).toString().trimmed();
 	output.project_name = query.value(4).toString().trimmed();
 	output.run_name = query.value(5).toString().trimmed();
-	output.normal_sample_name = query.value(6).toString().trimmed();
-	if (output.normal_sample_name!="")
+	QVariant normal_id = query.value(6);
+	if (!normal_id.isNull())
 	{
-		output.normal_sample_name = normalSample(processed_sample_id);
+		output.normal_sample_name = processedSampleName(normal_id.toString());
 	}
+	output.gender = query.value(7).toString().trimmed();
+	QVariant operator_id = query.value(8);
+	if (!operator_id.isNull())
+	{
+		output.lab_operator = getValue("SELECT name FROM user WHERE id=:0", false, operator_id.toString()).toString();
+	}
+	output.processing_input = query.value(9).toString().trimmed();
+	output.molarity = query.value(10).toString().trimmed();
+
 	return output;
 
 }
@@ -553,10 +584,20 @@ QString NGSD::variantId(const Variant& variant, bool throw_if_fails)
 	return query.value(0).toString();
 }
 
-QVariant NGSD::getValue(const QString& query, bool no_value_is_ok)
+QVariant NGSD::getValue(const QString& query, bool no_value_is_ok, QString bind_value)
 {
+	//exeucte query
 	SqlQuery q = getQuery();
-	q.exec(query);
+	if (bind_value.isNull())
+	{
+		q.exec(query);
+	}
+	else
+	{
+		q.prepare(query);
+		q.bindValue(0, bind_value);
+		q.exec();
+	}
 
 	if (q.size()==0)
 	{
@@ -578,16 +619,25 @@ QVariant NGSD::getValue(const QString& query, bool no_value_is_ok)
 	return q.value(0);
 }
 
-QStringList NGSD::getValues(const QString& query)
+QStringList NGSD::getValues(const QString& query, QString bind_value)
 {
 	SqlQuery q = getQuery();
-	q.exec(query);
+	if (bind_value.isNull())
+	{
+		q.exec(query);
+	}
+	else
+	{
+		q.prepare(query);
+		q.bindValue(0, bind_value);
+		q.exec();
+	}
 
 	QStringList output;
 	output.reserve(q.size());
 	while(q.next())
 	{
-		output.append(q.value(0).toString());
+		output << q.value(0).toString();
 	}
 	return output;
 }
@@ -888,7 +938,7 @@ QVector<double> NGSD::getQCValues(const QString& accession, const QString& proce
 	QString sys_id = getValue("SELECT processing_system_id FROM processed_sample WHERE id='" + processed_sample_id + "'").toString();
 
 	//get QC id
-	QString qc_id = getValue("SELECT id FROM qc_terms WHERE qcml_id='" + accession + "'").toString();
+	QString qc_id = getValue("SELECT id FROM qc_terms WHERE qcml_id=:0", true, accession).toString();
 
 	//get QC data
 	SqlQuery q = getQuery();
@@ -1954,7 +2004,7 @@ int NGSD::geneToApprovedID(const QByteArray& gene)
 
 QByteArray NGSD::geneSymbol(int id)
 {
-	return getValue("SELECT symbol FROM gene WHERE id='" + QString::number(id) + "'").toByteArray();
+	return getValue("SELECT symbol FROM gene WHERE id=:0", true, QString::number(id)).toByteArray();
 }
 
 QByteArray NGSD::geneToApproved(QByteArray gene, bool return_input_when_unconvertable)
@@ -2219,7 +2269,7 @@ QList<Phenotype> NGSD::phenotypeChildTems(const Phenotype& phenotype, bool recur
 	//convert phenotype to id
 	QList<int> pheno_ids;
 	bool ok;
-	pheno_ids << getValue("SELECT id FROM hpo_term WHERE name='" + phenotype.name() + "'").toInt(&ok);
+	pheno_ids << getValue("SELECT id FROM hpo_term WHERE name=:0", true, phenotype.name()).toInt(&ok);
 	if (!ok) THROW(ProgrammingException, "Unknown phenotype '" + phenotype.toString() + "'!");
 
 	QList<Phenotype> terms;
@@ -2245,7 +2295,7 @@ QList<Phenotype> NGSD::phenotypeChildTems(const Phenotype& phenotype, bool recur
 
 Phenotype NGSD::phenotypeByName(const QByteArray& name, bool throw_on_error)
 {
-	QByteArray accession = getValue("SELECT hpo_id FROM hpo_term WHERE name='" + name + "'", true).toByteArray();
+	QByteArray accession = getValue("SELECT hpo_id FROM hpo_term WHERE name=:0", true, name).toByteArray();
 	if (accession.isEmpty() && throw_on_error)
 	{
 		THROW(ArgumentException, "Cannot find HPO phenotype with name '" + name + "' in NGSD!");
@@ -2256,7 +2306,7 @@ Phenotype NGSD::phenotypeByName(const QByteArray& name, bool throw_on_error)
 
 Phenotype NGSD::phenotypeByAccession(const QByteArray& accession, bool throw_on_error)
 {
-	QByteArray name = getValue("SELECT name FROM hpo_term WHERE hpo_id='" + accession + "'", true).toByteArray();
+	QByteArray name = getValue("SELECT name FROM hpo_term WHERE hpo_id=:0", true, accession).toByteArray();
 	if (name.isEmpty() && throw_on_error)
 	{
 		THROW(ArgumentException, "Cannot find HPO phenotype with accession '" + accession + "' in NGSD!");
@@ -2570,16 +2620,17 @@ QList<Transcript> NGSD::transcripts(int gene_id, Transcript::SOURCE source, bool
 	return output;
 }
 
-Transcript NGSD::longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_ensembl, bool fallback_ensembl_nocoding)
+Transcript NGSD::longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_alt_source, bool fallback_alt_source_nocoding)
 {
 	QList<Transcript> list = transcripts(gene_id, source, true);
-	if (list.isEmpty() && fallback_ensembl)
+	Transcript::SOURCE alt_source = (source==Transcript::CCDS) ? Transcript::ENSEMBL : Transcript::CCDS;
+	if (list.isEmpty() && fallback_alt_source)
 	{
-		list = transcripts(gene_id, Transcript::ENSEMBL, true);
+		list = transcripts(gene_id, alt_source, true);
 	}
-	if (list.isEmpty() && fallback_ensembl_nocoding)
+	if (list.isEmpty() && fallback_alt_source_nocoding)
 	{
-		list = transcripts(gene_id, Transcript::ENSEMBL, false);
+		list = transcripts(gene_id, alt_source, false);
 	}
 
 	if (list.isEmpty()) return Transcript();

@@ -151,7 +151,7 @@ QCCollection StatisticsReads::getResult()
 	QString plotname2 = Helper::tempFileName(".png");
 	plot2.store(plotname2);
 	output.insert(QCValue::Image("Q score plot", plotname2, "Mean Q score per cycle for forward/reverse reads.", "QC:2000012"));
-	QFile::remove(plotname);
+	QFile::remove(plotname2);
 
 	return output;
 }

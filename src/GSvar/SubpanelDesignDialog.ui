@@ -285,7 +285,7 @@
    <item row="6" column="1">
     <widget class="QCheckBox" name="fallback">
      <property name="text">
-      <string>allow fallback to Ensembl database, if no CCDS transcript is defined.</string>
+      <string>allow fallback to CCDS database, if no Ensembl transcript is defined.</string>
      </property>
     </widget>
    </item>

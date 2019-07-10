@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>977</width>
-    <height>870</height>
+    <width>950</width>
+    <height>880</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -178,6 +178,46 @@
           <property name="bottomMargin">
            <number>6</number>
           </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_21">
+            <property name="text">
+             <string>name:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="0,1">
+            <property name="spacing">
+             <number>6</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="quality">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>TextLabel</string>
+              </property>
+              <property name="textInteractionFlags">
+               <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="name">
+              <property name="text">
+               <string>TextLabel</string>
+              </property>
+              <property name="textInteractionFlags">
+               <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
           <item row="1" column="0">
            <widget class="QLabel" name="label_3">
             <property name="minimumSize">
@@ -202,14 +242,14 @@
            </widget>
           </item>
           <item row="2" column="0">
-           <widget class="QLabel" name="label_4">
+           <widget class="QLabel" name="label_23">
             <property name="text">
-             <string>run:</string>
+             <string>processing input [ng]:</string>
             </property>
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="QLabel" name="run">
+           <widget class="QLabel" name="processing_input">
             <property name="text">
              <string>TextLabel</string>
             </property>
@@ -219,14 +259,14 @@
            </widget>
           </item>
           <item row="3" column="0">
-           <widget class="QLabel" name="label_5">
+           <widget class="QLabel" name="label_26">
             <property name="text">
-             <string>project:</string>
+             <string>molarity [nM]:</string>
             </property>
            </widget>
           </item>
           <item row="3" column="1">
-           <widget class="QLabel" name="project">
+           <widget class="QLabel" name="molarity">
             <property name="text">
              <string>TextLabel</string>
             </property>
@@ -236,14 +276,14 @@
            </widget>
           </item>
           <item row="4" column="0">
-           <widget class="QLabel" name="label_9">
+           <widget class="QLabel" name="label_4">
             <property name="text">
-             <string>quality:</string>
+             <string>run:</string>
             </property>
            </widget>
           </item>
           <item row="4" column="1">
-           <widget class="QLabel" name="quality">
+           <widget class="QLabel" name="run">
             <property name="text">
              <string>TextLabel</string>
             </property>
@@ -253,19 +293,16 @@
            </widget>
           </item>
           <item row="5" column="0">
-           <widget class="QLabel" name="label_10">
+           <widget class="QLabel" name="label_5">
             <property name="text">
-             <string>comments:</string>
+             <string>project:</string>
             </property>
            </widget>
           </item>
           <item row="5" column="1">
-           <widget class="QLabel" name="comments_processed_sample">
+           <widget class="QLabel" name="project">
             <property name="text">
              <string>TextLabel</string>
-            </property>
-            <property name="wordWrap">
-             <bool>true</bool>
             </property>
             <property name="textInteractionFlags">
              <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
@@ -273,31 +310,14 @@
            </widget>
           </item>
           <item row="6" column="0">
-           <widget class="QLabel" name="label_16">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sample swap probability based on KASP assay&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
+           <widget class="QLabel" name="label_25">
             <property name="text">
-             <string>KASP:</string>
+             <string>operator:</string>
             </property>
            </widget>
           </item>
           <item row="6" column="1">
-           <widget class="QLabel" name="kasp">
-            <property name="text">
-             <string>TextLabel</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_21">
-            <property name="text">
-             <string>name:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLabel" name="name">
+           <widget class="QLabel" name="lab_operator">
             <property name="text">
              <string>TextLabel</string>
             </property>
@@ -307,6 +327,26 @@
            </widget>
           </item>
           <item row="7" column="0">
+           <widget class="QLabel" name="label_16">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sample swap probability based on KASP assay&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>KASP:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="1">
+           <widget class="QLabel" name="kasp">
+            <property name="text">
+             <string>TextLabel</string>
+            </property>
+            <property name="textInteractionFlags">
+             <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="0">
            <widget class="QLabel" name="label_22">
             <property name="toolTip">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Information about processed samples that were merged analyzed jointly.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -316,10 +356,50 @@
             </property>
            </widget>
           </item>
-          <item row="7" column="1">
+          <item row="8" column="1">
            <widget class="QLabel" name="merged">
             <property name="text">
              <string>TextLabel</string>
+            </property>
+            <property name="textInteractionFlags">
+             <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+            </property>
+           </widget>
+          </item>
+          <item row="9" column="0">
+           <widget class="QLabel" name="label_24">
+            <property name="toolTip">
+             <string>Normal sample associated to a tumor sample for pair analysis.</string>
+            </property>
+            <property name="text">
+             <string>normal sample:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="9" column="1">
+           <widget class="QLabel" name="normal_sample">
+            <property name="text">
+             <string>TextLabel</string>
+            </property>
+            <property name="textInteractionFlags">
+             <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+            </property>
+           </widget>
+          </item>
+          <item row="10" column="0">
+           <widget class="QLabel" name="label_10">
+            <property name="text">
+             <string>comments:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="10" column="1">
+           <widget class="QLabel" name="comments_processed_sample">
+            <property name="text">
+             <string>TextLabel</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
             </property>
             <property name="textInteractionFlags">
              <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
@@ -359,6 +439,52 @@
           <property name="bottomMargin">
            <number>6</number>
           </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_14">
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>name:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="0,1">
+            <property name="spacing">
+             <number>6</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="s_quality">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>TextLabel</string>
+              </property>
+              <property name="textInteractionFlags">
+               <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="s_name">
+              <property name="text">
+               <string>TextLabel</string>
+              </property>
+              <property name="textInteractionFlags">
+               <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
           <item row="1" column="0">
            <widget class="QLabel" name="label_6">
             <property name="text">
@@ -376,22 +502,18 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_8">
-            <property name="text">
-             <string>tumor/ FFPE:</string>
-            </property>
-           </widget>
-          </item>
           <item row="2" column="0">
-           <widget class="QLabel" name="label_7">
+           <widget class="QLabel" name="label_9">
+            <property name="toolTip">
+             <string>Sample sender and date/person the sample was received (by).</string>
+            </property>
             <property name="text">
-             <string>gender:</string>
+             <string>sender:</string>
             </property>
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="QLabel" name="gender">
+           <widget class="QLabel" name="sender">
             <property name="text">
              <string>TextLabel</string>
             </property>
@@ -400,8 +522,15 @@
             </property>
            </widget>
           </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_12">
+            <property name="text">
+             <string>species / type:</string>
+            </property>
+           </widget>
+          </item>
           <item row="3" column="1">
-           <widget class="QLabel" name="tumor_ffpe">
+           <widget class="QLabel" name="species_type">
             <property name="text">
              <string>TextLabel</string>
             </property>
@@ -411,54 +540,31 @@
            </widget>
           </item>
           <item row="4" column="0">
-           <widget class="QLabel" name="label_11">
+           <widget class="QLabel" name="label_8">
             <property name="text">
-             <string>disease group:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="0">
-           <widget class="QLabel" name="label_12">
-            <property name="text">
-             <string>disease_status:</string>
+             <string>tumor/ FFPE:</string>
             </property>
            </widget>
           </item>
           <item row="4" column="1">
-           <widget class="QLabel" name="disease_group">
+           <widget class="QLabel" name="tumor_ffpe">
             <property name="text">
              <string>TextLabel</string>
             </property>
             <property name="textInteractionFlags">
              <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_7">
+            <property name="text">
+             <string>gender:</string>
             </property>
            </widget>
           </item>
           <item row="5" column="1">
-           <widget class="QLabel" name="disease_status">
-            <property name="text">
-             <string>TextLabel</string>
-            </property>
-            <property name="textInteractionFlags">
-             <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_14">
-            <property name="minimumSize">
-             <size>
-              <width>100</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>name:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLabel" name="s_name">
+           <widget class="QLabel" name="gender">
             <property name="text">
              <string>TextLabel</string>
             </property>
@@ -468,14 +574,17 @@
            </widget>
           </item>
           <item row="6" column="0">
-           <widget class="QLabel" name="label_15">
+           <widget class="QLabel" name="label_11">
+            <property name="toolTip">
+             <string>Disease group and status.</string>
+            </property>
             <property name="text">
-             <string>quality:</string>
+             <string>disease group:</string>
             </property>
            </widget>
           </item>
           <item row="6" column="1">
-           <widget class="QLabel" name="s_quality">
+           <widget class="QLabel" name="disease_group_status">
             <property name="text">
              <string>TextLabel</string>
             </property>
@@ -484,14 +593,28 @@
             </property>
            </widget>
           </item>
+          <item row="7" column="1">
+           <widget class="QLabel" name="sample_groups">
+            <property name="text">
+             <string>TextLabel</string>
+            </property>
+           </widget>
+          </item>
           <item row="7" column="0">
+           <widget class="QLabel" name="label_15">
+            <property name="text">
+             <string>sample groups:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="0">
            <widget class="QLabel" name="label_2">
             <property name="text">
              <string>comments:</string>
             </property>
            </widget>
           </item>
-          <item row="7" column="1">
+          <item row="8" column="1">
            <widget class="QLabel" name="comments_sample">
             <property name="text">
              <string>TextLabel</string>
@@ -767,13 +890,13 @@
             <property name="minimumSize">
              <size>
               <width>450</width>
-              <height>150</height>
+              <height>100</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
               <width>16777215</width>
-              <height>150</height>
+              <height>100</height>
              </size>
             </property>
             <property name="frameShape">

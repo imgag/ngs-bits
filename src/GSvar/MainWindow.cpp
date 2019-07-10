@@ -1238,7 +1238,7 @@ void MainWindow::openRunTab(QString run_name)
 	QString ps_id;
 	try
 	{
-		ps_id = NGSD().getValue("SELECT id FROM sequencing_run WHERE name='" + run_name + "'").toString();
+		ps_id = NGSD().getValue("SELECT id FROM sequencing_run WHERE name=:0", true, run_name).toString();
 	}
 	catch (DatabaseException e)
 	{
@@ -2020,7 +2020,6 @@ void MainWindow::exportGSvar()
 void MainWindow::on_actionPreferredTranscripts_triggered()
 {
 	//update from settings INI
-	QDateTime preferred_transcripts_last_modified = QFileInfo(Settings::fileName()).lastModified();
 	preferred_transcripts_ = loadPreferredTranscripts();
 
 	//show dialog
@@ -2079,8 +2078,8 @@ void MainWindow::on_actionPreferredTranscripts_triggered()
 		}
 	}
 
-	//prevent writing if the INI file changed while showing the dialog
-	if (preferred_transcripts_last_modified!=QFileInfo(Settings::fileName()).lastModified())
+	//prevent overwriting changes done by others since opening the dialog
+	if (preferred_transcripts_ != loadPreferredTranscripts())
 	{
 		QMessageBox::warning(this, "Cannot write preferred transcripts", "Perferred transcripts were changed by another GSvar instance.\nPlease re-do your changes!");
 		return;

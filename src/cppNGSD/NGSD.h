@@ -150,12 +150,19 @@ struct CPPNGSDSHARED_EXPORT AnalysisJob
 	QString runTimeAsString() const;
 };
 
+///Sample group information
+struct CPPNGSDSHARED_EXPORT SampleGroup
+{
+	QString name;
+	QString comment;
+};
 
 ///Sample information.
 struct CPPNGSDSHARED_EXPORT SampleData
 {
 	QString name;
 	QString name_external;
+	QString type;
 	QString gender;
 	QString quality;
 	QString comments;
@@ -163,6 +170,11 @@ struct CPPNGSDSHARED_EXPORT SampleData
 	QString disease_status;
 	bool is_tumor;
 	bool is_ffpe;
+	QString sender;
+	QString species;
+	QString received;
+	QString received_by;
+	QList<SampleGroup> sample_groups;
 };
 
 ///Sample disease information.
@@ -185,6 +197,9 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleData
 	QString project_name;
 	QString run_name;
 	QString normal_sample_name;
+	QString lab_operator;
+	QString processing_input;
+	QString molarity;
 };
 
 ///Processing system information.
@@ -319,9 +334,11 @@ public:
 	///Executes an SQL query and returns the single return value.
 	///If no values are returned an error thrown or a default-constructed QVariant is returned (depending on @p empty_is_ok).
 	///If more than one value is returned a DatabaseError is thrown.
-	QVariant getValue(const QString& query, bool no_value_is_ok=true);
+	///If @p bind_value is set, the placeholder ':0' in the query is replaced with it (SQL special characters are replaced).
+	QVariant getValue(const QString& query, bool no_value_is_ok=true, QString bind_value = QString());
 	///Executes an SQL query and returns the value list.
-	QStringList getValues(const QString& query);
+	///If @p bind_value is set, the placeholder ':0' in the query is replaced with it (SQL special characters are replaced). Use this if
+	QStringList getValues(const QString& query, QString bind_value = QString());
 	///Returns a SqlQuery object on the NGSD for custom queries.
 	inline SqlQuery getQuery() const
 	{
@@ -363,7 +380,7 @@ public:
 	///Returns transcripts of a gene (if @p coding_only is set, only coding transcripts and regions are returned).
 	QList<Transcript> transcripts(int gene_id, Transcript::SOURCE source, bool coding_only);
 	///Returns longest coding transcript of a gene.
-	Transcript longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_ensembl=false, bool fallback_ensembl_nocoding=false);
+	Transcript longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_alt_source=false, bool fallback_alt_source_nocoding=false);
 	///Returns the list of all approved gene names
 	const GeneSet& approvedGeneNames();
 
