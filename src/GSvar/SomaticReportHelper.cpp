@@ -345,7 +345,7 @@ RtfTable SomaticReportHelper::createCnvTable()
 		temp_row.addCell(700,QByteArray::number(variant.annotations().at(cnv_index_tumor_clonality_).toDouble(),'f',2),RtfParagraph().setHorizontalAlignment("c"));
 
 		//gene names
-		//only print genes which which lie in target region
+		//only print genes which lie in target region
 		if(!variant.annotations().at(cnv_index_cgi_genes_).isEmpty())
 		{
 			//cgi genes
@@ -380,18 +380,18 @@ RtfTable SomaticReportHelper::createCnvTable()
 			}
 			temp_row.addCell(5138,genes_included);
 		}
-		else
+		else //LOHs
 		{
 			if(i_cnv_state != -1 && variant.annotations().at(i_cnv_state) == "LOH")
 			{
 				GeneSet all_genes_loh = variant.genes().intersect(target_genes);
 
-				QByteArray tmp_entry = "";
+				RtfSourceCode tmp_entry = "";
 				foreach(QByteArray gene,all_genes_loh)
 				{
-					tmp_entry.append(", " + gene);
+					tmp_entry.append(", " + RtfText(gene).setItalic(true).RtfCode());
 				}
-				tmp_entry = tmp_entry.mid(2);
+				tmp_entry = tmp_entry.mid(2); //remove initial ", "
 				temp_row.addCell(5138,tmp_entry);
 			}
 			else
