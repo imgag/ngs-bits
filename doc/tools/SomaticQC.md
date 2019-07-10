@@ -1,5 +1,5 @@
 ### SomaticQC tool help
-	SomaticQC (2018_11-7-g60f117b)
+	SomaticQC (2019_05-36-gb3caeea)
 	
 	Calculates QC metrics based on tumor-normal pairs.
 	
@@ -7,33 +7,39 @@
 	All tools produce qcML, a generic XML format for QC of -omics experiments, which we adapted for NGS.
 	
 	Mandatory parameters:
-	  -tumor_bam <file>   Input tumor BAM file.
-	  -normal_bam <file>  Input normal BAM file.
-	  -somatic_vcf <file> Input somatic VCF file.
+	  -tumor_bam <file>    Input tumor BAM file.
+	  -normal_bam <file>   Input normal BAM file.
+	  -somatic_vcf <file>  Input somatic VCF file.
 	
 	Optional parameters:
-	  -out <file>         Output qcML file. If unset, writes to STDOUT.
-	                      Default value: ''
-	  -links <filelist>   Files that appear in the link part of the qcML file.
-	                      Default value: ''
-	  -target_bed <file>  Target file used for tumor and normal experiment.
-	                      Default value: ''
-	  -ref_fasta <file>   Reference fasta file. If unset the reference file from the settings file will be used.
-	                      Default value: ''
-	  -skip_plots         Skip plots (intended to increase speed of automated tests).
-	                      Default value: 'false'
-	  -build <enum>       Genome build used to generate the input.
-	                      Default value: 'hg19'
-	                      Valid: 'hg19,hg38'
+	  -out <file>          Output qcML file. If unset, writes to STDOUT.
+	                       Default value: ''
+	  -links <filelist>    Files that appear in the link part of the qcML file.
+	                       Default value: ''
+	  -target_bed <file>   Target file used for tumor and normal experiment.
+	                       Default value: ''
+	  -target_exons <file> Bed file containing target exons, neccessary for TMB calculation. Please provide a file that contains the coordinates of all exons in the reference genome. If not set, algorithm assumes target file is already intersected with exonic coordinates.
+	                       Default value: ''
+	  -blacklist <file>    Bed file containing regions which shall be blacklisted in TMB calculation.
+	                       Default value: ''
+	  -tsg_bed <file>      Bed file containing regions of tumor suppressor genes.
+	                       Default value: ''
+	  -ref <file>          Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.
+	                       Default value: ''
+	  -skip_plots          Skip plots (intended to increase speed of automated tests).
+	                       Default value: 'false'
+	  -build <enum>        Genome build used to generate the input.
+	                       Default value: 'hg19'
+	                       Valid: 'hg19,hg38'
 	
 	Special parameters:
-	  --help              Shows this help and exits.
-	  --version           Prints version and exits.
-	  --changelog         Prints changeloge and exits.
-	  --tdx               Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --help               Shows this help and exits.
+	  --version            Prints version and exits.
+	  --changelog          Prints changeloge and exits.
+	  --tdx                Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SomaticQC changelog
-	SomaticQC 2018_11-7-g60f117b
+	SomaticQC 2019_05-36-gb3caeea
 	
 	2018-07-11 Added build switch for hg38 support.
 	2017-07-28 Added somatic allele frequency histogram and tumor estimate.
