@@ -112,8 +112,6 @@ struct VcfToBedpe::bedpe_line
 			{
 				START_A = START_A + conf_start;
 				END_A = END_A + conf_end;
-
-
 			}
 		}
 	}
@@ -321,24 +319,34 @@ VcfToBedpe::bedpe_line VcfToBedpe::convertComplexLine(const VcfToBedpe::vcf_line
 	out.REF_A = line_a.ref;
 
 	out.CHROM_B = line_b.chr;
-	out.START_B = line_b.pos.toInt();
-	out.END_B = line_b.pos.toInt();
-	QMap<QByteArray,QByteArray> info_b = parseInfoField(line_b.info);
-	if(info_b.keys().contains("CIPOS"))
+
+	if(line_b.pos != ".")
 	{
-		QList<QByteArray> vals = info_b.value("CIPOS").split(',');
-
-		bool ok_start = false, ok_end = false;
-
-		int conf_start = vals[0].toInt(&ok_start);
-		int conf_end = vals[1].toInt(&ok_end);
-
-		if(ok_start && ok_end)
+		out.START_B = line_b.pos.toInt();
+		out.END_B = line_b.pos.toInt();
+		QMap<QByteArray,QByteArray> info_b = parseInfoField(line_b.info);
+		if(info_b.keys().contains("CIPOS"))
 		{
-			out.START_B = out.START_B + conf_start;
-			out.END_B = out.END_B + conf_end;
+			QList<QByteArray> vals = info_b.value("CIPOS").split(',');
+
+			bool ok_start = false, ok_end = false;
+
+			int conf_start = vals[0].toInt(&ok_start);
+			int conf_end = vals[1].toInt(&ok_end);
+
+			if(ok_start && ok_end)
+			{
+				out.START_B = out.START_B + conf_start;
+				out.END_B = out.END_B + conf_end;
+			}
 		}
 	}
+	else
+	{
+		out.START_B = ".";
+		out.END_B = ".";
+	}
+
 	out.NAME_B = line_b.id;
 	out.REF_B = line_b.ref;
 	out.ALT_B = line_b.alt;
@@ -457,21 +465,29 @@ void VcfToBedpe::convert(const QString& out_file)
 			THROW(FileParseException,"Could not find mate ID in line info of breakpoint ID " + id);
 		}
 
+		QByteArray converted_line;
 		vcf_line line_b;
 		if(!complex_lines.keys().contains(mate_id))
 		{
 			//TODO: Parse BNDs that have an entry for MATE but MATE is not included in SV file
 			qDebug() << "NO MATE FOUND FOR id " + id + " and MATE ID " + mate_id << endl;
-			line_b.samples = {"."};
+			bedpe_line temp =  convertComplexLine(line_a,line_b);
+			temp.NAME_B = "NOT_FOUND";
+
+
+			converted_line = temp.toText();
+
 
 			//THROW(FileParseException,"Could not find mate with ID " + mate_id);
 		}
 		else
 		{
 			line_b = complex_lines.value(mate_id); //mate
+			qDebug() << line_b.chr << endl;
+			converted_line  = convertComplexLine(line_a,line_b).toText();
 		}
 
-		QByteArray converted_line = convertComplexLine(line_a,line_b).toText();
+
 
 		out->write(converted_line + "\n");
 

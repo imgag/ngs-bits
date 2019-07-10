@@ -46,7 +46,9 @@ private slots:
 
 	void convert_manta()
 	{
-		EXECUTE("VcfToBedpe","-in " + TESTDATA("data_in/VcfToBedpe_in1_manta.vcf.gz") + " -out out/VcfToBedpe_out1_manta.vcf");
+		EXECUTE("VcfToBedpe","-in " + TESTDATA("data_in/VcfToBedpe_in1_manta.vcf.gz") + " -out out/VcfToBedpe_out1_manta.bedpe");
+
+		exit(0);
 	}
 
 
