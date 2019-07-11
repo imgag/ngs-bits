@@ -741,7 +741,105 @@ QCCollection Statistics::region(const BedFile& bed_file, bool merge)
     return output;
 }
 
-QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file, const BedFile& tsg, bool skip_plots,double exome_size)
+QCValue Statistics::somatic_tmb(QString &somatic_vcf, const QString &exons, const QString &target, const QString &tsg, const QString &blacklist)
+{
+	QCValue tmb_nan = QCValue("somatic variant rate", "nan Var/Mb", "Categorized somatic variant rate followed by the somatic variant rate [variants/Mbp] normalized for the target region and corrected for tumor suppressors / oncogenes.", "QC:2000053");
+	if(exons.isEmpty() || target.isEmpty() || tsg.isEmpty() || blacklist.isEmpty())
+	{
+		return tmb_nan;
+	}
+
+	BedFile target_file;
+	target_file.load(target);
+	if(target_file.count() == 0) return tmb_nan;
+	target_file.merge();
+
+	//Reduce target region to exons only, we will consider only exonic variants
+	BedFile target_exon_file;
+	target_exon_file.load(exons);
+	if(target_exon_file.count() == 0) return tmb_nan;
+	target_exon_file.merge();
+	target_file.intersect(target_exon_file);
+	double exome_size = target_exon_file.baseCount() / 1000000.;
+
+	//Remove blacklisted region from target region
+	if(!blacklist.isEmpty() && !target_file.count() != 0)
+	{
+		BedFile blacklist_file;
+		blacklist_file.load(blacklist);
+		if(blacklist_file.count() == 0) return tmb_nan;
+		blacklist_file.merge();
+
+		target_file.subtract(blacklist_file);
+		target_file.merge();
+	}
+
+
+	BedFile tsg_bed_file;
+	if(!tsg.isEmpty())
+	{
+		tsg_bed_file.load(tsg);
+		if(tsg_bed_file.count() == 0) return tmb_nan;
+		tsg_bed_file.merge();
+
+		//intersect tsg_bed file with target_file. We only need those exonic regions
+		tsg_bed_file.intersect(target_file);
+	}
+
+
+	VariantList variants;
+	variants.load(somatic_vcf);
+	variants.sort();
+
+	//somatic mutation load (per Mega-base)
+	double target_size = target_file.baseCount() / 1000000.;
+
+	int somatic_count_for_tmb = 0;
+	for(int i=0;i<variants.count();++i)
+	{
+		if(variants[i].filters().contains("freq-nor")) continue;
+		if(variants[i].filters().contains("freq-tum")) continue;
+		if(variants[i].filters().contains("depth-nor")) continue;
+		if(variants[i].filters().contains("depth-tum")) continue;
+		if(variants[i].filters().contains("lt-3-reads")) continue;
+
+		if(target_file.overlapsWith(variants[i].chr(),variants[i].start(),variants[i].end()))
+		{
+
+			++somatic_count_for_tmb;
+		}
+	}
+
+
+	double variant_rate = std::numeric_limits<double>::quiet_NaN();
+
+	if(tsg_bed_file.count() != 0 && target_file.count() != 0)
+	{
+
+		int somatic_count_in_tsg = 0;	// somatic variants in typical tumor suppressors / oncogenes may falsify interpolation
+		for(int i=0;i<variants.count();++i)
+		{
+			if(variants[i].filters().contains("freq-nor")) continue;
+			if(variants[i].filters().contains("freq-tum")) continue;
+			if(variants[i].filters().contains("depth-nor")) continue;
+			if(variants[i].filters().contains("depth-tum")) continue;
+			if(variants[i].filters().contains("lt-3-reads")) continue;
+
+			for(int j=0;j<tsg_bed_file.count();++j)
+			{
+				if(variants[i].overlapsWith(tsg_bed_file[j]))
+				{
+					++somatic_count_in_tsg;
+				}
+			}
+		}
+		variant_rate = ( (somatic_count_for_tmb - somatic_count_in_tsg) * exome_size / target_size + somatic_count_in_tsg ) / exome_size;
+	}
+
+	return QCValue("somatic variant rate", QString::number(variant_rate,'f',2) +" var/Mb" , "Categorized somatic variant rate followed by the somatic variant rate [variants/Mbp] normalized for the target region and corrected for tumor suppressors / oncogenes.", "QC:2000053");
+}
+
+QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file,bool skip_plots)
 {
 	QCCollection output;
 
@@ -848,57 +946,6 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 		output.insert(QCValue("somatic transition/transversion ratio", "n/a (no variants or transversions)", "Somatic transition/transversion ratio of SNV variants.", "QC:2000043"));
 	}
 
-	//somatic mutation load (per Mega-base)
-	double target_size = target_file.baseCount() / 1000000.;
-
-	int somatic_count_for_tmb = 0;
-	for(int i=0;i<variants.count();++i)
-	{
-		if(variants[i].filters().contains("freq-nor")) continue;
-		if(variants[i].filters().contains("freq-tum")) continue;
-		if(variants[i].filters().contains("depth-nor")) continue;
-		if(variants[i].filters().contains("depth-tum")) continue;
-		if(variants[i].filters().contains("lt-3-reads")) continue;
-
-		if(target_file.overlapsWith(variants[i].chr(),variants[i].start(),variants[i].end()))
-		{
-
-			++somatic_count_for_tmb;
-		}
-	}
-
-
-	double variant_rate = std::numeric_limits<double>::quiet_NaN();
-
-	if(tsg.count() != 0 && target_file.count() != 0)
-	{
-
-		int somatic_count_in_tsg = 0;	// somatic variants in typical tumor suppressors / oncogenes may falsify interpolation
-		for(int i=0;i<variants.count();++i)
-		{
-			if(variants[i].filters().contains("freq-nor")) continue;
-			if(variants[i].filters().contains("freq-tum")) continue;
-			if(variants[i].filters().contains("depth-nor")) continue;
-			if(variants[i].filters().contains("depth-tum")) continue;
-			if(variants[i].filters().contains("lt-3-reads")) continue;
-
-			for(int j=0;j<tsg.count();++j)
-			{
-				if(variants[i].overlapsWith(tsg[j]))
-				{
-					++somatic_count_in_tsg;
-				}
-			}
-		}
-		variant_rate = ( (somatic_count_for_tmb - somatic_count_in_tsg) * exome_size / target_size + somatic_count_in_tsg ) / exome_size;
-	}
-
-
-
-
-	QString value = QString::number(variant_rate,'f',2) +" var/Mb";
-	output.insert(QCValue("somatic variant rate", value, "Categorized somatic variant rate (high/intermediate/low) followed by the somatic variant rate [variants/Mb] normalized for the target region and corrected for truncating variant(s) in tumor suppressors / oncogenes.", "QC:2000053"));
-
 
 	//estimate tumor content
 	int min_depth = 30;
@@ -934,7 +981,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 	std::sort(freqs.begin(), freqs.end());
 
 	//print tumor content estimate
-	value = "";
+	QString value = "";
 	if (freqs.count()>=n)
 	{
 		freqs = freqs.mid(freqs.count()-n);

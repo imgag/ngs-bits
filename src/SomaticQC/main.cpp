@@ -173,7 +173,10 @@ public:
 
 
 		QCCollection metrics;
-		metrics = Statistics::somatic(build, tumor_bam, normal_bam, somatic_vcf, ref, target_bed_file, tsg_bed_file, skip_plots, exome_size);
+		metrics = Statistics::somatic(build, tumor_bam, normal_bam, somatic_vcf, ref, target_bed_file, skip_plots);
+		QCValue tmb = Statistics::somatic_tmb(somatic_vcf,target_exons,target_bed,tsg_bed,blacklist);
+		metrics.insert(tmb);
+
 
 		//store output
 		QString parameters = "";
