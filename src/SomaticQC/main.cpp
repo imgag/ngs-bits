@@ -72,9 +72,9 @@ public:
 		addOutfile("out", "Output qcML file. If unset, writes to STDOUT.", true, true);
 		addInfileList("links","Files that appear in the link part of the qcML file.",true);
 		addInfile("target_bed", "Target file used for tumor and normal experiment.", true);
-		addInfile("target_exons","Bed file containing target exons, neccessary for TMB calculation. Please provide a file that contains the coordinates of all exons in the reference genome. If not set, algorithm assumes target file is already intersected with exonic coordinates.",true);
-		addInfile("blacklist","Bed file containing regions which shall be blacklisted in TMB calculation.",true);
-		addInfile("tsg_bed","Bed file containing regions of tumor suppressor genes.",true);
+		addInfile("target_exons","BED file containing target exons, neccessary for TMB calculation. Please provide a file that contains the coordinates of all exons in the reference genome.",true);
+		addInfile("blacklist","BED file containing regions which are ignored in TMB calculation.",true);
+		addInfile("tsg_bed","BED file containing regions of tumor suppressor genes for TMB calculation.",true);
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addFlag("skip_plots", "Skip plots (intended to increase speed of automated tests).");
 		setExtendedDescription(QStringList() << "SomaticQC integrates the output of the other QC tools and adds several metrics specific for tumor-normal pairs." << "All tools produce qcML, a generic XML format for QC of -omics experiments, which we adapted for NGS.");
@@ -138,16 +138,15 @@ public:
 
 		QCCollection metrics;
 		metrics = Statistics::somatic(build, tumor_bam, normal_bam, somatic_vcf, ref, target_bed_file, skip_plots);
-		QCValue tmb = Statistics::somatic_tmb(somatic_vcf,target_exons,target_bed,tsg_bed,blacklist);
+		QCValue tmb = Statistics::mutationBurden(somatic_vcf, target_exons, target_bed, tsg_bed, blacklist);
 		metrics.insert(tmb);
-
 
 		//store output
 		QString parameters = "";
-		if(!target_bed.isEmpty())	parameters += " -target_bed " + target_bed;	// targeted Seq
-		if(!blacklist.isEmpty())	parameters += " -blacklist" + blacklist;
+		if(!target_bed.isEmpty())	parameters += " -target_bed " + target_bed;
+		if(!blacklist.isEmpty())	parameters += " -blacklist " + blacklist;
 		if(!tsg_bed.isEmpty())		parameters += " -tsg_bed " + tsg_bed;
-		if(!target_exons.isEmpty()) parameters += " -target_exons" + target_exons;
+		if(!target_exons.isEmpty()) parameters += " -target_exons " + target_exons;
 		metrics.storeToQCML(out, QStringList(), parameters, QMap< QString, int >(), metadata);
 	}
 };

@@ -10,6 +10,8 @@ NGSD:
     - Run/processed sample/sample in general
         - Add email support for runs "run finished" and "analysis finished"
     - Set processed sample qualities in batch (selection)
+    - sample: import disease info, disease group/status, gender from same samples
+
 ** Add run overview dialog/tab
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
 - NGSD annotation: export VCF, use VCF for annotation (also works on external servers)
