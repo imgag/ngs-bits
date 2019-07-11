@@ -131,8 +131,10 @@ public:
 
 		//Construct target region for TMB calculation
 		BedFile target_bed_file;
-		target_bed_file.load(target_bed);
-
+		if(!target_bed.isEmpty())
+		{
+			target_bed_file.load(target_bed);
+		}
 
 		QCCollection metrics;
 		metrics = Statistics::somatic(build, tumor_bam, normal_bam, somatic_vcf, ref, target_bed_file, skip_plots);
