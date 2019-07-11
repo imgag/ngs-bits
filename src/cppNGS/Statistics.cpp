@@ -760,6 +760,7 @@ QCValue Statistics::somatic_tmb(QString &somatic_vcf, const QString &exons, cons
 	if(target_exon_file.count() == 0) return tmb_nan;
 	target_exon_file.merge();
 	target_file.intersect(target_exon_file);
+	target_file.merge();
 	double exome_size = target_exon_file.baseCount() / 1000000.;
 
 	//Remove blacklisted region from target region
@@ -784,6 +785,7 @@ QCValue Statistics::somatic_tmb(QString &somatic_vcf, const QString &exons, cons
 
 		//intersect tsg_bed file with target_file. We only need those exonic regions
 		tsg_bed_file.intersect(target_file);
+		tsg_bed_file.merge();
 	}
 
 

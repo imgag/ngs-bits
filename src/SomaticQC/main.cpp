@@ -130,46 +130,8 @@ public:
 		// calculate somatic QC metrics
 
 		//Construct target region for TMB calculation
-
 		BedFile target_bed_file;
-		double exome_size = 44982824. / 1000000.;
-
-		if(!target_bed.isEmpty())
-		{
-			target_bed_file.load(target_bed);
-			target_bed_file.merge();
-
-			if(!target_exons.isEmpty())
-			{
-				BedFile target_exon_file;
-				target_exon_file.load(target_exons);
-				target_exon_file.merge();
-				target_bed_file.intersect(target_exon_file);
-			}
-
-			exome_size = target_bed_file.baseCount() / 1000000.;
-		}
-
-		//Remove blacklisted region if available
-		if(!blacklist.isEmpty() && !target_bed_file.count() != 0)
-		{
-			BedFile blacklist_file;
-			blacklist_file.load(blacklist);
-			blacklist_file.merge();
-
-			target_bed_file.subtract(blacklist_file);
-			target_bed_file.merge();
-		}
-
-		BedFile tsg_bed_file;
-		if(!tsg_bed.isEmpty())
-		{
-			tsg_bed_file.load(tsg_bed);
-			tsg_bed_file.merge();
-
-			//intersect tsg_bed file with target_bed_file. We only need those exonic regions
-			tsg_bed_file.intersect(target_bed_file);
-		}
+		target_bed_file.load(target_bed);
 
 
 		QCCollection metrics;
@@ -180,7 +142,7 @@ public:
 
 		//store output
 		QString parameters = "";
-		if(!target_bed.isEmpty())	parameters += "-target_bed " + target_bed;	// targeted Seq
+		if(!target_bed.isEmpty())	parameters += " -target_bed " + target_bed;	// targeted Seq
 		if(!blacklist.isEmpty())	parameters += " -blacklist" + blacklist;
 		if(!tsg_bed.isEmpty())		parameters += " -tsg_bed " + tsg_bed;
 		if(!target_exons.isEmpty()) parameters += " -target_exons" + target_exons;
