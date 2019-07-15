@@ -456,7 +456,16 @@ void ClinCnvWidget::filtersChanged()
 				pass[r] = !cnvs[r].annotations()[anno_col_index].isEmpty();
 			}
 		}
-		else
+		else if (anno_op=="does not contain")
+		{
+			QByteArray anno_value = ui->f_anno_value->text().toLatin1().toUpper();
+			for(int r=0; r<rows; ++r)
+			{
+				if (!pass[r]) continue;
+				pass[r] = !cnvs[r].annotations()[anno_col_index].toUpper().contains(anno_value);
+			}
+		}
+		else if (anno_op=="contains")
 		{
 			QByteArray anno_value = ui->f_anno_value->text().toLatin1().toUpper();
 			for(int r=0; r<rows; ++r)
@@ -464,6 +473,10 @@ void ClinCnvWidget::filtersChanged()
 				if (!pass[r]) continue;
 				pass[r] = cnvs[r].annotations()[anno_col_index].toUpper().contains(anno_value);
 			}
+		}
+		else
+		{
+			THROW(ProgrammingException, "Unknown filter operation '" + anno_op + "'!");
 		}
 	}
 
@@ -547,7 +560,7 @@ void ClinCnvWidget::annotationFilterColumnChanged()
 }
 void ClinCnvWidget::annotationFilterOperationChanged()
 {
-	if (ui->f_anno_op->currentText()=="contains")
+	if (ui->f_anno_op->currentText().contains("contain"))
 	{
 		ui->f_anno_value->setEnabled(true);
 	}
