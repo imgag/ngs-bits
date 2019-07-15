@@ -17,10 +17,7 @@ private slots:
 		BedFile target_test_file;
 		target_test_file.load(TESTDATA("data_in/Statistics_somatic_tmb_target.bed")); //exons of ssscv4, sorted and merged
 
-		BedFile tsg_test_file;
-		tsg_test_file.load(TESTDATA("data_in/Statistics_somatic_tmb_tsg.bed")); //exons of tsg genes
-
-		QCCollection stats = Statistics::somatic("hg19", tumor_bam, normal_bam, somatic_vcf, QString(),target_test_file, tsg_test_file, true);
+		QCCollection stats = Statistics::somatic("hg19", tumor_bam, normal_bam, somatic_vcf, QString(),target_test_file, true);
 
         S_EQUAL(stats[0].name(), QString("sample correlation"));
         S_EQUAL(stats[0].accession(), QString("QC:2000040"));
@@ -32,23 +29,17 @@ private slots:
 		S_EQUAL(stats[2].accession(), QString("QC:2000041"));
 		S_EQUAL(stats[2].toString(), QString("64"));
 		S_EQUAL(stats[3].name(), QString("known somatic variants percentage"));
-        S_EQUAL(stats[3].accession(), QString("QC:2000045"));
+		S_EQUAL(stats[3].accession(), QString("QC:2000045"));
 		S_EQUAL(stats[3].toString(), QString("n/a (no gnomAD_AF annotation in CSQ info field)"));
-        S_EQUAL(stats[4].name(), QString("somatic indel percentage"));
-        S_EQUAL(stats[4].accession(), QString("QC:2000042"));
+		S_EQUAL(stats[4].name(), QString("somatic indel percentage"));
+		S_EQUAL(stats[4].accession(), QString("QC:2000042"));
 		S_EQUAL(stats[4].toString(), QString("0.00"));
-        S_EQUAL(stats[5].name(), QString("somatic transition/transversion ratio"));
+		S_EQUAL(stats[5].name(), QString("somatic transition/transversion ratio"));
 		S_EQUAL(stats[5].accession(), QString("QC:2000043"));
 		S_EQUAL(stats[5].toString(), QString("6.11"));
-
-		S_EQUAL(stats[6].accession(), QString("QC:2000053"));
-		S_EQUAL(stats[6].toString(), QString("18.30 var/Mb"));
-
-
-
-		S_EQUAL(stats[7].accession(), QString("QC:2000054"));
-		S_EQUAL(stats[7].toString(), QString("n/a (too few variants)"));
-		I_EQUAL(stats.count(), 8);
+		S_EQUAL(stats[6].accession(), QString("QC:2000054"));
+		S_EQUAL(stats[6].toString(), QString("n/a (too few variants)"));
+		I_EQUAL(stats.count(), 7);
 
 		//check that there is a description for each term
 		for (int i=0; i<stats.count(); ++i)
@@ -56,6 +47,36 @@ private slots:
 			IS_TRUE(stats[i].description()!="");
 			IS_TRUE(stats[i].accession()!="");
 		}
+
+	}
+
+	void somatic_mutation_burden()
+	{
+		QString somatic_vcf = TESTDATA("../tools-TEST/data_in/SomaticQC_in7.vcf");
+		QString exons = TESTDATA("../tools-TEST/data_in/SomaticQC_tmb_exons.bed");
+		QString target = TESTDATA("../tools-TEST/data_in/SomaticQC_in8.bed");
+		QString tsg = TESTDATA("../tools-TEST/data_in/SomaticQC_tmb_tsg.bed");
+		QString blacklist = TESTDATA("../tools-TEST/data_in/SomaticQC_tmb_blacklist.bed");
+
+		//Use TSG BED-file which does not overlap with a variant in somatic VCF file
+		QCValue tmb = Statistics::mutationBurden(somatic_vcf, exons, target, tsg, blacklist);
+		S_EQUAL(tmb.name(),QString("somatic variant rate"));
+		S_EQUAL(tmb.accession(),QString("QC:2000053"));
+		S_EQUAL(tmb.toString(),QString("4.41"));
+
+		//use TSG BED-file which overlaps with a variant in somatic VCF file
+		tsg = TESTDATA("data_in/Statistics_somatic_tmb_tsg.bed");
+		tmb = Statistics::mutationBurden(somatic_vcf, exons, target, tsg, blacklist);
+		S_EQUAL(tmb.name(),QString("somatic variant rate"));
+		S_EQUAL(tmb.accession(),QString("QC:2000053"));
+		S_EQUAL(tmb.toString(),QString("2.23"));
+
+		//only target region, blacklist file is empty
+		blacklist = TESTDATA("data_in/Statistics_somatic_tmb_blacklist.bed"); // file is empty
+		tmb = Statistics::mutationBurden(somatic_vcf, exons, target, tsg, blacklist);
+		S_EQUAL(tmb.name(),QString("somatic variant rate"));
+		S_EQUAL(tmb.accession(),QString("QC:2000053"));
+		S_EQUAL(tmb.toString(),QString("n/a"));
 	}
 
 	void variantList_panel_filter()

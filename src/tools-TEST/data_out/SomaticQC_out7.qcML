@@ -18,15 +18,15 @@
     <qualityParameter ID="qp0004" name="known somatic variants percentage" description="Percentage of somatic variants that are listed as germline variants in public datbases (e.g. AF&gt;1% in ExAC)." value="50.00" cvRef="QC" accession="QC:2000045"/>
     <qualityParameter ID="qp0005" name="somatic indel percentage" description="Percentage of somatic variants that are insertions/deletions." value="50.00" cvRef="QC" accession="QC:2000042"/>
     <qualityParameter ID="qp0006" name="somatic transition/transversion ratio" description="Somatic transition/transversion ratio of SNV variants." value="n/a (no variants or transversions)" cvRef="QC" accession="QC:2000043"/>
-    <qualityParameter ID="qp0007" name="somatic variant rate" description="Categorized somatic variant rate (high/intermediate/low) followed by the somatic variant rate [variants/Mb] normalized for the target region and corrected for truncating variant(s) in tumor suppressors / oncogenes." value="nan var/Mb" cvRef="QC" accession="QC:2000053"/>
-    <qualityParameter ID="qp0008" name="tumor content estimate" description="Estimate of tumor content." value="n/a (too few variants)" cvRef="QC" accession="QC:2000054"/>
-    <attachment ID="qp0009" name="somatic SNVs allele frequency histogram" description="Allele frequency histogram of somatic SNVs." cvRef="QC" accession="QC:2000055">
+    <qualityParameter ID="qp0007" name="tumor content estimate" description="Estimate of tumor content." value="n/a (too few variants)" cvRef="QC" accession="QC:2000054"/>
+    <qualityParameter ID="qp0012" name="somatic variant rate" description="Categorized somatic variant rate followed by the somatic variant rate [variants/Mbp] normalized for the target region and corrected for tumor suppressors." value="n/a" cvRef="QC" accession="QC:2000053"/>
+    <attachment ID="qp0008" name="somatic SNVs allele frequency histogram" description="Allele frequency histogram of somatic SNVs." cvRef="QC" accession="QC:2000055">
     </attachment>
-    <attachment ID="qp0010" name="somatic SNV mutation types" description="" cvRef="QC" accession="QC:?">
+    <attachment ID="qp0009" name="somatic SNV mutation types" description="" cvRef="QC" accession="QC:?">
     </attachment>
-    <attachment ID="qp0011" name="somatic variants allele frequencies plot" description="." cvRef="QC" accession="QC:2000048">
+    <attachment ID="qp0010" name="somatic variants allele frequencies plot" description="." cvRef="QC" accession="QC:2000048">
     </attachment>
-    <attachment ID="qp0012" name="somatic SNV signature plot" description="Percentage of different variant types. If a target file was given, the variant type percentage is normalized to the reference genome." cvRef="QC" accession="QC:2000047">
+    <attachment ID="qp0011" name="somatic SNV signature plot" description="Percentage of different variant types. If a target file was given, the variant type percentage is normalized to the reference genome." cvRef="QC" accession="QC:2000047">
     </attachment>
   </runQuality>
   <cvList>
