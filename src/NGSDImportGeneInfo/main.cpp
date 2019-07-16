@@ -16,7 +16,7 @@ public:
 	virtual void setup()
 	{
 		setDescription("Imports gene-specific information into NGSD.");
-		addInfile("constraint", "gnomAD gene contraint file (download and unzip https://storage.googleapis.com/gnomad-public/release/2.1/ht/constraint/constraint.txt.bgz).", false);
+		addInfile("constraint", "gnomAD gene contraint file (download and unzip https://storage.googleapis.com/gnomad-public/release/2.1.1/constraint/gnomad.v2.1.1.lof_metrics.by_gene.txt.bgz).", false);
 		//optional
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");
@@ -51,11 +51,14 @@ public:
 		//import genomAD o/e scores
 		out << "Importing genomAD constraints..." << endl;
 		{
+			int c_inserted = 0;
+
 			SqlQuery update_query = db.getQuery();
 			update_query.prepare("INSERT INTO geneinfo_germline (symbol, inheritance, gnomad_oe_syn, gnomad_oe_mis, gnomad_oe_lof, comments) VALUES (:0, 'n/a', :1, :2, :3, '') ON DUPLICATE KEY UPDATE gnomad_oe_syn=VALUES(gnomad_oe_syn), gnomad_oe_mis=VALUES(gnomad_oe_mis), gnomad_oe_lof=VALUES(gnomad_oe_lof)");
 			int i_syn = -1;
 			int i_mis = -1;
 			int i_lof = -1;
+			int i_can = -1;
 
 			auto file = Helper::openFileForReading(getInfile("constraint"));
 			while(!file->atEnd())
@@ -72,17 +75,19 @@ public:
 					i_syn = parts.indexOf("oe_syn");
 					i_mis = parts.indexOf("oe_mis");
 					i_lof = parts.indexOf("oe_lof");
+					i_can = parts.indexOf("canonical");
+
+					//check that headers are ok
+					if (i_syn==-1 || i_mis==-1 || i_lof==-1)
+					{
+						THROW(FileParseException, "Could not determine column indices for o/e columns in header line!");
+					}
+
 					continue;
 				}
 
-				//canonical transcripts
-				if  (parts[2].trimmed()!="true") continue;
-
-				//check that headers are ok
-				if (i_syn==-1 || i_mis==-1 || i_lof==-1)
-				{
-					THROW(FileParseException, "Could not determine column indices for o/e columns in header line!");
-				}
+				//skip canonical transcripts (for downward-compatibility with version 2.1)
+				if  (i_can!=-1 && parts[i_can].trimmed()!="true") continue;
 
 				//gene
 				QString gene = parts[0];
@@ -123,7 +128,11 @@ public:
 					update_query.bindValue(3, QString::number(Helper::toDouble(parts[i_lof], "gnomad o/e (lof)"), 'f', 2));
 				}
 				update_query.exec();
+
+				++c_inserted;
 			}
+
+			out << "  imported constraint info for " << c_inserted << " genes" << endl;
 			out << endl;
 		}
 
