@@ -99,7 +99,6 @@ HEADERS += \
     VcfBreakMulti_Test.h \
     VcfFilter_Test.h \
     NGSDImportOMIM_Test.h \
-    VcfBreakComplex_Test.h \
     VcfExtractSamples_Test.h \
     FastqConcat_Test.h
 
