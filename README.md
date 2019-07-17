@@ -16,7 +16,8 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 Changes already implemented in GIT master for next release:
 
-* none so far
+* SomaticQC: fixed a bug that caused hanging when no target region BED was given.
+* removed tool: VcfBreakComplex (was beta and never finished)
 
 Changes in release 2019_07:
 

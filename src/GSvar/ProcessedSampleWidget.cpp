@@ -140,8 +140,8 @@ void ProcessedSampleWidget::updateGUI()
 
 
 	//#### sample relations ####
-	DBTable rel_table = db_.createTable("sample_relations", "SELECT id, (SELECT name FROM sample WHERE id=sample1_id), relation, (SELECT name FROM sample WHERE id=sample2_id) FROM sample_relations WHERE sample1_id='" + s_id + "' OR sample2_id='" + s_id + "'");
-	rel_table.setHeaders(QStringList() << "sample1" << "relation" << "sample2");
+	DBTable rel_table = db_.createTable("sample_relations", "SELECT id, (SELECT name FROM sample WHERE id=sample1_id), (SELECT sample_type FROM sample WHERE id=sample1_id), relation, (SELECT name FROM sample WHERE id=sample2_id), (SELECT sample_type  FROM sample WHERE id=sample2_id) FROM sample_relations WHERE sample1_id='" + s_id + "' OR sample2_id='" + s_id + "'");
+	rel_table.setHeaders(QStringList() << "sample 1" << "type 1" << "relation" << "sample 2" << "type 2");
 	ui_->sample_relations->setData(rel_table);
 
 	//#### QC ####
