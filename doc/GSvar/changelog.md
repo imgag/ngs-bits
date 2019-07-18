@@ -1,5 +1,10 @@
 # GSvar change log
 
+### 2019_07-8 (17.07.19)
+- Variant overview dialog: fixed copy to clipboard.
+- Recalulate gaps dialog: now uses Ensembl transcripts instead of CCDS.
+- Processed sample tab: added sample type to sample relations table.
+
 ### 2019_05-36 (03.07.19)
 - Subpanel design: is now based on Ensembl transcripts.
 - Updated processed sample and sequencing run tabs.
