@@ -26,7 +26,7 @@ public:
 	static QMap<QByteArray,QByteArray> parseInfoField(const QByteArray& field);
 
 	///Writes bedpe file to "out_file"
-	void convert(const QString& out_file);
+	void convert(QString out_file);
 
 
 
@@ -45,20 +45,17 @@ private:
 	///Adds info field to header after another header string contains "before"
 	void addHeaderInfoFieldAfter(const QByteArray& before,const QByteArray& key, const QByteArray& type, int number, const QByteArray& desc);
 
-
 	///Converts VCF line with "simple" SV (=> no mate) into BedpeLine, the end entry in INFO is in this case on same chromosome
-	VcfToBedpe::bedpe_line convertSingleLine(const VcfToBedpe::vcf_line& line_in, bool single_manta_bnd = false);
+	VcfToBedpe::bedpe_line convertSingleLine(const vcf_line& line_in, bool single_manta_bnd = false);
 
 	///Converts VCF line with "complex" SV (where we have a Mate) into BedpeLine
-	VcfToBedpe::bedpe_line convertComplexLine(const VcfToBedpe::vcf_line& line_a, const vcf_line& line_b);
+	VcfToBedpe::bedpe_line convertComplexLine(const vcf_line& line_a, const vcf_line& line_b,bool mate_missing = false);
 
-
-	///ads Info field to
+	///adds entry into INFO field after certain entry
 	static QByteArray newInfoFieldAfterKey(const QByteArray& info_old,const QByteArray& key_before, const QByteArray& key, const QByteArray& data);
 
 	///neccessary for test cases
 	VcfToBedpe();
-
 };
 
 #endif // VCFTOBEDPE_H

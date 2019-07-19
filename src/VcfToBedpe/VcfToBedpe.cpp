@@ -47,12 +47,12 @@ struct VcfToBedpe::vcf_line
 struct VcfToBedpe::bedpe_line
 {
 	QByteArray CHROM_A = ".";
-	int START_A = std::numeric_limits<int>::quiet_NaN();
-	int END_A = std::numeric_limits<int>::quiet_NaN();
+	int START_A = -1;
+	int END_A = -1;
 
 	QByteArray CHROM_B = ".";
-	int START_B = std::numeric_limits<int>::quiet_NaN();
-	int END_B = std::numeric_limits<int>::quiet_NaN();
+	int START_B = -1;
+	int END_B = -1;
 
 	QByteArray ID = ".";
 
@@ -79,16 +79,23 @@ struct VcfToBedpe::bedpe_line
 
 	QList<QByteArray> samples;
 
+	QByteArray posToString(int in)
+	{
+		return (in != -1 ? QByteArray::number(in) : "." );
+	}
+
 	QByteArray toText()
 	{
-		QByteArray out;
+		QByteArrayList out;
 
-		out = CHROM_A + "\t" + QByteArray::number(START_A) + "\t" + QByteArray::number(END_A) + "\t" + CHROM_B + "\t" + QByteArray::number(START_B) + "\t" + QByteArray::number(END_B) + "\t" + ID +"\t" + QUAL + "\t" +
-				STRAND_A + "\t" + STRAND_B + "\t" + TYPE + "\t" + FILTER + "\t" + NAME_A +"\t" + REF_A + "\t" + ALT_A + "\t" +
-				NAME_B + "\t" + REF_B + "\t" + ALT_B +"\t" + INFO_A + "\t" + INFO_B + "\t" + FORMAT_DESC;
-		for(const auto& sample : samples) out += "\t" + sample;
+		out << CHROM_A << posToString(START_A) << posToString(END_A);
+		out << CHROM_B << posToString(START_B) << posToString(END_B);
+		out << ID << QUAL << STRAND_A << STRAND_B << TYPE  << FILTER  << NAME_A  << REF_A  << ALT_A;
+		out << NAME_B << REF_B << ALT_B << INFO_A << INFO_B<< FORMAT_DESC;
 
-		return out;
+		for(const auto& sample : samples) out << sample;
+
+		return out.join('\t');
 	}
 
 	//Adds Chromosome, StartA, EndA including confidence interval (CIPOS) if available
@@ -98,7 +105,7 @@ struct VcfToBedpe::bedpe_line
 		QMap<QByteArray,QByteArray> info = VcfToBedpe::parseInfoField(line_in.info);
 		START_A = line_in.pos.toInt();
 		END_A = line_in.pos.toInt();
-		//Add confidence intervals
+		//Add confidence intervals (CIPOS = Confidence Interval POS)
 		if(info.value("CIPOS","") != "")
 		{
 			QList<QByteArray> vals = info.value("CIPOS").split(',');
@@ -121,8 +128,9 @@ struct VcfToBedpe::bedpe_line
 		QMap<QByteArray,QByteArray> info = VcfToBedpe::parseInfoField(line_in.info);
 
 		CHROM_B = info.value("CHR2"); //get chr from "CHR2" entry (delly files)
-		START_B = info.value("END").toInt();
-		END_B = info.value("END").toInt();
+		if(info.value("END") != ".") START_B = info.value("END").toInt();
+		if(info.value("END") != ".") END_B = info.value("END").toInt();
+
 		if(info.value("CIEND","") != "")
 		{
 			QList<QByteArray> vals = info.value("CIEND").split(',');
@@ -240,15 +248,14 @@ QMap<QByteArray,QByteArray> VcfToBedpe::parseInfoField(const QByteArray &field)
 VcfToBedpe::bedpe_line VcfToBedpe::convertSingleLine(const VcfToBedpe::vcf_line &line_in, bool single_manta_bnd)
 {
 	QMap<QByteArray,QByteArray> info = parseInfoField(line_in.info);
-	//2nd breakpoint
-	QByteArray bnd2 = info.value("END","DEFAULT");
-	if(bnd2 == "DEFAULT")
+	//Check data for 2nd breakpoint is available
+	if(info.value("END","") == "" && !single_manta_bnd)
 	{
 		THROW(FileParseException,"No entry \"END\" found in INFO field, but neccessary for simple breakpoints");
 	}
 
-	QChar orientation1 = '+';
-	QChar orientation2 = '-';
+	QChar orientation1 = '.';
+	QChar orientation2 = '.';
 
 	if(info.keys().contains("STRANDS") && info.value("STRANDS").count() == 2)
 	{
@@ -257,13 +264,12 @@ VcfToBedpe::bedpe_line VcfToBedpe::convertSingleLine(const VcfToBedpe::vcf_line 
 	}
 
 	bedpe_line res;
-
 	res.addCoordinatesA(line_in);
 
-	res.addCoordinatesB(line_in);
+	if(!single_manta_bnd) res.addCoordinatesB(line_in);
 
 	//Set
-	if(res.CHROM_B.isEmpty())
+	if(res.CHROM_B.isEmpty() && !single_manta_bnd)
 	{
 		res.CHROM_B = res.CHROM_A;
 	}
@@ -283,11 +289,21 @@ VcfToBedpe::bedpe_line VcfToBedpe::convertSingleLine(const VcfToBedpe::vcf_line 
 	res.ALT_A = line_in.alt;
 	res.INFO_A = VcfToBedpe::newInfoFieldAfterKey(line_in.info,"SVTYPE","POS",line_in.pos);
 
-	res.NAME_B = ".";
-	res.REF_B = ".";
-	res.ALT_B= ".";
-	res.INFO_B = ".";
-	if(single_manta_bnd) res.INFO_B = "MISSING";
+	if(!single_manta_bnd)
+	{
+		res.NAME_B = ".";
+		res.REF_B = ".";
+		res.ALT_B = ".";
+		res.INFO_B = ".";
+	}
+	else
+	{
+		res.NAME_B = "MISSING";
+		res.REF_B = "MISSING";
+		res.ALT_B = "MISSING";
+		res.INFO_B = "MISSING";
+	}
+
 
 	res.FORMAT_DESC = line_in.format;
 
@@ -301,11 +317,10 @@ VcfToBedpe::bedpe_line VcfToBedpe::convertSingleLine(const VcfToBedpe::vcf_line 
 		res.samples << sample;
 	}
 
-
 	return res;
 }
 
-VcfToBedpe::bedpe_line VcfToBedpe::convertComplexLine(const VcfToBedpe::vcf_line &line_a, const VcfToBedpe::vcf_line &line_b)
+VcfToBedpe::bedpe_line VcfToBedpe::convertComplexLine(const VcfToBedpe::vcf_line &line_a, const VcfToBedpe::vcf_line &line_b, bool mate_missing)
 {
 	bedpe_line out;
 
@@ -317,8 +332,9 @@ VcfToBedpe::bedpe_line VcfToBedpe::convertComplexLine(const VcfToBedpe::vcf_line
 	out.NAME_A = line_a.id;
 	out.INFO_A = line_a.info;
 	out.REF_A = line_a.ref;
+	out.ID = line_a.id;
 
-	out.CHROM_B = line_b.chr;
+
 
 	if(line_b.pos != ".")
 	{
@@ -341,66 +357,46 @@ VcfToBedpe::bedpe_line VcfToBedpe::convertComplexLine(const VcfToBedpe::vcf_line
 			}
 		}
 	}
-	else
+
+	if(!mate_missing)
 	{
-		out.START_B = ".";
-		out.END_B = ".";
-	}
-
-	out.NAME_B = line_b.id;
-	out.REF_B = line_b.ref;
-	out.ALT_B = line_b.alt;
-	out.INFO_B = line_b.info;
-
-
-
-	out.ID = line_b.id;
-	if(line_a.qual == line_b.qual)
-	{
-		out.QUAL = line_b.qual;
-	}
-
-	if(line_a.filter == line_b.filter) //set filter if equal
-	{
-		out.FILTER = line_a.filter;
-	}
-	else //if both BNDs have different filters, merge
-	{
-		QList<QByteArray> filters = line_a.filter.split(';');
-		for(const auto& filter_b : line_b.filter.split(';'))
-		{
-			if(!filters.contains(filter_b)) filters << filter_b;
-		}
-		out.FILTER = filters.join(';');
-	}
-
-	if(line_a.format == line_b.format)
-	{
-		out.FORMAT_DESC = line_a.format;
+		out.CHROM_B = line_b.chr;
+		out.NAME_B = line_b.id;
+		out.REF_B = line_b.ref;
+		out.ALT_B = line_b.alt;
+		out.INFO_B = line_b.info;
 	}
 	else
 	{
-		out.FORMAT_DESC = "CONFLICTING";
-	}
-
-	if(line_a.samples == line_b.samples)
-	{
-		out.samples = line_a.samples;
-	}
-	else
-	{
-		out.samples = {"CONFLICTING"};
+		out.NAME_B = "NOT_FOUND";
+		out.REF_B = "NOT_FOUND";
+		out.ALT_B = "NOT_FOUND";
+		out.INFO_B = "NOT_FOUND";
 	}
 
 
-	QChar orientation1 = '+';
-	QChar orientation2 = '-';
+	if(line_a.qual == line_b.qual || mate_missing) out.QUAL = line_a.qual;
+	else out.QUAL = "AMBIGUOUS";
 
-	if(info_b.keys().contains("STRANDS") && info_b.value("STRANDS").count() == 2)
+	if(line_a.filter == line_b.filter || mate_missing) out.FILTER = line_a.filter;
+	else out.FILTER = "AMBIGUOUS";
+
+	if(line_a.format == line_b.format || mate_missing) out.FORMAT_DESC = line_a.format;
+	else out.FORMAT_DESC = "AMBIGUOUS";
+
+	if(line_a.samples == line_b.samples || mate_missing) out.samples = line_a.samples;
+	else out.samples = {"AMBIGUOUS"};
+
+
+
+	QChar orientation1 = '.';
+	QChar orientation2 = '.';
+
+/*	if(info_b.keys().contains("STRANDS") && info_b.value("STRANDS").count() == 2)
 	{
 		orientation1 = info_b.value("STRANDS").at(0);
 		orientation2 = info_b.value("STRANDS").at(1);
-	}
+	}*/
 
 	out.STRAND_A = QString(orientation1).toUtf8();
 	out.STRAND_B = QString(orientation2).toUtf8();
@@ -411,7 +407,7 @@ VcfToBedpe::bedpe_line VcfToBedpe::convertComplexLine(const VcfToBedpe::vcf_line
 }
 
 
-void VcfToBedpe::convert(const QString& out_file)
+void VcfToBedpe::convert(QString out_file)
 {
 	QSharedPointer<QFile> out = Helper::openFileForWriting(out_file);
 
@@ -425,7 +421,7 @@ void VcfToBedpe::convert(const QString& out_file)
 	out->write(heading + "\n");
 
 
-	QMap<QByteArray,vcf_line> complex_lines; //mateid <-> vcf pairs of compley BNDs
+	QMap<QByteArray,vcf_line> complex_lines; //complex lines: have two parts in original file
 
 	while(!gzeof(file_))
 	{
@@ -450,13 +446,12 @@ void VcfToBedpe::convert(const QString& out_file)
 
 	//BND ids that have already been parsed, have to be skipped
 	QList<QByteArray> parsed_ids;
-
 	for(const auto& id : complex_lines.keys())
 	{
 		const vcf_line& line_a = complex_lines.value(id);
 
 		QMap<QByteArray,QByteArray> info_a = parseInfoField(line_a.info);
-		const QByteArray mate_id = info_a.value("MATEID","");
+		const QByteArray& mate_id = info_a.value("MATEID","");
 
 		if(parsed_ids.contains(id) || parsed_ids.contains(mate_id)) continue;
 
@@ -467,33 +462,24 @@ void VcfToBedpe::convert(const QString& out_file)
 
 		QByteArray converted_line;
 		vcf_line line_b;
-		if(!complex_lines.keys().contains(mate_id))
+
+		if(!complex_lines.keys().contains(mate_id)) //Parse Mates for which no MATE-ID is included in VCF file
 		{
-			//TODO: Parse BNDs that have an entry for MATE but MATE is not included in SV file
-			qDebug() << "NO MATE FOUND FOR id " + id + " and MATE ID " + mate_id << endl;
-			bedpe_line temp =  convertComplexLine(line_a,line_b);
-			temp.NAME_B = "NOT_FOUND";
-
-
+			bedpe_line temp =  convertComplexLine(line_a,line_b,true);
 			converted_line = temp.toText();
-
-
-			//THROW(FileParseException,"Could not find mate with ID " + mate_id);
 		}
 		else
 		{
-			line_b = complex_lines.value(mate_id); //mate
-			qDebug() << line_b.chr << endl;
-			converted_line  = convertComplexLine(line_a,line_b).toText();
+			line_b = complex_lines.value(mate_id);
+			converted_line  = convertComplexLine(line_a,line_b,false).toText();
 		}
-
-
 
 		out->write(converted_line + "\n");
 
 		parsed_ids.append(id);
 		parsed_ids.append(mate_id);
 	}
+	out->close();
 }
 
 QByteArray VcfToBedpe::newInfoFieldAfterKey(const QByteArray& info_old,const QByteArray& key_before, const QByteArray& key, const QByteArray& data)
