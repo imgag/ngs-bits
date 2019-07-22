@@ -425,7 +425,10 @@ void VcfToBedpe::convert(QString out_file)
 
 	while(!gzeof(file_))
 	{
-		vcf_line line_in(getLine());
+		QByteArray raw_line = getLine().trimmed();
+		if(raw_line.isEmpty()) continue;
+
+		vcf_line line_in(raw_line);
 
 		QMap<QByteArray,QByteArray> line_info = parseInfoField(line_in.info);
 
