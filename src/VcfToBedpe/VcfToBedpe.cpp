@@ -174,7 +174,7 @@ void VcfToBedpe::addHeaderInfoFieldAfter(const QByteArray& before, const QByteAr
 VcfToBedpe::VcfToBedpe(const QByteArray &in_file)
 {
 	//set buffer size for gz file line
-	buffer_size_ = 4096;
+	buffer_size_ = 8192;
 	buffer_ = new char[buffer_size_];
 
 	file_ = gzopen(in_file.data(),"rb");
@@ -182,8 +182,8 @@ VcfToBedpe::VcfToBedpe(const QByteArray &in_file)
 	{
 		THROW(FileAccessException, "Could not open file '" + in_file + "' for reading!");
 	}
-
-
+	
+	//Parse headers
 	while(!gzeof(file_))
 	{
 		QByteArray line = getLine();
@@ -197,11 +197,11 @@ VcfToBedpe::VcfToBedpe(const QByteArray &in_file)
 				if(line.split('=')[0] == "##fileformat")
 				{
 					bedpe_header_line = "##fileformat=BEDPE";
-				} else if(line.split('=')[0] == "##fileDate")
+				}
+				else if(line.split('=')[0] == "##fileDate")
 				{
 					bedpe_header_line = "##fileDate=" + QDate::currentDate().toString("yyyyMMdd").toUtf8();
 				}
-
 				out_headers_ << bedpe_header_line;
 				continue;
 			}
@@ -225,8 +225,9 @@ VcfToBedpe::VcfToBedpe(const QByteArray &in_file)
 			}
 		}
 	}
-
 	addHeaderInfoFieldAfter("SVTYPE","POS","Integer",1,"Position of the variant described in the original VCF file.");
+	
+	
 }
 
 
@@ -391,12 +392,8 @@ VcfToBedpe::bedpe_line VcfToBedpe::convertComplexLine(const VcfToBedpe::vcf_line
 
 	QChar orientation1 = '.';
 	QChar orientation2 = '.';
-
-/*	if(info_b.keys().contains("STRANDS") && info_b.value("STRANDS").count() == 2)
-	{
-		orientation1 = info_b.value("STRANDS").at(0);
-		orientation2 = info_b.value("STRANDS").at(1);
-	}*/
+	
+	//TODO: Parse strand information if available in input file
 
 	out.STRAND_A = QString(orientation1).toUtf8();
 	out.STRAND_B = QString(orientation2).toUtf8();
@@ -409,8 +406,10 @@ VcfToBedpe::bedpe_line VcfToBedpe::convertComplexLine(const VcfToBedpe::vcf_line
 
 void VcfToBedpe::convert(QString out_file)
 {
-	QSharedPointer<QFile> out = Helper::openFileForWriting(out_file);
 
+	
+	//Parse input/output lines
+	QSharedPointer<QFile> out = Helper::openFileForWriting(out_file);
 	for(const auto& header : out_headers_)
 	{
 		out->write(header + "\n");
@@ -421,7 +420,7 @@ void VcfToBedpe::convert(QString out_file)
 	out->write(heading + "\n");
 
 
-	QMap<QByteArray,vcf_line> complex_lines; //complex lines: have two parts in original file
+	QMap<QByteArray,vcf_line> complex_lines; //complex lines: have two parts in original file, need to be treated different
 
 	while(!gzeof(file_))
 	{
@@ -447,8 +446,8 @@ void VcfToBedpe::convert(QString out_file)
 		out->write(converted_line + "\n");
 	}
 
-	//BND ids that have already been parsed, have to be skipped
-	QList<QByteArray> parsed_ids;
+	
+	QList<QByteArray> parsed_ids; //lits of BND ids that have already been parsed, have to be skipped to avoid doubles in out file
 	for(const auto& id : complex_lines.keys())
 	{
 		const vcf_line& line_a = complex_lines.value(id);
