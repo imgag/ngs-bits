@@ -1,7 +1,6 @@
 #include "TestFramework.h"
 #include "VcfToBedpe.h"
 #include "VcfToBedpe.cpp"
-#include <qDebug>
 
 TEST_CLASS(VcfToBedpe_Test)
 {
