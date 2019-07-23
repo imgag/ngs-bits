@@ -8,15 +8,18 @@
 #include <QList>
 #include <QVector>
 #include <QMap>
-
+#include <QSharedPointer>
+#include <QFile>
+#include "Helper.h"
 
 class CPPNGSSHARED_EXPORT BedpeLine
 {
 public:
 	BedpeLine();
+	BedpeLine(const QList<QByteArray>& input_fields);
 	BedpeLine(const Chromosome& chr1, int start1, int end1, const Chromosome& chr2, int start2, int end2, const QList<QByteArray>& annotations);
 
-	const Chromosome& chr1()
+	const Chromosome& chr1() const
 	{
 		return chr1_;
 	}
@@ -25,7 +28,7 @@ public:
 		chr1_ = chr1;
 	}
 
-	int start1()
+	int start1() const
 	{
 		return start1_;
 	}
@@ -34,17 +37,15 @@ public:
 	{
 		start1_ = start1;
 	}
-	int end1()
+	int end1() const
 	{
 		return end1_;
 	}
 	void setEnd1(int end1)
 	{
-		start1_ = end1;
+		end1_ = end1;
 	}
-
-
-	int start2()
+	int start2() const
 	{
 		return start2_;
 	}
@@ -52,7 +53,7 @@ public:
 	{
 		start2_ = start2;
 	}
-	int end2()
+	int end2() const
 	{
 		return end2_;
 	}
@@ -60,7 +61,7 @@ public:
 	{
 		end2_ = end2;
 	}
-	const Chromosome& chr2()
+	const Chromosome& chr2() const
 	{
 		return chr2_;
 	}
@@ -78,17 +79,21 @@ public:
 		return annotations_;
 	}
 
-	QByteArray toTsv()
+	///Converts line into tsv format
+	QByteArray toTsv() const;
+
+	///Lessthan: Compares two bedpe-lines by their first two columns (chr1 and start1), if equal it uses chr2 and start2.
+	bool operator<(const BedpeLine& rhs) const
 	{
-		QByteArrayList tmp_out;
+		if(chr1_ < rhs.chr1()) return true;
+		if(chr1_ == rhs.chr1() && start1_ < rhs.start1()) return true;
+		if(chr1_ == rhs.chr1() && start1_ == rhs.start1() && chr2_ < rhs.chr2()) return true;
+		if(chr1_ == rhs.chr1() && start1_ == rhs.start1() && chr2_ == rhs.chr2() && start2_ < rhs.start2()) return true;
 
-		tmp_out << chr1_.str() << QByteArray::number(start1_) << QByteArray::number(end1_) << chr2_.str() << QByteArray::number(start2_) << QByteArray::number(end2_);
-		foreach(QByteArray anno, annotations_) tmp_out << anno;
-
-		return tmp_out.join("\t");
+		return false;
 	}
 
-private:
+protected:
 	Chromosome chr1_;
 	int start1_;
 	int end1_;
@@ -98,6 +103,10 @@ private:
 	int end2_;
 
 	QList<QByteArray> annotations_;
+
+	///Converts input position to integer, we set position to -1 if invalid input
+	int parsePosIn(QByteArray in) const;
+	QByteArray parsePosOut(int in) const;
 };
 
 
@@ -106,7 +115,6 @@ class CPPNGSSHARED_EXPORT BedpeFile
 {
 public:
 	BedpeFile();
-
 
 	enum SV_TYPE{ DELLY, MANTA, UNKNOWN};
 	///returns analysis type
@@ -136,16 +144,16 @@ public:
 	{
 		return lines_[index];
 	}
-	///Read-wrote access to members
+	///Read-write access to members
 	BedpeLine& operator[](int index)
 	{
 		return lines_[index];
 	}
 
-	///returns number of annotation, -1 if not found
+	///returns index of annotation, -1 if not found
 	int annotationIndexByName(const QByteArray& name, bool error_on_mismatch = true);
 
-
+	///returns annotation headers
 	const QList<QByteArray> annotationHeaders() const
 	{
 		return annotation_headers_;
@@ -153,6 +161,12 @@ public:
 
 	///Get description of annotations as written in vcf comments, e.g. FORMAT
 	QMap <QByteArray,QByteArray> annotationDescriptionByID(const QByteArray& name);
+
+	///Sorts Bedpe file (by columns chr1, start1, chr2, start2)
+	void sort();
+
+	///Stores file as TSV
+	void toTSV(QString file_name);
 
 private:
 	QList<QByteArray> annotation_headers_;
@@ -162,7 +176,7 @@ private:
 	///Returns all information fields with "NAME=" as list of QMAP containing key value pairs
 	QList< QMap<QByteArray,QByteArray> > getInfos(QByteArray name);
 
-	///returns map with key-value pairs for vcf info line in header, beginning after e.g. INFO= or FORMAT=
+	///Returns map with key-value pairs for vcf info line in header, beginning after e.g. INFO= or FORMAT=
 	QMap <QByteArray,QByteArray> parseInfoField(QByteArray unparsed_fields);
 };
 

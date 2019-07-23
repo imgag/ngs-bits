@@ -2,6 +2,7 @@
 #include "VcfToBedpe.h"
 #include "VcfToBedpe.cpp"
 
+
 TEST_CLASS(VcfToBedpe_Test)
 {
 Q_OBJECT
@@ -56,16 +57,27 @@ private slots:
 
 	void convert_manta_file()
 	{
-		EXECUTE("VcfToBedpe","-in " + TESTDATA("data_in/VcfToBedpe_in1_manta.vcf.gz") + " -out out/VcfToBedpe_out1_manta.bedpe");
+		//unsorted output
+		EXECUTE("VcfToBedpe","-in " + TESTDATA("data_in/VcfToBedpe_in1_manta.vcf.gz") + " -out out/VcfToBedpe_out1_manta.bedpe -no_sort");
 		REMOVE_LINES("out/VcfToBedpe_out1_manta.bedpe",QRegExp("##fileDate="));
 		COMPARE_FILES("out/VcfToBedpe_out1_manta.bedpe", TESTDATA("data_out/VcfToBedpe_out1_manta.bedpe"));
+
+		//sorted output
+		EXECUTE("VcfToBedpe","-in " + TESTDATA("data_in/VcfToBedpe_in1_manta.vcf.gz") + " -out out/VcfToBedpe_out2_manta.bedpe");
+		REMOVE_LINES("out/VcfToBedpe_out2_manta.bedpe",QRegExp("##fileDate="));
+		COMPARE_FILES("out/VcfToBedpe_out2_manta.bedpe", TESTDATA("data_out/VcfToBedpe_out2_manta.bedpe"));
 	}
 
 	void convert_delly_file()
 	{
-		EXECUTE("VcfToBedpe","-in " + TESTDATA("data_in/VcfToBedpe_in1_delly.vcf.gz") + " -out out/VcfToBedpe_out1_delly.bedpe");
+		//Unsorted output
+		EXECUTE("VcfToBedpe","-in " + TESTDATA("data_in/VcfToBedpe_in1_delly.vcf.gz") + " -out out/VcfToBedpe_out1_delly.bedpe -no_sort");
 		REMOVE_LINES("out/VcfToBedpe_out1_delly.bedpe",QRegExp("##fileDate="));
 		COMPARE_FILES("out/VcfToBedpe_out1_delly.bedpe", TESTDATA("data_out/VcfToBedpe_out1_delly.bedpe"));
-	}
 
+		//sorted output
+		EXECUTE("VcfToBedpe","-in " + TESTDATA("data_in/VcfToBedpe_in1_delly.vcf.gz") + " -out out/VcfToBedpe_out2_delly.bedpe");
+		REMOVE_LINES("out/VcfToBedpe_out2_delly.bedpe",QRegExp("##fileDate="));
+		COMPARE_FILES("out/VcfToBedpe_out2_delly.bedpe", TESTDATA("data_out/VcfToBedpe_out2_delly.bedpe"));
+	}
 };
