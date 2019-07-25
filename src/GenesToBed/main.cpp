@@ -31,7 +31,7 @@ public:
 		addEnum("source", "Transcript source database.", false, sources);
 		QStringList modes;
 		modes << "gene" << "exon";
-		addEnum("mode", "Mode: gene = start/end of gene, exon = start/end of all exons of all splice variants.", false, modes);
+		addEnum("mode", "Mode: gene = start/end of all transcripts, exon = start/end of all exons of all transcripts.", false, modes);
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true, true);
 		addFlag("fallback", "Allow fallback to all source databases, if no transcript for a gene is defined in the selected source database.");
 		addFlag("anno", "Annotate transcript identifier in addition to gene name.");

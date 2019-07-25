@@ -80,7 +80,6 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	ui->label_gnomad->setToolTip(vl.annotationDescriptionByName("gnomAD").description());
 	ui->label_gnomad_hom_hemi->setToolTip(vl.annotationDescriptionByName("gnomAD_hom_hemi").description());
 	ui->label_gnomad_sub->setToolTip(vl.annotationDescriptionByName("gnomAD_sub").description());
-	ui->label_esp_sub->setToolTip(vl.annotationDescriptionByName("ESP_sub").description());
 
 	//pathogenicity predictions
 	ui->label_phylop->setToolTip(vl.annotationDescriptionByName("phyloP").description());
@@ -162,7 +161,6 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->gnomad, vl, index, "gnomAD");
 	setAnnotation(ui->gnomad_hom_hemi, vl, index, "gnomAD_hom_hemi");
 	setAnnotation(ui->gnomad_sub, vl, index, "gnomAD_sub");
-	setAnnotation(ui->esp_sub, vl, index, "ESP_sub");
 
 	//pathogenity predictions
 	setAnnotation(ui->phylop, vl, index, "phyloP");
@@ -453,7 +451,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				text = formatLink(text, vl[index].toString(true));
 			}
 		}
-		else if (name=="gnomAD_sub" || name=="ESP_sub")
+		else if (name=="gnomAD_sub")
 		{
 			if (anno=="")
 			{

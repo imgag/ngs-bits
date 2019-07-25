@@ -6,23 +6,25 @@ libs:
 
 NGSD:
 ** Add sender widget (link from sample info)
+** Add processing system widget (link from processed sample info)
 **** Allow adding/editing data in NGSD
     - Run/processed sample/sample in general
         - Add email support for runs "run finished" and "analysis finished"
     - Set processed sample qualities in batch (selection)
     - sample: import disease info, disease group/status, gender from same samples
-    - sample: import disease group/status from GenLab (sample - disease status: add 'Unclear')
+    - sample: import disease group/status from GenLab (sample - disease status: add 'Unclear') - select * FROM v_krankheitsgruppe_pattyp...
 ** Add run overview dialog/tab
 * add CNVs to NGSD and allow classification (wait for ClinCNV)
 - NGSD annotation: export VCF, use VCF for annotation (also works on external servers)
 
 GSvar:
+##### Details: class 4 orange > rot
+##### Import subpanel: make searchable by text
 ## Filter: enhancer/promotor - de-novo
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 - Implement OMIM search via API - example: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1 (wait for API access)
 * Add special report for trios/multi-sample with genotype overview > change format to RTF first (AG)
 * Add highlighting of imprinting genes to CNVs, ROHs and UPDs
-* Add gnomAD oe score / ExAC CNV / inheritance (megSAP) and filter for CNVs (GSvar) (wait for ClinCNV)
 * GenLab XML report: male => change 'hom' variants outside PAR region on chrX/chrY to 'hemi' (when GenLab import is updated)
 *** Report variant selection
     - allow marking variants for report inclusion (report_pathogenic, report_possibly_pathogenic, report_incidental_finding (ACMG), report_scientific, no_report_artefact, no_report_no_disease_association)
@@ -30,14 +32,16 @@ GSvar:
     - load marked variants from NGSD after loading the case again
     - add filter to show marked variants only
     - also flag which variants are exported to GenLab8 via the XML report
+        -fields to fill: sample outcome, gaps report (custom), processing system, variants, export date
     - print sheet with flagged variants
 - Visualize tracking of variants when from split complex variant (wait for VcfBreakComplex)
 
 Tools:
+- NGSDExportGenes: Add inheritance, gnomAD oe (3x), HPO terms, OMIM infos?
 - NGSDImportHPO: Add G2P database (https://www.ebi.ac.uk/gene2phenotype)
 - NGSDPrecalculate: fix missing/different disease group/status for sample with relation "same sample"
 - UPDHunter: also support chrX?
-- SomaticQC: replace 'QC:?' by real qcML identifier (CS)
+- SomaticQC: replace 'QC:?' by real qcML identifier - add to https://github.com/HUPO-PSI/mzQC (CS)
 
 External:
 ** implement MultiQC support for ReadQC/MappingQC/VariantQC/SomaticQC (>JM): /mnt/SRV018/users/ahmattj1/dev/MultiQC/venv3/bin/multiqc -m readqc -m mappingqc -m variantqc .

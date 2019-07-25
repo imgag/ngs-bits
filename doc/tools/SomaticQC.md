@@ -1,5 +1,5 @@
 ### SomaticQC tool help
-	SomaticQC (2019_05-36-gb3caeea)
+	SomaticQC (2019_07-8-g5a9c094)
 	
 	Calculates QC metrics based on tumor-normal pairs.
 	
@@ -18,11 +18,11 @@
 	                       Default value: ''
 	  -target_bed <file>   Target file used for tumor and normal experiment.
 	                       Default value: ''
-	  -target_exons <file> Bed file containing target exons, neccessary for TMB calculation. Please provide a file that contains the coordinates of all exons in the reference genome. If not set, algorithm assumes target file is already intersected with exonic coordinates.
+	  -target_exons <file> BED file containing target exons, neccessary for TMB calculation. Please provide a file that contains the coordinates of all exons in the reference genome.
 	                       Default value: ''
-	  -blacklist <file>    Bed file containing regions which shall be blacklisted in TMB calculation.
+	  -blacklist <file>    BED file containing regions which are ignored in TMB calculation.
 	                       Default value: ''
-	  -tsg_bed <file>      Bed file containing regions of tumor suppressor genes.
+	  -tsg_bed <file>      BED file containing regions of tumor suppressor genes for TMB calculation.
 	                       Default value: ''
 	  -ref <file>          Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.
 	                       Default value: ''
@@ -39,7 +39,7 @@
 	  --tdx                Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SomaticQC changelog
-	SomaticQC 2019_05-36-gb3caeea
+	SomaticQC 2019_07-8-g5a9c094
 	
 	2018-07-11 Added build switch for hg38 support.
 	2017-07-28 Added somatic allele frequency histogram and tumor estimate.

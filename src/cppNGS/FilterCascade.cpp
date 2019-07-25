@@ -746,24 +746,11 @@ void FilterSubpopulationAlleleFrequency::apply(const VariantList& variants, Filt
 
 	//filter
 	int i_gnomad = annotationColumn(variants, "gnomAD_sub");
-	int i_esp = annotationColumn(variants, "ESP_sub");
 	for(int i=0; i<variants.count(); ++i)
 	{
 		if (!result.flags()[i]) continue;
 
 		QByteArrayList parts = variants[i].annotations()[i_gnomad].split(',');
-		foreach(const QByteArray& part, parts)
-		{
-			if (part.toDouble()>max_af)
-			{
-				result.flags()[i] = false;
-				break;
-			}
-		}
-
-		if (!result.flags()[i]) continue;
-
-		parts = variants[i].annotations()[i_esp].split(',');
 		foreach(const QByteArray& part, parts)
 		{
 			if (part.toDouble()>max_af)

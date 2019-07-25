@@ -1,12 +1,12 @@
 ### GenesToBed tool help
-	GenesToBed (0.1-782-ge325449)
+	GenesToBed (2019_07-8-g5a9c094)
 	
 	Converts a text file with gene names to a BED file.
 	
 	Mandatory parameters:
 	  -source <enum> Transcript source database.
 	                 Valid: 'ccds,ensembl'
-	  -mode <enum>   Mode: gene = start/end of gene, exon = start/end of all exons of all splice variants.
+	  -mode <enum>   Mode: gene = start/end of all transcripts, exon = start/end of all exons of all transcripts.
 	                 Valid: 'gene,exon'
 	
 	Optional parameters:
@@ -28,7 +28,7 @@
 	  --tdx          Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### GenesToBed changelog
-	GenesToBed 0.1-782-ge325449
+	GenesToBed 2019_07-8-g5a9c094
 	
 	2017-02-09 Added option to annotate transcript names.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
