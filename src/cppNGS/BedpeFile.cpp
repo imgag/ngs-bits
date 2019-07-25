@@ -13,6 +13,23 @@ BedpeLine::BedpeLine()
 {
 }
 
+BedpeLine::BedpeLine(const QList<QByteArray> &input_fields)
+{
+	if(input_fields.count() < 6)
+	{
+		THROW(FileParseException,"Could not parse BedpeLine because it has less than 6 input fields.");
+	}
+	//First six input fields are fixed
+	chr1_ = Chromosome(input_fields[0].trimmed());
+	start1_ = parsePosIn(input_fields[1]);
+	end1_ = parsePosIn(input_fields[2]);
+	chr2_ = Chromosome(input_fields[3].trimmed());
+	start2_ = parsePosIn(input_fields[4]);
+	end2_ = parsePosIn(input_fields[5]);
+
+	annotations_ = input_fields.mid(6);
+}
+
 BedpeLine::BedpeLine(const Chromosome& chr1, int start1, int end1, const Chromosome& chr2, int start2, int end2, const QList<QByteArray>& annotations)
 	: chr1_(chr1)
 	, start1_(start1)
@@ -22,6 +39,32 @@ BedpeLine::BedpeLine(const Chromosome& chr1, int start1, int end1, const Chromos
 	, end2_(end2)
 	, annotations_(annotations)
 {
+}
+
+QByteArray BedpeLine::toTsv() const
+{
+	QByteArrayList tmp_out;
+
+	tmp_out << chr1_.str() << parsePosOut(start1_) << parsePosOut(end1_) << chr2_.str() << parsePosOut(start2_) << parsePosOut(end2_);
+	foreach(QByteArray anno, annotations_) tmp_out << anno;
+
+	return tmp_out.join("\t");
+}
+
+int BedpeLine::parsePosIn(QByteArray in) const
+{
+	bool ok = false;
+
+	int out = in.trimmed().toInt(&ok);
+	if(!ok) out = -1;
+
+	return out;
+}
+
+QByteArray BedpeLine::parsePosOut(int in) const
+{
+	if(in == -1) return ".";
+	else return QByteArray::number(in);
 }
 
 
@@ -82,7 +125,8 @@ void BedpeFile::load(const QString& file_name)
 		}
 
 		//first 6 fields are fixed, remaining fields are optional/user-specific
-		lines_.append(BedpeLine(fields[0],fields[1].toInt(),fields[2].toInt(),fields[3],fields[4].toInt(),fields[5].toInt(),fields.mid(6)));
+		//lines_.append(BedpeLine(fields[0],fields[1].toInt(),fields[2].toInt(),fields[3],fields[4].toInt(),fields[5].toInt(),fields.mid(6)));
+		lines_.append(fields);
 	}
 
 	//Get headers for annotations
@@ -205,4 +249,24 @@ QMap <QByteArray,QByteArray> BedpeFile::annotationDescriptionByID(const QByteArr
 		out.insert(id,desc);
 	}
 	return out;
+}
+
+void BedpeFile::toTSV(QString file_name)
+{
+	QSharedPointer<QFile> file = Helper::openFileForWriting(file_name,false,false);
+	for(const auto& comment : comments_)
+	{
+		file->write(comment + "\n");
+	}
+	file->write("#CHROM_A\tSTART_A\tEND_A\tCHROM_B\tSTART_B\tEND_B\t" + annotation_headers_.join("\t") + "\n");
+	for(const BedpeLine& line : lines_)
+	{
+		file->write(line.toTsv() +"\n");
+	}
+	file->close();
+}
+
+void BedpeFile::sort()
+{
+	std::sort(lines_.begin(),lines_.end());
 }

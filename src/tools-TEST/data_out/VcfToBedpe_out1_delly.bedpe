@@ -1,0 +1,136 @@
+##fileformat=BEDPE
+##ALT=<ID=DEL,Description="Deletion">
+##ALT=<ID=DUP,Description="Duplication">
+##ALT=<ID=INV,Description="Inversion">
+##ALT=<ID=BND,Description="Translocation">
+##ALT=<ID=INS,Description="Insertion">
+##reference=/tmp/local_ngs_data//GRCh37.fa
+##contig=<ID=chr1,length=249250621>
+##contig=<ID=chr2,length=243199373>
+##contig=<ID=chr3,length=198022430>
+##contig=<ID=chr4,length=191154276>
+##contig=<ID=chr5,length=180915260>
+##contig=<ID=chr6,length=171115067>
+##contig=<ID=chr7,length=159138663>
+##contig=<ID=chr8,length=146364022>
+##contig=<ID=chr9,length=141213431>
+##contig=<ID=chr10,length=135534747>
+##contig=<ID=chr11,length=135006516>
+##contig=<ID=chr12,length=133851895>
+##contig=<ID=chr13,length=115169878>
+##contig=<ID=chr14,length=107349540>
+##contig=<ID=chr15,length=102531392>
+##contig=<ID=chr16,length=90354753>
+##contig=<ID=chr17,length=81195210>
+##contig=<ID=chr18,length=78077248>
+##contig=<ID=chr19,length=59128983>
+##contig=<ID=chr20,length=63025520>
+##contig=<ID=chr21,length=48129895>
+##contig=<ID=chr22,length=51304566>
+##contig=<ID=chrX,length=155270560>
+##contig=<ID=chrY,length=59373566>
+##contig=<ID=chrMT,length=16569>
+##contig=<ID=chrGL000207.1,length=4262>
+##contig=<ID=chrGL000226.1,length=15008>
+##contig=<ID=chrGL000229.1,length=19913>
+##contig=<ID=chrGL000231.1,length=27386>
+##contig=<ID=chrGL000210.1,length=27682>
+##contig=<ID=chrGL000239.1,length=33824>
+##contig=<ID=chrGL000235.1,length=34474>
+##contig=<ID=chrGL000201.1,length=36148>
+##contig=<ID=chrGL000247.1,length=36422>
+##contig=<ID=chrGL000245.1,length=36651>
+##contig=<ID=chrGL000197.1,length=37175>
+##contig=<ID=chrGL000203.1,length=37498>
+##contig=<ID=chrGL000246.1,length=38154>
+##contig=<ID=chrGL000249.1,length=38502>
+##contig=<ID=chrGL000196.1,length=38914>
+##contig=<ID=chrGL000248.1,length=39786>
+##contig=<ID=chrGL000244.1,length=39929>
+##contig=<ID=chrGL000238.1,length=39939>
+##contig=<ID=chrGL000202.1,length=40103>
+##contig=<ID=chrGL000234.1,length=40531>
+##contig=<ID=chrGL000232.1,length=40652>
+##contig=<ID=chrGL000206.1,length=41001>
+##contig=<ID=chrGL000240.1,length=41933>
+##contig=<ID=chrGL000236.1,length=41934>
+##contig=<ID=chrGL000241.1,length=42152>
+##contig=<ID=chrGL000243.1,length=43341>
+##contig=<ID=chrGL000242.1,length=43523>
+##contig=<ID=chrGL000230.1,length=43691>
+##contig=<ID=chrGL000237.1,length=45867>
+##contig=<ID=chrGL000233.1,length=45941>
+##contig=<ID=chrGL000204.1,length=81310>
+##contig=<ID=chrGL000198.1,length=90085>
+##contig=<ID=chrGL000208.1,length=92689>
+##contig=<ID=chrGL000191.1,length=106433>
+##contig=<ID=chrGL000227.1,length=128374>
+##contig=<ID=chrGL000228.1,length=129120>
+##contig=<ID=chrGL000214.1,length=137718>
+##contig=<ID=chrGL000221.1,length=155397>
+##contig=<ID=chrGL000209.1,length=159169>
+##contig=<ID=chrGL000218.1,length=161147>
+##contig=<ID=chrGL000220.1,length=161802>
+##contig=<ID=chrGL000213.1,length=164239>
+##contig=<ID=chrGL000211.1,length=166566>
+##contig=<ID=chrGL000199.1,length=169874>
+##contig=<ID=chrGL000217.1,length=172149>
+##contig=<ID=chrGL000216.1,length=172294>
+##contig=<ID=chrGL000215.1,length=172545>
+##contig=<ID=chrGL000205.1,length=174588>
+##contig=<ID=chrGL000219.1,length=179198>
+##contig=<ID=chrGL000224.1,length=179693>
+##contig=<ID=chrGL000223.1,length=180455>
+##contig=<ID=chrGL000195.1,length=182896>
+##contig=<ID=chrGL000212.1,length=186858>
+##contig=<ID=chrGL000222.1,length=186861>
+##contig=<ID=chrGL000200.1,length=187035>
+##contig=<ID=chrGL000193.1,length=189789>
+##contig=<ID=chrGL000194.1,length=191469>
+##contig=<ID=chrGL000225.1,length=211173>
+##contig=<ID=chrGL000192.1,length=547496>
+##contig=<ID=chrNC_007605,length=171823>
+##contig=<ID=chrhs37d5,length=35477943>
+##bcftools_viewVersion=1.9+htslib-1.9
+##bcftools_viewCommand=view /tmp/1794.1.default_srv017/tmpKvNrA7.bcf; Date=Fri Apr 26 20:28:05 2019
+##INFO=<ID=CIEND,Number=2,Type=Integer,Description="PE confidence interval around END">
+##INFO=<ID=CIPOS,Number=2,Type=Integer,Description="PE confidence interval around POS">
+##INFO=<ID=CHR2,Number=1,Type=String,Description="Chromosome for END coordinate in case of a translocation">
+##INFO=<ID=END,Number=1,Type=Integer,Description="End position of the structural variant">
+##INFO=<ID=PE,Number=1,Type=Integer,Description="Paired-end support of the structural variant">
+##INFO=<ID=MAPQ,Number=1,Type=Integer,Description="Median mapping quality of paired-ends">
+##INFO=<ID=SRMAPQ,Number=1,Type=Integer,Description="Median mapping quality of split-reads">
+##INFO=<ID=SR,Number=1,Type=Integer,Description="Split-read support">
+##INFO=<ID=SRQ,Number=1,Type=Float,Description="Split-read consensus alignment quality">
+##INFO=<ID=CONSENSUS,Number=1,Type=String,Description="Split-read consensus sequence">
+##INFO=<ID=CE,Number=1,Type=Float,Description="Consensus sequence entropy">
+##INFO=<ID=CT,Number=1,Type=String,Description="Paired-end signature induced connection type">
+##INFO=<ID=IMPRECISE,Number=0,Type=Flag,Description="Imprecise structural variation">
+##INFO=<ID=PRECISE,Number=0,Type=Flag,Description="Precise structural variation">
+##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">
+##INFO=<ID=POS,Number=1,Type=Integer,Description="Position of the variant described in the original VCF file.">
+##INFO=<ID=SVMETHOD,Number=1,Type=String,Description="Type of approach used to detect SV">
+##INFO=<ID=INSLEN,Number=1,Type=Integer,Description="Predicted length of the insertion">
+##INFO=<ID=HOMLEN,Number=1,Type=Integer,Description="Predicted microhomology length using a max. edit distance of 2">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=GL,Number=G,Type=Float,Description="Log10-scaled genotype likelihoods for RR,RA,AA genotypes">
+##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype Quality">
+##FORMAT=<ID=FT,Number=1,Type=String,Description="Per-sample genotype filter">
+##FORMAT=<ID=RC,Number=1,Type=Integer,Description="Raw high-quality read counts for the SV">
+##FORMAT=<ID=RCL,Number=1,Type=Integer,Description="Raw high-quality read counts for the left control region">
+##FORMAT=<ID=RCR,Number=1,Type=Integer,Description="Raw high-quality read counts for the right control region">
+##FORMAT=<ID=CN,Number=1,Type=Integer,Description="Read-depth based copy-number estimate for autosomal sites">
+##FORMAT=<ID=DR,Number=1,Type=Integer,Description="# high-quality reference pairs">
+##FORMAT=<ID=DV,Number=1,Type=Integer,Description="# high-quality variant pairs">
+##FORMAT=<ID=RR,Number=1,Type=Integer,Description="# high-quality reference junction reads">
+##FORMAT=<ID=RV,Number=1,Type=Integer,Description="# high-quality variant junction reads">
+##FILTER=<ID=LowQual,Description="Poor quality and insufficient number of PEs and SRs.">
+##FILTER=<ID=PASS,Description="All filters passed">
+##FILTER=<ID=off-target,Description="Variant marked as 'off-target'.">
+#CHROM_A	START_A	END_A	CHROM_B	START_B	END_B	ID	QUAL	STRAND_A	STRAND_B	TYPE	FILTER	NAME_A	REF_A	ALT_A	NAME_B	REF_B	ALT_B	INFO_A	INFO_B	FORMAT	DX000000_02
+chr13	48856829	48856831	chr12	34017351	34017353	BND00100634	.	.	.	BND	PASS	BND00100634	A	A]CHR12:34017352]	.	.	.	CIEND=-1,1;CIPOS=-1,1;CHR2=chr12;END=34017352;PE=57;MAPQ=60;SRMAPQ=60;SR=32;SRQ=0.964912;CONSENSUS=TAAATGTTTTTATTTTGGAACGAATTCATAAAACTATGTCATTTTTGCTAACATGTAATGGGCTTACTATTGTTATTTTAATTAAATTGATAAATATATATTTAAAAAAAAAAAAAAAAAGAAGCAAAAAGATAAAAGGAAAAATAACTAAAGATAGCTTAGGAAACTTACGACACCAAATAAAGTGAGCCAATATATGCATTCTGGGAGTCCAAAAAAAGAAG;CE=1.76022;CT=3to3;PRECISE;SVTYPE=BND;POS=48856830;SVMETHOD=EMBL.DELLYv0.8.1;INSLEN=0;HOMLEN=0	.	GT:GL:GQ:FT:RC:RCL:RCR:CN:DR:DV:RR:RV	0/1:-164.9,0,-133.606:10000:PASS:188:107:51:2:30:57:46:57
+chr6	89923619	89923635	chr6	89923941	89923957	INV00057761	.	.	.	INV	PASS	INV00057761	T	<INV>	.	.	.	CIEND=-8,8;CIPOS=-8,8;CHR2=chr6;END=89923949;PE=49;MAPQ=60;SRMAPQ=60;SR=20;SRQ=1;CONSENSUS=CTTCTGGGCTTGGAGATTATGGGTAATTCTTGGGTGTTTTTAAAATTTTTTTCTCTTTTTTTGGTAAATTTAAATAATAGTTATATGTGTCTTTCATAACTAAAGAAATGAAAGCTTTTAAAAGTAAAATTACAAAGAAATTTTATTTCATTCTCTAAGATCAGTAACAAGACTCACTCTCACCACTTCTATTCAACCATAGTACCAGAAGTCCTTG;CE=1.85807;CT=3to3;PRECISE;SVTYPE=INV;POS=89923627;SVMETHOD=EMBL.DELLYv0.8.1;INSLEN=0;HOMLEN=8	.	GT:GL:GQ:FT:RC:RCL:RCR:CN:DR:DV:RR:RV	1/1:-139.395,-11.7354,0:117:PASS:16673:7420:6486:2:0:49:0:39
+chr11	38812653	38812663	chr8	52731473	52731483	BND00088289	.	.	.	BND	PASS	BND00088289	A	]CHR8:52731478]A	.	.	.	CIEND=-5,5;CIPOS=-5,5;CHR2=chr8;END=52731478;PE=50;MAPQ=60;SRMAPQ=60;SR=36;SRQ=0.995455;CONSENSUS=ATTACTGGAGCTGAGATTTCTGAAACAATATCTGAATCTTAGCAGAGAGATAATAATCCTTTCACTATACATTGCTTGGGCTTCCTTAACCAAATCTGAGTAACTACTGTAATAATAACAATTTTTAAGAAAAATTTGAATTTTTAAAATATTAATAGATGTCATAATCAGCTTATATAAATATTTTTTAAACTGATAGAAATAAATATAAGCAACTATG;CE=1.80881;CT=5to3;PRECISE;SVTYPE=BND;POS=38812658;SVMETHOD=EMBL.DELLYv0.8.1;INSLEN=0;HOMLEN=4	.	GT:GL:GQ:FT:RC:RCL:RCR:CN:DR:DV:RR:RV	0/1:-162.721,0,-71.8263:10000:PASS:139:101:82:2:34:50:27:53
+chr1	159648705	159648709	chr1	159649656	159649660	DEL00005665	.	.	.	DEL	PASS	DEL00005665	A	<DEL>	.	.	.	CIEND=-2,2;CIPOS=-2,2;CHR2=chr1;END=159649658;PE=44;MAPQ=60;SRMAPQ=60;SR=20;SRQ=1;CONSENSUS=ATACATGTGTATTATATGTCATACATATACATATATGTACCAGAACATTTATATCATGAAAGCATAGCCATATGTTTATATGAGTCCTCTCTTGCTAGACTGAGGGCTATCGAATTAAAATAAAACCTATCCAGGGTGCAATTTTGACTAGCAATACATAAAATGTCACAACAAACATAACGTTTCCTGGAGTACCTTTGATACTCTAGGCCTCACAGTC;CE=1.92416;CT=3to5;PRECISE;SVTYPE=DEL;POS=159648707;SVMETHOD=EMBL.DELLYv0.8.1;INSLEN=0;HOMLEN=1	.	GT:GL:GQ:FT:RC:RCL:RCR:CN:DR:DV:RR:RV	1/1:-126.494,-10.8313,0:108:PASS:0:92:80:0:0:45:0:36
+chr11	131924267	131924269	chr11	131930304	131930306	DUP00092404	.	.	.	DUP	PASS	DUP00092404	A	<DUP>	.	.	.	CIEND=-1,1;CIPOS=-1,1;CHR2=chr11;END=131930305;PE=50;MAPQ=60;SRMAPQ=60;SR=20;SRQ=0.995455;CONSENSUS=AAGGGGTGCTCCGTTTACCTGGTGCATTCGAGGCTGAAGACAAGGAGACATTATCCTCCAAAATACTTTTTTTTAAAGCAAGTCTGCCCTAGAGTAAAGTCTTCCTAAATCTACGAAGCTGTAGATTTAGCTATAATGCCATTTGTCTGCGCTTACTACTGGATGGGCACAGTGGATTCTGATTCGTAGTCCTATTCAGTGAAAATAGCCAAATCATTGT;CE=1.9768;CT=5to3;PRECISE;SVTYPE=DUP;POS=131924268;SVMETHOD=EMBL.DELLYv0.8.1;INSLEN=0;HOMLEN=0	.	GT:GL:GQ:FT:RC:RCL:RCR:CN:DR:DV:RR:RV	0/1:-138.816,0,-118.716:10000:PASS:2116:564:516:4:62:53:41:46
+chr13	90943350	90943362	chr13	90943351	90943363	INS00102432	.	.	.	INS	PASS	INS00102432	C	<INS>	.	.	.	CIEND=-6,6;CIPOS=-6,6;CHR2=chr13;END=90943357;PE=0;MAPQ=0;SRMAPQ=60;SR=8;SRQ=1;CONSENSUS=AACTCTCATAAAGCATATCACCAATCTAATCTTAGAAACTAAGATGCCTTGAGCCAAATGTCTCCCAATAGCACTCCTTAGCATTAGGACAGCCCCAAGAAAAGACTTGGGATTGTCCTTCTATGGGTTATGATATGGACTCCCATATTTGGGCAGGGCTACAGATCTTC;CE=1.97559;CT=NtoN;PRECISE;SVTYPE=INS;POS=90943356;SVMETHOD=EMBL.DELLYv0.8.1;INSLEN=58;HOMLEN=6	.	GT:GL:GQ:FT:RC:RCL:RCR:CN:DR:DV:RR:RV	1/1:-207.983,-19.2496,0:10000:PASS:55262:27939:27316:2:0:0:0:65
