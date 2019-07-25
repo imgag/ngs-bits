@@ -232,7 +232,7 @@ void GapDialog::updateGeneFilter(QString text)
 	}
 }
 
-QTableWidgetItem*GapDialog::createItem(QString text, bool highlight, bool align_right)
+QTableWidgetItem* GapDialog::createItem(QString text, bool highlight, bool align_right)
 {
 	QTableWidgetItem* item = new QTableWidgetItem(text);
 	if (highlight)

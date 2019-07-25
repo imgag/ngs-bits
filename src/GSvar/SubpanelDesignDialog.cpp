@@ -9,6 +9,7 @@
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QInputDialog>
+#include <GUIHelper.h>
 
 SubpanelDesignDialog::SubpanelDesignDialog(QWidget *parent)
 	: QDialog(parent)
@@ -61,6 +62,7 @@ QStringList SubpanelDesignDialog::subpanelList()
 void SubpanelDesignDialog::createSubpanelCompleter()
 {
 	completer = new QCompleter(subpanelList());
+	completer->setCaseSensitivity(Qt::CaseInsensitive);
 	ui->name->setCompleter(completer);
 }
 
@@ -205,31 +207,45 @@ void SubpanelDesignDialog::disableStoreButton()
 
 void SubpanelDesignDialog::importFromExistingSubpanel()
 {
-	bool ok;
-	QString selected = QInputDialog::getItem(this, "Import data from existing sub-panel", "source sub-panel:", subpanelList(), 0, false, &ok);
-	if (!ok) return;
-
-	//set base name (remove auto-suffix when present)
-	QString basename = selected;
-	if (basename.count('_')>=3)
+	//show selection dialog
+	QLineEdit* panels = new QLineEdit(this);
+	panels->setMinimumWidth(400);
+	panels->setCompleter(completer);
+	auto dlg = GUIHelper::createDialog(panels, "Import data from existing sub-panel", "source sub-panel:", true);
+	if(dlg->exec()==QDialog::Accepted)
 	{
-		QStringList parts = selected.split('_');
-		QString first_suffix_part = parts[parts.count()-3];
-		for (int i=0; i<ui->mode->count(); ++i)
+		QString selected = panels->text();
+		if (subpanelList().contains(selected))
 		{
-			if (QRegExp(ui->mode->itemText(i) + "[0-9]+").exactMatch(first_suffix_part))
+			//set base name (remove auto-suffix when present)
+			QString basename = selected;
+			if (basename.count('_')>=3)
 			{
-				basename = parts.mid(0, parts.count()-3).join("_");
-				break;
+				QStringList parts = basename.split('_');
+				QString first_suffix_part = parts[parts.count()-3];
+				for (int i=0; i<ui->mode->count(); ++i)
+				{
+					if (QRegExp(ui->mode->itemText(i) + "[0-9]+").exactMatch(first_suffix_part))
+					{
+						basename = parts.mid(0, parts.count()-3).join("_");
+						break;
+					}
+				}
 			}
+
+			ui->name->setText(basename);
+
+			//set genes
+			QString filename = NGSD::getTargetFilePath(true) + "/" + selected + "_genes.txt";
+			setGenes(GeneSet::createFromFile(filename));
+		}
+		else
+		{
+			QMessageBox::warning(this, "Invalid sub-panel", "Please select an existing sub-panel!\n'" + selected + "' is not valid");
 		}
 	}
 
-	ui->name->setText(basename);
-
-	//set genes
-	QString filename = NGSD::getTargetFilePath(true) + "/" + selected + "_genes.txt";
-	setGenes(GeneSet::createFromFile(filename));
+	delete panels;
 }
 
 QString SubpanelDesignDialog::getBedFilename() const

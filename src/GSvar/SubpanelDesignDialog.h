@@ -48,7 +48,7 @@ private:
 		bool is_error;
 	};
 	QList<Message> messages;
-	Ui::SubpanelDesignDialog *ui;
+	Ui::SubpanelDesignDialog* ui;
 	QCompleter* completer;
 	GeneSet genes;
 	BedFile regions;

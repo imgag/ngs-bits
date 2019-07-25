@@ -18,8 +18,6 @@ NGSD:
 - NGSD annotation: export VCF, use VCF for annotation (also works on external servers)
 
 GSvar:
-##### Details: class 4 orange > rot
-##### Import subpanel: make searchable by text
 ## Filter: enhancer/promotor - de-novo
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 - Implement OMIM search via API - example: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1 (wait for API access)

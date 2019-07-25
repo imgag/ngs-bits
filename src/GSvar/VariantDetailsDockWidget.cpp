@@ -410,7 +410,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			}
 			else if (ok && value==4)
 			{
-				text = formatText("likely pathogenic (4)", ORANGE);
+				text = formatText("likely pathogenic (4)", RED);
 			}
 			else if (ok && value==5)
 			{
