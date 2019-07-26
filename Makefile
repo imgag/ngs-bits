@@ -115,6 +115,10 @@ test_release:
 	make clean build_libs_release build_tools_release build_gui_release test_lib test_tools > t.log 2>&1
 	egrep "FAILED|SKIPPED" t.log
 
+test_release_noclean:
+	make build_release_noclean test_lib test_tools > t.log 2>&1
+	egrep "FAILED|SKIPPED" t.log
+	
 test_release_nogui:
 	make clean build_libs_release build_tools_release test_lib test_tools > t.log 2>&1
 	egrep "FAILED|SKIPPED" t.log
