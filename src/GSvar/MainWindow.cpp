@@ -229,6 +229,13 @@ void MainWindow::on_actionCNV_triggered()
 
 	if (i_genes!=-1 && i_genotypes.count()>0)
 	{
+		//check that a filter was applied (otherwise this can take forever)
+		int passing_vars = filter_result_.countPassing();
+		if (passing_vars>2000)
+		{
+			int res = QMessageBox::question(this, "Continue?", "There are " + QString::number(passing_vars) + " variants that pass the filters.\nGenerating the list of candidate genes for compound-heterozygous hits may take very long for this amount of variants.\nDo you want to continue?", QMessageBox::Yes, QMessageBox::No);
+			if(res==QMessageBox::No) return;
+		}
 		for (int i=0; i<variants_.count(); ++i)
 		{
 			if (!filter_result_.passing(i)) continue;
@@ -250,15 +257,9 @@ void MainWindow::on_actionCNV_triggered()
 		QMessageBox::information(this, "Invalid variant list", "Column for genes or genotypes not found in variant list. Cannot apply compound-heterozygous filter based on variants!");
 	}
 
-	if (Settings::boolean("NGSD_enabled", true))
-	{
-		NGSD db;
-		het_hit_genes = db.genesToApproved(het_hit_genes);
-	}
-
 	if(Helper::findFiles(QFileInfo(filename_).absolutePath(), "*_clincnv.tsv", false).count() > 0)
 	{
-		ClinCnvWidget* list = new ClinCnvWidget(filename_,ui_.filters,het_hit_genes);
+		ClinCnvWidget* list = new ClinCnvWidget(filename_, ui_.filters, het_hit_genes);
 		connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
 		auto dlg = GUIHelper::createDialog(list, "ClinCNV copy-number variants");
 		addModelessDialog(dlg);
@@ -267,8 +268,8 @@ void MainWindow::on_actionCNV_triggered()
 	{
 		CnvWidget* list = new CnvWidget(filename_, ui_.filters, het_hit_genes);
 		connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
-		auto dlg = GUIHelper::createDialog(list, "CNVHunter copy-number variants");
-		addModelessDialog(dlg);
+		auto dlg = GUIHelper::createDialog(list, "Copy number variants");
+		addModelessDialog(dlg, true);
 	}
 }
 

@@ -1,0 +1,78 @@
+#ifndef FILTERWIDGETCNV_H
+#define FILTERWIDGETCNV_H
+
+#include <QWidget>
+#include "ui_FilterWidgetCNV.h"
+#include "BedFile.h"
+#include "GeneSet.h"
+#include "Phenotype.h"
+#include "FilterDockWidget.h"
+
+//Filter manager dock widget
+class FilterWidgetCNV
+	: public QWidget
+{
+	Q_OBJECT
+	
+public:
+	/// Default constructor
+	FilterWidgetCNV(QWidget* parent = 0);
+	/// Sets the small variant filter widget (needed to import data from it)
+	void setVariantFilterWidget(FilterDockWidget* filter_widget);
+
+	///Returns the minimum size Kb
+	double minSizeKb() const;
+	///Returns the minimum number of regions/exons.
+	int minRegs() const;
+
+	/// Resets to initial state (uncheck boxes, no ROI)
+	void reset(bool clear_roi);
+
+	///Returns the target region BED file name or an empty string if unset.
+	QString targetRegion() const;
+	///Sets the target region BED file.
+	void setTargetRegion(QString roi_file);
+
+	/// Returns the gene names filter.
+	GeneSet genes() const;
+	/// Returns the text filter.
+	QByteArray text() const;
+	/// Returns the single target region filter, or an empty string if unset.
+	QString region() const;
+	/// Sets the single target region filter, or an empty string if unset.
+	void setRegion(QString region);
+
+	///Returns selected phenotype terms.
+	const QList<Phenotype>& phenotypes() const;
+	///Sets selected phenotype terms.
+	void setPhenotypes(const QList<Phenotype>& phenotypes);
+
+signals:
+	/// Signal that is emitted when a filter changes (filter cascade, gene, text, region, phenotype)
+	void filtersChanged();
+	/// Signal is emitted when the target region changes
+	void targetRegionChanged();
+
+protected slots:
+	void roiSelectionChanged(int index);
+	void geneChanged();
+	void textChanged();
+	void regionChanged();
+	void phenotypesChanged();
+	void editPhenotypes();
+	void showPhenotypeContextMenu(QPoint pos);
+
+private:
+	/// Loads filter target regions (Processing systems from NGSD, Sub-panels from file system and additional target regions from INI file)
+	void loadTargetRegions();
+
+	//Resets the filters without blocking signals.
+	void resetSignalsUnblocked(bool clear_roi);
+
+	Ui::FilterWidgetCNV ui_;
+	GeneSet last_genes_;
+	QList<Phenotype> phenotypes_;
+	FilterDockWidget* filter_widget_;
+};
+
+#endif // FILTERWIDGETCNV_H

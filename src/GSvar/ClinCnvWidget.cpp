@@ -522,7 +522,7 @@ void ClinCnvWidget::filtersChanged()
 			if (Settings::boolean("NGSD_enabled", true))
 			{
 				NGSD db;
-				single_hit_cnv = db.genesToApproved(single_hit_cnv);
+				single_hit_cnv = db.genesToApproved(single_hit_cnv, true);
 			}
 
 			foreach(const QByteArray& gene, single_hit_cnv)

@@ -20,7 +20,7 @@ class CnvWidget
 	Q_OBJECT
 
 public:
-	explicit CnvWidget(QString filename, FilterDockWidget* filter_widget, const GeneSet& het_hit_genes, QWidget *parent = 0);
+	CnvWidget(QString ps_filename, FilterDockWidget* filter_widget, const GeneSet& het_hit_genes, QWidget *parent = 0);
 	~CnvWidget();
 
 signals:
@@ -28,11 +28,8 @@ signals:
 
 private slots:
 	void cnvDoubleClicked(QTableWidgetItem* item);
-	void filtersChanged();
-	void variantFiltersChanged();
+	void applyFilters();
 	void copyToClipboard();
-	void annotationFilterColumnChanged();
-	void annotationFilterOperationChanged();
 	void showContextMenu(QPoint p);
 
 private:
@@ -40,12 +37,23 @@ private:
 	void disableGUI();
 	void addInfoLine(QString text);
 	void updateStatus(int shown);
+	QTableWidgetItem* createItem(QString text, int alignment = Qt::AlignLeft|Qt::AlignTop);
 
+	Ui::CnvWidget* ui;
+	CnvList cnvs;
 	FilterDockWidget* var_filters;
 	GeneSet var_het_hit_genes;
-	Ui::CnvWidget *ui;
-	CnvList cnvs;
-	QMap<QString, int> annotation_col_indices_;
 };
 
 #endif // CNVWIDGET_H
+
+
+/*
+TODO:
+- Links to webpages, e.g. ClinGen https://www.ncbi.nlm.nih.gov/projects/dbvar/clingen/clingen_gene.cgi?sym=BRCA1
+- Import filters from "small variant" filters
+- Special filters: z-score, CN, Max freq, comp-het
+- Add settings for UCSC (see paper)
+- Split special annoation for tool-tip
+- Implement all types: CnvHunter somatic, CnvHunter multi, ClinVar germline, ClinVar somatic, ClinVar multi
+*/

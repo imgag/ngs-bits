@@ -7,14 +7,18 @@ libs:
 NGSD:
 ** Add sender widget (link from sample info)
 ** Add processing system widget (link from processed sample info)
-**** Allow adding/editing data in NGSD
+*** Allow adding/editing data in NGSD
     - Run/processed sample/sample in general
         - Add email support for runs "run finished" and "analysis finished"
     - Set processed sample qualities in batch (selection)
     - sample: import disease info, disease group/status, gender from same samples
     - sample: import disease group/status from GenLab (sample - disease status: add 'Unclear') - select * FROM v_krankheitsgruppe_pattyp...
 ** Add run overview dialog/tab
-* add CNVs to NGSD and allow classification (wait for ClinCNV)
+**** add CNVs to NGSD and allow classification
+    - CNV call-set: quality metrics + tool/version + quality (n/a, good, medium, bad)
+    - CNV calls: quality metrics + classification/comment
+    - add import script for CNVs
+        - import all data from exomes ssHAEv6+7/TruSeq PCR-free genomes
 - NGSD annotation: export VCF, use VCF for annotation (also works on external servers)
 
 GSvar:

@@ -14,7 +14,7 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 		///Default constructor.
 		CopyNumberVariant();
 		///Main constructor.
-		CopyNumberVariant(const Chromosome& chr, int start, int end, QByteArrayList regions, QList<int> cns, QList<double> z_scores, QList<double> afs, GeneSet genes, QByteArrayList annotations);
+		CopyNumberVariant(const Chromosome& chr, int start, int end, int num_regs, GeneSet genes, QByteArrayList annotations);
 
 		///Returns the chromosome.
 		const Chromosome& chr() const
@@ -31,47 +31,30 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 		{
 			return end_;
 		}
-		///Returns the sub-regions.
-		const QByteArrayList& regions() const
+		///Returns the number of regions/exons.
+		int regions() const
 		{
-			return regions_;
+			return num_regs_;
 		}
-		///Returns the copy-numbers (per sub-region).
-		const QList<int>& copyNumbers() const
-		{
-			return cns_;
-		}
-		///Returns the z-scores (per sub-region).
-		const QList<double>& zScores() const
-		{
-			return z_scores_;
-		}
-		///Returns the CNV allele frequencies (per sub-region).
-		const QList<double>& alleleFrequencies() const
-		{
-			return afs_;
-		}
+
 		///Returns the annotated genes.
 		const GeneSet& genes() const
 		{
 			return genes_;
 		}
 
-		///Returns the overall region count.
-		int regionCount() const
-		{
-			return regions_.count();
-		}
 		///Returns the overall variant size.
 		int size() const
 		{
 			return end_ - start_ + 1;
 		}
+
 		///Convert range to string.
 		QString toString() const
 		{
 			return chr_.str() + ":" + QString::number(start_) + "-" + QString::number(end_);
 		}
+
 		///Generic annotations (see also CnvList::annotationHeaders()).
 		const QByteArrayList& annotations() const
 		{
@@ -82,10 +65,7 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 		Chromosome chr_;
 		int start_;
 		int end_;
-		QByteArrayList regions_;
-		QList<int> cns_;
-		QList<double> z_scores_;
-		QList<double> afs_;
+		int num_regs_;
 		GeneSet genes_;
 		QByteArrayList annotations_;
 };
@@ -100,38 +80,47 @@ class CPPNGSSHARED_EXPORT CnvList
 		///Loads CNV text file (TSV format from CnvHunter).
 		void load(QString filename);
 
+		///Returns the analysis type
+		const QByteArray& type() const
+		{
+			return type_;
+		}
+
 		///Returns the comment header lines (without leading '##').
 		const QByteArrayList& comments() const
 		{
 			return comments_;
 		}
-		///Returns the number of variants
-		int count() const
-		{
-			return variants_.count();
-		}
-		///Returns a variant by index.
-		const CopyNumberVariant& operator[](int index) const
-		{
-			return variants_[index];
-		}
+
 		///Returns annotation headers
 		const QByteArrayList& annotationHeaders() const
 		{
 			return annotation_headers_;
 		}
+
+		///Returns the number of variants
+		int count() const
+		{
+			return variants_.count();
+		}
+
+		///Returns a variant by index.
+		const CopyNumberVariant& operator[](int index) const
+		{
+			return variants_[index];
+		}
+
 		///Appends copy number variant
 		void append(const CopyNumberVariant& add)
 		{
 			variants_.append(add);
 		}
-		///Copies Annotation Header and Comments
-		void copyMetaData(const CnvList& rhs);
 
 	protected:
+		QByteArray type_;
 		QByteArrayList comments_;
-		QList<CopyNumberVariant> variants_;
 		QByteArrayList annotation_headers_;
+		QList<CopyNumberVariant> variants_;
 };
 
 #endif // CNVLIST_H

@@ -2014,6 +2014,7 @@ QByteArray NGSD::geneToApproved(QByteArray gene, bool return_input_when_unconver
 	//already approved gene
 	if (approvedGeneNames().contains(gene))
 	{
+		qDebug() << gene << "APPROVED";
 		return gene;
 	}
 
@@ -2026,6 +2027,7 @@ QByteArray NGSD::geneToApproved(QByteArray gene, bool return_input_when_unconver
 			return gene;
 		}
 
+		qDebug() << gene << "CACHED";
 		return mapping[gene];
 	}
 
@@ -2038,6 +2040,7 @@ QByteArray NGSD::geneToApproved(QByteArray gene, bool return_input_when_unconver
 		return gene;
 	}
 
+	qDebug() << gene << "CONVERTED";
 	return mapping[gene];
 }
 

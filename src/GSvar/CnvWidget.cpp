@@ -14,39 +14,24 @@
 #include <QDesktopServices>
 #include <QUrl>
 
-CnvWidget::CnvWidget(QString filename, FilterDockWidget* filter_widget, const GeneSet& het_hit_genes, QWidget *parent)
+CnvWidget::CnvWidget(QString ps_filename, FilterDockWidget* filter_widget, const GeneSet& het_hit_genes, QWidget *parent)
 	: QWidget(parent)
-	, var_filters(filter_widget)
-	, var_het_hit_genes(het_hit_genes)
 	, ui(new Ui::CnvWidget)
 	, cnvs()
+	, var_het_hit_genes(het_hit_genes)
 {
 	ui->setupUi(this);
+	GUIHelper::styleSplitter(ui->splitter);
 	connect(ui->cnvs, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(cnvDoubleClicked(QTableWidgetItem*)));
 	connect(ui->cnvs, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
 	connect(ui->copy_clipboard, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
+	connect(ui->filter_widget, SIGNAL(filtersChanged()), this, SLOT(applyFilters()));
 
-	//connect
-	connect(ui->f_regs, SIGNAL(valueChanged(int)), this, SLOT(filtersChanged()));
-	connect(ui->f_cn, SIGNAL(currentIndexChanged(int)), this, SLOT(filtersChanged()));
-	connect(ui->f_roi, SIGNAL(stateChanged(int)), this, SLOT(filtersChanged()));
-	connect(ui->f_genes, SIGNAL(stateChanged(int)), this, SLOT(filtersChanged()));
-	connect(ui->f_pheno, SIGNAL(stateChanged(int)), this, SLOT(filtersChanged()));
-	connect(ui->f_text, SIGNAL(stateChanged(int)), this, SLOT(filtersChanged()));
-	connect(ui->f_comphet, SIGNAL(currentIndexChanged(int)), this, SLOT(filtersChanged()));
-	connect(ui->f_size, SIGNAL(valueChanged(double)), this, SLOT(filtersChanged()));
-	connect(ui->f_z, SIGNAL(valueChanged(double)), this, SLOT(filtersChanged()));
-	connect(ui->f_af, SIGNAL(valueChanged(double)), this, SLOT(filtersChanged()));
-	connect(ui->f_anno_name, SIGNAL(currentIndexChanged(int)), this, SLOT(filtersChanged()));
-	connect(ui->f_anno_name, SIGNAL(currentIndexChanged(int)), this, SLOT(annotationFilterColumnChanged()));
-	connect(ui->f_anno_op, SIGNAL(currentIndexChanged(int)), this, SLOT(filtersChanged()));
-	connect(ui->f_anno_op, SIGNAL(currentIndexChanged(int)), this, SLOT(annotationFilterOperationChanged()));
-	connect(ui->f_anno_value, SIGNAL(textEdited(QString)), this, SLOT(filtersChanged()));
-	connect(var_filters, SIGNAL(filtersChanged()), this, SLOT(variantFiltersChanged()));
-	connect(var_filters, SIGNAL(targetRegionChanged()), this, SLOT(variantFiltersChanged()));
+	//set small variant filters
+	ui->filter_widget->setVariantFilterWidget(filter_widget);
 
 	//load CNV data file
-	QString path = QFileInfo(filename).absolutePath();
+	QString path = QFileInfo(ps_filename).absolutePath();
 	QStringList cnv_files = Helper::findFiles(path, "*_cnvs.tsv", false);
 	if (cnv_files.count()==0)
 	{
@@ -60,11 +45,19 @@ CnvWidget::CnvWidget(QString filename, FilterDockWidget* filter_widget, const Ge
 	}
 	else
 	{
-		loadCNVs(cnv_files[0]);
+		try
+		{
+			loadCNVs(cnv_files[0]);
+		}
+		catch(Exception e)
+		{
+			addInfoLine("<font color='red'>Error parsing file:\n" + e.message() + "</font>");
+			disableGUI();
+		}
 	}
 
-	//update variant list dependent filters (and apply filters)
-	variantFiltersChanged();
+	//apply filters
+	applyFilters();
 }
 
 CnvWidget::~CnvWidget()
@@ -87,15 +80,7 @@ void CnvWidget::addInfoLine(QString text)
 void CnvWidget::disableGUI()
 {
 	ui->cnvs->setEnabled(false);
-	ui->f_cn->setEnabled(false);
-	ui->f_genes->setEnabled(false);
-	ui->f_roi->setEnabled(false);
-	ui->f_pheno->setEnabled(false);
-	ui->f_text->setEnabled(false);
-	ui->f_regs->setEnabled(false);
-	ui->f_size->setEnabled(false);
-	ui->f_z->setEnabled(false);
-	ui->f_af->setEnabled(false);
+	ui->filter_widget->setEnabled(false);
 }
 
 void CnvWidget::loadCNVs(QString filename)
@@ -121,48 +106,19 @@ void CnvWidget::loadCNVs(QString filename)
 		annotation_indices.append(i);
 	}
 
-	//add generic annotation filter names
-	ui->f_anno_name->clear();
-	ui->f_anno_name->addItem("");
-	foreach(int index, annotation_indices)
-	{
-		ui->f_anno_name->addItem(cnvs.annotationHeaders()[index], index);
-	}
-
 	//show variants
 	ui->cnvs->setRowCount(cnvs.count());
 	for (int r=0; r<cnvs.count(); ++r)
 	{
-		ui->cnvs->setItem(r, 0, new QTableWidgetItem(cnvs[r].toString()));
-		ui->cnvs->setItem(r, 1, new QTableWidgetItem(QString(cnvs[r].genes().join(','))));
-		ui->cnvs->setItem(r, 2, new QTableWidgetItem(QString::number(cnvs[r].size()/1000.0, 'f', 3)));
-		ui->cnvs->setItem(r, 3, new QTableWidgetItem(QString::number(cnvs[r].regionCount())));
+		ui->cnvs->setItem(r, 0, createItem(cnvs[r].toString()));
+		ui->cnvs->setItem(r, 1, createItem(QString::number(cnvs[r].size()/1000.0, 'f', 3), Qt::AlignRight|Qt::AlignTop));
+		ui->cnvs->setItem(r, 2, createItem(QString::number(cnvs[r].regions()), Qt::AlignRight|Qt::AlignTop));
+		ui->cnvs->setItem(r, 3, createItem(QString(cnvs[r].genes().join(','))));
 
-		QStringList tmp;
-		foreach (int cn, cnvs[r].copyNumbers())
-		{
-			tmp.append(QString::number(cn));
-		}
-		ui->cnvs->setItem(r, 4, new QTableWidgetItem(tmp.join(",")));
-
-		tmp.clear();
-		foreach (double z, cnvs[r].zScores())
-		{
-			tmp.append(QString::number(z));
-		}
-		ui->cnvs->setItem(r, 5, new QTableWidgetItem(tmp.join(",")));
-
-		tmp.clear();
-		foreach (double af, cnvs[r].alleleFrequencies())
-		{
-			tmp.append(QString::number(af, 'f', 3));
-		}
-		ui->cnvs->setItem(r, 6, new QTableWidgetItem(tmp.join(",")));
-
-		int c = 7;
+		int c = 4;
 		foreach(int index, annotation_indices)
 		{
-			QTableWidgetItem* item = new QTableWidgetItem(QString(cnvs[r].annotations()[index]));
+			QTableWidgetItem* item = createItem(cnvs[r].annotations()[index]);
 			//special handling for OMIM
 			if (cnvs.annotationHeaders()[index]=="omim")
 			{
@@ -177,7 +133,7 @@ void CnvWidget::loadCNVs(QString filename)
 	GUIHelper::resizeTableCells(ui->cnvs, 200);
 }
 
-void CnvWidget::filtersChanged()
+void CnvWidget::applyFilters()
 {
 	//init
 	QBitArray pass;
@@ -185,27 +141,28 @@ void CnvWidget::filtersChanged()
 	pass.fill(true, rows);
 
 	//filter by regions
-	const int f_regs = ui->f_regs->value();
+	const int f_regs = ui->filter_widget->minRegs();
 	if (f_regs>1)
 	{
 		for(int r=0; r<rows; ++r)
 		{
 			if (!pass[r]) continue;
-			pass[r] = cnvs[r].regionCount() >= f_regs;
+			pass[r] = cnvs[r].regions() >= f_regs;
 		}
 	}
 
 	//filter by size
-	const double f_size = ui->f_size->value();
+	const double f_size = 1000.0 * ui->filter_widget->minSizeKb();
 	if (f_size>0.0)
 	{
 		for(int r=0; r<rows; ++r)
 		{
 			if (!pass[r]) continue;
-			pass[r] = cnvs[r].size() >= 1000.0 * f_size;
+			pass[r] = cnvs[r].size() >= f_size;
 		}
 	}
 
+/*TODO
 	//filter by copy-number
 	QString f_cn = ui->f_cn->currentText();
 	if (f_cn!="n/a")
@@ -269,127 +226,6 @@ void CnvWidget::filtersChanged()
 		pass[r] = hit;
 	}
 
-	//filter by genes
-	if (ui->f_genes->isChecked())
-	{
-		GeneSet genes = var_filters->genes();
-		QByteArray genes_joined = genes.join('|');
-
-		if (genes_joined.contains("*")) //with wildcards
-		{
-			QRegExp reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
-			for(int r=0; r<rows; ++r)
-			{
-				if (!pass[r]) continue;
-
-				bool match_found = false;
-				foreach(const QByteArray& cnv_gene, cnvs[r].genes())
-				{
-					if (reg.exactMatch(cnv_gene))
-					{
-						match_found = true;
-						break;
-					}
-				}
-				pass[r] = match_found;
-			}
-		}
-		else //without wildcards
-		{
-			for(int r=0; r<rows; ++r)
-			{
-				if (!pass[r]) continue;
-
-				pass[r] = cnvs[r].genes().intersectsWith(genes);
-			}
-		}
-	}
-
-	//filter by ROI
-	if (ui->f_roi->isChecked())
-	{
-		BedFile roi;
-		roi.load(var_filters->targetRegion());
-		for(int r=0; r<rows; ++r)
-		{
-			if (!pass[r]) continue;
-
-			pass[r] = roi.overlapsWith(cnvs[r].chr(), cnvs[r].start(), cnvs[r].end());
-		}
-	}
-
-	//filter by phenotype (via genes, not genomic regions)
-	if (ui->f_pheno->isChecked())
-	{
-		NGSD db;
-		GeneSet pheno_genes;
-		foreach(const Phenotype& pheno, var_filters->phenotypes())
-		{
-			pheno_genes << db.phenotypeToGenes(pheno, true);
-		}
-
-		for(int r=0; r<rows; ++r)
-		{
-			if (!pass[r]) continue;
-
-			pass[r] = cnvs[r].genes().intersectsWith(pheno_genes);
-		}
-	}
-
-	//filter annotations by text
-	if (ui->f_text->isChecked())
-	{
-		QByteArray text = var_filters->text().trimmed().toLower();
-
-		for(int r=0; r<rows; ++r)
-		{
-			if (!pass[r]) continue;
-
-			bool match = false;
-			foreach(const QByteArray& anno, cnvs[r].annotations())
-			{
-				if (anno.toLower().contains(text))
-				{
-					match = true;
-					break;
-				}
-			}
-			pass[r] = match;
-		}
-	}
-
-	//filter by generic annotation
-	if (ui->f_anno_name->currentText()!="")
-	{
-		int anno_col_index = ui->f_anno_name->currentData().toInt();
-		QString anno_op = ui->f_anno_op->currentText();
-		if (anno_op=="is empty")
-		{
-			for(int r=0; r<rows; ++r)
-			{
-				if (!pass[r]) continue;
-				pass[r] = cnvs[r].annotations()[anno_col_index].isEmpty();
-			}
-		}
-		else if (anno_op=="is not empty")
-		{
-			for(int r=0; r<rows; ++r)
-			{
-				if (!pass[r]) continue;
-				pass[r] = !cnvs[r].annotations()[anno_col_index].isEmpty();
-			}
-		}
-		else
-		{
-			QByteArray anno_value = ui->f_anno_value->text().toLatin1().toUpper();
-			for(int r=0; r<rows; ++r)
-			{
-				if (!pass[r]) continue;
-				pass[r] = cnvs[r].annotations()[anno_col_index].toUpper().contains(anno_value);
-			}
-		}
-	}
-
 	//filter comp-het
 	if (ui->f_comphet->currentText()!="n/a")
 	{
@@ -432,7 +268,7 @@ void CnvWidget::filtersChanged()
 			if (Settings::boolean("NGSD_enabled", true))
 			{
 				NGSD db;
-				single_hit_cnv = db.genesToApproved(single_hit_cnv);
+				single_hit_cnv = db.genesToApproved(single_hit_cnv, true);
 			}
 
 			foreach(const QByteArray& gene, single_hit_cnv)
@@ -452,6 +288,120 @@ void CnvWidget::filtersChanged()
 			pass[r] = cnvs[r].genes().intersectsWith(comphet_hit);
 		}
 	}
+*/
+
+	//filter by genes
+	GeneSet genes = ui->filter_widget->genes();
+	if (!genes.isEmpty())
+	{
+		QByteArray genes_joined = genes.join('|');
+
+		if (genes_joined.contains("*")) //with wildcards
+		{
+			QRegExp reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
+			for(int r=0; r<rows; ++r)
+			{
+				if (!pass[r]) continue;
+
+				bool match_found = false;
+				foreach(const QByteArray& cnv_gene, cnvs[r].genes())
+				{
+					if (reg.exactMatch(cnv_gene))
+					{
+						match_found = true;
+						break;
+					}
+				}
+				pass[r] = match_found;
+			}
+		}
+		else //without wildcards
+		{
+			for(int r=0; r<rows; ++r)
+			{
+				if (!pass[r]) continue;
+
+				pass[r] = cnvs[r].genes().intersectsWith(genes);
+			}
+		}
+	}
+
+	//filter by ROI
+	QString roi_file = ui->filter_widget->targetRegion();
+	if (roi_file!="")
+	{
+		BedFile roi;
+		roi.load(roi_file);
+		for(int r=0; r<rows; ++r)
+		{
+			if (!pass[r]) continue;
+
+			pass[r] = roi.overlapsWith(cnvs[r].chr(), cnvs[r].start(), cnvs[r].end());
+		}
+	}
+
+	//filter by region
+	QString region_text = ui->filter_widget->region();
+	BedLine region = BedLine::fromString(region_text);
+	if (!region.isValid()) //check if valid chr
+	{
+		Chromosome chr(region_text);
+		if (chr.isNonSpecial())
+		{
+			region.setChr(chr);
+			region.setStart(1);
+			region.setEnd(999999999);
+		}
+	}
+	if (region.isValid()) //valid region (chr,start, end or only chr)
+	{
+		for(int r=0; r<rows; ++r)
+		{
+			if (!pass[r]) continue;
+
+			pass[r] = region.overlapsWith(cnvs[r].chr(), cnvs[r].start(), cnvs[r].end());
+		}
+	}
+
+	//filter by phenotype (via genes, not genomic regions)
+	QList<Phenotype> phenotypes = ui->filter_widget->phenotypes();
+	if (!phenotypes.isEmpty())
+	{
+		NGSD db;
+		GeneSet pheno_genes;
+		foreach(const Phenotype& pheno, phenotypes)
+		{
+			pheno_genes << db.phenotypeToGenes(pheno, true);
+		}
+
+		for(int r=0; r<rows; ++r)
+		{
+			if (!pass[r]) continue;
+
+			pass[r] = cnvs[r].genes().intersectsWith(pheno_genes);
+		}
+	}
+
+	//filter annotations by text
+	QByteArray text = ui->filter_widget->text().trimmed().toLower();
+	if (text!="")
+	{
+		for(int r=0; r<rows; ++r)
+		{
+			if (!pass[r]) continue;
+
+			bool match = false;
+			foreach(const QByteArray& anno, cnvs[r].annotations())
+			{
+				if (anno.toLower().contains(text))
+				{
+					match = true;
+					break;
+				}
+			}
+			pass[r] = match;
+		}
+	}
 
 	//update GUI
 	for(int r=0; r<rows; ++r)
@@ -461,45 +411,9 @@ void CnvWidget::filtersChanged()
 	updateStatus(pass.count(true));
 }
 
-void CnvWidget::variantFiltersChanged()
-{
-	ui->f_genes->setEnabled(!var_filters->genes().isEmpty());
-	if (!ui->f_genes->isEnabled()) ui->f_genes->setChecked(false);
-
-	ui->f_roi->setEnabled(!var_filters->targetRegion().isEmpty());
-	if (!ui->f_roi->isEnabled()) ui->f_roi->setChecked(false);
-
-	ui->f_pheno->setEnabled(!var_filters->phenotypes().isEmpty() && Settings::boolean("NGSD_enabled", true));
-	if (!ui->f_pheno->isEnabled()) ui->f_roi->setChecked(false);
-
-	ui->f_text->setEnabled(!var_filters->text().isEmpty());
-	if (!ui->f_text->isEnabled()) ui->f_text->setChecked(false);
-
-	//re-apply filters in case the genes/target region changed
-	filtersChanged();
-}
-
 void CnvWidget::copyToClipboard()
 {
 	GUIHelper::copyToClipboard(ui->cnvs);
-}
-
-void CnvWidget::annotationFilterColumnChanged()
-{
-	ui->f_anno_op->setEnabled(ui->f_anno_name->currentText()!="");
-}
-
-void CnvWidget::annotationFilterOperationChanged()
-{
-	if (ui->f_anno_op->currentText()=="contains")
-	{
-		ui->f_anno_value->setEnabled(true);
-	}
-	else
-	{
-		ui->f_anno_value->setEnabled(false);
-		ui->f_anno_value->clear();
-	}
 }
 
 void CnvWidget::showContextMenu(QPoint p)
@@ -550,6 +464,14 @@ void CnvWidget::updateStatus(int shown)
 {
 	QString text = QString::number(shown) + "/" + QString::number(cnvs.count()) + " passing filter(s)";
 	ui->status->setText(text);
+}
+
+QTableWidgetItem* CnvWidget::createItem(QString text, int alignment)
+{
+	QTableWidgetItem* item = new QTableWidgetItem(text);
+	item->setTextAlignment(alignment);
+
+	return item;
 }
 
 
