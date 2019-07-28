@@ -140,6 +140,9 @@
       </property>
       <item>
        <widget class="QComboBox" name="rois">
+        <property name="contextMenuPolicy">
+         <enum>Qt::CustomContextMenu</enum>
+        </property>
         <property name="maxVisibleItems">
          <number>30</number>
         </property>
@@ -158,6 +161,9 @@
       </item>
       <item>
        <widget class="QLineEdit" name="region">
+        <property name="contextMenuPolicy">
+         <enum>Qt::CustomContextMenu</enum>
+        </property>
         <property name="toolTip">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Single target region e.g. 'chr1:120611985-120612025' or 'chr1'&lt;br/&gt;&lt;br/&gt;Notes:&lt;br/&gt;- Press return to finish entering text!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
@@ -217,6 +223,9 @@
       </property>
       <item>
        <widget class="QLineEdit" name="gene">
+        <property name="contextMenuPolicy">
+         <enum>Qt::CustomContextMenu</enum>
+        </property>
         <property name="toolTip">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma-separated list of gene names.&lt;br/&gt;&lt;br/&gt;Notes:&lt;br/&gt;- You can use '*' as a wildcard. &lt;br/&gt;- Press return to finish entering text.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
@@ -230,6 +239,9 @@
       </item>
       <item>
        <widget class="QLineEdit" name="text">
+        <property name="contextMenuPolicy">
+         <enum>Qt::CustomContextMenu</enum>
+        </property>
         <property name="toolTip">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Text filter using all annotation columns (case-insensitive).&lt;br/&gt;&lt;br/&gt;Notes:&lt;br/&gt;- Press return to finish entering text.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>

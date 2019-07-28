@@ -61,6 +61,10 @@ protected slots:
 	void phenotypesChanged();
 	void editPhenotypes();
 	void showPhenotypeContextMenu(QPoint pos);
+	void showROIContextMenu(QPoint pos);
+	void showRegionContextMenu(QPoint pos);
+	void showGeneContextMenu(QPoint pos);
+	void showTextContextMenu(QPoint pos);
 
 private:
 	/// Loads filter target regions (Processing systems from NGSD, Sub-panels from file system and additional target regions from INI file)

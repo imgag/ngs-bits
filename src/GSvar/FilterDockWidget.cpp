@@ -233,6 +233,11 @@ QString FilterDockWidget::targetRegion() const
 	return ui_.rois->toolTip();
 }
 
+QString FilterDockWidget::targetRegionName() const
+{
+	return ui_.rois->currentText();
+}
+
 void FilterDockWidget::setTargetRegion(QString roi_file)
 {
 	roi_file = Helper::canonicalPath(roi_file);

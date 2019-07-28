@@ -51,9 +51,9 @@ private:
 /*
 TODO:
 - Links to webpages, e.g. ClinGen https://www.ncbi.nlm.nih.gov/projects/dbvar/clingen/clingen_gene.cgi?sym=BRCA1
-- Import filters from "small variant" filters
 - Special filters: z-score, CN, Max freq, comp-het
 - Add settings for UCSC (see paper)
 - Split special annoation for tool-tip
 - Implement all types: CnvHunter somatic, CnvHunter multi, ClinVar germline, ClinVar somatic, ClinVar multi
+- Add default filters based on CNV list type
 */

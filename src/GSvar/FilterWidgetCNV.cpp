@@ -30,10 +30,15 @@ FilterWidgetCNV::FilterWidgetCNV(QWidget *parent)
 	connect(ui_.f_regs, SIGNAL(valueChanged(int)), this, SIGNAL(filtersChanged()));
 	connect(ui_.f_size, SIGNAL(valueChanged(double)), this, SIGNAL(filtersChanged()));
 
+	connect(ui_.rois, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showROIContextMenu(QPoint)));
+	connect(ui_.region, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showRegionContextMenu(QPoint)));
+	connect(ui_.hpo_terms, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showPhenotypeContextMenu(QPoint)));
+	connect(ui_.gene, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showGeneContextMenu(QPoint)));
+	connect(ui_.text, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showTextContextMenu(QPoint)));
+
 	if (Settings::boolean("NGSD_enabled", true))
 	{
 		connect(ui_.hpo_terms, SIGNAL(clicked(QPoint)), this, SLOT(editPhenotypes()));
-		connect(ui_.hpo_terms, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showPhenotypeContextMenu(QPoint)));
 	}
 	else
 	{
@@ -330,5 +335,69 @@ void FilterWidgetCNV::showPhenotypeContextMenu(QPoint pos)
 	{
 		phenotypes_.clear();
 		phenotypesChanged();
+	}
+}
+
+void FilterWidgetCNV::showROIContextMenu(QPoint pos)
+{
+	//set up
+	QMenu menu;
+	menu.addAction("load from main window")->setEnabled(filter_widget_!=nullptr);
+
+	//exec
+	QAction* action = menu.exec(ui_.rois->mapToGlobal(pos));
+	if (action==nullptr) return;
+
+	if (action->text()=="load from main window")
+	{
+		ui_.rois->setCurrentText(filter_widget_->targetRegionName());
+	}
+}
+
+void FilterWidgetCNV::showRegionContextMenu(QPoint pos)
+{
+	//set up
+	QMenu menu;
+	menu.addAction("load from main window")->setEnabled(filter_widget_!=nullptr);
+
+	//exec
+	QAction* action = menu.exec(ui_.region->mapToGlobal(pos));
+	if (action==nullptr) return;
+
+	if (action->text()=="load from main window")
+	{
+		ui_.region->setText(filter_widget_->region());
+	}
+}
+
+void FilterWidgetCNV::showGeneContextMenu(QPoint pos)
+{
+	//set up
+	QMenu menu;
+	menu.addAction("load from main window")->setEnabled(filter_widget_!=nullptr);
+
+	//exec
+	QAction* action = menu.exec(ui_.gene->mapToGlobal(pos));
+	if (action==nullptr) return;
+
+	if (action->text()=="load from main window")
+	{
+		ui_.gene->setText(filter_widget_->genes().join(", "));
+	}
+}
+
+void FilterWidgetCNV::showTextContextMenu(QPoint pos)
+{
+	//set up
+	QMenu menu;
+	menu.addAction("load from main window")->setEnabled(filter_widget_!=nullptr);
+
+	//exec
+	QAction* action = menu.exec(ui_.text->mapToGlobal(pos));
+	if (action==nullptr) return;
+
+	if (action->text()=="load from main window")
+	{
+		ui_.text->setText(filter_widget_->text());
 	}
 }

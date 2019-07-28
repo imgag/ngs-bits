@@ -30,8 +30,10 @@ public:
 	/// Visually marks filters that failed.
 	void markFailedFilters();
 
-	///Returns the target region BED file name or an empty string if unset.
+	///Returns the target region BED file or an empty string if unset.
 	QString targetRegion() const;
+	///Returns the target region display name or an empty string if unset.
+	QString targetRegionName() const;
 	///Sets the target region BED file.
 	void setTargetRegion(QString roi_file);
 
