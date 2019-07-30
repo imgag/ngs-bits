@@ -22,7 +22,7 @@ FilterWidgetCNV::FilterWidgetCNV(QWidget *parent)
 {
 	ui_.setupUi(this);
 
-	connect(ui_.rois, SIGNAL(currentIndexChanged(int)), this, SLOT(roiSelectionChanged(int)));
+	connect(ui_.roi, SIGNAL(currentIndexChanged(int)), this, SLOT(roiSelectionChanged(int)));
 
 	connect(ui_.gene, SIGNAL(editingFinished()), this, SLOT(geneChanged()));
 	connect(ui_.text, SIGNAL(editingFinished()), this, SLOT(textChanged()));
@@ -30,19 +30,20 @@ FilterWidgetCNV::FilterWidgetCNV(QWidget *parent)
 	connect(ui_.f_regs, SIGNAL(valueChanged(int)), this, SIGNAL(filtersChanged()));
 	connect(ui_.f_size, SIGNAL(valueChanged(double)), this, SIGNAL(filtersChanged()));
 
-	connect(ui_.rois, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showROIContextMenu(QPoint)));
-	connect(ui_.region, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showRegionContextMenu(QPoint)));
-	connect(ui_.hpo_terms, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showPhenotypeContextMenu(QPoint)));
-	connect(ui_.gene, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showGeneContextMenu(QPoint)));
-	connect(ui_.text, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showTextContextMenu(QPoint)));
+	connect(ui_.hpo, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showPhenotypeContextMenu(QPoint)));
+	connect(ui_.hpo_import, SIGNAL(clicked(bool)), this, SLOT(importHPO()));
+	connect(ui_.roi_import, SIGNAL(clicked(bool)), this, SLOT(importROI()));
+	connect(ui_.region_import, SIGNAL(clicked(bool)), this, SLOT(importRegion()));
+	connect(ui_.gene_import, SIGNAL(clicked(bool)), this, SLOT(importGene()));
+	connect(ui_.text_import, SIGNAL(clicked(bool)), this, SLOT(importText()));
 
 	if (Settings::boolean("NGSD_enabled", true))
 	{
-		connect(ui_.hpo_terms, SIGNAL(clicked(QPoint)), this, SLOT(editPhenotypes()));
+		connect(ui_.hpo, SIGNAL(clicked(QPoint)), this, SLOT(editPhenotypes()));
 	}
 	else
 	{
-		ui_.hpo_terms->setEnabled(false);
+		ui_.hpo->setEnabled(false);
 	}
 
 	loadTargetRegions();
@@ -66,15 +67,15 @@ int FilterWidgetCNV::minRegs() const
 
 void FilterWidgetCNV::loadTargetRegions()
 {
-	ui_.rois->blockSignals(true);
+	ui_.roi->blockSignals(true);
 
 	//store old selection
-	QString current = ui_.rois->currentText();
+	QString current = ui_.roi->currentText();
 
-	ui_.rois->clear();
-	ui_.rois->addItem("", "");
-	ui_.rois->addItem("none", "");
-	ui_.rois->insertSeparator(ui_.rois->count());
+	ui_.roi->clear();
+	ui_.roi->addItem("", "");
+	ui_.roi->addItem("none", "");
+	ui_.roi->insertSeparator(ui_.roi->count());
 
 	//load ROIs of NGSD processing systems
 	try
@@ -83,10 +84,10 @@ void FilterWidgetCNV::loadTargetRegions()
 		auto it = systems.constBegin();
 		while (it != systems.constEnd())
 		{
-			ui_.rois->addItem("Processing system: " + it.key(), Helper::canonicalPath(it.value()));
+			ui_.roi->addItem("Processing system: " + it.key(), Helper::canonicalPath(it.value()));
 			++it;
 		}
-		ui_.rois->insertSeparator(ui_.rois->count());
+		ui_.roi->insertSeparator(ui_.roi->count());
 	}
 	catch (Exception& e)
 	{
@@ -103,9 +104,9 @@ void FilterWidgetCNV::loadTargetRegions()
 			if (file.endsWith("_amplicons.bed")) continue;
 
 			QString name = QFileInfo(file).fileName().replace(".bed", "");
-			ui_.rois->addItem("Sub-panel: " + name, Helper::canonicalPath(file));
+			ui_.roi->addItem("Sub-panel: " + name, Helper::canonicalPath(file));
 		}
-		ui_.rois->insertSeparator(ui_.rois->count());
+		ui_.roi->insertSeparator(ui_.roi->count());
 	}
 	catch (Exception& e)
 	{
@@ -118,15 +119,15 @@ void FilterWidgetCNV::loadTargetRegions()
 	foreach(const QString& roi_file, rois)
 	{
 		QFileInfo info(roi_file);
-		ui_.rois->addItem(info.fileName(), roi_file);
+		ui_.roi->addItem(info.fileName(), roi_file);
 	}
 
 	//restore old selection
-	int current_index = ui_.rois->findText(current);
+	int current_index = ui_.roi->findText(current);
 	if (current_index==-1) current_index = 1;
-	ui_.rois->setCurrentIndex(current_index);
+	ui_.roi->setCurrentIndex(current_index);
 
-	ui_.rois->blockSignals(false);
+	ui_.roi->blockSignals(false);
 }
 
 void FilterWidgetCNV::resetSignalsUnblocked(bool clear_roi)
@@ -138,8 +139,8 @@ void FilterWidgetCNV::resetSignalsUnblocked(bool clear_roi)
     //rois
 	if (clear_roi)
 	{
-		ui_.rois->setCurrentIndex(1);
-		ui_.rois->setToolTip("");
+		ui_.roi->setCurrentIndex(1);
+		ui_.roi->setToolTip("");
 	}
 
     //gene
@@ -166,17 +167,17 @@ void FilterWidgetCNV::reset(bool clear_roi)
 
 QString FilterWidgetCNV::targetRegion() const
 {
-	return ui_.rois->toolTip();
+	return ui_.roi->toolTip();
 }
 
 void FilterWidgetCNV::setTargetRegion(QString roi_file)
 {
 	roi_file = Helper::canonicalPath(roi_file);
-	for (int i=0; i<ui_.rois->count(); ++i)
+	for (int i=0; i<ui_.roi->count(); ++i)
 	{
-		if (ui_.rois->itemData(i).toString()==roi_file)
+		if (ui_.roi->itemData(i).toString()==roi_file)
 		{
-			ui_.rois->setCurrentIndex(i);
+			ui_.roi->setCurrentIndex(i);
 			break;
 		}
 	}
@@ -219,31 +220,31 @@ void FilterWidgetCNV::setPhenotypes(const QList<Phenotype>& phenotypes)
 void FilterWidgetCNV::roiSelectionChanged(int index)
 {
 	//delete old completer
-	QCompleter* completer_old = ui_.rois->completer();
+	QCompleter* completer_old = ui_.roi->completer();
 	if (completer_old!=nullptr)
 	{
 		completer_old->deleteLater();
 	}
 
 	//create completer for search mode
-	if (ui_.rois->currentIndex()==0)
+	if (ui_.roi->currentIndex()==0)
 	{
-		ui_.rois->setEditable(true);
+		ui_.roi->setEditable(true);
 
-		QCompleter* completer = new QCompleter(ui_.rois->model(), ui_.rois);
+		QCompleter* completer = new QCompleter(ui_.roi->model(), ui_.roi);
 		completer->setCompletionMode(QCompleter::PopupCompletion);
 		completer->setCaseSensitivity(Qt::CaseInsensitive);
 		completer->setFilterMode(Qt::MatchContains);
 		completer->setCompletionRole(Qt::DisplayRole);
-		ui_.rois->setCompleter(completer);
+		ui_.roi->setCompleter(completer);
 	}
 	else
 	{
-		ui_.rois->setEditable(false);
+		ui_.roi->setEditable(false);
 	}
 
 
-	ui_.rois->setToolTip(ui_.rois->itemData(index).toString());
+	ui_.roi->setToolTip(ui_.roi->itemData(index).toString());
 
 	if(index!=0)
 	{
@@ -280,7 +281,7 @@ void FilterWidgetCNV::phenotypesChanged()
 		tmp << pheno.name();
 	}
 
-	ui_.hpo_terms->setText(tmp.join("; "));
+	ui_.hpo->setText(tmp.join("; "));
 
 	QString tooltip = "Phenotype/inheritance filter based on HPO terms.<br><br>Notes:<br>- This functionality is only available when NGSD is enabled.<br>- Filters based on the phenotype-associated gene loci including 5000 flanking bases.";
 	if (!phenotypes_.isEmpty())
@@ -291,7 +292,7 @@ void FilterWidgetCNV::phenotypesChanged()
 			tooltip += "<br><nobr>" + pheno.toString() + "</nobr>";
 		}
 	}
-	ui_.hpo_terms->setToolTip(tooltip);
+	ui_.hpo->setToolTip(tooltip);
 
 	emit filtersChanged();
 }
@@ -316,19 +317,12 @@ void FilterWidgetCNV::showPhenotypeContextMenu(QPoint pos)
 {
 	//set up
 	QMenu menu;
-	menu.addAction("load from main window")->setEnabled(filter_widget_!=nullptr);
-	menu.addSeparator();
 	menu.addAction("clear");
 
 	//exec
-	QAction* action = menu.exec(ui_.hpo_terms->mapToGlobal(pos));
+	QAction* action = menu.exec(ui_.hpo->mapToGlobal(pos));
 	if (action==nullptr) return;
 
-	if (action->text()=="load from main window")
-	{
-		setPhenotypes(filter_widget_->phenotypes());
-		phenotypesChanged();
-	}
 	if (action->text()=="clear")
 	{
 		phenotypes_.clear();
@@ -336,96 +330,32 @@ void FilterWidgetCNV::showPhenotypeContextMenu(QPoint pos)
 	}
 }
 
-void FilterWidgetCNV::showROIContextMenu(QPoint pos)
+void FilterWidgetCNV::importHPO()
 {
-	//set up
-	QMenu menu;
-	menu.addAction("load from main window")->setEnabled(filter_widget_!=nullptr);
-	menu.addSeparator();
-	menu.addAction("clear");
-
-	//exec
-	QAction* action = menu.exec(ui_.rois->mapToGlobal(pos));
-	if (action==nullptr) return;
-
-	if (action->text()=="load from main window")
-	{
-		ui_.rois->setCurrentText(filter_widget_->targetRegionName());
-		emit filtersChanged();
-	}
-	if (action->text()=="clear")
-	{
-		ui_.rois->setCurrentText("none");
-		emit filtersChanged();
-	}
+	setPhenotypes(filter_widget_->phenotypes());
+	phenotypesChanged();
 }
 
-void FilterWidgetCNV::showRegionContextMenu(QPoint pos)
+void FilterWidgetCNV::importROI()
 {
-	//set up
-	QMenu menu;
-	menu.addAction("load from main window")->setEnabled(filter_widget_!=nullptr);
-	menu.addSeparator();
-	menu.addAction("clear");
-
-	//exec
-	QAction* action = menu.exec(ui_.region->mapToGlobal(pos));
-	if (action==nullptr) return;
-
-	if (action->text()=="load from main window")
-	{
-		ui_.region->setText(filter_widget_->region());
-		emit filtersChanged();
-	}
-	if (action->text()=="clear")
-	{
-		ui_.region->clear();
-		emit filtersChanged();
-	}
+	ui_.roi->setCurrentText(filter_widget_->targetRegionName());
+	emit filtersChanged();
 }
 
-void FilterWidgetCNV::showGeneContextMenu(QPoint pos)
+void FilterWidgetCNV::importRegion()
 {
-	//set up
-	QMenu menu;
-	menu.addAction("load from main window")->setEnabled(filter_widget_!=nullptr);
-	menu.addSeparator();
-	menu.addAction("clear");
-
-	//exec
-	QAction* action = menu.exec(ui_.gene->mapToGlobal(pos));
-	if (action==nullptr) return;
-
-	if (action->text()=="load from main window")
-	{
-		ui_.gene->setText(filter_widget_->genes().join(", "));
-		emit filtersChanged();
-	}
-	if (action->text()=="clear")
-	{
-		ui_.gene->clear();
-		emit filtersChanged();
-	}
+	ui_.region->setText(filter_widget_->region());
+	emit filtersChanged();
 }
 
-void FilterWidgetCNV::showTextContextMenu(QPoint pos)
+void FilterWidgetCNV::importGene()
 {
-	//set up
-	QMenu menu;
-	menu.addAction("load from main window")->setEnabled(filter_widget_!=nullptr);
+	ui_.gene->setText(filter_widget_->genes().join(", "));
+	emit filtersChanged();
+}
 
-	//exec
-	QAction* action = menu.exec(ui_.text->mapToGlobal(pos));
-	if (action==nullptr) return;
-
-	if (action->text()=="load from main window")
-	{
-		ui_.text->setText(filter_widget_->text());
-		emit filtersChanged();
-	}
-	if (action->text()=="clear")
-	{
-		ui_.text->clear();
-		emit filtersChanged();
-	}
+void FilterWidgetCNV::importText()
+{
+	ui_.text->setText(filter_widget_->text());
+	emit filtersChanged();
 }

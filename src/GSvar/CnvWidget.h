@@ -53,8 +53,6 @@ private:
 
 /*
 TODO:
-- FIXED WIDTH FILTERS!!!
-- BUTTONS for import from main window!!!
 - Special filters: z-score, CN, Max freq, comp-het
 - Add settings for UCSC (see paper)
 - Add default filters based on CNV list type

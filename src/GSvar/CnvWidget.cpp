@@ -22,7 +22,6 @@ CnvWidget::CnvWidget(QString ps_filename, FilterDockWidget* filter_widget, const
 	, var_het_hit_genes(het_hit_genes)
 {
 	ui->setupUi(this);
-	GUIHelper::styleSplitter(ui->splitter);
 	connect(ui->cnvs, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(cnvDoubleClicked(QTableWidgetItem*)));
 	connect(ui->cnvs, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
 	connect(ui->copy_clipboard, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
