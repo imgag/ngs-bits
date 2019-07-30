@@ -73,5 +73,7 @@
         <file>Icons/Resize_colums.png</file>
         <file>Icons/Save.png</file>
         <file>Icons/Link.png</file>
+        <file>Icons/Decipher.png</file>
+        <file>Icons/Table.png</file>
     </qresource>
 </RCC>

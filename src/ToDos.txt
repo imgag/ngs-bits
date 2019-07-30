@@ -22,6 +22,7 @@ NGSD:
 - NGSD annotation: export VCF, use VCF for annotation (also works on external servers)
 
 GSvar:
+**** replace GeneInfoOMIM by new view
 ## Filter: enhancer/promotor - de-novo
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 - Implement OMIM search via API - example: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1 (wait for API access)
@@ -29,12 +30,22 @@ GSvar:
 * Add highlighting of imprinting genes to CNVs, ROHs and UPDs
 * GenLab XML report: male => change 'hom' variants outside PAR region on chrX/chrY to 'hemi' (when GenLab import is updated)
 *** Report variant selection
-    - allow marking variants for report inclusion (report_pathogenic, report_possibly_pathogenic, report_incidental_finding (ACMG), report_scientific, no_report_artefact, no_report_no_disease_association)
+    - allow marking variants for report inclusion (report_causal, report_candidate_gene, report_scientific, report_incidental_finding (ACMG), no_report_artefact, no_report_no_disease_association)
+    - allow marking inheritance mode and de-novo status
     - store marked variants in NGSD when writing the report (who, when, comment, applied default filter)
     - load marked variants from NGSD after loading the case again
     - add filter to show marked variants only
-    - also flag which variants are exported to GenLab8 via the XML report
-        -fields to fill: sample outcome, gaps report (custom), processing system, variants, export date
+    -fields to fill in GenLab:
+        - sample outcome
+        - gaps report (custom via import, #gene, #bases, %gaps) ==> gap report as XML and additional report of gaps to sanger-validate as TXT
+        - processing system (long name)
+        - variants
+            - genomic position: chr:pos [build]
+            - inheritance / de-novo
+            - transcripts
+            - orphanet code(s) for genes: https://github.com/Orphanet/Orphadata.org/tree/master/Disorders%20cross%20referenced%20JSON, https://github.com/Orphanet/Orphadata.org/tree/master/Disorders%20with%20their%20associated%20genes
+            - ???
+        - export date
     - print sheet with flagged variants
 - Visualize tracking of variants when from split complex variant (wait for VcfBreakComplex)
 

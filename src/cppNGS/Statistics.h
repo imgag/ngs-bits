@@ -5,6 +5,7 @@
 #include "VariantList.h"
 #include "BedFile.h"
 #include "QCCollection.h"
+#include "KeyValuePair.h"
 #include <QMap>
 
 
@@ -13,7 +14,7 @@
 struct CPPNGSSHARED_EXPORT GenderEstimate
 {
 	QString gender;
-	QList<QPair<QString, QString>> add_info; //key-value pairs of additional information
+	QList<KeyValuePair> add_info; //key-value pairs of additional information
 };
 
 

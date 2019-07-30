@@ -31,16 +31,19 @@ private slots:
 	void applyFilters();
 	void copyToClipboard();
 	void showContextMenu(QPoint p);
+	void openLink(int row, int col);
 
 private:
 	void loadCNVs(QString filename);
 	void disableGUI();
 	void addInfoLine(QString text);
 	void updateStatus(int shown);
+	void showSpecialTable(QString col, QString text, QByteArray url_prefix);
 	QTableWidgetItem* createItem(QString text, int alignment = Qt::AlignLeft|Qt::AlignTop);
 
 	Ui::CnvWidget* ui;
 	CnvList cnvs;
+	QStringList special_cols_;
 	FilterDockWidget* var_filters;
 	GeneSet var_het_hit_genes;
 };
@@ -50,10 +53,10 @@ private:
 
 /*
 TODO:
-- Links to webpages, e.g. ClinGen https://www.ncbi.nlm.nih.gov/projects/dbvar/clingen/clingen_gene.cgi?sym=BRCA1
+- FIXED WIDTH FILTERS!!!
+- BUTTONS for import from main window!!!
 - Special filters: z-score, CN, Max freq, comp-het
 - Add settings for UCSC (see paper)
-- Split special annoation for tool-tip
-- Implement all types: CnvHunter somatic, CnvHunter multi, ClinVar germline, ClinVar somatic, ClinVar multi
 - Add default filters based on CNV list type
+- Test all types: CnvHunter somatic, CnvHunter multi, ClinVar germline, ClinVar somatic, ClinVar multi
 */

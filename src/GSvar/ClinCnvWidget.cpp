@@ -611,7 +611,7 @@ void ClinCnvWidget::showContextMenu(QPoint p)
 	//OMIM
 	if (text=="Open OMIM entries")
 	{
-		auto entries = VariantDetailsDockWidget::parseDB(omim_text, "],");
+		auto entries = VariantDetailsDockWidget::parseDB(omim_text, ',');
 		foreach(VariantDetailsDockWidget::DBEntry entry, entries)
 		{
 			QDesktopServices::openUrl(QUrl("http://omim.org/entry/" + entry.id));

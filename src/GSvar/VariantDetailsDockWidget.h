@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QLabel>
 #include "VariantList.h"
+#include "KeyValuePair.h"
 
 namespace Ui {
 class VariantDetailsDockWidget;
@@ -35,9 +36,12 @@ public:
 	{
 		QString id;
 		QString details;
+
+		//Splits the details by name.
+		QList<KeyValuePair> splitByName() const;
 	};
 	//Parse database entries (OMIM, ClinVar, HGMD, ...) to a map (ID=>details).
-	static QList<DBEntry> parseDB(QString anno, QString sep="];");
+	static QList<DBEntry> parseDB(QString anno, char sep=';');
 
 signals:
 	void jumbToRegion(QString region);

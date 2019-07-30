@@ -316,22 +316,20 @@ void FilterWidgetCNV::showPhenotypeContextMenu(QPoint pos)
 {
 	//set up
 	QMenu menu;
-	if (filter_widget_!=nullptr)
-	{
-		menu.addAction("load from main window");
-	}
-	if (!phenotypes_.isEmpty())
-	{
-		menu.addAction("clear");
-	}
+	menu.addAction("load from main window")->setEnabled(filter_widget_!=nullptr);
+	menu.addSeparator();
+	menu.addAction("clear");
 
 	//exec
 	QAction* action = menu.exec(ui_.hpo_terms->mapToGlobal(pos));
-	if (action==nullptr)
+	if (action==nullptr) return;
+
+	if (action->text()=="load from main window")
 	{
-		return;
+		setPhenotypes(filter_widget_->phenotypes());
+		phenotypesChanged();
 	}
-	else if (action->text()=="clear")
+	if (action->text()=="clear")
 	{
 		phenotypes_.clear();
 		phenotypesChanged();
@@ -343,6 +341,8 @@ void FilterWidgetCNV::showROIContextMenu(QPoint pos)
 	//set up
 	QMenu menu;
 	menu.addAction("load from main window")->setEnabled(filter_widget_!=nullptr);
+	menu.addSeparator();
+	menu.addAction("clear");
 
 	//exec
 	QAction* action = menu.exec(ui_.rois->mapToGlobal(pos));
@@ -351,6 +351,12 @@ void FilterWidgetCNV::showROIContextMenu(QPoint pos)
 	if (action->text()=="load from main window")
 	{
 		ui_.rois->setCurrentText(filter_widget_->targetRegionName());
+		emit filtersChanged();
+	}
+	if (action->text()=="clear")
+	{
+		ui_.rois->setCurrentText("none");
+		emit filtersChanged();
 	}
 }
 
@@ -359,6 +365,8 @@ void FilterWidgetCNV::showRegionContextMenu(QPoint pos)
 	//set up
 	QMenu menu;
 	menu.addAction("load from main window")->setEnabled(filter_widget_!=nullptr);
+	menu.addSeparator();
+	menu.addAction("clear");
 
 	//exec
 	QAction* action = menu.exec(ui_.region->mapToGlobal(pos));
@@ -367,6 +375,12 @@ void FilterWidgetCNV::showRegionContextMenu(QPoint pos)
 	if (action->text()=="load from main window")
 	{
 		ui_.region->setText(filter_widget_->region());
+		emit filtersChanged();
+	}
+	if (action->text()=="clear")
+	{
+		ui_.region->clear();
+		emit filtersChanged();
 	}
 }
 
@@ -375,6 +389,8 @@ void FilterWidgetCNV::showGeneContextMenu(QPoint pos)
 	//set up
 	QMenu menu;
 	menu.addAction("load from main window")->setEnabled(filter_widget_!=nullptr);
+	menu.addSeparator();
+	menu.addAction("clear");
 
 	//exec
 	QAction* action = menu.exec(ui_.gene->mapToGlobal(pos));
@@ -383,6 +399,12 @@ void FilterWidgetCNV::showGeneContextMenu(QPoint pos)
 	if (action->text()=="load from main window")
 	{
 		ui_.gene->setText(filter_widget_->genes().join(", "));
+		emit filtersChanged();
+	}
+	if (action->text()=="clear")
+	{
+		ui_.gene->clear();
+		emit filtersChanged();
 	}
 }
 
@@ -399,5 +421,11 @@ void FilterWidgetCNV::showTextContextMenu(QPoint pos)
 	if (action->text()=="load from main window")
 	{
 		ui_.text->setText(filter_widget_->text());
+		emit filtersChanged();
+	}
+	if (action->text()=="clear")
+	{
+		ui_.text->clear();
+		emit filtersChanged();
 	}
 }

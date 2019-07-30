@@ -18,6 +18,7 @@ CnvWidget::CnvWidget(QString ps_filename, FilterDockWidget* filter_widget, const
 	: QWidget(parent)
 	, ui(new Ui::CnvWidget)
 	, cnvs()
+	, special_cols_()
 	, var_het_hit_genes(het_hit_genes)
 {
 	ui->setupUi(this);
@@ -69,7 +70,41 @@ void CnvWidget::cnvDoubleClicked(QTableWidgetItem* item)
 {
 	if (item==nullptr) return;
 
-	emit openRegionInIGV(cnvs[item->row()].toString());
+	int col = item->column();
+	int row = item->row();
+	QString col_name = item->tableWidget()->horizontalHeaderItem(col)->text();
+	if (special_cols_.contains(col_name))
+	{
+		QString text = cnvs[row].annotations()[col-4].trimmed();
+		if (text.isEmpty()) return;
+		QString title = col_name + " of CNV " + cnvs[row].toString();
+
+		if (col_name=="cn_pathogenic")
+		{
+			showSpecialTable(title, text, "");
+		}
+		if (col_name=="dosage_sensitive_disease_genes")
+		{
+			showSpecialTable(title, text, "https://www.ncbi.nlm.nih.gov/projects/dbvar/clingen/clingen_gene.cgi?sym=");
+		}
+		if (col_name=="clinvar_cnvs")
+		{
+			showSpecialTable(title, text, "https://www.ncbi.nlm.nih.gov/clinvar/variation/");
+		}
+		if (col_name=="hgmd_cnvs")
+		{
+			showSpecialTable(title, text, "https://portal.biobase-international.com/hgmd/pro/mut.php?acc=");
+		}
+		if (col_name=="omim")
+		{
+			text = text.replace('_', ' ');
+			showSpecialTable(title, text, "https://www.omim.org/entry/");
+		}
+	}
+	else
+	{
+		emit openRegionInIGV(cnvs[item->row()].toString());
+	}
 }
 
 void CnvWidget::addInfoLine(QString text)
@@ -88,6 +123,9 @@ void CnvWidget::loadCNVs(QString filename)
 	//load variants from file
 	cnvs.load(filename);
 
+	//set special columns
+	special_cols_ = QStringList() << "cn_pathogenic" << "dosage_sensitive_disease_genes" << "clinvar_cnvs" << "hgmd_cnvs" << "omim";
+
 	//show comments
 	foreach(QByteArray comment, cnvs.comments())
 	{
@@ -98,11 +136,16 @@ void CnvWidget::loadCNVs(QString filename)
 	QVector<int> annotation_indices;
 	for(int i=0; i<cnvs.annotationHeaders().count(); ++i)
 	{
-		QByteArray header = cnvs.annotationHeaders()[i];
+		QString header = cnvs.annotationHeaders()[i];
 		if (header=="size" || header=="region_count") continue;
 
 		ui->cnvs->setColumnCount(ui->cnvs->columnCount() + 1);
-		ui->cnvs->setHorizontalHeaderItem(ui->cnvs->columnCount() -1, new QTableWidgetItem(QString(header)));
+		QTableWidgetItem* item = new QTableWidgetItem(header);
+		if (special_cols_.contains(header))
+		{
+			item->setIcon(QIcon("://Icons/Table.png"));
+		}
+		ui->cnvs->setHorizontalHeaderItem(ui->cnvs->columnCount() -1, item);
 		annotation_indices.append(i);
 	}
 
@@ -124,7 +167,7 @@ void CnvWidget::loadCNVs(QString filename)
 			{
 				item->setText(item->text().replace("_", " "));
 			}
-			item->setToolTip(item->text());
+			item->setToolTip(item->text().replace("],","]\n"));
 			ui->cnvs->setItem(r, c++, item);
 		}
 	}
@@ -424,42 +467,114 @@ void CnvWidget::showContextMenu(QPoint p)
 
 	//create menu
 	QMenu menu;
+	menu.addAction(QIcon("://Icons/Decipher.png"), "Open in Decipher browser");
 	menu.addAction(QIcon("://Icons/DGV.png"), "Open in DGV");
-	menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC Genome Browser");
-
-	QAction* action = menu.addAction("Open OMIM entries");
-	int omim_index = cnvs.annotationHeaders().indexOf("omim");
-	QString omim_text = cnvs[row].annotations()[omim_index].trimmed();
-	action->setEnabled(!omim_text.isEmpty());
+	menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser");
 
 	//exec menu
-	action = menu.exec(ui->cnvs->viewport()->mapToGlobal(p));
+	QAction* action = menu.exec(ui->cnvs->viewport()->mapToGlobal(p));
 	if (action==nullptr) return;
 	QString text = action->text();
 
-	//DGV
+
 	if (text=="Open in DGV")
 	{
 		QDesktopServices::openUrl(QUrl("http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/?name=" + cnvs[row].toString()));
 	}
-
-	//UCSC
-	if (text=="Open in UCSC Genome Browser")
+	else if (text=="Open in UCSC browser")
 	{
 		QDesktopServices::openUrl(QUrl("http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=" + cnvs[row].toString()));
 	}
-
-	//OMIM
-	if (text=="Open OMIM entries")
+	else if (text=="Open in Decipher browser")
 	{
-		auto entries = VariantDetailsDockWidget::parseDB(omim_text, "],");
-		foreach(VariantDetailsDockWidget::DBEntry entry, entries)
-		{
-			QDesktopServices::openUrl(QUrl("http://omim.org/entry/" + entry.id));
-		}
+		QDesktopServices::openUrl(QUrl("https://decipher.sanger.ac.uk/browser#q/" + cnvs[row].toString()));
 	}
 }
 
+void CnvWidget::openLink(int row, int col)
+{
+	auto table = qobject_cast<QTableWidget*>(sender());
+	if (table==nullptr) return;
+	auto item = table->item(row, col);
+	if (item==nullptr) return;
+
+	QString url = item->data(Qt::UserRole).toString();
+	if (url.isEmpty()) return;
+
+	QDesktopServices::openUrl(QUrl(url));
+}
+
+void CnvWidget::showSpecialTable(QString col, QString text, QByteArray url_prefix)
+{
+	//determine headers
+	auto entries = VariantDetailsDockWidget::parseDB(text, ',');
+	QStringList headers;
+	headers << "ID";
+	foreach(const VariantDetailsDockWidget::DBEntry& entry, entries)
+	{
+		QList<KeyValuePair> parts = entry.splitByName();
+		foreach(const KeyValuePair& pair, parts)
+		{
+			if (!headers.contains(pair.key))
+			{
+				headers << pair.key;
+			}
+		}
+	}
+
+	//set up table widget
+	QTableWidget* table = new QTableWidget();
+	table->setRowCount(entries.count());
+	table->setColumnCount(headers.count());
+	for(int col=0; col<headers.count(); ++col)
+	{
+		auto item = new QTableWidgetItem(headers[col]);
+		if (col==0 && !url_prefix.isEmpty())
+		{
+			item->setIcon(QIcon(":/Icons/Link.png"));
+		}
+		table->setHorizontalHeaderItem(col, item);
+	}
+	if (!url_prefix.isEmpty())
+	{
+		connect(table, SIGNAL(cellDoubleClicked(int,int)), this, SLOT(openLink(int,int)));
+	}
+	table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	table->setAlternatingRowColors(true);
+	table->setWordWrap(false);
+	table->setSelectionMode(QAbstractItemView::SingleSelection);
+	table->setSelectionBehavior(QAbstractItemView::SelectItems);
+	table->verticalHeader()->setVisible(false);
+	int row = 0;
+	foreach(VariantDetailsDockWidget::DBEntry entry, entries)
+	{
+		QString id = entry.id.trimmed();
+		auto item = new QTableWidgetItem(id);
+		if (!url_prefix.isEmpty())
+		{
+			item->setData(Qt::UserRole, url_prefix + id);
+		}
+		table->setItem(row, 0, item);
+
+		QList<KeyValuePair> parts = entry.splitByName();
+		foreach(const KeyValuePair& pair, parts)
+		{
+			int col = headers.indexOf(pair.key);
+			table->setItem(row, col, new QTableWidgetItem(pair.value));
+		}
+
+		++row;
+	}
+
+	//show table
+	auto dlg = GUIHelper::createDialog(table, col);
+	dlg->setMinimumSize(1200, 800);
+	GUIHelper::resizeTableCells(table);
+	dlg->exec();
+
+	//delete
+	delete table;
+}
 void CnvWidget::updateStatus(int shown)
 {
 	QString text = QString::number(shown) + "/" + QString::number(cnvs.count()) + " passing filter(s)";

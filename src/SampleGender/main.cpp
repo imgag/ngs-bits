@@ -71,7 +71,7 @@ public:
 				stream << "#file\tgender";
 				foreach (auto info, estimate.add_info)
 				{
-					stream << "\t" << info.first;
+					stream << "\t" << info.key;
 				}
 				stream << endl;
 				print_header = false;
@@ -81,7 +81,7 @@ public:
 			stream  << QFileInfo(bam).fileName() << "\t" << estimate.gender;
 			foreach (auto info, estimate.add_info)
 			{
-				stream << "\t" << info.second;
+				stream << "\t" << info.value;
 			}
 			stream << endl;
 		}

@@ -91,7 +91,8 @@ HEADERS += BedFile.h \
     FilterCascade.h \
     VcfFile.h \
     TabixIndexedFile.h \
-    BedpeFile.h
+    BedpeFile.h \
+    KeyValuePair.h
 
 
 RESOURCES += \
