@@ -128,3 +128,52 @@ void CnvList::load(QString filename)
 		variants_.append(CopyNumberVariant(parts[i_chr], parts[i_start].toInt(), parts[i_end].toInt(), region_count, genes, annos));
 	}
 }
+
+int CnvList::annotationIndexByName(const QByteArray& name, bool throw_on_error) const
+{
+	QList<int> matches;
+	for(int i=0; i<annotation_headers_.count(); ++i)
+	{
+		if (annotation_headers_[i] == name )
+		{
+			matches.append(i);
+		}
+	}
+
+	//Error handling
+	if (matches.count()<1)
+	{
+		if (throw_on_error)
+		{
+			THROW(ArgumentException, "Could not find annotation column '" + name + "' in CNV list!");
+		}
+		else
+		{
+			return -1;
+		}
+	}
+
+	if (matches.count()>1)
+	{
+		if (throw_on_error)
+		{
+			THROW(ArgumentException, "Found multiple annotation columns for '" + name + "' in CNV list!");
+		}
+		else
+		{
+			return -2;
+		}
+	}
+
+	return matches.at(0);
+}
+
+long long CnvList::totalCnvSize()
+{
+	long long total_size = 0;
+	for(const CopyNumberVariant& variant : variants_)
+	{
+		total_size += variant.size();
+	}
+	return total_size;
+}

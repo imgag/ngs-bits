@@ -61,6 +61,12 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 			return annotations_;
 		}
 
+		///Retuns if a variant overlaps a genomic range.
+		bool overlapsWith(const Chromosome& chr, int start, int end) const
+		{
+			return chr == chr_ && ( (start_>=start && start_<=end) || (start>=start_ && start<=end_) );
+		}
+
 	protected:
 		Chromosome chr_;
 		int start_;
@@ -98,10 +104,19 @@ class CPPNGSSHARED_EXPORT CnvList
 			return annotation_headers_;
 		}
 
+		///Returns the index of an annotation. -1 is returned if not present and -2 if present multiple times.
+		int annotationIndexByName(const QByteArray& name, bool throw_on_error=false) const;
+
 		///Returns the number of variants
 		int count() const
 		{
 			return variants_.count();
+		}
+
+		///Returns if the list is empty
+		int isEmpty() const
+		{
+			return variants_.isEmpty();
 		}
 
 		///Returns a variant by index.
@@ -115,6 +130,17 @@ class CPPNGSSHARED_EXPORT CnvList
 		{
 			variants_.append(add);
 		}
+
+		///Copies meta data from 'rhs' object.
+		void copyMetaData(const CnvList& rhs)
+		{
+			type_ = rhs.type_;
+			comments_ = rhs.comments_;
+			annotation_headers_ = rhs.annotation_headers_;
+		}
+
+		///Returns the size sum of all all CNVs
+		long long totalCnvSize();
 
 	protected:
 		QByteArray type_;

@@ -126,7 +126,7 @@ void CnvWidget::loadCNVs(QString filename)
 	special_cols_ = QStringList() << "cn_pathogenic" << "dosage_sensitive_disease_genes" << "clinvar_cnvs" << "hgmd_cnvs" << "omim";
 
 	//show comments
-	foreach(QByteArray comment, cnvs.comments())
+	foreach(const QByteArray& comment, cnvs.comments())
 	{
 		addInfoLine(comment);
 	}
@@ -136,7 +136,7 @@ void CnvWidget::loadCNVs(QString filename)
 	for(int i=0; i<cnvs.annotationHeaders().count(); ++i)
 	{
 		QString header = cnvs.annotationHeaders()[i];
-		if (header=="size" || header=="region_count") continue;
+		if (header=="size" || header=="region_count") continue; //CnvHunter germline special handling
 
 		ui->cnvs->setColumnCount(ui->cnvs->columnCount() + 1);
 		QTableWidgetItem* item = new QTableWidgetItem(header);

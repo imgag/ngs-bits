@@ -22,6 +22,7 @@ NGSD:
 - NGSD annotation: export VCF, use VCF for annotation (also works on external servers)
 
 GSvar:
+****  subpanel design: use preferred transcript instead of all transcripts
 **** replace GeneInfoOMIM by new view
 ## Filter: enhancer/promotor - de-novo
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case

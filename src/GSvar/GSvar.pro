@@ -53,7 +53,6 @@ SOURCES += main.cpp\
     DiseaseInfoWidget.cpp \
     SequencingRunWidget.cpp \
     AnalysisStatusWidget.cpp \
-    ClinCnvWidget.cpp \
     VariantTable.cpp \
     RtfDocument.cpp \
     SampleSearchWidget.cpp \
@@ -108,7 +107,6 @@ HEADERS  += MainWindow.h \
     DiseaseInfoWidget.h \
     SequencingRunWidget.h \
     AnalysisStatusWidget.h \
-    ClinCnvWidget.h \
     VariantTable.h \
     RtfDocument.h \
     SampleSearchWidget.h \
@@ -157,7 +155,6 @@ FORMS    += MainWindow.ui \
     DiseaseInfoWidget.ui \
     SequencingRunWidget.ui \
     AnalysisStatusWidget.ui \
-    ClinCnvWidget.ui \
     SampleSearchWidget.ui \
     SampleRelationDialog.ui \
     ProcessedSampleSelector.ui \

@@ -50,7 +50,7 @@
       <string>Main filters</string>
      </property>
      <property name="flat">
-      <bool>true</bool>
+      <bool>false</bool>
      </property>
      <layout class="QFormLayout" name="formLayout">
       <property name="horizontalSpacing">
@@ -120,7 +120,7 @@
       <string>Target region filters</string>
      </property>
      <property name="flat">
-      <bool>true</bool>
+      <bool>false</bool>
      </property>
      <layout class="QGridLayout" name="gridLayout">
       <property name="leftMargin">
@@ -196,22 +196,43 @@
       </item>
       <item row="0" column="1">
        <widget class="QToolButton" name="roi_import">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Import from main variant list.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
          <string>...</string>
+        </property>
+        <property name="icon">
+         <iconset resource="GSvar.qrc">
+          <normaloff>:/Icons/Import.png</normaloff>:/Icons/Import.png</iconset>
         </property>
        </widget>
       </item>
       <item row="1" column="1">
        <widget class="QToolButton" name="region_import">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Import from main variant list.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
          <string>...</string>
+        </property>
+        <property name="icon">
+         <iconset resource="GSvar.qrc">
+          <normaloff>:/Icons/Import.png</normaloff>:/Icons/Import.png</iconset>
         </property>
        </widget>
       </item>
       <item row="2" column="1">
        <widget class="QToolButton" name="hpo_import">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Import from main variant list.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
          <string>...</string>
+        </property>
+        <property name="icon">
+         <iconset resource="GSvar.qrc">
+          <normaloff>:/Icons/Import.png</normaloff>:/Icons/Import.png</iconset>
         </property>
        </widget>
       </item>
@@ -224,7 +245,7 @@
       <string>Text filters</string>
      </property>
      <property name="flat">
-      <bool>true</bool>
+      <bool>false</bool>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
       <property name="leftMargin">
@@ -279,15 +300,29 @@
       </item>
       <item row="0" column="1">
        <widget class="QToolButton" name="gene_import">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Import from main variant list.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
          <string>...</string>
+        </property>
+        <property name="icon">
+         <iconset resource="GSvar.qrc">
+          <normaloff>:/Icons/Import.png</normaloff>:/Icons/Import.png</iconset>
         </property>
        </widget>
       </item>
       <item row="1" column="1">
        <widget class="QToolButton" name="text_import">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Import from main variant list.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
          <string>...</string>
+        </property>
+        <property name="icon">
+         <iconset resource="GSvar.qrc">
+          <normaloff>:/Icons/Import.png</normaloff>:/Icons/Import.png</iconset>
         </property>
        </widget>
       </item>
@@ -303,6 +338,8 @@
    <header>ClickableLineEdit.h</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="GSvar.qrc"/>
+ </resources>
  <connections/>
 </ui>

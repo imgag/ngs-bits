@@ -3,7 +3,6 @@
 
 #include "VariantList.h"
 #include "GeneSet.h"
-#include "ClinCnvList.h"
 #include "CnvList.h"
 #include "BedFile.h"
 #include "NGSD.h"
@@ -280,7 +279,7 @@ class SomaticReportHelper
 {
 public:
 	///Constructor loads data into class
-	SomaticReportHelper(QString snv_filename, const ClinCnvList& filtered_cnvs, const FilterCascade& filters, const QString& target_region="");
+	SomaticReportHelper(QString snv_filename, const CnvList& filtered_cnvs, const FilterCascade& filters, const QString& target_region="");
 	///write Rtf File
 	void writeRtf(const QByteArray& out_file);
 
@@ -306,7 +305,7 @@ private:
 	QMap<QByteArray, BedFile> gapStatistics(const BedFile& region_of_interest);
 
 	///Writes Rtf table containing most relevant SNVs and CNVs
-	RtfTable somaticAlterationTable(const VariantList& snvs, const ClinCnvList& cnvs, bool include_cnvs, const GeneSet& target_genes = GeneSet());
+	RtfTable somaticAlterationTable(const VariantList& snvs, const CnvList& cnvs, bool include_cnvs, const GeneSet& target_genes = GeneSet());
 
 	///generates table with CNVs
 	RtfTable createCnvTable();
@@ -324,10 +323,10 @@ private:
 	QList<QByteArray> parse_cgi_cancer_acronyms(QByteArray text);
 
 	///Returns CNV type, e.g. DEL (het) according copy number
-	QByteArray getCnvType(const ClinCnvVariant& cnv);
+	QByteArray getCnvType(const CopyNumberVariant& cnv);
 
 	///Returns maximum tumor clonailty in cnv file
-	double getCnvMaxTumorClonality(const ClinCnvList& cnvs);
+	double getCnvMaxTumorClonality(const CnvList& cnvs);
 
 	///SNV file
 	QString snv_filename_;
@@ -363,7 +362,7 @@ private:
 	VariantList snv_germline_;
 
 	///CNVList for input (filtered) variants
-	ClinCnvList cnvs_filtered_;
+	CnvList cnvs_filtered_;
 
 	///Somatic viruses (original file usually in tumor dir)
 	QList<somatic_virus> viruses_;
@@ -399,6 +398,7 @@ private:
 	int snv_index_cgi_gene_;
 
 	///indices for somatic CNV file
+	int cnv_index_cn_change_;
 	int cnv_index_cgi_gene_role_;
 	int cnv_index_cnv_type_;
 	int cnv_index_cgi_genes_;

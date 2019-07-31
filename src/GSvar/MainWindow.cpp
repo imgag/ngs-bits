@@ -47,7 +47,7 @@
 #include "IgvDialog.h"
 #include "GapDialog.h"
 #include "CnvWidget.h"
-#include "ClinCnvWidget.h"
+#include "CnvList.h"
 #include "RohWidget.h"
 #include "GeneSelectorDialog.h"
 #include "NGSHelper.h"
@@ -64,7 +64,6 @@
 #include "SvWidget.h"
 #include "VariantSampleOverviewDialog.h"
 #include "SomaticReportConfiguration.h"
-#include "ClinCnvList.h"
 #include "SingleSampleAnalysisDialog.h"
 #include "MultiSampleDialog.h"
 #include "TrioDialog.h"
@@ -257,20 +256,10 @@ void MainWindow::on_actionCNV_triggered()
 		QMessageBox::information(this, "Invalid variant list", "Column for genes or genotypes not found in variant list. Cannot apply compound-heterozygous filter based on variants!");
 	}
 
-	if(Helper::findFiles(QFileInfo(filename_).absolutePath(), "*_clincnv.tsv", false).count() > 0)
-	{
-		ClinCnvWidget* list = new ClinCnvWidget(filename_, ui_.filters, het_hit_genes);
-		connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
-		auto dlg = GUIHelper::createDialog(list, "ClinCNV copy-number variants");
-		addModelessDialog(dlg);
-	}
-	else
-	{
-		CnvWidget* list = new CnvWidget(filename_, ui_.filters, het_hit_genes);
-		connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
-		auto dlg = GUIHelper::createDialog(list, "Copy number variants");
-		addModelessDialog(dlg, true);
-	}
+	CnvWidget* list = new CnvWidget(filename_, ui_.filters, het_hit_genes);
+	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
+	auto dlg = GUIHelper::createDialog(list, "Copy number variants");
+	addModelessDialog(dlg, true);
 }
 
 void MainWindow::on_actionROH_triggered()
@@ -1504,7 +1493,7 @@ void MainWindow::generateReportSomaticRTF()
 	}
 
 	//load CNVs
-	ClinCnvList cnvs;
+	CnvList cnvs;
 	try
 	{
 		QString filename_cnv = QFileInfo(filename_).filePath().split('.')[0] + "_clincnv.tsv";
