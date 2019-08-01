@@ -4,10 +4,8 @@
 #include <QWidget>
 #include <QTableWidgetItem>
 #include "CnvList.h"
-#include "BedFile.h"
 #include "GeneSet.h"
 #include "FilterDockWidget.h"
-#include "VariantList.h"
 
 namespace Ui {
 class CnvWidget;

@@ -59,7 +59,8 @@ SOURCES += main.cpp\
     SomaticReportHelper.cpp \
     SampleRelationDialog.cpp \
     ProcessedSampleSelector.cpp \
-    FilterWidgetCNV.cpp
+    FilterWidgetCNV.cpp \
+    FilterCascadeWidget.cpp
 
 HEADERS  += MainWindow.h \
     FilterDockWidget.h \
@@ -113,7 +114,8 @@ HEADERS  += MainWindow.h \
     SomaticReportHelper.h \
     SampleRelationDialog.h \
     ProcessedSampleSelector.h \
-    FilterWidgetCNV.h
+    FilterWidgetCNV.h \
+    FilterCascadeWidget.h
 
 FORMS    += MainWindow.ui \
     FilterDockWidget.ui \
@@ -158,7 +160,8 @@ FORMS    += MainWindow.ui \
     SampleSearchWidget.ui \
     SampleRelationDialog.ui \
     ProcessedSampleSelector.ui \
-    FilterWidgetCNV.ui
+    FilterWidgetCNV.ui \
+    FilterCascadeWidget.ui
 
 include("../app_gui.pri")
 

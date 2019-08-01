@@ -54,9 +54,6 @@ public:
 	/// Loads filter target regions (Processing systems from NGSD, Sub-panels from file system and additional target regions from INI file)
 	void loadTargetRegions();
 
-	/// Returns the row index of the currently selected filter, or -1 if none is selected;
-	int currentFilterIndex() const;
-
 signals:
 	/// Signal that is emitted when a filter changes (filter cascade, gene, text, region, phenotype)
 	void filtersChanged();
@@ -76,34 +73,20 @@ protected slots:
 	void textChanged();
 	void regionChanged();
 	void phenotypesChanged();
-	void onFilterCascadeChange(bool update_name);
+	void updateFilterName();
 	void showTargetRegionDetails();
 	void updateGeneWarning();
 	void editPhenotypes();
 	void showPhenotypeContextMenu(QPoint pos);
-	void updateGUI();
-	void filterSelectionChanged();
-
-	void addFilter();
-	void editSelectedFilter();
-	void deleteSelectedFilter();
-	void moveUpSelectedFilter();
-	void moveDownSelectedFilter();
-	void toggleSelectedFilter(QListWidgetItem* item);
 
 private:
 
 	//Resets the filters without blocking signals.
 	void resetSignalsUnblocked(bool clear_roi);
 
-	//Sets the focus to the given indes (and handles border cases)
-	void focusFilter(int index);
-
 	Ui::FilterDockWidget ui_;
 	GeneSet last_genes_;
-	FilterCascade filters_;
 	QList<Phenotype> phenotypes_;
-	QStringList valid_filter_entries_;
 };
 
 #endif // FILTERDOCKWIDGET_H

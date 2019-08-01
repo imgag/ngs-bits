@@ -26,7 +26,7 @@ public:
 	/// Returns the used filters
 	const FilterCascade& filters() const;
 	/// Applies a filter set
-	void setFilters(const QString& name, const FilterCascade& filter);
+	void setFilters(const QString& name, const FilterCascade& filters);
 	/// Visually marks filters that failed.
 	void markFailedFilters();
 
@@ -49,9 +49,6 @@ public:
 	///Sets selected phenotype terms.
 	void setPhenotypes(const QList<Phenotype>& phenotypes);
 
-	/// Returns the row index of the currently selected filter, or -1 if none is selected;
-	int currentFilterIndex() const;
-
 signals:
 	/// Signal that is emitted when a filter changes (filter cascade, gene, text, region, phenotype)
 	void filtersChanged();
@@ -71,31 +68,17 @@ protected slots:
 	void importRegion();
 	void importGene();
 	void importText();
-	void filterSelectionChanged();
-	void updateGUI();
-	void onFilterCascadeChange(bool update_name);
-
-	void addFilter();
-	void editSelectedFilter();
-	void deleteSelectedFilter();
-	void moveUpSelectedFilter();
-	void moveDownSelectedFilter();
-	void toggleSelectedFilter(QListWidgetItem* item);
+	void updateFilterName();
 
 private:
 	/// Loads filter target regions (Processing systems from NGSD, Sub-panels from file system and additional target regions from INI file)
 	void loadTargetRegions();
 
-	//Sets the focus to the given indes (and handles border cases)
-	void focusFilter(int index);
-
 	//Resets the filters without blocking signals.
 	void resetSignalsUnblocked(bool clear_roi);
 
-
 	Ui::FilterWidgetCNV ui_;
 	GeneSet last_genes_;
-	FilterCascade filters_;
 	QList<Phenotype> phenotypes_;
 	FilterDockWidget* filter_widget_;
 };

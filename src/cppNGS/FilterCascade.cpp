@@ -2232,7 +2232,7 @@ FilterCnvSize::FilterCnvSize()
 
 QString FilterCnvSize::toText() const
 {
-	return name() + " size&ge;" + QString::number(getDouble("size", false), 'f', 3) + " kB";
+	return name() + " size&ge;" + QString::number(getDouble("size", false), 'f', 2) + " kB";
 }
 
 void FilterCnvSize::apply(const CnvList& cnvs, FilterResult& result) const
