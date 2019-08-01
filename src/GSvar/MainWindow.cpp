@@ -256,6 +256,7 @@ void MainWindow::on_actionCNV_triggered()
 		QMessageBox::information(this, "Invalid variant list", "Column for genes or genotypes not found in variant list. Cannot apply compound-heterozygous filter based on variants!");
 	}
 
+	//open CNV window
 	CnvWidget* list = new CnvWidget(filename_, ui_.filters, het_hit_genes);
 	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
 	auto dlg = GUIHelper::createDialog(list, "Copy number variants");

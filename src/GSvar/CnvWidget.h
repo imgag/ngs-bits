@@ -20,7 +20,7 @@ class CnvWidget
 	Q_OBJECT
 
 public:
-	CnvWidget(QString ps_filename, FilterDockWidget* filter_widget, const GeneSet& het_hit_genes, QWidget *parent = 0);
+	CnvWidget(QString gsvar_file, FilterDockWidget* filter_widget, const GeneSet& het_hit_genes, QWidget *parent = 0);
 	~CnvWidget();
 
 signals:
@@ -28,7 +28,7 @@ signals:
 
 private slots:
 	void cnvDoubleClicked(QTableWidgetItem* item);
-	void applyFilters();
+	void applyFilters(bool debug_time=false);
 	void copyToClipboard();
 	void showContextMenu(QPoint p);
 	void openLink(int row, int col);
@@ -53,8 +53,12 @@ private:
 
 /*
 TODO:
-- Special filters: z-score, CN, Max freq, comp-het
+- Special filters:
+	- CnvHunter: min z-score, CN:0,1,2,3,4+, max AF, comp-het
+	- ClinCNV: min ll>=20, max q-value, CN:0,1,2,3,4+ , max AF, comp-het
 - Add settings for UCSC (see paper)
 - Add default filters based on CNV list type
-- Test all types: CnvHunter somatic, CnvHunter multi, ClinVar germline, ClinVar somatic, ClinVar multi
+- Test all types:
+	- CnvHunter: somatic (single), germline (panels)
+	- ClinCMV: germline (exome/genome), somatic (pair), multi
 */

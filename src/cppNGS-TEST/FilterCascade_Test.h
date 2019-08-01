@@ -800,4 +800,25 @@ private slots:
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 2);
 	}
+
+	void FilterFactory_filterNames()
+	{
+		//all
+		QStringList names = FilterFactory::filterNames();
+		IS_TRUE(names.contains("Allele frequency"));
+		IS_TRUE(names.contains("CNV size"));
+		int count_all = names.count();
+
+		//small variants
+		names = FilterFactory::filterNames(FilterSubject::SNVS_INDELS);
+		IS_TRUE(names.contains("Allele frequency"));
+		IS_FALSE(names.contains("CNV size"));
+		IS_TRUE(names.count()<count_all);
+
+		//CNVs
+		names = FilterFactory::filterNames(FilterSubject::CNVS);
+		IS_FALSE(names.contains("Allele frequency"));
+		IS_TRUE(names.contains("CNV size"));
+		IS_TRUE(names.count()<count_all);
+	}
 };

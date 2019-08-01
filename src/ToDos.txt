@@ -22,6 +22,9 @@ NGSD:
 - NGSD annotation: export VCF, use VCF for annotation (also works on external servers)
 
 GSvar:
+**** benchmark/speedup of HPO filter (also several filter changes)
+**** Split tools/NGSD menu > disable NGSD menu when NGSD is not enabled.
+**** NGSD disabled: disable NGSD tab search
 ****  subpanel design: use preferred transcript instead of all transcripts
 **** replace GeneInfoOMIM by new view
 ## Filter: enhancer/promotor - de-novo

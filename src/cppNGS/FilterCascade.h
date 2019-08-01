@@ -2,6 +2,7 @@
 #define FILTERCASCADE_H
 
 #include "VariantList.h"
+#include "CnvList.h"
 
 #include <QVariant>
 #include <QString>
@@ -19,6 +20,13 @@ enum FilterParameterType
 	BOOL,
 	STRING,
 	STRINGLIST
+};
+
+//Filter subject
+enum class FilterSubject
+{
+	SNVS_INDELS, //Small variants (SNVs and InDels)
+	CNVS //CNVs
 };
 
 //Parameter
@@ -106,6 +114,11 @@ class CPPNGSSHARED_EXPORT FilterBase
 		{
 			return name_;
 		}
+		//Returns the filter subject.
+		FilterSubject type() const
+		{
+			return type_;
+		}
 		//Returns the filter description (and optionally the parameter description).
 		QStringList description(bool add_parameter_description = false) const;
 
@@ -145,12 +158,15 @@ class CPPNGSSHARED_EXPORT FilterBase
 		//Returns a text representation of the filter
 		virtual QString toText() const = 0;
 
-		//Applies the filter to a variant list
-		virtual void apply(const VariantList& variant_list, FilterResult& result) const = 0;
+		//Applies the filter to a small variant list
+		virtual void apply(const VariantList& variant_list, FilterResult& result) const;
+		//Applies the filter to a CNV list
+		virtual void apply(const CnvList& variant_list, FilterResult& result) const;
 
 	protected:
 		FilterBase(const FilterBase& rhs) = delete;
 		QString name_;
+		FilterSubject type_;
 		QStringList description_;
 		QList<FilterParameter> params_;
 		bool enabled_;
@@ -210,7 +226,6 @@ class CPPNGSSHARED_EXPORT FilterCascade
 			return filters_[index];
 		}
 
-
 		//Read-write access to a filter
 		QSharedPointer<FilterBase> operator[](int index)
 		{
@@ -230,8 +245,11 @@ class CPPNGSSHARED_EXPORT FilterCascade
 		//Move filter one position to the back.
 		void moveDown(int index);
 
-		//Applies the filter cascade.
+		//Applies the filter cascade to a small variant list.
 		FilterResult apply(const VariantList& variants, bool throw_errors = true, bool debug_time = false) const;
+
+		//Applies the filter cascade to a CNV list.
+		FilterResult apply(const CnvList& cnvs, bool throw_errors = true, bool debug_time = false) const;
 
 		//Returns errors occured during filter application.
 		QStringList errors(int index) const;
@@ -262,9 +280,12 @@ class CPPNGSSHARED_EXPORT FilterFactory
 		//Returns a complete list of supported filter names
 		static QStringList filterNames();
 
+		//Returns a complete list of supported filter names for a given subject
+		static QStringList filterNames(FilterSubject subject);
+
 	private:
 		FilterFactory() = delete;
-		static QMap<QString, FilterBase*(*)()> getRegistry();
+		static const QMap<QString, FilterBase*(*)()>& getRegistry();
 };
 
 //Allele-frequency filter
@@ -555,6 +576,27 @@ class CPPNGSSHARED_EXPORT FilterRegulatory
 		FilterRegulatory();
 		QString toText() const override;
 		void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
+
+//Filter CNV size
+class CPPNGSSHARED_EXPORT FilterCnvSize
+	: public FilterBase
+{
+	public:
+		FilterCnvSize();
+		QString toText() const override;
+		void apply(const CnvList& cnvs, FilterResult& result) const override;
+};
+
+//Filter CNV regions
+class CPPNGSSHARED_EXPORT FilterCnvRegions
+	: public FilterBase
+{
+	public:
+		FilterCnvRegions();
+		QString toText() const override;
+		void apply(const CnvList& cnvs, FilterResult& result) const override;
 };
 
 

@@ -6,6 +6,7 @@
 #include "VariantDetailsDockWidget.h"
 #include "NGSD.h"
 #include "Settings.h"
+#include "Log.h"
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QBitArray>
@@ -13,8 +14,9 @@
 #include <QMenu>
 #include <QDesktopServices>
 #include <QUrl>
+#include <QDir>
 
-CnvWidget::CnvWidget(QString ps_filename, FilterDockWidget* filter_widget, const GeneSet& het_hit_genes, QWidget *parent)
+CnvWidget::CnvWidget(QString gsvar_file, FilterDockWidget* filter_widget, const GeneSet& het_hit_genes, QWidget *parent)
 	: QWidget(parent)
 	, ui(new Ui::CnvWidget)
 	, cnvs()
@@ -31,29 +33,21 @@ CnvWidget::CnvWidget(QString ps_filename, FilterDockWidget* filter_widget, const
 	ui->filter_widget->setVariantFilterWidget(filter_widget);
 
 	//load CNV data file
-	QString path = QFileInfo(ps_filename).absolutePath();
-	QStringList cnv_files = Helper::findFiles(path, "*_cnvs.tsv", false);
-	if (cnv_files.count()==0)
+	QFileInfo file_info(gsvar_file);
+	QString base = file_info.absolutePath() + QDir::separator() + file_info.baseName();
+	QString cnv_file = base + "_cnvs_clincnv.tsv";
+	if (!QFile::exists(cnv_file)) //fallback to CnvHunter
 	{
-		addInfoLine("<font color='red'>No CNV data file found in directory " + path + "</font>");
-		disableGUI();
+		cnv_file = base + "_cnvs.tsv";
 	}
-	else if (cnv_files.count()>1)
+	try
 	{
-		addInfoLine("<font color='red'>Two or more CNV data files found in directory " + path + "</font>");
-		disableGUI();
+		loadCNVs(cnv_file);
 	}
-	else
+	catch(Exception e)
 	{
-		try
-		{
-			loadCNVs(cnv_files[0]);
-		}
-		catch(Exception e)
-		{
-			addInfoLine("<font color='red'>Error parsing file:\n" + e.message() + "</font>");
-			disableGUI();
-		}
+		addInfoLine("<font color='red'>Error parsing file:\n" + e.message() + "</font>");
+		disableGUI();
 	}
 
 	//apply filters
@@ -143,6 +137,7 @@ void CnvWidget::loadCNVs(QString filename)
 		if (special_cols_.contains(header))
 		{
 			item->setIcon(QIcon("://Icons/Table.png"));
+			item->setToolTip("Double click table cell to open summary table");
 		}
 		ui->cnvs->setHorizontalHeaderItem(ui->cnvs->columnCount() -1, item);
 		annotation_indices.append(i);
@@ -175,12 +170,7 @@ void CnvWidget::loadCNVs(QString filename)
 	GUIHelper::resizeTableCells(ui->cnvs, 200);
 }
 
-void CnvWidget::applyFilters()
-{
-	//init
-	QBitArray pass;
-	const int rows = cnvs.count();
-	pass.fill(true, rows);
+/*TODO
 
 	//filter by regions
 	const int f_regs = ui->filter_widget->minRegs();
@@ -204,7 +194,6 @@ void CnvWidget::applyFilters()
 		}
 	}
 
-/*TODO
 	//filter by copy-number
 	QString f_cn = ui->f_cn->currentText();
 	if (f_cn!="n/a")
@@ -332,125 +321,154 @@ void CnvWidget::applyFilters()
 	}
 */
 
-	//filter by genes
-	GeneSet genes = ui->filter_widget->genes();
-	if (!genes.isEmpty())
-	{
-		QByteArray genes_joined = genes.join('|');
+void CnvWidget::applyFilters(bool debug_time)
+{
+	const int rows = cnvs.count();
+	FilterResult filter_result(rows);
 
-		if (genes_joined.contains("*")) //with wildcards
+	try
+	{
+		//apply main filter
+		QTime timer;
+		timer.start();
+
+		const FilterCascade& filter_cascade = ui->filter_widget->filters();
+		filter_result = filter_cascade.apply(cnvs, false, debug_time);
+		ui->filter_widget->markFailedFilters();
+
+		if (debug_time)
 		{
-			QRegExp reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
+			Log::perf("Applying annotation filters took ", timer);
+			timer.start();
+		}
+
+		//filter by genes
+		GeneSet genes = ui->filter_widget->genes();
+		if (!genes.isEmpty())
+		{
+			QByteArray genes_joined = genes.join('|');
+
+			if (genes_joined.contains("*")) //with wildcards
+			{
+				QRegExp reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
+				for(int r=0; r<rows; ++r)
+				{
+					if (!filter_result.flags()[r]) continue;
+
+					bool match_found = false;
+					foreach(const QByteArray& cnv_gene, cnvs[r].genes())
+					{
+						if (reg.exactMatch(cnv_gene))
+						{
+							match_found = true;
+							break;
+						}
+					}
+					filter_result.flags()[r] = match_found;
+				}
+			}
+			else //without wildcards
+			{
+				for(int r=0; r<rows; ++r)
+				{
+					if (!filter_result.flags()[r]) continue;
+
+					filter_result.flags()[r] = cnvs[r].genes().intersectsWith(genes);
+				}
+			}
+		}
+
+		//filter by ROI
+		QString roi_file = ui->filter_widget->targetRegion();
+		if (roi_file!="")
+		{
+			BedFile roi;
+			roi.load(roi_file);
 			for(int r=0; r<rows; ++r)
 			{
-				if (!pass[r]) continue;
+				if (!filter_result.flags()[r]) continue;
 
-				bool match_found = false;
-				foreach(const QByteArray& cnv_gene, cnvs[r].genes())
+				filter_result.flags()[r] = roi.overlapsWith(cnvs[r].chr(), cnvs[r].start(), cnvs[r].end());
+			}
+		}
+
+		//filter by region
+		QString region_text = ui->filter_widget->region();
+		BedLine region = BedLine::fromString(region_text);
+		if (!region.isValid()) //check if valid chr
+		{
+			Chromosome chr(region_text);
+			if (chr.isNonSpecial())
+			{
+				region.setChr(chr);
+				region.setStart(1);
+				region.setEnd(999999999);
+			}
+		}
+		if (region.isValid()) //valid region (chr,start, end or only chr)
+		{
+			for(int r=0; r<rows; ++r)
+			{
+				if (!filter_result.flags()[r]) continue;
+
+				filter_result.flags()[r] = region.overlapsWith(cnvs[r].chr(), cnvs[r].start(), cnvs[r].end());
+			}
+		}
+
+		//filter by phenotype (via genes, not genomic regions)
+		QList<Phenotype> phenotypes = ui->filter_widget->phenotypes();
+		if (!phenotypes.isEmpty())
+		{
+			NGSD db;
+			GeneSet pheno_genes;
+			foreach(const Phenotype& pheno, phenotypes)
+			{
+				pheno_genes << db.phenotypeToGenes(pheno, true);
+			}
+
+			for(int r=0; r<rows; ++r)
+			{
+				if (!filter_result.flags()[r]) continue;
+
+				filter_result.flags()[r] = cnvs[r].genes().intersectsWith(pheno_genes);
+			}
+		}
+
+		//filter annotations by text
+		QByteArray text = ui->filter_widget->text().trimmed().toLower();
+		if (text!="")
+		{
+			for(int r=0; r<rows; ++r)
+			{
+				if (!filter_result.flags()[r]) continue;
+
+				bool match = false;
+				foreach(const QByteArray& anno, cnvs[r].annotations())
 				{
-					if (reg.exactMatch(cnv_gene))
+					if (anno.toLower().contains(text))
 					{
-						match_found = true;
+						match = true;
 						break;
 					}
 				}
-				pass[r] = match_found;
+				filter_result.flags()[r] = match;
 			}
 		}
-		else //without wildcards
-		{
-			for(int r=0; r<rows; ++r)
-			{
-				if (!pass[r]) continue;
 
-				pass[r] = cnvs[r].genes().intersectsWith(genes);
-			}
-		}
 	}
-
-	//filter by ROI
-	QString roi_file = ui->filter_widget->targetRegion();
-	if (roi_file!="")
+	catch(Exception& e)
 	{
-		BedFile roi;
-		roi.load(roi_file);
-		for(int r=0; r<rows; ++r)
-		{
-			if (!pass[r]) continue;
+		QMessageBox::warning(this, "Filtering error", e.message() + "\nA possible reason for this error is an outdated variant list.\nTry re-annotating the NGSD columns.\n If re-annotation does not help, please re-analyze the sample (starting from annotation) in the sample information dialog!");
 
-			pass[r] = roi.overlapsWith(cnvs[r].chr(), cnvs[r].start(), cnvs[r].end());
-		}
-	}
-
-	//filter by region
-	QString region_text = ui->filter_widget->region();
-	BedLine region = BedLine::fromString(region_text);
-	if (!region.isValid()) //check if valid chr
-	{
-		Chromosome chr(region_text);
-		if (chr.isNonSpecial())
-		{
-			region.setChr(chr);
-			region.setStart(1);
-			region.setEnd(999999999);
-		}
-	}
-	if (region.isValid()) //valid region (chr,start, end or only chr)
-	{
-		for(int r=0; r<rows; ++r)
-		{
-			if (!pass[r]) continue;
-
-			pass[r] = region.overlapsWith(cnvs[r].chr(), cnvs[r].start(), cnvs[r].end());
-		}
-	}
-
-	//filter by phenotype (via genes, not genomic regions)
-	QList<Phenotype> phenotypes = ui->filter_widget->phenotypes();
-	if (!phenotypes.isEmpty())
-	{
-		NGSD db;
-		GeneSet pheno_genes;
-		foreach(const Phenotype& pheno, phenotypes)
-		{
-			pheno_genes << db.phenotypeToGenes(pheno, true);
-		}
-
-		for(int r=0; r<rows; ++r)
-		{
-			if (!pass[r]) continue;
-
-			pass[r] = cnvs[r].genes().intersectsWith(pheno_genes);
-		}
-	}
-
-	//filter annotations by text
-	QByteArray text = ui->filter_widget->text().trimmed().toLower();
-	if (text!="")
-	{
-		for(int r=0; r<rows; ++r)
-		{
-			if (!pass[r]) continue;
-
-			bool match = false;
-			foreach(const QByteArray& anno, cnvs[r].annotations())
-			{
-				if (anno.toLower().contains(text))
-				{
-					match = true;
-					break;
-				}
-			}
-			pass[r] = match;
-		}
+		filter_result = FilterResult(cnvs.count(), false);
 	}
 
 	//update GUI
 	for(int r=0; r<rows; ++r)
 	{
-		ui->cnvs->setRowHidden(r, !pass[r]);
+		ui->cnvs->setRowHidden(r, !filter_result.flags()[r]);
 	}
-	updateStatus(pass.count(true));
+	updateStatus(filter_result.countPassing());
 }
 
 void CnvWidget::copyToClipboard()
@@ -531,6 +549,7 @@ void CnvWidget::showSpecialTable(QString col, QString text, QByteArray url_prefi
 		if (col==0 && !url_prefix.isEmpty())
 		{
 			item->setIcon(QIcon(":/Icons/Link.png"));
+			item->setToolTip("Double click cell to open external link for the entry");
 		}
 		table->setHorizontalHeaderItem(col, item);
 	}

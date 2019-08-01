@@ -427,8 +427,7 @@ void FilterDockWidget::onFilterCascadeChange(bool update_name)
 			ui_.filter_name->setText(name + " [modified]");
 		}
 	}
-	
-	emit filterCascadeChanged();
+
 	emit filtersChanged();
 }
 
@@ -586,7 +585,7 @@ void FilterDockWidget::addFilter()
 {
 	//show filter menu
 	QMenu menu;
-	foreach(QString filter_name, FilterFactory::filterNames())
+	foreach(QString filter_name, FilterFactory::filterNames(FilterSubject::SNVS_INDELS))
 	{
 		menu.addAction(filter_name);
 	}

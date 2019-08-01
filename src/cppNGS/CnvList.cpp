@@ -25,7 +25,7 @@ CopyNumberVariant::CopyNumberVariant(const Chromosome& chr, int start, int end, 
 }
 
 CnvList::CnvList()
-	: type_()
+	: type_(INVALID)
 	, comments_()
 	, annotation_headers_()
 	, variants_()
@@ -34,7 +34,7 @@ CnvList::CnvList()
 
 void CnvList::clear()
 {
-	type_.clear();
+	type_ =  INVALID;
 	comments_.clear();
 	variants_.clear();
 	annotation_headers_.clear();
@@ -52,16 +52,19 @@ void CnvList::load(QString filename)
 	{
 		if (line.startsWith(type_prefix))
 		{
-			type_ = line.mid(type_prefix.length()).trimmed();
+			QString type = line.mid(type_prefix.length()).trimmed();
+			if (type=="CNVHUNTER_GERMLINE_SINGLE") type_ = CNVHUNTER_GERMLINE_SINGLE;
+			else if (type=="CLINCNV_GERMLINE_SINGLE") type_ = CLINCNV_GERMLINE_SINGLE;
+			else THROW(FileParseException, "CNV file '" + filename + "' contains unknown analysis type: " + type);
 		}
 		else
 		{
 			comments_ << line;
 		}
 	}
-	if (type().isEmpty())
+	if (type()==INVALID)
 	{
-		THROW(FileParseException, "CNV file '" + filename + "' does not contain an ##ANALYSISTYPE header line. It is probably outdated, please re-run CNV calling!");
+		THROW(FileParseException, "CNV file '" + filename + "' is outdated. It does not contain an ##ANALYSISTYPE header line. Please re-run CNV calling!");
 	}
 
 	//handle column indices
@@ -74,16 +77,32 @@ void CnvList::load(QString filename)
 	annotation_indices.removeAll(i_end);
 	int i_genes = file.colIndex("genes", false);
 	annotation_indices.removeAll(i_genes);
-	int i_region_count = file.colIndex("region_count", false);
-	annotation_indices.removeAll(i_region_count);
+	int i_region_count = -1;
 
-	if (type()=="CNVHUNTER_GERMLINE_SINGLE")
+	if (type()==CNVHUNTER_GERMLINE_SINGLE)
 	{
+		//mandatory columns
+		i_region_count = file.colIndex("region_count", false);
+		annotation_indices.removeAll(i_region_count);
+		//remove columns
 		int i_sample = file.colIndex("sample", true);
 		annotation_indices.removeAll(i_sample);
 		int i_size = file.colIndex("size", true);
 		annotation_indices.removeAll(i_size);
 	}
+	else if (type()==CLINCNV_GERMLINE_SINGLE)
+	{
+		//mandatory columns
+		i_region_count = file.colIndex("no_of_regions", false);
+		annotation_indices.removeAll(i_region_count);
+		//remove
+		int i_size = file.colIndex("length_KB", true);
+		annotation_indices.removeAll(i_size);
+	}
+
+	//check mandatory columns were found
+	if (i_region_count==-1) THROW(FileParseException, "No column with region/exon count found!");
+	if (i_genes==-1) THROW(FileParseException, "No column with genes found!");
 
 	//parse annotation headers
 	foreach(int index, annotation_indices)
@@ -97,26 +116,10 @@ void CnvList::load(QString filename)
 		QByteArrayList parts = file.readLine();
 
 		//regions
-		int region_count = -1;
-		if (i_region_count!=-1)
-		{
-			region_count = parts[i_region_count].toInt();
-		}
-		else
-		{
-			THROW(FileParseException, "No column with region/exon count found!");
-		}
+		int region_count = parts[i_region_count].toInt();
 
 		//genes
-		GeneSet genes;
-		if (i_genes!=-1)
-		{
-			genes << GeneSet::createFromText(parts[i_genes], ',');
-		}
-		else
-		{
-			THROW(FileParseException, "No column with genes found!");
-		}
+		GeneSet genes = GeneSet::createFromText(parts[i_genes], ',');
 
 		//parse annotation headers
 		QByteArrayList annos;

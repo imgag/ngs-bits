@@ -106,6 +106,7 @@ void FilterResult::tagNonPassing(VariantList& variants, QByteArray tag, QByteArr
 
 FilterBase::FilterBase()
 	: name_()
+	, type_(FilterSubject::SNVS_INDELS)
 	, description_()
 	, params_()
 	, enabled_(true)
@@ -225,6 +226,16 @@ void FilterBase::setStringList(const QString& name, const QStringList& value)
 void FilterBase::overrideConstraint(const QString& parameter_name, const QString& constraint_name, const QString& constraint_value)
 {
 	parameter(parameter_name).constraints[constraint_name] = constraint_value;
+}
+
+void FilterBase::apply(const VariantList& /*variant_list*/, FilterResult& /*result*/) const
+{
+	THROW(ProgrammingException, "Method apply on VariantList not implemented for filter '" + name() + "'!");
+}
+
+void FilterBase::apply(const CnvList& /*variant_list*/, FilterResult& /*result*/) const
+{
+	THROW(ProgrammingException, "Method apply on CnvList not implemented for filter '" + name() + "'!");
 }
 
 void FilterBase::setInteger(const QString& name, int value)
@@ -444,13 +455,64 @@ FilterResult FilterCascade::apply(const VariantList& variants, bool throw_errors
 
 	for(int i=0; i<filters_.count(); ++i)
 	{
+		QSharedPointer<FilterBase> filter = filters_[i];
 		try
 		{
-			filters_[i]->apply(variants, result);
+			//check type
+			if (filter->type()!=FilterSubject::SNVS_INDELS) THROW(ArgumentException, "Filter '" + filter->name() + "' cannot be applied to small variants!");
+
+			//apply
+			filter->apply(variants, result);
 
 			if (debug_time)
 			{
-				Log::perf("FilterCascade: Filter " + filters_[i]->name() + " took ", timer);
+				Log::perf("FilterCascade: Filter " + filter->name() + " took ", timer);
+				timer.start();
+			}
+		}
+		catch(const Exception& e)
+		{
+			errors_[i].append(e.message());
+			if (throw_errors)
+			{
+				throw e;
+			}
+		}
+	}
+
+	return result;
+}
+
+FilterResult FilterCascade::apply(const CnvList& cnvs, bool throw_errors, bool debug_time) const
+{
+	QTime timer;
+	timer.start();
+
+	FilterResult result(cnvs.count());
+
+	//reset errors
+	errors_.fill(QStringList(), filters_.count());
+
+	if (debug_time)
+	{
+		Log::perf("FilterCascade: Initializing took ", timer);
+		timer.start();
+	}
+
+	for(int i=0; i<filters_.count(); ++i)
+	{
+		QSharedPointer<FilterBase> filter = filters_[i];
+		try
+		{
+			//check type
+			if (filter->type()!=FilterSubject::CNVS) THROW(ArgumentException, "Filter '" + filter->name() + "' cannot be applied to CNVs!");
+
+			//apply
+			filter->apply(cnvs, result);
+
+			if (debug_time)
+			{
+				Log::perf("FilterCascade: Filter " + filter->name() + " took ", timer);
 				timer.start();
 			}
 		}
@@ -507,9 +569,26 @@ QStringList FilterFactory::filterNames()
 	return getRegistry().keys();
 }
 
+QStringList FilterFactory::filterNames(FilterSubject subject)
+{
+	const auto& registry = getRegistry();
+	QStringList names = registry.keys();
+
+	foreach(const QString& name, names)
+	{
+		QSharedPointer<FilterBase> filter = QSharedPointer<FilterBase>(registry[name]());
+		if (filter->type()!=subject)
+		{
+			names.removeAll(name);
+		}
+	}
+
+	return names;
+}
+
 template<typename T> FilterBase* createInstance() { return new T; }
 
-QMap<QString, FilterBase*(*)()> FilterFactory::getRegistry()
+const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 {
 	static QMap<QString, FilterBase*(*)()> output;
 
@@ -538,12 +617,14 @@ QMap<QString, FilterBase*(*)()> FilterFactory::getRegistry()
 		output["OMIM genes"] = &createInstance<FilterOMIM>;
 		output["Conservedness"] = &createInstance<FilterConservedness>;
 		output["Regulatory"] = &createInstance<FilterRegulatory>;
+		output["CNV size"] = &createInstance<FilterCnvSize>;
+		output["CNV regions"] = &createInstance<FilterCnvRegions>;
 	}
 
 	return output;
 }
 
-/*************************************************** concrete filters ***************************************************/
+/*************************************************** concrete filters for small variants ***************************************************/
 
 FilterAlleleFrequency::FilterAlleleFrequency()
 {
@@ -2092,7 +2173,6 @@ void FilterConservedness::apply(const VariantList& variants, FilterResult& resul
 	}
 }
 
-
 FilterRegulatory::FilterRegulatory()
 {
 	name_ = "Regulatory";
@@ -2137,4 +2217,67 @@ void FilterRegulatory::apply(const VariantList& variants, FilterResult& result) 
 			}
 		}
 	}
+}
+
+/*************************************************** concrete filters for CNVs ***************************************************/
+
+FilterCnvSize::FilterCnvSize()
+{
+	name_ = "CNV size";
+	type_ = FilterSubject::CNVS;
+	description_ = QStringList() << "Filter for CNV size.";
+	params_ << FilterParameter("size", DOUBLE, 0.0, "Minimum CNV size in kilobases");
+	params_.last().constraints["min"] = "0";
+}
+
+QString FilterCnvSize::toText() const
+{
+	return name() + " size&ge;" + QString::number(getDouble("size", false), 'f', 3) + " kB";
+}
+
+void FilterCnvSize::apply(const CnvList& cnvs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	double min_size_bases = getDouble("size") * 1000.0;
+	for(int i=0; i<cnvs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		if (cnvs[i].size() < min_size_bases)
+		{
+			result.flags()[i] = false;
+		}
+	}
+}
+
+FilterCnvRegions::FilterCnvRegions()
+{
+	name_ = "CNV regions";
+	type_ = FilterSubject::CNVS;
+	description_ = QStringList() << "Filter for CNV region/exon count.";
+	params_ << FilterParameter("regions", INT, 3, "Minimum number of regions");
+	params_.last().constraints["min"] = "1";
+}
+
+QString FilterCnvRegions::toText() const
+{
+	return name() + " #regions&ge;" + QString::number(getInt("regions"));
+}
+
+void FilterCnvRegions::apply(const CnvList& cnvs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	int min_regions = getInt("regions");
+	for(int i=0; i<cnvs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		if (cnvs[i].regions() < min_regions)
+		{
+			result.flags()[i] = false;
+		}
+	}
+
 }

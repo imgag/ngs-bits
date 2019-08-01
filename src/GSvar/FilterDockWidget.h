@@ -60,8 +60,6 @@ public:
 signals:
 	/// Signal that is emitted when a filter changes (filter cascade, gene, text, region, phenotype)
 	void filtersChanged();
-	/// Signal that is emitted when the filter cascade changed. Note: triggers a filtersChanged() signal as well!
-	void filterCascadeChanged();
 	/// Signal is emitted when the target region changes
 	void targetRegionChanged();
 	/// Signal that loading phenotype data from NGSD was requested (this cannot be done inside the widget, because it knows nothing about the sample)

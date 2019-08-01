@@ -86,8 +86,15 @@ class CPPNGSSHARED_EXPORT CnvList
 		///Loads CNV text file (TSV format from CnvHunter).
 		void load(QString filename);
 
+		enum CnvListType
+		{
+			INVALID,
+			CLINCNV_GERMLINE_SINGLE,
+			CNVHUNTER_GERMLINE_SINGLE
+		};
+
 		///Returns the analysis type
-		const QByteArray& type() const
+		CnvListType type() const
 		{
 			return type_;
 		}
@@ -143,7 +150,7 @@ class CPPNGSSHARED_EXPORT CnvList
 		long long totalCnvSize();
 
 	protected:
-		QByteArray type_;
+		CnvListType type_;
 		QByteArrayList comments_;
 		QByteArrayList annotation_headers_;
 		QList<CopyNumberVariant> variants_;

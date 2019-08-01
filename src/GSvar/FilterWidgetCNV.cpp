@@ -23,19 +23,25 @@ FilterWidgetCNV::FilterWidgetCNV(QWidget *parent)
 	ui_.setupUi(this);
 
 	connect(ui_.roi, SIGNAL(currentIndexChanged(int)), this, SLOT(roiSelectionChanged(int)));
-
 	connect(ui_.gene, SIGNAL(editingFinished()), this, SLOT(geneChanged()));
 	connect(ui_.text, SIGNAL(editingFinished()), this, SLOT(textChanged()));
 	connect(ui_.region, SIGNAL(editingFinished()), this, SLOT(regionChanged()));
-	connect(ui_.f_regs, SIGNAL(valueChanged(int)), this, SIGNAL(filtersChanged()));
-	connect(ui_.f_size, SIGNAL(valueChanged(double)), this, SIGNAL(filtersChanged()));
-
 	connect(ui_.hpo, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showPhenotypeContextMenu(QPoint)));
+
 	connect(ui_.hpo_import, SIGNAL(clicked(bool)), this, SLOT(importHPO()));
 	connect(ui_.roi_import, SIGNAL(clicked(bool)), this, SLOT(importROI()));
 	connect(ui_.region_import, SIGNAL(clicked(bool)), this, SLOT(importRegion()));
 	connect(ui_.gene_import, SIGNAL(clicked(bool)), this, SLOT(importGene()));
 	connect(ui_.text_import, SIGNAL(clicked(bool)), this, SLOT(importText()));
+
+	connect(ui_.filters_entries, SIGNAL(itemSelectionChanged()), this, SLOT(filterSelectionChanged()));
+	connect(ui_.filters_entries, SIGNAL(itemActivated(QListWidgetItem*)), this, SLOT(editSelectedFilter()));
+	connect(ui_.filters_entries, SIGNAL(itemChanged(QListWidgetItem*)), this, SLOT(toggleSelectedFilter(QListWidgetItem*)));
+	connect(ui_.filter_delete, SIGNAL(pressed()), this, SLOT(deleteSelectedFilter()));
+	connect(ui_.filter_edit, SIGNAL(pressed()), this, SLOT(editSelectedFilter()));
+	connect(ui_.filter_add, SIGNAL(pressed()), this, SLOT(addFilter()));
+	connect(ui_.filter_up, SIGNAL(pressed()), this, SLOT(moveUpSelectedFilter()));
+	connect(ui_.filter_down, SIGNAL(pressed()), this, SLOT(moveDownSelectedFilter()));
 
 	if (Settings::boolean("NGSD_enabled", true))
 	{
@@ -53,16 +59,6 @@ FilterWidgetCNV::FilterWidgetCNV(QWidget *parent)
 void FilterWidgetCNV::setVariantFilterWidget(FilterDockWidget* filter_widget)
 {
 	filter_widget_ = filter_widget;
-}
-
-double FilterWidgetCNV::minSizeKb() const
-{
-	return ui_.f_size->value();
-}
-
-int FilterWidgetCNV::minRegs() const
-{
-	return ui_.f_regs->value();
 }
 
 void FilterWidgetCNV::loadTargetRegions()
@@ -132,9 +128,9 @@ void FilterWidgetCNV::loadTargetRegions()
 
 void FilterWidgetCNV::resetSignalsUnblocked(bool clear_roi)
 {
-	//filter cols
-	ui_.f_regs->setValue(1);
-	ui_.f_size->setValue(0.0);
+	//filters
+	filters_.clear();
+	updateGUI();
 
     //rois
 	if (clear_roi)
@@ -163,6 +159,40 @@ void FilterWidgetCNV::reset(bool clear_roi)
 	blockSignals(false);
 
 	if (clear_roi) emit targetRegionChanged();
+}
+
+const FilterCascade& FilterWidgetCNV::filters() const
+{
+	return filters_;
+}
+
+void FilterWidgetCNV::setFilters(const QString& name, const FilterCascade& filter)
+{
+	ui_.filter_name->setText(name);
+
+	filters_ = filter;
+
+	updateGUI();
+	onFilterCascadeChange(false);
+}
+
+void FilterWidgetCNV::markFailedFilters()
+{
+	for(int i=0; i<ui_.filters_entries->count(); ++i)
+	{
+		QListWidgetItem* item = ui_.filters_entries->item(i);
+
+		QStringList errors = filters_.errors(i);
+		if (errors.isEmpty())
+		{
+			item->setBackground(QBrush());
+		}
+		else
+		{
+			item->setToolTip(filters_[i]->description().join("\n") + "\n\nErrors:\n" + errors.join("\n"));
+			item->setBackgroundColor(QColor(255,160,110));
+		}
+	}
 }
 
 QString FilterWidgetCNV::targetRegion() const
@@ -215,6 +245,14 @@ void FilterWidgetCNV::setPhenotypes(const QList<Phenotype>& phenotypes)
 {
 	phenotypes_ = phenotypes;
 	phenotypesChanged();
+}
+
+int FilterWidgetCNV::currentFilterIndex() const
+{
+	auto selection = ui_.filters_entries->selectedItems();
+	if (selection.count()!=1) return -1;
+
+	return ui_.filters_entries->row(selection[0]);
 }
 
 void FilterWidgetCNV::roiSelectionChanged(int index)
@@ -358,4 +396,170 @@ void FilterWidgetCNV::importText()
 {
 	ui_.text->setText(filter_widget_->text());
 	emit filtersChanged();
+}
+
+void FilterWidgetCNV::filterSelectionChanged()
+{
+	int index = currentFilterIndex();
+	ui_.filter_delete->setEnabled(index!=-1);
+	ui_.filter_edit->setEnabled(index!=-1 && filters_[index]->parameters().count()>0);
+	ui_.filter_up->setEnabled(index>0);
+	ui_.filter_down->setEnabled(index!=-1 && index!=ui_.filters_entries->count()-1);
+}
+
+void FilterWidgetCNV::updateGUI()
+{
+	ui_.filters_entries->clear();
+	for(int i=0; i<filters_.count(); ++i)
+	{
+		//remove HTML special characters for GUI
+		QTextDocument converter;
+		converter.setHtml(filters_[i]->toText());
+		QString text = converter.toPlainText();
+
+		QListWidgetItem* item = new QListWidgetItem(text);
+		item->setCheckState(filters_[i]->enabled() ? Qt::Checked : Qt::Unchecked);
+		item->setToolTip(filters_[i]->description().join("\n"));
+		ui_.filters_entries->addItem(item);
+	}
+	filterSelectionChanged();
+}
+
+void FilterWidgetCNV::onFilterCascadeChange(bool update_name)
+{
+	if (update_name)
+	{
+		QString name = ui_.filter_name->text();
+		if (name!="[none]" && !name.endsWith(" [modified]"))
+		{
+			ui_.filter_name->setText(name + " [modified]");
+		}
+	}
+
+	emit filtersChanged();
+}
+
+void FilterWidgetCNV::addFilter()
+{
+	//show filter menu
+	QMenu menu;
+	foreach(QString filter_name, FilterFactory::filterNames(FilterSubject::CNVS))
+	{
+		menu.addAction(filter_name);
+	}
+	QAction* action = menu.exec(QCursor::pos());
+	if(action==nullptr) return;
+
+	//create filter
+	QSharedPointer<FilterBase> filter = FilterFactory::create(action->text());
+
+	//determine if filter should be added
+	bool add_filter = false;
+	if (filter->parameters().count()>0)
+	{
+		FilterEditDialog dlg(filter, this);
+		add_filter = dlg.exec()==QDialog::Accepted;
+	}
+	else
+	{
+		add_filter = true;
+	}
+
+	//add filter
+	if (add_filter)
+	{
+		filters_.add(filter);
+		updateGUI();
+		focusFilter(filters_.count()-1);
+		onFilterCascadeChange(true);
+	}
+}
+
+void FilterWidgetCNV::editSelectedFilter()
+{
+	int index = currentFilterIndex();
+	if (index==-1) return;
+
+	//no paramters => no edit dialog
+	if (filters_[index]->parameters().count()==0) return;
+
+	FilterEditDialog dlg(filters_[index], this);
+	if (dlg.exec()==QDialog::Accepted)
+	{
+		updateGUI();
+		focusFilter(index);
+		onFilterCascadeChange(true);
+	}
+}
+
+void FilterWidgetCNV::deleteSelectedFilter()
+{
+	int index = currentFilterIndex();
+	if (index==-1) return;
+
+	filters_.removeAt(index);
+	updateGUI();
+	focusFilter(index);
+
+	onFilterCascadeChange(true);
+}
+
+void FilterWidgetCNV::moveUpSelectedFilter()
+{
+	int index = currentFilterIndex();
+	if (index==-1) return;
+
+	filters_.moveUp(index);
+	updateGUI();
+	focusFilter(index-1);
+
+	onFilterCascadeChange(true);
+}
+
+void FilterWidgetCNV::moveDownSelectedFilter()
+{
+	int index = currentFilterIndex();
+	if (index==-1) return;
+
+	filters_.moveDown(index);
+	updateGUI();
+	focusFilter(index+1);
+
+	onFilterCascadeChange(true);
+}
+
+void FilterWidgetCNV::toggleSelectedFilter(QListWidgetItem* item)
+{
+	//determine item index
+	int index = ui_.filters_entries->row(item);
+	if (index==-1) return;
+
+	//check that check state changed (this slot is called for every change of an item)
+	if ( (item->checkState()==Qt::Checked && !filters_[index]->enabled()) || (item->checkState()==Qt::Unchecked && filters_[index]->enabled()))
+	{
+		filters_[index]->toggleEnabled();
+
+		onFilterCascadeChange(true);
+	}
+}
+
+
+void FilterWidgetCNV::focusFilter(int index)
+{
+	//no entries > return
+	int filter_count = ui_.filters_entries->count();
+	if (filter_count==0) return;
+
+	if (index<0) //index too small > focus first item
+	{
+		ui_.filters_entries->item(0)->setSelected(true);
+	}
+	else if (index>=filter_count) //index too big > focus last item
+	{
+		ui_.filters_entries->item(filter_count-1)->setSelected(true);
+	}
+	else //index ok > focus selected item
+	{
+		ui_.filters_entries->item(index)->setSelected(true);
+	}
 }
