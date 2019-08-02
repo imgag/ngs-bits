@@ -15,44 +15,42 @@ class FilterWidgetCNV
 	Q_OBJECT
 	
 public:
-	/// Default constructor
+	//Default constructor
 	FilterWidgetCNV(QWidget* parent = 0);
-	/// Sets the small variant filter widget (needed to import data from it)
+	//Sets the small variant filter widget (needed to import data from it)
 	void setVariantFilterWidget(FilterWidget* filter_widget);
 
-	/// Resets to initial state (uncheck boxes, no ROI)
+	//Resets to initial state (uncheck boxes, no ROI)
 	void reset(bool clear_roi);
 
-	/// Returns the used filters
+	//Returns the used filters
 	const FilterCascade& filters() const;
-	/// Applies a filter set
-	void setFilters(const QString& name, const FilterCascade& filters);
-	/// Visually marks filters that failed.
+	//Visually marks filters that failed.
 	void markFailedFilters();
 
-	///Returns the target region BED file name or an empty string if unset.
+	//Returns the target region BED file name or an empty string if unset.
 	QString targetRegion() const;
-	///Sets the target region BED file.
+	//Sets the target region BED file.
 	void setTargetRegion(QString roi_file);
 
-	/// Returns the gene names filter.
+	//Returns the gene names filter.
 	GeneSet genes() const;
-	/// Returns the text filter.
+	//Returns the text filter.
 	QByteArray text() const;
-	/// Returns the single target region filter, or an empty string if unset.
+	//Returns the single target region filter, or an empty string if unset.
 	QString region() const;
-	/// Sets the single target region filter, or an empty string if unset.
+	//Sets the single target region filter, or an empty string if unset.
 	void setRegion(QString region);
 
-	///Returns selected phenotype terms.
+	//Returns selected phenotype terms.
 	const QList<Phenotype>& phenotypes() const;
-	///Sets selected phenotype terms.
+	//Sets selected phenotype terms.
 	void setPhenotypes(const QList<Phenotype>& phenotypes);
 
 signals:
-	/// Signal that is emitted when a filter changes (filter cascade, gene, text, region, phenotype)
+	//Signal that is emitted when a filter changes (filter cascade, gene, text, region, phenotype)
 	void filtersChanged();
-	/// Signal is emitted when the target region changes
+	//Signal is emitted when the target region changes
 	void targetRegionChanged();
 
 protected slots:
@@ -69,13 +67,19 @@ protected slots:
 	void importGene();
 	void importText();
 	void updateFilterName();
+	void setFilter(int index);
 
 private:
-	/// Loads filter target regions (Processing systems from NGSD, Sub-panels from file system and additional target regions from INI file)
+	//Loads filters
+	void loadFilters();
+	//Loads filter target regions (Processing systems from NGSD, Sub-panels from file system and additional target regions from INI file)
 	void loadTargetRegions();
 
 	//Resets the filters without blocking signals.
 	void resetSignalsUnblocked(bool clear_roi);
+
+	//Returns the filter INI file name
+	QString filterFileName() const;
 
 	Ui::FilterWidgetCNV ui_;
 	GeneSet last_genes_;

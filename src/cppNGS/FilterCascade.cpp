@@ -539,6 +539,49 @@ QStringList FilterCascade::errors(int index) const
 	return errors_[index];
 }
 
+/*************************************************** FilterCascadeFile ***************************************************/
+
+QStringList FilterCascadeFile::names(QString filename)
+{
+	qDebug() << __LINE__;
+	QStringList output;
+
+	foreach(QString line, Helper::loadTextFile(filename, true, QChar::Null, true))
+	{
+		if (line.startsWith("#"))
+		{
+			output << line.mid(1);
+		}
+	}
+
+	return output;
+}
+
+FilterCascade FilterCascadeFile::load(QString filename, QString filter)
+{
+	FilterCascade output;
+
+	QStringList filter_file = Helper::loadTextFile(filename, true, QChar::Null, true);
+
+	bool in_filter = false;
+	foreach(QString line, filter_file)
+	{
+		if (line.startsWith("#"))
+		{
+			in_filter = (line == "#"+filter);
+		}
+		else if (in_filter)
+		{
+			QStringList parts = line.trimmed().split('\t');
+			QString name = parts[0];
+			output.add(FilterFactory::create(name, parts.mid(1)));
+		}
+	}
+
+	return output;
+}
+
+
 /*************************************************** FilterFactory ***************************************************/
 
 QSharedPointer<FilterBase> FilterFactory::create(const QString& name, const QStringList& parameters)
@@ -2292,8 +2335,8 @@ FilterCnvCopyNumber::FilterCnvCopyNumber()
 	name_ = "CNV copy-number";
 	type_ = FilterSubject::CNVS;
 	description_ = QStringList() << "Filter for CNV copy number.";
-	params_ << FilterParameter("cn", STRING, "0", "Copy number");
-	params_.last().constraints["valid"] = "0,1,2,3,4+";
+	params_ << FilterParameter("cn", STRING, "n/a", "Copy number");
+	params_.last().constraints["valid"] = "n/a,0,1,2,3,4+";
 }
 
 QString FilterCnvCopyNumber::toText() const
@@ -2307,6 +2350,7 @@ void FilterCnvCopyNumber::apply(const CnvList& cnvs, FilterResult& result) const
 
 	QByteArray cn_exp = getString("cn").toLatin1();
 	bool cn_exp_4plus = cn_exp=="4+";
+	if (cn_exp=="n/a") return;
 
 	if (cnvs.type()==CnvListType::CNVHUNTER_GERMLINE_SINGLE)
 	{
@@ -2358,7 +2402,7 @@ FilterCnvAlleleFrequency::FilterCnvAlleleFrequency()
 
 QString FilterCnvAlleleFrequency::toText() const
 {
-	return name() + " &le; " + getDouble("max_af");
+	return name() + " &le; " + QString::number(getDouble("max_af"), 'f', 2);
 }
 
 void FilterCnvAlleleFrequency::apply(const CnvList& cnvs, FilterResult& result) const
@@ -2417,7 +2461,7 @@ FilterCnvZscore::FilterCnvZscore()
 
 QString FilterCnvZscore::toText() const
 {
-	return name() + " &ge; " + getDouble("min_z");
+	return name() + " &ge; " + QString::number(getDouble("min_z"), 'f', 2);
 }
 
 void FilterCnvZscore::apply(const CnvList& cnvs, FilterResult& result) const
@@ -2459,7 +2503,7 @@ FilterCnvLoglikelihood::FilterCnvLoglikelihood()
 
 QString FilterCnvLoglikelihood::toText() const
 {
-	return name() + " &ge; " + getDouble("min_ll");
+	return name() + " &ge; " + QString::number(getDouble("min_ll"), 'f', 2);
 }
 
 void FilterCnvLoglikelihood::apply(const CnvList& cnvs, FilterResult& result) const
@@ -2495,7 +2539,7 @@ FilterCnvQvalue::FilterCnvQvalue()
 
 QString FilterCnvQvalue::toText() const
 {
-	return name() + " &le; " + getDouble("max_q");
+	return name() + " &le; " + QString::number(getDouble("max_q"), 'f', 2);
 }
 
 void FilterCnvQvalue::apply(const CnvList& cnvs, FilterResult& result) const
@@ -2523,8 +2567,8 @@ FilterCnvCompHet::FilterCnvCompHet()
 	name_ = "CNV compound-heterozygous";
 	type_ = FilterSubject::CNVS;
 	description_ = QStringList() << "Filter for compound-heterozygous CNVs." << "Mode 'CNV-CNV' detects genes with two or more CNV hits." << "Mode 'CNV-SNV/INDEL' detectes genes with one CNV and one small variant hit.";
-	params_ << FilterParameter("mode", STRING, "CNV-CNV", "Compound-heterozygotes detection mode.");
-	params_.last().constraints["valid"] = "CNV-CNV,CNV-SNV/INDEL";
+	params_ << FilterParameter("mode", STRING, "n/a", "Compound-heterozygotes detection mode.");
+	params_.last().constraints["valid"] = "n/a,CNV-CNV,CNV-SNV/INDEL";
 }
 
 QString FilterCnvCompHet::toText() const
@@ -2537,6 +2581,7 @@ void FilterCnvCompHet::apply(const CnvList& cnvs, FilterResult& result) const
 	if (!enabled_) return;
 
 	QString mode = getString("mode");
+	if (mode=="n/a") return;
 
 	//count hits per gene for CNVs
 	QMap<QByteArray, int> gene_count;

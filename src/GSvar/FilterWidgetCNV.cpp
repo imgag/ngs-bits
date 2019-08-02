@@ -9,6 +9,8 @@
 #include <QCompleter>
 #include <QMenu>
 #include <QDialog>
+#include <QDir>
+#include <QMessageBox>
 
 FilterWidgetCNV::FilterWidgetCNV(QWidget *parent)
 	: QWidget(parent)
@@ -17,9 +19,10 @@ FilterWidgetCNV::FilterWidgetCNV(QWidget *parent)
 {
 	ui_.setupUi(this);
 	ui_.cascade_widget->setSubject(FilterSubject::CNVS);
-
 	connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SLOT(updateFilterName()));
 	connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SIGNAL(filtersChanged()));
+	connect(ui_.filters, SIGNAL(currentIndexChanged(int)), this, SLOT(setFilter(int)));
+	ui_.lab_modified->setHidden(true);
 
 	connect(ui_.roi, SIGNAL(currentIndexChanged(int)), this, SLOT(roiSelectionChanged(int)));
 	connect(ui_.gene, SIGNAL(editingFinished()), this, SLOT(geneChanged()));
@@ -43,6 +46,7 @@ FilterWidgetCNV::FilterWidgetCNV(QWidget *parent)
 	}
 
 	loadTargetRegions();
+	loadFilters();
 	reset(true);
 }
 
@@ -119,6 +123,7 @@ void FilterWidgetCNV::loadTargetRegions()
 void FilterWidgetCNV::resetSignalsUnblocked(bool clear_roi)
 {
 	//filters
+	ui_.filters->setCurrentIndex(0);
 	ui_.cascade_widget->clear();
 
     //rois
@@ -139,6 +144,11 @@ void FilterWidgetCNV::resetSignalsUnblocked(bool clear_roi)
 	phenotypesChanged();
 }
 
+QString FilterWidgetCNV::filterFileName() const
+{
+	return QCoreApplication::applicationDirPath() + QDir::separator() + QCoreApplication::applicationName().replace(".exe","") + "_filters_cnv.ini";
+}
+
 void FilterWidgetCNV::reset(bool clear_roi)
 {
 	blockSignals(true);
@@ -151,14 +161,6 @@ void FilterWidgetCNV::reset(bool clear_roi)
 const FilterCascade& FilterWidgetCNV::filters() const
 {
 	return ui_.cascade_widget->filters();
-}
-
-void FilterWidgetCNV::setFilters(const QString& name, const FilterCascade& filters)
-{
-	ui_.cascade_widget->setFilters(filters);
-
-	//set text (after filters, otherwise it will be marked as 'modified'
-	ui_.filter_name->setText(name);
 }
 
 void FilterWidgetCNV::markFailedFilters()
@@ -363,10 +365,37 @@ void FilterWidgetCNV::importText()
 
 void FilterWidgetCNV::updateFilterName()
 {
-	QString name = ui_.filter_name->text();
+	if (ui_.filters->currentText()=="[none]") return;
 
-	if (name=="[none]") return;
-	if (name.endsWith(" [modified]")) return;
+	ui_.lab_modified->setHidden(false);
+}
 
-	ui_.filter_name->setText(name + " [modified]");
+void FilterWidgetCNV::setFilter(int index)
+{
+	if (index==0)
+	{
+		ui_.cascade_widget->clear();
+		return;
+	}
+
+	try
+	{
+		FilterCascade filters = FilterCascadeFile::load(filterFileName(), ui_.filters->currentText());
+		ui_.cascade_widget->setFilters(filters);
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::warning(this, "Invalid filter", "Filter parsing failed:\n" + e.message());
+	}
+
+	ui_.lab_modified->setHidden(true);
+}
+
+void FilterWidgetCNV::loadFilters()
+{
+	QStringList filter_names;
+	filter_names << "[none]";
+	filter_names << FilterCascadeFile::names(filterFileName());
+
+	ui_.filters->addItems(filter_names);
 }

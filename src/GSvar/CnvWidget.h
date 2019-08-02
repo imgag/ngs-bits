@@ -51,7 +51,6 @@ private:
 
 /*
 TODO:
-- Add default filters based on CNV list type (on widget)
 - Test all types: CnvHunter somatic (single), ClinCNV somatic (pair), ClinCNV multi
 - Add settings for UCSC (see paper)
 */

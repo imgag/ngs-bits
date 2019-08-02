@@ -260,6 +260,20 @@ class CPPNGSSHARED_EXPORT FilterCascade
 		mutable QVector<QStringList> errors_;
 };
 
+//Handles loading filters from filter INI files
+class CPPNGSSHARED_EXPORT FilterCascadeFile
+{
+	public:
+		//Returns all availiable filter names ("---" is used for separators).
+		static QStringList names(QString filename);
+		//Resurns a filter cascacde.
+		static FilterCascade load(QString filename, QString filter);
+
+	private:
+		//Declare constructor away
+		FilterCascadeFile() = delete;
+};
+
 //Regions filter (not derived from FilterBase!)
 class CPPNGSSHARED_EXPORT FilterRegions
 {

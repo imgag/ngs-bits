@@ -113,7 +113,7 @@ MainWindow::MainWindow(QWidget *parent)
 	filter_btn->setMenu(new QMenu());
 	filter_btn->setPopupMode(QToolButton::InstantPopup);
 	connect(filter_btn, SIGNAL(triggered(QAction*)), this, SLOT(applyFilter(QAction*)));
-	foreach(QString filter_name, loadFilterNames())
+	foreach(QString filter_name, FilterCascadeFile::names(filterFileName()))
 	{
 		if (filter_name=="---")
 		{
@@ -952,46 +952,9 @@ QString MainWindow::sampleName()
 	return (ps_name + "_").split('_')[0];
 }
 
-QStringList MainWindow::loadFilterNames() const
+QString MainWindow::filterFileName() const
 {
-	QStringList output;
-
-	QString filename = QCoreApplication::applicationDirPath() + QDir::separator() + QCoreApplication::applicationName().replace(".exe","") + "_filters.ini";
-	foreach(QString line, Helper::loadTextFile(filename, true, QChar::Null, true))
-	{
-		if (line.startsWith("#"))
-		{
-			output << line.mid(1);
-		}
-	}
-
-	return output;
-}
-
-FilterCascade MainWindow::loadFilter(QString name) const
-{
-	FilterCascade output;
-
-
-	QString filename = QCoreApplication::applicationDirPath() + QDir::separator() + QCoreApplication::applicationName().replace(".exe","") + "_filters.ini";
-	QStringList filter_file = Helper::loadTextFile(filename, true, QChar::Null, true);
-
-	bool in_filter = false;
-	foreach(QString line, filter_file)
-	{
-		if (line.startsWith("#"))
-		{
-			in_filter = (line == "#"+name);
-		}
-		else if (in_filter)
-		{
-			QStringList parts = line.trimmed().split('\t');
-			QString name = parts[0];
-			output.add(FilterFactory::create(name, parts.mid(1)));
-		}
-	}
-
-	return output;
+	return QCoreApplication::applicationDirPath() + QDir::separator() + QCoreApplication::applicationName().replace(".exe","") + "_filters.ini";
 }
 
 void MainWindow::addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize)
@@ -2617,7 +2580,7 @@ void MainWindow::applyFilter(QAction* action)
 	}
 	else
 	{
-		ui_.filters->setFilters(text, loadFilter(text));
+		ui_.filters->setFilters(text, FilterCascadeFile::load(filterFileName(), text));
 	}
 }
 

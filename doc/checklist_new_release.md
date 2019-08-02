@@ -21,20 +21,12 @@
 			> git push origin master	
 	* Create a new branch
 			
-			> git branch -d ngs-bits
-			> git checkout -b ngs-bits
+			> git checkout -b ngs-bits-[tag]
 	* Make changes
 	* Commit and push changes
 			
 			> git add recipes/ngs-bits
-			> git commit -m "Updated ngs-bits to latest version"
-			> git push -u origin ngs-bits
+			> git commit -m "Updated ngs-bits to version [tag]"
+			> git push -u origin ngs-bits-[tag]
 	* Create pull request at <https://github.com/imgag/bioconda-recipes/branches>
 1. Update `megSAP/data/download_tools.sh` file and test if it works.
-
-
-
-
-
-
-

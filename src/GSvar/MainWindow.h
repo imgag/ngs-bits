@@ -59,10 +59,8 @@ public:
 	QString processedSampleName();
 	///Returns the sample name (in case of a somatic variant list, the tumor is returned).
 	QString sampleName();
-	///Returns all filters defined in the filters INI file
-	QStringList loadFilterNames() const;
-	///Returns all filters defined in the filters INI file
-	FilterCascade loadFilter(QString name) const;
+	///Returns the filter INI file
+	QString filterFileName() const;
 
 	///Context menu for single variant
 	void contextMenuSingleVariant(QPoint pos, int index);

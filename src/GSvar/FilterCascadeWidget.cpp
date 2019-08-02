@@ -55,6 +55,7 @@ void FilterCascadeWidget::markFailedFilters()
 void FilterCascadeWidget::clear()
 {
 	filters_.clear();
+	updateGUI();
 	emit filterCascadeChanged();
 }
 

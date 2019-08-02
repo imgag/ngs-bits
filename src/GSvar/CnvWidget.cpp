@@ -122,6 +122,12 @@ void CnvWidget::loadCNVs(QString filename)
 	//show comments
 	foreach(const QByteArray& comment, cnvs.comments())
 	{
+		if (cnvs.type()==CnvListType::CLINCNV_GERMLINE_SINGLE)
+		{
+			if (comment.contains("Analysis finished on")) continue;
+			if (comment.contains("was it outlier after clustering")) continue;
+			if (comment.contains("fraction of outliers")) continue;
+		}
 		addInfoLine(comment);
 	}
 
