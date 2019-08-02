@@ -36,6 +36,10 @@ CnvWidget::CnvWidget(QString gsvar_file, FilterWidget* filter_widget, const Gene
 	QFileInfo file_info(gsvar_file);
 	QString base = file_info.absolutePath() + QDir::separator() + file_info.baseName();
 	QString cnv_file = base + "_cnvs_clincnv.tsv";
+	if (!QFile::exists(cnv_file)) //fallback to somatic
+	{
+		cnv_file = base + "_clincnv.tsv";
+	}
 	if (!QFile::exists(cnv_file)) //fallback to CnvHunter
 	{
 		cnv_file = base + "_cnvs.tsv";
@@ -143,7 +147,7 @@ void CnvWidget::loadCNVs(QString filename)
 		if (special_cols.contains(header))
 		{
 			item->setIcon(QIcon("://Icons/Table.png"));
-			item->setToolTip("Double click table cell to open summary table");
+			item->setToolTip("Double click table cell to open table view of annotations");
 		}
 		ui->cnvs->setHorizontalHeaderItem(ui->cnvs->columnCount() -1, item);
 		annotation_indices.append(i);

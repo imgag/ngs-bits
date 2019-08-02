@@ -28,7 +28,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 		return table;
 	}
 
-	int i_cnv_tum_clonality = cnvs.annotationIndexByName("tumor_clonality");
+	int i_cnv_tum_clonality = cnvs.annotationIndexByName("tumor_clonality", false);
 	if(i_cnv_tum_clonality < 0)
 	{
 		table.addRow(RtfTableRow("No column \"tumor_clonality\" in ClinCNV file. Please recalculate it using a more recent ClinCNV version.",doc_.maxWidth(),RtfParagraph().highlight(3)));
@@ -155,8 +155,8 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 
 	//Add remaining CNVs to table
 
-	int i_ncg_oncogene = cnvs_filtered_.annotationIndexByName("ncg_oncogene");
-	int i_ncg_tsg = cnvs_filtered_.annotationIndexByName("ncg_tsg");
+	int i_ncg_oncogene = cnvs_filtered_.annotationIndexByName("ncg_oncogene", false);
+	int i_ncg_tsg = cnvs_filtered_.annotationIndexByName("ncg_tsg", false);
 
 
 	QMap<QByteArray,RtfTableRow> cna_genes_per_row;
@@ -284,7 +284,7 @@ RtfTable SomaticReportHelper::createCnvTable()
 	GeneSet target_genes = GeneSet::createFromFile(target_region.left(target_region.size()-4) + "_genes.txt");
 	target_genes = db_.genesToApproved(target_genes);
 
-	int i_cnv_state = cnvs_filtered_.annotationIndexByName("state");
+	int i_cnv_state = cnvs_filtered_.annotationIndexByName("state", false);
 
 	for(int i=0; i<cnvs_filtered_.count(); ++i)
 	{
@@ -888,13 +888,13 @@ SomaticReportHelper::SomaticReportHelper(QString snv_filename, const CnvList& fi
 	snv_index_cgi_transcript_ = snv_variants_.annotationIndexByName("CGI_transcript",true,true);
 	snv_index_cgi_gene_ = snv_variants_.annotationIndexByName("CGI_gene",true,true);
 
-	cnv_index_cn_change_ = cnvs_filtered_.annotationIndexByName("CN_change");
-	cnv_index_cgi_gene_role_ = cnvs_filtered_.annotationIndexByName("CGI_gene_role");
-	cnv_index_cnv_type_ = cnvs_filtered_.annotationIndexByName("cnv_type");
-	cnv_index_cgi_genes_ = cnvs_filtered_.annotationIndexByName("CGI_genes");
-	cnv_index_cgi_driver_statement_ = cnvs_filtered_.annotationIndexByName("CGI_driver_statement");
-	cnv_index_tumor_clonality_ = cnvs_filtered_.annotationIndexByName("tumor_clonality");
-	cnv_index_tumor_cn_change_ = cnvs_filtered_.annotationIndexByName("tumor_CN_change");
+	cnv_index_cn_change_ = cnvs_filtered_.annotationIndexByName("CN_change", false);
+	cnv_index_cgi_gene_role_ = cnvs_filtered_.annotationIndexByName("CGI_gene_role", false);
+	cnv_index_cnv_type_ = cnvs_filtered_.annotationIndexByName("cnv_type", false);
+	cnv_index_cgi_genes_ = cnvs_filtered_.annotationIndexByName("CGI_genes", false);
+	cnv_index_cgi_driver_statement_ = cnvs_filtered_.annotationIndexByName("CGI_driver_statement", false);
+	cnv_index_tumor_clonality_ = cnvs_filtered_.annotationIndexByName("tumor_clonality", false);
+	cnv_index_tumor_cn_change_ = cnvs_filtered_.annotationIndexByName("tumor_CN_change", false);
 
 
 	//load qcml data
@@ -1743,7 +1743,7 @@ QByteArray SomaticReportHelper::getCnvType(const CopyNumberVariant& cnv)
 
 double SomaticReportHelper::getCnvMaxTumorClonality(const CnvList& cnvs)
 {
-	int i_cnv_tum_clonality = cnvs.annotationIndexByName("tumor_clonality");
+	int i_cnv_tum_clonality = cnvs.annotationIndexByName("tumor_clonality", false);
 	if(i_cnv_tum_clonality == -1 || cnvs.isEmpty()) return std::numeric_limits<double>::quiet_NaN();
 
 	double tum_maximum_clonality = -1;

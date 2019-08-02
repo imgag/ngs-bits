@@ -80,8 +80,11 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 enum class CnvListType
 {
 	INVALID,
+	CNVHUNTER_GERMLINE_SINGLE,
+	CNVHUNTER_GERMLINE_MULTI,
 	CLINCNV_GERMLINE_SINGLE,
-	CNVHUNTER_GERMLINE_SINGLE
+	CLINCNV_GERMLINE_MULTI,
+	CLINCNV_TUMOR_NORMAL_PAIR
 };
 
 ///CNV list
@@ -114,7 +117,7 @@ class CPPNGSSHARED_EXPORT CnvList
 		}
 
 		///Returns the index of an annotation. -1 is returned if not present and -2 if present multiple times.
-		int annotationIndexByName(const QByteArray& name, bool throw_on_error=false) const;
+		int annotationIndexByName(const QByteArray& name, bool throw_on_error) const;
 
 		///Returns the number of variants
 		int count() const

@@ -54,7 +54,10 @@ void CnvList::load(QString filename)
 		{
 			QString type = line.mid(type_prefix.length()).trimmed();
 			if (type=="CNVHUNTER_GERMLINE_SINGLE") type_ = CnvListType::CNVHUNTER_GERMLINE_SINGLE;
+			else if (type=="CNVHUNTER_GERMLINE_MULTI") type_ = CnvListType::CNVHUNTER_GERMLINE_MULTI;
 			else if (type=="CLINCNV_GERMLINE_SINGLE") type_ = CnvListType::CLINCNV_GERMLINE_SINGLE;
+			else if (type=="CLINCNV_GERMLINE_MULTI") type_ = CnvListType::CLINCNV_GERMLINE_MULTI;
+			else if (type=="CLINCNV_TUMOR_NORMAL_PAIR") type_ = CnvListType::CLINCNV_TUMOR_NORMAL_PAIR;
 			else THROW(FileParseException, "CNV file '" + filename + "' contains unknown analysis type: " + type);
 		}
 		else
@@ -98,6 +101,21 @@ void CnvList::load(QString filename)
 		//remove
 		int i_size = file.colIndex("length_KB", true);
 		annotation_indices.removeAll(i_size);
+	}
+	else if (type()==CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
+	{
+		//mandatory columns
+		i_region_count = file.colIndex("number_of_regions", false);
+		annotation_indices.removeAll(i_region_count);
+		//remove
+		int i_sample = file.colIndex("sample", true);
+		annotation_indices.removeAll(i_sample);
+		int i_size = file.colIndex("size", true);
+		annotation_indices.removeAll(i_size);
+	}
+	else
+	{
+		THROW(ProgrammingException, "Column handling for this CNV list with type not implemented!");
 	}
 
 	//check mandatory columns were found

@@ -200,7 +200,7 @@ void SomaticReportConfiguration::filtersChanged()
 	//Filter for CGI driver
 	if(ui_->filter_for_cgi_drivers->checkState() == Qt::Checked)
 	{
-		int i_cgi_driver_statement = cnvs_.annotationIndexByName("CGI_driver_statement");
+		int i_cgi_driver_statement = cnvs_.annotationIndexByName("CGI_driver_statement", false);
 
 		if(i_cgi_driver_statement >= 0)
 		{
