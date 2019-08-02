@@ -25,7 +25,7 @@ CopyNumberVariant::CopyNumberVariant(const Chromosome& chr, int start, int end, 
 }
 
 CnvList::CnvList()
-	: type_(INVALID)
+	: type_(CnvListType::INVALID)
 	, comments_()
 	, annotation_headers_()
 	, variants_()
@@ -34,7 +34,7 @@ CnvList::CnvList()
 
 void CnvList::clear()
 {
-	type_ =  INVALID;
+	type_ = CnvListType::INVALID;
 	comments_.clear();
 	variants_.clear();
 	annotation_headers_.clear();
@@ -53,8 +53,8 @@ void CnvList::load(QString filename)
 		if (line.startsWith(type_prefix))
 		{
 			QString type = line.mid(type_prefix.length()).trimmed();
-			if (type=="CNVHUNTER_GERMLINE_SINGLE") type_ = CNVHUNTER_GERMLINE_SINGLE;
-			else if (type=="CLINCNV_GERMLINE_SINGLE") type_ = CLINCNV_GERMLINE_SINGLE;
+			if (type=="CNVHUNTER_GERMLINE_SINGLE") type_ = CnvListType::CNVHUNTER_GERMLINE_SINGLE;
+			else if (type=="CLINCNV_GERMLINE_SINGLE") type_ = CnvListType::CLINCNV_GERMLINE_SINGLE;
 			else THROW(FileParseException, "CNV file '" + filename + "' contains unknown analysis type: " + type);
 		}
 		else
@@ -62,7 +62,7 @@ void CnvList::load(QString filename)
 			comments_ << line;
 		}
 	}
-	if (type()==INVALID)
+	if (type()==CnvListType::INVALID)
 	{
 		THROW(FileParseException, "CNV file '" + filename + "' is outdated. It does not contain an ##ANALYSISTYPE header line. Please re-run CNV calling!");
 	}
@@ -79,7 +79,7 @@ void CnvList::load(QString filename)
 	annotation_indices.removeAll(i_genes);
 	int i_region_count = -1;
 
-	if (type()==CNVHUNTER_GERMLINE_SINGLE)
+	if (type()==CnvListType::CNVHUNTER_GERMLINE_SINGLE)
 	{
 		//mandatory columns
 		i_region_count = file.colIndex("region_count", false);
@@ -90,7 +90,7 @@ void CnvList::load(QString filename)
 		int i_size = file.colIndex("size", true);
 		annotation_indices.removeAll(i_size);
 	}
-	else if (type()==CLINCNV_GERMLINE_SINGLE)
+	else if (type()==CnvListType::CLINCNV_GERMLINE_SINGLE)
 	{
 		//mandatory columns
 		i_region_count = file.colIndex("no_of_regions", false);

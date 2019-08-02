@@ -76,6 +76,15 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 		QByteArrayList annotations_;
 };
 
+///CNV list types
+enum class CnvListType
+{
+	INVALID,
+	CLINCNV_GERMLINE_SINGLE,
+	CNVHUNTER_GERMLINE_SINGLE
+};
+
+///CNV list
 class CPPNGSSHARED_EXPORT CnvList
 {
 	public:
@@ -85,13 +94,6 @@ class CPPNGSSHARED_EXPORT CnvList
 		void clear();
 		///Loads CNV text file (TSV format from CnvHunter).
 		void load(QString filename);
-
-		enum CnvListType
-		{
-			INVALID,
-			CLINCNV_GERMLINE_SINGLE,
-			CNVHUNTER_GERMLINE_SINGLE
-		};
 
 		///Returns the analysis type
 		CnvListType type() const

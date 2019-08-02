@@ -46,7 +46,7 @@ FilterWidgetCNV::FilterWidgetCNV(QWidget *parent)
 	reset(true);
 }
 
-void FilterWidgetCNV::setVariantFilterWidget(FilterDockWidget* filter_widget)
+void FilterWidgetCNV::setVariantFilterWidget(FilterWidget* filter_widget)
 {
 	filter_widget_ = filter_widget;
 }

@@ -16,12 +16,12 @@
 #include <QUrl>
 #include <QDir>
 
-CnvWidget::CnvWidget(QString gsvar_file, FilterDockWidget* filter_widget, const GeneSet& het_hit_genes, QWidget *parent)
+CnvWidget::CnvWidget(QString gsvar_file, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QWidget *parent)
 	: QWidget(parent)
 	, ui(new Ui::CnvWidget)
 	, cnvs()
-	, special_cols_()
-	, var_het_hit_genes(het_hit_genes)
+	, special_cols()
+	, var_het_genes(het_hit_genes)
 {
 	ui->setupUi(this);
 	connect(ui->cnvs, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(cnvDoubleClicked(QTableWidgetItem*)));
@@ -66,7 +66,7 @@ void CnvWidget::cnvDoubleClicked(QTableWidgetItem* item)
 	int col = item->column();
 	int row = item->row();
 	QString col_name = item->tableWidget()->horizontalHeaderItem(col)->text();
-	if (special_cols_.contains(col_name))
+	if (special_cols.contains(col_name))
 	{
 		QString text = cnvs[row].annotations()[col-4].trimmed();
 		if (text.isEmpty()) return;
@@ -117,7 +117,7 @@ void CnvWidget::loadCNVs(QString filename)
 	cnvs.load(filename);
 
 	//set special columns
-	special_cols_ = QStringList() << "cn_pathogenic" << "dosage_sensitive_disease_genes" << "clinvar_cnvs" << "hgmd_cnvs" << "omim";
+	special_cols = QStringList() << "cn_pathogenic" << "dosage_sensitive_disease_genes" << "clinvar_cnvs" << "hgmd_cnvs" << "omim";
 
 	//show comments
 	foreach(const QByteArray& comment, cnvs.comments())
@@ -134,7 +134,7 @@ void CnvWidget::loadCNVs(QString filename)
 
 		ui->cnvs->setColumnCount(ui->cnvs->columnCount() + 1);
 		QTableWidgetItem* item = new QTableWidgetItem(header);
-		if (special_cols_.contains(header))
+		if (special_cols.contains(header))
 		{
 			item->setIcon(QIcon("://Icons/Table.png"));
 			item->setToolTip("Double click table cell to open summary table");
@@ -170,157 +170,6 @@ void CnvWidget::loadCNVs(QString filename)
 	GUIHelper::resizeTableCells(ui->cnvs, 200);
 }
 
-/*TODO
-
-	//filter by regions
-	const int f_regs = ui->filter_widget->minRegs();
-	if (f_regs>1)
-	{
-		for(int r=0; r<rows; ++r)
-		{
-			if (!pass[r]) continue;
-			pass[r] = cnvs[r].regions() >= f_regs;
-		}
-	}
-
-	//filter by size
-	const double f_size = 1000.0 * ui->filter_widget->minSizeKb();
-	if (f_size>0.0)
-	{
-		for(int r=0; r<rows; ++r)
-		{
-			if (!pass[r]) continue;
-			pass[r] = cnvs[r].size() >= f_size;
-		}
-	}
-
-	//filter by copy-number
-	QString f_cn = ui->f_cn->currentText();
-	if (f_cn!="n/a")
-	{
-		int f_cni = f_cn.left(1).toInt();
-		for(int r=0; r<rows; ++r)
-		{
-			if (!pass[r]) continue;
-			bool hit = false;
-			foreach (int cn, cnvs[r].copyNumbers())
-			{
-				if (cn==f_cni)
-				{
-					hit = true;
-					break;
-				}
-				if (f_cni==4 && cn>4)
-				{
-					hit = true;
-					break;
-				}
-			}
-			pass[r] = hit;
-		}
-	}
-
-	//filter by z-score
-	const double f_z = ui->f_z->value();
-	if (f_z>0.0)
-	{
-		for(int r=0; r<rows; ++r)
-		{
-			if (!pass[r]) continue;
-			bool hit = false;
-			foreach (double z, cnvs[r].zScores())
-			{
-				if (z>=f_z || z<=-f_z)
-				{
-					hit = true;
-					break;
-				}
-			}
-			pass[r] = hit;
-		}
-	}
-
-	//filter by allele frequency
-	const double f_af = ui->f_af->value();
-	for(int r=0; r<rows; ++r)
-	{
-		if (!pass[r]) continue;
-		bool hit = false;
-		foreach (double af, cnvs[r].alleleFrequencies())
-		{
-			if (af<f_af)
-			{
-				hit = true;
-				break;
-			}
-		}
-		pass[r] = hit;
-	}
-
-	//filter comp-het
-	if (ui->f_comphet->currentText()!="n/a")
-	{
-		//count hits per gene for CNVs
-		QMap<QByteArray, int> gene_count;
-		for(int r=0; r<rows; ++r)
-		{
-			foreach(const QByteArray& gene, cnvs[r].genes())
-			{
-				if (!pass[r]) continue;
-				gene_count[gene] += 1;
-			}
-		}
-
-		//two CNV hits
-		GeneSet comphet_hit;
-		if (ui->f_comphet->currentText()=="CNV-CNV")
-		{
-			for(auto it=gene_count.cbegin(); it!=gene_count.cend(); ++it)
-			{
-				if (it.value()>1)
-				{
-					comphet_hit.insert(it.key());
-				}
-			}
-		}
-
-		//one CNV and one SNV/INDEL hit
-		else
-		{
-			GeneSet single_hit_cnv;
-			for(auto it=gene_count.cbegin(); it!=gene_count.cend(); ++it)
-			{
-				if (it.value()==1)
-				{
-					single_hit_cnv.insert(it.key());
-				}
-			}
-
-			if (Settings::boolean("NGSD_enabled", true))
-			{
-				NGSD db;
-				single_hit_cnv = db.genesToApproved(single_hit_cnv, true);
-			}
-
-			foreach(const QByteArray& gene, single_hit_cnv)
-			{
-				if (var_het_hit_genes.contains(gene))
-				{
-					comphet_hit.insert(gene);
-				}
-			}
-		}
-
-		//flag passing CNVs
-		for(int r=0; r<rows; ++r)
-		{
-			if (!pass[r]) continue;
-
-			pass[r] = cnvs[r].genes().intersectsWith(comphet_hit);
-		}
-	}
-*/
-
 void CnvWidget::applyFilters(bool debug_time)
 {
 	const int rows = cnvs.count();
@@ -333,6 +182,15 @@ void CnvWidget::applyFilters(bool debug_time)
 		timer.start();
 
 		const FilterCascade& filter_cascade = ui->filter_widget->filters();
+		//set comp-het gene list the first time the filter is applied
+		for(int i=0; i<filter_cascade.count(); ++i)
+		{
+			const FilterCnvCompHet* comphet_filter = dynamic_cast<const FilterCnvCompHet*>(filter_cascade[i].data());
+			if (comphet_filter!=nullptr && comphet_filter->hetHitGenes().count()!=var_het_genes.count())
+			{
+				comphet_filter->setHetHitGenes(var_het_genes);
+			}
+		}
 		filter_result = filter_cascade.apply(cnvs, false, debug_time);
 		ui->filter_widget->markFailedFilters();
 

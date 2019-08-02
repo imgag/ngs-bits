@@ -80,7 +80,6 @@ void FilterCascadeWidget::focusFilter(int index)
 
 void FilterCascadeWidget::setFilters(const FilterCascade& filters)
 {
-	//set filters
 	filters_ = filters;
 
 	//overwrite valid entries of 'filter' column
@@ -93,6 +92,7 @@ void FilterCascadeWidget::setFilters(const FilterCascade& filters)
 	}
 
 	updateGUI();
+
 	emit filterCascadeChanged();
 }
 

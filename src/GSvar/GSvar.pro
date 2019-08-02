@@ -8,7 +8,6 @@ RC_FILE	 = icon.rc
 
 SOURCES += main.cpp\
     MainWindow.cpp \
-    FilterDockWidget.cpp \
     ExternalToolDialog.cpp \
     ReportDialog.cpp \
     ReportWorker.cpp \
@@ -60,10 +59,10 @@ SOURCES += main.cpp\
     SampleRelationDialog.cpp \
     ProcessedSampleSelector.cpp \
     FilterWidgetCNV.cpp \
-    FilterCascadeWidget.cpp
+    FilterCascadeWidget.cpp \
+    FilterWidget.cpp
 
 HEADERS  += MainWindow.h \
-    FilterDockWidget.h \
     ExternalToolDialog.h \
     ReportDialog.h \
     ReportWorker.h \
@@ -115,10 +114,10 @@ HEADERS  += MainWindow.h \
     SampleRelationDialog.h \
     ProcessedSampleSelector.h \
     FilterWidgetCNV.h \
-    FilterCascadeWidget.h
+    FilterCascadeWidget.h \
+    FilterWidget.h
 
 FORMS    += MainWindow.ui \
-    FilterDockWidget.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
     TrioDialog.ui \
@@ -161,7 +160,8 @@ FORMS    += MainWindow.ui \
     SampleRelationDialog.ui \
     ProcessedSampleSelector.ui \
     FilterWidgetCNV.ui \
-    FilterCascadeWidget.ui
+    FilterCascadeWidget.ui \
+    FilterWidget.ui
 
 include("../app_gui.pri")
 

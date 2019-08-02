@@ -6,7 +6,7 @@
 #include "BedFile.h"
 #include "GeneSet.h"
 #include "Phenotype.h"
-#include "FilterDockWidget.h"
+#include "FilterWidget.h"
 
 //Filter manager dock widget
 class FilterWidgetCNV
@@ -18,7 +18,7 @@ public:
 	/// Default constructor
 	FilterWidgetCNV(QWidget* parent = 0);
 	/// Sets the small variant filter widget (needed to import data from it)
-	void setVariantFilterWidget(FilterDockWidget* filter_widget);
+	void setVariantFilterWidget(FilterWidget* filter_widget);
 
 	/// Resets to initial state (uncheck boxes, no ROI)
 	void reset(bool clear_roi);
@@ -80,7 +80,7 @@ private:
 	Ui::FilterWidgetCNV ui_;
 	GeneSet last_genes_;
 	QList<Phenotype> phenotypes_;
-	FilterDockWidget* filter_widget_;
+	FilterWidget* filter_widget_;
 };
 
 #endif // FILTERWIDGETCNV_H

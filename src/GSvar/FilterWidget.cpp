@@ -1,4 +1,4 @@
-#include "FilterDockWidget.h"
+#include "FilterWidget.h"
 #include "Settings.h"
 #include "Helper.h"
 #include "NGSD.h"
@@ -11,7 +11,7 @@
 #include <QCompleter>
 #include <QMenu>
 
-FilterDockWidget::FilterDockWidget(QWidget *parent)
+FilterWidget::FilterWidget(QWidget *parent)
 	: QWidget(parent)
 	, ui_()
 {
@@ -46,12 +46,12 @@ FilterDockWidget::FilterDockWidget(QWidget *parent)
 	reset(true);
 }
 
-void FilterDockWidget::setValidFilterEntries(const QStringList& filter_entries)
+void FilterWidget::setValidFilterEntries(const QStringList& filter_entries)
 {
 	ui_.cascade_widget->setValidFilterEntries(filter_entries);
 }
 
-void FilterDockWidget::setFilters(const QString& name, const FilterCascade& filters)
+void FilterWidget::setFilters(const QString& name, const FilterCascade& filters)
 {
 	ui_.cascade_widget->setFilters(filters);
 
@@ -59,12 +59,12 @@ void FilterDockWidget::setFilters(const QString& name, const FilterCascade& filt
 	ui_.filter_name->setText(name);
 }
 
-void FilterDockWidget::markFailedFilters()
+void FilterWidget::markFailedFilters()
 {
 	ui_.cascade_widget->markFailedFilters();
 }
 
-void FilterDockWidget::loadTargetRegions()
+void FilterWidget::loadTargetRegions()
 {
 	ui_.rois->blockSignals(true);
 
@@ -129,7 +129,7 @@ void FilterDockWidget::loadTargetRegions()
 	ui_.rois->blockSignals(false);
 }
 
-void FilterDockWidget::resetSignalsUnblocked(bool clear_roi)
+void FilterWidget::resetSignalsUnblocked(bool clear_roi)
 {
 	//filter cols
 	ui_.cascade_widget->clear();
@@ -153,7 +153,7 @@ void FilterDockWidget::resetSignalsUnblocked(bool clear_roi)
 	phenotypesChanged();
 }
 
-void FilterDockWidget::reset(bool clear_roi)
+void FilterWidget::reset(bool clear_roi)
 {
 	ui_.filter_name->setText("[none]");
 
@@ -165,17 +165,17 @@ void FilterDockWidget::reset(bool clear_roi)
 	if (clear_roi) emit targetRegionChanged();
 }
 
-QString FilterDockWidget::targetRegion() const
+QString FilterWidget::targetRegion() const
 {
 	return ui_.rois->toolTip();
 }
 
-QString FilterDockWidget::targetRegionName() const
+QString FilterWidget::targetRegionName() const
 {
 	return ui_.rois->currentText();
 }
 
-void FilterDockWidget::setTargetRegion(QString roi_file)
+void FilterWidget::setTargetRegion(QString roi_file)
 {
 	roi_file = Helper::canonicalPath(roi_file);
 	for (int i=0; i<ui_.rois->count(); ++i)
@@ -190,44 +190,44 @@ void FilterDockWidget::setTargetRegion(QString roi_file)
 	emit targetRegionChanged();
 }
 
-GeneSet FilterDockWidget::genes() const
+GeneSet FilterWidget::genes() const
 {
 	return GeneSet::createFromText(ui_.gene->text().toLatin1(), ',');
 }
 
-QByteArray FilterDockWidget::text() const
+QByteArray FilterWidget::text() const
 {
 	return ui_.text->text().trimmed().toLatin1();
 }
 
-QString FilterDockWidget::region() const
+QString FilterWidget::region() const
 {
 	return ui_.region->text().trimmed();
 }
 
-void FilterDockWidget::setRegion(QString region)
+void FilterWidget::setRegion(QString region)
 {
 	ui_.region->setText(region);
 	regionChanged();
 }
 
-const QList<Phenotype>& FilterDockWidget::phenotypes() const
+const QList<Phenotype>& FilterWidget::phenotypes() const
 {
 	return phenotypes_;
 }
 
-void FilterDockWidget::setPhenotypes(const QList<Phenotype>& phenotypes)
+void FilterWidget::setPhenotypes(const QList<Phenotype>& phenotypes)
 {
 	phenotypes_ = phenotypes;
 	phenotypesChanged();
 }
 
-const FilterCascade& FilterDockWidget::filters() const
+const FilterCascade& FilterWidget::filters() const
 {
 	return ui_.cascade_widget->filters();
 }
 
-void FilterDockWidget::addRoi()
+void FilterWidget::addRoi()
 {
 	//get file to open
 	QString path = Settings::path("path_regions");
@@ -248,7 +248,7 @@ void FilterDockWidget::addRoi()
 	loadTargetRegions();
 }
 
-void FilterDockWidget::addRoiTemp()
+void FilterWidget::addRoiTemp()
 {
 	//get file to open
 	QString path = Settings::path("path_regions");
@@ -259,7 +259,7 @@ void FilterDockWidget::addRoiTemp()
 	ui_.rois->addItem(QFileInfo(filename).fileName(), Helper::canonicalPath(filename));
 }
 
-void FilterDockWidget::removeRoi()
+void FilterWidget::removeRoi()
 {
 	QString filename = ui_.rois->itemData(ui_.rois->currentIndex()).toString();
 	if (filename=="") return;
@@ -274,7 +274,7 @@ void FilterDockWidget::removeRoi()
 	emit filtersChanged();
 }
 
-void FilterDockWidget::roiSelectionChanged(int index)
+void FilterWidget::roiSelectionChanged(int index)
 {
 	//delete old completer
 	QCompleter* completer_old = ui_.rois->completer();
@@ -310,7 +310,7 @@ void FilterDockWidget::roiSelectionChanged(int index)
 	}
 }
 
-void FilterDockWidget::geneChanged()
+void FilterWidget::geneChanged()
 {
 	if (genes()!=last_genes_)
 	{
@@ -319,17 +319,17 @@ void FilterDockWidget::geneChanged()
 	}
 }
 
-void FilterDockWidget::textChanged()
+void FilterWidget::textChanged()
 {
 	emit filtersChanged();
 }
 
-void FilterDockWidget::regionChanged()
+void FilterWidget::regionChanged()
 {
 	emit filtersChanged();
 }
 
-void FilterDockWidget::phenotypesChanged()
+void FilterWidget::phenotypesChanged()
 {
 	//update GUI
 	QByteArrayList tmp;
@@ -354,7 +354,7 @@ void FilterDockWidget::phenotypesChanged()
 	emit filtersChanged();
 }
 
-void FilterDockWidget::updateFilterName()
+void FilterWidget::updateFilterName()
 {
 	QString name = ui_.filter_name->text();
 
@@ -364,7 +364,7 @@ void FilterDockWidget::updateFilterName()
 	ui_.filter_name->setText(name + " [modified]");
 }
 
-void FilterDockWidget::showTargetRegionDetails()
+void FilterWidget::showTargetRegionDetails()
 {
 	QString roi = targetRegion();
 	if (roi=="") return;
@@ -396,7 +396,7 @@ void FilterDockWidget::showTargetRegionDetails()
 	dlg.exec();
 }
 
-void FilterDockWidget::updateGeneWarning()
+void FilterWidget::updateGeneWarning()
 {
 	QStringList warnings;
 
@@ -436,7 +436,7 @@ void FilterDockWidget::updateGeneWarning()
 	ui_.gene_warning->setHidden(warnings.isEmpty());
 }
 
-void FilterDockWidget::editPhenotypes()
+void FilterWidget::editPhenotypes()
 {
 	//edit
 	PhenotypeSelectionWidget* selector = new PhenotypeSelectionWidget(this);
@@ -451,7 +451,7 @@ void FilterDockWidget::editPhenotypes()
 	}
 }
 
-void FilterDockWidget::showPhenotypeContextMenu(QPoint pos)
+void FilterWidget::showPhenotypeContextMenu(QPoint pos)
 {
 	//set up
 	QMenu menu;

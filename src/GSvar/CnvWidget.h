@@ -5,7 +5,7 @@
 #include <QTableWidgetItem>
 #include "CnvList.h"
 #include "GeneSet.h"
-#include "FilterDockWidget.h"
+#include "FilterWidget.h"
 
 namespace Ui {
 class CnvWidget;
@@ -18,7 +18,7 @@ class CnvWidget
 	Q_OBJECT
 
 public:
-	CnvWidget(QString gsvar_file, FilterDockWidget* filter_widget, const GeneSet& het_hit_genes, QWidget *parent = 0);
+	CnvWidget(QString gsvar_file, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QWidget *parent = 0);
 	~CnvWidget();
 
 signals:
@@ -41,9 +41,9 @@ private:
 
 	Ui::CnvWidget* ui;
 	CnvList cnvs;
-	QStringList special_cols_;
-	FilterDockWidget* var_filters;
-	GeneSet var_het_hit_genes;
+	QStringList special_cols;
+	FilterWidget* var_filters;
+	GeneSet var_het_genes;
 };
 
 #endif // CNVWIDGET_H
@@ -51,12 +51,7 @@ private:
 
 /*
 TODO:
-- Special filters:
-	- CnvHunter: min z-score, CN:0,1,2,3,4+, max AF, comp-het
-	- ClinCNV: min ll>=20, max q-value, CN:0,1,2,3,4+ , max AF, comp-het
+- Add default filters based on CNV list type (on widget)
+- Test all types: CnvHunter somatic (single), ClinCNV somatic (pair), ClinCNV multi
 - Add settings for UCSC (see paper)
-- Add default filters based on CNV list type
-- Test all types:
-	- CnvHunter: somatic (single), germline (panels)
-	- ClinCMV: germline (exome/genome), somatic (pair), multi
 */

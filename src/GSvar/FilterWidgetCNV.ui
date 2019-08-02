@@ -89,7 +89,7 @@
            </sizepolicy>
           </property>
           <property name="text">
-           <string/>
+           <string>[none]</string>
           </property>
          </widget>
         </item>

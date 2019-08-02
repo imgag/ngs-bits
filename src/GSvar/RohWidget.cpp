@@ -14,7 +14,7 @@
 #include <QDesktopServices>
 #include <QUrl>
 
-RohWidget::RohWidget(QString filename, FilterDockWidget* filter_widget, QWidget *parent)
+RohWidget::RohWidget(QString filename, FilterWidget* filter_widget, QWidget *parent)
 	: QWidget(parent)
 	, var_filters(filter_widget)
 	, ui(new Ui::RohWidget)

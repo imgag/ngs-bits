@@ -3,6 +3,7 @@
 
 #include "VariantList.h"
 #include "CnvList.h"
+#include "GeneSet.h"
 
 #include <QVariant>
 #include <QString>
@@ -337,6 +338,7 @@ class CPPNGSSHARED_EXPORT FilterFilterColumn
 		QString toText() const override;
 		void apply(const VariantList& variants, FilterResult& result) const override;
 
+	protected:
 		//Returns if there is a filter column match
 		bool match(const Variant& v) const;
 
@@ -394,7 +396,7 @@ class CPPNGSSHARED_EXPORT FilterClassificationNGSD
 		QString toText() const override;
 		void apply(const VariantList& variants, FilterResult& result) const override;
 
-
+protected:
 		//Returns if there is a class column match
 		bool match(const Variant& v) const;
 
@@ -432,6 +434,7 @@ class CPPNGSSHARED_EXPORT FilterGenotypeControl
 		QString toText() const override;
 		void apply(const VariantList& variants, FilterResult& result) const override;
 
+	protected:
 		//Checks that all samples have the same genotype and returns it, or "" otherwise.
 		QByteArray checkSameGenotype(const QList<int>& geno_indices, const Variant& v) const;
 };
@@ -445,6 +448,7 @@ class CPPNGSSHARED_EXPORT FilterGenotypeAffected
 		QString toText() const override;
 		void apply(const VariantList& variants, FilterResult& result) const override;
 
+	protected:
 		//Checks that all samples have the same genotype and returns it, or "" otherwise.
 		QByteArray checkSameGenotype(const QList<int>& geno_indices, const Variant& v) const;
 };
@@ -458,6 +462,7 @@ class CPPNGSSHARED_EXPORT FilterColumnMatchRegexp
 		QString toText() const override;
 		void apply(const VariantList& variants, FilterResult& result) const override;
 
+	protected:
 		bool match(const Variant& v) const;
 
 		mutable int index;
@@ -473,6 +478,7 @@ class CPPNGSSHARED_EXPORT FilterAnnotationPathogenic
 		QString toText() const override;
 		void apply(const VariantList& variants, FilterResult& result) const override;
 
+	protected:
 		//Returns of the variant is annotated to be pathogenic
 		bool annotatedPathogenic(const Variant& v) const;
 
@@ -490,6 +496,7 @@ class CPPNGSSHARED_EXPORT FilterPredictionPathogenic
 		QString toText() const override;
 		void apply(const VariantList& variants, FilterResult& result) const override;
 
+	protected:
 		//Counts the number of pathogenic predictions
 		bool predictedPathogenic(const Variant& v) const;
 
@@ -511,6 +518,7 @@ class CPPNGSSHARED_EXPORT FilterAnnotationText
 		QString toText() const override;
 		void apply(const VariantList& variants, FilterResult& result) const override;
 
+	protected:
 		bool match(const Variant& v) const;
 
 		mutable QByteArray term;
@@ -535,6 +543,7 @@ class CPPNGSSHARED_EXPORT FilterTrio
 		QString toText() const override;
 		void apply(const VariantList& variants, FilterResult& result) const override;
 
+	protected:
 		//returns genotypes corrected by allele frequency
 		void correctedGenotypes(const Variant& v, QByteArray& geno_c, QByteArray& geno_f, QByteArray& geno_m) const;
 
@@ -545,7 +554,6 @@ class CPPNGSSHARED_EXPORT FilterTrio
 		mutable int i_af_c;
 		mutable int i_af_f;
 		mutable int i_af_m;
-
 };
 
 //OMIM filter
@@ -599,5 +607,81 @@ class CPPNGSSHARED_EXPORT FilterCnvRegions
 		void apply(const CnvList& cnvs, FilterResult& result) const override;
 };
 
+//Filter CNV copy-number
+class CPPNGSSHARED_EXPORT FilterCnvCopyNumber
+	: public FilterBase
+{
+	public:
+		FilterCnvCopyNumber();
+		QString toText() const override;
+		void apply(const CnvList& cnvs, FilterResult& result) const override;
+};
 
+//Filter CNV allele frequency
+class CPPNGSSHARED_EXPORT FilterCnvAlleleFrequency
+	: public FilterBase
+{
+	public:
+		FilterCnvAlleleFrequency();
+		QString toText() const override;
+		void apply(const CnvList& cnvs, FilterResult& result) const override;
+};
+
+
+//Filter CNV z-score
+class CPPNGSSHARED_EXPORT FilterCnvZscore
+	: public FilterBase
+{
+	public:
+		FilterCnvZscore();
+		QString toText() const override;
+		void apply(const CnvList& cnvs, FilterResult& result) const override;
+};
+
+
+//Filter CNV log-likelihood
+class CPPNGSSHARED_EXPORT FilterCnvLoglikelihood
+	: public FilterBase
+{
+	public:
+		FilterCnvLoglikelihood();
+		QString toText() const override;
+		void apply(const CnvList& cnvs, FilterResult& result) const override;
+};
+
+//Filter CNV q-value
+class CPPNGSSHARED_EXPORT FilterCnvQvalue
+	: public FilterBase
+{
+	public:
+		FilterCnvQvalue();
+		QString toText() const override;
+		void apply(const CnvList& cnvs, FilterResult& result) const override;
+};
+
+
+//Filter CNV compound-heterozygous
+class CPPNGSSHARED_EXPORT FilterCnvCompHet
+	: public FilterBase
+{
+	public:
+		FilterCnvCompHet();
+		QString toText() const override;
+		void apply(const CnvList& cnvs, FilterResult& result) const override;
+
+		//Returns the list of genes that have one heterzygous hit in the small variant list.
+		const GeneSet& hetHitGenes() const
+		{
+			return het_hit_genes_;
+		}
+
+		//Sets the list of genes that have one heterzygous hit in the small variant list.
+		void setHetHitGenes(const GeneSet& het_var_genes) const
+		{
+			het_hit_genes_ = het_var_genes;
+		}
+
+	protected:
+		mutable GeneSet het_hit_genes_;
+};
 #endif // FILTERCASCADE_H

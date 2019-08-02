@@ -1,22 +1,22 @@
-#ifndef FILTERDOCKWIDGET_H
-#define FILTERDOCKWIDGET_H
+#ifndef FILTERWIDGET_H
+#define FILTERWIDGET_H
 
 #include <QWidget>
-#include "ui_FilterDockWidget.h"
+#include "ui_FilterWidget.h"
 #include "BedFile.h"
 #include "GeneSet.h"
 #include "Phenotype.h"
 #include "FilterCascade.h"
 
 //Filter manager dock widget
-class FilterDockWidget
+class FilterWidget
 	: public QWidget
 {
 	Q_OBJECT
 	
 public:
 	/// Default constructor
-	FilterDockWidget(QWidget *parent = 0);
+	FilterWidget(QWidget *parent = 0);
 	/// Set entries of the 'filter' column valid in the open file
 	void setValidFilterEntries(const QStringList& filter_entries);
 
@@ -84,9 +84,9 @@ private:
 	//Resets the filters without blocking signals.
 	void resetSignalsUnblocked(bool clear_roi);
 
-	Ui::FilterDockWidget ui_;
+	Ui::FilterWidget ui_;
 	GeneSet last_genes_;
 	QList<Phenotype> phenotypes_;
 };
 
-#endif // FILTERDOCKWIDGET_H
+#endif // FILTERWIDGET_H
