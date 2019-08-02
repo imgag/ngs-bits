@@ -6,6 +6,7 @@
 #include "GeneSet.h"
 #include <QList>
 #include <QByteArrayList>
+#include <QMap>
 
 ///Copy-number variant composed of sub-regions as reported by CnvHunter.
 class CPPNGSSHARED_EXPORT CopyNumberVariant
@@ -115,6 +116,10 @@ class CPPNGSSHARED_EXPORT CnvList
 		{
 			return annotation_headers_;
 		}
+		///Returns the annotation header description or '' if unset.
+		QByteArray headerDescription(QByteArray name) const;
+		///Sets an annotation header description
+		void setHeaderDesciption(QByteArray name, QByteArray desciption);
 
 		///Returns the index of an annotation. -1 is returned if not present and -2 if present multiple times.
 		int annotationIndexByName(const QByteArray& name, bool throw_on_error) const;
@@ -158,6 +163,7 @@ class CPPNGSSHARED_EXPORT CnvList
 		CnvListType type_;
 		QByteArrayList comments_;
 		QByteArrayList annotation_headers_;
+		QMap<QByteArray, QByteArray> annotation_header_desc_;
 		QList<CopyNumberVariant> variants_;
 };
 

@@ -51,7 +51,6 @@ private:
 
 /*
 TODO:
-- Handle description lines in CnvList: ##DESCRIPTION=cnv_type=Type of CNV: focal (< 25 % of chrom. arm, < 3 genes), cluster (focal, > 3 genes), (partial) p/q-arm, (partial) chromosome.
 - Filter OMIM
 - Filter overlap CNPs
 - Test all types: ClinCNV multi, CnvHunter multi

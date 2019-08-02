@@ -50,9 +50,9 @@ void CnvList::load(QString filename)
 	QByteArray type_prefix = "##ANALYSISTYPE=";
 	foreach(QByteArray line, file.comments())
 	{
-		if (line.startsWith(type_prefix))
+		if (line.startsWith(type_prefix)) //analysis type
 		{
-			QString type = line.mid(type_prefix.length()).trimmed();
+			QByteArray type = line.mid(type_prefix.length()).trimmed();
 			if (type=="CNVHUNTER_GERMLINE_SINGLE") type_ = CnvListType::CNVHUNTER_GERMLINE_SINGLE;
 			else if (type=="CNVHUNTER_GERMLINE_MULTI") type_ = CnvListType::CNVHUNTER_GERMLINE_MULTI;
 			else if (type=="CLINCNV_GERMLINE_SINGLE") type_ = CnvListType::CLINCNV_GERMLINE_SINGLE;
@@ -60,7 +60,15 @@ void CnvList::load(QString filename)
 			else if (type=="CLINCNV_TUMOR_NORMAL_PAIR") type_ = CnvListType::CLINCNV_TUMOR_NORMAL_PAIR;
 			else THROW(FileParseException, "CNV file '" + filename + "' contains unknown analysis type: " + type);
 		}
-		else
+		else if (line.startsWith("##DESCRIPTION=")) //header descriptions
+		{
+			QByteArrayList parts = line.trimmed().split('=');
+			if (parts.count()>2)
+			{
+				setHeaderDesciption(parts[1], parts[2]);
+			}
+		}
+		else //all other header lines
 		{
 			comments_ << line;
 		}
@@ -148,6 +156,16 @@ void CnvList::load(QString filename)
 
 		variants_.append(CopyNumberVariant(parts[i_chr], parts[i_start].toInt(), parts[i_end].toInt(), region_count, genes, annos));
 	}
+}
+
+QByteArray CnvList::headerDescription(QByteArray name) const
+{
+	return annotation_header_desc_.value(name, "");
+}
+
+void CnvList::setHeaderDesciption(QByteArray name, QByteArray desciption)
+{
+	annotation_header_desc_[name] = desciption;
 }
 
 int CnvList::annotationIndexByName(const QByteArray& name, bool throw_on_error) const

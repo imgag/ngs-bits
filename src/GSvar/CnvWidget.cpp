@@ -139,17 +139,30 @@ void CnvWidget::loadCNVs(QString filename)
 	QVector<int> annotation_indices;
 	for(int i=0; i<cnvs.annotationHeaders().count(); ++i)
 	{
-		QString header = cnvs.annotationHeaders()[i];
-		if (header=="size" || header=="region_count") continue; //CnvHunter germline special handling
+		QByteArray header = cnvs.annotationHeaders()[i];
 
+		//add column
 		ui->cnvs->setColumnCount(ui->cnvs->columnCount() + 1);
-		QTableWidgetItem* item = new QTableWidgetItem(header);
+
+		//create item
+		QTableWidgetItem* item = new QTableWidgetItem(QString(header));
+		QStringList tooltip_lines;
+
+		QByteArray header_desc = cnvs.headerDescription(header);
+		if (!header_desc.isEmpty())
+		{
+			tooltip_lines << header_desc;
+		}
 		if (special_cols.contains(header))
 		{
 			item->setIcon(QIcon("://Icons/Table.png"));
-			item->setToolTip("Double click table cell to open table view of annotations");
+			tooltip_lines << "Double click table cell to open table view of annotations";
 		}
+		item->setToolTip(tooltip_lines.join('\n'));
+
+		//set header
 		ui->cnvs->setHorizontalHeaderItem(ui->cnvs->columnCount() -1, item);
+
 		annotation_indices.append(i);
 	}
 

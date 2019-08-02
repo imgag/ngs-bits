@@ -543,7 +543,6 @@ QStringList FilterCascade::errors(int index) const
 
 QStringList FilterCascadeFile::names(QString filename)
 {
-	qDebug() << __LINE__;
 	QStringList output;
 
 	foreach(QString line, Helper::loadTextFile(filename, true, QChar::Null, true))
