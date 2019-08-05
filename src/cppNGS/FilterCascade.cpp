@@ -3,6 +3,7 @@
 #include "GeneSet.h"
 #include "Helper.h"
 #include "Log.h"
+#include "cmath"
 
 /*************************************************** FilterParameter ***************************************************/
 
@@ -2496,7 +2497,7 @@ void FilterCnvZscore::apply(const CnvList& cnvs, FilterResult& result) const
 		bool hit = false;
 		foreach (const QByteArray& z, zs)
 		{
-			double z_num = std::fabs(z.toDouble());
+			double z_num = fabs(z.toDouble());
 			if (z_num>=min_z)
 			{
 				hit = true;
