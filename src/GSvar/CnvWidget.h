@@ -47,12 +47,3 @@ private:
 };
 
 #endif // CNVWIDGET_H
-
-
-/*
-TODO:
-- Filter OMIM
-- Filter overlap CNPs
-- Test all types: ClinCNV multi, CnvHunter multi
-- Add settings for UCSC (see paper)
-*/

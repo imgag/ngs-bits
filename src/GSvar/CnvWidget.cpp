@@ -126,7 +126,7 @@ void CnvWidget::loadCNVs(QString filename)
 	//show comments
 	foreach(const QByteArray& comment, cnvs.comments())
 	{
-		if (cnvs.type()==CnvListType::CLINCNV_GERMLINE_SINGLE)
+		if (cnvs.type()==CnvListType::CLINCNV_GERMLINE_SINGLE || cnvs.type()==CnvListType::CLINCNV_GERMLINE_MULTI)
 		{
 			if (comment.contains("Analysis finished on")) continue;
 			if (comment.contains("was it outlier after clustering")) continue;
@@ -172,7 +172,9 @@ void CnvWidget::loadCNVs(QString filename)
 	{
 		ui->cnvs->setItem(r, 0, createItem(cnvs[r].toString()));
 		ui->cnvs->setItem(r, 1, createItem(QString::number(cnvs[r].size()/1000.0, 'f', 3), Qt::AlignRight|Qt::AlignTop));
-		ui->cnvs->setItem(r, 2, createItem(QString::number(cnvs[r].regions()), Qt::AlignRight|Qt::AlignTop));
+		QString regions = QString::number(cnvs[r].regions());
+		if (regions=="0") regions="n/a";
+		ui->cnvs->setItem(r, 2, createItem(regions, Qt::AlignRight|Qt::AlignTop));
 		ui->cnvs->setItem(r, 3, createItem(QString(cnvs[r].genes().join(','))));
 
 		int c = 4;

@@ -698,4 +698,27 @@ class CPPNGSSHARED_EXPORT FilterCnvCompHet
 	protected:
 		mutable GeneSet het_hit_genes_;
 };
+
+
+//Filter CNVs for OMIM annotation
+class CPPNGSSHARED_EXPORT FilterCnvOMIM
+	: public FilterBase
+{
+	public:
+		FilterCnvOMIM();
+		QString toText() const override;
+		void apply(const CnvList& cnvs, FilterResult& result) const override;
+};
+
+
+//Filter CNVs for overlap with CNP regions
+class CPPNGSSHARED_EXPORT FilterCnvCnpOverlap
+	: public FilterBase
+{
+	public:
+		FilterCnvCnpOverlap();
+		QString toText() const override;
+		void apply(const CnvList& cnvs, FilterResult& result) const override;
+};
+
 #endif // FILTERCASCADE_H

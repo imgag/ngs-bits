@@ -101,6 +101,17 @@ void CnvList::load(QString filename)
 		int i_size = file.colIndex("size", true);
 		annotation_indices.removeAll(i_size);
 	}
+	else if (type()==CnvListType::CNVHUNTER_GERMLINE_MULTI)
+	{
+		//mandatory columns
+		i_region_count = file.colIndex("region_count", false);
+		annotation_indices.removeAll(i_region_count);
+		//remove columns
+		int i_sample = file.colIndex("sample", true);
+		annotation_indices.removeAll(i_sample);
+		int i_size = file.colIndex("size", true);
+		annotation_indices.removeAll(i_size);
+	}
 	else if (type()==CnvListType::CLINCNV_GERMLINE_SINGLE)
 	{
 		//mandatory columns
@@ -108,6 +119,16 @@ void CnvList::load(QString filename)
 		annotation_indices.removeAll(i_region_count);
 		//remove
 		int i_size = file.colIndex("length_KB", true);
+		annotation_indices.removeAll(i_size);
+	}
+	else if (type()==CnvListType::CLINCNV_GERMLINE_MULTI)
+	{
+		//mandatory columns
+		i_region_count = -2; //not present
+		//remove
+		int i_sample = file.colIndex("sample", true);
+		annotation_indices.removeAll(i_sample);
+		int i_size = file.colIndex("size", true);
 		annotation_indices.removeAll(i_size);
 	}
 	else if (type()==CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
@@ -142,7 +163,11 @@ void CnvList::load(QString filename)
 		QByteArrayList parts = file.readLine();
 
 		//regions
-		int region_count = parts[i_region_count].toInt();
+		int region_count = 0;
+		if (i_region_count>=0)
+		{
+			 region_count = parts[i_region_count].toInt();
+		}
 
 		//genes
 		GeneSet genes = GeneSet::createFromText(parts[i_genes], ',');

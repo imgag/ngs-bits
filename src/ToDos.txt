@@ -22,13 +22,15 @@ NGSD:
 - NGSD annotation: export VCF, use VCF for annotation (also works on external servers)
 
 GSvar:
-**** benchmark/speedup of HPO filter (also several filter changes)
-**** Split tools/NGSD menu > disable NGSD menu when NGSD is not enabled.
-**** NGSD disabled: disable NGSD tab search
-****  subpanel design: use preferred transcript instead of all transcripts
-**** replace GeneInfoOMIM by new view
+**** Add settings for UCSC for CNV widget (see paper)
+#### benchmark/speedup of HPO filter (also several filter changes)
+#### Split tools/NGSD menu > disable NGSD menu when NGSD is not enabled.
+#### NGSD disabled: disable NGSD tab search
+#### subpanel design: add checkbox to use preferred transcript instead of all transcripts
 ## Filter: enhancer/promotor - de-novo
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
+** Add HPO phenotypes to variant summary widget and gene summary widget
+** replace GeneInfoOMIM webservice by new view
 - Implement OMIM search via API - example: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1 (wait for API access)
 * Add special report for trios/multi-sample with genotype overview > change format to RTF first (AG)
 * Add highlighting of imprinting genes to CNVs, ROHs and UPDs
