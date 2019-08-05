@@ -1,5 +1,5 @@
 ### VcfToBedpe tool help
-	VcfToBedpe (2019_07-6-g2f469ed)
+	VcfToBedpe (2019_07-8-g5a9c0944)
 	
 	Converts a vcf file containing SVs to Bedpe.
 	
@@ -20,6 +20,6 @@
 	  --tdx        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VcfToBedpe changelog
-	VcfToBedpe 2019_07-6-g2f469ed
+	VcfToBedpe 2019_07-8-g5a9c0944
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

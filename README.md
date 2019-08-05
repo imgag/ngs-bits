@@ -16,14 +16,13 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 Changes already implemented in GIT master for next release:
 
+* none so far.
+
+Changes in release 2019_08:
+
 * SomaticQC: fixed a bug that caused hanging when no target region BED was given.
 * removed tool: VcfBreakComplex (was beta and never finished)
 
-Changes in release 2019_07:
-
-* BedAnnotateFromBed: Updated interface to make the output more configurable.
-* SomaticQC: Updated tumor mutation burden calculation.
-* several minor changes and bug fixes.
 
 For older releases see the [releases page](https://github.com/imgag/ngs-bits/releases).
 
