@@ -1,7 +1,7 @@
 #ifndef SOMATICREPORTCONFIGURATION_H
 #define SOMATICREPORTCONFIGURATION_H
 
-#include "ClinCnvList.h"
+#include "CnvList.h"
 #include <QBitArray>
 #include <QWidget>
 #include <QDialog>
@@ -16,17 +16,17 @@ class SomaticReportConfiguration : public QDialog
 	Q_OBJECT
 
 public:
-	explicit SomaticReportConfiguration(const ClinCnvList& cnv_input, QWidget *parent = 0);
+	explicit SomaticReportConfiguration(const CnvList& cnv_input, QWidget *parent = 0);
 	~SomaticReportConfiguration();
 
 	///Returns the selected CNVs
-	ClinCnvList getSelectedCNVs();
+	CnvList getSelectedCNVs();
 
 private:
 	Ui::SomaticReportConfiguration *ui_;
 
 	///List with cnvs
-	ClinCnvList cnvs_;
+	CnvList cnvs_;
 	///gene filter for preselection of cnvs
 	GeneSet keep_genes_cnv_;
 

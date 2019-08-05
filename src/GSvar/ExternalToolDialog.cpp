@@ -83,7 +83,7 @@ void ExternalToolDialog::browse()
 		//output
 		foreach(auto info, estimate.add_info)
 		{
-			stream  << info.first << ": " << info.second << endl;
+			stream  << info.key << ": " << info.value << endl;
 		}
 		stream << endl;
 		stream << "gender: " << estimate.gender << endl;

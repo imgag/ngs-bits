@@ -12,7 +12,7 @@
 #include <QMainWindow>
 #include <QSqlError>
 
-RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, const ClinCnvList& cnvs, bool include_cnvs,const GeneSet& target_genes)
+RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, const CnvList& cnvs, bool include_cnvs,const GeneSet& target_genes)
 {
 	RtfTable table;
 
@@ -21,14 +21,14 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 	table.addRow(RtfTableRow(heading_text,doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(5).setHeader());
 	table.addRow(RtfTableRow({"Gene","Position","Type","Fraction","Description"},{1000,2400,1700,900,3638},RtfParagraph().setBold(true).setHorizontalAlignment("c")).setHeader());
 
-	if(snvs.count() == 0 && cnvs.count() == 0)
+	if(snvs.count() == 0 && cnvs.isEmpty())
 	{
 		table.removeRow(1); //remove description header
 		table.addRow(RtfTableRow("Es wurden keine potentiell relevanten somatischen Veränderungen nachgewiesen.",doc_.maxWidth()));
 		return table;
 	}
 
-	int i_cnv_tum_clonality = cnvs.annotationIndexByName("tumor_clonality",false);
+	int i_cnv_tum_clonality = cnvs.annotationIndexByName("tumor_clonality", false);
 	if(i_cnv_tum_clonality < 0)
 	{
 		table.addRow(RtfTableRow("No column \"tumor_clonality\" in ClinCNV file. Please recalculate it using a more recent ClinCNV version.",doc_.maxWidth(),RtfParagraph().highlight(3)));
@@ -56,7 +56,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 		int i_corresponding_cnv = -1;
 		for(int j=0;j<cnvs.count();++j)
 		{
-			if(cnvs[j].overlaps(snv.chr(),snv.start(),snv.end()))
+			if(cnvs[j].overlapsWith(snv.chr(),snv.start(),snv.end()))
 			{
 				i_corresponding_cnv = j;
 				break;
@@ -98,7 +98,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 		//Add row with information about CNV if there is an overlapping cnv
 		if(i_corresponding_cnv > -1)
 		{
-			const ClinCnvVariant& cnv = cnvs[i_corresponding_cnv];
+			const CopyNumberVariant& cnv = cnvs[i_corresponding_cnv];
 			genes_in_first_part << transcript.gene;
 
 			//set first cell that contains gene name as cell over multiple rows
@@ -155,8 +155,8 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 
 	//Add remaining CNVs to table
 
-	int i_ncg_oncogene = cnvs_filtered_.annotationIndexByName("ncg_oncogene",false);
-	int i_ncg_tsg = cnvs_filtered_.annotationIndexByName("ncg_tsg",false);
+	int i_ncg_oncogene = cnvs_filtered_.annotationIndexByName("ncg_oncogene", false);
+	int i_ncg_tsg = cnvs_filtered_.annotationIndexByName("ncg_tsg", false);
 
 
 	QMap<QByteArray,RtfTableRow> cna_genes_per_row;
@@ -164,7 +164,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 	//Make list of CNV drivers
 	for(int i=0;i<cnvs_filtered_.count();++i)
 	{
-		const ClinCnvVariant& cnv = cnvs_filtered_[i];
+		const CopyNumberVariant& cnv = cnvs_filtered_[i];
 
 		QByteArrayList genes = cnv.annotations().at(cnv_index_cgi_genes_).split(',');
 
@@ -284,11 +284,11 @@ RtfTable SomaticReportHelper::createCnvTable()
 	GeneSet target_genes = GeneSet::createFromFile(target_region.left(target_region.size()-4) + "_genes.txt");
 	target_genes = db_.genesToApproved(target_genes);
 
-	int i_cnv_state = cnvs_filtered_.annotationIndexByName("state",false);
+	int i_cnv_state = cnvs_filtered_.annotationIndexByName("state", false);
 
 	for(int i=0; i<cnvs_filtered_.count(); ++i)
 	{
-		const ClinCnvVariant& variant = cnvs_filtered_[i];
+		const CopyNumberVariant& variant = cnvs_filtered_[i];
 
 		RtfTableRow temp_row;
 
@@ -774,7 +774,7 @@ const QList<CGIDrugReportLine> CGIDrugTable::drugsSortedPerGeneName() const
 	return drugs;
 }
 
-SomaticReportHelper::SomaticReportHelper(QString snv_filename, const ClinCnvList& filtered_cnvs, const FilterCascade& filters, const QString& target_region)
+SomaticReportHelper::SomaticReportHelper(QString snv_filename, const CnvList& filtered_cnvs, const FilterCascade& filters, const QString& target_region)
 	: snv_filename_(snv_filename)
 	, target_region_(target_region)
 	, snv_germline_()
@@ -888,12 +888,13 @@ SomaticReportHelper::SomaticReportHelper(QString snv_filename, const ClinCnvList
 	snv_index_cgi_transcript_ = snv_variants_.annotationIndexByName("CGI_transcript",true,true);
 	snv_index_cgi_gene_ = snv_variants_.annotationIndexByName("CGI_gene",true,true);
 
-	cnv_index_cgi_gene_role_ = cnvs_filtered_.annotationIndexByName("CGI_gene_role",false);
-	cnv_index_cnv_type_ = cnvs_filtered_.annotationIndexByName("cnv_type",false);
-	cnv_index_cgi_genes_ = cnvs_filtered_.annotationIndexByName("CGI_genes",false);
-	cnv_index_cgi_driver_statement_ = cnvs_filtered_.annotationIndexByName("CGI_driver_statement",false);
-	cnv_index_tumor_clonality_ = cnvs_filtered_.annotationIndexByName("tumor_clonality",false);
-	cnv_index_tumor_cn_change_ = cnvs_filtered_.annotationIndexByName("tumor_CN_change",false);
+	cnv_index_cn_change_ = cnvs_filtered_.annotationIndexByName("CN_change", false);
+	cnv_index_cgi_gene_role_ = cnvs_filtered_.annotationIndexByName("CGI_gene_role", false);
+	cnv_index_cnv_type_ = cnvs_filtered_.annotationIndexByName("cnv_type", false);
+	cnv_index_cgi_genes_ = cnvs_filtered_.annotationIndexByName("CGI_genes", false);
+	cnv_index_cgi_driver_statement_ = cnvs_filtered_.annotationIndexByName("CGI_driver_statement", false);
+	cnv_index_tumor_clonality_ = cnvs_filtered_.annotationIndexByName("tumor_clonality", false);
+	cnv_index_tumor_cn_change_ = cnvs_filtered_.annotationIndexByName("tumor_CN_change", false);
 
 
 	//load qcml data
@@ -1426,7 +1427,7 @@ void SomaticReportHelper::somaticCnvForQbic()
 
 	for(int i=0; i < cnvs_filtered_.count(); ++i)
 	{
-		const ClinCnvVariant& variant = cnvs_filtered_[i];
+		const CopyNumberVariant& variant = cnvs_filtered_[i];
 
 		GeneSet genes_in_report = target_genes.intersect(GeneSet::createFromText(variant.annotations().at(cnv_index_cgi_genes_),','));
 
@@ -1441,7 +1442,7 @@ void SomaticReportHelper::somaticCnvForQbic()
 		stream << "\t";
 
 		//take copy number twice (-> total number of copys instead normalized to diploid chormosomes)
-		double copy_number = variant.copyNumber();
+		double copy_number = variant.annotations().at(cnv_index_cn_change_).toDouble();
 
 		if(copy_number > 2)
 		{
@@ -1715,7 +1716,7 @@ VariantTranscript SomaticReportHelper::selectSomaticTranscript(const Variant& va
 	return VariantTranscript();
 }
 
-QByteArray SomaticReportHelper::getCnvType(const ClinCnvVariant &cnv)
+QByteArray SomaticReportHelper::getCnvType(const CopyNumberVariant& cnv)
 {
 	bool success = false;
 	double tumor_cn = cnv.annotations().at(cnv_index_tumor_cn_change_).toDouble(&success);
@@ -1740,10 +1741,10 @@ QByteArray SomaticReportHelper::getCnvType(const ClinCnvVariant &cnv)
 	return type;
 }
 
-double SomaticReportHelper::getCnvMaxTumorClonality(const ClinCnvList &cnvs)
+double SomaticReportHelper::getCnvMaxTumorClonality(const CnvList& cnvs)
 {
-	int i_cnv_tum_clonality = cnvs.annotationIndexByName("tumor_clonality",false);
-	if(i_cnv_tum_clonality == -1 || cnvs.count() == 0) return std::numeric_limits<double>::quiet_NaN();
+	int i_cnv_tum_clonality = cnvs.annotationIndexByName("tumor_clonality", false);
+	if(i_cnv_tum_clonality == -1 || cnvs.isEmpty()) return std::numeric_limits<double>::quiet_NaN();
 
 	double tum_maximum_clonality = -1;
 	for(int j=0;j<cnvs.count();++j)
@@ -1829,7 +1830,7 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	general_info_table.addRow(RtfTableRow({"Tumoranteil (hist. / bioinf.):", histol_tumor_fraction_.toUtf8() + "\%" + " / " +QByteArray::number(tumor_molecular_proportion,'f',1) + "\%" + " / " + QByteArray::number(tumor_cnv_proportion,'f',1) + "\%"},{2500,7137}).setBorders(1,"brdrhair",4));
 
 	//Calc percentage of CNV altered genome
-	double cnv_altered_percentage = cnvs_filtered_.totalCNVsize() / 3101788170. * 100;
+	double cnv_altered_percentage = cnvs_filtered_.totalCnvSize() / 3101788170. * 100;
 	if(cnv_altered_percentage >= 0.01)
 	{
 		general_info_table.addRow(RtfTableRow({"CNV-Last:", QByteArray::number(cnv_altered_percentage,'f',1) + "\%"},{2500,7137}).setBorders(1,"brdrhair",4));

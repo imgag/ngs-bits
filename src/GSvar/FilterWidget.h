@@ -1,22 +1,22 @@
-#ifndef FILTERDOCKWIDGET_H
-#define FILTERDOCKWIDGET_H
+#ifndef FILTERWIDGET_H
+#define FILTERWIDGET_H
 
 #include <QWidget>
-#include "ui_FilterDockWidget.h"
+#include "ui_FilterWidget.h"
 #include "BedFile.h"
 #include "GeneSet.h"
 #include "Phenotype.h"
 #include "FilterCascade.h"
 
 //Filter manager dock widget
-class FilterDockWidget
+class FilterWidget
 	: public QWidget
 {
 	Q_OBJECT
 	
 public:
 	/// Default constructor
-	FilterDockWidget(QWidget *parent = 0);
+	FilterWidget(QWidget *parent = 0);
 	/// Set entries of the 'filter' column valid in the open file
 	void setValidFilterEntries(const QStringList& filter_entries);
 
@@ -30,8 +30,10 @@ public:
 	/// Visually marks filters that failed.
 	void markFailedFilters();
 
-	///Returns the target region BED file name or an empty string if unset.
+	///Returns the target region BED file or an empty string if unset.
 	QString targetRegion() const;
+	///Returns the target region display name or an empty string if unset.
+	QString targetRegionName() const;
 	///Sets the target region BED file.
 	void setTargetRegion(QString roi_file);
 
@@ -52,14 +54,9 @@ public:
 	/// Loads filter target regions (Processing systems from NGSD, Sub-panels from file system and additional target regions from INI file)
 	void loadTargetRegions();
 
-	/// Returns the row index of the currently selected filter, or -1 if none is selected;
-	int currentFilterIndex() const;
-
 signals:
 	/// Signal that is emitted when a filter changes (filter cascade, gene, text, region, phenotype)
 	void filtersChanged();
-	/// Signal that is emitted when the filter cascade changed. Note: triggers a filtersChanged() signal as well!
-	void filterCascadeChanged();
 	/// Signal is emitted when the target region changes
 	void targetRegionChanged();
 	/// Signal that loading phenotype data from NGSD was requested (this cannot be done inside the widget, because it knows nothing about the sample)
@@ -76,34 +73,20 @@ protected slots:
 	void textChanged();
 	void regionChanged();
 	void phenotypesChanged();
-	void onFilterCascadeChange(bool update_name);
+	void updateFilterName();
 	void showTargetRegionDetails();
 	void updateGeneWarning();
 	void editPhenotypes();
 	void showPhenotypeContextMenu(QPoint pos);
-	void updateGUI();
-	void filterSelectionChanged();
-
-	void addFilter();
-	void editSelectedFilter();
-	void deleteSelectedFilter();
-	void moveUpSelectedFilter();
-	void moveDownSelectedFilter();
-	void toggleSelectedFilter(QListWidgetItem* item);
 
 private:
 
 	//Resets the filters without blocking signals.
 	void resetSignalsUnblocked(bool clear_roi);
 
-	//Sets the focus to the given indes (and handles border cases)
-	void focusFilter(int index);
-
-	Ui::FilterDockWidget ui_;
+	Ui::FilterWidget ui_;
 	GeneSet last_genes_;
-	FilterCascade filters_;
 	QList<Phenotype> phenotypes_;
-	QStringList valid_filter_entries_;
 };
 
-#endif // FILTERDOCKWIDGET_H
+#endif // FILTERWIDGET_H

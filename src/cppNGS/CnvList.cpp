@@ -8,41 +8,33 @@ CopyNumberVariant::CopyNumberVariant()
 	: chr_()
 	, start_(0)
 	, end_(0)
-	, regions_()
-	, cns_()
-	, z_scores_()
-	, afs_()
+	, num_regs_()
 	, genes_()
 	, annotations_()
 {
 }
 
-CopyNumberVariant::CopyNumberVariant(const Chromosome& chr, int start, int end, QByteArrayList regions, QList<int> cns, QList<double> z_scores, QList<double> afs, GeneSet genes, QByteArrayList annotations)
+CopyNumberVariant::CopyNumberVariant(const Chromosome& chr, int start, int end, int num_regs, GeneSet genes, QByteArrayList annotations)
 	: chr_(chr)
 	, start_(start)
 	, end_(end)
-	, regions_(regions)
-	, cns_(cns)
-	, z_scores_(z_scores)
-	, afs_(afs)
+	, num_regs_(num_regs)
 	, genes_(genes)
 	, annotations_(annotations)
 {
-	if (regions_.count()!=cns_.count() || regions_.count()!=z_scores_.count() || regions_.count()!=afs_.count())
-	{
-		THROW(ProgrammingException, "Error while constructing copy-number variant. Region count mismatch for copy-numbers and/or z-scores!");
-	}
 }
 
 CnvList::CnvList()
-	: comments_()
-	, variants_()
+	: type_(CnvListType::INVALID)
+	, comments_()
 	, annotation_headers_()
+	, variants_()
 {
 }
 
 void CnvList::clear()
 {
+	type_ = CnvListType::INVALID;
 	comments_.clear();
 	variants_.clear();
 	annotation_headers_.clear();
@@ -53,30 +45,111 @@ void CnvList::load(QString filename)
 	//clear previous content
 	clear();
 
-	//parse file
+	//parse header
 	TSVFileStream file(filename);
-	comments_ = file.comments();
+	QByteArray type_prefix = "##ANALYSISTYPE=";
+	foreach(QByteArray line, file.comments())
+	{
+		if (line.startsWith(type_prefix)) //analysis type
+		{
+			QByteArray type = line.mid(type_prefix.length()).trimmed();
+			if (type=="CNVHUNTER_GERMLINE_SINGLE") type_ = CnvListType::CNVHUNTER_GERMLINE_SINGLE;
+			else if (type=="CNVHUNTER_GERMLINE_MULTI") type_ = CnvListType::CNVHUNTER_GERMLINE_MULTI;
+			else if (type=="CLINCNV_GERMLINE_SINGLE") type_ = CnvListType::CLINCNV_GERMLINE_SINGLE;
+			else if (type=="CLINCNV_GERMLINE_MULTI") type_ = CnvListType::CLINCNV_GERMLINE_MULTI;
+			else if (type=="CLINCNV_TUMOR_NORMAL_PAIR") type_ = CnvListType::CLINCNV_TUMOR_NORMAL_PAIR;
+			else THROW(FileParseException, "CNV file '" + filename + "' contains unknown analysis type: " + type);
+		}
+		else if (line.startsWith("##DESCRIPTION=")) //header descriptions
+		{
+			QByteArrayList parts = line.trimmed().split('=');
+			if (parts.count()>2)
+			{
+				setHeaderDesciption(parts[1], parts[2]);
+			}
+		}
+		else //all other header lines
+		{
+			comments_ << line;
+		}
+	}
+	if (type()==CnvListType::INVALID)
+	{
+		THROW(FileParseException, "CNV file '" + filename + "' is outdated. It does not contain an ##ANALYSISTYPE header line. Please re-run CNV calling!");
+	}
 
 	//handle column indices
-	QVector<int> annotation_indices = BasicStatistics::range(file.header().count(), 0, 1);
+	QVector<int> annotation_indices = BasicStatistics::range(file.columns(), 0, 1);
 	int i_chr = file.colIndex("chr", true);
 	annotation_indices.removeAll(i_chr);
 	int i_start = file.colIndex("start", true);
 	annotation_indices.removeAll(i_start);
 	int i_end = file.colIndex("end", true);
 	annotation_indices.removeAll(i_end);
-	int i_sample = file.colIndex("sample", true);
-	annotation_indices.removeAll(i_sample);
-	int i_cns = file.colIndex("region_copy_numbers", true);
-	annotation_indices.removeAll(i_cns);
-	int i_zscores = file.colIndex("region_zscores", true);
-	annotation_indices.removeAll(i_zscores);
-	int i_coords = file.colIndex("region_coordinates", true);
-	annotation_indices.removeAll(i_coords);
-	int i_afs = file.colIndex("region_cnv_af", false); //optinal - added in a later version
-	annotation_indices.removeAll(i_afs);
-	int i_genes = file.colIndex("genes", false); //optional
+	int i_genes = file.colIndex("genes", false);
 	annotation_indices.removeAll(i_genes);
+	int i_region_count = -1;
+
+	if (type()==CnvListType::CNVHUNTER_GERMLINE_SINGLE)
+	{
+		//mandatory columns
+		i_region_count = file.colIndex("region_count", false);
+		annotation_indices.removeAll(i_region_count);
+		//remove columns
+		int i_sample = file.colIndex("sample", true);
+		annotation_indices.removeAll(i_sample);
+		int i_size = file.colIndex("size", true);
+		annotation_indices.removeAll(i_size);
+	}
+	else if (type()==CnvListType::CNVHUNTER_GERMLINE_MULTI)
+	{
+		//mandatory columns
+		i_region_count = file.colIndex("region_count", false);
+		annotation_indices.removeAll(i_region_count);
+		//remove columns
+		int i_sample = file.colIndex("sample", true);
+		annotation_indices.removeAll(i_sample);
+		int i_size = file.colIndex("size", true);
+		annotation_indices.removeAll(i_size);
+	}
+	else if (type()==CnvListType::CLINCNV_GERMLINE_SINGLE)
+	{
+		//mandatory columns
+		i_region_count = file.colIndex("no_of_regions", false);
+		annotation_indices.removeAll(i_region_count);
+		//remove
+		int i_size = file.colIndex("length_KB", true);
+		annotation_indices.removeAll(i_size);
+	}
+	else if (type()==CnvListType::CLINCNV_GERMLINE_MULTI)
+	{
+		//mandatory columns
+		i_region_count = -2; //not present
+		//remove
+		int i_sample = file.colIndex("sample", true);
+		annotation_indices.removeAll(i_sample);
+		int i_size = file.colIndex("size", true);
+		annotation_indices.removeAll(i_size);
+	}
+	else if (type()==CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
+	{
+		//mandatory columns
+		i_region_count = file.colIndex("number_of_regions", false);
+		annotation_indices.removeAll(i_region_count);
+		//remove
+		int i_sample = file.colIndex("sample", true);
+		annotation_indices.removeAll(i_sample);
+		int i_size = file.colIndex("size", true);
+		annotation_indices.removeAll(i_size);
+	}
+	else
+	{
+		THROW(ProgrammingException, "Column handling for this CNV list with type not implemented!");
+	}
+
+	//check mandatory columns were found
+	if (i_region_count==-1) THROW(FileParseException, "No column with region/exon count found!");
+	if (i_genes==-1) THROW(FileParseException, "No column with genes found!");
 
 	//parse annotation headers
 	foreach(int index, annotation_indices)
@@ -85,59 +158,19 @@ void CnvList::load(QString filename)
 	}
 
 	//parse input file
-	QByteArray sample;
 	while (!file.atEnd())
 	{
 		QByteArrayList parts = file.readLine();
-		if (parts.count()<9) THROW(FileParseException, "Invalid CnvHunter file line: " + parts.join('\t'));
 
-		QString line = parts.join('\t');
-
-		//sample
-		if (!sample.isEmpty() && sample!=parts[i_sample])
+		//regions
+		int region_count = 0;
+		if (i_region_count>=0)
 		{
-			THROW(FileParseException, "Multi-sample CNV files are currently not supported! Found data for " + sample + "'  and '" + parts[3] + "'!");
-		}
-		sample = parts[i_sample];
-
-		//copy-numbers
-		QList<int> cns;
-		QByteArrayList tmp = parts[i_cns].split(',');
-		foreach(const QByteArray& t, tmp)
-		{
-			cns.append(t.toInt());
+			 region_count = parts[i_region_count].toInt();
 		}
 
-		//z-scores
-		QList<double> zs;
-		tmp = parts[i_zscores].split(',');
-		foreach(const QByteArray& t, tmp)
-		{
-			zs.append(Helper::toDouble(t, "z-score value", line));
-		}
-
-		//allele frequencies (optional)
-		QList<double> afs;
-		if (i_afs!=-1 && parts[i_afs]!="no_data")
-		{
-			tmp = parts[i_afs].split(',');
-			foreach(const QByteArray& t, tmp)
-			{
-
-				afs.append(Helper::toDouble(t, "allele frequency value", line));
-			}
-		}
-		while(afs.count()<zs.count())
-		{
-			afs.append(0.0);
-		}
-
-		//genes (optional)
-		GeneSet genes;
-		if (i_genes!=-1)
-		{
-			genes << GeneSet::createFromText(parts[i_genes], ',');
-		}
+		//genes
+		GeneSet genes = GeneSet::createFromText(parts[i_genes], ',');
 
 		//parse annotation headers
 		QByteArrayList annos;
@@ -146,13 +179,65 @@ void CnvList::load(QString filename)
 			annos << parts[index];
 		}
 
-		variants_.append(CopyNumberVariant(parts[i_chr], parts[i_start].toInt(), parts[i_end].toInt(), parts[i_coords].split(','), cns, zs, afs, genes, annos));
+		variants_.append(CopyNumberVariant(parts[i_chr], parts[i_start].toInt(), parts[i_end].toInt(), region_count, genes, annos));
 	}
 }
 
-void CnvList::copyMetaData(const CnvList& rhs)
+QByteArray CnvList::headerDescription(QByteArray name) const
 {
-	annotation_headers_ = rhs.annotation_headers_;
-	comments_ = rhs.comments_;
+	return annotation_header_desc_.value(name, "");
 }
 
+void CnvList::setHeaderDesciption(QByteArray name, QByteArray desciption)
+{
+	annotation_header_desc_[name] = desciption;
+}
+
+int CnvList::annotationIndexByName(const QByteArray& name, bool throw_on_error) const
+{
+	QList<int> matches;
+	for(int i=0; i<annotation_headers_.count(); ++i)
+	{
+		if (annotation_headers_[i] == name )
+		{
+			matches.append(i);
+		}
+	}
+
+	//Error handling
+	if (matches.count()<1)
+	{
+		if (throw_on_error)
+		{
+			THROW(ArgumentException, "Could not find annotation column '" + name + "' in CNV list!");
+		}
+		else
+		{
+			return -1;
+		}
+	}
+
+	if (matches.count()>1)
+	{
+		if (throw_on_error)
+		{
+			THROW(ArgumentException, "Found multiple annotation columns for '" + name + "' in CNV list!");
+		}
+		else
+		{
+			return -2;
+		}
+	}
+
+	return matches.at(0);
+}
+
+long long CnvList::totalCnvSize()
+{
+	long long total_size = 0;
+	for(const CopyNumberVariant& variant : variants_)
+	{
+		total_size += variant.size();
+	}
+	return total_size;
+}

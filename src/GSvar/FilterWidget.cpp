@@ -1,25 +1,25 @@
-#include "FilterDockWidget.h"
+#include "FilterWidget.h"
 #include "Settings.h"
 #include "Helper.h"
 #include "NGSD.h"
 #include "Log.h"
 #include "ScrollableTextDialog.h"
-#include <QCheckBox>
-#include <QFileInfo>
-#include <QFileDialog>
-#include <QInputDialog>
-#include <QLabel>
-#include <QCompleter>
-#include <QMenu>
 #include "PhenotypeSelectionWidget.h"
 #include "GUIHelper.h"
-#include "FilterEditDialog.h"
+#include <QFileInfo>
+#include <QFileDialog>
+#include <QCompleter>
+#include <QMenu>
 
-FilterDockWidget::FilterDockWidget(QWidget *parent)
+FilterWidget::FilterWidget(QWidget *parent)
 	: QWidget(parent)
 	, ui_()
 {
 	ui_.setupUi(this);
+	ui_.cascade_widget->setSubject(FilterSubject::SNVS_INDELS);
+
+	connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SLOT(updateFilterName()));
+	connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SIGNAL(filtersChanged()));
 
 	connect(ui_.roi_add, SIGNAL(clicked()), this, SLOT(addRoi()));
 	connect(ui_.roi_add_temp, SIGNAL(clicked()), this, SLOT(addRoiTemp()));
@@ -31,15 +31,6 @@ FilterDockWidget::FilterDockWidget(QWidget *parent)
 	connect(ui_.gene, SIGNAL(editingFinished()), this, SLOT(geneChanged()));
 	connect(ui_.text, SIGNAL(editingFinished()), this, SLOT(textChanged()));
 	connect(ui_.region, SIGNAL(editingFinished()), this, SLOT(regionChanged()));
-
-	connect(ui_.filters_entries, SIGNAL(itemSelectionChanged()), this, SLOT(filterSelectionChanged()));
-	connect(ui_.filters_entries, SIGNAL(itemActivated(QListWidgetItem*)), this, SLOT(editSelectedFilter()));
-	connect(ui_.filters_entries, SIGNAL(itemChanged(QListWidgetItem*)), this, SLOT(toggleSelectedFilter(QListWidgetItem*)));
-	connect(ui_.filter_delete, SIGNAL(pressed()), this, SLOT(deleteSelectedFilter()));
-	connect(ui_.filter_edit, SIGNAL(pressed()), this, SLOT(editSelectedFilter()));
-	connect(ui_.filter_add, SIGNAL(pressed()), this, SLOT(addFilter()));
-	connect(ui_.filter_up, SIGNAL(pressed()), this, SLOT(moveUpSelectedFilter()));
-	connect(ui_.filter_down, SIGNAL(pressed()), this, SLOT(moveDownSelectedFilter()));
 
 	if (Settings::boolean("NGSD_enabled", true))
 	{
@@ -55,50 +46,25 @@ FilterDockWidget::FilterDockWidget(QWidget *parent)
 	reset(true);
 }
 
-void FilterDockWidget::setValidFilterEntries(const QStringList& filter_entries)
+void FilterWidget::setValidFilterEntries(const QStringList& filter_entries)
 {
-	valid_filter_entries_ = filter_entries;
+	ui_.cascade_widget->setValidFilterEntries(filter_entries);
 }
 
-void FilterDockWidget::setFilters(const QString& name, const FilterCascade& filters)
+void FilterWidget::setFilters(const QString& name, const FilterCascade& filters)
 {
+	ui_.cascade_widget->setFilters(filters);
+
+	//set text (after filters, otherwise it will be marked as 'modified'
 	ui_.filter_name->setText(name);
-
-	filters_ = filters;
-
-	//overwrite valid entries of 'filter' column
-	for(int i=0; i<filters_.count(); ++i)
-	{
-		if (filters_[i]->name()=="Filter columns")
-		{
-			filters_[i]->overrideConstraint("entries", "valid", valid_filter_entries_.join(','));
-		}
-	}
-
-	updateGUI();
-	onFilterCascadeChange(false);
 }
 
-void FilterDockWidget::markFailedFilters()
+void FilterWidget::markFailedFilters()
 {
-	for(int i=0; i<ui_.filters_entries->count(); ++i)
-	{
-		QListWidgetItem* item = ui_.filters_entries->item(i);
-
-		QStringList errors = filters_.errors(i);
-		if (errors.isEmpty())
-		{
-			item->setBackground(QBrush());
-		}
-		else
-		{
-			item->setToolTip(filters_[i]->description().join("\n") + "\n\nErrors:\n" + errors.join("\n"));
-			item->setBackgroundColor(QColor(255,160,110));
-		}
-	}
+	ui_.cascade_widget->markFailedFilters();
 }
 
-void FilterDockWidget::loadTargetRegions()
+void FilterWidget::loadTargetRegions()
 {
 	ui_.rois->blockSignals(true);
 
@@ -163,19 +129,10 @@ void FilterDockWidget::loadTargetRegions()
 	ui_.rois->blockSignals(false);
 }
 
-int FilterDockWidget::currentFilterIndex() const
-{
-	auto selection = ui_.filters_entries->selectedItems();
-	if (selection.count()!=1) return -1;
-
-	return ui_.filters_entries->row(selection[0]);
-}
-
-void FilterDockWidget::resetSignalsUnblocked(bool clear_roi)
+void FilterWidget::resetSignalsUnblocked(bool clear_roi)
 {
 	//filter cols
-	filters_.clear();
-	updateGUI();
+	ui_.cascade_widget->clear();
 
     //rois
 	if (clear_roi)
@@ -196,27 +153,7 @@ void FilterDockWidget::resetSignalsUnblocked(bool clear_roi)
 	phenotypesChanged();
 }
 
-void FilterDockWidget::focusFilter(int index)
-{
-	//no entries > return
-	int filter_count = ui_.filters_entries->count();
-	if (filter_count==0) return;
-
-	if (index<0) //index too small > focus first item
-	{
-		ui_.filters_entries->item(0)->setSelected(true);
-	}
-	else if (index>=filter_count) //index too big > focus last item
-	{
-		ui_.filters_entries->item(filter_count-1)->setSelected(true);
-	}
-	else //index ok > focus selected item
-	{
-		ui_.filters_entries->item(index)->setSelected(true);
-	}
-}
-
-void FilterDockWidget::reset(bool clear_roi)
+void FilterWidget::reset(bool clear_roi)
 {
 	ui_.filter_name->setText("[none]");
 
@@ -224,16 +161,21 @@ void FilterDockWidget::reset(bool clear_roi)
 	resetSignalsUnblocked(clear_roi);
 	blockSignals(false);
 
-	onFilterCascadeChange(true);
+	emit filtersChanged();
 	if (clear_roi) emit targetRegionChanged();
 }
 
-QString FilterDockWidget::targetRegion() const
+QString FilterWidget::targetRegion() const
 {
 	return ui_.rois->toolTip();
 }
 
-void FilterDockWidget::setTargetRegion(QString roi_file)
+QString FilterWidget::targetRegionName() const
+{
+	return ui_.rois->currentText();
+}
+
+void FilterWidget::setTargetRegion(QString roi_file)
 {
 	roi_file = Helper::canonicalPath(roi_file);
 	for (int i=0; i<ui_.rois->count(); ++i)
@@ -248,44 +190,44 @@ void FilterDockWidget::setTargetRegion(QString roi_file)
 	emit targetRegionChanged();
 }
 
-GeneSet FilterDockWidget::genes() const
+GeneSet FilterWidget::genes() const
 {
 	return GeneSet::createFromText(ui_.gene->text().toLatin1(), ',');
 }
 
-QByteArray FilterDockWidget::text() const
+QByteArray FilterWidget::text() const
 {
 	return ui_.text->text().trimmed().toLatin1();
 }
 
-QString FilterDockWidget::region() const
+QString FilterWidget::region() const
 {
 	return ui_.region->text().trimmed();
 }
 
-void FilterDockWidget::setRegion(QString region)
+void FilterWidget::setRegion(QString region)
 {
 	ui_.region->setText(region);
 	regionChanged();
 }
 
-const QList<Phenotype>& FilterDockWidget::phenotypes() const
+const QList<Phenotype>& FilterWidget::phenotypes() const
 {
 	return phenotypes_;
 }
 
-void FilterDockWidget::setPhenotypes(const QList<Phenotype>& phenotypes)
+void FilterWidget::setPhenotypes(const QList<Phenotype>& phenotypes)
 {
 	phenotypes_ = phenotypes;
 	phenotypesChanged();
 }
 
-const FilterCascade& FilterDockWidget::filters() const
+const FilterCascade& FilterWidget::filters() const
 {
-	return filters_;
+	return ui_.cascade_widget->filters();
 }
 
-void FilterDockWidget::addRoi()
+void FilterWidget::addRoi()
 {
 	//get file to open
 	QString path = Settings::path("path_regions");
@@ -306,7 +248,7 @@ void FilterDockWidget::addRoi()
 	loadTargetRegions();
 }
 
-void FilterDockWidget::addRoiTemp()
+void FilterWidget::addRoiTemp()
 {
 	//get file to open
 	QString path = Settings::path("path_regions");
@@ -317,7 +259,7 @@ void FilterDockWidget::addRoiTemp()
 	ui_.rois->addItem(QFileInfo(filename).fileName(), Helper::canonicalPath(filename));
 }
 
-void FilterDockWidget::removeRoi()
+void FilterWidget::removeRoi()
 {
 	QString filename = ui_.rois->itemData(ui_.rois->currentIndex()).toString();
 	if (filename=="") return;
@@ -332,7 +274,7 @@ void FilterDockWidget::removeRoi()
 	emit filtersChanged();
 }
 
-void FilterDockWidget::roiSelectionChanged(int index)
+void FilterWidget::roiSelectionChanged(int index)
 {
 	//delete old completer
 	QCompleter* completer_old = ui_.rois->completer();
@@ -368,7 +310,7 @@ void FilterDockWidget::roiSelectionChanged(int index)
 	}
 }
 
-void FilterDockWidget::geneChanged()
+void FilterWidget::geneChanged()
 {
 	if (genes()!=last_genes_)
 	{
@@ -377,17 +319,17 @@ void FilterDockWidget::geneChanged()
 	}
 }
 
-void FilterDockWidget::textChanged()
+void FilterWidget::textChanged()
 {
 	emit filtersChanged();
 }
 
-void FilterDockWidget::regionChanged()
+void FilterWidget::regionChanged()
 {
 	emit filtersChanged();
 }
 
-void FilterDockWidget::phenotypesChanged()
+void FilterWidget::phenotypesChanged()
 {
 	//update GUI
 	QByteArrayList tmp;
@@ -412,22 +354,17 @@ void FilterDockWidget::phenotypesChanged()
 	emit filtersChanged();
 }
 
-void FilterDockWidget::onFilterCascadeChange(bool update_name)
+void FilterWidget::updateFilterName()
 {
-	if (update_name)
-	{
-		QString name = ui_.filter_name->text();
-		if (name!="[none]" && !name.endsWith(" [modified]"))
-		{
-			ui_.filter_name->setText(name + " [modified]");
-		}
-	}
-	
-	emit filterCascadeChanged();
-	emit filtersChanged();
+	QString name = ui_.filter_name->text();
+
+	if (name=="[none]") return;
+	if (name.endsWith(" [modified]")) return;
+
+	ui_.filter_name->setText(name + " [modified]");
 }
 
-void FilterDockWidget::showTargetRegionDetails()
+void FilterWidget::showTargetRegionDetails()
 {
 	QString roi = targetRegion();
 	if (roi=="") return;
@@ -459,7 +396,7 @@ void FilterDockWidget::showTargetRegionDetails()
 	dlg.exec();
 }
 
-void FilterDockWidget::updateGeneWarning()
+void FilterWidget::updateGeneWarning()
 {
 	QStringList warnings;
 
@@ -499,7 +436,7 @@ void FilterDockWidget::updateGeneWarning()
 	ui_.gene_warning->setHidden(warnings.isEmpty());
 }
 
-void FilterDockWidget::editPhenotypes()
+void FilterWidget::editPhenotypes()
 {
 	//edit
 	PhenotypeSelectionWidget* selector = new PhenotypeSelectionWidget(this);
@@ -514,7 +451,7 @@ void FilterDockWidget::editPhenotypes()
 	}
 }
 
-void FilterDockWidget::showPhenotypeContextMenu(QPoint pos)
+void FilterWidget::showPhenotypeContextMenu(QPoint pos)
 {
 	//set up
 	QMenu menu;
@@ -547,140 +484,5 @@ void FilterDockWidget::showPhenotypeContextMenu(QPoint pos)
 	else if (action->text()=="create sub-panel")
 	{
 		emit phenotypeSubPanelRequested();
-	}
-}
-
-void FilterDockWidget::updateGUI()
-{
-	ui_.filters_entries->clear();
-	for(int i=0; i<filters_.count(); ++i)
-	{
-		//remove HTML special characters for GUI
-		QTextDocument converter;
-		converter.setHtml(filters_[i]->toText());
-		QString text = converter.toPlainText();
-
-		QListWidgetItem* item = new QListWidgetItem(text);
-		item->setCheckState(filters_[i]->enabled() ? Qt::Checked : Qt::Unchecked);
-		item->setToolTip(filters_[i]->description().join("\n"));
-		ui_.filters_entries->addItem(item);
-	}
-	filterSelectionChanged();
-}
-
-void FilterDockWidget::filterSelectionChanged()
-{
-	int index = currentFilterIndex();
-	ui_.filter_delete->setEnabled(index!=-1);
-	ui_.filter_edit->setEnabled(index!=-1 && filters_[index]->parameters().count()>0);
-	ui_.filter_up->setEnabled(index>0);
-	ui_.filter_down->setEnabled(index!=-1 && index!=ui_.filters_entries->count()-1);
-}
-
-void FilterDockWidget::addFilter()
-{
-	//show filter menu
-	QMenu menu;
-	foreach(QString filter_name, FilterFactory::filterNames())
-	{
-		menu.addAction(filter_name);
-	}
-	QAction* action = menu.exec(QCursor::pos());
-	if(action==nullptr) return;
-
-	//create filter
-	QSharedPointer<FilterBase> filter = FilterFactory::create(action->text());
-	if (filter->name()=="Filter columns")
-	{
-		filter->overrideConstraint("entries", "valid", valid_filter_entries_.join(','));
-	}
-
-	//determine if filter should be added
-	bool add_filter = false;
-	if (filter->parameters().count()>0)
-	{
-		FilterEditDialog dlg(filter, this);
-		add_filter = dlg.exec()==QDialog::Accepted;
-	}
-	else
-	{
-		add_filter = true;
-	}
-
-	//add filter
-	if (add_filter)
-	{
-		filters_.add(filter);
-		updateGUI();
-		focusFilter(filters_.count()-1);
-		onFilterCascadeChange(true);
-	}
-}
-
-void FilterDockWidget::editSelectedFilter()
-{
-	int index = currentFilterIndex();
-	if (index==-1) return;
-
-	//no paramters => no edit dialog
-	if (filters_[index]->parameters().count()==0) return;
-
-	FilterEditDialog dlg(filters_[index], this);
-	if (dlg.exec()==QDialog::Accepted)
-	{
-		updateGUI();
-		focusFilter(index);
-		onFilterCascadeChange(true);
-	}
-}
-
-void FilterDockWidget::deleteSelectedFilter()
-{
-	int index = currentFilterIndex();
-	if (index==-1) return;
-
-	filters_.removeAt(index);
-	updateGUI();
-	focusFilter(index);
-
-	onFilterCascadeChange(true);
-}
-
-void FilterDockWidget::moveUpSelectedFilter()
-{
-	int index = currentFilterIndex();
-	if (index==-1) return;
-
-	filters_.moveUp(index);
-	updateGUI();
-	focusFilter(index-1);
-
-	onFilterCascadeChange(true);
-}
-
-void FilterDockWidget::moveDownSelectedFilter()
-{
-	int index = currentFilterIndex();
-	if (index==-1) return;
-
-	filters_.moveDown(index);
-	updateGUI();
-	focusFilter(index+1);
-
-	onFilterCascadeChange(true);
-}
-
-void FilterDockWidget::toggleSelectedFilter(QListWidgetItem* item)
-{
-	//determine item index
-	int index = ui_.filters_entries->row(item);
-	if (index==-1) return;
-
-	//check that check state changed (this slot is called for every change of an item)
-	if ( (item->checkState()==Qt::Checked && !filters_[index]->enabled()) || (item->checkState()==Qt::Unchecked && filters_[index]->enabled()))
-	{
-		filters_[index]->toggleEnabled();
-
-		onFilterCascadeChange(true);
 	}
 }

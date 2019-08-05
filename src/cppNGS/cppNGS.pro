@@ -57,7 +57,6 @@ SOURCES += BedFile.cpp \
     RohList.cpp \
     OntologyTermCollection.cpp \
     SvList.cpp \
-    ClinCnvList.cpp \
     FilterCascade.cpp \
     VcfFile.cpp \
     TabixIndexedFile.cpp \
@@ -87,11 +86,11 @@ HEADERS += BedFile.h \
     RohList.h \
     OntologyTermCollection.h \
     SvList.h \
-    ClinCnvList.h \
     FilterCascade.h \
     VcfFile.h \
     TabixIndexedFile.h \
-    BedpeFile.h
+    BedpeFile.h \
+    KeyValuePair.h
 
 
 RESOURCES += \

@@ -1907,9 +1907,9 @@ GenderEstimate Statistics::genderXY(QString bam_file, double max_female, double 
 
 	//output
 	GenderEstimate output;
-	output.add_info << qMakePair(QString("reads_chry"), QString::number(count_y));
-	output.add_info << qMakePair(QString("reads_chrx"), QString::number(count_x));
-	output.add_info << qMakePair(QString("ratio_chry_chrx"), QString::number(ratio_yx, 'f', 4));
+	output.add_info << KeyValuePair("reads_chry", QString::number(count_y));
+	output.add_info << KeyValuePair("reads_chrx", QString::number(count_x));
+	output.add_info << KeyValuePair("ratio_chry_chrx", QString::number(ratio_yx, 'f', 4));
 
     //output
 	if (ratio_yx<=max_female) output.gender = "female";
@@ -1978,10 +1978,10 @@ GenderEstimate Statistics::genderHetX(QString bam_file, QString build, double ma
 
 	//output
 	GenderEstimate output;
-	output.add_info << qMakePair(QString("snps_usable"), QString::number(hom_count + het_count) + " of " + QString::number(snps.count()));
-	output.add_info << qMakePair(QString("hom_count"), QString::number(hom_count));
-	output.add_info << qMakePair(QString("het_count"), QString::number(het_count));
-	output.add_info << qMakePair(QString("het_fraction"), QString::number(het_frac, 'f', 4));
+	output.add_info << KeyValuePair("snps_usable", QString::number(hom_count + het_count) + " of " + QString::number(snps.count()));
+	output.add_info << KeyValuePair("hom_count", QString::number(hom_count));
+	output.add_info << KeyValuePair("het_count", QString::number(het_count));
+	output.add_info << KeyValuePair("het_fraction", QString::number(het_frac, 'f', 4));
 
 	if (hom_count + het_count < 20) output.gender = "unknown (too few SNPs)";
 	else if (het_frac<=max_male) output.gender = "male";
@@ -2021,7 +2021,7 @@ GenderEstimate Statistics::genderSRY(QString bam_file, QString build, double min
 
 	//output
 	GenderEstimate output;
-	output.add_info << qMakePair(QString("coverage_sry"), QString::number(cov, 'f', 2));
+	output.add_info << KeyValuePair("coverage_sry", QString::number(cov, 'f', 2));
 	output.gender = cov>=min_cov ? "male" : "female";
 	return output;
 }

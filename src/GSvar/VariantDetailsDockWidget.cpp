@@ -5,6 +5,7 @@
 #include <QPixmap>
 #include <QMessageBox>
 #include <QDesktopServices>
+#include <QRegularExpression>
 #include <QUrl>
 #include <QMenu>
 #include "Settings.h"
@@ -678,11 +679,14 @@ QString VariantDetailsDockWidget::formatText(QString text, Color bgcolor)
 	return "<span style=\"background-color: " + colorToString(bgcolor) + ";\">" + text + "</span>";
 }
 
-QList<VariantDetailsDockWidget::DBEntry> VariantDetailsDockWidget::parseDB(QString anno, QString sep)
+QList<VariantDetailsDockWidget::DBEntry> VariantDetailsDockWidget::parseDB(QString anno, char sep)
 {
 	QList<DBEntry> output;
 
-	QStringList entries = anno.split(sep);
+	anno = anno.trimmed();
+	if (anno.endsWith("]")) anno.chop(1);
+
+	QStringList entries = anno.split(QString("]") + sep);
 	foreach(QString entry, entries)
 	{
 		entry = entry.trimmed();
@@ -748,4 +752,30 @@ void VariantDetailsDockWidget::editComment()
 void VariantDetailsDockWidget::variantSampleOverview()
 {
 	emit showVariantSampleOverview();
+}
+
+QList<KeyValuePair> VariantDetailsDockWidget::DBEntry::splitByName() const
+{
+	QList<KeyValuePair> output;
+
+	//determine key start/end
+	QList<QPair<int, int>> hits;
+	QRegularExpression regexp("[A-Z0-9_-]+=");
+	QRegularExpressionMatchIterator i = regexp.globalMatch(details);
+	while (i.hasNext())
+	{
+		QRegularExpressionMatch match = i.next();
+		hits << QPair<int, int>(match.capturedStart(0), match.capturedEnd());
+	}
+	hits << QPair<int, int>(details.count(), -1);
+
+	for (int i=0; i<hits.count()-1; ++i)
+	{
+		QString key = details.mid(hits[i].first, hits[i].second-hits[i].first-1).trimmed();
+		QString value = details.mid(hits[i].second, hits[i+1].first-hits[i].second).trimmed();
+		if (value.startsWith('"') && value.endsWith('"')) value = value.mid(1, value.length()-2);
+		output << KeyValuePair(key, value);
+	}
+
+	return output;
 }

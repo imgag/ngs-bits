@@ -8,7 +8,6 @@ RC_FILE	 = icon.rc
 
 SOURCES += main.cpp\
     MainWindow.cpp \
-    FilterDockWidget.cpp \
     ExternalToolDialog.cpp \
     ReportDialog.cpp \
     ReportWorker.cpp \
@@ -53,16 +52,17 @@ SOURCES += main.cpp\
     DiseaseInfoWidget.cpp \
     SequencingRunWidget.cpp \
     AnalysisStatusWidget.cpp \
-    ClinCnvWidget.cpp \
     VariantTable.cpp \
     RtfDocument.cpp \
     SampleSearchWidget.cpp \
     SomaticReportHelper.cpp \
     SampleRelationDialog.cpp \
-    ProcessedSampleSelector.cpp
+    ProcessedSampleSelector.cpp \
+    FilterWidgetCNV.cpp \
+    FilterCascadeWidget.cpp \
+    FilterWidget.cpp
 
 HEADERS  += MainWindow.h \
-    FilterDockWidget.h \
     ExternalToolDialog.h \
     ReportDialog.h \
     ReportWorker.h \
@@ -107,16 +107,17 @@ HEADERS  += MainWindow.h \
     DiseaseInfoWidget.h \
     SequencingRunWidget.h \
     AnalysisStatusWidget.h \
-    ClinCnvWidget.h \
     VariantTable.h \
     RtfDocument.h \
     SampleSearchWidget.h \
     SomaticReportHelper.h \
     SampleRelationDialog.h \
-    ProcessedSampleSelector.h
+    ProcessedSampleSelector.h \
+    FilterWidgetCNV.h \
+    FilterCascadeWidget.h \
+    FilterWidget.h
 
 FORMS    += MainWindow.ui \
-    FilterDockWidget.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
     TrioDialog.ui \
@@ -155,10 +156,12 @@ FORMS    += MainWindow.ui \
     DiseaseInfoWidget.ui \
     SequencingRunWidget.ui \
     AnalysisStatusWidget.ui \
-    ClinCnvWidget.ui \
     SampleSearchWidget.ui \
     SampleRelationDialog.ui \
-    ProcessedSampleSelector.ui
+    ProcessedSampleSelector.ui \
+    FilterWidgetCNV.ui \
+    FilterCascadeWidget.ui \
+    FilterWidget.ui
 
 include("../app_gui.pri")
 

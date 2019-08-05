@@ -106,6 +106,7 @@ void FilterResult::tagNonPassing(VariantList& variants, QByteArray tag, QByteArr
 
 FilterBase::FilterBase()
 	: name_()
+	, type_(FilterSubject::SNVS_INDELS)
 	, description_()
 	, params_()
 	, enabled_(true)
@@ -225,6 +226,16 @@ void FilterBase::setStringList(const QString& name, const QStringList& value)
 void FilterBase::overrideConstraint(const QString& parameter_name, const QString& constraint_name, const QString& constraint_value)
 {
 	parameter(parameter_name).constraints[constraint_name] = constraint_value;
+}
+
+void FilterBase::apply(const VariantList& /*variant_list*/, FilterResult& /*result*/) const
+{
+	THROW(ProgrammingException, "Method apply on VariantList not implemented for filter '" + name() + "'!");
+}
+
+void FilterBase::apply(const CnvList& /*variant_list*/, FilterResult& /*result*/) const
+{
+	THROW(ProgrammingException, "Method apply on CnvList not implemented for filter '" + name() + "'!");
 }
 
 void FilterBase::setInteger(const QString& name, int value)
@@ -444,13 +455,64 @@ FilterResult FilterCascade::apply(const VariantList& variants, bool throw_errors
 
 	for(int i=0; i<filters_.count(); ++i)
 	{
+		QSharedPointer<FilterBase> filter = filters_[i];
 		try
 		{
-			filters_[i]->apply(variants, result);
+			//check type
+			if (filter->type()!=FilterSubject::SNVS_INDELS) THROW(ArgumentException, "Filter '" + filter->name() + "' cannot be applied to small variants!");
+
+			//apply
+			filter->apply(variants, result);
 
 			if (debug_time)
 			{
-				Log::perf("FilterCascade: Filter " + filters_[i]->name() + " took ", timer);
+				Log::perf("FilterCascade: Filter " + filter->name() + " took ", timer);
+				timer.start();
+			}
+		}
+		catch(const Exception& e)
+		{
+			errors_[i].append(e.message());
+			if (throw_errors)
+			{
+				throw e;
+			}
+		}
+	}
+
+	return result;
+}
+
+FilterResult FilterCascade::apply(const CnvList& cnvs, bool throw_errors, bool debug_time) const
+{
+	QTime timer;
+	timer.start();
+
+	FilterResult result(cnvs.count());
+
+	//reset errors
+	errors_.fill(QStringList(), filters_.count());
+
+	if (debug_time)
+	{
+		Log::perf("FilterCascade: Initializing took ", timer);
+		timer.start();
+	}
+
+	for(int i=0; i<filters_.count(); ++i)
+	{
+		QSharedPointer<FilterBase> filter = filters_[i];
+		try
+		{
+			//check type
+			if (filter->type()!=FilterSubject::CNVS) THROW(ArgumentException, "Filter '" + filter->name() + "' cannot be applied to CNVs!");
+
+			//apply
+			filter->apply(cnvs, result);
+
+			if (debug_time)
+			{
+				Log::perf("FilterCascade: Filter " + filter->name() + " took ", timer);
 				timer.start();
 			}
 		}
@@ -476,6 +538,48 @@ QStringList FilterCascade::errors(int index) const
 
 	return errors_[index];
 }
+
+/*************************************************** FilterCascadeFile ***************************************************/
+
+QStringList FilterCascadeFile::names(QString filename)
+{
+	QStringList output;
+
+	foreach(QString line, Helper::loadTextFile(filename, true, QChar::Null, true))
+	{
+		if (line.startsWith("#"))
+		{
+			output << line.mid(1);
+		}
+	}
+
+	return output;
+}
+
+FilterCascade FilterCascadeFile::load(QString filename, QString filter)
+{
+	FilterCascade output;
+
+	QStringList filter_file = Helper::loadTextFile(filename, true, QChar::Null, true);
+
+	bool in_filter = false;
+	foreach(QString line, filter_file)
+	{
+		if (line.startsWith("#"))
+		{
+			in_filter = (line == "#"+filter);
+		}
+		else if (in_filter)
+		{
+			QStringList parts = line.trimmed().split('\t');
+			QString name = parts[0];
+			output.add(FilterFactory::create(name, parts.mid(1)));
+		}
+	}
+
+	return output;
+}
+
 
 /*************************************************** FilterFactory ***************************************************/
 
@@ -507,9 +611,26 @@ QStringList FilterFactory::filterNames()
 	return getRegistry().keys();
 }
 
+QStringList FilterFactory::filterNames(FilterSubject subject)
+{
+	const auto& registry = getRegistry();
+	QStringList names = registry.keys();
+
+	foreach(const QString& name, names)
+	{
+		QSharedPointer<FilterBase> filter = QSharedPointer<FilterBase>(registry[name]());
+		if (filter->type()!=subject)
+		{
+			names.removeAll(name);
+		}
+	}
+
+	return names;
+}
+
 template<typename T> FilterBase* createInstance() { return new T; }
 
-QMap<QString, FilterBase*(*)()> FilterFactory::getRegistry()
+const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 {
 	static QMap<QString, FilterBase*(*)()> output;
 
@@ -538,12 +659,22 @@ QMap<QString, FilterBase*(*)()> FilterFactory::getRegistry()
 		output["OMIM genes"] = &createInstance<FilterOMIM>;
 		output["Conservedness"] = &createInstance<FilterConservedness>;
 		output["Regulatory"] = &createInstance<FilterRegulatory>;
+		output["CNV size"] = &createInstance<FilterCnvSize>;
+		output["CNV regions"] = &createInstance<FilterCnvRegions>;
+		output["CNV copy-number"] = &createInstance<FilterCnvCopyNumber>;
+		output["CNV allele frequency"] = &createInstance<FilterCnvAlleleFrequency>;
+		output["CNV z-score"] = &createInstance<FilterCnvZscore>;
+		output["CNV log-likelihood"] = &createInstance<FilterCnvLoglikelihood>;
+		output["CNV q-value"] = &createInstance<FilterCnvQvalue>;
+		output["CNV compound-heterozygous"] = &createInstance<FilterCnvCompHet>;
+		output["CNV OMIM genes"] = &createInstance<FilterCnvOMIM>;
+		output["CNV polymorphism region"] = &createInstance<FilterCnvCnpOverlap>;
 	}
 
 	return output;
 }
 
-/*************************************************** concrete filters ***************************************************/
+/*************************************************** concrete filters for small variants ***************************************************/
 
 FilterAlleleFrequency::FilterAlleleFrequency()
 {
@@ -2092,13 +2223,14 @@ void FilterConservedness::apply(const VariantList& variants, FilterResult& resul
 	}
 }
 
-
 FilterRegulatory::FilterRegulatory()
 {
 	name_ = "Regulatory";
 	description_ = QStringList() << "Filter for regulatory variants, i.e. the 'regulatory' column is not empty.";
 	params_ << FilterParameter("action", STRING, "FILTER", "Action to perform");
 	params_.last().constraints["valid"] = "REMOVE,FILTER";
+
+	checkIsRegistered();
 }
 
 QString FilterRegulatory::toText() const
@@ -2135,6 +2267,506 @@ void FilterRegulatory::apply(const VariantList& variants, FilterResult& result) 
 			{
 				result.flags()[i] = false;
 			}
+		}
+	}
+}
+
+/*************************************************** concrete filters for CNVs ***************************************************/
+
+FilterCnvSize::FilterCnvSize()
+{
+	name_ = "CNV size";
+	type_ = FilterSubject::CNVS;
+	description_ = QStringList() << "Filter for CNV size (kilobases).";
+	params_ << FilterParameter("size", DOUBLE, 0.0, "Minimum CNV size in kilobases");
+	params_.last().constraints["min"] = "0";
+
+	checkIsRegistered();
+}
+
+QString FilterCnvSize::toText() const
+{
+	return name() + " size&ge;" + QString::number(getDouble("size", false), 'f', 2) + " kB";
+}
+
+void FilterCnvSize::apply(const CnvList& cnvs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	double min_size_bases = getDouble("size") * 1000.0;
+	for(int i=0; i<cnvs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		if (cnvs[i].size() < min_size_bases)
+		{
+			result.flags()[i] = false;
+		}
+	}
+}
+
+FilterCnvRegions::FilterCnvRegions()
+{
+	name_ = "CNV regions";
+	type_ = FilterSubject::CNVS;
+	description_ = QStringList() << "Filter for number of regions/exons.";
+	params_ << FilterParameter("regions", INT, 3, "Minimum number of regions");
+	params_.last().constraints["min"] = "1";
+
+	checkIsRegistered();
+}
+
+QString FilterCnvRegions::toText() const
+{
+	return name() + " &ge; " + QString::number(getInt("regions"));
+}
+
+void FilterCnvRegions::apply(const CnvList& cnvs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	int min_regions = getInt("regions");
+	for(int i=0; i<cnvs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		if (cnvs[i].regions()==0) continue; //multi-sample CNV lists sometimes don't contain region counts (e.g. for ClinCNV)
+
+		if (cnvs[i].regions() < min_regions)
+		{
+			result.flags()[i] = false;
+		}
+	}
+}
+
+FilterCnvCopyNumber::FilterCnvCopyNumber()
+{
+	name_ = "CNV copy-number";
+	type_ = FilterSubject::CNVS;
+	description_ = QStringList() << "Filter for CNV copy number.";
+	params_ << FilterParameter("cn", STRING, "n/a", "Copy number");
+	params_.last().constraints["valid"] = "n/a,0,1,2,3,4+";
+
+	checkIsRegistered();
+}
+
+QString FilterCnvCopyNumber::toText() const
+{
+	return name() + " CN=" + getString("cn");
+}
+
+void FilterCnvCopyNumber::apply(const CnvList& cnvs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	QByteArray cn_exp = getString("cn").toLatin1();
+	bool cn_exp_4plus = cn_exp=="4+";
+	if (cn_exp=="n/a") return;
+
+	if (cnvs.type()==CnvListType::CNVHUNTER_GERMLINE_SINGLE || cnvs.type()==CnvListType::CNVHUNTER_GERMLINE_SINGLE)
+	{
+		int i_cns = cnvs.annotationIndexByName("region_copy_numbers", true);
+		for(int i=0; i<cnvs.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			QByteArrayList cns = cnvs[i].annotations()[i_cns].split(',');
+
+			bool hit = false;
+			foreach (const QByteArray& cn, cns)
+			{
+				if ((!cn_exp_4plus && cn==cn_exp) || (cn_exp_4plus && cn.toInt()>=4))
+				{
+					hit = true;
+					break;
+				}
+			}
+			result.flags()[i] = hit;
+		}
+	}
+	else
+	{
+		int i_cn = cnvs.annotationIndexByName("CN_change", true);
+		for(int i=0; i<cnvs.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			const QByteArray& cn = cnvs[i].annotations()[i_cn];
+
+			if (!((!cn_exp_4plus && cn==cn_exp) || (cn_exp_4plus && cn.toInt()>=4)))
+			{
+				result.flags()[i] = false;
+			}
+		}
+	}
+}
+
+FilterCnvAlleleFrequency::FilterCnvAlleleFrequency()
+{
+	name_ = "CNV allele frequency";
+	type_ = FilterSubject::CNVS;
+	description_ = QStringList() << "Filter for CNV allele frequency in the analyzed cohort.";
+	params_ << FilterParameter("max_af", DOUBLE, 0.05, "Maximum allele frequency");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
+
+	checkIsRegistered();
+}
+
+QString FilterCnvAlleleFrequency::toText() const
+{
+	return name() + " &le; " + QString::number(getDouble("max_af"), 'f', 2);
+}
+
+void FilterCnvAlleleFrequency::apply(const CnvList& cnvs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	double max_af = getDouble("max_af");
+
+	if (cnvs.type()==CnvListType::CNVHUNTER_GERMLINE_SINGLE || cnvs.type()==CnvListType::CNVHUNTER_GERMLINE_MULTI)
+	{
+		int i_afs = cnvs.annotationIndexByName("region_cnv_af", true);
+		for(int i=0; i<cnvs.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			QByteArrayList afs = cnvs[i].annotations()[i_afs].split(',');
+
+			bool hit = false;
+			foreach (const QByteArray& af, afs)
+			{
+				if (af.toDouble()<=max_af)
+				{
+					hit = true;
+					break;
+				}
+			}
+			result.flags()[i] = hit;
+		}
+	}
+	else
+	{
+		int i_af = cnvs.annotationIndexByName("potential_AF", true);
+		for(int i=0; i<cnvs.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			const QByteArray& af = cnvs[i].annotations()[i_af];
+
+			if (af.toDouble()>max_af)
+			{
+				result.flags()[i] = false;
+			}
+		}
+	}
+}
+
+FilterCnvZscore::FilterCnvZscore()
+{
+	name_ = "CNV z-score";
+	type_ = FilterSubject::CNVS;
+	description_ = QStringList() << "Filter for CNV z-score." << "The z-score determines to what degee that the region was a statistical outlier when compared to the reference samples." << "Note: for deletions z-scores lower than the negative cutoff pass." << "Note: this filter works for CnvHunter CNV lists only!";
+	params_ << FilterParameter("min_z", DOUBLE, 4.0, "Minimum z-score");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "10.0";
+
+	checkIsRegistered();
+}
+
+QString FilterCnvZscore::toText() const
+{
+	return name() + " &ge; " + QString::number(getDouble("min_z"), 'f', 2);
+}
+
+void FilterCnvZscore::apply(const CnvList& cnvs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	if (cnvs.type()!=CnvListType::CNVHUNTER_GERMLINE_SINGLE && cnvs.type()!=CnvListType::CNVHUNTER_GERMLINE_MULTI) THROW(ArgumentException, "Filter '" + name() + "' can only be applied to CNV lists generated by CnvHunter!");
+
+	double min_z = getDouble("min_z");
+	int i_zs = cnvs.annotationIndexByName("region_zscores", true);
+	for(int i=0; i<cnvs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		QByteArrayList zs = cnvs[i].annotations()[i_zs].split(',');
+
+		bool hit = false;
+		foreach (const QByteArray& z, zs)
+		{
+			double z_num = std::fabs(z.toDouble());
+			if (z_num>=min_z)
+			{
+				hit = true;
+				break;
+			}
+		}
+		result.flags()[i] = hit;
+	}
+}
+
+FilterCnvLoglikelihood::FilterCnvLoglikelihood()
+{
+	name_ = "CNV log-likelihood";
+	type_ = FilterSubject::CNVS;
+	description_ = QStringList() << "Filter for CNV log-likelihood." << "TODO: desc" << "Note: when applied to multi-sample CNV lists, each log-likelihood entry must exceed the cutuff!" << "Note: this filter works for CNV lists generated by ClinCNV only!";
+	params_ << FilterParameter("min_ll", DOUBLE, 20.0, "Minimum log-likelihood");
+	params_.last().constraints["min"] = "0.0";
+
+	checkIsRegistered();
+}
+
+QString FilterCnvLoglikelihood::toText() const
+{
+	return name() + " &ge; " + QString::number(getDouble("min_ll"), 'f', 2);
+}
+
+void FilterCnvLoglikelihood::apply(const CnvList& cnvs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	double min_ll = getDouble("min_ll");
+	int i_ll = cnvs.annotationIndexByName("loglikelihood", true);
+	if (cnvs.type()==CnvListType::CLINCNV_GERMLINE_SINGLE || cnvs.type()==CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
+	{
+		for(int i=0; i<cnvs.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			if (cnvs[i].annotations()[i_ll].toDouble()<min_ll)
+			{
+				result.flags()[i] = false;
+			}
+		}
+	}
+	else if (cnvs.type()==CnvListType::CLINCNV_GERMLINE_MULTI)
+	{
+		for(int i=0; i<cnvs.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			QByteArrayList lls = cnvs[i].annotations()[i_ll].split(',');
+			foreach(const QByteArray& ll, lls)
+			{
+				if (ll.toDouble()<min_ll)
+				{
+					result.flags()[i] = false;
+					break;
+				}
+			}
+		}
+	}
+	else
+	{
+		THROW(ArgumentException, "Filter '" + name() + "' can only be applied to CNV lists generated by ClinCNV!");
+	}
+}
+
+FilterCnvQvalue::FilterCnvQvalue()
+{
+	name_ = "CNV q-value";
+	type_ = FilterSubject::CNVS;
+	description_ = QStringList() << "Filter for CNV q-value." << "TODO: desc" << "Note: when applied to multi-sample CNV lists, each q-value must be below the cutuff!" << "Note: this filter works for CNV lists generated by ClinCNV only!";
+	params_ << FilterParameter("max_q", DOUBLE, 1.0, "Maximum q-value");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
+
+	checkIsRegistered();
+}
+
+QString FilterCnvQvalue::toText() const
+{
+	return name() + " &le; " + QString::number(getDouble("max_q"), 'f', 2);
+}
+
+void FilterCnvQvalue::apply(const CnvList& cnvs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	double max_q = getDouble("max_q");
+	int i_q = cnvs.annotationIndexByName("qvalue", true);
+
+	if (cnvs.type()==CnvListType::CLINCNV_GERMLINE_SINGLE)
+	{
+		for(int i=0; i<cnvs.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			if (cnvs[i].annotations()[i_q].toDouble()>max_q)
+			{
+				result.flags()[i] = false;
+			}
+		}
+	}
+	else if (cnvs.type()==CnvListType::CLINCNV_GERMLINE_MULTI)
+	{
+		for(int i=0; i<cnvs.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			QByteArrayList qs = cnvs[i].annotations()[i_q].split(',');
+			foreach(const QByteArray& q, qs)
+			{
+				if (q.toDouble()>max_q)
+				{
+					result.flags()[i] = false;
+					break;
+				}
+			}
+		}
+	}
+	else
+	{
+		THROW(ArgumentException, "Filter '" + name() + "' can only be applied to CNV lists generated by ClinCNV!");
+	}
+
+}
+
+FilterCnvCompHet::FilterCnvCompHet()
+{
+	name_ = "CNV compound-heterozygous";
+	type_ = FilterSubject::CNVS;
+	description_ = QStringList() << "Filter for compound-heterozygous CNVs." << "Mode 'CNV-CNV' detects genes with two or more CNV hits." << "Mode 'CNV-SNV/INDEL' detectes genes with one CNV and one small variant hit.";
+	params_ << FilterParameter("mode", STRING, "n/a", "Compound-heterozygotes detection mode.");
+	params_.last().constraints["valid"] = "n/a,CNV-CNV,CNV-SNV/INDEL";
+
+	checkIsRegistered();
+}
+
+QString FilterCnvCompHet::toText() const
+{
+	return name() + " " + getString("mode");
+}
+
+void FilterCnvCompHet::apply(const CnvList& cnvs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	QString mode = getString("mode");
+	if (mode=="n/a") return;
+
+	//count hits per gene for CNVs
+	QMap<QByteArray, int> gene_count;
+	for(int i=0; i<cnvs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		foreach(const QByteArray& gene, cnvs[i].genes())
+		{
+			gene_count[gene] += 1;
+		}
+	}
+
+	GeneSet comphet_hit;
+
+	//two CNV hits
+	if (mode=="CNV-CNV")
+	{
+		for(auto it=gene_count.cbegin(); it!=gene_count.cend(); ++it)
+		{
+			if (it.value()>1)
+			{
+				comphet_hit.insert(it.key());
+			}
+		}
+	}
+
+	//one CNV and one SNV/INDEL hit
+	else if (mode=="CNV-SNV/INDEL")
+	{
+		GeneSet single_hit_cnv;
+		for(auto it=gene_count.cbegin(); it!=gene_count.cend(); ++it)
+		{
+			if (it.value()==1)
+			{
+				single_hit_cnv.insert(it.key());
+			}
+		}
+
+		foreach(const QByteArray& gene, single_hit_cnv)
+		{
+			if (het_hit_genes_.contains(gene))
+			{
+				comphet_hit.insert(gene);
+			}
+		}
+	}
+
+	//flag passing CNVs
+	for(int i=0; i<cnvs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		result.flags()[i] = cnvs[i].genes().intersectsWith(comphet_hit);
+	}
+}
+
+FilterCnvOMIM::FilterCnvOMIM()
+{
+	name_ = "CNV OMIM genes";
+	type_ = FilterSubject::CNVS;
+	description_ = QStringList() << "Filter for OMIM genes i.e. the 'OMIM' column is not empty.";
+
+	checkIsRegistered();
+}
+
+QString FilterCnvOMIM::toText() const
+{
+	return name();
+}
+
+void FilterCnvOMIM::apply(const CnvList& cnvs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	int index = cnvs.annotationIndexByName("omim", true);
+
+	for(int i=0; i<cnvs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		if (cnvs[i].annotations()[index].trimmed().isEmpty())
+		{
+			result.flags()[i] = false;
+		}
+	}
+}
+
+
+FilterCnvCnpOverlap::FilterCnvCnpOverlap()
+{
+	name_ = "CNV polymorphism region";
+	type_ = FilterSubject::CNVS;
+	description_ = QStringList() << "Filter for overlap with CNP regions.";
+	params_ << FilterParameter("column", STRING, "overlap cnps_genomes_imgag", "CNP column name");
+	params_ << FilterParameter("max_ol", DOUBLE, 0.99, "Maximum overlap");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
+
+	checkIsRegistered();
+}
+
+QString FilterCnvCnpOverlap::toText() const
+{
+	return name() + " &le; " + QString::number(getDouble("max_ol"), 'f', 2) + " (column: " + getString("column") + ")";
+}
+
+void FilterCnvCnpOverlap::apply(const CnvList& cnvs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	int index = cnvs.annotationIndexByName(getString("column").toUtf8(), true);
+	double max_ol = getDouble("max_ol");
+
+	for(int i=0; i<cnvs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		if (cnvs[i].annotations()[index].left(5).toDouble()>max_ol)
+		{
+			result.flags()[i] = false;
 		}
 	}
 }

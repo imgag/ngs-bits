@@ -8,7 +8,7 @@
 #include <QShortcut>
 #include "cmath"
 
-SomaticReportConfiguration::SomaticReportConfiguration(const ClinCnvList& cnv_input, QWidget *parent)
+SomaticReportConfiguration::SomaticReportConfiguration(const CnvList& cnv_input, QWidget *parent)
 	: QDialog(parent)
 	, ui_(new Ui::SomaticReportConfiguration)
 	, cnvs_(cnv_input)
@@ -30,11 +30,14 @@ SomaticReportConfiguration::SomaticReportConfiguration(const ClinCnvList& cnv_in
 
 	ui_->cnvs->setHorizontalHeaderLabels(col_names);
 
+	int i_cn = cnvs_.annotationIndexByName("CN_change", true);
+	int i_ll = cnvs_.annotationIndexByName("loglikelihood", true);
+
 	//load data into QTableWidget cnvs
 	ui_->cnvs->setRowCount(cnvs_.count());
 	for(int row=0;row<cnvs_.count();++row)
 	{
-		const ClinCnvVariant& cnv = cnvs_[row];
+		const CopyNumberVariant& cnv = cnvs_[row];
 
 		//checkbox
 		ui_->cnvs->setItem(row, 0, new QTableWidgetItem(""));
@@ -46,9 +49,9 @@ SomaticReportConfiguration::SomaticReportConfiguration(const ClinCnvList& cnv_in
 		ui_->cnvs->setItem(row, 1, new QTableWidgetItem(QString(cnv.chr().str())));
 		ui_->cnvs->setItem(row, 2, new QTableWidgetItem(QString::number(cnv.start())));
 		ui_->cnvs->setItem(row, 3, new QTableWidgetItem(QString::number(cnv.end())));
-		ui_->cnvs->setItem(row, 4, new QTableWidgetItem(QString::number(cnv.copyNumber(), 'f', 1)));
+		ui_->cnvs->setItem(row, 4, new QTableWidgetItem(QString(cnv.annotations().at(i_cn))));
 		ui_->cnvs->item(row, 4)->setTextAlignment(Qt::AlignRight|Qt::AlignVCenter);
-		ui_->cnvs->setItem(row, 5, new QTableWidgetItem(QString::number(cnv.likelihoods()[0], 'f', 1)));
+		ui_->cnvs->setItem(row, 5, new QTableWidgetItem(QString(cnv.annotations().at(i_ll))));
 		ui_->cnvs->item(row, 5)->setTextAlignment(Qt::AlignRight|Qt::AlignVCenter);
 		ui_->cnvs->setItem(row, 6, new QTableWidgetItem(QString::number(cnv.size(),'f',0)));
 		ui_->cnvs->item(row, 6)->setTextAlignment(Qt::AlignRight|Qt::AlignVCenter);
@@ -128,9 +131,9 @@ SomaticReportConfiguration::~SomaticReportConfiguration()
 	delete ui_;
 }
 
-ClinCnvList SomaticReportConfiguration::getSelectedCNVs()
+CnvList SomaticReportConfiguration::getSelectedCNVs()
 {
-	ClinCnvList filtered_cnvs;
+	CnvList filtered_cnvs;
 
 	filtered_cnvs.copyMetaData(cnvs_);
 
@@ -179,10 +182,12 @@ void SomaticReportConfiguration::filtersChanged()
 	view_pass_filter.fill(true);
 
 	//Logarithmic likelihood
+
+	int i_ll = cnvs_.annotationIndexByName("loglikelihood", true);
 	for(int r=0;r<cnvs_.count();++r)
 	{
 		if(!view_pass_filter[r]) continue;
-		view_pass_filter[r] = cnvs_[r].likelihoods()[0] >= min_loglikelihood;
+		view_pass_filter[r] = cnvs_[r].annotations()[i_ll].toDouble() >= min_loglikelihood;
 	}
 
 	//CNV size
@@ -195,7 +200,7 @@ void SomaticReportConfiguration::filtersChanged()
 	//Filter for CGI driver
 	if(ui_->filter_for_cgi_drivers->checkState() == Qt::Checked)
 	{
-		int i_cgi_driver_statement = cnvs_.annotationIndexByName("CGI_driver_statement",false);
+		int i_cgi_driver_statement = cnvs_.annotationIndexByName("CGI_driver_statement", false);
 
 		if(i_cgi_driver_statement >= 0)
 		{

@@ -7,6 +7,31 @@ TEST_CLASS(FilterCascade_Test)
 Q_OBJECT
 private slots:
 
+	/********************************************* Filter factory *********************************************/
+
+	void FilterFactory_filterNames()
+	{
+		//all
+		QStringList names = FilterFactory::filterNames();
+		IS_TRUE(names.contains("Allele frequency"));
+		IS_TRUE(names.contains("CNV size"));
+		int count_all = names.count();
+
+		//small variants
+		names = FilterFactory::filterNames(FilterSubject::SNVS_INDELS);
+		IS_TRUE(names.contains("Allele frequency"));
+		IS_FALSE(names.contains("CNV size"));
+		IS_TRUE(names.count()<count_all);
+
+		//CNVs
+		names = FilterFactory::filterNames(FilterSubject::CNVS);
+		IS_FALSE(names.contains("Allele frequency"));
+		IS_TRUE(names.contains("CNV size"));
+		IS_TRUE(names.count()<count_all);
+	}
+
+	/********************************************* Filters for small variants *********************************************/
+
 	void FilterAlleleFrequency_apply()
 	{
 		VariantList vl;
@@ -800,4 +825,273 @@ private slots:
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 2);
 	}
+
+	/********************************************* Filters for CNVs *********************************************/
+
+	void FilterCnvSize_apply()
+	{
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/CnvList_ClinCNV_germline.tsv"));
+
+		FilterResult result(cnvs.count());
+
+		//default
+		FilterCnvSize filter;
+		filter.setDouble("size", 20.0);
+		filter.apply(cnvs, result);
+		I_EQUAL(result.countPassing(), 2);
+	}
+
+
+	void FilterCnvRegions_apply()
+	{
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/CnvList_ClinCNV_germline.tsv"));
+
+		FilterResult result(cnvs.count());
+
+		//default
+		FilterCnvRegions filter;
+		filter.setInteger("regions", 4);
+		filter.apply(cnvs, result);
+		I_EQUAL(result.countPassing(), 1);
+	}
+
+	void FilterCnvCopyNumber_apply_ClinCNV_germline()
+	{
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/CnvList_ClinCNV_germline.tsv"));
+
+		FilterResult result(cnvs.count());
+
+		//default
+		FilterCnvCopyNumber filter;
+		filter.setString("cn", "1");
+		filter.apply(cnvs, result);
+		I_EQUAL(result.countPassing(), 37);
+	}
+
+	void FilterCnvCopyNumber_apply_CnvHunter_germline()
+	{
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/CnvList_CnvHunter_germline.tsv"));
+
+		FilterResult result(cnvs.count());
+
+		//default
+		FilterCnvCopyNumber filter;
+		filter.setString("cn", "4+");
+		filter.apply(cnvs, result);
+		I_EQUAL(result.countPassing(), 1);
+	}
+
+	void FilterCnvAlleleFrequency_apply_ClinCNV_germline()
+	{
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/CnvList_ClinCNV_germline.tsv"));
+
+		FilterResult result(cnvs.count());
+
+		//default
+		FilterCnvAlleleFrequency filter;
+		filter.setDouble("max_af", 0.02);
+		filter.apply(cnvs, result);
+		I_EQUAL(result.countPassing(), 6);
+	}
+
+	void FilterCnvAlleleFrequency_apply_CnvHunter_germline()
+	{
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/CnvList_CnvHunter_germline.tsv"));
+
+		FilterResult result(cnvs.count());
+
+		//default
+		FilterCnvAlleleFrequency filter;
+		filter.setDouble("max_af", 0.02);
+		filter.apply(cnvs, result);
+		I_EQUAL(result.countPassing(), 7);
+	}
+
+	void FilterCnvZscore_apply()
+	{
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/CnvList_CnvHunter_germline.tsv"));
+
+		FilterResult result(cnvs.count());
+
+		//default
+		FilterCnvZscore filter;
+		filter.setDouble("min_z", 5.5);
+		filter.apply(cnvs, result);
+		I_EQUAL(result.countPassing(), 7);
+	}
+
+
+	void FilterCnvLoglikelihood_apply()
+	{
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/CnvList_ClinCNV_germline.tsv"));
+
+		FilterResult result(cnvs.count());
+
+		//default
+		FilterCnvLoglikelihood filter;
+		filter.setDouble("min_ll", 11.0);
+		filter.apply(cnvs, result);
+		I_EQUAL(result.countPassing(), 2);
+	}
+
+	void FilterCnvLoglikelihood_apply_multi()
+	{
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/CnvList_ClinCNV_germline_multi.tsv"));
+
+		FilterResult result(cnvs.count());
+
+		//default
+		FilterCnvLoglikelihood filter;
+		filter.setDouble("min_ll", 200.0);
+		filter.apply(cnvs, result);
+		I_EQUAL(result.countPassing(), 7);
+	}
+
+
+	void FilterCnvQvalue_apply()
+	{
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/CnvList_ClinCNV_germline.tsv"));
+
+		FilterResult result(cnvs.count());
+
+		//default
+		FilterCnvQvalue filter;
+		filter.setDouble("max_q", 0.0001);
+		filter.apply(cnvs, result);
+		I_EQUAL(result.countPassing(), 2);
+	}
+
+	void FilterCnvQvalue_apply_multi()
+	{
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/CnvList_ClinCNV_germline_multi.tsv"));
+
+		FilterResult result(cnvs.count());
+
+		//default
+		FilterCnvQvalue filter;
+		filter.setDouble("max_q", 0.0);
+		filter.apply(cnvs, result);
+		I_EQUAL(result.countPassing(), 20);
+	}
+
+	void FilterCnvCompHet_apply_cnv_cnv()
+	{
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/CnvList_CnvHunter_germline.tsv"));
+
+		FilterResult result(cnvs.count());
+
+		//default
+		FilterCnvCompHet filter;
+		filter.setString("mode", "CNV-CNV");
+		filter.apply(cnvs, result);
+		I_EQUAL(result.countPassing(), 19);
+	}
+
+	void FilterCnvCompHet_apply_cnv_snvindel()
+	{
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/CnvList_ClinCNV_germline.tsv"));
+
+		FilterResult result(cnvs.count());
+
+		//default
+		FilterCnvCompHet filter;
+		filter.setString("mode", "CNV-SNV/INDEL");
+		filter.setHetHitGenes(GeneSet() << "SKI" << "PER3" << "BRCA1" << "BRCA2" << "TP53");
+		filter.apply(cnvs, result);
+		I_EQUAL(result.countPassing(), 2);
+	}
+
+	void FilterCnvOMIM_apply()
+	{
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/CnvList_ClinCNV_germline.tsv"));
+
+		FilterResult result(cnvs.count());
+
+		//default
+		FilterCnvOMIM filter;
+		filter.apply(cnvs, result);
+		I_EQUAL(result.countPassing(), 20);
+	}
+
+
+	void FilterCnvCnpOverlap_apply()
+	{
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/CnvList_ClinCNV_germline.tsv"));
+
+		FilterResult result(cnvs.count());
+
+		//default
+		FilterCnvCnpOverlap filter;
+		filter.setDouble("max_ol", 0.001);
+		filter.apply(cnvs, result);
+		I_EQUAL(result.countPassing(), 65);
+	}
+	/********************************************* Default filters for CNVs *********************************************/
+
+	void default_filters_ClinCNV_germline_single()
+	{
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/CnvList_ClinCNV_germline.tsv"));
+
+		FilterCascade filters = FilterCascadeFile::load(TESTDATA("data_in/CnvList_filters.ini"), "default filter (ClinCNV)");
+		FilterResult result = filters.apply(cnvs, true);
+		I_EQUAL(result.countPassing(), 0);
+	}
+
+	void default_filters_ClinCNV_germline_multi()
+	{
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/CnvList_ClinCNV_germline_multi.tsv"));
+
+		FilterCascade filters = FilterCascadeFile::load(TESTDATA("data_in/CnvList_filters.ini"), "default filter (ClinCNV)");
+		FilterResult result = filters.apply(cnvs, true);
+		I_EQUAL(result.countPassing(), 32);
+	}
+
+	void default_filters_ClinCNV_somatic()
+	{
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/CnvList_ClinCNV_somatic.tsv"));
+
+		FilterCascade filters = FilterCascadeFile::load(TESTDATA("data_in/CnvList_filters.ini"), "default filter (ClinCNV)");
+		FilterResult result = filters.apply(cnvs, false);
+		I_EQUAL(result.countPassing(), 31);
+	}
+
+	void default_filters_CnvHunter_germline_single()
+	{
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/CnvList_CnvHunter_germline.tsv"));
+
+		FilterCascade filters = FilterCascadeFile::load(TESTDATA("data_in/CnvList_filters.ini"), "default filter (CnvHunter)");
+		FilterResult result = filters.apply(cnvs, true);
+		I_EQUAL(result.countPassing(), 28);
+	}
+
+	void default_filters_CnvHunter_germline_multi()
+	{
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/CnvList_CnvHunter_germline_multi.tsv"));
+
+		FilterCascade filters = FilterCascadeFile::load(TESTDATA("data_in/CnvList_filters.ini"), "default filter (CnvHunter)");
+		FilterResult result = filters.apply(cnvs, true);
+		I_EQUAL(result.countPassing(), 28);
+	}
+
+
 };

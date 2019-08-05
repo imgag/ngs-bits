@@ -47,7 +47,7 @@
 #include "IgvDialog.h"
 #include "GapDialog.h"
 #include "CnvWidget.h"
-#include "ClinCnvWidget.h"
+#include "CnvList.h"
 #include "RohWidget.h"
 #include "GeneSelectorDialog.h"
 #include "NGSHelper.h"
@@ -64,7 +64,6 @@
 #include "SvWidget.h"
 #include "VariantSampleOverviewDialog.h"
 #include "SomaticReportConfiguration.h"
-#include "ClinCnvList.h"
 #include "SingleSampleAnalysisDialog.h"
 #include "MultiSampleDialog.h"
 #include "TrioDialog.h"
@@ -114,7 +113,7 @@ MainWindow::MainWindow(QWidget *parent)
 	filter_btn->setMenu(new QMenu());
 	filter_btn->setPopupMode(QToolButton::InstantPopup);
 	connect(filter_btn, SIGNAL(triggered(QAction*)), this, SLOT(applyFilter(QAction*)));
-	foreach(QString filter_name, loadFilterNames())
+	foreach(QString filter_name, FilterCascadeFile::names(filterFileName()))
 	{
 		if (filter_name=="---")
 		{
@@ -229,6 +228,13 @@ void MainWindow::on_actionCNV_triggered()
 
 	if (i_genes!=-1 && i_genotypes.count()>0)
 	{
+		//check that a filter was applied (otherwise this can take forever)
+		int passing_vars = filter_result_.countPassing();
+		if (passing_vars>2000)
+		{
+			int res = QMessageBox::question(this, "Continue?", "There are " + QString::number(passing_vars) + " variants that pass the filters.\nGenerating the list of candidate genes for compound-heterozygous hits may take very long for this amount of variants.\nDo you want to continue?", QMessageBox::Yes, QMessageBox::No);
+			if(res==QMessageBox::No) return;
+		}
 		for (int i=0; i<variants_.count(); ++i)
 		{
 			if (!filter_result_.passing(i)) continue;
@@ -250,26 +256,11 @@ void MainWindow::on_actionCNV_triggered()
 		QMessageBox::information(this, "Invalid variant list", "Column for genes or genotypes not found in variant list. Cannot apply compound-heterozygous filter based on variants!");
 	}
 
-	if (Settings::boolean("NGSD_enabled", true))
-	{
-		NGSD db;
-		het_hit_genes = db.genesToApproved(het_hit_genes);
-	}
-
-	if(Helper::findFiles(QFileInfo(filename_).absolutePath(), "*_clincnv.tsv", false).count() > 0)
-	{
-		ClinCnvWidget* list = new ClinCnvWidget(filename_,ui_.filters,het_hit_genes);
-		connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
-		auto dlg = GUIHelper::createDialog(list, "ClinCNV copy-number variants");
-		addModelessDialog(dlg);
-	}
-	else
-	{
-		CnvWidget* list = new CnvWidget(filename_, ui_.filters, het_hit_genes);
-		connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
-		auto dlg = GUIHelper::createDialog(list, "CNVHunter copy-number variants");
-		addModelessDialog(dlg);
-	}
+	//open CNV window
+	CnvWidget* list = new CnvWidget(filename_, ui_.filters, het_hit_genes);
+	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
+	auto dlg = GUIHelper::createDialog(list, "Copy number variants");
+	addModelessDialog(dlg, true);
 }
 
 void MainWindow::on_actionROH_triggered()
@@ -961,46 +952,9 @@ QString MainWindow::sampleName()
 	return (ps_name + "_").split('_')[0];
 }
 
-QStringList MainWindow::loadFilterNames() const
+QString MainWindow::filterFileName() const
 {
-	QStringList output;
-
-	QString filename = QCoreApplication::applicationDirPath() + QDir::separator() + QCoreApplication::applicationName().replace(".exe","") + "_filters.ini";
-	foreach(QString line, Helper::loadTextFile(filename, true, QChar::Null, true))
-	{
-		if (line.startsWith("#"))
-		{
-			output << line.mid(1);
-		}
-	}
-
-	return output;
-}
-
-FilterCascade MainWindow::loadFilter(QString name) const
-{
-	FilterCascade output;
-
-
-	QString filename = QCoreApplication::applicationDirPath() + QDir::separator() + QCoreApplication::applicationName().replace(".exe","") + "_filters.ini";
-	QStringList filter_file = Helper::loadTextFile(filename, true, QChar::Null, true);
-
-	bool in_filter = false;
-	foreach(QString line, filter_file)
-	{
-		if (line.startsWith("#"))
-		{
-			in_filter = (line == "#"+name);
-		}
-		else if (in_filter)
-		{
-			QStringList parts = line.trimmed().split('\t');
-			QString name = parts[0];
-			output.add(FilterFactory::create(name, parts.mid(1)));
-		}
-	}
-
-	return output;
+	return QCoreApplication::applicationDirPath() + QDir::separator() + QCoreApplication::applicationName().replace(".exe","") + "_filters.ini";
 }
 
 void MainWindow::addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize)
@@ -1503,7 +1457,7 @@ void MainWindow::generateReportSomaticRTF()
 	}
 
 	//load CNVs
-	ClinCnvList cnvs;
+	CnvList cnvs;
 	try
 	{
 		QString filename_cnv = QFileInfo(filename_).filePath().split('.')[0] + "_clincnv.tsv";
@@ -2626,7 +2580,7 @@ void MainWindow::applyFilter(QAction* action)
 	}
 	else
 	{
-		ui_.filters->setFilters(text, loadFilter(text));
+		ui_.filters->setFilters(text, FilterCascadeFile::load(filterFileName(), text));
 	}
 }
 

@@ -2,6 +2,8 @@
 #define FILTERCASCADE_H
 
 #include "VariantList.h"
+#include "CnvList.h"
+#include "GeneSet.h"
 
 #include <QVariant>
 #include <QString>
@@ -19,6 +21,13 @@ enum FilterParameterType
 	BOOL,
 	STRING,
 	STRINGLIST
+};
+
+//Filter subject
+enum class FilterSubject
+{
+	SNVS_INDELS, //Small variants (SNVs and InDels)
+	CNVS //CNVs
 };
 
 //Parameter
@@ -106,6 +115,11 @@ class CPPNGSSHARED_EXPORT FilterBase
 		{
 			return name_;
 		}
+		//Returns the filter subject.
+		FilterSubject type() const
+		{
+			return type_;
+		}
 		//Returns the filter description (and optionally the parameter description).
 		QStringList description(bool add_parameter_description = false) const;
 
@@ -145,12 +159,15 @@ class CPPNGSSHARED_EXPORT FilterBase
 		//Returns a text representation of the filter
 		virtual QString toText() const = 0;
 
-		//Applies the filter to a variant list
-		virtual void apply(const VariantList& variant_list, FilterResult& result) const = 0;
+		//Applies the filter to a small variant list
+		virtual void apply(const VariantList& variant_list, FilterResult& result) const;
+		//Applies the filter to a CNV list
+		virtual void apply(const CnvList& variant_list, FilterResult& result) const;
 
 	protected:
 		FilterBase(const FilterBase& rhs) = delete;
 		QString name_;
+		FilterSubject type_;
 		QStringList description_;
 		QList<FilterParameter> params_;
 		bool enabled_;
@@ -210,7 +227,6 @@ class CPPNGSSHARED_EXPORT FilterCascade
 			return filters_[index];
 		}
 
-
 		//Read-write access to a filter
 		QSharedPointer<FilterBase> operator[](int index)
 		{
@@ -230,8 +246,11 @@ class CPPNGSSHARED_EXPORT FilterCascade
 		//Move filter one position to the back.
 		void moveDown(int index);
 
-		//Applies the filter cascade.
+		//Applies the filter cascade to a small variant list.
 		FilterResult apply(const VariantList& variants, bool throw_errors = true, bool debug_time = false) const;
+
+		//Applies the filter cascade to a CNV list.
+		FilterResult apply(const CnvList& cnvs, bool throw_errors = true, bool debug_time = false) const;
 
 		//Returns errors occured during filter application.
 		QStringList errors(int index) const;
@@ -239,6 +258,20 @@ class CPPNGSSHARED_EXPORT FilterCascade
 	private:
 		QList<QSharedPointer<FilterBase>> filters_;
 		mutable QVector<QStringList> errors_;
+};
+
+//Handles loading filters from filter INI files
+class CPPNGSSHARED_EXPORT FilterCascadeFile
+{
+	public:
+		//Returns all availiable filter names ("---" is used for separators).
+		static QStringList names(QString filename);
+		//Resurns a filter cascacde.
+		static FilterCascade load(QString filename, QString filter);
+
+	private:
+		//Declare constructor away
+		FilterCascadeFile() = delete;
 };
 
 //Regions filter (not derived from FilterBase!)
@@ -262,9 +295,12 @@ class CPPNGSSHARED_EXPORT FilterFactory
 		//Returns a complete list of supported filter names
 		static QStringList filterNames();
 
+		//Returns a complete list of supported filter names for a given subject
+		static QStringList filterNames(FilterSubject subject);
+
 	private:
 		FilterFactory() = delete;
-		static QMap<QString, FilterBase*(*)()> getRegistry();
+		static const QMap<QString, FilterBase*(*)()>& getRegistry();
 };
 
 //Allele-frequency filter
@@ -316,6 +352,7 @@ class CPPNGSSHARED_EXPORT FilterFilterColumn
 		QString toText() const override;
 		void apply(const VariantList& variants, FilterResult& result) const override;
 
+	protected:
 		//Returns if there is a filter column match
 		bool match(const Variant& v) const;
 
@@ -373,7 +410,7 @@ class CPPNGSSHARED_EXPORT FilterClassificationNGSD
 		QString toText() const override;
 		void apply(const VariantList& variants, FilterResult& result) const override;
 
-
+protected:
 		//Returns if there is a class column match
 		bool match(const Variant& v) const;
 
@@ -411,6 +448,7 @@ class CPPNGSSHARED_EXPORT FilterGenotypeControl
 		QString toText() const override;
 		void apply(const VariantList& variants, FilterResult& result) const override;
 
+	protected:
 		//Checks that all samples have the same genotype and returns it, or "" otherwise.
 		QByteArray checkSameGenotype(const QList<int>& geno_indices, const Variant& v) const;
 };
@@ -424,6 +462,7 @@ class CPPNGSSHARED_EXPORT FilterGenotypeAffected
 		QString toText() const override;
 		void apply(const VariantList& variants, FilterResult& result) const override;
 
+	protected:
 		//Checks that all samples have the same genotype and returns it, or "" otherwise.
 		QByteArray checkSameGenotype(const QList<int>& geno_indices, const Variant& v) const;
 };
@@ -437,6 +476,7 @@ class CPPNGSSHARED_EXPORT FilterColumnMatchRegexp
 		QString toText() const override;
 		void apply(const VariantList& variants, FilterResult& result) const override;
 
+	protected:
 		bool match(const Variant& v) const;
 
 		mutable int index;
@@ -452,6 +492,7 @@ class CPPNGSSHARED_EXPORT FilterAnnotationPathogenic
 		QString toText() const override;
 		void apply(const VariantList& variants, FilterResult& result) const override;
 
+	protected:
 		//Returns of the variant is annotated to be pathogenic
 		bool annotatedPathogenic(const Variant& v) const;
 
@@ -469,6 +510,7 @@ class CPPNGSSHARED_EXPORT FilterPredictionPathogenic
 		QString toText() const override;
 		void apply(const VariantList& variants, FilterResult& result) const override;
 
+	protected:
 		//Counts the number of pathogenic predictions
 		bool predictedPathogenic(const Variant& v) const;
 
@@ -490,6 +532,7 @@ class CPPNGSSHARED_EXPORT FilterAnnotationText
 		QString toText() const override;
 		void apply(const VariantList& variants, FilterResult& result) const override;
 
+	protected:
 		bool match(const Variant& v) const;
 
 		mutable QByteArray term;
@@ -514,6 +557,7 @@ class CPPNGSSHARED_EXPORT FilterTrio
 		QString toText() const override;
 		void apply(const VariantList& variants, FilterResult& result) const override;
 
+	protected:
 		//returns genotypes corrected by allele frequency
 		void correctedGenotypes(const Variant& v, QByteArray& geno_c, QByteArray& geno_f, QByteArray& geno_m) const;
 
@@ -524,7 +568,6 @@ class CPPNGSSHARED_EXPORT FilterTrio
 		mutable int i_af_c;
 		mutable int i_af_f;
 		mutable int i_af_m;
-
 };
 
 //OMIM filter
@@ -557,5 +600,125 @@ class CPPNGSSHARED_EXPORT FilterRegulatory
 		void apply(const VariantList& variants, FilterResult& result) const override;
 };
 
+
+//Filter CNV size
+class CPPNGSSHARED_EXPORT FilterCnvSize
+	: public FilterBase
+{
+	public:
+		FilterCnvSize();
+		QString toText() const override;
+		void apply(const CnvList& cnvs, FilterResult& result) const override;
+};
+
+//Filter CNV regions
+class CPPNGSSHARED_EXPORT FilterCnvRegions
+	: public FilterBase
+{
+	public:
+		FilterCnvRegions();
+		QString toText() const override;
+		void apply(const CnvList& cnvs, FilterResult& result) const override;
+};
+
+//Filter CNV copy-number
+class CPPNGSSHARED_EXPORT FilterCnvCopyNumber
+	: public FilterBase
+{
+	public:
+		FilterCnvCopyNumber();
+		QString toText() const override;
+		void apply(const CnvList& cnvs, FilterResult& result) const override;
+};
+
+//Filter CNV allele frequency
+class CPPNGSSHARED_EXPORT FilterCnvAlleleFrequency
+	: public FilterBase
+{
+	public:
+		FilterCnvAlleleFrequency();
+		QString toText() const override;
+		void apply(const CnvList& cnvs, FilterResult& result) const override;
+};
+
+
+//Filter CNV z-score
+class CPPNGSSHARED_EXPORT FilterCnvZscore
+	: public FilterBase
+{
+	public:
+		FilterCnvZscore();
+		QString toText() const override;
+		void apply(const CnvList& cnvs, FilterResult& result) const override;
+};
+
+
+//Filter CNV log-likelihood
+class CPPNGSSHARED_EXPORT FilterCnvLoglikelihood
+	: public FilterBase
+{
+	public:
+		FilterCnvLoglikelihood();
+		QString toText() const override;
+		void apply(const CnvList& cnvs, FilterResult& result) const override;
+};
+
+//Filter CNV q-value
+class CPPNGSSHARED_EXPORT FilterCnvQvalue
+	: public FilterBase
+{
+	public:
+		FilterCnvQvalue();
+		QString toText() const override;
+		void apply(const CnvList& cnvs, FilterResult& result) const override;
+};
+
+
+//Filter CNV compound-heterozygous
+class CPPNGSSHARED_EXPORT FilterCnvCompHet
+	: public FilterBase
+{
+	public:
+		FilterCnvCompHet();
+		QString toText() const override;
+		void apply(const CnvList& cnvs, FilterResult& result) const override;
+
+		//Returns the list of genes that have one heterzygous hit in the small variant list.
+		const GeneSet& hetHitGenes() const
+		{
+			return het_hit_genes_;
+		}
+
+		//Sets the list of genes that have one heterzygous hit in the small variant list.
+		void setHetHitGenes(const GeneSet& het_var_genes) const
+		{
+			het_hit_genes_ = het_var_genes;
+		}
+
+	protected:
+		mutable GeneSet het_hit_genes_;
+};
+
+
+//Filter CNVs for OMIM annotation
+class CPPNGSSHARED_EXPORT FilterCnvOMIM
+	: public FilterBase
+{
+	public:
+		FilterCnvOMIM();
+		QString toText() const override;
+		void apply(const CnvList& cnvs, FilterResult& result) const override;
+};
+
+
+//Filter CNVs for overlap with CNP regions
+class CPPNGSSHARED_EXPORT FilterCnvCnpOverlap
+	: public FilterBase
+{
+	public:
+		FilterCnvCnpOverlap();
+		QString toText() const override;
+		void apply(const CnvList& cnvs, FilterResult& result) const override;
+};
 
 #endif // FILTERCASCADE_H

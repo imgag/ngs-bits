@@ -50,7 +50,7 @@ public:
 
 		//filters
 		output << "The following filters are supported:";
-		QStringList filter_names = FilterFactory::filterNames();
+		QStringList filter_names = FilterFactory::filterNames(FilterSubject::SNVS_INDELS);
 		//determine maximum filter name length for intentation
 		int max_len = 0;
 		foreach (QString name, filter_names)

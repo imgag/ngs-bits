@@ -83,7 +83,7 @@ class CPPNGSSHARED_EXPORT GeneSet
 		///Checks if any gene is contained
 		bool intersectsWith(const GeneSet& genes) const
 		{
-			//TODO replace if we no longer use Qt 5.5: return set_.intersects(genes.set_);
+			//TODO replace if we no longer use Qt 5.5: return set_.intersects(genes.set_); > remove 16.04 from installation instructions
 			for (auto it = genes.cbegin(); it != genes.cend(); ++it)
 			{
 				if (contains(*it)) return true;

@@ -14,7 +14,7 @@
 #include <QDesktopServices>
 #include <QUrl>
 
-RohWidget::RohWidget(QString filename, FilterDockWidget* filter_widget, QWidget *parent)
+RohWidget::RohWidget(QString filename, FilterWidget* filter_widget, QWidget *parent)
 	: QWidget(parent)
 	, var_filters(filter_widget)
 	, ui(new Ui::RohWidget)
@@ -324,7 +324,7 @@ void RohWidget::showContextMenu(QPoint p)
 	//OMIM
 	if (text=="Open OMIM entries")
 	{
-		auto entries = VariantDetailsDockWidget::parseDB(omim_text, "],");
+		auto entries = VariantDetailsDockWidget::parseDB(omim_text, ',');
 		foreach(VariantDetailsDockWidget::DBEntry entry, entries)
 		{
 			QDesktopServices::openUrl(QUrl("http://omim.org/entry/" + entry.id));
