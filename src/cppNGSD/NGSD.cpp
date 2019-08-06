@@ -1963,14 +1963,9 @@ void NGSD::clearTable(QString table)
 int NGSD::geneToApprovedID(const QByteArray& gene)
 {
 	//approved
-	SqlQuery q_gene = getQuery();
-	q_gene.prepare("SELECT id FROM gene WHERE symbol=:0");
-	q_gene.bindValue(0, gene);
-	q_gene.exec();
-	if (q_gene.size()==1)
+	if (approvedGeneNames().contains(gene))
 	{
-		q_gene.next();
-		return q_gene.value(0).toInt();
+		return getValue("SELECT id FROM gene WHERE symbol='" + gene + "'").toInt();
 	}
 
 	//previous
@@ -2060,13 +2055,8 @@ GeneSet NGSD::genesToApproved(GeneSet genes, bool return_input_when_unconvertabl
 QPair<QString, QString> NGSD::geneToApprovedWithMessage(const QString& gene)
 {
 	//approved
-	SqlQuery q_gene = getQuery();
-	q_gene.prepare("SELECT id FROM gene WHERE symbol=:0");
-	q_gene.bindValue(0, gene);
-	q_gene.exec();
-	if (q_gene.size()==1)
+	if (approvedGeneNames().contains(gene.toUtf8()))
 	{
-		q_gene.next();
 		return qMakePair(gene, QString("KEPT: " + gene + " is an approved symbol"));
 	}
 
@@ -2240,9 +2230,8 @@ GeneSet NGSD::phenotypeToGenes(const Phenotype& phenotype, bool recursive)
 		pid2genes.exec();
 		while(pid2genes.next())
 		{
-			QString gene = pid2genes.value(0).toString();
-			QPair<QString, QString> geneinfo = geneToApprovedWithMessage(gene);
-			genes.insert(geneinfo.first.toLatin1());
+			QByteArray gene = pid2genes.value(0).toByteArray();
+			genes.insert(geneToApproved(gene, true));
 		}
 
 		//add sub-phenotypes
@@ -2391,7 +2380,7 @@ GeneSet NGSD::genesOverlappingByExon(const Chromosome& chr, int start, int end, 
 	return genes;
 }
 
-BedFile NGSD::genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QString mode, bool fallback, bool annotate_transcript_names, QTextStream* messages)
+BedFile NGSD::geneToRegions(const QByteArray& gene, Transcript::SOURCE source, QString mode, bool fallback, bool annotate_transcript_names, QTextStream* messages)
 {
 	QString source_str = Transcript::sourceToString(source);
 
@@ -2415,95 +2404,131 @@ BedFile NGSD::genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QS
 
 	//process input data
 	BedFile output;
-	foreach(QByteArray gene, genes)
+
+	//get approved gene id
+	int id = geneToApprovedID(gene);
+	if (id==-1)
 	{
-		//get approved gene id
-		int id = geneToApprovedID(gene);
-		if (id==-1)
+		if (messages) *messages << "Gene name '" << gene << "' is no HGNC-approved symbol. Skipping it!" << endl;
+		return output;
+	}
+	QByteArray gene_approved = geneToApproved(gene);
+
+	//prepare annotations
+	QList<QByteArray> annos;
+	annos << gene_approved;
+
+	//GENE mode
+	if (mode=="gene")
+	{
+		bool hits = false;
+
+		//add source transcripts
+		q_transcript.bindValue(0, id);
+		q_transcript.exec();
+		while(q_transcript.next())
 		{
-			if (messages) *messages << "Gene name '" << gene << "' is no HGNC-approved symbol. Skipping it!" << endl;
-			continue;
+			if (annotate_transcript_names)
+			{
+				annos.clear();
+				annos << gene_approved + " " + q_transcript.value(4).toByteArray();
+			}
+
+			q_range.bindValue(0, q_transcript.value(0).toInt());
+			q_range.exec();
+			q_range.next();
+
+			output.append(BedLine("chr"+q_transcript.value(1).toByteArray(), q_range.value(0).toInt(), q_range.value(1).toInt(), annos));
+			hits = true;
 		}
-		gene = geneSymbol(id);
 
-		//prepare annotations
-		QList<QByteArray> annos;
-		annos << gene;
-
-		//GENE mode
-		if (mode=="gene")
+		//add fallback transcripts
+		if (!hits && fallback)
 		{
-			bool hits = false;
-
-			//add source transcripts
-			q_transcript.bindValue(0, id);
-			q_transcript.exec();
-			while(q_transcript.next())
+			q_transcript_fallback.bindValue(0, id);
+			q_transcript_fallback.exec();
+			while(q_transcript_fallback.next())
 			{
 				if (annotate_transcript_names)
 				{
 					annos.clear();
-					annos << gene + " " + q_transcript.value(4).toByteArray();
+					annos << gene_approved + " " + q_transcript_fallback.value(4).toByteArray();
 				}
 
-				q_range.bindValue(0, q_transcript.value(0).toInt());
+
+				q_range.bindValue(0, q_transcript_fallback.value(0).toInt());
 				q_range.exec();
 				q_range.next();
 
-				output.append(BedLine("chr"+q_transcript.value(1).toByteArray(), q_range.value(0).toInt(), q_range.value(1).toInt(), annos));
+				output.append(BedLine("chr"+q_transcript_fallback.value(1).toByteArray(), q_range.value(0).toInt(), q_range.value(1).toInt(), annos));
+
 				hits = true;
-			}
-
-			//add fallback transcripts
-			if (!hits && fallback)
-			{
-				q_transcript_fallback.bindValue(0, id);
-				q_transcript_fallback.exec();
-				while(q_transcript_fallback.next())
-				{
-					if (annotate_transcript_names)
-					{
-						annos.clear();
-						annos << gene + " " + q_transcript_fallback.value(4).toByteArray();
-					}
-
-
-					q_range.bindValue(0, q_transcript_fallback.value(0).toInt());
-					q_range.exec();
-					q_range.next();
-
-					output.append(BedLine("chr"+q_transcript_fallback.value(1).toByteArray(), q_range.value(0).toInt(), q_range.value(1).toInt(), annos));
-
-					hits = true;
-				}
-			}
-
-			if (!hits && messages!=nullptr)
-			{
-				*messages << "No transcripts found for gene '" + gene + "'. Skipping it!" << endl;
 			}
 		}
 
-		//EXON mode
-		else if (mode=="exon")
+		if (!hits && messages!=nullptr)
 		{
-			bool hits = false;
+			*messages << "No transcripts found for gene '" + gene + "'. Skipping it!" << endl;
+		}
+	}
 
-			q_transcript.bindValue(0, id);
-			q_transcript.exec();
-			while(q_transcript.next())
+	//EXON mode
+	else if (mode=="exon")
+	{
+		bool hits = false;
+
+		q_transcript.bindValue(0, id);
+		q_transcript.exec();
+		while(q_transcript.next())
+		{
+			if (annotate_transcript_names)
+			{
+				annos.clear();
+				annos << gene_approved + " " + q_transcript.value(4).toByteArray();
+			}
+
+			int trans_id = q_transcript.value(0).toInt();
+			bool is_coding = !q_transcript.value(2).isNull() && !q_transcript.value(3).isNull();
+			int start_coding = q_transcript.value(2).toInt();
+			int end_coding = q_transcript.value(3).toInt();
+
+			q_exon.bindValue(0, trans_id);
+			q_exon.exec();
+			while(q_exon.next())
+			{
+				int start = q_exon.value(0).toInt();
+				int end = q_exon.value(1).toInt();
+				if (is_coding)
+				{
+					start = std::max(start_coding, start);
+					end = std::min(end_coding, end);
+
+					//skip non-coding exons of coding transcripts
+					if (end<start_coding || start>end_coding) continue;
+				}
+
+				output.append(BedLine("chr"+q_transcript.value(1).toByteArray(), start, end, annos));
+				hits = true;
+			}
+		}
+
+		//fallback
+		if (!hits && fallback)
+		{
+			q_transcript_fallback.bindValue(0, id);
+			q_transcript_fallback.exec();
+			while(q_transcript_fallback.next())
 			{
 				if (annotate_transcript_names)
 				{
 					annos.clear();
-					annos << gene + " " + q_transcript.value(4).toByteArray();
+					annos << gene + " " + q_transcript_fallback.value(4).toByteArray();
 				}
 
-				int trans_id = q_transcript.value(0).toInt();
-				bool is_coding = !q_transcript.value(2).isNull() && !q_transcript.value(3).isNull();
-				int start_coding = q_transcript.value(2).toInt();
-				int end_coding = q_transcript.value(3).toInt();
-
+				int trans_id = q_transcript_fallback.value(0).toInt();
+				bool is_coding = !q_transcript_fallback.value(2).isNull() && !q_transcript_fallback.value(3).isNull();
+				int start_coding = q_transcript_fallback.value(2).toInt();
+				int end_coding = q_transcript_fallback.value(3).toInt();
 				q_exon.bindValue(0, trans_id);
 				q_exon.exec();
 				while(q_exon.next())
@@ -2519,57 +2544,34 @@ BedFile NGSD::genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QS
 						if (end<start_coding || start>end_coding) continue;
 					}
 
-					output.append(BedLine("chr"+q_transcript.value(1).toByteArray(), start, end, annos));
+					output.append(BedLine("chr"+q_transcript_fallback.value(1).toByteArray(), start, end, annos));
 					hits = true;
 				}
 			}
+		}
 
-			//fallback
-			if (!hits && fallback)
-			{
-				q_transcript_fallback.bindValue(0, id);
-				q_transcript_fallback.exec();
-				while(q_transcript_fallback.next())
-				{
-					if (annotate_transcript_names)
-					{
-						annos.clear();
-						annos << gene + " " + q_transcript_fallback.value(4).toByteArray();
-					}
-
-					int trans_id = q_transcript_fallback.value(0).toInt();
-					bool is_coding = !q_transcript_fallback.value(2).isNull() && !q_transcript_fallback.value(3).isNull();
-					int start_coding = q_transcript_fallback.value(2).toInt();
-					int end_coding = q_transcript_fallback.value(3).toInt();
-					q_exon.bindValue(0, trans_id);
-					q_exon.exec();
-					while(q_exon.next())
-					{
-						int start = q_exon.value(0).toInt();
-						int end = q_exon.value(1).toInt();
-						if (is_coding)
-						{
-							start = std::max(start_coding, start);
-							end = std::min(end_coding, end);
-
-							//skip non-coding exons of coding transcripts
-							if (end<start_coding || start>end_coding) continue;
-						}
-
-						output.append(BedLine("chr"+q_transcript_fallback.value(1).toByteArray(), start, end, annos));
-						hits = true;
-					}
-				}
-			}
-
-			if (!hits && messages!=nullptr)
-			{
-				*messages << "No transcripts found for gene '" << gene << "'. Skipping it!" << endl;
-			}
+		if (!hits && messages!=nullptr)
+		{
+			*messages << "No transcripts found for gene '" << gene << "'. Skipping it!" << endl;
 		}
 	}
 
 	output.sort(!annotate_transcript_names);
+
+	return output;
+}
+
+BedFile NGSD::genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QString mode, bool fallback, bool annotate_transcript_names, QTextStream* messages)
+{
+	BedFile output;
+
+	foreach(const QByteArray& gene, genes)
+	{
+		output.add(geneToRegions(gene, source, mode, fallback, annotate_transcript_names, messages));
+	}
+
+	output.sort(!annotate_transcript_names);
+
 	return output;
 }
 

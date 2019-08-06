@@ -375,6 +375,8 @@ public:
 	GeneSet genesOverlapping(const Chromosome& chr, int start, int end, int extend=0);
 	///Returns the genes overlapping a regions (extended by some bases)
 	GeneSet genesOverlappingByExon(const Chromosome& chr, int start, int end, int extend=0);
+	///Returns the chromosomal regions corresponding to the given gene. Messages about unknown gene symbols etc. are written to the steam, if given.
+	BedFile geneToRegions(const QByteArray& gene, Transcript::SOURCE source, QString mode, bool fallback = false, bool annotate_transcript_names = false, QTextStream* messages = nullptr);
 	///Returns the chromosomal regions corresponding to the given genes. Messages about unknown gene symbols etc. are written to the steam, if given.
 	BedFile genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QString mode, bool fallback = false, bool annotate_transcript_names = false, QTextStream* messages = nullptr);
 	///Returns transcripts of a gene (if @p coding_only is set, only coding transcripts and regions are returned).
