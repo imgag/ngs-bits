@@ -22,7 +22,6 @@ NGSD:
 - NGSD annotation: export VCF, use VCF for annotation (also works on external servers)
 
 GSvar:
-#### benchmark/speedup of HPO filter (also several filter changes)
 #### subpanel design: add checkbox to use preferred transcript instead of all transcripts
 ## Filter: enhancer/promotor - de-novo
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case

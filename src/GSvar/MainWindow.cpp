@@ -2824,9 +2824,21 @@ void MainWindow::applyFilters(bool debug_time)
 				pheno_genes << db.phenotypeToGenes(pheno, true);
 			}
 
-			//convert genes to ROI
-			last_phenos_roi_ = db.genesToRegions(pheno_genes, Transcript::ENSEMBL, "gene", true);
-			last_phenos_roi_.extend(5000);
+			//convert genes to ROI (using a cache to speed up repeating queries)
+			static QHash<QByteArray, BedFile> cache;
+			last_phenos_roi_.clear();
+			foreach(const QByteArray& gene, pheno_genes)
+			{
+				if (!cache.contains(gene))
+				{
+					BedFile tmp = db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
+					tmp.clearAnnotations();
+					tmp.extend(5000);
+					tmp.merge();
+					cache[gene] = tmp;
+				}
+				last_phenos_roi_.add(cache[gene]);
+			}
 			last_phenos_roi_.merge();
 
 			if (debug_time)
