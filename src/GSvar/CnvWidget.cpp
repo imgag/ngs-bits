@@ -370,6 +370,7 @@ void CnvWidget::showContextMenu(QPoint p)
 	menu.addAction(QIcon("://Icons/Decipher.png"), "Open in Decipher browser");
 	menu.addAction(QIcon("://Icons/DGV.png"), "Open in DGV");
 	menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser");
+	menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser (override tracks)");
 
 	//exec menu
 	QAction* action = menu.exec(ui->cnvs->viewport()->mapToGlobal(p));
@@ -383,7 +384,11 @@ void CnvWidget::showContextMenu(QPoint p)
 	}
 	else if (text=="Open in UCSC browser")
 	{
-		QDesktopServices::openUrl(QUrl("http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=" + cnvs[row].toString()));
+		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=" + cnvs[row].toString()));
+	}
+	else if (text=="Open in UCSC browser (override tracks)")
+	{
+		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&ignoreCookie=1&hideTracks=1&cytoBand=pack&refSeqComposite=dense&ensGene=dense&omimGene2=pack&geneReviews=pack&dgvPlus=squish&genomicSuperDups=squish&position=" + cnvs[row].toString()));
 	}
 	else if (text=="Open in Decipher browser")
 	{

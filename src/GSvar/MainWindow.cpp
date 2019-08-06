@@ -2358,7 +2358,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	}
 
 	//UCSC
-	menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC Genome Browser");
+	menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser");
 
 	//LOVD upload
 	sub_menu = menu.addMenu(QIcon("://Icons/LOVD.png"), "LOVD");
@@ -2402,9 +2402,9 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 			return;
 		}
 	}
-	else if (text=="Open in UCSC Genome Browser")
+	else if (text=="Open in UCSC browser")
 	{
-		QDesktopServices::openUrl(QUrl("http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=" + variant.chr().str()+":"+QString::number(variant.start()-20)+"-"+QString::number(variant.end()+20)));
+		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=" + variant.chr().str()+":"+QString::number(variant.start()-20)+"-"+QString::number(variant.end()+20)));
 	}
 	else if (text=="Find in LOVD")
 	{
@@ -2986,24 +2986,21 @@ void MainWindow::updateNGSDSupport()
 
 	//toolbar
 	ui_.actionReport->setEnabled(ngsd_enabled);
-	ui_.ps_details->setEnabled(ngsd_enabled);
 	ui_.actionNGSDAnnotation->setEnabled(ngsd_enabled);
 	ui_.actionAnalysisStatus->setEnabled(ngsd_enabled);
 	ui_.actionReanalyze->setEnabled(ngsd_enabled);
-	ui_.actionSampleInformation->setEnabled(ngsd_enabled);
 	ui_.actionGapsRecalculate->setEnabled(ngsd_enabled);
 	ui_.actionGeneSelector->setEnabled(ngsd_enabled);
-	ui_.actionDiagnosticStatusOverview->setEnabled(ngsd_enabled);
+	ui_.actionOpenProcessedSampleTabByName->setEnabled(ngsd_enabled);
+	ui_.actionOpenSequencingRunTabByName->setEnabled(ngsd_enabled);
 
-	//tools menu
+	//NGSD menu
+	ui_.menuNGSD->setEnabled(ngsd_enabled);
+	ui_.actionDesignSubpanel->setEnabled(ngsd_enabled && target_file_folder_set);
+
+	//other actions
 	ui_.actionOpenByName->setEnabled(ngsd_enabled);
-	ui_.actionGeneInfo->setEnabled(ngsd_enabled);
-	ui_.actionGenesToRegions->setEnabled(ngsd_enabled);
-	ui_.actionGeneVariantInfo->setEnabled(ngsd_enabled);
-	ui_.actionPhenoToGenes->setEnabled(ngsd_enabled);
-	ui_.actionConvertHgnc->setEnabled(ngsd_enabled);
-	ui_.actionDesignSubpanel->setEnabled(ngsd_enabled);
-	ui_.actionDesignSubpanel->setEnabled(target_file_folder_set);
+	ui_.ps_details->setEnabled(ngsd_enabled);
 }
 
 void MainWindow::openRecentFile()

@@ -301,7 +301,7 @@ void RohWidget::showContextMenu(QPoint p)
 
 	//create menu
 	QMenu menu;
-	menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC Genome Browser");
+	menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser");
 
 	QAction* action = menu.addAction("Open OMIM entries");
 	int omim_index = rohs.annotationHeaders().indexOf("omim");
@@ -316,9 +316,9 @@ void RohWidget::showContextMenu(QPoint p)
 	QString text = action->text();
 
 	//UCSC
-	if (text=="Open in UCSC Genome Browser")
+	if (text=="Open in UCSC browser")
 	{
-		QDesktopServices::openUrl(QUrl("http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=" + rohs[row].toString()));
+		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=" + rohs[row].toString()));
 	}
 
 	//OMIM

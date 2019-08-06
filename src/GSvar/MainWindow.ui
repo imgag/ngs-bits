@@ -347,42 +347,6 @@
      <addaction name="actionSampleSimilarityTSV"/>
      <addaction name="actionSampleSimilarityBAM"/>
     </widget>
-    <widget class="QMenu" name="menuGenes">
-     <property name="title">
-      <string>Genes</string>
-     </property>
-     <addaction name="actionGeneInfo"/>
-     <addaction name="actionGeneVariantInfo"/>
-     <addaction name="actionConvertHgnc"/>
-     <addaction name="actionGenesToRegions"/>
-     <addaction name="separator"/>
-     <addaction name="actionPreferredTranscripts"/>
-    </widget>
-    <widget class="QMenu" name="menuPanels">
-     <property name="title">
-      <string>Sub-panels</string>
-     </property>
-     <addaction name="actionDesignSubpanel"/>
-     <addaction name="actionArchiveSubpanel"/>
-    </widget>
-    <widget class="QMenu" name="menuPhenotypes">
-     <property name="title">
-      <string>Phenotypes</string>
-     </property>
-     <addaction name="actionPhenoToGenes"/>
-    </widget>
-    <widget class="QMenu" name="menuSamples">
-     <property name="title">
-      <string>Samples</string>
-     </property>
-     <addaction name="actionSampleSearch"/>
-     <addaction name="actionDiagnosticStatusOverview"/>
-    </widget>
-    <addaction name="menuGenes"/>
-    <addaction name="menuPhenotypes"/>
-    <addaction name="menuPanels"/>
-    <addaction name="menuSamples"/>
-    <addaction name="separator"/>
     <addaction name="menuFileInfo"/>
     <addaction name="menuDetermine_gender"/>
     <addaction name="menuSample_correlation"/>
@@ -412,7 +376,48 @@
     </property>
     <addaction name="actionPublishVariantInLOVD"/>
    </widget>
+   <widget class="QMenu" name="menuNGSD">
+    <property name="title">
+     <string>NGSD</string>
+    </property>
+    <widget class="QMenu" name="menuGenes_2">
+     <property name="title">
+      <string>Genes</string>
+     </property>
+     <addaction name="actionGeneInfo"/>
+     <addaction name="actionGeneVariantInfo"/>
+     <addaction name="actionConvertHgnc"/>
+     <addaction name="actionGenesToRegions"/>
+     <addaction name="separator"/>
+     <addaction name="actionPreferredTranscripts"/>
+    </widget>
+    <widget class="QMenu" name="menuPhenotypes_2">
+     <property name="title">
+      <string>Phenotypes</string>
+     </property>
+     <addaction name="actionPhenoToGenes"/>
+    </widget>
+    <widget class="QMenu" name="menuSub_panels">
+     <property name="title">
+      <string>Sub-panels</string>
+     </property>
+     <addaction name="actionDesignSubpanel"/>
+     <addaction name="actionArchiveSubpanel"/>
+    </widget>
+    <widget class="QMenu" name="menuSamples_2">
+     <property name="title">
+      <string>Samples</string>
+     </property>
+     <addaction name="actionSampleSearch"/>
+     <addaction name="actionDiagnosticStatusOverview"/>
+    </widget>
+    <addaction name="menuGenes_2"/>
+    <addaction name="menuPhenotypes_2"/>
+    <addaction name="menuSub_panels"/>
+    <addaction name="menuSamples_2"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuNGSD"/>
    <addaction name="menuTools"/>
    <addaction name="menuVariants"/>
    <addaction name="menuIGV"/>
@@ -538,18 +543,6 @@
   <action name="actionSampleSimilarityBAM">
    <property name="text">
     <string>based on BAM files</string>
-   </property>
-  </action>
-  <action name="actionSampleInformation">
-   <property name="icon">
-    <iconset resource="GSvar.qrc">
-     <normaloff>:/Icons/Info.png</normaloff>:/Icons/Info.png</iconset>
-   </property>
-   <property name="text">
-    <string>Sample information</string>
-   </property>
-   <property name="toolTip">
-    <string>Show general sample information from NGSD.</string>
    </property>
   </action>
   <action name="actionChangeLog">
@@ -888,15 +881,15 @@
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>VariantTable</class>
+   <extends>QTableWidget</extends>
+   <header>VariantTable.h</header>
+  </customwidget>
+  <customwidget>
    <class>FilterWidget</class>
    <extends>QWidget</extends>
    <header>FilterWidget.h</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>VariantTable</class>
-   <extends>QTableWidget</extends>
-   <header>VariantTable.h</header>
   </customwidget>
  </customwidgets>
  <resources>
