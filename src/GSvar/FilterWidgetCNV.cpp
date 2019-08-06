@@ -36,14 +36,12 @@ FilterWidgetCNV::FilterWidgetCNV(QWidget *parent)
 	connect(ui_.gene_import, SIGNAL(clicked(bool)), this, SLOT(importGene()));
 	connect(ui_.text_import, SIGNAL(clicked(bool)), this, SLOT(importText()));
 
-	if (Settings::boolean("NGSD_enabled", true))
-	{
-		connect(ui_.hpo, SIGNAL(clicked(QPoint)), this, SLOT(editPhenotypes()));
-	}
-	else
-	{
-		ui_.hpo->setEnabled(false);
-	}
+	QAction* action = new QAction("clear", this);
+	connect(action, &QAction::triggered, this, &FilterWidgetCNV::clearTargetRegion);
+	ui_.roi->addAction(action);
+
+	connect(ui_.hpo, SIGNAL(clicked(QPoint)), this, SLOT(editPhenotypes()));
+	ui_.hpo->setEnabled(Settings::boolean("NGSD_enabled", true));
 
 	loadTargetRegions();
 	loadFilters();
@@ -375,6 +373,7 @@ void FilterWidgetCNV::setFilter(int index)
 	if (index==0)
 	{
 		ui_.cascade_widget->clear();
+		ui_.lab_modified->setVisible(false);
 		return;
 	}
 
@@ -389,6 +388,11 @@ void FilterWidgetCNV::setFilter(int index)
 	}
 
 	ui_.lab_modified->setHidden(true);
+}
+
+void FilterWidgetCNV::clearTargetRegion()
+{
+	ui_.roi->setCurrentText("none");
 }
 
 void FilterWidgetCNV::loadFilters()

@@ -76,20 +76,30 @@
         <item>
          <widget class="QLabel" name="label_2">
           <property name="text">
-           <string>Filter name:</string>
+           <string>Default filter:</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="filter_name">
+         <widget class="QComboBox" name="filters">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="maxVisibleItems">
+           <number>20</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="lab_modified">
+          <property name="toolTip">
+           <string>The filter was modified</string>
+          </property>
           <property name="text">
-           <string/>
+           <string>*</string>
           </property>
          </widget>
         </item>
@@ -133,7 +143,10 @@
        <number>5</number>
       </property>
       <item>
-       <widget class="QComboBox" name="rois">
+       <widget class="QComboBox" name="roi">
+        <property name="contextMenuPolicy">
+         <enum>Qt::ActionsContextMenu</enum>
+        </property>
         <property name="maxVisibleItems">
          <number>30</number>
         </property>

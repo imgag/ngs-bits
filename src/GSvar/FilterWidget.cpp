@@ -10,6 +10,7 @@
 #include <QFileDialog>
 #include <QCompleter>
 #include <QMenu>
+#include <QMessageBox>
 
 FilterWidget::FilterWidget(QWidget *parent)
 	: QWidget(parent)
@@ -20,11 +21,13 @@ FilterWidget::FilterWidget(QWidget *parent)
 
 	connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SLOT(updateFilterName()));
 	connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SIGNAL(filtersChanged()));
+	connect(ui_.filters, SIGNAL(currentIndexChanged(int)), this, SLOT(setFilter(int)));
+	ui_.lab_modified->setHidden(true);
 
 	connect(ui_.roi_add, SIGNAL(clicked()), this, SLOT(addRoi()));
 	connect(ui_.roi_add_temp, SIGNAL(clicked()), this, SLOT(addRoiTemp()));
 	connect(ui_.roi_remove, SIGNAL(clicked()), this, SLOT(removeRoi()));
-	connect(ui_.rois, SIGNAL(currentIndexChanged(int)), this, SLOT(roiSelectionChanged(int)));
+	connect(ui_.roi, SIGNAL(currentIndexChanged(int)), this, SLOT(roiSelectionChanged(int)));
 	connect(ui_.roi_details, SIGNAL(clicked(bool)), this, SLOT(showTargetRegionDetails()));
 	connect(this, SIGNAL(targetRegionChanged()), this, SLOT(updateGeneWarning()));
 
@@ -32,31 +35,22 @@ FilterWidget::FilterWidget(QWidget *parent)
 	connect(ui_.text, SIGNAL(editingFinished()), this, SLOT(textChanged()));
 	connect(ui_.region, SIGNAL(editingFinished()), this, SLOT(regionChanged()));
 
-	if (Settings::boolean("NGSD_enabled", true))
-	{
-		connect(ui_.hpo_terms, SIGNAL(clicked(QPoint)), this, SLOT(editPhenotypes()));
-		connect(ui_.hpo_terms, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showPhenotypeContextMenu(QPoint)));
-	}
-	else
-	{
-		ui_.hpo_terms->setEnabled(false);
-	}
+	QAction* action = new QAction("clear", this);
+	connect(action, &QAction::triggered, this, &FilterWidget::clearTargetRegion);
+	ui_.roi->addAction(action);
+
+	connect(ui_.hpo_terms, SIGNAL(clicked(QPoint)), this, SLOT(editPhenotypes()));
+	connect(ui_.hpo_terms, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showPhenotypeContextMenu(QPoint)));
+	ui_.hpo_terms->setEnabled(Settings::boolean("NGSD_enabled", true));
 
 	loadTargetRegions();
+	loadFilters();
 	reset(true);
 }
 
 void FilterWidget::setValidFilterEntries(const QStringList& filter_entries)
 {
 	ui_.cascade_widget->setValidFilterEntries(filter_entries);
-}
-
-void FilterWidget::setFilters(const QString& name, const FilterCascade& filters)
-{
-	ui_.cascade_widget->setFilters(filters);
-
-	//set text (after filters, otherwise it will be marked as 'modified'
-	ui_.filter_name->setText(name);
 }
 
 void FilterWidget::markFailedFilters()
@@ -66,15 +60,15 @@ void FilterWidget::markFailedFilters()
 
 void FilterWidget::loadTargetRegions()
 {
-	ui_.rois->blockSignals(true);
+	ui_.roi->blockSignals(true);
 
 	//store old selection
-	QString current = ui_.rois->currentText();
+	QString current = ui_.roi->currentText();
 
-	ui_.rois->clear();
-	ui_.rois->addItem("", "");
-	ui_.rois->addItem("none", "");
-	ui_.rois->insertSeparator(ui_.rois->count());
+	ui_.roi->clear();
+	ui_.roi->addItem("", "");
+	ui_.roi->addItem("none", "");
+	ui_.roi->insertSeparator(ui_.roi->count());
 
 	//load ROIs of NGSD processing systems
 	try
@@ -83,10 +77,10 @@ void FilterWidget::loadTargetRegions()
 		auto it = systems.constBegin();
 		while (it != systems.constEnd())
 		{
-			ui_.rois->addItem("Processing system: " + it.key(), Helper::canonicalPath(it.value()));
+			ui_.roi->addItem("Processing system: " + it.key(), Helper::canonicalPath(it.value()));
 			++it;
 		}
-		ui_.rois->insertSeparator(ui_.rois->count());
+		ui_.roi->insertSeparator(ui_.roi->count());
 	}
 	catch (Exception& e)
 	{
@@ -103,9 +97,9 @@ void FilterWidget::loadTargetRegions()
 			if (file.endsWith("_amplicons.bed")) continue;
 
 			QString name = QFileInfo(file).fileName().replace(".bed", "");
-			ui_.rois->addItem("Sub-panel: " + name, Helper::canonicalPath(file));
+			ui_.roi->addItem("Sub-panel: " + name, Helper::canonicalPath(file));
 		}
-		ui_.rois->insertSeparator(ui_.rois->count());
+		ui_.roi->insertSeparator(ui_.roi->count());
 	}
 	catch (Exception& e)
 	{
@@ -118,15 +112,15 @@ void FilterWidget::loadTargetRegions()
 	foreach(const QString& roi_file, rois)
 	{
 		QFileInfo info(roi_file);
-		ui_.rois->addItem(info.fileName(), roi_file);
+		ui_.roi->addItem(info.fileName(), roi_file);
 	}
 
 	//restore old selection
-	int current_index = ui_.rois->findText(current);
+	int current_index = ui_.roi->findText(current);
 	if (current_index==-1) current_index = 1;
-	ui_.rois->setCurrentIndex(current_index);
+	ui_.roi->setCurrentIndex(current_index);
 
-	ui_.rois->blockSignals(false);
+	ui_.roi->blockSignals(false);
 }
 
 void FilterWidget::resetSignalsUnblocked(bool clear_roi)
@@ -137,8 +131,8 @@ void FilterWidget::resetSignalsUnblocked(bool clear_roi)
     //rois
 	if (clear_roi)
 	{
-		ui_.rois->setCurrentIndex(1);
-		ui_.rois->setToolTip("");
+		ui_.roi->setCurrentIndex(1);
+		ui_.roi->setToolTip("");
 		ui_.gene_warning->setHidden(true);
 	}
 
@@ -153,10 +147,13 @@ void FilterWidget::resetSignalsUnblocked(bool clear_roi)
 	phenotypesChanged();
 }
 
+QString FilterWidget::filterFileName() const
+{
+	return QCoreApplication::applicationDirPath() + QDir::separator() + QCoreApplication::applicationName().replace(".exe","") + "_filters.ini";
+}
+
 void FilterWidget::reset(bool clear_roi)
 {
-	ui_.filter_name->setText("[none]");
-
 	blockSignals(true);
 	resetSignalsUnblocked(clear_roi);
 	blockSignals(false);
@@ -167,22 +164,22 @@ void FilterWidget::reset(bool clear_roi)
 
 QString FilterWidget::targetRegion() const
 {
-	return ui_.rois->toolTip();
+	return ui_.roi->toolTip();
 }
 
 QString FilterWidget::targetRegionName() const
 {
-	return ui_.rois->currentText();
+	return ui_.roi->currentText();
 }
 
 void FilterWidget::setTargetRegion(QString roi_file)
 {
 	roi_file = Helper::canonicalPath(roi_file);
-	for (int i=0; i<ui_.rois->count(); ++i)
+	for (int i=0; i<ui_.roi->count(); ++i)
 	{
-		if (ui_.rois->itemData(i).toString()==roi_file)
+		if (ui_.roi->itemData(i).toString()==roi_file)
 		{
-			ui_.rois->setCurrentIndex(i);
+			ui_.roi->setCurrentIndex(i);
 			break;
 		}
 	}
@@ -256,12 +253,12 @@ void FilterWidget::addRoiTemp()
 	if (filename=="") return;
 
 	//add to list
-	ui_.rois->addItem(QFileInfo(filename).fileName(), Helper::canonicalPath(filename));
+	ui_.roi->addItem(QFileInfo(filename).fileName(), Helper::canonicalPath(filename));
 }
 
 void FilterWidget::removeRoi()
 {
-	QString filename = ui_.rois->itemData(ui_.rois->currentIndex()).toString();
+	QString filename = ui_.roi->itemData(ui_.roi->currentIndex()).toString();
 	if (filename=="") return;
 
 	//update settings
@@ -277,31 +274,31 @@ void FilterWidget::removeRoi()
 void FilterWidget::roiSelectionChanged(int index)
 {
 	//delete old completer
-	QCompleter* completer_old = ui_.rois->completer();
+	QCompleter* completer_old = ui_.roi->completer();
 	if (completer_old!=nullptr)
 	{
 		completer_old->deleteLater();
 	}
 
 	//create completer for search mode
-	if (ui_.rois->currentIndex()==0)
+	if (ui_.roi->currentIndex()==0)
 	{
-		ui_.rois->setEditable(true);
+		ui_.roi->setEditable(true);
 
-		QCompleter* completer = new QCompleter(ui_.rois->model(), ui_.rois);
+		QCompleter* completer = new QCompleter(ui_.roi->model(), ui_.roi);
 		completer->setCompletionMode(QCompleter::PopupCompletion);
 		completer->setCaseSensitivity(Qt::CaseInsensitive);
 		completer->setFilterMode(Qt::MatchContains);
 		completer->setCompletionRole(Qt::DisplayRole);
-		ui_.rois->setCompleter(completer);
+		ui_.roi->setCompleter(completer);
 	}
 	else
 	{
-		ui_.rois->setEditable(false);
+		ui_.roi->setEditable(false);
 	}
 
 
-	ui_.rois->setToolTip(ui_.rois->itemData(index).toString());
+	ui_.roi->setToolTip(ui_.roi->itemData(index).toString());
 
 	if(index!=0)
 	{
@@ -356,12 +353,9 @@ void FilterWidget::phenotypesChanged()
 
 void FilterWidget::updateFilterName()
 {
-	QString name = ui_.filter_name->text();
+	if (ui_.filters->currentText()=="[none]") return;
 
-	if (name=="[none]") return;
-	if (name.endsWith(" [modified]")) return;
-
-	ui_.filter_name->setText(name + " [modified]");
+	ui_.lab_modified->setHidden(false);
 }
 
 void FilterWidget::showTargetRegionDetails()
@@ -458,21 +452,19 @@ void FilterWidget::showPhenotypeContextMenu(QPoint pos)
 	if (Settings::boolean("NGSD_enabled", true))
 	{
 		menu.addAction("load from NGSD");
+		menu.addAction("create sub-panel");
+		menu.addSeparator();
 	}
 	if (!phenotypes_.isEmpty())
 	{
-		menu.addAction("create sub-panel");
-		menu.addSeparator();
 		menu.addAction("clear");
 	}
 
 	//exec
 	QAction* action = menu.exec(ui_.hpo_terms->mapToGlobal(pos));
-	if (action==nullptr)
-	{
-		return;
-	}
-	else if (action->text()=="clear")
+	if (action==nullptr) return;
+
+	if (action->text()=="clear")
 	{
 		phenotypes_.clear();
 		phenotypesChanged();
@@ -485,4 +477,41 @@ void FilterWidget::showPhenotypeContextMenu(QPoint pos)
 	{
 		emit phenotypeSubPanelRequested();
 	}
+}
+
+void FilterWidget::setFilter(int index)
+{
+	if (index==0)
+	{
+		ui_.cascade_widget->clear();
+		ui_.lab_modified->setVisible(false);
+		return;
+	}
+
+	try
+	{
+		FilterCascade filters = FilterCascadeFile::load(filterFileName(), ui_.filters->currentText());
+		ui_.cascade_widget->setFilters(filters);
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::warning(this, "Invalid filter", "Filter parsing failed:\n" + e.message());
+	}
+
+	ui_.lab_modified->setHidden(true);
+}
+
+void FilterWidget::clearTargetRegion()
+{
+	ui_.roi->setCurrentText("none");
+}
+
+void FilterWidget::loadFilters()
+{
+
+	QStringList filter_names;
+	filter_names << "[none]";
+	filter_names << FilterCascadeFile::names(filterFileName());
+
+	ui_.filters->addItems(filter_names);
 }

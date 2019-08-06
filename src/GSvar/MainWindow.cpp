@@ -106,29 +106,6 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.variant_details, SIGNAL(showVariantSampleOverview()), this, SLOT(showVariantSampleOverview()));
 	connect(ui_.tabs, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 
-	//filter menu button
-	auto filter_btn = new QToolButton();
-	filter_btn->setIcon(QIcon(":/Icons/Filter.png"));
-	filter_btn->setToolTip("Apply default variant filters.");
-	filter_btn->setMenu(new QMenu());
-	filter_btn->setPopupMode(QToolButton::InstantPopup);
-	connect(filter_btn, SIGNAL(triggered(QAction*)), this, SLOT(applyFilter(QAction*)));
-	foreach(QString filter_name, FilterCascadeFile::names(filterFileName()))
-	{
-		if (filter_name=="---")
-		{
-			filter_btn->menu()->addSeparator();
-		}
-		else
-		{
-			filter_btn->menu()->addAction(filter_name);
-		}
-	}
-	filter_btn->menu()->addSeparator();
-	filter_btn->menu()->addAction(ui_.actionFiltersClear);
-	filter_btn->menu()->addAction(ui_.actionFiltersClearWithROI);
-	ui_.tools->insertWidget(ui_.actionReport, filter_btn);
-
 	//NGSD menu button
 	auto ngsd_btn = new QToolButton();
 	ngsd_btn->setIcon(QIcon(":/Icons/NGSD_search.png"));
@@ -137,7 +114,6 @@ MainWindow::MainWindow(QWidget *parent)
 	ngsd_btn->menu()->addAction(ui_.actionOpenProcessedSampleTabByName );
 	ngsd_btn->menu()->addAction(ui_.actionOpenSequencingRunTabByName);
 	ngsd_btn->setPopupMode(QToolButton::InstantPopup);
-	connect(ngsd_btn, SIGNAL(triggered(QAction*)), this, SLOT(applyFilter(QAction*)));
 	ui_.tools->insertWidget(ui_.actionAnalysisStatus, ngsd_btn);
 	ui_.tools->insertSeparator(ui_.actionAnalysisStatus);
 
@@ -950,11 +926,6 @@ QString MainWindow::sampleName()
 {
 	QString ps_name = processedSampleName();
 	return (ps_name + "_").split('_')[0];
-}
-
-QString MainWindow::filterFileName() const
-{
-	return QCoreApplication::applicationDirPath() + QDir::separator() + QCoreApplication::applicationName().replace(".exe","") + "_filters.ini";
 }
 
 void MainWindow::addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize)
@@ -2563,25 +2534,6 @@ void MainWindow::updateVariantDetails()
 	}
 
 	var_last_ = var_current;
-}
-
-void MainWindow::applyFilter(QAction* action)
-{
-	if (action==nullptr) return;
-
-	QString text = action->text();
-	if (text=="Clear filters")
-	{
-		ui_.filters->reset(false);
-	}
-	else if (text=="Clear filters and target region")
-	{
-		ui_.filters->reset(true);
-	}
-	else
-	{
-		ui_.filters->setFilters(text, FilterCascadeFile::load(filterFileName(), text));
-	}
 }
 
 bool MainWindow::executeIGVCommands(QStringList commands)

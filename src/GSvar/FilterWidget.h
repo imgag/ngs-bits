@@ -25,8 +25,6 @@ public:
 
 	/// Returns the used filters
 	const FilterCascade& filters() const;
-	/// Applies a filter set
-	void setFilters(const QString& name, const FilterCascade& filter);
 	/// Visually marks filters that failed.
 	void markFailedFilters();
 
@@ -78,11 +76,17 @@ protected slots:
 	void updateGeneWarning();
 	void editPhenotypes();
 	void showPhenotypeContextMenu(QPoint pos);
+	void setFilter(int index);
+	void clearTargetRegion();
 
 private:
-
+	//Loads filters
+	void loadFilters();
 	//Resets the filters without blocking signals.
 	void resetSignalsUnblocked(bool clear_roi);
+
+	//Returns the filter INI file name
+	QString filterFileName() const;
 
 	Ui::FilterWidget ui_;
 	GeneSet last_genes_;

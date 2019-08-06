@@ -68,6 +68,7 @@ protected slots:
 	void importText();
 	void updateFilterName();
 	void setFilter(int index);
+	void clearTargetRegion();
 
 private:
 	//Loads filters

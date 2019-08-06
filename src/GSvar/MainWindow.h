@@ -59,8 +59,6 @@ public:
 	QString processedSampleName();
 	///Returns the sample name (in case of a somatic variant list, the tumor is returned).
 	QString sampleName();
-	///Returns the filter INI file
-	QString filterFileName() const;
 
 	///Context menu for single variant
 	void contextMenuSingleVariant(QPoint pos, int index);
@@ -163,8 +161,6 @@ public slots:
 	void varsContextMenu(QPoint pos);
 	///Updated the variant context menu
 	void updateVariantDetails();
-	///Apply filter from filter menu
-	void applyFilter(QAction* action);
 	///Updates the variant table once the variant list changed
 	void refreshVariantTable(bool keep_widths = true);
 	///Resets the annotation status

@@ -259,7 +259,7 @@
                 <bool>false</bool>
                </property>
                <attribute name="verticalHeaderVisible">
-                <bool>true</bool>
+                <bool>false</bool>
                </attribute>
               </widget>
              </item>
@@ -611,11 +611,6 @@
     <string>Create a new low-coverage report for the current target region.</string>
    </property>
   </action>
-  <action name="actionFiltersClear">
-   <property name="text">
-    <string>Clear filters</string>
-   </property>
-  </action>
   <action name="actionOpenDocumentation">
    <property name="text">
     <string>Open documentation</string>
@@ -781,14 +776,6 @@
   <action name="actionSampleAncestry">
    <property name="text">
     <string>Sample ancestry</string>
-   </property>
-  </action>
-  <action name="actionFiltersClearWithROI">
-   <property name="text">
-    <string>Clear filters and target region</string>
-   </property>
-   <property name="toolTip">
-    <string>Clear filters and target region</string>
    </property>
   </action>
   <action name="actionReanalyze">
