@@ -22,12 +22,13 @@ NGSD:
 - NGSD annotation: export VCF, use VCF for annotation (also works on external servers)
 
 GSvar:
-#### subpanel design: add checkbox to use preferred transcript instead of all transcripts
+#### gap dialog: add column that shows if the gap is part of the preferred transcript - check intronic/intergenic data source...
 ## Filter: enhancer/promotor - de-novo
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 ** Add HPO phenotypes to variant summary widget and gene summary widget
 ** replace GeneInfoOMIM webservice by new view > ask Tobias for use-case
 - Implement OMIM search via API - example: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1 (wait for API access)
+* trio filter: PAR region handling > Genetikum
 * Add special report for trios/multi-sample with genotype overview > change format to RTF first (AG)
 * Add highlighting of imprinting genes to CNVs, ROHs and UPDs
 * GenLab XML report: male => change 'hom' variants outside PAR region on chrX/chrY to 'hemi' (when GenLab import is updated)

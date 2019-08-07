@@ -18,7 +18,7 @@ class CnvWidget
 	Q_OBJECT
 
 public:
-	CnvWidget(QString gsvar_file, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QWidget *parent = 0);
+	CnvWidget(QString gsvar_file, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent = 0);
 	~CnvWidget();
 
 signals:
@@ -44,6 +44,7 @@ private:
 	QStringList special_cols;
 	FilterWidget* var_filters;
 	GeneSet var_het_genes;
+	QHash<QByteArray, BedFile>& gene2region_cache;
 };
 
 #endif // CNVWIDGET_H

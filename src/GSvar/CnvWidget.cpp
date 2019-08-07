@@ -16,12 +16,13 @@
 #include <QUrl>
 #include <QDir>
 
-CnvWidget::CnvWidget(QString gsvar_file, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QWidget *parent)
+CnvWidget::CnvWidget(QString gsvar_file, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent)
 	: QWidget(parent)
 	, ui(new Ui::CnvWidget)
 	, cnvs()
 	, special_cols()
 	, var_het_genes(het_hit_genes)
+	, gene2region_cache(cache)
 {
 	ui->setupUi(this);
 	connect(ui->cnvs, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(cnvDoubleClicked(QTableWidgetItem*)));
@@ -302,6 +303,7 @@ void CnvWidget::applyFilters(bool debug_time)
 		QList<Phenotype> phenotypes = ui->filter_widget->phenotypes();
 		if (!phenotypes.isEmpty())
 		{
+			//convert phenotypes to genes
 			NGSD db;
 			GeneSet pheno_genes;
 			foreach(const Phenotype& pheno, phenotypes)
@@ -309,11 +311,27 @@ void CnvWidget::applyFilters(bool debug_time)
 				pheno_genes << db.phenotypeToGenes(pheno, true);
 			}
 
+			//convert genes to ROI (using a cache to speed up repeating queries)
+			BedFile pheno_roi;
+			foreach(const QByteArray& gene, pheno_genes)
+			{
+				if (!gene2region_cache.contains(gene))
+				{
+					BedFile tmp = db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
+					tmp.clearAnnotations();
+					tmp.extend(5000);
+					tmp.merge();
+					gene2region_cache[gene] = tmp;
+				}
+				pheno_roi.add(gene2region_cache[gene]);
+			}
+			pheno_roi.merge();
+
 			for(int r=0; r<rows; ++r)
 			{
 				if (!filter_result.flags()[r]) continue;
 
-				filter_result.flags()[r] = cnvs[r].genes().intersectsWith(pheno_genes);
+				filter_result.flags()[r] = pheno_roi.overlapsWith(cnvs[r].chr(), cnvs[r].start(), cnvs[r].end());
 			}
 		}
 

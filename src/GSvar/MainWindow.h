@@ -249,6 +249,7 @@ private:
 	QMap<QString, QStringList> preferred_transcripts_;
 	QList<QSharedPointer<QDialog>> modeless_dialogs_;
 	GeneSet imprinting_genes_;
+	QHash<QByteArray, BedFile> gene2region_cache_;
 
 	//SPECIAL
 	///Timer to delay some initialization, e.g. load CLI argument after the main window is visible

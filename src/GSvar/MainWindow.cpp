@@ -233,7 +233,7 @@ void MainWindow::on_actionCNV_triggered()
 	}
 
 	//open CNV window
-	CnvWidget* list = new CnvWidget(filename_, ui_.filters, het_hit_genes);
+	CnvWidget* list = new CnvWidget(filename_, ui_.filters, het_hit_genes, gene2region_cache_);
 	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
 	auto dlg = GUIHelper::createDialog(list, "Copy number variants");
 	addModelessDialog(dlg, true);
@@ -2825,19 +2825,18 @@ void MainWindow::applyFilters(bool debug_time)
 			}
 
 			//convert genes to ROI (using a cache to speed up repeating queries)
-			static QHash<QByteArray, BedFile> cache;
 			last_phenos_roi_.clear();
 			foreach(const QByteArray& gene, pheno_genes)
 			{
-				if (!cache.contains(gene))
+				if (!gene2region_cache_.contains(gene))
 				{
 					BedFile tmp = db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
 					tmp.clearAnnotations();
 					tmp.extend(5000);
 					tmp.merge();
-					cache[gene] = tmp;
+					gene2region_cache_[gene] = tmp;
 				}
-				last_phenos_roi_.add(cache[gene]);
+				last_phenos_roi_.add(gene2region_cache_[gene]);
 			}
 			last_phenos_roi_.merge();
 

@@ -209,7 +209,7 @@ public:
     bool isMerged() const;
     ///Returns if the lines are merged and sorted (can be computed faster than calling both methods separately).
     bool isMergedAndSorted() const;
-    ///Returns if the given chromosomal position is in the BED file region
+	///Returns if the given chromosomal position is in the BED file region. Note that is method is slow when too many lines are present. Use ChromosomalIndex<BedFile> in this case!
     bool overlapsWith(const Chromosome& chr, int start, int end) const;
 
 protected:
