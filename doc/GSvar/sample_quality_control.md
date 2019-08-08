@@ -2,11 +2,14 @@
 
 ### Assessing quality by NGS QC metrics
 
-To open the processed sample tabs of the all samples contained in the variant list use the main tool bar (1).  
-By default, it shows the most important quality metrics. All quality metrics can be shown using the `all` checkbox (2).  
-Details about the metrics can be shown in the tooltip of the metrics names (3).  
+To open the processed sample tabs of the all samples contained in the variant list use the main tool bar:
 
 ![alt text](qc1.png)
+
+By default, it shows the most important quality metrics. All quality metrics can be shown using the `all` checkbox in the upper right corner.  
+Details about the metrics can be shown in the tooltip of the metrics names.  
+
+![alt text](qc2.png)
 
 For some of the quality metrics, fixed default cutoffs are applied and values exceeding these scores are marked orange/red:
 
@@ -92,16 +95,3 @@ Example data for exome data (Agilent SureSelect Human All Exon V6) are shown her
 --
 
 [back to main page](index.md)
-
-
-
-
-
-
-
-
-
-
-
-
-

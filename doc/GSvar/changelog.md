@@ -1,5 +1,11 @@
 # GSvar change log
 
+### 2019_08-8 (08.08.19)
+- CNVs: Complete re-implementation of CNV table and filtering.
+- General: Split tools menu into 'NGSD' and 'Tools'.
+- Filters: Moved default filter selection to filter widget.
+- Filters: Speed-up of phenotype filter by caching.
+
 ### 2019_07-27 (26.07.19)
 - Removed support for ESP6500 sub-population AFs because of false-positive variants with high AF, e.g. chr2:99006157 CCCGT>C
 - Subpanel design: Sub-panel template list is now searchable.
