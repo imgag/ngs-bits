@@ -461,7 +461,7 @@ void MainWindow::delayedInizialization()
 		Settings::restoreBackup();
 		if (Settings::string("igv_genome").trimmed().isEmpty())
 		{
-			QMessageBox::warning(this, "GSvar INI file empty", "The ini file '" + Settings::fileName() + "' is empty.\nPlease inform your administrator!");
+			QMessageBox::warning(this, "GSvar INI file empty", "The INI file '" + Settings::fileName() + "' is empty.\nPlease inform your administrator!");
 			close();
 			return;
 		}
@@ -2330,6 +2330,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 
 	//UCSC
 	menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser");
+	menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser (override tracks)");
 
 	//LOVD upload
 	sub_menu = menu.addMenu(QIcon("://Icons/LOVD.png"), "LOVD");
@@ -2376,6 +2377,11 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	else if (text=="Open in UCSC browser")
 	{
 		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=" + variant.chr().str()+":"+QString::number(variant.start()-20)+"-"+QString::number(variant.end()+20)));
+	}
+	else if (text=="Open in UCSC browser (override tracks)")
+	{
+		//TODO > ask Rebecca
+		QMessageBox::warning(this, "Not implemented", "This feature is not yet implemented");
 	}
 	else if (text=="Find in LOVD")
 	{

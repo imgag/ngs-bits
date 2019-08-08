@@ -127,6 +127,7 @@ void FilterWidget::resetSignalsUnblocked(bool clear_roi)
 {
 	//filter cols
 	ui_.cascade_widget->clear();
+	ui_.filters->setCurrentIndex(0);
 
     //rois
 	if (clear_roi)

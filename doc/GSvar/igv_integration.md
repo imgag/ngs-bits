@@ -52,6 +52,10 @@ Then you have to add the genome to IGV manually:
 
 If the genome download fails, the proxy settings are probably wrong (see the question `IGV cannot load genomes`).
 
+**Note:**  
+Since megSAP uses Ensembl transcripts for annotation, using the default IGV genomes leads to inconsistencies (they use RefSeq transcripts).  
+Instructions how to build a IGV genome with Ensembl annotation can be found [here](https://github.com/imgag/IGV_genome_ensembl).
+
 ### IGV does not open
 Follow these instructions, if only the black console window of IGV but not the actual application opens.
 
@@ -73,8 +77,3 @@ Finally, you have to restart IGV.
 --
 
 [back to main page](index.md)
-
-
-
-
-

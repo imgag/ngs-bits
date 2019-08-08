@@ -25,6 +25,7 @@ GSvar:
 #### gap dialog: add column that shows if the gap is part of the preferred transcript - check intronic/intergenic data source...
 ## Filter: enhancer/promotor - de-novo
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
+** Docu configuration GSvar (move 'preferred transcripts', 'special regions', etc. to files)
 ** Add HPO phenotypes to variant summary widget and gene summary widget
 ** replace GeneInfoOMIM webservice by new view > ask Tobias for use-case
 - Implement OMIM search via API - example: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1 (wait for API access)
