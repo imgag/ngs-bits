@@ -7,11 +7,20 @@ include("/mnt/users/all/megSAP/src/Common/all.php");
 // parse command line arguments
 $parser = new ToolBase("tarball", "Creates a tarball for a tagged version of ngs-bits.");
 $parser->addString("tag", "Git tag.", false);
+$parser->addString("hash", "Git hash that overrides the tag for the checkout.", true);
 extract($parser->parse($argv));
 
 //check out release version
 exec2("git clone --recursive https://github.com/imgag/ngs-bits.git");
-exec2("cd ngs-bits && git checkout {$tag}");
+if ($hash!="")
+{
+	print "Using hash '$hash' instead of tag '$tag' for checkout!\n";
+	exec2("cd ngs-bits && git checkout {$hash}");
+}
+else
+{
+	exec2("cd ngs-bits && git checkout {$tag}");
+}
 exec2("cd ngs-bits && git submodule update --recursive --init");
 
 //remove test data
