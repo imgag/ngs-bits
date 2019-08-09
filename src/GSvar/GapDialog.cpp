@@ -10,10 +10,11 @@
 #include <QFileInfo>
 #include <QMessageBox>
 
-GapDialog::GapDialog(QWidget *parent, QString sample_name, QString roi_file)
+GapDialog::GapDialog(QWidget *parent, QString sample_name, QString roi_file, QMap<QString, QStringList> preferred_transcripts)
 	: QDialog(parent)
 	, sample_name_(sample_name)
 	, roi_file_(roi_file)
+	, preferred_transcripts_(preferred_transcripts)
 	, ui(new Ui::GapDialog)
 {
 	ui->setupUi(this);
@@ -55,8 +56,8 @@ void GapDialog::process(QString bam_file, const BedFile& roi, const GeneSet& gen
 		info.avg_depth = low_cov[i].annotations()[0].toDouble();
 		info.genes = db.genesOverlappingByExon(info.line.chr(), info.line.start(), info.line.end(), 30);
 
-		//use longest coding transcript(s) of CCDS
-		BedFile ccds_overlap;
+		//use longest coding transcript(s) of Ensembl
+		BedFile coding_overlap;
 		foreach(QByteArray gene, info.genes)
 		{
 			int gene_id = db.geneToApprovedID(gene);
@@ -66,21 +67,50 @@ void GapDialog::process(QString bam_file, const BedFile& roi, const GeneSet& gen
 				genes_noncoding.insert(gene);
 				transcript = db.longestCodingTranscript(gene_id, Transcript::ENSEMBL, true, true);
 			}
-			ccds_overlap.add(transcript.regions());
+			coding_overlap.add(transcript.regions());
 		}
-		ccds_overlap.extend(5);
+		coding_overlap.extend(5);
 		BedFile current_gap;
 		current_gap.append(info.line);
-		ccds_overlap.intersect(current_gap);
-		if (ccds_overlap.baseCount()>0)
+		coding_overlap.intersect(current_gap);
+		if (coding_overlap.baseCount()>0)
 		{
-			info.ccds_overlap = ccds_overlap[0];
+			info.coding_overlap = coding_overlap[0];
 
-			if (ccds_overlap.count()>1)
+			if (coding_overlap.count()>1)
 			{
-				Log::warn("GSvar gap dialog: one gap split into to CCDS gaps. Only using the first gap!");
+				Log::warn("GSvar gap dialog: one gap split into to transcripts. Only using the first transcript!");
 			}
 		}
+
+		//check if overlapping with perferred transcript
+		BedFile pt_exon_regions;
+		foreach(QByteArray gene, info.genes)
+		{
+			QString gene_approved = db.geneToApproved(gene, true);
+			if (preferred_transcripts_.contains(gene_approved))
+			{
+				int gene_id = db.geneToApprovedID(gene);
+				QList<Transcript> transcripts = db.transcripts(gene_id, Transcript::ENSEMBL, false);
+				foreach(const Transcript& transcript, transcripts)
+				{
+					if (preferred_transcripts_[gene_approved].contains(transcript.name()))
+					{
+						pt_exon_regions.add(transcript.regions());
+					}
+				}
+			}
+		}
+		pt_exon_regions.extend(5);
+		if (pt_exon_regions.count()==0)
+		{
+			info.preferred_transcript = "";
+		}
+		else
+		{
+			info.preferred_transcript = pt_exon_regions.overlapsWith(info.line.chr(), info.line.start(), info.line.end()) ? "yes" : "no";
+		}
+
 
 		gaps_.append(info);
 	}
@@ -88,7 +118,7 @@ void GapDialog::process(QString bam_file, const BedFile& roi, const GeneSet& gen
 	//show warning if non-coding transcripts had to be used
 	if (!genes_noncoding.isEmpty())
 	{
-		QMessageBox::warning(this, "Non-coding transcrips were used for CCDS gaps!", "No coding transcript is defined for the following genes (for GRCh37):\n"+genes_noncoding.join(", ")+"\nFor these genes the longest *non-coding* transcript is used.\nPlease check gaps of these genes manually since they might be non-coding but shown as CCDS+-5!");
+		QMessageBox::warning(this, "Non-coding transcrips were used for gaps!", "No coding transcript is defined for the following genes (for GRCh37):\n"+genes_noncoding.join(", ")+"\nFor these genes the longest *non-coding* transcript is used.\nPlease check gaps of these genes manually since they might be non-coding but shown as coding region +-5!");
 	}
 
 	//update GUI
@@ -101,7 +131,7 @@ void GapDialog::process(QString bam_file, const BedFile& roi, const GeneSet& gen
 
 		//size
 		QString size = QString::number(gap.line.length());
-		if (gap.isExonicSplicing()) size += " (" + QString::number(gap.ccds_overlap.length()) + ")";
+		if (gap.isExonicSplicing()) size += " (" + QString::number(gap.coding_overlap.length()) + ")";
 		ui->gaps->setItem(i, 1, createItem(size, false, true));
 
 		//depth
@@ -114,10 +144,13 @@ void GapDialog::process(QString bam_file, const BedFile& roi, const GeneSet& gen
 		//type
 		ui->gaps->setItem(i, 4, createItem(gap.isExonicSplicing() ? "exonic/splicing" : "intronic/intergenic" , gap.isExonicSplicing()));
 
+		//preferred transcripts
+		ui->gaps->setItem(i, 5, createItem(gap.preferred_transcript, gap.preferred_transcript=="yes"));
+
 		//validate
-		ui->gaps->setItem(i, 5, new QTableWidgetItem());
+		ui->gaps->setItem(i, 6, new QTableWidgetItem());
 		GapValidationLabel* label = new GapValidationLabel();
-		ui->gaps->setCellWidget(i, 5, label);
+		ui->gaps->setCellWidget(i, 6, label);
 		if(!gap.isExonicSplicing()) label->setState(GapValidationLabel::NO_VALIDATION);
 	}
 	GUIHelper::resizeTableCells(ui->gaps);
@@ -141,7 +174,7 @@ QString GapDialog::report() const
 	stream << "\n";
 
 	//exonic/splicing report
-	stream << "### Regionen mit eingeschraenkter diagnostischer Beurteilbarkeit (CCDS+-5) ###\n";
+	stream << "### Regionen mit eingeschraenkter diagnostischer Beurteilbarkeit (Ensembl+-5) ###\n";
 	stream << "\n";
 	reportSection(stream, true);
 
@@ -156,7 +189,7 @@ QString GapDialog::report() const
 }
 
 
-void GapDialog::reportSection(QTextStream& stream, bool ccds_only) const
+void GapDialog::reportSection(QTextStream& stream, bool coding_only) const
 {
 	stream << "Sequenzabschnitte, die mittels Sanger-Sequenzierung analysiert wurden:\n";
 	int closed_sanger = 0;
@@ -164,30 +197,30 @@ void GapDialog::reportSection(QTextStream& stream, bool ccds_only) const
 	{
 		const GapInfo& gap = gaps_[row];
 
-		if (ccds_only && !gap.isExonicSplicing()) continue;
+		if (coding_only && !gap.isExonicSplicing()) continue;
 
 		if (state(row)==GapValidationLabel::VALIDATION)
 		{
-			stream << gap.asTsv(ccds_only) << "\n";
-			closed_sanger += ccds_only ? gap.ccds_overlap.length() : gap.line.length();
+			stream << gap.asTsv(coding_only) << "\n";
+			closed_sanger += coding_only ? gap.coding_overlap.length() : gap.line.length();
 		}
 	}
 	stream << "\n";
 
 	stream << "Sequenzabschnitte, die mittels visueller Inspektion analysiert wurden";
-	if (!ccds_only) stream << " (or intronic/intergenic)";
+	if (!coding_only) stream << " (or intronic/intergenic)";
 	stream << ":\n";
 	int closed_manual = 0;
 	for (int row=0; row<ui->gaps->rowCount(); ++row)
 	{
 		const GapInfo& gap = gaps_[row];
 
-		if (ccds_only && !gap.isExonicSplicing()) continue;
+		if (coding_only && !gap.isExonicSplicing()) continue;
 
 		if (state(row)==GapValidationLabel::NO_VALIDATION)
 		{
-			stream << gap.asTsv(ccds_only) << "\n";
-			closed_manual += ccds_only ? gap.ccds_overlap.length() : gap.line.length();
+			stream << gap.asTsv(coding_only) << "\n";
+			closed_manual += coding_only ? gap.coding_overlap.length() : gap.line.length();
 		}
 	}
 	stream << "\n";
@@ -198,12 +231,12 @@ void GapDialog::reportSection(QTextStream& stream, bool ccds_only) const
 	{
 		const GapInfo& gap = gaps_[row];
 
-		if (ccds_only && !gap.isExonicSplicing()) continue;
+		if (coding_only && !gap.isExonicSplicing()) continue;
 
 		if (state(row)==GapValidationLabel::CHECK)
 		{
-			stream << gap.asTsv(ccds_only) << "\n";
-			closed_not += ccds_only ? gap.ccds_overlap.length() : gap.line.length();
+			stream << gap.asTsv(coding_only) << "\n";
+			closed_not += coding_only ? gap.coding_overlap.length() : gap.line.length();
 		}
 	}
 	stream << "\n";
@@ -248,5 +281,5 @@ QTableWidgetItem* GapDialog::createItem(QString text, bool highlight, bool align
 
 GapValidationLabel::State GapDialog::state(int row) const
 {
-	return qobject_cast<GapValidationLabel*>(ui->gaps->cellWidget(row, 5))->state();
+	return qobject_cast<GapValidationLabel*>(ui->gaps->cellWidget(row, 6))->state();
 }

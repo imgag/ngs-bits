@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>699</width>
+    <width>828</width>
     <height>650</height>
    </rect>
   </property>
@@ -118,7 +118,7 @@
        <string>size</string>
       </property>
       <property name="toolTip">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Gap size (size of exonic/splicing region in brackets).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Gap size.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
      </column>
      <column>
@@ -126,7 +126,7 @@
        <string>average depth</string>
       </property>
       <property name="toolTip">
-       <string>Gaps with an average coverage below 10 are highlighted.</string>
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Gaps with an average coverage below 10 are highlighted.&lt;br/&gt;&lt;br/&gt;Gaps with an average coverage above 20 are shown when the region is not part of the target region defined by the processing system. They are shown as gaps because variant calling is only perfomed on the target region, and thus we are &lt;span style=&quot; font-style:italic;&quot;&gt;blind&lt;/span&gt; in regions not included in the target region.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
      </column>
      <column>
@@ -134,7 +134,7 @@
        <string>gene(s)</string>
       </property>
       <property name="toolTip">
-       <string>Target regiones are highlighted.</string>
+       <string>Target region genes are highlighted.</string>
       </property>
      </column>
      <column>
@@ -143,6 +143,14 @@
       </property>
       <property name="toolTip">
        <string>CCDS exons +- 5 bases flanking regions are marked as &quot;exonic/splicing&quot;.</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>preferred transcript</string>
+      </property>
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Shows if the gap overlaps a preferred transcript (exons +- 5 bases flanking regions).&lt;br/&gt;&lt;br/&gt;If no preferred transcripts are defined for the gene(s), it stays empty.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
      </column>
      <column>

@@ -22,7 +22,7 @@ NGSD:
 - NGSD annotation: export VCF, use VCF for annotation (also works on external servers)
 
 GSvar:
-#### gap dialog: add column that shows if the gap is part of the preferred transcript - check intronic/intergenic data source...
+###### NGSDImportGenes: use HGNC id instead of gene name when not convertable to approved symbol, e.g. QARS entry: 3       ensembl_havana  gene    49133365        49142553        .       -       .       ID=gene:ENSG00000172053;Name=QARS;biotype=protein_coding;description=glutaminyl-tRNA synthetase [Source:HGNC Symbol%3BAcc:9751];gene_id=ENSG00000172053;logic_name=ensembl_havana_gene;version=10
 ## Filter: enhancer/promotor - de-novo
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 ** Docu configuration GSvar (move 'preferred transcripts', 'special regions', etc. to files)
