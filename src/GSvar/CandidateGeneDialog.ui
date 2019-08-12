@@ -141,7 +141,7 @@
       <bool>false</bool>
      </property>
      <property name="columnCount">
-      <number>16</number>
+      <number>17</number>
      </property>
      <attribute name="verticalHeaderVisible">
       <bool>false</bool>
@@ -209,6 +209,11 @@
      <column>
       <property name="text">
        <string>disease_group</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>HPO terms</string>
       </property>
      </column>
      <column>

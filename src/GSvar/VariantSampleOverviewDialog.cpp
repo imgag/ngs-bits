@@ -42,10 +42,16 @@ VariantSampleOverviewDialog::VariantSampleOverviewDialog(const Variant& variant,
 		addItem(row, 5, ps_data.project_name);
 		addItem(row, 6, s_data.disease_group);
 		addItem(row, 7, s_data.disease_status);
-		addItem(row, 8, diag_data.dagnostic_status);
-		addItem(row, 9, diag_data.genes_causal);
-		addItem(row, 10, diag_data.user);
-		addItem(row, 11, s_data.comments);
+		QStringList pho_list;
+		foreach(const Phenotype& pheno, s_data.phenotypes)
+		{
+			pho_list << pheno.toString();
+		}
+		addItem(row, 8, pho_list.join("; "));
+		addItem(row, 9, diag_data.dagnostic_status);
+		addItem(row, 10, diag_data.genes_causal);
+		addItem(row, 11, diag_data.user);
+		addItem(row, 12, s_data.comments);
 
 		++row;
 	}

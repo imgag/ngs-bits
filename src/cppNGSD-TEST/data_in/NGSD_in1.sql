@@ -364,7 +364,8 @@ INSERT INTO `hpo_term`(`id`, `hpo_id`, `name`, `definition`, `synonyms`) VALUES
 (8,'HP:0001427','Mitochondrial inheritance','def',''),
 (9,'HP:0001417','X-linked inheritance','def',''),
 (10,'HP:0001419','X-linked recessive inheritance','def',''),
-(11,'HP:0001423','X-linked dominant inheritance','def','');
+(11,'HP:0001423','X-linked dominant inheritance','def',''),
+(12,'HP:0001251','Ataxia','def','');
 
 INSERT INTO `hpo_parent`(`parent`, `child`) VALUES 
 (1,2),
@@ -401,3 +402,5 @@ INSERT INTO `analysis_job_history`(`analysis_job_id`, `time`, `user_id`, `status
 INSERT INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES
 (2, 'same sample', 4);
 
+INSERT INTO `sample_disease_info`(`id`, `sample_id`, `disease_info`, `type`, `user_id`) VALUES 
+(1, 3, 'HP:0001251', 'HPO term id', 99);

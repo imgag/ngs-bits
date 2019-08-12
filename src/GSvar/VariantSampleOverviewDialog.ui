@@ -118,6 +118,11 @@
      </column>
      <column>
       <property name="text">
+       <string>HPO terms</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
        <string>outcome_status</string>
       </property>
      </column>

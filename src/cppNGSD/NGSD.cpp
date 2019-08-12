@@ -258,6 +258,15 @@ SampleData NGSD::getSampleData(const QString& sample_id)
 	output.comments = query.value(4).toString().trimmed();
 	output.disease_group = query.value(5).toString().trimmed();
 	output.disease_status = query.value(6).toString().trimmed();
+	QStringList hpo_ids = getValues("SELECT disease_info FROM sample_disease_info WHERE type='HPO term id' AND sample_id=" + sample_id);
+	foreach(QString hpo_id, hpo_ids)
+	{
+		Phenotype pheno = phenotypeByAccession(hpo_id.toLatin1(), false);
+		if (!pheno.name().isEmpty())
+		{
+			output.phenotypes << pheno;
+		}
+	}
 	output.is_tumor = query.value(7).toString()=="1";
 	output.is_ffpe = query.value(8).toString()=="1";
 	output.type = query.value(9).toString();

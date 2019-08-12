@@ -168,6 +168,7 @@ struct CPPNGSDSHARED_EXPORT SampleData
 	QString comments;
 	QString disease_group;
 	QString disease_status;
+	QList<Phenotype> phenotypes;
 	bool is_tumor;
 	bool is_ffpe;
 	QString sender;

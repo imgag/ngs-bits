@@ -128,6 +128,7 @@ private slots:
 		S_EQUAL(sample_data.comments, "comment_s1");
 		S_EQUAL(sample_data.disease_group, "Diseases of the blood or blood-forming organs");
 		S_EQUAL(sample_data.disease_status, "Unaffected");
+		I_EQUAL(sample_data.phenotypes.count(), 0);
 		IS_FALSE(sample_data.is_tumor);
 		IS_FALSE(sample_data.is_ffpe);
 		//second sample (tumor)
@@ -139,6 +140,8 @@ private slots:
 		S_EQUAL(sample_data.comments, "comment_s3");
 		S_EQUAL(sample_data.disease_group, "Diseases of the immune system");
 		S_EQUAL(sample_data.disease_status, "Affected");
+		I_EQUAL(sample_data.phenotypes.count(), 1);
+		S_EQUAL(sample_data.phenotypes[0].toString(), "HP:0001251 - Ataxia");
 		IS_TRUE(sample_data.is_tumor);
 		IS_TRUE(sample_data.is_ffpe);
 
