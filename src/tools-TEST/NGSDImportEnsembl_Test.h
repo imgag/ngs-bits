@@ -22,11 +22,11 @@ private slots:
 
 		//check transcripts
 		int count = db.getValue("SELECT count(*) FROM gene_transcript").toInt();
-		I_EQUAL(count, 4)
+		I_EQUAL(count, 6)
 		count = db.getValue("SELECT count(*) FROM gene_transcript WHERE source='ensembl'").toInt();
-		I_EQUAL(count, 3)
+		I_EQUAL(count, 4)
 		count = db.getValue("SELECT count(*) FROM gene_transcript WHERE source='ccds'").toInt();
-		I_EQUAL(count, 1)
+		I_EQUAL(count, 2)
 		count = db.getValue("SELECT count(*) FROM gene_transcript WHERE start_coding IS NULL AND end_coding IS NULL").toInt();
 		I_EQUAL(count, 1)
 

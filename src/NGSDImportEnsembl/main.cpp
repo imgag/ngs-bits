@@ -23,10 +23,31 @@ public:
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");
 
+		changeLog(2019,  8, 12, "Added handling of HGNC identifiers to resolve ambiguous gene names");
 		changeLog(2017,  7,  6, "Added first version");
 	}
 
-	QMap<QByteArray, QByteArray> parseAttributes(QByteArray attributes)
+	int geneByHGNC(SqlQuery& query, const QByteArray& description)
+	{
+		//extract HGNC identifier
+		int start = description.indexOf("[Source:HGNC Symbol%3BAcc:");
+		if (start==-1) return -1;
+		start += 26;
+		int end = description.indexOf("]", start);
+		if (end==-1) return  -1;
+		QByteArray hgnc_id = description.mid(start, end-start);
+
+		//get NGSD gene ID
+		query.bindValue(0, hgnc_id);
+		query.exec();
+
+		if (query.size()==0) return -1;
+
+		query.next();
+		return query.value(0).toInt();
+	}
+
+	QMap<QByteArray, QByteArray> parseAttributes(const QByteArray& attributes)
 	{
 		QMap<QByteArray, QByteArray> output;
 
@@ -54,7 +75,7 @@ public:
 		int ngsd_gene_id;
 	};
 
-	int addTranscript(SqlQuery& query, int gene_id, QByteArray name, QByteArray source, const TranscriptData& t_data)
+	int addTranscript(SqlQuery& query, int gene_id, const QByteArray& name, const QByteArray& source, const TranscriptData& t_data)
 	{
 		//QTextStream(stdout) << "Adding transcript name=" << name << " source=" << source << " gene=" << t_data.ngsd_gene_id << " start_coding=" << t_data.start_coding << " end_coding=" << t_data.end_coding << endl;
 		query.bindValue(0, gene_id);
@@ -124,6 +145,9 @@ public:
 		SqlQuery q_exon = db.getQuery();
 		q_exon.prepare("INSERT INTO gene_exon (transcript_id, start, end) VALUES (:0, :1, :2);");
 
+		SqlQuery q_gene = db.getQuery();
+		q_gene.prepare("SELECT id FROM gene WHERE hgnc_id=:0;");
+
 		//parse input - format description at https://www.gencodegenes.org/data_format.html and http://www.ensembl.org/info/website/upload/gff3.html
 		QMap<QByteArray, int> gene_ensemble2ngsd;
 		QMap<QByteArray, TranscriptData> transcripts;
@@ -179,17 +203,27 @@ public:
 			{
 				QByteArray gene = data["Name"];
 
-				//transform gene names to approved gene IDs
-				int ngsd_gene_id = db.geneToApprovedID(gene);
-				if (ngsd_gene_id==-1)
-				{
-					out << "Notice: Gene " << data["gene_id"] << "/" << gene << " without HGNC-approved name is skipped." << endl;
-					continue;
-				}
 				
 				if (!Chromosome(parts[0]).isNonSpecial())
 				{
 					out << "Notice: Gene " << data["gene_id"] << "/" << gene << " on special chromosome " << parts[0] << " is skipped." << endl;
+					continue;
+				}
+
+				//transform gene names to approved gene IDs
+				int ngsd_gene_id = db.geneToApprovedID(gene);
+				if (ngsd_gene_id==-1) //fallback to HGNC ID
+				{
+					ngsd_gene_id = geneByHGNC(q_gene, data["description"]);
+					if (ngsd_gene_id!=-1)
+					{
+						out << "Notice: Gene " << data["gene_id"] << "/" << gene << " without HGNC-approved name identified by HGNC identifier." << endl;
+					}
+				}
+
+				if (ngsd_gene_id==-1)
+				{
+					out << "Notice: Gene " << data["gene_id"] << "/" << gene << " without HGNC-approved name is skipped." << endl;
 					continue;
 				}
 				
