@@ -1,5 +1,10 @@
 # GSvar change log
 
+### 2019_08-14 (12.08.19)
+- Gaps: Added 'preferred transcript' column to gap recalculation dialog.
+- General: Add HPO phenotypes to variant summary widget and gene summary tables.
+- Minor other changes and fixes.
+
 ### 2019_08-8 (08.08.19)
 - CNVs: Complete re-implementation of CNV table and filtering.
 - General: Split tools menu into 'NGSD' and 'Tools'.
