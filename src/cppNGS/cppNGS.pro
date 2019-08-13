@@ -90,7 +90,8 @@ HEADERS += BedFile.h \
     VcfFile.h \
     TabixIndexedFile.h \
     BedpeFile.h \
-    KeyValuePair.h
+    KeyValuePair.h \
+    VariantType.h
 
 
 RESOURCES += \

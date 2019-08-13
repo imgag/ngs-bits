@@ -77,6 +77,7 @@
 #include "BedpeFile.h"
 #include "SampleSearchWidget.h"
 #include "ProcessedSampleSelector.h"
+#include "ReportVariantDialog.h"
 
 QT_CHARTS_USE_NAMESPACE
 
@@ -1517,39 +1518,29 @@ void MainWindow::generateReport()
 		}
 	}
 
-	//check disease information
-	if (Settings::boolean("NGSD_enabled", true))
+	//check that sample in in NGSD
+	NGSD db;
+	QString sample_id = db.sampleId(filename_, false);
+	QString processed_sample_id = db.processedSampleId(filename_, false);
+	if (sample_id.isEmpty() || processed_sample_id.isEmpty())
 	{
-		NGSD db;
-		QString sample_id = NGSD().sampleId(filename_, false);
-		if (sample_id!="")
-		{
-			DiseaseInfoWidget* widget = new DiseaseInfoWidget(sample_id, this);
-			auto dlg = GUIHelper::createDialog(widget, "Disease information", "", true);
-			if (widget->diseaseInformationMissing() && dlg->exec()==QDialog::Accepted)
-			{
-				db.setSampleDiseaseData(sample_id, widget->diseaseGroup(), widget->diseaseStatus());
-			}
-		}
-	}
-
-	//check if inheritance information is set for all genes in NGSD
-	QBitArray visible = filter_result_.flags();
-	QStringList missing = geneInheritanceMissing(visible);
-	int max_shown = 50;
-	QString missing_text = missing.mid(0, max_shown).join(", ");
-	if (missing.count()>max_shown)
-	{
-		missing_text += ", ... (" + QString::number(missing.count()) + " genes overall)";
-	}
-	if (!missing.empty() && QMessageBox::question(this, "Report", "Gene inheritance information is missing for these genes:\n\n" + missing_text + "\n\nDo you want to continue?")==QMessageBox::No)
-	{
+		GUIHelper::showMessage("Error", "Sample not found in database.\nCannot generate a report for samples that are not in the NGSD!");
 		return;
 	}
 
+	//check disease information
+	DiseaseInfoWidget* widget = new DiseaseInfoWidget(sample_id, this);
+	auto dlg = GUIHelper::createDialog(widget, "Disease information", "", true);
+	if (widget->diseaseInformationMissing() && dlg->exec()==QDialog::Accepted)
+	{
+		db.setSampleDiseaseData(sample_id, widget->diseaseGroup(), widget->diseaseStatus());
+	}
+
+	//set diagnostic status
+	report_settings_.diag_status = db.getDiagnosticStatus(processed_sample_id);
+
 	//show report dialog
-	ReportDialog dialog(filename_, this);
-	dialog.addVariants(variants_, visible);
+	ReportDialog dialog(report_settings_, variants_, this);
 	dialog.setTargetRegionSelected(ui_.filters->targetRegion()!="");
 	if (!dialog.exec()) return;
 	ReportSettings settings = dialog.settings();
@@ -1567,8 +1558,8 @@ void MainWindow::generateReport()
 	bam_file = bams.first().filename;
 
 	//update diagnostic status
-	NGSD db;
-	db.setDiagnosticStatus(db.processedSampleId(filename_), settings.diag_status);
+	db.setDiagnosticStatus(processed_sample_id, settings.diag_status);
+
 	//show busy dialog
 	busy_dialog_ = new BusyDialog("Report", this);
 	busy_dialog_->init("Generating report", false);
@@ -2231,8 +2222,14 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(i_co_sp);
 	int i_dbsnp = variants_.annotationIndexByName("dbSNP", true, true);
 
-	//create contect menu
+	//create context menu
 	QMenu menu(ui_.vars);
+
+	//report configuration
+	menu.addAction(QIcon(":/Icons/Report.png"), "Report configuration");
+	menu.addSeparator();
+
+	//gene info
 	QMenu* sub_menu = nullptr;
 	if (!genes.isEmpty())
 	{
@@ -2498,6 +2495,18 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 		QString var = variant.chr().str() + "-" + QString::number(variant.start()) + "-" +  ref + "-" + obs;
 		QString genome = variant.chr().isM() ? "hg38" : "hg19";
 		QDesktopServices::openUrl(QUrl("https://varsome.com/variant/" + genome + "/" + var));
+	}
+	else if (text=="Report configuration")
+	{
+		ReportVariantConfiguration var_config;
+		var_config.variant_index = index;
+
+		ReportVariantDialog* dlg = new ReportVariantDialog(var_config, this);
+		dlg->setWindowTitle("Report configuration: " + variant.toString());
+		if (dlg->exec()==QDialog::Accepted)
+		{
+			report_settings_.variant_config << dlg->var_config;
+		}
 	}
 }
 

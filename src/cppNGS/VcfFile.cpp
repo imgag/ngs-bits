@@ -568,29 +568,3 @@ QByteArray VcfFile::getPartByColumn(const QByteArray& line, int index)
 
 	return line.mid(column_start, column_end - column_start);
 }
-
-/**
- * @brief classifyVariant
- * Classifies variants according to https://genome.sph.umich.edu/wiki/Variant_classification
- * Assumes that both REF and ALT are already trimmed (no whitespaces, tabs)
- *
- * @param ref - the reference sequence
- * @param alt - the alternating sequence
- * @return VariantType
- */
-VariantType VcfFile::classifyVariant(const QByteArray& ref, const QByteArray& alt)
-{
-	int length = alt.length() - ref.length();
-
-	if (length == 0)
-	{
-		if (ref.length() == 1 && ref != alt) return SNP;
-		auto distance = static_cast<const int> (NGSHelper::levensthein(ref, alt));
-		return (length == distance) ? MNP : CLUMPED;
-	}
-	else
-	{
-		return INDEL;
-	}
-}
-

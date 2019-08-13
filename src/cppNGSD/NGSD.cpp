@@ -144,7 +144,6 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	{
 		fields	<< "ds.outcome as outcome"
 				<< "ds.genes_causal as outcome_causal_genes"
-				<< "ds.inheritance_mode as outcome_inheritance_mode"
 				<< "ds.comment as outcome_comment";
 	}
 	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +"  WHERE " + conditions.join(" AND ") + " ORDER BY s.name ASC, ps.process_id ASC");
@@ -2658,7 +2657,7 @@ DiagnosticStatusData NGSD::getDiagnosticStatus(const QString& processed_sample_i
 
 	//get status data
 	SqlQuery q = getQuery();
-	q.exec("SELECT s.status, u.name, s.date, s.outcome, s.genes_causal, s.inheritance_mode, s.genes_incidental, s.comment FROM diag_status as s, user as u WHERE s.processed_sample_id='" + processed_sample_id +  "' AND s.user_id=u.id");
+	q.exec("SELECT s.status, u.name, s.date, s.outcome, s.genes_causal, s.genes_incidental, s.comment FROM diag_status as s, user as u WHERE s.processed_sample_id='" + processed_sample_id +  "' AND s.user_id=u.id");
 	if (q.size()==0) return DiagnosticStatusData();
 
 	//process
@@ -2669,9 +2668,8 @@ DiagnosticStatusData NGSD::getDiagnosticStatus(const QString& processed_sample_i
 	output.date = q.value(2).toDateTime();
 	output.outcome = q.value(3).toString();
 	output.genes_causal = q.value(4).toString();
-	output.inheritance_mode = q.value(5).toString();
-	output.genes_incidental = q.value(6).toString();
-	output.comments = q.value(7).toString();
+	output.genes_incidental = q.value(5).toString();
+	output.comments = q.value(6).toString();
 
 	return output;
 }
@@ -2683,9 +2681,9 @@ void NGSD::setDiagnosticStatus(const QString& processed_sample_id, DiagnosticSta
 
 	//update status
 	SqlQuery query = getQuery();
-	query.prepare("INSERT INTO diag_status (processed_sample_id, status, user_id, outcome, genes_causal, inheritance_mode, genes_incidental, comment) " \
-					"VALUES ("+processed_sample_id+",'"+status.dagnostic_status+"', "+user_id+", '"+status.outcome+"', :0, '"+status.inheritance_mode+"', :1, :2) " \
-					"ON DUPLICATE KEY UPDATE status=VALUES(status), user_id=VALUES(user_id), outcome=VALUES(outcome), genes_causal=VALUES(genes_causal), inheritance_mode=VALUES(inheritance_mode), genes_incidental=VALUES(genes_incidental), comment=VALUES(comment)"
+	query.prepare("INSERT INTO diag_status (processed_sample_id, status, user_id, outcome, genes_causal, genes_incidental, comment) " \
+					"VALUES ("+processed_sample_id+",'"+status.dagnostic_status+"', "+user_id+", '"+status.outcome+"', :0, :1, :2) " \
+					"ON DUPLICATE KEY UPDATE status=VALUES(status), user_id=VALUES(user_id), outcome=VALUES(outcome), genes_causal=VALUES(genes_causal), genes_incidental=VALUES(genes_incidental), comment=VALUES(comment)"
 					);
 	query.bindValue(0, status.genes_causal);
 	query.bindValue(1, status.genes_incidental);

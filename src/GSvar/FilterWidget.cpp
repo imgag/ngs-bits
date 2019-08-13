@@ -17,7 +17,7 @@ FilterWidget::FilterWidget(QWidget *parent)
 	, ui_()
 {
 	ui_.setupUi(this);
-	ui_.cascade_widget->setSubject(FilterSubject::SNVS_INDELS);
+	ui_.cascade_widget->setSubject(VariantType::SNVS_INDELS);
 
 	connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SLOT(updateFilterName()));
 	connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SIGNAL(filtersChanged()));
@@ -509,10 +509,20 @@ void FilterWidget::clearTargetRegion()
 
 void FilterWidget::loadFilters()
 {
-
 	QStringList filter_names;
 	filter_names << "[none]";
 	filter_names << FilterCascadeFile::names(filterFileName());
 
-	ui_.filters->addItems(filter_names);
+	for (int i=0; i<filter_names.count(); ++i)
+	{
+		QString name = filter_names[i];
+		if (name=="---")
+		{
+			ui_.filters->insertSeparator(i);
+		}
+		else
+		{
+			ui_.filters->addItem(name, ui_.filters->count());
+		}
+	}
 }

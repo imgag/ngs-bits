@@ -541,21 +541,23 @@ void ReportWorker::writeHTML()
 	//output: applied filters
 	stream << "<p><b>" << trans("Filterkriterien") << " " << "</b>" << endl;
 	stream << "<br />" << trans("Gefundene Varianten in Zielregion gesamt") << ": " << var_count_ << endl;
-	stream << "<br />" << trans("Anzahl Varianten nach automatischer Filterung") << ": " << settings_.variants_selected.count() << endl;
+	stream << "<br />" << trans("Anzahl Varianten ausgewählt f&uuml;r Report") << ": " << settings_.variant_config.count() << endl;
 	for(int i=0; i<filters_.count(); ++i)
 	{
 		stream << "<br />&nbsp;&nbsp;&nbsp;&nbsp;- " << filters_[i]->toText() << endl;
 	}
 	stream << "</p>" << endl;
 
-	//output: all rare variants
+	//output: selected variants
 	stream << "<p><b>" << trans("Varianten nach klinischer Interpretation im Kontext der Fragestellung") << "</b>" << endl;
 	stream << "</p>" << endl;
 	stream << "<table>" << endl;
 	stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Variante") << "</b></td><td><b>" << trans("Genotyp") << "</b></td><td><b>" << trans("Details") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td><td><b>1000g</b></td><td><b>gnomAD</b></td></tr>" << endl;
-	for (int i=0; i<settings_.variants_selected.count(); ++i)
+
+	QList<int> selected_variants = settings_.variantIndices(VariantType::SNVS_INDELS, true);
+	foreach (int i, selected_variants)
 	{
-		const Variant& variant = variants_[settings_.variants_selected[i]];
+		const Variant& variant = variants_[i];
 		QByteArray genes = variant.annotations()[i_gene];
 		stream << "<tr>" << endl;
 		stream << "<td>" << genes << "</td>" << endl;
@@ -829,7 +831,7 @@ QString ReportWorker::trans(const QString& text) const
 		de2en["Ph&auml;notyp"] = "Phenotype information";
 		de2en["Filterkriterien"] = "Criteria for variant filtering";
 		de2en["Gefundene Varianten in Zielregion gesamt"] = "Variants in target region";
-		de2en["Anzahl Varianten nach automatischer Filterung"] = "Variants after automated filters";
+		de2en["Anzahl Varianten ausgewählt f&uuml;r Report"] = "Variants selected for report";
 		de2en["Varianten nach klinischer Interpretation im Kontext der Fragestellung"] = "List of prioritized variants";
 		de2en["Vererbung"] = "Inheritance";
 		de2en["Klasse"] = "Class";
@@ -969,9 +971,11 @@ void ReportWorker::writeXML(QString outfile_name)
 	int geno_idx = variants_.getSampleHeader().infoByStatus(true).column_index;
 	int comment_idx = variants_.annotationIndexByName("comment", true, true);
 	int geneinfo_idx = variants_.annotationIndexByName("gene_info", true, false);
-	for (int i=0; i<settings_.variants_selected.count(); ++i)
+
+	QList<int> selected_variants = settings_.variantIndices(VariantType::SNVS_INDELS, true);
+	foreach (int i, selected_variants)
 	{
-		const Variant& v = variants_[settings_.variants_selected[i]];
+		const Variant& v = variants_[i];
 		w.writeStartElement("Variant");
 		w.writeAttribute("chr", v.chr().str());
 		w.writeAttribute("start", QString::number(v.start()));

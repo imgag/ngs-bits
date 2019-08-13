@@ -50,6 +50,7 @@ private:
 	const VariantList& variants_;
 	FilterCascade filters_;
 	const QMap<QString, QStringList>& preferred_transcripts_;
+
 	ReportSettings settings_;
 	QStringList log_files_;
 	//output variables

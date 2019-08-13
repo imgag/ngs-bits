@@ -1,81 +1,71 @@
-#include "Exceptions.h"
 #include "ReportDialog.h"
-#include "NGSD.h"
-#include "Log.h"
 #include "GUIHelper.h"
 #include <QTableWidgetItem>
-#include <QBitArray>
 #include <QPushButton>
 #include <QMenu>
 
 
-ReportDialog::ReportDialog(QString filename, QWidget* parent)
+ReportDialog::ReportDialog(ReportSettings settings, const VariantList& variants, QWidget* parent)
 	: QDialog(parent)
 	, ui_()
-	, filename_(filename)
-	, labels_()
+	, settings_(settings)
+	, variants_(variants)
 {
 	ui_.setupUi(this);
 
-	//variant header
-	labels_ << "" << "chr" << "start" << "end" << "ref" << "obs" << "NGSD_hom" << "NGSD_het" << "genotype" << "gene" << "variant_type" << "coding_and_splicing";
-	ui_.vars->setColumnCount(labels_.count());
-	ui_.vars->setHorizontalHeaderLabels(labels_);
-
-	//contect menu
-	ui_.vars->setContextMenuPolicy(Qt::CustomContextMenu);
+	//context menu
 	connect(ui_.vars, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
 
 	//disable ok button when no outcome is set
-	ui_.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-	connect(ui_.diag_status, SIGNAL(outcomeChanged(QString)), this, SLOT(outcomeChanged(QString)));
-
-	//set diagnostic status
-	NGSD db;
-	QString processed_sample_id = db.processedSampleId(filename_);
-	DiagnosticStatusData diag_status = db.getDiagnosticStatus(processed_sample_id);
-	ui_.diag_status->setStatus(diag_status);
+	connect(ui_.diag_status, SIGNAL(outcomeChanged(QString)), this, SLOT(outcomeChanged()));
 
 	//enable/disable low-coverage settings
 	connect(ui_.details_cov, SIGNAL(stateChanged(int)), this, SLOT(updateCoverageSettings(int)));
+
+	updateGUI();
 }
 
-void ReportDialog::addVariants(const VariantList& variants, const QBitArray& visible)
+void ReportDialog::updateGUI()
 {
-	int class_idx = variants.annotationIndexByName("classification", true, false);
-	int geno_idx = variants.getSampleHeader().infoByStatus(true).column_index;
+	//diagnostic status
+	ui_.diag_status->setStatus(settings_.diag_status);
+	outcomeChanged();
 
-	ui_.vars->setRowCount(visible.count(true));
+	//variants
+	int geno_idx = variants_.getSampleHeader().infoByStatus(true).column_index;
+	QList<int> selected_variants = settings_.variantIndices(VariantType::SNVS_INDELS, true);
+	ui_.vars->setRowCount(selected_variants.count());
 	int row = 0;
-	for (int i=0; i<variants.count(); ++i)
+	foreach(int i, selected_variants)
 	{
-		if (!visible[i]) continue;
+		const Variant& variant = variants_[i];
+		ui_.vars->setItem(row, 0, new QTableWidgetItem(QString(variant.chr().str())));
+		ui_.vars->setItem(row, 1, new QTableWidgetItem(QString::number(variant.start())));
+		ui_.vars->setItem(row, 2, new QTableWidgetItem(QString::number(variant.end())));
+		ui_.vars->setItem(row, 3, new QTableWidgetItem(variant.ref(), 0));
+		ui_.vars->setItem(row, 4, new QTableWidgetItem(variant.obs(), 0));
+		ui_.vars->setItem(row, 5, new QTableWidgetItem(variant.annotations().at(geno_idx), 0));
 
-		const Variant& variant = variants[i];
-		ui_.vars->setItem(row, 0, new QTableWidgetItem(""));
-		ui_.vars->item(row, 0)->setFlags(Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
-		ui_.vars->item(row, 0)->setCheckState(Qt::Checked);
-		if (class_idx!=-1 && variant.annotations()[class_idx]=="1")
+		for (int j=6; j<ui_.vars->horizontalHeader()->count(); ++j)
 		{
-			ui_.vars->item(row, 0)->setCheckState(Qt::Unchecked);
-			ui_.vars->item(row, 0)->setToolTip("Unchecked because of classification '1'.");
-		}
-		ui_.vars->item(row, 0)->setData(Qt::UserRole, i);
-		ui_.vars->setItem(row, 1, new QTableWidgetItem(QString(variant.chr().str())));
-		ui_.vars->setItem(row, 2, new QTableWidgetItem(QString::number(variant.start())));
-		ui_.vars->setItem(row, 3, new QTableWidgetItem(QString::number(variant.end())));
-		ui_.vars->setItem(row, 4, new QTableWidgetItem(variant.ref(), 0));
-		ui_.vars->setItem(row, 5, new QTableWidgetItem(variant.obs(), 0));
-		for (int j=6; j<labels_.count(); ++j)
-		{
-			int index = labels_[j]=="genotype" ? geno_idx : variants.annotationIndexByName(labels_[j]);
+			QString label = ui_.vars->horizontalHeaderItem(j)->text();
+			int index = variants_.annotationIndexByName(label);
 			ui_.vars->setItem(row, j, new QTableWidgetItem(variant.annotations().at(index), 0));
 		}
 
 		++row;
 	}
-
 	GUIHelper::resizeTableCells(ui_.vars);
+
+	//settings
+	ui_.details_cov->setChecked(settings_.show_coverage_details);
+	ui_.min_cov->setValue(settings_.min_depth);
+	ui_.details_cov_roi->setChecked(settings_.roi_low_cov);
+	ui_.depth_calc->setChecked(settings_.recalculate_avg_depth);
+	ui_.tool_details->setChecked(settings_.show_tool_details);
+	ui_.omim_table->setChecked(settings_.show_omim_table);
+	ui_.class_info->setChecked(settings_.show_class_details);
+	ui_.language->setCurrentText(settings_.language);
 }
 
 void ReportDialog::setTargetRegionSelected(bool is_selected)
@@ -93,77 +83,46 @@ void ReportDialog::setTargetRegionSelected(bool is_selected)
 	}
 }
 
-ReportSettings ReportDialog::settings() const
+ReportSettings ReportDialog::settings()
 {
-	ReportSettings output;
-
 	//diag status
-	output.diag_status = ui_.diag_status->status();
-
-	//variant indices
-	for (int i=0; i<ui_.vars->rowCount(); ++i)
-	{
-		QTableWidgetItem* item = ui_.vars->item(i, 0);
-		if (item->checkState()==Qt::Checked)
-		{
-			output.variants_selected.append(item->data(Qt::UserRole).toInt());
-		}
-	}
+	settings_.diag_status = ui_.diag_status->status();
 
 	//settings
-	output.show_coverage_details = ui_.details_cov->isChecked();
-	output.min_depth = ui_.min_cov->value();
-	output.roi_low_cov = ui_.details_cov_roi->isChecked();
-	output.recalculate_avg_depth = ui_.depth_calc->isChecked();
-	output.show_tool_details = ui_.tool_details->isChecked();
-	output.show_omim_table = ui_.omim_table->isChecked();
-	output.show_class_details = ui_.class_info->isChecked();
-	output.language = ui_.language->currentText();
+	settings_.show_coverage_details = ui_.details_cov->isChecked();
+	settings_.min_depth = ui_.min_cov->value();
+	settings_.roi_low_cov = ui_.details_cov_roi->isChecked();
+	settings_.recalculate_avg_depth = ui_.depth_calc->isChecked();
+	settings_.show_tool_details = ui_.tool_details->isChecked();
+	settings_.show_omim_table = ui_.omim_table->isChecked();
+	settings_.show_class_details = ui_.class_info->isChecked();
+	settings_.language = ui_.language->currentText();
 
-	return output;
+	return settings_;
 }
 
-void ReportDialog::outcomeChanged(QString text)
+void ReportDialog::outcomeChanged()
 {
-	ui_.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(text!="n/a");
+	ui_.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(ui_.diag_status->status().outcome!="n/a");
 }
 
 void ReportDialog::showContextMenu(QPoint pos)
 {
 	int row = ui_.vars->rowAt(pos.y());
+	if (row==-1) return;
 
 	QMenu menu(ui_.vars);
-	if (row!=-1)
-	{
-		menu.addAction("Copy variant to diagnostic status");
-		menu.addSeparator();
-	}
-	menu.addAction(QIcon(":/Icons/box_checked.png"), "select all");
-	menu.addAction(QIcon(":/Icons/box_unchecked.png"), "unselect all");
+	menu.addAction("Copy variant to diagnostic status");
 
 	QAction* action = menu.exec(ui_.vars->viewport()->mapToGlobal(pos));
 	if (action==nullptr) return;
 
-	QByteArray text = action->text().toLatin1();
-	if (text=="select all")
-	{
-		for (int i=0; i<ui_.vars->rowCount(); ++i)
-		{
-			ui_.vars->item(i, 0)->setCheckState(Qt::Checked);
-		}
-	}
-	if (text=="unselect all")
-	{
-		for (int i=0; i<ui_.vars->rowCount(); ++i)
-		{
-			ui_.vars->item(i, 0)->setCheckState(Qt::Unchecked);
-		}
-	}
+	QString text = action->text();
 	if (text=="Copy variant to diagnostic status")
 	{
 		DiagnosticStatusData status = ui_.diag_status->status();
-		status.genes_causal = ui_.vars->item(row, 9)->text();
-		status.comments = ui_.vars->item(row, 10)->text();
+		status.genes_causal = ui_.vars->item(row, 8)->text();
+		status.comments = ui_.vars->item(row, 9)->text();
 		ui_.diag_status->setStatus(status);
 	}
 }

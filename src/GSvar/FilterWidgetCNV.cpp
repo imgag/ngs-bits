@@ -18,7 +18,7 @@ FilterWidgetCNV::FilterWidgetCNV(QWidget *parent)
 	, filter_widget_(nullptr)
 {
 	ui_.setupUi(this);
-	ui_.cascade_widget->setSubject(FilterSubject::CNVS);
+	ui_.cascade_widget->setSubject(VariantType::CNVS);
 	connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SLOT(updateFilterName()));
 	connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SIGNAL(filtersChanged()));
 	connect(ui_.filters, SIGNAL(currentIndexChanged(int)), this, SLOT(setFilter(int)));
@@ -401,5 +401,16 @@ void FilterWidgetCNV::loadFilters()
 	filter_names << "[none]";
 	filter_names << FilterCascadeFile::names(filterFileName());
 
-	ui_.filters->addItems(filter_names);
+	for (int i=0; i<filter_names.count(); ++i)
+	{
+		QString name = filter_names[i];
+		if (name=="---")
+		{
+			ui_.filters->insertSeparator(i);
+		}
+		else
+		{
+			ui_.filters->addItem(name, ui_.filters->count());
+		}
+	}
 }

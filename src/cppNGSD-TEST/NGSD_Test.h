@@ -425,7 +425,6 @@ private slots:
 		S_EQUAL(diag_status.dagnostic_status, "done");
 		S_EQUAL(diag_status.outcome, "no significant findings");
 		S_EQUAL(diag_status.genes_causal, "ATM");
-		S_EQUAL(diag_status.inheritance_mode, "autosomal recessive");
 		S_EQUAL(diag_status.genes_incidental, "BRCA2");
 		S_EQUAL(diag_status.comments, "free text");
 		//no entry in DB
@@ -435,7 +434,6 @@ private slots:
 		S_EQUAL(diag_status.dagnostic_status, "");
 		S_EQUAL(diag_status.outcome, "n/a");
 		S_EQUAL(diag_status.genes_causal, "");
-		S_EQUAL(diag_status.inheritance_mode, "n/a");
 		S_EQUAL(diag_status.genes_incidental, "");
 		S_EQUAL(diag_status.comments, "");
 
@@ -444,7 +442,6 @@ private slots:
 		diag_status.dagnostic_status = "done";
 		diag_status.outcome = "significant findings";
 		diag_status.genes_causal = "BRCA1";
-		diag_status.inheritance_mode = "autosomal dominant";
 		diag_status.genes_incidental = "TP53";
 		diag_status.comments = "comment1";
 		db.setDiagnosticStatus(db.processedSampleId("NA12878_04"), diag_status, "ahmustm1");
@@ -454,7 +451,6 @@ private slots:
 		S_EQUAL(diag_status.dagnostic_status, "done");
 		S_EQUAL(diag_status.outcome, "significant findings");
 		S_EQUAL(diag_status.genes_causal, "BRCA1");
-		S_EQUAL(diag_status.inheritance_mode, "autosomal dominant");
 		S_EQUAL(diag_status.genes_incidental, "TP53");
 		S_EQUAL(diag_status.comments, "comment1");
 		//update existing entry
@@ -468,7 +464,6 @@ private slots:
 		S_EQUAL(diag_status.dagnostic_status, "done");
 		S_EQUAL(diag_status.outcome, "no significant findings");
 		S_EQUAL(diag_status.genes_causal, "ATM");
-		S_EQUAL(diag_status.inheritance_mode, "autosomal recessive");
 		S_EQUAL(diag_status.genes_incidental, "BRCA2,POLG");
 		S_EQUAL(diag_status.comments, "comment2");
 
@@ -677,17 +672,17 @@ private slots:
 		params.add_outcome = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 5);
-		I_EQUAL(ps_table.columnCount(), 23);
+		I_EQUAL(ps_table.columnCount(), 22);
 		//add path
 		params.add_disease_details = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 5);
-		I_EQUAL(ps_table.columnCount(), 30);
+		I_EQUAL(ps_table.columnCount(), 29);
 		//add QC
 		params.add_qc = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 5);
-		I_EQUAL(ps_table.columnCount(), 69);
+		I_EQUAL(ps_table.columnCount(), 68);
 		//apply all search parameters
 		params.s_name = "NA12878";
 		params.s_species = "human";
@@ -702,7 +697,7 @@ private slots:
 		params.include_bad_quality_runs = false;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 2);
-		I_EQUAL(ps_table.columnCount(), 69);
+		I_EQUAL(ps_table.columnCount(), 68);
 	}
 
 	//Test for debugging (without initialization because of speed)

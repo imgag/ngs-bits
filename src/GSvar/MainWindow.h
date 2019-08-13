@@ -10,6 +10,7 @@
 #include "FileWatcher.h"
 #include "BusyDialog.h"
 #include "FilterCascade.h"
+#include "ReportSettings.h"
 
 struct IgvFile
 {
@@ -250,6 +251,7 @@ private:
 	QList<QSharedPointer<QDialog>> modeless_dialogs_;
 	GeneSet imprinting_genes_;
 	QHash<QByteArray, BedFile> gene2region_cache_;
+	ReportSettings report_settings_;
 
 	//SPECIAL
 	///Timer to delay some initialization, e.g. load CLI argument after the main window is visible

@@ -111,6 +111,9 @@
       </property>
       <item>
        <widget class="QTableWidget" name="vars">
+        <property name="contextMenuPolicy">
+         <enum>Qt::CustomContextMenu</enum>
+        </property>
         <property name="frameShape">
          <enum>QFrame::StyledPanel</enum>
         </property>
@@ -120,6 +123,61 @@
         <attribute name="verticalHeaderVisible">
          <bool>false</bool>
         </attribute>
+        <column>
+         <property name="text">
+          <string>chr</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>start</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>end</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>ref</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>obs</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>genotype</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>NGSD_hom</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>NGSD_het</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>gene</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>variant_type</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>coding_and_splicing</string>
+         </property>
+        </column>
        </widget>
       </item>
      </layout>
@@ -155,7 +213,7 @@
          <string>Add coverage details</string>
         </property>
         <property name="checked">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -183,7 +241,7 @@
            <string>Re-calculate average depth for target region (otherwise the value from NGSD is used).</string>
           </property>
           <property name="checked">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
          </widget>
         </item>
@@ -278,7 +336,7 @@
          <string>Add OMIM gene/phenotype table</string>
         </property>
         <property name="checked">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>

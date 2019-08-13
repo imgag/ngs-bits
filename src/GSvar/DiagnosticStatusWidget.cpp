@@ -12,7 +12,6 @@ DiagnosticStatusWidget::DiagnosticStatusWidget(QWidget *parent)
 	NGSD db;
 	ui.status->addItems(db.getEnum("diag_status", "status"));
 	ui.outcome->addItems(db.getEnum("diag_status", "outcome"));
-	ui.inheritance->addItems(db.getEnum("diag_status", "inheritance_mode"));
 
 	//signals+slots
 	connect(ui.outcome, SIGNAL(currentTextChanged(QString)), this, SIGNAL(outcomeChanged(QString)));
@@ -26,7 +25,6 @@ void DiagnosticStatusWidget::setStatus(DiagnosticStatusData data)
 	ui.status->setCurrentText(data.dagnostic_status);
 	ui.outcome->setCurrentText(data.outcome);
 	ui.genes_causal->setText(data.genes_causal);
-	ui.inheritance->setCurrentText(data.inheritance_mode);
 	ui.genes_incidental->setText(data.genes_incidental);
 	ui.comment->setText(data.comments);
 
@@ -41,7 +39,6 @@ DiagnosticStatusData DiagnosticStatusWidget::status() const
 	output.dagnostic_status = ui.status->currentText();
 	output.outcome = ui.outcome->currentText();
 	output.genes_causal = ui.genes_causal->text().trimmed();
-	output.inheritance_mode = ui.inheritance->currentText();
 	output.genes_incidental = ui.genes_incidental->text().trimmed();
 	output.comments = ui.comment->text().trimmed();
 
