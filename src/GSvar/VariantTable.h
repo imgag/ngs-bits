@@ -4,6 +4,7 @@
 #include <QTableWidget>
 #include "GeneSet.h"
 #include "FilterCascade.h"
+#include "ReportSettings.h"
 
 //GUI representation of (filtered) variant table
 class VariantTable
@@ -15,7 +16,9 @@ public:
 	VariantTable(QWidget* parent);
 
 	///Update table
-	void update(const VariantList variants_, const FilterResult& filter_result_, const GeneSet& imprinting_genes_, int max_variants);
+	void update(const VariantList& variants, const FilterResult& filter_result, const ReportSettings& report_settings, int max_variants);
+	///Update header icon (report config)
+	void updateVariantHeaderIcon(const ReportSettings& report_settings, int variant_index);
 
 	///Returns the column index, or -1 if not found.
 	int columnIndex(const QString& column_name) const;
@@ -28,6 +31,8 @@ public:
 
 	///Convert table row to variant index.
 	int rowToVariantIndex(int row) const;
+	///Convert variant index to table row (attention this can be slow because it is done by linear search).
+	int variantIndexToRow(int index) const;
 
 	///Creates table widget items, or nullptr if the text is empty. Uses Qt implicit sharing to avoid duplicate strings.
 	QTableWidgetItem* createTableItem(const QString& text) const

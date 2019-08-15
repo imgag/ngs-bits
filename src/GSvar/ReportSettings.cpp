@@ -3,9 +3,12 @@
 ReportVariantConfiguration::ReportVariantConfiguration()
 	: variant_type(VariantType::SNVS_INDELS)
 	, variant_index(-1)
-	, type("")
+	, type()
+	, inheritance_mode()
 	, de_novo(false)
-	, inheritance_mode("")
+	, mosaic(false)
+	, comp_het(false)
+	, comment()
 {
 }
 
@@ -14,21 +17,25 @@ bool ReportVariantConfiguration::showInReport() const
 	return type.startsWith("report:");
 }
 
+QIcon ReportVariantConfiguration::icon() const
+{
+	return QIcon(showInReport() ? QPixmap(":/Icons/Report_add.png") : QPixmap(":/Icons/Report exclude.png"));
+}
+
 QStringList ReportVariantConfiguration::getTypeOptions()
 {
 	//TODO take from NGSD once implemented (cache)
-	return QStringList() << "report: causal" << "report: candidategene" << "report: scientific" << "report: incidental finding (ACMG)" << "no report: artefact" << "no report: no diseaseassociation";
+	return QStringList() << "report: (likely) causal" << "report: candidate gene" << "report: carrier" << "report: incidental finding (ACMG)" << "no report: artefact" << "no report: no disease association";
 }
 
 QStringList ReportVariantConfiguration::getInheritanceModeOptions()
 {
 	//TODO take from NGSD once implemented (cache)
-	return QStringList() << "autosomal recessive" << "autosomal dominant" << "autosomal recessive/dominant" << "x-linked recessive" << "x-linked dominant" << "x-linked recessive/dominant" << "mitochondrial" << "somatic";
+	return QStringList() << "AR" << "AD" << "AR+AD" << "XLR" << "XLD" << "XLR+XLD" << "MT";
 }
 
 ReportSettings::ReportSettings()
 	: diag_status()
-	, variant_config()
 	, show_coverage_details(true)
 	, min_depth(20)
 	, roi_low_cov(false)
@@ -37,6 +44,7 @@ ReportSettings::ReportSettings()
 	, show_omim_table(true)
 	, show_class_details(false)
 	, language("german")
+	, variant_config()
 {
 }
 
@@ -55,5 +63,56 @@ QList<int> ReportSettings::variantIndices(VariantType type, bool only_selected) 
 	std::sort(output.begin(), output.end());
 
 	return output;
+}
+
+bool ReportSettings::configurationExists(VariantType type, int index) const
+{
+	foreach(const ReportVariantConfiguration& var_conf, variant_config)
+	{
+		if (var_conf.variant_index==index && var_conf.variant_type==type) return true;
+	}
+
+	return false;
+}
+
+const ReportVariantConfiguration& ReportSettings::getConfiguration(VariantType type, int index) const
+{
+	foreach(const ReportVariantConfiguration& var_conf, variant_config)
+	{
+		if (var_conf.variant_index==index && var_conf.variant_type==type) return var_conf;
+	}
+
+	THROW(ArgumentException, "Report configuration not found for variant with index '" + QString::number(index) + "'!");
+}
+
+bool ReportSettings::setConfiguration(const ReportVariantConfiguration& config)
+{
+	for (int i=0; i<variant_config.count(); ++i)
+	{
+		const ReportVariantConfiguration& var_conf = variant_config[i];
+		if (var_conf.variant_index==config.variant_index && var_conf.variant_type==config.variant_type)
+		{
+			variant_config[i] = config;
+			return true;
+		}
+	}
+
+	variant_config << config;
+	return false;
+}
+
+bool ReportSettings::removeConfiguration(VariantType type, int index)
+{
+	for (int i=0; i<variant_config.count(); ++i)
+	{
+		const ReportVariantConfiguration& var_conf = variant_config[i];
+		if (var_conf.variant_index==index && var_conf.variant_type==type)
+		{
+			variant_config.removeAt(i);
+			return true;
+		}
+	}
+
+	return false;
 }
 

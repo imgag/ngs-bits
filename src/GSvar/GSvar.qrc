@@ -75,5 +75,7 @@
         <file>Icons/Link.png</file>
         <file>Icons/Decipher.png</file>
         <file>Icons/Table.png</file>
+        <file>Icons/Report exclude.png</file>
+        <file>Icons/Report_add.png</file>
     </qresource>
 </RCC>

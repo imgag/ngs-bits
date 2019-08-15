@@ -62,7 +62,8 @@ SOURCES += main.cpp\
     FilterCascadeWidget.cpp \
     FilterWidget.cpp \
     ReportSettings.cpp \
-    ReportVariantDialog.cpp
+    ReportVariantDialog.cpp \
+    GSvarHelper.cpp
 
 HEADERS  += MainWindow.h \
     ExternalToolDialog.h \
@@ -119,7 +120,8 @@ HEADERS  += MainWindow.h \
     FilterCascadeWidget.h \
     FilterWidget.h \
     ReportSettings.h \
-    ReportVariantDialog.h
+    ReportVariantDialog.h \
+    GSvarHelper.h
 
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \

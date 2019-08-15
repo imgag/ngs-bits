@@ -101,7 +101,7 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.splitter_2->setStretchFactor(0, 10);
 	ui_.splitter_2->setStretchFactor(1, 1);
 	connect(ui_.variant_details, SIGNAL(jumbToRegion(QString)), this, SLOT(openInIGV(QString)));
-	connect(ui_.variant_details, SIGNAL(editVariantClassification()), this, SLOT(editVariantClassification()));
+	connect(ui_.variant_details, SIGNAL(editVariantClassification()), this, SLOT(editVariantClassificationOfSelectedVariant()));
 	connect(ui_.variant_details, SIGNAL(editVariantValidation()), this, SLOT(editVariantValidation()));
 	connect(ui_.variant_details, SIGNAL(editVariantComment()), this, SLOT(editVariantComment()));
 	connect(ui_.variant_details, SIGNAL(showVariantSampleOverview()), this, SLOT(showVariantSampleOverview()));
@@ -126,6 +126,10 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.vars, SIGNAL(itemSelectionChanged()), this, SLOT(updateVariantDetails()));
 	connect(&filewatcher_, SIGNAL(fileChanged()), this, SLOT(handleInputFileChange()));
 	connect(ui_.vars, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(variantCellDoubleClicked(int, int)));
+	connect(ui_.vars->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(variantHeaderDoubleClicked(int)));
+	ui_.vars->verticalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
+	connect(ui_.vars->verticalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(varHeaderContextMenu(QPoint)));
+
 	connect(ui_.actionDesignSubpanel, SIGNAL(triggered()), this, SLOT(openSubpanelDesignDialog()));
 	connect(ui_.filters, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
 	connect(ui_.filters, SIGNAL(phenotypeSubPanelRequested()), this, SLOT(createSubPanelFromPhenotypeFilter()));
@@ -480,17 +484,6 @@ void MainWindow::delayedInizialization()
 	preferred_transcripts_ = loadPreferredTranscripts();
 	ui_.variant_details->setPreferredTranscripts(preferred_transcripts_);
 
-	//load imprinting gene list
-	QStringList lines = Helper::loadTextFile(":/Resources/imprinting_genes.tsv", true, '#', true);
-	foreach(const QString& line, lines)
-	{
-		QStringList parts = line.split("\t");
-		if (parts.count()==2)
-		{
-			imprinting_genes_ << parts[0].toLatin1();
-		}
-	}
-
 	//load command line argument
 	if (QApplication::arguments().count()>=2)
 	{
@@ -508,6 +501,15 @@ void MainWindow::variantCellDoubleClicked(int row, int /*col*/)
 {
 	int var_index = ui_.vars->rowToVariantIndex(row);
 	openInIGV(variants_[var_index].toString());
+}
+
+void MainWindow::variantHeaderDoubleClicked(int row)
+{
+	bool ngsd_enabled = Settings::boolean("NGSD_enabled", true);
+	if (!ngsd_enabled) return;
+
+	int var_index = ui_.vars->rowToVariantIndex(row);
+	editVariantReportConfiguration(var_index);
 }
 
 void MainWindow::openInIGV(QString region)
@@ -644,46 +646,12 @@ void MainWindow::openInIGV(QString region)
 	executeIGVCommands(QStringList() << "goto " + region);
 }
 
-void MainWindow::editVariantClassification()
+void MainWindow::editVariantClassificationOfSelectedVariant()
 {
-	int var_curr = ui_.vars->selectedVariantIndex();
-	if (var_curr==-1) return;
+	int index = ui_.vars->selectedVariantIndex();
+	if (index==-1) return;
 
-	Variant& variant = variants_[var_curr];
-
-	try
-	{
-		//add variant if missing
-		NGSD db;
-		if (db.variantId(variant, false)=="")
-		{
-			db.addVariant(variant, variants_);
-		}
-
-		//execute dialog
-		ClassificationDialog dlg(this, variant);
-		if (dlg.exec())
-		{
-			//update DB
-			ClassificationInfo class_info = dlg.classificationInfo();
-			db.setClassification(variant, class_info);
-
-			//update variant table
-			int i_class = variants_.annotationIndexByName("classification", true, true);
-			variant.annotations()[i_class] = class_info.classification.replace("n/a", "").toLatin1();
-			int i_class_comment = variants_.annotationIndexByName("classification_comment", true, true);
-			variant.annotations()[i_class_comment] = class_info.comments.toLatin1();
-
-			//update details widget and filtering
-			ui_.variant_details->updateVariant(variants_, var_curr);
-			refreshVariantTable();
-		}
-	}
-	catch (DatabaseException& e)
-	{
-		GUIHelper::showMessage("NGSD error", e.message());
-		return;
-	}
+	editVariantClassification(variants_, index);
 }
 
 void MainWindow::editVariantValidation()
@@ -735,7 +703,7 @@ void MainWindow::editVariantComment()
 		NGSD db;
 		if (db.variantId(variant, false)=="")
 		{
-			db.addVariant(variant, variants_);
+			db.addVariant(variants_, var_index);
 		}
 
 		bool ok = true;
@@ -757,18 +725,7 @@ void MainWindow::editVariantComment()
 			if (col_index!=-1)
 			{
 				variant.annotations()[col_index] = text;
-			}
-
-			//update GUI (if column is present)
-			int gui_index = ui_.vars->columnIndex("comment");
-			if (gui_index!=-1)
-			{
-				if (ui_.vars->item(var_row, gui_index)==nullptr)
-				{
-					ui_.vars->setItem(var_row, gui_index, new QTableWidgetItem(""));
-				}
-				ui_.vars->item(var_row, gui_index)->setText(text);
-				ui_.variant_details->updateVariant(variants_, var_row);
+				refreshVariantTable();
 			}
 		}
 	}
@@ -1215,6 +1172,7 @@ void MainWindow::loadFile(QString filename)
 	db_annos_updated_ = NO;
 	igv_initialized_ = false;
 	ui_.vars->clearContents();
+	report_settings_ = ReportSettings();
 
 	ui_.tabs->setCurrentIndex(0);
 	for (int t=ui_.tabs->count()-1; t>0; --t)
@@ -1543,7 +1501,6 @@ void MainWindow::generateReport()
 	ReportDialog dialog(report_settings_, variants_, this);
 	dialog.setTargetRegionSelected(ui_.filters->targetRegion()!="");
 	if (!dialog.exec()) return;
-	ReportSettings settings = dialog.settings();
 
 	//get export file name
 	QString base_name = processedSampleName();
@@ -1558,14 +1515,14 @@ void MainWindow::generateReport()
 	bam_file = bams.first().filename;
 
 	//update diagnostic status
-	db.setDiagnosticStatus(processed_sample_id, settings.diag_status);
+	db.setDiagnosticStatus(processed_sample_id, report_settings_.diag_status);
 
 	//show busy dialog
 	busy_dialog_ = new BusyDialog("Report", this);
 	busy_dialog_->init("Generating report", false);
 
 	//start worker in new thread
-	ReportWorker* worker = new ReportWorker(base_name, bam_file, ui_.filters->targetRegion(), variants_, ui_.filters->filters(), preferred_transcripts_, dialog.settings(), getLogFiles(), file_rep);
+	ReportWorker* worker = new ReportWorker(base_name, bam_file, ui_.filters->targetRegion(), variants_, ui_.filters->filters(), preferred_transcripts_, report_settings_, getLogFiles(), file_rep);
 	connect(worker, SIGNAL(finished(bool)), this, SLOT(reportGenerationFinished(bool)));
 	worker->start();
 }
@@ -2181,7 +2138,7 @@ void MainWindow::refreshVariantTable(bool keep_widths)
 
 	//update variant table
 	QList<int> col_widths = ui_.vars->columnWidths();
-	ui_.vars->update(variants_, filter_result_, imprinting_genes_, max_variants);
+	ui_.vars->update(variants_, filter_result_, report_settings_, max_variants);
 	ui_.vars->adaptRowHeights();
 	if (keep_widths)
 	{
@@ -2211,6 +2168,38 @@ void MainWindow::varsContextMenu(QPoint pos)
 	}
 }
 
+void MainWindow::varHeaderContextMenu(QPoint pos)
+{
+	bool ngsd_enabled = Settings::boolean("NGSD_enabled", true);
+	if (!ngsd_enabled) return;
+
+	//get variant index
+	int row = ui_.vars->verticalHeader()->visualIndexAt(pos.ry());
+	int index = ui_.vars->rowToVariantIndex(row);
+
+	//set up menu
+	QMenu menu(ui_.vars->verticalHeader());
+	menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
+	menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration")->setEnabled(report_settings_.configurationExists(VariantType::SNVS_INDELS, index));
+
+	//exec menu
+	pos = ui_.vars->verticalHeader()->viewport()->mapToGlobal(pos);
+	QAction* action = menu.exec(pos);
+	if (action==nullptr) return;
+
+	//actions
+	QByteArray text = action->text().toLatin1();
+	if (text=="Add/edit report configuration")
+	{
+		editVariantReportConfiguration(index);
+	}
+	else if (text=="Delete report configuration")
+	{
+		report_settings_.removeConfiguration(VariantType::SNVS_INDELS, index);
+		updateReportConfigHeaderIcon(index);
+	}
+}
+
 void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 {
 	//init
@@ -2226,7 +2215,8 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	QMenu menu(ui_.vars);
 
 	//report configuration
-	menu.addAction(QIcon(":/Icons/Report.png"), "Report configuration");
+	menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration")->setEnabled(ngsd_enabled);
+	menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration")->setEnabled(ngsd_enabled && report_settings_.configurationExists(VariantType::SNVS_INDELS, index));
 	menu.addSeparator();
 
 	//gene info
@@ -2496,23 +2486,20 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 		QString genome = variant.chr().isM() ? "hg38" : "hg19";
 		QDesktopServices::openUrl(QUrl("https://varsome.com/variant/" + genome + "/" + var));
 	}
-	else if (text=="Report configuration")
+	else if (text=="Add/edit report configuration")
 	{
-		ReportVariantConfiguration var_config;
-		var_config.variant_index = index;
-
-		ReportVariantDialog* dlg = new ReportVariantDialog(var_config, this);
-		dlg->setWindowTitle("Report configuration: " + variant.toString());
-		if (dlg->exec()==QDialog::Accepted)
-		{
-			report_settings_.variant_config << dlg->var_config;
-		}
+		editVariantReportConfiguration(index);
+	}
+	else if (text=="Delete report configuration")
+	{
+		report_settings_.removeConfiguration(VariantType::SNVS_INDELS, index);
+		updateReportConfigHeaderIcon(index);
 	}
 }
 
 void MainWindow::contextMenuTwoVariants(QPoint pos, int index1, int index2)
 {
-	//create contect menu
+	//create context menu
 	QMenu menu(ui_.vars);
 	menu.addAction(QIcon("://Icons/LOVD.png"), "Publish in LOVD (comp-het)");
 
@@ -2533,6 +2520,64 @@ void MainWindow::contextMenuTwoVariants(QPoint pos, int index1, int index2)
 			GUIHelper::showMessage("LOVD upload error", "Error while uploading variant to LOVD: " + e.message());
 			return;
 		}
+	}
+}
+
+QStringList MainWindow::getReportVariantTypesWithClassification() const
+{
+	static QStringList output;
+
+	if (output.isEmpty())
+	{
+		output << "report: (likely) causal" << "report: carrier" << "report: incidental finding (ACMG)";
+
+		//make sure we have to update the code in case the NGSD terms change
+		QStringList valid_types = ReportVariantConfiguration::getTypeOptions();
+		foreach(QString type, output)
+		{
+			if (!valid_types.contains(type))
+			{
+				THROW(ProgrammingException, "Invalid variant report type '" + type + "' hard-coded!");
+			}
+		}
+	}
+
+	return output;
+}
+
+void MainWindow::editVariantClassification(VariantList& variants, int index)
+{
+	try
+	{
+		Variant& variant = variants[index];
+
+		//execute dialog
+		ClassificationDialog dlg(this, variant);
+		if (dlg.exec()!=QDialog::Accepted) return;
+
+		//update NGSD
+		NGSD db;
+		if (db.variantId(variant, false)=="") //add variant if missing
+		{
+			db.addVariant(variants, index);
+		}
+		ClassificationInfo class_info = dlg.classificationInfo();
+		db.setClassification(variant, class_info);
+
+		//update variant table
+		int i_class = variants.annotationIndexByName("classification", true, true);
+		variant.annotations()[i_class] = class_info.classification.replace("n/a", "").toLatin1();
+		int i_class_comment = variants.annotationIndexByName("classification_comment", true, true);
+		variant.annotations()[i_class_comment] = class_info.comments.toLatin1();
+
+		//update details widget and filtering
+		ui_.variant_details->updateVariant(variants, index);
+		refreshVariantTable();
+	}
+	catch (DatabaseException& e)
+	{
+		GUIHelper::showMessage("NGSD error", e.message());
+		return;
 	}
 }
 
@@ -2594,6 +2639,72 @@ bool MainWindow::executeIGVCommands(QStringList commands)
 	QApplication::restoreOverrideCursor();
 
 	return success;
+}
+
+void MainWindow::editVariantReportConfiguration(int index)
+{
+	NGSD db;
+
+	//init/get config
+	ReportVariantConfiguration var_config;
+	bool report_settings_exist = report_settings_.configurationExists(VariantType::SNVS_INDELS, index);
+	if (report_settings_exist)
+	{
+		var_config = report_settings_.getConfiguration(VariantType::SNVS_INDELS, index);
+	}
+	else
+	{
+		var_config.variant_index = index;
+	}
+
+	//get inheritance mode by gene
+	const Variant& variant = variants_[index];
+	QList<KeyValuePair> inheritance_by_gene;
+	int i_genes = variants_.annotationIndexByName("gene", true, false);
+	if (i_genes!=-1)
+	{
+		QByteArrayList genes = variant.annotations()[i_genes].split(',');
+		foreach(QByteArray gene, genes)
+		{
+			GeneInfo gene_info = db.geneInfo(gene);
+			inheritance_by_gene << KeyValuePair{gene, gene_info.inheritance};
+		}
+	}
+
+	//exec dialog
+	ReportVariantDialog* dlg = new ReportVariantDialog(variant.toString(), inheritance_by_gene, var_config, this);
+	if (dlg->exec()!=QDialog::Accepted) return;
+
+	//update config and GUI
+	report_settings_.setConfiguration(var_config);
+	updateReportConfigHeaderIcon(index);
+
+
+	//force classification for certain types
+	QStringList types_with_classification = getReportVariantTypesWithClassification();
+	if(types_with_classification.contains(var_config.type))
+	{
+		const Variant& variant = variants_[index];
+		ClassificationInfo classification_info = db.getClassification(variant);
+		if (classification_info.classification=="" || classification_info.classification=="n/a")
+		{
+			QMessageBox::warning(this, "Variant classification required!", "Variants of the following types need a classification:\n" + types_with_classification.join("\n")+"\n\n Please classify the variant!", QMessageBox::Ok, QMessageBox::NoButton);
+			editVariantClassification(variants_, index);
+		}
+	}
+}
+
+void MainWindow::updateReportConfigHeaderIcon(int index)
+{
+	//report config-based filter is on => update whole variant list
+	if (ui_.filters->reportConfigurationVariantsOnly())
+	{
+		refreshVariantTable();
+	}
+	else //no filter => refresh icon only
+	{
+		ui_.vars->updateVariantHeaderIcon(report_settings_, index);
+	}
 }
 
 QStringList MainWindow::getLogFiles()
@@ -2874,6 +2985,17 @@ void MainWindow::applyFilters(bool debug_time)
 			}
 		}
 
+		//report configuration filter
+		if (ui_.filters->reportConfigurationVariantsOnly())
+		{
+			QSet<int> report_variant_indices = report_settings_.variantIndices(VariantType::SNVS_INDELS, false).toSet();
+			for(int i=0; i<variants_.count(); ++i)
+			{
+				if (!filter_result_.flags()[i]) continue;
+
+				filter_result_.flags()[i] = report_variant_indices.contains(i);
+			}
+		}
 	}
 	catch(Exception& e)
 	{

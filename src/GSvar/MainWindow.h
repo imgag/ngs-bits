@@ -66,6 +66,12 @@ public:
 	///Context menu for two variants
 	void contextMenuTwoVariants(QPoint pos, int index1, int index2);
 
+	///Returns the report variant types that require classification of the variant
+	QStringList getReportVariantTypesWithClassification() const;
+
+	///Edit classification of a variant
+	void editVariantClassification(VariantList& variant, int index);
+
 public slots:
 	///Open dialog
 	void on_actionOpen_triggered();
@@ -158,8 +164,10 @@ public slots:
 
 	///Finished NGSD annotation
 	void databaseAnnotationFinished(bool success);
-	///Shows the variant list contect menu
+	///Shows the variant list context menu
 	void varsContextMenu(QPoint pos);
+	///Shows the variant header context menu
+	void varHeaderContextMenu(QPoint pos);
 	///Updated the variant context menu
 	void updateVariantDetails();
 	///Updates the variant table once the variant list changed
@@ -174,10 +182,12 @@ public slots:
 	void handleInputFileChange();
 	///A variant has been double-clicked > open in IGV
 	void variantCellDoubleClicked(int row, int col);
+	///A variant header has beed double-clicked > edit report config
+	void variantHeaderDoubleClicked(int row);
 	///Open region in IGV
 	void openInIGV(QString region);
 	///Edit classification of current variant
-	void editVariantClassification();
+	void editVariantClassificationOfSelectedVariant();
 	///Edit validation status of current variant
 	void editVariantValidation();
 	///Edit comment of current variant
@@ -223,6 +233,12 @@ public slots:
 	///Sends commands to IGV through the default socket. Returns if the commands executed successfully.
 	bool executeIGVCommands(QStringList commands);
 
+	///Edits the variant configuration for the variant with the given index
+	void editVariantReportConfiguration(int index);
+	///Updates the variant table icon for the variant with the given index
+	void updateReportConfigHeaderIcon(int index);
+
+
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);
 	virtual void dropEvent(QDropEvent* e);
@@ -232,6 +248,7 @@ private:
 	Ui::MainWindow ui_;
 	int var_last_;
 	BusyDialog* busy_dialog_;
+	QList<QSharedPointer<QDialog>> modeless_dialogs_;
 
 	//DATA
 	QString filename_;
@@ -248,8 +265,6 @@ private:
 	QList<Phenotype> last_phenos_;
 	BedFile last_phenos_roi_;
 	QMap<QString, QStringList> preferred_transcripts_;
-	QList<QSharedPointer<QDialog>> modeless_dialogs_;
-	GeneSet imprinting_genes_;
 	QHash<QByteArray, BedFile> gene2region_cache_;
 	ReportSettings report_settings_;
 

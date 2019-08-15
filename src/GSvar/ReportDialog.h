@@ -7,34 +7,30 @@
 #include "ui_ReportDialog.h"
 
 
-///Report generation dialog
+///Report configutation dialog
 class ReportDialog
 		: public QDialog
 {
 	Q_OBJECT
 	
 public:
-
 	///Constructor
-	ReportDialog(ReportSettings settings, const VariantList& variants, QWidget* parent = 0);
+	ReportDialog(ReportSettings& settings, const VariantList& variants, QWidget* parent = 0);
 	///Updates dialog depending on target region selection state
 	void setTargetRegionSelected(bool is_selected);
 
-	///Returns the report settings
-	ReportSettings settings();
+protected slots:
+	void writeBackSettings();
+	void activateOkButtonIfValid();
+	void showContextMenu(QPoint pos);
+	void updateCoverageSettings(int state);
 
 protected:
 	///Transfers report settings to GUI
 	void updateGUI();
 
-private slots:
-	void outcomeChanged();
-	void showContextMenu(QPoint pos);
-	void updateCoverageSettings(int state);
-
-private:
 	Ui::ReportDialog ui_;
-	ReportSettings settings_;
+	ReportSettings& settings_;
 	const VariantList& variants_;
 };
 

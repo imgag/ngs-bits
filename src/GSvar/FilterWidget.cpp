@@ -34,6 +34,7 @@ FilterWidget::FilterWidget(QWidget *parent)
 	connect(ui_.gene, SIGNAL(editingFinished()), this, SLOT(geneChanged()));
 	connect(ui_.text, SIGNAL(editingFinished()), this, SLOT(textChanged()));
 	connect(ui_.region, SIGNAL(editingFinished()), this, SLOT(regionChanged()));
+	connect(ui_.report_config, SIGNAL(stateChanged(int)), this, SLOT(reportConfigFilterChanged()));
 
 	QAction* action = new QAction("clear", this);
 	connect(action, &QAction::triggered, this, &FilterWidget::clearTargetRegion);
@@ -142,6 +143,7 @@ void FilterWidget::resetSignalsUnblocked(bool clear_roi)
     ui_.gene->clear();
 	ui_.text->clear();
 	ui_.region->clear();
+	ui_.report_config->setCheckState(Qt::Unchecked);
 
 	//phenotype
 	phenotypes_.clear();
@@ -207,6 +209,11 @@ void FilterWidget::setRegion(QString region)
 {
 	ui_.region->setText(region);
 	regionChanged();
+}
+
+bool FilterWidget::reportConfigurationVariantsOnly() const
+{
+	return ui_.report_config->isChecked();
 }
 
 const QList<Phenotype>& FilterWidget::phenotypes() const
@@ -323,6 +330,11 @@ void FilterWidget::textChanged()
 }
 
 void FilterWidget::regionChanged()
+{
+	emit filtersChanged();
+}
+
+void FilterWidget::reportConfigFilterChanged()
 {
 	emit filtersChanged();
 }

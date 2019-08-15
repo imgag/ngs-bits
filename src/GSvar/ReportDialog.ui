@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>Report configuration</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="GSvar.qrc">
+    <normaloff>:/Icons/Report.png</normaloff>:/Icons/Report.png</iconset>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">
     <number>6</number>
@@ -155,16 +159,6 @@
         </column>
         <column>
          <property name="text">
-          <string>NGSD_hom</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>NGSD_het</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
           <string>gene</string>
          </property>
         </column>
@@ -175,7 +169,22 @@
         </column>
         <column>
          <property name="text">
-          <string>coding_and_splicing</string>
+          <string>1000g</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>gnomAD</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>NGSD_hom</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>NGSD_het</string>
          </property>
         </column>
        </widget>
@@ -415,7 +424,9 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="GSvar.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>buttonBox</sender>

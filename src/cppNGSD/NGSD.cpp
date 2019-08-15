@@ -527,8 +527,10 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	return output;
 }
 
-QString NGSD::addVariant(const Variant& variant, const VariantList& vl)
+QString NGSD::addVariant(const VariantList& variant_list, int index)
 {
+	const Variant& variant = variant_list[index];
+
 	SqlQuery query = getQuery(); //use binding (user input)
 	query.prepare("INSERT INTO variant (chr, start, end, ref, obs, dbsnp, 1000g, gnomad, gene, variant_type, coding) VALUES (:0,:1,:2,:3,:4,:5,:6,:7,:8,:9,:10)");
 	query.bindValue(0, variant.chr().strNormalized(true));
@@ -536,9 +538,9 @@ QString NGSD::addVariant(const Variant& variant, const VariantList& vl)
 	query.bindValue(2, variant.end());
 	query.bindValue(3, variant.ref());
 	query.bindValue(4, variant.obs());
-	int idx = vl.annotationIndexByName("dbSNP");
+	int idx = variant_list.annotationIndexByName("dbSNP");
 	query.bindValue(5, variant.annotations()[idx]);
-	idx = vl.annotationIndexByName("1000g");
+	idx = variant_list.annotationIndexByName("1000g");
 	QByteArray tg = variant.annotations()[idx].trimmed();
 	if (tg.isEmpty() || tg=="n/a")
 	{
@@ -548,7 +550,7 @@ QString NGSD::addVariant(const Variant& variant, const VariantList& vl)
 	{
 		query.bindValue(6, tg);
 	}
-	idx = vl.annotationIndexByName("gnomAD");
+	idx = variant_list.annotationIndexByName("gnomAD");
 	QByteArray gnomad = variant.annotations()[idx].trimmed();
 	if (gnomad.isEmpty() || gnomad=="n/a")
 	{
@@ -558,11 +560,11 @@ QString NGSD::addVariant(const Variant& variant, const VariantList& vl)
 	{
 		query.bindValue(7, gnomad);
 	}
-	idx = vl.annotationIndexByName("gene");
+	idx = variant_list.annotationIndexByName("gene");
 	query.bindValue(8, variant.annotations()[idx]);
-	idx = vl.annotationIndexByName("variant_type");
+	idx = variant_list.annotationIndexByName("variant_type");
 	query.bindValue(9, variant.annotations()[idx]);
-	idx = vl.annotationIndexByName("coding_and_splicing");
+	idx = variant_list.annotationIndexByName("coding_and_splicing");
 	query.bindValue(10, variant.annotations()[idx]);
 	query.exec();
 
@@ -1262,17 +1264,23 @@ void NGSD::setValidationStatus(const QString& filename, const Variant& variant, 
 
 ClassificationInfo NGSD::getClassification(const Variant& variant)
 {
+	//variant not in NGSD
+	QString variant_id = variantId(variant, false);
+	if (variant_id=="")
+	{
+		return ClassificationInfo();
+	}
+
+	//classification not present
 	SqlQuery query = getQuery();
-	query.exec("SELECT class, comment FROM variant_classification WHERE variant_id='" + variantId(variant) + "'");
+	query.exec("SELECT class, comment FROM variant_classification WHERE variant_id='" + variant_id + "'");
 	if (query.size()==0)
 	{
 		return ClassificationInfo();
 	}
-	else
-	{
-		query.next();
-		return ClassificationInfo {query.value(0).toString().trimmed(), query.value(1).toString().trimmed() };
-	}
+
+	query.next();
+	return ClassificationInfo {query.value(0).toString().trimmed(), query.value(1).toString().trimmed() };
 }
 
 void NGSD::setClassification(const Variant& variant, ClassificationInfo info)

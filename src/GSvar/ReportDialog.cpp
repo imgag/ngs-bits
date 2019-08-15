@@ -5,7 +5,7 @@
 #include <QMenu>
 
 
-ReportDialog::ReportDialog(ReportSettings settings, const VariantList& variants, QWidget* parent)
+ReportDialog::ReportDialog(ReportSettings& settings, const VariantList& variants, QWidget* parent)
 	: QDialog(parent)
 	, ui_()
 	, settings_(settings)
@@ -17,10 +17,13 @@ ReportDialog::ReportDialog(ReportSettings settings, const VariantList& variants,
 	connect(ui_.vars, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
 
 	//disable ok button when no outcome is set
-	connect(ui_.diag_status, SIGNAL(outcomeChanged(QString)), this, SLOT(outcomeChanged()));
+	connect(ui_.diag_status, SIGNAL(outcomeChanged(QString)), this, SLOT(activateOkButtonIfValid()));
 
 	//enable/disable low-coverage settings
 	connect(ui_.details_cov, SIGNAL(stateChanged(int)), this, SLOT(updateCoverageSettings(int)));
+
+	//write settings if accepted
+	connect(this, SIGNAL(accepted()), this, SLOT(writeBackSettings()));
 
 	updateGUI();
 }
@@ -29,7 +32,6 @@ void ReportDialog::updateGUI()
 {
 	//diagnostic status
 	ui_.diag_status->setStatus(settings_.diag_status);
-	outcomeChanged();
 
 	//variants
 	int geno_idx = variants_.getSampleHeader().infoByStatus(true).column_index;
@@ -66,6 +68,9 @@ void ReportDialog::updateGUI()
 	ui_.omim_table->setChecked(settings_.show_omim_table);
 	ui_.class_info->setChecked(settings_.show_class_details);
 	ui_.language->setCurrentText(settings_.language);
+
+	//buttons
+	activateOkButtonIfValid();
 }
 
 void ReportDialog::setTargetRegionSelected(bool is_selected)
@@ -83,7 +88,7 @@ void ReportDialog::setTargetRegionSelected(bool is_selected)
 	}
 }
 
-ReportSettings ReportDialog::settings()
+void ReportDialog::writeBackSettings()
 {
 	//diag status
 	settings_.diag_status = ui_.diag_status->status();
@@ -97,14 +102,17 @@ ReportSettings ReportDialog::settings()
 	settings_.show_omim_table = ui_.omim_table->isChecked();
 	settings_.show_class_details = ui_.class_info->isChecked();
 	settings_.language = ui_.language->currentText();
-
-	return settings_;
 }
 
-void ReportDialog::outcomeChanged()
+void ReportDialog::activateOkButtonIfValid()
 {
-	ui_.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(ui_.diag_status->status().outcome!="n/a");
+	ui_.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+
+	if (ui_.diag_status->status().outcome=="n/a") return;
+
+	ui_.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
 }
+
 
 void ReportDialog::showContextMenu(QPoint pos)
 {
@@ -112,17 +120,40 @@ void ReportDialog::showContextMenu(QPoint pos)
 	if (row==-1) return;
 
 	QMenu menu(ui_.vars);
-	menu.addAction("Copy variant to diagnostic status");
+	menu.addAction("Copy to causal/candidate gene");
+	menu.addAction("Copy to incidental finding");
 
 	QAction* action = menu.exec(ui_.vars->viewport()->mapToGlobal(pos));
 	if (action==nullptr) return;
 
 	QString text = action->text();
-	if (text=="Copy variant to diagnostic status")
+	if (text=="Copy to causal/candidate gene")
 	{
 		DiagnosticStatusData status = ui_.diag_status->status();
-		status.genes_causal = ui_.vars->item(row, 8)->text();
-		status.comments = ui_.vars->item(row, 9)->text();
+
+		int i_gene = -1;
+		int i_type = -1;
+		for (int j=0; j<ui_.vars->horizontalHeader()->count(); ++j)
+		{
+			QString label = ui_.vars->horizontalHeaderItem(j)->text();
+			if (label=="gene") i_gene = j;
+			if (label=="variant_type") i_type = j;
+		}
+		if (i_gene!=-1) status.genes_causal = ui_.vars->item(row, i_gene)->text();
+		if (i_type!=-1) status.comments = ui_.vars->item(row, i_type)->text();
+		ui_.diag_status->setStatus(status);
+	}
+	else if (text=="Copy to incidental finding")
+	{
+		DiagnosticStatusData status = ui_.diag_status->status();
+
+		int i_gene = -1;
+		for (int j=0; j<ui_.vars->horizontalHeader()->count(); ++j)
+		{
+			QString label = ui_.vars->horizontalHeaderItem(j)->text();
+			if (label=="gene") i_gene = j;
+		}
+		if (i_gene!=-1) status.genes_incidental = ui_.vars->item(row, i_gene)->text();
 		ui_.diag_status->setStatus(status);
 	}
 }

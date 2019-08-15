@@ -638,7 +638,7 @@ private slots:
 		VariantList vl;
 		vl.load(TESTDATA("../cppNGS-TEST/data_in/panel_vep.GSvar"));
 		I_EQUAL(vl.count(), 329);
-		db.addVariant(vl[0], vl);
+		db.addVariant(vl, 0);
 
 		//getSampleDiseaseInfo
 		sample_id = db.sampleId("NA12878");

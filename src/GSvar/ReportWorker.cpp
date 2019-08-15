@@ -541,7 +541,7 @@ void ReportWorker::writeHTML()
 	//output: applied filters
 	stream << "<p><b>" << trans("Filterkriterien") << " " << "</b>" << endl;
 	stream << "<br />" << trans("Gefundene Varianten in Zielregion gesamt") << ": " << var_count_ << endl;
-	stream << "<br />" << trans("Anzahl Varianten ausgewählt f&uuml;r Report") << ": " << settings_.variant_config.count() << endl;
+	stream << "<br />" << trans("Anzahl Varianten ausgew&auml:hlt f&uuml;r Report") << ": " << settings_.variantIndices(VariantType::SNVS_INDELS, true).count() << endl;
 	for(int i=0; i<filters_.count(); ++i)
 	{
 		stream << "<br />&nbsp;&nbsp;&nbsp;&nbsp;- " << filters_[i]->toText() << endl;
@@ -831,7 +831,7 @@ QString ReportWorker::trans(const QString& text) const
 		de2en["Ph&auml;notyp"] = "Phenotype information";
 		de2en["Filterkriterien"] = "Criteria for variant filtering";
 		de2en["Gefundene Varianten in Zielregion gesamt"] = "Variants in target region";
-		de2en["Anzahl Varianten ausgewählt f&uuml;r Report"] = "Variants selected for report";
+		de2en["Anzahl Varianten ausgew&auml:hlt f&uuml;r Report"] = "Variants selected for report";
 		de2en["Varianten nach klinischer Interpretation im Kontext der Fragestellung"] = "List of prioritized variants";
 		de2en["Vererbung"] = "Inheritance";
 		de2en["Klasse"] = "Class";

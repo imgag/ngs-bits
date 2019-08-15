@@ -138,11 +138,11 @@ void DiagnosticStatusOverviewDialog::sampleContextMenu(QPoint pos)
 	QTableWidgetItem* item = ui.sample_infos->itemAt(pos);
 	if (!item) return;
 
-	//create contect menu
+	//create context menu
 	QMenu menu(ui.sample_infos);
 	menu.addAction("Open sample");
 
-	//execute contect menu
+	//execute context menu
 	QAction* action = menu.exec(ui.sample_infos->viewport()->mapToGlobal(pos));
 	if (!action) return;
 
