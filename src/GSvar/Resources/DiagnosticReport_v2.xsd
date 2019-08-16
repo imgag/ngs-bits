@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Mit XMLSpy v2014 (x64) (http://www.altova.com) von Dr. Peter Bauer (Universitätsklinikum Tübingen) bearbeitet -->
 <!-- edited with XMLSpy v2014 (x64) (http://www.altova.com) by Dr. Peter Bauer (Universitätsklinikum Tübingen) -->
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" elementFormDefault="qualified" attributeFormDefault="unqualified" vc:minVersion="1.1">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" xmlns:altova="http://www.altova.com/xml-schema-extensions" elementFormDefault="qualified" attributeFormDefault="unqualified" vc:minVersion="1.1">
 	<xs:element name="DiagnosticNgsReport">
 		<xs:annotation>
 			<xs:documentation>Diagnostic NGS report </xs:documentation>
@@ -37,10 +38,21 @@
 								</xs:restriction>
 							</xs:simpleType>
 						</xs:attribute>
-						<xs:attribute name="outcome" type="xs:string" use="required">
+						<xs:attribute name="outcome" use="required">
 							<xs:annotation>
-								<xs:documentation>Report outcome.</xs:documentation>
+								<xs:documentation>Diagnostic outcome.</xs:documentation>
 							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:enumeration value="n/a"/>
+									<xs:enumeration value="no significant findings"/>
+									<xs:enumeration value="uncertain"/>
+									<xs:enumeration value="significant findings"/>
+									<xs:enumeration value="significant findings - second method"/>
+									<xs:enumeration value="significant findings - non-genetic"/>
+									<xs:enumeration value="candidate gene"/>
+								</xs:restriction>
+							</xs:simpleType>
 						</xs:attribute>
 					</xs:complexType>
 				</xs:element>
@@ -69,7 +81,7 @@
 						</xs:attribute>
 						<xs:attribute name="processing_system" type="xs:string" use="required">
 							<xs:annotation>
-								<xs:documentation>processing system name, e.g. 'WGS', 'Panel XY', etc.</xs:documentation>
+								<xs:documentation>processing system name, e.g. 'Panel XY', etc.</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
 					</xs:complexType>
@@ -142,51 +154,12 @@
 					</xs:annotation>
 					<xs:complexType>
 						<xs:sequence>
-							<xs:element name="AppliedFilter" minOccurs="0" maxOccurs="unbounded">
-								<xs:annotation>
-									<xs:documentation>Information about applied filter steps</xs:documentation>
-								</xs:annotation>
-								<xs:complexType>
-									<xs:attribute name="name" use="required">
-										<xs:annotation>
-											<xs:documentation>filter name</xs:documentation>
-										</xs:annotation>
-										<xs:simpleType>
-											<xs:restriction base="xs:string">
-												<xs:minLength value="1"/>
-											</xs:restriction>
-										</xs:simpleType>
-									</xs:attribute>
-								</xs:complexType>
-							</xs:element>
 							<xs:element name="Variant" minOccurs="0" maxOccurs="unbounded">
 								<xs:annotation>
 									<xs:documentation>Representation of a single variant</xs:documentation>
 								</xs:annotation>
 								<xs:complexType>
 									<xs:sequence>
-										<xs:element name="Annotation" minOccurs="0" maxOccurs="unbounded">
-											<xs:annotation>
-												<xs:documentation>Generic annotation of variant</xs:documentation>
-											</xs:annotation>
-											<xs:complexType>
-												<xs:attribute name="name" use="required">
-													<xs:annotation>
-														<xs:documentation>annotation name</xs:documentation>
-													</xs:annotation>
-													<xs:simpleType>
-														<xs:restriction base="xs:string">
-															<xs:minLength value="1"/>
-														</xs:restriction>
-													</xs:simpleType>
-												</xs:attribute>
-												<xs:attribute name="value" type="xs:string" use="required">
-													<xs:annotation>
-														<xs:documentation>annotation value</xs:documentation>
-													</xs:annotation>
-												</xs:attribute>
-											</xs:complexType>
-										</xs:element>
 										<xs:element name="TranscriptInformation" minOccurs="0" maxOccurs="unbounded">
 											<xs:annotation>
 												<xs:documentation>Transcript-specific annotation data</xs:documentation>
@@ -210,6 +183,28 @@
 												<xs:attribute name="hgvs_p" use="required">
 													<xs:annotation>
 														<xs:documentation>HGVS-compliant protein change</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="Annotation" minOccurs="0" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>Generic annotations of variant</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="name" use="required">
+													<xs:annotation>
+														<xs:documentation>annotation name</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="value" type="xs:string" use="required">
+													<xs:annotation>
+														<xs:documentation>annotation value</xs:documentation>
 													</xs:annotation>
 												</xs:attribute>
 											</xs:complexType>
@@ -248,14 +243,53 @@
 											<xs:restriction base="xs:string">
 												<xs:enumeration value="hom"/>
 												<xs:enumeration value="het"/>
-												<xs:enumeration value="somatic"/>
+												<xs:enumeration value="hemi"/>
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
-									<xs:attribute name="comment" type="xs:string" use="required">
+									<xs:attribute name="inheritance" use="required">
 										<xs:annotation>
-											<xs:documentation>text comment</xs:documentation>
+											<xs:documentation>inheritance mode of the variant (i.e. the inheritance mode of the relevant gene)</xs:documentation>
 										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="AR"/>
+												<xs:enumeration value="AD"/>
+												<xs:enumeration value="AR+AD"/>
+												<xs:enumeration value="XLR"/>
+												<xs:enumeration value="XLD"/>
+												<xs:enumeration value="XLR+XLD"/>
+												<xs:enumeration value="MT"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="de_novo" type="xs:boolean" use="required">
+										<xs:annotation>
+											<xs:documentation>if the variant is de-novo</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="comp_het" type="xs:boolean" use="required">
+										<xs:annotation>
+											<xs:documentation>if the variant is compound-heterozygous</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="mosaic" type="xs:boolean" use="required">
+										<xs:annotation>
+											<xs:documentation>if the variant is a mosaic variant</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="report_type" use="required">
+										<xs:annotation>
+											<xs:documentation>report variant type</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="(likely) causal"/>
+												<xs:enumeration value="candidate gene"/>
+												<xs:enumeration value="carrier"/>
+												<xs:enumeration value="incidental finding (ACMG)"/>
+											</xs:restriction>
+										</xs:simpleType>
 									</xs:attribute>
 								</xs:complexType>
 							</xs:element>
@@ -270,7 +304,7 @@
 						</xs:attribute>
 						<xs:attribute name="genome_build" type="xs:string" use="required">
 							<xs:annotation>
-								<xs:documentation>genome build that the variant positions refer to e.g. hg19</xs:documentation>
+								<xs:documentation>genome build that the variant positions refer to e.g. GRCh37</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
 					</xs:complexType>
@@ -282,8 +316,8 @@
 				</xs:annotation>
 				<xs:simpleType>
 					<xs:restriction base="xs:int">
-						<xs:minInclusive value="1"/>
-						<xs:maxInclusive value="1"/>
+						<xs:minInclusive value="2"/>
+						<xs:maxInclusive value="2"/>
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>

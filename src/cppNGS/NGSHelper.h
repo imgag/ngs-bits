@@ -26,6 +26,9 @@ public:
 	///Expands a Amino acid notation with 1 letter to 3 letters
 	static QByteArray expandAminoAcidAbbreviation(QChar amino_acid_change_in);
 
+	///Returns the pseudoautomal regions on gnosomes.
+	static const BedFile& pseudoAutosomalRegion(const QString& build);
+
 private:
 	///Constructor declared away
 	NGSHelper() = delete;

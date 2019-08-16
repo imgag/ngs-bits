@@ -36,6 +36,7 @@ QStringList ReportVariantConfiguration::getInheritanceModeOptions()
 
 ReportSettings::ReportSettings()
 	: diag_status()
+	, variant_config()
 	, show_coverage_details(true)
 	, min_depth(20)
 	, roi_low_cov(false)
@@ -44,7 +45,6 @@ ReportSettings::ReportSettings()
 	, show_omim_table(true)
 	, show_class_details(false)
 	, language("german")
-	, variant_config()
 {
 }
 

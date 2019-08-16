@@ -52,6 +52,8 @@ public:
 
 	DiagnosticStatusData diag_status; //diagnostic status
 
+	QList<ReportVariantConfiguration> variant_config; //variant configuration
+
 	bool show_coverage_details; //slow low-coverage details
 	int min_depth; //cutoff for low-coverage statistics
 	bool roi_low_cov; //low-coverage details for the ROI are added (not only for CCDS)
@@ -60,9 +62,6 @@ public:
 	bool show_omim_table; //show OMIM table
 	bool show_class_details; //show classification information
 	QString language;
-
-protected:
-	QList<ReportVariantConfiguration> variant_config; //variant configuration
 
 };
 
