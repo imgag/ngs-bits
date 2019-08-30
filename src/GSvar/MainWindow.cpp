@@ -39,7 +39,7 @@
 #include "ClassificationDialog.h"
 #include "BasicStatistics.h"
 #include "ApprovedGenesDialog.h"
-#include "GeneInfoDialog.h"
+#include "GeneWidget.h"
 #include "PhenoToGenesDialog.h"
 #include "GenesToRegionsDialog.h"
 #include "SubpanelDesignDialog.h"
@@ -78,6 +78,7 @@
 #include "SampleSearchWidget.h"
 #include "ProcessedSampleSelector.h"
 #include "ReportVariantDialog.h"
+#include "GSvarHelper.h"
 
 QT_CHARTS_USE_NAMESPACE
 
@@ -114,7 +115,8 @@ MainWindow::MainWindow(QWidget *parent)
 	ngsd_btn->setMenu(new QMenu());
 	ngsd_btn->menu()->addAction(ui_.actionOpenProcessedSampleTabByName );
 	ngsd_btn->menu()->addAction(ui_.actionOpenSequencingRunTabByName);
-	ngsd_btn->setPopupMode(QToolButton::InstantPopup);
+    ngsd_btn->menu()->addAction(ui_.actionOpenGeneTabByName);
+    ngsd_btn->setPopupMode(QToolButton::InstantPopup);
 	ui_.tools->insertWidget(ui_.actionAnalysisStatus, ngsd_btn);
 	ui_.tools->insertSeparator(ui_.actionAnalysisStatus);
 
@@ -479,10 +481,6 @@ void MainWindow::delayedInizialization()
 	updateRecentFilesMenu();
 	updateIGVMenu();
 	updateNGSDSupport();
-
-	//preferred transcripts
-	preferred_transcripts_ = loadPreferredTranscripts();
-	ui_.variant_details->setPreferredTranscripts(preferred_transcripts_);
 
 	//load command line argument
 	if (QApplication::arguments().count()>=2)
@@ -1091,7 +1089,7 @@ void MainWindow::checkMendelianErrorRate(double cutoff_perc)
 
 	if (!output.isEmpty())
 	{
-		QMessageBox::warning(this, "Medelian error rate", output);
+        QMessageBox::warning(this, "Medelian error rate", output);
 	}
 }
 
@@ -1132,7 +1130,21 @@ void MainWindow::openRunTab(QString run_name)
 	SequencingRunWidget* widget = new SequencingRunWidget(this, ps_id);
 	int index = ui_.tabs->addTab(widget, QIcon(":/Icons/NGSD_run.png"), run_name);
 	ui_.tabs->setCurrentIndex(index);
-	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
+    connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
+}
+
+void MainWindow::openGeneTab(QByteArray symbol)
+{
+    QPair<QString, QString> approved = NGSD().geneToApprovedWithMessage(symbol);
+    if (approved.second.startsWith("ERROR:"))
+    {
+        GUIHelper::showMessage("NGSD error", "Gene name '" + symbol + "' is not a HGNC-approved name!\nError message:\n" + approved.second);
+        return;
+    }
+
+    GeneWidget* widget = new GeneWidget(this, symbol);
+    int index = ui_.tabs->addTab(widget, QIcon(":/Icons/NGSD_gene.png"), symbol);
+    ui_.tabs->setCurrentIndex(index);
 }
 
 void MainWindow::closeTab(int index)
@@ -1522,7 +1534,7 @@ void MainWindow::generateReport()
 	busy_dialog_->init("Generating report", false);
 
 	//start worker in new thread
-	ReportWorker* worker = new ReportWorker(base_name, bam_file, ui_.filters->targetRegion(), variants_, ui_.filters->filters(), preferred_transcripts_, report_settings_, getLogFiles(), file_rep);
+    ReportWorker* worker = new ReportWorker(base_name, bam_file, ui_.filters->targetRegion(), variants_, ui_.filters->filters(), report_settings_, getLogFiles(), file_rep);
 	connect(worker, SIGNAL(finished(bool)), this, SLOT(reportGenerationFinished(bool)));
 	worker->start();
 }
@@ -1622,7 +1634,24 @@ void MainWindow::on_actionOpenSequencingRunTabByName_triggered()
 	//handle invalid name
 	if (selector->getId()=="") return;
 
-	openRunTab(selector->text());
+    openRunTab(selector->text());
+}
+
+void MainWindow::on_actionOpenGeneTabByName_triggered()
+{
+    //create
+    DBSelector* selector = new DBSelector(this);
+    NGSD db;
+    selector->fill(db.createTable("gene", "SELECT id, symbol FROM gene"));
+
+    //show
+    auto dlg = GUIHelper::createDialog(selector, "Select gene", "symbol:", true);
+    if (dlg->exec()==QDialog::Rejected) return ;
+
+    //handle invalid name
+    if (selector->getId()=="") return;
+
+    openGeneTab(selector->text().toLatin1());
 }
 
 void MainWindow::on_actionGenderXY_triggered()
@@ -1761,7 +1790,7 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 
 	//prepare dialog
 	QString sample_name = QFileInfo(bam_file).fileName().replace(".bam", "");
-	GapDialog dlg(this, sample_name, roi_file, preferred_transcripts_);
+    GapDialog dlg(this, sample_name, roi_file);
 	dlg.process(bam_file, roi, genes);
 	QApplication::restoreOverrideCursor();
 
@@ -1892,16 +1921,10 @@ void MainWindow::exportGSvar()
 
 void MainWindow::on_actionPreferredTranscripts_triggered()
 {
-	//update from settings INI
-	preferred_transcripts_ = loadPreferredTranscripts();
-
 	//show dialog
-	QString text = "<pre>";
-	for (auto it=preferred_transcripts_.cbegin(); it!=preferred_transcripts_.cend(); ++it)
-	{
-		text += it.key() + "\t" + it.value().join(", ") + "\n";
-	}
-	text += "</pre>";
+    QString filename = GSvarHelper::applicationBaseName() + "_preferred_transcripts.tsv";
+    QDateTime file_last_mod = QFileInfo(filename).lastModified();
+    QString text = "<pre>" + Helper::loadTextFile(filename).join("\n") + "</pre>";
 	QTextEdit* edit = new QTextEdit(text);
 	edit->setMinimumHeight(600);
 	edit->setMinimumWidth(500);
@@ -1910,15 +1933,16 @@ void MainWindow::on_actionPreferredTranscripts_triggered()
 	//abort on cancel
 	if (dlg->exec()!=QDialog::Accepted) return;
 
-	//parse file
-	QMap<QString, QStringList> preferred_transcripts_new;
+    //check editor content
+    NGSD db;
+    QMap<QByteArray, QByteArrayList> preferred_transcripts_new;
 	QStringList lines = edit->toPlainText().split("\n");
 	foreach(QString line, lines)
 	{
 		line = line.trimmed();
 		if (line.isEmpty() || line.startsWith("#")) continue;
 
-		QStringList parts = line.trimmed().split('\t');
+        QByteArrayList parts = line.trimmed().toLatin1().split('\t');
 		if (parts.count()!=2)
 		{
 			QMessageBox::warning(this, "Invalid preferred transcript line", "Found line that does not contain two tab-separated colmnns:\n" + line + "\n\nAborting!");
@@ -1926,19 +1950,18 @@ void MainWindow::on_actionPreferredTranscripts_triggered()
 		}
 
 		//check gene
-		QByteArray gene = parts[0].toLatin1().trimmed();
-		NGSD db;
-		int gene_id = db.geneToApprovedID(gene);
-		if(gene_id==-1)
-		{
-			QMessageBox::warning(this, "Invalid preferred transcript line", "Gene name '" + gene + "' is not a HGNC-approved name!\n\nAborting!");
-			return;
-		}
-		gene = db.geneSymbol(gene_id);
+        QByteArray gene = parts[0].trimmed();
+        QPair<QString, QString> approved = db.geneToApprovedWithMessage(gene);
+        if (approved.second.startsWith("ERROR:"))
+        {
+            QMessageBox::warning(this, "Invalid preferred transcript line", "Gene name '" + gene + "' is not a HGNC-approved name!\n\nAborting!");
+            return;
+        }
+        gene = approved.first.toLatin1();
 
 		//remove version number if present (NM_000543.3 => NM_000543.)
-		QStringList transcripts = parts[1].split(",");
-		foreach(QString transcript, transcripts)
+        QByteArrayList transcripts = parts[1].split(',');
+        foreach(QByteArray transcript, transcripts)
 		{
 			transcript = transcript.trimmed();
 			if (transcript.isEmpty()) continue;
@@ -1952,23 +1975,23 @@ void MainWindow::on_actionPreferredTranscripts_triggered()
 	}
 
 	//prevent overwriting changes done by others since opening the dialog
-	if (preferred_transcripts_ != loadPreferredTranscripts())
+    if (file_last_mod < QFileInfo(filename).lastModified())
 	{
 		QMessageBox::warning(this, "Cannot write preferred transcripts", "Perferred transcripts were changed by another GSvar instance.\nPlease re-do your changes!");
 		return;
 	}
 
-	//store in INI file
-	QMap<QString, QVariant> tmp;
-	for(auto it=preferred_transcripts_new.cbegin(); it!=preferred_transcripts_new.cend(); ++it)
-	{
-		tmp.insert(it.key(), it.value());
-	}
-	Settings::setMap("preferred_transcripts", tmp);
+    //store
+    auto file = Helper::openFileForWriting(filename);
+    QTextStream stream(file.data());
+    for(auto it = preferred_transcripts_new.begin(); it!=preferred_transcripts_new.end(); ++it)
+    {
+        stream << it.key() << "\t" << it.value().join(", ") << "\n";
+    }
+    file->close();
 
-	//update in-memory copy of preferred transcripts
-	preferred_transcripts_ = preferred_transcripts_new;
-	ui_.variant_details->setPreferredTranscripts(preferred_transcripts_);
+    //re-load preferred transcripts
+    GSvarHelper::preferredTranscripts(true);
 }
 
 void MainWindow::on_actionOpenDocumentation_triggered()
@@ -1979,15 +2002,6 @@ void MainWindow::on_actionOpenDocumentation_triggered()
 void MainWindow::on_actionConvertHgnc_triggered()
 {
 	ApprovedGenesDialog dlg(this);
-	dlg.exec();
-}
-
-void MainWindow::on_actionGeneInfo_triggered()
-{
-	QString symbol = QInputDialog::getText(this, "Gene information", "symbol").trimmed();
-	if (symbol.isEmpty()) return;
-
-	GeneInfoDialog dlg(symbol.toLatin1(), this);
 	dlg.exec();
 }
 
@@ -2210,6 +2224,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, true);
 	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(i_co_sp);
 	int i_dbsnp = variants_.annotationIndexByName("dbSNP", true, true);
+    const QMap<QByteArray, QByteArrayList>& preferred_transcripts = GSvarHelper::preferredTranscripts();
 
 	//create context menu
 	QMenu menu(ui_.vars);
@@ -2223,7 +2238,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	QMenu* sub_menu = nullptr;
 	if (!genes.isEmpty())
 	{
-		sub_menu = menu.addMenu("Gene info");
+        sub_menu = menu.addMenu(QIcon("://Icons/NGSD_gene.png"), "Gene info");
 		foreach(QString g, genes)
 		{
 			sub_menu->addAction(g);
@@ -2261,7 +2276,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	foreach(const VariantTranscript& trans, transcripts)
 	{
 		QAction* action = sub_menu->addAction("variant: " + trans.gene + " " + trans.id + " " + trans.hgvs_c + " " + trans.hgvs_p);
-		if (preferred_transcripts_.value(trans.gene).contains(trans.id))
+        if (preferred_transcripts.value(trans.gene).contains(trans.id))
 		{
 			QFont font = action->font();
 			font.setBold(true);
@@ -2305,7 +2320,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 				QAction* action = sub_menu->addAction(transcript.id + ":" + transcript.hgvs_c + " (" + transcript.gene + ")");
 
 				//highlight preferred transcripts
-				if (preferred_transcripts_.value(transcript.gene).contains(transcript.id))
+                if (preferred_transcripts.value(transcript.gene).contains(transcript.id))
 				{
 					QFont font = action->font();
 					font.setBold(true);
@@ -2391,9 +2406,8 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 		}
 	}
 	else if (parent_menu && parent_menu->title()=="Gene info")
-	{
-		GeneInfoDialog dlg(text, this);
-		dlg.exec();
+    {
+        openGeneTab(text);
 	}
 	else if (parent_menu && parent_menu->title()=="HGMD")
 	{
@@ -3057,7 +3071,7 @@ void MainWindow::updateIGVMenu()
 		foreach(QString entry, entries)
 		{
 			QStringList parts = entry.trimmed().split("\t");
-			if(parts.count()!=3) continue;
+            if(parts.count()!=3) continue;
 			QAction* action = ui_.menuTracks->addAction("custom track: " + parts[0]);
 			action->setCheckable(true);
 			action->setChecked(parts[1]=="1");
@@ -3066,23 +3080,10 @@ void MainWindow::updateIGVMenu()
 	}
 }
 
-QMap<QString, QStringList> MainWindow::loadPreferredTranscripts() const
-{
-	QMap<QString, QStringList> output;
-
-	QMap<QString, QVariant> tmp = Settings::map("preferred_transcripts");
-	for(auto it=tmp.cbegin(); it!=tmp.cend(); ++it)
-	{
-		output[it.key()] = it.value().toStringList();
-	}
-
-	return output;
-}
-
 void MainWindow::updateNGSDSupport()
 {
 	bool ngsd_enabled = Settings::boolean("NGSD_enabled", true);
-	bool target_file_folder_set = Settings::string("target_file_folder_windows")!="" && Settings::string("target_file_folder_linux")!="";
+    bool target_file_folder_set = Settings::string("target_file_folder_windows")!="" && Settings::string("target_file_folder_linux")!="";
 
 	//toolbar
 	ui_.actionReport->setEnabled(ngsd_enabled);
@@ -3093,6 +3094,7 @@ void MainWindow::updateNGSDSupport()
 	ui_.actionGeneSelector->setEnabled(ngsd_enabled);
 	ui_.actionOpenProcessedSampleTabByName->setEnabled(ngsd_enabled);
 	ui_.actionOpenSequencingRunTabByName->setEnabled(ngsd_enabled);
+    ui_.actionOpenGeneTabByName->setEnabled(ngsd_enabled);
 
 	//NGSD menu
 	ui_.menuNGSD->setEnabled(ngsd_enabled);

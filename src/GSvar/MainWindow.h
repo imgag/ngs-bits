@@ -45,9 +45,7 @@ public:
 	///Updates recent files menu
 	void updateRecentFilesMenu();
 	///Updates IGV menu
-	void updateIGVMenu();
-	///Loads preferred transcripts from settings.ini
-	QMap<QString, QStringList> loadPreferredTranscripts() const;
+    void updateIGVMenu();
 	///Updates menu and toolbar according to NGSD-support
 	void updateNGSDSupport();
 	///Returns 'nobr' paragraph start for Qt tooltips
@@ -89,7 +87,9 @@ public slots:
 	void on_actionOpenProcessedSampleTabByName_triggered();
 	///Open sequencing run tab by name
 	void on_actionOpenSequencingRunTabByName_triggered();
-	///Gender determination
+    ///Open sequencing gene tab by gene name
+    void on_actionOpenGeneTabByName_triggered();
+    ///Gender determination
 	void on_actionGenderXY_triggered();
 	///Gender determination
 	void on_actionGenderHet_triggered();
@@ -119,8 +119,6 @@ public slots:
 	void on_actionOpenDocumentation_triggered();
 	///Approved symbols dialog
 	void on_actionConvertHgnc_triggered();
-	///Germline gene information dialog
-	void on_actionGeneInfo_triggered();
 	///HPO to regions conversion dialog
 	void on_actionPhenoToGenes_triggered();
 	///Genes to regions conversion dialog
@@ -227,7 +225,9 @@ public slots:
 	void openProcessedSampleTab(QString ps_name);
 	///Open run tab
 	void openRunTab(QString run_name);
-	///Process a tab close request
+    ///Open gene tab
+    void openGeneTab(QByteArray symbol);
+    ///Process a tab close request
 	void closeTab(int index);
 
 	///Sends commands to IGV through the default socket. Returns if the commands executed successfully.
@@ -264,8 +264,7 @@ private:
 	QString last_report_path_;
 	QList<Phenotype> last_phenos_;
 	BedFile last_phenos_roi_;
-	QMap<QString, QStringList> preferred_transcripts_;
-	QHash<QByteArray, BedFile> gene2region_cache_;
+    QHash<QByteArray, BedFile> gene2region_cache_;
 	ReportSettings report_settings_;
 
 	//SPECIAL

@@ -12,6 +12,7 @@
 #include "NGSD.h"
 #include "Log.h"
 #include "HttpHandler.h"
+#include "GSvarHelper.h"
 
 VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 	: QWidget(parent)
@@ -56,11 +57,6 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 VariantDetailsDockWidget::~VariantDetailsDockWidget()
 {
 	delete ui;
-}
-
-void VariantDetailsDockWidget::setPreferredTranscripts(const QMap<QString, QStringList>& pt)
-{
-	preferred_transcripts = pt;
 }
 
 void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
@@ -552,6 +548,7 @@ void VariantDetailsDockWidget::initTranscriptDetails(const VariantList& vl, int 
 	if(a_index==-1) return;
 
 	//parse transcript data
+    const QMap<QByteArray, QByteArrayList>& preferred_transcripts = GSvarHelper::preferredTranscripts();
 	try
 	{
 		trans_data = vl[index].transcriptAnnotations(a_index);

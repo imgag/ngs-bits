@@ -221,7 +221,9 @@ struct CPPNGSDSHARED_EXPORT GeneInfo
 {
 	//gene symbol
 	QString symbol;
-	//gene name
+    //notice about the symbol based on HGNC data (unknown symbol, previous symbol, etc.)
+    QString symbol_notice;
+    //gene name
 	QString name;
 	//gene inheritance mode
 	QString inheritance;
@@ -233,9 +235,6 @@ struct CPPNGSDSHARED_EXPORT GeneInfo
 	QString oe_lof;
 	//comments
 	QString comments;
-
-	//notice about the symbol based on HGNC data (unknown symbol, previous symbol, etc.)
-	QString notice;
 
 	//returns the main gene information as a string
 	QString toString()

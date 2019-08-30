@@ -22,10 +22,7 @@ NGSD:
 **** NGSD annotation: export VCF, use VCF for annotation (LS)
 
 GSvar:
-##### changelog ngs-bits
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
-** Docu configuration GSvar (move 'preferred transcripts', 'special regions' ,imprinting genes', etc. to files and distribute them through GSvarHelper)
-** Gene info: Add OMIM, add tab and add search functionality
 ** replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
 - Implement OMIM search via API - example: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1 (wait for API access)
 * trio filter: correct PAR region handling (Genetikum)

@@ -5,6 +5,7 @@
 #include "Log.h"
 #include "PhenotypeSelectionWidget.h"
 #include "GUIHelper.h"
+#include "GSvarHelper.h"
 #include <QFileInfo>
 #include <QCompleter>
 #include <QMenu>
@@ -144,7 +145,7 @@ void FilterWidgetCNV::resetSignalsUnblocked(bool clear_roi)
 
 QString FilterWidgetCNV::filterFileName() const
 {
-	return QCoreApplication::applicationDirPath() + QDir::separator() + QCoreApplication::applicationName().replace(".exe","") + "_filters_cnv.ini";
+    return GSvarHelper::applicationBaseName() + "_filters_cnv.ini";
 }
 
 void FilterWidgetCNV::reset(bool clear_roi)

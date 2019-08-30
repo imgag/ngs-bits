@@ -10,6 +10,7 @@
 #include "XmlHelper.h"
 #include "NGSHelper.h"
 #include "FilterCascade.h"
+#include "GSvarHelper.h"
 
 #include <QFile>
 #include <QTextStream>
@@ -22,14 +23,13 @@
 
 
 
-ReportWorker::ReportWorker(QString sample_name, QString file_bam, QString file_roi, const VariantList& variants, const FilterCascade& filters, const QMap<QString, QStringList>& preferred_transcripts, ReportSettings settings, QStringList log_files, QString file_rep)
+ReportWorker::ReportWorker(QString sample_name, QString file_bam, QString file_roi, const VariantList& variants, const FilterCascade& filters, ReportSettings settings, QStringList log_files, QString file_rep)
 	: WorkerBase("Report generation")
 	, sample_name_(sample_name)
 	, file_bam_(file_bam)
 	, file_roi_(file_roi)
 	, variants_(variants)
 	, filters_(filters)
-	, preferred_transcripts_(preferred_transcripts)
 	, settings_(settings)
 	, log_files_(log_files)
 	, file_rep_(file_rep)
@@ -60,6 +60,8 @@ void ReportWorker::process()
 
 QString ReportWorker::formatCodingSplicing(const QList<VariantTranscript>& transcripts)
 {
+    const QMap<QByteArray, QByteArrayList>& preferred_transcripts = GSvarHelper::preferredTranscripts();
+
 	QList<QByteArray> output;
 	QList<QByteArray> output_pt;
 
@@ -69,7 +71,7 @@ QString ReportWorker::formatCodingSplicing(const QList<VariantTranscript>& trans
 
 		output.append(line);
 
-		if (preferred_transcripts_.value(trans.gene).contains(trans.id))
+        if (preferred_transcripts.value(trans.gene).contains(trans.id))
 		{
 			output_pt.append(line);
 		}
@@ -627,7 +629,6 @@ void ReportWorker::writeHTML()
 	{
 		//prepare queries
 		SqlQuery q_genes = db_.getQuery();
-		q_genes.prepare("SELECT id, mim FROM omim_gene WHERE gene=:1");
 		q_genes.prepare("SELECT id, mim FROM omim_gene WHERE gene=:1");
 
 		stream << "<p><b>" << trans("OMIM Gene und Phenotypen") << "</b>" << endl;

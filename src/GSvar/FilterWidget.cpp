@@ -6,6 +6,7 @@
 #include "ScrollableTextDialog.h"
 #include "PhenotypeSelectionWidget.h"
 #include "GUIHelper.h"
+#include "GSvarHelper.h"
 #include <QFileInfo>
 #include <QFileDialog>
 #include <QCompleter>
@@ -152,7 +153,7 @@ void FilterWidget::resetSignalsUnblocked(bool clear_roi)
 
 QString FilterWidget::filterFileName() const
 {
-	return QCoreApplication::applicationDirPath() + QDir::separator() + QCoreApplication::applicationName().replace(".exe","") + "_filters.ini";
+    return GSvarHelper::applicationBaseName() + "_filters.ini";
 }
 
 void FilterWidget::reset(bool clear_roi)

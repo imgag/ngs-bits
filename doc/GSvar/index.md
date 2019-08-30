@@ -17,6 +17,7 @@
 
 ## Misc
 
+- [Configuration](configuration.md)
 - [ChangeLog](changelog.md)
 
 

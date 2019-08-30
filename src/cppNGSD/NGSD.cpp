@@ -2605,9 +2605,9 @@ QList<Transcript> NGSD::transcripts(int gene_id, Transcript::SOURCE source, bool
 	{
 		//get base information
 		Transcript transcript;
-		transcript.setName(query.value(1).toString());
+        transcript.setName(query.value(1).toByteArray());
 		transcript.setSource(source);
-		transcript.setStrand(Transcript::stringToStrand(query.value(5).toString()));
+        transcript.setStrand(Transcript::stringToStrand(query.value(5).toByteArray()));
 
 		//get exons
 		BedFile regions;
@@ -2712,7 +2712,7 @@ GeneInfo NGSD::geneInfo(QByteArray symbol)
 	symbol = symbol.trimmed();
 	auto approved = geneToApprovedWithMessage(symbol);
 	output.symbol = approved.first;
-	output.notice = approved.second;
+    output.symbol_notice = approved.second;
 	SqlQuery query = getQuery();
 	query.prepare("SELECT name FROM gene WHERE symbol=:0");
 	query.bindValue(0, output.symbol);

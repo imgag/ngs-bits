@@ -6,15 +6,15 @@
 #include "Log.h"
 #include "Helper.h"
 #include "GUIHelper.h"
+#include "GSvarHelper.h"
 #include <QComboBox>
 #include <QFileInfo>
 #include <QMessageBox>
 
-GapDialog::GapDialog(QWidget *parent, QString sample_name, QString roi_file, QMap<QString, QStringList> preferred_transcripts)
+GapDialog::GapDialog(QWidget *parent, QString sample_name, QString roi_file)
 	: QDialog(parent)
 	, sample_name_(sample_name)
-	, roi_file_(roi_file)
-	, preferred_transcripts_(preferred_transcripts)
+    , roi_file_(roi_file)
 	, ui(new Ui::GapDialog)
 {
 	ui->setupUi(this);
@@ -29,6 +29,7 @@ void GapDialog::process(QString bam_file, const BedFile& roi, const GeneSet& gen
 	//init
 	NGSD db;
 	int cutoff = 20;
+    const QMap<QByteArray, QByteArrayList>& preferred_transcripts = GSvarHelper::preferredTranscripts();
 
 	//calculate low-coverage regions
 	QString message;
@@ -87,14 +88,14 @@ void GapDialog::process(QString bam_file, const BedFile& roi, const GeneSet& gen
 		BedFile pt_exon_regions;
 		foreach(QByteArray gene, info.genes)
 		{
-			QString gene_approved = db.geneToApproved(gene, true);
-			if (preferred_transcripts_.contains(gene_approved))
+            QByteArray gene_approved = db.geneToApproved(gene, true);
+            if (preferred_transcripts.contains(gene_approved))
 			{
 				int gene_id = db.geneToApprovedID(gene);
 				QList<Transcript> transcripts = db.transcripts(gene_id, Transcript::ENSEMBL, false);
 				foreach(const Transcript& transcript, transcripts)
 				{
-					if (preferred_transcripts_[gene_approved].contains(transcript.name()))
+                    if (preferred_transcripts[gene_approved].contains(transcript.name()))
 					{
 						pt_exon_regions.add(transcript.regions());
 					}

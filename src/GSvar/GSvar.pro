@@ -17,7 +17,7 @@ SOURCES += main.cpp\
     ClassificationDialog.cpp \
     DBAnnotationWorker.cpp \
     ApprovedGenesDialog.cpp \
-    GeneInfoDialog.cpp \
+    GeneWidget.cpp \
     PhenoToGenesDialog.cpp \
     PhenotypeSelector.cpp \
     GenesToRegionsDialog.cpp \
@@ -75,7 +75,7 @@ HEADERS  += MainWindow.h \
     ClassificationDialog.h \
     DBAnnotationWorker.h \
     ApprovedGenesDialog.h \
-    GeneInfoDialog.h \
+    GeneWidget.h \
     PhenoToGenesDialog.h \
     PhenotypeSelector.h \
     GenesToRegionsDialog.h \
@@ -130,7 +130,7 @@ FORMS    += MainWindow.ui \
     ClassificationDialog.ui \
     ValidationDialog.ui \
     ApprovedGenesDialog.ui \
-    GeneInfoDialog.ui \
+    GeneWidget.ui \
     PhenoToGenesDialog.ui \
     PhenotypeSelector.ui \
     GenesToRegionsDialog.ui \

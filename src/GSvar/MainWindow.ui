@@ -296,7 +296,7 @@
      <x>0</x>
      <y>0</y>
      <width>1103</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -384,7 +384,6 @@
      <property name="title">
       <string>Genes</string>
      </property>
-     <addaction name="actionGeneInfo"/>
      <addaction name="actionGeneVariantInfo"/>
      <addaction name="actionConvertHgnc"/>
      <addaction name="actionGenesToRegions"/>
@@ -624,11 +623,6 @@
     <string>Genes &gt; Approved symbols (HGNC)</string>
    </property>
   </action>
-  <action name="actionGeneInfo">
-   <property name="text">
-    <string>Gene info (germline)</string>
-   </property>
-  </action>
   <action name="actionPhenoToGenes">
    <property name="text">
     <string>Phenotypes &gt; Genes</string>
@@ -856,6 +850,15 @@
    </property>
    <property name="text">
     <string>Sample search</string>
+   </property>
+  </action>
+  <action name="actionOpenGeneTabByName">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/NGSD_gene.png</normaloff>:/Icons/NGSD_gene.png</iconset>
+   </property>
+   <property name="text">
+    <string>Open Gene tab.</string>
    </property>
   </action>
  </widget>
