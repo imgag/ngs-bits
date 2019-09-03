@@ -218,16 +218,12 @@ VcfToBedpe::VcfToBedpe(const QByteArray &in_file)
 				for(int i=9;i<parts.count();++i)
 				{
 					samples_ << parts[i];
-					continue;
 				}
-
 				break;//stop after header lines
 			}
 		}
 	}
 	addHeaderInfoFieldAfter("SVTYPE","POS","Integer",1,"Position of the variant described in the original VCF file.");
-	
-	
 }
 
 
@@ -407,7 +403,7 @@ VcfToBedpe::bedpe_line VcfToBedpe::convertComplexLine(const VcfToBedpe::vcf_line
 void VcfToBedpe::convert(QString out_file)
 {
 
-	
+
 	//Parse input/output lines
 	QSharedPointer<QFile> out = Helper::openFileForWriting(out_file);
 	for(const auto& header : out_headers_)
@@ -422,10 +418,12 @@ void VcfToBedpe::convert(QString out_file)
 
 	QMap<QByteArray,vcf_line> complex_lines; //complex lines: have two parts in original file, need to be treated different
 
+	//Continues after header lines (were parsed in constructor already)
 	while(!gzeof(file_))
 	{
 		QByteArray raw_line = getLine().trimmed();
-		if(raw_line.isEmpty()) continue;
+
+		if(raw_line.isEmpty() || raw_line.startsWith("#")) continue;
 
 		vcf_line line_in(raw_line);
 
