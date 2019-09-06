@@ -125,7 +125,6 @@ void BedpeFile::load(const QString& file_name)
 		}
 
 		//first 6 fields are fixed, remaining fields are optional/user-specific
-		//lines_.append(BedpeLine(fields[0],fields[1].toInt(),fields[2].toInt(),fields[3],fields[4].toInt(),fields[5].toInt(),fields.mid(6)));
 		lines_.append(fields);
 	}
 
