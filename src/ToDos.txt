@@ -22,6 +22,7 @@ NGSD:
 **** NGSD annotation: export VCF, use VCF for annotation (LS)
 
 GSvar:
+#### Gap dialog: add category for PT overlap +-6 to +-20 bases
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 ** replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
 - Implement OMIM search via API - example: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1 (wait for API access)
