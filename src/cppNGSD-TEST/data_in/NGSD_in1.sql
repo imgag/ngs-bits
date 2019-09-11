@@ -38,7 +38,18 @@ INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `type`) VALUES
 (1,1001, 'BRCA1','Breast cancer associated gene 1', 'protein-coding gene'),
 (2,1002, 'BRCA2','Breast cancer associated gene 2', 'protein-coding gene'),
 (3,1003, 'NIPA1', 'non imprinted in Prader-Willi/Angelman syndrome 1', 'protein-coding gene'),
-(4,1004, 'NON-CODING', 'non-coding RNA', 'non-coding RNA');
+(4,1004, 'NON-CODING', 'non-coding RNA', 'non-coding RNA'),
+(415153, 3418, 'EPRS', 'glutamyl-prolyl-tRNA synthetase', 'protein-coding gene'),
+(427667, 7421, 'MT-CO2', 'mitochondrially encoded cytochrome c oxidase II', 'protein-coding gene'),
+(433223, 9605, 'PTGS2', 'prostaglandin-endoperoxide synthase 2', 'protein-coding gene'),
+(433401, 9751, 'QARS1', 'glutaminyl-tRNA synthetase 1', 'protein-coding gene');
+
+
+INSERT INTO `gene_alias` (`gene_id`, `symbol`, `type`) VALUES
+(427667, 'COX2', 'synonym'),
+(433223, 'COX2', 'synonym'),
+(415153, 'QARS', 'previous'),
+(433401, 'QARS', 'previous');
 
 INSERT INTO `gene_transcript`(`id`, `gene_id`, `name`, `source`, `chromosome`, `start_coding`, `end_coding`, `strand`) VALUES 
 (1, 1,'BRCA1_TR1','ccds','17',100,200,'+'),

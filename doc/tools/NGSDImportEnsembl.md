@@ -1,5 +1,5 @@
 ### NGSDImportEnsembl tool help
-	NGSDImportEnsembl (2019_04-9-g66b5439d)
+	NGSDImportEnsembl (2019_08-14-g8b6a17a)
 	
 	Imports Ensembl/CCDS transcript information into NGSD.
 	
@@ -21,7 +21,8 @@
 	  --tdx        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDImportEnsembl changelog
-	NGSDImportEnsembl 2019_04-9-g66b5439d
+	NGSDImportEnsembl 2019_08-14-g8b6a17a
 	
+	2019-08-12 Added handling of HGNC identifiers to resolve ambiguous gene names
 	2017-07-06 Added first version
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

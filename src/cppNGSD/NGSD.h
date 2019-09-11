@@ -368,6 +368,8 @@ public:
 	GeneSet genesToApproved(GeneSet genes, bool return_input_when_unconvertable=false);
 	///Returns the the approved/original gene symbol and a status message.
 	QPair<QString, QString> geneToApprovedWithMessage(const QString& gene);
+	///Returns the the approved/original gene symbol and a status message - if ambugous several pairs are returned.
+	QList<QPair<QByteArray, QByteArray>> geneToApprovedWithMessageAndAmbiguous(const QByteArray& gene);
 	///Returns previous symbols of a gene.
 	GeneSet previousSymbols(int id);
 	///Returns aliases of a gene.

@@ -1,0 +1,11 @@
+BRCA1	KEPT: BRCA1 is an approved symbol
+BRCA2	KEPT: BRCA2 is an approved symbol
+TP53	KEPT: TP53 is an approved symbol
+IQSEC2	KEPT: IQSEC2 is an approved symbol
+IQSEC2	REPLACED: MRX1 is a previous symbol
+TSPAN7	REPLACED: A15 is a synonymous symbol
+ANKRD1	REPLACED: CARP is a synonymous symbol
+CA8	REPLACED: CARP is a synonymous symbol
+FAM188A	REPLACED: CARP is a synonymous symbol
+SCAX4	ERROR: SCAX4 is an unknown symbol
+WT2	ERROR: WT2 is an unknown symbol
