@@ -18,11 +18,11 @@ Changes already implemented in GIT master for next release:
 
 * none so far.
 
-Changes in release 2019_08:
+Changes in release 2019_09:
 
-* SomaticQC: fixed a bug that caused hanging when no target region BED was given.
-* removed tool: VcfBreakComplex (was beta and never finished)
-
+* NGSDImportEnsembl: Added identification of gene names via HGNC id in case the gene name is ambiguous.
+* GenesToApproved: Added 'report_ambiguous' parameter.
+* VcfToBedpe: Added the tool.
 
 For older releases see the [releases page](https://github.com/imgag/ngs-bits/releases).
 
@@ -120,9 +120,8 @@ The default output format of the quality control tools is [qcML](https://github.
 * [VcfLeftNormalize](doc/tools/VcfLeftNormalize.md) - Normalizes all variants and shifts indels to the left in a VCF file.
 * [VcfSort](doc/tools/VcfSort.md) - Sorts variant lists according to chromosomal position.
 * [VcfStreamSort](doc/tools/VcfStreamSort.md) - Sorts entries of a VCF file according to genomic position using a stream.
+* [VcfToBedpe](doc/tools/VcfToBedpe.md) - Converts a VCF file containing structural variants to BEDPE format.
 * [VcfToTsv](doc/tools/VcfToTsv.md) - Converts a VCF file to a tab-separated text file.
-
-
 
 ### NGSD-based tools
 
