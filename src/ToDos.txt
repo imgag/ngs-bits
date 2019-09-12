@@ -22,7 +22,7 @@ NGSD:
 **** NGSD annotation: export VCF, use VCF for annotation (LS)
 
 GSvar:
-#### Gap dialog: add category for PT overlap +-6 to +-20 bases
+#### Clear all filters button (in main Menu bar)
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 ** replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
 - Implement OMIM search via API - example: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1 (wait for API access)
@@ -47,7 +47,6 @@ GSvar:
         - Should not be needed anymore if we add 'approved by' info (see todo) > Tobias
 
 Tools:
-- GenesToApproved: add 'report_ambiguous' flag to report ambigous genes as all alternatives (#44)
 - NGSDExportGenes: Add #transcripts, inheritance, gnomAD oe (3x), HPO terms, OMIM infos?
 - NGSDImportHPO: Add G2P database? (https://www.ebi.ac.uk/gene2phenotype)
 - UPDHunter: also support chrX?

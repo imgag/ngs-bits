@@ -102,16 +102,37 @@ void GapDialog::process(QString bam_file, const BedFile& roi, const GeneSet& gen
 				}
 			}
 		}
-		pt_exon_regions.extend(5);
-		if (pt_exon_regions.count()==0)
+		if (pt_exon_regions.count()==0) //no preferred transcripts defined
 		{
 			info.preferred_transcript = "";
 		}
 		else
 		{
-			info.preferred_transcript = pt_exon_regions.overlapsWith(info.line.chr(), info.line.start(), info.line.end()) ? "yes" : "no";
-		}
+			//check for overlap with coding region
+			pt_exon_regions.extend(5);
+			pt_exon_regions.merge();
+			if (pt_exon_regions.overlapsWith(info.line.chr(), info.line.start(), info.line.end()))
+			{
+				info.preferred_transcript = "yes";
+			}
+			else
+			{
+				//check for overlap with splice region
+				BedFile pt_splice_regions = pt_exon_regions;
+				pt_splice_regions.extend(15);
+				pt_splice_regions.merge();
+				pt_splice_regions.subtract(pt_exon_regions);
 
+				if (pt_splice_regions.overlapsWith(info.line.chr(), info.line.start(), info.line.end()))
+				{
+					info.preferred_transcript = "yes (splice region)";
+				}
+				else
+				{
+					info.preferred_transcript = "no";
+				}
+			}
+		}
 
 		gaps_.append(info);
 	}
