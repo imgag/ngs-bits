@@ -23,6 +23,7 @@ public:
 		addInfile("in", "Input TXT file with one gene symbol per line. If unset, reads from STDIN.", true, true);
 		addOutfile("out", "Output TXT file with approved gene symbols. If unset, writes to STDOUT.", true);
 		addFlag("test", "Uses the test database instead of on the production database.");
+		addFlag("report_ambiguous", "Report all matching genes for ambiguous previous/synonymous symbols - instead of an error.");
 	}
 
 	virtual void main()
@@ -31,6 +32,7 @@ public:
 		NGSD db(getFlag("test"));
 		QString in = getInfile("in");
 		QString out = getOutfile("out");
+		bool report_ambiguous = getFlag("report_ambiguous");
 		if(in!="" && in==out)
 		{
 			THROW(ArgumentException, "Input and output files must be different when streaming!");
@@ -46,8 +48,19 @@ public:
 			//skip empty/comment lines
 			if (gene.isEmpty() || gene[0]=='#') continue;
 
-			QPair<QString, QString> gene_info = db.geneToApprovedWithMessage(gene);
-			outstream->write(gene_info.first.toLatin1() + '\t' + gene_info.second.toLatin1() + '\n');
+			if (report_ambiguous)
+			{
+				QList<QPair<QByteArray, QByteArray>> gene_infos = db.geneToApprovedWithMessageAndAmbiguous(gene.toLatin1());
+				foreach(auto gene_info, gene_infos)
+				{
+					outstream->write(gene_info.first + '\t' + gene_info.second + '\n');
+				}
+			}
+			else
+			{
+				QPair<QString, QString> gene_info = db.geneToApprovedWithMessage(gene);
+				outstream->write(gene_info.first.toLatin1() + '\t' + gene_info.second.toLatin1() + '\n');
+			}
 		}
 	}
 };

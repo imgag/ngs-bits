@@ -66,6 +66,11 @@ private slots:
 		EXECUTE("VcfToBedpe","-in " + TESTDATA("data_in/VcfToBedpe_in1_manta.vcf.gz") + " -out out/VcfToBedpe_out2_manta.bedpe");
 		REMOVE_LINES("out/VcfToBedpe_out2_manta.bedpe",QRegExp("##fileDate="));
 		COMPARE_FILES("out/VcfToBedpe_out2_manta.bedpe", TESTDATA("data_out/VcfToBedpe_out2_manta.bedpe"));
+
+		//empty input file
+		EXECUTE("VcfToBedpe","-in " + TESTDATA("data_in/VcfToBedpe_in2_manta.vcf.gz") + " -out out/VcfToBedpe_out3_manta.bedpe");
+		REMOVE_LINES("out/VcfToBedpe_out3_manta.bedpe",QRegExp("##fileDate="));
+		COMPARE_FILES("out/VcfToBedpe_out3_manta.bedpe", TESTDATA("data_out/VcfToBedpe_out3_manta.bedpe"));
 	}
 
 	void convert_delly_file()

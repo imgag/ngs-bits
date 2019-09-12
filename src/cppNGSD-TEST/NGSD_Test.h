@@ -71,6 +71,34 @@ private slots:
 		gene_app2 = db.geneToApprovedWithMessage("BLABLA");
 		S_EQUAL(gene_app2.first, "BLABLA");
 		S_EQUAL(gene_app2.second, "ERROR: BLABLA is unknown symbol");
+		gene_app2 = db.geneToApprovedWithMessage("COX2");
+		S_EQUAL(gene_app2.first, "COX2");
+		S_EQUAL(gene_app2.second, "ERROR: COX2 is a synonymous symbol of the genes MT-CO2, PTGS2");
+		gene_app2 = db.geneToApprovedWithMessage("QARS");
+		S_EQUAL(gene_app2.first, "QARS");
+		S_EQUAL(gene_app2.second, "ERROR: QARS is a previous symbol of the genes EPRS, QARS1");
+
+		//geneToApprovedWithMessageAndAmbiguous
+		auto gene_app3 = db.geneToApprovedWithMessageAndAmbiguous("BRCA1");
+		I_EQUAL(gene_app3.count(), 1);
+		S_EQUAL(gene_app3[0].first, "BRCA1");
+		S_EQUAL(gene_app3[0].second, "KEPT: BRCA1 is an approved symbol");
+		gene_app3 = db.geneToApprovedWithMessageAndAmbiguous("BLABLA");
+		I_EQUAL(gene_app3.count(), 1);
+		S_EQUAL(gene_app3[0].first, "BLABLA");
+		S_EQUAL(gene_app3[0].second, "ERROR: BLABLA is an unknown symbol");
+		gene_app3 = db.geneToApprovedWithMessageAndAmbiguous("COX2");
+		I_EQUAL(gene_app3.count(), 2);
+		S_EQUAL(gene_app3[0].first, "MT-CO2");
+		S_EQUAL(gene_app3[0].second, "REPLACED: COX2 is a synonymous symbol");
+		S_EQUAL(gene_app3[1].first, "PTGS2");
+		S_EQUAL(gene_app3[1].second, "REPLACED: COX2 is a synonymous symbol");
+		gene_app3 = db.geneToApprovedWithMessageAndAmbiguous("QARS");
+		I_EQUAL(gene_app3.count(), 2);
+		S_EQUAL(gene_app3[0].first, "EPRS");
+		S_EQUAL(gene_app3[0].second, "REPLACED: QARS is a previous symbol");
+		S_EQUAL(gene_app3[1].first, "QARS1");
+		S_EQUAL(gene_app3[1].second, "REPLACED: QARS is a previous symbol");
 
 		//geneToApprovedID
 		int gene_app_id = db.geneToApprovedID("BRCA1");
@@ -380,7 +408,7 @@ private slots:
 
 		//approvedGeneNames
 		GeneSet approved = db.approvedGeneNames();
-		I_EQUAL(approved.count(), 4);
+		I_EQUAL(approved.count(), 8);
 
 		//phenotypes
 		QList<Phenotype> phenos = db.phenotypes(QStringList() << "aBNOrmality");

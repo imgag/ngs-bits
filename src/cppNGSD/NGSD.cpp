@@ -2077,7 +2077,7 @@ QPair<QString, QString> NGSD::geneToApprovedWithMessage(const QString& gene)
 
 	//previous
 	SqlQuery q_prev = getQuery();
-	q_prev.prepare("SELECT g.symbol FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:0 AND ga.type='previous'");
+	q_prev.prepare("SELECT g.symbol FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:0 AND ga.type='previous' ORDER BY g.id");
 	q_prev.bindValue(0, gene);
 	q_prev.exec();
 	if (q_prev.size()==1)
@@ -2098,7 +2098,7 @@ QPair<QString, QString> NGSD::geneToApprovedWithMessage(const QString& gene)
 
 	//synonymous
 	SqlQuery q_syn = getQuery();
-	q_syn.prepare("SELECT g.symbol FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:0 AND ga.type='synonym'");
+	q_syn.prepare("SELECT g.symbol FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:0 AND ga.type='synonym' ORDER BY g.id");
 	q_syn.bindValue(0, gene);
 	q_syn.exec();
 	if (q_syn.size()==1)
@@ -2118,6 +2118,50 @@ QPair<QString, QString> NGSD::geneToApprovedWithMessage(const QString& gene)
 	}
 
 	return qMakePair(gene, QString("ERROR: " + gene + " is unknown symbol"));
+}
+
+QList<QPair<QByteArray, QByteArray> > NGSD::geneToApprovedWithMessageAndAmbiguous(const QByteArray& gene)
+{
+	QList<QPair<QByteArray, QByteArray>> output;
+
+	//approved
+	if (approvedGeneNames().contains(gene))
+	{
+		output << qMakePair(gene, "KEPT: " + gene + " is an approved symbol");
+		return output;
+	}
+
+	//previous
+	SqlQuery q_prev = getQuery();
+	q_prev.prepare("SELECT g.symbol FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:0 AND ga.type='previous' ORDER BY g.id");
+	q_prev.bindValue(0, gene);
+	q_prev.exec();
+	if (q_prev.size()>=1)
+	{
+		while(q_prev.next())
+		{
+			output << qMakePair(q_prev.value(0).toByteArray(), "REPLACED: " + gene + " is a previous symbol");
+		}
+		return output;
+	}
+
+	//synonymous
+	SqlQuery q_syn = getQuery();
+	q_syn.prepare("SELECT g.symbol FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:0 AND ga.type='synonym' ORDER BY g.id");
+	q_syn.bindValue(0, gene);
+	q_syn.exec();
+	if (q_syn.size()>=1)
+	{
+		while(q_syn.next())
+		{
+			output << qMakePair(q_syn.value(0).toByteArray(), "REPLACED: " + gene + " is a synonymous symbol");
+		}
+		return output;
+	}
+
+	//unknown
+	output << qMakePair(gene, "ERROR: " + gene + " is an unknown symbol");
+	return output;
 }
 
 GeneSet NGSD::previousSymbols(int id)
