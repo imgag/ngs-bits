@@ -2537,28 +2537,6 @@ void MainWindow::contextMenuTwoVariants(QPoint pos, int index1, int index2)
 	}
 }
 
-QStringList MainWindow::getReportVariantTypesWithClassification() const
-{
-	static QStringList output;
-
-	if (output.isEmpty())
-	{
-		output << "report: (likely) causal" << "report: carrier" << "report: incidental finding (ACMG)";
-
-		//make sure we have to update the code in case the NGSD terms change
-		QStringList valid_types = ReportVariantConfiguration::getTypeOptions();
-		foreach(QString type, output)
-		{
-			if (!valid_types.contains(type))
-			{
-				THROW(ProgrammingException, "Invalid variant report type '" + type + "' hard-coded!");
-			}
-		}
-	}
-
-	return output;
-}
-
 void MainWindow::editVariantClassification(VariantList& variants, int index)
 {
 	try
@@ -2694,15 +2672,14 @@ void MainWindow::editVariantReportConfiguration(int index)
 	updateReportConfigHeaderIcon(index);
 
 
-	//force classification for certain types
-	QStringList types_with_classification = getReportVariantTypesWithClassification();
-	if(types_with_classification.contains(var_config.type))
+	//force classification of causal variants
+	if(var_config.causal)
 	{
 		const Variant& variant = variants_[index];
 		ClassificationInfo classification_info = db.getClassification(variant);
 		if (classification_info.classification=="" || classification_info.classification=="n/a")
 		{
-			QMessageBox::warning(this, "Variant classification required!", "Variants of the following types need a classification:\n" + types_with_classification.join("\n")+"\n\n Please classify the variant!", QMessageBox::Ok, QMessageBox::NoButton);
+			QMessageBox::warning(this, "Variant classification required!", "Causal variants need a classification!", QMessageBox::Ok, QMessageBox::NoButton);
 			editVariantClassification(variants_, index);
 		}
 	}

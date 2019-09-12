@@ -14,7 +14,7 @@ ReportVariantConfiguration::ReportVariantConfiguration()
 
 bool ReportVariantConfiguration::showInReport() const
 {
-	return type.startsWith("report:");
+	return report == "add to report";
 }
 
 QIcon ReportVariantConfiguration::icon() const
@@ -25,13 +25,19 @@ QIcon ReportVariantConfiguration::icon() const
 QStringList ReportVariantConfiguration::getTypeOptions()
 {
 	//TODO take from NGSD once implemented (cache)
-	return QStringList() << "report: (likely) causal" << "report: candidate gene" << "report: carrier" << "report: incidental finding (ACMG)" << "no report: artefact" << "no report: no disease association";
+	return QStringList() << "diagnostic variant" << "candidate variant" << "incidental finding (ACMG)";
+}
+
+QStringList ReportVariantConfiguration::getReportOptions()
+{
+	//TODO take from NGSD once implemented (cache)
+	return QStringList() << "add to report" <<  "no report: artefact" << "no report: allele frequency too high" << "no report: phenotype not matching" << "no report: pathomechanism not matching" << "no report: other reason";
 }
 
 QStringList ReportVariantConfiguration::getInheritanceModeOptions()
 {
 	//TODO take from NGSD once implemented (cache)
-	return QStringList() << "AR" << "AD" << "AR+AD" << "XLR" << "XLD" << "XLR+XLD" << "MT";
+	return QStringList() << "n/a" << "AR" << "AD" << "AR+AD" << "XLR" << "XLD" << "XLR+XLD" << "MT";
 }
 
 ReportSettings::ReportSettings()

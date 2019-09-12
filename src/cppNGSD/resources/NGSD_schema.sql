@@ -838,8 +838,6 @@ CREATE  TABLE IF NOT EXISTS `diag_status` (
   `user_id` INT(11) NOT NULL,
   `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `outcome` ENUM('n/a','no significant findings','uncertain','significant findings','significant findings - second method', 'significant findings - non-genetic', 'candidate gene') NOT NULL DEFAULT 'n/a',
-  `genes_causal` TEXT NULL DEFAULT NULL,
-  `genes_incidental` TEXT NULL DEFAULT NULL,
   `comment` TEXT NULL DEFAULT NULL,
   PRIMARY KEY (`processed_sample_id`),
   INDEX `user_id` (`user_id` ASC),

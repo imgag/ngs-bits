@@ -21,14 +21,17 @@ struct ReportVariantConfiguration
 	int variant_index;
 
 	QString type;
+	QString report;
+	bool causal;
 	QString inheritance_mode;
 	bool de_novo;
 	bool mosaic;
 	bool comp_het;
 	QString comment;
-	//TODO add second-look (how? user name?)
+	QString comment2; //comment of 2. look
 
 	static QStringList getTypeOptions();
+	static QStringList getReportOptions();
 	static QStringList getInheritanceModeOptions();
 };
 

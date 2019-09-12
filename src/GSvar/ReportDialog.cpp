@@ -13,9 +13,6 @@ ReportDialog::ReportDialog(ReportSettings& settings, const VariantList& variants
 {
 	ui_.setupUi(this);
 
-	//context menu
-	connect(ui_.vars, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
-
 	//disable ok button when no outcome is set
 	connect(ui_.diag_status, SIGNAL(outcomeChanged(QString)), this, SLOT(activateOkButtonIfValid()));
 
@@ -41,14 +38,13 @@ void ReportDialog::updateGUI()
 	foreach(int i, selected_variants)
 	{
 		const Variant& variant = variants_[i];
-		ui_.vars->setItem(row, 0, new QTableWidgetItem(QString(variant.chr().str())));
-		ui_.vars->setItem(row, 1, new QTableWidgetItem(QString::number(variant.start())));
-		ui_.vars->setItem(row, 2, new QTableWidgetItem(QString::number(variant.end())));
-		ui_.vars->setItem(row, 3, new QTableWidgetItem(variant.ref(), 0));
-		ui_.vars->setItem(row, 4, new QTableWidgetItem(variant.obs(), 0));
-		ui_.vars->setItem(row, 5, new QTableWidgetItem(variant.annotations().at(geno_idx), 0));
+		const ReportVariantConfiguration& var_conf = settings_.getConfiguration(VariantType::SNVS_INDELS,i);
 
-		for (int j=6; j<ui_.vars->horizontalHeader()->count(); ++j)
+		ui_.vars->setItem(row, 0, new QTableWidgetItem(var_conf.type + (var_conf.causal ? " (causal)" : "")));
+		QString tmp = variant.toString(false, 30) + " (" + variant.annotations().at(geno_idx) + ")";
+		ui_.vars->setItem(row, 1, new QTableWidgetItem(tmp));
+
+		for (int j=2; j<ui_.vars->horizontalHeader()->count(); ++j)
 		{
 			QString label = ui_.vars->horizontalHeaderItem(j)->text();
 			int index = variants_.annotationIndexByName(label);
@@ -111,51 +107,6 @@ void ReportDialog::activateOkButtonIfValid()
 	if (ui_.diag_status->status().outcome=="n/a") return;
 
 	ui_.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
-}
-
-
-void ReportDialog::showContextMenu(QPoint pos)
-{
-	int row = ui_.vars->rowAt(pos.y());
-	if (row==-1) return;
-
-	QMenu menu(ui_.vars);
-	menu.addAction("Copy to causal/candidate gene");
-	menu.addAction("Copy to incidental finding");
-
-	QAction* action = menu.exec(ui_.vars->viewport()->mapToGlobal(pos));
-	if (action==nullptr) return;
-
-	QString text = action->text();
-	if (text=="Copy to causal/candidate gene")
-	{
-		DiagnosticStatusData status = ui_.diag_status->status();
-
-		int i_gene = -1;
-		int i_type = -1;
-		for (int j=0; j<ui_.vars->horizontalHeader()->count(); ++j)
-		{
-			QString label = ui_.vars->horizontalHeaderItem(j)->text();
-			if (label=="gene") i_gene = j;
-			if (label=="variant_type") i_type = j;
-		}
-		if (i_gene!=-1) status.genes_causal = ui_.vars->item(row, i_gene)->text();
-		if (i_type!=-1) status.comments = ui_.vars->item(row, i_type)->text();
-		ui_.diag_status->setStatus(status);
-	}
-	else if (text=="Copy to incidental finding")
-	{
-		DiagnosticStatusData status = ui_.diag_status->status();
-
-		int i_gene = -1;
-		for (int j=0; j<ui_.vars->horizontalHeader()->count(); ++j)
-		{
-			QString label = ui_.vars->horizontalHeaderItem(j)->text();
-			if (label=="gene") i_gene = j;
-		}
-		if (i_gene!=-1) status.genes_incidental = ui_.vars->item(row, i_gene)->text();
-		ui_.diag_status->setStatus(status);
-	}
 }
 
 void ReportDialog::updateCoverageSettings(int state)

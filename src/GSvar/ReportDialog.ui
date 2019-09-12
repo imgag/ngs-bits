@@ -129,32 +129,12 @@
         </attribute>
         <column>
          <property name="text">
-          <string>chr</string>
+          <string>report</string>
          </property>
         </column>
         <column>
          <property name="text">
-          <string>start</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>end</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>ref</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>obs</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>genotype</string>
+          <string>variant</string>
          </property>
         </column>
         <column>

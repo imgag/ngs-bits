@@ -9,22 +9,26 @@ ReportVariantDialog::ReportVariantDialog(QString variant, QList<KeyValuePair> in
 {
 	ui_.setupUi(this);
 	ui_.variant->setText(variant);
-	connect(ui_.inheritance, SIGNAL(currentIndexChanged(int)) , this, SLOT(activateOkButtonIfValid()));
+	connect(ui_.report, SIGNAL(currentIndexChanged(int)) , this, SLOT(activateOkButtonIfValid()));
 	connect(ui_.type, SIGNAL(currentIndexChanged(int)) , this, SLOT(activateOkButtonIfValid()));
 
-	//valid type/inheritance
-	ui_.type->addItem("");
-	QStringList types = ReportVariantConfiguration::getTypeOptions();
-	foreach(QString type, types)
+	//valid report options
+	ui_.report->addItem("");
+	QStringList report_options = ReportVariantConfiguration::getReportOptions();
+	foreach(QString option, report_options)
 	{
 		ReportVariantConfiguration tmp;
-		tmp.type = type;
-		ui_.type->addItem(tmp.icon(), type);
+		tmp.report = option;
+		ui_.report->addItem(tmp.icon(), option);
 	}
 
-	QStringList inheritance_modes;
-	inheritance_modes << "" << ReportVariantConfiguration::getInheritanceModeOptions();
-	ui_.inheritance->addItems(inheritance_modes);
+	//valid types
+	QStringList types;
+	types << "" << ReportVariantConfiguration::getTypeOptions();
+	ui_.type->addItems(types);
+
+	//valid inheritance options
+	ui_.inheritance->addItems(ReportVariantConfiguration::getInheritanceModeOptions());
 
 	//write settings if accepted
 	connect(this, SIGNAL(accepted()), this, SLOT(writeBackSettings()));
@@ -50,12 +54,15 @@ ReportVariantDialog::ReportVariantDialog(QString variant, QList<KeyValuePair> in
 void ReportVariantDialog::updateGUI()
 {
 	//data
+	ui_.report->setCurrentText(config_.report);
 	ui_.type->setCurrentText(config_.type);
+	ui_.causal->setChecked(config_.causal);
 	ui_.inheritance->setCurrentText(config_.inheritance_mode);
 	ui_.de_novo->setChecked(config_.de_novo);
 	ui_.mosaic->setChecked(config_.mosaic);
 	ui_.comp_het->setChecked(config_.comp_het);
 	ui_.comments->setPlainText(config_.comment);
+	ui_.comments2->setPlainText(config_.comment2);
 
 	//buttons
 	activateOkButtonIfValid();
@@ -63,12 +70,15 @@ void ReportVariantDialog::updateGUI()
 
 void ReportVariantDialog::writeBackSettings()
 {
+	config_.report = ui_.report->currentText();
 	config_.type = ui_.type->currentText();
+	config_.causal = ui_.causal->isChecked();
 	config_.inheritance_mode = ui_.inheritance->currentText();
 	config_.de_novo = ui_.de_novo->isChecked();
 	config_.mosaic = ui_.mosaic->isChecked();
 	config_.comp_het = ui_.comp_het->isChecked();
 	config_.comment = ui_.comments->toPlainText();
+	config_.comment2 = ui_.comments2->toPlainText();
 }
 
 void ReportVariantDialog::activateOkButtonIfValid()
@@ -76,10 +86,10 @@ void ReportVariantDialog::activateOkButtonIfValid()
 	//disable button
 	ui_.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 
-	//check inheritance
-	QString inheritance = ui_.inheritance->currentText();
-	QStringList valid_inheritance = ReportVariantConfiguration::getInheritanceModeOptions();
-	if (!valid_inheritance.contains(inheritance)) return;
+	//check report
+	QString report = ui_.report->currentText();
+	QStringList report_options = ReportVariantConfiguration::getReportOptions();
+	if (!report_options.contains(report)) return;
 
 	//check type
 	QString type = ui_.type->currentText();

@@ -100,10 +100,9 @@ void DiagnosticStatusOverviewDialog::updateOverviewTable()
 		addItem(r, 10, processed_sample_data.normal_sample_name);
 		addItem(r, 11, diag_data.dagnostic_status);
 		addItem(r, 12, diag_data.outcome);
-		addItem(r, 13, diag_data.genes_causal);
-		addItem(r, 16, diag_data.comments, true);
-		addItem(r, 17, sample_data.comments, true);
-		addItem(r, 18, processed_sample_data.comments, true);
+		addItem(r, 15, diag_data.comments, true);
+		addItem(r, 16, sample_data.comments, true);
+		addItem(r, 17, processed_sample_data.comments, true);
 
 		++r;
 	}

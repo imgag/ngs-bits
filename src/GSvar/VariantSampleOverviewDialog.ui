@@ -128,11 +128,6 @@
      </column>
      <column>
       <property name="text">
-       <string>outcome_genes</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
        <string>outcome_user</string>
       </property>
      </column>

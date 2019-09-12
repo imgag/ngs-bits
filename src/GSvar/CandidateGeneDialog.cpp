@@ -147,7 +147,7 @@ void CandidateGeneDialog::updateVariants()
 			//add sample info
 			QString var_id = query.value(0).toString();
 			SqlQuery query2 = db.getQuery();
-			query2.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), dv.genotype, p.name, s.disease_group, vc.class, s.name_external, ds.outcome, ds.genes_causal, s.id FROM sample s, processed_sample ps LEFT JOIN diag_status ds ON ps.id=ds.processed_sample_id, project p, detected_variant dv LEFT JOIN variant_classification vc ON dv.variant_id=vc.variant_id WHERE dv.processed_sample_id=ps.id AND ps.sample_id=s.id AND ps.project_id=p.id AND dv.variant_id=" + var_id);
+			query2.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), dv.genotype, p.name, s.disease_group, vc.class, s.name_external, ds.outcome, ds.comment, s.id FROM sample s, processed_sample ps LEFT JOIN diag_status ds ON ps.id=ds.processed_sample_id, project p, detected_variant dv LEFT JOIN variant_classification vc ON dv.variant_id=vc.variant_id WHERE dv.processed_sample_id=ps.id AND ps.sample_id=s.id AND ps.project_id=p.id AND dv.variant_id=" + var_id);
 			while(query2.next())
 			{
 				//get HPO info

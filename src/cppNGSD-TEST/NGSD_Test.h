@@ -424,8 +424,6 @@ private slots:
 		S_EQUAL(diag_status.user, "Max Mustermann");
 		S_EQUAL(diag_status.dagnostic_status, "done");
 		S_EQUAL(diag_status.outcome, "no significant findings");
-		S_EQUAL(diag_status.genes_causal, "ATM");
-		S_EQUAL(diag_status.genes_incidental, "BRCA2");
 		S_EQUAL(diag_status.comments, "free text");
 		//no entry in DB
 		diag_status = db.getDiagnosticStatus(db.processedSampleId("NA12878_04"));
@@ -433,16 +431,12 @@ private slots:
 		IS_FALSE(diag_status.date.isValid());
 		S_EQUAL(diag_status.dagnostic_status, "");
 		S_EQUAL(diag_status.outcome, "n/a");
-		S_EQUAL(diag_status.genes_causal, "");
-		S_EQUAL(diag_status.genes_incidental, "");
 		S_EQUAL(diag_status.comments, "");
 
 		//setDiagnosticStatus
 		//create new entry
 		diag_status.dagnostic_status = "done";
 		diag_status.outcome = "significant findings";
-		diag_status.genes_causal = "BRCA1";
-		diag_status.genes_incidental = "TP53";
 		diag_status.comments = "comment1";
 		db.setDiagnosticStatus(db.processedSampleId("NA12878_04"), diag_status, "ahmustm1");
 		diag_status = db.getDiagnosticStatus(db.processedSampleId("NA12878_04"));
@@ -450,12 +444,9 @@ private slots:
 		IS_TRUE(diag_status.date.isValid());
 		S_EQUAL(diag_status.dagnostic_status, "done");
 		S_EQUAL(diag_status.outcome, "significant findings");
-		S_EQUAL(diag_status.genes_causal, "BRCA1");
-		S_EQUAL(diag_status.genes_incidental, "TP53");
 		S_EQUAL(diag_status.comments, "comment1");
 		//update existing entry
 		diag_status = db.getDiagnosticStatus(db.processedSampleId("NA12878_03"));
-		diag_status.genes_incidental = "BRCA2,POLG";
 		diag_status.comments = "comment2";
 		db.setDiagnosticStatus(db.processedSampleId("NA12878_03"), diag_status, "ahmustm1");
 		diag_status = db.getDiagnosticStatus(db.processedSampleId("NA12878_03"));
@@ -463,8 +454,6 @@ private slots:
 		S_EQUAL(diag_status.user, "Max Mustermann");
 		S_EQUAL(diag_status.dagnostic_status, "done");
 		S_EQUAL(diag_status.outcome, "no significant findings");
-		S_EQUAL(diag_status.genes_causal, "ATM");
-		S_EQUAL(diag_status.genes_incidental, "BRCA2,POLG");
 		S_EQUAL(diag_status.comments, "comment2");
 
 		//setSampleDiseaseData
@@ -672,17 +661,17 @@ private slots:
 		params.add_outcome = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 5);
-		I_EQUAL(ps_table.columnCount(), 22);
+		I_EQUAL(ps_table.columnCount(), 21);
 		//add path
 		params.add_disease_details = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 5);
-		I_EQUAL(ps_table.columnCount(), 29);
+		I_EQUAL(ps_table.columnCount(), 28);
 		//add QC
 		params.add_qc = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 5);
-		I_EQUAL(ps_table.columnCount(), 68);
+		I_EQUAL(ps_table.columnCount(), 67);
 		//apply all search parameters
 		params.s_name = "NA12878";
 		params.s_species = "human";
@@ -697,7 +686,7 @@ private slots:
 		params.include_bad_quality_runs = false;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 2);
-		I_EQUAL(ps_table.columnCount(), 68);
+		I_EQUAL(ps_table.columnCount(), 67);
 	}
 
 	//Test for debugging (without initialization because of speed)

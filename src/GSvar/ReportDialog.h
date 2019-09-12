@@ -22,7 +22,6 @@ public:
 protected slots:
 	void writeBackSettings();
 	void activateOkButtonIfValid();
-	void showContextMenu(QPoint pos);
 	void updateCoverageSettings(int state);
 
 protected:

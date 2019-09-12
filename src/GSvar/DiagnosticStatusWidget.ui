@@ -76,19 +76,6 @@
     <widget class="QComboBox" name="outcome"/>
    </item>
    <item row="3" column="0">
-    <widget class="QLabel" name="label_3">
-     <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma-separated list of genes that are causal for the patient's phenotype.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="text">
-      <string>Causal/candidate gene(s):</string>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="1">
-    <widget class="QLineEdit" name="genes_causal"/>
-   </item>
-   <item row="4" column="0">
     <widget class="QLabel" name="label_8">
      <property name="toolTip">
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Further explaination of the findings, e.g.:&lt;br/&gt;- variant type: SNV/InDel/CNV/SV&lt;br/&gt;- if the variant occurs as a mosaik&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -98,29 +85,14 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="1">
-    <widget class="QLineEdit" name="comment"/>
-   </item>
-   <item row="5" column="0">
-    <widget class="QLabel" name="label_6">
-     <property name="toolTip">
-      <string>Comma-separated list of genes with incidental findings.</string>
-     </property>
-     <property name="text">
-      <string>Incidental finding gene(s):</string>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="1">
-    <widget class="QLineEdit" name="genes_incidental"/>
+   <item row="3" column="1">
+    <widget class="QPlainTextEdit" name="comment"/>
    </item>
   </layout>
  </widget>
  <tabstops>
   <tabstop>status</tabstop>
   <tabstop>outcome</tabstop>
-  <tabstop>genes_causal</tabstop>
-  <tabstop>genes_incidental</tabstop>
  </tabstops>
  <resources/>
  <connections/>

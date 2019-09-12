@@ -24,9 +24,7 @@ void DiagnosticStatusWidget::setStatus(DiagnosticStatusData data)
 	ui.user_date->setText(last_edit);
 	ui.status->setCurrentText(data.dagnostic_status);
 	ui.outcome->setCurrentText(data.outcome);
-	ui.genes_causal->setText(data.genes_causal);
-	ui.genes_incidental->setText(data.genes_incidental);
-	ui.comment->setText(data.comments);
+	ui.comment->setPlainText(data.comments);
 
 	//store initial status to check if sample is scheduled for re-sequencin
 	initial_status_text_ = data.dagnostic_status;
@@ -38,9 +36,7 @@ DiagnosticStatusData DiagnosticStatusWidget::status() const
 
 	output.dagnostic_status = ui.status->currentText();
 	output.outcome = ui.outcome->currentText();
-	output.genes_causal = ui.genes_causal->text().trimmed();
-	output.genes_incidental = ui.genes_incidental->text().trimmed();
-	output.comments = ui.comment->text().trimmed();
+	output.comments = ui.comment->toPlainText();
 
 	//set user/date only if available
 	QStringList user_date_parts = ui.user_date->text().split('/');

@@ -49,9 +49,8 @@ VariantSampleOverviewDialog::VariantSampleOverviewDialog(const Variant& variant,
 		}
 		addItem(row, 8, pho_list.join("; "));
 		addItem(row, 9, diag_data.dagnostic_status);
-		addItem(row, 10, diag_data.genes_causal);
-		addItem(row, 11, diag_data.user);
-		addItem(row, 12, s_data.comments);
+		addItem(row, 10, diag_data.user);
+		addItem(row, 11, s_data.comments);
 
 		++row;
 	}

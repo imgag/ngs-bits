@@ -1,7 +1,6 @@
 === TODO ===
 
 libs:
-- integration of htslib: use pileup, use VCF support, use tabix support
 * FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 
 NGSD:
@@ -22,10 +21,9 @@ NGSD:
 **** NGSD annotation: export VCF, use VCF for annotation (LS)
 
 GSvar:
-#### Clear all filters button (in main Menu bar)
+#### Clear all filters button (in sample menu bar)
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 ** replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
-- Implement OMIM search via API - example: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1 (wait for API access)
 * trio filter: correct PAR region handling (Genetikum)
 * Add special report for trios/multi-sample with genotype overview > change format to RTF first (AG)
 * Add highlighting of imprinting genes to CNVs, ROHs and UPDs

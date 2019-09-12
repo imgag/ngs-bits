@@ -64,9 +64,6 @@ public:
 	///Context menu for two variants
 	void contextMenuTwoVariants(QPoint pos, int index1, int index2);
 
-	///Returns the report variant types that require classification of the variant
-	QStringList getReportVariantTypesWithClassification() const;
-
 	///Edit classification of a variant
 	void editVariantClassification(VariantList& variant, int index);
 

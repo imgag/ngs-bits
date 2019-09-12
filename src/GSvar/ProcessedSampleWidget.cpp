@@ -119,7 +119,6 @@ void ProcessedSampleWidget::updateGUI()
 	DiagnosticStatusData diag = db_.getDiagnosticStatus(ps_id_);
 	ui_->status->setText(diag.dagnostic_status + " (by " + diag.user + " on " + diag.date.toString("dd.MM.yyyy")+")");
 	ui_->outcome->setText(diag.outcome);
-	ui_->causal_genes->setText(diag.genes_causal);
 	ui_->comments_diag->setText(diag.comments);
 
 	//#### disease details ####

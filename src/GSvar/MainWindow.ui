@@ -296,7 +296,7 @@
      <x>0</x>
      <y>0</y>
      <width>1103</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -858,7 +858,10 @@
      <normaloff>:/Icons/NGSD_gene.png</normaloff>:/Icons/NGSD_gene.png</iconset>
    </property>
    <property name="text">
-    <string>Open Gene tab.</string>
+    <string>Gene</string>
+   </property>
+   <property name="toolTip">
+    <string>Open Gene tab from NGSD.</string>
    </property>
   </action>
  </widget>

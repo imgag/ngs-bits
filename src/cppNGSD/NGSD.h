@@ -265,8 +265,6 @@ struct CPPNGSDSHARED_EXPORT DiagnosticStatusData
 	//main data
 	QString dagnostic_status;
 	QString outcome = "n/a";
-	QString genes_causal = "";
-	QString genes_incidental = "";
 	QString comments = "";
 
 	//meta data
