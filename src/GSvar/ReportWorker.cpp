@@ -532,7 +532,7 @@ void ReportWorker::writeHTML()
 	//output: applied filters
 	stream << "<p><b>" << trans("Filterkriterien") << " " << "</b>" << endl;
 	stream << "<br />" << trans("Gefundene Varianten in Zielregion gesamt") << ": " << var_count_ << endl;
-	stream << "<br />" << trans("Anzahl Varianten ausgew&auml:hlt f&uuml;r Report") << ": " << settings_.variantIndices(VariantType::SNVS_INDELS, true).count() << endl;
+	stream << "<br />" << trans("Anzahl Varianten ausgew&auml:hlt f&uuml;r Report") << ": " << settings_.report_config.variantIndices(VariantType::SNVS_INDELS, true).count() << endl;
 	for(int i=0; i<filters_.count(); ++i)
 	{
 		stream << "<br />&nbsp;&nbsp;&nbsp;&nbsp;- " << filters_[i]->toText() << endl;
@@ -545,7 +545,7 @@ void ReportWorker::writeHTML()
 	stream << "<table>" << endl;
 	stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Variante") << "</b></td><td><b>" << trans("Genotyp") << "</b></td><td><b>" << trans("Details") << "</b></td><td><b>" << trans("Typ") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td><td><b>1000g</b></td><td><b>gnomAD</b></td></tr>" << endl;
 
-	foreach(const ReportVariantConfiguration& var_conf, settings_.variant_config)
+	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config.variantConfig())
 	{
 		if (var_conf.variant_type!=VariantType::SNVS_INDELS) continue;
 		if (!var_conf.showInReport()) continue;
@@ -565,7 +565,7 @@ void ReportWorker::writeHTML()
 		if (var_conf.comp_het) type_strings << "comp-het";
 		stream << "<td><nobr>" << type_strings.join(",") << "<nobr></td>" << endl;
 		stream << "<td>" << variant.annotations().at(i_class) << "</td>" << endl;
-		stream << "<td>" << var_conf.inheritance_mode << "</td>" << endl;
+		stream << "<td>" << var_conf.inheritance << "</td>" << endl;
 		QByteArray freq = variant.annotations().at(i_kg).trimmed();
 		stream << "<td>" << (freq.isEmpty() ? "n/a" : freq) << "</td>" << endl;
 		freq = variant.annotations().at(i_gnomad).trimmed();
@@ -961,7 +961,7 @@ void ReportWorker::writeXML(QString outfile_name)
 
 	//element Variant
 	int geno_idx = variants_.getSampleHeader().infoByStatus(true).column_index;
-	foreach(const ReportVariantConfiguration& var_conf, settings_.variant_config)
+	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config.variantConfig())
 	{
 		if (var_conf.variant_type!=VariantType::SNVS_INDELS) continue;
 		if (!var_conf.showInReport()) continue;
@@ -978,9 +978,9 @@ void ReportWorker::writeXML(QString outfile_name)
 		w.writeAttribute("de_novo", var_conf.de_novo ? "true" : "false");
 		w.writeAttribute("comp_het", var_conf.comp_het ? "true" : "false");
 		w.writeAttribute("mosaic", var_conf.mosaic ? "true" : "false");
-		if (var_conf.inheritance_mode!="n/a")
+		if (var_conf.inheritance!="n/a")
 		{
-			w.writeAttribute("inheritance", var_conf.inheritance_mode);
+			w.writeAttribute("inheritance", var_conf.inheritance);
 		}
 		ClassificationInfo classification_info = db_.getClassification(variant);
 		if (classification_info.classification!="n/a")

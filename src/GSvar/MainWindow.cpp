@@ -1257,6 +1257,31 @@ void MainWindow::loadFile(QString filename)
 		QMessageBox::warning(this, "Outdated GSvar file", "The GSvar file contains the following error:\n" + e.message() + "\n\nTo ensure that GSvar works as expected, re-run the analysis starting from annotation!");
 	}
 
+	//load report config
+	if (variants_.type()==GERMLINE_SINGLESAMPLE || variants_.type()==GERMLINE_TRIO) //TODO test if trio works as well!
+	{
+		bool ngsd_enabled = Settings::boolean("NGSD_enabled", true);
+		if (ngsd_enabled)
+		{
+			NGSD db;
+			QString processed_sample_id = db.processedSampleId(filename_, false);
+			if (processed_sample_id!="")
+			{
+				int conf_id = db.reportConfigId(processed_sample_id);
+				if (conf_id!=-1)
+				{
+					QStringList messages;
+					report_settings_.report_config = db.reportConfig(processed_sample_id, variants_, messages);
+					if (!messages.isEmpty())
+					{
+						QMessageBox::warning(this, "Report configuration", "The following problems were encountered while loading the report configuration:\n" + messages.join("\n"));
+					}
+				}
+			}
+		}
+	}
+
+	//check mendelian error rate for trios
 	if (variants_.type()==GERMLINE_TRIO)
 	{
 		checkMendelianErrorRate();
@@ -2194,7 +2219,7 @@ void MainWindow::varHeaderContextMenu(QPoint pos)
 	//set up menu
 	QMenu menu(ui_.vars->verticalHeader());
 	menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
-	menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration")->setEnabled(report_settings_.configurationExists(VariantType::SNVS_INDELS, index));
+	menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration")->setEnabled(report_settings_.report_config.exists(VariantType::SNVS_INDELS, index));
 
 	//exec menu
 	pos = ui_.vars->verticalHeader()->viewport()->mapToGlobal(pos);
@@ -2209,7 +2234,7 @@ void MainWindow::varHeaderContextMenu(QPoint pos)
 	}
 	else if (text=="Delete report configuration")
 	{
-		report_settings_.removeConfiguration(VariantType::SNVS_INDELS, index);
+		report_settings_.report_config.remove(VariantType::SNVS_INDELS, index);
 		updateReportConfigHeaderIcon(index);
 	}
 }
@@ -2231,7 +2256,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 
 	//report configuration
 	menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration")->setEnabled(ngsd_enabled);
-	menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration")->setEnabled(ngsd_enabled && report_settings_.configurationExists(VariantType::SNVS_INDELS, index));
+	menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration")->setEnabled(ngsd_enabled && report_settings_.report_config.exists(VariantType::SNVS_INDELS, index));
 	menu.addSeparator();
 
 	//gene info
@@ -2506,7 +2531,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	}
 	else if (text=="Delete report configuration")
 	{
-		report_settings_.removeConfiguration(VariantType::SNVS_INDELS, index);
+		report_settings_.report_config.remove(VariantType::SNVS_INDELS, index);
 		updateReportConfigHeaderIcon(index);
 	}
 }
@@ -2639,10 +2664,10 @@ void MainWindow::editVariantReportConfiguration(int index)
 
 	//init/get config
 	ReportVariantConfiguration var_config;
-	bool report_settings_exist = report_settings_.configurationExists(VariantType::SNVS_INDELS, index);
+	bool report_settings_exist = report_settings_.report_config.exists(VariantType::SNVS_INDELS, index);
 	if (report_settings_exist)
 	{
-		var_config = report_settings_.getConfiguration(VariantType::SNVS_INDELS, index);
+		var_config = report_settings_.report_config.get(VariantType::SNVS_INDELS, index);
 	}
 	else
 	{
@@ -2668,7 +2693,7 @@ void MainWindow::editVariantReportConfiguration(int index)
 	if (dlg->exec()!=QDialog::Accepted) return;
 
 	//update config and GUI
-	report_settings_.setConfiguration(var_config);
+	report_settings_.report_config.set(var_config);
 	updateReportConfigHeaderIcon(index);
 
 
@@ -2979,7 +3004,7 @@ void MainWindow::applyFilters(bool debug_time)
 		//report configuration filter
 		if (ui_.filters->reportConfigurationVariantsOnly())
 		{
-			QSet<int> report_variant_indices = report_settings_.variantIndices(VariantType::SNVS_INDELS, false).toSet();
+			QSet<int> report_variant_indices = report_settings_.report_config.variantIndices(VariantType::SNVS_INDELS, false).toSet();
 			for(int i=0; i<variants_.count(); ++i)
 			{
 				if (!filter_result_.flags()[i]) continue;

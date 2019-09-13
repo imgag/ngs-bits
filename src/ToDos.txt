@@ -27,23 +27,23 @@ GSvar:
 * trio filter: correct PAR region handling (Genetikum)
 * Add special report for trios/multi-sample with genotype overview > change format to RTF first (AG)
 * Add highlighting of imprinting genes to CNVs, ROHs and UPDs
-********** Report variant selection
+******************** Report variant selection ********************
     - add report config to NGSD
-        - add store (also who, when)
+        - add store
             - store marked variants in NGSD when writing the report, with button, or when GSvar is closed
-            - force disease status to be created
             - store only one > ask before overwriting
         - add load/store/info buttons
         - load marked variants from NGSD after loading the case again > ask before loading
     - fields to fill in GenLab via XML export:
         - gaps report (custom via import) ==> gap report as XML and additional report of gaps to sanger-validate as TXT
-        - variants
-            - orphanet code(s) for genes: https://github.com/Orphanet/Orphadata.org/tree/master/Disorders%20cross%20referenced%20JSON, https://github.com/Orphanet/Orphadata.org/tree/master/Disorders%20with%20their%20associated%20genes
-            - OMIM entries for genes
     - update docu of report generation
-    - print sheet with flagged variants?
-        - Should not be needed anymore if we add 'approved by' info (see todo) > Tobias
-
+    - print sheet with flagged variants on demand
+    - extended functionality
+        - Add 'approved_by' and date to make printing the sheet obsolete
+            - lock editing the report config then
+        - Add more variant info
+            - ORPAHA code(s) for genes: https://github.com/Orphanet/Orphadata.org/tree/master/Disorders%20cross%20referenced%20JSON, https://github.com/Orphanet/Orphadata.org/tree/master/Disorders%20with%20their%20associated%20genes
+            - OMIM entries for genes
 Tools:
 - NGSDExportGenes: Add #transcripts, inheritance, gnomAD oe (3x), HPO terms, OMIM infos?
 - NGSDImportHPO: Add G2P database? (https://www.ebi.ac.uk/gene2phenotype)

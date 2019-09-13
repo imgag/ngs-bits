@@ -67,6 +67,7 @@ public slots:
 	void copyToClipboard(bool split_quality=false);
 
 protected:
+	static QIcon reportIcon(bool show_in_report);
 
 	///Override copy command
 	void keyPressEvent(QKeyEvent* event) override;

@@ -9,18 +9,7 @@ ReportVariantDialog::ReportVariantDialog(QString variant, QList<KeyValuePair> in
 {
 	ui_.setupUi(this);
 	ui_.variant->setText(variant);
-	connect(ui_.report, SIGNAL(currentIndexChanged(int)) , this, SLOT(activateOkButtonIfValid()));
 	connect(ui_.type, SIGNAL(currentIndexChanged(int)) , this, SLOT(activateOkButtonIfValid()));
-
-	//valid report options
-	ui_.report->addItem("");
-	QStringList report_options = ReportVariantConfiguration::getReportOptions();
-	foreach(QString option, report_options)
-	{
-		ReportVariantConfiguration tmp;
-		tmp.report = option;
-		ui_.report->addItem(tmp.icon(), option);
-	}
 
 	//valid types
 	QStringList types;
@@ -54,15 +43,19 @@ ReportVariantDialog::ReportVariantDialog(QString variant, QList<KeyValuePair> in
 void ReportVariantDialog::updateGUI()
 {
 	//data
-	ui_.report->setCurrentText(config_.report);
 	ui_.type->setCurrentText(config_.type);
 	ui_.causal->setChecked(config_.causal);
-	ui_.inheritance->setCurrentText(config_.inheritance_mode);
+	ui_.inheritance->setCurrentText(config_.inheritance);
 	ui_.de_novo->setChecked(config_.de_novo);
 	ui_.mosaic->setChecked(config_.mosaic);
 	ui_.comp_het->setChecked(config_.comp_het);
-	ui_.comments->setPlainText(config_.comment);
-	ui_.comments2->setPlainText(config_.comment2);
+	ui_.exclude_artefact->setChecked(config_.exclude_artefact);
+	ui_.exclude_frequency->setChecked(config_.exclude_frequency);
+	ui_.exclude_phenotype->setChecked(config_.exclude_phenotype);
+	ui_.exclude_mechanism->setChecked(config_.exclude_mechanism);
+	ui_.exclude_other->setChecked(config_.exclude_other);
+	ui_.comments->setPlainText(config_.comments);
+	ui_.comments2->setPlainText(config_.comments2);
 
 	//buttons
 	activateOkButtonIfValid();
@@ -70,26 +63,25 @@ void ReportVariantDialog::updateGUI()
 
 void ReportVariantDialog::writeBackSettings()
 {
-	config_.report = ui_.report->currentText();
 	config_.type = ui_.type->currentText();
 	config_.causal = ui_.causal->isChecked();
-	config_.inheritance_mode = ui_.inheritance->currentText();
+	config_.inheritance = ui_.inheritance->currentText();
 	config_.de_novo = ui_.de_novo->isChecked();
 	config_.mosaic = ui_.mosaic->isChecked();
 	config_.comp_het = ui_.comp_het->isChecked();
-	config_.comment = ui_.comments->toPlainText();
-	config_.comment2 = ui_.comments2->toPlainText();
+	config_.exclude_artefact = ui_.exclude_artefact->isChecked();
+	config_.exclude_frequency = ui_.exclude_frequency->isChecked();
+	config_.exclude_phenotype = ui_.exclude_phenotype->isChecked();
+	config_.exclude_mechanism = ui_.exclude_mechanism->isChecked();
+	config_.exclude_other = ui_.exclude_other->isChecked();
+	config_.comments = ui_.comments->toPlainText();
+	config_.comments2 = ui_.comments2->toPlainText();
 }
 
 void ReportVariantDialog::activateOkButtonIfValid()
 {
 	//disable button
 	ui_.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-
-	//check report
-	QString report = ui_.report->currentText();
-	QStringList report_options = ReportVariantConfiguration::getReportOptions();
-	if (!report_options.contains(report)) return;
 
 	//check type
 	QString type = ui_.type->currentText();

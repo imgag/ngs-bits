@@ -18,7 +18,7 @@ void VariantTable::update(const VariantList& variants, const FilterResult& filte
 {
 	//init
 	const GeneSet& imprinting_genes = GSvarHelper::impritingGenes();
-	QSet<int> report_variant_indices = report_settings.variantIndices(VariantType::SNVS_INDELS, false).toSet();
+	QSet<int> report_variant_indices = report_settings.report_config.variantIndices(VariantType::SNVS_INDELS, false).toSet();
 
 	//set rows and cols
 	int row_count_new = std::min(filter_result.countPassing(), max_variants);
@@ -218,8 +218,7 @@ void VariantTable::update(const VariantList& variants, const FilterResult& filte
 		}
 		if (report_variant_indices.contains(i))
 		{
-			QIcon report_icon = report_settings.getConfiguration(VariantType::SNVS_INDELS, i).icon();
-			item->setIcon(report_icon);
+			item->setIcon(reportIcon(report_settings.report_config.get(VariantType::SNVS_INDELS, i).showInReport()));
 		}
 		setVerticalHeaderItem(r, item);
 	}
@@ -230,9 +229,9 @@ void VariantTable::updateVariantHeaderIcon(const ReportSettings& report_settings
 	int row = variantIndexToRow(variant_index);
 
 	QIcon report_icon;
-	if (report_settings.configurationExists(VariantType::SNVS_INDELS, variant_index))
+	if (report_settings.report_config.exists(VariantType::SNVS_INDELS, variant_index))
 	{
-		report_icon = report_settings.getConfiguration(VariantType::SNVS_INDELS, variant_index).icon();
+		report_icon = reportIcon(report_settings.report_config.get(VariantType::SNVS_INDELS, variant_index).showInReport());
 	}
 	verticalHeaderItem(row)->setIcon(report_icon);
 }
@@ -612,6 +611,11 @@ void VariantTable::copyToClipboard(bool split_quality)
 	}
 
 	QApplication::clipboard()->setText(selected_text);
+}
+
+QIcon VariantTable::reportIcon(bool show_in_report)
+{
+	return QIcon(show_in_report ? QPixmap(":/Icons/Report_add.png") : QPixmap(":/Icons/Report exclude.png"));
 }
 
 void VariantTable::keyPressEvent(QKeyEvent* event)

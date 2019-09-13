@@ -655,7 +655,10 @@ private slots:
 		VariantList vl;
 		vl.load(TESTDATA("../cppNGS-TEST/data_in/panel_vep.GSvar"));
 		I_EQUAL(vl.count(), 329);
-		db.addVariant(vl, 0);
+		QString var_id = db.addVariant(vl, 0);
+
+		//variant
+		IS_TRUE(db.variant(var_id)==vl[0]);
 
 		//getSampleDiseaseInfo
 		sample_id = db.sampleId("NA12878");
@@ -715,6 +718,54 @@ private slots:
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 2);
 		I_EQUAL(ps_table.columnCount(), 67);
+
+		//reportConfigId
+		QString ps_id = db.processedSampleId("NA12878_03");
+		I_EQUAL(db.reportConfigId(ps_id), -1);
+
+		//setReportConfig
+		ReportVariantConfiguration report_var_conf;
+		report_var_conf.variant_type = VariantType::SNVS_INDELS;
+		report_var_conf.variant_index = 47;
+		report_var_conf.causal = true;
+		report_var_conf.type = "candidate variant";
+		report_var_conf.mosaic = true;
+		report_var_conf.exclude_artefact = true;
+		report_var_conf.comments = "com1";
+		report_var_conf.comments2 = "com2";
+		ReportConfiguration report_conf;
+		report_conf.setCreatedBy("ahmustm1");
+		report_conf.set(report_var_conf);
+		QString conf_id1 = db.setReportConfig(ps_id, report_conf, vl);
+		QString conf_id2 = db.setReportConfig(ps_id, report_conf, vl);
+		IS_TRUE(conf_id1!=conf_id2);
+		IS_TRUE(db.reportConfigId(ps_id)!=-1);
+
+		//reportConfig
+		QStringList messages2;
+		ReportConfiguration report_conf2 = db.reportConfig(ps_id, vl, messages2);
+		I_EQUAL(messages2.count(), 0);
+		S_EQUAL(report_conf2.createdBy(), "ahmustm1");
+		IS_TRUE(report_conf2.createdAt().date()==QDate::currentDate());
+		I_EQUAL(report_conf2.variantConfig().count(), 1);
+		IS_TRUE(report_conf2.variantConfig()[0].causal);
+		S_EQUAL(report_conf2.variantConfig()[0].type, report_var_conf.type);
+		IS_TRUE(report_conf2.variantConfig()[0].mosaic);
+		IS_TRUE(report_conf2.variantConfig()[0].exclude_artefact);
+		S_EQUAL(report_conf2.variantConfig()[0].comments, report_var_conf.comments);
+		S_EQUAL(report_conf2.variantConfig()[0].comments2, report_var_conf.comments2);
+		IS_FALSE(report_conf2.variantConfig()[0].de_novo);
+		IS_FALSE(report_conf2.variantConfig()[0].comp_het);
+		IS_FALSE(report_conf2.variantConfig()[0].exclude_frequency);
+		IS_FALSE(report_conf2.variantConfig()[0].exclude_mechanism);
+		IS_FALSE(report_conf2.variantConfig()[0].exclude_other);
+		IS_FALSE(report_conf2.variantConfig()[0].exclude_phenotype);
+
+		vl.clear();
+		report_conf2 = db.reportConfig(ps_id, vl, messages2);
+		I_EQUAL(messages2.count(), 1);
+		S_EQUAL(messages2[0], "Could not find variant 'chr2:47635523-47635523 ->T' in given variant list!");
+		I_EQUAL(report_conf2.variantConfig().count(), 0);
 	}
 
 	//Test for debugging (without initialization because of speed)

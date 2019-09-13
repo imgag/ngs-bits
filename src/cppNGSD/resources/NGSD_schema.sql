@@ -1035,6 +1035,67 @@ CREATE TABLE IF NOT EXISTS `merged_processed_samples`
 )
 ENGINE = InnoDB DEFAULT CHARACTER SET = utf8;
 
+
+-- -----------------------------------------------------
+-- Table `report_configuration`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `report_configuration`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `processed_sample_id` INT(11) NOT NULL,
+  `created_by` int(11) NOT NULL,
+  `created_date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `processed_sample_id_unique` (`processed_sample_id`),
+  CONSTRAINT `fk_processed_sample_id2`
+    FOREIGN KEY (`processed_sample_id` )
+    REFERENCES `processed_sample` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_user2`
+    FOREIGN KEY (`created_by`)
+    REFERENCES `user` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `report_configuration_variant`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `report_configuration_variant`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `report_configuration_id` INT(11) NOT NULL,
+  `variant_id` INT(11) NOT NULL,
+  `type` ENUM('diagnostic variant', 'candidate variant', 'incidental finding') NOT NULL,
+  `causal` BOOLEAN NOT NULL,
+  `inheritance` ENUM('n/a', 'AR','AD','AR+AD','XLR','XLD','XLR+XLD','MT') NOT NULL,
+  `de_novo` BOOLEAN NOT NULL,
+  `mosaic` BOOLEAN NOT NULL,
+  `compound_heterozygous` BOOLEAN NOT NULL,
+  `exclude_artefact` BOOLEAN NOT NULL,
+  `exclude_frequency` BOOLEAN NOT NULL,
+  `exclude_phenotype` BOOLEAN NOT NULL,
+  `exclude_mechanism` BOOLEAN NOT NULL,
+  `exclude_other` BOOLEAN NOT NULL,
+  `comments` text NOT NULL,
+  `comments2` text NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_report_configuration`
+    FOREIGN KEY (`report_configuration_id` )
+    REFERENCES `report_configuration` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_report_configuration_variant_has_variant`
+    FOREIGN KEY (`variant_id`)
+    REFERENCES `variant` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  UNIQUE INDEX `config_variant_combo_uniq` (`report_configuration_id` ASC, `variant_id` ASC)
+)
+ENGINE = InnoDB DEFAULT CHARACTER SET = utf8;
+
 -- ----------------------------------------------------------------------------------------------------------
 --                                                 INITIAL DATA
 -- ----------------------------------------------------------------------------------------------------------

@@ -32,13 +32,13 @@ void ReportDialog::updateGUI()
 
 	//variants
 	int geno_idx = variants_.getSampleHeader().infoByStatus(true).column_index;
-	QList<int> selected_variants = settings_.variantIndices(VariantType::SNVS_INDELS, true);
+	QList<int> selected_variants = settings_.report_config.variantIndices(VariantType::SNVS_INDELS, true);
 	ui_.vars->setRowCount(selected_variants.count());
 	int row = 0;
 	foreach(int i, selected_variants)
 	{
 		const Variant& variant = variants_[i];
-		const ReportVariantConfiguration& var_conf = settings_.getConfiguration(VariantType::SNVS_INDELS,i);
+		const ReportVariantConfiguration& var_conf = settings_.report_config.get(VariantType::SNVS_INDELS,i);
 
 		ui_.vars->setItem(row, 0, new QTableWidgetItem(var_conf.type + (var_conf.causal ? " (causal)" : "")));
 		QString tmp = variant.toString(false, 30) + " (" + variant.annotations().at(geno_idx) + ")";
