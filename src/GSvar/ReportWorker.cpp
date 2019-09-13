@@ -893,7 +893,6 @@ QString ReportWorker::trans(const QString& text) const
 
 void ReportWorker::writeXML(QString outfile_name)
 {
-	qDebug();
 	QSharedPointer<QFile> outfile = Helper::openFileForWriting(outfile_name);
 
 	QXmlStreamWriter w(outfile.data());
@@ -975,11 +974,19 @@ void ReportWorker::writeXML(QString outfile_name)
 		w.writeAttribute("ref", variant.ref());
 		w.writeAttribute("obs", variant.obs());
 		w.writeAttribute("genotype", formatGenotype(processed_sample_data.gender.toLatin1(), variant.annotations()[geno_idx], variant.chr(), variant.start(), variant.end()));
-		w.writeAttribute("inheritance", var_conf.inheritance_mode);
+		w.writeAttribute("causal", var_conf.causal ? "true" : "false");
 		w.writeAttribute("de_novo", var_conf.de_novo ? "true" : "false");
 		w.writeAttribute("comp_het", var_conf.comp_het ? "true" : "false");
 		w.writeAttribute("mosaic", var_conf.mosaic ? "true" : "false");
-		w.writeAttribute("report_type", QString(var_conf.type).replace("report: ", ""));
+		if (var_conf.inheritance_mode!="n/a")
+		{
+			w.writeAttribute("inheritance", var_conf.inheritance_mode);
+		}
+		ClassificationInfo classification_info = db_.getClassification(variant);
+		if (classification_info.classification!="n/a")
+		{
+			w.writeAttribute("class", classification_info.classification);
+		}
 
 		//element TranscriptInformation
 		int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, false);

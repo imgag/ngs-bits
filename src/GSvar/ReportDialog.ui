@@ -167,6 +167,11 @@
           <string>NGSD_het</string>
          </property>
         </column>
+        <column>
+         <property name="text">
+          <string>classification</string>
+         </property>
+        </column>
        </widget>
       </item>
      </layout>

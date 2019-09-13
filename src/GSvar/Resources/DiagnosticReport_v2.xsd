@@ -189,7 +189,7 @@
 										</xs:element>
 										<xs:element name="Annotation" minOccurs="0" maxOccurs="unbounded">
 											<xs:annotation>
-												<xs:documentation>Generic annotations of variant</xs:documentation>
+												<xs:documentation>Generic annotations of variant. These annotation are only for documnetation purposes, they should not be used for any kind of data import into other applications!</xs:documentation>
 											</xs:annotation>
 											<xs:complexType>
 												<xs:attribute name="name" use="required">
@@ -247,21 +247,10 @@
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
-									<xs:attribute name="inheritance" use="required">
+									<xs:attribute name="causal" type="xs:boolean" use="required">
 										<xs:annotation>
-											<xs:documentation>inheritance mode of the variant (i.e. the inheritance mode of the relevant gene)</xs:documentation>
+											<xs:documentation>If the variant is causal in the context of the diagnostics phenotype.</xs:documentation>
 										</xs:annotation>
-										<xs:simpleType>
-											<xs:restriction base="xs:string">
-												<xs:enumeration value="AR"/>
-												<xs:enumeration value="AD"/>
-												<xs:enumeration value="AR+AD"/>
-												<xs:enumeration value="XLR"/>
-												<xs:enumeration value="XLD"/>
-												<xs:enumeration value="XLR+XLD"/>
-												<xs:enumeration value="MT"/>
-											</xs:restriction>
-										</xs:simpleType>
 									</xs:attribute>
 									<xs:attribute name="de_novo" type="xs:boolean" use="required">
 										<xs:annotation>
@@ -278,16 +267,34 @@
 											<xs:documentation>if the variant is a mosaic variant</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
-									<xs:attribute name="report_type" use="required">
+									<xs:attribute name="inheritance">
 										<xs:annotation>
-											<xs:documentation>report variant type</xs:documentation>
+											<xs:documentation>inheritance mode of the variant (i.e. the inheritance mode of the relevant gene)</xs:documentation>
 										</xs:annotation>
 										<xs:simpleType>
 											<xs:restriction base="xs:string">
-												<xs:enumeration value="(likely) causal"/>
-												<xs:enumeration value="candidate gene"/>
-												<xs:enumeration value="carrier"/>
-												<xs:enumeration value="incidental finding (ACMG)"/>
+												<xs:enumeration value="AR"/>
+												<xs:enumeration value="AD"/>
+												<xs:enumeration value="AR+AD"/>
+												<xs:enumeration value="XLR"/>
+												<xs:enumeration value="XLD"/>
+												<xs:enumeration value="XLR+XLD"/>
+												<xs:enumeration value="MT"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="class">
+										<xs:annotation>
+											<xs:documentation>Variant classification. 1=benign ... 5=pahogenic M=modifier</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="1"/>
+												<xs:enumeration value="2"/>
+												<xs:enumeration value="3"/>
+												<xs:enumeration value="4"/>
+												<xs:enumeration value="5"/>
+												<xs:enumeration value="M"/>
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>

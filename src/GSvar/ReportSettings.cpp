@@ -25,7 +25,7 @@ QIcon ReportVariantConfiguration::icon() const
 QStringList ReportVariantConfiguration::getTypeOptions()
 {
 	//TODO take from NGSD once implemented (cache)
-	return QStringList() << "diagnostic variant" << "candidate variant" << "incidental finding (ACMG)";
+	return QStringList() << "diagnostic variant" << "candidate variant" << "incidental finding";
 }
 
 QStringList ReportVariantConfiguration::getReportOptions()
