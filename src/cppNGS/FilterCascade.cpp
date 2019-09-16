@@ -856,7 +856,7 @@ void FilterVariantIsSNP::apply(const VariantList& variants, FilterResult& result
 FilterSubpopulationAlleleFrequency::FilterSubpopulationAlleleFrequency()
 {
 	name_ = "Allele frequency (sub-populations)";
-	description_ = QStringList() << "Filter based on sub-population allele frequency given by ESP and gnomAD.";
+	description_ = QStringList() << "Filter based on sub-population allele frequency given by gnomAD.";
 	params_ << FilterParameter("max_af", DOUBLE, 1.0, "Maximum allele frequency in %");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "100.0";

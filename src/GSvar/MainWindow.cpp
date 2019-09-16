@@ -142,6 +142,13 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.vars_export_btn->setMenu(new QMenu());
 	ui_.vars_export_btn->menu()->addAction("Export VCF", this, SLOT(exportVCF()));
 	ui_.vars_export_btn->menu()->addAction("Export GSvar", this, SLOT(exportGSvar()));
+	ui_.report_btn->setMenu(new QMenu());
+	ui_.report_btn->menu()->addAction("Load report configuration", this, SLOT(loadReportConfig()));
+	ui_.report_btn->menu()->addAction("Store report configuration", this, SLOT(storeReportConfig()));
+	ui_.report_btn->menu()->addSeparator();
+	ui_.report_btn->menu()->addAction("Print variant sheet", this, SLOT(printVariantSheet()));
+	ui_.report_btn->menu()->addSeparator();
+	ui_.report_btn->menu()->addAction("Generate report", this, SLOT(generateReport()));
 	connect(ui_.vars_folder_btn, SIGNAL(clicked(bool)), this, SLOT(openVariantListFolder()));
 	connect(ui_.vars_af_hist, SIGNAL(clicked(bool)), this, SLOT(showAfHistogram()));
 	connect(ui_.ps_details, SIGNAL(clicked(bool)), this, SLOT(openProcessedSampleTabsCurrentSample()));
@@ -1258,24 +1265,18 @@ void MainWindow::loadFile(QString filename)
 	}
 
 	//load report config
-	if (variants_.type()==GERMLINE_SINGLESAMPLE || variants_.type()==GERMLINE_TRIO) //TODO test if trio works as well!
+	if (variants_.type()==GERMLINE_SINGLESAMPLE || variants_.type()==GERMLINE_TRIO)
 	{
 		bool ngsd_enabled = Settings::boolean("NGSD_enabled", true);
 		if (ngsd_enabled)
 		{
 			NGSD db;
 			QString processed_sample_id = db.processedSampleId(filename_, false);
-			if (processed_sample_id!="")
+			if (processed_sample_id!="" && db.reportConfigId(processed_sample_id)!=-1)
 			{
-				int conf_id = db.reportConfigId(processed_sample_id);
-				if (conf_id!=-1)
+				if (QMessageBox::question(this, "Load report configuration?", "The NGSD contains a report configuration for this sample.\nDo you want to load it?")==QMessageBox::Yes)
 				{
-					QStringList messages;
-					report_settings_.report_config = db.reportConfig(processed_sample_id, variants_, messages);
-					if (!messages.isEmpty())
-					{
-						QMessageBox::warning(this, "Report configuration", "The following problems were encountered while loading the report configuration:\n" + messages.join("\n"));
-					}
+					loadReportConfig();
 				}
 			}
 		}
@@ -1394,7 +1395,106 @@ void MainWindow::on_actionAnnotateSomaticVariants_triggered()
 	QApplication::restoreOverrideCursor();
 }
 
-void MainWindow::on_actionReport_triggered()
+void MainWindow::clearReportConfig()
+{
+	//check if applicable
+	if (filename_=="") return;
+
+	AnalysisType type = variants_.type();
+	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO) return;
+
+	//check if current config was modified and would be lost
+	if (report_settings_.report_config.isModified())
+	{
+		if (QMessageBox::question(this, "Loading report configuration", "The current report configuration contains unsaved changes.\nDo you want to discard them?")==QMessageBox::No)
+		{
+			return;
+		}
+	}
+}
+
+void MainWindow::loadReportConfig()
+{
+	//check if applicable
+	if (filename_=="") return;
+
+	AnalysisType type = variants_.type();
+	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO) return; //TODO check if it works for TRIO as well
+
+	//check sample
+	NGSD db;
+	QString processed_sample_id = db.processedSampleId(filename_, false);
+	if (processed_sample_id=="")
+	{
+		QMessageBox::warning(this, "Loading report configuration", "Sample was not found in the NGSD!");
+		return;
+	}
+
+	//check config exists
+	if (db.reportConfigId(processed_sample_id)==-1)
+	{
+		QMessageBox::warning(this, "Loading report configuration", "A report configuration was not found in the NGSD!");
+		return;
+	}
+
+	//check if current config was modified and would be lost
+	if (report_settings_.report_config.isModified())
+	{
+		if (QMessageBox::question(this, "Loading report configuration", "The current report configuration contains unsaved changes.\nDo you want to discard them?")==QMessageBox::No)
+		{
+			return;
+		}
+	}
+
+	//load
+	QStringList messages;
+	report_settings_.report_config = db.reportConfig(processed_sample_id, variants_, messages);
+	if (!messages.isEmpty())
+	{
+		QMessageBox::warning(this, "Report configuration", "The following problems were encountered while loading the report configuration:\n" + messages.join("\n"));
+	}
+
+	//updateGUI
+	refreshVariantTable();
+}
+
+void MainWindow::storeReportConfig()
+{
+	//check if applicable
+	if (filename_=="") return;
+
+	AnalysisType type = variants_.type();
+	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO) return;
+
+	//check sample
+	NGSD db;
+	QString processed_sample_id = db.processedSampleId(filename_, false);
+	if (processed_sample_id=="")
+	{
+		QMessageBox::warning(this, "Storing report configuration", "Sample was not found in the NGSD!");
+		return;
+	}
+
+	//check if config exists
+	if (db.reportConfigId(processed_sample_id)!=-1)
+	{
+		if (QMessageBox::question(this, "Storing report configuration", "The NGSD already contains a report configuration for this sample!\nDo you want to override it?")==QMessageBox::No)
+		{
+			return;
+		}
+	}
+
+	//store
+	db.setReportConfig(processed_sample_id, report_settings_.report_config, variants_);
+	report_settings_.report_config.setModified(false);
+}
+
+void MainWindow::printVariantSheet()
+{
+	//TODO
+}
+
+void MainWindow::generateReport()
 {
 	if (variants_.count()==0) return;
 
@@ -1406,7 +1506,7 @@ void MainWindow::on_actionReport_triggered()
 	}
 	else if (type==GERMLINE_SINGLESAMPLE)
 	{
-		generateReport();
+		generateReportGermline();
 	}
 	else
 	{
@@ -1490,7 +1590,7 @@ void MainWindow::generateReportSomaticRTF()
 	}
 }
 
-void MainWindow::generateReport()
+void MainWindow::generateReportGermline()
 {
 	//check if required NGSD annotations are present
 	if (variants_.annotationIndexByName("classification", true, false)==-1
@@ -2151,6 +2251,19 @@ void MainWindow::dropEvent(QDropEvent* e)
 	e->accept();
 }
 
+void MainWindow::closeEvent(QCloseEvent* event)
+{
+	if (report_settings_.report_config.isModified())
+	{
+		if(QMessageBox::question(this, "Store report configuration", "You have modified that report configuration for this sample.\nDo you want to store it in the NGSD?")==QMessageBox::Yes)
+		{
+			storeReportConfig();
+		}
+	}
+
+	event->accept();
+}
+
 void MainWindow::refreshVariantTable(bool keep_widths)
 {
 	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
@@ -2696,7 +2809,6 @@ void MainWindow::editVariantReportConfiguration(int index)
 	report_settings_.report_config.set(var_config);
 	updateReportConfigHeaderIcon(index);
 
-
 	//force classification of causal variants
 	if(var_config.causal)
 	{
@@ -3088,7 +3200,7 @@ void MainWindow::updateNGSDSupport()
     bool target_file_folder_set = Settings::string("target_file_folder_windows")!="" && Settings::string("target_file_folder_linux")!="";
 
 	//toolbar
-	ui_.actionReport->setEnabled(ngsd_enabled);
+	ui_.report_btn->setEnabled(ngsd_enabled);
 	ui_.actionNGSDAnnotation->setEnabled(ngsd_enabled);
 	ui_.actionAnalysisStatus->setEnabled(ngsd_enabled);
 	ui_.actionReanalyze->setEnabled(ngsd_enabled);

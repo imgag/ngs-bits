@@ -76,8 +76,6 @@ public slots:
 	void on_actionChangeLog_triggered();
 	///About dialog
 	void on_actionAbout_triggered();
-	///Report dialog
-	void on_actionReport_triggered();
 	///Open processed sample tabs
 	void openProcessedSampleTabsCurrentSample();
 	///Open processed sample tab by name
@@ -150,10 +148,20 @@ public slots:
 	///Annotate germline file with somatic variants
 	void on_actionAnnotateSomaticVariants_triggered();
 
+	///Load report configuration
+	void clearReportConfig();
+	///Load report configuration
+	void loadReportConfig();
+	///Store report configuration
+	void storeReportConfig();
+	///Prints a variant sheet based on the report configuration
+	void printVariantSheet();
+	///Generate report
+	void generateReport();
 	///Generates a report (somatic) in .rtf format
 	void generateReportSomaticRTF();
 	///Generates a report (germline)
-	void generateReport();
+	void generateReportGermline();
 	///Finished the report generation (germline)
 	void reportGenerationFinished(bool success);
 
@@ -239,6 +247,7 @@ public slots:
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);
 	virtual void dropEvent(QDropEvent* e);
+	void closeEvent(QCloseEvent* event);
 
 private:
 	//GUI
