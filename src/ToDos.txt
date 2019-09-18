@@ -28,13 +28,12 @@ GSvar:
 * Add special report for trios/multi-sample with genotype overview > change format to RTF first (AG)
 * Add highlighting of imprinting genes to CNVs, ROHs and UPDs
 ******************** Report variant selection ********************
-    - print sheet with flagged variants on demand
     - update docu of report generation
     - extended functionality
         - add gaps report (custom via import) to XML report ==> gap report as XML and additional report of gaps to sanger-validate as TXT
         - Add 'approved_by' and date to make printing the sheet obsolete
             - lock editing the report config then
-        - Add more variant info
+        - Add more variant info to XML
             - ORPAHA code(s) for genes: https://github.com/Orphanet/Orphadata.org/tree/master/Disorders%20cross%20referenced%20JSON, https://github.com/Orphanet/Orphadata.org/tree/master/Disorders%20with%20their%20associated%20genes
             - OMIM entries for genes
 Tools:

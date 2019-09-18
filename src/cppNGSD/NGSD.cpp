@@ -2774,7 +2774,6 @@ ReportConfiguration NGSD::reportConfig(const QString& processed_sample_id, const
 	{
 		ReportVariantConfiguration var_conf;
 
-		//TODO speed up somehow?! test in genome sample as benchmark!!
 		//get variant id
 		Variant var = variant(query.value("variant_id").toString());
 		for (int i=0; i<variants.count(); ++i)

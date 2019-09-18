@@ -145,10 +145,10 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.report_btn->setMenu(new QMenu());
 	ui_.report_btn->menu()->addAction("Load report configuration", this, SLOT(loadReportConfig()));
 	ui_.report_btn->menu()->addAction("Store report configuration", this, SLOT(storeReportConfig()));
-	ui_.report_btn->menu()->addSeparator();
-	ui_.report_btn->menu()->addAction("Print variant sheet", this, SLOT(printVariantSheet()));
+	ui_.report_btn->menu()->addAction("Clear report configuration", this, SLOT(clearReportConfig()));
 	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction("Generate report", this, SLOT(generateReport()));
+	ui_.report_btn->menu()->addAction("Generate variant sheet", this, SLOT(printVariantSheet()));
 	connect(ui_.vars_folder_btn, SIGNAL(clicked(bool)), this, SLOT(openVariantListFolder()));
 	connect(ui_.vars_af_hist, SIGNAL(clicked(bool)), this, SLOT(showAfHistogram()));
 	connect(ui_.ps_details, SIGNAL(clicked(bool)), this, SLOT(openProcessedSampleTabsCurrentSample()));
@@ -1419,7 +1419,7 @@ void MainWindow::loadReportConfig()
 	if (filename_=="") return;
 
 	AnalysisType type = variants_.type();
-	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO) return; //TODO check if it works for TRIO as well
+	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO) return;
 
 	//check sample
 	NGSD db;
@@ -1491,7 +1491,135 @@ void MainWindow::storeReportConfig()
 
 void MainWindow::printVariantSheet()
 {
-	//TODO
+	//get filename
+	QString base_name = processedSampleName();
+	QString filename = QFileDialog::getSaveFileName(this, "Store variant sheet",  last_report_path_ + "/" + base_name + "_variant_sheet_" + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
+	if (filename.isEmpty()) return;
+
+	//open file
+	QSharedPointer<QFile> file = Helper::openFileForWriting(filename);
+	QTextStream stream(file.data());
+
+	//write header
+	stream << "<html>" << endl;
+	stream << "  <head>" << endl;
+	stream << "    <style>" << endl;
+	stream << "      .line {" << endl;
+	stream << "        display: inline-block;" << endl;
+	stream << "        border-bottom: 1px solid #000;" << endl;
+	stream << "        width: 250px;" << endl;
+	stream << "        margin-left: 10px;" << endl;
+	stream << "        margin-right: 10px;" << endl;
+	stream << "      }" << endl;
+	stream << "    </style>" << endl;
+	stream << "  </head>" << endl;
+	stream << "  <body>" << endl;
+	stream << "    <h3>Probe: " << base_name << "</h3>" << endl;
+	stream << "    <table border='0' width='100%'>" << endl;
+	stream << "      <tr>" << endl;
+	stream << "        <td valign='top'>" << endl;
+	stream << "          <p>DNA#: <span class='line'></span></p>" << endl;
+	stream << "          <p> Pat. Name, Vorname: <span class='line'></span></p>" << endl;
+	stream << "          <p>Geburtsdatum: <span class='line'></span></p>" << endl;
+	stream << "          <br>" << endl;
+	stream << "          <p>1. Auswerter: <span class='line'>" << Helper::userName() << "</span> Datum: <span class='line'>" << Helper::dateTime("dd.MM.yyyy") << "</span></p>" << endl;
+	stream << "          <p><nobr>2. Auswerter: <span class='line'></span> Datum: <span class='line'></span></nobr></p>" << endl;
+	stream << "        </td>" << endl;
+	stream << "        <td valign='top'>" << endl;
+	stream << "          <p>Auswerteumfang: <span class='line'></span></p>" << endl;
+	stream << "          <p><nobr>Abrechungsumfang: <span class='line'></span></nobr></p>" << endl;
+	stream << "          <br>" << endl;
+	stream << "          <p>ACMG angefordert: &nbsp;&nbsp; &#9633; ja &nbsp;&nbsp; &#9633; nein</p>" << endl;
+	stream << "          <p>ACMG auff&auml;llig: &nbsp;&nbsp; &#9633; ja &nbsp;&nbsp; &#9633; nein</p>" << endl;
+	stream << "        </td>" << endl;
+	stream << "        <td valign='top'>" << endl;
+	stream << "          <table border='0'>" << endl;
+	stream << "            <tr> <td colspan=2><b>Filterung erfolgt</b></td> </tr>" << endl;
+	stream << "            <tr> <td nowrap>Freq.-basiert dominant&nbsp;&nbsp;</td> <td>&#9633;</td> </tr>" << endl;
+	stream << "            <tr> <td>Freq.-basiert rezessiv</td> <td>&#9633;</td> </tr>" << endl;
+	stream << "            <tr> <td>CNV</td> <td>&#9633;</td> </tr>" << endl;
+	stream << "            <tr> <td>Mitochondrial</td> <td>&#9633;</td> </tr>" << endl;
+	stream << "            <tr> <td>X-chromosomal</td> <td>&#9633;</td> </tr>" << endl;
+	stream << "            <tr> <td>Ph&auml;notyp-basiert</td> <td>&#9633;</td> </tr>" << endl;
+	stream << "          </table>" << endl;
+	stream << "        </td>" << endl;
+	stream << "      </tr>" << endl;
+	stream << "    </table>" << endl;
+
+	//space for phenotype
+	stream << "    <br>" << endl;
+	stream << "    <br>" << endl;
+	stream << "    <br>" << endl;
+	stream << "    <br>" << endl;
+	stream << "    <br>" << endl;
+
+	//write causal variants
+	stream << "    <p>Kausale Varianten:" << endl;
+	stream << "      <table border='1'>" << endl;
+	printVariantSheetRowHeader(stream, true);
+	foreach(const ReportVariantConfiguration& conf, report_settings_.report_config.variantConfig())
+	{
+		if (conf.variant_type!=VariantType::SNVS_INDELS) continue;
+		if (conf.causal)
+		{
+			printVariantSheetRow(stream, true, conf.variant_index);
+		}
+	}
+	stream << "      </table>" << endl;
+	stream << "    </p>" << endl;
+
+	//write other variants
+	stream << "    <p>Sonstige Varianten:" << endl;
+	stream << "      <table border='1'>" << endl;
+	printVariantSheetRowHeader(stream, false);
+	foreach(const ReportVariantConfiguration& conf, report_settings_.report_config.variantConfig())
+	{
+		if (conf.variant_type!=VariantType::SNVS_INDELS) continue;
+		if (!conf.causal)
+		{
+			printVariantSheetRow(stream, false, conf.variant_index);
+		}
+	}
+	stream << "      </table>" << endl;
+	stream << "    </p>" << endl;
+
+	//write footer
+	stream << "  </body>" << endl;
+	stream << "</html>" << endl;
+
+	//update path
+	last_report_path_ = QFileInfo(filename).absolutePath();
+}
+
+void MainWindow::printVariantSheetRowHeader(QTextStream& stream, bool causal)
+{
+	stream << "     <tr>" << endl;
+	stream << "       <th>Gen</th>" << endl;
+	stream << "       <th>Typ</th>" << endl;
+	stream << "       <th>Genotyp</th>" << endl;
+	stream << "       <th>Variante</th>" << endl;
+	stream << "       <th>Erbgang</th>" << endl;
+	if (causal)
+	{
+		stream << "       <th>c.</th>" << endl;
+		stream << "       <th>p.</th>" << endl;
+	}
+	else
+	{
+		stream << "       <th>Ausschlussgrund</th>" << endl;
+	}
+	stream << "       <th>gnomAD</th>" << endl;
+	stream << "       <th>NGSD hom/het</th>" << endl;
+	stream << "       <th>Kommentar 1. Auswerter</th>" << endl;
+	stream << "       <th>Kommentar 2. Auswerter</th>" << endl;
+	stream << "       <th>Klasse</th>" << endl;
+	stream << "       <th>In Report</th>" << endl;
+	stream << "     </tr>" << endl;
+}
+
+void MainWindow::printVariantSheetRow(QTextStream& stream, int variant_index, bool causal)
+{
+
 }
 
 void MainWindow::generateReport()

@@ -148,7 +148,7 @@ public slots:
 	///Annotate germline file with somatic variants
 	void on_actionAnnotateSomaticVariants_triggered();
 
-	///Load report configuration
+	///Clear report configuration
 	void clearReportConfig();
 	///Load report configuration
 	void loadReportConfig();
@@ -156,6 +156,10 @@ public slots:
 	void storeReportConfig();
 	///Prints a variant sheet based on the report configuration
 	void printVariantSheet();
+	///Helper function for printVariantSheet()
+	void printVariantSheetRowHeader(QTextStream& stream, bool causal);
+	///Helper function for printVariantSheet()
+	void printVariantSheetRow(QTextStream& stream, int variant_index, bool causal);
 	///Generate report
 	void generateReport();
 	///Generates a report (somatic) in .rtf format
