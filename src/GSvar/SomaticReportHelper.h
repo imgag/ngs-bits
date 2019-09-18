@@ -15,6 +15,7 @@
 #include <QMultiMap>
 #include <QDir>
 #include "RtfDocument.h"
+#include "BedpeFile.h"
 
 ///representation of CGI information of a drug reported by CGI
 class CGIDrugReportLine
@@ -307,26 +308,42 @@ private:
 	///Writes Rtf table containing most relevant SNVs and CNVs
 	RtfTable somaticAlterationTable(const VariantList& snvs, const CnvList& cnvs, bool include_cnvs, const GeneSet& target_genes = GeneSet());
 
+	RtfTable germlineAlterationTable(const VariantList& somatic_snvs);
+
 	///generates table with CNVs
 	RtfTable createCnvTable();
-
-	///creates report about oncoviruses
-	RtfTable createVirusTable();
 
 	///Writes table with drug annotation
 	RtfTable createCgiDrugTable();
 
-	///Writers basic QC params to RTF report
-	RtfTable createQCTable(const QList<int>& widths);
-
-	///Parse raw text containing CGI cancer acronyms in the form "known in:"
-	QList<QByteArray> parse_cgi_cancer_acronyms(QByteArray text);
+	///Creates table containing alterations relevant in pharmacogenomics (from normal sample)
+	RtfTable pharamacogeneticsTable();
 
 	///Returns CNV type, e.g. DEL (het) according copy number
 	QByteArray getCnvType(const CopyNumberVariant& cnv);
 
+	///Returns CNV size description, e.g. "fokal" or "Cluster"
+	QByteArray CnvSizeDescription(const CopyNumberVariant& cnv);
+
+	///Parses CGI driver statement into German language
+	QByteArray CgiDriverDescription(QByteArray raw_cgi_input);
+
+
+
 	///Returns maximum tumor clonailty in cnv file
 	double getCnvMaxTumorClonality(const CnvList& cnvs);
+
+	RtfParagraph fusionsText()
+	{
+		if(fusions_.count() > 0)
+		{
+			return RtfParagraph("Fusionen gefunden. Bitte Datei mit Strukturvarianten prüfen.").highlight(3);
+		}
+		else
+		{
+			return RtfParagraph("Es wurde keine der untersuchten Fusionen nachgewiesen.");
+		}
+	}
 
 	///SNV file
 	QString snv_filename_;
@@ -365,7 +382,7 @@ private:
 	CnvList cnvs_filtered_;
 
 	///Somatic viruses (original file usually in tumor dir)
-	QList<somatic_virus> viruses_;
+	QList<somatic_virus> validated_viruses_;
 
 	NGSD db_;
 
@@ -413,6 +430,9 @@ private:
 	FilterCascade filters_;
 
 	RtfDocument doc_;
+
+	BedpeFile fusions_;
+
 };
 
 #endif // SomaticReportHelper_H

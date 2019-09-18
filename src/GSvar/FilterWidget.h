@@ -52,6 +52,9 @@ public:
 	/// Loads filter target regions (Processing systems from NGSD, Sub-panels from file system and additional target regions from INI file)
 	void loadTargetRegions();
 
+	//Returns the filter INI file name
+	static QString filterFileName();
+
 signals:
 	/// Signal that is emitted when a filter changes (filter cascade, gene, text, region, phenotype)
 	void filtersChanged();
@@ -84,9 +87,6 @@ private:
 	void loadFilters();
 	//Resets the filters without blocking signals.
 	void resetSignalsUnblocked(bool clear_roi);
-
-	//Returns the filter INI file name
-	QString filterFileName() const;
 
 	Ui::FilterWidget ui_;
 	GeneSet last_genes_;

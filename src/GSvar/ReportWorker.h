@@ -42,6 +42,8 @@ public:
 	static void writeHtmlFooter(QTextStream& stream);
 	static void validateAndCopyReport(QString from, QString to, bool put_to_archive, bool is_rtf);
 
+	static QString inheritance(QString gene_info, bool color=true);
+
 private:
 	//input variables
 	QString sample_name_;
@@ -66,7 +68,6 @@ private:
 
 	QString trans(const QString& text) const;
 	QString formatCodingSplicing(const QList<VariantTranscript>& transcripts);
-	QString inheritance(QString gene_info, bool color=true);
 	int annotationIndexOrException(const QString& name, bool exact_match) const;
 	void writeHTML();
 	void writeXML(QString outfile_name);

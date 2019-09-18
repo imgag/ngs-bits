@@ -148,7 +148,7 @@ void FilterWidget::resetSignalsUnblocked(bool clear_roi)
 	phenotypesChanged();
 }
 
-QString FilterWidget::filterFileName() const
+QString FilterWidget::filterFileName()
 {
 	return QCoreApplication::applicationDirPath() + QDir::separator() + QCoreApplication::applicationName().replace(".exe","") + "_filters.ini";
 }

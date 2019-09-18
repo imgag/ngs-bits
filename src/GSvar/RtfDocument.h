@@ -173,6 +173,12 @@ public:
 		return *this;
 	}
 
+	RtfParagraph& setLineSpacing(int line_spacing)
+	{
+		line_spacing_ = line_spacing;
+		return *this;
+	}
+
 private:
 	bool part_of_a_cell_ = false;
 
@@ -182,6 +188,8 @@ private:
 	int indent_block_left_ = 30;
 	int indent_block_right_ = 30;
 	int indent_first_line_ = 0;
+
+	int line_spacing_ = 0;
 };
 
 class RtfDocument
@@ -266,6 +274,7 @@ private:
 	QList<std::tuple<int,int,int>> colors_;
 
 	int default_font_size_;
+
 
 	//parts between header and footer
 	QList<RtfSourceCode> body_parts_;
@@ -404,6 +413,12 @@ public:
 		return *this;
 	}
 
+	RtfTableRow& setPadding(int cell_padding)
+	{
+		cell_padding = cell_padding;
+		return *this;
+	}
+
 	///Write RTF code of a whole row
 	RtfSourceCode writeRow();
 
@@ -443,6 +458,9 @@ private:
 	int table_row_gap_half = 180;
 	//Spacing to left margin of page in twips
 	int tr_left_ = 0;
+
+	//cell padding in twips
+	int padding_ = 28;
 
 	///write RTF code of the row header
 	RtfSourceCode writeRowHeader();
@@ -507,6 +525,8 @@ public:
 
 	///sets border for all table cells
 	RtfTable& setUniqueBorder(int border,const QByteArray& border_type = "brdrs", int border_color = 0);
+
+	RtfTable& setUniqueFontSize(int font_size);
 
 private:
 	QList<RtfTableRow> rows_;
