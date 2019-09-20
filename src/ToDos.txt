@@ -36,8 +36,7 @@ GSvar:
             - ORPAHA code(s) for genes: https://github.com/Orphanet/Orphadata.org/tree/master/Disorders%20cross%20referenced%20JSON, https://github.com/Orphanet/Orphadata.org/tree/master/Disorders%20with%20their%20associated%20genes
             - OMIM entries for genes
 Tools:
-- NGSDExportGenes: Add #transcripts, #coding transcripts, inheritance, gnomAD oe (3x), HPO terms, OMIM infos?
-- NGSDImportHPO: Add G2P database? (https://www.ebi.ac.uk/gene2phenotype)
+- NGSDImportHPO: Add G2P database (https://www.ebi.ac.uk/gene2phenotype)? Ask HPO people if they include it
 - UPDHunter: also support chrX?
 - SomaticQC: replace 'QC:?' by real qcML identifier - add to https://github.com/HUPO-PSI/mzQC (CS)
 

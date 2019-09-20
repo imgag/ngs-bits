@@ -1,5 +1,5 @@
 ### NGSDExportGenes tool help
-	NGSDExportGenes (2018_04-32-g853eeef)
+	NGSDExportGenes (2019_08-30-g3e908330)
 	
 	Lists genes from NGSD.
 	
@@ -16,6 +16,8 @@
 	  --tdx        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDExportGenes changelog
-	NGSDExportGenes 2018_04-32-g853eeef
+	NGSDExportGenes 2019_08-30-g3e908330
 	
+	2019-09-20 Added several columns with gene details.
+	2018-05-03 First version
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
