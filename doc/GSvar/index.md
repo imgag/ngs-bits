@@ -8,6 +8,7 @@
 - [Variant filtering](variant_filtering.md)
 - [CNV analysis](cnv_analysis.md)
 - [ROH analysis](roh_analysis.md)
+- [Report generation](report_generation.md)
 
 ## Auxilary functionality
 
@@ -19,7 +20,3 @@
 
 - [Configuration](configuration.md)
 - [ChangeLog](changelog.md)
-
-
-
-

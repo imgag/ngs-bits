@@ -1272,11 +1272,16 @@ void MainWindow::loadFile(QString filename)
 		{
 			NGSD db;
 			QString processed_sample_id = db.processedSampleId(filename_, false);
-			if (processed_sample_id!="" && db.reportConfigId(processed_sample_id)!=-1)
+			if (processed_sample_id!="")
 			{
-				if (QMessageBox::question(this, "Load report configuration?", "The NGSD contains a report configuration for this sample.\nDo you want to load it?")==QMessageBox::Yes)
+				int conf_id = db.reportConfigId(processed_sample_id);
+				if (conf_id!=-1)
 				{
-					loadReportConfig();
+					auto conf_creation = db.reportConfigCreationData(conf_id);
+					if (QMessageBox::question(this, "Load report configuration?", "The NGSD contains a report configuration created by " + conf_creation.first + " at " + conf_creation.second + ".\n\nDo you want to load it?")==QMessageBox::Yes)
+					{
+						loadReportConfig();
+					}
 				}
 			}
 		}
@@ -1476,9 +1481,11 @@ void MainWindow::storeReportConfig()
 	}
 
 	//check if config exists
-	if (db.reportConfigId(processed_sample_id)!=-1)
+	int conf_id = db.reportConfigId(processed_sample_id);
+	if (conf_id!=-1)
 	{
-		if (QMessageBox::question(this, "Storing report configuration", "The NGSD already contains a report configuration for this sample!\nDo you want to override it?")==QMessageBox::No)
+		auto conf_creation = db.reportConfigCreationData(conf_id);
+		if (QMessageBox::question(this, "Storing report configuration", "The NGSD contains a report configuration created by " + conf_creation.first + " at " + conf_creation.second + ".\n\nDo you want to override it?")==QMessageBox::No)
 		{
 			return;
 		}
@@ -1504,6 +1511,15 @@ void MainWindow::printVariantSheet()
 	stream << "<html>" << endl;
 	stream << "  <head>" << endl;
 	stream << "    <style>" << endl;
+	stream << "      table" << endl;
+	stream << "      {" << endl;
+	stream << "        border-collapse: collapse;" << endl;
+	stream << "        border: 1px solid black;" << endl;
+	stream << "      }" << endl;
+	stream << "      th, td" << endl;
+	stream << "      {" << endl;
+	stream << "        border: 1px solid black;" << endl;
+	stream << "      }" << endl;
 	stream << "      .line {" << endl;
 	stream << "        display: inline-block;" << endl;
 	stream << "        border-bottom: 1px solid #000;" << endl;
@@ -1511,13 +1527,16 @@ void MainWindow::printVariantSheet()
 	stream << "        margin-left: 10px;" << endl;
 	stream << "        margin-right: 10px;" << endl;
 	stream << "      }" << endl;
+	stream << "      .noborder {" << endl;
+	stream << "        border: 0px;" << endl;
+	stream << "      }" << endl;
 	stream << "    </style>" << endl;
 	stream << "  </head>" << endl;
 	stream << "  <body>" << endl;
 	stream << "    <h3>Probe: " << base_name << "</h3>" << endl;
-	stream << "    <table border='0' width='100%'>" << endl;
+	stream << "    <table class='noborder' width='100%'>" << endl;
 	stream << "      <tr>" << endl;
-	stream << "        <td valign='top'>" << endl;
+	stream << "        <td class='noborder' valign='top'>" << endl;
 	stream << "          <p>DNA#: <span class='line'></span></p>" << endl;
 	stream << "          <p> Pat. Name, Vorname: <span class='line'></span></p>" << endl;
 	stream << "          <p>Geburtsdatum: <span class='line'></span></p>" << endl;
@@ -1525,14 +1544,14 @@ void MainWindow::printVariantSheet()
 	stream << "          <p>1. Auswerter: <span class='line'>" << Helper::userName() << "</span> Datum: <span class='line'>" << Helper::dateTime("dd.MM.yyyy") << "</span></p>" << endl;
 	stream << "          <p><nobr>2. Auswerter: <span class='line'></span> Datum: <span class='line'></span></nobr></p>" << endl;
 	stream << "        </td>" << endl;
-	stream << "        <td valign='top'>" << endl;
+	stream << "        <td class='noborder' valign='top'>" << endl;
 	stream << "          <p>Auswerteumfang: <span class='line'></span></p>" << endl;
 	stream << "          <p><nobr>Abrechungsumfang: <span class='line'></span></nobr></p>" << endl;
 	stream << "          <br>" << endl;
 	stream << "          <p>ACMG angefordert: &nbsp;&nbsp; &#9633; ja &nbsp;&nbsp; &#9633; nein</p>" << endl;
 	stream << "          <p>ACMG auff&auml;llig: &nbsp;&nbsp; &#9633; ja &nbsp;&nbsp; &#9633; nein</p>" << endl;
 	stream << "        </td>" << endl;
-	stream << "        <td valign='top'>" << endl;
+	stream << "        <td class='noborder' valign='top'>" << endl;
 	stream << "          <table border='0'>" << endl;
 	stream << "            <tr> <td colspan=2><b>Filterung erfolgt</b></td> </tr>" << endl;
 	stream << "            <tr> <td nowrap>Freq.-basiert dominant&nbsp;&nbsp;</td> <td>&#9633;</td> </tr>" << endl;
@@ -1554,7 +1573,7 @@ void MainWindow::printVariantSheet()
 	stream << "    <br>" << endl;
 
 	//write causal variants
-	stream << "    <p>Kausale Varianten:" << endl;
+	stream << "    <p><b>Kausale Varianten:</b>" << endl;
 	stream << "      <table border='1'>" << endl;
 	printVariantSheetRowHeader(stream, true);
 	foreach(const ReportVariantConfiguration& conf, report_settings_.report_config.variantConfig())
@@ -1562,14 +1581,14 @@ void MainWindow::printVariantSheet()
 		if (conf.variant_type!=VariantType::SNVS_INDELS) continue;
 		if (conf.causal)
 		{
-			printVariantSheetRow(stream, true, conf.variant_index);
+			printVariantSheetRow(stream, conf);
 		}
 	}
 	stream << "      </table>" << endl;
 	stream << "    </p>" << endl;
 
 	//write other variants
-	stream << "    <p>Sonstige Varianten:" << endl;
+	stream << "    <p><b>Sonstige Varianten:</b>" << endl;
 	stream << "      <table border='1'>" << endl;
 	printVariantSheetRowHeader(stream, false);
 	foreach(const ReportVariantConfiguration& conf, report_settings_.report_config.variantConfig())
@@ -1577,7 +1596,7 @@ void MainWindow::printVariantSheet()
 		if (conf.variant_type!=VariantType::SNVS_INDELS) continue;
 		if (!conf.causal)
 		{
-			printVariantSheetRow(stream, false, conf.variant_index);
+			printVariantSheetRow(stream, conf);
 		}
 	}
 	stream << "      </table>" << endl;
@@ -1609,17 +1628,73 @@ void MainWindow::printVariantSheetRowHeader(QTextStream& stream, bool causal)
 		stream << "       <th>Ausschlussgrund</th>" << endl;
 	}
 	stream << "       <th>gnomAD</th>" << endl;
-	stream << "       <th>NGSD hom/het</th>" << endl;
-	stream << "       <th>Kommentar 1. Auswerter</th>" << endl;
-	stream << "       <th>Kommentar 2. Auswerter</th>" << endl;
+        stream << "       <th nowrap>NGSD hom/het</th>" << endl;
+	stream << "       <th nowrap>Kommentar 1. Auswerter</th>" << endl;
+	stream << "       <th nowrap>Kommentar 2. Auswerter</th>" << endl;
 	stream << "       <th>Klasse</th>" << endl;
-	stream << "       <th>In Report</th>" << endl;
+	stream << "       <th nowrap>In Report</th>" << endl;
 	stream << "     </tr>" << endl;
 }
 
-void MainWindow::printVariantSheetRow(QTextStream& stream, int variant_index, bool causal)
+void MainWindow::printVariantSheetRow(QTextStream& stream, const ReportVariantConfiguration &conf)
 {
+	//get column indices
+	const Variant& v = variants_[conf.variant_index];
+	int i_genotype = variants_.getSampleHeader().infoByStatus(true).column_index;
+	int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, true);
+	int i_class = variants_.annotationIndexByName("classification", true, true);
+	int i_gnomad = variants_.annotationIndexByName("gnomAD", true, true);
+	int i_ngsd_hom = variants_.annotationIndexByName("NGSD_hom", true, true);
+	int i_ngsd_het = variants_.annotationIndexByName("NGSD_het", true, true);
 
+	//get transcript-specific data
+	const QMap<QByteArray, QByteArrayList>& preferred_transcripts = GSvarHelper::preferredTranscripts();
+	QStringList genes;
+	QStringList types;
+	QStringList hgvs_cs;
+	QStringList hgvs_ps;
+	foreach(const VariantTranscript& trans, v.transcriptAnnotations(i_co_sp))
+	{
+		if (preferred_transcripts.contains(trans.gene) && preferred_transcripts[trans.gene].contains(trans.id)) continue;
+		genes << trans.gene;
+		types << trans.type;
+		hgvs_cs << trans.hgvs_c;
+		hgvs_ps << trans.hgvs_p;
+	}
+	genes.removeDuplicates();
+	types.removeDuplicates();
+	hgvs_cs.removeDuplicates();
+	hgvs_ps.removeDuplicates();
+
+	//write line
+	stream << "     <tr>" << endl;
+	stream << "       <td>" << genes.join(", ") << "</td>" << endl;
+	stream << "       <td>" << types.join(", ") << "</th>" << endl;
+	stream << "       <td>" << v.annotations()[i_genotype] << "</td>" << endl;
+	stream << "       <td nowrap>" << v.toString(false, 20) << "</td>" << endl;
+	stream << "       <td>" << conf.inheritance << "</th>" << endl;
+	if (conf.causal)
+	{
+		stream << "       <td>" << hgvs_cs.join(", ") << "</td>" << endl;
+		stream << "       <td>" << hgvs_ps.join(", ") << "</td>" << endl;
+	}
+	else
+	{
+		QByteArrayList exclustion_criteria;
+		if (conf.exclude_artefact) exclustion_criteria << "Artefakt";
+		if (conf.exclude_frequency) exclustion_criteria << "Frequenz";
+		if (conf.exclude_phenotype) exclustion_criteria << "Phenotyp";
+		if (conf.exclude_mechanism) exclustion_criteria << "Pathomechanismus";
+		if (conf.exclude_other) exclustion_criteria << "Anderer (siehe Kommentare)";
+		stream << "       <td>" << exclustion_criteria.join(", ")  << "</td>" << endl;
+	}
+	stream << "       <td>" << v.annotations()[i_gnomad] << "</td>" << endl;
+	stream << "       <td>" << v.annotations()[i_ngsd_hom] << " / " << v.annotations()[i_ngsd_het] << "</td>" << endl;
+	stream << "       <td>" << conf.comments << "</td>" << endl;
+	stream << "       <td>" << conf.comments2 << "</td>" << endl;
+	stream << "       <td>" << v.annotations()[i_class] << "</td>" << endl;
+	stream << "       <td>" << (conf.showInReport() ? "ja" : "nein") << "</td>" << endl;
+	stream << "     </tr>" << endl;
 }
 
 void MainWindow::generateReport()

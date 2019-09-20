@@ -481,6 +481,8 @@ public:
 
 	///Returns if the report configuration database ID, or -1 if not present.
 	int reportConfigId(const QString& processed_sample_id);
+	///Returns the report config creation data (user/date).
+	QPair<QByteArray, QByteArray> reportConfigCreationData(int id);
 	///Returns the report configuration for a processed sample, throws an error if it does not exist.
 	ReportConfiguration reportConfig(const QString& processed_sample_id, const VariantList& variants, QStringList& messages);
 	///Sets/overwrites the report configuration for a processed sample. Returns its database primary key.

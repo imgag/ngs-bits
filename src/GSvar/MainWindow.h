@@ -159,7 +159,7 @@ public slots:
 	///Helper function for printVariantSheet()
 	void printVariantSheetRowHeader(QTextStream& stream, bool causal);
 	///Helper function for printVariantSheet()
-	void printVariantSheetRow(QTextStream& stream, int variant_index, bool causal);
+	void printVariantSheetRow(QTextStream& stream, const ReportVariantConfiguration& conf);
 	///Generate report
 	void generateReport();
 	///Generates a report (somatic) in .rtf format

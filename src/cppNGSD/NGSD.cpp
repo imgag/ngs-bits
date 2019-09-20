@@ -40,6 +40,10 @@ QString NGSD::userId(QString user_name)
 	QString user_id = getValue("SELECT id FROM user WHERE user_id=:0", true, user_name).toString();
 	if (user_id=="")
 	{
+		user_id = getValue("SELECT id FROM user WHERE name=:0", true, user_name).toString();
+	}
+	if (user_id=="")
+	{
 		THROW(DatabaseException, "Could not determine NGSD user ID for user name '" + user_name + "! Do you have an NGSD user account?");
 	}
 
@@ -2754,6 +2758,15 @@ int NGSD::reportConfigId(const QString& processed_sample_id)
 	return id.isValid() ? id.toInt() : -1;
 }
 
+QPair<QByteArray, QByteArray> NGSD::reportConfigCreationData(int id)
+{
+	SqlQuery query = getQuery();
+	query.exec("SELECT u.name, rc.created_date FROM report_configuration rc, user u WHERE rc.id=" + QString::number(id) + " AND u.id=rc.created_by");
+	query.next();
+
+	return qMakePair(query.value("name").toByteArray(), query.value("created_date").toDateTime().toString("dd.MM.yyyy hh:mm:ss").toLatin1());
+}
+
 ReportConfiguration NGSD::reportConfig(const QString& processed_sample_id, const VariantList& variants, QStringList& messages)
 {
 	ReportConfiguration output;
@@ -2763,9 +2776,9 @@ ReportConfiguration NGSD::reportConfig(const QString& processed_sample_id, const
 
 	//load main object
 	SqlQuery query = getQuery();
-	query.exec("SELECT u.user_id, rc.created_date FROM report_configuration rc, user u WHERE rc.id=" + QString::number(conf_id) + " AND u.id=rc.created_by");
+	query.exec("SELECT u.name, rc.created_date FROM report_configuration rc, user u WHERE rc.id=" + QString::number(conf_id) + " AND u.id=rc.created_by");
 	query.next();
-	output.setCreatedBy(query.value("user_id").toString());
+	output.setCreatedBy(query.value("name").toString());
 	output.setCreatedAt(query.value("created_date").toDateTime());
 
 	//load variant data

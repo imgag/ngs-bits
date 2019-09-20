@@ -739,13 +739,17 @@ private slots:
 		QString conf_id1 = db.setReportConfig(ps_id, report_conf, vl);
 		QString conf_id2 = db.setReportConfig(ps_id, report_conf, vl);
 		IS_TRUE(conf_id1!=conf_id2);
-		IS_TRUE(db.reportConfigId(ps_id)!=-1);
+
+		//reportConfigId
+		int conf_id = db.reportConfigId(ps_id);
+		IS_TRUE(conf_id!=-1);
+		S_EQUAL(db.reportConfigCreationData(conf_id).first, "Max Mustermann");
 
 		//reportConfig
 		QStringList messages2;
 		ReportConfiguration report_conf2 = db.reportConfig(ps_id, vl, messages2);
 		I_EQUAL(messages2.count(), 0);
-		S_EQUAL(report_conf2.createdBy(), "ahmustm1");
+		S_EQUAL(report_conf2.createdBy(), "Max Mustermann");
 		IS_TRUE(report_conf2.createdAt().date()==QDate::currentDate());
 		I_EQUAL(report_conf2.variantConfig().count(), 1);
 		IS_TRUE(report_conf2.variantConfig()[0].causal);
