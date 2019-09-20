@@ -1511,6 +1511,10 @@ void MainWindow::printVariantSheet()
 	stream << "<html>" << endl;
 	stream << "  <head>" << endl;
 	stream << "    <style>" << endl;
+	stream << "      @page" << endl;
+	stream << "      {" << endl;
+	stream << "        size: landscape;" << endl;
+	stream << "      }" << endl;
 	stream << "      table" << endl;
 	stream << "      {" << endl;
 	stream << "        border-collapse: collapse;" << endl;
@@ -1608,6 +1612,11 @@ void MainWindow::printVariantSheet()
 
 	//update path
 	last_report_path_ = QFileInfo(filename).absolutePath();
+
+	if (QMessageBox::question(this, "Variant sheet", "Variant sheet generated successfully!\nDo you want to open it in your browser?")==QMessageBox::Yes)
+	{
+		QDesktopServices::openUrl(filename);
+	}
 }
 
 void MainWindow::printVariantSheetRowHeader(QTextStream& stream, bool causal)
@@ -2906,6 +2915,9 @@ void MainWindow::editVariantClassification(VariantList& variants, int index)
 		//update details widget and filtering
 		ui_.variant_details->updateVariant(variants, index);
 		refreshVariantTable();
+
+		//store variant table
+		variants_.store(filename_);
 	}
 	catch (DatabaseException& e)
 	{
