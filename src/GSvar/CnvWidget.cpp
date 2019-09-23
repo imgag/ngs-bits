@@ -3,6 +3,7 @@
 #include "Helper.h"
 #include "Exceptions.h"
 #include "GUIHelper.h"
+#include "GSvarHelper.h"
 #include "VariantDetailsDockWidget.h"
 #include "NGSD.h"
 #include "Settings.h"
@@ -168,6 +169,7 @@ void CnvWidget::loadCNVs(QString filename)
 	}
 
 	//show variants
+	const GeneSet& imprinting_genes = GSvarHelper::impritingGenes();
 	ui->cnvs->setRowCount(cnvs.count());
 	for (int r=0; r<cnvs.count(); ++r)
 	{
@@ -176,7 +178,15 @@ void CnvWidget::loadCNVs(QString filename)
 		QString regions = QString::number(cnvs[r].regions());
 		if (regions=="0") regions="n/a";
 		ui->cnvs->setItem(r, 2, createItem(regions, Qt::AlignRight|Qt::AlignTop));
-		ui->cnvs->setItem(r, 3, createItem(QString(cnvs[r].genes().join(','))));
+
+		GeneSet genes = cnvs[r].genes();
+		QTableWidgetItem* item = createItem(QString(genes.join(',')));
+		if (genes.intersectsWith(imprinting_genes))
+		{
+			item->setBackgroundColor(Qt::yellow);
+			item->setToolTip("Imprinting gene");
+		}
+		ui->cnvs->setItem(r, 3, item);
 
 		int c = 4;
 		foreach(int index, annotation_indices)
