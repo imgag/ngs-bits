@@ -18,9 +18,9 @@ The report configuration contains information about the variant type:
 * candidate variant
 * incidental finding
 
-Additionally, these informations are stored:
+Additionally, this information is stored:
 
-* if the variant is causal
+* if the variant is causal for the phenotype
 * inheritance information (inheritance mode, de-novo, ...)
 * reason why the variant is not shown in the report (artefact, ...)
 * comments of the first/second person that analyzes the sample
