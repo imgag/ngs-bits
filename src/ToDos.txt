@@ -21,12 +21,10 @@ NGSD:
 **** NGSD annotation: export VCF, use VCF for annotation (LS)
 
 GSvar:
-#### Clear all filters button (in sample menu bar)
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 ** replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
 * trio filter: correct PAR region handling (Genetikum)
 * Add special report for trios/multi-sample with genotype overview > change format to RTF first (AG)
-* Add highlighting of imprinting genes to CNVs, ROHs and UPDs
 ** report variant selection
     - extended functionality
         - add gaps report (custom via import) to XML report ==> gap report as XML and additional report of gaps to sanger-validate as TXT

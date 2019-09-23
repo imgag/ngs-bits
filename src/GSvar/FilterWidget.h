@@ -81,6 +81,8 @@ protected slots:
 	void showPhenotypeContextMenu(QPoint pos);
 	void setFilter(int index);
 	void clearTargetRegion();
+	void clearFilters();
+	void clearFiltersAndRoi();
 
 private:
 	//Loads filters

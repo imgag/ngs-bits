@@ -45,6 +45,10 @@ FilterWidget::FilterWidget(QWidget *parent)
 	connect(ui_.hpo_terms, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showPhenotypeContextMenu(QPoint)));
 	ui_.hpo_terms->setEnabled(Settings::boolean("NGSD_enabled", true));
 
+	ui_.clearn_btn->setMenu(new QMenu());
+	ui_.clearn_btn->menu()->addAction("Clear filters", this, SLOT(clearFilters()));
+	ui_.clearn_btn->menu()->addAction("Clear filters and ROI", this, SLOT(clearFiltersAndRoi()));
+
 	loadTargetRegions();
 	loadFilters();
 	reset(true);
@@ -518,6 +522,16 @@ void FilterWidget::setFilter(int index)
 void FilterWidget::clearTargetRegion()
 {
 	ui_.roi->setCurrentText("none");
+}
+
+void FilterWidget::clearFilters()
+{
+	reset(false);
+}
+
+void FilterWidget::clearFiltersAndRoi()
+{
+	reset(true);
 }
 
 void FilterWidget::loadFilters()
