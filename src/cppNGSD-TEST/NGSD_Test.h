@@ -697,12 +697,12 @@ private slots:
 		params.add_disease_details = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 5);
-		I_EQUAL(ps_table.columnCount(), 28);
+		I_EQUAL(ps_table.columnCount(), 29);
 		//add QC
 		params.add_qc = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 5);
-		I_EQUAL(ps_table.columnCount(), 67);
+		I_EQUAL(ps_table.columnCount(), 68);
 		//apply all search parameters
 		params.s_name = "NA12878";
 		params.s_species = "human";
@@ -717,7 +717,7 @@ private slots:
 		params.include_bad_quality_runs = false;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 2);
-		I_EQUAL(ps_table.columnCount(), 67);
+		I_EQUAL(ps_table.columnCount(), 68);
 
 		//reportConfigId
 		QString ps_id = db.processedSampleId("NA12878_03");

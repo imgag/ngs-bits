@@ -16,7 +16,7 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 Changes already implemented in GIT master for next release:
 
-* none so far.
+* NGSDExportGenes: Added more columns.
 
 Changes in release 2019_09:
 

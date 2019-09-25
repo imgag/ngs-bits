@@ -1,5 +1,13 @@
 # GSvar change log
 
+### 2019_09-?? (26.09.19)
+- Implemented report configuration of variants (create, load/store in NGSD) and use for reports and variant sheets.
+- Added 'Gene' tab.
+- Gap dialog: Added category for overlap with splice regions of preferred transcript (+-6 to +-20 bases).
+- Filters: added button to clear filters.
+- Added highlighting of imprinting genes in CNV and ROH tables.
+- Refactoring of preferred transcripts and special regions functionality.
+
 ### 2019_08-14 (12.08.19)
 - Gaps: Added 'preferred transcript' column to gap recalculation dialog.
 - General: Add HPO phenotypes to variant summary widget and gene summary tables.
