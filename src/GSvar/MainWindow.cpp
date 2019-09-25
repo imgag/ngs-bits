@@ -2585,7 +2585,16 @@ void MainWindow::closeEvent(QCloseEvent* event)
 {
 	if (report_settings_.report_config.isModified())
 	{
-		if(QMessageBox::question(this, "Store report configuration", "You have modified that report configuration for this sample.\nDo you want to store it in the NGSD?")==QMessageBox::Yes)
+		int button = QMessageBox::question(this, "Store report configuration", "You have modified that report configuration for this sample.\nDo you want to store it in the NGSD?",
+										   QMessageBox::Yes|QMessageBox::Default,
+										   QMessageBox::No,
+										   QMessageBox::Cancel);
+		if(button==QMessageBox::Cancel)
+		{
+			event->ignore();
+			return;
+		}
+		if(button==QMessageBox::Yes)
 		{
 			storeReportConfig();
 		}

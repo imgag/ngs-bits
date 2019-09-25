@@ -733,46 +733,36 @@ void ReportWorker::writeHTML()
 	outfile->close();
 
 
-	validateAndCopyReport(temp_filename, file_rep_,true,true);
+	validateAndCopyReport(temp_filename, file_rep_, true, false);
 
 	//write XML file to transfer folder
 	QString gsvar_variant_transfer = Settings::string("gsvar_variant_transfer");
 	if (gsvar_variant_transfer!="")
 	{
-		writeXML(gsvar_variant_transfer + "/" + QFileInfo(file_rep_).fileName().replace(".html", ".xml"));
+		QString xml_file = gsvar_variant_transfer + "/" + QFileInfo(file_rep_).fileName().replace(".html", ".xml");
+		writeXML(xml_file, file_rep_);
 	}
 }
 
-void ReportWorker::validateAndCopyReport(QString from, QString to,bool put_to_archive,bool is_rtf)
+void ReportWorker::validateAndCopyReport(QString from, QString to, bool put_to_archive, bool is_rtf)
 {
-	//validate written HTML file
-	QString validation_error = XmlHelper::isValidXml(from);
-	if (validation_error!="" && !is_rtf)
+	//validate written file (HTML only)
+	if (!is_rtf)
 	{
-		Log::warn("Generated report at " + from + " is not well-formed: " + validation_error);
+		QString validation_error = XmlHelper::isValidXml(from);
+		if (validation_error!="")
+		{
+			Log::warn("Generated HTML report at " + from + " is not well-formed: " + validation_error);
+		}
 	}
 
 	if (QFile::exists(to) && !QFile(to).remove())
 	{
-		if(is_rtf)
-		{
-			THROW(FileAccessException,"Could not remove previous RTF report: " + to);
-		}
-		else
-		{
-			THROW(FileAccessException, "Could not remove previous HTML report: " + to);
-		}
+		THROW(FileAccessException,"Could not remove previous " + QString(is_rtf ? "RTF" : "HTML") + " report: " + to);
 	}
 	if (!QFile::rename(from, to))
 	{
-		if(is_rtf)
-		{
-			THROW(FileAccessException,"Could not copy RTF report from temporary file " + from + " to " + to + " !");
-		}
-		else
-		{
-			THROW(FileAccessException, "Could not copy HTML report from temporary file " + from + " to " + to + " !");
-		}
+		THROW(FileAccessException,"Could not move " + QString(is_rtf ? "RTF" : "HTML") + " report from temporary file " + from + " to " + to + " !");
 	}
 
 	//copy report to archive folder
@@ -784,26 +774,11 @@ void ReportWorker::validateAndCopyReport(QString from, QString to,bool put_to_ar
 			QString file_rep_copy = archive_folder + "\\" + QFileInfo(to).fileName();
 			if (QFile::exists(file_rep_copy) && !QFile::remove(file_rep_copy))
 			{
-				if(is_rtf)
-				{
-					THROW(FileAccessException, "Could not remove previous RTF report in archive folder: " + file_rep_copy);
-				}
-				else
-				{
-					THROW(FileAccessException, "Could not remove previous HTML report in archive folder: " + file_rep_copy);
-				}
+				THROW(FileAccessException, "Could not remove previous " + QString(is_rtf ? "RTF" : "HTML") + " report in archive folder: " + file_rep_copy);
 			}
 			if (!QFile::copy(to, file_rep_copy))
 			{
-				if(is_rtf)
-				{
-					THROW(FileAccessException, "Could not copy RTF report to archive folder: " + file_rep_copy);
-				}
-				else
-				{
-					THROW(FileAccessException, "Could not copy HTML report to archive folder: " + file_rep_copy);
-
-				}
+				THROW(FileAccessException, "Could not copy " + QString(is_rtf ? "RTF" : "HTML") + " report to archive folder: " + file_rep_copy);
 			}
 		}
 	}
@@ -917,7 +892,7 @@ QString ReportWorker::trans(const QString& text) const
 	THROW(ProgrammingException, "Unsupported language '" + settings_.language + "'!");
 }
 
-void ReportWorker::writeXML(QString outfile_name)
+void ReportWorker::writeXML(QString outfile_name, QString report_document)
 {
 	QSharedPointer<QFile> outfile = Helper::openFileForWriting(outfile_name);
 
@@ -1046,6 +1021,20 @@ void ReportWorker::writeXML(QString outfile_name)
 		//end of variant
 		w.writeEndElement();
 	}
+	w.writeEndElement();
+
+	//element ReportDocument
+	w.writeStartElement("ReportDocument");
+	QString format = QFileInfo(report_document).suffix().toUpper();
+	w.writeAttribute("format", format);
+	QByteArray base64_data = "";
+	QFile file(report_document);
+	file.open(QIODevice::ReadOnly);
+	base64_data = file.readAll().toBase64();
+	file.close();
+	w.writeCharacters(base64_data);
+	w.writeEndElement();
+
 	w.writeEndDocument();
 	outfile->close();
 

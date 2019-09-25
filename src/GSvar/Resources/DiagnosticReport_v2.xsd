@@ -321,6 +321,28 @@
 						</xs:attribute>
 					</xs:complexType>
 				</xs:element>
+				<xs:element name="ReportDocument" nillable="false">
+					<xs:annotation>
+						<xs:documentation>Generated report text document - base64 encoded</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:simpleContent>
+							<xs:extension base="xs:base64Binary">
+								<xs:attribute name="format" use="required">
+									<xs:annotation>
+										<xs:documentation>Data format of the document</xs:documentation>
+									</xs:annotation>
+									<xs:simpleType>
+										<xs:restriction base="xs:string">
+											<xs:enumeration value="HTML"/>
+											<xs:enumeration value="RTF"/>
+										</xs:restriction>
+									</xs:simpleType>
+								</xs:attribute>
+							</xs:extension>
+						</xs:simpleContent>
+					</xs:complexType>
+				</xs:element>
 			</xs:sequence>
 			<xs:attribute name="version" use="required">
 				<xs:annotation>

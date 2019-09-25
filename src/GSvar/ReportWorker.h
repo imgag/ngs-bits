@@ -70,7 +70,7 @@ private:
 	QString formatCodingSplicing(const QList<VariantTranscript>& transcripts);
 	QByteArray formatGenotype(const QByteArray& gender, const QByteArray& genotype, const Chromosome& chr, int start, int end);
 	void writeHTML();
-	void writeXML(QString outfile_name);
+	void writeXML(QString outfile_name, QString report_document);
 };
 
 #endif

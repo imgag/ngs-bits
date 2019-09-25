@@ -25,18 +25,16 @@ GSvar:
 ** replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
 * trio filter: correct PAR region handling (Genetikum)
 * Add special report for trios/multi-sample with genotype overview > change format to RTF first (AG)
-** report variant selection
-    - XML: add HTML/RTF as base64-coded BLOB
-    - extended functionality
-        - add ORPHA codes for genes to XML
-            - PhenotypeInfo table (only when causal) - Gene, identifier, type colums (only type Orpha for now)
-            - https://github.com/Orphanet/Orphadata.org/tree/master/Disorders%20cross%20referenced%20JSON
-            - https://github.com/Orphanet/Orphadata.org/tree/master/Disorders%20with%20their%20associated%20genes
-        - add gaps report (custom via import) to XML report
-            - CCDS +-5 bases!?
-            - gap report as XML and additional report of gaps to sanger-validate as TXT
-        - Add 'approved_by' and date to make printing the sheet obsolete
-            - lock editing the report config then?
+* report variant selection
+    - add ORPHA codes for genes to XML
+        - PhenotypeInfo table (only when causal) - Gene, identifier, type colums (only type Orpha for now)
+        - https://github.com/Orphanet/Orphadata.org/tree/master/Disorders%20cross%20referenced%20JSON
+        - https://github.com/Orphanet/Orphadata.org/tree/master/Disorders%20with%20their%20associated%20genes
+    - add gaps report (custom via import) to XML report
+        - CCDS +-5 bases!?
+        - gap report as XML and additional report of gaps to sanger-validate as TXT
+    - Add 'approved_by' and date to make printing the sheet obsolete
+        - lock editing the report config then?
 
 Tools:
 - NGSDImportHPO: Add G2P database (https://www.ebi.ac.uk/gene2phenotype)? Ask HPO people if they include it
