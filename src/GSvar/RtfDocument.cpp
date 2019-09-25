@@ -40,6 +40,7 @@ RtfSourceCode RtfParagraph::RtfCode()
 	if(indent_block_left_ != 0) output << "\\li" + QByteArray::number(indent_block_left_);
 	if(indent_block_right_ != 0) output << "\\ri" + QByteArray::number(indent_block_right_);
 	if(indent_first_line_ != 0) output << "\\fi" + QByteArray::number(indent_first_line_);
+	if(line_spacing_ != 0) output << "\\sl" + QByteArray::number(line_spacing_);
 
 	output.append(RtfText::RtfCode());
 
@@ -280,6 +281,13 @@ RtfSourceCode RtfTableRow::writeRowHeader()
 {
 	QByteArray output = "\\trowd\\trgraph" + QByteArray::number(table_row_gap_half) + (tr_left_ > 0 ? "\\trleft" + QByteArray::number(tr_left_) : "");
 
+	if(padding_ > 0)
+	{
+		QByteArray temp =QByteArray::number(padding_);
+		output.append("\\trpaddb"+temp+"\\trpaddl"+temp+"\\trpaddr"+temp+"\\trpaddt"+temp);
+	}
+
+
 	//Position of the rightmost extreme of a single cell
 	int right_cell_offset = tr_left_;
 	foreach(auto cell, cells_) //Cell specification
@@ -346,6 +354,8 @@ RtfTable::RtfTable(const QList< QList<QByteArray> >& contents, const QList< QLis
 RtfSourceCode RtfTable::RtfCode()
 {
 	QByteArrayList output;
+	if(rows_.count() == 0) return "\n";
+
 	for(int i=0;i<rows_.count();++i)
 	{
 		output << rows_[i].writeRow();
@@ -361,6 +371,19 @@ RtfTable& RtfTable::setUniqueBorder(int border, const QByteArray &border_type, i
 		rows_[i].setBorders(border,border_type);
 		if(border_color != 0) rows_[i].setBorderColor(border_color);
 	}
+	return *this;
+}
+
+RtfTable& RtfTable::setUniqueFontSize(int font_size)
+{
+	for(auto& row : rows_)
+	{
+		for(int i=0;i<row.count();++i)
+		{
+			row[i].format().setFontSize(font_size);
+		}
+	}
+
 	return *this;
 }
 

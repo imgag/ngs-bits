@@ -809,6 +809,11 @@ void ReportWorker::validateAndCopyReport(QString from, QString to,bool put_to_ar
 	}
 }
 
+QString ReportWorker::inheritance(QString gene_info, bool color)
+{
+	return gene_info; //TODO Axel
+}
+
 QString ReportWorker::trans(const QString& text) const
 {
 	if (settings_.language=="german")

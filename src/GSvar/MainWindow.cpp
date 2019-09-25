@@ -1325,11 +1325,6 @@ void MainWindow::on_actionAnnotateSomaticVariants_triggered()
 		return;
 	}
 
-
-	//Make sure that only germline variant files are annotated with somatic pair files
-	if(variants_.type() != AnalysisType::GERMLINE_SINGLESAMPLE) return;
-	if(somatic_variants.type() != AnalysisType::SOMATIC_PAIR) return;
-
 	//Get Indices of gene
 	int i_germline_gene = variants_.annotationIndexByName("gene",true,false);
 	int i_somatic_gene = somatic_variants.annotationIndexByName("gene",true,false);
@@ -1394,9 +1389,80 @@ void MainWindow::on_actionAnnotateSomaticVariants_triggered()
 	}
 
 
-	variants_.store(filename_);
+	//Annotate cnvs
+	QStringList cnv_files = QFileInfo(filename).dir().entryList({"*_clincnv.tsv"},QDir::Files);
+
+	bool skip_cnv_annotation = false;
+
+	if(cnv_files.count() != 1)
+	{
+		QMessageBox::warning(this,"No ClinCNV file", "No or multiple ClinCNV files in somatic sample folder detected. Skipping somatic CNV annotation");
+		skip_cnv_annotation = true;
+	}
+
+	CnvList cnvs;
+	try
+	{
+		cnvs.load(QFileInfo(filename).dir().canonicalPath() + "/" + cnv_files[0]);
+	}
+	catch(...)
+	{
+		QMessageBox::warning(this,"CliNCNV file","Could not parse ClinCNV file. Skipping somatic CNV annotation.");
+		skip_cnv_annotation = true;
+	}
+
+	int i_cn_change = cnvs.annotationIndexByName("tumor_CN_change", false);
+	int i_tumor_clonality = cnvs.annotationIndexByName("tumor_clonality", false);
+	int i_cgi_driver_statement = cnvs.annotationIndexByName("CGI_driver_statement", false);
+	int i_cgi_genes = cnvs.annotationIndexByName("CGI_genes", false);
+	if(i_cn_change == -1 || i_tumor_clonality == -1 || i_cgi_driver_statement == -1)
+	{
+		QMessageBox::warning(this,"CNV file outdated","Could not find all neccessary columns in ClinCNV file. Aborting CNV annotation");
+		skip_cnv_annotation = true;
+	}
+
+	if(!skip_cnv_annotation)
+	{
+		int i_germline_annot_cnvs = variants_.addAnnotationIfMissing(somatic_prefix + "_somatic_cnvs","CNVs from somatic file that overlap SNP. tumor_CN_change:tumor_clonality:CGI_driver_statement");
+
+		for(int i=0; i<variants_.count(); ++i)
+		{
+			auto& snv = variants_[i];
+
+			QList<QByteArray> germline_genes = variants_[i].annotations().at(i_germline_gene).split(',');
+			QByteArrayList annotations;
+
+			for(int j=0; j<cnvs.count(); ++j)
+			{
+				if(cnvs[j].overlapsWith(snv.chr(),snv.start(),snv.end()))
+				{
+					annotations << cnvs[j].annotations().at(i_cn_change) + ":" + cnvs[j].annotations().at(i_tumor_clonality);
+
+					QList<QByteArray> somatic_genes = cnvs[j].annotations().at(i_cgi_genes).split(',');
+
+					QByteArrayList driver_statements = cnvs[j].annotations().at(i_cgi_driver_statement).split(',');
+
+					QByteArrayList driver_statements_annotated = {};
+
+					for(const auto& germline_gene : germline_genes)
+					{
+						for(int k = 0; k < somatic_genes.count(); ++k)
+						{
+							if(db.geneToApproved(germline_gene,true) == db.geneToApproved(somatic_genes[k],true))
+							{
+								driver_statements_annotated << driver_statements[k];
+							}
+						}
+					}
+					if(!driver_statements_annotated.empty()) annotations << driver_statements_annotated.join();
+				}
+			}
+			snv.annotations()[i_germline_annot_cnvs] = annotations.join(":");
+		}
+	}
 
 	QMessageBox::information(this,"Success","Somatic variants from " + filename + " were annotated successfully.");
+	variants_.store(filename_);
 	loadFile(filename_);
 	QApplication::restoreOverrideCursor();
 }

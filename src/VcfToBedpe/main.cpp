@@ -25,10 +25,10 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Converts a vcf file containing SVs to Bedpe.");
-		setExtendedDescription({"Input can be MANTA oder DELLY vcf files"});
+		setDescription("Converts a VCF file containing structural variants to BEDPE format.");
+		setExtendedDescription({"Input can be MANTA oder DELLY VCF files."});
 		addInfile("in", "Input structural variant list in VCF format.", false, true);
-		addOutfile("out", "Output structural variant list in Bedpe format.", false, true);
+		addOutfile("out", "Output structural variant list in BEDPE format.", false, true);
 		addFlag("no_sort","Do not sort results");
 	}
 

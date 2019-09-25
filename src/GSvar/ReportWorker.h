@@ -42,6 +42,8 @@ public:
 	static void writeHtmlFooter(QTextStream& stream);
 	static void validateAndCopyReport(QString from, QString to, bool put_to_archive, bool is_rtf);
 
+	static QString inheritance(QString gene_info, bool color=true);
+
 private:
 	//input variables
 	QString sample_name_;

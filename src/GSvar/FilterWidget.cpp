@@ -155,7 +155,7 @@ void FilterWidget::resetSignalsUnblocked(bool clear_roi)
 	phenotypesChanged();
 }
 
-QString FilterWidget::filterFileName() const
+QString FilterWidget::filterFileName()
 {
     return GSvarHelper::applicationBaseName() + "_filters.ini";
 }
