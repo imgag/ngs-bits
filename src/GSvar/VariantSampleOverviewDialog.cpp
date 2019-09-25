@@ -52,6 +52,26 @@ VariantSampleOverviewDialog::VariantSampleOverviewDialog(const Variant& variant,
 		addItem(row, 10, diag_data.user);
 		addItem(row, 11, s_data.comments);
 
+		//get causal genes from report config
+		GeneSet genes_causal;
+		SqlQuery query3 = db.getQuery();
+		query3.exec("SELECT v.gene FROM variant v, report_configuration rc, report_configuration_variant rcv WHERE v.id=rcv.variant_id AND rcv.report_configuration_id=rc.id AND rcv.type='diagnostic variant' AND rcv.causal=1 AND rc.processed_sample_id=" + ps_id);
+		while(query3.next())
+		{
+			genes_causal << query3.value(0).toByteArray().split(',');
+		}
+		addItem(row, 12, genes_causal.join(','));
+
+		//get candidate genes from report config
+		GeneSet genes_candidate;
+		SqlQuery query4 = db.getQuery();
+		query4.exec("SELECT v.gene FROM variant v, report_configuration rc, report_configuration_variant rcv WHERE v.id=rcv.variant_id AND rcv.report_configuration_id=rc.id AND rcv.type='candidate variant' AND rc.processed_sample_id=" + ps_id);
+		while(query4.next())
+		{
+			genes_candidate << query4.value(0).toByteArray().split(',');
+		}
+		addItem(row, 13, genes_candidate.join(','));
+
 		++row;
 	}
 

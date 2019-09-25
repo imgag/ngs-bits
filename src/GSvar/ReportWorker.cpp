@@ -809,9 +809,29 @@ void ReportWorker::validateAndCopyReport(QString from, QString to,bool put_to_ar
 	}
 }
 
-QString ReportWorker::inheritance(QString gene_info, bool color)
+QByteArray ReportWorker::inheritance(const QByteArray& gene_info, bool color) //TODO Axel
 {
-	return gene_info; //TODO Axel
+	QSet<QByteArray> output;
+
+	//parse gene_info entry - example: AL627309.1 (inh=n/a pLI=n/a), PRPF31 (inh=AD pLI=0.97), 34P13.14 (inh=n/a pLI=n/a)
+	QByteArrayList genes = gene_info.split(',');
+	foreach(const QByteArray gene, genes)
+	{
+		int start = gene.indexOf('(');
+		QByteArrayList entries = gene.mid(start+1, gene.length()-start-2).split(' ');
+		foreach(const QByteArray& entry, entries)
+		{
+			if (entry.startsWith("inh="))
+			{
+				QByteArrayList modes = entry.mid(4).split('+');
+				foreach(const QByteArray& mode, modes)
+				{
+					output << mode.trimmed();
+				}
+			}
+		}
+	}
+	return output.toList().join(", ");
 }
 
 QString ReportWorker::trans(const QString& text) const

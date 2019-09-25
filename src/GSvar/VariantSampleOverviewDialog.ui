@@ -136,6 +136,16 @@
        <string>sample_comment</string>
       </property>
      </column>
+     <column>
+      <property name="text">
+       <string>causal genes</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>candidate genes</string>
+      </property>
+     </column>
     </widget>
    </item>
    <item>

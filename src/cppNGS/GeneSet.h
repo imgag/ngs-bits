@@ -28,8 +28,17 @@ class CPPNGSSHARED_EXPORT GeneSet
 		///Inserts a gene
 		void insert(const QByteArray& gene);
 
-		///Inserts a gene list
+		///Inserts a gene set
 		void insert(const GeneSet& genes)
+		{
+			foreach(const QByteArray& gene, genes)
+			{
+				insert(gene);
+			}
+		}
+
+		///Inserts a gene list
+		void insert(const QByteArrayList& genes)
 		{
 			foreach(const QByteArray& gene, genes)
 			{
@@ -46,6 +55,13 @@ class CPPNGSSHARED_EXPORT GeneSet
 
 		///Inserts a gene set
 		GeneSet& operator<<(const GeneSet& genes)
+		{
+			insert(genes);
+			return *this;
+		}
+
+		///Inserts a gene list
+		GeneSet& operator<<(const QByteArrayList& genes)
 		{
 			insert(genes);
 			return *this;
