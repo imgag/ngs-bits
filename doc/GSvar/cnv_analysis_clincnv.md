@@ -28,10 +28,10 @@ For each CNV the following properties are shown (3):
 * number of regions (exons/bins)
 * affected genes
 * copy-number change
-* log-likelyhood: logarighm of the ratio between likelihoods of the *no CN change model* vs the *CN equal to the reported state model* (bigger is better)
+* log-likelyhood: logarithm of the ratio between likelihoods of the *no CN change model* vs the *CN equal to the reported state model* (bigger is better)
 * number of regions
 * potential AF: frequency of the copy-number change *in the analyzed cohort (Note: this can deviate from the population allele frequency, especially for rare CNVs)*
-* q-value: p-value corrected for the number of CNVS detected (smaller is better)
+* q-value: p-value corrected for the number of CNVs detected (smaller is better)
 
 Additionally, generic annotation columns can be added (4), e.g.:
 
@@ -54,7 +54,7 @@ To increase sensitivity, the user can lower the log-likelyhood cutoff.
 However, when lowering the cutoff, the number of CNVs increases dramatically.  
 Thus, low cutoffs should only be used when looking at specific regions of interest, e.g. a single gene that matches the phenotype of the patient.
 
-The following table shows the expected number of CNVS for exomes/genomes using different log-likelihood cutoffs:
+The following table shows the expected number of CNVs for exomes/genomes using different log-likelihood cutoffs:
 
 <table>
 	<tr><th>log-likelihood cutoff</th><th>exome</th><th>genome</th></tr>

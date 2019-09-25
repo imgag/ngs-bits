@@ -158,6 +158,8 @@ public:
         return filters_;
     }
 
+	///Equality operator (only compares the variant itself, not annotation).
+	bool operator==(const Variant& rhs) const;
     ///Less-than operator.
     bool operator<(const Variant& rhs) const;
     ///Overlap check for chromosome and position range.

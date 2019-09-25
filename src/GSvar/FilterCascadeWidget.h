@@ -15,7 +15,7 @@ public:
 	///Constructor
 	FilterCascadeWidget(QWidget* parent = 0);
 	///Sets the filter subject
-	void setSubject(FilterSubject subject);
+	void setSubject(VariantType subject);
 	///Sets the valid entries for small variant list 'filter' column.
 	void setValidFilterEntries(const QStringList& filter_entries);
 
@@ -52,7 +52,7 @@ protected slots:
 private:
 	Ui::FilterCascadeWidget ui_;
 	FilterCascade filters_;
-	FilterSubject subject_;
+	VariantType subject_;
 	QStringList valid_filter_entries_;
 };
 

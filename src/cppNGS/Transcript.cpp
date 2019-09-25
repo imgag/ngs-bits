@@ -33,7 +33,7 @@ Transcript::SOURCE Transcript::stringToSource(QString source)
 	THROW(ProgrammingException, "Unknown transcript source string '" + source + "!");
 }
 
-QString Transcript::strandToString(Transcript::STRAND strand)
+QByteArray Transcript::strandToString(Transcript::STRAND strand)
 {
 	switch(strand)
 	{
@@ -46,7 +46,7 @@ QString Transcript::strandToString(Transcript::STRAND strand)
 	THROW(ProgrammingException, "Unknown transcript strand enum value '" + QString::number(strand) + "!");
 }
 
-Transcript::STRAND Transcript::stringToStrand(QString strand)
+Transcript::STRAND Transcript::stringToStrand(QByteArray strand)
 {
 	strand = strand.toUpper();
 	if (strand=="+")

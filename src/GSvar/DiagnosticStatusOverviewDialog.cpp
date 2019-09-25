@@ -100,8 +100,6 @@ void DiagnosticStatusOverviewDialog::updateOverviewTable()
 		addItem(r, 10, processed_sample_data.normal_sample_name);
 		addItem(r, 11, diag_data.dagnostic_status);
 		addItem(r, 12, diag_data.outcome);
-		addItem(r, 13, diag_data.genes_causal);
-		addItem(r, 14, diag_data.inheritance_mode);
 		addItem(r, 15, diag_data.comments, true);
 		addItem(r, 16, sample_data.comments, true);
 		addItem(r, 17, processed_sample_data.comments, true);
@@ -139,11 +137,11 @@ void DiagnosticStatusOverviewDialog::sampleContextMenu(QPoint pos)
 	QTableWidgetItem* item = ui.sample_infos->itemAt(pos);
 	if (!item) return;
 
-	//create contect menu
+	//create context menu
 	QMenu menu(ui.sample_infos);
 	menu.addAction("Open sample");
 
-	//execute contect menu
+	//execute context menu
 	QAction* action = menu.exec(ui.sample_infos->viewport()->mapToGlobal(pos));
 	if (!action) return;
 

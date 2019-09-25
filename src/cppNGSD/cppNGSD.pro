@@ -37,13 +37,15 @@ SOURCES += \
     SqlQuery.cpp\
     NGSD.cpp \
     GenLabDB.cpp \
-    DBTable.cpp
+    DBTable.cpp \
+    ReportConfiguration.cpp
 
 HEADERS += \
     SqlQuery.h \
     NGSD.h \
     GenLabDB.h \
     DBTable.h \
+    ReportConfiguration.h
 
 RESOURCES += \
     cppNGSD.qrc

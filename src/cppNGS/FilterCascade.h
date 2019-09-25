@@ -4,6 +4,7 @@
 #include "VariantList.h"
 #include "CnvList.h"
 #include "GeneSet.h"
+#include "VariantType.h"
 
 #include <QVariant>
 #include <QString>
@@ -21,13 +22,6 @@ enum FilterParameterType
 	BOOL,
 	STRING,
 	STRINGLIST
-};
-
-//Filter subject
-enum class FilterSubject
-{
-	SNVS_INDELS, //Small variants (SNVs and InDels)
-	CNVS //CNVs
 };
 
 //Parameter
@@ -116,7 +110,7 @@ class CPPNGSSHARED_EXPORT FilterBase
 			return name_;
 		}
 		//Returns the filter subject.
-		FilterSubject type() const
+		VariantType type() const
 		{
 			return type_;
 		}
@@ -167,7 +161,7 @@ class CPPNGSSHARED_EXPORT FilterBase
 	protected:
 		FilterBase(const FilterBase& rhs) = delete;
 		QString name_;
-		FilterSubject type_;
+		VariantType type_;
 		QStringList description_;
 		QList<FilterParameter> params_;
 		bool enabled_;
@@ -296,7 +290,7 @@ class CPPNGSSHARED_EXPORT FilterFactory
 		static QStringList filterNames();
 
 		//Returns a complete list of supported filter names for a given subject
-		static QStringList filterNames(FilterSubject subject);
+		static QStringList filterNames(VariantType subject);
 
 	private:
 		FilterFactory() = delete;

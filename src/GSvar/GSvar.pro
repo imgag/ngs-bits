@@ -17,7 +17,7 @@ SOURCES += main.cpp\
     ClassificationDialog.cpp \
     DBAnnotationWorker.cpp \
     ApprovedGenesDialog.cpp \
-    GeneInfoDialog.cpp \
+    GeneWidget.cpp \
     PhenoToGenesDialog.cpp \
     PhenotypeSelector.cpp \
     GenesToRegionsDialog.cpp \
@@ -60,7 +60,10 @@ SOURCES += main.cpp\
     ProcessedSampleSelector.cpp \
     FilterWidgetCNV.cpp \
     FilterCascadeWidget.cpp \
-    FilterWidget.cpp
+    FilterWidget.cpp \
+    ReportSettings.cpp \
+    ReportVariantDialog.cpp \
+    GSvarHelper.cpp
 
 HEADERS  += MainWindow.h \
     ExternalToolDialog.h \
@@ -72,7 +75,7 @@ HEADERS  += MainWindow.h \
     ClassificationDialog.h \
     DBAnnotationWorker.h \
     ApprovedGenesDialog.h \
-    GeneInfoDialog.h \
+    GeneWidget.h \
     PhenoToGenesDialog.h \
     PhenotypeSelector.h \
     GenesToRegionsDialog.h \
@@ -115,7 +118,10 @@ HEADERS  += MainWindow.h \
     ProcessedSampleSelector.h \
     FilterWidgetCNV.h \
     FilterCascadeWidget.h \
-    FilterWidget.h
+    FilterWidget.h \
+    ReportSettings.h \
+    ReportVariantDialog.h \
+    GSvarHelper.h
 
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
@@ -124,7 +130,7 @@ FORMS    += MainWindow.ui \
     ClassificationDialog.ui \
     ValidationDialog.ui \
     ApprovedGenesDialog.ui \
-    GeneInfoDialog.ui \
+    GeneWidget.ui \
     PhenoToGenesDialog.ui \
     PhenotypeSelector.ui \
     GenesToRegionsDialog.ui \
@@ -161,7 +167,8 @@ FORMS    += MainWindow.ui \
     ProcessedSampleSelector.ui \
     FilterWidgetCNV.ui \
     FilterCascadeWidget.ui \
-    FilterWidget.ui
+    FilterWidget.ui \
+    ReportVariantDialog.ui
 
 include("../app_gui.pri")
 

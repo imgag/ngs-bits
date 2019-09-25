@@ -214,6 +214,30 @@
                  </widget>
                 </item>
                 <item>
+                 <widget class="Line" name="line_5">
+                  <property name="orientation">
+                   <enum>Qt::Vertical</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QToolButton" name="report_btn">
+                  <property name="toolTip">
+                   <string>Report</string>
+                  </property>
+                  <property name="text">
+                   <string>...</string>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="GSvar.qrc">
+                    <normaloff>:/Icons/Report.png</normaloff>:/Icons/Report.png</iconset>
+                  </property>
+                  <property name="popupMode">
+                   <enum>QToolButton::InstantPopup</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item>
                  <spacer name="horizontalSpacer">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
@@ -384,7 +408,6 @@
      <property name="title">
       <string>Genes</string>
      </property>
-     <addaction name="actionGeneInfo"/>
      <addaction name="actionGeneVariantInfo"/>
      <addaction name="actionConvertHgnc"/>
      <addaction name="actionGenesToRegions"/>
@@ -439,7 +462,6 @@
    </attribute>
    <addaction name="actionNGSDAnnotation"/>
    <addaction name="actionAnnotateSomaticVariants"/>
-   <addaction name="actionReport"/>
    <addaction name="separator"/>
    <addaction name="actionAnalysisStatus"/>
    <addaction name="actionReanalyze"/>
@@ -485,19 +507,6 @@
   <action name="actionRecent">
    <property name="text">
     <string>Recent files</string>
-   </property>
-  </action>
-  <action name="actionReport">
-   <property name="icon">
-    <iconset resource="GSvar.qrc">
-     <normaloff>:/Icons/Report.png</normaloff>
-     <normalon>:/Icons/Report.png</normalon>:/Icons/Report.png</iconset>
-   </property>
-   <property name="text">
-    <string>Generate text report.</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+R</string>
    </property>
   </action>
   <action name="actionStatisticsFastA">
@@ -622,11 +631,6 @@
   <action name="actionConvertHgnc">
    <property name="text">
     <string>Genes &gt; Approved symbols (HGNC)</string>
-   </property>
-  </action>
-  <action name="actionGeneInfo">
-   <property name="text">
-    <string>Gene info (germline)</string>
    </property>
   </action>
   <action name="actionPhenoToGenes">
@@ -856,6 +860,18 @@
    </property>
    <property name="text">
     <string>Sample search</string>
+   </property>
+  </action>
+  <action name="actionOpenGeneTabByName">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/NGSD_gene.png</normaloff>:/Icons/NGSD_gene.png</iconset>
+   </property>
+   <property name="text">
+    <string>Gene</string>
+   </property>
+   <property name="toolTip">
+    <string>Open Gene tab from NGSD.</string>
    </property>
   </action>
  </widget>

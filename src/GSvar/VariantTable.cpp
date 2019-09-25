@@ -1,21 +1,28 @@
 #include "VariantTable.h"
 #include "GUIHelper.h"
 #include "Exceptions.h"
+#include "GSvarHelper.h"
 
 #include <QBitArray>
 #include <QApplication>
 #include <QClipboard>
 #include <QMessageBox>
+#include <QHeaderView>
 
 VariantTable::VariantTable(QWidget* parent)
 	: QTableWidget(parent)
 {
 }
 
-void VariantTable::update(const VariantList variants_, const FilterResult& filter_result_, const GeneSet& imprinting_genes_, int max_variants)
+void VariantTable::update(const VariantList& variants, const FilterResult& filter_result, const ReportSettings& report_settings, int max_variants)
 {
-	int row_count_new = std::min(filter_result_.countPassing(), max_variants);
-	int col_count_new = 5 + variants_.annotations().count();
+	//init
+	const GeneSet& imprinting_genes = GSvarHelper::impritingGenes();
+	QSet<int> report_variant_indices = report_settings.report_config.variantIndices(VariantType::SNVS_INDELS, false).toSet();
+
+	//set rows and cols
+	int row_count_new = std::min(filter_result.countPassing(), max_variants);
+	int col_count_new = 5 + variants.annotations().count();
 	if (rowCount()!=row_count_new || columnCount()!=col_count_new)
 	{
 		//completely clear items (is faster then resizing)
@@ -36,17 +43,17 @@ void VariantTable::update(const VariantList variants_, const FilterResult& filte
 	horizontalHeaderItem(3)->setToolTip("Reference genome sequence");
 	setHorizontalHeaderItem(4, createTableItem("obs"));
 	horizontalHeaderItem(4)->setToolTip("Sequence observed in the sample");
-	for (int i=0; i<variants_.annotations().count(); ++i)
+	for (int i=0; i<variants.annotations().count(); ++i)
 	{
-		QString anno = variants_.annotations()[i].name();
+		QString anno = variants.annotations()[i].name();
 		QTableWidgetItem* header = new QTableWidgetItem(anno);
 
 		//additional descriptions for filter column
 		QString add_desc = "";
 		if (anno=="filter")
 		{
-			auto it = variants_.filters().cbegin();
-			while (it!=variants_.filters().cend())
+			auto it = variants.filters().cbegin();
+			while (it!=variants.filters().cend())
 			{
 				add_desc += "\n - "+it.key() + ": " + it.value();
 				++it;
@@ -54,7 +61,7 @@ void VariantTable::update(const VariantList variants_, const FilterResult& filte
 		}
 
 		//additional descriptions and color for genotype columns
-		SampleHeaderInfo sample_data = variants_.getSampleHeader(false);
+		SampleHeaderInfo sample_data = variants.getSampleHeader(false);
 		foreach(const SampleInfo& info, sample_data)
 		{
 			if (info.column_name==anno)
@@ -74,29 +81,29 @@ void VariantTable::update(const VariantList variants_, const FilterResult& filte
 			}
 		}
 
-		QString header_desc = variants_.annotationDescriptionByName(anno, false, false).description();
+		QString header_desc = variants.annotationDescriptionByName(anno, false, false).description();
 		header->setToolTip(header_desc + add_desc);
 		setHorizontalHeaderItem(i+5, header);
 	}
 
 	//content
-	int i_genes = variants_.annotationIndexByName("gene", true, false);
-	int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, false);
-	int i_validation = variants_.annotationIndexByName("validation", true, false);
-	int i_classification = variants_.annotationIndexByName("classification", true, false);
-	int i_comment = variants_.annotationIndexByName("comment", true, false);
-	int i_ihdb_hom = variants_.annotationIndexByName("NGSD_hom", true, false);
-	int i_ihdb_het = variants_.annotationIndexByName("NGSD_het", true, false);
-	int i_clinvar = variants_.annotationIndexByName("ClinVar", true, false);
-	int i_hgmd = variants_.annotationIndexByName("HGMD", true, false);
+	int i_genes = variants.annotationIndexByName("gene", true, false);
+	int i_co_sp = variants.annotationIndexByName("coding_and_splicing", true, false);
+	int i_validation = variants.annotationIndexByName("validation", true, false);
+	int i_classification = variants.annotationIndexByName("classification", true, false);
+	int i_comment = variants.annotationIndexByName("comment", true, false);
+	int i_ihdb_hom = variants.annotationIndexByName("NGSD_hom", true, false);
+	int i_ihdb_het = variants.annotationIndexByName("NGSD_het", true, false);
+	int i_clinvar = variants.annotationIndexByName("ClinVar", true, false);
+	int i_hgmd = variants.annotationIndexByName("HGMD", true, false);
 	int r = -1;
-	for (int i=0; i<variants_.count(); ++i)
+	for (int i=0; i<variants.count(); ++i)
 	{
-		if (!filter_result_.passing(i)) continue;
+		if (!filter_result.passing(i)) continue;
 
 		++r;
 		if (r>=max_variants) break; //maximum number of variants reached > abort
-		const Variant& variant = variants_[i];
+		const Variant& variant = variants[i];
 
 		setItem(r, 0, createTableItem(variant.chr().str()));
 		if (!variant.chr().isAutosome())
@@ -176,11 +183,11 @@ void VariantTable::update(const VariantList variants_, const FilterResult& filte
 				bool hit = false;
 				if (anno.contains(','))
 				{
-					 hit = imprinting_genes_.intersectsWith(GeneSet::createFromText(anno, ','));
+					 hit = imprinting_genes.intersectsWith(GeneSet::createFromText(anno, ','));
 				}
 				else
 				{
-					hit = imprinting_genes_.contains(anno);
+					hit = imprinting_genes.contains(anno);
 				}
 				if (hit)
 				{
@@ -209,8 +216,24 @@ void VariantTable::update(const VariantList variants_, const FilterResult& filte
 			font.setWeight(QFont::Bold);
 			item->setFont(font);
 		}
+		if (report_variant_indices.contains(i))
+		{
+			item->setIcon(reportIcon(report_settings.report_config.get(VariantType::SNVS_INDELS, i).showInReport()));
+		}
 		setVerticalHeaderItem(r, item);
 	}
+}
+
+void VariantTable::updateVariantHeaderIcon(const ReportSettings& report_settings, int variant_index)
+{
+	int row = variantIndexToRow(variant_index);
+
+	QIcon report_icon;
+	if (report_settings.report_config.exists(VariantType::SNVS_INDELS, variant_index))
+	{
+		report_icon = reportIcon(report_settings.report_config.get(VariantType::SNVS_INDELS, variant_index).showInReport());
+	}
+	verticalHeaderItem(row)->setIcon(report_icon);
 }
 
 int VariantTable::columnIndex(const QString& column_name) const
@@ -269,9 +292,29 @@ int VariantTable::rowToVariantIndex(int row) const
 	//convert header text to integer
 	bool ok;
 	int variant_index = header->data(Qt::UserRole).toInt(&ok);
-	if (!ok) THROW(ProgrammingException, "Variant table row header user data '" + header->data(Qt::UserRole).toString() + "' not an integer!");
+	if (!ok) THROW(ProgrammingException, "Variant table row header user data '" + header->data(Qt::UserRole).toString() + "' is not an integer!");
 
 	return variant_index;
+}
+
+int VariantTable::variantIndexToRow(int index) const
+{
+	for (int row=0; row<verticalHeader()->count(); ++row)
+	{
+		QTableWidgetItem* item = verticalHeaderItem(row);
+		if (item==nullptr) THROW(ProgrammingException, "Variant table row header not set for row '" + QString::number(row) + "'!");
+
+		bool ok;
+		int index_header = item->data(Qt::UserRole).toInt(&ok);
+		if (!ok) THROW(ProgrammingException, "Variant table row header user data '" + item->data(Qt::UserRole).toString() + "' is not an integer!");
+
+		if(index_header==index)
+		{
+			return row;
+		}
+	}
+
+	THROW(ProgrammingException, "Variant table row header not found for variant with index '" + QString::number(index) + "'!");
 }
 
 QList<int> VariantTable::columnWidths() const
@@ -568,6 +611,11 @@ void VariantTable::copyToClipboard(bool split_quality)
 	}
 
 	QApplication::clipboard()->setText(selected_text);
+}
+
+QIcon VariantTable::reportIcon(bool show_in_report)
+{
+	return QIcon(show_in_report ? QPixmap(":/Icons/Report_add.png") : QPixmap(":/Icons/Report exclude.png"));
 }
 
 void VariantTable::keyPressEvent(QKeyEvent* event)

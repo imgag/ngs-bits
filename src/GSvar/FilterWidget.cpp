@@ -6,6 +6,7 @@
 #include "ScrollableTextDialog.h"
 #include "PhenotypeSelectionWidget.h"
 #include "GUIHelper.h"
+#include "GSvarHelper.h"
 #include <QFileInfo>
 #include <QFileDialog>
 #include <QCompleter>
@@ -17,7 +18,7 @@ FilterWidget::FilterWidget(QWidget *parent)
 	, ui_()
 {
 	ui_.setupUi(this);
-	ui_.cascade_widget->setSubject(FilterSubject::SNVS_INDELS);
+	ui_.cascade_widget->setSubject(VariantType::SNVS_INDELS);
 
 	connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SLOT(updateFilterName()));
 	connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SIGNAL(filtersChanged()));
@@ -34,6 +35,7 @@ FilterWidget::FilterWidget(QWidget *parent)
 	connect(ui_.gene, SIGNAL(editingFinished()), this, SLOT(geneChanged()));
 	connect(ui_.text, SIGNAL(editingFinished()), this, SLOT(textChanged()));
 	connect(ui_.region, SIGNAL(editingFinished()), this, SLOT(regionChanged()));
+	connect(ui_.report_config, SIGNAL(stateChanged(int)), this, SLOT(reportConfigFilterChanged()));
 
 	QAction* action = new QAction("clear", this);
 	connect(action, &QAction::triggered, this, &FilterWidget::clearTargetRegion);
@@ -42,6 +44,10 @@ FilterWidget::FilterWidget(QWidget *parent)
 	connect(ui_.hpo_terms, SIGNAL(clicked(QPoint)), this, SLOT(editPhenotypes()));
 	connect(ui_.hpo_terms, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showPhenotypeContextMenu(QPoint)));
 	ui_.hpo_terms->setEnabled(Settings::boolean("NGSD_enabled", true));
+
+	ui_.clearn_btn->setMenu(new QMenu());
+	ui_.clearn_btn->menu()->addAction("Clear filters", this, SLOT(clearFilters()));
+	ui_.clearn_btn->menu()->addAction("Clear filters and ROI", this, SLOT(clearFiltersAndRoi()));
 
 	loadTargetRegions();
 	loadFilters();
@@ -142,6 +148,7 @@ void FilterWidget::resetSignalsUnblocked(bool clear_roi)
     ui_.gene->clear();
 	ui_.text->clear();
 	ui_.region->clear();
+	ui_.report_config->setCheckState(Qt::Unchecked);
 
 	//phenotype
 	phenotypes_.clear();
@@ -150,7 +157,7 @@ void FilterWidget::resetSignalsUnblocked(bool clear_roi)
 
 QString FilterWidget::filterFileName()
 {
-	return QCoreApplication::applicationDirPath() + QDir::separator() + QCoreApplication::applicationName().replace(".exe","") + "_filters.ini";
+    return GSvarHelper::applicationBaseName() + "_filters.ini";
 }
 
 void FilterWidget::reset(bool clear_roi)
@@ -207,6 +214,11 @@ void FilterWidget::setRegion(QString region)
 {
 	ui_.region->setText(region);
 	regionChanged();
+}
+
+bool FilterWidget::reportConfigurationVariantsOnly() const
+{
+	return ui_.report_config->isChecked();
 }
 
 const QList<Phenotype>& FilterWidget::phenotypes() const
@@ -323,6 +335,11 @@ void FilterWidget::textChanged()
 }
 
 void FilterWidget::regionChanged()
+{
+	emit filtersChanged();
+}
+
+void FilterWidget::reportConfigFilterChanged()
 {
 	emit filtersChanged();
 }
@@ -507,12 +524,32 @@ void FilterWidget::clearTargetRegion()
 	ui_.roi->setCurrentText("none");
 }
 
+void FilterWidget::clearFilters()
+{
+	reset(false);
+}
+
+void FilterWidget::clearFiltersAndRoi()
+{
+	reset(true);
+}
+
 void FilterWidget::loadFilters()
 {
-
 	QStringList filter_names;
 	filter_names << "[none]";
 	filter_names << FilterCascadeFile::names(filterFileName());
 
-	ui_.filters->addItems(filter_names);
+	for (int i=0; i<filter_names.count(); ++i)
+	{
+		QString name = filter_names[i];
+		if (name=="---")
+		{
+			ui_.filters->insertSeparator(i);
+		}
+		else
+		{
+			ui_.filters->addItem(name, ui_.filters->count());
+		}
+	}
 }

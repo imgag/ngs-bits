@@ -195,16 +195,6 @@
      </column>
      <column>
       <property name="text">
-       <string>causal/candidate genes</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>inheritance</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
        <string>comments (outcome)</string>
       </property>
      </column>

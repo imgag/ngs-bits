@@ -16,7 +16,7 @@ class GapDialog : public QDialog
 	Q_OBJECT
 
 public:
-	GapDialog(QWidget* parent, QString sample_name, QString roi_file, QMap<QString, QStringList> preferred_transcripts);
+    GapDialog(QWidget* parent, QString sample_name, QString roi_file);
 	~GapDialog();
 	void process(QString bam_file, const BedFile& roi, const GeneSet& genes);
 	QString report() const;

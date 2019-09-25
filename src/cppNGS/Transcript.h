@@ -15,11 +15,11 @@ public:
 		return !(name_.isEmpty());
 	}
 
-	QString name() const
+    const QByteArray& name() const
 	{
 		return name_;
 	}
-	void setName(QString name)
+    void setName(const QByteArray& name)
 	{
 		name_ = name;
 	}
@@ -67,12 +67,12 @@ public:
 	static SOURCE stringToSource(QString source);
 
 	///Converts strand enum to string value.
-	static QString strandToString(STRAND strand);
+    static QByteArray strandToString(STRAND strand);
 	///Converts string to strand enum.
-	static STRAND stringToStrand(QString strand);
+    static STRAND stringToStrand(QByteArray strand);
 
 protected:
-	QString name_;
+    QByteArray name_;
 	SOURCE source_;
 	STRAND strand_;
 	BedFile regions_;

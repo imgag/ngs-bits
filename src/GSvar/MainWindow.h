@@ -10,6 +10,7 @@
 #include "FileWatcher.h"
 #include "BusyDialog.h"
 #include "FilterCascade.h"
+#include "ReportSettings.h"
 
 struct IgvFile
 {
@@ -44,9 +45,7 @@ public:
 	///Updates recent files menu
 	void updateRecentFilesMenu();
 	///Updates IGV menu
-	void updateIGVMenu();
-	///Loads preferred transcripts from settings.ini
-	QMap<QString, QStringList> loadPreferredTranscripts() const;
+    void updateIGVMenu();
 	///Updates menu and toolbar according to NGSD-support
 	void updateNGSDSupport();
 	///Returns 'nobr' paragraph start for Qt tooltips
@@ -65,6 +64,9 @@ public:
 	///Context menu for two variants
 	void contextMenuTwoVariants(QPoint pos, int index1, int index2);
 
+	///Edit classification of a variant
+	void editVariantClassification(VariantList& variant, int index);
+
 public slots:
 	///Open dialog
 	void on_actionOpen_triggered();
@@ -74,15 +76,15 @@ public slots:
 	void on_actionChangeLog_triggered();
 	///About dialog
 	void on_actionAbout_triggered();
-	///Report dialog
-	void on_actionReport_triggered();
 	///Open processed sample tabs
 	void openProcessedSampleTabsCurrentSample();
 	///Open processed sample tab by name
 	void on_actionOpenProcessedSampleTabByName_triggered();
 	///Open sequencing run tab by name
 	void on_actionOpenSequencingRunTabByName_triggered();
-	///Gender determination
+    ///Open sequencing gene tab by gene name
+    void on_actionOpenGeneTabByName_triggered();
+    ///Gender determination
 	void on_actionGenderXY_triggered();
 	///Gender determination
 	void on_actionGenderHet_triggered();
@@ -112,8 +114,6 @@ public slots:
 	void on_actionOpenDocumentation_triggered();
 	///Approved symbols dialog
 	void on_actionConvertHgnc_triggered();
-	///Germline gene information dialog
-	void on_actionGeneInfo_triggered();
 	///HPO to regions conversion dialog
 	void on_actionPhenoToGenes_triggered();
 	///Genes to regions conversion dialog
@@ -148,17 +148,33 @@ public slots:
 	///Annotate germline file with somatic variants
 	void on_actionAnnotateSomaticVariants_triggered();
 
+	///Clear report configuration
+	void clearReportConfig();
+	///Load report configuration
+	void loadReportConfig();
+	///Store report configuration
+	void storeReportConfig();
+	///Prints a variant sheet based on the report configuration
+	void printVariantSheet();
+	///Helper function for printVariantSheet()
+	void printVariantSheetRowHeader(QTextStream& stream, bool causal);
+	///Helper function for printVariantSheet()
+	void printVariantSheetRow(QTextStream& stream, const ReportVariantConfiguration& conf);
+	///Generate report
+	void generateReport();
 	///Generates a report (somatic) in .rtf format
 	void generateReportSomaticRTF();
 	///Generates a report (germline)
-	void generateReport();
+	void generateReportGermline();
 	///Finished the report generation (germline)
 	void reportGenerationFinished(bool success);
 
 	///Finished NGSD annotation
 	void databaseAnnotationFinished(bool success);
-	///Shows the variant list contect menu
+	///Shows the variant list context menu
 	void varsContextMenu(QPoint pos);
+	///Shows the variant header context menu
+	void varHeaderContextMenu(QPoint pos);
 	///Updated the variant context menu
 	void updateVariantDetails();
 	///Updates the variant table once the variant list changed
@@ -173,10 +189,12 @@ public slots:
 	void handleInputFileChange();
 	///A variant has been double-clicked > open in IGV
 	void variantCellDoubleClicked(int row, int col);
+	///A variant header has beed double-clicked > edit report config
+	void variantHeaderDoubleClicked(int row);
 	///Open region in IGV
 	void openInIGV(QString region);
 	///Edit classification of current variant
-	void editVariantClassification();
+	void editVariantClassificationOfSelectedVariant();
 	///Edit validation status of current variant
 	void editVariantValidation();
 	///Edit comment of current variant
@@ -216,21 +234,31 @@ public slots:
 	void openProcessedSampleTab(QString ps_name);
 	///Open run tab
 	void openRunTab(QString run_name);
-	///Process a tab close request
+    ///Open gene tab
+    void openGeneTab(QByteArray symbol);
+    ///Process a tab close request
 	void closeTab(int index);
 
 	///Sends commands to IGV through the default socket. Returns if the commands executed successfully.
 	bool executeIGVCommands(QStringList commands);
 
+	///Edits the variant configuration for the variant with the given index
+	void editVariantReportConfiguration(int index);
+	///Updates the variant table icon for the variant with the given index
+	void updateReportConfigHeaderIcon(int index);
+
+
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);
 	virtual void dropEvent(QDropEvent* e);
+	void closeEvent(QCloseEvent* event);
 
 private:
 	//GUI
 	Ui::MainWindow ui_;
 	int var_last_;
 	BusyDialog* busy_dialog_;
+	QList<QSharedPointer<QDialog>> modeless_dialogs_;
 
 	//DATA
 	QString filename_;
@@ -246,10 +274,8 @@ private:
 	QString last_report_path_;
 	QList<Phenotype> last_phenos_;
 	BedFile last_phenos_roi_;
-	QMap<QString, QStringList> preferred_transcripts_;
-	QList<QSharedPointer<QDialog>> modeless_dialogs_;
-	GeneSet imprinting_genes_;
-	QHash<QByteArray, BedFile> gene2region_cache_;
+    QHash<QByteArray, BedFile> gene2region_cache_;
+	ReportSettings report_settings_;
 
 	//SPECIAL
 	///Timer to delay some initialization, e.g. load CLI argument after the main window is visible

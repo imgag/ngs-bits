@@ -1,6 +1,6 @@
 ## Variant publication
 
-Novel pathogenic variant should be uploaded to one of the public variant databases.  
+Pathogenic variant should be uploaded to one of the public variant databases.  
 Currenlty only [LOVD](http://www.lovd.nl/3.0/home) is supported - [ClinVar](https://www.ncbi.nlm.nih.gov/clinvar/) support is planned.
 
 ### Submitting SNVs/InDels
@@ -53,15 +53,3 @@ A full list of supported transcripts for each gene can be found in the [LOVD doc
 --
 
 [back to main page](index.md)
-
-
-
-
-
-
-
-
-
-
-
-

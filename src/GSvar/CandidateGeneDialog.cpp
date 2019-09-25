@@ -142,17 +142,16 @@ void CandidateGeneDialog::updateVariants()
 			QString type = types.toList().join(", ");
 			QString coding = parts_match.join(", ");
 
-			//add variant line to output
-
 			//add sample info
 			QString var_id = query.value(0).toString();
 			SqlQuery query2 = db.getQuery();
-			query2.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), dv.genotype, p.name, s.disease_group, vc.class, s.name_external, ds.outcome, ds.genes_causal, s.id FROM sample s, processed_sample ps LEFT JOIN diag_status ds ON ps.id=ds.processed_sample_id, project p, detected_variant dv LEFT JOIN variant_classification vc ON dv.variant_id=vc.variant_id WHERE dv.processed_sample_id=ps.id AND ps.sample_id=s.id AND ps.project_id=p.id AND dv.variant_id=" + var_id);
+			query2.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), dv.genotype, p.name, s.disease_group, vc.class, s.name_external, ds.outcome, ds.comment, s.id, ps.id FROM sample s, processed_sample ps LEFT JOIN diag_status ds ON ps.id=ds.processed_sample_id, project p, detected_variant dv LEFT JOIN variant_classification vc ON dv.variant_id=vc.variant_id WHERE dv.processed_sample_id=ps.id AND ps.sample_id=s.id AND ps.project_id=p.id AND dv.variant_id=" + var_id);
 			while(query2.next())
 			{
 				//get HPO info
 				QStringList hpo_terms;
 				QString sample_id = query2.value(8).toString();
+				QString processed_sample_id = query2.value(9).toString();
 				QStringList hpo_ids = db.getValues("SELECT disease_info FROM sample_disease_info WHERE type='HPO term id' AND sample_id=" + sample_id);
 				foreach(QString hpo_id, hpo_ids)
 				{
@@ -162,7 +161,27 @@ void CandidateGeneDialog::updateVariants()
 						hpo_terms << pheno.toString();
 					}
 				}
-				var_data.append(QStringList() << gene << var << het << hom << gnomad << tg << type << coding << query2.value(0).toString() << query2.value(5).toString()  << query2.value(1).toString() << query2.value(2).toString() << query2.value(3).toString() << hpo_terms.join("; ") << query2.value(4).toString() << query2.value(6).toString() << query2.value(7).toString());
+
+				//get causal genes from report config
+				GeneSet genes_causal;
+				SqlQuery query3 = db.getQuery();
+				query3.exec("SELECT v.gene FROM variant v, report_configuration rc, report_configuration_variant rcv WHERE v.id=rcv.variant_id AND rcv.report_configuration_id=rc.id AND rcv.type='diagnostic variant' AND rcv.causal=1 AND rc.processed_sample_id=" + processed_sample_id);
+				while(query3.next())
+				{
+					genes_causal << query3.value(0).toByteArray().split(',');
+				}
+
+				//get candidate genes from report config
+				GeneSet genes_candidate;
+				SqlQuery query4 = db.getQuery();
+				query4.exec("SELECT v.gene FROM variant v, report_configuration rc, report_configuration_variant rcv WHERE v.id=rcv.variant_id AND rcv.report_configuration_id=rc.id AND rcv.type='candidate variant' AND rc.processed_sample_id=" + processed_sample_id);
+				while(query4.next())
+				{
+					genes_candidate << query4.value(0).toByteArray().split(',');
+				}
+
+				//add variant line to output
+				var_data.append(QStringList() << gene << var << het << hom << gnomad << tg << type << coding << query2.value(0).toString() << query2.value(5).toString()  << query2.value(1).toString() << query2.value(2).toString() << query2.value(3).toString() << hpo_terms.join("; ") << query2.value(4).toString() << query2.value(6).toString() << query2.value(7).toString().replace("\n", " ") << genes_causal.join(',') << genes_candidate.join(','));
 			}
 		}
 		QString comment = gene + " - variants: " + QString::number(var_data.count());
@@ -191,7 +210,6 @@ void CandidateGeneDialog::updateVariants()
 		}
 
 		//diagnostic status information
-
 		comments.append(comment);
 		output << var_data;
 	}

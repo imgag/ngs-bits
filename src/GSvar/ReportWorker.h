@@ -18,7 +18,7 @@ class ReportWorker
 
 public:
 	///Constructor.
-	ReportWorker(QString sample_name, QString file_bam, QString file_roi, const VariantList& variants, const FilterCascade& filters, const QMap<QString, QStringList>& preferred_transcripts, ReportSettings settings, QStringList log_files, QString file_rep);
+    ReportWorker(QString sample_name, QString file_bam, QString file_roi, const VariantList& variants, const FilterCascade& filters, ReportSettings settings, QStringList log_files, QString file_rep);
 	virtual void process();
 
 	///Returns the file to which the HTML report was written.
@@ -42,7 +42,7 @@ public:
 	static void writeHtmlFooter(QTextStream& stream);
 	static void validateAndCopyReport(QString from, QString to, bool put_to_archive, bool is_rtf);
 
-	static QString inheritance(QString gene_info, bool color=true);
+	static QByteArray inheritance(const QByteArray& gene_info, bool color=true);
 
 private:
 	//input variables
@@ -50,8 +50,8 @@ private:
 	QString file_bam_;
 	QString file_roi_;
 	const VariantList& variants_;
-	FilterCascade filters_;
-	const QMap<QString, QStringList>& preferred_transcripts_;
+    FilterCascade filters_;
+
 	ReportSettings settings_;
 	QStringList log_files_;
 	//output variables
@@ -68,9 +68,9 @@ private:
 
 	QString trans(const QString& text) const;
 	QString formatCodingSplicing(const QList<VariantTranscript>& transcripts);
-	int annotationIndexOrException(const QString& name, bool exact_match) const;
+	QByteArray formatGenotype(const QByteArray& gender, const QByteArray& genotype, const Chromosome& chr, int start, int end);
 	void writeHTML();
-	void writeXML(QString outfile_name);
+	void writeXML(QString outfile_name, QString report_document);
 };
 
 #endif

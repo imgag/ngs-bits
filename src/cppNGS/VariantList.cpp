@@ -87,6 +87,11 @@ void Variant::addFilter(QByteArray tag, int filter_column_index)
 	filters_.append(tag);
 }
 
+bool Variant::operator==(const Variant& rhs) const
+{
+	return start_==rhs.start_ && end_==rhs.end_ && chr_==rhs.chr_ && ref_==rhs.ref_ && obs_==rhs.obs_;
+}
+
 bool Variant::operator<(const Variant& rhs) const
 {
 	if (chr_<rhs.chr_) return true; //compare chromosome

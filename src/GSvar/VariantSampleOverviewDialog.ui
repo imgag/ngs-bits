@@ -128,17 +128,22 @@
      </column>
      <column>
       <property name="text">
-       <string>outcome_genes</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
        <string>outcome_user</string>
       </property>
      </column>
      <column>
       <property name="text">
        <string>sample_comment</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>causal genes</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>candidate genes</string>
       </property>
      </column>
     </widget>

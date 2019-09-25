@@ -141,7 +141,7 @@
       <bool>false</bool>
      </property>
      <property name="columnCount">
-      <number>17</number>
+      <number>19</number>
      </property>
      <attribute name="verticalHeaderVisible">
       <bool>false</bool>
@@ -228,7 +228,17 @@
      </column>
      <column>
       <property name="text">
+       <string>diagnostic outcome comment</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
        <string>causal genes</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>candiate genes</string>
       </property>
      </column>
     </widget>

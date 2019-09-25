@@ -10,6 +10,7 @@
 #include "XmlHelper.h"
 #include "NGSHelper.h"
 #include "FilterCascade.h"
+#include "GSvarHelper.h"
 
 #include <QFile>
 #include <QTextStream>
@@ -22,14 +23,13 @@
 
 
 
-ReportWorker::ReportWorker(QString sample_name, QString file_bam, QString file_roi, const VariantList& variants, const FilterCascade& filters, const QMap<QString, QStringList>& preferred_transcripts, ReportSettings settings, QStringList log_files, QString file_rep)
+ReportWorker::ReportWorker(QString sample_name, QString file_bam, QString file_roi, const VariantList& variants, const FilterCascade& filters, ReportSettings settings, QStringList log_files, QString file_rep)
 	: WorkerBase("Report generation")
 	, sample_name_(sample_name)
 	, file_bam_(file_bam)
 	, file_roi_(file_roi)
 	, variants_(variants)
 	, filters_(filters)
-	, preferred_transcripts_(preferred_transcripts)
 	, settings_(settings)
 	, log_files_(log_files)
 	, file_rep_(file_rep)
@@ -60,6 +60,8 @@ void ReportWorker::process()
 
 QString ReportWorker::formatCodingSplicing(const QList<VariantTranscript>& transcripts)
 {
+    const QMap<QByteArray, QByteArrayList>& preferred_transcripts = GSvarHelper::preferredTranscripts();
+
 	QList<QByteArray> output;
 	QList<QByteArray> output_pt;
 
@@ -69,7 +71,7 @@ QString ReportWorker::formatCodingSplicing(const QList<VariantTranscript>& trans
 
 		output.append(line);
 
-		if (preferred_transcripts_.value(trans.gene).contains(trans.id))
+        if (preferred_transcripts.value(trans.gene).contains(trans.id))
 		{
 			output_pt.append(line);
 		}
@@ -84,26 +86,15 @@ QString ReportWorker::formatCodingSplicing(const QList<VariantTranscript>& trans
 	return output.join("<br />");
 }
 
-QString ReportWorker::inheritance(QString gene_info, bool color)
+QByteArray ReportWorker::formatGenotype(const QByteArray& gender, const QByteArray& genotype, const Chromosome& chr, int start, int end)
 {
-	QStringList output;
-	foreach(QString gene, gene_info.split(","))
-	{
-		//extract inheritance info
-		QString inheritance;
-		QStringList parts = gene.replace('(',' ').replace(')',' ').split(' ');
-		foreach(QString part, parts)
-		{
-			if (part.startsWith("inh=")) inheritance = part.mid(4);
-		}
+	//correct only hom variants on gonosomes outside the PAR for males
+	if (gender!="male") return genotype;
+	if (genotype!="hom") return genotype;
+	if (!chr.isGonosome()) return genotype;
+	if (NGSHelper::pseudoAutosomalRegion("hg19").overlapsWith(chr, start, end)) return genotype;
 
-		if (color && inheritance=="n/a")
-		{
-			inheritance = "<span style=\"background-color: #FF0000\">n/a</span>";
-		}
-		output << inheritance;
-	}
-	return output.join(",");
+	return "hemi";
 }
 
 void ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, QString roi_file, const BedFile& roi, const GeneSet& genes, int min_cov,  NGSD& db, bool calculate_depth, QMap<QString, QString>* output, bool gene_and_gap_details)
@@ -481,6 +472,7 @@ void ReportWorker::writeHTML()
 	stream << "<h4>" << trans("Technischer Report zur bioinformatischen Analyse") << "</h4>" << endl;
 
 	stream << "<p><b>" << trans("Probe") << ": " << sample_name_ << "</b> (" << sample_data.name_external << ")" << endl;
+	stream << "<p><b>" << trans("Geschlecht") << ": " << processed_sample_data.gender << endl;
 	stream << "<br />" << trans("Prozessierungssystem") << ": " << processed_sample_data.processing_system << endl;
 	stream << "<br />" << trans("Referenzgenom") << ": " << system_data.genome << endl;
 	stream << "<br />" << trans("Datum") << ": " << QDate::currentDate().toString("dd.MM.yyyy") << endl;
@@ -529,7 +521,6 @@ void ReportWorker::writeHTML()
 
 	//get column indices
 	int i_genotype = variants_.getSampleHeader().infoByStatus(true).column_index;
-	int i_geneinfo = variants_.annotationIndexByName("gene_info", true, true);
 	int i_gene = variants_.annotationIndexByName("gene", true, true);
 	int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, true);
 	int i_omim = variants_.annotationIndexByName("OMIM", true, true);
@@ -541,30 +532,41 @@ void ReportWorker::writeHTML()
 	//output: applied filters
 	stream << "<p><b>" << trans("Filterkriterien") << " " << "</b>" << endl;
 	stream << "<br />" << trans("Gefundene Varianten in Zielregion gesamt") << ": " << var_count_ << endl;
-	stream << "<br />" << trans("Anzahl Varianten nach automatischer Filterung") << ": " << settings_.variants_selected.count() << endl;
+	stream << "<br />" << trans("Anzahl Varianten ausgew&auml:hlt f&uuml;r Report") << ": " << settings_.report_config.variantIndices(VariantType::SNVS_INDELS, true, settings_.report_type).count() << endl;
 	for(int i=0; i<filters_.count(); ++i)
 	{
 		stream << "<br />&nbsp;&nbsp;&nbsp;&nbsp;- " << filters_[i]->toText() << endl;
 	}
 	stream << "</p>" << endl;
 
-	//output: all rare variants
+	//output: selected variants
 	stream << "<p><b>" << trans("Varianten nach klinischer Interpretation im Kontext der Fragestellung") << "</b>" << endl;
 	stream << "</p>" << endl;
 	stream << "<table>" << endl;
-	stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Variante") << "</b></td><td><b>" << trans("Genotyp") << "</b></td><td><b>" << trans("Details") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td><td><b>1000g</b></td><td><b>gnomAD</b></td></tr>" << endl;
-	for (int i=0; i<settings_.variants_selected.count(); ++i)
+	stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Variante") << "</b></td><td><b>" << trans("Genotyp") << "</b></td><td><b>" << trans("Details") << "</b></td><td><b>" << trans("Typ") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td><td><b>1000g</b></td><td><b>gnomAD</b></td></tr>" << endl;
+
+	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config.variantConfig())
 	{
-		const Variant& variant = variants_[settings_.variants_selected[i]];
+		if (var_conf.variant_type!=VariantType::SNVS_INDELS) continue;
+		if (!var_conf.showInReport()) continue;
+		if (var_conf.report_type!=settings_.report_type) continue;
+
+		const Variant& variant = variants_[var_conf.variant_index];
 		QByteArray genes = variant.annotations()[i_gene];
 		stream << "<tr>" << endl;
 		stream << "<td>" << genes << "</td>" << endl;
 		stream << "<td>" << endl;
 		stream  << variant.chr().str() << ":" << variant.start() << "&nbsp;" << variant.ref() << "&nbsp;&gt;&nbsp;" << variant.obs() << "</td>";
-		stream << "<td>" << variant.annotations().at(i_genotype) << "</td>" << endl;
+		stream << "<td>" << formatGenotype(processed_sample_data.gender.toLatin1(), variant.annotations().at(i_genotype), variant.chr(), variant.start(), variant.end()) << "</td>" << endl;
 		stream << "<td>" << formatCodingSplicing(variant.transcriptAnnotations(i_co_sp)) << "</td>" << endl;
+		QStringList type_strings;
+		type_strings << QString(var_conf.report_type).replace("report: ", "");
+		if (var_conf.de_novo) type_strings << "de-novo";
+		if (var_conf.mosaic) type_strings << "mosaic";
+		if (var_conf.comp_het) type_strings << "comp-het";
+		stream << "<td><nobr>" << type_strings.join(",") << "<nobr></td>" << endl;
 		stream << "<td>" << variant.annotations().at(i_class) << "</td>" << endl;
-		stream << "<td>" << inheritance(variant.annotations()[i_geneinfo]) << "</td>" << endl;
+		stream << "<td>" << var_conf.inheritance << "</td>" << endl;
 		QByteArray freq = variant.annotations().at(i_kg).trimmed();
 		stream << "<td>" << (freq.isEmpty() ? "n/a" : freq) << "</td>" << endl;
 		freq = variant.annotations().at(i_gnomad).trimmed();
@@ -589,7 +591,7 @@ void ReportWorker::writeHTML()
 
 				parts << omim;
 			}
-			stream << "<tr><td colspan=\"8\">" << parts.join("<br />") << "</td></tr>" << endl;
+			stream << "<tr><td colspan=\"9\">" << parts.join("<br />") << "</td></tr>" << endl;
 		}
 	}
 	stream << "</table>" << endl;
@@ -628,7 +630,6 @@ void ReportWorker::writeHTML()
 	{
 		//prepare queries
 		SqlQuery q_genes = db_.getQuery();
-		q_genes.prepare("SELECT id, mim FROM omim_gene WHERE gene=:1");
 		q_genes.prepare("SELECT id, mim FROM omim_gene WHERE gene=:1");
 
 		stream << "<p><b>" << trans("OMIM Gene und Phenotypen") << "</b>" << endl;
@@ -732,46 +733,36 @@ void ReportWorker::writeHTML()
 	outfile->close();
 
 
-	validateAndCopyReport(temp_filename, file_rep_,true,true);
+	validateAndCopyReport(temp_filename, file_rep_, true, false);
 
 	//write XML file to transfer folder
 	QString gsvar_variant_transfer = Settings::string("gsvar_variant_transfer");
 	if (gsvar_variant_transfer!="")
 	{
-		writeXML(gsvar_variant_transfer + "/" + QFileInfo(file_rep_).fileName().replace(".html", ".xml"));
+		QString xml_file = gsvar_variant_transfer + "/" + QFileInfo(file_rep_).fileName().replace(".html", ".xml");
+		writeXML(xml_file, file_rep_);
 	}
 }
 
-void ReportWorker::validateAndCopyReport(QString from, QString to,bool put_to_archive,bool is_rtf)
+void ReportWorker::validateAndCopyReport(QString from, QString to, bool put_to_archive, bool is_rtf)
 {
-	//validate written HTML file
-	QString validation_error = XmlHelper::isValidXml(from);
-	if (validation_error!="" && !is_rtf)
+	//validate written file (HTML only)
+	if (!is_rtf)
 	{
-		Log::warn("Generated report at " + from + " is not well-formed: " + validation_error);
+		QString validation_error = XmlHelper::isValidXml(from);
+		if (validation_error!="")
+		{
+			Log::warn("Generated HTML report at " + from + " is not well-formed: " + validation_error);
+		}
 	}
 
 	if (QFile::exists(to) && !QFile(to).remove())
 	{
-		if(is_rtf)
-		{
-			THROW(FileAccessException,"Could not remove previous RTF report: " + to);
-		}
-		else
-		{
-			THROW(FileAccessException, "Could not remove previous HTML report: " + to);
-		}
+		THROW(FileAccessException,"Could not remove previous " + QString(is_rtf ? "RTF" : "HTML") + " report: " + to);
 	}
 	if (!QFile::rename(from, to))
 	{
-		if(is_rtf)
-		{
-			THROW(FileAccessException,"Could not copy RTF report from temporary file " + from + " to " + to + " !");
-		}
-		else
-		{
-			THROW(FileAccessException, "Could not copy HTML report from temporary file " + from + " to " + to + " !");
-		}
+		THROW(FileAccessException,"Could not move " + QString(is_rtf ? "RTF" : "HTML") + " report from temporary file " + from + " to " + to + " !");
 	}
 
 	//copy report to archive folder
@@ -783,29 +774,39 @@ void ReportWorker::validateAndCopyReport(QString from, QString to,bool put_to_ar
 			QString file_rep_copy = archive_folder + "\\" + QFileInfo(to).fileName();
 			if (QFile::exists(file_rep_copy) && !QFile::remove(file_rep_copy))
 			{
-				if(is_rtf)
-				{
-					THROW(FileAccessException, "Could not remove previous RTF report in archive folder: " + file_rep_copy);
-				}
-				else
-				{
-					THROW(FileAccessException, "Could not remove previous HTML report in archive folder: " + file_rep_copy);
-				}
+				THROW(FileAccessException, "Could not remove previous " + QString(is_rtf ? "RTF" : "HTML") + " report in archive folder: " + file_rep_copy);
 			}
 			if (!QFile::copy(to, file_rep_copy))
 			{
-				if(is_rtf)
-				{
-					THROW(FileAccessException, "Could not copy RTF report to archive folder: " + file_rep_copy);
-				}
-				else
-				{
-					THROW(FileAccessException, "Could not copy HTML report to archive folder: " + file_rep_copy);
+				THROW(FileAccessException, "Could not copy " + QString(is_rtf ? "RTF" : "HTML") + " report to archive folder: " + file_rep_copy);
+			}
+		}
+	}
+}
 
+QByteArray ReportWorker::inheritance(const QByteArray& gene_info, bool color) //TODO Axel
+{
+	QSet<QByteArray> output;
+
+	//parse gene_info entry - example: AL627309.1 (inh=n/a pLI=n/a), PRPF31 (inh=AD pLI=0.97), 34P13.14 (inh=n/a pLI=n/a)
+	QByteArrayList genes = gene_info.split(',');
+	foreach(const QByteArray gene, genes)
+	{
+		int start = gene.indexOf('(');
+		QByteArrayList entries = gene.mid(start+1, gene.length()-start-2).split(' ');
+		foreach(const QByteArray& entry, entries)
+		{
+			if (entry.startsWith("inh="))
+			{
+				QByteArrayList modes = entry.mid(4).split('+');
+				foreach(const QByteArray& mode, modes)
+				{
+					output << mode.trimmed();
 				}
 			}
 		}
 	}
+	return output.toList().join(", ");
 }
 
 QString ReportWorker::trans(const QString& text) const
@@ -829,7 +830,7 @@ QString ReportWorker::trans(const QString& text) const
 		de2en["Ph&auml;notyp"] = "Phenotype information";
 		de2en["Filterkriterien"] = "Criteria for variant filtering";
 		de2en["Gefundene Varianten in Zielregion gesamt"] = "Variants in target region";
-		de2en["Anzahl Varianten nach automatischer Filterung"] = "Variants after automated filters";
+		de2en["Anzahl Varianten ausgew&auml:hlt f&uuml;r Report"] = "Variants selected for report";
 		de2en["Varianten nach klinischer Interpretation im Kontext der Fragestellung"] = "List of prioritized variants";
 		de2en["Vererbung"] = "Inheritance";
 		de2en["Klasse"] = "Class";
@@ -877,6 +878,8 @@ QString ReportWorker::trans(const QString& text) const
 		de2en["Transcript"] = "Transcript";
 		de2en["gesamt"] = "overall";
 		de2en["mit Tiefe"] = "with depth";
+		de2en["Typ"] = "type";
+		de2en["Geschlecht"] = "sample sex";
 
 		if (!de2en.contains(text))
 		{
@@ -889,7 +892,7 @@ QString ReportWorker::trans(const QString& text) const
 	THROW(ProgrammingException, "Unsupported language '" + settings_.language + "'!");
 }
 
-void ReportWorker::writeXML(QString outfile_name)
+void ReportWorker::writeXML(QString outfile_name, QString report_document)
 {
 	QSharedPointer<QFile> outfile = Helper::openFileForWriting(outfile_name);
 
@@ -899,7 +902,8 @@ void ReportWorker::writeXML(QString outfile_name)
 
 	//element DiagnosticNgsReport
 	w.writeStartElement("DiagnosticNgsReport");
-	w.writeAttribute("version", "1");
+	w.writeAttribute("version", "2");
+	w.writeAttribute("type", settings_.report_type);
 
 	//element ReportGeneration
 	w.writeStartElement("ReportGeneration");
@@ -957,69 +961,85 @@ void ReportWorker::writeXML(QString outfile_name)
 	w.writeAttribute("overall_number", QString::number(variants_.count()));
 	w.writeAttribute("genome_build", "hg19");
 
-	//element AppliedFilter
-	for(int i=0; i<filters_.count(); ++i)
-	{
-		w.writeStartElement("AppliedFilter");
-		w.writeAttribute("name", filters_[i]->toText());
-		w.writeEndElement();
-	}
-
 	//element Variant
 	int geno_idx = variants_.getSampleHeader().infoByStatus(true).column_index;
-	int comment_idx = variants_.annotationIndexByName("comment", true, true);
-	int geneinfo_idx = variants_.annotationIndexByName("gene_info", true, false);
-	for (int i=0; i<settings_.variants_selected.count(); ++i)
+	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config.variantConfig())
 	{
-		const Variant& v = variants_[settings_.variants_selected[i]];
+		if (var_conf.variant_type!=VariantType::SNVS_INDELS) continue;
+		if (!var_conf.showInReport()) continue;
+		if (var_conf.report_type!=settings_.report_type) continue;
+
+		const Variant& variant = variants_[var_conf.variant_index];
 		w.writeStartElement("Variant");
-		w.writeAttribute("chr", v.chr().str());
-		w.writeAttribute("start", QString::number(v.start()));
-		w.writeAttribute("end", QString::number(v.end()));
-		w.writeAttribute("ref", v.ref());
-		w.writeAttribute("obs", v.obs());
-		w.writeAttribute("genotype", v.annotations()[geno_idx]);
-		w.writeAttribute("comment", v.annotations()[comment_idx]);
-
-		//element Annotation
-		for (int i=0; i<v.annotations().count(); ++i)
+		w.writeAttribute("chr", variant.chr().str());
+		w.writeAttribute("start", QString::number(variant.start()));
+		w.writeAttribute("end", QString::number(variant.end()));
+		w.writeAttribute("ref", variant.ref());
+		w.writeAttribute("obs", variant.obs());
+		w.writeAttribute("genotype", formatGenotype(processed_sample_data.gender.toLatin1(), variant.annotations()[geno_idx], variant.chr(), variant.start(), variant.end()));
+		w.writeAttribute("causal", var_conf.causal ? "true" : "false");
+		w.writeAttribute("de_novo", var_conf.de_novo ? "true" : "false");
+		w.writeAttribute("comp_het", var_conf.comp_het ? "true" : "false");
+		w.writeAttribute("mosaic", var_conf.mosaic ? "true" : "false");
+		if (var_conf.inheritance!="n/a")
 		{
-			if (i==geno_idx) continue;
-			if (i==comment_idx) continue;
-			if (i==geneinfo_idx) continue;
-
-			w.writeStartElement("Annotation");
-			QString name = variants_.annotations()[i].name();
-			w.writeAttribute("name", name);
-			QByteArray value = v.annotations()[i];
-			if (name=="gene") value += " (" + inheritance(v.annotations()[geneinfo_idx], false) +")";
-			w.writeAttribute("value", value);
-			w.writeEndElement();
+			w.writeAttribute("inheritance", var_conf.inheritance);
+		}
+		QString classification = db_.getClassification(variant).classification;
+		if (classification!="" && classification!="n/a")
+		{
+			w.writeAttribute("class", classification);
 		}
 
 		//element TranscriptInformation
 		int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, false);
 		if (i_co_sp!=-1)
 		{
-			foreach(const VariantTranscript& trans, v.transcriptAnnotations(i_co_sp))
+			foreach(const VariantTranscript& trans, variant.transcriptAnnotations(i_co_sp))
 			{
 				w.writeStartElement("TranscriptInformation");
 				w.writeAttribute("gene", trans.gene);
 				w.writeAttribute("transcript_id", trans.id);
 				w.writeAttribute("hgvs_c", trans.hgvs_c);
 				w.writeAttribute("hgvs_p", trans.hgvs_p);
+				w.writeAttribute("exon", trans.exon);
 				w.writeEndElement();
 			}
+		}
+
+		//element Annotation
+		for (int i=0; i<variant.annotations().count(); ++i)
+		{
+			if (i==geno_idx) continue;
+
+			w.writeStartElement("Annotation");
+			w.writeAttribute("name", variants_.annotations()[i].name());
+			w.writeAttribute("value", variant.annotations()[i]);
+			w.writeEndElement();
 		}
 
 		//end of variant
 		w.writeEndElement();
 	}
+	w.writeEndElement();
+
+	//element ReportDocument
+	w.writeStartElement("ReportDocument");
+	QString format = QFileInfo(report_document).suffix().toUpper();
+	w.writeAttribute("format", format);
+	QByteArray base64_data = "";
+	QFile file(report_document);
+	file.open(QIODevice::ReadOnly);
+	base64_data = file.readAll().toBase64();
+	file.close();
+	w.writeCharacters(base64_data);
+	w.writeEndElement();
+
 	w.writeEndDocument();
 	outfile->close();
 
 	//validate written XML file
-	QString xml_error = XmlHelper::isValidXml(outfile_name, "://Resources/DiagnosticReport_v1.xsd");
+	QString xml_error = XmlHelper::isValidXml(outfile_name, "://Resources/DiagnosticReport_v2.xsd");
 	if (xml_error!="")
 	{
 		THROW(ProgrammingException, "ReportWorker::storeXML produced an invalid XML file: " + xml_error);
