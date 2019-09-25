@@ -43,7 +43,7 @@ ReportVariantDialog::ReportVariantDialog(QString variant, QList<KeyValuePair> in
 void ReportVariantDialog::updateGUI()
 {
 	//data
-	ui_.type->setCurrentText(config_.type);
+	ui_.type->setCurrentText(config_.report_type);
 	ui_.causal->setChecked(config_.causal);
 	ui_.inheritance->setCurrentText(config_.inheritance);
 	ui_.de_novo->setChecked(config_.de_novo);
@@ -63,7 +63,7 @@ void ReportVariantDialog::updateGUI()
 
 void ReportVariantDialog::writeBackSettings()
 {
-	config_.type = ui_.type->currentText();
+	config_.report_type = ui_.type->currentText();
 	config_.causal = ui_.causal->isChecked();
 	config_.inheritance = ui_.inheritance->currentText();
 	config_.de_novo = ui_.de_novo->isChecked();

@@ -2802,7 +2802,7 @@ ReportConfiguration NGSD::reportConfig(const QString& processed_sample_id, const
 			continue;
 		}
 
-		var_conf.type = query.value("type").toString();
+		var_conf.report_type = query.value("type").toString();
 		var_conf.causal = query.value("causal").toBool();
 		var_conf.inheritance = query.value("inheritance").toString();
 		var_conf.de_novo = query.value("de_novo").toBool();
@@ -2867,7 +2867,7 @@ QString NGSD::setReportConfig(const QString& processed_sample_id, const ReportCo
 
 		query.bindValue(0, config_id);
 		query.bindValue(1, variant_id);
-		query.bindValue(2, var_conf.type);
+		query.bindValue(2, var_conf.report_type);
 		query.bindValue(3, var_conf.causal);
 		query.bindValue(4, var_conf.inheritance);
 		query.bindValue(5, var_conf.de_novo);

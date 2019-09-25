@@ -17,7 +17,7 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 	VariantType variant_type;
 	int variant_index;
 
-	QString type;
+	QString report_type;
 	bool causal;
 	QString inheritance;
 	bool de_novo;
@@ -46,7 +46,7 @@ public:
 	///Returns the report configuration for variants
 	const QList<ReportVariantConfiguration>& variantConfig() const;
 	///Returns indices of the matching variants .
-	QList<int> variantIndices(VariantType type, bool only_selected) const;
+	QList<int> variantIndices(VariantType type, bool only_selected, QString report_type = QString()) const;
 
 	///Returns if a report configuration exists for the variant.
 	bool exists(VariantType type, int index) const;

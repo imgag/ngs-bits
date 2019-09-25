@@ -26,13 +26,23 @@ GSvar:
 * trio filter: correct PAR region handling (Genetikum)
 * Add special report for trios/multi-sample with genotype overview > change format to RTF first (AG)
 ** report variant selection
+    - show causal/candicate genes in
+        - variant sample overview
+        - gene variant overview
+    - XML
+        - add ORPHA codes for genes
+            - PhenotypeInfo table (only when causal) - Gene, identifier, type colums (only type Orpha for now)
+            - https://github.com/Orphanet/Orphadata.org/tree/master/Disorders%20cross%20referenced%20JSON
+            - https://github.com/Orphanet/Orphadata.org/tree/master/Disorders%20with%20their%20associated%20genes
+        - add HTML/RTF as base64-coded BLOB
+        - update PNG
     - extended functionality
-        - add gaps report (custom via import) to XML report ==> gap report as XML and additional report of gaps to sanger-validate as TXT
+        - add gaps report (custom via import) to XML report
+            - CCDS +-5 bases!?
+            - gap report as XML and additional report of gaps to sanger-validate as TXT
         - Add 'approved_by' and date to make printing the sheet obsolete
-            - lock editing the report config then
-        *** Add more variant info to XML > Anne
-            - ORPAHA code(s) for genes: https://github.com/Orphanet/Orphadata.org/tree/master/Disorders%20cross%20referenced%20JSON, https://github.com/Orphanet/Orphadata.org/tree/master/Disorders%20with%20their%20associated%20genes
-            - OMIM entries for genes
+            - lock editing the report config then?
+
 Tools:
 - NGSDImportHPO: Add G2P database (https://www.ebi.ac.uk/gene2phenotype)? Ask HPO people if they include it
 - UPDHunter: also support chrX?

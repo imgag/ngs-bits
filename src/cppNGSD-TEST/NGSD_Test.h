@@ -728,7 +728,7 @@ private slots:
 		report_var_conf.variant_type = VariantType::SNVS_INDELS;
 		report_var_conf.variant_index = 47;
 		report_var_conf.causal = true;
-		report_var_conf.type = "candidate variant";
+		report_var_conf.report_type = "candidate variant";
 		report_var_conf.mosaic = true;
 		report_var_conf.exclude_artefact = true;
 		report_var_conf.comments = "com1";
@@ -753,7 +753,7 @@ private slots:
 		IS_TRUE(report_conf2.createdAt().date()==QDate::currentDate());
 		I_EQUAL(report_conf2.variantConfig().count(), 1);
 		IS_TRUE(report_conf2.variantConfig()[0].causal);
-		S_EQUAL(report_conf2.variantConfig()[0].type, report_var_conf.type);
+		S_EQUAL(report_conf2.variantConfig()[0].report_type, report_var_conf.report_type);
 		IS_TRUE(report_conf2.variantConfig()[0].mosaic);
 		IS_TRUE(report_conf2.variantConfig()[0].exclude_artefact);
 		S_EQUAL(report_conf2.variantConfig()[0].comments, report_var_conf.comments);

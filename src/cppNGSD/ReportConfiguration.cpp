@@ -8,7 +8,7 @@
 ReportVariantConfiguration::ReportVariantConfiguration()
 	: variant_type(VariantType::SNVS_INDELS)
 	, variant_index(-1)
-	, type()
+	, report_type()
 	, causal(false)
 	, inheritance("n/a")
 	, de_novo(false)
@@ -58,7 +58,7 @@ const QList<ReportVariantConfiguration>&ReportConfiguration::variantConfig() con
 	return variant_config_;
 }
 
-QList<int> ReportConfiguration::variantIndices(VariantType type, bool only_selected) const
+QList<int> ReportConfiguration::variantIndices(VariantType type, bool only_selected, QString report_type) const
 {
 	QList<int> output;
 
@@ -66,6 +66,7 @@ QList<int> ReportConfiguration::variantIndices(VariantType type, bool only_selec
 	{
 		if (var_conf.variant_type!=type) continue;
 		if (only_selected && !var_conf.showInReport()) continue;
+		if (!report_type.isNull() && var_conf.report_type!=report_type) continue;
 
 		output << var_conf.variant_index;
 	}

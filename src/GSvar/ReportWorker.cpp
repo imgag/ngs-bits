@@ -532,7 +532,7 @@ void ReportWorker::writeHTML()
 	//output: applied filters
 	stream << "<p><b>" << trans("Filterkriterien") << " " << "</b>" << endl;
 	stream << "<br />" << trans("Gefundene Varianten in Zielregion gesamt") << ": " << var_count_ << endl;
-	stream << "<br />" << trans("Anzahl Varianten ausgew&auml:hlt f&uuml;r Report") << ": " << settings_.report_config.variantIndices(VariantType::SNVS_INDELS, true).count() << endl;
+	stream << "<br />" << trans("Anzahl Varianten ausgew&auml:hlt f&uuml;r Report") << ": " << settings_.report_config.variantIndices(VariantType::SNVS_INDELS, true, settings_.report_type).count() << endl;
 	for(int i=0; i<filters_.count(); ++i)
 	{
 		stream << "<br />&nbsp;&nbsp;&nbsp;&nbsp;- " << filters_[i]->toText() << endl;
@@ -549,6 +549,7 @@ void ReportWorker::writeHTML()
 	{
 		if (var_conf.variant_type!=VariantType::SNVS_INDELS) continue;
 		if (!var_conf.showInReport()) continue;
+		if (var_conf.report_type!=settings_.report_type) continue;
 
 		const Variant& variant = variants_[var_conf.variant_index];
 		QByteArray genes = variant.annotations()[i_gene];
@@ -559,7 +560,7 @@ void ReportWorker::writeHTML()
 		stream << "<td>" << formatGenotype(processed_sample_data.gender.toLatin1(), variant.annotations().at(i_genotype), variant.chr(), variant.start(), variant.end()) << "</td>" << endl;
 		stream << "<td>" << formatCodingSplicing(variant.transcriptAnnotations(i_co_sp)) << "</td>" << endl;
 		QStringList type_strings;
-		type_strings << QString(var_conf.type).replace("report: ", "");
+		type_strings << QString(var_conf.report_type).replace("report: ", "");
 		if (var_conf.de_novo) type_strings << "de-novo";
 		if (var_conf.mosaic) type_strings << "mosaic";
 		if (var_conf.comp_het) type_strings << "comp-het";
@@ -902,6 +903,7 @@ void ReportWorker::writeXML(QString outfile_name)
 	//element DiagnosticNgsReport
 	w.writeStartElement("DiagnosticNgsReport");
 	w.writeAttribute("version", "2");
+	w.writeAttribute("type", settings_.report_type);
 
 	//element ReportGeneration
 	w.writeStartElement("ReportGeneration");
@@ -965,6 +967,7 @@ void ReportWorker::writeXML(QString outfile_name)
 	{
 		if (var_conf.variant_type!=VariantType::SNVS_INDELS) continue;
 		if (!var_conf.showInReport()) continue;
+		if (var_conf.report_type!=settings_.report_type) continue;
 
 		const Variant& variant = variants_[var_conf.variant_index];
 		w.writeStartElement("Variant");
@@ -982,10 +985,10 @@ void ReportWorker::writeXML(QString outfile_name)
 		{
 			w.writeAttribute("inheritance", var_conf.inheritance);
 		}
-		ClassificationInfo classification_info = db_.getClassification(variant);
-		if (classification_info.classification!="n/a")
+		QString classification = db_.getClassification(variant).classification;
+		if (classification!="" && classification!="n/a")
 		{
-			w.writeAttribute("class", classification_info.classification);
+			w.writeAttribute("class", classification);
 		}
 
 		//element TranscriptInformation
@@ -999,6 +1002,7 @@ void ReportWorker::writeXML(QString outfile_name)
 				w.writeAttribute("transcript_id", trans.id);
 				w.writeAttribute("hgvs_c", trans.hgvs_c);
 				w.writeAttribute("hgvs_p", trans.hgvs_p);
+				w.writeAttribute("exon", trans.exon);
 				w.writeEndElement();
 			}
 		}

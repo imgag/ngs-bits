@@ -79,6 +79,7 @@
 #include "ProcessedSampleSelector.h"
 #include "ReportVariantDialog.h"
 #include "GSvarHelper.h"
+#include "SampleDiseaseInfoWidget.h"
 
 QT_CHARTS_USE_NAMESPACE
 
@@ -1409,13 +1410,16 @@ void MainWindow::clearReportConfig()
 	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO) return;
 
 	//check if current config was modified and would be lost
-	if (report_settings_.report_config.isModified())
+	if (report_settings_.report_config.isModified() && QMessageBox::question(this, "Loading report configuration", "The current report configuration contains unsaved changes.\nDo you want to discard them?")==QMessageBox::No)
 	{
-		if (QMessageBox::question(this, "Loading report configuration", "The current report configuration contains unsaved changes.\nDo you want to discard them?")==QMessageBox::No)
-		{
-			return;
-		}
+		return;
 	}
+
+	//clear
+	report_settings_.report_config = ReportConfiguration();
+
+	//updateGUI
+	refreshVariantTable();
 }
 
 void MainWindow::loadReportConfig()
@@ -1503,6 +1507,20 @@ void MainWindow::printVariantSheet()
 	QString filename = QFileDialog::getSaveFileName(this, "Store variant sheet",  last_report_path_ + "/" + base_name + "_variant_sheet_" + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
 	if (filename.isEmpty()) return;
 
+	//make sure free-text phenotype infos are available
+	NGSD db;
+	QString sample_id = db.sampleId(filename_);
+	QList<SampleDiseaseInfo> disease_infos = db.getSampleDiseaseInfo(sample_id, "clinical phenotype (free text)");
+	if (disease_infos.isEmpty() && QMessageBox::question(this, "Variant sheet", "No clinical phenotype (free text) is set for the sample!\nDo you want to set it?")==QMessageBox::Yes)
+	{
+		SampleDiseaseInfoWidget* widget = new SampleDiseaseInfoWidget(processedSampleName(), this);
+		widget->setDiseaseInfo(db.getSampleDiseaseInfo(sample_id));
+		auto dlg = GUIHelper::createDialog(widget, "Sample disease details", "", true);
+		if (dlg->exec() != QDialog::Accepted) return;
+
+		db.setSampleDiseaseInfo(sample_id, widget->diseaseInfo());
+	}
+
 	//open file
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename);
 	QTextStream stream(file.data());
@@ -1514,6 +1532,7 @@ void MainWindow::printVariantSheet()
 	stream << "      @page" << endl;
 	stream << "      {" << endl;
 	stream << "        size: landscape;" << endl;
+	stream << "        margin: 1cm;" << endl;
 	stream << "      }" << endl;
 	stream << "      table" << endl;
 	stream << "      {" << endl;
@@ -1541,7 +1560,7 @@ void MainWindow::printVariantSheet()
 	stream << "    <table class='noborder' width='100%'>" << endl;
 	stream << "      <tr>" << endl;
 	stream << "        <td class='noborder' valign='top'>" << endl;
-	stream << "          <p>DNA#: <span class='line'></span></p>" << endl;
+	stream << "          <p>DNA/RNA#: <span class='line'></span></p>" << endl;
 	stream << "          <p> Pat. Name, Vorname: <span class='line'></span></p>" << endl;
 	stream << "          <p>Geburtsdatum: <span class='line'></span></p>" << endl;
 	stream << "          <br>" << endl;
@@ -1555,7 +1574,7 @@ void MainWindow::printVariantSheet()
 	stream << "          <p>ACMG angefordert: &nbsp;&nbsp; &#9633; ja &nbsp;&nbsp; &#9633; nein</p>" << endl;
 	stream << "          <p>ACMG auff&auml;llig: &nbsp;&nbsp; &#9633; ja &nbsp;&nbsp; &#9633; nein</p>" << endl;
 	stream << "        </td>" << endl;
-	stream << "        <td class='noborder' valign='top'>" << endl;
+	stream << "        <td class='noborder' valign='top' style='width: 1%; white-space: nowrap;'>" << endl;
 	stream << "          <table border='0'>" << endl;
 	stream << "            <tr> <td colspan=2><b>Filterung erfolgt</b></td> </tr>" << endl;
 	stream << "            <tr> <td nowrap>Freq.-basiert dominant&nbsp;&nbsp;</td> <td>&#9633;</td> </tr>" << endl;
@@ -1569,12 +1588,42 @@ void MainWindow::printVariantSheet()
 	stream << "      </tr>" << endl;
 	stream << "    </table>" << endl;
 
-	//space for phenotype
+	//phenotype
+	disease_infos = db.getSampleDiseaseInfo(sample_id);
+	QString clinical_phenotype;
+	QStringList infos;
+	foreach(const SampleDiseaseInfo& info, disease_infos)
+	{
+		if (info.type=="ICD10 code")
+		{
+			infos << info.type + ": " + info.disease_info;
+		}
+		if (info.type=="HPO term id")
+		{
+			infos << db.phenotypeByAccession(info.disease_info.toLatin1(), false).toString();
+		}
+		if (info.type=="Orpha number")
+		{
+			infos << info.type + ": " + info.disease_info;
+		}
+		if (info.type=="clinical phenotype (free text)")
+		{
+			clinical_phenotype += info.disease_info + " ";
+		}
+	}
+
 	stream << "    <br>" << endl;
-	stream << "    <br>" << endl;
-	stream << "    <br>" << endl;
-	stream << "    <br>" << endl;
-	stream << "    <br>" << endl;
+	stream << "    <b>Klinik:</b>" << endl;
+	stream << "    <table class='noborder' width='100%'>" << endl;
+	stream << "      <tr>" << endl;
+	stream << "        <td class='noborder' valign='top'>" << endl;
+	stream << "          " << clinical_phenotype.trimmed() << endl;
+	stream << "        </td>" << endl;
+	stream << "        <td class='noborder' style='width: 1%; white-space: nowrap;'>" << endl;
+	stream << "          " << infos.join("<br>          ") << endl;
+	stream << "        </td>" << endl;
+	stream << "      </tr>" << endl;
+	stream << "    </table>" << endl;
 
 	//write causal variants
 	stream << "    <p><b>Kausale Varianten:</b>" << endl;
@@ -1637,7 +1686,7 @@ void MainWindow::printVariantSheetRowHeader(QTextStream& stream, bool causal)
 		stream << "       <th>Ausschlussgrund</th>" << endl;
 	}
 	stream << "       <th>gnomAD</th>" << endl;
-        stream << "       <th nowrap>NGSD hom/het</th>" << endl;
+	stream << "       <th nowrap>NGSD hom/het</th>" << endl;
 	stream << "       <th nowrap>Kommentar 1. Auswerter</th>" << endl;
 	stream << "       <th nowrap>Kommentar 2. Auswerter</th>" << endl;
 	stream << "       <th>Klasse</th>" << endl;
@@ -1702,7 +1751,7 @@ void MainWindow::printVariantSheetRow(QTextStream& stream, const ReportVariantCo
 	stream << "       <td>" << conf.comments << "</td>" << endl;
 	stream << "       <td>" << conf.comments2 << "</td>" << endl;
 	stream << "       <td>" << v.annotations()[i_class] << "</td>" << endl;
-	stream << "       <td>" << (conf.showInReport() ? "ja" : "nein") << "</td>" << endl;
+	stream << "       <td>" << (conf.showInReport() ? "ja" : "nein") << " (" << conf.report_type << ")</td>" << endl;
 	stream << "     </tr>" << endl;
 }
 
@@ -1851,9 +1900,12 @@ void MainWindow::generateReportGermline()
 	dialog.setTargetRegionSelected(ui_.filters->targetRegion()!="");
 	if (!dialog.exec()) return;
 
+	//set report type
+	report_settings_.report_type = dialog.type();
+
 	//get export file name
 	QString base_name = processedSampleName();
-	QString file_rep = QFileDialog::getSaveFileName(this, "Export report file", last_report_path_ + "/" + base_name + targetFileName() + "_report_" + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
+	QString file_rep = QFileDialog::getSaveFileName(this, "Export report file", last_report_path_ + "/" + base_name + targetFileName() + "_report_" + dialog.type().replace(" ", "_") + "s_" + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
 	if (file_rep=="") return;
 	last_report_path_ = QFileInfo(file_rep).absolutePath();
 
@@ -3031,7 +3083,7 @@ void MainWindow::editVariantReportConfiguration(int index)
 		ClassificationInfo classification_info = db.getClassification(variant);
 		if (classification_info.classification=="" || classification_info.classification=="n/a")
 		{
-			QMessageBox::warning(this, "Variant classification required!", "Causal variants need a classification!", QMessageBox::Ok, QMessageBox::NoButton);
+			QMessageBox::warning(this, "Variant classification required!", "Causal variants should have a classification!", QMessageBox::Ok, QMessageBox::NoButton);
 			editVariantClassification(variants_, index);
 		}
 	}

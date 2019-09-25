@@ -18,15 +18,20 @@ public:
 	ReportDialog(ReportSettings& settings, const VariantList& variants, QWidget* parent = 0);
 	///Updates dialog depending on target region selection state
 	void setTargetRegionSelected(bool is_selected);
+	///Returns the report/variant type
+	QString type() const
+	{
+		return ui_.variant_type->currentText();
+	}
+
 
 protected slots:
 	void writeBackSettings();
 	void activateOkButtonIfValid();
 	void updateCoverageSettings(int state);
+	void updateGUI();
 
 protected:
-	///Transfers report settings to GUI
-	void updateGUI();
 
 	Ui::ReportDialog ui_;
 	ReportSettings& settings_;

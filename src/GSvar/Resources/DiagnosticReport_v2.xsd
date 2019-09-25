@@ -185,6 +185,11 @@
 														<xs:documentation>HGVS-compliant protein change</xs:documentation>
 													</xs:annotation>
 												</xs:attribute>
+												<xs:attribute name="exon" type="xs:string" use="required">
+													<xs:annotation>
+														<xs:documentation>exon number, e.g. 11/27. The second number is the overal number of exons of the transcript</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
 											</xs:complexType>
 										</xs:element>
 										<xs:element name="Annotation" minOccurs="0" maxOccurs="unbounded">
@@ -325,6 +330,18 @@
 					<xs:restriction base="xs:int">
 						<xs:minInclusive value="2"/>
 						<xs:maxInclusive value="2"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="type" use="required">
+				<xs:annotation>
+					<xs:documentation>report type</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="diagnostic variant"/>
+						<xs:enumeration value="candidate variant"/>
+						<xs:enumeration value="incidental finding"/>
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>
