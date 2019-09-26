@@ -341,7 +341,7 @@ RtfTable SomaticReportHelper::germlineAlterationTable(const VariantList& somatic
 
 
 		temp_row.addCell(3450, trans.gene + ":" + trans.id + ":" + trans.hgvs_c + ":" + trans.hgvs_p,RtfParagraph().setFontSize(14));
-		temp_row.addCell(1000, ReportWorker::inheritance(snv.annotations().at(i_gene_info),false) ,RtfParagraph().setFontSize(14));
+		temp_row.addCell(1000, ReportWorker::inheritance(snv.annotations().at(i_gene_info)) ,RtfParagraph().setFontSize(14));
 		temp_row.addCell(800, snv.annotations().at(i_gnomad),RtfParagraph().setFontSize(14));
 
 		temp_row.addCell(1200, "Variante deletiert / Wildtyp Allel deletiert / het.", RtfParagraph().setFontSize(14).highlight(3));

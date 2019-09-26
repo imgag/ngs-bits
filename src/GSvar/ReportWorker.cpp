@@ -784,29 +784,22 @@ void ReportWorker::validateAndCopyReport(QString from, QString to, bool put_to_a
 	}
 }
 
-QByteArray ReportWorker::inheritance(const QByteArray& gene_info, bool color) //TODO Axel
+QByteArray ReportWorker::inheritance(const QByteArray& gene_info)
 {
-	QSet<QByteArray> output;
-
-	//parse gene_info entry - example: AL627309.1 (inh=n/a pLI=n/a), PRPF31 (inh=AD pLI=0.97), 34P13.14 (inh=n/a pLI=n/a)
-	QByteArrayList genes = gene_info.split(',');
-	foreach(const QByteArray gene, genes)
+	QByteArrayList output;
+	foreach(QByteArray gene, gene_info.split(','))
 	{
-		int start = gene.indexOf('(');
-		QByteArrayList entries = gene.mid(start+1, gene.length()-start-2).split(' ');
-		foreach(const QByteArray& entry, entries)
+		//extract inheritance info
+		QByteArray inheritance;
+		QByteArrayList parts = gene.replace('(',' ').replace(')',' ').split(' ');
+		foreach(QByteArray part, parts)
 		{
-			if (entry.startsWith("inh="))
-			{
-				QByteArrayList modes = entry.mid(4).split('+');
-				foreach(const QByteArray& mode, modes)
-				{
-					output << mode.trimmed();
-				}
-			}
+			if (part.startsWith("inh=")) inheritance = part.mid(4);
 		}
+
+		output << inheritance;
 	}
-	return output.toList().join(", ");
+	return output.join(",");
 }
 
 QString ReportWorker::trans(const QString& text) const
