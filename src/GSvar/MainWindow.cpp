@@ -578,7 +578,7 @@ void MainWindow::openInIGV(QString region)
 		try
 		{
 			NGSD db;
-			QString processed_sample_id = db.processedSampleId(filename_);
+			QString processed_sample_id = db.processedSampleId(processedSampleName());
 			ProcessingSystemData system_data = db.getProcessingSystemData(processed_sample_id, true);
 			QString amplicons = system_data.target_file.left(system_data.target_file.length()-4) + "_amplicons.bed";
 			if (QFile::exists(amplicons))
@@ -926,7 +926,7 @@ void MainWindow::importPhenotypesFromNGSD()
 
 	//load from NGSD
 	NGSD db;
-	QList<SampleDiseaseInfo> disease_info = db.getSampleDiseaseInfo(db.sampleId(filename_), "HPO term id");
+	QList<SampleDiseaseInfo> disease_info = db.getSampleDiseaseInfo(db.sampleId(processedSampleName()), "HPO term id");
 	foreach(const SampleDiseaseInfo& entry, disease_info)
 	{
 		try
@@ -1020,8 +1020,7 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name)
 		QString file = db.processedSamplePath(processed_sample_id, NGSD::GSVAR);
 
 		//check if this is a somatic tumor sample
-		QString ps_id = db.processedSampleId(processed_sample_name);
-		QString normal_sample = db.normalSample(ps_id);
+		QString normal_sample = db.normalSample(processed_sample_id);
 		if (normal_sample!="")
 		{
 			QString gsvar_somatic = file.split("Sample_")[0]+ "/" + "Somatic_" + processed_sample_name + "-" + normal_sample + "/" + processed_sample_name + "-" + normal_sample + ".GSvar";
@@ -1272,7 +1271,7 @@ void MainWindow::loadFile(QString filename)
 		if (ngsd_enabled)
 		{
 			NGSD db;
-			QString processed_sample_id = db.processedSampleId(filename_, false);
+			QString processed_sample_id = db.processedSampleId(processedSampleName(), false);
 			if (processed_sample_id!="")
 			{
 				int conf_id = db.reportConfigId(processed_sample_id);
@@ -1498,7 +1497,7 @@ void MainWindow::loadReportConfig()
 
 	//check sample
 	NGSD db;
-	QString processed_sample_id = db.processedSampleId(filename_, false);
+	QString processed_sample_id = db.processedSampleId(processedSampleName(), false);
 	if (processed_sample_id=="")
 	{
 		QMessageBox::warning(this, "Loading report configuration", "Sample was not found in the NGSD!");
@@ -1543,7 +1542,7 @@ void MainWindow::storeReportConfig()
 
 	//check sample
 	NGSD db;
-	QString processed_sample_id = db.processedSampleId(filename_, false);
+	QString processed_sample_id = db.processedSampleId(processedSampleName(), false);
 	if (processed_sample_id=="")
 	{
 		QMessageBox::warning(this, "Storing report configuration", "Sample was not found in the NGSD!");
@@ -1570,12 +1569,13 @@ void MainWindow::printVariantSheet()
 {
 	//get filename
 	QString base_name = processedSampleName();
-	QString filename = QFileDialog::getSaveFileName(this, "Store variant sheet",  last_report_path_ + "/" + base_name + "_variant_sheet_" + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
+	QString folder = Settings::string("gsvar_report_archive");
+	QString filename = QFileDialog::getSaveFileName(this, "Store variant sheet",  folder + "/" + base_name + "_variant_sheet_" + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
 	if (filename.isEmpty()) return;
 
 	//make sure free-text phenotype infos are available
 	NGSD db;
-	QString sample_id = db.sampleId(filename_);
+	QString sample_id = db.sampleId(base_name);
 	QList<SampleDiseaseInfo> disease_infos = db.getSampleDiseaseInfo(sample_id, "clinical phenotype (free text)");
 	if (disease_infos.isEmpty() && QMessageBox::question(this, "Variant sheet", "No clinical phenotype (free text) is set for the sample!\nDo you want to set it?")==QMessageBox::Yes)
 	{
@@ -1724,9 +1724,6 @@ void MainWindow::printVariantSheet()
 	//write footer
 	stream << "  </body>" << endl;
 	stream << "</html>" << endl;
-
-	//update path
-	last_report_path_ = QFileInfo(filename).absolutePath();
 
 	if (QMessageBox::question(this, "Variant sheet", "Variant sheet generated successfully!\nDo you want to open it in your browser?")==QMessageBox::Yes)
 	{
@@ -1942,8 +1939,8 @@ void MainWindow::generateReportGermline()
 
 	//check that sample in in NGSD
 	NGSD db;
-	QString sample_id = db.sampleId(filename_, false);
-	QString processed_sample_id = db.processedSampleId(filename_, false);
+	QString sample_id = db.sampleId(processedSampleName(), false);
+	QString processed_sample_id = db.processedSampleId(processedSampleName(), false);
 	if (sample_id.isEmpty() || processed_sample_id.isEmpty())
 	{
 		GUIHelper::showMessage("Error", "Sample not found in database.\nCannot generate a report for samples that are not in the NGSD!");

@@ -1,6 +1,6 @@
 # GSvar change log
 
-### 2019_09-?? (26.09.19)
+### 2019_09-3 (26.09.19)
 - Implemented report configuration of variants (create, load/store in NGSD) and use for reports and variant sheets.
 - Added 'Gene' tab.
 - Gap dialog: Added category for overlap with splice regions of preferred transcript (+-6 to +-20 bases).
