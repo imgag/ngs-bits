@@ -124,6 +124,7 @@ void ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, QS
 	}
 	stream << "<p><b>" << trans("Abdeckungsstatistik") << "</b>" << endl;
 	stream << "<br />" << trans("Durchschnittliche Sequenziertiefe") << ": " << avg_cov << endl;
+	stream << "</p>" << endl;
 
 	if (gene_and_gap_details)
 	{
@@ -191,7 +192,6 @@ void ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, QS
 			stream << "<br />" << trans("Fehlende Basen in nicht komplett abgedeckten Genen") << ": " << incomplete_genes.join(", ") << endl;
 		}
 
-		stream << "</p>" << endl;
 		stream << "<p>" << trans("Details Regionen mit Tiefe &lt;") << min_cov << ":" << endl;
 		stream << "</p>" << endl;
 		stream << "<table>" << endl;
@@ -220,7 +220,7 @@ void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file
 {
 	QString ext_string = (extend==0 ? "" : " +-" + QString::number(extend) + " ");
 	stream << "<p><b>" << trans("Abdeckungsstatistik f&uuml;r CCDS") << " " << ext_string << "</b></p>" << endl;
-	if (gap_table) stream << "<table>";
+	if (gap_table) stream << "<p><table>";
 	if (gap_table) stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Transcript") << "</b></td><td><b>" << trans("Gr&ouml;&szlig;e") << "</b></td><td><b>" << trans("L&uuml;cken") << "</b></td><td><b>" << trans("Chromosom") << "</b></td><td><b>" << trans("Koordinaten (hg19)") << "</b></td></tr>";
 	QMap<QByteArray, int> gap_count;
 	long long bases_overall = 0;
@@ -472,7 +472,8 @@ void ReportWorker::writeHTML()
 	stream << "<h4>" << trans("Technischer Report zur bioinformatischen Analyse") << "</h4>" << endl;
 
 	stream << "<p><b>" << trans("Probe") << ": " << sample_name_ << "</b> (" << sample_data.name_external << ")" << endl;
-	stream << "<p><b>" << trans("Geschlecht") << ": " << processed_sample_data.gender << endl;
+	stream << "</p>" << endl;
+	stream << "<p>" << trans("Geschlecht") << ": " << processed_sample_data.gender << endl;
 	stream << "<br />" << trans("Prozessierungssystem") << ": " << processed_sample_data.processing_system << endl;
 	stream << "<br />" << trans("Referenzgenom") << ": " << system_data.genome << endl;
 	stream << "<br />" << trans("Datum") << ": " << QDate::currentDate().toString("dd.MM.yyyy") << endl;
@@ -516,7 +517,7 @@ void ReportWorker::writeHTML()
 		{
 			stream << "<br />" << trans("Ausgewertete Gene") << " (" << QString::number(genes_.count()) << "): " << genes_.join(", ") << endl;
 		}
-		stream << "</p>" << endl;
+		stream << "</span></p>" << endl;
 	}
 
 	//get column indices
@@ -532,7 +533,7 @@ void ReportWorker::writeHTML()
 	//output: applied filters
 	stream << "<p><b>" << trans("Filterkriterien") << " " << "</b>" << endl;
 	stream << "<br />" << trans("Gefundene Varianten in Zielregion gesamt") << ": " << var_count_ << endl;
-	stream << "<br />" << trans("Anzahl Varianten ausgew&auml:hlt f&uuml;r Report") << ": " << settings_.report_config.variantIndices(VariantType::SNVS_INDELS, true, settings_.report_type).count() << endl;
+	stream << "<br />" << trans("Anzahl Varianten ausgew&auml;hlt f&uuml;r Report") << ": " << settings_.report_config.variantIndices(VariantType::SNVS_INDELS, true, settings_.report_type).count() << endl;
 	for(int i=0; i<filters_.count(); ++i)
 	{
 		stream << "<br />&nbsp;&nbsp;&nbsp;&nbsp;- " << filters_[i]->toText() << endl;
@@ -543,7 +544,7 @@ void ReportWorker::writeHTML()
 	stream << "<p><b>" << trans("Varianten nach klinischer Interpretation im Kontext der Fragestellung") << "</b>" << endl;
 	stream << "</p>" << endl;
 	stream << "<table>" << endl;
-	stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Variante") << "</b></td><td><b>" << trans("Genotyp") << "</b></td><td><b>" << trans("Details") << "</b></td><td><b>" << trans("Typ") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td><td><b>1000g</b></td><td><b>gnomAD</b></td></tr>" << endl;
+	stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Variante") << "</b></td><td><b>" << trans("Genotyp") << "</b></td><td><b>" << trans("Details") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td><td><b>1000g</b></td><td><b>gnomAD</b></td></tr>" << endl;
 
 	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config.variantConfig())
 	{
@@ -557,14 +558,13 @@ void ReportWorker::writeHTML()
 		stream << "<td>" << genes << "</td>" << endl;
 		stream << "<td>" << endl;
 		stream  << variant.chr().str() << ":" << variant.start() << "&nbsp;" << variant.ref() << "&nbsp;&gt;&nbsp;" << variant.obs() << "</td>";
-		stream << "<td>" << formatGenotype(processed_sample_data.gender.toLatin1(), variant.annotations().at(i_genotype), variant.chr(), variant.start(), variant.end()) << "</td>" << endl;
+		QStringList geno_info;
+		geno_info << formatGenotype(processed_sample_data.gender.toLatin1(), variant.annotations().at(i_genotype), variant.chr(), variant.start(), variant.end());
+		if (var_conf.de_novo) geno_info << "de-novo";
+		if (var_conf.mosaic) geno_info << "mosaic";
+		if (var_conf.comp_het) geno_info << "comp-het";
+		stream << "<td>" << geno_info.join(", ") << "</td>" << endl;
 		stream << "<td>" << formatCodingSplicing(variant.transcriptAnnotations(i_co_sp)) << "</td>" << endl;
-		QStringList type_strings;
-		type_strings << QString(var_conf.report_type).replace("report: ", "");
-		if (var_conf.de_novo) type_strings << "de-novo";
-		if (var_conf.mosaic) type_strings << "mosaic";
-		if (var_conf.comp_het) type_strings << "comp-het";
-		stream << "<td><nobr>" << type_strings.join(",") << "<nobr></td>" << endl;
 		stream << "<td>" << variant.annotations().at(i_class) << "</td>" << endl;
 		stream << "<td>" << var_conf.inheritance << "</td>" << endl;
 		QByteArray freq = variant.annotations().at(i_kg).trimmed();
@@ -635,7 +635,7 @@ void ReportWorker::writeHTML()
 		stream << "<p><b>" << trans("OMIM Gene und Phenotypen") << "</b>" << endl;
 		stream << "</p>" << endl;
 		stream << "<table>" << endl;
-		stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("OMIM Gen MIM") << "</b></td><td><b>" << trans("OMIM Phenotypen") << "</b></td></tr>";
+		stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("OMIM Gen MIM") << "</b></td><td><b>" << trans("OMIM Phenotypen") << "</b></td></tr>" << endl;
 		foreach(QByteArray gene, genes_)
 		{
 			//approved gene symbol
@@ -649,7 +649,7 @@ void ReportWorker::writeHTML()
 				QString gene_id = q_genes.value(0).toByteArray();
 				QString gene_mim = q_genes.value(1).toByteArray();
 
-				stream << "<tr><td>" << gene << "</td><td>" << gene_mim << "</td><td>" << db_.getValues("SELECT phenotype FROM omim_phenotype WHERE omim_gene_id=" + gene_id).join("<br>")<< "</tr>";
+				stream << "<tr><td>" << gene << "</td><td>" << gene_mim << "</td><td>" << db_.getValues("SELECT phenotype FROM omim_phenotype WHERE omim_gene_id=" + gene_id).join("<br>")<< "</td></tr>";
 			}
 		}
 		stream << "</table>" << endl;
@@ -823,7 +823,7 @@ QString ReportWorker::trans(const QString& text) const
 		de2en["Ph&auml;notyp"] = "Phenotype information";
 		de2en["Filterkriterien"] = "Criteria for variant filtering";
 		de2en["Gefundene Varianten in Zielregion gesamt"] = "Variants in target region";
-		de2en["Anzahl Varianten ausgew&auml:hlt f&uuml;r Report"] = "Variants selected for report";
+		de2en["Anzahl Varianten ausgew&auml;hlt f&uuml;r Report"] = "Variants selected for report";
 		de2en["Varianten nach klinischer Interpretation im Kontext der Fragestellung"] = "List of prioritized variants";
 		de2en["Vererbung"] = "Inheritance";
 		de2en["Klasse"] = "Class";
@@ -871,7 +871,6 @@ QString ReportWorker::trans(const QString& text) const
 		de2en["Transcript"] = "Transcript";
 		de2en["gesamt"] = "overall";
 		de2en["mit Tiefe"] = "with depth";
-		de2en["Typ"] = "type";
 		de2en["Geschlecht"] = "sample sex";
 
 		if (!de2en.contains(text))

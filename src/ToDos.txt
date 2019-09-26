@@ -25,9 +25,10 @@ GSvar:
 ** replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
 * trio filter: correct PAR region handling (Genetikum)
 * Add special report for trios/multi-sample with genotype overview > change format to RTF first (AG)
-* report variant selection
-    - add ORPHA codes for genes to XML
+*** report variant selection
+    *** add ORPHA codes for genes to XML
         - PhenotypeInfo table (only when causal) - Gene, identifier, type colums (only type Orpha for now)
+        - https://raw.githubusercontent.com/Orphanet/Orphadata.org/master/Orphanet%20Rare%20Disease%20Ontology/ORDO_de_2.7.owl
         - https://github.com/Orphanet/Orphadata.org/tree/master/Disorders%20cross%20referenced%20JSON
         - https://github.com/Orphanet/Orphadata.org/tree/master/Disorders%20with%20their%20associated%20genes
     - add gaps report (custom via import) to XML report
@@ -37,7 +38,7 @@ GSvar:
         - lock editing the report config then?
 
 Tools:
-- NGSDImportHPO: Add G2P database (https://www.ebi.ac.uk/gene2phenotype)? Ask HPO people if they include it
+- NGSDImportHPO: Add G2P database (https://www.ebi.ac.uk/gene2phenotype) - if HPO people do not include it
 - UPDHunter: also support chrX?
 - SomaticQC: replace 'QC:?' by real qcML identifier - add to https://github.com/HUPO-PSI/mzQC (CS)
 
