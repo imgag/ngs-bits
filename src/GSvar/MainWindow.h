@@ -28,8 +28,8 @@ class MainWindow
 public:
 	///Constructor
 	MainWindow(QWidget* parent = 0);
-	///Loads a variant list
-	void loadFile(QString filename);
+	///Loads a variant list. Unloads the variant list if no file name is given
+	void loadFile(QString filename="");
 	///Returns the result of applying filters to the variant list
 	void applyFilters(bool debug_time);
 	///Returns the LOG files corresponding to the variant list.

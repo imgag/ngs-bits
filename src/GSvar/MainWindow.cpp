@@ -172,7 +172,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::on_actionClose_triggered()
 {
-	loadFile("");
+	loadFile();
 }
 
 void MainWindow::on_actionIgvInit_triggered()
@@ -1161,7 +1161,7 @@ void MainWindow::closeTab(int index)
 		int res = QMessageBox::question(this, "Close file?", "Do you want to close the current sample?", QMessageBox::Yes, QMessageBox::No);
 		if (res==QMessageBox::Yes)
 		{
-			loadFile("");
+			loadFile();
 		}
 	}
 	else
@@ -1181,6 +1181,18 @@ void MainWindow::loadFile(QString filename)
 {
 	QTime timer;
 	timer.start();
+
+	//store report config if modified
+	if (report_settings_.report_config.isModified())
+	{
+		int button = QMessageBox::question(this, "Store report configuration", "You have modified that report configuration for this sample.\nDo you want to store it in the NGSD?",
+										   QMessageBox::Yes,
+										   QMessageBox::No|QMessageBox::Default);
+		if(button==QMessageBox::Yes)
+		{
+			storeReportConfig();
+		}
+	}
 
 	//reset GUI and data structures
 	setWindowTitle(QCoreApplication::applicationName());
@@ -1232,7 +1244,7 @@ void MainWindow::loadFile(QString filename)
 	{
 		QApplication::restoreOverrideCursor();
 		QMessageBox::warning(this, "Error", "Loading the file '" + filename + "' or displaying the contained variants failed!\nError message:\n" + e.message());
-		loadFile("");
+		loadFile();
 		return;
 	}
 
@@ -2583,8 +2595,8 @@ void MainWindow::closeEvent(QCloseEvent* event)
 	if (report_settings_.report_config.isModified())
 	{
 		int button = QMessageBox::question(this, "Store report configuration", "You have modified that report configuration for this sample.\nDo you want to store it in the NGSD?",
-										   QMessageBox::Yes|QMessageBox::Default,
-										   QMessageBox::No,
+										   QMessageBox::Yes,
+										   QMessageBox::No|QMessageBox::Default,
 										   QMessageBox::Cancel);
 		if(button==QMessageBox::Cancel)
 		{
