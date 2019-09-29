@@ -1096,6 +1096,38 @@ CREATE TABLE IF NOT EXISTS `report_configuration_variant`
 )
 ENGINE = InnoDB DEFAULT CHARACTER SET = utf8;
 
+-- -----------------------------------------------------
+-- Table `disease_term`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `disease_term`
+(
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `source` ENUM('OrphaNet') NOT NULL,
+  `identifier` VARCHAR(40) CHARACTER SET 'utf8' NOT NULL,
+  `name` TEXT CHARACTER SET 'utf8' NOT NULL,
+  `synonyms` TEXT CHARACTER SET 'utf8' NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `disease_source` (`source` ASC),
+  UNIQUE KEY `disease_id` (`identifier`),
+  INDEX `disease_name` (`name`(50) ASC),
+  INDEX `disease_synonyms` (`synonyms`(50) ASC)
+)
+ENGINE = InnoDB DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `disease_gene`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `disease_gene` (
+  `disease_term_id` INT(11) UNSIGNED NOT NULL,
+  `gene` VARCHAR(40) CHARACTER SET 'utf8' NOT NULL,
+  PRIMARY KEY (`disease_term_id`, `gene`),
+  CONSTRAINT `disease_genes_ibfk_1`
+    FOREIGN KEY (`disease_term_id`)
+    REFERENCES `disease_term` (`id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
 -- ----------------------------------------------------------------------------------------------------------
 --                                                 INITIAL DATA
 -- ----------------------------------------------------------------------------------------------------------

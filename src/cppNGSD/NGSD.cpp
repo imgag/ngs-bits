@@ -1656,8 +1656,9 @@ void NGSD::maintain(QTextStream* messages, bool fix_errors)
 
 	// (2) outdated gene names
 	fixGeneNames(messages, fix_errors, "geneinfo_germline", "symbol");
-	fixGeneNames(messages, fix_errors,"hpo_genes", "gene");
-	fixGeneNames(messages, fix_errors,"omim_gene", "gene");
+	fixGeneNames(messages, fix_errors, "hpo_genes", "gene");
+	fixGeneNames(messages, fix_errors, "omim_gene", "gene");
+	fixGeneNames(messages, fix_errors, "disease_gene", "gene");
 
 	// (3) variants/qc-data/KASP present for merged processed samples
 	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), p.type, p.name, s.id, ps.id FROM sample s, processed_sample ps, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id");
@@ -1718,7 +1719,7 @@ void NGSD::maintain(QTextStream* messages, bool fix_errors)
 					QVariant kasp = getValue("SELECT random_error_prob FROM kasp_status WHERE processed_sample_id='" + ps_id + "'");
 					if (kasp.isNull())
 					{
-						*messages << "Merged sample " << ps_name << " KASP result missing!" << endl;
+						*messages << "Merged sample " << ps_name << " has KASP result!" << endl;
 
 						if (fix_errors)
 						{

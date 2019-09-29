@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<JDBOR date="2019-09-01 04:54:51" version="1.2.11 / 4.1.6 [2018-04-12] (orientdb version)" copyright="Orphanet (c) 2019">
+<Availability> 
+ <Licence>
+    <FullName lang="en">Creative Commons Attribution 4.0 International</FullName>
+    <ShortIdentifier>CC-BY-4.0</ShortIdentifier>
+    <LegalCode>https://creativecommons.org/licenses/by/4.0/legalcode</LegalCode>
+ </Licence>
+</Availability>
+  <DisorderList count="10392">
+    <Disorder id="17601">
+      <OrphaNumber>166024</OrphaNumber>
+      <ExpertLink lang="en">http://www.orpha.net/consor/cgi-bin/OC_Exp.php?lng=en&amp;Expert=166024</ExpertLink>
+      <Name lang="en">Multiple epiphyseal dysplasia, Al-Gazali type</Name>
+      <DisorderFlagList count="1">
+        <DisorderFlag id="475">
+          <Label>on-line</Label>
+        </DisorderFlag>
+      </DisorderFlagList>
+      <SynonymList count="1">
+        <Synonym lang="en">Multiple epiphyseal dysplasia-macrocephaly-distinctive facies syndrome</Synonym>
+      </SynonymList>
+      <DisorderType id="21394">
+        <OrphaNumber>377788</OrphaNumber>
+        <Name lang="en">Disease</Name>
+      </DisorderType>
+      <ExternalReferenceList count="3">
+        <ExternalReference id="120419">
+          <Source>ICD-10</Source>
+          <Reference>Q77.3</Reference>
+          <DisorderMappingRelation id="21534">
+            <OrphaNumber>377808</OrphaNumber>
+            <Name lang="en">NTBT (narrower term maps to a broader term)</Name>
+          </DisorderMappingRelation>
+          <DisorderMappingICDRelation id="21604">
+            <OrphaNumber>377818</OrphaNumber>
+            <Name lang="en">Attributed</Name>
+          </DisorderMappingICDRelation>
+          <DisorderMappingValidationStatus id="21611">
+            <OrphaNumber>377819</OrphaNumber>
+            <Name lang="en">Validated</Name>
+          </DisorderMappingValidationStatus>
+        </ExternalReference>
+        <ExternalReference id="38949">
+          <Source>OMIM</Source>
+          <Reference>607131</Reference>
+          <DisorderMappingRelation id="21527">
+            <OrphaNumber>377807</OrphaNumber>
+            <Name lang="en">E (exact mapping (the terms and the concepts are equivalent))</Name>
+          </DisorderMappingRelation>
+          <DisorderMappingICDRelation/>
+          <DisorderMappingValidationStatus id="21611">
+            <OrphaNumber>377819</OrphaNumber>
+            <Name lang="en">Validated</Name>
+          </DisorderMappingValidationStatus>
+        </ExternalReference>
+        <ExternalReference id="139761">
+          <Source>UMLS</Source>
+          <Reference>C1846722</Reference>
+          <DisorderMappingRelation id="21527">
+            <OrphaNumber>377807</OrphaNumber>
+            <Name lang="en">E (exact mapping (the terms and the concepts are equivalent))</Name>
+          </DisorderMappingRelation>
+          <DisorderMappingICDRelation/>
+          <DisorderMappingValidationStatus id="21611">
+            <OrphaNumber>377819</OrphaNumber>
+            <Name lang="en">Validated</Name>
+          </DisorderMappingValidationStatus>
+        </ExternalReference>
+      </ExternalReferenceList>
+      <DisorderDisorderAssociationList count="0">
+      </DisorderDisorderAssociationList>
+      <TextualInformationList count="1">
+        <TextualInformation id="63385" lang="en">
+          <TextSectionList count="1">
+            <TextSection id="83697" lang="en">
+              <TextSectionType id="16907">
+                <Name lang="en">Definition</Name>
+              </TextSectionType>
+              <Contents>Multiple epiphyseal dysplasia, Al-Gazali type is a skeletal dysplasia characterized by multiple epiphyseal dysplasia (see this term), macrocephaly and facial dysmorphism.</Contents>
+            </TextSection>
+          </TextSectionList>
+        </TextualInformation>
+      </TextualInformationList>
+    </Disorder>
+  </DisorderList>
+</JDBOR>
