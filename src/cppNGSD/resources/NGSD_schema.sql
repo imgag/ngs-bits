@@ -1105,7 +1105,7 @@ CREATE TABLE IF NOT EXISTS `disease_term`
   `source` ENUM('OrphaNet') NOT NULL,
   `identifier` VARCHAR(40) CHARACTER SET 'utf8' NOT NULL,
   `name` TEXT CHARACTER SET 'utf8' NOT NULL,
-  `synonyms` TEXT CHARACTER SET 'utf8' NOT NULL,
+  `synonyms` TEXT CHARACTER SET 'utf8' DEFAULT NULL,
   PRIMARY KEY (`id`),
   INDEX `disease_source` (`source` ASC),
   UNIQUE KEY `disease_id` (`identifier`),

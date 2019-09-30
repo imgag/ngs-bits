@@ -20,8 +20,8 @@ private slots:
 		EXECUTE("NGSDImportORPHA", "-test -terms " + TESTDATA("data_in/NGSDImportORPHA_terms.xml") + " -genes " + TESTDATA("data_in/NGSDImportORPHA_genes.xml"));
 
 		//check
-		I_EQUAL(db.getValue("SELECT count(*) FROM disease_term").toInt(), 0)
-		I_EQUAL(db.getValue("SELECT count(*) FROM disease_gene").toInt(), 0)
+		I_EQUAL(db.getValue("SELECT count(*) FROM disease_term").toInt(), 2)
+		I_EQUAL(db.getValue("SELECT count(*) FROM disease_gene").toInt(), 3)
 	}
 };
 

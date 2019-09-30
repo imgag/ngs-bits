@@ -25,11 +25,85 @@ public:
 		addFlag("force", "If set, overwrites old data.");
 	}
 
+	QHash<QString, GeneSet> parseDiseaseGeneRelations(NGSD& db, QTextStream& out)
+	{
+		QHash<QString, GeneSet> output;
+
+		GeneSet approved_genes = db.approvedGeneNames();
+
+		QString filename = getInfile("genes");
+		QSharedPointer<QFile> fp = Helper::openFileForReading(filename);
+
+		QXmlStreamReader xml(fp.data());
+		xml.readNextStartElement(); //root element JDBOR
+		while (xml.readNextStartElement())
+		{
+			if (xml.name()=="DisorderList")
+			{
+				while (xml.readNextStartElement())
+				{
+					if (xml.name()=="Disorder")
+					{
+						QString number;
+						while (xml.readNextStartElement())
+						{
+							if (xml.name()=="OrphaNumber")
+							{
+								number = "ORPHA:" + xml.readElementText();
+							}
+							else if (xml.name()=="DisorderGeneAssociationList")
+							{
+								while (xml.readNextStartElement())
+								{
+									if (xml.name()=="DisorderGeneAssociation")
+									{
+										while (xml.readNextStartElement())
+										{
+											if (xml.name()=="Gene")
+											{
+												while (xml.readNextStartElement())
+												{
+													if (xml.name()=="Symbol")
+													{
+														QByteArray gene = xml.readElementText().toLatin1();
+														if (!approved_genes.contains(gene))
+														{
+															output[number] << gene;
+														}
+														else
+														{
+															out << "Warning: Skipping non-approved gene name '" << gene << "' for term '" << number << "'!" << endl;
+														}
+													}
+													else xml.skipCurrentElement();
+												}
+											}
+											else xml.skipCurrentElement();
+										}
+									}
+									else xml.skipCurrentElement();
+								}
+							}
+							else xml.skipCurrentElement();
+						}
+					}
+					else xml.skipCurrentElement();
+				}
+			}
+			else xml.skipCurrentElement();
+		}
+		if (xml.hasError())
+		{
+			THROW(FileParseException, "Error parsing XML file " + filename + ":\n" + xml.errorString());
+		}
+		fp->close();
+
+		return output;
+	}
+
 	virtual void main()
 	{
 		//init
-		QString terms = getInfile("terms");
-		QString genes = getInfile("genes");
 		NGSD db(getFlag("test"));
 		QTextStream out(stdout);
 
@@ -51,103 +125,136 @@ public:
 			}
 		}
 
+		//parse disease-gene relation
+		out << "Parsing gene-disease relations..." << endl;
+		QHash<QString, GeneSet> disease_genes = parseDiseaseGeneRelations(db, out);
+
 		//prepare SQL queries
 		SqlQuery qi_disease = db.getQuery();
 		qi_disease.prepare("INSERT INTO disease_term (source, identifier, name, synonyms) VALUES ('OrphaNet', :0, :1, :2)");
 		SqlQuery qi_gene = db.getQuery();
 		qi_gene.prepare("INSERT INTO disease_gene (disease_term_id, gene) VALUES (:0, :1)");
 
-		//import disease terms
-		out << "Importing ORPHA diseases..." << endl;
-		QSharedPointer<QFile> fp = Helper::openFileForReading(terms);
-		QXmlStreamReader xml(fp.data());
-		xml.readNextStartElement(); //root element JDBOR
-		while (xml.readNextStartElement())
+		//import disease terms and genes
+		out << "Importing ORPHA information..." << endl;
 		{
-			out << xml.name() << endl;
-			if (xml.name()=="DisorderList")
+			QString terms = getInfile("terms");
+			QSharedPointer<QFile> fp = Helper::openFileForReading(terms);
+			QXmlStreamReader xml(fp.data());
+			xml.readNextStartElement(); //root element JDBOR
+			while (xml.readNextStartElement())
 			{
-				while (xml.readNextStartElement())
+				if (xml.name()=="DisorderList")
 				{
-					if (xml.name()=="Disorder")
+					while (xml.readNextStartElement())
 					{
-						bool skip = false;
-						while (xml.readNextStartElement())
+						if (xml.name()=="Disorder")
 						{
-							if (xml.name()=="OrphaNumber")
+							//parse disease entry
+							QString number;
+							QString name;
+							QStringList types;
+							QStringList synonyms;
+							bool skip = false;
+							while (xml.readNextStartElement())
 							{
-								out << endl << "###: " << xml.readElementText() << endl;
-							}
-							else if (xml.name()=="Name")
-							{
-								out << "name: " << xml.readElementText()<< endl;
-							}
-							else if (xml.name()=="SynonymList")
-							{
-								while (xml.readNextStartElement())
+								if (xml.name()=="OrphaNumber")
 								{
-									if (xml.name()=="Synonym")
-									{
-										out << "Syn: " << xml.readElementText()<< endl;
-									}
-									else xml.skipCurrentElement();
+									number = "ORPHA:" + xml.readElementText();
 								}
-							}
-							else if (xml.name()=="DisorderFlagList")
-							{
-								while (xml.readNextStartElement())
+								else if (xml.name()=="Name")
 								{
-									if (xml.name()=="DisorderFlag")
+									name = xml.readElementText();
+								}
+								else if (xml.name()=="SynonymList")
+								{
+									while (xml.readNextStartElement())
 									{
-										while (xml.readNextStartElement())
+										if (xml.name()=="Synonym")
 										{
-											if (xml.name()=="Label")
-											{
-												QString flag = xml.readElementText();
-												if (flag=="Obsolete entity" || flag=="offline")
-												{
-													skip = true;
-												}
-											}
-											else xml.skipCurrentElement();
+											synonyms << xml.readElementText();
 										}
+										else xml.skipCurrentElement();
 									}
-									else xml.skipCurrentElement();
 								}
+								else if (xml.name()=="DisorderFlagList")
+								{
+									while (xml.readNextStartElement())
+									{
+										if (xml.name()=="DisorderFlag")
+										{
+											while (xml.readNextStartElement())
+											{
+												if (xml.name()=="Label")
+												{
+													QString flag = xml.readElementText();
+													if (flag=="Obsolete entity" || flag=="offline")
+													{
+														skip = true;
+													}
+												}
+												else xml.skipCurrentElement();
+											}
+										}
+										else xml.skipCurrentElement();
+									}
+								}
+								else if (xml.name()=="DisorderType")
+								{
+									while (xml.readNextStartElement())
+									{
+										if (xml.name()=="Name")
+										{
+											types << xml.readElementText();
+										}
+										else xml.skipCurrentElement();
+									}
+								}
+								else xml.skipCurrentElement();
 							}
-							else xml.skipCurrentElement();
+
+							//insert
+							if (!skip)
+							{
+								//insert disease
+								qi_disease.bindValue(0, number);
+								qi_disease.bindValue(1, name);
+								qi_disease.bindValue(2, synonyms.join("\n"));
+								qi_disease.exec();
+								qlonglong id = qi_disease.lastInsertId().toLongLong();
+
+								//insert disease-gene relation
+								if (disease_genes.contains(number))
+								{
+									foreach(const QByteArray& gene, disease_genes[number])
+									{
+										qi_gene.bindValue(0, id);
+										qi_gene.bindValue(1, gene);
+										qi_gene.exec();
+									}
+								}
+								out << number << "\t" << name << "\t" << types.join(", ") << "\t" << disease_genes[number].count() << endl;
+							}
 						}
-						if (!skip)
-						{
-							out << "ADD" << endl;
-						}
+						else xml.skipCurrentElement();
 					}
-					else xml.skipCurrentElement();
 				}
+				else xml.skipCurrentElement();
 			}
-			else xml.skipCurrentElement();
+			if (xml.hasError())
+			{
+				THROW(FileParseException, "Error parsing XML file " + terms + ":\n" + xml.errorString());
+			}
+			fp->close();
 		}
-		if (xml.hasError())
-		{
-			THROW(FileParseException, "Error parsing XML file " + terms + ":\n" + xml.errorString());
-		}
-		fp->close();
 
 		//output
 		int c_disease = db.getValue("SELECT COUNT(*) FROM disease_term").toInt();
 		out << "Imported " << c_disease << " diseases" << endl;
+		int c_disease_gene = db.getValue("SELECT COUNT(*) FROM disease_gene").toInt();
+		out << "Imported " << c_disease_gene << " disease-gene relations" << endl;
 
-		//import disease-phenotype relations
-		out << endl;
-		out << "Importing OMIM gene-phenotype relations..." << endl;
-		fp = Helper::openFileForReading(genes);
-		//TODO
-		fp->close();
-
-		//output
-		out << "Imported " << db.getValue("SELECT COUNT(*) FROM disease_gene").toInt() << " disease<>gene relations" << endl;
-
-		//augment gene-phenotype infos im missing
+		//augment gene-phenotype infos if missing
 		//TODO
 	}
 };

@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <JDBOR date="2019-09-01 04:54:51" version="1.2.11 / 4.1.6 [2018-04-12] (orientdb version)" copyright="Orphanet (c) 2019">
-<Availability> 
- <Licence>
-    <FullName lang="en">Creative Commons Attribution 4.0 International</FullName>
-    <ShortIdentifier>CC-BY-4.0</ShortIdentifier>
-    <LegalCode>https://creativecommons.org/licenses/by/4.0/legalcode</LegalCode>
- </Licence>
-</Availability>
-  <DisorderList count="10392">
+  <Availability> 
+	<Licence>
+	  <FullName lang="en">Creative Commons Attribution 4.0 International</FullName>
+	  <ShortIdentifier>CC-BY-4.0</ShortIdentifier>
+	  <LegalCode>https://creativecommons.org/licenses/by/4.0/legalcode</LegalCode>
+	</Licence>
+  </Availability>
+  <DisorderList count="4">
     <Disorder id="17601">
       <OrphaNumber>166024</OrphaNumber>
       <ExpertLink lang="en">http://www.orpha.net/consor/cgi-bin/OC_Exp.php?lng=en&amp;Expert=166024</ExpertLink>
@@ -83,5 +83,131 @@
         </TextualInformation>
       </TextualInformationList>
     </Disorder>
+	
+	<Disorder id="17648">
+      <OrphaNumber>166457</OrphaNumber>
+      <ExpertLink lang="en">http://www.orpha.net/consor/cgi-bin/OC_Exp.php?lng=en&amp;Expert=166457</ExpertLink>
+      <Name lang="en">OBSOLETE: Other forms of non-paraneoplastic limbic encephalitis</Name>
+      <DisorderFlagList count="1">
+        <DisorderFlag id="455">
+          <Label>Obsolete entity</Label>
+        </DisorderFlag>
+      </DisorderFlagList>
+      <SynonymList count="0">
+      </SynonymList>
+      <DisorderType id="21436">
+        <OrphaNumber>377794</OrphaNumber>
+        <Name lang="en">Clinical group</Name>
+      </DisorderType>
+      <ExternalReferenceList count="0">
+      </ExternalReferenceList>
+      <DisorderDisorderAssociationList count="1">
+        <DisorderDisorderAssociation>
+          <Disorder1 id="17545">
+            <OrphaNumber>163918</OrphaNumber>
+            <Name lang="en">Non-paraneoplastic limbic encephalitis</Name>
+          </Disorder1>
+          <Disorder2 id="17648" cycle="true"/>
+          <DisorderDisorderAssociationType id="27341">
+            <Name lang="en">Referred to</Name>
+          </DisorderDisorderAssociationType>
+        </DisorderDisorderAssociation>
+      </DisorderDisorderAssociationList>
+      <TextualInformationList count="0">
+      </TextualInformationList>
+      <TextAuto>
+        <Info lang="en">This term does not characterize a disease but a group of diseases. To learn about the diseases included under this term, you can consult the classifications.</Info>
+      </TextAuto>
+    </Disorder>
+	
+	<Disorder id="18358">
+      <OrphaNumber>184051</OrphaNumber>
+      <ExpertLink lang="en">http://www.orpha.net/consor/cgi-bin/OC_Exp.php?lng=en&amp;Expert=184051</ExpertLink>
+      <Name lang="en">Non-rare developmental anomalies during embryogenesis</Name>
+      <DisorderFlagList count="1">
+        <DisorderFlag id="490">
+          <Label>offline</Label>
+        </DisorderFlag>
+      </DisorderFlagList>
+      <SynonymList count="0">
+      </SynonymList>
+      <DisorderType id="36561">
+        <OrphaNumber>557495</OrphaNumber>
+        <Name lang="en">Category</Name>
+      </DisorderType>
+      <ExternalReferenceList count="0">
+      </ExternalReferenceList>
+      <DisorderDisorderAssociationList count="0">
+      </DisorderDisorderAssociationList>
+      <TextualInformationList count="0">
+      </TextualInformationList>
+    </Disorder>
+	
+    <Disorder id="17543">
+      <OrphaNumber>163908</OrphaNumber>
+      <ExpertLink lang="en">http://www.orpha.net/consor/cgi-bin/OC_Exp.php?lng=en&amp;Expert=163908</ExpertLink>
+      <Name lang="en">Limbic encephalitis with LGI1 antibodies</Name>
+      <DisorderFlagList count="1">
+        <DisorderFlag id="475">
+          <Label>on-line</Label>
+        </DisorderFlag>
+      </DisorderFlagList>
+      <SynonymList count="1">
+        <Synonym lang="en">Limbic encephalitis with leucine-rich glioma-inactivated 1 antibodies</Synonym>
+      </SynonymList>
+      <DisorderType id="21394">
+        <OrphaNumber>377788</OrphaNumber>
+        <Name lang="en">Disease</Name>
+      </DisorderType>
+      <ExternalReferenceList count="2">
+        <ExternalReference id="120376">
+          <Source>ICD-10</Source>
+          <Reference>G04.8</Reference>
+          <DisorderMappingRelation id="21534">
+            <OrphaNumber>377808</OrphaNumber>
+            <Name lang="en">NTBT (narrower term maps to a broader term)</Name>
+          </DisorderMappingRelation>
+          <DisorderMappingICDRelation id="21604">
+            <OrphaNumber>377818</OrphaNumber>
+            <Name lang="en">Attributed</Name>
+          </DisorderMappingICDRelation>
+          <DisorderMappingValidationStatus id="21618">
+            <OrphaNumber>377820</OrphaNumber>
+            <Name lang="en">Not yet validated</Name>
+          </DisorderMappingValidationStatus>
+        </ExternalReference>
+        <ExternalReference id="120375">
+          <Source>ICD-10</Source>
+          <Reference>G13.1</Reference>
+          <DisorderMappingRelation id="21534">
+            <OrphaNumber>377808</OrphaNumber>
+            <Name lang="en">NTBT (narrower term maps to a broader term)</Name>
+          </DisorderMappingRelation>
+          <DisorderMappingICDRelation id="21604">
+            <OrphaNumber>377818</OrphaNumber>
+            <Name lang="en">Attributed</Name>
+          </DisorderMappingICDRelation>
+          <DisorderMappingValidationStatus id="21611">
+            <OrphaNumber>377819</OrphaNumber>
+            <Name lang="en">Validated</Name>
+          </DisorderMappingValidationStatus>
+        </ExternalReference>
+      </ExternalReferenceList>
+      <DisorderDisorderAssociationList count="0">
+      </DisorderDisorderAssociationList>
+      <TextualInformationList count="1">
+        <TextualInformation id="99441" lang="en">
+          <TextSectionList count="1">
+            <TextSection id="122369" lang="en">
+              <TextSectionType id="16907">
+                <Name lang="en">Definition</Name>
+              </TextSectionType>
+              <Contents>Limbic encephalitis with LGI1 antibodies is a rare neuroimmunological disorder characterized by the onset of cognitive decline, psychiatric disturbances and seizures (distinctively faciobrachial dystonic seizures) in association with detection of LGI1 antibodies in serum or cerebrospinal fluid. Patients may present with confusion, hallucinations, vocalization, paranoia, tangentiality, aggressive outbursts and/or spatial disorientation, as well as obstinate hyponatremia. It is most often non-paraneoplastic, however comorbid tumors, such as small cell lung cancer and thymoma, have been reported.</Contents>
+            </TextSection>
+          </TextSectionList>
+        </TextualInformation>
+      </TextualInformationList>
+    </Disorder>
+	
   </DisorderList>
 </JDBOR>

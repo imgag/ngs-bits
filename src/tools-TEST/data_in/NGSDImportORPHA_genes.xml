@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <JDBOR date="2019-09-01 04:58:34" version="1.2.11 / 4.1.6 [2018-04-12] (orientdb version)" copyright="Orphanet (c) 2019">
-<Availability> 
- <Licence>
-    <FullName lang="en">Creative Commons Attribution 4.0 International</FullName>
-    <ShortIdentifier>CC-BY-4.0</ShortIdentifier>
-    <LegalCode>https://creativecommons.org/licenses/by/4.0/legalcode</LegalCode>
- </Licence>
-</Availability>
-  <DisorderList count="3789">
+  <Availability> 
+	<Licence>
+	  <FullName lang="en">Creative Commons Attribution 4.0 International</FullName>
+	  <ShortIdentifier>CC-BY-4.0</ShortIdentifier>
+	  <LegalCode>https://creativecommons.org/licenses/by/4.0/legalcode</LegalCode>
+	</Licence>
+  </Availability>
+  <DisorderList count="1">
+
     <Disorder id="17601">
       <OrphaNumber>166024</OrphaNumber>
       <Name lang="en">Multiple epiphyseal dysplasia, Al-Gazali type</Name>
@@ -61,136 +62,100 @@
         </DisorderGeneAssociation>
       </DisorderGeneAssociationList>
     </Disorder>
-    <Disorder id="5">
-      <OrphaNumber>93</OrphaNumber>
-      <Name lang="en">Aspartylglucosaminuria</Name>
-      <DisorderGeneAssociationList count="1">
+	
+	<Disorder id="17543">
+      <OrphaNumber>163908</OrphaNumber>
+      <Name lang="en">Limbic encephalitis with LGI1 antibodies</Name>
+      <DisorderGeneAssociationList count="2">
         <DisorderGeneAssociation>
-          <SourceOfValidation>11309371[PMID]</SourceOfValidation>
-          <Gene id="15470">
-            <OrphaNumber>119513</OrphaNumber>
-            <Name lang="en">aspartylglucosaminidase</Name>
-            <Symbol>AGA</Symbol>
-            <SynonymList count="3">
-              <Synonym lang="en">ASRG</Synonym>
-              <Synonym lang="en">N(4)-(beta-N-acetylglucosaminyl)-L-asparaginase</Synonym>
-              <Synonym lang="en">glycosylasparaginase</Synonym>
+          <SourceOfValidation>28026029_28026046[PMID]</SourceOfValidation>
+          <Gene id="16202">
+            <OrphaNumber>122427</OrphaNumber>
+            <Name lang="en">major histocompatibility complex, class II, DR beta 1</Name>
+            <Symbol>HLA-DRB1</Symbol>
+            <SynonymList count="0">
             </SynonymList>
             <ExternalReferenceList count="6">
-              <ExternalReference id="126323">
-                <Source>Reactome</Source>
-                <Reference>P20933</Reference>
-              </ExternalReference>
-              <ExternalReference id="56681">
+              <ExternalReference id="56818">
                 <Source>Ensembl</Source>
-                <Reference>ENSG00000038002</Reference>
+                <Reference>ENSG00000196126</Reference>
               </ExternalReference>
-              <ExternalReference id="26679">
+              <ExternalReference id="37478">
                 <Source>Genatlas</Source>
-                <Reference>AGA</Reference>
+                <Reference>HLA-DRB1</Reference>
               </ExternalReference>
-              <ExternalReference id="26681">
+              <ExternalReference id="30196">
                 <Source>HGNC</Source>
-                <Reference>318</Reference>
+                <Reference>4948</Reference>
               </ExternalReference>
-              <ExternalReference id="44364">
+              <ExternalReference id="30195">
                 <Source>OMIM</Source>
-                <Reference>613228</Reference>
+                <Reference>142857</Reference>
               </ExternalReference>
-              <ExternalReference id="32441">
+              <ExternalReference id="56819">
+                <Source>Reactome</Source>
+                <Reference>P04229</Reference>
+              </ExternalReference>
+              <ExternalReference id="33220">
                 <Source>SwissProt</Source>
-                <Reference>P20933</Reference>
+                <Reference>P04229</Reference>
               </ExternalReference>
             </ExternalReferenceList>
             <LocusList count="1">
-              <Locus id="26631">
+              <Locus id="22701">
               </Locus>
             </LocusList>
           </Gene>
-          <DisorderGeneAssociationType id="17949">
-            <Name lang="en">Disease-causing germline mutation(s) in</Name>
+          <DisorderGeneAssociationType id="17961">
+            <Name lang="en">Major susceptibility factor in</Name>
           </DisorderGeneAssociationType>
           <DisorderGeneAssociationStatus id="17991">
             <Name lang="en">Assessed</Name>
           </DisorderGeneAssociationStatus>
         </DisorderGeneAssociation>
-      </DisorderGeneAssociationList>
-    </Disorder>
-    <Disorder id="17604">
-      <OrphaNumber>166035</OrphaNumber>
-      <Name lang="en">Brachydactyly-short stature-retinitis pigmentosa syndrome</Name>
-      <DisorderGeneAssociationList count="1">
         <DisorderGeneAssociation>
-          <SourceOfValidation>28285769[PMID]</SourceOfValidation>
-          <Gene id="26792">
-            <OrphaNumber>510666</OrphaNumber>
-            <Name lang="en">CWC27 spliceosome associated protein homolog</Name>
-            <Symbol>CWC27</Symbol>
+          <SourceOfValidation>28026029_28026046[PMID]</SourceOfValidation>
+          <Gene id="18703">
+            <OrphaNumber>211008</OrphaNumber>
+            <Name lang="en">major histocompatibility complex, class II, DQ beta 1</Name>
+            <Symbol>HLA-DQB1</Symbol>
             <SynonymList count="2">
-              <Synonym lang="en">NY-CO-10</Synonym>
-              <Synonym lang="en">SDCCAG-10</Synonym>
-            </SynonymList>
-            <ExternalReferenceList count="0">
-            </ExternalReferenceList>
-            <LocusList count="0">
-            </LocusList>
-          </Gene>
-          <DisorderGeneAssociationType id="17949">
-            <Name lang="en">Disease-causing germline mutation(s) in</Name>
-          </DisorderGeneAssociationType>
-          <DisorderGeneAssociationStatus id="17991">
-            <Name lang="en">Assessed</Name>
-          </DisorderGeneAssociationStatus>
-        </DisorderGeneAssociation>
-      </DisorderGeneAssociationList>
-    </Disorder>
-    <Disorder id="6">
-      <OrphaNumber>585</OrphaNumber>
-      <Name lang="en">Multiple sulfatase deficiency</Name>
-      <DisorderGeneAssociationList count="1">
-        <DisorderGeneAssociation>
-          <SourceOfValidation>17657823[PMID]</SourceOfValidation>
-          <Gene id="15570">
-            <OrphaNumber>119899</OrphaNumber>
-            <Name lang="en">sulfatase modifying factor 1</Name>
-            <Symbol>SUMF1</Symbol>
-            <SynonymList count="2">
-              <Synonym lang="en">FGE</Synonym>
-              <Synonym lang="en">UNQ3037</Synonym>
+              <Synonym lang="en">CELIAC1</Synonym>
+              <Synonym lang="en">IDDM1</Synonym>
             </SynonymList>
             <ExternalReferenceList count="6">
-              <ExternalReference id="56683">
+              <ExternalReference id="56816">
                 <Source>Ensembl</Source>
-                <Reference>ENSG00000144455</Reference>
+                <Reference>ENSG00000179344</Reference>
               </ExternalReference>
-              <ExternalReference id="27163">
+              <ExternalReference id="43209">
                 <Source>Genatlas</Source>
-                <Reference>SUMF1</Reference>
+                <Reference>HLA-DQB1</Reference>
               </ExternalReference>
-              <ExternalReference id="27161">
+              <ExternalReference id="43210">
                 <Source>HGNC</Source>
-                <Reference>20376</Reference>
+                <Reference>4944</Reference>
               </ExternalReference>
-              <ExternalReference id="27160">
+              <ExternalReference id="43211">
                 <Source>OMIM</Source>
-                <Reference>607939</Reference>
+                <Reference>604305</Reference>
               </ExternalReference>
-              <ExternalReference id="82828">
+              <ExternalReference id="82670">
                 <Source>Reactome</Source>
-                <Reference>Q8NBK3</Reference>
+                <Reference>P01920</Reference>
               </ExternalReference>
-              <ExternalReference id="32541">
+              <ExternalReference id="82625">
                 <Source>SwissProt</Source>
-                <Reference>Q8NBK3</Reference>
+                <Reference>P01920</Reference>
               </ExternalReference>
             </ExternalReferenceList>
             <LocusList count="1">
-              <Locus id="7659">
+              <Locus id="24817">
               </Locus>
             </LocusList>
           </Gene>
-          <DisorderGeneAssociationType id="17949">
-            <Name lang="en">Disease-causing germline mutation(s) in</Name>
+          <DisorderGeneAssociationType id="17961">
+            <Name lang="en">Major susceptibility factor in</Name>
           </DisorderGeneAssociationType>
           <DisorderGeneAssociationStatus id="17991">
             <Name lang="en">Assessed</Name>
@@ -198,868 +163,6 @@
         </DisorderGeneAssociation>
       </DisorderGeneAssociationList>
     </Disorder>
-    <Disorder id="7">
-      <OrphaNumber>118</OrphaNumber>
-      <Name lang="en">Beta-mannosidosis</Name>
-      <DisorderGeneAssociationList count="1">
-        <DisorderGeneAssociation>
-          <SourceOfValidation>18980795[PMID]</SourceOfValidation>
-          <Gene id="16375">
-            <OrphaNumber>123131</OrphaNumber>
-            <Name lang="en">mannosidase beta</Name>
-            <Symbol>MANBA</Symbol>
-            <SynonymList count="1">
-              <Synonym lang="en">beta-mannosidase A</Synonym>
-            </SynonymList>
-            <ExternalReferenceList count="6">
-              <ExternalReference id="100307">
-                <Source>Reactome</Source>
-                <Reference>O00462</Reference>
-              </ExternalReference>
-              <ExternalReference id="31235">
-                <Source>Genatlas</Source>
-                <Reference>MANBA</Reference>
-              </ExternalReference>
-              <ExternalReference id="31013">
-                <Source>HGNC</Source>
-                <Reference>6831</Reference>
-              </ExternalReference>
-              <ExternalReference id="31012">
-                <Source>OMIM</Source>
-                <Reference>609489</Reference>
-              </ExternalReference>
-              <ExternalReference id="33439">
-                <Source>SwissProt</Source>
-                <Reference>O00462</Reference>
-              </ExternalReference>
-              <ExternalReference id="56684">
-                <Source>Ensembl</Source>
-                <Reference>ENSG00000109323</Reference>
-              </ExternalReference>
-            </ExternalReferenceList>
-            <LocusList count="1">
-              <Locus id="19189">
-              </Locus>
-            </LocusList>
-          </Gene>
-          <DisorderGeneAssociationType id="17949">
-            <Name lang="en">Disease-causing germline mutation(s) in</Name>
-          </DisorderGeneAssociationType>
-          <DisorderGeneAssociationStatus id="17991">
-            <Name lang="en">Assessed</Name>
-          </DisorderGeneAssociationStatus>
-        </DisorderGeneAssociation>
-      </DisorderGeneAssociationList>
-    </Disorder>
-    <Disorder id="17609">
-      <OrphaNumber>166068</OrphaNumber>
-      <Name lang="en">Pontocerebellar hypoplasia type 5</Name>
-      <DisorderGeneAssociationList count="1">
-        <DisorderGeneAssociation>
-          <SourceOfValidation>21368912[PMID]</SourceOfValidation>
-          <Gene id="17741">
-            <OrphaNumber>168268</OrphaNumber>
-            <Name lang="en">tRNA splicing endonuclease subunit 54</Name>
-            <Symbol>TSEN54</Symbol>
-            <SynonymList count="2">
-              <Synonym lang="en">SEN54</Synonym>
-              <Synonym lang="en">SEN54L</Synonym>
-            </SynonymList>
-            <ExternalReferenceList count="6">
-              <ExternalReference id="58222">
-                <Source>Ensembl</Source>
-                <Reference>ENSG00000182173</Reference>
-              </ExternalReference>
-              <ExternalReference id="39384">
-                <Source>Genatlas</Source>
-                <Reference>TSEN54</Reference>
-              </ExternalReference>
-              <ExternalReference id="39385">
-                <Source>HGNC</Source>
-                <Reference>27561</Reference>
-              </ExternalReference>
-              <ExternalReference id="39386">
-                <Source>OMIM</Source>
-                <Reference>608755</Reference>
-              </ExternalReference>
-              <ExternalReference id="97270">
-                <Source>Reactome</Source>
-                <Reference>Q7Z6J9</Reference>
-              </ExternalReference>
-              <ExternalReference id="39387">
-                <Source>SwissProt</Source>
-                <Reference>Q7Z6J9</Reference>
-              </ExternalReference>
-            </ExternalReferenceList>
-            <LocusList count="1">
-              <Locus id="16787">
-              </Locus>
-            </LocusList>
-          </Gene>
-          <DisorderGeneAssociationType id="17949">
-            <Name lang="en">Disease-causing germline mutation(s) in</Name>
-          </DisorderGeneAssociationType>
-          <DisorderGeneAssociationStatus id="17991">
-            <Name lang="en">Assessed</Name>
-          </DisorderGeneAssociationStatus>
-        </DisorderGeneAssociation>
-      </DisorderGeneAssociationList>
-    </Disorder>
-    <Disorder id="17608">
-      <OrphaNumber>166063</OrphaNumber>
-      <Name lang="en">Pontocerebellar hypoplasia type 4</Name>
-      <DisorderGeneAssociationList count="1">
-        <DisorderGeneAssociation>
-          <SourceOfValidation/>
-          <Gene id="17741">
-            <OrphaNumber>168268</OrphaNumber>
-            <Name lang="en">tRNA splicing endonuclease subunit 54</Name>
-            <Symbol>TSEN54</Symbol>
-            <SynonymList count="2">
-              <Synonym lang="en">SEN54</Synonym>
-              <Synonym lang="en">SEN54L</Synonym>
-            </SynonymList>
-            <ExternalReferenceList count="6">
-              <ExternalReference id="58222">
-                <Source>Ensembl</Source>
-                <Reference>ENSG00000182173</Reference>
-              </ExternalReference>
-              <ExternalReference id="39384">
-                <Source>Genatlas</Source>
-                <Reference>TSEN54</Reference>
-              </ExternalReference>
-              <ExternalReference id="39385">
-                <Source>HGNC</Source>
-                <Reference>27561</Reference>
-              </ExternalReference>
-              <ExternalReference id="39386">
-                <Source>OMIM</Source>
-                <Reference>608755</Reference>
-              </ExternalReference>
-              <ExternalReference id="97270">
-                <Source>Reactome</Source>
-                <Reference>Q7Z6J9</Reference>
-              </ExternalReference>
-              <ExternalReference id="39387">
-                <Source>SwissProt</Source>
-                <Reference>Q7Z6J9</Reference>
-              </ExternalReference>
-            </ExternalReferenceList>
-            <LocusList count="1">
-              <Locus id="16787">
-              </Locus>
-            </LocusList>
-          </Gene>
-          <DisorderGeneAssociationType id="17949">
-            <Name lang="en">Disease-causing germline mutation(s) in</Name>
-          </DisorderGeneAssociationType>
-          <DisorderGeneAssociationStatus id="17991">
-            <Name lang="en">Assessed</Name>
-          </DisorderGeneAssociationStatus>
-        </DisorderGeneAssociation>
-      </DisorderGeneAssociationList>
-    </Disorder>
-    <Disorder id="17611">
-      <OrphaNumber>166078</OrphaNumber>
-      <Name lang="en">Von Willebrand disease type 1</Name>
-      <DisorderGeneAssociationList count="1">
-        <DisorderGeneAssociation>
-          <SourceOfValidation>20301765[PMID]</SourceOfValidation>
-          <Gene id="15714">
-            <OrphaNumber>120487</OrphaNumber>
-            <Name lang="en">von Willebrand factor</Name>
-            <Symbol>VWF</Symbol>
-            <SynonymList count="0">
-            </SynonymList>
-            <ExternalReferenceList count="6">
-              <ExternalReference id="60135">
-                <Source>Ensembl</Source>
-                <Reference>ENSG00000110799</Reference>
-              </ExternalReference>
-              <ExternalReference id="27848">
-                <Source>Genatlas</Source>
-                <Reference>VWF</Reference>
-              </ExternalReference>
-              <ExternalReference id="27846">
-                <Source>HGNC</Source>
-                <Reference>12726</Reference>
-              </ExternalReference>
-              <ExternalReference id="48343">
-                <Source>OMIM</Source>
-                <Reference>613160</Reference>
-              </ExternalReference>
-              <ExternalReference id="60136">
-                <Source>Reactome</Source>
-                <Reference>P04275</Reference>
-              </ExternalReference>
-              <ExternalReference id="32686">
-                <Source>SwissProt</Source>
-                <Reference>P04275</Reference>
-              </ExternalReference>
-            </ExternalReferenceList>
-            <LocusList count="1">
-              <Locus id="26033">
-              </Locus>
-            </LocusList>
-          </Gene>
-          <DisorderGeneAssociationType id="17949">
-            <Name lang="en">Disease-causing germline mutation(s) in</Name>
-          </DisorderGeneAssociationType>
-          <DisorderGeneAssociationStatus id="17991">
-            <Name lang="en">Assessed</Name>
-          </DisorderGeneAssociationStatus>
-        </DisorderGeneAssociation>
-      </DisorderGeneAssociationList>
-    </Disorder>
-    <Disorder id="17610">
-      <OrphaNumber>166073</OrphaNumber>
-      <Name lang="en">Pontocerebellar hypoplasia type 6</Name>
-      <DisorderGeneAssociationList count="1">
-        <DisorderGeneAssociation>
-          <SourceOfValidation/>
-          <Gene id="17331">
-            <OrphaNumber>159426</OrphaNumber>
-            <Name lang="en">arginyl-tRNA synthetase 2, mitochondrial</Name>
-            <Symbol>RARS2</Symbol>
-            <SynonymList count="6">
-              <Synonym lang="en">DALRD2</Synonym>
-              <Synonym lang="en">MGC14993</Synonym>
-              <Synonym lang="en">MGC23778</Synonym>
-              <Synonym lang="en">PRO1992</Synonym>
-              <Synonym lang="en">arginine tRNA ligase 2, mitochondrial (putative)</Synonym>
-              <Synonym lang="en">dJ382I10.6</Synonym>
-            </SynonymList>
-            <ExternalReferenceList count="6">
-              <ExternalReference id="60133">
-                <Source>Ensembl</Source>
-                <Reference>ENSG00000146282</Reference>
-              </ExternalReference>
-              <ExternalReference id="36843">
-                <Source>Genatlas</Source>
-                <Reference>RARS2</Reference>
-              </ExternalReference>
-              <ExternalReference id="36844">
-                <Source>HGNC</Source>
-                <Reference>21406</Reference>
-              </ExternalReference>
-              <ExternalReference id="37582">
-                <Source>OMIM</Source>
-                <Reference>611524</Reference>
-              </ExternalReference>
-              <ExternalReference id="60134">
-                <Source>Reactome</Source>
-                <Reference>Q5T160</Reference>
-              </ExternalReference>
-              <ExternalReference id="36845">
-                <Source>SwissProt</Source>
-                <Reference>Q5T160</Reference>
-              </ExternalReference>
-            </ExternalReferenceList>
-            <LocusList count="1">
-              <Locus id="22139">
-              </Locus>
-            </LocusList>
-          </Gene>
-          <DisorderGeneAssociationType id="17949">
-            <Name lang="en">Disease-causing germline mutation(s) in</Name>
-          </DisorderGeneAssociationType>
-          <DisorderGeneAssociationStatus id="17991">
-            <Name lang="en">Assessed</Name>
-          </DisorderGeneAssociationStatus>
-        </DisorderGeneAssociation>
-      </DisorderGeneAssociationList>
-    </Disorder>
-    <Disorder id="17613">
-      <OrphaNumber>166084</OrphaNumber>
-      <Name lang="en">Von Willebrand disease type 2A</Name>
-      <DisorderGeneAssociationList count="1">
-        <DisorderGeneAssociation>
-          <SourceOfValidation>20301765[PMID]</SourceOfValidation>
-          <Gene id="15714">
-            <OrphaNumber>120487</OrphaNumber>
-            <Name lang="en">von Willebrand factor</Name>
-            <Symbol>VWF</Symbol>
-            <SynonymList count="0">
-            </SynonymList>
-            <ExternalReferenceList count="6">
-              <ExternalReference id="60135">
-                <Source>Ensembl</Source>
-                <Reference>ENSG00000110799</Reference>
-              </ExternalReference>
-              <ExternalReference id="27848">
-                <Source>Genatlas</Source>
-                <Reference>VWF</Reference>
-              </ExternalReference>
-              <ExternalReference id="27846">
-                <Source>HGNC</Source>
-                <Reference>12726</Reference>
-              </ExternalReference>
-              <ExternalReference id="48343">
-                <Source>OMIM</Source>
-                <Reference>613160</Reference>
-              </ExternalReference>
-              <ExternalReference id="60136">
-                <Source>Reactome</Source>
-                <Reference>P04275</Reference>
-              </ExternalReference>
-              <ExternalReference id="32686">
-                <Source>SwissProt</Source>
-                <Reference>P04275</Reference>
-              </ExternalReference>
-            </ExternalReferenceList>
-            <LocusList count="1">
-              <Locus id="26033">
-              </Locus>
-            </LocusList>
-          </Gene>
-          <DisorderGeneAssociationType id="17949">
-            <Name lang="en">Disease-causing germline mutation(s) in</Name>
-          </DisorderGeneAssociationType>
-          <DisorderGeneAssociationStatus id="17991">
-            <Name lang="en">Assessed</Name>
-          </DisorderGeneAssociationStatus>
-        </DisorderGeneAssociation>
-      </DisorderGeneAssociationList>
-    </Disorder>
-    <Disorder id="12">
-      <OrphaNumber>333</OrphaNumber>
-      <Name lang="en">Farber disease</Name>
-      <DisorderGeneAssociationList count="1">
-        <DisorderGeneAssociation>
-          <SourceOfValidation>24355074[PMID]</SourceOfValidation>
-          <Gene id="15956">
-            <OrphaNumber>121449</OrphaNumber>
-            <Name lang="en">N-acylsphingosine amidohydrolase 1</Name>
-            <Symbol>ASAH1</Symbol>
-            <SynonymList count="6">
-              <Synonym lang="en">AC</Synonym>
-              <Synonym lang="en">ACDase</Synonym>
-              <Synonym lang="en">FLJ21558</Synonym>
-              <Synonym lang="en">PHP32</Synonym>
-              <Synonym lang="en">acid ceramidase</Synonym>
-              <Synonym lang="en">acylsphingosine deacylase</Synonym>
-            </SynonymList>
-            <ExternalReferenceList count="6">
-              <ExternalReference id="56696">
-                <Source>Ensembl</Source>
-                <Reference>ENSG00000104763</Reference>
-              </ExternalReference>
-              <ExternalReference id="28977">
-                <Source>Genatlas</Source>
-                <Reference>ASAH1</Reference>
-              </ExternalReference>
-              <ExternalReference id="28979">
-                <Source>HGNC</Source>
-                <Reference>735</Reference>
-              </ExternalReference>
-              <ExternalReference id="46755">
-                <Source>OMIM</Source>
-                <Reference>613468</Reference>
-              </ExternalReference>
-              <ExternalReference id="56697">
-                <Source>Reactome</Source>
-                <Reference>Q13510</Reference>
-              </ExternalReference>
-              <ExternalReference id="32967">
-                <Source>SwissProt</Source>
-                <Reference>Q13510</Reference>
-              </ExternalReference>
-            </ExternalReferenceList>
-            <LocusList count="1">
-              <Locus id="8365">
-              </Locus>
-            </LocusList>
-          </Gene>
-          <DisorderGeneAssociationType id="17949">
-            <Name lang="en">Disease-causing germline mutation(s) in</Name>
-          </DisorderGeneAssociationType>
-          <DisorderGeneAssociationStatus id="17991">
-            <Name lang="en">Assessed</Name>
-          </DisorderGeneAssociationStatus>
-        </DisorderGeneAssociation>
-      </DisorderGeneAssociationList>
-    </Disorder>
-    <Disorder id="13">
-      <OrphaNumber>349</OrphaNumber>
-      <Name lang="en">Fucosidosis</Name>
-      <DisorderGeneAssociationList count="1">
-        <DisorderGeneAssociation>
-          <SourceOfValidation>10094192[PMID]</SourceOfValidation>
-          <Gene id="16082">
-            <OrphaNumber>121963</OrphaNumber>
-            <Name lang="en">alpha-L-fucosidase 1</Name>
-            <Symbol>FUCA1</Symbol>
-            <SynonymList count="4">
-              <Synonym lang="en">&amp;#945;-L-fucosidase 1</Synonym>
-              <Synonym lang="en">a-L-fucosidase 1</Synonym>
-              <Synonym lang="en">tissue fucosidase</Synonym>
-              <Synonym lang="en">Î±-L-fucosidase 1</Synonym>
-            </SynonymList>
-            <ExternalReferenceList count="6">
-              <ExternalReference id="56698">
-                <Source>Ensembl</Source>
-                <Reference>ENSG00000179163</Reference>
-              </ExternalReference>
-              <ExternalReference id="29620">
-                <Source>Genatlas</Source>
-                <Reference>FUCA1</Reference>
-              </ExternalReference>
-              <ExternalReference id="29618">
-                <Source>HGNC</Source>
-                <Reference>4006</Reference>
-              </ExternalReference>
-              <ExternalReference id="51434">
-                <Source>OMIM</Source>
-                <Reference>612280</Reference>
-              </ExternalReference>
-              <ExternalReference id="97220">
-                <Source>Reactome</Source>
-                <Reference>P04066</Reference>
-              </ExternalReference>
-              <ExternalReference id="33097">
-                <Source>SwissProt</Source>
-                <Reference>P04066</Reference>
-              </ExternalReference>
-            </ExternalReferenceList>
-            <LocusList count="1">
-              <Locus id="23915">
-              </Locus>
-            </LocusList>
-          </Gene>
-          <DisorderGeneAssociationType id="17949">
-            <Name lang="en">Disease-causing germline mutation(s) in</Name>
-          </DisorderGeneAssociationType>
-          <DisorderGeneAssociationStatus id="17991">
-            <Name lang="en">Assessed</Name>
-          </DisorderGeneAssociationStatus>
-        </DisorderGeneAssociation>
-      </DisorderGeneAssociationList>
-    </Disorder>
-    <Disorder id="17615">
-      <OrphaNumber>166090</OrphaNumber>
-      <Name lang="en">Von Willebrand disease type 2M</Name>
-      <DisorderGeneAssociationList count="1">
-        <DisorderGeneAssociation>
-          <SourceOfValidation>20301765[PMID]</SourceOfValidation>
-          <Gene id="15714">
-            <OrphaNumber>120487</OrphaNumber>
-            <Name lang="en">von Willebrand factor</Name>
-            <Symbol>VWF</Symbol>
-            <SynonymList count="0">
-            </SynonymList>
-            <ExternalReferenceList count="6">
-              <ExternalReference id="60135">
-                <Source>Ensembl</Source>
-                <Reference>ENSG00000110799</Reference>
-              </ExternalReference>
-              <ExternalReference id="27848">
-                <Source>Genatlas</Source>
-                <Reference>VWF</Reference>
-              </ExternalReference>
-              <ExternalReference id="27846">
-                <Source>HGNC</Source>
-                <Reference>12726</Reference>
-              </ExternalReference>
-              <ExternalReference id="48343">
-                <Source>OMIM</Source>
-                <Reference>613160</Reference>
-              </ExternalReference>
-              <ExternalReference id="60136">
-                <Source>Reactome</Source>
-                <Reference>P04275</Reference>
-              </ExternalReference>
-              <ExternalReference id="32686">
-                <Source>SwissProt</Source>
-                <Reference>P04275</Reference>
-              </ExternalReference>
-            </ExternalReferenceList>
-            <LocusList count="1">
-              <Locus id="26033">
-              </Locus>
-            </LocusList>
-          </Gene>
-          <DisorderGeneAssociationType id="17949">
-            <Name lang="en">Disease-causing germline mutation(s) in</Name>
-          </DisorderGeneAssociationType>
-          <DisorderGeneAssociationStatus id="17991">
-            <Name lang="en">Assessed</Name>
-          </DisorderGeneAssociationStatus>
-        </DisorderGeneAssociation>
-      </DisorderGeneAssociationList>
-    </Disorder>
-    <Disorder id="17614">
-      <OrphaNumber>166087</OrphaNumber>
-      <Name lang="en">Von Willebrand disease type 2B</Name>
-      <DisorderGeneAssociationList count="1">
-        <DisorderGeneAssociation>
-          <SourceOfValidation>20301765[PMID]</SourceOfValidation>
-          <Gene id="15714">
-            <OrphaNumber>120487</OrphaNumber>
-            <Name lang="en">von Willebrand factor</Name>
-            <Symbol>VWF</Symbol>
-            <SynonymList count="0">
-            </SynonymList>
-            <ExternalReferenceList count="6">
-              <ExternalReference id="60135">
-                <Source>Ensembl</Source>
-                <Reference>ENSG00000110799</Reference>
-              </ExternalReference>
-              <ExternalReference id="27848">
-                <Source>Genatlas</Source>
-                <Reference>VWF</Reference>
-              </ExternalReference>
-              <ExternalReference id="27846">
-                <Source>HGNC</Source>
-                <Reference>12726</Reference>
-              </ExternalReference>
-              <ExternalReference id="48343">
-                <Source>OMIM</Source>
-                <Reference>613160</Reference>
-              </ExternalReference>
-              <ExternalReference id="60136">
-                <Source>Reactome</Source>
-                <Reference>P04275</Reference>
-              </ExternalReference>
-              <ExternalReference id="32686">
-                <Source>SwissProt</Source>
-                <Reference>P04275</Reference>
-              </ExternalReference>
-            </ExternalReferenceList>
-            <LocusList count="1">
-              <Locus id="26033">
-              </Locus>
-            </LocusList>
-          </Gene>
-          <DisorderGeneAssociationType id="17949">
-            <Name lang="en">Disease-causing germline mutation(s) in</Name>
-          </DisorderGeneAssociationType>
-          <DisorderGeneAssociationStatus id="17991">
-            <Name lang="en">Assessed</Name>
-          </DisorderGeneAssociationStatus>
-        </DisorderGeneAssociation>
-      </DisorderGeneAssociationList>
-    </Disorder>
-    <Disorder id="15">
-      <OrphaNumber>366</OrphaNumber>
-      <Name lang="en">Glycogen storage disease due to glycogen debranching enzyme deficiency</Name>
-      <DisorderGeneAssociationList count="1">
-        <DisorderGeneAssociation>
-          <SourceOfValidation>10571954[PMID]_17908927[PMID]</SourceOfValidation>
-          <Gene id="15472">
-            <OrphaNumber>119523</OrphaNumber>
-            <Name lang="en">amylo-alpha-1, 6-glucosidase, 4-alpha-glucanotransferase</Name>
-            <Symbol>AGL</Symbol>
-            <SynonymList count="2">
-              <Synonym lang="en">glycogen debranching enzyme</Synonym>
-              <Synonym lang="en">glycogen storage disease type III</Synonym>
-            </SynonymList>
-            <ExternalReferenceList count="6">
-              <ExternalReference id="26689">
-                <Source>Genatlas</Source>
-                <Reference>AGL</Reference>
-              </ExternalReference>
-              <ExternalReference id="26691">
-                <Source>HGNC</Source>
-                <Reference>321</Reference>
-              </ExternalReference>
-              <ExternalReference id="26690">
-                <Source>OMIM</Source>
-                <Reference>610860</Reference>
-              </ExternalReference>
-              <ExternalReference id="56701">
-                <Source>Reactome</Source>
-                <Reference>P35573</Reference>
-              </ExternalReference>
-              <ExternalReference id="32443">
-                <Source>SwissProt</Source>
-                <Reference>P35573</Reference>
-              </ExternalReference>
-              <ExternalReference id="56700">
-                <Source>Ensembl</Source>
-                <Reference>ENSG00000162688</Reference>
-              </ExternalReference>
-            </ExternalReferenceList>
-            <LocusList count="1">
-              <Locus id="24557">
-              </Locus>
-            </LocusList>
-          </Gene>
-          <DisorderGeneAssociationType id="17949">
-            <Name lang="en">Disease-causing germline mutation(s) in</Name>
-          </DisorderGeneAssociationType>
-          <DisorderGeneAssociationStatus id="17991">
-            <Name lang="en">Assessed</Name>
-          </DisorderGeneAssociationStatus>
-        </DisorderGeneAssociation>
-      </DisorderGeneAssociationList>
-    </Disorder>
-    <Disorder id="17616">
-      <OrphaNumber>166093</OrphaNumber>
-      <Name lang="en">Von Willebrand disease type 2N</Name>
-      <DisorderGeneAssociationList count="1">
-        <DisorderGeneAssociation>
-          <SourceOfValidation>20301765[PMID]</SourceOfValidation>
-          <Gene id="15714">
-            <OrphaNumber>120487</OrphaNumber>
-            <Name lang="en">von Willebrand factor</Name>
-            <Symbol>VWF</Symbol>
-            <SynonymList count="0">
-            </SynonymList>
-            <ExternalReferenceList count="6">
-              <ExternalReference id="60135">
-                <Source>Ensembl</Source>
-                <Reference>ENSG00000110799</Reference>
-              </ExternalReference>
-              <ExternalReference id="27848">
-                <Source>Genatlas</Source>
-                <Reference>VWF</Reference>
-              </ExternalReference>
-              <ExternalReference id="27846">
-                <Source>HGNC</Source>
-                <Reference>12726</Reference>
-              </ExternalReference>
-              <ExternalReference id="48343">
-                <Source>OMIM</Source>
-                <Reference>613160</Reference>
-              </ExternalReference>
-              <ExternalReference id="60136">
-                <Source>Reactome</Source>
-                <Reference>P04275</Reference>
-              </ExternalReference>
-              <ExternalReference id="32686">
-                <Source>SwissProt</Source>
-                <Reference>P04275</Reference>
-              </ExternalReference>
-            </ExternalReferenceList>
-            <LocusList count="1">
-              <Locus id="26033">
-              </Locus>
-            </LocusList>
-          </Gene>
-          <DisorderGeneAssociationType id="17949">
-            <Name lang="en">Disease-causing germline mutation(s) in</Name>
-          </DisorderGeneAssociationType>
-          <DisorderGeneAssociationStatus id="17991">
-            <Name lang="en">Assessed</Name>
-          </DisorderGeneAssociationStatus>
-        </DisorderGeneAssociation>
-      </DisorderGeneAssociationList>
-    </Disorder>
-    <Disorder id="17">
-      <OrphaNumber>368</OrphaNumber>
-      <Name lang="en">Glycogen storage disease due to muscle glycogen phosphorylase deficiency</Name>
-      <DisorderGeneAssociationList count="1">
-        <DisorderGeneAssociation>
-          <SourceOfValidation/>
-          <Gene id="15177">
-            <OrphaNumber>118182</OrphaNumber>
-            <Name lang="en">glycogen phosphorylase, muscle associated</Name>
-            <Symbol>PYGM</Symbol>
-            <SynonymList count="4">
-              <Synonym lang="en">McArdle syndrome</Synonym>
-              <Synonym lang="en">glycogen phosphorylase, muscle form</Synonym>
-              <Synonym lang="en">glycogen storage disease type V</Synonym>
-              <Synonym lang="en">myophosphorylase</Synonym>
-            </SynonymList>
-            <ExternalReferenceList count="6">
-              <ExternalReference id="56704">
-                <Source>Ensembl</Source>
-                <Reference>ENSG00000068976</Reference>
-              </ExternalReference>
-              <ExternalReference id="25276">
-                <Source>Genatlas</Source>
-                <Reference>PYGM</Reference>
-              </ExternalReference>
-              <ExternalReference id="25278">
-                <Source>HGNC</Source>
-                <Reference>9726</Reference>
-              </ExternalReference>
-              <ExternalReference id="25277">
-                <Source>OMIM</Source>
-                <Reference>608455</Reference>
-              </ExternalReference>
-              <ExternalReference id="56705">
-                <Source>Reactome</Source>
-                <Reference>P11217</Reference>
-              </ExternalReference>
-              <ExternalReference id="33701">
-                <Source>SwissProt</Source>
-                <Reference>P11217</Reference>
-              </ExternalReference>
-            </ExternalReferenceList>
-            <LocusList count="1">
-              <Locus id="19711">
-              </Locus>
-            </LocusList>
-          </Gene>
-          <DisorderGeneAssociationType id="17949">
-            <Name lang="en">Disease-causing germline mutation(s) in</Name>
-          </DisorderGeneAssociationType>
-          <DisorderGeneAssociationStatus id="17991">
-            <Name lang="en">Assessed</Name>
-          </DisorderGeneAssociationStatus>
-        </DisorderGeneAssociation>
-      </DisorderGeneAssociationList>
-    </Disorder>
-    <Disorder id="17617">
-      <OrphaNumber>166096</OrphaNumber>
-      <Name lang="en">Von Willebrand disease type 3</Name>
-      <DisorderGeneAssociationList count="1">
-        <DisorderGeneAssociation>
-          <SourceOfValidation>20301765[PMID]</SourceOfValidation>
-          <Gene id="15714">
-            <OrphaNumber>120487</OrphaNumber>
-            <Name lang="en">von Willebrand factor</Name>
-            <Symbol>VWF</Symbol>
-            <SynonymList count="0">
-            </SynonymList>
-            <ExternalReferenceList count="6">
-              <ExternalReference id="60135">
-                <Source>Ensembl</Source>
-                <Reference>ENSG00000110799</Reference>
-              </ExternalReference>
-              <ExternalReference id="27848">
-                <Source>Genatlas</Source>
-                <Reference>VWF</Reference>
-              </ExternalReference>
-              <ExternalReference id="27846">
-                <Source>HGNC</Source>
-                <Reference>12726</Reference>
-              </ExternalReference>
-              <ExternalReference id="48343">
-                <Source>OMIM</Source>
-                <Reference>613160</Reference>
-              </ExternalReference>
-              <ExternalReference id="60136">
-                <Source>Reactome</Source>
-                <Reference>P04275</Reference>
-              </ExternalReference>
-              <ExternalReference id="32686">
-                <Source>SwissProt</Source>
-                <Reference>P04275</Reference>
-              </ExternalReference>
-            </ExternalReferenceList>
-            <LocusList count="1">
-              <Locus id="26033">
-              </Locus>
-            </LocusList>
-          </Gene>
-          <DisorderGeneAssociationType id="17949">
-            <Name lang="en">Disease-causing germline mutation(s) in</Name>
-          </DisorderGeneAssociationType>
-          <DisorderGeneAssociationStatus id="17991">
-            <Name lang="en">Assessed</Name>
-          </DisorderGeneAssociationStatus>
-        </DisorderGeneAssociation>
-      </DisorderGeneAssociationList>
-    </Disorder>
-    <Disorder id="17618">
-      <OrphaNumber>166100</OrphaNumber>
-      <Name lang="en">Stickler syndrome type 3</Name>
-      <DisorderGeneAssociationList count="1">
-        <DisorderGeneAssociation>
-          <SourceOfValidation/>
-          <Gene id="15764">
-            <OrphaNumber>120693</OrphaNumber>
-            <Name lang="en">collagen type XI alpha 2 chain</Name>
-            <Symbol>COL11A2</Symbol>
-            <SynonymList count="1">
-              <Synonym lang="en">HKE5</Synonym>
-            </SynonymList>
-            <ExternalReferenceList count="6">
-              <ExternalReference id="58068">
-                <Source>Ensembl</Source>
-                <Reference>ENSG00000204248</Reference>
-              </ExternalReference>
-              <ExternalReference id="28078">
-                <Source>Genatlas</Source>
-                <Reference>COL11A2</Reference>
-              </ExternalReference>
-              <ExternalReference id="28076">
-                <Source>HGNC</Source>
-                <Reference>2187</Reference>
-              </ExternalReference>
-              <ExternalReference id="28075">
-                <Source>OMIM</Source>
-                <Reference>120290</Reference>
-              </ExternalReference>
-              <ExternalReference id="82863">
-                <Source>Reactome</Source>
-                <Reference>P13942</Reference>
-              </ExternalReference>
-              <ExternalReference id="32736">
-                <Source>SwissProt</Source>
-                <Reference>P13942</Reference>
-              </ExternalReference>
-            </ExternalReferenceList>
-            <LocusList count="1">
-              <Locus id="25293">
-              </Locus>
-            </LocusList>
-          </Gene>
-          <DisorderGeneAssociationType id="17949">
-            <Name lang="en">Disease-causing germline mutation(s) in</Name>
-          </DisorderGeneAssociationType>
-          <DisorderGeneAssociationStatus id="17991">
-            <Name lang="en">Assessed</Name>
-          </DisorderGeneAssociationStatus>
-        </DisorderGeneAssociation>
-      </DisorderGeneAssociationList>
-    </Disorder>
-    <Disorder id="19">
-      <OrphaNumber>371</OrphaNumber>
-      <Name lang="en">Glycogen storage disease due to muscle phosphofructokinase deficiency</Name>
-      <DisorderGeneAssociationList count="1">
-        <DisorderGeneAssociation>
-          <SourceOfValidation/>
-          <Gene id="16649">
-            <OrphaNumber>124223</OrphaNumber>
-            <Name lang="en">phosphofructokinase, muscle</Name>
-            <Symbol>PFKM</Symbol>
-            <SynonymList count="3">
-              <Synonym lang="en">PFK-1</Synonym>
-              <Synonym lang="en">PPP1R122</Synonym>
-              <Synonym lang="en">protein phosphatase 1, regulatory subunit 122</Synonym>
-            </SynonymList>
-            <ExternalReferenceList count="6">
-              <ExternalReference id="56708">
-                <Source>Ensembl</Source>
-                <Reference>ENSG00000152556</Reference>
-              </ExternalReference>
-              <ExternalReference id="32292">
-                <Source>Genatlas</Source>
-                <Reference>PFKM</Reference>
-              </ExternalReference>
-              <ExternalReference id="35355">
-                <Source>HGNC</Source>
-                <Reference>8877</Reference>
-              </ExternalReference>
-              <ExternalReference id="32293">
-                <Source>OMIM</Source>
-                <Reference>610681</Reference>
-              </ExternalReference>
-              <ExternalReference id="56709">
-                <Source>Reactome</Source>
-                <Reference>P08237</Reference>
-              </ExternalReference>
-              <ExternalReference id="33753">
-                <Source>SwissProt</Source>
-                <Reference>P08237</Reference>
-              </ExternalReference>
-            </ExternalReferenceList>
-            <LocusList count="1">
-              <Locus id="9657">
-              </Locus>
-            </LocusList>
-          </Gene>
-          <DisorderGeneAssociationType id="17949">
-            <Name lang="en">Disease-causing germline mutation(s) in</Name>
-          </DisorderGeneAssociationType>
-          <DisorderGeneAssociationStatus id="17991">
-            <Name lang="en">Assessed</Name>
-          </DisorderGeneAssociationStatus>
-        </DisorderGeneAssociation>
-      </DisorderGeneAssociationList>
-    </Disorder>
+	
   </DisorderList>
 </JDBOR>
