@@ -247,6 +247,9 @@ public slots:
 	///Updates the variant table icon for the variant with the given index
 	void updateReportConfigHeaderIcon(int index);
 
+	///Store the currently open file
+	void storeCurrentVariantList();
+
 
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);

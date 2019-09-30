@@ -499,7 +499,7 @@ void MainWindow::delayedInizialization()
 
 void MainWindow::handleInputFileChange()
 {
-	QMessageBox::information(this, "GSvar file changed", "The input file changed.\nIt is reloaded now!");
+	QMessageBox::information(this, "GSvar file changed", "The input GSvar file changed.\nIt is reloaded now!");
 	loadFile(filename_);
 }
 
@@ -1473,8 +1473,9 @@ void MainWindow::on_actionAnnotateSomaticVariants_triggered()
 	}
 
 	QMessageBox::information(this,"Success","Somatic variants from " + filename + " were annotated successfully.");
-	variants_.store(filename_);
-	loadFile(filename_);
+
+	storeCurrentVariantList();
+
 	QApplication::restoreOverrideCursor();
 }
 
@@ -2035,6 +2036,7 @@ void MainWindow::databaseAnnotationFinished(bool success)
 	{
 		db_annos_updated_ = worker->targetRegionOnly() ? ROI : YES;
 		refreshVariantTable();
+		storeCurrentVariantList();
 	}
 	else
 	{
@@ -3053,7 +3055,7 @@ void MainWindow::editVariantClassification(VariantList& variants, int index)
 		refreshVariantTable();
 
 		//store variant table
-		variants_.store(filename_);
+		storeCurrentVariantList();
 	}
 	catch (DatabaseException& e)
 	{
@@ -3184,6 +3186,18 @@ void MainWindow::updateReportConfigHeaderIcon(int index)
 	{
 		ui_.vars->updateVariantHeaderIcon(report_settings_, index);
 	}
+}
+
+void MainWindow::storeCurrentVariantList()
+{
+	//disable file watcher
+	filewatcher_.clearFile();
+
+	//store
+	variants_.store(filename_);
+
+	//enable file watcher again
+	filewatcher_.setFile(filename_);
 }
 
 QStringList MainWindow::getLogFiles()

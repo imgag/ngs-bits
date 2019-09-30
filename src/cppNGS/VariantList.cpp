@@ -774,9 +774,9 @@ void VariantList::storeToTSV(QString filename)
 		stream << v.chr().str() << "\t" << v.start() << "\t" << v.end() << "\t" << v.ref() << "\t" << v.obs();
 		for(int i=0; i<v.annotations().count(); ++i)
 		{
-			const QByteArray& entry = v.annotations()[i];
+			QByteArray entry = v.annotations()[i];
 			if(annotation_headers_[i].name()==".")	continue;
-			stream << "\t" << entry;
+			stream << "\t" << entry.replace("\n", " ").replace("\t", " ");
 		}
 		stream << "\n";
 	}
