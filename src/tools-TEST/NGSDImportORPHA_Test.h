@@ -15,6 +15,7 @@ private slots:
 		//init
 		NGSD db(true);
 		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportORPHA_init.sql"));
 
 		//test
 		EXECUTE("NGSDImportORPHA", "-test -terms " + TESTDATA("data_in/NGSDImportORPHA_terms.xml") + " -genes " + TESTDATA("data_in/NGSDImportORPHA_genes.xml"));

@@ -32,7 +32,7 @@ public:
 	{
 		QHash<QString, GeneSet> output;
 
-		GeneSet approved_genes = db.approvedGeneNames();
+		const GeneSet& approved_genes = db.approvedGeneNames();
 
 		QString filename = getInfile("genes");
 		QSharedPointer<QFile> fp = Helper::openFileForReading(filename);
@@ -69,7 +69,7 @@ public:
 													if (xml.name()=="Symbol")
 													{
 														QByteArray gene = xml.readElementText().toLatin1();
-														if (!approved_genes.contains(gene))
+														if (approved_genes.contains(gene))
 														{
 															output[number] << gene;
 														}
@@ -119,8 +119,8 @@ public:
 		{
 			if (getFlag("force"))
 			{
-				db.clearTable("disease_term");
 				db.clearTable("disease_gene");
+				db.clearTable("disease_term");
 			}
 			else
 			{
@@ -255,9 +255,6 @@ public:
 		out << "Imported " << c_disease << " diseases" << endl;
 		int c_disease_gene = db.getValue("SELECT COUNT(*) FROM disease_gene").toInt();
 		out << "Imported " << c_disease_gene << " disease-gene relations" << endl;
-
-		//augment gene-phenotype infos if missing
-		//TODO
 	}
 };
 
