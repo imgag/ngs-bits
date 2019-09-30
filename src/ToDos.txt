@@ -21,14 +21,12 @@ NGSD:
 **** NGSD annotation: export VCF, use VCF for annotation (LS)
 
 GSvar:
+### Implement disease based search - check that this example works: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 ** replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
 * trio filter: correct PAR region handling (Genetikum)
 * Add special report for trios/multi-sample with genotype overview > change format to RTF first (AG)
-*** report variant selection
-    *** add ORPHA codes for genes to XML
-        - PhenotypeInfo table (only when causal) - Gene, identifier, type colums (only type Orpha for now)
-        - Check that this example works: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1 > Implement disease based search
+* report variant selection
     - add gaps report (custom via import) to XML report
         - CCDS +-5 bases!?
         - gap report as XML and additional report of gaps to sanger-validate as TXT

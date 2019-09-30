@@ -984,6 +984,7 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 		}
 
 		//element TranscriptInformation
+		GeneSet genes;
 		int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, false);
 		if (i_co_sp!=-1)
 		{
@@ -996,6 +997,8 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 				w.writeAttribute("hgvs_p", trans.hgvs_p);
 				w.writeAttribute("exon", trans.exon);
 				w.writeEndElement();
+
+				genes << trans.gene;
 			}
 		}
 
@@ -1008,6 +1011,25 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 			w.writeAttribute("name", variants_.annotations()[i].name());
 			w.writeAttribute("value", variant.annotations()[i]);
 			w.writeEndElement();
+		}
+
+		//element GeneDiseaseInformation
+		if (var_conf.causal)
+		{
+			foreach(const QByteArray& gene, genes)
+			{
+				SqlQuery query = db_.getQuery();
+				query.exec("SELECT dt.* FROM disease_gene dg, disease_term dt WHERE dt.id=dg.disease_term_id AND dg.gene='" + gene + "'");
+				while(query.next())
+				{
+					w.writeStartElement("GeneDiseaseInformation");
+					w.writeAttribute("gene", gene);
+					w.writeAttribute("source", query.value("source").toString());
+					w.writeAttribute("identifier", query.value("identifier").toString());
+					w.writeAttribute("name", query.value("name").toString());
+					w.writeEndElement();
+				}
+			}
 		}
 
 		//end of variant

@@ -214,6 +214,54 @@
 												</xs:attribute>
 											</xs:complexType>
 										</xs:element>
+										<xs:element name="GeneDiseaseInformation" minOccurs="0" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>Gene-disease association (if available)</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="gene" use="required">
+													<xs:annotation>
+														<xs:documentation>Gene</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="source" use="required">
+													<xs:annotation>
+														<xs:documentation>Source database of disease information</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+															<xs:enumeration value="OrphaNet"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="identifier" use="required">
+													<xs:annotation>
+														<xs:documentation>Disease identifier in source database</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="name" use="required">
+													<xs:annotation>
+														<xs:documentation>Disease name in source database</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
 									</xs:sequence>
 									<xs:attribute name="chr" type="xs:string" use="required">
 										<xs:annotation>
