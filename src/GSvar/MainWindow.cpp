@@ -1643,7 +1643,7 @@ void MainWindow::printVariantSheet()
 	stream << "          <p> Pat. Name, Vorname: <span class='line'></span></p>" << endl;
 	stream << "          <p>Geburtsdatum: <span class='line'></span></p>" << endl;
 	stream << "          <br>" << endl;
-	stream << "          <p>1. Auswerter: <span class='line'>" << Helper::userName() << "</span> Datum: <span class='line'>" << Helper::dateTime("dd.MM.yyyy") << "</span></p>" << endl;
+	stream << "          <p>1. Auswerter: <span class='line'>" << report_settings_.report_config.createdBy() << "</span> Datum: <span class='line'>" << report_settings_.report_config.createdAt().toString("dd.MM.yyyy") << "</span></p>" << endl;
 	stream << "          <p><nobr>2. Auswerter: <span class='line'></span> Datum: <span class='line'></span></nobr></p>" << endl;
 	stream << "        </td>" << endl;
 	stream << "        <td class='noborder' valign='top'>" << endl;
