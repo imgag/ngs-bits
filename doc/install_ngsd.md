@@ -77,6 +77,7 @@ The initial import of database content using ngs-bits.
 		> ngs-bits/bin/NGSDImportHPO --help
 		> ngs-bits/bin/NGSDImportGeneInfo --help
 		> ngs-bits/bin/NGSDImportOMIM --help
+		> ngs-bits/bin/NGSDImportORPHA --help
 
 
 

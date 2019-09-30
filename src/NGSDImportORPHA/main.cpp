@@ -23,6 +23,9 @@ public:
 		//optional
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");
+
+		//changelog
+		changeLog(2019,  9, 30, "Initial version");
 	}
 
 	QHash<QString, GeneSet> parseDiseaseGeneRelations(NGSD& db, QTextStream& out)
@@ -233,7 +236,6 @@ public:
 										qi_gene.exec();
 									}
 								}
-								out << number << "\t" << name << "\t" << types.join(", ") << "\t" << disease_genes[number].count() << endl;
 							}
 						}
 						else xml.skipCurrentElement();

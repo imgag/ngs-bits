@@ -28,10 +28,7 @@ GSvar:
 *** report variant selection
     *** add ORPHA codes for genes to XML
         - PhenotypeInfo table (only when causal) - Gene, identifier, type colums (only type Orpha for now)
-        - https://raw.githubusercontent.com/Orphanet/Orphadata.org/master/Orphanet%20Rare%20Disease%20Ontology/ORDO_de_2.7.owl
-        - https://github.com/Orphanet/Orphadata.org/tree/master/Disorders%20cross%20referenced%20JSON
-        - https://github.com/Orphanet/Orphadata.org/tree/master/Disorders%20with%20their%20associated%20genes
-        - Check that this example works: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1
+        - Check that this example works: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1 > Implement disease based search
     - add gaps report (custom via import) to XML report
         - CCDS +-5 bases!?
         - gap report as XML and additional report of gaps to sanger-validate as TXT

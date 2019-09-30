@@ -1185,7 +1185,7 @@ void MainWindow::loadFile(QString filename)
 	//store report config if modified
 	if (report_settings_.report_config.isModified())
 	{
-		int button = QMessageBox::question(this, "Store report configuration", "You have modified that report configuration for this sample.\nDo you want to store it in the NGSD?",
+		int button = QMessageBox::question(this, "Store report configuration", "You have modified the report configuration for this sample.\nDo you want to store it in the NGSD?",
 										   QMessageBox::Yes,
 										   QMessageBox::No|QMessageBox::Default);
 		if(button==QMessageBox::Yes)
