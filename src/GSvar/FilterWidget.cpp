@@ -7,6 +7,7 @@
 #include "PhenotypeSelectionWidget.h"
 #include "GUIHelper.h"
 #include "GSvarHelper.h"
+#include "DBSelector.h"
 #include <QFileInfo>
 #include <QFileDialog>
 #include <QCompleter>
@@ -44,6 +45,9 @@ FilterWidget::FilterWidget(QWidget *parent)
 	connect(ui_.hpo_terms, SIGNAL(clicked(QPoint)), this, SLOT(editPhenotypes()));
 	connect(ui_.hpo_terms, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showPhenotypeContextMenu(QPoint)));
 	ui_.hpo_terms->setEnabled(Settings::boolean("NGSD_enabled", true));
+
+
+	connect(ui_.gene, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showGeneContextMenu(QPoint)));
 
 	ui_.clearn_btn->setMenu(new QMenu());
 	ui_.clearn_btn->menu()->addAction("Clear filters", this, SLOT(clearFilters()));
@@ -494,6 +498,46 @@ void FilterWidget::showPhenotypeContextMenu(QPoint pos)
 	else if (action->text()=="create sub-panel")
 	{
 		emit phenotypeSubPanelRequested();
+	}
+}
+
+void FilterWidget::showGeneContextMenu(QPoint pos)
+{
+	//set up
+	QMenu menu;
+	if (Settings::boolean("NGSD_enabled", true))
+	{
+		menu.addAction("select via disease");
+	}
+	if (!ui_.gene->text().trimmed().isEmpty())
+	{
+		menu.addAction("clear");
+	}
+
+	//exec
+	QAction* action = menu.exec(ui_.gene->mapToGlobal(pos));
+	if (action==nullptr) return;
+
+	if (action->text()=="clear")
+	{
+		ui_.gene->setText("");
+		geneChanged();
+	}
+	else if (action->text()=="select via disease")
+	{
+		//create
+		NGSD db;
+		DBSelector* selector = new DBSelector(this);
+		selector->fill(db.createTable("disease_term", "SELECT id, name FROM disease_term ORDER BY name ASC"), true);
+
+		//execute
+		QSharedPointer<QDialog> dialog = GUIHelper::createDialog(selector, "Select disease", "Disease:", true);
+		if (dialog->exec()==QDialog::Accepted && selector->isValidSelection())
+		{
+			QStringList genes = db.getValues("SELECT gene FROM disease_gene WHERE disease_term_id='" + selector->getId() +"'");
+			ui_.gene->setText(genes.join(", "));
+			geneChanged();
+		}
 	}
 }
 

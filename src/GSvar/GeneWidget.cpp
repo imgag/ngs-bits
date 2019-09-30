@@ -71,11 +71,23 @@ void GeneWidget::updateGUI()
     query.exec("SELECT id, mim FROM omim_gene WHERE gene='" + symbol_ + "'");
     if (query.next())
     {
-        QString id = query.value(0).toString();
-        QString mim = query.value(1).toString();
+		QString id = query.value("id").toString();
+		QString mim = query.value("mim").toString();
         QStringList omim_phenos = db.getValues("SELECT phenotype FROM omim_phenotype WHERE omim_gene_id=" + id);
         ui_.omim_->setText("MIM: <a href=\"http://omim.org/entry/" + mim + "\">" + mim + "</a>\n" + omim_phenos.join(omim_phenos.count()>20 ? " "  : "\n"));
     }
+
+	//show OrphaNet info
+	QByteArrayList orpha_links;
+	query.exec("SELECT dt.* FROM disease_term dt, disease_gene dg WHERE dg.disease_term_id=dt.id AND dg.gene='" + symbol_ + "'");
+	if (query.next())
+	{
+		QByteArray identifier = query.value("identifier").toByteArray();
+		QByteArray number = identifier.mid(6);
+		QByteArray name = query.value("name").toByteArray();
+		orpha_links << ("<a href=\"https://www.orpha.net/consor/cgi-bin/OC_Exp.php?Expert=" + number + "\">" + identifier + "</a>\n" + name);
+	}
+	ui_.diseases->setText(orpha_links.join(orpha_links.count()>20 ? " "  : "\n"));
 }
 
 void GeneWidget::editInheritance()

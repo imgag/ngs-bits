@@ -21,7 +21,6 @@ NGSD:
 **** NGSD annotation: export VCF, use VCF for annotation (LS)
 
 GSvar:
-### Implement disease based search - check that this example works: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 ** replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
 * trio filter: correct PAR region handling (Genetikum)

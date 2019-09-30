@@ -8,6 +8,7 @@
 DBSelector::DBSelector(QWidget* parent)
 	: QLineEdit(parent)
 {
+	setMinimumWidth(300);
 }
 
 void DBSelector::fill(const DBTable& table, bool prepend_empty)
