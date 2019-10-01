@@ -490,10 +490,23 @@ void MainWindow::delayedInizialization()
 	updateIGVMenu();
 	updateNGSDSupport();
 
-	//load command line argument
+	//load first command line argument
 	if (QApplication::arguments().count()>=2)
 	{
-		loadFile(QApplication::arguments().at(1));
+		QString arg1 = QApplication::arguments().at(1);
+
+		if (QFile::exists(arg1)) //file path
+		{
+			loadFile(arg1);
+		}
+		else if (Settings::boolean("NGSD_enabled", true)) //processed sample name (via NGSD)
+		{
+			NGSD db;
+			if (db.processedSampleId(arg1, false)!="")
+			{
+				openProcessedSampleFromNGSD(arg1);
+			}
+		}
 	}
 }
 
@@ -1787,9 +1800,28 @@ void MainWindow::printVariantSheetRow(QTextStream& stream, const ReportVariantCo
 	QStringList types;
 	QStringList hgvs_cs;
 	QStringList hgvs_ps;
+	//for genes with preferred transcripts, determine if the variant is actually in the preferred transcript, or not.
+	QHash<QByteArray, bool> variant_in_pt;
 	foreach(const VariantTranscript& trans, v.transcriptAnnotations(i_co_sp))
 	{
-		if (preferred_transcripts.contains(trans.gene) && preferred_transcripts[trans.gene].contains(trans.id)) continue;
+		if (preferred_transcripts.contains(trans.gene))
+		{
+			if (!variant_in_pt.contains(trans.gene))
+			{
+				variant_in_pt[trans.gene] = false;
+			}
+			if (preferred_transcripts[trans.gene].contains(trans.id))
+			{
+				variant_in_pt[trans.gene] = true;
+			}
+		}
+	}
+	foreach(const VariantTranscript& trans, v.transcriptAnnotations(i_co_sp))
+	{
+		if (preferred_transcripts.contains(trans.gene) && variant_in_pt[trans.gene] && !preferred_transcripts[trans.gene].contains(trans.id))
+		{
+			continue;
+		}
 		genes << trans.gene;
 		types << trans.type;
 		hgvs_cs << trans.hgvs_c;
