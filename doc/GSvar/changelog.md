@@ -1,5 +1,10 @@
 # GSvar change log
 
+### 2019_09-17 (01.10.19)
+- Report configuration: Fixed handling of preferred transcripts in variant sheet generation.
+- Gene tab: Added OrphaNet data.
+
+
 ### 2019_09-3 (26.09.19)
 - Implemented report configuration of variants (create, load/store in NGSD) and use for reports and variant sheets.
 - Added 'Gene' tab.

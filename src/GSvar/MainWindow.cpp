@@ -1603,7 +1603,7 @@ void MainWindow::printVariantSheet()
 	NGSD db;
 	QString sample_id = db.sampleId(base_name);
 	QList<SampleDiseaseInfo> disease_infos = db.getSampleDiseaseInfo(sample_id, "clinical phenotype (free text)");
-	if (disease_infos.isEmpty() && QMessageBox::question(this, "Variant sheet", "No clinical phenotype (free text) is set for the sample!\nDo you want to set it?")==QMessageBox::Yes)
+	if (disease_infos.isEmpty() && QMessageBox::question(this, "Variant sheet", "No clinical phenotype (free text) is set for the sample!\nIt will be shown on the variant sheet!\n\nDo you want to set it?")==QMessageBox::Yes)
 	{
 		SampleDiseaseInfoWidget* widget = new SampleDiseaseInfoWidget(processedSampleName(), this);
 		widget->setDiseaseInfo(db.getSampleDiseaseInfo(sample_id));
@@ -1873,7 +1873,7 @@ void MainWindow::generateReport()
 	{
 		generateReportSomaticRTF();
 	}
-	else if (type==GERMLINE_SINGLESAMPLE)
+	else if (type==GERMLINE_SINGLESAMPLE || type==GERMLINE_TRIO)
 	{
 		generateReportGermline();
 	}

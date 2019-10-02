@@ -24,7 +24,6 @@ GSvar:
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 ** replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
 * trio filter: correct PAR region handling (Genetikum)
-* Add special report for trios/multi-sample with genotype overview > change format to RTF first (AG)
 * report variant selection
     - add gaps report (custom via import) to XML report
         - CCDS +-5 bases!?

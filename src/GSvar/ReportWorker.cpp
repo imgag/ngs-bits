@@ -86,13 +86,13 @@ QString ReportWorker::formatCodingSplicing(const QList<VariantTranscript>& trans
 	return output.join("<br />");
 }
 
-QByteArray ReportWorker::formatGenotype(const QByteArray& gender, const QByteArray& genotype, const Chromosome& chr, int start, int end)
+QByteArray ReportWorker::formatGenotype(const QByteArray& gender, const QByteArray& genotype, const Variant& variant)
 {
 	//correct only hom variants on gonosomes outside the PAR for males
 	if (gender!="male") return genotype;
 	if (genotype!="hom") return genotype;
-	if (!chr.isGonosome()) return genotype;
-	if (NGSHelper::pseudoAutosomalRegion("hg19").overlapsWith(chr, start, end)) return genotype;
+	if (!variant.chr().isGonosome()) return genotype;
+	if (NGSHelper::pseudoAutosomalRegion("hg19").overlapsWith(variant.chr(), variant.start(), variant.end())) return genotype;
 
 	return "hemi";
 }
@@ -462,6 +462,16 @@ void ReportWorker::writeHTML()
 	QTextStream stream(outfile.data());
 	writeHtmlHeader(stream, sample_name_);
 
+	//get trio data
+	bool is_trio = variants_.type() == GERMLINE_TRIO;
+	SampleInfo info_father;
+	SampleInfo info_mother;
+	if (is_trio)
+	{
+		info_father = variants_.getSampleHeader().infoByStatus(false, "male");
+		info_mother = variants_.getSampleHeader().infoByStatus(false, "female");
+	}
+
 	//get data from database
 	QString sample_id = db_.sampleId(sample_name_);
 	SampleData sample_data = db_.getSampleData(sample_id);
@@ -469,11 +479,19 @@ void ReportWorker::writeHTML()
 	ProcessedSampleData processed_sample_data = db_.getProcessedSampleData(processed_sample_id);
 	ProcessingSystemData system_data = db_.getProcessingSystemData(processed_sample_id, true);
 
+	//report header (meta information)
 	stream << "<h4>" << trans("Technischer Report zur bioinformatischen Analyse") << "</h4>" << endl;
 
-	stream << "<p><b>" << trans("Probe") << ": " << sample_name_ << "</b> (" << sample_data.name_external << ")" << endl;
-	stream << "</p>" << endl;
-	stream << "<p>" << trans("Geschlecht") << ": " << processed_sample_data.gender << endl;
+	stream << "<p>" << endl;
+	stream << "<b>" << trans("Probe") << ": " << sample_name_ << "</b> (" << sample_data.name_external << ")" << endl;
+	if (is_trio)
+	{
+		stream << "<br />" << endl;
+		stream << "<br />" << trans("Vater") << ": "  << info_father.id << endl;
+		stream << "<br />" << trans("Mutter") << ": "  << info_mother.id << endl;
+	}
+	stream << "<br />" << endl;
+	stream << "<br />" << trans("Geschlecht") << ": " << processed_sample_data.gender << endl;
 	stream << "<br />" << trans("Prozessierungssystem") << ": " << processed_sample_data.processing_system << endl;
 	stream << "<br />" << trans("Referenzgenom") << ": " << system_data.genome << endl;
 	stream << "<br />" << trans("Datum") << ": " << QDate::currentDate().toString("dd.MM.yyyy") << endl;
@@ -544,7 +562,13 @@ void ReportWorker::writeHTML()
 	stream << "<p><b>" << trans("Varianten nach klinischer Interpretation im Kontext der Fragestellung") << "</b>" << endl;
 	stream << "</p>" << endl;
 	stream << "<table>" << endl;
-	stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Variante") << "</b></td><td><b>" << trans("Genotyp") << "</b></td><td><b>" << trans("Details") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td><td><b>1000g</b></td><td><b>gnomAD</b></td></tr>" << endl;
+	stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Variante") << "</b></td><td><b>" << trans("Genotyp") << "</b></td>";
+	if (is_trio)
+	{
+		stream << "<td><b>" << trans("Vater") << "</b></td>";
+		stream << "<td><b>" << trans("Mutter") << "</b></td>";
+	}
+	stream << "<td><b>" << trans("Details") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td><td><b>1000g</b></td><td><b>gnomAD</b></td></tr>" << endl;
 
 	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config.variantConfig())
 	{
@@ -559,11 +583,16 @@ void ReportWorker::writeHTML()
 		stream << "<td>" << endl;
 		stream  << variant.chr().str() << ":" << variant.start() << "&nbsp;" << variant.ref() << "&nbsp;&gt;&nbsp;" << variant.obs() << "</td>";
 		QStringList geno_info;
-		geno_info << formatGenotype(processed_sample_data.gender.toLatin1(), variant.annotations().at(i_genotype), variant.chr(), variant.start(), variant.end());
+		geno_info << formatGenotype(processed_sample_data.gender.toLatin1(), variant.annotations().at(i_genotype), variant);
 		if (var_conf.de_novo) geno_info << "de-novo";
 		if (var_conf.mosaic) geno_info << "mosaic";
 		if (var_conf.comp_het) geno_info << "comp-het";
 		stream << "<td>" << geno_info.join(", ") << "</td>" << endl;
+		if (is_trio)
+		{
+			stream << "<td>" << formatGenotype("male", variant.annotations().at(info_father.column_index), variant) << "</td>";
+			stream << "<td>" << formatGenotype("female", variant.annotations().at(info_mother.column_index), variant) << "</td>";
+		}
 		stream << "<td>" << formatCodingSplicing(variant.transcriptAnnotations(i_co_sp)) << "</td>" << endl;
 		stream << "<td>" << variant.annotations().at(i_class) << "</td>" << endl;
 		stream << "<td>" << var_conf.inheritance << "</td>" << endl;
@@ -872,6 +901,9 @@ QString ReportWorker::trans(const QString& text) const
 		de2en["gesamt"] = "overall";
 		de2en["mit Tiefe"] = "with depth";
 		de2en["Geschlecht"] = "sample sex";
+		de2en["Vater"] = "father";
+		de2en["Mutter"] = "mother";
+
 
 		if (!de2en.contains(text))
 		{
@@ -968,7 +1000,7 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 		w.writeAttribute("end", QString::number(variant.end()));
 		w.writeAttribute("ref", variant.ref());
 		w.writeAttribute("obs", variant.obs());
-		w.writeAttribute("genotype", formatGenotype(processed_sample_data.gender.toLatin1(), variant.annotations()[geno_idx], variant.chr(), variant.start(), variant.end()));
+		w.writeAttribute("genotype", formatGenotype(processed_sample_data.gender.toLatin1(), variant.annotations()[geno_idx], variant));
 		w.writeAttribute("causal", var_conf.causal ? "true" : "false");
 		w.writeAttribute("de_novo", var_conf.de_novo ? "true" : "false");
 		w.writeAttribute("comp_het", var_conf.comp_het ? "true" : "false");
