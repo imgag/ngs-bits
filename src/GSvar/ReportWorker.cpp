@@ -1009,12 +1009,20 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 		{
 			w.writeAttribute("inheritance", var_conf.inheritance);
 		}
-		QString classification = db_.getClassification(variant).classification;
-		if (classification!="" && classification!="n/a")
+		ClassificationInfo class_info = db_.getClassification(variant);
+		if (class_info.classification!="" && class_info.classification!="n/a")
 		{
-			w.writeAttribute("class", classification);
+			w.writeAttribute("class", class_info.classification);
+			w.writeAttribute("class_comments", class_info.comments);
 		}
-
+		if (!var_conf.comments.trimmed().isEmpty())
+		{
+			w.writeAttribute("comments_1st_assessor", var_conf.comments.trimmed());
+		}
+		if (!var_conf.comments2.trimmed().isEmpty())
+		{
+			w.writeAttribute("comments_2nd_assessor", var_conf.comments2.trimmed());
+		}
 		//element TranscriptInformation
 		GeneSet genes;
 		int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, false);
@@ -1025,24 +1033,18 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 				w.writeStartElement("TranscriptInformation");
 				w.writeAttribute("gene", trans.gene);
 				w.writeAttribute("transcript_id", trans.id);
-				w.writeAttribute("hgvs_c", trans.hgvs_c);
-				w.writeAttribute("hgvs_p", trans.hgvs_p);
+				w.writeAttribute("type", trans.type);
+				QByteArray hgvs_c = trans.hgvs_c;
+				if (hgvs_c.startsWith("c.")) hgvs_c = hgvs_c.mid(2);
+				w.writeAttribute("hgvs_c", hgvs_c);
+				QByteArray hgvs_p = trans.hgvs_p;
+				if (hgvs_p.startsWith("p.")) hgvs_p = hgvs_p.mid(2);
+				w.writeAttribute("hgvs_p", hgvs_p);
 				w.writeAttribute("exon", trans.exon);
 				w.writeEndElement();
 
 				genes << trans.gene;
 			}
-		}
-
-		//element Annotation
-		for (int i=0; i<variant.annotations().count(); ++i)
-		{
-			if (i==geno_idx) continue;
-
-			w.writeStartElement("Annotation");
-			w.writeAttribute("name", variants_.annotations()[i].name());
-			w.writeAttribute("value", variant.annotations()[i]);
-			w.writeEndElement();
 		}
 
 		//element GeneDiseaseInformation

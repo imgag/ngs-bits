@@ -175,6 +175,11 @@
 														<xs:documentation>transcript identifier</xs:documentation>
 													</xs:annotation>
 												</xs:attribute>
+												<xs:attribute name="type" type="xs:string" use="required">
+													<xs:annotation>
+														<xs:documentation>variant type, e.g. missense</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
 												<xs:attribute name="hgvs_c" use="required">
 													<xs:annotation>
 														<xs:documentation>HGVS-compliant  cDNA change</xs:documentation>
@@ -188,28 +193,6 @@
 												<xs:attribute name="exon" type="xs:string" use="required">
 													<xs:annotation>
 														<xs:documentation>exon number, e.g. 11/27. The second number is the overal number of exons of the transcript</xs:documentation>
-													</xs:annotation>
-												</xs:attribute>
-											</xs:complexType>
-										</xs:element>
-										<xs:element name="Annotation" minOccurs="0" maxOccurs="unbounded">
-											<xs:annotation>
-												<xs:documentation>Generic annotations of variant. These annotation are only for documnetation purposes, they should not be used for any kind of data import into other applications!</xs:documentation>
-											</xs:annotation>
-											<xs:complexType>
-												<xs:attribute name="name" use="required">
-													<xs:annotation>
-														<xs:documentation>annotation name</xs:documentation>
-													</xs:annotation>
-													<xs:simpleType>
-														<xs:restriction base="xs:string">
-															<xs:minLength value="1"/>
-														</xs:restriction>
-													</xs:simpleType>
-												</xs:attribute>
-												<xs:attribute name="value" type="xs:string" use="required">
-													<xs:annotation>
-														<xs:documentation>annotation value</xs:documentation>
 													</xs:annotation>
 												</xs:attribute>
 											</xs:complexType>
@@ -350,6 +333,21 @@
 												<xs:enumeration value="M"/>
 											</xs:restriction>
 										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="class_comments" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>Classiification comments</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="comments_1st_assessor" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>Comments of first assessor</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="comments_2nd_assessor" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>Comments of second</xs:documentation>
+										</xs:annotation>
 									</xs:attribute>
 								</xs:complexType>
 							</xs:element>
