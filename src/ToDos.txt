@@ -24,12 +24,14 @@ GSvar:
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 ** replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
 * trio filter: correct PAR region handling (Genetikum)
-* report variant selection
+*** report variant selection
+    *** add CNV report config
     - add gaps report (custom via import) to XML report
         - CCDS +-5 bases!?
         - gap report as XML and additional report of gaps to sanger-validate as TXT
     - Add 'approved_by' and date to make printing the sheet obsolete
         - lock editing the report config then?
+    - Trio report > trio XML (Anne,Mona)?
 
 Tools:
 - NGSDImportHPO: Add G2P database (https://www.ebi.ac.uk/gene2phenotype) - if HPO people do not include it

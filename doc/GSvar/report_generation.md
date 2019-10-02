@@ -31,6 +31,7 @@ The report configuration of a sample can be stored in the NGSD database and load
 
 ![report_config_storage.png](report_config_storage.png)
 
+**Note:** If the report configuration is not stored, it is lost when GSvar is closed!
 
 
 ### Generating a report or variant sheet

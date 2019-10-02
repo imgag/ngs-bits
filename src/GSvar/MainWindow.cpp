@@ -80,6 +80,7 @@
 #include "ReportVariantDialog.h"
 #include "GSvarHelper.h"
 #include "SampleDiseaseInfoWidget.h"
+#include "QrCodeFactory.h"
 
 QT_CHARTS_USE_NAMESPACE
 
@@ -149,7 +150,7 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.report_btn->menu()->addAction("Clear report configuration", this, SLOT(clearReportConfig()));
 	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction("Generate report", this, SLOT(generateReport()));
-	ui_.report_btn->menu()->addAction("Generate variant sheet", this, SLOT(printVariantSheet()));
+	ui_.report_btn->menu()->addAction("Generate variant sheet", this, SLOT(generateVariantSheet()));
 	connect(ui_.vars_folder_btn, SIGNAL(clicked(bool)), this, SLOT(openVariantListFolder()));
 	connect(ui_.vars_af_hist, SIGNAL(clicked(bool)), this, SLOT(showAfHistogram()));
 	connect(ui_.ps_details, SIGNAL(clicked(bool)), this, SLOT(openProcessedSampleTabsCurrentSample()));
@@ -1591,7 +1592,7 @@ void MainWindow::storeReportConfig()
 	report_settings_.report_config.setModified(false);
 }
 
-void MainWindow::printVariantSheet()
+void MainWindow::generateVariantSheet()
 {
 	//get filename
 	QString base_name = processedSampleName();
@@ -1647,8 +1648,21 @@ void MainWindow::printVariantSheet()
 	stream << "      }" << endl;
 	stream << "    </style>" << endl;
 	stream << "  </head>" << endl;
+
 	stream << "  <body>" << endl;
-	stream << "    <h3>Probe: " << base_name << "</h3>" << endl;
+
+	stream << "    <table class='noborder' width='100%'>" << endl;
+	stream << "      <tr>" << endl;
+	stream << "        <td class='noborder' valign='top'>" << endl;
+	stream << "           <h3>Probe: " << base_name << "</h3>" << endl;
+	stream << "        </td>" << endl;
+	stream << "        <td class='noborder' valign='top' style='width: 1%; white-space: nowrap;'>" << endl;
+	stream << "          <img width='100' height='100' style='margin: 10px;' src='data:image/png;base64," << QrCodeFactory::generateText("G8006X" + base_name.toLatin1(), 100) << "' />" << endl;
+	stream << "          </img>" << endl;
+	stream << "        </td>" << endl;
+	stream << "      </tr>" << endl;
+	stream << "    </table>" << endl;
+
 	stream << "    <table class='noborder' width='100%'>" << endl;
 	stream << "      <tr>" << endl;
 	stream << "        <td class='noborder' valign='top'>" << endl;

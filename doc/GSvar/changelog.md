@@ -1,5 +1,11 @@
 # GSvar change log
 
+### 2019_09-?? (??.10.19)
+- Variant sheet: Added QR-code
+
+### 2019_09-18 (02.10.19)
+- Report: Added report for trio analysis
+
 ### 2019_09-17 (01.10.19)
 - Report configuration: Fixed handling of preferred transcripts in variant sheet generation.
 - Gene tab: Added OrphaNet data.

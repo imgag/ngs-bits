@@ -155,7 +155,7 @@ public slots:
 	///Store report configuration
 	void storeReportConfig();
 	///Prints a variant sheet based on the report configuration
-	void printVariantSheet();
+	void generateVariantSheet();
 	///Helper function for printVariantSheet()
 	void printVariantSheetRowHeader(QTextStream& stream, bool causal);
 	///Helper function for printVariantSheet()

@@ -44,6 +44,7 @@ For some tools the documentation pages contain only the command-line help, for o
 
 * [htslib](https://github.com/samtools/htslib) for HTS data format support (BAM, VCF, ...)
 * [SimpleCrypt](https://wiki.qt.io/Simple_encryption_with_SimpleCrypt) for weak encryption
+* [QR-Code-generator](https://github.com/nayuki/QR-Code-generator) for QR code generation
 
 
 ## Tools list
