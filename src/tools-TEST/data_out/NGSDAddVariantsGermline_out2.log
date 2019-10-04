@@ -1,0 +1,11 @@
+
+### importing CNVs for NA12878_18 ###
+filename: ../src/tools-TEST/data_in/NGSDAddVariantsGermline_in1.tsv
+NOTE: CNV callset was already present - deleting it!
+caller: CnvHunter
+caller version: 2019_09-19-g3268388b
+DEBUG: callset quality: {"cnvs":"31 (median: 1)","qc_errors":"","ref_correl":"0.941 (median: 0.960)"}
+DEBUG: chr1:181022444-181023138 cn:3 quality: {"region_copy_numbers":"3","region_count":"1","region_zscores":"3.52"}
+DEBUG: chr11:2191793-2193322 cn:1 quality: {"region_copy_numbers":"1,2,1","region_count":"3","region_zscores":"-4.48,-3.45,-4.27"}
+DEBUG: chrX:70621067-70626716 cn:3 quality: {"region_copy_numbers":"3,3","region_count":"2","region_zscores":"5.37,2.99"}
+imported cnvs: 3

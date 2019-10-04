@@ -341,5 +341,9 @@ SUBDIRS += VcfToBedpe
 tools-TEST.depends += VcfToBedpe
 VcfToBedpe.depends = cppNGS
 
+SUBDIRS += NGSDAddVariantsGermline
+tools-TEST.depends += NGSDAddVariantsGermline
+NGSDAddVariantsGermline.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt

@@ -13,11 +13,10 @@ NGSD:
     - sample: import disease info, disease group/status, gender from same samples
     - sample: import disease group/status from GenLab (sample - disease status: add 'Unclear') - select * FROM v_krankheitsgruppe_pattyp...
 ** Add run overview dialog/tab
-**** add CNVs to NGSD and allow classification
-    - CNV call-set: analysis type, quality metrics + tool/version + quality (n/a, good, medium, bad)
-    - CNV calls: quality metrics + classification/comment
-    - add import script for CNVs
-        - import all data from exomes ssHAEv6+7/TruSeq PCR-free genomes
+**** add CNVs to NGSD
+    - import all data from exomes ssHAEv6+7/TruSeq PCR-free genomes
+    - block re-import of CNVs if report config is set - maybe allow it if all annotated CNVs are still present (e.g. >80% overlap and same CN)
+    - allow adding to report config in GSvar (like small variants, but with classification)
 **** NGSD annotation: export VCF, use VCF for annotation (LS)
 
 GSvar:

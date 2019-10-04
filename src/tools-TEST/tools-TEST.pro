@@ -105,7 +105,8 @@ HEADERS += \
     VcfExtractSamples_Test.h \
     FastqConcat_Test.h \
     VcfToBedpe_Test.h \
-    NGSDImportORPHA_Test.h
+    NGSDImportORPHA_Test.h \
+    NGSDAddVariantsGermline_Test.h
 
 
 SOURCES += \
