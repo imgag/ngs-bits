@@ -574,15 +574,108 @@ QString NGSD::addVariant(const VariantList& variant_list, int index)
 	return query.lastInsertId().toString();
 }
 
+QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af)
+{
+	QList<int> output;
+
+	//prepare queried
+	SqlQuery q_id = getQuery();
+	q_id.prepare("SELECT id, 1000g, gnomad, gene, variant_type, coding FROM variant WHERE chr=:0 AND start=:1 AND end=:2 AND ref=:3 AND obs=:4");
+
+	SqlQuery q_update = getQuery(); //use binding (user input)
+	q_update.prepare("UPDATE variant SET 1000g=:1, gnomad=:2, gene=:3, variant_type=:4, coding=:5 WHERE id=:6");
+
+	SqlQuery q_insert = getQuery(); //use binding (user input)
+	q_insert.prepare("INSERT INTO variant (chr, start, end, ref, obs, 1000g, gnomad, gene, variant_type, coding) VALUES (:0,:1,:2,:3,:4,:5,:6,:7,:8,:9)");
+
+	//get annotated column indices
+	int i_tg = variant_list.annotationIndexByName("1000g");
+	int i_gnomad = variant_list.annotationIndexByName("gnomAD");
+	int i_gene = variant_list.annotationIndexByName("gene");
+	int i_type = variant_list.annotationIndexByName("variant_type");
+	int i_co_sp = variant_list.annotationIndexByName("coding_and_splicing");
+
+	for (int i=0; i<variant_list.count(); ++i)
+	{
+		const Variant& variant = variant_list[i];
+
+		//skip variants with too high AF
+		QByteArray tg = variant.annotations()[i_tg].trimmed();
+		if (tg=="n/a") tg.clear();
+		if (!tg.isEmpty() && tg.toDouble()>max_af)
+		{
+			output << -1;
+			continue;
+		}
+		QByteArray gnomad = variant.annotations()[i_gnomad].trimmed();
+		if (gnomad=="n/a") gnomad.clear();
+		if (!gnomad.isEmpty() && gnomad.toDouble()>max_af)
+		{
+			output << -1;
+			continue;
+		}
+
+		//get variant it
+		q_id.bindValue(0, variant.chr().strNormalized(true));
+		q_id.bindValue(1, variant.start());
+		q_id.bindValue(2, variant.end());
+		q_id.bindValue(3, variant.ref());
+		q_id.bindValue(4, variant.obs());
+		q_id.exec();
+		if (q_id.next()) //update (common case)
+		{
+			int id = q_id.value(0).toInt();
+
+			//check if variant meta data needs to be updated
+			if (q_id.value(1).toByteArray()!=tg
+				|| q_id.value(2).toByteArray()!=gnomad
+				|| q_id.value(3).toByteArray()!=variant.annotations()[i_gene]
+				|| q_id.value(4).toByteArray()!=variant.annotations()[i_type]
+				|| q_id.value(5).toByteArray()!=variant.annotations()[i_co_sp])
+			{
+				q_update.bindValue(0, tg.isEmpty() ? QVariant() : tg);
+				q_update.bindValue(1, gnomad.isEmpty() ? QVariant() : gnomad);
+				q_update.bindValue(2, variant.annotations()[i_gene]);
+				q_update.bindValue(3, variant.annotations()[i_type]);
+				q_update.bindValue(4, variant.annotations()[i_co_sp]);
+				q_update.bindValue(5, id);
+				q_update.exec();
+			}
+
+			output << id;
+		}
+		else //insert (rare case)
+		{
+			q_insert.bindValue(0, variant.chr().strNormalized(true));
+			q_insert.bindValue(1, variant.start());
+			q_insert.bindValue(2, variant.end());
+			q_insert.bindValue(3, variant.ref());
+			q_insert.bindValue(4, variant.obs());
+			q_insert.bindValue(5, tg.isEmpty() ? QVariant() : tg);
+			q_insert.bindValue(6, gnomad.isEmpty() ? QVariant() : gnomad);
+			q_insert.bindValue(7, variant.annotations()[i_gene]);
+			q_insert.bindValue(8, variant.annotations()[i_type]);
+			q_insert.bindValue(9, variant.annotations()[i_co_sp]);
+			q_insert.exec();
+
+			output << q_insert.lastInsertId().toInt();
+		}
+	}
+
+	return output;
+}
+
 QString NGSD::variantId(const Variant& variant, bool throw_if_fails)
 {
 	SqlQuery query = getQuery(); //use binding user input (safety)
-	query.prepare("SELECT id FROM variant WHERE chr=:0 AND start='"+QString::number(variant.start())+"' AND end='"+QString::number(variant.end())+"' AND ref=:1 AND obs=:2");
+	query.prepare("SELECT id FROM variant WHERE chr=:0 AND start=:1 AND end=:2 AND ref=:3 AND obs=:4");
 	query.bindValue(0, variant.chr().strNormalized(true));
-	query.bindValue(1, variant.ref());
-	query.bindValue(2, variant.obs());
+	query.bindValue(1, variant.start());
+	query.bindValue(2, variant.end());
+	query.bindValue(3, variant.ref());
+	query.bindValue(4, variant.obs());
 	query.exec();
-	if (query.size()==0)
+	if (!query.next())
 	{
 		if (throw_if_fails)
 		{
@@ -593,7 +686,7 @@ QString NGSD::variantId(const Variant& variant, bool throw_if_fails)
 			return "";
 		}
 	}
-	query.next();
+
 	return query.value(0).toString();
 }
 
@@ -1574,7 +1667,7 @@ void NGSD::updateQC(QString obo_file, bool debug)
 
 
 	// database connection
-	db_->transaction();
+	transaction();
 	QSqlQuery query = getQuery();
 	query.prepare("INSERT INTO qc_terms (qcml_id, name, description, type, obsolete) VALUES (:0, :1, :2, :3, :4) ON DUPLICATE KEY UPDATE name=VALUES(name), description=VALUES(description), type=VALUES(type), obsolete=VALUES(obsolete)");
 
@@ -1589,7 +1682,7 @@ void NGSD::updateQC(QString obo_file, bool debug)
 		query.exec();
 		if (debug) qDebug() << "  ID:" << query.lastInsertId();
 	}
-	db_->commit();
+	commit();
 }
 
 void NGSD::fixGeneNames(QTextStream* messages, bool fix_errors, QString table, QString column)

@@ -354,6 +354,13 @@ public:
 	///Clears all contents from a table.
 	void clearTable(QString table);
 
+
+	/*** transactions ***/
+	///Start transaction
+	bool transaction() { return db_->transaction(); }
+	bool commit() { return db_->commit(); }
+	bool rollback() { return db_->rollback(); }
+
 	/*** gene/transcript handling ***/
 	///Returns the gene ID, or -1 if none approved gene name could be found. Checks approved symbols, previous symbols and synonyms.
 	int geneToApprovedID(const QByteArray& gene);
@@ -412,6 +419,8 @@ public:
 	QString processedSamplePath(const QString& processed_sample_id, PathType type);
 	///Adds a variant to the NGSD, if not already present. Returns the variant ID.
 	QString addVariant(const VariantList& variant_list, int index);
+	///Adds all missing variants to the NGSD and returns the variant DB identifiers (or -1 if the variant was skipped due to 'max_af')
+	QList<int> addVariants(const VariantList& variant_list, double max_af = 0.05);
 	///Returns the NGSD ID for a variant. Returns '' or throws an exception if the ID cannot be determined.
 	QString variantId(const Variant& variant, bool throw_if_fails = true);
 	///Returns the variant corresponding to the given identifier or throws an exception if the ID does not exist.

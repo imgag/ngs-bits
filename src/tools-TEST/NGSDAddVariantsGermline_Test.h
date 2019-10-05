@@ -23,7 +23,7 @@ private slots:
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line22.log", TESTDATA("data_out/NGSDAddVariantsGermline_out1.log"));
 
 		//2. import - to check that updating works
-		EXECUTE("NGSDAddVariantsGermline", "-test -debug -ps NA12878_18 -var " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.GSvar") + " -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.tsv"));
+		EXECUTE("NGSDAddVariantsGermline", "-test -debug -ps NA12878_18 -var " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.GSvar") + " -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.tsv") + " -var_force -cnv_force");
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line26.log", TESTDATA("data_out/NGSDAddVariantsGermline_out2.log"));
 	}
 

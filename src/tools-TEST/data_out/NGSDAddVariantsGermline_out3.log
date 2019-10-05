@@ -1,4 +1,11 @@
 
+### importing small variants for NA12878_38 ###
+filename: ../src/tools-TEST/data_in/NGSDAddVariantsGermline_in2.GSvar
+Found 0 variants already imported into NGSD!
+DEBUG: Found 0 class 4/5 variants
+Imported 35 variants
+DEBUG: Skipped 18 high-AF variants!
+
 ### importing CNVs for NA12878_38 ###
 filename: ../src/tools-TEST/data_in/NGSDAddVariantsGermline_in2.tsv
 caller: ClinCNV

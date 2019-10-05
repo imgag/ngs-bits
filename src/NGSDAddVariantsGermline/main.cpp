@@ -24,12 +24,16 @@ public:
 		addString("ps", "Processed sample name", false);
 		//optional
 		addInfile("var", "Small variant list in GSvar format (as produced by megSAP).", true, true);
+		addFlag("var_force", "Force import of small variants, even if already imported.");
 		addInfile("cnv", "CNV list in TSV format (as produced by megSAP).", true, true);
+		addFlag("cnv_force", "Force import of CNVs, even if already imported. Attention: This will also delete classifications and report configuration!");
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
+		addFloat("max_af", "Maximum allele frequency of small variants to import (1000g and gnomAD)", true, 0.05);
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("debug", "Enable verbose debug output.");
 	}
 
+	///split key-value pair based on separator
 	static KeyValuePair split(const QByteArray& string, char sep)
 	{
 		QByteArrayList parts = string.split(sep);
@@ -61,15 +65,102 @@ public:
 	}
 
 
-	void importSmallVariants(NGSD& db, QTextStream& out, QString ps_name, bool debug)
+	void importSmallVariants(NGSD& db, QTextStream& out, QString ps_name, bool debug, bool var_force)
 	{
 		QString filename = getInfile("var");
 		if (filename=="") return;
 
-		//TODO
+		out << "\n";
+		out << "### importing small variants for " << ps_name << " ###\n";
+		out << "filename: " << filename << "\n";
+
+		//check if variants were already imported for this PID
+		QString ps_id = db.processedSampleId(ps_name);
+		int count_old = db.getValue("SELECT count(*) FROM detected_variant WHERE processed_sample_id=:0", true, ps_id).toInt();
+		out << "Found " << count_old  << " variants already imported into NGSD!\n";
+		if(count_old>0 && !var_force)
+		{
+			THROW(ArgumentException, "Variants were already imported for '" + ps_name + "'. Use the flag '-var_force' to overwrite them.");
+		}
+
+		//remove old variants (and store class4/5 variants for check)
+		QSet<int> var_ids_class_4_or_5;
+		if (count_old>0 && var_force)
+		{
+			//get class4/5 variant ids
+			QStringList tmp = db.getValues("SELECT vc.variant_id FROM detected_variant dv, variant_classification vc WHERE dv.processed_sample_id=:0 AND dv.variant_id=vc.variant_id AND (vc.class='4' OR vc.class='5')", ps_id);
+			foreach(const QString& id, tmp)
+			{
+				var_ids_class_4_or_5 << id.toInt();
+			}
+			out << "Found " << var_ids_class_4_or_5.size()  << " class 4/5 variants for the sample!\n";
+
+			//remove old variants
+			SqlQuery query = db.getQuery();
+			query.exec("DELETE FROM detected_variant WHERE processed_sample_id='" + ps_id + "'");
+			out << "Deleted previous variants\n";
+		}
+		if (debug)
+		{
+			out << "DEBUG: Found " << var_ids_class_4_or_5.count() << " class 4/5 variants\n";
+		}
+
+		//abort if there are no variants in the input file
+		VariantList variants;
+		variants.load(filename);
+		if (variants.count()==0)
+		{
+			out << "No variants imported (empty GSvar file).\n";
+			return;
+		}
+
+		//add missing variants
+		double max_af = getFloat("max_af");
+		QList<int> variant_ids = db.addVariants(variants, max_af);
+
+		//add detected variants
+		int i_geno = variants.getSampleHeader().infoByID(ps_name).column_index;
+		int i_type = variants.annotationIndexByName("variant_type");
+		SqlQuery q_insert = db.getQuery();
+		q_insert.prepare("INSERT INTO detected_variant (processed_sample_id, variant_id, genotype) VALUES (" + ps_id + ", :0, :1)");
+		db.transaction();
+		for (int i=0; i<variants.count(); ++i)
+		{
+			//skip high-AF variants
+			int variant_id = variant_ids[i];
+			if (variant_id==-1) continue;
+
+			//skip invalid variants //TODO can this still happen?
+			const Variant& variant = variants[i];
+			if (variant.annotations()[i_type]=="invalid") continue;
+
+			//remove class 4/5 variant from list (see check below)
+			var_ids_class_4_or_5.remove(variant_id);
+
+			//bind
+			q_insert.bindValue(0, variant_id);
+			q_insert.bindValue(1, variant.annotations()[i_geno]);
+			q_insert.exec();
+		}
+		db.commit();
+
+		//check that all important variant are still there (we unset all re-imported variants above)
+		foreach(int id, var_ids_class_4_or_5)
+		{
+			THROW(ArgumentException, "Variant (" + db.variant(QString::number(id)).toString(false, 20) + ") with classification 4/5 is no longer in variant list!");
+		}
+
+
+		//output
+		int c_skipped = variant_ids.count(-1);
+		out << "Imported " << (variant_ids.count()-c_skipped) << " variants\n";
+		if (debug)
+		{
+			out << "DEBUG: Skipped " << variant_ids.count(-1) << " high-AF variants!\n";
+		}
 	}
 
-	void importCNVs(NGSD& db, QTextStream& out, QString ps_name, bool debug)
+	void importCNVs(NGSD& db, QTextStream& out, QString ps_name, bool debug, bool cnv_force)
 	{
 		QString filename = getInfile("cnv");
 		if (filename=="") return;
@@ -83,11 +174,18 @@ public:
 
 		//check if CNV callset already exists > delete old callset
 		QString last_callset_id = db.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=:0", true, ps_id).toString();
-		if (last_callset_id!="")
+		if(last_callset_id!="" && !cnv_force)
 		{
-			out << "NOTE: CNV callset was already present - deleting it!\n";
+			THROW(ArgumentException, "CNVs were already imported for '" + ps_name + "'. Use the flag '-cnv_force' to overwrite them.");
+		}
+
+		//check if variants were already imported for this PID
+		if (last_callset_id!="" && cnv_force)
+		{
 			db.getQuery().exec("DELETE FROM cnv WHERE cnv_callset_id='" + last_callset_id + "'");
 			db.getQuery().exec("DELETE FROM cnv_callset WHERE id='" + last_callset_id + "'");
+
+			out << "Deleted previous CNV callset\n";
 		}
 
 		//parse file header
@@ -249,10 +347,20 @@ public:
 		QTextStream stream(out.data());
 		QString ps_name = getString("ps");
 		bool debug = getFlag("debug");
+		bool var_force = getFlag("var_force");
+		bool cnv_force = getFlag("cnv_force");
+
+		//prevent tumor samples from being imported into the germline variant tables
+		QString s_id = db.sampleId(ps_name);
+		SampleData sample_data = db.getSampleData(s_id);
+		if (sample_data.is_tumor)
+		{
+			THROW(ArgumentException, "Cannot import tumor data from sample " + ps_name + " into germline tables!");
+		}
 
 		//import
-		importSmallVariants(db, stream, ps_name, debug);
-		importCNVs(db, stream, ps_name, debug);
+		importSmallVariants(db, stream, ps_name, debug, var_force);
+		importCNVs(db, stream, ps_name, debug, cnv_force);
 	}
 };
 
