@@ -535,40 +535,38 @@ QString NGSD::addVariant(const VariantList& variant_list, int index)
 	const Variant& variant = variant_list[index];
 
 	SqlQuery query = getQuery(); //use binding (user input)
-	query.prepare("INSERT INTO variant (chr, start, end, ref, obs, dbsnp, 1000g, gnomad, gene, variant_type, coding) VALUES (:0,:1,:2,:3,:4,:5,:6,:7,:8,:9,:10)");
+	query.prepare("INSERT INTO variant (chr, start, end, ref, obs, 1000g, gnomad, gene, variant_type, coding) VALUES (:0,:1,:2,:3,:4,:5,:6,:7,:8,:9)");
 	query.bindValue(0, variant.chr().strNormalized(true));
 	query.bindValue(1, variant.start());
 	query.bindValue(2, variant.end());
 	query.bindValue(3, variant.ref());
 	query.bindValue(4, variant.obs());
-	int idx = variant_list.annotationIndexByName("dbSNP");
-	query.bindValue(5, variant.annotations()[idx]);
-	idx = variant_list.annotationIndexByName("1000g");
+	int idx = variant_list.annotationIndexByName("1000g");
 	QByteArray tg = variant.annotations()[idx].trimmed();
 	if (tg.isEmpty() || tg=="n/a")
 	{
-		query.bindValue(6, QVariant());
+		query.bindValue(5, QVariant());
 	}
 	else
 	{
-		query.bindValue(6, tg);
+		query.bindValue(5, tg);
 	}
 	idx = variant_list.annotationIndexByName("gnomAD");
 	QByteArray gnomad = variant.annotations()[idx].trimmed();
 	if (gnomad.isEmpty() || gnomad=="n/a")
 	{
-		query.bindValue(7, QVariant());
+		query.bindValue(6, QVariant());
 	}
 	else
 	{
-		query.bindValue(7, gnomad);
+		query.bindValue(6, gnomad);
 	}
 	idx = variant_list.annotationIndexByName("gene");
-	query.bindValue(8, variant.annotations()[idx]);
+	query.bindValue(7, variant.annotations()[idx]);
 	idx = variant_list.annotationIndexByName("variant_type");
-	query.bindValue(9, variant.annotations()[idx]);
+	query.bindValue(8, variant.annotations()[idx]);
 	idx = variant_list.annotationIndexByName("coding_and_splicing");
-	query.bindValue(10, variant.annotations()[idx]);
+	query.bindValue(9, variant.annotations()[idx]);
 	query.exec();
 
 	return query.lastInsertId().toString();
