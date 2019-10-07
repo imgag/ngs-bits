@@ -61,14 +61,24 @@ void TabixIndexedFile::clear()
 	chr2chr_.clear();
 }
 
-QByteArrayList TabixIndexedFile::getMatchingLines(const Chromosome& chr, int start, int end)
+QByteArrayList TabixIndexedFile::getMatchingLines(const Chromosome& chr, int start, int end, bool ignore_missing_chr)
 {
 	QByteArrayList output;
 
 	//get chromsome identifier
 	int chr_id = chr2chr_.value(chr.num(), -1);
-	if (chr_id==-1) THROW(ProgrammingException, "Chromosome '"+chr.str() + "' not found in tabix index of " + filename_);
+	if (chr_id==-1)
+	{
+		if (ignore_missing_chr)
+		{
+			return output;
+		}
+		else
+		{
+			THROW(ProgrammingException, "Chromosome '"+chr.str() + "' not found in tabix index of " + filename_);
+		}
 
+	}
 	kstring_t str = {0, 0, nullptr};
 	hts_itr_t* itr = tbx_itr_queryi(tbx_, chr_id, start-1, end);
 	if (itr)

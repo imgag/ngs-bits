@@ -104,7 +104,9 @@ HEADERS += \
     NGSDImportOMIM_Test.h \
     VcfExtractSamples_Test.h \
     FastqConcat_Test.h \
-    VcfToBedpe_Test.h
+    VcfToBedpe_Test.h\
+	NGSDExportAnnotationData_Test.h \
+    VcfAnnotateFromVcf_Test.h
 
 
 SOURCES += \

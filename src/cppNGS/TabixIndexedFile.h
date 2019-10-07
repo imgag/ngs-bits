@@ -22,7 +22,8 @@ public:
 	void clear();
 
 	///Returns lines that overlap the region (1-based)
-	QByteArrayList getMatchingLines(const Chromosome& chr, int start, int end);
+	QByteArrayList getMatchingLines(const Chromosome& chr, int start, int end,
+									bool ignore_missing_chr = false);
 
 protected:
 	QByteArray filename_;

@@ -337,5 +337,13 @@ SUBDIRS += VcfToBedpe
 tools-TEST.depends += VcfToBedpe
 VcfToBedpe.depends = cppNGS
 
+SUBDIRS += NGSDExportAnnotationData
+tools-TEST.depends += NGSDExportAnnotationData
+NGSDExportAnnotationData.depends = cppNGS
+
+SUBDIRS += VcfAnnotateFromVcf
+tools-TEST.depends += VcfAnnotateFromVcf
+VcfAnnotateFromVcf.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt
