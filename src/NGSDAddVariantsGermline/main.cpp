@@ -176,7 +176,8 @@ public:
 		QString last_callset_id = db.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=:0", true, ps_id).toString();
 		if(last_callset_id!="" && !cnv_force)
 		{
-			THROW(ArgumentException, "CNVs were already imported for '" + ps_name + "'. Use the flag '-cnv_force' to overwrite them.");
+			out << "NOTE: CNVs were already imported for '" << ps_name << "' - skipping import";
+			return;
 		}
 
 		//check if variants were already imported for this PID
