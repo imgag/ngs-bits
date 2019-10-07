@@ -6,6 +6,7 @@
 #include "VariantDetailsDockWidget.h"
 #include "NGSD.h"
 #include "Settings.h"
+#include "GSvarHelper.h"
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QBitArray>
@@ -114,11 +115,19 @@ void RohWidget::loadROHs(QString filename)
 	}
 
 	//show variants
+	const GeneSet& imprinting_genes = GSvarHelper::impritingGenes();
 	ui->rohs->setRowCount(rohs.count());
 	for (int r=0; r<rohs.count(); ++r)
 	{
 		ui->rohs->setItem(r, 0, new QTableWidgetItem(rohs[r].toString()));
-		ui->rohs->setItem(r, 1, new QTableWidgetItem(QString(rohs[r].genes().join(','))));
+		GeneSet genes = rohs[r].genes();
+		QTableWidgetItem* item = new QTableWidgetItem(QString(genes.join(',')));
+		if (genes.intersectsWith(imprinting_genes))
+		{
+			item->setBackgroundColor(Qt::yellow);
+			item->setToolTip("Imprinting gene");
+		}
+		ui->rohs->setItem(r, 1, item);
 		ui->rohs->setItem(r, 2, new QTableWidgetItem(QString::number(rohs[r].size()/1000.0, 'f', 3)));
 		ui->rohs->setItem(r, 3, new QTableWidgetItem(QString::number(rohs[r].markerCount())));
 		ui->rohs->setItem(r, 4, new QTableWidgetItem(QString::number(rohs[r].MarkerCountHet())));

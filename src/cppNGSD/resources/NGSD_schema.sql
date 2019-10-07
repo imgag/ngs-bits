@@ -9,7 +9,8 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL';
 -- -----------------------------------------------------
 -- Table `gene`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `gene` (
+CREATE TABLE IF NOT EXISTS `gene`
+(
 `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
 `hgnc_id` int(10) unsigned NOT NULL,
 `symbol` varchar(40) NOT NULL,
@@ -29,7 +30,8 @@ COMMENT='Genes from HGNC';
 -- Table `gene_alias`
 -- -----------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS `gene_alias` (
+CREATE TABLE IF NOT EXISTS `gene_alias`
+(
 `gene_id` int(10) unsigned NOT NULL,
 `symbol` varchar(40) NOT NULL,
 `type` enum('synonym','previous') NOT NULL,
@@ -52,7 +54,8 @@ COMMENT='Alternative symbols of genes';
 -- Table `gene_transcript`
 -- -----------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS `gene_transcript` (
+CREATE TABLE IF NOT EXISTS `gene_transcript`
+(
 `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
 `gene_id` int(10) unsigned NOT NULL,
 `name` varchar(40) NOT NULL,
@@ -83,7 +86,8 @@ COMMENT='Gene transcipts';
 -- Table `gene_exon`
 -- -----------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS `gene_exon` (
+CREATE TABLE IF NOT EXISTS `gene_exon`
+(
 `transcript_id` int(10) unsigned NOT NULL,
 `start` int(10) unsigned NOT NULL,
 `end` int(10) unsigned NOT NULL,
@@ -105,7 +109,8 @@ COMMENT='Transcript exons';
 -- Table `geneinfo_germline`
 -- -----------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS `geneinfo_germline` (
+CREATE TABLE IF NOT EXISTS `geneinfo_germline`
+(
 `symbol` VARCHAR(40) NOT NULL,
 `inheritance` ENUM('AR','AD','AR+AD','XLR','XLD','XLR+XLD','MT','MU','n/a') NOT NULL,
 `gnomad_oe_syn` FLOAT NULL,
@@ -120,35 +125,38 @@ CHARSET=utf8;
 -- -----------------------------------------------------
 -- Table `mid`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `mid` (
+CREATE  TABLE IF NOT EXISTS `mid`
+(
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(255) NOT NULL,
   `sequence` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `UNIQUE_MAN_INDEX` (`name` ASC))
+  UNIQUE INDEX `UNIQUE_MAN_INDEX` (`name` ASC)
+)
 ENGINE = InnoDB
-AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
 -- Table `genome`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `genome` (
+CREATE  TABLE IF NOT EXISTS `genome`
+(
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `build` VARCHAR(45) NOT NULL,
   `comment` TEXT NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `build_UNIQUE` (`build` ASC))
+  UNIQUE INDEX `build_UNIQUE` (`build` ASC)
+)
 ENGINE = InnoDB
-AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
 -- Table `processing_system`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `processing_system` (
+CREATE  TABLE IF NOT EXISTS `processing_system`
+(
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `name_short` VARCHAR(50) NULL DEFAULT NULL,
   `name_manufacturer` VARCHAR(100) NULL DEFAULT NULL,
@@ -166,30 +174,32 @@ CREATE  TABLE IF NOT EXISTS `processing_system` (
   CONSTRAINT `fk_processing_system_genome1`
     FOREIGN KEY (`genome_id`)
     REFERENCES `genome` (`id`)
-    ON UPDATE NO ACTION)
+    ON UPDATE NO ACTION
+)
 ENGINE = InnoDB
-AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
 -- Table `device`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `device` (
+CREATE  TABLE IF NOT EXISTS `device`
+(
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `type` ENUM('GAIIx','MiSeq','HiSeq2500','NextSeq500','NovaSeq5000','NovaSeq6000','MGI-2000') NOT NULL,
   `name` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `name_UNIQUE` (`name` ASC))
+  UNIQUE INDEX `name_UNIQUE` (`name` ASC)
+)
 ENGINE = InnoDB
-AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
 -- Table `sequencing_run`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `sequencing_run` (
+CREATE  TABLE IF NOT EXISTS `sequencing_run`
+(
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NOT NULL,
   `fcid` VARCHAR(45) NULL DEFAULT NULL,
@@ -211,15 +221,16 @@ CREATE  TABLE IF NOT EXISTS `sequencing_run` (
     FOREIGN KEY (`device_id`)
     REFERENCES `device` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON UPDATE NO ACTION
+)
 ENGINE = InnoDB
-AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
 -- Table `runqc_read`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `runqc_read` (
+CREATE  TABLE IF NOT EXISTS `runqc_read`
+(
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `read_num` INT NOT NULL,
   `cycles` INT NOT NULL,
@@ -234,16 +245,17 @@ CREATE  TABLE IF NOT EXISTS `runqc_read` (
     FOREIGN KEY (`sequencing_run_id`)
     REFERENCES `sequencing_run` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON UPDATE NO ACTION
+)
 ENGINE = InnoDB
-AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
 -- Table `runqc_lane`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `runqc_lane` (
+CREATE  TABLE IF NOT EXISTS `runqc_lane`
+(
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `lane_num` INT NOT NULL,
   `cluster_density` FLOAT NOT NULL,
@@ -259,45 +271,48 @@ CREATE  TABLE IF NOT EXISTS `runqc_lane` (
     FOREIGN KEY (`runqc_read_id`)
     REFERENCES `runqc_read` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON UPDATE NO ACTION
+)
 ENGINE = InnoDB
-AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
 -- Table `species`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `species` (
+CREATE  TABLE IF NOT EXISTS `species`
+(
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `name_UNIQUE` (`name` ASC))
+  UNIQUE INDEX `name_UNIQUE` (`name` ASC)
+)
 ENGINE = InnoDB
-AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
 -- Table `sender`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `sender` (
+CREATE  TABLE IF NOT EXISTS `sender`
+(
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NOT NULL,
   `phone` VARCHAR(45) NULL DEFAULT NULL,
   `email` VARCHAR(45) NULL DEFAULT NULL,
   `affiliation` VARCHAR(100) NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `name_UNIQUE` (`name` ASC))
+  UNIQUE INDEX `name_UNIQUE` (`name` ASC)
+)
 ENGINE = InnoDB
-AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
 -- Table `user`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `user` (
+CREATE  TABLE IF NOT EXISTS `user`
+(
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `user_id` VARCHAR(45) NOT NULL,
   `password` VARCHAR(64) NOT NULL,
@@ -309,16 +324,17 @@ CREATE  TABLE IF NOT EXISTS `user` (
   `active` TINYINT(1) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`user_id` ASC),
-  UNIQUE INDEX `email_UNIQUE` (`email` ASC))
+  UNIQUE INDEX `email_UNIQUE` (`email` ASC)
+)
 ENGINE = InnoDB
-AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
 -- Table `sample`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `sample` (
+CREATE  TABLE IF NOT EXISTS `sample`
+(
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(15) NOT NULL,
   `name_external` VARCHAR(255) NULL DEFAULT NULL,
@@ -363,9 +379,9 @@ CREATE  TABLE IF NOT EXISTS `sample` (
     FOREIGN KEY (`receiver_id`)
     REFERENCES `user` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON UPDATE NO ACTION
+)
 ENGINE = InnoDB
-AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
@@ -376,7 +392,7 @@ CREATE  TABLE IF NOT EXISTS `sample_disease_info`
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `sample_id` INT(11) NOT NULL,
   `disease_info` VARCHAR(255) NOT NULL,
-  `type` ENUM('HPO term id', 'ICD10 code', 'OMIM disease/phenotype identifier', 'Orpha number', 'CGI cancer type', 'tumor fraction', 'age of onset') NOT NULL,
+  `type` ENUM('HPO term id', 'ICD10 code', 'OMIM disease/phenotype identifier', 'Orpha number', 'CGI cancer type', 'tumor fraction', 'age of onset', 'clinical phenotype (free text)') NOT NULL,
   `user_id` int(11) DEFAULT NULL,
   `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -392,7 +408,6 @@ CREATE  TABLE IF NOT EXISTS `sample_disease_info`
     ON UPDATE NO ACTION
 )
 ENGINE = InnoDB
-AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
@@ -418,13 +433,13 @@ CREATE  TABLE IF NOT EXISTS `sample_relations`
     ON UPDATE NO ACTION
 )
 ENGINE = InnoDB
-AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
 -- Table `project`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `project` (
+CREATE  TABLE IF NOT EXISTS `project`
+(
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NOT NULL,
   `aliases` TEXT DEFAULT NULL,
@@ -440,16 +455,17 @@ CREATE  TABLE IF NOT EXISTS `project` (
     FOREIGN KEY (`internal_coordinator_id`)
     REFERENCES `user` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON UPDATE NO ACTION
+)
 ENGINE = InnoDB
-AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
 -- Table `processed_sample`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `processed_sample` (
+CREATE  TABLE IF NOT EXISTS `processed_sample`
+(
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `sample_id` INT(11) NOT NULL,
   `process_id` INT(2) NOT NULL,
@@ -515,23 +531,23 @@ CREATE  TABLE IF NOT EXISTS `processed_sample` (
     FOREIGN KEY (`operator_id`)
     REFERENCES `user` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON UPDATE NO ACTION
+)
 ENGINE = InnoDB
-AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
 -- Table `variant`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `variant` (
+CREATE  TABLE IF NOT EXISTS `variant`
+(
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `chr` ENUM('chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrY','chrX','chrMT') NOT NULL,
   `start` INT(11) NOT NULL,
   `end` INT(11) NOT NULL,
   `ref` TEXT NOT NULL,
   `obs` TEXT NOT NULL,
-  `dbsnp` TEXT NULL DEFAULT NULL,
   `1000g` FLOAT NULL DEFAULT NULL,
   `gnomad` FLOAT NULL DEFAULT NULL,
   `gene` TEXT NULL DEFAULT NULL,
@@ -551,14 +567,14 @@ CREATE  TABLE IF NOT EXISTS `variant` (
   INDEX `comment` (`comment`(50) ASC)
 )
 ENGINE = InnoDB
-AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
 -- Table `variant_validation`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `variant_validation` (
+CREATE  TABLE IF NOT EXISTS `variant_validation`
+(
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `user_id` INT(11) NOT NULL,
   `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -589,13 +605,13 @@ UNIQUE INDEX `variant_validation_unique` (`sample_id`, `variant_id`),
 INDEX `status` (`status` ASC)
 )
 ENGINE = InnoDB
-AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
 -- Table `variant_publication`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `variant_publication` (
+CREATE  TABLE IF NOT EXISTS `variant_publication`
+(
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `sample_id` INT(11) NOT NULL,
   `variant_id` INT(11) NOT NULL,
@@ -622,13 +638,13 @@ CONSTRAINT `fk_variant_publication_has_variant`
   ON UPDATE NO ACTION
 )
 ENGINE = InnoDB
-AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
 -- Table `variant_classification`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `variant_classification` (
+CREATE  TABLE IF NOT EXISTS `variant_classification`
+(
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `variant_id` INT(11) NOT NULL,
   `class` ENUM('n/a','1','2','3','4','5','M') NOT NULL,
@@ -643,14 +659,14 @@ CONSTRAINT `fk_variant_classification_has_variant`
 INDEX `class` (`class` ASC)
 )
 ENGINE = InnoDB
-AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
 -- Table `detected_variant`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `detected_variant` (
+CREATE  TABLE IF NOT EXISTS `detected_variant`
+(
   `processed_sample_id` INT(11) NOT NULL,
   `variant_id` INT(11) NOT NULL,
   `genotype` ENUM('hom','het') NOT NULL,
@@ -665,15 +681,16 @@ CREATE  TABLE IF NOT EXISTS `detected_variant` (
     FOREIGN KEY (`variant_id`)
     REFERENCES `variant` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON UPDATE NO ACTION
+)
 ENGINE = InnoDB
-AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
 -- Table `detected_variant_counts`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `detected_variant_counts` (
+CREATE  TABLE IF NOT EXISTS `detected_variant_counts`
+(
   `variant_id` INT(11) NOT NULL,
   `count_het` INT(11) NOT NULL,
   `count_hom` INT(11) NOT NULL,
@@ -682,16 +699,17 @@ CREATE  TABLE IF NOT EXISTS `detected_variant_counts` (
     FOREIGN KEY (`variant_id`)
     REFERENCES `variant` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON UPDATE NO ACTION
+)
 ENGINE = InnoDB
-AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8
 COMMENT='Precalculated variant counts used for fast annotation';
 
 -- -----------------------------------------------------
 -- Table `detected_variant_counts_by_group`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `detected_variant_counts_by_group` (
+CREATE  TABLE IF NOT EXISTS `detected_variant_counts_by_group`
+(
   `variant_id` INT(11) NOT NULL,
   `disease_group` ENUM('Neoplasms','Diseases of the blood or blood-forming organs','Diseases of the immune system','Endocrine, nutritional or metabolic diseases','Mental, behavioural or neurodevelopmental disorders','Sleep-wake disorders','Diseases of the nervous system','Diseases of the visual system','Diseases of the ear or mastoid process','Diseases of the circulatory system','Diseases of the respiratory system','Diseases of the digestive system','Diseases of the skin','Diseases of the musculoskeletal system or connective tissue','Diseases of the genitourinary system','Developmental anomalies','Other diseases') NOT NULL,
   `count_hom` INT(11) NOT NULL,
@@ -701,16 +719,17 @@ CREATE  TABLE IF NOT EXISTS `detected_variant_counts_by_group` (
     FOREIGN KEY (`variant_id`)
     REFERENCES `variant` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON UPDATE NO ACTION
+)
 ENGINE = InnoDB
-AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8
 COMMENT='Precalculated variant counts by disease group used for fast annotation. There is not entry for variant/group combination without a variant to save space.';
 
 -- -----------------------------------------------------
 -- Table `qc_terms`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `qc_terms` (
+CREATE  TABLE IF NOT EXISTS `qc_terms`
+(
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `qcml_id` VARCHAR(10) NULL DEFAULT NULL,
   `name` VARCHAR(45) NOT NULL,
@@ -719,16 +738,17 @@ CREATE  TABLE IF NOT EXISTS `qc_terms` (
   `obsolete` TINYINT(1) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`name` ASC),
-  UNIQUE INDEX `qcml_id_UNIQUE` (`qcml_id` ASC))
+  UNIQUE INDEX `qcml_id_UNIQUE` (`qcml_id` ASC)
+)
 ENGINE = InnoDB
-AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
 -- Table `processed_sample_qc`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `processed_sample_qc` (
+CREATE  TABLE IF NOT EXISTS `processed_sample_qc`
+(
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `processed_sample_id` INT(11) NOT NULL,
   `qc_terms_id` INT(11) NOT NULL,
@@ -746,30 +766,32 @@ CREATE  TABLE IF NOT EXISTS `processed_sample_qc` (
     FOREIGN KEY (`processed_sample_id`)
     REFERENCES `processed_sample` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON UPDATE NO ACTION
+)
 ENGINE = InnoDB
-AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
 -- Table `sample_group`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `sample_group` (
+CREATE  TABLE IF NOT EXISTS `sample_group`
+(
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NOT NULL,
   `comment` TEXT NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `name_UNIQUE` (`name` ASC))
+  UNIQUE INDEX `name_UNIQUE` (`name` ASC)
+)
 ENGINE = InnoDB
-AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
 -- Table `nm_sample_sample_group`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `nm_sample_sample_group` (
+CREATE  TABLE IF NOT EXISTS `nm_sample_sample_group`
+(
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `sample_group_id` INT(11) NOT NULL,
   `sample_id` INT(11) NOT NULL,
@@ -785,16 +807,17 @@ CREATE  TABLE IF NOT EXISTS `nm_sample_sample_group` (
     FOREIGN KEY (`sample_group_id`)
     REFERENCES `sample_group` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON UPDATE NO ACTION
+)
 ENGINE = InnoDB
-AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
 -- Table `detected_somatic_variant`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `detected_somatic_variant` (
+CREATE  TABLE IF NOT EXISTS `detected_somatic_variant`
+(
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `processed_sample_id_tumor` INT(11) NOT NULL,
   `processed_sample_id_normal` INT(11) NULL DEFAULT NULL,
@@ -823,24 +846,22 @@ CREATE  TABLE IF NOT EXISTS `detected_somatic_variant` (
     FOREIGN KEY (`variant_id`)
     REFERENCES `variant` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON UPDATE NO ACTION
+)
 ENGINE = InnoDB
-AUTO_INCREMENT = 1
 DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
 -- Table `diag_status`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `diag_status` (
+CREATE  TABLE IF NOT EXISTS `diag_status`
+(
   `processed_sample_id` INT(11) NOT NULL,
   `status` ENUM('pending','in progress','done','done - follow up pending','cancelled','not usable because of data quality') NOT NULL,
   `user_id` INT(11) NOT NULL,
   `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `outcome` ENUM('n/a','no significant findings','uncertain','significant findings','significant findings - second method', 'significant findings - non-genetic', 'candidate gene') NOT NULL DEFAULT 'n/a',
-  `genes_causal` TEXT NULL DEFAULT NULL,
-  `inheritance_mode` ENUM('n/a','autosomal recessive','autosomal dominant','autosomal recessive/dominant','x-linked recessive','x-linked dominant','x-linked recessive/dominant','mitochondrial','de-novo','somatic') NOT NULL DEFAULT 'n/a',
-  `genes_incidental` TEXT NULL DEFAULT NULL,
   `comment` TEXT NULL DEFAULT NULL,
   PRIMARY KEY (`processed_sample_id`),
   INDEX `user_id` (`user_id` ASC),
@@ -853,7 +874,8 @@ CREATE  TABLE IF NOT EXISTS `diag_status` (
     FOREIGN KEY (`user_id`)
     REFERENCES `user` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON UPDATE NO ACTION
+)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
@@ -861,7 +883,8 @@ DEFAULT CHARACTER SET = utf8;
 -- -----------------------------------------------------
 -- Table `kasp_status`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `kasp_status` (
+CREATE  TABLE IF NOT EXISTS `kasp_status`
+(
   `processed_sample_id` INT(11) NOT NULL,
   `random_error_prob` FLOAT UNSIGNED NOT NULL,
   `snps_evaluated` INT(10) UNSIGNED NOT NULL,
@@ -871,14 +894,16 @@ CREATE  TABLE IF NOT EXISTS `kasp_status` (
     FOREIGN KEY (`processed_sample_id`)
     REFERENCES `processed_sample` (`id`)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON UPDATE NO ACTION
+)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
 -- Table `hpo_term`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `hpo_term` (
+CREATE TABLE IF NOT EXISTS `hpo_term`
+(
   `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `hpo_id` VARCHAR(10) NOT NULL,
   `name` TEXT NOT NULL,
@@ -887,7 +912,8 @@ CREATE TABLE IF NOT EXISTS `hpo_term` (
   PRIMARY KEY (`id`),
   UNIQUE INDEX `hpo_id` (`hpo_id` ASC),
   INDEX `name` (`name`(100) ASC),
-  INDEX `synonyms` (`synonyms`(100) ASC))
+  INDEX `synonyms` (`synonyms`(100) ASC)
+)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
@@ -895,13 +921,15 @@ DEFAULT CHARACTER SET = utf8;
 -- -----------------------------------------------------
 -- Table `hpo_genes`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `hpo_genes` (
+CREATE TABLE IF NOT EXISTS `hpo_genes`
+(
   `hpo_term_id` INT(10) UNSIGNED NOT NULL,
   `gene` VARCHAR(40) CHARACTER SET 'utf8' NOT NULL,
   PRIMARY KEY (`hpo_term_id`, `gene`),
   CONSTRAINT `hpo_genes_ibfk_1`
     FOREIGN KEY (`hpo_term_id`)
-    REFERENCES `hpo_term` (`id`))
+    REFERENCES `hpo_term` (`id`)
+)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
@@ -909,7 +937,8 @@ DEFAULT CHARACTER SET = utf8;
 -- -----------------------------------------------------
 -- Table `hpo_parent`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `hpo_parent` (
+CREATE TABLE IF NOT EXISTS `hpo_parent`
+(
   `parent` INT(10) UNSIGNED NOT NULL,
   `child` INT(10) UNSIGNED NOT NULL,
   PRIMARY KEY (`parent`, `child`),
@@ -919,7 +948,8 @@ CREATE TABLE IF NOT EXISTS `hpo_parent` (
     REFERENCES `hpo_term` (`id`),
   CONSTRAINT `hpo_parent_ibfk_1`
     FOREIGN KEY (`parent`)
-    REFERENCES `hpo_term` (`id`))
+    REFERENCES `hpo_term` (`id`)
+)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
@@ -928,7 +958,8 @@ DEFAULT CHARACTER SET = utf8;
 -- Table `analysis_job`
 -- -----------------------------------------------------
 
-CREATE TABLE `analysis_job` (
+CREATE TABLE `analysis_job`
+(
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `type` enum('single sample','multi sample','trio','somatic') NOT NULL,
   `high_priority` TINYINT(1) NOT NULL,
@@ -936,14 +967,17 @@ CREATE TABLE `analysis_job` (
   `sge_id` varchar(10) DEFAULT NULL,
   `sge_queue` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+)
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8;
 
 
 -- -----------------------------------------------------
 -- Table `analysis_job_sample`
 -- -----------------------------------------------------
 
-CREATE TABLE `analysis_job_sample` (
+CREATE TABLE `analysis_job_sample`
+(
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `analysis_job_id` int(11) NOT NULL,
   `processed_sample_id` int(11) NOT NULL,
@@ -959,14 +993,17 @@ CREATE TABLE `analysis_job_sample` (
     REFERENCES `processed_sample` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+)
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8;
 
 
 -- -----------------------------------------------------
 -- Table `analysis_job_history`
 -- -----------------------------------------------------
 
-CREATE TABLE `analysis_job_history` (
+CREATE TABLE `analysis_job_history`
+(
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `analysis_job_id` int(11) NOT NULL,
   `time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -984,7 +1021,9 @@ CREATE TABLE `analysis_job_history` (
     REFERENCES `user` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+)
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8;
 
 
 -- -----------------------------------------------------
@@ -998,7 +1037,8 @@ CREATE TABLE IF NOT EXISTS `omim_gene`
   PRIMARY KEY (`id`),
   UNIQUE KEY `mim_unique` (`mim`)
 )
-ENGINE = InnoDB DEFAULT CHARACTER SET = utf8;
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
@@ -1015,7 +1055,8 @@ CREATE TABLE IF NOT EXISTS `omim_phenotype`
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
 )
-ENGINE = InnoDB DEFAULT CHARACTER SET = utf8;
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
 -- Table `merged_processed_samples`
@@ -1036,7 +1077,159 @@ CREATE TABLE IF NOT EXISTS `merged_processed_samples`
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
 )
-ENGINE = InnoDB DEFAULT CHARACTER SET = utf8;
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `report_configuration`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `report_configuration`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `processed_sample_id` INT(11) NOT NULL,
+  `created_by` int(11) NOT NULL,
+  `created_date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `processed_sample_id_unique` (`processed_sample_id`),
+  CONSTRAINT `fk_processed_sample_id2`
+    FOREIGN KEY (`processed_sample_id` )
+    REFERENCES `processed_sample` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_user2`
+    FOREIGN KEY (`created_by`)
+    REFERENCES `user` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `report_configuration_variant`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `report_configuration_variant`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `report_configuration_id` INT(11) NOT NULL,
+  `variant_id` INT(11) NOT NULL,
+  `type` ENUM('diagnostic variant', 'candidate variant', 'incidental finding') NOT NULL,
+  `causal` BOOLEAN NOT NULL,
+  `inheritance` ENUM('n/a', 'AR','AD','AR+AD','XLR','XLD','XLR+XLD','MT') NOT NULL,
+  `de_novo` BOOLEAN NOT NULL,
+  `mosaic` BOOLEAN NOT NULL,
+  `compound_heterozygous` BOOLEAN NOT NULL,
+  `exclude_artefact` BOOLEAN NOT NULL,
+  `exclude_frequency` BOOLEAN NOT NULL,
+  `exclude_phenotype` BOOLEAN NOT NULL,
+  `exclude_mechanism` BOOLEAN NOT NULL,
+  `exclude_other` BOOLEAN NOT NULL,
+  `comments` text NOT NULL,
+  `comments2` text NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_report_configuration`
+    FOREIGN KEY (`report_configuration_id` )
+    REFERENCES `report_configuration` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_report_configuration_variant_has_variant`
+    FOREIGN KEY (`variant_id`)
+    REFERENCES `variant` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  UNIQUE INDEX `config_variant_combo_uniq` (`report_configuration_id` ASC, `variant_id` ASC)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `disease_term`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `disease_term`
+(
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `source` ENUM('OrphaNet') NOT NULL,
+  `identifier` VARCHAR(40) CHARACTER SET 'utf8' NOT NULL,
+  `name` TEXT CHARACTER SET 'utf8' NOT NULL,
+  `synonyms` TEXT CHARACTER SET 'utf8' DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `disease_source` (`source` ASC),
+  UNIQUE KEY `disease_id` (`identifier`),
+  INDEX `disease_name` (`name`(50) ASC),
+  INDEX `disease_synonyms` (`synonyms`(50) ASC)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `disease_gene`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `disease_gene`
+(
+  `disease_term_id` INT(11) UNSIGNED NOT NULL,
+  `gene` VARCHAR(40) CHARACTER SET 'utf8' NOT NULL,
+  PRIMARY KEY (`disease_term_id`, `gene`),
+  CONSTRAINT `disease_genes_ibfk_1`
+    FOREIGN KEY (`disease_term_id`)
+    REFERENCES `disease_term` (`id`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `cnv_callset`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `cnv_callset`
+(
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `processed_sample_id` INT(11) NOT NULL,
+  `caller` ENUM('CnvHunter', 'ClinCNV') NOT NULL,
+  `caller_version` varchar(25) NOT NULL,
+  `call_date` TIMESTAMP NOT NULL,
+  `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
+  `quality` ENUM('n/a','good','medium','bad') NOT NULL DEFAULT 'n/a',
+  PRIMARY KEY (`id`),
+  INDEX `caller` (`quality` ASC),
+  INDEX `call_date` (`call_date` ASC),
+  INDEX `quality` (`quality` ASC),
+  UNIQUE KEY `cnv_callset_references_processed_sample` (`processed_sample_id`),
+  CONSTRAINT `cnv_callset_references_processed_sample`
+    FOREIGN KEY (`processed_sample_id`)
+    REFERENCES `processed_sample` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8
+COMMENT='germline CNV call set';
+
+-- -----------------------------------------------------
+-- Table `cnv`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `cnv`
+(
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `cnv_callset_id` INT(11) UNSIGNED NOT NULL,
+  `chr` ENUM('chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrY','chrX','chrMT') NOT NULL,
+  `start` INT(11) UNSIGNED NOT NULL,
+  `end` INT(11) UNSIGNED NOT NULL,
+  `cn` INT(11) UNSIGNED NOT NULL COMMENT 'copy-number',
+  `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
+  PRIMARY KEY (`id`),
+  CONSTRAINT `cnv_references_cnv_callset`
+    FOREIGN KEY (`cnv_callset_id`)
+    REFERENCES `cnv_callset` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  INDEX `chr` (`chr` ASC),
+  INDEX `start` (`start` ASC),
+  INDEX `end` (`end` ASC),
+  INDEX `cn` (`end` ASC)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8
+COMMENT='germline CNV';
 
 
 -- -----------------------------------------------------
@@ -1079,6 +1272,7 @@ DEFAULT CHARACTER SET = utf8;
 -- -----------------------------------------------------
 INSERT INTO user VALUES (NULL, 'admin', 'dd94709528bb1c83d08f3088d4043f4742891f4f', 'admin', 'Admin','no_valid@email.de', CURDATE(), NULL, 1);
 INSERT INTO user VALUES (NULL, 'genlab_import', '', 'special', 'GenLab import','no_valid@email2.de', CURDATE(), NULL, 1);
+INSERT INTO user VALUES (NULL, 'unknown', '', 'special', 'Unknown user','no_valid@email3.de', CURDATE(), NULL, 1);
 
 
 -- -----------------------------------------------------

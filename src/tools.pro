@@ -253,6 +253,10 @@ SUBDIRS += NGSDImportOMIM
 tools-TEST.depends += NGSDImportOMIM
 NGSDImportOMIM.depends = cppNGSD
 
+SUBDIRS += NGSDImportORPHA
+tools-TEST.depends += NGSDImportORPHA
+NGSDImportORPHA.depends = cppNGSD
+
 SUBDIRS += FastqExtractBarcode
 tools-TEST.depends += FastqExtractBarcode
 FastqExtractBarcode.depends = cppNGSD
@@ -337,6 +341,10 @@ SUBDIRS += VcfToBedpe
 tools-TEST.depends += VcfToBedpe
 VcfToBedpe.depends = cppNGS
 
+SUBDIRS += NGSDAddVariantsGermline
+tools-TEST.depends += NGSDAddVariantsGermline
+NGSDAddVariantsGermline.depends = cppNGS
+
 SUBDIRS += NGSDExportAnnotationData
 tools-TEST.depends += NGSDExportAnnotationData
 NGSDExportAnnotationData.depends = cppNGS
@@ -344,6 +352,5 @@ NGSDExportAnnotationData.depends = cppNGS
 SUBDIRS += VcfAnnotateFromVcf
 tools-TEST.depends += VcfAnnotateFromVcf
 VcfAnnotateFromVcf.depends = cppNGS
-
 #other stuff
 OTHER_FILES += ToDos.txt

@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<JDBOR date="2019-09-01 04:58:34" version="1.2.11 / 4.1.6 [2018-04-12] (orientdb version)" copyright="Orphanet (c) 2019">
+  <Availability> 
+	<Licence>
+	  <FullName lang="en">Creative Commons Attribution 4.0 International</FullName>
+	  <ShortIdentifier>CC-BY-4.0</ShortIdentifier>
+	  <LegalCode>https://creativecommons.org/licenses/by/4.0/legalcode</LegalCode>
+	</Licence>
+  </Availability>
+  <DisorderList count="1">
+
+    <Disorder id="17601">
+      <OrphaNumber>166024</OrphaNumber>
+      <Name lang="en">Multiple epiphyseal dysplasia, Al-Gazali type</Name>
+      <DisorderGeneAssociationList count="1">
+        <DisorderGeneAssociation>
+          <SourceOfValidation>22587682[PMID]</SourceOfValidation>
+          <Gene id="20160">
+            <OrphaNumber>268061</OrphaNumber>
+            <Name lang="en">kinesin family member 7</Name>
+            <Symbol>KIF7</Symbol>
+            <SynonymList count="1">
+              <Synonym lang="en">JBTS12</Synonym>
+            </SynonymList>
+            <ExternalReferenceList count="6">
+              <ExternalReference id="57240">
+                <Source>Ensembl</Source>
+                <Reference>ENSG00000166813</Reference>
+              </ExternalReference>
+              <ExternalReference id="51758">
+                <Source>Genatlas</Source>
+                <Reference>KIF7</Reference>
+              </ExternalReference>
+              <ExternalReference id="51756">
+                <Source>HGNC</Source>
+                <Reference>30497</Reference>
+              </ExternalReference>
+              <ExternalReference id="51757">
+                <Source>OMIM</Source>
+                <Reference>611254</Reference>
+              </ExternalReference>
+              <ExternalReference id="97306">
+                <Source>Reactome</Source>
+                <Reference>Q2M1P5</Reference>
+              </ExternalReference>
+              <ExternalReference id="51759">
+                <Source>SwissProt</Source>
+                <Reference>Q2M1P5</Reference>
+              </ExternalReference>
+            </ExternalReferenceList>
+            <LocusList count="1">
+              <Locus id="16859">
+              </Locus>
+            </LocusList>
+          </Gene>
+          <DisorderGeneAssociationType id="17949">
+            <Name lang="en">Disease-causing germline mutation(s) in</Name>
+          </DisorderGeneAssociationType>
+          <DisorderGeneAssociationStatus id="17991">
+            <Name lang="en">Assessed</Name>
+          </DisorderGeneAssociationStatus>
+        </DisorderGeneAssociation>
+      </DisorderGeneAssociationList>
+    </Disorder>
+	
+	<Disorder id="17543">
+      <OrphaNumber>163908</OrphaNumber>
+      <Name lang="en">Limbic encephalitis with LGI1 antibodies</Name>
+      <DisorderGeneAssociationList count="2">
+        <DisorderGeneAssociation>
+          <SourceOfValidation>28026029_28026046[PMID]</SourceOfValidation>
+          <Gene id="16202">
+            <OrphaNumber>122427</OrphaNumber>
+            <Name lang="en">major histocompatibility complex, class II, DR beta 1</Name>
+            <Symbol>HLA-DRB1</Symbol>
+            <SynonymList count="0">
+            </SynonymList>
+            <ExternalReferenceList count="6">
+              <ExternalReference id="56818">
+                <Source>Ensembl</Source>
+                <Reference>ENSG00000196126</Reference>
+              </ExternalReference>
+              <ExternalReference id="37478">
+                <Source>Genatlas</Source>
+                <Reference>HLA-DRB1</Reference>
+              </ExternalReference>
+              <ExternalReference id="30196">
+                <Source>HGNC</Source>
+                <Reference>4948</Reference>
+              </ExternalReference>
+              <ExternalReference id="30195">
+                <Source>OMIM</Source>
+                <Reference>142857</Reference>
+              </ExternalReference>
+              <ExternalReference id="56819">
+                <Source>Reactome</Source>
+                <Reference>P04229</Reference>
+              </ExternalReference>
+              <ExternalReference id="33220">
+                <Source>SwissProt</Source>
+                <Reference>P04229</Reference>
+              </ExternalReference>
+            </ExternalReferenceList>
+            <LocusList count="1">
+              <Locus id="22701">
+              </Locus>
+            </LocusList>
+          </Gene>
+          <DisorderGeneAssociationType id="17961">
+            <Name lang="en">Major susceptibility factor in</Name>
+          </DisorderGeneAssociationType>
+          <DisorderGeneAssociationStatus id="17991">
+            <Name lang="en">Assessed</Name>
+          </DisorderGeneAssociationStatus>
+        </DisorderGeneAssociation>
+        <DisorderGeneAssociation>
+          <SourceOfValidation>28026029_28026046[PMID]</SourceOfValidation>
+          <Gene id="18703">
+            <OrphaNumber>211008</OrphaNumber>
+            <Name lang="en">major histocompatibility complex, class II, DQ beta 1</Name>
+            <Symbol>HLA-DQB1</Symbol>
+            <SynonymList count="2">
+              <Synonym lang="en">CELIAC1</Synonym>
+              <Synonym lang="en">IDDM1</Synonym>
+            </SynonymList>
+            <ExternalReferenceList count="6">
+              <ExternalReference id="56816">
+                <Source>Ensembl</Source>
+                <Reference>ENSG00000179344</Reference>
+              </ExternalReference>
+              <ExternalReference id="43209">
+                <Source>Genatlas</Source>
+                <Reference>HLA-DQB1</Reference>
+              </ExternalReference>
+              <ExternalReference id="43210">
+                <Source>HGNC</Source>
+                <Reference>4944</Reference>
+              </ExternalReference>
+              <ExternalReference id="43211">
+                <Source>OMIM</Source>
+                <Reference>604305</Reference>
+              </ExternalReference>
+              <ExternalReference id="82670">
+                <Source>Reactome</Source>
+                <Reference>P01920</Reference>
+              </ExternalReference>
+              <ExternalReference id="82625">
+                <Source>SwissProt</Source>
+                <Reference>P01920</Reference>
+              </ExternalReference>
+            </ExternalReferenceList>
+            <LocusList count="1">
+              <Locus id="24817">
+              </Locus>
+            </LocusList>
+          </Gene>
+          <DisorderGeneAssociationType id="17961">
+            <Name lang="en">Major susceptibility factor in</Name>
+          </DisorderGeneAssociationType>
+          <DisorderGeneAssociationStatus id="17991">
+            <Name lang="en">Assessed</Name>
+          </DisorderGeneAssociationStatus>
+        </DisorderGeneAssociation>
+      </DisorderGeneAssociationList>
+    </Disorder>
+	
+  </DisorderList>
+</JDBOR>

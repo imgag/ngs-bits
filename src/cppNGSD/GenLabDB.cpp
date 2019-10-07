@@ -46,7 +46,7 @@ bool GenLabDB::isOpen() const
 bool GenLabDB::entriesExistForSample(QString sample_name)
 {
 	QStringList tables;
-	tables << "v_ngs_einsender" << "v_ngs_geschlecht" << "v_ngs_icd10" << "v_ngs_hpo"  << "v_ngs_tumoranteil";
+	tables << "v_ngs_einsender" << "v_ngs_geschlecht" << "v_ngs_icd10" << "v_ngs_hpo"  << "v_ngs_tumoranteil" << "v_ngs_orpha";
 	foreach(QString table, tables)
 	{
 		QSqlQuery query = db_->exec("SELECT COUNT(*) FROM " + table + " WHERE labornummer='" + sample_name + "'");

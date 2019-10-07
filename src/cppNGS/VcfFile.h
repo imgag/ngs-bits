@@ -8,8 +8,6 @@
 #include <QTextStream>
 #include <QByteArray>
 
-enum VariantType {SNP, MNP, INDEL, CLUMPED, SV};
-
 //Helper class for VCF file handling
 class CPPNGSSHARED_EXPORT VcfFile
 {
@@ -31,17 +29,6 @@ public:
 
 	///Returns the content of a column by index (tab-separated line)
 	static QByteArray getPartByColumn(const QByteArray& line, int index);
-
-	/**
-	 * @brief classifyVariant
-	 * Classifies variants according to https://genome.sph.umich.edu/wiki/Variant_classification
-	 * Assumes that both REF and ALT are already trimmed (no whitespaces, tabs)
-	 *
-	 * @param ref - the reference sequence
-	 * @param alt - the alternating sequence
-	 * @return VariantType
-	 */
-	static VariantType classifyVariant(const QByteArray& ref, const QByteArray& alt);
 
 private:
 

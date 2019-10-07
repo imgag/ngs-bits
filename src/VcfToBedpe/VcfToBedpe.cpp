@@ -388,8 +388,6 @@ VcfToBedpe::bedpe_line VcfToBedpe::convertComplexLine(const VcfToBedpe::vcf_line
 
 	QChar orientation1 = '.';
 	QChar orientation2 = '.';
-	
-	//TODO: Parse strand information if available in input file
 
 	out.STRAND_A = QString(orientation1).toUtf8();
 	out.STRAND_B = QString(orientation2).toUtf8();

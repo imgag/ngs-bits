@@ -1,7 +1,6 @@
 === TODO ===
 
 libs:
-- integration of htslib: use pileup, use VCF support, use tabix support
 * FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 
 NGSD:
@@ -14,45 +13,27 @@ NGSD:
     - sample: import disease info, disease group/status, gender from same samples
     - sample: import disease group/status from GenLab (sample - disease status: add 'Unclear') - select * FROM v_krankheitsgruppe_pattyp...
 ** Add run overview dialog/tab
-**** add CNVs to NGSD and allow classification
-    - CNV call-set: analysis type, quality metrics + tool/version + quality (n/a, good, medium, bad)
-    - CNV calls: quality metrics + classification/comment
-    - add import script for CNVs
-        - import all data from exomes ssHAEv6+7/TruSeq PCR-free genomes
+**** add CNVs to NGSD
+    - import all data from exomes ssHAEv6+7/TruSeq PCR-free genomes
+    - block re-import of CNVs if report config is set - maybe allow it if all annotated CNVs are still present (e.g. >80% overlap and same CN)
+    - allow adding to report config in GSvar (like small variants, but with classification)
 **** NGSD annotation: export VCF, use VCF for annotation (LS)
 
 GSvar:
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
-** Docu configuration GSvar (move 'preferred transcripts', 'special regions', etc. to files)
-** replace GeneInfoOMIM webservice by new view > ask Tobias for use-case (after removing Patientennetz)
-- Implement OMIM search via API - example: DX184728_01, Okulopharyngeal muskuläre Dystrophie, PABPN1 (wait for API access)
-* trio filter: PAR region handling > Genetikum
-* Add special report for trios/multi-sample with genotype overview > change format to RTF first (AG)
-* Add highlighting of imprinting genes to CNVs, ROHs and UPDs
-**** Report variant selection
-    - allow marking variants for report inclusion (report_causal, report_candidate_gene, report_scientific, report_incidental_finding (ACMG), no_report_artefact, no_report_no_disease_association)
-    - allow marking inheritance mode and de-novo status
-    - store marked variants in NGSD when writing the report (who, when, comment)
-    - load marked variants from NGSD after loading the case again
-    - add filter to show marked variants only
-    -fields to fill in GenLab via XML export:
-        - sample outcome
-        - gaps report (custom via import, #gene, #bases, %gaps) ==> gap report as XML and additional report of gaps to sanger-validate as TXT
-        - processing system (long name)
-        - variants
-            - genomic position: chr:pos [build]
-            - inheritance / de-novo
-            - transcripts
-            - orphanet code(s) for genes: https://github.com/Orphanet/Orphadata.org/tree/master/Disorders%20cross%20referenced%20JSON, https://github.com/Orphanet/Orphadata.org/tree/master/Disorders%20with%20their%20associated%20genes
-            - ???
-        - export date
-        - variant genotype: change 'hom' variants outside PAR region on chrX/chrY to 'hemi' for males
-    - print sheet with flagged variants
+** replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
+* trio filter: correct PAR region handling (Genetikum)
+*** report variant selection
+    *** add CNV report config
+    - add gaps report (custom via import) to XML report
+        - CCDS +-5 bases!?
+        - gap report as XML and additional report of gaps to sanger-validate as TXT
+    - Add 'approved_by' and date to make printing the sheet obsolete
+        - lock editing the report config then?
+    - Trio report > trio XML (Anne,Mona)?
 
 Tools:
-- NGSDExportGenes: Add #transcripts, inheritance, gnomAD oe (3x), HPO terms, OMIM infos?
-- NGSDImportHPO: Add G2P database (https://www.ebi.ac.uk/gene2phenotype)
-- NGSDPrecalculate: fix missing/different disease group/status for sample with relation "same sample"
+- NGSDImportHPO: Add G2P database (https://www.ebi.ac.uk/gene2phenotype) - if HPO people do not include it
 - UPDHunter: also support chrX?
 - SomaticQC: replace 'QC:?' by real qcML identifier - add to https://github.com/HUPO-PSI/mzQC (CS)
 

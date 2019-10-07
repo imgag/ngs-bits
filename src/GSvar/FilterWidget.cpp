@@ -6,6 +6,8 @@
 #include "ScrollableTextDialog.h"
 #include "PhenotypeSelectionWidget.h"
 #include "GUIHelper.h"
+#include "GSvarHelper.h"
+#include "DBSelector.h"
 #include <QFileInfo>
 #include <QFileDialog>
 #include <QCompleter>
@@ -17,7 +19,7 @@ FilterWidget::FilterWidget(QWidget *parent)
 	, ui_()
 {
 	ui_.setupUi(this);
-	ui_.cascade_widget->setSubject(FilterSubject::SNVS_INDELS);
+	ui_.cascade_widget->setSubject(VariantType::SNVS_INDELS);
 
 	connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SLOT(updateFilterName()));
 	connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SIGNAL(filtersChanged()));
@@ -34,6 +36,7 @@ FilterWidget::FilterWidget(QWidget *parent)
 	connect(ui_.gene, SIGNAL(editingFinished()), this, SLOT(geneChanged()));
 	connect(ui_.text, SIGNAL(editingFinished()), this, SLOT(textChanged()));
 	connect(ui_.region, SIGNAL(editingFinished()), this, SLOT(regionChanged()));
+	connect(ui_.report_config, SIGNAL(stateChanged(int)), this, SLOT(reportConfigFilterChanged()));
 
 	QAction* action = new QAction("clear", this);
 	connect(action, &QAction::triggered, this, &FilterWidget::clearTargetRegion);
@@ -42,6 +45,13 @@ FilterWidget::FilterWidget(QWidget *parent)
 	connect(ui_.hpo_terms, SIGNAL(clicked(QPoint)), this, SLOT(editPhenotypes()));
 	connect(ui_.hpo_terms, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showPhenotypeContextMenu(QPoint)));
 	ui_.hpo_terms->setEnabled(Settings::boolean("NGSD_enabled", true));
+
+
+	connect(ui_.gene, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showGeneContextMenu(QPoint)));
+
+	ui_.clearn_btn->setMenu(new QMenu());
+	ui_.clearn_btn->menu()->addAction("Clear filters", this, SLOT(clearFilters()));
+	ui_.clearn_btn->menu()->addAction("Clear filters and ROI", this, SLOT(clearFiltersAndRoi()));
 
 	loadTargetRegions();
 	loadFilters();
@@ -142,6 +152,7 @@ void FilterWidget::resetSignalsUnblocked(bool clear_roi)
     ui_.gene->clear();
 	ui_.text->clear();
 	ui_.region->clear();
+	ui_.report_config->setCheckState(Qt::Unchecked);
 
 	//phenotype
 	phenotypes_.clear();
@@ -150,7 +161,7 @@ void FilterWidget::resetSignalsUnblocked(bool clear_roi)
 
 QString FilterWidget::filterFileName()
 {
-	return QCoreApplication::applicationDirPath() + QDir::separator() + QCoreApplication::applicationName().replace(".exe","") + "_filters.ini";
+    return GSvarHelper::applicationBaseName() + "_filters.ini";
 }
 
 void FilterWidget::reset(bool clear_roi)
@@ -207,6 +218,11 @@ void FilterWidget::setRegion(QString region)
 {
 	ui_.region->setText(region);
 	regionChanged();
+}
+
+bool FilterWidget::reportConfigurationVariantsOnly() const
+{
+	return ui_.report_config->isChecked();
 }
 
 const QList<Phenotype>& FilterWidget::phenotypes() const
@@ -323,6 +339,11 @@ void FilterWidget::textChanged()
 }
 
 void FilterWidget::regionChanged()
+{
+	emit filtersChanged();
+}
+
+void FilterWidget::reportConfigFilterChanged()
 {
 	emit filtersChanged();
 }
@@ -480,6 +501,46 @@ void FilterWidget::showPhenotypeContextMenu(QPoint pos)
 	}
 }
 
+void FilterWidget::showGeneContextMenu(QPoint pos)
+{
+	//set up
+	QMenu menu;
+	if (Settings::boolean("NGSD_enabled", true))
+	{
+		menu.addAction("select via disease");
+	}
+	if (!ui_.gene->text().trimmed().isEmpty())
+	{
+		menu.addAction("clear");
+	}
+
+	//exec
+	QAction* action = menu.exec(ui_.gene->mapToGlobal(pos));
+	if (action==nullptr) return;
+
+	if (action->text()=="clear")
+	{
+		ui_.gene->setText("");
+		geneChanged();
+	}
+	else if (action->text()=="select via disease")
+	{
+		//create
+		NGSD db;
+		DBSelector* selector = new DBSelector(this);
+		selector->fill(db.createTable("disease_term", "SELECT id, name FROM disease_term ORDER BY name ASC"), true);
+
+		//execute
+		QSharedPointer<QDialog> dialog = GUIHelper::createDialog(selector, "Select disease", "Disease:", true);
+		if (dialog->exec()==QDialog::Accepted && selector->isValidSelection())
+		{
+			QStringList genes = db.getValues("SELECT gene FROM disease_gene WHERE disease_term_id='" + selector->getId() +"'");
+			ui_.gene->setText(genes.join(", "));
+			geneChanged();
+		}
+	}
+}
+
 void FilterWidget::setFilter(int index)
 {
 	if (index==0)
@@ -507,12 +568,32 @@ void FilterWidget::clearTargetRegion()
 	ui_.roi->setCurrentText("none");
 }
 
+void FilterWidget::clearFilters()
+{
+	reset(false);
+}
+
+void FilterWidget::clearFiltersAndRoi()
+{
+	reset(true);
+}
+
 void FilterWidget::loadFilters()
 {
-
 	QStringList filter_names;
 	filter_names << "[none]";
 	filter_names << FilterCascadeFile::names(filterFileName());
 
-	ui_.filters->addItems(filter_names);
+	for (int i=0; i<filter_names.count(); ++i)
+	{
+		QString name = filter_names[i];
+		if (name=="---")
+		{
+			ui_.filters->insertSeparator(i);
+		}
+		else
+		{
+			ui_.filters->addItem(name, ui_.filters->count());
+		}
+	}
 }

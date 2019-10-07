@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2019_04-7-g0efa492)
+	VariantFilterAnnotations (2019_09-10-g5f65b37)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -17,7 +17,7 @@
 	Allele frequency                   Filter based on overall allele frequency given by 1000 Genomes and gnomAD.
 	                                   Parameters:
 	                                     max_af - Maximum allele frequency in % [default=1] [min=0.0] [max=100.0]
-	Allele frequency (sub-populations) Filter based on sub-population allele frequency given by ESP and gnomAD.
+	Allele frequency (sub-populations) Filter based on sub-population allele frequency given by gnomAD.
 	                                   Parameters:
 	                                     max_af - Maximum allele frequency in % [default=1] [min=0.0] [max=100.0]
 	Annotated pathogenic               Filter that matches variants annotated to be pathogenic by ClinVar or HGMD.
@@ -118,7 +118,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2019_04-7-g0efa492
+	VariantFilterAnnotations 2019_09-10-g5f65b37
 	
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.

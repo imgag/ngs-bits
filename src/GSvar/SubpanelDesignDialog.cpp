@@ -5,6 +5,7 @@
 #include "Exceptions.h"
 #include "Helper.h"
 #include "NGSHelper.h"
+#include "GSvarHelper.h"
 #include <QPushButton>
 #include <QFileInfo>
 #include <QMessageBox>
@@ -160,22 +161,20 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 	}
 
 	//add special regions (gene symbol, region1, region2, ...)
-	QStringList genes_special;
-	QStringList special_regions = Settings::stringList("subpanel_special_regions");
-	foreach(QString line, special_regions)
-	{
-		line = line.trimmed();
-		QByteArrayList parts = line.toLatin1().split('\t');
-		QByteArray gene_symbol = parts[0];
-		if (genes.contains(gene_symbol))
-		{
-			genes_special << gene_symbol;
-			for (int i=1; i<parts.count(); ++i)
-			{
-				regions.append(BedLine::fromString(parts[i]));
-			}
-		}
-	}
+    auto special_regions = GSvarHelper::specialRegions();
+    QStringList genes_special;
+    foreach(QByteArray gene, genes)
+    {
+        if (special_regions.contains(gene))
+        {
+            genes_special << gene;
+
+            foreach(const BedLine& region, special_regions[gene])
+            {
+                regions.append(region);
+            }
+        }
+    }
 	regions.merge();
 
 	//show message

@@ -43,6 +43,8 @@ public:
 	QString region() const;
 	/// Sets the single target region filter, or an empty string if unset.
 	void setRegion(QString region);
+	/// Returns the state of the report configuration
+	bool reportConfigurationVariantsOnly() const;
 
 	///Returns selected phenotype terms.
 	const QList<Phenotype>& phenotypes() const;
@@ -73,14 +75,18 @@ protected slots:
 	void geneChanged();
 	void textChanged();
 	void regionChanged();
+	void reportConfigFilterChanged();
 	void phenotypesChanged();
 	void updateFilterName();
 	void showTargetRegionDetails();
 	void updateGeneWarning();
 	void editPhenotypes();
 	void showPhenotypeContextMenu(QPoint pos);
+	void showGeneContextMenu(QPoint pos);
 	void setFilter(int index);
 	void clearTargetRegion();
+	void clearFilters();
+	void clearFiltersAndRoi();
 
 private:
 	//Loads filters

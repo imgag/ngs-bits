@@ -77,7 +77,7 @@ build_release_noclean:
 clean:
 	find src -name "*.user" | xargs rm -rf
 	rm -rf build-* bin/out
-	find bin -type f -or -type l | grep -v ".ini" | grep -v "libhts" | xargs -l1 rm -rf
+	find bin -type f -or -type l | grep -v ".ini" | grep -v "GSvar_" | grep -v "libhts" | xargs -l1 rm -rf
 
 test_lib:
 	cd bin && ./cppCORE-TEST && ./cppNGS-TEST && ./cppNGSD-TEST

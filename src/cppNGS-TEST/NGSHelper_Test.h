@@ -136,4 +136,12 @@ private slots:
 		NGSHelper::softClipAlignment(al,33038800,33038809);
 		S_EQUAL(al.cigarDataAsString(), "10S131M10S5H");
 	}
+
+
+	void pseudoAutosomalRegion()
+	{
+		BedFile par = NGSHelper::pseudoAutosomalRegion("hg19");
+		I_EQUAL(par.count(), 4);
+		I_EQUAL(par.baseCount(), 5938074);
+	}
 };

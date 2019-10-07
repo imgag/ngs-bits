@@ -32,23 +32,6 @@ genlab_pass = ""
 #projects folder
 projects_folder = ""
 
-#Processing system target region paths (BED files)
+#Processing system target region path (where the target region BED files are located)
 target_file_folder_windows = ""
 target_file_folder_linux = ""
-
-#webservice URLs
-NGSD = ""
-PrimerDesign = ""
-Alamut = ""
-VariantInfoRefSeq = ""
-
-#proxy settings for GSvar
-proxy_host = ""
-proxy_port = 
-
-#special folders for GSvar
-gsvar_report_folder = ""
-gsvar_report_archive = ""
-gsvar_gap_transfer = ""
-gsvar_variant_transfer = ""
-gsvar_publication_transfer = ""

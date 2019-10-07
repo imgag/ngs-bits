@@ -6,7 +6,7 @@ Therefor, one or several preferred transcripts can be defined per gene.
 The preferred transcripts are used to:
 
 * automatically select the preferred transcript in the variant details list 
-* list only the the preferred transcript in the variant details of the report
+* list only the the preferred transcript in the variant details of the report and variant sheet
 * highlight the preferred transcript in the `Alamut` contect menu
 
 ### Show/edit preferred transcripts
@@ -28,12 +28,3 @@ The preferred transcript list is a tab-separated list with the
 --
 
 [back to main page](index.md)
-
-
-
-
-
-
-
-
-

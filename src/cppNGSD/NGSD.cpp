@@ -40,6 +40,10 @@ QString NGSD::userId(QString user_name)
 	QString user_id = getValue("SELECT id FROM user WHERE user_id=:0", true, user_name).toString();
 	if (user_id=="")
 	{
+		user_id = getValue("SELECT id FROM user WHERE name=:0", true, user_name).toString();
+	}
+	if (user_id=="")
+	{
 		THROW(DatabaseException, "Could not determine NGSD user ID for user name '" + user_name + "! Do you have an NGSD user account?");
 	}
 
@@ -143,8 +147,6 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	if (p.add_outcome)
 	{
 		fields	<< "ds.outcome as outcome"
-				<< "ds.genes_causal as outcome_causal_genes"
-				<< "ds.inheritance_mode as outcome_inheritance_mode"
 				<< "ds.comment as outcome_comment";
 	}
 	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +"  WHERE " + conditions.join(" AND ") + " ORDER BY s.name ASC, ps.process_id ASC");
@@ -528,57 +530,150 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	return output;
 }
 
-QString NGSD::addVariant(const Variant& variant, const VariantList& vl)
+QString NGSD::addVariant(const VariantList& variant_list, int index)
 {
+	const Variant& variant = variant_list[index];
+
 	SqlQuery query = getQuery(); //use binding (user input)
-	query.prepare("INSERT INTO variant (chr, start, end, ref, obs, dbsnp, 1000g, gnomad, gene, variant_type, coding) VALUES (:0,:1,:2,:3,:4,:5,:6,:7,:8,:9,:10)");
+	query.prepare("INSERT INTO variant (chr, start, end, ref, obs, 1000g, gnomad, gene, variant_type, coding) VALUES (:0,:1,:2,:3,:4,:5,:6,:7,:8,:9)");
 	query.bindValue(0, variant.chr().strNormalized(true));
 	query.bindValue(1, variant.start());
 	query.bindValue(2, variant.end());
 	query.bindValue(3, variant.ref());
 	query.bindValue(4, variant.obs());
-	int idx = vl.annotationIndexByName("dbSNP");
-	query.bindValue(5, variant.annotations()[idx]);
-	idx = vl.annotationIndexByName("1000g");
+	int idx = variant_list.annotationIndexByName("1000g");
 	QByteArray tg = variant.annotations()[idx].trimmed();
 	if (tg.isEmpty() || tg=="n/a")
+	{
+		query.bindValue(5, QVariant());
+	}
+	else
+	{
+		query.bindValue(5, tg);
+	}
+	idx = variant_list.annotationIndexByName("gnomAD");
+	QByteArray gnomad = variant.annotations()[idx].trimmed();
+	if (gnomad.isEmpty() || gnomad=="n/a")
 	{
 		query.bindValue(6, QVariant());
 	}
 	else
 	{
-		query.bindValue(6, tg);
+		query.bindValue(6, gnomad);
 	}
-	idx = vl.annotationIndexByName("gnomAD");
-	QByteArray gnomad = variant.annotations()[idx].trimmed();
-	if (gnomad.isEmpty() || gnomad=="n/a")
-	{
-		query.bindValue(7, QVariant());
-	}
-	else
-	{
-		query.bindValue(7, gnomad);
-	}
-	idx = vl.annotationIndexByName("gene");
+	idx = variant_list.annotationIndexByName("gene");
+	query.bindValue(7, variant.annotations()[idx]);
+	idx = variant_list.annotationIndexByName("variant_type");
 	query.bindValue(8, variant.annotations()[idx]);
-	idx = vl.annotationIndexByName("variant_type");
+	idx = variant_list.annotationIndexByName("coding_and_splicing");
 	query.bindValue(9, variant.annotations()[idx]);
-	idx = vl.annotationIndexByName("coding_and_splicing");
-	query.bindValue(10, variant.annotations()[idx]);
 	query.exec();
 
 	return query.lastInsertId().toString();
 }
 
+QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af)
+{
+	QList<int> output;
+
+	//prepare queried
+	SqlQuery q_id = getQuery();
+	q_id.prepare("SELECT id, 1000g, gnomad, gene, variant_type, coding FROM variant WHERE chr=:0 AND start=:1 AND end=:2 AND ref=:3 AND obs=:4");
+
+	SqlQuery q_update = getQuery(); //use binding (user input)
+	q_update.prepare("UPDATE variant SET 1000g=:1, gnomad=:2, gene=:3, variant_type=:4, coding=:5 WHERE id=:6");
+
+	SqlQuery q_insert = getQuery(); //use binding (user input)
+	q_insert.prepare("INSERT INTO variant (chr, start, end, ref, obs, 1000g, gnomad, gene, variant_type, coding) VALUES (:0,:1,:2,:3,:4,:5,:6,:7,:8,:9)");
+
+	//get annotated column indices
+	int i_tg = variant_list.annotationIndexByName("1000g");
+	int i_gnomad = variant_list.annotationIndexByName("gnomAD");
+	int i_gene = variant_list.annotationIndexByName("gene");
+	int i_type = variant_list.annotationIndexByName("variant_type");
+	int i_co_sp = variant_list.annotationIndexByName("coding_and_splicing");
+
+	for (int i=0; i<variant_list.count(); ++i)
+	{
+		const Variant& variant = variant_list[i];
+
+		//skip variants with too high AF
+		QByteArray tg = variant.annotations()[i_tg].trimmed();
+		if (tg=="n/a") tg.clear();
+		if (!tg.isEmpty() && tg.toDouble()>max_af)
+		{
+			output << -1;
+			continue;
+		}
+		QByteArray gnomad = variant.annotations()[i_gnomad].trimmed();
+		if (gnomad=="n/a") gnomad.clear();
+		if (!gnomad.isEmpty() && gnomad.toDouble()>max_af)
+		{
+			output << -1;
+			continue;
+		}
+
+		//get variant it
+		q_id.bindValue(0, variant.chr().strNormalized(true));
+		q_id.bindValue(1, variant.start());
+		q_id.bindValue(2, variant.end());
+		q_id.bindValue(3, variant.ref());
+		q_id.bindValue(4, variant.obs());
+		q_id.exec();
+		if (q_id.next()) //update (common case)
+		{
+			int id = q_id.value(0).toInt();
+
+			//check if variant meta data needs to be updated
+			if (q_id.value(1).toByteArray()!=tg
+				|| q_id.value(2).toByteArray()!=gnomad
+				|| q_id.value(3).toByteArray()!=variant.annotations()[i_gene]
+				|| q_id.value(4).toByteArray()!=variant.annotations()[i_type]
+				|| q_id.value(5).toByteArray()!=variant.annotations()[i_co_sp])
+			{
+				q_update.bindValue(0, tg.isEmpty() ? QVariant() : tg);
+				q_update.bindValue(1, gnomad.isEmpty() ? QVariant() : gnomad);
+				q_update.bindValue(2, variant.annotations()[i_gene]);
+				q_update.bindValue(3, variant.annotations()[i_type]);
+				q_update.bindValue(4, variant.annotations()[i_co_sp]);
+				q_update.bindValue(5, id);
+				q_update.exec();
+			}
+
+			output << id;
+		}
+		else //insert (rare case)
+		{
+			q_insert.bindValue(0, variant.chr().strNormalized(true));
+			q_insert.bindValue(1, variant.start());
+			q_insert.bindValue(2, variant.end());
+			q_insert.bindValue(3, variant.ref());
+			q_insert.bindValue(4, variant.obs());
+			q_insert.bindValue(5, tg.isEmpty() ? QVariant() : tg);
+			q_insert.bindValue(6, gnomad.isEmpty() ? QVariant() : gnomad);
+			q_insert.bindValue(7, variant.annotations()[i_gene]);
+			q_insert.bindValue(8, variant.annotations()[i_type]);
+			q_insert.bindValue(9, variant.annotations()[i_co_sp]);
+			q_insert.exec();
+
+			output << q_insert.lastInsertId().toInt();
+		}
+	}
+
+	return output;
+}
+
 QString NGSD::variantId(const Variant& variant, bool throw_if_fails)
 {
 	SqlQuery query = getQuery(); //use binding user input (safety)
-	query.prepare("SELECT id FROM variant WHERE chr=:0 AND start='"+QString::number(variant.start())+"' AND end='"+QString::number(variant.end())+"' AND ref=:1 AND obs=:2");
+	query.prepare("SELECT id FROM variant WHERE chr=:0 AND start=:1 AND end=:2 AND ref=:3 AND obs=:4");
 	query.bindValue(0, variant.chr().strNormalized(true));
-	query.bindValue(1, variant.ref());
-	query.bindValue(2, variant.obs());
+	query.bindValue(1, variant.start());
+	query.bindValue(2, variant.end());
+	query.bindValue(3, variant.ref());
+	query.bindValue(4, variant.obs());
 	query.exec();
-	if (query.size()==0)
+	if (!query.next())
 	{
 		if (throw_if_fails)
 		{
@@ -589,8 +684,17 @@ QString NGSD::variantId(const Variant& variant, bool throw_if_fails)
 			return "";
 		}
 	}
-	query.next();
+
 	return query.value(0).toString();
+}
+
+Variant NGSD::variant(const QString& variant_id)
+{
+	SqlQuery query = getQuery();
+	query.exec("SELECT * FROM variant WHERE id=" + variant_id);
+	if (!query.next()) THROW(DatabaseException, "Variant with identifier '" + variant_id + "' does not exist!");
+
+	return Variant(query.value("chr").toByteArray(), query.value("start").toInt(), query.value("end").toInt(), query.value("ref").toByteArray(), query.value("obs").toByteArray());
 }
 
 QVariant NGSD::getValue(const QString& query, bool no_value_is_ok, QString bind_value)
@@ -1263,17 +1367,23 @@ void NGSD::setValidationStatus(const QString& filename, const Variant& variant, 
 
 ClassificationInfo NGSD::getClassification(const Variant& variant)
 {
+	//variant not in NGSD
+	QString variant_id = variantId(variant, false);
+	if (variant_id=="")
+	{
+		return ClassificationInfo();
+	}
+
+	//classification not present
 	SqlQuery query = getQuery();
-	query.exec("SELECT class, comment FROM variant_classification WHERE variant_id='" + variantId(variant) + "'");
+	query.exec("SELECT class, comment FROM variant_classification WHERE variant_id='" + variant_id + "'");
 	if (query.size()==0)
 	{
 		return ClassificationInfo();
 	}
-	else
-	{
-		query.next();
-		return ClassificationInfo {query.value(0).toString().trimmed(), query.value(1).toString().trimmed() };
-	}
+
+	query.next();
+	return ClassificationInfo {query.value(0).toString().trimmed(), query.value(1).toString().trimmed() };
 }
 
 void NGSD::setClassification(const Variant& variant, ClassificationInfo info)
@@ -1555,7 +1665,7 @@ void NGSD::updateQC(QString obo_file, bool debug)
 
 
 	// database connection
-	db_->transaction();
+	transaction();
 	QSqlQuery query = getQuery();
 	query.prepare("INSERT INTO qc_terms (qcml_id, name, description, type, obsolete) VALUES (:0, :1, :2, :3, :4) ON DUPLICATE KEY UPDATE name=VALUES(name), description=VALUES(description), type=VALUES(type), obsolete=VALUES(obsolete)");
 
@@ -1570,7 +1680,7 @@ void NGSD::updateQC(QString obo_file, bool debug)
 		query.exec();
 		if (debug) qDebug() << "  ID:" << query.lastInsertId();
 	}
-	db_->commit();
+	commit();
 }
 
 void NGSD::fixGeneNames(QTextStream* messages, bool fix_errors, QString table, QString column)
@@ -1637,8 +1747,9 @@ void NGSD::maintain(QTextStream* messages, bool fix_errors)
 
 	// (2) outdated gene names
 	fixGeneNames(messages, fix_errors, "geneinfo_germline", "symbol");
-	fixGeneNames(messages, fix_errors,"hpo_genes", "gene");
-	fixGeneNames(messages, fix_errors,"omim_gene", "gene");
+	fixGeneNames(messages, fix_errors, "hpo_genes", "gene");
+	fixGeneNames(messages, fix_errors, "omim_gene", "gene");
+	fixGeneNames(messages, fix_errors, "disease_gene", "gene");
 
 	// (3) variants/qc-data/KASP present for merged processed samples
 	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), p.type, p.name, s.id, ps.id FROM sample s, processed_sample ps, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id");
@@ -1699,7 +1810,7 @@ void NGSD::maintain(QTextStream* messages, bool fix_errors)
 					QVariant kasp = getValue("SELECT random_error_prob FROM kasp_status WHERE processed_sample_id='" + ps_id + "'");
 					if (kasp.isNull())
 					{
-						*messages << "Merged sample " << ps_name << " KASP result missing!" << endl;
+						*messages << "Merged sample " << ps_name << " has KASP result!" << endl;
 
 						if (fix_errors)
 						{
@@ -1891,6 +2002,7 @@ void NGSD::precalculateGenotypeCounts(QTextStream* messages, int progress_interv
 			int used = getValue("SELECT COUNT(*) FROM detected_somatic_variant WHERE variant_id='" + var_id + "'").toInt();
 			if (used==0) used += getValue("SELECT COUNT(*) FROM variant_validation WHERE variant_id='" + var_id + "'").toInt();
 			if (used==0) used += getValue("SELECT COUNT(*) FROM variant_classification WHERE variant_id='" + var_id + "'").toInt();
+			if (used==0) used += getValue("SELECT COUNT(*) FROM report_configuration_variant WHERE variant_id='" + var_id + "'").toInt();
 			if (used==0)
 			{
 				getQuery().exec("DELETE FROM `detected_variant_counts` WHERE variant_id='" + var_id + "'");
@@ -2642,9 +2754,9 @@ QList<Transcript> NGSD::transcripts(int gene_id, Transcript::SOURCE source, bool
 	{
 		//get base information
 		Transcript transcript;
-		transcript.setName(query.value(1).toString());
+        transcript.setName(query.value(1).toByteArray());
 		transcript.setSource(source);
-		transcript.setStrand(Transcript::stringToStrand(query.value(5).toString()));
+        transcript.setStrand(Transcript::stringToStrand(query.value(5).toByteArray()));
 
 		//get exons
 		BedFile regions;
@@ -2702,7 +2814,7 @@ DiagnosticStatusData NGSD::getDiagnosticStatus(const QString& processed_sample_i
 
 	//get status data
 	SqlQuery q = getQuery();
-	q.exec("SELECT s.status, u.name, s.date, s.outcome, s.genes_causal, s.inheritance_mode, s.genes_incidental, s.comment FROM diag_status as s, user as u WHERE s.processed_sample_id='" + processed_sample_id +  "' AND s.user_id=u.id");
+	q.exec("SELECT s.status, u.name, s.date, s.outcome, s.comment FROM diag_status as s, user as u WHERE s.processed_sample_id='" + processed_sample_id +  "' AND s.user_id=u.id");
 	if (q.size()==0) return DiagnosticStatusData();
 
 	//process
@@ -2712,10 +2824,7 @@ DiagnosticStatusData NGSD::getDiagnosticStatus(const QString& processed_sample_i
 	output.user = q.value(1).toString();
 	output.date = q.value(2).toDateTime();
 	output.outcome = q.value(3).toString();
-	output.genes_causal = q.value(4).toString();
-	output.inheritance_mode = q.value(5).toString();
-	output.genes_incidental = q.value(6).toString();
-	output.comments = q.value(7).toString();
+	output.comments = q.value(4).toString();
 
 	return output;
 }
@@ -2727,14 +2836,147 @@ void NGSD::setDiagnosticStatus(const QString& processed_sample_id, DiagnosticSta
 
 	//update status
 	SqlQuery query = getQuery();
-	query.prepare("INSERT INTO diag_status (processed_sample_id, status, user_id, outcome, genes_causal, inheritance_mode, genes_incidental, comment) " \
-					"VALUES ("+processed_sample_id+",'"+status.dagnostic_status+"', "+user_id+", '"+status.outcome+"', :0, '"+status.inheritance_mode+"', :1, :2) " \
-					"ON DUPLICATE KEY UPDATE status=VALUES(status), user_id=VALUES(user_id), outcome=VALUES(outcome), genes_causal=VALUES(genes_causal), inheritance_mode=VALUES(inheritance_mode), genes_incidental=VALUES(genes_incidental), comment=VALUES(comment)"
+	query.prepare("INSERT INTO diag_status (processed_sample_id, status, user_id, outcome, comment) " \
+					"VALUES ("+processed_sample_id+",'"+status.dagnostic_status+"', "+user_id+", '"+status.outcome+"', :0) " \
+					"ON DUPLICATE KEY UPDATE status=VALUES(status), user_id=VALUES(user_id), outcome=VALUES(outcome), comment=VALUES(comment)"
 					);
-	query.bindValue(0, status.genes_causal);
-	query.bindValue(1, status.genes_incidental);
-	query.bindValue(2, status.comments);
+	query.bindValue(0, status.comments);
 	query.exec();
+}
+
+int NGSD::reportConfigId(const QString& processed_sample_id)
+{
+	QVariant id = getValue("SELECT id FROM report_configuration WHERE processed_sample_id=:0", true, processed_sample_id);
+	return id.isValid() ? id.toInt() : -1;
+}
+
+QPair<QByteArray, QByteArray> NGSD::reportConfigCreationData(int id)
+{
+	SqlQuery query = getQuery();
+	query.exec("SELECT u.name, rc.created_date FROM report_configuration rc, user u WHERE rc.id=" + QString::number(id) + " AND u.id=rc.created_by");
+	query.next();
+
+	return qMakePair(query.value("name").toByteArray(), query.value("created_date").toDateTime().toString("dd.MM.yyyy hh:mm:ss").toLatin1());
+}
+
+ReportConfiguration NGSD::reportConfig(const QString& processed_sample_id, const VariantList& variants, QStringList& messages)
+{
+	ReportConfiguration output;
+
+	int conf_id = reportConfigId(processed_sample_id);
+	if (conf_id==-1) THROW(DatabaseException, "Report configuration for processed sample with database id '" + processed_sample_id + "' does not exist!");
+
+	//load main object
+	SqlQuery query = getQuery();
+	query.exec("SELECT u.name, rc.created_date FROM report_configuration rc, user u WHERE rc.id=" + QString::number(conf_id) + " AND u.id=rc.created_by");
+	query.next();
+	output.setCreatedBy(query.value("name").toString());
+	output.setCreatedAt(query.value("created_date").toDateTime());
+
+	//load variant data
+	query.exec("SELECT * FROM report_configuration_variant WHERE report_configuration_id=" + QString::number(conf_id));
+	while(query.next())
+	{
+		ReportVariantConfiguration var_conf;
+
+		//get variant id
+		Variant var = variant(query.value("variant_id").toString());
+		for (int i=0; i<variants.count(); ++i)
+		{
+			if (var==variants[i])
+			{
+				var_conf.variant_index = i;
+			}
+		}
+		if (var_conf.variant_index==-1)
+		{
+			messages << "Could not find variant '" + var.toString() + "' in given variant list!";
+			continue;
+		}
+
+		var_conf.report_type = query.value("type").toString();
+		var_conf.causal = query.value("causal").toBool();
+		var_conf.inheritance = query.value("inheritance").toString();
+		var_conf.de_novo = query.value("de_novo").toBool();
+		var_conf.mosaic = query.value("mosaic").toBool();
+		var_conf.comp_het = query.value("compound_heterozygous").toBool();
+		var_conf.exclude_artefact = query.value("exclude_artefact").toBool();
+		var_conf.exclude_frequency = query.value("exclude_frequency").toBool();
+		var_conf.exclude_phenotype = query.value("exclude_phenotype").toBool();
+		var_conf.exclude_mechanism = query.value("exclude_mechanism").toBool();
+		var_conf.exclude_other = query.value("exclude_other").toBool();
+		var_conf.comments = query.value("comments").toString();
+		var_conf.comments2 = query.value("comments2").toString();
+
+		output.set(var_conf);
+	}
+
+	output.setModified(false);
+	return output;
+}
+
+QString NGSD::setReportConfig(const QString& processed_sample_id, const ReportConfiguration& config, const VariantList& variants)
+{
+	SqlQuery query = getQuery();
+
+	//delete report config if it already exists
+	int id = reportConfigId(processed_sample_id);
+	if (id!=-1)
+	{
+		query.exec("DELETE FROM `report_configuration_variant` WHERE report_configuration_id=" + QString::number(id));
+		query.exec("DELETE FROM `report_configuration` WHERE id=" + QString::number(id));
+	}
+
+	//store main object
+	query.prepare("INSERT INTO `report_configuration`(`processed_sample_id`, `created_by`, `created_date`) VALUES (:0, :1, :2)");
+	query.bindValue(0, processed_sample_id);
+	query.bindValue(1, userId(config.createdBy()));
+	query.bindValue(2, config.createdAt());
+	query.exec();
+	QVariant config_id = query.lastInsertId();
+
+	//store variant data
+	query.prepare("INSERT INTO `report_configuration_variant`(`report_configuration_id`, `variant_id`, `type`, `causal`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14)");
+	foreach(const ReportVariantConfiguration& var_conf, config.variantConfig())
+	{
+		//skip unsupported variant types
+		if (var_conf.variant_type!=VariantType::SNVS_INDELS) continue;
+
+		//check variant index exists in variant list
+		if (var_conf.variant_index>=variants.count())
+		{
+			THROW(ProgrammingException, "Variant list does not contain variant with index '" + QString::number(var_conf.variant_index) + "' in NGSD::setReportConfig!");
+		}
+
+		//get variant id (add variant if not in DB)
+		const Variant& variant = variants[var_conf.variant_index];
+		QString variant_id = variantId(variant, false);
+		if (variant_id=="")
+		{
+			addVariant(variants, var_conf.variant_index);
+			variant_id = variantId(variant, false);
+		}
+
+		query.bindValue(0, config_id);
+		query.bindValue(1, variant_id);
+		query.bindValue(2, var_conf.report_type);
+		query.bindValue(3, var_conf.causal);
+		query.bindValue(4, var_conf.inheritance);
+		query.bindValue(5, var_conf.de_novo);
+		query.bindValue(6, var_conf.mosaic);
+		query.bindValue(7, var_conf.comp_het);
+		query.bindValue(8, var_conf.exclude_artefact);
+		query.bindValue(9, var_conf.exclude_frequency);
+		query.bindValue(10, var_conf.exclude_phenotype);
+		query.bindValue(11, var_conf.exclude_mechanism);
+		query.bindValue(12, var_conf.exclude_other);
+		query.bindValue(13, var_conf.comments);
+		query.bindValue(14, var_conf.comments2);
+
+		query.exec();
+	}
+
+	return config_id.toString();
 }
 
 void NGSD::setProcessedSampleQuality(const QString& processed_sample_id, const QString& quality)
@@ -2750,7 +2992,7 @@ GeneInfo NGSD::geneInfo(QByteArray symbol)
 	symbol = symbol.trimmed();
 	auto approved = geneToApprovedWithMessage(symbol);
 	output.symbol = approved.first;
-	output.notice = approved.second;
+    output.symbol_notice = approved.second;
 	SqlQuery query = getQuery();
 	query.prepare("SELECT name FROM gene WHERE symbol=:0");
 	query.bindValue(0, output.symbol);

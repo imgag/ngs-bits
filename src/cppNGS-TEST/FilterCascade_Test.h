@@ -18,13 +18,13 @@ private slots:
 		int count_all = names.count();
 
 		//small variants
-		names = FilterFactory::filterNames(FilterSubject::SNVS_INDELS);
+		names = FilterFactory::filterNames(VariantType::SNVS_INDELS);
 		IS_TRUE(names.contains("Allele frequency"));
 		IS_FALSE(names.contains("CNV size"));
 		IS_TRUE(names.count()<count_all);
 
 		//CNVs
-		names = FilterFactory::filterNames(FilterSubject::CNVS);
+		names = FilterFactory::filterNames(VariantType::CNVS);
 		IS_FALSE(names.contains("Allele frequency"));
 		IS_TRUE(names.contains("CNV size"));
 		IS_TRUE(names.count()<count_all);

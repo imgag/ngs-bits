@@ -305,6 +305,22 @@ QByteArray NGSHelper::expandAminoAcidAbbreviation(QChar amino_acid_change_in)
 	return amino_acid_change_out;
 }
 
+const BedFile& NGSHelper::pseudoAutosomalRegion(const QString& build)
+{
+	if  (build!="hg19") THROW(ProgrammingException, "Unsupported genome build '" + build + "'!");
+
+	static BedFile output; //if we support more genomes, we have to use a static QMap<QString,BedFile>
+	if (output.count()==0)
+	{
+		output.append(BedLine(Chromosome("chrX"), 60001, 2699520));
+		output.append(BedLine(Chromosome("chrX"), 154931044, 155260560));
+		output.append(BedLine(Chromosome("chrY"), 10001, 2649520));
+		output.append(BedLine(Chromosome("chrY"), 59034050, 59363566));
+	}
+
+	return output;
+}
+
 void NGSHelper::softClipAlignment(BamAlignment& al, int start_ref_pos, int end_ref_pos)
 {
 	QList<CigarOp> old_CIGAR = al.cigarData();
@@ -611,29 +627,3 @@ QList<int> SampleHeaderInfo::sampleColumns(bool affected) const
 	return output;
 }
 
-//TODO: Use template T to make this generic
-unsigned int NGSHelper::levensthein(const QByteArray& a, const QByteArray& b)
-{
-	// Implementation from https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#C++
-	size_t len_a = static_cast<size_t> (a.size()),  len_b = static_cast<size_t> (b.size());
-	std::vector<std::vector<unsigned int>> d(len_a + 1, std::vector<unsigned int>(len_b + 1));
-
-	d[0][0] = 0;
-
-	for (unsigned int i = 1; i < len_a; ++i) d[i][0] = i;
-	for (unsigned int i = 1; i < len_b; ++i) d[0][1] = i;
-
-	for (unsigned int i = 1; i < len_a; ++i)
-	{
-		for (unsigned int j = 1; j < len_b; ++j)
-		{
-			d[i][j] = std::min({
-				d[i - 1][j] + 1,
-				d[i][j -1 ] + 1,
-				d[i - 1][j - 1] + (a.at(static_cast<int>(i) - 1) == b.at(static_cast<int>(j) - 1) ? 0 : 1)
-			});
-		}
-	}
-
-	return d[len_a][len_b];
-}

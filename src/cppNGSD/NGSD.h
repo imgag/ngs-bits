@@ -16,6 +16,7 @@
 #include "Phenotype.h"
 #include "Helper.h"
 #include "DBTable.h"
+#include "ReportConfiguration.h"
 
 ///General database field information.
 struct CPPNGSDSHARED_EXPORT TableFieldInfo
@@ -221,7 +222,9 @@ struct CPPNGSDSHARED_EXPORT GeneInfo
 {
 	//gene symbol
 	QString symbol;
-	//gene name
+    //notice about the symbol based on HGNC data (unknown symbol, previous symbol, etc.)
+    QString symbol_notice;
+    //gene name
 	QString name;
 	//gene inheritance mode
 	QString inheritance;
@@ -233,9 +236,6 @@ struct CPPNGSDSHARED_EXPORT GeneInfo
 	QString oe_lof;
 	//comments
 	QString comments;
-
-	//notice about the symbol based on HGNC data (unknown symbol, previous symbol, etc.)
-	QString notice;
 
 	//returns the main gene information as a string
 	QString toString()
@@ -266,9 +266,6 @@ struct CPPNGSDSHARED_EXPORT DiagnosticStatusData
 	//main data
 	QString dagnostic_status;
 	QString outcome = "n/a";
-	QString genes_causal = "";
-	QString inheritance_mode = "n/a";
-	QString genes_incidental = "";
 	QString comments = "";
 
 	//meta data
@@ -357,6 +354,13 @@ public:
 	///Clears all contents from a table.
 	void clearTable(QString table);
 
+
+	/*** transactions ***/
+	///Start transaction
+	bool transaction() { return db_->transaction(); }
+	bool commit() { return db_->commit(); }
+	bool rollback() { return db_->rollback(); }
+
 	/*** gene/transcript handling ***/
 	///Returns the gene ID, or -1 if none approved gene name could be found. Checks approved symbols, previous symbols and synonyms.
 	int geneToApprovedID(const QByteArray& gene);
@@ -414,9 +418,13 @@ public:
 	enum PathType {PROJECT_FOLDER, SAMPLE_FOLDER, BAM, GSVAR, VCF};
 	QString processedSamplePath(const QString& processed_sample_id, PathType type);
 	///Adds a variant to the NGSD, if not already present. Returns the variant ID.
-	QString addVariant(const Variant& variant, const VariantList& vl);
+	QString addVariant(const VariantList& variant_list, int index);
+	///Adds all missing variants to the NGSD and returns the variant DB identifiers (or -1 if the variant was skipped due to 'max_af')
+	QList<int> addVariants(const VariantList& variant_list, double max_af = 0.05);
 	///Returns the NGSD ID for a variant. Returns '' or throws an exception if the ID cannot be determined.
 	QString variantId(const Variant& variant, bool throw_if_fails = true);
+	///Returns the variant corresponding to the given identifier or throws an exception if the ID does not exist.
+	Variant variant(const QString& variant_id);
 	///Returns the database ID of the user as a string. Throws an exception if the user is not in the NGSD user table.
 	QString userId(QString user_name=Helper::userName());
 
@@ -479,6 +487,15 @@ public:
 	DiagnosticStatusData getDiagnosticStatus(const QString& processed_sample_id);
 	///Sets the diagnostic status. Throws an exception, if the processed sample is not in the database. If unset, the user name is taken from the environment.
 	void setDiagnosticStatus(const QString& processed_sample_id, DiagnosticStatusData status, QString user_name=Helper::userName());
+
+	///Returns if the report configuration database ID, or -1 if not present.
+	int reportConfigId(const QString& processed_sample_id);
+	///Returns the report config creation data (user/date).
+	QPair<QByteArray, QByteArray> reportConfigCreationData(int id);
+	///Returns the report configuration for a processed sample, throws an error if it does not exist.
+	ReportConfiguration reportConfig(const QString& processed_sample_id, const VariantList& variants, QStringList& messages);
+	///Sets/overwrites the report configuration for a processed sample. Returns its database primary key.
+	QString setReportConfig(const QString& processed_sample_id, const ReportConfiguration& config, const VariantList& variants);
 
 	///Sets processed sample quality
 	void setProcessedSampleQuality(const QString& processed_sample_id, const QString& quality);

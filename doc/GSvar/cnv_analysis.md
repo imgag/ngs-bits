@@ -15,7 +15,7 @@ These are examples of ananlysis steps that are commonly performed:
 1. Check for **homozygous deletions** using the `copy number=0` filter
 1. Check for **microdeletion syndromes** using `min regions=10` filter
 1. Check for CNVs matching the **patient phenotype** (`target region` and/or `phenotypes` filter)
-1. Check for CNVS in **ACMG** target-region
+1. Check for CNVs in **ACMG** target-region
 
 ### CNV analysis details
 

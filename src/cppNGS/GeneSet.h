@@ -28,8 +28,17 @@ class CPPNGSSHARED_EXPORT GeneSet
 		///Inserts a gene
 		void insert(const QByteArray& gene);
 
-		///Inserts a gene list
+		///Inserts a gene set
 		void insert(const GeneSet& genes)
+		{
+			foreach(const QByteArray& gene, genes)
+			{
+				insert(gene);
+			}
+		}
+
+		///Inserts a gene list
+		void insert(const QByteArrayList& genes)
 		{
 			foreach(const QByteArray& gene, genes)
 			{
@@ -46,6 +55,13 @@ class CPPNGSSHARED_EXPORT GeneSet
 
 		///Inserts a gene set
 		GeneSet& operator<<(const GeneSet& genes)
+		{
+			insert(genes);
+			return *this;
+		}
+
+		///Inserts a gene list
+		GeneSet& operator<<(const QByteArrayList& genes)
 		{
 			insert(genes);
 			return *this;
@@ -83,7 +99,7 @@ class CPPNGSSHARED_EXPORT GeneSet
 		///Checks if any gene is contained
 		bool intersectsWith(const GeneSet& genes) const
 		{
-			//TODO replace if we no longer use Qt 5.5: return set_.intersects(genes.set_); > remove 16.04 from installation instructions
+			//NOTE: can be replaced when we no longer use Qt 5.5: return set_.intersects(genes.set_);
 			for (auto it = genes.cbegin(); it != genes.cend(); ++it)
 			{
 				if (contains(*it)) return true;

@@ -20,7 +20,7 @@ FilterCascadeWidget::FilterCascadeWidget(QWidget* parent)
 	connect(ui_.filter_down, SIGNAL(pressed()), this, SLOT(moveDownSelectedFilter()));
 }
 
-void FilterCascadeWidget::setSubject(FilterSubject subject)
+void FilterCascadeWidget::setSubject(VariantType subject)
 {
 	subject_ = subject;
 }

@@ -452,9 +452,6 @@ private slots:
 		S_EQUAL(diag_status.user, "Max Mustermann");
 		S_EQUAL(diag_status.dagnostic_status, "done");
 		S_EQUAL(diag_status.outcome, "no significant findings");
-		S_EQUAL(diag_status.genes_causal, "ATM");
-		S_EQUAL(diag_status.inheritance_mode, "autosomal recessive");
-		S_EQUAL(diag_status.genes_incidental, "BRCA2");
 		S_EQUAL(diag_status.comments, "free text");
 		//no entry in DB
 		diag_status = db.getDiagnosticStatus(db.processedSampleId("NA12878_04"));
@@ -462,18 +459,12 @@ private slots:
 		IS_FALSE(diag_status.date.isValid());
 		S_EQUAL(diag_status.dagnostic_status, "");
 		S_EQUAL(diag_status.outcome, "n/a");
-		S_EQUAL(diag_status.genes_causal, "");
-		S_EQUAL(diag_status.inheritance_mode, "n/a");
-		S_EQUAL(diag_status.genes_incidental, "");
 		S_EQUAL(diag_status.comments, "");
 
 		//setDiagnosticStatus
 		//create new entry
 		diag_status.dagnostic_status = "done";
 		diag_status.outcome = "significant findings";
-		diag_status.genes_causal = "BRCA1";
-		diag_status.inheritance_mode = "autosomal dominant";
-		diag_status.genes_incidental = "TP53";
 		diag_status.comments = "comment1";
 		db.setDiagnosticStatus(db.processedSampleId("NA12878_04"), diag_status, "ahmustm1");
 		diag_status = db.getDiagnosticStatus(db.processedSampleId("NA12878_04"));
@@ -481,13 +472,9 @@ private slots:
 		IS_TRUE(diag_status.date.isValid());
 		S_EQUAL(diag_status.dagnostic_status, "done");
 		S_EQUAL(diag_status.outcome, "significant findings");
-		S_EQUAL(diag_status.genes_causal, "BRCA1");
-		S_EQUAL(diag_status.inheritance_mode, "autosomal dominant");
-		S_EQUAL(diag_status.genes_incidental, "TP53");
 		S_EQUAL(diag_status.comments, "comment1");
 		//update existing entry
 		diag_status = db.getDiagnosticStatus(db.processedSampleId("NA12878_03"));
-		diag_status.genes_incidental = "BRCA2,POLG";
 		diag_status.comments = "comment2";
 		db.setDiagnosticStatus(db.processedSampleId("NA12878_03"), diag_status, "ahmustm1");
 		diag_status = db.getDiagnosticStatus(db.processedSampleId("NA12878_03"));
@@ -495,9 +482,6 @@ private slots:
 		S_EQUAL(diag_status.user, "Max Mustermann");
 		S_EQUAL(diag_status.dagnostic_status, "done");
 		S_EQUAL(diag_status.outcome, "no significant findings");
-		S_EQUAL(diag_status.genes_causal, "ATM");
-		S_EQUAL(diag_status.inheritance_mode, "autosomal recessive");
-		S_EQUAL(diag_status.genes_incidental, "BRCA2,POLG");
 		S_EQUAL(diag_status.comments, "comment2");
 
 		//setSampleDiseaseData
@@ -671,7 +655,10 @@ private slots:
 		VariantList vl;
 		vl.load(TESTDATA("../cppNGS-TEST/data_in/panel_vep.GSvar"));
 		I_EQUAL(vl.count(), 329);
-		db.addVariant(vl[0], vl);
+		QString var_id = db.addVariant(vl, 0);
+
+		//variant
+		IS_TRUE(db.variant(var_id)==vl[0]);
 
 		//getSampleDiseaseInfo
 		sample_id = db.sampleId("NA12878");
@@ -705,17 +692,17 @@ private slots:
 		params.add_outcome = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 5);
-		I_EQUAL(ps_table.columnCount(), 23);
+		I_EQUAL(ps_table.columnCount(), 21);
 		//add path
 		params.add_disease_details = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 5);
-		I_EQUAL(ps_table.columnCount(), 30);
+		I_EQUAL(ps_table.columnCount(), 29);
 		//add QC
 		params.add_qc = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 5);
-		I_EQUAL(ps_table.columnCount(), 69);
+		I_EQUAL(ps_table.columnCount(), 68);
 		//apply all search parameters
 		params.s_name = "NA12878";
 		params.s_species = "human";
@@ -730,7 +717,59 @@ private slots:
 		params.include_bad_quality_runs = false;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 2);
-		I_EQUAL(ps_table.columnCount(), 69);
+		I_EQUAL(ps_table.columnCount(), 68);
+
+		//reportConfigId
+		QString ps_id = db.processedSampleId("NA12878_03");
+		I_EQUAL(db.reportConfigId(ps_id), -1);
+
+		//setReportConfig
+		ReportVariantConfiguration report_var_conf;
+		report_var_conf.variant_type = VariantType::SNVS_INDELS;
+		report_var_conf.variant_index = 47;
+		report_var_conf.causal = true;
+		report_var_conf.report_type = "candidate variant";
+		report_var_conf.mosaic = true;
+		report_var_conf.exclude_artefact = true;
+		report_var_conf.comments = "com1";
+		report_var_conf.comments2 = "com2";
+		ReportConfiguration report_conf;
+		report_conf.setCreatedBy("ahmustm1");
+		report_conf.set(report_var_conf);
+		QString conf_id1 = db.setReportConfig(ps_id, report_conf, vl);
+		QString conf_id2 = db.setReportConfig(ps_id, report_conf, vl);
+		IS_TRUE(conf_id1!=conf_id2);
+
+		//reportConfigId
+		int conf_id = db.reportConfigId(ps_id);
+		IS_TRUE(conf_id!=-1);
+		S_EQUAL(db.reportConfigCreationData(conf_id).first, "Max Mustermann");
+
+		//reportConfig
+		QStringList messages2;
+		ReportConfiguration report_conf2 = db.reportConfig(ps_id, vl, messages2);
+		I_EQUAL(messages2.count(), 0);
+		S_EQUAL(report_conf2.createdBy(), "Max Mustermann");
+		IS_TRUE(report_conf2.createdAt().date()==QDate::currentDate());
+		I_EQUAL(report_conf2.variantConfig().count(), 1);
+		IS_TRUE(report_conf2.variantConfig()[0].causal);
+		S_EQUAL(report_conf2.variantConfig()[0].report_type, report_var_conf.report_type);
+		IS_TRUE(report_conf2.variantConfig()[0].mosaic);
+		IS_TRUE(report_conf2.variantConfig()[0].exclude_artefact);
+		S_EQUAL(report_conf2.variantConfig()[0].comments, report_var_conf.comments);
+		S_EQUAL(report_conf2.variantConfig()[0].comments2, report_var_conf.comments2);
+		IS_FALSE(report_conf2.variantConfig()[0].de_novo);
+		IS_FALSE(report_conf2.variantConfig()[0].comp_het);
+		IS_FALSE(report_conf2.variantConfig()[0].exclude_frequency);
+		IS_FALSE(report_conf2.variantConfig()[0].exclude_mechanism);
+		IS_FALSE(report_conf2.variantConfig()[0].exclude_other);
+		IS_FALSE(report_conf2.variantConfig()[0].exclude_phenotype);
+
+		vl.clear();
+		report_conf2 = db.reportConfig(ps_id, vl, messages2);
+		I_EQUAL(messages2.count(), 1);
+		S_EQUAL(messages2[0], "Could not find variant 'chr2:47635523-47635523 ->T' in given variant list!");
+		I_EQUAL(report_conf2.variantConfig().count(), 0);
 	}
 
 	//Test for debugging (without initialization because of speed)
