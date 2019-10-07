@@ -1,0 +1,5 @@
+chr1	64090	75008	OR4F5 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)
+chr2	189593881	189659831	DIRC1 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)
+chr2	190643810	190747355	PMS1 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)
+chr13	32884610	32978347	BRCA2 (inh=AD oe_syn=n/a oe_mis=n/a oe_lof=n/a)
+chr13	32884616	32978809	BRCA1 (inh=AD oe_syn=0.00 oe_mis=0.00 oe_lof=0.00)

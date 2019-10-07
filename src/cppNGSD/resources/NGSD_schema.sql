@@ -1232,35 +1232,6 @@ DEFAULT CHARACTER SET = utf8
 COMMENT='germline CNV';
 
 
--- -----------------------------------------------------
--- Table `structural_variant`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `structural_variant` (
-  `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `chr_a` ENUM('chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrY','chrX','chrMT') NOT NULL,
-  `start_a` INT(11) NOT NULL,
-  `end_a` INT(11) NOT NULL,
-  `chr_b` ENUM('chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrY','chrX','chrMT') NOT NULL,
-  `start_b` INT(11) NOT NULL,
-  `end_b` INT(11) NOT NULL,
-  `type` ENUM('DUP','INV','DEL','INS','BND') NOT NULL,
-  `caller` TEXT NULL DEFAULT NULL,
-  `ngsd_counts` INT NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE INDEX `structural_variant_UNIQUE` (`chr_a` ASC, `start_a` ASC, `end_a` ASC, `chr_b` ASC, `start_b` ASC, `end_b` ASC, `type` ASC, `caller`(50) ASC),
-  INDEX `chr_a` (`chr_a` ASC),
-  INDEX `start_a` (`start_a` ASC),
-  INDEX `end_a` (`end_a` ASC),
-  INDEX `chr_b` (`chr_b` ASC),
-  INDEX `start_b` (`start_b` ASC),
-  INDEX `end_b` (`end_b` ASC),
-  INDEX `type` (`type` ASC),
-  INDEX `caller` (`caller`(50) ASC)
-)
-ENGINE = InnoDB
-AUTO_INCREMENT = 1
-DEFAULT CHARACTER SET = utf8;
-
 
 -- ----------------------------------------------------------------------------------------------------------
 --                                                 INITIAL DATA
