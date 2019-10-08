@@ -1,6 +1,7 @@
 
 INSERT INTO `user`(`id`, `user_id`, `password`, `user_role`, `name`, `email`, `created`, `active`) VALUES
-(99, 'ahmustm1', '', 'user', 'Max Mustermann', 'no.mail@max.de', '2016-07-05', 1);
+(99, 'ahmustm1', '', 'user', 'Max Mustermann', 'no.mail@max.de', '2016-07-05', 1),
+(101, 'ahkerra1', '', 'user', 'Sarah Kerrigan', 'no.mail2@max.de', '2019-10-08', 1);
 
 INSERT INTO `device` (`id`, `type`, `name`) VALUES
 (1, 'MiSeq', 'Neo');

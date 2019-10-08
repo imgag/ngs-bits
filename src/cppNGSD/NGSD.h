@@ -274,7 +274,7 @@ struct CPPNGSDSHARED_EXPORT DiagnosticStatusData
 };
 
 ///Search parameters for processed samples
-struct ProcessedSampleSearchParameters
+struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 {
 	//filters sample
 	QString s_name;
@@ -301,6 +301,18 @@ struct ProcessedSampleSearchParameters
 	bool add_disease_details = false;
 	bool add_outcome = false;
 	bool add_qc = false;
+};
+
+///Meta data about report configuration creation and update
+struct CPPNGSDSHARED_EXPORT ReportConfigurationCreationData
+{
+	QString created_by;
+	QString created_date;
+	QString last_edit_by;
+	QString last_edit_date;
+
+	///Returns a text representation of the creation and update. Can contain newline!
+	QString toText() const;
 };
 
 /// NGSD accessor.
@@ -491,11 +503,11 @@ public:
 	///Returns if the report configuration database ID, or -1 if not present.
 	int reportConfigId(const QString& processed_sample_id);
 	///Returns the report config creation data (user/date).
-	QPair<QByteArray, QByteArray> reportConfigCreationData(int id);
+	ReportConfigurationCreationData reportConfigCreationData(int id);
 	///Returns the report configuration for a processed sample, throws an error if it does not exist.
 	ReportConfiguration reportConfig(const QString& processed_sample_id, const VariantList& variants, QStringList& messages);
 	///Sets/overwrites the report configuration for a processed sample. Returns its database primary key.
-	QString setReportConfig(const QString& processed_sample_id, const ReportConfiguration& config, const VariantList& variants);
+	QString setReportConfig(const QString& processed_sample_id, const ReportConfiguration& config, const VariantList& variants, QString user_name);
 
 	///Sets processed sample quality
 	void setProcessedSampleQuality(const QString& processed_sample_id, const QString& quality);

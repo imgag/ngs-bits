@@ -1303,8 +1303,8 @@ void MainWindow::loadFile(QString filename)
 				int conf_id = db.reportConfigId(processed_sample_id);
 				if (conf_id!=-1)
 				{
-					auto conf_creation = db.reportConfigCreationData(conf_id);
-					if (QMessageBox::question(this, "Load report configuration?", "The NGSD contains a report configuration created by " + conf_creation.first + " at " + conf_creation.second + ".\n\nDo you want to load it?")==QMessageBox::Yes)
+					ReportConfigurationCreationData conf_creation = db.reportConfigCreationData(conf_id);
+					if (QMessageBox::question(this, "Load report configuration?", conf_creation.toText() + "\n\nDo you want to load it?")==QMessageBox::Yes)
 					{
 						loadReportConfig();
 					}
@@ -1580,15 +1580,15 @@ void MainWindow::storeReportConfig()
 	int conf_id = db.reportConfigId(processed_sample_id);
 	if (conf_id!=-1)
 	{
-		auto conf_creation = db.reportConfigCreationData(conf_id);
-		if (QMessageBox::question(this, "Storing report configuration", "The NGSD contains a report configuration created by " + conf_creation.first + " at " + conf_creation.second + ".\n\nDo you want to override it?")==QMessageBox::No)
+		ReportConfigurationCreationData conf_creation = db.reportConfigCreationData(conf_id);
+		if (QMessageBox::question(this, "Store report configuration", conf_creation.toText() + "\n\nDo you want to override it?")==QMessageBox::No)
 		{
 			return;
 		}
 	}
 
 	//store
-	db.setReportConfig(processed_sample_id, report_settings_.report_config, variants_);
+	db.setReportConfig(processed_sample_id, report_settings_.report_config, variants_, Helper::userName());
 	report_settings_.report_config.setModified(false);
 }
 

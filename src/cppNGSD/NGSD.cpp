@@ -2850,13 +2850,21 @@ int NGSD::reportConfigId(const QString& processed_sample_id)
 	return id.isValid() ? id.toInt() : -1;
 }
 
-QPair<QByteArray, QByteArray> NGSD::reportConfigCreationData(int id)
+ReportConfigurationCreationData NGSD::reportConfigCreationData(int id)
 {
 	SqlQuery query = getQuery();
-	query.exec("SELECT u.name, rc.created_date FROM report_configuration rc, user u WHERE rc.id=" + QString::number(id) + " AND u.id=rc.created_by");
+	query.exec("SELECT (SELECT name FROM user WHERE id=created_by) as created_by, created_date, (SELECT name FROM user WHERE id=last_edit_by) as last_edit_by, last_edit_date FROM report_configuration WHERE id=" + QString::number(id));
 	query.next();
 
-	return qMakePair(query.value("name").toByteArray(), query.value("created_date").toDateTime().toString("dd.MM.yyyy hh:mm:ss").toLatin1());
+	ReportConfigurationCreationData output;
+	output.created_by = query.value("created_by").toString();
+	QDateTime created_date = query.value("created_date").toDateTime();
+	output.created_date = created_date.isNull() ? "" : created_date.toString("dd.MM.yyyy hh:mm:ss");
+	output.last_edit_by = query.value("last_edit_by").toString();
+	QDateTime last_edit_date = query.value("last_edit_date").toDateTime();
+	output.last_edit_date = last_edit_date.isNull() ? "" : last_edit_date.toString("dd.MM.yyyy hh:mm:ss");
+
+	return output;
 }
 
 ReportConfiguration NGSD::reportConfig(const QString& processed_sample_id, const VariantList& variants, QStringList& messages)
@@ -2915,27 +2923,33 @@ ReportConfiguration NGSD::reportConfig(const QString& processed_sample_id, const
 	return output;
 }
 
-QString NGSD::setReportConfig(const QString& processed_sample_id, const ReportConfiguration& config, const VariantList& variants)
+QString NGSD::setReportConfig(const QString& processed_sample_id, const ReportConfiguration& config, const VariantList& variants, QString user_name)
 {
-	SqlQuery query = getQuery();
-
-	//delete report config if it already exists
+	//create report config (if missing)
 	int id = reportConfigId(processed_sample_id);
 	if (id!=-1)
 	{
+		//delete report config variants if it already exists
+		SqlQuery query = getQuery();
 		query.exec("DELETE FROM `report_configuration_variant` WHERE report_configuration_id=" + QString::number(id));
-		query.exec("DELETE FROM `report_configuration` WHERE id=" + QString::number(id));
+
+		//update report config
+		query.exec("UPDATE `report_configuration` SET `last_edit_by`='" + userId(user_name) + "', `last_edit_date`=CURRENT_TIMESTAMP, `created_date`=`created_date` WHERE id=" + QString::number(id)); //self-assignment prevents auto-update of created_date!
+	}
+	else
+	{
+		//insert new report config
+		SqlQuery query = getQuery();
+		query.prepare("INSERT INTO `report_configuration`(`processed_sample_id`, `created_by`, `created_date`) VALUES (:0, :1, :2)");
+		query.bindValue(0, processed_sample_id);
+		query.bindValue(1, userId(config.createdBy()));
+		query.bindValue(2, config.createdAt());
+		query.exec();
+		id = query.lastInsertId().toInt();
 	}
 
-	//store main object
-	query.prepare("INSERT INTO `report_configuration`(`processed_sample_id`, `created_by`, `created_date`) VALUES (:0, :1, :2)");
-	query.bindValue(0, processed_sample_id);
-	query.bindValue(1, userId(config.createdBy()));
-	query.bindValue(2, config.createdAt());
-	query.exec();
-	QVariant config_id = query.lastInsertId();
-
 	//store variant data
+	SqlQuery query = getQuery();
 	query.prepare("INSERT INTO `report_configuration_variant`(`report_configuration_id`, `variant_id`, `type`, `causal`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14)");
 	foreach(const ReportVariantConfiguration& var_conf, config.variantConfig())
 	{
@@ -2957,7 +2971,7 @@ QString NGSD::setReportConfig(const QString& processed_sample_id, const ReportCo
 			variant_id = variantId(variant, false);
 		}
 
-		query.bindValue(0, config_id);
+		query.bindValue(0, id);
 		query.bindValue(1, variant_id);
 		query.bindValue(2, var_conf.report_type);
 		query.bindValue(3, var_conf.causal);
@@ -2976,7 +2990,7 @@ QString NGSD::setReportConfig(const QString& processed_sample_id, const ReportCo
 		query.exec();
 	}
 
-	return config_id.toString();
+	return QString::number(id);
 }
 
 void NGSD::setProcessedSampleQuality(const QString& processed_sample_id, const QString& quality)
@@ -3071,4 +3085,12 @@ QString AnalysisJob::runTimeAsString() const
 	parts << QString::number(s, 'f', 0) + "s";
 
 	return parts.join(" ");
+}
+
+QString ReportConfigurationCreationData::toText() const
+{
+	QStringList output;
+	output << "The NGSD contains a report configuration created by " + created_by + " at " + created_date + ".";
+	if (last_edit_by!="") output << "It was last updated by " + last_edit_by + " at " + last_edit_date + ".";
+	return output.join("\n");
 }

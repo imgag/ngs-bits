@@ -1,6 +1,7 @@
 #include "TestFramework.h"
 #include "Settings.h"
 #include "NGSD.h"
+#include <QThread>
 
 TEST_CLASS(NGSD_Test)
 {
@@ -736,14 +737,27 @@ private slots:
 		ReportConfiguration report_conf;
 		report_conf.setCreatedBy("ahmustm1");
 		report_conf.set(report_var_conf);
-		QString conf_id1 = db.setReportConfig(ps_id, report_conf, vl);
-		QString conf_id2 = db.setReportConfig(ps_id, report_conf, vl);
-		IS_TRUE(conf_id1!=conf_id2);
+		QString conf_id1 = db.setReportConfig(ps_id, report_conf, vl, "ahmustm1");
+		IS_TRUE(conf_id1!=-1);
 
 		//reportConfigId
 		int conf_id = db.reportConfigId(ps_id);
 		IS_TRUE(conf_id!=-1);
-		S_EQUAL(db.reportConfigCreationData(conf_id).first, "Max Mustermann");
+
+		//reportConfigCreationData
+		ReportConfigurationCreationData rc_creation_data = db.reportConfigCreationData(conf_id);
+		S_EQUAL(rc_creation_data.created_by, "Max Mustermann");
+		S_EQUAL(rc_creation_data.last_edit_by, "");
+		S_EQUAL(rc_creation_data.last_edit_date, "");
+		//update
+		QThread::sleep(1);
+		QString conf_id2 = db.setReportConfig(ps_id, report_conf, vl, "ahkerra1");
+		IS_TRUE(conf_id1==conf_id2);
+		ReportConfigurationCreationData rc_creation_data2 = db.reportConfigCreationData(conf_id);
+		S_EQUAL(rc_creation_data2.created_by, "Max Mustermann");
+		S_EQUAL(rc_creation_data2.last_edit_by, "Sarah Kerrigan");
+		IS_TRUE(rc_creation_data.created_date==rc_creation_data2.created_date);
+		IS_TRUE(rc_creation_data2.last_edit_date!="");
 
 		//reportConfig
 		QStringList messages2;

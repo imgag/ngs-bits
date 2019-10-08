@@ -17,6 +17,8 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 Changes already implemented in GIT master for next release:
 
 * NGSDExportGenes: Added more columns.
+* added tools: VcfAnnotateFromVcf
+* addes tools for NGSD: NGSDImportORPHA, NGSDAddVariantsGermline, NGSDExportAnnotationData
 
 Changes in release 2019_09:
 
@@ -113,6 +115,7 @@ The default output format of the quality control tools is [qcML](https://github.
 ### VCF tools
 
 * [VcfAnnotateFromBed](doc/tools/VcfAnnotateFromBed.md) - Annotates the INFO column of a VCF with data from a BED file.
+* [VcfAnnotateFromVcf](doc/tools/VcfAnnotateFromVcf.md) - Annotates the INFO column of a VCF with data from another VCF file (or multiple VCF files if config file is provided)
 * [VcfBreakComplex](doc/tools/VcfBreakMulti.md) - Breaks complex variants into primitives preserving INFO/SAMPLE fields.
 * [VcfBreakMulti](doc/tools/VcfBreakMulti.md) - Breaks multi-allelic variants into several lines, making sure that allele-specific INFO/SAMPLE fields are still valid.
 * [VcfCheck](doc/tools/VcfCheck.md) - Checks a VCF file for errors.
