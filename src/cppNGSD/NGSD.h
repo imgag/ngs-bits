@@ -507,7 +507,7 @@ public:
 	///Returns the report configuration for a processed sample, throws an error if it does not exist.
 	ReportConfiguration reportConfig(const QString& processed_sample_id, const VariantList& variants, QStringList& messages);
 	///Sets/overwrites the report configuration for a processed sample. Returns its database primary key.
-	QString setReportConfig(const QString& processed_sample_id, const ReportConfiguration& config, const VariantList& variants, QString user_name);
+	int setReportConfig(const QString& processed_sample_id, const ReportConfiguration& config, const VariantList& variants, QString user_name);
 
 	///Sets processed sample quality
 	void setProcessedSampleQuality(const QString& processed_sample_id, const QString& quality);

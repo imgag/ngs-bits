@@ -2923,7 +2923,7 @@ ReportConfiguration NGSD::reportConfig(const QString& processed_sample_id, const
 	return output;
 }
 
-QString NGSD::setReportConfig(const QString& processed_sample_id, const ReportConfiguration& config, const VariantList& variants, QString user_name)
+int NGSD::setReportConfig(const QString& processed_sample_id, const ReportConfiguration& config, const VariantList& variants, QString user_name)
 {
 	//create report config (if missing)
 	int id = reportConfigId(processed_sample_id);
@@ -2990,7 +2990,7 @@ QString NGSD::setReportConfig(const QString& processed_sample_id, const ReportCo
 		query.exec();
 	}
 
-	return QString::number(id);
+	return id;
 }
 
 void NGSD::setProcessedSampleQuality(const QString& processed_sample_id, const QString& quality)

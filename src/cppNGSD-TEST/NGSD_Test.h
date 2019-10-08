@@ -737,8 +737,7 @@ private slots:
 		ReportConfiguration report_conf;
 		report_conf.setCreatedBy("ahmustm1");
 		report_conf.set(report_var_conf);
-		QString conf_id1 = db.setReportConfig(ps_id, report_conf, vl, "ahmustm1");
-		IS_TRUE(conf_id1!=-1);
+		int conf_id1 = db.setReportConfig(ps_id, report_conf, vl, "ahmustm1");
 
 		//reportConfigId
 		int conf_id = db.reportConfigId(ps_id);
@@ -751,7 +750,7 @@ private slots:
 		S_EQUAL(rc_creation_data.last_edit_date, "");
 		//update
 		QThread::sleep(1);
-		QString conf_id2 = db.setReportConfig(ps_id, report_conf, vl, "ahkerra1");
+		int conf_id2 = db.setReportConfig(ps_id, report_conf, vl, "ahkerra1");
 		IS_TRUE(conf_id1==conf_id2);
 		ReportConfigurationCreationData rc_creation_data2 = db.reportConfigCreationData(conf_id);
 		S_EQUAL(rc_creation_data2.created_by, "Max Mustermann");
