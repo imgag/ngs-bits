@@ -85,10 +85,10 @@ The NGSD variant counts for germline and somatic as well as the gene info can be
 
 * For germline:
 
-		> ngs-bits/bin/NGSDExportAnnotationData -variants [path_to_vcf_output_file] -genes [path_to_bed_file]
+		> ngs-bits/bin/NGSDExportAnnotationData -variants [vcf_output_file] -genes [bed_file]
 * For somatic:
 
-		> ngs-bits/bin/NGSDExportAnnotationData -variants [path_to_somatic_vcf_output_file] -mode somatic
+		> ngs-bits/bin/NGSDExportAnnotationData -variants [somatic_vcf_output_file] -mode somatic
 		
 The resulting VCF files have to be sorted (e.g. using `VcfStreamSort`) and then gzipped and indexed to be used as annotation source:
 
