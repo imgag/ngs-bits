@@ -78,9 +78,32 @@ The initial import of database content using ngs-bits.
 		> ngs-bits/bin/NGSDImportGeneInfo --help
 		> ngs-bits/bin/NGSDImportOMIM --help
 		> ngs-bits/bin/NGSDImportORPHA --help
+		
+## Export NGSD annotation data
 
+The NGSD variant counts for germline and somatic as well as the gene info can be exported to a VCF/BED file using NGSDExportAnnotationData. 
 
+* For germline:
 
+		> ngs-bits/bin/NGSDExportAnnotationData -variants [path_to_vcf_output_file] -genes [path_to_bed_file]
+* For somatic:
+
+		> ngs-bits/bin/NGSDExportAnnotationData -variants [path_to_somatic_vcf_output_file] -mode somatic
+		
+The resulting VCF files have to be sorted (e.g. using `VcfStreamSort`) and then gzipped and indexed to be used as annotation source:
+
+		> ngs-bits/bin/VcfStreamSort -in [unsorted_vcf] -out [sorted_vcf]
+		> bgzip -c [sorted_vcf] > [sorted_vcf_gzip]
+		> tabix -p vcf [sorted_vcf_gzip]
+		
+For variant annotation `VcfAnnotateFromVcf` and `VcfAnnotateFromBed` can be used. 
+To be used in megSAP the gzipped and indexed VCF files have to be located at `$data_folder/dbs/NGSD/` and have to be named as follows:
+
+		* `NGSD_germline.vcf.gz` for the germline export 
+		* `NGSD_somatic.vcf.gz` for the somatic export 
+		* `NGSD_genes.bed` for the gene info
+
+These files should be updated on regular bases (e.g. by using a cron job).
 
 
 
