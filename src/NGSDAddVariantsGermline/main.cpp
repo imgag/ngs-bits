@@ -281,6 +281,7 @@ public:
 
 		//import CNVs
 		int c_imported = 0;
+		int c_skipped_low_quality = 0;
 		while(!in.atEnd())
 		{
 			QByteArrayList parts = in.readLine();
@@ -288,7 +289,7 @@ public:
 			//parse line
 			int cn = -1;
 			QJsonObject quality_metrics;
-
+			bool skip = false;
 			for(int i=0; i<in.columns(); ++i)
 			{
 				const QByteArray& col_name = in.header()[i];
@@ -315,10 +316,21 @@ public:
 					{
 						quality_metrics.insert(col_name, entry);
 					}
+					if (col_name=="loglikelihood")
+					{
+						if (Helper::toDouble(entry, "log-likelihood")<15)
+						{
+							++c_skipped_low_quality;
+							skip = true;
+						}
+
+					}
 				}
 			}
 			QJsonDocument json_doc;
 			json_doc.setObject(quality_metrics);
+
+			if (skip) continue;
 
 			//debug output
 			if (debug)
@@ -336,8 +348,9 @@ public:
 
 			++c_imported;
 		}
-		out << "imported cnvs: " << c_imported << "\n";
 
+		out << "imported cnvs: " << c_imported << "\n";
+		out << "skipped low-quality cnvs: " << c_skipped_low_quality << "\n";
 	}
 
 	virtual void main()

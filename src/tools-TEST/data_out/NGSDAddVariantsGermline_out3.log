@@ -28,8 +28,8 @@ DEBUG: chr14:106321992-106330864 cn:1 quality: {"loglikelihood":"100","no_of_reg
 DEBUG: chr14:106331388-106368547 cn:0 quality: {"loglikelihood":"944","no_of_regions":"17","qvalue":"0"}
 DEBUG: chr14:106369455-106668051 cn:1 quality: {"loglikelihood":"433","no_of_regions":"45","qvalue":"0"}
 DEBUG: chr15:20770436-22706789 cn:1 quality: {"loglikelihood":"72","no_of_regions":"75","qvalue":"0.12978"}
-DEBUG: chr15:32684962-32741886 cn:1 quality: {"loglikelihood":"50","no_of_regions":"36","qvalue":"0.00296"}
 DEBUG: chr20:1585367-1585725 cn:8 quality: {"loglikelihood":"52","no_of_regions":"1","qvalue":"0"}
 DEBUG: chr22:22453137-23223594 cn:1 quality: {"loglikelihood":"1354","no_of_regions":"88","qvalue":"0"}
 DEBUG: chr22:23228428-23237894 cn:0 quality: {"loglikelihood":"213","no_of_regions":"4","qvalue":"0"}
-imported cnvs: 21
+imported cnvs: 20
+skipped low-quality cnvs: 1

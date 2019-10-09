@@ -11,7 +11,7 @@ private slots:
 	{
 		EXECUTE("VcfAnnotateFromVcf", "-in " + TESTDATA("data_in/VcfAnnotateFromVcf_in1.vcf") + " -out out/VcfAnnotateFromVcf_out1.vcf -config_file " + TESTDATA("data_in/VcfAnnotateFromVcf_config.tsv") );
 		COMPARE_FILES("out/VcfAnnotateFromVcf_out1.vcf", TESTDATA("data_out/VcfAnnotateFromVcf_out1.vcf"));
-		VCF_IS_VALID("out/VcfAnnotateFromBed_out1.vcf");
+		VCF_IS_VALID("out/VcfAnnotateFromVcf_out1.vcf");
 	}
 
 	void test_with_parameters()

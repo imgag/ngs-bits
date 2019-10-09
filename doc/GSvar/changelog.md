@@ -1,10 +1,13 @@
 # GSvar change log
 
+### 2019_09-29 (08.10.19)
+- Report configuration: last edit date/user is now stored and shown.
+
 ### 2019_09-28 (07.10.19)
-- Variant sheet: Added QR-code
+- Variant sheet: Added QR-code.
 
 ### 2019_09-18 (02.10.19)
-- Report: Added report for trio analysis
+- Report: Added report for trio analysis.
 
 ### 2019_09-17 (01.10.19)
 - Report configuration: Fixed handling of preferred transcripts in variant sheet generation.
