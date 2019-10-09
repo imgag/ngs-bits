@@ -97,13 +97,7 @@ The resulting VCF files have to be sorted (e.g. using `VcfStreamSort`) and then 
 		> tabix -p vcf [sorted_vcf_gzip]
 		
 For variant annotation `VcfAnnotateFromVcf` and `VcfAnnotateFromBed` can be used. 
-To be used in megSAP the gzipped and indexed VCF files have to be located at `$data_folder/dbs/NGSD/` and have to be named as follows:
 
-		* `NGSD_germline.vcf.gz` for the germline export 
-		* `NGSD_somatic.vcf.gz` for the somatic export 
-		* `NGSD_genes.bed` for the gene info
-
-These files should be updated on regular bases (e.g. by using a cron job).
 
 
 
