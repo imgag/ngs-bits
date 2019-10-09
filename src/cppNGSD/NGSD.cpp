@@ -2934,7 +2934,7 @@ int NGSD::setReportConfig(const QString& processed_sample_id, const ReportConfig
 		query.exec("DELETE FROM `report_configuration_variant` WHERE report_configuration_id=" + QString::number(id));
 
 		//update report config
-		query.exec("UPDATE `report_configuration` SET `last_edit_by`='" + userId(user_name) + "', `last_edit_date`=CURRENT_TIMESTAMP, `created_date`=`created_date` WHERE id=" + QString::number(id)); //self-assignment prevents auto-update of created_date!
+		query.exec("UPDATE `report_configuration` SET `last_edit_by`='" + userId(user_name) + "', `last_edit_date`=CURRENT_TIMESTAMP WHERE id=" + QString::number(id));
 	}
 	else
 	{
