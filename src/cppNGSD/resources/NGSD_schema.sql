@@ -391,7 +391,7 @@ CREATE  TABLE IF NOT EXISTS `sample_disease_info`
 (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `sample_id` INT(11) NOT NULL,
-  `disease_info` VARCHAR(255) NOT NULL,
+  `disease_info` TEXT NOT NULL,
   `type` ENUM('HPO term id', 'ICD10 code', 'OMIM disease/phenotype identifier', 'Orpha number', 'CGI cancer type', 'tumor fraction', 'age of onset', 'clinical phenotype (free text)') NOT NULL,
   `user_id` int(11) DEFAULT NULL,
   `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
