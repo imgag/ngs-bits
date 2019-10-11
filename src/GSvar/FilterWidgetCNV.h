@@ -73,8 +73,6 @@ protected slots:
 private:
 	//Loads filters
 	void loadFilters();
-	//Loads filter target regions (Processing systems from NGSD, Sub-panels from file system and additional target regions from INI file)
-	void loadTargetRegions();
 
 	//Resets the filters without blocking signals.
 	void resetSignalsUnblocked(bool clear_roi);

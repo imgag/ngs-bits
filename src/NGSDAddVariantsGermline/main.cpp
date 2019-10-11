@@ -120,7 +120,6 @@ public:
 
 		//add detected variants
 		int i_geno = variants.getSampleHeader().infoByID(ps_name).column_index;
-		int i_type = variants.annotationIndexByName("variant_type");
 		SqlQuery q_insert = db.getQuery();
 		q_insert.prepare("INSERT INTO detected_variant (processed_sample_id, variant_id, genotype) VALUES (" + ps_id + ", :0, :1)");
 		db.transaction();
@@ -130,16 +129,12 @@ public:
 			int variant_id = variant_ids[i];
 			if (variant_id==-1) continue;
 
-			//skip invalid variants //TODO can this still happen?
-			const Variant& variant = variants[i];
-			if (variant.annotations()[i_type]=="invalid") continue;
-
 			//remove class 4/5 variant from list (see check below)
 			var_ids_class_4_or_5.remove(variant_id);
 
 			//bind
 			q_insert.bindValue(0, variant_id);
-			q_insert.bindValue(1, variant.annotations()[i_geno]);
+			q_insert.bindValue(1, variants[i].annotations()[i_geno]);
 			q_insert.exec();
 		}
 		db.commit();

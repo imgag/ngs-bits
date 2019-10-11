@@ -53,9 +53,13 @@ public:
 
 	/// Loads filter target regions (Processing systems from NGSD, Sub-panels from file system and additional target regions from INI file)
 	void loadTargetRegions();
+	/// Helper for loading target regions (also in CNV/SV widget)
+	static void loadTargetRegions(QComboBox* box);
 
 	//Returns the filter INI file name
 	static QString filterFileName();
+
+
 
 signals:
 	/// Signal that is emitted when a filter changes (filter cascade, gene, text, region, phenotype)

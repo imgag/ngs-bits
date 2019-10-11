@@ -10,33 +10,19 @@ BedpeLine::BedpeLine()
 	, chr2_(".")
 	, start2_(-1)
 	, end2_(-1)
+	, type_(StructuralVariantType::UNKNOWN)
+	, annotations_()
 {
 }
 
-BedpeLine::BedpeLine(const QList<QByteArray> &input_fields)
-{
-	if(input_fields.count() < 6)
-	{
-		THROW(FileParseException,"Could not parse BedpeLine because it has less than 6 input fields.");
-	}
-	//First six input fields are fixed
-	chr1_ = Chromosome(input_fields[0].trimmed());
-	start1_ = parsePosIn(input_fields[1]);
-	end1_ = parsePosIn(input_fields[2]);
-	chr2_ = Chromosome(input_fields[3].trimmed());
-	start2_ = parsePosIn(input_fields[4]);
-	end2_ = parsePosIn(input_fields[5]);
-
-	annotations_ = input_fields.mid(6);
-}
-
-BedpeLine::BedpeLine(const Chromosome& chr1, int start1, int end1, const Chromosome& chr2, int start2, int end2, const QList<QByteArray>& annotations)
+BedpeLine::BedpeLine(const Chromosome& chr1, int start1, int end1, const Chromosome& chr2, int start2, int end2, StructuralVariantType type, const QList<QByteArray>& annotations)
 	: chr1_(chr1)
 	, start1_(start1)
 	, end1_(end1)
 	, chr2_(chr2)
 	, start2_(start2)
 	, end2_(end2)
+	, type_(type)
 	, annotations_(annotations)
 {
 }
@@ -45,26 +31,28 @@ QByteArray BedpeLine::toTsv() const
 {
 	QByteArrayList tmp_out;
 
-	tmp_out << chr1_.str() << parsePosOut(start1_) << parsePosOut(end1_) << chr2_.str() << parsePosOut(start2_) << parsePosOut(end2_);
-	foreach(QByteArray anno, annotations_) tmp_out << anno;
+	tmp_out << chr1_.str() << posToString(start1_) << posToString(end1_) << chr2_.str() << posToString(start2_) << posToString(end2_);
+	foreach(const QByteArray& anno, annotations_)
+	{
+		tmp_out << anno;
+	}
 
 	return tmp_out.join("\t");
 }
 
-int BedpeLine::parsePosIn(QByteArray in) const
+bool BedpeLine::intersectsWith(const BedFile& regions) const
 {
-	bool ok = false;
+	StructuralVariantType t = type();
+	if (t==StructuralVariantType::DEL || t==StructuralVariantType::DUP || t==StructuralVariantType::INV)
+	{
+		return regions.overlapsWith(chr1(), start1(), end2());
+	}
+	else if (t==StructuralVariantType::INS || t==StructuralVariantType::BND)
+	{
+		return regions.overlapsWith(chr1(), start1(), start1()) || regions.overlapsWith(chr2(), start2(), start2());
+	}
 
-	int out = in.trimmed().toInt(&ok);
-	if(!ok) out = -1;
-
-	return out;
-}
-
-QByteArray BedpeLine::parsePosOut(int in) const
-{
-	if(in == -1) return ".";
-	else return QByteArray::number(in);
+	THROW(ProgrammingException, "Unhandled variant type (int): " + BedpeFile::typeToString(t));
 }
 
 
@@ -74,10 +62,10 @@ BedpeFile::SV_TYPE BedpeFile::analysisType()
 
 	int i_ID = annotationIndexByName("ID",false);
 
-	int i_info_a =annotationIndexByName("INFO_A",false);
-	int i_info_b =annotationIndexByName("INFO_B",false);
+	int i_info_a = annotationIndexByName("INFO_A",false);
+	int i_info_b = annotationIndexByName("INFO_B",false);
 
-	foreach(BedpeLine line, lines_)
+	foreach(const BedpeLine& line, lines_)
 	{
 		//identify Manta from Read IDs
 		if(i_ID > -1)
@@ -110,8 +98,18 @@ void BedpeFile::load(const QString& file_name)
 
 	TSVFileStream file(file_name);
 
+	//comments
 	comments_ = file.comments();
 
+	//header (first 6 fields are fixed)
+	const int fixed_cols = 6;
+	for(int i=fixed_cols; i<file.header().count(); ++i)
+	{
+		annotation_headers_ << file.header()[i];
+	}
+	int i_type = annotationIndexByName("TYPE");
+
+	//fields
 	while(!file.atEnd())
 	{
 		QByteArrayList fields = file.readLine();
@@ -119,19 +117,13 @@ void BedpeFile::load(const QString& file_name)
 		if(fields.isEmpty()) continue;
 
 		//error when less than 6 fields
-		if (fields.count()<6)
+		if (fields.count()<fixed_cols)
 		{
 			THROW(FileParseException, "BEDPE file line with less than six fields found: '" + fields.join("\t") + "'");
 		}
 
-		//first 6 fields are fixed, remaining fields are optional/user-specific
-		lines_.append(fields);
-	}
-
-	//Get headers for annotations
-	for(int i=6;i<file.header().count();++i)
-	{
-		annotation_headers_ << file.header()[i];
+		//Add line
+		lines_.append(BedpeLine(fields[0], parsePosIn(fields[1]), parsePosIn(fields[2]), fields[3], parsePosIn(fields[4]), parsePosIn(fields[5]), stringToType(fields[fixed_cols + i_type]), fields.mid(fixed_cols)));
 	}
 }
 
@@ -217,6 +209,28 @@ QMap <QByteArray,QByteArray> BedpeFile::parseInfoField(QByteArray unparsed_field
 	}
 
 	return map;
+}
+
+StructuralVariantType BedpeFile::stringToType(const QByteArray& str)
+{
+	if (str=="DEL") return StructuralVariantType::DEL;
+	if (str=="DUP") return StructuralVariantType::DUP;
+	if (str=="INS") return StructuralVariantType::INS;
+	if (str=="INV") return StructuralVariantType::INV;
+	if (str=="BND") return StructuralVariantType::BND;
+
+	THROW(FileParseException, "Unsupported structural variant type '" + str + "'!");
+}
+
+QByteArray BedpeFile::typeToString(StructuralVariantType type)
+{
+	if (type==StructuralVariantType::DEL) return "DEL";
+	if (type==StructuralVariantType::DUP) return "DUP";
+	if (type==StructuralVariantType::INS) return "INS";
+	if (type==StructuralVariantType::INV) return "INV";
+	if (type==StructuralVariantType::BND) return "BND";
+
+	THROW(ProgrammingException, "Unknown structural variant type '" + typeToString(type) + "'!");
 }
 
 QList< QMap<QByteArray,QByteArray> > BedpeFile::getInfos(QByteArray name)

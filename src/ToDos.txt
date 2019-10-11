@@ -13,11 +13,14 @@ NGSD:
     - sample: import disease info, disease group/status, gender from same samples
     - sample: import disease group/status from GenLab (sample - disease status: add 'Unclear') - select * FROM v_krankheitsgruppe_pattyp...
 ** Add run overview dialog/tab
-**** add CNVs to NGSD
+##### add CNVs to NGSD
     - import all data from exomes ssHAEv6+7/TruSeq PCR-free genomes
+    - allow setting callset quality
     - block re-import of CNVs if report config is set
     - allow adding to report config in GSvar (like small variants, but with classification) -  add low-quality CNV calls to NGSD if missing
-**** NGSD annotation: export VCF, use VCF for annotation (LS)
+**** NGSD annotation (LS)
+    - export VCF, use VCF for annotation
+    - remove NGSDPrecalculate tool and tables 'detected_variant_counts' and 'detected_variant_counts_by_group'
 
 GSvar:
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case

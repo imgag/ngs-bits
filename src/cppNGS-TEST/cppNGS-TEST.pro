@@ -55,7 +55,6 @@ HEADERS += \
         StatisticsReads_Test.h \
         GeneSet_Test.h \
         OntologyTermCollection_Test.h \
-        SvList_Test.h \
         BamReader_Test.h \
         VcfFile_Test.h \
         BedpeLine_Test.h

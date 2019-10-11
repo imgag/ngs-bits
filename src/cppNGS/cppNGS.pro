@@ -56,7 +56,6 @@ SOURCES += BedFile.cpp \
     GeneSet.cpp \
     RohList.cpp \
     OntologyTermCollection.cpp \
-    SvList.cpp \
     FilterCascade.cpp \
     VcfFile.cpp \
     TabixIndexedFile.cpp \
@@ -85,7 +84,6 @@ HEADERS += BedFile.h \
     GeneSet.h \
     RohList.h \
     OntologyTermCollection.h \
-    SvList.h \
     FilterCascade.h \
     VcfFile.h \
     TabixIndexedFile.h \

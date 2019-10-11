@@ -3,21 +3,26 @@
 
 #include "cppNGS_global.h"
 #include "Chromosome.h"
-#include <QByteArray>
-#include <QByteArrayList>
-#include <QList>
-#include <QVector>
-#include <QMap>
-#include <QSharedPointer>
-#include <QFile>
 #include "Helper.h"
+#include "BedFile.h"
+#include <QByteArrayList>
+#include <QMap>
+
+enum class StructuralVariantType
+{
+	DEL, //deletion
+	DUP, //duplication (tandem)
+	INS, //insertion
+	INV, //inversion
+	BND,  //breakpoint (translocations, etc)
+	UNKNOWN
+};
 
 class CPPNGSSHARED_EXPORT BedpeLine
 {
 public:
 	BedpeLine();
-	BedpeLine(const QList<QByteArray>& input_fields);
-	BedpeLine(const Chromosome& chr1, int start1, int end1, const Chromosome& chr2, int start2, int end2, const QList<QByteArray>& annotations);
+	BedpeLine(const Chromosome& chr1, int start1, int end1, const Chromosome& chr2, int start2, int end2, StructuralVariantType type, const QList<QByteArray>& annotations);
 
 	const Chromosome& chr1() const
 	{
@@ -70,13 +75,18 @@ public:
 		chr2_ = chr2;
 	}
 
+	StructuralVariantType type() const
+	{
+		return type_;
+	}
+
 	const QList<QByteArray>& annotations() const
 	{
 		return annotations_;
 	}
-	QList<QByteArray>& annotations()
+	void setAnnotations(const QList<QByteArray>& annos)
 	{
-		return annotations_;
+		annotations_ = annos;
 	}
 
 	///Converts line into tsv format
@@ -93,6 +103,9 @@ public:
 		return false;
 	}
 
+	///Returns if a structural variant intersects with the given regions
+	bool intersectsWith(const BedFile& regions) const;
+
 protected:
 	Chromosome chr1_;
 	int start1_;
@@ -102,11 +115,17 @@ protected:
 	int start2_;
 	int end2_;
 
+	StructuralVariantType type_;
+
 	QList<QByteArray> annotations_;
 
-	///Converts input position to integer, we set position to -1 if invalid input
-	int parsePosIn(QByteArray in) const;
-	QByteArray parsePosOut(int in) const;
+	/// Convert position to string representation
+	static QByteArray posToString(int in)
+	{
+		if(in == -1) return ".";
+
+		return QByteArray::number(in);
+	}
 };
 
 
@@ -160,7 +179,7 @@ public:
 	}
 
 	///Get description of annotations as written in vcf comments, e.g. FORMAT
-	QMap <QByteArray,QByteArray> annotationDescriptionByID(const QByteArray& name);
+	QMap<QByteArray,QByteArray> annotationDescriptionByID(const QByteArray& name);
 
 	///Sorts Bedpe file (by columns chr1, start1, chr2, start2)
 	void sort();
@@ -168,16 +187,31 @@ public:
 	///Stores file as TSV
 	void toTSV(QString file_name);
 
+	///Converts type string to enum
+	static StructuralVariantType stringToType(const QByteArray& str);
+	static QByteArray typeToString(StructuralVariantType type);
+
 private:
 	QList<QByteArray> annotation_headers_;
 	QList<QByteArray> comments_;
-	QVector<BedpeLine> lines_;
+	QList<BedpeLine> lines_;
 
 	///Returns all information fields with "NAME=" as list of QMAP containing key value pairs
 	QList< QMap<QByteArray,QByteArray> > getInfos(QByteArray name);
 
 	///Returns map with key-value pairs for vcf info line in header, beginning after e.g. INFO= or FORMAT=
-	QMap <QByteArray,QByteArray> parseInfoField(QByteArray unparsed_fields);
+	QMap<QByteArray,QByteArray> parseInfoField(QByteArray unparsed_fields);
+
+	///Converts input position to integer, we set position to -1 if invalid input
+	static int parsePosIn(const QByteArray& in)
+	{
+		bool ok = false;
+
+		int out = in.trimmed().toInt(&ok);
+		if(!ok) return -1;
+
+		return out;
+	}
 };
 
 #endif // BEDPEFILE_H

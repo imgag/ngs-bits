@@ -193,10 +193,10 @@ void MainWindow::on_actionSV_triggered()
 	try
 	{
 		QStringList file_names = Helper::findFiles(QFileInfo(filename_).absolutePath(), "*var_structural.bedpe", false);
-		SvWidget* list = new SvWidget(file_names);
+		SvWidget* list = new SvWidget(file_names, ui_.filters, gene2region_cache_, this);
 		auto dlg = GUIHelper::createDialog(list, "Structure variants");
-		addModelessDialog(dlg);
 		connect(list,SIGNAL(openSvInIGV(QString)),this,SLOT(openInIGV(QString)));
+		addModelessDialog(dlg);
 	}
 	catch(FileParseException error)
 	{

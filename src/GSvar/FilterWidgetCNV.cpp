@@ -44,7 +44,7 @@ FilterWidgetCNV::FilterWidgetCNV(QWidget *parent)
 	connect(ui_.hpo, SIGNAL(clicked(QPoint)), this, SLOT(editPhenotypes()));
 	ui_.hpo->setEnabled(Settings::boolean("NGSD_enabled", true));
 
-	loadTargetRegions();
+	FilterWidget::loadTargetRegions(ui_.roi);
 	loadFilters();
 	reset(true);
 }
@@ -52,71 +52,6 @@ FilterWidgetCNV::FilterWidgetCNV(QWidget *parent)
 void FilterWidgetCNV::setVariantFilterWidget(FilterWidget* filter_widget)
 {
 	filter_widget_ = filter_widget;
-}
-
-void FilterWidgetCNV::loadTargetRegions()
-{
-	ui_.roi->blockSignals(true);
-
-	//store old selection
-	QString current = ui_.roi->currentText();
-
-	ui_.roi->clear();
-	ui_.roi->addItem("", "");
-	ui_.roi->addItem("none", "");
-	ui_.roi->insertSeparator(ui_.roi->count());
-
-	//load ROIs of NGSD processing systems
-	try
-	{
-		QMap<QString, QString> systems = NGSD().getProcessingSystems(true, true);
-		auto it = systems.constBegin();
-		while (it != systems.constEnd())
-		{
-			ui_.roi->addItem("Processing system: " + it.key(), Helper::canonicalPath(it.value()));
-			++it;
-		}
-		ui_.roi->insertSeparator(ui_.roi->count());
-	}
-	catch (Exception& e)
-	{
-		Log::warn("Could not load NGSD processing system target regions: " + e.message());
-	}
-
-	//load ROIs of sub-panels
-	try
-	{
-		QStringList subpanels = Helper::findFiles(NGSD::getTargetFilePath(true), "*.bed", false);
-		subpanels.sort(Qt::CaseInsensitive);
-		foreach(QString file, subpanels)
-		{
-			if (file.endsWith("_amplicons.bed")) continue;
-
-			QString name = QFileInfo(file).fileName().replace(".bed", "");
-			ui_.roi->addItem("Sub-panel: " + name, Helper::canonicalPath(file));
-		}
-		ui_.roi->insertSeparator(ui_.roi->count());
-	}
-	catch (Exception& e)
-	{
-		Log::warn("Could not load sub-panels target regions: " + e.message());
-	}
-
-	//load additional ROIs from settings
-	QStringList rois = Settings::stringList("target_regions");
-	std::sort(rois.begin(), rois.end(), [](const QString& a, const QString& b){return QFileInfo(a).fileName().toUpper() < QFileInfo(b).fileName().toUpper();});
-	foreach(const QString& roi_file, rois)
-	{
-		QFileInfo info(roi_file);
-		ui_.roi->addItem(info.fileName(), roi_file);
-	}
-
-	//restore old selection
-	int current_index = ui_.roi->findText(current);
-	if (current_index==-1) current_index = 1;
-	ui_.roi->setCurrentIndex(current_index);
-
-	ui_.roi->blockSignals(false);
 }
 
 void FilterWidgetCNV::resetSignalsUnblocked(bool clear_roi)

@@ -70,15 +70,20 @@ void FilterWidget::markFailedFilters()
 
 void FilterWidget::loadTargetRegions()
 {
-	ui_.roi->blockSignals(true);
+	loadTargetRegions(ui_.roi);
+}
+
+void FilterWidget::loadTargetRegions(QComboBox* box)
+{
+	box->blockSignals(true);
 
 	//store old selection
-	QString current = ui_.roi->currentText();
+	QString current = box->currentText();
 
-	ui_.roi->clear();
-	ui_.roi->addItem("", "");
-	ui_.roi->addItem("none", "");
-	ui_.roi->insertSeparator(ui_.roi->count());
+	box->clear();
+	box->addItem("", "");
+	box->addItem("none", "");
+	box->insertSeparator(box->count());
 
 	//load ROIs of NGSD processing systems
 	try
@@ -87,10 +92,10 @@ void FilterWidget::loadTargetRegions()
 		auto it = systems.constBegin();
 		while (it != systems.constEnd())
 		{
-			ui_.roi->addItem("Processing system: " + it.key(), Helper::canonicalPath(it.value()));
+			box->addItem("Processing system: " + it.key(), Helper::canonicalPath(it.value()));
 			++it;
 		}
-		ui_.roi->insertSeparator(ui_.roi->count());
+		box->insertSeparator(box->count());
 	}
 	catch (Exception& e)
 	{
@@ -107,9 +112,9 @@ void FilterWidget::loadTargetRegions()
 			if (file.endsWith("_amplicons.bed")) continue;
 
 			QString name = QFileInfo(file).fileName().replace(".bed", "");
-			ui_.roi->addItem("Sub-panel: " + name, Helper::canonicalPath(file));
+			box->addItem("Sub-panel: " + name, Helper::canonicalPath(file));
 		}
-		ui_.roi->insertSeparator(ui_.roi->count());
+		box->insertSeparator(box->count());
 	}
 	catch (Exception& e)
 	{
@@ -122,15 +127,15 @@ void FilterWidget::loadTargetRegions()
 	foreach(const QString& roi_file, rois)
 	{
 		QFileInfo info(roi_file);
-		ui_.roi->addItem(info.fileName(), roi_file);
+		box->addItem(info.fileName(), roi_file);
 	}
 
 	//restore old selection
-	int current_index = ui_.roi->findText(current);
+	int current_index = box->findText(current);
 	if (current_index==-1) current_index = 1;
-	ui_.roi->setCurrentIndex(current_index);
+	box->setCurrentIndex(current_index);
 
-	ui_.roi->blockSignals(false);
+	box->blockSignals(false);
 }
 
 void FilterWidget::resetSignalsUnblocked(bool clear_roi)
