@@ -1026,21 +1026,23 @@ SomaticReportHelper::SomaticReportHelper(QString snv_filename, const CnvList& fi
 	if(tmp.count() == 1) hpo_term_ = tmp.first();
 	else hpo_term_ = "";
 
+	//get mutation burden
 
 	try
 	{
-		if(qcml_data_.value("QC:2000053",true).type() == QVariant::Double)
+		QString mb_string = qcml_data_.value("QC:2000053",true).toString();
+		if (mb_string.contains("var/Mb")) //deal with previous version, e.g. "high (23.79 var/Mb)"
 		{
-			mutation_burden_ = qcml_data_.value("QC:2000053",true).asDouble();
+			mb_string = mb_string.append("  ").split(' ')[1].replace("(", "");
 		}
-		else
+		bool ok = false;
+		mutation_burden_ = mb_string.toDouble(&ok);
+		if(!ok) // deal with 'n/a', '', ...
 		{
-			bool ok = false;
-			mutation_burden_ = qcml_data_.value("QC:2000053",true).asString().split(' ')[1].remove('(').toDouble(&ok);
-			if(!ok) mutation_burden_ = std::numeric_limits<double>::quiet_NaN();
+			mutation_burden_ = std::numeric_limits<double>::quiet_NaN();
 		}
 	}
-	catch(...)
+	catch(...) //deal with missing QC value
 	{
 		mutation_burden_ = std::numeric_limits<double>::quiet_NaN();
 	}
