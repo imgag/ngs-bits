@@ -106,6 +106,16 @@ public:
 	///Returns if a structural variant intersects with the given regions
 	bool intersectsWith(const BedFile& regions) const;
 
+	///Returns position 1 as string
+	QString position1() const;
+	///Returns position 2 as string
+	QString position2() const;
+	///Returns the range (for DEL, DUP, INV) or position 1 (for INS, BND) as string
+	QString positionRange() const;
+
+	///Returns the size: range for DEL, DUP and INV; -1 for INS and BND.
+	int size() const;
+
 protected:
 	Chromosome chr1_;
 	int start1_;

@@ -192,9 +192,14 @@ void MainWindow::on_actionSV_triggered()
 
 	try
 	{
+		//determine SV files (revert to make Manta the first one)
 		QStringList file_names = Helper::findFiles(QFileInfo(filename_).absolutePath(), "*var_structural.bedpe", false);
+		file_names.sort();
+		std::reverse(file_names.begin(), file_names.end());
+
+		//open SV wisget
 		SvWidget* list = new SvWidget(file_names, ui_.filters, gene2region_cache_, this);
-		auto dlg = GUIHelper::createDialog(list, "Structure variants");
+		auto dlg = GUIHelper::createDialog(list, "Structural variants");
 		connect(list,SIGNAL(openSvInIGV(QString)),this,SLOT(openInIGV(QString)));
 		addModelessDialog(dlg);
 	}

@@ -28,6 +28,7 @@ SvWidget::SvWidget(const QStringList& bedpe_file_paths, FilterWidget* filter_wid
 
 	connect(ui->filter_type,SIGNAL(currentIndexChanged(int)),this,SLOT(applyFilters()));
 	connect(ui->filter_qual,SIGNAL(currentIndexChanged(int)),this,SLOT(applyFilters()));
+	connect(ui->filter_geno,SIGNAL(currentIndexChanged(int)),this,SLOT(applyFilters()));
 	connect(ui->filter_text,SIGNAL(textEdited(QString)),this,SLOT(applyFilters()));
 	connect(ui->filter_text_search_type,SIGNAL(currentTextChanged(QString)),this,SLOT(applyFilters()));
 	connect(ui->filter_quality_score,SIGNAL(valueChanged(int)),this,SLOT(applyFilters()));
@@ -142,12 +143,13 @@ void SvWidget::loadSVs(const QString &file_name)
 
 	//set entries for combobox used for filtering SV quality
 	QList<QByteArray> entries = sv_bedpe_file_.annotationDescriptionByID("FILTER").keys();
-
-	if(!entries.contains("PASS")) entries.prepend("PASS");
+	entries.removeAll("PASS");
+	entries.prepend("PASS");
 	entries.prepend("n/a");
-
-	foreach(QByteArray entry,entries) ui->filter_qual->addItem(QString(entry));
-
+	foreach(QByteArray entry, entries)
+	{
+		ui->filter_qual->addItem(QString(entry));
+	}
 
 	//Enable/Disable caller specific filters
 	if(sv_bedpe_file_.analysisType() == BedpeFile::SV_TYPE::DELLY)
@@ -180,9 +182,10 @@ void SvWidget::loadSVs(const QString &file_name)
 void SvWidget::clearGUI()
 {
 	ui->error_label->setHidden(true);
-	ui->number_of_svs->setText("");
-	ui->label_pe_af->setText("");
-	ui->label_sr_af->setText("");
+	ui->label_size->clear();
+	ui->label_pe_af->clear();
+	ui->label_sr_af->clear();
+	ui->number_of_svs->clear();
 
 	//clear info widgets
 	ui->info_a->setRowCount(0);
@@ -197,19 +200,17 @@ void SvWidget::clearGUI()
 	ui->filter_type->setCurrentIndex(0);
 	ui->filter_qual->clear();
 	ui->filter_quality_score->setValue(0);
+	ui->filter_geno->setCurrentIndex(0);
 
 	ui->filter_pe_af->setValue(0);
 	ui->filter_sr_af->setValue(0);
-
-	ui->label_pe_af->clear();
-	ui->label_sr_af->clear();
 
 	ui->ignore_special_chromosomes->setCheckState(Qt::CheckState::Checked);
 
 	ui->filter_text->clear();
 	ui->filter_text_search_type->setCurrentIndex(0);
 
-	ui->roi->setCurrentIndex(0);
+	ui->roi->setCurrentIndex(1); //first is search mode, second is 'none'
 
 	ui->hpo->clear();
 	phenotypes_.clear();
@@ -271,30 +272,73 @@ void SvWidget::applyFilters()
 	}
 
 	//Free text filter
-	if(!ui->filter_text->text().isEmpty() && (ui->filter_text_search_type->currentText() == "contains" || ui->filter_text_search_type->currentText() == "contains not"))
+	QString filter_text_type = ui->filter_text_search_type->currentText().trimmed();
+	QString filter_text = ui->filter_text->text().trimmed();
+	if(!filter_text.isEmpty() && !filter_text_type.isEmpty())
 	{
+		bool contains = filter_text_type == "contains";
+
 		for(int row=0; row<row_count; ++row)
 		{
 			if(!pass[row]) continue;
 
 			bool in_any_item = false;
-
 			for(int c=0;c<ui->svs->columnCount();++c)
 			{
-				QString item =  ui->svs->item(row,c)->text();
-				if(item.contains(ui->filter_text->text(),Qt::CaseInsensitive))
+				if(ui->svs->item(row,c)->text().contains(filter_text, Qt::CaseInsensitive))
 				{
 					in_any_item = true;
 					break;
 				}
 			}
-			if(ui->filter_text_search_type->currentText() == "contains" ) pass[row] = in_any_item;
-			else if(ui->filter_text_search_type->currentText() == "contains not")  pass[row] = !in_any_item;
+
+			if(contains)
+			{
+				pass[row] = in_any_item;
+			}
+			else
+			{
+				pass[row] = !in_any_item;
+			}
+		}
+	}
+
+	//Genotype
+	QString filter_geno = ui->filter_geno->currentText();
+	if(filter_geno!="")
+	{
+		if (filter_geno=="hom")
+		{
+			filter_geno = "1/1";
+		}
+		else if (filter_geno=="het")
+		{
+			filter_geno = "0/1";
+		}
+		else
+		{
+			THROW(ProgrammingException, "Unhandled filter genotype: " + filter_geno);
+		}
+
+		int i_format = colIndexbyName("FORMAT");
+		if(i_format > -1)
+		{
+			for(int row=0; row<row_count; ++row)
+			{
+				if(!pass[row]) continue;
+
+				QByteArray desc = ui->svs->item(row, i_format)->text().toUtf8();
+				QByteArray data = ui->svs->item(row, i_format+1)->text().toUtf8();
+				QByteArray gt = getFormatEntryByKey("GT", desc, data);
+
+				if (gt!=filter_geno) pass[row] = false;
+			}
 		}
 	}
 
 	//SV quality (e.g. PASS, LowFreq etc)
-	if(ui->filter_qual->currentText() != "n/a")
+	QString filter_quality_col = ui->filter_qual->currentText();
+	if(filter_quality_col != "n/a")
 	{
 		int i_qual_filter = colIndexbyName("FILTER");
 		if(i_qual_filter > -1)
@@ -302,13 +346,15 @@ void SvWidget::applyFilters()
 			for(int row=0; row<row_count; ++row)
 			{
 				if(!pass[row]) continue;
-				if(!ui->svs->item(row,i_qual_filter)->text().contains(ui->filter_qual->currentText())) pass[row] = false;
+
+				if(!ui->svs->item(row,i_qual_filter)->text().contains(filter_quality_col)) pass[row] = false;
 			}
 		}
 	}
 
 	//SV quality score
-	if(ui->filter_quality_score->value() != 0)
+	double filter_quality_score = ui->filter_quality_score->value();
+	if(filter_quality_score > 0)
 	{
 		int i_qual_score = colIndexbyName("QUAL");
 		if(i_qual_score != -1)
@@ -317,12 +363,12 @@ void SvWidget::applyFilters()
 			{
 				if(!pass[row]) continue;
 
-				bool is_valid_number = false;
-				double val = ui->svs->item(row,i_qual_score)->text().toDouble(&is_valid_number);
-				if(!is_valid_number) continue;
+				bool ok = false;
+				double val = ui->svs->item(row,i_qual_score)->text().toDouble(&ok);
+				if(!ok) continue;
 
 				//skip values smaller than threshold
-				if(val < (double) ui->filter_quality_score->value()) pass[row] = false;
+				if(val < filter_quality_score) pass[row] = false;
 			}
 		}
 	}
@@ -336,7 +382,7 @@ void SvWidget::applyFilters()
 		for(int row=0; row<row_count; ++row)
 		{
 			if(!pass[row]) continue;
-			double val = alleleFrequency(row,"PR");
+			double val = alleleFrequency(row, "PR");
 			if(val > upper_limit || val < lower_limit) pass[row] = false;
 		}
 	}
@@ -350,7 +396,7 @@ void SvWidget::applyFilters()
 		for(int row=0; row<row_count; ++row)
 		{
 			if(!pass[row]) continue;
-			double val = alleleFrequency(row,"SR");
+			double val = alleleFrequency(row, "SR");
 			if(val > upper_limit || val < lower_limit) pass[row] = false;
 		}
 	}
@@ -555,12 +601,11 @@ void SvWidget::copyToClipboard()
 void SvWidget::SvDoubleClicked(QTableWidgetItem *item)
 {
 	if (item==nullptr) return;
+
 	int row = item->row();
+	QString coords = sv_bedpe_file_[row].positionRange();
 
-	QString coords = ui->svs->item(row,0)->text() + ":" + ui->svs->item(row,1)->text() + "-" + ui->svs->item(row,2)->text();
-	coords.replace("-.","-" + QString::number(ui->svs->item(row,1)->text().toInt()+1));
-
-	emit openSvInIGV(coords); //TODO use type and show whole range if possible
+	emit openSvInIGV(coords);
 }
 
 void SvWidget::disableGUI(const QString& message)
@@ -740,11 +785,15 @@ void SvWidget::SvSelectionChanged()
 	setInfoWidgets("INFO_B",row,ui->info_b);
 	resizeQTableWidget(ui->info_b);
 
+	//size
+	int size = sv_bedpe_file_[row].size();
+	ui->label_size->setText(size==-1 ? "" : "Size: " + QString::number(size));
+
 	//Display Split Read AF of variant
-	ui->label_sr_af->setText("Split Read AF: " + QString::number(alleleFrequency(row,"SR"),'f',2));
+	ui->label_sr_af->setText("Split Read AF: " + QString::number(alleleFrequency(row, "SR"), 'f',2));
 
 	//Display Paired End Read AF of variant
-	ui->label_pe_af->setText("Paired End Read AF: " + QString::number(alleleFrequency(row,"PR"),'f',2));
+	ui->label_pe_af->setText("Paired End Read AF: " + QString::number(alleleFrequency(row, "PR"), 'f',2));
 }
 
 void SvWidget::setInfoWidgets(const QByteArray &name, int row, QTableWidget* widget)
@@ -784,39 +833,40 @@ void SvWidget::showContextMenu(QPoint pos)
 	QModelIndexList rows = ui->svs->selectionModel()->selectedRows();
 	if(rows.count() != 1) return;
 
-	int index = rows.at(0).row();
-
+	//show menu
 	QMenu menu(ui->svs);
-
-	menu.addAction("open in IGV");
-	menu.addAction("open mate in IGV");
-	menu.addAction("open split screen in IGV");
+	QAction* igv_pos1 = menu.addAction("Open position A in IGV");
+	QAction* igv_pos2 = menu.addAction("Open position B in IGV");
+	QAction* igv_split = menu.addAction("Open position A/B in IGV split screen");
+	menu.addSeparator();
+	QAction* copy_pos1 = menu.addAction("Copy position A to clipboard");
+	QAction* copy_pos2 = menu.addAction("Copy position B to clipboard");
 
 	QAction* action = menu.exec(ui->svs->viewport()->mapToGlobal(pos));
-	if(action == nullptr) return;
+	if (action == nullptr) return;
 
-	QString chr = ui->svs->item(index,0)->text();
-	QString start = ui->svs->item(index,1)->text();
-	QString end = ui->svs->item(index,2)->text();
-	if(action->text() == "open in IGV")
+	//open in IGV
+	int index = rows.at(0).row();
+	const BedpeLine& sv = sv_bedpe_file_[index];
+	if (action == igv_pos1)
 	{
-		QString coords = chr + ":" + start + "-" + end;
-		emit(openSvInIGV(coords));
+		emit(openSvInIGV(sv.position1()));
 	}
-
-	QString chr2 = ui->svs->item(index,3)->text();
-	QString start2 = ui->svs->item(index,4)->text();
-	QString end2 = ui->svs->item(index,5)->text();
-	if(action->text() == "open mate in IGV")
+	else if (action == igv_pos2)
 	{
-		QString coords = chr2 + ":" + start2 + "-" + end2;
-		emit(openSvInIGV(coords));
+		emit(openSvInIGV(sv.position2()));
 	}
-
-	if(action->text() == "open split screen in IGV")
+	else if (action == igv_split)
 	{
-		QString coords = chr + ":" + start + "-" + end + " " + chr2 + ":" + start2 + "-" + end2;
-		emit(openSvInIGV(coords));
+		emit(openSvInIGV(sv.position1() + " " + sv.position2()));
+	}
+	else if (action == copy_pos1)
+	{
+		QApplication::clipboard()->setText(sv.position1());
+	}
+	else if (action == copy_pos2)
+	{
+		QApplication::clipboard()->setText(sv.position2());
 	}
 }
 

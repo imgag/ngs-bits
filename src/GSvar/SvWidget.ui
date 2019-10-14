@@ -6,13 +6,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1627</width>
-    <height>872</height>
+    <width>1288</width>
+    <height>800</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>1313</width>
+    <width>0</width>
     <height>800</height>
    </size>
   </property>
@@ -179,7 +179,7 @@
         </size>
        </property>
        <property name="text">
-        <string>Quality filter:</string>
+        <string>Filter column:</string>
        </property>
       </widget>
      </item>
@@ -294,6 +294,9 @@
        <property name="maximum">
         <number>1000</number>
        </property>
+       <property name="singleStep">
+        <number>50</number>
+       </property>
        <property name="value">
         <number>1</number>
        </property>
@@ -301,6 +304,48 @@
      </item>
      <item>
       <spacer name="horizontalSpacer_12">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Fixed</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_16">
+       <property name="text">
+        <string>Genotype:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="filter_geno">
+       <item>
+        <property name="text">
+         <string/>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>het</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>hom</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_13">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -326,6 +371,22 @@
       </widget>
      </item>
      <item>
+      <spacer name="horizontalSpacer_14">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Fixed</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -336,7 +397,7 @@
        <property name="sizeHint" stdset="0">
         <size>
          <width>999999999</width>
-         <height>20</height>
+         <height>16</height>
         </size>
        </property>
       </spacer>
@@ -910,16 +971,23 @@
       <number>3</number>
      </property>
      <item>
+      <widget class="QLabel" name="label_size">
+       <property name="text">
+        <string>size</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QLabel" name="label_sr_af">
        <property name="text">
-        <string/>
+        <string>sr_af</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QLabel" name="label_pe_af">
        <property name="text">
-        <string/>
+        <string>pe_af</string>
        </property>
       </widget>
      </item>
@@ -939,7 +1007,7 @@
      <item>
       <widget class="QLabel" name="number_of_svs">
        <property name="text">
-        <string/>
+        <string>number_of_svs</string>
        </property>
       </widget>
      </item>

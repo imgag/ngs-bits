@@ -55,6 +55,46 @@ bool BedpeLine::intersectsWith(const BedFile& regions) const
 	THROW(ProgrammingException, "Unhandled variant type (int): " + BedpeFile::typeToString(t));
 }
 
+QString BedpeLine::position1() const
+{
+	return chr1().str() + ":" + QString::number(start1()) + "-" + QString::number(end1());
+}
+
+QString BedpeLine::position2() const
+{
+	return chr2().str() + ":" + QString::number(start2()) + "-" + QString::number(end2());
+}
+
+QString BedpeLine::positionRange() const
+{
+	StructuralVariantType t = type();
+	if (t==StructuralVariantType::DEL || t==StructuralVariantType::DUP || t==StructuralVariantType::INV)
+	{
+		return chr1().str() + ":" + QString::number(start1()) + "-" + QString::number(end2());
+	}
+	else if (t==StructuralVariantType::INS || t==StructuralVariantType::BND)
+	{
+		return position1();
+	}
+
+	THROW(ProgrammingException, "Unhandled variant type (int): " + BedpeFile::typeToString(t));
+}
+
+int BedpeLine::size() const
+{
+	StructuralVariantType t = type();
+	if (t==StructuralVariantType::DEL || t==StructuralVariantType::DUP || t==StructuralVariantType::INV)
+	{
+		return end2() - start1();
+	}
+	else if (t==StructuralVariantType::INS || t==StructuralVariantType::BND)
+	{
+		return -1;
+	}
+
+	THROW(ProgrammingException, "Unhandled variant type (int): " + BedpeFile::typeToString(t));
+}
+
 
 BedpeFile::SV_TYPE BedpeFile::analysisType()
 {
