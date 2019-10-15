@@ -660,6 +660,9 @@
          <height>16777215</height>
         </size>
        </property>
+       <property name="contextMenuPolicy">
+        <enum>Qt::CustomContextMenu</enum>
+       </property>
        <property name="readOnly">
         <bool>true</bool>
        </property>

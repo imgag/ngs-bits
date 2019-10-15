@@ -51,6 +51,7 @@ protected slots:
 	void importHPO();
 	void editPhenotypes();
 	void phenotypesChanged();
+	void showPhenotypeContextMenu(QPoint pos);
 
 private:
 	Ui::SvWidget* ui;

@@ -14,10 +14,14 @@ NGSD:
     - sample: import disease group/status from GenLab (sample - disease status: add 'Unclear') - select * FROM v_krankheitsgruppe_pattyp...
 ** Add run overview dialog/tab
 ##### add CNVs to NGSD
-    - import all data from exomes ssHAEv6+7/TruSeq PCR-free genomes
-    - allow setting callset quality
-    - block re-import of CNVs if report config is set
+    - allow setting callset quality (NGSD only)
+    - show plots of qc metrics (NGSD only)
+    - block re-import of CNVs if report config is set for all variant types - allow deleting report config from GSvar
     - allow adding to report config in GSvar (like small variants, but with classification) -  add low-quality CNV calls to NGSD if missing
+    - add annotation of CNVs from NGSD:
+        - # overlapping CNVs (by type gain/loss)
+        - overlapping class 4/5 CNVs
+    - generate IGV tracks with gain/loss for exome/genome
 **** NGSD annotation (LS)
     - export VCF, use VCF for annotation
     - remove NGSDPrecalculate tool and tables 'detected_variant_counts' and 'detected_variant_counts_by_group'
@@ -26,14 +30,13 @@ GSvar:
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 ** replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
 * trio filter: correct PAR region handling (Genetikum)
-*** report variant selection
-    *** add CNV report config
+* report variant selection
     - add gaps report (custom via import) to XML report
         - CCDS +-5 bases!?
         - gap report as XML and additional report of gaps to sanger-validate as TXT
-    - Add 'approved_by' and date to make printing the sheet obsolete
-        - lock editing the report config then?
     - Trio report > trio XML (Anne,Mona)?
+* SV widget
+    - add overlapping genes and allow filtering for comp-hets
 
 Tools:
 - NGSDImportHPO: Add G2P database (https://www.ebi.ac.uk/gene2phenotype) - if HPO people do not include it

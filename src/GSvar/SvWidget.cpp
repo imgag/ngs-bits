@@ -52,6 +52,7 @@ SvWidget::SvWidget(const QStringList& bedpe_file_paths, FilterWidget* filter_wid
 	connect(ui->roi_import, SIGNAL(clicked(bool)), this, SLOT(importROI()));
 
 	connect(ui->hpo, SIGNAL(clicked(QPoint)), this, SLOT(editPhenotypes()));
+	connect(ui->hpo, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showPhenotypeContextMenu(QPoint)));
 	ui->hpo->setEnabled(Settings::boolean("NGSD_enabled", true));
 	connect(ui->hpo_import, SIGNAL(clicked(bool)), this, SLOT(importHPO()));
 
@@ -870,3 +871,21 @@ void SvWidget::showContextMenu(QPoint pos)
 	}
 }
 
+
+void SvWidget::showPhenotypeContextMenu(QPoint pos)
+{
+	//set up
+	QMenu menu;
+	QAction* a_clear = menu.addAction("clear");
+
+
+	//exec
+	QAction* action = menu.exec(ui->hpo->mapToGlobal(pos));
+	if (action==nullptr) return;
+
+	if (action == a_clear)
+	{
+		phenotypes_.clear();
+		phenotypesChanged();
+	}
+}
