@@ -24,12 +24,8 @@
 #include <QToolButton>
 #include <QMimeData>
 #include <QSqlError>
-#include <QBarSet>
-#include <QBarSeries>
-#include <QChart>
 #include <QChartView>
-#include <QBarCategoryAxis>
-
+QT_CHARTS_USE_NAMESPACE
 #include "ReportWorker.h"
 #include "DBAnnotationWorker.h"
 #include "ScrollableTextDialog.h"
@@ -82,7 +78,6 @@
 #include "SampleDiseaseInfoWidget.h"
 #include "QrCodeFactory.h"
 
-QT_CHARTS_USE_NAMESPACE
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -254,7 +249,8 @@ void MainWindow::on_actionCNV_triggered()
 	}
 
 	//open CNV window
-	CnvWidget* list = new CnvWidget(filename_, ui_.filters, het_hit_genes, gene2region_cache_);
+	processedSampleName();
+	CnvWidget* list = new CnvWidget(filename_, variants_.type(), ui_.filters, het_hit_genes, gene2region_cache_);
 	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
 	auto dlg = GUIHelper::createDialog(list, "Copy number variants");
 	addModelessDialog(dlg, true);
@@ -812,33 +808,8 @@ void MainWindow::showAfHistogram()
 		}
 	}
 
-	//create chart
-	QBarSet* set = new QBarSet("Allele frequency");
-	for(int bin=0; bin<hist.binCount(); ++bin)
-	{
-		set->append(hist.binValue(bin, true));
-	}
-	QBarSeries* series = new QBarSeries();
-	series->append(set);
-	QChart* chart = new QChart();
-	chart->addSeries(series);
-	chart->legend()->setVisible(false);
-	chart->createDefaultAxes();
-	chart->axisY()->setTitleText("%");
-	QBarCategoryAxis* x_axis = new QBarCategoryAxis();
-	for(int bin=0; bin<hist.binCount(); ++bin)
-	{
-		double start = hist.startOfBin(bin);
-		x_axis->append(QString::number(start, 'f', 2) + "-" + QString::number(start+hist.binSize(), 'f', 2));
-	}
-	x_axis->setTitleText("Allele frequency");
-	x_axis->setLabelsAngle(90);
-	chart->setAxisX(x_axis);
-
 	//show chart
-	QChartView* view = new QChartView(chart);
-	view->setRenderHint(QPainter::Antialiasing);
-	view->setMinimumSize(800, 600);
+	QChartView* view = GUIHelper::histogramChart(hist, "Allele frequency");
 	auto dlg = GUIHelper::createDialog(view, "Allele frequency histogram");
 	dlg->exec();
 }

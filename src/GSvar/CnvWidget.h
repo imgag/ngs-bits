@@ -18,7 +18,7 @@ class CnvWidget
 	Q_OBJECT
 
 public:
-	CnvWidget(QString gsvar_file, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent = 0);
+	CnvWidget(QString gsvar_file, AnalysisType analysis_type, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent = 0);
 	~CnvWidget();
 
 signals:
@@ -30,6 +30,9 @@ private slots:
 	void copyToClipboard();
 	void showContextMenu(QPoint p);
 	void openLink(int row, int col);
+	void updateQuality();
+	void editQuality();
+	void showCnvHist();
 
 private:
 	void loadCNVs(QString filename);
@@ -40,6 +43,7 @@ private:
 	QTableWidgetItem* createItem(QString text, int alignment = Qt::AlignLeft|Qt::AlignTop);
 
 	Ui::CnvWidget* ui;
+	QString ps_id; //processed sample database ID. '' if unknown of NGSD is disabled.
 	CnvList cnvs;
 	QStringList special_cols;
 	FilterWidget* var_filters;

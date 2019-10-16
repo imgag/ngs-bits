@@ -8,6 +8,8 @@
 #include "NGSD.h"
 #include "Settings.h"
 #include "Log.h"
+#include "ProcessedSampleWidget.h"
+#include "Histogram.h"
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QBitArray>
@@ -16,10 +18,17 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include <QDir>
+#include <QInputDialog>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QChartView>
+QT_CHARTS_USE_NAMESPACE
 
-CnvWidget::CnvWidget(QString gsvar_file, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent)
+
+CnvWidget::CnvWidget(QString gsvar_file, AnalysisType analysis_type, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent)
 	: QWidget(parent)
 	, ui(new Ui::CnvWidget)
+	, ps_id()
 	, cnvs()
 	, special_cols()
 	, var_het_genes(het_hit_genes)
@@ -55,6 +64,15 @@ CnvWidget::CnvWidget(QString gsvar_file, FilterWidget* filter_widget, const Gene
 		addInfoLine("<font color='red'>Error parsing file:\n" + e.message() + "</font>");
 		disableGUI();
 	}
+	//quality
+	if (Settings::boolean("NGSD_enabled", true) && (analysis_type==GERMLINE_SINGLESAMPLE || analysis_type==GERMLINE_TRIO))
+	{
+		ps_id = NGSD().processedSampleId(gsvar_file, false);
+	}
+	ui->ngsd_btn->setMenu(new QMenu());
+	ui->ngsd_btn->menu()->addAction(QIcon(":/Icons/Edit.png"), "Edit quality", this, SLOT(editQuality()))->setEnabled(ps_id!="");
+	ui->ngsd_btn->menu()->addAction("Show CNV count distribution", this, SLOT(showCnvHist()))->setEnabled(ps_id!="");
+	updateQuality();
 
 	//apply filters
 	applyFilters();
@@ -108,7 +126,7 @@ void CnvWidget::cnvDoubleClicked(QTableWidgetItem* item)
 
 void CnvWidget::addInfoLine(QString text)
 {
-	ui->info_box->layout()->addWidget(new QLabel(text));
+	ui->info_messages->layout()->addWidget(new QLabel(text));
 }
 
 void CnvWidget::disableGUI()
@@ -435,6 +453,63 @@ void CnvWidget::openLink(int row, int col)
 	if (url.isEmpty()) return;
 
 	QDesktopServices::openUrl(QUrl(url));
+}
+
+void CnvWidget::updateQuality()
+{
+	QString quality = "n/a";
+	if  (ps_id!="")
+	{
+		quality = NGSD().getValue("SELECT quality FROM cnv_callset WHERE processed_sample_id=" + ps_id).toString();
+	}
+	ui->quality->setEnabled(ps_id!="");
+	ProcessedSampleWidget::styleQualityLabel(ui->quality, quality);
+}
+
+void CnvWidget::editQuality()
+{
+	NGSD db;
+	QStringList qualities = db.getEnum("cnv_callset", "quality");
+
+	bool ok;
+	QString quality = QInputDialog::getItem(this, "Select CNV callset quality", "quality:", qualities, qualities.indexOf(ui->quality->toolTip()), false, &ok);
+	if (!ok) return;
+
+	db.getQuery().exec("UPDATE cnv_callset SET quality='" + quality + "' WHERE processed_sample_id=" + ps_id);
+
+	updateQuality();
+}
+
+void CnvWidget::showCnvHist()
+{
+	//get CNV counts
+	NGSD db;
+	QString sys_id = db.getValue("SELECT processing_system_id FROM processed_sample WHERE id=" + ps_id).toString();
+	SqlQuery query = db.getQuery();
+	query.exec("SELECT cs.quality_metrics FROM cnv_callset cs, processed_sample ps WHERE ps.id=cs.processed_sample_id AND ps.processing_system_id='" + sys_id + "'");
+	QVector<double> cnv_counts;
+	while(query.next())
+	{
+		QJsonDocument qc_metrics = QJsonDocument::fromJson(query.value(0).toByteArray());
+		bool ok = false;
+		int cnv_count = qc_metrics.object().take("high-quality cnvs").toString().toInt(&ok);
+		if (ok)	cnv_counts << cnv_count;
+	}
+
+	//determine median
+	std::sort(cnv_counts.begin(), cnv_counts.end());
+	double median = BasicStatistics::median(cnv_counts, false);
+
+	//create histogram
+	double upper_bound = median * 2.5;
+	Histogram hist(0.0, upper_bound, upper_bound/30);
+	hist.inc(cnv_counts, true);
+
+	//show histogram
+	QChartView* view = GUIHelper::histogramChart(hist, "#CNVs");
+	auto dlg = GUIHelper::createDialog(view, "High-quality CNV distribution");
+	dlg->exec();
+
 }
 
 void CnvWidget::showSpecialTable(QString col, QString text, QByteArray url_prefix)

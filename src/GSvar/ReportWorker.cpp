@@ -620,7 +620,7 @@ void ReportWorker::writeHTML()
 
 				parts << omim;
 			}
-			stream << "<tr><td colspan=\"9\">" << parts.join("<br />") << "</td></tr>" << endl;
+			stream << "<tr><td colspan=\"" << (is_trio ? "10" : "8") << "\">" << parts.join("<br />") << "</td></tr>" << endl;
 		}
 	}
 	stream << "</table>" << endl;
