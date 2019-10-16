@@ -160,11 +160,11 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 			}
 			else if(statement == "LOH")
 			{
-				temp_cnv_row.addCell(3138, "Unklare Funktion / Verlust des Wildtyp-Allels",RtfParagraph().highlight(3));
+				temp_cnv_row.addCell(3138, "Unklare Bedeutung / Verlust des Wildtyp-Allels",RtfParagraph().highlight(3));
 			}
 			else
 			{
-				temp_cnv_row.addCell(3138,"Unklare Funktion");
+				temp_cnv_row.addCell(3138,"Unklare Bedeutung");
 			}
 
 			//set first cell of corresponding cnv (contains gene name) as end of cell over multiple rows
@@ -281,8 +281,8 @@ RtfTable SomaticReportHelper::germlineAlterationTable(const VariantList& somatic
 {
 	RtfTable table;
 
-	table.addRow(RtfTableRow("Unklare Keimbahnveränderungen in Genen mit potentiell relevanten somatischen Varianten.",doc_.maxWidth(),RtfParagraph().setHorizontalAlignment("c").setFontSize(18).setBold(true)).setHeader().setBackgroundColor(5));
-	table.addRow(RtfTableRow({"Gen","Variante","Genotyp","Details","Vererbung","gnomAD","Im Tumor"},{750,1638,800,3450,1000,800,1200},RtfParagraph().setHorizontalAlignment("c").setFontSize(18).setBold(true)).setHeader());
+	table.addRow(RtfTableRow("Unklare Keimbahnveränderungen in Genen mit potentiell relevanten somatischen Varianten.",doc_.maxWidth(),RtfParagraph().setHorizontalAlignment("c").setFontSize(16).setBold(true)).setHeader().setBackgroundColor(5));
+	table.addRow(RtfTableRow({"Gen","Variante","Genotyp","Details","Vererbung","gnomAD","Im Tumor"},{750,1638,800,3450,1000,800,1200},RtfParagraph().setHorizontalAlignment("c").setFontSize(16).setBold(true)).setHeader());
 
 	//Make list of genes that have relevant somatic alterations
 	GeneSet genes_with_somatic_alterations;
@@ -351,11 +351,15 @@ RtfTable SomaticReportHelper::germlineAlterationTable(const VariantList& somatic
 
 	table.setUniqueBorder(1,"brdrhair",4);
 
-	if(table.count() == 2)
+	table.addRow(RtfTableRow("Diese Tabelle enthält unklare Veränderungen, deren Pathogenität weder mit hoher Wahrscheinlichkeit angenommen noch ausgeschlossen werden kann. Die Tabelle enthält nur Varianten in Genen mit potentiell relevanten somatischen Veränderungen.",{doc_.maxWidth()},RtfParagraph().setFontSize(14).setHorizontalAlignment("j")));
+
+
+	if(table.count() == 3)
 	{
+		table.removeRow(2);
 		table.removeRow(1);
 		table.removeRow(0);
-		table.addRow(RtfTableRow("Es wurden keine unklaren Keimbahnveränderungen in den Genen aus der ersten Tabelle nachgewiesen.",doc_.maxWidth(),RtfParagraph().setHorizontalAlignment("l").setFontSize(14)));
+		table.addRow(RtfTableRow("Es wurden in der Normalprobe keine weiteren unklaren bzw. pathogenen Varianten in Genen mit potentiell therapierelevanten somatischen Varianten nachgewiesen.",doc_.maxWidth(),RtfParagraph().setHorizontalAlignment("l").setFontSize(18)));
 		table.setUniqueBorder(0);
 	}
 
@@ -369,7 +373,7 @@ RtfTable SomaticReportHelper::createCnvTable()
 
 	//Table Header
 	cnv_table.addRow(RtfTableRow({"Chromosomale Aberrationen"},doc_.maxWidth(),RtfParagraph().setHorizontalAlignment("c").setBold(true)).setBackgroundColor(5).setHeader());
-	cnv_table.addRow(RtfTableRow({"Position","CNV","Typ","CN","Anteil Probe","Gene"},{1738,962,800,400,700,5038},RtfParagraph().setHorizontalAlignment("c").setBold(true)).setHeader());
+	cnv_table.addRow(RtfTableRow({"Position","CNV","Typ","CN","Anteil Probe","Gene"},{1700,1000,800,400,700,5038},RtfParagraph().setHorizontalAlignment("c").setBold(true)).setHeader());
 
 	RtfParagraph header_format;
 	header_format.setBold(true);
@@ -412,7 +416,7 @@ RtfTable SomaticReportHelper::createCnvTable()
 		QList<RtfSourceCode> coords;
 		coords << RtfText(variant.chr().str()).setFontSize(18).RtfCode();
 		coords << QByteArray::number(variant.start() == 0 ? 1 : variant.start()) + "-" + QByteArray::number(variant.end());
-		temp_row.addCell(coords,1738);
+		temp_row.addCell(coords,1700);
 		temp_row.last().format().setFontSize(14);
 
 
@@ -420,25 +424,25 @@ RtfTable SomaticReportHelper::createCnvTable()
 		double tumor_copy_number_change = variant.annotations().at(cnv_index_tumor_cn_change_).toDouble();
 		if(tumor_copy_number_change > 2.)
 		{
-			temp_row.addCell(962,"AMP");
+			temp_row.addCell(1000,"AMP");
 		}
 		else if(tumor_copy_number_change < 2.)
 		{
 			QByteArray del_text = "DEL";
 			if(tumor_copy_number_change == 0.) del_text += " (hom)";
 			else if(tumor_copy_number_change == 1.) del_text += " (het)";
-			temp_row.addCell(962,del_text);
+			temp_row.addCell(1000,del_text);
 		}
 		else
 		{
 			//check whether information about loss of heterocigosity is available
 			if(i_cnv_state != -1 && variant.annotations().at(i_cnv_state) == "LOH")
 			{
-				temp_row.addCell(962,"LOH");
+				temp_row.addCell(1000,"LOH");
 			}
 			else
 			{
-				temp_row.addCell(962,"NA");
+				temp_row.addCell(1000,"NA");
 				temp_row.last().format().highlight(3);
 			}
 		}
@@ -1820,7 +1824,7 @@ QByteArray SomaticReportHelper::CgiDriverDescription(QByteArray raw_cgi_input)
 
 	if(raw_cgi_input.contains("predicted driver")) out = "Treiber (vorhergesagt)";
 	else if(raw_cgi_input.contains("known in")) out = "Treiber (bekannt)";
-	else out = "Unklare Funktion";
+	else out = "Unklare Bedeutung";
 
 	return out;
 }
@@ -1993,8 +1997,8 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	//Calc percentage of CNV altered genome
 	double cnv_altered_percentage = cnvs_filtered_.totalCnvSize() / 3101788170. * 100;
 	if(cnv_altered_percentage >= 0.01)
-	{
-		general_info_table.addRow(RtfTableRow({"CNV-Last:", QByteArray::number(cnv_altered_percentage,'f',1) + "\%"},{2500,7137}).setBorders(1,"brdrhair",4));
+	{				
+		general_info_table.addRow(RtfTableRow({"CNV-Last:", QByteArray::number(cnv_altered_percentage,'f',1) + "\% " + RtfText("(Es gibt Hinweise auf eine chromosomale Instabilität.)").highlight(3).RtfCode()},{2500,7137}).setBorders(1,"brdrhair",4));
 	}
 	else
 	{
@@ -2007,7 +2011,7 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	/********************************
 	 * RELEVANT SOMATIC ALTERATIONS *
 	 ********************************/
-	doc_.addPart(RtfParagraph("In der nachfolgenden Übersicht finden Sie alle Varianten, die durch Literaturrecherche und Analysen von Datenbanken als funktionell relevant eingestuft wurden. Alle aufgelisteten somatischen Veränderungen sind, wenn nicht anderweitig vermerkt, im Normalgewebe nicht nachweisbar.").setHorizontalAlignment("j").RtfCode());
+	doc_.addPart(RtfParagraph("In der nachfolgenden Übersicht finden Sie alle Varianten, die durch Literaturrecherche und Analysen von Datenbanken als funktionell relevant eingestuft wurden (d.h. bekannte Treiber oder mittels probabilistischer Methoden als Treiber vorhergesagt). Alle aufgelisteten somatischen Veränderungen sind, wenn nicht anderweitig vermerkt, im Normalgewebe nicht nachweisbar.").setHorizontalAlignment("j").RtfCode());
 	doc_.addPart(RtfParagraph("In der untersuchten Tumorprobe konnte eine Vielzahl numerischer Chromosomenaberrationen in Form von Amplifikationen und Deletionen größerer chromosomaler Bereiche und ganzer Chromosomen nachgewiesen werden. In der nachfolgenden Liste befinden sich alle funktionell relevanten Kopienzahlveränderungen.").setHorizontalAlignment("j").RtfCode());
 	doc_.newPage();
 	doc_.addPart(RtfParagraph("Potentiell relevante somatische Veränderungen:").setBold(true).setIndent(0,0,0).setSpaceBefore(250).RtfCode());
@@ -2055,8 +2059,8 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 
 	RtfSourceCode snv_expl  = RtfText("Anteil:").setBold(true).setFontSize(14).RtfCode() + " Anteil der Allele mit der gelisteten Variante (SNV, INDEL) bzw. Anteil der Zellen mit der entsprechenden Kopienzahlvariante (CNV). ";
 	snv_expl += RtfText("Beschreibung:").setFontSize(14).setBold(true).RtfCode() + " Klassifikation der Varianten und ggf. Bewertung der Genfunktion als Onkogen bzw. Tumorsuppressorgen (TSG). ";
-	snv_expl += "Erweiterte Legende und Abkürzungen siehe Anlage 1. ";
-	snv_expl += RtfText("§ Es wurden weitere Varianten unklarer Signifikanz in der Normalprobe nachgewiesen (s. Anlage 1).").highlight(3).setFontSize(14).RtfCode();
+	snv_expl += "Erweiterte Legende und Abkürzungen siehe unten. ";
+	snv_expl += RtfText("§ Es wurden weitere Varianten unklarer Signifikanz in der Normalprobe nachgewiesen (siehe Anlage unten).").highlight(3).setFontSize(14).RtfCode();
 	doc_.addPart(RtfParagraph(snv_expl).setFontSize(14).setIndent(0,0,0).setHorizontalAlignment("j").setLineSpacing(175).RtfCode());
 
 	doc_.addPart(RtfParagraph(" ").RtfCode());
@@ -2092,12 +2096,12 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 		}
 		else
 		{
-			doc_.addPart(RtfParagraph("Es wurde keines der untersuchten Virusgene nachgewiesen.").RtfCode());
+			doc_.addPart(RtfParagraph("Es wurde keine der untersuchten Virus-DNA nachgewiesen.").RtfCode());
 		}
 	}
 	else
 	{
-		doc_.addPart(RtfParagraph("Es wurden weder Fusionen noch untersuchte Virusgene nachgewiesen.").RtfCode());
+		doc_.addPart(RtfText("Es wurden weder Fusionen noch untersuchte Virus-DNA nachgewiesen.").RtfCode());
 	}
 	doc_.addPart(RtfParagraph("").RtfCode());
 
@@ -2108,10 +2112,27 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	 *********************/
 	doc_.addPart(RtfParagraph("Alle nachgewiesenen somatischen Veränderungen:").setBold(true).setSpaceAfter(45).setFontSize(18).RtfCode());
 
-	doc_.addPart(somaticAlterationTable(snv_variants_,cnvs_filtered_,true).setUniqueBorder(1,"brdrhair",4).RtfCode());
+	//SNVs shall be divided into driver first, then alphabetically
+	VariantList snvs_reordered;
+	snvs_reordered.copyMetaData(snv_variants_);
+	for(int i=0; i<snv_variants_.count(); ++i)
+	{
+		if(snv_variants_[i].annotations().at(snv_index_cgi_driver_statement_).contains("driver") || snv_variants_[i].annotations().at(snv_index_cgi_driver_statement_).contains("known"))
+		{
+			snvs_reordered.append(snv_variants_[i]);
+		}
+	}
+	for(int i=0; i<snv_variants_.count(); ++i)
+	{
+		if(snv_variants_[i].annotations().at(snv_index_cgi_driver_statement_).contains("driver")) continue;
+		if(snv_variants_[i].annotations().at(snv_index_cgi_driver_statement_).contains("known")) continue;
+		snvs_reordered.append(snv_variants_[i]);
+	}
+
+	doc_.addPart(somaticAlterationTable(snvs_reordered,cnvs_filtered_,true).setUniqueBorder(1,"brdrhair",4).RtfCode());
 	RtfSourceCode desc = "Diese Tabelle enthält sämtliche in der Tumorprobe nachgewiesenen SNVs und INDELs, unabhängig von der funktionellen Einschätzung und der abzurechnenden Zielregion. Sie enthält ferner alle Kopienzahlveränderungen in Genen, die als Treiber eingestuft wurden. Gene mit potentiell relevanten somatischen Veränderungen sind fett markiert. ";
 
-	desc.append(RtfText("§ Es wurden weitere Varianten unklarer Signifikanz in der Normalprobe nachgewiesen (s. Anlage 1).").highlight(3).setFontSize(14).RtfCode());
+	desc.append(RtfText("§ Es wurden weitere Varianten unklarer Signifikanz in der Normalprobe nachgewiesen (siehe Anlage unten).").highlight(3).setFontSize(14).RtfCode());
 
 	doc_.addPart(RtfParagraph(desc).setFontSize(14).setIndent(0,0,0).setHorizontalAlignment("j").setLineSpacing(175).RtfCode());
 
@@ -2165,10 +2186,23 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	}
 	else
 	{
-		virus_table.addRow(RtfTableRow("Es wurde keines der untersuchten Virusgene nachgewiesen.",doc_.maxWidth()));
+		virus_table.addRow(RtfTableRow("Es wurde keine untersuchte Virus-DNA nachgewiesen.",doc_.maxWidth()));
 		virus_table.setUniqueBorder(1,"brdrhair",4);
 	}
 	doc_.addPart(virus_table.RtfCode());
+	doc_.addPart(RtfParagraph("").RtfCode());
+
+
+	/**************************
+	 * PHARMACOGENOMICS TABLE *
+	 **************************/
+	doc_.addPart(pharamacogeneticsTable().RtfCode());
+	doc_.addPart(RtfParagraph("").RtfCode());
+
+	/*********************
+	 * GERMLINE VARIANTS *
+	 *********************/
+	doc_.addPart(germlineAlterationTable(snvs_to_be_printed).RtfCode());
 	doc_.addPart(RtfParagraph("").RtfCode());
 
 	/******************
@@ -2189,16 +2223,6 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 
 	doc_.addPart(cgi_acronyms_table.RtfCode());
 
-	doc_.addPart(RtfParagraph("").RtfCode());
-
-
-	doc_.addPart(pharamacogeneticsTable().RtfCode());
-	doc_.addPart(RtfParagraph("").RtfCode());
-
-	/*********************
-	 * GERMLINE VARIANTS *
-	 *********************/
-	doc_.addPart(germlineAlterationTable(snvs_to_be_printed).RtfCode());
 	doc_.addPart(RtfParagraph("").RtfCode());
 
 
