@@ -19,8 +19,6 @@
 #include <QUrl>
 #include <QDir>
 #include <QInputDialog>
-#include <QJsonDocument>
-#include <QJsonObject>
 #include <QChartView>
 QT_CHARTS_USE_NAMESPACE
 
@@ -40,8 +38,20 @@ CnvWidget::CnvWidget(QString gsvar_file, AnalysisType analysis_type, FilterWidge
 	connect(ui->copy_clipboard, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
 	connect(ui->filter_widget, SIGNAL(filtersChanged()), this, SLOT(applyFilters()));
 
+	//determine processed sample ID
+	if (Settings::boolean("NGSD_enabled", true) && (analysis_type==GERMLINE_SINGLESAMPLE || analysis_type==GERMLINE_TRIO))
+	{
+		ps_id = NGSD().processedSampleId(gsvar_file, false);
+	}
+
 	//set small variant filters
 	ui->filter_widget->setVariantFilterWidget(filter_widget);
+
+	//set up NGSD menu (before loading CNV - QC actions are inserted then)
+	ui->ngsd_btn->setMenu(new QMenu());
+	ui->ngsd_btn->menu()->addAction(QIcon(":/Icons/Edit.png"), "Edit quality", this, SLOT(editQuality()));
+	ui->ngsd_btn->menu()->addSeparator();
+	ui->ngsd_btn->setEnabled(ps_id!="");
 
 	//load CNV data file
 	QFileInfo file_info(gsvar_file);
@@ -64,14 +74,8 @@ CnvWidget::CnvWidget(QString gsvar_file, AnalysisType analysis_type, FilterWidge
 		addInfoLine("<font color='red'>Error parsing file:\n" + e.message() + "</font>");
 		disableGUI();
 	}
+
 	//quality
-	if (Settings::boolean("NGSD_enabled", true) && (analysis_type==GERMLINE_SINGLESAMPLE || analysis_type==GERMLINE_TRIO))
-	{
-		ps_id = NGSD().processedSampleId(gsvar_file, false);
-	}
-	ui->ngsd_btn->setMenu(new QMenu());
-	ui->ngsd_btn->menu()->addAction(QIcon(":/Icons/Edit.png"), "Edit quality", this, SLOT(editQuality()))->setEnabled(ps_id!="");
-	ui->ngsd_btn->menu()->addAction("Show CNV count distribution", this, SLOT(showCnvHist()))->setEnabled(ps_id!="");
 	updateQuality();
 
 	//apply filters
@@ -127,12 +131,19 @@ void CnvWidget::cnvDoubleClicked(QTableWidgetItem* item)
 void CnvWidget::addInfoLine(QString text)
 {
 	ui->info_messages->layout()->addWidget(new QLabel(text));
+
+	if (text.contains(":"))
+	{
+		QString metric = text.split(":")[0].replace("#", "").trimmed();
+		ui->ngsd_btn->menu()->addAction("Show distribution: " + metric, this, SLOT(showQcMetricHistogram()));
+	}
 }
 
 void CnvWidget::disableGUI()
 {
 	ui->cnvs->setEnabled(false);
 	ui->filter_widget->setEnabled(false);
+	ui->ngsd_btn->setEnabled(false);
 }
 
 void CnvWidget::loadCNVs(QString filename)
@@ -480,36 +491,36 @@ void CnvWidget::editQuality()
 	updateQuality();
 }
 
-void CnvWidget::showCnvHist()
+void CnvWidget::showQcMetricHistogram()
 {
-	//get CNV counts
+	//determine metrics name
+	QAction* action = qobject_cast<QAction*>(sender());
+	if (action==nullptr || !action->text().contains(":")) return;
+	QString metric_name = action->text().split(":")[1].trimmed();
+
+	//get metrics
 	NGSD db;
 	QString sys_id = db.getValue("SELECT processing_system_id FROM processed_sample WHERE id=" + ps_id).toString();
-	SqlQuery query = db.getQuery();
-	query.exec("SELECT cs.quality_metrics FROM cnv_callset cs, processed_sample ps WHERE ps.id=cs.processed_sample_id AND ps.processing_system_id='" + sys_id + "'");
-	QVector<double> cnv_counts;
-	while(query.next())
+	QVector<double> metrics = db.cnvCallsetMetrics(sys_id, metric_name);
+	if (metrics.isEmpty())
 	{
-		QJsonDocument qc_metrics = QJsonDocument::fromJson(query.value(0).toByteArray());
-		bool ok = false;
-		int cnv_count = qc_metrics.object().take("high-quality cnvs").toString().toInt(&ok);
-		if (ok)	cnv_counts << cnv_count;
+		QMessageBox::information(this, "CNV callset QC metrics", "No (numeric) QC entries found for metric '" + metric_name + "'!");
+		return;
 	}
 
 	//determine median
-	std::sort(cnv_counts.begin(), cnv_counts.end());
-	double median = BasicStatistics::median(cnv_counts, false);
+	std::sort(metrics.begin(), metrics.end());
+	double median = BasicStatistics::median(metrics, false);
 
 	//create histogram
 	double upper_bound = median * 2.5;
 	Histogram hist(0.0, upper_bound, upper_bound/30);
-	hist.inc(cnv_counts, true);
+	hist.inc(metrics, true);
 
 	//show histogram
 	QChartView* view = GUIHelper::histogramChart(hist, "#CNVs");
 	auto dlg = GUIHelper::createDialog(view, "High-quality CNV distribution");
 	dlg->exec();
-
 }
 
 void CnvWidget::showSpecialTable(QString col, QString text, QByteArray url_prefix)

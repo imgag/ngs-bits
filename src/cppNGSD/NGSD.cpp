@@ -12,6 +12,8 @@
 #include <QSqlIndex>
 #include <QSqlField>
 #include <QSqlError>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include "cmath"
 
 QMap<QString, TableInfo> NGSD::infos_;
@@ -1581,6 +1583,23 @@ QString NGSD::analysisJobFolder(int job_id)
 		first = false;
 	}
 	output += "/";
+
+	return output;
+}
+
+QVector<double> NGSD::cnvCallsetMetrics(QString processing_system_id, QString metric_name)
+{
+	QVector<double> output;
+
+	SqlQuery query = getQuery();
+	query.exec("SELECT cs.quality_metrics FROM cnv_callset cs, processed_sample ps WHERE ps.id=cs.processed_sample_id AND ps.processing_system_id='" + processing_system_id + "'");
+	while(query.next())
+	{
+		QJsonDocument qc_metrics = QJsonDocument::fromJson(query.value(0).toByteArray());
+		bool ok = false;
+		int cnv_count = qc_metrics.object().take(metric_name).toString().toDouble(&ok);
+		if (ok)	output << cnv_count;
+	}
 
 	return output;
 }

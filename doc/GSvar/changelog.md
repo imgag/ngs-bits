@@ -1,5 +1,8 @@
 # GSvar change log
 
+### 2019_09-42 (16.10.19)
+- Structural variants: Added target region, phenotype filter and genotype filter.
+
 ### 2019_09-29 (08.10.19)
 - Report configuration: last edit date/user is now stored and shown.
 

@@ -537,6 +537,8 @@ public:
 	///Returns the folder of the analysis job.
 	QString analysisJobFolder(int job_id);
 
+	///Returns quality metrics for CNV callsets
+	QVector<double> cnvCallsetMetrics(QString processing_system_id, QString metric_name);
 
 	///Returns the target file path (or sub-panel folder)
 	static QString getTargetFilePath(bool subpanels = false, bool windows = true);

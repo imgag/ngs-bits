@@ -74,7 +74,7 @@ void ProcessedSampleWidget::styleQualityLabel(QLabel* label, const QString& qual
 	label->setPixmap(QPixmap(filename));
 
 	//tooltip
-	label->setToolTip("quality: " + quality);
+	label->setToolTip(quality);
 }
 
 void ProcessedSampleWidget::updateGUI()

@@ -32,7 +32,7 @@ private slots:
 	void openLink(int row, int col);
 	void updateQuality();
 	void editQuality();
-	void showCnvHist();
+	void showQcMetricHistogram();
 
 private:
 	void loadCNVs(QString filename);
