@@ -78,6 +78,9 @@ private:
 	QDateTime created_at_;
 
 	bool modified_;
+
+	//sort by variant index
+	void sortByPosition();
 };
 
 #endif // REPORTCONFIGURATION_H

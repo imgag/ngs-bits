@@ -53,7 +53,7 @@ ReportConfiguration::ReportConfiguration()
 
 }
 
-const QList<ReportVariantConfiguration>&ReportConfiguration::variantConfig() const
+const QList<ReportVariantConfiguration>& ReportConfiguration::variantConfig() const
 {
 	return variant_config_;
 }
@@ -111,6 +111,7 @@ bool ReportConfiguration::set(const ReportVariantConfiguration& config)
 		}
 	}
 	variant_config_ << config;
+	sortByPosition();
 
 	return false;
 }
@@ -159,5 +160,10 @@ QDateTime ReportConfiguration::createdAt() const
 void ReportConfiguration::setCreatedAt(QDateTime time)
 {
 	created_at_ = time;
+}
+
+void ReportConfiguration::sortByPosition()
+{
+	std::sort(variant_config_.begin(), variant_config_.end(), [](const ReportVariantConfiguration& a, const ReportVariantConfiguration& b){return a.variant_index < b.variant_index;});
 }
 

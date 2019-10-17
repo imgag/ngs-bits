@@ -82,6 +82,7 @@ QT_CHARTS_USE_NAMESPACE
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
+	, ngsd_enabled_(Settings::boolean("NGSD_enabled", true))
 	, var_last_(-1)
 	, busy_dialog_(nullptr)
 	, filename_()
@@ -501,7 +502,7 @@ void MainWindow::delayedInizialization()
 		{
 			loadFile(arg1);
 		}
-		else if (Settings::boolean("NGSD_enabled", true)) //processed sample name (via NGSD)
+		else if (ngsd_enabled_) //processed sample name (via NGSD)
 		{
 			NGSD db;
 			if (db.processedSampleId(arg1, false)!="")
@@ -526,8 +527,7 @@ void MainWindow::variantCellDoubleClicked(int row, int /*col*/)
 
 void MainWindow::variantHeaderDoubleClicked(int row)
 {
-	bool ngsd_enabled = Settings::boolean("NGSD_enabled", true);
-	if (!ngsd_enabled) return;
+	if (!ngsd_enabled_) return;
 
 	int var_index = ui_.vars->rowToVariantIndex(row);
 	editVariantReportConfiguration(var_index);
@@ -1173,7 +1173,7 @@ void MainWindow::loadFile(QString filename)
 	timer.start();
 
 	//store report config if modified
-	if (report_settings_.report_config.isModified())
+	if (ngsd_enabled_ && report_settings_.report_config.isModified())
 	{
 		int button = QMessageBox::question(this, "Store report configuration", "You have modified the report configuration for this sample.\nIf you don't store it in the NGSD, the information will be lost!\n\nDo you want to store it?",
 										   QMessageBox::Yes,
@@ -1269,8 +1269,7 @@ void MainWindow::loadFile(QString filename)
 	//load report config
 	if (variants_.type()==GERMLINE_SINGLESAMPLE || variants_.type()==GERMLINE_TRIO)
 	{
-		bool ngsd_enabled = Settings::boolean("NGSD_enabled", true);
-		if (ngsd_enabled)
+		if (ngsd_enabled_)
 		{
 			NGSD db;
 			QString processed_sample_id = db.processedSampleId(processedSampleName(), false);
@@ -1539,6 +1538,7 @@ void MainWindow::storeReportConfig()
 {
 	//check if applicable
 	if (filename_=="") return;
+	if (!ngsd_enabled_) return;
 
 	AnalysisType type = variants_.type();
 	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO) return;
@@ -1570,6 +1570,9 @@ void MainWindow::storeReportConfig()
 
 void MainWindow::generateVariantSheet()
 {
+	//store variant config
+	storeReportConfig();
+
 	//get filename
 	QString base_name = processedSampleName();
 	QString folder = Settings::string("gsvar_report_archive");
@@ -1856,6 +1859,8 @@ void MainWindow::printVariantSheetRow(QTextStream& stream, const ReportVariantCo
 void MainWindow::generateReport()
 {
 	if (variants_.count()==0) return;
+
+	storeReportConfig();
 
 	//check if this is a germline or somatic
 	AnalysisType type = variants_.type();
@@ -2616,7 +2621,7 @@ void MainWindow::dropEvent(QDropEvent* e)
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
-	if (report_settings_.report_config.isModified())
+	if (ngsd_enabled_ && report_settings_.report_config.isModified())
 	{
 		int button = QMessageBox::question(this, "Store report configuration", "You have modified that report configuration for this sample.\nIf you don't store it in the NGSD, the information will be lost!\n\nDo you want to store it?",
 										   QMessageBox::Yes,
@@ -2694,8 +2699,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 
 void MainWindow::varHeaderContextMenu(QPoint pos)
 {
-	bool ngsd_enabled = Settings::boolean("NGSD_enabled", true);
-	if (!ngsd_enabled) return;
+	if (!ngsd_enabled_) return;
 
 	//get variant index
 	int row = ui_.vars->verticalHeader()->visualIndexAt(pos.ry());
@@ -2727,7 +2731,6 @@ void MainWindow::varHeaderContextMenu(QPoint pos)
 void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 {
 	//init
-	bool ngsd_enabled = Settings::boolean("NGSD_enabled", true);
 	const Variant& variant = variants_[index];
 	int i_gene = variants_.annotationIndexByName("gene", true, true);
 	QStringList genes = QString(variant.annotations()[i_gene]).split(',', QString::SkipEmptyParts);
@@ -2740,8 +2743,8 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	QMenu menu(ui_.vars);
 
 	//report configuration
-	menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration")->setEnabled(ngsd_enabled);
-	menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration")->setEnabled(ngsd_enabled && report_settings_.report_config.exists(VariantType::SNVS_INDELS, index));
+	menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration")->setEnabled(ngsd_enabled_);
+	menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration")->setEnabled(ngsd_enabled_ && report_settings_.report_config.exists(VariantType::SNVS_INDELS, index));
 	menu.addSeparator();
 
 	//gene info
@@ -2753,7 +2756,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 		{
 			sub_menu->addAction(g);
 		}
-		sub_menu->setEnabled(ngsd_enabled);
+		sub_menu->setEnabled(ngsd_enabled_);
 	}
 
 	//HGMD
@@ -2848,7 +2851,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	sub_menu = menu.addMenu(QIcon("://Icons/LOVD.png"), "LOVD");
 	sub_menu->addAction("Find in LOVD");
 	action = sub_menu->addAction("Publish in LOVD");
-	action->setEnabled(ngsd_enabled);
+	action->setEnabled(ngsd_enabled_);
 
 	//MitoMap
 	if (variant.chr().isM())
@@ -3583,27 +3586,26 @@ void MainWindow::updateIGVMenu()
 
 void MainWindow::updateNGSDSupport()
 {
-	bool ngsd_enabled = Settings::boolean("NGSD_enabled", true);
     bool target_file_folder_set = Settings::string("target_file_folder_windows")!="" && Settings::string("target_file_folder_linux")!="";
 
 	//toolbar
-	ui_.report_btn->setEnabled(ngsd_enabled);
-	ui_.actionNGSDAnnotation->setEnabled(ngsd_enabled);
-	ui_.actionAnalysisStatus->setEnabled(ngsd_enabled);
-	ui_.actionReanalyze->setEnabled(ngsd_enabled);
-	ui_.actionGapsRecalculate->setEnabled(ngsd_enabled);
-	ui_.actionGeneSelector->setEnabled(ngsd_enabled);
-	ui_.actionOpenProcessedSampleTabByName->setEnabled(ngsd_enabled);
-	ui_.actionOpenSequencingRunTabByName->setEnabled(ngsd_enabled);
-    ui_.actionOpenGeneTabByName->setEnabled(ngsd_enabled);
+	ui_.report_btn->setEnabled(ngsd_enabled_);
+	ui_.actionNGSDAnnotation->setEnabled(ngsd_enabled_);
+	ui_.actionAnalysisStatus->setEnabled(ngsd_enabled_);
+	ui_.actionReanalyze->setEnabled(ngsd_enabled_);
+	ui_.actionGapsRecalculate->setEnabled(ngsd_enabled_);
+	ui_.actionGeneSelector->setEnabled(ngsd_enabled_);
+	ui_.actionOpenProcessedSampleTabByName->setEnabled(ngsd_enabled_);
+	ui_.actionOpenSequencingRunTabByName->setEnabled(ngsd_enabled_);
+	ui_.actionOpenGeneTabByName->setEnabled(ngsd_enabled_);
 
 	//NGSD menu
-	ui_.menuNGSD->setEnabled(ngsd_enabled);
-	ui_.actionDesignSubpanel->setEnabled(ngsd_enabled && target_file_folder_set);
+	ui_.menuNGSD->setEnabled(ngsd_enabled_);
+	ui_.actionDesignSubpanel->setEnabled(ngsd_enabled_ && target_file_folder_set);
 
 	//other actions
-	ui_.actionOpenByName->setEnabled(ngsd_enabled);
-	ui_.ps_details->setEnabled(ngsd_enabled);
+	ui_.actionOpenByName->setEnabled(ngsd_enabled_);
+	ui_.ps_details->setEnabled(ngsd_enabled_);
 }
 
 void MainWindow::openRecentFile()

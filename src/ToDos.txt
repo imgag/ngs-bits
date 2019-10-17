@@ -25,8 +25,6 @@ NGSD:
     - remove NGSDPrecalculate tool and tables 'detected_variant_counts' and 'detected_variant_counts_by_group'
 
 GSvar:
-##### Store report config when report or variant sheet is created
-##### Order variants in variant sheet and report (genomic coordinates) - DX193125  FAT4
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 ** replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
 * trio filter: correct PAR region handling (Genetikum)
