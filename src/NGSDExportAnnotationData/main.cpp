@@ -368,8 +368,11 @@ private:
 						QByteArray new_ref_seq, new_obs_seq;
 						if (variant.start() != 1)
 						{
-							// update position
-							variant.setStart(variant.start() - 1);
+							// update position for deletion
+							if (variant.obs() == "-")
+							{
+								variant.setStart(variant.start() - 1);
+							}
 
 							// add base before ref and alt sequence
 							Sequence previous_base = reference_file.seq(variant.chr(),
@@ -627,8 +630,13 @@ private:
 						QByteArray new_ref_seq, new_obs_seq;
 						if (variant.start() != 1)
 						{
-							// update position
-							variant.setStart(variant.start() - 1);
+
+							// update position for deletion
+							if (variant.obs() == "-")
+							{
+								variant.setStart(variant.start() - 1);
+							}
+
 
 							// add base before ref and alt sequence
 							Sequence previous_base = reference_file.seq(variant.chr(),

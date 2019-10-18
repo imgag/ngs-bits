@@ -28,5 +28,5 @@
 ##INFO=<ID=SOM_P,Number=.,Type=String,Description="Project names of project containing this somatic variant in the NGSD.">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
 chr1	62728784	1	A	G	.	.	SOM_C=1;SOM_P=First project
-chr2	48032739	3	G	GT	.	.	SOM_C=1;SOM_P=Second project
+chr2	48032740	3	A	AT	.	.	SOM_C=1;SOM_P=Second project
 chr3	142277575	2	A	T	.	.	SOM_C=2;SOM_P=First project,Second project
