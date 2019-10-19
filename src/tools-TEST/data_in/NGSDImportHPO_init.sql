@@ -61,3 +61,8 @@ INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `type`) VALUES
 	('102651', '8912', 'PHB', 'prohibitin', 'protein-coding gene'),
 	('104619', '9826', 'RAD54L', 'RAD54 like (S. cerevisiae)', 'protein-coding gene'),
 	('118673', '12830', 'XRCC3', 'X-ray repair cross complementing 3', 'protein-coding gene');
+	
+	
+
+INSERT INTO `gene_alias` (`gene_id`, `symbol`, `type`) VALUES
+(104236, 'PTEN_ALT', 'synonym');
