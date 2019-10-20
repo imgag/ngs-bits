@@ -36,6 +36,7 @@ public:
 		//optional
 		addFloat("min_dp", "Minimum depth of the processed sample.", true, 0.0);
 		addFloat("max_cnvs", "Maximum number of CNVs per sample.", true, 0.0);
+		addFloat("min_af", "Minimum allele frequency of output CNV ranges.", true, 0.01);
 		addOutfile("stats", "Statistics and logging output. If unset, writes to STDOUT", true);
 		addFlag("test", "Uses the test database instead of on the production database.");
 
@@ -57,7 +58,7 @@ public:
 		while(i_end+1 < cnv_count && BasicStatistics::rangeOverlaps(start, end, cnvs[i_end+1].start, cnvs[i_end+1].end))
 		{
 			++i_end;
-			end = cnvs[i_end].end;
+			end = std::max(end, cnvs[i_end].end);
 		}
 
 		return true;
@@ -74,19 +75,20 @@ public:
 		QTextStream stream2(stats.data());
 		double min_dp = getFloat("min_dp");
 		double max_cnvs = getFloat("max_cnvs");
+		double min_af = getFloat("min_af");
+		if (max_cnvs==0.0) max_cnvs = std::numeric_limits<double>::max();
 
 		//check that system is valid
 		QVariant tmp = db.getValue("SELECT id FROM processing_system WHERE name_short=:0", true, system).toString();
 		if (tmp.isNull())
 		{
-			THROW(DatabaseException, "Invalid processing system short name '" + system + ".\nValid names are: " + db.getValues("SELECT name_short FROM processing_system ORDER BY name_short ASC").join(", "));
+			THROW(DatabaseException, "Invalid processing system short name '" + system + "'.\nValid names are: " + db.getValues("SELECT name_short FROM processing_system ORDER BY name_short ASC").join(", "));
 		}
 		QString sys_id = tmp.toString();
 
 		//read data
 		QVector<double> stats_cnvs;
 		QVector<double> stats_depth;
-		stream << "Chromosome\tStart\tEnd\tCN histogram (0-10)\tAF " << system << "\n";
 		QStringList cs_ids =  db.getValues("SELECT cs.id FROM cnv_callset cs, processed_sample ps WHERE ps.processing_system_id=" + sys_id + " AND ps.id=cs.processed_sample_id AND ps.quality!='bad' AND cs.quality!='bad'");
 		stream2 << "Found " << cs_ids.count() << " high-quality CNV callsets for the processing system.\n";
 		QBitArray skip(cs_ids.size(), false);
@@ -123,7 +125,8 @@ public:
 			}
 			stats_cnvs  << cnv_count;
 		}
-		stream2 << "Using " << skip.count(false) << " of " << cs_ids.count() << " callsets\n";
+		const int sample_count = skip.count(false);
+		stream2 << "Using " << sample_count << " of " << cs_ids.count() << " callsets\n";
 
 		//write stats
 		stream2 << "Statistics - number of CNVs\n";
@@ -157,6 +160,7 @@ public:
 		}
 
 		//process chr by chr
+		stream << "Chromosome\tStart\tEnd\tCN histogram (0-10)\tAF " << system << "\n";
 		SqlQuery q_cnvs = db.getQuery();
 		q_cnvs.prepare("SELECT start, end, cn FROM cnv WHERE cnv_callset_id=:0 AND chr=:1");
 
@@ -178,7 +182,7 @@ public:
 				q_cnvs.exec();
 				while(q_cnvs.next())
 				{
-					cnvs << CNV {q_cnvs.value(0).toInt(), q_cnvs.value(1).toInt(), q_cnvs.value(2).toInt()};
+					cnvs << CNV {q_cnvs.value(0).toInt(), q_cnvs.value(1).toInt()-1, q_cnvs.value(2).toInt()}; //subtract 1 to remove one-base overlaps //TODO also necessary for CnvHunter?
 				}
 			}
 			stream2 << "  Found " << cnvs.count() << " CNVs\n";
@@ -191,12 +195,52 @@ public:
 			int i_end = -1;
 			while (nextOverlappingRange(cnvs, i_start, i_end))
 			{
-				const int size = i_end - i_start + 1;
-				stream2 << "range: " << i_start << "-" << i_end << " - size: " << size << " - pos:" << cnvs[i_start].start << "-" << cnvs[i_end].end << endl;
+				//stream2 << "overlap range - index: " << i_start << "-" << i_end << " - size: " << (i_end - i_start + 1) << " - pos: " << cnvs[i_start].start << "-" << cnvs[i_end].end << endl;
+
+				//determine all sub-regions of the overlapping range
+				QList<int> positions;
+				for (int i=i_start; i<=i_end; ++i)
+				{
+					positions << cnvs[i].start;
+					positions << cnvs[i].end+1;
+				}
+				std::sort(positions.begin(), positions.end());
+				positions.erase(std::unique(positions.begin(), positions.end()), positions.end() );
+
+				//process all sub-regions
+				for (int i=0; i<positions.size()-1; ++i)
+				{
+					const int start = positions[i];
+					const int end = positions[i+1]-1;
+
+					//count matches (AF) and create CN histogram
+					QVector<int> cn_hist(10, 0);
+					int matches = 0;
+					for (int i=i_start; i<=i_end; ++i)
+					{
+						if (BasicStatistics::rangeOverlaps(start, end, cnvs[i].start, cnvs[i].end))
+						{
+							++matches;
+
+							int cn = BasicStatistics::bound(cnvs[i].cn, 0, 9);
+							++cn_hist[cn];
+						}
+					}
+
+					//output
+					double af = (double)matches/sample_count;
+					if (af>=min_af)
+					{
+						stream << chr << "\t" << start << "\t" << (end+1) << "\t";
+						for (int i=0; i<cn_hist.size(); ++i)
+						{
+							if (i>0) stream << ',';
+							stream << cn_hist[i];
+						}
+						stream << "\t" << QString::number(af, 'f', 2) << "\n";
+					}
+				}
 			}
-
-
-			break; //TODO
 		}
 
 		//cleanup

@@ -108,7 +108,8 @@ HEADERS += \
     NGSDImportORPHA_Test.h \
     NGSDAddVariantsGermline_Test.h \
     NGSDExportAnnotationData_Test.h \
-    VcfAnnotateFromVcf_Test.h
+    VcfAnnotateFromVcf_Test.h \
+    NGSDExportCnvTrack_Test.h
 
 SOURCES += \
     main.cpp
