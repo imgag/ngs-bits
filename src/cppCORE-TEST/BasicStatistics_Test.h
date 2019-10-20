@@ -162,4 +162,20 @@ private slots:
 		F_EQUAL(BasicStatistics::matchProbability(0.1, 1, 5), 0.40951);
 		F_EQUAL(BasicStatistics::matchProbability(0.1, 5, 5), 0.00001);
 	}
+
+
+	void rangeOverlaps()
+	{
+		//no overlap
+		IS_FALSE(BasicStatistics::rangeOverlaps(1, 4, 5, 9));
+		IS_FALSE(BasicStatistics::rangeOverlaps(5, 9, 1, 4));
+
+		//partial overlap
+		IS_TRUE(BasicStatistics::rangeOverlaps(1, 4, 4, 9));
+		IS_TRUE(BasicStatistics::rangeOverlaps(4, 9, 1, 4));
+
+		//full overlap
+		IS_TRUE(BasicStatistics::rangeOverlaps(1, 10, 4, 4));
+		IS_TRUE(BasicStatistics::rangeOverlaps(4, 4, 1, 10));
+	}
 };
