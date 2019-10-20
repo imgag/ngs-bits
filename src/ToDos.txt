@@ -4,6 +4,7 @@ libs:
 * FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 
 NGSD:
+** Add variant tab (classification, validation, detected samples + genotype + phenotype)
 ** Add sender widget (link from sample info)
 ** Add processing system widget (link from processed sample info)
 *** Allow adding/editing data in NGSD
@@ -16,10 +17,10 @@ NGSD:
 ##### add CNVs to NGSD
     - block re-import of CNVs if report config is set for all variant types - allow deleting report config from GSvar
     - allow adding to report config in GSvar (like small variants, but with classification) -  add low-quality CNV calls to NGSD if missing
+    - generate IGV tracks with gain/loss for exome/genome - split deep/shallow genome
     - add annotation of CNVs from NGSD:
         - # overlapping CNVs (by type gain/loss)
         - overlapping class 4/5 CNVs
-    - generate IGV tracks with gain/loss for exome/genome
 **** NGSD annotation (LS)
     - export VCF, use VCF for annotation
     - remove NGSDPrecalculate tool and tables 'detected_variant_counts' and 'detected_variant_counts_by_group'
@@ -34,7 +35,8 @@ GSvar:
         - gap report as XML and additional report of gaps to sanger-validate as TXT
     - Trio report > trio XML (Anne,Mona)?
 * SV widget
-    - add overlapping genes and allow filtering for comp-hets
+    - add size filter - have a look at the overlap between manta and freebayes
+    - add overlapping genes and allow filtering for comp-hets (be carefull with small indels)
     - add OMIM annotations
 
 Tools:

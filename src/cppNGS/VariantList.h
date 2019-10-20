@@ -165,12 +165,12 @@ public:
     ///Overlap check for chromosome and position range.
     bool overlapsWith(const Chromosome& chr, int start, int end) const
     {
-        return (chr_==chr && overlapsWith(start, end));
+		return (chr_==chr && BasicStatistics::rangeOverlaps(start_, end_, start, end));
     }
     ///Overlap check for position range only.
     bool overlapsWith(int start, int end) const
     {
-        return (start_>=start && start_<=end) || (start>=start_ && start<=end_);
+		return BasicStatistics::rangeOverlaps(start_, end_, start, end);
     }
 	///Overlap check BED file line.
 	bool overlapsWith(const BedLine& line) const

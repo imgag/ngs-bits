@@ -4,6 +4,7 @@
 #include "cppNGS_global.h"
 #include "Chromosome.h"
 #include "GeneSet.h"
+#include "BasicStatistics.h"
 #include <QList>
 #include <QByteArrayList>
 #include <QMap>
@@ -65,7 +66,7 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 		///Retuns if a variant overlaps a genomic range.
 		bool overlapsWith(const Chromosome& chr, int start, int end) const
 		{
-			return chr == chr_ && ( (start_>=start && start_<=end) || (start>=start_ && start<=end_) );
+			return chr == chr_ && BasicStatistics::rangeOverlaps(start_, end_, start, end);
 		}
 
 	protected:

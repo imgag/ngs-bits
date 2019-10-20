@@ -350,7 +350,7 @@ public:
 	///If @p bind_value is set, the placeholder ':0' in the query is replaced with it (SQL special characters are replaced). Use this if
 	QStringList getValues(const QString& query, QString bind_value = QString());
 	///Returns a SqlQuery object on the NGSD for custom queries.
-	inline SqlQuery getQuery() const
+	SqlQuery getQuery() const
 	{
 		return SqlQuery(*db_);
 	}

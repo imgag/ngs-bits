@@ -23,7 +23,7 @@ public:
 		addFlag("no_ffpe", "If set, FFPE samples are excluded.");
 		addFlag("with_merged", "If set, processed samples that were merged into another sample are included.");
 		addString("project", "Project name filter.", true, "");
-		addString("system", "Processing system name filter.", true, "");
+		addString("system", "Processing system name filter (short name).", true, "");
 		addString("run", "Sequencing run name filter.", true, "");
 		addFlag("no_bad_runs", "If set, sequencing runs with 'bad' quality are excluded.");
 		addFlag("add_qc", "If set, QC columns are added to output.");

@@ -1,5 +1,5 @@
 ### NGSDExportSamples tool help
-	NGSDExportSamples (2019_05-10-g13f3158)
+	NGSDExportSamples (2019_09-44-g07b14ae)
 	
 	Lists processed samples from the NGSD.
 	
@@ -20,7 +20,7 @@
 	                        Default value: 'false'
 	  -project <string>     Project name filter.
 	                        Default value: ''
-	  -system <string>      Processing system name filter.
+	  -system <string>      Processing system name filter (short name).
 	                        Default value: ''
 	  -run <string>         Sequencing run name filter.
 	                        Default value: ''
@@ -44,7 +44,7 @@
 	  --tdx                 Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDExportSamples changelog
-	NGSDExportSamples 2019_05-10-g13f3158
+	NGSDExportSamples 2019_09-44-g07b14ae
 	
 	2019-05-17 Added 'with_merged' flag.
 	2019-04-12 Complete refactoring and interface change.

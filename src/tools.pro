@@ -352,5 +352,10 @@ NGSDExportAnnotationData.depends = cppNGS
 SUBDIRS += VcfAnnotateFromVcf
 tools-TEST.depends += VcfAnnotateFromVcf
 VcfAnnotateFromVcf.depends = cppNGS
+
+SUBDIRS += NGSDExportCnvTrack
+tools-TEST.depends += NGSDExportCnvTrack
+NGSDExportCnvTrack.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt

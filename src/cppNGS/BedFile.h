@@ -3,6 +3,7 @@
 
 #include "cppNGS_global.h"
 #include "Chromosome.h"
+#include "BasicStatistics.h"
 
 #include <QVector>
 #include <QSet>
@@ -88,7 +89,7 @@ public:
     ///Overlap check for position range only.
     bool overlapsWith(int start, int end) const
     {
-        return (start_>=start && start_<=end) || (start>=start_ && start<=end_);
+		return BasicStatistics::rangeOverlaps(start_, end_, start, end);
     }
     ///Adjacent check - with no gap in between - for chromosome and position range.
 	bool adjacentTo(const Chromosome& chr, int start, int end) const
