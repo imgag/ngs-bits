@@ -208,7 +208,7 @@ public:
 					{
 						if (debug) out << "HPO-GENE: " << term_accession << " - " << gene << endl;
 						qi_gene.bindValue(0, term_db_id);
-						qi_gene.bindValue(1, gene);
+						qi_gene.bindValue(1, db.geneSymbol(gene_db_id));
 						qi_gene.exec();
 					}
 				}

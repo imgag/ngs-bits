@@ -67,6 +67,6 @@ ORPHA:618	MGMT	4255	HP:0100013	no name
 OMIM:158350	PTEN	5728	HP:0003002	no name
 OMIM:158350	PTEN	5728	HP:0010619	no name
 OMIM:158350	PTEN	5728	HP:0010619	no name
-OMIM:158350	PTEN	5728	HP:0000006	Autosomal dominant inheritance
+OMIM:158350	PTEN_ALT	5728	HP:0000006	Autosomal dominant inheritance
 OMIM:123456	no gene	1234	HP:0000006	Autosomal dominant inheritance
 OMIM:123456	no gene	1234	HP:0003002	Breast carcinoma
