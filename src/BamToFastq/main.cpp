@@ -19,6 +19,7 @@ public:
 		addInfile("in", "Input BAM file.", false, true);
 		addOutfile("out1", "Read 1 output FASTQ.GZ file.", false);
 		addOutfile("out2", "Read 2 output FASTQ.GZ file.", false);
+		addFlag("remove_duplicates", "Does not export duplicate reads into the FASTQ file.");
 	}
 
 	void write(FastqOutfileStream& out, const BamAlignment& al, bool rev_comp)
@@ -47,9 +48,11 @@ public:
 
 		FastqOutfileStream out1(getOutfile("out1"));
 		FastqOutfileStream out2(getOutfile("out2"));
+		bool remove_duplicates = getFlag("remove_duplicates");
 
 		long long c_unpaired = 0;
 		long long c_paired = 0;
+		long long c_duplicates = 0;
 		int max_cached = 0;
 
 		//iterate through reads
@@ -61,6 +64,11 @@ public:
 			
 			//skip secondary alinments
 			if(al.isSecondaryAlignment()) continue;
+			if (remove_duplicates && al.isDuplicate())
+			{
+				++c_duplicates;
+				continue;
+			}
 			
 			//skip unpaired
 			if(!al.isPaired())
@@ -103,6 +111,10 @@ public:
 		out << "Pair reads (written)            : " << c_paired << endl;
 		out << "Unpaired reads (skipped)        : " << c_unpaired << endl;
 		out << "Unmatched paired reads (skipped): " << al_cache.size() << endl;
+		if (remove_duplicates)
+		{
+			out << "Duplicate reads (skipped)       : " << c_duplicates << endl;
+		}
 		out << endl;
 		out << "Maximum cached reads            : " << max_cached << endl;
 	}
