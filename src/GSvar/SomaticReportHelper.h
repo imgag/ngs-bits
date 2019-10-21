@@ -333,6 +333,7 @@ private:
 	///Returns maximum tumor clonailty in cnv file
 	double getCnvMaxTumorClonality(const CnvList& cnvs);
 
+	///Returns text for fusions, appears multiple times in report
 	RtfParagraph fusionsText()
 	{
 		if(fusions_.count() > 0)

@@ -2068,41 +2068,36 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	/*************************
 	 * FUSIONS / ONCOVIRUSES *
 	 *************************/
-	if(fusions_.count() != 0 && validated_viruses_.count() != 0)
+	if(validated_viruses_.count() != 0)
 	{
-		doc_.addPart(fusionsText().RtfCode());
-
 		doc_.addPart(RtfParagraph("").RtfCode());
 
-		if(validated_viruses_.count() > 0)
+		QByteArray virus_text = "";
+		QList<QByteArray> proteins;
+		QList <QByteArray> names;
+		for(const auto& virus : validated_viruses_)
 		{
-			QByteArray virus_text = "";
-			QList<QByteArray> proteins;
-			QList <QByteArray> names;
-			for(const auto& virus : validated_viruses_)
-			{
-				if(!proteins.contains(virus.virusGene())) proteins << virus.virusGene();
-				if(!names.contains(virus.virusName())) names << virus.virusName();
-			}
-
-			virus_text = "Es ";
-			if(proteins.count() > 1) virus_text += "wurden die Gene " + proteins.join(", ") + " ";
-			else virus_text += "wurde das Gen " + proteins[0] + " ";
-			if(names.count() > 1) virus_text += "der Viren " + names.join(", ") + " ";
-			else virus_text +=  "des Virus " + names[0] + " ";
-			virus_text += "nachgewiesen.";
-
-			doc_.addPart(RtfParagraph(virus_text).RtfCode());
+			if(!proteins.contains(virus.virusGene())) proteins << virus.virusGene();
+			if(!names.contains(virus.virusName())) names << virus.virusName();
 		}
-		else
-		{
-			doc_.addPart(RtfParagraph("Es wurde keine der untersuchten Virus-DNA nachgewiesen.").RtfCode());
-		}
+
+		virus_text = "Es ";
+		if(proteins.count() > 1) virus_text += "wurden die Gene " + proteins.join(", ") + " ";
+		else virus_text += "wurde das Gen " + proteins[0] + " ";
+		if(names.count() > 1) virus_text += "der Viren " + names.join(", ") + " ";
+		else virus_text +=  "des Virus " + names[0] + " ";
+		virus_text += "nachgewiesen.";
+
+		doc_.addPart(RtfParagraph(virus_text).RtfCode());
 	}
 	else
 	{
-		doc_.addPart(RtfText("Es wurden weder Fusionen noch untersuchte Virus-DNA nachgewiesen.").RtfCode());
+		doc_.addPart(RtfParagraph("Es wurde keine Virus-DNA nachgewiesen.").RtfCode());
 	}
+
+	//Fusions, text depends on fusion count
+	doc_.addPart(fusionsText().RtfCode());
+
 	doc_.addPart(RtfParagraph("").RtfCode());
 
 	doc_.newPage();
