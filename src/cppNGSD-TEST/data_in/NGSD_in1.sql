@@ -217,8 +217,13 @@ INSERT INTO `variant` (`id`, `chr`, `start`, `end`, `ref`, `obs`, `1000g`, `gnom
 (2336573, 'chr5', 131925483, 131925483, 'G', 'C', 0.0002, 0, 'RAD50', 'missense', 'RAD50:NM_005732.3:missense:MODERATE:exon9/25:c.1406G>C:p.Gly469Ala'),
 (2336993, 'chr16', 3639230, 3639230, 'G', 'A', 0.0002, 0.0002, 'SLX4', 'missense', 'SLX4:NM_032444.2:missense:MODERATE:exon12/15:c.4409C>T:p.Pro1470Leu'),
 (2346586, 'chr7', 6037057, 6037057, '-', 'A', 0.0264, 0, 'PMS2', 'splice_region&intron', 'PMS2:NM_000535.5:splice_region&intron:LOW:exon6/14:c.706-4dupT:,PMS2:NR_003085.2:splice_region&intron:LOW:exon6/14:n.788-4dupT:'),
+(2346588, 'chr7', 140453136, 140453136, 'T', 'A', 0.0, 0.0, 'BRAF', 'missense', 'BRAF:ENST00000288602:missense_variant:MODERATE:exon15/18:c.1799T>A:p.Val600Glu:PF07714'),
 (2407544, 'chr9', 98232224, 98232224, 'A', '-', 0, 0.0018, 'PTCH1,LOC100507346', 'splice_region&intron,non_coding_exon', 'PTCH1:NM_000264.3:splice_region&intron:LOW:exon12/23:c.1729-11delT:,PTCH1:NM_001083607.1:splice_region&intron:LOW:exon12/23:c.1276-11delT:,PTCH1:NM_001083606.1:splice_region&intron:LOW:exon12/23:c.1276-11delT:,PTCH1:NM_001083604.1:splice_region&intron:LOW:exon12/23:c.1276-11delT:,PTCH1:NM_001083605.1:splice_region&intron:LOW:exon12/23:c.1276-11delT:,PTCH1:NM_001083602.1:splice_region&intron:LOW:exon12/23:c.1531-11delT:,PTCH1:NM_001083603.1:splice_region&intron:LOW:exon12/23:c.1726-11delT:,LOC100507346:NR_038982.1:non_coding_exon:MODIFIER:exon4/4:n.1887delA:'),
 (2407599, 'chr9', 98232299, 98232299, '-', 'AGT', 0, 0.0018, 'unused', 'unused', 'unused');
+
+INSERT INTO `detected_somatic_variant` (`id`, `processed_sample_id_tumor`, `processed_sample_id_normal`, `variant_id`, `variant_frequency`, `depth`, `quality_snp`) VALUES
+(5, 4000, 3999, 2346588, 0.6, 642, 0.9);
+
 
 INSERT INTO `detected_variant` (`processed_sample_id`, `variant_id`, `genotype`) VALUES
 (3999, 6, 'hom'),

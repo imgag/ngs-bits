@@ -43,6 +43,7 @@ public:
 signals:
 	void jumbToRegion(QString region);
 	void editVariantClassification();
+	void editSomaticVariantClassification();
 	void editVariantValidation();
 	void editVariantComment();
 	void showVariantSampleOverview();
@@ -53,6 +54,7 @@ private slots:
 	void variantClicked(QString link);
 	void gnomadClicked(QString link);
 	void editClassification();
+	void editSomaticClassification();
 	void editValidation();
 	void editComment();
 	void variantSampleOverview();

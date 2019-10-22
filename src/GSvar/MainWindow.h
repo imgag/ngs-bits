@@ -65,7 +65,7 @@ public:
 	void contextMenuTwoVariants(QPoint pos, int index1, int index2);
 
 	///Edit classification of a variant
-	void editVariantClassification(VariantList& variant, int index);
+	void editVariantClassification(VariantList& variant, int index, bool is_somatic = false);
 
 public slots:
 	///Open dialog
@@ -195,6 +195,9 @@ public slots:
 	void openInIGV(QString region);
 	///Edit classification of current variant
 	void editVariantClassificationOfSelectedVariant();
+	///Edit somatic classification of current variant
+	void editSomaticVariantClassificationOfSelectedVariant();
+
 	///Edit validation status of current variant
 	void editVariantValidation();
 	///Edit comment of current variant

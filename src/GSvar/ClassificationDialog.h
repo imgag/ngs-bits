@@ -14,7 +14,7 @@ class ClassificationDialog
 
 public:
 	///Constructor
-	ClassificationDialog(QWidget* parent, const Variant& variant);
+	ClassificationDialog(QWidget* parent, const Variant& variant, bool is_somatic = false);
 
 	///Returns the classification information.
 	ClassificationInfo classificationInfo() const;

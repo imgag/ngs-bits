@@ -101,6 +101,7 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.splitter_2->setStretchFactor(1, 1);
 	connect(ui_.variant_details, SIGNAL(jumbToRegion(QString)), this, SLOT(openInIGV(QString)));
 	connect(ui_.variant_details, SIGNAL(editVariantClassification()), this, SLOT(editVariantClassificationOfSelectedVariant()));
+	connect(ui_.variant_details, SIGNAL(editSomaticVariantClassification()), this, SLOT(editSomaticVariantClassificationOfSelectedVariant()));
 	connect(ui_.variant_details, SIGNAL(editVariantValidation()), this, SLOT(editVariantValidation()));
 	connect(ui_.variant_details, SIGNAL(editVariantComment()), this, SLOT(editVariantComment()));
 	connect(ui_.variant_details, SIGNAL(showVariantSampleOverview()), this, SLOT(showVariantSampleOverview()));
@@ -674,6 +675,15 @@ void MainWindow::editVariantClassificationOfSelectedVariant()
 
 	editVariantClassification(variants_, index);
 }
+
+void MainWindow::editSomaticVariantClassificationOfSelectedVariant()
+{
+	int index = ui_.vars->selectedVariantIndex();
+	if (index==-1) return;
+
+	editVariantClassification(variants_, index, true);
+}
+
 
 void MainWindow::editVariantValidation()
 {
@@ -1302,10 +1312,39 @@ void MainWindow::on_actionAbout_triggered()
 
 void MainWindow::on_actionAnnotateSomaticVariants_triggered()
 {
+	QApplication::setOverrideCursor(Qt::WaitCursor);
+
+	NGSD db;
+
+	//Annotate somatic variant classification
+
+	int i_som_class = variants_.addAnnotationIfMissing("somatic_classification", "Somatic classification from the NGSD.");
+	int i_som_comm = variants_.addAnnotationIfMissing("somatic_classification_comment","Somatic classification comment from the NGSD.");
+
+	for (int i=0; i<variants_.count(); ++i)
+	{
+		Variant& v = variants_[i];
+
+		QString variant_id = db.variantId(v,false);
+		if(variant_id == "") continue;
+
+		QByteArray classification = db.getValue("SELECT class FROM somatic_variant_classification WHERE variant_id = '" + variant_id + "'",true).toByteArray().replace("\n"," ").replace("\t"," ");
+		QByteArray comment = db.getValue("SELECT comment FROM somatic_variant_classification WHERE variant_id = '" + variant_id + "'", true).toByteArray().replace("\n"," ").replace("\t"," ");
+
+		v.annotations()[i_som_class] = classification;
+		v.annotations()[i_som_comm] = comment;
+	}
+
+	storeCurrentVariantList();
+
+
+	//Annotate file with data from somatic file
+
 	//Only germline files shall be annotated
 	if(variants_.type() != AnalysisType::GERMLINE_SINGLESAMPLE)
 	{
 		QMessageBox::warning(this, "Annotation not possible", "Only single-sample germline variants lists can be annotated with data from somatic variant lists!");
+		QApplication::restoreOverrideCursor();
 		return;
 	}
 
@@ -1314,7 +1353,7 @@ void MainWindow::on_actionAnnotateSomaticVariants_triggered()
 	QString filename = QFileDialog::getOpenFileName(this, "Select somatic variant list for annotation", path, "GSvar files (*.GSvar);;All files (*.*)");
 	if(filename == "") return;
 
-	QApplication::setOverrideCursor(Qt::WaitCursor);
+
 
 	VariantList somatic_variants;
 	somatic_variants.load(filename);
@@ -1341,7 +1380,7 @@ void MainWindow::on_actionAnnotateSomaticVariants_triggered()
 	//abort if there is a missing column
 	if(i_germline_gene == -1 || i_somatic_gene == -1 || i_somatic_type == -1 || i_somatic_af == -1 || i_somatic_dp == -1) return;
 
-	NGSD db;
+
 
 	//Annotate variants per genes
 	for(int i=0;i<variants_.count();++i)
@@ -3050,14 +3089,14 @@ void MainWindow::contextMenuTwoVariants(QPoint pos, int index1, int index2)
 	}
 }
 
-void MainWindow::editVariantClassification(VariantList& variants, int index)
+void MainWindow::editVariantClassification(VariantList& variants, int index, bool is_somatic)
 {
 	try
 	{
 		Variant& variant = variants[index];
 
 		//execute dialog
-		ClassificationDialog dlg(this, variant);
+		ClassificationDialog dlg(this, variant, is_somatic);
 		if (dlg.exec()!=QDialog::Accepted) return;
 
 		//update NGSD
@@ -3066,14 +3105,23 @@ void MainWindow::editVariantClassification(VariantList& variants, int index)
 		{
 			db.addVariant(variants, index);
 		}
-		ClassificationInfo class_info = dlg.classificationInfo();
-		db.setClassification(variant, class_info);
 
-		//update variant table
-		int i_class = variants.annotationIndexByName("classification", true, true);
-		variant.annotations()[i_class] = class_info.classification.replace("n/a", "").toLatin1();
-		int i_class_comment = variants.annotationIndexByName("classification_comment", true, true);
-		variant.annotations()[i_class_comment] = class_info.comments.toLatin1();
+		ClassificationInfo class_info = dlg.classificationInfo();
+		if(is_somatic)
+		{
+			db.setSomaticClassification(variant, class_info);
+		}
+		else
+		{
+			db.setClassification(variant, class_info);
+			//update variant table
+			int i_class = variants.annotationIndexByName("classification", true, true);
+			variant.annotations()[i_class] = class_info.classification.replace("n/a", "").toLatin1();
+			int i_class_comment = variants.annotationIndexByName("classification_comment", true, true);
+			variant.annotations()[i_class_comment] = class_info.comments.toLatin1();
+		}
+
+
 
 		//update details widget and filtering
 		ui_.variant_details->updateVariant(variants, index);

@@ -559,6 +559,27 @@ private slots:
 		S_EQUAL(class_info.classification, "5");
 		S_EQUAL(class_info.comments, "class_comm2");
 
+		//getSomaticClassification
+		Variant som_variant("chr7",  140453136, 140453136, "T", "A");
+		ClassificationInfo som_class_info = db.getSomaticClassification(variant);
+		S_EQUAL(som_class_info.classification, "");
+		S_EQUAL(som_class_info.comments, "");
+
+		som_class_info.classification = "activating";
+		som_class_info.comments = "som_class_comm1";
+		db.setSomaticClassification(som_variant, som_class_info);
+		som_class_info = db.getSomaticClassification(som_variant);
+		S_EQUAL(som_class_info.classification, "activating");
+		S_EQUAL(som_class_info.comments, "som_class_comm1");
+
+		som_class_info.classification = "inactivating";
+		som_class_info.comments = "som_class_comm2";
+		db.setSomaticClassification(som_variant, som_class_info);
+		S_EQUAL(som_class_info.classification, "inactivating");
+		S_EQUAL(som_class_info.comments, "som_class_comm2");
+
+
+
 		//analysisInfo
 		AnalysisJob analysis_job = db.analysisInfo(-1, false);
 		S_EQUAL(analysis_job.type, "");

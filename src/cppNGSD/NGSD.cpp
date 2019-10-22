@@ -1114,6 +1114,7 @@ void NGSD::annotate(VariantList& variants, QString ps_name, BedFile roi, double 
 	int ngsd_grp_idx = variants.addAnnotationIfMissing("NGSD_group", "Homozygous / heterozygous variant count in NGSD with the same disease group (" + QString(disease_group=="n/a" ? "empty because group is " : "") + disease_group + ").");
 	int class_idx = variants.addAnnotationIfMissing("classification", "Classification from the NGSD.");
 	int clacom_idx = variants.addAnnotationIfMissing("classification_comment", "Classification comment from the NGSD.");
+
 	int validation_idx = variants.addAnnotationIfMissing("validation", "Validation information from the NGSD. Validation results of other samples are listed in brackets!");
 	int comment_idx = variants.addAnnotationIfMissing("comment", "Variant comments from the NGSD.");
 	int geneinfo_idx = variants.addAnnotationIfMissing("gene_info", "Gene information from NGSD (inheritance mode, gnomAD o/e scores).");
@@ -1388,6 +1389,27 @@ ClassificationInfo NGSD::getClassification(const Variant& variant)
 	return ClassificationInfo {query.value(0).toString().trimmed(), query.value(1).toString().trimmed() };
 }
 
+ClassificationInfo NGSD::getSomaticClassification(const Variant& variant)
+{
+	//variant not in NGSD
+	QString variant_id = variantId(variant, false);
+	if (variant_id=="")
+	{
+		return ClassificationInfo();
+	}
+
+	//classification not present
+	SqlQuery query = getQuery();
+	query.exec("SELECT class, comment FROM somatic_variant_classification WHERE variant_id='" + variant_id + "'");
+	if (query.size()==0)
+	{
+		return ClassificationInfo();
+	}
+
+	query.next();
+	return ClassificationInfo {query.value(0).toString().trimmed(), query.value(1).toString().trimmed() };
+}
+
 void NGSD::setClassification(const Variant& variant, ClassificationInfo info)
 {
 	SqlQuery query = getQuery(); //use binding (user input)
@@ -1396,6 +1418,17 @@ void NGSD::setClassification(const Variant& variant, ClassificationInfo info)
 	query.bindValue(1, info.comments);
 	query.exec();
 }
+
+void NGSD::setSomaticClassification(const Variant& variant, ClassificationInfo info)
+{
+	SqlQuery query = getQuery();
+	query.prepare("INSERT INTO somatic_variant_classification (variant_id, class, comment) VALUES (" + variantId(variant) + ",:0,:1) ON DUPLICATE KEY UPDATE class=VALUES(class), comment=VALUES(comment)");
+	query.bindValue(0, info.classification);
+	query.bindValue(1, info.comments);
+	query.exec();
+}
+
+
 
 void NGSD::addVariantPublication(QString filename, const Variant& variant, QString database, QString classification, QString details)
 {
