@@ -188,6 +188,27 @@ void CnvList::load(QString filename)
 	}
 }
 
+CnvCallerType CnvList::caller() const
+{
+	CnvListType list_type = type();
+	if (list_type==CnvListType::INVALID)
+	{
+		return CnvCallerType::INVALID;
+	}
+	else if (list_type==CnvListType::CNVHUNTER_GERMLINE_SINGLE || list_type==CnvListType::CNVHUNTER_GERMLINE_MULTI)
+	{
+		return CnvCallerType::CNVHUNTER;
+	}
+	else if (list_type==CnvListType::CLINCNV_GERMLINE_SINGLE || list_type==CnvListType::CLINCNV_GERMLINE_MULTI || list_type==CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
+	{
+		return CnvCallerType::CLINCNV;
+	}
+	else
+	{
+		THROW(ProgrammingException, "Cnv list type not handled in CnvList::caller()!");
+	}
+}
+
 QByteArray CnvList::headerDescription(QByteArray name) const
 {
 	return annotation_header_desc_.value(name, "");

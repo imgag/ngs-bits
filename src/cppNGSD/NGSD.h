@@ -443,7 +443,7 @@ public:
 	///Returns the NGSD ID for a CNV. Returns '' or throws an exception if the ID cannot be determined.
 	QString cnvId(const CopyNumberVariant& cnv, int callset_id, bool throw_if_fails = true);
 	///Adds a CNV to the NGSD. Returns the CNV ID.
-	QString addCnv(const CopyNumberVariant& cnv, const CnvList& cnv_list);
+	QString addCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList& cnv_list, double max_ll = 0.0);
 
 	///Returns the database ID of the user as a string. Throws an exception if the user is not in the NGSD user table.
 	QString userId(QString user_name=Helper::userName());
@@ -569,6 +569,11 @@ protected:
 
 	///Returns the maxiumn allele frequency of a variant.
 	static double maxAlleleFrequency(const Variant& v, QList<int> af_column_index);
+
+
+	///returns the most frequent string
+	static int mostFrequentCopyNumber(const QByteArrayList& parts);
+
 
 	///The database adapter
 	QSharedPointer<QSqlDatabase> db_;

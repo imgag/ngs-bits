@@ -784,6 +784,36 @@ private slots:
 		I_EQUAL(messages2.count(), 1);
 		S_EQUAL(messages2[0], "Could not find variant 'chr2:47635523-47635523 ->T' in given variant list!");
 		I_EQUAL(report_conf2.variantConfig().count(), 0);
+
+		//cnvId
+		CopyNumberVariant cnv = CopyNumberVariant("chr1", 1000, 2000, 1, GeneSet(), QByteArrayList());
+		QString cnv_id = db.cnvId(cnv, 4711, false); //callset 4711 does not exist
+		S_EQUAL(cnv_id, "");
+
+		processed_sample_id = db.processedSampleId("NA12878_03");
+		cnv_id = db.cnvId(cnv, 1, false);
+		S_EQUAL(cnv_id, "1");
+
+		cnv = CopyNumberVariant("chr12", 1000, 2000, 1, GeneSet(), QByteArrayList());
+		cnv_id = db.cnvId(cnv, 1, false); //CNV on chr12 does not exist
+		S_EQUAL(cnv_id, "");
+
+		//addCnv
+		CnvList cnv_list;
+		cnv_list.load(TESTDATA("data_in/cnvs_clincnv.tsv"));
+		cnv_id = db.addCnv(1, cnv_list[0], cnv_list, 201); //ll=200 > no import
+		S_EQUAL(cnv_id, "");
+
+		cnv_id = db.addCnv(1, cnv_list[0], cnv_list);
+		S_EQUAL(cnv_id, "4");
+		S_EQUAL(db.getValue("SELECT cn FROM cnv WHERE id="+cnv_id).toString(), "0");
+		S_EQUAL(db.getValue("SELECT quality_metrics FROM cnv WHERE id="+cnv_id).toString(), "{\"loglikelihood\":\"200\",\"qvalue\":\"0\",\"regions\":\"2\"}");
+
+		cnv_list.load(TESTDATA("data_in/cnvs_cnvhunter.tsv"));
+		cnv_id = db.addCnv(1, cnv_list[1], cnv_list);
+		S_EQUAL(db.getValue("SELECT cn FROM cnv WHERE id="+cnv_id).toString(), "1");
+		S_EQUAL(db.getValue("SELECT quality_metrics FROM cnv WHERE id="+cnv_id).toString(), "{\"region_zscores\":\"-4.48,-3.45,-4.27\",\"regions\":\"3\"}");
+		S_EQUAL(cnv_id, "5");
 	}
 
 	//Test for debugging (without initialization because of speed)

@@ -186,7 +186,7 @@ public:
 				q_cnvs.exec();
 				while(q_cnvs.next())
 				{
-					cnvs << CNV {q_cnvs.value(0).toInt(), q_cnvs.value(1).toInt()-1, q_cnvs.value(2).toInt()}; //subtract 1 to remove one-base overlaps //TODO also necessary for CnvHunter?
+					cnvs << CNV {q_cnvs.value(0).toInt(), q_cnvs.value(1).toInt()-1, q_cnvs.value(2).toInt()}; //subtract 1 to remove one-base overlaps
 				}
 			}
 			stream2 << "  Found " << cnvs.count() << " CNVs\n";

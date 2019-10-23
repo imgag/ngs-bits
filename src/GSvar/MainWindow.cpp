@@ -249,8 +249,16 @@ void MainWindow::on_actionCNV_triggered()
 		QMessageBox::information(this, "Invalid variant list", "Column for genes or genotypes not found in variant list. Cannot apply compound-heterozygous filter based on variants!");
 	}
 
+	//determine processed sample ID (needed for report config - so only germline)
+	QString ps_id = "";
+	AnalysisType analysis_type = variants_.type();
+	if (ngsd_enabled_ && (analysis_type==GERMLINE_SINGLESAMPLE || analysis_type==GERMLINE_TRIO))
+	{
+		ps_id = NGSD().processedSampleId(filename_, false);
+	}
+
 	//open CNV window
-	CnvWidget* list = new CnvWidget(filename_, variants_.type(), ui_.filters, report_settings_.report_config, het_hit_genes, gene2region_cache_);
+	CnvWidget* list = new CnvWidget(cnvs_, ps_id, ui_.filters, report_settings_.report_config, het_hit_genes, gene2region_cache_);
 	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
 	auto dlg = GUIHelper::createDialog(list, "Copy number variants");
 	addModelessDialog(dlg, true);
@@ -1198,6 +1206,7 @@ void MainWindow::loadFile(QString filename)
 	ui_.filters->reset(true);
 	filename_ = "";
 	variants_.clear();
+	cnvs_.clear();
 	filewatcher_.clearFile();
 	db_annos_updated_ = NO;
 	igv_initialized_ = false;
@@ -1219,9 +1228,19 @@ void MainWindow::loadFile(QString filename)
 	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 	try
 	{
+		//load variants
 		timer.restart();
 		variants_.load(filename);
-		Log::perf("Loading variant list took ", timer);
+		Log::perf("Loading small variant list took ", timer);
+
+		//load CNVs
+		timer.restart();
+		QString cnv_file = cnvFile(filename);
+		if (cnv_file!="")
+		{
+			cnvs_.load(cnv_file);
+		}
+		Log::perf("Loading CNV list took ", timer);
 
 		ui_.filters->setValidFilterEntries(variants_.filters().keys());
 
@@ -1573,8 +1592,15 @@ void MainWindow::storeReportConfig()
 	}
 
 	//store
-	db.setReportConfig(processed_sample_id, report_settings_.report_config, variants_, Helper::userName());
-	report_settings_.report_config.setModified(false);
+	try
+	{
+		db.setReportConfig(processed_sample_id, report_settings_.report_config, variants_, cnvs_, Helper::userName());
+		report_settings_.report_config.setModified(false);
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, "Storing report configuration", "Error: Could not store the report configuration.\nPlease resolve this error or report it to the administrator:\n\n" + e.message());
+	}
 }
 
 void MainWindow::generateVariantSheet()
@@ -3096,6 +3122,28 @@ void MainWindow::editVariantClassification(VariantList& variants, int index)
 		GUIHelper::showMessage("NGSD error", e.message());
 		return;
 	}
+}
+
+QString MainWindow::cnvFile(QString gsvar_file)
+{
+	QFileInfo file_info(gsvar_file);
+	QString base = file_info.absolutePath() + QDir::separator() + file_info.baseName();
+
+	QString cnv_file = base + "_cnvs_clincnv.tsv";
+	if (!QFile::exists(cnv_file)) //fallback to somatic
+	{
+		cnv_file = base + "_clincnv.tsv";
+	}
+	if (!QFile::exists(cnv_file)) //fallback to CnvHunter
+	{
+		cnv_file = base + "_cnvs.tsv";
+	}
+	if (!QFile::exists(cnv_file))
+	{
+		cnv_file = "";
+	}
+
+	return cnv_file;
 }
 
 void MainWindow::updateVariantDetails()

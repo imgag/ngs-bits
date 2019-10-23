@@ -697,7 +697,7 @@ Variant NGSD::variant(const QString& variant_id)
 	return Variant(query.value("chr").toByteArray(), query.value("start").toInt(), query.value("end").toInt(), query.value("ref").toByteArray(), query.value("obs").toByteArray());
 }
 
-QString NGSD::cnvId(const CopyNumberVariant& cnv, int callset_id, bool throw_if_fails) //TODO test
+QString NGSD::cnvId(const CopyNumberVariant& cnv, int callset_id, bool throw_if_fails)
 {
 	SqlQuery query = getQuery(); //use binding user input (safety)
 	query.prepare("SELECT id FROM cnv WHERE cnv_callset_id=:0 AND chr=:1 AND start=:2 AND end=:3");
@@ -721,64 +721,75 @@ QString NGSD::cnvId(const CopyNumberVariant& cnv, int callset_id, bool throw_if_
 	return query.value(0).toString();
 }
 
-QString NGSD::addCnv(const CopyNumberVariant& cnv, const CnvList& cnv_list) //TODO test
+QString NGSD::addCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList& cnv_list, double max_ll)
 {
-	/*
+	CnvCallerType caller = cnv_list.caller();
+
 	//parse meta data
 	int cn = -1;
 	QJsonObject quality_metrics;
-	for(int i=0; i<in.columns(); ++i)
+	quality_metrics.insert("regions", QString::number(cnv.regions()));
+	for(int i=0; i<cnv_list.annotationHeaders().count(); ++i)
 	{
-		const QByteArray& col_name = in.header()[i];
-		QString entry = parts[i];
-
-		if (caller == "CnvHunter")
+		const QByteArray& col_name = cnv_list.annotationHeaders()[i];
+		const QByteArray& entry = cnv.annotations()[i];
+		if (caller==CnvCallerType::CNVHUNTER)
 		{
 			if (col_name=="region_copy_numbers")
 			{
-				cn = mostFrequent(entry.split(','));
+				cn = mostFrequentCopyNumber(entry.split(','));
 			}
-			if (col_name=="region_count" || col_name=="region_zscores" || col_name=="region_copy_numbers")
+			else if (col_name=="region_zscores" || col_name=="region_copy_numbers")
 			{
-				quality_metrics.insert(col_name, entry);
+				quality_metrics.insert(QString(col_name), QString(entry));
 			}
 		}
-		else if (caller == "ClinCNV")
+		else if (caller==CnvCallerType::CLINCNV)
 		{
 			if (col_name=="CN_change")
 			{
 				cn = Helper::toInt(entry, "copy-number");
 			}
-			if (col_name=="loglikelihood" || col_name=="no_of_regions" || col_name=="qvalue")
+			else if (col_name=="loglikelihood")
 			{
-				quality_metrics.insert(col_name, entry);
-			}
-			if (col_name=="loglikelihood")
-			{
-				if (Helper::toDouble(entry, "log-likelihood")<15)
+				quality_metrics.insert(QString(col_name), QString(entry));
+				if (max_ll>0.0 && Helper::toDouble(entry, "log-likelihood")<max_ll)
 				{
-					++c_skipped_low_quality;
-					skip = true;
+					return "";
 				}
-
+			}
+			else if (col_name=="qvalue")
+			{
+				quality_metrics.insert(QString(col_name), QString(entry));
 			}
 		}
+		else
+		{
+			THROW(ProgrammingException, "CNV caller type not handled in NGSD::addCnv")
+		}
 	}
-	QJsonDocument json_doc;
-	json_doc.setObject(quality_metrics);
-	*/
 
-	qDebug() << cnv_list.annotationHeaders();
-	SqlQuery query = getQuery(); //use binding (user input)
-	query.prepare("INSERT INTO `cnv`(`cnv_callset_id`, `chr`, `start`, `end`, `cn`, `quality_metrics`) VALUES (:0,:1,:2,:3,:4,:5)");
-	query.bindValue(0, "TODO");
+	//prepare query (only once)
+	static SqlQuery query = getQuery();
+	static bool is_inizialied = false;
+	if (!is_inizialied)
+	{
+		query.prepare("INSERT INTO `cnv` (`cnv_callset_id`, `chr`, `start`, `end`, `cn`, `quality_metrics`) VALUES (:0,:1,:2,:3,:4,:5)");
+		is_inizialied = true;
+	}
+
+	//bind and exec
+	query.bindValue(0, callset_id);
 	query.bindValue(1, cnv.chr().strNormalized(true));
 	query.bindValue(2, cnv.start());
 	query.bindValue(3, cnv.end());
-	query.bindValue(4, "TODO");
-	query.bindValue(5, "TODO");
+	query.bindValue(4, cn);
+	QJsonDocument json_doc;
+	json_doc.setObject(quality_metrics);
+	query.bindValue(5, json_doc.toJson(QJsonDocument::Compact));
 	query.exec();
 
+	//return insert ID
 	return query.lastInsertId().toString();
 }
 
@@ -1829,6 +1840,25 @@ double NGSD::maxAlleleFrequency(const Variant& v, QList<int> af_column_index)
 	}
 
 	return output;
+}
+
+int NGSD::mostFrequentCopyNumber(const QByteArrayList& parts)
+{
+	int max = 0;
+	QByteArray max_cn;
+	QHash<QByteArray, int> cn_counts;
+	foreach(const QByteArray& cn, parts)
+	{
+		int count_new = cn_counts[cn] + 1;
+		if (count_new>max)
+		{
+			max = count_new;
+			max_cn = cn;
+		}
+		cn_counts[cn] = count_new;
+	}
+
+	return Helper::toInt(max_cn, "copy-number");
 }
 
 void NGSD::maintain(QTextStream* messages, bool fix_errors)
@@ -3093,18 +3123,25 @@ int NGSD::setReportConfig(const QString& processed_sample_id, const ReportConfig
 		}
 		else if (var_conf.variant_type==VariantType::CNVS)
 		{
-			//check variant index exists in variant list
+			//check CNV index exists in CNV list
 			if (var_conf.variant_index<0 || var_conf.variant_index>=cnvs.count())
 			{
 				THROW(ProgrammingException, "CNV list does not contain CNV with index '" + QString::number(var_conf.variant_index) + "' in NGSD::setReportConfig!");
 			}
 
-			//get variant id (add variant if not in DB)
+			//check that report CNV callset exists
+			QVariant callset_id = getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=" + processed_sample_id, true);
+			if (!callset_id.isValid())
+			{
+				THROW(ProgrammingException, "No CNV callset defined for processed sample with ID '" + processed_sample_id + "' in NGSD::setReportConfig!");
+			}
+
+			//get CNV id (add CNV if not in DB)
 			const CopyNumberVariant& cnv = cnvs[var_conf.variant_index];
 			QString cnv_id = cnvId(cnv, id, false);
 			if (cnv_id=="")
 			{
-				cnv_id = addCnv(cnv, cnvs);
+				cnv_id = addCnv(callset_id.toInt(), cnv, cnvs);
 			}
 
 			query_cnv.bindValue(0, id);

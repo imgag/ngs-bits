@@ -9,7 +9,7 @@
 #include <QByteArrayList>
 #include <QMap>
 
-///Copy-number variant composed of sub-regions as reported by CnvHunter.
+///Copy-number variant composed of sub-regions.
 class CPPNGSSHARED_EXPORT CopyNumberVariant
 {
 	public:
@@ -82,6 +82,14 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 		QByteArrayList annotations_;
 };
 
+///CNV caller types
+enum class CnvCallerType
+{
+	INVALID,
+	CNVHUNTER,
+	CLINCNV
+};
+
 ///CNV list types
 enum class CnvListType
 {
@@ -101,14 +109,17 @@ class CPPNGSSHARED_EXPORT CnvList
 		CnvList();
 		///Clears content.
 		void clear();
-		///Loads CNV text file (TSV format from CnvHunter).
+		///Loads CNV text file (TSV format).
 		void load(QString filename);
 
-		///Returns the analysis type
+		///Returns the CNV list type
 		CnvListType type() const
 		{
 			return type_;
 		}
+
+		///Returns the CNV caller
+		CnvCallerType caller() const;
 
 		///Returns the comment header lines (without leading '##').
 		const QByteArrayList& comments() const

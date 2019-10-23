@@ -67,6 +67,9 @@ public:
 	///Edit classification of a variant
 	void editVariantClassification(VariantList& variant, int index);
 
+	///Returns the CNV file corresponding to the GSvar file
+	QString cnvFile(QString gsvar_file);
+
 public slots:
 	///Open dialog
 	void on_actionOpen_triggered();
@@ -270,6 +273,7 @@ private:
 	enum {YES, NO, ROI} db_annos_updated_;
 	bool igv_initialized_;
 	VariantList variants_;
+	CnvList cnvs_;
 	FilterResult filter_result_;
 	QMap<QString, QString> link_columns_;
 	QSet<int> link_indices_;
