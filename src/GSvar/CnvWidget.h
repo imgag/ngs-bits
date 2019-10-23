@@ -6,6 +6,7 @@
 #include "CnvList.h"
 #include "GeneSet.h"
 #include "FilterWidget.h"
+#include "VariantTable.h"
 
 namespace Ui {
 class CnvWidget;
@@ -18,7 +19,7 @@ class CnvWidget
 	Q_OBJECT
 
 public:
-	CnvWidget(QString gsvar_file, AnalysisType analysis_type, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent = 0);
+	CnvWidget(QString gsvar_file, AnalysisType analysis_type, FilterWidget* filter_widget, ReportConfiguration& rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent = 0);
 	~CnvWidget();
 
 signals:
@@ -34,6 +35,11 @@ private slots:
 	void editQuality();
 	void showQcMetricHistogram();
 
+	void updateReportConfigHeaderIcon(int row);
+	void cnvHeaderDoubleClicked(int row);
+	void cnvHeaderContextMenu(QPoint pos);
+	void editReportConfiguration(int row);
+
 private:
 	void loadCNVs(QString filename);
 	void disableGUI();
@@ -46,9 +52,10 @@ private:
 	QString ps_id; //processed sample database ID. '' if unknown of NGSD is disabled.
 	CnvList cnvs;
 	QStringList special_cols;
-	FilterWidget* var_filters;
+	ReportConfiguration& report_config_;
 	GeneSet var_het_genes;
 	QHash<QByteArray, BedFile>& gene2region_cache;
+	bool ngsd_enabled;
 };
 
 #endif // CNVWIDGET_H

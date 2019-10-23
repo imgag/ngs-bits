@@ -10,6 +10,7 @@
 #include "Log.h"
 #include "ProcessedSampleWidget.h"
 #include "Histogram.h"
+#include "ReportVariantDialog.h"
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QBitArray>
@@ -23,23 +24,28 @@
 QT_CHARTS_USE_NAMESPACE
 
 
-CnvWidget::CnvWidget(QString gsvar_file, AnalysisType analysis_type, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent)
+CnvWidget::CnvWidget(QString gsvar_file, AnalysisType analysis_type, FilterWidget* filter_widget, ReportConfiguration& rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent)
 	: QWidget(parent)
 	, ui(new Ui::CnvWidget)
 	, ps_id()
 	, cnvs()
 	, special_cols()
+	, report_config_(rep_conf)
 	, var_het_genes(het_hit_genes)
 	, gene2region_cache(cache)
+	, ngsd_enabled(Settings::boolean("NGSD_enabled", true))
 {
 	ui->setupUi(this);
 	connect(ui->cnvs, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(cnvDoubleClicked(QTableWidgetItem*)));
 	connect(ui->cnvs, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
 	connect(ui->copy_clipboard, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
 	connect(ui->filter_widget, SIGNAL(filtersChanged()), this, SLOT(applyFilters()));
+	connect(ui->cnvs->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(cnvHeaderDoubleClicked(int)));
+	ui->cnvs->verticalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
+	connect(ui->cnvs->verticalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(cnvHeaderContextMenu(QPoint)));
 
 	//determine processed sample ID
-	if (Settings::boolean("NGSD_enabled", true) && (analysis_type==GERMLINE_SINGLESAMPLE || analysis_type==GERMLINE_TRIO))
+	if (ngsd_enabled && (analysis_type==GERMLINE_SINGLESAMPLE || analysis_type==GERMLINE_TRIO))
 	{
 		ps_id = NGSD().processedSampleId(gsvar_file, false);
 	}
@@ -197,11 +203,24 @@ void CnvWidget::loadCNVs(QString filename)
 		annotation_indices.append(i);
 	}
 
+	//get report variant indices
+	QSet<int> report_variant_indices = report_config_.variantIndices(VariantType::CNVS, false).toSet();
+
 	//show variants
 	const GeneSet& imprinting_genes = GSvarHelper::impritingGenes();
 	ui->cnvs->setRowCount(cnvs.count());
 	for (int r=0; r<cnvs.count(); ++r)
 	{
+
+		//vertical headers
+		QTableWidgetItem* header_item = createItem(QByteArray::number(r+1));
+		if (report_variant_indices.contains(r))
+		{
+			header_item->setIcon(VariantTable::reportIcon(report_config_.get(VariantType::CNVS, r).showInReport()));
+		}
+		ui->cnvs->setVerticalHeaderItem(r, header_item);
+
+		//table cells
 		ui->cnvs->setItem(r, 0, createItem(cnvs[r].toString()));
 		ui->cnvs->setItem(r, 1, createItem(QString::number(cnvs[r].size()/1000.0, 'f', 3), Qt::AlignRight|Qt::AlignTop));
 		QString regions = QString::number(cnvs[r].regions());
@@ -242,10 +261,10 @@ void CnvWidget::applyFilters(bool debug_time)
 
 	try
 	{
-		//apply main filter
 		QTime timer;
 		timer.start();
 
+		//apply main filter
 		const FilterCascade& filter_cascade = ui->filter_widget->filters();
 		//set comp-het gene list the first time the filter is applied
 		for(int i=0; i<filter_cascade.count(); ++i)
@@ -263,6 +282,17 @@ void CnvWidget::applyFilters(bool debug_time)
 		{
 			Log::perf("Applying annotation filters took ", timer);
 			timer.start();
+		}
+
+		//filter by report config
+		if (ui->filter_widget->reportConfigurationOnly())
+		{
+			for(int r=0; r<rows; ++r)
+			{
+				if (!filter_result.flags()[r]) continue;
+
+				filter_result.flags()[r] = report_config_.exists(VariantType::CNVS, r);
+			}
 		}
 
 		//filter by genes
@@ -424,32 +454,45 @@ void CnvWidget::showContextMenu(QPoint p)
 
 	//create menu
 	QMenu menu;
-	menu.addAction(QIcon("://Icons/Decipher.png"), "Open in Decipher browser");
-	menu.addAction(QIcon("://Icons/DGV.png"), "Open in DGV");
-	menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser");
-	menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser (override tracks)");
+	QAction* a_rep_edit = menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
+	a_rep_edit->setEnabled(ngsd_enabled);
+	QAction* a_rep_del = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
+	a_rep_del->setEnabled(ngsd_enabled && report_config_.exists(VariantType::CNVS, row));
+	menu.addSeparator();
+	QAction* a_deciphter = menu.addAction(QIcon("://Icons/Decipher.png"), "Open in Decipher browser");
+	QAction* a_dgv = menu.addAction(QIcon("://Icons/DGV.png"), "Open in DGV");
+	QAction* a_ucsc = menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser");
+	QAction* a_ucsc_override = menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser (override tracks)");
 
 	//exec menu
 	QAction* action = menu.exec(ui->cnvs->viewport()->mapToGlobal(p));
 	if (action==nullptr) return;
-	QString text = action->text();
 
-
-	if (text=="Open in DGV")
+	//do stuff
+	if (action==a_dgv)
 	{
 		QDesktopServices::openUrl(QUrl("http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/?name=" + cnvs[row].toString()));
 	}
-	else if (text=="Open in UCSC browser")
+	if (action==a_ucsc)
 	{
 		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=" + cnvs[row].toString()));
 	}
-	else if (text=="Open in UCSC browser (override tracks)")
+	if (action==a_ucsc_override)
 	{
 		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&ignoreCookie=1&hideTracks=1&cytoBand=pack&refSeqComposite=dense&ensGene=dense&omimGene2=pack&geneReviews=pack&dgvPlus=squish&genomicSuperDups=squish&position=" + cnvs[row].toString()));
 	}
-	else if (text=="Open in Decipher browser")
+	if (action==a_deciphter)
 	{
 		QDesktopServices::openUrl(QUrl("https://decipher.sanger.ac.uk/browser#q/" + cnvs[row].toString()));
+	}
+	if (action==a_rep_edit)
+	{
+		editReportConfiguration(row);
+	}
+	if (action==a_rep_del)
+	{
+		report_config_.remove(VariantType::CNVS, row);
+		updateReportConfigHeaderIcon(row);
 	}
 }
 
@@ -521,6 +564,61 @@ void CnvWidget::showQcMetricHistogram()
 	QChartView* view = GUIHelper::histogramChart(hist, "#CNVs");
 	auto dlg = GUIHelper::createDialog(view, "High-quality CNV distribution");
 	dlg->exec();
+}
+
+void CnvWidget::updateReportConfigHeaderIcon(int row)
+{
+	//report config-based filter is on => update whole variant list
+	if (ui->filter_widget->reportConfigurationOnly())
+	{
+		applyFilters();
+	}
+	else //no filter => refresh icon only
+	{
+		QIcon report_icon;
+		if (report_config_.exists(VariantType::CNVS, row))
+		{
+			report_icon = VariantTable::reportIcon(report_config_.get(VariantType::CNVS, row).showInReport());
+		}
+		ui->cnvs->verticalHeaderItem(row)->setIcon(report_icon);
+	}
+}
+
+void CnvWidget::cnvHeaderDoubleClicked(int row)
+{
+	if (!ngsd_enabled) return;
+
+	editReportConfiguration(row);
+}
+
+void CnvWidget::cnvHeaderContextMenu(QPoint pos)
+{
+	if (!ngsd_enabled) return;
+
+	//get variant index
+	int row = ui->cnvs->verticalHeader()->visualIndexAt(pos.ry());
+
+	//set up menu
+	QMenu menu(ui->cnvs->verticalHeader());
+	QAction* a_edit = menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
+	QAction* a_delete = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
+	a_delete->setEnabled(report_config_.exists(VariantType::CNVS, row));
+
+	//exec menu
+	pos = ui->cnvs->verticalHeader()->viewport()->mapToGlobal(pos);
+	QAction* action = menu.exec(pos);
+	if (action==nullptr) return;
+
+	//actions
+	if (action==a_edit)
+	{
+		editReportConfiguration(row);
+	}
+	else if (action==a_delete)
+	{
+		report_config_.remove(VariantType::CNVS, row);
+		updateReportConfigHeaderIcon(row);
+	}
 }
 
 void CnvWidget::showSpecialTable(QString col, QString text, QByteArray url_prefix)
@@ -607,6 +705,45 @@ QTableWidgetItem* CnvWidget::createItem(QString text, int alignment)
 	item->setTextAlignment(alignment);
 
 	return item;
+}
+
+void CnvWidget::editReportConfiguration(int row)
+{
+	NGSD db;
+
+	//init/get config
+	ReportVariantConfiguration var_config;
+	bool report_settings_exist = report_config_.exists(VariantType::CNVS, row);
+	if (report_settings_exist)
+	{
+		var_config = report_config_.get(VariantType::CNVS, row);
+	}
+	else
+	{
+		var_config.variant_type = VariantType::CNVS;
+		var_config.variant_index = row;
+	}
+
+	//get inheritance mode by gene
+	QList<KeyValuePair> inheritance_by_gene;
+	int i_genes = cnvs.annotationIndexByName("genes", false);
+	if (i_genes!=-1)
+	{
+		QByteArrayList genes = cnvs[row].annotations()[i_genes].split(',');
+		foreach(QByteArray gene, genes)
+		{
+			GeneInfo gene_info = db.geneInfo(gene);
+			inheritance_by_gene << KeyValuePair{gene, gene_info.inheritance};
+		}
+	}
+
+	//exec dialog
+	ReportVariantDialog* dlg = new ReportVariantDialog(cnvs[row].toStringWithMetaData(), inheritance_by_gene, var_config, this);
+	if (dlg->exec()!=QDialog::Accepted) return;
+
+	//update config and GUI
+	report_config_.set(var_config);
+	updateReportConfigHeaderIcon(row);
 }
 
 

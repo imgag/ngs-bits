@@ -146,7 +146,7 @@
          <bool>false</bool>
         </property>
         <attribute name="verticalHeaderVisible">
-         <bool>false</bool>
+         <bool>true</bool>
         </attribute>
         <column>
          <property name="text">
@@ -187,7 +187,7 @@
      <property name="flat">
       <bool>true</bool>
      </property>
-     <layout class="QGridLayout" name="gridLayout_3" rowstretch="0,0,0" columnstretch="1,0,0">
+     <layout class="QGridLayout" name="gridLayout_3" rowstretch="0,0,0" columnstretch="1,0">
       <property name="leftMargin">
        <number>3</number>
       </property>

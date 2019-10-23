@@ -15,9 +15,12 @@ NGSD:
     - sample: import disease group/status from GenLab (sample - disease status: add 'Unclear') - select * FROM v_krankheitsgruppe_pattyp...
 ** Add run overview dialog/tab
 ##### add CNVs to NGSD
+    - allow adding to report config in GSvar
+        - add low-quality CNV calls to NGSD if missing
+        - add classification for CNVs only
+        - add to report and variant sheet
+        - add to XML for GenLab
     - block re-import of CNVs if report config is set for all variant types - allow deleting report config from GSvar
-    - allow adding to report config in GSvar (like small variants, but with classification) -  add low-quality CNV calls to NGSD if missing
-    - generate IGV tracks with gain/loss for exome/genome - split deep/shallow genome
     - add annotation of CNVs from NGSD:
         - # overlapping CNVs (by type gain/loss)
         - overlapping class 4/5 CNVs

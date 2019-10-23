@@ -231,12 +231,12 @@ void FilterBase::overrideConstraint(const QString& parameter_name, const QString
 
 void FilterBase::apply(const VariantList& /*variant_list*/, FilterResult& /*result*/) const
 {
-	THROW(ProgrammingException, "Method apply on VariantList not implemented for filter '" + name() + "'!");
+	THROW(NotImplementedException, "Method apply on VariantList not implemented for filter '" + name() + "'!");
 }
 
 void FilterBase::apply(const CnvList& /*variant_list*/, FilterResult& /*result*/) const
 {
-	THROW(ProgrammingException, "Method apply on CnvList not implemented for filter '" + name() + "'!");
+	THROW(NotImplementedException, "Method apply on CnvList not implemented for filter '" + name() + "'!");
 }
 
 void FilterBase::setInteger(const QString& name, int value)

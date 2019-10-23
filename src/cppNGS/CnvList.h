@@ -57,6 +57,10 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 			return chr_.str() + ":" + QString::number(start_) + "-" + QString::number(end_);
 		}
 
+		///Convert cnv to string.
+		QString toStringWithMetaData() const;
+
+
 		///Generic annotations (see also CnvList::annotationHeaders()).
 		const QByteArrayList& annotations() const
 		{

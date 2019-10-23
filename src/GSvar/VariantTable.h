@@ -49,6 +49,9 @@ public:
 	///Sets column widths.
 	void setColumnWidths(const QList<int>& widths);
 
+	///Returns report config icon
+	static QIcon reportIcon(bool show_in_report);
+
 public slots:
 
 	///Clear contents
@@ -67,7 +70,6 @@ public slots:
 	void copyToClipboard(bool split_quality=false);
 
 protected:
-	static QIcon reportIcon(bool show_in_report);
 
 	///Override copy command
 	void keyPressEvent(QKeyEvent* event) override;

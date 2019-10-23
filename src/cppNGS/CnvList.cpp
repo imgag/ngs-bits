@@ -24,6 +24,11 @@ CopyNumberVariant::CopyNumberVariant(const Chromosome& chr, int start, int end, 
 {
 }
 
+QString CopyNumberVariant::toStringWithMetaData() const
+{
+	return toString() + " regions=" + QString::number(num_regs_) + " size=" + QString::number((end_-start_)/1000.0, 'f', 3) + "kb";
+}
+
 CnvList::CnvList()
 	: type_(CnvListType::INVALID)
 	, comments_()
@@ -144,7 +149,7 @@ void CnvList::load(QString filename)
 	}
 	else
 	{
-		THROW(ProgrammingException, "Column handling for this CNV list with type not implemented!");
+		THROW(NotImplementedException, "Column handling for this CNV list with type not implemented!");
 	}
 
 	//check mandatory columns were found

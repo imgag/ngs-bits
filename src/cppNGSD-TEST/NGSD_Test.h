@@ -656,7 +656,7 @@ private slots:
 		VariantList vl;
 		vl.load(TESTDATA("../cppNGS-TEST/data_in/panel_vep.GSvar"));
 		I_EQUAL(vl.count(), 329);
-		QString var_id = db.addVariant(vl, 0);
+		QString var_id = db.addVariant(vl[0], vl);
 
 		//variant
 		IS_TRUE(db.variant(var_id)==vl[0]);
@@ -725,6 +725,7 @@ private slots:
 		I_EQUAL(db.reportConfigId(ps_id), -1);
 
 		//setReportConfig
+		CnvList cnvs;
 		ReportVariantConfiguration report_var_conf;
 		report_var_conf.variant_type = VariantType::SNVS_INDELS;
 		report_var_conf.variant_index = 47;
@@ -737,7 +738,7 @@ private slots:
 		ReportConfiguration report_conf;
 		report_conf.setCreatedBy("ahmustm1");
 		report_conf.set(report_var_conf);
-		int conf_id1 = db.setReportConfig(ps_id, report_conf, vl, "ahmustm1");
+		int conf_id1 = db.setReportConfig(ps_id, report_conf, vl, cnvs, "ahmustm1");
 
 		//reportConfigId
 		int conf_id = db.reportConfigId(ps_id);
@@ -750,7 +751,7 @@ private slots:
 		S_EQUAL(rc_creation_data.last_edit_date, "");
 		//update
 		QThread::sleep(1);
-		int conf_id2 = db.setReportConfig(ps_id, report_conf, vl, "ahkerra1");
+		int conf_id2 = db.setReportConfig(ps_id, report_conf, vl, cnvs, "ahkerra1"); //TODO test with CNVs
 		IS_TRUE(conf_id1==conf_id2);
 		ReportConfigurationCreationData rc_creation_data2 = db.reportConfigCreationData(conf_id);
 		S_EQUAL(rc_creation_data2.created_by, "Max Mustermann");

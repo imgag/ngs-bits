@@ -1232,13 +1232,49 @@ CREATE  TABLE IF NOT EXISTS `cnv`
   INDEX `chr` (`chr` ASC),
   INDEX `start` (`start` ASC),
   INDEX `end` (`end` ASC),
-  INDEX `cn` (`end` ASC)
+  INDEX `cn` (`cn` ASC)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8
 COMMENT='germline CNV';
 
-
+-- -----------------------------------------------------
+-- Table `report_configuration_cnv`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `report_configuration_cnv`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `report_configuration_id` INT(11) NOT NULL,
+  `cnv_id` INT(11) UNSIGNED NOT NULL,
+  `type` ENUM('diagnostic variant', 'candidate variant', 'incidental finding') NOT NULL,
+  `causal` BOOLEAN NOT NULL,
+  `class` ENUM('n/a','1','2','3','4','5','M') NOT NULL,
+  `inheritance` ENUM('n/a', 'AR','AD','AR+AD','XLR','XLD','XLR+XLD','MT') NOT NULL,
+  `de_novo` BOOLEAN NOT NULL,
+  `mosaic` BOOLEAN NOT NULL,
+  `compound_heterozygous` BOOLEAN NOT NULL,
+  `exclude_artefact` BOOLEAN NOT NULL,
+  `exclude_frequency` BOOLEAN NOT NULL,
+  `exclude_phenotype` BOOLEAN NOT NULL,
+  `exclude_mechanism` BOOLEAN NOT NULL,
+  `exclude_other` BOOLEAN NOT NULL,
+  `comments` text NOT NULL,
+  `comments2` text NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_report_configuration2`
+    FOREIGN KEY (`report_configuration_id` )
+    REFERENCES `report_configuration` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_report_configuration_cnv_has_cnv`
+    FOREIGN KEY (`cnv_id`)
+    REFERENCES `cnv` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  UNIQUE INDEX `config_variant_combo_uniq` (`report_configuration_id` ASC, `cnv_id` ASC)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
 
 -- ----------------------------------------------------------------------------------------------------------
 --                                                 INITIAL DATA
