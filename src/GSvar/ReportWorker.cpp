@@ -23,12 +23,13 @@
 
 
 
-ReportWorker::ReportWorker(QString sample_name, QString file_bam, QString file_roi, const VariantList& variants, const FilterCascade& filters, ReportSettings settings, QStringList log_files, QString file_rep)
+ReportWorker::ReportWorker(QString sample_name, QString file_bam, QString file_roi, const VariantList& variants, const CnvList& cnvs, const FilterCascade& filters, ReportSettings settings, QStringList log_files, QString file_rep)
 	: WorkerBase("Report generation")
 	, sample_name_(sample_name)
 	, file_bam_(file_bam)
 	, file_roi_(file_roi)
 	, variants_(variants)
+	, cnvs_(cnvs)
 	, filters_(filters)
 	, settings_(settings)
 	, log_files_(log_files)
@@ -552,6 +553,7 @@ void ReportWorker::writeHTML()
 	stream << "<p><b>" << trans("Filterkriterien") << " " << "</b>" << endl;
 	stream << "<br />" << trans("Gefundene Varianten in Zielregion gesamt") << ": " << var_count_ << endl;
 	stream << "<br />" << trans("Anzahl Varianten ausgew&auml;hlt f&uuml;r Report") << ": " << settings_.report_config.variantIndices(VariantType::SNVS_INDELS, true, settings_.report_type).count() << endl;
+	stream << "<br />" << trans("Anzahl CNVs ausgew&auml;hlt f&uuml;r Report") << ": " << settings_.report_config.variantIndices(VariantType::CNVS, true, settings_.report_type).count() << endl;
 	for(int i=0; i<filters_.count(); ++i)
 	{
 		stream << "<br />&nbsp;&nbsp;&nbsp;&nbsp;- " << filters_[i]->toText() << endl;
@@ -622,6 +624,38 @@ void ReportWorker::writeHTML()
 			}
 			stream << "<tr><td colspan=\"" << (is_trio ? "10" : "8") << "\">" << parts.join("<br />") << "</td></tr>" << endl;
 		}
+	}
+	stream << "</table>" << endl;
+
+	//CNVs
+	stream << "<table>" << endl;
+	stream << "<tr><td><b>" << trans("CNV") << "</b></td><td><b>" << trans("Regionen") << "</b></td><td><b>" << trans("CN") << "</b></td><td><b>" << trans("Gene") << "</b></td></tr>" << endl;
+
+	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config.variantConfig())
+	{
+		if (var_conf.variant_type!=VariantType::CNVS) continue;
+		if (!var_conf.showInReport()) continue;
+		if (var_conf.report_type!=settings_.report_type) continue;
+
+		const CopyNumberVariant& cnv = cnvs_[var_conf.variant_index];
+		stream << "<tr>" << endl;
+		stream << "<td>" << cnv.toString() << "</td>" << endl;
+		stream << "<td>" << cnv.regions() << "</td>" << endl;
+		QByteArray cn = "n/a";
+		for (int i=0; i<cnvs_.annotationHeaders().count(); ++i)
+		{
+			if (cnvs_.annotationHeaders()[i]=="CN_change") //ClinCNV
+			{
+				cn = cnv.annotations()[i];
+			}
+			else if (cnvs_.annotationHeaders()[i]=="region_copy_numbers")
+			{
+				cn = cnv.annotations()[i];
+			}
+			stream << "<td>" << cn << "</td>" << endl;
+		}
+		stream << "<td>" << cnv.genes().join(", ") << "</td>" << endl;
+		stream << "</tr>" << endl;
 	}
 	stream << "</table>" << endl;
 
@@ -903,7 +937,10 @@ QString ReportWorker::trans(const QString& text) const
 		de2en["Geschlecht"] = "sample sex";
 		de2en["Vater"] = "father";
 		de2en["Mutter"] = "mother";
-
+		de2en["Regionen"] = "regions";
+		de2en["Gene"] = "genes";
+		de2en["CNV"] = "CNV";
+		de2en["CN"] = "CN";
 
 		if (!de2en.contains(text))
 		{

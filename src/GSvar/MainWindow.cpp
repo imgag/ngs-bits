@@ -1552,7 +1552,7 @@ void MainWindow::loadReportConfig()
 
 	//load
 	QStringList messages;
-	report_settings_.report_config = db.reportConfig(processed_sample_id, variants_, messages);
+	report_settings_.report_config = db.reportConfig(processed_sample_id, variants_, cnvs_, messages);
 	if (!messages.isEmpty())
 	{
 		QMessageBox::warning(this, "Report configuration", "The following problems were encountered while loading the report configuration:\n" + messages.join("\n"));
@@ -2061,7 +2061,7 @@ void MainWindow::generateReportGermline()
 	busy_dialog_->init("Generating report", false);
 
 	//start worker in new thread
-	ReportWorker* worker = new ReportWorker(base_name, bam_file, ui_.filters->targetRegion(), variants_, ui_.filters->filters(), report_settings_, getLogFiles(), file_rep);
+	ReportWorker* worker = new ReportWorker(base_name, bam_file, ui_.filters->targetRegion(), variants_, cnvs_, ui_.filters->filters(), report_settings_, getLogFiles(), file_rep);
 	connect(worker, SIGNAL(finished(bool)), this, SLOT(reportGenerationFinished(bool)));
 	worker->start();
 }

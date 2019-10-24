@@ -440,10 +440,12 @@ public:
 	///Returns the variant corresponding to the given identifier or throws an exception if the ID does not exist.
 	Variant variant(const QString& variant_id);
 
-	///Returns the NGSD ID for a CNV. Returns '' or throws an exception if the ID cannot be determined.
-	QString cnvId(const CopyNumberVariant& cnv, int callset_id, bool throw_if_fails = true);
 	///Adds a CNV to the NGSD. Returns the CNV ID.
 	QString addCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList& cnv_list, double max_ll = 0.0);
+	///Returns the NGSD ID for a CNV. Returns '' or throws an exception if the ID cannot be determined.
+	QString cnvId(const CopyNumberVariant& cnv, int callset_id, bool throw_if_fails = true);
+	///Returns the CNV corresponding to the given identifiers or throws an exception if the ID does not exist.
+	CopyNumberVariant cnv(int cnv_id);
 
 	///Returns the database ID of the user as a string. Throws an exception if the user is not in the NGSD user table.
 	QString userId(QString user_name=Helper::userName());
@@ -513,7 +515,7 @@ public:
 	///Returns the report config creation data (user/date).
 	ReportConfigurationCreationData reportConfigCreationData(int id);
 	///Returns the report configuration for a processed sample, throws an error if it does not exist.
-	ReportConfiguration reportConfig(const QString& processed_sample_id, const VariantList& variants, QStringList& messages);
+	ReportConfiguration reportConfig(const QString& processed_sample_id, const VariantList& variants, const CnvList& cnvs, QStringList& messages);
 	///Sets/overwrites the report configuration for a processed sample. Returns its database primary key. The variant list is needed to determine the annotation column indices.
 	int setReportConfig(const QString& processed_sample_id, const ReportConfiguration& config, const VariantList& variants, const CnvList& cnvs, QString user_name);
 

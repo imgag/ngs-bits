@@ -14,6 +14,16 @@ CopyNumberVariant::CopyNumberVariant()
 {
 }
 
+CopyNumberVariant::CopyNumberVariant(const Chromosome& chr, int start, int end)
+	: chr_(chr)
+	, start_(start)
+	, end_(end)
+	, num_regs_(-1)
+	, genes_()
+	, annotations_()
+{
+}
+
 CopyNumberVariant::CopyNumberVariant(const Chromosome& chr, int start, int end, int num_regs, GeneSet genes, QByteArrayList annotations)
 	: chr_(chr)
 	, start_(start)

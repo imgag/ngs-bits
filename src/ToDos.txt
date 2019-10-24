@@ -14,12 +14,10 @@ NGSD:
     - sample: import disease info, disease group/status, gender from same samples
     - sample: import disease group/status from GenLab (sample - disease status: add 'Unclear') - select * FROM v_krankheitsgruppe_pattyp...
 ** Add run overview dialog/tab
+- Allow several disease_groups per sample (requested by CS)
 ##### add CNVs to NGSD
-    - allow adding to report config in GSvar
-        - add low-quality CNV calls to NGSD if missing
-        - add classification for CNVs only
-        - add to report and variant sheet
-        - add to XML for GenLab
+    - add to variant sheet in GSvar
+    - add CNVs to XML for GenLab
     - block re-import of CNVs if report config is set for all variant types - allow deleting report config from GSvar
     - add annotation of CNVs from NGSD:
         - # overlapping CNVs (by type gain/loss)

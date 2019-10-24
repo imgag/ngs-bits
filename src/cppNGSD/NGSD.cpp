@@ -721,6 +721,15 @@ QString NGSD::cnvId(const CopyNumberVariant& cnv, int callset_id, bool throw_if_
 	return query.value(0).toString();
 }
 
+CopyNumberVariant NGSD::cnv(int cnv_id)
+{
+	SqlQuery query = getQuery();
+	query.exec("SELECT * FROM cnv WHERE id='" + QString::number(cnv_id) + "'");
+	if (!query.next()) THROW(DatabaseException, "CNV with identifier '" + QString::number(cnv_id) + "' does not exist!");
+
+	return CopyNumberVariant(query.value("chr").toByteArray(), query.value("start").toInt(), query.value("end").toInt());
+}
+
 QString NGSD::addCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList& cnv_list, double max_ll)
 {
 	CnvCallerType caller = cnv_list.caller();
@@ -2999,7 +3008,7 @@ ReportConfigurationCreationData NGSD::reportConfigCreationData(int id)
 	return output;
 }
 
-ReportConfiguration NGSD::reportConfig(const QString& processed_sample_id, const VariantList& variants, QStringList& messages)
+ReportConfiguration NGSD::reportConfig(const QString& processed_sample_id, const VariantList& variants, const CnvList& cnvs, QStringList& messages)
 {
 	ReportConfiguration output;
 
@@ -3051,6 +3060,46 @@ ReportConfiguration NGSD::reportConfig(const QString& processed_sample_id, const
 		output.set(var_conf);
 	}
 
+	//load CNV data
+	query.exec("SELECT * FROM report_configuration_cnv WHERE report_configuration_id=" + QString::number(conf_id));
+	while(query.next())
+	{
+		ReportVariantConfiguration var_conf;
+		var_conf.variant_type = VariantType::CNVS;
+
+		//get CNV id
+		CopyNumberVariant var = cnv(query.value("cnv_id").toInt());
+		for (int i=0; i<cnvs.count(); ++i)
+		{
+			if (cnvs[i].hasSamePosition(var))
+			{
+				var_conf.variant_index = i;
+			}
+		}
+		if (var_conf.variant_index==-1)
+		{
+			messages << "Could not find CNV '" + var.toString() + "' in given variant list!";
+			continue;
+		}
+
+		var_conf.report_type = query.value("type").toString();
+		var_conf.causal = query.value("causal").toBool();
+		var_conf.classification = query.value("class").toString();
+		var_conf.inheritance = query.value("inheritance").toString();
+		var_conf.de_novo = query.value("de_novo").toBool();
+		var_conf.mosaic = query.value("mosaic").toBool();
+		var_conf.comp_het = query.value("compound_heterozygous").toBool();
+		var_conf.exclude_artefact = query.value("exclude_artefact").toBool();
+		var_conf.exclude_frequency = query.value("exclude_frequency").toBool();
+		var_conf.exclude_phenotype = query.value("exclude_phenotype").toBool();
+		var_conf.exclude_mechanism = query.value("exclude_mechanism").toBool();
+		var_conf.exclude_other = query.value("exclude_other").toBool();
+		var_conf.comments = query.value("comments").toString();
+		var_conf.comments2 = query.value("comments2").toString();
+
+		output.set(var_conf);
+	}
+
 	output.setModified(false);
 	return output;
 }
@@ -3064,6 +3113,7 @@ int NGSD::setReportConfig(const QString& processed_sample_id, const ReportConfig
 		//delete report config variants if it already exists
 		SqlQuery query = getQuery();
 		query.exec("DELETE FROM `report_configuration_variant` WHERE report_configuration_id=" + QString::number(id));
+		query.exec("DELETE FROM `report_configuration_cnv` WHERE report_configuration_id=" + QString::number(id));
 
 		//update report config
 		query.exec("UPDATE `report_configuration` SET `last_edit_by`='" + userId(user_name) + "', `last_edit_date`=CURRENT_TIMESTAMP WHERE id=" + QString::number(id));
@@ -3095,6 +3145,12 @@ int NGSD::setReportConfig(const QString& processed_sample_id, const ReportConfig
 				THROW(ProgrammingException, "Variant list does not contain variant with index '" + QString::number(var_conf.variant_index) + "' in NGSD::setReportConfig!");
 			}
 
+			//check that classification is not set (only used for CNVs)
+			if (var_conf.classification!="n/a" && var_conf.classification!="")
+			{
+				THROW(ProgrammingException, "Report configuration for small variant '" + variants[var_conf.variant_index].toString() + "' set, but not supported!");
+			}
+
 			//get variant id (add variant if not in DB)
 			const Variant& variant = variants[var_conf.variant_index];
 			QString variant_id = variantId(variant, false);
@@ -3116,8 +3172,8 @@ int NGSD::setReportConfig(const QString& processed_sample_id, const ReportConfig
 			query_var.bindValue(10, var_conf.exclude_phenotype);
 			query_var.bindValue(11, var_conf.exclude_mechanism);
 			query_var.bindValue(12, var_conf.exclude_other);
-			query_var.bindValue(13, var_conf.comments);
-			query_var.bindValue(14, var_conf.comments2);
+			query_var.bindValue(13, var_conf.comments.isEmpty() ? "" : var_conf.comments);
+			query_var.bindValue(14, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
 
 			query_var.exec();
 		}
@@ -3158,8 +3214,8 @@ int NGSD::setReportConfig(const QString& processed_sample_id, const ReportConfig
 			query_cnv.bindValue(11, var_conf.exclude_phenotype);
 			query_cnv.bindValue(12, var_conf.exclude_mechanism);
 			query_cnv.bindValue(13, var_conf.exclude_other);
-			query_cnv.bindValue(14, var_conf.comments);
-			query_cnv.bindValue(15, var_conf.comments2);
+			query_cnv.bindValue(14, var_conf.comments.isEmpty() ? "" : var_conf.comments);
+			query_cnv.bindValue(15, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
 
 			query_cnv.exec();
 

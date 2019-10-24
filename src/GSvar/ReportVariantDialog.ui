@@ -33,69 +33,46 @@
    <property name="spacing">
     <number>3</number>
    </property>
-   <item row="13" column="1" colspan="3">
-    <widget class="QCheckBox" name="exclude_phenotype">
-     <property name="text">
-      <string>phenotype not matching</string>
-     </property>
-    </widget>
-   </item>
-   <item row="11" column="1" colspan="3">
+   <item row="12" column="1" colspan="3">
     <widget class="QCheckBox" name="exclude_artefact">
      <property name="text">
       <string>artefact</string>
      </property>
     </widget>
    </item>
-   <item row="15" column="1" colspan="3">
+   <item row="14" column="1" colspan="3">
+    <widget class="QCheckBox" name="exclude_phenotype">
+     <property name="text">
+      <string>phenotype not matching</string>
+     </property>
+    </widget>
+   </item>
+   <item row="16" column="1" colspan="3">
     <widget class="QCheckBox" name="exclude_other">
      <property name="text">
       <string>other reason</string>
      </property>
     </widget>
    </item>
-   <item row="14" column="1" colspan="3">
+   <item row="2" column="1" colspan="3">
+    <widget class="QComboBox" name="type"/>
+   </item>
+   <item row="15" column="1" colspan="3">
     <widget class="QCheckBox" name="exclude_mechanism">
      <property name="text">
       <string>pathomechanism not matching</string>
      </property>
     </widget>
    </item>
-   <item row="12" column="1" colspan="3">
+   <item row="13" column="1" colspan="3">
     <widget class="QCheckBox" name="exclude_frequency">
      <property name="text">
       <string>frequency too high</string>
      </property>
     </widget>
    </item>
-   <item row="2" column="1" colspan="3">
-    <widget class="QComboBox" name="type"/>
-   </item>
-   <item row="18" column="1" colspan="3">
+   <item row="19" column="1" colspan="3">
     <widget class="QPlainTextEdit" name="comments2"/>
-   </item>
-   <item row="4" column="1" colspan="3">
-    <widget class="QCheckBox" name="causal">
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-   </item>
-   <item row="18" column="0">
-    <widget class="QLabel" name="label_9">
-     <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comments of a second person that reviews the first evaluation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;comments:&lt;br/&gt;(2. assessor)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
    </item>
    <item row="4" column="0">
     <widget class="QLabel" name="label_8">
@@ -110,16 +87,26 @@
      </property>
     </widget>
    </item>
-   <item row="8" column="0">
-    <widget class="QLabel" name="label_4">
-     <property name="toolTip">
-      <string>The variant is in mosaic state.</string>
-     </property>
+   <item row="4" column="1" colspan="3">
+    <widget class="QCheckBox" name="causal">
      <property name="text">
       <string/>
      </property>
+    </widget>
+   </item>
+   <item row="19" column="0">
+    <widget class="QLabel" name="label_9">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comments of a second person that reviews the first evaluation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;comments:&lt;br/&gt;(2. assessor)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
      <property name="alignment">
-      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
@@ -136,24 +123,27 @@
      </property>
     </widget>
    </item>
-   <item row="6" column="1" colspan="2">
+   <item row="7" column="1" colspan="2">
     <widget class="QComboBox" name="inheritance">
      <property name="toolTip">
       <string>Inhertitance mode of the variant.</string>
      </property>
     </widget>
    </item>
-   <item row="7" column="1" colspan="3">
-    <widget class="QCheckBox" name="de_novo">
+   <item row="9" column="0">
+    <widget class="QLabel" name="label_4">
+     <property name="toolTip">
+      <string>The variant is in mosaic state.</string>
+     </property>
      <property name="text">
-      <string>de-novo</string>
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
      </property>
     </widget>
    </item>
-   <item row="17" column="1" colspan="3">
-    <widget class="QPlainTextEdit" name="comments"/>
-   </item>
-   <item row="6" column="3">
+   <item row="7" column="3">
     <widget class="QLabel" name="inheritance_hint">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -178,7 +168,17 @@
      </property>
     </widget>
    </item>
-   <item row="6" column="0">
+   <item row="18" column="1" colspan="3">
+    <widget class="QPlainTextEdit" name="comments"/>
+   </item>
+   <item row="8" column="1" colspan="3">
+    <widget class="QCheckBox" name="de_novo">
+     <property name="text">
+      <string>de-novo</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="0">
     <widget class="QLabel" name="label_2">
      <property name="text">
       <string>inheritance:</string>
@@ -188,7 +188,27 @@
      </property>
     </widget>
    </item>
-   <item row="7" column="0">
+   <item row="10" column="1" colspan="3">
+    <widget class="QCheckBox" name="comp_het">
+     <property name="text">
+      <string>compound heterozygous</string>
+     </property>
+    </widget>
+   </item>
+   <item row="18" column="0">
+    <widget class="QLabel" name="label_6">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comments of the first evaluation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="text">
+      <string>comments:</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="0">
     <widget class="QLabel" name="label_3">
      <property name="toolTip">
       <string>The variant is de-novo.</string>
@@ -217,27 +237,7 @@
      </property>
     </widget>
    </item>
-   <item row="9" column="1" colspan="3">
-    <widget class="QCheckBox" name="comp_het">
-     <property name="text">
-      <string>compound heterozygous</string>
-     </property>
-    </widget>
-   </item>
-   <item row="17" column="0">
-    <widget class="QLabel" name="label_6">
-     <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comments of the first evaluation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="text">
-      <string>comments:</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-     </property>
-    </widget>
-   </item>
-   <item row="9" column="0">
+   <item row="10" column="0">
     <widget class="QLabel" name="label_5">
      <property name="toolTip">
       <string>The variant is compound-heterozygous.</string>
@@ -250,7 +250,7 @@
      </property>
     </widget>
    </item>
-   <item row="19" column="0" colspan="4">
+   <item row="20" column="0" colspan="4">
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -260,35 +260,35 @@
      </property>
     </widget>
    </item>
-   <item row="8" column="1" colspan="3">
-    <widget class="QCheckBox" name="mosaic">
-     <property name="text">
-      <string>mosaic</string>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="0" colspan="4">
+   <item row="6" column="0" colspan="4">
     <widget class="Line" name="line">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
     </widget>
    </item>
-   <item row="10" column="0" colspan="4">
-    <widget class="Line" name="line_2">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+   <item row="9" column="1" colspan="3">
+    <widget class="QCheckBox" name="mosaic">
+     <property name="text">
+      <string>mosaic</string>
      </property>
     </widget>
    </item>
-   <item row="16" column="0" colspan="4">
+   <item row="17" column="0" colspan="4">
     <widget class="Line" name="line_3">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
     </widget>
    </item>
-   <item row="11" column="0" rowspan="5">
+   <item row="11" column="0" colspan="4">
+    <widget class="Line" name="line_2">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="12" column="0" rowspan="5">
     <widget class="QLabel" name="label_7">
      <property name="toolTip">
       <string>Reasons why the variant is excluded from the report.</string>
@@ -303,6 +303,16 @@
       <bool>true</bool>
      </property>
     </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QLabel" name="label_classification">
+     <property name="text">
+      <string>classifcation:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1" colspan="3">
+    <widget class="QComboBox" name="classification"/>
    </item>
   </layout>
  </widget>

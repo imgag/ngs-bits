@@ -36,6 +36,8 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 	static QStringList getTypeOptions(bool test_db = false);
 	//Returns options for 'inheritance_mode' (taken and cached from NGSD)
 	static QStringList getInheritanceModeOptions(bool test_db = false);
+	//Returns options for 'class' (taken and cached from NGSD)
+	static QStringList getClassificationOptions(bool test_db = false);
 };
 
 ///Report configuration

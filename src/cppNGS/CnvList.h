@@ -15,8 +15,16 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 	public:
 		///Default constructor.
 		CopyNumberVariant();
+		///Minimal constructor.
+		CopyNumberVariant(const Chromosome& chr, int start, int end);
 		///Main constructor.
 		CopyNumberVariant(const Chromosome& chr, int start, int end, int num_regs, GeneSet genes, QByteArrayList annotations);
+
+		///Returns if two CNVs are equal
+		bool hasSamePosition(const CopyNumberVariant& rhs) const
+		{
+			return chr_==rhs.chr_ && start_==rhs.start_ && end_==rhs.end_;
+		}
 
 		///Returns the chromosome.
 		const Chromosome& chr() const
@@ -67,7 +75,7 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 			return annotations_;
 		}
 
-		///Retuns if a variant overlaps a genomic range.
+		///Returns if a variant overlaps a genomic range.
 		bool overlapsWith(const Chromosome& chr, int start, int end) const
 		{
 			return chr == chr_ && BasicStatistics::rangeOverlaps(start_, end_, start, end);

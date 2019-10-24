@@ -42,6 +42,12 @@ QStringList ReportVariantConfiguration::getInheritanceModeOptions(bool test_db)
 	return modes;
 }
 
+QStringList ReportVariantConfiguration::getClassificationOptions(bool test_db)
+{
+	static QStringList modes = NGSD(test_db).getEnum("report_configuration_cnv", "class");
+	return modes;
+}
+
 
 /*************************************** ReportConfiguration ***************************************/
 

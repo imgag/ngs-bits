@@ -672,12 +672,18 @@ void CnvWidget::editReportConfiguration(int row)
 	}
 
 	//exec dialog
+	qDebug() << __LINE__;
 	ReportVariantDialog* dlg = new ReportVariantDialog(cnvs_[row].toStringWithMetaData(), inheritance_by_gene, var_config, this);
+	qDebug() << __LINE__;
 	if (dlg->exec()!=QDialog::Accepted) return;
+	qDebug() << __LINE__;
 
 	//update config and GUI
+	qDebug() << __LINE__;
 	report_config_.set(var_config);
+	qDebug() << __LINE__;
 	updateReportConfigHeaderIcon(row);
+	qDebug() << __LINE__;
 }
 
 
