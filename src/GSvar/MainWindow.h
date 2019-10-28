@@ -163,6 +163,12 @@ public slots:
 	void printVariantSheetRowHeader(QTextStream& stream, bool causal);
 	///Helper function for printVariantSheet()
 	void printVariantSheetRow(QTextStream& stream, const ReportVariantConfiguration& conf);
+	///Helper function for printVariantSheet()
+	void printVariantSheetRowHeaderCnv(QTextStream& stream, bool causal);
+	///Helper function for printVariantSheet()
+	void printVariantSheetRowCnv(QTextStream& stream, const ReportVariantConfiguration& conf);
+	///Helper function for printVariantSheet()
+	static QString exclusionCriteria(const ReportVariantConfiguration& conf);
 	///Generate report
 	void generateReport();
 	///Generates a report (somatic) in .rtf format

@@ -1748,7 +1748,7 @@ void MainWindow::generateVariantSheet()
 	stream << "      </tr>" << endl;
 	stream << "    </table>" << endl;
 
-	//write causal variants
+	//write small variants
 	stream << "    <p><b>Kausale Varianten:</b>" << endl;
 	stream << "      <table border='1'>" << endl;
 	printVariantSheetRowHeader(stream, true);
@@ -1763,7 +1763,6 @@ void MainWindow::generateVariantSheet()
 	stream << "      </table>" << endl;
 	stream << "    </p>" << endl;
 
-	//write other variants
 	stream << "    <p><b>Sonstige Varianten:</b>" << endl;
 	stream << "      <table border='1'>" << endl;
 	printVariantSheetRowHeader(stream, false);
@@ -1773,6 +1772,35 @@ void MainWindow::generateVariantSheet()
 		if (!conf.causal)
 		{
 			printVariantSheetRow(stream, conf);
+		}
+	}
+	stream << "      </table>" << endl;
+	stream << "    </p>" << endl;
+
+	//CNVs
+	stream << "    <p><b>Kausale CNVs:</b>" << endl;
+	stream << "      <table border='1'>" << endl;
+	printVariantSheetRowHeaderCnv(stream, true);
+	foreach(const ReportVariantConfiguration& conf, report_settings_.report_config.variantConfig())
+	{
+		if (conf.variant_type!=VariantType::CNVS) continue;
+		if (conf.causal)
+		{
+			printVariantSheetRowCnv(stream, conf);
+		}
+	}
+	stream << "      </table>" << endl;
+	stream << "    </p>" << endl;
+
+	stream << "    <p><b>Sonstige CNVs:</b>" << endl;
+	stream << "      <table border='1'>" << endl;
+	printVariantSheetRowHeaderCnv(stream, false);
+	foreach(const ReportVariantConfiguration& conf, report_settings_.report_config.variantConfig())
+	{
+		if (conf.variant_type!=VariantType::CNVS) continue;
+		if (!conf.causal)
+		{
+			printVariantSheetRowCnv(stream, conf);
 		}
 	}
 	stream << "      </table>" << endl;
@@ -1877,13 +1905,7 @@ void MainWindow::printVariantSheetRow(QTextStream& stream, const ReportVariantCo
 	}
 	else
 	{
-		QByteArrayList exclustion_criteria;
-		if (conf.exclude_artefact) exclustion_criteria << "Artefakt";
-		if (conf.exclude_frequency) exclustion_criteria << "Frequenz";
-		if (conf.exclude_phenotype) exclustion_criteria << "Phenotyp";
-		if (conf.exclude_mechanism) exclustion_criteria << "Pathomechanismus";
-		if (conf.exclude_other) exclustion_criteria << "Anderer (siehe Kommentare)";
-		stream << "       <td>" << exclustion_criteria.join(", ")  << "</td>" << endl;
+		stream << "       <td>" << exclusionCriteria(conf) << "</td>" << endl;
 	}
 	stream << "       <td>" << v.annotations()[i_gnomad] << "</td>" << endl;
 	stream << "       <td>" << v.annotations()[i_ngsd_hom] << " / " << v.annotations()[i_ngsd_het] << "</td>" << endl;
@@ -1892,6 +1914,62 @@ void MainWindow::printVariantSheetRow(QTextStream& stream, const ReportVariantCo
 	stream << "       <td>" << v.annotations()[i_class] << "</td>" << endl;
 	stream << "       <td>" << (conf.showInReport() ? "ja" : "nein") << " (" << conf.report_type << ")</td>" << endl;
 	stream << "     </tr>" << endl;
+}
+
+void MainWindow::printVariantSheetRowHeaderCnv(QTextStream& stream, bool causal)
+{
+	stream << "     <tr>" << endl;
+	stream << "       <th>CNV</th>" << endl;
+	stream << "       <th>copy-number</th>" << endl;
+	stream << "       <th>Gene</th>" << endl;
+	stream << "       <th>Erbgang</th>" << endl;
+	if (causal)
+	{
+		stream << "       <th>Infos</th>" << endl;
+	}
+	else
+	{
+		stream << "       <th>Ausschlussgrund</th>" << endl;
+	}
+	stream << "       <th nowrap>Kommentar 1. Auswerter</th>" << endl;
+	stream << "       <th nowrap>Kommentar 2. Auswerter</th>" << endl;
+	stream << "       <th>Klasse</th>" << endl;
+	stream << "       <th nowrap>In Report</th>" << endl;
+	stream << "     </tr>" << endl;
+}
+
+void MainWindow::printVariantSheetRowCnv(QTextStream& stream, const ReportVariantConfiguration& conf)
+{
+	const CopyNumberVariant& cnv = cnvs_[conf.variant_index];
+	stream << "     <tr>" << endl;
+	stream << "       <td>" << cnv.toString() << "</td>" << endl;
+	stream << "       <td>" << cnv.copyNumber(cnvs_.annotationHeaders()) << "</td>" << endl;
+	stream << "       <td>" << cnv.genes().join(", ") << "</td>" << endl;
+	stream << "       <td>" << conf.inheritance << "</th>" << endl;
+	if (conf.causal)
+	{
+		stream << "       <td>regions:" << cnv.regions() << " size:" << QString::number(cnv.size()/1000.0, 'f', 3) << "kb</td>" << endl;
+	}
+	else
+	{
+		stream << "       <td>" << exclusionCriteria(conf) << "</td>" << endl;
+	}
+	stream << "       <td>" << conf.comments << "</td>" << endl;
+	stream << "       <td>" << conf.comments2 << "</td>" << endl;
+	stream << "       <td>" << conf.classification << "</td>" << endl;
+	stream << "       <td>" << (conf.showInReport() ? "ja" : "nein") << " (" << conf.report_type << ")</td>" << endl;
+	stream << "     </tr>" << endl;
+}
+
+QString MainWindow::exclusionCriteria(const ReportVariantConfiguration& conf)
+{
+	QByteArrayList exclustion_criteria;
+	if (conf.exclude_artefact) exclustion_criteria << "Artefakt";
+	if (conf.exclude_frequency) exclustion_criteria << "Frequenz";
+	if (conf.exclude_phenotype) exclustion_criteria << "Phenotyp";
+	if (conf.exclude_mechanism) exclustion_criteria << "Pathomechanismus";
+	if (conf.exclude_other) exclustion_criteria << "Anderer (siehe Kommentare)";
+	return exclustion_criteria.join(", ");
 }
 
 void MainWindow::generateReport()
