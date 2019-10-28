@@ -5,17 +5,18 @@
 #include <QMenu>
 
 
-ReportDialog::ReportDialog(ReportSettings& settings, const VariantList& variants, QWidget* parent)
+ReportDialog::ReportDialog(ReportSettings& settings, const VariantList& variants, QString target_region, QWidget* parent)
 	: QDialog(parent)
 	, ui_()
 	, settings_(settings)
 	, variants_(variants)
+	, roi_file_(target_region.trimmed())
+	, roi_()
 {
 	ui_.setupUi(this);
+	initGUI();
 
 	//variant types
-	ui_.variant_type->addItem("");
-	ui_.variant_type->addItems(ReportVariantConfiguration::getTypeOptions());
 	connect(ui_.variant_type, SIGNAL(currentTextChanged(QString)), this, SLOT(updateGUI()));
 
 	//disable ok button when no outcome is set
@@ -23,19 +24,62 @@ ReportDialog::ReportDialog(ReportSettings& settings, const VariantList& variants
 	connect(ui_.variant_type, SIGNAL(currentTextChanged(QString)), this, SLOT(activateOkButtonIfValid()));
 
 	//enable/disable low-coverage settings
-	connect(ui_.details_cov, SIGNAL(stateChanged(int)), this, SLOT(updateCoverageSettings(int)));
+	connect(ui_.details_cov, SIGNAL(stateChanged(int)), this, SLOT(updateGUI()));
 
 	//write settings if accepted
 	connect(this, SIGNAL(accepted()), this, SLOT(writeBackSettings()));
 
+	//handle ROI
+	if (roi_file_!="")
+	{
+		roi_.load(roi_file_);
+	}
+
 	updateGUI();
+}
+
+
+void ReportDialog::initGUI()
+{
+	//report types
+	ui_.variant_type->addItem("");
+	ui_.variant_type->addItems(ReportVariantConfiguration::getTypeOptions());
+
+	//diagnostic status
+	ui_.diag_status->setStatus(settings_.diag_status);
+
+	//settings
+	ui_.details_cov->setChecked(settings_.show_coverage_details);
+	ui_.min_cov->setValue(settings_.min_depth);
+	ui_.details_cov_roi->setChecked(settings_.roi_low_cov);
+	ui_.depth_calc->setChecked(settings_.recalculate_avg_depth);
+	ui_.tool_details->setChecked(settings_.show_tool_details);
+	ui_.omim_table->setChecked(settings_.show_omim_table);
+	ui_.class_info->setChecked(settings_.show_class_details);
+	ui_.language->setCurrentText(settings_.language);
+
+	//no ROI > no roi options
+	if (roi_file_=="")
+	{
+		ui_.details_cov->setChecked(false);
+		ui_.details_cov->setEnabled(false);
+
+		ui_.depth_calc->setChecked(false);
+		ui_.depth_calc->setEnabled(false);
+
+		ui_.details_cov_roi->setChecked(false);
+		ui_.details_cov_roi->setEnabled(false);
+
+		ui_.min_cov_label->setEnabled(false);
+		ui_.min_cov->setEnabled(false);
+
+		ui_.omim_table->setChecked(false);
+		ui_.omim_table->setEnabled(false);
+	}
 }
 
 void ReportDialog::updateGUI()
 {
-	//diagnostic status
-	ui_.diag_status->setStatus(settings_.diag_status);
-
 	//variants
 	int geno_idx = variants_.getSampleHeader().infoByStatus(true).column_index;
 	QList<int> selected_variants = settings_.report_config.variantIndices(VariantType::SNVS_INDELS, true, type());
@@ -44,6 +88,7 @@ void ReportDialog::updateGUI()
 	foreach(int i, selected_variants)
 	{
 		const Variant& variant = variants_[i];
+		if (roi_file_!="" && !roi_.overlapsWith(variant.chr(), variant.start(), variant.end())) continue;
 		const ReportVariantConfiguration& var_conf = settings_.report_config.get(VariantType::SNVS_INDELS,i);
 
 		ui_.vars->setRowCount(ui_.vars->rowCount()+1);
@@ -62,33 +107,20 @@ void ReportDialog::updateGUI()
 	}
 	GUIHelper::resizeTableCells(ui_.vars);
 
-	//settings
-	ui_.details_cov->setChecked(settings_.show_coverage_details);
-	ui_.min_cov->setValue(settings_.min_depth);
-	ui_.details_cov_roi->setChecked(settings_.roi_low_cov);
-	ui_.depth_calc->setChecked(settings_.recalculate_avg_depth);
-	ui_.tool_details->setChecked(settings_.show_tool_details);
-	ui_.omim_table->setChecked(settings_.show_omim_table);
-	ui_.class_info->setChecked(settings_.show_class_details);
-	ui_.language->setCurrentText(settings_.language);
+	//enable coverage detail settings only if necessary
+	if (roi_file_!="")
+	{
+		bool add_cov_details = ui_.details_cov->isChecked();
+		ui_.min_cov->setEnabled(add_cov_details);
+		ui_.min_cov_label->setEnabled(add_cov_details);
+		ui_.depth_calc->setEnabled(add_cov_details);
+		if (!add_cov_details) ui_.depth_calc->setChecked(false);
+		ui_.details_cov_roi->setEnabled(add_cov_details);
+		if (!add_cov_details) ui_.details_cov_roi->setChecked(false);
+	}
 
 	//buttons
 	activateOkButtonIfValid();
-}
-
-void ReportDialog::setTargetRegionSelected(bool is_selected)
-{
-	if (!is_selected)
-	{
-		ui_.details_cov->setChecked(false);
-		ui_.details_cov->setEnabled(false);
-
-		ui_.details_cov_roi->setChecked(false);
-		ui_.details_cov_roi->setEnabled(false);
-
-		ui_.omim_table->setChecked(false);
-		ui_.omim_table->setEnabled(false);
-	}
 }
 
 void ReportDialog::writeBackSettings()
@@ -115,13 +147,4 @@ void ReportDialog::activateOkButtonIfValid()
 	if (ui_.variant_type->currentIndex()==0) return;
 
 	ui_.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
-}
-
-void ReportDialog::updateCoverageSettings(int state)
-{
-	bool enabled = (state==Qt::Checked);
-	ui_.min_cov->setEnabled(enabled);
-	ui_.min_cov_label->setEnabled(enabled);
-	ui_.depth_calc->setEnabled(enabled);
-	ui_.details_cov_roi->setEnabled(enabled);
 }

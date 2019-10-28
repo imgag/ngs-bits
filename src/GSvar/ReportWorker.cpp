@@ -551,13 +551,31 @@ void ReportWorker::writeHTML()
 
 	//output: applied filters
 	stream << "<p><b>" << trans("Filterkriterien") << " " << "</b>" << endl;
-	stream << "<br />" << trans("Gefundene Varianten in Zielregion gesamt") << ": " << var_count_ << endl;
-	stream << "<br />" << trans("Anzahl Varianten ausgew&auml;hlt f&uuml;r Report") << ": " << settings_.report_config.variantIndices(VariantType::SNVS_INDELS, true, settings_.report_type).count() << endl;
-	stream << "<br />" << trans("Anzahl CNVs ausgew&auml;hlt f&uuml;r Report") << ": " << settings_.report_config.variantIndices(VariantType::CNVS, true, settings_.report_type).count() << endl;
 	for(int i=0; i<filters_.count(); ++i)
 	{
 		stream << "<br />&nbsp;&nbsp;&nbsp;&nbsp;- " << filters_[i]->toText() << endl;
 	}
+	stream << "<br />" << trans("Gefundene Varianten in Zielregion gesamt") << ": " << var_count_ << endl;
+	int selected_var_count = 0;
+	foreach(int index, settings_.report_config.variantIndices(VariantType::SNVS_INDELS, true, settings_.report_type))
+	{
+		const Variant & variant = variants_[index];
+		if (file_roi_!="" && roi_.overlapsWith(variant.chr(), variant.start(), variant.end()))
+		{
+			++selected_var_count;
+		}
+	}
+	stream << "<br />" << trans("Anzahl Varianten ausgew&auml;hlt f&uuml;r Report") << ": " << selected_var_count << endl;
+	int selected_cnv_count = 0;
+	foreach(int index, settings_.report_config.variantIndices(VariantType::CNVS, true, settings_.report_type))
+	{
+		const CopyNumberVariant& cnv = cnvs_[index];
+		if (file_roi_!="" && roi_.overlapsWith(cnv.chr(), cnv.start(), cnv.end()))
+		{
+			++selected_cnv_count;
+		}
+	}
+	stream << "<br />" << trans("Anzahl CNVs ausgew&auml;hlt f&uuml;r Report") << ": " << selected_cnv_count << endl;
 	stream << "</p>" << endl;
 
 	//output: selected variants
@@ -577,8 +595,9 @@ void ReportWorker::writeHTML()
 		if (var_conf.variant_type!=VariantType::SNVS_INDELS) continue;
 		if (!var_conf.showInReport()) continue;
 		if (var_conf.report_type!=settings_.report_type) continue;
-
 		const Variant& variant = variants_[var_conf.variant_index];
+		if (file_roi_!="" && !roi_.overlapsWith(variant.chr(), variant.start(), variant.end())) continue;
+
 		QByteArray genes = variant.annotations()[i_gene];
 		stream << "<tr>" << endl;
 		stream << "<td>" << genes << "</td>" << endl;
@@ -628,6 +647,7 @@ void ReportWorker::writeHTML()
 	stream << "</table>" << endl;
 
 	//CNVs
+	stream << "<br>" << endl;
 	stream << "<table>" << endl;
 	stream << "<tr><td><b>" << trans("CNV") << "</b></td><td><b>" << trans("Regionen") << "</b></td><td><b>" << trans("CN") << "</b></td><td><b>" << trans("Gene") << "</b></td></tr>" << endl;
 
@@ -636,8 +656,9 @@ void ReportWorker::writeHTML()
 		if (var_conf.variant_type!=VariantType::CNVS) continue;
 		if (!var_conf.showInReport()) continue;
 		if (var_conf.report_type!=settings_.report_type) continue;
-
 		const CopyNumberVariant& cnv = cnvs_[var_conf.variant_index];
+		if (file_roi_!="" && !roi_.overlapsWith(cnv.chr(), cnv.start(), cnv.end())) continue;
+
 		stream << "<tr>" << endl;
 		stream << "<td>" << cnv.toString() << "</td>" << endl;
 		stream << "<td>" << cnv.regions() << "</td>" << endl;
@@ -652,8 +673,8 @@ void ReportWorker::writeHTML()
 			{
 				cn = cnv.annotations()[i];
 			}
-			stream << "<td>" << cn << "</td>" << endl;
 		}
+		stream << "<td>" << cn << "</td>" << endl;
 		stream << "<td>" << cnv.genes().join(", ") << "</td>" << endl;
 		stream << "</tr>" << endl;
 	}
@@ -887,6 +908,7 @@ QString ReportWorker::trans(const QString& text) const
 		de2en["Filterkriterien"] = "Criteria for variant filtering";
 		de2en["Gefundene Varianten in Zielregion gesamt"] = "Variants in target region";
 		de2en["Anzahl Varianten ausgew&auml;hlt f&uuml;r Report"] = "Variants selected for report";
+		de2en["Anzahl CNVs ausgew&auml;hlt f&uuml;r Report"] = "CNVs selected for report";
 		de2en["Varianten nach klinischer Interpretation im Kontext der Fragestellung"] = "List of prioritized variants";
 		de2en["Vererbung"] = "Inheritance";
 		de2en["Klasse"] = "Class";

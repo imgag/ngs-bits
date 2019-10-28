@@ -1606,7 +1606,10 @@ void MainWindow::storeReportConfig()
 void MainWindow::generateVariantSheet()
 {
 	//store variant config
-	storeReportConfig();
+	if (report_settings_.report_config.isModified())
+	{
+		storeReportConfig();
+	}
 
 	//get filename
 	QString base_name = processedSampleName();
@@ -1895,7 +1898,10 @@ void MainWindow::generateReport()
 {
 	if (variants_.count()==0) return;
 
-	storeReportConfig();
+	if (report_settings_.report_config.isModified())
+	{
+		storeReportConfig();
+	}
 
 	//check if this is a germline or somatic
 	AnalysisType type = variants_.type();
@@ -2034,8 +2040,7 @@ void MainWindow::generateReportGermline()
 	report_settings_.diag_status = db.getDiagnosticStatus(processed_sample_id);
 
 	//show report dialog
-	ReportDialog dialog(report_settings_, variants_, this);
-	dialog.setTargetRegionSelected(ui_.filters->targetRegion()!="");
+	ReportDialog dialog(report_settings_, variants_, ui_.filters->targetRegion(),this);
 	if (!dialog.exec()) return;
 
 	//set report type
