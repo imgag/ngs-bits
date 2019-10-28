@@ -39,6 +39,44 @@ QString CopyNumberVariant::toStringWithMetaData() const
 	return toString() + " regions=" + QString::number(num_regs_) + " size=" + QString::number((end_-start_)/1000.0, 'f', 3) + "kb";
 }
 
+int CopyNumberVariant::copyNumber(const QByteArrayList& annotation_headers, bool throw_if_not_found) const
+{
+	for (int i=0; i<annotation_headers.count(); ++i)
+	{
+		if (annotation_headers[i]=="CN_change") //ClinCNV
+		{
+			return annotations_[i].toInt();
+		}
+		else if (annotation_headers[i]=="region_copy_numbers") //CnvHunter
+		{
+			QByteArrayList parts = annotations_[i].split(',');
+
+			int max = 0;
+			QByteArray max_cn;
+			QHash<QByteArray, int> cn_counts;
+			foreach(const QByteArray& cn, parts)
+			{
+				int count_new = cn_counts[cn] + 1;
+				if (count_new>max)
+				{
+					max = count_new;
+					max_cn = cn;
+				}
+				cn_counts[cn] = count_new;
+			}
+
+			return Helper::toInt(max_cn, "copy-number");
+		}
+	}
+
+	if (throw_if_not_found)
+	{
+		THROW(ProgrammingException, "Copy-number could not be determine for CNV: " + toString());
+	}
+
+	return -1;
+}
+
 CnvList::CnvList()
 	: type_(CnvListType::INVALID)
 	, comments_()

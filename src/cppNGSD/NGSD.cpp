@@ -734,8 +734,7 @@ QString NGSD::addCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList
 {
 	CnvCallerType caller = cnv_list.caller();
 
-	//parse meta data
-	int cn = -1;
+	//parse qc data
 	QJsonObject quality_metrics;
 	quality_metrics.insert("regions", QString::number(cnv.regions()));
 	for(int i=0; i<cnv_list.annotationHeaders().count(); ++i)
@@ -744,22 +743,14 @@ QString NGSD::addCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList
 		const QByteArray& entry = cnv.annotations()[i];
 		if (caller==CnvCallerType::CNVHUNTER)
 		{
-			if (col_name=="region_copy_numbers")
-			{
-				cn = mostFrequentCopyNumber(entry.split(','));
-			}
-			else if (col_name=="region_zscores" || col_name=="region_copy_numbers")
+			if (col_name=="region_zscores")
 			{
 				quality_metrics.insert(QString(col_name), QString(entry));
 			}
 		}
 		else if (caller==CnvCallerType::CLINCNV)
 		{
-			if (col_name=="CN_change")
-			{
-				cn = Helper::toInt(entry, "copy-number");
-			}
-			else if (col_name=="loglikelihood")
+			if (col_name=="loglikelihood")
 			{
 				quality_metrics.insert(QString(col_name), QString(entry));
 				if (max_ll>0.0 && Helper::toDouble(entry, "log-likelihood")<max_ll)
@@ -777,6 +768,9 @@ QString NGSD::addCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList
 			THROW(ProgrammingException, "CNV caller type not handled in NGSD::addCnv")
 		}
 	}
+
+	//determine CN
+	int cn = cnv.copyNumber(cnv_list.annotationHeaders());
 
 	//prepare query (only once)
 	static SqlQuery query = getQuery();
@@ -1849,25 +1843,6 @@ double NGSD::maxAlleleFrequency(const Variant& v, QList<int> af_column_index)
 	}
 
 	return output;
-}
-
-int NGSD::mostFrequentCopyNumber(const QByteArrayList& parts)
-{
-	int max = 0;
-	QByteArray max_cn;
-	QHash<QByteArray, int> cn_counts;
-	foreach(const QByteArray& cn, parts)
-	{
-		int count_new = cn_counts[cn] + 1;
-		if (count_new>max)
-		{
-			max = count_new;
-			max_cn = cn;
-		}
-		cn_counts[cn] = count_new;
-	}
-
-	return Helper::toInt(max_cn, "copy-number");
 }
 
 void NGSD::maintain(QTextStream* messages, bool fix_errors)

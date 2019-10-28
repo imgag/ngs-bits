@@ -572,11 +572,6 @@ protected:
 	///Returns the maxiumn allele frequency of a variant.
 	static double maxAlleleFrequency(const Variant& v, QList<int> af_column_index);
 
-
-	///returns the most frequent string
-	static int mostFrequentCopyNumber(const QByteArrayList& parts);
-
-
 	///The database adapter
 	QSharedPointer<QSqlDatabase> db_;
 	bool test_db_;

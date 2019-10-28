@@ -2040,7 +2040,7 @@ void MainWindow::generateReportGermline()
 	report_settings_.diag_status = db.getDiagnosticStatus(processed_sample_id);
 
 	//show report dialog
-	ReportDialog dialog(report_settings_, variants_, ui_.filters->targetRegion(),this);
+	ReportDialog dialog(report_settings_, variants_, cnvs_, ui_.filters->targetRegion(),this);
 	if (!dialog.exec()) return;
 
 	//set report type

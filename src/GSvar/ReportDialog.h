@@ -15,11 +15,11 @@ class ReportDialog
 	
 public:
 	///Constructor
-	ReportDialog(ReportSettings& settings, const VariantList& variants, QString target_region, QWidget* parent = 0);
+	ReportDialog(ReportSettings& settings, const VariantList& variants, const CnvList& cnvs, QString target_region, QWidget* parent = 0);
 	///Returns the report/variant type
 	QString type() const
 	{
-		return ui_.variant_type->currentText();
+		return ui_.report_type->currentText();
 	}
 
 
@@ -33,6 +33,7 @@ protected:
 	Ui::ReportDialog ui_;
 	ReportSettings& settings_;
 	const VariantList& variants_;
+	const CnvList& cnvs_;
 	QString roi_file_;
 	BedFile roi_;
 };

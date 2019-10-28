@@ -662,19 +662,7 @@ void ReportWorker::writeHTML()
 		stream << "<tr>" << endl;
 		stream << "<td>" << cnv.toString() << "</td>" << endl;
 		stream << "<td>" << cnv.regions() << "</td>" << endl;
-		QByteArray cn = "n/a";
-		for (int i=0; i<cnvs_.annotationHeaders().count(); ++i)
-		{
-			if (cnvs_.annotationHeaders()[i]=="CN_change") //ClinCNV
-			{
-				cn = cnv.annotations()[i];
-			}
-			else if (cnvs_.annotationHeaders()[i]=="region_copy_numbers")
-			{
-				cn = cnv.annotations()[i];
-			}
-		}
-		stream << "<td>" << cn << "</td>" << endl;
+		stream << "<td>" << cnv.copyNumber(cnvs_.annotationHeaders()) << "</td>" << endl;
 		stream << "<td>" << cnv.genes().join(", ") << "</td>" << endl;
 		stream << "</tr>" << endl;
 	}

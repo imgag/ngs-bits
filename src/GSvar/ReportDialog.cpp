@@ -5,11 +5,12 @@
 #include <QMenu>
 
 
-ReportDialog::ReportDialog(ReportSettings& settings, const VariantList& variants, QString target_region, QWidget* parent)
+ReportDialog::ReportDialog(ReportSettings& settings, const VariantList& variants, const CnvList& cnvs, QString target_region, QWidget* parent)
 	: QDialog(parent)
 	, ui_()
 	, settings_(settings)
 	, variants_(variants)
+	, cnvs_(cnvs)
 	, roi_file_(target_region.trimmed())
 	, roi_()
 {
@@ -17,11 +18,11 @@ ReportDialog::ReportDialog(ReportSettings& settings, const VariantList& variants
 	initGUI();
 
 	//variant types
-	connect(ui_.variant_type, SIGNAL(currentTextChanged(QString)), this, SLOT(updateGUI()));
+	connect(ui_.report_type, SIGNAL(currentTextChanged(QString)), this, SLOT(updateGUI()));
 
 	//disable ok button when no outcome is set
 	connect(ui_.diag_status, SIGNAL(outcomeChanged(QString)), this, SLOT(activateOkButtonIfValid()));
-	connect(ui_.variant_type, SIGNAL(currentTextChanged(QString)), this, SLOT(activateOkButtonIfValid()));
+	connect(ui_.report_type, SIGNAL(currentTextChanged(QString)), this, SLOT(activateOkButtonIfValid()));
 
 	//enable/disable low-coverage settings
 	connect(ui_.details_cov, SIGNAL(stateChanged(int)), this, SLOT(updateGUI()));
@@ -42,8 +43,8 @@ ReportDialog::ReportDialog(ReportSettings& settings, const VariantList& variants
 void ReportDialog::initGUI()
 {
 	//report types
-	ui_.variant_type->addItem("");
-	ui_.variant_type->addItems(ReportVariantConfiguration::getTypeOptions());
+	ui_.report_type->addItem("");
+	ui_.report_type->addItems(ReportVariantConfiguration::getTypeOptions());
 
 	//diagnostic status
 	ui_.diag_status->setStatus(settings_.diag_status);
@@ -80,12 +81,15 @@ void ReportDialog::initGUI()
 
 void ReportDialog::updateGUI()
 {
-	//variants
-	int geno_idx = variants_.getSampleHeader().infoByStatus(true).column_index;
-	QList<int> selected_variants = settings_.report_config.variantIndices(VariantType::SNVS_INDELS, true, type());
+	//init
 	ui_.vars->setRowCount(0);
 	int row = 0;
-	foreach(int i, selected_variants)
+
+	//add small variants
+	int geno_idx = variants_.getSampleHeader().infoByStatus(true).column_index;
+	int gene_idx = variants_.annotationIndexByName("gene");
+	int class_idx = variants_.annotationIndexByName("classification");
+	foreach(int i, settings_.report_config.variantIndices(VariantType::SNVS_INDELS, true, type()))
 	{
 		const Variant& variant = variants_[i];
 		if (roi_file_!="" && !roi_.overlapsWith(variant.chr(), variant.start(), variant.end())) continue;
@@ -95,16 +99,28 @@ void ReportDialog::updateGUI()
 		ui_.vars->setItem(row, 0, new QTableWidgetItem(var_conf.report_type + (var_conf.causal ? " (causal)" : "")));
 		QString tmp = variant.toString(false, 30) + " (" + variant.annotations().at(geno_idx) + ")";
 		ui_.vars->setItem(row, 1, new QTableWidgetItem(tmp));
-
-		for (int j=2; j<ui_.vars->horizontalHeader()->count(); ++j)
-		{
-			QString label = ui_.vars->horizontalHeaderItem(j)->text();
-			int index = variants_.annotationIndexByName(label);
-			ui_.vars->setItem(row, j, new QTableWidgetItem(variant.annotations().at(index), 0));
-		}
-
+		ui_.vars->setItem(row, 2, new QTableWidgetItem(variant.annotations().at(gene_idx), QTableWidgetItem::Type));
+		ui_.vars->setItem(row, 3, new QTableWidgetItem(variant.annotations().at(class_idx), QTableWidgetItem::Type));
 		++row;
 	}
+
+
+	//add CNVs
+	foreach(int i, settings_.report_config.variantIndices(VariantType::CNVS, true, type()))
+	{
+		const CopyNumberVariant& cnv = cnvs_[i];
+		if (roi_file_!="" && !roi_.overlapsWith(cnv.chr(), cnv.start(), cnv.end())) continue;
+		const ReportVariantConfiguration& var_conf = settings_.report_config.get(VariantType::CNVS,i);
+
+		ui_.vars->setRowCount(ui_.vars->rowCount()+1);
+		ui_.vars->setItem(row, 0, new QTableWidgetItem(var_conf.report_type + (var_conf.causal ? " (causal)" : "")));
+		ui_.vars->setItem(row, 1, new QTableWidgetItem(cnv.toStringWithMetaData() + " cn=" + QString::number(cnv.copyNumber(cnvs_.annotationHeaders()))));
+		ui_.vars->setItem(row, 2, new QTableWidgetItem(cnv.genes().join(", "), QTableWidgetItem::Type));
+		ui_.vars->setItem(row, 3, new QTableWidgetItem(var_conf.classification));
+		++row;
+	}
+
+	//resize table cells
 	GUIHelper::resizeTableCells(ui_.vars);
 
 	//enable coverage detail settings only if necessary
@@ -144,7 +160,7 @@ void ReportDialog::activateOkButtonIfValid()
 	ui_.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 
 	if (ui_.diag_status->status().outcome=="n/a") return;
-	if (ui_.variant_type->currentIndex()==0) return;
+	if (ui_.report_type->currentIndex()==0) return;
 
 	ui_.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
 }

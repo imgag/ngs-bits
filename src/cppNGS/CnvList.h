@@ -81,6 +81,9 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 			return chr == chr_ && BasicStatistics::rangeOverlaps(start_, end_, start, end);
 		}
 
+		//Returns the copy-number. If not available, ProgrammingException is thrown, or '-1' is returned.
+		int copyNumber(const QByteArrayList& annotation_headers, bool throw_if_not_found=true) const;
+
 	protected:
 		Chromosome chr_;
 		int start_;
