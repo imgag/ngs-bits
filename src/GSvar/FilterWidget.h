@@ -58,7 +58,8 @@ public:
 
 	//Returns the filter INI file name
 	static QString filterFileName();
-
+	///Sets the filter (for small variants)
+	void setFilter(QString name);
 
 
 signals:

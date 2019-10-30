@@ -67,6 +67,9 @@ public:
 	///Edit classification of a variant
 	void editVariantClassification(VariantList& variant, int index);
 
+	///Returns the CNV file corresponding to the GSvar file
+	QString cnvFile(QString gsvar_file);
+
 public slots:
 	///Open dialog
 	void on_actionOpen_triggered();
@@ -148,8 +151,10 @@ public slots:
 	///Annotate germline file with somatic variants
 	void on_actionAnnotateSomaticVariants_triggered();
 
-	///Clear report configuration
+	///Clear report configuration (GSvar)
 	void clearReportConfig();
+	///Delete report configuration (NGSD)
+	void deleteReportConfig();
 	///Load report configuration
 	void loadReportConfig();
 	///Store report configuration
@@ -160,6 +165,12 @@ public slots:
 	void printVariantSheetRowHeader(QTextStream& stream, bool causal);
 	///Helper function for printVariantSheet()
 	void printVariantSheetRow(QTextStream& stream, const ReportVariantConfiguration& conf);
+	///Helper function for printVariantSheet()
+	void printVariantSheetRowHeaderCnv(QTextStream& stream, bool causal);
+	///Helper function for printVariantSheet()
+	void printVariantSheetRowCnv(QTextStream& stream, const ReportVariantConfiguration& conf);
+	///Helper function for printVariantSheet()
+	static QString exclusionCriteria(const ReportVariantConfiguration& conf);
 	///Generate report
 	void generateReport();
 	///Generates a report (somatic) in .rtf format
@@ -270,6 +281,7 @@ private:
 	enum {YES, NO, ROI} db_annos_updated_;
 	bool igv_initialized_;
 	VariantList variants_;
+	CnvList cnvs_;
 	FilterResult filter_result_;
 	QMap<QString, QString> link_columns_;
 	QSet<int> link_indices_;

@@ -19,6 +19,7 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 
 	QString report_type;
 	bool causal;
+	QString classification;
 	QString inheritance;
 	bool de_novo;
 	bool mosaic;
@@ -35,6 +36,8 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 	static QStringList getTypeOptions(bool test_db = false);
 	//Returns options for 'inheritance_mode' (taken and cached from NGSD)
 	static QStringList getInheritanceModeOptions(bool test_db = false);
+	//Returns options for 'class' (taken and cached from NGSD)
+	static QStringList getClassificationOptions(bool test_db = false);
 };
 
 ///Report configuration
@@ -54,7 +57,7 @@ public:
 	const ReportVariantConfiguration& get(VariantType type, int index) const;
 	///Sets the report configuration for the variant. Returns if it already existed.
 	bool set(const ReportVariantConfiguration& config);
-	///Removes the mathcing configuration. Returns if a configuration was removed.
+	///Removes the matching configuration. Returns if a configuration was removed.
 	bool remove(VariantType type, int index);
 
 	///Returns if it was modified since creation.
@@ -71,6 +74,12 @@ public:
 	QDateTime createdAt() const;
 	///Sets the creation time
 	void setCreatedAt(QDateTime time);
+
+	///Returns the number of report config entries (all types).
+	int count() const
+	{
+		return variant_config_.count();
+	}
 
 private:
 	QList<ReportVariantConfiguration> variant_config_;

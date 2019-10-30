@@ -416,3 +416,14 @@ INSERT INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES
 
 INSERT INTO `sample_disease_info`(`id`, `sample_id`, `disease_info`, `type`, `user_id`) VALUES
 (1, 3, 'HP:0001251', 'HPO term id', 99);
+
+
+-- cnv_callset
+INSERT INTO `cnv_callset` (`id`, `processed_sample_id`, `caller`, `caller_version`, `call_date`, `quality_metrics`, `quality`) VALUES
+(1, 3999, 'ClinCNV', 'v 1.16.1', '2019-10-20T09:55:01', null, 'good');
+
+-- cnv
+INSERT INTO `cnv` (`id`, `cnv_callset_id`, `chr`, `start`, `end`, `cn`) VALUES
+(1, 1, 'chr1', 1000, 2000, 1),
+(2, 1, 'chr1', 3000, 4000, 1),
+(3, 1, 'chr2', 10000, 40000, 1);

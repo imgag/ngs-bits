@@ -15,27 +15,27 @@ class ReportDialog
 	
 public:
 	///Constructor
-	ReportDialog(ReportSettings& settings, const VariantList& variants, QWidget* parent = 0);
-	///Updates dialog depending on target region selection state
-	void setTargetRegionSelected(bool is_selected);
+	ReportDialog(ReportSettings& settings, const VariantList& variants, const CnvList& cnvs, QString target_region, QWidget* parent = 0);
 	///Returns the report/variant type
 	QString type() const
 	{
-		return ui_.variant_type->currentText();
+		return ui_.report_type->currentText();
 	}
 
 
 protected slots:
 	void writeBackSettings();
 	void activateOkButtonIfValid();
-	void updateCoverageSettings(int state);
+	void initGUI();
 	void updateGUI();
 
 protected:
-
 	Ui::ReportDialog ui_;
 	ReportSettings& settings_;
 	const VariantList& variants_;
+	const CnvList& cnvs_;
+	QString roi_file_;
+	BedFile roi_;
 };
 
 #endif // REPORTDIALOG_H

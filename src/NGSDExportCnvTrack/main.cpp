@@ -91,6 +91,7 @@ public:
 		QVector<double> stats_depth;
 		QStringList cs_ids =  db.getValues("SELECT cs.id FROM cnv_callset cs, processed_sample ps WHERE ps.processing_system_id=" + sys_id + " AND ps.id=cs.processed_sample_id AND ps.quality!='bad' AND cs.quality!='bad'");
 		stream2 << "Found " << cs_ids.count() << " high-quality CNV callsets for the processing system.\n";
+		stream2.flush();
 		QBitArray skip(cs_ids.size(), false);
 		for (int i=0; i<cs_ids.count(); ++i)
 		{
@@ -127,6 +128,7 @@ public:
 		}
 		const int sample_count = skip.count(false);
 		stream2 << "Using " << sample_count << " of " << cs_ids.count() << " callsets\n";
+		stream2.flush();
 
 		//write stats
 		stream2 << "Statistics - number of CNVs\n";
@@ -158,6 +160,7 @@ public:
 			stream2 << "  q3    : " << BasicStatistics::q3(stats_depth, false) << "\n";
 			stream2 << "  max   : " << stats_depth.last() << "\n";
 		}
+		stream2.flush();
 
 		//process chr by chr
 		stream << "Chromosome\tStart\tEnd\tCN histogram (0-10)\tAF " << system << "\n";
@@ -168,6 +171,7 @@ public:
 		foreach(const QString& chr, chrs)
 		{
 			stream2 << "Processing chromosome " << chr << "...\n";
+			stream2.flush();
 
 			//load all CNVs of the chromosome
 			QList<CNV> cnvs;
@@ -182,10 +186,11 @@ public:
 				q_cnvs.exec();
 				while(q_cnvs.next())
 				{
-					cnvs << CNV {q_cnvs.value(0).toInt(), q_cnvs.value(1).toInt()-1, q_cnvs.value(2).toInt()}; //subtract 1 to remove one-base overlaps //TODO also necessary for CnvHunter?
+					cnvs << CNV {q_cnvs.value(0).toInt(), q_cnvs.value(1).toInt()-1, q_cnvs.value(2).toInt()}; //subtract 1 to remove one-base overlaps
 				}
 			}
 			stream2 << "  Found " << cnvs.count() << " CNVs\n";
+			stream2.flush();
 
 			//sort by pos
 			std::sort(cnvs.begin(), cnvs.end(), [](const CNV& a, const CNV& b){ return a.start < b.start;});
