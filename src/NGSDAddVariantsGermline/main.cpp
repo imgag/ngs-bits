@@ -279,12 +279,19 @@ public:
 		bool var_force = getFlag("var_force");
 		bool cnv_force = getFlag("cnv_force");
 
+		//prevent import if report config exists
+		int report_conf_id = db.reportConfigId(ps_name);
+		if (report_conf_id!=-1)
+		{
+			THROW(ArgumentException, "Cannot import variant data for sample " + ps_name + ": a report configuration exists for this sample!");
+		}
+
 		//prevent tumor samples from being imported into the germline variant tables
 		QString s_id = db.sampleId(ps_name);
 		SampleData sample_data = db.getSampleData(s_id);
 		if (sample_data.is_tumor)
 		{
-			THROW(ArgumentException, "Cannot import tumor data from sample " + ps_name + " into germline tables!");
+			THROW(ArgumentException, "Cannot import variant data for sample " + ps_name + ": the sample is a tumor sample according to NGSD!");
 		}
 
 		//import

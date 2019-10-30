@@ -3205,6 +3205,24 @@ int NGSD::setReportConfig(const QString& processed_sample_id, const ReportConfig
 	return id;
 }
 
+void NGSD::deleteReportConfig(int id)
+{
+	QString rc_id = QString::number(id);
+
+	//check that it exists
+	bool rc_exists = getValue("SELECT id FROM `report_configuration` WHERE `id`=" + rc_id).isValid();
+	if (!rc_exists)
+	{
+		THROW (ProgrammingException, "Cannot delete report configuration with id=" + rc_id + ", because it does not exist!");
+	}
+
+	//delete
+	SqlQuery query = getQuery();
+	query.exec("DELETE FROM `report_configuration_cnv` WHERE `report_configuration_id`=" + rc_id);
+	query.exec("DELETE FROM `report_configuration_variant` WHERE `report_configuration_id`=" + rc_id);
+	query.exec("DELETE FROM `report_configuration` WHERE `id`=" + rc_id);
+}
+
 void NGSD::setProcessedSampleQuality(const QString& processed_sample_id, const QString& quality)
 {
 	getQuery().exec("UPDATE processed_sample SET quality='" + quality + "' WHERE id='" + processed_sample_id + "'");

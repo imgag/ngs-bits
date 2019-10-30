@@ -143,10 +143,12 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.report_btn->setMenu(new QMenu());
 	ui_.report_btn->menu()->addAction("Load report configuration", this, SLOT(loadReportConfig()));
 	ui_.report_btn->menu()->addAction("Store report configuration", this, SLOT(storeReportConfig()));
-	ui_.report_btn->menu()->addAction("Clear report configuration", this, SLOT(clearReportConfig()));
+	ui_.report_btn->menu()->addAction("Clear report configuration (GSvar)", this, SLOT(clearReportConfig()));
 	ui_.report_btn->menu()->addSeparator();
-	ui_.report_btn->menu()->addAction("Generate report", this, SLOT(generateReport()));
-	ui_.report_btn->menu()->addAction("Generate variant sheet", this, SLOT(generateVariantSheet()));
+	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration (NGSD)", this, SLOT(deleteReportConfig()));
+	ui_.report_btn->menu()->addSeparator();
+	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate report", this, SLOT(generateReport()));
+	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate variant sheet", this, SLOT(generateVariantSheet()));
 	connect(ui_.vars_folder_btn, SIGNAL(clicked(bool)), this, SLOT(openVariantListFolder()));
 	connect(ui_.vars_af_hist, SIGNAL(clicked(bool)), this, SLOT(showAfHistogram()));
 	connect(ui_.ps_details, SIGNAL(clicked(bool)), this, SLOT(openProcessedSampleTabsCurrentSample()));
@@ -1505,13 +1507,53 @@ void MainWindow::clearReportConfig()
 	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO) return;
 
 	//check if current config was modified and would be lost
-	if (report_settings_.report_config.isModified() && QMessageBox::question(this, "Loading report configuration", "The current report configuration contains unsaved changes.\nDo you want to discard them?")==QMessageBox::No)
+	if (report_settings_.report_config.isModified() && QMessageBox::question(this, "Clear report configuration", "The current report configuration contains unsaved changes.\nDo you want to discard them?")==QMessageBox::No)
 	{
 		return;
 	}
 
 	//clear
 	report_settings_.report_config = ReportConfiguration();
+
+	//updateGUI
+	refreshVariantTable();
+}
+
+void MainWindow::deleteReportConfig()
+{
+	//check if applicable
+	if (filename_=="") return;
+
+	AnalysisType type = variants_.type();
+	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO) return;
+
+	//check if the user is sure
+	if(QMessageBox::question(this, "Deleting report configuration from NGSD", "You are about to delete the report configuration from the NGSD.\nThis is permanent and cannot be undone.\n\nDo you really want to delete it?")!=QMessageBox::Yes)
+	{
+		return;
+	}
+
+	//check sample
+	NGSD db;
+	QString ps_name = processedSampleName();
+	QString processed_sample_id = db.processedSampleId(ps_name, false);
+	if (processed_sample_id=="")
+	{
+		QMessageBox::warning(this, "Deleting report configuration", "Error: Sample " + ps_name + " was not found in the NGSD!");
+		return;
+	}
+
+	//check if config exists
+	int conf_id = db.reportConfigId(processed_sample_id);
+	if (conf_id==-1)
+	{
+		QMessageBox::warning(this, "Deleting report configuration", "Error: Report configuration for sample " + ps_name + " was not found in the NGSD!");
+		return;
+	}
+
+	//clear GSvar + NGSD
+	report_settings_.report_config = ReportConfiguration();
+	db.deleteReportConfig(conf_id);
 
 	//updateGUI
 	refreshVariantTable();

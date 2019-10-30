@@ -151,8 +151,10 @@ public slots:
 	///Annotate germline file with somatic variants
 	void on_actionAnnotateSomaticVariants_triggered();
 
-	///Clear report configuration
+	///Clear report configuration (GSvar)
 	void clearReportConfig();
+	///Delete report configuration (NGSD)
+	void deleteReportConfig();
 	///Load report configuration
 	void loadReportConfig();
 	///Store report configuration
