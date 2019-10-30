@@ -16,7 +16,6 @@ NGSD:
 ** Add run overview dialog/tab
 - Allow several disease_groups per sample (requested by CS)
 ##### add CNVs to NGSD
-    #### test: no CNV file, report english
     - add CNVs to XML for GenLab
     - add annotation of CNVs from NGSD:
         - # overlapping CNVs (by type gain/loss)
