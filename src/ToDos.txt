@@ -5,8 +5,9 @@ libs:
 
 NGSD:
 ** Add variant tab (classification, validation, detected samples + genotype + phenotype)
-** Add sender widget (link from sample info)
-** Add processing system widget (link from processed sample info)
+** Add sender tag (link from sample info)
+** Add processing system tab (link from processed sample info)
+** Add project tab (sample overview with diag status, etc)
 *** Allow adding/editing data in NGSD
     - Run/processed sample/sample in general
         - Add email support for runs "run finished" and "analysis finished"

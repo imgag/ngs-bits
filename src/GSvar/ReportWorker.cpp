@@ -351,7 +351,7 @@ BedFile ReportWorker::precalculatedGaps(QString bam_file, const BedFile& roi, in
 	//For WGS there is nothing more to check
 	QString processed_sample_id = db.processedSampleId(bam_file);
 	ProcessingSystemData system_data = db.getProcessingSystemData(processed_sample_id, true);
-	if (system_data.type=="WGS")
+	if (system_data.type=="WGS" || system_data.type=="WGS (shallow)")
 	{
 		return gaps;
 	}
