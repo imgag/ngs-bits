@@ -145,10 +145,6 @@ class CPPNGSSHARED_EXPORT BedpeFile
 public:
 	BedpeFile();
 
-	enum SV_TYPE{ DELLY, MANTA, UNKNOWN};
-	///returns analysis type
-	SV_TYPE analysisType();
-
 	///load bedpe file
 	void load(const QString& file_name);
 
