@@ -26,6 +26,12 @@ NGSD:
     - remove NGSDPrecalculate tool and tables 'detected_variant_counts' and 'detected_variant_counts_by_group'
 
 GSvar:
+** ReportConfigSomatic
+    - id via SAP case number (not sample number >CS), QBIC id
+    - track manual changes to raw calls
+    - flag most relevant items
+    - requirements as discussed with Ruhm/Möller
+    - Sample > Messbefund (Schema ist Messprofil) > Messparameter (Name+Typ - Typ kann vordefiniertes Enum sein)
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 ** replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
 * trio filter: correct PAR region handling (Genetikum)
