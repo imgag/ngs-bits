@@ -521,7 +521,7 @@ private:
 		db_queries.restart();
 		QStringList disease_groups = db.getEnum("sample", "disease_group");
 		db_query_sum += db_queries.elapsed();
-		disease_groups.removeAll("n/a");
+		//disease_groups.removeAll("n/a");
 
 		//get same sample information
 		QHash<int, QList<int>> same_samples;
