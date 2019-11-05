@@ -24,4 +24,4 @@
 ##INFO=<ID=CLAS_COM,Number=1,Type=String,Description="Classification comment from the NGSD.">
 ##INFO=<ID=COM,Number=1,Type=String,Description="Variant comments from the NGSD.">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
-chr6	82461926	21	GACGCGCGGCGGCGGAGAGC	GCCCC	.	.	COUNTS=1,1;GSC01=1,1;COM="NA12878_38_Dragen_abra"
+chr6	82461926	21	GACGCGCGGCGGCGGAGAGC	GCCCC	.	.	COUNTS=1,1;GSC02=1,1;COM="NA12878_38_Dragen_abra"
