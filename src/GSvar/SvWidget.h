@@ -28,9 +28,6 @@ protected slots:
 	///copy filtered SV table to clipboard
 	void copyToClipboard();
 
-	///load new SV file if other bedpe file is selected
-	void fileNameChanged();
-
 	///update SV table if filter for types was changed
 	void applyFilters();
 

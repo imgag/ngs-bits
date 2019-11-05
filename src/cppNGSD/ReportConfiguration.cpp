@@ -10,6 +10,7 @@ ReportVariantConfiguration::ReportVariantConfiguration()
 	, variant_index(-1)
 	, report_type()
 	, causal(false)
+	, classification("n/a")
 	, inheritance("n/a")
 	, de_novo(false)
 	, mosaic(false)
@@ -38,6 +39,12 @@ QStringList ReportVariantConfiguration::getTypeOptions(bool test_db)
 QStringList ReportVariantConfiguration::getInheritanceModeOptions(bool test_db)
 {
 	static QStringList modes = NGSD(test_db).getEnum("report_configuration_variant", "inheritance");
+	return modes;
+}
+
+QStringList ReportVariantConfiguration::getClassificationOptions(bool test_db)
+{
+	static QStringList modes = NGSD(test_db).getEnum("report_configuration_cnv", "class");
 	return modes;
 }
 

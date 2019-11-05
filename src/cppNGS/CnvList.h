@@ -9,14 +9,22 @@
 #include <QByteArrayList>
 #include <QMap>
 
-///Copy-number variant composed of sub-regions as reported by CnvHunter.
+///Copy-number variant composed of sub-regions.
 class CPPNGSSHARED_EXPORT CopyNumberVariant
 {
 	public:
 		///Default constructor.
 		CopyNumberVariant();
+		///Minimal constructor.
+		CopyNumberVariant(const Chromosome& chr, int start, int end);
 		///Main constructor.
 		CopyNumberVariant(const Chromosome& chr, int start, int end, int num_regs, GeneSet genes, QByteArrayList annotations);
+
+		///Returns if two CNVs are equal
+		bool hasSamePosition(const CopyNumberVariant& rhs) const
+		{
+			return chr_==rhs.chr_ && start_==rhs.start_ && end_==rhs.end_;
+		}
 
 		///Returns the chromosome.
 		const Chromosome& chr() const
@@ -57,17 +65,24 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 			return chr_.str() + ":" + QString::number(start_) + "-" + QString::number(end_);
 		}
 
+		///Convert cnv to string.
+		QString toStringWithMetaData() const;
+
+
 		///Generic annotations (see also CnvList::annotationHeaders()).
 		const QByteArrayList& annotations() const
 		{
 			return annotations_;
 		}
 
-		///Retuns if a variant overlaps a genomic range.
+		///Returns if a variant overlaps a genomic range.
 		bool overlapsWith(const Chromosome& chr, int start, int end) const
 		{
 			return chr == chr_ && BasicStatistics::rangeOverlaps(start_, end_, start, end);
 		}
+
+		//Returns the copy-number. If not available, ProgrammingException is thrown, or '-1' is returned.
+		int copyNumber(const QByteArrayList& annotation_headers, bool throw_if_not_found=true) const;
 
 	protected:
 		Chromosome chr_;
@@ -76,6 +91,14 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 		int num_regs_;
 		GeneSet genes_;
 		QByteArrayList annotations_;
+};
+
+///CNV caller types
+enum class CnvCallerType
+{
+	INVALID,
+	CNVHUNTER,
+	CLINCNV
 };
 
 ///CNV list types
@@ -97,14 +120,17 @@ class CPPNGSSHARED_EXPORT CnvList
 		CnvList();
 		///Clears content.
 		void clear();
-		///Loads CNV text file (TSV format from CnvHunter).
+		///Loads CNV text file (TSV format).
 		void load(QString filename);
 
-		///Returns the analysis type
+		///Returns the CNV list type
 		CnvListType type() const
 		{
 			return type_;
 		}
+
+		///Returns the CNV caller
+		CnvCallerType caller() const;
 
 		///Returns the comment header lines (without leading '##').
 		const QByteArrayList& comments() const

@@ -113,8 +113,8 @@ MainWindow::MainWindow(QWidget *parent)
 	ngsd_btn->setMenu(new QMenu());
 	ngsd_btn->menu()->addAction(ui_.actionOpenProcessedSampleTabByName );
 	ngsd_btn->menu()->addAction(ui_.actionOpenSequencingRunTabByName);
-    ngsd_btn->menu()->addAction(ui_.actionOpenGeneTabByName);
-    ngsd_btn->setPopupMode(QToolButton::InstantPopup);
+	ngsd_btn->menu()->addAction(ui_.actionOpenGeneTabByName);
+	ngsd_btn->setPopupMode(QToolButton::InstantPopup);
 	ui_.tools->insertWidget(ui_.actionAnalysisStatus, ngsd_btn);
 	ui_.tools->insertSeparator(ui_.actionAnalysisStatus);
 
@@ -143,10 +143,12 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.report_btn->setMenu(new QMenu());
 	ui_.report_btn->menu()->addAction("Load report configuration", this, SLOT(loadReportConfig()));
 	ui_.report_btn->menu()->addAction("Store report configuration", this, SLOT(storeReportConfig()));
-	ui_.report_btn->menu()->addAction("Clear report configuration", this, SLOT(clearReportConfig()));
+	ui_.report_btn->menu()->addAction("Clear report configuration (GSvar)", this, SLOT(clearReportConfig()));
 	ui_.report_btn->menu()->addSeparator();
-	ui_.report_btn->menu()->addAction("Generate report", this, SLOT(generateReport()));
-	ui_.report_btn->menu()->addAction("Generate variant sheet", this, SLOT(generateVariantSheet()));
+	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration (NGSD)", this, SLOT(deleteReportConfig()));
+	ui_.report_btn->menu()->addSeparator();
+	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate report", this, SLOT(generateReport()));
+	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate variant sheet", this, SLOT(generateVariantSheet()));
 	connect(ui_.vars_folder_btn, SIGNAL(clicked(bool)), this, SLOT(openVariantListFolder()));
 	connect(ui_.vars_af_hist, SIGNAL(clicked(bool)), this, SLOT(showAfHistogram()));
 	connect(ui_.ps_details, SIGNAL(clicked(bool)), this, SLOT(openProcessedSampleTabsCurrentSample()));
@@ -249,9 +251,16 @@ void MainWindow::on_actionCNV_triggered()
 		QMessageBox::information(this, "Invalid variant list", "Column for genes or genotypes not found in variant list. Cannot apply compound-heterozygous filter based on variants!");
 	}
 
+	//determine processed sample ID (needed for report config - so only germline)
+	QString ps_id = "";
+	AnalysisType analysis_type = variants_.type();
+	if (ngsd_enabled_ && (analysis_type==GERMLINE_SINGLESAMPLE || analysis_type==GERMLINE_TRIO))
+	{
+		ps_id = NGSD().processedSampleId(filename_, false);
+	}
+
 	//open CNV window
-	processedSampleName();
-	CnvWidget* list = new CnvWidget(filename_, variants_.type(), ui_.filters, het_hit_genes, gene2region_cache_);
+	CnvWidget* list = new CnvWidget(cnvs_, ps_id, ui_.filters, report_settings_.report_config, het_hit_genes, gene2region_cache_);
 	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
 	auto dlg = GUIHelper::createDialog(list, "Copy number variants");
 	addModelessDialog(dlg, true);
@@ -267,8 +276,8 @@ void MainWindow::on_actionROH_triggered()
 	{
 		//show ROHs of child (index)
 		QString child = variants_.getSampleHeader().infoByStatus(true).column_name;
-		QString trio_folder = QFileInfo(filename_).path();
-		QString project_folder = QFileInfo(trio_folder).path();
+		QString trio_folder = QFileInfo(filename_).absolutePath();
+		QString project_folder = QFileInfo(trio_folder).absolutePath();
 		filename = project_folder + "/Sample_" + child + "/" + child + ".GSvar";
 
 		//UPDs
@@ -493,22 +502,32 @@ void MainWindow::delayedInizialization()
 	updateIGVMenu();
 	updateNGSDSupport();
 
-	//load first command line argument
-	if (QApplication::arguments().count()>=2)
+	//parse arguments
+	for (int i=1; i<QApplication::arguments().count(); ++i)
 	{
-		QString arg1 = QApplication::arguments().at(1);
+		QString arg = QApplication::arguments().at(i);
 
-		if (QFile::exists(arg1)) //file path
+		if (i==1) //first argument: sample
 		{
-			loadFile(arg1);
-		}
-		else if (ngsd_enabled_) //processed sample name (via NGSD)
-		{
-			NGSD db;
-			if (db.processedSampleId(arg1, false)!="")
+			if (QFile::exists(arg)) //file path
 			{
-				openProcessedSampleFromNGSD(arg1);
+				loadFile(arg);
 			}
+			else if (ngsd_enabled_) //processed sample name (via NGSD)
+			{
+				NGSD db;
+				if (db.processedSampleId(arg, false)!="")
+				{
+					openProcessedSampleFromNGSD(arg);
+				}
+			}
+		}
+		else if (arg.startsWith("filter:")) //target region (by name)
+		{
+			int sep_pos = arg.indexOf(':');
+			QString filter_name = arg.mid(sep_pos+1).trimmed();
+
+			ui_.filters->setFilter(filter_name);
 		}
 	}
 }
@@ -724,7 +743,7 @@ void MainWindow::editVariantComment()
 		NGSD db;
 		if (db.variantId(variant, false)=="")
 		{
-			db.addVariant(variants_, var_index);
+			db.addVariant(variants_[var_index], variants_);
 		}
 
 		bool ok = true;
@@ -1086,7 +1105,7 @@ void MainWindow::checkMendelianErrorRate(double cutoff_perc)
 
 	if (!output.isEmpty())
 	{
-        QMessageBox::warning(this, "Medelian error rate", output);
+		QMessageBox::warning(this, "Medelian error rate", output);
 	}
 }
 
@@ -1127,21 +1146,21 @@ void MainWindow::openRunTab(QString run_name)
 	SequencingRunWidget* widget = new SequencingRunWidget(this, ps_id);
 	int index = ui_.tabs->addTab(widget, QIcon(":/Icons/NGSD_run.png"), run_name);
 	ui_.tabs->setCurrentIndex(index);
-    connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
+	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
 }
 
 void MainWindow::openGeneTab(QByteArray symbol)
 {
-    QPair<QString, QString> approved = NGSD().geneToApprovedWithMessage(symbol);
-    if (approved.second.startsWith("ERROR:"))
-    {
-        GUIHelper::showMessage("NGSD error", "Gene name '" + symbol + "' is not a HGNC-approved name!\nError message:\n" + approved.second);
-        return;
-    }
+	QPair<QString, QString> approved = NGSD().geneToApprovedWithMessage(symbol);
+	if (approved.second.startsWith("ERROR:"))
+	{
+		GUIHelper::showMessage("NGSD error", "Gene name '" + symbol + "' is not a HGNC-approved name!\nError message:\n" + approved.second);
+		return;
+	}
 
-    GeneWidget* widget = new GeneWidget(this, symbol);
-    int index = ui_.tabs->addTab(widget, QIcon(":/Icons/NGSD_gene.png"), symbol);
-    ui_.tabs->setCurrentIndex(index);
+	GeneWidget* widget = new GeneWidget(this, symbol);
+	int index = ui_.tabs->addTab(widget, QIcon(":/Icons/NGSD_gene.png"), symbol);
+	ui_.tabs->setCurrentIndex(index);
 }
 
 void MainWindow::closeTab(int index)
@@ -1189,6 +1208,7 @@ void MainWindow::loadFile(QString filename)
 	ui_.filters->reset(true);
 	filename_ = "";
 	variants_.clear();
+	cnvs_.clear();
 	filewatcher_.clearFile();
 	db_annos_updated_ = NO;
 	igv_initialized_ = false;
@@ -1210,9 +1230,19 @@ void MainWindow::loadFile(QString filename)
 	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 	try
 	{
+		//load variants
 		timer.restart();
 		variants_.load(filename);
-		Log::perf("Loading variant list took ", timer);
+		Log::perf("Loading small variant list took ", timer);
+
+		//load CNVs
+		timer.restart();
+		QString cnv_file = cnvFile(filename);
+		if (cnv_file!="")
+		{
+			cnvs_.load(cnv_file);
+		}
+		Log::perf("Loading CNV list took ", timer);
 
 		ui_.filters->setValidFilterEntries(variants_.filters().keys());
 
@@ -1390,7 +1420,7 @@ void MainWindow::on_actionAnnotateSomaticVariants_triggered()
 
 
 	//Annotate cnvs
-	QStringList cnv_files = QFileInfo(filename).dir().entryList({"*_clincnv.tsv"},QDir::Files);
+	QStringList cnv_files = Helper::findFiles(QFileInfo(filename).absolutePath(), "*_clincnv.tsv", false);
 
 	bool skip_cnv_annotation = false;
 
@@ -1477,13 +1507,53 @@ void MainWindow::clearReportConfig()
 	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO) return;
 
 	//check if current config was modified and would be lost
-	if (report_settings_.report_config.isModified() && QMessageBox::question(this, "Loading report configuration", "The current report configuration contains unsaved changes.\nDo you want to discard them?")==QMessageBox::No)
+	if (report_settings_.report_config.isModified() && QMessageBox::question(this, "Clear report configuration", "The current report configuration contains unsaved changes.\nDo you want to discard them?")==QMessageBox::No)
 	{
 		return;
 	}
 
 	//clear
 	report_settings_.report_config = ReportConfiguration();
+
+	//updateGUI
+	refreshVariantTable();
+}
+
+void MainWindow::deleteReportConfig()
+{
+	//check if applicable
+	if (filename_=="") return;
+
+	AnalysisType type = variants_.type();
+	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO) return;
+
+	//check if the user is sure
+	if(QMessageBox::question(this, "Deleting report configuration from NGSD", "You are about to delete the report configuration from the NGSD.\nThis is permanent and cannot be undone.\n\nDo you really want to delete it?")!=QMessageBox::Yes)
+	{
+		return;
+	}
+
+	//check sample
+	NGSD db;
+	QString ps_name = processedSampleName();
+	QString processed_sample_id = db.processedSampleId(ps_name, false);
+	if (processed_sample_id=="")
+	{
+		QMessageBox::warning(this, "Deleting report configuration", "Error: Sample " + ps_name + " was not found in the NGSD!");
+		return;
+	}
+
+	//check if config exists
+	int conf_id = db.reportConfigId(processed_sample_id);
+	if (conf_id==-1)
+	{
+		QMessageBox::warning(this, "Deleting report configuration", "Error: Report configuration for sample " + ps_name + " was not found in the NGSD!");
+		return;
+	}
+
+	//clear GSvar + NGSD
+	report_settings_.report_config = ReportConfiguration();
+	db.deleteReportConfig(conf_id);
 
 	//updateGUI
 	refreshVariantTable();
@@ -1524,7 +1594,7 @@ void MainWindow::loadReportConfig()
 
 	//load
 	QStringList messages;
-	report_settings_.report_config = db.reportConfig(processed_sample_id, variants_, messages);
+	report_settings_.report_config = db.reportConfig(processed_sample_id, variants_, cnvs_, messages);
 	if (!messages.isEmpty())
 	{
 		QMessageBox::warning(this, "Report configuration", "The following problems were encountered while loading the report configuration:\n" + messages.join("\n"));
@@ -1564,14 +1634,24 @@ void MainWindow::storeReportConfig()
 	}
 
 	//store
-	db.setReportConfig(processed_sample_id, report_settings_.report_config, variants_, Helper::userName());
-	report_settings_.report_config.setModified(false);
+	try
+	{
+		db.setReportConfig(processed_sample_id, report_settings_.report_config, variants_, cnvs_, Helper::userName());
+		report_settings_.report_config.setModified(false);
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, "Storing report configuration", "Error: Could not store the report configuration.\nPlease resolve this error or report it to the administrator:\n\n" + e.message());
+	}
 }
 
 void MainWindow::generateVariantSheet()
 {
 	//store variant config
-	storeReportConfig();
+	if (report_settings_.report_config.isModified())
+	{
+		storeReportConfig();
+	}
 
 	//get filename
 	QString base_name = processedSampleName();
@@ -1710,7 +1790,7 @@ void MainWindow::generateVariantSheet()
 	stream << "      </tr>" << endl;
 	stream << "    </table>" << endl;
 
-	//write causal variants
+	//write small variants
 	stream << "    <p><b>Kausale Varianten:</b>" << endl;
 	stream << "      <table border='1'>" << endl;
 	printVariantSheetRowHeader(stream, true);
@@ -1725,7 +1805,6 @@ void MainWindow::generateVariantSheet()
 	stream << "      </table>" << endl;
 	stream << "    </p>" << endl;
 
-	//write other variants
 	stream << "    <p><b>Sonstige Varianten:</b>" << endl;
 	stream << "      <table border='1'>" << endl;
 	printVariantSheetRowHeader(stream, false);
@@ -1735,6 +1814,35 @@ void MainWindow::generateVariantSheet()
 		if (!conf.causal)
 		{
 			printVariantSheetRow(stream, conf);
+		}
+	}
+	stream << "      </table>" << endl;
+	stream << "    </p>" << endl;
+
+	//CNVs
+	stream << "    <p><b>Kausale CNVs:</b>" << endl;
+	stream << "      <table border='1'>" << endl;
+	printVariantSheetRowHeaderCnv(stream, true);
+	foreach(const ReportVariantConfiguration& conf, report_settings_.report_config.variantConfig())
+	{
+		if (conf.variant_type!=VariantType::CNVS) continue;
+		if (conf.causal)
+		{
+			printVariantSheetRowCnv(stream, conf);
+		}
+	}
+	stream << "      </table>" << endl;
+	stream << "    </p>" << endl;
+
+	stream << "    <p><b>Sonstige CNVs:</b>" << endl;
+	stream << "      <table border='1'>" << endl;
+	printVariantSheetRowHeaderCnv(stream, false);
+	foreach(const ReportVariantConfiguration& conf, report_settings_.report_config.variantConfig())
+	{
+		if (conf.variant_type!=VariantType::CNVS) continue;
+		if (!conf.causal)
+		{
+			printVariantSheetRowCnv(stream, conf);
 		}
 	}
 	stream << "      </table>" << endl;
@@ -1776,7 +1884,7 @@ void MainWindow::printVariantSheetRowHeader(QTextStream& stream, bool causal)
 	stream << "     </tr>" << endl;
 }
 
-void MainWindow::printVariantSheetRow(QTextStream& stream, const ReportVariantConfiguration &conf)
+void MainWindow::printVariantSheetRow(QTextStream& stream, const ReportVariantConfiguration& conf)
 {
 	//get column indices
 	const Variant& v = variants_[conf.variant_index];
@@ -1839,13 +1947,7 @@ void MainWindow::printVariantSheetRow(QTextStream& stream, const ReportVariantCo
 	}
 	else
 	{
-		QByteArrayList exclustion_criteria;
-		if (conf.exclude_artefact) exclustion_criteria << "Artefakt";
-		if (conf.exclude_frequency) exclustion_criteria << "Frequenz";
-		if (conf.exclude_phenotype) exclustion_criteria << "Phenotyp";
-		if (conf.exclude_mechanism) exclustion_criteria << "Pathomechanismus";
-		if (conf.exclude_other) exclustion_criteria << "Anderer (siehe Kommentare)";
-		stream << "       <td>" << exclustion_criteria.join(", ")  << "</td>" << endl;
+		stream << "       <td>" << exclusionCriteria(conf) << "</td>" << endl;
 	}
 	stream << "       <td>" << v.annotations()[i_gnomad] << "</td>" << endl;
 	stream << "       <td>" << v.annotations()[i_ngsd_hom] << " / " << v.annotations()[i_ngsd_het] << "</td>" << endl;
@@ -1856,11 +1958,70 @@ void MainWindow::printVariantSheetRow(QTextStream& stream, const ReportVariantCo
 	stream << "     </tr>" << endl;
 }
 
+void MainWindow::printVariantSheetRowHeaderCnv(QTextStream& stream, bool causal)
+{
+	stream << "     <tr>" << endl;
+	stream << "       <th>CNV</th>" << endl;
+	stream << "       <th>copy-number</th>" << endl;
+	stream << "       <th>Gene</th>" << endl;
+	stream << "       <th>Erbgang</th>" << endl;
+	if (causal)
+	{
+		stream << "       <th>Infos</th>" << endl;
+	}
+	else
+	{
+		stream << "       <th>Ausschlussgrund</th>" << endl;
+	}
+	stream << "       <th nowrap>Kommentar 1. Auswerter</th>" << endl;
+	stream << "       <th nowrap>Kommentar 2. Auswerter</th>" << endl;
+	stream << "       <th>Klasse</th>" << endl;
+	stream << "       <th nowrap>In Report</th>" << endl;
+	stream << "     </tr>" << endl;
+}
+
+void MainWindow::printVariantSheetRowCnv(QTextStream& stream, const ReportVariantConfiguration& conf)
+{
+	const CopyNumberVariant& cnv = cnvs_[conf.variant_index];
+	stream << "     <tr>" << endl;
+	stream << "       <td>" << cnv.toString() << "</td>" << endl;
+	stream << "       <td>" << cnv.copyNumber(cnvs_.annotationHeaders()) << "</td>" << endl;
+	stream << "       <td>" << cnv.genes().join(", ") << "</td>" << endl;
+	stream << "       <td>" << conf.inheritance << "</th>" << endl;
+	if (conf.causal)
+	{
+		stream << "       <td>regions:" << cnv.regions() << " size:" << QString::number(cnv.size()/1000.0, 'f', 3) << "kb</td>" << endl;
+	}
+	else
+	{
+		stream << "       <td>" << exclusionCriteria(conf) << "</td>" << endl;
+	}
+	stream << "       <td>" << conf.comments << "</td>" << endl;
+	stream << "       <td>" << conf.comments2 << "</td>" << endl;
+	stream << "       <td>" << conf.classification << "</td>" << endl;
+	stream << "       <td>" << (conf.showInReport() ? "ja" : "nein") << " (" << conf.report_type << ")</td>" << endl;
+	stream << "     </tr>" << endl;
+}
+
+QString MainWindow::exclusionCriteria(const ReportVariantConfiguration& conf)
+{
+	QByteArrayList exclustion_criteria;
+	if (conf.exclude_artefact) exclustion_criteria << "Artefakt";
+	if (conf.exclude_frequency) exclustion_criteria << "Frequenz";
+	if (conf.exclude_phenotype) exclustion_criteria << "Phenotyp";
+	if (conf.exclude_mechanism) exclustion_criteria << "Pathomechanismus";
+	if (conf.exclude_other) exclustion_criteria << "Anderer (siehe Kommentare)";
+	return exclustion_criteria.join(", ");
+}
+
 void MainWindow::generateReport()
 {
 	if (variants_.count()==0) return;
 
-	storeReportConfig();
+	if (report_settings_.report_config.isModified())
+	{
+		storeReportConfig();
+	}
 
 	//check if this is a germline or somatic
 	AnalysisType type = variants_.type();
@@ -1999,8 +2160,7 @@ void MainWindow::generateReportGermline()
 	report_settings_.diag_status = db.getDiagnosticStatus(processed_sample_id);
 
 	//show report dialog
-	ReportDialog dialog(report_settings_, variants_, this);
-	dialog.setTargetRegionSelected(ui_.filters->targetRegion()!="");
+	ReportDialog dialog(report_settings_, variants_, cnvs_, ui_.filters->targetRegion(),this);
 	if (!dialog.exec()) return;
 
 	//set report type
@@ -2026,7 +2186,7 @@ void MainWindow::generateReportGermline()
 	busy_dialog_->init("Generating report", false);
 
 	//start worker in new thread
-    ReportWorker* worker = new ReportWorker(base_name, bam_file, ui_.filters->targetRegion(), variants_, ui_.filters->filters(), report_settings_, getLogFiles(), file_rep);
+	ReportWorker* worker = new ReportWorker(base_name, bam_file, ui_.filters->targetRegion(), variants_, cnvs_, ui_.filters->filters(), report_settings_, getLogFiles(), file_rep);
 	connect(worker, SIGNAL(finished(bool)), this, SLOT(reportGenerationFinished(bool)));
 	worker->start();
 }
@@ -2127,24 +2287,24 @@ void MainWindow::on_actionOpenSequencingRunTabByName_triggered()
 	//handle invalid name
 	if (selector->getId()=="") return;
 
-    openRunTab(selector->text());
+	openRunTab(selector->text());
 }
 
 void MainWindow::on_actionOpenGeneTabByName_triggered()
 {
-    //create
-    DBSelector* selector = new DBSelector(this);
-    NGSD db;
-    selector->fill(db.createTable("gene", "SELECT id, symbol FROM gene"));
+	//create
+	DBSelector* selector = new DBSelector(this);
+	NGSD db;
+	selector->fill(db.createTable("gene", "SELECT id, symbol FROM gene"));
 
-    //show
-    auto dlg = GUIHelper::createDialog(selector, "Select gene", "symbol:", true);
-    if (dlg->exec()==QDialog::Rejected) return ;
+	//show
+	auto dlg = GUIHelper::createDialog(selector, "Select gene", "symbol:", true);
+	if (dlg->exec()==QDialog::Rejected) return ;
 
-    //handle invalid name
-    if (selector->getId()=="") return;
+	//handle invalid name
+	if (selector->getId()=="") return;
 
-    openGeneTab(selector->text().toLatin1());
+	openGeneTab(selector->text().toLatin1());
 }
 
 void MainWindow::on_actionGenderXY_triggered()
@@ -2283,7 +2443,7 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 
 	//prepare dialog
 	QString sample_name = QFileInfo(bam_file).fileName().replace(".bam", "");
-    GapDialog dlg(this, sample_name, roi_file);
+	GapDialog dlg(this, sample_name, roi_file);
 	dlg.process(bam_file, roi, genes);
 	QApplication::restoreOverrideCursor();
 
@@ -2415,9 +2575,9 @@ void MainWindow::exportGSvar()
 void MainWindow::on_actionPreferredTranscripts_triggered()
 {
 	//show dialog
-    QString filename = GSvarHelper::applicationBaseName() + "_preferred_transcripts.tsv";
-    QDateTime file_last_mod = QFileInfo(filename).lastModified();
-    QString text = "<pre>" + Helper::loadTextFile(filename).join("\n") + "</pre>";
+	QString filename = GSvarHelper::applicationBaseName() + "_preferred_transcripts.tsv";
+	QDateTime file_last_mod = QFileInfo(filename).lastModified();
+	QString text = "<pre>" + Helper::loadTextFile(filename).join("\n") + "</pre>";
 	QTextEdit* edit = new QTextEdit(text);
 	edit->setMinimumHeight(600);
 	edit->setMinimumWidth(500);
@@ -2426,16 +2586,16 @@ void MainWindow::on_actionPreferredTranscripts_triggered()
 	//abort on cancel
 	if (dlg->exec()!=QDialog::Accepted) return;
 
-    //check editor content
-    NGSD db;
-    QMap<QByteArray, QByteArrayList> preferred_transcripts_new;
+	//check editor content
+	NGSD db;
+	QMap<QByteArray, QByteArrayList> preferred_transcripts_new;
 	QStringList lines = edit->toPlainText().split("\n");
 	foreach(QString line, lines)
 	{
 		line = line.trimmed();
 		if (line.isEmpty() || line.startsWith("#")) continue;
 
-        QByteArrayList parts = line.trimmed().toLatin1().split('\t');
+		QByteArrayList parts = line.trimmed().toLatin1().split('\t');
 		if (parts.count()!=2)
 		{
 			QMessageBox::warning(this, "Invalid preferred transcript line", "Found line that does not contain two tab-separated colmnns:\n" + line + "\n\nAborting!");
@@ -2443,18 +2603,18 @@ void MainWindow::on_actionPreferredTranscripts_triggered()
 		}
 
 		//check gene
-        QByteArray gene = parts[0].trimmed();
-        QPair<QString, QString> approved = db.geneToApprovedWithMessage(gene);
-        if (approved.second.startsWith("ERROR:"))
-        {
-            QMessageBox::warning(this, "Invalid preferred transcript line", "Gene name '" + gene + "' is not a HGNC-approved name!\n\nAborting!");
-            return;
-        }
-        gene = approved.first.toLatin1();
+		QByteArray gene = parts[0].trimmed();
+		QPair<QString, QString> approved = db.geneToApprovedWithMessage(gene);
+		if (approved.second.startsWith("ERROR:"))
+		{
+			QMessageBox::warning(this, "Invalid preferred transcript line", "Gene name '" + gene + "' is not a HGNC-approved name!\n\nAborting!");
+			return;
+		}
+		gene = approved.first.toLatin1();
 
 		//remove version number if present (NM_000543.3 => NM_000543.)
-        QByteArrayList transcripts = parts[1].split(',');
-        foreach(QByteArray transcript, transcripts)
+		QByteArrayList transcripts = parts[1].split(',');
+		foreach(QByteArray transcript, transcripts)
 		{
 			transcript = transcript.trimmed();
 			if (transcript.isEmpty()) continue;
@@ -2468,23 +2628,23 @@ void MainWindow::on_actionPreferredTranscripts_triggered()
 	}
 
 	//prevent overwriting changes done by others since opening the dialog
-    if (file_last_mod < QFileInfo(filename).lastModified())
+	if (file_last_mod < QFileInfo(filename).lastModified())
 	{
 		QMessageBox::warning(this, "Cannot write preferred transcripts", "Perferred transcripts were changed by another GSvar instance.\nPlease re-do your changes!");
 		return;
 	}
 
-    //store
-    auto file = Helper::openFileForWriting(filename);
-    QTextStream stream(file.data());
-    for(auto it = preferred_transcripts_new.begin(); it!=preferred_transcripts_new.end(); ++it)
-    {
-        stream << it.key() << "\t" << it.value().join(", ") << "\n";
-    }
-    file->close();
+	//store
+	auto file = Helper::openFileForWriting(filename);
+	QTextStream stream(file.data());
+	for(auto it = preferred_transcripts_new.begin(); it!=preferred_transcripts_new.end(); ++it)
+	{
+		stream << it.key() << "\t" << it.value().join(", ") << "\n";
+	}
+	file->close();
 
-    //re-load preferred transcripts
-    GSvarHelper::preferredTranscripts(true);
+	//re-load preferred transcripts
+	GSvarHelper::preferredTranscripts(true);
 }
 
 void MainWindow::on_actionOpenDocumentation_triggered()
@@ -2707,8 +2867,9 @@ void MainWindow::varHeaderContextMenu(QPoint pos)
 
 	//set up menu
 	QMenu menu(ui_.vars->verticalHeader());
-	menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
-	menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration")->setEnabled(report_settings_.report_config.exists(VariantType::SNVS_INDELS, index));
+	QAction* a_edit = menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
+	QAction* a_delete =menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
+	a_delete->setEnabled(report_settings_.report_config.exists(VariantType::SNVS_INDELS, index));
 
 	//exec menu
 	pos = ui_.vars->verticalHeader()->viewport()->mapToGlobal(pos);
@@ -2716,12 +2877,11 @@ void MainWindow::varHeaderContextMenu(QPoint pos)
 	if (action==nullptr) return;
 
 	//actions
-	QByteArray text = action->text().toLatin1();
-	if (text=="Add/edit report configuration")
+	if (action==a_edit)
 	{
 		editVariantReportConfiguration(index);
 	}
-	else if (text=="Delete report configuration")
+	else if (action==a_delete)
 	{
 		report_settings_.report_config.remove(VariantType::SNVS_INDELS, index);
 		updateReportConfigHeaderIcon(index);
@@ -2737,7 +2897,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, true);
 	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(i_co_sp);
 	int i_dbsnp = variants_.annotationIndexByName("dbSNP", true, true);
-    const QMap<QByteArray, QByteArrayList>& preferred_transcripts = GSvarHelper::preferredTranscripts();
+	const QMap<QByteArray, QByteArrayList>& preferred_transcripts = GSvarHelper::preferredTranscripts();
 
 	//create context menu
 	QMenu menu(ui_.vars);
@@ -2751,7 +2911,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	QMenu* sub_menu = nullptr;
 	if (!genes.isEmpty())
 	{
-        sub_menu = menu.addMenu(QIcon("://Icons/NGSD_gene.png"), "Gene info");
+		sub_menu = menu.addMenu(QIcon("://Icons/NGSD_gene.png"), "Gene info");
 		foreach(QString g, genes)
 		{
 			sub_menu->addAction(g);
@@ -2789,7 +2949,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	foreach(const VariantTranscript& trans, transcripts)
 	{
 		QAction* action = sub_menu->addAction("variant: " + trans.gene + " " + trans.id + " " + trans.hgvs_c + " " + trans.hgvs_p);
-        if (preferred_transcripts.value(trans.gene).contains(trans.id))
+		if (preferred_transcripts.value(trans.gene).contains(trans.id))
 		{
 			QFont font = action->font();
 			font.setBold(true);
@@ -2833,7 +2993,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 				QAction* action = sub_menu->addAction(transcript.id + ":" + transcript.hgvs_c + " (" + transcript.gene + ")");
 
 				//highlight preferred transcripts
-                if (preferred_transcripts.value(transcript.gene).contains(transcript.id))
+				if (preferred_transcripts.value(transcript.gene).contains(transcript.id))
 				{
 					QFont font = action->font();
 					font.setBold(true);
@@ -2919,8 +3079,8 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 		}
 	}
 	else if (parent_menu && parent_menu->title()=="Gene info")
-    {
-        openGeneTab(text);
+	{
+		openGeneTab(text);
 	}
 	else if (parent_menu && parent_menu->title()=="HGMD")
 	{
@@ -3064,7 +3224,7 @@ void MainWindow::editVariantClassification(VariantList& variants, int index)
 		NGSD db;
 		if (db.variantId(variant, false)=="") //add variant if missing
 		{
-			db.addVariant(variants, index);
+			db.addVariant(variants[index], variants);
 		}
 		ClassificationInfo class_info = dlg.classificationInfo();
 		db.setClassification(variant, class_info);
@@ -3087,6 +3247,28 @@ void MainWindow::editVariantClassification(VariantList& variants, int index)
 		GUIHelper::showMessage("NGSD error", e.message());
 		return;
 	}
+}
+
+QString MainWindow::cnvFile(QString gsvar_file)
+{
+	QFileInfo file_info(gsvar_file);
+	QString base = file_info.absolutePath() + QDir::separator() + file_info.baseName();
+
+	QString cnv_file = base + "_cnvs_clincnv.tsv";
+	if (!QFile::exists(cnv_file)) //fallback to somatic
+	{
+		cnv_file = base + "_clincnv.tsv";
+	}
+	if (!QFile::exists(cnv_file)) //fallback to CnvHunter
+	{
+		cnv_file = base + "_cnvs.tsv";
+	}
+	if (!QFile::exists(cnv_file))
+	{
+		cnv_file = "";
+	}
+
+	return cnv_file;
 }
 
 void MainWindow::updateVariantDetails()
@@ -3227,23 +3409,17 @@ void MainWindow::storeCurrentVariantList()
 
 QStringList MainWindow::getLogFiles()
 {
-	QDir data_dir(QFileInfo(filename_).path());
-	QStringList output = data_dir.entryList(QStringList("*_log?_*.log"),  QDir::Files);
+	QString path = QFileInfo(filename_).absolutePath();
 
-	for(int i=0; i<output.count(); ++i)
-	{
-		output[i] = data_dir.absolutePath() + "/" + output[i];
-	}
-
-	return output;
+	return Helper::findFiles(path, "*_log?_*.log", false);
 }
 
 QList<IgvFile> MainWindow::getBamFiles()
 {
 	QList<IgvFile> output;
 
-	QString sample_folder = QFileInfo(filename_).path();
-	QString project_folder = QFileInfo(sample_folder).path();
+	QString sample_folder = QFileInfo(filename_).absolutePath();
+	QString project_folder = QFileInfo(sample_folder).absolutePath();
 
 	SampleHeaderInfo data = variants_.getSampleHeader();
 	foreach(const SampleInfo& info, data)
@@ -3288,8 +3464,8 @@ QList<IgvFile> MainWindow::getSegFilesCnv()
 		if (basename.contains("-"))
 		{
 			QString tumor_ps_name = basename.split("-")[1];
-			QString pair_folder = QFileInfo(filename_).path();
-			QString project_folder = QFileInfo(pair_folder).path();
+			QString pair_folder = QFileInfo(filename_).absolutePath();
+			QString project_folder = QFileInfo(pair_folder).absolutePath();
 			segfile = project_folder + "/Sample_" + tumor_ps_name + "/" + tumor_ps_name + "_cnvs.seg";
 			output << IgvFile{tumor_ps_name, "CNV" , segfile};
 		}
@@ -3575,7 +3751,7 @@ void MainWindow::updateIGVMenu()
 		foreach(QString entry, entries)
 		{
 			QStringList parts = entry.trimmed().split("\t");
-            if(parts.count()!=3) continue;
+			if(parts.count()!=3) continue;
 			QAction* action = ui_.menuTracks->addAction("custom track: " + parts[0]);
 			action->setCheckable(true);
 			action->setChecked(parts[1]=="1");
@@ -3586,7 +3762,7 @@ void MainWindow::updateIGVMenu()
 
 void MainWindow::updateNGSDSupport()
 {
-    bool target_file_folder_set = Settings::string("target_file_folder_windows")!="" && Settings::string("target_file_folder_linux")!="";
+	bool target_file_folder_set = Settings::string("target_file_folder_windows")!="" && Settings::string("target_file_folder_linux")!="";
 
 	//toolbar
 	ui_.report_btn->setEnabled(ngsd_enabled_);

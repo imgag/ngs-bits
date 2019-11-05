@@ -44,27 +44,6 @@ public:
 		return KeyValuePair(key, value);
 	}
 
-	///returns the most frequent string
-	static int mostFrequent(const QStringList& parts)
-	{
-		int max = 0;
-		QString max_cn;
-		QHash<QString, int> cn_counts;
-		foreach(const QString& cn, parts)
-		{
-			int count_new = cn_counts[cn] + 1;
-			if (count_new>max)
-			{
-				max = count_new;
-				max_cn = cn;
-			}
-			cn_counts[cn] = count_new;
-		}
-
-		return Helper::toInt(max_cn, "copy-number");
-	}
-
-
 	void importSmallVariants(NGSD& db, QTextStream& out, QString ps_name, bool debug, bool var_force)
 	{
 		QString filename = getInfile("var");
@@ -184,20 +163,17 @@ public:
 			out << "Deleted previous CNV callset\n";
 		}
 
+		//load CNVs
+		CnvList cnvs;
+		cnvs.load(filename);
+
 		//parse file header
-		QString analysis_type;
 		QString caller_version;
 		QDateTime call_date;
 		QJsonObject quality_metrics;
-		TSVFileStream in(filename);
-		foreach(QByteArray line, in.comments())
+		foreach(const QByteArray& line, cnvs.comments())
 		{
-			if (line.startsWith("##ANALYSISTYPE="))
-			{
-				KeyValuePair pair = split(line, '=');
-				analysis_type = pair.value;
-			}
-			else if (line.contains(":"))
+			if (line.contains(":"))
 			{
 				KeyValuePair pair = split(line, ':');
 
@@ -224,33 +200,31 @@ public:
 				THROW(FileParseException, "Invalid header line '" + line + "' in file '" + filename + "'!");
 			}
 		}
-		QByteArray caller;
-		if (analysis_type=="CNVHUNTER_GERMLINE_SINGLE")
+		if (cnvs.type()==CnvListType::CNVHUNTER_GERMLINE_SINGLE)
 		{
-			caller = "CnvHunter";
-
 			if (call_date.isNull()) //fallback for CnvHunter file which does not contain the date!
 			{
 				call_date = QFileInfo(filename).created();
 			}
-		}
-		else if (analysis_type=="CLINCNV_GERMLINE_SINGLE")
-		{
-			caller = "ClinCNV";
-		}
-		else if (analysis_type=="")
-		{
-			THROW(FileParseException, "CNV file '" + filename + "' does not contain '##ANALYSISTYPE=' line!\nIt is outdated - please re-run the CNV calling!");
-		}
-		else
-		{
-			THROW(FileParseException, "CNV file '" + filename + "' contains invalid analysis type '" + analysis_type + "'!\n");
 		}
 
 		QJsonDocument json_doc;
 		json_doc.setObject(quality_metrics);
 
 		//output
+		QString caller;
+		if (cnvs.caller()==CnvCallerType::CLINCNV)
+		{
+			caller = "ClinCNV";
+		}
+		else if (cnvs.caller()==CnvCallerType::CNVHUNTER)
+		{
+			caller = "CnvHunter";
+		}
+		else
+		{
+			THROW(ProgrammingException, "Cnv list type not handled in xxx!");
+		}
 		out << "caller: " << caller << "\n";
 		out << "caller version: " << caller_version << "\n";
 		if (debug)
@@ -268,80 +242,26 @@ public:
 		q_set.bindValue(4, json_doc.toJson(QJsonDocument::Compact));
 		q_set.bindValue(5, "n/a");
 		q_set.exec();
-		QString callset_id = q_set.lastInsertId().toString();
-
-		//prepare CNV query
-		SqlQuery q_cnv = db.getQuery();
-		q_cnv.prepare("INSERT INTO `cnv` (`cnv_callset_id`, `chr`, `start`, `end`, `cn`, `quality_metrics`) VALUES ('" + callset_id + "',:0,:1,:2,:3,:4)");
+		int callset_id = q_set.lastInsertId().toInt();
 
 		//import CNVs
 		int c_imported = 0;
 		int c_skipped_low_quality = 0;
-		while(!in.atEnd())
+		for (int i=0; i<cnvs.count(); ++i)
 		{
-			QByteArrayList parts = in.readLine();
-
-			//parse line
-			int cn = -1;
-			QJsonObject quality_metrics;
-			bool skip = false;
-			for(int i=0; i<in.columns(); ++i)
+			QString cnv_id = db.addCnv(callset_id, cnvs[i], cnvs, 15.0);
+			if (cnv_id.isEmpty())
 			{
-				const QByteArray& col_name = in.header()[i];
-				QString entry = parts[i];
-
-				if (caller == "CnvHunter")
+				++c_skipped_low_quality;
+			}
+			else
+			{
+				++c_imported;
+				if (debug)
 				{
-					if (col_name=="region_copy_numbers")
-					{
-						cn = mostFrequent(entry.split(','));
-					}
-					if (col_name=="region_count" || col_name=="region_zscores" || col_name=="region_copy_numbers")
-					{
-						quality_metrics.insert(col_name, entry);
-					}
-				}
-				else if (caller == "ClinCNV")
-				{
-					if (col_name=="CN_change")
-					{
-						cn = Helper::toInt(entry, "copy-number");
-					}
-					if (col_name=="loglikelihood" || col_name=="no_of_regions" || col_name=="qvalue")
-					{
-						quality_metrics.insert(col_name, entry);
-					}
-					if (col_name=="loglikelihood")
-					{
-						if (Helper::toDouble(entry, "log-likelihood")<15)
-						{
-							++c_skipped_low_quality;
-							skip = true;
-						}
-
-					}
+					out << "DEBUG: " << cnvs[i].toString() << " cn:" << db.getValue("SELECT cn FROM cnv WHERE id=" + cnv_id).toString() << " quality: " << db.getValue("SELECT quality_metrics FROM cnv WHERE id=" + cnv_id).toString() << "\n";
 				}
 			}
-			QJsonDocument json_doc;
-			json_doc.setObject(quality_metrics);
-
-			if (skip) continue;
-
-			//debug output
-			if (debug)
-			{
-				out << "DEBUG: " << parts[0] << ":" << parts[1] << "-" << parts[2] << " cn:" << cn << " quality: " << json_doc.toJson(QJsonDocument::Compact) << "\n";
-			}
-
-			//insert into database
-			q_cnv.bindValue(0, parts[0]);
-			q_cnv.bindValue(1, parts[1]);
-			q_cnv.bindValue(2, parts[2]);
-			q_cnv.bindValue(3, cn);
-			q_cnv.bindValue(4, json_doc.toJson(QJsonDocument::Compact));
-			q_cnv.exec();
-
-			++c_imported;
 		}
 
 		out << "imported cnvs: " << c_imported << "\n";
@@ -359,12 +279,19 @@ public:
 		bool var_force = getFlag("var_force");
 		bool cnv_force = getFlag("cnv_force");
 
+		//prevent import if report config exists
+		int report_conf_id = db.reportConfigId(ps_name);
+		if (report_conf_id!=-1)
+		{
+			THROW(ArgumentException, "Cannot import variant data for sample " + ps_name + ": a report configuration exists for this sample!");
+		}
+
 		//prevent tumor samples from being imported into the germline variant tables
 		QString s_id = db.sampleId(ps_name);
 		SampleData sample_data = db.getSampleData(s_id);
 		if (sample_data.is_tumor)
 		{
-			THROW(ArgumentException, "Cannot import tumor data from sample " + ps_name + " into germline tables!");
+			THROW(ArgumentException, "Cannot import variant data for sample " + ps_name + ": the sample is a tumor sample according to NGSD!");
 		}
 
 		//import

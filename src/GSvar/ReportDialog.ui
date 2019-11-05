@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1001</width>
-    <height>527</height>
+    <width>1085</width>
+    <height>668</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <iconset resource="GSvar.qrc">
     <normaloff>:/Icons/Report.png</normaloff>:/Icons/Report.png</iconset>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,1,0,0">
    <property name="spacing">
     <number>6</number>
    </property>
@@ -43,7 +43,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QComboBox" name="variant_type">
+      <widget class="QComboBox" name="report_type">
        <property name="sizeAdjustPolicy">
         <enum>QComboBox::AdjustToContents</enum>
        </property>
@@ -160,7 +160,7 @@
         </attribute>
         <column>
          <property name="text">
-          <string>report</string>
+          <string>report info</string>
          </property>
         </column>
         <column>
@@ -171,31 +171,6 @@
         <column>
          <property name="text">
           <string>gene</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>variant_type</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>1000g</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>gnomAD</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>NGSD_hom</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>NGSD_het</string>
          </property>
         </column>
         <column>

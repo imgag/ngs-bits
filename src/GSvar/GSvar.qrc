@@ -79,5 +79,6 @@
         <file>Icons/Report_add.png</file>
         <file>Icons/NGSD_gene.png</file>
         <file>Icons/Filter_clear.png</file>
+        <file>Icons/File.png</file>
     </qresource>
 </RCC>

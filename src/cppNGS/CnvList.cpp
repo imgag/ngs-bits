@@ -14,6 +14,16 @@ CopyNumberVariant::CopyNumberVariant()
 {
 }
 
+CopyNumberVariant::CopyNumberVariant(const Chromosome& chr, int start, int end)
+	: chr_(chr)
+	, start_(start)
+	, end_(end)
+	, num_regs_(-1)
+	, genes_()
+	, annotations_()
+{
+}
+
 CopyNumberVariant::CopyNumberVariant(const Chromosome& chr, int start, int end, int num_regs, GeneSet genes, QByteArrayList annotations)
 	: chr_(chr)
 	, start_(start)
@@ -22,6 +32,49 @@ CopyNumberVariant::CopyNumberVariant(const Chromosome& chr, int start, int end, 
 	, genes_(genes)
 	, annotations_(annotations)
 {
+}
+
+QString CopyNumberVariant::toStringWithMetaData() const
+{
+	return toString() + " regions=" + QString::number(num_regs_) + " size=" + QString::number((end_-start_)/1000.0, 'f', 3) + "kb";
+}
+
+int CopyNumberVariant::copyNumber(const QByteArrayList& annotation_headers, bool throw_if_not_found) const
+{
+	for (int i=0; i<annotation_headers.count(); ++i)
+	{
+		if (annotation_headers[i]=="CN_change") //ClinCNV
+		{
+			return annotations_[i].toInt();
+		}
+		else if (annotation_headers[i]=="region_copy_numbers") //CnvHunter
+		{
+			QByteArrayList parts = annotations_[i].split(',');
+
+			int max = 0;
+			QByteArray max_cn;
+			QHash<QByteArray, int> cn_counts;
+			foreach(const QByteArray& cn, parts)
+			{
+				int count_new = cn_counts[cn] + 1;
+				if (count_new>max)
+				{
+					max = count_new;
+					max_cn = cn;
+				}
+				cn_counts[cn] = count_new;
+			}
+
+			return Helper::toInt(max_cn, "copy-number");
+		}
+	}
+
+	if (throw_if_not_found)
+	{
+		THROW(ProgrammingException, "Copy-number could not be determine for CNV: " + toString());
+	}
+
+	return -1;
 }
 
 CnvList::CnvList()
@@ -144,7 +197,7 @@ void CnvList::load(QString filename)
 	}
 	else
 	{
-		THROW(ProgrammingException, "Column handling for this CNV list with type not implemented!");
+		THROW(NotImplementedException, "Column handling for this CNV list with type not implemented!");
 	}
 
 	//check mandatory columns were found
@@ -180,6 +233,27 @@ void CnvList::load(QString filename)
 		}
 
 		variants_.append(CopyNumberVariant(parts[i_chr], parts[i_start].toInt(), parts[i_end].toInt(), region_count, genes, annos));
+	}
+}
+
+CnvCallerType CnvList::caller() const
+{
+	CnvListType list_type = type();
+	if (list_type==CnvListType::INVALID)
+	{
+		return CnvCallerType::INVALID;
+	}
+	else if (list_type==CnvListType::CNVHUNTER_GERMLINE_SINGLE || list_type==CnvListType::CNVHUNTER_GERMLINE_MULTI)
+	{
+		return CnvCallerType::CNVHUNTER;
+	}
+	else if (list_type==CnvListType::CLINCNV_GERMLINE_SINGLE || list_type==CnvListType::CLINCNV_GERMLINE_MULTI || list_type==CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
+	{
+		return CnvCallerType::CLINCNV;
+	}
+	else
+	{
+		THROW(ProgrammingException, "Cnv list type not handled in CnvList::caller()!");
 	}
 }
 

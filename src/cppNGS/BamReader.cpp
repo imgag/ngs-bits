@@ -121,7 +121,7 @@ void BamAlignment::setBases(const QByteArray& bases)
 	//check that length stays the same
 	if (aln_->core.l_qseq!=bases.count())
 	{
-		THROW(Exception, "BamAlignment::setBases: Setting bases with different length is not implemented!");
+		THROW(NotImplementedException, "BamAlignment::setBases: Setting bases with different length is not implemented!");
 	}
 
 	//lookup table to convert char to index (revert seq_nt16_str[]="=ACMGRSVTWYHKDBN")
@@ -203,7 +203,7 @@ void BamAlignment::setQualities(const QByteArray& qualities)
 	//check that length stays the same
 	if (aln_->core.l_qseq!=qualities.count())
 	{
-		THROW(Exception, "BamAlignment::setQualities: Setting qualities with different length is not implemented!");
+		THROW(NotImplementedException, "BamAlignment::setQualities: Setting qualities with different length is not implemented!");
 	}
 
 	uint8_t* q = bam_get_qual(aln_);
@@ -221,7 +221,7 @@ QByteArray BamAlignment::tag(const QByteArray& tag) const
 		return QByteArray();
 	}
 	const char* data = reinterpret_cast<const char*>(data_raw);
-	if (data[0]!='Z') THROW(Exception, "BamAlignment::tag: Getting tag data other than 'Z' type is not implemented!");
+	if (data[0]!='Z') THROW(NotImplementedException, "BamAlignment::tag: Getting tag data other than 'Z' type is not implemented!");
 	return QByteArray(data);
 }
 
