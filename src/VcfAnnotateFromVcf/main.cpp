@@ -786,9 +786,9 @@ private:
 				{
 					foreach (QByteArray key_value_pair, info_column)
 					{
-						if (key_value_pair.startsWith(info_ids[ann_file_idx][j]))
+						QByteArrayList key_value_pair_split = key_value_pair.split('=');
+						if (key_value_pair_split[0].trimmed() == info_ids[ann_file_idx][j])
 						{
-							QByteArrayList key_value_pair_split = key_value_pair.split('=');
 							// handle boolean INFO entries (contain only key):
 							if (key_value_pair_split.size() == 1)
 							{

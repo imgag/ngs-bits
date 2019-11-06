@@ -742,7 +742,7 @@ private:
 						for(int i = 0; i < disease_groups.size(); i++)
 						{
 							if ((het_per_group.value(disease_groups[i], 0) > 0)
-								|| (het_per_group.value(disease_groups[i], 0) > 0))
+								|| (hom_per_group.value(disease_groups[i], 0) > 0))
 							{
 								info_column.append("GSC"
 												   + QByteArray::number(i + 1).rightJustified(2, '0')
@@ -773,10 +773,10 @@ private:
 					if (query.size() > 0)
 					{
 						query.first();
-						QByteArray classification = query.value(0).toByteArray();
+						QByteArray classification = query.value(0).toByteArray().trimmed().replace("n/a", "");
 						QByteArray clas_comment = cleanCommentString(query.value(1).toByteArray());
-						info_column.append("CLAS=" + classification.replace("n/a", ""));
-						info_column.append("CLAS_COM=\"" + clas_comment + "\"");
+						if (classification != "") info_column.append("CLAS=" + classification);
+						if (clas_comment != "") info_column.append("CLAS_COM=\"" + clas_comment + "\"");
 					}
 
 					// get comment
@@ -862,9 +862,6 @@ private:
 				GeneInfo gene_info = db.geneInfo(gene);
 				QByteArray gene_type = db.getValue("SELECT type FROM gene WHERE id='"
 												   + QByteArray::number(gene_id) + "'").toByteArray();
-				//			QByteArray hgnc = db.getValue("SELECT hgnc_id FROM gene WHERE id='"
-				//										  + QByteArray::number(gene_id) + "'").toByteArray();
-
 				// calculate region
 				GeneSet single_gene;
 				single_gene.insert(gene);
@@ -876,13 +873,10 @@ private:
 				{
 					if (gene_region.chromosomes().size() > 1)
 					{
-						//				out << "WARNING: Transcript region of gene " << gene
-						//					<< " contains more than one chromosome!" << endl;
 						gene_types[gene_type].first++;
 					}
 					else
 					{
-						//					out << "WARNING: No transcript region found for gene " << gene << "!" << endl;
 						gene_types[gene_type].second++;
 						skipped_genes++;
 						continue;
