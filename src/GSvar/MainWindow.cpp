@@ -2072,7 +2072,7 @@ void MainWindow::generateReportSomaticRTF()
 	}
 
 	//get RTF file name
-	QString file_rep = QFileDialog::getSaveFileName(this, "Store report file", last_report_path_ + "/" + QFileInfo(filename_).baseName() + "_report_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf", "RTF files (*.rtf);;All files(*.*)");
+	QString file_rep = QFileDialog::getSaveFileName(this, "Store report file", last_report_path_ + "/" + QFileInfo(filename_).baseName() + "_report_somatic_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf", "RTF files (*.rtf);;All files(*.*)");
 	if (file_rep=="") return;
 	//generate report
 	try

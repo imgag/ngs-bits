@@ -18,6 +18,9 @@ NGSD:
 - Allow several disease_groups per sample (requested by CS)
 ##### add CNVs to NGSD
     - add CNVs to XML for GenLab
+        - typ(del,dup), chr, start, end, start_bande, end_bande, cn, size, regionen, gene (+count), class, inheritance (denovo, mosaic, comp-het), DGV/UCSC link
+    - add PS type to XML report (enum) > add to name
+    - add 'trio' to name (XML?)
     - add annotation of CNVs from NGSD:
         - # overlapping CNVs (by type gain/loss)
         - overlapping class 4/5 CNVs
