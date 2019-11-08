@@ -11,7 +11,6 @@
         <file>Icons/Filter.png</file>
         <file>Icons/Info.png</file>
         <file>Icons/AddTemporary.png</file>
-        <file>Resources/DiagnosticReport_v2.xsd</file>
         <file>Icons/Trio.png</file>
         <file>Icons/Gaps_lookup.png</file>
         <file>Icons/Gaps_calculate.png</file>
@@ -80,5 +79,6 @@
         <file>Icons/NGSD_gene.png</file>
         <file>Icons/Filter_clear.png</file>
         <file>Icons/File.png</file>
+        <file>Resources/DiagnosticReport_v3.xsd</file>
     </qresource>
 </RCC>

@@ -633,7 +633,9 @@ void VariantDetailsDockWidget::setTranscript(int index)
 		ui->detail_type->setText(trans.type);
 		ui->detail_impact->setText(trans.impact);
 	}
-	ui->detail_exon->setText(trans.exon.mid(4));
+	QString exon_nr = trans.exon;
+	exon_nr.replace("exon", "");
+	ui->detail_exon->setText(exon_nr);
 	ui->detail_cdna->setText(trans.hgvs_c);
 	ui->detail_protein->setText(trans.hgvs_p);
 	text = trans.domain;

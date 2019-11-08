@@ -212,19 +212,7 @@ public:
 		json_doc.setObject(quality_metrics);
 
 		//output
-		QString caller;
-		if (cnvs.caller()==CnvCallerType::CLINCNV)
-		{
-			caller = "ClinCNV";
-		}
-		else if (cnvs.caller()==CnvCallerType::CNVHUNTER)
-		{
-			caller = "CnvHunter";
-		}
-		else
-		{
-			THROW(ProgrammingException, "Cnv list type not handled in xxx!");
-		}
+		QString caller = cnvs.callerAsString();
 		out << "caller: " << caller << "\n";
 		out << "caller version: " << caller_version << "\n";
 		if (debug)

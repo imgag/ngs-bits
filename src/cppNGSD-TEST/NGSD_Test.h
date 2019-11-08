@@ -184,6 +184,8 @@ private slots:
 		S_EQUAL(processed_sample_data.project_name, "KontrollDNACoriell");
 		S_EQUAL(processed_sample_data.run_name, "#00372");
 		S_EQUAL(processed_sample_data.normal_sample_name, "");
+		S_EQUAL(processed_sample_data.processing_system, "HaloPlex HBOC v5");
+		S_EQUAL(processed_sample_data.processing_system_type, "Panel Haloplex");
 		//second sample (tumor)
 		processed_sample_id = db.processedSampleId("NA12345_01");
 		processed_sample_data = db.getProcessedSampleData(processed_sample_id);

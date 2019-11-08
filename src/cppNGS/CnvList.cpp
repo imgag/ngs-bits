@@ -253,8 +253,52 @@ CnvCallerType CnvList::caller() const
 	}
 	else
 	{
-		THROW(ProgrammingException, "Cnv list type not handled in CnvList::caller()!");
+		THROW(ProgrammingException, "CNV list type not handled in CnvList::caller()!");
 	}
+}
+
+QString CnvList::callerAsString() const
+{
+	CnvCallerType caller_type = caller();
+	if (caller_type==CnvCallerType::CLINCNV)
+	{
+		return "ClinCNV";
+	}
+	else if (caller_type==CnvCallerType::CNVHUNTER)
+	{
+		return "CnvHunter";
+	}
+	else
+	{
+		THROW(ProgrammingException, "CNV caller type not handled in CnvList::callerAsString()!");
+	}
+}
+
+QByteArray CnvList::qcMetric(QString name, bool throw_if_missing) const
+{
+	QByteArray value;
+
+	foreach(QByteArray comment, comments_)
+	{
+		if (comment.contains(":"))
+		{
+			comment = comment.mid(2); //remove '##'
+
+			int sep_pos = comment.indexOf(':');
+			QByteArray key = comment.mid(0, sep_pos);
+			if (key==name)
+			{
+				value = comment.mid(sep_pos+1).trimmed();
+			}
+		}
+	}
+
+	if (value.isEmpty() && throw_if_missing)
+	{
+		THROW(ProgrammingException, "Cannot find QC metric '" + name + "' in CNV list header!");
+	}
+
+	return value;
 }
 
 QByteArray CnvList::headerDescription(QByteArray name) const

@@ -321,6 +321,27 @@ const BedFile& NGSHelper::pseudoAutosomalRegion(const QString& build)
 	return output;
 }
 
+QByteArray NGSHelper::cytoBand(Chromosome chr, int pos)
+{
+	//init
+	static BedFile bands;
+	if (bands.count()==0)
+	{
+		bands.load(":/Resources/cyto_band.bed");
+	}
+
+	//search for band
+	for (int i=0; i<bands.count(); ++i)
+	{
+		if (bands[i].overlapsWith(chr, pos, pos))
+		{
+			return chr.strNormalized(false) + bands[i].annotations()[0];
+		}
+	}
+
+	THROW(ProgrammingException, "Could not find band for coordinate " + chr.str() + ":" + QString::number(pos));
+}
+
 void NGSHelper::softClipAlignment(BamAlignment& al, int start_ref_pos, int end_ref_pos)
 {
 	QList<CigarOp> old_CIGAR = al.cigarData();

@@ -7,5 +7,6 @@
         <file>Resources/hg38_snps.vcf</file>
         <file>Resources/hg38_ancestry.vcf</file>
         <file>Resources/imprinting_genes.tsv</file>
+        <file>Resources/cyto_band.bed</file>
     </qresource>
 </RCC>

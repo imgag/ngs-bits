@@ -84,6 +84,21 @@
 								<xs:documentation>processing system name, e.g. 'Panel XY', etc.</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
+						<xs:attribute name="processing_system_type" use="required">
+							<xs:annotation>
+								<xs:documentation>processing system type</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:enumeration value="WGS"/>
+									<xs:enumeration value="WES"/>
+									<xs:enumeration value="Panel"/>
+									<xs:enumeration value="Panel Haloplex"/>
+									<xs:enumeration value="Panel MIPs"/>
+									<xs:enumeration value="WGS (shallow)"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
 					</xs:complexType>
 				</xs:element>
 				<xs:element name="TargetRegion" minOccurs="0">
@@ -99,7 +114,7 @@
 								<xs:complexType>
 									<xs:attribute name="name" type="xs:string" use="required">
 										<xs:annotation>
-											<xs:documentation>gene name</xs:documentation>
+											<xs:documentation>Gene symbol (HGNC)</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 								</xs:complexType>
@@ -165,12 +180,12 @@
 												<xs:documentation>Transcript-specific annotation data</xs:documentation>
 											</xs:annotation>
 											<xs:complexType>
-												<xs:attribute name="gene" use="required">
+												<xs:attribute name="gene" type="xs:string" use="required">
 													<xs:annotation>
-														<xs:documentation>gene name</xs:documentation>
+														<xs:documentation>HGNC gene name </xs:documentation>
 													</xs:annotation>
 												</xs:attribute>
-												<xs:attribute name="transcript_id" use="required">
+												<xs:attribute name="transcript_id" type="xs:string" use="required">
 													<xs:annotation>
 														<xs:documentation>transcript identifier</xs:documentation>
 													</xs:annotation>
@@ -180,12 +195,12 @@
 														<xs:documentation>variant type, e.g. missense</xs:documentation>
 													</xs:annotation>
 												</xs:attribute>
-												<xs:attribute name="hgvs_c" use="required">
+												<xs:attribute name="hgvs_c" type="xs:string" use="required">
 													<xs:annotation>
 														<xs:documentation>HGVS-compliant  cDNA change</xs:documentation>
 													</xs:annotation>
 												</xs:attribute>
-												<xs:attribute name="hgvs_p" use="required">
+												<xs:attribute name="hgvs_p" type="xs:string" use="required">
 													<xs:annotation>
 														<xs:documentation>HGVS-compliant protein change</xs:documentation>
 													</xs:annotation>
@@ -204,7 +219,7 @@
 											<xs:complexType>
 												<xs:attribute name="gene" use="required">
 													<xs:annotation>
-														<xs:documentation>Gene</xs:documentation>
+														<xs:documentation>Gene symbol (HGNC)</xs:documentation>
 													</xs:annotation>
 													<xs:simpleType>
 														<xs:restriction base="xs:string">
@@ -240,6 +255,40 @@
 													<xs:simpleType>
 														<xs:restriction base="xs:string">
 															<xs:minLength value="1"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="GeneInheritanceInformation" minOccurs="0" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>Gene inheritance mode, independent of phenotype (if available)</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="gene" use="required">
+													<xs:annotation>
+														<xs:documentation>Gene symbol (HGNC)</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="inheritance" use="required">
+													<xs:annotation>
+														<xs:documentation>inheritance mode of the gene</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:enumeration value="AR"/>
+															<xs:enumeration value="AD"/>
+															<xs:enumeration value="AR+AD"/>
+															<xs:enumeration value="XLR"/>
+															<xs:enumeration value="XLD"/>
+															<xs:enumeration value="XLR+XLD"/>
+															<xs:enumeration value="MT"/>
+															<xs:enumeration value="MU"/>
 														</xs:restriction>
 													</xs:simpleType>
 												</xs:attribute>
@@ -305,7 +354,7 @@
 									</xs:attribute>
 									<xs:attribute name="inheritance">
 										<xs:annotation>
-											<xs:documentation>inheritance mode of the variant (i.e. the inheritance mode of the relevant gene)</xs:documentation>
+											<xs:documentation>inheritance mode of the variant (i.e. inheritance mode of the gene for this phenotype)</xs:documentation>
 										</xs:annotation>
 										<xs:simpleType>
 											<xs:restriction base="xs:string">
@@ -354,7 +403,7 @@
 						</xs:sequence>
 						<xs:attribute name="overall_number" use="required">
 							<xs:annotation>
-								<xs:documentation>Overall number of variants before filtering (in the target region if applicable)</xs:documentation>
+								<xs:documentation>Overall number of variants before filtering</xs:documentation>
 							</xs:annotation>
 							<xs:simpleType>
 								<xs:restriction base="xs:int"/>
@@ -363,6 +412,217 @@
 						<xs:attribute name="genome_build" type="xs:string" use="required">
 							<xs:annotation>
 								<xs:documentation>genome build that the variant positions refer to e.g. GRCh37</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="CnvList">
+					<xs:annotation>
+						<xs:documentation>CNVs of interest</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="Cnv" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Representation of a single CNV</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="Gene" minOccurs="0" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>Genes that overlap the CNV</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="name" type="xs:string" use="required">
+													<xs:annotation>
+														<xs:documentation>HGNC gene name</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="ExternalLink" minOccurs="0" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>Links, e.g. to external databases</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="url" type="xs:string" use="required">
+													<xs:annotation>
+														<xs:documentation>Link URL</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="type" use="required">
+													<xs:annotation>
+														<xs:documentation>Link type</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:enumeration value="DGV"/>
+															<xs:enumeration value="UCSC"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="chr" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>chromosome</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="start" type="xs:int" use="required">
+										<xs:annotation>
+											<xs:documentation>genomic start position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="end" type="xs:int" use="required">
+										<xs:annotation>
+											<xs:documentation>genomic end position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="start_band" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>cytogenetic band start position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="end_band" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>cytogenetic band end position</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="type" use="required">
+										<xs:annotation>
+											<xs:documentation>cnv type</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="del"/>
+												<xs:enumeration value="dup"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="cn" use="required">
+										<xs:annotation>
+											<xs:documentation>copy-number</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:int">
+												<xs:minInclusive value="0"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="regions" use="required">
+										<xs:annotation>
+											<xs:documentation>number of regions the CNV consists of (i.e. number of bins in WGS and number of exons in WES/panel)</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:int">
+												<xs:minInclusive value="1"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="causal" type="xs:boolean" use="required">
+										<xs:annotation>
+											<xs:documentation>If the variant is causal in the context of the diagnostics phenotype.</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="de_novo" type="xs:boolean" use="required">
+										<xs:annotation>
+											<xs:documentation>if the variant is de-novo</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="comp_het" type="xs:boolean" use="required">
+										<xs:annotation>
+											<xs:documentation>if the variant is compound-heterozygous</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="mosaic" type="xs:boolean" use="required">
+										<xs:annotation>
+											<xs:documentation>if the variant is a mosaic variant</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="inheritance">
+										<xs:annotation>
+											<xs:documentation>inheritance mode of the variant (i.e. inheritance mode of the gene for this phenotype)</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="AR"/>
+												<xs:enumeration value="AD"/>
+												<xs:enumeration value="AR+AD"/>
+												<xs:enumeration value="XLR"/>
+												<xs:enumeration value="XLD"/>
+												<xs:enumeration value="XLR+XLD"/>
+												<xs:enumeration value="MT"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="class">
+										<xs:annotation>
+											<xs:documentation>Variant classification. 1=benign ... 5=pahogenic M=modifier</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="1"/>
+												<xs:enumeration value="2"/>
+												<xs:enumeration value="3"/>
+												<xs:enumeration value="4"/>
+												<xs:enumeration value="5"/>
+												<xs:enumeration value="M"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="comments_1st_assessor" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>Comments of first assessor</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="comments_2nd_assessor" type="xs:string">
+										<xs:annotation>
+											<xs:documentation>Comments of second</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="cnv_caller" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>CNV caller used</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="overall_number" use="required">
+							<xs:annotation>
+								<xs:documentation>Overall number of variants before filtering</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:int"/>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="genome_build" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>genome build that the CNV positions refer to e.g. GRCh37</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="quality" use="required">
+							<xs:annotation>
+								<xs:documentation>overall CNV calling quality</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:enumeration value="good"/>
+									<xs:enumeration value="n/a"/>
+									<xs:enumeration value="medium"/>
+									<xs:enumeration value="bad"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="number_of_iterations" type="xs:int">
+							<xs:annotation>
+								<xs:documentation>number of iterations (for ClinCNV caller only)</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="number_of_hq_cnvs" type="xs:int">
+							<xs:annotation>
+								<xs:documentation>number of high-quality CNV calls, i.e. log-likelihood>20 (for ClinCNV caller only)</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
 					</xs:complexType>
@@ -396,8 +656,8 @@
 				</xs:annotation>
 				<xs:simpleType>
 					<xs:restriction base="xs:int">
-						<xs:minInclusive value="2"/>
-						<xs:maxInclusive value="2"/>
+						<xs:minInclusive value="3"/>
+						<xs:maxInclusive value="3"/>
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>

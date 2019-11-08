@@ -144,4 +144,10 @@ private slots:
 		I_EQUAL(par.count(), 4);
 		I_EQUAL(par.baseCount(), 5938074);
 	}
+
+	void cytoBand()
+	{
+		S_EQUAL(NGSHelper::cytoBand("chrY", 34847524), "Yq12");
+		S_EQUAL(NGSHelper::cytoBand("chr1", 76992611), "1p31.1");
+	}
 };

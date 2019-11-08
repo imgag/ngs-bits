@@ -16,19 +16,20 @@ NGSD:
     - sample: import disease group/status from GenLab (sample - disease status: add 'Unclear') - select * FROM v_krankheitsgruppe_pattyp...
 ** Add run overview dialog/tab
 - Allow several disease_groups per sample (requested by CS)
-##### add CNVs to NGSD
-    - add CNVs to XML for GenLab
-        - typ(del,dup), chr, start, end, start_bande, end_bande, cn, size, regionen, gene (+count), class, inheritance (denovo, mosaic, comp-het), DGV/UCSC link
-    - add PS type to XML report (enum) > add to name
-    - add 'trio' to name (XML?)
-    - add annotation of CNVs from NGSD:
-        - # overlapping CNVs (by type gain/loss)
-        - overlapping class 4/5 CNVs
 **** NGSD annotation (LS)
     - export VCF, use VCF for annotation
-    - remove NGSDPrecalculate tool and tables 'detected_variant_counts' and 'detected_variant_counts_by_group'
+    - remove NGSDPrecalculate/VariantAnnotateNGSD tool and tables 'detected_variant_counts' and 'detected_variant_counts_by_group'
 
 GSvar:
+##### cnv filter: high-sensitivity + pheno/roi
+##### cnv: set quality automatically (>1 iteration: red, <>2sd #cnvs: orange, <>3sd #cnvs: red)
+##### report config: set inheritance automatically, if only one option available
+##### report config: allow setting classification for small variants
+##### report: show gene inheritance in addition to variant inheritance > add to XML export
+### Trio report: geneate XML for parents (no gaps, ...) > FEEDBACK AN ANNE
+** add visualization of NGSD CNVs (or annotation of CNVs):
+    - # overlapping CNVs (by type gain/loss)
+    - overlapping class 4/5 CNVs
 ** ReportConfigSomatic
     - id via SAP case number (not sample number >CS), QBIC id
     - track manual changes to raw calls
@@ -47,6 +48,7 @@ GSvar:
     - add size filter - have a look at the overlap between manta and freebayes
     - add overlapping genes and allow filtering for comp-hets (be carefull with small indels)
     - add OMIM annotations
+    - add gene annotation and type (coding/splicing/intronic/intergenic)
 
 Tools:
 - NGSDImportHPO: Add G2P database (https://www.ebi.ac.uk/gene2phenotype) - if HPO people do not include it

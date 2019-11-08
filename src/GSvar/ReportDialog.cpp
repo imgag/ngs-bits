@@ -114,7 +114,7 @@ void ReportDialog::updateGUI()
 
 		ui_.vars->setRowCount(ui_.vars->rowCount()+1);
 		ui_.vars->setItem(row, 0, new QTableWidgetItem(var_conf.report_type + (var_conf.causal ? " (causal)" : "")));
-		ui_.vars->setItem(row, 1, new QTableWidgetItem(cnv.toStringWithMetaData() + " cn=" + QString::number(cnv.copyNumber(cnvs_.annotationHeaders()))));
+		ui_.vars->setItem(row, 1, new QTableWidgetItem("CNV " + cnv.toStringWithMetaData() + " cn=" + QString::number(cnv.copyNumber(cnvs_.annotationHeaders()))));
 		ui_.vars->setItem(row, 2, new QTableWidgetItem(cnv.genes().join(", "), QTableWidgetItem::Type));
 		ui_.vars->setItem(row, 3, new QTableWidgetItem(var_conf.classification));
 		++row;

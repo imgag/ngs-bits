@@ -47,7 +47,6 @@ QT_CHARTS_USE_NAMESPACE
 #include "RohWidget.h"
 #include "GeneSelectorDialog.h"
 #include "NGSHelper.h"
-#include "XmlHelper.h"
 #include "QCCollection.h"
 #include "NGSDReannotationDialog.h"
 #include "DiseaseInfoWidget.h"
@@ -2168,7 +2167,9 @@ void MainWindow::generateReportGermline()
 
 	//get export file name
 	QString base_name = processedSampleName();
-	QString file_rep = QFileDialog::getSaveFileName(this, "Export report file", last_report_path_ + "/" + base_name + targetFileName() + "_report_" + dialog.type().replace(" ", "_") + "s_" + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
+	QString trio_suffix = (variants_.type() == GERMLINE_TRIO ? "trio_" : "");
+	QString type_suffix = dialog.type().replace(" ", "_") + "s_";
+	QString file_rep = QFileDialog::getSaveFileName(this, "Export report file", last_report_path_ + "/" + base_name + targetFileName() + "_report_" + trio_suffix + type_suffix + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
 	if (file_rep=="") return;
 	last_report_path_ = QFileInfo(file_rep).absolutePath();
 

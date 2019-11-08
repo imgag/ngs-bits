@@ -494,6 +494,7 @@ void ReportWorker::writeHTML()
 	stream << "<br />" << endl;
 	stream << "<br />" << trans("Geschlecht") << ": " << processed_sample_data.gender << endl;
 	stream << "<br />" << trans("Prozessierungssystem") << ": " << processed_sample_data.processing_system << endl;
+	stream << "<br />" << trans("Prozessierungssystem-Typ") << ": " << processed_sample_data.processing_system_type << endl;
 	stream << "<br />" << trans("Referenzgenom") << ": " << system_data.genome << endl;
 	stream << "<br />" << trans("Datum") << ": " << QDate::currentDate().toString("dd.MM.yyyy") << endl;
 	stream << "<br />" << trans("Benutzer") << ": " << Helper::userName() << endl;
@@ -886,6 +887,7 @@ QString ReportWorker::trans(const QString& text) const
 		de2en["Technischer Report zur bioinformatischen Analyse"] = "Technical Report for Bioinformatic Analysis";
 		de2en["Probe"] = "Sample";
 		de2en["Prozessierungssystem"] = "Processing system";
+		de2en["Prozessierungssystem-Typ"] = "Processing system type";
 		de2en["Referenzgenom"] = "Reference genome";
 		de2en["Datum"] = "Date";
 		de2en["Benutzer"] = "User";
@@ -973,7 +975,7 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 
 	//element DiagnosticNgsReport
 	w.writeStartElement("DiagnosticNgsReport");
-	w.writeAttribute("version", "2");
+	w.writeAttribute("version", "3");
 	w.writeAttribute("type", settings_.report_type);
 
 	//element ReportGeneration
@@ -990,8 +992,10 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 
 	SampleData sample_data = db_.getSampleData(db_.sampleId(sample_name_));
 	w.writeAttribute("name_external", sample_data.name_external);
-	ProcessedSampleData processed_sample_data = db_.getProcessedSampleData(db_.processedSampleId(sample_name_));
+	QString ps_id = db_.processedSampleId(sample_name_);
+	ProcessedSampleData processed_sample_data = db_.getProcessedSampleData(ps_id);
 	w.writeAttribute("processing_system", processed_sample_data.processing_system);
+	w.writeAttribute("processing_system_type", processed_sample_data.processing_system_type);
 	w.writeEndElement();
 
 	//element TargetRegion (optional)
@@ -1087,7 +1091,9 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 				QByteArray hgvs_p = trans.hgvs_p;
 				if (hgvs_p.startsWith("p.")) hgvs_p = hgvs_p.mid(2);
 				w.writeAttribute("hgvs_p", hgvs_p);
-				w.writeAttribute("exon", trans.exon);
+				QString exon_nr = trans.exon;
+				exon_nr.replace("exon", "");
+				w.writeAttribute("exon", exon_nr);
 				w.writeEndElement();
 
 				genes << trans.gene;
@@ -1113,8 +1119,78 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 			}
 		}
 
+		//element GeneInheritanceInformation
+		foreach(const QByteArray& gene, genes)
+		{
+			GeneInfo gene_info = db_.geneInfo(gene);
+			if (gene_info.inheritance!="n/a")
+			{
+				w.writeStartElement("GeneInheritanceInformation");
+				w.writeAttribute("gene", gene);
+				w.writeAttribute("inheritance", gene_info.inheritance);
+				w.writeEndElement();
+			}
+		}
+
 		//end of variant
 		w.writeEndElement();
+	}
+	w.writeEndElement();
+
+	//element CnvList
+	w.writeStartElement("CnvList");
+	w.writeAttribute("cnv_caller", cnvs_.callerAsString());
+	w.writeAttribute("overall_number", QString::number(cnvs_.count()));
+	w.writeAttribute("genome_build", "hg19");
+	QString cnv_calling_quality =db_.getValue("SELECT quality FROM cnv_callset WHERE processed_sample_id=" + ps_id, true, "n/a").toString();
+	w.writeAttribute("quality", cnv_calling_quality);
+	if(cnvs_.caller()==CnvCallerType::CLINCNV)
+	{
+		w.writeAttribute("number_of_iterations", cnvs_.qcMetric("number of iterations"));
+		w.writeAttribute("number_of_hq_cnvs", cnvs_.qcMetric("high-quality cnvs"));
+	}
+
+	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config.variantConfig())
+	{
+		if (var_conf.variant_type!=VariantType::CNVS) continue;
+		if (!var_conf.showInReport()) continue;
+		if (var_conf.report_type!=settings_.report_type) continue;
+
+		const CopyNumberVariant& cnv = cnvs_[var_conf.variant_index];
+
+		//element Cnv
+		w.writeStartElement("Cnv");
+		w.writeAttribute("chr", cnv.chr().str());
+		w.writeAttribute("start", QString::number(cnv.start()));
+		w.writeAttribute("end", QString::number(cnv.end()));
+		w.writeAttribute("start_band", NGSHelper::cytoBand(cnv.chr(), cnv.start()));
+		w.writeAttribute("end_band", NGSHelper::cytoBand(cnv.chr(), cnv.end()));
+		int cn = cnv.copyNumber(cnvs_.annotationHeaders());
+		w.writeAttribute("type", cn>=2 ? "dup" : "del"); //2 can be dup in chrX/chrY
+		w.writeAttribute("cn", QString::number(cn));
+		w.writeAttribute("regions", QString::number(cnv.regions()));
+		w.writeAttribute("causal", var_conf.causal ? "true" : "false");
+		w.writeAttribute("de_novo", var_conf.de_novo ? "true" : "false");
+		w.writeAttribute("comp_het", var_conf.comp_het ? "true" : "false");
+		w.writeAttribute("mosaic", var_conf.mosaic ? "true" : "false");
+		if (var_conf.inheritance!="n/a")
+		{
+			w.writeAttribute("inheritance", var_conf.inheritance);
+		}
+		if (var_conf.classification!="n/a")
+		{
+			w.writeAttribute("class", var_conf.classification);
+		}
+		if (!var_conf.comments.trimmed().isEmpty())
+		{
+			w.writeAttribute("comments_1st_assessor", var_conf.comments.trimmed());
+		}
+		if (!var_conf.comments2.trimmed().isEmpty())
+		{
+			w.writeAttribute("comments_2nd_assessor", var_conf.comments2.trimmed());
+		}
+		w.writeEndElement();
+
 	}
 	w.writeEndElement();
 
@@ -1134,7 +1210,7 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 	outfile->close();
 
 	//validate written XML file
-	QString xml_error = XmlHelper::isValidXml(outfile_name, "://Resources/DiagnosticReport_v2.xsd");
+	QString xml_error = XmlHelper::isValidXml(outfile_name, "://Resources/DiagnosticReport_v3.xsd");
 	if (xml_error!="")
 	{
 		THROW(ProgrammingException, "ReportWorker::storeXML produced an invalid XML file: " + xml_error);

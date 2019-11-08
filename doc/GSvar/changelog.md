@@ -1,7 +1,7 @@
 # GSvar change log
 
 
-### 2019_09-?? (??.11.19)
+### 2019_09-55 (07.11.19)
 - Added CNVs to report configuration (report and variant sheet). 
 - CNVs: added CNV callset quality and histograms of QC metrics.
 - Report: report generation now takes target region into account again.

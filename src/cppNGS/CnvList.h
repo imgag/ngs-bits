@@ -131,12 +131,16 @@ class CPPNGSSHARED_EXPORT CnvList
 
 		///Returns the CNV caller
 		CnvCallerType caller() const;
+		///Returns the CNV caller as string
+		QString callerAsString() const;
 
-		///Returns the comment header lines (without leading '##').
+		///Returns the comment header lines (with leading '##').
 		const QByteArrayList& comments() const
 		{
 			return comments_;
 		}
+		///Parses the qc metric value from the comment header lines.
+		QByteArray qcMetric(QString name, bool throw_if_missing=true) const;
 
 		///Returns annotation headers
 		const QByteArrayList& annotationHeaders() const
@@ -181,6 +185,7 @@ class CPPNGSSHARED_EXPORT CnvList
 			type_ = rhs.type_;
 			comments_ = rhs.comments_;
 			annotation_headers_ = rhs.annotation_headers_;
+			annotation_header_desc_ = rhs.annotation_header_desc_;
 		}
 
 		///Returns the size sum of all all CNVs
