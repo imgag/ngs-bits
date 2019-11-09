@@ -1189,8 +1189,26 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 		{
 			w.writeAttribute("comments_2nd_assessor", var_conf.comments2.trimmed());
 		}
+
+		//element Gene
+		foreach(const QByteArray& gene, cnv.genes())
+		{
+			w.writeStartElement("Gene");
+			w.writeAttribute("name", gene);
+			w.writeEndElement();
+		}
+
+		//element ExternalLink
+		w.writeStartElement("ExternalLink");
+		w.writeAttribute("url", "http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/?name=" + cnv.toString());
+		w.writeAttribute("type", "DGV");
+		w.writeEndElement();
+		w.writeStartElement("ExternalLink");
+		w.writeAttribute("url", "https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=" + cnv.toString());
+		w.writeAttribute("type", "UCSC");
 		w.writeEndElement();
 
+		w.writeEndElement();
 	}
 	w.writeEndElement();
 

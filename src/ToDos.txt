@@ -26,7 +26,7 @@ GSvar:
 ##### report config: set inheritance automatically, if only one option available
 ##### report config: allow setting classification for small variants
 ##### report: show gene inheritance in addition to variant inheritance > add to XML export
-### Trio report: geneate XML for parents (no gaps, ...) > FEEDBACK AN ANNE
+### Trio report: geneate XML for parents (no gaps, ...) possible? > FEEDBACK ANNE
 ** add visualization of NGSD CNVs (or annotation of CNVs):
     - # overlapping CNVs (by type gain/loss)
     - overlapping class 4/5 CNVs
