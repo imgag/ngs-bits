@@ -494,7 +494,7 @@ public:
 	///Returns classification information
 	ClassificationInfo getClassification(const Variant& variant);
 	///Sets the classification of a variant in the NGSD.
-	void setClassification(const Variant& variant, ClassificationInfo info);
+	void setClassification(const Variant& variant, const VariantList& variant_list, ClassificationInfo info);
 
 	///Adds a variant publication
 	void addVariantPublication(QString filename, const Variant& variant, QString database, QString classification, QString details);

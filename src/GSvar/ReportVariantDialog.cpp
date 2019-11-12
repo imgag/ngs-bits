@@ -1,4 +1,5 @@
 #include "ReportVariantDialog.h"
+#include "ClassificationDialog.h"
 #include "Settings.h"
 #include <QPushButton>
 
@@ -27,11 +28,21 @@ ReportVariantDialog::ReportVariantDialog(QString variant, QList<KeyValuePair> in
 	connect(this, SIGNAL(accepted()), this, SLOT(writeBackSettings()));
 
 	//set inheritance hint
-	if (inheritance_by_gene.count()==0)
+	QSet<QString> distinct_modes;
+	foreach(const KeyValuePair& pair, inheritance_by_gene)
+	{
+		distinct_modes << pair.value;
+	}
+	if (distinct_modes.count()==0)
 	{
 		ui_.inheritance_hint->setVisible(false);
 	}
-	else
+	else if (distinct_modes.count()==1) //only one option > set automatically
+	{
+		config_.inheritance = inheritance_by_gene[0].value;
+		ui_.inheritance_hint->setVisible(false);
+	}
+	else //several options > let user select
 	{
 		QString tooltip = "The following inheritance modes are set for the affected genes:";
 		foreach(const KeyValuePair& pair, inheritance_by_gene)

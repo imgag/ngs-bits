@@ -23,9 +23,6 @@ NGSD:
 GSvar:
 ##### cnv filter: high-sensitivity + pheno/roi
 ##### cnv: set quality automatically (>1 iteration: red, <>2sd #cnvs: orange, <>3sd #cnvs: red)
-##### report config: set inheritance automatically, if only one option available
-##### report config: allow setting classification for small variants
-##### report: show gene inheritance in addition to variant inheritance > add to XML export
 ### Trio report: geneate XML for parents (no gaps, ...) possible? > FEEDBACK ANNE
 ** add visualization of NGSD CNVs (or annotation of CNVs):
     - # overlapping CNVs (by type gain/loss)

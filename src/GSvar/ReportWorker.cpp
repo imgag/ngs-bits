@@ -583,13 +583,13 @@ void ReportWorker::writeHTML()
 	stream << "<p><b>" << trans("Varianten nach klinischer Interpretation im Kontext der Fragestellung") << "</b>" << endl;
 	stream << "</p>" << endl;
 	stream << "<table>" << endl;
-	stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Variante") << "</b></td><td><b>" << trans("Genotyp") << "</b></td>";
+	stream << "<tr><td><b>" << trans("Variante") << "</b></td><td><b>" << trans("Genotyp") << "</b></td>";
 	if (is_trio)
 	{
 		stream << "<td><b>" << trans("Vater") << "</b></td>";
 		stream << "<td><b>" << trans("Mutter") << "</b></td>";
 	}
-	stream << "<td><b>" << trans("Details") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td><td><b>1000g</b></td><td><b>gnomAD</b></td></tr>" << endl;
+	stream << "<td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Details") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td><td><b>1000g</b></td><td><b>gnomAD</b></td></tr>" << endl;
 
 	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config.variantConfig())
 	{
@@ -599,9 +599,8 @@ void ReportWorker::writeHTML()
 		const Variant& variant = variants_[var_conf.variant_index];
 		if (file_roi_!="" && !roi_.overlapsWith(variant.chr(), variant.start(), variant.end())) continue;
 
-		QByteArray genes = variant.annotations()[i_gene];
+		GeneSet genes = GeneSet::createFromText(variant.annotations()[i_gene], ',');
 		stream << "<tr>" << endl;
-		stream << "<td>" << genes << "</td>" << endl;
 		stream << "<td>" << endl;
 		stream  << variant.chr().str() << ":" << variant.start() << "&nbsp;" << variant.ref() << "&nbsp;&gt;&nbsp;" << variant.obs() << "</td>";
 		QStringList geno_info;
@@ -615,6 +614,21 @@ void ReportWorker::writeHTML()
 			stream << "<td>" << formatGenotype("male", variant.annotations().at(info_father.column_index), variant) << "</td>";
 			stream << "<td>" << formatGenotype("female", variant.annotations().at(info_mother.column_index), variant) << "</td>";
 		}
+
+		stream << "<td>";
+		for(int i=0; i<genes.count(); ++i)
+		{
+			QByteArray sep = (i==0 ? "" : ", ");
+			QByteArray gene = genes[i].trimmed();
+			QString inheritance = "";
+			GeneInfo gene_info = db_.geneInfo(gene);
+			if (gene_info.inheritance!="" && gene_info.inheritance!="n/a")
+			{
+				inheritance = " (" + gene_info.inheritance + ")";
+			}
+			stream << sep << gene << inheritance << endl;
+		}
+		stream << "</td>" << endl;
 		stream << "<td>" << formatCodingSplicing(variant.transcriptAnnotations(i_co_sp)) << "</td>" << endl;
 		stream << "<td>" << variant.annotations().at(i_class) << "</td>" << endl;
 		stream << "<td>" << var_conf.inheritance << "</td>" << endl;
@@ -650,7 +664,7 @@ void ReportWorker::writeHTML()
 	//CNVs
 	stream << "<br>" << endl;
 	stream << "<table>" << endl;
-	stream << "<tr><td><b>" << trans("CNV") << "</b></td><td><b>" << trans("Regionen") << "</b></td><td><b>" << trans("CN") << "</b></td><td><b>" << trans("Gene") << "</b></td></tr>" << endl;
+	stream << "<tr><td><b>" << trans("CNV") << "</b></td><td><b>" << trans("Regionen") << "</b></td><td><b>" << trans("CN") << "</b></td><td><b>" << trans("Gen(e)") << "</b></td></tr>" << endl;
 
 	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config.variantConfig())
 	{
@@ -927,7 +941,7 @@ QString ReportWorker::trans(const QString& text) const
 		de2en["OMIM Gene und Phenotypen"] = "OMIM gene and phenotypes";
 		de2en["OMIM Phenotypen"] = "OMIM phenotypes";
 		de2en["OMIM Gen MIM"] = "OMIM gene MIM";
-		de2en["Gen"] = "Gene";
+		de2en["Gen(e)"] = "Genes";
 		de2en["Details zu Programmen der Analysepipeline"] = "Analysis pipeline tool details";
 		de2en["Parameter"] = "Parameters";
 		de2en["Version"] = "Version";

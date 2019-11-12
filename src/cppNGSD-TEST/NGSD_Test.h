@@ -549,14 +549,14 @@ private slots:
 		//setClassification
 		class_info.classification = "2";
 		class_info.comments = "class_comm1";
-		db.setClassification(variant, class_info);
+		db.setClassification(variant, VariantList(), class_info); //Variant list can be empty because variant is alread in NGSD
 		class_info = db.getClassification(variant);
 		S_EQUAL(class_info.classification, "2");
 		S_EQUAL(class_info.comments, "class_comm1");
 		//update existing entry
 		class_info.classification = "5";
 		class_info.comments = "class_comm2";
-		db.setClassification(variant, class_info);
+		db.setClassification(variant, VariantList(), class_info); //Variant list can be empty because variant is alread in NGSD
 		class_info = db.getClassification(variant);
 		S_EQUAL(class_info.classification, "5");
 		S_EQUAL(class_info.comments, "class_comm2");

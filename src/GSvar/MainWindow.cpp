@@ -3223,12 +3223,8 @@ void MainWindow::editVariantClassification(VariantList& variants, int index)
 
 		//update NGSD
 		NGSD db;
-		if (db.variantId(variant, false)=="") //add variant if missing
-		{
-			db.addVariant(variants[index], variants);
-		}
 		ClassificationInfo class_info = dlg.classificationInfo();
-		db.setClassification(variant, class_info);
+		db.setClassification(variant, variants, class_info);
 
 		//update variant table
 		int i_class = variants.annotationIndexByName("classification", true, true);

@@ -1,5 +1,4 @@
 #include "ClassificationDialog.h"
-#include "NGSD.h"
 #include "Helper.h"
 
 ClassificationDialog::ClassificationDialog(QWidget* parent, const Variant& variant)

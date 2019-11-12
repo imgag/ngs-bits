@@ -773,16 +773,9 @@ QString NGSD::addCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList
 	//determine CN
 	int cn = cnv.copyNumber(cnv_list.annotationHeaders());
 
-	//prepare query (only once)
-	static SqlQuery query = getQuery();
-	static bool is_inizialied = false;
-	if (!is_inizialied)
-	{
-		query.prepare("INSERT INTO `cnv` (`cnv_callset_id`, `chr`, `start`, `end`, `cn`, `quality_metrics`) VALUES (:0,:1,:2,:3,:4,:5)");
-		is_inizialied = true;
-	}
-
-	//bind and exec
+	//add cnv
+	SqlQuery query = getQuery();
+	query.prepare("INSERT INTO `cnv` (`cnv_callset_id`, `chr`, `start`, `end`, `cn`, `quality_metrics`) VALUES (:0,:1,:2,:3,:4,:5)");
 	query.bindValue(0, callset_id);
 	query.bindValue(1, cnv.chr().strNormalized(true));
 	query.bindValue(2, cnv.start());
@@ -1486,10 +1479,16 @@ ClassificationInfo NGSD::getClassification(const Variant& variant)
 	return ClassificationInfo {query.value(0).toString().trimmed(), query.value(1).toString().trimmed() };
 }
 
-void NGSD::setClassification(const Variant& variant, ClassificationInfo info)
+void NGSD::setClassification(const Variant& variant, const VariantList& variant_list, ClassificationInfo info)
 {
+	QString variant_id = variantId(variant, false);
+	if (variant_id=="") //add variant if missing
+	{
+		variant_id = addVariant(variant, variant_list);
+	}
+
 	SqlQuery query = getQuery(); //use binding (user input)
-	query.prepare("INSERT INTO variant_classification (variant_id, class, comment) VALUES (" + variantId(variant) + ",:0,:1) ON DUPLICATE KEY UPDATE class=VALUES(class), comment=VALUES(comment)");
+	query.prepare("INSERT INTO variant_classification (variant_id, class, comment) VALUES (" + variant_id + ",:0,:1) ON DUPLICATE KEY UPDATE class=VALUES(class), comment=VALUES(comment)");
 	query.bindValue(0, info.classification);
 	query.bindValue(1, info.comments);
 	query.exec();
@@ -1687,6 +1686,7 @@ QString NGSD::analysisJobFolder(int job_id)
 
 QVector<double> NGSD::cnvCallsetMetrics(QString processing_system_id, QString metric_name)
 {
+	qDebug() << metric_name;
 	QVector<double> output;
 
 	SqlQuery query = getQuery();
@@ -1695,8 +1695,10 @@ QVector<double> NGSD::cnvCallsetMetrics(QString processing_system_id, QString me
 	{
 		QJsonDocument qc_metrics = QJsonDocument::fromJson(query.value(0).toByteArray());
 		bool ok = false;
-		int cnv_count = qc_metrics.object().take(metric_name).toString().toDouble(&ok);
-		if (ok)	output << cnv_count;
+		QString metric_string = qc_metrics.object().take(metric_name).toString();
+		qDebug() << metric_string;
+		double metric_numeric = metric_string.toDouble(&ok);
+		if (ok)	output << metric_numeric;
 	}
 
 	return output;
