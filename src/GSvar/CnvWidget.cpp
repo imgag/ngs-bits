@@ -22,8 +22,60 @@
 #include <QChartView>
 QT_CHARTS_USE_NAMESPACE
 
+CnvWidget::CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_widget, ReportConfiguration& rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
+	: QWidget(parent)
+	, ui(new Ui::CnvWidget)
+	, ps_id_(ps_id)
+	, callset_id_("")
+	, cnvs_(cnvs)
+	, special_cols_()
+	, report_config_(rep_conf)
+	, var_het_genes_(het_hit_genes)
+	, gene2region_cache_(cache)
+	, ngsd_enabled_(Settings::boolean("NGSD_enabled", true))
+{
+	ui->setupUi(this);
+	connect(ui->cnvs, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(cnvDoubleClicked(QTableWidgetItem*)));
+	connect(ui->cnvs, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
+	connect(ui->copy_clipboard, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
+	connect(ui->filter_widget, SIGNAL(filtersChanged()), this, SLOT(applyFilters()));
+	connect(ui->cnvs->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(cnvHeaderDoubleClicked(int)));
+	ui->cnvs->verticalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
+	connect(ui->cnvs->verticalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(cnvHeaderContextMenu(QPoint)));
 
+	//determine callset ID
+	if (ps_id!="")
+	{
+		NGSD db;
+		callset_id_ = db.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=" + ps_id_).toString();
+	}
+	ui->quality->setEnabled(callset_id_!="");
 
+	//set small variant filters
+	ui->filter_widget->setVariantFilterWidget(filter_widget);
+
+	//set up NGSD menu (before loading CNV - QC actions are inserted then)
+	ui->ngsd_btn->setMenu(new QMenu());
+	ui->ngsd_btn->menu()->addAction(QIcon(":/Icons/Edit.png"), "Edit quality", this, SLOT(editQuality()))->setEnabled(callset_id_!="");
+	ui->ngsd_btn->menu()->addSeparator();
+
+	//set up GUI
+	try
+	{
+		updateGUI();
+	}
+	catch(Exception e)
+	{
+		addInfoLine("<font color='red'>Error parsing file:\n" + e.message() + "</font>");
+		disableGUI();
+	}
+
+	//apply filters
+	applyFilters();
+
+	//propose quality
+	proposeQualityIfUnset();
+}
 
 CnvWidget::~CnvWidget()
 {
@@ -78,6 +130,17 @@ void CnvWidget::addInfoLine(QString text)
 	if (text.contains(":"))
 	{
 		QString metric = text.split(":")[0].replace("#", "").trimmed();
+
+		//special handling for CnvHunter output (metrics are prefixed with processed sample name)
+		if (ps_id_!="")
+		{
+			QString ps_name = NGSD().processedSampleName(ps_id_);
+			if (metric.startsWith(ps_name))
+			{
+				metric = metric.mid(ps_name.count()).trimmed();
+			}
+		}
+
 		ui->ngsd_btn->menu()->addAction("Show distribution: " + metric, this, SLOT(showQcMetricHistogram()));
 	}
 }
@@ -186,6 +249,9 @@ void CnvWidget::updateGUI()
 
 	//resize columns
 	GUIHelper::resizeTableCells(ui->cnvs, 200);
+
+	//update quality from NGSD
+	updateQuality();
 }
 
 void CnvWidget::applyFilters(bool debug_time)
@@ -443,14 +509,54 @@ void CnvWidget::openLink(int row, int col)
 	QDesktopServices::openUrl(QUrl(url));
 }
 
+void CnvWidget::proposeQualityIfUnset()
+{
+	if (callset_id_=="") return;
+	if (cnvs_.caller()!=CnvCallerType::CLINCNV) return;
+
+	//check if quality is set
+	NGSD db;
+	QString quality =  db.getValue("SELECT quality FROM cnv_callset WHERE id=" + callset_id_).toString();
+	if (quality!="n/a") return;
+
+	//check number of iterations
+	QStringList errors;
+	if(cnvs_.qcMetric("number of iterations")!="1")
+	{
+		errors << "Number of iteration > 1";
+	}
+
+	//check number of high-quality CNVs
+	QString sys_id = db.getValue("SELECT processing_system_id FROM processed_sample WHERE id=" + ps_id_).toString();
+	QVector<double> hq_cnv_dist = db.cnvCallsetMetrics(sys_id, "high-quality cnvs");
+	std::sort(hq_cnv_dist.begin(), hq_cnv_dist.end());
+	double mean = BasicStatistics::median(hq_cnv_dist, false);
+	double stdev = 1.482 * BasicStatistics::mad(hq_cnv_dist, mean);
+
+	double hq_cnvs = cnvs_.qcMetric("high-quality cnvs").toDouble();
+	if (hq_cnvs> mean + 2.5*stdev)
+	{
+		errors << "Number of high-quality CNVs is too high (median: " + QString::number(mean, 'f', 2) + " / stdev: " + QString::number(mean, 'f', 2) + ")";
+	}
+
+	if(errors.count()==0)
+	{
+		db.getQuery().exec("UPDATE cnv_callset SET quality='good' WHERE id=" + callset_id_);
+		updateQuality();
+	}
+	else
+	{
+		QMessageBox::warning(this, "CNV callset quality", "CNV callset quality seems to be not optimal:\n" + errors.join("\n") + "\n\nPlease have a look at the quality parameters and set the CNV quality manually!");
+	}
+}
+
 void CnvWidget::updateQuality()
 {
 	QString quality = "n/a";
-	if  (ps_id_!="")
+	if  (callset_id_!="")
 	{
-		quality = NGSD().getValue("SELECT quality FROM cnv_callset WHERE processed_sample_id=" + ps_id_).toString();
+		quality = NGSD().getValue("SELECT quality FROM cnv_callset WHERE id=" + callset_id_).toString();
 	}
-	ui->quality->setEnabled(ps_id_!="");
 	ProcessedSampleWidget::styleQualityLabel(ui->quality, quality);
 }
 
@@ -463,7 +569,7 @@ void CnvWidget::editQuality()
 	QString quality = QInputDialog::getItem(this, "Select CNV callset quality", "quality:", qualities, qualities.indexOf(ui->quality->toolTip()), false, &ok);
 	if (!ok) return;
 
-	db.getQuery().exec("UPDATE cnv_callset SET quality='" + quality + "' WHERE processed_sample_id=" + ps_id_);
+	db.getQuery().exec("UPDATE cnv_callset SET quality='" + quality + "' WHERE id=" + callset_id_);
 
 	updateQuality();
 }

@@ -1686,7 +1686,6 @@ QString NGSD::analysisJobFolder(int job_id)
 
 QVector<double> NGSD::cnvCallsetMetrics(QString processing_system_id, QString metric_name)
 {
-	qDebug() << metric_name;
 	QVector<double> output;
 
 	SqlQuery query = getQuery();
@@ -1696,7 +1695,10 @@ QVector<double> NGSD::cnvCallsetMetrics(QString processing_system_id, QString me
 		QJsonDocument qc_metrics = QJsonDocument::fromJson(query.value(0).toByteArray());
 		bool ok = false;
 		QString metric_string = qc_metrics.object().take(metric_name).toString();
-		qDebug() << metric_string;
+		if (metric_string.contains(" (")) //special handling of CnvHunter metrics that contains the median in brackets)
+		{
+			metric_string = metric_string.split(" (").at(0);
+		}
 		double metric_numeric = metric_string.toDouble(&ok);
 		if (ok)	output << metric_numeric;
 	}

@@ -22,51 +22,7 @@ class CnvWidget
 	Q_OBJECT
 
 public:
-	CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_widget, ReportConfiguration& rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent = 0)
-		: QWidget(parent)
-		, ui(new Ui::CnvWidget)
-		, ps_id_(ps_id)
-		, cnvs_(cnvs)
-		, special_cols_()
-		, report_config_(rep_conf)
-		, var_het_genes_(het_hit_genes)
-		, gene2region_cache_(cache)
-		, ngsd_enabled_(Settings::boolean("NGSD_enabled", true))
-	{
-		ui->setupUi(this);
-		connect(ui->cnvs, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(cnvDoubleClicked(QTableWidgetItem*)));
-		connect(ui->cnvs, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
-		connect(ui->copy_clipboard, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
-		connect(ui->filter_widget, SIGNAL(filtersChanged()), this, SLOT(applyFilters()));
-		connect(ui->cnvs->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(cnvHeaderDoubleClicked(int)));
-		ui->cnvs->verticalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
-		connect(ui->cnvs->verticalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(cnvHeaderContextMenu(QPoint)));
-
-		//set small variant filters
-		ui->filter_widget->setVariantFilterWidget(filter_widget);
-
-		//set up NGSD menu (before loading CNV - QC actions are inserted then)
-		ui->ngsd_btn->setMenu(new QMenu());
-		ui->ngsd_btn->menu()->addAction(QIcon(":/Icons/Edit.png"), "Edit quality", this, SLOT(editQuality()));
-		ui->ngsd_btn->menu()->addSeparator();
-		ui->ngsd_btn->setEnabled(ps_id_!="");
-
-		try
-		{
-			updateGUI();
-		}
-		catch(Exception e)
-		{
-			addInfoLine("<font color='red'>Error parsing file:\n" + e.message() + "</font>");
-			disableGUI();
-		}
-
-		//quality
-		updateQuality();
-
-		//apply filters
-		applyFilters();
-	}
+	CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_widget, ReportConfiguration& rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent = 0);
 	~CnvWidget();
 
 signals:
@@ -78,6 +34,7 @@ private slots:
 	void copyToClipboard();
 	void showContextMenu(QPoint p);
 	void openLink(int row, int col);
+	void proposeQualityIfUnset();
 	void updateQuality();
 	void editQuality();
 	void showQcMetricHistogram();
@@ -97,6 +54,7 @@ private:
 
 	Ui::CnvWidget* ui;
 	QString ps_id_; //processed sample database ID. '' if unknown of NGSD is disabled.
+	QString callset_id_; //CNV callset database ID. '' if unknown of if NGSD is disabled.
 	const CnvList& cnvs_;
 	QStringList special_cols_;
 	ReportConfiguration& report_config_;
