@@ -529,6 +529,7 @@ void CnvWidget::proposeQualityIfUnset()
 	//check number of high-quality CNVs
 	QString sys_id = db.getValue("SELECT processing_system_id FROM processed_sample WHERE id=" + ps_id_).toString();
 	QVector<double> hq_cnv_dist = db.cnvCallsetMetrics(sys_id, "high-quality cnvs");
+	if (hq_cnv_dist.count()<20) return;
 	std::sort(hq_cnv_dist.begin(), hq_cnv_dist.end());
 	double mean = BasicStatistics::median(hq_cnv_dist, false);
 	double stdev = 1.482 * BasicStatistics::mad(hq_cnv_dist, mean);

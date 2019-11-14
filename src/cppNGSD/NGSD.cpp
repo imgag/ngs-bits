@@ -1036,7 +1036,7 @@ void NGSD::init(QString password)
 		//check password for re-init of production DB
 		if (!test_db_ && password!=Settings::string("ngsd_pass"))
 		{
-			THROW(DatabaseException, "Password provided for re-initialization of procution database is incorrect!");
+			THROW(DatabaseException, "Password provided for re-initialization of production database is incorrect!");
 		}
 
 		//get table list
