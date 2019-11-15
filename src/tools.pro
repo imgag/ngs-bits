@@ -357,5 +357,9 @@ SUBDIRS += NGSDExportCnvTrack
 tools-TEST.depends += NGSDExportCnvTrack
 NGSDExportCnvTrack.depends = cppNGS
 
+SUBDIRS += CnvGeneAnnotation
+tools-TEST.depends += CnvGeneAnnotation
+CnvGeneAnnotation.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt

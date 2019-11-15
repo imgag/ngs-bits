@@ -236,6 +236,62 @@ void CnvList::load(QString filename)
 	}
 }
 
+/*
+void CnvList::store(QString filename)
+{
+	// check if CnvListType is valid
+	if (type()==CnvListType::INVALID) THROW(NotImplementedException, "Invalid CnvListType! Cannot create file.");
+
+	//open stream
+	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, true);
+	QTextStream stream(file.data());
+
+	//write header lines
+
+	//analysis type
+	stream <<  "##ANALYSISTYPE=";
+	if (type()==CnvListType::CNVHUNTER_GERMLINE_SINGLE) stream << "CNVHUNTER_GERMLINE_SINGLE\n";
+	else if (type()==CnvListType::CNVHUNTER_GERMLINE_MULTI) stream << "CNVHUNTER_GERMLINE_MULTI\n";
+	else if (type()==CnvListType::CLINCNV_GERMLINE_SINGLE) stream << "CLINCNV_GERMLINE_SINGLE\n";
+	else if (type()==CnvListType::CLINCNV_GERMLINE_MULTI) stream << "CLINCNV_GERMLINE_MULTI\n";
+	else if (type()==CnvListType::CLINCNV_TUMOR_NORMAL_PAIR) stream << "CLINCNV_TUMOR_NORMAL_PAIR\n";
+
+	//description
+	foreach (QByteArray header, annotation_headers_)
+	{
+		if (annotation_header_desc_[header].trimmed() != "")
+		{
+			stream << "##DESCRIPTION=" << header << "=" << annotation_header_desc_[header] << "\n";
+		}
+	}
+
+	//other comments
+	foreach (QByteArray comment_line, comments_)
+	{
+		stream << comment_line << "\n";
+	}
+
+	// header line
+	stream << "#chr\tstart\tend\tgenes";
+	if (type()==CnvListType::CNVHUNTER_GERMLINE_SINGLE || type()==CnvListType::CNVHUNTER_GERMLINE_MULTI) stream << "\tregion_count";
+	if (type()==CnvListType::CLINCNV_GERMLINE_SINGLE) stream << "\tno_of_regions";
+	if (type()==CnvListType::CLINCNV_TUMOR_NORMAL_PAIR) stream << "\tnumber_of_regions";
+	if (annotation_headers_.size() > 0) stream << "\t" << annotation_headers_.join(",");
+	stream << "\n";
+
+
+	// CNVs
+	foreach (CopyNumberVariant varinat, variants_)
+	{
+		// write position and gene names:
+		stream << variant.chr().strNormalized(true) << "\t" << variant.start() << "\t" << variant.end() << "\t" << variant.genes().join(",");
+		if (type() != CnvListType::CLINCNV_GERMLINE_MULTI) stream << "\t" << variant.regions();
+
+	}
+
+}
+*/
+
 CnvCallerType CnvList::caller() const
 {
 	CnvListType list_type = type();

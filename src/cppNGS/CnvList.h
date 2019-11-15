@@ -123,6 +123,13 @@ class CPPNGSSHARED_EXPORT CnvList
 		///Loads CNV text file (TSV format).
 		void load(QString filename);
 
+		/*
+		///Stores CNV text file (TSV format).
+		///
+		/// not completeted implementation, final export of CNVs is not implemented yet
+		void store(QString filename);
+		*/
+
 		///Returns the CNV list type
 		CnvListType type() const
 		{

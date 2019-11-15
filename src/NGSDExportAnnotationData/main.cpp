@@ -858,52 +858,28 @@ private:
 			foreach (QByteArray gene, genes)
 			{
 				// get additional info
-				int gene_id = db.geneToApprovedID(gene);
 				GeneInfo gene_info = db.geneInfo(gene);
-				QByteArray gene_type = db.getValue("SELECT type FROM gene WHERE id='"
-												   + QByteArray::number(gene_id) + "'").toByteArray();
+
 				// calculate region
 				GeneSet single_gene;
 				single_gene.insert(gene);
 				BedFile gene_region = db.genesToRegions(single_gene, Transcript::ENSEMBL, "gene", true,
 														false);
 
-				// get chromosome
-				if (gene_region.chromosomes().size() != 1)
-				{
-					if (gene_region.chromosomes().size() > 1)
-					{
-						gene_types[gene_type].first++;
-					}
-					else
-					{
-						gene_types[gene_type].second++;
-						skipped_genes++;
-						continue;
-					}
-
-				}
-
-				// merge bed file and summarize overlapping bed lines:
+				// extend bed file entries and summarize overlapping bed lines:
+				gene_region.extend(gene_offset_);
 				gene_region.merge();
 
 				// iterate over all entries in the bed file
 				for(int i = 0; i < gene_region.count(); i++)
 				{
-					int start = gene_region[i].start();
-					int end = gene_region[i].end();
-
-					// extend regions by offset
-					start = std::max(1, start - gene_offset_);
-					end += gene_offset_;
-
 					// generating bed line
 					QByteArrayList annotation;
 					annotation << gene + " (inh=" + gene_info.inheritance.toUtf8()
 								  + " oe_syn=" + gene_info.oe_syn.toUtf8()
 								  + " oe_mis="+ gene_info.oe_mis.toUtf8()
 								  + " oe_lof=" + gene_info.oe_lof.toUtf8() + ")";
-					BedLine bed_line(gene_region[i].chr().strNormalized(true), start, end, annotation);
+					BedLine bed_line(gene_region[i].chr().strNormalized(true), gene_region[i].start(), gene_region[i].end(), annotation);
 					exported_genes++;
 					output_bed_file.append(bed_line);
 				}
