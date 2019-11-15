@@ -195,7 +195,6 @@ void SingleSampleAnalysisDialog::on_add_batch_clicked(bool)
 			if (sample.isEmpty() || sample[0]=='#') continue;
 			addSample("", sample);
 		}
-		ui_.high_priority->setChecked(false);
 
 		updateSampleTable();
 		updateStartButton();
