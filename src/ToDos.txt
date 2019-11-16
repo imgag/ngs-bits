@@ -21,6 +21,8 @@ NGSD:
     - remove NGSDPrecalculate/VariantAnnotateNGSD tool and tables 'detected_variant_counts' and 'detected_variant_counts_by_group'
 
 GSvar:
+##### CNVs: update docu
+##### cnv array-like filter: >=35kb, <95% CNP overlap
 ##### cnv filter: high-sensitivity + pheno/roi
 ### Trio report: generate XML for parents (no gaps, ...) possible? > FEEDBACK ANNE
 ** add visualization of NGSD CNVs (or annotation of CNVs):
@@ -33,13 +35,8 @@ GSvar:
     - requirements as discussed with Ruhm/Möller
     - Sample > Messbefund (Schema ist Messprofil) > Messparameter (Name+Typ - Typ kann vordefiniertes Enum sein)
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
-** replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
-* trio filter: correct PAR region handling (Genetikum)
-* report variant selection
-    - add gaps report (custom via import) to XML report
-        - CCDS +-5 bases!?
-        - gap report as XML and additional report of gaps to sanger-validate as TXT
-    - Trio report > trio XML (Anne,Mona)?
+*** replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
+*** trio filter: correct PAR region handling (Genetikum)
 * SV widget
     - add size filter - have a look at the overlap between manta and freebayes
     - add overlapping genes and allow filtering for comp-hets (be carefull with small indels)
@@ -47,7 +44,6 @@ GSvar:
     - add gene annotation and type (coding/splicing/intronic/intergenic)
 
 Tools:
-- NGSDImportHPO: Add G2P database (https://www.ebi.ac.uk/gene2phenotype) - if HPO people do not include it
 - UPDHunter: also support chrX?
 - SomaticQC: replace 'QC:?' by real qcML identifier - add to https://github.com/HUPO-PSI/mzQC (CS)
 
