@@ -22,8 +22,6 @@ NGSD:
 
 GSvar:
 ##### CNVs: update docu
-##### cnv array-like filter: >=35kb, <95% CNP overlap
-##### cnv filter: high-sensitivity + pheno/roi
 ### Trio report: generate XML for parents (no gaps, ...) possible? > FEEDBACK ANNE
 ** add visualization of NGSD CNVs (or annotation of CNVs):
     - # overlapping CNVs (by type gain/loss)

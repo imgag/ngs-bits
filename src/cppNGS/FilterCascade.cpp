@@ -600,8 +600,15 @@ QSharedPointer<FilterBase> FilterFactory::create(const QString& name, const QStr
 	//set parameters
 	foreach(QString param, parameters)
 	{
-		int index = param.indexOf('=');
-		filter->setGeneric(param.left(index), param.mid(index+1));
+		if (param=="disabled")
+		{
+			filter->toggleEnabled();
+		}
+		else
+		{
+			int index = param.indexOf('=');
+			filter->setGeneric(param.left(index), param.mid(index+1));
+		}
 	}
 
 	return filter;
