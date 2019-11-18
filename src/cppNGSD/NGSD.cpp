@@ -698,6 +698,64 @@ Variant NGSD::variant(const QString& variant_id)
 	return Variant(query.value("chr").toByteArray(), query.value("start").toInt(), query.value("end").toInt(), query.value("ref").toByteArray(), query.value("obs").toByteArray());
 }
 
+QPair<int, int> NGSD::variantCounts(const QString& variant_id)
+{
+	//get same sample information (cached)
+	static QHash<int, QList<int>> same_samples;
+	if (same_samples.isEmpty())
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation='same sample'");
+		while (query.next())
+		{
+			int sample1_id = query.value(0).toInt();
+			int sample2_id = query.value(1).toInt();
+			same_samples[sample1_id] << sample2_id;
+			same_samples[sample2_id] << sample1_id;
+		}
+	}
+
+	//count variants
+	int count_het = 0;
+	int count_hom = 0;
+
+	QSet<int> samples_done_het;
+	QSet<int> samples_done_hom;
+	SqlQuery query = getQuery();
+	query.exec("SELECT s.id, dv.genotype FROM detected_variant dv, processed_sample ps, sample s WHERE dv.variant_id='" + variant_id + "' AND ps.sample_id=s.id AND dv.processed_sample_id=ps.id");
+	while(query.next())
+	{
+		//use sample ID to prevent counting variants several times if a sample was sequenced more than once.
+		int sample_id = query.value(0).toInt();
+		QString genotype = query.value(1).toString();
+
+		if (genotype=="het" && !samples_done_het.contains(sample_id))
+		{
+			++count_het;
+			samples_done_het << sample_id;
+
+			QList<int> tmp = same_samples.value(sample_id, QList<int>());
+			foreach(int same_sample_id, tmp)
+			{
+				samples_done_het << same_sample_id;
+			}
+		}
+		if (genotype=="hom" && !samples_done_hom.contains(sample_id))
+		{
+			++count_hom;
+			samples_done_hom << sample_id;
+
+			QList<int> tmp = same_samples.value(sample_id, QList<int>());
+			foreach(int same_sample_id, tmp)
+			{
+				samples_done_hom << same_sample_id;
+			}
+		}
+	}
+
+	return qMakePair(count_het, count_hom);
+}
+
 QString NGSD::cnvId(const CopyNumberVariant& cnv, int callset_id, bool throw_if_fails)
 {
 	SqlQuery query = getQuery(); //use binding user input (safety)
@@ -1161,279 +1219,6 @@ QVector<double> NGSD::getQCValues(const QString& accession, const QString& proce
 
 	return output;
 }
-
-void NGSD::annotate(VariantList& variants, QString ps_name, BedFile roi, double max_af)
-{
-	initProgress("NGSD annotation", true);
-
-	//get sample date
-	QString s_id = sampleId(ps_name, false);
-	QString disease_group = "n/a";
-	if (s_id=="")
-	{
-		Log::warn("Could not find sample in NGSD by name '" + ps_name + "'. Annotations 'validation' and 'NGSD_group' will be incomplete!");
-	}
-	else
-	{
-		disease_group = getSampleData(s_id).disease_group;
-	}
-
-	//load target region (if given)
-	QScopedPointer<ChromosomalIndex<BedFile>> roi_index;
-	if (roi.count()!=0)
-	{
-		if (!roi.isSorted())
-		{
-			THROW(ArgumentException, "Target region unsorted, but needs to be sorted for indexing!");
-		}
-
-		roi_index.reset(new ChromosomalIndex<BedFile>(roi));
-	}
-
-	//apply AF filter (if given)
-	FilterResult filter_result(variants.count());
-	if (max_af>0)
-	{
-		FilterAlleleFrequency filter;
-		filter.setDouble("max_af", 100.0*max_af);
-		filter.apply(variants, filter_result);
-	}
-
-	//get required column indices
-	int ngsd_hom_idx = variants.addAnnotationIfMissing("NGSD_hom", "Homozygous variant count in NGSD.");
-	int ngsd_het_idx =  variants.addAnnotationIfMissing("NGSD_het", "Heterozygous variant count in NGSD.");
-	int ngsd_grp_idx = variants.addAnnotationIfMissing("NGSD_group", "Homozygous / heterozygous variant count in NGSD with the same disease group (" + QString(disease_group=="n/a" ? "empty because group is " : "") + disease_group + ").");
-	int class_idx = variants.addAnnotationIfMissing("classification", "Classification from the NGSD.");
-	int clacom_idx = variants.addAnnotationIfMissing("classification_comment", "Classification comment from the NGSD.");
-	int validation_idx = variants.addAnnotationIfMissing("validation", "Validation information from the NGSD. Validation results of other samples are listed in brackets!");
-	int comment_idx = variants.addAnnotationIfMissing("comment", "Variant comments from the NGSD.");
-	int geneinfo_idx = variants.addAnnotationIfMissing("gene_info", "Gene information from NGSD (inheritance mode, gnomAD o/e scores).");
-	int gene_idx = variants.annotationIndexByName("gene", true, false);
-	QList<int> af_cols;
-	af_cols << variants.annotationIndexByName("1000g", true, false);
-	af_cols << variants.annotationIndexByName("gnomAD", true, false);
-
-	/*
-	//Timing benchmarks
-	//Outcome for Qt 5.5.0:
-	// - Prepared queries take about twice as long
-	// - Setting the query to forward-only has no effect
-	*/
-	bool benchmark = false;
-	QTime timer;
-	long long time_id_co = 0;
-	long long time_cl = 0;
-	long long time_vv = 0;
-	long long time_vvo = 0;
-	long long time_gt = 0;
-
-	//(re-)annotate the variants
-	SqlQuery query = getQuery();
-	QByteArray v_id;
-	QByteArray comment;
-	for (int i=0; i<variants.count(); ++i)
-	{
-		Variant& v = variants[i];
-
-		//skip variants with too high allele frequency
-		if (!filter_result.passing(i)) continue;
-
-		//skip variant outside the target region
-		if (!roi_index.isNull())
-		{
-			if (roi_index->matchingIndex(v.chr(), v.start(), v.end())==-1)
-			{
-				continue;
-			}
-		}
-
-		//variant id and comment
-		if (benchmark) timer.start();
-		query.exec("SELECT id, comment FROM variant WHERE chr='"+v.chr().strNormalized(true)+"' AND start='"+QString::number(v.start())+"' AND end='"+QString::number(v.end())+"' AND ref='"+v.ref()+"' AND obs='"+v.obs()+"'");
-		if (query.size()==1)
-		{
-			query.next();
-			v_id = query.value(0).toByteArray();
-			comment = query.value(1).toByteArray();
-		}
-		else
-		{
-			v_id = "-1";
-			comment = "";
-		}
-		if (benchmark) time_id_co += timer.elapsed();
-
-		//variant classification
-		if (benchmark) timer.restart();
-		QVariant classification = getValue("SELECT class FROM variant_classification WHERE variant_id='" + v_id + "'", true);
-		if (!classification.isNull())
-		{
-			v.annotations()[class_idx] = classification.toByteArray().replace("n/a", "");
-			v.annotations()[clacom_idx] = getValue("SELECT comment FROM variant_classification WHERE variant_id='" + v_id + "'", true).toByteArray().replace("\n", " ").replace("\t", " ");
-		}
-		if (benchmark) time_cl += timer.elapsed();
-
-		//validation info
-		if (benchmark) timer.restart();
-		int vv_id = -1;
-		QByteArray val_status = "";
-		if (s_id!="")
-		{
-			query.exec("SELECT id, status FROM variant_validation WHERE sample_id='" + s_id + "' AND variant_id='" + v_id + "'");
-			if (query.size()==1)
-			{
-				query.next();
-				vv_id = query.value(0).toInt();
-				val_status = query.value(1).toByteArray().replace("n/a", "");
-			}
-		}
-		if (benchmark) time_vv += timer.elapsed();
-
-		//validation info other samples
-		if (benchmark) timer.restart();
-		int tps = 0;
-		int fps = 0;
-		query.exec("SELECT id, status FROM variant_validation WHERE variant_id='"+v_id+"' AND status!='n/a'");
-		while(query.next())
-		{
-			if (query.value(0).toInt()==vv_id) continue;
-			if (query.value(1).toByteArray()=="true positive") ++tps;
-			else if (query.value(1).toByteArray()=="false positive") ++fps;
-		}
-		if (tps>0 || fps>0)
-		{
-			if (val_status=="") val_status = "n/a";
-			val_status += " (" + QByteArray::number(tps) + "xTP, " + QByteArray::number(fps) + "xFP)";
-		}
-		if (benchmark) time_vvo += timer.elapsed();
-
-		//variant counts
-		if (benchmark) timer.restart();
-		QByteArray hom_count = "0";
-		QByteArray het_count = "0";
-		QByteArray grp_count = "0 / 0";
-		if (maxAlleleFrequency(v, af_cols)<0.05)
-		{
-			//overall counts
-			query.exec("SELECT count_hom, count_het FROM detected_variant_counts WHERE variant_id='"+v_id+"'");
-			if (query.size()==1) //cached value available
-			{
-				query.next();
-				hom_count = query.value(0).toByteArray();
-				het_count = query.value(1).toByteArray();
-			}
-
-			//counts by group
-			if (disease_group!="n/a")
-			{
-				query.exec("SELECT count_hom, count_het FROM detected_variant_counts_by_group WHERE variant_id='"+v_id+"' AND disease_group='" + disease_group + "'");
-				if (query.size()==1) // use counts from cache
-				{
-					query.next();
-					grp_count = query.value(0).toByteArray() + " / " + query.value(1).toByteArray();
-				}
-			}
-			else
-			{
-				grp_count = "";
-			}
-		}
-		else
-		{
-			hom_count = "n/a (AF>5%)";
-			het_count = "n/a (AF>5%)";
-			grp_count = "n/a (AF>5%)";
-		}
-		//qDebug() << (v.isSNV() ? "S" : "I") << hom_count << het_count << timer.elapsed();
-
-		v.annotations()[ngsd_hom_idx] = hom_count;
-		v.annotations()[ngsd_het_idx] = het_count;
-		v.annotations()[ngsd_grp_idx] = grp_count;
-		v.annotations()[comment_idx] = comment.replace("\n", " ").replace("\t", " ");
-		v.annotations()[validation_idx] = val_status;
-		if (benchmark) time_gt += timer.elapsed();
-
-		//gene info
-		if (gene_idx!=-1)
-		{
-			QByteArrayList genes = v.annotations()[gene_idx].split(',');
-			std::transform(genes.begin(), genes.end(), genes.begin(), [this](const QByteArray& g) { return geneInfo(g).toString().toLatin1(); });
-			v.annotations()[geneinfo_idx] = genes.join(", ");
-		}
-
-		emit updateProgress(100*i/variants.count());
-	}
-
-	if (benchmark)
-	{
-		qDebug() << "id+com  : " << time_id_co;
-		qDebug() << "class   : " << time_cl;
-		qDebug() << "val     : " << time_vv;
-		qDebug() << "val oth : " << time_vvo;
-		qDebug() << "counts  : " << time_gt;
-	}
-}
-
-void NGSD::annotateSomatic(VariantList& variants, QString filename)
-{
-	//get sample ids
-	QStringList samples = filename.split('-');
-	QString s_id = sampleId(samples[0], false);
-	if (s_id=="")
-	{
-		Log::warn("Could not find sample in NGSD from name '" + QFileInfo(filename).baseName() + "',  Annotation will be incomplete because processing system could not be determined!");
-	}
-
-	//get required column indices
-	int som_ihdb_c_idx = variants.addAnnotationIfMissing("NGSD_som_c", "Somatic variant count in the NGSD.");
-	int som_ihdb_p_idx = variants.addAnnotationIfMissing("NGSD_som_p", "Project names of project containing this somatic variant in the NGSD.");
-
-	//(re-)annotate the variants
-	for (int i=0; i<variants.count(); ++i)
-	{
-		Variant& v = variants[i];
-
-		SqlQuery query = getQuery();
-		query.exec("SELECT s.id, dsv.processed_sample_id_tumor, p.name FROM detected_somatic_variant as dsv, variant as v, processed_sample ps, sample as s, project as p WHERE ps.project_id=p.id AND dsv.processed_sample_id_tumor=ps.id and dsv.variant_id=v.id AND  ps.sample_id=s.id  AND s.tumor='1' AND v.chr='"+v.chr().str()+"' AND v.start='"+QString::number(v.start())+"' AND v.end='"+QString::number(v.end())+"' AND v.ref='"+v.ref()+"' AND v.obs='"+v.obs()+"'");
-
-		//process variants
-		QMap<QByteArray, int> project_map;
-		QSet<QByteArray> processed_ps_ids;
-		QSet<QByteArray> processed_s_ids;
-		while(query.next())
-		{
-			QByteArray current_sample = query.value(0).toByteArray();
-			QByteArray current_ps_id = query.value(1).toByteArray();
-			QByteArray current_project = query.value(2).toByteArray();
-
-			//skip already seen processed samples (there could be several variants because of indel window, but we want to process only one)
-			if (processed_ps_ids.contains(current_ps_id)) continue;
-			processed_ps_ids.insert(current_ps_id);
-
-			//skip the current sample for general statistics
-			if (current_sample==s_id) continue;
-
-			//skip already seen samples for general statistics (there could be several processings of the same sample because of different processing systems or because of experment repeats due to quality issues)
-			if (processed_s_ids.contains(current_sample)) continue;
-			processed_s_ids.insert(current_sample);
-
-			// count
-			if(!project_map.contains(current_project)) project_map.insert(current_project,0);
-			++project_map[current_project];
-		}
-
-		int somatic_count = 0;
-		QList<QByteArray> somatic_projects;
-		for(auto it=project_map.cbegin(); it!=project_map.cend(); ++it)
-		{
-			somatic_count += it.value();
-			somatic_projects << it.key();
-		}
-		v.annotations()[som_ihdb_c_idx] = QByteArray::number(somatic_count);
-		v.annotations()[som_ihdb_p_idx] = somatic_projects.join(",");
-	}
-}
-
 
 void NGSD::setValidationStatus(const QString& filename, const Variant& variant, const ValidationInfo& info, QString user_name)
 {
@@ -1997,160 +1782,6 @@ QString NGSD::nextProcessingId(const QString& sample_id)
 	QString max_num = getValue("SELECT MAX(process_id) FROM processed_sample WHERE sample_id=" + sample_id).toString();
 
 	return max_num.isEmpty() ? "1" : QString::number(max_num.toInt()+1);
-}
-
-void NGSD::precalculateGenotypeCounts(QTextStream* messages, int progress_interval)
-{
-	//init
-	QTime timer_overall;
-	timer_overall.start();
-	int deleted = 0;
-	QStringList disease_groups = getEnum("sample", "disease_group");
-
-	//prepare heavily used queries
-	SqlQuery query_vars = getQuery();
-	query_vars.prepare("SELECT s.id, s.disease_status, s.disease_group, dv.genotype FROM detected_variant dv, processed_sample ps, sample s WHERE dv.variant_id=:0 AND ps.sample_id=s.id AND dv.processed_sample_id=ps.id");
-	SqlQuery query_counts = getQuery();
-	query_counts.prepare("INSERT INTO detected_variant_counts (variant_id, count_het, count_hom) VALUES (:0,:1,:2) ON DUPLICATE KEY UPDATE count_het=VALUES(count_het),count_hom=VALUES(count_hom)");
-	SqlQuery query_counts_by_group = getQuery();
-	query_counts_by_group.prepare("INSERT INTO detected_variant_counts_by_group (variant_id, disease_group, count_hom, count_het) VALUES (:0,:1,:2,:3)");
-
-	//get same sample information
-	QHash<int, QList<int>> same_samples;
-	SqlQuery query = getQuery();
-	query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation='same sample'");
-	while (query.next())
-	{
-		int sample1_id = query.value(0).toInt();
-		int sample2_id = query.value(1).toInt();
-		same_samples[sample1_id] << sample2_id;
-		same_samples[sample2_id] << sample1_id;
-	}
-
-	//get variant IDs
-	query = getQuery();
-	query.exec("SELECT id FROM variant");
-	int variant_count = query.size();
-	if (messages)
-	{
-		(*messages) << Helper::dateTime() << "\tstarting processing of " << variant_count << " variants" << endl;
-	}
-
-	//process
-	QTime timer;
-	timer.start();
-	int i = 0;
-	while(query.next())
-	{
-		QString var_id = query.value(0).toByteArray();
-
-		//count variants
-		int count_het = 0;
-		int count_hom = 0;
-		//counts per group/status
-		QHash<QString, int> hom_per_group;
-		QHash<QString, int> het_per_group;
-		QSet<int> samples_done_het;
-		QSet<int> samples_done_hom;
-		query_vars.bindValue(0, var_id);
-		query_vars.exec();
-		while(query_vars.next())
-		{
-			//use sample ID to prevent counting variants several times if a sample was sequenced more than once.
-			int sample_id = query_vars.value(0).toInt();
-
-			if (query_vars.value(3)=="het" && !samples_done_het.contains(sample_id))
-			{
-				++count_het;
-				samples_done_het << sample_id;
-
-				QList<int> tmp = same_samples.value(sample_id, QList<int>());
-				foreach(int same_sample_id, tmp)
-				{
-					samples_done_het << same_sample_id;
-				}
-
-				if (query_vars.value(1)=="Affected")
-				{
-					het_per_group[query_vars.value(2).toString()] += 1;
-				}
-			}
-			if (query_vars.value(3)=="hom" && !samples_done_hom.contains(sample_id))
-			{
-				++count_hom;
-				samples_done_hom << sample_id;
-
-				QList<int> tmp = same_samples.value(sample_id, QList<int>());
-				foreach(int same_sample_id, tmp)
-				{
-					samples_done_hom << same_sample_id;
-				}
-
-				if (query_vars.value(1)=="Affected")
-				{
-					hom_per_group[query_vars.value(2).toString()] += 1;
-				}
-			}
-		}
-
-		//update counts table
-		query_counts.bindValue(0, var_id);
-		query_counts.bindValue(1, count_het);
-		query_counts.bindValue(2, count_hom);
-		query_counts.exec();
-
-		//update counts by group table
-		getQuery().exec("DELETE FROM `detected_variant_counts_by_group` WHERE variant_id=" + var_id);
-		foreach(const QString& group, disease_groups)
-		{
-			if (group=="n/a") continue;
-
-			int hom_group = hom_per_group.value(group, 0);
-			int het_group = het_per_group.value(group, 0);
-			if (hom_group!=0 || het_group!=0)
-			{
-				query_counts_by_group.bindValue(0, var_id);
-				query_counts_by_group.bindValue(1, group);
-				query_counts_by_group.bindValue(2, hom_group);
-				query_counts_by_group.bindValue(3, het_group);
-				query_counts_by_group.exec();
-			}
-		}
-
-		//delete variants that are not used
-		if (count_het==0 && count_hom==0)
-		{
-			int used = getValue("SELECT COUNT(*) FROM detected_somatic_variant WHERE variant_id='" + var_id + "'").toInt();
-			if (used==0) used += getValue("SELECT COUNT(*) FROM variant_validation WHERE variant_id='" + var_id + "'").toInt();
-			if (used==0) used += getValue("SELECT COUNT(*) FROM variant_classification WHERE variant_id='" + var_id + "'").toInt();
-			if (used==0) used += getValue("SELECT COUNT(*) FROM report_configuration_variant WHERE variant_id='" + var_id + "'").toInt();
-			if (used==0)
-			{
-				getQuery().exec("DELETE FROM `detected_variant_counts` WHERE variant_id='" + var_id + "'");
-				getQuery().exec("DELETE FROM `variant` WHERE id='" + var_id + "'");
-				++deleted;
-			}
-		}
-
-		//print progress
-		++i;
-		if (progress_interval>0 && (i%progress_interval)==0)
-		{
-			if (messages)
-			{
-				(*messages) << Helper::dateTime() << "\tprogress: variant " << i << " / " << variant_count << " - deleted " << deleted << " - took " << Helper::elapsedTime(timer) << endl;
-				timer.restart();
-			}
-		}
-	}
-
-	//final message
-	if (messages)
-	{
-		(*messages) << Helper::dateTime() << "\tfinished processing " << variant_count << " variants" << endl;
-		(*messages) << Helper::dateTime() << "\tdeleted " << deleted << " variants" << endl;
-		(*messages) << Helper::dateTime() << "\ttook " << Helper::elapsedTime(timer_overall) << endl;
-	}
 }
 
 QStringList NGSD::getEnum(QString table, QString column)

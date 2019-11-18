@@ -1,6 +1,0 @@
-#chr	start	end	ref	obs	genotype	snp_q	depth	map_q	variant	variant_frequency	region	gene	variant_details	coding_and_splicing_details	1000g_2012feb	dbSNP_137	ljb2_phylop	ljb2_mt	ljb2_sift	ljb2_pp2hvar	ljb2_pp2hdiv	esp6500si_ea	cosmic64	RepeatMasker	OMIM	ClinVar
-chr1	62728784	62728784	A	G	hom	222	386	60	SNV	1	exonic	KANK4	nonsynonymous SNV	KANK4:NM_181712:exon7:c.T2519C:p.V840A,	0.72	rs2666472 [];	-0.8140	0.0038	0.2200	0.0600	0.0680	0.7338				
-chr1	62728838	62728838	T	C	hom	222	238	60	SNV	0.9958	exonic	KANK4	nonsynonymous SNV	KANK4:NM_181712:exon7:c.A2465G:p.H822R,	0.72	rs2258470 [];	0.6280	0.0000	0.2100	0.0000	0.0000	0.7340				
-chr2	48032740	48032740	-	T	het	196	74	60	INDEL	0.4324	intronic	MSH6														
-chr3	142277575	142277575	A	T	hom	222	162	60	SNV	0.9877	exonic	ATR	synonymous SNV	ATR:NM_001184:exon8:c.T1776A:p.G592G,	0.62	rs2227930 [];						0.5950	149486 [1(stomach)]; 		601215 [Ataxia-telangiectasia and Rad3-related (FRAP-related protein-1) - Seckel syndrome 1, 210600 (3)];	
-chr15	40993975	40993976	TT	-	hom	5.1	8	60	INDEL	1	intronic	RAD51				rs71104727 [];								2419		

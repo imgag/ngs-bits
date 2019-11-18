@@ -27,7 +27,6 @@
 #include <QChartView>
 QT_CHARTS_USE_NAMESPACE
 #include "ReportWorker.h"
-#include "DBAnnotationWorker.h"
 #include "ScrollableTextDialog.h"
 #include "AnalysisStatusWidget.h"
 #include "HttpHandler.h"
@@ -336,36 +335,6 @@ void MainWindow::on_actionGeneSelector_triggered()
 			openSubpanelDesignDialog(dlg.genesForVariants());
 		}
 	}
-}
-
-void MainWindow::on_actionNGSDAnnotation_triggered()
-{
-	if (variants_.count()==0) return;
-
-	//check disease information present
-	NGSD db;
-	QString sample_id = db.sampleId(processedSampleName(), false);
-	if (sample_id!="")
-	{
-		DiseaseInfoWidget* widget = new DiseaseInfoWidget(sample_id, this);
-		auto dlg = GUIHelper::createDialog(widget, "Disease information", "", true);
-		if (widget->diseaseInformationMissing() && dlg->exec()==QDialog::Accepted)
-		{
-			db.setSampleDiseaseData(sample_id, widget->diseaseGroup(), widget->diseaseStatus());
-		}
-	}
-
-	//show NGSD annotation dialog
-	NGSDReannotationDialog dlg(ui_.filters->targetRegion(), this);
-	if (!dlg.exec()) return;
-
-	//show busy dialog
-	busy_dialog_ = new BusyDialog("Database annotation", this);
-
-	//start worker
-	DBAnnotationWorker* worker = new DBAnnotationWorker(processedSampleName(), variants_, busy_dialog_, dlg.roiFile(), dlg.maxAlleleFrequency());
-	connect(worker, SIGNAL(finished(bool)), this, SLOT(databaseAnnotationFinished(bool)));
-	worker->start();
 }
 
 void MainWindow::on_actionGeneVariantInfo_triggered()
@@ -752,12 +721,6 @@ void MainWindow::editVariantComment()
 		{
 			//update DB
 			db.setComment(variant, text);
-
-			//get annotation text (from NGSD to get comments of other samples as well)
-			VariantList tmp;
-			tmp.append(variant);
-			db.annotate(tmp, processedSampleName());
-			text = tmp[0].annotations()[tmp.annotationIndexByName("comment", true, true)];
 
 			//update datastructure (if comment column is present)
 			int col_index = variants_.annotationIndexByName("comment", true, false);
@@ -2208,37 +2171,6 @@ void MainWindow::reportGenerationFinished(bool success)
 	else
 	{
 		QMessageBox::warning(this, "Error", "Report generation failed:\n" + worker->errorMessage());
-	}
-
-	//clean
-	worker->deleteLater();
-}
-
-void MainWindow::databaseAnnotationFinished(bool success)
-{
-	delete busy_dialog_;
-
-	//show result info box
-	DBAnnotationWorker* worker = qobject_cast<DBAnnotationWorker*>(sender());
-	if (success)
-	{
-		db_annos_updated_ = worker->targetRegionOnly() ? ROI : YES;
-		refreshVariantTable();
-		storeCurrentVariantList();
-	}
-	else
-	{
-		QMessageBox::warning(this, "Error", "Database annotation failed:\n" + worker->errorMessage());
-	}
-
-	//update variant details widget
-	try
-	{
-		ui_.variant_details->setLabelTooltips(variants_);
-	}
-	catch(Exception& e)
-	{
-		QMessageBox::warning(this, "Outdated GSvar file", "The GSvar file contains the following error:\n" + e.message() + "\n\nTo ensure that GSvar works as expected, re-run the analysis starting from annotation!");
 	}
 
 	//clean
@@ -3763,7 +3695,6 @@ void MainWindow::updateNGSDSupport()
 
 	//toolbar
 	ui_.report_btn->setEnabled(ngsd_enabled_);
-	ui_.actionNGSDAnnotation->setEnabled(ngsd_enabled_);
 	ui_.actionAnalysisStatus->setEnabled(ngsd_enabled_);
 	ui_.actionReanalyze->setEnabled(ngsd_enabled_);
 	ui_.actionGapsRecalculate->setEnabled(ngsd_enabled_);

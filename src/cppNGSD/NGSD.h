@@ -440,6 +440,8 @@ public:
 	QString variantId(const Variant& variant, bool throw_if_fails = true);
 	///Returns the variant corresponding to the given identifier or throws an exception if the ID does not exist.
 	Variant variant(const QString& variant_id);
+	///Returns the number of het/hom occurances of the variant in the NGSD (only one occurance per samples is counted).
+	QPair<int, int> variantCounts(const QString& variant_id);
 
 	///Adds a CNV to the NGSD. Returns the CNV ID.
 	QString addCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList& cnv_list, double max_ll = 0.0);
@@ -478,13 +480,6 @@ public:
 	QVector<double> getQCValues(const QString& accession, const QString& processed_sample_id);
 	///Returns the next processing ID for the given sample.
 	QString nextProcessingId(const QString& sample_id);
-
-	///Precalcualtes genotype counts for all variants.
-	void precalculateGenotypeCounts(QTextStream* messages = nullptr, int progress_interval = -1);
-	///Annotates (or re-annotates) the variant list with current NGSD information. If @p roi is non-empty, only the variants in the target region are annotated. If max_af is greater than 0, only variants with AF<=cutoff are annotated.
-	void annotate(VariantList& variants, QString ps_name, BedFile roi = BedFile(), double max_af = 0.0);
-	///Annotates (or re-annotates) the variant list with current (somatic) NGSD information.
-	void annotateSomatic(VariantList& variants, QString filename);
 
 	///Returns validation status information
 	ValidationInfo getValidationStatus(const QString& filename, const Variant& variant);

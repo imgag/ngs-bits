@@ -388,27 +388,6 @@ private slots:
 		S_EQUAL(ginfo.inheritance, "AD");
 		S_EQUAL(ginfo.comments, "comment");
 
-		//precalculateGenotypeCounts
-		messages.clear();
-		db.precalculateGenotypeCounts(&stream, 50);
-		I_EQUAL(db.getValue("SELECT count_hom FROM detected_variant_counts WHERE variant_id=2336993").toInt(), 0);
-		I_EQUAL(db.getValue("SELECT count_het FROM detected_variant_counts WHERE variant_id=2336993").toInt(), 1);
-		I_EQUAL(db.getValue("SELECT count_hom FROM detected_variant_counts WHERE variant_id=2346586").toInt(), 2);
-		I_EQUAL(db.getValue("SELECT count_het FROM detected_variant_counts WHERE variant_id=2346586").toInt(), 1);
-		I_EQUAL(db.getValue("SELECT count_hom FROM detected_variant_counts WHERE variant_id=2407544").toInt(), 0);
-		I_EQUAL(db.getValue("SELECT count_het FROM detected_variant_counts WHERE variant_id=2407544").toInt(), 2);
-		//by group
-		I_EQUAL(db.getValue("SELECT COUNT(*) FROM detected_variant_counts_by_group").toInt(), 2);
-		I_EQUAL(db.getValue("SELECT count_hom FROM detected_variant_counts_by_group WHERE variant_id=2346586 AND disease_group='Neoplasms'").toInt(), 1);
-		I_EQUAL(db.getValue("SELECT count_het FROM detected_variant_counts_by_group WHERE variant_id=2346586 AND disease_group='Neoplasms'").toInt(), 0);
-		I_EQUAL(db.getValue("SELECT count_hom FROM detected_variant_counts_by_group WHERE variant_id=2407544 AND disease_group='Neoplasms'").toInt(), 0);
-		I_EQUAL(db.getValue("SELECT count_het FROM detected_variant_counts_by_group WHERE variant_id=2407544 AND disease_group='Neoplasms'").toInt(), 1);
-		//messages
-		foreach(QString message,  messages.split("\n"))
-		{
-			//qDebug() << message;
-		}
-
 		//approvedGeneNames
 		GeneSet approved = db.approvedGeneNames();
 		I_EQUAL(approved.count(), 8);
@@ -662,6 +641,14 @@ private slots:
 
 		//variant
 		IS_TRUE(db.variant(var_id)==vl[0]);
+
+		//variantCounts
+		QPair<int, int> ngsd_counts = db.variantCounts(db.variantId(Variant("chr10",43613843,43613843,"G","T")));
+		I_EQUAL(ngsd_counts.first, 0);
+		I_EQUAL(ngsd_counts.second, 1);
+		ngsd_counts = db.variantCounts(db.variantId(Variant("chr17",7579472,7579472,"G","C")));
+		I_EQUAL(ngsd_counts.first, 1);
+		I_EQUAL(ngsd_counts.second, 0);
 
 		//getSampleDiseaseInfo
 		sample_id = db.sampleId("NA12878");

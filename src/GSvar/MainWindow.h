@@ -136,8 +136,6 @@ public slots:
 	void on_actionSV_triggered();
 	///Open gene picker dialog
 	void on_actionGeneSelector_triggered();
-	///Open NGSD annotation dialog.
-	void on_actionNGSDAnnotation_triggered();
 	///Open gene variant info check dialog.
 	void on_actionGeneVariantInfo_triggered();
 	///Open folder of variant list in explorer.
@@ -180,8 +178,6 @@ public slots:
 	///Finished the report generation (germline)
 	void reportGenerationFinished(bool success);
 
-	///Finished NGSD annotation
-	void databaseAnnotationFinished(bool success);
 	///Shows the variant list context menu
 	void varsContextMenu(QPoint pos);
 	///Shows the variant header context menu
