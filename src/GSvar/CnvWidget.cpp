@@ -537,7 +537,7 @@ void CnvWidget::proposeQualityIfUnset()
 	double hq_cnvs = cnvs_.qcMetric("high-quality cnvs").toDouble();
 	if (hq_cnvs> mean + 2.5*stdev)
 	{
-		errors << "Number of high-quality CNVs is too high (median: " + QString::number(mean, 'f', 2) + " / stdev: " + QString::number(mean, 'f', 2) + ")";
+		errors << "Number of high-quality CNVs is too high (median: " + QString::number(mean, 'f', 2) + " / stdev: " + QString::number(stdev, 'f', 2) + ")";
 	}
 
 	if(errors.count()==0)
