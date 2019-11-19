@@ -836,6 +836,12 @@ private slots:
 		S_EQUAL(db.getValue("SELECT cn FROM cnv WHERE id="+cnv_id).toString(), "1");
 		S_EQUAL(db.getValue("SELECT quality_metrics FROM cnv WHERE id="+cnv_id).toString(), "{\"region_zscores\":\"-4.48,-3.45,-4.27\",\"regions\":\"3\"}");
 		S_EQUAL(cnv_id, "6");
+
+		//cnvCallsetMetrics (of sample)
+		QHash<QString, QString> callset_metrics = db.cnvCallsetMetrics(1);
+		I_EQUAL(callset_metrics.count(), 6);
+		S_EQUAL(callset_metrics["gender of sample"], "M");
+		S_EQUAL(callset_metrics["number of iterations"], "1");
 	}
 
 	//Test for debugging (without initialization because of speed)

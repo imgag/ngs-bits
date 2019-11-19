@@ -16,13 +16,9 @@ NGSD:
     - sample: import disease group/status from GenLab (sample - disease status: add 'Unclear') - select * FROM v_krankheitsgruppe_pattyp...
 ** Add run overview dialog/tab
 - Allow several disease_groups per sample (requested by CS)
-**** NGSD annotation (LS)
-    - export VCF, use VCF for annotation
-    - remove
-        - remove tables 'detected_variant_counts' and 'detected_variant_counts_by_group'
-        - check megSAP after final merge
 
 GSvar:
+######## CNV report: add class, inheritance
 ### Trio report: generate XML for parents (no gaps, ...) possible? > FEEDBACK ANNE
 ** add visualization of NGSD CNVs (or annotation of CNVs):
     - # overlapping CNVs (by type gain/loss)

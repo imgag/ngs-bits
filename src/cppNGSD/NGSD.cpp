@@ -1469,6 +1469,20 @@ QString NGSD::analysisJobFolder(int job_id)
 	return output;
 }
 
+QHash<QString, QString> NGSD::cnvCallsetMetrics(int callset_id)
+{
+	QHash<QString, QString> output;
+
+	QByteArray metrics_string = getValue("SELECT quality_metrics FROM cnv_callset WHERE id=" + QString::number(callset_id), false).toByteArray();
+	QJsonDocument qc_metrics = QJsonDocument::fromJson(metrics_string);
+	foreach(const QString& key, qc_metrics.object().keys())
+	{
+		output[key] = qc_metrics.object().take(key).toString().trimmed();
+	}
+
+	return output;
+}
+
 QVector<double> NGSD::cnvCallsetMetrics(QString processing_system_id, QString metric_name)
 {
 	QVector<double> output;

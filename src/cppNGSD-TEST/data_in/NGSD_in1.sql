@@ -420,7 +420,7 @@ INSERT INTO `sample_disease_info`(`id`, `sample_id`, `disease_info`, `type`, `us
 
 -- cnv_callset
 INSERT INTO `cnv_callset` (`id`, `processed_sample_id`, `caller`, `caller_version`, `call_date`, `quality_metrics`, `quality`) VALUES
-(1, 3999, 'ClinCNV', 'v 1.16.1', '2019-10-20T09:55:01', null, 'good');
+(1, 3999, 'ClinCNV', 'v 1.16.1', '2019-10-20T09:55:01', '{"fraction of outliers":"0.052","gender of sample":"M","high-quality cnvs":"127","number of iterations":"1","quality used at final iteration":"20","was it outlier after clustering":"FALSE"}', 'good');
 
 -- cnv
 INSERT INTO `cnv` (`id`, `cnv_callset_id`, `chr`, `start`, `end`, `cn`) VALUES

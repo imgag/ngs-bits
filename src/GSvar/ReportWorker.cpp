@@ -1156,7 +1156,8 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 	w.writeAttribute("cnv_caller", cnvs_.callerAsString());
 	w.writeAttribute("overall_number", QString::number(cnvs_.count()));
 	w.writeAttribute("genome_build", "hg19");
-	QString cnv_calling_quality =db_.getValue("SELECT quality FROM cnv_callset WHERE processed_sample_id=" + ps_id, true, "n/a").toString();
+	QString cnv_calling_quality = db_.getValue("SELECT quality FROM cnv_callset WHERE processed_sample_id=" + ps_id, true).toString();
+	if (cnv_calling_quality.trimmed()=="") cnv_calling_quality="n/a";
 	w.writeAttribute("quality", cnv_calling_quality);
 	if(cnvs_.caller()==CnvCallerType::CLINCNV)
 	{

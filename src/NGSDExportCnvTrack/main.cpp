@@ -39,6 +39,7 @@ public:
 		addFloat("min_af", "Minimum allele frequency of output CNV ranges.", true, 0.01);
 		addOutfile("stats", "Statistics and logging output. If unset, writes to STDOUT", true);
 		addFlag("test", "Uses the test database instead of on the production database.");
+		addFlag("skip_males", "Skips males (PAR region is not correctly handled for males in ClinCNV"); //TODO remove when ClinCNV bug is fixed and the database is updated
 
 		changeLog(2019, 10, 21, "First version");
 	}
@@ -77,6 +78,7 @@ public:
 		double max_cnvs = getFloat("max_cnvs");
 		double min_af = getFloat("min_af");
 		if (max_cnvs==0.0) max_cnvs = std::numeric_limits<double>::max();
+		bool skip_males = getFlag("skip_males");
 
 		//check that system is valid
 		QVariant tmp = db.getValue("SELECT id FROM processing_system WHERE name_short=:0", true, system).toString();
@@ -100,7 +102,7 @@ public:
 			//processed sample name
 			QString ps = db.processedSampleName(db.getValue("SELECT processed_sample_id FROM cnv_callset WHERE id='" + cs_id + "'").toString());
 
-			//stats
+			//depth
 			QVariant depth = db.getValue("SELECT qc.value FROM processed_sample_qc qc, qc_terms t, cnv_callset cs WHERE t.id=qc.qc_terms_id AND t.qcml_id='QC:2000025' AND cs.processed_sample_id=qc.processed_sample_id AND cs.id='" + cs_id + "'");
 			if (!depth.isNull())
 			{
@@ -117,12 +119,25 @@ public:
 					stats_depth << depth_val;
 				}
 			}
+
+			//CNV count
 			int cnv_count = db.getValue("SELECT count(*) FROM cnv WHERE cnv_callset_id=" + cs_id).toInt();
 			if (cnv_count>max_cnvs)
 			{
 				stream2 << "Skipping sample " << ps << " - CNV count (" << cnv_count << ") is higher than " << max_cnvs << "!\n";
 				skip[i] = true;
 				continue;
+			}
+
+			//gender
+			if (skip_males)
+			{
+				QHash<QString, QString> metrics = db.cnvCallsetMetrics(cs_id.toInt());
+				if (metrics.contains("gender of sample") && metrics["gender of sample"].trimmed()=="M")
+				{
+					stream2 << "Skipping sample " << ps << " - the sample is male!\n";
+					skip[i] = true;
+				}
 			}
 			stats_cnvs  << cnv_count;
 		}
