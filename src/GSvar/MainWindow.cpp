@@ -1978,7 +1978,7 @@ QString MainWindow::exclusionCriteria(const ReportVariantConfiguration& conf)
 
 void MainWindow::generateReport()
 {
-	if (variants_.count()==0) return;
+	if (variants_.count()==0 && cnvs_.count()==0) return;
 
 	if (report_settings_.report_config.isModified())
 	{

@@ -18,7 +18,6 @@ NGSD:
 - Allow several disease_groups per sample (requested by CS)
 
 GSvar:
-######## CNV report: add class, inheritance
 ### Trio report: generate XML for parents (no gaps, ...) possible? > FEEDBACK ANNE
 ** add visualization of NGSD CNVs (or annotation of CNVs):
     - # overlapping CNVs (by type gain/loss)

@@ -599,16 +599,14 @@ void ReportWorker::writeHTML()
 		const Variant& variant = variants_[var_conf.variant_index];
 		if (file_roi_!="" && !roi_.overlapsWith(variant.chr(), variant.start(), variant.end())) continue;
 
-		GeneSet genes = GeneSet::createFromText(variant.annotations()[i_gene], ',');
 		stream << "<tr>" << endl;
 		stream << "<td>" << endl;
 		stream  << variant.chr().str() << ":" << variant.start() << "&nbsp;" << variant.ref() << "&nbsp;&gt;&nbsp;" << variant.obs() << "</td>";
-		QStringList geno_info;
-		geno_info << formatGenotype(processed_sample_data.gender.toLatin1(), variant.annotations().at(i_genotype), variant);
-		if (var_conf.de_novo) geno_info << "de-novo";
-		if (var_conf.mosaic) geno_info << "mosaic";
-		if (var_conf.comp_het) geno_info << "comp-het";
-		stream << "<td>" << geno_info.join(", ") << "</td>" << endl;
+		QString geno = formatGenotype(processed_sample_data.gender.toLatin1(), variant.annotations().at(i_genotype), variant);
+		if (var_conf.de_novo) geno += " (de-novo)";
+		if (var_conf.mosaic) geno += " (mosaic)";
+		if (var_conf.comp_het) geno += " (comp-het)";
+		stream << "<td>" << geno << "</td>" << endl;
 		if (is_trio)
 		{
 			stream << "<td>" << formatGenotype("male", variant.annotations().at(info_father.column_index), variant) << "</td>";
@@ -616,6 +614,7 @@ void ReportWorker::writeHTML()
 		}
 
 		stream << "<td>";
+		GeneSet genes = GeneSet::createFromText(variant.annotations()[i_gene], ',');
 		for(int i=0; i<genes.count(); ++i)
 		{
 			QByteArray sep = (i==0 ? "" : ", ");
@@ -664,7 +663,7 @@ void ReportWorker::writeHTML()
 	//CNVs
 	stream << "<br>" << endl;
 	stream << "<table>" << endl;
-	stream << "<tr><td><b>" << trans("CNV") << "</b></td><td><b>" << trans("Regionen") << "</b></td><td><b>" << trans("CN") << "</b></td><td><b>" << trans("Gen(e)") << "</b></td></tr>" << endl;
+	stream << "<tr><td><b>" << trans("CNV") << "</b></td><td><b>" << trans("Regionen") << "</b></td><td><b>" << trans("CN") << "</b></td><td><b>" << trans("Gen(e)") << "</b><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td></td></tr>" << endl;
 
 	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config.variantConfig())
 	{
@@ -677,8 +676,15 @@ void ReportWorker::writeHTML()
 		stream << "<tr>" << endl;
 		stream << "<td>" << cnv.toString() << "</td>" << endl;
 		stream << "<td>" << cnv.regions() << "</td>" << endl;
-		stream << "<td>" << cnv.copyNumber(cnvs_.annotationHeaders()) << "</td>" << endl;
+
+		QString cn = QString::number(cnv.copyNumber(cnvs_.annotationHeaders()));
+		if (var_conf.de_novo) cn += " (de-novo)";
+		if (var_conf.mosaic) cn += " (mosaic)";
+		if (var_conf.comp_het) cn += " (comp-het)";
+		stream << "<td>" << cn << "</td>" << endl;
 		stream << "<td>" << cnv.genes().join(", ") << "</td>" << endl;
+		stream << "<td>" << var_conf.classification << "</td>" << endl;
+		stream << "<td>" << var_conf.inheritance << "</td>" << endl;
 		stream << "</tr>" << endl;
 	}
 	stream << "</table>" << endl;
