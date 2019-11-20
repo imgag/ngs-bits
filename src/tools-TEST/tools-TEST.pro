@@ -58,7 +58,6 @@ HEADERS += \
     FastqFormat_Test.h \
     ReadQC_Test.h \
     BedToFasta_Test.h \
-    VariantAnnotateNGSD_Test.h \
     VariantFilterRegions_Test.h \
     FastqMidParser_Test.h \
     FastqTrim_Test.h \
@@ -109,7 +108,8 @@ HEADERS += \
     NGSDAddVariantsGermline_Test.h \
     NGSDExportAnnotationData_Test.h \
     VcfAnnotateFromVcf_Test.h \
-    NGSDExportCnvTrack_Test.h
+    NGSDExportCnvTrack_Test.h \
+    CnvGeneAnnotation_Test.h
 
 SOURCES += \
     main.cpp

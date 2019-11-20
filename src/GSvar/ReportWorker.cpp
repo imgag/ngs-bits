@@ -23,12 +23,13 @@
 
 
 
-ReportWorker::ReportWorker(QString sample_name, QString file_bam, QString file_roi, const VariantList& variants, const FilterCascade& filters, ReportSettings settings, QStringList log_files, QString file_rep)
+ReportWorker::ReportWorker(QString sample_name, QString file_bam, QString file_roi, const VariantList& variants, const CnvList& cnvs, const FilterCascade& filters, ReportSettings settings, QStringList log_files, QString file_rep)
 	: WorkerBase("Report generation")
 	, sample_name_(sample_name)
 	, file_bam_(file_bam)
 	, file_roi_(file_roi)
 	, variants_(variants)
+	, cnvs_(cnvs)
 	, filters_(filters)
 	, settings_(settings)
 	, log_files_(log_files)
@@ -350,7 +351,7 @@ BedFile ReportWorker::precalculatedGaps(QString bam_file, const BedFile& roi, in
 	//For WGS there is nothing more to check
 	QString processed_sample_id = db.processedSampleId(bam_file);
 	ProcessingSystemData system_data = db.getProcessingSystemData(processed_sample_id, true);
-	if (system_data.type=="WGS")
+	if (system_data.type=="WGS" || system_data.type=="WGS (shallow)")
 	{
 		return gaps;
 	}
@@ -493,6 +494,7 @@ void ReportWorker::writeHTML()
 	stream << "<br />" << endl;
 	stream << "<br />" << trans("Geschlecht") << ": " << processed_sample_data.gender << endl;
 	stream << "<br />" << trans("Prozessierungssystem") << ": " << processed_sample_data.processing_system << endl;
+	stream << "<br />" << trans("Prozessierungssystem-Typ") << ": " << processed_sample_data.processing_system_type << endl;
 	stream << "<br />" << trans("Referenzgenom") << ": " << system_data.genome << endl;
 	stream << "<br />" << trans("Datum") << ": " << QDate::currentDate().toString("dd.MM.yyyy") << endl;
 	stream << "<br />" << trans("Benutzer") << ": " << Helper::userName() << endl;
@@ -550,36 +552,55 @@ void ReportWorker::writeHTML()
 
 	//output: applied filters
 	stream << "<p><b>" << trans("Filterkriterien") << " " << "</b>" << endl;
-	stream << "<br />" << trans("Gefundene Varianten in Zielregion gesamt") << ": " << var_count_ << endl;
-	stream << "<br />" << trans("Anzahl Varianten ausgew&auml;hlt f&uuml;r Report") << ": " << settings_.report_config.variantIndices(VariantType::SNVS_INDELS, true, settings_.report_type).count() << endl;
 	for(int i=0; i<filters_.count(); ++i)
 	{
 		stream << "<br />&nbsp;&nbsp;&nbsp;&nbsp;- " << filters_[i]->toText() << endl;
 	}
+	stream << "<br />" << trans("Gefundene Varianten in Zielregion gesamt") << ": " << var_count_ << endl;
+	int selected_var_count = 0;
+	foreach(int index, settings_.report_config.variantIndices(VariantType::SNVS_INDELS, true, settings_.report_type))
+	{
+		const Variant & variant = variants_[index];
+		if (file_roi_!="" && roi_.overlapsWith(variant.chr(), variant.start(), variant.end()))
+		{
+			++selected_var_count;
+		}
+	}
+	stream << "<br />" << trans("Anzahl Varianten ausgew&auml;hlt f&uuml;r Report") << ": " << selected_var_count << endl;
+	int selected_cnv_count = 0;
+	foreach(int index, settings_.report_config.variantIndices(VariantType::CNVS, true, settings_.report_type))
+	{
+		const CopyNumberVariant& cnv = cnvs_[index];
+		if (file_roi_!="" && roi_.overlapsWith(cnv.chr(), cnv.start(), cnv.end()))
+		{
+			++selected_cnv_count;
+		}
+	}
+	stream << "<br />" << trans("Anzahl CNVs ausgew&auml;hlt f&uuml;r Report") << ": " << selected_cnv_count << endl;
 	stream << "</p>" << endl;
 
 	//output: selected variants
 	stream << "<p><b>" << trans("Varianten nach klinischer Interpretation im Kontext der Fragestellung") << "</b>" << endl;
 	stream << "</p>" << endl;
 	stream << "<table>" << endl;
-	stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Variante") << "</b></td><td><b>" << trans("Genotyp") << "</b></td>";
+	stream << "<tr><td><b>" << trans("Variante") << "</b></td><td><b>" << trans("Genotyp") << "</b></td>";
 	if (is_trio)
 	{
 		stream << "<td><b>" << trans("Vater") << "</b></td>";
 		stream << "<td><b>" << trans("Mutter") << "</b></td>";
 	}
-	stream << "<td><b>" << trans("Details") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td><td><b>1000g</b></td><td><b>gnomAD</b></td></tr>" << endl;
+	stream << "<td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Details") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td><td><b>1000g</b></td><td><b>gnomAD</b></td></tr>" << endl;
 
 	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config.variantConfig())
 	{
 		if (var_conf.variant_type!=VariantType::SNVS_INDELS) continue;
 		if (!var_conf.showInReport()) continue;
 		if (var_conf.report_type!=settings_.report_type) continue;
-
 		const Variant& variant = variants_[var_conf.variant_index];
-		QByteArray genes = variant.annotations()[i_gene];
+		if (file_roi_!="" && !roi_.overlapsWith(variant.chr(), variant.start(), variant.end())) continue;
+
+		GeneSet genes = GeneSet::createFromText(variant.annotations()[i_gene], ',');
 		stream << "<tr>" << endl;
-		stream << "<td>" << genes << "</td>" << endl;
 		stream << "<td>" << endl;
 		stream  << variant.chr().str() << ":" << variant.start() << "&nbsp;" << variant.ref() << "&nbsp;&gt;&nbsp;" << variant.obs() << "</td>";
 		QStringList geno_info;
@@ -593,6 +614,21 @@ void ReportWorker::writeHTML()
 			stream << "<td>" << formatGenotype("male", variant.annotations().at(info_father.column_index), variant) << "</td>";
 			stream << "<td>" << formatGenotype("female", variant.annotations().at(info_mother.column_index), variant) << "</td>";
 		}
+
+		stream << "<td>";
+		for(int i=0; i<genes.count(); ++i)
+		{
+			QByteArray sep = (i==0 ? "" : ", ");
+			QByteArray gene = genes[i].trimmed();
+			QString inheritance = "";
+			GeneInfo gene_info = db_.geneInfo(gene);
+			if (gene_info.inheritance!="" && gene_info.inheritance!="n/a")
+			{
+				inheritance = " (" + gene_info.inheritance + ")";
+			}
+			stream << sep << gene << inheritance << endl;
+		}
+		stream << "</td>" << endl;
 		stream << "<td>" << formatCodingSplicing(variant.transcriptAnnotations(i_co_sp)) << "</td>" << endl;
 		stream << "<td>" << variant.annotations().at(i_class) << "</td>" << endl;
 		stream << "<td>" << var_conf.inheritance << "</td>" << endl;
@@ -622,6 +658,28 @@ void ReportWorker::writeHTML()
 			}
 			stream << "<tr><td colspan=\"" << (is_trio ? "10" : "8") << "\">" << parts.join("<br />") << "</td></tr>" << endl;
 		}
+	}
+	stream << "</table>" << endl;
+
+	//CNVs
+	stream << "<br>" << endl;
+	stream << "<table>" << endl;
+	stream << "<tr><td><b>" << trans("CNV") << "</b></td><td><b>" << trans("Regionen") << "</b></td><td><b>" << trans("CN") << "</b></td><td><b>" << trans("Gen(e)") << "</b></td></tr>" << endl;
+
+	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config.variantConfig())
+	{
+		if (var_conf.variant_type!=VariantType::CNVS) continue;
+		if (!var_conf.showInReport()) continue;
+		if (var_conf.report_type!=settings_.report_type) continue;
+		const CopyNumberVariant& cnv = cnvs_[var_conf.variant_index];
+		if (file_roi_!="" && !roi_.overlapsWith(cnv.chr(), cnv.start(), cnv.end())) continue;
+
+		stream << "<tr>" << endl;
+		stream << "<td>" << cnv.toString() << "</td>" << endl;
+		stream << "<td>" << cnv.regions() << "</td>" << endl;
+		stream << "<td>" << cnv.copyNumber(cnvs_.annotationHeaders()) << "</td>" << endl;
+		stream << "<td>" << cnv.genes().join(", ") << "</td>" << endl;
+		stream << "</tr>" << endl;
 	}
 	stream << "</table>" << endl;
 
@@ -843,6 +901,7 @@ QString ReportWorker::trans(const QString& text) const
 		de2en["Technischer Report zur bioinformatischen Analyse"] = "Technical Report for Bioinformatic Analysis";
 		de2en["Probe"] = "Sample";
 		de2en["Prozessierungssystem"] = "Processing system";
+		de2en["Prozessierungssystem-Typ"] = "Processing system type";
 		de2en["Referenzgenom"] = "Reference genome";
 		de2en["Datum"] = "Date";
 		de2en["Benutzer"] = "User";
@@ -853,6 +912,7 @@ QString ReportWorker::trans(const QString& text) const
 		de2en["Filterkriterien"] = "Criteria for variant filtering";
 		de2en["Gefundene Varianten in Zielregion gesamt"] = "Variants in target region";
 		de2en["Anzahl Varianten ausgew&auml;hlt f&uuml;r Report"] = "Variants selected for report";
+		de2en["Anzahl CNVs ausgew&auml;hlt f&uuml;r Report"] = "CNVs selected for report";
 		de2en["Varianten nach klinischer Interpretation im Kontext der Fragestellung"] = "List of prioritized variants";
 		de2en["Vererbung"] = "Inheritance";
 		de2en["Klasse"] = "Class";
@@ -881,7 +941,7 @@ QString ReportWorker::trans(const QString& text) const
 		de2en["OMIM Gene und Phenotypen"] = "OMIM gene and phenotypes";
 		de2en["OMIM Phenotypen"] = "OMIM phenotypes";
 		de2en["OMIM Gen MIM"] = "OMIM gene MIM";
-		de2en["Gen"] = "Gene";
+		de2en["Gen(e)"] = "Genes";
 		de2en["Details zu Programmen der Analysepipeline"] = "Analysis pipeline tool details";
 		de2en["Parameter"] = "Parameters";
 		de2en["Version"] = "Version";
@@ -903,7 +963,10 @@ QString ReportWorker::trans(const QString& text) const
 		de2en["Geschlecht"] = "sample sex";
 		de2en["Vater"] = "father";
 		de2en["Mutter"] = "mother";
-
+		de2en["Regionen"] = "regions";
+		de2en["Gene"] = "genes";
+		de2en["CNV"] = "CNV";
+		de2en["CN"] = "CN";
 
 		if (!de2en.contains(text))
 		{
@@ -926,7 +989,7 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 
 	//element DiagnosticNgsReport
 	w.writeStartElement("DiagnosticNgsReport");
-	w.writeAttribute("version", "2");
+	w.writeAttribute("version", "3");
 	w.writeAttribute("type", settings_.report_type);
 
 	//element ReportGeneration
@@ -943,8 +1006,10 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 
 	SampleData sample_data = db_.getSampleData(db_.sampleId(sample_name_));
 	w.writeAttribute("name_external", sample_data.name_external);
-	ProcessedSampleData processed_sample_data = db_.getProcessedSampleData(db_.processedSampleId(sample_name_));
+	QString ps_id = db_.processedSampleId(sample_name_);
+	ProcessedSampleData processed_sample_data = db_.getProcessedSampleData(ps_id);
 	w.writeAttribute("processing_system", processed_sample_data.processing_system);
+	w.writeAttribute("processing_system_type", processed_sample_data.processing_system_type);
 	w.writeEndElement();
 
 	//element TargetRegion (optional)
@@ -1040,7 +1105,9 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 				QByteArray hgvs_p = trans.hgvs_p;
 				if (hgvs_p.startsWith("p.")) hgvs_p = hgvs_p.mid(2);
 				w.writeAttribute("hgvs_p", hgvs_p);
-				w.writeAttribute("exon", trans.exon);
+				QString exon_nr = trans.exon;
+				exon_nr.replace("exon", "");
+				w.writeAttribute("exon", exon_nr);
 				w.writeEndElement();
 
 				genes << trans.gene;
@@ -1066,7 +1133,96 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 			}
 		}
 
+		//element GeneInheritanceInformation
+		foreach(const QByteArray& gene, genes)
+		{
+			GeneInfo gene_info = db_.geneInfo(gene);
+			if (gene_info.inheritance!="n/a")
+			{
+				w.writeStartElement("GeneInheritanceInformation");
+				w.writeAttribute("gene", gene);
+				w.writeAttribute("inheritance", gene_info.inheritance);
+				w.writeEndElement();
+			}
+		}
+
 		//end of variant
+		w.writeEndElement();
+	}
+	w.writeEndElement();
+
+	//element CnvList
+	w.writeStartElement("CnvList");
+	w.writeAttribute("cnv_caller", cnvs_.callerAsString());
+	w.writeAttribute("overall_number", QString::number(cnvs_.count()));
+	w.writeAttribute("genome_build", "hg19");
+	QString cnv_calling_quality = db_.getValue("SELECT quality FROM cnv_callset WHERE processed_sample_id=" + ps_id, true).toString();
+	if (cnv_calling_quality.trimmed()=="") cnv_calling_quality="n/a";
+	w.writeAttribute("quality", cnv_calling_quality);
+	if(cnvs_.caller()==CnvCallerType::CLINCNV)
+	{
+		w.writeAttribute("number_of_iterations", cnvs_.qcMetric("number of iterations"));
+		w.writeAttribute("number_of_hq_cnvs", cnvs_.qcMetric("high-quality cnvs"));
+	}
+
+	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config.variantConfig())
+	{
+		if (var_conf.variant_type!=VariantType::CNVS) continue;
+		if (!var_conf.showInReport()) continue;
+		if (var_conf.report_type!=settings_.report_type) continue;
+
+		const CopyNumberVariant& cnv = cnvs_[var_conf.variant_index];
+
+		//element Cnv
+		w.writeStartElement("Cnv");
+		w.writeAttribute("chr", cnv.chr().str());
+		w.writeAttribute("start", QString::number(cnv.start()));
+		w.writeAttribute("end", QString::number(cnv.end()));
+		w.writeAttribute("start_band", NGSHelper::cytoBand(cnv.chr(), cnv.start()));
+		w.writeAttribute("end_band", NGSHelper::cytoBand(cnv.chr(), cnv.end()));
+		int cn = cnv.copyNumber(cnvs_.annotationHeaders());
+		w.writeAttribute("type", cn>=2 ? "dup" : "del"); //2 can be dup in chrX/chrY
+		w.writeAttribute("cn", QString::number(cn));
+		w.writeAttribute("regions", QString::number(cnv.regions()));
+		w.writeAttribute("causal", var_conf.causal ? "true" : "false");
+		w.writeAttribute("de_novo", var_conf.de_novo ? "true" : "false");
+		w.writeAttribute("comp_het", var_conf.comp_het ? "true" : "false");
+		w.writeAttribute("mosaic", var_conf.mosaic ? "true" : "false");
+		if (var_conf.inheritance!="n/a")
+		{
+			w.writeAttribute("inheritance", var_conf.inheritance);
+		}
+		if (var_conf.classification!="n/a")
+		{
+			w.writeAttribute("class", var_conf.classification);
+		}
+		if (!var_conf.comments.trimmed().isEmpty())
+		{
+			w.writeAttribute("comments_1st_assessor", var_conf.comments.trimmed());
+		}
+		if (!var_conf.comments2.trimmed().isEmpty())
+		{
+			w.writeAttribute("comments_2nd_assessor", var_conf.comments2.trimmed());
+		}
+
+		//element Gene
+		foreach(const QByteArray& gene, cnv.genes())
+		{
+			w.writeStartElement("Gene");
+			w.writeAttribute("name", gene);
+			w.writeEndElement();
+		}
+
+		//element ExternalLink
+		w.writeStartElement("ExternalLink");
+		w.writeAttribute("url", "http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/?name=" + cnv.toString());
+		w.writeAttribute("type", "DGV");
+		w.writeEndElement();
+		w.writeStartElement("ExternalLink");
+		w.writeAttribute("url", "https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=" + cnv.toString());
+		w.writeAttribute("type", "UCSC");
+		w.writeEndElement();
+
 		w.writeEndElement();
 	}
 	w.writeEndElement();
@@ -1087,7 +1243,7 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 	outfile->close();
 
 	//validate written XML file
-	QString xml_error = XmlHelper::isValidXml(outfile_name, "://Resources/DiagnosticReport_v2.xsd");
+	QString xml_error = XmlHelper::isValidXml(outfile_name, "://Resources/DiagnosticReport_v3.xsd");
 	if (xml_error!="")
 	{
 		THROW(ProgrammingException, "ReportWorker::storeXML produced an invalid XML file: " + xml_error);

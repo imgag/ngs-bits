@@ -1,0 +1,45 @@
+##ANALYSISTYPE=CLINCNV_GERMLINE_SINGLE
+##ClinCNV version: v1.16.2
+##Analysis finished on: 2019-11-13 11:22:33
+##high-quality cnvs: 49
+##gender of sample: F
+##number of iterations: 1
+##quality used at final iteration: 20
+##was it outlier after clustering: FALSE
+##fraction of outliers: 0.039
+#chr	start	end	CN_change	loglikelihood	no_of_regions	length_KB	potential_AF	genes	qvalue	overlap cnps_genomes_imgag	overlap cnps_700genomes_pcawg	cn_pathogenic	dosage_sensitive_disease_genes	clinvar_cnvs	hgmd_cnvs	omim
+chr1	916498	917515	3	5	2	1.017	0.05	PERM1	0.00167	0	0.000	1p36 microdeletion syndrome [TYPE=Heterozygous deletion SOURCE=https://decipher.sanger.ac.uk/syndrome/18]		144176 [CN_TYPE=gain CN=3 CLNSIG="Pathogenic" PHENOTYPE="See cases"]		
+chr1	977315	977562	3	6	1	0.247	0.1	AGRN	0.00039	0	1.000 (0.15)	1p36 microdeletion syndrome [TYPE=Heterozygous deletion SOURCE=https://decipher.sanger.ac.uk/syndrome/18]	AGRN [HI=Gene associated with autosomal recessive phenotype PMIDS=]	144176 [CN_TYPE=gain CN=3 CLNSIG="Pathogenic" PHENOTYPE="See cases"]	CG148520 [GENE=AGRN CLASS=DM TYPE=deletion DISEASE="Congenital myasthenic syndrome with distal muscle weakness & atrophy" DESC="~461 kb incl. entire gene & 21 others" PMID=24951643],CG184935 [GENE=AGRN CLASS=DM TYPE=deletion DISEASE="Muscle weakness" DESC="7.9 kb incl. ex. 1-2" PMID=29382405]	103320_[GENE=AGRN_PHENOS=Myasthenic_syndrome,congenital,8,with_pre-_and_postsynaptic_defects,615120,Autosomal_recessive]
+chr1	983371	983765	3	3	1	0.394	0.055	AGRN	0.00158	0	0.000	1p36 microdeletion syndrome [TYPE=Heterozygous deletion SOURCE=https://decipher.sanger.ac.uk/syndrome/18]	AGRN [HI=Gene associated with autosomal recessive phenotype PMIDS=]	144176 [CN_TYPE=gain CN=3 CLNSIG="Pathogenic" PHENOTYPE="See cases"]	CG148520 [GENE=AGRN CLASS=DM TYPE=deletion DISEASE="Congenital myasthenic syndrome with distal muscle weakness & atrophy" DESC="~461 kb incl. entire gene & 21 others" PMID=24951643],CG184935 [GENE=AGRN CLASS=DM TYPE=deletion DISEASE="Muscle weakness" DESC="7.9 kb incl. ex. 1-2" PMID=29382405]	103320_[GENE=AGRN_PHENOS=Myasthenic_syndrome,congenital,8,with_pre-_and_postsynaptic_defects,615120,Autosomal_recessive]
+chr1	1115016	1115137	3	4	1	0.121	0.09	TTLL10	0.00158	0	0.000	1p36 microdeletion syndrome [TYPE=Heterozygous deletion SOURCE=https://decipher.sanger.ac.uk/syndrome/18]		144176 [CN_TYPE=gain CN=3 CLNSIG="Pathogenic" PHENOTYPE="See cases"]		
+chr1	1167638	1168668	3	5	1	1.03	0.085	B3GALT6	0.00042	0	0.000	1p36 microdeletion syndrome [TYPE=Heterozygous deletion SOURCE=https://decipher.sanger.ac.uk/syndrome/18]	B3GALT6 [HI=Gene associated with autosomal recessive phenotype PMIDS=]	144176 [CN_TYPE=gain CN=3 CLNSIG="Pathogenic" PHENOTYPE="See cases"]	CG093362 [GENE=B3GALT6 CLASS=DM TYPE=deletion DISEASE="Autism, non-complex" DESC="39.90 kb +SDF4 +FAM132A +UBE2J2" PMID=19492091],CG134938 [GENE=B3GALT6 CLASS=DM TYPE=deletion DISEASE="Ehlers-Danlos syndrome-like" DESC="22 bp nt. 323-344" PMID=23664118],CG1815122 [GENE=B3GALT6 CLASS=DM TYPE=deletion DISEASE="Ehlers-Danlos syndrome, spondylodysplastic type" DESC="57 bp nt 197-253" PMID=29931299],CN1716463 [GENE=B3GALT6 CLASS=DM TYPE=duplication DISEASE="Spondyloepimetaphyseal dysplasia with joint laxity" DESC="c.901_921dup" PMID=2CN177118 [GENE=B3GALT6 CLASS=DM TYPE=duplication DISEASE="Chondrodysplasia" DESC="21 bp, c.901_921" PMID=28229453]	615291_[GENE=B3GALT6_PHENOS=Ehlers-Danlos_syndrome,spondylodysplastic_type,2,615349,Autosomal_recessive/Spondyloepimetaphyseal_dysplasia_with_joint_laxity,type_1,with_or_without_fractures,271640,Autosomal_recessive]
+chr1	1222867	1223437	3	5	2	0.57	0.05	SCNN1D	0.00075	0	1.000 (0.99)	1p36 microdeletion syndrome [TYPE=Heterozygous deletion SOURCE=https://decipher.sanger.ac.uk/syndrome/18]		144176 [CN_TYPE=gain CN=3 CLNSIG="Pathogenic" PHENOTYPE="See cases"]		
+chr1	1231784	1232033	3	4	1	0.249	0.05	ACAP3	0.00285	0	0.000	1p36 microdeletion syndrome [TYPE=Heterozygous deletion SOURCE=https://decipher.sanger.ac.uk/syndrome/18]		144176 [CN_TYPE=gain CN=3 CLNSIG="Pathogenic" PHENOTYPE="See cases"]		
+chr1	1267383	1268206	3	6	1	0.823	0.055	TAS1R3	0.00032	0	0.000	1p36 microdeletion syndrome [TYPE=Heterozygous deletion SOURCE=https://decipher.sanger.ac.uk/syndrome/18]		144176 [CN_TYPE=gain CN=3 CLNSIG="Pathogenic" PHENOTYPE="See cases"]		
+chr1	1323853	1324141	1	3	2	0.288	0.135	CCNL2	0.02722	0	0.000	1p36 microdeletion syndrome [TYPE=Heterozygous deletion SOURCE=https://decipher.sanger.ac.uk/syndrome/18]		144176 [CN_TYPE=gain CN=3 CLNSIG="Pathogenic" PHENOTYPE="See cases"]		
+chr1	1374440	1375187	3	11	1	0.747	0.12	VWA1	0	0	0.000	1p36 microdeletion syndrome [TYPE=Heterozygous deletion SOURCE=https://decipher.sanger.ac.uk/syndrome/18]		144176 [CN_TYPE=gain CN=3 CLNSIG="Pathogenic" PHENOTYPE="See cases"]		
+chr17	32880617	32997524	0	0	0	0	0	BRCA1	0	0	0.0					
+chr17	32880617	32917524	0	0	0	0	0	BRCA1	0	0	0.0					
+chr17	32889821	32889904	0	0	0	0	0	BRCA1	0	0	0.0					
+chr17	32889517	32889600	0	0	0	0	0	BRCA1	0	0	0.0					
+chr13	32883611	32979805	0	0	0	0	0	BRCA2	0	0	0.0					
+chr13	32889611	32973805	0	0	0	0	0	BRCA2	0	0	0.0					
+chr13	32880611	32881611	0	0	0	0	0	BRCA2	0	0	0.0					
+chr13	32900630	32900740	0	0	0	0	0	BRCA2	0	0	0.0					
+chr13	32972199	32972279	0	0	0	0	0	BRCA2	0	0	0.0					
+chr13	32973367	32973447	0	0	0	0	0	BRCA2	0	0	0.0					
+chr1	63091	76008	0	0	0	0	0	OR4F5	0	0	0.0					
+chr1	69091	70008	0	0	0	0	0	OR4F5	0	0	0.0					
+chr1	64091	69000	0	0	0	0	0	OR4F5	0	0	0.0					
+chr1	64091	69090	0	0	0	0	0	OR4F5	0	0	0.0					
+chr2	189592882	189660831	0	0	0	0	0	DIRC1	0	0	0.0					
+chr2	189598882	189654831	0	0	0	0	0	DIRC1	0	0	0.0					
+chr2	189597852	189598852	0	0	0	0	0	DIRC1	0	0	0.0					
+chr2	189654712	189654812	0	0	0	0	0	DIRC1	0	0	0.0					
+chr2	189654610	189654660	0	0	0	0	0	DIRC1	0	0	0.0					
+chr2	190643107	190748355	0	0	0	0	0	PMS1	0	0	0.0					
+chr2	190649107	190742355	0	0	0	0	0	PMS1	0	0	0.0					
+chr2	190645107	190648107	0	0	0	0	0	PMS1	0	0	0.0					
+chr2	190649215	190649319	0	0	0	0	0	PMS1	0	0	0.0					
+chr2	190741898	190741988	0	0	0	0	0	PMS1	0	0	0.0					
+chr2	190742172	190742262	0	0	0	0	0	PMS1	0	0	0.0					

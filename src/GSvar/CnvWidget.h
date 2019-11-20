@@ -1,11 +1,15 @@
 #ifndef CNVWIDGET_H
 #define CNVWIDGET_H
 
+#include "ui_CnvWidget.h"
 #include <QWidget>
 #include <QTableWidgetItem>
+#include <QMenu>
 #include "CnvList.h"
 #include "GeneSet.h"
 #include "FilterWidget.h"
+#include "VariantTable.h"
+#include "Settings.h"
 
 namespace Ui {
 class CnvWidget;
@@ -18,7 +22,7 @@ class CnvWidget
 	Q_OBJECT
 
 public:
-	CnvWidget(QString gsvar_file, AnalysisType analysis_type, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent = 0);
+	CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_widget, ReportConfiguration& rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent = 0);
 	~CnvWidget();
 
 signals:
@@ -30,12 +34,18 @@ private slots:
 	void copyToClipboard();
 	void showContextMenu(QPoint p);
 	void openLink(int row, int col);
+	void proposeQualityIfUnset();
 	void updateQuality();
 	void editQuality();
 	void showQcMetricHistogram();
 
+	void updateReportConfigHeaderIcon(int row);
+	void cnvHeaderDoubleClicked(int row);
+	void cnvHeaderContextMenu(QPoint pos);
+	void editReportConfiguration(int row);
+
 private:
-	void loadCNVs(QString filename);
+	void updateGUI();
 	void disableGUI();
 	void addInfoLine(QString text);
 	void updateStatus(int shown);
@@ -43,12 +53,14 @@ private:
 	QTableWidgetItem* createItem(QString text, int alignment = Qt::AlignLeft|Qt::AlignTop);
 
 	Ui::CnvWidget* ui;
-	QString ps_id; //processed sample database ID. '' if unknown of NGSD is disabled.
-	CnvList cnvs;
-	QStringList special_cols;
-	FilterWidget* var_filters;
-	GeneSet var_het_genes;
-	QHash<QByteArray, BedFile>& gene2region_cache;
+	QString ps_id_; //processed sample database ID. '' if unknown of NGSD is disabled.
+	QString callset_id_; //CNV callset database ID. '' if unknown of if NGSD is disabled.
+	const CnvList& cnvs_;
+	QStringList special_cols_;
+	ReportConfiguration& report_config_;
+	GeneSet var_het_genes_;
+	QHash<QByteArray, BedFile>& gene2region_cache_;
+	bool ngsd_enabled_;
 };
 
 #endif // CNVWIDGET_H

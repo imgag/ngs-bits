@@ -231,12 +231,12 @@ void FilterBase::overrideConstraint(const QString& parameter_name, const QString
 
 void FilterBase::apply(const VariantList& /*variant_list*/, FilterResult& /*result*/) const
 {
-	THROW(ProgrammingException, "Method apply on VariantList not implemented for filter '" + name() + "'!");
+	THROW(NotImplementedException, "Method apply on VariantList not implemented for filter '" + name() + "'!");
 }
 
 void FilterBase::apply(const CnvList& /*variant_list*/, FilterResult& /*result*/) const
 {
-	THROW(ProgrammingException, "Method apply on CnvList not implemented for filter '" + name() + "'!");
+	THROW(NotImplementedException, "Method apply on CnvList not implemented for filter '" + name() + "'!");
 }
 
 void FilterBase::setInteger(const QString& name, int value)
@@ -600,8 +600,15 @@ QSharedPointer<FilterBase> FilterFactory::create(const QString& name, const QStr
 	//set parameters
 	foreach(QString param, parameters)
 	{
-		int index = param.indexOf('=');
-		filter->setGeneric(param.left(index), param.mid(index+1));
+		if (param=="disabled")
+		{
+			filter->toggleEnabled();
+		}
+		else
+		{
+			int index = param.indexOf('=');
+			filter->setGeneric(param.left(index), param.mid(index+1));
+		}
 	}
 
 	return filter;
@@ -670,6 +677,8 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["CNV compound-heterozygous"] = &createInstance<FilterCnvCompHet>;
 		output["CNV OMIM genes"] = &createInstance<FilterCnvOMIM>;
 		output["CNV polymorphism region"] = &createInstance<FilterCnvCnpOverlap>;
+		output["CNV gene constraint"] = &createInstance<FilterCnvGeneConstraint>;
+		output["CNV gene overlap"] = &createInstance<FilterCnvGeneOverlap>;
 	}
 
 	return output;
@@ -1171,7 +1180,7 @@ void FilterGeneInheritance::apply(const VariantList& variants, FilterResult& res
 		//parse gene_info entry - example: AL627309.1 (inh=n/a pLI=n/a), PRPF31 (inh=AD pLI=0.97), 34P13.14 (inh=n/a pLI=n/a)
 		QByteArrayList genes = variants[i].annotations()[i_geneinfo].split(',');
 		bool any_gene_passed = false;
-		foreach(const QByteArray gene, genes)
+		foreach(const QByteArray& gene, genes)
 		{
 			int start = gene.indexOf('(');
 			QByteArrayList entries = gene.mid(start+1, gene.length()-start-2).split(' ');
@@ -1232,7 +1241,7 @@ void FilterGeneConstraint::apply(const VariantList& variants, FilterResult& resu
 		//parse gene_info entry - example: AL627309.1 (inh=n/a pLI=n/a), PRPF31 (inh=AD pLI=0.97), 34P13.14 (inh=n/a pLI=n/a oe_lof=)
 		QByteArrayList genes = variants[i].annotations()[i_geneinfo].split(',');
 		bool any_gene_passed = false;
-		foreach(const QByteArray gene, genes)
+		foreach(const QByteArray& gene, genes)
 		{
 			int start = gene.indexOf('(');
 			QByteArrayList entries = gene.mid(start+1, gene.length()-start-2).split(' ');
@@ -2741,8 +2750,8 @@ FilterCnvCnpOverlap::FilterCnvCnpOverlap()
 	name_ = "CNV polymorphism region";
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter for overlap with CNP regions.";
-	params_ << FilterParameter("column", STRING, "overlap cnps_genomes_imgag", "CNP column name");
-	params_ << FilterParameter("max_ol", DOUBLE, 0.99, "Maximum overlap");
+	params_ << FilterParameter("column", STRING, "overlap af_genomes_imgag", "CNP column name");
+	params_ << FilterParameter("max_ol", DOUBLE, 0.95, "Maximum overlap");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "1.0";
 
@@ -2770,4 +2779,122 @@ void FilterCnvCnpOverlap::apply(const CnvList& cnvs, FilterResult& result) const
 			result.flags()[i] = false;
 		}
 	}
+}
+
+FilterCnvGeneConstraint::FilterCnvGeneConstraint()
+{
+	name_ = "CNV gene constraint";
+	type_ = VariantType::CNVS;
+	description_ = QStringList() << "Filter based on gene constraint (gnomAD o/e score for LOF variants)." << "Note that gene constraint is most helpful for early-onset severe diseases." << "For details on gnomAD o/e, see https://macarthurlab.org/2018/10/17/gnomad-v2-1/";
+
+	params_ << FilterParameter("max_oe_lof", DOUBLE, 0.35, "Maximum gnomAD o/e score for LoF variants");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
+
+	checkIsRegistered();
+}
+
+QString FilterCnvGeneConstraint::toText() const
+{
+	return name() + " o/e&le;" + QString::number(getDouble("max_oe_lof", false), 'f', 2);
+}
+
+void FilterCnvGeneConstraint::apply(const CnvList& cnvs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	//get column indices
+	int i_geneinfo = cnvs.annotationIndexByName("gene_info", true);
+	double max_oe_lof = getDouble("max_oe_lof");
+
+	//filter
+	for(int i=0; i<cnvs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		//parse gene_info entry - example: 34P13.14 (region=complete oe_lof=), ...
+		QByteArrayList gene_entries= cnvs[i].annotations()[i_geneinfo].split(',');
+		bool any_gene_passed = false;
+		foreach(const QByteArray& gene, gene_entries)
+		{
+			int start = gene.indexOf('(');
+			QByteArrayList term_entries = gene.mid(start+1, gene.length()-start-2).split(' ');
+			foreach(const QByteArray& term, term_entries)
+			{
+				if (term.startsWith("oe_lof="))
+				{
+					bool ok;
+					double oe = term.mid(7).toDouble(&ok);
+					if (!ok) oe = 1.0; // value 'n/a' > pass
+					if (oe<=max_oe_lof)
+					{
+						any_gene_passed = true;
+					}
+				}
+			}
+		}
+		result.flags()[i] = any_gene_passed;
+	}
+}
+
+FilterCnvGeneOverlap::FilterCnvGeneOverlap()
+{
+	name_ = "CNV gene overlap";
+	type_ = VariantType::CNVS;
+	description_ = QStringList() << "Filter based on gene overlap.";
+
+	params_ << FilterParameter("complete", BOOL, true , "Overlaps the complete gene.");
+	params_ << FilterParameter("exonic/splicing", BOOL, true , "Overlaps the coding or splicing region of the gene.");
+	params_ << FilterParameter("intronic/intergenic", BOOL, false , "Overlaps the intronic/intergenic region of the gene only.");
+
+	checkIsRegistered();
+}
+
+QString FilterCnvGeneOverlap::toText() const
+{
+	return name() + " " + selectedOptions().join(", ");
+}
+
+void FilterCnvGeneOverlap::apply(const CnvList& cnvs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	int i_geneinfo = cnvs.annotationIndexByName("gene_info", true);
+	QByteArrayList selected = selectedOptions();
+
+	//filter
+	for(int i=0; i<cnvs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		//parse gene_info entry - example: 34P13.14 (region=complete oe_lof=), ...
+		QByteArrayList gene_entries = cnvs[i].annotations()[i_geneinfo].split(',');
+		bool any_gene_passed = false;
+		foreach(const QByteArray& gene, gene_entries)
+		{
+			int start = gene.indexOf('(');
+			QByteArrayList term_entries = gene.mid(start+1, gene.length()-start-2).split(' ');
+			foreach(const QByteArray& term, term_entries)
+			{
+				if (term.startsWith("region="))
+				{
+					if (selected.contains(term.mid(7)))
+					{
+						any_gene_passed = true;
+					}
+				}
+			}
+		}
+		result.flags()[i] = any_gene_passed;
+	}
+}
+
+QByteArrayList FilterCnvGeneOverlap::selectedOptions() const
+{
+	QByteArrayList output;
+	if (getBool("complete")) output << "complete";
+	if (getBool("exonic/splicing")) output << "exonic/splicing";
+	if (getBool("intronic/intergenic")) output << "intronic/intergenic";
+
+	return output;
 }

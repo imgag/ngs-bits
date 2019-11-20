@@ -162,7 +162,7 @@ CREATE  TABLE IF NOT EXISTS `processing_system`
   `name_manufacturer` VARCHAR(100) NULL DEFAULT NULL,
   `adapter1_p5` VARCHAR(45) NULL DEFAULT NULL,
   `adapter2_p7` VARCHAR(45) NULL DEFAULT NULL,
-  `type` ENUM('WGS','WES','Panel','Panel Haloplex','Panel MIPs','RNA','ChIP-Seq') NOT NULL,
+  `type` ENUM('WGS','WGS (shallow)','WES','Panel','Panel Haloplex','Panel MIPs','RNA','ChIP-Seq') NOT NULL,
   `shotgun` TINYINT(1) NOT NULL,
   `umi_type` ENUM('n/a','HaloPlex HS','SureSelect HS','ThruPLEX','Safe-SeqS','MIPs') NOT NULL DEFAULT 'n/a',
   `target_file` VARCHAR(255) NULL DEFAULT NULL,
@@ -186,7 +186,7 @@ DEFAULT CHARACTER SET = utf8;
 CREATE  TABLE IF NOT EXISTS `device`
 (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `type` ENUM('GAIIx','MiSeq','HiSeq2500','NextSeq500','NovaSeq5000','NovaSeq6000','MGI-2000') NOT NULL,
+  `type` ENUM('GAIIx','MiSeq','HiSeq2500','NextSeq500','NovaSeq5000','NovaSeq6000','MGI-2000','SequelII') NOT NULL,
   `name` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`name` ASC)
@@ -707,45 +707,6 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
--- Table `detected_variant_counts`
--- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `detected_variant_counts`
-(
-  `variant_id` INT(11) NOT NULL,
-  `count_het` INT(11) NOT NULL,
-  `count_hom` INT(11) NOT NULL,
-  PRIMARY KEY (`variant_id`),
-  CONSTRAINT `fk_detected_variant_counts`
-    FOREIGN KEY (`variant_id`)
-    REFERENCES `variant` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION
-)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8
-COMMENT='Precalculated variant counts used for fast annotation';
-
--- -----------------------------------------------------
--- Table `detected_variant_counts_by_group`
--- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `detected_variant_counts_by_group`
-(
-  `variant_id` INT(11) NOT NULL,
-  `disease_group` ENUM('Neoplasms','Diseases of the blood or blood-forming organs','Diseases of the immune system','Endocrine, nutritional or metabolic diseases','Mental, behavioural or neurodevelopmental disorders','Sleep-wake disorders','Diseases of the nervous system','Diseases of the visual system','Diseases of the ear or mastoid process','Diseases of the circulatory system','Diseases of the respiratory system','Diseases of the digestive system','Diseases of the skin','Diseases of the musculoskeletal system or connective tissue','Diseases of the genitourinary system','Developmental anomalies','Other diseases') NOT NULL,
-  `count_hom` INT(11) NOT NULL,
-  `count_het` INT(11) NOT NULL,
-  PRIMARY KEY (`variant_id`,`disease_group`),
-  CONSTRAINT `fk_detected_variant_counts_by_group`
-    FOREIGN KEY (`variant_id`)
-    REFERENCES `variant` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION
-)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8
-COMMENT='Precalculated variant counts by disease group used for fast annotation. There is not entry for variant/group combination without a variant to save space.';
-
--- -----------------------------------------------------
 -- Table `qc_terms`
 -- -----------------------------------------------------
 CREATE  TABLE IF NOT EXISTS `qc_terms`
@@ -1252,13 +1213,49 @@ CREATE  TABLE IF NOT EXISTS `cnv`
   INDEX `chr` (`chr` ASC),
   INDEX `start` (`start` ASC),
   INDEX `end` (`end` ASC),
-  INDEX `cn` (`end` ASC)
+  INDEX `cn` (`cn` ASC)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8
 COMMENT='germline CNV';
 
-
+-- -----------------------------------------------------
+-- Table `report_configuration_cnv`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `report_configuration_cnv`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `report_configuration_id` INT(11) NOT NULL,
+  `cnv_id` INT(11) UNSIGNED NOT NULL,
+  `type` ENUM('diagnostic variant', 'candidate variant', 'incidental finding') NOT NULL,
+  `causal` BOOLEAN NOT NULL,
+  `class` ENUM('n/a','1','2','3','4','5','M') NOT NULL,
+  `inheritance` ENUM('n/a', 'AR','AD','AR+AD','XLR','XLD','XLR+XLD','MT') NOT NULL,
+  `de_novo` BOOLEAN NOT NULL,
+  `mosaic` BOOLEAN NOT NULL,
+  `compound_heterozygous` BOOLEAN NOT NULL,
+  `exclude_artefact` BOOLEAN NOT NULL,
+  `exclude_frequency` BOOLEAN NOT NULL,
+  `exclude_phenotype` BOOLEAN NOT NULL,
+  `exclude_mechanism` BOOLEAN NOT NULL,
+  `exclude_other` BOOLEAN NOT NULL,
+  `comments` text NOT NULL,
+  `comments2` text NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_report_configuration2`
+    FOREIGN KEY (`report_configuration_id` )
+    REFERENCES `report_configuration` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_report_configuration_cnv_has_cnv`
+    FOREIGN KEY (`cnv_id`)
+    REFERENCES `cnv` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  UNIQUE INDEX `config_variant_combo_uniq` (`report_configuration_id` ASC, `cnv_id` ASC)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
 
 -- ----------------------------------------------------------------------------------------------------------
 --                                                 INITIAL DATA

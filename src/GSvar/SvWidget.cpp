@@ -35,8 +35,8 @@ SvWidget::SvWidget(const QStringList& bedpe_file_paths, FilterWidget* filter_wid
 	connect(ui->ignore_special_chromosomes,SIGNAL(stateChanged(int)),this,SLOT(applyFilters()));
 	connect(ui->filter_pe_af,SIGNAL(valueChanged(double)),this,SLOT(applyFilters()));
 	connect(ui->filter_sr_af,SIGNAL(valueChanged(double)),this,SLOT(applyFilters()));
+	connect(ui->filter_somaticscore, SIGNAL(valueChanged(int)), this, SLOT(applyFilters()));
 
-	connect(ui->delly_mapq,SIGNAL(valueChanged(int)),this,SLOT(applyFilters()));
 	connect(ui->filter_pe_reads,SIGNAL(valueChanged(int)),this,SLOT(applyFilters()));
 
 	connect(ui->svs,SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this,SLOT(SvDoubleClicked(QTableWidgetItem*)));
@@ -45,7 +45,6 @@ SvWidget::SvWidget(const QStringList& bedpe_file_paths, FilterWidget* filter_wid
 
 	connect(ui->svs,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showContextMenu(QPoint)));
 
-	connect(ui->file_names,SIGNAL(currentTextChanged(QString)),this,SLOT(fileNameChanged()));
 
 	FilterWidget::loadTargetRegions(ui->roi);
 	connect(ui->roi, SIGNAL(currentIndexChanged(int)), this, SLOT(roiSelectionChanged(int)));
@@ -61,17 +60,32 @@ SvWidget::SvWidget(const QStringList& bedpe_file_paths, FilterWidget* filter_wid
 
 	if(bedpe_file_paths.isEmpty())
 	{
-		disableGUI("There are no SV files in the sample folder.");
+		disableGUI("There is no SV file in the sample folder.");
 	}
 	else
 	{
-		foreach(QString path, bedpe_file_paths)
-		{
-			ui->file_names->addItem(QFileInfo(path).fileName(),QFileInfo(path).absoluteFilePath());
-		}
-
-		//Load first bedpe
 		loadSVs(bedpe_file_paths[0]);
+
+		//Disable filters that cannot apply for tumor normal pairs (data is expanded already)
+		if(sv_bedpe_file_.format() == BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL)
+		{
+			ui->filter_somaticscore->setEnabled(true);
+
+			ui->info_a->setEnabled(false);
+			ui->info_b->setEnabled(false);
+			ui->sv_details->setEnabled(false);
+
+			ui->filter_pe_af->setEnabled(false);
+			ui->filter_sr_af->setEnabled(false);
+			ui->filter_geno->setEnabled(false);
+			ui->filter_quality_score->setEnabled(false);
+			ui->filter_pe_reads->setEnabled(false);
+			ui->roi->setEnabled(false);
+			ui->roi_import->setEnabled(false);
+
+			ui->hpo->setEnabled(false);
+			ui->hpo_import->setEnabled(false);
+		}
 	}
 }
 
@@ -91,7 +105,6 @@ void SvWidget::loadSVs(const QString &file_name)
 		loading_svs_ = false;
 		return;
 	}
-
 
 	//Set list of annotations to be showed, by default some annotations are filtered out
 	QByteArrayList annotation_headers = sv_bedpe_file_.annotationHeaders();
@@ -152,21 +165,8 @@ void SvWidget::loadSVs(const QString &file_name)
 		ui->filter_qual->addItem(QString(entry));
 	}
 
-	//Enable/Disable caller specific filters
-	if(sv_bedpe_file_.analysisType() == BedpeFile::SV_TYPE::DELLY)
-	{
-		ui->delly_mapq->setEnabled(true);
-	}
-	else
-	{
-		ui->delly_mapq->setEnabled(false);
-	}
-
 	//use different standard threshold for total count of paired end reads
-	if(sv_bedpe_file_.analysisType() == BedpeFile::SV_TYPE::MANTA)
-	{
-		ui->filter_pe_reads->setValue(0);
-	}
+	ui->filter_pe_reads->setValue(0);
 
 
 	//only whole rows can be selected, one row at a time
@@ -231,10 +231,6 @@ void SvWidget::resizeQTableWidget(QTableWidget *table_widget)
 	GUIHelper::resizeTableCells(table_widget,200);
 }
 
-void SvWidget::fileNameChanged()
-{
-	loadSVs(ui->file_names->currentData(Qt::UserRole).toString());
-}
 
 void SvWidget::applyFilters()
 {
@@ -414,37 +410,6 @@ void SvWidget::applyFilters()
 		}
 	}
 
-	//Delly Mapping Quality
-	if(ui->delly_mapq->isEnabled() && ui->delly_mapq->value() > 0)
-	{
-		int mapq_thres = ui->delly_mapq->value();
-
-		//Mapping quality values are in annotations
-		int i_info_a = colIndexbyName("INFO_A");
-
-		for(int row=0; row<row_count; ++row)
-		{
-			if(!pass[row]) continue;
-
-			//Determine Mapping Quality from INFO_A column
-			QStringList infos = ui->svs->item(row,i_info_a)->text().split(";");
-			int mapq_val = -1;
-			foreach(QString info,infos)
-			{
-				if(info.contains("MAPQ=",Qt::CaseInsensitive))
-				{
-					bool success = false;
-					mapq_val = info.replace("MAPQ=","").toInt(&success);
-					if(!success) mapq_val = -1;
-
-					break;
-				}
-			}
-
-			if(mapq_val < mapq_thres && mapq_val > -1) pass[row] = false;
-		}
-	}
-
 	//filter by ROI
 	QString roi = ui->roi->toolTip();
 	if (roi!=roi_filename_) //update roi regions if it changed
@@ -480,6 +445,20 @@ void SvWidget::applyFilters()
 		}
 	}
 
+	//filter by somaticscore (in case of tumor-normal pair)
+	if(ui->filter_somaticscore->isEnabled())
+	{
+		int i_somaticscore = sv_bedpe_file_.annotationIndexByName("SOMATICSCORE");
+		for(int row=0; row<row_count; ++row)
+		{
+			if(!pass[row]) continue;
+			bool ok = false;
+			double score = sv_bedpe_file_[row].annotations()[i_somaticscore].toDouble(&ok);
+			if(!ok) continue;
+			if(score < ui->filter_somaticscore->value()) pass[row] = false;
+		}
+	}
+
 	//hide rows not passing filters
 	for(int row=0; row<row_count; ++row)
 	{
@@ -501,47 +480,20 @@ int SvWidget::colIndexbyName(const QString& name)
 
 int SvWidget::pairedEndReadCount(int row)
 {
-	if(sv_bedpe_file_.analysisType() == BedpeFile::SV_TYPE::MANTA)
-	{
-		int i_format =colIndexbyName("FORMAT");
-		if(i_format == -1) return -1;
+	int i_format =colIndexbyName("FORMAT");
+	if(i_format == -1) return -1;
 
-		QByteArray desc = ui->svs->item(row,i_format)->text().toUtf8();
-		QByteArray data = ui->svs->item(row,i_format+1)->text().toUtf8();
+	QByteArray desc = ui->svs->item(row,i_format)->text().toUtf8();
+	QByteArray data = ui->svs->item(row,i_format+1)->text().toUtf8();
 
-		QByteArrayList infos = getFormatEntryByKey("PR",desc,data).split(',');
-		if(infos.count() != 2) return -1;
-		//return paired end read alteration count
-		bool success = false ;
+	QByteArrayList infos = getFormatEntryByKey("PR",desc,data).split(',');
+	if(infos.count() != 2) return -1;
+	//return paired end read alteration count
+	bool success = false ;
 
-		int pe_reads = infos[1].trimmed().toInt(&success);
-		if(!success) return -1;
-		return pe_reads;
-	}
-
-	if(sv_bedpe_file_.analysisType() == BedpeFile::SV_TYPE::DELLY)
-	{
-		int i_info_a = colIndexbyName("INFO_A");
-		if(i_info_a == -1 ) return -1.;
-
-		QStringList infos = ui->svs->item(row,i_info_a)->text().split(";");
-
-		int pe_read_val = -1;
-		foreach(QString info,infos)
-		{
-			if(info.contains("PE=",Qt::CaseInsensitive))
-			{
-				bool success = false;
-				pe_read_val = info.replace("PE=","").toInt(&success);
-				if(!success) pe_read_val = -1;
-				break;
-			}
-		}
-
-		return pe_read_val;
-	}
-
-	return -1.;
+	int pe_reads = infos[1].trimmed().toInt(&success);
+	if(!success) return -1;
+	return pe_reads;
 }
 
 
@@ -558,36 +510,18 @@ double SvWidget::alleleFrequency(int row,const QByteArray& read_type)
 	int count_ref = 0;
 	int count_alt = 0;
 
+	QByteArrayList pr;
+	if(read_type == "PR") pr = getFormatEntryByKey("PR",desc,data).split(',');
+	else if(read_type == "SR") pr =  getFormatEntryByKey("SR",desc,data).split(',');
+	else return -1.;
 
-	if(sv_bedpe_file_.analysisType() == BedpeFile::SV_TYPE::MANTA)
-	{
-		QByteArrayList pr;
-		if(read_type == "PR") pr = getFormatEntryByKey("PR",desc,data).split(',');
-		else if(read_type == "SR") pr =  getFormatEntryByKey("SR",desc,data).split(',');
-		else return -1.;
+	if(pr.count() != 2) return -1.;
 
-		if(pr.count() != 2) return -1.;
-
-		bool success = false;
-		count_ref = pr[0].toInt(&success);
-		if(!success) return -1;
-		count_alt = pr[1].toInt(&success);
-		if(!success) return -1;
-	}
-
-	if(sv_bedpe_file_.analysisType() == BedpeFile::SV_TYPE::DELLY)
-	{
-		bool success = false;
-
-		if(read_type ==  "PR") count_ref = getFormatEntryByKey("DR",desc,data).toInt(&success);
-		else if(read_type == "SR") count_ref = getFormatEntryByKey("RR",desc,data).toInt(&success);
-		else return -1.;
-
-		if(!success) return -1.;
-		if(read_type == "PR") count_alt = getFormatEntryByKey("DV",desc,data).toInt(&success);
-		else if(read_type == "SR") count_alt = getFormatEntryByKey("RV",desc,data).toInt(&success);
-		if(!success) return -1.;
-	}
+	bool success = false;
+	count_ref = pr[0].toInt(&success);
+	if(!success) return -1;
+	count_alt = pr[1].toInt(&success);
+	if(!success) return -1;
 
 	if(count_alt+count_ref != 0) return (double)count_alt / (count_alt+count_ref);
 	else return 0;
@@ -753,6 +687,8 @@ void SvWidget::phenotypesChanged()
 
 void SvWidget::SvSelectionChanged()
 {
+	if(sv_bedpe_file_.format() == BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL) return; //Skip somatic lists because info columns are expanded already
+
 	QModelIndexList rows = ui->svs->selectionModel()->selectedRows();
 	if(rows.count() != 1) return;
 

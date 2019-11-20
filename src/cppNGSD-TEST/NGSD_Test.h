@@ -184,6 +184,8 @@ private slots:
 		S_EQUAL(processed_sample_data.project_name, "KontrollDNACoriell");
 		S_EQUAL(processed_sample_data.run_name, "#00372");
 		S_EQUAL(processed_sample_data.normal_sample_name, "");
+		S_EQUAL(processed_sample_data.processing_system, "HaloPlex HBOC v5");
+		S_EQUAL(processed_sample_data.processing_system_type, "Panel Haloplex");
 		//second sample (tumor)
 		processed_sample_id = db.processedSampleId("NA12345_01");
 		processed_sample_data = db.getProcessedSampleData(processed_sample_id);
@@ -386,27 +388,6 @@ private slots:
 		S_EQUAL(ginfo.inheritance, "AD");
 		S_EQUAL(ginfo.comments, "comment");
 
-		//precalculateGenotypeCounts
-		messages.clear();
-		db.precalculateGenotypeCounts(&stream, 50);
-		I_EQUAL(db.getValue("SELECT count_hom FROM detected_variant_counts WHERE variant_id=2336993").toInt(), 0);
-		I_EQUAL(db.getValue("SELECT count_het FROM detected_variant_counts WHERE variant_id=2336993").toInt(), 1);
-		I_EQUAL(db.getValue("SELECT count_hom FROM detected_variant_counts WHERE variant_id=2346586").toInt(), 2);
-		I_EQUAL(db.getValue("SELECT count_het FROM detected_variant_counts WHERE variant_id=2346586").toInt(), 1);
-		I_EQUAL(db.getValue("SELECT count_hom FROM detected_variant_counts WHERE variant_id=2407544").toInt(), 0);
-		I_EQUAL(db.getValue("SELECT count_het FROM detected_variant_counts WHERE variant_id=2407544").toInt(), 2);
-		//by group
-		I_EQUAL(db.getValue("SELECT COUNT(*) FROM detected_variant_counts_by_group").toInt(), 2);
-		I_EQUAL(db.getValue("SELECT count_hom FROM detected_variant_counts_by_group WHERE variant_id=2346586 AND disease_group='Neoplasms'").toInt(), 1);
-		I_EQUAL(db.getValue("SELECT count_het FROM detected_variant_counts_by_group WHERE variant_id=2346586 AND disease_group='Neoplasms'").toInt(), 0);
-		I_EQUAL(db.getValue("SELECT count_hom FROM detected_variant_counts_by_group WHERE variant_id=2407544 AND disease_group='Neoplasms'").toInt(), 0);
-		I_EQUAL(db.getValue("SELECT count_het FROM detected_variant_counts_by_group WHERE variant_id=2407544 AND disease_group='Neoplasms'").toInt(), 1);
-		//messages
-		foreach(QString message,  messages.split("\n"))
-		{
-			//qDebug() << message;
-		}
-
 		//approvedGeneNames
 		GeneSet approved = db.approvedGeneNames();
 		I_EQUAL(approved.count(), 8);
@@ -547,14 +528,14 @@ private slots:
 		//setClassification
 		class_info.classification = "2";
 		class_info.comments = "class_comm1";
-		db.setClassification(variant, class_info);
+		db.setClassification(variant, VariantList(), class_info); //Variant list can be empty because variant is alread in NGSD
 		class_info = db.getClassification(variant);
 		S_EQUAL(class_info.classification, "2");
 		S_EQUAL(class_info.comments, "class_comm1");
 		//update existing entry
 		class_info.classification = "5";
 		class_info.comments = "class_comm2";
-		db.setClassification(variant, class_info);
+		db.setClassification(variant, VariantList(), class_info); //Variant list can be empty because variant is alread in NGSD
 		class_info = db.getClassification(variant);
 		S_EQUAL(class_info.classification, "5");
 		S_EQUAL(class_info.comments, "class_comm2");
@@ -677,10 +658,18 @@ private slots:
 		VariantList vl;
 		vl.load(TESTDATA("../cppNGS-TEST/data_in/panel_vep.GSvar"));
 		I_EQUAL(vl.count(), 329);
-		QString var_id = db.addVariant(vl, 0);
+		QString var_id = db.addVariant(vl[0], vl);
 
 		//variant
 		IS_TRUE(db.variant(var_id)==vl[0]);
+
+		//variantCounts
+		QPair<int, int> ngsd_counts = db.variantCounts(db.variantId(Variant("chr10",43613843,43613843,"G","T")));
+		I_EQUAL(ngsd_counts.first, 0);
+		I_EQUAL(ngsd_counts.second, 1);
+		ngsd_counts = db.variantCounts(db.variantId(Variant("chr17",7579472,7579472,"G","C")));
+		I_EQUAL(ngsd_counts.first, 1);
+		I_EQUAL(ngsd_counts.second, 0);
 
 		//getSampleDiseaseInfo
 		sample_id = db.sampleId("NA12878");
@@ -746,6 +735,11 @@ private slots:
 		I_EQUAL(db.reportConfigId(ps_id), -1);
 
 		//setReportConfig
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/cnvs_clincnv.tsv"));
+
+		ReportConfiguration report_conf;
+		report_conf.setCreatedBy("ahmustm1");
 		ReportVariantConfiguration report_var_conf;
 		report_var_conf.variant_type = VariantType::SNVS_INDELS;
 		report_var_conf.variant_index = 47;
@@ -755,10 +749,15 @@ private slots:
 		report_var_conf.exclude_artefact = true;
 		report_var_conf.comments = "com1";
 		report_var_conf.comments2 = "com2";
-		ReportConfiguration report_conf;
-		report_conf.setCreatedBy("ahmustm1");
 		report_conf.set(report_var_conf);
-		int conf_id1 = db.setReportConfig(ps_id, report_conf, vl, "ahmustm1");
+		ReportVariantConfiguration report_var_conf2;
+		report_var_conf2.variant_type = VariantType::CNVS;
+		report_var_conf2.variant_index = 4;
+		report_var_conf2.causal = false;
+		report_var_conf2.classification = "4";
+		report_var_conf2.report_type = "diagnostic variant";
+		report_conf.set(report_var_conf2);
+		int conf_id1 = db.setReportConfig(ps_id, report_conf, vl, cnvs, "ahmustm1");
 
 		//reportConfigId
 		int conf_id = db.reportConfigId(ps_id);
@@ -771,7 +770,7 @@ private slots:
 		S_EQUAL(rc_creation_data.last_edit_date, "");
 		//update
 		QThread::sleep(1);
-		int conf_id2 = db.setReportConfig(ps_id, report_conf, vl, "ahkerra1");
+		int conf_id2 = db.setReportConfig(ps_id, report_conf, vl, cnvs, "ahkerra1");
 		IS_TRUE(conf_id1==conf_id2);
 		ReportConfigurationCreationData rc_creation_data2 = db.reportConfigCreationData(conf_id);
 		S_EQUAL(rc_creation_data2.created_by, "Max Mustermann");
@@ -781,29 +780,89 @@ private slots:
 
 		//reportConfig
 		QStringList messages2;
-		ReportConfiguration report_conf2 = db.reportConfig(ps_id, vl, messages2);
+		ReportConfiguration report_conf2 = db.reportConfig(ps_id, vl, cnvs, messages2);
 		I_EQUAL(messages2.count(), 0);
 		S_EQUAL(report_conf2.createdBy(), "Max Mustermann");
 		IS_TRUE(report_conf2.createdAt().date()==QDate::currentDate());
-		I_EQUAL(report_conf2.variantConfig().count(), 1);
-		IS_TRUE(report_conf2.variantConfig()[0].causal);
-		S_EQUAL(report_conf2.variantConfig()[0].report_type, report_var_conf.report_type);
-		IS_TRUE(report_conf2.variantConfig()[0].mosaic);
-		IS_TRUE(report_conf2.variantConfig()[0].exclude_artefact);
-		S_EQUAL(report_conf2.variantConfig()[0].comments, report_var_conf.comments);
-		S_EQUAL(report_conf2.variantConfig()[0].comments2, report_var_conf.comments2);
-		IS_FALSE(report_conf2.variantConfig()[0].de_novo);
-		IS_FALSE(report_conf2.variantConfig()[0].comp_het);
-		IS_FALSE(report_conf2.variantConfig()[0].exclude_frequency);
-		IS_FALSE(report_conf2.variantConfig()[0].exclude_mechanism);
-		IS_FALSE(report_conf2.variantConfig()[0].exclude_other);
-		IS_FALSE(report_conf2.variantConfig()[0].exclude_phenotype);
+		I_EQUAL(report_conf2.variantConfig().count(), 2);
+		ReportVariantConfiguration var_conf = report_conf2.variantConfig()[1]; //order changed because they are sorted by index
+		I_EQUAL(var_conf.variant_index, 47);
+		IS_TRUE(var_conf.causal);
+		S_EQUAL(var_conf.classification, "n/a");
+		S_EQUAL(var_conf.report_type, report_var_conf.report_type);
+		IS_TRUE(var_conf.mosaic);
+		IS_TRUE(var_conf.exclude_artefact);
+		S_EQUAL(var_conf.comments, report_var_conf.comments);
+		S_EQUAL(var_conf.comments2, report_var_conf.comments2);
+		IS_FALSE(var_conf.de_novo);
+		IS_FALSE(var_conf.comp_het);
+		IS_FALSE(var_conf.exclude_frequency);
+		IS_FALSE(var_conf.exclude_mechanism);
+		IS_FALSE(var_conf.exclude_other);
+		IS_FALSE(var_conf.exclude_phenotype);
+		var_conf = report_conf2.variantConfig()[0]; //order changed because they are sorted by index
+		I_EQUAL(var_conf.variant_index, 4);
+		IS_FALSE(var_conf.causal);
+		S_EQUAL(var_conf.classification, "4");
+		S_EQUAL(var_conf.report_type, report_var_conf2.report_type);
+		IS_FALSE(var_conf.mosaic);
+		IS_FALSE(var_conf.exclude_artefact);
+		S_EQUAL(var_conf.comments, report_var_conf2.comments);
+		S_EQUAL(var_conf.comments2, report_var_conf2.comments2);
+		IS_FALSE(var_conf.de_novo);
+		IS_FALSE(var_conf.comp_het);
+		IS_FALSE(var_conf.exclude_frequency);
+		IS_FALSE(var_conf.exclude_mechanism);
+		IS_FALSE(var_conf.exclude_other);
+		IS_FALSE(var_conf.exclude_phenotype);
 
 		vl.clear();
-		report_conf2 = db.reportConfig(ps_id, vl, messages2);
+		report_conf2 = db.reportConfig(ps_id, vl, cnvs, messages2);
 		I_EQUAL(messages2.count(), 1);
 		S_EQUAL(messages2[0], "Could not find variant 'chr2:47635523-47635523 ->T' in given variant list!");
-		I_EQUAL(report_conf2.variantConfig().count(), 0);
+		I_EQUAL(report_conf2.variantConfig().count(), 1);
+		X_EQUAL(report_conf2.variantConfig()[0].variant_type, VariantType::CNVS);
+
+		//deleteReportConfig
+		I_EQUAL(db.getValue("SELECT count(*) FROM report_configuration").toInt(), 1);
+		db.deleteReportConfig(conf_id);
+		I_EQUAL(db.getValue("SELECT count(*) FROM report_configuration").toInt(), 0);
+
+		//cnvId
+		CopyNumberVariant cnv = CopyNumberVariant("chr1", 1000, 2000, 1, GeneSet(), QByteArrayList());
+		QString cnv_id = db.cnvId(cnv, 4711, false); //callset 4711 does not exist
+		S_EQUAL(cnv_id, "");
+
+		processed_sample_id = db.processedSampleId("NA12878_03");
+		cnv_id = db.cnvId(cnv, 1, false);
+		S_EQUAL(cnv_id, "1");
+
+		cnv = CopyNumberVariant("chr12", 1000, 2000, 1, GeneSet(), QByteArrayList());
+		cnv_id = db.cnvId(cnv, 1, false); //CNV on chr12 does not exist
+		S_EQUAL(cnv_id, "");
+
+		//addCnv
+		CnvList cnv_list;
+		cnv_list.load(TESTDATA("data_in/cnvs_clincnv.tsv"));
+		cnv_id = db.addCnv(1, cnv_list[0], cnv_list, 201); //ll=200 > no import
+		S_EQUAL(cnv_id, "");
+
+		cnv_id = db.addCnv(1, cnv_list[0], cnv_list);
+		S_EQUAL(cnv_id, "5");
+		S_EQUAL(db.getValue("SELECT cn FROM cnv WHERE id="+cnv_id).toString(), "0");
+		S_EQUAL(db.getValue("SELECT quality_metrics FROM cnv WHERE id="+cnv_id).toString(), "{\"loglikelihood\":\"200\",\"qvalue\":\"0\",\"regions\":\"2\"}");
+
+		cnv_list.load(TESTDATA("data_in/cnvs_cnvhunter.tsv"));
+		cnv_id = db.addCnv(1, cnv_list[1], cnv_list);
+		S_EQUAL(db.getValue("SELECT cn FROM cnv WHERE id="+cnv_id).toString(), "1");
+		S_EQUAL(db.getValue("SELECT quality_metrics FROM cnv WHERE id="+cnv_id).toString(), "{\"region_zscores\":\"-4.48,-3.45,-4.27\",\"regions\":\"3\"}");
+		S_EQUAL(cnv_id, "6");
+
+		//cnvCallsetMetrics (of sample)
+		QHash<QString, QString> callset_metrics = db.cnvCallsetMetrics(1);
+		I_EQUAL(callset_metrics.count(), 6);
+		S_EQUAL(callset_metrics["gender of sample"], "M");
+		S_EQUAL(callset_metrics["number of iterations"], "1");
 	}
 
 	//Test for debugging (without initialization because of speed)

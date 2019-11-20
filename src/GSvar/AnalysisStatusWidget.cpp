@@ -291,6 +291,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 	{
 		menu.addAction(QIcon(":/Icons/Folder.png"), "Open sample folders");
 	}
+	menu.addAction(QIcon(":/Icons/File.png"), "Open log file");
 	if (all_running)
 	{
 		menu.addAction(QIcon(":/Icons/Remove.png"), "Cancel");
@@ -362,6 +363,32 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 		foreach(const AnalysisJobSample& sample, samples)
 		{
 			QDesktopServices::openUrl(db.processedSamplePath(db.processedSampleId(sample.name), NGSD::SAMPLE_FOLDER));
+		}
+	}
+	if (text=="Open log file")
+	{
+		NGSD db;
+		foreach(int row, rows)
+		{
+			QTableWidgetItem* item = ui_.analyses->item(row, 8);
+			if (item==nullptr) continue;
+			QString last_edit = item->text().trimmed();
+			if (last_edit.isEmpty() || !last_edit.contains("(")) continue;
+
+			//determin log file
+			int start = last_edit.indexOf("(") + 1;
+			int end = last_edit.indexOf(")");
+			QString log = last_edit.mid(start, end-start);
+
+			//prepend folder
+			QString folder = db.analysisJobFolder(jobs_[row].ngsd_id);
+			log = folder + log;
+
+			//open
+			if (!QDesktopServices::openUrl(log))
+			{
+				QMessageBox::warning(this, "Error opening log file", "Log file could not be opened:\n" + log);
+			}
 		}
 	}
 	if (text=="Cancel")

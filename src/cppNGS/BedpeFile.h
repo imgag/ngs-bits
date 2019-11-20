@@ -138,16 +138,21 @@ protected:
 	}
 };
 
+enum BedpeFileFormat
+{
+	BEDPE_UNKNOWN,
+	BEDPE_GERMLINE_SINGLE,
+	BEDPE_GERMLINE_MULTI,
+	BEDPE_GERMLINE_TRIO,
+	BEDPE_SOMATIC_TUMOR_ONLY,
+	BEDPE_SOMATIC_TUMOR_NORMAL
+};
 
 
 class CPPNGSSHARED_EXPORT BedpeFile
 {
 public:
 	BedpeFile();
-
-	enum SV_TYPE{ DELLY, MANTA, UNKNOWN};
-	///returns analysis type
-	SV_TYPE analysisType();
 
 	///load bedpe file
 	void load(const QString& file_name);
@@ -196,6 +201,9 @@ public:
 
 	///Stores file as TSV
 	void toTSV(QString file_name);
+
+	///Returns bedpe type according entry in file comments ##fileformat=
+	BedpeFileFormat format();
 
 	///Converts type string to enum
 	static StructuralVariantType stringToType(const QByteArray& str);

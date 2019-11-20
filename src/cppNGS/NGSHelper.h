@@ -29,6 +29,9 @@ public:
 	///Returns the pseudoautomal regions on gnosomes.
 	static const BedFile& pseudoAutosomalRegion(const QString& build);
 
+	///Returns the cytogenetic band for to chromosomal position
+	static QByteArray cytoBand(Chromosome chr, int pos);
+
 private:
 	///Constructor declared away
 	NGSHelper() = delete;

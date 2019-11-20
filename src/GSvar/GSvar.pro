@@ -15,7 +15,6 @@ SOURCES += main.cpp\
     HttpHandler.cpp \
     ValidationDialog.cpp \
     ClassificationDialog.cpp \
-    DBAnnotationWorker.cpp \
     ApprovedGenesDialog.cpp \
     GeneWidget.cpp \
     PhenoToGenesDialog.cpp \
@@ -73,7 +72,6 @@ HEADERS  += MainWindow.h \
     HttpHandler.h \
     ValidationDialog.h \
     ClassificationDialog.h \
-    DBAnnotationWorker.h \
     ApprovedGenesDialog.h \
     GeneWidget.h \
     PhenoToGenesDialog.h \

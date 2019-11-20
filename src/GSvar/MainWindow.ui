@@ -460,7 +460,6 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionNGSDAnnotation"/>
    <addaction name="actionAnnotateSomaticVariants"/>
    <addaction name="separator"/>
    <addaction name="actionAnalysisStatus"/>
@@ -512,21 +511,6 @@
   <action name="actionStatisticsFastA">
    <property name="text">
     <string>FastA</string>
-   </property>
-  </action>
-  <action name="actionNGSDAnnotation">
-   <property name="icon">
-    <iconset resource="GSvar.qrc">
-     <normaloff>:/Icons/Database.png</normaloff>:/Icons/Database.png</iconset>
-   </property>
-   <property name="text">
-    <string>Ann</string>
-   </property>
-   <property name="iconText">
-    <string>Complete annotation</string>
-   </property>
-   <property name="toolTip">
-    <string>Re-annotate variant list with frequency information and comments from NGSD.</string>
    </property>
   </action>
   <action name="actionGenderXY">

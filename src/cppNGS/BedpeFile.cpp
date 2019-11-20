@@ -95,39 +95,6 @@ int BedpeLine::size() const
 	THROW(ProgrammingException, "Unhandled variant type (int): " + BedpeFile::typeToString(t));
 }
 
-
-BedpeFile::SV_TYPE BedpeFile::analysisType()
-{
-	if(lines_.isEmpty()) return UNKNOWN;
-
-	int i_ID = annotationIndexByName("ID",false);
-
-	int i_info_a = annotationIndexByName("INFO_A",false);
-	int i_info_b = annotationIndexByName("INFO_B",false);
-
-	foreach(const BedpeLine& line, lines_)
-	{
-		//identify Manta from Read IDs
-		if(i_ID > -1)
-		{
-			if(line.annotations().at(i_ID).toUpper().contains("MANTA")) return MANTA;
-		}
-		if(i_info_a > -1)
-		{
-			if(line.annotations().at(i_info_a).toUpper().contains("DELLY")) return DELLY;
-		}
-		if(i_info_b > -1)
-		{
-			if(line.annotations().at(i_info_b).toUpper().contains("DELLY")) return DELLY;
-		}
-
-	}
-
-	return UNKNOWN;
-}
-
-
-
 BedpeFile::BedpeFile()
 {
 }
@@ -322,4 +289,16 @@ void BedpeFile::toTSV(QString file_name)
 void BedpeFile::sort()
 {
 	std::sort(lines_.begin(),lines_.end());
+}
+
+
+BedpeFileFormat BedpeFile::format()
+{
+	for(auto comment : comments_) //TODO: return type for germline samples
+	{
+		if(comment.contains("fileformat=BEDPE_TUMOR_NORMAL_PAIR")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL;
+		if(comment.contains("fileformat=BEDPE_TUMOR_ONLY")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY;
+	}
+
+	return BedpeFileFormat::BEDPE_UNKNOWN;
 }

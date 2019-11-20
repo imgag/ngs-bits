@@ -1,5 +1,18 @@
 # GSvar change log
 
+### 2019_09-67 (12.11.19)
+- Report: show gene inheritance in addition to variant inheritance.
+- Report config: set inheritance automatically, if only one option available.
+- Report config: bugfix - storing should no longer crash when performing query 'INSERT INTO cnv ...'.
+- SVs: removed support for Delly.
+- Analysis status: added context menu entry to open last modified log file.
+- Analysis status: analysis (re-)start dialogs now show quality as icon.
+
+### 2019_09-55 (07.11.19)
+- Added CNVs to report configuration (report and variant sheet). 
+- CNVs: added CNV callset quality and histograms of QC metrics.
+- Report: report generation now takes target region into account again.
+
 ### 2019_09-42 (16.10.19)
 - Structural variants: Added target region, phenotype filter and genotype filter.
 

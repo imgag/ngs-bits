@@ -165,10 +165,6 @@ SUBDIRS += FastqConvert
 tools-TEST.depends += FastqConvert
 FastqConvert.depends = cppNGS
 
-SUBDIRS += VariantAnnotateNGSD
-tools-TEST.depends += VariantAnnotateNGSD
-VariantAnnotateNGSD.depends = cppNGSD
-
 SUBDIRS += SampleOverview
 tools-TEST.depends += SampleOverview
 SampleOverview.depends = cppNGS
@@ -285,10 +281,6 @@ SUBDIRS += VcfAnnotateFromBed
 tools-TEST.depends += VcfAnnotateFromBed
 VcfAnnotateFromBed.depends = cppNGS
 
-SUBDIRS += NGSDPrecalculate
-tools-TEST.depends += NGSDPrecalculate
-NGSDPrecalculate.depends = cppNGSD
-
 SUBDIRS += NGSDMaintain
 tools-TEST.depends += NGSDMaintain
 NGSDMaintain.depends = cppNGSD
@@ -356,6 +348,10 @@ VcfAnnotateFromVcf.depends = cppNGS
 SUBDIRS += NGSDExportCnvTrack
 tools-TEST.depends += NGSDExportCnvTrack
 NGSDExportCnvTrack.depends = cppNGS
+
+SUBDIRS += CnvGeneAnnotation
+tools-TEST.depends += CnvGeneAnnotation
+CnvGeneAnnotation.depends = cppNGS
 
 #other stuff
 OTHER_FILES += ToDos.txt

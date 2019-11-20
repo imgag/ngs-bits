@@ -14,6 +14,16 @@ CopyNumberVariant::CopyNumberVariant()
 {
 }
 
+CopyNumberVariant::CopyNumberVariant(const Chromosome& chr, int start, int end)
+	: chr_(chr)
+	, start_(start)
+	, end_(end)
+	, num_regs_(-1)
+	, genes_()
+	, annotations_()
+{
+}
+
 CopyNumberVariant::CopyNumberVariant(const Chromosome& chr, int start, int end, int num_regs, GeneSet genes, QByteArrayList annotations)
 	: chr_(chr)
 	, start_(start)
@@ -22,6 +32,49 @@ CopyNumberVariant::CopyNumberVariant(const Chromosome& chr, int start, int end, 
 	, genes_(genes)
 	, annotations_(annotations)
 {
+}
+
+QString CopyNumberVariant::toStringWithMetaData() const
+{
+	return toString() + " regions=" + QString::number(num_regs_) + " size=" + QString::number((end_-start_)/1000.0, 'f', 3) + "kb";
+}
+
+int CopyNumberVariant::copyNumber(const QByteArrayList& annotation_headers, bool throw_if_not_found) const
+{
+	for (int i=0; i<annotation_headers.count(); ++i)
+	{
+		if (annotation_headers[i]=="CN_change") //ClinCNV
+		{
+			return annotations_[i].toInt();
+		}
+		else if (annotation_headers[i]=="region_copy_numbers") //CnvHunter
+		{
+			QByteArrayList parts = annotations_[i].split(',');
+
+			int max = 0;
+			QByteArray max_cn;
+			QHash<QByteArray, int> cn_counts;
+			foreach(const QByteArray& cn, parts)
+			{
+				int count_new = cn_counts[cn] + 1;
+				if (count_new>max)
+				{
+					max = count_new;
+					max_cn = cn;
+				}
+				cn_counts[cn] = count_new;
+			}
+
+			return Helper::toInt(max_cn, "copy-number");
+		}
+	}
+
+	if (throw_if_not_found)
+	{
+		THROW(ProgrammingException, "Copy-number could not be determine for CNV: " + toString());
+	}
+
+	return -1;
 }
 
 CnvList::CnvList()
@@ -144,7 +197,7 @@ void CnvList::load(QString filename)
 	}
 	else
 	{
-		THROW(ProgrammingException, "Column handling for this CNV list with type not implemented!");
+		THROW(NotImplementedException, "Column handling for this CNV list with type not implemented!");
 	}
 
 	//check mandatory columns were found
@@ -181,6 +234,127 @@ void CnvList::load(QString filename)
 
 		variants_.append(CopyNumberVariant(parts[i_chr], parts[i_start].toInt(), parts[i_end].toInt(), region_count, genes, annos));
 	}
+}
+
+/*
+void CnvList::store(QString filename)
+{
+	// check if CnvListType is valid
+	if (type()==CnvListType::INVALID) THROW(NotImplementedException, "Invalid CnvListType! Cannot create file.");
+
+	//open stream
+	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, true);
+	QTextStream stream(file.data());
+
+	//write header lines
+
+	//analysis type
+	stream <<  "##ANALYSISTYPE=";
+	if (type()==CnvListType::CNVHUNTER_GERMLINE_SINGLE) stream << "CNVHUNTER_GERMLINE_SINGLE\n";
+	else if (type()==CnvListType::CNVHUNTER_GERMLINE_MULTI) stream << "CNVHUNTER_GERMLINE_MULTI\n";
+	else if (type()==CnvListType::CLINCNV_GERMLINE_SINGLE) stream << "CLINCNV_GERMLINE_SINGLE\n";
+	else if (type()==CnvListType::CLINCNV_GERMLINE_MULTI) stream << "CLINCNV_GERMLINE_MULTI\n";
+	else if (type()==CnvListType::CLINCNV_TUMOR_NORMAL_PAIR) stream << "CLINCNV_TUMOR_NORMAL_PAIR\n";
+
+	//description
+	foreach (QByteArray header, annotation_headers_)
+	{
+		if (annotation_header_desc_[header].trimmed() != "")
+		{
+			stream << "##DESCRIPTION=" << header << "=" << annotation_header_desc_[header] << "\n";
+		}
+	}
+
+	//other comments
+	foreach (QByteArray comment_line, comments_)
+	{
+		stream << comment_line << "\n";
+	}
+
+	// header line
+	stream << "#chr\tstart\tend\tgenes";
+	if (type()==CnvListType::CNVHUNTER_GERMLINE_SINGLE || type()==CnvListType::CNVHUNTER_GERMLINE_MULTI) stream << "\tregion_count";
+	if (type()==CnvListType::CLINCNV_GERMLINE_SINGLE) stream << "\tno_of_regions";
+	if (type()==CnvListType::CLINCNV_TUMOR_NORMAL_PAIR) stream << "\tnumber_of_regions";
+	if (annotation_headers_.size() > 0) stream << "\t" << annotation_headers_.join(",");
+	stream << "\n";
+
+
+	// CNVs
+	foreach (CopyNumberVariant varinat, variants_)
+	{
+		// write position and gene names:
+		stream << variant.chr().strNormalized(true) << "\t" << variant.start() << "\t" << variant.end() << "\t" << variant.genes().join(",");
+		if (type() != CnvListType::CLINCNV_GERMLINE_MULTI) stream << "\t" << variant.regions();
+
+	}
+
+}
+*/
+
+CnvCallerType CnvList::caller() const
+{
+	CnvListType list_type = type();
+	if (list_type==CnvListType::INVALID)
+	{
+		return CnvCallerType::INVALID;
+	}
+	else if (list_type==CnvListType::CNVHUNTER_GERMLINE_SINGLE || list_type==CnvListType::CNVHUNTER_GERMLINE_MULTI)
+	{
+		return CnvCallerType::CNVHUNTER;
+	}
+	else if (list_type==CnvListType::CLINCNV_GERMLINE_SINGLE || list_type==CnvListType::CLINCNV_GERMLINE_MULTI || list_type==CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
+	{
+		return CnvCallerType::CLINCNV;
+	}
+	else
+	{
+		THROW(ProgrammingException, "CNV list type not handled in CnvList::caller()!");
+	}
+}
+
+QString CnvList::callerAsString() const
+{
+	CnvCallerType caller_type = caller();
+	if (caller_type==CnvCallerType::CLINCNV)
+	{
+		return "ClinCNV";
+	}
+	else if (caller_type==CnvCallerType::CNVHUNTER)
+	{
+		return "CnvHunter";
+	}
+	else
+	{
+		THROW(ProgrammingException, "CNV caller type not handled in CnvList::callerAsString()!");
+	}
+}
+
+QByteArray CnvList::qcMetric(QString name, bool throw_if_missing) const
+{
+	QByteArray value;
+
+	foreach(QByteArray comment, comments_)
+	{
+		if (comment.contains(":"))
+		{
+			comment = comment.mid(2); //remove '##'
+
+			int sep_pos = comment.indexOf(':');
+			QByteArray key = comment.mid(0, sep_pos);
+			if (key==name)
+			{
+				value = comment.mid(sep_pos+1).trimmed();
+			}
+		}
+	}
+
+	if (value.isEmpty() && throw_if_missing)
+	{
+		THROW(ProgrammingException, "Cannot find QC metric '" + name + "' in CNV list header!");
+	}
+
+	return value;
 }
 
 QByteArray CnvList::headerDescription(QByteArray name) const

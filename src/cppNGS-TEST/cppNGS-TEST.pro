@@ -57,7 +57,8 @@ HEADERS += \
         OntologyTermCollection_Test.h \
         BamReader_Test.h \
         VcfFile_Test.h \
-        BedpeLine_Test.h
+        BedpeLine_Test.h \
+    CnvList_Test.h
 
 SOURCES += \
         main.cpp

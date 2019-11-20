@@ -5,8 +5,9 @@ libs:
 
 NGSD:
 ** Add variant tab (classification, validation, detected samples + genotype + phenotype)
-** Add sender widget (link from sample info)
-** Add processing system widget (link from processed sample info)
+** Add sender tag (link from sample info)
+** Add processing system tab (link from processed sample info)
+** Add project tab (sample overview with diag status, etc)
 *** Allow adding/editing data in NGSD
     - Run/processed sample/sample in general
         - Add email support for runs "run finished" and "analysis finished"
@@ -14,33 +15,30 @@ NGSD:
     - sample: import disease info, disease group/status, gender from same samples
     - sample: import disease group/status from GenLab (sample - disease status: add 'Unclear') - select * FROM v_krankheitsgruppe_pattyp...
 ** Add run overview dialog/tab
-##### add CNVs to NGSD
-    - block re-import of CNVs if report config is set for all variant types - allow deleting report config from GSvar
-    - allow adding to report config in GSvar (like small variants, but with classification) -  add low-quality CNV calls to NGSD if missing
-    - generate IGV tracks with gain/loss for exome/genome - split deep/shallow genome
-    - add annotation of CNVs from NGSD:
-        - # overlapping CNVs (by type gain/loss)
-        - overlapping class 4/5 CNVs
-**** NGSD annotation (LS)
-    - export VCF, use VCF for annotation
-    - remove NGSDPrecalculate tool and tables 'detected_variant_counts' and 'detected_variant_counts_by_group'
+- Allow several disease_groups per sample (requested by CS)
 
 GSvar:
+######## CNV report: add class, inheritance
+### Trio report: generate XML for parents (no gaps, ...) possible? > FEEDBACK ANNE
+** add visualization of NGSD CNVs (or annotation of CNVs):
+    - # overlapping CNVs (by type gain/loss)
+    - overlapping class 4/5 CNVs
+** ReportConfigSomatic
+    - id via SAP case number (not sample number >CS), QBIC id
+    - track manual changes to raw calls
+    - flag most relevant items
+    - requirements as discussed with Ruhm/Möller
+    - Sample > Messbefund (Schema ist Messprofil) > Messparameter (Name+Typ - Typ kann vordefiniertes Enum sein)
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
-** replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
-* trio filter: correct PAR region handling (Genetikum)
-* report variant selection
-    - add gaps report (custom via import) to XML report
-        - CCDS +-5 bases!?
-        - gap report as XML and additional report of gaps to sanger-validate as TXT
-    - Trio report > trio XML (Anne,Mona)?
+*** replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
+*** trio filter: correct PAR region handling (Genetikum)
 * SV widget
     - add size filter - have a look at the overlap between manta and freebayes
     - add overlapping genes and allow filtering for comp-hets (be carefull with small indels)
     - add OMIM annotations
+    - add gene annotation and type (coding/splicing/intronic/intergenic)
 
 Tools:
-- NGSDImportHPO: Add G2P database (https://www.ebi.ac.uk/gene2phenotype) - if HPO people do not include it
 - UPDHunter: also support chrX?
 - SomaticQC: replace 'QC:?' by real qcML identifier - add to https://github.com/HUPO-PSI/mzQC (CS)
 

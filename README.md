@@ -116,7 +116,6 @@ The default output format of the quality control tools is [qcML](https://github.
 
 * [VcfAnnotateFromBed](doc/tools/VcfAnnotateFromBed.md) - Annotates the INFO column of a VCF with data from a BED file.
 * [VcfAnnotateFromVcf](doc/tools/VcfAnnotateFromVcf.md) - Annotates the INFO column of a VCF with data from another VCF file (or multiple VCF files if config file is provided)
-* [VcfBreakComplex](doc/tools/VcfBreakMulti.md) - Breaks complex variants into primitives preserving INFO/SAMPLE fields.
 * [VcfBreakMulti](doc/tools/VcfBreakMulti.md) - Breaks multi-allelic variants into several lines, making sure that allele-specific INFO/SAMPLE fields are still valid.
 * [VcfCheck](doc/tools/VcfCheck.md) - Checks a VCF file for errors.
 * [VcfExtractSamples](doc/tools/VcfExtractSamples.md) - Extract one or several samples from a VCF file.

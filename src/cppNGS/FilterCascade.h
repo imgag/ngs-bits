@@ -715,4 +715,27 @@ class CPPNGSSHARED_EXPORT FilterCnvCnpOverlap
 		void apply(const CnvList& cnvs, FilterResult& result) const override;
 };
 
+//Filter CNVs for gene constraint
+class CPPNGSSHARED_EXPORT FilterCnvGeneConstraint
+	: public FilterBase
+{
+	public:
+		FilterCnvGeneConstraint();
+		QString toText() const override;
+		void apply(const CnvList& cnvs, FilterResult& result) const override;
+};
+
+
+//Filter CNVs for gene overlap region
+class CPPNGSSHARED_EXPORT FilterCnvGeneOverlap
+	: public FilterBase
+{
+	public:
+		FilterCnvGeneOverlap();
+		QString toText() const override;
+		void apply(const CnvList& cnvs, FilterResult& result) const override;
+
+		QByteArrayList selectedOptions() const;
+};
+
 #endif // FILTERCASCADE_H

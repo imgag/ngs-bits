@@ -260,7 +260,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 		}
 		else if(name=="OMIM")
 		{
-			foreach(const DBEntry& entry, parseDB(anno))
+			foreach(const DBEntry& entry, parseDB(anno, ','))
 			{
 				text += formatLink(entry.id, "http://omim.org/entry/" + entry.id) + " ";
 				tooltip += nobr() + entry.id + ": " + entry.details;
@@ -634,7 +634,9 @@ void VariantDetailsDockWidget::setTranscript(int index)
 		ui->detail_type->setText(trans.type);
 		ui->detail_impact->setText(trans.impact);
 	}
-	ui->detail_exon->setText(trans.exon.mid(4));
+	QString exon_nr = trans.exon;
+	exon_nr.replace("exon", "");
+	ui->detail_exon->setText(exon_nr);
 	ui->detail_cdna->setText(trans.hgvs_c);
 	ui->detail_protein->setText(trans.hgvs_p);
 	text = trans.domain;

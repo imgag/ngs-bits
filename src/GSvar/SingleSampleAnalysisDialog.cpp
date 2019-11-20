@@ -5,6 +5,7 @@
 #include <QPlainTextEdit>
 #include <ProcessedSampleSelector.h>
 #include "GUIHelper.h"
+#include "ProcessedSampleWidget.h"
 
 SingleSampleAnalysisDialog::SingleSampleAnalysisDialog(QWidget *parent)
 	: QDialog(parent)
@@ -88,7 +89,11 @@ void SingleSampleAnalysisDialog::updateSampleTable(const QList<SampleDetails>& s
 		samples_table->setItem(i, 0, new QTableWidgetItem(samples[i].name));
 		samples_table->setItem(i, 1, new QTableWidgetItem(samples[i].system));
 		samples_table->setItem(i, 2, new QTableWidgetItem(samples[i].status));
-		samples_table->setItem(i, 3, new QTableWidgetItem(samples[i].quality));
+		QLabel* quality_label = new QLabel();
+		quality_label->setAlignment(Qt::AlignLeft|Qt::AlignVCenter);
+		quality_label->setMargin(1);
+		ProcessedSampleWidget::styleQualityLabel(quality_label, samples[i].quality);
+		samples_table->setCellWidget(i, 3, quality_label);
 		samples_table->setItem(i, 4, new QTableWidgetItem(samples[i].gender));
 	}
 
@@ -190,7 +195,6 @@ void SingleSampleAnalysisDialog::on_add_batch_clicked(bool)
 			if (sample.isEmpty() || sample[0]=='#') continue;
 			addSample("", sample);
 		}
-		ui_.high_priority->setChecked(false);
 
 		updateSampleTable();
 		updateStartButton();

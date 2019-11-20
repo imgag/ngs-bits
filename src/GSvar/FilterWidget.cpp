@@ -166,7 +166,19 @@ void FilterWidget::resetSignalsUnblocked(bool clear_roi)
 
 QString FilterWidget::filterFileName()
 {
-    return GSvarHelper::applicationBaseName() + "_filters.ini";
+	return GSvarHelper::applicationBaseName() + "_filters.ini";
+}
+
+void FilterWidget::setFilter(QString name)
+{
+	for (int i=0; i<ui_.filters->count(); ++i)
+	{
+		if (ui_.filters->itemText(i)==name)
+		{
+			ui_.filters->setCurrentIndex(i);
+			return;
+		}
+	}
 }
 
 void FilterWidget::reset(bool clear_roi)

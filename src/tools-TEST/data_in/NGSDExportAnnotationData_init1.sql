@@ -150,27 +150,6 @@ INSERT INTO variant_validation (id, user_id, sample_id, variant_id, genotype, st
 (15, 2, 7, 7, 'hom', 'true positive', 'val com2'),
 (16, 2, 4, 7, 'hom', 'true positive', 'val com2');
 
---detected_variant_counts
-INSERT INTO detected_variant_counts (variant_id, count_hom, count_het) VALUES 
-(1, 111, 471),
-(2, 112, 472),
-(3, 113, 473),
-(4, 114, 474),
-(5, 115, 475),
-(6, 116, 476),
-(7, 117, 477),
-(8, 118, 478),
-(9, 11, 47),
-(12, 12, 2);
-
-
---detected_variant_counts
-INSERT INTO detected_variant_counts_by_group (variant_id, disease_group, count_hom, count_het) VALUES 
-(8, 'Diseases of the nervous system', 47, 11),
-(7, 'Diseases of the visual system', 77, 777),
-(9, 'Neoplasms', 1, 99);
-
-
 -- table `gene`
 INSERT INTO `gene` (`id`, `hgnc_id`, `symbol`, `name`, `type`) VALUES
 (1,1001, 'BRCA1','Breast cancer associated gene 1', 'protein-coding gene'),
