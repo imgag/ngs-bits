@@ -35,6 +35,7 @@ SvWidget::SvWidget(const QStringList& bedpe_file_paths, FilterWidget* filter_wid
 	connect(ui->ignore_special_chromosomes,SIGNAL(stateChanged(int)),this,SLOT(applyFilters()));
 	connect(ui->filter_pe_af,SIGNAL(valueChanged(double)),this,SLOT(applyFilters()));
 	connect(ui->filter_sr_af,SIGNAL(valueChanged(double)),this,SLOT(applyFilters()));
+	connect(ui->filter_somaticscore, SIGNAL(valueChanged(int)), this, SLOT(applyFilters()));
 
 	connect(ui->filter_pe_reads,SIGNAL(valueChanged(int)),this,SLOT(applyFilters()));
 
@@ -43,6 +44,7 @@ SvWidget::SvWidget(const QStringList& bedpe_file_paths, FilterWidget* filter_wid
 	connect(ui->svs,SIGNAL(itemSelectionChanged()),this,SLOT(SvSelectionChanged()));
 
 	connect(ui->svs,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showContextMenu(QPoint)));
+
 
 	FilterWidget::loadTargetRegions(ui->roi);
 	connect(ui->roi, SIGNAL(currentIndexChanged(int)), this, SLOT(roiSelectionChanged(int)));
@@ -63,6 +65,27 @@ SvWidget::SvWidget(const QStringList& bedpe_file_paths, FilterWidget* filter_wid
 	else
 	{
 		loadSVs(bedpe_file_paths[0]);
+
+		//Disable filters that cannot apply for tumor normal pairs (data is expanded already)
+		if(sv_bedpe_file_.format() == BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL)
+		{
+			ui->filter_somaticscore->setEnabled(true);
+
+			ui->info_a->setEnabled(false);
+			ui->info_b->setEnabled(false);
+			ui->sv_details->setEnabled(false);
+
+			ui->filter_pe_af->setEnabled(false);
+			ui->filter_sr_af->setEnabled(false);
+			ui->filter_geno->setEnabled(false);
+			ui->filter_quality_score->setEnabled(false);
+			ui->filter_pe_reads->setEnabled(false);
+			ui->roi->setEnabled(false);
+			ui->roi_import->setEnabled(false);
+
+			ui->hpo->setEnabled(false);
+			ui->hpo_import->setEnabled(false);
+		}
 	}
 }
 
@@ -82,7 +105,6 @@ void SvWidget::loadSVs(const QString &file_name)
 		loading_svs_ = false;
 		return;
 	}
-
 
 	//Set list of annotations to be showed, by default some annotations are filtered out
 	QByteArrayList annotation_headers = sv_bedpe_file_.annotationHeaders();
@@ -208,6 +230,7 @@ void SvWidget::resizeQTableWidget(QTableWidget *table_widget)
 	}
 	GUIHelper::resizeTableCells(table_widget,200);
 }
+
 
 void SvWidget::applyFilters()
 {
@@ -419,6 +442,20 @@ void SvWidget::applyFilters()
 			if(!pass[row]) continue;
 
 			if (!sv_bedpe_file_[row].intersectsWith(phenotypes_roi_)) pass[row] = false;
+		}
+	}
+
+	//filter by somaticscore (in case of tumor-normal pair)
+	if(ui->filter_somaticscore->isEnabled())
+	{
+		int i_somaticscore = sv_bedpe_file_.annotationIndexByName("SOMATICSCORE");
+		for(int row=0; row<row_count; ++row)
+		{
+			if(!pass[row]) continue;
+			bool ok = false;
+			double score = sv_bedpe_file_[row].annotations()[i_somaticscore].toDouble(&ok);
+			if(!ok) continue;
+			if(score < ui->filter_somaticscore->value()) pass[row] = false;
 		}
 	}
 
@@ -650,6 +687,8 @@ void SvWidget::phenotypesChanged()
 
 void SvWidget::SvSelectionChanged()
 {
+	if(sv_bedpe_file_.format() == BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL) return; //Skip somatic lists because info columns are expanded already
+
 	QModelIndexList rows = ui->svs->selectionModel()->selectedRows();
 	if(rows.count() != 1) return;
 

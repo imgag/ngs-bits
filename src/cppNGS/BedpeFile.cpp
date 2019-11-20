@@ -290,3 +290,15 @@ void BedpeFile::sort()
 {
 	std::sort(lines_.begin(),lines_.end());
 }
+
+
+BedpeFileFormat BedpeFile::format()
+{
+	for(auto comment : comments_) //TODO: return type for germline samples
+	{
+		if(comment.contains("fileformat=BEDPE_TUMOR_NORMAL_PAIR")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL;
+		if(comment.contains("fileformat=BEDPE_TUMOR_ONLY")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY;
+	}
+
+	return BedpeFileFormat::BEDPE_UNKNOWN;
+}

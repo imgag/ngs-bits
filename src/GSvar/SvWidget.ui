@@ -389,7 +389,7 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="control_panel_2" stretch="0,0,0,0,0,0,0,0,0">
+    <layout class="QHBoxLayout" name="control_panel_2" stretch="0,0,0,0,0,0,0,0,0,0,0,0">
      <property name="spacing">
       <number>3</number>
      </property>
@@ -501,13 +501,46 @@
       </widget>
      </item>
      <item>
+      <spacer name="horizontalSpacer_8">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Fixed</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_7">
+       <property name="text">
+        <string>Somaticscore:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="filter_somaticscore">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="maximum">
+        <number>9999</number>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer name="horizontalSpacer_2">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
-         <width>999999999</width>
+         <width>16</width>
          <height>20</height>
         </size>
        </property>
