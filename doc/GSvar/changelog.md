@@ -1,5 +1,11 @@
 # GSvar change log
 
+### 2019_09-80 (20.11.19)
+- CNVs: callset quality is not automatically set if it is good.
+- CNVs: added new CNV filters (genomAD o/e LOF, gene region).
+- CNVs: updated default filters.
+- Report: Added inheritance and classification to CNV table in report.
+
 ### 2019_09-67 (12.11.19)
 - Report: show gene inheritance in addition to variant inheritance.
 - Report config: set inheritance automatically, if only one option available.

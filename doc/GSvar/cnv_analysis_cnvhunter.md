@@ -37,6 +37,9 @@ Additionally, generic annotation columns can be added (4), e.g.:
 * cn_pathogenic: in-house database of pathogenic CNVs
 * dosage_sensitive_disease_genes: dosage-sensitive disease genes (from [ClinGen Dosage Sensitivity Map](https://www.ncbi.nlm.nih.gov/projects/dbvar/clingen/))
 * OMIM genes
+* gene_info: gene-specific information from NGSD
+	* gnomAD o/e score for LOF variants
+	* overlap with gene (complete, intronic/intergenic, exonic/splicing)
 
 ![alt text](cnv_filtering.png)
 
