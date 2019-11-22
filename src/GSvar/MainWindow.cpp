@@ -3196,13 +3196,13 @@ void MainWindow::editVariantClassification(VariantList& variants, int index, boo
 		NGSD db;
 
 		ClassificationInfo class_info = dlg.classificationInfo();
-		db.setClassification(variant, variants, class_info);		if(is_somatic)
+		if(is_somatic)
 		{
 			db.setSomaticClassification(variant, class_info);
 		}
 		else
 		{
-			db.setClassification(variant, class_info);
+			db.setClassification(variant, variants_,class_info);
 			//update variant table
 			int i_class = variants.annotationIndexByName("classification", true, true);
 			variant.annotations()[i_class] = class_info.classification.replace("n/a", "").toLatin1();

@@ -1285,9 +1285,8 @@ ClassificationInfo NGSD::getSomaticClassification(const Variant& variant)
 	return ClassificationInfo {query.value(0).toString().trimmed(), query.value(1).toString().trimmed() };
 }
 
-void NGSD::setClassification(const Variant& variant, ClassificationInfo info)
-
-void NGSD::setClassification(const Variant& variant, const VariantList& variant_list, ClassificationInfo info){
+void NGSD::setClassification(const Variant& variant, const VariantList& variant_list, ClassificationInfo info)
+{
 	QString variant_id = variantId(variant, false);
 	if (variant_id=="") //add variant if missing
 	{
