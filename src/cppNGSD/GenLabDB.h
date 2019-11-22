@@ -21,6 +21,9 @@ public:
 	///Returns if the database connection is open
 	bool isOpen() const;
 
+	///Returns all tables
+	QStringList tables();
+
 	///Returns the number of entries with the given sample name
 	bool entriesExistForSample(QString sample_name);
 

@@ -25,6 +25,7 @@
 #include <QMimeData>
 #include <QSqlError>
 #include <QChartView>
+#include <GenLabDB.h>
 QT_CHARTS_USE_NAMESPACE
 #include "ReportWorker.h"
 #include "ScrollableTextDialog.h"
@@ -103,6 +104,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.variant_details, SIGNAL(editVariantComment()), this, SLOT(editVariantComment()));
 	connect(ui_.variant_details, SIGNAL(showVariantSampleOverview()), this, SLOT(showVariantSampleOverview()));
 	connect(ui_.tabs, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
+	ui_.actionDebug->setVisible(Settings::boolean("debug_mode_enabled"));
 
 	//NGSD menu button
 	auto ngsd_btn = new QToolButton();
@@ -165,6 +167,12 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(&delayed_init_timer_, SIGNAL(timeout()), this, SLOT(delayedInizialization()));
 	delayed_init_timer_.setSingleShot(false);
 	delayed_init_timer_.start(50);
+}
+
+void MainWindow::on_actionDebug_triggered()
+{
+	GenLabDB genlab_db;
+	qDebug() << genlab_db.tables();
 }
 
 void MainWindow::on_actionClose_triggered()

@@ -148,6 +148,8 @@ public slots:
 	void on_actionReanalyze_triggered();
 	///Annotate germline file with somatic variants
 	void on_actionAnnotateSomaticVariants_triggered();
+	///Action for debugging
+	void on_actionDebug_triggered();
 
 	///Clear report configuration (GSvar)
 	void clearReportConfig();

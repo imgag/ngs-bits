@@ -18,6 +18,8 @@ NGSD:
 - Allow several disease_groups per sample (requested by CS)
 
 GSvar:
+### DX197322: L1CAM variants not annotated
+### Trio CNVs: allow showing QC plots
 ### Trio report: generate XML for parents (no gaps, ...) possible? > FEEDBACK ANNE
 ** add visualization of NGSD CNVs (or annotation of CNVs):
     - # overlapping CNVs (by type gain/loss)
@@ -29,7 +31,7 @@ GSvar:
     - requirements as discussed with Ruhm/Möller
     - Sample > Messbefund (Schema ist Messprofil) > Messparameter (Name+Typ - Typ kann vordefiniertes Enum sein)
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
-*** replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
+* replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
 *** trio filter: correct PAR region handling (Genetikum)
 * SV widget
     - add size filter - have a look at the overlap between manta and freebayes
