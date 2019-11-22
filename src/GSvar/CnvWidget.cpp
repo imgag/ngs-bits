@@ -129,19 +129,25 @@ void CnvWidget::addInfoLine(QString text)
 
 	if (text.contains(":"))
 	{
-		QString metric = text.split(":")[0].replace("#", "").trimmed();
-
-		//special handling for CnvHunter output (metrics are prefixed with processed sample name)
-		if (ps_id_!="")
+		QString metric = text.split(":")[0].trimmed();
+		while(metric.startsWith('#'))
 		{
-			QString ps_name = NGSD().processedSampleName(ps_id_);
-			if (metric.startsWith(ps_name))
-			{
-				metric = metric.mid(ps_name.count()).trimmed();
-			}
+			metric = metric.mid(1).trimmed();
 		}
 
-		ui->ngsd_btn->menu()->addAction("Show distribution: " + metric, this, SLOT(showQcMetricHistogram()));
+		//special handling for CnvHunter/trio output (metrics are prefixed with processed sample name)
+		if (cnvs_.type()==CnvListType::CLINCNV_GERMLINE_MULTI || cnvs_.type()==CnvListType::CNVHUNTER_GERMLINE_SINGLE || cnvs_.type()==CnvListType::CNVHUNTER_GERMLINE_MULTI)
+		{
+			metric = metric.split(" ").mid(1).join(" ");
+		}
+
+		//add distribution menu entry (only once for each metric)
+		static QSet<QString> metrics_done;
+		if (!metrics_done.contains(metric))
+		{
+			ui->ngsd_btn->menu()->addAction("Show distribution: " + metric, this, SLOT(showQcMetricHistogram()));
+			metrics_done << metric;
+		}
 	}
 }
 

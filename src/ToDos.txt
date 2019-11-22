@@ -18,8 +18,7 @@ NGSD:
 - Allow several disease_groups per sample (requested by CS)
 
 GSvar:
-### DX197322: L1CAM variants not annotated
-### Trio CNVs: allow showing QC plots
+### DX197322: L1CAM variants not annotated: re-anno ... test, reanalyze trio, test trio
 ### Trio report: generate XML for parents (no gaps, ...) possible? > FEEDBACK ANNE
 ** add visualization of NGSD CNVs (or annotation of CNVs):
     - # overlapping CNVs (by type gain/loss)

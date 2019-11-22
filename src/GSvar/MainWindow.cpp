@@ -262,7 +262,7 @@ void MainWindow::on_actionCNV_triggered()
 	AnalysisType analysis_type = variants_.type();
 	if (ngsd_enabled_ && (analysis_type==GERMLINE_SINGLESAMPLE || analysis_type==GERMLINE_TRIO))
 	{
-		ps_id = NGSD().processedSampleId(filename_, false);
+		ps_id = NGSD().processedSampleId(processedSampleName(), false);
 	}
 
 	//open CNV window

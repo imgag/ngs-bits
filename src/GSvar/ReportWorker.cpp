@@ -1162,13 +1162,15 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 	w.writeAttribute("cnv_caller", cnvs_.callerAsString());
 	w.writeAttribute("overall_number", QString::number(cnvs_.count()));
 	w.writeAttribute("genome_build", "hg19");
-	QString cnv_calling_quality = db_.getValue("SELECT quality FROM cnv_callset WHERE processed_sample_id=" + ps_id, true).toString();
+	QString cnv_callset_id = db_.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=" + ps_id, true).toString();
+	QString cnv_calling_quality = db_.getValue("SELECT quality FROM cnv_callset WHERE id=" + cnv_callset_id, true).toString();
 	if (cnv_calling_quality.trimmed()=="") cnv_calling_quality="n/a";
 	w.writeAttribute("quality", cnv_calling_quality);
-	if(cnvs_.caller()==CnvCallerType::CLINCNV)
+	if(cnvs_.caller()==CnvCallerType::CLINCNV && !cnv_callset_id.isEmpty())
 	{
-		w.writeAttribute("number_of_iterations", cnvs_.qcMetric("number of iterations"));
-		w.writeAttribute("number_of_hq_cnvs", cnvs_.qcMetric("high-quality cnvs"));
+		QHash<QString, QString> qc_metrics = db_.cnvCallsetMetrics(cnv_callset_id.toInt());
+		w.writeAttribute("number_of_iterations", qc_metrics["number of iterations"]);
+		w.writeAttribute("number_of_hq_cnvs", qc_metrics["high-quality cnvs"]);
 	}
 
 	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config.variantConfig())

@@ -1499,7 +1499,7 @@ QVector<double> NGSD::cnvCallsetMetrics(QString processing_system_id, QString me
 			metric_string = metric_string.split(" (").at(0);
 		}
 		double metric_numeric = metric_string.toDouble(&ok);
-		if (ok)	output << metric_numeric;
+		if (ok && BasicStatistics::isValidFloat(metric_numeric)) output << metric_numeric;
 	}
 
 	return output;
