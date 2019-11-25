@@ -136,6 +136,9 @@ Installation instructions for the NGSD can be found [here](doc/install_ngsd.md).
 * [GenesToApproved](doc/tools/GenesToApproved.md) - Replaces gene symbols by approved symbols using the HGNC database.
 * [GenesToBed](doc/tools/GenesToBed.md) - Converts a text file with gene names to a BED file.
 * [NGSDExportGenes](doc/tools/NGSDExportGenes.md) - Lists genes from NGSD.
+* [NGSDExportAnnotationData](doc/tools/NGSDExportAnnotationData.md) -Generates a VCF file with all variants and annotations from the NGSD and a BED file containing the gene information of the NGSD.
+* [NGSDExportCnvTrack](doc/tools/NGSDExportCnvTrack.md) - Exports a CNV track for a processing system.
+* [CnvGeneAnnotation](doc/tools/CnvGeneAnnotation.md) - Annotates a CNVs file with gene information from NGSD (gene constraint, gene region).
 
 ### Other tools
 
