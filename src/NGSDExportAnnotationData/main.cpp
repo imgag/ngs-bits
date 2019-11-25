@@ -155,7 +155,7 @@ private:
 
 		// open output vcf file
 
-		// write meta-inforamtion lines
+		// write meta-information lines
 		out << "\twriting header...";
 		vcf_file_writing.start();
 		QSharedPointer<QFile> vcf_file = Helper::openFileForWriting(vcf_file_path, true);
@@ -479,7 +479,7 @@ private:
 
 		// open output vcf file
 
-		// write meta-inforamtion lines
+		// write meta-information lines
 		out << "\twriting header...";
 		vcf_file_writing.start();
 		QSharedPointer<QFile> vcf_file = Helper::openFileForWriting(vcf_file_path, true);

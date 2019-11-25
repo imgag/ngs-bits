@@ -1,7 +1,7 @@
 ### CnvGeneAnnotation tool help
 	CnvGeneAnnotation (2019_09-57-g68529808)
 	
-	Annotates a given TSV file with CNVs based on the gene inforamtion of the NGSD.
+	Annotates a CNVs file with gene information from NGSD (gene constraint, gene region).
 	
 	Mandatory parameters:
 	  -in <file>              Input TSV file containing the CNVs.
