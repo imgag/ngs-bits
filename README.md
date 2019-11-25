@@ -16,15 +16,21 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 Changes already implemented in GIT master for next release:
 
+* none so far
+
+Changes in release 2019_11:
+
+* RohHunter: added support for AF annotations in INFO field.
+* BamToFastq: added flag to remove duplicates.
 * NGSDExportGenes: Added more columns.
 * added tools: VcfAnnotateFromVcf
-* addes tools for NGSD: NGSDImportORPHA, NGSDAddVariantsGermline, NGSDExportAnnotationData
+* NGSD:
+	* updated projects table (analysis, preserve_fastqs)
+	* removed 'dbsnp' column from the 'variant' table.
+	* added processing system type 'WGS (shallow)'
+	* remove pre-calculation of variant counts in NGSD (now done via export of a VCF file - see NGSDExportAnnotationData).
+* added NGSD-based tools: NGSDImportORPHA, NGSDAddVariantsGermline, NGSDExportAnnotationData, NGSDExportCnvTrack, CnvGeneAnnotation
 
-Changes in release 2019_09:
-
-* NGSDImportEnsembl: Added identification of gene names via HGNC id in case the gene name is ambiguous.
-* GenesToApproved: Added 'report_ambiguous' parameter.
-* VcfToBedpe: Added the tool.
 
 For older releases see the [releases page](https://github.com/imgag/ngs-bits/releases).
 
