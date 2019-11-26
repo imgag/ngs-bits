@@ -2683,6 +2683,11 @@ void MainWindow::uploadtoLovd(int variant_index, int variant_index2)
 	data.hgvs_g = variant.toHGVS(idx);
 	int classification_index = variants_.annotationIndexByName("classification");
 	data.classification = variant.annotations()[classification_index];
+	int i_refseq = variants_.annotationIndexByName("coding_and_splicing_refseq", true, false);
+	if (i_refseq!=-1)
+	{
+		data.trans_data = variant.transcriptAnnotations(i_refseq);
+	}
 
 	//data 2nd variant (comp-het)
 	if (variant_index2!=-1)
@@ -2692,6 +2697,10 @@ void MainWindow::uploadtoLovd(int variant_index, int variant_index2)
 		data.genotype2 = variant2.annotations()[genotype_index];
 		data.hgvs_g2 = variant2.toHGVS(idx);
 		data.classification2 = variant2.annotations()[classification_index];
+		if (i_refseq!=-1)
+		{
+			data.trans_data2 = variant2.transcriptAnnotations(i_refseq);
+		}
 	}
 
 	// (2) show dialog

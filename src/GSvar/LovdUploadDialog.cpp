@@ -11,6 +11,8 @@
 #include <QPrintDialog>
 #include <QFileInfo>
 #include <QDesktopServices>
+#include <QMenu>
+#include <QMessageBox>
 
 LovdUploadDialog::LovdUploadDialog(QWidget *parent)
 	: QDialog(parent)
@@ -53,8 +55,8 @@ void LovdUploadDialog::setData(LovdUploadData data)
 	ui_.processed_sample->setEnabled(false);
 	ui_.gender->setEnabled(false);
 
-	//variant data
-	variant1 = data.variant;
+	//variant data (variant 1)
+	variant1_ = data.variant;
 	QByteArray chr = data.variant.chr().str();
 	if (chr=="chrMT") chr = "chrM";
 	ui_.chr->setCurrentText(chr);
@@ -65,20 +67,40 @@ void LovdUploadDialog::setData(LovdUploadData data)
 	ui_.hgvs_p->setText(data.hgvs_p);
 	ui_.classification->setCurrentText(data.classification);
 	ui_.genotype->setCurrentText(data.genotype);
-
+	if (!data.trans_data.isEmpty())
+	{
+		QMenu* menu = new QMenu(this);
+		for (int i=0; i<data.trans_data.count(); ++i)
+		{
+			const VariantTranscript& trans = data.trans_data[i];
+			menu->addAction(trans.gene + ": " + trans.type + " / " + trans.hgvs_c + " / " + trans.hgvs_p, this, SLOT(setTranscriptInfoVariant1()))->setData(i);
+		}
+		ui_.refseq_btn->setMenu(menu);
+	}
 	ui_.chr->setEnabled(false);
 	ui_.classification->setEnabled(false);
 	ui_.genotype->setEnabled(false);
 
-	//variant data
+	//variant data (variant 2)
 	if(data.variant2.isValid())
 	{
-		variant2 = data.variant2;
+		variant2_ = data.variant2;
 		ui_.hgvs_g2->setText(data.hgvs_g2);
 		ui_.hgvs_c2->setText(data.hgvs_c2);
 		ui_.hgvs_p2->setText(data.hgvs_p2);
 		ui_.classification2->setCurrentText(data.classification2);
 		ui_.genotype2->setCurrentText(data.genotype2);
+		if (!data.trans_data2.isEmpty())
+		{
+			QMenu* menu = new QMenu(this);
+			for (int i=0; i<data.trans_data2.count(); ++i)
+			{
+				const VariantTranscript& trans = data.trans_data2[i];
+				menu->addAction(trans.gene + ": " + trans.type + " / " + trans.hgvs_c + " / " + trans.hgvs_p, this, SLOT(setTranscriptInfoVariant2()))->setData(i);
+			}
+			ui_.refseq_btn2->setMenu(menu);
+		}
+
 		ui_.hgvs_g2->setEnabled(true);
 		ui_.hgvs_c2->setEnabled(true);
 		ui_.hgvs_p2->setEnabled(true);
@@ -93,6 +115,8 @@ void LovdUploadDialog::setData(LovdUploadData data)
 
 	//phenotype data
 	ui_.phenos->setPhenotypes(data.phenos);
+
+	data_ = data;
 }
 
 void LovdUploadDialog::upload()
@@ -161,13 +185,13 @@ void LovdUploadDialog::upload()
 			}
 
 			//Upload only if variant(s) are set
-			if (variant1.isValid())
+			if (variant1_.isValid())
 			{
-				db_.addVariantPublication(processed_sample, variant1, "LOVD", ui_.classification->currentText(), details.join(";"));
+				db_.addVariantPublication(processed_sample, variant1_, "LOVD", ui_.classification->currentText(), details.join(";"));
 			}
-			if (variant2.isValid())
+			if (variant2_.isValid())
 			{
-				db_.addVariantPublication(processed_sample, variant2, "LOVD", ui_.classification2->currentText(), details.join(";"));
+				db_.addVariantPublication(processed_sample, variant2_, "LOVD", ui_.classification2->currentText(), details.join(";"));
 			}
 
 			//show result
@@ -208,9 +232,9 @@ void LovdUploadDialog::upload()
 void LovdUploadDialog::checkGuiData()
 {
 	//check if already published
-	if (ui_.processed_sample->text()!="" && variant1.isValid())
+	if (ui_.processed_sample->text()!="" && variant1_.isValid())
 	{
-		QString upload_details = db_.getVariantPublication(ui_.processed_sample->text(), variant1);
+		QString upload_details = db_.getVariantPublication(ui_.processed_sample->text(), variant1_);
 		if (upload_details!="")
 		{
 			ui_.upload_btn->setEnabled(false);
@@ -315,8 +339,8 @@ void LovdUploadDialog::updatePrintButton()
 void LovdUploadDialog::queryRefSeqWebservice()
 {
 	QString url = Settings::string("VariantInfoRefSeq");
-	if (sender()==qobject_cast<QObject*>(ui_.refseq_btn) && variant1.isValid()) url += "?variant_data=" + variant1.toString(true).replace(" ", "\t").replace("chrMT", "chrM");
-	if (sender()==qobject_cast<QObject*>(ui_.refseq_btn2) && variant2.isValid()) url += "?variant_data=" + variant2.toString(true).replace(" ", "\t").replace("chrMT", "chrM");
+	if (sender()==qobject_cast<QObject*>(ui_.refseq_btn) && variant1_.isValid()) url += "?variant_data=" + variant1_.toString(true).replace(" ", "\t").replace("chrMT", "chrM");
+	if (sender()==qobject_cast<QObject*>(ui_.refseq_btn2) && variant2_.isValid()) url += "?variant_data=" + variant2_.toString(true).replace(" ", "\t").replace("chrMT", "chrM");
 	QDesktopServices::openUrl(QUrl(url));
 }
 
@@ -331,9 +355,46 @@ void LovdUploadDialog::updateSecondVariantGui()
 	ui_.refseq_btn2->setEnabled(enabled);
 }
 
+void LovdUploadDialog::setTranscriptInfoVariant1()
+{
+	QAction* action = qobject_cast<QAction*>(sender());
+	if (action==nullptr) THROW(ProgrammingException, "This should not happen!");
+
+	bool ok = false;
+	int index = action->data().toInt(&ok);
+	if (!ok) THROW(ProgrammingException, "This should not happen!");
+
+	const VariantTranscript& trans = data_.trans_data[index];
+	ui_.gene->setText(trans.gene);
+	ui_.nm_number->setText(trans.id);
+	ui_.hgvs_c->setText(trans.hgvs_c);
+	ui_.hgvs_p->setText(trans.hgvs_p);
+}
+
+void LovdUploadDialog::setTranscriptInfoVariant2()
+{
+	QAction* action = qobject_cast<QAction*>(sender());
+	if (action==nullptr) THROW(ProgrammingException, "This should not happen!");
+
+	bool ok = false;
+	int index = action->data().toInt(&ok);
+	if (!ok) THROW(ProgrammingException, "This should not happen!");
+
+	//check same transcript
+	const VariantTranscript& trans = data_.trans_data2[index];
+	if (trans.id!=ui_.nm_number->text())
+	{
+		QMessageBox::warning(this, "Transcript mismatch error", ui_.nm_number->text() + " selected as transcript for variant 1.\n" + trans.id + " selected as transcript for variant 2.\n\nThey do not match!");
+		return;
+	}
+
+	ui_.hgvs_c2->setText(trans.hgvs_c);
+	ui_.hgvs_p2->setText(trans.hgvs_p);
+}
+
 bool LovdUploadDialog::isCompHet() const
 {
-	return variant2.isValid() || ui_.genotype2->currentText()=="het";
+	return variant2_.isValid() || ui_.genotype2->currentText()=="het";
 }
 
 QByteArray LovdUploadDialog::createJson()

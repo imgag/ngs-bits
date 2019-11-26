@@ -1,5 +1,8 @@
 # GSvar change log
 
+### 2019_11 (26.11.19)
+- fixed bug in CNV window for trios
+
 ### 2019_09-80 (20.11.19)
 - CNVs: callset quality is now automatically set if it is good.
 - CNVs: added new CNV filters (genomAD o/e LOF, gene region).
