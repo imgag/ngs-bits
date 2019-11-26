@@ -42,3 +42,6 @@ gsvar_report_archive = ""
 gsvar_gap_transfer = ""
 gsvar_variant_transfer = ""
 gsvar_publication_transfer = ""
+
+#debugging
+debug_mode_enabled=false

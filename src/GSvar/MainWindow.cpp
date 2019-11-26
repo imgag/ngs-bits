@@ -25,6 +25,7 @@
 #include <QMimeData>
 #include <QSqlError>
 #include <QChartView>
+#include <GenLabDB.h>
 QT_CHARTS_USE_NAMESPACE
 #include "ReportWorker.h"
 #include "ScrollableTextDialog.h"
@@ -104,6 +105,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.variant_details, SIGNAL(editVariantComment()), this, SLOT(editVariantComment()));
 	connect(ui_.variant_details, SIGNAL(showVariantSampleOverview()), this, SLOT(showVariantSampleOverview()));
 	connect(ui_.tabs, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
+	ui_.actionDebug->setVisible(Settings::boolean("debug_mode_enabled"));
 
 	//NGSD menu button
 	auto ngsd_btn = new QToolButton();
@@ -166,6 +168,12 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(&delayed_init_timer_, SIGNAL(timeout()), this, SLOT(delayedInizialization()));
 	delayed_init_timer_.setSingleShot(false);
 	delayed_init_timer_.start(50);
+}
+
+void MainWindow::on_actionDebug_triggered()
+{
+	GenLabDB genlab_db;
+	qDebug() << genlab_db.tables();
 }
 
 void MainWindow::on_actionClose_triggered()
@@ -255,7 +263,7 @@ void MainWindow::on_actionCNV_triggered()
 	AnalysisType analysis_type = variants_.type();
 	if (ngsd_enabled_ && (analysis_type==GERMLINE_SINGLESAMPLE || analysis_type==GERMLINE_TRIO))
 	{
-		ps_id = NGSD().processedSampleId(filename_, false);
+		ps_id = NGSD().processedSampleId(processedSampleName(), false);
 	}
 
 	//open CNV window
@@ -2017,7 +2025,7 @@ QString MainWindow::exclusionCriteria(const ReportVariantConfiguration& conf)
 
 void MainWindow::generateReport()
 {
-	if (variants_.count()==0 && cnvs_.count()==0) return;
+	if (filename_=="") return;
 
 	if (report_settings_.report_config.isModified())
 	{
@@ -2714,6 +2722,11 @@ void MainWindow::uploadtoLovd(int variant_index, int variant_index2)
 	data.hgvs_g = variant.toHGVS(idx);
 	int classification_index = variants_.annotationIndexByName("classification");
 	data.classification = variant.annotations()[classification_index];
+	int i_refseq = variants_.annotationIndexByName("coding_and_splicing_refseq", true, false);
+	if (i_refseq!=-1)
+	{
+		data.trans_data = variant.transcriptAnnotations(i_refseq);
+	}
 
 	//data 2nd variant (comp-het)
 	if (variant_index2!=-1)
@@ -2723,6 +2736,10 @@ void MainWindow::uploadtoLovd(int variant_index, int variant_index2)
 		data.genotype2 = variant2.annotations()[genotype_index];
 		data.hgvs_g2 = variant2.toHGVS(idx);
 		data.classification2 = variant2.annotations()[classification_index];
+		if (i_refseq!=-1)
+		{
+			data.trans_data2 = variant2.transcriptAnnotations(i_refseq);
+		}
 	}
 
 	// (2) show dialog

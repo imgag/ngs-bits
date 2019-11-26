@@ -21,7 +21,7 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Annotates a given TSV file with CNVs based on the gene inforamtion of the NGSD.");
+		setDescription("Annotates a given TSV file with CNVs based on the gene information of the NGSD.");
 		addInfile("in", "Input TSV file containing the CNVs.", false, true);
 		addOutfile("out", "Output TSV file containing the annotated CNVs.", false, true);
 

@@ -694,6 +694,12 @@ void VariantList::loadFromTSV(QString filename, ChromosomalIndex<BedFile>* roi_i
 		}
 
 		append(Variant(chr, start, end, fields[3], fields[4], fields.mid(special_cols), filter_index));
+
+		//Check that the number of annotations is correct
+		if (variants_.last().annotations().count()!=annotations().count())
+		{
+			THROW(FileParseException, "Variant with less than expected annotation fields found:\n" + variants_.last().toString() + "\nExprected " + QString::number(annotations().count()) + ", found " + QString::number(variants_.last().annotations().count()) + "!\n\nThis should not happen! Please inform the bioinformatics team!");
+		}
 	}
 }
 

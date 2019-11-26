@@ -17,7 +17,7 @@ INSERT INTO sender (id, name) VALUES
 
 -- project
 INSERT INTO project (id, name, type, internal_coordinator_id, analysis) VALUES 
-(1, 'First_project', 'research', 1, 'annotation');
+(1, 'First_project', 'research', 1, 'variants');
 
 -- processing_system
 INSERT INTO processing_system (id, name_manufacturer, shotgun, name_short, genome_id) VALUES

@@ -39,7 +39,7 @@ public:
 		addFloat("min_af", "Minimum allele frequency of output CNV ranges.", true, 0.01);
 		addOutfile("stats", "Statistics and logging output. If unset, writes to STDOUT", true);
 		addFlag("test", "Uses the test database instead of on the production database.");
-		addFlag("skip_males", "Skips males (PAR region is not correctly handled for males in ClinCNV"); //TODO remove when ClinCNV bug is fixed and the database is updated
+		addFlag("skip_males", "Skips males (PAR region is not correctly handled for males in ClinCNV)"); //TODO remove when ClinCNV bug is fixed and the database is updated
 
 		changeLog(2019, 10, 21, "First version");
 	}

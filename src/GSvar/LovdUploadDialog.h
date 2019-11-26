@@ -26,6 +26,7 @@ struct LovdUploadData
 	QString hgvs_p;
 	QString classification;
 	QString genotype;
+	QList<VariantTranscript> trans_data;
 
 	//variant data second variant (e.g. comp-het)
 	Variant variant2;
@@ -34,6 +35,7 @@ struct LovdUploadData
 	QString hgvs_p2;
 	QString classification2;
 	QString genotype2;
+	QList<VariantTranscript> trans_data2;
 };
 
 ///LOVD upload dialog
@@ -54,12 +56,15 @@ private slots:
 	void updatePrintButton();
 	void queryRefSeqWebservice();
 	void updateSecondVariantGui();
+	void setTranscriptInfoVariant1();
+	void setTranscriptInfoVariant2();
 
 private:
 	Ui::LovdUploadDialog ui_;
 	NGSD db_;
-	Variant variant1;
-	Variant variant2;
+	Variant variant1_;
+	Variant variant2_;
+	LovdUploadData data_;
 
 	//Returns if compound-heterozygous mode is active, i.e. two variants were set through 'setData' or using the GUI
 	bool isCompHet() const;

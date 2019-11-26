@@ -16,6 +16,12 @@ GenLabDB::GenLabDB()
 	db_->setDatabaseName(Settings::string("genlab_name"));
 	db_->setUserName(Settings::string("genlab_user"));
 	db_->setPassword(Settings::string("genlab_pass"));
+
+/*
+	db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QODBC3", "GENLAB_" + Helper::randomString(20))));
+	db_->setDatabaseName("DRIVER={SQL Server};SERVER=VSWLISGSQL01.UKT.AD.LOCAL;DATABASE=GENLAB;UID=GenLab8ViewsNGS;Pwd=hjdf76345hJH_7465d");
+*/
+
 	if (!db_->open())
 	{
 		THROW(DatabaseException, "Could not connect to the GenLab database: " + db_->lastError().text());
@@ -41,6 +47,20 @@ bool GenLabDB::isOpen() const
 	}
 
 	return is_open;
+}
+
+QStringList GenLabDB::tables()
+{
+	QStringList output;
+
+	QSqlQuery query(*db_);
+	query.exec("SHOW TABLES");
+	while(query.next())
+	{
+		output << query.value(0).toString();
+	}
+
+	return output;
 }
 
 bool GenLabDB::entriesExistForSample(QString sample_name)

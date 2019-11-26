@@ -471,6 +471,7 @@
    <addaction name="actionROH"/>
    <addaction name="actionSV"/>
    <addaction name="actionGeneSelector"/>
+   <addaction name="actionDebug"/>
   </widget>
   <action name="actionOpen">
    <property name="text">
@@ -856,6 +857,18 @@
    </property>
    <property name="toolTip">
     <string>Open Gene tab from NGSD.</string>
+   </property>
+  </action>
+  <action name="actionDebug">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/bug.png</normaloff>:/Icons/bug.png</iconset>
+   </property>
+   <property name="text">
+    <string>Debug</string>
+   </property>
+   <property name="visible">
+    <bool>true</bool>
    </property>
   </action>
  </widget>
