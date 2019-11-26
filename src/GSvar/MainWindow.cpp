@@ -1314,31 +1314,7 @@ void MainWindow::on_actionAnnotateSomaticVariants_triggered()
 {
 	QApplication::setOverrideCursor(Qt::WaitCursor);
 
-	NGSD db;
 
-	//Annotate somatic variant classification
-
-	int i_som_class = variants_.addAnnotationIfMissing("somatic_classification", "Somatic classification from the NGSD.");
-	int i_som_comm = variants_.addAnnotationIfMissing("somatic_classification_comment","Somatic classification comment from the NGSD.");
-
-	for (int i=0; i<variants_.count(); ++i)
-	{
-		Variant& v = variants_[i];
-
-		QString variant_id = db.variantId(v,false);
-		if(variant_id == "") continue;
-
-		QByteArray classification = db.getValue("SELECT class FROM somatic_variant_classification WHERE variant_id = '" + variant_id + "'",true).toByteArray().replace("\n"," ").replace("\t"," ");
-		QByteArray comment = db.getValue("SELECT comment FROM somatic_variant_classification WHERE variant_id = '" + variant_id + "'", true).toByteArray().replace("\n"," ").replace("\t"," ");
-
-		v.annotations()[i_som_class] = classification;
-		v.annotations()[i_som_comm] = comment;
-	}
-
-	storeCurrentVariantList();
-
-
-	//Annotate file with data from somatic file
 
 	//Only germline files shall be annotated
 	if(variants_.type() != AnalysisType::GERMLINE_SINGLESAMPLE)
@@ -1381,7 +1357,7 @@ void MainWindow::on_actionAnnotateSomaticVariants_triggered()
 	if(i_germline_gene == -1 || i_somatic_gene == -1 || i_somatic_type == -1 || i_somatic_af == -1 || i_somatic_dp == -1) return;
 
 
-
+	NGSD db;
 	//Annotate variants per genes
 	for(int i=0;i<variants_.count();++i)
 	{
