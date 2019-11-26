@@ -3216,8 +3216,15 @@ void MainWindow::editVariantClassification(VariantList& variants, int index, boo
 		if(is_somatic)
 		{
 			db.setSomaticClassification(variant, class_info);
+
+			int i_som_class = variants.addAnnotationIfMissing("somatic_classification", "Somatic classification from the NGSD.");
+			variant.annotations()[i_som_class] = class_info.classification.replace("n/a", "").toLatin1();
+
+			int i_som_class_comment = variants.addAnnotationIfMissing("somatic_classification_comment", "Somatic classificaiton comment from the NGSD.");
+			variant.annotations()[i_som_class_comment] = class_info.comments.toLatin1();
+
 		}
-		else
+		else //germline variants
 		{
 			db.setClassification(variant, variants_,class_info);
 			//update variant table
