@@ -7,7 +7,7 @@
 	  <LegalCode>https://creativecommons.org/licenses/by/4.0/legalcode</LegalCode>
 	</Licence>
   </Availability>
-  <DisorderList count="4">
+  <DisorderList count="5">
     <Disorder id="17601">
       <OrphaNumber>166024</OrphaNumber>
       <ExpertLink lang="en">http://www.orpha.net/consor/cgi-bin/OC_Exp.php?lng=en&amp;Expert=166024</ExpertLink>
@@ -204,6 +204,96 @@
               </TextSectionType>
               <Contents>Limbic encephalitis with LGI1 antibodies is a rare neuroimmunological disorder characterized by the onset of cognitive decline, psychiatric disturbances and seizures (distinctively faciobrachial dystonic seizures) in association with detection of LGI1 antibodies in serum or cerebrospinal fluid. Patients may present with confusion, hallucinations, vocalization, paranoia, tangentiality, aggressive outbursts and/or spatial disorientation, as well as obstinate hyponatremia. It is most often non-paraneoplastic, however comorbid tumors, such as small cell lung cancer and thymoma, have been reported.</Contents>
             </TextSection>
+          </TextSectionList>
+        </TextualInformation>
+      </TextualInformationList>
+    </Disorder>
+	
+    <Disorder id="16916">
+      <OrphaNumber>139536</OrphaNumber>
+      <ExpertLink lang="en">http://www.orpha.net/consor/cgi-bin/OC_Exp.php?lng=en&amp;Expert=139536</ExpertLink>
+      <Name lang="en">Distal hereditary motor neuropathy type 5</Name>
+      <DisorderFlagList count="1">
+        <DisorderFlag id="475">
+          <Label>on-line</Label>
+        </DisorderFlag>
+      </DisorderFlagList>
+      <SynonymList count="4">
+        <Synonym lang="en">Distal HMN V</Synonym>
+        <Synonym lang="en">Distal hereditary motor neuropathy type V</Synonym>
+        <Synonym lang="en">Distal spinal muscular atrophy type 5</Synonym>
+        <Synonym lang="en">dHMN5</Synonym>
+      </SynonymList>
+      <DisorderType id="21394">
+        <OrphaNumber>377788</OrphaNumber>
+        <Name lang="en">Disease</Name>
+      </DisorderType>
+      <ExternalReferenceList count="4">
+        <ExternalReference id="139444">
+          <Source>UMLS</Source>
+          <Reference>C1833308</Reference>
+          <DisorderMappingRelation id="21527">
+            <OrphaNumber>377807</OrphaNumber>
+            <Name lang="en">E (exact mapping (the terms and the concepts are equivalent))</Name>
+          </DisorderMappingRelation>
+          <DisorderMappingICDRelation/>
+          <DisorderMappingValidationStatus id="21611">
+            <OrphaNumber>377819</OrphaNumber>
+            <Name lang="en">Validated</Name>
+          </DisorderMappingValidationStatus>
+        </ExternalReference>
+        <ExternalReference id="120009">
+          <Source>ICD-10</Source>
+          <Reference>G12.2</Reference>
+          <DisorderMappingRelation id="21534">
+            <OrphaNumber>377808</OrphaNumber>
+            <Name lang="en">NTBT (narrower term maps to a broader term)</Name>
+          </DisorderMappingRelation>
+          <DisorderMappingICDRelation id="21604">
+            <OrphaNumber>377818</OrphaNumber>
+            <Name lang="en">Attributed</Name>
+          </DisorderMappingICDRelation>
+          <DisorderMappingValidationStatus id="21611">
+            <OrphaNumber>377819</OrphaNumber>
+            <Name lang="en">Validated</Name>
+          </DisorderMappingValidationStatus>
+        </ExternalReference>
+        <ExternalReference id="35547">
+          <Source>OMIM</Source>
+          <Reference>600794</Reference>
+          <DisorderMappingRelation id="21541">
+            <OrphaNumber>377809</OrphaNumber>
+            <Name lang="en">BTNT (broader term maps to a narrower term)</Name>
+          </DisorderMappingRelation>
+          <DisorderMappingICDRelation/>
+          <DisorderMappingValidationStatus id="21611">
+            <OrphaNumber>377819</OrphaNumber>
+            <Name lang="en">Validated</Name>
+          </DisorderMappingValidationStatus>
+        </ExternalReference>
+        <ExternalReference id="70266">
+          <Source>OMIM</Source>
+          <Reference>614751</Reference>
+          <DisorderMappingRelation id="21541">
+            <OrphaNumber>377809</OrphaNumber>
+            <Name lang="en">BTNT (broader term maps to a narrower term)</Name>
+          </DisorderMappingRelation>
+          <DisorderMappingICDRelation/>
+          <DisorderMappingValidationStatus id="21611">
+            <OrphaNumber>377819</OrphaNumber>
+            <Name lang="en">Validated</Name>
+          </DisorderMappingValidationStatus>
+        </ExternalReference>
+      </ExternalReferenceList>
+      <DisorderDisorderAssociationList count="0">
+      </DisorderDisorderAssociationList>
+      <TextualInformationList count="2">
+        <TextualInformation id="76563" lang="en">
+          <TextSectionList count="0">
+          </TextSectionList>
+        </TextualInformation>
+        <TextualInformation id="68078" lang="en">
+          <TextSectionList count="0">
           </TextSectionList>
         </TextualInformation>
       </TextualInformationList>

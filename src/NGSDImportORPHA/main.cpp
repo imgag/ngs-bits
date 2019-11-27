@@ -69,6 +69,7 @@ public:
 													if (xml.name()=="Symbol")
 													{
 														QByteArray gene = xml.readElementText().toLatin1();
+														gene = db.geneToApproved(gene, true);
 														if (approved_genes.contains(gene))
 														{
 															output[number] << gene;
