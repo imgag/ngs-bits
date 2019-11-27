@@ -3,6 +3,7 @@
 #include "ProcessedSampleWidget.h"
 #include "GUIHelper.h"
 #include <QMessageBox>
+#include <QInputDialog>
 
 SequencingRunWidget::SequencingRunWidget(QWidget* parent, QString run_id)
 	: QWidget(parent)
@@ -18,6 +19,10 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, QString run_id)
 	QAction* action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
 	ui_->samples->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openSelectedSamples()));
+
+	action = new QAction("Set quality", this);
+	ui_->samples->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(setQuality()));
 
 	updateGUI();
 }
@@ -166,6 +171,32 @@ void SequencingRunWidget::updateRunSampleTable()
 	QStringList imported_qc = db_.getValues("SELECT ps.id FROM processed_sample ps WHERE ps.sequencing_run_id='" + run_id_ + "' AND EXISTS(SELECT id FROM processed_sample_qc WHERE processed_sample_id=ps.id)");
 	QStringList imported_vars = db_.getValues("SELECT ps.id FROM processed_sample ps WHERE ps.sequencing_run_id='" + run_id_ + "' AND EXISTS(SELECT variant_id FROM detected_variant WHERE processed_sample_id=ps.id)");
 	ui_->sample_count->setText(QString::number(samples.rowCount()) + " samples (" + QString::number(imported_qc.count()) + " with QC, " + QString::number(imported_vars.count()) + " with variants)");
+}
+
+void SequencingRunWidget::setQuality()
+{
+	QStringList qualities = db_.getEnum("processed_sample", "quality");
+
+	//get quality from user
+	bool ok;
+	QString quality = QInputDialog::getItem(this, "Select processed sample quality", "quality:", qualities, 0, false, &ok);
+	if (!ok) return;
+
+	//prepare query
+	SqlQuery query = db_.getQuery();
+	query.prepare("UPDATE processed_sample SET quality='" + quality + "' WHERE id=:0");
+
+	int col = ui_->samples->columnIndex("sample");
+	QList<int> selected_rows = ui_->samples->selectedRows().toList();
+	foreach (int row, selected_rows)
+	{
+		QString ps_name = ui_->samples->item(row, col)->text();
+		QString ps_id = db_.processedSampleId(ps_name);
+		query.bindValue(0, ps_id);
+		query.exec();
+	}
+
+	updateGUI();
 }
 
 void SequencingRunWidget::updateReadQualityTable()

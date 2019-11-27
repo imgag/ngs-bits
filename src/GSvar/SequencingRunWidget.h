@@ -26,6 +26,7 @@ protected slots:
 	void openSelectedSamples();
 	void updateReadQualityTable();
 	void updateRunSampleTable();
+	void setQuality();
 
 private:
 	QTableWidgetItem* createItem(const QString& text, bool highlight = false, int alignment = Qt::AlignVCenter|Qt::AlignRight);

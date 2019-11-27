@@ -5,13 +5,12 @@ libs:
 
 NGSD:
 ** Add variant tab (classification, validation, detected samples + genotype + phenotype)
-** Add sender tag (link from sample info)
+** Add sender tab (link from sample info)
 ** Add processing system tab (link from processed sample info)
 ** Add project tab (sample overview with diag status, etc)
 *** Allow adding/editing data in NGSD
     - Run/processed sample/sample in general
         - Add email support for runs "run finished" and "analysis finished"
-    - Set processed sample qualities in batch (selection)
     - sample: import disease info, disease group/status, gender from same samples
     - sample: import disease group/status from GenLab (sample - disease status: add 'Unclear') - select * FROM v_krankheitsgruppe_pattyp...
 ** Add run overview dialog/tab
