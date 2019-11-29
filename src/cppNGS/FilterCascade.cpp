@@ -2,6 +2,7 @@
 #include "Exceptions.h"
 #include "GeneSet.h"
 #include "Helper.h"
+#include "NGSHelper.h"
 #include "Log.h"
 #include "cmath"
 
@@ -1964,6 +1965,9 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 	i_af_f = tmp.indexOf(i_f);
 	i_af_m = tmp.indexOf(i_m);
 
+	//get PAR region
+	BedFile par_region = NGSHelper::pseudoAutosomalRegion("hg19");
+
 	//pre-calculate genes with heterozygous variants
 	QSet<QString> types = getStringList("types").toSet();
 	GeneSet genes_comphet;
@@ -1977,8 +1981,7 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 			if (!result.flags()[i]) continue;
 
 			const Variant& v = variants[i];
-
-			bool diplod_chromosome = v.chr().isAutosome() || (v.chr().isX() && gender_child=="female");
+			bool diplod_chromosome = v.chr().isAutosome() || (v.chr().isX() && gender_child=="female") || (v.chr().isX() && par_region.overlapsWith(v.chr(), v.start(), v.end()));
 			if (diplod_chromosome)
 			{
 				QByteArray geno_c, geno_f, geno_m;
@@ -2002,7 +2005,7 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 	if (types.contains("imprinting"))
 	{
 		QStringList lines = Helper::loadTextFile(":/Resources/imprinting_genes.tsv", true, '#', true);
-		foreach(QString line, lines)
+		foreach(const QString& line, lines)
 		{
 			QStringList parts = line.split("\t");
 			if (parts.count()==2)
@@ -2037,7 +2040,7 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 			continue;
 		}
 
-		bool diplod_chromosome = v.chr().isAutosome() || (v.chr().isX() && gender_child=="female");
+		bool diplod_chromosome = v.chr().isAutosome() || (v.chr().isX() && gender_child=="female") || (v.chr().isX() && par_region.overlapsWith(v.chr(), v.start(), v.end()));
 
 		//filter
 		bool match = false;
