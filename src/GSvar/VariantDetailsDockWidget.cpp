@@ -642,7 +642,13 @@ void VariantDetailsDockWidget::setTranscript(int index)
 	text = trans.domain;
 	if (text!="")
 	{
-		text = formatLink(text, "https://pfam.xfam.org/family/" + text);
+		// check if domain contains only Pfam Id (old) or additional description
+		QStringList split_domain_string = text.split(" [");
+		if (split_domain_string.size() > 1)
+		{
+			ui->detail_domain->setToolTip(split_domain_string[1].replace("]", ""));
+		}
+		text = formatLink(split_domain_string[0], "https://pfam.xfam.org/family/" + split_domain_string[0]);
 	}
 	ui->detail_domain->setText(text);
 
