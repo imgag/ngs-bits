@@ -61,6 +61,7 @@ private:
 	GeneSet var_het_genes_;
 	QHash<QByteArray, BedFile>& gene2region_cache_;
 	bool ngsd_enabled_;
+	QSet<QString> metrics_done_;
 };
 
 #endif // CNVWIDGET_H

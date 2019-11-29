@@ -38,7 +38,7 @@ In order to optimize the performance of MySQL for the NGSD, you can adapt/add th
 		max_heap_table_size = 256M
 		innodb_buffer_pool_size = 2G
 		innodb_flush_log_at_trx_commit = 2
-		innodb_lock_wait_timeout = 600
+		innodb_lock_wait_timeout = 1000
 		bind_address = 0.0.0.0
 		innodb_lru_scan_depth = 512
 		max_allowed_packet = 64M

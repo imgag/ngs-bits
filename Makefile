@@ -112,7 +112,9 @@ deploy_nobuild:
 test_debug: clean build_libs_debug build_tools_debug test_lib test_tools
 
 test_release:
-	make clean build_libs_release build_tools_release build_gui_release test_lib test_tools > t.log 2>&1
+	make clean build_libs_release build_tools_release build_gui_release > t.log 2>&1
+	@echo "Build done, starting tests"
+	make test_lib test_tools >> t.log 2>&1
 	egrep "FAILED|SKIPPED" t.log
 
 test_release_noclean:

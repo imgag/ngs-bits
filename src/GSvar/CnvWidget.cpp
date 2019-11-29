@@ -142,11 +142,10 @@ void CnvWidget::addInfoLine(QString text)
 		}
 
 		//add distribution menu entry (only once for each metric)
-		static QSet<QString> metrics_done;
-		if (!metrics_done.contains(metric))
+		if (!metrics_done_.contains(metric))
 		{
 			ui->ngsd_btn->menu()->addAction("Show distribution: " + metric, this, SLOT(showQcMetricHistogram()));
-			metrics_done << metric;
+			metrics_done_ << metric;
 		}
 	}
 }
