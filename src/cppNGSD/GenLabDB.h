@@ -18,7 +18,7 @@ public:
 	GenLabDB();
 	///Destructor.
 	~GenLabDB();
-	///Returns if the database connection is open
+	///Returns if the database connection is (still) open
 	bool isOpen() const;
 
 	///Returns all tables

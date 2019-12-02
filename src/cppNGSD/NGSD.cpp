@@ -944,15 +944,7 @@ NGSD::~NGSD()
 
 bool NGSD::isOpen() const
 {
-	static bool is_initialized = false;
-	static bool is_open = false;
-	if (!is_initialized)
-	{
-		is_open = QSqlQuery(*db_).exec("SELECT 1");
-		is_initialized = true;
-	}
-
-	return is_open;
+	return QSqlQuery(*db_).exec("SELECT 1");
 }
 
 QStringList NGSD::tables() const

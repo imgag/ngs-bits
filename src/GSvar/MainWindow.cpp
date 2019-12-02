@@ -172,8 +172,8 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::on_actionDebug_triggered()
 {
-	GenLabDB genlab_db;
-	qDebug() << genlab_db.tables();
+	GenLabDB db;
+	qDebug() << db.isOpen() << db.tables();
 }
 
 void MainWindow::on_actionClose_triggered()

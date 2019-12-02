@@ -23,6 +23,7 @@ ngsd_test_user = ""
 ngsd_test_pass = ""
 
 #GL8 MySQL credentials
+genlab_mssql = false
 genlab_host = ""
 genlab_port = 3306
 genlab_name = ""

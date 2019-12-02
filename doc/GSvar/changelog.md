@@ -1,5 +1,10 @@
 # GSvar change log
 
+### 2019_11-12 (29.11.19)
+- LOVD: added support for RefSeq transcripts in GSvar file.
+- CNV: Fixed bug that caused QC distribution entries to disappear.
+- Run tag: added setting sample quality in batch.
+
 ### 2019_11 (26.11.19)
 - fixed bug in CNV window for trios
 

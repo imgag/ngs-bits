@@ -9,18 +9,28 @@
 
 GenLabDB::GenLabDB()
 {
-	db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL", "GENLAB_" + Helper::randomString(20))));
+	//get settings
+	QString host = Settings::string("genlab_host");
+	int port = Settings::integer("genlab_port");
+	QString name = Settings::string("genlab_name");
+	QString user = Settings::string("genlab_user");
+	QString pass = Settings::string("genlab_pass");
 
-	db_->setHostName(Settings::string("genlab_host"));
-	db_->setPort(Settings::integer("genlab_port"));
-	db_->setDatabaseName(Settings::string("genlab_name"));
-	db_->setUserName(Settings::string("genlab_user"));
-	db_->setPassword(Settings::string("genlab_pass"));
+	if (Settings::string("genlab_mssql")!="true") //MySQL server
+	{
+		db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL", "GENLAB_" + Helper::randomString(20))));
 
-/*
-	db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QODBC3", "GENLAB_" + Helper::randomString(20))));
-	db_->setDatabaseName("DRIVER={SQL Server};SERVER=VSWLISGSQL01.UKT.AD.LOCAL;DATABASE=GENLAB;UID=GenLab8ViewsNGS;Pwd=hjdf76345hJH_7465d");
-*/
+		db_->setHostName(host);
+		db_->setPort(port);
+		db_->setDatabaseName(name);
+		db_->setUserName(user);
+		db_->setPassword(pass);
+	}
+	else //Microsoft SQL server
+	{
+		db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QODBC3", "GENLAB_" + Helper::randomString(20))));
+		db_->setDatabaseName("DRIVER={SQL Server};SERVER="+host+"\\"+name+";UID="+user+";PWD="+pass+";");
+	}
 
 	if (!db_->open())
 	{
@@ -38,15 +48,7 @@ GenLabDB::~GenLabDB()
 
 bool GenLabDB::isOpen() const
 {
-	static bool is_initialized = false;
-	static bool is_open = false;
-	if (!is_initialized)
-	{
-		is_open = QSqlQuery(*db_).exec("SELECT 1");
-		is_initialized = true;
-	}
-
-	return is_open;
+	return QSqlQuery(*db_).exec("SELECT 1");
 }
 
 QStringList GenLabDB::tables()
@@ -54,7 +56,7 @@ QStringList GenLabDB::tables()
 	QStringList output;
 
 	QSqlQuery query(*db_);
-	query.exec("SHOW TABLES");
+	query.exec("SELECT DISTINCT TABLE_NAME FROM information_schema.TABLES");
 	while(query.next())
 	{
 		output << query.value(0).toString();

@@ -328,7 +328,7 @@ public:
 	NGSD(bool test_db = false);
 	///Destructor.
 	~NGSD();
-	///Returns if the database connection is open
+	///Returns if the database connection is (still) open
 	bool isOpen() const;
 
 	///Returns the table list.
