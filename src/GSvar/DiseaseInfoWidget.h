@@ -11,15 +11,19 @@ class DiseaseInfoWidget
 	Q_OBJECT
 
 public:
-	DiseaseInfoWidget(QString sample_id, QWidget *parent = 0);
+	DiseaseInfoWidget(QString ps_name, QString sample_id, QWidget *parent = 0);
 
 	QString diseaseGroup() const;
 	QString diseaseStatus() const;
 
 	bool diseaseInformationMissing() const;
 
+private slots:
+	void importGenLab();
+
 private:
 	Ui::DiseaseInfoWidget ui_;
+	QString ps_name_;
 };
 
 #endif // DISEASEINFODIALOG_H

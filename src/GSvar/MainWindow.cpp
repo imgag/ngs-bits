@@ -2125,8 +2125,9 @@ void MainWindow::generateReportGermline()
 
 	//check that sample in in NGSD
 	NGSD db;
-	QString sample_id = db.sampleId(processedSampleName(), false);
-	QString processed_sample_id = db.processedSampleId(processedSampleName(), false);
+	QString ps_name = processedSampleName();
+	QString sample_id = db.sampleId(ps_name, false);
+	QString processed_sample_id = db.processedSampleId(ps_name, false);
 	if (sample_id.isEmpty() || processed_sample_id.isEmpty())
 	{
 		GUIHelper::showMessage("Error", "Sample not found in database.\nCannot generate a report for samples that are not in the NGSD!");
@@ -2134,7 +2135,7 @@ void MainWindow::generateReportGermline()
 	}
 
 	//check disease information
-	DiseaseInfoWidget* widget = new DiseaseInfoWidget(sample_id, this);
+	DiseaseInfoWidget* widget = new DiseaseInfoWidget(ps_name, sample_id, this);
 	auto dlg = GUIHelper::createDialog(widget, "Disease information", "", true);
 	if (widget->diseaseInformationMissing() && dlg->exec()==QDialog::Accepted)
 	{
@@ -2152,10 +2153,9 @@ void MainWindow::generateReportGermline()
 	report_settings_.report_type = dialog.type();
 
 	//get export file name
-	QString base_name = processedSampleName();
 	QString trio_suffix = (variants_.type() == GERMLINE_TRIO ? "trio_" : "");
 	QString type_suffix = dialog.type().replace(" ", "_") + "s_";
-	QString file_rep = QFileDialog::getSaveFileName(this, "Export report file", last_report_path_ + "/" + base_name + targetFileName() + "_report_" + trio_suffix + type_suffix + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
+	QString file_rep = QFileDialog::getSaveFileName(this, "Export report file", last_report_path_ + "/" + ps_name + targetFileName() + "_report_" + trio_suffix + type_suffix + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
 	if (file_rep=="") return;
 	last_report_path_ = QFileInfo(file_rep).absolutePath();
 
@@ -2173,7 +2173,7 @@ void MainWindow::generateReportGermline()
 	busy_dialog_->init("Generating report", false);
 
 	//start worker in new thread
-	ReportWorker* worker = new ReportWorker(base_name, bam_file, ui_.filters->targetRegion(), variants_, cnvs_, ui_.filters->filters(), report_settings_, getLogFiles(), file_rep);
+	ReportWorker* worker = new ReportWorker(ps_name, bam_file, ui_.filters->targetRegion(), variants_, cnvs_, ui_.filters->filters(), report_settings_, getLogFiles(), file_rep);
 	connect(worker, SIGNAL(finished(bool)), this, SLOT(reportGenerationFinished(bool)));
 	worker->start();
 }

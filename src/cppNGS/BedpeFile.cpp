@@ -294,7 +294,7 @@ void BedpeFile::sort()
 
 BedpeFileFormat BedpeFile::format()
 {
-	for(auto comment : comments_) //TODO: return type for germline samples
+	for(auto comment : comments_) //TODO: return type for germline samples > AXEL
 	{
 		if(comment.contains("fileformat=BEDPE_TUMOR_NORMAL_PAIR")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL;
 		if(comment.contains("fileformat=BEDPE_TUMOR_ONLY")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY;

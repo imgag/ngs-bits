@@ -12,7 +12,6 @@ NGSD:
     - Run/processed sample/sample in general
         - Add email support for runs "run finished" and "analysis finished"
     - sample: import disease info, disease group/status, gender from same samples
-    - sample: import disease group/status from GenLab (sample - disease status: add 'Unclear') - select * FROM v_krankheitsgruppe_pattyp...
 ** Add run overview dialog/tab
 - Allow several disease_groups per sample (requested by CS)
 

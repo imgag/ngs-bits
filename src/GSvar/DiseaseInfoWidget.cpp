@@ -1,8 +1,11 @@
 #include "DiseaseInfoWidget.h"
+#include "GenLabDB.h"
+#include "Settings.h"
 
-DiseaseInfoWidget::DiseaseInfoWidget(QString sample_id, QWidget* parent)
+DiseaseInfoWidget::DiseaseInfoWidget(QString ps_name, QString sample_id, QWidget* parent)
 	: QWidget(parent)
 	, ui_()
+	, ps_name_(ps_name)
 {
 	NGSD db;
 
@@ -10,6 +13,8 @@ DiseaseInfoWidget::DiseaseInfoWidget(QString sample_id, QWidget* parent)
 	ui_.setupUi(this);
 	ui_.group->insertItems(0, db.getEnum("sample", "disease_group"));
 	ui_.status->insertItems(0, db.getEnum("sample", "disease_status"));
+	connect(ui_.genlab_btn, SIGNAL(clicked(bool)), this, SLOT(importGenLab()));
+	ui_.genlab_btn->setEnabled(Settings::string("genlab_mssql")=="true"); //TODO remove once we are migrated to MS SQL server > MARC
 
 	//get sample data
 	SampleData sample_data = db.getSampleData(sample_id);
@@ -20,6 +25,14 @@ DiseaseInfoWidget::DiseaseInfoWidget(QString sample_id, QWidget* parent)
 bool DiseaseInfoWidget::diseaseInformationMissing() const
 {
 	return diseaseGroup()=="n/a" || diseaseStatus()=="n/a";
+}
+
+void DiseaseInfoWidget::importGenLab()
+{
+	GenLabDB db;
+	QPair<QString, QString> data = db.diseaseInfo(ps_name_);
+	ui_.group->setCurrentText(data.first);
+	ui_.status->setCurrentText(data.second);
 }
 
 QString DiseaseInfoWidget::diseaseGroup() const

@@ -151,7 +151,6 @@ QStringList GenLabDB::tumorFraction(QString sample_name)
 {
 	QSqlQuery query = db_->exec("SELECT TUMORANTEIL FROM v_ngs_tumoranteil WHERE labornummer='" + sample_name + "' AND TUMORANTEIL IS NOT NULL");
 
-
 	QStringList output;
 	while(query.next())
 	{
@@ -163,5 +162,48 @@ QStringList GenLabDB::tumorFraction(QString sample_name)
 	output.removeDuplicates();
 
 	return output;
+}
+
+QPair<QString, QString> GenLabDB::diseaseInfo(QString ps_name)
+{
+	QString group = "n/a";
+	QString status = "n/a";
+
+	QSqlQuery query = db_->exec("SELECT krankheitsgruppe,patienttyp FROM v_krankheitsgruppe_pattyp WHERE labornummer='" + ps_name + "'");
+	while (query.next())
+	{
+		//group
+		if (!query.value(0).isNull())
+		{
+			QString tmp = query.value(0).toString().trimmed();
+			if (!tmp.isEmpty())
+			{
+				group = tmp;
+			}
+		}
+		//status
+		if (!query.value(1).isNull())
+		{
+			QString tmp = query.value(1).toString().trimmed();
+			if (tmp=="Index" || tmp=="Angehöriger betroffen")
+			{
+				status = "Affected";
+			}
+			if (tmp=="Angehöriger gesund")
+			{
+				status = "Unaffected";
+			}
+		}
+	}
+
+	//fallback to sample (not consistent in GenLab)
+	if (group=="n/a" && status=="n/a" && ps_name.contains("_"))
+	{
+		QStringList parts = ps_name.split("_");
+		QString s_name = parts.mid(0, parts.count()-1).join("_");
+		return diseaseInfo(s_name);
+	}
+
+	return qMakePair(group, status);
 }
 

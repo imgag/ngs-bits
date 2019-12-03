@@ -28,7 +28,7 @@ public:
 		addInfile("cnv", "CNV list in TSV format (as produced by megSAP).", true, true);
 		addFlag("cnv_force", "Force import of CNVs, even if already imported. Attention: This will also delete classifications and report configuration!");
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
-		addFloat("max_af", "Maximum allele frequency of small variants to import (1000g and gnomAD)", true, 0.05);
+		addFloat("max_af", "Maximum allele frequency of small variants to import (1000g and gnomAD).", true, 0.05);
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("debug", "Enable verbose debug output.");
 		addFlag("no_time", "Disable timing output.");

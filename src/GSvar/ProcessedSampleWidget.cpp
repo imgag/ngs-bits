@@ -442,9 +442,10 @@ void ProcessedSampleWidget::editDiagnosticStatus()
 
 void ProcessedSampleWidget::editDiseaseGroupAndInfo()
 {
-	QString sample_id = db_.sampleId(processedSampleName());
+	QString ps_name = processedSampleName();
+	QString sample_id = db_.sampleId(ps_name);
 
-	DiseaseInfoWidget* widget = new DiseaseInfoWidget(sample_id, this);
+	DiseaseInfoWidget* widget = new DiseaseInfoWidget(ps_name, sample_id, this);
 	auto dlg = GUIHelper::createDialog(widget, "Disease information", "", true);
 	if (dlg->exec() != QDialog::Accepted) return;
 
