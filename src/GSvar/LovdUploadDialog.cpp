@@ -73,7 +73,7 @@ void LovdUploadDialog::setData(LovdUploadData data)
 		for (int i=0; i<data.trans_data.count(); ++i)
 		{
 			const VariantTranscript& trans = data.trans_data[i];
-			menu->addAction(trans.gene + ": " + trans.type + " / " + trans.hgvs_c + " / " + trans.hgvs_p, this, SLOT(setTranscriptInfoVariant1()))->setData(i);
+			menu->addAction(trans.id + ": " + trans.gene + " / " + trans.type + " / " + trans.hgvs_c + " / " + trans.hgvs_p, this, SLOT(setTranscriptInfoVariant1()))->setData(i);
 		}
 		ui_.refseq_btn->setMenu(menu);
 	}
@@ -96,7 +96,7 @@ void LovdUploadDialog::setData(LovdUploadData data)
 			for (int i=0; i<data.trans_data2.count(); ++i)
 			{
 				const VariantTranscript& trans = data.trans_data2[i];
-				menu->addAction(trans.gene + ": " + trans.type + " / " + trans.hgvs_c + " / " + trans.hgvs_p, this, SLOT(setTranscriptInfoVariant2()))->setData(i);
+				menu->addAction(trans.id + ": " + trans.gene + " / " + trans.type + " / " + trans.hgvs_c + " / " + trans.hgvs_p, this, SLOT(setTranscriptInfoVariant2()))->setData(i);
 			}
 			ui_.refseq_btn2->setMenu(menu);
 		}
@@ -369,6 +369,8 @@ void LovdUploadDialog::setTranscriptInfoVariant1()
 	ui_.nm_number->setText(trans.id);
 	ui_.hgvs_c->setText(trans.hgvs_c);
 	ui_.hgvs_p->setText(trans.hgvs_p);
+
+	checkGuiData();
 }
 
 void LovdUploadDialog::setTranscriptInfoVariant2()
@@ -390,6 +392,8 @@ void LovdUploadDialog::setTranscriptInfoVariant2()
 
 	ui_.hgvs_c2->setText(trans.hgvs_c);
 	ui_.hgvs_p2->setText(trans.hgvs_p);
+
+	checkGuiData();
 }
 
 bool LovdUploadDialog::isCompHet() const
