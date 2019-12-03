@@ -573,7 +573,7 @@ QString NGSD::addVariant(const Variant& variant, const VariantList& variant_list
 	return query.lastInsertId().toString();
 }
 
-QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af)
+QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int& c_add, int& c_update)
 {
 	QList<int> output;
 
@@ -594,6 +594,8 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af)
 	int i_type = variant_list.annotationIndexByName("variant_type");
 	int i_co_sp = variant_list.annotationIndexByName("coding_and_splicing");
 
+	c_add = 0;
+	c_update = 0;
 	for (int i=0; i<variant_list.count(); ++i)
 	{
 		const Variant& variant = variant_list[i];
@@ -614,7 +616,7 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af)
 			continue;
 		}
 
-		//get variant it
+		//get variant ID
 		q_id.bindValue(0, variant.chr().strNormalized(true));
 		q_id.bindValue(1, variant.start());
 		q_id.bindValue(2, variant.end());
@@ -626,8 +628,8 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af)
 			int id = q_id.value(0).toInt();
 
 			//check if variant meta data needs to be updated
-			if (q_id.value(1).toByteArray()!=tg
-				|| q_id.value(2).toByteArray()!=gnomad
+			if (q_id.value(1).toByteArray().toDouble()!=tg.toDouble() //numeric comparison (NULL > "" > 0.0)
+				|| q_id.value(2).toByteArray().toDouble()!=gnomad.toDouble() //numeric comparison (NULL > "" > 0.0)
 				|| q_id.value(3).toByteArray()!=variant.annotations()[i_gene]
 				|| q_id.value(4).toByteArray()!=variant.annotations()[i_type]
 				|| q_id.value(5).toByteArray()!=variant.annotations()[i_co_sp])
@@ -639,6 +641,7 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af)
 				q_update.bindValue(4, variant.annotations()[i_co_sp]);
 				q_update.bindValue(5, id);
 				q_update.exec();
+				++c_update;
 			}
 
 			output << id;
@@ -656,7 +659,7 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af)
 			q_insert.bindValue(8, variant.annotations()[i_type]);
 			q_insert.bindValue(9, variant.annotations()[i_co_sp]);
 			q_insert.exec();
-
+			++c_add;
 			output << q_insert.lastInsertId().toInt();
 		}
 	}
@@ -2544,9 +2547,9 @@ QList<Transcript> NGSD::transcripts(int gene_id, Transcript::SOURCE source, bool
 	{
 		//get base information
 		Transcript transcript;
-        transcript.setName(query.value(1).toByteArray());
+		transcript.setName(query.value(1).toByteArray());
 		transcript.setSource(source);
-        transcript.setStrand(Transcript::stringToStrand(query.value(5).toByteArray()));
+		transcript.setStrand(Transcript::stringToStrand(query.value(5).toByteArray()));
 
 		//get exons
 		BedFile regions;
@@ -2910,7 +2913,7 @@ GeneInfo NGSD::geneInfo(QByteArray symbol)
 	symbol = symbol.trimmed();
 	auto approved = geneToApprovedWithMessage(symbol);
 	output.symbol = approved.first;
-    output.symbol_notice = approved.second;
+	output.symbol_notice = approved.second;
 	SqlQuery query = getQuery();
 	query.prepare("SELECT name FROM gene WHERE symbol=:0");
 	query.bindValue(0, output.symbol);

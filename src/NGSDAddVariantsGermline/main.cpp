@@ -106,8 +106,10 @@ public:
 
 		//add missing variants
 		sub_timer.start();
+		int c_add, c_update;
 		double max_af = getFloat("max_af");
-		QList<int> variant_ids = db.addVariants(variants, max_af);
+		QList<int> variant_ids = db.addVariants(variants, max_af, c_add, c_update);
+		out << "Imported variants (added:" << c_add << " updated:" << c_update << ")\n";
 		sub_times << ("adding variants took: " + Helper::elapsedTime(sub_timer));
 
 		//add detected variants
@@ -142,7 +144,7 @@ public:
 
 		//output
 		int c_skipped = variant_ids.count(-1);
-		out << "Imported " << (variant_ids.count()-c_skipped) << " variants\n";
+		out << "Imported " << (variant_ids.count()-c_skipped) << " detected variants\n";
 		if (debug)
 		{
 			out << "DEBUG: Skipped " << variant_ids.count(-1) << " high-AF variants!\n";
@@ -151,7 +153,7 @@ public:
 		//output timing
 		if (!no_time)
 		{
-			out << "import took: " << Helper::elapsedTime(timer) << "\n";
+			out << "Import took: " << Helper::elapsedTime(timer) << "\n";
 			foreach(QString line, sub_times)
 			{
 				out << "  " << line.trimmed() << "\n";
@@ -280,13 +282,13 @@ public:
 			}
 		}
 
-		out << "imported cnvs: " << c_imported << "\n";
-		out << "skipped low-quality cnvs: " << c_skipped_low_quality << "\n";
+		out << "Imported cnvs: " << c_imported << "\n";
+		out << "Skipped low-quality cnvs: " << c_skipped_low_quality << "\n";
 
 		//output timing
 		if (!no_time)
 		{
-			out << "import took: " << Helper::elapsedTime(timer) << "\n";
+			out << "Import took: " << Helper::elapsedTime(timer) << "\n";
 		}
 	}
 

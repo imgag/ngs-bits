@@ -3,7 +3,8 @@
 filename: ../src/tools-TEST/data_in/NGSDAddVariantsGermline_in2.GSvar
 Found 0 variants already imported into NGSD!
 DEBUG: Found 0 class 4/5 variants
-Imported 35 variants
+Imported variants (added:35 updated:0)
+Imported 35 detected variants
 DEBUG: Skipped 18 high-AF variants!
 
 ### importing CNVs for NA12878_38 ###
@@ -31,5 +32,5 @@ DEBUG: chr15:20770436-22706789 cn:1 quality: {"loglikelihood":"72","qvalue":"0.1
 DEBUG: chr20:1585367-1585725 cn:8 quality: {"loglikelihood":"52","qvalue":"0","regions":"1"}
 DEBUG: chr22:22453137-23223594 cn:1 quality: {"loglikelihood":"1354","qvalue":"0","regions":"88"}
 DEBUG: chr22:23228428-23237894 cn:0 quality: {"loglikelihood":"213","qvalue":"0","regions":"4"}
-imported cnvs: 20
-skipped low-quality cnvs: 1
+Imported cnvs: 20
+Skipped low-quality cnvs: 1
