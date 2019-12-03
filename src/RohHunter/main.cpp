@@ -413,7 +413,7 @@ public:
 
 		//debug output
 		out << "=== Debug output ===" << endl;
-		out << "Time: " << Helper::elapsedTime(timer, false) << endl;
+		out << "Time: " << Helper::elapsedTime(timer) << endl;
 	}
 };
 

@@ -1,5 +1,5 @@
 ### NGSDAddVariantsGermline tool help
-	NGSDAddVariantsGermline (2019_09-26-gf5665b47)
+	NGSDAddVariantsGermline (2019_11-14-g1cbd1a53)
 	
 	Imports variants of a processed sample into the NGSD.
 	
@@ -23,6 +23,8 @@
 	                  Default value: 'false'
 	  -debug          Enable verbose debug output.
 	                  Default value: 'false'
+	  -no_time        Disable timing output.
+	                  Default value: 'false'
 	
 	Special parameters:
 	  --help          Shows this help and exits.
@@ -31,6 +33,6 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDAddVariantsGermline changelog
-	NGSDAddVariantsGermline 2019_09-26-gf5665b47
+	NGSDAddVariantsGermline 2019_11-14-g1cbd1a53
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

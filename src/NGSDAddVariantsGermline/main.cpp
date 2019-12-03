@@ -31,6 +31,7 @@ public:
 		addFloat("max_af", "Maximum allele frequency of small variants to import (1000g and gnomAD)", true, 0.05);
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("debug", "Enable verbose debug output.");
+		addFlag("no_time", "Disable timing output.");
 	}
 
 	///split key-value pair based on separator
@@ -44,10 +45,15 @@ public:
 		return KeyValuePair(key, value);
 	}
 
-	void importSmallVariants(NGSD& db, QTextStream& out, QString ps_name, bool debug, bool var_force)
+	void importSmallVariants(NGSD& db, QTextStream& out, QString ps_name, bool debug, bool no_time, bool var_force)
 	{
 		QString filename = getInfile("var");
 		if (filename=="") return;
+
+		QTime timer;
+		timer.start();
+		QTime sub_timer;
+		QStringList sub_times;
 
 		out << "\n";
 		out << "### importing small variants for " << ps_name << " ###\n";
@@ -66,6 +72,8 @@ public:
 		QSet<int> var_ids_class_4_or_5;
 		if (count_old>0 && var_force)
 		{
+			sub_timer.start();
+
 			//get class4/5 variant ids
 			QStringList tmp = db.getValues("SELECT vc.variant_id FROM detected_variant dv, variant_classification vc WHERE dv.processed_sample_id=:0 AND dv.variant_id=vc.variant_id AND (vc.class='4' OR vc.class='5')", ps_id);
 			foreach(const QString& id, tmp)
@@ -73,11 +81,14 @@ public:
 				var_ids_class_4_or_5 << id.toInt();
 			}
 			out << "Found " << var_ids_class_4_or_5.size()  << " class 4/5 variants for the sample!\n";
+			sub_times << ("getting class 4/5 variants took: " + Helper::elapsedTime(sub_timer));
 
 			//remove old variants
+			sub_timer.start();
 			SqlQuery query = db.getQuery();
 			query.exec("DELETE FROM detected_variant WHERE processed_sample_id='" + ps_id + "'");
 			out << "Deleted previous variants\n";
+			sub_times << ("deleted previous detected variants took: " + Helper::elapsedTime(sub_timer));
 		}
 		if (debug)
 		{
@@ -94,10 +105,13 @@ public:
 		}
 
 		//add missing variants
+		sub_timer.start();
 		double max_af = getFloat("max_af");
 		QList<int> variant_ids = db.addVariants(variants, max_af);
+		sub_times << ("adding variants took: " + Helper::elapsedTime(sub_timer));
 
 		//add detected variants
+		sub_timer.start();
 		int i_geno = variants.getSampleHeader().infoByID(ps_name).column_index;
 		SqlQuery q_insert = db.getQuery();
 		q_insert.prepare("INSERT INTO detected_variant (processed_sample_id, variant_id, genotype) VALUES (" + ps_id + ", :0, :1)");
@@ -117,6 +131,7 @@ public:
 			q_insert.exec();
 		}
 		db.commit();
+		sub_times << ("adding detected variants took: " + Helper::elapsedTime(sub_timer));
 
 		//check that all important variant are still there (we unset all re-imported variants above)
 		foreach(int id, var_ids_class_4_or_5)
@@ -132,12 +147,25 @@ public:
 		{
 			out << "DEBUG: Skipped " << variant_ids.count(-1) << " high-AF variants!\n";
 		}
+
+		//output timing
+		if (!no_time)
+		{
+			out << "import took: " << Helper::elapsedTime(timer) << "\n";
+			foreach(QString line, sub_times)
+			{
+				out << "  " << line.trimmed() << "\n";
+			}
+		}
 	}
 
-	void importCNVs(NGSD& db, QTextStream& out, QString ps_name, bool debug, bool cnv_force)
+	void importCNVs(NGSD& db, QTextStream& out, QString ps_name, bool debug, bool no_time, bool cnv_force)
 	{
 		QString filename = getInfile("cnv");
 		if (filename=="") return;
+
+		QTime timer;
+		timer.start();
 
 		out << "\n";
 		out << "### importing CNVs for " << ps_name << " ###\n";
@@ -254,6 +282,12 @@ public:
 
 		out << "imported cnvs: " << c_imported << "\n";
 		out << "skipped low-quality cnvs: " << c_skipped_low_quality << "\n";
+
+		//output timing
+		if (!no_time)
+		{
+			out << "import took: " << Helper::elapsedTime(timer) << "\n";
+		}
 	}
 
 	virtual void main()
@@ -264,6 +298,7 @@ public:
 		QTextStream stream(out.data());
 		QString ps_name = getString("ps");
 		bool debug = getFlag("debug");
+		bool no_time = getFlag("no_time");
 		bool var_force = getFlag("var_force");
 		bool cnv_force = getFlag("cnv_force");
 
@@ -283,8 +318,8 @@ public:
 		}
 
 		//import
-		importSmallVariants(db, stream, ps_name, debug, var_force);
-		importCNVs(db, stream, ps_name, debug, cnv_force);
+		importSmallVariants(db, stream, ps_name, debug, no_time, var_force);
+		importCNVs(db, stream, ps_name, debug, no_time, cnv_force);
 	}
 };
 
