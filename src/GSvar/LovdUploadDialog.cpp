@@ -48,6 +48,9 @@ LovdUploadDialog::LovdUploadDialog(QWidget *parent)
 
 void LovdUploadDialog::setData(LovdUploadData data)
 {
+	//supported LOVD transcripts
+	QStringList supported_transcripts = Helper::loadTextFile(":/Resources/lovd_transcripts.tsv", true, '#', true);
+
 	//sample data
 	ui_.processed_sample->setText(data.processed_sample);
 	ui_.gender->setCurrentText(data.gender);
@@ -73,7 +76,12 @@ void LovdUploadDialog::setData(LovdUploadData data)
 		for (int i=0; i<data.trans_data.count(); ++i)
 		{
 			const VariantTranscript& trans = data.trans_data[i];
-			menu->addAction(trans.id + ": " + trans.gene + " / " + trans.type + " / " + trans.hgvs_c + " / " + trans.hgvs_p, this, SLOT(setTranscriptInfoVariant1()))->setData(i);
+			QAction* action = menu->addAction(trans.id + ": " + trans.gene + " / " + trans.type + " / " + trans.hgvs_c + " / " + trans.hgvs_p, this, SLOT(setTranscriptInfoVariant1()));
+			action->setData(i);
+			if (supported_transcripts.contains(trans.id))
+			{
+				action->setIcon(QIcon(":/Icons/LOVD.png"));
+			}
 		}
 		ui_.refseq_btn->setMenu(menu);
 	}
@@ -96,7 +104,12 @@ void LovdUploadDialog::setData(LovdUploadData data)
 			for (int i=0; i<data.trans_data2.count(); ++i)
 			{
 				const VariantTranscript& trans = data.trans_data2[i];
-				menu->addAction(trans.id + ": " + trans.gene + " / " + trans.type + " / " + trans.hgvs_c + " / " + trans.hgvs_p, this, SLOT(setTranscriptInfoVariant2()))->setData(i);
+				QAction* action = menu->addAction(trans.id + ": " + trans.gene + " / " + trans.type + " / " + trans.hgvs_c + " / " + trans.hgvs_p, this, SLOT(setTranscriptInfoVariant2()));
+				action->setData(i);
+				if (supported_transcripts.contains(trans.id))
+				{
+					action->setIcon(QIcon(":/Icons/LOVD.png"));
+				}
 			}
 			ui_.refseq_btn2->setMenu(menu);
 		}
