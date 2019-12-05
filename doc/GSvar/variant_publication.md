@@ -47,7 +47,9 @@ Classification data is taked from the variant list. Thus, make sure it is up-to-
 ### LOVD upload fails with the error `None of the given transcripts for this variant are configured in LOVD.`
 
 LOVD does not supported all RefSeq transcripts.  
-A full list of supported transcripts for each gene can be found in the [LOVD documentation](https://databases.lovd.nl/shared/transcripts).
+A full list of supported transcripts for each gene can be found in the [LOVD documentation](https://databases.lovd.nl/shared/transcripts).  
+
+*Note:* If the variant list contains RefSeq transcripts, the desired transcript can be selected in the drop-down menu behind the HGVS.g entry. Transcripts supported by LOVD are have a LOVD icon next to them!
 
 
 --

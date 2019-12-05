@@ -18,7 +18,7 @@ NGSD:
 GSvar:
 ### Trio report: generate XML for parents (no gaps, ...) possible? > FEEDBACK ANNE
 ** add visualization of NGSD CNVs (or annotation of CNVs):
-    - # overlapping CNVs (by type gain/loss)
+    - number of overlapping CNVs (by type gain/loss)
     - overlapping class 4/5 CNVs
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 * replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)

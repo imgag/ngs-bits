@@ -1,12 +1,14 @@
 # GSvar change log
 
+### 2019_11-19 (04.12.19)
+- LOVD: added highlighting of RefSeq transcripts supported by LOVD.
+- Disease group/status: added button to import it from GenLab.
+- Variant details: extended Pfam annotation (description shown as tooltip of ID)
+
 ### 2019_11-12 (29.11.19)
 - LOVD: added support for RefSeq transcripts in GSvar file.
 - CNV: Fixed bug that caused QC distribution entries to disappear.
-- Run tag: added setting sample quality in batch.
-
-### 2019_11 (26.11.19)
-- fixed bug in CNV window for trios
+- Run tab: added setting sample quality in batch.
 
 ### 2019_09-80 (20.11.19)
 - CNVs: callset quality is now automatically set if it is good.
