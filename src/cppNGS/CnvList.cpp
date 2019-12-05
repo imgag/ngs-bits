@@ -342,6 +342,15 @@ QByteArray CnvList::qcMetric(QString name, bool throw_if_missing) const
 
 			int sep_pos = comment.indexOf(':');
 			QByteArray key = comment.mid(0, sep_pos);
+
+			//normal match
+			if (key==name)
+			{
+				value = comment.mid(sep_pos+1).trimmed();
+			}
+
+			//special handling for CnvHunter/trio output (metrics are prefixed with processed sample name)
+			key = key.split(' ').mid(1).join(' ');
 			if (key==name)
 			{
 				value = comment.mid(sep_pos+1).trimmed();

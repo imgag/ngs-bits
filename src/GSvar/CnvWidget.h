@@ -25,6 +25,9 @@ public:
 	CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_widget, ReportConfiguration& rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent = 0);
 	~CnvWidget();
 
+protected:
+	void showEvent(QShowEvent* e);
+
 signals:
 	void openRegionInIGV(QString region);
 

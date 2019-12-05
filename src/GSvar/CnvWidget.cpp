@@ -72,14 +72,18 @@ CnvWidget::CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_wi
 
 	//apply filters
 	applyFilters();
-
-	//propose quality
-	proposeQualityIfUnset();
 }
 
 CnvWidget::~CnvWidget()
 {
 	delete ui;
+}
+
+void CnvWidget::showEvent(QShowEvent* e)
+{
+	QWidget::showEvent(e);
+	// Call slot via queued connection so it's called from the UI thread after this method has returned and the window has been shown
+	QMetaObject::invokeMethod(this, "proposeQualityIfUnset", Qt::ConnectionType::QueuedConnection);
 }
 
 void CnvWidget::cnvDoubleClicked(QTableWidgetItem* item)
@@ -517,7 +521,7 @@ void CnvWidget::openLink(int row, int col)
 void CnvWidget::proposeQualityIfUnset()
 {
 	if (callset_id_=="") return;
-	if (cnvs_.caller()!=CnvCallerType::CLINCNV) return;
+	if (cnvs_.type()!=CnvListType::CLINCNV_GERMLINE_SINGLE) return;
 
 	//check if quality is set
 	NGSD db;
