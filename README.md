@@ -11,7 +11,6 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 * From **sources** for [Linux/macOS](doc/install_unix.md)
 * From **sources** for [Windows](doc/install_win.md)
 
-
 ## ChangeLog
 
 Changes already implemented in GIT master for next release:
