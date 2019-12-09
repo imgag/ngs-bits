@@ -37,6 +37,7 @@ public:
 		addFloat("min_dp", "Minimum depth of the processed sample.", true, 0.0);
 		addFloat("max_cnvs", "Maximum number of CNVs per sample.", true, 0.0);
 		addFloat("min_af", "Minimum allele frequency of output CNV ranges.", true, 0.01);
+		addString("caller_version", "Restrict output to callsets with this caller version.", true, "");
 		addOutfile("stats", "Statistics and logging output. If unset, writes to STDOUT", true);
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("skip_males", "Skips males (PAR region is not correctly handled for males in ClinCNV)"); //TODO remove when ClinCNV bug is fixed and the database is updated > MARC
@@ -79,6 +80,7 @@ public:
 		double min_af = getFloat("min_af");
 		if (max_cnvs==0.0) max_cnvs = std::numeric_limits<double>::max();
 		bool skip_males = getFlag("skip_males");
+		QString caller_version = getString("caller_version");
 
 		//check that system is valid
 		QVariant tmp = db.getValue("SELECT id FROM processing_system WHERE name_short=:0", true, system).toString();
@@ -139,6 +141,18 @@ public:
 					skip[i] = true;
 				}
 			}
+			
+			//caller version
+			if (caller_version!="")
+			{
+				QString version = db.getValue("SELECT caller_version FROM cnv_callset WHERE id=" + cs_id).toString();
+				if(version!=caller_version)
+				{
+					stream2 << "Skipping sample " << ps << " - caller version (" << version << ") is wrong!\n";
+					skip[i] = true;	
+				}
+			}
+			
 			stats_cnvs  << cnv_count;
 		}
 		const int sample_count = skip.count(false);
