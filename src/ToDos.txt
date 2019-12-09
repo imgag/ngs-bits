@@ -29,6 +29,7 @@ GSvar:
     - add gene annotation and type (coding/splicing/intronic/intergenic)
 
 Tools:
+- NGSDExportSamples: Add flag for variants in NGSD and for report config (base/var/cnv)
 - UPDHunter: also support chrX?
 - SomaticQC: replace 'QC:?' by real qcML identifier - add to https://github.com/HUPO-PSI/mzQC (CS)
 

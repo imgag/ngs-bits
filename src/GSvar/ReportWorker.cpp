@@ -1112,7 +1112,14 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 				if (hgvs_p.startsWith("p.")) hgvs_p = hgvs_p.mid(2);
 				w.writeAttribute("hgvs_p", hgvs_p);
 				QString exon_nr = trans.exon;
-				exon_nr.replace("exon", "");
+				if (exon_nr.startsWith("exon"))
+				{
+					exon_nr.replace("exon", "Exon ");
+				}
+				if (exon_nr.startsWith("intron"))
+				{
+					exon_nr.replace("intron", "Intron ");
+				}
 				w.writeAttribute("exon", exon_nr);
 				w.writeEndElement();
 

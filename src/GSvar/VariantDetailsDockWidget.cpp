@@ -635,7 +635,15 @@ void VariantDetailsDockWidget::setTranscript(int index)
 		ui->detail_impact->setText(trans.impact);
 	}
 	QString exon_nr = trans.exon;
-	exon_nr.replace("exon", "");
+	if (exon_nr.startsWith("exon"))
+	{
+		exon_nr.replace("exon", "");
+	}
+	if (exon_nr.startsWith("intron"))
+	{
+		exon_nr.replace("intron", "");
+		exon_nr += " (intron)";
+	}
 	ui->detail_exon->setText(exon_nr);
 	ui->detail_cdna->setText(trans.hgvs_c);
 	ui->detail_protein->setText(trans.hgvs_p);

@@ -26,7 +26,7 @@ public:
 		addInfile("var", "Small variant list in GSvar format (as produced by megSAP).", true, true);
 		addFlag("var_force", "Force import of small variants, even if already imported.");
 		addInfile("cnv", "CNV list in TSV format (as produced by megSAP).", true, true);
-		addFlag("cnv_force", "Force import of CNVs, even if already imported. Attention: This will also delete classifications and report configuration!");
+		addFlag("cnv_force", "Force import of CNVs, even if already imported.");
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
 		addFloat("max_af", "Maximum allele frequency of small variants to import (1000g and gnomAD).", true, 0.05);
 		addFlag("test", "Uses the test database instead of on the production database.");

@@ -1,5 +1,5 @@
 ### NGSDAddVariantsGermline tool help
-	NGSDAddVariantsGermline (2019_11-14-g1cbd1a53)
+	NGSDAddVariantsGermline (2019_11-21-ga4bba306)
 	
 	Imports variants of a processed sample into the NGSD.
 	
@@ -13,11 +13,11 @@
 	                  Default value: 'false'
 	  -cnv <file>     CNV list in TSV format (as produced by megSAP).
 	                  Default value: ''
-	  -cnv_force      Force import of CNVs, even if already imported. Attention: This will also delete classifications and report configuration!
+	  -cnv_force      Force import of CNVs, even if already imported.
 	                  Default value: 'false'
 	  -out <file>     Output file. If unset, writes to STDOUT.
 	                  Default value: ''
-	  -max_af <float> Maximum allele frequency of small variants to import (1000g and gnomAD)
+	  -max_af <float> Maximum allele frequency of small variants to import (1000g and gnomAD).
 	                  Default value: '0.05'
 	  -test           Uses the test database instead of on the production database.
 	                  Default value: 'false'
@@ -33,6 +33,6 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDAddVariantsGermline changelog
-	NGSDAddVariantsGermline 2019_11-14-g1cbd1a53
+	NGSDAddVariantsGermline 2019_11-21-ga4bba306
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
