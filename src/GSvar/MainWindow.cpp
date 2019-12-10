@@ -2070,7 +2070,7 @@ void MainWindow::generateReportSomaticRTF()
 		try
 		{
 			//check CGI columns are present
-			if(SomaticReportHelper::checkRequiredSNVAnnotations(variants_))
+			if(!SomaticReportHelper::checkRequiredSNVAnnotations(variants_))
 			{
 				QMessageBox::warning(this,"Somatic report", "DNA report cannot be created because GSVar-file does not contain CGI-data.");
 				return;

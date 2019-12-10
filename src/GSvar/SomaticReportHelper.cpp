@@ -285,7 +285,7 @@ bool SomaticReportHelper::checkRequiredSNVAnnotations(const VariantList &snvs)
 	int i_ncg_oncogene = snvs.annotationIndexByName("ncg_oncogene", true, false);
 	int i_ncg_tsg = snvs.annotationIndexByName("ncg_tsg", true, false);
 
-	if(i_driver_statement < 0 || i_gene_role < 0 || i_ncg_oncogene || i_ncg_tsg) return false;
+	if(i_driver_statement < 0 || i_gene_role < 0 || i_ncg_oncogene < 0 || i_ncg_tsg < 0) return false;
 
 	return true;
 }
