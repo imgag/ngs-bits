@@ -1,5 +1,5 @@
 ### NGSDExportAnnotationData tool help
-	NGSDExportAnnotationData (2019_09-26-gf5665b47)
+	NGSDExportAnnotationData (2019_11-21-ga4bba306)
 	
 	Generates a VCF file with all variants and annotations from the NGSD and a BED file containing the gene information of the NGSD.
 	
@@ -30,8 +30,9 @@
 	  --tdx              Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDExportAnnotationData changelog
-	NGSDExportAnnotationData 2019_09-26-gf5665b47
+	NGSDExportAnnotationData 2019_11-21-ga4bba306
 	
+	2019-12-06 Comments are now URL encoded.
 	2019-09-25 Added somatic mode.
 	2019-07-29 Added BED file for genes.
 	2019-07-25 Initial version of this tool.

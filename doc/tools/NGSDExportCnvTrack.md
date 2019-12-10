@@ -1,5 +1,5 @@
 ### NGSDExportCnvTrack tool help
-	NGSDExportCnvTrack (2019_11-22-gb53f8716)
+	NGSDExportCnvTrack (2019_11-21-ga4bba306)
 	
 	Exports a CNV track for a processing system.
 	
@@ -21,8 +21,6 @@
 	                           Default value: ''
 	  -test                    Uses the test database instead of on the production database.
 	                           Default value: 'false'
-	  -skip_males              Skips males (PAR region is not correctly handled for males in ClinCNV)
-	                           Default value: 'false'
 	
 	Special parameters:
 	  --help                   Shows this help and exits.
@@ -31,7 +29,7 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDExportCnvTrack changelog
-	NGSDExportCnvTrack 2019_11-22-gb53f8716
+	NGSDExportCnvTrack 2019_11-21-ga4bba306
 	
 	2019-10-21 First version
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

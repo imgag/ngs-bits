@@ -40,7 +40,6 @@ public:
 		addString("caller_version", "Restrict output to callsets with this caller version.", true, "");
 		addOutfile("stats", "Statistics and logging output. If unset, writes to STDOUT", true);
 		addFlag("test", "Uses the test database instead of on the production database.");
-		addFlag("skip_males", "Skips males (PAR region is not correctly handled for males in ClinCNV)"); //TODO remove when ClinCNV bug is fixed and the database is updated > MARC
 
 		changeLog(2019, 10, 21, "First version");
 	}
@@ -79,7 +78,6 @@ public:
 		double max_cnvs = getFloat("max_cnvs");
 		double min_af = getFloat("min_af");
 		if (max_cnvs==0.0) max_cnvs = std::numeric_limits<double>::max();
-		bool skip_males = getFlag("skip_males");
 		QString caller_version = getString("caller_version");
 
 		//check that system is valid
@@ -129,17 +127,6 @@ public:
 				stream2 << "Skipping sample " << ps << " - CNV count (" << cnv_count << ") is higher than " << max_cnvs << "!\n";
 				skip[i] = true;
 				continue;
-			}
-
-			//gender
-			if (skip_males)
-			{
-				QHash<QString, QString> metrics = db.cnvCallsetMetrics(cs_id.toInt());
-				if (metrics.contains("gender of sample") && metrics["gender of sample"].trimmed()=="M")
-				{
-					stream2 << "Skipping sample " << ps << " - the sample is male!\n";
-					skip[i] = true;
-				}
 			}
 			
 			//caller version
