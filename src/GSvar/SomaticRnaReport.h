@@ -59,6 +59,8 @@ private:
 	RtfTable cnvTable();
 	///Returns TPM from annotation field, orig. entry has the form gene1=0.00,gene2=2.21,gene3=..., if not found it returns -1.
 	double getTpm(QByteArray gene, QByteArray field);
+	///Translates reference tissue type into German
+	RtfSourceCode trans(QString orig_entry) const;
 
 	RtfDocument doc_;
 

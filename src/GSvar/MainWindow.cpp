@@ -2058,8 +2058,18 @@ void MainWindow::generateReportSomaticRTF()
 
 
 
+	QString destination_path;
+	if(config_report.getReportType() == SomaticReportConfiguration::report_type::DNA)
+	{
+		destination_path = last_report_path_ + "/" + QFileInfo(filename_).baseName() + "_DNA_report_somatic_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf";
+	}
+	else
+	{
+		destination_path = last_report_path_ + "/" + QFileInfo(filename_).baseName() + "_RNA_report_somatic_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf";
+	}
+
 	//get RTF file name
-	QString file_rep = QFileDialog::getSaveFileName(this, "Store report file", last_report_path_ + "/" + QFileInfo(filename_).baseName() + "_report_somatic_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf", "RTF files (*.rtf);;All files(*.*)");
+	QString file_rep = QFileDialog::getSaveFileName(this, "Store report file", destination_path, "RTF files (*.rtf);;All files(*.*)");
 	if (file_rep=="") return;
 
 	QApplication::setOverrideCursor(Qt::BusyCursor);
