@@ -62,7 +62,8 @@ SOURCES += main.cpp\
     FilterWidget.cpp \
     ReportSettings.cpp \
     ReportVariantDialog.cpp \
-    GSvarHelper.cpp
+    GSvarHelper.cpp \
+    SomaticRnaReport.cpp
 
 HEADERS  += MainWindow.h \
     ExternalToolDialog.h \
@@ -119,7 +120,8 @@ HEADERS  += MainWindow.h \
     FilterWidget.h \
     ReportSettings.h \
     ReportVariantDialog.h \
-    GSvarHelper.h
+    GSvarHelper.h \
+    SomaticRnaReport.h
 
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \

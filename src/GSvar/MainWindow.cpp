@@ -77,6 +77,8 @@ QT_CHARTS_USE_NAMESPACE
 #include "SampleDiseaseInfoWidget.h"
 #include "QrCodeFactory.h"
 
+#include "SomaticRnaReport.h"
+
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -2012,6 +2014,7 @@ void MainWindow::generateReport()
 	AnalysisType type = variants_.type();
 	if (type==SOMATIC_PAIR)
 	{
+
 		generateReportSomaticRTF();
 	}
 	else if (type==GERMLINE_SINGLESAMPLE || type==GERMLINE_TRIO)
@@ -2026,12 +2029,6 @@ void MainWindow::generateReport()
 
 void MainWindow::generateReportSomaticRTF()
 {
-	//check CGI columns are present
-	if(variants_.annotationIndexByName("CGI_driver_statement", true, false)<0 || variants_.annotationIndexByName("CGI_gene_role", true, false)<0)
-	{
-		QMessageBox::warning(this,"Somatic report", "Report cannot be created because GSVar-file does not contain CGI-data.");
-		return;
-	}
 
 	//load CNVs
 	CnvList cnvs;
@@ -2046,57 +2043,105 @@ void MainWindow::generateReportSomaticRTF()
 		cnvs.clear();
 	}
 
-	//Configure report (CNVs)
-	if(!cnvs.isEmpty())
-	{
-		SomaticReportConfiguration configReport(cnvs, this);
-		configReport.setWindowFlags(Qt::Window);
-		connect(&configReport, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
-		if(!configReport.exec()) return;
-		cnvs = configReport.getSelectedCNVs();
-	}
+	//Configure report
+	SomaticReportConfiguration config_report(cnvs, this);
+
+	//Activate radio buttons to select between RNA and DNA if RNA annotation data is available
+	if(SomaticRnaReport::checkRequiredSNVAnnotations(variants_)) config_report.setSelectionRnaDna(true);
+
+	config_report.setWindowFlags(Qt::Window);
+	connect(&config_report, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
+	if(!config_report.exec()) return;
+
+	//we only use CNVs checked by the user
+	cnvs = config_report.getSelectedCNVs();
+
+
 
 	//get RTF file name
 	QString file_rep = QFileDialog::getSaveFileName(this, "Store report file", last_report_path_ + "/" + QFileInfo(filename_).baseName() + "_report_somatic_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf", "RTF files (*.rtf);;All files(*.*)");
 	if (file_rep=="") return;
-	//generate report
-	try
-	{
-		QApplication::setOverrideCursor(Qt::BusyCursor);
-		SomaticReportHelper report(filename_, cnvs, ui_.filters->filters(),ui_.filters->targetRegion());
 
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+
+	if(config_report.getReportType() == SomaticReportConfiguration::report_type::DNA)
+	{
+		//generate somatic DNA report
+		try
+		{
+			//check CGI columns are present
+			if(SomaticReportHelper::checkRequiredSNVAnnotations(variants_))
+			{
+				QMessageBox::warning(this,"Somatic report", "DNA report cannot be created because GSVar-file does not contain CGI-data.");
+				return;
+			}
+
+			SomaticReportHelper report(filename_, cnvs, ui_.filters->filters(),ui_.filters->targetRegion());
+
+			//Generate RTF
+			QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
+
+			report.writeRtf(temp_filename);
+
+			ReportWorker::validateAndCopyReport(temp_filename, file_rep, false, true);
+
+			//Generate files for QBIC upload
+			report.germlineSnvForQbic();
+			report.somaticSnvForQbic();
+			report.germlineCnvForQbic();
+			report.somaticCnvForQbic();
+			report.somaticSvForQbic();
+			report.metaDataForQbic();
+
+			QApplication::restoreOverrideCursor();
+		}
+		catch(Exception& error)
+		{
+			QApplication::restoreOverrideCursor();
+			QMessageBox::warning(this, "Error while creating report", error.message());
+			return;
+		}
+		catch(...)
+		{
+			QApplication::restoreOverrideCursor();
+			QMessageBox::warning(this, "Error while creating report", "No error message!");
+			return;
+		}
+
+		//open report
+		if (QMessageBox::question(this, "DNA report", "DNA report generated successfully!\nDo you want to open the report in your default RTF viewer?")==QMessageBox::Yes)
+		{
+			QDesktopServices::openUrl(file_rep);
+		}
+	}
+	else //RNA report
+	{
 		//Generate RTF
-		QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
-		report.writeRtf(temp_filename);
-		ReportWorker::validateAndCopyReport(temp_filename, file_rep, false, true);
+		try
+		{
+			QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
+			SomaticRnaReport rna_report(variants_, ui_.filters->filters(), cnvs);
+			rna_report.writeRtf(temp_filename);
+			ReportWorker::validateAndCopyReport(temp_filename, file_rep, false, true);
+			QApplication::restoreOverrideCursor();
+		}
+		catch(Exception& error)
+		{
+			QApplication::restoreOverrideCursor();
+			QMessageBox::warning(this, "Error while creating somatic RNA report.", error.message());
+			return;
+		}
+		catch(...)
+		{
+			QApplication::restoreOverrideCursor();
+			QMessageBox::warning(this, "Error while creating somatic RNA report.", "No error message!");
+			return;
+		}
 
-		//Generate files for QBIC upload
-		report.germlineSnvForQbic();
-		report.somaticSnvForQbic();
-		report.germlineCnvForQbic();
-		report.somaticCnvForQbic();
-		report.somaticSvForQbic();
-		report.metaDataForQbic();
-
-		QApplication::restoreOverrideCursor();
-	}
-	catch(Exception& error)
-	{
-		QApplication::restoreOverrideCursor();
-		QMessageBox::warning(this, "Error while creating report", error.message());
-		return;
-	}
-	catch(...)
-	{
-		QApplication::restoreOverrideCursor();
-		QMessageBox::warning(this, "Error while creating report", "No error message!");
-		return;
-	}
-
-	//open report
-	if (QMessageBox::question(this, "Report", "Report generated successfully!\nDo you want to open the report in your default RTF viewer?")==QMessageBox::Yes)
-	{
-		QDesktopServices::openUrl(file_rep);
+		if (QMessageBox::question(this, "RNA report", "RNA report generated successfully!\nDo you want to open the report in your default RTF viewer?")==QMessageBox::Yes)
+		{
+			QDesktopServices::openUrl(file_rep);
+		}
 	}
 }
 
@@ -3505,7 +3550,9 @@ void MainWindow::applyFilters(bool debug_time)
 		timer.start();
 
 		const FilterCascade& filter_cascade = ui_.filters->filters();
+
 		filter_result_ = filter_cascade.apply(variants_, false, debug_time);
+
 		ui_.filters->markFailedFilters();
 
 		if (debug_time)

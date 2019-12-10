@@ -12,9 +12,79 @@ SomaticReportConfiguration::SomaticReportConfiguration(const CnvList& cnv_input,
 	: QDialog(parent)
 	, ui_(new Ui::SomaticReportConfiguration)
 	, cnvs_(cnv_input)
+	, db_()
 {
 	ui_->setupUi(this);
 	view_pass_filter.fill(true,cnvs_.count());
+
+	fillCnvWidget();
+
+
+	/************************
+	 * DISPLAY SAMPLE INFOS *
+	 ************************/
+	QByteArray cgi_cancer_type = "";
+	foreach(QByteArray comment,cnvs_.comments())
+	{
+		if(comment.contains("CGI_CANCER_TYPE"))
+		{
+			cgi_cancer_type = comment.split('=')[1];
+			break;
+		}
+	}
+	if(cgi_cancer_type == "") cgi_cancer_type = "UNKNOWN";
+
+	if(cgi_cancer_type == "UNKNOWN" || cgi_cancer_type == "CANCER")
+	{
+		ui_->infos->layout()->addWidget(new QLabel("<font color='red'>CGI cancer type: " + cgi_cancer_type +"</font>"));
+	}
+	else
+	{
+		ui_->infos->layout()->addWidget(new QLabel("CGI cancer type: " + cgi_cancer_type));
+	}
+
+
+	/*********************
+	 * SLOTS AND SIGNALS *
+	 *********************/
+	//create shortcut (copy data to clipboard)
+	new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_C),this,SLOT(copyToClipboard()));
+	//buttons
+	connect(ui_->buttonBox,SIGNAL(accepted()),this,SLOT(accept()));
+	connect(ui_->buttonBox,SIGNAL(rejected()),this,SLOT(reject()));
+
+	//context menu
+	ui_->cnvs->setContextMenuPolicy(Qt::CustomContextMenu);
+	connect(ui_->cnvs, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
+
+	//Update filters
+	connect(ui_->log_likelihood,SIGNAL(valueChanged(double)),this,SLOT(filtersChanged()));
+	connect(ui_->cnv_min_size,SIGNAL(valueChanged(double)),this,SLOT(filtersChanged()));
+	connect(ui_->filter_for_cgi_drivers,SIGNAL(stateChanged(int)),this,SLOT(filtersChanged()));
+	connect(ui_->deselect_x_y,SIGNAL(clicked(bool)),this,SLOT(deselectXY()));
+
+	//reset viewing filter
+	connect(ui_->reset_view_filters,SIGNAL(clicked(bool)),this,SLOT(resetView()));
+
+	//apply viewing filter to preselection
+	connect(ui_->preselect_cnvs,SIGNAL(clicked(bool)),this,SLOT(selectCNVsFromView()));
+
+	//open in IGV
+	connect(ui_->cnvs,SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this,SLOT(cnvDoubleClicked(QTableWidgetItem*)));
+}
+
+SomaticReportConfiguration::~SomaticReportConfiguration()
+{
+	delete ui_;
+}
+
+void SomaticReportConfiguration::fillCnvWidget()
+{
+	if(cnvs_.count() == 0)
+	{
+		disableGUI();
+		return;
+	}
 
 	//set up CNV table
 	QStringList col_names;
@@ -64,71 +134,19 @@ SomaticReportConfiguration::SomaticReportConfiguration(const CnvList& cnv_input,
 		}
 	}
 	GUIHelper::resizeTableCells(ui_->cnvs, 600);
-
-
-	/************************
-	 * DISPLAY SAMPLE INFOS *
-	 ************************/
-	QByteArray cgi_cancer_type = "";
-	foreach(QByteArray comment,cnvs_.comments())
-	{
-		if(comment.contains("CGI_CANCER_TYPE"))
-		{
-			cgi_cancer_type = comment.split('=')[1];
-			break;
-		}
-	}
-	if(cgi_cancer_type == "") cgi_cancer_type = "UNKNOWN";
-
-	if(cgi_cancer_type == "UNKNOWN" || cgi_cancer_type == "CANCER")
-	{
-		ui_->infos->layout()->addWidget(new QLabel("<font color='red'>CGI cancer type: " + cgi_cancer_type +"</font>"));
-	}
-	else
-	{
-		ui_->infos->layout()->addWidget(new QLabel("CGI cancer type: " + cgi_cancer_type));
-	}
-
-	if(!cnvs_.annotationHeaders().contains("CGI_driver_statement"))
-	{
-		ui_->filter_for_cgi_drivers->hide();
-	}
-
-
-
-	/*********************
-	 * SLOTS AND SIGNALS *
-	 *********************/
-	//create shortcut (copy data to clipboard)
-	new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_C),this,SLOT(copyToClipboard()));
-	//buttons
-	connect(ui_->buttonBox,SIGNAL(accepted()),this,SLOT(accept()));
-	connect(ui_->buttonBox,SIGNAL(rejected()),this,SLOT(reject()));
-
-	//context menu
-	ui_->cnvs->setContextMenuPolicy(Qt::CustomContextMenu);
-	connect(ui_->cnvs, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
-
-	//Update filters
-	connect(ui_->log_likelihood,SIGNAL(valueChanged(double)),this,SLOT(filtersChanged()));
-	connect(ui_->cnv_min_size,SIGNAL(valueChanged(double)),this,SLOT(filtersChanged()));
-	connect(ui_->filter_for_cgi_drivers,SIGNAL(stateChanged(int)),this,SLOT(filtersChanged()));
-	connect(ui_->deselect_x_y,SIGNAL(clicked(bool)),this,SLOT(deselectXY()));
-
-	//reset viewing filter
-	connect(ui_->reset_view_filters,SIGNAL(clicked(bool)),this,SLOT(resetView()));
-
-	//apply viewing filter to preselection
-	connect(ui_->preselect_cnvs,SIGNAL(clicked(bool)),this,SLOT(selectCNVsFromView()));
-
-	//open in IGV
-	connect(ui_->cnvs,SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this,SLOT(cnvDoubleClicked(QTableWidgetItem*)));
-
 }
 
-SomaticReportConfiguration::~SomaticReportConfiguration()
+void SomaticReportConfiguration::setSelectionRnaDna(bool enabled)
 {
-	delete ui_;
+	ui_->report_type_label->setEnabled(enabled);
+	ui_->report_type_dna->setEnabled(enabled);
+	ui_->report_type_rna->setEnabled(enabled);
+}
+
+SomaticReportConfiguration::report_type SomaticReportConfiguration::getReportType()
+{
+	if(ui_->report_type_dna->isChecked()) return report_type::DNA;
+	else return report_type::RNA;
 }
 
 CnvList SomaticReportConfiguration::getSelectedCNVs()
@@ -146,6 +164,7 @@ CnvList SomaticReportConfiguration::getSelectedCNVs()
 	}
 	return filtered_cnvs;
 }
+
 
 void SomaticReportConfiguration::showContextMenu(QPoint pos)
 {
@@ -172,6 +191,17 @@ void SomaticReportConfiguration::showContextMenu(QPoint pos)
 			ui_->cnvs->item(i, 0)->setCheckState(Qt::Unchecked);
 		}
 	}
+}
+
+void SomaticReportConfiguration::disableGUI()
+{
+	ui_->log_likelihood->setEnabled(false);
+	ui_->cnvs->setEnabled(false);
+	ui_->deselect_x_y->setEnabled(false);
+	ui_->preselect_cnvs->setEnabled(false);
+	ui_->reset_view_filters->setEnabled(false);
+	ui_->filter_for_cgi_drivers->setEnabled(false);
+	ui_->cnv_min_size->setEnabled(false);
 }
 
 void SomaticReportConfiguration::filtersChanged()
@@ -301,3 +331,5 @@ void SomaticReportConfiguration::copyToClipboard()
 	}
 	QApplication::clipboard()->setText(selected_text);
 }
+
+

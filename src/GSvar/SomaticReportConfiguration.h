@@ -6,6 +6,7 @@
 #include <QWidget>
 #include <QDialog>
 #include <QTableWidgetItem>
+#include "NGSD.h"
 
 namespace Ui {
 class SomaticReportConfiguration;
@@ -22,6 +23,17 @@ public:
 	///Returns the selected CNVs
 	CnvList getSelectedCNVs();
 
+	enum report_type
+	{
+		DNA,
+		RNA
+	};
+
+	///Returns whether report type shall be DNA or RNA
+	report_type getReportType();
+	///Enables radio buttons which enable the user to choose between RNA and DNA report
+	void setSelectionRnaDna(bool enabled = false);
+
 private:
 	Ui::SomaticReportConfiguration *ui_;
 
@@ -32,6 +44,14 @@ private:
 
 	///Filter for CNVs that are shown in widget
 	QBitArray view_pass_filter;
+
+	///NGSD neccessary for auto completion RNA file
+	NGSD db_;
+
+	///Fills CNV widget according CNV input
+	void fillCnvWidget();
+	///Disable all GUI elements (in case of missing CNVs)
+	void disableGUI();
 
 private slots:
 	void showContextMenu(QPoint pos);
@@ -49,7 +69,6 @@ private slots:
 	void cnvDoubleClicked(QTableWidgetItem* item);
 	///Copies selected rows from cnvs-widget to clipboard
 	void copyToClipboard();
-
 
 signals:
 	void openRegionInIGV(QString region);

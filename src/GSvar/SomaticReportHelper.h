@@ -295,6 +295,18 @@ public:
 	///returns CGI cancertype if available from VariantList
 	static QByteArray cgiCancerTypeFromVariantList(const VariantList& variants);
 
+	///Parses CGI driver statement into German language
+	static QByteArray CgiDriverDescription(QByteArray raw_cgi_input);
+
+	///Returns CNV size description, e.g. "fokal" or "Cluster", in German language
+	static QByteArray CnvSizeDescription(QByteArray orig_entry);
+
+	///Returns CNV type, e.g. DEL (het) according copy number
+	static QByteArray CnvTypeDescription(int tumor_cn);
+
+	///Returns true if all required annotation (CGI, NCG) are available
+	static bool checkRequiredSNVAnnotations(const VariantList& snvs);
+
 private:
 	///transforms GSVar coordinates of Variants to VCF INDEL-standard
 	VariantList gsvarToVcf(const VariantList& gsvar_list, const QString& orig_name);
@@ -318,15 +330,6 @@ private:
 
 	///Creates table containing alterations relevant in pharmacogenomics (from normal sample)
 	RtfTable pharamacogeneticsTable();
-
-	///Returns CNV type, e.g. DEL (het) according copy number
-	QByteArray getCnvType(const CopyNumberVariant& cnv);
-
-	///Returns CNV size description, e.g. "fokal" or "Cluster"
-	QByteArray CnvSizeDescription(const CopyNumberVariant& cnv);
-
-	///Parses CGI driver statement into German language
-	QByteArray CgiDriverDescription(QByteArray raw_cgi_input);
 
 
 

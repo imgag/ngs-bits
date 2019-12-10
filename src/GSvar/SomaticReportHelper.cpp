@@ -133,7 +133,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 
 			temp_cnv_row.addCell(2900,statement);
 
-			QByteArray cnv_type = CnvSizeDescription(cnv);
+			QByteArray cnv_type = CnvSizeDescription(cnv.annotations().at(cnv_index_cnv_type_));
 			if(!cnv_type.contains("fokal") && !cnv_type.contains("Cluster")) cnv_type = "nicht fokal";
 			temp_cnv_row.addCell(1700,cnv_type);
 
@@ -227,10 +227,10 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 
 		if(!i_genes_to_be_printed.isEmpty())
 		{
-			QByteArray cn_statement = getCnvType(cnv);
+			QByteArray cn_statement = CnvTypeDescription(cnv.annotations().at(cnv_index_tumor_cn_change_).toInt());
 			QByteArray tumor_clonality = QByteArray::number(cnv.annotations().at(cnv_index_tumor_clonality_).toDouble(),'f',2);
 
-			QByteArray cnv_type = CnvSizeDescription(cnv);
+			QByteArray cnv_type = CnvSizeDescription(cnv.annotations().at(cnv_index_cnv_type_));
 			if(!cnv_type.contains("fokal") && !cnv_type.contains("Cluster")) cnv_type = "nicht fokal";
 
 			foreach(int index,i_genes_to_be_printed)
@@ -275,6 +275,19 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 	}
 
 	return table;
+}
+
+bool SomaticReportHelper::checkRequiredSNVAnnotations(const VariantList &snvs)
+{
+	int i_driver_statement = snvs.annotationIndexByName("CGI_driver_statement", true, false);
+	int i_gene_role = snvs.annotationIndexByName("CGI_gene_role", true, false);
+
+	int i_ncg_oncogene = snvs.annotationIndexByName("ncg_oncogene", true, false);
+	int i_ncg_tsg = snvs.annotationIndexByName("ncg_tsg", true, false);
+
+	if(i_driver_statement < 0 || i_gene_role < 0 || i_ncg_oncogene || i_ncg_tsg) return false;
+
+	return true;
 }
 
 RtfTable SomaticReportHelper::germlineAlterationTable(const VariantList& somatic_snvs)
@@ -449,7 +462,7 @@ RtfTable SomaticReportHelper::createCnvTable()
 		temp_row.last().format().setHorizontalAlignment("c");
 
 		//Type
-		temp_row.addCell(800,CnvSizeDescription(variant),RtfParagraph().setHorizontalAlignment("c"));
+		temp_row.addCell(800,CnvSizeDescription(variant.annotations().at(cnv_index_cnv_type_)),RtfParagraph().setHorizontalAlignment("c"));
 
 		//copy numbers
 		if(variant.annotations().at(cnv_index_tumor_cn_change_).toDouble() <= 6)
@@ -857,6 +870,7 @@ SomaticReportHelper::SomaticReportHelper(QString snv_filename, const CnvList& fi
 	, db_()
 	, filters_(filters)
 {
+
 	//Apply somatic filters to SNV list
 	VariantList temp_snv_variants;
 	temp_snv_variants.load(snv_filename_);
@@ -969,6 +983,7 @@ SomaticReportHelper::SomaticReportHelper(QString snv_filename, const CnvList& fi
 	snv_index_cgi_gene_role_ = snv_variants_.annotationIndexByName("CGI_gene_role",true,true);
 	snv_index_cgi_transcript_ = snv_variants_.annotationIndexByName("CGI_transcript",true,true);
 	snv_index_cgi_gene_ = snv_variants_.annotationIndexByName("CGI_gene",true,true);
+
 
 	cnv_index_cn_change_ = cnvs_filtered_.annotationIndexByName("CN_change", false);
 	cnv_index_cgi_gene_role_ = cnvs_filtered_.annotationIndexByName("CGI_gene_role", false);
@@ -1771,50 +1786,40 @@ VariantTranscript SomaticReportHelper::selectSomaticTranscript(const Variant& va
 	return VariantTranscript();
 }
 
-QByteArray SomaticReportHelper::getCnvType(const CopyNumberVariant& cnv)
+QByteArray SomaticReportHelper::CnvTypeDescription(int tumor_cn)
 {
-	bool success = false;
-	double tumor_cn = cnv.annotations().at(cnv_index_tumor_cn_change_).toDouble(&success);
 	QByteArray type = "";
-	if(success)
+
+	if(tumor_cn > 2)
 	{
-		if(tumor_cn > 2)
-		{
-			if(tumor_cn <= 6) type = "AMP (" + QByteArray::number((int)tumor_cn) + " Kopien)";
-			else type = "AMP (> 6 Kopien)";
-		}
-		else if(tumor_cn < 2)
-		{
-			type = "DEL";
-			if(tumor_cn == 0 ) type.append(" (hom)");
-			else if(tumor_cn == 1) type.append(" (het)");
-		}
-		else if(tumor_cn == 2) type = "LOH";
-		else type = "NA";
+		if(tumor_cn <= 6) type = "AMP (" + QByteArray::number((int)tumor_cn) + " Kopien)";
+		else type = "AMP (> 6 Kopien)";
 	}
+	else if(tumor_cn < 2)
+	{
+		type = "DEL";
+		if(tumor_cn == 0) type.append(" (hom)");
+		else if(tumor_cn == 1) type.append(" (het)");
+	}
+	else if(tumor_cn == 2) type = "LOH";
+	else type = "NA";
+
 	return type;
 }
 
-QByteArray SomaticReportHelper::CnvSizeDescription(const CopyNumberVariant& cnv)
+QByteArray SomaticReportHelper::CnvSizeDescription(QByteArray orig_entry)
 {
-	if(cnv_index_cnv_type_ == -1)
-	{
-		return "NA";
-	}
 
-	QByteArray temp_cnv_type = cnv.annotations().at(cnv_index_cnv_type_);
-
-
-	if(temp_cnv_type == "chromosome") return "ges. Chrom.";
-	else if(temp_cnv_type == "cluster") return "Cluster";
-	else if(temp_cnv_type == "partial chromosome") return "part. Chrom.";
-	else if(temp_cnv_type == "non-focal") return "nicht fokal";
-	else if(temp_cnv_type == "focal") return "fokal";
-	else if(temp_cnv_type == "partial p-arm") return "part. p-Arm";
-	else if(temp_cnv_type == "partial q-arm") return "part. q-Arm";
-	else if(temp_cnv_type == "q-arm") return "q-Arm";
-	else if(temp_cnv_type == "p-arm") return "p-Arm";
-	else if(temp_cnv_type == "no gene") return "kein Gen";
+	if(orig_entry == "chromosome") return "ges. Chrom.";
+	else if(orig_entry == "cluster") return "Cluster";
+	else if(orig_entry == "partial chromosome") return "part. Chrom.";
+	else if(orig_entry == "non-focal") return "nicht fokal";
+	else if(orig_entry == "focal") return "fokal";
+	else if(orig_entry == "partial p-arm") return "part. p-Arm";
+	else if(orig_entry == "partial q-arm") return "part. q-Arm";
+	else if(orig_entry == "q-arm") return "q-Arm";
+	else if(orig_entry == "p-arm") return "p-Arm";
+	else if(orig_entry == "no gene") return "kein Gen";
 	else return "NA";
 }
 
