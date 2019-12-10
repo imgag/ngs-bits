@@ -5,6 +5,7 @@
 #include "FastaFileIndex.h"
 #include "Helper.h"
 #include "NGSHelper.h"
+#include <QList>
 
 bool VcfFile::isValid(QString vcf_file, QString ref_file, QTextStream& out_stream, bool print_general_information, int max_lines)
 {
@@ -568,3 +569,29 @@ QByteArray VcfFile::getPartByColumn(const QByteArray& line, int index)
 
 	return line.mid(column_start, column_end - column_start);
 }
+
+//Define URL encoding
+const QList<KeyValuePair> VcfFile::INFO_URL_MAPPING =
+{
+			KeyValuePair("%", "%25"), // has to be the first element to avoid replacement of already encoded characters
+			KeyValuePair("\t", "%09"),
+			KeyValuePair("\n", "%0a"),
+			KeyValuePair("\r", "%0d"),
+
+			KeyValuePair(" ", "%20"),
+			KeyValuePair(",", "%2C"),
+			KeyValuePair(";", "%3B"),
+			KeyValuePair("=", "%3D")
+};
+
+//Returns string where all forbidden char of an info column value are URL encoded
+QString VcfFile::encodeInfoValue(QString info_value)
+{
+	// iterate over the mapping list and replace each character
+	foreach(KeyValuePair replacement, VcfFile::INFO_URL_MAPPING)
+	{
+		info_value.replace(replacement.key, replacement.value);
+	}
+	return info_value;
+}
+

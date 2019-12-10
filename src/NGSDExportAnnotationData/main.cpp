@@ -6,6 +6,7 @@
 #include "NGSD.h"
 #include "Log.h"
 #include "Settings.h"
+#include "VcfFile.h"
 #include <QElapsedTimer>
 #include <QThreadPool>
 
@@ -38,6 +39,7 @@ public:
 		addEnum("mode", "Determines the database which is exported.", true,
 				QStringList() << "germline" << "somatic", "germline");
 
+		changeLog(2019, 12, 6, "Comments are now URL encoded.");
 		changeLog(2019, 9, 25, "Added somatic mode.");
 		changeLog(2019, 7, 29, "Added BED file for genes.");
 		changeLog(2019, 7, 25, "Initial version of this tool.");
@@ -108,23 +110,6 @@ private:
 		QTime time(0,0,0);
 		time = time.addMSecs(milliseconds);
 		return time.toString("hh:mm:ss.zzz").toUtf8();
-	}
-
-	/*
-	 *   returns a QByteArray where all not allowed symbols are removed
-	 */
-	QByteArray cleanCommentString(QByteArray input_string)
-	{
-		// parse special character in ByteArray
-		input_string = QString::fromLatin1(input_string).toUtf8();
-		// remove newlines
-		input_string = input_string.replace("\r\n", " ").replace("\n", " ").replace("\r", " ");
-		// remove tabs
-		input_string = input_string.replace("\t", " ");
-		// replace ';' and ',' with '.'
-		input_string.replace(";", ".").replace(",", ".");
-
-		return input_string;
 	}
 
 	/*
@@ -336,7 +321,7 @@ private:
 					for(auto it=project_map.cbegin(); it!=project_map.cend(); ++it)
 					{
 						somatic_count += it.value();
-						somatic_projects << it.key();
+						somatic_projects << VcfFile::encodeInfoValue(it.key()).toUtf8();
 					}
 
 					// add counts to info column
@@ -774,7 +759,7 @@ private:
 					{
 						query.first();
 						QByteArray classification = query.value(0).toByteArray().trimmed().replace("n/a", "");
-						QByteArray clas_comment = cleanCommentString(query.value(1).toByteArray());
+						QByteArray clas_comment = VcfFile::encodeInfoValue(query.value(1).toByteArray()).toUtf8();
 						if (classification != "") info_column.append("CLAS=" + classification);
 						if (clas_comment != "") info_column.append("CLAS_COM=\"" + clas_comment + "\"");
 					}
@@ -782,7 +767,7 @@ private:
 					// get comment
 					if(comment != "")
 					{
-						info_column.append("COM=\"" + cleanCommentString(comment) + "\"");
+						info_column.append("COM=\"" + VcfFile::encodeInfoValue(comment).toUtf8() + "\"");
 					}
 
 					// concat all info entries

@@ -20,13 +20,23 @@ public:
 
 	virtual void setup()
 	{
+		// generate string with from mapping
+		QByteArray mapping_string;
+		foreach (KeyValuePair replacement, VcfFile::INFO_URL_MAPPING)
+		{
+			mapping_string += replacement.key + " -> " + replacement.value + "; ";
+		}
+
 		setDescription("Annotates the INFO column of a VCF with data from a BED file.");
+		setExtendedDescription((QStringList() << "Characters which are not allowed in the INFO column based on the VCF 4.2 definition are URL encoded."
+								<< "The following characters are replaced:" << mapping_string));
 		addInfile("bed", "BED file used for annotation.", false, true);
 		addString("name", "Annotation name in output VCF file.", false);
 		//optional
 		addInfile("in", "Input VCF file. If unset, reads from STDIN.", true, true);
 		addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
 
+		changeLog(2019, 12, 6, "Added URL encoding for INFO values.");
 		changeLog(2017, 03, 14, "Initial implementation.");
 	}
 
@@ -114,7 +124,7 @@ public:
 						{
 							out_p->write(parts[7] + ";");
 						}
-						out_p->write(name + "=" + anno);
+						out_p->write(name + "=" + VcfFile::encodeInfoValue(anno).toUtf8());
 					}
 					else
 					{
@@ -124,6 +134,7 @@ public:
 			}
 		}
     }
+
 };
 
 #include "main.moc"

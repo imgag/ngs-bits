@@ -7,6 +7,8 @@
 #include <QMap>
 #include <QTextStream>
 #include <QByteArray>
+#include <QList>
+#include "KeyValuePair.h"
 
 //Helper class for VCF file handling
 class CPPNGSSHARED_EXPORT VcfFile
@@ -23,12 +25,19 @@ public:
 	static const int FILTER = 6;
 	static const int INFO = 7;
 	static const int FORMAT = 8;
+	// definition of all characters which have to be escaped in the INFO values
+	// (using URL-Encoding (https://en.wikipedia.org/wiki/Percent-encoding, RFC 3986))
+	// values defined in VcfFile.cpp
+	static const QList<KeyValuePair> INFO_URL_MAPPING;
 
 	///Validates VCF file
 	static bool isValid(QString vcf_file, QString ref_file, QTextStream& out_stream, bool print_general_information = false, int max_lines = std::numeric_limits<int>::max());
 
 	///Returns the content of a column by index (tab-separated line)
 	static QByteArray getPartByColumn(const QByteArray& line, int index);
+
+	///Returns string where all forbidden char of an info column value are URL encoded
+	static QString encodeInfoValue(QString info_value);
 
 private:
 
