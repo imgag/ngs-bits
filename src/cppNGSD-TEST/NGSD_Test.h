@@ -704,7 +704,7 @@ private slots:
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 5);
 		I_EQUAL(ps_table.columnCount(), 21);
-		//add path
+		//add disease details
 		params.add_disease_details = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 5);
@@ -714,6 +714,11 @@ private slots:
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 5);
 		I_EQUAL(ps_table.columnCount(), 68);
+		//add report config
+		params.add_report_config = true;
+		ps_table = db.processedSampleSearch(params);
+		I_EQUAL(ps_table.rowCount(), 5);
+		I_EQUAL(ps_table.columnCount(), 69);
 		//apply all search parameters
 		params.s_name = "NA12878";
 		params.s_species = "human";
@@ -726,9 +731,10 @@ private slots:
 		params.sys_type = "Panel Haloplex";
 		params.r_name = "#00372";
 		params.include_bad_quality_runs = false;
+		params.run_finished = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 2);
-		I_EQUAL(ps_table.columnCount(), 68);
+		I_EQUAL(ps_table.columnCount(), 69);
 
 		//reportConfigId
 		QString ps_id = db.processedSampleId("NA12878_03");

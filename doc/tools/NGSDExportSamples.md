@@ -1,5 +1,5 @@
 ### NGSDExportSamples tool help
-	NGSDExportSamples (2019_09-44-g07b14ae)
+	NGSDExportSamples (2019_11-21-ga4bba306)
 	
 	Lists processed samples from the NGSD.
 	
@@ -24,6 +24,8 @@
 	                        Default value: ''
 	  -run <string>         Sequencing run name filter.
 	                        Default value: ''
+	  -run_finished         Only show samples where the analysis of the run is finished.
+	                        Default value: 'false'
 	  -no_bad_runs          If set, sequencing runs with 'bad' quality are excluded.
 	                        Default value: 'false'
 	  -add_qc               If set, QC columns are added to output.
@@ -33,6 +35,8 @@
 	  -add_disease_details  If set, disease details columns are added to output.
 	                        Default value: 'false'
 	  -add_path             Checks if the sample folder is present at the defaults location in the 'projects_folder' (as defined in the 'settings.ini' file).
+	                        Default value: 'false'
+	  -add_report_config    Adds a column with report configuration information (exists/has_small_variants/has_cnvs).
 	                        Default value: 'false'
 	  -test                 Uses the test database instead of on the production database.
 	                        Default value: 'false'
@@ -44,8 +48,9 @@
 	  --tdx                 Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDExportSamples changelog
-	NGSDExportSamples 2019_09-44-g07b14ae
+	NGSDExportSamples 2019_11-21-ga4bba306
 	
+	2019-12-11 Added 'run_finished' and 'add_report_config' flags.
 	2019-05-17 Added 'with_merged' flag.
 	2019-04-12 Complete refactoring and interface change.
 	2019-01-10 Added 'species' filter.

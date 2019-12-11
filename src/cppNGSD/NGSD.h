@@ -297,12 +297,14 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	//filters sequencing run
 	QString r_name;
 	bool include_bad_quality_runs = true;
+	bool run_finished = false;
 
 	//output options
 	bool add_path = false;
 	bool add_disease_details = false;
 	bool add_outcome = false;
 	bool add_qc = false;
+	bool add_report_config = false;
 };
 
 ///Meta data about report configuration creation and update

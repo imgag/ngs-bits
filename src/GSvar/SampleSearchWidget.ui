@@ -316,6 +316,23 @@
           </property>
          </widget>
         </item>
+        <item row="2" column="1">
+         <widget class="QCheckBox" name="r_analysis_finished">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_13">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Only include samples where the analysis of the whole run is finished.&lt;br/&gt;Excludes samples that are on a future run or are still being analyzed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>only finished:</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </item>
@@ -363,6 +380,13 @@
        <widget class="QCheckBox" name="add_qc">
         <property name="text">
          <string>add QC info</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="QCheckBox" name="add_report_config">
+        <property name="text">
+         <string>add report configuration info</string>
         </property>
        </widget>
       </item>

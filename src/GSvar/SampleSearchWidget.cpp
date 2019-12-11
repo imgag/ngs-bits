@@ -59,10 +59,12 @@ void SampleSearchWidget::search()
 
 	params.r_name = ui_.r_name->text();
 	params.include_bad_quality_runs = ui_.r_bad_quality->isChecked();
+	params.run_finished = ui_.r_analysis_finished->isChecked();
 
 	params.add_outcome = ui_.add_outcome->isChecked();
 	params.add_disease_details = ui_.add_disease_details->isChecked();
 	params.add_qc = ui_.add_qc->isChecked();
+	params.add_report_config = ui_.add_report_config->isChecked();
 
 	//execute query
 	try

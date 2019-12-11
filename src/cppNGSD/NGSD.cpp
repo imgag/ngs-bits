@@ -144,6 +144,10 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	{
 		conditions << "r.quality!='bad'";
 	}
+	if (p.run_finished)
+	{
+		conditions << "r.status='analysis_finished'";
+	}
 
 	//add outcome
 	if (p.add_outcome)
@@ -237,6 +241,25 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		{
 			output.addColumn(cols[i], "qc_" + QString(qc_names[i]).replace(' ', '_'));
 		}
+	}
+
+	if (p.add_report_config)
+	{
+		QStringList report_conf_col;
+		for (int r=0; r<output.rowCount(); ++r)
+		{
+			QString text;
+			SqlQuery rc_res = getQuery();
+			rc_res.exec("SELECT rc.id, EXISTS(SELECT rcv.id FROM report_configuration_variant rcv WHERE rcv.report_configuration_id=rc.id) as vars, EXISTS(SELECT rcc.id FROM report_configuration_cnv rcc WHERE rcc.report_configuration_id=rc.id) as cnvs FROM report_configuration rc WHERE rc.processed_sample_id="+output.row(r).id());
+			if (rc_res.next())
+			{
+				text = "exists";
+				if (rc_res.value("vars").toInt()>0) text += ",has_small_variants";
+				if (rc_res.value("cnvs").toInt()>0) text += ",has_cnvs";
+			}
+			report_conf_col << text;
+		}
+		output.addColumn(report_conf_col, "report_config");
 	}
 
 	return output;

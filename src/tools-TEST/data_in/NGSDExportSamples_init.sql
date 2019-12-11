@@ -70,6 +70,7 @@ INSERT INTO `analysis_job_history`(`analysis_job_id`, `time`, `user_id`, `status
 (1, '2015-11-01T00:00:10', null, 'started', ''),
 (1, '2015-11-01T04:13:32', null, 'finished', '');
 
+--- disease infos
 INSERT INTO `diag_status`(`processed_sample_id`, `status`, `user_id`, `date`, `outcome`, `comment`) VALUES
 (3, 'done', 99, '2018-10-23 14:09:21', 'significant findings', 'comment line1\ncomment\tline2');
 
@@ -84,3 +85,24 @@ INSERT INTO `sample_disease_info` (`id`, `sample_id`, `disease_info`, `type`, `u
 (3, 2, 'HP:0002862', 'HPO term id', 99, '2018-11-21 18:26:26'),
 (4, 2, 'C34.9', 'ICD10 code', 99, '2018-11-21 18:26:26'),
 (5, 2, '60', 'tumor fraction', 99, '2018-11-21 18:26:26');
+
+--report config
+INSERT INTO `report_configuration`(`id`, `processed_sample_id`, `created_by`, `created_date`) VALUES
+(1,2,99,'2019-12-11 15:19:26'),
+(2,3,99,'2019-12-11 15:19:26');
+
+INSERT INTO `variant` (`id`, `chr`, `start`, `end`, `ref`, `obs`, `1000g`, `gnomad`, `gene`, `variant_type`, `coding`, `comment`) VALUES
+(1, 'chr1', 115256554, 115256554, 'A', 'G', NULL, NULL, 'NRAS', 'synonymous', 'NRAS:ENST00000369535:synonymous_variant:LOW:exon3/7:c.157T>C:p.Leu53=:PF00071', NULL);
+
+INSERT INTO `report_configuration_variant` (`id`, `report_configuration_id`, `variant_id`, `type`, `causal`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES
+(1, 1, 1, 'diagnostic variant', 1, 'n/a', 0, 0, 0, 0, 0, 0, 0, 0, '', '');
+
+
+INSERT INTO `cnv_callset` (`id`, `processed_sample_id`, `caller`, `caller_version`, `call_date`, `quality_metrics`, `quality`) VALUES
+(1, 3, 'ClinCNV', 'v1.16.4', '2019-08-26 14:21:42', '', 'good');
+
+INSERT INTO `cnv` (`id`, `cnv_callset_id`, `chr`, `start`, `end`, `cn`, `quality_metrics`) VALUES
+(1, 1, 'chr1', 17248493, 17275441, 1, '');
+
+INSERT INTO `report_configuration_cnv` (`id`, `report_configuration_id`, `cnv_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES
+(1, 2, 1, 'diagnostic variant', 0, 'n/a', 'AD', 0, 0, 0, 0, 0, 1, 0, 0, '', '');

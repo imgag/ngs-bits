@@ -25,13 +25,16 @@ public:
 		addString("project", "Project name filter.", true, "");
 		addString("system", "Processing system name filter (short name).", true, "");
 		addString("run", "Sequencing run name filter.", true, "");
+		addFlag("run_finished", "Only show samples where the analysis of the run is finished.");
 		addFlag("no_bad_runs", "If set, sequencing runs with 'bad' quality are excluded.");
 		addFlag("add_qc", "If set, QC columns are added to output.");
 		addFlag("add_outcome", "If set, diagnostic outcome columns are added to output.");
 		addFlag("add_disease_details", "If set, disease details columns are added to output.");
 		addFlag("add_path", "Checks if the sample folder is present at the defaults location in the 'projects_folder' (as defined in the 'settings.ini' file).");
+		addFlag("add_report_config", "Adds a column with report configuration information (exists/has_small_variants/has_cnvs).");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
+		changeLog(2019, 12, 11, "Added 'run_finished' and 'add_report_config' flags.");
 		changeLog(2019,  5, 17, "Added 'with_merged' flag.");
 		changeLog(2019,  4, 12, "Complete refactoring and interface change.");
 		changeLog(2019,  1, 10, "Added 'species' filter.");
@@ -55,10 +58,12 @@ public:
 		params.sys_name = getString("system");
 		params.r_name = getString("run");
 		params.include_bad_quality_runs = !getFlag("no_bad_runs");
+		params.run_finished = getFlag("run_finished");
 		params.add_qc = getFlag("add_qc");
 		params.add_outcome = getFlag("add_outcome");
 		params.add_disease_details = getFlag("add_disease_details");
 		params.add_path = getFlag("add_path");
+		params.add_report_config = getFlag("add_report_config");
 
 		//check parameters
 		if (params.p_name!="")
