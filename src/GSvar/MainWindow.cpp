@@ -1420,7 +1420,7 @@ void MainWindow::on_actionAnnotateSomaticVariants_triggered()
 	CnvList cnvs;
 	try
 	{
-		cnvs.load(QFileInfo(filename).dir().canonicalPath() + "/" + cnv_files[0]);
+		cnvs.load(cnv_files[0]);
 	}
 	catch(...)
 	{
