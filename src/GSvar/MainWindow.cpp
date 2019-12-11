@@ -2065,7 +2065,17 @@ void MainWindow::generateReportSomaticRTF()
 	}
 	else
 	{
-		destination_path = last_report_path_ + "/" + QFileInfo(filename_).baseName() + "_RNA_report_somatic_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf";
+		QString rna_id = "";
+		for(const auto& comment : variants_.comments()) //Determine RNA ID from GSvar file for file name proposal
+		{
+			if(comment.contains("RNA_PROCESSED_SAMPLE_ID="))
+			{
+				rna_id = comment.split("=")[1];
+				break;
+			}
+		}
+
+		destination_path = last_report_path_ + "/" + rna_id + "-" + QFileInfo(filename_).baseName() + "_RNA_report_somatic_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf";
 	}
 
 	//get RTF file name
