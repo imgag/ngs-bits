@@ -2775,7 +2775,6 @@ ReportConfiguration NGSD::reportConfig(const QString& processed_sample_id, const
 		output.set(var_conf);
 	}
 
-	output.setModified(false);
 	return output;
 }
 

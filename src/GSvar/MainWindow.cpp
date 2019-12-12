@@ -145,7 +145,6 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.vars_export_btn->menu()->addAction("Export GSvar", this, SLOT(exportGSvar()));
 	ui_.report_btn->setMenu(new QMenu());
 	ui_.report_btn->menu()->addAction("Load report configuration", this, SLOT(loadReportConfig()));
-	ui_.report_btn->menu()->addAction("Store report configuration", this, SLOT(storeReportConfig()));
 	ui_.report_btn->menu()->addAction("Clear report configuration (GSvar)", this, SLOT(clearReportConfig()));
 	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration (NGSD)", this, SLOT(deleteReportConfig()));
@@ -271,6 +270,7 @@ void MainWindow::on_actionCNV_triggered()
 	//open CNV window
 	CnvWidget* list = new CnvWidget(cnvs_, ps_id, ui_.filters, report_settings_.report_config, het_hit_genes, gene2region_cache_);
 	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
+	connect(list, SIGNAL(storeReportConfiguration(bool)), this, SLOT(storeReportConfig(bool)));
 	auto dlg = GUIHelper::createDialog(list, "Copy number variants");
 	addModelessDialog(dlg, true);
 }
@@ -739,8 +739,12 @@ void MainWindow::editVariantComment()
 
 		if (ok)
 		{
+			QTime timer; //TODO remove when bottleneck is determined > MARC
+			timer.start();
 			//update DB
 			db.setComment(variant, text);
+			Log::perf("XXX - edit comment - NGSD update", timer);
+			timer.start();
 
 			//update datastructure (if comment column is present)
 			int col_index = variants_.annotationIndexByName("comment", true, false);
@@ -749,6 +753,7 @@ void MainWindow::editVariantComment()
 				variant.annotations()[col_index] = text;
 				refreshVariantTable();
 			}
+			Log::perf("XXX - edit comment - rendering", timer);
 		}
 	}
 	catch (DatabaseException& e)
@@ -1009,12 +1014,13 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name)
 		NGSD db;
 		QString processed_sample_id = db.processedSampleId(processed_sample_name);
 		QString file = db.processedSamplePath(processed_sample_id, NGSD::GSVAR);
+		QString project_folder = db.processedSamplePath(processed_sample_id, NGSD::PROJECT_FOLDER);
 
-		//check if this is a somatic tumor sample
+		//somatic tumor sample > ask user if he wants to open the tumor-normal pair
 		QString normal_sample = db.normalSample(processed_sample_id);
 		if (normal_sample!="")
 		{
-			QString gsvar_somatic = file.split("Sample_")[0]+ "/" + "Somatic_" + processed_sample_name + "-" + normal_sample + "/" + processed_sample_name + "-" + normal_sample + ".GSvar";
+			QString gsvar_somatic = project_folder + "/" + "Somatic_" + processed_sample_name + "-" + normal_sample + "/" + processed_sample_name + "-" + normal_sample + ".GSvar";
 			if (!QFile::exists(file))
 			{
 				file = gsvar_somatic;
@@ -1024,7 +1030,17 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name)
 				file = gsvar_somatic;
 			}
 		}
+/*
+		//check for if multi-sample analyses exist
+		else
+		{
+			QStringList trios = Helper::findFolders(project_folder, "Trio_"+processed_sample_name+"_*", false);
+			qDebug() << trios;
 
+			QStringList multi = Helper::findFolders(project_folder, "Multi_"+processed_sample_name+"_*", false);
+			qDebug() << multi;
+		}
+*/
 		if (!QFile::exists(file))
 		{
 			QMessageBox::warning(this, "GSvar file missing", "The GSvar file does not exist:\n" + file);
@@ -1172,18 +1188,6 @@ void MainWindow::loadFile(QString filename)
 {
 	QTime timer;
 	timer.start();
-
-	//store report config if modified
-	if (ngsd_enabled_ && report_settings_.report_config.isModified())
-	{
-		int button = QMessageBox::question(this, "Store report configuration", "You have modified the report configuration for this sample.\nIf you don't store it in the NGSD, the information will be lost!\n\nDo you want to store it?",
-										   QMessageBox::Yes,
-										   QMessageBox::No|QMessageBox::Default);
-		if(button==QMessageBox::Yes)
-		{
-			storeReportConfig();
-		}
-	}
 
 	//reset GUI and data structures
 	setWindowTitle(QCoreApplication::applicationName());
@@ -1493,12 +1497,6 @@ void MainWindow::clearReportConfig()
 	AnalysisType type = variants_.type();
 	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO) return;
 
-	//check if current config was modified and would be lost
-	if (report_settings_.report_config.isModified() && QMessageBox::question(this, "Clear report configuration", "The current report configuration contains unsaved changes.\nDo you want to discard them?")==QMessageBox::No)
-	{
-		return;
-	}
-
 	//clear
 	report_settings_.report_config = ReportConfiguration();
 
@@ -1570,15 +1568,6 @@ void MainWindow::loadReportConfig()
 		return;
 	}
 
-	//check if current config was modified and would be lost
-	if (report_settings_.report_config.isModified())
-	{
-		if (QMessageBox::question(this, "Loading report configuration", "The current report configuration contains unsaved changes.\nDo you want to discard them?")==QMessageBox::No)
-		{
-			return;
-		}
-	}
-
 	//load
 	QStringList messages;
 	report_settings_.report_config = db.reportConfig(processed_sample_id, variants_, cnvs_, messages);
@@ -1591,7 +1580,7 @@ void MainWindow::loadReportConfig()
 	refreshVariantTable();
 }
 
-void MainWindow::storeReportConfig()
+void MainWindow::storeReportConfig(bool ask_before_overwrite)
 {
 	//check if applicable
 	if (filename_=="") return;
@@ -1611,7 +1600,7 @@ void MainWindow::storeReportConfig()
 
 	//check if config exists
 	int conf_id = db.reportConfigId(processed_sample_id);
-	if (conf_id!=-1)
+	if (conf_id!=-1 && ask_before_overwrite)
 	{
 		ReportConfigurationCreationData conf_creation = db.reportConfigCreationData(conf_id);
 		if (QMessageBox::question(this, "Store report configuration", conf_creation.toText() + "\n\nDo you want to override it?")==QMessageBox::No)
@@ -1624,7 +1613,6 @@ void MainWindow::storeReportConfig()
 	try
 	{
 		db.setReportConfig(processed_sample_id, report_settings_.report_config, variants_, cnvs_, Helper::userName());
-		report_settings_.report_config.setModified(false);
 	}
 	catch (Exception& e)
 	{
@@ -1634,12 +1622,6 @@ void MainWindow::storeReportConfig()
 
 void MainWindow::generateVariantSheet()
 {
-	//store variant config
-	if (report_settings_.report_config.isModified())
-	{
-		storeReportConfig();
-	}
-
 	//get filename
 	QString base_name = processedSampleName();
 	QString folder = Settings::string("gsvar_report_archive");
@@ -2004,11 +1986,6 @@ QString MainWindow::exclusionCriteria(const ReportVariantConfiguration& conf)
 void MainWindow::generateReport()
 {
 	if (filename_=="") return;
-
-	if (report_settings_.report_config.isModified())
-	{
-		storeReportConfig();
-	}
 
 	//check if this is a germline or somatic
 	AnalysisType type = variants_.type();
@@ -2811,22 +2788,7 @@ void MainWindow::dropEvent(QDropEvent* e)
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
-	if (ngsd_enabled_ && report_settings_.report_config.isModified())
-	{
-		int button = QMessageBox::question(this, "Store report configuration", "You have modified that report configuration for this sample.\nIf you don't store it in the NGSD, the information will be lost!\n\nDo you want to store it?",
-										   QMessageBox::Yes,
-										   QMessageBox::No|QMessageBox::Default,
-										   QMessageBox::Cancel);
-		if(button==QMessageBox::Cancel)
-		{
-			event->ignore();
-			return;
-		}
-		if(button==QMessageBox::Yes)
-		{
-			storeReportConfig();
-		}
-	}
+	//here one could cancel closing the window by calling event->ignore()
 
 	event->accept();
 }
@@ -3253,6 +3215,9 @@ void MainWindow::editVariantClassification(VariantList& variants, int index, boo
 		//update NGSD
 		NGSD db;
 
+		QTime timer; //TODO remove when bottleneck is determined > MARC
+		timer.start();
+
 		ClassificationInfo class_info = dlg.classificationInfo();
 		if(is_somatic)
 		{
@@ -3274,14 +3239,19 @@ void MainWindow::editVariantClassification(VariantList& variants, int index, boo
 			int i_class_comment = variants.annotationIndexByName("classification_comment", true, true);
 			variant.annotations()[i_class_comment] = class_info.comments.toLatin1();
 		}
+		Log::perf("XXX - edit class - NGSD update", timer);
+		timer.start();
 
 
 		//update details widget and filtering
 		ui_.variant_details->updateVariant(variants, index);
 		refreshVariantTable();
+		Log::perf("XXX - edit class - rendering", timer);
+		timer.start();
 
 		//store variant table
 		storeCurrentVariantList();
+		Log::perf("XXX - edit class - storing", timer);
 	}
 	catch (DatabaseException& e)
 	{
@@ -3405,9 +3375,10 @@ void MainWindow::editVariantReportConfiguration(int index)
 	ReportVariantDialog* dlg = new ReportVariantDialog(variant.toString(), inheritance_by_gene, var_config, this);
 	if (dlg->exec()!=QDialog::Accepted) return;
 
-	//update config and GUI
+	//update config, GUI and NGSD
 	report_settings_.report_config.set(var_config);
 	updateReportConfigHeaderIcon(index);
+	storeReportConfig(false);
 
 	//force classification of causal variants
 	if(var_config.causal)

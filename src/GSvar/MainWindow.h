@@ -158,7 +158,7 @@ public slots:
 	///Load report configuration
 	void loadReportConfig();
 	///Store report configuration
-	void storeReportConfig();
+	void storeReportConfig(bool ask_before_overwrite=true);
 	///Prints a variant sheet based on the report configuration
 	void generateVariantSheet();
 	///Helper function for printVariantSheet()

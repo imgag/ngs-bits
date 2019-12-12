@@ -55,9 +55,7 @@ ReportConfiguration::ReportConfiguration()
 	: variant_config_()
 	, created_by_(Helper::userName())
 	, created_at_(QDateTime::currentDateTime())
-	, modified_(false)
 {
-
 }
 
 const QList<ReportVariantConfiguration>& ReportConfiguration::variantConfig() const
@@ -105,8 +103,6 @@ const ReportVariantConfiguration& ReportConfiguration::get(VariantType type, int
 
 bool ReportConfiguration::set(const ReportVariantConfiguration& config)
 {
-	modified_ = true;
-
 	//set variant config
 	for (int i=0; i<variant_config_.count(); ++i)
 	{
@@ -131,22 +127,11 @@ bool ReportConfiguration::remove(VariantType type, int index)
 		if (var_conf.variant_index==index && var_conf.variant_type==type)
 		{
 			variant_config_.removeAt(i);
-			modified_ = true;
 			return true;
 		}
 	}
 
 	return false;
-}
-
-bool ReportConfiguration::isModified() const
-{
-	return modified_;
-}
-
-void ReportConfiguration::setModified(bool modified)
-{
-	modified_ = modified;
 }
 
 QString ReportConfiguration::createdBy() const

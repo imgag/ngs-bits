@@ -60,11 +60,6 @@ public:
 	///Removes the matching configuration. Returns if a configuration was removed.
 	bool remove(VariantType type, int index);
 
-	///Returns if it was modified since creation.
-	bool isModified() const;
-	///Sets the modification status.
-	void setModified(bool modified);
-
 	///Returns by who the database entry was created (or last modified).
 	QString createdBy() const;
 	///Sets the creator name.
@@ -85,8 +80,6 @@ private:
 	QList<ReportVariantConfiguration> variant_config_;
 	QString created_by_;
 	QDateTime created_at_;
-
-	bool modified_;
 
 	//sort by variant index
 	void sortByPosition();
