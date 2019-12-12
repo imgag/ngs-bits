@@ -1008,50 +1008,78 @@ void MainWindow::on_actionOpenByName_triggered()
 
 void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name)
 {
-	//convert name to file
 	try
 	{
+		//convert name to file
 		NGSD db;
 		QString processed_sample_id = db.processedSampleId(processed_sample_name);
-		QString file = db.processedSamplePath(processed_sample_id, NGSD::GSVAR);
 		QString project_folder = db.processedSamplePath(processed_sample_id, NGSD::PROJECT_FOLDER);
+		QString file = db.processedSamplePath(processed_sample_id, NGSD::GSVAR);
+
+		//determine all analyses of the sample
+		QStringList analyses;
+		if (QFile::exists(file)) analyses << file;
 
 		//somatic tumor sample > ask user if he wants to open the tumor-normal pair
 		QString normal_sample = db.normalSample(processed_sample_id);
 		if (normal_sample!="")
 		{
 			QString gsvar_somatic = project_folder + "/" + "Somatic_" + processed_sample_name + "-" + normal_sample + "/" + processed_sample_name + "-" + normal_sample + ".GSvar";
-			if (!QFile::exists(file))
+			if (QFile::exists(gsvar_somatic))
 			{
-				file = gsvar_somatic;
-			}
-			else if (QMessageBox::question(this, "Tumor sample", "This sample is the tumor sample of a tumor-normal pair.\nDo you want to open the somatic variant list?")==QMessageBox::Yes)
-			{
-				file = gsvar_somatic;
+				analyses << gsvar_somatic;
 			}
 		}
-/*
-		//check for if multi-sample analyses exist
+		//check for germline trio/multi analyses
 		else
 		{
-			QStringList trios = Helper::findFolders(project_folder, "Trio_"+processed_sample_name+"_*", false);
-			qDebug() << trios;
+			QStringList trio_folders = Helper::findFolders(project_folder, "Trio_"+processed_sample_name+"_*", false);
+			foreach(QString trio_folder, trio_folders)
+			{
+				QString filename = trio_folder + "/trio.GSvar";
+				if (QFile::exists(filename))
+				{
+					analyses << filename;
+				}
+			}
 
-			QStringList multi = Helper::findFolders(project_folder, "Multi_"+processed_sample_name+"_*", false);
-			qDebug() << multi;
+			QStringList multi_folders = Helper::findFolders(project_folder, "Multi_"+processed_sample_name+"_*", false);
+			foreach(QString multi_folder, multi_folders)
+			{
+				QString filename = multi_folder + "/multi.GSvar";
+				if (QFile::exists(filename))
+				{
+					analyses << filename;
+				}
+			}
 		}
-*/
-		if (!QFile::exists(file))
+
+		//determine analysis to load
+		if (analyses.count()==0)
 		{
 			QMessageBox::warning(this, "GSvar file missing", "The GSvar file does not exist:\n" + file);
 			return;
+		}
+		else if (analyses.count()==1)
+		{
+			file = analyses[0];
+		}
+		else
+		{
+			bool ok = false;
+			QString filename = QInputDialog::getItem(this, "Several analyses of the sample present", "select analysis:", analyses, 0, false, &ok);
+			if (!ok)
+			{
+				return;
+			}
+			file = filename;
 		}
 
 		loadFile(file);
 	}
 	catch (Exception& e)
 	{
-		QMessageBox::warning(this, "Open processed sample from NGSD", e.message());
+		QMessageBox::warning(this, "Error opening processed sample from NGSD", e.message());
 	}
 }
 
