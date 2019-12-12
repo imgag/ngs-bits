@@ -645,6 +645,16 @@ private slots:
 		folder = db.analysisJobFolder(5);
 		IS_TRUE(folder.endsWith("/test/KontrollDNACoriell/Multi_NA12123_04_NA12345_01/"));
 
+		//analysisJobGSvarFile
+		QString gsvar = db.analysisJobGSvarFile(1);
+		IS_TRUE(gsvar.endsWith("/test/KontrollDNACoriell/Sample_NA12878_03/NA12878_03.GSvar"));
+		gsvar = db.analysisJobGSvarFile(3);
+		IS_TRUE(gsvar.endsWith("/test/KontrollDNACoriell/Somatic_NA12345_01-NA12878_03/NA12345_01-NA12878_03.GSvar"));
+		gsvar = db.analysisJobGSvarFile(4);
+		IS_TRUE(gsvar.endsWith("/test/KontrollDNACoriell/Trio_NA12878_03_NA12123_04_NA12345_01/trio.GSvar"));
+		gsvar = db.analysisJobGSvarFile(5);
+		IS_TRUE(gsvar.endsWith("/test/KontrollDNACoriell/Multi_NA12123_04_NA12345_01/multi.GSvar"));
+
 		//updateQC
 		db.updateQC(TESTDATA("data_in/qcml.obo"), false);
 		I_EQUAL(db.getValue("SELECT count(*) FROM qc_terms").toInt(), 43);

@@ -284,6 +284,10 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 
 	//set up menu
 	QMenu menu;
+	if (rows.count()==1)
+	{
+		menu.addAction(QIcon(":/Icons/Icon.png"), "Open variant list");
+	}
 	menu.addAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample");
 	menu.addAction(QIcon(":/Icons/NGSD_run.png"), "Open sequencing run");
 	menu.addAction(QIcon(":/Icons/Folder.png"), "Open analysis folder(s)");
@@ -328,6 +332,14 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 
 	//execute
 	QString text = action->text();
+	if (text=="Open variant list")
+	{
+		NGSD db;
+		foreach(int id, job_ids)
+		{
+			emit loadFile(db.analysisJobGSvarFile(id));
+		}
+	}
 	if (text=="Open processed sample")
 	{
 		foreach(const AnalysisJobSample& sample, samples)

@@ -2377,11 +2377,23 @@ void MainWindow::on_actionSampleAncestry_triggered()
 
 void MainWindow::on_actionAnalysisStatus_triggered()
 {
+	//check if alread open
+	for (int t=0; t<ui_.tabs->count(); ++t)
+	{
+		if (ui_.tabs->tabText(t)=="Analysis status")
+		{
+			ui_.tabs->setCurrentIndex(t);
+			return;
+		}
+	}
+
+	//open new
 	AnalysisStatusWidget* widget = new AnalysisStatusWidget(this);
 	int index = ui_.tabs->addTab(widget, QIcon(":/Icons/Server.png"), "Analysis status");
 	ui_.tabs->setCurrentIndex(index);
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
 	connect(widget, SIGNAL(openRunTab(QString)), this, SLOT(openRunTab(QString)));
+	connect(widget, SIGNAL(loadFile(QString)), this, SLOT(loadFile(QString)));
 }
 
 void MainWindow::on_actionGapsLookup_triggered()

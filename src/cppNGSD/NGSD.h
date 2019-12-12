@@ -548,8 +548,10 @@ public:
 	bool cancelAnalysis(int job_id, QString user_name=Helper::userName());
 	///Deletes the analysis job record. Returns 'true' if a job was deleted, i.e. a job with the given ID existed.
 	bool deleteAnalysis(int job_id);
-	///Returns the folder of the analysis job.
+	///Returns the folder of an analysis job.
 	QString analysisJobFolder(int job_id);
+	///Returns the GSVar file of an analysis job.
+	QString analysisJobGSvarFile(int job_id);
 
 	///Returns quality metric for a CNV callsets (all metrics for a single sample)
 	QHash<QString, QString> cnvCallsetMetrics(int callset_id);

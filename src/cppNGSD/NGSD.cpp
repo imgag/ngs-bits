@@ -1519,6 +1519,38 @@ QString NGSD::analysisJobFolder(int job_id)
 	return output;
 }
 
+QString NGSD::analysisJobGSvarFile(int job_id)
+{
+	AnalysisJob job = analysisInfo(job_id);
+
+	//path
+	QString output = analysisJobFolder(job_id);
+
+	//file
+	if (job.type=="single sample")
+	{
+		output += job.samples[0].name + ".GSvar";
+	}
+	else if (job.type=="multi sample")
+	{
+		output += "multi.GSvar";
+	}
+	else if (job.type=="trio")
+	{
+		output += "trio.GSvar";
+	}
+	else if (job.type=="somatic")
+	{
+		output += job.samples[0].name + "-" + job.samples[1].name + ".GSvar";
+	}
+	else
+	{
+		THROW(ProgrammingException, "Unknown analysis type '" + job.type + "'!");
+	}
+
+	return output;
+}
+
 QHash<QString, QString> NGSD::cnvCallsetMetrics(int callset_id)
 {
 	QHash<QString, QString> output;

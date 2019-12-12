@@ -28,8 +28,6 @@ class MainWindow
 public:
 	///Constructor
 	MainWindow(QWidget* parent = 0);
-	///Loads a variant list. Unloads the variant list if no file name is given
-	void loadFile(QString filename="");
 	///Returns the result of applying filters to the variant list
 	void applyFilters(bool debug_time);
 	///Returns the LOG files corresponding to the variant list.
@@ -71,6 +69,8 @@ public:
 	QString cnvFile(QString gsvar_file);
 
 public slots:
+	///Loads a variant list. Unloads the variant list if no file name is given
+	void loadFile(QString filename="");
 	///Open dialog
 	void on_actionOpen_triggered();
 	///Open dialog by name (using NGSD)

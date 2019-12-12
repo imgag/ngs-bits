@@ -18,6 +18,7 @@ public:
 signals:
 	void openProcessedSampleTab(QString ps_name);
 	void openRunTab(QString run_name);
+	void loadFile(QString gsvar_file);
 
 protected slots:
 	void analyzeSingleSamples(QList<AnalysisJobSample> samples=QList<AnalysisJobSample>());
