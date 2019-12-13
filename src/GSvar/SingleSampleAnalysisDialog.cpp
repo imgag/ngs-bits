@@ -192,6 +192,7 @@ void SingleSampleAnalysisDialog::on_add_batch_clicked(bool)
 		foreach(QString sample, samples)
 		{
 			sample = sample.trimmed();
+			if (sample.contains("\t")) sample = sample.split("\t").first();
 			if (sample.isEmpty() || sample[0]=='#') continue;
 			addSample("", sample);
 		}
