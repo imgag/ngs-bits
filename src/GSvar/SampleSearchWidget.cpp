@@ -1,5 +1,6 @@
 #include "SampleSearchWidget.h"
 #include "NGSD.h"
+#include "ProcessedSampleDataDeletionDialog.h"
 #include <QMessageBox>
 
 SampleSearchWidget::SampleSearchWidget(QWidget* parent)
@@ -10,9 +11,15 @@ SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 	ui_.setupUi(this);
 
 	//context menu
-	QAction* action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
+	QAction* action = new QAction(QIcon(":/Icons/Icon.png"), "Open variant list", this);
 	ui_.sample_table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openProcessedSample()));
+	action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
+	ui_.sample_table->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(openProcessedSampleTab()));
+	action = new QAction(QIcon(":/Icons/Remove.png"), "Delete associated data", this);
+	ui_.sample_table->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(deleteSampleData()));
 
 	//init search criteria
 	//sample
@@ -83,7 +90,7 @@ void SampleSearchWidget::search()
 	QApplication::restoreOverrideCursor();
 }
 
-void SampleSearchWidget::openProcessedSample()
+void SampleSearchWidget::openProcessedSampleTab()
 {
 
 	QSet<int> rows = ui_.sample_table->selectedRows();
@@ -92,5 +99,35 @@ void SampleSearchWidget::openProcessedSample()
 		QString ps_id = ui_.sample_table->getId(row);
 		emit openProcessedSampleTab(db_.processedSampleName(ps_id));
 	}
+}
+
+void SampleSearchWidget::openProcessedSample()
+{
+	QSet<int> rows = ui_.sample_table->selectedRows();
+	if (rows.count()>1)
+	{
+		QMessageBox::warning(this, "Error opening processed sample", "Please select one sample!\nOnly one processed sample can be opened at a time.");
+		return;
+	}
+	foreach(int row, rows)
+	{
+		QString ps_id = ui_.sample_table->getId(row);
+		emit openProcessedSample(db_.processedSampleName(ps_id));
+	}
+}
+
+void SampleSearchWidget::deleteSampleData()
+{
+	//get processed sample IDs
+	QStringList ps_ids;
+	QSet<int> rows = ui_.sample_table->selectedRows();
+	foreach(int row, rows)
+	{
+		ps_ids << ui_.sample_table->getId(row);
+	}
+
+	//dialog
+	ProcessedSampleDataDeletionDialog* dlg = new ProcessedSampleDataDeletionDialog(this, ps_ids);
+	dlg->exec();
 }
 

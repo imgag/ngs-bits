@@ -14,11 +14,14 @@ public:
 	SampleSearchWidget(QWidget *parent = 0);
 
 signals:
-	void openProcessedSampleTab(QString);
+	void openProcessedSampleTab(QString ps_name);
+	void openProcessedSample(QString ps_name);
 
 protected slots:
 	void search();
+	void openProcessedSampleTab();
 	void openProcessedSample();
+	void deleteSampleData();
 
 private:
 	Ui::SampleSearchWidget ui_;

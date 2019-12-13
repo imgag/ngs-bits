@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ProcessedSampleDataDeletionDialog</class>
+ <widget class="QDialog" name="ProcessedSampleDataDeletionDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>931</width>
+    <height>432</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Processed sample - data deletion</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="GSvar.qrc">
+    <normaloff>:/Icons/NGSD_sample.png</normaloff>:/Icons/NGSD_sample.png</iconset>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0,0,0">
+   <property name="spacing">
+    <number>3</number>
+   </property>
+   <property name="leftMargin">
+    <number>3</number>
+   </property>
+   <property name="topMargin">
+    <number>3</number>
+   </property>
+   <property name="rightMargin">
+    <number>3</number>
+   </property>
+   <property name="bottomMargin">
+    <number>3</number>
+   </property>
+   <item>
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Processed samples:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="DBTableWidget" name="sample_table"/>
+   </item>
+   <item>
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>Data to delete:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QFormLayout" name="formLayout">
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Variants:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QCheckBox" name="var_small">
+       <property name="text">
+        <string>small variants (SNVs + InDels)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QCheckBox" name="var_cnv">
+       <property name="text">
+        <string>CNVs</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_6">
+       <property name="text">
+        <string>Diagnostic data:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QCheckBox" name="kasp">
+       <property name="text">
+        <string>KASP</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QCheckBox" name="diag_status">
+       <property name="text">
+        <string>diagnostic status</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="QCheckBox" name="report_config">
+       <property name="text">
+        <string>report configuration</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="delete_btn">
+       <property name="text">
+        <string>delete</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>DBTableWidget</class>
+   <extends>QTableWidget</extends>
+   <header>DBTableWidget.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="GSvar.qrc"/>
+ </resources>
+ <connections/>
+</ui>

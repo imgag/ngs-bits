@@ -144,10 +144,6 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.vars_export_btn->menu()->addAction("Export VCF", this, SLOT(exportVCF()));
 	ui_.vars_export_btn->menu()->addAction("Export GSvar", this, SLOT(exportGSvar()));
 	ui_.report_btn->setMenu(new QMenu());
-	ui_.report_btn->menu()->addAction("Load report configuration", this, SLOT(loadReportConfig()));
-	ui_.report_btn->menu()->addAction("Clear report configuration (GSvar)", this, SLOT(clearReportConfig()));
-	ui_.report_btn->menu()->addSeparator();
-	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration (NGSD)", this, SLOT(deleteReportConfig()));
 	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate report", this, SLOT(generateReport()));
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate variant sheet", this, SLOT(generateVariantSheet()));
@@ -850,6 +846,7 @@ void MainWindow::on_actionSampleSearch_triggered()
 {
 	SampleSearchWidget* widget = new SampleSearchWidget(this);
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
+	connect(widget, SIGNAL(openProcessedSample(QString)), this, SLOT(openProcessedSampleFromNGSD(QString)));
 	auto dlg = GUIHelper::createDialog(widget, "Sample search");
 	dlg->exec();
 }
@@ -1311,23 +1308,16 @@ void MainWindow::loadFile(QString filename)
 	}
 
 	//load report config
-	if (variants_.type()==GERMLINE_SINGLESAMPLE || variants_.type()==GERMLINE_TRIO)
+	if (ngsd_enabled_ && (variants_.type()==GERMLINE_SINGLESAMPLE || variants_.type()==GERMLINE_TRIO))
 	{
-		if (ngsd_enabled_)
+		NGSD db;
+		QString processed_sample_id = db.processedSampleId(processedSampleName(), false);
+		if (processed_sample_id!="")
 		{
-			NGSD db;
-			QString processed_sample_id = db.processedSampleId(processedSampleName(), false);
-			if (processed_sample_id!="")
+			int conf_id = db.reportConfigId(processed_sample_id);
+			if (conf_id!=-1)
 			{
-				int conf_id = db.reportConfigId(processed_sample_id);
-				if (conf_id!=-1)
-				{
-					ReportConfigurationCreationData conf_creation = db.reportConfigCreationData(conf_id);
-					if (QMessageBox::question(this, "Load report configuration?", conf_creation.toText() + "\n\nDo you want to load it?")==QMessageBox::Yes)
-					{
-						loadReportConfig();
-					}
-				}
+				loadReportConfig();
 			}
 		}
 	}
@@ -1515,61 +1505,6 @@ void MainWindow::on_actionAnnotateSomaticVariants_triggered()
 	storeCurrentVariantList();
 
 	QApplication::restoreOverrideCursor();
-}
-
-void MainWindow::clearReportConfig()
-{
-	//check if applicable
-	if (filename_=="") return;
-
-	AnalysisType type = variants_.type();
-	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO) return;
-
-	//clear
-	report_settings_.report_config = ReportConfiguration();
-
-	//updateGUI
-	refreshVariantTable();
-}
-
-void MainWindow::deleteReportConfig()
-{
-	//check if applicable
-	if (filename_=="") return;
-
-	AnalysisType type = variants_.type();
-	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO) return;
-
-	//check if the user is sure
-	if(QMessageBox::question(this, "Deleting report configuration from NGSD", "You are about to delete the report configuration from the NGSD.\nThis is permanent and cannot be undone.\n\nDo you really want to delete it?")!=QMessageBox::Yes)
-	{
-		return;
-	}
-
-	//check sample
-	NGSD db;
-	QString ps_name = processedSampleName();
-	QString processed_sample_id = db.processedSampleId(ps_name, false);
-	if (processed_sample_id=="")
-	{
-		QMessageBox::warning(this, "Deleting report configuration", "Error: Sample " + ps_name + " was not found in the NGSD!");
-		return;
-	}
-
-	//check if config exists
-	int conf_id = db.reportConfigId(processed_sample_id);
-	if (conf_id==-1)
-	{
-		QMessageBox::warning(this, "Deleting report configuration", "Error: Report configuration for sample " + ps_name + " was not found in the NGSD!");
-		return;
-	}
-
-	//clear GSvar + NGSD
-	report_settings_.report_config = ReportConfiguration();
-	db.deleteReportConfig(conf_id);
-
-	//updateGUI
-	refreshVariantTable();
 }
 
 void MainWindow::loadReportConfig()

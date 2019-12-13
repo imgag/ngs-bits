@@ -155,7 +155,7 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		fields	<< "ds.outcome as outcome"
 				<< "ds.comment as outcome_comment";
 	}
-	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +"  WHERE " + conditions.join(" AND ") + " ORDER BY s.name ASC, ps.process_id ASC");
+	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +" WHERE " + conditions.join(" AND ") + " ORDER BY s.name ASC, ps.process_id ASC");
 
 	//add path
 	if(p.add_path)
@@ -780,6 +780,33 @@ QPair<int, int> NGSD::variantCounts(const QString& variant_id)
 	}
 
 	return qMakePair(count_het, count_hom);
+}
+
+void NGSD::deleteVariants(const QString& ps_id)
+{
+	deleteVariants(ps_id, VariantType::SNVS_INDELS);
+	deleteVariants(ps_id, VariantType::CNVS);
+}
+
+void NGSD::deleteVariants(const QString& ps_id, VariantType type)
+{
+	if (type==VariantType::SNVS_INDELS)
+	{
+		getQuery().exec("DELETE FROM detected_variant WHERE processed_sample_id=" + ps_id);
+	}
+	else if (type==VariantType::CNVS)
+	{
+		QString callset_id = getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=" + ps_id).toString();
+		if (callset_id!="")
+		{
+			getQuery().exec("DELETE FROM cnv WHERE cnv_callset_id='" + callset_id + "'");
+			getQuery().exec("DELETE FROM cnv_callset WHERE id='" + callset_id + "'");
+		}
+	}
+	else
+	{
+		THROW(NotImplementedException, "Deleting variants of type '" + QString::number((int)type) + "' not implemented!");
+	}
 }
 
 QString NGSD::cnvId(const CopyNumberVariant& cnv, int callset_id, bool throw_if_fails)
@@ -1743,7 +1770,7 @@ void NGSD::maintain(QTextStream* messages, bool fix_errors)
 
 		if (fix_errors)
 		{
-			getQuery().exec("DELETE FROM detected_variant WHERE processed_sample_id=" + query.value(1).toString());
+			deleteVariants(query.value(1).toString());
 		}
 	}
 
@@ -1788,13 +1815,14 @@ void NGSD::maintain(QTextStream* messages, bool fix_errors)
 			{
 				//check if variants are present
 				int c_var = getValue("SELECT COUNT(*) FROM detected_variant WHERE processed_sample_id='" + ps_id + "'").toInt();
-				if (c_var>0)
+				int c_cnv = getValue("SELECT COUNT(*) FROM cnv_callset WHERE processed_sample_id='" + ps_id + "'").toInt();
+				if (c_var>0 || c_cnv>0)
 				{
-					*messages << "Merged sample " << ps_name << " has variant data!" << endl;
+					*messages << "Merged sample " << ps_name << " has variant data (small variant or CNVs)!" << endl;
 
 					if (fix_errors)
 					{
-						getQuery().exec("DELETE FROM detected_variant WHERE processed_sample_id='" + ps_id + "'");
+						deleteVariants(ps_id);
 					}
 				}
 				int c_qc = getValue("SELECT COUNT(*) FROM processed_sample_qc WHERE processed_sample_id='" + ps_id + "'").toInt();
@@ -1838,7 +1866,7 @@ void NGSD::maintain(QTextStream* messages, bool fix_errors)
 
 			if (fix_errors)
 			{
-				getQuery().exec("DELETE FROM detected_variant WHERE processed_sample_id='" + ps_id + "'");
+				deleteVariants(ps_id);
 			}
 		}
 	}

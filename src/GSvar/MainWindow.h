@@ -151,10 +151,6 @@ public slots:
 	///Action for debugging
 	void on_actionDebug_triggered();
 
-	///Clear report configuration (GSvar)
-	void clearReportConfig();
-	///Delete report configuration (NGSD)
-	void deleteReportConfig();
 	///Load report configuration
 	void loadReportConfig();
 	///Store report configuration

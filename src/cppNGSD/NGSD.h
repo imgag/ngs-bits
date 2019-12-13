@@ -444,6 +444,10 @@ public:
 	Variant variant(const QString& variant_id);
 	///Returns the number of het/hom occurances of the variant in the NGSD (only one occurance per samples is counted).
 	QPair<int, int> variantCounts(const QString& variant_id);
+	///Deletes the variants of a processed sample (all types)
+	void deleteVariants(const QString& ps_id);
+	///Deletes the variants of a processed sample (a specific type)
+	void deleteVariants(const QString& ps_id, VariantType type);
 
 	///Adds a CNV to the NGSD. Returns the CNV ID.
 	QString addCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList& cnv_list, double max_ll = 0.0);

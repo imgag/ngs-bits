@@ -879,6 +879,14 @@ private slots:
 		I_EQUAL(callset_metrics.count(), 6);
 		S_EQUAL(callset_metrics["gender of sample"], "M");
 		S_EQUAL(callset_metrics["number of iterations"], "1");
+
+		//deleteVariants
+		processed_sample_id = db.processedSampleId("NA12878_03");
+		I_EQUAL(db.getValue("SELECT count(*) FROM detected_variant WHERE processed_sample_id=" + processed_sample_id).toInt(), 137);
+		I_EQUAL(db.getValue("SELECT count(*) FROM cnv_callset WHERE processed_sample_id=" + processed_sample_id).toInt(), 1);
+		db.deleteVariants(processed_sample_id);
+		I_EQUAL(db.getValue("SELECT count(*) FROM detected_variant WHERE processed_sample_id=" + processed_sample_id).toInt(), 0);
+		I_EQUAL(db.getValue("SELECT count(*) FROM cnv_callset WHERE processed_sample_id=" + processed_sample_id).toInt(), 0);
 	}
 
 	//Test for debugging (without initialization because of speed)

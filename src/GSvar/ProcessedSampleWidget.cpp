@@ -6,6 +6,7 @@
 #include "DiseaseInfoWidget.h"
 #include "SampleDiseaseInfoWidget.h"
 #include "SampleRelationDialog.h"
+#include "ProcessedSampleDataDeletionDialog.h"
 
 #include <QMessageBox>
 
@@ -47,6 +48,8 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	QMenu* menu = new QMenu();
 	menu->addAction("Edit disease group/status", this, SLOT(editDiseaseGroupAndInfo()));
 	menu->addAction("Edit quality", this, SLOT(setQuality()));
+	menu->addSeparator();
+	menu->addAction(QIcon(":/Icons/Remove.png"), "Delete associated data", this, SLOT(deleteSampleData()));
 	ui_->edit_btn->setMenu(menu);
 
 	//IGV button
@@ -384,6 +387,12 @@ void ProcessedSampleWidget::removeRelation()
 
 	//update GUI
 	updateGUI();
+}
+
+void ProcessedSampleWidget::deleteSampleData()
+{
+	ProcessedSampleDataDeletionDialog* dlg = new ProcessedSampleDataDeletionDialog(this, QStringList() << ps_id_);
+	dlg->exec();
 }
 
 void ProcessedSampleWidget::addBamToIgv()

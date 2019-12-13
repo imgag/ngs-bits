@@ -37,6 +37,7 @@ protected slots:
 	void openExternalDiseaseDatabase();
 	void addRelation();
 	void removeRelation();
+	void deleteSampleData();
 
 	void addBamToIgv();
 	void addVariantsToIgv();
