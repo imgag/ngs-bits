@@ -82,5 +82,6 @@
         <file>Resources/DiagnosticReport_v3.xsd</file>
         <file>Icons/bug.png</file>
         <file>Resources/lovd_transcripts.tsv</file>
+        <file>Icons/ClinGen.png</file>
     </qresource>
 </RCC>

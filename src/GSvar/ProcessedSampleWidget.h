@@ -42,6 +42,7 @@ protected slots:
 	void addBamToIgv();
 	void addVariantsToIgv();
 	void addCnvsToIgv();
+	void addSvsToIgv();
 	void addBafsToIgv();
 
 	///Opens a dialog to edit the diagnostic status.

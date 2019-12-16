@@ -2996,6 +2996,13 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	//varsome
 	menu.addAction(QIcon("://Icons/VarSome.png"), "VarSome");
 
+	//ClinGen
+	sub_menu = menu.addMenu(QIcon("://Icons/ClinGen.png"), "ClinGen");
+	foreach(QString g, genes)
+	{
+		sub_menu->addAction(g);
+	}
+
 	//Execute menu
 	action = menu.exec(pos);
 	if (!action) return;
@@ -3148,6 +3155,14 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	{
 		report_settings_.report_config.remove(VariantType::SNVS_INDELS, index);
 		updateReportConfigHeaderIcon(index);
+	}
+	else if (parent_menu && parent_menu->title()=="ClinGen")
+	{
+		QDesktopServices::openUrl(QUrl("https://www.ncbi.nlm.nih.gov/projects/dbvar/clingen/clingen_gene.cgi?sym=" + text));
+	}
+	else if (text=="ClinGen")
+	{
+		QDesktopServices::openUrl(QUrl("Gene Symbol=" + text));
 	}
 }
 
