@@ -1057,6 +1057,52 @@ CREATE TABLE IF NOT EXISTS `merged_processed_samples`
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
+-- -----------------------------------------------------
+-- Table `somatic_report_configuration`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `somatic_report_configuration` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `processed_sample_tumor_id` int(11) NOT NULL,
+  `processed_sample_normal_id` int(11) NOT NULL,
+  `processed_sample_rna_id` int(11) NOT NULL,
+  `created_by` int(11) NOT NULL,
+  `created_date` DATETIME NOT NULL,
+  `last_edit_by` int(11) DEFAULT NULL,
+  `last_edit_date` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `processed_sample_tumor_id` (`processed_sample_tumor_id`),
+  UNIQUE KEY `processed_sample_normal_id` (`processed_sample_normal_id`),
+  UNIQUE KEY `processed_sample_rna_id` (`processed_sample_rna_id`),
+  CONSTRAINT `created_by_user` 
+    FOREIGN KEY (`created_by`)
+    REFERENCES `user` (`id`) 
+    ON DELETE NO ACTION 
+    ON UPDATE NO ACTION,
+  CONSTRAINT `last_edit_by_user`
+    FOREIGN KEY (`last_edit_by`)
+    REFERENCES `user` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `processed_sample_normal_id`
+    FOREIGN KEY (`processed_sample_normal_id`)
+    REFERENCES `processed_sample` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `processed_sample_rna_id` 
+    FOREIGN KEY (`processed_sample_rna_id`)
+    REFERENCES `processed_sample` (`id`)
+    ON DELETE NO ACTION 
+    ON UPDATE NO ACTION,
+  CONSTRAINT `processed_sample_tumor_id`
+    FOREIGN KEY (`processed_sample_tumor_id`) 
+    REFERENCES `processed_sample` (`id`) 
+    ON DELETE NO ACTION 
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARSET = utf8;
+
+
 
 -- -----------------------------------------------------
 -- Table `report_configuration`

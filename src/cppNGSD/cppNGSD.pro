@@ -38,14 +38,16 @@ SOURCES += \
     NGSD.cpp \
     GenLabDB.cpp \
     DBTable.cpp \
-    ReportConfiguration.cpp
+    ReportConfiguration.cpp \
+    SomaticReportConfiguration.cpp
 
 HEADERS += \
     SqlQuery.h \
     NGSD.h \
     GenLabDB.h \
     DBTable.h \
-    ReportConfiguration.h
+    ReportConfiguration.h \
+    SomaticReportConfiguration.h
 
 RESOURCES += \
     cppNGSD.qrc
