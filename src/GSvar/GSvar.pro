@@ -64,7 +64,7 @@ SOURCES += main.cpp\
     ReportVariantDialog.cpp \
     GSvarHelper.cpp \
     SomaticRnaReport.cpp \
-    SomaticVariantDialog.cpp
+    SomaticVariantDialog.cpp \
     ProcessedSampleDataDeletionDialog.cpp
 
 HEADERS  += MainWindow.h \
@@ -123,6 +123,7 @@ HEADERS  += MainWindow.h \
     ReportSettings.h \
     ReportVariantDialog.h \
     GSvarHelper.h \
+    SomaticRnaReport.h \
     ProcessedSampleDataDeletionDialog.h \
     SomaticVariantDialog.h
 FORMS    += MainWindow.ui \
