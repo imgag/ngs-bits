@@ -22,6 +22,7 @@ protected slots:
 	void openProcessedSampleTab();
 	void openProcessedSample();
 	void deleteSampleData();
+	void queueAnalysis();
 
 private:
 	Ui::SampleSearchWidget ui_;
