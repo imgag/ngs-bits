@@ -50,6 +50,10 @@ public:
 		QString filename = getInfile("var");
 		if (filename=="") return;
 
+		out << "\n";
+		out << "### importing small variants for " << ps_name << " ###\n";
+		out << "filename: " << filename << "\n";
+
 		//prevent import if report config contains small variants
 		QString ps_id = db.processedSampleId(ps_name);
 		int report_conf_id = db.reportConfigId(ps_id);
@@ -59,7 +63,8 @@ public:
 			query.exec("SELECT * FROM report_configuration_variant WHERE report_configuration_id=" + QString::number(report_conf_id));
 			if (query.size()>0)
 			{
-				THROW(ArgumentException, "Cannot import small variants for sample " + ps_name + ": a report configuration with small variants exists for this sample!");
+				out << "Skipped import of small variants for sample " + ps_name + ": a report configuration with small variants exists for this sample!\n";
+				return;
 			}
 		}
 
@@ -67,10 +72,6 @@ public:
 		timer.start();
 		QTime sub_timer;
 		QStringList sub_times;
-
-		out << "\n";
-		out << "### importing small variants for " << ps_name << " ###\n";
-		out << "filename: " << filename << "\n";
 
 		//check if variants were already imported for this PID
 		int count_old = db.getValue("SELECT count(*) FROM detected_variant WHERE processed_sample_id=:0", true, ps_id).toInt();
@@ -178,6 +179,9 @@ public:
 		QString filename = getInfile("cnv");
 		if (filename=="") return;
 
+		out << "\n";
+		out << "### importing CNVs for " << ps_name << " ###\n";
+		out << "filename: " << filename << "\n";
 
 		//prevent import if report config contains CNVs
 		QString ps_id = db.processedSampleId(ps_name);
@@ -188,16 +192,14 @@ public:
 			query.exec("SELECT * FROM report_configuration_cnv WHERE report_configuration_id=" + QString::number(report_conf_id));
 			if (query.size()>0)
 			{
-				THROW(ArgumentException, "Cannot import CNVs for sample " + ps_name + ": a report configuration with CNVs exists for this sample!");
+				out << "Skipped import of CNVs for sample " + ps_name + ": a report configuration with CNVs exists for this sample!\n";
+				return;
 			}
 		}
 
 		QTime timer;
 		timer.start();
 
-		out << "\n";
-		out << "### importing CNVs for " << ps_name << " ###\n";
-		out << "filename: " << filename << "\n";
 
 		//check if CNV callset already exists > delete old callset
 		QString last_callset_id = db.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=:0", true, ps_id).toString();

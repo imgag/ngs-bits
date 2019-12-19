@@ -1,6 +1,7 @@
 #include "SampleSearchWidget.h"
 #include "NGSD.h"
 #include "ProcessedSampleDataDeletionDialog.h"
+#include "SingleSampleAnalysisDialog.h"
 #include <QMessageBox>
 
 SampleSearchWidget::SampleSearchWidget(QWidget* parent)
@@ -20,6 +21,9 @@ SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 	action = new QAction(QIcon(":/Icons/Remove.png"), "Delete associated data", this);
 	ui_.sample_table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(deleteSampleData()));
+	action = new QAction(QIcon(":/Icons/Refresh.png"), "Queue analysis", this);
+	ui_.sample_table->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(queueAnalysis()));
 
 	//init search criteria
 	//sample
@@ -129,5 +133,28 @@ void SampleSearchWidget::deleteSampleData()
 	//dialog
 	ProcessedSampleDataDeletionDialog* dlg = new ProcessedSampleDataDeletionDialog(this, ps_ids);
 	dlg->exec();
+}
+
+void SampleSearchWidget::queueAnalysis()
+{
+	//prepare sample list
+	QList<AnalysisJobSample> samples;
+	QSet<int> rows = ui_.sample_table->selectedRows();
+	foreach(int row, rows)
+	{
+		QString ps_id = ui_.sample_table->getId(row);
+		samples << AnalysisJobSample {db_.processedSampleName(ps_id), ""};
+	}
+
+	//show dialog
+	SingleSampleAnalysisDialog dlg(this);
+	dlg.setSamples(samples);
+	if (dlg.exec()!=QDialog::Accepted) return;
+
+	//start analysis
+	foreach(const AnalysisJobSample& sample,  dlg.samples())
+	{
+		db_.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
+	}
 }
 
