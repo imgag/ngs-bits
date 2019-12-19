@@ -1062,39 +1062,31 @@ DEFAULT CHARACTER SET = utf8;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `somatic_report_configuration` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `processed_sample_tumor_id` int(11) NOT NULL,
-  `processed_sample_normal_id` int(11) NOT NULL,
-  `processed_sample_rna_id` int(11) NOT NULL,
+  `ps_tumor_id` int(11) NOT NULL,
+  `ps_normal_id` int(11) NOT NULL,
   `created_by` int(11) NOT NULL,
   `created_date` DATETIME NOT NULL,
   `last_edit_by` int(11) DEFAULT NULL,
   `last_edit_date` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `processed_sample_tumor_id` (`processed_sample_tumor_id`),
-  UNIQUE KEY `processed_sample_normal_id` (`processed_sample_normal_id`),
-  UNIQUE KEY `processed_sample_rna_id` (`processed_sample_rna_id`),
-  CONSTRAINT `created_by_user` 
+  UNIQUE INDEX `combo_ids` (`ps_tumor_id` ASC, `ps_normal_id` ASC),
+  CONSTRAINT `somatic_report_config_created_by_user` 
     FOREIGN KEY (`created_by`)
     REFERENCES `user` (`id`) 
     ON DELETE NO ACTION 
     ON UPDATE NO ACTION,
-  CONSTRAINT `last_edit_by_user`
+  CONSTRAINT `somatic_report_config_last_edit_by_user`
     FOREIGN KEY (`last_edit_by`)
     REFERENCES `user` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `processed_sample_normal_id`
-    FOREIGN KEY (`processed_sample_normal_id`)
+  CONSTRAINT `somatic_report_config_ps_normal_id`
+    FOREIGN KEY (`ps_normal_id`)
     REFERENCES `processed_sample` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `processed_sample_rna_id` 
-    FOREIGN KEY (`processed_sample_rna_id`)
-    REFERENCES `processed_sample` (`id`)
-    ON DELETE NO ACTION 
-    ON UPDATE NO ACTION,
-  CONSTRAINT `processed_sample_tumor_id`
-    FOREIGN KEY (`processed_sample_tumor_id`) 
+  CONSTRAINT `somatic_report_config_ps_tumor_id`
+    FOREIGN KEY (`ps_tumor_id`) 
     REFERENCES `processed_sample` (`id`) 
     ON DELETE NO ACTION 
     ON UPDATE NO ACTION
@@ -1102,7 +1094,59 @@ CREATE TABLE IF NOT EXISTS `somatic_report_configuration` (
 ENGINE = InnoDB
 DEFAULT CHARSET = utf8;
 
+-- -----------------------------------------------------
+-- Table `somatic_rna_report_configuration`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `somatic_rna_report_configuration` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `somatic_report_configuration_id` int(11) NOT NULL,
+  `ps_rna_id` int(11) NOT NULL,
+  PRIMARY KEY(`id`),
+  UNIQUE INDEX `rna_id` (`ps_rna_id` ASC),
+  CONSTRAINT `somatic_rna_report_config_ps_rna_id` 
+    FOREIGN KEY (`ps_rna_id`)
+    REFERENCES `processed_sample` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `somatic_rna_report_config_dna_report_id`
+    FOREIGN KEY (`somatic_report_configuration_id`)
+    REFERENCES `somatic_report_configuration` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARSET = utf8;
 
+-- -----------------------------------------------------
+-- Table `somatic_report_configuration_variant`
+-- -----------------------------------------------------
+CREATE TABLE `somatic_report_configuration_variant` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `somatic_report_configuration_id` int(11) NOT NULL,
+  `variant_id` int(11) NOT NULL,
+  `exclude_artefact` BOOLEAN NOT NULL,
+  `exclude_low_tumor_content` BOOLEAN NOT NULL,
+  `exclude_low_copy_number` BOOLEAN NOT NULL,
+  `exclude_high_baf_deviation` BOOLEAN NOT NULL,
+  `exclude_other_reason` BOOLEAN NOT NULL,
+  `include_variant_alteration` text DEFAULT NULL,
+  `include_variant_description` text DEFAULT NULL,
+  `comment` text NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `som_rep_conf_var_has_som_rep_conf_id` 
+    FOREIGN KEY (`somatic_report_configuration_id`) 
+    REFERENCES `somatic_report_configuration` (`id`) 
+    ON DELETE NO ACTION 
+    ON UPDATE NO ACTION,
+  CONSTRAINT `somatic_report_configuration_variant_has_variant_id`
+    FOREIGN KEY (`variant_id`)
+    REFERENCES `variant` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  UNIQUE INDEX `som_conf_var_combo_uniq_index` (`somatic_report_configuration_id` ASC, `variant_id` ASC)
+)
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8;
 
 -- -----------------------------------------------------
 -- Table `report_configuration`

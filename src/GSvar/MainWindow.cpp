@@ -58,7 +58,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "DiagnosticStatusOverviewDialog.h"
 #include "SvWidget.h"
 #include "VariantSampleOverviewDialog.h"
-#include "SomaticReportConfiguration.h"
+#include "SomaticReportConfigurationWidget.h"
 #include "SingleSampleAnalysisDialog.h"
 #include "MultiSampleDialog.h"
 #include "TrioDialog.h"
@@ -1984,7 +1984,7 @@ void MainWindow::generateReportSomaticRTF()
 	}
 
 	//Configure report
-	SomaticReportConfiguration config_report(cnvs, this);
+	SomaticReportConfigurationWidget config_report(cnvs, this);
 
 	//Activate radio buttons to select between RNA and DNA if RNA annotation data is available
 	if(SomaticRnaReport::checkRequiredSNVAnnotations(variants_)) config_report.setSelectionRnaDna(true);
@@ -1999,7 +1999,7 @@ void MainWindow::generateReportSomaticRTF()
 
 
 	QString destination_path;
-	if(config_report.getReportType() == SomaticReportConfiguration::report_type::DNA)
+	if(config_report.getReportType() == SomaticReportConfigurationWidget::report_type::DNA)
 	{
 		destination_path = last_report_path_ + "/" + QFileInfo(filename_).baseName() + "_DNA_report_somatic_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf";
 	}
@@ -2024,7 +2024,7 @@ void MainWindow::generateReportSomaticRTF()
 
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
-	if(config_report.getReportType() == SomaticReportConfiguration::report_type::DNA)
+	if(config_report.getReportType() == SomaticReportConfigurationWidget::report_type::DNA)
 	{
 		//generate somatic DNA report
 		try

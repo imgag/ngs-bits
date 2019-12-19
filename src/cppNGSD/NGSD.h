@@ -17,6 +17,7 @@
 #include "Helper.h"
 #include "DBTable.h"
 #include "ReportConfiguration.h"
+#include "SomaticReportConfiguration.h"
 #include "CnvList.h"
 
 ///General database field information.
@@ -526,6 +527,15 @@ public:
 	int setReportConfig(const QString& processed_sample_id, const ReportConfiguration& config, const VariantList& variants, const CnvList& cnvs, QString user_name);
 	///Deletes a report configuration.
 	void deleteReportConfig(int id);
+
+	///Returns database ID of somatic report configuration, -1 if not present
+	int reportConfigId(QString t_ps_id, QString n_ps_id, QString rna_ps_id = "");
+
+	///Sets/overwrites somatic report configuration for tumor-normal processed sample pair
+	int setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const SomaticReportConfiguration& config, const VariantList& snvs, const CnvList& cnvs);
+
+	//Retrieve somatic report configuration using tumor and normal processed sample ids
+	SomaticReportConfiguration somaticReportConfig(QString t_ps_id, QString n_ps_id, const VariantList& snvs, const CnvList& cnvs, QStringList& messages);
 
 	///Sets processed sample quality
 	void setProcessedSampleQuality(const QString& processed_sample_id, const QString& quality);

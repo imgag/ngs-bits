@@ -6,6 +6,71 @@
 TEST_CLASS(NGSD_Test)
 {
 Q_OBJECT
+private:
+	//Test SomaticReportConfiguration, method has to be claled in main_tests();
+	void somaticReportTest(NGSD& db)
+	{
+		I_EQUAL(db.reportConfigId("5","6"), 3);
+		I_EQUAL(db.reportConfigId("5","4000"), 51);
+		I_EQUAL(db.reportConfigId("5","10"), -1);
+
+
+		//set somatic report configuration in test NGSD
+		SomaticReportVariantConfiguration var1;
+		var1.variant_index = 1;
+		var1.exclude_artefact = true;
+		var1.exclude_high_baf_deviation = true;
+		var1.exclude_low_copy_number = true;
+		var1.exclude_low_tumor_content = true;
+		var1.comment = "This variant is a test variant and shall be excluded.";
+
+		SomaticReportVariantConfiguration var2;
+		var2.variant_index = 2;
+		var2.include_variant_alteration = "c.-124A>C";
+		var2.include_variant_description = "Testtreiber (bekannt)";
+		var2.comment = "known test driver was not included in any db yet.";
+
+		SomaticReportConfiguration som_rep_conf;
+		som_rep_conf.set(var1);
+		som_rep_conf.set(var2);
+		som_rep_conf.setCreatedBy("ahmustm1");
+
+		VariantList vl;
+		vl.load(TESTDATA("../cppNGS-TEST/data_in/somatic_report_config.GSvar"));
+
+		CnvList cnvs; //TO BE FILLED WITH TEST DATA
+
+		QString t_ps_id = db.processedSampleId("NA12345_01");
+		QString n_ps_id = db.processedSampleId("NA12123_04");
+		db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs);
+
+		//get and test somatic report configuration
+		QStringList messages = {};
+		QList<SomaticReportVariantConfiguration> res =  db.somaticReportConfig(t_ps_id, n_ps_id, vl, cnvs, messages).variantConfig();
+		const SomaticReportVariantConfiguration& res0 = res.at(0);
+		I_EQUAL(res0.variant_index, 1);
+		IS_TRUE(res0.exclude_artefact);
+		IS_TRUE(res0.exclude_low_tumor_content);
+		IS_TRUE(res0.exclude_low_copy_number);
+		IS_TRUE(res0.exclude_high_baf_deviation);
+		IS_FALSE(res0.exclude_other_reason);
+		S_EQUAL(res0.include_variant_alteration, "");
+		S_EQUAL(res0.include_variant_description, "");
+		S_EQUAL(res0.comment, "This variant is a test variant and shall be excluded.");
+		IS_FALSE(res0.showInReport());
+
+		const SomaticReportVariantConfiguration& res1 = res.at(1);
+		I_EQUAL(res1.variant_index, 2);
+		IS_FALSE(res1.exclude_artefact);
+		IS_FALSE(res1.exclude_low_tumor_content);
+		IS_FALSE(res1.exclude_low_copy_number);
+		IS_FALSE(res1.exclude_high_baf_deviation);
+		IS_FALSE(res1.exclude_other_reason);
+		S_EQUAL(res1.include_variant_alteration, "c.-124A>C");
+		S_EQUAL(res1.include_variant_description, "Testtreiber (bekannt)");
+		S_EQUAL(res1.comment, "known test driver was not included in any db yet.");
+		IS_TRUE(res1.showInReport());
+	}
 private slots:
 
 	//Normally, one member is tested in one QT slot.
@@ -702,32 +767,32 @@ private slots:
 		//processedSampleSearch
 		ProcessedSampleSearchParameters params;
 		DBTable ps_table = db.processedSampleSearch(params);
-		I_EQUAL(ps_table.rowCount(), 5);
+		I_EQUAL(ps_table.rowCount(), 7);
 		I_EQUAL(ps_table.columnCount(), 18);
 		//add path
 		params.add_path = true;
 		ps_table = db.processedSampleSearch(params);
-		I_EQUAL(ps_table.rowCount(), 5);
+		I_EQUAL(ps_table.rowCount(), 7);
 		I_EQUAL(ps_table.columnCount(), 19);
 		//add outcome
 		params.add_outcome = true;
 		ps_table = db.processedSampleSearch(params);
-		I_EQUAL(ps_table.rowCount(), 5);
+		I_EQUAL(ps_table.rowCount(), 7);
 		I_EQUAL(ps_table.columnCount(), 21);
 		//add disease details
 		params.add_disease_details = true;
 		ps_table = db.processedSampleSearch(params);
-		I_EQUAL(ps_table.rowCount(), 5);
+		I_EQUAL(ps_table.rowCount(), 7);
 		I_EQUAL(ps_table.columnCount(), 29);
 		//add QC
 		params.add_qc = true;
 		ps_table = db.processedSampleSearch(params);
-		I_EQUAL(ps_table.rowCount(), 5);
+		I_EQUAL(ps_table.rowCount(), 7);
 		I_EQUAL(ps_table.columnCount(), 68);
 		//add report config
 		params.add_report_config = true;
 		ps_table = db.processedSampleSearch(params);
-		I_EQUAL(ps_table.rowCount(), 5);
+		I_EQUAL(ps_table.rowCount(), 7);
 		I_EQUAL(ps_table.columnCount(), 69);
 		//apply all search parameters
 		params.s_name = "NA12878";
@@ -843,6 +908,8 @@ private slots:
 		I_EQUAL(db.getValue("SELECT count(*) FROM report_configuration").toInt(), 1);
 		db.deleteReportConfig(conf_id);
 		I_EQUAL(db.getValue("SELECT count(*) FROM report_configuration").toInt(), 0);
+
+		somaticReportTest(db);
 
 		//cnvId
 		CopyNumberVariant cnv = CopyNumberVariant("chr1", 1000, 2000, 1, GeneSet(), QByteArrayList());

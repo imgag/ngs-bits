@@ -2982,6 +2982,145 @@ void NGSD::deleteReportConfig(int id)
 	query.exec("DELETE FROM `report_configuration` WHERE `id`=" + rc_id);
 }
 
+
+int NGSD::reportConfigId(QString t_ps_id, QString n_ps_id, QString rna_ps_id)
+{
+	//Identify report configuration using tumor and normal processed sample ids (and rna ps if available)
+	QString query = "SELECT id FROM somatic_report_configuration WHERE ps_tumor_id='" +t_ps_id + "' AND ps_normal_id='" + n_ps_id + "'";
+	//TODO: Resolve somatic RNA id
+
+	QVariant id = getValue(query, true);
+	return id.isValid() ? id.toInt() : -1;
+}
+
+int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const SomaticReportConfiguration& config, const VariantList& snvs, const CnvList& cnvs)
+{
+	int id = reportConfigId(t_ps_id, n_ps_id);
+
+	if(id!=-1) //delete old report if id exists
+	{
+		//Delete somatic report configuration variants that are assigned to report
+		SqlQuery query = getQuery();
+		query.exec("DELETE FROM `somatic_report_configuration_variant` WHERE somatic_report_configuration_id=" + QByteArray::number(id));
+
+		//Update somatic report configuration
+		query.exec("UPDATE `somatic_report_configuration` SET `last_edit_by`='" + userId(config.createdBy()) + "', `last_edit_date`=CURRENT_TIMESTAMP WHERE id=" +QByteArray::number(id));
+	}
+	else
+	{
+		SqlQuery query = getQuery();
+		query.prepare("INSERT INTO `somatic_report_configuration` (`ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`) VALUES (:0, :1, :2, :3)");
+
+		query.bindValue(0, t_ps_id);
+		query.bindValue(1, n_ps_id);
+		query.bindValue(2, userId(config.createdBy()));
+		query.bindValue(3, config.createdAt());
+
+		query.exec();
+		id = query.lastInsertId().toInt();
+	}
+
+	//Store variants in NGSD
+	SqlQuery query_var = getQuery();
+
+	query_var.prepare("INSERT INTO `somatic_report_configuration_variant` (`somatic_report_configuration_id`, `variant_id`, `exclude_artefact`, `exclude_low_tumor_content`, `exclude_low_copy_number`, `exclude_high_baf_deviation`, `exclude_other_reason`, `include_variant_alteration`, `include_variant_description`, `comment`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9)");
+
+	for(const auto& var_conf : config.variantConfig())
+	{
+		if(var_conf.variant_type == VariantType::SNVS_INDELS)
+		{
+			//check whether indices exist in variant list
+			if(var_conf.variant_index<0 || var_conf.variant_index >= snvs.count())
+			{
+				THROW(ProgrammingException, "Variant list does not contain variant with index '" + QByteArray::number(var_conf.variant_index) + "' in NGSD::setSomaticReportConfig!");
+			}
+
+			const Variant& variant = snvs[var_conf.variant_index];
+			QString variant_id = variantId(variant, false);
+			if(variant_id=="")
+			{
+				variant_id = addVariant(variant, snvs);
+			}
+
+			query_var.bindValue(0, id);
+			query_var.bindValue(1, variant_id);
+			query_var.bindValue(2, var_conf.exclude_artefact);
+			query_var.bindValue(3, var_conf.exclude_low_tumor_content);
+			query_var.bindValue(4, var_conf.exclude_low_copy_number);
+			query_var.bindValue(5, var_conf.exclude_high_baf_deviation);
+			query_var.bindValue(6, var_conf.exclude_other_reason);
+			query_var.bindValue(7, var_conf.include_variant_alteration.isEmpty() ? "" : var_conf.include_variant_alteration);
+			query_var.bindValue(8, var_conf.include_variant_description.isEmpty() ? "" : var_conf.include_variant_description);
+			query_var.bindValue(9, var_conf.comment.isEmpty() ? "" : var_conf.comment);
+
+			query_var.exec();
+
+		}
+		else if(var_conf.variant_type == VariantType::CNVS) //TODO
+		{
+			;
+		}
+		else
+		{
+			THROW(NotImplementedException, "Storing of somatic report configuration variant with type '" + QByteArray::number((int)var_conf.variant_type) + "' not implemented!");
+		}
+	}
+
+	return id;
+}
+
+SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_ps_id, const VariantList& snvs, const CnvList& cnvs, QStringList& messages)
+{
+	SomaticReportConfiguration output;
+
+	int config_id = reportConfigId(t_ps_id, n_ps_id);
+	if(config_id == -1)
+	{
+		QString message = "Somatic report for the processed samples with the database ids " + t_ps_id + " (tumor) and " + n_ps_id + " (normal) does not exist!";
+		THROW(DatabaseException, message);
+	}
+
+	SqlQuery query = getQuery();
+	query.exec("SELECT u.name, r.created_date FROM somatic_report_configuration r, user u WHERE r.id=" + QByteArray::number(config_id) + " AND u.id = r.created_by");
+	query.next();
+	output.setCreatedBy(query.value("name").toString());
+	output.setCreatedAt(query.value("created_date").toDateTime());
+
+	//Resolve variants stored in NGSD and compare to those in VariantList snvs
+	query.exec("SELECT * FROM somatic_report_configuration_variant WHERE somatic_report_configuration_id=" + QString::number(config_id));
+	while(query.next())
+	{
+		SomaticReportVariantConfiguration var_conf;
+		Variant var = variant(query.value("variant_id").toString()); //variant resolved by its ID
+		for(int i=0; i<snvs.count(); ++i)
+		{
+			if(var==snvs[i])
+			{
+				var_conf.variant_index = i;
+			}
+		}
+		if(var_conf.variant_index == -1)
+		{
+			messages << "Could not find variant '" + var.toString() + "' in given variant list!";
+		}
+
+		var_conf.exclude_artefact = query.value("exclude_artefact").toBool();
+		var_conf.exclude_low_tumor_content = query.value("exclude_low_tumor_content").toBool();
+		var_conf.exclude_low_copy_number = query.value("exclude_low_copy_number").toBool();
+		var_conf.exclude_high_baf_deviation = query.value("exclude_high_baf_deviation").toBool();
+		var_conf.exclude_other_reason = query.value("exclude_other_reason").toBool();
+
+		var_conf.include_variant_alteration = query.value("include_variant_alteration").toString();
+		var_conf.include_variant_description = query.value("include_variant_description").toString();
+
+		var_conf.comment = query.value("comment").toString();
+
+		output.set(var_conf);
+	}
+
+	return output;
+}
+
 void NGSD::setProcessedSampleQuality(const QString& processed_sample_id, const QString& quality)
 {
 	getQuery().exec("UPDATE processed_sample SET quality='" + quality + "' WHERE id='" + processed_sample_id + "'");

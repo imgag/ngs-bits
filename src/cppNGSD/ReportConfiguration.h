@@ -6,6 +6,15 @@
 #include <QStringList>
 #include <QDateTime>
 
+struct CPPNGSDSHARED_EXPORT ReportVariantConfigurationBase
+{
+	virtual bool showInReport() const = 0;
+
+	VariantType variant_type;
+	int variant_index;
+
+};
+
 ///Variant meta data for report.
 struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 {

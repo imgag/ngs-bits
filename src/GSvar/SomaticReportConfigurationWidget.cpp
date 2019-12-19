@@ -1,5 +1,5 @@
-#include "SomaticReportConfiguration.h"
-#include "ui_SomaticReportConfiguration.h"
+#include "SomaticReportConfigurationWidget.h"
+#include "ui_SomaticReportConfigurationWidget.h"
 #include "GUIHelper.h"
 #include <QMenu>
 #include <QBitArray>
@@ -8,9 +8,9 @@
 #include <QShortcut>
 #include "cmath"
 
-SomaticReportConfiguration::SomaticReportConfiguration(const CnvList& cnv_input, QWidget *parent)
+SomaticReportConfigurationWidget::SomaticReportConfigurationWidget(const CnvList& cnv_input, QWidget *parent)
 	: QDialog(parent)
-	, ui_(new Ui::SomaticReportConfiguration)
+	, ui_(new Ui::SomaticReportConfigurationWidget)
 	, cnvs_(cnv_input)
 	, db_()
 {
@@ -73,12 +73,12 @@ SomaticReportConfiguration::SomaticReportConfiguration(const CnvList& cnv_input,
 	connect(ui_->cnvs,SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this,SLOT(cnvDoubleClicked(QTableWidgetItem*)));
 }
 
-SomaticReportConfiguration::~SomaticReportConfiguration()
+SomaticReportConfigurationWidget::~SomaticReportConfigurationWidget()
 {
 	delete ui_;
 }
 
-void SomaticReportConfiguration::fillCnvWidget()
+void SomaticReportConfigurationWidget::fillCnvWidget()
 {
 	if(cnvs_.count() == 0)
 	{
@@ -136,20 +136,20 @@ void SomaticReportConfiguration::fillCnvWidget()
 	GUIHelper::resizeTableCells(ui_->cnvs, 600);
 }
 
-void SomaticReportConfiguration::setSelectionRnaDna(bool enabled)
+void SomaticReportConfigurationWidget::setSelectionRnaDna(bool enabled)
 {
 	ui_->report_type_label->setEnabled(enabled);
 	ui_->report_type_dna->setEnabled(enabled);
 	ui_->report_type_rna->setEnabled(enabled);
 }
 
-SomaticReportConfiguration::report_type SomaticReportConfiguration::getReportType()
+SomaticReportConfigurationWidget::report_type SomaticReportConfigurationWidget::getReportType()
 {
 	if(ui_->report_type_dna->isChecked()) return report_type::DNA;
 	else return report_type::RNA;
 }
 
-CnvList SomaticReportConfiguration::getSelectedCNVs()
+CnvList SomaticReportConfigurationWidget::getSelectedCNVs()
 {
 	CnvList filtered_cnvs;
 
@@ -166,7 +166,7 @@ CnvList SomaticReportConfiguration::getSelectedCNVs()
 }
 
 
-void SomaticReportConfiguration::showContextMenu(QPoint pos)
+void SomaticReportConfigurationWidget::showContextMenu(QPoint pos)
 {
 	QMenu menu(ui_->cnvs);
 
@@ -193,7 +193,7 @@ void SomaticReportConfiguration::showContextMenu(QPoint pos)
 	}
 }
 
-void SomaticReportConfiguration::disableGUI()
+void SomaticReportConfigurationWidget::disableGUI()
 {
 	ui_->log_likelihood->setEnabled(false);
 	ui_->cnvs->setEnabled(false);
@@ -204,7 +204,7 @@ void SomaticReportConfiguration::disableGUI()
 	ui_->cnv_min_size->setEnabled(false);
 }
 
-void SomaticReportConfiguration::filtersChanged()
+void SomaticReportConfigurationWidget::filtersChanged()
 {
 	double min_loglikelihood = ui_->log_likelihood->value();
 	double min_cnv_size = ui_->cnv_min_size->value();
@@ -260,14 +260,14 @@ void SomaticReportConfiguration::filtersChanged()
 	}
 }
 
-void SomaticReportConfiguration::resetView()
+void SomaticReportConfigurationWidget::resetView()
 {
 	ui_->log_likelihood->setValue(0);
 	ui_->cnv_min_size->setValue(0);
 	ui_->filter_for_cgi_drivers->setCheckState(Qt::Unchecked);
 }
 
-void SomaticReportConfiguration::selectCNVsFromView()
+void SomaticReportConfigurationWidget::selectCNVsFromView()
 {
 	for(int r=0;r<ui_->cnvs->rowCount();++r)
 	{
@@ -282,7 +282,7 @@ void SomaticReportConfiguration::selectCNVsFromView()
 	}
 }
 
-void SomaticReportConfiguration::deselectXY()
+void SomaticReportConfigurationWidget::deselectXY()
 {
 	for(int r=0;r<ui_->cnvs->rowCount();++r)
 	{
@@ -293,14 +293,14 @@ void SomaticReportConfiguration::deselectXY()
 	}
 }
 
-void SomaticReportConfiguration::cnvDoubleClicked(QTableWidgetItem* item)
+void SomaticReportConfigurationWidget::cnvDoubleClicked(QTableWidgetItem* item)
 {
 	if (item==nullptr) return;
 
 	emit openRegionInIGV(cnvs_[item->row()].toString());
 }
 
-void SomaticReportConfiguration::copyToClipboard()
+void SomaticReportConfigurationWidget::copyToClipboard()
 {
 	QTableWidgetSelectionRange range = ui_->cnvs->selectedRanges()[0];
 	//copy header

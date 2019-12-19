@@ -2,12 +2,14 @@
 #define SOMATICREPORTCONFIGURATION_H
 #include "cppNGSD_global.h"
 #include "VariantType.h"
+#include "Helper.h"
 #include <QString>
-
+#include <QDateTime>
 
 struct CPPNGSDSHARED_EXPORT SomaticReportVariantConfiguration
 {
 	SomaticReportVariantConfiguration();
+	bool showInReport() const;
 
 	VariantType variant_type;
 	int variant_index;
@@ -15,7 +17,7 @@ struct CPPNGSDSHARED_EXPORT SomaticReportVariantConfiguration
 
 	//exclusions
 	bool exclude_artefact;
-	bool exlude_low_tumor_content;
+	bool exclude_low_tumor_content;
 	bool exclude_low_copy_number;
 	bool exclude_high_baf_deviation;
 	bool exclude_other_reason;
@@ -25,13 +27,38 @@ struct CPPNGSDSHARED_EXPORT SomaticReportVariantConfiguration
 	QString include_variant_description;
 
 	QString comment;
-
 };
 
-class SomaticReportConfiguration
+class CPPNGSDSHARED_EXPORT SomaticReportConfiguration
 {
 public:
 	SomaticReportConfiguration();
+
+	QString createdBy() const;
+	QDateTime createdAt() const;
+
+	const QList<SomaticReportVariantConfiguration>& variantConfig() const;
+
+	QList<int> variantIndices(VariantType type, bool only_selected, QString report_type = QString()) const;
+
+	bool exists(VariantType type, int index) const;
+
+	///sets / adds somatic variant configuration to list.
+	bool set(const SomaticReportVariantConfiguration& config);
+
+	bool remove(VariantType type, int index);
+
+	void setCreatedBy(QString user);
+	void setCreatedAt(QDateTime time);
+
+	int count();
+
+	void sortByPosition();
+
+private:
+	QList<SomaticReportVariantConfiguration> variant_config_;
+	QString created_by_;
+	QDateTime created_at_;
 };
 
 #endif // SOMATICREPORTCONFIGURATION_H

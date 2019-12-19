@@ -30,7 +30,9 @@ INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_
 (4000, 1, 4, 1, '1', 1, 1, 'medium', 'comment_ps2', null),
 (4001, 2, 4, 1, '1', 1, 1, 'medium', 'comment_ps3', null),
 (4002, 3, 1, 1, '1', 1, 1, 'good', 'comment_ps4', 3999),
-(4003, 4, 1, 1, '1', 1, 1, 'good', 'comment_ps4', null);
+(4003, 4, 1, 1, '1', 1, 1, 'good', 'comment_ps4', null),
+(5, 2, 23, 1, '1', 1, 1, 'medium', 'comment_ps5', null),
+(6, 3, 44, 1, '1', 1, 1, 'medium', 'comment_ps6', null);
 
 INSERT INTO `diag_status`(`processed_sample_id`, `status`, `user_id`, `date`, `outcome`, `comment`) VALUES
 (3999, 'done', 99, '2014-07-29 09:40:49', 'no significant findings', "free text");
@@ -432,3 +434,9 @@ INSERT INTO `cnv` (`id`, `cnv_callset_id`, `chr`, `start`, `end`, `cn`) VALUES
 (1, 1, 'chr1', 1000, 2000, 1),
 (2, 1, 'chr1', 3000, 4000, 1),
 (3, 1, 'chr2', 10000, 40000, 1);
+
+
+
+INSERT INTO `somatic_report_configuration` (`id`, `ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES (3,5,6,3,'2019-01-05 14:06:12', 99, '2019-12-07 17:06:10');
+INSERT INTO `somatic_report_configuration` (`id`, `ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES (51,5,4000,3,'2019-01-05 14:06:12', 99, '2019-12-07 17:06:10');
+
