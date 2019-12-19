@@ -13,7 +13,6 @@ struct CPPNGSDSHARED_EXPORT SomaticReportVariantConfiguration
 
 	VariantType variant_type;
 	int variant_index;
-	QString report_type;
 
 	//exclusions
 	bool exclude_artefact;
@@ -45,6 +44,8 @@ public:
 
 	///sets / adds somatic variant configuration to list.
 	bool set(const SomaticReportVariantConfiguration& config);
+
+	const SomaticReportVariantConfiguration& get(VariantType type, int index) const;
 
 	bool remove(VariantType type, int index);
 

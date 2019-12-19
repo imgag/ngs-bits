@@ -73,10 +73,10 @@ QT_CHARTS_USE_NAMESPACE
 #include "SampleSearchWidget.h"
 #include "ProcessedSampleSelector.h"
 #include "ReportVariantDialog.h"
+#include "SomaticReportVariantDialog.h"
 #include "GSvarHelper.h"
 #include "SampleDiseaseInfoWidget.h"
 #include "QrCodeFactory.h"
-
 #include "SomaticRnaReport.h"
 
 
@@ -3335,51 +3335,72 @@ void MainWindow::editVariantReportConfiguration(int index)
 {
 	NGSD db;
 
-	//init/get config
-	ReportVariantConfiguration var_config;
-	bool report_settings_exist = report_settings_.report_config.exists(VariantType::SNVS_INDELS, index);
-	if (report_settings_exist)
+	if(variants_.type() != AnalysisType::SOMATIC_PAIR)
 	{
-		var_config = report_settings_.report_config.get(VariantType::SNVS_INDELS, index);
-	}
-	else
-	{
-		var_config.variant_index = index;
-	}
-
-	//get inheritance mode by gene
-	const Variant& variant = variants_[index];
-	QList<KeyValuePair> inheritance_by_gene;
-	int i_genes = variants_.annotationIndexByName("gene", true, false);
-	if (i_genes!=-1)
-	{
-		QByteArrayList genes = variant.annotations()[i_genes].split(',');
-		foreach(QByteArray gene, genes)
+		//init/get config
+		ReportVariantConfiguration var_config;
+		bool report_settings_exist = report_settings_.report_config.exists(VariantType::SNVS_INDELS, index);
+		if (report_settings_exist)
 		{
-			GeneInfo gene_info = db.geneInfo(gene);
-			inheritance_by_gene << KeyValuePair{gene, gene_info.inheritance};
+			var_config = report_settings_.report_config.get(VariantType::SNVS_INDELS, index);
 		}
-	}
+		else
+		{
+			var_config.variant_index = index;
+		}
 
-	//exec dialog
-	ReportVariantDialog* dlg = new ReportVariantDialog(variant.toString(), inheritance_by_gene, var_config, this);
-	if (dlg->exec()!=QDialog::Accepted) return;
-
-	//update config, GUI and NGSD
-	report_settings_.report_config.set(var_config);
-	updateReportConfigHeaderIcon(index);
-	storeReportConfig(false);
-
-	//force classification of causal variants
-	if(var_config.causal)
-	{
+		//get inheritance mode by gene
 		const Variant& variant = variants_[index];
-		ClassificationInfo classification_info = db.getClassification(variant);
-		if (classification_info.classification=="" || classification_info.classification=="n/a")
+		QList<KeyValuePair> inheritance_by_gene;
+		int i_genes = variants_.annotationIndexByName("gene", true, false);
+		if (i_genes!=-1)
 		{
-			QMessageBox::warning(this, "Variant classification required!", "Causal variants should have a classification!", QMessageBox::Ok, QMessageBox::NoButton);
-			editVariantClassification(variants_, index);
+			QByteArrayList genes = variant.annotations()[i_genes].split(',');
+			foreach(QByteArray gene, genes)
+			{
+				GeneInfo gene_info = db.geneInfo(gene);
+				inheritance_by_gene << KeyValuePair{gene, gene_info.inheritance};
+			}
 		}
+
+		//exec dialog
+		ReportVariantDialog* dlg = new ReportVariantDialog(variant.toString(), inheritance_by_gene, var_config, this);
+		if (dlg->exec()!=QDialog::Accepted) return;
+
+		//update config, GUI and NGSD
+		report_settings_.report_config.set(var_config);
+		updateReportConfigHeaderIcon(index);
+		storeReportConfig(false);
+
+		//force classification of causal variants
+		if(var_config.causal)
+		{
+			const Variant& variant = variants_[index];
+			ClassificationInfo classification_info = db.getClassification(variant);
+			if (classification_info.classification=="" || classification_info.classification=="n/a")
+			{
+				QMessageBox::warning(this, "Variant classification required!", "Causal variants should have a classification!", QMessageBox::Ok, QMessageBox::NoButton);
+				editVariantClassification(variants_, index);
+			}
+		}
+	}
+	else //somatic report variant configuration
+	{
+		SomaticReportVariantConfiguration var_config;
+		bool settings_exists = somatic_report_settings_.report_config.exists(VariantType::SNVS_INDELS, index);
+		if(settings_exists)
+		{
+			var_config = somatic_report_settings_.report_config.get(VariantType::SNVS_INDELS, index);
+		}
+		else
+		{
+			var_config.variant_index = index;
+		}
+
+		SomaticReportVariantDialog* dlg = new SomaticReportVariantDialog(variants_[index].toString(), var_config, this);
+		if(dlg->exec() != QDialog::Accepted) return;
+
+		somatic_report_settings_.report_config.set(var_config);
 	}
 }
 

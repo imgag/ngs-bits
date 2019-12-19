@@ -11,6 +11,7 @@
 #include "BusyDialog.h"
 #include "FilterCascade.h"
 #include "ReportSettings.h"
+#include "SomaticReportSettings.h"
 
 struct IgvFile
 {
@@ -289,6 +290,7 @@ private:
 	BedFile last_phenos_roi_;
     QHash<QByteArray, BedFile> gene2region_cache_;
 	ReportSettings report_settings_;
+	SomaticReportSettings somatic_report_settings_;
 
 	//SPECIAL
 	///Timer to delay some initialization, e.g. load CLI argument after the main window is visible

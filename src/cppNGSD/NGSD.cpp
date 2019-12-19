@@ -3049,9 +3049,9 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 			query_var.bindValue(4, var_conf.exclude_low_copy_number);
 			query_var.bindValue(5, var_conf.exclude_high_baf_deviation);
 			query_var.bindValue(6, var_conf.exclude_other_reason);
-			query_var.bindValue(7, var_conf.include_variant_alteration.isEmpty() ? "" : var_conf.include_variant_alteration);
-			query_var.bindValue(8, var_conf.include_variant_description.isEmpty() ? "" : var_conf.include_variant_description);
-			query_var.bindValue(9, var_conf.comment.isEmpty() ? "" : var_conf.comment);
+			query_var.bindValue(7, var_conf.include_variant_alteration.trimmed().isEmpty() ? "" : var_conf.include_variant_alteration);
+			query_var.bindValue(8, var_conf.include_variant_description.trimmed().isEmpty() ? "" : var_conf.include_variant_description);
+			query_var.bindValue(9, var_conf.comment.trimmed().isEmpty() ? "" : var_conf.comment);
 
 			query_var.exec();
 

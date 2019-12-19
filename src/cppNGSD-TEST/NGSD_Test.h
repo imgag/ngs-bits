@@ -14,7 +14,6 @@ private:
 		I_EQUAL(db.reportConfigId("5","4000"), 51);
 		I_EQUAL(db.reportConfigId("5","10"), -1);
 
-
 		//set somatic report configuration in test NGSD
 		SomaticReportVariantConfiguration var1;
 		var1.variant_index = 1;
@@ -38,7 +37,7 @@ private:
 		VariantList vl;
 		vl.load(TESTDATA("../cppNGS-TEST/data_in/somatic_report_config.GSvar"));
 
-		CnvList cnvs; //TO BE FILLED WITH TEST DATA
+		CnvList cnvs; //TODO: FILL WITH TEST DATA
 
 		QString t_ps_id = db.processedSampleId("NA12345_01");
 		QString n_ps_id = db.processedSampleId("NA12123_04");

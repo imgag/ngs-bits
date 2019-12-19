@@ -3,7 +3,6 @@
 SomaticReportVariantConfiguration::SomaticReportVariantConfiguration()
 	: variant_type(VariantType::SNVS_INDELS)
 	, variant_index(-1)
-	, report_type()
 	, exclude_artefact(false)
 	, exclude_low_tumor_content(false)
 	, exclude_low_copy_number(false)
@@ -40,7 +39,6 @@ QList<int> SomaticReportConfiguration::variantIndices(VariantType type, bool onl
 	{
 		if (var_conf.variant_type!=type) continue;
 		if (only_selected && !var_conf.showInReport()) continue;
-		if (!report_type.isNull() && var_conf.report_type!=report_type) continue;
 		output << var_conf.variant_index;
 	}
 
@@ -62,6 +60,11 @@ bool SomaticReportConfiguration::exists(VariantType type, int index) const
 
 bool SomaticReportConfiguration::set(const SomaticReportVariantConfiguration &config)
 {
+	if((!config.include_variant_alteration.isEmpty() || !config.include_variant_description.isEmpty()) && !config.showInReport())
+	{
+		THROW(ArgumentException, "Cannot set somatic report configuration. Variant Configuration for variant index " + QByteArray::number(config.variant_index) + " contains both include and exclude switches.");
+	}
+
 	//set variant config (if already contained in list)
 	for (int i=0; i<variant_config_.count(); ++i)
 	{
@@ -78,6 +81,15 @@ bool SomaticReportConfiguration::set(const SomaticReportVariantConfiguration &co
 	sortByPosition();
 
 	return false;
+}
+
+const SomaticReportVariantConfiguration& SomaticReportConfiguration::get(VariantType type, int index) const
+{
+	for(const auto& var_conf : variant_config_)
+	{
+		if (var_conf.variant_index==index && var_conf.variant_type==type) return var_conf;
+	}
+	THROW(ArgumentException, "Report configuration not found for variant with index '" + QString::number(index) + "'!");
 }
 
 bool SomaticReportConfiguration::remove(VariantType type, int index)
