@@ -2855,11 +2855,14 @@ int NGSD::setReportConfig(const QString& processed_sample_id, const ReportConfig
 	else
 	{
 		//insert new report config
+		QString user_id = userId(config.createdBy());
+
 		SqlQuery query = getQuery();
-		query.prepare("INSERT INTO `report_configuration`(`processed_sample_id`, `created_by`, `created_date`) VALUES (:0, :1, :2)");
+		query.prepare("INSERT INTO `report_configuration`(`processed_sample_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES (:0, :1, :2, :3, CURRENT_TIMESTAMP)");
 		query.bindValue(0, processed_sample_id);
-		query.bindValue(1, userId(config.createdBy()));
+		query.bindValue(1, user_id);
 		query.bindValue(2, config.createdAt());
+		query.bindValue(3, user_id);
 		query.exec();
 		id = query.lastInsertId().toInt();
 	}

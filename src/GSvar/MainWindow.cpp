@@ -147,6 +147,8 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate report", this, SLOT(generateReport()));
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate variant sheet", this, SLOT(generateVariantSheet()));
+	ui_.report_btn->menu()->addSeparator();
+	ui_.report_btn->menu()->addAction("Show report configuration info", this, SLOT(showReportConfigInfo()));
 	connect(ui_.vars_folder_btn, SIGNAL(clicked(bool)), this, SLOT(openVariantListFolder()));
 	connect(ui_.vars_af_hist, SIGNAL(clicked(bool)), this, SLOT(showAfHistogram()));
 	connect(ui_.ps_details, SIGNAL(clicked(bool)), this, SLOT(openProcessedSampleTabsCurrentSample()));
@@ -266,7 +268,7 @@ void MainWindow::on_actionCNV_triggered()
 	//open CNV window
 	CnvWidget* list = new CnvWidget(cnvs_, ps_id, ui_.filters, report_settings_.report_config, het_hit_genes, gene2region_cache_);
 	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
-	connect(list, SIGNAL(storeReportConfiguration(bool)), this, SLOT(storeReportConfig(bool)));
+	connect(list, SIGNAL(storeReportConfiguration()), this, SLOT(storeReportConfig()));
 	auto dlg = GUIHelper::createDialog(list, "Copy number variants");
 	addModelessDialog(dlg, true);
 }
@@ -1515,23 +1517,9 @@ void MainWindow::loadReportConfig()
 	AnalysisType type = variants_.type();
 	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO) return;
 
-	//check sample
+	//load
 	NGSD db;
 	QString processed_sample_id = db.processedSampleId(processedSampleName(), false);
-	if (processed_sample_id=="")
-	{
-		QMessageBox::warning(this, "Loading report configuration", "Sample was not found in the NGSD!");
-		return;
-	}
-
-	//check config exists
-	if (db.reportConfigId(processed_sample_id)==-1)
-	{
-		QMessageBox::warning(this, "Loading report configuration", "A report configuration was not found in the NGSD!");
-		return;
-	}
-
-	//load
 	QStringList messages;
 	report_settings_.report_config = db.reportConfig(processed_sample_id, variants_, cnvs_, messages);
 	if (!messages.isEmpty())
@@ -1543,7 +1531,7 @@ void MainWindow::loadReportConfig()
 	refreshVariantTable();
 }
 
-void MainWindow::storeReportConfig(bool ask_before_overwrite)
+void MainWindow::storeReportConfig()
 {
 	//check if applicable
 	if (filename_=="") return;
@@ -1561,12 +1549,14 @@ void MainWindow::storeReportConfig(bool ask_before_overwrite)
 		return;
 	}
 
-	//check if config exists
+	//check if config exists and not edited by other user
 	int conf_id = db.reportConfigId(processed_sample_id);
-	if (conf_id!=-1 && ask_before_overwrite)
+	if (conf_id!=-1)
 	{
 		ReportConfigurationCreationData conf_creation = db.reportConfigCreationData(conf_id);
-		if (QMessageBox::question(this, "Store report configuration", conf_creation.toText() + "\n\nDo you want to override it?")==QMessageBox::No)
+		QString current_user_name = db.getValue("SELECT name FROM user WHERE user_id='" + Helper::userName() + "'").toString();
+		if (conf_creation.last_edit_by!="" && conf_creation.last_edit_by!=current_user_name)
+		if (QMessageBox::question(this, "Storing report configuration", conf_creation.toText() + "\n\nDo you want to override it?")==QMessageBox::No)
 		{
 			return;
 		}
@@ -1788,6 +1778,31 @@ void MainWindow::generateVariantSheet()
 	{
 		QDesktopServices::openUrl(filename);
 	}
+}
+
+void MainWindow::showReportConfigInfo()
+{
+	//check if applicable
+	if (filename_=="") return;
+
+	//check sample exists
+	NGSD db;
+	QString processed_sample_id = db.processedSampleId(processedSampleName(), false);
+	if (processed_sample_id=="")
+	{
+		QMessageBox::information(this, "Report configuration information", "Sample was not found in the NGSD!");
+		return;
+	}
+
+	//check config exists
+	int conf_id = db.reportConfigId(processed_sample_id);
+	if (conf_id==-1)
+	{
+		QMessageBox::information(this, "Report configuration information", "No report configuration found in the NGSD!");
+		return;
+	}
+
+	QMessageBox::information(this, "Report configuration information", db.reportConfigCreationData(conf_id).toText());
 }
 
 void MainWindow::printVariantSheetRowHeader(QTextStream& stream, bool causal)
@@ -3154,6 +3169,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	else if (text=="Delete report configuration")
 	{
 		report_settings_.report_config.remove(VariantType::SNVS_INDELS, index);
+		storeReportConfig();
 		updateReportConfigHeaderIcon(index);
 	}
 	else if (parent_menu && parent_menu->title()=="ClinGen")
@@ -3368,7 +3384,7 @@ void MainWindow::editVariantReportConfiguration(int index)
 	//update config, GUI and NGSD
 	report_settings_.report_config.set(var_config);
 	updateReportConfigHeaderIcon(index);
-	storeReportConfig(false);
+	storeReportConfig();
 
 	//force classification of causal variants
 	if(var_config.causal)

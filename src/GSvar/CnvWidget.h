@@ -30,7 +30,7 @@ protected:
 
 signals:
 	void openRegionInIGV(QString region);
-	void storeReportConfiguration(bool ask_before_overwrite);
+	void storeReportConfiguration();
 
 private slots:
 	void cnvDoubleClicked(QTableWidgetItem* item);

@@ -782,8 +782,8 @@ private slots:
 		//reportConfigCreationData
 		ReportConfigurationCreationData rc_creation_data = db.reportConfigCreationData(conf_id);
 		S_EQUAL(rc_creation_data.created_by, "Max Mustermann");
-		S_EQUAL(rc_creation_data.last_edit_by, "");
-		S_EQUAL(rc_creation_data.last_edit_date, "");
+		S_EQUAL(rc_creation_data.last_edit_by, "Max Mustermann");
+		IS_TRUE(rc_creation_data.last_edit_date!="");
 		//update
 		QThread::sleep(1);
 		int conf_id2 = db.setReportConfig(ps_id, report_conf, vl, cnvs, "ahkerra1");

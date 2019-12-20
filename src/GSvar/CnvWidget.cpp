@@ -668,6 +668,7 @@ void CnvWidget::cnvHeaderContextMenu(QPoint pos)
 	{
 		report_config_.remove(VariantType::CNVS, row);
 		updateReportConfigHeaderIcon(row);
+		emit storeReportConfiguration();
 	}
 }
 
@@ -794,7 +795,7 @@ void CnvWidget::editReportConfiguration(int row)
 	//update config, GUI and NGSD
 	report_config_.set(var_config);
 	updateReportConfigHeaderIcon(row);
-	emit storeReportConfiguration(false);
+	emit storeReportConfiguration();
 }
 
 

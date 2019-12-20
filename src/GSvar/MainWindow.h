@@ -154,9 +154,11 @@ public slots:
 	///Load report configuration
 	void loadReportConfig();
 	///Store report configuration
-	void storeReportConfig(bool ask_before_overwrite=true);
+	void storeReportConfig();
 	///Prints a variant sheet based on the report configuration
 	void generateVariantSheet();
+	///Shows information about the report config
+	void showReportConfigInfo();
 	///Helper function for printVariantSheet()
 	void printVariantSheetRowHeader(QTextStream& stream, bool causal);
 	///Helper function for printVariantSheet()
