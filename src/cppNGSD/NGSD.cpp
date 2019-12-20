@@ -98,6 +98,14 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		conditions	<< "sp.id=s.species_id"
 					<< "sp.name='" + escapeForSql(p.s_species) + "'";
 	}
+	if (p.s_disease_group.trimmed()!="")
+	{
+		conditions << "s.disease_group='" + escapeForSql(p.s_disease_group) + "'";
+	}
+	if (p.s_disease_status.trimmed()!="")
+	{
+		conditions << "s.disease_status='" + escapeForSql(p.s_disease_status) + "'";
+	}
 	if (!p.include_bad_quality_samples)
 	{
 		conditions << "ps.quality!='bad'";
@@ -128,7 +136,7 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	//add filters (system)
 	if (p.sys_name.trimmed()!="")
 	{
-		conditions << "(sys.name_manufacturer LIKE '%" + escapeForSql(p.sys_name) + "%' OR sys.name_short LIKE '%" + escapeForSql(p.sys_name) + "%')";
+		conditions << "(sys.name_manufacturer LIKE '" + escapeForSql(p.sys_name) + "' OR sys.name_short LIKE '" + escapeForSql(p.sys_name) + "')";
 	}
 	if (p.sys_type.trimmed()!="")
 	{

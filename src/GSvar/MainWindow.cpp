@@ -109,7 +109,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.tabs, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 	ui_.actionDebug->setVisible(Settings::boolean("debug_mode_enabled"));
 
-	//NGSD menu button
+	//NGSD search button
 	auto ngsd_btn = new QToolButton();
 	ngsd_btn->setIcon(QIcon(":/Icons/NGSD_search.png"));
 	ngsd_btn->setToolTip("Open NGSD item as tab.");
@@ -118,8 +118,10 @@ MainWindow::MainWindow(QWidget *parent)
 	ngsd_btn->menu()->addAction(ui_.actionOpenSequencingRunTabByName);
 	ngsd_btn->menu()->addAction(ui_.actionOpenGeneTabByName);
 	ngsd_btn->setPopupMode(QToolButton::InstantPopup);
-	ui_.tools->insertWidget(ui_.actionAnalysisStatus, ngsd_btn);
-	ui_.tools->insertSeparator(ui_.actionAnalysisStatus);
+	ui_.tools->insertWidget(ui_.actionSampleSearch, ngsd_btn);
+
+	//NGSD samples
+
 
 	//signals and slots
 	connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(close()));
@@ -850,6 +852,7 @@ void MainWindow::on_actionSampleSearch_triggered()
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
 	connect(widget, SIGNAL(openProcessedSample(QString)), this, SLOT(openProcessedSampleFromNGSD(QString)));
 	auto dlg = GUIHelper::createDialog(widget, "Sample search");
+	dlg->setWindowIcon(QIcon(":/Icons/NGSD_sample_search.png"));
 	dlg->exec();
 }
 

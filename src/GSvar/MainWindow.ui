@@ -283,7 +283,7 @@
                 <bool>false</bool>
                </property>
                <attribute name="verticalHeaderVisible">
-                <bool>true</bool>
+                <bool>false</bool>
                </attribute>
               </widget>
              </item>
@@ -431,7 +431,6 @@
      <property name="title">
       <string>Samples</string>
      </property>
-     <addaction name="actionSampleSearch"/>
      <addaction name="actionDiagnosticStatusOverview"/>
     </widget>
     <addaction name="menuGenes_2"/>
@@ -461,6 +460,8 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionAnnotateSomaticVariants"/>
+   <addaction name="separator"/>
+   <addaction name="actionSampleSearch"/>
    <addaction name="separator"/>
    <addaction name="actionAnalysisStatus"/>
    <addaction name="actionReanalyze"/>
@@ -839,14 +840,6 @@
     <string>Clear</string>
    </property>
   </action>
-  <action name="actionSampleSearch">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Sample search</string>
-   </property>
-  </action>
   <action name="actionOpenGeneTabByName">
    <property name="icon">
     <iconset resource="GSvar.qrc">
@@ -869,6 +862,15 @@
    </property>
    <property name="visible">
     <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionSampleSearch">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/NGSD_sample_search.png</normaloff>:/Icons/NGSD_sample_search.png</iconset>
+   </property>
+   <property name="text">
+    <string>Sample search</string>
    </property>
   </action>
  </widget>

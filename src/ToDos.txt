@@ -16,7 +16,6 @@ NGSD:
 - Allow several disease_groups per sample (requested by CS)
 
 GSvar:
-####sample search: Add filters 1) disease group/status 2) diagnostist status 3) report config SNV/CNV
 # Genes hi0 > blue | yellow+blue>green
 ** add visualization of NGSD CNVs (or annotation of CNVs):
     - number of overlapping CNVs (by type gain/loss)

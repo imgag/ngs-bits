@@ -737,7 +737,7 @@ private slots:
 		params.include_ffpe_samples = false;
 		params.p_name = "KontrollDNACoriell";
 		params.p_type = "test";
-		params.sys_name = "HBOC";
+		params.sys_name = "hpHBOCv5";
 		params.sys_type = "Panel Haloplex";
 		params.r_name = "#00372";
 		params.include_bad_quality_runs = false;
