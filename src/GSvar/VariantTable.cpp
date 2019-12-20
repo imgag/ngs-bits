@@ -17,7 +17,6 @@ VariantTable::VariantTable(QWidget* parent)
 void VariantTable::update(const VariantList& variants, const FilterResult& filter_result, const ReportSettings& report_settings, int max_variants)
 {
 	//init
-	const GeneSet& imprinting_genes = GSvarHelper::impritingGenes();
 	QSet<int> report_variant_indices = report_settings.report_config.variantIndices(VariantType::SNVS_INDELS, false).toSet();
 
 	//set rows and cols
@@ -180,20 +179,8 @@ void VariantTable::update(const VariantList& variants, const FilterResult& filte
 			}
 			else if (j==i_genes)
 			{
-				bool hit = false;
-				if (anno.contains(','))
-				{
-					 hit = imprinting_genes.intersectsWith(GeneSet::createFromText(anno, ','));
-				}
-				else
-				{
-					hit = imprinting_genes.contains(anno);
-				}
-				if (hit)
-				{
-					item->setBackgroundColor(Qt::yellow);
-					item->setToolTip("Imprinting gene");
-				}
+				GeneSet anno_genes = GeneSet::createFromText(anno, ',');
+				GSvarHelper::colorGeneItem(item, anno_genes);
 			}
 
 			setItem(r, 5+j, item);

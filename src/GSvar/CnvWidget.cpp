@@ -213,7 +213,6 @@ void CnvWidget::updateGUI()
 	QSet<int> report_variant_indices = report_config_.variantIndices(VariantType::CNVS, false).toSet();
 
 	//show variants
-	const GeneSet& imprinting_genes = GSvarHelper::impritingGenes();
 	ui->cnvs->setRowCount(cnvs_.count());
 	for (int r=0; r<cnvs_.count(); ++r)
 	{
@@ -233,13 +232,8 @@ void CnvWidget::updateGUI()
 		if (regions=="0") regions="n/a";
 		ui->cnvs->setItem(r, 2, createItem(regions, Qt::AlignRight|Qt::AlignTop));
 
-		GeneSet genes = cnvs_[r].genes();
-		QTableWidgetItem* item = createItem(QString(genes.join(',')));
-		if (genes.intersectsWith(imprinting_genes))
-		{
-			item->setBackgroundColor(Qt::yellow);
-			item->setToolTip("Imprinting gene");
-		}
+		QTableWidgetItem* item = createItem(QString(cnvs_[r].genes().join(',')));
+		GSvarHelper::colorGeneItem(item, cnvs_[r].genes());
 		ui->cnvs->setItem(r, 3, item);
 
 		int c = 4;

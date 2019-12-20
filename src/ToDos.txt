@@ -16,7 +16,6 @@ NGSD:
 - Allow several disease_groups per sample (requested by CS)
 
 GSvar:
-# Genes hi0 > blue | yellow+blue>green
 ** add visualization of NGSD CNVs (or annotation of CNVs):
     - number of overlapping CNVs (by type gain/loss)
     - overlapping class 4/5 CNVs

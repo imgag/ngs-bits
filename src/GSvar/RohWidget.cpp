@@ -115,18 +115,12 @@ void RohWidget::loadROHs(QString filename)
 	}
 
 	//show variants
-	const GeneSet& imprinting_genes = GSvarHelper::impritingGenes();
 	ui->rohs->setRowCount(rohs.count());
 	for (int r=0; r<rohs.count(); ++r)
 	{
 		ui->rohs->setItem(r, 0, new QTableWidgetItem(rohs[r].toString()));
-		GeneSet genes = rohs[r].genes();
-		QTableWidgetItem* item = new QTableWidgetItem(QString(genes.join(',')));
-		if (genes.intersectsWith(imprinting_genes))
-		{
-			item->setBackgroundColor(Qt::yellow);
-			item->setToolTip("Imprinting gene");
-		}
+		QTableWidgetItem* item = new QTableWidgetItem(QString(rohs[r].genes().join(',')));
+		GSvarHelper::colorGeneItem(item, rohs[r].genes());
 		ui->rohs->setItem(r, 1, item);
 		ui->rohs->setItem(r, 2, new QTableWidgetItem(QString::number(rohs[r].size()/1000.0, 'f', 3)));
 		ui->rohs->setItem(r, 3, new QTableWidgetItem(QString::number(rohs[r].markerCount())));
