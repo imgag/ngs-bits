@@ -598,10 +598,15 @@ void CnvWidget::showQcMetricHistogram()
 	//determine median
 	std::sort(metrics.begin(), metrics.end());
 	double median = BasicStatistics::median(metrics, false);
+	double stdev = 1.482 * BasicStatistics::mad(metrics, median);
 
 	//create histogram
-	double upper_bound = median * 2.5;
-	Histogram hist(0.0, upper_bound, upper_bound/30);
+	double upper_bound = median + 4.0 * stdev;
+	if (metric_name=="number of iterations" && upper_bound<4.0) upper_bound = 4.0;
+	if (metric_name=="quality used at final iteration" && upper_bound<80.0) upper_bound = 80.0;
+	if (metric_name=="mean correlation to reference samples" && upper_bound>1.0) upper_bound = 1.0;
+
+	Histogram hist(0.0, upper_bound, upper_bound/40);
 	hist.inc(metrics, true);
 
 	//show histogram

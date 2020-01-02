@@ -14,7 +14,6 @@ DiseaseInfoWidget::DiseaseInfoWidget(QString ps_name, QString sample_id, QWidget
 	ui_.group->insertItems(0, db.getEnum("sample", "disease_group"));
 	ui_.status->insertItems(0, db.getEnum("sample", "disease_status"));
 	connect(ui_.genlab_btn, SIGNAL(clicked(bool)), this, SLOT(importGenLab()));
-	ui_.genlab_btn->setEnabled(Settings::string("genlab_mssql")=="true"); //TODO remove once we are migrated to MS SQL server > MARC
 
 	//get sample data
 	SampleData sample_data = db.getSampleData(sample_id);

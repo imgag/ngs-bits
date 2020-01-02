@@ -16,9 +16,10 @@ NGSD:
 - Allow several disease_groups per sample (requested by CS)
 
 GSvar:
-** add visualization of NGSD CNVs (or annotation of CNVs):
+** add visualization of NGSD CNVs (table + IGV-like view):
     - number of overlapping CNVs (by type gain/loss)
     - overlapping class 4/5 CNVs
+    - disease group
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 * replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
 * SV widget
