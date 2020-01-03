@@ -4,7 +4,8 @@ libs:
 * FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 
 NGSD:
-** Update variant tab (base infos, classification, validation, etc)
+##### Gene tab - why dark
+##### Move edit functionality from variant details widget to variant tab?
 ** Add sender tab (link from sample info)
 ** Add processing system tab (link from processed sample info)
 ** Add project tab (sample overview with diag status, etc)

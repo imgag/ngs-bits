@@ -245,7 +245,7 @@ public slots:
 	///Open run tab
 	void openRunTab(QString run_name);
     ///Open gene tab
-    void openGeneTab(QByteArray symbol);
+	void openGeneTab(QString symbol);
 	///Open variant tab
 	void openVariantTab(Variant variant);
     ///Process a tab close request

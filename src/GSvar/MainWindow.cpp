@@ -57,7 +57,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "SomaticReportHelper.h"
 #include "DiagnosticStatusOverviewDialog.h"
 #include "SvWidget.h"
-#include "VariantSampleOverviewWidget.h"
+#include "VariantWidget.h"
 #include "SomaticReportConfiguration.h"
 #include "SingleSampleAnalysisDialog.h"
 #include "MultiSampleDialog.h"
@@ -1160,7 +1160,7 @@ void MainWindow::openRunTab(QString run_name)
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
 }
 
-void MainWindow::openGeneTab(QByteArray symbol)
+void MainWindow::openGeneTab(QString symbol)
 {
 	QPair<QString, QString> approved = NGSD().geneToApprovedWithMessage(symbol);
 	if (approved.second.startsWith("ERROR:"))
@@ -1169,7 +1169,7 @@ void MainWindow::openGeneTab(QByteArray symbol)
 		return;
 	}
 
-	GeneWidget* widget = new GeneWidget(this, symbol);
+	GeneWidget* widget = new GeneWidget(this, symbol.toLatin1());
 	int index = ui_.tabs->addTab(widget, QIcon(":/Icons/NGSD_gene.png"), symbol);
 	ui_.tabs->setCurrentIndex(index);
 }
@@ -1186,11 +1186,12 @@ void MainWindow::openVariantTab(Variant variant)
 	}
 
 	//open tab
-	VariantSampleOverviewWidget* widget = new VariantSampleOverviewWidget(variant, this);
+	VariantWidget* widget = new VariantWidget(variant, this);
 	int index = ui_.tabs->addTab(widget, QIcon(":/Icons/NGSD_variant.png"), variant.toString());
 	ui_.tabs->setCurrentIndex(index);
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
 	connect(widget, SIGNAL(openProcessedSampleFromNGSD(QString)), this, SLOT(openProcessedSampleFromNGSD(QString)));
+	connect(widget, SIGNAL(openGeneTab(QString)), this, SLOT(openGeneTab(QString)));
 }
 
 void MainWindow::closeTab(int index)
@@ -2285,7 +2286,7 @@ void MainWindow::on_actionOpenGeneTabByName_triggered()
 	//handle invalid name
 	if (selector->getId()=="") return;
 
-	openGeneTab(selector->text().toLatin1());
+	openGeneTab(selector->text());
 }
 
 void MainWindow::on_actionOpenVariantTab_triggered()

@@ -1767,11 +1767,11 @@ QPair<int, int> Variant::indelRegion(const Chromosome& chr, int start, int end, 
 	return qMakePair(start_orig, end_orig);
 }
 
-const QList<VariantTranscript> Variant::transcriptAnnotations(int column_index) const
+QList<VariantTranscript> Variant::parseTranscriptString(QByteArray text)
 {
 	QList<VariantTranscript> output;
 
-	foreach(QByteArray transcript, annotations()[column_index].split(','))
+	foreach(QByteArray transcript, text.split(','))
 	{
 		transcript = transcript.trimmed();
 		if (transcript.isEmpty()) continue;

@@ -202,8 +202,13 @@ public:
 	///@note Expects 1-based closed intervals are positions (insertions are after given position).
 	static QPair<int, int> indelRegion(const Chromosome& chr, int start, int end, Sequence ref, Sequence obs, const FastaFileIndex& reference);
 
-	///Returns transcript information from the given column name.
-	const QList<VariantTranscript> transcriptAnnotations(int column_index) const;
+	///Returns transcript information from the given column index.
+	QList<VariantTranscript> transcriptAnnotations(int column_index) const
+	{
+		return parseTranscriptString(annotations()[column_index]);
+	}
+
+	static QList<VariantTranscript> parseTranscriptString(QByteArray text);
 
 	///Returns a normalized variant extracted from user input text.Throws an exception, if it is not valid.
 	static Variant fromString(const QString& text);
