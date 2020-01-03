@@ -132,6 +132,29 @@ QString Variant::toString(bool space_separated, int max_sequence_length) const
 	}
 }
 
+void Variant::checkValid() const
+{
+	if (!chr_.isValid())
+	{
+		THROW(ArgumentException, "Invalid variant chromosome string in variant '" + toString());
+	}
+
+	if (start_<1 || end_<1 || start_>end_)
+	{
+		THROW(ArgumentException, "Invalid variant position range in variant '" + toString());
+	}
+
+	if (ref()!="-" && !QRegExp("[ACGTN]+").exactMatch(ref()))
+	{
+		THROW(ArgumentException, "Invalid variant reference sequence in variant '" + toString());
+	}
+
+	if (obs()!="-" && obs()!="." && !QRegExp("[ACGTN,]+").exactMatch(obs()))
+	{
+		THROW(ArgumentException, "Invalid variant observed sequence in variant '" + toString());
+	}
+}
+
 void Variant::normalize(const Sequence& empty_seq)
 {
 	Variant::normalize(start_, ref_, obs_);
@@ -1529,24 +1552,7 @@ void VariantList::checkValid() const
 {
 	foreach(const Variant& variant, variants_)
 	{
-		if (!variant.chr().isValid())
-		{
-			THROW(ArgumentException, "Invalid variant chromosome string in variant '" + variant.toString());
-		}
-
-		if (variant.start()<1 || variant.end()<1 || variant.start()>variant.end())
-		{
-			THROW(ArgumentException, "Invalid variant position range in variant '" + variant.toString());
-		}
-
-		if (variant.ref()!="-" && !QRegExp("[ACGTN]+").exactMatch(variant.ref()))
-		{
-			THROW(ArgumentException, "Invalid variant reference sequence in variant '" + variant.toString());
-		}
-		if (variant.obs()!="-" && variant.obs()!="." && !QRegExp("[ACGTN,]+").exactMatch(variant.obs()))
-		{
-			THROW(ArgumentException, "Invalid variant observed sequence in variant '" + variant.toString());
-		}
+		variant.checkValid();
 
 		if (variant.annotations().count()!=annotation_headers_.count())
 		{
@@ -1814,4 +1820,29 @@ bool VariantTranscript::typeMatchesTerms(const OntologyTermCollection& terms) co
 		}
 	}
 	return false;
+}
+
+Variant Variant::fromString(const QString& text_orig)
+{
+	//replace special characters
+	QString text = text_orig.trimmed();
+	text.replace("\t", " ");
+	text.replace(":", " ");
+	text.replace(">", " ");
+	text.replace(" -", " ."); //preserve '-' as ref/obs of indels
+	text.replace("-", " ");
+	text.replace(".", "-"); //preserve '-' as ref/obs of indels
+
+	//split
+	QStringList parts = text.split(QRegExp("\\s+"));
+	if (parts.count()!=5) THROW(ArgumentException, "Input text has " + QString::number(parts.count()) + " parts, but must consist of 5 parts (chr, start, end, ref, obs)!");
+
+	//create variant
+	Variant v = Variant(parts[0], parts[1].toInt(), parts[2].toInt(), parts[3].toLatin1(), parts[4].toLatin1());
+
+	//check if valid
+	v.normalize("-");
+	v.checkValid();
+
+	return v;
 }

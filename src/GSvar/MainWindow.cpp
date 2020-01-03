@@ -57,7 +57,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "SomaticReportHelper.h"
 #include "DiagnosticStatusOverviewDialog.h"
 #include "SvWidget.h"
-#include "VariantSampleOverviewDialog.h"
+#include "VariantSampleOverviewWidget.h"
 #include "SomaticReportConfiguration.h"
 #include "SingleSampleAnalysisDialog.h"
 #include "MultiSampleDialog.h"
@@ -105,7 +105,6 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.variant_details, SIGNAL(editSomaticVariantClassification()), this, SLOT(editSomaticVariantClassificationOfSelectedVariant()));
 	connect(ui_.variant_details, SIGNAL(editVariantValidation()), this, SLOT(editVariantValidation()));
 	connect(ui_.variant_details, SIGNAL(editVariantComment()), this, SLOT(editVariantComment()));
-	connect(ui_.variant_details, SIGNAL(showVariantSampleOverview()), this, SLOT(showVariantSampleOverview()));
 	connect(ui_.tabs, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 	ui_.actionDebug->setVisible(Settings::boolean("debug_mode_enabled"));
 
@@ -117,6 +116,7 @@ MainWindow::MainWindow(QWidget *parent)
 	ngsd_btn->menu()->addAction(ui_.actionOpenProcessedSampleTabByName );
 	ngsd_btn->menu()->addAction(ui_.actionOpenSequencingRunTabByName);
 	ngsd_btn->menu()->addAction(ui_.actionOpenGeneTabByName);
+	ngsd_btn->menu()->addAction(ui_.actionOpenVariantTab);
 	ngsd_btn->setPopupMode(QToolButton::InstantPopup);
 	ui_.tools->insertWidget(ui_.actionSampleSearch, ngsd_btn);
 
@@ -763,23 +763,6 @@ void MainWindow::editVariantComment()
 	}
 }
 
-void MainWindow::showVariantSampleOverview()
-{
-	int var_curr = ui_.vars->selectedVariantIndex();
-	if (var_curr==-1) return;
-
-	try
-	{
-		VariantSampleOverviewDialog dlg(variants_[var_curr], this);
-		dlg.exec();
-	}
-	catch (DatabaseException& e)
-	{
-		GUIHelper::showMessage("NGSD error", e.message());
-		return;
-	}
-}
-
 void MainWindow::showAfHistogram()
 {
 	AnalysisType type = variants_.type();
@@ -1189,6 +1172,25 @@ void MainWindow::openGeneTab(QByteArray symbol)
 	GeneWidget* widget = new GeneWidget(this, symbol);
 	int index = ui_.tabs->addTab(widget, QIcon(":/Icons/NGSD_gene.png"), symbol);
 	ui_.tabs->setCurrentIndex(index);
+}
+
+void MainWindow::openVariantTab(Variant variant)
+{
+	//check variant is in NGSD
+	NGSD db;
+	QString v_id = db.variantId(variant, false);
+	if (v_id=="")
+	{
+		QMessageBox::information(this, "Variant not in NGSD", "Variant " + variant.toString() + " was not found in NGSD.");
+		return;
+	}
+
+	//open tab
+	VariantSampleOverviewWidget* widget = new VariantSampleOverviewWidget(variant, this);
+	int index = ui_.tabs->addTab(widget, QIcon(":/Icons/NGSD_variant.png"), variant.toString());
+	ui_.tabs->setCurrentIndex(index);
+	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
+	connect(widget, SIGNAL(openProcessedSampleFromNGSD(QString)), this, SLOT(openProcessedSampleFromNGSD(QString)));
 }
 
 void MainWindow::closeTab(int index)
@@ -2286,6 +2288,29 @@ void MainWindow::on_actionOpenGeneTabByName_triggered()
 	openGeneTab(selector->text().toLatin1());
 }
 
+void MainWindow::on_actionOpenVariantTab_triggered()
+{
+	//get user input
+	bool ok;
+	QString text = QInputDialog::getText(this, "Enter variant", "genomic coordinates (GSvar format):", QLineEdit::Normal, "", &ok);
+	if (!ok) return;
+
+	//parse variant
+	Variant v;
+	try
+	{
+		 v = Variant::fromString(text);
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::warning(this, "Invalid variant text", e.message());
+		return;
+	}
+
+	//show sample overview for variant
+	openVariantTab(v);
+}
+
 void MainWindow::on_actionGenderXY_triggered()
 {
 	ExternalToolDialog dialog("Determine gender", "xy", this);
@@ -2892,6 +2917,9 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration")->setEnabled(ngsd_enabled_ && report_settings_.report_config.exists(VariantType::SNVS_INDELS, index));
 	menu.addSeparator();
 
+	//variant
+	menu.addAction(QIcon(":/Icons/NGSD_variant.png"), "Open variant tab")->setEnabled(ngsd_enabled_);
+
 	//gene info
 	QMenu* sub_menu = nullptr;
 	if (!genes.isEmpty())
@@ -3069,6 +3097,10 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 			GUIHelper::showMessage("LOVD upload error", "Error while uploading variant to LOVD: " + e.message());
 			return;
 		}
+	}
+	else if (text=="Open variant tab")
+	{
+		openVariantTab(variant);
 	}
 	else if (parent_menu && parent_menu->title()=="Gene info")
 	{

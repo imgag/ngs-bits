@@ -4,7 +4,7 @@ libs:
 * FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 
 NGSD:
-** Add variant tab (classification, validation, detected samples + genotype + phenotype)
+** Update variant tab (base infos, classification, validation, etc)
 ** Add sender tab (link from sample info)
 ** Add processing system tab (link from processed sample info)
 ** Add project tab (sample overview with diag status, etc)

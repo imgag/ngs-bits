@@ -1,15 +1,25 @@
-#include "VariantSampleOverviewDialog.h"
+#include "VariantSampleOverviewWidget.h"
 
 #include "NGSD.h"
 #include "GUIHelper.h"
+#include <QDialog>
+#include <QMessageBox>
 
-VariantSampleOverviewDialog::VariantSampleOverviewDialog(const Variant& variant, QWidget *parent)
-	: QDialog(parent)
+VariantSampleOverviewWidget::VariantSampleOverviewWidget(const Variant& variant, QWidget *parent)
+	: QWidget(parent)
 	, ui_()
 {
 	ui_.setupUi(this);
 	connect(ui_.similarity, SIGNAL(clicked(bool)), this, SLOT(calculateSimilarity()));
 	connect(ui_.copy_btn, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
+
+	//add sample table context menu entries
+	QAction* action = new QAction(QIcon(":/Icons/Icon.png"), "Open variant list", this);
+	ui_.table->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(openProcessedSample()));
+	action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
+	ui_.table->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(openProcessedSampleTab()));
 
 	//get variant id
 	NGSD db;
@@ -83,18 +93,18 @@ VariantSampleOverviewDialog::VariantSampleOverviewDialog(const Variant& variant,
 }
 
 
-void VariantSampleOverviewDialog::addItem(int r, int c, QString text)
+void VariantSampleOverviewWidget::addItem(int r, int c, QString text)
 {
 	QTableWidgetItem* item = new QTableWidgetItem(text);
 	ui_.table->setItem(r, c, item);
 }
 
-void VariantSampleOverviewDialog::copyToClipboard()
+void VariantSampleOverviewWidget::copyToClipboard()
 {
 	GUIHelper::copyToClipboard(ui_.table);
 }
 
-void VariantSampleOverviewDialog::calculateSimilarity()
+void VariantSampleOverviewWidget::calculateSimilarity()
 {
 	NGSD db;
 
@@ -146,3 +156,42 @@ void VariantSampleOverviewDialog::calculateSimilarity()
 	auto dlg = GUIHelper::createDialog(table, "Sample correlation based on rare variants from NGSD");
 	dlg->exec();
 }
+
+QList<int> VariantSampleOverviewWidget::selectedRows() const
+{
+	QSet<int> set;
+
+	foreach(QTableWidgetItem* item, ui_.table->selectedItems())
+	{
+		set << item->row();
+	}
+
+	return set.toList();
+}
+
+void VariantSampleOverviewWidget::openProcessedSample()
+{
+	QList<int> rows = selectedRows();
+	if (rows.count()>1)
+	{
+		QMessageBox::warning(this, "Error opening processed sample", "Please select one sample!\nOnly one processed sample can be opened at a time.");
+		return;
+	}
+
+	foreach(int row, rows)
+	{
+		QString ps = ui_.table->item(row, 0)->text();
+		emit openProcessedSampleFromNGSD(ps);
+	}
+}
+
+void VariantSampleOverviewWidget::openProcessedSampleTab()
+{
+	QList<int> rows = selectedRows();
+	foreach(int row, rows)
+	{
+		QString ps = ui_.table->item(row, 0)->text();
+		emit openProcessedSampleTab(ps);
+	}
+}
+

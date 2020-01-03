@@ -39,7 +39,6 @@ SOURCES += main.cpp\
     SvWidget.cpp \
     SingleSampleAnalysisDialog.cpp \
     SomaticDialog.cpp \
-    VariantSampleOverviewDialog.cpp \
     SomaticReportConfiguration.cpp \
     FilterEditDialog.cpp \
     SampleDiseaseInfoWidget.cpp \
@@ -64,7 +63,8 @@ SOURCES += main.cpp\
     ReportVariantDialog.cpp \
     GSvarHelper.cpp \
     SomaticRnaReport.cpp \
-    ProcessedSampleDataDeletionDialog.cpp
+    ProcessedSampleDataDeletionDialog.cpp \
+    VariantSampleOverviewWidget.cpp
 
 HEADERS  += MainWindow.h \
     ExternalToolDialog.h \
@@ -98,7 +98,6 @@ HEADERS  += MainWindow.h \
     SvWidget.h \
     SingleSampleAnalysisDialog.h \
     SomaticDialog.h \
-    VariantSampleOverviewDialog.h \
     SomaticReportConfiguration.h \
     FilterEditDialog.h \
     SampleDiseaseInfoWidget.h \
@@ -123,7 +122,8 @@ HEADERS  += MainWindow.h \
     ReportVariantDialog.h \
     GSvarHelper.h \
     SomaticRnaReport.h \
-    ProcessedSampleDataDeletionDialog.h
+    ProcessedSampleDataDeletionDialog.h \
+    VariantSampleOverviewWidget.h
 
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
@@ -155,7 +155,6 @@ FORMS    += MainWindow.ui \
     SvWidget.ui \
     SingleSampleAnalysisDialog.ui \
     SomaticDialog.ui \
-    VariantSampleOverviewDialog.ui \
     SomaticReportConfiguration.ui \
     FilterEditDialog.ui \
     SampleDiseaseInfoWidget.ui \
@@ -171,7 +170,8 @@ FORMS    += MainWindow.ui \
     FilterCascadeWidget.ui \
     FilterWidget.ui \
     ReportVariantDialog.ui \
-    ProcessedSampleDataDeletionDialog.ui
+    ProcessedSampleDataDeletionDialog.ui \
+    VariantSampleOverviewWidget.ui
 
 include("../app_gui.pri")
 

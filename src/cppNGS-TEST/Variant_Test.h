@@ -360,4 +360,21 @@ private slots:
 		I_EQUAL(v.filters().count(), 2);
 		S_EQUAL(v.annotations()[0], "off-target;off-target2");
 	}
+
+
+	void fromString()
+	{
+		//SNPs
+		Variant v1 = Variant::fromString("chr1	1423281	1423281	G	A");
+		S_EQUAL(v1.toString(), "chr1:1423281-1423281 G>A");
+
+		//Insertion
+		Variant v2 = Variant::fromString("chr14	23371255	23371255	-	GGC");
+		S_EQUAL(v2.toString(), "chr14:23371255-23371255 ->GGC");
+
+		//Deletion
+		Variant v3 = Variant::fromString("chr11	111742146	111742146	G	-");
+		S_EQUAL(v3.toString(), "chr11:111742146-111742146 G>-");
+	}
+
 };
