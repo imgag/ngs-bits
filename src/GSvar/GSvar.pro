@@ -39,7 +39,6 @@ SOURCES += main.cpp\
     SvWidget.cpp \
     SingleSampleAnalysisDialog.cpp \
     SomaticDialog.cpp \
-    VariantSampleOverviewDialog.cpp \
     FilterEditDialog.cpp \
     SampleDiseaseInfoWidget.cpp \
     DBTableWidget.cpp \
@@ -66,7 +65,8 @@ SOURCES += main.cpp\
     ProcessedSampleDataDeletionDialog.cpp \
     SomaticReportConfigurationWidget.cpp \
     SomaticReportSettings.cpp \
-    SomaticReportVariantDialog.cpp
+    SomaticReportVariantDialog.cpp \
+    VariantWidget.cpp
 
 HEADERS  += MainWindow.h \
     ExternalToolDialog.h \
@@ -100,7 +100,6 @@ HEADERS  += MainWindow.h \
     SvWidget.h \
     SingleSampleAnalysisDialog.h \
     SomaticDialog.h \
-    VariantSampleOverviewDialog.h \
     FilterEditDialog.h \
     SampleDiseaseInfoWidget.h \
     DBTableWidget.h \
@@ -127,7 +126,8 @@ HEADERS  += MainWindow.h \
     ProcessedSampleDataDeletionDialog.h \
     SomaticReportConfigurationWidget.h \
     SomaticReportSettings.h \
-    SomaticReportVariantDialog.h
+    SomaticReportVariantDialog.h \
+    VariantWidget.h
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
@@ -158,7 +158,6 @@ FORMS    += MainWindow.ui \
     SvWidget.ui \
     SingleSampleAnalysisDialog.ui \
     SomaticDialog.ui \
-    VariantSampleOverviewDialog.ui \
     FilterEditDialog.ui \
     SampleDiseaseInfoWidget.ui \
     ProcessedSampleWidget.ui \

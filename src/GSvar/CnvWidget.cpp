@@ -213,7 +213,6 @@ void CnvWidget::updateGUI()
 	QSet<int> report_variant_indices = report_config_.variantIndices(VariantType::CNVS, false).toSet();
 
 	//show variants
-	const GeneSet& imprinting_genes = GSvarHelper::impritingGenes();
 	ui->cnvs->setRowCount(cnvs_.count());
 	for (int r=0; r<cnvs_.count(); ++r)
 	{
@@ -233,13 +232,8 @@ void CnvWidget::updateGUI()
 		if (regions=="0") regions="n/a";
 		ui->cnvs->setItem(r, 2, createItem(regions, Qt::AlignRight|Qt::AlignTop));
 
-		GeneSet genes = cnvs_[r].genes();
-		QTableWidgetItem* item = createItem(QString(genes.join(',')));
-		if (genes.intersectsWith(imprinting_genes))
-		{
-			item->setBackgroundColor(Qt::yellow);
-			item->setToolTip("Imprinting gene");
-		}
+		QTableWidgetItem* item = createItem(QString(cnvs_[r].genes().join(',')));
+		GSvarHelper::colorGeneItem(item, cnvs_[r].genes());
 		ui->cnvs->setItem(r, 3, item);
 
 		int c = 4;
@@ -604,10 +598,15 @@ void CnvWidget::showQcMetricHistogram()
 	//determine median
 	std::sort(metrics.begin(), metrics.end());
 	double median = BasicStatistics::median(metrics, false);
+	double stdev = 1.482 * BasicStatistics::mad(metrics, median);
 
 	//create histogram
-	double upper_bound = median * 2.5;
-	Histogram hist(0.0, upper_bound, upper_bound/30);
+	double upper_bound = median + 4.0 * stdev;
+	if (metric_name=="number of iterations" && upper_bound<4.0) upper_bound = 4.0;
+	if (metric_name=="quality used at final iteration" && upper_bound<80.0) upper_bound = 80.0;
+	if (metric_name=="mean correlation to reference samples" && upper_bound>1.0) upper_bound = 1.0;
+
+	Histogram hist(0.0, upper_bound, upper_bound/40);
 	hist.inc(metrics, true);
 
 	//show histogram
@@ -668,6 +667,7 @@ void CnvWidget::cnvHeaderContextMenu(QPoint pos)
 	{
 		report_config_.remove(VariantType::CNVS, row);
 		updateReportConfigHeaderIcon(row);
+		emit storeReportConfiguration();
 	}
 }
 
@@ -794,7 +794,7 @@ void CnvWidget::editReportConfiguration(int row)
 	//update config, GUI and NGSD
 	report_config_.set(var_config);
 	updateReportConfigHeaderIcon(row);
-	emit storeReportConfiguration(false);
+	emit storeReportConfiguration();
 }
 
 

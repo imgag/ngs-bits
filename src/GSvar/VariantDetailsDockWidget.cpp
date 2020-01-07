@@ -47,8 +47,6 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 	menu->addAction("Edit Somatic Classification", this, SLOT(editSomaticClassification()));
 	menu->addAction("Edit validation", this, SLOT(editValidation()));
 	menu->addAction("Edit comment", this, SLOT(editComment()));
-	menu->addSeparator();
-	menu->addAction("Show sample overview for variant", this, SLOT(variantSampleOverview()));
 	ui->ngsd_edit->setMenu(menu);
 
 	//reset
@@ -206,8 +204,6 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 
 		action->setEnabled(af_lt_5_perc);
 	}
-
-	//update tooltips
 }
 
 void VariantDetailsDockWidget::clear()
@@ -766,11 +762,6 @@ void VariantDetailsDockWidget::editValidation()
 void VariantDetailsDockWidget::editComment()
 {
 	emit editVariantComment();
-}
-
-void VariantDetailsDockWidget::variantSampleOverview()
-{
-	emit showVariantSampleOverview();
 }
 
 QList<KeyValuePair> VariantDetailsDockWidget::DBEntry::splitByName() const

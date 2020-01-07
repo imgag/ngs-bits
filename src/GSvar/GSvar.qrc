@@ -83,5 +83,8 @@
         <file>Icons/bug.png</file>
         <file>Resources/lovd_transcripts.tsv</file>
         <file>Icons/ClinGen.png</file>
+        <file>Resources/genes_actionable_hi0.tsv</file>
+        <file>Icons/NGSD_sample_search.png</file>
+        <file>Icons/NGSD_variant.png</file>
     </qresource>
 </RCC>

@@ -25,6 +25,7 @@ public:
 
 	//Updates the widget to a new variant.
 	void updateVariant(const VariantList& vl, int index);
+
 	//Clears the widget (no variant selected).
 	void clear();
 
@@ -46,7 +47,6 @@ signals:
 	void editSomaticVariantClassification();
 	void editVariantValidation();
 	void editVariantComment();
-	void showVariantSampleOverview();
 
 private slots:
 	void nextTanscript();
@@ -57,7 +57,6 @@ private slots:
 	void editSomaticClassification();
 	void editValidation();
 	void editComment();
-	void variantSampleOverview();
 
 private:
 	enum Color
@@ -86,13 +85,14 @@ private:
 	void initTranscriptDetails(const VariantList& vl, int index);
 	//Set transcript details
 	void setTranscript(int index);
+
 	//current transcript
 	int trans_curr;
 	//Transcript data
 	QList<VariantTranscript> trans_data;
 
 	//GUI
-    Ui::VariantDetailsDockWidget* ui;
+	Ui::VariantDetailsDockWidget* ui;
 };
 
 #endif // VARIANTDETAILSDOCKWIDGET_H

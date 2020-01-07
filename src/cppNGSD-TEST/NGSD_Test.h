@@ -801,7 +801,7 @@ private slots:
 		params.include_ffpe_samples = false;
 		params.p_name = "KontrollDNACoriell";
 		params.p_type = "test";
-		params.sys_name = "HBOC";
+		params.sys_name = "hpHBOCv5";
 		params.sys_type = "Panel Haloplex";
 		params.r_name = "#00372";
 		params.include_bad_quality_runs = false;
@@ -846,8 +846,8 @@ private slots:
 		//reportConfigCreationData
 		ReportConfigurationCreationData rc_creation_data = db.reportConfigCreationData(conf_id);
 		S_EQUAL(rc_creation_data.created_by, "Max Mustermann");
-		S_EQUAL(rc_creation_data.last_edit_by, "");
-		S_EQUAL(rc_creation_data.last_edit_date, "");
+		S_EQUAL(rc_creation_data.last_edit_by, "Max Mustermann");
+		IS_TRUE(rc_creation_data.last_edit_date!="");
 		//update
 		QThread::sleep(1);
 		int conf_id2 = db.setReportConfig(ps_id, report_conf, vl, cnvs, "ahkerra1");

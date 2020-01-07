@@ -29,6 +29,11 @@ SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 	//sample
 	ui_.s_name->fill(db_.createTable("sample", "SELECT id, name FROM sample"), true);
 	ui_.s_species->fill(db_.createTable("species", "SELECT id, name FROM species"), true);
+	ui_.s_disease_group->addItem("");
+	ui_.s_disease_group->addItems(db_.getEnum("sample", "disease_group"));
+	ui_.s_disease_status->addItem("");
+	ui_.s_disease_status->addItems(db_.getEnum("sample", "disease_status"));
+
 	//project
 	ui_.p_name->fill(db_.createTable("project", "SELECT id, name FROM project"), true);
 	ui_.p_type->addItem("");
@@ -57,6 +62,8 @@ void SampleSearchWidget::search()
 	ProcessedSampleSearchParameters params;
 	params.s_name = ui_.s_name->text();
 	params.s_species = ui_.s_species->text();
+	params.s_disease_group = ui_.s_disease_group->currentText();
+	params.s_disease_status = ui_.s_disease_status->currentText();
 	params.include_bad_quality_samples = ui_.s_bad_quality->isChecked();
 	params.include_tumor_samples = ui_.s_tumor->isChecked();
 	params.include_ffpe_samples = ui_.s_ffpe->isChecked();

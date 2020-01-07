@@ -561,7 +561,7 @@ void ReportWorker::writeHTML()
 	foreach(int index, settings_.report_config.variantIndices(VariantType::SNVS_INDELS, true, settings_.report_type))
 	{
 		const Variant & variant = variants_[index];
-		if (file_roi_!="" && roi_.overlapsWith(variant.chr(), variant.start(), variant.end()))
+		if (file_roi_=="" || roi_.overlapsWith(variant.chr(), variant.start(), variant.end()))
 		{
 			++selected_var_count;
 		}
@@ -571,7 +571,7 @@ void ReportWorker::writeHTML()
 	foreach(int index, settings_.report_config.variantIndices(VariantType::CNVS, true, settings_.report_type))
 	{
 		const CopyNumberVariant& cnv = cnvs_[index];
-		if (file_roi_!="" && roi_.overlapsWith(cnv.chr(), cnv.start(), cnv.end()))
+		if (file_roi_=="" || roi_.overlapsWith(cnv.chr(), cnv.start(), cnv.end()))
 		{
 			++selected_cnv_count;
 		}

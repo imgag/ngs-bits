@@ -4,7 +4,8 @@ libs:
 * FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 
 NGSD:
-** Add variant tab (classification, validation, detected samples + genotype + phenotype)
+##### Gene tab - why dark
+##### Move edit functionality from variant details widget to variant tab?
 ** Add sender tab (link from sample info)
 ** Add processing system tab (link from processed sample info)
 ** Add project tab (sample overview with diag status, etc)
@@ -16,10 +17,10 @@ NGSD:
 - Allow several disease_groups per sample (requested by CS)
 
 GSvar:
-### Trio report: generate XML for parents (no gaps, ...) possible? > FEEDBACK ANNE
-** add visualization of NGSD CNVs (or annotation of CNVs):
+** add visualization of NGSD CNVs (table + IGV-like view):
     - number of overlapping CNVs (by type gain/loss)
     - overlapping class 4/5 CNVs
+    - disease group
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 * replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
 * SV widget

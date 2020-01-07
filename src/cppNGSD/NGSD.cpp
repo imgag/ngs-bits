@@ -98,6 +98,14 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		conditions	<< "sp.id=s.species_id"
 					<< "sp.name='" + escapeForSql(p.s_species) + "'";
 	}
+	if (p.s_disease_group.trimmed()!="")
+	{
+		conditions << "s.disease_group='" + escapeForSql(p.s_disease_group) + "'";
+	}
+	if (p.s_disease_status.trimmed()!="")
+	{
+		conditions << "s.disease_status='" + escapeForSql(p.s_disease_status) + "'";
+	}
 	if (!p.include_bad_quality_samples)
 	{
 		conditions << "ps.quality!='bad'";
@@ -128,7 +136,7 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	//add filters (system)
 	if (p.sys_name.trimmed()!="")
 	{
-		conditions << "(sys.name_manufacturer LIKE '%" + escapeForSql(p.sys_name) + "%' OR sys.name_short LIKE '%" + escapeForSql(p.sys_name) + "%')";
+		conditions << "(sys.name_manufacturer LIKE '" + escapeForSql(p.sys_name) + "' OR sys.name_short LIKE '" + escapeForSql(p.sys_name) + "')";
 	}
 	if (p.sys_type.trimmed()!="")
 	{
@@ -2855,11 +2863,14 @@ int NGSD::setReportConfig(const QString& processed_sample_id, const ReportConfig
 	else
 	{
 		//insert new report config
+		QString user_id = userId(config.createdBy());
+
 		SqlQuery query = getQuery();
-		query.prepare("INSERT INTO `report_configuration`(`processed_sample_id`, `created_by`, `created_date`) VALUES (:0, :1, :2)");
+		query.prepare("INSERT INTO `report_configuration`(`processed_sample_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES (:0, :1, :2, :3, CURRENT_TIMESTAMP)");
 		query.bindValue(0, processed_sample_id);
-		query.bindValue(1, userId(config.createdBy()));
+		query.bindValue(1, user_id);
 		query.bindValue(2, config.createdAt());
+		query.bindValue(3, user_id);
 		query.exec();
 		id = query.lastInsertId().toInt();
 	}

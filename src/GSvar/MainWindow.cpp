@@ -57,7 +57,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "SomaticReportHelper.h"
 #include "DiagnosticStatusOverviewDialog.h"
 #include "SvWidget.h"
-#include "VariantSampleOverviewDialog.h"
+#include "VariantWidget.h"
 #include "SomaticReportConfigurationWidget.h"
 #include "SingleSampleAnalysisDialog.h"
 #include "MultiSampleDialog.h"
@@ -105,11 +105,10 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.variant_details, SIGNAL(editSomaticVariantClassification()), this, SLOT(editSomaticVariantClassificationOfSelectedVariant()));
 	connect(ui_.variant_details, SIGNAL(editVariantValidation()), this, SLOT(editVariantValidation()));
 	connect(ui_.variant_details, SIGNAL(editVariantComment()), this, SLOT(editVariantComment()));
-	connect(ui_.variant_details, SIGNAL(showVariantSampleOverview()), this, SLOT(showVariantSampleOverview()));
 	connect(ui_.tabs, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 	ui_.actionDebug->setVisible(Settings::boolean("debug_mode_enabled"));
 
-	//NGSD menu button
+	//NGSD search button
 	auto ngsd_btn = new QToolButton();
 	ngsd_btn->setIcon(QIcon(":/Icons/NGSD_search.png"));
 	ngsd_btn->setToolTip("Open NGSD item as tab.");
@@ -117,9 +116,12 @@ MainWindow::MainWindow(QWidget *parent)
 	ngsd_btn->menu()->addAction(ui_.actionOpenProcessedSampleTabByName );
 	ngsd_btn->menu()->addAction(ui_.actionOpenSequencingRunTabByName);
 	ngsd_btn->menu()->addAction(ui_.actionOpenGeneTabByName);
+	ngsd_btn->menu()->addAction(ui_.actionOpenVariantTab);
 	ngsd_btn->setPopupMode(QToolButton::InstantPopup);
-	ui_.tools->insertWidget(ui_.actionAnalysisStatus, ngsd_btn);
-	ui_.tools->insertSeparator(ui_.actionAnalysisStatus);
+	ui_.tools->insertWidget(ui_.actionSampleSearch, ngsd_btn);
+
+	//NGSD samples
+
 
 	//signals and slots
 	connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(close()));
@@ -147,6 +149,8 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate report", this, SLOT(generateReport()));
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate variant sheet", this, SLOT(generateVariantSheet()));
+	ui_.report_btn->menu()->addSeparator();
+	ui_.report_btn->menu()->addAction("Show report configuration info", this, SLOT(showReportConfigInfo()));
 	connect(ui_.vars_folder_btn, SIGNAL(clicked(bool)), this, SLOT(openVariantListFolder()));
 	connect(ui_.vars_af_hist, SIGNAL(clicked(bool)), this, SLOT(showAfHistogram()));
 	connect(ui_.ps_details, SIGNAL(clicked(bool)), this, SLOT(openProcessedSampleTabsCurrentSample()));
@@ -266,7 +270,7 @@ void MainWindow::on_actionCNV_triggered()
 	//open CNV window
 	CnvWidget* list = new CnvWidget(cnvs_, ps_id, ui_.filters, report_settings_.report_config, het_hit_genes, gene2region_cache_);
 	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
-	connect(list, SIGNAL(storeReportConfiguration(bool)), this, SLOT(storeReportConfig(bool)));
+	connect(list, SIGNAL(storeReportConfiguration()), this, SLOT(storeReportConfig()));
 	auto dlg = GUIHelper::createDialog(list, "Copy number variants");
 	addModelessDialog(dlg, true);
 }
@@ -759,23 +763,6 @@ void MainWindow::editVariantComment()
 	}
 }
 
-void MainWindow::showVariantSampleOverview()
-{
-	int var_curr = ui_.vars->selectedVariantIndex();
-	if (var_curr==-1) return;
-
-	try
-	{
-		VariantSampleOverviewDialog dlg(variants_[var_curr], this);
-		dlg.exec();
-	}
-	catch (DatabaseException& e)
-	{
-		GUIHelper::showMessage("NGSD error", e.message());
-		return;
-	}
-}
-
 void MainWindow::showAfHistogram()
 {
 	AnalysisType type = variants_.type();
@@ -848,6 +835,7 @@ void MainWindow::on_actionSampleSearch_triggered()
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
 	connect(widget, SIGNAL(openProcessedSample(QString)), this, SLOT(openProcessedSampleFromNGSD(QString)));
 	auto dlg = GUIHelper::createDialog(widget, "Sample search");
+	dlg->setWindowIcon(QIcon(":/Icons/NGSD_sample_search.png"));
 	dlg->exec();
 }
 
@@ -1172,7 +1160,7 @@ void MainWindow::openRunTab(QString run_name)
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
 }
 
-void MainWindow::openGeneTab(QByteArray symbol)
+void MainWindow::openGeneTab(QString symbol)
 {
 	QPair<QString, QString> approved = NGSD().geneToApprovedWithMessage(symbol);
 	if (approved.second.startsWith("ERROR:"))
@@ -1181,9 +1169,29 @@ void MainWindow::openGeneTab(QByteArray symbol)
 		return;
 	}
 
-	GeneWidget* widget = new GeneWidget(this, symbol);
+	GeneWidget* widget = new GeneWidget(this, symbol.toLatin1());
 	int index = ui_.tabs->addTab(widget, QIcon(":/Icons/NGSD_gene.png"), symbol);
 	ui_.tabs->setCurrentIndex(index);
+}
+
+void MainWindow::openVariantTab(Variant variant)
+{
+	//check variant is in NGSD
+	NGSD db;
+	QString v_id = db.variantId(variant, false);
+	if (v_id=="")
+	{
+		QMessageBox::information(this, "Variant not in NGSD", "Variant " + variant.toString() + " was not found in NGSD.");
+		return;
+	}
+
+	//open tab
+	VariantWidget* widget = new VariantWidget(variant, this);
+	int index = ui_.tabs->addTab(widget, QIcon(":/Icons/NGSD_variant.png"), variant.toString());
+	ui_.tabs->setCurrentIndex(index);
+	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
+	connect(widget, SIGNAL(openProcessedSampleFromNGSD(QString)), this, SLOT(openProcessedSampleFromNGSD(QString)));
+	connect(widget, SIGNAL(openGeneTab(QString)), this, SLOT(openGeneTab(QString)));
 }
 
 void MainWindow::closeTab(int index)
@@ -1515,23 +1523,9 @@ void MainWindow::loadReportConfig()
 	AnalysisType type = variants_.type();
 	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO) return;
 
-	//check sample
+	//load
 	NGSD db;
 	QString processed_sample_id = db.processedSampleId(processedSampleName(), false);
-	if (processed_sample_id=="")
-	{
-		QMessageBox::warning(this, "Loading report configuration", "Sample was not found in the NGSD!");
-		return;
-	}
-
-	//check config exists
-	if (db.reportConfigId(processed_sample_id)==-1)
-	{
-		QMessageBox::warning(this, "Loading report configuration", "A report configuration was not found in the NGSD!");
-		return;
-	}
-
-	//load
 	QStringList messages;
 	report_settings_.report_config = db.reportConfig(processed_sample_id, variants_, cnvs_, messages);
 	if (!messages.isEmpty())
@@ -1543,7 +1537,7 @@ void MainWindow::loadReportConfig()
 	refreshVariantTable();
 }
 
-void MainWindow::storeReportConfig(bool ask_before_overwrite)
+void MainWindow::storeReportConfig()
 {
 	//check if applicable
 	if (filename_=="") return;
@@ -1561,12 +1555,14 @@ void MainWindow::storeReportConfig(bool ask_before_overwrite)
 		return;
 	}
 
-	//check if config exists
+	//check if config exists and not edited by other user
 	int conf_id = db.reportConfigId(processed_sample_id);
-	if (conf_id!=-1 && ask_before_overwrite)
+	if (conf_id!=-1)
 	{
 		ReportConfigurationCreationData conf_creation = db.reportConfigCreationData(conf_id);
-		if (QMessageBox::question(this, "Store report configuration", conf_creation.toText() + "\n\nDo you want to override it?")==QMessageBox::No)
+		QString current_user_name = db.getValue("SELECT name FROM user WHERE user_id='" + Helper::userName() + "'").toString();
+		if (conf_creation.last_edit_by!="" && conf_creation.last_edit_by!=current_user_name)
+		if (QMessageBox::question(this, "Storing report configuration", conf_creation.toText() + "\n\nDo you want to override it?")==QMessageBox::No)
 		{
 			return;
 		}
@@ -1788,6 +1784,31 @@ void MainWindow::generateVariantSheet()
 	{
 		QDesktopServices::openUrl(filename);
 	}
+}
+
+void MainWindow::showReportConfigInfo()
+{
+	//check if applicable
+	if (filename_=="") return;
+
+	//check sample exists
+	NGSD db;
+	QString processed_sample_id = db.processedSampleId(processedSampleName(), false);
+	if (processed_sample_id=="")
+	{
+		QMessageBox::information(this, "Report configuration information", "Sample was not found in the NGSD!");
+		return;
+	}
+
+	//check config exists
+	int conf_id = db.reportConfigId(processed_sample_id);
+	if (conf_id==-1)
+	{
+		QMessageBox::information(this, "Report configuration information", "No report configuration found in the NGSD!");
+		return;
+	}
+
+	QMessageBox::information(this, "Report configuration information", db.reportConfigCreationData(conf_id).toText());
 }
 
 void MainWindow::printVariantSheetRowHeader(QTextStream& stream, bool causal)
@@ -2265,7 +2286,30 @@ void MainWindow::on_actionOpenGeneTabByName_triggered()
 	//handle invalid name
 	if (selector->getId()=="") return;
 
-	openGeneTab(selector->text().toLatin1());
+	openGeneTab(selector->text());
+}
+
+void MainWindow::on_actionOpenVariantTab_triggered()
+{
+	//get user input
+	bool ok;
+	QString text = QInputDialog::getText(this, "Enter variant", "genomic coordinates (GSvar format):", QLineEdit::Normal, "", &ok);
+	if (!ok) return;
+
+	//parse variant
+	Variant v;
+	try
+	{
+		 v = Variant::fromString(text);
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::warning(this, "Invalid variant text", e.message());
+		return;
+	}
+
+	//show sample overview for variant
+	openVariantTab(v);
 }
 
 void MainWindow::on_actionGenderXY_triggered()
@@ -2874,6 +2918,9 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration")->setEnabled(ngsd_enabled_ && report_settings_.report_config.exists(VariantType::SNVS_INDELS, index));
 	menu.addSeparator();
 
+	//variant
+	menu.addAction(QIcon(":/Icons/NGSD_variant.png"), "Open variant tab")->setEnabled(ngsd_enabled_);
+
 	//gene info
 	QMenu* sub_menu = nullptr;
 	if (!genes.isEmpty())
@@ -3052,6 +3099,10 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 			return;
 		}
 	}
+	else if (text=="Open variant tab")
+	{
+		openVariantTab(variant);
+	}
 	else if (parent_menu && parent_menu->title()=="Gene info")
 	{
 		openGeneTab(text);
@@ -3154,6 +3205,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	else if (text=="Delete report configuration")
 	{
 		report_settings_.report_config.remove(VariantType::SNVS_INDELS, index);
+		storeReportConfig();
 		updateReportConfigHeaderIcon(index);
 	}
 	else if (parent_menu && parent_menu->title()=="ClinGen")
@@ -3446,19 +3498,38 @@ QList<IgvFile> MainWindow::getBamFiles()
 	SampleHeaderInfo data = variants_.getSampleHeader();
 	foreach(const SampleInfo& info, data)
 	{
+		bool found = false;
 		QString bam1 = sample_folder + "/" + info.id + ".bam";
 		QString bam2 = project_folder + "/Sample_" + info.id + "/" + info.id + ".bam";
+		QString bam3 = "";
 		if (QFile::exists(bam1))
 		{
+			found = true;
 			output << IgvFile{info.id, "BAM" , bam1};
 		}
 		else if (QFile::exists(bam2))
 		{
+			found = true;
 			output << IgvFile{info.id, "BAM" , bam2};
 		}
-		else
+		else if (ngsd_enabled_)
 		{
-			QMessageBox::warning(this, "Missing BAM file!", "Could not find BAM file at one of the default locations:\n" + bam1 + "\n" + bam2);
+			NGSD db;
+			QString ps_id = db.processedSampleId(info.id, false);
+			if (ps_id!="")
+			{
+				bam3 = db.processedSamplePath(ps_id, NGSD::BAM);
+				if (QFile::exists(bam3))
+				{
+					found = true;
+					output << IgvFile{info.id, "BAM" , bam3};
+				}
+			}
+		}
+
+		if (!found)
+		{
+			QMessageBox::warning(this, "Missing BAM file!", "Could not find BAM file at one of the default locations:\n" + bam1 + "\n" + bam2 + "\n" + bam3);
 			output.clear();
 			return output;
 		}

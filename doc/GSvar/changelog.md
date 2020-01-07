@@ -6,7 +6,7 @@
 - Sample search: GSvar files can now be opened via the context menu.
 - Sample search: Analysis can now be queued via the context menu.
 - Report configuration: report configuration is now loaded automatically when a sample is opened.
-- Report configuration: report configuration is now stored in NGSD every time it is modified (don't modify with two users at the same time!).
+- Report configuration: report configuration is now stored in NGSD every time it is modified (don't edit with two users at the same time, or you will loose data!).
 - Variant details: intron/exon numbers are now correctly labeled.
 - Variant details: added ClinGen link.
 

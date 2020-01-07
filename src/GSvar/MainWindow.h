@@ -88,6 +88,8 @@ public slots:
 	void on_actionOpenSequencingRunTabByName_triggered();
     ///Open sequencing gene tab by gene name
     void on_actionOpenGeneTabByName_triggered();
+	///Open variant tab
+	void on_actionOpenVariantTab_triggered();
     ///Gender determination
 	void on_actionGenderXY_triggered();
 	///Gender determination
@@ -155,9 +157,11 @@ public slots:
 	///Load report configuration
 	void loadReportConfig();
 	///Store report configuration
-	void storeReportConfig(bool ask_before_overwrite=true);
+	void storeReportConfig();
 	///Prints a variant sheet based on the report configuration
 	void generateVariantSheet();
+	///Shows information about the report config
+	void showReportConfigInfo();
 	///Helper function for printVariantSheet()
 	void printVariantSheetRowHeader(QTextStream& stream, bool causal);
 	///Helper function for printVariantSheet()
@@ -208,8 +212,6 @@ public slots:
 	void editVariantValidation();
 	///Edit comment of current variant
 	void editVariantComment();
-	///Shows a sample overview for the current variant;
-	void showVariantSampleOverview();
 	///Show allele frequency histogram
 	void showAfHistogram();
 	///Show encryption helper
@@ -244,7 +246,9 @@ public slots:
 	///Open run tab
 	void openRunTab(QString run_name);
     ///Open gene tab
-    void openGeneTab(QByteArray symbol);
+	void openGeneTab(QString symbol);
+	///Open variant tab
+	void openVariantTab(Variant variant);
     ///Process a tab close request
 	void closeTab(int index);
 

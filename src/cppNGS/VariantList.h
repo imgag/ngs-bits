@@ -80,7 +80,7 @@ public:
 	}
 
     ///Returns the chromosome.
-    const Chromosome& chr() const
+	const Chromosome& chr() const
     {
         return chr_;
     }
@@ -185,6 +185,9 @@ public:
     ///Returns the coordinates and base exchange as a string e.g. "chr1:3435345-3435345 A>G"
 	QString toString(bool space_separated=false, int max_sequence_length=-1) const;
 
+	///Checks if the variant is valid (without annotations). Throws ArgumentException if not.
+	void checkValid() const;
+
     /// Removes the common prefix/suffix from indels, adapts the start/end position and replaces empty sequences with a custom string.
 	void normalize(const Sequence& empty_seq="");
 	/// Returns HGVS g. notation of the variant
@@ -199,8 +202,16 @@ public:
 	///@note Expects 1-based closed intervals are positions (insertions are after given position).
 	static QPair<int, int> indelRegion(const Chromosome& chr, int start, int end, Sequence ref, Sequence obs, const FastaFileIndex& reference);
 
-	///Returns transcript information from the given column name.
-	const QList<VariantTranscript> transcriptAnnotations(int column_index) const;
+	///Returns transcript information from the given column index.
+	QList<VariantTranscript> transcriptAnnotations(int column_index) const
+	{
+		return parseTranscriptString(annotations()[column_index]);
+	}
+
+	static QList<VariantTranscript> parseTranscriptString(QByteArray text);
+
+	///Returns a normalized variant extracted from user input text.Throws an exception, if it is not valid.
+	static Variant fromString(const QString& text);
 
 protected:
     Chromosome chr_;
@@ -382,7 +393,7 @@ public:
 	///Shifts each non complex insert or deletion to the left as far as possible. Then, removes duplicates (@p sort_by_quality is only supported for VCF format).
 	void leftAlign(QString ref_file, bool sort_by_quality);
 
-	///Checks if the variants are valid. Throws ArgumentException if not.
+	///Checks if the variants are valid (with annotation). Throws ArgumentException if not.
 	void checkValid() const;
 
 	///Parses and returns sample data from variant list header (only for GSvar).
