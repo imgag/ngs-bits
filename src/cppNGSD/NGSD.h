@@ -215,6 +215,7 @@ struct CPPNGSDSHARED_EXPORT ProcessingSystemData
 	QString adapter1_p5;
 	QString adapter2_p7;
 	bool shotgun;
+	QString umi_type;
 	QString type;
 	QString genome;
 };
@@ -478,10 +479,15 @@ public:
 	///Sets the disease group/status of a sample.
 	void setSampleDiseaseData(const QString& sample_id, const QString& disease_group, const QString& disease_status);
 
+	///Returns the processing system ID from the name (tests short and long name). Returns -1 or throws a DatabaseException if not found.
+	int processingSystemId(QString name, bool throw_if_fails = true);
+	///Returns the processing system ID from the processed sample name. Throws a DatabaseException if processed sample does not exist;
+	int processingSystemIdFromProcessedSample(QString ps_name);
 	///Returns the processing system information for a processed sample.
-	ProcessingSystemData getProcessingSystemData(const QString& processed_sample_id, bool windows_path);
+	ProcessingSystemData getProcessingSystemData(int sys_id, bool windows_path);
 	///Returns all processing systems (long name) and the corresponding target regions.
 	QMap<QString, QString> getProcessingSystems(bool skip_systems_without_roi, bool windows_paths);
+
 	///Returns all QC terms of the sample
 	QCCollection getQCData(const QString& processed_sample_id);
 	///Returns all values for a QC term (from sample of the same processing system)

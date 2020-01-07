@@ -84,8 +84,7 @@ void GeneSelectorDialog::updateGeneTable()
 
 	//load processing system target region
 	NGSD db;
-	QString processed_sample_id = db.processedSampleId(sample_name_);
-	ProcessingSystemData system_data = db.getProcessingSystemData(processed_sample_id, true);
+	ProcessingSystemData system_data = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(sample_name_), true);
 	if (system_data.target_file=="")
 	{
 
@@ -217,8 +216,7 @@ QString GeneSelectorDialog::report()
 	stream << "\n";
 	stream << "Sample: " << sample_name_ << "\n";
 	NGSD db;
-	QString processed_sample_id = db.processedSampleId(sample_name_);
-	ProcessingSystemData system_data = db.getProcessingSystemData(processed_sample_id, true);
+	ProcessingSystemData system_data = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(sample_name_), true);
 	stream << "Target region: " << system_data.name << "\n";
 	stream << "\n";
 

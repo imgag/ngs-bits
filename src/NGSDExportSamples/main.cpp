@@ -79,10 +79,10 @@ public:
 		if (params.sys_name!="")
 		{
 			//check that name is valid
-			QVariant tmp = db.getValue("SELECT id FROM processing_system WHERE name_short=:0", true, params.sys_name).toString();
-			if (tmp.isNull())
+			int sys_id = db.processingSystemId(params.sys_name, false);
+			if (sys_id==-1)
 			{
-				THROW(DatabaseException, "Invalid processing system short name '"+params.sys_name+".\nValid names are: " + db.getValues("SELECT name_short FROM processing_system ORDER BY name_short ASC").join(", "));
+				THROW(DatabaseException, "Invalid processing system short name '" + params.sys_name + "'.\nValid names are: " + db.getValues("SELECT name_short FROM processing_system ORDER BY name_short ASC").join(", "));
 			}
 		}
 

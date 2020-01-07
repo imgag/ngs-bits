@@ -87,8 +87,11 @@ public slots:
 	void on_actionOpenSequencingRunTabByName_triggered();
     ///Open sequencing gene tab by gene name
     void on_actionOpenGeneTabByName_triggered();
-	///Open variant tab
+	///Open variant tab by search
 	void on_actionOpenVariantTab_triggered();
+	///Open processing system by short name
+	void on_actionOpenProcessingSystemTab_triggered();
+
     ///Gender determination
 	void on_actionGenderXY_triggered();
 	///Gender determination
@@ -250,6 +253,8 @@ public slots:
 	void openVariantTab(Variant variant);
 	///Open variant tab of current variant (if exactly one)
 	void openCurrentVariantTab();
+	///Open pocessing system tab
+	void openProcessingSystemTab(QString name_short);
     ///Process a tab close request
 	void closeTab(int index);
 

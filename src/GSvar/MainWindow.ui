@@ -885,6 +885,18 @@
     <string>Variant</string>
    </property>
   </action>
+  <action name="actionOpenProcessingSystemTab">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/NGSD_processing_system.png</normaloff>:/Icons/NGSD_processing_system.png</iconset>
+   </property>
+   <property name="text">
+    <string>Processing system</string>
+   </property>
+   <property name="toolTip">
+    <string>Processing system</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>

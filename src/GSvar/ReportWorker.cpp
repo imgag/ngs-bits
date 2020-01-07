@@ -349,8 +349,7 @@ BedFile ReportWorker::precalculatedGaps(QString bam_file, const BedFile& roi, in
 	gaps.load(low_cov_file);
 
 	//For WGS there is nothing more to check
-	QString processed_sample_id = db.processedSampleId(bam_file);
-	ProcessingSystemData system_data = db.getProcessingSystemData(processed_sample_id, true);
+	ProcessingSystemData system_data = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(bam_file), true);
 	if (system_data.type=="WGS" || system_data.type=="WGS (shallow)")
 	{
 		return gaps;
@@ -409,7 +408,7 @@ BedFile ReportWorker::precalculatedGaps(QString bam_file, const BedFile& roi, in
 
 bool ReportWorker::isProcessingSystemTargetFile(QString bam_file, QString roi_file, NGSD& db)
 {
-	ProcessingSystemData system_data = db.getProcessingSystemData(db.processedSampleId(bam_file), true);
+	ProcessingSystemData system_data = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(bam_file), true);
 
 	return Helper::canonicalPath(system_data.target_file) == Helper::canonicalPath(roi_file);
 }
@@ -478,7 +477,7 @@ void ReportWorker::writeHTML()
 	SampleData sample_data = db_.getSampleData(sample_id);
 	QString processed_sample_id = db_.processedSampleId(sample_name_);
 	ProcessedSampleData processed_sample_data = db_.getProcessedSampleData(processed_sample_id);
-	ProcessingSystemData system_data = db_.getProcessingSystemData(processed_sample_id, true);
+	ProcessingSystemData system_data = db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(sample_name_), true);
 
 	//report header (meta information)
 	stream << "<h4>" << trans("Technischer Report zur bioinformatischen Analyse") << "</h4>" << endl;
