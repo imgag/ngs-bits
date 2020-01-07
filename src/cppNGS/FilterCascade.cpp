@@ -2641,7 +2641,7 @@ FilterCnvCompHet::FilterCnvCompHet()
 {
 	name_ = "CNV compound-heterozygous";
 	type_ = VariantType::CNVS;
-	description_ = QStringList() << "Filter for compound-heterozygous CNVs." << "Mode 'CNV-CNV' detects genes with two or more CNV hits." << "Mode 'CNV-SNV/INDEL' detectes genes with one CNV and one small variant hit.";
+	description_ = QStringList() << "Filter for compound-heterozygous CNVs." << "Mode 'CNV-CNV' detects genes with two or more CNV hits." << "Mode 'CNV-SNV/INDEL' detectes genes with exactly one CNV and exactly one small variant hit (after other filters are applied).";
 	params_ << FilterParameter("mode", STRING, "n/a", "Compound-heterozygotes detection mode.");
 	params_.last().constraints["valid"] = "n/a,CNV-CNV,CNV-SNV/INDEL";
 

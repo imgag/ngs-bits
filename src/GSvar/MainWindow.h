@@ -2,7 +2,6 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QTimer>
 #include "ui_MainWindow.h"
 #include "VariantList.h"
 #include "BedFile.h"
@@ -11,6 +10,7 @@
 #include "BusyDialog.h"
 #include "FilterCascade.h"
 #include "ReportSettings.h"
+#include "DelayedInitializationTimer.h"
 
 struct IgvFile
 {
@@ -193,7 +193,7 @@ public slots:
 	///Opens the recent file defined by the sender action text
 	void openRecentFile();
 	///Loads the command line input file.
-	void delayedInizialization();
+	void delayedInitialization();
 	///Handles the re-loading the variant list when the file changes.
 	void handleInputFileChange();
 	///A variant has been double-clicked > open in IGV
@@ -248,6 +248,8 @@ public slots:
 	void openGeneTab(QString symbol);
 	///Open variant tab
 	void openVariantTab(Variant variant);
+	///Open variant tab of current variant (if exactly one)
+	void openCurrentVariantTab();
     ///Process a tab close request
 	void closeTab(int index);
 
@@ -295,8 +297,7 @@ private:
 	ReportSettings report_settings_;
 
 	//SPECIAL
-	///Timer to delay some initialization, e.g. load CLI argument after the main window is visible
-	QTimer delayed_init_timer_;
+	DelayedInitializationTimer init_timer_;
 };
 
 #endif // MAINWINDOW_H

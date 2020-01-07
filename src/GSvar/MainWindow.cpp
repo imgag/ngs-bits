@@ -76,7 +76,6 @@ QT_CHARTS_USE_NAMESPACE
 #include "GSvarHelper.h"
 #include "SampleDiseaseInfoWidget.h"
 #include "QrCodeFactory.h"
-
 #include "SomaticRnaReport.h"
 
 
@@ -90,6 +89,7 @@ MainWindow::MainWindow(QWidget *parent)
 	, db_annos_updated_(NO)
 	, igv_initialized_(false)
 	, last_report_path_(QDir::homePath())
+	, init_timer_(this, true)
 {
 	//setup GUI
 	ui_.setupUi(this);
@@ -105,6 +105,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.variant_details, SIGNAL(editSomaticVariantClassification()), this, SLOT(editSomaticVariantClassificationOfSelectedVariant()));
 	connect(ui_.variant_details, SIGNAL(editVariantValidation()), this, SLOT(editVariantValidation()));
 	connect(ui_.variant_details, SIGNAL(editVariantComment()), this, SLOT(editVariantComment()));
+	connect(ui_.variant_details, SIGNAL(openCurrentVariantTab()), this, SLOT(openCurrentVariantTab()));
 	connect(ui_.tabs, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 	ui_.actionDebug->setVisible(Settings::boolean("debug_mode_enabled"));
 
@@ -164,11 +165,6 @@ MainWindow::MainWindow(QWidget *parent)
 	{
 		last_report_path_ = gsvar_report_folder;
 	}
-
-	//delayed initialization
-	connect(&delayed_init_timer_, SIGNAL(timeout()), this, SLOT(delayedInizialization()));
-	delayed_init_timer_.setSingleShot(false);
-	delayed_init_timer_.start(50);
 }
 
 void MainWindow::on_actionDebug_triggered()
@@ -445,12 +441,8 @@ void MainWindow::on_actionReanalyze_triggered()
 	}
 }
 
-void MainWindow::delayedInizialization()
+void MainWindow::delayedInitialization()
 {
-	if (!isVisible()) return;
-	if (!delayed_init_timer_.isActive()) return;
-	delayed_init_timer_.stop();
-
 	//initialize LOG file
 	if (QFile::exists(Log::fileName()) && !Helper::isWritable(Log::fileName()))
 	{
@@ -739,12 +731,8 @@ void MainWindow::editVariantComment()
 
 		if (ok)
 		{
-			QTime timer; //TODO remove when bottleneck is determined > MARC
-			timer.start();
 			//update DB
 			db.setComment(variant, text);
-			Log::perf("XXX - edit comment - NGSD update", timer);
-			timer.start();
 
 			//update datastructure (if comment column is present)
 			int col_index = variants_.annotationIndexByName("comment", true, false);
@@ -753,7 +741,6 @@ void MainWindow::editVariantComment()
 				variant.annotations()[col_index] = text;
 				refreshVariantTable();
 			}
-			Log::perf("XXX - edit comment - rendering", timer);
 		}
 	}
 	catch (DatabaseException& e)
@@ -1192,6 +1179,14 @@ void MainWindow::openVariantTab(Variant variant)
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
 	connect(widget, SIGNAL(openProcessedSampleFromNGSD(QString)), this, SLOT(openProcessedSampleFromNGSD(QString)));
 	connect(widget, SIGNAL(openGeneTab(QString)), this, SLOT(openGeneTab(QString)));
+}
+
+void MainWindow::openCurrentVariantTab()
+{
+	QList<int> indices = ui_.vars->selectedVariantsIndices();
+	if (indices.count()!=1) return;
+
+	openVariantTab(variants_[indices.first()]);
 }
 
 void MainWindow::closeTab(int index)
@@ -3257,9 +3252,6 @@ void MainWindow::editVariantClassification(VariantList& variants, int index, boo
 		//update NGSD
 		NGSD db;
 
-		QTime timer; //TODO remove when bottleneck is determined > MARC
-		timer.start();
-
 		ClassificationInfo class_info = dlg.classificationInfo();
 		if(is_somatic)
 		{
@@ -3281,19 +3273,14 @@ void MainWindow::editVariantClassification(VariantList& variants, int index, boo
 			int i_class_comment = variants.annotationIndexByName("classification_comment", true, true);
 			variant.annotations()[i_class_comment] = class_info.comments.toLatin1();
 		}
-		Log::perf("XXX - edit class - NGSD update", timer);
-		timer.start();
 
 
 		//update details widget and filtering
 		ui_.variant_details->updateVariant(variants, index);
 		refreshVariantTable();
-		Log::perf("XXX - edit class - rendering", timer);
-		timer.start();
 
 		//store variant table
 		storeCurrentVariantList();
-		Log::perf("XXX - edit class - storing", timer);
 	}
 	catch (DatabaseException& e)
 	{

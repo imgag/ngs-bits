@@ -4,6 +4,7 @@
 #include <QWidget>
 #include "ui_VariantWidget.h"
 #include "VariantList.h"
+#include "DelayedInitializationTimer.h"
 
 class VariantWidget
 	: public QWidget
@@ -20,6 +21,7 @@ signals:
 
 private slots:
 	void updateGUI();
+	void delayedInitialization();
 	void copyToClipboard();
 	void calculateSimilarity();
 	void openProcessedSample();
@@ -27,6 +29,7 @@ private slots:
 
 private:
 	Ui::VariantWidget ui_;
+	DelayedInitializationTimer init_timer_;
 	Variant variant_;
 
 	void addItem(int r, int c, QString text);
