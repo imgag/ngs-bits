@@ -246,7 +246,7 @@ public:
 		else
 		{
 			// invalid/unknown file type
-			THROW(FileParseException, "File type of file \"" + annotation_file_path
+			THROW(FileParseException, "File type of file \"" + input_path
 				  + "\" is invalid/unknown!");
 		}
 
