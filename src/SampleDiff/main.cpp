@@ -28,7 +28,7 @@ public:
 		//optional
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
 		addInt("window", "Window to consider around indel positions to compensate for differing alignments.", true, 100);
-		addFlag("ei", "Exact indel matches only. If unset, all indels in the window are considered matches.");
+		addFlag("nei", "Allow non-exact indel matches. If set, all indels in the window are considered matches.");
 		addFlag("sm", "Also show matches. If unset, matching variants are not printed.");
 	}
 
@@ -71,7 +71,7 @@ public:
 	{
 		//init
 		bool sm = getFlag("sm");
-		bool ei = getFlag("ei");
+		bool nei = getFlag("nei");
 		QString in1 = getInfile("in1");
 		QString in2 = getInfile("in2");
 
@@ -107,6 +107,8 @@ public:
 
 		//flag matches
 		ChromosomalIndex<VariantList> file_idx(vl);
+
+		// check for exact matches
 		for (int i=0; i<vl.count(); ++i)
 		{
 			Variant& v1 = vl[i];
@@ -114,20 +116,15 @@ public:
 			//skip exact matches we already found
 			if (v1.annotations()[1]=="=") continue;
 
-			//indel => fuzzy position search
-			int start = v1.start();
-			int end = v1.end();
-			if (!v1.isSNV())
-			{
-				start -= getInt("window");
-				end += getInt("window");
-			}
-
-			QVector<int> matches = file_idx.matchingIndices(v1.chr(), start, end);
+			QVector<int> matches = file_idx.matchingIndices(v1.chr(), v1.start(), v1.end());
 			foreach(int index, matches)
 			{
 				Variant& v2 = vl[index];
 
+				//skip exact matches
+				if (v2.annotations()[1]=="=") continue;
+
+				//skip if v1 and v2 are from the same file
 				if (v2.annotations()[0]==v1.annotations()[0]) continue;
 
 				//check if genotypes match
@@ -140,11 +137,92 @@ public:
 					v1.annotations()[1] = geno_match;
 					v2.annotations()[1] = geno_match;
 				}
-				//non-exact indel matches
-				else if (!ei && !v1.isSNV() && !v2.isSNV())
+			}
+
+		}
+
+		// check for exact matches in the given window
+		if (getInt("window") > 0)
+		{
+			for (int i=0; i<vl.count(); ++i)
+			{
+				Variant& v1 = vl[i];
+
+				//skip exact matches we already found
+				if (v1.annotations()[1]=="=") continue;
+				if (v1.annotations()[1]=="g") continue;
+
+				//skip SNVs
+				if (v1.isSNV()) continue;
+
+				//indel => fuzzy position search
+				int start = v1.start() - getInt("window");
+				int end = v1.end() + getInt("window");
+
+				QVector<int> matches = file_idx.matchingIndices(v1.chr(), start, end);
+				foreach(int index, matches)
 				{
-					v1.annotations()[1] = "=";
-					v2.annotations()[1] = "=";
+					Variant& v2 = vl[index];
+
+					//skip exact matches
+					if (v2.annotations()[1]=="=") continue;
+					if (v2.annotations()[1]=="g") continue;
+
+					//skip if v1 and v2 are from the same file
+					if (v2.annotations()[0]==v1.annotations()[0]) continue;
+
+					//check if genotypes match
+					QByteArray geno_match = "=";
+					if (v2.annotations()[3]!=v1.annotations()[3] && v2.annotations()[3]!="" && v1.annotations()[3]!="") geno_match = "g";
+
+					//exact match (SNP and indel)
+					if (v1.ref()==v2.ref() && v1.obs()==v2.obs())
+					{
+						v1.annotations()[1] = geno_match;
+						v2.annotations()[1] = geno_match;
+					}
+				}
+
+			}
+
+		}
+
+		if (nei)
+		{
+			//non-exact indel mapping
+			for (int i=0; i<vl.count(); ++i)
+			{
+				Variant& v1 = vl[i];
+
+				//skip exact matches we already found
+				if (v1.annotations()[1]=="=") continue;
+				if (v1.annotations()[1]=="g") continue;
+
+				//indel => fuzzy position search
+				int start = v1.start();
+				int end = v1.end();
+				if (!v1.isSNV())
+				{
+					start -= getInt("window");
+					end += getInt("window");
+				}
+				QVector<int> matches = file_idx.matchingIndices(v1.chr(), start, end);
+				foreach(int index, matches)
+				{
+					Variant& v2 = vl[index];
+
+					//skip exact matches
+					if (v2.annotations()[1]=="=") continue;
+					if (v2.annotations()[1]=="g") continue;
+
+					//skip if v1 and v2 are from the same file
+					if (v2.annotations()[0]==v1.annotations()[0]) continue;
+
+					if (!v2.isSNV())
+					{
+						v1.annotations()[1] = "=";
+						v2.annotations()[1] = "=";
+					}
 				}
 			}
 		}
