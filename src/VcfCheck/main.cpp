@@ -26,6 +26,9 @@ public:
 		addInt("lines", "Number of lines to check in the VCF file (unlimited if 0)", true, 1000);
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addFlag("info", "Add general information about the input file to the output.");
+
+		changeLog(2019, 12, 13, "Added support for gzipped VCF files.");
+		changeLog(2019, 12, 11, "Added check for invalid characters in INFO column.");
 		changeLog(2018, 12, 3, "Initial implementation.");
 	}
 

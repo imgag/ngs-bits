@@ -33,5 +33,14 @@ private slots:
 		REMOVE_LINES("out/VcfCheck_out3.txt", QRegExp("^chr"));
 		COMPARE_FILES("out/VcfCheck_out3.txt", TESTDATA("data_out/VcfCheck_out3.txt"));
 	}
+
+	void no_warnings_vcfgz()
+	{
+		QString ref_file = Settings::string("reference_genome");
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
+		EXECUTE("VcfCheck", "-in " + TESTDATA("data_in/VcfCheck_in1.vcf.gz") + " -out out/VcfCheck_out4.txt");
+		COMPARE_FILES("out/VcfCheck_out4.txt", TESTDATA("data_out/VcfCheck_out1.txt"));
+	}
 };
 

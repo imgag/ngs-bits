@@ -31,7 +31,7 @@ public:
 	static const QList<KeyValuePair> INFO_URL_MAPPING;
 
 	///Validates VCF file
-	static bool isValid(QString vcf_file, QString ref_file, QTextStream& out_stream, bool print_general_information = false, int max_lines = std::numeric_limits<int>::max());
+	static bool isValid(QString vcf_file_path, QString ref_file, QTextStream& out_stream, bool print_general_information = false, int max_lines = std::numeric_limits<int>::max());
 
 	///Returns the content of a column by index (tab-separated line)
 	static QByteArray getPartByColumn(const QByteArray& line, int index);
