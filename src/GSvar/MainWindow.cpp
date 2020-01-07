@@ -3422,7 +3422,7 @@ void MainWindow::editVariantReportConfiguration(int index)
 		//update config, GUI and NGSD
 		report_settings_.report_config.set(var_config);
 		updateReportConfigHeaderIcon(index);
-		storeReportConfig(false);
+		storeReportConfig();
 
 		//force classification of causal variants
 		if(var_config.causal)

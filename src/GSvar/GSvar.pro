@@ -174,7 +174,8 @@ FORMS    += MainWindow.ui \
     ReportVariantDialog.ui \
     ProcessedSampleDataDeletionDialog.ui \
     SomaticReportConfigurationWidget.ui \
-    SomaticReportVariantDialog.ui
+    SomaticReportVariantDialog.ui \
+    VariantWidget.ui
 
 include("../app_gui.pri")
 
