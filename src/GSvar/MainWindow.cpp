@@ -77,6 +77,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "SampleDiseaseInfoWidget.h"
 #include "QrCodeFactory.h"
 #include "SomaticRnaReport.h"
+#include "ProcessingSystemWidget.h"
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -118,6 +119,7 @@ MainWindow::MainWindow(QWidget *parent)
 	ngsd_btn->menu()->addAction(ui_.actionOpenSequencingRunTabByName);
 	ngsd_btn->menu()->addAction(ui_.actionOpenGeneTabByName);
 	ngsd_btn->menu()->addAction(ui_.actionOpenVariantTab);
+	ngsd_btn->menu()->addAction(ui_.actionOpenProcessingSystemTab);
 	ngsd_btn->setPopupMode(QToolButton::InstantPopup);
 	ui_.tools->insertWidget(ui_.actionSampleSearch, ngsd_btn);
 
@@ -583,8 +585,7 @@ void MainWindow::openInIGV(QString region)
 		try
 		{
 			NGSD db;
-			QString processed_sample_id = db.processedSampleId(processedSampleName());
-			ProcessingSystemData system_data = db.getProcessingSystemData(processed_sample_id, true);
+			ProcessingSystemData system_data = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(processedSampleName()), true);
 			QString amplicons = system_data.target_file.left(system_data.target_file.length()-4) + "_amplicons.bed";
 			if (QFile::exists(amplicons))
 			{
@@ -1126,14 +1127,16 @@ void MainWindow::openProcessedSampleTab(QString ps_name)
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
 	connect(widget, SIGNAL(openRunTab(QString)), this, SLOT(openRunTab(QString)));
 	connect(widget, SIGNAL(executeIGVCommands(QStringList)), this, SLOT(executeIGVCommands(QStringList)));
+	connect(widget, SIGNAL(openProcessingSystemTab(QString)), this, SLOT(openProcessingSystemTab(QString)));
+
 }
 
 void MainWindow::openRunTab(QString run_name)
 {
-	QString ps_id;
+	QString run_id;
 	try
 	{
-		ps_id = NGSD().getValue("SELECT id FROM sequencing_run WHERE name=:0", true, run_name).toString();
+		run_id = NGSD().getValue("SELECT id FROM sequencing_run WHERE name=:0", true, run_name).toString();
 	}
 	catch (DatabaseException e)
 	{
@@ -1141,7 +1144,7 @@ void MainWindow::openRunTab(QString run_name)
 		return;
 	}
 
-	SequencingRunWidget* widget = new SequencingRunWidget(this, ps_id);
+	SequencingRunWidget* widget = new SequencingRunWidget(this, run_id);
 	int index = ui_.tabs->addTab(widget, QIcon(":/Icons/NGSD_run.png"), run_name);
 	ui_.tabs->setCurrentIndex(index);
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
@@ -1187,6 +1190,22 @@ void MainWindow::openCurrentVariantTab()
 	if (indices.count()!=1) return;
 
 	openVariantTab(variants_[indices.first()]);
+}
+
+void MainWindow::openProcessingSystemTab(QString name_short)
+{
+	NGSD db;
+	int sys_id = db.processingSystemId(name_short, false);
+	if (sys_id==-1)
+	{
+		GUIHelper::showMessage("NGSD error", "Processing system name '" + name_short + "' not found in NGSD!");
+		return;
+	}
+
+	ProcessingSystemWidget* widget = new ProcessingSystemWidget(this, sys_id);
+	int index = ui_.tabs->addTab(widget, QIcon(":/Icons/NGSD_processing_system.png"), name_short);
+	ui_.tabs->setCurrentIndex(index);
+	connect(widget, SIGNAL(executeIGVCommands(QStringList)), this, SLOT(executeIGVCommands(QStringList)));
 }
 
 void MainWindow::closeTab(int index)
@@ -2276,7 +2295,7 @@ void MainWindow::on_actionOpenGeneTabByName_triggered()
 
 	//show
 	auto dlg = GUIHelper::createDialog(selector, "Select gene", "symbol:", true);
-	if (dlg->exec()==QDialog::Rejected) return ;
+	if (dlg->exec()==QDialog::Rejected) return;
 
 	//handle invalid name
 	if (selector->getId()=="") return;
@@ -2305,6 +2324,23 @@ void MainWindow::on_actionOpenVariantTab_triggered()
 
 	//show sample overview for variant
 	openVariantTab(v);
+}
+
+void MainWindow::on_actionOpenProcessingSystemTab_triggered()
+{
+	//create
+	DBSelector* selector = new DBSelector(this);
+	NGSD db;
+	selector->fill(db.createTable("processing_system", "SELECT id, name_short FROM processing_system")); //TODO CONCAT(name_manufacturer, ' (', name_short, ')')
+
+	//show
+	auto dlg = GUIHelper::createDialog(selector, "Select processing system", "name:", true);
+	if (dlg->exec()==QDialog::Rejected) return;
+
+	//handle invalid name
+	if (selector->getId()=="") return;
+
+	openProcessingSystemTab(selector->text());
 }
 
 void MainWindow::on_actionGenderXY_triggered()
@@ -2913,9 +2949,6 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration")->setEnabled(ngsd_enabled_ && report_settings_.report_config.exists(VariantType::SNVS_INDELS, index));
 	menu.addSeparator();
 
-	//variant
-	menu.addAction(QIcon(":/Icons/NGSD_variant.png"), "Open variant tab")->setEnabled(ngsd_enabled_);
-
 	//gene info
 	QMenu* sub_menu = nullptr;
 	if (!genes.isEmpty())
@@ -3093,10 +3126,6 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 			GUIHelper::showMessage("LOVD upload error", "Error while uploading variant to LOVD: " + e.message());
 			return;
 		}
-	}
-	else if (text=="Open variant tab")
-	{
-		openVariantTab(variant);
 	}
 	else if (parent_menu && parent_menu->title()=="Gene info")
 	{

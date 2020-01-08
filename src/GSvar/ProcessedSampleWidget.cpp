@@ -20,6 +20,7 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	connect(ui_->ngsd_btn, SIGNAL(clicked(bool)), this, SLOT(openSampleInNGSD()));
 	connect(ui_->folder_btn, SIGNAL(clicked(bool)), this, SLOT(openSampleFolder()));
 	connect(ui_->run, SIGNAL(linkActivated(QString)), this, SIGNAL(openRunTab(QString)));
+	connect(ui_->system, SIGNAL(linkActivated(QString)), this, SIGNAL(openProcessingSystemTab(QString)));
 	connect(ui_->qc_all, SIGNAL(stateChanged(int)), this, SLOT(updateQCMetrics()));
 	connect(ui_->update_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
 	connect(ui_->diag_status_edit_btn, SIGNAL(clicked(bool)), this, SLOT(editDiagnosticStatus()));
@@ -90,7 +91,8 @@ void ProcessedSampleWidget::updateGUI()
 	styleQualityLabel(ui_->quality, ps_data.quality);
 	ui_->name->setText(ps_data.name);
 	ui_->comments_processed_sample->setText(ps_data.comments);
-	ui_->system->setText(ps_data.processing_system);
+	QString name_short = db_.getValue("SELECT name_short FROM processing_system WHERE name_manufacturer='" + ps_data.processing_system + "'").toString();
+	ui_->system->setText("<a href=\"" + name_short + "\">"+ps_data.processing_system+"</a>");
 	ui_->project->setText(ps_data.project_name);
 	QString run = ps_data.run_name;
 	ui_->run->setText("<a href=\"" + run + "\">"+run+"</a>");

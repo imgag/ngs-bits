@@ -81,17 +81,16 @@ public:
 		QString caller_version = getString("caller_version");
 
 		//check that system is valid
-		QVariant tmp = db.getValue("SELECT id FROM processing_system WHERE name_short=:0", true, system).toString();
-		if (tmp.isNull())
+		int sys_id = db.processingSystemId(system, false);
+		if (sys_id==-1)
 		{
 			THROW(DatabaseException, "Invalid processing system short name '" + system + "'.\nValid names are: " + db.getValues("SELECT name_short FROM processing_system ORDER BY name_short ASC").join(", "));
 		}
-		QString sys_id = tmp.toString();
 
 		//read data
 		QVector<double> stats_cnvs;
 		QVector<double> stats_depth;
-		QStringList cs_ids =  db.getValues("SELECT cs.id FROM cnv_callset cs, processed_sample ps WHERE ps.processing_system_id=" + sys_id + " AND ps.id=cs.processed_sample_id AND ps.quality!='bad' AND cs.quality!='bad'");
+		QStringList cs_ids =  db.getValues("SELECT cs.id FROM cnv_callset cs, processed_sample ps WHERE ps.processing_system_id=" + QString::number(sys_id) + " AND ps.id=cs.processed_sample_id AND ps.quality!='bad' AND cs.quality!='bad'");
 		stream2 << "Found " << cs_ids.count() << " high-quality CNV callsets for the processing system.\n";
 		stream2.flush();
 		QBitArray skip(cs_ids.size(), false);

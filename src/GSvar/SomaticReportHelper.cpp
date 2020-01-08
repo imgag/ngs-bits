@@ -1000,7 +1000,7 @@ SomaticReportHelper::SomaticReportHelper(QString snv_filename, const CnvList& fi
 	QString qcml_file_absolute_path = QFileInfo(snv_filename).absolutePath().append("/").append(qcml_file);
 	qcml_data_ = QCCollection::fromQCML(qcml_file_absolute_path);
 
-	processing_system_data = db_.getProcessingSystemData(db_.processedSampleId(tumor_id_), true);
+	processing_system_data = db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(tumor_id_), true);
 
 
 
@@ -1096,8 +1096,7 @@ QByteArray SomaticReportHelper::cgiCancerTypeFromVariantList(const VariantList &
 QMap<QByteArray, BedFile> SomaticReportHelper::gapStatistics(const BedFile& region_of_interest)
 {
 	BedFile roi_inter;
-	QString processed_sample_id = db_.processedSampleId(tumor_id_);
-	ProcessingSystemData system_data = db_.getProcessingSystemData(processed_sample_id, true);
+	ProcessingSystemData system_data = db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(tumor_id_), true);
 	roi_inter.load(system_data.target_file);
 	roi_inter.intersect(region_of_interest);
 	roi_inter.merge();
@@ -1490,7 +1489,7 @@ void SomaticReportHelper::somaticCnvForQbic()
 		return;
 	}
 
-	QString target_region_processing_system = db_.getProcessingSystemData(db_.processedSampleId(tumor_id_), true).target_file;
+	QString target_region_processing_system = db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(tumor_id_), true).target_file;
 	GeneSet target_genes = GeneSet::createFromFile(target_region_processing_system.left(target_region_processing_system.size()-4) + "_genes.txt");
 	NGSD db;
 	target_genes = db.genesToApproved(target_genes);
@@ -1661,7 +1660,7 @@ void SomaticReportHelper::metaDataForQbic()
 	stream << "\t";
 	stream << "\t";
 
-	stream << db_.getProcessingSystemData(db_.processedSampleId(tumor_id_), true).genome;
+	stream << db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(tumor_id_), true).genome;
 	stream << endl;
 
 	meta_data_qbic->close();
