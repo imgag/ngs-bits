@@ -19,7 +19,7 @@ private slots:
 	
 	void test_03()
 	{
-		EXECUTE_FAIL("SampleDiff", "-in1 " + TESTDATA("data_in/SampleDiff_in1.tsv") + " -in2 " + TESTDATA("data_in/SampleDiff_in2.tsv") + " -out out/SampleDiff_out3.txt ");
+		EXECUTE_FAIL("SampleDiff", "-in1 " + TESTDATA("data_in/SampleDiff_in1.tsv") + " -in2 " + TESTDATA("data_in/SampleDiff_in2.tsv") + " -out out/SampleDiff_out3.txt");
 		COMPARE_FILES("out/SampleDiff_out3.txt", TESTDATA("data_out/SampleDiff_out3.txt"));
 	}
 

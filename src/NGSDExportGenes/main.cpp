@@ -24,6 +24,7 @@ public:
 		setDescription("Lists genes from NGSD.");
 		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
 		//optional
+		addFlag("hpo", "Annotate with HPO terms (slow).");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
 		changeLog(2018,  5,  3, "First version");
@@ -34,20 +35,22 @@ public:
 	{
 		//init
 		NGSD db(getFlag("test"));
-
+		bool hpo = getFlag("hpo");
+		
 		//write header
 		QSharedPointer<QFile> output = Helper::openFileForWriting(getOutfile("out"), true);
-		output->write("#symbol\t");
-		output->write("HGNC id\t");
-		output->write("type\t");
-		output->write("name\t");
-		output->write("transcripts coding (ensembl)\t");
-		output->write("transcripts non-coding (ensembl)\t");
-		output->write("genomAD oe (syn)\t");
-		output->write("genomAD oe (mis)\t");
-		output->write("genomAD oe (lof)\t");
-		output->write("inheritance\t");
-		output->write("HPO terms\n");
+		output->write("#symbol");
+		output->write("\tHGNC id");
+		output->write("\ttype");
+		output->write("\tname");
+		output->write("\ttranscripts coding (ensembl)");
+		output->write("\ttranscripts non-coding (ensembl)");
+		output->write("\tgenomAD oe (syn)");
+		output->write("\tgenomAD oe (mis)");
+		output->write("\tgenomAD oe (lof)");
+		output->write("\tinheritance");
+		if (hpo) output->write("\tHPO terms");
+		output->write("\n");
 
 		//write content
 		SqlQuery query = db.getQuery();
@@ -62,20 +65,29 @@ public:
 			output->write(query.value("name").toByteArray() + "\t");
 			output->write(query.value("trans").toByteArray() + "\t");
 			output->write(query.value("trans_nc").toByteArray() + "\t");
+		
 			//gene info
 			GeneInfo gene_info = db.geneInfo(gene_symbol);
 			output->write(gene_info.oe_syn.replace("n/a", "").toLatin1() + "\t");
 			output->write(gene_info.oe_mis.replace("n/a", "").toLatin1() + "\t");
 			output->write(gene_info.oe_lof.replace("n/a", "").toLatin1() + "\t");
-			output->write(gene_info.inheritance.replace("n/a", "").toLatin1() + "\t");
-			//HPO terms
-			QByteArrayList hpos;
-			QList<Phenotype> phenos = db.phenotypes(gene_symbol);
-			foreach(const Phenotype& pheno, phenos)
+			output->write(gene_info.inheritance.replace("n/a", "").toLatin1());
+			
+			if (hpo)
 			{
-				hpos << pheno.toString();
+				output->write("\t");
+				
+				//HPO terms
+				QByteArrayList hpos;
+				QList<Phenotype> phenos = db.phenotypes(gene_symbol);
+				foreach(const Phenotype& pheno, phenos)
+				{
+					hpos << pheno.toString();
+				}
+				output->write(hpos.join(","));
 			}
-			output->write(hpos.join(",") + "\n");
+			
+			output->write("\n");
 		}
 	}
 };
