@@ -95,6 +95,8 @@ void ProcessedSampleWidget::updateGUI()
 	ui_->system->setText("<a href=\"" + name_short + "\">"+ps_data.processing_system+"</a>");
 	ui_->project->setText(ps_data.project_name);
 	QString run = ps_data.run_name;
+	QString run_quality = db_.getValue("SELECT quality FROM sequencing_run WHERE name='" + run + "'").toString();
+	styleQualityLabel(ui_->r_quality, run_quality);
 	ui_->run->setText("<a href=\"" + run + "\">"+run+"</a>");
 	ui_->kasp->setText(db_.getQCData(ps_id_).value("kasp").asString());
 	ui_->merged->setText(mergedSamples());

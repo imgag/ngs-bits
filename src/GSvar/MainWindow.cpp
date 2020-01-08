@@ -1337,7 +1337,7 @@ void MainWindow::loadFile(QString filename)
 	}
 
 	//load report config
-	if (ngsd_enabled_ && (variants_.type()==GERMLINE_SINGLESAMPLE || variants_.type()==GERMLINE_TRIO))
+	if (ngsd_enabled_ && germlineReportSupported(variants_.type()))
 	{
 		NGSD db;
 		QString processed_sample_id = db.processedSampleId(processedSampleName(), false);
@@ -1540,9 +1540,7 @@ void MainWindow::loadReportConfig()
 {
 	//check if applicable
 	if (filename_=="") return;
-
-	AnalysisType type = variants_.type();
-	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO) return;
+	if (!germlineReportSupported(variants_.type())) return;
 
 	//load
 	NGSD db;
@@ -1627,9 +1625,7 @@ void MainWindow::storeReportConfig()
 	//check if applicable
 	if (filename_=="") return;
 	if (!ngsd_enabled_) return;
-
-	AnalysisType type = variants_.type();
-	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO) return;
+	if (!germlineReportSupported(variants_.type())) return;
 
 	//check sample
 	NGSD db;
@@ -1666,6 +1662,15 @@ void MainWindow::storeReportConfig()
 
 void MainWindow::generateVariantSheet()
 {
+	if (filename_=="") return;
+
+	//check if applicable
+	if (!germlineReportSupported(variants_.type()))
+	{
+		QMessageBox::information(this, "Variant sheet error", "Variant sheet not supported for this type of analysis!");
+		return;
+	}
+
 	//get filename
 	QString base_name = processedSampleName();
 	QString folder = Settings::string("gsvar_report_archive");
@@ -2060,10 +2065,9 @@ void MainWindow::generateReport()
 	AnalysisType type = variants_.type();
 	if (type==SOMATIC_PAIR)
 	{
-
 		generateReportSomaticRTF();
 	}
-	else if (type==GERMLINE_SINGLESAMPLE || type==GERMLINE_TRIO)
+	else if (germlineReportSupported(type))
 	{
 		generateReportGermline();
 	}
@@ -2075,7 +2079,6 @@ void MainWindow::generateReport()
 
 void MainWindow::generateReportSomaticRTF()
 {
-
 	//load CNVs
 	CnvList cnvs;
 	try
@@ -3411,6 +3414,11 @@ QString MainWindow::cnvFile(QString gsvar_file)
 	return cnv_file;
 }
 
+bool MainWindow::germlineReportSupported(AnalysisType type)
+{
+	return type==GERMLINE_SINGLESAMPLE || type==GERMLINE_TRIO;
+}
+
 void MainWindow::updateVariantDetails()
 {
 	int var_current = ui_.vars->selectedVariantIndex();
@@ -3472,6 +3480,12 @@ bool MainWindow::executeIGVCommands(QStringList commands)
 
 void MainWindow::editVariantReportConfiguration(int index)
 {
+	if (!germlineReportSupported(variants_.type()))
+	{
+		QMessageBox::information(this, "Report configuration error", "Report configuration not supported for this type of analysis!");
+		return;
+	}
+
 	NGSD db;
 
 	if(variants_.type() != AnalysisType::SOMATIC_PAIR) //germline report configuration

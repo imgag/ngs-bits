@@ -13,7 +13,6 @@ NGSD:
 - Allow several disease_groups per sample (requested by CS)
 
 GSvar:
-##### ReportConfig: disable for Multi-Analysis (also variant sheet/report)
 ** add visualization of NGSD CNVs (table + IGV-like view):
     - number of overlapping CNVs (by type gain/loss)
     - overlapping class 4/5 CNVs
