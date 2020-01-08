@@ -438,5 +438,5 @@ INSERT INTO `cnv` (`id`, `cnv_callset_id`, `chr`, `start`, `end`, `cn`) VALUES
 
 
 INSERT INTO `somatic_report_configuration` (`id`, `ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES (3,5,6,3,'2019-01-05 14:06:12', 99, '2019-12-07 17:06:10');
-INSERT INTO `somatic_report_configuration` (`id`, `ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES (51,5,4000,3,'2019-01-05 14:06:12', 99, '2019-12-07 17:06:10');
+INSERT INTO `somatic_report_configuration` (`id`, `ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES (51,5,4000,99,'2019-01-05 14:06:12', 101, '2019-12-07 17:06:10');
 
