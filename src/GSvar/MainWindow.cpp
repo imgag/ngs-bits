@@ -259,17 +259,22 @@ void MainWindow::on_actionCNV_triggered()
 	}
 
 	//determine processed sample ID (needed for report config - so only germline)
-	QString ps_id = "";
-	AnalysisType analysis_type = variants_.type();
-	if (ngsd_enabled_ && (analysis_type==GERMLINE_SINGLESAMPLE || analysis_type==GERMLINE_TRIO))
-	{
-		ps_id = NGSD().processedSampleId(processedSampleName(), false);
-	}
+	QString ps_id = NGSD().processedSampleId(processedSampleName(), false);
 
 	//open CNV window
-	CnvWidget* list = new CnvWidget(cnvs_, ps_id, ui_.filters, report_settings_.report_config, het_hit_genes, gene2region_cache_);
+	CnvWidget* list;
+	if(cnvs_.type() == CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
+	{
+
+		list = new CnvWidget(cnvs_, ps_id, ui_.filters, somatic_report_settings_.report_config, het_hit_genes, gene2region_cache_);
+	}
+	else
+	{
+		list = new CnvWidget(cnvs_, ps_id, ui_.filters, report_settings_.report_config, het_hit_genes, gene2region_cache_);
+	}
 	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
 	connect(list, SIGNAL(storeReportConfiguration()), this, SLOT(storeReportConfig()));
+	//connect(list, SIGNAL(storeSomaticReportConfiguration()), this, SLOT(storeSomaticReportConfig()));
 	auto dlg = GUIHelper::createDialog(list, "Copy number variants");
 	addModelessDialog(dlg, true);
 }
@@ -1248,6 +1253,7 @@ void MainWindow::loadFile(QString filename)
 	igv_initialized_ = false;
 	ui_.vars->clearContents();
 	report_settings_ = ReportSettings();
+	somatic_report_settings_ = SomaticReportSettings();
 
 	ui_.tabs->setCurrentIndex(0);
 	for (int t=ui_.tabs->count()-1; t>0; --t)
@@ -1550,6 +1556,70 @@ void MainWindow::loadReportConfig()
 
 	//updateGUI
 	refreshVariantTable();
+}
+
+void MainWindow::loadSomaticReportConfig()
+{
+	if(filename_ == "") return;
+	AnalysisType type = variants_.type();
+	if(type != SOMATIC_PAIR) return;
+
+	NGSD db;
+
+	QString ps_tumor_id = db.processedSampleId(processedSampleName(), false);
+
+	QString ps_normal_name = QFileInfo(filename_).baseName().append("-").split("-")[1];
+	if(ps_normal_name.isEmpty()) return;
+	QString ps_normal_id = db.processedSampleId(ps_normal_name, false);
+
+	QStringList messages;
+	somatic_report_settings_.report_config = db.somaticReportConfig(ps_tumor_id, ps_normal_id, variants_, cnvs_, messages);
+	if(!messages.isEmpty())
+	{
+		QMessageBox::warning(this, "Somatic report configuration", "The following problems were encountered while loading the som. report configuration:\n" + messages.join("\n"));
+	}
+
+	refreshVariantTable();
+}
+
+void MainWindow::storeSomaticReportConfig()
+{
+	if(filename_ == "") return;
+	if(!ngsd_enabled_) return;
+	if(variants_.type() != SOMATIC_PAIR) return;
+
+	NGSD db;
+	QString ps_tumor_id = db.processedSampleId(processedSampleName(), false);
+	QString ps_normal_name = QFileInfo(filename_).baseName().append("-").split("-")[1];
+	QString ps_normal_id = db.processedSampleId(ps_normal_name, false);
+	if(ps_tumor_id=="" || ps_normal_id == "")
+	{
+		QMessageBox::warning(this, "Storing somatic report configuration", "Samples were not found in the NGSD!");
+		return;
+	}
+
+	int conf_id = db.reportConfigId(ps_tumor_id, ps_normal_id);
+
+	if (conf_id!=-1)
+	{
+		ReportConfigurationCreationData conf_creation = db.reportConfigCreationData(conf_id);
+		QString current_user_name = db.getValue("SELECT name FROM user WHERE user_id='" + Helper::userName() + "'").toString();
+		if (conf_creation.last_edit_by!="" && conf_creation.last_edit_by!=current_user_name)
+		if (QMessageBox::question(this, "Storing report configuration", conf_creation.toText() + "\n\nDo you want to override it?")==QMessageBox::No)
+		{
+			return;
+		}
+	}
+
+	//store
+	try
+	{
+		db.setSomaticReportConfig(ps_tumor_id, ps_normal_id, somatic_report_settings_.report_config, variants_, cnvs_, Helper::userName());
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, "Storing somatic report configuration", "Error: Could not store the somatic report configuration.\nPlease resolve this error or report it to the administrator:\n\n" + e.message());
+	}
 }
 
 void MainWindow::storeReportConfig()
@@ -3404,7 +3474,7 @@ void MainWindow::editVariantReportConfiguration(int index)
 {
 	NGSD db;
 
-	if(variants_.type() != AnalysisType::SOMATIC_PAIR)
+	if(variants_.type() != AnalysisType::SOMATIC_PAIR) //germline report configuration
 	{
 		//init/get config
 		ReportVariantConfiguration var_config;
@@ -3470,6 +3540,9 @@ void MainWindow::editVariantReportConfiguration(int index)
 		if(dlg->exec() != QDialog::Accepted) return;
 
 		somatic_report_settings_.report_config.set(var_config);
+
+		storeSomaticReportConfig();
+		updateReportConfigHeaderIcon(index);
 	}
 }
 

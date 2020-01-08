@@ -2773,10 +2773,14 @@ int NGSD::reportConfigId(const QString& processed_sample_id)
 	return id.isValid() ? id.toInt() : -1;
 }
 
-ReportConfigurationCreationData NGSD::reportConfigCreationData(int id)
+ReportConfigurationCreationData NGSD::reportConfigCreationData(int id, bool is_somatic)
 {
 	SqlQuery query = getQuery();
-	query.exec("SELECT (SELECT name FROM user WHERE id=created_by) as created_by, created_date, (SELECT name FROM user WHERE id=last_edit_by) as last_edit_by, last_edit_date FROM report_configuration WHERE id=" + QString::number(id));
+
+	QString ngsd_table = "report_configuration";
+	if(is_somatic) ngsd_table = "somatic_report_configuration";
+
+	query.exec("SELECT (SELECT name FROM user WHERE id=created_by) as created_by, created_date, (SELECT name FROM user WHERE id=last_edit_by) as last_edit_by, last_edit_date FROM " + ngsd_table + " WHERE id=" + QString::number(id));
 	query.next();
 
 	ReportConfigurationCreationData output;
@@ -3043,7 +3047,7 @@ int NGSD::reportConfigId(QString t_ps_id, QString n_ps_id, QString rna_ps_id)
 	return id.isValid() ? id.toInt() : -1;
 }
 
-int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const SomaticReportConfiguration& config, const VariantList& snvs, const CnvList& cnvs)
+int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const SomaticReportConfiguration& config, const VariantList& snvs, const CnvList& cnvs, QString user_name)
 {
 	int id = reportConfigId(t_ps_id, n_ps_id);
 
@@ -3054,17 +3058,18 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 		query.exec("DELETE FROM `somatic_report_configuration_variant` WHERE somatic_report_configuration_id=" + QByteArray::number(id));
 
 		//Update somatic report configuration
-		query.exec("UPDATE `somatic_report_configuration` SET `last_edit_by`='" + userId(config.createdBy()) + "', `last_edit_date`=CURRENT_TIMESTAMP WHERE id=" +QByteArray::number(id));
+		query.exec("UPDATE `somatic_report_configuration` SET `last_edit_by`='" + userId(user_name) + "', `last_edit_date`=CURRENT_TIMESTAMP WHERE id=" +QByteArray::number(id));
 	}
 	else
 	{
 		SqlQuery query = getQuery();
-		query.prepare("INSERT INTO `somatic_report_configuration` (`ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`) VALUES (:0, :1, :2, :3)");
+		query.prepare("INSERT INTO `somatic_report_configuration` (`ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES (:0, :1, :2, :3, :4, CURRENT_TIMESTAMP)");
 
 		query.bindValue(0, t_ps_id);
 		query.bindValue(1, n_ps_id);
 		query.bindValue(2, userId(config.createdBy()));
 		query.bindValue(3, config.createdAt());
+		query.bindValue(4, userId(user_name));
 
 		query.exec();
 		id = query.lastInsertId().toInt();

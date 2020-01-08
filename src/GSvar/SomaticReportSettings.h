@@ -1,17 +1,19 @@
 #ifndef SOMATICREPORTSETTINGS_H
 #define SOMATICREPORTSETTINGS_H
 
-#include "NGSD.h"
-#include "VariantType.h"
-#include <QStringList>
-
+#include "SomaticReportConfiguration.h"
+#include "FilterCascade.h"
 
 struct SomaticReportSettings
 {
 	SomaticReportSettings();
 
 	SomaticReportConfiguration report_config;
-	QString region_of_interest; //region from which variants will be shown in report
+	FilterCascade filters;
+
+	QString report_type;
+	QString target_bed_file;
+
 };
 
 #endif // SOMATICREPORTSETTINGS_H

@@ -2,6 +2,8 @@
 
 SomaticReportSettings::SomaticReportSettings()
 	: report_config()
-	, region_of_interest()
+	, filters()
+	, report_type()
+	, target_bed_file()
 {
 }

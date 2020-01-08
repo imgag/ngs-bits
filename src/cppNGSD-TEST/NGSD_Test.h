@@ -10,9 +10,17 @@ private:
 	//Test SomaticReportConfiguration, method has to be claled in main_tests();
 	void somaticReportTest(NGSD& db)
 	{
+		//test overloaded functions (same functions as in germline report config)
 		I_EQUAL(db.reportConfigId("5","6"), 3);
 		I_EQUAL(db.reportConfigId("5","4000"), 51);
 		I_EQUAL(db.reportConfigId("5","10"), -1);
+
+		ReportConfigurationCreationData creation_data = db.reportConfigCreationData(51, true);
+		S_EQUAL(creation_data.created_by,"Max Mustermann");
+		S_EQUAL(creation_data.created_date, "05.01.2019 14:06:12");
+		S_EQUAL(creation_data.last_edit_by, "Sarah Kerrigan");
+		S_EQUAL(creation_data.last_edit_date, "07.12.2019 17:06:10");
+
 
 		//set somatic report configuration in test NGSD
 		SomaticReportVariantConfiguration var1;
@@ -41,7 +49,7 @@ private:
 
 		QString t_ps_id = db.processedSampleId("NA12345_01");
 		QString n_ps_id = db.processedSampleId("NA12123_04");
-		db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs);
+		int config_id = db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, "ahmustm1");
 
 		//get and test somatic report configuration
 		QStringList messages = {};
@@ -69,6 +77,17 @@ private:
 		S_EQUAL(res1.include_variant_description, "Testtreiber (bekannt)");
 		S_EQUAL(res1.comment, "known test driver was not included in any db yet.");
 		IS_TRUE(res1.showInReport());
+
+		//Test whether report configuration data is correctly updated to new user
+		ReportConfigurationCreationData creation_data_1 = db.reportConfigCreationData(config_id, true);
+		S_EQUAL(creation_data_1.created_by, "Max Mustermann");
+		S_EQUAL(creation_data_1.last_edit_by, "Max Mustermann");
+		db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, "ahkerra1");
+		ReportConfigurationCreationData creation_data_2 =  db.reportConfigCreationData(config_id, true);
+		S_EQUAL(creation_data_2.created_by, "Max Mustermann");
+		S_EQUAL(creation_data_2.last_edit_by, "Sarah Kerrigan");
+		IS_TRUE(creation_data_2.created_date == creation_data_1.created_date);
+		IS_TRUE(creation_data_2.last_edit_date != "");
 	}
 private slots:
 
@@ -912,6 +931,7 @@ private slots:
 		I_EQUAL(db.getValue("SELECT count(*) FROM report_configuration").toInt(), 1);
 		db.deleteReportConfig(conf_id);
 		I_EQUAL(db.getValue("SELECT count(*) FROM report_configuration").toInt(), 0);
+
 
 		somaticReportTest(db);
 

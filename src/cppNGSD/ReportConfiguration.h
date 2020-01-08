@@ -6,15 +6,6 @@
 #include <QStringList>
 #include <QDateTime>
 
-struct CPPNGSDSHARED_EXPORT ReportVariantConfigurationBase
-{
-	virtual bool showInReport() const = 0;
-
-	VariantType variant_type;
-	int variant_index;
-
-};
-
 ///Variant meta data for report.
 struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 {
@@ -48,6 +39,7 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 	//Returns options for 'class' (taken and cached from NGSD)
 	static QStringList getClassificationOptions(bool test_db = false);
 };
+
 
 ///Report configuration
 class CPPNGSDSHARED_EXPORT ReportConfiguration

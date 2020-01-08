@@ -38,11 +38,9 @@ void SomaticReportVariantDialog::activateOkButtonIfValid()
 {
 	ui_.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 
-	//include entries and exclude checkboxes cannot be set at the same time
+	//include entry and exclude checkboxes cannot be set at the same time
 	bool exclude_is_checked = ui_.exclude_artefact->isChecked() || ui_.exclude_high_baf_deviation->isChecked() || ui_.exclude_low_cn->isChecked() || ui_.exclude_low_tumor_content->isChecked() || ui_.exclude_other->isChecked();
-
 	bool entry_included = !ui_.include_variant_alt->text().trimmed().isEmpty() || !ui_.include_variant_desc->text().trimmed().isEmpty();
-
 	if(exclude_is_checked && entry_included) return;
 
 	ui_.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);

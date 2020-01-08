@@ -10,7 +10,8 @@
 #include "BusyDialog.h"
 #include "FilterCascade.h"
 #include "ReportSettings.h"
-#include "DelayedInitializationTimer.h"#include "SomaticReportSettings.h"
+#include "DelayedInitializationTimer.h"
+#include "SomaticReportSettings.h"
 struct IgvFile
 {
 	QString id; //sample identifier/name (for visualization)
@@ -159,6 +160,10 @@ public slots:
 	void loadReportConfig();
 	///Store report configuration
 	void storeReportConfig();
+	///Load somatic report configuration
+	void loadSomaticReportConfig();
+	///Store somatic report configuration
+	void storeSomaticReportConfig();
 	///Prints a variant sheet based on the report configuration
 	void generateVariantSheet();
 	///Shows information about the report config
