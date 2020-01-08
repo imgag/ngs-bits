@@ -19,7 +19,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDExportGenes_init.sql"));
 
 		//test
-		EXECUTE("NGSDExportGenes", "-test -out out/NGSDExportGenes_out1.tsv");
+		EXECUTE("NGSDExportGenes", "-test -hpo -out out/NGSDExportGenes_out1.tsv");
 		COMPARE_FILES("out/NGSDExportGenes_out1.tsv", TESTDATA("data_out/NGSDExportGenes_out1.tsv"));
 	}
 
