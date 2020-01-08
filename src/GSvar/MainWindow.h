@@ -68,6 +68,9 @@ public:
 	///Returns the CNV file corresponding to the GSvar file
 	QString cnvFile(QString gsvar_file);
 
+	///Returns if report config is supported for the given analysis type
+	static bool germlineReportSupported(AnalysisType type);
+
 public slots:
 	///Loads a variant list. Unloads the variant list if no file name is given
 	void loadFile(QString filename="");

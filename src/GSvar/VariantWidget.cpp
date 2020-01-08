@@ -144,6 +144,8 @@ void VariantWidget::copyToClipboard()
 
 void VariantWidget::calculateSimilarity()
 {
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+
 	NGSD db;
 
 	//get sample names and variant lists
@@ -189,6 +191,8 @@ void VariantWidget::calculateSimilarity()
 	}
 
 	table->sortByColumn(5, Qt::DescendingOrder);
+
+	QApplication::restoreOverrideCursor();
 
 	//show results
 	auto dlg = GUIHelper::createDialog(table, "Sample correlation based on rare variants from NGSD");
