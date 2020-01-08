@@ -432,12 +432,50 @@ void NGSD::setSampleDiseaseData(const QString& sample_id, const QString& disease
 	getQuery().exec("UPDATE sample SET disease_group='" + disease_group + "', disease_status='" + disease_status + "' WHERE id='" + sample_id + "'");
 }
 
-ProcessingSystemData NGSD::getProcessingSystemData(const QString& processed_sample_id, bool windows_path)
+int NGSD::processingSystemId(QString name, bool throw_if_fails)
+{
+	SqlQuery query = getQuery();
+
+	//try short name
+	query.prepare("SELECT id FROM processing_system WHERE name_short=:0");
+	query.bindValue(0, name);
+	query.exec();
+	if (query.size()==1)
+	{
+		query.next();
+		return query.value(0).toInt();
+	}
+
+	//try long name
+	query.prepare("SELECT id FROM processing_system WHERE name_manufacturer=:0");
+	query.bindValue(0, name);
+	query.exec();
+	if (query.size()==1)
+	{
+		query.next();
+		return query.value(0).toInt();
+	}
+
+	if(throw_if_fails)
+	{
+		THROW(DatabaseException, "No processing system with name '" + name + "' not found in NGSD!");
+	}
+
+	return -1;
+}
+
+int NGSD::processingSystemIdFromProcessedSample(QString ps_name)
+{
+	QString ps_id = processedSampleId(ps_name, true);
+	return getValue("SELECT processing_system_id FROM processed_sample WHERE id="+ps_id).toInt();
+}
+
+ProcessingSystemData NGSD::getProcessingSystemData(int sys_id, bool windows_path)
 {
 	ProcessingSystemData output;
 
 	SqlQuery query = getQuery();
-	query.exec("SELECT sys.name_manufacturer, sys.name_short, sys.type, sys.target_file, sys.adapter1_p5, sys.adapter2_p7, sys.shotgun, g.build FROM processing_system sys, genome g, processed_sample ps WHERE sys.genome_id=g.id AND sys.id=ps.processing_system_id AND ps.id=" + processed_sample_id);
+	query.exec("SELECT sys.name_manufacturer, sys.name_short, sys.type, sys.target_file, sys.adapter1_p5, sys.adapter2_p7, sys.shotgun, sys.umi_type, g.build FROM processing_system sys, genome g WHERE sys.genome_id=g.id AND sys.id=" + QString::number(sys_id));
 	query.next();
 
 	output.name = query.value(0).toString();
@@ -453,7 +491,8 @@ ProcessingSystemData NGSD::getProcessingSystemData(const QString& processed_samp
 	output.adapter1_p5 = query.value(4).toString();
 	output.adapter2_p7 = query.value(5).toString();
 	output.shotgun = query.value(6).toString()=="1";
-	output.genome = query.value(7).toString();
+	output.umi_type = query.value(7).toString();
+	output.genome = query.value(8).toString();
 
 	return output;
 }

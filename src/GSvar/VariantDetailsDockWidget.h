@@ -47,6 +47,7 @@ signals:
 	void editSomaticVariantClassification();
 	void editVariantValidation();
 	void editVariantComment();
+	void openCurrentVariantTab();
 
 private slots:
 	void nextTanscript();
@@ -57,6 +58,7 @@ private slots:
 	void editSomaticClassification();
 	void editValidation();
 	void editComment();
+	void openVariantTab();
 
 private:
 	enum Color

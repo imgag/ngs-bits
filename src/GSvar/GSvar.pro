@@ -63,10 +63,10 @@ SOURCES += main.cpp\
     GSvarHelper.cpp \
     SomaticRnaReport.cpp \
     ProcessedSampleDataDeletionDialog.cpp \
+    ProcessingSystemWidget.cpp
     SomaticReportConfigurationWidget.cpp \
     SomaticReportSettings.cpp \
     SomaticReportVariantDialog.cpp \
-    VariantWidget.cpp
 
 HEADERS  += MainWindow.h \
     ExternalToolDialog.h \
@@ -124,10 +124,12 @@ HEADERS  += MainWindow.h \
     GSvarHelper.h \
     SomaticRnaReport.h \
     ProcessedSampleDataDeletionDialog.h \
+    VariantWidget.h \
+    ProcessingSystemWidget.h \
     SomaticReportConfigurationWidget.h \
     SomaticReportSettings.h \
-    SomaticReportVariantDialog.h \
-    VariantWidget.h
+    SomaticReportVariantDialog.h
+
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
@@ -173,9 +175,9 @@ FORMS    += MainWindow.ui \
     FilterWidget.ui \
     ReportVariantDialog.ui \
     ProcessedSampleDataDeletionDialog.ui \
+    ProcessingSystemWidget.ui
     SomaticReportConfigurationWidget.ui \
     SomaticReportVariantDialog.ui \
-    VariantWidget.ui
 
 include("../app_gui.pri")
 

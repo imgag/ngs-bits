@@ -99,14 +99,19 @@ private slots:
 		QString ps_name = db.processedSampleName(db.processedSampleId("NA12878_03"), false);
 		S_EQUAL(ps_name, "NA12878_03");
 
+		//processingSystemIdFromSample
+		int sys_id = db.processingSystemIdFromProcessedSample(ps_name);
+		S_EQUAL(sys_id, 1);
+
 		//getProcessingSystemData
-		ProcessingSystemData system_data = db.getProcessingSystemData(db.processedSampleId("NA12878_03"), false);
+		ProcessingSystemData system_data = db.getProcessingSystemData(sys_id, false);
 		S_EQUAL(system_data.name, "HaloPlex HBOC v5");
 		S_EQUAL(system_data.name_short, "hpHBOCv5");
 		S_EQUAL(system_data.adapter1_p5, "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC");
 		S_EQUAL(system_data.adapter2_p7, "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT");
 		S_EQUAL(system_data.type, "Panel Haloplex");
 		IS_FALSE(system_data.shotgun);
+		S_EQUAL(system_data.umi_type, "n/a");
 		S_EQUAL(system_data.genome, "hg19");
 
 		//normalSample

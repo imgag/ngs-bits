@@ -25,6 +25,7 @@ public:
 signals:
 	void openProcessedSampleTab(QString ps_name);
 	void openRunTab(QString run_name);
+	void openProcessingSystemTab(QString name_short);
 	void executeIGVCommands(QStringList commands);
 
 protected slots:

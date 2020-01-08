@@ -8,6 +8,7 @@
 VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
 	: QWidget(parent)
 	, ui_()
+	, init_timer_(this, true)
 	, variant_(variant)
 {
 	ui_.setupUi(this);
@@ -23,13 +24,12 @@ VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
 	action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
 	ui_.table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openProcessedSampleTab()));
-
-	//update widget
-	updateGUI();
 }
 
 void VariantWidget::updateGUI()
 {
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+
 	//get variant id
 	NGSD db;
 	QString variant_id = db.variantId(variant_);
@@ -121,6 +121,13 @@ void VariantWidget::updateGUI()
 		//resize table cols
 		GUIHelper::resizeTableCells(ui_.table, 200);
 	}
+
+	QApplication::restoreOverrideCursor();
+}
+
+void VariantWidget::delayedInitialization()
+{
+	updateGUI();
 }
 
 

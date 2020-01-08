@@ -2,7 +2,6 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QTimer>
 #include "ui_MainWindow.h"
 #include "VariantList.h"
 #include "BedFile.h"
@@ -11,8 +10,7 @@
 #include "BusyDialog.h"
 #include "FilterCascade.h"
 #include "ReportSettings.h"
-#include "SomaticReportSettings.h"
-
+#include "DelayedInitializationTimer.h"#include "SomaticReportSettings.h"
 struct IgvFile
 {
 	QString id; //sample identifier/name (for visualization)
@@ -88,8 +86,11 @@ public slots:
 	void on_actionOpenSequencingRunTabByName_triggered();
     ///Open sequencing gene tab by gene name
     void on_actionOpenGeneTabByName_triggered();
-	///Open variant tab
+	///Open variant tab by search
 	void on_actionOpenVariantTab_triggered();
+	///Open processing system by short name
+	void on_actionOpenProcessingSystemTab_triggered();
+
     ///Gender determination
 	void on_actionGenderXY_triggered();
 	///Gender determination
@@ -194,7 +195,7 @@ public slots:
 	///Opens the recent file defined by the sender action text
 	void openRecentFile();
 	///Loads the command line input file.
-	void delayedInizialization();
+	void delayedInitialization();
 	///Handles the re-loading the variant list when the file changes.
 	void handleInputFileChange();
 	///A variant has been double-clicked > open in IGV
@@ -249,6 +250,10 @@ public slots:
 	void openGeneTab(QString symbol);
 	///Open variant tab
 	void openVariantTab(Variant variant);
+	///Open variant tab of current variant (if exactly one)
+	void openCurrentVariantTab();
+	///Open pocessing system tab
+	void openProcessingSystemTab(QString name_short);
     ///Process a tab close request
 	void closeTab(int index);
 
@@ -297,8 +302,7 @@ private:
 	SomaticReportSettings somatic_report_settings_;
 
 	//SPECIAL
-	///Timer to delay some initialization, e.g. load CLI argument after the main window is visible
-	QTimer delayed_init_timer_;
+	DelayedInitializationTimer init_timer_;
 };
 
 #endif // MAINWINDOW_H

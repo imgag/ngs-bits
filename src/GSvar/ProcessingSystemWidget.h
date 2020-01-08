@@ -1,39 +1,39 @@
-#ifndef VARIANTWIDGET_H
-#define VARIANTWIDGET_H
+#ifndef PROCESSINGSYSTEMWIDGET_H
+#define PROCESSINGSYSTEMWIDGET_H
 
 #include <QWidget>
-#include "ui_VariantWidget.h"
+#include "ui_ProcessingSystemWidget.h"
 #include "VariantList.h"
 #include "DelayedInitializationTimer.h"
 
-class VariantWidget
+class ProcessingSystemWidget
 	: public QWidget
 {
 	Q_OBJECT
 
 public:
-	VariantWidget(const Variant& variant, QWidget* parent = 0);
+	ProcessingSystemWidget(QWidget* parent, int sys_id);
 
 signals:
 	void openProcessedSampleTab(QString);
 	void openProcessedSampleFromNGSD(QString);
 	void openGeneTab(QString);
+	void executeIGVCommands(QStringList commands);
 
 private slots:
 	void updateGUI();
 	void delayedInitialization();
-	void copyToClipboard();
-	void calculateSimilarity();
-	void openProcessedSample();
-	void openProcessedSampleTab();
+
+	void openRoiInExplorer();
+	void openRoiInIGV();
 
 private:
-	Ui::VariantWidget ui_;
+	Ui::ProcessingSystemWidget ui_;
 	DelayedInitializationTimer init_timer_;
-	Variant variant_;
+	int sys_id_;
 
 	void addItem(int r, int c, QString text);
 	QList<int> selectedRows() const;
 };
 
-#endif // VARIANTWIDGET_H
+#endif // PROCESSINGSYSTEMWIDGET_H

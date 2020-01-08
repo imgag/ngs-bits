@@ -78,6 +78,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "SampleDiseaseInfoWidget.h"
 #include "QrCodeFactory.h"
 #include "SomaticRnaReport.h"
+#include "ProcessingSystemWidget.h"
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -90,6 +91,7 @@ MainWindow::MainWindow(QWidget *parent)
 	, db_annos_updated_(NO)
 	, igv_initialized_(false)
 	, last_report_path_(QDir::homePath())
+	, init_timer_(this, true)
 {
 	//setup GUI
 	ui_.setupUi(this);
@@ -105,6 +107,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.variant_details, SIGNAL(editSomaticVariantClassification()), this, SLOT(editSomaticVariantClassificationOfSelectedVariant()));
 	connect(ui_.variant_details, SIGNAL(editVariantValidation()), this, SLOT(editVariantValidation()));
 	connect(ui_.variant_details, SIGNAL(editVariantComment()), this, SLOT(editVariantComment()));
+	connect(ui_.variant_details, SIGNAL(openCurrentVariantTab()), this, SLOT(openCurrentVariantTab()));
 	connect(ui_.tabs, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 	ui_.actionDebug->setVisible(Settings::boolean("debug_mode_enabled"));
 
@@ -117,6 +120,7 @@ MainWindow::MainWindow(QWidget *parent)
 	ngsd_btn->menu()->addAction(ui_.actionOpenSequencingRunTabByName);
 	ngsd_btn->menu()->addAction(ui_.actionOpenGeneTabByName);
 	ngsd_btn->menu()->addAction(ui_.actionOpenVariantTab);
+	ngsd_btn->menu()->addAction(ui_.actionOpenProcessingSystemTab);
 	ngsd_btn->setPopupMode(QToolButton::InstantPopup);
 	ui_.tools->insertWidget(ui_.actionSampleSearch, ngsd_btn);
 
@@ -164,11 +168,6 @@ MainWindow::MainWindow(QWidget *parent)
 	{
 		last_report_path_ = gsvar_report_folder;
 	}
-
-	//delayed initialization
-	connect(&delayed_init_timer_, SIGNAL(timeout()), this, SLOT(delayedInizialization()));
-	delayed_init_timer_.setSingleShot(false);
-	delayed_init_timer_.start(50);
 }
 
 void MainWindow::on_actionDebug_triggered()
@@ -445,12 +444,8 @@ void MainWindow::on_actionReanalyze_triggered()
 	}
 }
 
-void MainWindow::delayedInizialization()
+void MainWindow::delayedInitialization()
 {
-	if (!isVisible()) return;
-	if (!delayed_init_timer_.isActive()) return;
-	delayed_init_timer_.stop();
-
 	//initialize LOG file
 	if (QFile::exists(Log::fileName()) && !Helper::isWritable(Log::fileName()))
 	{
@@ -591,8 +586,7 @@ void MainWindow::openInIGV(QString region)
 		try
 		{
 			NGSD db;
-			QString processed_sample_id = db.processedSampleId(processedSampleName());
-			ProcessingSystemData system_data = db.getProcessingSystemData(processed_sample_id, true);
+			ProcessingSystemData system_data = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(processedSampleName()), true);
 			QString amplicons = system_data.target_file.left(system_data.target_file.length()-4) + "_amplicons.bed";
 			if (QFile::exists(amplicons))
 			{
@@ -739,12 +733,8 @@ void MainWindow::editVariantComment()
 
 		if (ok)
 		{
-			QTime timer; //TODO remove when bottleneck is determined > MARC
-			timer.start();
 			//update DB
 			db.setComment(variant, text);
-			Log::perf("XXX - edit comment - NGSD update", timer);
-			timer.start();
 
 			//update datastructure (if comment column is present)
 			int col_index = variants_.annotationIndexByName("comment", true, false);
@@ -753,7 +743,6 @@ void MainWindow::editVariantComment()
 				variant.annotations()[col_index] = text;
 				refreshVariantTable();
 			}
-			Log::perf("XXX - edit comment - rendering", timer);
 		}
 	}
 	catch (DatabaseException& e)
@@ -1139,14 +1128,16 @@ void MainWindow::openProcessedSampleTab(QString ps_name)
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
 	connect(widget, SIGNAL(openRunTab(QString)), this, SLOT(openRunTab(QString)));
 	connect(widget, SIGNAL(executeIGVCommands(QStringList)), this, SLOT(executeIGVCommands(QStringList)));
+	connect(widget, SIGNAL(openProcessingSystemTab(QString)), this, SLOT(openProcessingSystemTab(QString)));
+
 }
 
 void MainWindow::openRunTab(QString run_name)
 {
-	QString ps_id;
+	QString run_id;
 	try
 	{
-		ps_id = NGSD().getValue("SELECT id FROM sequencing_run WHERE name=:0", true, run_name).toString();
+		run_id = NGSD().getValue("SELECT id FROM sequencing_run WHERE name=:0", true, run_name).toString();
 	}
 	catch (DatabaseException e)
 	{
@@ -1154,7 +1145,7 @@ void MainWindow::openRunTab(QString run_name)
 		return;
 	}
 
-	SequencingRunWidget* widget = new SequencingRunWidget(this, ps_id);
+	SequencingRunWidget* widget = new SequencingRunWidget(this, run_id);
 	int index = ui_.tabs->addTab(widget, QIcon(":/Icons/NGSD_run.png"), run_name);
 	ui_.tabs->setCurrentIndex(index);
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
@@ -1192,6 +1183,30 @@ void MainWindow::openVariantTab(Variant variant)
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
 	connect(widget, SIGNAL(openProcessedSampleFromNGSD(QString)), this, SLOT(openProcessedSampleFromNGSD(QString)));
 	connect(widget, SIGNAL(openGeneTab(QString)), this, SLOT(openGeneTab(QString)));
+}
+
+void MainWindow::openCurrentVariantTab()
+{
+	QList<int> indices = ui_.vars->selectedVariantsIndices();
+	if (indices.count()!=1) return;
+
+	openVariantTab(variants_[indices.first()]);
+}
+
+void MainWindow::openProcessingSystemTab(QString name_short)
+{
+	NGSD db;
+	int sys_id = db.processingSystemId(name_short, false);
+	if (sys_id==-1)
+	{
+		GUIHelper::showMessage("NGSD error", "Processing system name '" + name_short + "' not found in NGSD!");
+		return;
+	}
+
+	ProcessingSystemWidget* widget = new ProcessingSystemWidget(this, sys_id);
+	int index = ui_.tabs->addTab(widget, QIcon(":/Icons/NGSD_processing_system.png"), name_short);
+	ui_.tabs->setCurrentIndex(index);
+	connect(widget, SIGNAL(executeIGVCommands(QStringList)), this, SLOT(executeIGVCommands(QStringList)));
 }
 
 void MainWindow::closeTab(int index)
@@ -2281,7 +2296,7 @@ void MainWindow::on_actionOpenGeneTabByName_triggered()
 
 	//show
 	auto dlg = GUIHelper::createDialog(selector, "Select gene", "symbol:", true);
-	if (dlg->exec()==QDialog::Rejected) return ;
+	if (dlg->exec()==QDialog::Rejected) return;
 
 	//handle invalid name
 	if (selector->getId()=="") return;
@@ -2310,6 +2325,23 @@ void MainWindow::on_actionOpenVariantTab_triggered()
 
 	//show sample overview for variant
 	openVariantTab(v);
+}
+
+void MainWindow::on_actionOpenProcessingSystemTab_triggered()
+{
+	//create
+	DBSelector* selector = new DBSelector(this);
+	NGSD db;
+	selector->fill(db.createTable("processing_system", "SELECT id, name_short FROM processing_system")); //TODO CONCAT(name_manufacturer, ' (', name_short, ')')
+
+	//show
+	auto dlg = GUIHelper::createDialog(selector, "Select processing system", "name:", true);
+	if (dlg->exec()==QDialog::Rejected) return;
+
+	//handle invalid name
+	if (selector->getId()=="") return;
+
+	openProcessingSystemTab(selector->text());
 }
 
 void MainWindow::on_actionGenderXY_triggered()
@@ -2918,9 +2950,6 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration")->setEnabled(ngsd_enabled_ && report_settings_.report_config.exists(VariantType::SNVS_INDELS, index));
 	menu.addSeparator();
 
-	//variant
-	menu.addAction(QIcon(":/Icons/NGSD_variant.png"), "Open variant tab")->setEnabled(ngsd_enabled_);
-
 	//gene info
 	QMenu* sub_menu = nullptr;
 	if (!genes.isEmpty())
@@ -3099,10 +3128,6 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 			return;
 		}
 	}
-	else if (text=="Open variant tab")
-	{
-		openVariantTab(variant);
-	}
 	else if (parent_menu && parent_menu->title()=="Gene info")
 	{
 		openGeneTab(text);
@@ -3257,9 +3282,6 @@ void MainWindow::editVariantClassification(VariantList& variants, int index, boo
 		//update NGSD
 		NGSD db;
 
-		QTime timer; //TODO remove when bottleneck is determined > MARC
-		timer.start();
-
 		ClassificationInfo class_info = dlg.classificationInfo();
 		if(is_somatic)
 		{
@@ -3281,19 +3303,14 @@ void MainWindow::editVariantClassification(VariantList& variants, int index, boo
 			int i_class_comment = variants.annotationIndexByName("classification_comment", true, true);
 			variant.annotations()[i_class_comment] = class_info.comments.toLatin1();
 		}
-		Log::perf("XXX - edit class - NGSD update", timer);
-		timer.start();
 
 
 		//update details widget and filtering
 		ui_.variant_details->updateVariant(variants, index);
 		refreshVariantTable();
-		Log::perf("XXX - edit class - rendering", timer);
-		timer.start();
 
 		//store variant table
 		storeCurrentVariantList();
-		Log::perf("XXX - edit class - storing", timer);
 	}
 	catch (DatabaseException& e)
 	{

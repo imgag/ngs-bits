@@ -25,6 +25,8 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 	connect(ui->trans_next, SIGNAL(clicked(bool)), this, SLOT(nextTanscript()));
 	connect(ui->variant, SIGNAL(linkActivated(QString)), this, SLOT(variantClicked(QString)));
 	connect(ui->gnomad, SIGNAL(linkActivated(QString)), this, SLOT(gnomadClicked(QString)));
+	connect(ui->var_btn, SIGNAL(clicked(bool)), this, SIGNAL(openCurrentVariantTab()));
+
 
 	//set up transcript buttons
 	ui->trans_prev->setStyleSheet("QPushButton {border: none; margin: 0px;padding: 0px;}");
@@ -197,6 +199,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 
 	//update NGSD button (and actions depending on AF)
 	ui->ngsd_edit->setEnabled(Settings::boolean("NGSD_enabled", true));
+	ui->var_btn->setEnabled(Settings::boolean("NGSD_enabled", true));
 	bool af_lt_5_perc = maxAlleleFrequency(vl, index)<0.05;
 	foreach(QAction* action, ui->ngsd_edit->menu()->actions())
 	{
@@ -228,6 +231,7 @@ void VariantDetailsDockWidget::clear()
 
 	//edit button
 	ui->ngsd_edit->setEnabled(false);
+	ui->var_btn->setEnabled(false);
 }
 
 void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& vl, int index, QString name)
@@ -762,6 +766,11 @@ void VariantDetailsDockWidget::editValidation()
 void VariantDetailsDockWidget::editComment()
 {
 	emit editVariantComment();
+}
+
+void VariantDetailsDockWidget::openVariantTab()
+{
+
 }
 
 QList<KeyValuePair> VariantDetailsDockWidget::DBEntry::splitByName() const

@@ -6,12 +6,52 @@
 #include "Helper.h"
 #include "NGSHelper.h"
 #include <QList>
+#include <zlib.h>
 
-bool VcfFile::isValid(QString vcf_file, QString ref_file, QTextStream& out_stream, bool print_general_information, int max_lines)
+bool VcfFile::isValid(QString vcf_file_path, QString ref_file, QTextStream& out_stream, bool print_general_information, int max_lines)
 {
-	//open VCF file
-	if (vcf_file.endsWith(".gz") || vcf_file.endsWith(".bgz")) THROW(ArgumentException, "VcfFile::isValid does not support gzipped VCFs!");
-	QSharedPointer<QFile> in_p = Helper::openFileForReading(vcf_file, true);
+	// determine file type:
+	VariantListFormat format;
+	if (vcf_file_path.toLower().endsWith(".vcf") || vcf_file_path == "")
+	{
+		// plain vcf
+		format = VariantListFormat::VCF;
+	}
+	else if (vcf_file_path.toLower().endsWith(".vcf.gz") || vcf_file_path.toLower().endsWith(".bgz"))
+	{
+		//zipped vcf
+		format = VariantListFormat::VCF_GZ;
+	}
+	else
+	{
+		// invalid/unknown file type
+		THROW(FileParseException, "File type of file \"" + vcf_file_path
+			  + "\" is invalid/unknown!");
+	}
+
+
+	// open input file:
+	QSharedPointer<QFile> in_p;
+	gzFile input_vcf_gz = gzFile();
+	char* buffer = new char[1048576];//1MB buffer
+	bool eof = true;
+	if (format == VariantListFormat::VCF)
+	{
+		in_p = Helper::openFileForReading(vcf_file_path, true);
+		// check for eof:
+		eof = in_p->atEnd();
+	}
+	else
+	{
+		//read binary: always open in binary mode because windows and mac open in text mode
+		input_vcf_gz = gzopen(vcf_file_path.toUtf8(), "rb");
+		if (input_vcf_gz==NULL)
+		{
+			THROW(FileAccessException, "Could not open file '" + vcf_file_path + "' for reading!");
+		}
+		// check for eof:
+		eof = gzeof(input_vcf_gz);
+	}
 
 	//open reference genome
 	FastaFileIndex reference(ref_file);
@@ -22,6 +62,19 @@ bool VcfFile::isValid(QString vcf_file, QString ref_file, QTextStream& out_strea
 	//ALT allele regexp
 	QRegExp alt_regexp("[ACGTN]+");
 
+	//create list of all invalid chars in INFO column values
+	QList<char> invalid_chars;
+	foreach(KeyValuePair kvp, VcfFile::INFO_URL_MAPPING)
+	{
+		//skip '%' since it is not forbidden but used for URL encoding
+		if (kvp.key.contains('%')) continue;
+		//skip ',' since it is allowed to divide multiple INFO values
+		if (kvp.key.contains(',')) continue;
+
+		invalid_chars.append(kvp.key[0].toLatin1());
+	}
+
+
 	//perform checks
 	QMap<QByteArray, DefinitionLine> defined_filters;
 	QMap<QByteArray, DefinitionLine> defined_formats;
@@ -31,9 +84,39 @@ bool VcfFile::isValid(QString vcf_file, QString ref_file, QTextStream& out_strea
 	bool in_header = true;
 	int c_data = 0;
 	int l = 1;
-	while(!in_p->atEnd() && l<max_lines)
+	while(!eof && l<max_lines)
 	{
-		QByteArray line = in_p->readLine().trimmed();
+		// get next line
+		QByteArray line;
+		if (format == VariantListFormat::VCF)
+		{
+			line = in_p -> readLine().trimmed();
+
+			// check for eof:
+			eof = in_p->atEnd();
+		}
+		else
+		{
+			char* char_array = gzgets(input_vcf_gz, buffer, 1048576);
+
+			//handle errors like truncated GZ file
+			if (char_array==nullptr)
+			{
+				int error_no = Z_OK;
+				QByteArray error_message = gzerror(input_vcf_gz, &error_no);
+				if (error_no!=Z_OK && error_no!=Z_STREAM_END)
+				{
+					THROW(FileParseException, "Error while reading file '" + vcf_file_path
+						  + "': " + error_message);
+				}
+			}
+			line = QByteArray(char_array).trimmed();
+
+			// check for eof:
+			eof = gzeof(input_vcf_gz);
+		}
+
+
 
 		//skip empty lines
 		if (line.isEmpty()) continue;
@@ -256,6 +339,18 @@ bool VcfFile::isValid(QString vcf_file, QString ref_file, QTextStream& out_strea
 						return false;
 					}
 				}
+
+				//check INFO value for invalid characters
+				foreach (char invalid_char, invalid_chars)
+				{
+					if (value.contains(invalid_char))
+					{
+						printError(out_stream, "Flag INFO '" + name + "' has a value which contains the invalid character '" + invalid_char + "' (value: '" + value + "')!", l, line);
+						return false;
+					}
+				}
+
+
 
 				//check value (number, type)
 				if (is_defined && has_value)
