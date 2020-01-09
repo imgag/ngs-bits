@@ -178,6 +178,7 @@ public:
 		stream2.flush();
 
 		//process chr by chr
+		stream << "#track graphtype=heatmap viewLimits=0.0:1.0 color=0,0,255 altColor=255,255,255 midRange=0.001:0.02 midColor=204,204,255 windowingFunction=maximum\n";
 		stream << "Chromosome\tStart\tEnd\tCN histogram (0-10)\tAF " << system << "\n";
 		SqlQuery q_cnvs = db.getQuery();
 		q_cnvs.prepare("SELECT start, end, cn FROM cnv WHERE cnv_callset_id=:0 AND chr=:1");

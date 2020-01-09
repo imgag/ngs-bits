@@ -19,6 +19,9 @@ GSvar:
     - number of overlapping CNVs (by type gain/loss)
     - overlapping class 4/5 CNVs
     - disease group
+* Allow ClinCNV upload
+    - small variants and CNVs
+    - only flag variants and perform manual upload at the end of each quater
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 * replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
 * SV widget
