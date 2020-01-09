@@ -1,5 +1,11 @@
 # GSvar change log
 
+### 2019_11-60 (09.01.20)
+- NGSD: added variant tab (allows opening variant list and processed sample tab from overview table).
+- NGSD: added processing system tab (allows opening ROI in IGV or explorer).
+- General: added highlighting of genes with no evidence for haploinsufficiency (cyan) in variant and CNV tables.
+- Sample search: added disease group/status.
+
 ### 2019_11-40 (19.12.19)
 - General: When opening a sample via NGSD, a selection dialog is shown if several analysis are available (single/trio/multi).
 - Analysis status: GSvar files can now be opened via the context menu.
