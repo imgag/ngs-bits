@@ -1,6 +1,7 @@
 #include "GeneWidget.h"
 #include "Helper.h"
 #include "NGSD.h"
+#include "CandidateGeneDialog.h"
 #include <QPushButton>
 #include <QInputDialog>
 #include <QMenu>
@@ -14,6 +15,7 @@ GeneWidget::GeneWidget(QWidget* parent, QByteArray symbol)
     ui_.setupUi(this);
     ui_.notice_->setVisible(false);
     connect(ui_.refesh_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
+	connect(ui_.variation_btn, SIGNAL(clicked(bool)), this, SLOT(showGeneVariationDialog()));
 
     //edit button
     QMenu* menu = new QMenu();
@@ -120,4 +122,11 @@ void GeneWidget::editComment()
     db.setGeneInfo(info);
 
     updateGUI();
+}
+
+void GeneWidget::showGeneVariationDialog()
+{
+	CandidateGeneDialog dlg(this);
+	dlg.setGene(symbol_);
+	dlg.exec();
 }

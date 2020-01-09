@@ -674,7 +674,7 @@ void ReportWorker::writeHTML()
 
 		stream << "<tr>" << endl;
 		stream << "<td>" << cnv.toString() << "</td>" << endl;
-		stream << "<td>" << cnv.regions() << "</td>" << endl;
+		stream << "<td>" << std::max(1, cnv.regions()) << "</td>" << endl; //trio CNV lists don't contain number of regions > fix
 
 		QString cn = QString::number(cnv.copyNumber(cnvs_.annotationHeaders()));
 		if (var_conf.de_novo) cn += " (de-novo)";
@@ -1197,7 +1197,7 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 		int cn = cnv.copyNumber(cnvs_.annotationHeaders());
 		w.writeAttribute("type", cn>=2 ? "dup" : "del"); //2 can be dup in chrX/chrY
 		w.writeAttribute("cn", QString::number(cn));
-		w.writeAttribute("regions", QString::number(cnv.regions()));
+		w.writeAttribute("regions", QString::number(std::max(1, cnv.regions()))); //trio CNV lists don't contain number of regions > fix
 		w.writeAttribute("causal", var_conf.causal ? "true" : "false");
 		w.writeAttribute("de_novo", var_conf.de_novo ? "true" : "false");
 		w.writeAttribute("comp_het", var_conf.comp_het ? "true" : "false");
