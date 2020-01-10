@@ -25,8 +25,7 @@ LIBS += -L$$PWD/../../bin -lcppNGSD
 INCLUDEPATH += $$PWD/../VcfToBedpe
 
 
-HEADERS += \
-    NGSDAddVariantsSomatic_Test.h \
+HEADERS += NGSDAddVariantsSomatic_Test.h \
     SampleAncestry_Test.h \
     UpdHunter_Test.h \
     NGSDImportQC_Test.h \

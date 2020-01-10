@@ -35,6 +35,12 @@ class CPPNGSDSHARED_EXPORT DBRow
 		void setValue(int i, const QString& value);
 		void removeValue(int i);
 
+		//Returns whole row as string
+		QString asString(char sep = '\t') const
+		{
+			return id_ + sep + values_.join(sep);
+		}
+
 	protected:
 		QString id_;
 		QStringList values_;
