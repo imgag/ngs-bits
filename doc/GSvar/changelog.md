@@ -1,5 +1,14 @@
 # GSvar change log
 
+### 2019_11-65 (10.01.20)
+- General: added project tab (open via processed sample tab or project search).
+- Project tab: moved diagnostic status overview from main menu to project tab.
+- Sample tab: added sample re-analysis button.
+- Sample tab: added buttons to load the sample variant list.
+- Sample tab: removed NGSD button.
+- Gene tab: now contains HGNC identifier (as a link to the HGNC page).
+- Gene tab: now contains button to open gene variation dialog.
+
 ### 2019_11-60 (09.01.20)
 - NGSD: added variant tab (allows opening variant list and processed sample tab from overview table).
 - NGSD: added processing system tab (allows opening ROI in IGV or explorer).

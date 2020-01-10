@@ -815,9 +815,7 @@ void MainWindow::on_actionSampleSearch_triggered()
 	SampleSearchWidget* widget = new SampleSearchWidget(this);
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
 	connect(widget, SIGNAL(openProcessedSample(QString)), this, SLOT(openProcessedSampleFromNGSD(QString)));
-	auto dlg = GUIHelper::createDialog(widget, "Sample search");
-	dlg->setWindowIcon(QIcon(":/Icons/NGSD_sample_search.png"));
-	dlg->exec();
+	openTab(QIcon(":/Icons/NGSD_sample_search.png"), "Sample search", widget);
 }
 
 QString MainWindow::targetFileName() const
