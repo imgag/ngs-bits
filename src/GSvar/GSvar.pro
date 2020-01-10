@@ -66,7 +66,8 @@ SOURCES += main.cpp\
     ProcessedSampleDataDeletionDialog.cpp \
     VariantWidget.cpp \
     ProcessingSystemWidget.cpp \
-    ProjectWidget.cpp
+    ProjectWidget.cpp \
+    GSvarStoreWorker.cpp
 
 HEADERS  += MainWindow.h \
     ExternalToolDialog.h \
@@ -127,7 +128,8 @@ HEADERS  += MainWindow.h \
     ProcessedSampleDataDeletionDialog.h \
     VariantWidget.h \
     ProcessingSystemWidget.h \
-    ProjectWidget.h
+    ProjectWidget.h \
+    GSvarStoreWorker.h
 
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \

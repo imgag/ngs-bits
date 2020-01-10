@@ -275,6 +275,8 @@ public slots:
 
 	///Store the currently open file
 	void storeCurrentVariantList();
+	///Finished storing the current  currently open list
+	void storingVariantListFinished(bool success);
 
 
 protected:

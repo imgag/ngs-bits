@@ -366,7 +366,7 @@ public:
 	///If @p invert is given, only variants that fall outside the target regions are loaded.
 	VariantListFormat load(QString filename, VariantListFormat format=AUTO, const BedFile* roi=nullptr, bool invert=false);
     ///Stores the variant list to a file.
-	void store(QString filename, VariantListFormat format=AUTO);
+	void store(QString filename, VariantListFormat format=AUTO) const;
 
 	///Default sorting of variants. The order is chromosome (numeric), position, ref, obs, quality (if desired - only for VCF).
 	void sort(bool use_quality = false);
@@ -452,7 +452,7 @@ protected:
     ///Loads the variant list from a TSV file.
 	void loadFromTSV(QString filename, ChromosomalIndex<BedFile>* roi_idx=nullptr, bool invert=false);
     ///Stores the variant list as a TSV file.
-    void storeToTSV(QString filename);
+	void storeToTSV(QString filename) const;
 	///Loads the variant list from a VCF file.
 	void loadFromVCF(QString filename, ChromosomalIndex<BedFile>* roi_idx=nullptr, bool invert=false);
 	///Loads the variant list from a VCF.GZ file.
@@ -460,7 +460,7 @@ protected:
 	///Processes a VCF line (both for VCF and VCF.GZ).
 	void processVcfLine(QList<QByteArray>& header_fields, int& line_number, QByteArray line, ChromosomalIndex<BedFile>* roi_idx=nullptr, bool invert=false);
     ///Stores the variant list as a VCF file.
-    void storeToVCF(QString filename);
+	void storeToVCF(QString filename) const;
 	///Converts an annotation type to a string (for VCF only)
 	static QString annotationTypeToString(VariantAnnotationDescription::AnnotationType type);
 };

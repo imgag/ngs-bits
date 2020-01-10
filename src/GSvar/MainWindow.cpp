@@ -78,6 +78,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "SomaticRnaReport.h"
 #include "ProcessingSystemWidget.h"
 #include "ProjectWidget.h"
+#include "GSvarStoreWorker.h"
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -3511,7 +3512,22 @@ void MainWindow::storeCurrentVariantList()
 	filewatcher_.clearFile();
 
 	//store
-	variants_.store(filename_);
+	GSvarStoreWorker* worker = new GSvarStoreWorker(variants_, filename_);
+	connect(worker, SIGNAL(finished(bool)), this, SLOT(storingVariantListFinished(bool)));
+	worker->start();
+}
+
+void MainWindow::storingVariantListFinished(bool success)
+{
+	//show result info box
+	GSvarStoreWorker* worker = qobject_cast<GSvarStoreWorker*>(sender());
+	if (!success)
+	{
+		QMessageBox::warning(this, "Error", "Storing GSvar failed:\n" + worker->errorMessage());
+	}
+
+	//clean
+	worker->deleteLater();
 
 	//enable file watcher again
 	filewatcher_.setFile(filename_);

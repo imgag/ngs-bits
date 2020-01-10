@@ -615,7 +615,7 @@ VariantListFormat VariantList::load(QString filename, VariantListFormat format, 
 	}
 }
 
-void VariantList::store(QString filename, VariantListFormat format)
+void VariantList::store(QString filename, VariantListFormat format) const
 {
 	//determine format
 	if (format==AUTO)
@@ -726,7 +726,7 @@ void VariantList::loadFromTSV(QString filename, ChromosomalIndex<BedFile>* roi_i
 	}
 }
 
-void VariantList::storeToTSV(QString filename)
+void VariantList::storeToTSV(QString filename) const
 {
 	//open stream
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename);
@@ -1175,7 +1175,7 @@ void VariantList::processVcfLine(QList<QByteArray>& header_fields, int& line_num
 	append(Variant(chr, start, end, ref_bases, line_parts[4].toUpper(), annos, 2));
 }
 
-void VariantList::storeToVCF(QString filename)
+void VariantList::storeToVCF(QString filename) const
 {
 	//open stream
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename);

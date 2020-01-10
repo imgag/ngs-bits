@@ -11,10 +11,13 @@ NGSD:
     - sample: import disease info, disease group/status, gender from same samples
     - use comments from schema in info texts
 ** Add run overview dialog/tab
+* Add admin section (genome, device, MID, procesing system, sample group, sender, speicies)
+* Add users section
+* Add statistics section
+* Add batch import of samples/processed samples
 - Allow several disease_groups per sample (requested by CS)
 
 GSvar:
-#### Variant classification: store variant list in backgroud thread (also execute IGV commands in background thread - show background activities in some kind of status icon)
 ** add visualization of NGSD CNVs (table + IGV-like view):
     - number of overlapping CNVs (by type gain/loss)
     - overlapping class 4/5 CNVs
