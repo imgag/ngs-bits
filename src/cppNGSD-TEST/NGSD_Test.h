@@ -790,32 +790,32 @@ private slots:
 		//processedSampleSearch
 		ProcessedSampleSearchParameters params;
 		DBTable ps_table = db.processedSampleSearch(params);
-		I_EQUAL(ps_table.rowCount(), 7);
+		I_EQUAL(ps_table.rowCount(), 9);
 		I_EQUAL(ps_table.columnCount(), 18);
 		//add path
 		params.add_path = true;
 		ps_table = db.processedSampleSearch(params);
-		I_EQUAL(ps_table.rowCount(), 7);
+		I_EQUAL(ps_table.rowCount(), 9);
 		I_EQUAL(ps_table.columnCount(), 19);
 		//add outcome
 		params.add_outcome = true;
 		ps_table = db.processedSampleSearch(params);
-		I_EQUAL(ps_table.rowCount(), 7);
+		I_EQUAL(ps_table.rowCount(), 9);
 		I_EQUAL(ps_table.columnCount(), 21);
 		//add disease details
 		params.add_disease_details = true;
 		ps_table = db.processedSampleSearch(params);
-		I_EQUAL(ps_table.rowCount(), 7);
+		I_EQUAL(ps_table.rowCount(), 9);
 		I_EQUAL(ps_table.columnCount(), 29);
 		//add QC
 		params.add_qc = true;
 		ps_table = db.processedSampleSearch(params);
-		I_EQUAL(ps_table.rowCount(), 7);
+		I_EQUAL(ps_table.rowCount(), 9);
 		I_EQUAL(ps_table.columnCount(), 68);
 		//add report config
 		params.add_report_config = true;
 		ps_table = db.processedSampleSearch(params);
-		I_EQUAL(ps_table.rowCount(), 7);
+		I_EQUAL(ps_table.rowCount(), 9);
 		I_EQUAL(ps_table.columnCount(), 69);
 		//apply all search parameters
 		params.s_name = "NA12878";

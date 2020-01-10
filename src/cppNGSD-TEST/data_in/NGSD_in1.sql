@@ -19,7 +19,9 @@ INSERT INTO `sample` (`id`, `name`, `name_external`, `sample_type`, `species_id`
 (1, 'NA12878', 'ex1', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s1', 'Diseases of the blood or blood-forming organs', 'Unaffected'),
 (2, 'NA12123', 'ex2', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s2', 'Neoplasms', 'Affected'),
 (3, 'NA12345', 'ex3', 'DNA', 1, 'male', 'bad', 1 ,1, 1, 'comment_s3', 'Diseases of the immune system', 'Affected'),
-(4, 'NA12123repeat', 'ex4', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s4', 'Neoplasms', 'Affected');
+(4, 'NA12123repeat', 'ex4', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s4', 'Neoplasms', 'Affected'),
+(5, 'DX184894', 'ex5', 'DNA', 1, 'female', 'good', 1, 1, 1, 'comment_s5', 'Neoplasms', 'Affected'),
+(6, 'DX184263', 'ex6', 'DNA', 1, 'female', 'good', 0, 0, 1, 'comment_s6', 'Neoplasms', 'Affected');
 
 INSERT INTO `processing_system` (`id`, `name_short`, `name_manufacturer`, `adapter1_p5`, `adapter2_p7`, `type`, `shotgun`, `target_file`, `genome_id`) VALUES
 (1, 'hpHBOCv5', 'HaloPlex HBOC v5', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel Haloplex', 0, 'hpHBOCv5.bed', 1),
@@ -32,7 +34,9 @@ INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_
 (4002, 3, 1, 1, '1', 1, 1, 'good', 'comment_ps4', 3999),
 (4003, 4, 1, 1, '1', 1, 1, 'good', 'comment_ps4', null),
 (5, 2, 23, 1, '1', 1, 1, 'medium', 'comment_ps5', null),
-(6, 3, 44, 1, '1', 1, 1, 'medium', 'comment_ps6', null);
+(6, 3, 44, 1, '1', 1, 1, 'medium', 'comment_ps6', null),
+(7, 6, 1, '1', '1,2,3,4', 1, 1, 'good', 'comment_ps7', null),
+(8, 5, 1, '1', '1,2,3,4', 1, 1, 'good', 'comment_ps8', 7);
 
 INSERT INTO `diag_status`(`processed_sample_id`, `status`, `user_id`, `date`, `outcome`, `comment`) VALUES
 (3999, 'done', 99, '2014-07-29 09:40:49', 'no significant findings', "free text");
