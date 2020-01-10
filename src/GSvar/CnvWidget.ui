@@ -292,7 +292,7 @@
               <string>...</string>
              </property>
              <property name="icon">
-              <iconset resource="../GSmix/GSmix.qrc">
+              <iconset resource="GSvar.qrc">
                <normaloff>:/Icons/NGSD.png</normaloff>:/Icons/NGSD.png</iconset>
              </property>
              <property name="popupMode">
@@ -335,7 +335,6 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../GSmix/GSmix.qrc"/>
   <include location="GSvar.qrc"/>
  </resources>
  <connections/>

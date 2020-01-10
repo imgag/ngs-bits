@@ -55,7 +55,6 @@ QT_CHARTS_USE_NAMESPACE
 #include "LovdUploadDialog.h"
 #include "OntologyTermCollection.h"
 #include "SomaticReportHelper.h"
-#include "DiagnosticStatusOverviewDialog.h"
 #include "SvWidget.h"
 #include "VariantWidget.h"
 #include "SomaticReportConfigurationWidget.h"
@@ -79,6 +78,8 @@ QT_CHARTS_USE_NAMESPACE
 #include "QrCodeFactory.h"
 #include "SomaticRnaReport.h"
 #include "ProcessingSystemWidget.h"
+#include "ProjectWidget.h"
+#include "GSvarStoreWorker.h"
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -119,6 +120,7 @@ MainWindow::MainWindow(QWidget *parent)
 	ngsd_btn->menu()->addAction(ui_.actionOpenProcessedSampleTabByName );
 	ngsd_btn->menu()->addAction(ui_.actionOpenSequencingRunTabByName);
 	ngsd_btn->menu()->addAction(ui_.actionOpenGeneTabByName);
+	ngsd_btn->menu()->addAction(ui_.actionOpenProjectTab);
 	ngsd_btn->menu()->addAction(ui_.actionOpenVariantTab);
 	ngsd_btn->menu()->addAction(ui_.actionOpenProcessingSystemTab);
 	ngsd_btn->setPopupMode(QToolButton::InstantPopup);
@@ -371,13 +373,6 @@ void MainWindow::on_actionPublishVariantInLOVD_triggered()
 {
 	LovdUploadDialog dlg(this);
 	dlg.exec();
-}
-
-void MainWindow::on_actionDiagnosticStatusOverview_triggered()
-{
-	DiagnosticStatusOverviewDialog* dlg = new DiagnosticStatusOverviewDialog(this);
-	connect(dlg, SIGNAL(openProcessedSample(QString)), this, SLOT(openProcessedSampleFromNGSD(QString)));
-	addModelessDialog(QSharedPointer<QDialog>(dlg));
 }
 
 void MainWindow::on_actionReanalyze_triggered()
@@ -828,9 +823,7 @@ void MainWindow::on_actionSampleSearch_triggered()
 	SampleSearchWidget* widget = new SampleSearchWidget(this);
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
 	connect(widget, SIGNAL(openProcessedSample(QString)), this, SLOT(openProcessedSampleFromNGSD(QString)));
-	auto dlg = GUIHelper::createDialog(widget, "Sample search");
-	dlg->setWindowIcon(QIcon(":/Icons/NGSD_sample_search.png"));
-	dlg->exec();
+	openTab(QIcon(":/Icons/NGSD_sample_search.png"), "Sample search", widget);
 }
 
 QString MainWindow::targetFileName() const
@@ -1128,13 +1121,13 @@ void MainWindow::openProcessedSampleTab(QString ps_name)
 	}
 
 	ProcessedSampleWidget* widget = new ProcessedSampleWidget(this, ps_id);
-	int index = ui_.tabs->addTab(widget, QIcon(":/Icons/NGSD_sample.png"), ps_name);
-	ui_.tabs->setCurrentIndex(index);
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
 	connect(widget, SIGNAL(openRunTab(QString)), this, SLOT(openRunTab(QString)));
 	connect(widget, SIGNAL(executeIGVCommands(QStringList)), this, SLOT(executeIGVCommands(QStringList)));
 	connect(widget, SIGNAL(openProcessingSystemTab(QString)), this, SLOT(openProcessingSystemTab(QString)));
-
+	connect(widget, SIGNAL(openProjectTab(QString)), this, SLOT(openProjectTab(QString)));
+	connect(widget, SIGNAL(openProcessedSampleFromNGSD(QString)), this, SLOT(openProcessedSampleFromNGSD(QString)));
+	openTab(QIcon(":/Icons/NGSD_sample.png"), ps_name, widget);
 }
 
 void MainWindow::openRunTab(QString run_name)
@@ -1151,9 +1144,8 @@ void MainWindow::openRunTab(QString run_name)
 	}
 
 	SequencingRunWidget* widget = new SequencingRunWidget(this, run_id);
-	int index = ui_.tabs->addTab(widget, QIcon(":/Icons/NGSD_run.png"), run_name);
-	ui_.tabs->setCurrentIndex(index);
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
+	openTab(QIcon(":/Icons/NGSD_run.png"), run_name, widget);
 }
 
 void MainWindow::openGeneTab(QString symbol)
@@ -1166,8 +1158,7 @@ void MainWindow::openGeneTab(QString symbol)
 	}
 
 	GeneWidget* widget = new GeneWidget(this, symbol.toLatin1());
-	int index = ui_.tabs->addTab(widget, QIcon(":/Icons/NGSD_gene.png"), symbol);
-	ui_.tabs->setCurrentIndex(index);
+	openTab(QIcon(":/Icons/NGSD_gene.png"), symbol, widget);
 }
 
 void MainWindow::openVariantTab(Variant variant)
@@ -1183,11 +1174,9 @@ void MainWindow::openVariantTab(Variant variant)
 
 	//open tab
 	VariantWidget* widget = new VariantWidget(variant, this);
-	int index = ui_.tabs->addTab(widget, QIcon(":/Icons/NGSD_variant.png"), variant.toString());
-	ui_.tabs->setCurrentIndex(index);
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
-	connect(widget, SIGNAL(openProcessedSampleFromNGSD(QString)), this, SLOT(openProcessedSampleFromNGSD(QString)));
 	connect(widget, SIGNAL(openGeneTab(QString)), this, SLOT(openGeneTab(QString)));
+	openTab(QIcon(":/Icons/NGSD_variant.png"), variant.toString(), widget);
 }
 
 void MainWindow::openCurrentVariantTab()
@@ -1209,9 +1198,33 @@ void MainWindow::openProcessingSystemTab(QString name_short)
 	}
 
 	ProcessingSystemWidget* widget = new ProcessingSystemWidget(this, sys_id);
-	int index = ui_.tabs->addTab(widget, QIcon(":/Icons/NGSD_processing_system.png"), name_short);
-	ui_.tabs->setCurrentIndex(index);
 	connect(widget, SIGNAL(executeIGVCommands(QStringList)), this, SLOT(executeIGVCommands(QStringList)));
+	openTab(QIcon(":/Icons/NGSD_processing_system.png"), name_short, widget);
+}
+
+void MainWindow::openProjectTab(QString name)
+{
+	ProjectWidget* widget = new ProjectWidget(this, name);
+	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
+	openTab(QIcon(":/Icons/NGSD_project.png"), name, widget);
+}
+
+void MainWindow::openTab(QIcon icon, QString name, QWidget* widget)
+{
+	QScrollArea* scroll_area = new QScrollArea(this);
+	scroll_area->setFrameStyle(QFrame::NoFrame);
+	scroll_area->setWidgetResizable(true);
+	scroll_area->setWidget(widget);
+	//fix color problems
+	QPalette pal;
+	pal.setColor(QPalette::Window,QColor(0,0,0,0));
+	scroll_area->setPalette(pal);
+	scroll_area->setBackgroundRole(QPalette::Window);
+	scroll_area->widget()->setPalette(pal);
+	scroll_area->widget()->setBackgroundRole(QPalette::Window);
+	//show tab
+	int index = ui_.tabs->addTab(scroll_area, icon, name);
+	ui_.tabs->setCurrentIndex(index);
 }
 
 void MainWindow::closeTab(int index)
@@ -2417,6 +2430,23 @@ void MainWindow::on_actionOpenProcessingSystemTab_triggered()
 	openProcessingSystemTab(selector->text());
 }
 
+void MainWindow::on_actionOpenProjectTab_triggered()
+{
+	//create
+	DBSelector* selector = new DBSelector(this);
+	NGSD db;
+	selector->fill(db.createTable("project", "SELECT id, name FROM project"));
+
+	//show
+	auto dlg = GUIHelper::createDialog(selector, "Select project", "project:", true);
+	if (dlg->exec()==QDialog::Rejected) return ;
+
+	//handle invalid name
+	if (selector->getId()=="") return;
+
+	openProjectTab(selector->text());
+}
+
 void MainWindow::on_actionGenderXY_triggered()
 {
 	ExternalToolDialog dialog("Determine gender", "xy", this);
@@ -2473,11 +2503,10 @@ void MainWindow::on_actionAnalysisStatus_triggered()
 
 	//open new
 	AnalysisStatusWidget* widget = new AnalysisStatusWidget(this);
-	int index = ui_.tabs->addTab(widget, QIcon(":/Icons/Server.png"), "Analysis status");
-	ui_.tabs->setCurrentIndex(index);
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
 	connect(widget, SIGNAL(openRunTab(QString)), this, SLOT(openRunTab(QString)));
 	connect(widget, SIGNAL(loadFile(QString)), this, SLOT(loadFile(QString)));
+	openTab(QIcon(":/Icons/Server.png"), "Analysis status", widget);
 }
 
 void MainWindow::on_actionGapsLookup_triggered()
@@ -3579,7 +3608,22 @@ void MainWindow::storeCurrentVariantList()
 	filewatcher_.clearFile();
 
 	//store
-	variants_.store(filename_);
+	GSvarStoreWorker* worker = new GSvarStoreWorker(variants_, filename_);
+	connect(worker, SIGNAL(finished(bool)), this, SLOT(storingVariantListFinished(bool)));
+	worker->start();
+}
+
+void MainWindow::storingVariantListFinished(bool success)
+{
+	//show result info box
+	GSvarStoreWorker* worker = qobject_cast<GSvarStoreWorker*>(sender());
+	if (!success)
+	{
+		QMessageBox::warning(this, "Error", "Storing GSvar failed:\n" + worker->errorMessage());
+	}
+
+	//clean
+	worker->deleteLater();
 
 	//enable file watcher again
 	filewatcher_.setFile(filename_);

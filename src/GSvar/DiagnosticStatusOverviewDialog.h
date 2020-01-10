@@ -4,6 +4,7 @@
 #include <QDialog>
 #include "ui_DiagnosticStatusOverviewDialog.h"
 #include "NGSD.h"
+#include "DelayedInitializationTimer.h"
 
 ///Sample overview dialog.
 class DiagnosticStatusOverviewDialog
@@ -12,12 +13,13 @@ class DiagnosticStatusOverviewDialog
 	Q_OBJECT
 
 public:
-	DiagnosticStatusOverviewDialog(QWidget *parent = 0);
+	DiagnosticStatusOverviewDialog(QWidget* parent = 0, QString project="");
 
 signals:
-	void openProcessedSample(QString processed_sample_name);
+	void openProcessedSampleTab(QString processed_sample_name);
 
 private slots:
+	void delayedInitialization();
 	void updateOverviewTable();
 	void copyTableToClipboard();
 	void sampleContextMenu(QPoint pos);
@@ -25,6 +27,7 @@ private slots:
 
 private:
 	Ui::DiagnosticStatusOverviewDialog ui;
+	DelayedInitializationTimer init_timer_;
 };
 
 #endif // DIAGNOSTICSTATUSOVERVIEWDIALOG_H

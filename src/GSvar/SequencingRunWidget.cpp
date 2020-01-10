@@ -37,7 +37,8 @@ void SequencingRunWidget::updateGUI()
 	try
 	{
 		//#### run details ####
-		SqlQuery query = db_.getQuery();
+		NGSD db;
+		SqlQuery query = db.getQuery();
 		query.exec("SELECT r.*, d.name d_name, d.type d_type FROM sequencing_run r, device d WHERE r.device_id=d.id AND r.id='" + run_id_ + "'");
 		query.next();
 		ui_->name->setText(query.value("name").toString());
@@ -76,7 +77,8 @@ void SequencingRunWidget::updateGUI()
 
 void SequencingRunWidget::updateRunSampleTable()
 {
-	DBTable samples = db_.createTable("processed_sample", "SELECT ps.id, ps.lane, ps.quality, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), (SELECT CONCAT(name, ' (', type, ')') FROM project WHERE id=ps.project_id), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid1_i7), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid2_i5), (SELECT name FROM species WHERE id=s.species_id), (SELECT name_manufacturer FROM processing_system WHERE id=ps.processing_system_id), (SELECT name FROM user WHERE id=ps.operator_id), ps.comment "
+	NGSD db;
+	DBTable samples = db.createTable("processed_sample", "SELECT ps.id, ps.lane, ps.quality, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), (SELECT CONCAT(name, ' (', type, ')') FROM project WHERE id=ps.project_id), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid1_i7), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid2_i5), (SELECT name FROM species WHERE id=s.species_id), (SELECT name_manufacturer FROM processing_system WHERE id=ps.processing_system_id), (SELECT name FROM user WHERE id=ps.operator_id), ps.comment "
 														  " FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.sequencing_run_id='" + run_id_ + "' "
 														  " ORDER BY ps.lane ASC, s.name ASC, ps.process_id");
 	QStringList headers;
@@ -91,7 +93,7 @@ void SequencingRunWidget::updateRunSampleTable()
 		while(cols.count()< accessions.count()) cols << QStringList();
 		for (int r=0; r<samples.rowCount(); ++r)
 		{
-			QCCollection qc_data = db_.getQCData(samples.row(r).id());
+			QCCollection qc_data = db.getQCData(samples.row(r).id());
 			for(int i=0; i<accessions.count(); ++i)
 			{
 				try
@@ -107,7 +109,7 @@ void SequencingRunWidget::updateRunSampleTable()
 		}
 		for(int i=0; i<accessions.count(); ++i)
 		{
-			QString header = db_.getValue("SELECT name FROM qc_terms WHERE qcml_id=:0", true, accessions[i]).toString();
+			QString header = db.getValue("SELECT name FROM qc_terms WHERE qcml_id=:0", true, accessions[i]).toString();
 			header.replace("percentage", "%");
 			samples.addColumn(cols[i], header);
 			headers << header;
@@ -168,14 +170,15 @@ void SequencingRunWidget::updateRunSampleTable()
 	}
 
 	//#### sample summary ####
-	QStringList imported_qc = db_.getValues("SELECT ps.id FROM processed_sample ps WHERE ps.sequencing_run_id='" + run_id_ + "' AND EXISTS(SELECT id FROM processed_sample_qc WHERE processed_sample_id=ps.id)");
-	QStringList imported_vars = db_.getValues("SELECT ps.id FROM processed_sample ps WHERE ps.sequencing_run_id='" + run_id_ + "' AND EXISTS(SELECT variant_id FROM detected_variant WHERE processed_sample_id=ps.id)");
+	QStringList imported_qc = db.getValues("SELECT ps.id FROM processed_sample ps WHERE ps.sequencing_run_id='" + run_id_ + "' AND EXISTS(SELECT id FROM processed_sample_qc WHERE processed_sample_id=ps.id)");
+	QStringList imported_vars = db.getValues("SELECT ps.id FROM processed_sample ps WHERE ps.sequencing_run_id='" + run_id_ + "' AND EXISTS(SELECT variant_id FROM detected_variant WHERE processed_sample_id=ps.id)");
 	ui_->sample_count->setText(QString::number(samples.rowCount()) + " samples (" + QString::number(imported_qc.count()) + " with QC, " + QString::number(imported_vars.count()) + " with variants)");
 }
 
 void SequencingRunWidget::setQuality()
 {
-	QStringList qualities = db_.getEnum("processed_sample", "quality");
+	NGSD db;
+	QStringList qualities = db.getEnum("processed_sample", "quality");
 
 	//get quality from user
 	bool ok;
@@ -183,7 +186,7 @@ void SequencingRunWidget::setQuality()
 	if (!ok) return;
 
 	//prepare query
-	SqlQuery query = db_.getQuery();
+	SqlQuery query = db.getQuery();
 	query.prepare("UPDATE processed_sample SET quality='" + quality + "' WHERE id=:0");
 
 	int col = ui_->samples->columnIndex("sample");
@@ -191,7 +194,7 @@ void SequencingRunWidget::setQuality()
 	foreach (int row, selected_rows)
 	{
 		QString ps_name = ui_->samples->item(row, col)->text();
-		QString ps_id = db_.processedSampleId(ps_name);
+		QString ps_id = db.processedSampleId(ps_name);
 		query.bindValue(0, ps_id);
 		query.exec();
 	}
@@ -216,7 +219,8 @@ void SequencingRunWidget::updateReadQualityTable()
 	{
 		table->setHorizontalHeaderItem(c, createItem(headers[c], false, Qt::AlignCenter));
 	}
-	SqlQuery q_reads = db_.getQuery();
+	NGSD db;
+	SqlQuery q_reads = db.getQuery();
 	q_reads.exec("SELECT * FROM runqc_read WHERE sequencing_run_id=" + run_id_ + " ORDER BY read_num ASC");
 	while(q_reads.next())
 	{
@@ -233,7 +237,7 @@ void SequencingRunWidget::updateReadQualityTable()
 		table->setItem(row, 3, createItem(q_reads.value("error_rate").toString(), true));
 
 		//inidividual lanes
-		SqlQuery q_lanes = db_.getQuery();
+		SqlQuery q_lanes = db.getQuery();
 		q_lanes.exec("SELECT * FROM runqc_lane WHERE runqc_read_id=" + q_reads.value("id").toString() + " ORDER BY lane_num ASC");
 		while(q_lanes.next())
 		{

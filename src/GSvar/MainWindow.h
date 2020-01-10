@@ -94,6 +94,8 @@ public slots:
 	void on_actionOpenVariantTab_triggered();
 	///Open processing system by short name
 	void on_actionOpenProcessingSystemTab_triggered();
+	///Open project tab by search
+	void on_actionOpenProjectTab_triggered();
 
     ///Gender determination
 	void on_actionGenderXY_triggered();
@@ -150,8 +152,6 @@ public slots:
 	void openVariantListFolder();
 	///Upload variant that is not part of the variant list to LOVD.
 	void on_actionPublishVariantInLOVD_triggered();
-	///Show diagnostic status overview
-	void on_actionDiagnosticStatusOverview_triggered();
 	///Re-analyze current sample/case
 	void on_actionReanalyze_triggered();
 	///Annotate germline file with somatic variants
@@ -262,7 +262,11 @@ public slots:
 	void openCurrentVariantTab();
 	///Open pocessing system tab
 	void openProcessingSystemTab(QString name_short);
-    ///Process a tab close request
+	///Open project tab
+	void openProjectTab(QString name);
+	///Opens a tab
+	void openTab(QIcon icon, QString name, QWidget* widget);
+	///Closes a tab by index
 	void closeTab(int index);
 
 	///Sends commands to IGV through the default socket. Returns if the commands executed successfully.
@@ -275,6 +279,8 @@ public slots:
 
 	///Store the currently open file
 	void storeCurrentVariantList();
+	///Finished storing the current  currently open list
+	void storingVariantListFinished(bool success);
 
 
 protected:
