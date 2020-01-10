@@ -55,6 +55,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="variation_btn">
+       <property name="text">
+        <string>show variation</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -131,7 +138,7 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QLabel" name="gene_">
+       <widget class="QLabel" name="gene">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -157,7 +164,7 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QLabel" name="notice_">
+       <widget class="QLabel" name="notice">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -183,7 +190,7 @@
        </widget>
       </item>
       <item row="2" column="1">
-       <widget class="QLabel" name="name_">
+       <widget class="QLabel" name="name">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -198,7 +205,7 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="0">
+      <item row="4" column="0">
        <widget class="QLabel" name="label_3">
         <property name="text">
          <string>HGNC previous symbols:</string>
@@ -208,37 +215,8 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
-       <widget class="QLabel" name="previous_">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="wordWrap">
-         <bool>true</bool>
-        </property>
-        <property name="textInteractionFlags">
-         <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="label_6">
-        <property name="text">
-         <string>HGNC synonymous symbols:</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-        </property>
-       </widget>
-      </item>
       <item row="4" column="1">
-       <widget class="QLabel" name="synonymous_">
+       <widget class="QLabel" name="hgnc_previous">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -257,9 +235,9 @@
        </widget>
       </item>
       <item row="5" column="0">
-       <widget class="QLabel" name="label_4">
+       <widget class="QLabel" name="label_6">
         <property name="text">
-         <string>Inheritance:</string>
+         <string>HGNC synonymous symbols:</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -267,7 +245,7 @@
        </widget>
       </item>
       <item row="5" column="1">
-       <widget class="QLabel" name="inheritance_">
+       <widget class="QLabel" name="hgnc_synonymous">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -277,15 +255,18 @@
         <property name="text">
          <string/>
         </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
         <property name="textInteractionFlags">
          <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
         </property>
        </widget>
       </item>
       <item row="6" column="0">
-       <widget class="QLabel" name="label_7">
+       <widget class="QLabel" name="label_4">
         <property name="text">
-         <string>gnomAD o/e (synonymous):</string>
+         <string>Inheritance:</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -293,7 +274,7 @@
        </widget>
       </item>
       <item row="6" column="1">
-       <widget class="QLabel" name="oe_syn">
+       <widget class="QLabel" name="inheritance">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -309,9 +290,9 @@
        </widget>
       </item>
       <item row="7" column="0">
-       <widget class="QLabel" name="label_9">
+       <widget class="QLabel" name="label_7">
         <property name="text">
-         <string>gnomAD o/e (missense):</string>
+         <string>gnomAD o/e (synonymous):</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -319,7 +300,7 @@
        </widget>
       </item>
       <item row="7" column="1">
-       <widget class="QLabel" name="oe_mis">
+       <widget class="QLabel" name="oe_syn">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -335,9 +316,9 @@
        </widget>
       </item>
       <item row="8" column="0">
-       <widget class="QLabel" name="label_10">
+       <widget class="QLabel" name="label_9">
         <property name="text">
-         <string>gnomAD o/e (loss-of-function):</string>
+         <string>gnomAD o/e (missense):</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -345,7 +326,7 @@
        </widget>
       </item>
       <item row="8" column="1">
-       <widget class="QLabel" name="oe_lof">
+       <widget class="QLabel" name="oe_mis">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -361,6 +342,32 @@
        </widget>
       </item>
       <item row="9" column="0">
+       <widget class="QLabel" name="label_10">
+        <property name="text">
+         <string>gnomAD o/e (loss-of-function):</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="1">
+       <widget class="QLabel" name="oe_lof">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="textInteractionFlags">
+         <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+        </property>
+       </widget>
+      </item>
+      <item row="10" column="0">
        <widget class="QLabel" name="label_5">
         <property name="text">
          <string>Comment:</string>
@@ -370,8 +377,8 @@
         </property>
        </widget>
       </item>
-      <item row="9" column="1">
-       <widget class="QLabel" name="comments_">
+      <item row="10" column="1">
+       <widget class="QLabel" name="comments">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -386,6 +393,23 @@
         </property>
         <property name="textInteractionFlags">
          <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_13">
+        <property name="text">
+         <string>HGNC ID:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLabel" name="hgnc_id">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="openExternalLinks">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -436,7 +460,7 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QLabel" name="hpo_">
+       <widget class="QLabel" name="hpo">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -468,7 +492,7 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QLabel" name="omim_">
+       <widget class="QLabel" name="omim">
         <property name="text">
          <string/>
         </property>

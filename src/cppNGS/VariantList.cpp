@@ -1767,7 +1767,7 @@ QPair<int, int> Variant::indelRegion(const Chromosome& chr, int start, int end, 
 	return qMakePair(start_orig, end_orig);
 }
 
-QList<VariantTranscript> Variant::parseTranscriptString(QByteArray text)
+QList<VariantTranscript> Variant::parseTranscriptString(QByteArray text, bool allow_old_format_with_7_columns)
 {
 	QList<VariantTranscript> output;
 
@@ -1777,9 +1777,10 @@ QList<VariantTranscript> Variant::parseTranscriptString(QByteArray text)
 		if (transcript.isEmpty()) continue;
 
 		QList<QByteArray> parts = transcript.split(':');
+		if (allow_old_format_with_7_columns) parts << "";
 		if (parts.count()<8)
 		{
-			THROW(ProgrammingException, "Could not split transcript information from 'coding_and_splicing' column to 8 parts: " + transcript);
+			THROW(ProgrammingException, "Could not split transcript information from 'coding_and_splicing' column to 8 parts. " + QString::number(parts.count()) + " parts found in: " + transcript);
 		}
 
 		VariantTranscript trans;

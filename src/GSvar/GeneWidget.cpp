@@ -1,6 +1,7 @@
 #include "GeneWidget.h"
 #include "Helper.h"
 #include "NGSD.h"
+#include "CandidateGeneDialog.h"
 #include <QPushButton>
 #include <QInputDialog>
 #include <QMenu>
@@ -12,8 +13,9 @@ GeneWidget::GeneWidget(QWidget* parent, QByteArray symbol)
 {
 	//init dialog
     ui_.setupUi(this);
-    ui_.notice_->setVisible(false);
+	ui_.notice->setVisible(false);
     connect(ui_.refesh_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
+	connect(ui_.variation_btn, SIGNAL(clicked(bool)), this, SLOT(showGeneVariationDialog()));
 
     //edit button
     QMenu* menu = new QMenu();
@@ -32,13 +34,13 @@ void GeneWidget::updateGUI()
 
 	//show symbol
 	setWindowTitle("Gene information '" + info.symbol + "'");
-    ui_.gene_->setText(info.symbol);
-    ui_.name_->setText(info.name);
-    ui_.inheritance_->setText(info.inheritance);
+	ui_.gene->setText(info.symbol);
+	ui_.name->setText(info.name);
+	ui_.inheritance->setText(info.inheritance);
     QString html = info.comments;
     html.replace(QRegExp("((?:https?|ftp)://\\S+)"), "<a href=\"\\1\">\\1</a>");
     html.replace("\n", "<br>");
-    ui_.comments_->setText(html);
+	ui_.comments->setText(html);
 
 	//show gnomAD o/e score
     ui_.oe_mis->setText(info.oe_mis);
@@ -48,14 +50,16 @@ void GeneWidget::updateGUI()
 	//show notice if necessary
     if (!info.symbol_notice.startsWith("KEPT:"))
 	{
-        ui_.notice_->setText("<font color='red'>" + info.symbol_notice + "</font>");
-        ui_.notice_->setVisible(true);
+		ui_.notice->setText("<font color='red'>" + info.symbol_notice + "</font>");
+		ui_.notice->setVisible(true);
 	}
 
-    //show alias gene symbols from HGNC
+	//HGNC info
     int gene_id = db.geneToApprovedID(symbol_);
-    ui_.previous_->setText(db.previousSymbols(gene_id).join(", "));
-    ui_.synonymous_->setText(db.synonymousSymbols(gene_id).join(", "));
+	QString hgnc_id = "HGNC:" + db.getValue("SELECT hgnc_id FROM gene WHERE id=" + QByteArray::number(gene_id)).toString();
+	ui_.hgnc_id->setText("<a href='https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/" + hgnc_id + "'>" + hgnc_id + "</a>");
+	ui_.hgnc_previous->setText(db.previousSymbols(gene_id).join(", "));
+	ui_.hgnc_synonymous->setText(db.synonymousSymbols(gene_id).join(", "));
 
 	//show phenotypes/diseases from HPO
     QByteArrayList hpo_links;
@@ -64,7 +68,7 @@ void GeneWidget::updateGUI()
 	{
         hpo_links << "<a href=\"https://hpo.jax.org/app/browse/term/" + pheno.accession()+ "\">" + pheno.accession() + "</a> " + pheno.name();
 	}
-    ui_.hpo_->setText(hpo_links.join(hpo_links.count()>20 ? " "  : "\n"));
+	ui_.hpo->setText(hpo_links.join(hpo_links.count()>20 ? " "  : "\n"));
 
     //show OMIM info
     SqlQuery query = db.getQuery();
@@ -74,7 +78,7 @@ void GeneWidget::updateGUI()
 		QString id = query.value("id").toString();
 		QString mim = query.value("mim").toString();
         QStringList omim_phenos = db.getValues("SELECT phenotype FROM omim_phenotype WHERE omim_gene_id=" + id);
-        ui_.omim_->setText("MIM: <a href=\"http://omim.org/entry/" + mim + "\">" + mim + "</a>\n" + omim_phenos.join(omim_phenos.count()>20 ? " "  : "\n"));
+		ui_.omim->setText("MIM: <a href=\"http://omim.org/entry/" + mim + "\">" + mim + "</a>\n" + omim_phenos.join(omim_phenos.count()>20 ? " "  : "\n"));
     }
 
 	//show OrphaNet info
@@ -120,4 +124,11 @@ void GeneWidget::editComment()
     db.setGeneInfo(info);
 
     updateGUI();
+}
+
+void GeneWidget::showGeneVariationDialog()
+{
+	CandidateGeneDialog dlg(this);
+	dlg.setGene(symbol_);
+	dlg.exec();
 }

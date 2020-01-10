@@ -208,7 +208,7 @@ public:
 		return parseTranscriptString(annotations()[column_index]);
 	}
 
-	static QList<VariantTranscript> parseTranscriptString(QByteArray text);
+	static QList<VariantTranscript> parseTranscriptString(QByteArray text, bool allow_old_format_with_7_columns=false);
 
 	///Returns a normalized variant extracted from user input text.Throws an exception, if it is not valid.
 	static Variant fromString(const QString& text);

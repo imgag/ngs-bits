@@ -46,7 +46,7 @@ void VariantWidget::updateGUI()
 
 	//transcripts
 	QStringList lines;
-	QList<VariantTranscript> transcripts = Variant::parseTranscriptString(query.value("coding").toByteArray());
+	QList<VariantTranscript> transcripts = Variant::parseTranscriptString(query.value("coding").toByteArray(), true);
 	foreach(const VariantTranscript& trans, transcripts)
 	{
 		lines << "<a href=\"" + trans.gene + "\">" + trans.gene + "</a> " + trans.id + ": " + trans.type + " " + trans.hgvs_c + " " + trans.hgvs_p;

@@ -9,19 +9,30 @@
 CandidateGeneDialog::CandidateGeneDialog(QWidget *parent)
 	: QDialog(parent)
 	, ui_()
+	, init_timer_(this, false)
 {
 	ui_.setupUi(this);
+	connect(&init_timer_, SIGNAL(triggerInitialization()), this, SLOT(updateVariants()));
 
 	connect(ui_.update_btn, SIGNAL(clicked(bool)), this, SLOT(updateVariants()));
 	connect(ui_.copy_btn, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
 }
 
+void CandidateGeneDialog::setGene(const QString& gene)
+{
+	ui_.genes->setText(gene);
+}
+
 void CandidateGeneDialog::updateVariants()
 {
-	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
-
 	//clear old results
 	ui_.variants->clearContents();
+
+	//check if applicable
+	QByteArray genes_text = ui_.genes->text().toLatin1().trimmed();
+	if (genes_text.isEmpty()) return;
+
+	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 
 	//init
 	NGSD db;
@@ -35,7 +46,7 @@ void CandidateGeneDialog::updateVariants()
 	//process
 	QStringList comments;
 	QList<QStringList> output;
-	QByteArrayList genes = ui_.genes->text().toLatin1().replace(' ', ',').split(',');
+	QByteArrayList genes = genes_text.replace(' ', ',').split(',');
 	foreach(QByteArray gene, genes)
 	{
 		if (gene.trimmed()=="") continue;
