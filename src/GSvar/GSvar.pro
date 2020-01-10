@@ -65,7 +65,8 @@ SOURCES += main.cpp\
     SomaticRnaReport.cpp \
     ProcessedSampleDataDeletionDialog.cpp \
     VariantWidget.cpp \
-    ProcessingSystemWidget.cpp
+    ProcessingSystemWidget.cpp \
+    ProjectWidget.cpp
 
 HEADERS  += MainWindow.h \
     ExternalToolDialog.h \
@@ -125,7 +126,8 @@ HEADERS  += MainWindow.h \
     SomaticRnaReport.h \
     ProcessedSampleDataDeletionDialog.h \
     VariantWidget.h \
-    ProcessingSystemWidget.h
+    ProcessingSystemWidget.h \
+    ProjectWidget.h
 
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
@@ -174,7 +176,8 @@ FORMS    += MainWindow.ui \
     ReportVariantDialog.ui \
     ProcessedSampleDataDeletionDialog.ui \
     VariantWidget.ui \
-    ProcessingSystemWidget.ui
+    ProcessingSystemWidget.ui \
+    ProjectWidget.ui
 
 include("../app_gui.pri")
 

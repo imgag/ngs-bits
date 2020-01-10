@@ -430,16 +430,9 @@
      <addaction name="actionDesignSubpanel"/>
      <addaction name="actionArchiveSubpanel"/>
     </widget>
-    <widget class="QMenu" name="menuSamples_2">
-     <property name="title">
-      <string>Samples</string>
-     </property>
-     <addaction name="actionDiagnosticStatusOverview"/>
-    </widget>
     <addaction name="menuGenes_2"/>
     <addaction name="menuPhenotypes_2"/>
     <addaction name="menuSub_panels"/>
-    <addaction name="menuSamples_2"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuNGSD"/>
@@ -737,11 +730,6 @@
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show runs of homozygosity (ROH).&lt;br/&gt;&lt;br/&gt;For trios, ROHs of the child (index) are shown.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
-  <action name="actionDiagnosticStatusOverview">
-   <property name="text">
-    <string>Diagnostic status overview</string>
-   </property>
-  </action>
   <action name="actionSV">
    <property name="icon">
     <iconset resource="GSvar.qrc">
@@ -895,6 +883,18 @@
    </property>
    <property name="toolTip">
     <string>Processing system</string>
+   </property>
+  </action>
+  <action name="actionOpenProjectTab">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/NGSD_project.png</normaloff>:/Icons/NGSD_project.png</iconset>
+   </property>
+   <property name="text">
+    <string>Project</string>
+   </property>
+   <property name="toolTip">
+    <string>Project</string>
    </property>
   </action>
  </widget>

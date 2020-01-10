@@ -26,19 +26,22 @@ signals:
 	void openProcessedSampleTab(QString ps_name);
 	void openRunTab(QString run_name);
 	void openProcessingSystemTab(QString name_short);
+	void openProjectTab(QString project_name);
 	void executeIGVCommands(QStringList commands);
+	void openProcessedSampleFromNGSD(QString gsvar);
 
 protected slots:
 	void updateGUI();
 	void updateQCMetrics();
 	void showPlot();
-	void openSampleInNGSD();
 	void openSampleFolder();
 	void openSampleTab();
 	void openExternalDiseaseDatabase();
 	void addRelation();
 	void removeRelation();
 	void deleteSampleData();
+	void loadVariantList();
+	void queueSampleAnalysis();
 
 	void addBamToIgv();
 	void addVariantsToIgv();

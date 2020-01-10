@@ -4,17 +4,14 @@
 #include <QClipboard>
 #include <QMenu>
 
-DiagnosticStatusOverviewDialog::DiagnosticStatusOverviewDialog(QWidget *parent)
+DiagnosticStatusOverviewDialog::DiagnosticStatusOverviewDialog(QWidget *parent, QString project)
 	: QDialog(parent)
 	, ui()
+	, init_timer_(this, true)
 {
 	ui.setupUi(this);
 	connect(ui.clipboard, SIGNAL(clicked(bool)), this, SLOT(copyTableToClipboard()));
 	connect(ui.sample_infos, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(sampleContextMenu(QPoint)));
-
-	connect(ui.project, SIGNAL(currentTextChanged(QString)), this, SLOT(updateOverviewTable()));
-	connect(ui.user, SIGNAL(currentTextChanged(QString)), this, SLOT(updateOverviewTable()));
-	connect(ui.hide_done, SIGNAL(stateChanged(int)), this, SLOT(updateOverviewTable()));
 
 	//init projects combo box
 	NGSD db;
@@ -22,11 +19,21 @@ DiagnosticStatusOverviewDialog::DiagnosticStatusOverviewDialog(QWidget *parent)
 	ui.project->addItem("[select]");
 	ui.project->addItems(projects);
 
+	if (!project.isEmpty()) ui.project->setCurrentText(project);
+
 	//init user combo box
 	QStringList users = db.getValues("SELECT u.name FROM user u WHERE EXISTS(SELECT * FROM diag_status ds WHERE ds.user_id=u.id) ORDER BY u.name ASC");
 	ui.user->addItem("[select]");
 	ui.user->addItems(users);
 
+	//connect update signals after GUI initialization (otherwise they trigger an update)
+	connect(ui.project, SIGNAL(currentTextChanged(QString)), this, SLOT(updateOverviewTable()));
+	connect(ui.user, SIGNAL(currentTextChanged(QString)), this, SLOT(updateOverviewTable()));
+	connect(ui.hide_done, SIGNAL(stateChanged(int)), this, SLOT(updateOverviewTable()));
+}
+
+void DiagnosticStatusOverviewDialog::delayedInitialization()
+{
 	updateOverviewTable();
 }
 
@@ -139,15 +146,15 @@ void DiagnosticStatusOverviewDialog::sampleContextMenu(QPoint pos)
 
 	//create context menu
 	QMenu menu(ui.sample_infos);
-	menu.addAction("Open sample");
+	QAction* action_sample = menu.addAction(QIcon(":/Icons/NGSD_sample.png"), "Open sample tab");
 
 	//execute context menu
 	QAction* action = menu.exec(ui.sample_infos->viewport()->mapToGlobal(pos));
 	if (!action) return;
 
-	if (action->text()=="Open sample")
+	if (action==action_sample)
 	{
 		QString processed_sample_name = ui.sample_infos->item(item->row(), 1)->text();
-		emit openProcessedSample(processed_sample_name);
+		emit openProcessedSampleTab(processed_sample_name);
 	}
 }

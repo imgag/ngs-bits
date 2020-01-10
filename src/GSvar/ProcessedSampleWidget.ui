@@ -79,16 +79,30 @@
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="ngsd_btn">
+          <widget class="QToolButton" name="open_btn">
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open processed sample in NGSD web interface.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>Open GSvar file.</string>
            </property>
            <property name="text">
             <string>...</string>
            </property>
            <property name="icon">
             <iconset resource="../GSmix/GSmix.qrc">
-             <normaloff>:/Icons/NGSD.png</normaloff>:/Icons/NGSD.png</iconset>
+             <normaloff>:/Icons/Icon.png</normaloff>:/Icons/Icon.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="reanalyze_btn">
+           <property name="toolTip">
+            <string>Queue re-analysis of single sample.</string>
+           </property>
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="GSvar.qrc">
+             <normaloff>:/Icons/Refresh.png</normaloff>:/Icons/Refresh.png</iconset>
            </property>
           </widget>
          </item>
@@ -167,16 +181,16 @@
            <number>3</number>
           </property>
           <property name="leftMargin">
-           <number>9</number>
+           <number>3</number>
           </property>
           <property name="topMargin">
-           <number>6</number>
+           <number>3</number>
           </property>
           <property name="rightMargin">
            <number>3</number>
           </property>
           <property name="bottomMargin">
-           <number>6</number>
+           <number>3</number>
           </property>
           <item row="0" column="0">
            <widget class="QLabel" name="label_21">
@@ -445,16 +459,16 @@
            <number>3</number>
           </property>
           <property name="leftMargin">
-           <number>9</number>
+           <number>3</number>
           </property>
           <property name="topMargin">
-           <number>6</number>
+           <number>3</number>
           </property>
           <property name="rightMargin">
            <number>3</number>
           </property>
           <property name="bottomMargin">
-           <number>6</number>
+           <number>3</number>
           </property>
           <item row="0" column="0">
            <widget class="QLabel" name="label_14">
@@ -660,7 +674,7 @@
            <number>3</number>
           </property>
           <property name="leftMargin">
-           <number>9</number>
+           <number>3</number>
           </property>
           <property name="topMargin">
            <number>3</number>

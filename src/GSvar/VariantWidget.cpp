@@ -18,10 +18,7 @@ VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
 	connect(ui_.transcripts, SIGNAL(linkActivated(QString)), this, SIGNAL(openGeneTab(QString)));
 
 	//add sample table context menu entries
-	QAction* action = new QAction(QIcon(":/Icons/Icon.png"), "Open variant list", this);
-	ui_.table->addAction(action);
-	connect(action, SIGNAL(triggered(bool)), this, SLOT(openProcessedSample()));
-	action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
+	QAction* action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
 	ui_.table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openProcessedSampleTab()));
 }
@@ -209,22 +206,6 @@ QList<int> VariantWidget::selectedRows() const
 	}
 
 	return set.toList();
-}
-
-void VariantWidget::openProcessedSample()
-{
-	QList<int> rows = selectedRows();
-	if (rows.count()>1)
-	{
-		QMessageBox::warning(this, "Error opening processed sample", "Please select one sample!\nOnly one processed sample can be opened at a time.");
-		return;
-	}
-
-	foreach(int row, rows)
-	{
-		QString ps = ui_.table->item(row, 0)->text();
-		emit openProcessedSampleFromNGSD(ps);
-	}
 }
 
 void VariantWidget::openProcessedSampleTab()

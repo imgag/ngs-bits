@@ -16,7 +16,6 @@ public:
 
 signals:
 	void openProcessedSampleTab(QString);
-	void openProcessedSampleFromNGSD(QString);
 	void openGeneTab(QString);
 
 private slots:
@@ -24,7 +23,6 @@ private slots:
 	void delayedInitialization();
 	void copyToClipboard();
 	void calculateSimilarity();
-	void openProcessedSample();
 	void openProcessedSampleTab();
 
 private:

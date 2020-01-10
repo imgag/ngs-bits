@@ -4,11 +4,12 @@ libs:
 * FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 
 NGSD:
-** Add project tab (sample overview with diag status, etc) - open diag overview from there
+* Copy help text of fields to schema and use them as tooltip for view tabs
 *** Allow adding/editing data in NGSD
     - Run/processed sample/sample in general
         - Add email support for runs "run finished" and "analysis finished"
     - sample: import disease info, disease group/status, gender from same samples
+    - use comments from schema in info texts
 ** Add run overview dialog/tab
 - Allow several disease_groups per sample (requested by CS)
 

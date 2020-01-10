@@ -33,7 +33,6 @@ private:
 
 	Ui::SequencingRunWidget* ui_;
 	QString run_id_;
-	NGSD db_;
 };
 
 #endif // SEQUENCINGRUNWIDGET_H

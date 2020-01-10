@@ -7,6 +7,7 @@
 #include "SampleDiseaseInfoWidget.h"
 #include "SampleRelationDialog.h"
 #include "ProcessedSampleDataDeletionDialog.h"
+#include "SingleSampleAnalysisDialog.h"
 
 #include <QMessageBox>
 
@@ -17,10 +18,11 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 {
 	ui_->setupUi(this);
 	GUIHelper::styleSplitter(ui_->splitter);
-	connect(ui_->ngsd_btn, SIGNAL(clicked(bool)), this, SLOT(openSampleInNGSD()));
 	connect(ui_->folder_btn, SIGNAL(clicked(bool)), this, SLOT(openSampleFolder()));
 	connect(ui_->run, SIGNAL(linkActivated(QString)), this, SIGNAL(openRunTab(QString)));
 	connect(ui_->system, SIGNAL(linkActivated(QString)), this, SIGNAL(openProcessingSystemTab(QString)));
+	connect(ui_->project, SIGNAL(linkActivated(QString)), this, SIGNAL(openProjectTab(QString)));
+	connect(ui_->open_btn, SIGNAL(clicked(bool)), this, SLOT(loadVariantList()));
 	connect(ui_->qc_all, SIGNAL(stateChanged(int)), this, SLOT(updateQCMetrics()));
 	connect(ui_->update_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
 	connect(ui_->diag_status_edit_btn, SIGNAL(clicked(bool)), this, SLOT(editDiagnosticStatus()));
@@ -29,6 +31,7 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	connect(ui_->relation_delete_btn, SIGNAL(clicked(bool)), this, SLOT(removeRelation()));
 	connect(ui_->merged, SIGNAL(linkActivated(QString)), this, SIGNAL(openProcessedSampleTab(QString)));
 	connect(ui_->normal_sample, SIGNAL(linkActivated(QString)), this, SIGNAL(openProcessedSampleTab(QString)));
+	connect(ui_->reanalyze_btn, SIGNAL(clicked(bool)), this, SLOT(queueSampleAnalysis()));
 
 	//QC value > plot
 	QAction* action = new QAction("Plot", this);
@@ -93,7 +96,7 @@ void ProcessedSampleWidget::updateGUI()
 	ui_->comments_processed_sample->setText(ps_data.comments);
 	QString name_short = db_.getValue("SELECT name_short FROM processing_system WHERE name_manufacturer='" + ps_data.processing_system + "'").toString();
 	ui_->system->setText("<a href=\"" + name_short + "\">"+ps_data.processing_system+"</a>");
-	ui_->project->setText(ps_data.project_name);
+	ui_->project->setText("<a href=\"" + ps_data.project_name + "\">"+ps_data.project_name+"</a>");
 	QString run = ps_data.run_name;
 	QString run_quality = db_.getValue("SELECT quality FROM sequencing_run WHERE name='" + run + "'").toString();
 	styleQualityLabel(ui_->r_quality, run_quality);
@@ -246,20 +249,6 @@ void ProcessedSampleWidget::showPlot()
 	dlg->exec();
 }
 
-void ProcessedSampleWidget::openSampleInNGSD()
-{
-	try
-	{
-		QString url = NGSD().url(processedSampleName());
-		QDesktopServices::openUrl(QUrl(url));
-	}
-	catch (DatabaseException e)
-	{
-		GUIHelper::showMessage("NGSD error", "Error message: " + e.message());
-		return;
-	}
-}
-
 void ProcessedSampleWidget::openSampleFolder()
 {
 	QString folder = NGSD().processedSamplePath(ps_id_, NGSD::SAMPLE_FOLDER);
@@ -289,7 +278,7 @@ void ProcessedSampleWidget::openSampleTab()
 		QString s = ui_->sample_relations->item(row, 0)->text();
 		if (s==s_name)
 		{
-			s = ui_->sample_relations->item(row, 2)->text();
+			s = ui_->sample_relations->item(row, 3)->text();
 		}
 
 		QStringList tmp = db_.getValues("SELECT ps.id FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND s.name=:0", s);
@@ -385,11 +374,10 @@ void ProcessedSampleWidget::removeRelation()
 	if (reply==QMessageBox::No) return;
 
 	//delete relations
-	NGSD db;
 	foreach(int row, selected_rows)
 	{
 		QString rel_id = ui_->sample_relations->getId(row);
-		db.getQuery().exec("DELETE FROM sample_relations WHERE id='" + rel_id + "'");
+		db_.getQuery().exec("DELETE FROM sample_relations WHERE id='" + rel_id + "'");
 	}
 
 	//update GUI
@@ -400,6 +388,11 @@ void ProcessedSampleWidget::deleteSampleData()
 {
 	ProcessedSampleDataDeletionDialog* dlg = new ProcessedSampleDataDeletionDialog(this, QStringList() << ps_id_);
 	dlg->exec();
+}
+
+void ProcessedSampleWidget::loadVariantList()
+{
+	emit openProcessedSampleFromNGSD(db_.processedSampleName(ps_id_));
 }
 
 void ProcessedSampleWidget::addBamToIgv()
@@ -532,3 +525,20 @@ QString ProcessedSampleWidget::mergedSamples() const
 	return output.join(", ");
 }
 
+void ProcessedSampleWidget::queueSampleAnalysis()
+{
+	//prepare sample list
+	QList<AnalysisJobSample> job_list;
+	job_list << AnalysisJobSample {db_.processedSampleName(ps_id_), ""};
+
+	//show dialog
+	SingleSampleAnalysisDialog dlg(this);
+	dlg.setSamples(job_list);
+	if (dlg.exec()!=QDialog::Accepted) return;
+
+	//start analysis
+	foreach(const AnalysisJobSample& sample,  dlg.samples())
+	{
+		db_.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
+	}
+}
