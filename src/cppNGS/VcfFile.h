@@ -39,6 +39,9 @@ public:
 	///Returns string where all forbidden char of an info column value are URL encoded
 	static QString encodeInfoValue(QString info_value);
 
+	///Returns string where all URL encoded chars of an info column value are decoded
+	static QString decodeInfoValue(QString encoded_info_value);
+
 private:
 
 	//INFO/FORMAT definition line

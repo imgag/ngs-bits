@@ -2,6 +2,7 @@
 #include "ToolBase.h"
 #include "NGSHelper.h"
 #include "Settings.h"
+#include "VcfFile.h"
 #include <QTextStream>
 #include <QFileInfo>
 
@@ -27,6 +28,7 @@ public:
 		addFlag("clear", "Clear all annotations present in the 'in' file.");
 		addFlag("no_duplicates", "Remove duplicate annotations if several intervals from 'in2' overlap.");
 		addFlag("overlap", "Annotate overlap with regions in 'in2'. The regular annotation is appended in brackets.");
+		addFlag("url_decode", "Decode URL encoded characters");
 
 		changeLog(2019,  7,  9, "Added parameters 'col', 'overlap' and 'no_duplicates'; Fixed 'clear' parameter.");
 		changeLog(2017, 11, 28, "Added 'clear' flag.");
@@ -43,6 +45,7 @@ public:
 		bool clear = getFlag("clear");
 		bool no_duplicates = getFlag("no_duplicates");
 		bool overlap = getFlag("overlap");
+		bool url_decode = getFlag("url_decode");
 
 		//load annoation database
 		BedFile anno_file;
@@ -106,6 +109,10 @@ public:
 				anno = annos.join(",");
 			}
 
+			if (url_decode)
+			{
+				anno = VcfFile::decodeInfoValue(anno).toUtf8();
+			}
 			line.annotations().append(anno);
 		}
 

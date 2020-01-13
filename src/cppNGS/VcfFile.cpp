@@ -679,7 +679,7 @@ const QList<KeyValuePair> VcfFile::INFO_URL_MAPPING =
 			KeyValuePair("=", "%3D")
 };
 
-//Returns string where all forbidden char of an info column value are URL encoded
+//Returns string where all forbidden chars of an info column value are URL encoded
 QString VcfFile::encodeInfoValue(QString info_value)
 {
 	// iterate over the mapping list and replace each character
@@ -688,5 +688,20 @@ QString VcfFile::encodeInfoValue(QString info_value)
 		info_value.replace(replacement.key, replacement.value);
 	}
 	return info_value;
+}
+
+//Returns string where all URL encoded chars of an info column value are decoded
+QString VcfFile::decodeInfoValue(QString encoded_info_value)
+{
+	// iterate over the mapping list in reverse order and replace each encoded character
+	QList<KeyValuePair>::const_reverse_iterator r_iter;
+	r_iter = VcfFile::INFO_URL_MAPPING.crbegin();
+	while(r_iter != VcfFile::INFO_URL_MAPPING.crend())
+	{
+		  encoded_info_value.replace(r_iter->value, r_iter->key);
+		  ++r_iter;
+	}
+
+	return encoded_info_value;
 }
 
