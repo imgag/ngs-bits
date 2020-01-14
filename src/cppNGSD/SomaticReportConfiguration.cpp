@@ -59,8 +59,12 @@ bool SomaticReportConfiguration::exists(VariantType type, int index) const
 }
 
 bool SomaticReportConfiguration::set(const SomaticReportVariantConfiguration &config)
-{
-	if((!config.include_variant_alteration.isEmpty() || !config.include_variant_description.isEmpty()) && !config.showInReport())
+{	
+	if(config.variant_type == VariantType::INVALID)
+	{
+		THROW(ArgumentException, "Cannot set somatic report configuration. VariantType for variant index " + QByteArray::number(config.variant_index) + " is invalid in SomaticReportConfiguration::set");
+	}
+	if(config.variant_type == VariantType::SNVS_INDELS && (!config.include_variant_alteration.isEmpty() || !config.include_variant_description.isEmpty()) && !config.showInReport())
 	{
 		THROW(ArgumentException, "Cannot set somatic report configuration. Variant Configuration for variant index " + QByteArray::number(config.variant_index) + " contains both include and exclude switches.");
 	}

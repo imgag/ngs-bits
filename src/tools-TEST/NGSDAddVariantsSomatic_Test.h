@@ -26,5 +26,14 @@ private slots:
 		S_EQUAL(table.row(0).asString(';'), "1;8;7;1;0.1057;389;229");
 		S_EQUAL(table.row(1).asString(';'), "2;8;7;2;0.1304;26;22");
 		S_EQUAL(table.row(2).asString(';'), "3;8;7;3;0.1254;639;330");
+
+		//force variant import
+		EXECUTE("NGSDAddVariantsSomatic", "-test -no_time -t_ps DX184894_01 -n_ps DX184263_01 -var_force -var " + TESTDATA("data_in/NGSDAddVariantsSomatic_in1.GSvar"));
+		//should fail because variants already exist an var_force is unset
+		EXECUTE_FAIL("NGSDAddVariantsSomatic", "-test -no_time -t_ps DX184894_01 -n_ps DX184263_01 -var " + TESTDATA("data_in/NGSDAddVariantsSomatic_in1.GSvar"));
 	}
+
+	void test_addCNvs();
+
+
 };

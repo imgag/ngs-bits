@@ -109,7 +109,8 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     NGSDExportAnnotationData_Test.h \
     VcfAnnotateFromVcf_Test.h \
     NGSDExportCnvTrack_Test.h \
-    CnvGeneAnnotation_Test.h
+    CnvGeneAnnotation_Test.h \
+    BedpeGeneAnnotation_Test.h
 
 SOURCES += \
     main.cpp

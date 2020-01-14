@@ -1148,6 +1148,102 @@ CREATE TABLE `somatic_report_configuration_variant` (
 ENGINE=InnoDB
 DEFAULT CHARSET=utf8;
 
+
+-- -----------------------------------------------------
+-- Table `somatic_cnv_callset`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `somatic_cnv_callset`
+(
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `ps_tumor_id` INT(11) NOT NULL,
+  `ps_normal_id` INT(11) NOT NULL,
+  `caller` ENUM('ClinCNV') NOT NULL,
+  `caller_version` varchar(25) NOT NULL,
+  `call_date` DATETIME NOT NULL,
+  `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
+  `quality` ENUM('n/a','good','medium','bad') NOT NULL DEFAULT 'n/a',
+  PRIMARY KEY (`id`),
+  INDEX `caller` (`caller` ASC),
+  INDEX `call_date` (`call_date` ASC),
+  INDEX `quality` (`quality` ASC),
+  UNIQUE INDEX `combo_ids` (`ps_tumor_id` ASC, `ps_normal_id` ASC),
+  CONSTRAINT `som_cnv_callset_ps_normal_id`
+    FOREIGN KEY (`ps_normal_id`)
+    REFERENCES `processed_sample` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `som_cnv_callset_ps_tumor_id`
+    FOREIGN KEY (`ps_tumor_id`) 
+    REFERENCES `processed_sample` (`id`) 
+    ON DELETE NO ACTION 
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8
+COMMENT='somatic CNV call set';
+
+-- -----------------------------------------------------
+-- Table `somatic_cnv`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `somatic_cnv`
+(
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `somatic_cnv_callset_id` INT(11) UNSIGNED NOT NULL,
+  `chr` ENUM('chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrY','chrX','chrMT') NOT NULL,
+  `start` INT(11) UNSIGNED NOT NULL,
+  `end` INT(11) UNSIGNED NOT NULL,
+  `cn` FLOAT UNSIGNED NOT NULL COMMENT 'copy-number change in whole sample, including normal parts',
+  `tumor_cn` INT(11) UNSIGNED NOT NULL COMMENT 'copy-number change normalized to tumor tissue only',
+  `tumor_clonality` FLOAT NOT NULL COMMENT 'tumor clonality, i.e. fraction of tumor cells',
+  `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
+  PRIMARY KEY (`id`),
+  CONSTRAINT `som_cnv_references_cnv_callset`
+    FOREIGN KEY (`somatic_cnv_callset_id`)
+    REFERENCES `somatic_cnv_callset` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `unique_callset_cnv_pair`
+    UNIQUE(`somatic_cnv_callset_id`,`chr`,`start`,`end`),
+  INDEX `chr` (`chr` ASC),
+  INDEX `start` (`start` ASC),
+  INDEX `end` (`end` ASC),
+  INDEX `tumor_cn` (`tumor_cn` ASC)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8
+COMMENT='somatic CNV';
+
+-- -----------------------------------------------------
+-- Table `somatic_report_configuration_cnv`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `somatic_report_configuration_cnv` 
+(
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `somatic_report_configuration_id` int(11) NOT NULL,
+  `somatic_cnv_id` int(11) UNSIGNED NOT NULL,
+  `exclude_artefact` BOOLEAN NOT NULL,
+  `exclude_low_tumor_content` BOOLEAN NOT NULL,
+  `exclude_low_copy_number` BOOLEAN NOT NULL,
+  `exclude_high_baf_deviation` BOOLEAN NOT NULL,
+  `exclude_other_reason` BOOLEAN NOT NULL,
+  `comment` text NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `som_rep_conf_cnv_has_som_rep_conf_id` 
+    FOREIGN KEY (`somatic_report_configuration_id`) 
+    REFERENCES `somatic_report_configuration` (`id`) 
+    ON DELETE NO ACTION 
+    ON UPDATE NO ACTION,
+  CONSTRAINT `som_report_conf_cnv_has_som_cnv_id`
+    FOREIGN KEY (`somatic_cnv_id`)
+    REFERENCES `somatic_cnv` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+    UNIQUE INDEX `som_conf_cnv_combo_uniq_index` (`somatic_report_configuration_id` ASC, `somatic_cnv_id` ASC)
+)
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8;
+
+
 -- -----------------------------------------------------
 -- Table `report_configuration`
 -- -----------------------------------------------------

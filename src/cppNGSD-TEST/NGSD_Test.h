@@ -8,7 +8,7 @@ TEST_CLASS(NGSD_Test)
 Q_OBJECT
 private:
 	//Test SomaticReportConfiguration, method has to be claled in main_tests();
-	void somaticReportTest(NGSD& db)
+	inline void somaticReportTest(NGSD& db)
 	{
 		//test overloaded functions (same functions as in germline report config)
 		I_EQUAL(db.reportConfigId("5","6"), 3);
@@ -25,6 +25,7 @@ private:
 		//set somatic report configuration in test NGSD
 		SomaticReportVariantConfiguration var1;
 		var1.variant_index = 1;
+		var1.variant_type = VariantType::SNVS_INDELS;
 		var1.exclude_artefact = true;
 		var1.exclude_high_baf_deviation = true;
 		var1.exclude_low_copy_number = true;
@@ -33,6 +34,7 @@ private:
 
 		SomaticReportVariantConfiguration var2;
 		var2.variant_index = 2;
+		var2.variant_type = VariantType::SNVS_INDELS;
 		var2.include_variant_alteration = "c.-124A>C";
 		var2.include_variant_description = "Testtreiber (bekannt)";
 		var2.comment = "known test driver was not included in any db yet.";
@@ -45,7 +47,15 @@ private:
 		VariantList vl;
 		vl.load(TESTDATA("../cppNGS-TEST/data_in/somatic_report_config.GSvar"));
 
-		CnvList cnvs; //TODO: FILL WITH TEST DATA
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/somatic_cnvs_clincnv.tsv"));
+		SomaticReportVariantConfiguration cnv1;
+		cnv1.variant_index = 2;
+		cnv1.variant_type = VariantType::CNVS;
+		cnv1.exclude_artefact = true;
+		cnv1.exclude_other_reason = true;
+		cnv1.comment = "This test somatic cnv shall be excluded.";
+		som_rep_conf.set(cnv1);
 
 		QString t_ps_id = db.processedSampleId("NA12345_01");
 		QString n_ps_id = db.processedSampleId("NA12123_04");
@@ -55,6 +65,9 @@ private:
 		QStringList messages = {};
 		QList<SomaticReportVariantConfiguration> res =  db.somaticReportConfig(t_ps_id, n_ps_id, vl, cnvs, messages).variantConfig();
 		const SomaticReportVariantConfiguration& res0 = res.at(0);
+		I_EQUAL(res.count(), 3);
+
+
 		I_EQUAL(res0.variant_index, 1);
 		IS_TRUE(res0.exclude_artefact);
 		IS_TRUE(res0.exclude_low_tumor_content);
@@ -88,7 +101,47 @@ private:
 		S_EQUAL(creation_data_2.last_edit_by, "Sarah Kerrigan");
 		IS_TRUE(creation_data_2.created_date == creation_data_1.created_date);
 		IS_TRUE(creation_data_2.last_edit_date != "");
+
+		//Test CNV report configuration
+		const SomaticReportVariantConfiguration& res2 = res.at(2);
+		I_EQUAL(res2.variant_index, 2);
+		IS_TRUE(res2.exclude_artefact);
+		IS_FALSE(res2.exclude_low_tumor_content);
+		IS_FALSE(res2.exclude_high_baf_deviation);
+		IS_TRUE(res2.exclude_other_reason);
+		S_EQUAL(res2.comment, "This test somatic cnv shall be excluded.");
+
 	}
+
+
+	inline void SomaticCNVmethods(NGSD& db)
+	{
+		//get somatic CNV
+		S_EQUAL(db.somaticCnv(1).toString(), "chr4:18000-200000");
+
+		//Test get CNV ID
+		S_EQUAL(db.somaticCnvId(CopyNumberVariant(Chromosome("chr7"), 87000, 350000), 5, false), "4");
+		S_EQUAL(db.somaticCnvId(CopyNumberVariant(Chromosome("chr7"), 87000, 350000), 1, false), ""); //CNV on callset 1 does not exist
+		S_EQUAL(db.somaticCnvId(CopyNumberVariant(Chromosome("chr8"), 87000, 350000), 5, false), ""); //CNV does not exist
+		S_EQUAL(db.somaticCnvId(CopyNumberVariant(Chromosome("chr7"), 87040, 350000), 5, false), ""); //CNV does not exist
+		S_EQUAL(db.somaticCnvId(CopyNumberVariant(Chromosome("chr7"), 87000, 350005), 5, false), ""); //CNV does not exist
+		IS_THROWN(DatabaseException, db.somaticCnvId(CopyNumberVariant(Chromosome("chr7"), 87000, 350000), 1));
+
+
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/somatic_cnvs_clincnv.tsv"));
+		int cnv_id =  db.addSomaticCnv(1, cnvs[3], cnvs).toInt();
+		CopyNumberVariant res_cnv = db.somaticCnv(cnv_id);
+		S_EQUAL(res_cnv.chr().strNormalized(true), "chr11");
+		I_EQUAL(res_cnv.start(), 26582421);
+		I_EQUAL(res_cnv.end(), 27694430);
+
+
+
+		//db.addSomaticCnv()
+
+	}
+
 private slots:
 
 	//Normally, one member is tested in one QT slot.
@@ -863,6 +916,7 @@ private slots:
 		report_conf.set(report_var_conf2);
 		int conf_id1 = db.setReportConfig(ps_id, report_conf, vl, cnvs, "ahmustm1");
 
+
 		//reportConfigId
 		int conf_id = db.reportConfigId(ps_id);
 		IS_TRUE(conf_id!=-1);
@@ -876,6 +930,9 @@ private slots:
 		QThread::sleep(1);
 		int conf_id2 = db.setReportConfig(ps_id, report_conf, vl, cnvs, "ahkerra1");
 		IS_TRUE(conf_id1==conf_id2);
+		//check that no double entries are inserted after second execution of setReportConfig
+		I_EQUAL(db.getValue("SELECT count(*) FROM cnv WHERE cnv_callset_id=1 AND chr='chr2' AND start=89246800 AND end=89545067 AND cn=1").toInt(), 1);
+
 		ReportConfigurationCreationData rc_creation_data2 = db.reportConfigCreationData(conf_id);
 		S_EQUAL(rc_creation_data2.created_by, "Max Mustermann");
 		S_EQUAL(rc_creation_data2.last_edit_by, "Sarah Kerrigan");
@@ -928,11 +985,11 @@ private slots:
 		X_EQUAL(report_conf2.variantConfig()[0].variant_type, VariantType::CNVS);
 
 		//deleteReportConfig
-		I_EQUAL(db.getValue("SELECT count(*) FROM report_configuration").toInt(), 1);
+		I_EQUAL(db.getValue("SELECT count(*) FROM report_configuration").toInt(), 2); //result is 2 because there is one report config already in test NGSD after init
 		db.deleteReportConfig(conf_id);
-		I_EQUAL(db.getValue("SELECT count(*) FROM report_configuration").toInt(), 0);
+		I_EQUAL(db.getValue("SELECT count(*) FROM report_configuration").toInt(), 1);
 
-
+		SomaticCNVmethods(db);
 		somaticReportTest(db);
 
 		//cnvId

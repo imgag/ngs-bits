@@ -439,8 +439,21 @@ INSERT INTO `cnv` (`id`, `cnv_callset_id`, `chr`, `start`, `end`, `cn`) VALUES
 (2, 1, 'chr1', 3000, 4000, 1),
 (3, 1, 'chr2', 10000, 40000, 1);
 
+-- report config
+INSERT INTO `report_configuration` (`processed_sample_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES
+(4003, 99, '2018-02-12T10:20:45', 99, '2018-07-12T10:20:43');
+
+-- somatic_cnv_callset_id`
+INSERT INTO `somatic_cnv_callset` (`id`, `ps_tumor_id`, `ps_normal_id`, `caller`, `caller_version`, `call_date`, `quality_metrics`, `quality`) VALUES
+(1, 4000, 3999, 'ClinCNV', 'v 1.16', '2020-01-12T13:35:01', '{"estimated fdr":"0","gender of sample":"F","ploidy":"2.21","clonality by BAF (if != 1)":"0;0.725;0.25"}', 'good'),
+(5, 4002, 4001, 'ClinCNV', 'v 1.16', '2019-01-12T13:35:01', '{"estimated fdr":"0","gender of sample":"F","ploidy":"2.21","clonality by BAF (if != 1)":"0;0.725;0.25"}', 'bad');
+
+-- somatic cnv_callset
+INSERT INTO `somatic_cnv` (`id`, `somatic_cnv_callset_id`, `chr`, `start`, `end`, `cn`, `tumor_cn`, `tumor_clonality`) VALUES
+(1, 1, 'chr4', 18000, 200000, 2.54, 3, 0.75),
+(4, 5, 'chr7', 87000, 350000, 3.14, 4, 0.8);
+
 
 
 INSERT INTO `somatic_report_configuration` (`id`, `ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES (3,5,6,3,'2019-01-05 14:06:12', 99, '2019-12-07 17:06:10');
 INSERT INTO `somatic_report_configuration` (`id`, `ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES (51,5,4000,99,'2019-01-05 14:06:12', 101, '2019-12-07 17:06:10');
-

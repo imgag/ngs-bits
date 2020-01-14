@@ -460,6 +460,10 @@ public:
 	///Returns the CNV corresponding to the given identifiers or throws an exception if the ID does not exist.
 	CopyNumberVariant cnv(int cnv_id);
 
+	QString addSomaticCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList& cnv_list, double max_ll = 0.0);
+	QString somaticCnvId(const CopyNumberVariant& cnv, int callset_id, bool throw_if_fails = true);
+	CopyNumberVariant somaticCnv(int cnv_id);
+
 	///Returns the database ID of the user as a string. Throws an exception if the user is not in the NGSD user table.
 	QString userId(QString user_name=Helper::userName());
 
@@ -542,7 +546,7 @@ public:
 	///Sets/overwrites somatic report configuration for tumor-normal processed sample pair
 	int setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const SomaticReportConfiguration& config, const VariantList& snvs, const CnvList& cnvs, QString user_name);
 
-	//Retrieve somatic report configuration using tumor and normal processed sample ids
+	///Retrieve somatic report configuration using tumor and normal processed sample ids
 	SomaticReportConfiguration somaticReportConfig(QString t_ps_id, QString n_ps_id, const VariantList& snvs, const CnvList& cnvs, QStringList& messages);
 
 	///Sets processed sample quality

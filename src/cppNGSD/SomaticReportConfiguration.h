@@ -11,8 +11,8 @@ struct CPPNGSDSHARED_EXPORT SomaticReportVariantConfiguration
 	SomaticReportVariantConfiguration();
 	bool showInReport() const;
 
-	VariantType variant_type;
-	int variant_index;
+	VariantType variant_type = VariantType::INVALID;
+	int variant_index = -1;
 
 	//exclusions
 	bool exclude_artefact;
