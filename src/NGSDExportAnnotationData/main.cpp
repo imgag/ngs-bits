@@ -8,7 +8,6 @@
 #include "Settings.h"
 #include "VcfFile.h"
 #include <QElapsedTimer>
-#include <QThreadPool>
 
 class ConcreteTool
 		: public ToolBase

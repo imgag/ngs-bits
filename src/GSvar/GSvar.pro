@@ -67,7 +67,8 @@ SOURCES += main.cpp\
     VariantWidget.cpp \
     ProcessingSystemWidget.cpp \
     ProjectWidget.cpp \
-    GSvarStoreWorker.cpp
+    GSvarStoreWorker.cpp \
+    DBEditor.cpp
 
 HEADERS  += MainWindow.h \
     ExternalToolDialog.h \
@@ -129,7 +130,8 @@ HEADERS  += MainWindow.h \
     VariantWidget.h \
     ProcessingSystemWidget.h \
     ProjectWidget.h \
-    GSvarStoreWorker.h
+    GSvarStoreWorker.h \
+    DBEditor.h
 
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \

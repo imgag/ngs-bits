@@ -1087,9 +1087,12 @@ const TableInfo& NGSD::tableInfo(QString table) const
 
 			//type
 			QString type = query.value(1).toString();
+			type = type.replace(" unsigned", "");
 			if(type=="text") info.type = TableFieldInfo::TEXT;
 			else if(type=="float") info.type = TableFieldInfo::FLOAT;
 			else if(type=="date") info.type = TableFieldInfo::DATE;
+			else if(type=="datetime") info.type = TableFieldInfo::DATETIME;
+			else if(type=="timestamp") info.type = TableFieldInfo::TIMESTAMP;
 			else if(type=="tinyint(1)") info.type = TableFieldInfo::BOOL;
 			else if(type.startsWith("int(") || type.startsWith("tinyint(")) info.type = TableFieldInfo::INT;
 			else if(type.startsWith("enum("))
@@ -1101,6 +1104,10 @@ const TableInfo& NGSD::tableInfo(QString table) const
 			{
 				info.type = TableFieldInfo::VARCHAR;
 				info.type_restiction = type.mid(8, type.length()-9);
+			}
+			else
+			{
+				THROW(ProgrammingException, "Unhandled SQL field type '" + type + "' in field '" + info.name + "' of table '" + table + "'!");
 			}
 
 			//nullable
@@ -1117,6 +1124,13 @@ const TableInfo& NGSD::tableInfo(QString table) const
 				{
 					info.fk_table = query_fk.value(1).toString();
 					info.fk_field = query_fk.value(2).toString();
+
+					//set type
+					if (info.type!=TableFieldInfo::FK && info.type!=TableFieldInfo::INT)
+					{
+						THROW(ProgrammingException, "Found SQL foreign key with non-integer type '" + type + "' in field '" + info.name + "' of table '" + table + "'!");
+					}
+					info.type = TableFieldInfo::FK;
 				}
 			}
 

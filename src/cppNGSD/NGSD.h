@@ -24,7 +24,7 @@ struct CPPNGSDSHARED_EXPORT TableFieldInfo
 {
 	enum Type
 	{
-		BOOL, INT, FLOAT, TEXT, VARCHAR, ENUM, DATE, FK
+		BOOL, INT, FLOAT, TEXT, VARCHAR, ENUM, DATE, DATETIME, TIMESTAMP, FK
 	};
 
 	int index = -1;
