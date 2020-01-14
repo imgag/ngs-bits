@@ -670,9 +670,8 @@ const QList<KeyValuePair> VcfFile::INFO_URL_MAPPING =
 {
 			KeyValuePair("%", "%25"), // has to be the first element to avoid replacement of already encoded characters
 			KeyValuePair("\t", "%09"),
-			KeyValuePair("\n", "%0a"),
-			KeyValuePair("\r", "%0d"),
-
+			KeyValuePair("\n", "%0A"),
+			KeyValuePair("\r", "%0D"),
 			KeyValuePair(" ", "%20"),
 			KeyValuePair(",", "%2C"),
 			KeyValuePair(";", "%3B"),
@@ -694,14 +693,10 @@ QString VcfFile::encodeInfoValue(QString info_value)
 QString VcfFile::decodeInfoValue(QString encoded_info_value)
 {
 	// iterate over the mapping list in reverse order and replace each encoded character
-	QList<KeyValuePair>::const_reverse_iterator r_iter;
-	r_iter = VcfFile::INFO_URL_MAPPING.crbegin();
-	while(r_iter != VcfFile::INFO_URL_MAPPING.crend())
+	for (int i=VcfFile::INFO_URL_MAPPING.size() - 1; i >= 0; i--)
 	{
-		  encoded_info_value.replace(r_iter->value, r_iter->key);
-		  ++r_iter;
+		encoded_info_value.replace(VcfFile::INFO_URL_MAPPING[i].value, VcfFile::INFO_URL_MAPPING[i].key);
 	}
-
 	return encoded_info_value;
 }
 

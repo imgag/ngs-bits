@@ -35,4 +35,10 @@ private slots:
 		EXECUTE("BedAnnotateFromBed", "-in " + TESTDATA("data_in/BedAnnotateFromBed_in3.bed") + " -in2 " + TESTDATA("data_in/BedAnnotateFromBed_db1.bed") + " -overlap -no_duplicates -out out/BedAnnotateFromBed_out5.bed");
 		COMPARE_FILES("out/BedAnnotateFromBed_out5.bed", TESTDATA("data_out/BedAnnotateFromBed_out5.bed"));
 	}
+
+	void url_decoding()
+	{
+		EXECUTE("BedAnnotateFromBed", "-in " + TESTDATA("data_in/BedAnnotateFromBed_in1.bed") + " -in2 " + TESTDATA("data_in/BedAnnotateFromBed_db2.bed") + " -url_decode -no_duplicates -out out/BedAnnotateFromBed_out6.bed");
+		COMPARE_FILES("out/BedAnnotateFromBed_out6.bed", TESTDATA("data_out/BedAnnotateFromBed_out6.bed"));
+	}
 };
