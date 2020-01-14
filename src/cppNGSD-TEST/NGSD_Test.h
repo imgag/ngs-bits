@@ -793,6 +793,9 @@ private slots:
 		QThread::sleep(1);
 		int conf_id2 = db.setReportConfig(ps_id, report_conf, vl, cnvs, "ahkerra1");
 		IS_TRUE(conf_id1==conf_id2);
+		//check that no double entries are inserted after second execution of setReportConfig
+		I_EQUAL(db.getValue("SELECT count(*) FROM cnv WHERE cnv_callset_id=1 AND chr='chr2' AND start=89246800 AND end=89545067 AND cn=1").toInt(), 1);
+
 		ReportConfigurationCreationData rc_creation_data2 = db.reportConfigCreationData(conf_id);
 		S_EQUAL(rc_creation_data2.created_by, "Max Mustermann");
 		S_EQUAL(rc_creation_data2.last_edit_by, "Sarah Kerrigan");
@@ -845,9 +848,9 @@ private slots:
 		X_EQUAL(report_conf2.variantConfig()[0].variant_type, VariantType::CNVS);
 
 		//deleteReportConfig
-		I_EQUAL(db.getValue("SELECT count(*) FROM report_configuration").toInt(), 1);
+		I_EQUAL(db.getValue("SELECT count(*) FROM report_configuration").toInt(), 2); //result is 2 because there is one report config already in test NGSD after init
 		db.deleteReportConfig(conf_id);
-		I_EQUAL(db.getValue("SELECT count(*) FROM report_configuration").toInt(), 0);
+		I_EQUAL(db.getValue("SELECT count(*) FROM report_configuration").toInt(), 1);
 
 		//cnvId
 		CopyNumberVariant cnv = CopyNumberVariant("chr1", 1000, 2000, 1, GeneSet(), QByteArrayList());
