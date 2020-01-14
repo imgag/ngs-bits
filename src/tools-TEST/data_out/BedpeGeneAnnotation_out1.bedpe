@@ -1,0 +1,49 @@
+##fileformat=BEDPE
+##fileDate=20191130
+##source=GenerateSVCandidates 1.6.0
+##reference=file:///tmp/local_ngs_data/GRCh37.fa
+##contig=<ID=chr1,length=249250621>
+##contig=<ID=chr2,length=243199373>
+##ALT=<ID=DEL,Description="Deletion">
+##ALT=<ID=INS,Description="Insertion">
+##ALT=<ID=DUP:TANDEM,Description="Tandem Duplication">
+##cmdline=/mnt/share/opt/manta-1.6.0.centos6_x86_64/bin//configManta.py --referenceFasta /tmp/local_ngs_data//GRCh37.fa --runDir /tmp/20312.1.default_srv011/megSAP_user_bioinf/vc_manta_y0Oqwr/mantaAnalysis --config /mnt/share/opt/manta-1.6.0.centos6_x86_64/bin//configManta.py.ini --outputContig --generateEvidenceBam --normalBam /tmp/20312.1.default_srv011/megSAP_user_bioinf/vc_manta_IueIgU_nocomplex.bam
+##INFO=<ID=IMPRECISE,Number=0,Type=Flag,Description="Imprecise structural variation">
+##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">
+##INFO=<ID=POS,Number=1,Type=Integer,Description="Position of the variant described in the original VCF file.">
+##INFO=<ID=SVLEN,Number=.,Type=Integer,Description="Difference in length between REF and ALT alleles">
+##INFO=<ID=END,Number=1,Type=Integer,Description="End position of the variant described in this record">
+##INFO=<ID=CIPOS,Number=2,Type=Integer,Description="Confidence interval around POS">
+##INFO=<ID=CIEND,Number=2,Type=Integer,Description="Confidence interval around END">
+##INFO=<ID=CIGAR,Number=A,Type=String,Description="CIGAR alignment for each alternate indel allele">
+##INFO=<ID=MATEID,Number=.,Type=String,Description="ID of mate breakend">
+##INFO=<ID=EVENT,Number=1,Type=String,Description="ID of event associated to breakend">
+##INFO=<ID=HOMLEN,Number=.,Type=Integer,Description="Length of base pair identical homology at event breakpoints">
+##INFO=<ID=HOMSEQ,Number=.,Type=String,Description="Sequence of base pair identical homology at event breakpoints">
+##INFO=<ID=SVINSLEN,Number=.,Type=Integer,Description="Length of insertion">
+##INFO=<ID=SVINSSEQ,Number=.,Type=String,Description="Sequence of insertion">
+##INFO=<ID=LEFT_SVINSSEQ,Number=.,Type=String,Description="Known left side of insertion for an insertion of unknown length">
+##INFO=<ID=RIGHT_SVINSSEQ,Number=.,Type=String,Description="Known right side of insertion for an insertion of unknown length">
+##INFO=<ID=CONTIG,Number=1,Type=String,Description="Assembled contig sequence">
+##INFO=<ID=BND_DEPTH,Number=1,Type=Integer,Description="Read depth at local translocation breakend">
+##INFO=<ID=MATE_BND_DEPTH,Number=1,Type=Integer,Description="Read depth at remote translocation mate breakend">
+##INFO=<ID=JUNCTION_QUAL,Number=1,Type=Integer,Description="If the SV junction is part of an EVENT (ie. a multi-adjacency variant), this field provides the QUAL value for the adjacency in question only">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=FT,Number=1,Type=String,Description="Sample filter, 'PASS' indicates that all filters have passed for this sample">
+##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype Quality">
+##FORMAT=<ID=PL,Number=G,Type=Integer,Description="Normalized, Phred-scaled likelihoods for genotypes as defined in the VCF specification">
+##FORMAT=<ID=PR,Number=.,Type=Integer,Description="Spanning paired-read support for the ref and alt alleles in the order listed">
+##FORMAT=<ID=SR,Number=.,Type=Integer,Description="Split reads for the ref and alt alleles in the order listed, for reads where P(allele|read)>0.999">
+##FILTER=<ID=HomRef,Description="homozygous reference call (filter applied at sample level)">
+##FILTER=<ID=MaxDepth,Description="Depth is greater than 3x the median chromosome depth near one or both variant breakends">
+##FILTER=<ID=MaxMQ0Frac,Description="For a small variant (<1000 bases), the fraction of reads in all samples with MAPQ0 around either breakend exceeds 0.4">
+##FILTER=<ID=MinGQ,Description="GQ score is less than 15 (filter applied at sample level)">
+##FILTER=<ID=MinQUAL,Description="QUAL score is less than 20">
+##FILTER=<ID=NoPairSupport,Description="For variants significantly larger than the paired read fragment size, no paired reads support the alternate allele in any sample.">
+##FILTER=<ID=Ploidy,Description="For DEL & DUP variants, the genotypes of overlapping variants (with similar size) are inconsistent with diploid expectation">
+##FILTER=<ID=SampleFT,Description="No sample passes all the sample-level filters (at the field FORMAT/FT)">
+##FILTER=<ID=off-target,Description="Variant marked as 'off-target'.">
+#CHROM_A	START_A	END_A	CHROM_B	START_B	END_B	ID	QUAL	STRAND_A	STRAND_B	TYPE	FILTER	NAME_A	REF_A	ALT_A	NAME_B	REF_B	ALT_B	INFO_A	INFO_B	FORMAT	NA12878_45	GENE_INFO
+chr1	66221	66239	chr1	66277	66277	MantaDEL:0:0:0:0:0:0	46	.	.	DEL	SampleFT	MantaDEL:0:0:0:0:0:0	ATATATTATATAATATATATTATATTATATAATATATAATATAAATATAATATAAAT	A	.	.	.	SVTYPE=DEL;POS=66221;SVLEN=-56;END=66277;CIPOS=0,18;CIGAR=1M56D;HOMLEN=18;HOMSEQ=TATATTATATAATATATA;CONTIG=GCTAAGGCCCAGAGATTTTTAAATGATATTCCCATGATCACACTGTGAATTTGTGCCAGAACCCAAATGCCTACTCCCATCTCACTGAGACTTACTATAAGGACATAAGGCATTTATATATATTATATATACTATATATTTATATATATTACATATTATATATATAATATATATTATATAATATATAATATAAATATAATATAAATTATATAAATATAATATATATTTTATTATATAATATAATATATATTATATAAATATAATATAATATAAATTATATAATATAATATATATTATATAATATAATATAATATATATTATATAATATAATATATTTTATTATATAAATATATATTATATTATATAATATATATTTTATTATATAATATATATTATATATTTATAGAATATATATTTTATTATATAATATATATTATATAATATAATATATATTATATTTATATATAACATATATTATTATATAAAATATGTATAATATATATTATATAAATATATTTATATAGTATATCAATATCTATATTATATATAATTCTAATGGTTGATATCCAAGAATAATCTATGGCATGAAAGATTTTACCTGTGAACTGTGGCGGGC	.	GT:FT:GQ:PL:PR:SR	1/1:MinGQ:5:97,6,0:4,0:0,2	OR4F5 (oe_lof=0.86 region=intronic/intergenic)
+chr2	189654032	189654036	chr2	189654100	189654100	MantaDEL:1:13378:13378:0:0:0	999	.	.	DEL	PASS	MantaDEL:1:13378:13378:0:0:0	ATATACGTATATATATACACATATATACGTATATATACACATATATACGTATATATACACATATATACG	A	.	.	.	SVTYPE=DEL;POS=189654032;SVLEN=-68;END=189654100;CIPOS=0,4;CIGAR=1M68D;HOMLEN=4;HOMSEQ=TATA;CONTIG=TCTAGTGAGAATTTAGAAGTACACACAATAAAATAAAAATACTCCACAATAGTTTTGAACTCTTGAAGAAAATGACAGGAATAGTATTATGTGTAACCAAATATATATATATACACACACATATATATACGTATATATACATATATATGTATATATACACACATATATACGTATATATACATATATATATACACATATATACGTATATATACACATATATACGTATATATACATATATATACGTATATATACACACATATATATACACATATATATATATATACTCAGAAATATCTGCACTCCAGCTTTGAAAATGTGAGTTAGCTGACACATAACAATGTCAAAGAAGACACATTTTTACAGAAGAACTTTCCTTAAATAAAATAACATTTCCCAATCCATTAATTGT	.	GT:FT:GQ:PL:PR:SR	1/1:PASS:235:999,238,0:0,0:4,83	DIRC1 (oe_lof=n/a region=intronic/intergenic)
+chr2	190706549	190706556	chr2	190706549	190706549	MantaINS:29687:0:0:0:1:0	999	.	.	INS	PASS	MantaINS:29687:0:0:0:1:0	A	AATTTTATTACTCAGTTTCCTTAGCTTGGTTCACTGAAAACCTTTTTTCAGTGAACCAAGCTAATGAAACTGAGTAATAAAATTCAGCT	.	.	.	SVTYPE=INS;POS=190706549;SVLEN=88;END=190706549;CIPOS=0,7;CIGAR=1M88I;HOMLEN=7;HOMSEQ=ATTTTAT;CONTIG=CTCTCTCTTTCTCTGTTATAGACTTCTGCCTCTTTTAGACTGTAGGAAAACAAGACTCTCCCAAGAGTGTGCTGGACATCATTGGTTTTCAAATGGTTAAACAATGCAACTTCACACATGTAGAATGGGAAGCAGAATTTTATTACTCAGTTTCCTTAGCTTGGTTCACTGAAAACCTTTTTTCAGTGAACCAAGCTAATGAAACTGAGTAATAAAATTCAGCTATTTTATACCTCCTCCATAATCATCAAATATTTAAATCACTGTTATTTTGCTTTCAACAAAAGACCTCCTTTCTGCATTTTAGAACAAAGGGGAGCTGTCTCAGCCTCCAGCCACTGAGTCTCCAAACCTGCTTGCTAGTGTACCCA	.	GT:FT:GQ:PL:PR:SR	1/1:PASS:251:999,254,0:0,0:0,120	PMS1 (oe_lof=0.76 region=intronic/intergenic)

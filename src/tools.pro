@@ -353,5 +353,9 @@ SUBDIRS += CnvGeneAnnotation
 tools-TEST.depends += CnvGeneAnnotation
 CnvGeneAnnotation.depends = cppNGS
 
+SUBDIRS += BedpeGeneAnnotation
+tools-TEST.depends += BedpeGeneAnnotation
+BedpeGeneAnnotation.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt
