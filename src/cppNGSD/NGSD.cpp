@@ -2978,7 +2978,7 @@ int NGSD::setReportConfig(const QString& processed_sample_id, const ReportConfig
 
 			//get CNV id (add CNV if not in DB)
 			const CopyNumberVariant& cnv = cnvs[var_conf.variant_index];
-			QString cnv_id = cnvId(cnv, id, false);
+			QString cnv_id = cnvId(cnv, callset_id.toInt(), false);
 			if (cnv_id=="")
 			{
 				cnv_id = addCnv(callset_id.toInt(), cnv, cnvs);

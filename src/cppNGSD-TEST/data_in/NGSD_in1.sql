@@ -432,3 +432,7 @@ INSERT INTO `cnv` (`id`, `cnv_callset_id`, `chr`, `start`, `end`, `cn`) VALUES
 (1, 1, 'chr1', 1000, 2000, 1),
 (2, 1, 'chr1', 3000, 4000, 1),
 (3, 1, 'chr2', 10000, 40000, 1);
+
+-- report config
+INSERT INTO `report_configuration` (`processed_sample_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES
+(4003, 99, '2018-02-12T10:20:45', 99, '2018-07-12T10:20:43');
