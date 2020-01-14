@@ -34,4 +34,18 @@ private slots:
 		I_EQUAL(output_lines.length(), 78);
 		S_EQUAL(output_lines[0], "VCF version: 4.2");
 	}
+
+	void url_encoding()
+	{
+		QString input_string = "Test-String= blabla%, \t; \r\n; \r";
+		QString output_string = VcfFile::encodeInfoValue(input_string);
+		S_EQUAL(output_string, "Test-String%3D%20blabla%25%2C%20%09%3B%20%0D%0A%3B%20%0D");
+	}
+
+	void url_decoding()
+	{
+		QString input_string = "Test-String%3D%20blabla%25%2C%20%09%3B%20%0D%0A%3B%20%0D";
+		QString output_string = VcfFile::decodeInfoValue(input_string);
+		S_EQUAL(output_string, "Test-String= blabla%, \t; \r\n; \r");
+	}
 };
