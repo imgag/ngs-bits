@@ -374,7 +374,7 @@ public:
 		output_vcf -> close();
 
 		out << "\nExecution finished\n" << vcf_line_idx << " vcf lines parsed, " << extended_lines_
-			<< " lines extended. (runtime: " << getTimeString(timer.elapsed()) << ")\n" << endl;
+			<< " lines annotated. (runtime: " << getTimeString(timer.elapsed()) << ")\n" << endl;
     }
 
 private:

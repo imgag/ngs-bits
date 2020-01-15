@@ -7,11 +7,11 @@ NGSD:
 * Copy help text of fields to schema and use them as tooltip for view tabs
 *** Allow adding/editing data in NGSD
     - Run/processed sample/sample in general
-        - Add email support for runs "run finished" and "analysis finished"
+    - Add email support for runs "run finished" and "analysis finished"
     - sample: import disease info, disease group/status, gender from same samples
-    - use comments from schema in info texts
 ** Add run overview dialog/tab
 * Add admin section (genome, device, MID, procesing system, sample group, sender, speicies)
+    - with text search
 * Add users section
 * Add statistics section
 * Add batch import of samples/processed samples
@@ -25,8 +25,9 @@ GSvar:
 * Allow ClinCNV upload
     - small variants and CNVs
     - only flag variants and perform manual upload at the end of each quater
+- add coloring of quality columns in DB tables (e.g. in run tab)
 ## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
-* replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
+- replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
 * SV widget
     - add size filter - have a look at the overlap between manta and freebayes
     - add overlapping genes and allow filtering for comp-hets (be carefull with small indels)

@@ -67,6 +67,7 @@ SOURCES += main.cpp\
     ProcessingSystemWidget.cpp \
     ProjectWidget.cpp \
     GSvarStoreWorker.cpp \
+    DBEditor.cpp \
     SomaticReportConfigurationWidget.cpp \
     SomaticReportSettings.cpp \
     SomaticReportVariantDialog.cpp
@@ -132,6 +133,7 @@ HEADERS  += MainWindow.h \
     ProcessingSystemWidget.h \
     ProjectWidget.h \
     GSvarStoreWorker.h \
+    DBEditor.h \
     SomaticReportConfigurationWidget.h \
     SomaticReportSettings.h \
     SomaticReportVariantDialog.h

@@ -2,7 +2,6 @@
 #define AUXILARY_H
 
 #include "FastqFileStream.h"
-#include <QThreadPool>
 #include <Pileup.h>
 #include <QSharedPointer>
 #include "StatisticsReads.h"

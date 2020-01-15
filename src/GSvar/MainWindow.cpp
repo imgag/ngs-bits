@@ -80,6 +80,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "ProcessingSystemWidget.h"
 #include "ProjectWidget.h"
 #include "GSvarStoreWorker.h"
+#include "DBEditor.h"
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -174,8 +175,16 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::on_actionDebug_triggered()
 {
-	GenLabDB db;
-	qDebug() << db.isOpen() << db.tables();
+	NGSD db;
+	QStringList tables = db.tables();
+	foreach(QString table, tables)
+	{
+		TableInfo table_info = db.tableInfo(table);
+	}
+
+	DBEditor* widget = new DBEditor(this, "sample", 2697);
+	auto dlg = GUIHelper::createDialog(widget, "Sample NA12878");
+	dlg->exec();
 }
 
 void MainWindow::on_actionClose_triggered()

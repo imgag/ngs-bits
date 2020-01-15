@@ -1040,6 +1040,13 @@ private slots:
 		db.deleteVariants(processed_sample_id);
 		I_EQUAL(db.getValue("SELECT count(*) FROM detected_variant WHERE processed_sample_id=" + processed_sample_id).toInt(), 0);
 		I_EQUAL(db.getValue("SELECT count(*) FROM cnv_callset WHERE processed_sample_id=" + processed_sample_id).toInt(), 0);
+
+		//tableInfo
+		QStringList tables = db.tables();
+		foreach(QString table, tables)
+		{
+			TableInfo table_info = db.tableInfo(table);
+		}
 	}
 
 	//Test for debugging (without initialization because of speed)
