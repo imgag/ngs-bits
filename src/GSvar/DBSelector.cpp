@@ -1,5 +1,6 @@
 #include "DBSelector.h"
 #include "Exceptions.h"
+#include "GUIHelper.h"
 #include <QCompleter>
 #include <QStringListModel>
 #include <QClipboard>
@@ -31,12 +32,7 @@ void DBSelector::fill(const DBTable& table, bool prepend_empty)
 		text2id_[row.value(0)] = row.id();
 	}
 
-	QCompleter* completer = new QCompleter(items, this);
-	completer->setFilterMode(Qt::MatchContains);
-	completer->setCaseSensitivity(Qt::CaseInsensitive);
-	completer->setCompletionRole(Qt::DisplayRole);
-	completer->setCompletionMode(QCompleter::PopupCompletion);
-	setCompleter(completer);
+	setCompleter(GUIHelper::completer(this, items));
 }
 
 bool DBSelector::isValidSelection() const

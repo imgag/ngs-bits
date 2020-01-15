@@ -1086,8 +1086,12 @@ const TableInfo& NGSD::tableInfo(QString table) const
 			info.index = output.fieldCount();
 
 			//type
-			QString type = query.value(1).toString();
-			type = type.replace(" unsigned", "");
+			QString type = query.value(1).toString().toLower();
+			info.is_unsigned = type.contains(" unsigned");
+			if (info.is_unsigned)
+			{
+				type = type.replace(" unsigned", "");
+			}
 			if(type=="text") info.type = TableFieldInfo::TEXT;
 			else if(type=="float") info.type = TableFieldInfo::FLOAT;
 			else if(type=="date") info.type = TableFieldInfo::DATE;
@@ -1111,10 +1115,10 @@ const TableInfo& NGSD::tableInfo(QString table) const
 			}
 
 			//nullable
-			info.nullable = query.value(2).toString()=="YES";
+			info.is_nullable = query.value(2).toString().toLower()=="yes";
 
 			//PK
-			info.primary_key = index.contains(info.name);
+			info.is_primary_key = index.contains(info.name);
 
 			//FK
 			query_fk.seek(-1);
@@ -3146,4 +3150,9 @@ QString ReportConfigurationCreationData::toText() const
 	output << "The NGSD contains a report configuration created by " + created_by + " at " + created_date + ".";
 	if (last_edit_by!="") output << "It was last updated by " + last_edit_by + " at " + last_edit_date + ".";
 	return output.join("\n");
+}
+
+QString TableFieldInfo::toString() const
+{
+	return "TableInfo(" + name + "): index=" + QString::number(index) + "  type=" + QString::number(type) +" is_nullable=" + (is_nullable ? "yes" : "no") + " is_unsigned=" + (is_unsigned ? "yes" : "no") + " type_restiction=" + type_restiction.toString() + " default_value: " + default_value + " is_primary_key=" + (is_primary_key ? "yes" : "no") + " fk_table=" + fk_table + " fk_field=" + fk_field;
 }
