@@ -926,14 +926,14 @@ QString NGSD::addSomaticCnv(int callset_id, const CopyNumberVariant &cnv, const 
 {
 	if(cnv_list.type() != CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
 	{
-		THROW(ProgrammingException, "NGSD class method addSomaticCnv can be used with tumor-normal ClinCNV data only.");
+		THROW(ProgrammingException, "NGSD::addSomaticCnv can only be used with tumor-normal ClinCNV data.");
 	}
 
 	QJsonObject quality_metrics;
 	quality_metrics.insert("regions", QString::number(cnv.regions()));
 
 	//Quality metrics to be included (determinend from columns in CNV file)
-	const QList<QString> qc_metric_cols = {"major_CN_allele", "minor_CN_allele", "loglikelihood", "number_of_regions", "Ontarget_RD_CI_lower", "Ontarget_RD_CI_upper","Offtarget_RD_CI_lower",
+	const QList<QString> qc_metric_cols = {"major_CN_allele", "minor_CN_allele", "loglikelihood", "regions", "Ontarget_RD_CI_lower", "Ontarget_RD_CI_upper","Offtarget_RD_CI_lower",
 								 "Offtarget_RD_CI_upper", "Lowmed_tumor_BAF", "Highmed_tumor_BAF", "BAF_qval_fdr", "Overall_qvalue"};
 
 	for(int i=0; i<cnv_list.annotationHeaders().count(); ++i)
@@ -3128,7 +3128,7 @@ void NGSD::deleteReportConfig(int id)
 }
 
 
-int NGSD::reportConfigId(QString t_ps_id, QString n_ps_id, QString rna_ps_id)
+int NGSD::somaticReportConfigId(QString t_ps_id, QString n_ps_id, QString rna_ps_id)
 {
 	//Identify report configuration using tumor and normal processed sample ids (and rna ps if available)
 	QString query = "SELECT id FROM somatic_report_configuration WHERE ps_tumor_id='" +t_ps_id + "' AND ps_normal_id='" + n_ps_id + "'";
@@ -3140,7 +3140,7 @@ int NGSD::reportConfigId(QString t_ps_id, QString n_ps_id, QString rna_ps_id)
 
 int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const SomaticReportConfiguration& config, const VariantList& snvs, const CnvList& cnvs, QString user_name)
 {
-	int id = reportConfigId(t_ps_id, n_ps_id);
+	int id = somaticReportConfigId(t_ps_id, n_ps_id);
 
 	if(id!=-1) //delete old report if id exists
 	{
@@ -3249,11 +3249,28 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 	return id;
 }
 
+void NGSD::deleteSomaticReportConfig(int id)
+{
+	QString report_conf_id = QString::number(id);
+
+	bool exists = getValue("SELECT id FROM `somatic_report_configuration` WHERE `id`=" + report_conf_id).isValid();
+	if(!exists)
+	{
+		THROW(DatabaseException, "Cannot delete somatic report configuration with id=" + report_conf_id + " because it does not exist!");
+	}
+
+	//Delete
+	SqlQuery query = getQuery();
+	query.exec("DELETE FROM `somatic_report_configuration_cnv` WHERE `somatic_report_configuration_id`=" + report_conf_id);
+	query.exec("DELETE FROM `somatic_report_configuration_variant` WHERE `somatic_report_configuration_id`=" + report_conf_id);
+	query.exec("DELETE FROM `somatic_report_configuration` WHERE `id`=" + report_conf_id);
+}
+
 SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_ps_id, const VariantList& snvs, const CnvList& cnvs, QStringList& messages)
 {
 	SomaticReportConfiguration output;
 
-	int config_id = reportConfigId(t_ps_id, n_ps_id);
+	int config_id = somaticReportConfigId(t_ps_id, n_ps_id);
 	if(config_id == -1)
 	{
 		QString message = "Somatic report for the processed samples with the database ids " + t_ps_id + " (tumor) and " + n_ps_id + " (normal) does not exist!";

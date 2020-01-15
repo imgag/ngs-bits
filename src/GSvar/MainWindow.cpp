@@ -1609,7 +1609,7 @@ void MainWindow::storeSomaticReportConfig()
 		return;
 	}
 
-	int conf_id = db.reportConfigId(ps_tumor_id, ps_normal_id);
+	int conf_id = db.somaticReportConfigId(ps_tumor_id, ps_normal_id);
 
 	if (conf_id!=-1)
 	{

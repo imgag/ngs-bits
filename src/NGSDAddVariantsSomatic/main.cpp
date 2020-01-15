@@ -49,7 +49,7 @@ public:
 		QString t_ps_id = db.processedSampleId(t_ps_name);
 		QString n_ps_id = db.processedSampleId(n_ps_name);
 
-		int report_conf_id = db.reportConfigId(t_ps_id, n_ps_id);
+		int report_conf_id = db.somaticReportConfigId(t_ps_id, n_ps_id);
 
 		//DO NOT IMPORT Anything if a report config exists and contains small variants
 		if(report_conf_id != -1)
@@ -136,7 +136,7 @@ public:
 		}
 	}
 
-	void importCNVs(NGSD& db, QTextStream& out, QString t_ps_name, QString n_ps_name, bool debug, bool cnv_force)
+	void importCNVs(NGSD& db, QTextStream& out, QString t_ps_name, QString n_ps_name, bool debug, bool no_time, bool cnv_force, double min_ll)
 	{
 		QString filename = getInfile("cnv");
 		if(filename == "") return;
@@ -149,7 +149,7 @@ public:
 		//Prevent import if somatic report config contains CNVS
 		QString t_ps_id = db.processedSampleId(t_ps_name);
 		QString n_ps_id = db.processedSampleId(n_ps_name);
-		int report_conf_id = db.reportConfigId(t_ps_id, n_ps_id);
+		int report_conf_id = db.somaticReportConfigId(t_ps_id, n_ps_id);
 
 		if(report_conf_id != -1)
 		{
@@ -166,7 +166,7 @@ public:
 		QTime timer;
 		timer.start();
 
-		QString last_callset_id = db.getValue("SELECT id FROM somatic_cnv_callset WHERE ps_tumor_id=" + t_ps_id + " AND ps_normal_id=" +n_ps_id);
+		QString last_callset_id = db.getValue("SELECT id FROM somatic_cnv_callset WHERE ps_tumor_id=" + t_ps_id + " AND ps_normal_id=" + n_ps_id).toString();
 
 		if(last_callset_id!="" && !cnv_force)
 		{
@@ -178,7 +178,7 @@ public:
 		if(last_callset_id!="" && cnv_force)
 		{
 			db.getQuery().exec("DELETE FROM somatic_cnv WHERE somatic_cnv_callset_id ='" + last_callset_id + "'");
-			db.getQuery().exec("DELETE FROM cnv_callset WHERE id='" + last_callset_id + "'");
+			db.getQuery().exec("DELETE FROM somatic_cnv_callset WHERE id='" + last_callset_id + "'");
 
 			out << "Deleted previous somatic CNV callset" << endl;
 		}
@@ -205,7 +205,6 @@ public:
 			out << "DEBUG: callset quality: " << json_doc.toJson(QJsonDocument::Compact) << endl;
 		}
 
-
 		//Import somatic cnv callset
 		SqlQuery q_set = db.getQuery();
 		q_set.prepare("INSERT INTO `somatic_cnv_callset` (`ps_tumor_id`, `ps_normal_id`, `caller`, `caller_version`, `call_date`, `quality_metrics`, `quality`) VALUES (:0, :1, :2, :3, :4, :5, :6)");
@@ -218,7 +217,7 @@ public:
 		q_set.bindValue(6, "n/a");
 		q_set.exec();
 
-/*		int callset_id = q_set.lastInsertId().toInt();
+		int callset_id = q_set.lastInsertId().toInt();
 
 
 		//Import CNVs
@@ -227,13 +226,29 @@ public:
 
 		for(int i=0; i<cnvs.count(); ++i)
 		{
-			QString cnv_id = db.addCnv();
-		}*/
+			QString cnv_id = db.addSomaticCnv(callset_id, cnvs[i], cnvs, min_ll);
+			if(cnv_id.isEmpty())
+			{
+				++c_skipped_low_quality;
+			}
+			else
+			{
+				++c_imported;
+				if(debug)
+				{
+					out << "DEBUG: " << cnvs[i].toString() << " tumor_cn:" <<db.getValue("SELECT tumor_cn FROM somatic_cnv WHERE id=" + cnv_id).toString();
+					out << " quality" << db.getValue("SELECT quality_metrics FROM somatic_cnv WHERE id=" + cnv_id).toString();
+				}
+			}
+		}
 
+		out << "Imported somatic cnvs: " << c_imported << endl;
+		out << "Skipped low-quality cnvs: " << c_skipped_low_quality << endl;
 
-
-
-		//Import cnvs
+		if(!no_time)
+		{
+			out << "Import took: " << Helper::elapsedTime(timer) << endl;
+		}
 
 	}
 
@@ -243,6 +258,7 @@ public:
 		NGSD db(getFlag("test"));
 		QSharedPointer<QFile> out = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream stream(out.data());
+
 		QString t_ps = getString("t_ps");
 		QString n_ps = getString("n_ps");
 		bool debug = getFlag("debug");
@@ -258,6 +274,8 @@ public:
 		}
 
 		importSmallVariants(db, stream, t_ps, n_ps, no_time, var_force);
+
+		importCNVs(db, stream, t_ps, n_ps, debug, no_time, cnv_force, 15.0);
 	}
 private:
 	int variantQuality(const Variant& variant, int i_qual) const

@@ -447,6 +447,9 @@ CnvListCallData CnvList::getCallData(const CnvList& cnvs, QString filename, QStr
 
 	foreach(const QByteArray& line, cnvs.comments())
 	{
+		if(line.contains("CGI_CANCER_TYPE")) continue;
+		if(line.startsWith("##DESCRIPTION=")) continue;
+
 		if (line.contains(":"))
 		{
 			KeyValuePair pair = split(line, ':');

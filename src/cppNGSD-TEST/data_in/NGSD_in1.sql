@@ -453,7 +453,13 @@ INSERT INTO `somatic_cnv` (`id`, `somatic_cnv_callset_id`, `chr`, `start`, `end`
 (1, 1, 'chr4', 18000, 200000, 2.54, 3, 0.75),
 (4, 5, 'chr7', 87000, 350000, 3.14, 4, 0.8);
 
+-- somatic_report_configuration
+INSERT INTO `somatic_report_configuration` (`id`, `ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES 
+(3,5,6,3,'2019-01-05 14:06:12', 99, '2019-12-07 17:06:10'),
+(51,5,4000,99,'2019-01-05 14:06:12', 101, '2019-12-07 17:06:10');
 
+--somatic_report_configuration_cnv
+INSERT INTO `somatic_report_configuration_cnv` (`somatic_report_configuration_id`, `somatic_cnv_id`, `exclude_artefact`, `exclude_low_tumor_content` , `exclude_low_copy_number`,
+`exclude_high_baf_deviation`, `exclude_other_reason`, `comment`) VALUES
+(3, 4, true, false, false, false, false, "");
 
-INSERT INTO `somatic_report_configuration` (`id`, `ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES (3,5,6,3,'2019-01-05 14:06:12', 99, '2019-12-07 17:06:10');
-INSERT INTO `somatic_report_configuration` (`id`, `ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES (51,5,4000,99,'2019-01-05 14:06:12', 101, '2019-12-07 17:06:10');

@@ -10,19 +10,25 @@ private:
 	//Test SomaticReportConfiguration, method has to be claled in main_tests();
 	inline void somaticReportTest(NGSD& db)
 	{
-		//test overloaded functions (same functions as in germline report config)
-		I_EQUAL(db.reportConfigId("5","6"), 3);
-		I_EQUAL(db.reportConfigId("5","4000"), 51);
-		I_EQUAL(db.reportConfigId("5","10"), -1);
+		VariantList vl;
+		vl.load(TESTDATA("../cppNGS-TEST/data_in/somatic_report_config.GSvar"));
 
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/somatic_cnvs_clincnv.tsv"));
+
+		//Resolve somatic report configuration ID
+		I_EQUAL(db.somaticReportConfigId("5","6"), 3);
+		I_EQUAL(db.somaticReportConfigId("5","4000"), 51);
+		I_EQUAL(db.somaticReportConfigId("5","10"), -1);
+
+		//Resolve rep conf. creation data
 		ReportConfigurationCreationData creation_data = db.reportConfigCreationData(51, true);
 		S_EQUAL(creation_data.created_by,"Max Mustermann");
 		S_EQUAL(creation_data.created_date, "05.01.2019 14:06:12");
 		S_EQUAL(creation_data.last_edit_by, "Sarah Kerrigan");
 		S_EQUAL(creation_data.last_edit_date, "07.12.2019 17:06:10");
 
-
-		//set somatic report configuration in test NGSD
+		//set somatic report configuration in test NGSD, using 2 SNVs
 		SomaticReportVariantConfiguration var1;
 		var1.variant_index = 1;
 		var1.variant_type = VariantType::SNVS_INDELS;
@@ -44,11 +50,6 @@ private:
 		som_rep_conf.set(var2);
 		som_rep_conf.setCreatedBy("ahmustm1");
 
-		VariantList vl;
-		vl.load(TESTDATA("../cppNGS-TEST/data_in/somatic_report_config.GSvar"));
-
-		CnvList cnvs;
-		cnvs.load(TESTDATA("data_in/somatic_cnvs_clincnv.tsv"));
 		SomaticReportVariantConfiguration cnv1;
 		cnv1.variant_index = 2;
 		cnv1.variant_type = VariantType::CNVS;
@@ -61,12 +62,10 @@ private:
 		QString n_ps_id = db.processedSampleId("NA12123_04");
 		int config_id = db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, "ahmustm1");
 
-		//get and test somatic report configuration
 		QStringList messages = {};
 		QList<SomaticReportVariantConfiguration> res =  db.somaticReportConfig(t_ps_id, n_ps_id, vl, cnvs, messages).variantConfig();
 		const SomaticReportVariantConfiguration& res0 = res.at(0);
 		I_EQUAL(res.count(), 3);
-
 
 		I_EQUAL(res0.variant_index, 1);
 		IS_TRUE(res0.exclude_artefact);
@@ -91,7 +90,8 @@ private:
 		S_EQUAL(res1.comment, "known test driver was not included in any db yet.");
 		IS_TRUE(res1.showInReport());
 
-		//Test whether report configuration data is correctly updated to new user
+
+		//Update somat report configuration using 1 CNV
 		ReportConfigurationCreationData creation_data_1 = db.reportConfigCreationData(config_id, true);
 		S_EQUAL(creation_data_1.created_by, "Max Mustermann");
 		S_EQUAL(creation_data_1.last_edit_by, "Max Mustermann");
@@ -111,6 +111,16 @@ private:
 		IS_TRUE(res2.exclude_other_reason);
 		S_EQUAL(res2.comment, "This test somatic cnv shall be excluded.");
 
+		//Delete a somatic report configuration
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration").toInt(), 3);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_cnv").toInt(), 2); //one CNV is already inserted by NGSD init.
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_variant").toInt(), 2);
+
+		db.deleteSomaticReportConfig(config_id);
+
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_cnv").toInt(), 1);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_variant").toInt(), 0);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration").toInt(), 2);
 	}
 
 
@@ -135,11 +145,6 @@ private:
 		S_EQUAL(res_cnv.chr().strNormalized(true), "chr11");
 		I_EQUAL(res_cnv.start(), 26582421);
 		I_EQUAL(res_cnv.end(), 27694430);
-
-
-
-		//db.addSomaticCnv()
-
 	}
 
 private slots:

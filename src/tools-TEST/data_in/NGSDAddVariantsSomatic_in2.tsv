@@ -1,0 +1,19 @@
+##ANALYSISTYPE=CLINCNV_TUMOR_NORMAL_PAIR
+##ClinCNV version: v1.16.1
+##Analysis finished on: 2019-10-06 19:17:58
+##estimated fdr: 0
+##gender of sample: F
+##ploidy: 1.9966
+##clonality by BAF (if != 1): 0;0.775;0.75
+##DESCRIPTION=cnv_type=Type of CNV: focal (< 25 % of chrom. arm, < 3 genes), cluster (focal, > 3 genes), (partial) p/q-arm, (partial) chromosome.
+##CGI_CANCER_TYPE=CH
+##DESCRIPTION=CGI_genes=Genes which were included in CancerGenomeInterpreter.org analysis.
+##DESCRIPTION=CGI_driver_statement=Driver statement for cancer type NS according CancerGenomeInterpreter.org
+##DESCRIPTION=CGI_gene_role=Gene role for cancer type NS according CancerGenomeInterpreter.org
+##DESCRIPTION=ncg_oncogene=1:gene is oncogene according NCG6.0, 0:No oncogene according NCG6.0, na: no information available about gene in NCG6.0. Order is the same as in column CGI_genes.
+##DESCRIPTION=ncg_tsg=1:gene is TSG according NCG6.0, 0:No TSG according NCG6.0, na: no information available about gene in NCG6.0. Order is the same as in column CGI_genes.
+#chr	start	end	sample	size	tumor_CN_change	state	major_CN_allele	minor_CN_allele	tumor_clonality	CN_change	loglikelihood	number_of_regions	genes	Ontarget_RD_CI_lower	Ontarget_RD_CI_upper	Offtarget_RD_CI_lower	Offtarget_RD_CI_upper	Lowmed_tumor_BAF	Highmed_tumor_BAF	BAF_qval_fdr	Overall_qvalue	cnv_type	CGI_genes	CGI_driver_statement	CGI_gene_role	ncg_oncogene	ncg_tsg
+chr1	32097627	32860246	DX196213_01-DX195752_01	762620	3	AMP	2	1	0.775	2.775	191	8	ADGRB2,COL16A1,HCRTR1,PEF1,MIR4254,SPOCD1,PTP4A2,KHDRBS1,KPNA6,MIR5585,TMEM39B,CCDC28B,TXLNA,DCDC2B,EIF3I,FAM167B,HDAC1,IQCC,LCK,MTMR9LP,TMEM234,BSDC1,FAM229A,MARCKSL1,TSSK3	NA	NA	2.43	2.99	NA	NA	NA	0	cluster				na	na
+chr8	3489730	4474360	DX196213_01-DX195752_01	984631	1	DEL	1	0	0.775	1.225	10	11	CSMD1,RNA5SP251	NA	NA	1.02	1.35	NA	NA	NA	0	focal				na	na
+chr11	26582421	27694430	DX196213_01-DX195752_01	1112010	2	LOH	2	1	0.775	2.0	248	11	ANO3,MUC15,SLC5A12,BBOX1,FIBIN,CCDC34,LGR4,BDNF-AS,LIN7C,RNA5SP339,BDNF,LINC00678	NA	NA	2.51	3.19	NA	NA	NA	0	cluster				na	na
+chr17	45660082	46365906	DX196213_01-DX195752_01	705825	1	DEL	1	0	0.75	1.25	275	7	KPNB1,NPEPPS,TBKBP1,TBX21,LRRC46,MRPL10,OSBPL7,SCRN2,SP6,CDK5RAP3,PNPO,PRR15L,SP2,CBX1,COPZ2,MIR152,NFE2L1,MIR1203,RNU6-1201P,SKAP1,SKAP1-AS1,SNX11,RNU6-1152P	NA	NA	1.17	1.48	NA	NA	NA	0	cluster				na	na
