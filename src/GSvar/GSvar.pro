@@ -182,6 +182,7 @@ FORMS    += MainWindow.ui \
     FilterWidget.ui \
     ReportVariantDialog.ui \
     ProcessedSampleDataDeletionDialog.ui \
+    VariantWidget.ui \
     ProcessingSystemWidget.ui \
     ProjectWidget.ui \
     SomaticReportConfigurationWidget.ui \
