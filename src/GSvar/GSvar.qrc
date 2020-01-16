@@ -88,5 +88,6 @@
         <file>Icons/NGSD_variant.png</file>
         <file>Icons/NGSD_processing_system.png</file>
         <file>Icons/NGSD_project.png</file>
+        <file>Icons/date_picker.png</file>
     </qresource>
 </RCC>

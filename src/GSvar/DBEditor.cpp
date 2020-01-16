@@ -13,6 +13,8 @@
 #include <QPushButton>
 #include <QDialog>
 #include <QMessageBox>
+#include <QCalendarWidget>
+#include <QToolButton>
 
 DBEditor::DBEditor(QWidget* parent, QString table, int id)
 	: QWidget(parent)
@@ -29,9 +31,12 @@ DBEditor::DBEditor(QWidget* parent, QString table, int id)
 void DBEditor::createGUI()
 {
 	//layout
-	QFormLayout* layout = new QFormLayout();
+	QGridLayout* layout = new QGridLayout();
 	layout->setMargin(0);
 	layout->setSpacing(3);
+	layout->setColumnStretch(0,0);
+	layout->setColumnStretch(1,1);
+	layout->setColumnStretch(2,0);
 	setLayout(layout);
 
 	//widgets
@@ -40,23 +45,24 @@ void DBEditor::createGUI()
 
 	foreach(const QString& field, table_info.fieldNames())
 	{
-		//create label
-		QLabel* label = new QLabel();
-		label->setObjectName("label_" + field);
-		label->setText(field + ":");
-		//TODO use comments from schema as label->setToolTip()
-
-
 		const TableFieldInfo& field_info = table_info.fieldInfo(field);
 		if (field_info.is_primary_key && field!="id")
 		{
 			THROW(ProgrammingException, "Table contains primary key other than 'id'. Primary key field namy is '" + field + "'!");
 		}
+
 		//skip non-editable fields
 		if (!isEditable(field_info)) continue;
 
+		//create label
+		QLabel* label = new QLabel();
+		label->setObjectName("label_" + field);
+		label->setText(field_info.label + ":");
+		label->setAlignment(Qt::AlignTop|Qt::AlignLeft);
+
 		//create widget
 		QWidget* widget = nullptr;
+		QWidget* add_widget = nullptr;
 		if (field_info.type==TableFieldInfo::BOOL)
 		{
 			QCheckBox* box = new QCheckBox(this);
@@ -103,15 +109,23 @@ void DBEditor::createGUI()
 		{
 			QLineEdit* edit = new QLineEdit(this);
 			connect(edit, SIGNAL(textChanged(QString)), this, SLOT(check()));
-			//TODO date selector?
 
 			widget = edit;
+
+			//edit button for date
+			QToolButton* btn = new QToolButton();
+			btn->setIcon(QIcon(":/Icons/date_picker.png"));
+			connect(btn, SIGNAL(clicked(bool)), this, SLOT(editDate()));
+
+			add_widget = btn;
 		}
 		else if (field_info.type==TableFieldInfo::FK)
 		{
 			DBComboBox* selector = new DBComboBox(this);
 
-			selector->fill(db.createTable(field_info.fk_table, "SELECT id, name FROM " + field_info.fk_table), field_info.is_nullable);
+			if (field_info.fk_name_sql=="") THROW(ProgrammingException, "Foreign key name SQL not set for table/field: " + table_ + "/" + field_info.name);
+
+			selector->fill(db.createTable(field_info.fk_table, "SELECT id, " + field_info.fk_name_sql + " FROM " + field_info.fk_table), field_info.is_nullable);
 
 			widget = selector;
 		}
@@ -122,8 +136,19 @@ void DBEditor::createGUI()
 		widget->setObjectName("editor_" + field);
 		if (isReadOnly(table_, field)) widget->setEnabled(false);
 
-		//add to layout
-		layout->addRow(label, widget);
+		//add widgets to layout
+		int row = layout->rowCount();
+		layout->addWidget(label, row, 0);
+		if (add_widget==nullptr)
+		{
+			layout->addWidget(widget, row, 1, 1, 2);
+		}
+		else
+		{
+			layout->addWidget(widget, row, 1);
+			layout->addWidget(add_widget, row, 2);
+			add_widget->setObjectName("add_" + field);
+		}
 	}
 }
 
@@ -198,11 +223,6 @@ void DBEditor::fillFormWithItemData()
 		{
 			QLineEdit* edit = getEditWidget<QLineEdit*>(field);
 			edit->setText(value.isNull() ? "" : value.toDate().toString(Qt::ISODate));
-		}
-		else if (field_info.type==TableFieldInfo::DATETIME)
-		{
-			QLineEdit* edit = getEditWidget<QLineEdit*>(field);
-			edit->setText(value.toString());
 		}
 		else if (field_info.type==TableFieldInfo::FK)
 		{
@@ -325,12 +345,32 @@ void DBEditor::check()
 	updateParentDialogButtonBox();
 }
 
+void DBEditor::editDate()
+{
+	QString field = sender()->objectName().replace("add_", "");
+
+	QLineEdit* edit = getEditWidget<QLineEdit*>(field);
+	QString value = edit->text().trimmed();
+
+	QCalendarWidget* widget = new QCalendarWidget();
+	if (!value.isEmpty())
+	{
+		widget->setSelectedDate(QDate::fromString(value, Qt::ISODate));
+	}
+
+	auto dlg = GUIHelper::createDialog(widget, "Select date", "", true);
+	if (dlg->exec()==QDialog::Accepted)
+	{
+		edit->setText(widget->selectedDate().toString(Qt::ISODate));
+	}
+}
+
 DBEditor::isEditable(const TableFieldInfo& info)
 {
 	if(info.is_primary_key) return false;
+
 	if (info.type==TableFieldInfo::TIMESTAMP) return false;
 	if (info.type==TableFieldInfo::DATETIME) return false;
-
 
 	return true;
 }

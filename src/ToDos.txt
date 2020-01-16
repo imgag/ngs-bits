@@ -4,18 +4,20 @@ libs:
 * FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 
 NGSD:
-* Copy help text of fields to schema and use them as tooltip for view tabs
+#### Copy help text of NGSD to schema and use them as tooltip for view tabs and DBEditor
+#### Remove reload buttons from tabs and allow reloading via tab context menu
 *** Allow adding/editing data in NGSD
-    - Run/processed sample/sample in general
+    - use for: sample, processed sample, processing system, project
+    - remove old unneeded edit functionality
     - Add email support for runs "run finished" and "analysis finished"
-    - sample: import disease info, disease group/status, gender from same samples
 ** Add run overview dialog/tab
 * Add admin section (genome, device, MID, procesing system, sample group, sender, speicies)
     - with text search
 * Add users section
 * Add statistics section
-* Add batch import of samples/processed samples
-- Allow several disease_groups per sample (requested by CS)
+* Add batch import of samples/processed samples and integrate GSmix checks (remove GSmix)
+- Sample tab: allow import disease info, disease group/status, gender from same samples
+- Sample: allow several disease_groups per sample (requested by CS)
 
 GSvar:
 ** add visualization of NGSD CNVs (table + IGV-like view):

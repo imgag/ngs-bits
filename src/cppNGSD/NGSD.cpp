@@ -1081,6 +1081,10 @@ const TableInfo& NGSD::tableInfo(QString table) const
 
 			//name
 			info.name = query.value(0).toString();
+			info.label = info.name;
+			info.label.replace('_', ' ');
+			if (table=="sequencing_run" && info.name=="fcid") info.label = "flowcell ID";
+			//TODO special names for sequencing run, sample, processed sample, processing system, project
 
 			//index
 			info.index = output.fieldCount();
@@ -1135,6 +1139,93 @@ const TableInfo& NGSD::tableInfo(QString table) const
 						THROW(ProgrammingException, "Found SQL foreign key with non-integer type '" + type + "' in field '" + info.name + "' of table '" + table + "'!");
 					}
 					info.type = TableFieldInfo::FK;
+
+					//set label/name for FK
+					if (table=="sequencing_run")
+					{
+						if (info.name=="device_id")
+						{
+							info.label = "device";
+							info.fk_name_sql = "CONCAT(name, ' (', type, ')')";
+						}
+					}
+					else if (table=="project")
+					{
+						if (info.name=="internal_coordinator_id")
+						{
+							info.label = "internal coordinator";
+							info.fk_name_sql = "name";
+						}
+					}
+					else if (table=="processing_system")
+					{
+						if (info.name=="genome_id")
+						{
+							info.label = "genome";
+							info.fk_name_sql = "build";
+						}
+					}
+					else if (table=="sample")
+					{
+						if (info.name=="species_id")
+						{
+							info.label = "species";
+							info.fk_name_sql = "name";
+						}
+						else if (info.name=="sender_id")
+						{
+							info.label = "sender";
+							info.fk_name_sql = "name";
+						}
+						else if (info.name=="receiver_id")
+						{
+							info.label = "receiver";
+							info.fk_name_sql = "name";
+						}
+					}
+					else if (table=="processed_sample")
+					{
+						if (info.name=="sequencing_run_id")
+						{
+							info.label = "seqencing run";
+							info.fk_name_sql = "name";
+						}
+						else if (info.name=="sample_id")
+						{
+							info.label = "sample";
+							info.fk_name_sql = "name";
+						}
+						else if ( info.name=="project_id")
+						{
+							info.label = "project";
+							info.fk_name_sql = "name";
+						}
+						else if (info.name=="processing_system_id")
+						{
+							info.label = "processing system";
+							info.fk_name_sql = "CONCAT(name_manufacturer, ' (', name_short, ')')";
+						}
+						else if (info.name=="operator_id")
+						{
+							info.label = "operator";
+							info.fk_name_sql = "name";
+						}
+						else if (info.name=="normal_id")
+						{
+							info.label = "normal sample";
+							info.fk_name_sql = ""; //TODO
+						}
+						else if (info.name=="mid1_i7")
+						{
+							info.label = "mid1 i7";
+							info.fk_name_sql = "CONCAT(name, ' (', sequence, ')')";
+						}
+						else if (info.name=="mid2_i5")
+						{
+							info.label = "mid2 i5";
+							info.fk_name_sql = "CONCAT(name, ' (', sequence, ')')";
+						}
+					}
 				}
 			}
 

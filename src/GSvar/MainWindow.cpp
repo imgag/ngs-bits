@@ -2361,7 +2361,7 @@ void MainWindow::on_actionOpenProcessingSystemTab_triggered()
 	//handle invalid name
 	if (selector->getId()=="") return;
 
-	openProcessingSystemTab(selector->text());
+	openProcessingSystemTab(db.getValue("SELECT name_short FROM processing_system WHERE id=" + selector->getId()).toString());
 }
 
 void MainWindow::on_actionOpenProjectTab_triggered()

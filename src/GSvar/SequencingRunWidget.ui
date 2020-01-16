@@ -40,7 +40,7 @@
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <layout class="QGridLayout" name="gridLayout_2" rowstretch="0,1">
        <property name="spacing">
         <number>3</number>
@@ -384,9 +384,6 @@
        <property name="spacing">
         <number>3</number>
        </property>
-       <item row="1" column="0" colspan="5">
-        <widget class="DBTableWidget" name="samples"/>
-       </item>
        <item row="0" column="3">
         <spacer name="horizontalSpacer">
          <property name="orientation">
@@ -399,6 +396,9 @@
           </size>
          </property>
         </spacer>
+       </item>
+       <item row="1" column="0" colspan="5">
+        <widget class="DBTableWidget" name="samples"/>
        </item>
        <item row="0" column="0" colspan="3">
         <widget class="QLabel" name="sample_count">

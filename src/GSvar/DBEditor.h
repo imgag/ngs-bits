@@ -27,6 +27,8 @@ protected slots:
 	void fillFormWithItemData();
 	//checks the form data of the sender widget and shows errors in the GUI (also stores them in 'errors_')
 	void check();
+	//edit date of QLineEdit corresponding to the sender button
+	void editDate();
 
 private:
 	QString table_;
@@ -47,10 +49,10 @@ private:
 
 	//returns a edit widget of the given type and name
 	template<typename T>
-	inline T getEditWidget(const QString &name) const
+	inline T getEditWidget(const QString& field_name) const
 	{
-		T widget = findChild<T>("editor_" + name);
-		if (widget==nullptr) THROW(ProgrammingException, "Could not find widget with name 'editor_" + name + "'!");
+		T widget = findChild<T>("editor_" + field_name);
+		if (widget==nullptr) THROW(ProgrammingException, "Could not find widget with name 'editor_" + field_name + "'!");
 		return widget;
 	}
 

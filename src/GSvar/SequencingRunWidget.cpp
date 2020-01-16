@@ -18,7 +18,6 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, QString run_id)
 	connect(ui_->show_qc, SIGNAL(toggled(bool)), this, SLOT(updateGUI()));
 	connect(ui_->update_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
 	connect(ui_->edit_btn, SIGNAL(clicked(bool)), this, SLOT(edit()));
-	ui_->edit_btn->setEnabled(Settings::boolean("debug_mode_enabled")); //TODO remove when DBEditor is done (MARC)
 
 	QAction* action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
 	ui_->samples->addAction(action);
@@ -213,6 +212,7 @@ void SequencingRunWidget::edit()
 	if (dlg->exec()==QDialog::Accepted)
 	{
 		widget->store();
+		updateGUI();
 	}
 }
 
