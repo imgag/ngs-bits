@@ -32,6 +32,11 @@ public:
 	//Returns the processed sample name, or "" if the text it not a valid processed sample.
 	QString processedSampleName() const;
 
+	//Show multi/trio search checkbox
+	void showSearchMulti();
+	//Returns if the search for multi/trio analysis is enabled
+	bool searchMulti() const;
+
 
 protected slots:
 	void initAutoCompletion();
