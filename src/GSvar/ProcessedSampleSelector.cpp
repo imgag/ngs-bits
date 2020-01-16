@@ -6,6 +6,7 @@ ProcessedSampleSelector::ProcessedSampleSelector(QWidget* parent, bool include_m
 {
 	ui_.setupUi(this);
 	ui_.show_merged->setChecked(include_merged_samples);
+	ui_.search_multi->setVisible(false);
 
 	connect(ui_.show_merged, SIGNAL(stateChanged(int)), this, SLOT(initAutoCompletion()));
 
@@ -45,4 +46,14 @@ QString ProcessedSampleSelector::processedSampleName() const
 	if (ps_id=="") return "";
 
 	return db_.processedSampleName(ps_id);
+}
+
+void ProcessedSampleSelector::showSearchMulti()
+{
+	ui_.search_multi->setVisible(true);
+}
+
+bool ProcessedSampleSelector::searchMulti() const
+{
+	return ui_.search_multi->isChecked();
 }
