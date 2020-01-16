@@ -969,14 +969,15 @@ void MainWindow::on_actionOpen_triggered()
 void MainWindow::on_actionOpenByName_triggered()
 {
 	ProcessedSampleSelector dlg(this, false);
+	dlg.showSearchMulti();
 	if (!dlg.exec()) return;
 
 	QString ps_name = dlg.processedSampleName();
 	if (ps_name.isEmpty()) return;
-	openProcessedSampleFromNGSD(ps_name);
+	openProcessedSampleFromNGSD(ps_name, dlg.searchMulti());
 }
 
-void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name)
+void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool search_multi)
 {
 	try
 	{
@@ -1001,7 +1002,7 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name)
 			}
 		}
 		//check for germline trio/multi analyses
-		else
+		else if (search_multi)
 		{
 			QStringList trio_folders = Helper::findFolders(project_folder, "Trio_"+processed_sample_name+"_*", false);
 			foreach(QString trio_folder, trio_folders)

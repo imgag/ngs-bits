@@ -1,5 +1,10 @@
 # GSvar change log
 
+### 2019_11-74 (16.01.20)
+- General: moved sample search to tab.
+- General: variant list is now stored in the background when changing variant classification.
+- General: added check-box to "open by name" dialog to suppress searching for trio/multi analyses
+
 ### 2019_11-65 (10.01.20)
 - General: added project tab (open via processed sample tab or project search).
 - Project tab: moved diagnostic status overview from main menu to project tab.

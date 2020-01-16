@@ -50,6 +50,16 @@
     </widget>
    </item>
    <item>
+    <widget class="QCheckBox" name="search_multi">
+     <property name="text">
+      <string>search for trio/multi analysis as well</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
