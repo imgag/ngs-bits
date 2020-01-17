@@ -13,7 +13,6 @@ struct SomaticReportSettings
 
 	QString report_type;
 	QString target_bed_file;
-
 };
 
 #endif // SOMATICREPORTSETTINGS_H

@@ -708,7 +708,8 @@ void CnvWidget::cnvHeaderContextMenu(QPoint pos)
 		if(!is_somatic_) report_config_->remove(VariantType::CNVS, row);
 		else somatic_report_config_->remove(VariantType::CNVS, row);
 		updateReportConfigHeaderIcon(row);
-		emit storeReportConfiguration();
+		if(!is_somatic_) emit storeReportConfiguration();
+		else emit storeSomaticReportConfiguration();
 	}
 }
 

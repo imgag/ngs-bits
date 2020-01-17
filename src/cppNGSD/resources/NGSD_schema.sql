@@ -1069,7 +1069,7 @@ CREATE TABLE IF NOT EXISTS `somatic_report_configuration` (
   `last_edit_by` int(11) DEFAULT NULL,
   `last_edit_date` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `combo_ids` (`ps_tumor_id` ASC, `ps_normal_id` ASC),
+  UNIQUE INDEX `combo_som_rep_conf_ids` (`ps_tumor_id` ASC, `ps_normal_id` ASC),
   CONSTRAINT `somatic_report_config_created_by_user` 
     FOREIGN KEY (`created_by`)
     REFERENCES `user` (`id`) 
@@ -1089,29 +1089,6 @@ CREATE TABLE IF NOT EXISTS `somatic_report_configuration` (
     FOREIGN KEY (`ps_tumor_id`) 
     REFERENCES `processed_sample` (`id`) 
     ON DELETE NO ACTION 
-    ON UPDATE NO ACTION
-)
-ENGINE = InnoDB
-DEFAULT CHARSET = utf8;
-
--- -----------------------------------------------------
--- Table `somatic_rna_report_configuration`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `somatic_rna_report_configuration` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `somatic_report_configuration_id` int(11) NOT NULL,
-  `ps_rna_id` int(11) NOT NULL,
-  PRIMARY KEY(`id`),
-  UNIQUE INDEX `rna_id` (`ps_rna_id` ASC),
-  CONSTRAINT `somatic_rna_report_config_ps_rna_id` 
-    FOREIGN KEY (`ps_rna_id`)
-    REFERENCES `processed_sample` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `somatic_rna_report_config_dna_report_id`
-    FOREIGN KEY (`somatic_report_configuration_id`)
-    REFERENCES `somatic_report_configuration` (`id`)
-    ON DELETE NO ACTION
     ON UPDATE NO ACTION
 )
 ENGINE = InnoDB

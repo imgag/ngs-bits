@@ -14,11 +14,8 @@ VariantTable::VariantTable(QWidget* parent)
 {
 }
 
-void VariantTable::update(const VariantList& variants, const FilterResult& filter_result, const ReportSettings& report_settings, int max_variants)
+void VariantTable::updateTable(const VariantList& variants, const FilterResult& filter_result, const QMap<int,bool>& index_show_report_icon, int max_variants)
 {
-	//init
-	QSet<int> report_variant_indices = report_settings.report_config.variantIndices(VariantType::SNVS_INDELS, false).toSet();
-
 	//set rows and cols
 	int row_count_new = std::min(filter_result.countPassing(), max_variants);
 	int col_count_new = 5 + variants.annotations().count();
@@ -203,12 +200,37 @@ void VariantTable::update(const VariantList& variants, const FilterResult& filte
 			font.setWeight(QFont::Bold);
 			item->setFont(font);
 		}
-		if (report_variant_indices.contains(i))
+		if (index_show_report_icon.keys().contains(i))
 		{
-			item->setIcon(reportIcon(report_settings.report_config.get(VariantType::SNVS_INDELS, i).showInReport()));
+			item->setIcon(reportIcon(index_show_report_icon.value(i)));
 		}
 		setVerticalHeaderItem(r, item);
 	}
+
+}
+
+void VariantTable::update(const VariantList& variants, const FilterResult& filter_result, const ReportSettings& report_settings, int max_variants)
+{
+	//init
+	QMap<int, bool> index_show_report_icon;
+	for(int index : report_settings.report_config.variantIndices(VariantType::SNVS_INDELS, false))
+	{
+		index_show_report_icon[index] = report_settings.report_config.get(VariantType::SNVS_INDELS, index).showInReport();
+	}
+
+	updateTable(variants, filter_result, index_show_report_icon, max_variants);
+}
+
+void VariantTable::update(const VariantList& variants, const FilterResult& filter_result, const SomaticReportSettings& report_settings, int max_variants)
+{
+	//init
+	QMap<int, bool> index_show_report_icon;
+	for(int index : report_settings.report_config.variantIndices(VariantType::SNVS_INDELS, false))
+	{
+		index_show_report_icon[index] = report_settings.report_config.get(VariantType::SNVS_INDELS, index).showInReport();
+	}
+
+	updateTable(variants, filter_result, index_show_report_icon, max_variants);
 }
 
 void VariantTable::updateVariantHeaderIcon(const ReportSettings& report_settings, int variant_index)
@@ -217,6 +239,17 @@ void VariantTable::updateVariantHeaderIcon(const ReportSettings& report_settings
 
 	QIcon report_icon;
 	if (report_settings.report_config.exists(VariantType::SNVS_INDELS, variant_index))
+	{
+		report_icon = reportIcon(report_settings.report_config.get(VariantType::SNVS_INDELS, variant_index).showInReport());
+	}
+	verticalHeaderItem(row)->setIcon(report_icon);
+}
+
+void VariantTable::updateVariantHeaderIcon(const SomaticReportSettings &report_settings, int variant_index)
+{
+	int row = variantIndexToRow(variant_index);
+	QIcon report_icon;
+	if(report_settings.report_config.exists(VariantType::SNVS_INDELS, variant_index))
 	{
 		report_icon = reportIcon(report_settings.report_config.get(VariantType::SNVS_INDELS, variant_index).showInReport());
 	}

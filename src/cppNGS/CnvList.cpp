@@ -477,13 +477,11 @@ CnvListCallData CnvList::getCallData(const CnvList& cnvs, QString filename, QStr
 			THROW(FileParseException, "Invalid header line '" + line + "' in file '" + filename + "'!");
 		}
 	}
-	if (cnvs.type()==CnvListType::CNVHUNTER_GERMLINE_SINGLE)
+
+	if (out.call_date.isNull()) //fallback if CNV file does not contain any dates
 	{
-		if (out.call_date.isNull()) //fallback for CnvHunter file which does not contain the date!
-		{
-			if(filename != "") out.call_date = QFileInfo(filename).created();
-			else THROW(ArgumentException, "Cannot determine date of CnvHunter file, not given in header and there is no filename given.");
-		}
+		if(filename != "") out.call_date = QFileInfo(filename).created();
+		else THROW(ArgumentException, "Cannot determine date of CnvHunter file, not given in header and there is no filename given.");
 	}
 
 	return out;

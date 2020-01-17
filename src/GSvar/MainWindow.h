@@ -284,9 +284,20 @@ public slots:
 
 
 protected:
+	enum class SettingsType
+	{
+		GERMLINE,
+		SOMATIC,
+		INVALID
+	};
+
 	virtual void dragEnterEvent(QDragEnterEvent* e);
 	virtual void dropEvent(QDropEvent* e);
 	void closeEvent(QCloseEvent* event);
+	MainWindow::SettingsType ReportSettingsType();
+	///Determines normal sample name from filename_, return "" otherwise (tumor-normal pairs)
+	QString normalSampleName();
+
 
 private:
 	//GUI

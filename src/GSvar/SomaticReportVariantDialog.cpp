@@ -19,6 +19,9 @@ SomaticReportVariantDialog::SomaticReportVariantDialog(QString variant, SomaticR
 	connect(ui_.include_variant_alt, SIGNAL(textEdited(QString)), this, SLOT(activateOkButtonIfValid()));
 	connect(ui_.include_variant_desc, SIGNAL(textEdited(QString)), this, SLOT(activateOkButtonIfValid()));
 
+	//write settings if accepted
+	connect(this, SIGNAL(accepted()), this, SLOT(writeBackSettings()));
+
 	updateGUI();
 }
 
@@ -42,6 +45,7 @@ void SomaticReportVariantDialog::activateOkButtonIfValid()
 	bool exclude_is_checked = ui_.exclude_artefact->isChecked() || ui_.exclude_high_baf_deviation->isChecked() || ui_.exclude_low_cn->isChecked() || ui_.exclude_low_tumor_content->isChecked() || ui_.exclude_other->isChecked();
 	bool entry_included = !ui_.include_variant_alt->text().trimmed().isEmpty() || !ui_.include_variant_desc->text().trimmed().isEmpty();
 	if(exclude_is_checked && entry_included) return;
+	if(!exclude_is_checked && !entry_included) return;
 
 	ui_.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
 }

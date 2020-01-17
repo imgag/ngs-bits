@@ -3237,12 +3237,10 @@ void NGSD::deleteReportConfig(int id)
 }
 
 
-int NGSD::somaticReportConfigId(QString t_ps_id, QString n_ps_id, QString rna_ps_id)
+int NGSD::somaticReportConfigId(QString t_ps_id, QString n_ps_id)
 {
 	//Identify report configuration using tumor and normal processed sample ids (and rna ps if available)
 	QString query = "SELECT id FROM somatic_report_configuration WHERE ps_tumor_id='" +t_ps_id + "' AND ps_normal_id='" + n_ps_id + "'";
-	//TODO: Resolve somatic RNA id
-
 	QVariant id = getValue(query, true);
 	return id.isValid() ? id.toInt() : -1;
 }
