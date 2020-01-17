@@ -30,13 +30,22 @@ struct CPPNGSDSHARED_EXPORT TableFieldInfo
 
 	int index = -1;
 	QString name;
+	QString label; //label to show (normally the name, but overwritten e.g. for FK fields)
+
+	//type info
 	Type type;
+	bool is_nullable;
+	bool is_unsigned;
 	QVariant type_restiction; //length of VARCHAR and value of ENUM
-	bool nullable;
 	QString default_value;
-	bool primary_key;
-	QString fk_table;
-	QString fk_field;
+
+	//index+key info
+	bool is_primary_key;
+	QString fk_table; //target table of FK
+	QString fk_field; //target field of FK
+	QString fk_name_sql; //SQL code to get the name in the target table - normally 'name', but can contain any valid SQL query
+
+	QString toString() const;
 };
 
 ///General database table information.

@@ -1,6 +1,5 @@
 #include "DiagnosticStatusOverviewDialog.h"
 #include "GUIHelper.h"
-#include <QCompleter>
 #include <QClipboard>
 #include <QMenu>
 

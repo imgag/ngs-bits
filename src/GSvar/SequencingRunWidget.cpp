@@ -1,7 +1,9 @@
 #include "SequencingRunWidget.h"
 #include "ui_SequencingRunWidget.h"
 #include "ProcessedSampleWidget.h"
+#include "DBEditor.h"
 #include "GUIHelper.h"
+#include "Settings.h"
 #include <QMessageBox>
 #include <QInputDialog>
 
@@ -15,6 +17,7 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, QString run_id)
 	ui_->splitter->setSizes(QList<int>() << 200 << 800);
 	connect(ui_->show_qc, SIGNAL(toggled(bool)), this, SLOT(updateGUI()));
 	connect(ui_->update_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
+	connect(ui_->edit_btn, SIGNAL(clicked(bool)), this, SLOT(edit()));
 
 	QAction* action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
 	ui_->samples->addAction(action);
@@ -200,6 +203,17 @@ void SequencingRunWidget::setQuality()
 	}
 
 	updateGUI();
+}
+
+void SequencingRunWidget::edit()
+{
+	DBEditor* widget = new DBEditor(this, "sequencing_run", run_id_.toInt());
+	auto dlg = GUIHelper::createDialog(widget, "Edit sequencing run " + ui_->name->text() ,"", true);
+	if (dlg->exec()==QDialog::Accepted)
+	{
+		widget->store();
+		updateGUI();
+	}
 }
 
 void SequencingRunWidget::updateReadQualityTable()

@@ -175,16 +175,12 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::on_actionDebug_triggered()
 {
-	NGSD db;
-	QStringList tables = db.tables();
-	foreach(QString table, tables)
+	DBEditor* widget = new DBEditor(this, "sample", NGSD().getValue("SELECT id FROM sample WHERE name='NA12878'").toInt());
+	auto dlg = GUIHelper::createDialog(widget, "Sample NA12878", "", true);
+	if (dlg->exec()==QDialog::Accepted)
 	{
-		TableInfo table_info = db.tableInfo(table);
+		widget->store();
 	}
-
-	DBEditor* widget = new DBEditor(this, "sample", 2697);
-	auto dlg = GUIHelper::createDialog(widget, "Sample NA12878");
-	dlg->exec();
 }
 
 void MainWindow::on_actionClose_triggered()
@@ -2428,7 +2424,7 @@ void MainWindow::on_actionOpenProcessingSystemTab_triggered()
 	//create
 	DBSelector* selector = new DBSelector(this);
 	NGSD db;
-	selector->fill(db.createTable("processing_system", "SELECT id, name_short FROM processing_system")); //TODO CONCAT(name_manufacturer, ' (', name_short, ')')
+	selector->fill(db.createTable("processing_system", "SELECT id, CONCAT(name_manufacturer, ' (', name_short, ')') FROM processing_system"));
 
 	//show
 	auto dlg = GUIHelper::createDialog(selector, "Select processing system", "name:", true);
@@ -2437,7 +2433,7 @@ void MainWindow::on_actionOpenProcessingSystemTab_triggered()
 	//handle invalid name
 	if (selector->getId()=="") return;
 
-	openProcessingSystemTab(selector->text());
+	openProcessingSystemTab(db.getValue("SELECT name_short FROM processing_system WHERE id=" + selector->getId()).toString());
 }
 
 void MainWindow::on_actionOpenProjectTab_triggered()
