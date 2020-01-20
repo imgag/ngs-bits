@@ -344,6 +344,9 @@
             <property name="text">
              <string>comments:</string>
             </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+            </property>
            </widget>
           </item>
           <item row="9" column="1">

@@ -192,3 +192,5 @@ LIBS += -L$$PWD/../bin -lcppNGSD
 
 RESOURCES += \
     GSvar.qrc
+
+DISTFILES +=

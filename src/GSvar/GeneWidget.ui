@@ -81,7 +81,7 @@
        </property>
        <property name="icon">
         <iconset resource="GSvar.qrc">
-         <normaloff>:/Icons/Refresh.png</normaloff>:/Icons/Refresh.png</iconset>
+         <normaloff>:/Icons/reanalysis.png</normaloff>:/Icons/reanalysis.png</iconset>
        </property>
       </widget>
      </item>

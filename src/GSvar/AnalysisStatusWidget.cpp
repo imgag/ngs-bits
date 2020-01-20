@@ -305,19 +305,19 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 		QString type = types.values()[0];
 		if (type=="single sample")
 		{
-			menu.addAction(QIcon(":/Icons/Refresh.png"), "Restart single sample analysis");
+			menu.addAction(QIcon(":/Icons/reanalysis.png"), "Restart single sample analysis");
 		}
 		else if (type=="multi sample" && job_ids.count()==1)
 		{
-			menu.addAction(QIcon(":/Icons/Refresh.png"), "Restart multi-sample analysis");
+			menu.addAction(QIcon(":/Icons/reanalysis.png"), "Restart multi-sample analysis");
 		}
 		else if (type=="trio" && job_ids.count()==1)
 		{
-			menu.addAction(QIcon(":/Icons/Refresh.png"), "Restart trio analysis");
+			menu.addAction(QIcon(":/Icons/reanalysis.png"), "Restart trio analysis");
 		}
 		else if (type=="somatic" && job_ids.count()==1)
 		{
-			menu.addAction(QIcon(":/Icons/Refresh.png"), "Restart somatic analysis");
+			menu.addAction(QIcon(":/Icons/reanalysis.png"), "Restart somatic analysis");
 		}
 	}
 	if (all_finished)
