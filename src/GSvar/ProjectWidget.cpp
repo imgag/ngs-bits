@@ -9,6 +9,7 @@ ProjectWidget::ProjectWidget(QWidget* parent, QString name)
 {
 	ui_.setupUi(this);
 	connect(ui_.sample_overview, SIGNAL(linkActivated(QString)), this, SIGNAL(openProcessedSampleTab(QString)));
+	connect(ui_.refresh_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
 	connect(ui_.diag_btn, SIGNAL(clicked(bool)), this, SLOT(showDiagnosticStatusDialog()));
 }
 

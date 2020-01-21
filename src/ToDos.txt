@@ -5,7 +5,12 @@ libs:
 
 NGSD:
 #### Copy help text of NGSD to schema and use them as tooltip for view tabs and DBEditor
-#### Remove reload buttons from tabs and allow reloading via tab context menu
+* Implement "closing gaps by sanger"
+    - select gaps to close in gap dialog > write to NGSD table (sample_id>sample, enum status: 'to close', 'in progress', 'closed', requested_by>user, comment)
+    - make page where TA can select gaps (by gene/DX number)
+        - also allow copying multiple gaps into clipboard (as table and for primer gap)
+        - add link for PrimerDesign tool
+* Copy help text of fields to schema and use them as tooltip for view tabs
 *** Allow adding/editing data in NGSD
     - use for: sample, processed sample, processing system, project
     - remove old unneeded edit functionality
@@ -20,6 +25,7 @@ NGSD:
 - Sample: allow several disease_groups per sample (requested by CS)
 
 GSvar:
+** gene selector: add support for CnvHunter (also for low-QC regions > update ClinCNV)
 ** add visualization of NGSD CNVs (table + IGV-like view):
     - number of overlapping CNVs (by type gain/loss)
     - overlapping class 4/5 CNVs

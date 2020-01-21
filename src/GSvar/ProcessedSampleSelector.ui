@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>297</width>
-    <height>106</height>
+    <height>111</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -55,7 +55,7 @@
       <string>search for trio/multi analysis as well</string>
      </property>
      <property name="checked">
-      <bool>true</bool>
+      <bool>false</bool>
      </property>
     </widget>
    </item>

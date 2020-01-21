@@ -21,7 +21,7 @@ SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 	action = new QAction(QIcon(":/Icons/Remove.png"), "Delete associated data", this);
 	ui_.sample_table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(deleteSampleData()));
-	action = new QAction(QIcon(":/Icons/Refresh.png"), "Queue analysis", this);
+	action = new QAction(QIcon(":/Icons/reanalysis.png"), "Queue analysis", this);
 	ui_.sample_table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(queueAnalysis()));
 
