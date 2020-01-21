@@ -18,7 +18,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/BedpeGeneAnnotation_init.sql"));
 
 		//test
-		EXECUTE("BedpeGeneAnnotation", "-test -in " + TESTDATA("data_in/BedpeGeneAnnotation_in.bedpe") + " -out out/BedpeGeneAnnotation_out1.bedpe");
+		EXECUTE("BedpeGeneAnnotation", "-test -in " + TESTDATA("data_in/BedpeGeneAnnotation_in1.bedpe") + " -out out/BedpeGeneAnnotation_out1.bedpe");
 
 		COMPARE_FILES("out/BedpeGeneAnnotation_out1.bedpe", TESTDATA("data_out/BedpeGeneAnnotation_out1.bedpe"));
 	}
@@ -34,10 +34,27 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/BedpeGeneAnnotation_init.sql"));
 
 		//test
-		EXECUTE("BedpeGeneAnnotation", "-add_simple_gene_names -test -in " + TESTDATA("data_in/BedpeGeneAnnotation_in.bedpe") + " -out out/BedpeGeneAnnotation_out2.bedpe");
+		EXECUTE("BedpeGeneAnnotation", "-add_simple_gene_names -test -in " + TESTDATA("data_in/BedpeGeneAnnotation_in1.bedpe") + " -out out/BedpeGeneAnnotation_out2.bedpe");
 
 		COMPARE_FILES("out/BedpeGeneAnnotation_out2.bedpe", TESTDATA("data_out/BedpeGeneAnnotation_out2.bedpe"));
 	}
+
+	void reannotate()
+	{
+		QString host = Settings::string("ngsd_test_host");
+		if (host=="") SKIP("Test needs access to the NGSD test database!");
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/BedpeGeneAnnotation_init.sql"));
+
+		//test
+		EXECUTE("BedpeGeneAnnotation", "-add_simple_gene_names -test -in " + TESTDATA("data_in/BedpeGeneAnnotation_in2.bedpe") + " -out out/BedpeGeneAnnotation_out3.bedpe");
+
+		COMPARE_FILES("out/BedpeGeneAnnotation_out3.bedpe", TESTDATA("data_out/BedpeGeneAnnotation_out2.bedpe"));
+	}
+
 
 
 };
