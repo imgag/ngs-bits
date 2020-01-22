@@ -30,6 +30,8 @@ public:
 		addFlag("add_simple_gene_names", "Adds an additioal column containing only the list of gene names.");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
+		changeLog(2020, 1, 21, "Added ability to reannotate BEDPE files by overwriting old annotation.");
+		changeLog(2020, 1, 20, "Updated overlap method, refactored code.");
 		changeLog(2020, 1, 8, "Initial version of this tool.");
 
 
@@ -84,14 +86,22 @@ public:
 		BedpeFile bedpe_input_file;
 		bedpe_input_file.load(getInfile("in"));
 
+		// check if BEDPE file already contains gene annotation:
+		int i_gene_column = bedpe_input_file.annotationIndexByName("GENES", false);
+		int i_gene_info_column = bedpe_input_file.annotationIndexByName("GENE_INFO", false);
+
 		// copy comments
 		QByteArrayList output_buffer;
 		output_buffer.append(bedpe_input_file.comments());
 
-		// modify header
+		// get header
 		QByteArrayList header = bedpe_input_file.annotationHeaders();
-		if (add_simple_gene_names_) header.append("GENES");
-		header.append("GENE_INFO");
+
+		// modify header if gene columns not already present
+		if (add_simple_gene_names_ && i_gene_column < 0) header.append("GENES");
+		if (i_gene_info_column < 0) header.append("GENE_INFO");
+
+		// copy header
 		output_buffer << "#CHROM_A\tSTART_A\tEND_A\tCHROM_B\tSTART_B\tEND_B\t" + header.join("\t");
 
 		// iterate over all structural variants
@@ -102,10 +112,9 @@ public:
 			// get region of SV
 			BedFile sv_region = getSvRegion(line);
 
-
-
-			QByteArrayList gene_name_list;
-			QVector<QVector<QByteArray>> gene_info_array;
+			GeneSet matching_genes;
+			QHash<QByteArray, QByteArray> gnomad_oe_lof_values;
+			QHash<QByteArray, QByteArray> covered_regions;
 
 			// iterate over all BED entries
 			for (int j = 0; j < sv_region.count(); ++j)
@@ -118,8 +127,14 @@ public:
 				// iterate over all matching BED entries and check coverage
 				foreach (int index, matching_indices)
 				{
-					QByteArray gene_name = gene_regions[index].annotations()[0];
-					QByteArray gnomad_oe_lof = db.geneInfo(gene_name).oe_lof.toUtf8();
+					// store gene name
+					QByteArray gene_name = gene_regions[index].annotations()[0].trimmed().toUpper();
+					matching_genes.insert(gene_name);
+
+					// store gnomad oe lof score
+					gnomad_oe_lof_values[gene_name] = db.geneInfo(gene_name).oe_lof.toUtf8();
+
+					// determine covered gene region
 					QByteArray covered_region;
 					if (sv_entry.start() <= gene_regions[index].start() && sv_entry.end() >= gene_regions[index].end())
 					{
@@ -143,54 +158,75 @@ public:
 						}
 					}
 
-					// check for duplicates
-					int pos = gene_name_list.indexOf(gene_name);
-					if (pos != -1)
+					if (covered_regions.contains(gene_name))
 					{
-						// duplicate found -> handle covered region
-						// only interact if regions are different
-						if (gene_info_array[pos][2] != covered_region)
+						// merge regions
+						if (covered_region != covered_regions[gene_name])
 						{
-							if ((gene_info_array[pos][2] == "complete") || (covered_region == "complete"))
+							if ((covered_regions[gene_name] == "complete") || (covered_region == "complete"))
 							{
-								gene_info_array[pos][2] = "complete";
+								covered_regions[gene_name] = "complete";
 							}
-							else if ((gene_info_array[pos][2] == "exonic/splicing") || (covered_region == "exonic/splicing"))
+							else if ((covered_regions[gene_name] == "exonic/splicing") || (covered_region == "exonic/splicing"))
 							{
-								gene_info_array[pos][2] = "exonic/splicing";
+								covered_regions[gene_name] = "exonic/splicing";
 							}
 							// else: both intronic/intergenic
 						}
 					}
 					else
 					{
-						// add gene name
-						gene_name_list.append(gene_name);
-						// add gene info
-						QVector<QByteArray> gene_info;
-						gene_info.append(gene_name);
-						gene_info.append(gnomad_oe_lof);
-						gene_info.append(covered_region);
-						gene_info_array.append(gene_info);
+						covered_regions[gene_name] = covered_region;
 					}
 				}
-
 			}
 
 			// join gene info
-			QByteArrayList gene_info_list;
-			foreach (QVector<QByteArray> gene_info, gene_info_array)
+			QByteArrayList gene_info_entry;
+			QByteArrayList gene_entry;
+			foreach (QString gene, matching_genes)
 			{
-				gene_info_list.append(gene_info[0] + " (oe_lof=" + gene_info[1] + " region=" + gene_info[2] + ")");
+				gene_entry.append(gene.toUtf8());
+				gene_info_entry.append(gene.toUtf8() + " (oe_lof=" + gnomad_oe_lof_values[gene.toUtf8()]
+						+ " region=" + covered_regions[gene.toUtf8()] + ")");
 			}
+
+			// generate annotated line
+			QByteArrayList additional_annotations;
+
+			// gene names
+			if (add_simple_gene_names_)
+			{
+				if (i_gene_column >= 0)
+				{
+					QList<QByteArray> annotations = line.annotations();
+					annotations[i_gene_column] = gene_entry.join(",");
+					line.setAnnotations(annotations);
+				}
+				else
+				{
+					additional_annotations.append(gene_entry.join(","));
+				}
+			}
+
+			// gene info
+			if (i_gene_info_column >= 0)
+			{
+				QList<QByteArray> annotations = line.annotations();
+				annotations[i_gene_info_column] = gene_info_entry.join(",");
+				line.setAnnotations(annotations);
+			}
+			else
+			{
+				additional_annotations.append(gene_info_entry.join(","));
+			}
+
 			// extend annotation
 			QByteArray annotated_line = line.toTsv();
-			if (add_simple_gene_names_) annotated_line += "\t" + gene_name_list.join(",");
-			annotated_line += "\t" + gene_info_list.join(",");
+			if (additional_annotations.size() > 0) annotated_line += "\t" + additional_annotations.join("\t");
 
 			//add annotated line to buffer
 			output_buffer << annotated_line;
-
 		}
 
 		out << "Writing output file..." << endl;
@@ -267,11 +303,6 @@ private:
 		// determine region based on SV type
 		switch (sv.type())
 		{
-			case StructuralVariantType::INS:
-				// only consider start_1 to end_1
-				sv_region.append(BedLine(sv.chr1(), sv.start1(), sv.end1()));
-				break;
-
 			case StructuralVariantType::INV:
 			case StructuralVariantType::DEL:
 			case StructuralVariantType::DUP:
@@ -280,6 +311,7 @@ private:
 				break;
 
 			case StructuralVariantType::BND:
+			case StructuralVariantType::INS:
 				// consider pos 1 and pos 2 seperately
 				sv_region.append(BedLine(sv.chr1(), sv.start1(), sv.end1()));
 				sv_region.append(BedLine(sv.chr2(), sv.start2(), sv.end2()));
