@@ -37,19 +37,34 @@ NGSD::NGSD(bool test_db)
 	}
 }
 
-QString NGSD::userId(QString user_name)
+int NGSD::userId(QString user_name)
 {
-	QString user_id = getValue("SELECT id FROM user WHERE user_id=:0", true, user_name).toString();
-	if (user_id=="")
+	bool ok = true;
+	int user_id = getValue("SELECT id FROM user WHERE user_id=:0", true, user_name).toInt(&ok);
+	if (!ok)
 	{
-		user_id = getValue("SELECT id FROM user WHERE name=:0", true, user_name).toString();
+		user_id = getValue("SELECT id FROM user WHERE name=:0", true, user_name).toInt(&ok);
 	}
-	if (user_id=="")
+	if (!ok)
 	{
 		THROW(DatabaseException, "Could not determine NGSD user ID for user name '" + user_name + "! Do you have an NGSD user account?");
 	}
 
 	return user_id;
+}
+
+QString NGSD::userName(int user_id)
+{
+	if (user_id==-1) user_id = userId();
+
+	return getValue("SELECT name FROM user WHERE id=:0", false, QString::number(user_id)).toString();
+}
+
+QString NGSD::userEmail(int user_id)
+{
+	if (user_id==-1) user_id = userId();
+
+	return getValue("SELECT email FROM user WHERE id=:0", false,  QString::number(user_id)).toString();
 }
 
 DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
@@ -315,7 +330,7 @@ SampleData NGSD::getSampleData(const QString& sample_id)
 	QVariant receiver_id = query.value(13);
 	if (!receiver_id.isNull())
 	{
-		output.received_by = getValue("SELECT name FROM user WHERE id=:0", false, receiver_id.toString()).toString();
+		output.received_by = userName(receiver_id.toInt());
 	}
 
 	//sample groups
@@ -359,7 +374,7 @@ ProcessedSampleData NGSD::getProcessedSampleData(const QString& processed_sample
 	QVariant operator_id = query.value("operator_id");
 	if (!operator_id.isNull())
 	{
-		output.lab_operator = getValue("SELECT name FROM user WHERE id=:0", false, operator_id.toString()).toString();
+		output.lab_operator = userName(operator_id.toInt());
 	}
 	output.processing_input = query.value("processing_input").toString().trimmed();
 	output.molarity = query.value("molarity").toString().trimmed();
@@ -1175,7 +1190,8 @@ const TableInfo& NGSD::tableInfo(QString table) const
 			info.label = info.name;
 			info.label.replace('_', ' ');
 			if (table=="sequencing_run" && info.name=="fcid") info.label = "flowcell ID";
-			//TODO special names for sequencing run, sample, processed sample, processing system, project
+			if (table=="project" && info.name=="preserve_fastqs") info.label = "preserve FASTQs";
+			//TODO special names for sample, processed sample, processing system
 
 			//index
 			info.index = output.fieldCount();
@@ -1521,7 +1537,7 @@ void NGSD::setValidationStatus(const QString& filename, const Variant& variant, 
 	SqlQuery query = getQuery(); //use binding (user input)
 	if (vv_id.isNull()) //insert
 	{
-		QString user_id = userId(user_name);
+		QString user_id = QString::number(userId(user_name));
 		QString geno = getValue("SELECT genotype FROM detected_variant WHERE variant_id='" + v_id + "' AND processed_sample_id='" + processedSampleId(filename) + "'", false).toString();
 		query.prepare("INSERT INTO variant_validation (user_id, sample_id, variant_id, genotype, status, type, comment) VALUES ('" + user_id + "','" + s_id + "','" + v_id + "','" + geno + "',:0,:1,:2)");
 	}
@@ -1607,7 +1623,7 @@ void NGSD::addVariantPublication(QString filename, const Variant& variant, QStri
 {
 	QString s_id = sampleId(filename);
 	QString v_id = variantId(variant);
-	QString user_id = userId();
+	QString user_id = QString::number(userId());
 
 	//insert
 	getQuery().exec("INSERT INTO variant_publication (sample_id, variant_id, db, class, details, user_id) VALUES ("+s_id+","+v_id+", '"+database+"', '"+classification+"', '"+details+"', "+user_id+")");
@@ -1637,21 +1653,6 @@ QString NGSD::getVariantPublication(QString filename, const Variant& variant)
 QString NGSD::comment(const Variant& variant)
 {
 	return getValue("SELECT comment FROM variant WHERE id='" + variantId(variant) + "'").toString();
-}
-
-QString NGSD::url(const QString& filename, const Variant& variant)
-{
-	return Settings::string("NGSD")+"/variants/view/" + processedSampleId(filename) + "," + variantId(variant);
-}
-
-QString NGSD::url(const QString& filename)
-{
-	return Settings::string("NGSD")+"/processedsamples/view/" + processedSampleId(filename);
-}
-
-QString NGSD::urlSearch(const QString& search_term)
-{
-	return Settings::string("NGSD")+"/search/processSearch/search_term=" + search_term;
 }
 
 int NGSD::lastAnalysisOf(QString processed_sample_id)
@@ -1718,7 +1719,7 @@ void NGSD::queueAnalysis(QString type, bool high_priority, QStringList args, QLi
 	}
 
 	//insert status
-	query.exec("INSERT INTO `analysis_job_history`(`analysis_job_id`, `time`, `user_id`, `status`, `output`) VALUES (" + job_id + ",'" + Helper::dateTime("") + "'," + userId(user_name) + ",'queued', '')");
+	query.exec("INSERT INTO `analysis_job_history`(`analysis_job_id`, `time`, `user_id`, `status`, `output`) VALUES (" + job_id + ",'" + Helper::dateTime("") + "'," + QString::number(userId(user_name)) + ",'queued', '')");
 }
 
 bool NGSD::cancelAnalysis(int job_id, QString user_name)
@@ -1728,7 +1729,7 @@ bool NGSD::cancelAnalysis(int job_id, QString user_name)
 	if (!job.isRunning()) return false;
 
 	SqlQuery query = getQuery();
-	query.exec("INSERT INTO `analysis_job_history`(`analysis_job_id`, `time`, `user_id`, `status`, `output`) VALUES (" + QString::number(job_id) + ",'" + Helper::dateTime("") + "'," + userId(user_name) + ",'cancel', '')");
+	query.exec("INSERT INTO `analysis_job_history`(`analysis_job_id`, `time`, `user_id`, `status`, `output`) VALUES (" + QString::number(job_id) + ",'" + Helper::dateTime("") + "'," + QString::number(userId(user_name)) + ",'cancel', '')");
 
 	return true;
 }
@@ -2955,7 +2956,7 @@ DiagnosticStatusData NGSD::getDiagnosticStatus(const QString& processed_sample_i
 void NGSD::setDiagnosticStatus(const QString& processed_sample_id, DiagnosticStatusData status, QString user_name)
 {
 	//get current user ID
-	QString user_id = userId(user_name);
+	QString user_id = QString::number(userId(user_name));
 
 	//update status
 	SqlQuery query = getQuery();
@@ -2973,18 +2974,14 @@ int NGSD::reportConfigId(const QString& processed_sample_id)
 	return id.isValid() ? id.toInt() : -1;
 }
 
-ReportConfigurationCreationData NGSD::reportConfigCreationData(int id, bool is_somatic)
+ReportConfigurationCreationData NGSD::reportConfigCreationData(int id)
 {
 	SqlQuery query = getQuery();
-
-	QString ngsd_table = "report_configuration";
-	if(is_somatic) ngsd_table = "somatic_report_configuration";
-
-	query.exec("SELECT (SELECT name FROM user WHERE id=created_by) as created_by, created_date, (SELECT name FROM user WHERE id=last_edit_by) as last_edit_by, last_edit_date FROM " + ngsd_table + " WHERE id=" + QString::number(id));
+	query.exec("SELECT created_by, created_date, (SELECT name FROM user WHERE id=last_edit_by) as last_edit_by, last_edit_date FROM report_configuration WHERE id=" + QString::number(id));
 	query.next();
 
 	ReportConfigurationCreationData output;
-	output.created_by = query.value("created_by").toString();
+	output.created_by = userName(query.value("created_by").toInt());
 	QDateTime created_date = query.value("created_date").toDateTime();
 	output.created_date = created_date.isNull() ? "" : created_date.toString("dd.MM.yyyy hh:mm:ss");
 	output.last_edit_by = query.value("last_edit_by").toString();
@@ -3101,12 +3098,12 @@ int NGSD::setReportConfig(const QString& processed_sample_id, const ReportConfig
 		query.exec("DELETE FROM `report_configuration_cnv` WHERE report_configuration_id=" + QString::number(id));
 
 		//update report config
-		query.exec("UPDATE `report_configuration` SET `last_edit_by`='" + userId(user_name) + "', `last_edit_date`=CURRENT_TIMESTAMP WHERE id=" + QString::number(id));
+		query.exec("UPDATE `report_configuration` SET `last_edit_by`='" + QString::number(userId(user_name)) + "', `last_edit_date`=CURRENT_TIMESTAMP WHERE id=" + QString::number(id));
 	}
 	else
 	{
 		//insert new report config
-		QString user_id = userId(config.createdBy());
+		int user_id = userId(config.createdBy());
 
 		SqlQuery query = getQuery();
 		query.prepare("INSERT INTO `report_configuration`(`processed_sample_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES (:0, :1, :2, :3, CURRENT_TIMESTAMP)");
@@ -3236,6 +3233,23 @@ void NGSD::deleteReportConfig(int id)
 	query.exec("DELETE FROM `report_configuration` WHERE `id`=" + rc_id);
 }
 
+ReportConfigurationCreationData NGSD::somaticReportConfigCreationData(int id)
+{
+	SqlQuery query = getQuery();
+	query.exec("SELECT created_by, created_date, (SELECT name FROM user WHERE id=last_edit_by) as last_edit_by, last_edit_date FROM somatic_report_configuration WHERE id=" + QString::number(id));
+	query.next();
+
+	ReportConfigurationCreationData output;
+	output.created_by = userName(query.value("created_by").toInt());
+	QDateTime created_date = query.value("created_date").toDateTime();
+	output.created_date = created_date.isNull() ? "" : created_date.toString("dd.MM.yyyy hh:mm:ss");
+	output.last_edit_by = query.value("last_edit_by").toString();
+	QDateTime last_edit_date = query.value("last_edit_date").toDateTime();
+	output.last_edit_date = last_edit_date.isNull() ? "" : last_edit_date.toString("dd.MM.yyyy hh:mm:ss");
+
+	return output;
+}
+
 
 int NGSD::somaticReportConfigId(QString t_ps_id, QString n_ps_id)
 {
@@ -3257,7 +3271,7 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 		query.exec("DELETE FROM `somatic_report_configuration_cnv` WHERE somatic_report_configuration_id=" + QByteArray::number(id));
 
 		//Update somatic report configuration
-		query.exec("UPDATE `somatic_report_configuration` SET `last_edit_by`='" + userId(user_name) + "', `last_edit_date`=CURRENT_TIMESTAMP WHERE id=" +QByteArray::number(id));
+		query.exec("UPDATE `somatic_report_configuration` SET `last_edit_by`='" + QString::number(userId(user_name)) + "', `last_edit_date`=CURRENT_TIMESTAMP WHERE id=" +QByteArray::number(id));
 	}
 	else
 	{

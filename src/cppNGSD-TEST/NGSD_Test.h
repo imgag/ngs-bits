@@ -22,7 +22,7 @@ private:
 		I_EQUAL(db.somaticReportConfigId("5","10"), -1);
 
 		//Resolve rep conf. creation data
-		ReportConfigurationCreationData creation_data = db.reportConfigCreationData(51, true);
+		ReportConfigurationCreationData creation_data = db.somaticReportConfigCreationData(51);
 		S_EQUAL(creation_data.created_by,"Max Mustermann");
 		S_EQUAL(creation_data.created_date, "05.01.2019 14:06:12");
 		S_EQUAL(creation_data.last_edit_by, "Sarah Kerrigan");
@@ -93,11 +93,11 @@ private:
 
 
 		//Update somat report configuration using 1 CNV
-		ReportConfigurationCreationData creation_data_1 = db.reportConfigCreationData(config_id, true);
+		ReportConfigurationCreationData creation_data_1 = db.somaticReportConfigCreationData(config_id);
 		S_EQUAL(creation_data_1.created_by, "Max Mustermann");
 		S_EQUAL(creation_data_1.last_edit_by, "Max Mustermann");
 		db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, "ahkerra1");
-		ReportConfigurationCreationData creation_data_2 =  db.reportConfigCreationData(config_id, true);
+		ReportConfigurationCreationData creation_data_2 =  db.somaticReportConfigCreationData(config_id);
 		S_EQUAL(creation_data_2.created_by, "Max Mustermann");
 		S_EQUAL(creation_data_2.last_edit_by, "Sarah Kerrigan");
 		IS_TRUE(creation_data_2.created_date == creation_data_1.created_date);
@@ -1048,6 +1048,16 @@ private slots:
 		{
 			TableInfo table_info = db.tableInfo(table);
 		}
+
+		//userId
+		I_EQUAL(db.userId("ahkerra1"), 101);
+		I_EQUAL(db.userId("Sarah Kerrigan"), 101);
+
+		//userName
+		S_EQUAL(db.userName(101), "Sarah Kerrigan");
+
+		//userEmail
+		S_EQUAL(db.userEmail(101), "no.mail2@max.de");
 	}
 
 	//Test for debugging (without initialization because of speed)

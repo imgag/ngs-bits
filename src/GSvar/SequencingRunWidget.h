@@ -28,6 +28,7 @@ protected slots:
 	void updateRunSampleTable();
 	void setQuality();
 	void edit();
+	void sendStatusEmail();
 
 private:
 	QTableWidgetItem* createItem(const QString& text, bool highlight = false, int alignment = Qt::AlignVCenter|Qt::AlignRight);

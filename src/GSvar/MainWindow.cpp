@@ -1673,8 +1673,7 @@ void MainWindow::storeReportConfig()
 	if (conf_id!=-1)
 	{
 		ReportConfigurationCreationData conf_creation = db.reportConfigCreationData(conf_id);
-		QString current_user_name = db.getValue("SELECT name FROM user WHERE user_id='" + Helper::userName() + "'").toString();
-		if (conf_creation.last_edit_by!="" && conf_creation.last_edit_by!=current_user_name)
+		if (conf_creation.last_edit_by!="" && conf_creation.last_edit_by!=db.userName())
 		if (QMessageBox::question(this, "Storing report configuration", conf_creation.toText() + "\n\nDo you want to override it?")==QMessageBox::No)
 		{
 			return;

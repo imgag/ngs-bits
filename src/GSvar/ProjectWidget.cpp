@@ -1,6 +1,8 @@
 #include "ProjectWidget.h"
 #include "NGSD.h"
 #include "DiagnosticStatusOverviewDialog.h"
+#include "DBEditor.h"
+#include "GUIHelper.h"
 
 ProjectWidget::ProjectWidget(QWidget* parent, QString name)
 	: QWidget(parent)
@@ -11,6 +13,7 @@ ProjectWidget::ProjectWidget(QWidget* parent, QString name)
 	connect(ui_.sample_overview, SIGNAL(linkActivated(QString)), this, SIGNAL(openProcessedSampleTab(QString)));
 	connect(ui_.refresh_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
 	connect(ui_.diag_btn, SIGNAL(clicked(bool)), this, SLOT(showDiagnosticStatusDialog()));
+	connect(ui_.edit_btn, SIGNAL(clicked(bool)), this, SLOT(edit()));
 }
 
 void ProjectWidget::delayedInitialization()
@@ -62,6 +65,20 @@ void ProjectWidget::updateGUI()
 	ui_.sample_overview->setText(sample_summary.trimmed());
 
 	QApplication::restoreOverrideCursor();
+}
+
+void ProjectWidget::edit()
+{
+	NGSD db;
+	int project_id = db.getValue("SELECT id FROM project WHERE name='" + name_ + "'").toInt();
+
+	DBEditor* widget = new DBEditor(this, "project", project_id);
+	auto dlg = GUIHelper::createDialog(widget, "Edit project " + name_ ,"", true);
+	if (dlg->exec()==QDialog::Accepted)
+	{
+		widget->store();
+		updateGUI();
+	}
 }
 
 void ProjectWidget::showDiagnosticStatusDialog()

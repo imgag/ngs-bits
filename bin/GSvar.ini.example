@@ -12,6 +12,8 @@ igv_genome=1kg_v37
 
 #Enable NGSD-based functionality
 NGSD_enabled=true
+email_run_finished=
+email_run_analyzed=
 
 #LODV credentials for variant upload
 lovd_lab=
@@ -27,7 +29,6 @@ analysis_steps_trio=vc - variant calling, an - annotation, cn - copy number call
 analysis_steps_somatic=vc - variant calling, cn - copy number calling, an - annotation, ci - CGI annotation, msi - microsatellite instabilty, db - database import
 
 #webservice URLs
-NGSD = ""
 PrimerDesign = ""
 Alamut = ""
 VariantInfoRefSeq = ""

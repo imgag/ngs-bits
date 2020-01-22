@@ -4,7 +4,6 @@ libs:
 * FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 
 NGSD:
-#### Copy help text of NGSD to schema and use them as tooltip for view tabs and DBEditor
 * Implement "closing gaps by sanger"
     - select gaps to close in gap dialog > write to NGSD table (sample_id>sample, enum status: 'to close', 'in progress', 'closed', requested_by>user, comment)
     - make page where TA can select gaps (by gene/DX number)
@@ -12,9 +11,10 @@ NGSD:
         - add link for PrimerDesign tool
 * Copy help text of fields to schema and use them as tooltip for view tabs
 *** Allow adding/editing data in NGSD
-    - use for: sample, processed sample, processing system, project
+    - use for: processing system, sample, processed sample
     - remove old unneeded edit functionality
-    - Add email support for runs "run finished" and "analysis finished"
+    - Copy help text of NGSD to schema and use them as tooltip for view tabs and DBEditor
+        - project email notification: semicolon, informed when run finished
 ** Add run overview dialog/tab
 * Add admin section (genome, device, MID, procesing system, sample group, sender, speicies)
     - with text search
