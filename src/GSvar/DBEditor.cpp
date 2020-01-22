@@ -378,6 +378,8 @@ DBEditor::isEditable(const TableFieldInfo& info)
 DBEditor::isReadOnly(const QString& table, const QString& field)
 {
 	if (table=="sample" && field=="name") return true;
+	if (table=="sequencing_run" && field=="name") return true;
+	if (table=="project" && field=="name") return true;
 
 	return false;
 }
@@ -495,6 +497,7 @@ void DBEditor::store()
 			{
 				query_str += (i!=0 ? ", " : "") + fields[i] + "=?";
 			}
+			query_str += " WHERE id=" + QString::number(id_);
 
 			query.prepare(query_str);
 			foreach(const QString& value, values)

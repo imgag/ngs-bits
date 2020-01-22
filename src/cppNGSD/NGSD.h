@@ -468,8 +468,12 @@ public:
 	///Returns the CNV corresponding to the given identifiers or throws an exception if the ID does not exist.
 	CopyNumberVariant cnv(int cnv_id);
 
-	///Returns the database ID of the user as a string. Throws an exception if the user is not in the NGSD user table.
-	QString userId(QString user_name=Helper::userName());
+	///Returns the database ID of the given user. If no user name is given, the current user from the environment is used. Throws an exception if the user is not in the NGSD user table.
+	int userId(QString user_name=Helper::userName());
+	///Returns the user name corresponding the given ID. If no ID is given, the current users ID is used (see userId()).
+	QString userName(int user_id=-1);
+	///Returns the user email corresponding the given ID. If no ID is given, the current user ID is used (see userId()).
+	QString userEmail(int user_id=-1);
 
 	/*** Main NGSD functions ***/
 	///Search for processed samples
@@ -551,13 +555,6 @@ public:
 	GeneInfo geneInfo(QByteArray symbol);
 	///Sets the germline gene information for a HGNC-approved gene symbol (not gnomAD o/e scores, because it is read-only)
 	void setGeneInfo(GeneInfo info);
-
-	///Returns the NGSD URL corresponding to a variant. Or an empty string if the variant/sample is not in the DB.
-	QString url(const QString& filename, const Variant& variant);
-	///Returns the NGSD URL corresponding to a processed sample. Or an empty string if the sample is not in the DB.
-	QString url(const QString& filename);
-	///Returns the NGSD seach URL including the search term.
-	QString urlSearch(const QString& search_term);
 
 	///Returns the job id of the last single sample analysis or -1 if no analysis was performed.
 	int lastAnalysisOf(QString processed_sample_id);

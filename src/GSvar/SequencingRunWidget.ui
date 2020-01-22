@@ -52,12 +52,29 @@
          </property>
          <item>
           <widget class="QToolButton" name="edit_btn">
+           <property name="toolTip">
+            <string>Edit</string>
+           </property>
            <property name="text">
             <string>...</string>
            </property>
            <property name="icon">
             <iconset resource="GSvar.qrc">
              <normaloff>:/Icons/Edit.png</normaloff>:/Icons/Edit.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="email_btn">
+           <property name="toolTip">
+            <string>Sent status email.</string>
+           </property>
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="GSvar.qrc">
+             <normaloff>:/Icons/email.png</normaloff>:/Icons/email.png</iconset>
            </property>
           </widget>
          </item>

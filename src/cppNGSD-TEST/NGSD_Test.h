@@ -902,6 +902,16 @@ private slots:
 		{
 			TableInfo table_info = db.tableInfo(table);
 		}
+
+		//userId
+		I_EQUAL(db.userId("ahkerra1"), 101);
+		I_EQUAL(db.userId("Sarah Kerrigan"), 101);
+
+		//userName
+		S_EQUAL(db.userName(101), "Sarah Kerrigan");
+
+		//userEmail
+		S_EQUAL(db.userEmail(101), "no.mail2@max.de");
 	}
 
 	//Test for debugging (without initialization because of speed)

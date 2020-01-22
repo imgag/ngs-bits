@@ -6,6 +6,7 @@
 #include "Settings.h"
 #include <QMessageBox>
 #include <QInputDialog>
+#include <QDesktopServices>
 
 SequencingRunWidget::SequencingRunWidget(QWidget* parent, QString run_id)
 	: QWidget(parent)
@@ -18,6 +19,7 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, QString run_id)
 	connect(ui_->show_qc, SIGNAL(toggled(bool)), this, SLOT(updateGUI()));
 	connect(ui_->update_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
 	connect(ui_->edit_btn, SIGNAL(clicked(bool)), this, SLOT(edit()));
+	connect(ui_->email_btn, SIGNAL(clicked(bool)), this, SLOT(sendStatusEmail()));
 
 	QAction* action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
 	ui_->samples->addAction(action);
@@ -62,8 +64,9 @@ void SequencingRunWidget::updateGUI()
 			ui_->molarity_and_method->setText("");
 		}
 		ProcessedSampleWidget::styleQualityLabel(ui_->quality, query.value("quality").toString());
-		ui_->status->setText(query.value("status").toString());
-
+		QString status = query.value("status").toString();
+		ui_->status->setText(status);
+		ui_->email_btn->setEnabled(status=="analysis_finished" || status=="run_finished");
 
 		//#### run quality ####
 		updateReadQualityTable();
@@ -214,6 +217,69 @@ void SequencingRunWidget::edit()
 		widget->store();
 		updateGUI();
 	}
+}
+
+void SequencingRunWidget::sendStatusEmail()
+{
+	NGSD db;
+	QString run_name = ui_->name->text();
+
+	//create email
+	QStringList to, body;
+	QString subject;
+
+	QString status = ui_->status->text();
+	if (status=="analysis_finished")
+	{
+		to << Settings::string("email_run_analyzed").split(";");
+
+		subject = "[NGSD] Lauf " + run_name + " analysiert";
+
+		body << "Hallo zusammen,";
+		body << "";
+		body << "der Lauf " + run_name + " ist fertig analysiert:";
+
+		SqlQuery query = db.getQuery();
+		query.exec("SELECT DISTINCT p.id, p.name, p.email_notification, p.internal_coordinator_id, p.analysis FROM project p, processed_sample ps WHERE ps.project_id=p.id AND ps.sequencing_run_id=" + run_id_ + " ORDER BY p.name ASC");
+		while(query.next())
+		{
+			int coordinator_id = query.value("internal_coordinator_id").toInt();
+			to << query.value("email_notification").toString().split(";");
+			to << db.userEmail(coordinator_id);
+
+			body << "";
+			body << "Projekt: " + query.value("name").toString();
+			body << "  Koordinator: " + db.userName(coordinator_id);
+			QStringList operator_ids = db.getValues("SELECT operator_id FROM processed_sample WHERE sequencing_run_id='" + run_id_ + "' AND project_id='" + query.value("id").toString() + "'");
+			body << "  Proben: " + QString::number(operator_ids.count());
+			body << "  Analyse: " + query.value("analysis").toString();
+
+			operator_ids.removeDuplicates();
+			foreach(QString operator_id, operator_ids)
+			{
+				to << db.userEmail(operator_id.toInt());
+			}
+		}
+	}
+	else if (status=="run_finished")
+	{
+		to << Settings::string("email_run_finished").split(";");
+
+		subject = "[NGSD] Lauf " + run_name + " ist sequenziert";
+
+		body << "Hallo zusammen,";
+		body << "";
+		body << "der Lauf " + run_name + " ist fertig sequenziert.";
+	}
+
+	body << "";
+	body << "Viele Gruesse, ";
+	body << "  " + db.userName();
+
+	//send email (only once to each recipient)
+	std::for_each(to.begin(), to.end(), [](QString& value){ value = value.toLower(); });
+	to.removeDuplicates();
+	QDesktopServices::openUrl(QUrl("mailto:" + to.join(";") + "?subject=" + subject + "&body=" + body.join("\n")));
 }
 
 void SequencingRunWidget::updateReadQualityTable()
