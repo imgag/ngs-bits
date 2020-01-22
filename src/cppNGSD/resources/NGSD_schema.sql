@@ -1068,6 +1068,7 @@ CREATE TABLE IF NOT EXISTS `somatic_report_configuration` (
   `created_date` DATETIME NOT NULL,
   `last_edit_by` int(11) DEFAULT NULL,
   `last_edit_date` timestamp NULL DEFAULT NULL,
+  `target_file` varchar(255) NULL DEFAULT NULL
   PRIMARY KEY (`id`),
   UNIQUE INDEX `combo_som_rep_conf_ids` (`ps_tumor_id` ASC, `ps_normal_id` ASC),
   CONSTRAINT `somatic_report_config_created_by_user` 

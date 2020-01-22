@@ -307,6 +307,9 @@ public:
 	///Returns true if all required annotation (CGI, NCG) are available
 	static bool checkRequiredSNVAnnotations(const VariantList& snvs);
 
+	///Returns maximum tumor clonailty in cnv file
+	static double getCnvMaxTumorClonality(const CnvList& cnvs);
+
 private:
 	///transforms GSVar coordinates of Variants to VCF INDEL-standard
 	VariantList gsvarToVcf(const VariantList& gsvar_list, const QString& orig_name);
@@ -330,11 +333,6 @@ private:
 
 	///Creates table containing alterations relevant in pharmacogenomics (from normal sample)
 	RtfTable pharamacogeneticsTable();
-
-
-
-	///Returns maximum tumor clonailty in cnv file
-	double getCnvMaxTumorClonality(const CnvList& cnvs);
 
 	///Returns text for fusions, appears multiple times in report
 	RtfParagraph fusionsText()

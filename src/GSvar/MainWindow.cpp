@@ -81,6 +81,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "ProjectWidget.h"
 #include "GSvarStoreWorker.h"
 #include "DBEditor.h"
+#include "SomaticReportDialog.h"
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -1599,6 +1600,9 @@ void MainWindow::loadSomaticReportConfig()
 	//Check whether somatic report config exists
 	if(db.somaticReportConfigId(ps_tumor_id, ps_normal_id) == -1) return;
 
+	somatic_report_settings_.tumor_ps = processedSampleName();
+	somatic_report_settings_.normal_ps = normalSampleName();
+
 	QStringList messages;
 	somatic_report_settings_.report_config = db.somaticReportConfig(ps_tumor_id, ps_normal_id, variants_, cnvs_, messages);
 	if(!messages.isEmpty())
@@ -2134,6 +2138,19 @@ void MainWindow::generateReportSomaticRTF()
 		QMessageBox::warning(this, "Error loading CNV file", error.message()+"\n\nContinuing without CNVs!");
 		cnvs.clear();
 	}
+
+	somatic_report_settings_.tumor_ps = processedSampleName();
+	somatic_report_settings_.normal_ps = normalSampleName();
+	somatic_report_settings_.target_bed_file = ui_.filters->targetRegion();
+
+	SomaticReportDialog test_dialog(somatic_report_settings_, variants_, cnvs, this);
+
+	if(!test_dialog.exec()) return;
+
+	test_dialog.writeBackSettings();
+
+
+	return;
 
 	//Configure report
 	SomaticReportConfigurationWidget config_report(cnvs, this);

@@ -50,6 +50,7 @@ private:
 		som_rep_conf.set(var2);
 		som_rep_conf.setCreatedBy("ahmustm1");
 
+
 		SomaticReportVariantConfiguration cnv1;
 		cnv1.variant_index = 2;
 		cnv1.variant_type = VariantType::CNVS;

@@ -70,7 +70,8 @@ SOURCES += main.cpp\
     DBEditor.cpp \
     SomaticReportConfigurationWidget.cpp \
     SomaticReportSettings.cpp \
-    SomaticReportVariantDialog.cpp
+    SomaticReportVariantDialog.cpp \
+    SomaticReportDialog.cpp
 
 
 HEADERS  += MainWindow.h \
@@ -136,7 +137,8 @@ HEADERS  += MainWindow.h \
     DBEditor.h \
     SomaticReportConfigurationWidget.h \
     SomaticReportSettings.h \
-    SomaticReportVariantDialog.h
+    SomaticReportVariantDialog.h \
+    SomaticReportDialog.h
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
@@ -186,7 +188,8 @@ FORMS    += MainWindow.ui \
     ProcessingSystemWidget.ui \
     ProjectWidget.ui \
     SomaticReportConfigurationWidget.ui \
-    SomaticReportVariantDialog.ui
+    SomaticReportVariantDialog.ui \
+    SomaticReportDialog.ui
 include("../app_gui.pri")
 
 
