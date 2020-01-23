@@ -129,7 +129,7 @@ void DBEditor::createGUI()
 
 			if (field_info.fk_name_sql=="") THROW(ProgrammingException, "Foreign key name SQL not set for table/field: " + table_ + "/" + field_info.name);
 
-			selector->fill(db.createTable(field_info.fk_table, "SELECT id, " + field_info.fk_name_sql + " FROM " + field_info.fk_table), field_info.is_nullable);
+			selector->fill(db.createTable(field_info.fk_table, "SELECT id, " + field_info.fk_name_sql + " as display_value FROM " + field_info.fk_table + " ORDER BY display_value"), field_info.is_nullable);
 
 			widget = selector;
 		}
@@ -139,6 +139,21 @@ void DBEditor::createGUI()
 		}
 		widget->setObjectName("editor_" + field);
 		widget->setEnabled(!field_info.is_readonly);
+
+		//tooltip
+		if (!field_info.tooltip.isEmpty())
+		{
+			if (add_widget==nullptr)
+			{
+				QLabel* info_label = new QLabel();
+				info_label->setPixmap(QPixmap(":/Icons/Info.png"));
+				info_label->setScaledContents(true);
+				info_label->setFixedSize(16, 16);
+				add_widget = info_label;
+			}
+
+			add_widget->setToolTip(field_info.tooltip);
+		}
 
 		//add widgets to layout
 		int row = layout->rowCount();
@@ -329,7 +344,7 @@ void DBEditor::check()
 			QDate date = QDate::fromString(value, Qt::ISODate);
 			if (!date.isValid())
 			{
-				errors << "Must not be negative!";
+				errors << "Use the ISO format: yyyy-mm-dd";
 			}
 		}
 

@@ -963,7 +963,7 @@ QString NGSD::addCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList
 	return query.lastInsertId().toString();
 }
 
-QVariant NGSD::getValue(const QString& query, bool no_value_is_ok, QString bind_value)
+QVariant NGSD::getValue(const QString& query, bool no_value_is_ok, QString bind_value) const
 {
 	//exeucte query
 	SqlQuery q = getQuery();
@@ -998,7 +998,7 @@ QVariant NGSD::getValue(const QString& query, bool no_value_is_ok, QString bind_
 	return q.value(0);
 }
 
-QStringList NGSD::getValues(const QString& query, QString bind_value)
+QStringList NGSD::getValues(const QString& query, QString bind_value) const
 {
 	SqlQuery q = getQuery();
 	if (bind_value.isNull())
@@ -1280,6 +1280,10 @@ const TableInfo& NGSD::tableInfo(QString table) const
 			{
 				info.is_hidden = true;
 			}
+
+			//tooltip
+			info.tooltip = getValue("SELECT COLUMN_COMMENT FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=database() AND TABLE_NAME='" + table + "' AND COLUMN_NAME='" + info.name + "'").toString().trimmed();
+			info.tooltip.replace("<br>", "\n");
 
 			infos.append(info);
 		}

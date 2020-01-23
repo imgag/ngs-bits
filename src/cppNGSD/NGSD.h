@@ -47,6 +47,7 @@ struct CPPNGSDSHARED_EXPORT TableFieldInfo
 	QString label; //label to show (normally the name, but overwritten e.g. for FK fields)
 	bool is_hidden = false; //not shown
 	bool is_readonly = false; //shown, but not editable
+	QString tooltip; //tooltip taken from column comment of the SQL database
 
 	QString toString() const;
 };
@@ -365,10 +366,10 @@ public:
 	///If no values are returned an error thrown or a default-constructed QVariant is returned (depending on @p empty_is_ok).
 	///If more than one value is returned a DatabaseError is thrown.
 	///If @p bind_value is set, the placeholder ':0' in the query is replaced with it (SQL special characters are replaced).
-	QVariant getValue(const QString& query, bool no_value_is_ok=true, QString bind_value = QString());
+	QVariant getValue(const QString& query, bool no_value_is_ok=true, QString bind_value = QString()) const;
 	///Executes an SQL query and returns the value list.
 	///If @p bind_value is set, the placeholder ':0' in the query is replaced with it (SQL special characters are replaced). Use this if
-	QStringList getValues(const QString& query, QString bind_value = QString());
+	QStringList getValues(const QString& query, QString bind_value = QString()) const;
 	///Returns a SqlQuery object on the NGSD for custom queries.
 	SqlQuery getQuery() const
 	{
