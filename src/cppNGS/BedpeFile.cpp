@@ -3,6 +3,40 @@
 #include "TSVFileStream.h"
 #include <QSharedPointer>
 
+QString StructuralVariantTypeToString(StructuralVariantType type)
+{
+	switch (type)
+	{
+		case StructuralVariantType::DEL:
+			return "DEL";
+		case StructuralVariantType::DUP:
+			return "DUP";
+		case StructuralVariantType::INS:
+			return "INS";
+		case StructuralVariantType::INV:
+			return "INV";
+		case StructuralVariantType::BND:
+			return "BND";
+		case StructuralVariantType::UNKNOWN:
+			THROW(ArgumentException, "StructuralVariantType::UNKNOWN can only be used for the default constructer.");
+		default:
+			THROW(NotImplementedException, "Invalid StructuralVariantType!");
+	}
+	return "";
+}
+
+StructuralVariantType StructuralVariantTypeFromString(QString type_string)
+{
+	if (type_string == "DEL") return StructuralVariantType::DEL;
+	if (type_string == "DUP") return StructuralVariantType::DUP;
+	if (type_string == "INS") return StructuralVariantType::INS;
+	if (type_string == "INV") return StructuralVariantType::INV;
+	if (type_string == "BND") return StructuralVariantType::BND;
+	if (type_string == "UNKNOWN") THROW(ArgumentException, "StructuralVariantType::UNKNOWN can only be used for the default constructer.");
+	THROW(ArgumentException, "No matching StructuralVariantType found for '" + type_string + "'!");
+	return StructuralVariantType::UNKNOWN;
+}
+
 BedpeLine::BedpeLine()
 	: chr1_(".")
 	, start1_(-1)
@@ -40,7 +74,7 @@ QByteArray BedpeLine::toTsv() const
 	return tmp_out.join("\t");
 }
 
-bool BedpeLine::intersectsWith(const BedFile& regions) const
+bool BedpeLine::intersectsWith(const BedFile& regions, bool imprecise_breakpoints) const
 {
 	StructuralVariantType t = type();
 	if (t==StructuralVariantType::DEL || t==StructuralVariantType::DUP || t==StructuralVariantType::INV)
@@ -49,6 +83,7 @@ bool BedpeLine::intersectsWith(const BedFile& regions) const
 	}
 	else if (t==StructuralVariantType::INS || t==StructuralVariantType::BND)
 	{
+		if (imprecise_breakpoints) return regions.overlapsWith(chr1(), start1(), end1()) || regions.overlapsWith(chr2(), start2(), end2());
 		return regions.overlapsWith(chr1(), start1(), start1()) || regions.overlapsWith(chr2(), start2(), start2());
 	}
 
@@ -134,7 +169,7 @@ void BedpeFile::load(const QString& file_name)
 	}
 }
 
-int BedpeFile::annotationIndexByName(const QByteArray& name, bool error_on_mismatch)
+int BedpeFile::annotationIndexByName(const QByteArray& name, bool error_on_mismatch) const
 {
 	QList<int> matches;
 
@@ -292,7 +327,7 @@ void BedpeFile::sort()
 }
 
 
-BedpeFileFormat BedpeFile::format()
+BedpeFileFormat BedpeFile::format() const
 {
 	for(auto comment : comments_) //TODO: return type for germline samples and add test > AXEL
 	{

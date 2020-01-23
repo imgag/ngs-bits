@@ -5,6 +5,7 @@
 #include "CnvList.h"
 #include "GeneSet.h"
 #include "VariantType.h"
+#include "BedpeFile.h"
 
 #include <QVariant>
 #include <QString>
@@ -157,6 +158,8 @@ class CPPNGSSHARED_EXPORT FilterBase
 		virtual void apply(const VariantList& variant_list, FilterResult& result) const;
 		//Applies the filter to a CNV list
 		virtual void apply(const CnvList& variant_list, FilterResult& result) const;
+		//Applies the filter to a SV list
+		virtual void apply(const BedpeFile& variant_list, FilterResult& result) const;
 
 	protected:
 		FilterBase(const FilterBase& rhs) = delete;
@@ -245,6 +248,9 @@ class CPPNGSSHARED_EXPORT FilterCascade
 
 		//Applies the filter cascade to a CNV list.
 		FilterResult apply(const CnvList& cnvs, bool throw_errors = true, bool debug_time = false) const;
+
+		//Applies the filter cascade to a SV list (BEDPE file).
+		FilterResult apply(const BedpeFile& svs, bool throw_errors = true, bool debug_time = false) const;
 
 		//Returns errors occured during filter application.
 		QStringList errors(int index) const;
@@ -594,7 +600,7 @@ class CPPNGSSHARED_EXPORT FilterRegulatory
 		void apply(const VariantList& variants, FilterResult& result) const override;
 };
 
-
+/*************************************************** filters for CNVs ***************************************************/
 //Filter CNV size
 class CPPNGSSHARED_EXPORT FilterCnvSize
 	: public FilterBase
@@ -738,4 +744,117 @@ class CPPNGSSHARED_EXPORT FilterCnvGeneOverlap
 		QByteArrayList selectedOptions() const;
 };
 
+/*************************************************** filters for SVs ***************************************************/
+
+// Filter SVs for SV type
+class CPPNGSSHARED_EXPORT FilterSvType
+	: public FilterBase
+{
+	public:
+		FilterSvType();
+		QString toText() const override;
+		void apply(const BedpeFile& svs, FilterResult& result) const override;
+};
+
+// Filter SVs for special chromosomes
+class CPPNGSSHARED_EXPORT FilterSvRemoveChromosomeType
+	: public FilterBase
+{
+	public:
+		FilterSvRemoveChromosomeType();
+		QString toText() const override;
+		void apply(const BedpeFile& svs, FilterResult& result) const override;
+};
+
+// Filter SVs for genotype
+class CPPNGSSHARED_EXPORT FilterSvGenotype
+	: public FilterBase
+{
+	public:
+		FilterSvGenotype();
+		QString toText() const override;
+		void apply(const BedpeFile& svs, FilterResult& result) const override;
+};
+
+// Filter SVs for quality
+class CPPNGSSHARED_EXPORT FilterSvQuality
+	: public FilterBase
+{
+	public:
+		FilterSvQuality();
+		QString toText() const override;
+		void apply(const BedpeFile& svs, FilterResult& result) const override;
+};
+
+// Filter SVs for filter column
+class CPPNGSSHARED_EXPORT FilterSvFilterColumn
+	: public FilterBase
+{
+	public:
+		FilterSvFilterColumn();
+		QString toText() const override;
+		void apply(const BedpeFile& svs, FilterResult& result) const override;
+};
+
+// Filter SVs for paired read AF
+class CPPNGSSHARED_EXPORT FilterSvPairedReadAF
+	: public FilterBase
+{
+	public:
+		FilterSvPairedReadAF();
+		QString toText() const override;
+		void apply(const BedpeFile& svs, FilterResult& result) const override;
+};
+
+// Filter SVs for split read AF
+class CPPNGSSHARED_EXPORT FilterSvSplitReadAF
+	: public FilterBase
+{
+	public:
+		FilterSvSplitReadAF();
+		QString toText() const override;
+		void apply(const BedpeFile& svs, FilterResult& result) const override;
+};
+
+// Filter SVs for paired end read depth
+class CPPNGSSHARED_EXPORT FilterSvPeReadDepth
+	: public FilterBase
+{
+	public:
+		FilterSvPeReadDepth();
+		QString toText() const override;
+		void apply(const BedpeFile& svs, FilterResult& result) const override;
+};
+
+// Filter SVs for Somaticscore
+class CPPNGSSHARED_EXPORT FilterSvSomaticscore
+	: public FilterBase
+{
+	public:
+		FilterSvSomaticscore();
+		QString toText() const override;
+		void apply(const BedpeFile& svs, FilterResult& result) const override;
+};
+
+// Filter SVs for gnomad oe lof score
+class CPPNGSSHARED_EXPORT FilterSvGeneConstraint
+	: public FilterBase
+{
+	public:
+		FilterSvGeneConstraint();
+		QString toText() const override;
+		void apply(const BedpeFile& svs, FilterResult& result) const override;
+};
+
+// Filter SVs for gene overlap
+class CPPNGSSHARED_EXPORT FilterSvGeneOverlap
+	: public FilterBase
+{
+	public:
+		FilterSvGeneOverlap();
+		QString toText() const override;
+		void apply(const BedpeFile& svs, FilterResult& result) const override;
+
+		QByteArrayList selectedOptions() const;
+};
 #endif // FILTERCASCADE_H
