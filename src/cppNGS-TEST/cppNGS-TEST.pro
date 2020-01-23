@@ -58,7 +58,8 @@ HEADERS += \
         BamReader_Test.h \
         VcfFile_Test.h \
         BedpeLine_Test.h \
-    CnvList_Test.h
+    CnvList_Test.h \
+    StructuralVariantType_Test.h
 
 SOURCES += \
         main.cpp

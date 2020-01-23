@@ -6,7 +6,8 @@
 enum class VariantType
 {
 	SNVS_INDELS, //Small variants - germline (SNVs and small InDels)
-	CNVS //CNVs - germline
+	CNVS, //CNVs - germline
+	SVS //Structural variants
 };
 
 #endif // VARIANTTYPE_H

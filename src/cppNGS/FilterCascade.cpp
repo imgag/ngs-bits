@@ -240,6 +240,11 @@ void FilterBase::apply(const CnvList& /*variant_list*/, FilterResult& /*result*/
 	THROW(NotImplementedException, "Method apply on CnvList not implemented for filter '" + name() + "'!");
 }
 
+void FilterBase::apply(const BedpeFile& /*sv_list*/, FilterResult& /*result*/) const
+{
+	THROW(NotImplementedException, "Method apply on BedpeFile not implemented for filter '" + name() + "'!");
+}
+
 void FilterBase::setInteger(const QString& name, int value)
 {
 	checkParameterType(name, INT);
@@ -531,6 +536,53 @@ FilterResult FilterCascade::apply(const CnvList& cnvs, bool throw_errors, bool d
 	return result;
 }
 
+FilterResult FilterCascade::apply(const BedpeFile& svs, bool throw_errors, bool debug_time) const
+{
+	QTime timer;
+	timer.start();
+
+	FilterResult result(svs.count());
+
+	//reset errors
+	errors_.fill(QStringList(), filters_.count());
+
+	if (debug_time)
+	{
+		Log::perf("FilterCascade: Initializing took ", timer);
+		timer.start();
+	}
+
+	for(int i=0; i<filters_.count(); ++i)
+	{
+		QSharedPointer<FilterBase> filter = filters_[i];
+		try
+		{
+			//check type
+			if (filter->type()!=VariantType::SVS) THROW(ArgumentException, "Filter '" + filter->name() + "' cannot be applied to SVs!");
+
+			//apply
+			filter->apply(svs, result);
+
+			if (debug_time)
+			{
+				Log::perf("FilterCascade: Filter " + filter->name() + " took ", timer);
+				timer.start();
+			}
+		}
+		catch(const Exception& e)
+		{
+			errors_[i].append(e.message());
+			if (throw_errors)
+			{
+				throw e;
+			}
+		}
+	}
+
+	return result;
+}
+
+
 QStringList FilterCascade::errors(int index) const
 {
 	if (errors_.isEmpty())
@@ -680,6 +732,17 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["CNV polymorphism region"] = &createInstance<FilterCnvCnpOverlap>;
 		output["CNV gene constraint"] = &createInstance<FilterCnvGeneConstraint>;
 		output["CNV gene overlap"] = &createInstance<FilterCnvGeneOverlap>;
+		output["SV type"] = &createInstance<FilterSvType>;
+		output["SV remove chr type"] = &createInstance<FilterSvRemoveChromosomeType>;
+		output["SV genotype"] = &createInstance<FilterSvGenotype>;
+		output["SV quality"] = &createInstance<FilterSvQuality>;
+		output["SV filter columns"] = &createInstance<FilterSvFilterColumn>;
+		output["SV paired read AF"] = &createInstance<FilterSvPairedReadAF>;
+		output["SV split read AF"] = &createInstance<FilterSvSplitReadAF>;
+		output["SV PE read depth"] = &createInstance<FilterSvPeReadDepth>;
+		output["SV SomaticScore"] = &createInstance<FilterSvSomaticscore>;
+		output["SV gene constraint"] = &createInstance<FilterSvGeneConstraint>;
+		output["SV gene overlap"] = &createInstance<FilterSvGeneOverlap>;
 	}
 
 	return output;
@@ -2747,7 +2810,6 @@ void FilterCnvOMIM::apply(const CnvList& cnvs, FilterResult& result) const
 	}
 }
 
-
 FilterCnvCnpOverlap::FilterCnvCnpOverlap()
 {
 	name_ = "CNV polymorphism region";
@@ -2901,3 +2963,621 @@ QByteArrayList FilterCnvGeneOverlap::selectedOptions() const
 
 	return output;
 }
+
+
+/*************************************************** concrete filters for SVs ***************************************************/
+
+FilterSvType::FilterSvType()
+{
+	name_ = "SV type";
+	type_ = VariantType::SVS;
+	description_ = QStringList() << "Filter based on SV types.";
+	params_ << FilterParameter("Structural variant type", STRINGLIST, QStringList(), "Structural variant type");
+	params_.last().constraints["valid"] = "DEL,DUP,INS,INV,BND";
+	params_.last().constraints["not_empty"] = "";
+
+	checkIsRegistered();
+}
+
+QString FilterSvType::toText() const
+{
+	return name() + " " + getStringList("Structural variant type", false).join(",");
+}
+
+void FilterSvType::apply(const BedpeFile& svs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	// get selected types
+	QStringList sv_types = getStringList("Structural variant type");
+
+	// iterate over all SVs
+	for(int i=0; i<svs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		result.flags()[i] = sv_types.contains(StructuralVariantTypeToString(svs[i].type()));
+	}
+}
+
+FilterSvRemoveChromosomeType::FilterSvRemoveChromosomeType()
+{
+	name_ = "SV remove chr type";
+	type_ = VariantType::SVS;
+	description_ = QStringList() << "Removes all structural variants which contains non-standard/standard chromosomes.";
+	params_ << FilterParameter("chromosome type", STRING, "special chromosomes", "Structural variants containing non-standard/standard chromosome are removed.");
+	params_.last().constraints["valid"] = "special chromosomes,standard chromosomes";
+	params_.last().constraints["not_empty"] = "";
+	checkIsRegistered();
+}
+
+QString FilterSvRemoveChromosomeType::toText() const
+{
+	return name() + ": Remove " + getString("chromosome type");
+}
+
+void FilterSvRemoveChromosomeType::apply(const BedpeFile& svs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	bool remove_special_chr = (getString("chromosome type") == "special chromosomes");
+
+
+	// iterate over all SVs
+	for(int i=0; i<svs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+		if (remove_special_chr)
+		{
+			// only pass if both positions are located on standard chromosomes
+			result.flags()[i] = svs[i].chr1().isNonSpecial() && svs[i].chr2().isNonSpecial();
+		}
+		else
+		{
+			// only pass if both positions are located on special chromosomes
+			result.flags()[i] = !svs[i].chr1().isNonSpecial() && !svs[i].chr2().isNonSpecial();
+		}
+	}
+}
+
+FilterSvGenotype::FilterSvGenotype()
+{
+	name_ = "SV genotype";
+	type_ = VariantType::SVS;
+	description_ = QStringList() << "Filter structural variants based on their genotype.";
+	params_ << FilterParameter("Genotype", STRINGLIST, QStringList(), "Structural variant genotype");
+	params_.last().constraints["valid"] = "het,hom";
+	params_.last().constraints["not_empty"] = "";
+
+	checkIsRegistered();
+}
+
+QString FilterSvGenotype::toText() const
+{
+	return name() + ": " + getStringList("Genotype", false).join(",");
+}
+
+void FilterSvGenotype::apply(const BedpeFile& svs, FilterResult& result) const
+{
+	if (!enabled_) return;
+	if (svs.format() == BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL)
+	{
+		// ignore filter if applied to tumor-normal sample
+		THROW(ArgumentException, "Filter '" + name() +"' cannot be applied to somatic tumor normal sample!");
+		return;
+	}
+
+	// get genotypes
+	QStringList genotypes = getStringList("Genotype");
+
+	int format_col_index = svs.annotationIndexByName("FORMAT");
+
+	// iterate over all SVs
+	for(int i=0; i<svs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		// get genotype
+
+		// get format keys and values
+		QByteArrayList format_keys = svs[i].annotations()[format_col_index].split(':');
+		QByteArrayList format_values = svs[i].annotations()[format_col_index + 1].split(':');
+
+		QByteArray sv_genotype_string = format_values[format_keys.indexOf("GT")];
+		QString sv_genotype;
+
+		if (sv_genotype_string == "0/1") sv_genotype = "het";
+		else if (sv_genotype_string == "1/1") sv_genotype = "hom";
+		else THROW(FileParseException, "Invalid genotype in sv " + QByteArray::number(i) + "!");
+
+		result.flags()[i] = genotypes.contains(sv_genotype);
+	}
+}
+
+FilterSvQuality::FilterSvQuality()
+{
+	name_ = "SV quality";
+	type_ = VariantType::SVS;
+	description_ = QStringList() << "Filter structural variants based on their quality.";
+	params_ << FilterParameter("quality", INT, 0, "Minimum quality score");
+	params_.last().constraints["min"] = "0";
+
+	checkIsRegistered();
+}
+
+QString FilterSvQuality::toText() const
+{
+	return name() + " &ge; " + QByteArray::number(getInt("quality", false));
+}
+
+void FilterSvQuality::apply(const BedpeFile& svs, FilterResult& result) const
+{
+	if (!enabled_) return;
+	if (svs.format() == BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL)
+	{
+		// ignore filter if applied to tumor-normal sample
+		THROW(ArgumentException, "Filter '" + name() +"' cannot be applied to somatic tumor normal sample!");
+		return;
+	}
+
+	// get quality threshold
+	int min_quality = getInt("quality");
+
+	// get quality column index
+	int quality_col_index = svs.annotationIndexByName("QUAL");
+
+	// iterate over all SVs
+	for(int i=0; i<svs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		result.flags()[i] = Helper::toDouble(svs[i].annotations()[quality_col_index]) >= min_quality;
+	}
+}
+
+FilterSvFilterColumn::FilterSvFilterColumn()
+{
+	name_ = "SV filter columns";
+	type_ = VariantType::SVS;
+	description_ = QStringList() << "Filter structural variants based on the entries of the 'FILTER' column.";
+
+	params_ << FilterParameter("entries", STRINGLIST, QStringList(), "Filter column entries");
+	//params_.last().constraints["valid"] ="PASS,MinSomaticScore,HomRef,MaxDepth,MaxMQ0Frac,MinGQ,MinQUAL,NoPairSupport,Ploidy,SampleFT,off-target";
+	params_.last().constraints["not_empty"] = "";
+	params_ << FilterParameter("action", STRING, "REMOVE", "Action to perform");
+	params_.last().constraints["valid"] = "REMOVE,FILTER,KEEP";
+
+	checkIsRegistered();
+}
+
+QString FilterSvFilterColumn::toText() const
+{
+	return name() + " " + getString("action", false) + ": " + getStringList("entries", false).join(",");
+}
+
+void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	QSet<QString> filter_entries = getStringList("entries").toSet();
+	QString action = getString("action");
+	int filter_col_index = svs.annotationIndexByName("FILTER");
+
+	if (action=="REMOVE")
+	{
+		for(int i=0; i<svs.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			QSet<QString> sv_entries = QString(svs[i].annotations()[filter_col_index]).split(';').toSet();
+			// check if intersection of both list == 0 -> remove entry otherwise
+			result.flags()[i] = (sv_entries.intersect(filter_entries).size() == 0);
+		}
+	}
+	else if (action=="FILTER")
+	{
+		for(int i=0; i<svs.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			QSet<QString> sv_entries = QString(svs[i].annotations()[filter_col_index]).split(';').toSet();
+			// iterate over list of required entries
+			foreach (QString filter_entry, filter_entries)
+			{
+				if (!sv_entries.contains(filter_entry))
+				{
+					result.flags()[i] = false;
+					break;
+				}
+			}
+		}
+	}
+	else if (action=="KEEP")
+	{
+		for(int i=0; i<svs.count(); ++i)
+		{
+			QSet<QString> sv_entries = QString(svs[i].annotations()[filter_col_index]).split(';').toSet();
+			// iterate over list of required entries
+			foreach (QString filter_entry, filter_entries)
+			{
+				if (sv_entries.contains(filter_entry))
+				{
+					// display SV if at least one of the provided filter entries match
+					result.flags()[i] = true;
+					break;
+				}
+			}
+		}
+	}
+	else
+	{
+		THROW(NotImplementedException, "Invalid action '" + action +"'provided!");
+	}
+}
+
+FilterSvPairedReadAF::FilterSvPairedReadAF()
+{
+	name_ = "SV paired read AF";
+	type_ = VariantType::SVS;
+	description_ = QStringList() << "Show only SVs with a certain Paired Read Allele Frequency ± 10%";
+	params_ << FilterParameter("Paired Read AF", DOUBLE, 0.0, "Paired Read Allele Frequency ± 10%");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
+
+
+	checkIsRegistered();
+}
+
+QString FilterSvPairedReadAF::toText() const
+{
+	return name() + " = " + QByteArray::number(getDouble("Paired Read AF", false), 'f', 2) + "  ± 10%";
+}
+
+void FilterSvPairedReadAF::apply(const BedpeFile& svs, FilterResult& result) const
+{
+	if (!enabled_) return;
+	if (svs.format() == BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL)
+	{
+		// ignore filter if applied to tumor-normal sample
+		THROW(ArgumentException, "Filter '" + name() +"' cannot be applied to somatic tumor normal sample!");
+		return;
+	}
+
+	// get allowed interval
+	double upper_limit = getDouble("Paired Read AF", false) + 0.1;
+	double lower_limit = getDouble("Paired Read AF", false) - 0.1;
+
+	int format_col_index = svs.annotationIndexByName("FORMAT");
+
+	// iterate over all SVs
+	for(int i=0; i<svs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		// get format keys and values
+		QByteArrayList format_keys = svs[i].annotations()[format_col_index].split(':');
+		QByteArrayList format_values = svs[i].annotations()[format_col_index + 1].split(':');
+
+		// compute allele frequency
+		QByteArrayList pr_af_entry = format_values[format_keys.indexOf("PR")].split(',');
+		if (pr_af_entry.size() != 2) THROW(FileParseException, "Invalid paired read entry (PR) in sv " + QByteArray::number(i) + "!")
+		int count_ref = Helper::toInt(pr_af_entry[0]);
+		int count_alt = Helper::toInt(pr_af_entry[1]);
+		double pr_af = 0;
+		if (count_alt + count_ref != 0)
+		{
+			pr_af =  (double)count_alt / (count_alt+count_ref);
+		}
+
+		// compare AF with filter
+		if(pr_af > upper_limit || pr_af < lower_limit) result.flags()[i] = false;
+	}
+}
+
+FilterSvSplitReadAF::FilterSvSplitReadAF()
+{
+	name_ = "SV split read AF";
+	type_ = VariantType::SVS;
+	description_ = QStringList() << "Show only SVs with a certain Split Read Allele Frequency ± 10%";
+	params_ << FilterParameter("Split Read AF", DOUBLE, 0.0, "Split Read Allele Frequency ± 10%");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
+
+
+	checkIsRegistered();
+}
+
+QString FilterSvSplitReadAF::toText() const
+{
+	return name() + " = " + QByteArray::number(getDouble("Split Read AF", false), 'f', 2) + "  ± 10%";
+}
+
+void FilterSvSplitReadAF::apply(const BedpeFile& svs, FilterResult& result) const
+{
+	if (!enabled_) return;
+	if (svs.format() == BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL)
+	{
+		// ignore filter if applied to tumor-normal sample
+		THROW(ArgumentException, "Filter '" + name() +"' cannot be applied to somatic tumor normal sample!");
+		return;
+	}
+
+	// get allowed interval
+	double upper_limit = getDouble("Split Read AF", false) + 0.1;
+	double lower_limit = getDouble("Split Read AF", false) - 0.1;
+
+	int format_col_index = svs.annotationIndexByName("FORMAT");
+
+	// iterate over all SVs
+	for(int i=0; i<svs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		// get format keys and values
+		QByteArrayList format_keys = svs[i].annotations()[format_col_index].split(':');
+		QByteArrayList format_values = svs[i].annotations()[format_col_index + 1].split(':');
+
+		// compute allele frequency
+		int sr_idx = format_keys.indexOf("SR");
+		if (sr_idx == -1)
+		{
+			// remove all SVs which does not contain any split read information (e.g. DUP)
+			result.flags()[i] = false;
+			continue;
+
+//			THROW(FileParseException, "No split read entry (SR) found in FORMAT column in sv " + QByteArray::number(i) + "!");
+		}
+		QByteArrayList sr_af_entry = format_values[sr_idx].split(',');
+		if (sr_af_entry.size() != 2) THROW(FileParseException, "Invalid split read entry (SR) in sv " + QByteArray::number(i) + "!")
+		int count_ref = Helper::toInt(sr_af_entry[0]);
+		int count_alt = Helper::toInt(sr_af_entry[1]);
+		double sr_af = 0;
+		if (count_alt + count_ref != 0)
+		{
+			sr_af =  (double)count_alt / (count_alt+count_ref);
+		}
+
+		// compare AF with filter
+		if(sr_af > upper_limit || sr_af < lower_limit) result.flags()[i] = false;
+	}
+}
+
+FilterSvPeReadDepth::FilterSvPeReadDepth()
+{
+	name_ = "SV PE read depth";
+	type_ = VariantType::SVS;
+	description_ = QStringList() << "Show only SVs with at least a certain number of Paired End Reads";
+	params_ << FilterParameter("PE Read Depth", INT, 0, "minimal number of Paired End Reads");
+	params_.last().constraints["min"] = "0";
+
+	checkIsRegistered();
+}
+
+QString FilterSvPeReadDepth::toText() const
+{
+	return name() + " &ge; " + QByteArray::number(getInt("PE Read Depth", false));
+}
+
+void FilterSvPeReadDepth::apply(const BedpeFile& svs, FilterResult& result) const
+{
+	if (!enabled_) return;
+	if (svs.format() == BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL)
+	{
+		// ignore filter if applied to tumor-normal sample
+		THROW(ArgumentException, "Filter '" + name() +"' cannot be applied to somatic tumor normal samples!");
+		return;
+	}
+
+	// get min PE read depth
+	int min_read_depth = getInt("PE Read Depth", false);
+
+	int format_col_index = svs.annotationIndexByName("FORMAT");
+
+	// iterate over all SVs
+	for(int i=0; i<svs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		// get format keys and values
+		QByteArrayList format_keys = svs[i].annotations()[format_col_index].split(':');
+		QByteArrayList format_values = svs[i].annotations()[format_col_index + 1].split(':');
+
+		// get total read number
+		QByteArrayList pe_read_entry = format_values[format_keys.indexOf("PR")].split(',');
+		if (pe_read_entry.size() != 2) THROW(FileParseException, "Invalid paired read entry (PR) in sv " + QByteArray::number(i) + "!")
+		int pe_read_depth = Helper::toInt(pe_read_entry[1]);
+
+		// compare AF with filter
+		if(pe_read_depth < min_read_depth) result.flags()[i] = false;
+	}
+}
+
+
+FilterSvSomaticscore::FilterSvSomaticscore()
+{
+	name_ = "SV SomaticScore";
+	type_ = VariantType::SVS;
+	description_ = QStringList() << "Show only SVs with at least a certain Somaticscore";
+	params_ << FilterParameter("Somaticscore", INT, 0, "min. Somaticscore");
+	params_.last().constraints["min"] = "0";
+
+	checkIsRegistered();
+}
+
+QString FilterSvSomaticscore::toText() const
+{
+	return name() + " &ge; " + QByteArray::number(getInt("Somaticscore", false));
+}
+
+void FilterSvSomaticscore::apply(const BedpeFile& svs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	if (svs.format() != BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL)
+	{
+		// ignore filter if applied to non-tumor-normal sample
+		THROW(ArgumentException, "Filter '" + name() +"' can only be applied to somatic tumor normal samples!");
+		return;
+	}
+
+
+	// get min somaticscore
+	int min_somaticscore = getInt("Somaticscore", false);
+
+	int i_somaticscore = svs.annotationIndexByName("SOMATICSCORE");
+
+	if (i_somaticscore == -1) THROW(FileParseException, "No SOMATICSCORE column found in BEDPE file!");
+
+	// iterate over all SVs
+	for(int i=0; i<svs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		// get somaticscore
+		double somaticscore = Helper::toInt(svs[i].annotations()[i_somaticscore], "Somaticscore", QString::number(i));
+		// compare AF with filter
+		result.flags()[i] = (min_somaticscore < somaticscore);
+	}
+}
+
+FilterSvGeneConstraint::FilterSvGeneConstraint()
+{
+	name_ = "SV gene constraint";
+	type_ = VariantType::SVS;
+	description_ = QStringList() << "Filter based on gene constraint (gnomAD o/e score for LOF variants)." << "Note that gene constraint is most helpful for early-onset severe diseases." << "For details on gnomAD o/e, see https://macarthurlab.org/2018/10/17/gnomad-v2-1/";
+
+	params_ << FilterParameter("max_oe_lof", DOUBLE, 0.35, "Maximum gnomAD o/e score for LoF variants");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
+
+	checkIsRegistered();
+}
+
+QString FilterSvGeneConstraint::toText() const
+{
+	return name() + " o/e&le;" + QString::number(getDouble("max_oe_lof", false), 'f', 2);
+}
+
+void FilterSvGeneConstraint::apply(const BedpeFile& svs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	//get column indices
+	int i_gene_info = svs.annotationIndexByName("GENE_INFO", true);
+
+	//throw exception if gene info not found
+	if (i_gene_info == -1)
+	{
+		THROW(FileParseException, "No 'GENE_INFO' column found in BEDPE file! Please reannotate structural variant file.")
+	}
+
+	double max_oe_lof = getDouble("max_oe_lof");
+
+	//filter
+	for(int i=0; i<svs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		//parse gene_info entry - example: 34P13.14 (region=complete oe_lof=), ...
+		QByteArrayList gene_entries= svs[i].annotations()[i_gene_info].split(',');
+		bool any_gene_passed = false;
+		foreach(const QByteArray& gene, gene_entries)
+		{
+			int start = gene.indexOf('(');
+			QByteArrayList term_entries = gene.mid(start+1, gene.length()-start-2).split(' ');
+			foreach(const QByteArray& term, term_entries)
+			{
+				if (term.startsWith("oe_lof="))
+				{
+					bool ok;
+					double oe = term.mid(7).toDouble(&ok);
+					if (!ok) oe = 1.0; // value 'n/a' > pass
+					if (oe<=max_oe_lof)
+					{
+						any_gene_passed = true;
+						break;
+					}
+				}
+				if (any_gene_passed) break;
+			}
+		}
+		result.flags()[i] = any_gene_passed;
+	}
+}
+
+FilterSvGeneOverlap::FilterSvGeneOverlap()
+{
+	name_ = "SV gene overlap";
+	type_ = VariantType::SVS;
+	description_ = QStringList() << "Filter based on gene overlap.";
+
+	params_ << FilterParameter("complete", BOOL, true , "Overlaps the complete gene.");
+	params_ << FilterParameter("exonic/splicing", BOOL, true , "Overlaps the coding or splicing region of the gene.");
+	params_ << FilterParameter("intronic/intergenic", BOOL, false , "Overlaps the intronic/intergenic region of the gene only.");
+
+	checkIsRegistered();
+}
+
+QString FilterSvGeneOverlap::toText() const
+{
+	return name() + " " + selectedOptions().join(", ");
+}
+
+void FilterSvGeneOverlap::apply(const BedpeFile& svs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	int i_gene_info = svs.annotationIndexByName("GENE_INFO", true);
+
+	//throw exception if gene info not found
+	if (i_gene_info == -1)
+	{
+		THROW(FileParseException, "No 'GENE_INFO' column found in BEDPE file! Please reannotate structural variant file.")
+	}
+
+	QByteArrayList selected = selectedOptions();
+
+	//filter
+	for(int i=0; i<svs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		//parse gene_info entry - example: 34P13.14 (region=complete oe_lof=), ...
+		QByteArrayList gene_entries = svs[i].annotations()[i_gene_info].split(',');
+		bool any_gene_passed = false;
+		foreach(const QByteArray& gene, gene_entries)
+		{
+			int start = gene.indexOf('(');
+			QByteArrayList term_entries = gene.mid(start+1, gene.length()-start-2).split(' ');
+			foreach(const QByteArray& term, term_entries)
+			{
+				if (term.startsWith("region="))
+				{
+					if (selected.contains(term.mid(7)))
+					{
+						any_gene_passed = true;
+						break;
+					}
+				}
+				if (any_gene_passed) break;
+			}
+		}
+		result.flags()[i] = any_gene_passed;
+	}
+}
+
+QByteArrayList FilterSvGeneOverlap::selectedOptions() const
+{
+	QByteArrayList output;
+	if (getBool("complete")) output << "complete";
+	if (getBool("exonic/splicing")) output << "exonic/splicing";
+	if (getBool("intronic/intergenic")) output << "intronic/intergenic";
+
+	return output;
+}
+
+
+
+
+
+

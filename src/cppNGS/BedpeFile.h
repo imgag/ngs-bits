@@ -8,7 +8,7 @@
 #include <QByteArrayList>
 #include <QMap>
 
-enum class StructuralVariantType
+enum StructuralVariantType
 {
 	DEL, //deletion
 	DUP, //duplication (tandem)
@@ -17,6 +17,31 @@ enum class StructuralVariantType
 	BND,  //breakpoint (translocations, etc)
 	UNKNOWN
 };
+
+///Converts a StructuralVariantType to QString
+QString CPPNGSSHARED_EXPORT StructuralVariantTypeToString(StructuralVariantType type);
+///Converts a QString to the correct StructuralVariantType
+StructuralVariantType CPPNGSSHARED_EXPORT StructuralVariantTypeFromString(QString type_string);
+
+//struct StructuralVariantType
+//{
+//	enum StructuralVariantType
+//	{
+//		DEL, //deletion
+//		DUP, //duplication (tandem)
+//		INS, //insertion
+//		INV, //inversion
+//		BND,  //breakpoint (translocations, etc)
+//		UNKNOWN
+//	};
+
+//	static QString toString(StructuralVariantType type);
+//	static StructuralVariantType fromString(QString type_string);
+
+//	private:
+//		StructuralVariantType() = delete;
+//};
+
 
 class CPPNGSSHARED_EXPORT BedpeLine
 {
@@ -104,7 +129,8 @@ public:
 	}
 
 	///Returns if a structural variant intersects with the given regions
-	bool intersectsWith(const BedFile& regions) const;
+	///    (if imprecise_breakpoints == true also include confidence intervall for BND and INS into intersection)
+	bool intersectsWith(const BedFile& regions, bool imprecise_breakpoints = false) const;
 
 	///Returns position 1 as string
 	QString position1() const;
@@ -164,7 +190,7 @@ public:
 		lines_.clear();
 	}
 
-	int count()
+	int count() const
 	{
 		return lines_.count();
 	}
@@ -185,7 +211,7 @@ public:
 	}
 
 	///returns index of annotation, -1 if not found
-	int annotationIndexByName(const QByteArray& name, bool error_on_mismatch = true);
+	int annotationIndexByName(const QByteArray& name, bool error_on_mismatch = true) const;
 
 	///returns annotation headers
 	const QList<QByteArray> annotationHeaders() const
@@ -203,7 +229,7 @@ public:
 	void toTSV(QString file_name);
 
 	///Returns bedpe type according entry in file comments ##fileformat=
-	BedpeFileFormat format();
+	BedpeFileFormat format() const;
 
 	///Converts type string to enum
 	static StructuralVariantType stringToType(const QByteArray& str);
