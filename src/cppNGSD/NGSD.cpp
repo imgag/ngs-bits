@@ -1096,11 +1096,6 @@ const TableInfo& NGSD::tableInfo(QString table) const
 
 			//name
 			info.name = query.value(0).toString();
-			info.label = info.name;
-			info.label.replace('_', ' ');
-			if (table=="sequencing_run" && info.name=="fcid") info.label = "flowcell ID";
-			if (table=="project" && info.name=="preserve_fastqs") info.label = "preserve FASTQs";
-			//TODO special names for sample, processed sample, processing system
 
 			//index
 			info.index = output.fieldCount();
@@ -1229,7 +1224,7 @@ const TableInfo& NGSD::tableInfo(QString table) const
 						else if (info.name=="normal_id")
 						{
 							info.label = "normal sample";
-							info.fk_name_sql = ""; //TODO
+							info.fk_name_sql = "(SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM sample s, processed_sample ps WHERE ps.id=processed_sample.id AND s.id=ps.sample_id)";
 						}
 						else if (info.name=="mid1_i7")
 						{
@@ -1243,6 +1238,47 @@ const TableInfo& NGSD::tableInfo(QString table) const
 						}
 					}
 				}
+			}
+
+			//labels
+			info.label = info.name;
+			info.label.replace('_', ' ');
+			if (table=="sequencing_run" && info.name=="fcid") info.label = "flowcell ID";
+			if (table=="project" && info.name=="preserve_fastqs") info.label = "preserve FASTQs";
+			if (table=="processing_system" && info.name=="adapter1_p5") info.label = "adapter read 1";
+			if (table=="processing_system" && info.name=="adapter2_p7") info.label = "adapter read 2";
+			if (table=="sample" && info.name=="od_260_280") info.label = "od 260/280";
+			if (table=="sample" && info.name=="od_260_230") info.label = "od 260/230";
+			if (table=="sample" && info.name=="integrity_number") info.label = "RIN/DIN";
+			if (table=="processed_sample" && info.name=="sequencing_run_id") info.label = "sequencing run";
+			if (table=="processed_sample" && info.name=="operator_id") info.label = "operator";
+			if (table=="processed_sample" && info.name=="processing_system_id") info.label = "processing system";
+			if (table=="processed_sample" && info.name=="project_id") info.label = "project";
+			if (table=="processed_sample" && info.name=="processing_input") info.label = "processing input [ng]";
+			if (table=="processed_sample" && info.name=="molarity") info.label = "molarity [nM]";
+			if (table=="processed_sample" && info.name=="normal_id") info.label = "normal sample";
+
+			//read-only
+			if (
+				(table=="sample" && info.name=="name") ||
+				(table=="sequencing_run" && info.name=="name") ||
+				(table=="project" && info.name=="name") ||
+				(table=="processing_system" && info.name=="name_short")
+			   )
+			{
+				info.is_readonly = true;
+			}
+
+			//hidden
+			if (
+				info.is_primary_key ||
+				info.type==TableFieldInfo::TIMESTAMP ||
+				info.type==TableFieldInfo::DATETIME ||
+				(table=="processed_sample" && info.name=="sample_id") ||
+				(table=="processed_sample" && info.name=="process_id")
+			   )
+			{
+				info.is_hidden = true;
 			}
 
 			infos.append(info);

@@ -23,6 +23,7 @@ signals:
 private slots:
 	void updateGUI();
 	void delayedInitialization();
+	void edit();
 
 	void openRoiInExplorer();
 	void openRoiInIGV();

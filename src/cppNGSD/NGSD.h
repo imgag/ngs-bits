@@ -29,7 +29,6 @@ struct CPPNGSDSHARED_EXPORT TableFieldInfo
 
 	int index = -1;
 	QString name;
-	QString label; //label to show (normally the name, but overwritten e.g. for FK fields)
 
 	//type info
 	Type type;
@@ -43,6 +42,11 @@ struct CPPNGSDSHARED_EXPORT TableFieldInfo
 	QString fk_table; //target table of FK
 	QString fk_field; //target field of FK
 	QString fk_name_sql; //SQL code to get the name in the target table - normally 'name', but can contain any valid SQL query
+
+	//displaying options
+	QString label; //label to show (normally the name, but overwritten e.g. for FK fields)
+	bool is_hidden = false; //not shown
+	bool is_readonly = false; //shown, but not editable
 
 	QString toString() const;
 };

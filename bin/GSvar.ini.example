@@ -12,8 +12,8 @@ igv_genome=1kg_v37
 
 #Enable NGSD-based functionality
 NGSD_enabled=true
-email_run_finished=
-email_run_analyzed=
+email_run_finished=""
+email_run_analyzed=""
 
 #LODV credentials for variant upload
 lovd_lab=

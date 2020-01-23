@@ -49,19 +49,20 @@ protected slots:
 	void addSvsToIgv();
 	void addBafsToIgv();
 
+	///Opens the processed sample edit dialog
+	void edit();
+	///Opens sample edit dialog
+	void editSample();
 	///Opens a dialog to edit the diagnostic status.
 	void editDiagnosticStatus();
 	///Opens a dialog to edit the disease group/info.
 	void editDiseaseGroupAndInfo();
 	///Opens a dialog to edit the disease details.
 	void editDiseaseDetails();
-	///Sets the processed sample quality.
-	void setQuality();
 
 private:
 	Ui::ProcessedSampleWidget* ui_;
 	QString ps_id_;
-	mutable NGSD db_;
 
 	QString sampleName() const;
 	QString processedSampleName() const;

@@ -15,6 +15,7 @@
 #include <QMessageBox>
 #include <QCalendarWidget>
 #include <QToolButton>
+#include <QApplication>
 
 DBEditor::DBEditor(QWidget* parent, QString table, int id)
 	: QWidget(parent)
@@ -24,8 +25,10 @@ DBEditor::DBEditor(QWidget* parent, QString table, int id)
 	setMinimumSize(450, 100);
 	setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
 
+	QApplication::setOverrideCursor(Qt::BusyCursor);
 	createGUI();
 	fillForm();
+	QApplication::restoreOverrideCursor();
 }
 
 void DBEditor::createGUI()
@@ -37,6 +40,7 @@ void DBEditor::createGUI()
 	layout->setColumnStretch(0,0);
 	layout->setColumnStretch(1,1);
 	layout->setColumnStretch(2,0);
+	layout->setSizeConstraint(QLayout::SetMinimumSize);
 	setLayout(layout);
 
 	//widgets
@@ -52,7 +56,7 @@ void DBEditor::createGUI()
 		}
 
 		//skip non-editable fields
-		if (!isEditable(field_info)) continue;
+		if (field_info.is_hidden) continue;
 
 		//create label
 		QLabel* label = new QLabel();
@@ -134,7 +138,7 @@ void DBEditor::createGUI()
 			THROW(ProgrammingException, "Unhandled table field type '" + QString::number(field_info.type) + "'!");
 		}
 		widget->setObjectName("editor_" + field);
-		if (isReadOnly(table_, field)) widget->setEnabled(false);
+		widget->setEnabled(!field_info.is_readonly);
 
 		//add widgets to layout
 		int row = layout->rowCount();
@@ -184,7 +188,7 @@ void DBEditor::fillFormWithItemData()
 		const TableFieldInfo& field_info = table_info.fieldInfo(field);
 
 		//skip non-editable fields
-		if (!isEditable(field_info)) continue;
+		if (field_info.is_hidden) continue;
 
 		QVariant value = query.value(field);
 		bool is_null = query.isNull(field);
@@ -365,25 +369,6 @@ void DBEditor::editDate()
 	}
 }
 
-DBEditor::isEditable(const TableFieldInfo& info)
-{
-	if(info.is_primary_key) return false;
-
-	if (info.type==TableFieldInfo::TIMESTAMP) return false;
-	if (info.type==TableFieldInfo::DATETIME) return false;
-
-	return true;
-}
-
-DBEditor::isReadOnly(const QString& table, const QString& field)
-{
-	if (table=="sample" && field=="name") return true;
-	if (table=="sequencing_run" && field=="name") return true;
-	if (table=="project" && field=="name") return true;
-
-	return false;
-}
-
 bool DBEditor::dataIsValid() const
 {
 	foreach(const QStringList& errors, errors_)
@@ -428,8 +413,8 @@ void DBEditor::store()
 		const TableFieldInfo& field_info = table_info.fieldInfo(field);
 
 		//skip non-editable fields
-		if (!isEditable(field_info)) continue;
-		if (isReadOnly(table_, field)) continue;
+		if (field_info.is_hidden) continue;
+		if (field_info.is_readonly) continue;
 
 		fields << field;
 
