@@ -12,17 +12,16 @@ NGSD:
 *** Add run overview dialog/tab
 *** Add admin section (genome, device, MID, procesing system, sample group, sender, speicies)
     - with text search
-*** Add users section
+*** Add users section (only for admins)
 *** Add statistics section
-** Add batch import of samples/processed samples
+** Add batch import of samples/processed samples/mid
     - integrate GSmix checks (remove GSmix)
     - add sample groups (adding, editing, displaying)
 - Sample tab: allow import disease info, disease group/status, gender from same samples
 - Sample: allow several disease_groups per sample (requested by CS)
 
 GSvar:
-#### gaps without region: allow calculating gaps of a gene (exon+-20, or gene+-5000)
-** gene selector: add support for CnvHunter (also for low-QC regions > update ClinCNV)
+#### gene selector: add support for CnvHunter (also for low-QC regions > update ClinCNV)
 ** add visualization of NGSD CNVs (table + IGV-like view):
     - number of overlapping CNVs (by type gain/loss)
     - overlapping class 4/5 CNVs
@@ -35,9 +34,8 @@ GSvar:
 - replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
 * SV widget
     - add size filter - have a look at the overlap between manta and freebayes
-    - add overlapping genes and allow filtering for comp-hets (be carefull with small indels)
     - add OMIM annotations
-    - add gene annotation and type (coding/splicing/intronic/intergenic)
+    - add gene annotation and type (coding/splicing/intronic/intergenic) - allow filtering for comp-hets (be carefull with small indels)
 
 Tools:
 - UPDHunter: also support chrX?

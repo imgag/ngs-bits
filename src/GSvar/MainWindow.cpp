@@ -2306,22 +2306,31 @@ void MainWindow::on_actionOpenSequencingRunTabByName_triggered()
 	openRunTab(selector->text());
 }
 
-void MainWindow::on_actionOpenGeneTabByName_triggered()
+QString MainWindow::selectGene()
 {
 	//create
-	DBSelector* selector = new DBSelector(this);
+	DBSelector* selector = new DBSelector(QApplication::activeWindow());
 	NGSD db;
 	selector->fill(db.createTable("gene", "SELECT id, symbol FROM gene"));
 
 	//show
 	auto dlg = GUIHelper::createDialog(selector, "Select gene", "symbol:", true);
-	if (dlg->exec()==QDialog::Rejected) return;
+	if (dlg->exec()==QDialog::Rejected) return "";
 
 	//handle invalid name
-	if (selector->getId()=="") return;
+	if (selector->getId()=="") return "";
 
-	openGeneTab(selector->text());
+	return selector->text();
 }
+
+void MainWindow::on_actionOpenGeneTabByName_triggered()
+{
+	QString symbol = selectGene();
+	if (symbol=="") return;
+
+	openGeneTab(symbol);
+}
+
 
 void MainWindow::on_actionOpenVariantTab_triggered()
 {
@@ -2500,34 +2509,62 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 {
 	if (filename_=="") return;
 
-	//check for ROI file
-	QString roi_file = ui_.filters->targetRegion();
-	if (roi_file=="")
-	{
-		QMessageBox::warning(this, "Gaps error", "No target region filter set!");
-		return;
-	}
-	BedFile roi;
-	roi.load(roi_file);
-	roi.merge();
-
 	//check for BAM file
 	QList<IgvFile> bams = getBamFiles();
 	if (bams.empty()) return;
 	QString bam_file = bams.first().filename;
 
-	//load genes list file
-	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+	QString sample_name = QFileInfo(bam_file).fileName().replace(".bam", "");
+
+	//determine ROI name, ROI and gene list
+	QString roi_name;
+	BedFile roi;
 	GeneSet genes;
-	QString genes_file = roi_file.left(roi_file.size()-4) + "_genes.txt";
-	if (QFile::exists(genes_file))
+
+	//check for ROI file
+	QString roi_file = ui_.filters->targetRegion();
+	if (roi_file!="")
 	{
-		genes = GeneSet::createFromFile(genes_file);
+		roi_name = QFileInfo(roi_file).fileName().replace(".bed", "");
+
+		roi.load(roi_file);
+		roi.merge();
+
+		QString genes_file = roi_file.left(roi_file.size()-4) + "_genes.txt";
+		if (QFile::exists(genes_file))
+		{
+			genes = GeneSet::createFromFile(genes_file);
+		}
+	}
+	else if (ngsd_enabled_)
+	{
+		QMessageBox::StandardButton btn = QMessageBox::information(this, "Gaps error", "No target region filter set!<br>Do you want to look up gaps for a specific gene?", QMessageBox::Yes, QMessageBox::No);
+		if (btn!=QMessageBox::Yes) return;
+
+		QByteArray symbol = selectGene().toUtf8();
+		if (symbol=="") return;
+
+		QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+
+		roi_name = "Gene " + symbol;
+
+		roi = NGSD().geneToRegions(symbol, Transcript::ENSEMBL, "exon", true, false);
+		roi.extend(20);
+		roi.merge();
+
+		genes << symbol;
+
+		QApplication::restoreOverrideCursor();
+	}
+	else
+	{
+		QMessageBox::warning(this, "Gaps error", "No target region filter set!");
+		return;
 	}
 
 	//prepare dialog
-	QString sample_name = QFileInfo(bam_file).fileName().replace(".bam", "");
-	GapDialog dlg(this, sample_name, roi_file);
+	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+	GapDialog dlg(this, sample_name, roi_name);
 	dlg.process(bam_file, roi, genes);
 	QApplication::restoreOverrideCursor();
 

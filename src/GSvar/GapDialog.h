@@ -16,7 +16,7 @@ class GapDialog : public QDialog
 	Q_OBJECT
 
 public:
-    GapDialog(QWidget* parent, QString sample_name, QString roi_file);
+	GapDialog(QWidget* parent, QString sample_name, QString target_region_name);
 	~GapDialog();
 	void process(QString bam_file, const BedFile& roi, const GeneSet& genes);
 	QString report() const;
@@ -34,7 +34,7 @@ private:
 	void reportSection(QTextStream& stream, bool ccds_only) const;
 
 	QString sample_name_;
-	QString roi_file_;
+	QString target_region_name_;
 	QMap<QString, QStringList> preferred_transcripts_;
 	struct GapInfo
 	{

@@ -11,10 +11,10 @@
 #include <QFileInfo>
 #include <QMessageBox>
 
-GapDialog::GapDialog(QWidget *parent, QString sample_name, QString roi_file)
+GapDialog::GapDialog(QWidget *parent, QString sample_name, QString target_region_name)
 	: QDialog(parent)
 	, sample_name_(sample_name)
-    , roi_file_(roi_file)
+	, target_region_name_(target_region_name)
 	, ui(new Ui::GapDialog)
 {
 	ui->setupUi(this);
@@ -192,7 +192,7 @@ QString GapDialog::report() const
 	stream << "Luecken-Report\n";
 	stream << "\n";
 	stream << "Probe: " << sample_name_ << "\n";
-	stream << "Zielregion: " << QFileInfo(roi_file_).fileName().replace(".bed", "") << "\n";
+	stream << "Zielregion: " << target_region_name_ << "\n";
 	stream << "\n";
 
 	//exonic/splicing report

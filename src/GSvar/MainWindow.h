@@ -71,6 +71,9 @@ public:
 	///Returns if report config is supported for the given analysis type
 	static bool germlineReportSupported(AnalysisType type);
 
+	///Lets the user select a gene. If the user aborts, "" is returned.
+	static QString selectGene();
+
 public slots:
 	///Loads a variant list. Unloads the variant list if no file name is given
 	void loadFile(QString filename="");
