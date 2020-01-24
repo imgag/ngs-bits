@@ -9,19 +9,19 @@ NGSD:
     - make page where TA can select gaps (by gene/DX number)
         - also allow copying multiple gaps into clipboard (as table and for primer gap)
         - add link for PrimerDesign tool
-*** Add run overview dialog/tab
+*** Add run overview tab - add runs
 *** Add admin section (genome, device, MID, procesing system, sample group, sender, speicies)
     - with text search
-*** Add users section (only for admins)
-*** Add statistics section
+** Add users section (only for admins)
 ** Add batch import of samples/processed samples/mid
+    - offer Excel template
     - integrate GSmix checks (remove GSmix)
     - add sample groups (adding, editing, displaying)
 - Sample tab: allow import disease info, disease group/status, gender from same samples
 - Sample: allow several disease_groups per sample (requested by CS)
 
 GSvar:
-#### gene selector: add support for CnvHunter (also for low-QC regions > update ClinCNV)
+#### gene selector: add support for CnvHunter (needs low-quality regions > update ClinCNV first)
 ** add visualization of NGSD CNVs (table + IGV-like view):
     - number of overlapping CNVs (by type gain/loss)
     - overlapping class 4/5 CNVs
@@ -30,7 +30,6 @@ GSvar:
     - small variants and CNVs
     - only flag variants and perform manual upload at the end of each quater
 - add coloring of quality columns in DB tables (e.g. in run tab)
-## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 - replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
 * SV widget
     - add size filter - have a look at the overlap between manta and freebayes

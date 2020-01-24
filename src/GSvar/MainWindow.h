@@ -99,6 +99,8 @@ public slots:
 	void on_actionOpenProcessingSystemTab_triggered();
 	///Open project tab by search
 	void on_actionOpenProjectTab_triggered();
+	///Open NGSD statistics
+	void on_actionStatistics_triggered();
 
     ///Gender determination
 	void on_actionGenderXY_triggered();

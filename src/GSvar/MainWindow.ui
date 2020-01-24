@@ -433,6 +433,8 @@
     <addaction name="menuGenes_2"/>
     <addaction name="menuPhenotypes_2"/>
     <addaction name="menuSub_panels"/>
+    <addaction name="separator"/>
+    <addaction name="actionStatistics"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuNGSD"/>
@@ -895,6 +897,11 @@
    </property>
    <property name="toolTip">
     <string>Project</string>
+   </property>
+  </action>
+  <action name="actionStatistics">
+   <property name="text">
+    <string>Statistics</string>
    </property>
   </action>
  </widget>

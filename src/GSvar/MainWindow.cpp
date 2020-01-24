@@ -80,6 +80,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "ProjectWidget.h"
 #include "GSvarStoreWorker.h"
 #include "DBEditor.h"
+#include "TsvTableWidget.h"
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -2387,6 +2388,100 @@ void MainWindow::on_actionOpenProjectTab_triggered()
 	if (selector->getId()=="") return;
 
 	openProjectTab(selector->text());
+}
+
+void MainWindow::on_actionStatistics_triggered()
+{
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+
+	NGSD db;
+	TsvFile table;
+	bool human_only = true;
+
+	//table header
+	table.addHeader("month");
+	QStringList sys_types = QStringList() << "WGS" << "WES" << "Panel" << "RNA";
+	QStringList pro_types = QStringList() << "diagnostic" << "research";
+	foreach(QString pro, pro_types)
+	{
+		foreach(QString sys, sys_types)
+		{
+			table.addHeader(sys + " " + pro);
+		}
+	}
+
+	//table rows
+	QSet<QString> comments;
+	QDate start = QDate::currentDate();
+	start = start.addDays(1-start.day());
+	QDate end = start.addMonths(1);
+	while(start.year()>=2015)
+	{
+		QVector<int> counts(table.headers().count(), 0);
+
+		//select runs of current month
+		SqlQuery q_run_ids = db.getQuery();
+		q_run_ids.exec("SELECT id FROM sequencing_run WHERE end_date >='" + start.toString(Qt::ISODate) + "' AND end_date < '" + end.toString(Qt::ISODate) + "' AND status!='analysis_not_possible' AND status!='run_aborted' AND status!='n/a' AND quality!='bad'");
+		while(q_run_ids.next())
+		{
+			//select samples
+			SqlQuery q_sample_data = db.getQuery();
+			q_sample_data.exec("SELECT sys.type, p.type FROM sample s, processed_sample ps, processing_system sys, project p WHERE " + QString(human_only ? " s.species_id=(SELECT id FROM species WHERE name='human') AND " : "") + " ps.processing_system_id=sys.id AND ps.sample_id=s.id AND ps.project_id=p.id AND ps.sequencing_run_id=" + q_run_ids.value(0).toString() + " AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples)");
+
+			//count
+			while(q_sample_data.next())
+			{
+				QString sys_type = q_sample_data.value(0).toString();
+				if (sys_type.contains("Panel")) sys_type = "Panel";
+				if (!sys_types.contains(sys_type))
+				{
+					comments << "##Skipped processing system type '" + sys_type + "'";
+					continue;
+				}
+				QString pro_type = q_sample_data.value(1).toString();
+				if (!pro_types.contains(pro_type))
+				{
+					comments << "##Skipped project type '" + pro_type + "'";
+					continue;
+				}
+
+				int index = table.headers().indexOf(sys_type + " " + pro_type);
+				++counts[index];
+			}
+		}
+
+		//create row
+		QStringList row;
+		for(int i=0; i<counts.count(); ++i)
+		{
+			if (i==0)
+			{
+				row << start.toString("yyyy/MM");
+			}
+			else
+			{
+				row << QString::number(counts[i]);
+			}
+		}
+		table.addRow(row);
+
+		//next month
+		start = start.addMonths(-1);
+		end = end.addMonths(-1);
+	}
+
+	//comments
+	foreach(QString comment, comments)
+	{
+		table.addComment(comment);
+	}
+
+	QApplication::restoreOverrideCursor();
+
+	//show dialog
+	TsvTableWidget* widget = new TsvTableWidget(table);
+	auto dlg = GUIHelper::createDialog(widget, "Statistics", "Sequencing statistics grouped by month (human)");
+	dlg->exec();
 }
 
 void MainWindow::on_actionGenderXY_triggered()
