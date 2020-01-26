@@ -22,7 +22,7 @@ DBEditor::DBEditor(QWidget* parent, QString table, int id)
 	, table_(table)
 	, id_(id)
 {
-	setMinimumSize(450, 100);
+	setMinimumSize(450, 16);
 	setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
 
 	QApplication::setOverrideCursor(Qt::BusyCursor);
@@ -185,7 +185,64 @@ void DBEditor::fillForm()
 
 void DBEditor::fillFormWithDefaultData()
 {
-	//TODO needed for adding new item to the NGSD
+	NGSD db;
+	const TableInfo& table_info = db.tableInfo(table_);
+
+	foreach(const QString& field, table_info.fieldNames())
+	{
+		const TableFieldInfo& field_info = table_info.fieldInfo(field);
+
+		//skip non-editable fields
+		if (field_info.is_hidden) continue;
+
+		//skip fields without default value
+		if (field_info.default_value=="") continue;
+
+		if (field_info.type==TableFieldInfo::BOOL)
+		{
+			QCheckBox* box = getEditWidget<QCheckBox*>(field);
+			box->setChecked(field_info.default_value=="1");
+		}
+		else if (field_info.type==TableFieldInfo::INT)
+		{
+			QLineEdit* edit = getEditWidget<QLineEdit*>(field);
+			edit->setText(field_info.default_value);
+		}
+		else if (field_info.type==TableFieldInfo::FLOAT)
+		{
+			QLineEdit* edit = getEditWidget<QLineEdit*>(field);
+			edit->setText(field_info.default_value);
+		}
+		else if (field_info.type==TableFieldInfo::TEXT)
+		{
+			QTextEdit* edit = getEditWidget<QTextEdit*>(field);
+			edit->setText(field_info.default_value);
+		}
+		else if (field_info.type==TableFieldInfo::VARCHAR)
+		{
+			QLineEdit* edit = getEditWidget<QLineEdit*>(field);
+			edit->setText(field_info.default_value);
+		}
+		else if (field_info.type==TableFieldInfo::ENUM)
+		{
+			QComboBox* edit = getEditWidget<QComboBox*>(field);
+			edit->setCurrentText(field_info.default_value);
+		}
+		else if (field_info.type==TableFieldInfo::DATE)
+		{
+			QLineEdit* edit = getEditWidget<QLineEdit*>(field);
+			edit->setText(field_info.default_value);
+		}
+		else if (field_info.type==TableFieldInfo::FK)
+		{
+			DBComboBox* edit = getEditWidget<DBComboBox*>(field);
+			edit->setCurrentId(field_info.default_value);
+		}
+		else
+		{
+			THROW(ProgrammingException, "Unhandled table field type '" + QString::number(field_info.type) + "'!");
+		}
+	}
 }
 
 void DBEditor::fillFormWithItemData()
@@ -508,7 +565,19 @@ void DBEditor::store()
 		}
 		else //insert
 		{
-			//TODO needed for adding new item to the NGSD
+			QString query_str = "INSERT INTO " + table_ + " (" + fields.join(", ") + ") VALUES (";
+			for(int i=0; i<fields.count(); ++i)
+			{
+				query_str +=  (i!=0 ? ", " : "") + QString("?");
+			}
+			query_str += ")";
+
+			query.prepare(query_str);
+			foreach(const QString& value, values)
+			{
+				query.addBindValue(value=="NULL" ? QVariant() : value);
+			}
+			query.exec();
 		}
 	}
 	catch (Exception& e)

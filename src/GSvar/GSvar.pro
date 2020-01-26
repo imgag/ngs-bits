@@ -69,7 +69,8 @@ SOURCES += main.cpp\
     ProjectWidget.cpp \
     GSvarStoreWorker.cpp \
     DBEditor.cpp \
-    FilterWidgetSV.cpp
+    FilterWidgetSV.cpp \
+    DBTableAdministration.cpp
 
 HEADERS  += MainWindow.h \
     ExternalToolDialog.h \
@@ -133,7 +134,8 @@ HEADERS  += MainWindow.h \
     ProjectWidget.h \
     GSvarStoreWorker.h \
     DBEditor.h \
-    FilterWidgetSV.h
+    FilterWidgetSV.h \
+    DBTableAdministration.h
 
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
@@ -184,7 +186,8 @@ FORMS    += MainWindow.ui \
     VariantWidget.ui \
     ProcessingSystemWidget.ui \
     ProjectWidget.ui \
-    FilterWidgetSV.ui
+    FilterWidgetSV.ui \
+    DBTableAdministration.ui
 
 include("../app_gui.pri")
 

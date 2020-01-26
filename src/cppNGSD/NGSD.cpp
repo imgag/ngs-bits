@@ -1135,6 +1135,9 @@ const TableInfo& NGSD::tableInfo(QString table) const
 			//PK
 			info.is_primary_key = index.contains(info.name);
 
+			//default value
+			info.default_value =  query.value(4).isNull() ? QString() : query.value(4).toString();
+
 			//FK
 			query_fk.seek(-1);
 			while (query_fk.next())
@@ -1151,12 +1154,11 @@ const TableInfo& NGSD::tableInfo(QString table) const
 					}
 					info.type = TableFieldInfo::FK;
 
-					//set label/name for FK
+					//set name for FK
 					if (table=="sequencing_run")
 					{
 						if (info.name=="device_id")
 						{
-							info.label = "device";
 							info.fk_name_sql = "CONCAT(name, ' (', type, ')')";
 						}
 					}
@@ -1164,7 +1166,6 @@ const TableInfo& NGSD::tableInfo(QString table) const
 					{
 						if (info.name=="internal_coordinator_id")
 						{
-							info.label = "internal coordinator";
 							info.fk_name_sql = "name";
 						}
 					}
@@ -1172,7 +1173,6 @@ const TableInfo& NGSD::tableInfo(QString table) const
 					{
 						if (info.name=="genome_id")
 						{
-							info.label = "genome";
 							info.fk_name_sql = "build";
 						}
 					}
@@ -1180,17 +1180,14 @@ const TableInfo& NGSD::tableInfo(QString table) const
 					{
 						if (info.name=="species_id")
 						{
-							info.label = "species";
 							info.fk_name_sql = "name";
 						}
 						else if (info.name=="sender_id")
 						{
-							info.label = "sender";
 							info.fk_name_sql = "name";
 						}
 						else if (info.name=="receiver_id")
 						{
-							info.label = "receiver";
 							info.fk_name_sql = "name";
 						}
 					}
@@ -1198,42 +1195,34 @@ const TableInfo& NGSD::tableInfo(QString table) const
 					{
 						if (info.name=="sequencing_run_id")
 						{
-							info.label = "seqencing run";
 							info.fk_name_sql = "name";
 						}
 						else if (info.name=="sample_id")
 						{
-							info.label = "sample";
 							info.fk_name_sql = "name";
 						}
 						else if ( info.name=="project_id")
 						{
-							info.label = "project";
 							info.fk_name_sql = "name";
 						}
 						else if (info.name=="processing_system_id")
 						{
-							info.label = "processing system";
 							info.fk_name_sql = "CONCAT(name_manufacturer, ' (', name_short, ')')";
 						}
 						else if (info.name=="operator_id")
 						{
-							info.label = "operator";
 							info.fk_name_sql = "name";
 						}
 						else if (info.name=="normal_id")
 						{
-							info.label = "normal sample";
 							info.fk_name_sql = "(SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM sample s, processed_sample ps WHERE ps.id=processed_sample.id AND s.id=ps.sample_id)";
 						}
 						else if (info.name=="mid1_i7")
 						{
-							info.label = "mid1 i7";
 							info.fk_name_sql = "CONCAT(name, ' (', sequence, ')')";
 						}
 						else if (info.name=="mid2_i5")
 						{
-							info.label = "mid2 i5";
 							info.fk_name_sql = "CONCAT(name, ' (', sequence, ')')";
 						}
 					}
@@ -1244,12 +1233,18 @@ const TableInfo& NGSD::tableInfo(QString table) const
 			info.label = info.name;
 			info.label.replace('_', ' ');
 			if (table=="sequencing_run" && info.name=="fcid") info.label = "flowcell ID";
+			if (table=="device_id" && info.name=="device") info.label = "flowcell ID";
 			if (table=="project" && info.name=="preserve_fastqs") info.label = "preserve FASTQs";
+			if (table=="project" && info.name=="internal_coordinator_id") info.label = "internal coordinator";
 			if (table=="processing_system" && info.name=="adapter1_p5") info.label = "adapter read 1";
 			if (table=="processing_system" && info.name=="adapter2_p7") info.label = "adapter read 2";
+			if (table=="processing_system" && info.name=="genome_id") info.label = "genome";
 			if (table=="sample" && info.name=="od_260_280") info.label = "od 260/280";
 			if (table=="sample" && info.name=="od_260_230") info.label = "od 260/230";
 			if (table=="sample" && info.name=="integrity_number") info.label = "RIN/DIN";
+			if (table=="sample" && info.name=="species_id") info.label = "species";
+			if (table=="sample" && info.name=="sender_id") info.label = "sender";
+			if (table=="sample" && info.name=="receiver_id") info.label = "receiver";
 			if (table=="processed_sample" && info.name=="sequencing_run_id") info.label = "sequencing run";
 			if (table=="processed_sample" && info.name=="operator_id") info.label = "operator";
 			if (table=="processed_sample" && info.name=="processing_system_id") info.label = "processing system";
@@ -1257,6 +1252,9 @@ const TableInfo& NGSD::tableInfo(QString table) const
 			if (table=="processed_sample" && info.name=="processing_input") info.label = "processing input [ng]";
 			if (table=="processed_sample" && info.name=="molarity") info.label = "molarity [nM]";
 			if (table=="processed_sample" && info.name=="normal_id") info.label = "normal sample";
+			if (table=="processed_sample" && info.name=="mid1_i7") info.label = "mid1 i7";
+			if (table=="processed_sample" && info.name=="mid2_i5") info.label = "mid2 i5";
+			if (table=="processed_sample" && info.name=="sample_id") info.label = "sample";
 
 			//read-only
 			if (
@@ -1318,7 +1316,7 @@ DBTable NGSD::createTable(QString table, QString query, int pk_col_index)
 	while (query_result.next())
 	{
 		DBRow row;
-		for (int c=0; c<query_result.record().count(); ++c)
+		for (int c=0; c<record.count(); ++c)
 		{
 			QVariant value = query_result.value(c);
 			QString value_as_string = value.toString();
@@ -1337,6 +1335,42 @@ DBTable NGSD::createTable(QString table, QString query, int pk_col_index)
 		}
 		output.addRow(row);
 	}
+
+	return output;
+}
+
+DBTable NGSD::createTable(QString table, int pk_col_index)
+{
+	DBTable output = createTable(table, "SELECT * FROM " + table, pk_col_index);
+
+	//fix FK columns
+	QStringList headers = output.headers();
+	TableInfo table_info = tableInfo(table);
+	for (int c=0; c<headers.count(); ++c)
+	{
+		const TableFieldInfo& field_info = table_info.fieldInfo(headers[c]);
+		if(field_info.type==TableFieldInfo::FK)
+		{
+			for(int r=0; r<output.rowCount(); ++r)
+			{
+				const QString& value = output.row(r).value(c);
+				if (value!="")
+				{
+					QString fk_value = getValue("SELECT " + field_info.fk_name_sql + " FROM " + field_info.fk_table + " WHERE id=" + value).toString();
+					DBRow row = output.row(r);
+					row.setValue(c, fk_value);
+					output.setRow(r, row);
+				}
+			}
+		}
+	}
+
+	//fix headers
+	for (int i=0; i<headers.count(); ++i)
+	{
+		headers[i] = table_info.fieldInfo(headers[i]).label;
+	}
+	output.setHeaders(headers);
 
 	return output;
 }

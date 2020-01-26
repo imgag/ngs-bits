@@ -10,8 +10,7 @@ NGSD:
         - also allow copying multiple gaps into clipboard (as table and for primer gap)
         - add link for PrimerDesign tool
 *** Add run overview tab - add runs
-*** Add admin section (genome, device, MID, procesing system, sample group, sender, speicies)
-    - with text search
+#### Admin section: add text search
 ** Add users section (only for admins)
 ** Add batch import of samples/processed samples/mid
     - offer Excel template

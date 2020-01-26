@@ -99,8 +99,17 @@ public slots:
 	void on_actionOpenProcessingSystemTab_triggered();
 	///Open project tab by search
 	void on_actionOpenProjectTab_triggered();
-	///Open NGSD statistics
+
+	///NGSD menu
 	void on_actionStatistics_triggered();
+	void on_actionDevice_triggered();
+	void on_actionGenome_triggered();
+	void on_actionMID_triggered();
+	void on_actionProcessingSystem_triggered();
+	void on_actionSampleGroup_triggered();
+	void on_actionSender_triggered();
+	void on_actionSpecies_triggered();
+
 
     ///Gender determination
 	void on_actionGenderXY_triggered();

@@ -81,7 +81,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "GSvarStoreWorker.h"
 #include "DBEditor.h"
 #include "TsvTableWidget.h"
-
+#include "DBTableAdministration.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -2480,7 +2480,57 @@ void MainWindow::on_actionStatistics_triggered()
 
 	//show dialog
 	TsvTableWidget* widget = new TsvTableWidget(table);
+	widget->setMinimumWidth(850);
 	auto dlg = GUIHelper::createDialog(widget, "Statistics", "Sequencing statistics grouped by month (human)");
+	dlg->exec();
+}
+
+void MainWindow::on_actionDevice_triggered()
+{
+	DBTableAdministration* widget = new DBTableAdministration("device");
+	auto dlg = GUIHelper::createDialog(widget, "Device administration");
+	dlg->exec();
+}
+
+void MainWindow::on_actionGenome_triggered()
+{
+	DBTableAdministration* widget = new DBTableAdministration("genome");
+	auto dlg = GUIHelper::createDialog(widget, "Genome administration");
+	dlg->exec();
+}
+
+void MainWindow::on_actionMID_triggered()
+{
+	DBTableAdministration* widget = new DBTableAdministration("mid");
+	auto dlg = GUIHelper::createDialog(widget, "MID administration");
+	dlg->exec();
+}
+
+void MainWindow::on_actionProcessingSystem_triggered()
+{
+	DBTableAdministration* widget = new DBTableAdministration("processing_system");
+	auto dlg = GUIHelper::createDialog(widget, "Processing system administration");
+	dlg->exec();
+}
+
+void MainWindow::on_actionSampleGroup_triggered()
+{
+	DBTableAdministration* widget = new DBTableAdministration("sample_group");
+	auto dlg = GUIHelper::createDialog(widget, "Sample group administration");
+	dlg->exec();
+}
+
+void MainWindow::on_actionSender_triggered()
+{
+	DBTableAdministration* widget = new DBTableAdministration("sender");
+	auto dlg = GUIHelper::createDialog(widget, "Sender administration");
+	dlg->exec();
+}
+
+void MainWindow::on_actionSpecies_triggered()
+{
+	DBTableAdministration* widget = new DBTableAdministration("species");
+	auto dlg = GUIHelper::createDialog(widget, "Species administration");
 	dlg->exec();
 }
 

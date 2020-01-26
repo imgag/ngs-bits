@@ -355,8 +355,10 @@ public:
 	///Returns information about all fields of a table.
 	const TableInfo& tableInfo(QString table) const;
 
-	///Creates an table with data from an SQL query.
+	///Creates a DBTable with data from an SQL query.
 	DBTable createTable(QString table, QString query, int pk_col_index=0);
+	///Creates a DBTable with all rows of a table.
+	DBTable createTable(QString table, int pk_col_index=0);
 
 	///Creates database tables and imports initial data (password is required for production database if it is not empty)
 	void init(QString password="");
