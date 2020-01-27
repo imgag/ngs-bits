@@ -86,9 +86,6 @@ void CandidateGeneDialog::updateVariants()
 		gene_symbols.insert(db.synonymousSymbols(gene_id));
 		gene_symbols.insert(db.previousSymbols(gene_id));
 
-		//init NGSD genotype counts cache
-		QHash<QString, QPair<int, int>> ngsd_geno_cache;
-
 		//get variants in chromosomal range
 		QList<QStringList> var_data;
 		QString af = QString::number(ui_.filter_af->value()/100.0);

@@ -68,11 +68,11 @@ SOURCES += main.cpp\
     ProjectWidget.cpp \
     GSvarStoreWorker.cpp \
     DBEditor.cpp \
-    SomaticReportConfigurationWidget.cpp \
+    FilterWidgetSV.cpp \
+    DBTableAdministration.cpp \
     SomaticReportSettings.cpp \
     SomaticReportVariantDialog.cpp \
     SomaticReportDialog.cpp
-
 
 HEADERS  += MainWindow.h \
     ExternalToolDialog.h \
@@ -135,10 +135,12 @@ HEADERS  += MainWindow.h \
     ProjectWidget.h \
     GSvarStoreWorker.h \
     DBEditor.h \
-    SomaticReportConfigurationWidget.h \
+    FilterWidgetSV.h \
+    DBTableAdministration.h \
     SomaticReportSettings.h \
     SomaticReportVariantDialog.h \
     SomaticReportDialog.h
+
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
@@ -187,11 +189,13 @@ FORMS    += MainWindow.ui \
     VariantWidget.ui \
     ProcessingSystemWidget.ui \
     ProjectWidget.ui \
+    FilterWidgetSV.ui \
+    DBTableAdministration.ui \
     SomaticReportConfigurationWidget.ui \
     SomaticReportVariantDialog.ui \
     SomaticReportDialog.ui
-include("../app_gui.pri")
 
+include("../app_gui.pri")
 
 #include NGSD library
 INCLUDEPATH += $$PWD/../cppNGSD

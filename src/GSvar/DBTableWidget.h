@@ -14,10 +14,10 @@ class DBTableWidget
 	Q_OBJECT
 
 public:
-	DBTableWidget(QWidget* parent);
+	DBTableWidget(QWidget* parent = 0);
 
 	//Set table data
-	void setData(const DBTable& tableName);
+	void setData(const DBTable& table);
 	//returns the column index, or throws ArgumentException if column is not present.
 	int columnIndex(const QString& column_header) const;
 	//Set tooltips for a column
@@ -52,7 +52,7 @@ public:
 	//Returns the database ID of row r
 	const QString& getId(int r) const;
 	//Returns the database table name
-	const QString& tableName();
+	const QString& tableName() const;
 
 protected:
 	QTableWidgetItem* createItem(const QString& text, int alignment = Qt::AlignVCenter|Qt::AlignLeft);	

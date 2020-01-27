@@ -32,9 +32,8 @@ public:
 
 		changeLog(2020, 1, 21, "Added ability to reannotate BEDPE files by overwriting old annotation.");
 		changeLog(2020, 1, 20, "Updated overlap method, refactored code.");
+		changeLog(2020, 1, 14, "Added handling of duplicates.");
 		changeLog(2020, 1, 8, "Initial version of this tool.");
-
-
 	}
 
 	virtual void main()

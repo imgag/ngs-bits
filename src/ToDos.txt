@@ -9,23 +9,17 @@ NGSD:
     - make page where TA can select gaps (by gene/DX number)
         - also allow copying multiple gaps into clipboard (as table and for primer gap)
         - add link for PrimerDesign tool
-* Copy help text of fields to schema and use them as tooltip for view tabs
-*** Allow adding/editing data in NGSD
-    - use for: processing system, sample, processed sample
-    - remove old unneeded edit functionality
-    - Copy help text of NGSD to schema and use them as tooltip for view tabs and DBEditor
-        - project email notification: semicolon, informed when run finished
-** Add run overview dialog/tab
-* Add admin section (genome, device, MID, procesing system, sample group, sender, speicies)
-    - with text search
-* Add users section
-* Add statistics section
-* Add batch import of samples/processed samples and integrate GSmix checks (remove GSmix)
+*** Add run overview tab - add runs
+** Add users section (only for admins)
+** Add batch import of samples/processed samples/mid
+    - offer Excel template
+    - integrate GSmix checks (remove GSmix)
+    - add sample groups (adding, editing, displaying)
 - Sample tab: allow import disease info, disease group/status, gender from same samples
 - Sample: allow several disease_groups per sample (requested by CS)
 
 GSvar:
-** gene selector: add support for CnvHunter (also for low-QC regions > update ClinCNV)
+#### gene selector: add support for CnvHunter (needs low-quality regions > update ClinCNV first)
 ** add visualization of NGSD CNVs (table + IGV-like view):
     - number of overlapping CNVs (by type gain/loss)
     - overlapping class 4/5 CNVs
@@ -34,13 +28,11 @@ GSvar:
     - small variants and CNVs
     - only flag variants and perform manual upload at the end of each quater
 - add coloring of quality columns in DB tables (e.g. in run tab)
-## merge multi-sample comp-het and hom filters + create relaxed filters like in single sample case
 - replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
 * SV widget
     - add size filter - have a look at the overlap between manta and freebayes
-    - add overlapping genes and allow filtering for comp-hets (be carefull with small indels)
     - add OMIM annotations
-    - add gene annotation and type (coding/splicing/intronic/intergenic)
+    - add gene annotation and type (coding/splicing/intronic/intergenic) - allow filtering for comp-hets (be carefull with small indels)
 
 Tools:
 - UPDHunter: also support chrX?

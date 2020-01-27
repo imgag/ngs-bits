@@ -81,9 +81,9 @@ QT_CHARTS_USE_NAMESPACE
 #include "ProjectWidget.h"
 #include "GSvarStoreWorker.h"
 #include "DBEditor.h"
+#include "TsvTableWidget.h"
+#include "DBTableAdministration.h"
 #include "SomaticReportDialog.h"
-
-
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
@@ -1941,7 +1941,7 @@ void MainWindow::showReportConfigInfo()
 			QMessageBox::information(this, "Somatic report configuration information", "No somatic report configuration found in the NGSD!");
 			return;
 		}
-		QMessageBox::information(this, "Somatic report configuration information", db.reportConfigCreationData(conf_id, true).toText());
+		QMessageBox::information(this, "Somatic report configuration information", db.reportConfigCreationData(conf_id).toText());
 	}
 
 
@@ -2419,22 +2419,31 @@ void MainWindow::on_actionOpenSequencingRunTabByName_triggered()
 	openRunTab(selector->text());
 }
 
-void MainWindow::on_actionOpenGeneTabByName_triggered()
+QString MainWindow::selectGene()
 {
 	//create
-	DBSelector* selector = new DBSelector(this);
+	DBSelector* selector = new DBSelector(QApplication::activeWindow());
 	NGSD db;
 	selector->fill(db.createTable("gene", "SELECT id, symbol FROM gene"));
 
 	//show
 	auto dlg = GUIHelper::createDialog(selector, "Select gene", "symbol:", true);
-	if (dlg->exec()==QDialog::Rejected) return;
+	if (dlg->exec()==QDialog::Rejected) return "";
 
 	//handle invalid name
-	if (selector->getId()=="") return;
+	if (selector->getId()=="") return "";
 
-	openGeneTab(selector->text());
+	return selector->text();
 }
+
+void MainWindow::on_actionOpenGeneTabByName_triggered()
+{
+	QString symbol = selectGene();
+	if (symbol=="") return;
+
+	openGeneTab(symbol);
+}
+
 
 void MainWindow::on_actionOpenVariantTab_triggered()
 {
@@ -2491,6 +2500,150 @@ void MainWindow::on_actionOpenProjectTab_triggered()
 	if (selector->getId()=="") return;
 
 	openProjectTab(selector->text());
+}
+
+void MainWindow::on_actionStatistics_triggered()
+{
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+
+	NGSD db;
+	TsvFile table;
+	bool human_only = true;
+
+	//table header
+	table.addHeader("month");
+	QStringList sys_types = QStringList() << "WGS" << "WES" << "Panel" << "RNA";
+	QStringList pro_types = QStringList() << "diagnostic" << "research";
+	foreach(QString pro, pro_types)
+	{
+		foreach(QString sys, sys_types)
+		{
+			table.addHeader(sys + " " + pro);
+		}
+	}
+
+	//table rows
+	QSet<QString> comments;
+	QDate start = QDate::currentDate();
+	start = start.addDays(1-start.day());
+	QDate end = start.addMonths(1);
+	while(start.year()>=2015)
+	{
+		QVector<int> counts(table.headers().count(), 0);
+
+		//select runs of current month
+		SqlQuery q_run_ids = db.getQuery();
+		q_run_ids.exec("SELECT id FROM sequencing_run WHERE end_date >='" + start.toString(Qt::ISODate) + "' AND end_date < '" + end.toString(Qt::ISODate) + "' AND status!='analysis_not_possible' AND status!='run_aborted' AND status!='n/a' AND quality!='bad'");
+		while(q_run_ids.next())
+		{
+			//select samples
+			SqlQuery q_sample_data = db.getQuery();
+			q_sample_data.exec("SELECT sys.type, p.type FROM sample s, processed_sample ps, processing_system sys, project p WHERE " + QString(human_only ? " s.species_id=(SELECT id FROM species WHERE name='human') AND " : "") + " ps.processing_system_id=sys.id AND ps.sample_id=s.id AND ps.project_id=p.id AND ps.sequencing_run_id=" + q_run_ids.value(0).toString() + " AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples)");
+
+			//count
+			while(q_sample_data.next())
+			{
+				QString sys_type = q_sample_data.value(0).toString();
+				if (sys_type.contains("Panel")) sys_type = "Panel";
+				if (!sys_types.contains(sys_type))
+				{
+					comments << "##Skipped processing system type '" + sys_type + "'";
+					continue;
+				}
+				QString pro_type = q_sample_data.value(1).toString();
+				if (!pro_types.contains(pro_type))
+				{
+					comments << "##Skipped project type '" + pro_type + "'";
+					continue;
+				}
+
+				int index = table.headers().indexOf(sys_type + " " + pro_type);
+				++counts[index];
+			}
+		}
+
+		//create row
+		QStringList row;
+		for(int i=0; i<counts.count(); ++i)
+		{
+			if (i==0)
+			{
+				row << start.toString("yyyy/MM");
+			}
+			else
+			{
+				row << QString::number(counts[i]);
+			}
+		}
+		table.addRow(row);
+
+		//next month
+		start = start.addMonths(-1);
+		end = end.addMonths(-1);
+	}
+
+	//comments
+	foreach(QString comment, comments)
+	{
+		table.addComment(comment);
+	}
+
+	QApplication::restoreOverrideCursor();
+
+	//show dialog
+	TsvTableWidget* widget = new TsvTableWidget(table);
+	widget->setMinimumWidth(850);
+	auto dlg = GUIHelper::createDialog(widget, "Statistics", "Sequencing statistics grouped by month (human)");
+	dlg->exec();
+}
+
+void MainWindow::on_actionDevice_triggered()
+{
+	DBTableAdministration* widget = new DBTableAdministration("device");
+	auto dlg = GUIHelper::createDialog(widget, "Device administration");
+	dlg->exec();
+}
+
+void MainWindow::on_actionGenome_triggered()
+{
+	DBTableAdministration* widget = new DBTableAdministration("genome");
+	auto dlg = GUIHelper::createDialog(widget, "Genome administration");
+	dlg->exec();
+}
+
+void MainWindow::on_actionMID_triggered()
+{
+	DBTableAdministration* widget = new DBTableAdministration("mid");
+	auto dlg = GUIHelper::createDialog(widget, "MID administration");
+	dlg->exec();
+}
+
+void MainWindow::on_actionProcessingSystem_triggered()
+{
+	DBTableAdministration* widget = new DBTableAdministration("processing_system");
+	auto dlg = GUIHelper::createDialog(widget, "Processing system administration");
+	dlg->exec();
+}
+
+void MainWindow::on_actionSampleGroup_triggered()
+{
+	DBTableAdministration* widget = new DBTableAdministration("sample_group");
+	auto dlg = GUIHelper::createDialog(widget, "Sample group administration");
+	dlg->exec();
+}
+
+void MainWindow::on_actionSender_triggered()
+{
+	DBTableAdministration* widget = new DBTableAdministration("sender");
+	auto dlg = GUIHelper::createDialog(widget, "Sender administration");
+	dlg->exec();
+}
+
+void MainWindow::on_actionSpecies_triggered()
+{
+	DBTableAdministration* widget = new DBTableAdministration("species");
+	auto dlg = GUIHelper::createDialog(widget, "Species administration");
+	dlg->exec();
 }
 
 void MainWindow::on_actionGenderXY_triggered()
@@ -2613,34 +2766,62 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 {
 	if (filename_=="") return;
 
-	//check for ROI file
-	QString roi_file = ui_.filters->targetRegion();
-	if (roi_file=="")
-	{
-		QMessageBox::warning(this, "Gaps error", "No target region filter set!");
-		return;
-	}
-	BedFile roi;
-	roi.load(roi_file);
-	roi.merge();
-
 	//check for BAM file
 	QList<IgvFile> bams = getBamFiles();
 	if (bams.empty()) return;
 	QString bam_file = bams.first().filename;
 
-	//load genes list file
-	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+	QString sample_name = QFileInfo(bam_file).fileName().replace(".bam", "");
+
+	//determine ROI name, ROI and gene list
+	QString roi_name;
+	BedFile roi;
 	GeneSet genes;
-	QString genes_file = roi_file.left(roi_file.size()-4) + "_genes.txt";
-	if (QFile::exists(genes_file))
+
+	//check for ROI file
+	QString roi_file = ui_.filters->targetRegion();
+	if (roi_file!="")
 	{
-		genes = GeneSet::createFromFile(genes_file);
+		roi_name = QFileInfo(roi_file).fileName().replace(".bed", "");
+
+		roi.load(roi_file);
+		roi.merge();
+
+		QString genes_file = roi_file.left(roi_file.size()-4) + "_genes.txt";
+		if (QFile::exists(genes_file))
+		{
+			genes = GeneSet::createFromFile(genes_file);
+		}
+	}
+	else if (ngsd_enabled_)
+	{
+		QMessageBox::StandardButton btn = QMessageBox::information(this, "Gaps error", "No target region filter set!<br>Do you want to look up gaps for a specific gene?", QMessageBox::Yes, QMessageBox::No);
+		if (btn!=QMessageBox::Yes) return;
+
+		QByteArray symbol = selectGene().toUtf8();
+		if (symbol=="") return;
+
+		QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+
+		roi_name = "Gene " + symbol;
+
+		roi = NGSD().geneToRegions(symbol, Transcript::ENSEMBL, "exon", true, false);
+		roi.extend(20);
+		roi.merge();
+
+		genes << symbol;
+
+		QApplication::restoreOverrideCursor();
+	}
+	else
+	{
+		QMessageBox::warning(this, "Gaps error", "No target region filter set!");
+		return;
 	}
 
 	//prepare dialog
-	QString sample_name = QFileInfo(bam_file).fileName().replace(".bam", "");
-	GapDialog dlg(this, sample_name, roi_file);
+	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+	GapDialog dlg(this, sample_name, roi_name);
 	dlg.process(bam_file, roi, genes);
 	QApplication::restoreOverrideCursor();
 

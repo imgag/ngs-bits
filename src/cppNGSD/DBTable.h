@@ -35,12 +35,13 @@ class CPPNGSDSHARED_EXPORT DBRow
 		void setValue(int i, const QString& value);
 		void removeValue(int i);
 
+		//Returns if any value of the row contains the text
+		bool contains(const QString& text, Qt::CaseSensitivity cs = Qt::CaseInsensitive) const;
 		//Returns whole row as string
 		QString asString(char sep = '\t') const
 		{
 			return id_ + sep + values_.join(sep);
 		}
-
 	protected:
 		QString id_;
 		QStringList values_;
@@ -85,6 +86,8 @@ class CPPNGSDSHARED_EXPORT DBTable
 		const DBRow& row(int r) const;
 		void setRow(int r, const DBRow& row);
 		void addRow(const DBRow& row);
+		void removeRow(int r);
+
 		void reserve(int alloc)
 		{
 			rows_.reserve(alloc);

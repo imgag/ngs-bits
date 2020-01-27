@@ -15,17 +15,20 @@
 #include <QMessageBox>
 #include <QCalendarWidget>
 #include <QToolButton>
+#include <QApplication>
 
 DBEditor::DBEditor(QWidget* parent, QString table, int id)
 	: QWidget(parent)
 	, table_(table)
 	, id_(id)
 {
-	setMinimumSize(450, 100);
+	setMinimumSize(450, 16);
 	setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
 
+	QApplication::setOverrideCursor(Qt::BusyCursor);
 	createGUI();
 	fillForm();
+	QApplication::restoreOverrideCursor();
 }
 
 void DBEditor::createGUI()
@@ -37,6 +40,7 @@ void DBEditor::createGUI()
 	layout->setColumnStretch(0,0);
 	layout->setColumnStretch(1,1);
 	layout->setColumnStretch(2,0);
+	layout->setSizeConstraint(QLayout::SetMinimumSize);
 	setLayout(layout);
 
 	//widgets
@@ -52,7 +56,7 @@ void DBEditor::createGUI()
 		}
 
 		//skip non-editable fields
-		if (!isEditable(field_info)) continue;
+		if (field_info.is_hidden) continue;
 
 		//create label
 		QLabel* label = new QLabel();
@@ -125,7 +129,7 @@ void DBEditor::createGUI()
 
 			if (field_info.fk_name_sql=="") THROW(ProgrammingException, "Foreign key name SQL not set for table/field: " + table_ + "/" + field_info.name);
 
-			selector->fill(db.createTable(field_info.fk_table, "SELECT id, " + field_info.fk_name_sql + " FROM " + field_info.fk_table), field_info.is_nullable);
+			selector->fill(db.createTable(field_info.fk_table, "SELECT id, " + field_info.fk_name_sql + " as display_value FROM " + field_info.fk_table + " ORDER BY display_value"), field_info.is_nullable);
 
 			widget = selector;
 		}
@@ -134,7 +138,22 @@ void DBEditor::createGUI()
 			THROW(ProgrammingException, "Unhandled table field type '" + QString::number(field_info.type) + "'!");
 		}
 		widget->setObjectName("editor_" + field);
-		if (isReadOnly(table_, field)) widget->setEnabled(false);
+		widget->setEnabled(!field_info.is_readonly);
+
+		//tooltip
+		if (!field_info.tooltip.isEmpty())
+		{
+			if (add_widget==nullptr)
+			{
+				QLabel* info_label = new QLabel();
+				info_label->setPixmap(QPixmap(":/Icons/Info.png"));
+				info_label->setScaledContents(true);
+				info_label->setFixedSize(16, 16);
+				add_widget = info_label;
+			}
+
+			add_widget->setToolTip(field_info.tooltip);
+		}
 
 		//add widgets to layout
 		int row = layout->rowCount();
@@ -166,7 +185,64 @@ void DBEditor::fillForm()
 
 void DBEditor::fillFormWithDefaultData()
 {
-	//TODO needed for adding new item to the NGSD
+	NGSD db;
+	const TableInfo& table_info = db.tableInfo(table_);
+
+	foreach(const QString& field, table_info.fieldNames())
+	{
+		const TableFieldInfo& field_info = table_info.fieldInfo(field);
+
+		//skip non-editable fields
+		if (field_info.is_hidden) continue;
+
+		//skip fields without default value
+		if (field_info.default_value=="") continue;
+
+		if (field_info.type==TableFieldInfo::BOOL)
+		{
+			QCheckBox* box = getEditWidget<QCheckBox*>(field);
+			box->setChecked(field_info.default_value=="1");
+		}
+		else if (field_info.type==TableFieldInfo::INT)
+		{
+			QLineEdit* edit = getEditWidget<QLineEdit*>(field);
+			edit->setText(field_info.default_value);
+		}
+		else if (field_info.type==TableFieldInfo::FLOAT)
+		{
+			QLineEdit* edit = getEditWidget<QLineEdit*>(field);
+			edit->setText(field_info.default_value);
+		}
+		else if (field_info.type==TableFieldInfo::TEXT)
+		{
+			QTextEdit* edit = getEditWidget<QTextEdit*>(field);
+			edit->setText(field_info.default_value);
+		}
+		else if (field_info.type==TableFieldInfo::VARCHAR)
+		{
+			QLineEdit* edit = getEditWidget<QLineEdit*>(field);
+			edit->setText(field_info.default_value);
+		}
+		else if (field_info.type==TableFieldInfo::ENUM)
+		{
+			QComboBox* edit = getEditWidget<QComboBox*>(field);
+			edit->setCurrentText(field_info.default_value);
+		}
+		else if (field_info.type==TableFieldInfo::DATE)
+		{
+			QLineEdit* edit = getEditWidget<QLineEdit*>(field);
+			edit->setText(field_info.default_value);
+		}
+		else if (field_info.type==TableFieldInfo::FK)
+		{
+			DBComboBox* edit = getEditWidget<DBComboBox*>(field);
+			edit->setCurrentId(field_info.default_value);
+		}
+		else
+		{
+			THROW(ProgrammingException, "Unhandled table field type '" + QString::number(field_info.type) + "'!");
+		}
+	}
 }
 
 void DBEditor::fillFormWithItemData()
@@ -184,7 +260,7 @@ void DBEditor::fillFormWithItemData()
 		const TableFieldInfo& field_info = table_info.fieldInfo(field);
 
 		//skip non-editable fields
-		if (!isEditable(field_info)) continue;
+		if (field_info.is_hidden) continue;
 
 		QVariant value = query.value(field);
 		bool is_null = query.isNull(field);
@@ -325,7 +401,7 @@ void DBEditor::check()
 			QDate date = QDate::fromString(value, Qt::ISODate);
 			if (!date.isValid())
 			{
-				errors << "Must not be negative!";
+				errors << "Use the ISO format: yyyy-mm-dd";
 			}
 		}
 
@@ -363,25 +439,6 @@ void DBEditor::editDate()
 	{
 		edit->setText(widget->selectedDate().toString(Qt::ISODate));
 	}
-}
-
-DBEditor::isEditable(const TableFieldInfo& info)
-{
-	if(info.is_primary_key) return false;
-
-	if (info.type==TableFieldInfo::TIMESTAMP) return false;
-	if (info.type==TableFieldInfo::DATETIME) return false;
-
-	return true;
-}
-
-DBEditor::isReadOnly(const QString& table, const QString& field)
-{
-	if (table=="sample" && field=="name") return true;
-	if (table=="sequencing_run" && field=="name") return true;
-	if (table=="project" && field=="name") return true;
-
-	return false;
 }
 
 bool DBEditor::dataIsValid() const
@@ -428,8 +485,8 @@ void DBEditor::store()
 		const TableFieldInfo& field_info = table_info.fieldInfo(field);
 
 		//skip non-editable fields
-		if (!isEditable(field_info)) continue;
-		if (isReadOnly(table_, field)) continue;
+		if (field_info.is_hidden) continue;
+		if (field_info.is_readonly) continue;
 
 		fields << field;
 
@@ -508,7 +565,19 @@ void DBEditor::store()
 		}
 		else //insert
 		{
-			//TODO needed for adding new item to the NGSD
+			QString query_str = "INSERT INTO " + table_ + " (" + fields.join(", ") + ") VALUES (";
+			for(int i=0; i<fields.count(); ++i)
+			{
+				query_str +=  (i!=0 ? ", " : "") + QString("?");
+			}
+			query_str += ")";
+
+			query.prepare(query_str);
+			foreach(const QString& value, values)
+			{
+				query.addBindValue(value=="NULL" ? QVariant() : value);
+			}
+			query.exec();
 		}
 	}
 	catch (Exception& e)

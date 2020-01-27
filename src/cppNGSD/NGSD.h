@@ -30,7 +30,6 @@ struct CPPNGSDSHARED_EXPORT TableFieldInfo
 
 	int index = -1;
 	QString name;
-	QString label; //label to show (normally the name, but overwritten e.g. for FK fields)
 
 	//type info
 	Type type;
@@ -44,6 +43,12 @@ struct CPPNGSDSHARED_EXPORT TableFieldInfo
 	QString fk_table; //target table of FK
 	QString fk_field; //target field of FK
 	QString fk_name_sql; //SQL code to get the name in the target table - normally 'name', but can contain any valid SQL query
+
+	//displaying options
+	QString label; //label to show (normally the name, but overwritten e.g. for FK fields)
+	bool is_hidden = false; //not shown
+	bool is_readonly = false; //shown, but not editable
+	QString tooltip; //tooltip taken from column comment of the SQL database
 
 	QString toString() const;
 };
@@ -351,8 +356,10 @@ public:
 	///Returns information about all fields of a table.
 	const TableInfo& tableInfo(QString table) const;
 
-	///Creates an table with data from an SQL query.
+	///Creates a DBTable with data from an SQL query.
 	DBTable createTable(QString table, QString query, int pk_col_index=0);
+	///Creates a DBTable with all rows of a table.
+	DBTable createOverviewTable(QString table, QString text_filter = QString(), int pk_col_index=0);
 
 	///Creates database tables and imports initial data (password is required for production database if it is not empty)
 	void init(QString password="");
@@ -362,10 +369,10 @@ public:
 	///If no values are returned an error thrown or a default-constructed QVariant is returned (depending on @p empty_is_ok).
 	///If more than one value is returned a DatabaseError is thrown.
 	///If @p bind_value is set, the placeholder ':0' in the query is replaced with it (SQL special characters are replaced).
-	QVariant getValue(const QString& query, bool no_value_is_ok=true, QString bind_value = QString());
+	QVariant getValue(const QString& query, bool no_value_is_ok=true, QString bind_value = QString()) const;
 	///Executes an SQL query and returns the value list.
 	///If @p bind_value is set, the placeholder ':0' in the query is replaced with it (SQL special characters are replaced). Use this if
-	QStringList getValues(const QString& query, QString bind_value = QString());
+	QStringList getValues(const QString& query, QString bind_value = QString()) const;
 	///Returns a SqlQuery object on the NGSD for custom queries.
 	SqlQuery getQuery() const
 	{

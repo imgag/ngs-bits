@@ -147,7 +147,7 @@ const QString& DBTableWidget::getId(int r) const
 	return ids_[r];
 }
 
-const QString&DBTableWidget::tableName()
+const QString& DBTableWidget::tableName() const
 {
 	return table_;
 }

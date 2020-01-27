@@ -35,12 +35,6 @@ private:
 	int id_;
 	QHash<QString, QStringList> errors_;
 
-	//returns if a table field is editable
-	static isEditable(const TableFieldInfo& info);
-
-	//returns if a table field is read-only
-	static isReadOnly(const QString& table, const QString& field);
-
 	//returns if the for data is valid (based on 'errors_')
 	bool dataIsValid() const;
 

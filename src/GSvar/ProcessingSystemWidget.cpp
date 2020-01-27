@@ -1,3 +1,4 @@
+#include "DBEditor.h"
 #include "ProcessingSystemWidget.h"
 
 #include "NGSD.h"
@@ -5,6 +6,7 @@
 #include <QDir>
 #include <QDesktopServices>
 #include <QProcess>
+#include <QDialog>
 
 ProcessingSystemWidget::ProcessingSystemWidget(QWidget* parent, int sys_id)
 	: QWidget(parent)
@@ -16,6 +18,7 @@ ProcessingSystemWidget::ProcessingSystemWidget(QWidget* parent, int sys_id)
 	connect(ui_.update_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
 	connect(ui_.explorer_btn, SIGNAL(clicked(bool)), this, SLOT(openRoiInExplorer()));
 	connect(ui_.igv_btn, SIGNAL(clicked(bool)), this, SLOT(openRoiInIGV()));
+	connect(ui_.edit_btn, SIGNAL(clicked(bool)), this, SLOT(edit()));
 }
 
 void ProcessingSystemWidget::updateGUI()
@@ -36,7 +39,7 @@ void ProcessingSystemWidget::updateGUI()
 	ui_.umi->setText(ps_data.umi_type);
 	QString roi_file = ps_data.target_file;
 	ui_.target_file->setText(roi_file);
-	if (!QFile::exists(roi_file)) ui_.target_file->setText("<font color=red>"+roi_file+"</font>");
+	if (!QFile::exists(roi_file)) ui_.target_file->setText(roi_file+" <font color=red>(file is missing!)</font>");
 	ui_.genome->setText(ps_data.genome);
 
 	//###target region infos###
@@ -64,6 +67,19 @@ void ProcessingSystemWidget::updateGUI()
 void ProcessingSystemWidget::delayedInitialization()
 {
 	updateGUI();
+}
+
+void ProcessingSystemWidget::edit()
+{
+	QString sys_name = ui_.name_long->text();
+
+	DBEditor* widget = new DBEditor(this, "processing_system", sys_id_);
+	auto dlg = GUIHelper::createDialog(widget, "Edit processing system " + sys_name ,"", true);
+	if (dlg->exec()==QDialog::Accepted)
+	{
+		widget->store();
+		updateGUI();
+	}
 }
 
 void ProcessingSystemWidget::openRoiInExplorer()

@@ -30,6 +30,13 @@ void DBTable::addRow(const DBRow& row)
 	rows_.append(row);
 }
 
+void DBTable::removeRow(int r)
+{
+	checkRowIndex(r);
+
+	rows_.removeAt(r);
+}
+
 int DBTable::columnIndex(const QString& name) const
 {
 	QList<int> output;
@@ -165,6 +172,16 @@ void DBRow::removeValue(int i)
 	checkValueIndex(i);
 
 	values_.removeAt(i);
+}
+
+bool DBRow::contains(const QString& text, Qt::CaseSensitivity cs) const
+{
+	foreach(const QString& value, values_)
+	{
+		if (value.contains(text, cs)) return true;
+	}
+
+	return false;
 }
 
 void DBRow::checkValueIndex(int i) const

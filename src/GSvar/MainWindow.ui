@@ -430,9 +430,24 @@
      <addaction name="actionDesignSubpanel"/>
      <addaction name="actionArchiveSubpanel"/>
     </widget>
+    <widget class="QMenu" name="menuAdmin">
+     <property name="title">
+      <string>Admin</string>
+     </property>
+     <addaction name="actionDevice"/>
+     <addaction name="actionGenome"/>
+     <addaction name="actionMID"/>
+     <addaction name="actionProcessingSystem"/>
+     <addaction name="actionSampleGroup"/>
+     <addaction name="actionSender"/>
+     <addaction name="actionSpecies"/>
+    </widget>
     <addaction name="menuGenes_2"/>
     <addaction name="menuPhenotypes_2"/>
     <addaction name="menuSub_panels"/>
+    <addaction name="separator"/>
+    <addaction name="menuAdmin"/>
+    <addaction name="actionStatistics"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuNGSD"/>
@@ -895,6 +910,46 @@
    </property>
    <property name="toolTip">
     <string>Project</string>
+   </property>
+  </action>
+  <action name="actionStatistics">
+   <property name="text">
+    <string>Statistics</string>
+   </property>
+  </action>
+  <action name="actionDevice">
+   <property name="text">
+    <string>Device</string>
+   </property>
+  </action>
+  <action name="actionGenome">
+   <property name="text">
+    <string>Genome</string>
+   </property>
+  </action>
+  <action name="actionProcessingSystem">
+   <property name="text">
+    <string>Processing system</string>
+   </property>
+  </action>
+  <action name="actionSampleGroup">
+   <property name="text">
+    <string>Sample group</string>
+   </property>
+  </action>
+  <action name="actionSender">
+   <property name="text">
+    <string>Sender</string>
+   </property>
+  </action>
+  <action name="actionSpecies">
+   <property name="text">
+    <string>Species</string>
+   </property>
+  </action>
+  <action name="actionMID">
+   <property name="text">
+    <string>MID</string>
    </property>
   </action>
  </widget>
