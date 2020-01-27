@@ -30,6 +30,7 @@ public:
 		addFlag("add_simple_gene_names", "Adds an additioal column containing only the list of gene names.");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
+		changeLog(2020, 1, 27, "Bugfix: 0-based BEDPE positions are now converted into 1-based BED positions.");
 		changeLog(2020, 1, 21, "Added ability to reannotate BEDPE files by overwriting old annotation.");
 		changeLog(2020, 1, 20, "Updated overlap method, refactored code.");
 		changeLog(2020, 1, 14, "Added handling of duplicates.");
@@ -305,15 +306,15 @@ private:
 			case StructuralVariantType::INV:
 			case StructuralVariantType::DEL:
 			case StructuralVariantType::DUP:
-				// whole area
-				sv_region.append(BedLine(sv.chr1(), sv.start1(), sv.end2()));
+				// whole area (+1 because BEDPE is 0-based)
+				sv_region.append(BedLine(sv.chr1(), sv.start1() + 1, sv.end2() + 1));
 				break;
 
 			case StructuralVariantType::BND:
 			case StructuralVariantType::INS:
-				// consider pos 1 and pos 2 seperately
-				sv_region.append(BedLine(sv.chr1(), sv.start1(), sv.end1()));
-				sv_region.append(BedLine(sv.chr2(), sv.start2(), sv.end2()));
+				// consider pos 1 and pos 2 seperately (+1 because BEDPE is 0-based)
+				sv_region.append(BedLine(sv.chr1(), sv.start1() + 1, sv.end1() + 1));
+				sv_region.append(BedLine(sv.chr2(), sv.start2() + 1, sv.end2() + 1));
 				break;
 
 			default:
