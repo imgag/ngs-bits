@@ -15,6 +15,7 @@ DBTableAdministration::DBTableAdministration(QString table, QWidget* parent)
 	connect(ui_.add_btn, SIGNAL(clicked(bool)), this, SLOT(add()));
 	connect(ui_.edit_btn, SIGNAL(clicked(bool)), this, SLOT(edit()));
 	connect(ui_.delete_btn, SIGNAL(clicked(bool)), this, SLOT(remove()));
+	connect(ui_.text_filter_btn, SIGNAL(clicked(bool)), this, SLOT(updateTable()));
 
 	QAction* action = new QAction(QIcon(":/Icons/Edit.png"), "Edit", this);
 	ui_.table->addAction(action);
@@ -30,7 +31,7 @@ DBTableAdministration::DBTableAdministration(QString table, QWidget* parent)
 void DBTableAdministration::updateTable()
 {
 	NGSD db;
-	DBTable db_table = db.createTable(table_);
+	DBTable db_table = db.createOverviewTable(table_, ui_.text_filter->text());
 	ui_.table->setData(db_table);
 }
 

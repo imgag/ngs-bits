@@ -1339,7 +1339,7 @@ DBTable NGSD::createTable(QString table, QString query, int pk_col_index)
 	return output;
 }
 
-DBTable NGSD::createTable(QString table, int pk_col_index)
+DBTable NGSD::createOverviewTable(QString table, QString text_filter, int pk_col_index)
 {
 	DBTable output = createTable(table, "SELECT * FROM " + table, pk_col_index);
 
@@ -1351,26 +1351,39 @@ DBTable NGSD::createTable(QString table, int pk_col_index)
 		const TableFieldInfo& field_info = table_info.fieldInfo(headers[c]);
 		if(field_info.type==TableFieldInfo::FK)
 		{
-			for(int r=0; r<output.rowCount(); ++r)
+			QStringList column = output.extractColumn(c);
+			for(int r=0; r<column.count(); ++r)
 			{
-				const QString& value = output.row(r).value(c);
+				const QString& value = column[r];
 				if (value!="")
 				{
 					QString fk_value = getValue("SELECT " + field_info.fk_name_sql + " FROM " + field_info.fk_table + " WHERE id=" + value).toString();
-					DBRow row = output.row(r);
-					row.setValue(c, fk_value);
-					output.setRow(r, row);
+					column[r] = fk_value;
 				}
 			}
+			output.setColumn(c, column);
 		}
 	}
 
-	//fix headers
+	//fix headers (last because replacements before partially depend on correct header names)
 	for (int i=0; i<headers.count(); ++i)
 	{
 		headers[i] = table_info.fieldInfo(headers[i]).label;
 	}
 	output.setHeaders(headers);
+
+	//apply text filter
+	text_filter = text_filter.trimmed();
+	if (!text_filter.isEmpty())
+	{
+		for(int r=output.rowCount()-1; r>=0; --r) //reverse, so that all indices are valid
+		{
+			if (!output.row(r).contains(text_filter))
+			{
+				output.removeRow(r);
+			}
+		}
+	}
 
 	return output;
 }
