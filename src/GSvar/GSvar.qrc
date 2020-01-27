@@ -91,5 +91,6 @@
         <file>Icons/date_picker.png</file>
         <file>Icons/reanalysis.png</file>
         <file>Icons/email.png</file>
+        <file>Icons/NGSD_run_overview.png</file>
     </qresource>
 </RCC>

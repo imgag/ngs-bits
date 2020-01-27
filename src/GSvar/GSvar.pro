@@ -70,7 +70,8 @@ SOURCES += main.cpp\
     GSvarStoreWorker.cpp \
     DBEditor.cpp \
     FilterWidgetSV.cpp \
-    DBTableAdministration.cpp
+    DBTableAdministration.cpp \
+    SequencingRunOverview.cpp
 
 HEADERS  += MainWindow.h \
     ExternalToolDialog.h \
@@ -135,7 +136,8 @@ HEADERS  += MainWindow.h \
     GSvarStoreWorker.h \
     DBEditor.h \
     FilterWidgetSV.h \
-    DBTableAdministration.h
+    DBTableAdministration.h \
+    SequencingRunOverview.h
 
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
@@ -187,7 +189,8 @@ FORMS    += MainWindow.ui \
     ProcessingSystemWidget.ui \
     ProjectWidget.ui \
     FilterWidgetSV.ui \
-    DBTableAdministration.ui
+    DBTableAdministration.ui \
+    SequencingRunOverview.ui
 
 include("../app_gui.pri")
 

@@ -82,6 +82,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "DBEditor.h"
 #include "TsvTableWidget.h"
 #include "DBTableAdministration.h"
+#include "SequencingRunOverview.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -823,6 +824,13 @@ void MainWindow::on_actionSampleSearch_triggered()
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
 	connect(widget, SIGNAL(openProcessedSample(QString)), this, SLOT(openProcessedSampleFromNGSD(QString)));
 	openTab(QIcon(":/Icons/NGSD_sample_search.png"), "Sample search", widget);
+}
+
+void MainWindow::on_actionRunOverview_triggered()
+{
+	SequencingRunOverview* widget = new SequencingRunOverview(this);
+	connect(widget, SIGNAL(openRun(QString)), this, SLOT(openRunTab(QString)));
+	openTab(QIcon(":/Icons/NGSD_run_overview.png"), "Sequencing run overview", widget);
 }
 
 QString MainWindow::targetFileName() const

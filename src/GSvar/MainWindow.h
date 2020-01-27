@@ -110,7 +110,6 @@ public slots:
 	void on_actionSender_triggered();
 	void on_actionSpecies_triggered();
 
-
     ///Gender determination
 	void on_actionGenderXY_triggered();
 	///Gender determination
@@ -237,6 +236,8 @@ public slots:
 	void on_actionEncrypt_triggered();
 	///Show sample search dialog
 	void on_actionSampleSearch_triggered();
+	///Show run overview
+	void on_actionRunOverview_triggered();
 
 	///Returns a gene list where the inheritance information is not set (selected variants only)
 	QStringList geneInheritanceMissing(QBitArray selected);

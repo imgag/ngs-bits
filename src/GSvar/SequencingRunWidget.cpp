@@ -66,6 +66,8 @@ void SequencingRunWidget::updateGUI()
 		ProcessedSampleWidget::styleQualityLabel(ui_->quality, query.value("quality").toString());
 		QString status = query.value("status").toString();
 		ui_->status->setText(status);
+		ui_->backup->setText(query.value("backup_done").toString()=="1" ? "yes" : "no");
+
 		ui_->email_btn->setEnabled(status=="analysis_finished" || status=="run_finished");
 
 		//#### run quality ####

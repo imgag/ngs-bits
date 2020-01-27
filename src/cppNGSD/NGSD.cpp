@@ -1233,7 +1233,7 @@ const TableInfo& NGSD::tableInfo(QString table) const
 			info.label = info.name;
 			info.label.replace('_', ' ');
 			if (table=="sequencing_run" && info.name=="fcid") info.label = "flowcell ID";
-			if (table=="device_id" && info.name=="device") info.label = "flowcell ID";
+			if (table=="sequencing_run" && info.name=="device_id") info.label = "device";
 			if (table=="project" && info.name=="preserve_fastqs") info.label = "preserve FASTQs";
 			if (table=="project" && info.name=="internal_coordinator_id") info.label = "internal coordinator";
 			if (table=="processing_system" && info.name=="adapter1_p5") info.label = "adapter read 1";
@@ -1339,16 +1339,18 @@ DBTable NGSD::createTable(QString table, QString query, int pk_col_index)
 	return output;
 }
 
-DBTable NGSD::createOverviewTable(QString table, QString text_filter, int pk_col_index)
+DBTable NGSD::createOverviewTable(QString table, QString text_filter, QString sql_order, int pk_col_index)
 {
-	DBTable output = createTable(table, "SELECT * FROM " + table, pk_col_index);
+	DBTable output = createTable(table, "SELECT * FROM " + table + " ORDER BY " + sql_order, pk_col_index);
 
-	//fix FK columns
+	//fix column content
 	QStringList headers = output.headers();
 	TableInfo table_info = tableInfo(table);
 	for (int c=0; c<headers.count(); ++c)
 	{
 		const TableFieldInfo& field_info = table_info.fieldInfo(headers[c]);
+
+		//FK - use name instead of id
 		if(field_info.type==TableFieldInfo::FK)
 		{
 			QStringList column = output.extractColumn(c);
@@ -1359,6 +1361,25 @@ DBTable NGSD::createOverviewTable(QString table, QString text_filter, int pk_col
 				{
 					QString fk_value = getValue("SELECT " + field_info.fk_name_sql + " FROM " + field_info.fk_table + " WHERE id=" + value).toString();
 					column[r] = fk_value;
+				}
+			}
+			output.setColumn(c, column);
+		}
+
+		//BOOL - replace number by yes/no
+		if(field_info.type==TableFieldInfo::BOOL)
+		{
+			QStringList column = output.extractColumn(c);
+			for(int r=0; r<column.count(); ++r)
+			{
+				const QString& value = column[r];
+				if (value=="0")
+				{
+					column[r] = "no";
+				}
+				else if (value=="1")
+				{
+					column[r] = "yes";
 				}
 			}
 			output.setColumn(c, column);

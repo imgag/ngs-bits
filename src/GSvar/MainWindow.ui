@@ -473,6 +473,7 @@
    <addaction name="actionAnnotateSomaticVariants"/>
    <addaction name="separator"/>
    <addaction name="actionSampleSearch"/>
+   <addaction name="actionRunOverview"/>
    <addaction name="separator"/>
    <addaction name="actionAnalysisStatus"/>
    <addaction name="actionReanalyze"/>
@@ -950,6 +951,21 @@
   <action name="actionMID">
    <property name="text">
     <string>MID</string>
+   </property>
+  </action>
+  <action name="actionRunOverview">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/NGSD_run_overview.png</normaloff>:/Icons/NGSD_run_overview.png</iconset>
+   </property>
+   <property name="text">
+    <string>Sequencing run overview</string>
+   </property>
+   <property name="iconText">
+    <string>Sequencing run overview</string>
+   </property>
+   <property name="toolTip">
+    <string>Sequencing run overview</string>
    </property>
   </action>
  </widget>
