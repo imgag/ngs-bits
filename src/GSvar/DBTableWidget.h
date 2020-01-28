@@ -22,7 +22,7 @@ public:
 	int columnIndex(const QString& column_header) const;
 	//Set tooltips for a column
 	void setColumnTooltips(const QString& column_header, const QStringList& tooltips);
-	//Set background colort for a column
+	//Set background color for a column
 	void setColumnColors(const QString& column_header, const QList<QColor>& colors);
 	//Set background color for a column if text matches
 	void setBackgroundColorIfEqual(const QString& column_header, const QColor& color, const QString& text);
