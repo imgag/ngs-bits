@@ -9,12 +9,9 @@ NGSD:
     - make page where TA can select gaps (by gene/DX number)
         - also allow copying multiple gaps into clipboard (as table and for primer gap)
         - add link for PrimerDesign tool
-*** Add run overview tab
-    - color: quality (also in sample search sample/run quality)
-    - color: backup done - fill from logs - update backup script
 *** Add batch import of samples/processed samples/mid
     - offer Excel template
-    - integrate GSmix checks (remove GSmix)
+    - integrate GSmix checks - single sample and batch check (remove GSmix and desktop link)
     - add sample groups (adding, editing, displaying)
 ** Add users section (only for admins)
 - Sample tab: allow import disease info, disease group/status, gender from same samples

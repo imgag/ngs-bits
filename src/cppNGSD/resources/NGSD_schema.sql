@@ -213,7 +213,7 @@ CREATE  TABLE IF NOT EXISTS `sequencing_run`
   `comment` TEXT NULL DEFAULT NULL,
   `quality` ENUM('n/a','good','medium','bad') NOT NULL DEFAULT 'n/a',
   `status` ENUM('n/a','run_started','run_finished','run_aborted','demultiplexing_started','analysis_started','analysis_finished','analysis_not_possible','analysis_and_backup_not_required') NOT NULL DEFAULT 'n/a',
-  `backup_done` TINYINT(1) NOT NULL DEFAULT '0'
+  `backup_done` TINYINT(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`name` ASC),
   UNIQUE INDEX `fcid_UNIQUE` (`fcid` ASC),

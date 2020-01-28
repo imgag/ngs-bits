@@ -127,9 +127,7 @@ MainWindow::MainWindow(QWidget *parent)
 	ngsd_btn->menu()->addAction(ui_.actionOpenProcessingSystemTab);
 	ngsd_btn->setPopupMode(QToolButton::InstantPopup);
 	ui_.tools->insertWidget(ui_.actionSampleSearch, ngsd_btn);
-
-	//NGSD samples
-
+	ngsd_btn->menu()->setEnabled(ngsd_enabled_);
 
 	//signals and slots
 	connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(close()));
@@ -4112,9 +4110,8 @@ void MainWindow::updateNGSDSupport()
 	ui_.actionReanalyze->setEnabled(ngsd_enabled_);
 	ui_.actionGapsRecalculate->setEnabled(ngsd_enabled_);
 	ui_.actionGeneSelector->setEnabled(ngsd_enabled_);
-	ui_.actionOpenProcessedSampleTabByName->setEnabled(ngsd_enabled_);
-	ui_.actionOpenSequencingRunTabByName->setEnabled(ngsd_enabled_);
-	ui_.actionOpenGeneTabByName->setEnabled(ngsd_enabled_);
+	ui_.actionSampleSearch->setEnabled(ngsd_enabled_);
+	ui_.actionRunOverview->setEnabled(ngsd_enabled_);
 
 	//NGSD menu
 	ui_.menuNGSD->setEnabled(ngsd_enabled_);
