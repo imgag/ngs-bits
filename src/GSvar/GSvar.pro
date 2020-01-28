@@ -70,10 +70,10 @@ SOURCES += main.cpp\
     DBEditor.cpp \
     FilterWidgetSV.cpp \
     DBTableAdministration.cpp \
+    SequencingRunOverview.cpp \
     SomaticReportSettings.cpp \
     SomaticReportVariantDialog.cpp \
     SomaticReportDialog.cpp
-
 HEADERS  += MainWindow.h \
     ExternalToolDialog.h \
     ReportDialog.h \
@@ -137,6 +137,7 @@ HEADERS  += MainWindow.h \
     DBEditor.h \
     FilterWidgetSV.h \
     DBTableAdministration.h \
+    SequencingRunOverview.h \
     SomaticReportSettings.h \
     SomaticReportVariantDialog.h \
     SomaticReportDialog.h
@@ -191,6 +192,7 @@ FORMS    += MainWindow.ui \
     ProjectWidget.ui \
     FilterWidgetSV.ui \
     DBTableAdministration.ui \
+    SequencingRunOverview.ui \
     SomaticReportConfigurationWidget.ui \
     SomaticReportVariantDialog.ui \
     SomaticReportDialog.ui

@@ -213,6 +213,7 @@ CREATE  TABLE IF NOT EXISTS `sequencing_run`
   `comment` TEXT NULL DEFAULT NULL,
   `quality` ENUM('n/a','good','medium','bad') NOT NULL DEFAULT 'n/a',
   `status` ENUM('n/a','run_started','run_finished','run_aborted','demultiplexing_started','analysis_started','analysis_finished','analysis_not_possible','analysis_and_backup_not_required') NOT NULL DEFAULT 'n/a',
+  `backup_done` TINYINT(1) NOT NULL DEFAULT '0'
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`name` ASC),
   UNIQUE INDEX `fcid_UNIQUE` (`fcid` ASC),
@@ -1068,7 +1069,7 @@ CREATE TABLE IF NOT EXISTS `somatic_report_configuration` (
   `created_date` DATETIME NOT NULL,
   `last_edit_by` int(11) DEFAULT NULL,
   `last_edit_date` timestamp NULL DEFAULT NULL,
-  `target_file` VARCHAR(255) NULL DEFAULT NULL,
+  `target_file` VARCHAR(255) NULL DEFAULT NULL COMMENT 'filename of sub-panel BED file without preceding path. Path must be resolved using target_file_folder in ngs-bits settings.ini',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `combo_som_rep_conf_ids` (`ps_tumor_id` ASC, `ps_normal_id` ASC),
   CONSTRAINT `somatic_report_config_created_by_user` 

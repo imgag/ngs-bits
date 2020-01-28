@@ -22,11 +22,12 @@ private:
 		I_EQUAL(db.somaticReportConfigId("5","10"), -1);
 
 		//Resolve rep conf. creation data
-		ReportConfigurationCreationData creation_data = db.somaticReportConfigCreationData(51);
-		S_EQUAL(creation_data.created_by,"Max Mustermann");
-		S_EQUAL(creation_data.created_date, "05.01.2019 14:06:12");
-		S_EQUAL(creation_data.last_edit_by, "Sarah Kerrigan");
-		S_EQUAL(creation_data.last_edit_date, "07.12.2019 17:06:10");
+		SomaticReportConfigurationData config_data = db.somaticReportConfigData(51);
+		S_EQUAL(config_data.created_by,"Max Mustermann");
+		S_EQUAL(config_data.created_date, "05.01.2019 14:06:12");
+		S_EQUAL(config_data.last_edit_by, "Sarah Kerrigan");
+		S_EQUAL(config_data.last_edit_date, "07.12.2019 17:06:10");
+		S_EQUAL(config_data.target_file, "nowhere.bed");
 
 		//set somatic report configuration in test NGSD, using 2 SNVs
 		SomaticReportVariantConfiguration var1;
@@ -49,6 +50,7 @@ private:
 		som_rep_conf.set(var1);
 		som_rep_conf.set(var2);
 		som_rep_conf.setCreatedBy("ahmustm1");
+		som_rep_conf.setTargetFile("/path/to/somewhere.bed");
 
 
 		SomaticReportVariantConfiguration cnv1;
@@ -61,7 +63,7 @@ private:
 
 		QString t_ps_id = db.processedSampleId("NA12345_01");
 		QString n_ps_id = db.processedSampleId("NA12123_04");
-		int config_id = db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, "ahmustm1");
+		int config_id = db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, "ahmustm1"); //id will be 52 in test NGSD
 
 		QStringList messages = {};
 		QList<SomaticReportVariantConfiguration> res =  db.somaticReportConfig(t_ps_id, n_ps_id, vl, cnvs, messages).variantConfig();
@@ -92,16 +94,27 @@ private:
 		IS_TRUE(res1.showInReport());
 
 
-		//Update somat report configuration using 1 CNV
-		ReportConfigurationCreationData creation_data_1 = db.somaticReportConfigCreationData(config_id);
-		S_EQUAL(creation_data_1.created_by, "Max Mustermann");
-		S_EQUAL(creation_data_1.last_edit_by, "Max Mustermann");
+		SomaticReportConfigurationData config_data_1 = db.somaticReportConfigData(config_id);
+		S_EQUAL(config_data_1.created_by, "Max Mustermann");
+		S_EQUAL(config_data_1.last_edit_by, "Max Mustermann");
+		S_EQUAL(config_data_1.target_file, "somewhere.bed");
+
+
+		//Update somatic report configuration (by other user), should update target_file and last_edits
+		som_rep_conf.setTargetFile("/path/to/somewhere/else.bed");
 		db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, "ahkerra1");
-		ReportConfigurationCreationData creation_data_2 =  db.somaticReportConfigCreationData(config_id);
-		S_EQUAL(creation_data_2.created_by, "Max Mustermann");
-		S_EQUAL(creation_data_2.last_edit_by, "Sarah Kerrigan");
-		IS_TRUE(creation_data_2.created_date == creation_data_1.created_date);
-		IS_TRUE(creation_data_2.last_edit_date != "");
+		SomaticReportConfigurationData config_data_2 =  db.somaticReportConfigData(config_id);
+		S_EQUAL(config_data_2.created_by, "Max Mustermann");
+		S_EQUAL(config_data_2.last_edit_by, "Sarah Kerrigan");
+		S_EQUAL(config_data_2.target_file, "else.bed");
+		IS_TRUE(config_data_2.created_date == config_data_1.created_date);
+		IS_TRUE(config_data_2.last_edit_date != "");
+
+		//report config in case of no target file
+		som_rep_conf.setTargetFile("");
+		db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, "ahkerra1");
+		SomaticReportConfigurationData config_data_3 = db.somaticReportConfigData(config_id);
+		S_EQUAL(config_data_3.target_file, "");
 
 		//Test CNV report configuration
 		const SomaticReportVariantConfiguration& res2 = res.at(2);

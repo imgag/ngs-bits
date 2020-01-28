@@ -1324,7 +1324,7 @@ const TableInfo& NGSD::tableInfo(QString table) const
 			info.label = info.name;
 			info.label.replace('_', ' ');
 			if (table=="sequencing_run" && info.name=="fcid") info.label = "flowcell ID";
-			if (table=="device_id" && info.name=="device") info.label = "flowcell ID";
+			if (table=="sequencing_run" && info.name=="device_id") info.label = "device";
 			if (table=="project" && info.name=="preserve_fastqs") info.label = "preserve FASTQs";
 			if (table=="project" && info.name=="internal_coordinator_id") info.label = "internal coordinator";
 			if (table=="processing_system" && info.name=="adapter1_p5") info.label = "adapter read 1";
@@ -1430,16 +1430,18 @@ DBTable NGSD::createTable(QString table, QString query, int pk_col_index)
 	return output;
 }
 
-DBTable NGSD::createOverviewTable(QString table, QString text_filter, int pk_col_index)
+DBTable NGSD::createOverviewTable(QString table, QString text_filter, QString sql_order, int pk_col_index)
 {
-	DBTable output = createTable(table, "SELECT * FROM " + table, pk_col_index);
+	DBTable output = createTable(table, "SELECT * FROM " + table + " ORDER BY " + sql_order, pk_col_index);
 
-	//fix FK columns
+	//fix column content
 	QStringList headers = output.headers();
 	TableInfo table_info = tableInfo(table);
 	for (int c=0; c<headers.count(); ++c)
 	{
 		const TableFieldInfo& field_info = table_info.fieldInfo(headers[c]);
+
+		//FK - use name instead of id
 		if(field_info.type==TableFieldInfo::FK)
 		{
 			QStringList column = output.extractColumn(c);
@@ -1450,6 +1452,25 @@ DBTable NGSD::createOverviewTable(QString table, QString text_filter, int pk_col
 				{
 					QString fk_value = getValue("SELECT " + field_info.fk_name_sql + " FROM " + field_info.fk_table + " WHERE id=" + value).toString();
 					column[r] = fk_value;
+				}
+			}
+			output.setColumn(c, column);
+		}
+
+		//BOOL - replace number by yes/no
+		if(field_info.type==TableFieldInfo::BOOL)
+		{
+			QStringList column = output.extractColumn(c);
+			for(int r=0; r<column.count(); ++r)
+			{
+				const QString& value = column[r];
+				if (value=="0")
+				{
+					column[r] = "no";
+				}
+				else if (value=="1")
+				{
+					column[r] = "yes";
 				}
 			}
 			output.setColumn(c, column);
@@ -3320,19 +3341,22 @@ void NGSD::deleteReportConfig(int id)
 	query.exec("DELETE FROM `report_configuration` WHERE `id`=" + rc_id);
 }
 
-ReportConfigurationCreationData NGSD::somaticReportConfigCreationData(int id)
+SomaticReportConfigurationData NGSD::somaticReportConfigData(int id)
 {
 	SqlQuery query = getQuery();
-	query.exec("SELECT created_by, created_date, (SELECT name FROM user WHERE id=last_edit_by) as last_edit_by, last_edit_date FROM somatic_report_configuration WHERE id=" + QString::number(id));
+	query.exec("SELECT created_by, created_date, (SELECT name FROM user WHERE id=last_edit_by) as last_edit_by, last_edit_date, target_file FROM somatic_report_configuration WHERE id=" + QString::number(id));
 	query.next();
 
-	ReportConfigurationCreationData output;
+	SomaticReportConfigurationData output;
 	output.created_by = userName(query.value("created_by").toInt());
 	QDateTime created_date = query.value("created_date").toDateTime();
 	output.created_date = created_date.isNull() ? "" : created_date.toString("dd.MM.yyyy hh:mm:ss");
 	output.last_edit_by = query.value("last_edit_by").toString();
 	QDateTime last_edit_date = query.value("last_edit_date").toDateTime();
 	output.last_edit_date = last_edit_date.isNull() ? "" : last_edit_date.toString("dd.MM.yyyy hh:mm:ss");
+
+	if(!query.value("target_file").isNull()) output.target_file = query.value("target_file").toString();
+	else output.target_file = "";
 
 	return output;
 }
@@ -3350,6 +3374,12 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 {
 	int id = somaticReportConfigId(t_ps_id, n_ps_id);
 
+	QString target_file = "";
+	if(!config.targetFile().isEmpty())
+	{
+		target_file = QFileInfo(config.targetFile()).fileName(); //store filename without path
+	}
+
 	if(id!=-1) //delete old report if id exists
 	{
 		//Delete somatic report configuration variants that are assigned to report
@@ -3357,19 +3387,26 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 		query.exec("DELETE FROM `somatic_report_configuration_variant` WHERE somatic_report_configuration_id=" + QByteArray::number(id));
 		query.exec("DELETE FROM `somatic_report_configuration_cnv` WHERE somatic_report_configuration_id=" + QByteArray::number(id));
 
-		//Update somatic report configuration
-		query.exec("UPDATE `somatic_report_configuration` SET `last_edit_by`='" + QString::number(userId(user_name)) + "', `last_edit_date`=CURRENT_TIMESTAMP WHERE id=" +QByteArray::number(id));
+		//Update somatic report configuration: last_edit_by, last_edit_user and target_file
+		query.prepare("UPDATE `somatic_report_configuration` SET `last_edit_by`= :0, `last_edit_date` = CURRENT_TIMESTAMP, `target_file`= :1 WHERE id=:2");
+		query.bindValue(0, userId(user_name));
+		if(target_file != "") query.bindValue(1, target_file);
+		else query.bindValue(1, QVariant(QVariant::String));
+		query.bindValue(2, id);
+		query.exec();
 	}
 	else
 	{
 		SqlQuery query = getQuery();
-		query.prepare("INSERT INTO `somatic_report_configuration` (`ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES (:0, :1, :2, :3, :4, CURRENT_TIMESTAMP)");
+		query.prepare("INSERT INTO `somatic_report_configuration` (`ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`, `target_file`) VALUES (:0, :1, :2, :3, :4, CURRENT_TIMESTAMP, :5)");
 
 		query.bindValue(0, t_ps_id);
 		query.bindValue(1, n_ps_id);
 		query.bindValue(2, userId(config.createdBy()));
 		query.bindValue(3, config.createdAt());
 		query.bindValue(4, userId(user_name));
+		if(target_file != "") query.bindValue(5, target_file);
+		else query.bindValue(5, QVariant(QVariant::String));
 
 		query.exec();
 		id = query.lastInsertId().toInt();
@@ -3486,10 +3523,11 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 	}
 
 	SqlQuery query = getQuery();
-	query.exec("SELECT u.name, r.created_date FROM somatic_report_configuration r, user u WHERE r.id=" + QByteArray::number(config_id) + " AND u.id = r.created_by");
+	query.exec("SELECT u.name, r.created_date, r.target_file FROM somatic_report_configuration r, user u WHERE r.id=" + QByteArray::number(config_id) + " AND u.id = r.created_by");
 	query.next();
 	output.setCreatedBy(query.value("name").toString());
 	output.setCreatedAt(query.value("created_date").toDateTime());
+	output.setTargetFile(query.value("target_file").toString());
 
 	//Load SNVs
 	//Resolve variants stored in NGSD and compare to those in VariantList snvs

@@ -30,9 +30,15 @@
        <rect>
         <x>20</x>
         <y>50</y>
-        <width>191</width>
+        <width>1001</width>
         <height>16</height>
        </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
       <property name="text">
        <string/>

@@ -83,7 +83,9 @@ QT_CHARTS_USE_NAMESPACE
 #include "DBEditor.h"
 #include "TsvTableWidget.h"
 #include "DBTableAdministration.h"
+#include "SequencingRunOverview.h"
 #include "SomaticReportDialog.h"
+
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
@@ -830,6 +832,13 @@ void MainWindow::on_actionSampleSearch_triggered()
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
 	connect(widget, SIGNAL(openProcessedSample(QString)), this, SLOT(openProcessedSampleFromNGSD(QString)));
 	openTab(QIcon(":/Icons/NGSD_sample_search.png"), "Sample search", widget);
+}
+
+void MainWindow::on_actionRunOverview_triggered()
+{
+	SequencingRunOverview* widget = new SequencingRunOverview(this);
+	connect(widget, SIGNAL(openRun(QString)), this, SLOT(openRunTab(QString)));
+	openTab(QIcon(":/Icons/NGSD_run_overview.png"), "Sequencing run overview", widget);
 }
 
 QString MainWindow::targetFileName() const
@@ -1600,6 +1609,7 @@ void MainWindow::loadSomaticReportConfig()
 	//Check whether somatic report config exists
 	if(db.somaticReportConfigId(ps_tumor_id, ps_normal_id) == -1) return;
 
+
 	somatic_report_settings_.tumor_ps = processedSampleName();
 	somatic_report_settings_.normal_ps = normalSampleName();
 
@@ -1608,6 +1618,12 @@ void MainWindow::loadSomaticReportConfig()
 	if(!messages.isEmpty())
 	{
 		QMessageBox::warning(this, "Somatic report configuration", "The following problems were encountered while loading the som. report configuration:\n" + messages.join("\n"));
+	}
+
+	//Preselect target region bed file in NGSD
+	if(somatic_report_settings_.report_config.targetFile() != "")
+	{
+		ui_.filters->setTargetRegion(somatic_report_settings_.report_config.targetFile());
 	}
 
 	refreshVariantTable();
@@ -1622,6 +1638,7 @@ void MainWindow::storeSomaticReportConfig()
 	NGSD db;
 	QString ps_tumor_id = db.processedSampleId(processedSampleName(), false);
 	QString ps_normal_id = db.processedSampleId(normalSampleName(), false);
+
 	if(ps_tumor_id=="" || ps_normal_id == "")
 	{
 		QMessageBox::warning(this, "Storing somatic report configuration", "Samples were not found in the NGSD!");
@@ -1632,7 +1649,9 @@ void MainWindow::storeSomaticReportConfig()
 
 	if (conf_id!=-1)
 	{
-		ReportConfigurationCreationData conf_creation = db.reportConfigCreationData(conf_id);
+		qDebug() << "first in" << endl;
+		ReportConfigurationCreationData conf_creation = db.somaticReportConfigData(conf_id);
+		qDebug() << "after" << endl;
 		QString current_user_name = db.getValue("SELECT name FROM user WHERE user_id='" + Helper::userName() + "'").toString();
 		if (conf_creation.last_edit_by!="" && conf_creation.last_edit_by!=current_user_name)
 		if (QMessageBox::question(this, "Storing report configuration", conf_creation.toText() + "\n\nDo you want to override it?")==QMessageBox::No)
@@ -1941,7 +1960,7 @@ void MainWindow::showReportConfigInfo()
 			QMessageBox::information(this, "Somatic report configuration information", "No somatic report configuration found in the NGSD!");
 			return;
 		}
-		QMessageBox::information(this, "Somatic report configuration information", db.reportConfigCreationData(conf_id).toText());
+		QMessageBox::information(this, "Somatic report configuration information", db.somaticReportConfigData(conf_id).toText());
 	}
 
 
@@ -2125,6 +2144,7 @@ void MainWindow::generateReport()
 
 void MainWindow::generateReportSomaticRTF()
 {
+	if(!ngsd_enabled_) return;
 	//load CNVs
 	CnvList cnvs;
 	try
@@ -2138,16 +2158,19 @@ void MainWindow::generateReportSomaticRTF()
 		cnvs.clear();
 	}
 
+	//set current ROI
+	somatic_report_settings_.target_bed_file = ui_.filters->targetRegion();
+
 	somatic_report_settings_.tumor_ps = processedSampleName();
 	somatic_report_settings_.normal_ps = normalSampleName();
-	somatic_report_settings_.target_bed_file = ui_.filters->targetRegion();
 
 	SomaticReportDialog test_dialog(somatic_report_settings_, variants_, cnvs, this);
 
 	if(!test_dialog.exec()) return;
-
 	test_dialog.writeBackSettings();
 
+	NGSD db;
+	db.setSomaticReportConfig(db.processedSampleId(processedSampleName()), db.processedSampleId(normalSampleName()), somatic_report_settings_.report_config, variants_,cnvs_,Helper::userName());
 
 	return;
 
@@ -3199,7 +3222,8 @@ void MainWindow::refreshVariantTable(bool keep_widths)
 
 	//update variant table
 	QList<int> col_widths = ui_.vars->columnWidths();
-	ui_.vars->update(variants_, filter_result_, report_settings_, max_variants);
+	if(ReportSettingsType() == SettingsType::GERMLINE) ui_.vars->update(variants_, filter_result_, report_settings_, max_variants);
+	else if(ReportSettingsType() == SettingsType::SOMATIC) ui_.vars->update(variants_, filter_result_, somatic_report_settings_, max_variants);
 	ui_.vars->adaptRowHeights();
 	if (keep_widths)
 	{
@@ -3829,6 +3853,7 @@ void MainWindow::editVariantReportConfiguration(int index)
 		}
 
 		SomaticReportVariantDialog* dlg = new SomaticReportVariantDialog(variants_[index].toString(), var_config, this);
+
 		if(dlg->exec() != QDialog::Accepted) return;
 		somatic_report_settings_.report_config.set(var_config);
 
@@ -4171,8 +4196,8 @@ void MainWindow::applyFilters(bool debug_time)
 			}
 		}
 
-		//report configuration filter
-		if (ui_.filters->reportConfigurationVariantsOnly())
+		//report configuration filter (show only variants with report configuration)
+		if (ReportSettingsType() == SettingsType::GERMLINE && ui_.filters->reportConfigurationVariantsOnly())
 		{
 			QSet<int> report_variant_indices = report_settings_.report_config.variantIndices(VariantType::SNVS_INDELS, false).toSet();
 			for(int i=0; i<variants_.count(); ++i)
@@ -4182,6 +4207,18 @@ void MainWindow::applyFilters(bool debug_time)
 				filter_result_.flags()[i] = report_variant_indices.contains(i);
 			}
 		}
+
+		//somatic report configuration filter (include variants that are marked as such in report config)
+		if(ReportSettingsType() == SettingsType::SOMATIC)
+		{
+			for(int index : somatic_report_settings_.report_config.variantIndices(VariantType::SNVS_INDELS, false))
+			{
+				if(filter_result_.flags()[index]) continue; //Skip variants that are marked to be shown by previous filters
+
+				filter_result_.flags()[index] = somatic_report_settings_.report_config.variantConfig(index).showInReport();
+			}
+		}
+
 	}
 	catch(Exception& e)
 	{

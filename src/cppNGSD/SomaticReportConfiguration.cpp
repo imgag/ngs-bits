@@ -1,4 +1,6 @@
+#include <QFileInfo>
 #include "SomaticReportConfiguration.h"
+#include "NGSD.h"
 
 SomaticReportVariantConfiguration::SomaticReportVariantConfiguration()
 	: variant_type(VariantType::SNVS_INDELS)
@@ -29,6 +31,16 @@ SomaticReportConfiguration::SomaticReportConfiguration()
 const QList<SomaticReportVariantConfiguration>& SomaticReportConfiguration::variantConfig() const
 {
 	return variant_config_;
+}
+
+const SomaticReportVariantConfiguration& SomaticReportConfiguration::variantConfig(int variant_index)
+{
+	for(const auto& conf : variant_config_)
+	{
+		if(conf.variant_index == variant_index) return conf;
+	}
+
+	THROW(ArgumentException, "Could not find somatic variant configuration for index " + QString::number(variant_index));
 }
 
 QList<int> SomaticReportConfiguration::variantIndices(VariantType type, bool only_selected, QString report_type) const
@@ -123,6 +135,10 @@ QString SomaticReportConfiguration::createdBy() const
 {
 	return created_by_;
 }
+QString SomaticReportConfiguration::targetFile() const
+{
+	return target_file_;
+}
 void SomaticReportConfiguration::setCreatedAt(QDateTime time)
 {
 	created_at_ = time;
@@ -130,6 +146,11 @@ void SomaticReportConfiguration::setCreatedAt(QDateTime time)
 void SomaticReportConfiguration::setCreatedBy(QString user)
 {
 	created_by_ = user;
+}
+void SomaticReportConfiguration::setTargetFile(QString target_bed)
+{
+	if(target_bed != "") target_file_ = QFileInfo(target_bed).fileName();
+	else target_file_ = "";
 }
 void SomaticReportConfiguration::sortByPosition()
 {

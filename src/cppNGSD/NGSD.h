@@ -337,6 +337,12 @@ struct CPPNGSDSHARED_EXPORT ReportConfigurationCreationData
 	QString toText() const;
 };
 
+///Meta data about somatic report configuration (e.g. creation/update, target bed file)
+struct CPPNGSDSHARED_EXPORT SomaticReportConfigurationData : public ReportConfigurationCreationData
+{
+	QString target_file;
+};
+
 /// NGSD accessor.
 class CPPNGSDSHARED_EXPORT NGSD
 		: public QObject
@@ -359,7 +365,7 @@ public:
 	///Creates a DBTable with data from an SQL query.
 	DBTable createTable(QString table, QString query, int pk_col_index=0);
 	///Creates a DBTable with all rows of a table.
-	DBTable createOverviewTable(QString table, QString text_filter = QString(), int pk_col_index=0);
+	DBTable createOverviewTable(QString table, QString text_filter = QString(), QString sql_order="id DESC", int pk_col_index=0);
 
 	///Creates database tables and imports initial data (password is required for production database if it is not empty)
 	void init(QString password="");
@@ -561,7 +567,7 @@ public:
 	void deleteReportConfig(int id);
 
 	///Returns the report config creation data (user/date) for somatic reports
-	ReportConfigurationCreationData somaticReportConfigCreationData(int id);
+	SomaticReportConfigurationData somaticReportConfigData(int id);
 
 
 	///Returns database ID of somatic report configuration, -1 if not present

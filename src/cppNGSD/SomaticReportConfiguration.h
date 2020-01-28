@@ -36,7 +36,13 @@ public:
 	QString createdBy() const;
 	QDateTime createdAt() const;
 
+	///Returns list containing all report variant configurations
 	const QList<SomaticReportVariantConfiguration>& variantConfig() const;
+
+	///Returns variant configuration for variant_index (index referes to index of main variant list!)
+	const SomaticReportVariantConfiguration& variantConfig(int variant_index);
+
+	QString targetFile() const;
 
 	QList<int> variantIndices(VariantType type, bool only_selected, QString report_type = QString()) const;
 
@@ -51,6 +57,7 @@ public:
 
 	void setCreatedBy(QString user);
 	void setCreatedAt(QDateTime time);
+	void setTargetFile(QString target_bed);
 
 	int count();
 
@@ -60,6 +67,7 @@ private:
 	QList<SomaticReportVariantConfiguration> variant_config_;
 	QString created_by_;
 	QDateTime created_at_;
+	QString target_file_;
 };
 
 #endif // SOMATICREPORTCONFIGURATION_H

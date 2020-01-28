@@ -17,14 +17,13 @@ struct SomaticReportSettings
 	FilterCascade filters;
 
 	QString report_type;
+
 	QString target_bed_file;
 
 	bool include_tum_content_clonality;
 	bool include_tum_content_snp_af;
 	bool include_tum_content_histological;
 	bool include_cov_statistics;
-
-
 };
 
 #endif // SOMATICREPORTSETTINGS_H
