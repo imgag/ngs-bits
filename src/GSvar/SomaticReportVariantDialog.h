@@ -11,6 +11,9 @@ class SomaticReportVariantDialog : public QDialog
 public:
 	SomaticReportVariantDialog(QString variant, SomaticReportVariantConfiguration& var_conf, QWidget *parent = 0);
 
+	///Disables include text boxes (in case of CNVS)
+	void disableIncludeForm();
+
 private:
 	Ui::SomaticReportVariantDialog ui_;
 	SomaticReportVariantConfiguration&  var_conf_;

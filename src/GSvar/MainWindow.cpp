@@ -273,7 +273,6 @@ void MainWindow::on_actionCNV_triggered()
 	CnvWidget* list;
 	if(cnvs_.type() == CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
 	{
-
 		list = new CnvWidget(cnvs_, ps_id, ui_.filters, somatic_report_settings_.report_config, het_hit_genes, gene2region_cache_);
 	}
 	else
@@ -1614,6 +1613,7 @@ void MainWindow::loadSomaticReportConfig()
 
 	QStringList messages;
 	somatic_report_settings_.report_config = db.somaticReportConfig(ps_tumor_id, ps_normal_id, variants_, cnvs_, messages);
+
 	if(!messages.isEmpty())
 	{
 		QMessageBox::warning(this, "Somatic report configuration", "The following problems were encountered while loading the som. report configuration:\n" + messages.join("\n"));

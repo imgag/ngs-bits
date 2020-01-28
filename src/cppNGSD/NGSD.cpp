@@ -3590,6 +3590,7 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 		var_conf.exclude_other_reason = query.value("exclude_other_reason").toBool();
 		var_conf.comment = query.value("comment").toString();
 
+
 		output.set(var_conf);
 	}
 

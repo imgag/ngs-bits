@@ -237,8 +237,9 @@ void CnvWidget::updateGUI()
 
 	//get report variant indices
 	QSet<int> report_variant_indices;
-	if(!is_somatic_) report_config_->variantIndices(VariantType::CNVS, false).toSet();
-	else somatic_report_config_->variantIndices(VariantType::CNVS, false).toSet();
+	if(!is_somatic_) report_variant_indices = report_config_->variantIndices(VariantType::CNVS, false).toSet();
+	else report_variant_indices = somatic_report_config_->variantIndices(VariantType::CNVS, false).toSet();
+
 
 	//show variants
 	ui->cnvs->setRowCount(cnvs_.count());
@@ -528,8 +529,16 @@ void CnvWidget::showContextMenu(QPoint p)
 	}
 	if (action==a_rep_del)
 	{
-		if(!is_somatic_) report_config_->remove(VariantType::CNVS, row);
-		else somatic_report_config_->remove(VariantType::CNVS, row);
+		if(!is_somatic_)
+		{
+			report_config_->remove(VariantType::CNVS, row);
+			emit storeReportConfiguration();
+		}
+		else
+		{
+			somatic_report_config_->remove(VariantType::CNVS, row);
+			emit storeSomaticReportConfiguration();
+		}
 		updateReportConfigHeaderIcon(row);
 	}
 }
@@ -876,6 +885,7 @@ void CnvWidget::editSomaticReportConfiguration(int row)
 	}
 
 	SomaticReportVariantDialog* dlg = new SomaticReportVariantDialog(cnvs_[row].toStringWithMetaData(), var_config, this);
+	dlg->disableIncludeForm();
 	if(dlg->exec()!=QDialog::Accepted) return;
 
 	somatic_report_config_->set(var_config);

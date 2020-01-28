@@ -25,6 +25,13 @@ SomaticReportVariantDialog::SomaticReportVariantDialog(QString variant, SomaticR
 	updateGUI();
 }
 
+void SomaticReportVariantDialog::disableIncludeForm()
+{
+	ui_.include_variant_alt->setEnabled(false);
+	ui_.include_variant_desc->setEnabled(false);
+}
+
+
 void SomaticReportVariantDialog::updateGUI()
 {
 	ui_.exclude_artefact->setChecked(var_conf_.exclude_artefact);
