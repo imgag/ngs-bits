@@ -1384,6 +1384,7 @@ void MainWindow::loadFile(QString filename)
 	}
 	else if(ngsd_enabled_ && settings_type == SettingsType::SOMATIC)
 	{
+		ui_.filters->disableReportConfigurationVariantsOnly();
 		loadSomaticReportConfig();
 	}
 
@@ -1623,7 +1624,8 @@ void MainWindow::loadSomaticReportConfig()
 	//Preselect target region bed file in NGSD
 	if(somatic_report_settings_.report_config.targetFile() != "")
 	{
-		ui_.filters->setTargetRegion(somatic_report_settings_.report_config.targetFile());
+		QString full_path = db.getTargetFilePath(true, true) + "/" + somatic_report_settings_.report_config.targetFile();
+		if(QFileInfo(full_path).exists()) ui_.filters->setTargetRegion(full_path);
 	}
 
 	refreshVariantTable();
@@ -1649,9 +1651,7 @@ void MainWindow::storeSomaticReportConfig()
 
 	if (conf_id!=-1)
 	{
-		qDebug() << "first in" << endl;
 		ReportConfigurationCreationData conf_creation = db.somaticReportConfigData(conf_id);
-		qDebug() << "after" << endl;
 		QString current_user_name = db.getValue("SELECT name FROM user WHERE user_id='" + Helper::userName() + "'").toString();
 		if (conf_creation.last_edit_by!="" && conf_creation.last_edit_by!=current_user_name)
 		if (QMessageBox::question(this, "Storing report configuration", conf_creation.toText() + "\n\nDo you want to override it?")==QMessageBox::No)
@@ -2159,7 +2159,7 @@ void MainWindow::generateReportSomaticRTF()
 	}
 
 	//set current ROI
-	somatic_report_settings_.target_bed_file = ui_.filters->targetRegion();
+	somatic_report_settings_.report_config.setTargetFile(ui_.filters->targetRegion());
 
 	somatic_report_settings_.tumor_ps = processedSampleName();
 	somatic_report_settings_.normal_ps = normalSampleName();
@@ -3864,15 +3864,28 @@ void MainWindow::editVariantReportConfiguration(int index)
 
 void MainWindow::updateReportConfigHeaderIcon(int index)
 {
-	//report config-based filter is on => update whole variant list
-	if (ui_.filters->reportConfigurationVariantsOnly())
+	if(ReportSettingsType() == SettingsType::GERMLINE)
 	{
-		refreshVariantTable();
+		//report config-based filter is on => update whole variant list
+		if (ui_.filters->reportConfigurationVariantsOnly())
+		{
+			refreshVariantTable();
+		}
+		else //no filter => refresh icon only
+		{
+			ui_.vars->updateVariantHeaderIcon(report_settings_, index);
+		}
 	}
-	else //no filter => refresh icon only
+	else if(ReportSettingsType() == SettingsType::SOMATIC)
 	{
-		if(ReportSettingsType() == SettingsType::GERMLINE) ui_.vars->updateVariantHeaderIcon(report_settings_, index);
-		else if(ReportSettingsType() == SettingsType::SOMATIC) ui_.vars->updateVariantHeaderIcon(somatic_report_settings_, index);
+		if(ui_.filters->targetRegion() == "" || ui_.filters->filters().count() > 0)
+		{
+			refreshVariantTable();
+		}
+		else
+		{
+			ui_.vars->updateVariantHeaderIcon(somatic_report_settings_, index);
+		}
 	}
 }
 

@@ -210,7 +210,7 @@ class CPPNGSSHARED_EXPORT CnvList
 		long long totalCnvSize();
 
 		///Returns call data from original file (e.g. version, caller...), specify ps_name in case of CNVHunter samples
-		static CnvListCallData getCallData(const CnvList& cnvs, QString filename, QString ps_name = "");
+		static CnvListCallData getCallData(const CnvList& cnvs, QString filename, QString ps_name = "", bool ignore_inval_header_lines = false);
 
 	protected:
 		CnvListType type_;

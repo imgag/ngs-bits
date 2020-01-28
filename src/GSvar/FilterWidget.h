@@ -45,6 +45,8 @@ public:
 	void setRegion(QString region);
 	/// Returns the state of the report configuration
 	bool reportConfigurationVariantsOnly() const;
+	/// Disables checkbox for option of reportConfigurationVariantsOnly
+	void disableReportConfigurationVariantsOnly() const;
 
 	///Returns selected phenotype terms.
 	const QList<Phenotype>& phenotypes() const;

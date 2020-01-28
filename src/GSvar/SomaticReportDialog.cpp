@@ -8,7 +8,7 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 	, settings_(settings)
 	, variants_(variants)
 	, cnvs_(cnvs)
-	, target_region_(settings.target_bed_file)
+	, target_region_(settings.report_config.targetFile())
 	, tum_cont_snps_(std::numeric_limits<double>::quiet_NaN())
 	, tum_cont_max_clonality_(std::numeric_limits<double>::quiet_NaN())
 	, tum_cont_histological_(std::numeric_limits<double>::quiet_NaN())

@@ -438,7 +438,7 @@ KeyValuePair CnvList::split(const QByteArray& string, char sep)
 	return KeyValuePair(key, value);
 }
 
-CnvListCallData CnvList::getCallData(const CnvList& cnvs, QString filename, QString ps_name)
+CnvListCallData CnvList::getCallData(const CnvList& cnvs, QString filename, QString ps_name, bool ignore_inval_header_lines)
 {
 	//parse file header
 	CnvListCallData out;
@@ -447,9 +447,6 @@ CnvListCallData CnvList::getCallData(const CnvList& cnvs, QString filename, QStr
 
 	foreach(const QByteArray& line, cnvs.comments())
 	{
-		if(line.contains("CGI_CANCER_TYPE")) continue;
-		if(line.startsWith("##DESCRIPTION=")) continue;
-
 		if (line.contains(":"))
 		{
 			KeyValuePair pair = split(line, ':');
@@ -472,7 +469,7 @@ CnvListCallData CnvList::getCallData(const CnvList& cnvs, QString filename, QStr
 				out.quality_metrics.insert(pair.key, pair.value);
 			}
 		}
-		else
+		else if(!ignore_inval_header_lines)
 		{
 			THROW(FileParseException, "Invalid header line '" + line + "' in file '" + filename + "'!");
 		}

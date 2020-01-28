@@ -242,6 +242,12 @@ bool FilterWidget::reportConfigurationVariantsOnly() const
 	return ui_.report_config->isChecked();
 }
 
+void FilterWidget::disableReportConfigurationVariantsOnly() const
+{
+	ui_.report_config->setChecked(false);
+	ui_.report_config->setEnabled(false);
+}
+
 const QList<Phenotype>& FilterWidget::phenotypes() const
 {
 	return phenotypes_;
