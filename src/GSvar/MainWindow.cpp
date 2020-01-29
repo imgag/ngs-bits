@@ -203,6 +203,42 @@ void MainWindow::on_actionSV_triggered()
 {
 	if(filename_ == "") return;
 
+	//create list of genes with heterozygous variant hits
+	GeneSet het_hit_genes;
+	int i_genes = variants_.annotationIndexByName("gene", true, false);
+	QList<int> i_genotypes = variants_.getSampleHeader().sampleColumns(true);
+	i_genotypes.removeAll(-1);
+
+	if (i_genes!=-1 && i_genotypes.count()>0)
+	{
+		//check that a filter was applied (otherwise this can take forever)
+		int passing_vars = filter_result_.countPassing();
+		if (passing_vars>2000)
+		{
+			int res = QMessageBox::question(this, "Continue?", "There are " + QString::number(passing_vars) + " variants that pass the filters.\nGenerating the list of candidate genes for compound-heterozygous hits may take very long for this amount of variants.\nDo you want to continue?", QMessageBox::Yes, QMessageBox::No);
+			if(res==QMessageBox::No) return;
+		}
+		for (int i=0; i<variants_.count(); ++i)
+		{
+			if (!filter_result_.passing(i)) continue;
+
+			bool all_genos_het = true;
+			foreach(int i_genotype, i_genotypes)
+			{
+				if (variants_[i].annotations()[i_genotype]!="het")
+				{
+					all_genos_het = false;
+				}
+			}
+			if (!all_genos_het) continue;
+			het_hit_genes.insert(GeneSet::createFromText(variants_[i].annotations()[i_genes], ','));
+		}
+	}
+	else if (variants_.type()!=SOMATIC_PAIR)
+	{
+		QMessageBox::information(this, "Invalid variant list", "Column for genes or genotypes not found in variant list. Cannot apply compound-heterozygous filter based on variants!");
+	}
+
 	try
 	{
 		//determine SV files (revert to make Manta the first one)
@@ -211,7 +247,7 @@ void MainWindow::on_actionSV_triggered()
 		std::reverse(file_names.begin(), file_names.end());
 
 		//open SV wisget
-		SvWidget* list = new SvWidget(file_names, ui_.filters, gene2region_cache_, this);
+		SvWidget* list = new SvWidget(file_names, ui_.filters, het_hit_genes, gene2region_cache_, this);
 		auto dlg = GUIHelper::createDialog(list, "Structural variants");
 		connect(list,SIGNAL(openSvInIGV(QString)),this,SLOT(openInIGV(QString)));
 		addModelessDialog(dlg);
