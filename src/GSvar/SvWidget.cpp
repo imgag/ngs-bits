@@ -15,10 +15,11 @@
 #include "Settings.h"
 #include "Log.h"
 
-SvWidget::SvWidget(const QStringList& bedpe_file_paths, FilterWidget* variant_filter_widget, QHash<QByteArray, BedFile>& cache, QWidget* parent)
+SvWidget::SvWidget(const QStringList& bedpe_file_paths, FilterWidget* variant_filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
 	: QWidget(parent)
 	, ui(new Ui::SvWidget)
 	, variant_filter_widget_(variant_filter_widget)
+	, var_het_genes_(het_hit_genes)
 	, gene2region_cache_(cache)
 {
 	ui->setupUi(this);
@@ -268,6 +269,18 @@ void SvWidget::applyFilters(bool debug_time)
 
 		// filter by FilterCascade
 		const FilterCascade& filter_cascade = ui->filter_widget->filters();
+
+		//set comp-het gene list the first time the filter is applied
+		for(int i=0; i<filter_cascade.count(); ++i)
+		{
+			const FilterSvCompHet* comphet_filter = dynamic_cast<const FilterSvCompHet*>(filter_cascade[i].data());
+			if (comphet_filter!=nullptr && comphet_filter->hetHitGenes().count()!=var_het_genes_.count())
+			{
+				comphet_filter->setHetHitGenes(var_het_genes_);
+			}
+		}
+
+		// apply filters of the filter cascade
 		filter_result = filter_cascade.apply(sv_bedpe_file_, false, debug_time);
 		ui->filter_widget->markFailedFilters();
 

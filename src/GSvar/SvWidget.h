@@ -19,7 +19,7 @@ class SvWidget
 	Q_OBJECT
 
 public:
-	SvWidget(const QStringList& bedpe_file_paths, FilterWidget* filter_widget, QHash<QByteArray, BedFile>& cache, QWidget *parent = 0);
+	SvWidget(const QStringList& bedpe_file_paths, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent = 0);
 
 signals:
 	void openSvInIGV(QString coords);
@@ -65,7 +65,6 @@ private:
 
 	BedFile roi_;
 	QString roi_filename_;
-
 	/*
 	QList<Phenotype> phenotypes_;
 	BedFile phenotypes_roi_; //cache for phenotype target region (avoid re-calculating it every time the filters are applied)
@@ -74,6 +73,7 @@ private:
 	// Pointer to the FilterWidget of the varaint view (used for import settings to SV view)
 	FilterWidget* variant_filter_widget_;
 
+	GeneSet var_het_genes_;
 	QHash<QByteArray, BedFile>& gene2region_cache_;
 
 	///load bedpe data file and set display

@@ -743,6 +743,9 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["SV SomaticScore"] = &createInstance<FilterSvSomaticscore>;
 		output["SV gene constraint"] = &createInstance<FilterSvGeneConstraint>;
 		output["SV gene overlap"] = &createInstance<FilterSvGeneOverlap>;
+		output["SV size"] = &createInstance<FilterSvSize>;
+		output["SV OMIM genes"] = &createInstance<FilterSvOMIM>;
+		output["SV compound-heterozygous"] = &createInstance<FilterSvCompHet>;
 	}
 
 	return output;
@@ -3574,6 +3577,170 @@ QByteArrayList FilterSvGeneOverlap::selectedOptions() const
 	if (getBool("intronic/intergenic")) output << "intronic/intergenic";
 
 	return output;
+}
+
+// Filter SV size
+FilterSvSize::FilterSvSize()
+{
+	name_ = "SV size";
+	type_ = VariantType::SVS;
+	description_ = QStringList() << "Filter for SV size.";
+	params_ << FilterParameter("size", INT, 0, "Minimum SV size (absolute size).");
+	params_.last().constraints["min"] = "0";
+
+	checkIsRegistered();
+}
+
+QString FilterSvSize::toText() const
+{
+	return name() + " &ge; " + QString::number(getInt("size", false)) + " bases";
+}
+
+void FilterSvSize::apply(const BedpeFile& svs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	int min_size_bases = getInt("size");
+	int i_info_a = svs.annotationIndexByName("INFO_A");
+	for(int i=0; i<svs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		// get SV length
+		QByteArrayList info_a_entries = svs[i].annotations()[i_info_a].split(';');
+		int sv_length = 0;
+		foreach(const QByteArray& entry, info_a_entries)
+		{
+			if (entry.startsWith("SVLEN="))
+			{
+				sv_length = std::abs(Helper::toInt(entry.mid(6)));
+				break;
+			}
+		}
+
+		if (sv_length < min_size_bases)
+		{
+			result.flags()[i] = false;
+		}
+	}
+}
+
+FilterSvOMIM::FilterSvOMIM()
+{
+	name_ = "SV OMIM genes";
+	type_ = VariantType::SVS;
+	description_ = QStringList() << "Filter for OMIM genes i.e. the 'OMIM' column is not empty.";
+
+	checkIsRegistered();
+}
+
+QString FilterSvOMIM::toText() const
+{
+	return name();
+}
+
+void FilterSvOMIM::apply(const BedpeFile& svs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	int index = svs.annotationIndexByName("OMIM", true);
+
+	for(int i=0; i<svs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		if (svs[i].annotations()[index].trimmed().isEmpty())
+		{
+			result.flags()[i] = false;
+		}
+	}
+}
+
+FilterSvCompHet::FilterSvCompHet()
+{
+	name_ = "SV compound-heterozygous";
+	type_ = VariantType::SVS;
+	description_ = QStringList() << "Filter for compound-heterozygous SVs." << "Mode 'SV-SV' detects genes with two or more SV hits." << "Mode 'SV-SNV/INDEL' detectes genes with exactly one SV and exactly one small variant hit (after other filters are applied).";
+	params_ << FilterParameter("mode", STRING, "n/a", "Compound-heterozygotes detection mode.");
+	params_.last().constraints["valid"] = "n/a,SV-SV,SV-SNV/INDEL";
+
+	checkIsRegistered();
+}
+
+QString FilterSvCompHet::toText() const
+{
+	return name() + " " + getString("mode");
+}
+
+void FilterSvCompHet::apply(const BedpeFile& svs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	QString mode = getString("mode");
+	if (mode=="n/a") return;
+
+	// get column index for genes
+	int i_genes = svs.annotationIndexByName("GENES");
+
+	//count hits per gene for SVs
+	QMap<QByteArray, int> gene_count;
+	for(int i=0; i<svs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		GeneSet genes;
+		genes << svs[i].annotations()[i_genes].split(';');
+
+		foreach(const QByteArray& gene, genes)
+		{
+			gene_count[gene] += 1;
+		}
+	}
+
+	GeneSet comphet_hit;
+
+	//two SV hits
+	if (mode=="SV-SV")
+	{
+		for(auto it=gene_count.cbegin(); it!=gene_count.cend(); ++it)
+		{
+			if (it.value()>1)
+			{
+				comphet_hit.insert(it.key());
+			}
+		}
+	}
+
+	//one SV and one SNV/INDEL hit
+	else if (mode=="SV-SNV/INDEL")
+	{
+		GeneSet single_hit_sv;
+		for(auto it=gene_count.cbegin(); it!=gene_count.cend(); ++it)
+		{
+			if (it.value()==1)
+			{
+				single_hit_sv.insert(it.key());
+			}
+		}
+
+		foreach(const QByteArray& gene, single_hit_sv)
+		{
+			if (het_hit_genes_.contains(gene))
+			{
+				comphet_hit.insert(gene);
+			}
+		}
+	}
+
+	//flag passing SVs
+	for(int i=0; i<svs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		GeneSet genes;
+		genes << svs[i].annotations()[i_genes].split(';');
+		result.flags()[i] = genes.intersectsWith(comphet_hit);
+	}
 }
 
 

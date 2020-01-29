@@ -130,6 +130,34 @@ int BedpeLine::size() const
 	THROW(ProgrammingException, "Unhandled variant type (int): " + BedpeFile::typeToString(t));
 }
 
+BedFile BedpeLine::affectedRegion()
+{
+	BedFile sv_region;
+
+	// determine region based on SV type
+	switch (type())
+	{
+		case StructuralVariantType::INV:
+		case StructuralVariantType::DEL:
+		case StructuralVariantType::DUP:
+			// whole area (+1 because BEDPE is 0-based)
+			sv_region.append(BedLine(chr1(), start1() + 1, end2() + 1));
+			break;
+
+		case StructuralVariantType::BND:
+		case StructuralVariantType::INS:
+			// consider pos 1 and pos 2 seperately (+1 because BEDPE is 0-based)
+			sv_region.append(BedLine(chr1(), start1() + 1, end1() + 1));
+			sv_region.append(BedLine(chr2(), start2() + 1, end2() + 1));
+			break;
+
+		default:
+			THROW(ProgrammingException, "Unhandled variant type (int): " + BedpeFile::typeToString(type()));
+			break;
+	}
+	return sv_region;
+}
+
 BedpeFile::BedpeFile()
 {
 }

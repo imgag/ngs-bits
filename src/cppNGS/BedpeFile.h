@@ -142,6 +142,9 @@ public:
 	///Returns the size: range for DEL, DUP and INV; -1 for INS and BND.
 	int size() const;
 
+	///Returns the affected chromosomal region als BED file
+	BedFile affectedRegion();
+
 protected:
 	Chromosome chr1_;
 	int start1_;

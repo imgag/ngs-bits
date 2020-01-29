@@ -857,4 +857,50 @@ class CPPNGSSHARED_EXPORT FilterSvGeneOverlap
 
 		QByteArrayList selectedOptions() const;
 };
+
+//Filter SV size
+class CPPNGSSHARED_EXPORT FilterSvSize
+	: public FilterBase
+{
+	public:
+		FilterSvSize();
+		QString toText() const override;
+		void apply(const BedpeFile& svs, FilterResult& result) const override;
+};
+
+//Filter SVs for OMIM annotation
+class CPPNGSSHARED_EXPORT FilterSvOMIM
+	: public FilterBase
+{
+	public:
+		FilterSvOMIM();
+		QString toText() const override;
+		void apply(const BedpeFile& svs, FilterResult& result) const override;
+};
+
+//Filter CNV compound-heterozygous
+class CPPNGSSHARED_EXPORT FilterSvCompHet
+	: public FilterBase
+{
+	public:
+		FilterSvCompHet();
+		QString toText() const override;
+		void apply(const BedpeFile& svs, FilterResult& result) const override;
+
+		//Returns the list of genes that have one heterzygous hit in the small variant list.
+		const GeneSet& hetHitGenes() const
+		{
+			return het_hit_genes_;
+		}
+
+		//Sets the list of genes that have one heterzygous hit in the small variant list.
+		void setHetHitGenes(const GeneSet& het_var_genes) const
+		{
+			het_hit_genes_ = het_var_genes;
+		}
+
+	protected:
+		mutable GeneSet het_hit_genes_;
+};
+
 #endif // FILTERCASCADE_H

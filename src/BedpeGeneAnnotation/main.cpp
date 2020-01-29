@@ -110,7 +110,7 @@ public:
 			BedpeLine line = bedpe_input_file[i];
 
 			// get region of SV
-			BedFile sv_region = getSvRegion(line);
+			BedFile sv_region = line.affectedRegion();
 
 			GeneSet matching_genes;
 			QHash<QByteArray, QByteArray> gnomad_oe_lof_values;
@@ -291,36 +291,6 @@ private:
 			gene_regions[i].annotations() = annotation;
 		}
 		return gene_regions;
-	}
-
-	/*
-	 *  returns BED file containing the affected chromosomal region of a given SV
-	 */
-	BedFile getSvRegion(const BedpeLine& sv)
-	{
-		BedFile sv_region;
-
-		// determine region based on SV type
-		switch (sv.type())
-		{
-			case StructuralVariantType::INV:
-			case StructuralVariantType::DEL:
-			case StructuralVariantType::DUP:
-				// whole area (+1 because BEDPE is 0-based)
-				sv_region.append(BedLine(sv.chr1(), sv.start1() + 1, sv.end2() + 1));
-				break;
-
-			case StructuralVariantType::BND:
-			case StructuralVariantType::INS:
-				// consider pos 1 and pos 2 seperately (+1 because BEDPE is 0-based)
-				sv_region.append(BedLine(sv.chr1(), sv.start1() + 1, sv.end1() + 1));
-				sv_region.append(BedLine(sv.chr2(), sv.start2() + 1, sv.end2() + 1));
-				break;
-
-			default:
-				break;
-		}
-		return sv_region;
 	}
 
 };
