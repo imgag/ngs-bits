@@ -1,0 +1,33 @@
+#chr	start	end	omim
+##MIM entries skipped because:
+##  approved gene missing: 1193
+##  approved gene name unknown: 0
+##  approved gene not convertable to genomic coordinates: 9
+chr1	948782	949940	147571_[GENE%3DISG15_PHENOS%3DImmunodeficiency_38,616126,Autosomal_recessive]
+chr1	955482	991516	103320_[GENE%3DAGRN_PHENOS%3DMyasthenic_syndrome,congenital,8,with_pre-_and_postsynaptic_defects,615120,Autosomal_recessive]
+chr1	1146685	1149532	600315_[GENE%3DTNFRSF4_PHENOS%3DImmunodeficiency_16,615593,Autosomal_recessive]
+chr1	1167608	1170441	615291_[GENE%3DB3GALT6_PHENOS%3DEhlers-Danlos_syndrome,spondylodysplastic_type,2,615349,Autosomal_recessive/Spondyloepimetaphyseal_dysplasia_with_joint_laxity,type_1,with_or_without_fractures,271640,Autosomal_recessive]
+chr1	1270635	1284750	601365_[GENE%3DDVL1_PHENOS%3DRobinow_syndrome,autosomal_dominant_2,616331,Autosomal_dominant]
+chr1	1447510	1470087	612316_[GENE%3DATAD3A_PHENOS%3DHarel-Yoon_syndrome,617183,Autosomal_recessive,Autosomal_dominant]
+chr1	1470533	1475853	616101_[GENE%3DTMEM240_PHENOS%3DSpinocerebellar_ataxia_21,607454,Autosomal_dominant]
+chr1	1716708	1822515	139380_[GENE%3DGNB1_PHENOS%3DMental_retardation,autosomal_dominant_42,616973,Autosomal_dominant/Leukemia,acute_lymphoblastic,somatic,613065]
+chr1	1950759	1962212	137163_[GENE%3DGABRD_PHENOS%3DEpilepsy,juvenile_myoclonic,susceptibility_to,613060,Autosomal_dominant/Epilepsy,idiopathic_generalized,10,613060,Autosomal_dominant/Epilepsy,generalized,with_febrile_seizures_plus,type_5,susceptibility_to,613060,Autosomal_dominant]
+chr1	2160113	2241578	164780_[GENE%3DSKI_PHENOS%3DShprintzen-Goldberg_syndrome,182212,Autosomal_dominant]
+chr1	2336215	2344030	602859_[GENE%3DPEX10_PHENOS%3DPeroxisome_biogenesis_disorder_6B,614871,Autosomal_recessive/Peroxisome_biogenesis_disorder_6A_(Zellweger),614870,Autosomal_recessive]
+chr1	2985711	3355205	605557_[GENE%3DPRDM16_PHENOS%3DLeft_ventricular_noncompaction_8,615373,Autosomal_dominant/Cardiomyopathy,dilated,1LL,615373,Autosomal_dominant]
+chr1	3689331	3692566	615242_[GENE%3DSMIM1_PHENOS%3DBlood_group,Vel_system,615264,Autosomal_recessive]
+chr1	3728624	3773798	616690_[GENE%3DCEP104_PHENOS%3DJoubert_syndrome_25,616781,Autosomal_recessive]
+chr1	5922857	6052551	607215_[GENE%3DNPHP4_PHENOS%3DNephronophthisis_4,606966,Autosomal_recessive/Senior-Loken_syndrome_4,606996,Autosomal_recessive]
+chr1	6484827	6521024	606351_[GENE%3DESPN_PHENOS%3DUsher_syndrome,type_1M,618632,Autosomal_recessive/Deafness,autosomal_recessive_36,609006,Autosomal_recessive/Deafness,neurosensory,without_vestibular_involvement,autosomal_dominant,609006,Autosomal_recessive]
+chr1	6526131	6580141	611101_[GENE%3DPLEKHG5_PHENOS%3DSpinal_muscular_atrophy,distal,autosomal_recessive,4,611067,Autosomal_recessive/Charcot-Marie-Tooth_disease,recessive_intermediate_C,615376,Autosomal_recessive]
+chr1	6845363	7829786	611501_[GENE%3DCAMTA1_PHENOS%3DCerebellar_ataxia,nonprogressive,with_mental_retardation,614756,Autosomal_dominant]
+chr1	7844359	7905257	603427_[GENE%3DPER3_PHENOS%3DAdvanced_sleep_phase_syndrome,familial,3,616882,Autosomal_dominant]
+chr1	8021702	8045585	602533_[GENE%3DPARK7_PHENOS%3DParkinson_disease_7,autosomal_recessive_early-onset,606324,Autosomal_recessive]
+chr1	8377865	8404247	605763_[GENE%3DSLC45A1_PHENOS%3DIntellectual_developmental_disorder_with_neuropsychiatric_features,617532,Autosomal_recessive]
+chr1	8412436	8877722	605226_[GENE%3DRERE_PHENOS%3DNeurodevelopmental_disorder_with_or_without_anomalies_of_the_brain,eye,or_heart,616975,Autosomal_dominant]
+chr1	8921040	8938769	172430_[GENE%3DENO1_PHENOS%3DEnolase_deficiency]
+chr1	9294813	9331416	138090_[GENE%3DH6PD_PHENOS%3DCortisone_reductase_deficiency_1,604931,Autosomal_recessive]
+chr1	9711769	9789192	602839_[GENE%3DPIK3CD_PHENOS%3DImmunodeficiency_14,615513,Autosomal_dominant]
+chr1	10003465	10045576	608700_[GENE%3DNMNAT1_PHENOS%3DLeber_congenital_amaurosis_9,608553,Autosomal_recessive]
+chr1	10270842	10441681	605995_[GENE%3DKIF1B_PHENOS%3DPheochromocytoma,171300,Autosomal_dominant/Charcot-Marie-Tooth_disease,type_2A1,118210,Autosomal_dominant/Neuroblastoma,susceptibility_to,1,256700,Autosomal_dominant,Somatic_mutation]
+chr1	10534923	10690835	601791_[GENE%3DPEX14_PHENOS%3DPeroxisome_biogenesis_disorder_13A_(Zellweger),614887,Autosomal_recessive]
