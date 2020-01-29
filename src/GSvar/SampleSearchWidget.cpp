@@ -90,6 +90,14 @@ void SampleSearchWidget::search()
 		DBTable ps_table = db_.processedSampleSearch(params);
 		ui_.sample_table->setData(ps_table);
 
+		//color
+		QColor orange = QColor(255,150,0,125);
+		QColor red = QColor(255,0,0,125);
+		ui_.sample_table->setBackgroundColorIfEqual("quality", orange, "medium");
+		ui_.sample_table->setBackgroundColorIfEqual("quality", red, "bad");
+		ui_.sample_table->setBackgroundColorIfEqual("run_quality", orange, "medium");
+		ui_.sample_table->setBackgroundColorIfEqual("run_quality", red, "bad");
+
 		//text
 		ui_.search_status->setText("Found " + QString::number(ps_table.rowCount()) + " matching samples.");
 	}

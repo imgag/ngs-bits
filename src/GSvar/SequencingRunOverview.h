@@ -21,6 +21,7 @@ protected slots:
 	void updateTable();
 	void openRunTab();
 	void editRun();
+	void addRun();
 
 private:
 	Ui::SequencingRunOverview ui_;

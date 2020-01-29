@@ -138,7 +138,7 @@ void DBEditor::createGUI()
 			THROW(ProgrammingException, "Unhandled table field type '" + QString::number(field_info.type) + "'!");
 		}
 		widget->setObjectName("editor_" + field);
-		widget->setEnabled(!field_info.is_readonly);
+		widget->setEnabled(!field_info.is_readonly || id_==-1);
 
 		//tooltip
 		if (!field_info.tooltip.isEmpty())
@@ -486,7 +486,7 @@ void DBEditor::store()
 
 		//skip non-editable fields
 		if (field_info.is_hidden) continue;
-		if (field_info.is_readonly) continue;
+		if (field_info.is_readonly && id_!=-1) continue;
 
 		fields << field;
 

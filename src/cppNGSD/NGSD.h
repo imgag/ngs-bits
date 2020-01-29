@@ -46,7 +46,7 @@ struct CPPNGSDSHARED_EXPORT TableFieldInfo
 	//displaying options
 	QString label; //label to show (normally the name, but overwritten e.g. for FK fields)
 	bool is_hidden = false; //not shown
-	bool is_readonly = false; //shown, but not editable
+	bool is_readonly = false; //shown, but not editable (after it is initially set)
 	QString tooltip; //tooltip taken from column comment of the SQL database
 
 	QString toString() const;
