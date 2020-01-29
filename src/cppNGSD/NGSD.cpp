@@ -67,6 +67,13 @@ QString NGSD::userEmail(int user_id)
 	return getValue("SELECT email FROM user WHERE id=:0", false,  QString::number(user_id)).toString();
 }
 
+const QString& NGSD::passordReplacement()
+{
+	static QString output = "********";
+
+	return output;
+}
+
 DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 {
 	//init
@@ -1122,7 +1129,13 @@ const TableInfo& NGSD::tableInfo(QString table) const
 			else if(type.startsWith("varchar("))
 			{
 				info.type = TableFieldInfo::VARCHAR;
-				info.type_restiction = type.mid(8, type.length()-9);
+				info.type_restiction = Helper::toInt(type.mid(8, type.length()-9), "VARCHAR length");
+
+				//password column
+				if (table=="user" && info.name=="password")
+				{
+					info.type = TableFieldInfo::VARCHAR_PASSWORD;
+				}
 			}
 			else
 			{
@@ -1134,6 +1147,9 @@ const TableInfo& NGSD::tableInfo(QString table) const
 
 			//PK
 			info.is_primary_key = index.contains(info.name);
+
+			//unique
+			info.is_unique = query.value(3).toString()=="UNI";
 
 			//default value
 			info.default_value =  query.value(4).isNull() ? QString() : query.value(4).toString();
@@ -1382,6 +1398,14 @@ DBTable NGSD::createOverviewTable(QString table, QString text_filter, QString sq
 					column[r] = "yes";
 				}
 			}
+			output.setColumn(c, column);
+		}
+
+		//PASSWORD - replace hashes
+		if(field_info.type==TableFieldInfo::VARCHAR_PASSWORD)
+		{
+			QStringList column;
+			while(column.count() < output.rowCount()) column << passordReplacement();
 			output.setColumn(c, column);
 		}
 	}

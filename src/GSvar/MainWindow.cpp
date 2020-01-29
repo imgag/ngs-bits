@@ -506,6 +506,26 @@ void MainWindow::delayedInitialization()
 		Settings::createBackup();
 	}
 
+	//TODO also check user password - force new password when salt is missing - AFTER NGSD IS NO LONGER USED!
+	//check user is in NGSD
+	if (ngsd_enabled_)
+	{
+		QString user_name = Helper::userName();
+		try
+		{
+			NGSD db;
+			int user_id = db.userId(user_name);
+			db.getQuery().exec("UPDATE user SET last_login=NOW() WHERE id='" + QString::number(user_id) + "'");
+		}
+		catch (DatabaseException& e)
+		{
+			QMessageBox::warning(this, "Unknown user", "There is not NGSD accout with user name '" + user_name + "'.\n\nPlease contact the NGSD adminstrator to create an account!");
+			close();
+			return;
+		}
+	}
+
+	//init GUI
 	updateRecentFilesMenu();
 	updateIGVMenu();
 	updateNGSDSupport();
@@ -2573,6 +2593,24 @@ void MainWindow::on_actionSpecies_triggered()
 {
 	DBTableAdministration* widget = new DBTableAdministration("species");
 	auto dlg = GUIHelper::createDialog(widget, "Species administration");
+	dlg->exec();
+}
+
+void MainWindow::on_actionUsers_triggered()
+{
+	//check that user is admin
+	QString user_name = Helper::userName();
+	NGSD db;
+	QString user_id = db.getValue("SELECT id FROM user WHERE user_role='admin' AND user_id=:0", true, user_name).toString();
+	if (user_id.isEmpty())
+	{
+		QMessageBox::warning(this, "Access denied", "Your user '" + user_name + "' has no admin rights in the NGSD!");
+		return;
+	}
+
+	//show user table
+	DBTableAdministration* widget = new DBTableAdministration("user");
+	auto dlg = GUIHelper::createDialog(widget, "User administration");
 	dlg->exec();
 }
 

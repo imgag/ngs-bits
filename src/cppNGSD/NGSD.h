@@ -24,7 +24,17 @@ struct CPPNGSDSHARED_EXPORT TableFieldInfo
 {
 	enum Type
 	{
-		BOOL, INT, FLOAT, TEXT, VARCHAR, ENUM, DATE, DATETIME, TIMESTAMP, FK
+		BOOL,
+		INT,
+		FLOAT,
+		TEXT, //multi-line text
+		VARCHAR, //one line text
+		VARCHAR_PASSWORD, //note: special handling when shown and edited
+		ENUM,
+		DATE,
+		DATETIME, //note: hidden by default
+		TIMESTAMP, //note: hidden by default
+		FK //foreign-key
 	};
 
 	int index = -1;
@@ -34,11 +44,12 @@ struct CPPNGSDSHARED_EXPORT TableFieldInfo
 	Type type;
 	bool is_nullable;
 	bool is_unsigned;
-	QVariant type_restiction; //length of VARCHAR and value of ENUM
+	QVariant type_restiction; //length of VARCHAR and values of ENUM
 	QString default_value;
 
 	//index+key info
 	bool is_primary_key;
+	bool is_unique;
 	QString fk_table; //target table of FK
 	QString fk_field; //target field of FK
 	QString fk_name_sql; //SQL code to get the name in the target table - normally 'name', but can contain any valid SQL query
@@ -481,6 +492,8 @@ public:
 	QString userName(int user_id=-1);
 	///Returns the user email corresponding the given ID. If no ID is given, the current user ID is used (see userId()).
 	QString userEmail(int user_id=-1);
+	///Replacement for passwords when they are shown in the GUI.
+	static const QString& passordReplacement();
 
 	/*** Main NGSD functions ***/
 	///Search for processed samples

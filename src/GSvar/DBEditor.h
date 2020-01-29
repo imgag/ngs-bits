@@ -31,6 +31,7 @@ protected slots:
 	void editDate();
 
 private:
+	NGSD db_;
 	QString table_;
 	int id_;
 	QHash<QString, QStringList> errors_;

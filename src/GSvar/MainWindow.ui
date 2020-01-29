@@ -441,6 +441,8 @@
      <addaction name="actionSampleGroup"/>
      <addaction name="actionSender"/>
      <addaction name="actionSpecies"/>
+     <addaction name="separator"/>
+     <addaction name="actionUsers"/>
     </widget>
     <addaction name="menuGenes_2"/>
     <addaction name="menuPhenotypes_2"/>
@@ -966,6 +968,11 @@
    </property>
    <property name="toolTip">
     <string>Sequencing run overview</string>
+   </property>
+  </action>
+  <action name="actionUsers">
+   <property name="text">
+    <string>Users</string>
    </property>
   </action>
  </widget>

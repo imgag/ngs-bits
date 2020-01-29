@@ -13,7 +13,6 @@ NGSD:
     - offer Excel template
     - integrate GSmix checks - single sample and batch check (remove GSmix and desktop link)
     - add sample groups (adding, editing, displaying)
-** Add users section (only for admins)
 - Sample tab: allow import disease info, disease group/status, gender from same samples
 - Sample: allow several disease_groups per sample (requested by CS)
 
