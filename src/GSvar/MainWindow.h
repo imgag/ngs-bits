@@ -109,6 +109,7 @@ public slots:
 	void on_actionSampleGroup_triggered();
 	void on_actionSender_triggered();
 	void on_actionSpecies_triggered();
+	void on_actionUsers_triggered();
 
     ///Gender determination
 	void on_actionGenderXY_triggered();

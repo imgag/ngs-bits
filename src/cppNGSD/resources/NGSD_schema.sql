@@ -131,7 +131,7 @@ CREATE  TABLE IF NOT EXISTS `mid`
   `name` VARCHAR(255) NOT NULL,
   `sequence` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `UNIQUE_MAN_INDEX` (`name` ASC)
+  UNIQUE INDEX `name_UNIQUE` (`name` ASC)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
@@ -320,8 +320,8 @@ CREATE  TABLE IF NOT EXISTS `user`
   `user_role` ENUM('user','admin','special') NOT NULL,
   `name` VARCHAR(45) NOT NULL,
   `email` VARCHAR(45) NOT NULL,
-  `created` DATE NOT NULL,
-  `last_login` DATE NULL DEFAULT NULL,
+  `created` DATETIME NOT NULL,
+  `last_login` DATETIME NULL DEFAULT NULL,
   `active` TINYINT(1) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`user_id` ASC),
@@ -357,7 +357,7 @@ CREATE  TABLE IF NOT EXISTS `sample`
   `disease_group` ENUM('n/a','Neoplasms','Diseases of the blood or blood-forming organs','Diseases of the immune system','Endocrine, nutritional or metabolic diseases','Mental, behavioural or neurodevelopmental disorders','Sleep-wake disorders','Diseases of the nervous system','Diseases of the visual system','Diseases of the ear or mastoid process','Diseases of the circulatory system','Diseases of the respiratory system','Diseases of the digestive system','Diseases of the skin','Diseases of the musculoskeletal system or connective tissue','Diseases of the genitourinary system','Developmental anomalies','Other diseases') NOT NULL DEFAULT 'n/a',
   `disease_status` ENUM('n/a','Affected','Unaffected') NOT NULL DEFAULT 'n/a',
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `id_UNIQUE` (`name` ASC),
+  UNIQUE INDEX `name_UNIQUE` (`name` ASC),
   INDEX `fk_samples_species1` (`species_id` ASC),
   INDEX `sender_id` (`sender_id` ASC),
   INDEX `receiver_id` (`receiver_id` ASC),

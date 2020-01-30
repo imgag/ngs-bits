@@ -148,6 +148,12 @@
           </property>
           <item>
            <widget class="QTableWidget" name="read_quality">
+            <property name="minimumSize">
+             <size>
+              <width>600</width>
+              <height>0</height>
+             </size>
+            </property>
             <attribute name="horizontalHeaderVisible">
              <bool>true</bool>
             </attribute>

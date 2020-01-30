@@ -1,6 +1,5 @@
 #include "DBEditor.h"
 #include "DBComboBox.h"
-#include "NGSD.h"
 #include "GUIHelper.h"
 
 #include <QFormLayout>
@@ -16,9 +15,11 @@
 #include <QCalendarWidget>
 #include <QToolButton>
 #include <QApplication>
+#include <QCryptographicHash>
 
 DBEditor::DBEditor(QWidget* parent, QString table, int id)
 	: QWidget(parent)
+	, db_()
 	, table_(table)
 	, id_(id)
 {
@@ -44,8 +45,7 @@ void DBEditor::createGUI()
 	setLayout(layout);
 
 	//widgets
-	NGSD db;
-	const TableInfo & table_info = db.tableInfo(table_);
+	const TableInfo & table_info = db_.tableInfo(table_);
 
 	foreach(const QString& field, table_info.fieldNames())
 	{
@@ -96,6 +96,14 @@ void DBEditor::createGUI()
 		else if (field_info.type==TableFieldInfo::VARCHAR)
 		{
 			QLineEdit* edit = new QLineEdit(this);
+			connect(edit, SIGNAL(textChanged(QString)), this, SLOT(check()));
+
+			widget = edit;
+		}
+		else if (field_info.type==TableFieldInfo::VARCHAR_PASSWORD)
+		{
+			QLineEdit* edit = new QLineEdit(this);
+			connect(edit, SIGNAL(textChanged(QString)), this, SLOT(check()));
 
 			widget = edit;
 		}
@@ -103,7 +111,7 @@ void DBEditor::createGUI()
 		{
 			QComboBox* selector = new QComboBox(this);
 
-			QStringList items = db.getEnum(table_, field);
+			QStringList items = field_info.type_restiction.toStringList();
 			if (field_info.is_nullable) items.prepend("");
 			selector->addItems(items);
 
@@ -129,7 +137,7 @@ void DBEditor::createGUI()
 
 			if (field_info.fk_name_sql=="") THROW(ProgrammingException, "Foreign key name SQL not set for table/field: " + table_ + "/" + field_info.name);
 
-			selector->fill(db.createTable(field_info.fk_table, "SELECT id, " + field_info.fk_name_sql + " as display_value FROM " + field_info.fk_table + " ORDER BY display_value"), field_info.is_nullable);
+			selector->fill(db_.createTable(field_info.fk_table, "SELECT id, " + field_info.fk_name_sql + " as display_value FROM " + field_info.fk_table + " ORDER BY display_value"), field_info.is_nullable);
 
 			widget = selector;
 		}
@@ -185,8 +193,7 @@ void DBEditor::fillForm()
 
 void DBEditor::fillFormWithDefaultData()
 {
-	NGSD db;
-	const TableInfo& table_info = db.tableInfo(table_);
+	const TableInfo& table_info = db_.tableInfo(table_);
 
 	foreach(const QString& field, table_info.fieldNames())
 	{
@@ -223,6 +230,11 @@ void DBEditor::fillFormWithDefaultData()
 			QLineEdit* edit = getEditWidget<QLineEdit*>(field);
 			edit->setText(field_info.default_value);
 		}
+		else if (field_info.type==TableFieldInfo::VARCHAR_PASSWORD)
+		{
+			QLineEdit* edit = getEditWidget<QLineEdit*>(field);
+			edit->setText("");
+		}
 		else if (field_info.type==TableFieldInfo::ENUM)
 		{
 			QComboBox* edit = getEditWidget<QComboBox*>(field);
@@ -247,10 +259,9 @@ void DBEditor::fillFormWithDefaultData()
 
 void DBEditor::fillFormWithItemData()
 {
-	NGSD db;
-	const TableInfo& table_info = db.tableInfo(table_);
+	const TableInfo& table_info = db_.tableInfo(table_);
 
-	SqlQuery query = db.getQuery();
+	SqlQuery query = db_.getQuery();
 	query.exec("SELECT * FROM " + table_ + " WHERE id=" + QString::number(id_));
 	query.next();
 	if (query.size()!=1) THROW(ProgrammingException, "Table '" + table_ + "' contains no row with 'id' " + QString::number(id_) + "!");
@@ -290,6 +301,11 @@ void DBEditor::fillFormWithItemData()
 			QLineEdit* edit = getEditWidget<QLineEdit*>(field);
 			edit->setText(value.toString());
 		}
+		else if (field_info.type==TableFieldInfo::VARCHAR_PASSWORD)
+		{
+			QLineEdit* edit = getEditWidget<QLineEdit*>(field);
+			edit->setText(NGSD::passordReplacement());
+		}
 		else if (field_info.type==TableFieldInfo::ENUM)
 		{
 			QComboBox* edit = getEditWidget<QComboBox*>(field);
@@ -321,8 +337,8 @@ void DBEditor::check()
 	QStringList errors;
 
 	QString field = sender()->objectName().remove("editor_");
-	const TableFieldInfo& field_info = NGSD().tableInfo(table_).fieldInfo(field);
-	//qDebug() << __FUNCTION__ << field  << field_info.toString();
+	const TableFieldInfo& field_info = db_.tableInfo(table_).fieldInfo(field);
+	//qDebug() << __FUNCTION__ << __LINE__ << field  << field_info.toString();
 
 	if (field_info.type==TableFieldInfo::INT)
 	{
@@ -409,6 +425,82 @@ void DBEditor::check()
 		edit->setToolTip(errors.join("\n"));
 		edit->setStyleSheet(errors.isEmpty() ?  "" : "QLineEdit {border: 2px solid red;}");
 	}
+	else if (field_info.type==TableFieldInfo::VARCHAR)
+	{
+		QLineEdit* edit = getEditWidget<QLineEdit*>(field);
+		QString value = edit->text().trimmed();
+
+		//check length
+		if (value.length()>field_info.type_restiction.toInt())
+		{
+			errors << "Maximum length is: " + field_info.type_restiction.toString();
+		}
+
+		//check unique
+		if (field_info.is_unique)
+		{
+			QStringList values = db_.getValues("SELECT " + field_info.name + " FROM " + table_ + " WHERE id!=" + QString::number(id_));
+			if (values.contains(value))
+			{
+				errors << "Value already present (this field is unique!)";
+			}
+		}
+
+		//update GUI
+		edit->setToolTip(errors.join("\n"));
+		edit->setStyleSheet(errors.isEmpty() ?  "" : "QLineEdit {border: 2px solid red;}");
+	}
+	else if (field_info.type==TableFieldInfo::VARCHAR_PASSWORD)
+	{
+		QLineEdit* edit = getEditWidget<QLineEdit*>(field);
+		QString value = edit->text().trimmed();
+
+		if (value!=NGSD::passordReplacement() && id_!=-1)
+		{
+			//check length
+			if (value.length()>field_info.type_restiction.toInt())
+			{
+				errors << "Maximum length is: " + field_info.type_restiction.toString();
+			}
+			if (value.length()<8)
+			{
+				errors << "Minimum length is: " + field_info.type_restiction.toString();
+			}
+
+			//check composition
+			bool has_upper = false;
+			bool has_lower = false;
+			bool has_digit = false;
+			bool has_symbol = false;
+			foreach (const QChar& character, value)
+			{
+				if (character.isUpper())
+				{
+					has_upper = true;
+				}
+				else if (character.isLower())
+				{
+					has_lower = true;
+				}
+				else if (character.isDigit())
+				{
+					has_digit = true;
+				}
+				else
+				{
+					has_symbol = true;
+				}
+			}
+			if (!has_lower || !has_upper || !has_digit || !has_symbol)
+			{
+				errors << "Must contains at least one letter of each class: upper-case, lower-case, digit, symbol";
+			}
+		}
+
+		//update GUI
+		edit->setToolTip(errors.join("\n"));
+		edit->setStyleSheet(errors.isEmpty() ?  "" : "QLineEdit {border: 2px solid red;}");
+	}
 	else
 	{
 		THROW(ProgrammingException, "Unhandled table field type '" + QString::number(field_info.type) + "'!");
@@ -474,8 +566,7 @@ void DBEditor::store()
 {
 	if (!dataIsValid()) THROW(ProgrammingException, "Cannot store data that is invalid to the database!");
 
-	NGSD db;
-	const TableInfo& table_info = db.tableInfo(table_);
+	const TableInfo& table_info = db_.tableInfo(table_);
 
 	//create fields/values
 	QStringList fields;
@@ -519,6 +610,21 @@ void DBEditor::store()
 			QString value = editor->text().trimmed();
 			values << (value.isEmpty() && field_info.is_nullable ? "NULL" : value);
 		}
+		else if (field_info.type==TableFieldInfo::VARCHAR_PASSWORD)
+		{
+			QLineEdit* editor = getEditWidget<QLineEdit*>(field);
+			QString value = editor->text().trimmed();
+			if (value==NGSD::passordReplacement()) //password unchanged > use old password
+			{
+				values << db_.getValue("SELECT " + field_info.name + " FROM " + table_ + " WHERE id=" + QString::number(id_)).toString();
+			}
+			else
+			{
+				//TODO don't use user name as salt, use random salt stored in user table (and use slower hash function) - AFTER NGSD IS NO LONGER USED!
+				QString user_id = getEditWidget<QLineEdit*>("user_id")->text().trimmed();
+				values << QCryptographicHash::hash((user_id+value).toUtf8(), QCryptographicHash::Sha1).toHex();
+			}
+		}
 		else if (field_info.type==TableFieldInfo::ENUM)
 		{
 			QComboBox* editor = getEditWidget<QComboBox*>(field);
@@ -544,7 +650,7 @@ void DBEditor::store()
 	}
 
 	//update/insert
-	SqlQuery query = db.getQuery();
+	SqlQuery query = db_.getQuery();
 	try
 	{
 		if (id_!=-1)
@@ -582,6 +688,6 @@ void DBEditor::store()
 	}
 	catch (Exception& e)
 	{
-		QMessageBox::warning(this, "Error storing data", "An error occured while storing data to the database. Please report this to your adminstrator:\n\nERROR:\n" + e.message() + "\n\nQUERY:\n" + query.executedQuery());
+		QMessageBox::warning(this, "Error storing data", "An error occured while storing data to the database.\n\nERROR:\n" + e.message());
 	}
 }
