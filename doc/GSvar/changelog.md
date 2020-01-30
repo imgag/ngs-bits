@@ -1,5 +1,14 @@
 # GSvar change log
 
+### 2019_11-99 (30.01.20)
+- NGSD: Added run overview.
+- NGSD: Added admin section and statistics.
+- NGSD: Added edit button to NGSD tabs.
+- Reports: added reports without CNV calls (chrMT).
+- General: check-box for searching trio/multi analyses in "open by name" is now unchecked by default.
+- Structural variants: complete re-design for dialog (contains gene names, gene overlap and OMIM column now).
+- Gap report: gaps for single gene can now be calculated (if no target region is set).
+
 ### 2019_11-74 (16.01.20)
 - General: moved sample search to tab.
 - General: variant list is now stored in the background when changing variant classification.

@@ -126,7 +126,7 @@
       </sizepolicy>
      </property>
      <property name="toolTip">
-      <string>Edit</string>
+      <string/>
      </property>
      <property name="title">
       <string>Processing system</string>

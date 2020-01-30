@@ -392,7 +392,7 @@ public:
 	void executeQueriesFromFile(QString filename);
 
 	///Returns all possible values for a enum column.
-	QStringList getEnum(QString table, QString column);
+	QStringList getEnum(QString table, QString column) const;
 	///Checks if a table exists.
 	void tableExists(QString table);
 	///Checks if a table is empty.
