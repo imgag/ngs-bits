@@ -135,6 +135,16 @@ private:
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_cnv").toInt(), 1);
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_variant").toInt(), 0);
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration").toInt(), 2);
+
+
+		//Delete Variants
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_cnv").toInt(), 4);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_cnv_callset").toInt(), 2);
+		I_EQUAL(db.getValue("SELECT count(*) FROM detected_somatic_variant").toInt(), 1);
+		db.deleteSomaticVariants("4000", "3999");
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_cnv").toInt(), 2);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_cnv_callset").toInt(), 1);
+		I_EQUAL(db.getValue("SELECT count(*) FROM detected_somatic_variant").toInt(), 0);
 	}
 
 

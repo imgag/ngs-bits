@@ -4,6 +4,7 @@
 #include "SomaticReportConfiguration.h"
 #include "FilterCascade.h"
 #include "NGSD.h"
+#include "VariantList.h"
 
 struct SomaticReportSettings
 {
@@ -22,6 +23,11 @@ struct SomaticReportSettings
 	bool include_tum_content_snp_af;
 	bool include_tum_content_histological;
 	bool include_cov_statistics;
+
+	///returns variant list according filters and include/exclude report_config settings. Include from settings will overwrite FilterCascade entry
+	static VariantList filterVariants(const VariantList& snvs, const SomaticReportSettings& sett);
+	///returns cnv list according excluded cnvs from somatic report_config settings
+	static CnvList filterCnvs(const CnvList& cnvs, const SomaticReportSettings& sett);
 };
 
 #endif // SOMATICREPORTSETTINGS_H

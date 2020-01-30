@@ -16,6 +16,7 @@
 #include <QDir>
 #include "RtfDocument.h"
 #include "BedpeFile.h"
+#include "SomaticReportSettings.h"
 
 ///representation of CGI information of a drug reported by CGI
 class CGIDrugReportLine
@@ -280,7 +281,8 @@ class SomaticReportHelper
 {
 public:
 	///Constructor loads data into class
-	SomaticReportHelper(QString snv_filename, const CnvList& filtered_cnvs, const FilterCascade& filters, const QString& target_region="");
+	SomaticReportHelper(const VariantList& variants, const CnvList &cnvs, const SomaticReportSettings& settings);
+
 	///write Rtf File
 	void writeRtf(const QByteArray& out_file);
 
@@ -369,10 +371,10 @@ private:
 	OntologyTermCollection obo_terms_coding_splicing_;
 
 	///tumor ID
-	QString tumor_id_;
+	QString tumor_ps_;
 
 	///normal ID
-	QString normal_id_;
+	QString normal_ps_;
 
 	///Input VariantList
 	VariantList snv_variants_;
@@ -382,6 +384,9 @@ private:
 
 	///CNVList for input (filtered) variants
 	CnvList cnvs_filtered_;
+
+	///Report Settings
+	SomaticReportSettings settings_;
 
 	///Somatic viruses (original file usually in tumor dir)
 	QList<somatic_virus> validated_viruses_;

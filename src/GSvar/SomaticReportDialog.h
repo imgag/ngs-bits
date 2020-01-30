@@ -14,6 +14,20 @@ class SomaticReportDialog
 public:
 	SomaticReportDialog(SomaticReportSettings& settings, const VariantList& variants, const CnvList& cnvs, QWidget* parent = 0);
 
+	enum report_type
+	{
+		DNA,
+		RNA
+	};
+
+	///Returns whether report type shall be DNA or RNA
+	report_type getReportType();
+
+
+	void enableChoiceReportType(bool enabled);
+
+
+
 private:
 	Ui::SomaticReportDialog ui_;
 	NGSD db_;

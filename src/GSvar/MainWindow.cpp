@@ -2199,52 +2199,26 @@ void MainWindow::generateReport()
 void MainWindow::generateReportSomaticRTF()
 {
 	if(!ngsd_enabled_) return;
-	//load CNVs
-	CnvList cnvs;
-	try
-	{
-		QString filename_cnv = QFileInfo(filename_).filePath().split('.')[0] + "_clincnv.tsv";
-		cnvs.load(filename_cnv);
-	}
-	catch(Exception& error)
-	{
-		QMessageBox::warning(this, "Error loading CNV file", error.message()+"\n\nContinuing without CNVs!");
-		cnvs.clear();
-	}
 
-	//set current ROI
+	//Set data in somatic report settings
 	somatic_report_settings_.report_config.setTargetFile(ui_.filters->targetRegion());
-
 	somatic_report_settings_.tumor_ps = processedSampleName();
 	somatic_report_settings_.normal_ps = normalSampleName();
+	somatic_report_settings_.filters = ui_.filters->filters();
 
-	SomaticReportDialog test_dialog(somatic_report_settings_, variants_, cnvs, this);
+	SomaticReportDialog dlg(somatic_report_settings_, variants_, cnvs_, this); //widget for settings
+	if(SomaticRnaReport::checkRequiredSNVAnnotations(variants_)) dlg.enableChoiceReportType(true);
+	if(!dlg.exec()) return;
+	dlg.writeBackSettings();
 
-	if(!test_dialog.exec()) return;
-	test_dialog.writeBackSettings();
 
+	//store somatic report config in NGSD
 	NGSD db;
 	db.setSomaticReportConfig(db.processedSampleId(processedSampleName()), db.processedSampleId(normalSampleName()), somatic_report_settings_.report_config, variants_,cnvs_,Helper::userName());
 
-	return;
 
-	//Configure report
-	SomaticReportConfigurationWidget config_report(cnvs, this);
-
-	//Activate radio buttons to select between RNA and DNA if RNA annotation data is available
-	if(SomaticRnaReport::checkRequiredSNVAnnotations(variants_)) config_report.setSelectionRnaDna(true);
-
-	config_report.setWindowFlags(Qt::Window);
-	connect(&config_report, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
-	if(!config_report.exec()) return;
-
-	//we only use CNVs checked by the user
-	cnvs = config_report.getSelectedCNVs();
-
-
-
-	QString destination_path;
-	if(config_report.getReportType() == SomaticReportConfigurationWidget::report_type::DNA)
+	QString destination_path; //path to rtf file
+	if(dlg.getReportType() == SomaticReportDialog::report_type::DNA)
 	{
 		destination_path = last_report_path_ + "/" + QFileInfo(filename_).baseName() + "_DNA_report_somatic_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf";
 	}
@@ -2269,7 +2243,7 @@ void MainWindow::generateReportSomaticRTF()
 
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
-	if(config_report.getReportType() == SomaticReportConfigurationWidget::report_type::DNA)
+	if(dlg.getReportType() == SomaticReportDialog::report_type::DNA)
 	{
 		//generate somatic DNA report
 		try
@@ -2281,7 +2255,9 @@ void MainWindow::generateReportSomaticRTF()
 				return;
 			}
 
-			SomaticReportHelper report(filename_, cnvs, ui_.filters->filters(),ui_.filters->targetRegion());
+			//SomaticReportHelper report(filename_, cnvs_, ui_.filters->filters(),ui_.filters->targetRegion());
+
+			SomaticReportHelper report(variants_, cnvs_, somatic_report_settings_);
 
 			//Generate RTF
 			QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
@@ -2325,7 +2301,7 @@ void MainWindow::generateReportSomaticRTF()
 		try
 		{
 			QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
-			SomaticRnaReport rna_report(variants_, ui_.filters->filters(), cnvs);
+			SomaticRnaReport rna_report(variants_, ui_.filters->filters(), cnvs_);
 			rna_report.writeRtf(temp_filename);
 			ReportWorker::validateAndCopyReport(temp_filename, file_rep, false, true);
 			QApplication::restoreOverrideCursor();
@@ -4293,14 +4269,12 @@ void MainWindow::applyFilters(bool debug_time)
 			}
 		}
 
-		//somatic report configuration filter (include variants that are marked as such in report config)
+		//somatic report configuration filter (include also variants that are marked as such in report config)
 		if(ReportSettingsType() == SettingsType::SOMATIC)
 		{
 			for(int index : somatic_report_settings_.report_config.variantIndices(VariantType::SNVS_INDELS, false))
 			{
-				if(filter_result_.flags()[index]) continue; //Skip variants that are marked to be shown by previous filters
-
-				filter_result_.flags()[index] = somatic_report_settings_.report_config.variantConfig(index).showInReport();
+				filter_result_.flags()[index] = filter_result_.flags()[index] || somatic_report_settings_.report_config.variantConfig(index).showInReport();
 			}
 		}
 

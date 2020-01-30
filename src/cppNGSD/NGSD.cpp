@@ -851,6 +851,33 @@ QPair<int, int> NGSD::variantCounts(const QString& variant_id)
 	return qMakePair(count_het, count_hom);
 }
 
+void NGSD::deleteSomaticVariants(QString t_ps_id, QString n_ps_id)
+{
+	deleteSomaticVariants(t_ps_id, n_ps_id, VariantType::SNVS_INDELS);
+	deleteSomaticVariants(t_ps_id, n_ps_id, VariantType::CNVS);
+}
+
+void NGSD::deleteSomaticVariants(QString t_ps_id, QString n_ps_id, VariantType type)
+{
+	if(type==VariantType::SNVS_INDELS)
+	{
+		getQuery().exec("DELETE FROM detected_somatic_variant WHERE processed_sample_id_tumor=" + t_ps_id + " AND processed_sample_id_normal=" +n_ps_id);
+	}
+	else if(type == VariantType::CNVS)
+	{
+		QString callset_id = getValue("SELECT id FROM somatic_cnv_callset WHERE ps_tumor_id=" + t_ps_id + " AND ps_normal_id=" + n_ps_id).toString();
+		if(callset_id != "")
+		{
+			getQuery().exec("DELETE FROM somatic_cnv WHERE somatic_cnv_callset_id=" + callset_id);
+			getQuery().exec("DELETE FROM somatic_cnv_callset WHERE id=" + callset_id);
+		}
+	}
+	else
+	{
+		THROW(NotImplementedException, "Deleting somatic variants of type '" + QString::number((int)type) + "' not implemented!");
+	}
+}
+
 void NGSD::deleteVariants(const QString& ps_id)
 {
 	deleteVariants(ps_id, VariantType::SNVS_INDELS);

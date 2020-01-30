@@ -40,7 +40,7 @@ public:
 	const QList<SomaticReportVariantConfiguration>& variantConfig() const;
 
 	///Returns variant configuration for variant_index (index referes to index of main variant list!)
-	const SomaticReportVariantConfiguration& variantConfig(int variant_index);
+	const SomaticReportVariantConfiguration& variantConfig(int variant_index) const;
 
 	QString targetFile() const;
 

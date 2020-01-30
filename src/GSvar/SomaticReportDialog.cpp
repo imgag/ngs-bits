@@ -96,3 +96,17 @@ void SomaticReportDialog::writeBackSettings()
 	settings_.include_tum_content_clonality = ui_.include_max_clonality->isChecked();
 	settings_.include_tum_content_histological = ui_.include_tum_content_histological->isChecked();
 }
+
+SomaticReportDialog::report_type SomaticReportDialog::getReportType()
+{
+	if(ui_.report_type_dna->isChecked()) return report_type::DNA;
+	else return report_type::RNA;
+}
+
+void SomaticReportDialog::enableChoiceReportType(bool enabled)
+{
+	ui_.report_type_label->setEnabled(enabled);
+	ui_.report_type_dna->setEnabled(enabled);
+	ui_.report_type_rna->setEnabled(enabled);
+}
+

@@ -33,7 +33,7 @@ const QList<SomaticReportVariantConfiguration>& SomaticReportConfiguration::vari
 	return variant_config_;
 }
 
-const SomaticReportVariantConfiguration& SomaticReportConfiguration::variantConfig(int variant_index)
+const SomaticReportVariantConfiguration& SomaticReportConfiguration::variantConfig(int variant_index) const
 {
 	for(const auto& conf : variant_config_)
 	{

@@ -486,6 +486,9 @@ public:
 	///Deletes the variants of a processed sample (a specific type)
 	void deleteVariants(const QString& ps_id, VariantType type);
 
+	void deleteSomaticVariants(QString t_ps_id, QString n_ps_id);
+	void deleteSomaticVariants(QString t_ps_id, QString n_ps_id, VariantType type);
+
 	///Adds a CNV to the NGSD. Returns the CNV ID.
 	QString addCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList& cnv_list, double max_ll = 0.0);
 	///Returns the NGSD ID for a CNV. Returns '' or throws an exception if the ID cannot be determined.
