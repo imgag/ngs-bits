@@ -1215,7 +1215,7 @@ const TableInfo& NGSD::tableInfo(QString table) const
 			else if(type.startsWith("enum("))
 			{
 				info.type = TableFieldInfo::ENUM;
-				info.type_restiction = type.mid(6, type.length()-8).split("','");
+				info.type_restiction = getEnum(table, info.name);
 			}
 			else if(type.startsWith("varchar("))
 			{
@@ -2288,7 +2288,7 @@ QString NGSD::nextProcessingId(const QString& sample_id)
 	return max_num.isEmpty() ? "1" : QString::number(max_num.toInt()+1);
 }
 
-QStringList NGSD::getEnum(QString table, QString column)
+QStringList NGSD::getEnum(QString table, QString column) const
 {
 	//check cache
 	static QMap<QString, QStringList> cache;

@@ -15,6 +15,10 @@ NGSD:
     - add sample groups (adding, editing, displaying)
 - Sample tab: allow import disease info, disease group/status, gender from same samples
 - Sample: allow several disease_groups per sample (requested by CS)
+- add multi-sample report-config
+    - 1 affected > easy
+    - >1 affected > how? edit all or ask which to edit?
+    - no report needed - is created from individual samples
 
 GSvar:
 #### gene selector: add support for CnvHunter (needs low-quality regions > update ClinCNV first)
