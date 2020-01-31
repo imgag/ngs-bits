@@ -27,8 +27,16 @@ protected slots:
 	void fillFormWithItemData();
 	//checks the form data of the sender widget and shows errors in the GUI (also stores them in 'errors_')
 	void check();
+	//checks the form data of the given field (also stores them in 'errors_')
+	void check(QString field_name);
+	//check all fields
+	void checkAllFields();
 	//edit date of QLineEdit corresponding to the sender button
 	void editDate();
+
+protected:
+	//reimplemented show event to update parent dialog button box
+	virtual void showEvent(QShowEvent* event) override;
 
 private:
 	NGSD db_;

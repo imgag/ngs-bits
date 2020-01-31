@@ -110,6 +110,7 @@ public slots:
 	void on_actionSender_triggered();
 	void on_actionSpecies_triggered();
 	void on_actionUsers_triggered();
+	void on_actionImportMids_triggered();
 
     ///Gender determination
 	void on_actionGenderXY_triggered();

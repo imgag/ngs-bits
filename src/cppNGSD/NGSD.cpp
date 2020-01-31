@@ -37,8 +37,9 @@ NGSD::NGSD(bool test_db)
 	}
 }
 
-int NGSD::userId(QString user_name)
+int NGSD::userId(QString user_name, bool only_active)
 {
+	//check user exists
 	bool ok = true;
 	int user_id = getValue("SELECT id FROM user WHERE user_id=:0", true, user_name).toInt(&ok);
 	if (!ok)
@@ -47,7 +48,13 @@ int NGSD::userId(QString user_name)
 	}
 	if (!ok)
 	{
-		THROW(DatabaseException, "Could not determine NGSD user ID for user name '" + user_name + "! Do you have an NGSD user account?");
+		THROW(DatabaseException, "Could not determine NGSD user ID for user name '" + user_name + "!");
+	}
+
+	//check user is active
+	if (only_active && !getValue("SELECT active FROM user WHERE id=" + QString::number(user_id), false).toBool())
+	{
+		THROW(DatabaseException, "User with user name '" + user_name + " is no longer active!");
 	}
 
 	return user_id;
@@ -65,6 +72,26 @@ QString NGSD::userEmail(int user_id)
 	if (user_id==-1) user_id = userId();
 
 	return getValue("SELECT email FROM user WHERE id=:0", false,  QString::number(user_id)).toString();
+}
+
+void NGSD::checkUserHasAccess(QStringList roles, QString user_name)
+{
+	//check roles are valid
+	QStringList valid_roles = getEnum("user", "user_role");
+	foreach(QString role, roles)
+	{
+		if (!valid_roles.contains(role)) THROW (ProgrammingException, "Invalid role '" + role + "' in checkUserRole!");
+	}
+
+	//check if user has role
+	int user_id = userId(user_name, true);
+	QString user_role = getValue("SELECT user_role FROM user WHERE id=:0", false, QString::number(user_id)).toString();
+	if (!roles.contains(user_role))
+	{
+		THROW(Exception, "Access denied.\nOnly users with the roles '" + roles.join("', '") + "' have access.\nThe user '" + user_name + "' has the role '" + user_role + "'!");
+		return;
+	}
+
 }
 
 const QString& NGSD::passordReplacement()

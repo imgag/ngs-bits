@@ -487,11 +487,13 @@ public:
 	CopyNumberVariant cnv(int cnv_id);
 
 	///Returns the database ID of the given user. If no user name is given, the current user from the environment is used. Throws an exception if the user is not in the NGSD user table.
-	int userId(QString user_name=Helper::userName());
+	int userId(QString user_name=Helper::userName(), bool only_active=false);
 	///Returns the user name corresponding the given ID. If no ID is given, the current users ID is used (see userId()).
 	QString userName(int user_id=-1);
 	///Returns the user email corresponding the given ID. If no ID is given, the current user ID is used (see userId()).
 	QString userEmail(int user_id=-1);
+	///Checks that the user has one of the given user roles. Throws an Exception otherwise.
+	void checkUserHasAccess(QStringList roles, QString user_name=Helper::userName());
 	///Replacement for passwords when they are shown in the GUI.
 	static const QString& passordReplacement();
 
